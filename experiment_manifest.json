@@ -1,11 +1,29 @@
 {
   "project": "JANUS P-N Junction Experiments",
   "repository": "Hawkar-usls/Janus-P-N-junction",
-  "manifest_version": "0.2.0",
-  "created_utc": "2026-08-01T16:07:00Z",
+  "manifest_version": "2.0.0",
+  "updated_utc": "2026-08-01T18:08:00Z",
   "status": "active_experimental_research",
-  "research_question": "Can an information-junction model inspired by p-n semiconductor dynamics reduce SAT search transitions without hiding exponential cost in time, energy, precision, communication, or preprocessing?",
-  "claim_boundary": "No result in this repository proves P=NP, polynomial worst-case scaling, or physical equivalence between semiconductor p-n junctions and complexity classes P/NP.",
+  "current_release": "v2.0-selective-distributed",
+  "research_question": "Can an information-junction model inspired by p-n semiconductor dynamics reduce SAT solution latency without hiding exponential cost in time, energy, precision, communication, memory, preprocessing, or parallel work?",
+  "claim_boundary": "No result in this repository proves P=NP, polynomial worst-case scaling, physical equivalence between semiconductor p-n junctions and complexity classes P/NP, or superiority over state-of-the-art SAT solvers.",
+  "lineage": {
+    "janus_demiurge": "Hawkar-usls/Janus-Demiurge",
+    "distributed_swarm": "Hawkar-usls/janus-distributed-ai-swarm",
+    "prior_article": {
+      "title": "Project JANUS v7.2: How I Built a Self-Learning SAT-Solver That Breaks Its Own Records (And Why P=NP Is No Longer a Philosophy)",
+      "published": "2026-03-30",
+      "inherited_mechanisms": [
+        "clause weighting",
+        "WalkSAT",
+        "hill climbing",
+        "memory injection",
+        "adaptive timeout and resource budget",
+        "EXPLORE / EXPLOIT / HUNT / SURVIVE / CHAOS controller modes",
+        "hunger-driven escape from stagnation"
+      ]
+    }
+  },
   "experiments": [
     {
       "id": "junction-v0.1",
@@ -13,27 +31,10 @@
       "seed": 440221,
       "trials_per_point": 8,
       "budget_factor_steps_per_variable": 35,
-      "methods": [
-        "random",
-        "walksat",
-        "junction"
-      ],
+      "methods": ["random", "walksat", "junction"],
       "instances": "planted satisfiable random 3-SAT and 5-SAT",
       "headline": "At 3-SAT n=48, median solved steps were 128 for WalkSAT and 36.5 for Junction; both solved 8/8.",
-      "files": {
-        "code": {
-          "path": "experiments/v0.1-junction/junction_sim.py",
-          "sha256": "b8cceadbb1273939e7603e12d200252e1a56b16369a0206c02f0c3cb0a9840a0"
-        },
-        "summary_csv": {
-          "path": "experiments/v0.1-junction/results.csv",
-          "sha256": "03bcf403a22db79659aa966efd94f8fe0a33c10873cf660de157ac1a423331a4"
-        },
-        "full_json": {
-          "path": "experiments/v0.1-junction/results.json",
-          "sha256": "58f9a31624bbfa1c8ad4adbcded891c8c007b9e411dedf8155603a1aaa9f9227"
-        }
-      }
+      "status": "exploratory_pass"
     },
     {
       "id": "junction-tunnel-v0.2",
@@ -41,11 +42,7 @@
       "seed": 440222,
       "trials_per_point": 16,
       "budget_factor_steps_per_variable": 28,
-      "methods": [
-        "walksat",
-        "junction_base",
-        "junction_tunnel"
-      ],
+      "methods": ["walksat", "junction_base", "junction_tunnel"],
       "instances": "planted satisfiable random 3-SAT and 5-SAT",
       "escape_mechanisms": [
         "adaptive barrier energy",
@@ -54,38 +51,100 @@
         "coherent multi-flip avalanche pulse",
         "partial charge discharge"
       ],
-      "headline": "At 3-SAT n=64, solve rates were 15/16 WalkSAT and 16/16 for both Junction variants; median solved steps were 155, 55, and 42 respectively.",
+      "headline": "At 3-SAT n=64, medians were 155 WalkSAT, 55 Junction Base, and 42 Junction Tunnel.",
       "negative_result": "At 3-SAT n=32, tunneling regressed median steps from 38 to 48 because escape activation was too aggressive.",
-      "files": {
-        "code": {
-          "path": "experiments/v0.2-tunnel/junction_tunnel_sim.py",
-          "sha256": "9c4d25c511f78b1815c829f09ff38a214eb2d825b5de260dcb1144b74f267d35"
-        },
-        "summary_csv": {
-          "path": "experiments/v0.2-tunnel/results.csv",
-          "sha256": "4da1b53bf383192c05ed336f43663362c54ebfe29aa7cb58b49e8b58ecccf40a"
-        },
-        "full_json": {
-          "path": "experiments/v0.2-tunnel/results.json",
-          "sha256": "8e6e91adc8217ef4bdf4b10cbd029665e956dd0fbe729df9c8a7a8272b7d4fd5",
-          "scope": "summary rows; detailed trial records are reproducible by rerunning the code"
-        }
-      }
+      "status": "partial_pass"
+    },
+    {
+      "id": "adaptive-depletion-v0.3",
+      "path": "runtime_archive/JANUS-P-N-Junction-v0.3",
+      "seed": 440223,
+      "methods": ["walksat", "junction_base", "junction_tunnel_v02", "junction_adaptive_v03"],
+      "headline": "Adaptive depth removed most false breakdowns and reduced aggregate 3-SAT median transitions, but one hard n=64 instance exposed excessive uphill acceptance and avalanche probing.",
+      "retained_as": "untouched LEGACY_V03 control lane inside v2.0",
+      "status": "partial_pass_with_recorded_failure"
+    },
+    {
+      "id": "selective-distributed-v2.0",
+      "path": "experiments/v2.0-selective-distributed",
+      "holdout_seed": 440224,
+      "parameter_freeze": "before holdout",
+      "budget_factor_rounds_per_variable": 28,
+      "instances": {
+        "3sat": "64 planted random instances near alpha 4.26; n=32,48,64,96,128,160,192,240; 8 trials per size",
+        "5sat": "24 planted random instances near alpha 6.1; n=64,96,128; 8 trials per size",
+        "unsat_core": "18 guaranteed contradictory complete sign-core instances"
+      },
+      "roles": {
+        "GLADIUS_SELECTIVE": "weakened oscillation, persistent charge, double-gated tested avalanche",
+        "LEGACY_V03": "untouched shadow/control lane with matched initial RNG state",
+        "ANCHOR": "selectively activated stable fallback field",
+        "SCOUT": "bounded CHAOS fallback; not activated in holdout",
+        "HOLOCRON": "coordinator, verifier and future physical display/witness"
+      },
+      "results": {
+        "solve_rate_v03": 1.0,
+        "solve_rate_v20": 1.0,
+        "median_latency_v03": 116.5,
+        "median_latency_v20": 87.0,
+        "median_improvement_pct": 25.321888412017167,
+        "mean_latency_v03": 155.96875,
+        "mean_latency_v20": 137.375,
+        "p90_latency_v03": 334.0,
+        "p90_latency_v20": 316.0,
+        "paired_faster": 25,
+        "paired_tied": 39,
+        "paired_slower": 0,
+        "winner_roles": {"LEGACY_V03": 39, "GLADIUS_SELECTIVE": 24, "ANCHOR": 1},
+        "mean_total_work_v03": 155.96875,
+        "mean_total_work_v20": 329.1875,
+        "aggregate_work_ratio": 2.110599078341014,
+        "python_sequential_wall_time_ratio": 2.074591267891598,
+        "unsat_false_sat": 0,
+        "proven_no_recombination": 18
+      },
+      "no_recombination_states": {
+        "PROVEN_NO_RECOMBINATION": "sound only when a complete sign-core witness is present",
+        "SEARCH_EXHAUSTED_NO_PROOF": "budget exhausted without a sound UNSAT witness; never promoted to proof"
+      },
+      "artifacts": {
+        "report": "experiments/v2.0-selective-distributed/REPORT.md",
+        "summary": "experiments/v2.0-selective-distributed/release_summary.json",
+        "latency_csv": "experiments/v2.0-selective-distributed/latency_comparison.csv",
+        "roles_csv": "experiments/v2.0-selective-distributed/winner_roles_by_size.csv",
+        "swarm_plan": "experiments/v2.0-selective-distributed/SWARM_INTEGRATION.md",
+        "hashes": "experiments/v2.0-selective-distributed/sha256.json",
+        "bundle_sha256": "0eb899ea983fd7849b27e10667ff8fabe553389d51e02b8adec8cf07754f47e2"
+      },
+      "status": "PASS_DISTRIBUTED_LATENCY_GATE",
+      "interpretation": "v2.0 lowers first-solution latency through a selectively activated distributed portfolio while openly paying approximately 2.11x aggregate work. It is not a single-node complexity improvement."
     }
   ],
+  "physical_target": {
+    "repository": "Hawkar-usls/janus-distributed-ai-swarm",
+    "role_map": {
+      "Gladius": "GLADIUS_SELECTIVE",
+      "Anchor": "ANCHOR_STABLE",
+      "Holocron": "LEGACY_V03 plus coordinator and independent verifier",
+      "optional_Zim_or_brother": "SCOUT_CHAOS"
+    },
+    "protocol_rule": "Do not modify existing Buzz J/B, share S/2, Janus J/T, or observer P/N ABIs. Add a separate versioned J/P v2 SAT experiment packet family.",
+    "telemetry_rule": "Report elapsed latency, total work, memory reconstruction, probe flips, packet count, packet loss, energy and stale-node events separately."
+  },
   "next_gate": {
-    "name": "adaptive depletion-depth detector",
+    "name": "physical_swarm_v2.1_and_standard_benchmark_gate",
     "required_controls": [
-      "same initial assignments across methods",
-      "more trials",
-      "larger n",
-      "known UNSAT instances",
-      "standard SAT benchmark families",
+      "byte-identical formula and initial assignment hashes on all nodes",
+      "Holocron independent clause verification",
+      "real parallel elapsed time and per-node energy",
+      "ESP-NOW message, loss and stale-node accounting",
+      "preserved untouched v0.3 control lane",
+      "standard DIMACS random and crafted benchmark families",
+      "comparison with CDCL and stronger local-search baselines",
       "incremental clause bookkeeping",
-      "wall-time, memory, energy and communication accounting",
-      "confidence intervals",
-      "ablation of each escape mechanism"
+      "confidence intervals and paired significance tests",
+      "no-recombination proof kept separate from search exhaustion"
     ],
-    "failure_condition": "If the apparent step advantage disappears under matched initialization, standard benchmarks, incremental implementations, or resource-normalized accounting, the Junction advantage claim must be reduced or rejected."
+    "failure_condition": "If physical latency gains vanish after communication, energy and aggregate-work normalization, or if gains disappear on standard/crafted benchmarks, the distributed advantage claim must be reduced or rejected."
   }
 }
