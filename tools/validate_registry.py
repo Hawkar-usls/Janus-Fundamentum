@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """Validate the JANUS machine-readable proof-search registry.
 
-The validator checks syntax, IDs, cross-references, status rules, and a stable
-SHA-256 digest of the canonical JSON payloads. It uses only the Python standard
-library so that independent reproduction is straightforward.
+The validator checks syntax, IDs, cross-references, status rules, literature
+references, modular attack ledgers, and a stable SHA-256 digest of canonical
+JSON payloads. It uses only the Python standard library.
 """
 
 from __future__ import annotations
@@ -20,11 +20,11 @@ REGISTRY = ROOT / "registry"
 FILES = {
     "schema": REGISTRY / "schema.json",
     "hypotheses": REGISTRY / "hypotheses.json",
-    "attacks": REGISTRY / "attacks.json",
     "graveyard": REGISTRY / "graveyard.json",
     "observations": REGISTRY / "observations.json",
     "journal": REGISTRY / "journal.json",
     "genealogy": REGISTRY / "genealogy.json",
+    "references": REGISTRY / "references.json",
 }
 
 
@@ -74,10 +74,22 @@ def canonical_digest(payloads: dict[str, Any]) -> str:
 
 def validate() -> str:
     data = {name: load_json(path) for name, path in FILES.items()}
-    schema = data["schema"]
 
+    attack_paths = sorted(REGISTRY.glob("attacks*.json"))
+    if not attack_paths:
+        raise RegistryError("no attack ledger files found")
+    attack_payloads = {path.name: load_json(path) for path in attack_paths}
+    attacks = [
+        item
+        for path in attack_paths
+        for item in attack_payloads[path.name].get("attacks", [])
+    ]
+    data["attack_files"] = attack_payloads
+
+    schema = data["schema"]
     required_h = schema["required_hypothesis_fields"]
     required_a = schema["required_attack_fields"]
+    required_r = schema["required_reference_fields"]
     live_statuses = set(schema["allowed_hypothesis_statuses"])
     terminal_statuses = set(schema["allowed_terminal_statuses"])
     attack_results = set(schema["allowed_attack_results"])
@@ -86,19 +98,21 @@ def validate() -> str:
     a_pattern = re.compile(schema["id_patterns"]["attack"])
     o_pattern = re.compile(schema["id_patterns"]["observation"])
     c_pattern = re.compile(schema["id_patterns"]["cycle"])
+    r_pattern = re.compile(schema["id_patterns"]["reference"])
 
     hypotheses = data["hypotheses"]["hypotheses"]
-    attacks = data["attacks"]["attacks"]
     graveyard = data["graveyard"]["entries"]
     observations = data["observations"]["observations"]
     cycles = data["journal"]["cycles"]
     genealogy = data["genealogy"]["nodes"]
+    references = data["references"]["references"]
 
     hypothesis_ids = unique_ids(hypotheses, "hypothesis")
     attack_ids = unique_ids(attacks, "attack")
     graveyard_ids = unique_ids(graveyard, "graveyard")
-    observation_ids = unique_ids(observations, "observation")
-    cycle_ids = unique_ids(cycles, "cycle")
+    unique_ids(observations, "observation")
+    unique_ids(cycles, "cycle")
+    reference_ids = unique_ids(references, "reference")
 
     for item in hypotheses:
         hid = item["id"]
@@ -116,6 +130,9 @@ def validate() -> str:
         for aid in item["registered_attacks"]:
             if aid not in attack_ids:
                 raise RegistryError(f"{hid} references missing attack {aid}")
+        for rid in item.get("literature_refs", []):
+            if rid not in reference_ids:
+                raise RegistryError(f"{hid} references missing literature source {rid}")
 
     all_hypothesis_ids = hypothesis_ids | graveyard_ids
     for item in attacks:
@@ -124,9 +141,7 @@ def validate() -> str:
         if not a_pattern.fullmatch(aid):
             raise RegistryError(f"invalid attack id format: {aid}")
         if item["hypothesis_id"] not in all_hypothesis_ids:
-            raise RegistryError(
-                f"{aid} references unknown hypothesis {item['hypothesis_id']}"
-            )
+            raise RegistryError(f"{aid} references unknown hypothesis {item['hypothesis_id']}")
         if item["result"] not in attack_results:
             raise RegistryError(f"{aid} has invalid result: {item['result']}")
         if item["decisive"] and item["result"] != "DESTROYED":
@@ -135,9 +150,7 @@ def validate() -> str:
     for item in graveyard:
         status = item.get("terminal_status")
         if status not in terminal_statuses:
-            raise RegistryError(
-                f"{item['id']} has invalid terminal status: {status}"
-            )
+            raise RegistryError(f"{item['id']} has invalid terminal status: {status}")
         if not item.get("reason"):
             raise RegistryError(f"{item['id']} has no terminal reason")
 
@@ -155,13 +168,22 @@ def validate() -> str:
             if aid not in attack_ids:
                 raise RegistryError(f"{item['id']} references missing attack {aid}")
 
+    for item in references:
+        rid = item["id"]
+        require_fields(item, required_r, rid)
+        if not r_pattern.fullmatch(rid):
+            raise RegistryError(f"invalid reference id format: {rid}")
+        if not isinstance(item["url"], str) or not item["url"].startswith("https://"):
+            raise RegistryError(f"{rid} has invalid URL")
+        for hid in item["supports"]:
+            if hid not in hypothesis_ids:
+                raise RegistryError(f"{rid} supports unknown live hypothesis {hid}")
+
     genealogy_ids = unique_ids(genealogy, "genealogy node")
     if genealogy_ids != hypothesis_ids:
         missing = sorted(hypothesis_ids - genealogy_ids)
         extra = sorted(genealogy_ids - hypothesis_ids)
-        raise RegistryError(
-            f"genealogy mismatch; missing={missing}, extra={extra}"
-        )
+        raise RegistryError(f"genealogy mismatch; missing={missing}, extra={extra}")
     for node in genealogy:
         for parent in node.get("parents", []):
             if parent not in all_hypothesis_ids:
