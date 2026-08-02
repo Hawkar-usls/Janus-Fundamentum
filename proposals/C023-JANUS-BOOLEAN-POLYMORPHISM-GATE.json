@@ -1,0 +1,159 @@
+{
+  "artifact_id": "C023-JANUS-BOOLEAN-POLYMORPHISM-GATE",
+  "status": "PASS",
+  "research_status": "EXPLORATORY_SOFTWARE_ONLY_NOT_CANONICAL",
+  "seed": 9379992,
+  "canonical_seed_sha256": "44e21fdc9d37fda98e2e73b0c9eb268bd04cdca9d84d0519e4f1166be22b46fc",
+  "software_only": true,
+  "general_sat_oracle_called": false,
+  "swarm_touched": false,
+  "devices_touched": false,
+  "nas_touched": false,
+  "external_models_called": false,
+  "gate": {
+    "operations": ["ZERO", "ONE", "AND", "OR", "MAJ", "XOR3"],
+    "dispatch": {
+      "ZERO": "all-zero witness",
+      "ONE": "all-one witness",
+      "AND": "Horn forward chaining",
+      "OR": "dual-Horn forward chaining",
+      "MAJ": "2-SAT implication SCC",
+      "XOR3": "GF(2) Gaussian elimination"
+    },
+    "component_rule": "Every connected constraint component must have at least one common verified operation.",
+    "failure_behavior": "OPEN"
+  },
+  "canonical_fingerprints": {
+    "TRUE3": ["AND", "MAJ", "ONE", "OR", "XOR3", "ZERO"],
+    "NAND3": ["AND", "ZERO"],
+    "OR3": ["ONE", "OR"],
+    "NEQ2": ["MAJ", "XOR3"],
+    "EQ2": ["AND", "MAJ", "ONE", "OR", "XOR3", "ZERO"],
+    "IMP2": ["AND", "MAJ", "ONE", "OR", "ZERO"],
+    "XOR3_EVEN": ["XOR3", "ZERO"],
+    "SWITCH_HETEROGENEOUS": []
+  },
+  "exhaustive_ternary_relations": {
+    "relations": 256,
+    "preservation_counts": {"ZERO": 128, "AND": 121, "OR": 121, "MAJ": 165, "XOR3": 51, "ONE": 128},
+    "reconstruction_checks": {"AND": 121, "OR": 121, "MAJ": 165, "XOR3": 51},
+    "distinct_signatures": 23,
+    "top_signatures": [
+      ["AND,MAJ,ZERO", 28], ["MAJ,ONE,OR", 28], ["AND,MAJ,ONE,OR,ZERO", 24],
+      ["MAJ", 18], ["ZERO", 18], ["ONE", 18], ["NONE", 16],
+      ["AND,ONE,ZERO", 16], ["ONE,OR,ZERO", 16], ["AND,MAJ,OR,XOR3", 12],
+      ["MAJ,XOR3", 12], ["AND,MAJ,OR,XOR3,ZERO", 10],
+      ["AND,MAJ,ONE,OR,XOR3", 10], ["AND,MAJ,OR,ZERO", 6],
+      ["AND,MAJ,ONE,OR", 6], ["AND,MAJ,ONE,OR,XOR3,ZERO", 5],
+      ["MAJ,OR", 3], ["AND,MAJ", 3], ["ONE,ZERO", 3], ["XOR3,ZERO", 1]
+    ],
+    "failures": []
+  },
+  "random_tractable_fuzz": {
+    "cases": 200,
+    "mismatches": 0,
+    "false_accepts": 0,
+    "open": 0,
+    "dispatch_targets": {"AND": 47, "ZERO": 7, "OR": 46, "ONE": 4, "MAJ": 79, "XOR3": 17},
+    "bruteforce_assignments_checked": 9869
+  },
+  "component_rescue": {
+    "cases": 100,
+    "global_common_fingerprint": [],
+    "component_dispatch_mismatches": 0,
+    "component_dispatch_open": 0,
+    "targets": {"ZERO": 104, "MAJ": 128},
+    "result": "Disconnected components need not share one global polymorphism; HRain-style decomposition allows separate exact dispatch."
+  },
+  "heterogeneous_backdoor": {
+    "switch_fingerprint": [],
+    "single_minimum_backdoor": [1],
+    "z_zero_fingerprint": ["AND", "MAJ", "OR", "XOR3"],
+    "z_one_fingerprint": ["MAJ", "XOR3"],
+    "disjoint_blocks": [
+      {"blocks": 1, "minimum_backdoor_size": 1, "backdoor": [1], "trivial_sat_witness_exists": true},
+      {"blocks": 2, "minimum_backdoor_size": 2, "backdoor": [1, 5], "trivial_sat_witness_exists": true},
+      {"blocks": 3, "minimum_backdoor_size": 3, "backdoor": [1, 5, 9], "trivial_sat_witness_exists": true},
+      {"blocks": 4, "minimum_backdoor_size": 4, "backdoor": [1, 5, 9, 13], "trivial_sat_witness_exists": true},
+      {"blocks": 5, "minimum_backdoor_size": 5, "backdoor": [1, 5, 9, 13, 17], "trivial_sat_witness_exists": true}
+    ],
+    "interpretation": "A one-variable strong heterogeneous backdoor can choose different tractable polymorphisms in different branches. Repeating an easy switch component makes this fixed backdoor target linear even though the whole disconnected instance is trivially satisfiable."
+  },
+  "three_sat_hard_boundary": {
+    "cases": 80,
+    "sat": 40,
+    "unsat": 40,
+    "mapping_failures": 0,
+    "dispatcher_open": 80,
+    "dispatcher_false_accepts": 0,
+    "nand3_fingerprint": ["AND", "ZERO"],
+    "neq_fingerprint": ["MAJ", "XOR3"],
+    "common_fingerprint": [],
+    "component_common_masks": {"NONE": 81, "MAJ,XOR3": 17},
+    "reduction": "For each x introduce c with NEQ(x,c); replace positive x by c inside NAND3 and negative -x by x.",
+    "consequence": "The fixed Boolean language {NAND3, NEQ} has no Schaefer polymorphism and linearly expresses arbitrary 3-SAT."
+  },
+  "assertions": {
+    "all_ternary_reconstructions_exact": true,
+    "tractable_fuzz_exact": true,
+    "component_rescue_exact": true,
+    "switch_has_no_global_gate": true,
+    "switch_backdoor_one": true,
+    "hard_reduction_exact": true,
+    "hard_language_no_common_polymorphism": true
+  },
+  "positive_result": "All 256 ternary Boolean relations were exhaustively classified and every relation preserving AND, OR, majority, or minority was compiled back into an exact Horn, dual-Horn, 2-CNF, or affine representation. Connected components sharing a verified operation are dispatched without a general SAT oracle.",
+  "negative_result": "Separate tractability is insufficient. NAND3 is Horn and NEQ is bijunctive/affine, but their common Schaefer fingerprint is empty; the pair linearly expresses arbitrary 3-SAT.",
+  "distance_to_p_equals_np": {
+    "mathematical_status": "UNCHANGED_OPEN",
+    "what_improved": [
+      "The interface-language portfolio now has a machine-checkable algebraic admission gate rather than ad hoc class names.",
+      "The exact obstruction is a loss of a common polymorphism, not merely the coexistence of different syntactic formats.",
+      "Component decomposition and heterogeneous strong backdoors are cleanly separated from the fixed-language gate."
+    ],
+    "remaining_target": "Exploit instance-specific structure after the common-polymorphism intersection becomes empty: small fracture sets, low-width incidence structure, or a new proof system whose operations are not captured by one fixed Boolean constraint language."
+  },
+  "surviving_conjecture": {
+    "name": "Polynomial Instance-Specific Polymorphism Fracture Conjecture",
+    "statement": "Every CNF instance admits a polynomially discoverable proof-carrying decomposition into regions with Schaefer polymorphisms, connected through a polynomial total fracture interface that supports witness recovery.",
+    "status": "OPEN",
+    "warning": "The fixed-language version is blocked by Schaefer's dichotomy; only genuinely instance-specific structure can remain."
+  },
+  "literature_boundary": {
+    "schaefer_1978": "For a fixed Boolean constraint language, generalized SAT is polynomial in the Schaefer cases and NP-complete otherwise.",
+    "algebraic_view": "Polymorphisms encode closure properties determining CSP complexity and justify the gate used here."
+  },
+  "integrity": {"sha256": "0eb2f7e464ffa353a98cb475013ba7086afc75787fe39ce61dd34cf85090de46"},
+  "created_utc": "2026-08-02T19:56:00Z",
+  "repository": "Hawkar-usls/Janus-P-N-junction",
+  "branch": "research/c023-polymorphism-fracture-gate",
+  "base_commit": "994dd693604d1f557c367acc7b1b3ed6083ee4a8",
+  "references": [
+    {
+      "authors": "Thomas J. Schaefer",
+      "title": "The Complexity of Satisfiability Problems",
+      "venue": "STOC 1978, pages 216-226",
+      "doi": "10.1145/800133.804350",
+      "role": "Boolean generalized-SAT dichotomy: the fixed-language tractable cases versus NP-completeness."
+    },
+    {
+      "authors": "Peter Jeavons",
+      "title": "On the Algebraic Structure of Combinatorial Problems",
+      "venue": "Theoretical Computer Science 200 (1998), 185-204",
+      "doi": "10.1016/S0304-3975(97)00230-2",
+      "role": "Algebraic/polymorphism view linking closure operations to CSP complexity."
+    }
+  ],
+  "reproduction": "python experiments/direct/janus_c023_polymorphism_gate.py --self-test",
+  "source_layout": {
+    "entry": "experiments/direct/janus_c023_polymorphism_gate.py",
+    "modules": [
+      "experiments/direct/janus_c023_primitives.py",
+      "experiments/direct/janus_c023_affine.py",
+      "experiments/direct/janus_c023_basis.py",
+      "experiments/direct/janus_c023_polymorphism_core.py",
+      "experiments/direct/janus_c023_polymorphism_dispatch.py",
+      "experiments/direct/janus_c023_polymorphism_fixtures.py"
+    ]
+  }
+}
