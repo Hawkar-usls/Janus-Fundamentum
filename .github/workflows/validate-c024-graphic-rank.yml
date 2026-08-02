@@ -1,0 +1,41 @@
+name: Validate C024 Graphic Rank
+
+on:
+  push:
+    paths:
+      - "experiments/direct/janus_tear_gt_graphic_rank_branch_audit.py"
+      - "experiments/direct/janus_tear_gt_resolution_graphic_rank_audit.py"
+      - "experiments/direct/janus_tear_gt_graphic_rank_summary.py"
+      - "experiments/direct/janus_tear_gt_directed_component_clause_audit.py"
+      - "proof_attempts/C024/GT_GRAPHIC_RANK_BRANCH_LEMMA.md"
+      - "proof_attempts/C024/GT_GRAPHIC_RANK_RESOLUTION_LEMMA.md"
+      - ".github/workflows/validate-c024-graphic-rank.yml"
+  pull_request:
+    paths:
+      - "experiments/direct/janus_tear_gt_graphic_rank_branch_audit.py"
+      - "experiments/direct/janus_tear_gt_resolution_graphic_rank_audit.py"
+      - "experiments/direct/janus_tear_gt_graphic_rank_summary.py"
+      - "experiments/direct/janus_tear_gt_directed_component_clause_audit.py"
+      - "proof_attempts/C024/GT_GRAPHIC_RANK_BRANCH_LEMMA.md"
+      - "proof_attempts/C024/GT_GRAPHIC_RANK_RESOLUTION_LEMMA.md"
+      - ".github/workflows/validate-c024-graphic-rank.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  graphic-rank:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Verify graphic-rank branch monotonicity
+        run: python experiments/direct/janus_tear_gt_graphic_rank_branch_audit.py
+      - name: Verify one-step Resolution rank loss
+        run: python experiments/direct/janus_tear_gt_resolution_graphic_rank_audit.py
+      - name: Emit compact graphic-rank summary
+        run: python experiments/direct/janus_tear_gt_graphic_rank_summary.py
+      - name: Classify directed component clauses
+        run: python experiments/direct/janus_tear_gt_directed_component_clause_audit.py
