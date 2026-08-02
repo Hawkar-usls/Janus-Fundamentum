@@ -14,6 +14,7 @@ This repository does **not** claim that `P = NP` or `P != NP` has been proved.
 4. Pressure is not converted into a terminal result without a decisive theorem, counterexample, or formulation failure.
 5. Exact verification is not certificate existence or efficient discovery.
 6. Every direct-separation funnel states every implication needed to reach `P != NP` and identifies its first unproved theorem.
+7. Positive examples alone cannot refute arbitrary classifiers unless a formal soundness restriction excludes false-positive supersets.
 
 ## Validate the organism
 
@@ -38,22 +39,73 @@ python experiments/theta/seeded_ldl_stress.py --self-test
 python experiments/direct/sat_error_audit.py --self-test
 python experiments/direct/rewrite_chain_audit.py --self-test
 python experiments/direct/local_neighborhood_audit.py --self-test
+python experiments/direct/positive_only_antichecker_obstruction.py --self-test
 ```
 
-# Current status — C015
+# Current status — C016
 
-C015 compresses active priority into three funnels.
+C016 attacks the shortest C015 funnel before attempting construction.
 
 ```text
-NEW DESCENDANTS             6   H110-H115
-CURRENT-CYCLE ATTACKS      40   A371-A410
-INHERITED TARGETS          16
-TERMINAL RESULTS            0
-LIVE HYPOTHESES           103
-TERMINAL HISTORICAL NODES  12
+NEW DESCENDANTS             1   H116
+CURRENT-CYCLE ATTACKS       8   A411-A418
+INHERITED TARGETS           4
+TERMINAL RESULTS            2   H112,H113
+LIVE HYPOTHESES           102
+TERMINAL HISTORICAL NODES  14
 ```
 
-## Funnel A — Extended Frege rewrite distance
+## Decisive obstruction
+
+The C015 positive-only route required every polynomial-size candidate SAT circuit to reject at least one listed satisfiable formula. The constant circuit
+
+```text
+C_top(F) = 1
+```
+
+accepts every satisfiable formula, so it has no false negative on any positive-only list. It is still not a SAT decider because it accepts unsatisfiable formulas.
+
+Therefore:
+
+- `H112` is destroyed by `A411`;
+- `H113` is destroyed by `A412` because no decoder can output a satisfiable `F` with `C_top(F)=0`.
+
+```bash
+python experiments/direct/positive_only_antichecker_obstruction.py --self-test
+```
+
+Expected headline:
+
+```text
+JANUS_POSITIVE_ONLY_ANTICHECKER_OBSTRUCTION = PASS
+```
+
+## Repaired direct SAT route
+
+`H116` restricts the quantified circuits to circuits sound for SAT:
+
+```text
+C(G)=1  ->  G is satisfiable.
+```
+
+The repaired implication chain is:
+
+```text
+H116 sound-circuit positive anti-checker
+  -> no polynomial-size exact SAT circuit
+  -> SAT not in P/poly
+  -> P != NP
+```
+
+The first unproved theorem is now precise: construct a uniformly generated, fully charged positive list that no small SAT-sound circuit covers, without testing soundness or solving SAT.
+
+A second attack remains active: a circuit can hardcode membership in the listed satisfiable formulas and remain sound. Its size must be compared explicitly with the target `n^k` budget.
+
+Read [`proof_attempts/H112/POSITIVE_ONLY_OBSTRUCTION.md`](proof_attempts/H112/POSITIVE_ONLY_OBSTRUCTION.md) and [`docs/C016_POSITIVE_ONLY_OBSTRUCTION.md`](docs/C016_POSITIVE_ONLY_OBSTRUCTION.md).
+
+## Other active funnels
+
+### Extended Frege rewrite distance
 
 ```text
 H035
@@ -65,33 +117,9 @@ H035
   -> P != NP
 ```
 
-A short Extended Frege proof is already known to induce a polynomial chain under a polynomial-time local circuit relation with at most seven new gates per step. The missing theorem is now explicit: find a polynomial-time potential with a polynomial one-step change bound and a superpolynomial endpoint gap on transparently equivalent circuits.
+The missing theorem remains a polynomial-time potential with polynomial one-step change and a superpolynomial endpoint gap on transparently equivalent circuits.
 
-```bash
-python experiments/direct/rewrite_chain_audit.py --self-test
-```
-
-The test checks only finite artifact semantics and cannot prove the asymptotic lower bound.
-
-## Funnel B — one-sided SAT anti-checkers
-
-```text
-H031/H056
-  -> H112 satisfiable false-negative anti-checkers
-  -> H113 range-avoidance decoder preserving a SAT witness
-  -> SAT not in P/poly
-  -> P != NP
-```
-
-A false negative has a polynomially checkable satisfying assignment. A false positive needs an unsatisfiability certificate and adds an avoidable `coNP` obligation. C015 removes false positives from the target entirely.
-
-```bash
-python experiments/direct/sat_error_audit.py --self-test
-```
-
-The remaining wall is uniform construction: the anti-checker may not solve SAT or circuit correctness while generating its list.
-
-## Funnel C — fixed local compiler obstruction
+### Fixed local compiler obstruction
 
 ```text
 H106/H107
@@ -100,22 +128,10 @@ H106/H107
   -> no fixed constant-pass H106 compiler
 ```
 
-H114 requires explicit opposite-label CNFs with identical rooted signed-neighborhood multisets through the complete ancestry radius. H115 must then control global output assembly, treewidth dynamic programming, and all recovery annotations.
+This route eliminates only the stated restricted compiler class; it is not a lower bound against unrestricted polynomial-time algorithms.
 
-```bash
-python experiments/direct/local_neighborhood_audit.py --self-test
-```
+## Genesis boundary
 
-This funnel eliminates only a restricted proposed route to `P = NP`; it is not a general lower bound against polynomial-time algorithms.
-
-## Deprioritized, not rejected
-
-H032, H036-H039, and H057-H059 remain live but outside the shortest current funnels. They still face tautologicity, unrestricted extraction, model-definition, or indirectness barriers.
-
-Read [`docs/C015_DIRECT_SEPARATION_FUNNEL.md`](docs/C015_DIRECT_SEPARATION_FUNNEL.md).
-
-## Previous exact breakthrough retained
-
-C013-C014 produced an exact connected graph-level SAT/UNSAT collision for the standard first Lovasz-theta relaxation. It remains an unconditional limitation of that relaxation, not a solution of `P` versus `NP`.
+Genesis may preserve continuity, identity, and a research chronicle. It does not convert fictional unlimited time into evidence. Every result re-enters the registry only through an explicit proof, counterexample, or reproducible artifact.
 
 No JANUS result currently resolves `P` versus `NP`.
