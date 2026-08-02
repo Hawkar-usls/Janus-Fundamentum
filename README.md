@@ -39,30 +39,39 @@ python tools/validate_registry.py
 
 GitHub Actions runs the same validation on every pull request and push.
 
-## Current laboratory status — C004
+## Current laboratory status — C005
 
-The refutation sweep leaves **17 live hypotheses** and retires two C003 entries:
+After the C004 destruction of `H016` and rejection of `H018`, cycle C005 adds exactly ten attacked survivors `H020-H029`. The laboratory now contains **27 live hypotheses**.
 
-### H016 — DESTROYED
+### Cutting Planes and Stabbing Planes
 
-The promised polynomial-size d-DNNF `D(x,y)` projected exactly to the original CNF. Forgetting `y` preserves ordinary DNNF and does not increase size. Explicit polynomial-size CNF families require exponential DNNF size, yielding a direct contradiction.
+- `H020` asks whether the proved general dag-like Cutting Planes lower bound for concise pigeonhole formulas can be strengthened to `2^(Omega(n))`.
+- `H021` asks for a superpolynomial unrestricted Stabbing Planes size lower bound.
+- `H022` proposes a polynomial Cutting Planes simulation of unrestricted Stabbing Planes.
+- `H023` proposes the incompatible counterfrontier: a superpolynomial Stabbing Planes-versus-Cutting-Planes separation.
 
-Read [`proof_attempts/H016/REFUTATION.md`](proof_attempts/H016/REFUTATION.md).
+### Recursive extension Polynomial Calculus
 
-### H018 — REJECTED
+- `H024` proposes a lower bound against recursively global fan-in-two extension Polynomial Calculus over `GF(2)`.
+- `H025` proposes the incompatible polynomial-boundedness counterfrontier for the same exact proof system.
+- `H029` asks whether recursively global extension proofs can be normalized into the bounded-support regime reached by current lower-bound theorems.
 
-The registered residual-quotient statement did not require complete coverage, acceptance of satisfiable instances, rejection of unsatisfiable instances, or any final decision. An algorithm with no accepting paths satisfied its written witness condition vacuously.
+### Explicit and adversarial frontiers
 
-Read [`proof_attempts/H018/FORMULATION_FAILURE.md`](proof_attempts/H018/FORMULATION_FAILURE.md).
+- `H026` isolates the open tautologicity branch of the explicit hard-DNF family from the 2026 `AC0[p]`-Frege metacomplexity result.
+- `H027` is designed to destroy `H009` through an expander separator obstruction for every allowed local grammar.
+- `H028` is designed to destroy `H017` through a mixed formula whose non-affine residual remains wide after all certified parity elimination.
 
-### Surviving pressure points
+C005 records twenty immediate attacks `A057-A076`. All ten hypotheses remain `OPEN` only because those exact attacks were not decisive. Two pairs are intentionally incompatible: `H022` versus `H023`, and `H024` versus `H025`.
 
-- `H009` and `H017` are weakened because finite local rewrite systems may still simulate general polynomial computation unless a preserved invariant is specified.
-- `H010` survives current extension-variable lower bounds because the exact field, dependency, and resource models do not yet match.
-- `H019` survives, but its interface language and certificate-composition semantics need stricter formalization.
-- `H014` and `H015` remain external literature frontiers rather than JANUS discoveries.
+The most valuable next targets are not new constructive promises but the adversarial bridges `H027-H029`, because proving any of them would eliminate or sharply constrain existing JANUS mechanisms.
 
-No C004 result proves anything about `P` versus `NP`; it demonstrates that the registry can genuinely kill its own entries.
+## Prior terminal results
+
+- [`H016 — DESTROYED`](proof_attempts/H016/REFUTATION.md): projected polynomial d-DNNF would contradict unconditional DNNF lower bounds.
+- [`H018 — REJECTED`](proof_attempts/H018/FORMULATION_FAILURE.md): the statement omitted complete decision correctness and was vacuously satisfiable.
+
+No JANUS result proves anything about `P` versus `NP`.
 
 ## Historical JANUS experiments
 
