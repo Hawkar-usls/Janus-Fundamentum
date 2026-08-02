@@ -84,10 +84,12 @@ def self_test() -> None:
     rows = []
     state_cap = 4096
 
-    for n in range(3, 9):
+    for n in range(3, 10):
         cnf, variable_count = graph_tautology_cnf(n)
         assert variable_count == comb(n, 2)
         assert len(cnf) == n + 2 * comb(n, 3)
+        literal_occurrences = sum(len(clause) for clause in cnf)
+        encoding_units = variable_count + len(cnf) + literal_occurrences
 
         affine_answer, affine_equations = visible_affine_root_decision(
             cnf, variable_count
@@ -105,6 +107,7 @@ def self_test() -> None:
                 n,
                 variable_count,
                 len(cnf),
+                encoding_units,
                 result.answer,
                 result.cap_exceeded,
                 result.residual_states,
@@ -117,6 +120,8 @@ def self_test() -> None:
         print(f"ORDER_SIZE = {n}")
         print(f"  variables = {variable_count}")
         print(f"  clauses = {len(cnf)}")
+        print(f"  literal_occurrences = {literal_occurrences}")
+        print(f"  encoding_units = {encoding_units}")
         print(f"  affine_answer = {affine_answer}")
         print(f"  affine_equations = {affine_equations}")
         print(f"  answer = {result.answer}")
@@ -126,10 +131,11 @@ def self_test() -> None:
         print(f"  resolution_attempts = {result.resolution_attempts}")
         print(f"  resolution_additions = {result.resolution_additions}")
 
-    assert rows[0][3] is False
+    assert rows[0][4] is False
     print("JANUS_POLICY0A_GRAPH_TAUTOLOGY_PROBE = PASS")
     print(f"state_cap = {state_cap}")
     print(f"rows = {tuple(rows)}")
+    print("parameter_warning = finite order-size growth is not automatically exponential in CNF encoding length")
     print("known_external_fact = basic Formula Caching requires exponentially many nodes on graph tautologies")
     print("claim_boundary = finite Policy-0A probe; local Resolution prevents direct theorem transfer")
 
