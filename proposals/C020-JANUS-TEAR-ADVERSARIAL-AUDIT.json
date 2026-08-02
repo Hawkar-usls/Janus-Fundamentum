@@ -1,0 +1,164 @@
+{
+  "artifact_id": "C020-JANUS-TEAR-ADVERSARIAL-AUDIT-PRE-ADMISSION",
+  "status": "EXPLORATORY_NOT_CANONICAL_REGISTRY_ADMITTED",
+  "created_utc": "2026-08-02T17:15:00Z",
+  "updated_utc": "2026-08-02T17:35:00Z",
+  "title": "JANUS Tear adversarial audit and conjecture correction",
+  "execution_scope": {
+    "mode": "SOFTWARE_ONLY",
+    "swarm_touched": false,
+    "devices_touched": false,
+    "networked_runtime_touched": false
+  },
+  "naming_boundary": {
+    "reason_for_C020": "Canonical main already contains cycle C019, so the Tear audit is advanced to C020.",
+    "supersedes_draft_artifact": "C019-JANUS-TEAR-CONDENSATION-PRE-ADMISSION",
+    "does_not_modify_canonical_C019": true
+  },
+  "conjecture_status": {
+    "original_strong_form": {
+      "statement": "For every CNF, all residual states admit a polynomial-size continuation-complete Tear quotient.",
+      "status": "FALSIFIED",
+      "counterexample_family": "E_n(X,Y) = AND_i (x_i <-> y_i)",
+      "reason": "Assigning X=a produces 2^n residual formulas over Y that are pairwise distinguishable by future continuations, although the input has O(n) clauses.",
+      "boundary": "This rejects the strong quotient statement but does not imply P!=NP."
+    },
+    "surviving_policy_form": {
+      "statement": "One explicit deterministic polynomial-time Tear policy visits only polynomially many states and always returns a SAT witness or a polynomially checkable UNSAT certificate.",
+      "status": "OPEN",
+      "warning": "Constructing such a policy is already a polynomial-time SAT algorithm and would prove P=NP."
+    }
+  },
+  "tests": {
+    "tseitin_connector_audit": {
+      "artifact": "experiments/direct/janus_tear_adversarial_audit.py",
+      "radii": [0, 1, 2, 3, 4, 5, 6, 7, 8],
+      "result": "PASS",
+      "largest_instance": {
+        "radius": 8,
+        "torus_side": 77,
+        "variables": 23718,
+        "clauses": 94869,
+        "semantic_payload_bits": 2,
+        "certificate_vertex_equations": 11858,
+        "certificate_clause_references": 94864
+      }
+    },
+    "two_sat_family": {
+      "tear": "two implication paths x -> not x and not x -> x in one SCC",
+      "polynomial_extraction": true,
+      "polynomial_verification": true,
+      "SAT_witness_recovery": true,
+      "random_fuzz": {
+        "seed": 9379992,
+        "cases": 300,
+        "SAT": 153,
+        "UNSAT": 147,
+        "oracle": "exact brute force up to eight variables",
+        "result": "PASS"
+      }
+    },
+    "marginal_collision": {
+      "artifact": "experiments/direct/janus_tear_marginal_collision.py",
+      "result": "PASS_AS_FALSIFICATION",
+      "finding": "One SAT formula and one UNSAT formula share every tested marginal signature.",
+      "sat_witness_count": 1,
+      "unsat_witness_count": 0
+    },
+    "continuation_explosion": {
+      "artifact": "experiments/direct/janus_tear_congruence_explosion.py",
+      "result": "PASS_AS_FALSIFICATION",
+      "self_test_n": [1, 2, 3, 4, 5, 6, 7, 8],
+      "extended_n": 10,
+      "extended_residuals": 1024,
+      "extended_ordered_cross_residual_checks": 1047552
+    }
+  },
+  "attack_results": [
+    {
+      "id": "TEAR-A01",
+      "target": "naive connected-component parity Tear",
+      "result": "REJECTED",
+      "reason": "The neutral connector makes the primal graph connected and both total parity bits equal zero."
+    },
+    {
+      "id": "TEAR-A02",
+      "target": "module-aware parity Tear",
+      "result": "CONDITIONAL_PASS",
+      "reason": "The hidden modules distinguish the twins, but the decomposition must be certified or discovered within the total polynomial budget."
+    },
+    {
+      "id": "TEAR-A03",
+      "target": "tiny payload equals tiny proof",
+      "result": "REJECTED",
+      "reason": "The semantic payload is two bits, while the independently checked certificate is linear in the formula size."
+    },
+    {
+      "id": "TEAR-A04",
+      "target": "tested marginal signature language",
+      "result": "REJECTED"
+    },
+    {
+      "id": "TEAR-A05",
+      "target": "polynomial continuation-complete quotient of all residual states",
+      "result": "FALSIFIED"
+    },
+    {
+      "id": "TEAR-A06",
+      "target": "measured exponential search compression",
+      "result": "NOT_MEASURED"
+    },
+    {
+      "id": "TEAR-A07",
+      "target": "policy-selected polynomial Tear solver for arbitrary CNF",
+      "result": "OPEN"
+    }
+  ],
+  "exact_current_result": {
+    "survives": [
+      "Tseitin parity as a family-specific Tear",
+      "proof-bearing odd-XOR certificates",
+      "constructive SAT witness recovery",
+      "2-SAT SCC contradiction Tears",
+      "Tear as a proof-learning and provenance architecture"
+    ],
+    "rejected": [
+      "naive connected-component parity",
+      "the tested marginal feature language",
+      "the all-residual polynomial quotient conjecture",
+      "the claim that two semantic bits are the complete proof object"
+    ]
+  },
+  "remaining_target": {
+    "title": "Policy-selected certified Tear solver",
+    "statement": "Construct an explicit deterministic polynomial-time procedure that selects only polynomially many residual states, extracts polynomial-total-volume sound Tears, recovers a SAT witness, and produces a polynomial UNSAT certificate.",
+    "accounting": "Selection, module discovery, equivalence, proof construction, verification and witness recovery share one polynomial total-work budget.",
+    "status": "UNPROVED_AND_EFFECTIVELY_THE_P_EQ_NP_TASK"
+  },
+  "monsters_corporation_bridge": {
+    "project": "КОРПОРАЦИЯ МОНСТРОВ",
+    "tear_channel": "negative knowledge and impossibility certificates",
+    "laughter_channel_candidate": "positive knowledge and constructive witness recovery",
+    "collider_rule": "A complete solver needs both certified elimination and witness construction.",
+    "status": "CONCEPTUAL_BRIDGE_ONLY"
+  },
+  "admission_gate": {
+    "passed": [
+      "exact connected Tseitin audit through radius 8",
+      "odd-XOR certificate verifier",
+      "2-SAT second-family Tear",
+      "marginal collision falsification",
+      "strong quotient falsification",
+      "software-only CI integration"
+    ],
+    "open": [
+      "explicit arbitrary-CNF policy",
+      "representation-robust module discovery",
+      "NP-complete non-XOR compression benchmark",
+      "measured residual-state merging and total work",
+      "general witness recovery"
+    ],
+    "canonical_admission": false
+  },
+  "claim_boundary": "C020 validates structured Tear certificates and falsifies the original all-residual polynomial quotient form. It does not prove P=NP or P!=NP."
+}

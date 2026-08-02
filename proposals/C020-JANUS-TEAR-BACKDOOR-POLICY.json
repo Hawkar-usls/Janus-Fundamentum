@@ -1,0 +1,81 @@
+{
+  "artifact_id": "C020-JANUS-TEAR-STRONG-2SAT-BACKDOOR-ADDENDUM",
+  "status": "EXPLORATORY_NOT_CANONICAL_REGISTRY_ADMITTED",
+  "title": "JANUS Tear Strong 2-SAT Backdoor Policy",
+  "execution_scope": {
+    "mode": "SOFTWARE_ONLY",
+    "swarm_touched": false,
+    "devices_touched": false,
+    "networked_runtime_touched": false
+  },
+  "parent": "C020-JANUS-TEAR-ADVERSARIAL-AUDIT-PRE-ADMISSION",
+  "definition": {
+    "strong_backdoor": "A variable set B such that every assignment to B simplifies the residual formula to 2-CNF or immediate contradiction.",
+    "solver": "Enumerate all 2^|B| assignments, solve each residual by implication-graph SCC, and retain one contradiction Tear per rejected branch.",
+    "complexity_with_supplied_backdoor": "O(2^k poly(L)) for k=|B|",
+    "polynomial_condition": "k=O(log L) and polynomial-time backdoor discovery"
+  },
+  "tests": {
+    "artifact": "experiments/direct/janus_tear_backdoor_policy.py",
+    "guarded_non_xor_3cnf": {
+      "construction": "(z or a_i or b_i), (not z or c_i or d_i), plus binary block constraints",
+      "tested_blocks": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+      "exact_minimum_backdoor_size": 1,
+      "maximum_polynomial_branches": 2,
+      "witness_recovery": "PASS",
+      "result": "POSITIVE_PARAMETERIZED_COMPRESSION"
+    },
+    "disjoint_positive_3clauses": {
+      "construction": "m pairwise variable-disjoint positive clauses of width three",
+      "tested_blocks": [1, 2, 3, 4, 5],
+      "exact_minimum_backdoor_size": "m",
+      "formula_status": "SAT",
+      "easy_witness": "all variables true",
+      "result": "REJECT_FIXED_2SAT_LANGUAGE_AS_UNIVERSAL"
+    },
+    "random_fuzz": {
+      "seed": 9379992,
+      "cases": 60,
+      "maximum_variables": 7,
+      "oracle": "exhaustive truth table",
+      "agreement": "60/60"
+    }
+  },
+  "tear_format": {
+    "unsat_branch": "two implication paths x->not x and not x->x, or an empty-clause certificate",
+    "sat_branch": "backdoor prefix plus recovered 2-SAT witness",
+    "global_unsat_certificate_count": "up to 2^k branch Tears"
+  },
+  "attack_results": [
+    {
+      "id": "TEAR-B01",
+      "target": "3-CNF syntax prevents polynomial Tear reduction",
+      "result": "REJECTED_ON_GUARDED_FAMILY",
+      "reason": "One selector variable reduces arbitrarily many guarded blocks to two 2-SAT instances."
+    },
+    {
+      "id": "TEAR-B02",
+      "target": "Every easy CNF has a logarithmic strong 2-SAT backdoor",
+      "result": "REJECTED",
+      "reason": "m disjoint positive 3-clauses are trivially SAT but require a backdoor of size m."
+    },
+    {
+      "id": "TEAR-B03",
+      "target": "one fixed tractable Tear language is universal",
+      "result": "REJECTED_AS_CURRENT_ROUTE",
+      "reason": "The target language must be selected or synthesized adaptively; fixed 2-SAT backdoors can be linear on easy formulas."
+    },
+    {
+      "id": "TEAR-B04",
+      "target": "universal adaptive logarithmic backdoor policy",
+      "result": "OPEN",
+      "reason": "Language selection, backdoor discovery, translation verification and witness recovery must all fit one polynomial total-work budget."
+    }
+  ],
+  "sharpened_route": {
+    "statement": "For every CNF F of length L, polynomially select or synthesize a tractable proof language T and find an O(log L) gateway/backdoor or direct certificate into T, with polynomial verification and witness recovery.",
+    "conditional_consequence": "Such a construction would decide SAT in polynomial time and prove P=NP.",
+    "status": "UNPROVED"
+  },
+  "claim_boundary": "This is a parameterized solver and representation-selection attack. It proves neither P=NP nor P!=NP."
+}
