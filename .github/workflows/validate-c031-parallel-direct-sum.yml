@@ -1,0 +1,41 @@
+name: Validate C031 Parallel Direct-Sum Exponent Barrier
+
+on:
+  push:
+    paths:
+      - "experiments/direct/janus_c031_parallel_direct_sum_exponent_audit.py"
+      - "docs/C031_PARALLEL_DIRECT_SUM_EXPONENT_BARRIER.md"
+      - "registry/c031-parallel-direct-sum-exponent-barrier.json"
+      - "registry/c031-parallel-direct-sum-primary-sources.json"
+      - ".github/workflows/validate-c031-parallel-direct-sum.yml"
+  pull_request:
+    paths:
+      - "experiments/direct/janus_c031_parallel_direct_sum_exponent_audit.py"
+      - "docs/C031_PARALLEL_DIRECT_SUM_EXPONENT_BARRIER.md"
+      - "registry/c031-parallel-direct-sum-exponent-barrier.json"
+      - "registry/c031-parallel-direct-sum-primary-sources.json"
+      - ".github/workflows/validate-c031-parallel-direct-sum.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  exponent-accounting:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python experiments/direct/janus_c031_parallel_direct_sum_exponent_audit.py --self-test
+      - run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          for p in [
+              Path('registry/c031-parallel-direct-sum-exponent-barrier.json'),
+              Path('registry/c031-parallel-direct-sum-primary-sources.json'),
+          ]:
+              json.loads(p.read_text(encoding='utf-8'))
+              print('VALID', p)
+          PY
