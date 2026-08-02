@@ -1,4 +1,4 @@
-name: Validate C021 Policy Certificates
+name: Validate C022 Policy Lower-Bound Bridge
 
 on:
   push:
@@ -7,6 +7,8 @@ on:
       - "experiments/direct/janus_tear_policy0t_root_resolution_certificate.py"
       - "experiments/direct/janus_tear_policy0t_recursive_trace_translator.py"
       - "experiments/direct/janus_tear_policy0t_recursive_translator_fuzz.py"
+      - "experiments/direct/janus_tear_policy0t_proof_bound_audit.py"
+      - "experiments/direct/janus_tear_maj3_nonaffine_family_audit.py"
       - "experiments/direct/janus_tear_policy0t_affine_resolution_obstruction.py"
       - ".github/workflows/validate-c020-policy-trace.yml"
   pull_request:
@@ -15,6 +17,8 @@ on:
       - "experiments/direct/janus_tear_policy0t_root_resolution_certificate.py"
       - "experiments/direct/janus_tear_policy0t_recursive_trace_translator.py"
       - "experiments/direct/janus_tear_policy0t_recursive_translator_fuzz.py"
+      - "experiments/direct/janus_tear_policy0t_proof_bound_audit.py"
+      - "experiments/direct/janus_tear_maj3_nonaffine_family_audit.py"
       - "experiments/direct/janus_tear_policy0t_affine_resolution_obstruction.py"
       - ".github/workflows/validate-c020-policy-trace.yml"
 
@@ -22,7 +26,7 @@ permissions:
   contents: read
 
 jobs:
-  verify-policy-certificates:
+  verify-policy-lower-bound-bridge:
     runs-on: ubuntu-latest
     steps:
       - name: Check out repository
@@ -44,6 +48,12 @@ jobs:
 
       - name: Fuzz recursive translator terminal classes
         run: python experiments/direct/janus_tear_policy0t_recursive_translator_fuzz.py
+
+      - name: Audit explicit proof size and depth bounds
+        run: python experiments/direct/janus_tear_policy0t_proof_bound_audit.py
+
+      - name: Verify parity-of-MAJ3 local relations are non-affine
+        run: python experiments/direct/janus_tear_maj3_nonaffine_family_audit.py
 
       - name: Audit affine shortcut obstruction to ordinary Resolution
         run: python experiments/direct/janus_tear_policy0t_affine_resolution_obstruction.py
