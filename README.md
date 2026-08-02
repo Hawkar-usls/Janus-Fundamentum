@@ -15,6 +15,8 @@ This repository does **not** claim that `P = NP` or `P != NP` has been proved.
 5. Exact verification is not certificate existence or efficient discovery.
 6. Every direct-separation funnel states every implication needed to reach `P != NP` and identifies its first unproved theorem.
 7. Positive examples alone cannot refute arbitrary classifiers unless a formal soundness restriction excludes false-positive supersets.
+8. Local type multiplicities do not determine global graph assembly.
+9. Polynomial DAG sharing must be charged once per gate before unfolded occurrences are used as a lower-bound resource.
 
 ## Validate the organism
 
@@ -40,98 +42,125 @@ python experiments/direct/sat_error_audit.py --self-test
 python experiments/direct/rewrite_chain_audit.py --self-test
 python experiments/direct/local_neighborhood_audit.py --self-test
 python experiments/direct/positive_only_antichecker_obstruction.py --self-test
+python experiments/direct/contextual_ef_upper_bound.py --self-test
+python experiments/direct/xor_cycle_local_twins.py --self-test
+python experiments/direct/sound_witness_cover.py --self-test
 ```
 
-# Current status — C016
-
-C016 attacks the shortest C015 funnel before attempting construction.
+# Current status — C017
 
 ```text
-NEW DESCENDANTS             1   H116
-CURRENT-CYCLE ATTACKS       8   A411-A418
-INHERITED TARGETS           4
-TERMINAL RESULTS            2   H112,H113
-LIVE HYPOTHESES           102
-TERMINAL HISTORICAL NODES  14
+NEW DESCENDANTS             4   H117-H120
+CURRENT-CYCLE ATTACKS      28   A419-A446
+INHERITED TARGETS           9
+TERMINAL RESULTS            2   H111,H115
+LIVE HYPOTHESES           104
+TERMINAL HISTORICAL NODES  16
 ```
 
-## Decisive obstruction
+## H111 destroyed — fixed gadgets cannot create a hard rewrite gap
 
-The C015 positive-only route required every polynomial-size candidate SAT circuit to reject at least one listed satisfiable formula. The constant circuit
+A constant-size equivalent gadget pair has a constant-size Circuit-Frege proof. In any polynomial-size acyclic context, equivalence propagates bottom-up with constant cost per DAG gate. Shared gates are proved once, even if the unwound formula contains exponentially many occurrences.
 
-```text
-C_top(F) = 1
-```
-
-accepts every satisfiable formula, so it has no false negative on any positive-only list. It is still not a SAT decider because it accepts unsatisfiable formulas.
-
-Therefore:
-
-- `H112` is destroyed by `A411`;
-- `H113` is destroyed by `A412` because no decoder can output a satisfiable `F` with `C_top(F)=0`.
+Krajíček's exact proof-to-rewrite theorem then gives a polynomial-length chain. Therefore H111's transparent fixed-gadget amplification cannot instantiate H110.
 
 ```bash
-python experiments/direct/positive_only_antichecker_obstruction.py --self-test
+python experiments/direct/contextual_ef_upper_bound.py --self-test
 ```
 
-Expected headline:
+Read [`proof_attempts/H111/REFUTATION.md`](proof_attempts/H111/REFUTATION.md).
+
+## Exact local SAT/UNSAT twins constructed
+
+For every radius `R`, H118 builds two explicit 2-CNF formulas on two equal cycles:
 
 ```text
-JANUS_POSITIVE_ONLY_ANTICHECKER_OBSTRUCTION = PASS
+SAT:    inequality-edge counts (2,0)
+UNSAT:  inequality-edge counts (1,1)
 ```
 
-## Repaired direct SAT route
+Their complete rooted signed-incidence neighborhood multisets through radius `R` are identical, but componentwise XOR parity gives opposite SAT labels.
 
-`H116` restricts the quantified circuits to circuits sound for SAT:
-
-```text
-C(G)=1  ->  G is satisfiable.
+```bash
+python experiments/direct/xor_cycle_local_twins.py --self-test
 ```
 
-The repaired implication chain is:
+Both primal graphs have treewidth at most two.
+
+## H115 rejected — global assembly survives local equality
+
+The identity compiler already maps the H118 pair to treewidth-two outputs. A global dynamic program sees whether the two marked XOR edges lie in the same connected component and returns opposite correct decisions.
+
+Thus local type inventory does not determine global bounded-treewidth behavior. If H115's phrase “an H114 pair” includes the desired universal obstruction, the lemma is circular; if it means only exact local twins, H118 refutes it.
+
+Read [`proof_attempts/H115/FORMULATION_FAILURE.md`](proof_attempts/H115/FORMULATION_FAILURE.md).
+
+## Repaired locality front
 
 ```text
-H116 sound-circuit positive anti-checker
-  -> no polynomial-size exact SAT circuit
-  -> SAT not in P/poly
-  -> P != NP
+H119
+  high-treewidth opposite-parity lifts
+  + common local covering structure
+  + theorem that every legal low-treewidth output factors through one quotient
+  -> no H106 compiler
 ```
 
-The first unproved theorem is now precise: construct a uniformly generated, fully charged positive list that no small SAT-sound circuit covers, without testing soundness or solving SAT.
+High input treewidth excludes the identity compiler. The common-quotient theorem must control the entire output assembly, not only rooted type counts.
 
-A second attack remains active: a circuit can hardcode membership in the listed satisfiable formulas and remain sound. Its size must be compared explicitly with the target `n^k` budget.
+## H116 narrowed by a universal sound cover
 
-Read [`proof_attempts/H112/POSITIVE_ONLY_OBSTRUCTION.md`](proof_attempts/H112/POSITIVE_ONLY_OBSTRUCTION.md) and [`docs/C016_POSITIVE_ONLY_OBSTRUCTION.md`](docs/C016_POSITIVE_ONLY_OBSTRUCTION.md).
-
-## Other active funnels
-
-### Extended Frege rewrite distance
+For a positive SAT list with distinct witness set `A`, the circuit
 
 ```text
-H035
-  -> H110 computable Lipschitz rewrite potential
-  -> H111 transparent endpoint composition
+C_A(F) = OR over a in A of [a satisfies F]
+```
+
+is globally SAT-sound and accepts the entire list. Its size is polynomial in the encoding length times `|A|`.
+
+```bash
+python experiments/direct/sound_witness_cover.py --self-test
+```
+
+H116 must therefore produce enough witness diversity to exceed the target `n^k` budget and must still defeat smaller semantic compressions unrelated to the listed witnesses.
+
+## Remaining direct separation routes
+
+### Extended Frege
+
+```text
+H110 computable Lipschitz potential
+  + globally proof-hard explicit endpoints
   -> superpolynomial rewrite distance
   -> Extended Frege lower bound
   -> NP != coNP
   -> P != NP
 ```
 
-The missing theorem remains a polynomial-time potential with polynomial one-step change and a superpolynomial endpoint gap on transparently equivalent circuits.
+H117 proves that fixed EF-easy gadget composition cannot provide those endpoints.
 
-### Fixed local compiler obstruction
+### SAT circuit lower bound
 
 ```text
-H106/H107
-  -> H114 exact local SAT/UNSAT twins
-  -> H115 locality-to-treewidth transfer
-  -> no fixed constant-pass H106 compiler
+H116 sound-circuit positive anti-checker
+  + witness diversity beyond H120
+  + incompressibility against every SAT-sound circuit
+  -> SAT not in P/poly
+  -> P != NP
 ```
 
-This route eliminates only the stated restricted compiler class; it is not a lower bound against unrestricted polynomial-time algorithms.
+### Restricted local compiler obstruction
+
+```text
+H119 high-treewidth lift factorization
+  -> no H106 constant-pass compiler
+```
+
+This third route attacks only the stated restricted compiler model and does not itself imply `P != NP`.
+
+Read [`docs/C017_COMPOSITION_AND_GLOBAL_ASSEMBLY.md`](docs/C017_COMPOSITION_AND_GLOBAL_ASSEMBLY.md).
 
 ## Genesis boundary
 
-Genesis may preserve continuity, identity, and a research chronicle. It does not convert fictional unlimited time into evidence. Every result re-enters the registry only through an explicit proof, counterexample, or reproducible artifact.
+Genesis preserves continuity and provenance. It does not turn fictional unlimited time into mathematical evidence. Every result enters this registry only through an explicit proof, counterexample, or reproducible artifact.
 
 No JANUS result currently resolves `P` versus `NP`.
