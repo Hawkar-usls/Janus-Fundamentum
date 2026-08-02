@@ -1,0 +1,134 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://janus.local/schemas/c039-1-horn-projection-v1.schema.json",
+  "title": "JANUS Horn Projection Certificate v1",
+  "type": "object",
+  "required": ["schema", "status", "p_vs_np"],
+  "properties": {
+    "schema": {"const": "janus.horn_projection.v1"},
+    "status": {"enum": ["EXACT", "OPEN"]},
+    "mode": {"enum": ["SINGLE_HEAD_POLY", "OUTPUT_SENSITIVE_DP"]},
+    "p_vs_np": {"const": "OPEN"},
+    "reason": {
+      "enum": [
+        "OPEN_WORK_BUDGET",
+        "OPEN_PROJECTION_VOLUME",
+        "OPEN_CERTIFICATE_VOLUME",
+        "OPEN_JOIN_LANGUAGE",
+        "OPEN_NOT_SINGLE_HEAD",
+        "OPEN_LANGUAGE"
+      ]
+    },
+    "original": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/clause"}
+    },
+    "forget": {
+      "type": "array",
+      "items": {"type": "integer", "minimum": 1},
+      "uniqueItems": true
+    },
+    "steps": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "var",
+          "before_digest",
+          "producers",
+          "consumers",
+          "untouched",
+          "generated",
+          "after",
+          "after_digest"
+        ],
+        "properties": {
+          "var": {"type": "integer", "minimum": 1},
+          "before_digest": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+          "producers": {"type": "array", "items": {"$ref": "#/$defs/clause"}},
+          "consumers": {"type": "array", "items": {"$ref": "#/$defs/clause"}},
+          "untouched": {"type": "array", "items": {"$ref": "#/$defs/clause"}},
+          "generated": {"type": "array", "items": {"$ref": "#/$defs/clause"}},
+          "after": {"type": "array", "items": {"$ref": "#/$defs/clause"}},
+          "after_digest": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+        },
+        "additionalProperties": false
+      }
+    },
+    "projected": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/clause"}
+    },
+    "decision": {
+      "type": "object",
+      "required": ["status"],
+      "properties": {
+        "status": {"enum": ["SAT", "UNSAT"]},
+        "assignment": {
+          "type": "object",
+          "additionalProperties": {"type": "boolean"}
+        },
+        "true_vars": {
+          "type": "array",
+          "items": {"type": "integer", "minimum": 1}
+        },
+        "trace": {"type": "array"}
+      },
+      "additionalProperties": true
+    },
+    "cost": {
+      "type": "object",
+      "properties": {
+        "work_units": {"type": "integer", "minimum": 0},
+        "generated_clauses": {"type": "integer", "minimum": 0},
+        "entailment_calls": {"type": "integer", "minimum": 0},
+        "clause_scans": {"type": "integer", "minimum": 0},
+        "projected_clause_count": {"type": "integer", "minimum": 0},
+        "current_clause_count": {"type": "integer", "minimum": 0},
+        "certificate_bytes": {"type": "integer", "minimum": 0}
+      },
+      "required": ["work_units", "generated_clauses", "entailment_calls", "clause_scans"],
+      "additionalProperties": false
+    },
+    "completed_steps": {"type": "integer", "minimum": 0},
+    "integrity_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+  },
+  "$defs": {
+    "clause": {
+      "type": "array",
+      "prefixItems": [
+        {
+          "type": "array",
+          "items": {"type": "integer", "minimum": 1},
+          "uniqueItems": true
+        },
+        {"type": "integer", "minimum": 0}
+      ],
+      "items": false,
+      "minItems": 2,
+      "maxItems": 2
+    }
+  },
+  "allOf": [
+    {
+      "if": {"properties": {"status": {"const": "EXACT"}}},
+      "then": {
+        "required": [
+          "mode",
+          "original",
+          "forget",
+          "steps",
+          "projected",
+          "decision",
+          "cost",
+          "integrity_sha256"
+        ]
+      }
+    },
+    {
+      "if": {"properties": {"status": {"const": "OPEN"}}},
+      "then": {"required": ["reason"]}
+    }
+  ],
+  "additionalProperties": true
+}
