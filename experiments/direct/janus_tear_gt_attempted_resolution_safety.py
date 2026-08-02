@@ -1,16 +1,15 @@
 #!/usr/bin/env python3
 """Classify every Resolution pair reached by the exact Policy-0A one-pass loop.
 
-The abstract directed cycle-or-rooted class is not closed under arbitrary
-Resolution.  Policy-0A, however, uses frozen parent lists, deterministic pair
-order, and strict attempt/addition budgets.  This audit reconstructs every pair
-actually reached from each pre-frontier state key and classifies its legal
-nonempty resolvent before checking whether it is new, duplicate, or accepted.
+The cycle-or-spanning class is not closed under arbitrary Resolution. Policy-0A,
+however, uses frozen parent lists, deterministic pair order, and strict attempt
+and addition budgets. This audit reconstructs every pair actually reached from
+each pre-frontier state key and classifies its legal nonempty resolvent before
+checking whether it is new, duplicate, or accepted.
 
-The replay must reproduce the serialized resolution event list exactly.  Unsafe
-directed-forest candidates are reported whether or not they were already present
-in the clause set; accepted unsafe candidates would also appear in the ordinary
-clause-occurrence dichotomy audit.
+The replay must reproduce the serialized resolution event list, attempts,
+additions and final clause set exactly. Unsafe acyclic low-rank candidates are
+reported whether new or duplicate.
 """
 
 from __future__ import annotations
@@ -18,7 +17,7 @@ from __future__ import annotations
 from collections import Counter, defaultdict
 
 from janus_tear_gt_component_tree_clause_audit import execution_context
-from janus_tear_gt_directed_safety_dichotomy import safety_class
+from janus_tear_gt_rank_safety_dichotomy import safety_class
 from janus_tear_policy0t_trace_certificate import canonical_clause, canonical_cnf
 
 
@@ -68,7 +67,9 @@ def audit(n: int):
                 for right in negative[pivot]:
                     attempts += 1
                     if attempts > attempt_budget or additions >= addition_budget:
-                        attempts -= int(attempts > attempt_budget)
+                        # The production loop returns attempts-1 for the pair
+                        # whose processing is blocked by either budget.
+                        attempts -= 1
                         stopped = True
                         break
 
@@ -86,15 +87,15 @@ def audit(n: int):
                         continue
                     if not normalized:
                         counts["empty_resolvents"] += 1
-                        replayed_events.append(
-                            {
-                                "left": left,
-                                "right": right,
-                                "pivot": pivot,
-                                "resolvent": normalized,
-                                "attempt": attempts,
-                            }
-                        )
+                        event = {
+                            "left": left,
+                            "right": right,
+                            "pivot": pivot,
+                            "resolvent": normalized,
+                            "attempt": attempts,
+                        }
+                        replayed_events.append(event)
+                        clauses.add(normalized)
                         additions += 1
                         stopped = True
                         break
@@ -109,18 +110,16 @@ def audit(n: int):
                     classification = str(structure["classification"])
                     class_histogram[classification] += 1
                     is_new = normalized not in clauses
-                    if is_new:
-                        counts["new_legal_resolvents"] += 1
-                    else:
-                        counts["duplicate_legal_resolvents"] += 1
+                    counts[
+                        "new_legal_resolvents" if is_new else "duplicate_legal_resolvents"
+                    ] += 1
 
-                    if classification == "UNSAFE_DIRECTED_FOREST":
+                    if classification == "UNSAFE_ACYCLIC_LOW_RANK":
                         counts["unsafe_legal_resolvents"] += 1
                         unsafe_state_histogram[int(state["id"])] += 1
-                        if is_new:
-                            counts["unsafe_new_resolvents"] += 1
-                        else:
-                            counts["unsafe_duplicate_resolvents"] += 1
+                        counts[
+                            "unsafe_new_resolvents" if is_new else "unsafe_duplicate_resolvents"
+                        ] += 1
                         if len(unsafe_examples) < 30:
                             unsafe_examples.append(
                                 {
@@ -141,14 +140,15 @@ def audit(n: int):
                     if is_new:
                         clauses.add(normalized)
                         additions += 1
-                        event = {
-                            "left": left,
-                            "right": right,
-                            "pivot": pivot,
-                            "resolvent": normalized,
-                            "attempt": attempts,
-                        }
-                        replayed_events.append(event)
+                        replayed_events.append(
+                            {
+                                "left": left,
+                                "right": right,
+                                "pivot": pivot,
+                                "resolvent": normalized,
+                                "attempt": attempts,
+                            }
+                        )
 
         assert tuple(replayed_events) == expected_events, (
             n,
@@ -207,7 +207,7 @@ def self_test() -> None:
     print(f"aggregate_counts = {tuple(sorted(aggregate.items()))}")
     print(f"aggregate_classes = {tuple(sorted(aggregate_classes.items()))}")
     print(f"unsafe_sizes = {tuple(unsafe_sizes)}")
-    print("claim_boundary = finite replay of reached parent pairs; unrestricted or later-budget pairs are not classified")
+    print("claim_boundary = finite exact replay of reached parent pairs; unrestricted or over-budget pairs are not classified")
 
 
 if __name__ == "__main__":
