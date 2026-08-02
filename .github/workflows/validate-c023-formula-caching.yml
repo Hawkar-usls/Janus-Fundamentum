@@ -1,0 +1,107 @@
+name: Validate C023 Formula Caching
+
+on:
+  push:
+    paths:
+      - "experiments/direct/janus_tear_policy0a_fc_trace.py"
+      - "experiments/direct/janus_tear_policy0a_fc_serialized_verifier.py"
+      - "experiments/direct/janus_tear_policy0a_fc_proof_system.py"
+      - "experiments/direct/janus_tear_policy0a_cache_hit_search.py"
+      - "experiments/direct/janus_tear_policy0a_context_obstruction.py"
+      - "experiments/direct/janus_tear_policy0a_context_intersection_profile.py"
+      - "experiments/direct/janus_tear_policy0a_reason_reuse_audit.py"
+      - "experiments/direct/janus_tear_policy0a_reason_reuse_audit_v2.py"
+      - "experiments/direct/janus_tear_policy0a_direct_reason_cover.py"
+      - "experiments/direct/janus_tear_policy0a_resolution_dag_dedup.py"
+      - "experiments/direct/janus_tear_policy0a_diamond_resolution_bypass.py"
+      - "experiments/direct/janus_tear_policy0a_maj3_cache_profile.py"
+      - "experiments/direct/janus_tear_policy0a_graph_tautology_probe.py"
+      - "experiments/direct/janus_tear_policy0aws_graph_tautology_probe.py"
+      - "experiments/direct/janus_tear_policy0a_gt_local_resolution_shapes.py"
+      - "experiments/direct/janus_tear_policy0a_gt_resolution_ablation.py"
+      - "proof_attempts/C023/GT_LOCAL_RESOLUTION_ROBUSTNESS.md"
+      - "docs/C023_FORMULA_CACHING_CALCULUS.md"
+      - "registry/references-c023.json"
+      - ".github/workflows/validate-c023-formula-caching.yml"
+  pull_request:
+    paths:
+      - "experiments/direct/janus_tear_policy0a_fc_trace.py"
+      - "experiments/direct/janus_tear_policy0a_fc_serialized_verifier.py"
+      - "experiments/direct/janus_tear_policy0a_fc_proof_system.py"
+      - "experiments/direct/janus_tear_policy0a_cache_hit_search.py"
+      - "experiments/direct/janus_tear_policy0a_context_obstruction.py"
+      - "experiments/direct/janus_tear_policy0a_context_intersection_profile.py"
+      - "experiments/direct/janus_tear_policy0a_reason_reuse_audit.py"
+      - "experiments/direct/janus_tear_policy0a_reason_reuse_audit_v2.py"
+      - "experiments/direct/janus_tear_policy0a_direct_reason_cover.py"
+      - "experiments/direct/janus_tear_policy0a_resolution_dag_dedup.py"
+      - "experiments/direct/janus_tear_policy0a_diamond_resolution_bypass.py"
+      - "experiments/direct/janus_tear_policy0a_maj3_cache_profile.py"
+      - "experiments/direct/janus_tear_policy0a_graph_tautology_probe.py"
+      - "experiments/direct/janus_tear_policy0aws_graph_tautology_probe.py"
+      - "experiments/direct/janus_tear_policy0a_gt_local_resolution_shapes.py"
+      - "experiments/direct/janus_tear_policy0a_gt_resolution_ablation.py"
+      - "proof_attempts/C023/GT_LOCAL_RESOLUTION_ROBUSTNESS.md"
+      - "docs/C023_FORMULA_CACHING_CALCULUS.md"
+      - "registry/references-c023.json"
+      - ".github/workflows/validate-c023-formula-caching.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  verify-formula-caching:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Verify exact Formula-Caching trace calculus
+        run: python experiments/direct/janus_tear_policy0a_fc_trace.py
+
+      - name: Replay serialized Formula-Caching certificates
+        run: python experiments/direct/janus_tear_policy0a_fc_serialized_verifier.py
+
+      - name: Audit JANUS-FC_local DAG compression
+        run: python experiments/direct/janus_tear_policy0a_fc_proof_system.py
+
+      - name: Audit random small-CNF cache-hit rarity
+        run: python experiments/direct/janus_tear_policy0a_cache_hit_search.py
+
+      - name: Verify cache-diamond amplification and context obstruction
+        run: python experiments/direct/janus_tear_policy0a_context_obstruction.py
+
+      - name: Profile reusable context-boundary intersections
+        run: python experiments/direct/janus_tear_policy0a_context_intersection_profile.py
+
+      - name: Audit reusable C022 reasons across cache contexts
+        run: python experiments/direct/janus_tear_policy0a_reason_reuse_audit_v2.py
+
+      - name: Solve exact direct reason-cover instances
+        run: python experiments/direct/janus_tear_policy0a_direct_reason_cover.py
+
+      - name: Deduplicate the unfolded Resolution proof globally
+        run: python experiments/direct/janus_tear_policy0a_resolution_dag_dedup.py
+
+      - name: Falsify proof-strength reading of cache diamonds
+        run: python experiments/direct/janus_tear_policy0a_diamond_resolution_bypass.py
+
+      - name: Profile caching on MAJ3 lifted K4
+        run: python experiments/direct/janus_tear_policy0a_maj3_cache_profile.py
+
+      - name: Probe exact caching on graph tautologies
+        run: python experiments/direct/janus_tear_policy0a_graph_tautology_probe.py
+
+      - name: Probe weakening-subsumption caching on graph tautologies
+        run: python experiments/direct/janus_tear_policy0aws_graph_tautology_probe.py
+
+      - name: Classify graph-tautology local Resolution clauses
+        run: python experiments/direct/janus_tear_policy0a_gt_local_resolution_shapes.py
+
+      - name: Ablate local Resolution on graph tautologies
+        run: python experiments/direct/janus_tear_policy0a_gt_resolution_ablation.py

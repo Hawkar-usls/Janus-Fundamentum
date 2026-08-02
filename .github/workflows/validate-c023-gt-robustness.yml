@@ -1,0 +1,46 @@
+name: Validate C023 GT Robustness
+
+on:
+  push:
+    paths:
+      - "experiments/direct/janus_tear_policy0a_graph_tautology_probe.py"
+      - "experiments/direct/janus_tear_policy0aws_graph_tautology_probe.py"
+      - "experiments/direct/janus_tear_policy0a_gt_local_resolution_shapes.py"
+      - "experiments/direct/janus_tear_policy0a_gt_resolution_ablation.py"
+      - "proof_attempts/C023/GT_LOCAL_RESOLUTION_ROBUSTNESS.md"
+      - ".github/workflows/validate-c023-gt-robustness.yml"
+  pull_request:
+    paths:
+      - "experiments/direct/janus_tear_policy0a_graph_tautology_probe.py"
+      - "experiments/direct/janus_tear_policy0aws_graph_tautology_probe.py"
+      - "experiments/direct/janus_tear_policy0a_gt_local_resolution_shapes.py"
+      - "experiments/direct/janus_tear_policy0a_gt_resolution_ablation.py"
+      - "proof_attempts/C023/GT_LOCAL_RESOLUTION_ROBUSTNESS.md"
+      - ".github/workflows/validate-c023-gt-robustness.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  verify-gt-robustness:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Probe exact caching
+        run: python experiments/direct/janus_tear_policy0a_graph_tautology_probe.py
+
+      - name: Probe weakening and subsumption caching
+        run: python experiments/direct/janus_tear_policy0aws_graph_tautology_probe.py
+
+      - name: Classify local Resolution clauses
+        run: python experiments/direct/janus_tear_policy0a_gt_local_resolution_shapes.py
+
+      - name: Ablate local Resolution
+        run: python experiments/direct/janus_tear_policy0a_gt_resolution_ablation.py
