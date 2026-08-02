@@ -5,10 +5,12 @@ The exact Formula-Caching DAG for MAJ3-K4 is unfolded into an ordinary tree by
 replacing each cache hit with a fresh copy of the referenced completed state.
 The C022 trace-to-Resolution translator then emits a conflict clause for every
 UNSAT occurrence.  Occurrences originating from the same cache state are grouped
-and tested for a common emitted reason valid under all their decision contexts.
+and tested for a common emitted reason valid under all their entry assignments.
 
-This is a finite reason-reuse audit.  It does not prove a simulation or a lower
-bound for Formula Caching.
+The entry assignment contains both explicit decisions and unit consequences
+inherited from ancestors.  We report decision-only and full-provenance boundaries
+separately.  This is a finite reason-reuse audit, not a general simulation or
+lower bound for Formula Caching.
 """
 
 from __future__ import annotations
@@ -24,6 +26,13 @@ from janus_tear_policy0t_recursive_trace_translator import TraceTranslator
 
 def decision_boundary(context: tuple[int, ...]) -> frozenset[int]:
     return frozenset(-literal for literal in context)
+
+
+def assignment_boundary(assignment: dict[int, bool]) -> frozenset[int]:
+    return frozenset(
+        variable if not value else -variable
+        for variable, value in assignment.items()
+    )
 
 
 def unfold_fc_calls(policy: FCTracePolicy, root_call: int):
@@ -145,12 +154,21 @@ class RecordingTranslator(TraceTranslator):
         super().__init__(root, nodes)
         self.return_lines: dict[int, int | None] = {}
         self.return_answers: dict[int, bool] = {}
+        self.entry_assignments: dict[int, dict[int, bool]] = {}
 
     def translate_node(self, node_id, records, assignment):
+        self.entry_assignments[node_id] = dict(assignment)
         answer, line = super().translate_node(node_id, records, assignment)
         self.return_answers[node_id] = answer
         self.return_lines[node_id] = line
         return answer, line
+
+
+def intersect(boundaries: list[frozenset[int]]) -> frozenset[int]:
+    common = boundaries[0]
+    for current in boundaries[1:]:
+        common = common & current
+    return common
 
 
 def self_test() -> None:
@@ -173,6 +191,7 @@ def self_test() -> None:
     )
     assert translator.proof.clause(final_line) == ()
     assert len(translator.return_lines) == len(nodes)
+    assert len(translator.entry_assignments) == len(nodes)
 
     occurrences: dict[int, list[int]] = defaultdict(list)
     for node_id, state_id in source_state.items():
@@ -181,41 +200,54 @@ def self_test() -> None:
 
     reused = {state: ids for state, ids in occurrences.items() if len(ids) >= 2}
     states_with_one_emitted_reason = 0
-    states_with_some_globally_reusable_emitted_reason = 0
-    states_with_empty_common_boundary = 0
+    states_with_reusable_full_reason = 0
+    states_with_reusable_decision_only_reason = 0
+    states_with_empty_full_boundary = 0
+    states_with_empty_decision_boundary = 0
+    occurrences_using_inherited_unit_literals = 0
     maximum_distinct_reasons = 0
     total_occurrences = 0
 
-    for state_id, node_ids in reused.items():
+    for node_ids in reused.values():
         total_occurrences += len(node_ids)
         clauses = []
-        boundaries = []
+        full_boundaries = []
+        decision_boundaries = []
         for node_id in node_ids:
             assert translator.return_answers[node_id] is False
             line = translator.return_lines[node_id]
             assert line is not None
             clause = translator.proof.clause(line)
-            current_boundary = decision_boundary(contexts[node_id])
-            assert set(clause) <= current_boundary
+            full_boundary = assignment_boundary(
+                translator.entry_assignments[node_id]
+            )
+            decisions = decision_boundary(contexts[node_id])
+            assert set(clause) <= full_boundary
+            if not set(clause) <= decisions:
+                occurrences_using_inherited_unit_literals += 1
             clauses.append(clause)
-            boundaries.append(current_boundary)
+            full_boundaries.append(full_boundary)
+            decision_boundaries.append(decisions)
 
         distinct = set(clauses)
         maximum_distinct_reasons = max(maximum_distinct_reasons, len(distinct))
         if len(distinct) == 1:
             states_with_one_emitted_reason += 1
 
-        common = boundaries[0]
-        for current in boundaries[1:]:
-            common = common & current
-        if not common:
-            states_with_empty_common_boundary += 1
+        common_full = intersect(full_boundaries)
+        common_decisions = intersect(decision_boundaries)
+        if not common_full:
+            states_with_empty_full_boundary += 1
+        if not common_decisions:
+            states_with_empty_decision_boundary += 1
 
-        if any(set(clause) <= common for clause in distinct):
-            states_with_some_globally_reusable_emitted_reason += 1
+        if any(set(clause) <= common_full for clause in distinct):
+            states_with_reusable_full_reason += 1
+        if any(set(clause) <= common_decisions for clause in distinct):
+            states_with_reusable_decision_only_reason += 1
 
     assert len(reused) == 438
-    assert states_with_empty_common_boundary == 4
+    assert states_with_empty_decision_boundary == 4
 
     print("JANUS_POLICY0A_REASON_REUSE_AUDIT = PASS")
     print(f"fc_unique_states = {result.unique_states}")
@@ -229,11 +261,20 @@ def self_test() -> None:
     print(f"reused_cache_states = {len(reused)}")
     print(f"reused_state_occurrences = {total_occurrences}")
     print(f"states_with_identical_emitted_reason = {states_with_one_emitted_reason}")
+    print(f"states_with_reusable_full_reason = {states_with_reusable_full_reason}")
     print(
-        "states_with_some_reusable_emitted_reason = "
-        f"{states_with_some_globally_reusable_emitted_reason}"
+        "states_with_reusable_decision_only_reason = "
+        f"{states_with_reusable_decision_only_reason}"
     )
-    print(f"states_with_empty_common_boundary = {states_with_empty_common_boundary}")
+    print(f"states_with_empty_full_boundary = {states_with_empty_full_boundary}")
+    print(
+        "states_with_empty_decision_boundary = "
+        f"{states_with_empty_decision_boundary}"
+    )
+    print(
+        "occurrences_using_inherited_unit_literals = "
+        f"{occurrences_using_inherited_unit_literals}"
+    )
     print(f"maximum_distinct_emitted_reasons_per_state = {maximum_distinct_reasons}")
     print("claim_boundary = finite C022-reason reuse audit; no general FC-to-Resolution simulation")
 
