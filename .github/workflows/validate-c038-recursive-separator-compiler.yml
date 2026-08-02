@@ -1,0 +1,34 @@
+name: Validate C038 Recursive Separator Compiler
+
+on:
+  push:
+    paths:
+      - "experiments/direct/janus_c038_recursive_separator_compiler.py"
+      - "docs/C038_PROOF_CARRYING_RECURSIVE_SEPARATOR_COMPILER.md"
+      - "proposals/C038-JANUS-PROOF-CARRYING-RECURSIVE-SEPARATOR-COMPILER.json"
+      - "registry/c038-source-map.json"
+      - "docs/ACTIVE_PROOF_ROUTE_MATRIX.md"
+      - ".github/workflows/validate-c038-recursive-separator-compiler.yml"
+  pull_request:
+    paths:
+      - "experiments/direct/janus_c038_recursive_separator_compiler.py"
+      - "docs/C038_PROOF_CARRYING_RECURSIVE_SEPARATOR_COMPILER.md"
+      - "proposals/C038-JANUS-PROOF-CARRYING-RECURSIVE-SEPARATOR-COMPILER.json"
+      - "registry/c038-source-map.json"
+      - "docs/ACTIVE_PROOF_ROUTE_MATRIX.md"
+      - ".github/workflows/validate-c038-recursive-separator-compiler.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  recursive-separator-compiler:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python experiments/direct/janus_c038_recursive_separator_compiler.py --self-test
+      - run: python -m json.tool proposals/C038-JANUS-PROOF-CARRYING-RECURSIVE-SEPARATOR-COMPILER.json >/dev/null
+      - run: python -m json.tool registry/c038-source-map.json >/dev/null
