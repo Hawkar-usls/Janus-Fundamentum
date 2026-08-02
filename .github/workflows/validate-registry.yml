@@ -9,6 +9,7 @@ on:
       - "tools/validate_inversion_matrix.py"
       - "tools/validate_cycle_pressure.py"
       - "experiments/theta/**"
+      - "proof_attempts/**"
       - ".github/workflows/validate-registry.yml"
   pull_request:
     paths:
@@ -18,6 +19,7 @@ on:
       - "tools/validate_inversion_matrix.py"
       - "tools/validate_cycle_pressure.py"
       - "experiments/theta/**"
+      - "proof_attempts/**"
       - ".github/workflows/validate-registry.yml"
 
 permissions:
@@ -44,8 +46,17 @@ jobs:
       - name: Validate inversion matrix
         run: python tools/validate_inversion_matrix.py
 
-      - name: Validate C009 attack pressure
+      - name: Validate current-cycle attack pressure
         run: python tools/validate_cycle_pressure.py
+
+      - name: Test DIMACS and conflict graph semantics
+        run: python experiments/theta/conflict_graph.py --self-test
 
       - name: Test canonical theta profile
         run: python experiments/theta/canonical_profile.py --self-test
+
+      - name: Test signed-coordinate transport
+        run: python experiments/theta/symmetry_transport.py --self-test
+
+      - name: Test rational Gram verifier
+        run: python experiments/theta/rational_gram_verifier.py --self-test
