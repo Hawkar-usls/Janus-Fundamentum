@@ -1,0 +1,48 @@
+name: Validate C031 Proof-Carrying Refuter
+
+on:
+  push:
+    paths:
+      - "experiments/direct/janus_c031_proof_carrying_sat_refuter.py"
+      - "docs/C031_PROOF_CARRYING_SAT_REFUTER.md"
+      - "registry/constructive-route-c031.json"
+      - "registry/references-c031.json"
+      - ".github/workflows/validate-c031-proof-carrying-refuter.yml"
+  pull_request:
+    paths:
+      - "experiments/direct/janus_c031_proof_carrying_sat_refuter.py"
+      - "docs/C031_PROOF_CARRYING_SAT_REFUTER.md"
+      - "registry/constructive-route-c031.json"
+      - "registry/references-c031.json"
+      - ".github/workflows/validate-c031-proof-carrying-refuter.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  verify-proof-carrying-refuter:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Verify SAT and RUP error certificates
+        run: python experiments/direct/janus_c031_proof_carrying_sat_refuter.py --self-test
+
+      - name: Validate C031 registry JSON
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          for path in [
+              Path('registry/constructive-route-c031.json'),
+              Path('registry/references-c031.json'),
+          ]:
+              json.loads(path.read_text(encoding='utf-8'))
+              print('VALID', path)
+          PY
