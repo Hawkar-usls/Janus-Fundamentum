@@ -21,95 +21,74 @@ P_VS_NP=OPEN
 | C035 | Certified interface congruence | Replayed exact residual messages give a sound merge congruence; absorbing proofs and affine RREF produce real compression | Exponential diversity in one product language is intrinsic hardness | `JOINT_DECOMPOSITION_LANGUAGE_AND_PROOF_SELECTION` |
 | C036 | Proof-carrying partition refinement | Complete polynomial separator extraction for Horn and affine residuals; every accepted split carries a replayable continuation | Failure to find a separator permits merging; explicit refinement automatically has polynomial state generation | `CROSS_LANGUAGE_SYMBOLIC_SEPARATOR_DISCOVERY` |
 | C036.1 | Horn-affine negotiation extension | Complete affine-to-Horn directed inclusion/separator extraction plus replayable shared-literal conflict traces and SQLite proof caching | A propagation fixpoint certifies compatibility; constants-only exchange decides Horn-affine mixtures | `REVERSE_HORN_TO_AFFINE_SEPARATOR_OR_STRONGER_FACT_ALGEBRA` |
+| C036.2 | Proof-Carrying Open-Core Vault | Exact capability-scoped OPEN storage, logical STALE, immutable evaluations and fail-closed replay | Cached OPEN is intrinsic hardness; capability changes permit silent reuse | `CI_ADMISSION_AND_PROTOCOL_INTEGRATION` |
 | C037 | Explicit residual OBDD alignment | Exact minimization, pairwise distinguishing suffixes, SAT witnesses and UNSAT DAG certificates once the residual graph is explicit | Partition refinement alone avoids state explosion; an equivalence-query teacher is free | `POLYNOMIAL_ORDER_DECOMPOSITION_AND_REACHABLE_QUOTIENT_CONSTRUCTION` |
 | C038 | Structured vtree factor alignment | Exact vtree-cut continuation rows, replayable separators, witness/UNSAT tables and deterministic charged candidate construction | Recursive structure or a supplied vtree automatically removes exponential interfaces | `POLYNOMIAL_VTREE_DISCOVERY_AND_SYMBOLIC_FACTOR_CONSTRUCTION` |
+| C039 | Symbolic factor construction contract | Proof-carrying LEAF/JOIN/PROJECT/MERGE/SEPARATE envelopes, payload-policy gate and capability-locked Vault protocol | Encoded truth tables are symbolic; unsupported languages may fall back to SAT; supplied vtree is discovered | `POLYNOMIAL_SYMBOLIC_JOIN_PROJECT_MERGE_AND_REPLAYABLE_FACTOR_EQUIVALENCE` |
+| C040 | Portfolio-guided semantic vtree discovery | Reserved: discovery cost must be charged and candidate quality must be replayable | A supplied good vtree substitutes for polynomial discovery | `POLYNOMIAL_VTREE_DISCOVERY` |
 | C031 | Proof-carrying SAT refuter | Formal lower-bound transfer interface | Uncertified circuit counterexamples and free direct-sum amplification | `NO_SHARING_REFUTER_AMPLIFICATION` |
 
 ## Constructive P=NP track
 
 ```text
 tractable local languages
--> exact semantic cut signatures or certified symbolic elimination
--> proof-carrying cross-class interface compression
--> jointly selected decomposition, message language and proof rules
--> certified merge and separator extraction
--> certified cross-language fact exchange
+-> certified symbolic cut messages
+-> proof-carrying JOIN and PROJECT
+-> certified MERGE and SEPARATE
 -> polynomial reachable quotient construction
--> polynomial vtree discovery and symbolic factor construction
+-> portfolio-guided polynomial vtree discovery
 -> SAT witness + UNSAT certificate
 -> universal polynomial SAT algorithm
 ```
 
-C036 supplies polynomial same-language separator extraction for Horn and affine
-messages. C036.1 supplies a complete affine-to-Horn directed separator test and a
-sound but incomplete proof-carrying unary negotiation protocol. Its equality/NEQ
-control proves that `OPEN_FIXPOINT` is not compatibility.
+C038 receives or heuristically constructs a vtree and explicitly enumerates the
+cut communication rows. Its equality control demonstrates both a small paired
+vtree and an exponential blocked cut, but does not prove universal discovery.
 
-C037 supplies the complete continuation quotient after an exact finite residual
-graph has been generated and aligns fixed-order refinement with reduced OBDD.
-
-C038 moves from one line to a recursive vtree. For each vtree cut it constructs
-the exact Boolean communication rows and their continuation quotient, together
-with replayable outside-assignment separators. This is aligned with structured
-d-DNNF / SDD / TDD factor-width views; it is not a new width parameter.
-
-The equality control shows both sides of the result:
+C039 receives a supplied, verified vtree and specifies symbolic factor
+construction. The first C039 commit validates only operation envelopes,
+registered symbolic payloads, proof-reference closure, budget terminals and the
+external `OpenCoreVaultSink` protocol. It implements none of the named language
+algorithms.
 
 ```text
-paired vtree: local equality interactions remain small
-blocked vtree: one cut has exactly 2^n continuation rows
+C039:
+  supplied verified vtree
+  symbolic factor construction
+  certified merge/separate
+
+C040:
+  portfolio-guided semantic vtree discovery
+  discovery cost charged
+  no supplied-vtree substitution
 ```
-
-A deterministic co-occurrence heuristic rediscovers the paired structure on this
-family, but no universal optimality or polynomial-width guarantee is claimed.
-
-The immediate target is C039:
-
-```text
-SYMBOLIC_FACTOR_CONSTRUCTION_WITHOUT_TRUTH_TABLE_ENUMERATION
-```
-
-Construct the same cut quotient and proof objects using Horn, affine,
-beta-acyclic, PS-signature or compiled symbolic messages, while charging vtree
-discovery, joins, projections, merges, separators, SAT witness recovery and UNSAT
-certificate discovery. Return `OPEN` when any volume exceeds an explicit
-polynomial budget.
 
 ## Canonical cycle allocation
 
 ```text
 C036   proof-carrying same-language partition refinement
-C036.1 Horn-affine negotiation extension of C036
+C036.1 Horn-affine negotiation extension
+C036.2 proof-carrying Open-Core Vault
 C037   explicit residual OBDD alignment
 C038   structured vtree factor alignment
 C039   symbolic factor construction without truth-table enumeration
+C040   portfolio-guided semantic vtree discovery
 ```
-
-The C036.1 branch and several pre-admission paths retain their original `c037`
-spelling as legacy aliases for replayability, but the route matrix and
-machine-readable artifact assign the result only to `C036.1`. The numbering
-collision is resolved; C037 uniquely denotes OBDD alignment.
 
 ## Converged constructive bottleneck
 
-The following names are linked views of one missing core:
-
 ```text
-C025 certified residual quotient complexity
-C032 symbolic PS-signature compression
-C033 portfolio selection with symbolic messages
-C034 proof-carrying cross-class interface compression
-C035 joint decomposition/language/proof selection
-C036 cross-language symbolic separator discovery
-C036.1 reverse Horn-to-affine separation or stronger fact algebra
-C037 order/decomposition and reachable quotient construction
-C038 vtree discovery and symbolic factor construction
+POLYNOMIAL_VTREE_DISCOVERY
++
+POLYNOMIAL_SYMBOLIC_FACTOR_CONSTRUCTION
++
+REPLAYABLE_FACTOR_EQUIVALENCE
 ```
 
 No future cycle may claim progress merely by renaming this object. Progress
 requires a new polynomial construction theorem, a strictly stronger replayable
-message algebra, a complete separator extractor for a larger closed language, or
-a decisive obstruction to one explicit construction route.
+message algebra, a complete separator extractor for a larger closed language,
+or a decisive obstruction to one explicit route.
 
 ## Separation track
 
@@ -121,12 +100,12 @@ proof-carrying circuit refuter
 -> P != NP
 ```
 
-This track remains useful as an adversarial control even while the user-selected
-primary objective is `P=NP`.
+This remains an adversarial control. No empirical failure of the constructive
+track is a separation proof.
 
 ## Non-duplication rule
 
-Before admitting a new hypothesis, compare it against:
+Before admission, compare against:
 
 ```text
 PS-width
@@ -148,5 +127,4 @@ active automata learning and equivalence-query teachers
 cooperating decision procedures and DPLL(T)/DPLL(XOR) propagation
 ```
 
-A renamed known parameter is registered as an alignment result, not promoted as
-a new theorem.
+A renamed known parameter is an alignment result, not a new theorem.
