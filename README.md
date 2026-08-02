@@ -18,6 +18,8 @@ This repository does **not** claim that `P = NP` or `P != NP` has been proved.
 8. Local type multiplicities do not determine global graph assembly.
 9. A local-twin lower bound must exclude identity compilation through an explicit width lower bound and separately control global factorization.
 10. Polynomial DAG sharing is charged once per gate before unfolded occurrences are used as a lower-bound resource.
+11. An identical connector preserves local equality only after proving separation from every distinguishing feature.
+12. Every finite positive list must charge its exact-membership SAT-sound circuit, not only witness-based covers.
 
 ## Validate the organism
 
@@ -48,96 +50,94 @@ python experiments/direct/xor_cycle_local_twins.py --self-test
 python experiments/direct/sound_witness_cover.py --self-test
 python experiments/direct/toroidal_tseitin_twins.py --self-test
 python experiments/direct/length_parameter_audit.py --self-test
+python experiments/direct/connected_toroidal_tseitin_twins.py --self-test
+python experiments/direct/exact_list_sound_cover.py --self-test
 ```
 
-# Current status — C018
+# Current status — C019
 
 ```text
-NEW DESCENDANTS             4   H121-H124
-CURRENT-CYCLE ATTACKS      28   A447-A474
-INHERITED TARGETS          11
-TERMINAL RESULTS            1   H116
-LIVE HYPOTHESES           107
+NEW DESCENDANTS             3   H125-H127
+CURRENT-CYCLE ATTACKS      24   A475-A498
+INHERITED TARGETS          12
+TERMINAL RESULTS            0
+LIVE HYPOTHESES           110
 TERMINAL HISTORICAL NODES  17
 ```
 
-## H116 rejected — circuit size used the wrong parameter
+## H125 — connected high-treewidth local twins
 
-H116 bounded candidate circuits by `n^k` while allowing the generated formula length to be `L_k(n)=n^{d(k)}` with a `k`-dependent exponent.
+H121 used two disjoint toroidal Tseitin lobes. C019 joins them with a five-clause bridge on fresh variables:
 
-A hypothetical SAT circuit of size `L^3` becomes `n^{3d(k)}`. With the allowed choice `d(k)=k^2`, this exceeds `n^k` for every `k`, so H116's claimed implication to `SAT not in P/poly` did not follow.
+```text
+(x ∨ z)
+(¬x ∨ z)
+(y ∨ w)
+(¬y ∨ w)
+(z ∨ w)
+```
+
+For every endpoint assignment, `z=w=1` satisfies the bridge. Thus it does not change the SAT or UNSAT status of the original Tseitin system.
+
+The bridge creates the primal path
+
+```text
+x — z — w — y
+```
+
+and makes the full primal graph connected.
+
+Its endpoints are placed outside every charge-visible radius. A bounded-radius root sees either a charge-altered gadget or the identical bridge, never both. The exact local equality from H121 therefore survives, and the original toroidal primal component remains as a subgraph.
+
+```text
+SAT status:                    preserved
+UNSAT status:                  preserved
+primal graph:                  connected
+local signatures:              equal by separated features
+treewidth lower bound:         at least m-1
+```
 
 ```bash
-python experiments/direct/length_parameter_audit.py --self-test
+python experiments/direct/connected_toroidal_tseitin_twins.py --self-test
 ```
 
-`H124` repairs the quantifiers: every formula has exactly `L` encoded bits and every attacked circuit has size at most `L^k` on that same input domain.
+Read [`proof_attempts/H125/CONNECTED_TSEITIN_BRIDGE.md`](proof_attempts/H125/CONNECTED_TSEITIN_BRIDGE.md).
 
-The construction remains open and still faces H120's SAT-sound witness cover plus arbitrary semantic compression.
-
-Read [`proof_attempts/H116/PARAMETER_FAILURE.md`](proof_attempts/H116/PARAMETER_FAILURE.md).
-
-## H121 — exact high-treewidth local twins
-
-For every fixed radius `R`, set
+## H127 — the last stated locality theorem
 
 ```text
-m = 8R + 13
-```
-
-and use two disjoint `m × m` toroidal grids. Edge variables satisfy one degree-four Tseitin parity equation at every grid vertex.
-
-```text
-SAT component charges:    (2,0)
-UNSAT component charges:  (1,1)
-```
-
-The formulas have opposite satisfiability, while their complete translation-normalized rooted signed-incidence signature multisets through radius `R` are exactly equal.
-
-```bash
-python experiments/direct/toroidal_tseitin_twins.py --self-test
-```
-
-The SAT assignment is constructed through a spanning tree. The UNSAT result follows because XORing all equations in an odd-charge component gives `0=1`.
-
-## Identity compilation is finally excluded
-
-The primal graph of a standard edge-variable Tseitin CNF is exactly the line graph of its underlying graph.
-
-Primary results give:
-
-```text
-tw(T_m) = 2m - 1
-tw(L(G)) >= (tw(G)+1)/2 - 1
-```
-
-Therefore:
-
-```text
-tw(primal H121) >= m - 1 = Omega(sqrt(N)).
-```
-
-Unlike the H118 cycle pair, the H121 input itself is not an `O(log N)`-treewidth output. The identity compiler is no longer a legal escape.
-
-Read [`proof_attempts/H121/TOROIDAL_TSEITIN_TWINS.md`](proof_attempts/H121/TOROIDAL_TSEITIN_TWINS.md) and [`proof_attempts/H122/PRIMAL_TREEWIDTH_TRANSFER.md`](proof_attempts/H122/PRIMAL_TREEWIDTH_TRANSFER.md).
-
-## The remaining locality theorem
-
-```text
-H121 exact high-treewidth local twins
-  + H123 common-quotient factorization
+H125 connected high-treewidth local twins
+  + H127 common-quotient factorization
   -> no H106 constant-pass low-treewidth compiler
 ```
 
-H123 must prove that every legal fixed-pass transduction producing `O(log N)` treewidth factors through a common local quotient and therefore loses the bit distinguishing:
+Disconnected input components are no longer an escape. The remaining theorem must show that every legal fixed-pass compiler producing `O(log N)` treewidth output factors through a common quotient that loses same-lobe versus split-lobe charge parity.
+
+The conclusion must include the complete output assembly and every witness-recovery annotation. It is not currently proved.
+
+## H126 — exact-list sound cover
+
+For any positive list containing `m` distinct satisfiable formulas of exactly `L` bits, hardwire one equality test per formula and OR them.
+
+The circuit accepts exactly the listed formulas, so it is globally SAT-sound. A loose standard-basis upper bound is:
 
 ```text
-two charges in one component
-versus
-one charge in each component.
+size <= 3mL.
 ```
 
-The theorem must cover the complete output assembly and every witness-recovery annotation. It is not currently proved.
+Therefore an H124 list intended to hit every SAT-sound circuit of size `L^k` must contain:
+
+```text
+m > L^(k-1)/3
+```
+
+distinct formulas. This restriction is independent of witness diversity.
+
+```bash
+python experiments/direct/exact_list_sound_cover.py --self-test
+```
+
+Read [`proof_attempts/H126/EXACT_LIST_COVER.md`](proof_attempts/H126/EXACT_LIST_COVER.md).
 
 ## Remaining direct separation routes
 
@@ -145,11 +145,14 @@ The theorem must cover the complete output assembly and every witness-recovery a
 
 ```text
 H124 exact-L SAT-sound anti-checker
-  + witness diversity beyond H120
-  + incompressibility against every L^k SAT-sound circuit
+  + more than L^(k-1)/3 distinct formulas
+  + escape from the H120 witness cover
+  + incompressibility against every other L^k SAT-sound circuit
   -> SAT not in P/poly
   -> P != NP
 ```
+
+The formal implication is correct. The uniform list construction and universal incompressibility theorem remain open.
 
 ### Extended Frege
 
@@ -167,13 +170,13 @@ H117 continues to exclude fixed EF-easy gadget composition as an endpoint source
 ### Restricted local compiler obstruction
 
 ```text
-H123 toroidal charge-quotient factorization
+H127 connected toroidal charge-quotient factorization
   -> no H106 compiler
 ```
 
 This route attacks only the stated compiler class; it does not itself imply `P != NP`.
 
-Read [`docs/C018_TOROIDAL_TSEITIN.md`](docs/C018_TOROIDAL_TSEITIN.md).
+Read [`docs/C019_CONNECTED_TWINS_AND_LIST_COVERS.md`](docs/C019_CONNECTED_TWINS_AND_LIST_COVERS.md).
 
 ## Genesis boundary
 
