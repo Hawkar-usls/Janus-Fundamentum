@@ -2,7 +2,7 @@
 
 ## Purpose
 
-The laboratory searches for mathematically meaningful routes toward resolving `P` versus `NP`. It records positive results, failed mechanisms, bridge lemmas, barriers, and explicit counterattacks. The registry is not a confidence market and not a proof by accumulation.
+The laboratory searches for mathematically meaningful routes toward resolving `P` versus `NP`. It records positive results, failed mechanisms, bridge lemmas, barriers, explicit counterattacks, and the ancestry of every later idea. The registry is not a confidence market and not a proof by accumulation.
 
 ## Admission protocol
 
@@ -18,6 +18,13 @@ A hypothesis enters the live registry only when all of the following are present
 8. **Next gate** — the next concrete theorem, construction, implementation, or counterexample needed to advance the route.
 
 Beginning with `H030`, `proof_role` and `next_gate` are mandatory machine-validated fields, and every admitted hypothesis must reference at least two recorded attacks.
+
+Beginning with `H060`, every new entry must additionally contain:
+
+9. **Derived from** — a nonempty list of older JANUS hypotheses that materially generated the child.
+10. **Delta from parents** — the precise new obligation, restriction, target family, proof system, or bridge introduced by the child.
+
+`tools/validate_lineage.py` verifies that all parents exist, are older than the child, match the genealogy ledger exactly, and have not been added as decorative citations.
 
 Vague metaphors, renamed versions of the target theorem, hidden oracles, uncharged numerical precision, and interesting open problems without an explicit downstream proof role are rejected before admission.
 
@@ -61,16 +68,7 @@ No finite benchmark can promote a universal complexity claim to `PROVED`.
 
 ## Attack protocol
 
-Every attack record states:
-
-- target hypothesis;
-- attack type;
-- exact input family, reduction, or theorem used;
-- expected failure mode;
-- method;
-- result;
-- artifact or derivation location;
-- whether the attack was decisive.
+Every attack record states the target, failure mode, exact theorem or family, method, result, artifact, and whether the attack was decisive.
 
 Preferred attacks, in order of force:
 
@@ -87,6 +85,27 @@ Preferred attacks, in order of force:
 
 A failed attack may weaken a statement by exposing a missing assumption. Weakening must be recorded; it is not counted as positive evidence.
 
+## Inheritance protocol
+
+A child is admissible only when it does at least one of the following:
+
+- replaces an existential object by an explicit target family;
+- repairs a formally identified failure in a parent;
+- changes the proof system in a stated way after a lower bound kills the former system;
+- converts two independent branches into a checkable bridge;
+- isolates a semantic escape resource such as overlap, cancellation, auxiliary projection, or stronger inference rules;
+- turns a broad frontier into a concrete theorem with a smaller attack surface.
+
+The following do **not** count as inheritance:
+
+- renaming the parent;
+- weakening a quantifier without explaining the proof benefit;
+- adding another adjective such as “dynamic”, “tensor”, or “recursive” without a formal delta;
+- citing a destroyed parent while silently reusing the exact destroyed mechanism;
+- copying a consequence but changing no proof obligation.
+
+A destroyed hypothesis may have descendants. The descendant must explicitly state which failed component is abandoned and which stronger or different mechanism replaces it.
+
 ## Proof-chain discipline
 
 A route is only as strong as its weakest unproved link. JANUS therefore records chains rather than treating all hypotheses as parallel votes.
@@ -94,7 +113,7 @@ A route is only as strong as its weakest unproved link. JANUS therefore records 
 For every route:
 
 - the root target is named;
-- bridge lemmas identify their parents and descendants in `genealogy*.json`;
+- bridge lemmas identify parents and descendants;
 - mutually incompatible branches may coexist;
 - each branch names the theorem or experiment that resolves it;
 - a result for a restricted proof system is not silently transferred to a stronger system;
@@ -122,6 +141,12 @@ The following are never accepted as proofs of `P = NP`:
 
 Destroyed and rejected hypotheses are never deleted. Their exact statements, counterexamples, rejection reasons, salvage conditions, and descendants remain in `graveyard*.json` and `genealogy*.json`. This prevents renamed dead ends from repeatedly re-entering the laboratory.
 
-## Cycle C006 rule
+## Cycle rules
 
-C006 screened 42 formulations. Twelve failed admission before receiving live IDs. Thirty hypotheses `H030-H059` survived two attacks each and were admitted because they expose a proof role and a next gate. The count is not evidence. The useful output is the proof graph: which theorem would settle which branch, which mechanisms can be attacked together, and which missing lemma should be attempted next.
+### C006 — proof-directed admission
+
+C006 screened 42 formulations. Twelve failed admission, and thirty `H030-H059` survived two attacks each because they exposed a proof role and next gate.
+
+### C007 — inherited generation and ancestor attack
+
+C007 derives `H060-H069` from older nodes, enforces machine-readable parent/delta fields, attacks both generations, destroys H048 through a general-Resolution lower bound, and salvages its constructive direction only by changing the proof system in H063. The count of descendants is not progress by itself; the useful output is the shorter and more explicit proof graph.
