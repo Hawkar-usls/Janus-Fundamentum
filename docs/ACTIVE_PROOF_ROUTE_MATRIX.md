@@ -19,6 +19,7 @@ P_VS_NP=OPEN
 | C033 | Proof-carrying tractable portfolio | Normalization plus exact Horn, dual-Horn and beta-acyclic solving with witness recovery and strict `OPEN` | Every tractable regime must first have small explicit PS tables | `PORTFOLIO_SELECTION_WITH_SYMBOLIC_MESSAGES` |
 | C034 | Affine and cross-class composition | Replayable GF(2) certificates and exact `O(2^k poly(L))` heterogeneous composition for shared boundary `k` | Named tractable modules imply an unrestricted tractable mixture | `PROOF_CARRYING_CROSS_CLASS_INTERFACE_COMPRESSION` |
 | C035 | Certified interface congruence | Replayed exact residual messages give a sound merge congruence; absorbing proofs and affine RREF produce real compression | Exponential diversity in one product language is intrinsic hardness | `JOINT_DECOMPOSITION_LANGUAGE_AND_PROOF_SELECTION` |
+| C036 | Proof-carrying partition refinement | Complete polynomial separator extraction for Horn and affine residuals; every accepted split carries a replayable continuation | Failure to find a separator permits merging; explicit refinement automatically has polynomial state generation | `CROSS_LANGUAGE_SYMBOLIC_SEPARATOR_DISCOVERY` |
 | C031 | Proof-carrying SAT refuter | Formal lower-bound transfer interface | Uncertified circuit counterexamples and free direct-sum amplification | `NO_SHARING_REFUTER_AMPLIFICATION` |
 
 ## Constructive P=NP track
@@ -28,30 +29,30 @@ tractable local languages
 -> exact semantic cut signatures or certified symbolic elimination
 -> proof-carrying cross-class interface compression
 -> jointly selected decomposition, message language and proof rules
+-> certified merge and separator extraction
 -> SAT witness + UNSAT certificate
 -> universal polynomial SAT algorithm
 ```
 
-C034 completed the first four-engine restricted portfolio and proved exact
-composition for logarithmic shared boundaries. C035 now supplies the first
-sound proof-carrying state merge rule and shows why a fixed tuple of exact local
-messages is not enough: it may under-merge exponentially even on an easy Horn
-family unless cross-module certificates and decomposition selection are charged.
+C035 supplied a sound merge congruence. C036 supplies the complementary operation:
+inside Horn and affine message languages, every inequivalent pair has a
+polynomially discoverable explicit separating continuation, and every split is
+independently replayable.
 
-The immediate target is C036:
+The result remains restricted because the state list can already be exponential
+and no complete cross-language extractor is known. The immediate target is C037:
 
 ```text
-PROOF-CARRYING PARTITION REFINEMENT
+SYMBOLIC CROSS-LANGUAGE TEST BASIS
 ```
 
-Start from coarse verified terminal classes, refine only when an explicit
-continuation separates two states, attach a replayable separating witness or
-proof, and return `OPEN` when separator discovery, quotient size or certificate
-volume exceeds a polynomial budget.
+Construct a polynomially generated family of symbolic continuations closed under
+the admitted Horn/affine/beta-acyclic/compiled operations, or prove a decisive
+obstruction for one explicit basis. A missing separator never authorizes a merge.
 
 ## Converged constructive bottleneck
 
-The following names are now linked views of one missing core:
+The following names are linked views of one missing core:
 
 ```text
 C025 certified residual quotient complexity
@@ -59,11 +60,13 @@ C032 symbolic PS-signature compression
 C033 portfolio selection with symbolic messages
 C034 proof-carrying cross-class interface compression
 C035 joint decomposition/language/proof selection
+C036 cross-language symbolic separator discovery
 ```
 
 No future cycle may claim progress merely by renaming this object. Progress
 requires a new polynomial construction theorem, a strictly stronger replayable
-message algebra, or a decisive obstruction to one explicit construction route.
+message algebra, a complete separator extractor for a larger closed language, or
+a decisive obstruction to one explicit construction route.
 
 ## Separation track
 
@@ -96,6 +99,7 @@ GF(2) affine elimination
 Schaefer fixed-language mixtures
 communication/continuation equivalence across cuts
 partition refinement and canonical residual automata
+symbolic bisimulation and distinguishing-test bases
 ```
 
 A renamed known parameter is registered as an alignment result, not promoted as
