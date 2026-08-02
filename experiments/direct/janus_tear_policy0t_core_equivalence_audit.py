@@ -23,20 +23,26 @@ def trace_counters(nodes: dict[int, dict[str, object]]) -> dict[str, int]:
     branch_edges = 0
     terminal_calls = 0
     maximum_depth = 0
+    resolution_attempts = 0
     resolution_additions = 0
 
     for node in nodes.values():
         maximum_depth = max(maximum_depth, int(node["depth"]))
-        if "resolution_input" in node:
+        # Production Policy0T increments expanded_states immediately before
+        # entering limited_resolution.  TracePolicy records resolution_output
+        # exactly when that same stage has been entered.
+        if "resolution_output" in node:
             expanded_states += 1
-        resolution_additions += len(node.get("resolution_events", []))
+            resolution_attempts += int(node["resolution_attempts"])
+            resolution_additions += int(node["resolution_additions"])
 
         terminal = node.get("terminal")
-        if terminal == "BRANCH_UNSAT":
+        if terminal in ("BRANCH_UNSAT", "BRANCH_SAT"):
             children = node.get("children", [])
             assert isinstance(children, list)
             branch_edges += sum(
-                1 for child in children
+                1
+                for child in children
                 if isinstance(child, dict) and not child["direct_conflict"]
             )
         else:
@@ -48,11 +54,12 @@ def trace_counters(nodes: dict[int, dict[str, object]]) -> dict[str, int]:
         "branch_edges": branch_edges,
         "terminal_calls": terminal_calls,
         "maximum_branch_depth": maximum_depth,
+        "resolution_attempts": resolution_attempts,
         "resolution_additions": resolution_additions,
     }
 
 
-def audit_formula(cnf, variable_count: int) -> tuple[int, int]:
+def audit_formula(cnf, variable_count: int) -> tuple[int, int, int]:
     affine_answer, affine_equations = visible_affine_root_decision(cnf, variable_count)
     assert affine_answer is None
     assert affine_equations == 0
@@ -72,9 +79,14 @@ def audit_formula(cnf, variable_count: int) -> tuple[int, int]:
     assert production.branch_edges == counters["branch_edges"]
     assert production.terminal_calls == counters["terminal_calls"]
     assert production.maximum_branch_depth == counters["maximum_branch_depth"]
+    assert production.resolution_attempts == counters["resolution_attempts"]
     assert production.resolution_additions == counters["resolution_additions"]
 
-    return production.recursive_calls, production.resolution_additions
+    return (
+        production.recursive_calls,
+        production.resolution_attempts,
+        production.resolution_additions,
+    )
 
 
 def self_test() -> None:
@@ -86,6 +98,7 @@ def self_test() -> None:
     attempted = 0
     compared = 0
     maximum_calls = 0
+    maximum_attempts = 0
     maximum_additions = 0
 
     while attempted < 4000 and compared < 500:
@@ -98,9 +111,10 @@ def self_test() -> None:
         if affine_answer is not None:
             continue
 
-        calls, additions = audit_formula(cnf, variable_count)
+        calls, attempts, additions = audit_formula(cnf, variable_count)
         compared += 1
         maximum_calls = max(maximum_calls, calls)
+        maximum_attempts = max(maximum_attempts, attempts)
         maximum_additions = max(maximum_additions, additions)
 
     assert compared == 500
@@ -110,6 +124,7 @@ def self_test() -> None:
     print(f"attempted_formulas = {attempted}")
     print(f"compared_nonaffine_unsat_formulas = {compared}")
     print(f"maximum_recursive_calls = {maximum_calls}")
+    print(f"maximum_resolution_attempts = {maximum_attempts}")
     print(f"maximum_resolution_additions = {maximum_additions}")
     print("answers_equal = true")
     print("recursive_calls_equal = true")
@@ -117,6 +132,7 @@ def self_test() -> None:
     print("branch_edges_equal = true")
     print("terminal_calls_equal = true")
     print("maximum_depth_equal = true")
+    print("resolution_attempts_equal = true")
     print("resolution_additions_equal = true")
     print("claim_boundary = finite differential audit; source-level equivalence proof remains documented")
 
