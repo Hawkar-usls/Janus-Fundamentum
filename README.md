@@ -18,7 +18,7 @@ This repository does **not** claim that `P = NP` or `P != NP` has been proved. I
 
 Any computational claim must be reproducible by an independent person on an independent machine from committed code, fixed inputs, seeds, expected outputs, and hashes.
 
-A finite experiment may falsify a universal claim, but it cannot by itself prove a universal asymptotic statement.
+A finite experiment may falsify a universal algorithmic claim, but it cannot by itself prove a universal asymptotic statement.
 
 ## Research states
 
@@ -28,16 +28,18 @@ A hypothesis may move to `DESTROYED` from any state. `OPEN` means only that the 
 
 ## Machine-readable laboratory
 
-- [`registry/hypotheses.json`](registry/hypotheses.json) — hypotheses that survived the currently recorded attacks.
-- [`registry/attacks.json`](registry/attacks.json) and `registry/attacks-*.json` — modular ledgers of every registered falsification attempt.
-- [`registry/references.json`](registry/references.json) — primary-source literature context and audited boundaries.
-- [`registry/graveyard.json`](registry/graveyard.json) — rejected or destroyed formulations, retained permanently.
-- [`registry/observations.json`](registry/observations.json) — reproducible facts and meta-observations.
-- [`registry/journal.json`](registry/journal.json) — chronological research cycles.
-- [`registry/genealogy.json`](registry/genealogy.json) — parent/child relations between ideas.
+Every major ledger is modular. The validator aggregates the base file and all matching cycle files:
+
+- `registry/hypotheses*.json` — hypotheses that survived their recorded attacks;
+- `registry/attacks*.json` — every registered falsification attempt;
+- `registry/references*.json` — primary-source literature context and audited boundaries;
+- `registry/graveyard*.json` — rejected or destroyed formulations, retained permanently;
+- `registry/observations*.json` — reproducible facts and meta-observations;
+- `registry/journal*.json` — chronological research cycles;
+- `registry/genealogy*.json` — parent/child relations between ideas;
 - [`registry/schema.json`](registry/schema.json) — field, status, and cross-reference contract.
 
-Validate the complete registry:
+Validate the complete organism:
 
 ```bash
 python tools/validate_registry.py
@@ -47,18 +49,21 @@ GitHub Actions runs the same validation on every pull request and push.
 
 ## Current laboratory status
 
-Cycle `C002` contains eleven live hypotheses:
+Cycle `C003` raises the live registry to nineteen hypotheses:
 
-- `H001-H004`: broad exact-lift targets, now explicitly marked as theorem-equivalent to `P = NP` as stated because an unrestricted transformer can solve first and encode later;
+- `H001-H004`: broad exact-lift targets retained with an explicit warning that unrestricted transformers are theorem-equivalent to `P = NP` through solve-and-encode;
 - `H005-H008`: literature-grounded proof-complexity lower-bound frontiers;
-- `H009-H010`: JANUS-generated algorithmic mechanisms whose allowed operations are restricted independently of a general SAT oracle;
-- `H011`: the polynomial-boundedness counterfrontier for Extended Frege, retained alongside its mutually incompatible lower-bound hypothesis.
+- `H009-H010`: restricted JANUS mechanisms for local treewidth compilation and extension-enabled polynomial calculus;
+- `H011-H015`: mutually incompatible proof-size and proof-search frontiers for Extended Frege, TC0-Frege, and full IPS;
+- `H016-H019`: new JANUS mechanisms for bounded-radius d-DNNF compilation, parity-core separation, certified residual quotienting, and proof-carrying variable elimination.
 
-None is a theorem. The most important next gates are to instantiate H009 with a concrete finite rewrite grammar, build a proof checker for H010, and choose explicit hard families for H005-H008.
+Cycle C003 also records twenty new attacks, eleven primary sources, six observations, and three rejected routes. None of the new hypotheses is a theorem or claimed novelty.
+
+The strongest next falsification target is a closure theorem showing that communication complexity or semantic residual diversity survives the exact local certificate languages of `H016-H019`. The strongest constructive target is a tiny concrete rule grammar for `H016` that can be exhaustively attacked on small CNFs.
 
 ## Historical JANUS experiments
 
-The earlier p–n-inspired SAT experiments are preserved under [`experiments/`](experiments/). They are historical evidence about finite algorithms and benchmarks, not asymptotic complexity proofs. Their code, negative results, reports, and manifests remain part of the laboratory record.
+The earlier p-n-inspired SAT experiments are preserved under [`experiments/`](experiments/). They are historical evidence about finite algorithms and benchmarks, not asymptotic complexity proofs. Their code, negative results, reports, and manifests remain part of the laboratory record.
 
 ## Contribution rule
 
