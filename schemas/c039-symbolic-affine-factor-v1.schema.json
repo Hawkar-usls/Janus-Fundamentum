@@ -1,0 +1,140 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://janus.local/schemas/c039-symbolic-affine-factor-v1.schema.json",
+  "title": "JANUS Symbolic Affine Factor Compilation v1",
+  "type": "object",
+  "required": [
+    "artifact_id",
+    "schema",
+    "status",
+    "p_vs_np",
+    "language",
+    "variable_count",
+    "equations",
+    "vtree",
+    "root_node",
+    "nodes",
+    "cost",
+    "integrity_sha256"
+  ],
+  "properties": {
+    "artifact_id": {"const": "C039-PROOF-CARRYING-SYMBOLIC-AFFINE-FACTORS"},
+    "schema": {"const": "janus.symbolic_affine_factor_compilation.v1"},
+    "status": {"enum": ["SAT", "UNSAT"]},
+    "p_vs_np": {"const": "OPEN"},
+    "language": {"const": "AFFINE_GF2"},
+    "variable_count": {"type": "integer", "minimum": 1},
+    "equations": {
+      "type": "array",
+      "items": {
+        "type": "array",
+        "prefixItems": [
+          {"type": "integer", "minimum": 0},
+          {"enum": [0, 1]}
+        ],
+        "items": false,
+        "minItems": 2,
+        "maxItems": 2
+      }
+    },
+    "root_node": {"type": "integer", "minimum": 0},
+    "nodes": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "node_id",
+          "leaves",
+          "boundary",
+          "assigned_equations",
+          "join_vars",
+          "eliminated_vars",
+          "sources",
+          "message",
+          "work_delta"
+        ],
+        "properties": {
+          "node_id": {"type": "integer", "minimum": 0},
+          "leaves": {"type": "array", "items": {"type": "integer", "minimum": 1}},
+          "boundary": {"type": "array", "items": {"type": "integer", "minimum": 1}},
+          "assigned_equations": {"type": "array", "items": {"type": "integer", "minimum": 0}},
+          "join_vars": {"type": "array", "items": {"type": "integer", "minimum": 1}},
+          "eliminated_vars": {"type": "array", "items": {"type": "integer", "minimum": 1}},
+          "sources": {"type": "array"},
+          "message": {
+            "type": "object",
+            "required": ["status", "boundary", "rows", "digest"],
+            "properties": {
+              "status": {"enum": ["AFFINE", "FALSE"]},
+              "boundary": {"type": "array", "items": {"type": "integer", "minimum": 1}},
+              "rows": {
+                "type": "array",
+                "items": {"$ref": "#/$defs/row"}
+              },
+              "contradiction": {
+                "anyOf": [
+                  {"type": "null"},
+                  {"$ref": "#/$defs/row"}
+                ]
+              },
+              "digest": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+              "merge_with": {
+                "anyOf": [
+                  {"type": "null"},
+                  {"type": "integer", "minimum": 0}
+                ]
+              }
+            },
+            "additionalProperties": false
+          },
+          "work_delta": {"type": "integer", "minimum": 0}
+        },
+        "additionalProperties": true
+      }
+    },
+    "witness": {
+      "anyOf": [
+        {"type": "null"},
+        {
+          "type": "object",
+          "additionalProperties": {"enum": [0, 1]}
+        }
+      ]
+    },
+    "witness_recovery_trace": {"type": "array"},
+    "unsat_certificate": {
+      "anyOf": [
+        {"type": "null"},
+        {"$ref": "#/$defs/row"}
+      ]
+    },
+    "cost": {
+      "type": "object",
+      "required": [
+        "work_units",
+        "row_xors",
+        "pair_scores",
+        "projection_calls",
+        "solve_calls",
+        "emitted_rows",
+        "node_count",
+        "certificate_bytes"
+      ],
+      "additionalProperties": {"type": "integer", "minimum": 0}
+    },
+    "integrity_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+  },
+  "$defs": {
+    "row": {
+      "type": "object",
+      "required": ["mask", "rhs", "provenance"],
+      "properties": {
+        "mask": {"type": "integer", "minimum": 0},
+        "rhs": {"enum": [0, 1]},
+        "provenance": {"type": "integer", "minimum": 0}
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": true
+}
