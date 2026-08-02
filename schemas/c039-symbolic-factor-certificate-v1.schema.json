@@ -1,0 +1,230 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://janus.invalid/schemas/c039-symbolic-factor-certificate-v1.schema.json",
+  "title": "C039 symbolic factor operation certificate",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "operator",
+    "formula_digest",
+    "vtree_digest",
+    "vtree_node_digest",
+    "capability_digest",
+    "language_profile",
+    "language_profile_digest",
+    "input_message_digests",
+    "output_message_digest",
+    "input_scope",
+    "output_scope",
+    "input_boundary",
+    "output_boundary",
+    "message_payload",
+    "payload_digest",
+    "proof_refs",
+    "work_ledger",
+    "representation_size",
+    "declared_size_bound",
+    "operator_metadata",
+    "terminal"
+  ],
+  "$defs": {
+    "sha256": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$"
+    },
+    "stringSet": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "uniqueItems": true
+    },
+    "proofRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "digest"
+      ],
+      "properties": {
+        "kind": {
+          "type": "string",
+          "minLength": 1
+        },
+        "digest": {
+          "$ref": "#/$defs/sha256"
+        }
+      }
+    }
+  },
+  "properties": {
+    "schema": {
+      "const": "janus.c039.symbolic-factor-operation.v1"
+    },
+    "operator": {
+      "enum": [
+        "LEAF",
+        "JOIN",
+        "PROJECT",
+        "MERGE",
+        "SEPARATE"
+      ]
+    },
+    "formula_digest": {
+      "$ref": "#/$defs/sha256"
+    },
+    "vtree_digest": {
+      "$ref": "#/$defs/sha256"
+    },
+    "vtree_node_digest": {
+      "$ref": "#/$defs/sha256"
+    },
+    "capability_digest": {
+      "$ref": "#/$defs/sha256"
+    },
+    "language_profile": {
+      "enum": [
+        "HORN_V1",
+        "AFFINE_GF2_V1",
+        "BETA_ACYCLIC_V1",
+        "COMPOSED_C036_1_V1"
+      ]
+    },
+    "language_profile_digest": {
+      "$ref": "#/$defs/sha256"
+    },
+    "input_message_digests": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/sha256"
+      }
+    },
+    "output_message_digest": {
+      "$ref": "#/$defs/sha256"
+    },
+    "input_scope": {
+      "$ref": "#/$defs/stringSet"
+    },
+    "output_scope": {
+      "$ref": "#/$defs/stringSet"
+    },
+    "input_boundary": {
+      "$ref": "#/$defs/stringSet"
+    },
+    "output_boundary": {
+      "$ref": "#/$defs/stringSet"
+    },
+    "message_payload": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "schema",
+        "payload_type"
+      ],
+      "properties": {
+        "schema": {
+          "const": "janus.c039.symbolic-message.v1"
+        },
+        "payload_type": {
+          "enum": [
+            "HORN_CLOSURE",
+            "AFFINE_RREF",
+            "BETA_ACYCLIC_ELIMINATION",
+            "COMPOSED_C036_1_MESSAGE",
+            "SYMBOLIC_CONTINUATION",
+            "SYMBOLIC_STATE_PAIR"
+          ]
+        }
+      },
+      "not": {
+        "anyOf": [
+          {
+            "required": [
+              "assignments"
+            ]
+          },
+          {
+            "required": [
+              "communication_rows"
+            ]
+          },
+          {
+            "required": [
+              "truth_table"
+            ]
+          },
+          {
+            "required": [
+              "evaluation_vector"
+            ]
+          },
+          {
+            "required": [
+              "raw_bitmap"
+            ]
+          },
+          {
+            "required": [
+              "lookup_table"
+            ]
+          }
+        ]
+      }
+    },
+    "payload_digest": {
+      "$ref": "#/$defs/sha256"
+    },
+    "proof_refs": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/proofRef"
+      }
+    },
+    "work_ledger": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "work_units",
+        "max_work_units"
+      ],
+      "properties": {
+        "work_units": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "max_work_units": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    },
+    "representation_size": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "declared_size_bound": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "operator_metadata": {
+      "type": "object"
+    },
+    "terminal": {
+      "enum": [
+        "SPECIFICATION_ONLY",
+        "FACTOR_BUILT",
+        "MERGED_CERTIFIED",
+        "SEPARATED_CERTIFIED",
+        "CLOSED_POLY",
+        "OPEN_LANGUAGE",
+        "OPEN_BUDGET",
+        "OPEN_EQUIVALENCE",
+        "OPEN_REPRESENTATION_GROWTH",
+        "OPEN_COMPOSITION",
+        "INVALID_CERTIFICATE"
+      ]
+    }
+  }
+}

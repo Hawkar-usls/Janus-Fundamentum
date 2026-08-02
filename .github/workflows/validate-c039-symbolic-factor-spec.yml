@@ -1,0 +1,50 @@
+name: Validate C039 Symbolic Factor Specification
+
+on:
+  push:
+    branches:
+      - research/c039-symbolic-factor-construction
+    paths:
+      - 'docs/C039_SYMBOLIC_FACTOR_CONSTRUCTION.md'
+      - 'docs/ACTIVE_PROOF_ROUTE_MATRIX.md'
+      - 'schemas/c039-symbolic-factor-certificate-v1.schema.json'
+      - 'experiments/direct/janus_c039_symbolic_factor_contract.py'
+      - 'proposals/C039-SYMBOLIC-FACTOR-CONSTRUCTION.json'
+      - 'registry/c039-source-map.json'
+      - '.github/workflows/validate-c039-symbolic-factor-spec.yml'
+  pull_request:
+    paths:
+      - 'docs/C039_SYMBOLIC_FACTOR_CONSTRUCTION.md'
+      - 'docs/ACTIVE_PROOF_ROUTE_MATRIX.md'
+      - 'schemas/c039-symbolic-factor-certificate-v1.schema.json'
+      - 'experiments/direct/janus_c039_symbolic_factor_contract.py'
+      - 'proposals/C039-SYMBOLIC-FACTOR-CONSTRUCTION.json'
+      - 'registry/c039-source-map.json'
+      - '.github/workflows/validate-c039-symbolic-factor-spec.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Validate JSON artifacts
+        run: |
+          python -m json.tool schemas/c039-symbolic-factor-certificate-v1.schema.json >/dev/null
+          python -m json.tool proposals/C039-SYMBOLIC-FACTOR-CONSTRUCTION.json >/dev/null
+          python -m json.tool registry/c039-source-map.json >/dev/null
+      - name: Compile contract
+        run: python -m py_compile experiments/direct/janus_c039_symbolic_factor_contract.py
+      - name: Run ten acceptance checks
+        run: python experiments/direct/janus_c039_symbolic_factor_contract.py --self-test
+      - name: Enforce specification-only boundary
+        run: |
+          grep -q 'SPECIFICATION_ONLY' proposals/C039-SYMBOLIC-FACTOR-CONSTRUCTION.json
+          grep -q 'NO_HIDDEN_TRUTH_TABLE' docs/C039_SYMBOLIC_FACTOR_CONSTRUCTION.md
+          grep -q 'C040' docs/ACTIVE_PROOF_ROUTE_MATRIX.md
+          ! grep -R 'HORN_PROJECT_IMPLEMENTED\|AFFINE_JOIN_IMPLEMENTED\|BETA_ACYCLIC_ELIMINATION_IMPLEMENTED'               docs/C039_SYMBOLIC_FACTOR_CONSTRUCTION.md               proposals/C039-SYMBOLIC-FACTOR-CONSTRUCTION.json
