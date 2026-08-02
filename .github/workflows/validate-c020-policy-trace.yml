@@ -1,15 +1,21 @@
-name: Validate C020 Policy Certificates
+name: Validate C021 Policy Certificates
 
 on:
   push:
     paths:
       - "experiments/direct/janus_tear_policy0t_trace_certificate.py"
       - "experiments/direct/janus_tear_policy0t_root_resolution_certificate.py"
+      - "experiments/direct/janus_tear_policy0t_recursive_trace_translator.py"
+      - "experiments/direct/janus_tear_policy0t_recursive_translator_fuzz.py"
+      - "experiments/direct/janus_tear_policy0t_affine_resolution_obstruction.py"
       - ".github/workflows/validate-c020-policy-trace.yml"
   pull_request:
     paths:
       - "experiments/direct/janus_tear_policy0t_trace_certificate.py"
       - "experiments/direct/janus_tear_policy0t_root_resolution_certificate.py"
+      - "experiments/direct/janus_tear_policy0t_recursive_trace_translator.py"
+      - "experiments/direct/janus_tear_policy0t_recursive_translator_fuzz.py"
+      - "experiments/direct/janus_tear_policy0t_affine_resolution_obstruction.py"
       - ".github/workflows/validate-c020-policy-trace.yml"
 
 permissions:
@@ -30,5 +36,14 @@ jobs:
       - name: Verify Policy-0T transition trace
         run: python experiments/direct/janus_tear_policy0t_trace_certificate.py
 
-      - name: Verify Policy-0T root Resolution certificate
+      - name: Verify branch-aligned root Resolution certificate
         run: python experiments/direct/janus_tear_policy0t_root_resolution_certificate.py
+
+      - name: Translate the non-affine trace recursively
+        run: python experiments/direct/janus_tear_policy0t_recursive_trace_translator.py
+
+      - name: Fuzz recursive translator terminal classes
+        run: python experiments/direct/janus_tear_policy0t_recursive_translator_fuzz.py
+
+      - name: Audit affine shortcut obstruction to ordinary Resolution
+        run: python experiments/direct/janus_tear_policy0t_affine_resolution_obstruction.py
