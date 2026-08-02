@@ -8,20 +8,12 @@ This repository does **not** claim that `P = NP` or `P != NP` has been proved.
 
 ## Laboratory laws
 
-1. **Independent reproducibility.** Computational claims require committed code, fixed inputs, expected outputs, and hashes.
-2. **Proof-directed admission.** From `H030`, every hypothesis names its proof role, next gate, and attacks.
-3. **Inherited progress.** From `H060`, every child names older parents and a material delta.
-4. **Inversion before expansion.** New mathematics first attacks the existing graph.
-5. **Terminal honesty.** Pressure is not converted into a graveyard result without a decisive theorem, counterexample, or formulation failure.
-6. **Answer-independent observables.** Canonical profiles and exact certificates may not contain hidden SAT labels.
-7. **Verification is not existence.** An exact verifier does not imply that a short certificate exists or can be found efficiently.
-8. **Historical campaigns stay historical.** Later descendants and terminal shadows do not rewrite earlier attack snapshots.
-
-## Research states
-
-`PROPOSED -> UNDER_ATTACK -> OPEN -> FORMALIZING -> INDEPENDENT_REPRODUCTION -> PEER_REVIEW -> PROVED`
-
-`OPEN` means only that registered attacks have not destroyed the exact statement. `PROVED` requires R5 formal and independent verification.
+1. Computational claims require committed code, fixed inputs, expected outputs, and hashes.
+2. New hypotheses must name a proof role, a next gate, older parents, and attacks.
+3. New mathematics attacks the existing graph before expanding it.
+4. Pressure is not converted into a terminal result without a decisive theorem, counterexample, or formulation failure.
+5. Exact verification is not certificate existence or efficient discovery.
+6. Deterministic seeds may select finite artifacts only; exact verification must follow.
 
 ## Validate the organism
 
@@ -41,136 +33,109 @@ python experiments/theta/disjoint_union.py --self-test
 python experiments/theta/theta_collision_bundle.py --self-test
 python experiments/theta/complete_3cnf_collision.py --self-test
 python experiments/theta/complete_3cnf_family.py --self-test
+python experiments/theta/seeded_arches.py --self-test
+python experiments/theta/seeded_ldl_stress.py --self-test
 ```
 
-# Current status — C013
+# Current status — C014
 
-C013 attacks the pressured C012 routes until they reach a terminal formulation failure, a narrower descendant, or a named open barrier.
+Seed: `9379992`.
 
 ```text
-NEW DESCENDANTS             6   H098-H103
-CURRENT-CYCLE ATTACKS      44   A287-A330
-TERMINAL REJECTIONS         6
-LIVE HYPOTHESES            93
-TERMINAL HISTORICAL NODES  10
+NEW DESCENDANTS             6   H104-H109
+CURRENT-CYCLE ATTACKS      40   A331-A370
+TERMINAL RESULTS            2   H100,H102
+LIVE HYPOTHESES            97
+TERMINAL HISTORICAL NODES  12
 ```
 
-## Exact theta breakthrough
+## Connected theta arches
 
-The finite collision sought by `H096` now has an explicit rational witness.
-
-### UNSAT side
-
-Take all eight width-three clauses on `x1,x2,x3`. Every assignment falsifies exactly one clause, so the conflict graph has:
+C013 produced an exact SAT/UNSAT first-theta collision and a disjoint-copy family. C014 connects consecutive copies with exact zero-entry bridge edges selected by seed `9379992`:
 
 ```text
-clause target = 8
-alpha         = 7
-theta         = 8
+SAT arch    (31,22)
+UNSAT arch  (22,13)
 ```
 
-### SAT side
-
-Adjoin one shared positive literal `x4` to the same eight sign patterns. Setting `x4=true` gives:
-
-```text
-clause target = 8
-alpha         = 8
-theta         = 8
-```
-
-Both theta values are certified by exact rational primal-dual bundles and exact rational permuted `LDL^T` positivity certificates. No floating-point SDP result is trusted.
-
-```bash
-python experiments/theta/complete_3cnf_collision.py --self-test
-```
-
-Expected result:
-
-```text
-JANUS_COMPLETE_3CNF_THETA_COLLISION = PASS
-```
-
-The UNSAT primal matrix is generated from 12 orbits of the 48 signed-coordinate automorphisms. Its exact nonzero spectrum is:
-
-```text
-1/3  multiplicity 1
-1/6  multiplicity 3
-1/18 multiplicity 3
-```
-
-Read [`proof_attempts/H096/EXACT_COLLISION.md`](proof_attempts/H096/EXACT_COLLISION.md).
-
-## Infinite explicit family
-
-For `r` variable-disjoint copies, the primal matrix is
+For `r` copies the primal remains
 
 ```text
 (1/r) J_r tensor X
 ```
 
-and the direct dual objective is `8r`. Thus the SAT and UNSAT sides both have exact theta value `8r`, while their alpha labels remain opposite.
+and every arch occupies an exact zero entry. The old dual remains feasible by assigning multiplier zero to each arch.
+
+Therefore both arched graphs are connected and have exact theta `8r`, while:
+
+```text
+SAT side     alpha = 8r
+UNSAT side   alpha <= 7r
+```
 
 ```bash
-python experiments/theta/complete_3cnf_family.py --self-test
+python experiments/theta/seeded_arches.py --self-test
 ```
 
-This is encoded as `H098-H099`. It is an explicit limitation of the standard first Lovasz-theta SAT relaxation, not a solution of `P` versus `NP`.
-
-## Six terminal formulation failures
-
-C013 rejects:
+Expected headline:
 
 ```text
-H001 H002 H003 H004 H019 H070
+JANUS_SEEDED_ARCH_THETA_FAMILY = PASS
 ```
 
-- `H001-H004` and `H070` allow an unrestricted polynomial transformer to solve SAT first and encode only the answer.
-- `H019` does not fix the syntax, denotation size, original-variable support, or composition semantics of an interface symbol.
+This is `H104`. The result is graph-level; CNF conflict-graph realizability of the added arches remains open.
 
-Their useful ideas survive only through restricted descendants:
+## H102 destroyed
+
+H102's typed interface circuit required:
+
+- explicit original-variable leaves;
+- disjoint support at every AND;
+- deterministic alternatives at every OR.
+
+That is a d-DNNF of the same size. Existing explicit exponential DNNF lower bounds therefore destroy the claimed universal polynomial compiler without a projection loophole.
+
+Read [`proof_attempts/H102/REFUTATION.md`](proof_attempts/H102/REFUTATION.md).
+
+## H100 rejected and replaced
+
+H100's decreasing potential and prohibition on a global acceptance channel were not syntactically defined. A local work-tape simulation with a decreasing clock remained admissible.
+
+`H106` replaces it by exactly `q` synchronous radius-`r` passes and radius-`qr` ancestry for every output symbol.
+
+## Certificate arches
+
+`H108` supplies a candidate polynomial bit bound for rational LDL certificates:
+
+- clear denominators;
+- use fraction-free symmetric elimination;
+- express entries as ratios of minors;
+- bound minor bit length by Hadamard's inequality.
+
+`H109` proves a conditional strict-dual rounding route: with PSD margin `delta`, objective gap `gamma`, and multiplier bound `2^B`, a sufficiently fine dyadic grid preserves half of both margins and yields polynomial-bit exact data.
+
+The remaining wall is whether H097's original assumptions imply a polynomial multiplier bound.
+
+## Attack-born descendants
 
 ```text
-H001/H009 -> H100 potential-decreasing local compiler
-H017      -> H101 restriction-robust mixed residual generator
-H019      -> H102 typed bounded-support interface elimination
-H070      -> H103 one-pass local theta-gap compiler
+H098/H099/H103 -> H104 connected theta arches
+H102/H016/H061 -> H105 exact d-DNNF transfer
+H100/H009/H027 -> H106 constant-pass local compiler
+H103/H088/H104 -> H107 pseudoexpectation transport
+H092/H089/H084 -> H108 LDL bit bound
+H097/H093/H108 -> H109 strict dual rounding
 ```
 
-Read [`proof_attempts/C013/CIRCULARITY_AND_SPECIFICATION.md`](proof_attempts/C013/CIRCULARITY_AND_SPECIFICATION.md).
+Read [`docs/C014_SEEDED_ARCHES.md`](docs/C014_SEEDED_ARCHES.md).
 
-## Where the attack finally stops
+## Remaining walls
 
-The unresolved frontier is now concentrated in:
-
-1. explicit lower bounds for full Extended Frege, full IPS, TC0-Frege, unrestricted Stabbing Planes/CP, and recursive extension-PC;
-2. pseudoexpectation transport through arbitrary fixed local gadgets;
-3. a deterministic restriction-robust mixed XOR/non-affine generator;
-4. a complete DNNF transfer or escape theorem for typed interface elimination;
-5. conditioned existence of polynomial-bit exact SDP certificates.
-
-The five incompatible duels remain unresolved:
-
-```text
-H006 vs H011
-H007 vs H014
-H012 vs H013
-H022 vs H023
-H024 vs H025
-```
-
-## Historical C012 sweep
-
-The 93×12 C012 campaign remains a frozen snapshot. Its validator now checks the declared `H001-H097` historical state rather than incorrectly treating later terminal decisions as retroactive omissions.
-
-Read [`docs/C013_DEEP_ATTACK.md`](docs/C013_DEEP_ATTACK.md).
-
-## Terminal results retained
-
-- `H016 — DESTROYED`: projected polynomial d-DNNF contradicts unconditional DNNF lower bounds.
-- `H018 — REJECTED`: missing decision correctness made the formulation vacuous.
-- `H048 — DESTROYED`: ordinary CDCL remains inside Resolution.
-- `H074 — REJECTED`: the theta observable interface was undefined.
-- `H001-H004`, `H019`, `H070 — REJECTED`: C013 circularity or specification failures.
+1. CNF or CSP realization of the connected theta arches.
+2. Uniform pseudoexpectation transport through every H103 one-pass gadget.
+3. A restriction-robust mixed XOR/non-affine generator for H101.
+4. Locality lower bounds against H106.
+5. Deriving bounded dual multipliers from conditioning alone.
+6. The major full proof-system lower-bound and upper-bound duels.
 
 No JANUS result currently resolves `P` versus `NP`.
