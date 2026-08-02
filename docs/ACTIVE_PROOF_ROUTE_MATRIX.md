@@ -17,6 +17,7 @@ P_VS_NP=OPEN
 | C029 | Occurrence-splitting minor | Connected equality splitting preserves the source incidence graph as a minor | Variable copying plus equalities lowers incidence width | `NON_MINOR_PRESERVING_SEMANTIC_COMPRESSION` |
 | C032 | PS-width alignment | JANUS cut signatures are exactly PS-width signatures; high treewidth can have PS-width 2 | Inventing a new enumerative cut parameter | `POLYNOMIAL_PS_DECOMPOSITION_OR_SYMBOLIC_SIGNATURE_COMPRESSION` |
 | C033 | Proof-carrying tractable portfolio | Normalization plus exact Horn, dual-Horn and beta-acyclic solving with witness recovery and strict `OPEN` | Every tractable regime must first have small explicit PS tables | `PORTFOLIO_SELECTION_WITH_SYMBOLIC_MESSAGES` |
+| C034 | Affine and cross-class composition | Replayable GF(2) certificates and exact `O(2^k poly(L))` heterogeneous composition for shared boundary `k` | Named tractable modules imply an unrestricted tractable mixture | `PROOF_CARRYING_CROSS_CLASS_INTERFACE_COMPRESSION` |
 | C031 | Proof-carrying SAT refuter | Formal lower-bound transfer interface | Uncertified circuit counterexamples and free direct-sum amplification | `NO_SHARING_REFUTER_AMPLIFICATION` |
 
 ## Constructive P=NP track
@@ -24,14 +25,41 @@ P_VS_NP=OPEN
 ```text
 tractable local languages
 -> exact semantic cut signatures or certified symbolic elimination
--> polynomial portfolio selection and cross-class composition
+-> proof-carrying cross-class interface compression
 -> SAT witness + UNSAT certificate
 -> universal polynomial SAT algorithm
 ```
 
-C033 establishes a sound restricted portfolio. The immediate target is C034:
-add a verified affine/GF(2) branch, then prove or refute polynomial symbolic
-composition across Horn, affine and beta-acyclic regions.
+C034 completes the first four-engine restricted portfolio and proves exact
+composition for logarithmic shared boundaries. It also confirms, using the C023
+`NAND3+NEQ` image, that unrestricted Horn-affine composition already contains
+arbitrary 3-SAT.
+
+The immediate target is C035:
+
+```text
+CERTIFIED INSTANCE-SPECIFIC INTERFACE CONGRUENCE
+```
+
+The candidate may merge boundary states only through polynomially replayable
+proofs that they have identical continuation behavior. It must return `OPEN`
+when quotient construction, representation, or merge-proof volume exceeds a
+polynomial budget.
+
+## Converged constructive bottleneck
+
+The following names now describe the same missing core from different views:
+
+```text
+C025 certified residual quotient complexity
+C032 symbolic PS-signature compression
+C033 portfolio selection with symbolic messages
+C034 proof-carrying cross-class interface compression
+```
+
+No future cycle may claim progress merely by renaming this object. Progress
+requires either a new polynomial construction theorem or a decisive obstruction
+that removes a concrete construction route.
 
 ## Separation track
 
@@ -61,6 +89,8 @@ beta-acyclic elimination
 Davis-Putnam variable elimination
 Horn and dual-Horn closure
 GF(2) affine elimination
+Schaefer fixed-language mixtures
+communication/continuation equivalence across cuts
 ```
 
 A renamed known parameter is registered as an alignment result, not promoted as
