@@ -4,15 +4,7 @@
 
 JANUS is a public, machine-readable laboratory for reproducible research around computational complexity, with `P` versus `NP` as its long-term target.
 
-This repository does **not** claim that `P = NP` or `P != NP` has been proved. Its purpose is to maintain an auditable history of:
-
-- formal hypotheses;
-- explicit falsification conditions;
-- attacks and counterexamples;
-- reproducible experiments;
-- surviving open candidates;
-- destroyed ideas and the exact reason they failed;
-- observations, literature boundaries, lemmas, and proof attempts.
+This repository does **not** claim that `P = NP` or `P != NP` has been proved. It maintains an auditable history of formal hypotheses, attacks, counterexamples, primary sources, proof attempts, surviving candidates, and terminal failures.
 
 ## Law 0 — independent reproducibility
 
@@ -24,20 +16,20 @@ A finite experiment may falsify a universal algorithmic claim, but it cannot by 
 
 `PROPOSED -> UNDER_ATTACK -> OPEN -> FORMALIZING -> INDEPENDENT_REPRODUCTION -> PEER_REVIEW -> PROVED`
 
-A hypothesis may move to `DESTROYED` from any state. `OPEN` means only that the registered attacks have not destroyed the exact statement. It does not mean true, likely true, novel, or mutually compatible with every other open entry.
+A hypothesis may move to `DESTROYED` or `REJECTED` from any state. `OPEN` means only that the registered attacks have not destroyed the exact statement. It does not mean true, likely true, novel, or compatible with every other open entry.
 
-## Machine-readable laboratory
+## Machine-readable organism
 
-Every major ledger is modular. The validator aggregates the base file and all matching cycle files:
+Every major ledger is modular:
 
-- `registry/hypotheses*.json` — hypotheses that survived their recorded attacks;
-- `registry/attacks*.json` — every registered falsification attempt;
-- `registry/references*.json` — primary-source literature context and audited boundaries;
-- `registry/graveyard*.json` — rejected or destroyed formulations, retained permanently;
-- `registry/observations*.json` — reproducible facts and meta-observations;
+- `registry/hypotheses*.json` — historical hypothesis snapshots;
+- `registry/attacks*.json` — falsification attempts;
+- `registry/references*.json` — primary-source context;
+- `registry/graveyard*.json` — terminal records that shadow earlier live snapshots without deleting history;
+- `registry/observations*.json` — proved reductions and methodological findings;
 - `registry/journal*.json` — chronological research cycles;
-- `registry/genealogy*.json` — parent/child relations between ideas;
-- [`registry/schema.json`](registry/schema.json) — field, status, and cross-reference contract.
+- `registry/genealogy*.json` — parent/child relations;
+- [`registry/schema.json`](registry/schema.json) — field and status contract.
 
 Validate the complete organism:
 
@@ -47,23 +39,34 @@ python tools/validate_registry.py
 
 GitHub Actions runs the same validation on every pull request and push.
 
-## Current laboratory status
+## Current laboratory status — C004
 
-Cycle `C003` raises the live registry to nineteen hypotheses:
+The refutation sweep leaves **17 live hypotheses** and retires two C003 entries:
 
-- `H001-H004`: broad exact-lift targets retained with an explicit warning that unrestricted transformers are theorem-equivalent to `P = NP` through solve-and-encode;
-- `H005-H008`: literature-grounded proof-complexity lower-bound frontiers;
-- `H009-H010`: restricted JANUS mechanisms for local treewidth compilation and extension-enabled polynomial calculus;
-- `H011-H015`: mutually incompatible proof-size and proof-search frontiers for Extended Frege, TC0-Frege, and full IPS;
-- `H016-H019`: new JANUS mechanisms for bounded-radius d-DNNF compilation, parity-core separation, certified residual quotienting, and proof-carrying variable elimination.
+### H016 — DESTROYED
 
-Cycle C003 also records twenty new attacks, eleven primary sources, six observations, and three rejected routes. None of the new hypotheses is a theorem or claimed novelty.
+The promised polynomial-size d-DNNF `D(x,y)` projected exactly to the original CNF. Forgetting `y` preserves ordinary DNNF and does not increase size. Explicit polynomial-size CNF families require exponential DNNF size, yielding a direct contradiction.
 
-The strongest next falsification target is a closure theorem showing that communication complexity or semantic residual diversity survives the exact local certificate languages of `H016-H019`. The strongest constructive target is a tiny concrete rule grammar for `H016` that can be exhaustively attacked on small CNFs.
+Read [`proof_attempts/H016/REFUTATION.md`](proof_attempts/H016/REFUTATION.md).
+
+### H018 — REJECTED
+
+The registered residual-quotient statement did not require complete coverage, acceptance of satisfiable instances, rejection of unsatisfiable instances, or any final decision. An algorithm with no accepting paths satisfied its written witness condition vacuously.
+
+Read [`proof_attempts/H018/FORMULATION_FAILURE.md`](proof_attempts/H018/FORMULATION_FAILURE.md).
+
+### Surviving pressure points
+
+- `H009` and `H017` are weakened because finite local rewrite systems may still simulate general polynomial computation unless a preserved invariant is specified.
+- `H010` survives current extension-variable lower bounds because the exact field, dependency, and resource models do not yet match.
+- `H019` survives, but its interface language and certificate-composition semantics need stricter formalization.
+- `H014` and `H015` remain external literature frontiers rather than JANUS discoveries.
+
+No C004 result proves anything about `P` versus `NP`; it demonstrates that the registry can genuinely kill its own entries.
 
 ## Historical JANUS experiments
 
-The earlier p-n-inspired SAT experiments are preserved under [`experiments/`](experiments/). They are historical evidence about finite algorithms and benchmarks, not asymptotic complexity proofs. Their code, negative results, reports, and manifests remain part of the laboratory record.
+The earlier p-n-inspired SAT experiments remain under [`experiments/`](experiments/). They are finite algorithmic evidence, not asymptotic complexity proofs.
 
 ## Contribution rule
 
