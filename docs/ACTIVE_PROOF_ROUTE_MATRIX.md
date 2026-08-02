@@ -1,7 +1,6 @@
 # JANUS Active Proof Route Matrix
 
-**Purpose:** compare every new mechanism against the existing proof graph before
-creating another hypothesis.
+**Purpose:** compare every new mechanism against the existing proof graph before creating another hypothesis.
 
 ```text
 P_VS_NP=OPEN
@@ -20,7 +19,8 @@ P_VS_NP=OPEN
 | C034 | Affine and cross-class composition | Replayable GF(2) certificates and exact `O(2^k poly(L))` heterogeneous composition for shared boundary `k` | Named tractable modules imply an unrestricted tractable mixture | `PROOF_CARRYING_CROSS_CLASS_INTERFACE_COMPRESSION` |
 | C035 | Certified interface congruence | Replayed exact residual messages give a sound merge congruence; absorbing proofs and affine RREF produce real compression | Exponential diversity in one product language is intrinsic hardness | `JOINT_DECOMPOSITION_LANGUAGE_AND_PROOF_SELECTION` |
 | C036 | Proof-carrying partition refinement | Complete polynomial separator extraction for Horn and affine residuals; every accepted split carries a replayable continuation | Failure to find a separator permits merging; explicit refinement automatically has polynomial state generation | `CROSS_LANGUAGE_SYMBOLIC_SEPARATOR_DISCOVERY` |
-| C037 | Explicit residual OBDD alignment | Exact minimization, pairwise distinguishing suffixes, SAT witnesses and UNSAT DAG certificates once the residual graph is explicit | Partition refinement alone avoids state explosion; an equivalence-query teacher is free | `POLYNOMIAL_ORDER_DECOMPOSITION_AND_REACHABLE_QUOTIENT_CONSTRUCTION` |
+| C036.1 | Explicit residual OBDD alignment | Exact minimization, pairwise distinguishing suffixes, SAT witnesses and UNSAT DAG certificates once the residual graph is explicit | Partition refinement alone avoids state explosion; an equivalence-query teacher is free | `POLYNOMIAL_ORDER_DECOMPOSITION_AND_REACHABLE_QUOTIENT_CONSTRUCTION` |
+| C037 | Horn-affine negotiation | Complete affine-to-Horn directed inclusion plus replayable literal exchange; constants-only fixpoint obstruction | A propagation fixpoint certifies compatibility | `REVERSE_HORN_TO_AFFINE_SEPARATOR_OR_STRONGER_FACT_ALGEBRA` |
 | C031 | Proof-carrying SAT refuter | Formal lower-bound transfer interface | Uncertified circuit counterexamples and free direct-sum amplification | `NO_SHARING_REFUTER_AMPLIFICATION` |
 
 ## Constructive P=NP track
@@ -31,41 +31,39 @@ tractable local languages
 -> proof-carrying cross-class interface compression
 -> jointly selected decomposition, message language and proof rules
 -> certified merge and separator extraction
--> polynomial reachable quotient construction
+-> polynomial reachable quotient construction or symbolic cross-language exchange
 -> SAT witness + UNSAT certificate
 -> universal polynomial SAT algorithm
 ```
 
-C036 supplies polynomial same-language separator extraction for Horn and affine
-messages. C037 supplies the complete continuation quotient after an exact finite
-residual graph has been generated.
+C036 supplies polynomial same-language separator extraction. C036.1 identifies the complete fixed-order continuation quotient with the reduced OBDD after the exact residual graph has been generated. This is polynomial in explicit graph and certificate volume, but the graph can be exponential and order-sensitive.
 
-C037 also proves an exact alignment:
+The cross-language line is allocated separately:
 
 ```text
-fixed-order continuation quotient
-= minimal ordered residual automaton
-= reduced OBDD.
+C037   certified Horn-affine negotiation
+C037.1 proof-carrying pairwise parity-alias extension
 ```
 
-Therefore explicit partition refinement is not the missing universal mechanism.
-Its runtime can still hide an exponential number of reachable residual states,
-and its size can depend exponentially on the selected variable order.
-
-The immediate target is C038:
+The structured decomposition line remains:
 
 ```text
-PROOF-CARRYING STRUCTURED DECOMPOSITION SEARCH
+C038 PROOF-CARRYING STRUCTURED DECOMPOSITION SEARCH
 ```
 
-Replace one linear OBDD order by a verified recursive decomposition such as a
-vtree / structured-DNNF interface. The constructor must polynomially discover the
-decomposition, build and compose messages, emit merge/separator proofs, recover a
-SAT witness, certify UNSAT and return `OPEN` on explicit budget exhaustion.
+## Canonical cycle allocation
+
+```text
+C036   proof-carrying same-language partition refinement
+C036.1 explicit residual / OBDD alignment
+C037   Horn-affine negotiation
+C037.1 pairwise parity-alias negotiation extension
+C038   structured vtree decomposition
+```
+
+The OBDD executable retains the pre-admission path `experiments/direct/janus_c037_explicit_residual_obdd_alignment.py` solely for replay compatibility. Its logical cycle, proposal, proof note, source map and workflow are `C036.1`.
 
 ## Converged constructive bottleneck
-
-The following names are linked views of one missing core:
 
 ```text
 C025 certified residual quotient complexity
@@ -74,13 +72,11 @@ C033 portfolio selection with symbolic messages
 C034 proof-carrying cross-class interface compression
 C035 joint decomposition/language/proof selection
 C036 cross-language symbolic separator discovery
-C037 order/decomposition and reachable quotient construction
+C036.1 order/decomposition and reachable quotient construction
+C037 reverse Horn-to-affine separation or stronger fact algebra
 ```
 
-No future cycle may claim progress merely by renaming this object. Progress
-requires a new polynomial construction theorem, a strictly stronger replayable
-message algebra, a complete separator extractor for a larger closed language, or
-a decisive obstruction to one explicit construction route.
+No future cycle may claim progress merely by renaming this object. Progress requires a new polynomial construction theorem, a strictly stronger replayable message algebra, a complete separator extractor for a larger closed language, or a decisive obstruction to one explicit construction route.
 
 ## Separation track
 
@@ -92,12 +88,9 @@ proof-carrying circuit refuter
 -> P != NP
 ```
 
-This track remains useful as an adversarial control even while the user-selected
-primary objective is `P=NP`.
-
 ## Non-duplication rule
 
-Before admitting a new hypothesis, compare it against:
+Before admission compare against:
 
 ```text
 PS-width
@@ -115,7 +108,7 @@ communication/continuation equivalence across cuts
 partition refinement and canonical residual automata
 symbolic bisimulation and distinguishing-test bases
 active automata learning and equivalence-query teachers
+cooperating decision procedures and DPLL(T)/DPLL(XOR) propagation
 ```
 
-A renamed known parameter is registered as an alignment result, not promoted as
-a new theorem.
+A renamed known parameter is registered as an alignment result, not promoted as a new theorem.
