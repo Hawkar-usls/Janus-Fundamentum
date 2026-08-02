@@ -12,6 +12,16 @@ Any computational claim must be reproducible by an independent person on an inde
 
 A finite experiment may falsify a universal algorithmic claim, but it cannot by itself prove a universal asymptotic statement.
 
+## Law 1 — proof-directed admission
+
+Beginning with `H030`, survival is not enough. Every admitted hypothesis must state:
+
+- its exact `proof_role` in a route toward `P = NP`, `P != NP`, `NP != coNP`, a required circuit lower bound, or the destruction of a central JANUS mechanism;
+- its `next_gate`: the next theorem, construction, implementation, or counterexample that advances or kills the route;
+- at least two registered attacks.
+
+The validator enforces these requirements automatically.
+
 ## Research states
 
 `PROPOSED -> UNDER_ATTACK -> OPEN -> FORMALIZING -> INDEPENDENT_REPRODUCTION -> PEER_REVIEW -> PROVED`
@@ -25,10 +35,10 @@ Every major ledger is modular:
 - `registry/hypotheses*.json` — historical hypothesis snapshots;
 - `registry/attacks*.json` — falsification attempts;
 - `registry/references*.json` — primary-source context;
-- `registry/graveyard*.json` — terminal records that shadow earlier live snapshots without deleting history;
+- `registry/graveyard*.json` — terminal records and pre-admission rejections retained permanently;
 - `registry/observations*.json` — proved reductions and methodological findings;
 - `registry/journal*.json` — chronological research cycles;
-- `registry/genealogy*.json` — parent/child relations;
+- `registry/genealogy*.json` — parent/child proof routes;
 - [`registry/schema.json`](registry/schema.json) — field and status contract.
 
 Validate the complete organism:
@@ -39,39 +49,46 @@ python tools/validate_registry.py
 
 GitHub Actions runs the same validation on every pull request and push.
 
-## Current laboratory status — C005
+## Current laboratory status — C006
 
-After the C004 destruction of `H016` and rejection of `H018`, cycle C005 adds exactly ten attacked survivors `H020-H029`. The laboratory now contains **27 live hypotheses**.
+Cycle C006 screened **42 candidate formulations**. Twelve were rejected before admission, and exactly **30 proof-directed hypotheses `H030-H059`** survived **60 immediate attacks `A077-A136`**.
 
-### Cutting Planes and Stabbing Planes
+After the earlier destruction of `H016` and rejection of `H018`, the laboratory contains **57 live hypotheses**. This number is an inventory, not evidence.
 
-- `H020` asks whether the proved general dag-like Cutting Planes lower bound for concise pigeonhole formulas can be strengthened to `2^(Omega(n))`.
-- `H021` asks for a superpolynomial unrestricted Stabbing Planes size lower bound.
-- `H022` proposes a polynomial Cutting Planes simulation of unrestricted Stabbing Planes.
-- `H023` proposes the incompatible counterfrontier: a superpolynomial Stabbing Planes-versus-Cutting-Planes separation.
+### Direct separation routes
 
-### Recursive extension Polynomial Calculus
+- `H030-H032` target explicit NP circuit lower bounds through general circuits, certified SAT anti-checkers, and witnessing formulas.
+- `H033-H036` target `NP != coNP` or `P != NP` through Nisan-Wigderson/strong proof generators, Extended-Frege circuit rewriting, and canonical disjoint NP pairs.
+- `H037-H039` connect full IPS, PIT axioms, and deterministic PIT to explicit algebraic or Boolean lower bounds.
 
-- `H024` proposes a lower bound against recursively global fan-in-two extension Polynomial Calculus over `GF(2)`.
-- `H025` proposes the incompatible polynomial-boundedness counterfrontier for the same exact proof system.
-- `H029` asks whether recursively global extension proofs can be normalized into the bounded-support regime reached by current lower-bound theorems.
+### Complete constructive routes to `P = NP`
 
-### Explicit and adversarial frontiers
+- `H040-H042` repair residual quotienting, proof-carrying elimination, and parity-core compilation by requiring complete two-sided correctness and explicit semantics.
+- `H043-H045` restrict broad optimization lifts to finite local submodular, totally-unimodular, and constant-level SoS gadget grammars.
+- `H046-H049` target deterministic proof search, deterministic isolation into a tractable residual class, one canonical CDCL policy, and certified exact model-counting decomposition.
 
-- `H026` isolates the open tautologicity branch of the explicit hard-DNF family from the 2026 `AC0[p]`-Frege metacomplexity result.
-- `H027` is designed to destroy `H009` through an expander separator obstruction for every allowed local grammar.
-- `H028` is designed to destroy `H017` through a mixed formula whose non-affine residual remains wide after all certified parity elimination.
+### Hypotheses designed to destroy hypotheses
 
-C005 records twenty immediate attacks `A057-A076`. All ten hypotheses remain `OPEN` only because those exact attacks were not decisive. Two pairs are intentionally incompatible: `H022` versus `H023`, and `H024` versus `H025`.
+- `H050-H054` attempt to translate elimination into DNNF, extract communication protocols from local lifts, choose an explicit hard algebraic family, preserve mixed residual expansion, and prove fixed-policy CDCL lower bounds.
+- `H055-H056` test whether constructive range avoidance can produce strong proof generators or certified SAT anti-checkers.
 
-The most valuable next targets are not new constructive promises but the adversarial bridges `H027-H029`, because proving any of them would eliminate or sharply constrain existing JANUS mechanisms.
+### Barrier-breaking routes
+
+- `H057` asks for a self-improving Circuit-SAT speedup with lower-bound consequences.
+- `H058` seeks a sparse constructive useful property that deliberately avoids the largeness condition of natural proofs.
+- `H059` uses explicit linear-map lower bounds as a clean precursor for non-natural general-circuit methods.
+
+Every C006 survivor has two attacks and a recorded next gate. No survivor is called probable, novel, or proved.
+
+Read the full screening record: [`docs/C006_SCREENING.md`](docs/C006_SCREENING.md).
 
 ## Prior terminal results
 
 - [`H016 — DESTROYED`](proof_attempts/H016/REFUTATION.md): projected polynomial d-DNNF would contradict unconditional DNNF lower bounds.
 - [`H018 — REJECTED`](proof_attempts/H018/FORMULATION_FAILURE.md): the statement omitted complete decision correctness and was vacuously satisfiable.
+- `H000-G10` through `H000-G21`: twelve C006 candidates rejected before admission for circularity, invalid consequences, hidden computation, missing explicitness, or absence of a proof-directed role.
 
-No JANUS result proves anything about `P` versus `NP`.
+No JANUS result currently resolves `P` versus `NP`.
 
 ## Historical JANUS experiments
 
@@ -79,6 +96,6 @@ The earlier p-n-inspired SAT experiments remain under [`experiments/`](experimen
 
 ## Contribution rule
 
-A contribution should make the registry easier to falsify, reproduce, or verify. Strong counterexamples are as valuable as surviving hypotheses. Literature-frontier entries must cite primary sources and must never be presented as JANUS novelty.
+A contribution should make the proof graph shorter, the statements easier to falsify, or the results easier to reproduce. Strong counterexamples are as valuable as survivors. Literature-frontier entries must cite primary sources and must never be presented as JANUS novelty.
 
 See [`docs/METHODOLOGY.md`](docs/METHODOLOGY.md) for the admission protocol and claim boundaries.

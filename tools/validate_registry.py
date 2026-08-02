@@ -4,6 +4,10 @@
 All major ledgers are modular. Historical hypothesis snapshots are append-only:
 a later graveyard entry terminally shadows an earlier live record without deleting
 or rewriting the cycle in which it was proposed.
+
+Cycle C006 adds proof-directed admission: hypotheses H030 and above must name
+their exact role in a route toward a complexity separation or algorithm, identify
+the next falsifiable gate, and survive a minimum number of registered attacks.
 """
 
 from __future__ import annotations
@@ -79,7 +83,14 @@ def canonical_digest(payloads: dict[str, Any]) -> str:
     return hashlib.sha256(canonical).hexdigest()
 
 
-def validate() -> tuple[str, int, int]:
+def hypothesis_number(hid: str) -> int:
+    try:
+        return int(hid[1:])
+    except (TypeError, ValueError) as exc:
+        raise RegistryError(f"cannot parse hypothesis number from {hid!r}") from exc
+
+
+def validate() -> tuple[str, int, int, int]:
     schema = load_json(SCHEMA_PATH)
 
     hypotheses, hypothesis_payloads = load_modular("hypotheses*.json", "hypotheses")
@@ -91,6 +102,10 @@ def validate() -> tuple[str, int, int]:
     references, reference_payloads = load_modular("references*.json", "references")
 
     required_h = schema["required_hypothesis_fields"]
+    required_progress = schema.get("required_progress_fields", [])
+    progress_from = int(schema.get("progress_requirement_from_hypothesis_number", 10**9))
+    min_progress_attacks = int(schema.get("minimum_attacks_for_progress_hypothesis", 0))
+    allowed_role_prefixes = set(schema.get("allowed_proof_role_prefixes", []))
     required_a = schema["required_attack_fields"]
     required_r = schema["required_reference_fields"]
     live_statuses = set(schema["allowed_hypothesis_statuses"])
@@ -116,6 +131,7 @@ def validate() -> tuple[str, int, int]:
     all_hypothesis_ids = raw_hypothesis_ids | graveyard_ids
     terminal_shadows = raw_hypothesis_ids & graveyard_ids
 
+    proof_directed_count = 0
     for item in hypotheses:
         hid = item["id"]
         require_fields(item, required_h, hid)
@@ -135,6 +151,23 @@ def validate() -> tuple[str, int, int]:
         for rid in item.get("literature_refs", []):
             if rid not in reference_ids:
                 raise RegistryError(f"{hid} references missing literature source {rid}")
+
+        if hypothesis_number(hid) >= progress_from:
+            proof_directed_count += 1
+            require_fields(item, required_progress, hid)
+            for field in required_progress:
+                value = item.get(field)
+                if not isinstance(value, str) or not value.strip():
+                    raise RegistryError(f"{hid} has empty proof-directed field {field}")
+            if len(item["registered_attacks"]) < min_progress_attacks:
+                raise RegistryError(
+                    f"{hid} has {len(item['registered_attacks'])} attacks; "
+                    f"minimum is {min_progress_attacks}"
+                )
+            proof_role = item["proof_role"]
+            prefix = proof_role.split(":", 1)[0].strip()
+            if allowed_role_prefixes and prefix not in allowed_role_prefixes:
+                raise RegistryError(f"{hid} has unsupported proof role prefix: {prefix}")
 
     for item in attacks:
         aid = item["id"]
@@ -176,6 +209,9 @@ def validate() -> tuple[str, int, int]:
         for hid in item.get("destroyed_or_rejected", []):
             if hid not in graveyard_ids:
                 raise RegistryError(f"{item['id']} references missing graveyard entry {hid}")
+        for hid in item.get("rejected_before_admission", []):
+            if hid not in graveyard_ids:
+                raise RegistryError(f"{item['id']} references missing rejected candidate {hid}")
         for aid in item.get("attacks", []):
             if aid not in attack_ids:
                 raise RegistryError(f"{item['id']} references missing attack {aid}")
@@ -217,12 +253,17 @@ def validate() -> tuple[str, int, int]:
         "genealogy_files": genealogy_payloads,
         "reference_files": reference_payloads,
     }
-    return canonical_digest(payloads), len(live_hypothesis_ids), len(terminal_shadows)
+    return (
+        canonical_digest(payloads),
+        len(live_hypothesis_ids),
+        len(terminal_shadows),
+        proof_directed_count,
+    )
 
 
 def main() -> int:
     try:
-        digest, live_count, terminal_shadow_count = validate()
+        digest, live_count, terminal_shadow_count, proof_directed_count = validate()
     except RegistryError as exc:
         print(f"JANUS_REGISTRY_VALIDATION = FAIL\nERROR = {exc}", file=sys.stderr)
         return 1
@@ -230,6 +271,7 @@ def main() -> int:
     print("JANUS_REGISTRY_VALIDATION = PASS")
     print(f"LIVE_HYPOTHESES = {live_count}")
     print(f"TERMINAL_SHADOWS = {terminal_shadow_count}")
+    print(f"PROOF_DIRECTED_HYPOTHESES = {proof_directed_count}")
     print(f"CANONICAL_SHA256 = {digest}")
     return 0
 
