@@ -1,6 +1,6 @@
 # C023 review gate
 
-Review H138-H140 separately.
+Review H138-H140 separately. All three remain below `PROVED`.
 
 ## H138 — execution/certificate equivalence
 
