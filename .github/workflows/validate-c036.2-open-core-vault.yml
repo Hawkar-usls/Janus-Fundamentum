@@ -1,0 +1,38 @@
+name: Validate C036.2 Proof-Carrying Open-Core Vault
+
+on:
+  push:
+    paths:
+      - "experiments/direct/janus_c036_2_open_core_vault.py"
+      - "schemas/c036-2-open-core-vault.sql"
+      - "schemas/c036-2-open-core-vault-v1.schema.json"
+      - "docs/C036_2_PROOF_CARRYING_OPEN_CORE_VAULT.md"
+      - "proposals/C036.2-PROOF-CARRYING-OPEN-CORE-VAULT.json"
+      - "registry/c036.2-source-map.json"
+      - ".github/workflows/validate-c036.2-open-core-vault.yml"
+  pull_request:
+    paths:
+      - "experiments/direct/janus_c036_2_open_core_vault.py"
+      - "schemas/c036-2-open-core-vault.sql"
+      - "schemas/c036-2-open-core-vault-v1.schema.json"
+      - "docs/C036_2_PROOF_CARRYING_OPEN_CORE_VAULT.md"
+      - "proposals/C036.2-PROOF-CARRYING-OPEN-CORE-VAULT.json"
+      - "registry/c036.2-source-map.json"
+      - ".github/workflows/validate-c036.2-open-core-vault.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  exact-open-vault:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python experiments/direct/janus_c036_2_open_core_vault.py --self-test
+      - run: python -m json.tool proposals/C036.2-PROOF-CARRYING-OPEN-CORE-VAULT.json >/dev/null
+      - run: python -m json.tool registry/c036.2-source-map.json >/dev/null
+      - run: python -m json.tool schemas/c036-2-open-core-vault-v1.schema.json >/dev/null
+      - run: sqlite3 :memory: < schemas/c036-2-open-core-vault.sql
