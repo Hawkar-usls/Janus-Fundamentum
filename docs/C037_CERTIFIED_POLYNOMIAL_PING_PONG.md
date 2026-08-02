@@ -1,10 +1,14 @@
-# C037 — Certified Polynomial Ping-Pong
+# C036.1 — Certified Polynomial Ping-Pong
 
 **Status:** `CONSTRUCTIVE_RESTRICTED_LEMMA + DECISIVE OBSTRUCTION / P_VS_NP=OPEN`
 
+**Pre-admission path note:** this file and its executable retain their original
+`c037` paths as immutable legacy aliases for replayable CI. The canonical logical
+cycle identifier is `C036.1`; `C037` is reserved for the OBDD alignment route.
+
 ## Purpose
 
-C036 completed proof-carrying merge and separation inside Horn and affine message languages. C037 begins the cross-language bridge without introducing a general mixed Horn-affine solver.
+C036 completed proof-carrying merge and separation inside Horn and affine message languages. C036.1 begins the cross-language bridge without introducing a general mixed Horn-affine solver.
 
 The cycle admits only two operations:
 
@@ -30,11 +34,11 @@ MODELS(A) subseteq MODELS(H)
 
 in polynomial time and attaches replayable evidence to every result.
 
-This theorem is directional. The reverse test requires deciding whether a Horn model can violate an affine row. C037 does not assume that operation.
+This theorem is directional. The reverse test requires deciding whether a Horn model can violate an affine row. C036.1 does not assume that operation.
 
 ## Lemma 2 — certified unary shared-consequence fixpoint
 
-For a Horn module `H`, affine module `A`, shared variable set `S`, and current interface facts `U`, C037 repeatedly asks each native engine whether an unassigned `x in S` is forced.
+For a Horn module `H`, affine module `A`, shared variable set `S`, and current interface facts `U`, C036.1 repeatedly asks each native engine whether an unassigned `x in S` is forced.
 
 A literal `x=b` is admitted only when the native engine refutes the opposite assumption `x=1-b`:
 
@@ -157,7 +161,7 @@ Thus:
 OPEN_FIXPOINT != compatible
 ```
 
-and a universal C037 cannot be obtained by exchanging constants alone.
+and a universal C036.1 cannot be obtained by exchanging constants alone.
 
 The same unary bridge correctly remains `OPEN` on a `{NAND3,NEQ}` reduction image with no initial forced literals. This prevents the mechanism from silently becoming a general SAT oracle.
 
@@ -191,7 +195,8 @@ Finite counts are validation only.
 - C034 proved bounded-interface heterogeneous composition.
 - C035 gave proof-carrying same-message merging.
 - C036 gave complete same-language separator extraction.
-- C037 gives the first complete cross-language direction and the first replayable negotiation trace, while proving that unary negotiation is not complete.
+- C036.1 gives the first complete cross-language direction and the first replayable negotiation trace, while proving that unary negotiation is not complete.
+- C037 is reserved for explicit residual OBDD alignment.
 
 This is an alignment with cooperating decision procedures, propagation explanations, and DPLL(XOR)-style native reasoning. It is not named as a new width invariant.
 
@@ -210,7 +215,7 @@ Supplied decompositions, fixed unsupported arity, nonuniform exponents, and fail
 
 ## Claim boundary
 
-C037 proves a complete one-way Horn-affine separator theorem and a sound polynomial unary conflict protocol. It does not decide unrestricted Horn-affine conjunctions, certify compatibility at fixpoint, bound universal quotient size, solve arbitrary CNF, or prove `P=NP`.
+C036.1 proves a complete one-way Horn-affine separator theorem and a sound polynomial unary conflict protocol. It does not decide unrestricted Horn-affine conjunctions, certify compatibility at fixpoint, bound universal quotient size, solve arbitrary CNF, or prove `P=NP`.
 
 ```text
 P_VS_NP=OPEN
