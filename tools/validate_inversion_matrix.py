@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Validate the C008 inversion matrix and its reuse of earlier JANUS hypotheses."""
+"""Validate the latest JANUS inversion matrix and inherited-hypothesis ratio."""
 
 from __future__ import annotations
 
@@ -52,40 +52,47 @@ def hnum(hid: str) -> int:
 
 def main() -> int:
     try:
-        tests_payload = load(REGISTRY / "inversion-tests-c008.json")
-        matrix = load(REGISTRY / "inversion-matrix-c008.json")
+        matrix = load(REGISTRY / "inversion-matrix-c009.json")
         hypotheses = load_all("hypotheses*.json", "hypotheses")
         graveyard = load_all("graveyard*.json", "entries")
+        test_entries = load_all("inversion-tests*.json", "tests")
 
         known_h = {item["id"] for item in hypotheses} | {item["id"] for item in graveyard}
-        test_entries = tests_payload.get("tests", [])
         test_ids = [item.get("id") for item in test_entries]
-        allowed = set(tests_payload.get("allowed_cell_statuses", []))
+        if len(test_ids) != len(set(test_ids)):
+            raise MatrixError("duplicate inversion test id")
+        allowed = {
+            "UNRUN", "NOT_APPLICABLE", "ACTIVE", "SURVIVED",
+            "WEAKENED", "DESTROYED", "BLOCKED"
+        }
         selected_h = matrix.get("hypotheses", [])
         selected_t = matrix.get("tests", [])
         overrides = matrix.get("overrides", [])
         default_status = matrix.get("default_cell_status")
 
-        if len(selected_h) != 20 or len(set(selected_h)) != 20:
-            raise MatrixError("matrix must contain exactly 20 unique hypotheses")
-        if len(selected_t) != 20 or len(set(selected_t)) != 20:
-            raise MatrixError("matrix must contain exactly 20 unique tests")
-        if test_ids != selected_t:
-            raise MatrixError("matrix test order must exactly match inversion-tests-c008.json")
+        if len(selected_h) != 30 or len(set(selected_h)) != 30:
+            raise MatrixError("matrix must contain exactly 30 unique hypotheses")
+        if len(selected_t) != 30 or len(set(selected_t)) != 30:
+            raise MatrixError("matrix must contain exactly 30 unique tests")
+        if selected_t != test_ids:
+            raise MatrixError("matrix test order must match modular inversion test ledgers")
         if default_status not in allowed:
             raise MatrixError(f"invalid default cell status: {default_status}")
-        if any(hid not in known_h for hid in selected_h):
-            missing = sorted(hid for hid in selected_h if hid not in known_h)
+        missing = sorted(hid for hid in selected_h if hid not in known_h)
+        if missing:
             raise MatrixError(f"unknown matrix hypotheses: {missing}")
 
-        inherited = [hid for hid in selected_h if hnum(hid) < 70]
-        new = [hid for hid in selected_h if hnum(hid) >= 70]
-        if len(inherited) < 14:
+        inherited = [hid for hid in selected_h if hnum(hid) < 75]
+        new = [hid for hid in selected_h if hnum(hid) >= 75]
+        if len(inherited) < 21:
             raise MatrixError(
-                f"existing-hypothesis reuse too low: {len(inherited)}/20; minimum is 14"
+                f"existing-hypothesis reuse too low: {len(inherited)}/30; minimum is 21"
             )
-        if set(new) != {"H070", "H071", "H072", "H073", "H074"}:
-            raise MatrixError(f"unexpected C008 descendants in matrix: {sorted(new)}")
+        expected_new = {f"H{i:03d}" for i in range(75, 84)}
+        if set(new) != expected_new:
+            raise MatrixError(f"unexpected C009 descendants: {sorted(new)}")
+        if "H074" in selected_h:
+            raise MatrixError("rejected H074 must not remain in the active matrix")
 
         expected_pairs = {(hid, tid) for hid in selected_h for tid in selected_t}
         seen: set[tuple[str, str]] = set()
@@ -104,7 +111,8 @@ def main() -> int:
                 raise MatrixError(f"override {pair} must explain its status")
 
         dims = matrix.get("current_dimensions", {})
-        if dims != {"hypotheses": 20, "inversion_tests": 20, "logical_cells": 400}:
+        expected_dims = {"hypotheses": 30, "inversion_tests": 30, "logical_cells": 900}
+        if dims != expected_dims:
             raise MatrixError(f"incorrect current_dimensions: {dims}")
 
     except MatrixError as exc:
@@ -113,7 +121,7 @@ def main() -> int:
 
     print("JANUS_INVERSION_MATRIX_VALIDATION = PASS")
     print(f"INHERITED_HYPOTHESES = {len(inherited)}")
-    print(f"C008_DESCENDANTS = {len(new)}")
+    print(f"C009_DESCENDANTS = {len(new)}")
     print(f"INVERSION_TESTS = {len(selected_t)}")
     print(f"LOGICAL_MATRIX_CELLS = {len(expected_pairs)}")
     print(f"NON_DEFAULT_CELLS = {len(overrides)}")
