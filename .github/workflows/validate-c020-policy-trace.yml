@@ -1,0 +1,34 @@
+name: Validate C020 Policy Certificates
+
+on:
+  push:
+    paths:
+      - "experiments/direct/janus_tear_policy0t_trace_certificate.py"
+      - "experiments/direct/janus_tear_policy0t_root_resolution_certificate.py"
+      - ".github/workflows/validate-c020-policy-trace.yml"
+  pull_request:
+    paths:
+      - "experiments/direct/janus_tear_policy0t_trace_certificate.py"
+      - "experiments/direct/janus_tear_policy0t_root_resolution_certificate.py"
+      - ".github/workflows/validate-c020-policy-trace.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  verify-policy-certificates:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Verify Policy-0T transition trace
+        run: python experiments/direct/janus_tear_policy0t_trace_certificate.py
+
+      - name: Verify Policy-0T root Resolution certificate
+        run: python experiments/direct/janus_tear_policy0t_root_resolution_certificate.py
