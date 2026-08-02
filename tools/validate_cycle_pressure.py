@@ -22,6 +22,17 @@ def load(name: str) -> dict:
         raise PressureError(f"cannot read {name}: {exc}") from exc
 
 
+def collect(pattern: str, key: str) -> list[dict]:
+    result: list[dict] = []
+    for path in sorted(REGISTRY.glob(pattern)):
+        payload = load(path.name)
+        values = payload.get(key)
+        if not isinstance(values, list):
+            raise PressureError(f"{path.name} lacks list field {key!r}")
+        result.extend(values)
+    return result
+
+
 def main() -> int:
     try:
         schema = load("schema.json")
@@ -35,6 +46,8 @@ def main() -> int:
         minimum_per_h = int(policy["minimum_attacks_per_new_hypothesis"])
         minimum_total = int(policy["minimum_total_attacks"])
         inherited_targets = set(policy["reattacked_inherited_targets"])
+        expected_decisive = set(policy.get("expected_decisive_attacks", []))
+        expected_terminal = set(policy.get("expected_terminal_ids", []))
 
         actual_h = {item["id"] for item in hypotheses}
         if actual_h != expected_h:
@@ -44,7 +57,12 @@ def main() -> int:
             )
 
         by_target: dict[str, list[dict]] = {}
+        by_id: dict[str, dict] = {}
         for item in attacks:
+            aid = item["id"]
+            if aid in by_id:
+                raise PressureError(f"duplicate current-cycle attack id {aid}")
+            by_id[aid] = item
             by_target.setdefault(item["hypothesis_id"], []).append(item)
 
         for hid in expected_h:
@@ -69,12 +87,34 @@ def main() -> int:
                 f"cycle has {len(attacks)} attacks; minimum is {minimum_total}"
             )
 
-        decisive = [item for item in attacks if item.get("decisive")]
-        if decisive:
+        decisive = {item["id"] for item in attacks if item.get("decisive")}
+        if decisive != expected_decisive:
             raise PressureError(
-                f"{policy['cycle_id']} declares no terminal result, so decisive "
-                "attacks are forbidden"
+                f"decisive attack mismatch; expected={sorted(expected_decisive)}, "
+                f"actual={sorted(decisive)}"
             )
+        decisive_targets = {by_id[aid]["hypothesis_id"] for aid in decisive}
+        if decisive_targets != expected_terminal:
+            raise PressureError(
+                f"terminal target mismatch; expected={sorted(expected_terminal)}, "
+                f"actual={sorted(decisive_targets)}"
+            )
+
+        graveyard = collect("graveyard*.json", "entries")
+        graveyard_by_id = {item.get("id"): item for item in graveyard}
+        for hid in expected_terminal:
+            entry = graveyard_by_id.get(hid)
+            if entry is None:
+                raise PressureError(f"expected terminal id lacks graveyard entry: {hid}")
+            linked = set(entry.get("decisive_attacks", []))
+            required = {
+                aid for aid in expected_decisive if by_id[aid]["hypothesis_id"] == hid
+            }
+            if not required <= linked:
+                raise PressureError(
+                    f"graveyard entry {hid} does not link decisive attacks "
+                    f"{sorted(required - linked)}"
+                )
 
     except PressureError as exc:
         print(
@@ -88,7 +128,8 @@ def main() -> int:
     print(f"CYCLE_HYPOTHESES = {len(hypotheses)}")
     print(f"CYCLE_ATTACKS = {len(attacks)}")
     print(f"INHERITED_TARGETS_REATTACKED = {len(inherited_targets)}")
-    print("TERMINAL_RESULT = NONE")
+    print(f"DECISIVE_ATTACKS = {len(decisive)}")
+    print(f"TERMINAL_TARGETS = {','.join(sorted(expected_terminal))}")
     return 0
 
 
