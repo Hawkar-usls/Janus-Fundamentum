@@ -20,6 +20,7 @@ P_VS_NP=OPEN
 | C034 | Affine and cross-class composition | Replayable GF(2) certificates and exact `O(2^k poly(L))` heterogeneous composition for shared boundary `k` | Named tractable modules imply an unrestricted tractable mixture | `PROOF_CARRYING_CROSS_CLASS_INTERFACE_COMPRESSION` |
 | C035 | Certified interface congruence | Replayed exact residual messages give a sound merge congruence; absorbing proofs and affine RREF produce real compression | Exponential diversity in one product language is intrinsic hardness | `JOINT_DECOMPOSITION_LANGUAGE_AND_PROOF_SELECTION` |
 | C036 | Proof-carrying partition refinement | Complete polynomial separator extraction for Horn and affine residuals; every accepted split carries a replayable continuation | Failure to find a separator permits merging; explicit refinement automatically has polynomial state generation | `CROSS_LANGUAGE_SYMBOLIC_SEPARATOR_DISCOVERY` |
+| C037 | Certified polynomial ping-pong | Complete affine-to-Horn directed inclusion/separator extraction plus replayable shared-literal conflict traces and SQLite proof caching | A propagation fixpoint certifies compatibility; constants-only exchange decides Horn-affine mixtures | `REVERSE_HORN_TO_AFFINE_SEPARATOR_OR_STRONGER_FACT_ALGEBRA` |
 | C031 | Proof-carrying SAT refuter | Formal lower-bound transfer interface | Uncertified circuit counterexamples and free direct-sum amplification | `NO_SHARING_REFUTER_AMPLIFICATION` |
 
 ## Constructive P=NP track
@@ -30,25 +31,39 @@ tractable local languages
 -> proof-carrying cross-class interface compression
 -> jointly selected decomposition, message language and proof rules
 -> certified merge and separator extraction
+-> certified cross-language fact exchange
 -> SAT witness + UNSAT certificate
 -> universal polynomial SAT algorithm
 ```
 
-C035 supplied a sound merge congruence. C036 supplies the complementary operation:
-inside Horn and affine message languages, every inequivalent pair has a
-polynomially discoverable explicit separating continuation, and every split is
-independently replayable.
-
-The result remains restricted because the state list can already be exponential
-and no complete cross-language extractor is known. The immediate target is C037:
+C035 supplied a sound merge congruence and C036 supplied complete same-language
+separator extraction. C037 now crosses the language boundary in one complete
+direction:
 
 ```text
-SYMBOLIC CROSS-LANGUAGE TEST BASIS
+MODELS(AFFINE) subseteq MODELS(HORN)
 ```
 
-Construct a polynomially generated family of symbolic continuations closed under
-the admitted Horn/affine/beta-acyclic/compiled operations, or prove a decisive
-obstruction for one explicit basis. A missing separator never authorizes a merge.
+is decided by falsifying each Horn clause with affine unit equations. Every failed
+inclusion returns an explicit affine model that violates the Horn message; every
+accepted clause implication carries replayable GF(2) provenance.
+
+C037 also supplies a proof-carrying shared-literal negotiation trace. The trace is
+sound and polynomial because every accepted event fixes one previously unassigned
+shared variable. It is deliberately incomplete: Horn equality joined with affine
+disequality reaches a constants-only fixpoint although the conjunction is UNSAT.
+Thus `OPEN_FIXPOINT` never authorizes a merge or compatibility claim.
+
+The immediate target is:
+
+```text
+REVERSE_HORN_TO_AFFINE_SEPARATOR_OR_STRONGER_FACT_ALGEBRA
+```
+
+Construct a polynomial reverse separator procedure, or enlarge the exchanged fact
+language with polynomial discovery, representation, replay and composition. A
+fixed unsupported arity, nonuniform exponent, supplied decomposition, or missing
+separator is not progress through this gate.
 
 ## Converged constructive bottleneck
 
@@ -61,6 +76,7 @@ C033 portfolio selection with symbolic messages
 C034 proof-carrying cross-class interface compression
 C035 joint decomposition/language/proof selection
 C036 cross-language symbolic separator discovery
+C037 reverse Horn-to-affine separation or stronger fact algebra
 ```
 
 No future cycle may claim progress merely by renaming this object. Progress
@@ -100,6 +116,7 @@ Schaefer fixed-language mixtures
 communication/continuation equivalence across cuts
 partition refinement and canonical residual automata
 symbolic bisimulation and distinguishing-test bases
+cooperating decision procedures and DPLL(T)/DPLL(XOR) propagation
 ```
 
 A renamed known parameter is registered as an alignment result, not promoted as
