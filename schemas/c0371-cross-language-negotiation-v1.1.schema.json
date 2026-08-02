@@ -1,0 +1,152 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "janus.cross_language_negotiation.v1.1",
+  "title": "JANUS C037.1 proof-carrying pairwise parity-alias negotiation trace",
+  "type": "object",
+  "required": [
+    "schema",
+    "policy",
+    "modules",
+    "shared_vars",
+    "initial_facts",
+    "events",
+    "terminal",
+    "cost",
+    "integrity"
+  ],
+  "properties": {
+    "schema": {"const": "janus.cross_language_negotiation.v1.1"},
+    "policy": {"const": "PAIRWISE_HORN_EQUALITY_BASIS_V1"},
+    "modules": {
+      "type": "array",
+      "minItems": 2,
+      "items": {
+        "type": "object",
+        "required": ["language", "digest"],
+        "properties": {
+          "language": {"enum": ["HORN", "AFFINE_GF2"]},
+          "digest": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+        },
+        "additionalProperties": true
+      }
+    },
+    "shared_vars": {
+      "type": "array",
+      "items": {"type": "integer", "minimum": 1},
+      "uniqueItems": true
+    },
+    "initial_facts": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/literalFact"}
+    },
+    "events": {
+      "type": "array",
+      "items": {
+        "oneOf": [
+          {"$ref": "#/$defs/literalEvent"},
+          {"$ref": "#/$defs/aliasEvent"}
+        ]
+      }
+    },
+    "terminal": {
+      "type": "object",
+      "required": ["status"],
+      "properties": {
+        "status": {
+          "enum": ["CONFLICT", "OPEN_FIXPOINT", "OPEN_BUDGET", "OPEN_LANGUAGE"]
+        }
+      },
+      "additionalProperties": true
+    },
+    "cost": {
+      "type": "object",
+      "required": [
+        "work_units",
+        "horn_calls",
+        "affine_calls",
+        "horn_clause_scans",
+        "row_xors",
+        "equality_queries",
+        "literal_queries",
+        "event_count",
+        "certificate_bytes"
+      ],
+      "additionalProperties": {"type": "integer", "minimum": 0}
+    },
+    "integrity": {
+      "type": "object",
+      "required": ["sha256"],
+      "properties": {
+        "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+      },
+      "additionalProperties": false
+    }
+  },
+  "$defs": {
+    "literalFact": {
+      "type": "object",
+      "required": ["var", "value"],
+      "properties": {
+        "var": {"type": "integer", "minimum": 1},
+        "value": {"type": "boolean"}
+      },
+      "additionalProperties": false
+    },
+    "literalEvent": {
+      "type": "object",
+      "required": ["seq", "kind", "producer", "var", "value", "native_proof", "fact_id"],
+      "properties": {
+        "seq": {"type": "integer", "minimum": 0},
+        "kind": {"const": "ENTAILED_LITERAL"},
+        "producer": {"enum": ["HORN", "AFFINE_GF2"]},
+        "var": {"type": "integer", "minimum": 1},
+        "value": {"type": "boolean"},
+        "native_proof": {"type": "object"},
+        "fact_id": {"type": "string"}
+      },
+      "additionalProperties": true
+    },
+    "aliasEvent": {
+      "type": "object",
+      "required": [
+        "seq",
+        "kind",
+        "producer",
+        "left",
+        "right",
+        "rhs",
+        "clauses",
+        "native_proofs",
+        "fact_id"
+      ],
+      "properties": {
+        "seq": {"type": "integer", "minimum": 0},
+        "kind": {"const": "ENTAILED_PARITY_ALIAS"},
+        "producer": {"const": "HORN"},
+        "left": {"type": "integer", "minimum": 1},
+        "right": {"type": "integer", "minimum": 1},
+        "rhs": {"const": 0},
+        "clauses": {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 2,
+          "items": {
+            "type": "array",
+            "minItems": 2,
+            "maxItems": 2,
+            "items": {"type": "integer"}
+          }
+        },
+        "native_proofs": {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 2,
+          "items": {"type": "object"}
+        },
+        "fact_id": {"type": "string"}
+      },
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": true
+}
