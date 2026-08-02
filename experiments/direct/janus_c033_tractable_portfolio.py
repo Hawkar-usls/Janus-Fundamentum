@@ -122,11 +122,13 @@ def run(seed=330033,cases=900):
         exact+=1;classes[r['class']]=classes.get(r['class'],0)+1
         if bool(r['sat'])!=b:mismatch+=1
         if r['sat'] and (r['witness'] is None or not evaluate(normalize(f),r['witness'])):wfail+=1
-    # Negative control: 4-cycle hypergraph has no nest point.
-    hard=((1,2),(2,3),(3,4),(4,1))
+    # Negative control: cyclic 4-edge hypergraph, with polarity chosen so the
+    # dispatcher cannot accept it as Horn or dual-Horn before beta recognition.
+    hard=((1,2),(-2,-3),(3,4),(-4,-1))
+    assert not is_horn(hard) and not is_dual_horn(hard)
     assert nest_order(hard) is None and solve(hard)['status']=='OPEN'
     assert mismatch==0 and wfail==0
-    out={'artifact_id':'C033-JANUS-PROOF-CARRYING-TRACTABLE-PORTFOLIO','status':'PASS','p_vs_np':'OPEN','seed':seed,'cases':cases,'exact':exact,'open':open_,'classes':classes,'mismatches':mismatch,'witness_failures':wfail,'negative_control':'OPEN','claim_boundary':'Polynomial sound portfolio for normalized Horn, dual-Horn and beta-acyclic CNF only; no universal SAT algorithm.'}
+    out={'artifact_id':'C033-JANUS-PROOF-CARRYING-TRACTABLE-PORTFOLIO','status':'PASS','p_vs_np':'OPEN','seed':seed,'cases':cases,'exact':exact,'open':open_,'classes':classes,'mismatches':mismatch,'witness_failures':wfail,'negative_control':'OPEN_NON_HORN_NON_DUAL_HORN_CYCLIC','claim_boundary':'Polynomial sound portfolio for normalized Horn, dual-Horn and beta-acyclic CNF only; no universal SAT algorithm.'}
     out['integrity_sha256']=hashlib.sha256(json.dumps(out,sort_keys=True,separators=(',',':')).encode()).hexdigest();return out
 
 def main():
