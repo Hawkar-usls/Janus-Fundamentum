@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """Emit and independently replay a finite Policy-0T execution trace.
 
-The trace format records unit batches, local resolvents, deterministic branches,
-child restrictions, terminal statuses, and total search-tree consistency.  C022
-uses it as the provenance substrate for the non-affine core simulation theorem.
+This is not yet a Resolution refutation certificate. It certifies the lower
+layer needed by H130: unit batches, local resolvents, deterministic branches,
+child restrictions, terminal statuses, and total search-tree consistency.
 """
 
 from __future__ import annotations
@@ -38,176 +38,163 @@ def canonical_clause(clause: Iterable[int]) -> Clause | None:
 
 
 def canonical_cnf(clauses: Iterable[Iterable[int]]) -> CNF:
-    normalized = {
-        clause
-        for raw in clauses
-        if (clause := canonical_clause(raw)) is not None
-    }
+    normalized: set[Clause] = set()
+    for clause in clauses:
+        candidate = canonical_clause(clause)
+        if candidate is not None:
+            normalized.add(candidate)
     return tuple(sorted(normalized, key=lambda clause: (len(clause), clause)))
 
 
 def simplify_one(cnf: CNF, variable: int, value: bool) -> CNF | None:
     true_literal = variable if value else -variable
     false_literal = -true_literal
-    reduced: list[Clause] = []
+    residual: list[Clause] = []
     for clause in cnf:
         if true_literal in clause:
             continue
-        residual = tuple(literal for literal in clause if literal != false_literal)
-        if not residual:
-            return None
-        reduced.append(residual)
-    return canonical_cnf(reduced)
+        if false_literal in clause:
+            reduced = tuple(literal for literal in clause if literal != false_literal)
+            if not reduced:
+                return None
+            residual.append(reduced)
+        else:
+            residual.append(clause)
+    return canonical_cnf(residual)
 
 
-def satisfies(cnf: CNF, assignment: tuple[int, ...]) -> bool:
-    return all(
-        any(
-            (literal > 0 and assignment[literal - 1] == 1)
-            or (literal < 0 and assignment[-literal - 1] == 0)
-            for literal in clause
-        )
-        for clause in cnf
-    )
+def exact_scope_relations(cnf: CNF, max_scope: int = 10):
+    groups: dict[tuple[int, ...], list[Clause]] = defaultdict(list)
+    for clause in cnf:
+        scope = tuple(sorted(abs(literal) for literal in clause))
+        if len(scope) == len(clause) and len(scope) <= max_scope:
+            groups[scope].append(clause)
+    for scope, clauses in sorted(groups.items()):
+        forbidden: set[tuple[int, ...]] = set()
+        for clause in clauses:
+            signs = {abs(literal): int(literal < 0) for literal in clause}
+            forbidden.add(tuple(signs[variable] for variable in scope))
+        allowed = set(product((0, 1), repeat=len(scope))) - forbidden
+        yield scope, allowed, len(clauses)
 
 
-def affine_equations(
-    variables: tuple[int, ...],
-    allowed: set[tuple[int, ...]],
-) -> tuple[tuple[tuple[int, ...], int], ...] | None:
+def affine_equations(scope: tuple[int, ...], allowed: set[tuple[int, ...]]):
     if not allowed:
-        return ()
+        return [((), 1)]
     equations: list[tuple[tuple[int, ...], int]] = []
-    dimension = len(variables)
-    for mask in range(1, 1 << dimension):
+    width = len(scope)
+    for mask in range(1, 1 << width):
         values = {
-            sum(bit for index, bit in enumerate(bits) if mask & (1 << index)) % 2
+            sum(((mask >> index) & 1) * bits[index] for index in range(width)) % 2
             for bits in allowed
         }
         if len(values) == 1:
-            indices = tuple(index for index in range(dimension) if mask & (1 << index))
-            equations.append((indices, next(iter(values))))
-
-    predicted = {
+            equations.append(
+                (
+                    tuple(scope[index] for index in range(width) if (mask >> index) & 1),
+                    next(iter(values)),
+                )
+            )
+    positions = {variable: index for index, variable in enumerate(scope)}
+    reconstructed = {
         bits
-        for bits in product((0, 1), repeat=dimension)
+        for bits in product((0, 1), repeat=width)
         if all(
-            sum(bits[index] for index in indices) % 2 == rhs
-            for indices, rhs in equations
+            sum(bits[positions[variable]] for variable in variables) % 2 == rhs
+            for variables, rhs in equations
         )
     }
-    if predicted != allowed:
-        return None
-    return tuple(equations)
+    return equations if reconstructed == allowed else None
 
 
-def parity_consistent(equations: Iterable[tuple[int, int]]) -> bool:
-    rows = list(equations)
-    pivot = 0
-    maximum_bit = max((mask.bit_length() for mask, _ in rows), default=0)
-    for column in range(maximum_bit):
-        selected = next(
-            (index for index in range(pivot, len(rows)) if rows[index][0] & (1 << column)),
+def gaussian_inconsistent(
+    equations: list[tuple[tuple[int, ...], int]], variable_count: int
+) -> bool:
+    rows: list[list[int]] = []
+    for variables, rhs in equations:
+        mask = 0
+        for variable in variables:
+            mask ^= 1 << (variable - 1)
+        rows.append([mask, rhs])
+    pivot_row = 0
+    for column in range(variable_count):
+        source = next(
+            (
+                row
+                for row in range(pivot_row, len(rows))
+                if (rows[row][0] >> column) & 1
+            ),
             None,
         )
-        if selected is None:
+        if source is None:
             continue
-        rows[pivot], rows[selected] = rows[selected], rows[pivot]
-        pivot_mask, pivot_rhs = rows[pivot]
-        for index in range(len(rows)):
-            if index != pivot and rows[index][0] & (1 << column):
-                mask, rhs = rows[index]
-                rows[index] = (mask ^ pivot_mask, rhs ^ pivot_rhs)
-        pivot += 1
-    return not any(mask == 0 and rhs == 1 for mask, rhs in rows)
+        rows[pivot_row], rows[source] = rows[source], rows[pivot_row]
+        for row in range(len(rows)):
+            if row != pivot_row and ((rows[row][0] >> column) & 1):
+                rows[row][0] ^= rows[pivot_row][0]
+                rows[row][1] ^= rows[pivot_row][1]
+        pivot_row += 1
+    return any(mask == 0 and rhs == 1 for mask, rhs in rows)
 
 
-def visible_affine_root_decision(cnf: CNF, variable_count: int) -> tuple[bool | None, int]:
-    groups: dict[tuple[int, ...], list[Clause]] = defaultdict(list)
-    for clause in cnf:
-        groups[tuple(sorted(abs(literal) for literal in clause))].append(clause)
-
-    covered: set[Clause] = set()
-    global_equations: list[tuple[int, int]] = []
-    equation_count = 0
-
-    for scope, clauses in sorted(groups.items()):
-        scope_cnf = canonical_cnf(clauses)
-        allowed = {
-            bits
-            for bits in product((0, 1), repeat=len(scope))
-            if satisfies(scope_cnf, bits)
-        }
-        equations = affine_equations(scope, allowed)
-        if equations is None:
+def visible_affine_root_decision(cnf: CNF, variable_count: int):
+    equations: list[tuple[tuple[int, ...], int]] = []
+    covered_clauses = 0
+    for scope, allowed, clause_count in exact_scope_relations(cnf):
+        relation_equations = affine_equations(scope, allowed)
+        if relation_equations is None:
             continue
-        covered.update(scope_cnf)
-        equation_count += len(equations)
-        for indices, rhs in equations:
-            mask = 0
-            for index in indices:
-                mask |= 1 << (scope[index] - 1)
-            global_equations.append((mask, rhs))
-
-    if len(covered) != len(cnf):
-        return None, equation_count
-    if not parity_consistent(global_equations):
-        return False, equation_count
-    return None, equation_count
+        equations.extend(relation_equations)
+        covered_clauses += clause_count
+    if covered_clauses != len(cnf):
+        return None, 0
+    return not gaussian_inconsistent(equations, variable_count), len(equations)
 
 
 def unit_trace(cnf: CNF):
-    current = cnf
     events: list[dict[str, object]] = []
     batch = 0
     while True:
-        units = [clause[0] for clause in current if len(clause) == 1]
+        units = [clause[0] for clause in cnf if len(clause) == 1]
         if not units:
-            return current, False, events
-
+            return cnf, False, events
         assignments: dict[int, bool] = {}
+        reasons: dict[int, int] = {}
         for literal in units:
             variable = abs(literal)
             value = literal > 0
             if variable in assignments and assignments[variable] != value:
                 events.append(
-                    {
-                        "batch": batch,
-                        "kind": "opposite_units",
-                        "units": tuple(sorted(units)),
-                    }
+                    {"batch": batch, "kind": "opposite_units", "units": tuple(sorted(units))}
                 )
                 return None, True, events
             assignments[variable] = value
-
-        batch_cnf = current
+            reasons[variable] = literal
+        batch_cnf = cnf
         for variable, value in sorted(assignments.items()):
-            literal = variable if value else -variable
-            before = current
-            current = simplify_one(current, variable, value)
+            before = cnf
+            after = simplify_one(cnf, variable, value)
             events.append(
                 {
                     "batch": batch,
                     "kind": "unit",
-                    "literal": literal,
-                    "reason": (literal,),
+                    "literal": variable if value else -variable,
+                    "reason": (reasons[variable],),
                     "batch_cnf": batch_cnf,
                     "before": before,
-                    "after": current,
+                    "after": after,
                 }
             )
-            if current is None:
+            if after is None:
                 return None, True, events
-            if not current:
-                return (), False, events
+            cnf = after
+            if not cnf:
+                return cnf, False, events
         batch += 1
 
 
 def resolution_trace(
-    cnf: CNF,
-    max_width: int,
-    attempt_budget: int,
-    addition_budget: int,
+    cnf: CNF, max_width: int, attempt_budget: int, addition_budget: int
 ):
     clauses = set(cnf)
     positive: dict[int, list[Clause]] = defaultdict(list)
@@ -346,17 +333,13 @@ class TracePolicy:
 
 def verify_trace(nodes: dict[int, dict[str, object]], root: int, root_cnf: CNF) -> bool:
     seen: set[int] = set()
-    variable_bound = max(
-        (abs(literal) for clause in root_cnf for literal in clause),
-        default=0,
-    )
 
     def verify_node(node_id: int, expected_input: CNF) -> bool:
         assert node_id not in seen
         seen.add(node_id)
         node = nodes[node_id]
         assert node["input"] == expected_input
-        assert int(node["depth"]) <= variable_bound
+        assert int(node["depth"]) <= N_VARS
 
         propagated, contradiction, events = unit_trace(expected_input)
         assert events == node["pre_units"]
@@ -465,7 +448,7 @@ def self_test() -> None:
     print(f"unit_events = {unit_events}")
     print(f"maximum_branch_depth = {maximum_depth}")
     print("root_answer = UNSAT")
-    print("claim_boundary = provenance trace; global proof emitted by the C022 translator")
+    print("claim_boundary = transition trace only; no global Resolution refutation emitted")
 
 
 if __name__ == "__main__":
