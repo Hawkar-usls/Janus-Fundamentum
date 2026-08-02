@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
-"""Validate the C012 breadth-first attack sweep over every live hypothesis.
+"""Validate the historical C012 breadth-first attack snapshot.
 
-This validator checks coverage and bookkeeping only. It does not certify the
-mathematical correctness of a human-entered attack outcome.
+Later cycles may add descendants or terminally shadow C012 survivors. Coverage is
+therefore checked against the hypothesis-number and terminal snapshot declared
+in schema.json, not against the repository's present live set.
 """
 
 from __future__ import annotations
@@ -47,6 +48,12 @@ def collect(pattern: str, key: str) -> list[dict[str, Any]]:
     return items
 
 
+def hnum(hid: str) -> int:
+    if not isinstance(hid, str) or not hid.startswith("H") or not hid[1:].isdigit():
+        raise SweepError(f"invalid hypothesis id: {hid!r}")
+    return int(hid[1:])
+
+
 def main() -> int:
     try:
         schema = load(REGISTRY / "schema.json")
@@ -62,24 +69,34 @@ def main() -> int:
         hypotheses = collect("hypotheses*.json", "hypotheses")
         graveyard = collect("graveyard*.json", "entries")
         historical_ids = {item.get("id") for item in hypotheses}
-        terminal_ids = {item.get("id") for item in graveyard}
-        if None in historical_ids or None in terminal_ids:
+        all_terminal_ids = {item.get("id") for item in graveyard}
+        if None in historical_ids or None in all_terminal_ids:
             raise SweepError("hypothesis or graveyard entry has no id")
-        live_ids = historical_ids - terminal_ids
+
+        snapshot_max = int(policy["snapshot_max_hypothesis_number"])
+        terminal_at_snapshot = set(policy["terminal_ids_at_snapshot"])
+        if not terminal_at_snapshot <= all_terminal_ids:
+            raise SweepError(
+                "historical terminal snapshot names an id absent from the current graveyard"
+            )
+        snapshot_historical = {
+            hid for hid in historical_ids if hnum(hid) <= snapshot_max
+        }
+        snapshot_live = snapshot_historical - terminal_at_snapshot
 
         listed_live = sweep.get("live_hypothesis_ids")
         if not isinstance(listed_live, list):
             raise SweepError("campaign lacks live_hypothesis_ids list")
         if len(listed_live) != len(set(listed_live)):
-            raise SweepError("campaign repeats a live hypothesis id")
-        if set(listed_live) != live_ids:
-            missing = sorted(live_ids - set(listed_live))
-            extra = sorted(set(listed_live) - live_ids)
+            raise SweepError("campaign repeats a snapshot hypothesis id")
+        if set(listed_live) != snapshot_live:
+            missing = sorted(snapshot_live - set(listed_live))
+            extra = sorted(set(listed_live) - snapshot_live)
             raise SweepError(
-                f"campaign/live registry mismatch; missing={missing}, extra={extra}"
+                f"campaign/snapshot mismatch; missing={missing}, extra={extra}"
             )
-        if any(hid in terminal_ids for hid in listed_live):
-            raise SweepError("terminal shadow included in live sweep")
+        if any(hid in terminal_at_snapshot for hid in listed_live):
+            raise SweepError("snapshot terminal shadow included in C012 sweep")
 
         protocols = protocol_payload.get("protocols")
         if not isinstance(protocols, list):
@@ -160,7 +177,7 @@ def main() -> int:
         expected_cells = int(policy["expected_logical_cells"])
         if len(listed_live) != expected_live:
             raise SweepError(
-                f"live count {len(listed_live)} differs from policy {expected_live}"
+                f"snapshot count {len(listed_live)} differs from policy {expected_live}"
             )
         if len(protocol_ids) != expected_protocols:
             raise SweepError(
@@ -172,8 +189,8 @@ def main() -> int:
             )
         if destroyed:
             raise SweepError(
-                "a total-sweep cell cannot terminally remove a hypothesis without "
-                "a decisive attack ledger entry and graveyard shadow"
+                "a C012 standardized cell cannot terminally remove a hypothesis without "
+                "a later decisive attack ledger entry and graveyard shadow"
             )
 
     except (KeyError, TypeError, ValueError, SweepError) as exc:
@@ -181,15 +198,13 @@ def main() -> int:
         return 1
 
     print("JANUS_TOTAL_ATTACK_SWEEP = PASS")
-    print(f"LIVE_HYPOTHESES_ATTACKED = {len(listed_live)}")
+    print(f"SNAPSHOT_MAX_HYPOTHESIS = H{snapshot_max:03d}")
+    print(f"SNAPSHOT_HYPOTHESES_ATTACKED = {len(listed_live)}")
     print(f"ATTACK_PROTOCOLS = {len(protocol_ids)}")
     print(f"LOGICAL_ATTACK_CELLS = {len(cells)}")
-    print(f"CLEAN_SURVIVORS = {len(clean)}")
-    print(f"CONFLICTED_SURVIVORS = {len(conflicted)}")
-    print(f"PRESSURED_SURVIVORS = {len(pressured)}")
-    print("DESTROYED_OR_REJECTED = 0")
-    print(f"CONFLICTED_IDS = {','.join(conflicted)}")
-    print(f"PRESSURED_IDS = {','.join(pressured)}")
+    print(f"CLEAN_SURVIVORS_AT_C012 = {len(clean)}")
+    print(f"CONFLICTED_SURVIVORS_AT_C012 = {len(conflicted)}")
+    print(f"PRESSURED_SURVIVORS_AT_C012 = {len(pressured)}")
     return 0
 
 
