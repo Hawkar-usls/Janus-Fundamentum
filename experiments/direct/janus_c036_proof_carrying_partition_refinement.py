@@ -128,7 +128,7 @@ def run(seed=360036):
     for k in range(1,65):states += [{'language':'HORN','object':norm(tuple([(1,)]*k))},{'language':'HORN','object':norm(tuple([(-1,)]*k))}]
     rr=refine(states,10,10000);assert rr['status']=='EXACT' and len(rr['blocks'])==2
     mixed=refine([{'language':'HORN','object':((1,),)},{'language':'AFFINE','object':((1,1),)}],1,10);assert mixed['status']=='OPEN'
-    x={'language':'HORN','object':((1,),)};y={'language':'HORN','object':((1,2),)};bad=hsep(x['object'],y['object'],2);assert verify(x,y,bad)
+    x={'language':'HORN','object':((1,),)};y={'language':'HORN','object':((1,-2),)};bad=hsep(x['object'],y['object'],2);assert verify(x,y,bad)
     bad['assignment']={1:True,2:False};assert not verify(x,y,bad)
     out={'artifact_id':'C036-JANUS-PROOF-CARRYING-PARTITION-REFINEMENT','status':'PASS','p_vs_np':'OPEN','seed':seed,'horn_separator_cases':400,'affine_separator_cases':400,'verified_separators':sep,'verified_equivalences':eq,'easy_states':128,'easy_refined_blocks':2,'mixed_language_control':'OPEN','corrupt_separator_control':'REJECTED','theorem':'Horn and affine residual inequivalence admit deterministic polynomial-time explicit separator extraction; explicit same-language state sets can be refined only by replayable separators.','new_gate':'CROSS_LANGUAGE_SYMBOLIC_SEPARATOR_DISCOVERY','claim_boundary':'Restricted same-language refinement only; explicit state lists may already be exponential.'}
     out['integrity_sha256']=hashlib.sha256(json.dumps(out,sort_keys=True,separators=(',',':')).encode()).hexdigest();return out
