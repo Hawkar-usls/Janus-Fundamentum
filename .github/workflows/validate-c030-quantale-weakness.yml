@@ -1,0 +1,32 @@
+name: Validate C030 Quantale Weakness Intake
+
+on:
+  push:
+    paths:
+      - "experiments/direct/janus_c030_quantale_weakness_intake.py"
+      - "docs/C030_QUANTALE_WEAKNESS_INTAKE.md"
+      - "registry/claim-audit-c030.json"
+      - "registry/references-c030.json"
+      - ".github/workflows/validate-c030-quantale-weakness.yml"
+  pull_request:
+    paths:
+      - "experiments/direct/janus_c030_quantale_weakness_intake.py"
+      - "docs/C030_QUANTALE_WEAKNESS_INTAKE.md"
+      - "registry/claim-audit-c030.json"
+      - "registry/references-c030.json"
+      - ".github/workflows/validate-c030-quantale-weakness.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  verify-intake:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python experiments/direct/janus_c030_quantale_weakness_intake.py
+      - run: python -m json.tool registry/claim-audit-c030.json >/dev/null
+      - run: python -m json.tool registry/references-c030.json >/dev/null
