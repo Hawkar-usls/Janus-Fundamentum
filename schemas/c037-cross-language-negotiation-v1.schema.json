@@ -1,0 +1,202 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://janus.local/schemas/c037-cross-language-negotiation-v1.schema.json",
+  "title": "JANUS Cross-Language Negotiation Trace v1",
+  "type": "object",
+  "required": ["schema", "policy", "modules", "events", "terminal", "cost"],
+  "properties": {
+    "schema": {
+      "const": "janus.cross_language_negotiation.v1"
+    },
+    "policy": {
+      "enum": [
+        "UNARY_SHARED_CONSEQUENCE_FIXPOINT_V1",
+        "AFFINE_TO_HORN_DIRECTED_INCLUSION_V1"
+      ]
+    },
+    "modules": {
+      "type": "array",
+      "minItems": 2,
+      "items": {
+        "type": "object",
+        "required": ["language", "digest"],
+        "properties": {
+          "language": {
+            "enum": ["HORN", "AFFINE_GF2"]
+          },
+          "digest": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$"
+          }
+        },
+        "additionalProperties": true
+      }
+    },
+    "shared_vars": {
+      "type": "array",
+      "items": {
+        "type": "integer",
+        "minimum": 1
+      },
+      "uniqueItems": true
+    },
+    "initial_facts": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/fact"
+      }
+    },
+    "events": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["seq", "kind"],
+        "properties": {
+          "seq": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "kind": {
+            "enum": [
+              "ENTAILED_LITERAL",
+              "AFFINE_ENTAILS_HORN_CLAUSE"
+            ]
+          },
+          "producer": {
+            "enum": ["HORN", "AFFINE_GF2"]
+          },
+          "var": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "value": {
+            "type": "boolean"
+          },
+          "fact_id": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{24}$"
+          },
+          "clause_index": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "native_proof": {
+            "type": "object"
+          },
+          "provenance": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "row_ops": {
+            "type": "array"
+          }
+        },
+        "additionalProperties": true
+      }
+    },
+    "terminal": {
+      "type": "object",
+      "required": ["status"],
+      "properties": {
+        "status": {
+          "enum": [
+            "CONFLICT",
+            "SEPARATOR",
+            "DIRECTED_INCLUSION",
+            "AFFINE_EMPTY_SUBSET",
+            "OPEN_FIXPOINT",
+            "OPEN_BUDGET",
+            "OPEN_LANGUAGE"
+          ]
+        },
+        "module": {
+          "enum": ["HORN", "AFFINE_GF2"]
+        },
+        "direction": {
+          "const": "AFFINE_NOT_HORN"
+        },
+        "assignment": {
+          "type": "object",
+          "additionalProperties": {
+            "enum": [0, 1]
+          }
+        },
+        "native_proof": {
+          "type": "object"
+        }
+      },
+      "additionalProperties": true
+    },
+    "cost": {
+      "type": "object",
+      "required": [
+        "work_units",
+        "horn_calls",
+        "affine_calls",
+        "horn_clause_scans",
+        "row_xors",
+        "step_count",
+        "certificate_bytes"
+      ],
+      "properties": {
+        "work_units": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "horn_calls": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "affine_calls": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "horn_clause_scans": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "row_xors": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "step_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "certificate_bytes": {
+          "type": "integer",
+          "minimum": 0
+        }
+      },
+      "additionalProperties": false
+    },
+    "integrity": {
+      "type": "object",
+      "required": ["sha256"],
+      "properties": {
+        "sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "$defs": {
+    "fact": {
+      "type": "object",
+      "required": ["var", "value"],
+      "properties": {
+        "var": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "value": {
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": true
+}

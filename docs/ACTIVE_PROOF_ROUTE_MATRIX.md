@@ -1,7 +1,6 @@
 # JANUS Active Proof Route Matrix
 
-**Purpose:** compare every new mechanism against the existing proof graph before
-creating another hypothesis.
+**Purpose:** compare every new mechanism against the existing proof graph before creating another hypothesis.
 
 ```text
 P_VS_NP=OPEN
@@ -20,6 +19,8 @@ P_VS_NP=OPEN
 | C034 | Affine and cross-class composition | Replayable GF(2) certificates and exact `O(2^k poly(L))` heterogeneous composition for shared boundary `k` | Named tractable modules imply an unrestricted tractable mixture | `PROOF_CARRYING_CROSS_CLASS_INTERFACE_COMPRESSION` |
 | C035 | Certified interface congruence | Replayed exact residual messages give a sound merge congruence; absorbing proofs and affine RREF produce real compression | Exponential diversity in one product language is intrinsic hardness | `JOINT_DECOMPOSITION_LANGUAGE_AND_PROOF_SELECTION` |
 | C036 | Proof-carrying partition refinement | Complete polynomial separator extraction for Horn and affine residuals; every accepted split carries a replayable continuation | Failure to find a separator permits merging; explicit refinement automatically has polynomial state generation | `CROSS_LANGUAGE_SYMBOLIC_SEPARATOR_DISCOVERY` |
+| C036.1 | Explicit residual OBDD alignment | Exact minimization, distinguishing suffixes, SAT witnesses and UNSAT DAG certificates after explicit residual generation | Partition refinement alone avoids state explosion; an equivalence-query teacher is free | `POLYNOMIAL_ORDER_DECOMPOSITION_AND_REACHABLE_QUOTIENT_CONSTRUCTION` |
+| C037 | Horn-affine negotiation | Complete affine-to-Horn directed inclusion/separator extraction plus replayable shared-literal conflict traces and SQLite proof caching | A propagation fixpoint certifies compatibility; constants-only exchange decides Horn-affine mixtures | `REVERSE_HORN_TO_AFFINE_SEPARATOR_OR_STRONGER_FACT_ALGEBRA` |
 | C031 | Proof-carrying SAT refuter | Formal lower-bound transfer interface | Uncertified circuit counterexamples and free direct-sum amplification | `NO_SHARING_REFUTER_AMPLIFICATION` |
 
 ## Constructive P=NP track
@@ -30,29 +31,44 @@ tractable local languages
 -> proof-carrying cross-class interface compression
 -> jointly selected decomposition, message language and proof rules
 -> certified merge and separator extraction
+-> polynomial reachable quotient construction or certified cross-language exchange
 -> SAT witness + UNSAT certificate
 -> universal polynomial SAT algorithm
 ```
 
-C035 supplied a sound merge congruence. C036 supplies the complementary operation:
-inside Horn and affine message languages, every inequivalent pair has a
-polynomially discoverable explicit separating continuation, and every split is
-independently replayable.
-
-The result remains restricted because the state list can already be exponential
-and no complete cross-language extractor is known. The immediate target is C037:
+C036.1 aligns complete fixed-order continuation refinement with reduced OBDDs. C037 crosses the language boundary in one complete direction:
 
 ```text
-SYMBOLIC CROSS-LANGUAGE TEST BASIS
+MODELS(AFFINE) subseteq MODELS(HORN)
 ```
 
-Construct a polynomially generated family of symbolic continuations closed under
-the admitted Horn/affine/beta-acyclic/compiled operations, or prove a decisive
-obstruction for one explicit basis. A missing separator never authorizes a merge.
+and adds a replayable shared-literal negotiation trace. It is deliberately incomplete: Horn equality joined with affine disequality reaches `OPEN_FIXPOINT` although the conjunction is UNSAT.
+
+The immediate negotiation target is:
+
+```text
+C037.1 PAIRWISE PARITY-ALIAS NEGOTIATION
+```
+
+It may publish only certified relations `x XOR y = b` discovered in polynomial time from the Horn module and replayed by native least-model conflict traces. Absence of such an alias still returns `OPEN`.
+
+The structured decomposition route remains:
+
+```text
+C038 PROOF-CARRYING STRUCTURED DECOMPOSITION SEARCH
+```
+
+## Canonical cycle allocation
+
+```text
+C036   proof-carrying same-language partition refinement
+C036.1 explicit residual / OBDD alignment
+C037   Horn-affine negotiation
+C037.1 pairwise parity-alias negotiation extension
+C038   structured vtree decomposition
+```
 
 ## Converged constructive bottleneck
-
-The following names are linked views of one missing core:
 
 ```text
 C025 certified residual quotient complexity
@@ -61,12 +77,11 @@ C033 portfolio selection with symbolic messages
 C034 proof-carrying cross-class interface compression
 C035 joint decomposition/language/proof selection
 C036 cross-language symbolic separator discovery
+C036.1 order/decomposition and reachable quotient construction
+C037 reverse Horn-to-affine separation or stronger fact algebra
 ```
 
-No future cycle may claim progress merely by renaming this object. Progress
-requires a new polynomial construction theorem, a strictly stronger replayable
-message algebra, a complete separator extractor for a larger closed language, or
-a decisive obstruction to one explicit construction route.
+No future cycle may claim progress merely by renaming this object. Progress requires a new polynomial construction theorem, a strictly stronger replayable message algebra, a complete separator extractor for a larger closed language, or a decisive obstruction to one explicit construction route.
 
 ## Separation track
 
@@ -78,12 +93,9 @@ proof-carrying circuit refuter
 -> P != NP
 ```
 
-This track remains useful as an adversarial control even while the user-selected
-primary objective is `P=NP`.
-
 ## Non-duplication rule
 
-Before admitting a new hypothesis, compare it against:
+Before admission compare against:
 
 ```text
 PS-width
@@ -100,7 +112,8 @@ Schaefer fixed-language mixtures
 communication/continuation equivalence across cuts
 partition refinement and canonical residual automata
 symbolic bisimulation and distinguishing-test bases
+active automata learning and equivalence-query teachers
+cooperating decision procedures and DPLL(T)/DPLL(XOR) propagation
 ```
 
-A renamed known parameter is registered as an alignment result, not promoted as
-a new theorem.
+A renamed known parameter is registered as an alignment result, not promoted as a new theorem.

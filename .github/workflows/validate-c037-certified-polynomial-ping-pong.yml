@@ -1,0 +1,43 @@
+name: Validate C037 Certified Polynomial Ping-Pong
+
+on:
+  push:
+    paths:
+      - "experiments/direct/janus_c037_certified_polynomial_ping_pong.py"
+      - "experiments/direct/janus_c037_adversarial_matrix.py"
+      - "docs/C037_CERTIFIED_POLYNOMIAL_PING_PONG.md"
+      - "proposals/C037-CERTIFIED-POLYNOMIAL-PING-PONG.json"
+      - "registry/c037-source-map.json"
+      - "schemas/c037-cross-language-negotiation-v1.schema.json"
+      - "schemas/c037-negotiation-cache.sql"
+      - "docs/ACTIVE_PROOF_ROUTE_MATRIX.md"
+      - ".github/workflows/validate-c037-certified-polynomial-ping-pong.yml"
+  pull_request:
+    paths:
+      - "experiments/direct/janus_c037_certified_polynomial_ping_pong.py"
+      - "experiments/direct/janus_c037_adversarial_matrix.py"
+      - "docs/C037_CERTIFIED_POLYNOMIAL_PING_PONG.md"
+      - "proposals/C037-CERTIFIED-POLYNOMIAL-PING-PONG.json"
+      - "registry/c037-source-map.json"
+      - "schemas/c037-cross-language-negotiation-v1.schema.json"
+      - "schemas/c037-negotiation-cache.sql"
+      - "docs/ACTIVE_PROOF_ROUTE_MATRIX.md"
+      - ".github/workflows/validate-c037-certified-polynomial-ping-pong.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  certified-ping-pong:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python experiments/direct/janus_c037_certified_polynomial_ping_pong.py --self-test
+      - run: python experiments/direct/janus_c037_adversarial_matrix.py
+      - run: python -m json.tool proposals/C037-CERTIFIED-POLYNOMIAL-PING-PONG.json >/dev/null
+      - run: python -m json.tool registry/c037-source-map.json >/dev/null
+      - run: python -m json.tool schemas/c037-cross-language-negotiation-v1.schema.json >/dev/null
+      - run: sqlite3 :memory: < schemas/c037-negotiation-cache.sql
