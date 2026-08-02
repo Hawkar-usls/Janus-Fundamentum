@@ -1,0 +1,170 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://janus.local/schemas/c038-open-core-vault-v1.schema.json",
+  "title": "JANUS C038 Capability Manifest and OPEN Trace",
+  "oneOf": [
+    {
+      "$ref": "#/$defs/capabilityManifest"
+    },
+    {
+      "$ref": "#/$defs/openTrace"
+    }
+  ],
+  "$defs": {
+    "sha256": {
+      "type": "string",
+      "pattern": "^sha256:[0-9A-Fa-f]+$"
+    },
+    "capabilityManifest": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema",
+        "canonicalizer",
+        "portfolio",
+        "budgets",
+        "protocols"
+      ],
+      "properties": {
+        "schema": {
+          "const": "janus.c038.capability.v1"
+        },
+        "canonicalizer": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "id",
+            "version",
+            "code_digest"
+          ],
+          "properties": {
+            "id": {
+              "type": "string",
+              "minLength": 1
+            },
+            "version": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "code_digest": {
+              "$ref": "#/$defs/sha256"
+            }
+          }
+        },
+        "portfolio": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "id",
+              "solver_digest",
+              "verifier_digest",
+              "policy_digest"
+            ],
+            "properties": {
+              "id": {
+                "type": "string",
+                "minLength": 1
+              },
+              "solver_digest": {
+                "$ref": "#/$defs/sha256"
+              },
+              "verifier_digest": {
+                "$ref": "#/$defs/sha256"
+              },
+              "policy_digest": {
+                "$ref": "#/$defs/sha256"
+              }
+            }
+          }
+        },
+        "budgets": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "total_work_units",
+            "certificate_bytes",
+            "payload_bytes"
+          ],
+          "properties": {
+            "total_work_units": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "certificate_bytes": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "payload_bytes": {
+              "type": "integer",
+              "minimum": 0
+            }
+          }
+        },
+        "protocols": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          },
+          "required": [
+            "negotiation",
+            "open_core"
+          ]
+        }
+      }
+    },
+    "openTrace": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema",
+        "core_digest",
+        "capability_digest",
+        "detectors",
+        "terminal"
+      ],
+      "properties": {
+        "schema": {
+          "const": "janus.c038.open-trace.v1"
+        },
+        "core_digest": {
+          "$ref": "#/$defs/sha256"
+        },
+        "capability_digest": {
+          "$ref": "#/$defs/sha256"
+        },
+        "detectors": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "id",
+              "terminal",
+              "proof_digest"
+            ],
+            "properties": {
+              "id": {
+                "type": "string",
+                "minLength": 1
+              },
+              "terminal": {
+                "type": "string",
+                "pattern": "^OPEN_"
+              },
+              "proof_digest": {
+                "$ref": "#/$defs/sha256"
+              }
+            }
+          }
+        },
+        "terminal": {
+          "const": "OPEN_PORTFOLIO_EXHAUSTED"
+        }
+      }
+    }
+  }
+}
