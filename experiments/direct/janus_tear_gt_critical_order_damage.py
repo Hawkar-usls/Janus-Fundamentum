@@ -1,13 +1,14 @@
 #!/usr/bin/env python3
 """Measure root local-resolvent damage to critical total orders of GT_n.
 
-A permutation of the n vertices defines a total order assignment.  It satisfies
+A permutation of the n vertices defines a total order assignment. It satisfies
 all transitivity clauses and all non-minimality clauses except the clause for its
-minimum vertex.  These n! assignments are called critical orders here.
+minimum vertex. These n! assignments are called critical orders here.
 
 For every resolvent accepted by Policy-0A's root one-pass local Resolution rule,
-we count the critical orders that falsify it.  This tests a candidate witness
-measure for transferring the historical Formula-Caching lower bound.
+we count the critical orders that falsify it. We also measure the union damage of
+the complete pass, overlaps between positive-damage clauses, and damage inside
+each minimum class.
 
 The audit does not claim that critical-order counting is the historical proof
 invariant or that root damage controls all residual states.
@@ -16,7 +17,7 @@ invariant or that root damage controls all residual states.
 from __future__ import annotations
 
 from collections import Counter
-from itertools import permutations
+from itertools import combinations, permutations
 from math import factorial
 
 from janus_tear_policy0a_graph_tautology_probe import graph_tautology_cnf
@@ -88,6 +89,7 @@ def self_test() -> None:
         pairs = pair_variables(n)
         assert len(pairs) == variable_count
 
+        orders: list[tuple[int, ...]] = []
         assignments = []
         minimum_histogram: Counter[int] = Counter()
         for order in permutations(range(n)):
@@ -96,39 +98,60 @@ def self_test() -> None:
             assert len(failed) == 1
             minimum = order[0]
             minimum_histogram[minimum] += 1
+            orders.append(order)
             assignments.append(assignment)
         assert len(assignments) == factorial(n)
         assert set(minimum_histogram.values()) == {factorial(n - 1)}
 
         _, attempts, events = root_events(cnf)
         damage_values = []
+        damage_sets: list[set[int]] = []
+        positive_damage_sets: list[set[int]] = []
         support_histogram: Counter[int] = Counter()
         damage_histogram: Counter[int] = Counter()
         maximum_damage = 0
-        maximum_fraction_numerator = 0
         maximum_clause: Clause | None = None
         maximum_support = 0
 
         for event in events:
             clause = tuple(event["resolvent"])
-            damage = sum(
-                not clause_satisfied(clause, assignment)
-                for assignment in assignments
-            )
+            damaged = {
+                index
+                for index, assignment in enumerate(assignments)
+                if not clause_satisfied(clause, assignment)
+            }
+            damage = len(damaged)
             support = vertex_support(clause, pairs)
             damage_values.append(damage)
+            damage_sets.append(damaged)
+            if damaged:
+                positive_damage_sets.append(damaged)
             support_histogram[support] += 1
             damage_histogram[damage] += 1
             aggregate_damage_by_support.setdefault(support, []).append(damage)
             if damage > maximum_damage:
                 maximum_damage = damage
-                maximum_fraction_numerator = damage
                 maximum_clause = clause
                 maximum_support = support
 
         assert damage_values
         critical_count = factorial(n)
         initial_minimum_clause_damage = factorial(n - 1)
+        union_damage_set = set().union(*damage_sets)
+        union_damage = len(union_damage_set)
+        surviving_orders = critical_count - union_damage
+        union_by_minimum = Counter(orders[index][0] for index in union_damage_set)
+        survivor_by_minimum = tuple(
+            factorial(n - 1) - union_by_minimum[vertex]
+            for vertex in range(n)
+        )
+        maximum_pair_overlap = max(
+            (len(left & right) for left, right in combinations(positive_damage_sets, 2)),
+            default=0,
+        )
+        total_positive_damage = sum(map(len, positive_damage_sets))
+        overlap_excess = total_positive_damage - union_damage
+
         rows.append(
             (
                 n,
@@ -136,6 +159,8 @@ def self_test() -> None:
                 len(events),
                 attempts,
                 maximum_damage,
+                union_damage,
+                surviving_orders,
                 maximum_support,
                 maximum_clause,
                 initial_minimum_clause_damage,
@@ -146,12 +171,17 @@ def self_test() -> None:
         print(f"  critical_orders = {critical_count}")
         print(f"  root_resolution_attempts = {attempts}")
         print(f"  accepted_root_resolvents = {len(events)}")
+        print(f"  positive_damage_resolvents = {len(positive_damage_sets)}")
         print(f"  initial_minimum_clause_damage = {initial_minimum_clause_damage}")
         print(f"  maximum_resolvent_damage = {maximum_damage}")
-        print(
-            "  maximum_damage_fraction = "
-            f"{maximum_fraction_numerator}/{critical_count}"
-        )
+        print(f"  maximum_damage_fraction = {maximum_damage}/{critical_count}")
+        print(f"  complete_pass_union_damage = {union_damage}")
+        print(f"  complete_pass_union_fraction = {union_damage}/{critical_count}")
+        print(f"  surviving_critical_orders = {surviving_orders}")
+        print(f"  survivors_by_minimum = {survivor_by_minimum}")
+        print(f"  total_positive_damage_with_multiplicity = {total_positive_damage}")
+        print(f"  overlap_excess = {overlap_excess}")
+        print(f"  maximum_pair_overlap = {maximum_pair_overlap}")
         print(f"  maximum_damage_support = {maximum_support}")
         print(f"  maximum_damage_clause = {maximum_clause}")
         print(f"  support_histogram = {tuple(sorted(support_histogram.items()))}")
