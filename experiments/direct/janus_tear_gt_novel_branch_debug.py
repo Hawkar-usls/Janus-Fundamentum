@@ -3,35 +3,62 @@
 
 from __future__ import annotations
 
+import json
 import traceback
 
 from janus_tear_gt_novel_branch_audit import audit
 
 
 def self_test() -> None:
-    failures = []
+    records = []
+    failed = False
     for n in range(4, 9):
         try:
             data = audit(n)
-            print(
-                f"NOVEL_DEBUG n={n} PASS calls={data['calls']} "
-                f"max_novelty={data['maximum_novelty']} "
-                f"target={data['target_level']} "
-                f"distinct={data['first_target_distinct_restrictions']}"
-            )
+            record = {
+                "n": n,
+                "status": "PASS",
+                "calls": data["calls"],
+                "states": data["states"],
+                "maximum_novelty": data["maximum_novelty"],
+                "target_level": data["target_level"],
+                "first_target_distinct_restrictions": data[
+                    "first_target_distinct_restrictions"
+                ],
+            }
+            records.append(record)
+            print("NOVEL_DEBUG_JSON=" + json.dumps(record, sort_keys=True))
         except Exception as error:  # diagnostic artifact intentionally broad
-            text = "".join(
-                traceback.format_exception(type(error), error, error.__traceback__)
-            )
-            tail = " | ".join(line.strip() for line in text.splitlines()[-8:])
-            failures.append((n, type(error).__name__, str(error), tail))
-            print(f"NOVEL_DEBUG n={n} FAILURE type={type(error).__name__}")
-            print(f"NOVEL_DEBUG message={error!r}")
-            print(f"NOVEL_DEBUG traceback_tail={tail}")
+            frames = traceback.extract_tb(error.__traceback__)
+            last = frames[-1] if frames else None
+            record = {
+                "n": n,
+                "status": "FAILURE",
+                "exception_type": type(error).__name__,
+                "message": str(error),
+                "file": last.filename if last else None,
+                "line": last.lineno if last else None,
+                "function": last.name if last else None,
+                "source": last.line if last else None,
+                "traceback": [
+                    {
+                        "file": frame.filename,
+                        "line": frame.lineno,
+                        "function": frame.name,
+                        "source": frame.line,
+                    }
+                    for frame in frames
+                ],
+            }
+            records.append(record)
+            print("NOVEL_DEBUG_JSON=" + json.dumps(record, sort_keys=True))
+            failed = True
             break
 
-    print(f"NOVEL_DEBUG failures={failures}")
+    print("NOVEL_DEBUG_SUMMARY=" + json.dumps(records, sort_keys=True))
     print("claim_boundary = diagnostic wrapper; a failure is data, not a theorem")
+    if failed:
+        raise SystemExit(1)
 
 
 if __name__ == "__main__":
