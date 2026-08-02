@@ -7,7 +7,7 @@ funnels at their exact weakest points.
 
 - four descendants: `H121-H124`;
 - twenty-eight attacks: `A447-A474`;
-- twelve inherited routes re-attacked;
+- eleven inherited routes re-attacked;
 - one terminal result: `H116`;
 - two new executable audits;
 - three primary references added.
