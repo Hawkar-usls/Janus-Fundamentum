@@ -1,0 +1,38 @@
+name: C021 Overlap Feedback Barrier
+
+on:
+  push:
+    paths:
+      - "experiments/direct/janus_overlap_feedback_barrier.py"
+      - "experiments/direct/janus_overlap_feedback_unsat_balance.py"
+      - "proposals/C021-JANUS-OVERLAP-FEEDBACK-BARRIER.json"
+      - "docs/C021_JANUS_OVERLAP_FEEDBACK_BARRIER.md"
+      - ".github/workflows/c021-overlap-feedback.yml"
+  pull_request:
+    paths:
+      - "experiments/direct/janus_overlap_feedback_barrier.py"
+      - "experiments/direct/janus_overlap_feedback_unsat_balance.py"
+      - "proposals/C021-JANUS-OVERLAP-FEEDBACK-BARRIER.json"
+      - "docs/C021_JANUS_OVERLAP_FEEDBACK_BARRIER.md"
+      - ".github/workflows/c021-overlap-feedback.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  overlap-feedback:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Run C021 overlap and feedback barrier
+        run: python experiments/direct/janus_overlap_feedback_barrier.py --self-test
+
+      - name: Run balanced SAT UNSAT feedback companion
+        run: python experiments/direct/janus_overlap_feedback_unsat_balance.py --self-test
