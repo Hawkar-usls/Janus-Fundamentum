@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Validate machine-readable hypothesis inheritance introduced by C007."""
+"""Validate JANUS inheritance and append-only reverse lineage."""
 
 from __future__ import annotations
 
@@ -10,7 +10,6 @@ from typing import Any
 
 ROOT = Path(__file__).resolve().parents[1]
 REGISTRY = ROOT / "registry"
-INHERITANCE_FROM = 60
 
 
 class LineageError(RuntimeError):
@@ -46,6 +45,15 @@ def number(hid: str) -> int:
 
 def main() -> int:
     try:
+        schema = load(REGISTRY / "schema.json")
+        inheritance_from = int(
+            schema.get("inheritance_requirement_from_hypothesis_number", 10**9)
+        )
+        reverse_from = int(
+            schema.get("reverse_lineage_requirement_from_hypothesis_number", 10**9)
+        )
+        reverse_file = schema.get("reverse_lineage_file")
+
         hypotheses = collect("hypotheses*.json", "hypotheses")
         genealogy = collect("genealogy*.json", "nodes")
 
@@ -58,8 +66,9 @@ def main() -> int:
             raise LineageError("duplicate genealogy node id")
 
         checked = 0
+        reverse_checked = 0
         for hid, item in hypothesis_by_id.items():
-            if number(hid) < INHERITANCE_FROM:
+            if number(hid) < inheritance_from:
                 continue
             checked += 1
 
@@ -87,7 +96,57 @@ def main() -> int:
                     f"do not match derived_from {parents!r}"
                 )
             if node.get("relation") != delta:
-                raise LineageError(f"{hid} genealogy relation differs from delta_from_parents")
+                raise LineageError(
+                    f"{hid} genealogy relation differs from delta_from_parents"
+                )
+
+        if reverse_from < 10**9:
+            if not isinstance(reverse_file, str) or not reverse_file:
+                raise LineageError("schema requires reverse lineage but names no file")
+            reverse_payload = load(REGISTRY / reverse_file)
+            reverse_map = reverse_payload.get("children_by_parent")
+            if not isinstance(reverse_map, dict):
+                raise LineageError(f"{reverse_file} lacks children_by_parent object")
+
+            normalized: dict[str, list[str]] = {}
+            for parent, children in reverse_map.items():
+                if parent not in hypothesis_by_id:
+                    raise LineageError(f"reverse lineage has unknown parent {parent}")
+                if not isinstance(children, list) or not children:
+                    raise LineageError(
+                        f"reverse lineage parent {parent} has no child list"
+                    )
+                if len(set(children)) != len(children):
+                    raise LineageError(
+                        f"reverse lineage parent {parent} repeats a child"
+                    )
+                for child in children:
+                    if child not in hypothesis_by_id:
+                        raise LineageError(
+                            f"reverse lineage {parent} references unknown child {child}"
+                        )
+                    if number(child) < reverse_from:
+                        raise LineageError(
+                            f"reverse lineage file may not rewrite historical child {child}"
+                        )
+                normalized[parent] = children
+
+            for child, item in hypothesis_by_id.items():
+                if number(child) < reverse_from:
+                    continue
+                reverse_checked += 1
+                for parent in item["derived_from"]:
+                    if child not in normalized.get(parent, []):
+                        raise LineageError(
+                            f"reverse lineage missing edge {parent} -> {child}"
+                        )
+
+            for parent, children in normalized.items():
+                for child in children:
+                    if parent not in hypothesis_by_id[child].get("derived_from", []):
+                        raise LineageError(
+                            f"reverse lineage has extra edge {parent} -> {child}"
+                        )
 
     except LineageError as exc:
         print(f"JANUS_LINEAGE_VALIDATION = FAIL\nERROR = {exc}", file=sys.stderr)
@@ -95,6 +154,7 @@ def main() -> int:
 
     print("JANUS_LINEAGE_VALIDATION = PASS")
     print(f"INHERITED_HYPOTHESES = {checked}")
+    print(f"REVERSE_INDEXED_HYPOTHESES = {reverse_checked}")
     return 0
 
 

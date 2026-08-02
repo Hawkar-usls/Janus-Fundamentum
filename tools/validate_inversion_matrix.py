@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
-"""Validate the latest JANUS inversion matrix and inherited-hypothesis ratio."""
+"""Validate the schema-selected cumulative JANUS inversion matrix."""
 
 from __future__ import annotations
 
 import json
 import re
 import sys
+from fractions import Fraction
 from pathlib import Path
 from typing import Any
 
@@ -31,15 +32,14 @@ def load(path: Path) -> Any:
 
 def load_all(pattern: str, key: str) -> list[dict[str, Any]]:
     items: list[dict[str, Any]] = []
-    paths = sorted(REGISTRY.glob(pattern))
-    if not paths:
-        raise MatrixError(f"no files match {pattern}")
-    for path in paths:
+    for path in sorted(REGISTRY.glob(pattern)):
         payload = load(path)
         value = payload.get(key)
         if not isinstance(value, list):
             raise MatrixError(f"{path.relative_to(ROOT)} lacks list field {key}")
         items.extend(value)
+    if not items:
+        raise MatrixError(f"no items loaded from {pattern}")
     return items
 
 
@@ -50,49 +50,101 @@ def hnum(hid: str) -> int:
     return int(match.group(1))
 
 
+def resolve_matrix(name: str, active: set[str] | None = None) -> dict[str, Any]:
+    active = set() if active is None else set(active)
+    if name in active:
+        raise MatrixError(f"matrix inheritance cycle at {name}")
+    active.add(name)
+
+    payload = load(REGISTRY / name)
+    base_name = payload.get("base_matrix")
+    if base_name:
+        base = resolve_matrix(base_name, active)
+        hypotheses = base["hypotheses"] + payload.get("hypotheses_added", [])
+        tests = base["tests"] + payload.get("tests_added", [])
+        overrides = base["overrides"] + payload.get("overrides_added", [])
+        default_status = payload.get(
+            "default_cell_status", base["default_cell_status"]
+        )
+    else:
+        hypotheses = payload.get("hypotheses", [])
+        tests = payload.get("tests", [])
+        overrides = payload.get("overrides", [])
+        default_status = payload.get("default_cell_status")
+
+    return {
+        "payload": payload,
+        "hypotheses": hypotheses,
+        "tests": tests,
+        "overrides": overrides,
+        "default_cell_status": default_status,
+    }
+
+
 def main() -> int:
     try:
-        matrix = load(REGISTRY / "inversion-matrix-c009.json")
+        schema = load(REGISTRY / "schema.json")
+        policy = schema.get("inversion_matrix_policy")
+        if not isinstance(policy, dict):
+            raise MatrixError("schema lacks inversion_matrix_policy")
+        current_file = policy.get("current_file")
+        if not isinstance(current_file, str):
+            raise MatrixError("matrix policy lacks current_file")
+
+        resolved = resolve_matrix(current_file)
+        matrix = resolved["payload"]
+        selected_h = resolved["hypotheses"]
+        selected_t = resolved["tests"]
+        overrides = resolved["overrides"]
+        default_status = resolved["default_cell_status"]
+
         hypotheses = load_all("hypotheses*.json", "hypotheses")
         graveyard = load_all("graveyard*.json", "entries")
-        test_entries = load_all("inversion-tests*.json", "tests")
-
-        known_h = {item["id"] for item in hypotheses} | {item["id"] for item in graveyard}
-        test_ids = [item.get("id") for item in test_entries]
-        if len(test_ids) != len(set(test_ids)):
-            raise MatrixError("duplicate inversion test id")
-        allowed = {
-            "UNRUN", "NOT_APPLICABLE", "ACTIVE", "SURVIVED",
-            "WEAKENED", "DESTROYED", "BLOCKED"
+        known_h = {item["id"] for item in hypotheses} | {
+            item["id"] for item in graveyard
         }
-        selected_h = matrix.get("hypotheses", [])
-        selected_t = matrix.get("tests", [])
-        overrides = matrix.get("overrides", [])
-        default_status = matrix.get("default_cell_status")
 
-        if len(selected_h) != 30 or len(set(selected_h)) != 30:
-            raise MatrixError("matrix must contain exactly 30 unique hypotheses")
-        if len(selected_t) != 30 or len(set(selected_t)) != 30:
-            raise MatrixError("matrix must contain exactly 30 unique tests")
+        test_entries = load_all("inversion-tests*.json", "tests")
+        test_ids = [item["id"] for item in test_entries]
+        if len(set(test_ids)) != len(test_ids):
+            raise MatrixError("duplicate inversion-test id")
+
+        allowed = set(schema.get("allowed_inversion_cell_statuses", []))
+        expected_h_count = int(policy["hypothesis_count"])
+        expected_t_count = int(policy["test_count"])
+        cycle_from = int(policy["cycle_first_hypothesis_number"])
+        expected_new = set(policy["cycle_hypothesis_ids"])
+        minimum_fraction = Fraction(policy["minimum_inherited_fraction"])
+
+        if len(selected_h) != expected_h_count or len(set(selected_h)) != expected_h_count:
+            raise MatrixError(
+                f"matrix must contain exactly {expected_h_count} unique hypotheses"
+            )
+        if len(selected_t) != expected_t_count or len(set(selected_t)) != expected_t_count:
+            raise MatrixError(
+                f"matrix must contain exactly {expected_t_count} unique tests"
+            )
         if selected_t != test_ids:
-            raise MatrixError("matrix test order must match modular inversion test ledgers")
+            raise MatrixError(
+                "cumulative matrix test order must match inversion-tests files"
+            )
         if default_status not in allowed:
             raise MatrixError(f"invalid default cell status: {default_status}")
-        missing = sorted(hid for hid in selected_h if hid not in known_h)
-        if missing:
+        if any(hid not in known_h for hid in selected_h):
+            missing = sorted(hid for hid in selected_h if hid not in known_h)
             raise MatrixError(f"unknown matrix hypotheses: {missing}")
 
-        inherited = [hid for hid in selected_h if hnum(hid) < 75]
-        new = [hid for hid in selected_h if hnum(hid) >= 75]
-        if len(inherited) < 21:
+        inherited = [hid for hid in selected_h if hnum(hid) < cycle_from]
+        new = [hid for hid in selected_h if hnum(hid) >= cycle_from]
+        if Fraction(len(inherited), len(selected_h)) < minimum_fraction:
             raise MatrixError(
-                f"existing-hypothesis reuse too low: {len(inherited)}/30; minimum is 21"
+                f"existing-hypothesis reuse too low: {len(inherited)}/"
+                f"{len(selected_h)}; minimum is {minimum_fraction}"
             )
-        expected_new = {f"H{i:03d}" for i in range(75, 84)}
         if set(new) != expected_new:
-            raise MatrixError(f"unexpected C009 descendants: {sorted(new)}")
-        if "H074" in selected_h:
-            raise MatrixError("rejected H074 must not remain in the active matrix")
+            raise MatrixError(
+                f"unexpected cycle descendants in matrix: {sorted(new)}"
+            )
 
         expected_pairs = {(hid, tid) for hid in selected_h for tid in selected_t}
         seen: set[tuple[str, str]] = set()
@@ -105,23 +157,35 @@ def main() -> int:
                 raise MatrixError(f"out-of-matrix override: {pair}")
             status = cell.get("status")
             if status not in allowed or status == default_status:
-                raise MatrixError(f"invalid or redundant status {status!r} for {pair}")
+                raise MatrixError(
+                    f"invalid or redundant status {status!r} for {pair}"
+                )
             note = cell.get("note")
             if not isinstance(note, str) or not note.strip():
                 raise MatrixError(f"override {pair} must explain its status")
 
-        dims = matrix.get("current_dimensions", {})
-        expected_dims = {"hypotheses": 30, "inversion_tests": 30, "logical_cells": 900}
-        if dims != expected_dims:
-            raise MatrixError(f"incorrect current_dimensions: {dims}")
+        dimensions = matrix.get("current_dimensions")
+        expected_dimensions = {
+            "hypotheses": expected_h_count,
+            "inversion_tests": expected_t_count,
+            "logical_cells": expected_h_count * expected_t_count,
+        }
+        if dimensions != expected_dimensions:
+            raise MatrixError(
+                f"incorrect current_dimensions: {dimensions}; "
+                f"expected {expected_dimensions}"
+            )
 
     except MatrixError as exc:
-        print(f"JANUS_INVERSION_MATRIX_VALIDATION = FAIL\nERROR = {exc}", file=sys.stderr)
+        print(
+            f"JANUS_INVERSION_MATRIX_VALIDATION = FAIL\nERROR = {exc}",
+            file=sys.stderr,
+        )
         return 1
 
     print("JANUS_INVERSION_MATRIX_VALIDATION = PASS")
     print(f"INHERITED_HYPOTHESES = {len(inherited)}")
-    print(f"C009_DESCENDANTS = {len(new)}")
+    print(f"CYCLE_DESCENDANTS = {len(new)}")
     print(f"INVERSION_TESTS = {len(selected_t)}")
     print(f"LOGICAL_MATRIX_CELLS = {len(expected_pairs)}")
     print(f"NON_DEFAULT_CELLS = {len(overrides)}")

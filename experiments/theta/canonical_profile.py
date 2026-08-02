@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
-"""Build a finite canonical theta-profile interface for JANUS C009.
+"""Build a finite answer-independent theta-profile interface for JANUS.
 
-This tool does not solve an SDP. It freezes the exact observable interface used
-by H078 so that future solvers cannot add answer-dependent "statistics".
+This tool does not solve an SDP. It freezes the encoding, exact small-instance
+variable canonicalization, monomial coordinates, objectives, and certificate
+fields used by H078 and H087. Exact-alpha diagnostics live in diagnostics.py.
 """
 
 from __future__ import annotations
@@ -11,75 +12,185 @@ import argparse
 import hashlib
 import itertools
 import json
+import math
 from pathlib import Path
 
-from conflict_graph import build_graph, exact_alpha, parse_dimacs
+from conflict_graph import DimacsCNF, build_graph, parse_dimacs
 
 
-def normalize_clauses(clauses: list[list[int]]) -> list[list[int]]:
-    def lit_key(lit: int) -> tuple[int, int]:
-        return (abs(lit), 0 if lit > 0 else 1)
-
-    normalized = [sorted(dict.fromkeys(clause), key=lit_key) for clause in clauses]
-    normalized.sort(key=lambda clause: (len(clause), tuple(clause)))
-    return normalized
+MAX_EXACT_CANONICAL_VARIABLES = 8
+MAX_EMITTED_MONOMIALS = 100_000
 
 
-def monomial_basis(vertex_count: int, max_degree: int) -> list[list[int]]:
+def literal_key(literal: int) -> tuple[int, int]:
+    return (abs(literal), 0 if literal > 0 else 1)
+
+
+def normalized_tuple(
+    clauses: tuple[tuple[int, ...], ...], mapping: dict[int, int]
+) -> tuple[tuple[int, ...], ...]:
+    mapped = []
+    for clause in clauses:
+        transformed = [
+            mapping[abs(literal)] if literal > 0 else -mapping[abs(literal)]
+            for literal in clause
+        ]
+        mapped.append(tuple(sorted(transformed, key=literal_key)))
+    return tuple(sorted(mapped, key=lambda clause: (len(clause), clause)))
+
+
+def exact_variable_canonicalization(
+    cnf: DimacsCNF, max_variables: int = MAX_EXACT_CANONICAL_VARIABLES
+) -> tuple[tuple[int, ...], ...]:
+    used = sorted({abs(literal) for clause in cnf.clauses for literal in clause})
+    if len(used) > max_variables:
+        raise ValueError(
+            "exact variable canonicalization supports at most "
+            f"{max_variables} used variables; got {len(used)}. "
+            "Provide a separately verified canonical-label artifact instead "
+            "of treating a heuristic relabeling as canonical."
+        )
+    if not used:
+        return tuple(sorted(cnf.clauses, key=lambda clause: (len(clause), clause)))
+
+    best: tuple[tuple[int, ...], ...] | None = None
+    labels = range(1, len(used) + 1)
+    for permutation in itertools.permutations(labels):
+        mapping = dict(zip(used, permutation, strict=True))
+        candidate = normalized_tuple(cnf.clauses, mapping)
+        if best is None or candidate < best:
+            best = candidate
+    assert best is not None
+    return best
+
+
+def monomial_count(variable_count: int, maximum_degree: int) -> int:
+    return sum(math.comb(variable_count, degree) for degree in range(maximum_degree + 1))
+
+
+def monomial_basis(
+    variable_count: int,
+    maximum_degree: int,
+    maximum_terms: int = MAX_EMITTED_MONOMIALS,
+) -> list[list[int]]:
+    count = monomial_count(variable_count, maximum_degree)
+    if count > maximum_terms:
+        raise ValueError(
+            f"monomial basis would contain {count} terms; limit is {maximum_terms}"
+        )
     basis: list[list[int]] = [[]]
-    for degree in range(1, max_degree + 1):
-        basis.extend([list(term) for term in itertools.combinations(range(vertex_count), degree)])
+    for degree in range(1, maximum_degree + 1):
+        basis.extend(
+            [list(term) for term in itertools.combinations(range(variable_count), degree)]
+        )
     return basis
 
 
-def canonical_profile(clauses: list[list[int]], level: int, include_exact_alpha: bool = False) -> dict:
+def canonical_profile(cnf: DimacsCNF, level: int) -> dict:
     if level < 1:
         raise ValueError("level must be at least one")
-    normalized = normalize_clauses(clauses)
-    graph = build_graph(normalized)
+
+    canonical_clauses = exact_variable_canonicalization(cnf)
+    used_variable_count = len(
+        {abs(literal) for clause in canonical_clauses for literal in clause}
+    )
+    canonical_cnf = DimacsCNF(
+        variable_count=used_variable_count,
+        clauses=canonical_clauses,
+    )
+    graph = build_graph(canonical_cnf)
     adjacency_payload = json.dumps(
-        {"vertices": graph["vertices"], "edges": graph["edges"]},
+        {
+            "vertices": graph["vertices"],
+            "edges": graph["edges"],
+        },
         sort_keys=True,
         separators=(",", ":"),
     ).encode("utf-8")
-    profile = {
-        "schema": "JANUS_THETA_PROFILE_V1",
+
+    return {
+        "schema": "JANUS_THETA_PROFILE_V2",
         "encoding": "clause_literal_conflict_graph",
+        "canonicalization": {
+            "method": "exhaustive_variable_permutation",
+            "maximum_supported_used_variables": MAX_EXACT_CANONICAL_VARIABLES,
+            "answer_independent": True,
+        },
         "level": level,
         "maximum_monomial_degree": 2 * level,
-        "normalized_clauses": normalized,
+        "declared_variable_count": cnf.variable_count,
+        "used_variable_count": used_variable_count,
+        "canonical_clauses": [list(clause) for clause in canonical_clauses],
         "clause_count": graph["clause_count"],
         "vertex_count": len(graph["vertices"]),
         "edge_count": len(graph["edges"]),
         "graph_sha256": hashlib.sha256(adjacency_payload).hexdigest(),
         "monomial_basis": monomial_basis(len(graph["vertices"]), 2 * level),
-        "registered_objectives": ["independent_set_target", "lovasz_theta_primal_value"],
+        "registered_objectives": [
+            "independent_set_target",
+            "lovasz_theta_primal_value",
+        ],
         "registered_dual_statistics": [
             "dual_objective_value",
             "minimum_reported_psd_slack",
             "rational_certificate_bit_length",
         ],
+        "forbidden_answer_dependent_fields": [
+            "exact_alpha",
+            "satisfiable",
+            "satisfiable_by_reduction",
+            "sat_label",
+        ],
         "claim_boundary": (
-            "This file defines coordinates and permitted observables only. "
-            "It contains no theta value unless a separate solver artifact supplies one."
+            "This profile defines answer-independent coordinates and permitted "
+            "observables only. It contains no theta value unless a separate "
+            "solver artifact supplies one, and it never contains exact alpha."
         ),
     }
-    if include_exact_alpha:
-        profile["exact_alpha"] = exact_alpha(graph)
-        profile["satisfiable_by_exact_reduction"] = profile["exact_alpha"] == graph["clause_count"]
-    return profile
 
 
 def self_test() -> None:
-    sat = canonical_profile([[1], [-1, 2]], level=1, include_exact_alpha=True)
-    unsat = canonical_profile([[1], [-1]], level=1, include_exact_alpha=True)
-    assert sat["satisfiable_by_exact_reduction"] is True
-    assert unsat["satisfiable_by_exact_reduction"] is False
-    assert sat["schema"] == "JANUS_THETA_PROFILE_V1"
-    assert sat["monomial_basis"][0] == []
-    assert sat["graph_sha256"] != unsat["graph_sha256"]
-    reordered = canonical_profile([[-1, 2], [1]], level=1, include_exact_alpha=True)
-    assert reordered["graph_sha256"] == sat["graph_sha256"]
+    first = DimacsCNF(
+        variable_count=3,
+        clauses=((1, -2), (2, 3)),
+    )
+    renamed = DimacsCNF(
+        variable_count=3,
+        clauses=((2, -3), (3, 1)),
+    )
+    reordered = DimacsCNF(
+        variable_count=3,
+        clauses=((2, 3), (-2, 1)),
+    )
+
+    first_profile = canonical_profile(first, level=1)
+    renamed_profile = canonical_profile(renamed, level=1)
+    reordered_profile = canonical_profile(reordered, level=1)
+
+    assert first_profile["canonical_clauses"] == renamed_profile["canonical_clauses"]
+    assert first_profile["graph_sha256"] == renamed_profile["graph_sha256"]
+    assert first_profile["graph_sha256"] == reordered_profile["graph_sha256"]
+    assert first_profile["monomial_basis"][0] == []
+    assert "exact_alpha" not in first_profile
+    assert first_profile["canonicalization"]["answer_independent"] is True
+
+    empty = DimacsCNF(variable_count=1, clauses=((),))
+    empty_profile = canonical_profile(empty, level=1)
+    assert empty_profile["canonical_clauses"] == [[]]
+    assert empty_profile["clause_count"] == 1
+    assert empty_profile["vertex_count"] == 0
+
+    too_large = DimacsCNF(
+        variable_count=9,
+        clauses=tuple((index,) for index in range(1, 10)),
+    )
+    try:
+        canonical_profile(too_large, level=1)
+    except ValueError as exc:
+        assert "at most 8" in str(exc)
+    else:
+        raise AssertionError("unsupported large exact canonicalization was accepted")
+
     print("JANUS_THETA_PROFILE_SELF_TEST = PASS")
 
 
@@ -87,7 +198,6 @@ def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("cnf", nargs="?", type=Path)
     parser.add_argument("--level", type=int, default=1)
-    parser.add_argument("--exact-alpha", action="store_true")
     parser.add_argument("--output", type=Path)
     parser.add_argument("--self-test", action="store_true")
     args = parser.parse_args()
@@ -98,7 +208,7 @@ def main() -> int:
     if args.cnf is None:
         parser.error("cnf is required unless --self-test is used")
 
-    profile = canonical_profile(parse_dimacs(args.cnf), args.level, args.exact_alpha)
+    profile = canonical_profile(parse_dimacs(args.cnf), args.level)
     encoded = json.dumps(profile, ensure_ascii=False, indent=2) + "\n"
     if args.output:
         args.output.write_text(encoded, encoding="utf-8")
