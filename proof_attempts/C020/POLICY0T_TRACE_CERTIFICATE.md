@@ -1,25 +1,27 @@
-# C020 proof attempt — Policy-0T transition trace certificate
+# C020 proof attempt — Policy-0T trace and finite root certificate
 
 ## Status
 
-`FINITE VERIFIED TRACE / GLOBAL RESOLUTION CERTIFICATE NOT YET EMITTED`
+`FINITE VERIFIED TRACE + FINITE VERIFIED ROOT RESOLUTION PROOF / GENERAL TRANSLATION OPEN`
 
 ## Purpose
 
 H130 needs a certified bridge from one concrete no-cache SAT policy to a proof
-system. The first layer is to prove that the recorded execution is not an
-informal solver log: every local inference and recursive transition must be
-replayable independently.
+system. The first layer proves that the recorded execution is not an informal
+solver log: every local inference and recursive transition is replayable
+independently. The second layer verifies an ordinary Resolution refutation of
+the same root formula.
 
-The executable artifact is:
+Executable artifacts:
 
 ```bash
 python experiments/direct/janus_tear_policy0t_trace_certificate.py
+python experiments/direct/janus_tear_policy0t_root_resolution_certificate.py
 ```
 
 ## Fixture
 
-The trace uses the four-variable ten-clause UNSAT formula from the C020
+Both certificates use the four-variable ten-clause UNSAT formula from the C020
 unit-propagation collision. It has:
 
 ```text
@@ -28,12 +30,12 @@ visible affine root decision:   none
 SAT witnesses:                  0
 ```
 
-Thus the trace cannot terminate through the affine shortcut or initial unit
+Thus the policy cannot terminate through the affine shortcut or initial unit
 propagation.
 
 ## Certified transition fields
 
-For every search node the emitter records:
+For every search node the trace emitter records:
 
 - the exact canonical input CNF;
 - the pre-resolution unit batches and their unit-clause reasons;
@@ -48,7 +50,7 @@ For every search node the emitter records:
 The replay verifier independently recomputes each field from the parent CNF and
 rejects any mismatch.
 
-## Exact finite result
+## Exact transition result
 
 ```text
 root affine shortcut:   none
@@ -59,48 +61,84 @@ maximum branch depth:    1
 root answer:             UNSAT
 ```
 
-The self-test also checks that every recorded resolvent is the exact legal
-resolvent of two clauses indexed at the start of the corresponding Policy-0T
-local pass.
+Every recorded resolvent is checked as the exact legal resolvent of two clauses
+indexed at the start of the corresponding Policy-0T local pass.
+
+## Exact root Resolution result
+
+A separate certificate derives the empty clause directly from eight of the ten
+root axioms:
+
+```text
+used axiom lines:        8
+resolution lines:        7
+total proof lines:      15
+maximum width:           3
+proof depth:             3
+final clause:        EMPTY
+```
+
+Its independent verifier checks every axiom membership, parent index, pivot,
+resolvent, line depth, final empty clause, maximum width and proof depth.
+
+The proof has the following compact structure:
+
+```text
+(-1,-3,-4) and (-1,3,-4) -> (-1,-4)
+( 1,-2,-4) and ( 1,2,-4) -> ( 1,-4)
+(-1,-4)   and ( 1,-4)    -> (-4)
+
+(-1,-2,4) and ( 1,-2,4)  -> (-2,4)
+( 2,-3,4) and ( 2,3,4)   -> ( 2,4)
+(-2,4)    and ( 2,4)     -> (4)
+
+(-4) and (4) -> EMPTY
+```
 
 ## What this closes
 
-The artifact closes the finite execution-integrity layer:
+The two artifacts establish a finite end-to-end positive control:
 
 ```text
-recorded Policy-0T trace
--> independently replayed local inferences and branches
--> same UNSAT result
+recorded Policy-0T execution
+-> independently replayed transitions
+
+same root CNF
+-> independently verified Resolution refutation
+-> empty clause
 ```
 
-It prevents hidden changes to clauses, uncharged branch choices, fabricated
-unit reasons, or invalid local resolvents in the tested fixture.
+This prevents hidden changes to clauses, uncharged branch choices, fabricated
+unit reasons, invalid local resolvents, or an invalid final root proof in the
+fixture.
 
 ## What remains open
 
-The trace is **not** yet an ordinary Resolution refutation of the root formula.
-The missing layer must transform terminal restricted conflicts back into clauses
-over parent decisions and combine sibling branches by legal Resolution steps.
+The root proof was found and verified separately. The laboratory has **not yet
+proved that the emitted transition trace itself transforms mechanically into
+that proof**, or that the same construction works for every Policy-0T run.
 
-Required next objects:
+The missing general layer must:
 
-1. one conflict clause for every terminal node;
-2. reverse resolution through each recorded unit reason;
-3. explicit lifting of restricted learned clauses to the parent context;
-4. branch combination on the queried variable;
-5. one root empty clause;
-6. independently verified proof size and depth.
-
-Only after this layer is implemented can the laboratory test the general H130
-claims
+1. derive one conflict clause from every terminal restricted execution;
+2. reverse-resolve every unit reason;
+3. lift restricted learned clauses into the parent context;
+4. combine sibling conflicts on the queried variable;
+5. preserve DAG/tree accounting without hidden weakening;
+6. prove for every run that
 
 ```text
 proof size  O(W)
 proof depth O(N).
 ```
 
+Only this uniform translation permits the MAJ3 lifting theorem to yield the H130
+asymptotic Policy-0T lower bound.
+
 ## Claim boundary
 
-This finite trace does not prove the H130 simulation lemma, the MAJ3 asymptotic
-lower bound, `P != NP`, or `P = NP`. It supplies the first machine-checkable
-execution substrate on which those claims can be attacked.
+The finite trace and finite root proof do not prove the H130 simulation lemma,
+the MAJ3 asymptotic lower bound, `P != NP`, or `P = NP`. They show that both
+ends of the proposed bridge are independently valid on the first non-affine
+branching fixture; the uniform bridge between them remains the theorem under
+attack.
