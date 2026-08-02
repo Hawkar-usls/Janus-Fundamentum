@@ -13,7 +13,7 @@ This repository does **not** claim that `P = NP` or `P != NP` has been proved.
 3. New mathematics attacks the existing graph before expanding it.
 4. Pressure is not converted into a terminal result without a decisive theorem, counterexample, or formulation failure.
 5. Exact verification is not certificate existence or efficient discovery.
-6. Deterministic seeds may select finite artifacts only; exact verification must follow.
+6. Every direct-separation funnel states every implication needed to reach `P != NP` and identifies its first unproved theorem.
 
 ## Validate the organism
 
@@ -35,107 +35,87 @@ python experiments/theta/complete_3cnf_collision.py --self-test
 python experiments/theta/complete_3cnf_family.py --self-test
 python experiments/theta/seeded_arches.py --self-test
 python experiments/theta/seeded_ldl_stress.py --self-test
+python experiments/direct/sat_error_audit.py --self-test
+python experiments/direct/rewrite_chain_audit.py --self-test
+python experiments/direct/local_neighborhood_audit.py --self-test
 ```
 
-# Current status — C014
+# Current status — C015
 
-Seed: `9379992`.
+C015 compresses active priority into three funnels.
 
 ```text
-NEW DESCENDANTS             6   H104-H109
-CURRENT-CYCLE ATTACKS      40   A331-A370
-TERMINAL RESULTS            2   H100,H102
-LIVE HYPOTHESES            97
+NEW DESCENDANTS             6   H110-H115
+CURRENT-CYCLE ATTACKS      40   A371-A410
+INHERITED TARGETS          16
+TERMINAL RESULTS            0
+LIVE HYPOTHESES           103
 TERMINAL HISTORICAL NODES  12
 ```
 
-## Connected theta arches
-
-C013 produced an exact SAT/UNSAT first-theta collision and a disjoint-copy family. C014 connects consecutive copies with exact zero-entry bridge edges selected by seed `9379992`:
+## Funnel A — Extended Frege rewrite distance
 
 ```text
-SAT arch    (31,22)
-UNSAT arch  (22,13)
+H035
+  -> H110 computable Lipschitz rewrite potential
+  -> H111 transparent endpoint composition
+  -> superpolynomial rewrite distance
+  -> Extended Frege lower bound
+  -> NP != coNP
+  -> P != NP
 ```
 
-For `r` copies the primal remains
-
-```text
-(1/r) J_r tensor X
-```
-
-and every arch occupies an exact zero entry. The old dual remains feasible by assigning multiplier zero to each arch.
-
-Therefore both arched graphs are connected and have exact theta `8r`, while:
-
-```text
-SAT side     alpha = 8r
-UNSAT side   alpha <= 7r
-```
+A short Extended Frege proof is already known to induce a polynomial chain under a polynomial-time local circuit relation with at most seven new gates per step. The missing theorem is now explicit: find a polynomial-time potential with a polynomial one-step change bound and a superpolynomial endpoint gap on transparently equivalent circuits.
 
 ```bash
-python experiments/theta/seeded_arches.py --self-test
+python experiments/direct/rewrite_chain_audit.py --self-test
 ```
 
-Expected headline:
+The test checks only finite artifact semantics and cannot prove the asymptotic lower bound.
+
+## Funnel B — one-sided SAT anti-checkers
 
 ```text
-JANUS_SEEDED_ARCH_THETA_FAMILY = PASS
+H031/H056
+  -> H112 satisfiable false-negative anti-checkers
+  -> H113 range-avoidance decoder preserving a SAT witness
+  -> SAT not in P/poly
+  -> P != NP
 ```
 
-This is `H104`. The result is graph-level; CNF conflict-graph realizability of the added arches remains open.
+A false negative has a polynomially checkable satisfying assignment. A false positive needs an unsatisfiability certificate and adds an avoidable `coNP` obligation. C015 removes false positives from the target entirely.
 
-## H102 destroyed
+```bash
+python experiments/direct/sat_error_audit.py --self-test
+```
 
-H102's typed interface circuit required:
+The remaining wall is uniform construction: the anti-checker may not solve SAT or circuit correctness while generating its list.
 
-- explicit original-variable leaves;
-- disjoint support at every AND;
-- deterministic alternatives at every OR.
-
-That is a d-DNNF of the same size. Existing explicit exponential DNNF lower bounds therefore destroy the claimed universal polynomial compiler without a projection loophole.
-
-Read [`proof_attempts/H102/REFUTATION.md`](proof_attempts/H102/REFUTATION.md).
-
-## H100 rejected and replaced
-
-H100's decreasing potential and prohibition on a global acceptance channel were not syntactically defined. A local work-tape simulation with a decreasing clock remained admissible.
-
-`H106` replaces it by exactly `q` synchronous radius-`r` passes and radius-`qr` ancestry for every output symbol.
-
-## Certificate arches
-
-`H108` supplies a candidate polynomial bit bound for rational LDL certificates:
-
-- clear denominators;
-- use fraction-free symmetric elimination;
-- express entries as ratios of minors;
-- bound minor bit length by Hadamard's inequality.
-
-`H109` proves a conditional strict-dual rounding route: with PSD margin `delta`, objective gap `gamma`, and multiplier bound `2^B`, a sufficiently fine dyadic grid preserves half of both margins and yields polynomial-bit exact data.
-
-The remaining wall is whether H097's original assumptions imply a polynomial multiplier bound.
-
-## Attack-born descendants
+## Funnel C — fixed local compiler obstruction
 
 ```text
-H098/H099/H103 -> H104 connected theta arches
-H102/H016/H061 -> H105 exact d-DNNF transfer
-H100/H009/H027 -> H106 constant-pass local compiler
-H103/H088/H104 -> H107 pseudoexpectation transport
-H092/H089/H084 -> H108 LDL bit bound
-H097/H093/H108 -> H109 strict dual rounding
+H106/H107
+  -> H114 exact local SAT/UNSAT twins
+  -> H115 locality-to-treewidth transfer
+  -> no fixed constant-pass H106 compiler
 ```
 
-Read [`docs/C014_SEEDED_ARCHES.md`](docs/C014_SEEDED_ARCHES.md).
+H114 requires explicit opposite-label CNFs with identical rooted signed-neighborhood multisets through the complete ancestry radius. H115 must then control global output assembly, treewidth dynamic programming, and all recovery annotations.
 
-## Remaining walls
+```bash
+python experiments/direct/local_neighborhood_audit.py --self-test
+```
 
-1. CNF or CSP realization of the connected theta arches.
-2. Uniform pseudoexpectation transport through every H103 one-pass gadget.
-3. A restriction-robust mixed XOR/non-affine generator for H101.
-4. Locality lower bounds against H106.
-5. Deriving bounded dual multipliers from conditioning alone.
-6. The major full proof-system lower-bound and upper-bound duels.
+This funnel eliminates only a restricted proposed route to `P = NP`; it is not a general lower bound against polynomial-time algorithms.
+
+## Deprioritized, not rejected
+
+H032, H036-H039, and H057-H059 remain live but outside the shortest current funnels. They still face tautologicity, unrestricted extraction, model-definition, or indirectness barriers.
+
+Read [`docs/C015_DIRECT_SEPARATION_FUNNEL.md`](docs/C015_DIRECT_SEPARATION_FUNNEL.md).
+
+## Previous exact breakthrough retained
+
+C013-C014 produced an exact connected graph-level SAT/UNSAT collision for the standard first Lovasz-theta relaxation. It remains an unconditional limitation of that relaxation, not a solution of `P` versus `NP`.
 
 No JANUS result currently resolves `P` versus `NP`.
