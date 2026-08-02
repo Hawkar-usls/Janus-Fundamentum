@@ -1,10 +1,9 @@
 #!/usr/bin/env python3
 """Validate the JANUS machine-readable proof-search registry.
 
-All major ledgers are modular: hypotheses, attacks, references, observations,
-journals, genealogies, and graveyards are aggregated from matching JSON files.
-The validator checks syntax, IDs, cross-references, status rules, literature
-references, and a stable SHA-256 digest using only the Python standard library.
+All major ledgers are modular. Historical hypothesis snapshots are append-only:
+a later graveyard entry terminally shadows an earlier live record without deleting
+or rewriting the cycle in which it was proposed.
 """
 
 from __future__ import annotations
@@ -80,7 +79,7 @@ def canonical_digest(payloads: dict[str, Any]) -> str:
     return hashlib.sha256(canonical).hexdigest()
 
 
-def validate() -> str:
+def validate() -> tuple[str, int, int]:
     schema = load_json(SCHEMA_PATH)
 
     hypotheses, hypothesis_payloads = load_modular("hypotheses*.json", "hypotheses")
@@ -104,12 +103,18 @@ def validate() -> str:
     c_pattern = re.compile(schema["id_patterns"]["cycle"])
     r_pattern = re.compile(schema["id_patterns"]["reference"])
 
-    hypothesis_ids = unique_ids(hypotheses, "hypothesis")
+    raw_hypothesis_ids = unique_ids(hypotheses, "historical hypothesis")
     attack_ids = unique_ids(attacks, "attack")
     graveyard_ids = unique_ids(graveyard, "graveyard")
     unique_ids(observations, "observation")
     unique_ids(cycles, "cycle")
     reference_ids = unique_ids(references, "reference")
+
+    # A graveyard record terminally shadows an earlier historical hypothesis.
+    live_hypotheses = [item for item in hypotheses if item["id"] not in graveyard_ids]
+    live_hypothesis_ids = {item["id"] for item in live_hypotheses}
+    all_hypothesis_ids = raw_hypothesis_ids | graveyard_ids
+    terminal_shadows = raw_hypothesis_ids & graveyard_ids
 
     for item in hypotheses:
         hid = item["id"]
@@ -117,7 +122,7 @@ def validate() -> str:
         if not h_pattern.fullmatch(hid):
             raise RegistryError(f"invalid hypothesis id format: {hid}")
         if item["status"] not in live_statuses:
-            raise RegistryError(f"{hid} has non-live status: {item['status']}")
+            raise RegistryError(f"{hid} has invalid historical status: {item['status']}")
         if item["reproducibility"] not in reproduction_levels:
             raise RegistryError(f"{hid} has invalid reproducibility level")
         if item["status"] == "PROVED" and item["reproducibility"] != "R5":
@@ -131,7 +136,6 @@ def validate() -> str:
             if rid not in reference_ids:
                 raise RegistryError(f"{hid} references missing literature source {rid}")
 
-    all_hypothesis_ids = hypothesis_ids | graveyard_ids
     for item in attacks:
         aid = item["id"]
         require_fields(item, required_a, aid)
@@ -145,22 +149,30 @@ def validate() -> str:
             raise RegistryError(f"{aid}: decisive attack must have result DESTROYED")
 
     for item in graveyard:
+        gid = item["id"]
         status = item.get("terminal_status")
         if status not in terminal_statuses:
-            raise RegistryError(f"{item['id']} has invalid terminal status: {status}")
+            raise RegistryError(f"{gid} has invalid terminal status: {status}")
         if not item.get("reason"):
-            raise RegistryError(f"{item['id']} has no terminal reason")
+            raise RegistryError(f"{gid} has no terminal reason")
+        for aid in item.get("decisive_attacks", []):
+            if aid not in attack_ids:
+                raise RegistryError(f"{gid} references missing decisive attack {aid}")
+            attack = next(entry for entry in attacks if entry["id"] == aid)
+            if attack["hypothesis_id"] != gid or not attack["decisive"]:
+                raise RegistryError(f"{gid} has invalid decisive attack reference {aid}")
 
     for item in observations:
         if not o_pattern.fullmatch(item["id"]):
             raise RegistryError(f"invalid observation id format: {item['id']}")
 
+    # Cycles are historical snapshots, so an old survivor may now be terminal.
     for item in cycles:
         if not c_pattern.fullmatch(item["id"]):
             raise RegistryError(f"invalid cycle id format: {item['id']}")
         for hid in item.get("surviving_hypotheses", []):
-            if hid not in hypothesis_ids:
-                raise RegistryError(f"{item['id']} references missing survivor {hid}")
+            if hid not in all_hypothesis_ids:
+                raise RegistryError(f"{item['id']} references unknown historical survivor {hid}")
         for hid in item.get("destroyed_or_rejected", []):
             if hid not in graveyard_ids:
                 raise RegistryError(f"{item['id']} references missing graveyard entry {hid}")
@@ -176,25 +188,24 @@ def validate() -> str:
         if not isinstance(item["url"], str) or not item["url"].startswith("https://"):
             raise RegistryError(f"{rid} has invalid URL")
         for hid in item["supports"]:
-            if hid not in hypothesis_ids:
-                raise RegistryError(f"{rid} supports unknown live hypothesis {hid}")
+            if hid not in all_hypothesis_ids:
+                raise RegistryError(f"{rid} supports unknown hypothesis {hid}")
 
     genealogy_ids = unique_ids(genealogy, "genealogy node")
-    if genealogy_ids != hypothesis_ids:
-        missing = sorted(hypothesis_ids - genealogy_ids)
-        extra = sorted(genealogy_ids - hypothesis_ids)
-        raise RegistryError(f"genealogy mismatch; missing={missing}, extra={extra}")
+    active_genealogy_ids = genealogy_ids - graveyard_ids
+    if active_genealogy_ids != live_hypothesis_ids:
+        missing = sorted(live_hypothesis_ids - active_genealogy_ids)
+        extra = sorted(active_genealogy_ids - live_hypothesis_ids)
+        raise RegistryError(f"active genealogy mismatch; missing={missing}, extra={extra}")
     for node in genealogy:
+        if node["id"] not in all_hypothesis_ids:
+            raise RegistryError(f"genealogy has unknown node {node['id']}")
         for parent in node.get("parents", []):
             if parent not in all_hypothesis_ids:
                 raise RegistryError(f"{node['id']} has unknown parent {parent}")
         for child in node.get("children", []):
-            if child not in hypothesis_ids:
+            if child not in all_hypothesis_ids:
                 raise RegistryError(f"{node['id']} has unknown child {child}")
-
-    if hypothesis_ids & graveyard_ids:
-        overlap = sorted(hypothesis_ids & graveyard_ids)
-        raise RegistryError(f"live/graveyard id overlap: {overlap}")
 
     payloads = {
         "schema": schema,
@@ -206,17 +217,19 @@ def validate() -> str:
         "genealogy_files": genealogy_payloads,
         "reference_files": reference_payloads,
     }
-    return canonical_digest(payloads)
+    return canonical_digest(payloads), len(live_hypothesis_ids), len(terminal_shadows)
 
 
 def main() -> int:
     try:
-        digest = validate()
+        digest, live_count, terminal_shadow_count = validate()
     except RegistryError as exc:
         print(f"JANUS_REGISTRY_VALIDATION = FAIL\nERROR = {exc}", file=sys.stderr)
         return 1
 
     print("JANUS_REGISTRY_VALIDATION = PASS")
+    print(f"LIVE_HYPOTHESES = {live_count}")
+    print(f"TERMINAL_SHADOWS = {terminal_shadow_count}")
     print(f"CANONICAL_SHA256 = {digest}")
     return 0
 
