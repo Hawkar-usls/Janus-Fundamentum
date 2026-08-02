@@ -24,6 +24,7 @@ P_VS_NP=OPEN
 | C037 | Explicit residual OBDD alignment | Exact minimization, pairwise distinguishing suffixes, SAT witnesses and UNSAT DAG certificates once the residual graph is explicit | Partition refinement alone avoids state explosion; an equivalence-query teacher is free | `POLYNOMIAL_ORDER_DECOMPOSITION_AND_REACHABLE_QUOTIENT_CONSTRUCTION` |
 | C038 | Structured vtree factor alignment | Exact vtree-cut continuation rows, replayable separators, witness/UNSAT tables and deterministic charged candidate construction | Recursive structure or a supplied vtree automatically removes exponential interfaces | `POLYNOMIAL_VTREE_DISCOVERY_AND_SYMBOLIC_FACTOR_CONSTRUCTION` |
 | C039 | Symbolic affine factor compiler | Exact bottom-up affine join/project/canonicalize on any charged vtree, at most `|B_u|` RREF rows per satisfiable message, replayed merge/separate, SAT recovery and XOR-provenance UNSAT | Exponential communication rows must be materialized; affine closure automatically extends to Horn/affine or arbitrary CNF | `CROSS_LANGUAGE_SYMBOLIC_PROJECTION_CLOSED_UNDER_JOIN` |
+| C039.1 | Horn projection boundary | Polynomial proof-carrying single-head restriction, guarded join and projection; complete explicit Horn merge/separate; exact `2^n` boundary-CNF projection obstruction | Horn expressibility or tractable Horn SAT implies polynomial-size Horn boundary messages; Horn equivalence is the missing operation | `RICHER_HORN_MESSAGE_LANGUAGE_OR_PORTFOLIO_GUIDED_HEAD_DISJOINT_ISOLATION` |
 | C031 | Proof-carrying SAT refuter | Formal lower-bound transfer interface | Uncertified circuit counterexamples and free direct-sum amplification | `NO_SHARING_REFUTER_AMPLIFICATION` |
 
 ## Constructive P=NP track
@@ -38,6 +39,7 @@ tractable local languages
 -> polynomial reachable quotient construction
 -> polynomial vtree discovery and symbolic factor construction
 -> cross-language symbolic projection closed under join
+-> richer Horn messages or charged single-head isolation
 -> SAT witness + UNSAT certificate
 -> universal polynomial SAT algorithm
 ```
@@ -85,18 +87,46 @@ audit reaches `n=64`, corresponding to `18446744073709551616` explicit rows,
 without materializing them. This is not a contradiction: explicit factor width
 and symbolic algebraic manipulation charge different objects.
 
-The immediate target after C039 is:
+C039.1 attacks the analogous Horn message. The result separates two regimes.
+
+For single-head Horn, every eliminated variable has at most one producer. Exact
+Horn resolution therefore generates at most one replacement per consumer, the
+clause count does not increase, the single-head invariant is preserved, and SAT
+witnesses lift in reverse elimination order. Restriction, guarded head-disjoint
+joins, projection, decision, merge and separation all have replayable polynomial
+procedures.
+
+For unrestricted boundary-only Horn CNF, exact projection can be exponentially
+large. The linear family
 
 ```text
-CROSS_LANGUAGE_SYMBOLIC_PROJECTION_CLOSED_UNDER_JOIN
+a_i -> q_i
+b_i -> q_i
+(q_1 AND ... AND q_n) -> z
 ```
 
-Construct a replayable message algebra that remains polynomial when Horn, affine,
-beta-acyclic, PS-signature or compiled regions interact. Charge decomposition
-discovery, factor placement, joins, projections, canonicalization, merge and
-separator proofs, witness recovery, UNSAT discovery, and certificate volume.
-Return `OPEN` whenever the admitted closure or any explicit polynomial budget
-fails.
+requires exactly `2^n` Horn clauses after forgetting all `q_i`. At `n=64`, a
+129-clause Horn input needs `18446744073709551616` boundary clauses. This is a
+representation-specific obstruction, not a proof of `P!=NP` and not an
+obstruction to richer Horn circuits or existential modules.
+
+C039.1 also resolves one suspected subgate: equivalence of explicit Horn CNFs is
+polynomial by clause-by-clause Horn entailment, with a countermodel separator when
+an implication fails. The unrestricted Horn bottleneck is projection volume and
+join closure, not `OPEN_EQUIVALENCE`.
+
+The immediate target after C039.1 is:
+
+```text
+RICHER_HORN_MESSAGE_LANGUAGE_OR_PORTFOLIO_GUIDED_HEAD_DISJOINT_ISOLATION
+```
+
+A future construction must either provide a richer Horn representation with
+polynomial, replayable join, projection, equivalence/separation, decision and
+witness recovery, or discover a charged decomposition that isolates compatible
+single-head regions and returns `OPEN` whenever head-disjointness cannot be
+preserved. Retained hidden variables, existential modules, and supplied module
+partitions are not free.
 
 ## Canonical cycle allocation
 
@@ -106,12 +136,14 @@ C036.1 Horn-affine negotiation extension of C036
 C037   explicit residual OBDD alignment
 C038   structured vtree factor alignment
 C039   proof-carrying symbolic affine factor compilation
+C039.1 Horn projection boundary
 ```
 
-The C036.1 branch and several pre-admission paths retain their original `c037`
-spelling as legacy aliases for replayability, but the route matrix and
-machine-readable artifact assign the result only to `C036.1`. C037 uniquely
-denotes OBDD alignment.
+The route matrix uses the allocation above. Some older sibling draft PR bodies
+currently contain a different provisional allocation for C036.1/C037/C037.1.
+C039.1 is stacked directly on PR #52 and does not silently rewrite or depend on
+that side-lineage drift. Canonical admission must reconcile those sibling drafts
+separately.
 
 ## Converged constructive bottleneck
 
@@ -128,14 +160,15 @@ C036.1 reverse Horn-to-affine separation or stronger fact algebra
 C037 order/decomposition and reachable quotient construction
 C038 vtree discovery and symbolic factor construction
 C039 cross-language symbolic projection closed under join
+C039.1 richer Horn messages or portfolio-guided head-disjoint isolation
 ```
 
-C039 removes the truth-table construction cost for pure affine subtrees on every
-vtree. It does not remove the cross-language gate. No future cycle may claim
-progress merely by renaming this object. Progress requires a new polynomial
-construction theorem, a strictly stronger replayable message algebra, a complete
-separator/projector for a larger join-closed language, or a decisive obstruction
-to one explicit proposed algebra.
+C039 removes truth-table construction for pure affine subtrees on every vtree.
+C039.1 closes the single-head Horn branch and decisively blocks plain
+boundary-only Horn CNF as a universal message language. It does not close the
+cross-language gate. Progress now requires a richer replayable message algebra, a
+polynomial decomposition theorem preserving the admitted languages, or a decisive
+obstruction to one explicit richer construction route.
 
 ## Separation track
 
@@ -165,6 +198,7 @@ proof width and certificate discovery
 beta-acyclic elimination
 Davis-Putnam variable elimination
 Horn and dual-Horn closure
+single-head Horn forgetting
 GF(2) affine elimination
 Schaefer fixed-language mixtures
 communication/continuation equivalence across cuts
@@ -174,6 +208,7 @@ active automata learning and equivalence-query teachers
 cooperating decision procedures and DPLL(T)/DPLL(XOR) propagation
 existential quantification and forgetting closure of the proposed message language
 factor placement and variable-retention cost at vtree joins
+common equivalence over retained variables
 ```
 
 A renamed known parameter is registered as an alignment result, not promoted as
