@@ -13,10 +13,11 @@ This repository does **not** claim that `P = NP` or `P != NP` has been proved.
 3. New mathematics attacks the existing graph before expanding it.
 4. Pressure is not converted into a terminal result without a decisive theorem, counterexample, or formulation failure.
 5. Exact verification is not certificate existence or efficient discovery.
-6. Every direct-separation funnel states every implication needed to reach `P != NP` and identifies its first unproved theorem.
+6. Every direct-separation funnel uses the actual input length for every circuit-size comparison.
 7. Positive examples alone cannot refute arbitrary classifiers unless a formal soundness restriction excludes false-positive supersets.
 8. Local type multiplicities do not determine global graph assembly.
-9. Polynomial DAG sharing must be charged once per gate before unfolded occurrences are used as a lower-bound resource.
+9. A local-twin lower bound must exclude identity compilation through an explicit width lower bound and separately control global factorization.
+10. Polynomial DAG sharing is charged once per gate before unfolded occurrences are used as a lower-bound resource.
 
 ## Validate the organism
 
@@ -45,122 +46,137 @@ python experiments/direct/positive_only_antichecker_obstruction.py --self-test
 python experiments/direct/contextual_ef_upper_bound.py --self-test
 python experiments/direct/xor_cycle_local_twins.py --self-test
 python experiments/direct/sound_witness_cover.py --self-test
+python experiments/direct/toroidal_tseitin_twins.py --self-test
+python experiments/direct/length_parameter_audit.py --self-test
 ```
 
-# Current status — C017
+# Current status — C018
 
 ```text
-NEW DESCENDANTS             4   H117-H120
-CURRENT-CYCLE ATTACKS      28   A419-A446
-INHERITED TARGETS           9
-TERMINAL RESULTS            2   H111,H115
-LIVE HYPOTHESES           104
-TERMINAL HISTORICAL NODES  16
+NEW DESCENDANTS             4   H121-H124
+CURRENT-CYCLE ATTACKS      28   A447-A474
+INHERITED TARGETS          12
+TERMINAL RESULTS            1   H116
+LIVE HYPOTHESES           107
+TERMINAL HISTORICAL NODES  17
 ```
 
-## H111 destroyed — fixed gadgets cannot create a hard rewrite gap
+## H116 rejected — circuit size used the wrong parameter
 
-A constant-size equivalent gadget pair has a constant-size Circuit-Frege proof. In any polynomial-size acyclic context, equivalence propagates bottom-up with constant cost per DAG gate. Shared gates are proved once, even if the unwound formula contains exponentially many occurrences.
+H116 bounded candidate circuits by `n^k` while allowing the generated formula length to be `L_k(n)=n^{d(k)}` with a `k`-dependent exponent.
 
-Krajíček's exact proof-to-rewrite theorem then gives a polynomial-length chain. Therefore H111's transparent fixed-gadget amplification cannot instantiate H110.
+A hypothetical SAT circuit of size `L^3` becomes `n^{3d(k)}`. With the allowed choice `d(k)=k^2`, this exceeds `n^k` for every `k`, so H116's claimed implication to `SAT not in P/poly` did not follow.
 
 ```bash
-python experiments/direct/contextual_ef_upper_bound.py --self-test
+python experiments/direct/length_parameter_audit.py --self-test
 ```
 
-Read [`proof_attempts/H111/REFUTATION.md`](proof_attempts/H111/REFUTATION.md).
+`H124` repairs the quantifiers: every formula has exactly `L` encoded bits and every attacked circuit has size at most `L^k` on that same input domain.
 
-## Exact local SAT/UNSAT twins constructed
+The construction remains open and still faces H120's SAT-sound witness cover plus arbitrary semantic compression.
 
-For every radius `R`, H118 builds two explicit 2-CNF formulas on two equal cycles:
+Read [`proof_attempts/H116/PARAMETER_FAILURE.md`](proof_attempts/H116/PARAMETER_FAILURE.md).
+
+## H121 — exact high-treewidth local twins
+
+For every fixed radius `R`, set
 
 ```text
-SAT:    inequality-edge counts (2,0)
-UNSAT:  inequality-edge counts (1,1)
+m = 8R + 13
 ```
 
-Their complete rooted signed-incidence neighborhood multisets through radius `R` are identical, but componentwise XOR parity gives opposite SAT labels.
+and use two disjoint `m × m` toroidal grids. Edge variables satisfy one degree-four Tseitin parity equation at every grid vertex.
+
+```text
+SAT component charges:    (2,0)
+UNSAT component charges:  (1,1)
+```
+
+The formulas have opposite satisfiability, while their complete translation-normalized rooted signed-incidence signature multisets through radius `R` are exactly equal.
 
 ```bash
-python experiments/direct/xor_cycle_local_twins.py --self-test
+python experiments/direct/toroidal_tseitin_twins.py --self-test
 ```
 
-Both primal graphs have treewidth at most two.
+The SAT assignment is constructed through a spanning tree. The UNSAT result follows because XORing all equations in an odd-charge component gives `0=1`.
 
-## H115 rejected — global assembly survives local equality
+## Identity compilation is finally excluded
 
-The identity compiler already maps the H118 pair to treewidth-two outputs. A global dynamic program sees whether the two marked XOR edges lie in the same connected component and returns opposite correct decisions.
+The primal graph of a standard edge-variable Tseitin CNF is exactly the line graph of its underlying graph.
 
-Thus local type inventory does not determine global bounded-treewidth behavior. If H115's phrase “an H114 pair” includes the desired universal obstruction, the lemma is circular; if it means only exact local twins, H118 refutes it.
-
-Read [`proof_attempts/H115/FORMULATION_FAILURE.md`](proof_attempts/H115/FORMULATION_FAILURE.md).
-
-## Repaired locality front
+Primary results give:
 
 ```text
-H119
-  high-treewidth opposite-parity lifts
-  + common local covering structure
-  + theorem that every legal low-treewidth output factors through one quotient
-  -> no H106 compiler
+tw(T_m) = 2m - 1
+tw(L(G)) >= (tw(G)+1)/2 - 1
 ```
 
-High input treewidth excludes the identity compiler. The common-quotient theorem must control the entire output assembly, not only rooted type counts.
-
-## H116 narrowed by a universal sound cover
-
-For a positive SAT list with distinct witness set `A`, the circuit
+Therefore:
 
 ```text
-C_A(F) = OR over a in A of [a satisfies F]
+tw(primal H121) >= m - 1 = Omega(sqrt(N)).
 ```
 
-is globally SAT-sound and accepts the entire list. Its size is polynomial in the encoding length times `|A|`.
+Unlike the H118 cycle pair, the H121 input itself is not an `O(log N)`-treewidth output. The identity compiler is no longer a legal escape.
 
-```bash
-python experiments/direct/sound_witness_cover.py --self-test
+Read [`proof_attempts/H121/TOROIDAL_TSEITIN_TWINS.md`](proof_attempts/H121/TOROIDAL_TSEITIN_TWINS.md) and [`proof_attempts/H122/PRIMAL_TREEWIDTH_TRANSFER.md`](proof_attempts/H122/PRIMAL_TREEWIDTH_TRANSFER.md).
+
+## The remaining locality theorem
+
+```text
+H121 exact high-treewidth local twins
+  + H123 common-quotient factorization
+  -> no H106 constant-pass low-treewidth compiler
 ```
 
-H116 must therefore produce enough witness diversity to exceed the target `n^k` budget and must still defeat smaller semantic compressions unrelated to the listed witnesses.
+H123 must prove that every legal fixed-pass transduction producing `O(log N)` treewidth factors through a common local quotient and therefore loses the bit distinguishing:
+
+```text
+two charges in one component
+versus
+one charge in each component.
+```
+
+The theorem must cover the complete output assembly and every witness-recovery annotation. It is not currently proved.
 
 ## Remaining direct separation routes
+
+### SAT circuit lower bound
+
+```text
+H124 exact-L SAT-sound anti-checker
+  + witness diversity beyond H120
+  + incompressibility against every L^k SAT-sound circuit
+  -> SAT not in P/poly
+  -> P != NP
+```
 
 ### Extended Frege
 
 ```text
-H110 computable Lipschitz potential
-  + globally proof-hard explicit endpoints
+H110 globally proof-hard equivalent endpoints
+  + computable Lipschitz potential
   -> superpolynomial rewrite distance
   -> Extended Frege lower bound
   -> NP != coNP
   -> P != NP
 ```
 
-H117 proves that fixed EF-easy gadget composition cannot provide those endpoints.
-
-### SAT circuit lower bound
-
-```text
-H116 sound-circuit positive anti-checker
-  + witness diversity beyond H120
-  + incompressibility against every SAT-sound circuit
-  -> SAT not in P/poly
-  -> P != NP
-```
+H117 continues to exclude fixed EF-easy gadget composition as an endpoint source.
 
 ### Restricted local compiler obstruction
 
 ```text
-H119 high-treewidth lift factorization
-  -> no H106 constant-pass compiler
+H123 toroidal charge-quotient factorization
+  -> no H106 compiler
 ```
 
-This third route attacks only the stated restricted compiler model and does not itself imply `P != NP`.
+This route attacks only the stated compiler class; it does not itself imply `P != NP`.
 
-Read [`docs/C017_COMPOSITION_AND_GLOBAL_ASSEMBLY.md`](docs/C017_COMPOSITION_AND_GLOBAL_ASSEMBLY.md).
+Read [`docs/C018_TOROIDAL_TSEITIN.md`](docs/C018_TOROIDAL_TSEITIN.md).
 
 ## Genesis boundary
 
-Genesis preserves continuity and provenance. It does not turn fictional unlimited time into mathematical evidence. Every result enters this registry only through an explicit proof, counterexample, or reproducible artifact.
+Genesis preserves continuity and provenance. It does not turn fictional unlimited time into mathematical evidence. Every result enters this registry only through an explicit proof, counterexample, primary theorem, or reproducible artifact.
 
 No JANUS result currently resolves `P` versus `NP`.
