@@ -1,0 +1,83 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://janus.local/schemas/c0372-cross-language-negotiation-v1.2.schema.json",
+  "title": "JANUS C037.2 Horn affine-hull certificate",
+  "type": "object",
+  "required": ["schema", "policy", "terminal"],
+  "properties": {
+    "schema": {
+      "const": "janus.cross_language_negotiation.v1.2"
+    },
+    "policy": {
+      "enum": [
+        "COMPLETE_HORN_AFFINE_HULL_BASIS_V1",
+        "COMPLETE_HORN_AFFINE_CONSEQUENCE_NEGOTIATION_V1"
+      ]
+    },
+    "variable_count": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "horn": {
+      "type": "array",
+      "items": {
+        "type": "array",
+        "items": {"type": "integer"}
+      }
+    },
+    "affine_rows": {
+      "type": "array",
+      "items": {
+        "type": "array",
+        "prefixItems": [
+          {"type": "integer", "minimum": 0},
+          {"enum": [0, 1]}
+        ],
+        "minItems": 2,
+        "maxItems": 2
+      }
+    },
+    "basis": {
+      "type": ["object", "null"]
+    },
+    "row_events": {
+      "type": "array"
+    },
+    "cost": {
+      "type": "object",
+      "properties": {
+        "work_units": {"type": "integer", "minimum": 0},
+        "horn_calls": {"type": "integer", "minimum": 0},
+        "horn_clause_scans": {"type": "integer", "minimum": 0},
+        "equality_pair_queries": {"type": "integer", "minimum": 0},
+        "basis_extractions": {"type": "integer", "minimum": 0},
+        "affine_row_xors": {"type": "integer", "minimum": 0},
+        "self_reduction_tests": {"type": "integer", "minimum": 0}
+      },
+      "additionalProperties": false
+    },
+    "terminal": {
+      "type": "object",
+      "required": ["status"],
+      "properties": {
+        "status": {
+          "enum": [
+            "DIRECTED_INCLUSION",
+            "SEPARATOR",
+            "HORN_EMPTY_SUBSET",
+            "CERTIFIED_CONFLICT",
+            "OPEN_AFFINE_CONSEQUENCE_COMPLETE",
+            "OPEN_BUDGET",
+            "OPEN_LANGUAGE"
+          ]
+        }
+      },
+      "additionalProperties": true
+    },
+    "integrity_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    }
+  },
+  "additionalProperties": true
+}

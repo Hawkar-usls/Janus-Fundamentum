@@ -1,0 +1,42 @@
+name: Validate C037.2 Horn Affine-Hull Collapse
+
+on:
+  push:
+    paths:
+      - "experiments/direct/janus_c037_2_horn_affine_hull_core.py"
+      - "experiments/direct/janus_c037_2_horn_affine_hull_protocol.py"
+      - "experiments/direct/janus_c037_2_horn_affine_hull_collapse.py"
+      - "docs/C037_2_HORN_AFFINE_HULL_COLLAPSE.md"
+      - "proposals/C037_2-HORN-AFFINE-HULL-COLLAPSE.json"
+      - "registry/c0372-source-map.json"
+      - "schemas/c0372-cross-language-negotiation-v1.2.schema.json"
+      - "docs/ACTIVE_PROOF_ROUTE_MATRIX.md"
+      - ".github/workflows/validate-c0372-horn-affine-hull-collapse.yml"
+  pull_request:
+    paths:
+      - "experiments/direct/janus_c037_2_horn_affine_hull_core.py"
+      - "experiments/direct/janus_c037_2_horn_affine_hull_protocol.py"
+      - "experiments/direct/janus_c037_2_horn_affine_hull_collapse.py"
+      - "docs/C037_2_HORN_AFFINE_HULL_COLLAPSE.md"
+      - "proposals/C037_2-HORN-AFFINE-HULL-COLLAPSE.json"
+      - "registry/c0372-source-map.json"
+      - "schemas/c0372-cross-language-negotiation-v1.2.schema.json"
+      - "docs/ACTIVE_PROOF_ROUTE_MATRIX.md"
+      - ".github/workflows/validate-c0372-horn-affine-hull-collapse.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  horn-affine-hull:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python -m py_compile experiments/direct/janus_c037_2_horn_affine_hull_core.py experiments/direct/janus_c037_2_horn_affine_hull_protocol.py experiments/direct/janus_c037_2_horn_affine_hull_collapse.py
+      - run: python experiments/direct/janus_c037_2_horn_affine_hull_collapse.py --self-test
+      - run: python -m json.tool proposals/C037_2-HORN-AFFINE-HULL-COLLAPSE.json >/dev/null
+      - run: python -m json.tool registry/c0372-source-map.json >/dev/null
+      - run: python -m json.tool schemas/c0372-cross-language-negotiation-v1.2.schema.json >/dev/null
