@@ -16,22 +16,22 @@ P_VS_NP=OPEN
 | C028 | Mixed-cone invariants | Decomposable NNF is tractable; overlap variables form a backdoor | Determinism, gate-tree topology and constant alternation imply tractability | `SEMANTIC_SUPPORT_OVERLAP` |
 | C029 | Occurrence-splitting minor | Connected equality splitting preserves the source incidence graph as a minor | Variable copying plus equalities lowers incidence width | `NON_MINOR_PRESERVING_SEMANTIC_COMPRESSION` |
 | C032 | PS-width alignment | JANUS cut signatures are exactly PS-width signatures; high treewidth can have PS-width 2 | Inventing a new enumerative cut parameter | `POLYNOMIAL_PS_DECOMPOSITION_OR_SYMBOLIC_SIGNATURE_COMPRESSION` |
+| C033 | Proof-carrying tractable portfolio | Normalization plus exact Horn, dual-Horn and beta-acyclic solving with witness recovery and strict `OPEN` | Every tractable regime must first have small explicit PS tables | `PORTFOLIO_SELECTION_WITH_SYMBOLIC_MESSAGES` |
 | C031 | Proof-carrying SAT refuter | Formal lower-bound transfer interface | Uncertified circuit counterexamples and free direct-sum amplification | `NO_SHARING_REFUTER_AMPLIFICATION` |
 
 ## Constructive P=NP track
 
 ```text
 tractable local languages
--> exact semantic cut signatures
--> PS-width / symbolic message representation
--> polynomial selection and composition
+-> exact semantic cut signatures or certified symbolic elimination
+-> polynomial portfolio selection and cross-class composition
 -> SAT witness + UNSAT certificate
 -> universal polynomial SAT algorithm
 ```
 
-The immediate target is C033: a proof-carrying portfolio that combines explicit
-PS-signature dynamic programming with algebraic, Horn and beta-acyclic
-elimination, while returning `OPEN` outside verified scope.
+C033 establishes a sound restricted portfolio. The immediate target is C034:
+add a verified affine/GF(2) branch, then prove or refute polynomial symbolic
+composition across Horn, affine and beta-acyclic regions.
 
 ## Separation track
 
@@ -58,6 +58,9 @@ backdoor size
 residual-state width
 proof width and certificate discovery
 beta-acyclic elimination
+Davis-Putnam variable elimination
+Horn and dual-Horn closure
+GF(2) affine elimination
 ```
 
 A renamed known parameter is registered as an alignment result, not promoted as
