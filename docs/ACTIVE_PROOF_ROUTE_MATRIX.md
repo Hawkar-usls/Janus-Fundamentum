@@ -20,7 +20,9 @@ P_VS_NP=OPEN
 | C034 | Affine and cross-class composition | Replayable GF(2) certificates and exact `O(2^k poly(L))` heterogeneous composition for shared boundary `k` | Named tractable modules imply an unrestricted tractable mixture | `PROOF_CARRYING_CROSS_CLASS_INTERFACE_COMPRESSION` |
 | C035 | Certified interface congruence | Replayed exact residual messages give a sound merge congruence; absorbing proofs and affine RREF produce real compression | Exponential diversity in one product language is intrinsic hardness | `JOINT_DECOMPOSITION_LANGUAGE_AND_PROOF_SELECTION` |
 | C036 | Proof-carrying partition refinement | Complete polynomial separator extraction for Horn and affine residuals; every accepted split carries a replayable continuation | Failure to find a separator permits merging; explicit refinement automatically has polynomial state generation | `CROSS_LANGUAGE_SYMBOLIC_SEPARATOR_DISCOVERY` |
+| C036.1 | Horn-affine negotiation extension | Complete affine-to-Horn directed inclusion/separator extraction plus replayable shared-literal conflict traces and SQLite proof caching | A propagation fixpoint certifies compatibility; constants-only exchange decides Horn-affine mixtures | `REVERSE_HORN_TO_AFFINE_SEPARATOR_OR_STRONGER_FACT_ALGEBRA` |
 | C037 | Explicit residual OBDD alignment | Exact minimization, pairwise distinguishing suffixes, SAT witnesses and UNSAT DAG certificates once the residual graph is explicit | Partition refinement alone avoids state explosion; an equivalence-query teacher is free | `POLYNOMIAL_ORDER_DECOMPOSITION_AND_REACHABLE_QUOTIENT_CONSTRUCTION` |
+| C038 | Structured vtree factor alignment | Exact vtree-cut continuation rows, replayable separators, witness/UNSAT tables and deterministic charged candidate construction | Recursive structure or a supplied vtree automatically removes exponential interfaces | `POLYNOMIAL_VTREE_DISCOVERY_AND_SYMBOLIC_FACTOR_CONSTRUCTION` |
 | C031 | Proof-carrying SAT refuter | Formal lower-bound transfer interface | Uncertified circuit counterexamples and free direct-sum amplification | `NO_SHARING_REFUTER_AMPLIFICATION` |
 
 ## Constructive P=NP track
@@ -31,37 +33,62 @@ tractable local languages
 -> proof-carrying cross-class interface compression
 -> jointly selected decomposition, message language and proof rules
 -> certified merge and separator extraction
+-> certified cross-language fact exchange
 -> polynomial reachable quotient construction
+-> polynomial vtree discovery and symbolic factor construction
 -> SAT witness + UNSAT certificate
 -> universal polynomial SAT algorithm
 ```
 
 C036 supplies polynomial same-language separator extraction for Horn and affine
-messages. C037 supplies the complete continuation quotient after an exact finite
-residual graph has been generated.
+messages. C036.1 supplies a complete affine-to-Horn directed separator test and a
+sound but incomplete proof-carrying unary negotiation protocol. Its equality/NEQ
+control proves that `OPEN_FIXPOINT` is not compatibility.
 
-C037 also proves an exact alignment:
+C037 supplies the complete continuation quotient after an exact finite residual
+graph has been generated and aligns fixed-order refinement with reduced OBDD.
 
-```text
-fixed-order continuation quotient
-= minimal ordered residual automaton
-= reduced OBDD.
-```
+C038 moves from one line to a recursive vtree. For each vtree cut it constructs
+the exact Boolean communication rows and their continuation quotient, together
+with replayable outside-assignment separators. This is aligned with structured
+d-DNNF / SDD / TDD factor-width views; it is not a new width parameter.
 
-Therefore explicit partition refinement is not the missing universal mechanism.
-Its runtime can still hide an exponential number of reachable residual states,
-and its size can depend exponentially on the selected variable order.
-
-The immediate target is C038:
+The equality control shows both sides of the result:
 
 ```text
-PROOF-CARRYING STRUCTURED DECOMPOSITION SEARCH
+paired vtree: local equality interactions remain small
+blocked vtree: one cut has exactly 2^n continuation rows
 ```
 
-Replace one linear OBDD order by a verified recursive decomposition such as a
-vtree / structured-DNNF interface. The constructor must polynomially discover the
-decomposition, build and compose messages, emit merge/separator proofs, recover a
-SAT witness, certify UNSAT and return `OPEN` on explicit budget exhaustion.
+A deterministic co-occurrence heuristic rediscovers the paired structure on this
+family, but no universal optimality or polynomial-width guarantee is claimed.
+
+The immediate target is C039:
+
+```text
+SYMBOLIC_FACTOR_CONSTRUCTION_WITHOUT_TRUTH_TABLE_ENUMERATION
+```
+
+Construct the same cut quotient and proof objects using Horn, affine,
+beta-acyclic, PS-signature or compiled symbolic messages, while charging vtree
+discovery, joins, projections, merges, separators, SAT witness recovery and UNSAT
+certificate discovery. Return `OPEN` when any volume exceeds an explicit
+polynomial budget.
+
+## Canonical cycle allocation
+
+```text
+C036   proof-carrying same-language partition refinement
+C036.1 Horn-affine negotiation extension of C036
+C037   explicit residual OBDD alignment
+C038   structured vtree factor alignment
+C039   symbolic factor construction without truth-table enumeration
+```
+
+The C036.1 branch and several pre-admission paths retain their original `c037`
+spelling as legacy aliases for replayability, but the route matrix and
+machine-readable artifact assign the result only to `C036.1`. The numbering
+collision is resolved; C037 uniquely denotes OBDD alignment.
 
 ## Converged constructive bottleneck
 
@@ -74,7 +101,9 @@ C033 portfolio selection with symbolic messages
 C034 proof-carrying cross-class interface compression
 C035 joint decomposition/language/proof selection
 C036 cross-language symbolic separator discovery
+C036.1 reverse Horn-to-affine separation or stronger fact algebra
 C037 order/decomposition and reachable quotient construction
+C038 vtree discovery and symbolic factor construction
 ```
 
 No future cycle may claim progress merely by renaming this object. Progress
@@ -102,7 +131,8 @@ Before admitting a new hypothesis, compare it against:
 ```text
 PS-width
 MIM-width / incidence width
-DNNF / d-DNNF / OBDD / SDD
+DNNF / d-DNNF / OBDD / SDD / TDD
+factor width and vtree communication rows
 backdoor size
 residual-state width
 proof width and certificate discovery
@@ -115,6 +145,7 @@ communication/continuation equivalence across cuts
 partition refinement and canonical residual automata
 symbolic bisimulation and distinguishing-test bases
 active automata learning and equivalence-query teachers
+cooperating decision procedures and DPLL(T)/DPLL(XOR) propagation
 ```
 
 A renamed known parameter is registered as an alignment result, not promoted as
