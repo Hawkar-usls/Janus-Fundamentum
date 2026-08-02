@@ -72,7 +72,8 @@ def main() -> int:
         decisive = [item for item in attacks if item.get("decisive")]
         if decisive:
             raise PressureError(
-                "C010 declares no terminal result, so decisive attacks are forbidden"
+                f"{policy['cycle_id']} declares no terminal result, so decisive "
+                "attacks are forbidden"
             )
 
     except PressureError as exc:
