@@ -55,7 +55,7 @@ python experiments/direct/length_parameter_audit.py --self-test
 ```text
 NEW DESCENDANTS             4   H121-H124
 CURRENT-CYCLE ATTACKS      28   A447-A474
-INHERITED TARGETS          12
+INHERITED TARGETS          11
 TERMINAL RESULTS            1   H116
 LIVE HYPOTHESES           107
 TERMINAL HISTORICAL NODES  17
