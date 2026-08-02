@@ -1,15 +1,27 @@
 #!/usr/bin/env python3
-"""Independently verify a root Resolution refutation for the Policy-0T trace fixture.
+"""Verify a branch-aligned root Resolution refutation for a Policy-0T trace.
 
-The certificate is a finite positive control for H130. It proves the same
-four-variable UNSAT formula used by the transition trace, but does not yet prove
-that every Policy-0T execution can be translated with size O(W) and depth O(N).
+This finite certificate checks that the deterministic Policy-0T trace branches
+on variable 4, that both child computations return UNSAT, that the root proof
+derives the complementary conflict clauses (-4) and (4), and that resolving
+those clauses yields the empty clause.
+
+The artifact is a finite positive control for H130. It does not yet prove the
+uniform size-O(W), depth-O(N) translation for every Policy-0T execution.
 """
 
 from __future__ import annotations
 
 from dataclasses import dataclass
 from typing import Iterable
+
+from janus_tear_policy0t_trace_certificate import (
+    N_VARS,
+    TracePolicy,
+    UNSAT_FORMULA as TRACE_FORMULA,
+    canonical_cnf,
+    verify_trace,
+)
 
 Clause = tuple[int, ...]
 
@@ -50,8 +62,9 @@ class Resolution:
 ProofLine = Axiom | Resolution
 
 
-# Eight of the ten input clauses suffice. The proof uses seven legal
-# Resolution inferences and ends with the empty clause.
+# Eight of the ten input clauses suffice. Lines 12 and 13 are the conflict
+# clauses for the true and false x4 branches, respectively. Line 14 combines
+# the sibling conflicts at the root.
 PROOF: tuple[ProofLine, ...] = (
     Axiom((-1, -3, -4)),                    # 0
     Axiom((-1, -2, 4)),                     # 1
@@ -65,9 +78,9 @@ PROOF: tuple[ProofLine, ...] = (
     Resolution((-2, 4), 1, 4, 1),          # 9
     Resolution((1, -4), 3, 5, 2),          # 10
     Resolution((2, 4), 6, 7, 3),           # 11
-    Resolution((-4,), 8, 10, 1),           # 12
-    Resolution((4,), 9, 11, 2),            # 13
-    Resolution((), 12, 13, 4),              # 14
+    Resolution((-4,), 8, 10, 1),           # 12: conflict for x4=True
+    Resolution((4,), 9, 11, 2),            # 13: conflict for x4=False
+    Resolution((), 12, 13, 4),             # 14: combine siblings
 )
 
 
@@ -81,7 +94,17 @@ def resolve(left: Clause, right: Clause, pivot: int) -> Clause | None:
     return canonical_clause(raw)
 
 
-def verify() -> tuple[int, int, int, int]:
+def restrict_clause(clause: Clause, variable: int, value: bool) -> Clause | None:
+    """Return the restricted clause; None denotes a satisfied clause."""
+
+    true_literal = variable if value else -variable
+    false_literal = -true_literal
+    if true_literal in clause:
+        return None
+    return tuple(literal for literal in clause if literal != false_literal)
+
+
+def verify_resolution_proof() -> tuple[list[Clause], int, int, int, int]:
     axioms = {canonical_clause(clause) for clause in UNSAT_FORMULA}
     assert None not in axioms
 
@@ -115,25 +138,68 @@ def verify() -> tuple[int, int, int, int]:
     assert clauses[-1] == ()
     maximum_width = max(len(clause) for clause in clauses)
     proof_depth = depths[-1]
-    return axiom_lines, resolution_lines, maximum_width, proof_depth
+    return clauses, axiom_lines, resolution_lines, maximum_width, proof_depth
+
+
+def verify_trace_alignment(clauses: list[Clause]) -> tuple[int, int]:
+    assert canonical_cnf(TRACE_FORMULA) == canonical_cnf(UNSAT_FORMULA)
+    assert N_VARS == 4
+
+    policy = TracePolicy()
+    answer, root_id = policy.search(canonical_cnf(TRACE_FORMULA))
+    assert answer is False
+    assert verify_trace(policy.nodes, root_id, canonical_cnf(TRACE_FORMULA)) is False
+
+    root = policy.nodes[root_id]
+    branch_variable = root["branch_var"]
+    children = root["children"]
+    assert branch_variable == 4
+    assert isinstance(children, list)
+    assert [child["value"] for child in children] == [False, True]
+    assert [child["result"] for child in children] == [False, False]
+
+    false_branch_conflict = clauses[13]  # (4), falsified by x4=False
+    true_branch_conflict = clauses[12]   # (-4), falsified by x4=True
+
+    assert restrict_clause(false_branch_conflict, 4, False) == ()
+    assert restrict_clause(true_branch_conflict, 4, True) == ()
+    assert restrict_clause(false_branch_conflict, 4, True) is None
+    assert restrict_clause(true_branch_conflict, 4, False) is None
+
+    final = PROOF[14]
+    assert isinstance(final, Resolution)
+    assert final.left == 12 and final.right == 13 and final.pivot == branch_variable
+    assert clauses[14] == ()
+
+    return branch_variable, len(policy.nodes)
 
 
 def self_test() -> None:
-    axiom_lines, resolution_lines, maximum_width, proof_depth = verify()
+    clauses, axiom_lines, resolution_lines, maximum_width, proof_depth = (
+        verify_resolution_proof()
+    )
+    branch_variable, trace_nodes = verify_trace_alignment(clauses)
+
     assert axiom_lines == 8
     assert resolution_lines == 7
     assert maximum_width == 3
     assert proof_depth == 3
+    assert branch_variable == 4
+    assert trace_nodes == 3
 
-    print("JANUS_TEAR_POLICY0T_ROOT_RESOLUTION_CERTIFICATE = PASS")
+    print("JANUS_TEAR_POLICY0T_TRACE_TO_PROOF_BRIDGE = PASS")
     print(f"input_clauses = {len(UNSAT_FORMULA)}")
+    print(f"trace_nodes = {trace_nodes}")
+    print(f"root_branch_variable = {branch_variable}")
+    print("false_branch_conflict_clause = (4)")
+    print("true_branch_conflict_clause = (-4)")
     print(f"used_axiom_lines = {axiom_lines}")
     print(f"resolution_lines = {resolution_lines}")
     print(f"proof_lines = {len(PROOF)}")
     print(f"maximum_width = {maximum_width}")
     print(f"proof_depth = {proof_depth}")
     print("final_clause = EMPTY")
-    print("claim_boundary = finite root proof only; general Policy-0T simulation remains open")
+    print("claim_boundary = finite aligned bridge only; uniform H130 simulation remains open")
 
 
 if __name__ == "__main__":
