@@ -1,0 +1,115 @@
+{
+  "artifact_id": "C026-JANUS-CERTIFICATE-PORTFOLIO",
+  "status": "PASS",
+  "research_status": "EXPLORATORY_SOFTWARE_ONLY_NOT_CANONICAL",
+  "base_repository_commit": "994dd693604d1f557c367acc7b1b3ed6083ee4a8",
+  "branch": "research/c026-certificate-portfolio",
+  "software_only": true,
+  "general_sat_oracle_called": false,
+  "swarm_touched": false,
+  "devices_touched": false,
+  "nas_touched": false,
+  "portfolio": {
+    "TWO_SAT_CLOSURE": {
+      "construction": "polynomial implication reachability",
+      "verification": "replayable implication paths",
+      "canonical": true
+    },
+    "GF2_ROW_SPACE": {
+      "construction": "polynomial Gaussian elimination",
+      "verification": "row-operation replay",
+      "canonical": true
+    },
+    "WIDTH_W_RESOLUTION": {
+      "construction": "n^O(w) saturation",
+      "verification": "resolution and subsumption replay",
+      "canonical_for_fixed_w": true,
+      "polynomial_only_when": "w is a fixed constant"
+    },
+    "RUP_TRACE": {
+      "construction": "trace supplied; no universal finder claimed",
+      "verification": "reverse unit propagation replay",
+      "canonical": false
+    }
+  },
+  "headline_results": {
+    "two_sat": {
+      "presentations": 256,
+      "raw_states": 256,
+      "subsumption_states": 256,
+      "certified_closure_states": 1
+    },
+    "gf2": {
+      "presentations": 256,
+      "raw_states": 256,
+      "certified_rref_states": 1
+    },
+    "bounded_resolution": {
+      "presentations": 256,
+      "raw_states": 256,
+      "width_2_states": 256,
+      "width_3_states": 1
+    },
+    "rup": {
+      "presentations": 256,
+      "raw_states": 256,
+      "width_3_states": 256,
+      "rup_trace_states": 1,
+      "variables": 40,
+      "unrestricted_clause_candidates": "12157665459056928800"
+    },
+    "blocked_equality": {
+      "n": 12,
+      "cut_assignments": 4096,
+      "complete_two_sat_canonical_states": 4096
+    },
+    "extended_local_replay": {
+      "cases_per_language": 120,
+      "assignments_checked": 16064,
+      "two_sat_failures": 0,
+      "gf2_failures": 0,
+      "resolution_failures": 0,
+      "rup_failures": 0
+    },
+    "general_three_cnf_control": {
+      "cases": 80,
+      "sat": 40,
+      "unsat": 40,
+      "honest_portfolio_open": 80,
+      "false_accepts": 0
+    }
+  },
+  "located_bottleneck": {
+    "name": "CERTIFICATE_DISCOVERY_COMPLEXITY",
+    "definition": "Total work to choose a proof language, discover the relevant merge certificate or canonical form, and verify it.",
+    "exact_split": {
+      "canonical_P_classes": "2-SAT and GF(2) provide polynomial construction and verification.",
+      "bounded_proof_search": "Width-w Resolution is polynomial only under a fixed width bound.",
+      "trace_verification_without_search": "RUP gives polynomial replay but no universal polynomial finder.",
+      "unrestricted_semantic_merge": "coNP-hard through equivalence to FALSE."
+    }
+  },
+  "positive_result": "Four different exponential presentation artifacts were removed by independently replayable certificates without a semantic equivalence oracle.",
+  "negative_results": [
+    "Blocked equality keeps 2^n continuation-distinct states under complete 2-SAT closure.",
+    "Fixed-width Resolution stays polynomial only for fixed width.",
+    "RUP verification is polynomial in a supplied trace, while unrestricted candidate search has 3^n-1 clauses.",
+    "General residual equivalence still contains UNSAT through F equivalent to FALSE."
+  ],
+  "distance_to_p_equals_np": {
+    "mathematical_status": "UNCHANGED_OPEN",
+    "what_improved": [
+      "The merge-proof barrier is split into four executable certificate regimes.",
+      "Three certificate systems strictly stronger than subsumption collapse new exponential fake-state families.",
+      "Verification complexity and certificate-discovery complexity are separately charged."
+    ],
+    "next_exact_target": "Find an instance-specific certificate selector/finder with polynomial total discovery cost that avoids unbounded Resolution width and unrestricted RUP clause search."
+  },
+  "criterion": {
+    "name": "Certificate Portfolio Criterion",
+    "statement": "If every necessary residual merge of every CNF has a polynomial-size certificate whose language and certificate are both discoverable and verifiable in polynomial total work, and certified residual state volume is polynomial, then SAT is in P.",
+    "status": "DIRECT_ALGORITHMIC_CRITERION_NOT_A_P_EQUALS_NP_PROOF"
+  },
+  "claim_boundary": "C026 does not prove P=NP, P!=NP, NP=coNP, or an unrestricted lower bound.",
+  "reproduction": "python experiments/direct/janus_certificate_portfolio.py"
+}
