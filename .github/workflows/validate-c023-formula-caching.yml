@@ -1,0 +1,40 @@
+name: Validate C023 Formula Caching
+
+on:
+  push:
+    paths:
+      - "experiments/direct/janus_tear_policy0a_fc_trace.py"
+      - "experiments/direct/janus_tear_policy0a_cache_hit_search.py"
+      - "experiments/direct/janus_tear_policy0a_context_obstruction.py"
+      - "experiments/direct/janus_tear_policy0a_fc_proof_system.py"
+      - "docs/C023_FORMULA_CACHING_CALCULUS.md"
+      - ".github/workflows/validate-c023-formula-caching.yml"
+  pull_request:
+    paths:
+      - "experiments/direct/janus_tear_policy0a_fc_trace.py"
+      - "experiments/direct/janus_tear_policy0a_cache_hit_search.py"
+      - "experiments/direct/janus_tear_policy0a_context_obstruction.py"
+      - "experiments/direct/janus_tear_policy0a_fc_proof_system.py"
+      - "docs/C023_FORMULA_CACHING_CALCULUS.md"
+      - ".github/workflows/validate-c023-formula-caching.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  verify-formula-caching:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Verify exact Formula-Caching trace calculus
+        run: python experiments/direct/janus_tear_policy0a_fc_trace.py
+
+      - name: Search genuine exact residual cache hits
+        run: python experiments/direct/janus_tear_policy0a_cache_hit_search.py
