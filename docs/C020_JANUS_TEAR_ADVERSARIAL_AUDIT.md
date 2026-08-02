@@ -5,61 +5,55 @@
 `EXPLORATORY / SOFTWARE-ONLY / NOT ADMITTED TO THE CANONICAL REGISTRY`
 
 No swarm node, ESP32 device, radio channel, miner, NAS runtime, or physical P–N
-junction was touched during this audit.
+junction was touched.
 
-This branch advances the earlier Tear draft from `C019` to `C020` because the
-canonical `main` branch already contains the connected-twin and exact-list-cover
-cycle named C019.
+The earlier Tear draft used the name C019, but canonical `main` already contains
+the connected-twin C019 cycle. This audit therefore continues as C020.
 
-## Starting candidate
+## Corrected conclusion first
 
-For a CNF formula `F` and a residual or conflicting state `alpha`, a JANUS Tear
-is intended to be a compact payload
+The audit separates two statements that were initially blended together.
 
-```text
-tau = TEAR(F, alpha)
-```
+### Original strong quotient statement
 
-accompanied by enough derivation data to check its claimed consequence in
-polynomial time.
+> Every CNF has only polynomially many continuation-complete Tear classes across
+> all of its partial assignments.
 
-A universal Tear system would require:
+**Status: FALSIFIED.**
 
-1. sound extraction;
-2. blocking of the failed state;
-3. polynomial generation and verification;
-4. polynomial total Tear and derivation volume;
-5. a polynomial number of satisfiability-preserving quotient states;
-6. SAT witness recovery;
-7. complete polynomial UNSAT certification.
+### Surviving policy-selected statement
 
-If one deterministic algorithm satisfied all seven conditions on every encoded
-CNF input, then SAT would lie in P and therefore `P = NP`. The implication is
-conditional. The existence theorem remains open.
+> One explicit deterministic polynomial-time policy visits only polynomially
+> many selected states and always returns either a SAT witness or a polynomially
+> checkable UNSAT certificate.
 
-## Independent audit
+**Status: OPEN.** Constructing such a policy is already a polynomial-time SAT
+algorithm and would prove `P = NP`. The reformulation does not bypass the central
+problem.
 
-Run:
+## Reproduction
 
 ```bash
 python experiments/direct/janus_tear_adversarial_audit.py --self-test
-python experiments/direct/janus_tear_adversarial_audit.py --json
+python experiments/direct/janus_tear_marginal_collision.py
+python experiments/direct/janus_tear_congruence_explosion.py --self-test
+python experiments/direct/janus_tear_congruence_explosion.py --n 10
 ```
 
-The audit independently reconstructs the toroidal Tseitin formulas rather than
-calling the existing C018/C019 verifier. This reduces common-mode implementation
-risk.
+## Exact connected Tseitin audit
 
-It checks radii `R = 0,...,8` and at every radius verifies:
+The main audit independently reconstructs the toroidal Tseitin CNFs rather than
+calling the existing C018/C019 verifier. For `R = 0,...,8` it checks:
 
-- the exact degree-four XOR-to-CNF encoding;
-- an explicit SAT assignment;
-- the odd-charge UNSAT obstruction;
+- exact degree-four XOR-to-CNF semantics;
+- a constructive SAT assignment;
+- an odd-charge UNSAT certificate;
 - exact bounded-local signed-incidence multiset equality;
 - the SAT-neutral five-clause connector;
 - connectedness of the full primal graph;
 - SAT witness recovery after connection;
-- an independently checkable odd-module certificate.
+- a sensitivity control that forces the local comparator to detect nearby
+  charges.
 
 At `R = 8`:
 
@@ -72,180 +66,177 @@ certificate vertex equations   11858
 certificate clause references  94864
 ```
 
-## PASS — the original family result survives
+## PASS — family-specific module-aware Tear
 
-If the two hidden Tseitin modules are known, their component-charge parity Tears
-remain:
-
-```text
-SAT:    (2,0) charges -> (0,0)
-UNSAT:  (1,1) charges -> (1,1)
-```
-
-The SAT member receives a spanning-tree edge assignment and the neutral bridge
-is extended with `z = w = 1`.
-
-For an odd module, the proof-bearing Tear verifies that:
-
-- the selected CNF clauses encode every local XOR equation;
-- every edge variable occurs twice in the XOR sum;
-- the right-hand charge parity is one;
-- therefore the summed equations give `0 = 1`.
-
-This is a valid polynomial UNSAT certificate for the generated family.
-
-## REJECT — naive connected-component parity
-
-Canonical C019 joins the two toroidal lobes with a SAT-neutral bridge. The full
-primal graph is therefore connected.
-
-If a naive extractor now stores only one parity bit for the visible connected
-input graph, both twins produce:
+When the two hidden Tseitin modules are known:
 
 ```text
-SAT total parity:    0
-UNSAT total parity:  0
+SAT:    (2,0) charges -> Tear (0,0)
+UNSAT:  (1,1) charges -> Tear (1,1)
 ```
 
-The Tear no longer distinguishes them.
+The SAT member has an explicit spanning-tree edge assignment, extended across
+the neutral bridge by `z = w = 1`.
 
-The two-bit Tear survives only if the solver can identify the two semantic XOR
-modules underneath arbitrary SAT-neutral glue. This moves the missing theorem
-from:
+For an odd module, a proof-bearing Tear checks that the selected clauses encode
+every local XOR equation, every internal edge variable cancels twice, and the
+right-hand charge parity is one. Summing gives the contradiction `0 = 1`.
+
+## REJECT — naive connected-component Tear
+
+Canonical C019 joins the two toroidal lobes with a satisfiability-neutral bridge.
+The full primal graph is connected. A naive extractor storing one parity bit for
+the visible connected graph returns:
 
 ```text
-find the right invariant
+SAT:    (0)
+UNSAT:  (0)
 ```
 
-to the sharper requirement:
+The Tear distinguishes the twins only if the solver receives or discovers the
+semantic XOR-module decomposition. Discovery, boundary verification, connector
+handling and witness recovery must all be charged to the total runtime.
 
-```text
-discover a sound semantic module decomposition
-+ prove each module boundary
-+ preserve connector satisfiability
-+ recover a complete SAT witness
-+ charge all discovery and verification work
-```
+## REJECT — tiny payload does not imply tiny proof
 
-That is a stronger and more precise obstruction.
-
-## REJECT — tiny payload is not automatically a tiny proof
-
-The semantic Tear is only two bits, but independent verification references a
-linear number of equations or clauses.
-
-This does not invalidate the polynomial programme. Linear proof volume remains
-polynomial. It does invalidate the stronger informal claim that the entire
-proof object is literally only a few bits.
-
-The accounting must distinguish:
+The semantic answer is two bits, but the independently checkable derivation is
+linear in the formula size. This is still polynomial, but the accounting must
+separate:
 
 ```text
 semantic payload
-derivation certificate
+proof certificate
 module-discovery work
 verification work
 witness-recovery annotations
 ```
 
-## PASS — second positive family outside Tseitin
+## PASS — second positive family: 2-SAT
 
-The audit adds a non-Tseitin Tear for 2-SAT.
-
-For a 2-CNF implication graph, if `x` and `not x` lie in the same strongly
-connected component, the Tear contains two paths:
+For a 2-CNF implication graph, an UNSAT Tear consists of two checked paths inside
+one strongly connected component:
 
 ```text
 x -> not x
 not x -> x
 ```
 
-Every implication edge is checked against an original clause. Together the
-paths prove contradiction. The same SCC computation also recovers a SAT
-assignment when no contradictory variable exists.
+The same SCC computation recovers a satisfying assignment when no contradictory
+variable exists.
 
 The implementation was compared with exact brute force on 300 deterministic
-random instances with at most eight variables:
+random instances of at most eight variables:
 
 ```text
 seed       9379992
 SAT cases      153
 UNSAT cases    147
-result        PASS
+agreement      300/300
 ```
 
-This passes the admission request for a second family-specific positive result,
-but it does not approach general SAT because 2-SAT is already polynomial-time
-solvable.
+This is a genuine second Tear language, but 2-SAT is already in P and therefore
+does not solve general SAT.
 
-## Sensitivity control
+## REJECT — marginal signature language
 
-The local-equality checker was attacked with a nearby-charge layout.
+An exact three-variable pair was constructed with identical:
+
+- unsigned clause scopes;
+- clause widths and sign-count profiles;
+- per-variable positive and negative occurrence counts;
+- primal graph and component sizes;
+- recognized equality/inequality XOR inventory.
+
+Yet:
 
 ```text
-far separated charges versus split charges  -> equal
-nearby charges versus split charges          -> different
+SAT formula witness count      1
+UNSAT formula witness count    0
+Tear signatures equal       true
 ```
 
-Therefore the equality result is not produced by a comparator that always says
-`equal`.
+Therefore this rich finite marginal summary is not a sound SAT-state quotient.
+It rejects that feature language, not every possible invariant language.
 
-## What remains unmeasured
+## FALSIFIED — full continuation quotient
 
-The current experiments do **not** yet measure:
+Consider
 
-- how many actual DPLL/CDCL residual states a Tear merges;
-- wall-clock or total-work reduction against a no-import control;
-- a polynomial Tear count on NP-complete non-XOR benchmarks;
-- a representation-robust module extractor;
-- a general residual-state equivalence relation;
-- a universal SAT witness-recovery map.
+```text
+E_n(X,Y) = AND_i (x_i <-> y_i).
+```
 
-The phrase “collapses an exponential search tree” is therefore still a theorem
-target, not an experimental result.
+After assigning `X=a`, the residual formula requires exactly `Y=a`. For any
+`a != b`, continuation `Y=a` accepts residual `a` and rejects residual `b`.
+Thus all `2^n` residuals are pairwise distinguishable by future continuations.
 
-## Sharpened missing theorem
+The input contains only `2n` clauses and `4n` literal occurrences, but every
+equivalence relation whose equal signatures guarantee identical behaviour for
+**all** future `Y` continuations needs at least `2^n` classes.
 
-### Universal Semantic Module Discovery and Quotient Theorem
+The self-test verifies `n=1,...,8`. The `n=10` run checks:
 
-For every CNF `F` of encoded length `L`, a deterministic polynomial-time
-procedure discovers a polynomial-volume family of sound semantic modules and
-proof-bearing Tears such that:
+```text
+residual states                    1024
+ordered cross-residual checks   1047552
+```
 
-- the induced residual-state quotient contains only `poly(L)` states;
-- merging preserves satisfiability;
-- SAT states retain polynomial witness-recovery data;
-- UNSAT saturation yields a polynomial certificate;
-- module discovery, canonicalization, verification and recovery are all charged
-  to one polynomial total-work budget.
+This is a mathematical counterexample to the original all-residual polynomial
+quotient conjecture. It is not evidence for `P != NP`, because this equality
+family itself is easy.
 
-This theorem is not proved. It is now the exact centre of the Tear route.
+## What remains open
+
+The only surviving universal route is policy-selected:
+
+```text
+choose only polynomially many states
++ extract sound Tears with polynomial total proof volume
++ preserve or reconstruct a SAT witness
++ terminate with a polynomial UNSAT certificate
++ charge selection, discovery, verification and recovery
+```
+
+Producing such a procedure for every CNF is effectively the task of constructing
+a polynomial-time SAT algorithm. Calling its intermediate certificates Tears is
+useful architectural language, but not a shortcut around the theorem.
+
+The experiments still do not measure:
+
+- actual DPLL/CDCL residual-state merge counts;
+- total-work reduction against a no-Tear baseline;
+- positive compression on NP-complete non-XOR instances;
+- representation-robust semantic module discovery;
+- a general SAT witness-recovery map.
+
+Therefore “one Tear collapses an exponential search tree” remains a target for a
+specific solver run, not a demonstrated general result.
 
 ## Monsters Corporation bridge
 
-The computational twin suggested by the biological Tears/Laughter project is:
+The computational twin remains useful:
 
 ```text
 Tear      -> negative knowledge / impossibility certificate
-Laughter  -> positive knowledge / constructive witness
-Collider  -> a solver must balance elimination with witness recovery
+Laughter  -> positive knowledge / constructive witness and recovery map
+Collider  -> certified elimination must meet witness construction
 ```
 
-This is a conceptual bridge only. Biological tears, acoustic laughter, salt,
-quantum language and semiconductor hardware are not used as evidence for the
-complexity claim.
+This is conceptual only. Biological tears, laughter, salt, quantum terminology
+and semiconductor devices are not evidence for a complexity result.
 
 ## Verdict
 
-JANUS Tear survives the audit as a useful proof-learning language.
+JANUS Tear survives as a rigorous proof-learning vocabulary and architecture.
+It has exact family-specific realizations for Tseitin parity and 2-SAT SCC
+contradictions.
 
-It has exact implementations for:
+The following are rejected:
 
-- Tseitin parity;
-- 2-SAT implication contradictions.
+- naive connected-component parity;
+- the tested marginal feature signature;
+- the claim that a two-bit semantic payload is the whole proof;
+- the original polynomial continuation-complete quotient of all residual states.
 
-The naive connected-component extractor is rejected. The module-aware extractor
-passes only conditionally, with the hard work moved into polynomial semantic
-module discovery and witness recovery.
-
-The result does not prove `SAT in P` or `P = NP`.
+The policy-selected universal solver remains open and is essentially the
+`P = NP` construction itself.
