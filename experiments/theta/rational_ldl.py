@@ -21,6 +21,8 @@ Matrix = list[list[Fraction]]
 def scalar(value: Any) -> Fraction:
     if isinstance(value, bool):
         raise ValueError("boolean is not a rational scalar")
+    if isinstance(value, Fraction):
+        return value
     if isinstance(value, int):
         return Fraction(value)
     if isinstance(value, str):
@@ -189,12 +191,10 @@ def verify_certificate(matrix: Matrix, certificate: dict[str, Any]) -> None:
 
     for row in range(size):
         for column in range(size):
-            expected = Fraction(1 if row == column else 0) if column >= row else None
             if column > row and lower[row][column] != 0:
                 raise ValueError("unit_lower has a nonzero entry above the diagonal")
             if column == row and lower[row][column] != 1:
                 raise ValueError("unit_lower diagonal must be one")
-            _ = expected
 
     if any(value < 0 for value in diagonal):
         raise ValueError("LDL diagonal contains a negative entry")
