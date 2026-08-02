@@ -1,6 +1,6 @@
 # C024 — Derived-Clause Novelty Potential
 
-**Status:** exact finite certificate for `GT_4..GT_8` / universal invariant under attack.
+**Status:** universal all-clause potential falsified at `GT_8` / frontier-dangerous provenance potential finitely survives through `GT_8`.
 
 ## Motivation
 
@@ -58,8 +58,8 @@ and, at every one of the `k` transitions:
 4. no pre-unit or post-unit stage removes a provenance literal;
 5. no nonnovel branch narrows the provenance clause.
 
-Thus the derived clause does not replace the historical joins. It stores a
-conditional consequence whose conversion to a unit still consumes exactly the
+Thus these derived clauses do not replace the historical joins. They store
+conditional consequences whose conversion to units still consumes exactly the
 missing novel branches.
 
 ## Finite data
@@ -88,9 +88,9 @@ width 6 -> 5 -> 4 -> 3 -> 2 -> 1
 novelty 1 -> 2 -> 3 -> 4 -> 5 -> 6
 ```
 
-## Candidate potential
+## Potential on certified dangerous provenance
 
-For an active derived clause `C` under partial order `P`, define
+For an active provenance clause `C` under partial order `P`, define
 
 ```text
 Phi(P,C) = novelty(P) + active_width(C under P) - 1.
@@ -102,59 +102,115 @@ Along all twelve certified paths:
 Phi(P,C) = n-2
 ```
 
-at origin and after every narrowing step. This suggests the following universal
-invariant.
+at origin and after every narrowing step.
 
-## Derived-clause novelty-potential conjecture
+## Universal all-clause form — falsified
 
-Let `C` be a clause emitted by one Policy-0A local Resolution pass on `GT_n`.
-Suppose some descendant restriction turns the inherited residual of `C` into a
-component-joining unit before or at the first historical target frontier. Then:
+A global branch-shrink census examined every strict clause-width decrease before
+the target frontier for `GT_4..GT_8`.
 
-1. every width-decreasing restriction on the relevant provenance path is a
-   novel branch;
-2. each such branch decreases active width by at most one;
-3. unit propagation does not decrease active width before the target without an
-   independently chargeable proof event;
-4. consequently
+Aggregate result:
 
 ```text
-origin_novelty + origin_width - 1 >= n-2.
+all branch shrink events                     7,538
+novel-branch shrink events                   6,926
+nonnovel-branch shrink events                  612
+immediate-local-resolvent nonnovel shrinks     269
 ```
 
-A stronger form would show that `Phi` never decreases while `C` remains capable
-of producing an early component-joining unit.
+The first failure occurs at `GT_8`. For example, at novelty level four the
+nonnovel branch `-10` narrows the immediate local resolvent
 
-## Why the conjecture is nontrivial
+```text
+(-6,-9,10,24) -> (-6,-9,24)
+```
 
-The finite certificate follows the clauses that actually become component-
-joining units. It does not yet quantify over:
+without increasing novelty.
 
-- all local resolvents emitted in all states;
-- clauses that disappear, become satisfied or participate in later Resolution;
-- multiple possible provenance paths for the same residual clause;
-- unit cascades capable of removing several literals;
-- exact-cache identification of descendants with different clause ancestry.
+Therefore the statement
 
-Therefore extrapolating the observed equality to all `n` would be invalid.
+```text
+every width decrease of every local resolvent is paid by novelty
+```
+
+is false.
+
+## Narrow frontier-dangerous form — survived finite attack
+
+The same census marks every branch transition belonging to a provenance path
+that actually produces a component-joining unit. It finds:
+
+```text
+certified dangerous shrink events      31
+dangerous novel shrinks                31
+dangerous nonnovel shrinks              0
+```
+
+Thus the surviving conjecture must distinguish structurally dangerous clauses
+from harmless learned clauses. A retrospective definition such as “eventually
+becomes a component-unit” is insufficient for an asymptotic proof.
+
+## Component-tree hypothesis
+
+The certified data suggests an execution-independent structural predicate.
+Whenever a dangerous clause is created:
+
+```text
+origin width = number of current Hasse components - 1.
+```
+
+Interpret each clause literal as an undirected edge between the current
+components containing its two comparison vertices. The candidate structure is:
+
+1. every literal joins two different current components;
+2. the literal edges form a spanning tree over all current components;
+3. falsifying a literal contracts its tree edge;
+4. the residual clause remains a spanning tree on the contracted components;
+5. after `w-1` contractions, the remaining unit is the final edge between two
+   components.
+
+If true, every narrowing branch is automatically novel and the equality
+
+```text
+novelty + width - 1 = n-2
+```
+
+is a consequence of tree contraction rather than a numerical coincidence.
+
+## Refined conjecture
+
+Let `C` be a local resolvent whose component-edge graph is a spanning tree at
+creation. Suppose descendants preserve the corresponding residual clause rather
+than satisfying or replacing it. Then any branch that strictly narrows this
+residual must contract a tree edge, hence is novel; after contraction the
+residual remains a component-spanning tree.
+
+The missing proof obligations are:
+
+- characterize which Policy-0A resolvents can become early component-joining
+  units;
+- prove such resolvents necessarily satisfy the component-tree predicate;
+- prove units and subsequent local Resolution cannot create an uncharged
+  shortcut between tree contractions;
+- preserve the label through exact residual caching.
 
 ## Next falsification test
 
-Track every local resolvent through every descendant occurrence in `GT_4..GT_8`
-and report any transition where:
+Construct the component graph of every certified dangerous origin and every
+immediate local resolvent before the target. Verify:
 
 ```text
-active width decreases
-but historical novelty does not increase.
+all dangerous origins are spanning trees;
+all contractions on dangerous paths preserve the tree;
+no spanning-tree clause is narrowed by a nonnovel branch.
 ```
 
-The test must distinguish harmless clauses from clauses still capable of
-producing a component-joining unit before the target. A counterexample kills the
-simple potential. Survival yields the precise combinatorial statement that must
-be proved asymptotically.
+Any failure kills the component-tree criterion. Survival produces a concrete
+combinatorial lemma rather than an execution-relative label.
 
 ## Claim boundary
 
-This is a machine-verified finite charge pattern and a conjectured invariant. It
-is not an asymptotic lower bound for `JANUS-FC_local` and does not resolve P
-versus NP.
+The universal all-clause potential is disproved. The narrower dangerous-path
+potential is a machine-verified finite pattern and the component-tree statement
+is a conjecture under attack. No asymptotic lower bound for `JANUS-FC_local` and
+no solution of P versus NP is claimed.
