@@ -1,4 +1,4 @@
-name: Validate C021 Policy Certificates
+name: Validate C022 Policy Lower-Bound Bridge
 
 on:
   push:
@@ -7,6 +7,12 @@ on:
       - "experiments/direct/janus_tear_policy0t_root_resolution_certificate.py"
       - "experiments/direct/janus_tear_policy0t_recursive_trace_translator.py"
       - "experiments/direct/janus_tear_policy0t_recursive_translator_fuzz.py"
+      - "experiments/direct/janus_tear_policy0t_random_translation_fuzz.py"
+      - "experiments/direct/janus_tear_policy0t_core_equivalence_audit.py"
+      - "experiments/direct/janus_tear_policy0t_independent_proof_replay.py"
+      - "experiments/direct/janus_tear_policy0t_proof_bound_audit.py"
+      - "experiments/direct/janus_tear_maj3_nonaffine_family_audit.py"
+      - "experiments/direct/janus_tear_maj3_lift_encoding_match.py"
       - "experiments/direct/janus_tear_policy0t_affine_resolution_obstruction.py"
       - ".github/workflows/validate-c020-policy-trace.yml"
   pull_request:
@@ -15,6 +21,12 @@ on:
       - "experiments/direct/janus_tear_policy0t_root_resolution_certificate.py"
       - "experiments/direct/janus_tear_policy0t_recursive_trace_translator.py"
       - "experiments/direct/janus_tear_policy0t_recursive_translator_fuzz.py"
+      - "experiments/direct/janus_tear_policy0t_random_translation_fuzz.py"
+      - "experiments/direct/janus_tear_policy0t_core_equivalence_audit.py"
+      - "experiments/direct/janus_tear_policy0t_independent_proof_replay.py"
+      - "experiments/direct/janus_tear_policy0t_proof_bound_audit.py"
+      - "experiments/direct/janus_tear_maj3_nonaffine_family_audit.py"
+      - "experiments/direct/janus_tear_maj3_lift_encoding_match.py"
       - "experiments/direct/janus_tear_policy0t_affine_resolution_obstruction.py"
       - ".github/workflows/validate-c020-policy-trace.yml"
 
@@ -22,7 +34,7 @@ permissions:
   contents: read
 
 jobs:
-  verify-policy-certificates:
+  verify-policy-lower-bound-bridge:
     runs-on: ubuntu-latest
     steps:
       - name: Check out repository
@@ -44,6 +56,24 @@ jobs:
 
       - name: Fuzz recursive translator terminal classes
         run: python experiments/direct/janus_tear_policy0t_recursive_translator_fuzz.py
+
+      - name: Fuzz random non-affine UNSAT translations
+        run: python experiments/direct/janus_tear_policy0t_random_translation_fuzz.py
+
+      - name: Compare production and traced cores
+        run: python experiments/direct/janus_tear_policy0t_core_equivalence_audit.py
+
+      - name: Replay serialized proofs independently
+        run: python experiments/direct/janus_tear_policy0t_independent_proof_replay.py
+
+      - name: Audit explicit proof size and depth bounds
+        run: python experiments/direct/janus_tear_policy0t_proof_bound_audit.py
+
+      - name: Verify parity-of-MAJ3 local relations are non-affine
+        run: python experiments/direct/janus_tear_maj3_nonaffine_family_audit.py
+
+      - name: Verify JANUS encoding equals clause-wise MAJ3 lift
+        run: python experiments/direct/janus_tear_maj3_lift_encoding_match.py
 
       - name: Audit affine shortcut obstruction to ordinary Resolution
         run: python experiments/direct/janus_tear_policy0t_affine_resolution_obstruction.py
