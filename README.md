@@ -13,7 +13,8 @@ This repository does **not** claim that `P = NP` or `P != NP` has been proved. I
 3. **Inherited progress.** From `H060`, every child names older parents and a material delta.
 4. **Inversion before expansion.** New mathematics first attacks the existing graph.
 5. **Terminal honesty.** Pressure is not converted into a graveyard result without a decisive theorem, counterexample, or formulation failure.
-6. **Answer-independent observables.** Canonical experimental profiles may not contain SAT labels, exact alpha, or other answer-dependent diagnostics.
+6. **Answer-independent observables.** Canonical profiles and exact certificates may not contain SAT labels, exact alpha, or hidden answer-dependent fields.
+7. **Verification is not existence.** An exact verifier does not imply that a short certificate exists or can be found efficiently.
 
 ## Research states
 
@@ -30,9 +31,9 @@ This repository does **not** claim that `P = NP` or `P != NP` has been proved. I
 - `registry/observations*.json` — reductions and methodological findings;
 - `registry/journal*.json` — chronological cycles;
 - `registry/genealogy*.json` — child-to-parent proof routes;
-- `registry/lineage-reverse-c010.json` — append-only parent-to-child edges for C010;
+- `registry/lineage-reverse-c011.json` — append-only parent-to-child edges for C011;
 - `registry/inversion-tests*.json` — reusable backside tests;
-- `registry/inversion-matrix-c010.json` — current cumulative 40×40 matrix;
+- `registry/inversion-matrix-c011.json` — current cumulative 46×46 matrix;
 - `registry/schema.json` — policy and validation contract.
 
 ## Validate the organism
@@ -46,73 +47,66 @@ python experiments/theta/conflict_graph.py --self-test
 python experiments/theta/canonical_profile.py --self-test
 python experiments/theta/symmetry_transport.py --self-test
 python experiments/theta/rational_gram_verifier.py --self-test
+python experiments/theta/rational_ldl.py --self-test
+python experiments/theta/lovasz_theta_certificate.py --self-test
+python experiments/theta/disjoint_union.py --self-test
+python experiments/theta/theta_collision_bundle.py --self-test
 ```
 
-## Current status — C010
+## Current status — C011
 
-C010 compresses broad theta claims into narrower algebraic obligations and hardens the experimental interface.
+C011 turns the theta branch into an exact finite certificate chain.
 
-- **8 descendants:** `H084-H091`;
-- **40 attacks:** `A217-A256`;
-- **8 inherited targets re-attacked:** `H075-H079`, `H081-H083`;
+- **6 descendants:** `H092-H097`;
+- **30 attacks:** `A257-A286`;
+- **6 inherited targets re-attacked:** `H070`, `H081`, `H084`, `H085`, `H087`, `H089`;
 - **no terminal result**;
-- **40×40 inversion matrix:** 1600 logical cells;
-- **32 of 40 matrix hypotheses inherited** from earlier cycles.
+- **46×46 inversion matrix:** 2116 logical cells;
+- **40 of 46 matrix hypotheses inherited** from earlier cycles.
 
-### Main proof-compression chain
+### Exact-certificate chain
 
 ```text
-H075 coordinate symmetries
-  -> H084 exact monomial transport
-  -> H085 bounded-depth functional pullback
-  -> H086 projection-resource classification
+H089 rational verification
+  -> H092 rational LDL PSD certificates
+  -> H093 exact Lovasz-theta primal/dual certificates
+  -> H094 one-sided dual theta-gap UNSAT certificates
 
-H078 canonical bounded-level twins
-  -> H087 exact level-one target
+H087 canonical level-one twins
+  -> H096 finite exact collision seed
+  -> H095 disjoint-union amplification
 
-H079 local theta barrier
-  -> H088 pseudoexpectation gadget transport
-
-H083 restriction-robust mixed family
-  -> H090 explicit generator
-  -> H091 bounded-degree parity-proof transfer
+H081 conditioned rational certificates
+  -> H097 polynomial-bit reconstruction under explicit margins
 ```
 
-### H084: checkable algebraic core
+### H092: rational PSD without square roots
 
-`proof_attempts/H075/SYMMETRY_TRANSPORT.md` derives the exact change-of-basis matrix for coordinate permutations and complementations. `symmetry_transport.py` checks inverse identities over the integers for deterministic finite fixtures.
+`rational_ldl.py` constructs and verifies exact permuted `LDL^T` decompositions over `fractions.Fraction`. This covers singular rational PSD matrices without requiring a rational ordinary Gram square root.
 
-This does not promote H075 or H084 to `PROVED`; the universal proof still awaits independent review and final bit accounting.
+The algebraic induction is recorded in [`proof_attempts/H092/RATIONAL_LDL.md`](proof_attempts/H092/RATIONAL_LDL.md). The final universal bit-growth bound still awaits independent review.
 
-### H085/H086: functional definitions versus projection
+### H093/H094: exact theta and one-sided UNSAT
 
-C010 now separates two operations that earlier language risked conflating:
+`lovasz_theta_certificate.py` verifies one fixed Lovasz-theta primal/dual SDP using exact rational constraints and exact LDL positivity certificates.
 
-- bounded-depth **functional substitution**, where certificate pullback may be proved compositionally;
-- **existential projection**, where nonfunctional fibers can erase structure.
+For a conflict graph with clause target `m`, a verified dual upper bound `t<m` certifies UNSAT. Failure to find such a gap never certifies SAT.
 
-This split is the main route toward resolving H076 versus H077.
+### H095/H096: finite seed, no fabricated witness
 
-### H087: canonical level-one twin target
+`theta_collision_bundle.py` accepts a collision only when two equal-target graphs have opposite exact alpha labels and equal exact theta certificates. Its self-test deliberately uses a non-collision pair and requires rejection.
 
-The canonical profile now:
+No positive collision seed is currently registered. If one is found, H095 attempts to amplify it by disjoint union; theta additivity under the exact H093 normalization remains a written proof obligation.
 
-- validates DIMACS semantics, including empty clauses;
-- performs exact variable relabeling only for at most eight used variables;
-- refuses larger unsupported canonicalization claims;
-- excludes exact alpha and SAT labels.
+### H097: certificate existence remains open
 
-Answer-dependent diagnostics live only in `experiments/theta/diagnostics.py`.
+Exact replay is solved for the registered format. Existence of polynomial-size rational certificates is isolated under explicit inverse-polynomial Slater and objective margins.
 
-### H089: exact verification, not discovery
-
-`rational_gram_verifier.py` checks supplied rational Gram factors and threshold margins with exact arithmetic. It does not solve an SDP or imply that short rational certificates exist.
-
-Read [`docs/C010_PROOF_COMPRESSION.md`](docs/C010_PROOF_COMPRESSION.md).
+Read [`docs/C011_EXACT_THETA_CERTIFICATES.md`](docs/C011_EXACT_THETA_CERTIFICATES.md).
 
 ## Current inventory
 
-After C010, JANUS contains **87 live hypotheses** and **4 terminal historical nodes**. These counts are inventory, not evidence or a completion percentage.
+After C011, JANUS contains **93 live hypotheses** and **4 terminal historical nodes**. These counts are inventory, not evidence or a completion percentage.
 
 ## Terminal results retained
 
