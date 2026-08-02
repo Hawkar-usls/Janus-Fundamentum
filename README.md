@@ -15,6 +15,7 @@ This repository does **not** claim that `P = NP` or `P != NP` has been proved. I
 5. **Terminal honesty.** Pressure is not converted into a graveyard result without a decisive theorem, counterexample, or formulation failure.
 6. **Answer-independent observables.** Canonical profiles and exact certificates may not contain SAT labels, exact alpha, or hidden answer-dependent fields.
 7. **Verification is not existence.** An exact verifier does not imply that a short certificate exists or can be found efficiently.
+8. **Total means total.** A total-attack campaign must cover every current live hypothesis and exclude every terminal shadow.
 
 ## Research states
 
@@ -25,15 +26,17 @@ This repository does **not** claim that `P = NP` or `P != NP` has been proved. I
 ## Machine-readable organism
 
 - `registry/hypotheses*.json` — historical hypothesis snapshots;
-- `registry/attacks*.json` — falsification attempts;
+- `registry/attacks*.json` — theorem-specific falsification attempts;
+- `registry/attack-protocols-c012.json` — reusable total-sweep attacks;
+- `registry/total-attack-sweep-c012.json` — the current 93×12 campaign;
 - `registry/references*.json` — primary-source context;
 - `registry/graveyard*.json` — permanent terminal records;
 - `registry/observations*.json` — reductions and methodological findings;
 - `registry/journal*.json` — chronological cycles;
 - `registry/genealogy*.json` — child-to-parent proof routes;
-- `registry/lineage-reverse-c011.json` — append-only parent-to-child edges for C011;
+- `registry/lineage-reverse-c011.json` — append-only parent-to-child edges for C011 descendants;
 - `registry/inversion-tests*.json` — reusable backside tests;
-- `registry/inversion-matrix-c011.json` — current cumulative 46×46 matrix;
+- `registry/inversion-matrix-c011.json` — cumulative 46×46 focused matrix;
 - `registry/schema.json` — policy and validation contract.
 
 ## Validate the organism
@@ -43,6 +46,7 @@ python tools/validate_registry.py
 python tools/validate_lineage.py
 python tools/validate_inversion_matrix.py
 python tools/validate_cycle_pressure.py
+python tools/validate_total_attack_sweep.py
 python experiments/theta/conflict_graph.py --self-test
 python experiments/theta/canonical_profile.py --self-test
 python experiments/theta/symmetry_transport.py --self-test
@@ -53,18 +57,47 @@ python experiments/theta/disjoint_union.py --self-test
 python experiments/theta/theta_collision_bundle.py --self-test
 ```
 
-## Current status — C011
+## Current status — C012
 
-C011 turns the theta branch into an exact finite certificate chain.
+C012 pauses expansion and attacks every live hypothesis.
 
-- **6 descendants:** `H092-H097`;
-- **30 attacks:** `A257-A286`;
-- **6 inherited targets re-attacked:** `H070`, `H081`, `H084`, `H085`, `H087`, `H089`;
-- **no terminal result**;
-- **46×46 inversion matrix:** 2116 logical cells;
-- **40 of 46 matrix hypotheses inherited** from earlier cycles.
+```text
+LIVE HYPOTHESES ATTACKED   93
+ATTACK PROTOCOLS           12
+LOGICAL ATTACK CELLS     1116
+CLEAN SURVIVORS             73
+CONFLICTED SURVIVORS         10
+PRESSURED SURVIVORS          10
+DESTROYED OR REJECTED         0
+```
 
-### Exact-certificate chain
+### Pressured survivors
+
+```text
+H001 H002 H003 H004 H009 H017 H019 H070 H081 H089
+```
+
+The active pressure is concentrated in solve-and-encode circularity, locality that may still simulate global computation, underspecified residual/interface languages, failure of the ordinary first-theta route, and the gap between exact certificate verification and short-certificate existence.
+
+### Mutually incompatible survivors
+
+```text
+H006  vs H011
+H007  vs H014
+H012  vs H013
+H022  vs H023
+H024  vs H025
+```
+
+At least one member of every pair must eventually fail. C012 did not determine which member.
+
+### What survived means
+
+A clean `SURVIVED` cell means only that one standardized audit did not produce a decisive contradiction. It is not evidence that the hypothesis is true, likely, or novel.
+
+Read [`docs/C012_TOTAL_ATTACK_SWEEP.md`](docs/C012_TOTAL_ATTACK_SWEEP.md).
+
+## Strongest focused branch retained from C011
 
 ```text
 H089 rational verification
@@ -80,33 +113,11 @@ H081 conditioned rational certificates
   -> H097 polynomial-bit reconstruction under explicit margins
 ```
 
-### H092: rational PSD without square roots
-
-`rational_ldl.py` constructs and verifies exact permuted `LDL^T` decompositions over `fractions.Fraction`. This covers singular rational PSD matrices without requiring a rational ordinary Gram square root.
-
-The algebraic induction is recorded in [`proof_attempts/H092/RATIONAL_LDL.md`](proof_attempts/H092/RATIONAL_LDL.md). The final universal bit-growth bound still awaits independent review.
-
-### H093/H094: exact theta and one-sided UNSAT
-
-`lovasz_theta_certificate.py` verifies one fixed Lovasz-theta primal/dual SDP using exact rational constraints and exact LDL positivity certificates.
-
-For a conflict graph with clause target `m`, a verified dual upper bound `t<m` certifies UNSAT. Failure to find such a gap never certifies SAT.
-
-### H095/H096: finite seed, no fabricated witness
-
-`theta_collision_bundle.py` accepts a collision only when two equal-target graphs have opposite exact alpha labels and equal exact theta certificates. Its self-test deliberately uses a non-collision pair and requires rejection.
-
-No positive collision seed is currently registered. If one is found, H095 attempts to amplify it by disjoint union; theta additivity under the exact H093 normalization remains a written proof obligation.
-
-### H097: certificate existence remains open
-
-Exact replay is solved for the registered format. Existence of polynomial-size rational certificates is isolated under explicit inverse-polynomial Slater and objective margins.
-
-Read [`docs/C011_EXACT_THETA_CERTIFICATES.md`](docs/C011_EXACT_THETA_CERTIFICATES.md).
+The executable theta tools use exact rational arithmetic. No positive theta-collision seed is currently registered, and exact verification does not imply efficient discovery.
 
 ## Current inventory
 
-After C011, JANUS contains **93 live hypotheses** and **4 terminal historical nodes**. These counts are inventory, not evidence or a completion percentage.
+After C012, JANUS contains **93 live hypotheses** and **4 terminal historical nodes**. These counts are inventory, not evidence or a completion percentage.
 
 ## Terminal results retained
 
