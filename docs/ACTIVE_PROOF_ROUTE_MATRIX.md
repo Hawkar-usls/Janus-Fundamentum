@@ -16,6 +16,7 @@ P_VS_NP=OPEN
 | C028 | Mixed-cone invariants | Decomposable NNF is tractable; overlap variables form a backdoor | Determinism, gate-tree topology and constant alternation imply tractability | `SEMANTIC_SUPPORT_OVERLAP` |
 | C029 | Occurrence-splitting minor | Connected equality splitting preserves the source incidence graph as a minor | Variable copying plus equalities lowers incidence width | `NON_MINOR_PRESERVING_SEMANTIC_COMPRESSION` |
 | C032 | PS-width alignment | JANUS cut signatures are exactly PS-width signatures; high treewidth can have PS-width 2 | Inventing a new enumerative cut parameter | `POLYNOMIAL_PS_DECOMPOSITION_OR_SYMBOLIC_SIGNATURE_COMPRESSION` |
+| C033 | Proof-carrying tractable portfolio | Polynomial verified restriction DAG plus certified tractable leaves yields polynomial SAT/witness/rejection replay | Treating heterogeneous portfolio selection and certificate discovery as free | `POLYNOMIAL_PORTFOLIO_CONSTRUCTOR` |
 | C031 | Proof-carrying SAT refuter | Formal lower-bound transfer interface | Uncertified circuit counterexamples and free direct-sum amplification | `NO_SHARING_REFUTER_AMPLIFICATION` |
 
 ## Constructive P=NP track
@@ -24,14 +25,16 @@ P_VS_NP=OPEN
 tractable local languages
 -> exact semantic cut signatures
 -> PS-width / symbolic message representation
--> polynomial selection and composition
+-> proof-carrying heterogeneous portfolio
+-> polynomial portfolio constructor
 -> SAT witness + UNSAT certificate
 -> universal polynomial SAT algorithm
 ```
 
-The immediate target is C033: a proof-carrying portfolio that combines explicit
-PS-signature dynamic programming with algebraic, Horn and beta-acyclic
-elimination, while returning `OPEN` outside verified scope.
+The immediate target after C033 is a shared semantic-message DAG whose leaves
+include PS-signature tables, Horn/dual-Horn closure, GF(2), beta-acyclic
+elimination and syntactically admitted compiled representations. The constructor
+must prove a polynomial total node/message/certificate bound or return `OPEN`.
 
 ## Separation track
 
@@ -54,7 +57,8 @@ Before admitting a new hypothesis, compare it against:
 PS-width
 MIM-width / incidence width
 DNNF / d-DNNF / OBDD
-backdoor size
+homogeneous and heterogeneous backdoors
+backdoor depth
 residual-state width
 proof width and certificate discovery
 beta-acyclic elimination
