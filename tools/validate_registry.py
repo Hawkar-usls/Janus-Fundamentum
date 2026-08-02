@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 """Validate the JANUS machine-readable proof-search registry.
 
+All major ledgers are modular: hypotheses, attacks, references, observations,
+journals, genealogies, and graveyards are aggregated from matching JSON files.
 The validator checks syntax, IDs, cross-references, status rules, literature
-references, modular attack ledgers, and a stable SHA-256 digest of canonical
-JSON payloads. It uses only the Python standard library.
+references, and a stable SHA-256 digest using only the Python standard library.
 """
 
 from __future__ import annotations
@@ -17,15 +18,7 @@ from typing import Any
 
 ROOT = Path(__file__).resolve().parents[1]
 REGISTRY = ROOT / "registry"
-FILES = {
-    "schema": REGISTRY / "schema.json",
-    "hypotheses": REGISTRY / "hypotheses.json",
-    "graveyard": REGISTRY / "graveyard.json",
-    "observations": REGISTRY / "observations.json",
-    "journal": REGISTRY / "journal.json",
-    "genealogy": REGISTRY / "genealogy.json",
-    "references": REGISTRY / "references.json",
-}
+SCHEMA_PATH = REGISTRY / "schema.json"
 
 
 class RegistryError(RuntimeError):
@@ -42,6 +35,21 @@ def load_json(path: Path) -> Any:
             f"invalid JSON in {path.relative_to(ROOT)} at line {exc.lineno}, "
             f"column {exc.colno}: {exc.msg}"
         ) from exc
+
+
+def load_modular(pattern: str, key: str) -> tuple[list[dict[str, Any]], dict[str, Any]]:
+    paths = sorted(REGISTRY.glob(pattern))
+    if not paths:
+        raise RegistryError(f"no registry files match {pattern}")
+    payloads = {path.name: load_json(path) for path in paths}
+    items: list[dict[str, Any]] = []
+    for path in paths:
+        payload = payloads[path.name]
+        value = payload.get(key)
+        if not isinstance(value, list):
+            raise RegistryError(f"{path.relative_to(ROOT)} has no list field {key!r}")
+        items.extend(value)
+    return items, payloads
 
 
 def require_fields(item: dict[str, Any], fields: list[str], label: str) -> None:
@@ -73,20 +81,16 @@ def canonical_digest(payloads: dict[str, Any]) -> str:
 
 
 def validate() -> str:
-    data = {name: load_json(path) for name, path in FILES.items()}
+    schema = load_json(SCHEMA_PATH)
 
-    attack_paths = sorted(REGISTRY.glob("attacks*.json"))
-    if not attack_paths:
-        raise RegistryError("no attack ledger files found")
-    attack_payloads = {path.name: load_json(path) for path in attack_paths}
-    attacks = [
-        item
-        for path in attack_paths
-        for item in attack_payloads[path.name].get("attacks", [])
-    ]
-    data["attack_files"] = attack_payloads
+    hypotheses, hypothesis_payloads = load_modular("hypotheses*.json", "hypotheses")
+    attacks, attack_payloads = load_modular("attacks*.json", "attacks")
+    graveyard, graveyard_payloads = load_modular("graveyard*.json", "entries")
+    observations, observation_payloads = load_modular("observations*.json", "observations")
+    cycles, journal_payloads = load_modular("journal*.json", "cycles")
+    genealogy, genealogy_payloads = load_modular("genealogy*.json", "nodes")
+    references, reference_payloads = load_modular("references*.json", "references")
 
-    schema = data["schema"]
     required_h = schema["required_hypothesis_fields"]
     required_a = schema["required_attack_fields"]
     required_r = schema["required_reference_fields"]
@@ -99,13 +103,6 @@ def validate() -> str:
     o_pattern = re.compile(schema["id_patterns"]["observation"])
     c_pattern = re.compile(schema["id_patterns"]["cycle"])
     r_pattern = re.compile(schema["id_patterns"]["reference"])
-
-    hypotheses = data["hypotheses"]["hypotheses"]
-    graveyard = data["graveyard"]["entries"]
-    observations = data["observations"]["observations"]
-    cycles = data["journal"]["cycles"]
-    genealogy = data["genealogy"]["nodes"]
-    references = data["references"]["references"]
 
     hypothesis_ids = unique_ids(hypotheses, "hypothesis")
     attack_ids = unique_ids(attacks, "attack")
@@ -120,7 +117,7 @@ def validate() -> str:
         if not h_pattern.fullmatch(hid):
             raise RegistryError(f"invalid hypothesis id format: {hid}")
         if item["status"] not in live_statuses:
-            raise RegistryError(f"{hid} has non-live status in hypotheses.json: {item['status']}")
+            raise RegistryError(f"{hid} has non-live status: {item['status']}")
         if item["reproducibility"] not in reproduction_levels:
             raise RegistryError(f"{hid} has invalid reproducibility level")
         if item["status"] == "PROVED" and item["reproducibility"] != "R5":
@@ -164,6 +161,9 @@ def validate() -> str:
         for hid in item.get("surviving_hypotheses", []):
             if hid not in hypothesis_ids:
                 raise RegistryError(f"{item['id']} references missing survivor {hid}")
+        for hid in item.get("destroyed_or_rejected", []):
+            if hid not in graveyard_ids:
+                raise RegistryError(f"{item['id']} references missing graveyard entry {hid}")
         for aid in item.get("attacks", []):
             if aid not in attack_ids:
                 raise RegistryError(f"{item['id']} references missing attack {aid}")
@@ -196,7 +196,17 @@ def validate() -> str:
         overlap = sorted(hypothesis_ids & graveyard_ids)
         raise RegistryError(f"live/graveyard id overlap: {overlap}")
 
-    return canonical_digest(data)
+    payloads = {
+        "schema": schema,
+        "hypothesis_files": hypothesis_payloads,
+        "attack_files": attack_payloads,
+        "graveyard_files": graveyard_payloads,
+        "observation_files": observation_payloads,
+        "journal_files": journal_payloads,
+        "genealogy_files": genealogy_payloads,
+        "reference_files": reference_payloads,
+    }
+    return canonical_digest(payloads)
 
 
 def main() -> int:
