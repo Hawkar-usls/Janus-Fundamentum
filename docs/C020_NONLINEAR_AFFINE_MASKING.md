@@ -83,3 +83,20 @@ the cost exactly there: a universal Tear policy must either
 
 Any normalization that silently solves formula equivalence, circuit recovery,
 or SAT has merely moved the original problem into Tear extraction.
+
+## Lift to a concrete policy
+
+The same local mask is applied independently to every edge variable of a cubic
+Tseitin graph in:
+
+```bash
+python experiments/direct/janus_tear_policy0a_masked_tseitin.py --self-test
+```
+
+Because cubic degree is fixed, every masked vertex relation has nine inputs and
+an exact 256-clause CNF. The encoding therefore has constant overhead per vertex.
+Policy-0A rejects visible `K4` with zero branch states but visits 3,842 exact
+residual states on the masked instance. The masked `K3,3` instance exceeds the
+explicit quadratic state envelope.
+
+This remains a finite policy falsification rather than an asymptotic lower bound.
