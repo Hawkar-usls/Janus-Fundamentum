@@ -1,226 +1,234 @@
-# C019 pre-admission — JANUS Tear condensation
+# C019 pre-admission — JANUS Tear condensation under attack
 
 ## Status
 
-`EXPLORATORY / NOT ADMITTED TO THE CANONICAL REGISTRY`
+`WEAKENED / STRONG FORM FALSIFIED / NOT ADMITTED TO CANONICAL REGISTRY`
 
-This note connects the JANUS meta-registry image of a tear as a compact liquid
-packet with the proof-search laboratory. It does not claim that tears, emotion,
-water, salt, semiconductor hardware, or the C019 experiment resolve `P` versus
-`NP`.
+A **JANUS Tear** is treated only as a computational object:
 
-## The useful part of the metaphor
+> a compact, independently checkable invariant condensed from one or more
+> residual SAT states.
 
-The meta-registry calls a tear a **Crystalline Data Packet** and maps it through
-`tear -> river -> ocean`. For computation, the defensible translation is:
+The purpose of C019 is not to protect this image. It is to attack every precise
+version until either a surviving theorem remains or the idea is rejected.
 
-- **tear** — a compact, independently checkable summary extracted from a local
-  conflict;
-- **river** — transport of that summary between search branches or swarm nodes;
-- **ocean** — persistent deduplicated memory shared by the whole solver;
-- **salt / conductivity** — only a metaphor for transport, not evidence that an
-  emotion is digitally encoded in tear fluid.
+## Base definition
 
-The mathematical value is therefore not in the chemistry. It is in the proposed
-**condensation operation**: many failed local states are compressed into one
-reusable invariant.
-
-## P–N junction translation
-
-| P–N laboratory term | JANUS Tear interpretation |
-|---|---|
-| unresolved clause charge | accumulated pressure from constraints that remain false |
-| depletion depth | depth of a locally trapped partial assignment |
-| avalanche episode | a conflict that exposes an inconsistent combination |
-| tear | a verified invariant learned from that conflict |
-| ocean | a global cache of non-duplicate invariants |
-| recombination | a satisfying assignment verified clause by clause |
-| no recombination with witness | an independently checkable UNSAT certificate |
-
-A physical swarm can test latency, communication cost, verifier cost, and
-memory reuse. It cannot turn exponential logical work into polynomial work by
-parallelism alone.
-
-## Formal candidate
-
-For a CNF formula `F` and a conflicting partial assignment `alpha`, define
+For a CNF formula `F` and a partial assignment `alpha`, let
 
 ```text
-tau = TEAR(F, alpha)
+tau(F, alpha) = TEAR signature of the residual formula F|alpha.
 ```
 
-A useful tear system must satisfy all of the following.
-
-1. **Soundness** — `F entails tau`.
-2. **Blocking** — the conflicting state `alpha` violates `tau`.
-3. **Polynomial extraction** — `tau` is found in polynomial time.
-4. **Polynomial verification** — soundness or the attached derivation is
-   checkable in polynomial time.
-5. **Polynomial total budget** — only polynomially many non-redundant tears of
-   polynomial total size are needed on every input.
-6. **Quotient completeness** — once two residual search states have the same
-   tear signature, merging them cannot change satisfiability or destroy all
-   witnesses.
-7. **Terminal completeness** — saturation of the tear store yields either a
-   satisfying assignment or a polynomially checkable UNSAT certificate.
-
-## Conditional consequence
-
-If one deterministic algorithm satisfied conditions 1–7 for every CNF formula
-of length `L`, with polynomial running time and polynomial total tear volume,
-then SAT would be decidable in polynomial time. Therefore `P = NP`.
-
-This implication is straightforward. The unsolved content is the existence of
-such a universal tear extractor and, especially, quotient completeness.
-
-## Relation to known solver behavior
+A useful tear must be sound, polynomially extractable, polynomially verifiable,
+and strong enough to merge search states without changing the answer or losing
+witness recovery.
 
 A learned clause, an UNSAT core, a parity invariant, a cut, or an extension
-variable can all be treated as kinds of tears. Ordinary conflict learning is
-therefore already a restricted tear system.
+variable can all be viewed as restricted tear types. Merely renaming those
+objects does not produce a complexity result.
 
-The new hypothesis would have to go beyond renaming clause learning. It must
-show that every exponential search tree can be folded into a polynomial-size
-DAG of residual states using efficiently discovered, sound global invariants.
-Without that theorem, `JANUS Tear` is an architecture for memory reuse rather
-than a route to `P = NP`.
+## Exact positive result: family-specific parity tear
 
-## First exact attack from C018
-
-C018 produced toroidal Tseitin twins with opposite satisfiability but identical
-bounded-radius local signed-incidence views. This attacks every tear whose
-content is determined only by a fixed local neighborhood.
-
-The new executable audit simplifies the same obstruction to charge markers:
-
-```bash
-python experiments/direct/janus_tear_condensation.py --self-test
-python experiments/direct/janus_tear_condensation.py --radius 3
-```
-
-For the generated pair:
+For the two-component Tseitin twins used by the current laboratory:
 
 ```text
 SAT charge distribution:    (2,0)
 UNSAT charge distribution:  (1,1)
 ```
 
-The multiset of every bounded-local tear signature is equal. A local tear cannot
-see whether the two charges occupy one component or two components.
-
-## The first positive result
-
-A **global component-parity tear** stores one XOR bit per connected component.
-For a pure Tseitin system:
+Every tested bounded-local charge-signature multiset is equal, but the global
+component-parity tear is:
 
 ```text
-all component parity bits = 0  -> SAT
-at least one parity bit = 1    -> UNSAT
+SAT:    (0,0)
+UNSAT:  (1,1)
 ```
 
-The C019 audit therefore distinguishes the C018 twins immediately:
+Reproduction:
 
-```text
-SAT tear:    (0,0)
-UNSAT tear:  (1,1)
+```bash
+python experiments/direct/janus_tear_condensation.py --self-test
+python experiments/direct/janus_tear_condensation.py --radius 3
 ```
 
-This is a real compression result for that formula family. A large local search
-is replaced by a tiny global invariant computable from the graph and charge
-vector.
+This is a real compression result for one algebraically exposed family. It is
+not a general SAT algorithm.
 
-It is not a general SAT result. The representation already exposes the exact
-algebraic invariant. The hard universal question is whether an equally compact
-invariant can always be discovered from an arbitrary CNF without first solving
-the instance.
+## Attack 1 — bounded locality fails
 
-## Main hypothesis candidate
+The C017 XOR-cycle twins and their later high-treewidth descendants show that
+for every fixed observation radius, opposite SAT labels can have exactly equal
+multisets of rooted signed-incidence neighborhoods.
 
-### Janus Tear Polynomial Quotient Conjecture
+Therefore no fixed-radius tear language is complete for SAT.
 
-For every CNF formula `F` of length `L`, there exists a polynomial-time
-procedure that constructs a polynomial-size set of sound tears whose canonical
-signature partitions all residual search states into only `poly(L)`
-satisfiability-preserving equivalence classes.
+A global parity tear repairs this family only because the correct invariant is
+already visible in the representation.
 
-### Consequence if true
+## Attack 2 — rich marginals still collide
+
+C019 contains an exact three-variable collision:
 
 ```text
-polynomial tear extraction
-  + polynomial number of quotient states
-  + sound witness recovery
-  + complete UNSAT certification
+SAT:
+  (x1)
+  (x2)
+  (x1 OR NOT x2)
+  (NOT x1 OR NOT x3)
+
+UNSAT:
+  (x1)
+  (x2)
+  (NOT x1 OR NOT x2)
+  (x1 OR NOT x3)
+```
+
+The pair has the same:
+
+- exact unsigned clause scopes;
+- clause-width histogram;
+- sign counts per clause;
+- positive and negative occurrence counts for every labelled variable;
+- exact primal graph and component sizes;
+- recognized equality/inequality XOR-gadget inventory.
+
+Yet the first formula has one witness and the second has none.
+
+```bash
+python experiments/direct/janus_tear_marginal_collision.py
+```
+
+Thus unsigned global structure plus rich signed marginals is not a sound
+complete tear signature.
+
+## Attack 3 — the strong polynomial quotient is false
+
+The original candidate claimed that all residual states of every formula could
+be partitioned into only polynomially many witness-preserving tear classes.
+
+Take the linear-size equality family
+
+```text
+E_n(X,Y) = AND_i (x_i <-> y_i).
+```
+
+For every bit string `a` in `{0,1}^n`, assign `X=a`. The residual formula is
+
+```text
+Y=a,
+```
+
+represented by `n` unit clauses. There are exactly `2^n` such residuals.
+
+They are pairwise continuation-distinguishable: continuation `Y=a` satisfies
+residual `a` and rejects every residual `b != a`.
+
+Therefore any tear equivalence whose equality guarantees identical behavior
+under every future continuation requires at least
+
+```text
+2^n
+```
+
+classes, although the original formula has only `2n` binary clauses.
+
+Reproduction:
+
+```bash
+python experiments/direct/janus_tear_congruence_explosion.py --self-test
+python experiments/direct/janus_tear_congruence_explosion.py --n 10
+```
+
+The `n=10` audit checks 1,024 distinct residuals and 1,047,552 ordered
+cross-residual continuations.
+
+### Decisive conclusion
+
+The statement
+
+> every CNF has a polynomial-size continuation-complete quotient of all partial
+> assignments
+
+is false, even for a formula family already solvable in linear time.
+
+This does **not** imply `P != NP`. It rejects an over-strong formulation of the
+Tear conjecture.
+
+## The Tear trilemma
+
+### 1. Decision-only equivalence
+
+If two residuals may merge whenever they merely share the current SAT/UNSAT
+label, there are only two classes.
+
+But computing the class is exactly the SAT decision problem. The tear extractor
+has hidden the desired answer inside itself.
+
+### 2. Continuation-complete equivalence
+
+If equal tears must preserve every possible future assignment and witness
+behavior, the equality family above forces exponentially many classes.
+
+This strong form has been falsified.
+
+### 3. Policy-selected equivalence
+
+A solver may avoid most residual states and visit only a polynomially chosen
+subset. If a polynomial-time tear policy always does this and returns a witness
+or a sound UNSAT result, then it is already a polynomial-time SAT algorithm.
+
+Consequently the surviving statement is not yet a proof route; it is an
+equivalent algorithmic target:
+
+```text
+explicit polynomial Tear policy
   -> SAT in P
   -> P = NP
 ```
 
-### First unproved theorem
+Failure to find a counterexample to an unspecified policy is not evidence of
+this implication's premise.
 
-The extractor must find the right global invariant without hiding SAT, formula
-equivalence, circuit minimization, or proof search inside the extraction step.
+## Surviving research target
 
-## Immediate attacks
+### JANUS Tear Guided-Policy Candidate
 
-1. **Clause-learning collapse** — if tears are only clauses derived by ordinary
-   conflict resolution, the proposal is merely a CDCL/resolution strategy and
-   does not establish a polynomial worst-case bound.
-2. **Locality failure** — C018 twins show that bounded-local tears miss global
-   component parity.
-3. **Canonicalization trap** — deciding that two residual formulas have the
-   same solution set may itself contain the original hard problem.
-4. **Verifier trap** — an expressive small tear is useless if checking that
-   `F entails tau` requires an unbounded proof search.
-5. **State explosion** — every tear may be small while the number of distinct
-   non-redundant tears remains exponential.
-6. **Representation dependence** — the parity tear solves a Tseitin family
-   because the correct algebraic language is given in advance.
-7. **Parallelism accounting** — Gladius, Anchor, and Holocron may lower latency,
-   but total work, energy, communication, and duplicated proof effort must be
-   charged separately.
+There exists one explicitly defined, polynomial-time computable tear language
+and transition policy such that, on every CNF formula of length `L`:
 
-## Swarm protocol candidate
+1. every emitted tear has a polynomially checkable derivation;
+2. the algorithm generates only `poly(L)` tears and policy states;
+3. the total representation and verification work is `poly(L)`;
+4. the policy returns a satisfying assignment when one exists;
+5. otherwise it returns a sound polynomially checkable rejection artifact.
 
-- **Gladius** proposes a tear after a conflict episode.
-- **Anchor** independently verifies the derivation and rejects unsound tears.
-- **Holocron** canonicalizes, deduplicates, records provenance, and measures how
-  many residual states the tear actually merges.
-- The untouched control lane runs without imported tears.
+This candidate has not been proved or refuted. As stated, constructing it would
+amount to constructing a polynomial-time SAT algorithm.
 
-Required metrics:
+## Next falsification gates
 
-```text
-tear bytes
-generation work
-verification work
-communication bytes
-deduplication ratio
-residual-state merge count
-witness recovery success
-SAT/UNSAT correctness
-total work versus control
-```
-
-## Admission gate
-
-C019 should enter the canonical hypothesis registry only after all of the
-following exist:
-
-1. an exact definition of residual-state equivalence;
-2. a verifier format for tears;
-3. a proof that the experiment measures more than ordinary learned clauses;
-4. a benchmark containing C018 toroidal twins and non-Tseitin crafted CNFs;
-5. an explicit attack showing where local tears fail;
-6. one measurable positive compression result beyond the family-specific parity
-   tear;
-7. honest accounting of total work and proof size.
+1. Define a finite candidate tear language rather than quantifying over an
+   unknown perfect invariant.
+2. Search automatically for opposite-label collisions at increasing formula
+   size.
+3. Test whether stronger tears merely encode exact residual formulas and cause
+   exponential state growth.
+4. Separate extraction cost from verification cost.
+5. Require every compression claim to include witness recovery.
+6. Attack representation dependence by hiding parity behind equivalent CNF
+   encodings and extension variables.
+7. Compare against ordinary clause learning so that renamed CDCL behavior is not
+   counted as a new theorem.
 
 ## Claim boundary
 
-The current result is:
+C019 has produced one positive family-specific compression result and two exact
+falsifications:
 
-> A tear can be made mathematically meaningful as a compact verified invariant.
-> On Tseitin formulas, one global parity tear collapses a hard-looking local
-> search. The path to `P = NP` would require proving that every SAT instance has
-> a polynomially discoverable, polynomially complete tear basis. That missing
-> theorem is essentially the heart of the problem, not something established by
-> the metaphor or the experiment.
+- bounded or marginal summary languages can merge SAT with UNSAT;
+- continuation-complete quotienting of all residual states can require
+  exponentially many classes on a linear-size easy formula.
+
+No JANUS Tear result currently proves `P = NP` or `P != NP`. The surviving work
+is to specify an actual polynomial policy and then attempt to destroy it.
