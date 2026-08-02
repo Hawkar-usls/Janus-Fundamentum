@@ -2,13 +2,14 @@
 
 ## Status
 
-`EXPLORATORY / PRE-ADMISSION / TWO ADDITIONAL RESTRICTED POLICIES FALSIFIED`
+`EXPLORATORY / PRE-ADMISSION / RESTRICTED POLICIES FALSIFIED`
 
 The all-state continuation-complete Tear quotient is already false. This addendum
 moves to narrower policies that might still look computationally useful.
 
 The results below do not refute every possible policy-selected Tear algorithm.
-They eliminate two explicit restricted mechanisms.
+They eliminate explicit restricted mechanisms and feed the fully specified
+Policy-0A experiment.
 
 ## Attack A — unit-propagation-enhanced marginal Tears
 
@@ -98,17 +99,39 @@ python experiments/direct/janus_tear_resolution_width_audit.py --self-test
 
 ### Result
 
-A fixed small clause width is already incomplete on a tiny exact instance.
-For asymptotic families, resolution width is a known proof-complexity resource;
-the C020 code records only the finite `K4` theorem and does not claim a new
+A fixed small clause width is already incomplete on a tiny exact instance. The
+C020 code records only the finite `K4` theorem and does not claim a new
 asymptotic lower bound.
 
-Relevant primary references:
+## Attack C — one fully specified combined policy
 
-- E. Ben-Sasson and A. Wigderson, *Short Proofs Are Narrow—Resolution Made
-  Simple*, JACM 48(2), 2001, DOI `10.1145/375827.375835`.
-- A. Atserias and V. Dalmau, *A Combinatorial Characterization of Resolution
-  Width*, JCSS 74(3), 2008, DOI `10.1016/j.jcss.2007.06.025`.
+Policy-0A combines:
+
+```text
+visible affine root extraction
++ unit propagation
++ polynomially budgeted local resolution
++ deterministic branching
++ exact residual memoization
+```
+
+The visible odd-charge `K4` instance is rejected with zero branch states. Under
+the local nonlinear edge encoding
+
+```text
+x = b XOR (a AND c),
+```
+
+the same global contradiction requires 3,842 residual states on masked `K4`.
+The masked `K3,3` instance exceeds the explicit state promise `B(v)=4v^2` at
+state 2,917.
+
+```bash
+python experiments/direct/janus_tear_policy0a_masked_tseitin.py --self-test
+```
+
+Read `docs/C020_POLICY0A_MASKED_TSEITIN.md` for the exact budgets and claim
+boundary.
 
 ## Updated survivor
 
@@ -119,11 +142,14 @@ A surviving Tear policy must now avoid all of the following failures:
 3. unit-propagation-enhanced marginals;
 4. continuation-complete all-state quotienting;
 5. fixed bounded-width resolution closure;
-6. hiding the SAT decision problem inside Tear extraction or canonicalization.
+6. visible affine extraction under nonlinear masking;
+7. the exact Policy-0A quadratic state envelope;
+8. hiding the SAT decision problem inside Tear extraction or canonicalization.
 
-The remaining target is therefore not merely a compact data format. It is one
-fully explicit transition algorithm whose total extraction, proof, state,
-verification, and witness-recovery cost is polynomial on every CNF.
+The remaining target is not merely a compact data format. It is one fully
+explicit transition algorithm whose total extraction, proof, state,
+verification, normalization, and witness-recovery cost is polynomial on every
+CNF.
 
 Constructing and proving such an algorithm would itself establish `SAT in P`.
 Failure to find a counterexample to an unspecified policy is not evidence of
@@ -131,16 +157,15 @@ that theorem.
 
 ## Next gate
 
-The next experimentally meaningful step is to select one concrete stronger
-policy, for example:
+The next experimentally meaningful step is asymptotic:
 
 ```text
-unit propagation
-+ bounded-width resolution
-+ recognized affine/XOR elimination
-+ deterministic branching rule
+fixed bounded-degree expander family
++ constant-overhead nonlinear mask
++ fully specified policy
++ lower bound on one charged resource
 ```
 
-and then search automatically for the smallest formula on which its visited
-state count exceeds a chosen polynomial envelope or its Tear signature collides
-across opposite SAT labels.
+A sequence of larger finite timeouts is not enough. The laboratory now needs a
+proof connecting graph expansion, masked representation, and the exact policy's
+residual or proof complexity.
