@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
-"""Compact diagnostic wrapper for the historical novelty audit."""
+"""Compact diagnostic wrapper for the failure-tolerant novelty audit."""
 
 from __future__ import annotations
 
 import json
 import traceback
 
-from janus_tear_gt_novel_branch_audit import audit
+from janus_tear_gt_novel_branch_audit_v2 import audit
 
 
 def self_test() -> None:
@@ -22,9 +22,11 @@ def self_test() -> None:
                 "states": data["states"],
                 "maximum_novelty": data["maximum_novelty"],
                 "target_level": data["target_level"],
-                "first_target_distinct_restrictions": data[
-                    "first_target_distinct_restrictions"
+                "target_distinct_restrictions": data[
+                    "target_distinct_restrictions"
                 ],
+                "early_cyclic_calls": data["early_cyclic_calls"],
+                "early_conflicts": data["early_conflicts"],
             }
             records.append(record)
             print("NOVEL_DEBUG_JSON=" + json.dumps(record, sort_keys=True))
