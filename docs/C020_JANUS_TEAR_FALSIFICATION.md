@@ -22,9 +22,9 @@ Canonical C019 already contains:
   fixed-pass low-treewidth compiler model.
 
 The C020 experiments do **not** refute H127. H127 concerns one restricted
-compiler category on the H125 twins. C020 instead attacks a broader and initially
-over-strong claim that every formula's entire residual-state space should admit
-a polynomial continuation-complete quotient.
+compiler category on the H125 twins. C020 instead attacks broader and initially
+over-strong Tear formulations and then fixes concrete policies for finite
+falsification.
 
 ## Base definition
 
@@ -64,142 +64,101 @@ Reproduction:
 
 ```bash
 python experiments/direct/janus_tear_tseitin_condensation.py --self-test
-python experiments/direct/janus_tear_tseitin_condensation.py --radius 3
 ```
 
 This is a real compression result for one algebraically exposed family. It is
 not a universal SAT invariant.
 
-## Falsification 1 — bounded locality
+## Falsified mechanisms
 
-The C017 XOR-cycle twins and H125's connected high-treewidth descendants show
-that opposite SAT labels may have exactly equal bounded-radius signed-incidence
-views.
+C020 now contains executable attacks against:
 
-Therefore no fixed-radius Tear language is complete for SAT.
+1. bounded-local Tear languages;
+2. rich structural marginal signatures;
+3. structural marginals augmented with exhaustive unit propagation;
+4. continuation-complete polynomial quotienting of all residual states;
+5. fixed bounded-width resolution Tears;
+6. visible affine/XOR extraction under nonlinear bijective re-encoding.
 
-The parity Tear repairs the Tseitin family only because the correct global
-algebraic invariant is already known.
+The detailed finite witnesses and commands are recorded in:
 
-## Falsification 2 — rich marginals
+- `docs/C020_TEAR_POLICY_ATTACKS.md`;
+- `docs/C020_NONLINEAR_AFFINE_MASKING.md`;
+- `docs/C020_POLICY0A_MASKED_TSEITIN.md`.
 
-C020 contains an exact three-variable collision:
+## Strong-form terminal result
 
-```text
-SAT:
-  (x1)
-  (x2)
-  (x1 OR NOT x2)
-  (NOT x1 OR NOT x3)
-
-UNSAT:
-  (x1)
-  (x2)
-  (NOT x1 OR NOT x2)
-  (x1 OR NOT x3)
-```
-
-The formulas have the same:
-
-- exact unsigned clause scopes;
-- clause-width histogram;
-- sign counts per clause;
-- positive and negative occurrence counts for every labelled variable;
-- exact primal graph and component sizes;
-- recognized equality/inequality XOR-gadget inventory.
-
-Yet the first has exactly one witness and the second has none.
-
-```bash
-python experiments/direct/janus_tear_marginal_collision.py
-```
-
-Thus this rich marginal summary language is not a sound complete Tear signature.
-
-## Falsification 3 — all-state continuation quotient explosion
-
-The original strong candidate asked for polynomially many Tear classes across
-all residual states while preserving arbitrary future behavior.
-
-Take the linear-size equality family
+Take
 
 ```text
 E_n(X,Y) = AND_i (x_i <-> y_i).
 ```
 
-For every `a` in `{0,1}^n`, assign `X=a`. The residual formula is the set of unit
-clauses forcing
-
-```text
-Y=a.
-```
-
-There are exactly `2^n` residuals. They are pairwise continuation-distinguishable:
-continuation `Y=a` satisfies residual `a` and rejects residual `b` for every
-`b != a`.
-
-Therefore any equivalence whose equal Tears guarantee identical acceptance for
-every future continuation requires at least `2^n` classes, although `E_n` has
-only `2n` clauses.
-
-```bash
-python experiments/direct/janus_tear_congruence_explosion.py --self-test
-python experiments/direct/janus_tear_congruence_explosion.py --n 10
-```
-
-The `n=10` audit checks:
-
-```text
-formula clauses:                    20
-residual states:                  1024
-pairwise distinct residuals:      1024
-ordered cross-state tests:     1047552
-```
-
-### Decisive result
-
-The following statement is false:
+For every `a` in `{0,1}^n`, assigning `X=a` produces the residual `Y=a`.
+These `2^n` residuals are pairwise continuation-distinguishable. Therefore the
+following statement is false:
 
 > Every CNF has a polynomial-size continuation-complete quotient of all partial
 > assignments.
 
-The counterexample family is itself easy. This is not a proof that `P != NP`;
-it is a formulation failure of the strong Tear conjecture.
+This formulation failure is not a proof that `P != NP`.
+
+## Concrete Policy-0A result
+
+Policy-0A fixes:
+
+- visible affine root extraction;
+- unit propagation;
+- polynomially budgeted local resolution;
+- deterministic most-frequent-variable branching;
+- false-first value order;
+- exact residual memoization.
+
+On the visible odd-charge `K4` Tseitin contradiction, four affine equations reject
+the formula with zero residual states.
+
+After replacing every edge bit by
+
+```text
+x = b XOR (a AND c),
+```
+
+the masked `K4` formula remains UNSAT but Policy-0A visits exactly 3,842 residual
+states. On masked `K3,3`, the explicit envelope
+
+```text
+B(v) = 4 v^2
+```
+
+is exceeded at state 2,917 for `v=27` without an answer.
+
+This rejects one exact policy/envelope. It is not an asymptotic lower bound and
+does not exclude a larger polynomial.
+
+```bash
+python experiments/direct/janus_tear_policy0a_masked_tseitin.py --self-test
+```
 
 ## The Tear trilemma
 
 ### Decision-only equality
 
 If two states may merge whenever they share only the current SAT/UNSAT label,
-there are at most two classes.
-
-But extracting that class is exactly the SAT decision problem. The desired answer
-has been hidden inside the Tear extractor.
+there are at most two classes. But extracting the class is exactly SAT.
 
 ### Continuation-complete equality
 
-If equal Tears must preserve every future assignment and full residual solution
-language, the equality family forces exponentially many classes.
-
-This form is falsified.
+If equal Tears must preserve every future assignment, the equality family forces
+exponentially many classes. This form is falsified.
 
 ### Policy-selected equality
 
-A solver may choose not to visit most residual states. Suppose one explicit
-polynomial-time Tear policy always generates only polynomially many states and
-returns a witness or a sound rejection.
+An explicit polynomial-time policy that always visits only polynomially many
+states and returns a witness or sound rejection is already a polynomial-time SAT
+algorithm.
 
-Then that policy is already a polynomial-time SAT algorithm:
-
-```text
-explicit polynomial Tear policy
-  -> SAT in P
-  -> P = NP
-```
-
-Consequently failure to find a counterexample to an unspecified policy proves
-nothing. The extractor and transition policy themselves must be constructed and
-proved polynomial.
+Failure to find a counterexample to an unspecified policy proves nothing. The
+extractor and transition rule must be constructed and their total cost proved.
 
 ## Surviving candidate
 
@@ -210,37 +169,25 @@ policy such that, on every CNF formula of length `L`:
 
 1. every emitted Tear has a polynomially checkable derivation;
 2. only `poly(L)` Tears and policy states are generated;
-3. total extraction, representation, transition, and verification work is
-   `poly(L)`;
+3. total extraction, representation, transition, verification, and recovery work
+   is `poly(L)`;
 4. a satisfying assignment is returned on SAT instances;
 5. a sound polynomially checkable rejection artifact is returned otherwise.
 
 Constructing this object would solve SAT in polynomial time. It has not been
 constructed or proved.
 
-## Next attacks
+## Next gate
 
-1. Fix a finite Tear language rather than quantify over an unknown perfect
-   invariant.
-2. Automatically enumerate small CNFs and search for opposite-label collisions.
-3. Add exact residual formulas to the signature and measure the resulting state
-   explosion.
-4. Separate extraction cost from verification cost.
-5. Require witness recovery and attack hidden path-dependent side information.
-6. Hide parity behind equivalent encodings and extension variables.
-7. Compare every proposed Tear with ordinary clause learning and proof systems.
-8. Test whether a candidate policy merely invokes SAT-equivalence or circuit
-   minimization during canonicalization.
+The next meaningful step is asymptotic rather than cosmetic:
+
+1. select one explicit bounded-degree expander family;
+2. apply the fixed nonlinear edge mask with constant overhead;
+3. analyze the fully specified Policy-0A transition system;
+4. prove or destroy a superpolynomial lower bound on residual states, resolution
+   work, representation normalization, or witness-recovery information.
 
 ## Claim boundary
 
-C020 currently records:
-
-- one family-specific positive compression result;
-- one exact SAT/UNSAT marginal collision;
-- one exponential lower bound against all-state continuation-complete Tear
-  quotienting.
-
-No result in this branch proves `P = NP`, proves `P != NP`, or refutes H127. The
-strong universal Tear quotient has been rejected; the policy-selected form
-survives only as an explicit algorithmic target.
+C020 records exact finite counterexamples and one terminal formulation failure.
+No result in this branch proves `P = NP`, proves `P != NP`, or refutes H127.
