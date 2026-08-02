@@ -4,40 +4,24 @@
 
 JANUS is a public, machine-readable laboratory for reproducible research around computational complexity, with `P` versus `NP` as its long-term target.
 
-This repository does **not** claim that `P = NP` or `P != NP` has been proved. It preserves hypotheses, attacks, proof attempts, primary sources, descendants, inversion tests, and terminal failures.
+This repository does **not** claim that `P = NP` or `P != NP` has been proved.
 
 ## Laboratory laws
 
-1. **Independent reproducibility.** Computational claims require committed code, fixed inputs, expected outputs, seeds where applicable, and hashes.
-2. **Proof-directed admission.** From `H030`, every hypothesis names its `proof_role`, `next_gate`, and registered attacks.
+1. **Independent reproducibility.** Computational claims require committed code, fixed inputs, expected outputs, and hashes.
+2. **Proof-directed admission.** From `H030`, every hypothesis names its proof role, next gate, and attacks.
 3. **Inherited progress.** From `H060`, every child names older parents and a material delta.
 4. **Inversion before expansion.** New mathematics first attacks the existing graph.
 5. **Terminal honesty.** Pressure is not converted into a graveyard result without a decisive theorem, counterexample, or formulation failure.
-6. **Answer-independent observables.** Canonical profiles and exact certificates may not contain SAT labels, exact alpha, or hidden answer-dependent fields.
+6. **Answer-independent observables.** Canonical profiles and exact certificates may not contain hidden SAT labels.
 7. **Verification is not existence.** An exact verifier does not imply that a short certificate exists or can be found efficiently.
-8. **Total means total.** A total-attack campaign must cover every current live hypothesis and exclude every terminal shadow.
+8. **Historical campaigns stay historical.** Later descendants and terminal shadows do not rewrite earlier attack snapshots.
 
 ## Research states
 
 `PROPOSED -> UNDER_ATTACK -> OPEN -> FORMALIZING -> INDEPENDENT_REPRODUCTION -> PEER_REVIEW -> PROVED`
 
-`OPEN` means only that registered attacks have not destroyed the exact statement. `FORMALIZING` is not proof. `PROVED` requires R5 formal and independent verification.
-
-## Machine-readable organism
-
-- `registry/hypotheses*.json` — historical hypothesis snapshots;
-- `registry/attacks*.json` — theorem-specific falsification attempts;
-- `registry/attack-protocols-c012.json` — reusable total-sweep attacks;
-- `registry/total-attack-sweep-c012.json` — the current 93×12 campaign;
-- `registry/references*.json` — primary-source context;
-- `registry/graveyard*.json` — permanent terminal records;
-- `registry/observations*.json` — reductions and methodological findings;
-- `registry/journal*.json` — chronological cycles;
-- `registry/genealogy*.json` — child-to-parent proof routes;
-- `registry/lineage-reverse-c011.json` — append-only parent-to-child edges for C011 descendants;
-- `registry/inversion-tests*.json` — reusable backside tests;
-- `registry/inversion-matrix-c011.json` — cumulative 46×46 focused matrix;
-- `registry/schema.json` — policy and validation contract.
+`OPEN` means only that registered attacks have not destroyed the exact statement. `PROVED` requires R5 formal and independent verification.
 
 ## Validate the organism
 
@@ -55,79 +39,138 @@ python experiments/theta/rational_ldl.py --self-test
 python experiments/theta/lovasz_theta_certificate.py --self-test
 python experiments/theta/disjoint_union.py --self-test
 python experiments/theta/theta_collision_bundle.py --self-test
+python experiments/theta/complete_3cnf_collision.py --self-test
+python experiments/theta/complete_3cnf_family.py --self-test
 ```
 
-## Current status — C012
+# Current status — C013
 
-C012 pauses expansion and attacks every live hypothesis.
+C013 attacks the pressured C012 routes until they reach a terminal formulation failure, a narrower descendant, or a named open barrier.
 
 ```text
-LIVE HYPOTHESES ATTACKED   93
-ATTACK PROTOCOLS           12
-LOGICAL ATTACK CELLS     1116
-CLEAN SURVIVORS             73
-CONFLICTED SURVIVORS         10
-PRESSURED SURVIVORS          10
-DESTROYED OR REJECTED         0
+NEW DESCENDANTS             6   H098-H103
+CURRENT-CYCLE ATTACKS      44   A287-A330
+TERMINAL REJECTIONS         6
+LIVE HYPOTHESES            93
+TERMINAL HISTORICAL NODES  10
 ```
 
-### Pressured survivors
+## Exact theta breakthrough
+
+The finite collision sought by `H096` now has an explicit rational witness.
+
+### UNSAT side
+
+Take all eight width-three clauses on `x1,x2,x3`. Every assignment falsifies exactly one clause, so the conflict graph has:
 
 ```text
-H001 H002 H003 H004 H009 H017 H019 H070 H081 H089
+clause target = 8
+alpha         = 7
+theta         = 8
 ```
 
-The active pressure is concentrated in solve-and-encode circularity, locality that may still simulate global computation, underspecified residual/interface languages, failure of the ordinary first-theta route, and the gap between exact certificate verification and short-certificate existence.
+### SAT side
 
-### Mutually incompatible survivors
+Adjoin one shared positive literal `x4` to the same eight sign patterns. Setting `x4=true` gives:
 
 ```text
-H006  vs H011
-H007  vs H014
-H012  vs H013
-H022  vs H023
-H024  vs H025
+clause target = 8
+alpha         = 8
+theta         = 8
 ```
 
-At least one member of every pair must eventually fail. C012 did not determine which member.
+Both theta values are certified by exact rational primal-dual bundles and exact rational permuted `LDL^T` positivity certificates. No floating-point SDP result is trusted.
 
-### What survived means
+```bash
+python experiments/theta/complete_3cnf_collision.py --self-test
+```
 
-A clean `SURVIVED` cell means only that one standardized audit did not produce a decisive contradiction. It is not evidence that the hypothesis is true, likely, or novel.
-
-Read [`docs/C012_TOTAL_ATTACK_SWEEP.md`](docs/C012_TOTAL_ATTACK_SWEEP.md).
-
-## Strongest focused branch retained from C011
+Expected result:
 
 ```text
-H089 rational verification
-  -> H092 rational LDL PSD certificates
-  -> H093 exact Lovasz-theta primal/dual certificates
-  -> H094 one-sided dual theta-gap UNSAT certificates
-
-H087 canonical level-one twins
-  -> H096 finite exact collision seed
-  -> H095 disjoint-union amplification
-
-H081 conditioned rational certificates
-  -> H097 polynomial-bit reconstruction under explicit margins
+JANUS_COMPLETE_3CNF_THETA_COLLISION = PASS
 ```
 
-The executable theta tools use exact rational arithmetic. No positive theta-collision seed is currently registered, and exact verification does not imply efficient discovery.
+The UNSAT primal matrix is generated from 12 orbits of the 48 signed-coordinate automorphisms. Its exact nonzero spectrum is:
 
-## Current inventory
+```text
+1/3  multiplicity 1
+1/6  multiplicity 3
+1/18 multiplicity 3
+```
 
-After C012, JANUS contains **93 live hypotheses** and **4 terminal historical nodes**. These counts are inventory, not evidence or a completion percentage.
+Read [`proof_attempts/H096/EXACT_COLLISION.md`](proof_attempts/H096/EXACT_COLLISION.md).
+
+## Infinite explicit family
+
+For `r` variable-disjoint copies, the primal matrix is
+
+```text
+(1/r) J_r tensor X
+```
+
+and the direct dual objective is `8r`. Thus the SAT and UNSAT sides both have exact theta value `8r`, while their alpha labels remain opposite.
+
+```bash
+python experiments/theta/complete_3cnf_family.py --self-test
+```
+
+This is encoded as `H098-H099`. It is an explicit limitation of the standard first Lovasz-theta SAT relaxation, not a solution of `P` versus `NP`.
+
+## Six terminal formulation failures
+
+C013 rejects:
+
+```text
+H001 H002 H003 H004 H019 H070
+```
+
+- `H001-H004` and `H070` allow an unrestricted polynomial transformer to solve SAT first and encode only the answer.
+- `H019` does not fix the syntax, denotation size, original-variable support, or composition semantics of an interface symbol.
+
+Their useful ideas survive only through restricted descendants:
+
+```text
+H001/H009 -> H100 potential-decreasing local compiler
+H017      -> H101 restriction-robust mixed residual generator
+H019      -> H102 typed bounded-support interface elimination
+H070      -> H103 one-pass local theta-gap compiler
+```
+
+Read [`proof_attempts/C013/CIRCULARITY_AND_SPECIFICATION.md`](proof_attempts/C013/CIRCULARITY_AND_SPECIFICATION.md).
+
+## Where the attack finally stops
+
+The unresolved frontier is now concentrated in:
+
+1. explicit lower bounds for full Extended Frege, full IPS, TC0-Frege, unrestricted Stabbing Planes/CP, and recursive extension-PC;
+2. pseudoexpectation transport through arbitrary fixed local gadgets;
+3. a deterministic restriction-robust mixed XOR/non-affine generator;
+4. a complete DNNF transfer or escape theorem for typed interface elimination;
+5. conditioned existence of polynomial-bit exact SDP certificates.
+
+The five incompatible duels remain unresolved:
+
+```text
+H006 vs H011
+H007 vs H014
+H012 vs H013
+H022 vs H023
+H024 vs H025
+```
+
+## Historical C012 sweep
+
+The 93×12 C012 campaign remains a frozen snapshot. Its validator now checks the declared `H001-H097` historical state rather than incorrectly treating later terminal decisions as retroactive omissions.
+
+Read [`docs/C013_DEEP_ATTACK.md`](docs/C013_DEEP_ATTACK.md).
 
 ## Terminal results retained
 
-- [`H016 — DESTROYED`](proof_attempts/H016/REFUTATION.md): projected polynomial d-DNNF contradicts unconditional DNNF lower bounds.
-- [`H018 — REJECTED`](proof_attempts/H018/FORMULATION_FAILURE.md): missing decision correctness made the statement vacuous.
-- [`H048 — DESTROYED`](proof_attempts/H048/REFUTATION.md): ordinary CDCL remains inside Resolution.
-- [`H074 — REJECTED`](proof_attempts/H074/FORMULATION_FAILURE.md): the theta observable interface was undefined and answer-dependent.
+- `H016 — DESTROYED`: projected polynomial d-DNNF contradicts unconditional DNNF lower bounds.
+- `H018 — REJECTED`: missing decision correctness made the formulation vacuous.
+- `H048 — DESTROYED`: ordinary CDCL remains inside Resolution.
+- `H074 — REJECTED`: the theta observable interface was undefined.
+- `H001-H004`, `H019`, `H070 — REJECTED`: C013 circularity or specification failures.
 
 No JANUS result currently resolves `P` versus `NP`.
-
-## Contribution rule
-
-A contribution must shorten a proof route, expose a falsification mechanism, or improve independent reproducibility. New descendants must inherit from the organism rather than bypass it.
