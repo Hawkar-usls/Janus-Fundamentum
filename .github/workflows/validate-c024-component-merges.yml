@@ -1,0 +1,27 @@
+name: Validate C024 Component Merges
+
+on:
+  push:
+    paths:
+      - "experiments/direct/janus_tear_gt_novel_branch_audit_v2.py"
+      - "experiments/direct/janus_tear_gt_component_merge_accounting.py"
+      - ".github/workflows/validate-c024-component-merges.yml"
+  pull_request:
+    paths:
+      - "experiments/direct/janus_tear_gt_novel_branch_audit_v2.py"
+      - "experiments/direct/janus_tear_gt_component_merge_accounting.py"
+      - ".github/workflows/validate-c024-component-merges.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  component-merges:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Audit Hasse-component merge resources
+        run: python experiments/direct/janus_tear_gt_component_merge_accounting.py
