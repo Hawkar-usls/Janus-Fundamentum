@@ -14,15 +14,19 @@ the saturated CNF and classifies each of the 18 occurrences as:
 - COLOCATED_NONCAUSAL: the state is contradictory but this event resolvent is
   absent from every reconstructed reason closure.
 
+Terminal labels are recorded but not trusted.  Contradiction is certified from
+the final post-unit event itself: either simultaneous opposite units or a unit
+assignment producing the empty clause.
+
 All candidate source clauses are retained, so causal membership is existential
 and does not depend on an arbitrary chosen reason.
 """
 
 from __future__ import annotations
 
-from collections import Counter, defaultdict
+from collections import Counter
 
-from janus_tear_gt_component_merge_sources import reduce_clause, source_clauses
+from janus_tear_gt_component_merge_sources import source_clauses
 from janus_tear_gt_component_tree_clause_audit import execution_context
 from janus_tear_gt_local_resolution_bad_bridge_birth_v2 import audit as raw_audit
 
@@ -33,32 +37,47 @@ def assignment_literal(variable: int, value: bool) -> int:
     return int(variable) if value else -int(variable)
 
 
+def semantic_conflict_kind(events) -> str:
+    assert events
+    last = events[-1]
+    if last["kind"] == "opposite_units":
+        units = tuple(int(value) for value in last["units"])
+        unit_set = set(units)
+        assert any(-literal in unit_set for literal in unit_set)
+        return "OPPOSITE_UNITS"
+    assert last["kind"] == "unit"
+    assert last.get("after") is None
+    return "EMPTY_ON_UNIT_ASSIGNMENT"
+
+
 def build_reason_certificate(base_cnf, events):
     """Replay unit events and return all-source backward conflict closure."""
 
     assignments: dict[int, bool] = {}
     assignment_event: dict[int, int] = {}
     event_sources: dict[int, tuple[Clause, ...]] = {}
-    event_literals: dict[int, int] = {}
     event_prior_assignments: dict[int, dict[int, bool]] = {}
     conflict_root_events: set[int] = set()
     conflict_root_sources: set[Clause] = set()
     conflict_kind = None
 
-    batch_start_assignments: dict[int, dict[int, bool]] = {}
     for event_index, event in enumerate(events):
-        batch = int(event["batch"])
-        batch_start_assignments.setdefault(batch, dict(assignments))
-
         if event["kind"] == "opposite_units":
             conflict_kind = "OPPOSITE_UNITS"
-            prior = batch_start_assignments[batch]
+            prior = dict(assignments)
             units = tuple(int(value) for value in event["units"])
+            unit_set = set(units)
+            assert any(-literal in unit_set for literal in unit_set)
             for literal in units:
                 candidates = source_clauses(tuple(base_cnf), prior, literal)
-                assert candidates
+                assert candidates, (
+                    "opposite_units",
+                    event_index,
+                    literal,
+                    prior,
+                )
                 conflict_root_sources.update(candidates)
-                # Opposite units are simultaneous roots, not assigned events.
+            assert event_index == len(events) - 1
             break
 
         assert event["kind"] == "unit"
@@ -70,7 +89,6 @@ def build_reason_certificate(base_cnf, events):
         assert candidates, (event_index, literal, prior)
 
         event_sources[event_index] = candidates
-        event_literals[event_index] = literal
         event_prior_assignments[event_index] = prior
 
         if event.get("after") is None:
@@ -80,21 +98,18 @@ def build_reason_certificate(base_cnf, events):
             assert opposite_candidates, (event_index, literal, prior)
             conflict_root_sources.update(candidates)
             conflict_root_sources.update(opposite_candidates)
+            assert event_index == len(events) - 1
             break
 
         assignments[variable] = value
         assignment_event[variable] = event_index
 
     assert conflict_kind is not None
+    assert conflict_kind == semantic_conflict_kind(events)
 
     closure_sources: set[Clause] = set(conflict_root_sources)
     closure_events: set[int] = set(conflict_root_events)
     agenda_events = list(conflict_root_events)
-
-    # Simultaneous opposite-unit roots have no event indices.  Their source
-    # clauses may depend on assignments from earlier batches; seed those
-    # dependencies directly.
-    agenda_clauses = list(conflict_root_sources)
 
     def enqueue_dependencies(clause: Clause, prior: dict[int, bool]) -> None:
         for literal in clause:
@@ -103,26 +118,21 @@ def build_reason_certificate(base_cnf, events):
                 continue
             value = prior[variable]
             true_literal = assignment_literal(variable, value)
-            if literal == true_literal:
-                # A source clause reducing to a unit cannot already be satisfied.
-                raise AssertionError((clause, prior, literal))
+            assert literal != true_literal, (clause, prior, literal)
             dependency_event = assignment_event.get(variable)
             if dependency_event is not None and dependency_event not in closure_events:
                 closure_events.add(dependency_event)
                 agenda_events.append(dependency_event)
 
-    # For root source clauses use the complete assignment prefix available at
-    # contradiction.  Dependencies can only point to already assigned units.
     final_assignments = dict(assignments)
-    for clause in agenda_clauses:
+    for clause in tuple(conflict_root_sources):
         enqueue_dependencies(clause, final_assignments)
 
     while agenda_events:
         event_index = agenda_events.pop()
         prior = event_prior_assignments[event_index]
         for clause in event_sources[event_index]:
-            if clause not in closure_sources:
-                closure_sources.add(clause)
+            closure_sources.add(clause)
             enqueue_dependencies(clause, prior)
 
     return {
@@ -142,6 +152,7 @@ def audit(n: int):
     raw = raw_audit(n)
 
     counts: Counter[str] = Counter()
+    terminal_labels: Counter[str] = Counter()
     conflict_kinds: Counter[str] = Counter()
     unique_state_ids: set[int] = set()
     unique_origin_events: set[tuple[int, int]] = set()
@@ -165,15 +176,19 @@ def audit(n: int):
         unique_origin_events.add((state_id, event_index))
 
         state = policy.states[state_id]
-        assert state["terminal"] == "POST_UNIT_CONTRADICTION"
+        terminal = str(state["terminal"])
+        terminal_labels[terminal] += 1
         assert not state.get("children")
+        post_events = tuple(state.get("post_units", []))
+        semantic_kind = semantic_conflict_kind(post_events)
 
         if state_id not in certificate_cache:
             certificate_cache[state_id] = build_reason_certificate(
                 tuple(state["resolution_output"]),
-                tuple(state["post_units"]),
+                post_events,
             )
         certificate = certificate_cache[state_id]
+        assert certificate["conflict_kind"] == semantic_kind
         conflict_kinds[str(certificate["conflict_kind"])] += 1
         closure_source_counts[int(certificate["closure_source_count"])] += 1
         closure_event_counts[int(certificate["closure_event_count"])] += 1
@@ -203,6 +218,7 @@ def audit(n: int):
             "bad_literal": int(example["literal"]),
             "endpoint_shape": tuple(example["endpoint_shape"]),
             "event_clause": event_clause,
+            "terminal_label": terminal,
             "classification": classification,
             "conflict_kind": certificate["conflict_kind"],
             "unit_event_count": certificate["unit_event_count"],
@@ -224,6 +240,7 @@ def audit(n: int):
     return {
         "n": n,
         "counts": tuple(sorted(counts.items())),
+        "terminal_labels": tuple(sorted(terminal_labels.items())),
         "conflict_kinds": tuple(sorted(conflict_kinds.items())),
         "unique_states": len(unique_state_ids),
         "unique_origin_events": len(unique_origin_events),
@@ -236,6 +253,7 @@ def audit(n: int):
 
 def self_test() -> None:
     aggregate_counts: Counter[str] = Counter()
+    aggregate_terminals: Counter[str] = Counter()
     aggregate_conflicts: Counter[str] = Counter()
     aggregate_closure_sources: Counter[int] = Counter()
     aggregate_closure_events: Counter[int] = Counter()
@@ -245,6 +263,7 @@ def self_test() -> None:
     for n in range(4, 9):
         data = audit(n)
         aggregate_counts.update(dict(data["counts"]))
+        aggregate_terminals.update(dict(data["terminal_labels"]))
         aggregate_conflicts.update(dict(data["conflict_kinds"]))
         aggregate_closure_sources.update(dict(data["closure_source_counts"]))
         aggregate_closure_events.update(dict(data["closure_event_counts"]))
@@ -265,6 +284,7 @@ def self_test() -> None:
             ),
             "unique_states": data["unique_states"],
             "unique_origin_events": data["unique_origin_events"],
+            "terminal_labels": dict(data["terminal_labels"]),
             "conflict_kinds": dict(data["conflict_kinds"]),
         })
 
@@ -273,6 +293,7 @@ def self_test() -> None:
     for row in rows:
         print(f"ROW = {row}")
     print(f"COUNTS = {dict(aggregate_counts)}")
+    print(f"TERMINAL_LABELS = {dict(aggregate_terminals)}")
     print(f"CONFLICT_KINDS = {dict(aggregate_conflicts)}")
     print(f"CLOSURE_SOURCE_COUNTS = {dict(sorted(aggregate_closure_sources.items()))}")
     print(f"CLOSURE_EVENT_COUNTS = {dict(sorted(aggregate_closure_events.items()))}")
