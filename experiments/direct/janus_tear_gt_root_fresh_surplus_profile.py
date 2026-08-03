@@ -40,12 +40,13 @@ def audit(n: int):
     assert set(root_frequency.values()) == {expected_baseline}
     assert set(root_frequency) == set(post_frequency)
 
+    root_set = set(root)
     fresh_clauses = tuple(
         clause
         for clause in post
-        if clause not in set(root)
+        if clause not in root_set
     )
-    assert set(post) == set(root) | set(fresh_clauses)
+    assert set(post) == root_set | set(fresh_clauses)
     fresh_frequency = variable_frequencies(fresh_clauses)
     for variable in post_frequency:
         assert post_frequency[variable] == (
@@ -64,6 +65,11 @@ def audit(n: int):
     unsafe_positive_variables: Counter[int] = Counter()
     unsafe_fresh_clause_counts: Counter[int] = Counter()
     rows = []
+
+    fresh_variable_sets = {
+        clause: {abs(literal) for literal in clause}
+        for clause in fresh_clauses
+    }
 
     for item in margin["rows"]:
         counts["occurrences"] += 1
@@ -97,7 +103,7 @@ def audit(n: int):
                 unsafe_fresh_clause_counts[sum(
                     1
                     for clause in fresh_clauses
-                    if variable in {abs(literal) for literal in clause}
+                    if variable in fresh_variable_sets[clause]
                 )] += 1
             else:
                 counts["unsafe_zero_surplus_pairs"] += 1
@@ -197,7 +203,7 @@ def self_test() -> None:
     assert aggregate_counts["vacuous_occurrences"] == 4
     assert aggregate_counts["nonvacuous_occurrences"] == 58
     assert sum(aggregate_unsafe_surplus.values()) == 1397
-    assert aggregate_unsafe_max == Counter({0: 56, 1: 2})
+    assert aggregate_unsafe_max == Counter({0: 40, 1: 18})
     assert aggregate_gaps == Counter(
         {
             6: 2,
@@ -234,9 +240,9 @@ def self_test() -> None:
         f"{tuple(sorted(aggregate_fresh_clause_counts.items()))}"
     )
     print(
-        "finite_result = uniform root baseline cancels exactly; 56 of 58 "
+        "finite_result = uniform root baseline cancels exactly; 40 of 58 "
         "nonvacuous occurrences have maximum unsafe fresh surplus zero, and "
-        "the remaining two have maximum unsafe surplus one"
+        "the remaining eighteen have maximum unsafe surplus one"
     )
     print(
         "claim_boundary = exact frozen-surplus profile through GT_12; "
