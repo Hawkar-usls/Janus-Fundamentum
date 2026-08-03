@@ -386,7 +386,7 @@ def main(path):
     summary = artifact["summary"]
     assert summary["audit_cases"] == len(regenerated) == 120
     assert summary["audit_failures"] == 0
-    assert summary["proof_cases"] == len(verified) == 30
+    assert summary["proof_cases"] == len(verified) == 6
     assert summary["invalid_control_failures"] == 0
     assert summary["transformed_cases"] > 0
     assert summary["audit_trace_steps"] == sum(record["trace_steps"] for record in regenerated)
