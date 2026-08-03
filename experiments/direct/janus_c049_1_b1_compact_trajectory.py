@@ -187,7 +187,6 @@ def build() -> dict:
         "artifact": "C049.1-JANUS-COMPACT-B-TRAJECTORY-B1",
         "source": "Jeong-Kim-Oum arXiv:1507.02184v4 Section 3.1",
         "status": "B1_COMPACTIFICATION_IMPLEMENTED_B2_PENDING",
-        "audit_records": audit_records,
         "audit_records_digest": stable_digest(audit_records),
         "proof_cases": proof_cases,
         "invalid_controls": controls,
@@ -203,5 +202,5 @@ if __name__ == "__main__":
     parser.add_argument("--output", required=True)
     args = parser.parse_args()
     with open(args.output, "w", encoding="utf-8") as handle:
-        json.dump(build(), handle, indent=2, sort_keys=True)
+        json.dump(build(), handle, sort_keys=True, separators=(",", ":"))
         handle.write("\n")
