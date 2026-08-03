@@ -1,8 +1,8 @@
-# C048 — Affine layout FPT bridge
+# C048.1 — Affine layout FPT bridge
 
 ```text
 P_VS_NP = OPEN
-C048 = THEOREM_LEVEL_PRIMARY_SOURCE_BRIDGE
+C048.1 = THEOREM_LEVEL_PRIMARY_SOURCE_BRIDGE
        / EXECUTABLE_IDENTITY_AUDIT
        / PUBLISHED_CONSTRUCTOR_NOT_REIMPLEMENTED
        / DRAFT
@@ -33,7 +33,7 @@ Their constructive theorem receives the subspaces themselves and an integer
 parameter tractable total work over every fixed finite field.
 
 Therefore the abstract fixed-`k` existence of a polynomial/FPT layout discovery
-algorithm is already known. C048 must not rename that theorem or continue to
+algorithm is already known. C048.1 must not rename that theorem or continue to
 list it as an unlocated invariant-discovery problem.
 
 ## 2. Exact identity
@@ -156,7 +156,16 @@ represented matroids (`arXiv:2605.14428`). It is important current alignment,
 but it does not automatically replace the direct grouped-subspace theorem used
 here.
 
-## 8. Surviving gate
+## 8. Cycle allocation
+
+```text
+C048   frozen affine-layout portfolio (PR #72)
+C048.1 primary-source FPT layout bridge (this PR)
+```
+
+PR #72 remains canonical C048. This bridge is stacked on it and does not compete for that identifier. The branch/file paths retaining `c048` are pre-admission replay aliases.
+
+## 9. Surviving gate
 
 ```text
 PROOF_CARRYING_FPT_LAYOUT_CONSTRUCTOR_INTEGRATION
@@ -164,5 +173,5 @@ OR
 OFFSET_AWARE_BRANCH_DECOMPOSITION_COMPOSITION
 ```
 
-C048 does not prove that arbitrary affine arrangements have bounded layout
+C048.1 does not prove that arbitrary affine arrangements have bounded layout
 width, does not close the NAND3+NEQ image, and does not resolve P versus NP.

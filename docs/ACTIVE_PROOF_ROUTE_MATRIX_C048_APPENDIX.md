@@ -2,26 +2,13 @@
 
 | Cycle | Exact object | Verified contribution | Shortcut rejected | Surviving gate |
 |---|---|---|---|---|
-| C048 | Primary-source bridge from C047 cut width to finite-field subspace-arrangement linear-layout width | Per-order/per-cut identity; published constructive FPT layout theorem closes the abstract fixed-`k` discovery-existence question; composition with C047 is `F(k)2^O(k) poly(L)` | Treating C047 width as a new invariant, accepting a supplied layout for free, promoting finite exhaustive search to FPT discovery, or promoting fixed-parameter tractability to universal polynomial time | `PROOF_CARRYING_FPT_LAYOUT_CONSTRUCTOR_INTEGRATION_OR_OFFSET_AWARE_BRANCH_DECOMPOSITION_COMPOSITION` |
+| C048 | Frozen affine-subspace layout portfolio over C047 functional trellises | Charged assignment-independent generation, exact cut-width replay, one full probe per unique order, deterministic certified selection; strict hidden-order separation | One canonical factor order is without loss of generality; a successful order may be chosen after probe outcomes | `POLYNOMIAL_LAYOUT_PORTFOLIO_COMPLETENESS_OR_FIXED_WIDTH_BRANCH_DECOMPOSITION_DISCOVERY` |
 
 ```text
 C046 affine-offset obstruction
--> C047 offset-aware affine-functional trellis
--> C048 exact alignment with constructive FPT subspace-layout discovery
--> proof-carrying constructor integration or offset-aware branch composition
+-> C047 offset-aware affine-functional trellis for one order
+-> C048 frozen proof-carrying layout discovery portfolio
+-> fixed-width branch-decomposition discovery or portfolio completeness
 ```
 
-Route correction:
-
-```text
-POLYNOMIAL_AFFINE_LAYOUT_DISCOVERY
-```
-
-is no longer an open theorem-existence gate for fixed `k`. The published
-Jeong-Kim-Oum constructor already supplies that theorem. The repository still
-owes an independently replayable implementation and must return `OPEN` outside
-its explicit fixed-parameter capability.
-
-```text
-P_VS_NP=OPEN
-```
+`P_VS_NP=OPEN`.

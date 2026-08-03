@@ -8,7 +8,7 @@ import json
 import random
 from typing import Any, Iterable
 
-SCHEMA = "janus.c048.affine_layout_fpt_bridge.v1"
+SCHEMA = "janus.c048_1.affine_layout_fpt_bridge.v1"
 SEED = 480048
 RANDOM_CASES = 220
 EXHAUSTIVE_CASES = 90
@@ -188,6 +188,8 @@ def run(seed: int = SEED) -> dict[str, Any]:
         identity_checks += len(left[1])
         if left != right:
             identity_failures += 1
+        # Offsets never enter either width expression. Two independently sampled
+        # offset payloads bind to the same normal arrangement and therefore layout.
         offsets_a = [rng.randrange(1 << len(space)) for space in spaces]
         offsets_b = [rng.randrange(1 << len(space)) for space in spaces]
         assert len(offsets_a) == len(offsets_b) == len(spaces)
@@ -227,9 +229,9 @@ def run(seed: int = SEED) -> dict[str, Any]:
     )
 
     result: dict[str, Any] = {
-        "artifact_id": "C048-JANUS-AFFINE-LAYOUT-FPT-BRIDGE",
+        "artifact_id": "C048.1-JANUS-AFFINE-LAYOUT-FPT-BRIDGE",
         "schema": SCHEMA,
-        "cycle": "C048",
+        "cycle": "C048.1",
         "status": "PASS",
         "bridge_status": "THEOREM_LEVEL_PRIMARY_SOURCE_BRIDGE",
         "implementation_status": "PUBLISHED_FPT_CONSTRUCTOR_NOT_REIMPLEMENTED",
@@ -285,7 +287,7 @@ def run(seed: int = SEED) -> dict[str, Any]:
             "OFFSET_AWARE_BRANCH_DECOMPOSITION_COMPOSITION"
         ),
         "claim_boundary": (
-            "C048 closes the abstract fixed-k layout-discovery existence question by exact "
+            "C048.1 closes the abstract fixed-k layout-discovery existence question by exact "
             "identification with a published constructive FPT theorem. It does not claim the "
             "repository reimplements that constructor, does not prove bounded k on every "
             "instance, does not close NAND3+NEQ, and does not resolve P versus NP."

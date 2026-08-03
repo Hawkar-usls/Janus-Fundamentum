@@ -8,7 +8,7 @@ import json
 import random
 from typing import Any, Iterable
 
-SCHEMA = "janus.c048.affine_layout_fpt_bridge.v1"
+SCHEMA = "janus.c048_1.affine_layout_fpt_bridge.v1"
 SEED = 480048
 RANDOM_CASES = 220
 EXHAUSTIVE_CASES = 90
@@ -71,19 +71,14 @@ def nullspace(space: tuple[int, ...], dimension: int) -> tuple[int, ...]:
 
 
 def meet(left: tuple[int, ...], right: tuple[int, ...], dimension: int) -> tuple[int, ...]:
-    return nullspace(
-        add_spaces([nullspace(left, dimension), nullspace(right, dimension)], dimension),
-        dimension,
-    )
+    return nullspace(add_spaces([nullspace(left, dimension), nullspace(right, dimension)], dimension), dimension)
 
 
 def normalized(spaces: list[list[int]], dimension: int) -> list[tuple[int, ...]]:
     return [rref(space, dimension) for space in spaces]
 
 
-def width_intersection(
-    spaces: list[tuple[int, ...]], order: tuple[int, ...], dimension: int
-) -> tuple[int, list[int]]:
+def width_intersection(spaces: list[tuple[int, ...]], order: tuple[int, ...], dimension: int) -> tuple[int, list[int]]:
     ordered = [spaces[i] for i in order]
     cuts: list[int] = []
     for cut in range(len(ordered) + 1):
@@ -93,9 +88,7 @@ def width_intersection(
     return max(cuts, default=0), cuts
 
 
-def width_rank_identity(
-    spaces: list[tuple[int, ...]], order: tuple[int, ...], dimension: int
-) -> tuple[int, list[int]]:
+def width_rank_identity(spaces: list[tuple[int, ...]], order: tuple[int, ...], dimension: int) -> tuple[int, list[int]]:
     ordered = [spaces[i] for i in order]
     cuts: list[int] = []
     for cut in range(len(ordered) + 1):
@@ -114,9 +107,7 @@ def random_space(rng: random.Random, dimension: int) -> list[int]:
     return list(rref(vectors, dimension))
 
 
-def exact_optimum(
-    spaces: list[tuple[int, ...]], dimension: int
-) -> tuple[int, tuple[int, ...], int]:
+def exact_optimum(spaces: list[tuple[int, ...]], dimension: int) -> tuple[int, tuple[int, ...], int]:
     if not spaces:
         return 0, (), 1
     best: tuple[int, tuple[int, ...]] | None = None
@@ -173,9 +164,7 @@ def reconstruct(seed: int) -> dict[str, Any]:
     for _ in range(RANDOM_CASES):
         dimension = rng.randint(1, 8)
         count = rng.randint(0, 9)
-        spaces = normalized(
-            [random_space(rng, dimension) for _ in range(count)], dimension
-        )
+        spaces = normalized([random_space(rng, dimension) for _ in range(count)], dimension)
         order_list = list(range(count))
         rng.shuffle(order_list)
         order = tuple(order_list)
@@ -193,9 +182,7 @@ def reconstruct(seed: int) -> dict[str, Any]:
     for _ in range(EXHAUSTIVE_CASES):
         dimension = rng.randint(1, 6)
         count = rng.randint(0, 7)
-        spaces = normalized(
-            [random_space(rng, dimension) for _ in range(count)], dimension
-        )
+        spaces = normalized([random_space(rng, dimension) for _ in range(count)], dimension)
         optimum, order, tested = exact_optimum(spaces, dimension)
         layouts_tested += tested
         a = width_intersection(spaces, order, dimension)
@@ -205,9 +192,9 @@ def reconstruct(seed: int) -> dict[str, Any]:
         certificate_controls += 1
 
     result: dict[str, Any] = {
-        "artifact_id": "C048-JANUS-AFFINE-LAYOUT-FPT-BRIDGE",
+        "artifact_id": "C048.1-JANUS-AFFINE-LAYOUT-FPT-BRIDGE",
         "schema": SCHEMA,
-        "cycle": "C048",
+        "cycle": "C048.1",
         "status": "PASS",
         "bridge_status": "THEOREM_LEVEL_PRIMARY_SOURCE_BRIDGE",
         "implementation_status": "PUBLISHED_FPT_CONSTRUCTOR_NOT_REIMPLEMENTED",
@@ -258,7 +245,7 @@ def reconstruct(seed: int) -> dict[str, Any]:
             "OFFSET_AWARE_BRANCH_DECOMPOSITION_COMPOSITION"
         ),
         "claim_boundary": (
-            "C048 closes the abstract fixed-k layout-discovery existence question by exact "
+            "C048.1 closes the abstract fixed-k layout-discovery existence question by exact "
             "identification with a published constructive FPT theorem. It does not claim the "
             "repository reimplements that constructor, does not prove bounded k on every "
             "instance, does not close NAND3+NEQ, and does not resolve P versus NP."
