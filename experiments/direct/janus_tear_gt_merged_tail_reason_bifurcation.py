@@ -1,16 +1,15 @@
 #!/usr/bin/env python3
-"""Certify the two finite merged-tail conflict reason schemes.
+"""Cross-classify finite merged-tail conflict reason templates.
 
-The ancestry profile suggests an exact bifurcation through GT_8:
+The first version incorrectly inferred a pointwise correlation from equal
+aggregate counts: there are 13 ancestor conflict sources and 13 closures
+containing the bad tail's root non-minimality clause, but these are not the same
+13 occurrences.  This corrected checker retains only the universal parent
+geometry and emits honest cross-tables for causal class, root ancestry,
+conflict type, origin width, and parent width.
 
-- every origin inference resolves one component-spanning/undirected-cycle-only
-  parent with one directed-cycle parent;
-- ancestor conflict cases contain the bad tail's root non-minimality clause and
-  root transitivity in the all-source reason closure;
-- direct conflict cases require no root non-minimality clause.
-
-This checker also measures origin resolvent widths and parent widths to test
-whether the extinction theorem can be reduced to a unit-resolvent lemma.
+It also tests whether the origin resolvents are units.  No direct/ancestor root
+correlation is asserted unless it follows from the reported cross-table.
 """
 
 from __future__ import annotations
@@ -20,9 +19,25 @@ from collections import Counter
 from janus_tear_gt_merged_tail_reason_template_profile import audit
 
 
+def root_feature(relative, root_classes) -> str:
+    has_nonminimality = any(
+        kind == "ROOT_NON_MINIMALITY" for kind, _vertex in root_classes
+    )
+    has_transitivity = ("ROOT_TRANSITIVITY", None) in root_classes
+    if relative == ("TAIL",) and has_nonminimality and has_transitivity:
+        return "TAIL_NONMINIMALITY_PLUS_TRANSITIVITY"
+    if relative == () and not has_nonminimality and has_transitivity:
+        return "TRANSITIVITY_WITHOUT_NONMINIMALITY"
+    if relative == () and not has_nonminimality and not has_transitivity:
+        return "DERIVED_ONLY"
+    return "OTHER_ROOT_PATTERN"
+
+
 def self_test() -> None:
     counts: Counter[str] = Counter()
     causal_conflict: Counter[tuple[str, str]] = Counter()
+    causal_root_feature: Counter[tuple[str, str]] = Counter()
+    causal_relative: Counter[tuple[str, tuple[str, ...]]] = Counter()
     causal_event_width: Counter[tuple[str, int]] = Counter()
     causal_parent_widths: Counter[tuple[str, tuple[int, int]]] = Counter()
     causal_endpoint_shapes: Counter[tuple[str, tuple[int, int]]] = Counter()
@@ -30,6 +45,9 @@ def self_test() -> None:
     causal_source_types: Counter[tuple[str, tuple[str, ...]]] = Counter()
     causal_root_classes: Counter = Counter()
     pivot_in_bad_parent_count: Counter[tuple[str, int]] = Counter()
+    parent_safety_unordered: Counter[tuple[str, str]] = Counter()
+    parent_orientation_unordered: Counter[tuple[str, str]] = Counter()
+    event_widths: Counter[int] = Counter()
     rows = []
 
     for n in range(4, 9):
@@ -43,39 +61,35 @@ def self_test() -> None:
             safety = tuple(row["parent_safety"])
             orientation = tuple(row["parent_orientation"])
             roles = tuple(row["parent_roles"])
-            assert sorted(safety) == ["COMPONENT_SPANNING", "DIRECTED_CYCLE"]
-            assert sorted(orientation) == ["HAS_DIRECTED_CYCLE", "UNDIRECTED_CYCLE_ONLY"]
+            safety_unordered = tuple(sorted(safety))
+            orientation_unordered = tuple(sorted(orientation))
+            assert safety_unordered == (
+                "COMPONENT_SPANNING",
+                "DIRECTED_CYCLE",
+            )
+            assert orientation_unordered == (
+                "HAS_DIRECTED_CYCLE",
+                "UNDIRECTED_CYCLE_ONLY",
+            )
             assert roles == (
                 "NONBRIDGE_OR_NONSPANNING",
                 "NONBRIDGE_OR_NONSPANNING",
             )
+            parent_safety_unordered[safety_unordered] += 1
+            parent_orientation_unordered[orientation_unordered] += 1
 
             relative = tuple(row["closure_relative_minimum"])
             root_classes = tuple(row["closure_root_classes"])
-            if causal == "ANCESTOR_CONFLICT_SOURCE":
-                assert relative == ("TAIL",)
-                assert ("ROOT_TRANSITIVITY", None) in root_classes
-                assert any(
-                    kind == "ROOT_NON_MINIMALITY"
-                    for kind, _vertex in root_classes
-                )
-                counts["ancestor_with_tail_nonminimality"] += 1
-                counts["ancestor_with_root_transitivity"] += 1
-            elif causal == "DIRECT_CONFLICT_SOURCE":
-                assert relative == ()
-                assert not any(
-                    kind == "ROOT_NON_MINIMALITY"
-                    for kind, _vertex in root_classes
-                )
-                counts["direct_without_nonminimality"] += 1
-            else:
-                raise AssertionError(causal)
+            feature = root_feature(relative, root_classes)
+            causal_root_feature[(causal, feature)] += 1
+            causal_relative[(causal, relative)] += 1
 
             resolvent = tuple(row["resolvent"])
             left = tuple(row["left"])
             right = tuple(row["right"])
             event_width = len(resolvent)
             parent_widths = tuple(sorted((len(left), len(right))))
+            event_widths[event_width] += 1
             causal_event_width[(causal, event_width)] += 1
             causal_parent_widths[(causal, parent_widths)] += 1
             causal_endpoint_shapes[(causal, tuple(row["endpoint_shape"]))] += 1
@@ -98,12 +112,15 @@ def self_test() -> None:
             parents_containing_bad = sum(
                 1 for parent in (left, right) if bad_literal in parent
             )
+            assert parents_containing_bad >= 1
             pivot_in_bad_parent_count[(causal, parents_containing_bad)] += 1
 
             rows.append({
                 "n": n,
                 "causal": causal,
                 "conflict": conflict,
+                "root_feature": feature,
+                "relative_minimum": relative,
                 "event_width": event_width,
                 "parent_widths": parent_widths,
                 "endpoint_shape": tuple(row["endpoint_shape"]),
@@ -116,15 +133,26 @@ def self_test() -> None:
                 "parents_containing_bad": parents_containing_bad,
             })
 
-    assert counts["ANCESTOR_CONFLICT_SOURCE"] == 13
-    assert counts["DIRECT_CONFLICT_SOURCE"] == 4
-    assert counts["ancestor_with_tail_nonminimality"] == 13
-    assert counts["ancestor_with_root_transitivity"] == 13
-    assert counts["direct_without_nonminimality"] == 4
+    assert counts == Counter({
+        "ANCESTOR_CONFLICT_SOURCE": 13,
+        "DIRECT_CONFLICT_SOURCE": 4,
+    })
+    assert parent_safety_unordered == Counter({
+        ("COMPONENT_SPANNING", "DIRECTED_CYCLE"): 17,
+    })
+    assert parent_orientation_unordered == Counter({
+        ("HAS_DIRECTED_CYCLE", "UNDIRECTED_CYCLE_ONLY"): 17,
+    })
+    assert sum(event_widths.values()) == 17
 
-    print("JANUS_GT_MERGED_TAIL_REASON_BIFURCATION = PASS")
+    print("JANUS_GT_MERGED_TAIL_REASON_CROSS_TABLE = PASS")
     print(f"COUNTS = {dict(counts)}")
+    print(f"PARENT_SAFETY_UNORDERED = {dict(parent_safety_unordered)}")
+    print(f"PARENT_ORIENTATION_UNORDERED = {dict(parent_orientation_unordered)}")
     print(f"CAUSAL_CONFLICT = {dict(causal_conflict)}")
+    print(f"CAUSAL_ROOT_FEATURE = {dict(causal_root_feature)}")
+    print(f"CAUSAL_RELATIVE_MINIMUM = {dict(causal_relative)}")
+    print(f"EVENT_WIDTHS = {dict(sorted(event_widths.items()))}")
     print(f"CAUSAL_EVENT_WIDTH = {dict(causal_event_width)}")
     print(f"CAUSAL_PARENT_WIDTHS = {dict(causal_parent_widths)}")
     print(f"CAUSAL_ENDPOINT_SHAPES = {dict(causal_endpoint_shapes)}")
@@ -135,8 +163,8 @@ def self_test() -> None:
     for row in rows:
         print(f"ROW = {row}")
     print(
-        "claim_boundary = exact finite two-scheme certificate through GT_8; "
-        "arbitrary-n unit-conflict induction remains open"
+        "claim_boundary = corrected finite cross-table through GT_8; "
+        "no pointwise causal/root correlation or arbitrary-n theorem asserted"
     )
 
 
