@@ -1,18 +1,18 @@
 #!/usr/bin/env python3
-"""Probe exact root handoff beyond the full-search GT_8 frontier.
+"""Probe exact root endpoint-or-extinction handoff through GT_12.
 
 This script executes only the deterministic root stages of Policy-0A:
 
     root unit closure -> frozen Resolution -> post-units -> selected branch.
 
-It therefore scales farther than the complete recursive trace.  Every immediate
-local component-spanning bridge with singleton tail and singleton head is
-followed through both branch polarities and child pre-unit closure.  The probe
-records whether the selected comparison touches an endpoint and whether a bad
-bridge descendant reaches the next exact child key.
+Every immediate-local component-spanning bridge with singleton tail and
+singleton head is followed through both branch polarities and child pre-unit
+closure.  A disjoint selected branch is not itself forbidden: the correct
+safety target is that no disjoint choice carries the same bad bridge into an
+admitted child exact key.
 
-Orders 4..8 are regression-certified against the complete trace.  Orders 9..12
-are an exploratory extension, not an asymptotic theorem.
+Orders 4..8 are regression-certified against the complete recursive trace.
+Orders 9..12 are an exploratory exact root extension, not an asymptotic theorem.
 """
 
 from __future__ import annotations
@@ -59,8 +59,6 @@ def root_stages(n: int):
     return {
         "root": tuple(root),
         "pairs": pairs,
-        "key": tuple(key),
-        "resolution_output": tuple(saturated),
         "events": tuple(events),
         "post": tuple(post),
         "post_events": tuple(post_events),
@@ -85,7 +83,6 @@ def audit(n: int):
 
     counts: Counter[str] = Counter()
     relation_histogram: Counter[str] = Counter()
-    selected_pair_histogram: Counter[tuple[int, int]] = Counter()
     child_fates: Counter[str] = Counter()
     records = []
 
@@ -127,7 +124,6 @@ def audit(n: int):
                 head_component,
             )
             relation_histogram[label] += 1
-            selected_pair_histogram[selected_pair] += 1
             if label == "DISJOINT":
                 counts["disjoint_selected_occurrences"] += 1
             else:
@@ -141,6 +137,7 @@ def audit(n: int):
                     fates.append((value, fate, None))
                     child_fates[fate] += 1
                     continue
+
                 child_key, child_contradiction, child_events = unit_trace(child)
                 if child_contradiction:
                     fate = "PRE_UNIT_CONTRADICTION"
@@ -148,12 +145,20 @@ def audit(n: int):
                     child_fates[fate] += 1
                     continue
                 assert child_key is not None
+                if not child_key:
+                    fate = "SAT_EMPTY_TERMINAL"
+                    fates.append((value, fate, None))
+                    child_fates[fate] += 1
+                    continue
+
                 child_assignment = dict(assignment)
                 child_assignment[selected] = value
                 child_assignment.update(unit_assignments(child_events))
                 residual = reduce_clause(clause, child_assignment)
                 if residual is None or literal not in residual:
                     fate = "CLAUSE_EXTINCT"
+                elif residual not in child_key:
+                    fate = "NOT_IN_CHILD_KEY"
                 else:
                     residual_class = str(
                         safety_class(
@@ -175,6 +180,7 @@ def audit(n: int):
                             and residual_bridge["role"] != "TAIL_SINGLETON"
                             else "SPANNING_NONBAD"
                         )
+
                 fates.append((value, fate, residual))
                 child_fates[fate] += 1
                 if fate == "BAD_BRIDGE_SURVIVES":
@@ -198,8 +204,8 @@ def audit(n: int):
             )
 
     if n <= 8:
-        assert counts["disjoint_selected_occurrences"] == 0
         assert counts["bad_child_descendants"] == 0
+        assert counts["disjoint_bad_child_descendants"] == 0
     return {
         "n": n,
         "root_clauses": len(data["root"]),
@@ -218,14 +224,29 @@ def self_test() -> None:
     aggregate_counts: Counter[str] = Counter()
     first_disjoint = None
     first_bad_descendant = None
+    first_disjoint_bad_descendant = None
 
     for n in range(4, 13):
         data = audit(n)
-        aggregate_counts.update(dict(data["counts"]))
-        if dict(data["counts"]).get("disjoint_selected_occurrences", 0):
+        row_counts = dict(data["counts"])
+        aggregate_counts.update(row_counts)
+        if row_counts.get("disjoint_selected_occurrences", 0):
             first_disjoint = first_disjoint or n
-        if dict(data["counts"]).get("bad_child_descendants", 0):
+        if row_counts.get("bad_child_descendants", 0):
             first_bad_descendant = first_bad_descendant or n
+        if row_counts.get("disjoint_bad_child_descendants", 0):
+            first_disjoint_bad_descendant = first_disjoint_bad_descendant or n
+
+        disjoint_records = tuple(
+            record
+            for record in data["records"]
+            if record["selected_relation"] == "DISJOINT"
+        )
+        bad_records = tuple(
+            record
+            for record in data["records"]
+            if any(fate == "BAD_BRIDGE_SURVIVES" for _value, fate, _residual in record["fates"])
+        )
         print(f"ORDER_SIZE = {n}")
         print(f"  root_clauses = {data['root_clauses']}")
         print(f"  resolution_attempts = {data['resolution_attempts']}")
@@ -234,15 +255,20 @@ def self_test() -> None:
         print(f"  counts = {data['counts']}")
         print(f"  relations = {data['relations']}")
         print(f"  child_fates = {data['child_fates']}")
-        print(f"  records = {data['records']}")
+        print(f"  disjoint_records = {disjoint_records[:8]}")
+        print(f"  bad_records = {bad_records[:8]}")
 
     print("JANUS_GT_ROOT_UNSHIELDED_HANDOFF_PROBE = PASS")
     print(f"AGGREGATE_COUNTS = {tuple(sorted(aggregate_counts.items()))}")
     print(f"FIRST_DISJOINT_SELECTED_ORDER = {first_disjoint}")
     print(f"FIRST_BAD_CHILD_DESCENDANT_ORDER = {first_bad_descendant}")
     print(
-        "claim_boundary = exact root-only finite probe through GT_12; "
-        "no arbitrary-n root handoff theorem asserted"
+        "FIRST_DISJOINT_BAD_CHILD_DESCENDANT_ORDER = "
+        f"{first_disjoint_bad_descendant}"
+    )
+    print(
+        "claim_boundary = exact root-only endpoint-or-extinction probe through "
+        "GT_12; no arbitrary-n root handoff theorem asserted"
     )
 
 
