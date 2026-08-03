@@ -1,0 +1,42 @@
+name: Validate C044 Local Signed Support Vtree
+
+on:
+  pull_request:
+    paths:
+      - 'experiments/direct/janus_c044_local_signed_support_*.py'
+      - 'experiments/direct/C044-JANUS-LOCAL-SIGNED-SUPPORT-VTREE.frozen.json'
+      - 'docs/C044_LOCAL_SIGNED_SUPPORT_VTREE.md'
+      - 'proposals/C044-JANUS-LOCAL-SIGNED-SUPPORT-VTREE.json'
+      - 'registry/c044-source-map.json'
+      - 'docs/ACTIVE_PROOF_ROUTE_MATRIX.md'
+      - '.github/workflows/validate-c044-local-signed-support-vtree.yml'
+  workflow_dispatch:
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Compile C044 modules
+        run: |
+          python -m py_compile experiments/direct/janus_c044_local_signed_support_core.py
+          python -m py_compile experiments/direct/janus_c044_local_signed_support_solver.py
+          python -m py_compile experiments/direct/janus_c044_local_signed_support_verifier.py
+          python -m py_compile experiments/direct/janus_c044_local_signed_support_vtree.py
+      - name: Run deterministic C044 self-test
+        run: |
+          python experiments/direct/janus_c044_local_signed_support_vtree.py \
+            --self-test \
+            --output /tmp/c044-frozen.json
+      - name: Enforce frozen deterministic audit
+        run: |
+          cmp /tmp/c044-frozen.json \
+            experiments/direct/C044-JANUS-LOCAL-SIGNED-SUPPORT-VTREE.frozen.json
+      - name: Validate machine-readable files
+        run: |
+          python -m json.tool proposals/C044-JANUS-LOCAL-SIGNED-SUPPORT-VTREE.json >/dev/null
+          python -m json.tool registry/c044-source-map.json >/dev/null
+          python -m json.tool experiments/direct/C044-JANUS-LOCAL-SIGNED-SUPPORT-VTREE.frozen.json >/dev/null
