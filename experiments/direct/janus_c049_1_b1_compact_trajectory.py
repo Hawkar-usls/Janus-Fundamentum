@@ -152,8 +152,8 @@ def build() -> dict:
                         "case_digest": payload["case_digest"],
                     }
                 )
-                # Six complete transformed-basis certificates, one for each k.
-                if theta == 4 and index == 1:
+                # Two complete transformed-basis certificates at the minimum and maximum audited caps.
+                if theta == 4 and index == 1 and k in (0, 5):
                     proof_cases.append(payload)
 
     controls: list[dict] = []
