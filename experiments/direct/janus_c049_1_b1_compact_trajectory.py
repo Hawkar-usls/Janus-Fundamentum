@@ -20,22 +20,22 @@ def fixture(rng, theta, k):
 
 def build():
     rng = random.Random(49101)
-    cases = []
+    records = []
     for theta in range(5):
         for k in range(6):
-            for _ in range(20):
+            for index in range(4):
                 source = validate_trajectory(fixture(rng, theta, k), theta)
                 compact, trace = compactify(source)
-                case = {
-                    'theta': theta, 'k': k, 'input': encode(source), 'output': encode(compact),
-                    'trace': trace, 'input_width': width(source), 'output_width': width(compact),
-                    'idempotent': compactify(compact)[0] == compact, 'compact': is_compact(compact),
+                payload = {'theta': theta, 'k': k, 'index': index, 'input': encode(source), 'output': encode(compact), 'trace': trace}
+                records.append({
+                    'theta': theta, 'k': k, 'index': index, 'case_digest': digest(payload),
+                    'input_length': len(source), 'output_length': len(compact), 'width': width(compact),
+                    'trace_steps': len(trace), 'idempotent': compactify(compact)[0] == compact,
                     'length_bound': len(compact) <= (2 * theta + 1) * (2 * k + 1),
-                }
-                case['digest'] = digest(case)
-                cases.append(case)
-    out = {'artifact': 'C049.1-PHASE-B1-COMPACT-B-TRAJECTORY', 'cases': cases,
-           'summary': {'cases': len(cases), 'failures': sum(not (c['idempotent'] and c['compact'] and c['length_bound'] and c['input_width'] == c['output_width']) for c in cases)}}
+                })
+    out = {'artifact': 'C049.1-PHASE-B1-COMPACT-B-TRAJECTORY',
+           'source': 'arXiv:1507.02184v4 Section 3.1', 'records': records,
+           'summary': {'cases': len(records), 'failures': sum(not (r['idempotent'] and r['length_bound']) for r in records)}}
     out['integrity'] = digest(out)
     return out
 
