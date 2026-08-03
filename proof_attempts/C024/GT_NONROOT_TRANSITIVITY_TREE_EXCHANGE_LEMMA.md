@@ -1,6 +1,6 @@
 # C024 — Non-root transitivity tree-exchange lemma
 
-Status: **PURE_GRAPH_LEMMA_PROVED / FINITE_GT_INSTANTIATION_CERTIFIED / PRODUCER_NORMAL_FORM_REACHABILITY_OPEN**  
+Status: **PURE_GRAPH_LEMMA_PROVED / COMPLETE_FINITE_EXCHANGE_CENSUS_GREEN / ARBITRARY_N_REACHABILITY_OPEN**  
 Scope: the producer step of a non-root unshielded bridge before the already proved two-node tail-wing handoff.
 
 ## 1. Tree-exchange setup
@@ -58,25 +58,51 @@ producer normal form
 => safe child handoff.
 ```
 
-## 4. Exact GT_4,...,GT_8 instantiation
+## 4. Complete finite exchange census
 
-The complete non-root provenance transcript has exactly three occurrences. All three are in one depth-two `GT_8` state and satisfy the same producer normal form:
+The broad checker enumerates every non-root frozen Resolution event through `GT_8` having one component-spanning in-arborescence parent and one directed-cycle parent.
 
 ```text
-producing events                         3
-root-transitivity + inherited-tree       3
-DIRECTED_CYCLE + COMPONENT_SPANNING      3
-HAS_DIRECTED_CYCLE + IN_ARBORESCENCE     3
-one producing event per occurrence       3
-pivot variable                           1 x3
-unique maximum selected variable         8 x3
-pivot-side quotient size                 2 x3
-selected edge unique inside pivot-side   3
-exchange cut equality                    3
-unsafe children                          0
+candidate cycle x arborescence events       121
+simple arborescence parents                 121
+exact one-edge tree exchanges                17
+new unshielded bridges                        3
 ```
 
-The three resolvents are
+The background class is genuinely broader:
+
+```text
+star arborescences: height 1, nonstar 0       81
+one-subdivision stars: height 2, nonstar 1    40
+pivot-side sizes observed:
+  (1,2), (1,3), (1,4), (1,5), (1,6),
+  (2,2), (2,3), (2,4)
+selected relation:
+  CROSS_CUT                                  25
+  INTERNAL_PIVOT_SIDE                       89
+  PIVOT                                       7
+```
+
+Thus two-node safety is not built into the census. Wider pivot sides and other selected relations really occur.
+
+### Exact localization of all unshielded outputs
+
+All three and only the three unshielded new bridges lie in one cell:
+
+```text
+order size                                  GT_8
+state / call                                615 / 1182
+tree shape                                  height 2
+non-star edges                              1
+one-subdivision star                        true
+pivot-cut side sizes                        (2,4)
+cycle parent                                ROOT_TRANSITIVITY
+exact one-edge exchange                     true
+selected relation                           INTERNAL_PIVOT_SIDE
+selected edge                               unique edge of the two-node side
+```
+
+Their resolvents are
 
 ```text
 (-5,-6,-7,-8,11)
@@ -84,33 +110,65 @@ The three resolvents are
 (-5,-6,-7,-8,13).
 ```
 
-Each is obtained by replacing the tree edge represented by pivot `1` with the bad literal `11`, `12`, or `13` along a root transitivity triangle. The cut of the new bad bridge is exactly the former pivot cut. That pivot side consists of the two quotient nodes joined by selected literal `-8`.
+For each event, the new bad bridge cut equals the former pivot-edge cut. The two-node side is joined internally by selected literal `-8`. The already proved handoff then gives one extinct child and one tail-singleton-safe child.
 
-## 5. Sharpened remaining gate
+## 5. Exact recursive ancestry classification
 
-The vague non-root wing reachability obligation is reduced to the following producer theorem.
+The first ancestry candidate failed because its structural matcher was stronger than its reconstructed proof object. It was not admitted. The replacement classifier enumerates every exact root proof path instead of selecting a convenient path.
 
-### Non-Root Producer Normal-Form Reachability
+For all three finite occurrences it finds:
 
-Prove for arbitrary `n` that every reachable non-root immediate-local unshielded bridge occurrence either is already safe, or its unique producing Resolution event has:
+```text
+proof paths per occurrence                  1
+minimum local Resolution count              1
+minimum path kind                           LOCAL_RESOLUTION
+minimum root-label signature                ROOT_NON_MINIMALITY
+                                             + ROOT_TRANSITIVITY
+one-subdivision path exists                 3 / 3
+one-subdivision path is minimum             3 / 3
+one-subdivision path is unique              3 / 3
+```
 
-1. one root-transitivity directed-cycle parent;
-2. one component-spanning in-arborescence parent;
-3. the tree-exchange form of Section 1;
-4. a pivot-side of exactly two quotient vertices;
-5. the deterministic selected comparison as the unique internal edge of that side.
+The inherited tree parent is therefore not merely compatible with a one-subdivision explanation in the finite trace: it has exactly one reconstructed root ancestry, consisting of one `N/T` Resolution followed only by post-unit reduction, branch restriction and pre-unit reduction.
 
-The pure graph implication after these hypotheses is now proved. What remains is GT-specific reachability and selector structure, not graph surgery.
+This remains a finite ancestry certificate. It is not promoted to arbitrary `n`.
 
-A counterexample is a reachable non-root unshielded occurrence produced by a different parent family, by a wider pivot-dominated exchange, with a pivot-side of size at least three, or with the selected comparison outside that side.
+## 6. Sharpened remaining gate
 
-## Mechanical certificate
+The former vague obligation
+
+```text
+NONROOT_WING_REACHABILITY_ARBITRARY_N
+```
+
+is now reduced to the following exact producer theorem.
+
+### Non-Root One-Subdivision Exchange Reachability
+
+Prove for arbitrary `n` that every reachable non-root immediate-local unshielded bridge occurrence either is already safe, or satisfies all of:
+
+1. its tree parent has a unique root ancestry from one non-minimality/transitivity Resolution;
+2. subsequent lineage steps only restrict leaves and do not add another local Resolution;
+3. the resulting arborescence is a one-subdivision star;
+4. the producing event resolves a root-transitivity cycle against its center edge;
+5. the exchange pivot has a two-quotient-node side;
+6. the deterministic selected comparison is the unique internal edge of that side.
+
+Once these hypotheses hold, the graph surgery and child handoff are already proved. What remains is GT-specific arbitrary-`n` reachability and selector structure, not cut preservation.
+
+A decisive counterexample is a reachable non-root unshielded occurrence with a different ancestry signature, a tree of height at least three, two or more non-star edges, a pivot side of size at least three on the tracked side, or a selected comparison outside that side.
+
+## Mechanical certificates
 
 ```text
 experiments/direct/janus_tear_gt_nonroot_transitivity_tree_exchange.py
+experiments/direct/janus_tear_gt_nonroot_wing_recursive_ancestry.py
+experiments/direct/janus_tear_gt_nonroot_arborescence_exchange_census.py
 .github/workflows/validate-c024-nonroot-tree-exchange.yml
+.github/workflows/validate-c024-nonroot-wing-recursive-ancestry.yml
+.github/workflows/validate-c024-nonroot-arborescence-exchange-census.yml
 ```
 
 ## Claim boundary
 
-The tree-exchange and cut-preservation lemma is proved for arbitrary finite graphs under its explicit hypotheses. The exact three non-root occurrences through `GT_8` instantiate those hypotheses. Arbitrary-`n` producer normal-form reachability, complete T2b/T3, the global cache-DAG lower bound, unrestricted SAT lower bounds, and `P` versus `NP` remain open.
+The tree-exchange and cut-preservation lemma is proved for arbitrary finite graphs under its explicit hypotheses. The complete `GT_4,...,GT_8` exchange census and exact ancestry replay isolate all finite unshielded events in the one-subdivision/two-node cell. Arbitrary-`n` one-subdivision exchange reachability, complete T2b/T3, the global cache-DAG lower bound, unrestricted SAT lower bounds, and `P` versus `NP` remain open.
