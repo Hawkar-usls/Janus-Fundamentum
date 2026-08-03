@@ -8,8 +8,9 @@ This lemma closes the mixed parent class that appears in every fresh non-tail
 bridge birth observed in the exact `GT_4,...,GT_8` Policy-0A traces.
 
 It does **not** assert that arbitrary Resolution preserves the cycle-or-spanning
-dichotomy.  In particular, the known `COMPONENT_SPANNING + COMPONENT_SPANNING`
-obstruction remains outside this lemma.
+dichotomy.  The remaining abstract obstruction is confined to
+`COMPONENT_SPANNING + COMPONENT_SPANNING` and is classified separately in
+`GT_RESOLUTION_UNSAFE_ROUTE_CLASSIFICATION.md`.
 
 ## Setting
 
@@ -109,21 +110,26 @@ The shared edge `0->1` is non-bridge in both parents and becomes a bridge in
 `R`.  Nevertheless, `R` remains component-spanning.  The witness falsifies the
 binary-origin reduction while fully respecting the proved safety theorem.
 
-## Consequence for C024
+## Role in the complete classification
 
-The observed fresh bad-bridge births do not need a binary-origin or extinction
-argument to establish local safety.  It is enough to prove the remaining
-GT-specific parent-class reduction:
+A second pure graph lemma closes `DIRECTED_CYCLE + DIRECTED_CYCLE`: a
+pivot-avoiding cycle survives, while two pivot-using cycles leave opposite
+directed paths whose union contains a directed cycle.  Internal-only parents
+also preserve the external graph of the other parent.
 
-> Every fresh non-tail bridge produced by the one-pass local Resolution stage
-> has one `COMPONENT_SPANNING` parent and one `DIRECTED_CYCLE` parent.
+Consequently, any unsafe legal resolvent between branch-safe parents must come
+from two component-spanning parents.  The exact remaining route is a pivot that
+is a bridge in both parents and induces the same quotient cut in both.  See
+`GT_RESOLUTION_UNSAFE_ROUTE_CLASSIFICATION.md` for the complete proof.
 
-Once that reduction is established for arbitrary `n`, the theorem above closes
-all such births immediately.
+The finite observation that all 77 fresh non-tail occurrences through `GT_8`
+use the mixed spanning/cycle parent class is retained as replayable evidence,
+but it is no longer required as the principal arbitrary-`n` reduction.
 
 ## Claim boundary
 
 This is a pure one-inference quotient-graph theorem.  It does not prove the
-arbitrary-`n` GT parent-class reduction, the lexicographic singleton-tail
-handoff, the global Formula-Caching frontier transfer, a lower bound for
-unrestricted SAT or clause learning, or `P != NP`.
+arbitrary-`n` GT same-cut double-bridge exclusion, the lexicographic
+singleton-tail handoff used as a candidate supporting mechanism, the global
+Formula-Caching frontier transfer, a lower bound for unrestricted SAT or clause
+learning, or `P != NP`.
