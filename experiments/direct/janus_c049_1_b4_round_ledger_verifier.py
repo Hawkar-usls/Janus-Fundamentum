@@ -45,7 +45,8 @@ def verify(path):
             for e in rnd['ledger']:
                 q=wv(blocks,tuple(e['order']),c['d'])
                 if q!=e['width_vector'] or max(q,default=0)!=e['max_width']: raise AssertionError('width')
-                if e['cumulative_work']<=prev: raise AssertionError('round cost'); prev=e['cumulative_work']
+                if e['cumulative_work']<=prev: raise AssertionError('round cost')
+                prev=e['cumulative_work']
             total+=rnd['charged_work']
             if rnd['cumulative_work_global']!=total: raise AssertionError('global cost')
             ell=rnd['prefix_size']; goods=[]
@@ -54,7 +55,8 @@ def verify(path):
                 if max(q,default=0)<=c['k']: goods.append(list(p))
             if rec['oracle'][str(ell)]!={'good_count':len(goods),'good_layouts_digest':digest(goods)}: raise AssertionError('oracle')
             if rnd['terminal']=='ROUND_CLOSED':
-                if rnd['selected']['order'] not in goods: raise AssertionError('selection'); last=tuple(rnd['selected']['order'])
+                if rnd['selected']['order'] not in goods: raise AssertionError('selection')
+                last=tuple(rnd['selected']['order'])
         if rec['result']['cumulative_work']!=total: raise AssertionError('total')
     if a['controls'][0]['reason']!='grouped factor partition lost': raise AssertionError('partition')
 
