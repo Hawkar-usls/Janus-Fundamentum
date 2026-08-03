@@ -87,7 +87,7 @@ def audit(n: int):
         cnf = tuple(tuple(clause) for clause in state["post_result"])
         assignment = context["state_after_post"][state_id]
         selected = abs(int(item["selected_literal"]))
-        bad_literal = int(item["literal"])
+        bad_literal = int(item["bad_literal"])
         source = tuple(item["source"])
 
         frequencies = Counter(
