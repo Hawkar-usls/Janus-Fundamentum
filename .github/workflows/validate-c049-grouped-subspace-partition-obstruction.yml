@@ -1,0 +1,71 @@
+name: Validate C049 Grouped Subspace Partition Obstruction
+
+on:
+  pull_request:
+    paths:
+      - 'experiments/direct/janus_c049_grouped_subspace_partition_obstruction.py'
+      - 'experiments/direct/janus_c049_grouped_subspace_partition_obstruction_verifier.py'
+      - 'experiments/direct/C049-JANUS-GROUPED-SUBSPACE-PARTITION-OBSTRUCTION.frozen.json'
+      - 'docs/C049_GROUPED_SUBSPACE_PARTITION_OBSTRUCTION.md'
+      - 'docs/ACTIVE_PROOF_ROUTE_MATRIX_C049_APPENDIX.md'
+      - 'docs/CANONICAL_CYCLE_ALLOCATION_C046_C049.md'
+      - 'proposals/C049-JANUS-GROUPED-SUBSPACE-PARTITION-OBSTRUCTION.json'
+      - 'registry/c049-source-map.json'
+      - 'registry/c046-c049-cycle-allocation.json'
+      - '.github/workflows/validate-c049-grouped-subspace-partition-obstruction.yml'
+  workflow_dispatch:
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Compile C049 modules
+        run: |
+          python -m py_compile \
+            experiments/direct/janus_c049_grouped_subspace_partition_obstruction.py \
+            experiments/direct/janus_c049_grouped_subspace_partition_obstruction_verifier.py
+      - name: Run deterministic C049 obstruction audit
+        run: |
+          python experiments/direct/janus_c049_grouped_subspace_partition_obstruction.py \
+            --self-test --output /tmp/c049.json
+      - name: Enforce frozen audit byte-for-byte
+        run: |
+          cmp /tmp/c049.json \
+            experiments/direct/C049-JANUS-GROUPED-SUBSPACE-PARTITION-OBSTRUCTION.frozen.json
+      - name: Run independent C049 verifier
+        run: |
+          python experiments/direct/janus_c049_grouped_subspace_partition_obstruction_verifier.py \
+            experiments/direct/C049-JANUS-GROUPED-SUBSPACE-PARTITION-OBSTRUCTION.frozen.json
+      - name: Reject a tampered grouped width
+        run: |
+          cp experiments/direct/C049-JANUS-GROUPED-SUBSPACE-PARTITION-OBSTRUCTION.frozen.json /tmp/tampered.json
+          python - <<'PY'
+          import json
+          path = '/tmp/tampered.json'
+          value = json.load(open(path, encoding='utf-8'))
+          value['cases'][-1]['grouped_partitioned_width']['exact_width'] = 1
+          with open(path, 'w', encoding='utf-8') as handle:
+              json.dump(value, handle, indent=2, sort_keys=True)
+              handle.write('\n')
+          PY
+          if python experiments/direct/janus_c049_grouped_subspace_partition_obstruction_verifier.py /tmp/tampered.json; then
+            echo 'tampered certificate was accepted'
+            exit 1
+          fi
+      - name: Validate machine-readable package
+        run: |
+          python - <<'PY'
+          import json
+          for path in [
+              'proposals/C049-JANUS-GROUPED-SUBSPACE-PARTITION-OBSTRUCTION.json',
+              'registry/c049-source-map.json',
+              'registry/c046-c049-cycle-allocation.json',
+              'experiments/direct/C049-JANUS-GROUPED-SUBSPACE-PARTITION-OBSTRUCTION.frozen.json',
+          ]:
+              with open(path, encoding='utf-8') as handle:
+                  json.load(handle)
+          PY
