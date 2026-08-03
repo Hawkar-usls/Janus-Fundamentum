@@ -29,6 +29,8 @@ P_VS_NP=OPEN
 | C039.2 | Low-affine-dimension Horn composer | Exact Horn/dual-Horn plus affine composition in `O(2^d poly(L))` | Raw shared-variable count is the only safe parameter | `CROSS_LANGUAGE_COMPOSITION_BEYOND_LOW_AFFINE_INTERFACE_DIMENSION` |
 | C041 | Affine-coordinate 3-SAT identity | C023 followed by canonical affine coordinates reproduces the source 3-CNF syntactically and preserves supports | Coordinate substitution alone simplifies the hard image | `POLYNOMIAL_DISCOVERY_OF_TRACTABLE_COORDINATE_FACTOR_STRUCTURE_OR_STRICT_OPEN` |
 | C042 | Proof-carrying laminar affine cover | Charged basis discovery, semantic certificate replay, exact union counting and witness/certificate recovery under `64(L+1)^6` | A supplied basis, digest-only verification, or small final output makes construction free | `POLYNOMIAL_DECOMPOSITION_OF_CROSSING_AFFINE_FORBIDDEN_SUBSPACES` |
+| C043 | Bounded live signed affine-intersection support | C042 basis inheritance, separate semantic verifier, exact signed recurrence, maximum live-support and coefficient-volume accounting | Compact final support excuses exponential intermediate closure; verifier may call producer | `POLYNOMIAL_LOCALIZATION_OF_SUPERPOLYNOMIAL_GLOBAL_INTERSECTION_SUPPORT` |
+| C044 | Local signed-cover vtree composition (reserved) | Specification only: local signed messages, charged join/project and `OPEN_LOCAL_SUPPORT` | Global OPEN can be bypassed by an uncharged supplied vtree | `LOCAL_SIGNED_SUPPORT_VTREE_COMPOSITION_OR_STRICT_OPEN` |
 | C031 | Proof-carrying SAT refuter | Formal lower-bound transfer interface | Free direct-sum amplification | `NO_SHARING_REFUTER_AMPLIFICATION` |
 
 ## Constructive P=NP track
@@ -43,8 +45,9 @@ tractable local languages
 -> pure-affine symbolic factor compilation
 -> semantic-dimension cross-language composition
 -> affine-coordinate clause predicates
--> certified tractable affine-subspace arrangement structure
--> broader join-closed symbolic projection
+-> proof-carrying laminar affine arrangements
+-> proof-carrying bounded live signed support
+-> local signed-cover vtree algebra
 -> SAT witness + independently checkable UNSAT evidence
 -> universal polynomial SAT algorithm
 ```
@@ -60,25 +63,54 @@ c_i = 1 XOR lambda_i.
 
 Every negative Horn literal over a falsity indicator translates back to the original source literal. Hence each Horn NAND3 clause becomes exactly its source 3-CNF clause, preserving polarity, support, primal adjacency and satisfiability. Affine-coordinate substitution is therefore only a change of notation on the hard image.
 
-A valid coordinate selector must additionally discover a replayable tractable property of the coordinate factors or return `OPEN` within a fixed polynomial budget.
-
 ## C042 proof-carrying laminar theorem
 
 Given a CNF together with an affine system, C042 constructs `x=p+B lambda` by provenance-carrying Gaussian elimination. Falsifying one clause defines an affine subspace `U_C` of the coordinate space. C042 discovers whether every pair of nonempty `U_C` is disjoint or nested.
 
-After duplicate and contained factors are removed, the maximal forbidden subspaces are pairwise disjoint. Their exact union cardinality is the sum of `2^dimension`. Equality with `2^d` gives an independently replayable UNSAT cover. Otherwise deterministic conditional counting fixes one coordinate at a time and produces a point outside the union, then lifts it to a complete witness.
+After duplicate and contained factors are removed, the maximal forbidden subspaces are pairwise disjoint. Their exact union cardinality is the sum of `2^dimension`. Equality with `2^d` gives an independently replayable UNSAT cover. Otherwise deterministic conditional counting produces a point outside the union and lifts it to a complete witness.
 
-The v2 proof package closes the five C042 admission obligations:
+## C043 bounded-live-signed-support theorem
+
+C043 inherits the complete C042 affine basis artifact. It no longer accepts a free coordinate table.
+
+For deterministic forbidden-factor order, maintain
 
 ```text
-independent semantic verifier, not digest-only checking
-charged construction and verification of p,B
-one fixed producer/verifier budget B(L)=64(L+1)^6
-Arvind-Guruswami SUB-SAT / USA / product-of-affine-forms alignment
-high-dimensional NAND3+NEQ, hidden-conflict and large-intermediate controls
+1_(union_{i <= t} U_i) = sum_S c_t(S) 1_S
+c_t = c_(t-1) + e_(U_t) - T_(U_t)c_(t-1)
+T_U(S) = S intersect U.
 ```
 
-The C023 hard images at coordinate dimensions `24`, `32` and `48` contain crossing forbidden subspaces and return `OPEN_NON_LAMINAR`. A 128-variable affine line whose two endpoints are blocked only by two large clauses is certified UNSAT. A nested family with one maximal factor is solved under the standard budget and returns `OPEN_BUDGET` under a deliberately smaller operational cap, proving that intermediate discovery and certificate volume are charged even when the final semantic cover is tiny.
+The controlling parameter is
+
+```text
+K = max_t |supp(c_t)|.
+```
+
+Every transition records canonical intersections, signed deltas, coefficient merges, zero cancellation, outgoing terms, live support, temporary working support and coefficient bit volume. The separate verifier does not import or call the producer; it independently checks the C042 basis, clause translation, factor order, every transition, signed counts, SAT witness or UNSAT cover.
+
+The implementation fixes polynomial support, work, coefficient and certificate envelopes. A 32-term intermediate family that later collapses to one final term is rejected immediately under a support cap of 8. C023/C041 controls at dimensions 18, 24 and 30 return `OPEN_INTERSECTION_CLOSURE`.
+
+Current status:
+
+```text
+C043 = ARCHITECTURE_CONTRACT_ADMITTED
+       / FULL_IMPLEMENTATION_CANDIDATE
+```
+
+Final admission requires exact-head CI and review of refusal-terminal capability replay. It is not automatic.
+
+## C044 reservation
+
+C044 begins only after a genuine C043 `OPEN_INTERSECTION_CLOSURE` and attempts proof-carrying localization. A message may contain a boundary affine relation, local signed family, coefficients, count semantics and replay trace.
+
+Every local join and projection charges maximum intermediate support. Overflow returns
+
+```text
+OPEN_LOCAL_SUPPORT.
+```
+
+C044 remains specification-only until C043 receives final review admission.
 
 ## Canonical cycle allocation
 
@@ -95,6 +127,8 @@ C039.2  low-affine-dimension Horn/dual-Horn composer
 C040    portfolio-guided semantic-vtree discovery (reserved)
 C041    affine-coordinate 3-SAT identity obstruction
 C042    proof-carrying laminar affine forbidden-subspace cover
+C043    bounded live signed affine-intersection support
+C044    local signed-cover vtree composition (reserved)
 ```
 
 ## Converged constructive bottleneck
@@ -103,10 +137,10 @@ C042    proof-carrying laminar affine forbidden-subspace cover
 Construct, in polynomial total work, a decomposition and join-closed proof-carrying message algebra whose semantic state volume is polynomial on every CNF, with SAT witness recovery and independently checkable UNSAT evidence.
 ```
 
-C041 proves that affine coordinates alone cannot satisfy this obligation. C042 supplies a genuine polynomial coordinate class with paid discovery and replay, but rejects crossing subspace arrangements. The next route must decompose or symbolically cover those crossings without hiding exponential intersection closure or intermediate products.
+C041 proves that affine coordinates alone cannot satisfy this obligation. C042 supplies a genuine laminar polynomial class. C043 extends it to globally bounded live signed support while charging intermediate closure. C044 asks whether superpolynomial global support can always be localized into polynomial proof-carrying messages.
 
 ## Non-duplication and honesty rules
 
-Compare every candidate against C023 NAND3+NEQ, C034 unrestricted Horn-affine NP-hardness, CNF satisfiability in an affine subspace, polynomial systems over `GF(2)`, PS-width, OBDD/SDD/d-SDNNF/TDD, backdoors, treewidth, Horn/dual-Horn closure, beta-acyclic elimination, DPLL(T)/DPLL(XOR), existential forgetting, finite-field subspace arrangements, intermediate compilation size, certificate discovery and verifier work.
+Compare every candidate against C023 NAND3+NEQ, C034 unrestricted Horn-affine NP-hardness, CNF satisfiability in an affine subspace, finite-field intersection-poset methods, PS-width, OBDD/SDD/d-SDNNF/TDD, backdoors, treewidth, DPLL(T)/DPLL(XOR), existential forgetting, intermediate compilation size, certificate discovery and verifier work.
 
-Never promote a supplied decomposition or affine basis as free discovery, an input-dependent exponent as polynomial, finite tests as a theorem, `OPEN` as hardness, one representation lower bound as `P!=NP`, or semantic equivalence decided by a hidden SAT/coNP oracle.
+Never promote a supplied decomposition or affine basis as free discovery, an input-dependent exponent as polynomial, compact final output as proof of compact construction, finite tests as a theorem, `OPEN` as hardness, or semantic equivalence decided by a hidden SAT/coNP oracle.
