@@ -1,0 +1,63 @@
+name: Validate C039.1 Single-Head Horn Compiler
+
+on:
+  push:
+    paths:
+      - 'experiments/direct/janus_c039_1_single_head_horn_symbolic_compiler.py'
+      - 'docs/C039_1_SINGLE_HEAD_HORN_SYMBOLIC_COMPILER.md'
+      - 'schemas/c039-1-single-head-horn-v1.schema.json'
+      - 'proposals/C039.1-SINGLE-HEAD-HORN-SYMBOLIC-COMPILER.json'
+      - 'registry/c039.1-source-map.json'
+      - 'docs/ACTIVE_PROOF_ROUTE_MATRIX.md'
+      - '.github/workflows/validate-c039-1-single-head-horn.yml'
+  pull_request:
+    paths:
+      - 'experiments/direct/janus_c039_1_single_head_horn_symbolic_compiler.py'
+      - 'docs/C039_1_SINGLE_HEAD_HORN_SYMBOLIC_COMPILER.md'
+      - 'schemas/c039-1-single-head-horn-v1.schema.json'
+      - 'proposals/C039.1-SINGLE-HEAD-HORN-SYMBOLIC-COMPILER.json'
+      - 'registry/c039.1-source-map.json'
+      - 'docs/ACTIVE_PROOF_ROUTE_MATRIX.md'
+      - '.github/workflows/validate-c039-1-single-head-horn.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Validate JSON artifacts
+        run: |
+          python -m json.tool schemas/c039-1-single-head-horn-v1.schema.json >/dev/null
+          python -m json.tool proposals/C039.1-SINGLE-HEAD-HORN-SYMBOLIC-COMPILER.json >/dev/null
+          python -m json.tool registry/c039.1-source-map.json >/dev/null
+      - name: Compile implementation
+        run: python -m py_compile experiments/direct/janus_c039_1_single_head_horn_symbolic_compiler.py
+      - name: Run frozen audit
+        run: |
+          python experiments/direct/janus_c039_1_single_head_horn_symbolic_compiler.py --self-test | tee /tmp/c0391.json
+          python - <<'PY'
+          import json
+          with open('/tmp/c0391.json', encoding='utf-8') as handle:
+              result = json.load(handle)
+          assert result['status'] == 'PASS'
+          assert result['canonical_id'] == 'C039.1'
+          assert result['language_profile'] == 'SINGLE_HEAD_HORN_V1'
+          assert result['acceptance_checks'] == 13
+          assert result['single_head_projection_stays_polynomial'] is True
+          assert result['projection_growth_stops_fail_closed'] is True
+          assert result['open_evaluation_has_no_root_message'] is True
+          assert result['p_vs_np'] == 'OPEN'
+          PY
+      - name: Enforce claim boundary
+        run: |
+          grep -q 'HORN_MERGE_IMPLEMENTED.*False' experiments/direct/janus_c039_1_single_head_horn_symbolic_compiler.py
+          grep -q 'HORN_SEPARATE_IMPLEMENTED.*False' experiments/direct/janus_c039_1_single_head_horn_symbolic_compiler.py
+          grep -q 'GENERAL_HORN_IMPLEMENTED.*False' experiments/direct/janus_c039_1_single_head_horn_symbolic_compiler.py
+          grep -q 'VTREE_DISCOVERY_IMPLEMENTED.*False' experiments/direct/janus_c039_1_single_head_horn_symbolic_compiler.py
+          grep -q 'P_VS_NP = OPEN' docs/C039_1_SINGLE_HEAD_HORN_SYMBOLIC_COMPILER.md

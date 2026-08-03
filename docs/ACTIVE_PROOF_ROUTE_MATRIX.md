@@ -25,6 +25,7 @@ P_VS_NP=OPEN
 | C037 | Explicit residual OBDD alignment | Exact minimization, pairwise distinguishing suffixes, SAT witnesses and UNSAT DAG certificates once the residual graph is explicit | Partition refinement alone avoids state explosion; an equivalence-query teacher is free | `POLYNOMIAL_ORDER_DECOMPOSITION_AND_REACHABLE_QUOTIENT_CONSTRUCTION` |
 | C038 | Structured vtree factor alignment | Exact vtree-cut continuation rows, replayable separators, witness/UNSAT tables and deterministic charged candidate construction | Recursive structure or a supplied vtree automatically removes exponential interfaces | `POLYNOMIAL_VTREE_DISCOVERY_AND_SYMBOLIC_FACTOR_CONSTRUCTION` |
 | C039 | Symbolic factor construction contract | Proof-carrying LEAF/JOIN/PROJECT/MERGE/SEPARATE envelopes, payload-policy gate and capability-locked Vault protocol | Encoded truth tables are symbolic; unsupported languages may fall back to SAT; supplied vtree is discovered | `POLYNOMIAL_SYMBOLIC_JOIN_PROJECT_MERGE_AND_REPLAYABLE_FACTOR_EQUIVALENCE` |
+| C039.1 | Single-head Horn symbolic compiler | Exact replayable LEAF/JOIN/PROJECT and deterministic supplied-vtree cost certificates; strict single-head forgetting keeps rule count nonincreasing while charging literal volume | A general-Horn exponential projection fixture applies unchanged to strict single-head Horn; supplied-vtree evaluation is discovery | `GENERAL_HORN_OR_CROSS_LANGUAGE_SYMBOLIC_FACTOR_CONSTRUCTION` |
 | C040 | Portfolio-guided semantic vtree discovery | Reserved: discovery cost must be charged and candidate quality must be replayable | A supplied good vtree substitutes for polynomial discovery | `POLYNOMIAL_VTREE_DISCOVERY` |
 | C031 | Proof-carrying SAT refuter | Formal lower-bound transfer interface | Uncertified circuit counterexamples and free direct-sum amplification | `NO_SHARING_REFUTER_AMPLIFICATION` |
 
@@ -46,16 +47,28 @@ cut communication rows. Its equality control demonstrates both a small paired
 vtree and an exponential blocked cut, but does not prove universal discovery.
 
 C039 receives a supplied, verified vtree and specifies symbolic factor
-construction. The first C039 commit validates only operation envelopes,
-registered symbolic payloads, proof-reference closure, budget terminals and the
-external `OpenCoreVaultSink` protocol. It implements none of the named language
-algorithms.
+construction. The first C039 commit validates operation envelopes, registered
+symbolic payloads, proof-reference closure, budget terminals and the external
+`OpenCoreVaultSink` protocol.
+
+C039.1 supplies the first executable profile: `SINGLE_HEAD_HORN_V1`. It performs
+exact LEAF/JOIN/PROJECT and emits replayable supplied-vtree cost certificates.
+The profile allows at most one defining rule per atomic head. Under its exact
+Davis–Putnam-style projection, the rule count does not increase; literal volume
+and work are still charged and may return fail-closed `OPEN` under a chosen
+budget. This result does not extend to arbitrary Horn CNF.
 
 ```text
 C039:
   supplied verified vtree
   symbolic factor construction
-  certified merge/separate
+  certified merge/separate contract
+
+C039.1:
+  supplied verified vtree
+  executable single-head Horn LEAF/JOIN/PROJECT
+  no Horn MERGE/SEPARATE
+  no general Horn
 
 C040:
   portfolio-guided semantic vtree discovery
@@ -72,6 +85,7 @@ C036.2 proof-carrying Open-Core Vault
 C037   explicit residual OBDD alignment
 C038   structured vtree factor alignment
 C039   symbolic factor construction without truth-table enumeration
+C039.1 single-head Horn symbolic compiler
 C040   portfolio-guided semantic vtree discovery
 ```
 
@@ -118,6 +132,7 @@ proof width and certificate discovery
 beta-acyclic elimination
 Davis-Putnam variable elimination
 Horn and dual-Horn closure
+single-head Horn forgetting and single-head equivalence
 GF(2) affine elimination
 Schaefer fixed-language mixtures
 communication/continuation equivalence across cuts
