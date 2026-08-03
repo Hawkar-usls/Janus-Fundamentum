@@ -1,0 +1,38 @@
+name: Validate C039.2 Horn Projection Boundary
+
+on:
+  push:
+    paths:
+      - "experiments/direct/janus_c039_1_horn_projection_boundary.py"
+      - "docs/C039_1_HORN_PROJECTION_BOUNDARY.md"
+      - "proposals/C039.1-HORN-PROJECTION-BOUNDARY.json"
+      - "registry/c039-1-source-map.json"
+      - "schemas/c039-1-horn-projection-v1.schema.json"
+      - "docs/ACTIVE_PROOF_ROUTE_MATRIX.md"
+      - ".github/workflows/validate-c039-1-horn-projection-boundary.yml"
+  pull_request:
+    paths:
+      - "experiments/direct/janus_c039_1_horn_projection_boundary.py"
+      - "docs/C039_1_HORN_PROJECTION_BOUNDARY.md"
+      - "proposals/C039.1-HORN-PROJECTION-BOUNDARY.json"
+      - "registry/c039-1-source-map.json"
+      - "schemas/c039-1-horn-projection-v1.schema.json"
+      - "docs/ACTIVE_PROOF_ROUTE_MATRIX.md"
+      - ".github/workflows/validate-c039-1-horn-projection-boundary.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  c039-2-horn-projection-boundary:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python experiments/direct/janus_c039_1_horn_projection_boundary.py --self-test
+      - run: python -m py_compile experiments/direct/janus_c039_1_horn_projection_boundary.py
+      - run: python -m json.tool proposals/C039.1-HORN-PROJECTION-BOUNDARY.json >/dev/null
+      - run: python -m json.tool registry/c039-1-source-map.json >/dev/null
+      - run: python -m json.tool schemas/c039-1-horn-projection-v1.schema.json >/dev/null
