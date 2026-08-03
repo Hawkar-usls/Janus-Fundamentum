@@ -1,6 +1,6 @@
 # C024 — Non-root singleton reachability: exact-key induction route
 
-Status: **INDUCTION ARCHITECTURE FROZEN / FINAL SELECTOR SUBLEMMA OPEN**  
+Status: **INDUCTION ARCHITECTURE FROZEN / THREE REACHABILITY-SELECTOR SUBLEMMAS OPEN**  
 Scope: the remaining non-root branch handoff in exact Policy-0A on graph
 tautologies.
 
@@ -21,13 +21,11 @@ B   raw child after the selected branch polarity
 K'  next exact key after child pre-units
 ```
 
-A clause may become structurally more complicated inside `R` or `P`.  The
+A clause may become structurally more complicated inside `R` or `P`. The
 required invariant is therefore not pointwise monotonicity at every temporary
-stage.  It is a return invariant from one exact key to the next.
+stage. It is a return invariant from one exact key to the next.
 
-## 2. Already proved local barriers
-
-The following layers are independent of the remaining selector theorem.
+## 2. Proved local barriers
 
 ```text
 FROZEN_FRESH_SIDE_BARRIER                 PROVED
@@ -36,6 +34,7 @@ ROOT_BRANCH_HANDOFF                       PROVED_ARBITRARY_N
 TREE_EXCHANGE_CUT_PRESERVATION            PROVED
 TWO_NODE_TAIL_WING_HANDOFF                PROVED
 SINGLETON_BRANCH_SAME_CUT_PRESERVATION    PROVED
+MARKED_SINGLETON_EDGE_ABSORPTION           PROVED_UNDER_EXPLICIT_HYPOTHESES
 ```
 
 In particular, if the exact selected comparison joins two singleton relation
@@ -74,7 +73,7 @@ Thus the naive statement
 Resolution never creates a deeper tree
 ```
 
-is false.  The finite evidence supports the weaker exact-key invariant:
+is false. The finite evidence supports the weaker exact-key invariant:
 
 ### K-normal form
 
@@ -112,7 +111,7 @@ selected component sizes         (1,1)
 A general induction route needs the following bounded-growth statement rather
 than global shape monotonicity:
 
-### One-exchange growth
+### One-exchange marked growth
 
 Starting from a K-normal relevant tree parent, every exact local
 transitivity/tree exchange is either already safe or creates at most one marked
@@ -126,51 +125,70 @@ ONE_EXCHANGE_MARKED_GROWTH_ARBITRARY_N = OPEN
 Tree-exchange cut preservation is already proved, but it does not by itself
 bound the number of subdivision layers.
 
-## 5. Singleton-edge shape absorption
+## 5. Marked singleton-edge absorption — proved
 
-For every finite deep row, the selected comparison is the marked literal in the
-resolvent and joins two singleton relation components.  The two branch
-polarities have the exact fates
+A K-normal tree is a star or a one-subdivision star. A **one-step marked
+extension** is obtained by replacing one tree edge
+
+```text
+u -> v
+```
+
+with
+
+```text
+u -> w -> v
+```
+
+and marking either new half-edge `e`. By construction, contracting `e` recovers
+the K-normal source tree.
+
+Assume the marked edge is selected and its two relation components are
+singletons. Then:
 
 ```text
 selected literal satisfied
     -> CLAUSE_EXTINCT
 
 selected literal falsified
-    -> delete the selected literal
-    -> contract its singleton endpoints
-    -> child exact-key tree shape (2,1,true)
+    -> delete selected literal
+    -> identify its singleton endpoints
+    -> graph operation T/e
+    -> recover the K-normal source tree
 ```
 
-Hence the deep layer is transient and the next exact key returns to the
-one-subdivision normal form.
+This is uniform in the number of GT vertices and is proved in
+`GT_MARKED_SINGLETON_EDGE_ABSORPTION.md` under the explicit marked-extension,
+selected-edge, legal-clause, and singleton-endpoint hypotheses.
 
-This motivates the pure graph/encoding sublemma:
-
-### Marked singleton-edge absorption
-
-Let a branch-safe marked in-arborescence contain the selected comparison as the
-exposed edge of the additional transient subdivision layer.  If its endpoints
-are singleton relation components, then one branch polarity makes the clause
-extinct and the other deletes/contracts the marked edge, reducing the marked
-tree complexity before `K'`.
-
-The finite transcript instantiates this statement three times.  The arbitrary-
-`n` theorem under a fully formal marked-tree definition remains to be written.
+Independent finite falsification gate:
 
 ```text
-MARKED_SINGLETON_EDGE_ABSORPTION_ARBITRARY_N = OPEN
+source vertex range              2..8
+source stars                        7
+source one-subdivision stars      112
+marked extensions                 672
+marked half-edge branches        1344
+violations                          0
+```
+
+The gate includes transient shapes `(2,1)`, `(2,2)`, and `(3,2)` and restores
+only the original star/one-subdivision shape.
+
+```text
+MARKED_SINGLETON_EDGE_ABSORPTION_ARBITRARY_N = PROVED
 FINITE_DEEP_SHAPE_ABSORPTION                  = GREEN
 ```
 
-This sublemma is stronger than ordinary same-cut noncreation because it also
-controls the tree shape transported to the next exact key.
+This theorem does not establish that every reachable deep resolvent is a
+one-step marked extension or that Policy-0A selects the marked edge. Those are
+separate open reachability/selector obligations.
 
 ## 6. Selector-origin evidence
 
-The final obstacle is not the branch operation.  It is proving that exact
-Policy-0A selects the marked singleton comparison, or selects another variable
-whose route is already covered by a proved safety template.
+The remaining obstacle is proving that exact Policy-0A selects the marked
+singleton comparison, or selects another variable whose route is already
+covered by a proved safety template.
 
 For the three deep `GT_8` rows:
 
@@ -208,15 +226,13 @@ The strict selector margin instead comes from the frozen local block:
 `ROOT_TRANSITIVITY + LOCAL_RESOLVENT`, partially offset by inherited derived
 clauses.
 
-The complete 42-lineage finite profile is heterogeneous.  It includes strict
-margins and lexicographic ties, with many different origin vectors.  Therefore
+The complete 42-lineage finite profile is heterogeneous. It includes strict
+margins and lexicographic ties, with many different origin vectors. Therefore
 one universal component-pair or one universal origin-vector formula is false.
 Any arbitrary-`n` theorem must retain clause history, polarity, vertex identity,
 and exact tie-breaking.
 
 ## 7. Final selector theorem
-
-The minimal remaining reachability statement can be formulated as follows.
 
 ### Exposed-subdivision selector dominance or safe diversion
 
@@ -235,13 +251,13 @@ maximum-frequency/least-index variable is not a singleton marked comparison.
 EXPOSED_SUBDIVISION_SELECTOR_DOMINANCE_ARBITRARY_N = OPEN
 ```
 
-This theorem is history-sensitive.  Quotient-component sizes alone cannot prove
+This theorem is history-sensitive. Quotient-component sizes alone cannot prove
 it because component-pair frequency factorization has an exact finite
 counterexample.
 
-## 8. Exact-key induction after the selector theorem
+## 8. Exact-key induction after the remaining sublemmas
 
-Assuming the three pending arbitrary-`n` sublemmas
+The three pending arbitrary-`n` sublemmas are
 
 ```text
 K_TREE_NORMAL_FORM_ARBITRARY_N
@@ -249,7 +265,8 @@ ONE_EXCHANGE_MARKED_GROWTH_ARBITRARY_N
 EXPOSED_SUBDIVISION_SELECTOR_DOMINANCE_ARBITRARY_N
 ```
 
-and the marked singleton-edge absorption lemma, the non-root induction is:
+Together with the proved marked singleton-edge absorption lemma, the non-root
+induction is:
 
 ```text
 K
@@ -285,18 +302,18 @@ independent proof or complete replayable certificate.
 ## 9. Current boundary
 
 ```text
-TREE_EXCHANGE_CUT_PRESERVATION             PROVED
-SINGLETON_BRANCH_SAME_CUT_PRESERVATION     PROVED
-FINITE_TREE_EXCHANGE_HANDOFF                GREEN
-FINITE_DEEP_SHAPE_ABSORPTION                GREEN
-FINITE_DEEP_SELECTOR_ORIGIN                 GREEN
+TREE_EXCHANGE_CUT_PRESERVATION                       PROVED
+SINGLETON_BRANCH_SAME_CUT_PRESERVATION               PROVED
+MARKED_SINGLETON_EDGE_ABSORPTION_ARBITRARY_N         PROVED
+FINITE_TREE_EXCHANGE_HANDOFF                          GREEN
+FINITE_DEEP_SHAPE_ABSORPTION                          GREEN
+FINITE_DEEP_SELECTOR_ORIGIN                           GREEN
 
-K_TREE_NORMAL_FORM_ARBITRARY_N              OPEN
-ONE_EXCHANGE_MARKED_GROWTH_ARBITRARY_N      OPEN
-MARKED_SINGLETON_EDGE_ABSORPTION_ARBITRARY_N OPEN
-EXPOSED_SUBDIVISION_SELECTOR_DOMINANCE_ARBITRARY_N OPEN
-NONROOT_SINGLETON_BRANCH_REACHABILITY_ARBITRARY_N OPEN
-T3_EXACT_KEY_TEMPORAL_INDUCTION             PENDING_NONROOT_ONLY
-GLOBAL_CACHE_DAG_LOWER_BOUND                OPEN
-P_VS_NP                                     OPEN
+K_TREE_NORMAL_FORM_ARBITRARY_N                        OPEN
+ONE_EXCHANGE_MARKED_GROWTH_ARBITRARY_N                OPEN
+EXPOSED_SUBDIVISION_SELECTOR_DOMINANCE_ARBITRARY_N    OPEN
+NONROOT_SINGLETON_BRANCH_REACHABILITY_ARBITRARY_N     OPEN
+T3_EXACT_KEY_TEMPORAL_INDUCTION                       PENDING_NONROOT_ONLY
+GLOBAL_CACHE_DAG_LOWER_BOUND                          OPEN
+P_VS_NP                                               OPEN
 ```
