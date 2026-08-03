@@ -1,0 +1,145 @@
+{
+  "proposal_id": "C024-TEMPORAL-SAME-CUT-ELIGIBILITY",
+  "parent_proposal": "C024-SPANNING-CYCLE-RESOLUTION-CLOSURE",
+  "status": "T1_FROZEN_FRESH_SIDE_BARRIER_PROVED_T2_HANDOFF_OPEN",
+  "created_utc": "2026-08-03T06:00:00Z",
+  "updated_utc": "2026-08-03T06:02:00Z",
+  "target": "Replace raw same-cut noncreation with a temporal induction proving that no same-cut double-bridge pair becomes co-eligible in a frozen exact key.",
+  "stage_model": {
+    "K": "exact entry key after pre-unit closure",
+    "R": "frozen one-pass Resolution output",
+    "P": "post-unit residual",
+    "K_prime": "reached child exact key after branch restriction and child pre-units"
+  },
+  "falsified_hypotheses": [
+    {
+      "name": "Raw same-cut noncreation",
+      "status": "FALSIFIED",
+      "reason": "Two same-cut pairs occur in raw frozen-pass outputs through GT_8."
+    },
+    {
+      "name": "553 post-unit pair births",
+      "status": "FALSIFIED",
+      "reason": "The extra raw pairs are local resolvents. Post-units create zero double-bridge pairs on the finite frontier."
+    },
+    {
+      "name": "Post-unit vacuity on every pair-bearing raw output",
+      "status": "FALSIFIED",
+      "reason": "One GT_5 fresh/fresh complementary-unit pair closes as POST_UNIT_CONTRADICTION before a post-result exists."
+    }
+  ],
+  "finite_stage_census": {
+    "orders": [4, 5, 6, 7, 8],
+    "pre_frontier_states": 615,
+    "K": {
+      "double_bridge_pairs": 611,
+      "same_cut": 0,
+      "different_cut": 611,
+      "tail_tail": 611
+    },
+    "R": {
+      "double_bridge_pairs": 1391,
+      "same_cut": 2,
+      "different_cut": 1389,
+      "one_fresh_side_pairs": 611,
+      "two_fresh_side_pairs": 169
+    },
+    "P": {
+      "double_bridge_pairs": 1390,
+      "same_cut": 1,
+      "different_cut": 1389,
+      "post_unit_created_pairs": 0,
+      "raw_pairs_extinguished_before_P": 1
+    },
+    "K_prime": {
+      "new_exact_key_pairs_created_by_transition": 0,
+      "same_cut_eligible_pairs": 0
+    }
+  },
+  "raw_same_cut_transients": [
+    {
+      "name": "GT_4 mixed entry/fresh transient",
+      "state_id": 1,
+      "call_id": 1,
+      "novelty": 1,
+      "pivot": 5,
+      "left": [5, 6],
+      "right": [-2, -5],
+      "origins": ["ENTRY_KEY", "LOCAL_RESOLVENT"],
+      "roles": ["HEAD_SINGLETON", "TAIL_SINGLETON"],
+      "lifetime": "survives to P",
+      "extinction": [
+        "one reached child is terminal while both residual clauses remain",
+        "the other reached child removes the fresh right clause by child pre-unit closure"
+      ]
+    },
+    {
+      "name": "GT_5 fresh/fresh complementary-unit transient",
+      "state_id": 8,
+      "call_id": 10,
+      "novelty": 3,
+      "pivot": 10,
+      "left": [10],
+      "right": [-10],
+      "origins": ["LOCAL_RESOLVENT", "LOCAL_RESOLVENT"],
+      "roles": ["BOTH_ENDPOINTS_SINGLETON", "BOTH_ENDPOINTS_SINGLETON"],
+      "lifetime": "dies before P",
+      "extinction": "POST_UNIT_CONTRADICTION"
+    }
+  ],
+  "proved_theorems": [
+    {
+      "name": "Frozen Fresh-Side Barrier",
+      "status": "PROVED_ARBITRARY_N",
+      "statement": "If an exact entry key K contains no same-cut pair and R=K union F is the frozen-pass output, every same-cut pair in R contains at least one clause from F and therefore cannot be co-eligible during the pass which created it.",
+      "proof_type": "set-theoretic plus frozen-parent semantics",
+      "implementation_conformance": {
+        "states": 615,
+        "resolution_events": 14509,
+        "fresh_parent_reuse": 0,
+        "raw_same_cut_fresh_side_histogram": {
+          "one_fresh_side": 1,
+          "two_fresh_sides": 1
+        }
+      }
+    }
+  ],
+  "remaining_local_obligations": [
+    {
+      "name": "T2a Post-Unit Extinction/Noncreation",
+      "status": "OPEN_ARBITRARY_N",
+      "statement": "Post-unit closure cannot create a same-cut pair that survives into P; complementary-unit transients close immediately."
+    },
+    {
+      "name": "T2b Branch Handoff Extinction",
+      "status": "OPEN_ARBITRARY_N",
+      "statement": "Every same-cut transient surviving into P is removed, becomes structurally safe, or reaches a terminal child before K'."
+    },
+    {
+      "name": "T3 Temporal Induction",
+      "status": "PENDING_T2A_T2B",
+      "statement": "Root absence plus T1, T2a, and T2b preserves same-cut absence in all reached exact keys."
+    }
+  ],
+  "global_gates": [
+    {
+      "name": "Global Cache-Frontier Transfer",
+      "status": "OPEN"
+    },
+    {
+      "name": "Encoding Normalization",
+      "status": "OPEN"
+    }
+  ],
+  "artifacts": [
+    "proof_attempts/C024/GT_TEMPORAL_DOUBLE_BRIDGE_SAFETY.md",
+    "proof_attempts/C024/GT_FROZEN_FRESH_SIDE_BARRIER.md",
+    "experiments/direct/janus_tear_gt_resolution_output_double_bridge_creation.py",
+    "experiments/direct/janus_tear_gt_post_unit_double_bridge_creation.py",
+    "experiments/direct/janus_tear_gt_same_cut_transient_elimination.py",
+    "experiments/direct/janus_tear_gt_frozen_fresh_side_barrier.py",
+    ".github/workflows/validate-c024-same-cut-transient-elimination.yml",
+    ".github/workflows/validate-c024-frozen-fresh-side-barrier.yml"
+  ],
+  "claim_boundary": "T1 is proved for arbitrary n under the exact-key induction hypothesis and frozen parent semantics. T2a, T2b, the global cache lower bound, and P versus NP remain open."
+}
