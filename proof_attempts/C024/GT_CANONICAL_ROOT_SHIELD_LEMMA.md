@@ -98,15 +98,15 @@ The earlier proposed lemma
 
 is false at the raw output of local Resolution.
 
-Through `GT_8`, the local pass creates 77 fresh non-tail bridge literals, including:
+Through `GT_8`, the local pass exposes 93 non-tail resolvent-literal occurrences.  Of these, 77 are first births and 16 already have non-tail ancestry in a parent.  The endpoint-shape census over all 93 occurrences is:
 
 ```text
-singleton / singleton endpoint shape        19
-singleton tail / merged head                 40?  [see executable histogram]
+singleton / singleton                       19
+singleton tail / merged head                 56
 non-singleton tail                           18
 ```
 
-The exact detailed histogram is maintained by `janus_tear_gt_local_resolution_bad_bridge_birth_v2.py`; the important falsifier is the presence of 18 merged-tail births and 19 singleton/singleton births.
+The v2 audit intentionally does not infer a first-birth shape cross-tabulation that it has not explicitly recorded.  The decisive falsifier is that raw local output can contain both singleton/singleton and non-singleton-tail non-tail bridges.
 
 This does not contradict the root-shield lemma because fresh resolvents are not indexed as parents again during the same one-pass local stage.
 
@@ -162,7 +162,7 @@ branch is disjoint; head already merged       3
 one falsified branch literal is deleted      42
 ```
 
-All 12 lineages born with shape `(1,1)` reach the child exact key with shape `(1,2)`.  All 18 raw merged-tail births have zero descendants among later exact-key bad occurrences.
+All 12 lineages entering the local event with shape `(1,1)` reach the child exact key with shape `(1,2)`.  None of the 18 raw local non-tail occurrences with non-singleton tail appears among the 42 immediate local lineages that survive as exact-key bad occurrences.
 
 Thus every surviving immediate lineage is root-shielded by its first future parent-eligible key.  The 20 inherited occurrences are already shielded in the exact key from which they are inherited.
 
@@ -170,8 +170,8 @@ Thus every surviving immediate lineage is root-shielded by its first future pare
 
 The arbitrary-`n` proof must establish two survivor claims from the exact Policy-0A rules and GT clause geometry:
 
-1. **Merged-tail extinction.** A fresh non-tail bridge with non-singleton tail cannot survive as a component-spanning non-tail bridge into a later parent-eligible exact key.
-2. **Singleton-tail handoff.** If a fresh non-tail bridge with singleton tail survives, the intervening transition never merges the tail; when the head is singleton, it merges the head before the next exact key.
+1. **Merged-tail extinction.** A local non-tail bridge occurrence with non-singleton tail cannot survive as a component-spanning non-tail bridge into a later parent-eligible exact key.
+2. **Singleton-tail handoff.** If a local non-tail bridge with singleton tail survives, the intervening transition never merges the tail; when the head is singleton, it merges the head before the next exact key.
 
 The deterministic branch rule is most-frequent-variable with minimum-index tie breaking.  The finite surviving lineages show that the selected branch literal is always the complement of one source-clause literal and either joins the bad head to a singleton component or is disjoint after the head is already merged.  Deriving this pattern uniformly is the current induction gate.
 
