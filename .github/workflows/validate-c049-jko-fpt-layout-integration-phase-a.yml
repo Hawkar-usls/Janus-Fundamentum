@@ -1,0 +1,41 @@
+name: Validate C049 JKO FPT Layout Integration Phase A
+
+on:
+  pull_request:
+    paths:
+      - 'experiments/direct/janus_c049_fpt_integration*.py'
+      - 'experiments/direct/C049-JANUS-JKO-FPT-LAYOUT-INTEGRATION-PHASE-A.frozen.json'
+      - 'docs/C049_JKO_FPT_LAYOUT_INTEGRATION_PHASE_A.md'
+      - 'docs/ACTIVE_PROOF_ROUTE_MATRIX_C049_APPENDIX.md'
+      - 'proposals/C049-JANUS-JKO-FPT-LAYOUT-INTEGRATION-PHASE-A.json'
+      - 'registry/c049-source-map.json'
+      - '.github/workflows/validate-c049-jko-fpt-layout-integration-phase-a.yml'
+  workflow_dispatch:
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Compile C049 and inherited C047 modules
+        run: |
+          python -m py_compile \
+            experiments/direct/janus_c047_affine_trellis_core.py \
+            experiments/direct/janus_c049_fpt_integration_core.py \
+            experiments/direct/janus_c049_fpt_integration_solver.py \
+            experiments/direct/janus_c049_fpt_integration_verifier.py \
+            experiments/direct/janus_c049_fpt_integration.py
+      - name: Run C049 Phase-A audit
+        env:
+          PYTHONPATH: experiments/direct
+        run: |
+          python experiments/direct/janus_c049_fpt_integration.py \
+            --self-test \
+            --output /tmp/c049.json
+      - name: Verify frozen audit byte-for-byte
+        run: |
+          cmp /tmp/c049.json \
+            experiments/direct/C049-JANUS-JKO-FPT-LAYOUT-INTEGRATION-PHASE-A.frozen.json
