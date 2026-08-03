@@ -7,13 +7,13 @@ child unit replay from janus_tear_gt_root_all_variable_handoff.  A variable is
 unsafe for the occurrence if at least one polarity leaves the tracked lineage
 as an admitted unshielded non-tail bridge.
 
-The audit then compares the exact Policy-0A selected score
+The audit compares the exact Policy-0A selected score
 
     (-frequency(variable), variable_index)
 
-with every unsafe score.  It separates strict frequency exclusion from genuine
-minimum-index tie exclusion and records whether unsafe variables ever attain
-the global maximum frequency.
+with every unsafe score.  The finite result is stronger than lexicographic
+exclusion: every unsafe alternative through GT_12 has strictly lower frequency.
+The minimum-index tie-break is never needed against an unsafe variable.
 """
 
 from __future__ import annotations
@@ -114,8 +114,7 @@ def audit(n: int):
                         value,
                     )
                     fates.append(fate)
-                is_unsafe = "UNSAFE_UNSHIELDED_SURVIVES" in fates
-                if not is_unsafe:
+                if "UNSAFE_UNSHIELDED_SURVIVES" not in fates:
                     continue
 
                 unsafe_variables.append(variable)
@@ -258,34 +257,66 @@ def self_test() -> None:
         aggregate_unsafe_geometry.update(dict(data["unsafe_geometry"]))
         aggregate_unsafe_occurrence.update(dict(data["unsafe_occurrence"]))
         aggregate_modes.update(dict(data["exclusion_modes"]))
-        tie_rows = tuple(
-            row
-            for row in data["rows"]
-            if row["exclusion_mode"] == "MIN_INDEX_TIE_BREAK"
-        )
         print(f"ORDER_SIZE = {n}")
         print(f"  selected = {data['selected']} / frequency {data['selected_frequency']}")
         print(f"  maximum_variables = {data['maximum_variables']}")
         print(f"  counts = {data['counts']}")
         print(f"  unsafe_count_histogram = {data['unsafe_count_histogram']}")
         print(f"  unsafe_max_frequency_gap = {data['unsafe_max_frequency_gap']}")
-        print(f"  unsafe_max_index_gap = {data['unsafe_max_index_gap']}")
         print(f"  exclusion_modes = {data['exclusion_modes']}")
         print(f"  unsafe_geometry = {data['unsafe_geometry']}")
         print(f"  unsafe_occurrence = {data['unsafe_occurrence']}")
-        print(f"  tie_rows = {tie_rows}")
 
     assert aggregate_counts["occurrences"] == 62
-    assert aggregate_counts["occurrences_with_unsafe_variables"] == 62
-    assert aggregate_counts["occurrences_without_unsafe_variables"] == 0
-    assert aggregate_counts["unsafe_score_comparisons"] > 0
-    assert sum(aggregate_modes.values()) == 62
+    assert aggregate_counts["occurrences_with_unsafe_variables"] == 58
+    assert aggregate_counts["occurrences_without_unsafe_variables"] == 4
+    assert aggregate_counts["unsafe_excluded_by_strict_frequency"] == 58
+    assert aggregate_counts["unsafe_excluded_by_min_index"] == 0
+    assert aggregate_counts["unsafe_score_comparisons"] == 1397
+    assert aggregate_modes == Counter({"STRICT_FREQUENCY": 58})
+    assert aggregate_index_gaps == Counter()
+    assert aggregate_unsafe_geometry == Counter({"INTERNAL_HEAD": 1397})
+    assert aggregate_unsafe_occurrence == Counter({"ABSENT": 1397})
+    assert aggregate_selected_geometry == Counter(
+        {
+            "CROSS_CUT": 13,
+            "INTERNAL_HEAD": 40,
+            "INTERNAL_TAIL": 3,
+            "PIVOT": 6,
+        }
+    )
+    assert aggregate_unsafe_counts == Counter(
+        {
+            0: 4,
+            1: 2,
+            3: 2,
+            6: 3,
+            10: 5,
+            15: 6,
+            21: 7,
+            28: 13,
+            36: 20,
+        }
+    )
+    assert aggregate_frequency_gaps == Counter(
+        {
+            6: 2,
+            7: 2,
+            10: 3,
+            14: 5,
+            18: 6,
+            21: 7,
+            26: 13,
+            31: 18,
+            32: 2,
+        }
+    )
 
     print("JANUS_GT_ROOT_UNSAFE_SELECTOR_MARGIN = PASS")
+    print("ROOT_UNSAFE_MIN_INDEX_TIE_BREAK = UNUSED_THROUGH_GT_12")
     print(f"AGGREGATE_COUNTS = {tuple(sorted(aggregate_counts.items()))}")
     print(f"AGGREGATE_UNSAFE_COUNTS = {tuple(sorted(aggregate_unsafe_counts.items()))}")
     print(f"AGGREGATE_FREQUENCY_GAPS = {tuple(sorted(aggregate_frequency_gaps.items()))}")
-    print(f"AGGREGATE_INDEX_GAPS = {tuple(sorted(aggregate_index_gaps.items()))}")
     print(
         "AGGREGATE_UNSAFE_MAXIMUM_COUNTS = "
         f"{tuple(sorted(aggregate_unsafe_maximum_counts.items()))}"
@@ -304,8 +335,13 @@ def self_test() -> None:
     )
     print(f"AGGREGATE_EXCLUSION_MODES = {tuple(sorted(aggregate_modes.items()))}")
     print(
-        "claim_boundary = exact unsafe-set lexicographic selector margins "
-        "through GT_12; arbitrary-n selected-template reachability remains open"
+        "finite_result = every unsafe alternative through GT_12 is an absent "
+        "INTERNAL_HEAD variable with strictly lower frequency than the selected "
+        "safe-template variable"
+    )
+    print(
+        "claim_boundary = exact unsafe-set frequency exclusion through GT_12; "
+        "arbitrary-n root unsafe-frequency-gap theorem remains open"
     )
 
 
