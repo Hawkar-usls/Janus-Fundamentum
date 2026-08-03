@@ -2,8 +2,7 @@
 """Decompose the exact branch-frequency advantage on dangerous GT lineages.
 
 Quotient-component frequency factorization is false.  This profile therefore
-keeps clause history, polarity-insensitive variable identity, and the exact
-Policy-0A selector.
+keeps clause history, variable identity, and the exact Policy-0A selector.
 
 For each of the 42 immediate-local non-tail bridge lineages that survives into
 a later exact key, compare the selected branch variable with the strongest
@@ -16,8 +15,8 @@ difference is charged to one parent post-result clause and classified as:
 - INHERITED_DERIVED: inherited or otherwise derived history;
 - OTHER_DERIVED: residual output not covered by the previous classes.
 
-The profile does not assume that one class always wins.  It emits the exact
-finite history vectors needed to formulate the next arbitrary-n lemma.
+No source class is assumed to be nonnegative.  The output is an exact finite
+history vector for the next arbitrary-n theorem attack.
 """
 
 from __future__ import annotations
@@ -77,9 +76,6 @@ def audit(n: int):
     gap_histogram: Counter[int] = Counter()
     source_delta_histogram: Counter[int] = Counter()
     origin_net: Counter[str] = Counter()
-    origin_selected_only: Counter[str] = Counter()
-    origin_tail_only: Counter[str] = Counter()
-    origin_both: Counter[str] = Counter()
     vector_histogram: Counter[tuple[int, ...]] = Counter()
     sign_pattern_histogram: Counter[tuple[str, ...]] = Counter()
     rows = []
@@ -90,9 +86,9 @@ def audit(n: int):
         state = policy.states[state_id]
         cnf = tuple(tuple(clause) for clause in state["post_result"])
         assignment = context["state_after_post"][state_id]
-        selected = abs(int(item["branch_literal"]))
+        selected = abs(int(item["selected_literal"]))
         bad_literal = int(item["literal"])
-        source = tuple(item["post_source"])
+        source = tuple(item["source"])
 
         frequencies = Counter(
             abs(literal)
@@ -136,9 +132,9 @@ def audit(n: int):
         gap_histogram[gap] += 1
 
         local_net: Counter[str] = Counter()
-        local_selected_only: Counter[str] = Counter()
-        local_tail_only: Counter[str] = Counter()
-        local_both: Counter[str] = Counter()
+        selected_only: Counter[str] = Counter()
+        tail_only: Counter[str] = Counter()
+        both: Counter[str] = Counter()
         for clause in cnf:
             variables = {abs(literal) for literal in clause}
             has_selected = selected in variables
@@ -147,18 +143,15 @@ def audit(n: int):
                 continue
             origin = clause_origin(root, clause, assignment, minimum_labels, state)
             if has_selected and has_tail:
-                local_both[origin] += 1
-                origin_both[origin] += 1
+                both[origin] += 1
             elif has_selected:
                 local_net[origin] += 1
-                local_selected_only[origin] += 1
+                selected_only[origin] += 1
                 origin_net[origin] += 1
-                origin_selected_only[origin] += 1
             else:
                 local_net[origin] -= 1
-                local_tail_only[origin] += 1
+                tail_only[origin] += 1
                 origin_net[origin] -= 1
-                origin_tail_only[origin] += 1
 
         assert sum(local_net.values()) == gap
         vector = tuple(local_net[origin] for origin in ORIGIN_ORDER)
@@ -171,9 +164,7 @@ def audit(n: int):
 
         source_variables = {abs(literal) for literal in source}
         assert selected in source_variables
-        source_delta = int(selected in source_variables) - int(
-            competitor in source_variables
-        )
+        source_delta = 1 - int(competitor in source_variables)
         source_delta_histogram[source_delta] += 1
         if source_delta > 0:
             counts["source_selected_only"] += 1
@@ -196,13 +187,9 @@ def audit(n: int):
                 "source": source,
                 "source_delta": source_delta,
                 "origin_vector": vector,
-                "origin_net": tuple(
-                    (origin, local_net[origin])
-                    for origin in ORIGIN_ORDER
-                ),
-                "selected_only": tuple(sorted(local_selected_only.items())),
-                "tail_only": tuple(sorted(local_tail_only.items())),
-                "both": tuple(sorted(local_both.items())),
+                "selected_only": tuple(sorted(selected_only.items())),
+                "tail_only": tuple(sorted(tail_only.items())),
+                "both": tuple(sorted(both.items())),
             }
         )
 
@@ -212,15 +199,6 @@ def audit(n: int):
         "gap_histogram": tuple(sorted(gap_histogram.items())),
         "source_delta_histogram": tuple(sorted(source_delta_histogram.items())),
         "origin_net": tuple((origin, origin_net[origin]) for origin in ORIGIN_ORDER),
-        "origin_selected_only": tuple(
-            (origin, origin_selected_only[origin]) for origin in ORIGIN_ORDER
-        ),
-        "origin_tail_only": tuple(
-            (origin, origin_tail_only[origin]) for origin in ORIGIN_ORDER
-        ),
-        "origin_both": tuple(
-            (origin, origin_both[origin]) for origin in ORIGIN_ORDER
-        ),
         "vector_histogram": tuple(sorted(vector_histogram.items(), key=repr)),
         "sign_pattern_histogram": tuple(
             sorted(sign_pattern_histogram.items(), key=repr)
@@ -251,7 +229,7 @@ def self_test() -> None:
         print(f"  source_delta_histogram = {data['source_delta_histogram']}")
         print(f"  origin_net = {data['origin_net']}")
         print(f"  vector_histogram = {data['vector_histogram']}")
-        print(f"  rows = {data['rows']}")
+        print(f"  sample_rows = {data['rows'][:3]}")
 
     assert aggregate_counts["lineages"] == 42
     assert aggregate_counts["strict_gap_lineages"] == 23
