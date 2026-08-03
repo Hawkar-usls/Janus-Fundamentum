@@ -1,6 +1,6 @@
 # C024 — Non-root singleton reachability: exact-key induction route
 
-Status: **CYCLE/TREE EXCHANGE, GRAPH GROWTH, AND ABSORPTION PROVED / TWO GT-SPECIFIC GATES OPEN**  
+Status: **GRAPH SURGERY PROVED / GT LINEAGE, TREE-RESULT, AND SELECTOR GATES OPEN**  
 Scope: the remaining non-root branch handoff in exact Policy-0A on graph tautologies.
 
 This document does not claim the global graph-tautology cache lower bound, an unrestricted Resolution or SAT lower bound, or a resolution of `P` versus `NP`.
@@ -48,19 +48,9 @@ The original root component-spanning in-arborescence clauses are stars. K-normal
 
 ## 4. Directed-cycle/tree resolvent exact exchange — proved
 
-Let `D` be the simple external graph of one legal Resolution parent and suppose `D` is an in-arborescence with root `r`. Let its pivot be
+Let `D` be the simple external graph of one legal Resolution parent and suppose `D` is an in-arborescence with root `r`. Let its pivot be `p=a->b`. Suppose the other parent contains the complementary literal `b->a` and a directed cycle. If the simple external resolvent `R` has an underlying tree, then the cycle pivot deletion leaves a directed path from `a` to `b`.
 
-```text
-p = a -> b.
-```
-
-Suppose the other parent contains the complementary literal `b->a` and a directed cycle. If the simple external resolvent `R` has an underlying tree, then:
-
-1. every directed cycle in the cycle parent must use `b->a`; otherwise a pivot-avoiding cycle survives in `R`;
-2. deleting `b->a` from such a cycle leaves a directed path from `a` to `b`;
-3. `D-p` is a two-component forest with `|V|-2` edges while tree `R` has `|V|-1`, so exactly one cycle-parent edge can be new relative to the forest;
-4. the first path edge out of `a` must be that unique new edge because `a` has no outgoing edge after deleting `p`;
-5. every later path edge and every additional external cycle-parent edge duplicates an existing tree edge with the same orientation.
+The forest `D-p` has `|V|-2` edges while tree `R` has `|V|-1`, so exactly one cycle-parent edge can be new. The first path edge out of `a` must be that unique edge because `a` has no outgoing tree edge after deleting `p`; every later path edge and every additional external cycle-parent edge duplicates an existing tree edge with the same orientation.
 
 Therefore
 
@@ -68,15 +58,13 @@ Therefore
 R = (D - {p}) union {l}
 ```
 
-for one unique new external edge `l`, and `R` is an in-arborescence with the same root `r`.
+for one unique new edge `l`, and `R` is an in-arborescence with the same root.
 
 ```text
 CYCLE_TREE_RESOLVENT_EXACT_EXCHANGE_ARBITRARY_N = PROVED
 ```
 
-This theorem is uniform in the number of quotient components and does not require the cycle parent to be a triangle or the tree parent to be K-normal.
-
-Independent simple-cycle-path falsification gate through six vertices:
+Independent replay:
 
 ```text
 tree parents                    1440
@@ -88,19 +76,11 @@ new edge at first path position 7796
 violations                         0
 ```
 
-The earlier transitivity-triangle theorem is the length-two path corollary. Its separate gate covers 18,247 tree parents, 531,732 triangle instances, 76,676 tree resolvents, and zero violations.
-
-Exact exchange and common-root preservation are therefore no longer GT-specific proof obligations. GT reachability only has to establish the cycle-parent/tree-parent/tree-result hypotheses.
+Exact exchange and common-root preservation are no longer GT-specific proof obligations. GT reachability only has to establish the parent classes and tree result.
 
 ## 5. K-normal one-edge exchange growth — proved
 
-For a K-normal in-arborescence `D` and a same-root exact exchange
-
-```text
-Q = (D - p) + l,
-```
-
-we have
+For a K-normal in-arborescence `D` and a same-root exact exchange `Q=(D-p)+l`:
 
 ```text
 nonstar(Q) <= 2
@@ -113,7 +93,7 @@ If `Q` is not K-normal, contracting either non-star edge returns a K-normal tree
 K_NORMAL_ONE_EDGE_EXCHANGE_GROWTH_ARBITRARY_N = PROVED
 ```
 
-Independent labelled gate through eight vertices:
+Independent labelled gate:
 
 ```text
 K-normal sources                 119
@@ -124,13 +104,11 @@ marked contractions             5208
 violations                         0
 ```
 
-Canonical result shapes are exactly `(1,0,false)`, `(2,1,true)`, `(2,2,false)`, and `(3,2,false)`. Every marked contraction of a non-K-normal result has shape `(2,1,true)`.
+Canonical result shapes are exactly `(1,0,false)`, `(2,1,true)`, `(2,2,false)`, and `(3,2,false)`.
 
 ## 6. Marked singleton-edge absorption — proved
 
-A **one-step marked extension** replaces one edge of a K-normal tree by a two-edge path and marks either new half-edge `e`. Contracting `e` recovers the K-normal source tree.
-
-If the marked edge is selected and its endpoint relation components are singleton sets, then:
+A one-step marked extension replaces one edge of a K-normal tree by a two-edge path and marks either new half-edge `e`. If the marked edge is selected and its endpoint relation components are singleton sets, then:
 
 ```text
 marked literal satisfied
@@ -142,8 +120,6 @@ marked literal falsified
     -> graph contraction T/e
     -> recover the K-normal source tree
 ```
-
-Additional child pre-units can only simplify further.
 
 ```text
 MARKED_SINGLETON_EDGE_ABSORPTION_ARBITRARY_N = PROVED
@@ -159,9 +135,75 @@ marked half-edge branches       1344
 violations                         0
 ```
 
-## 7. Finite exact-key handoff
+## 7. Complete finite Gate-A profile
 
-Complete non-root exact-exchange replay through `GT_8`:
+All 77 fresh non-tail bridge occurrences in exact `GT_4,...,GT_8` replay were classified without assuming exact exchange:
+
+```text
+fresh non-tail occurrences                 77
+directed-cycle parent                      77
+simple in-arborescence spanning parent     51
+simple tree/in-arborescence result         69
+non-root immediate-local unshielded         3
+```
+
+The complete cell table is:
+
+```text
+spanning tree  cycle parent  tree result  unshielded  count
+false          true          false        false          8
+false          true          true         false         18
+true           true          true         false         48
+true           true          true         true           3
+```
+
+Thus every finite non-root unshielded occurrence satisfies the cycle-parent, tree-parent, and tree-result hypotheses. Every finite violation of tree-parent or tree-result is shielded. This is a finite localization certificate, not an arbitrary-`n` theorem.
+
+The 77 occurrences arise from 37 distinct Resolution events; 20 events create more than one fresh bridge occurrence.
+
+## 8. Abstract obstruction: mixed-parent necessity is not graph-theoretic
+
+The finite GT replay has one directed-cycle parent in all 77 fresh non-tail births. However, this cannot be promoted from quotient graph semantics alone.
+
+Exhaust every legal branch-safe directed clause on 3 and 4 singleton quotient vertices, every complementary pivot pair, and every component-spanning resolvent. A bridge occurrence is fresh when the same directed edge was not a bridge in either parent containing it.
+
+The exact result is:
+
+```text
+fresh bridge occurrences                 13,896
+fresh non-tail occurrences                7,380
+fresh tail-singleton occurrences          6,516
+```
+
+Fresh non-tail parent pairs:
+
+```text
+COMPONENT_SPANNING x COMPONENT_SPANNING    5,304
+COMPONENT_SPANNING x DIRECTED_CYCLE         2,076
+```
+
+Therefore
+
+```text
+ABSTRACT_FRESH_BRIDGE_MIXED_PARENT_NECESSITY = FALSIFIED
+```
+
+Legality, connectedness, bridge freshness, and non-tail cut geometry do not imply a directed-cycle parent. Any arbitrary-`n` proof of the GT mixed-parent property must retain exact Policy-0A information:
+
+```text
+GT clause origin
+frozen Resolution ancestry
+pivot schedule
+literal polarity
+proof provenance
+cache-key reachability
+```
+
+A proof that forgets this history and keeps only the abstract quotient clause graph is incomplete.
+
+## 9. Finite exact-key handoff and selector evidence
+
+Complete non-root handoff through `GT_8`:
 
 ```text
 source exact-key shapes
@@ -187,59 +229,52 @@ The three transient deep clauses are
 (-5,-6,-7,-8,13)
 ```
 
-Each has source shape `(2,1,true)`, raw/post shape `(3,2,false)`, selected literal `-8`, and selected component sizes `(1,1)`. One polarity makes the clause extinct; the other deletes/contracts `-8` and returns the child exact-key shape to `(2,1,true)`.
+Each has source shape `(2,1,true)`, raw/post shape `(3,2,false)`, selected literal `-8`, and selected component sizes `(1,1)`. One polarity makes the clause extinct; the other contracts `-8` and returns shape `(2,1,true)`.
 
-This is finite evidence for the two arbitrary-`n` GT-specific gates below, not their proof.
-
-## 8. Selector-origin evidence
-
-For the three deep rows:
+Their selector cell is:
 
 ```text
-selected variable       8
-selected frequency     75
-competitor frequencies 67,68,68
-strict margins          8,7,7
-source delta            0,0,0
+selected frequency       75
+competitor frequencies   67,68,68
+strict margins            8,7,7
+source delta              0,0,0
 ```
 
-With origin coordinates
+Origin vectors are `(0,2,10,-4,0)` once and `(0,2,10,-5,0)` twice in coordinates `ROOT_NON_MINIMALITY`, `ROOT_TRANSITIVITY`, `LOCAL_RESOLVENT`, `INHERITED_DERIVED`, `OTHER_DERIVED`.
+
+The complete 42-lineage profile is heterogeneous and contains strict margins and least-index ties. Component-pair factorization and a universal origin-vector formula are false.
+
+## 10. Remaining conceptual gates
+
+### Gate A — producer reachability
+
+Gate A is now split into two GT-specific subgates.
+
+#### A1 — mixed-parent lineage reachability
 
 ```text
-ROOT_NON_MINIMALITY,
-ROOT_TRANSITIVITY,
-LOCAL_RESOLVENT,
-INHERITED_DERIVED,
-OTHER_DERIVED,
+GT_NONROOT_UNSHIELDED_MIXED_PARENT_REACHABILITY_ARBITRARY_N = OPEN
 ```
 
-the selected-minus-competitor vectors are
+Show that every reachable non-root immediate-local unshielded producer is safe or has one legal directed-cycle parent and one component-spanning parent.
+
+This must use GT lineage/history. The abstract spanning-by-spanning counterexamples rule out a pure graph proof.
+
+#### A2 — tree parent/result reachability
 
 ```text
-(0,2,10,-4,0)
-(0,2,10,-5,0)
-(0,2,10,-5,0)
+GT_NONROOT_UNSHIELDED_TREE_PARENT_RESULT_REACHABILITY_ARBITRARY_N = OPEN
 ```
 
-The tracked clause itself gives no selector advantage. The strict margin is generated by the frozen local block and partially offset by inherited derived clauses.
+Given a reachable mixed-parent producer, show that the spanning parent is a simple K-normal in-arborescence and the external resolvent is a simple tree, or else an existing shield/safe route applies.
 
-The complete 42-lineage finite profile is heterogeneous and contains both strict margins and least-index ties. Component-pair frequency factorization and a universal origin-vector formula are false. An arbitrary-`n` selector proof must retain clause history, polarity, vertex identity, and exact tie-breaking.
-
-## 9. Two remaining arbitrary-n GT gates
-
-### Gate A — cycle/tree/tree-result producer reachability
+After A1 and A2:
 
 ```text
-NONROOT_UNSHIELDED_CYCLE_TREE_TREE_RESULT_REACHABILITY_ARBITRARY_N = OPEN
+NONROOT_UNSHIELDED_CYCLE_TREE_TREE_RESULT_REACHABILITY_ARBITRARY_N
 ```
 
-Every arbitrary-`n` reachable non-root immediate-local unshielded producer must be shown either to fall into an already proved safe route or to have:
-
-1. one legal directed-cycle parent carrying the complementary pivot;
-2. one simple K-normal component-spanning in-arborescence parent;
-3. a simple external resolvent whose underlying graph is a tree.
-
-Under these three hypotheses, exact same-root one-edge exchange follows automatically from the proved cycle/tree theorem. No triangle ancestry, sibling normal form, direct exact-exchange proof, or separate common-root proof is required.
+follows, and the proved cycle/tree theorem supplies exact same-root exchange automatically.
 
 ### Gate B — exposed-subdivision selector dominance
 
@@ -247,32 +282,25 @@ Under these three hypotheses, exact same-root one-edge exchange follows automati
 EXPOSED_SUBDIVISION_SELECTOR_DOMINANCE_ARBITRARY_N = OPEN
 ```
 
-For every reachable non-root immediate-local unshielded state, exact Policy-0A must select either:
+Every reachable non-root immediate-local unshielded state must select either an already proved safe route or a marked exposed comparison joining singleton relation components.
 
-1. a variable whose branch is already covered by a proved safe route; or
-2. a marked exposed comparison joining two singleton relation components.
-
-A falsifier is a reachable state whose exact maximum-frequency/least-index variable avoids every established safe route and is not such a marked singleton comparison.
-
-## 10. Exact-key induction after the two gates
-
-Assuming Gate A and Gate B:
+## 11. Exact-key induction after A1, A2, and B
 
 ```text
 K
   relevant tree parents are K-normal by induction
 
 K -> R
-  dangerous producer has cycle parent + K-normal tree parent + tree result
+  A1 gives cycle x spanning parents
+  A2 gives K-normal tree parent and tree result
   -> cycle/tree theorem gives same-root exact one-edge exchange
   -> growth theorem gives K-normal or one marked transient layer
 
 R -> P
   post-units do not create new same-cut pairs
-  extinct or otherwise safe clauses leave the tracked route
 
 P -> B
-  selector takes a proved safe diversion or the marked singleton edge
+  Gate B selects a safe diversion or the marked singleton edge
 
 B -> K'
   satisfying polarity kills the clause
@@ -280,33 +308,27 @@ B -> K'
   -> absorption theorem restores K-normal form
 ```
 
-Thus K-normality propagates from one exact key to the next.
-
-After both gates close:
+Only after all three open subgates close may the following be promoted:
 
 ```text
 NONROOT_SINGLETON_BRANCH_REACHABILITY_ARBITRARY_N = PROVED
 T3_EXACT_KEY_TEMPORAL_INDUCTION                    = DIRECT
 ```
 
-Neither conclusion may be promoted earlier.
-
-## 11. Current boundary
+## 12. Current boundary
 
 ```text
-TREE_EXCHANGE_CUT_PRESERVATION                              PROVED
-SINGLETON_BRANCH_SAME_CUT_PRESERVATION                      PROVED
 CYCLE_TREE_RESOLVENT_EXACT_EXCHANGE_ARBITRARY_N             PROVED
 K_NORMAL_ONE_EDGE_EXCHANGE_GROWTH_ARBITRARY_N               PROVED
 MARKED_SINGLETON_EDGE_ABSORPTION_ARBITRARY_N                PROVED
-FINITE_TREE_EXCHANGE_HANDOFF                                 GREEN
-FINITE_DEEP_SHAPE_ABSORPTION                                 GREEN
-FINITE_DEEP_SELECTOR_ORIGIN                                  GREEN
+FINITE_GATE_A_PROFILE                                       GREEN
+ABSTRACT_FRESH_BRIDGE_MIXED_PARENT_NECESSITY                FALSIFIED
 
-NONROOT_UNSHIELDED_CYCLE_TREE_TREE_RESULT_REACHABILITY_ARBITRARY_N OPEN
-EXPOSED_SUBDIVISION_SELECTOR_DOMINANCE_ARBITRARY_N                 OPEN
-NONROOT_SINGLETON_BRANCH_REACHABILITY_ARBITRARY_N                  OPEN
-T3_EXACT_KEY_TEMPORAL_INDUCTION                                   PENDING_NONROOT_ONLY
-GLOBAL_CACHE_DAG_LOWER_BOUND                                      OPEN
-P_VS_NP                                                           OPEN
+GT_NONROOT_UNSHIELDED_MIXED_PARENT_REACHABILITY_ARBITRARY_N OPEN
+GT_NONROOT_UNSHIELDED_TREE_PARENT_RESULT_REACHABILITY_ARBITRARY_N OPEN
+EXPOSED_SUBDIVISION_SELECTOR_DOMINANCE_ARBITRARY_N          OPEN
+NONROOT_SINGLETON_BRANCH_REACHABILITY_ARBITRARY_N           OPEN
+T3_EXACT_KEY_TEMPORAL_INDUCTION                             PENDING_NONROOT_ONLY
+GLOBAL_CACHE_DAG_LOWER_BOUND                                OPEN
+P_VS_NP                                                     OPEN
 ```
