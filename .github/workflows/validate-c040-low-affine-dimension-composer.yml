@@ -1,0 +1,46 @@
+name: Validate C039.3 Low Affine Dimension Composer
+
+on:
+  push:
+    paths:
+      - "experiments/direct/janus_c040_low_affine_dimension_composer.py"
+      - "experiments/direct/c039_affine_core.py"
+      - "docs/C040_LOW_AFFINE_DIMENSION_HORN_COMPOSER.md"
+      - "proposals/C040-JANUS-LOW-AFFINE-DIMENSION-HORN-COMPOSER.json"
+      - "proposals/C040-JANUS-LOW-AFFINE-DIMENSION-HORN-COMPOSER.frozen.json"
+      - "registry/c040-source-map.json"
+      - "schemas/c040-low-affine-dimension-composition-v1.schema.json"
+      - "docs/ACTIVE_PROOF_ROUTE_MATRIX.md"
+      - ".github/workflows/validate-c040-low-affine-dimension-composer.yml"
+  pull_request:
+    paths:
+      - "experiments/direct/janus_c040_low_affine_dimension_composer.py"
+      - "experiments/direct/c039_affine_core.py"
+      - "docs/C040_LOW_AFFINE_DIMENSION_HORN_COMPOSER.md"
+      - "proposals/C040-JANUS-LOW-AFFINE-DIMENSION-HORN-COMPOSER.json"
+      - "proposals/C040-JANUS-LOW-AFFINE-DIMENSION-HORN-COMPOSER.frozen.json"
+      - "registry/c040-source-map.json"
+      - "schemas/c040-low-affine-dimension-composition-v1.schema.json"
+      - "docs/ACTIVE_PROOF_ROUTE_MATRIX.md"
+      - ".github/workflows/validate-c040-low-affine-dimension-composer.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  c039-3-low-affine-dimension:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: >-
+          python experiments/direct/janus_c040_low_affine_dimension_composer.py
+          --self-test
+          --output proposals/C040-JANUS-LOW-AFFINE-DIMENSION-HORN-COMPOSER.frozen.json
+      - run: git diff --exit-code -- proposals/C040-JANUS-LOW-AFFINE-DIMENSION-HORN-COMPOSER.frozen.json
+      - run: python -m json.tool proposals/C040-JANUS-LOW-AFFINE-DIMENSION-HORN-COMPOSER.json >/dev/null
+      - run: python -m json.tool proposals/C040-JANUS-LOW-AFFINE-DIMENSION-HORN-COMPOSER.frozen.json >/dev/null
+      - run: python -m json.tool registry/c040-source-map.json >/dev/null
+      - run: python -m json.tool schemas/c040-low-affine-dimension-composition-v1.schema.json >/dev/null
