@@ -17,199 +17,202 @@ P_VS_NP=OPEN
 | C029 | Occurrence-splitting minor | Connected equality splitting preserves the source incidence graph as a minor | Variable copying plus equalities lowers incidence width | `NON_MINOR_PRESERVING_SEMANTIC_COMPRESSION` |
 | C032 | PS-width alignment | JANUS cut signatures are exactly PS-width signatures; high treewidth can have PS-width 2 | Inventing a new enumerative cut parameter | `POLYNOMIAL_PS_DECOMPOSITION_OR_SYMBOLIC_SIGNATURE_COMPRESSION` |
 | C033 | Proof-carrying tractable portfolio | Normalization plus exact Horn, dual-Horn and beta-acyclic solving with witness recovery and strict `OPEN` | Every tractable regime must first have small explicit PS tables | `PORTFOLIO_SELECTION_WITH_SYMBOLIC_MESSAGES` |
-| C034 | Affine and cross-class composition | Replayable GF(2) certificates and exact `O(2^k poly(L))` heterogeneous composition for shared boundary `k` | Named tractable modules imply an unrestricted tractable mixture | `PROOF_CARRYING_CROSS_CLASS_INTERFACE_COMPRESSION` |
-| C035 | Certified interface congruence | Replayed exact residual messages give a sound merge congruence; absorbing proofs and affine RREF produce real compression | Exponential diversity in one product language is intrinsic hardness | `JOINT_DECOMPOSITION_LANGUAGE_AND_PROOF_SELECTION` |
-| C036 | Proof-carrying partition refinement | Complete polynomial separator extraction for Horn and affine residuals; every accepted split carries a replayable continuation | Failure to find a separator permits merging; explicit refinement automatically has polynomial state generation | `CROSS_LANGUAGE_SYMBOLIC_SEPARATOR_DISCOVERY` |
-| C036.1 | Horn-affine negotiation extension | Complete affine-to-Horn directed inclusion/separator extraction plus replayable shared-literal conflict traces and SQLite proof caching | A propagation fixpoint certifies compatibility; constants-only exchange decides Horn-affine mixtures | `REVERSE_HORN_TO_AFFINE_SEPARATOR_OR_STRONGER_FACT_ALGEBRA` |
-| C037 | Explicit residual OBDD alignment | Exact minimization, pairwise distinguishing suffixes, SAT witnesses and UNSAT DAG certificates once the residual graph is explicit | Partition refinement alone avoids state explosion; an equivalence-query teacher is free | `POLYNOMIAL_ORDER_DECOMPOSITION_AND_REACHABLE_QUOTIENT_CONSTRUCTION` |
-| C038 | Structured vtree factor alignment | Exact vtree-cut continuation rows, replayable separators, witness/UNSAT tables and deterministic charged candidate construction | Recursive structure or a supplied vtree automatically removes exponential interfaces | `POLYNOMIAL_VTREE_DISCOVERY_AND_SYMBOLIC_FACTOR_CONSTRUCTION` |
-| C039 | Symbolic affine factor compiler | Exact bottom-up affine join/project/canonicalize on any charged vtree, at most `|B_u|` RREF rows per satisfiable message, replayed merge/separate, SAT recovery and XOR-provenance UNSAT | Exponential communication rows must be materialized; affine closure automatically extends to Horn/affine or arbitrary CNF | `CROSS_LANGUAGE_SYMBOLIC_PROJECTION_CLOSED_UNDER_JOIN` |
-| C039.1 | Horn projection boundary | Polynomial proof-carrying single-head restriction, guarded join and projection; complete explicit Horn merge/separate; exact `2^n` boundary-CNF projection obstruction | Horn expressibility or tractable Horn SAT implies polynomial-size Horn boundary messages; Horn equivalence is the missing operation | `RICHER_HORN_MESSAGE_LANGUAGE_OR_PORTFOLIO_GUIDED_HEAD_DISJOINT_ISOLATION` |
+| C034 | Affine and cross-class composition | Replayable GF(2) certificates and exact bounded-interface heterogeneous composition | Named tractable modules imply an unrestricted tractable mixture | `PROOF_CARRYING_CROSS_CLASS_INTERFACE_COMPRESSION` |
+| C035 | Certified interface congruence | Replayed exact residual messages give a sound merge congruence; absorbing proofs and affine RREF compress | Exponential diversity in one product language is intrinsic hardness | `JOINT_DECOMPOSITION_LANGUAGE_AND_PROOF_SELECTION` |
+| C036 | Proof-carrying partition refinement | Complete polynomial separator extraction for Horn and affine residuals | Failure to find a separator permits merging | `CROSS_LANGUAGE_SYMBOLIC_SEPARATOR_DISCOVERY` |
+| C036.1 | Horn-affine negotiation extension | Complete affine-to-Horn directed inclusion and replayable shared-literal conflict traces | A propagation fixpoint certifies compatibility | `REVERSE_HORN_TO_AFFINE_SEPARATOR_OR_STRONGER_FACT_ALGEBRA` |
+| C036.2 | Proof-Carrying Open-Core Vault | Exact capability-scoped OPEN storage, logical STALE, immutable evaluations and fail-closed replay | Cached OPEN is intrinsic hardness; capability changes permit silent reuse | `CI_ADMISSION_AND_PROTOCOL_INTEGRATION` |
+| C037 | Explicit residual OBDD alignment | Exact minimization and certificates after explicit fixed-order state generation | Partition refinement alone avoids state explosion | `POLYNOMIAL_ORDER_DECOMPOSITION_AND_REACHABLE_QUOTIENT_CONSTRUCTION` |
+| C038 | Structured vtree factor alignment | Exact cut continuation rows and replayable factor separators for a verified vtree | Recursive structure or a supplied vtree automatically removes exponential interfaces | `POLYNOMIAL_VTREE_DISCOVERY_AND_SYMBOLIC_FACTOR_CONSTRUCTION` |
+| C039.0 | Symbolic-factor construction contract | Proof-carrying `LEAF/JOIN/PROJECT/MERGE/SEPARATE` envelopes, payload-policy gate and capability-locked Vault protocol | Encoded truth tables are symbolic; unsupported languages may fall back to SAT; supplied vtree is discovered | `POLYNOMIAL_SYMBOLIC_JOIN_PROJECT_MERGE_AND_REPLAYABLE_FACTOR_EQUIVALENCE` |
+| C039.1 | Pure-affine symbolic vtree factors | Exact polynomial affine join/project/RREF messages on any charged vtree | Explicit continuation rows must always be materialized | `CROSS_LANGUAGE_SYMBOLIC_PROJECTION_CLOSED_UNDER_JOIN` |
+| C039.2 | Single-head Horn symbolic projection | Exact restriction, guarded join, projection, merge/separate, decision and witness lifting without clause growth in the single-head subclass; unrestricted boundary-only Horn CNF can require `2^n` clauses | Tractable Horn SAT implies compact Horn projection messages | `RICHER_HORN_MESSAGE_LANGUAGE_OR_PORTFOLIO_GUIDED_HEAD_DISJOINT_ISOLATION` |
+| C039.3 | Low-affine-dimension Horn/affine composer | Exact Horn or dual-Horn plus affine composition in `O(2^d poly(L))` for projected affine dimension `d` under one fixed capability exponent | Raw shared-variable count is the only semantic interface measure; an input-dependent exponent is polynomial | `CROSS_LANGUAGE_COMPOSITION_BEYOND_LOW_AFFINE_INTERFACE_DIMENSION` |
+| C040 | Portfolio-guided semantic vtree discovery contract | Sound polynomial selection from a frozen polynomial candidate portfolio using one full bounded C039 probe per candidate and deterministic certified cost selection | A supplied, branch-dependent or adaptively generated vtree substitutes for polynomial discovery; sampled probes certify success | `POLYNOMIAL_SEMANTIC_VTREE_CANDIDATE_COMPLETENESS` |
+| C040.1 | Producer-lane affine/Horn module-forest implementation | Deterministically isolates duplicate Horn producers into single-head lanes, discovers acyclic native module forests, and compiles exact SAT/UNSAT messages when complete module boundaries are logarithmic | Duplicate heads must be rejected before decomposition; producer isolation automatically yields small interfaces; a derived vtree has low standard factor width | `RICHER_MESSAGES_OR_DISCOVERY_BEYOND_FOREST_LOG_BOUNDARIES` |
+| C041 | Joint compiler/portfolio completeness | Reserved in the C040 contract line for evaluation under the integrated C039 capability digest | `OPEN_PORTFOLIO_EXHAUSTED` can be attributed to discovery before compiler closure is exhausted | `UNIVERSAL_POLYNOMIAL_COMPILE_OR_EXACT_OPEN_FRONTIER` |
 | C031 | Proof-carrying SAT refuter | Formal lower-bound transfer interface | Uncertified circuit counterexamples and free direct-sum amplification | `NO_SHARING_REFUTER_AMPLIFICATION` |
 
 ## Constructive P=NP track
 
 ```text
 tractable local languages
--> exact semantic cut signatures or certified symbolic elimination
--> proof-carrying cross-class interface compression
--> jointly selected decomposition, message language and proof rules
--> certified merge and separator extraction
--> certified cross-language fact exchange
+-> certified symbolic cut messages
+-> proof-carrying JOIN and PROJECT
+-> certified MERGE and SEPARATE
 -> polynomial reachable quotient construction
--> polynomial vtree discovery and symbolic factor construction
--> cross-language symbolic projection closed under join
--> richer Horn messages or charged single-head isolation
+-> affine, single-head Horn and low-dimensional mixed compiler capabilities
+-> charged portfolio-guided vtree discovery
+-> producer-lane module-forest implementation
+-> joint compiler/portfolio completeness
 -> SAT witness + UNSAT certificate
 -> universal polynomial SAT algorithm
 ```
 
-C036 supplies polynomial same-language separator extraction for Horn and affine
-messages. C036.1 supplies a complete affine-to-Horn directed separator test and a
-sound but incomplete proof-carrying unary negotiation protocol. Its equality/NEQ
-control proves that `OPEN_FIXPOINT` is not compatibility.
+C038 verifies recursive vtree factors but does not provide a universal polynomial
+vtree constructor. C039.0 receives a supplied verified vtree and validates symbolic
+factor operations. C039.1, C039.2 and C039.3 enlarge the set of supplied trees that
+can produce a complete replayable `CLOSED_POLY` result.
 
-C037 supplies the complete continuation quotient after an exact finite residual
-graph has been generated and aligns fixed-order refinement with reduced OBDD.
-
-C038 moves from one line to a recursive vtree. For each vtree cut it constructs
-the exact Boolean communication rows and their continuation quotient, together
-with replayable outside-assignment separators. This is aligned with structured
-d-DNNF / SDD / TDD factor-width views; it is not a new width parameter.
-
-The equality control shows both sides of C038:
+C040 owns the frozen semantic-vtree discovery contract:
 
 ```text
-paired vtree: local equality interactions remain small
-blocked vtree: one cut has exactly 2^n continuation rows
+canonical formula and capability
+-> proof-carrying feature extraction
+-> generate the complete candidate list
+-> freeze and hash the candidate manifest
+-> run exactly one bounded full C039 probe per candidate
+-> select by deterministic certified cost tuple
 ```
 
-A deterministic co-occurrence heuristic rediscovers the paired structure on this
-family, but no universal optimality or polynomial-width guarantee is claimed.
+Only a full C039 `CLOSED_POLY` certificate makes a candidate selectable. A failed
+portfolio returns only capability-scoped `OPEN_PORTFOLIO_EXHAUSTED`.
 
-C039 closes symbolic factor construction for the affine branch. Each factor is
-placed at the lowest vtree node containing its support. A region exports the
-canonical affine relation on variables referenced by ancestor factors:
+C040.1 is an implementation candidate under that discovery direction, not a
+replacement contract. It receives raw tagged affine and Horn factors and assigns
+Horn producers to deterministic lanes:
 
 ```text
-M_u = canonical_RREF(project_{B_u}(M_left AND M_right AND F_u)).
+for each head h:
+  sort producers by factor id
+  producer rank k -> lane k
 ```
 
-Every satisfiable message contains at most `|B_u|` independent rows. Every row
-carries original-equation XOR provenance. Equal canonical messages are merged;
-distinct affine messages admit a polynomially extracted separator. A top-down
-extension trace recovers SAT witnesses, and UNSAT is accepted only with a replayed
-`0=1` provenance.
+Connected components inside one lane are single-head by construction. Affine
+factors remain in native affine connected components. Shared variables induce a
+module interaction graph.
 
-On blocked affine equality, C038 has `2^n` explicit continuation rows. C039 retains
-the boundary variables and processes the crossing equations symbolically. The
-audit reaches `n=64`, corresponding to `18446744073709551616` explicit rows,
-without materializing them. This is not a contradiction: explicit factor width
-and symbolic algebraic manipulation charge different objects.
+C040.1 closes exactly when:
 
-C039.1 attacks the analogous Horn message. The result separates two regimes.
+```text
+module graph is a forest
+every shared variable occurs in at most two modules
+for every module M: |B_M| <= floor(log2 L)
+```
 
-For single-head Horn, every eliminated variable has at most one producer. Exact
-Horn resolution therefore generates at most one replacement per consumer, the
-clause count does not increase, the single-head invariant is preserved, and SAT
-witnesses lift in reverse elimination order. Restriction, guarded head-disjoint
-joins, projection, decision, merge and separation all have replayable polynomial
-procedures.
+The exact proof-carrying dynamic program costs
 
-For unrestricted boundary-only Horn CNF, exact projection can be exponentially
-large. The linear family
+```text
+sum_M 2^|B_M| poly(L_M).
+```
+
+Native affine regions use Gaussian elimination and native Horn regions use
+least-model reasoning. Only cross-module interfaces are enumerated. A derived
+binary variable vtree is validated as an embedding witness, but the load-bearing
+proof object is the module-forest dynamic program, not a standard factor-width
+claim.
+
+Producer lanes strictly improve the baseline refusal. Sixty-four independent
+pairs
 
 ```text
 a_i -> q_i
 b_i -> q_i
-(q_1 AND ... AND q_n) -> z
 ```
 
-requires exactly `2^n` Horn clauses after forgetting all `q_i`. At `n=64`, a
-129-clause Horn input needs `18446744073709551616` boundary clauses. This is a
-representation-specific obstruction, not a proof of `P!=NP` and not an
-obstruction to richer Horn circuits or existential modules.
+are accepted after lane isolation with maximum module boundary one.
 
-C039.1 also resolves one suspected subgate: equivalence of explicit Horn CNFs is
-polynomial by clause-by-clause Horn entailment, with a countermodel separator when
-an implication fails. The unrestricted Horn bottleneck is projection volume and
-join closure, not `OPEN_EQUIVALENCE`.
-
-The immediate target after C039.1 is:
+For the C039.2 projection-obstruction family
 
 ```text
-RICHER_HORN_MESSAGE_LANGUAGE_OR_PORTFOLIO_GUIDED_HEAD_DISJOINT_ISOLATION
+a_i -> q_i
+b_i -> q_i
+(q_1 AND ... AND q_n) -> z,
 ```
 
-A future construction must either provide a richer Horn representation with
-polynomial, replayable join, projection, equivalence/separation, decision and
-witness recovery, or discover a charged decomposition that isolates compatible
-single-head regions and returns `OPEN` whenever head-disjointness cannot be
-preserved. Retained hidden variables, existential modules, and supplied module
-partitions are not free.
+discovery constructs a star: the lane-zero rules form one central module and the
+lane-one producers form leaves. The central boundary is
+
+```text
+{q_1,...,q_n}.
+```
+
+At `n=64`, C040.1 returns `OPEN_INTERFACE_WIDTH` before materializing `2^64`
+interface rows. Thus duplicate-head collision is removed, but the exact wide
+interface remains visible and charged.
+
+Three producers of one head create one shared variable in three lane modules and
+return `OPEN_INTERFACE_HYPEREDGE`. Cyclic module graphs return
+`OPEN_MODULE_CYCLE`. Neither terminal is promoted to intrinsic hardness.
+
+## C039 / C040 route separation
+
+```text
+C039.0:
+  supplied verified vtree
+  symbolic factor operation contract
+
+C039.1:
+  pure-affine symbolic factors
+
+C039.2:
+  single-head Horn symbolic projection
+
+C039.3:
+  low-affine-dimension Horn/affine composition
+
+C040:
+  frozen assignment-independent candidate portfolio
+  one full bounded C039 probe per candidate
+  certified deterministic selection
+
+C040.1:
+  deterministic producer-lane module construction
+  exact forest/log-boundary admission
+  proof-carrying native-module dynamic program
+```
+
+The C040.1 branch, executable, proposal and wire-schema paths retain the legacy
+`c040` spelling because the package was assembled before the canonical C040
+contract allocation was reconciled. The logical cycle is uniquely `C040.1`.
 
 ## Canonical cycle allocation
 
 ```text
 C036   proof-carrying same-language partition refinement
-C036.1 Horn-affine negotiation extension of C036
+C036.1 Horn-affine negotiation extension
+C036.2 proof-carrying Open-Core Vault
 C037   explicit residual OBDD alignment
 C038   structured vtree factor alignment
-C039   proof-carrying symbolic affine factor compilation
-C039.1 Horn projection boundary
+C039.0 symbolic-factor operation contract
+C039.1 pure-affine symbolic vtree factors
+C039.2 single-head Horn symbolic projection
+C039.3 low-affine-dimension Horn/affine composition
+C040   portfolio-guided semantic vtree discovery contract
+C040.1 producer-lane module-forest implementation
+C041   joint compiler/portfolio completeness
 ```
-
-The route matrix uses the allocation above. Some older sibling draft PR bodies
-currently contain a different provisional allocation for C036.1/C037/C037.1.
-C039.1 is stacked directly on PR #52 and does not silently rewrite or depend on
-that side-lineage drift. Canonical admission must reconcile those sibling drafts
-separately.
 
 ## Converged constructive bottleneck
 
-The following names are linked views of one missing core:
-
 ```text
-C025 certified residual quotient complexity
-C032 symbolic PS-signature compression
-C033 portfolio selection with symbolic messages
-C034 proof-carrying cross-class interface compression
-C035 joint decomposition/language/proof selection
-C036 cross-language symbolic separator discovery
-C036.1 reverse Horn-to-affine separation or stronger fact algebra
-C037 order/decomposition and reachable quotient construction
-C038 vtree discovery and symbolic factor construction
-C039 cross-language symbolic projection closed under join
-C039.1 richer Horn messages or portfolio-guided head-disjoint isolation
+POLYNOMIAL_SEMANTIC_VTREE_CANDIDATE_COMPLETENESS
++
+POLYNOMIAL_JOIN-CLOSED_SYMBOLIC_MESSAGE_ALGEBRA
++
+RICHER_MESSAGES_OR_DISCOVERY_BEYOND_FOREST_LOG_BOUNDARIES
++
+REPLAYABLE_FACTOR_EQUIVALENCE
 ```
 
-C039 removes truth-table construction for pure affine subtrees on every vtree.
-C039.1 closes the single-head Horn branch and decisively blocks plain
-boundary-only Horn CNF as a universal message language. It does not close the
-cross-language gate. Progress now requires a richer replayable message algebra, a
-polynomial decomposition theorem preserving the admitted languages, or a decisive
-obstruction to one explicit richer construction route.
+C040 proves safe selection for a frozen polynomial candidate portfolio. C040.1
+supplies one genuinely discovered mixed-language class, but its explicit interface
+algebra remains limited to forests with logarithmic complete module boundaries.
+The missing theorem is either a richer proof-carrying message algebra or a
+strictly stronger charged decomposition theorem.
 
-## Separation track
+## Non-duplication and honesty rules
 
-```text
-proof-carrying circuit refuter
--> certificate-preserving SAT embedding
--> no-sharing amplification
--> SAT not in P/poly
--> P != NP
-```
-
-This track remains useful as an adversarial control even while the user-selected
-primary objective is `P=NP`.
-
-## Non-duplication rule
-
-Before admitting a new hypothesis, compare it against:
+Never promote:
 
 ```text
-PS-width
-MIM-width / incidence width
-DNNF / d-DNNF / OBDD / SDD / TDD
-factor width and vtree communication rows
-backdoor size
-residual-state width
-proof width and certificate discovery
-beta-acyclic elimination
-Davis-Putnam variable elimination
-Horn and dual-Horn closure
-single-head Horn forgetting
-GF(2) affine elimination
-Schaefer fixed-language mixtures
-communication/continuation equivalence across cuts
-partition refinement and canonical residual automata
-symbolic bisimulation and distinguishing-test bases
-active automata learning and equivalence-query teachers
-cooperating decision procedures and DPLL(T)/DPLL(XOR) propagation
-existential quantification and forgetting closure of the proposed message language
-factor placement and variable-retention cost at vtree joins
-common equivalence over retained variables
+a supplied decomposition as free discovery
+an input-dependent exponent as polynomial
+a branch-dependent vtree as one global decomposition
+partial, sampled or estimated probes as CLOSED_POLY
+finite fixtures as universal candidate completeness
+producer isolation as automatic interface compression
+OPEN as UNSAT or intrinsic hardness
+similarity, reduction or shared features as OPEN transfer
+one representation lower bound as P!=NP
 ```
-
-A renamed known parameter is registered as an alignment result, not promoted as
-a new theorem.

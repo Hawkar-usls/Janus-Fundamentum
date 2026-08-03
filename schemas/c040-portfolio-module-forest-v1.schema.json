@@ -1,0 +1,117 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://janus.local/schemas/c040-portfolio-module-forest-v1.schema.json",
+  "title": "JANUS Portfolio Module Forest v1",
+  "type": "object",
+  "required": [
+    "artifact_id",
+    "schema",
+    "status",
+    "p_vs_np",
+    "factors",
+    "modules",
+    "edges",
+    "roots",
+    "variable_vtree",
+    "messages",
+    "cost",
+    "integrity_sha256"
+  ],
+  "properties": {
+    "artifact_id": {"const": "C040-PORTFOLIO-GUIDED-MODULE-FOREST"},
+    "schema": {"const": "janus.portfolio_module_forest.v1"},
+    "status": {"enum": ["SAT", "UNSAT"]},
+    "p_vs_np": {"const": "OPEN"},
+    "factors": {"type": "array", "items": {"type": "object"}},
+    "input_size": {"type": "integer", "minimum": 2},
+    "polynomial_interface_limit": {"type": "integer", "minimum": 1},
+    "interface_limit": {"type": "integer", "minimum": 1},
+    "modules": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["module_id", "language", "factor_ids", "variables", "boundary"],
+        "properties": {
+          "module_id": {"type": "integer", "minimum": 0},
+          "language": {"enum": ["AFFINE_GF2", "SINGLE_HEAD_HORN"]},
+          "factor_ids": {"type": "array", "items": {"type": "integer", "minimum": 0}},
+          "variables": {"type": "array", "items": {"type": "integer", "minimum": 1}},
+          "boundary": {"type": "array", "items": {"type": "integer", "minimum": 1}}
+        },
+        "additionalProperties": false
+      }
+    },
+    "edges": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["a", "b", "variables"],
+        "properties": {
+          "a": {"type": "integer", "minimum": 0},
+          "b": {"type": "integer", "minimum": 0},
+          "variables": {"type": "array", "items": {"type": "integer", "minimum": 1}}
+        },
+        "additionalProperties": false
+      }
+    },
+    "roots": {"type": "array", "items": {"type": "integer", "minimum": 0}},
+    "variable_vtree": {},
+    "messages": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "module_id",
+          "parent",
+          "children",
+          "parent_separator",
+          "incident_boundary",
+          "table",
+          "accepted_full",
+          "digest"
+        ],
+        "properties": {
+          "module_id": {"type": "integer", "minimum": 0},
+          "parent": {"anyOf": [{"type": "null"}, {"type": "integer", "minimum": 0}]},
+          "children": {"type": "array", "items": {"type": "integer", "minimum": 0}},
+          "parent_separator": {"type": "array", "items": {"type": "integer", "minimum": 1}},
+          "incident_boundary": {"type": "array", "items": {"type": "integer", "minimum": 1}},
+          "table": {"type": "object"},
+          "accepted_full": {"type": "object"},
+          "digest": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+        },
+        "additionalProperties": false
+      }
+    },
+    "witness": {
+      "anyOf": [
+        {"type": "null"},
+        {"type": "object", "additionalProperties": {"enum": [0, 1]}}
+      ]
+    },
+    "witness_recovery": {"type": "array"},
+    "unsat_root": {
+      "anyOf": [
+        {"type": "null"},
+        {"type": "integer", "minimum": 0}
+      ]
+    },
+    "cost": {
+      "type": "object",
+      "required": [
+        "work_units",
+        "table_entries",
+        "native_calls",
+        "row_xors",
+        "horn_scans",
+        "module_count",
+        "edge_count",
+        "maximum_module_boundary",
+        "certificate_bytes"
+      ],
+      "additionalProperties": {"type": "integer", "minimum": 0}
+    },
+    "integrity_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+  },
+  "additionalProperties": true
+}
