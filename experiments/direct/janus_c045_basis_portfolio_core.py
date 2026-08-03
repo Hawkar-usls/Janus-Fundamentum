@@ -327,16 +327,35 @@ def generate_candidate_manifest(
 
 
 def finalize_certificate(body: dict[str, Any], capability: SelectorCapability, meter: SelectorMeter) -> dict[str, Any]:
+    # Certificate size is self-referential because the charged ledger and the
+    # stated byte count are themselves serialized. Iterate to a fixed point,
+    # charging every newly exposed byte exactly once.
+    charged = 0
+    stated_size = 0
+    for _ in range(32):
+        body["selector_ledger"] = meter.snapshot()
+        body["certificate_bytes"] = stated_size
+        probe = dict(body)
+        probe["integrity_sha256"] = "0" * 64
+        size = len(canonical_json(probe).encode())
+        if size > capability.selector_certificate_limit:
+            raise SelectorOpen(
+                OPEN_CERTIFICATE_VOLUME,
+                "selector_certificate_bytes",
+                {
+                    "attempted_certificate_bytes": size,
+                    "selector_certificate_limit": capability.selector_certificate_limit,
+                },
+            )
+        if size > charged:
+            meter.charge("certificate_bytes", size - charged)
+            charged = size
+        if size == stated_size:
+            break
+        stated_size = size
+    else:
+        raise AssertionError("selector certificate size failed to stabilize")
     body["selector_ledger"] = meter.snapshot()
-    probe = dict(body)
-    probe["integrity_sha256"] = "0" * 64
-    size = len(canonical_json(probe).encode())
-    if size > capability.selector_certificate_limit:
-        raise SelectorOpen(
-            OPEN_CERTIFICATE_VOLUME,
-            "selector_certificate_bytes",
-            {"attempted_certificate_bytes": size, "selector_certificate_limit": capability.selector_certificate_limit},
-        )
-    body["certificate_bytes"] = size
+    body["certificate_bytes"] = stated_size
     body["integrity_sha256"] = digest(body)
     return body
