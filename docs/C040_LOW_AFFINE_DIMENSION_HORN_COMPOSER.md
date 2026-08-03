@@ -1,6 +1,10 @@
-# C040 — Low-Affine-Dimension Horn / Dual-Horn Composition
+# C039.3 — Low-Affine-Dimension Horn / Dual-Horn Composition
 
 **Status:** `CONSTRUCTIVE RESTRICTED THEOREM / P_VS_NP=OPEN`
+
+The branch, executable, proposal filenames and wire schema retain the earlier
+`c040` spelling only as pre-admission replay aliases. The canonical logical cycle
+is `C039.3`; `C040` is reserved for portfolio-guided semantic-vtree discovery.
 
 ## Theorem
 
@@ -12,7 +16,7 @@ R = project_S(Models(A))
 d = affine dimension of R.
 ```
 
-C040 decides `H AND A` with replayable SAT/UNSAT evidence in
+C039.3 decides `H AND A` with replayable SAT/UNSAT evidence in
 
 ```text
 O(2^d poly(L)).
@@ -24,7 +28,8 @@ For one fixed capability exponent `q`, the implementation closes only when
 2^d <= L^q.
 ```
 
-Otherwise it returns `OPEN_DIMENSION_BUDGET`. The exponent is part of the fixed solver capability, not an input-dependent exponent.
+Otherwise it returns `OPEN_DIMENSION_BUDGET`. The exponent is part of the fixed
+solver capability, not an input-dependent exponent.
 
 ## Construction
 
@@ -34,7 +39,9 @@ Otherwise it returns `OPEN_DIMENSION_BUDGET`. The exponent is part of the fixed 
 4. Each state is extended by the affine engine and checked by Horn least-model closure.
 5. SAT returns one combined checked witness. UNSAT contains one replayable Horn conflict trace for every projected affine state.
 
-The verifier deterministically reconstructs the projection, basis, state enumeration, native calls and terminal. It does not trust claimed semantic equivalence and does not invoke a general SAT oracle.
+The verifier deterministically reconstructs the projection, basis, state
+enumeration, native calls and terminal. It does not trust claimed semantic
+equivalence and does not invoke a general SAT oracle.
 
 ## Frozen audit
 
@@ -59,24 +66,34 @@ Finite exhaustive checks validate the implementation; they are not the theorem.
 
 ## Dense semantic-interface control
 
-Take every positive pair clause `(x_i OR x_j)` on 80 variables and add affine equalities `x_1 XOR x_i = 0`. The primal graph is a clique, so the fixed-`k` graph-separator route rejects sufficiently large instances. But the affine projection on all 80 shared variables has dimension one.
+Take every positive pair clause `(x_i OR x_j)` on 80 variables and add affine
+equalities `x_1 XOR x_i = 0`. The primal graph is a clique, so the fixed-`k`
+graph-separator route rejects sufficiently large instances. But the affine
+projection on all 80 shared variables has dimension one.
 
 ```text
-shared variables   80
-projected dimension 1
-states examined     1
-status             SAT
+shared variables    80
+projected dimension  1
+states examined      1
+status              SAT
 ```
 
-Thus semantic dimension can be small when raw graph width and raw interface size are large.
+Thus semantic dimension can be small when raw graph width and raw interface size
+are large.
 
 ## Unary/pairwise fact obstruction
 
-Let an affine module define the two-point line `{a, not a}` on ten variables. A Horn module contains two large negative clauses, one forbidding each endpoint. Their conjunction is UNSAT.
+Let an affine module define the two-point line `{a, not a}` on ten variables. A
+Horn module contains two large negative clauses, one forbidding each endpoint.
+Their conjunction is UNSAT.
 
-The Horn relation has no forced literal and every pairwise projection is the full Boolean square. Therefore C036.1 unary exchange and C036.3 pairwise equality aliases expose no conflict. C040 enumerates the two one-dimensional affine states and emits two Horn refutations.
+The Horn relation has no forced literal and every pairwise projection is the full
+Boolean square. Unary exchange and pairwise equality aliases expose no conflict.
+C039.3 enumerates the two one-dimensional affine states and emits two Horn
+refutations.
 
-This closes only that bounded fact basis; it is not a lower bound against every stronger algebra.
+This closes only that bounded fact basis; it is not a lower bound against every
+stronger algebra.
 
 ## NAND3 + NEQ control
 
@@ -88,7 +105,7 @@ required states             2^24
 terminal                    OPEN_DIMENSION_BUDGET
 ```
 
-C040 therefore does not silently decide arbitrary 3-SAT.
+C039.3 therefore does not silently decide arbitrary 3-SAT.
 
 ## Located gate
 
@@ -96,25 +113,28 @@ C040 therefore does not silently decide arbitrary 3-SAT.
 CROSS_LANGUAGE_COMPOSITION_BEYOND_LOW_AFFINE_INTERFACE_DIMENSION
 ```
 
-The next construction must cover high-dimensional interfaces by a polynomial symbolic Horn projection, a richer join-closed message language, beta-acyclic/compiled regional messages, or a jointly discovered semantic vtree. Missing closure or exceeded certificate volume must return `OPEN`.
+The next construction must cover high-dimensional interfaces by polynomial
+symbolic Horn projection, a richer join-closed message language,
+beta-acyclic/compiled regional messages, or a jointly discovered semantic vtree.
+Missing closure or exceeded certificate volume must return `OPEN`.
 
-## Canonical lineage
+## Canonical compiler ladder
 
 ```text
-C036    same-language refinement
-C036.1  Horn-affine unary negotiation
-C036.2  exact OPEN vault
-C036.3  Horn parity/equality aliases
-C037    residual OBDD alignment
-C038    exact vtree factors
-C039    fixed-k recursive separator compiler
+C039.0  supplied-vtree symbolic-factor contract
 C039.1  pure-affine symbolic vtree factors
-C040    low-affine-dimension Horn/dual-Horn composer
+C039.2  single-head Horn symbolic projection
+C039.3  low-affine-dimension Horn/dual-Horn plus affine composition
+C040    portfolio-guided semantic-vtree discovery
+C041    joint portfolio/compiler completeness gate
 ```
 
 ## Claim boundary
 
-C040 is exact only for Horn or dual-Horn plus affine inputs whose projected affine state space fits one fixed polynomial capability. It does not solve unrestricted Horn-affine conjunctions, arbitrary CNF, the general NAND3+NEQ image, or P versus NP.
+C039.3 is exact only for Horn or dual-Horn plus affine inputs whose projected
+affine state space fits one fixed polynomial capability. It does not solve
+unrestricted Horn-affine conjunctions, arbitrary CNF, the general NAND3+NEQ
+image, or P versus NP.
 
 ```text
 P_VS_NP=OPEN
