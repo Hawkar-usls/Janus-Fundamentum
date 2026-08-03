@@ -1,33 +1,20 @@
 #!/usr/bin/env python3
-"""Replay the complete root ancestry of every non-root tail-wing parent.
+"""Classify every exact root ancestry of the non-root tail-wing tree parent.
 
-The finite C024 handoff census finds three non-root unshielded P-occurrences,
-all in one GT_8 state.  Their immediate producer is a frozen Resolution between
-one root transitivity triangle and one inherited component-spanning
-in-arborescence.  This checker follows that in-arborescence all the way back
-through
+A previous candidate asserted that the inherited component-spanning parent had
+one canonical root N/T subdivision ancestry.  The first exact-head run rejected
+that assertion before producing a witness.  This hardened version does not
+repair the assertion by selecting a convenient non-minimal path.  It enumerates
+all exact root proof paths and records:
 
-    pre-unit reduction
-    parent branch restriction
-    parent post-unit reduction
-    frozen local Resolution
+* the minimum number of local Resolution events;
+* every minimum-path kind and root-label signature;
+* whether a one-Resolution N/T subdivision path exists;
+* whether that path is minimum and whether it is unique.
 
-to its root axioms.  It then checks the exact finite template suggested by the
-trace:
-
-1. the inherited parent is created at the root by one N/T Resolution;
-2. the N-parent is a non-minimality star N_c;
-3. the root resolvent differs from N_c by redirecting exactly one star edge
-   child->c to child->middle while middle->c remains;
-4. every later step before the non-root producer is only restriction of star
-   leaves, never another Resolution of the lineage;
-5. the non-root producer resolves the surviving middle->c edge with a root
-   transitivity triangle and creates a bad edge whose tail wing is exactly
-   {child,middle};
-6. the selected branch variable is the redirected child->middle edge.
-
-This is a proof-carrying finite ancestry certificate through GT_8.  The final
-one-subdivision reachability statement for arbitrary n remains open.
+Thus the transcript distinguishes an obligatory producer normal form from a
+merely alternative derivation.  The arbitrary-n reachability theorem remains
+open regardless of the finite classification.
 """
 
 from __future__ import annotations
@@ -37,10 +24,8 @@ from functools import lru_cache
 
 from janus_tear_gt_component_merge_sources import reduce_clause
 from janus_tear_gt_component_tree_clause_audit import execution_context
-from janus_tear_gt_directed_component_clause_audit import orientation_class
 from janus_tear_gt_nonroot_wing_provenance import audit as provenance_audit
 from janus_tear_gt_rank_safety_dichotomy import safety_class
-from janus_tear_gt_root_nonminimality_bridge_shield import original_direction
 from janus_tear_gt_same_cut_parent_ancestry import (
     direct_root_labels,
     root_minimum_labels,
@@ -60,13 +45,6 @@ def unit_assignments(events) -> dict[int, bool]:
         assert variable not in result or result[variable] == value
         result[variable] = value
     return result
-
-
-def clause_edges(clause: Clause, pairs) -> frozenset[tuple[int, int]]:
-    return frozenset(
-        original_direction(int(literal), pairs)
-        for literal in clause
-    )
 
 
 def build_parent_links(policy, root_call: int):
@@ -132,7 +110,6 @@ def audit(n: int):
 
     @lru_cache(maxsize=None)
     def proof_paths(call_id: int, key_clause: Clause):
-        """Return exact root proof paths for one clause in a reached key."""
         call = policy.calls[call_id]
         assert call["terminal"] == "STATE"
         state = policy.states[int(call["state"])]
@@ -157,13 +134,12 @@ def audit(n: int):
             }
             if call_id == root_call:
                 assert input_clause in root
-                labels = direct_root_labels(
-                    root, input_clause, {}, minimum_labels
-                )
                 results.append({
                     "kind": "ROOT",
                     "clause": input_clause,
-                    "labels": labels,
+                    "labels": direct_root_labels(
+                        root, input_clause, {}, minimum_labels
+                    ),
                     "local_resolution_count": 0,
                     "steps": (pre_step,),
                     "children": (),
@@ -237,11 +213,7 @@ def audit(n: int):
                                 })
 
         assert results
-        unique = {}
-        for result in results:
-            key = repr(result)
-            unique[key] = result
-        return tuple(unique.values())
+        return tuple({repr(item): item for item in results}.values())
 
     def flatten_roots(node):
         if node["kind"] == "ROOT":
@@ -251,230 +223,174 @@ def audit(n: int):
             roots.extend(flatten_roots(child))
         return tuple(roots)
 
+    def label_signature(path):
+        labels = []
+        for root_node in flatten_roots(path):
+            labels.extend(str(label[0]) for label in root_node["labels"])
+        return tuple(sorted(labels))
+
     counts: Counter[str] = Counter()
-    root_event_shapes: Counter[tuple[int, int, int]] = Counter()
-    branch_literal_sequences: Counter[tuple[int, ...]] = Counter()
+    path_histogram: Counter[tuple[str, int]] = Counter()
+    minimum_histogram: Counter[int] = Counter()
+    minimum_signature_histogram: Counter[tuple[str, ...]] = Counter()
+    one_subdivision_signature_histogram: Counter[tuple[str, ...]] = Counter()
     records = []
 
     for record in wing_data["records"]:
-        state_id = int(record["state_id"])
         call_id = int(record["call_id"])
-        state = policy.states[state_id]
-        clause = tuple(record["clause"])
-        bad_literal = int(record["bad_literal"])
-        selected = int(record["selected"])
-        producing = tuple(record["origins"])
-        assert len(producing) == 1
-        event = producing[0]
-
+        event = tuple(record["origins"])[0]
         left = tuple(event["left"])
         right = tuple(event["right"])
-        before_assignment = context["call_after_pre"][call_id]
+        assignment = context["call_after_pre"][call_id]
         left_class = str(
-            safety_class(n, left, before_assignment, pairs)["classification"]
+            safety_class(n, left, assignment, pairs)["classification"]
         )
         right_class = str(
-            safety_class(n, right, before_assignment, pairs)["classification"]
+            safety_class(n, right, assignment, pairs)["classification"]
         )
         assert {left_class, right_class} == {
             "DIRECTED_CYCLE",
             "COMPONENT_SPANNING",
         }
         spanning_parent = left if left_class == "COMPONENT_SPANNING" else right
-        cycle_parent = right if spanning_parent == left else left
 
         paths = proof_paths(call_id, spanning_parent)
+        assert paths
+        counts["occurrences_analyzed"] += 1
+        counts["proof_paths"] += len(paths)
+
+        for path in paths:
+            path_histogram[(
+                str(path["kind"]),
+                int(path["local_resolution_count"]),
+            )] += 1
+
         minimum = min(int(path["local_resolution_count"]) for path in paths)
-        shortest = tuple(
-            path for path in paths
+        minimum_paths = tuple(
+            path
+            for path in paths
             if int(path["local_resolution_count"]) == minimum
         )
-        assert shortest
+        minimum_histogram[minimum] += 1
+        for path in minimum_paths:
+            minimum_signature_histogram[label_signature(path)] += 1
 
-        certified = []
-        for path in shortest:
+        subdivision_paths = []
+        for path in paths:
             if path["kind"] != "LOCAL_RESOLUTION":
                 continue
-            root_event = path["event"]
-            root_children = tuple(path["children"])
-            roots = tuple(
-                root_node
-                for child in root_children
-                for root_node in flatten_roots(child)
-            )
-            labels = tuple(
-                label
-                for root_node in roots
-                for label in root_node["labels"]
-            )
-            minimum_roots = tuple(
-                root_node
-                for root_node in roots
-                if any(label[0] == "ROOT_NON_MINIMALITY" for label in root_node["labels"])
-            )
-            transitivity_roots = tuple(
-                root_node
-                for root_node in roots
-                if any(label[0] == "ROOT_TRANSITIVITY" for label in root_node["labels"])
-            )
-            if len(minimum_roots) != 1 or len(transitivity_roots) != 1:
+            if int(path["local_resolution_count"]) != 1:
                 continue
-
-            minimum_root = minimum_roots[0]
-            transitivity_root = transitivity_roots[0]
-            owner_labels = tuple(
-                int(label[1])
-                for label in minimum_root["labels"]
-                if label[0] == "ROOT_NON_MINIMALITY"
-            )
-            assert len(owner_labels) == 1
-            owner = owner_labels[0]
-
-            n_edges = clause_edges(tuple(minimum_root["clause"]), pairs)
-            root_resolvent = tuple(root_event["resolvent"])
-            r_edges = clause_edges(root_resolvent, pairs)
-            removed = tuple(sorted(n_edges - r_edges))
-            added = tuple(sorted(r_edges - n_edges))
-            if len(removed) != 1 or len(added) != 1:
+            signature = label_signature(path)
+            if signature.count("ROOT_NON_MINIMALITY") != 1:
                 continue
-            child_vertex, removed_head = removed[0]
-            added_tail, middle_vertex = added[0]
-            if removed_head != owner or added_tail != child_vertex:
+            if signature.count("ROOT_TRANSITIVITY") != 1:
                 continue
-            if (middle_vertex, owner) not in n_edges:
-                continue
+            subdivision_paths.append(path)
+            one_subdivision_signature_histogram[signature] += 1
 
-            # Only restriction steps may occur after the root N/T event on the
-            # chosen shortest ancestry path.
-            later_steps = tuple(path["steps"])
-            assert all(
-                step["kind"] in {
-                    "PRE_UNIT_REDUCTION",
-                    "POST_UNIT_REDUCTION",
-                    "BRANCH_REDUCTION",
-                }
-                for step in later_steps
-            )
-            nonempty_units = tuple(
-                step
-                for step in later_steps
-                if step["kind"] != "BRANCH_REDUCTION"
-                and step.get("assignment")
-            )
-            assert not nonempty_units
-            branch_literals = tuple(
-                int(step["branch_literal"])
-                for step in later_steps
-                if step["kind"] == "BRANCH_REDUCTION"
-            )
+        if subdivision_paths:
+            counts["one_subdivision_exists"] += 1
+        if subdivision_paths and minimum == 1:
+            counts["one_subdivision_is_minimum"] += 1
+        if len(paths) == 1 and len(subdivision_paths) == 1:
+            counts["one_subdivision_is_unique"] += 1
+        if not subdivision_paths:
+            counts["one_subdivision_absent"] += 1
+        if minimum == 0:
+            counts["zero_resolution_minimum"] += 1
 
-            current_edges = clause_edges(spanning_parent, pairs)
-            assert (child_vertex, middle_vertex) in current_edges
-            assert (middle_vertex, owner) in current_edges
-            assert all(
-                head == owner or (tail, head) == (child_vertex, middle_vertex)
-                for tail, head in current_edges
-            )
-
-            producer_pivot = int(event["pivot"])
-            pivot_low, pivot_high = pairs[producer_pivot]
-            pivot_edge = frozenset((int(pivot_low), int(pivot_high)))
-            assert pivot_edge == frozenset((middle_vertex, owner))
-
-            bad_tail, bad_head = original_direction(bad_literal, pairs)
-            assert bad_tail == middle_vertex
-            assert (child_vertex, middle_vertex) == original_direction(
-                next(lit for lit in clause if abs(lit) == selected),
-                pairs,
-            )
-
-            certified.append({
-                "root_event": root_event,
-                "root_labels": labels,
-                "owner": owner,
-                "redirected_child": child_vertex,
-                "middle": middle_vertex,
-                "removed_star_edge": removed[0],
-                "added_redirected_edge": added[0],
-                "branch_literals": branch_literals,
-                "spanning_parent": spanning_parent,
-                "spanning_parent_edges": tuple(sorted(current_edges)),
-                "cycle_parent": cycle_parent,
-                "producer_pivot": producer_pivot,
-                "bad_literal": bad_literal,
-                "bad_direction": (bad_tail, bad_head),
-                "selected": selected,
-            })
-
-        assert certified
-        witness = certified[0]
-        counts["occurrences"] += 1
-        counts["single_root_subdivision"] += 1
-        counts["restriction_only_after_root_event"] += 1
-        counts["producer_relocates_middle_center_edge"] += 1
-        counts["selected_is_redirected_edge"] += 1
-        root_event_shapes[(
-            len(tuple(witness["root_event"]["left"])),
-            len(tuple(witness["root_event"]["right"])),
-            len(tuple(witness["root_event"]["resolvent"])),
-        )] += 1
-        branch_literal_sequences[tuple(witness["branch_literals"])] += 1
         records.append({
             "n": n,
-            "state_id": state_id,
+            "state_id": int(record["state_id"]),
             "call_id": call_id,
-            "clause": clause,
-            "witness": witness,
+            "clause": tuple(record["clause"]),
+            "spanning_parent": spanning_parent,
             "path_count": len(paths),
             "minimum_local_resolution_count": minimum,
+            "minimum_paths": tuple(
+                {
+                    "kind": str(path["kind"]),
+                    "signature": label_signature(path),
+                    "step_kinds": tuple(step["kind"] for step in path["steps"]),
+                }
+                for path in minimum_paths
+            ),
+            "one_subdivision_path_count": len(subdivision_paths),
+            "one_subdivision_signatures": tuple(
+                label_signature(path) for path in subdivision_paths
+            ),
         })
 
     return {
         "n": n,
         "counts": tuple(sorted(counts.items())),
-        "root_event_shapes": tuple(sorted(root_event_shapes.items())),
-        "branch_literal_sequences": tuple(sorted(branch_literal_sequences.items())),
+        "path_histogram": tuple(sorted(path_histogram.items(), key=repr)),
+        "minimum_histogram": tuple(sorted(minimum_histogram.items())),
+        "minimum_signature_histogram": tuple(
+            sorted(minimum_signature_histogram.items(), key=repr)
+        ),
+        "one_subdivision_signature_histogram": tuple(
+            sorted(one_subdivision_signature_histogram.items(), key=repr)
+        ),
         "records": tuple(records),
     }
 
 
 def self_test() -> None:
     aggregate_counts: Counter[str] = Counter()
-    aggregate_shapes: Counter[tuple[int, int, int]] = Counter()
-    aggregate_branches: Counter[tuple[int, ...]] = Counter()
+    aggregate_paths: Counter[tuple[str, int]] = Counter()
+    aggregate_minima: Counter[int] = Counter()
+    aggregate_min_signatures: Counter[tuple[str, ...]] = Counter()
+    aggregate_subdivision_signatures: Counter[tuple[str, ...]] = Counter()
     all_records = []
 
     for n in range(4, 9):
         data = audit(n)
         aggregate_counts.update(dict(data["counts"]))
-        aggregate_shapes.update(dict(data["root_event_shapes"]))
-        aggregate_branches.update(dict(data["branch_literal_sequences"]))
+        aggregate_paths.update(dict(data["path_histogram"]))
+        aggregate_minima.update(dict(data["minimum_histogram"]))
+        aggregate_min_signatures.update(
+            dict(data["minimum_signature_histogram"])
+        )
+        aggregate_subdivision_signatures.update(
+            dict(data["one_subdivision_signature_histogram"])
+        )
         all_records.extend(data["records"])
         print(f"ORDER_SIZE = {n}")
         print(f"  counts = {data['counts']}")
-        print(f"  root_event_shapes = {data['root_event_shapes']}")
-        print(f"  branch_literal_sequences = {data['branch_literal_sequences']}")
+        print(f"  path_histogram = {data['path_histogram']}")
+        print(f"  minimum_histogram = {data['minimum_histogram']}")
+        print(
+            f"  minimum_signature_histogram = "
+            f"{data['minimum_signature_histogram']}"
+        )
+        print(
+            f"  one_subdivision_signature_histogram = "
+            f"{data['one_subdivision_signature_histogram']}"
+        )
         print(f"  records = {data['records']}")
 
-    expected = 3
-    for name in (
-        "occurrences",
-        "single_root_subdivision",
-        "restriction_only_after_root_event",
-        "producer_relocates_middle_center_edge",
-        "selected_is_redirected_edge",
-    ):
-        assert aggregate_counts[name] == expected, (name, aggregate_counts[name])
+    assert aggregate_counts["occurrences_analyzed"] == 3
+    assert aggregate_counts["proof_paths"] >= 3
     assert len({(row["state_id"], row["call_id"]) for row in all_records}) == 1
 
-    print("JANUS_GT_NONROOT_WING_RECURSIVE_ANCESTRY = PASS")
+    print("JANUS_GT_NONROOT_WING_RECURSIVE_ANCESTRY_CLASSIFIER = PASS")
     print(f"AGGREGATE_COUNTS = {tuple(sorted(aggregate_counts.items()))}")
-    print(f"AGGREGATE_ROOT_EVENT_SHAPES = {tuple(sorted(aggregate_shapes.items()))}")
-    print(f"AGGREGATE_BRANCH_SEQUENCES = {tuple(sorted(aggregate_branches.items()))}")
+    print(f"AGGREGATE_PATH_HISTOGRAM = {tuple(sorted(aggregate_paths.items(), key=repr))}")
+    print(f"AGGREGATE_MINIMUM_HISTOGRAM = {tuple(sorted(aggregate_minima.items()))}")
+    print(
+        "AGGREGATE_MINIMUM_SIGNATURES = "
+        f"{tuple(sorted(aggregate_min_signatures.items(), key=repr))}"
+    )
+    print(
+        "AGGREGATE_ONE_SUBDIVISION_SIGNATURES = "
+        f"{tuple(sorted(aggregate_subdivision_signatures.items(), key=repr))}"
+    )
     print(f"ALL_RECORDS = {tuple(all_records)}")
     print(
-        "claim_boundary = exact recursive ancestry for the three GT_8 non-root "
-        "wing occurrences; arbitrary-n one-subdivision reachability remains open"
+        "claim_boundary = exact finite ancestry classification; canonical or "
+        "arbitrary-n one-subdivision reachability is not assumed"
     )
 
 
