@@ -1,96 +1,158 @@
 # C024 — Non-root singleton reachability: exact-key induction route
 
-Status: **INDUCTION ARCHITECTURE FROZEN / THREE REACHABILITY-SELECTOR SUBLEMMAS OPEN**  
-Scope: the remaining non-root branch handoff in exact Policy-0A on graph
-tautologies.
+Status: **GRAPH GROWTH AND ABSORPTION PROVED / TWO REACHABILITY GATES OPEN**  
+Scope: the remaining non-root branch handoff in exact Policy-0A on graph tautologies.
 
-This document does not claim the global graph-tautology lower bound, an
-unrestricted Resolution lower bound, a SAT lower bound, or a resolution of
-`P` versus `NP`.
+This document does not claim the global graph-tautology cache lower bound, an unrestricted Resolution or SAT lower bound, or a resolution of `P` versus `NP`.
 
-## 1. Temporal stages
+## 1. Temporal induction
 
-The induction is over exact cache keys, not over individual frozen Resolution
-events.
+The induction is over exact cache keys:
 
 ```text
 K   exact entry key after pre-units
-R   K plus the frozen one-pass Resolution outputs
+R   K plus frozen one-pass Resolution outputs
 P   post-unit residual
-B   raw child after the selected branch polarity
+B   raw child after the selected branch
 K'  next exact key after child pre-units
 ```
 
-A clause may become structurally more complicated inside `R` or `P`. The
-required invariant is therefore not pointwise monotonicity at every temporary
-stage. It is a return invariant from one exact key to the next.
+Temporary clauses in `R/P` may be structurally deeper than their `K` parents. The required invariant is therefore return to normal form at `K'`, not pointwise monotonicity at every temporary stage.
 
-## 2. Proved local barriers
+## 2. Proved dependencies
 
 ```text
-FROZEN_FRESH_SIDE_BARRIER                 PROVED
-POST_UNIT_TOTAL_COMPONENT_COLLAPSE        PROVED
-ROOT_BRANCH_HANDOFF                       PROVED_ARBITRARY_N
-TREE_EXCHANGE_CUT_PRESERVATION            PROVED
-TWO_NODE_TAIL_WING_HANDOFF                PROVED
-SINGLETON_BRANCH_SAME_CUT_PRESERVATION    PROVED
-MARKED_SINGLETON_EDGE_ABSORPTION           PROVED_UNDER_EXPLICIT_HYPOTHESES
+FROZEN_FRESH_SIDE_BARRIER                         PROVED
+POST_UNIT_TOTAL_COMPONENT_COLLAPSE                PROVED
+ROOT_BRANCH_HANDOFF                               PROVED_ARBITRARY_N
+TREE_EXCHANGE_CUT_PRESERVATION                    PROVED
+TWO_NODE_TAIL_WING_HANDOFF                        PROVED
+SINGLETON_BRANCH_SAME_CUT_PRESERVATION            PROVED
+K_NORMAL_ONE_EDGE_EXCHANGE_GROWTH                 PROVED
+MARKED_SINGLETON_EDGE_ABSORPTION                  PROVED
 ```
 
-In particular, if the exact selected comparison joins two singleton relation
-components, one branch restriction cannot create a new co-eligible same-cut
-complementary double-bridge pair from a branch-safe source family.
+The earlier `553 post-unit births` interpretation is retired. Exact replay finds zero post-unit births of new same-cut complementary bridge pairs.
 
-## 3. Exact-key tree normal form suggested by the complete finite handoff
+## 3. K-normal exact-key invariant
 
-For a simple component-spanning in-arborescence, record
+A simple rooted in-arborescence is **K-normal** when it is a star or a one-subdivision star:
 
 ```text
-(height, non-star edge count, one-subdivision-star flag).
+height <= 2
+non-star edge count <= 1
 ```
 
-The complete non-root exact-exchange handoff through `GT_8` gives:
+The original root component-spanning in-arborescence clauses are stars. Thus K-normality is the base case.
+
+K-normality is no longer treated as an independent arbitrary-`n` premise. It is the inductive conclusion obtained from the two remaining reachability/selector lemmas together with the proved graph lemmas below.
+
+## 4. K-normal one-edge exchange growth — proved
+
+Let `D` be a finite simple K-normal in-arborescence rooted at `r`, and let
+
+```text
+Q = (D - p) + l
+```
+
+be an exact one-edge exchange which is again a simple in-arborescence with the same root.
+
+Deleting `p` cannot increase the number of non-star edges, and adding `l` contributes at most one. Therefore
+
+```text
+nonstar(Q) <= 2.
+```
+
+Every root-directed path of length `h` has exactly `h-1` non-star edges, hence
+
+```text
+height(Q) <= 3.
+```
+
+If `Q` is not K-normal, then it has exactly two non-star edges. Contracting either non-star edge leaves at most one non-star edge and height at most two, so the contracted tree is K-normal.
+
+```text
+K_NORMAL_ONE_EDGE_EXCHANGE_GROWTH_ARBITRARY_N = PROVED
+```
+
+Independent labelled falsification gate through eight vertices:
+
+```text
+K-normal sources                 119
+exact one-edge exchanges        3920
+K-normal results                1316
+non-K-normal results            2604
+marked contractions             5208
+violations                         0
+```
+
+Canonical result shapes are exactly:
+
+```text
+(1,0,false)
+(2,1,true)
+(2,2,false)
+(3,2,false)
+```
+
+Every marked contraction of a non-K-normal result has shape `(2,1,true)`.
+
+This theorem controls shape growth only after the exact same-root one-edge-exchange hypotheses are established.
+
+## 5. Marked singleton-edge absorption — proved
+
+A **one-step marked extension** replaces one edge of a K-normal tree by a two-edge path and marks either new half-edge `e`. Contracting `e` recovers the K-normal source tree.
+
+Assume the marked edge is selected and its endpoint relation components are singleton sets. Then:
+
+```text
+marked literal satisfied
+    -> clause extinct
+
+marked literal falsified
+    -> delete marked literal
+    -> identify its singleton endpoints
+    -> graph contraction T/e
+    -> recover the K-normal source tree
+```
+
+Additional child pre-units can only simplify further.
+
+```text
+MARKED_SINGLETON_EDGE_ABSORPTION_ARBITRARY_N = PROVED
+```
+
+Independent labelled falsification gate:
+
+```text
+source stars                       7
+source one-subdivision stars     112
+marked extensions                672
+marked half-edge branches       1344
+violations                         0
+```
+
+## 6. Finite exact-key handoff
+
+Complete non-root exact-exchange replay through `GT_8`:
 
 ```text
 source exact-key shapes
-  star                     (1,0,false)   63
-  one-subdivision          (2,1,true)    34
+  star                    63
+  one-subdivision         34
 
-raw/post exchange shapes
-  star                     (1,0,false)   49
-  one-subdivision          (2,1,true)    45
-  transient deep           (3,2,false)    3
+raw/post shapes
+  star                    49
+  one-subdivision         45
+  transient deep           3
 
 child exact-key shapes
-  star                     (1,0,false)   42
-  one-subdivision          (2,1,true)    25
-  deep                                      0
+  star                    42
+  one-subdivision         25
+  deep                     0
 ```
 
-Thus the naive statement
-
-```text
-Resolution never creates a deeper tree
-```
-
-is false. The finite evidence supports the weaker exact-key invariant:
-
-### K-normal form
-
-Every relevant in-arborescence parent present in an exact key is a star or a
-one-subdivision star.
-
-```text
-K_TREE_NORMAL_FORM_ARBITRARY_N = OPEN
-```
-
-The finite handoff is a falsification gate, not an arbitrary-`n` proof.
-
-## 4. Transient one-step growth
-
-An exact transitivity/tree exchange may replace one edge of a one-subdivision
-parent and temporarily produce a height-three tree with two non-star edges.
-The exact `GT_8` deep cell consists of three resolvents:
+The three transient deep clauses are
 
 ```text
 (-5,-6,-7,-8,11)
@@ -98,108 +160,23 @@ The exact `GT_8` deep cell consists of three resolvents:
 (-5,-6,-7,-8,13)
 ```
 
-All three have:
+Each has source shape `(2,1,true)`, raw/post shape `(3,2,false)`, selected literal `-8`, and selected component sizes `(1,1)`. One branch polarity makes the clause extinct; the other deletes/contracts `-8` and returns the child exact-key shape to `(2,1,true)`.
 
-```text
-source shape                     (2,1,true)
-raw/post shape                   (3,2,false)
-selected variable                8
-selected literal                 -8
-selected component sizes         (1,1)
-```
+This is finite evidence for the arbitrary-`n` reachability statements below, not their proof.
 
-A general induction route needs the following bounded-growth statement rather
-than global shape monotonicity:
+## 7. Selector-origin evidence
 
-### One-exchange marked growth
-
-Starting from a K-normal relevant tree parent, every exact local
-transitivity/tree exchange is either already safe or creates at most one marked
-transient subdivision layer whose exposed comparison is identifiable in the
-resolvent.
-
-```text
-ONE_EXCHANGE_MARKED_GROWTH_ARBITRARY_N = OPEN
-```
-
-Tree-exchange cut preservation is already proved, but it does not by itself
-bound the number of subdivision layers.
-
-## 5. Marked singleton-edge absorption — proved
-
-A K-normal tree is a star or a one-subdivision star. A **one-step marked
-extension** is obtained by replacing one tree edge
-
-```text
-u -> v
-```
-
-with
-
-```text
-u -> w -> v
-```
-
-and marking either new half-edge `e`. By construction, contracting `e` recovers
-the K-normal source tree.
-
-Assume the marked edge is selected and its two relation components are
-singletons. Then:
-
-```text
-selected literal satisfied
-    -> CLAUSE_EXTINCT
-
-selected literal falsified
-    -> delete selected literal
-    -> identify its singleton endpoints
-    -> graph operation T/e
-    -> recover the K-normal source tree
-```
-
-This is uniform in the number of GT vertices and is proved in
-`GT_MARKED_SINGLETON_EDGE_ABSORPTION.md` under the explicit marked-extension,
-selected-edge, legal-clause, and singleton-endpoint hypotheses.
-
-Independent finite falsification gate:
-
-```text
-source vertex range              2..8
-source stars                        7
-source one-subdivision stars      112
-marked extensions                 672
-marked half-edge branches        1344
-violations                          0
-```
-
-The gate includes transient shapes `(2,1)`, `(2,2)`, and `(3,2)` and restores
-only the original star/one-subdivision shape.
-
-```text
-MARKED_SINGLETON_EDGE_ABSORPTION_ARBITRARY_N = PROVED
-FINITE_DEEP_SHAPE_ABSORPTION                  = GREEN
-```
-
-This theorem does not establish that every reachable deep resolvent is a
-one-step marked extension or that Policy-0A selects the marked edge. Those are
-separate open reachability/selector obligations.
-
-## 6. Selector-origin evidence
-
-The remaining obstacle is proving that exact Policy-0A selects the marked
-singleton comparison, or selects another variable whose route is already
-covered by a proved safety template.
-
-For the three deep `GT_8` rows:
+For the three deep rows:
 
 ```text
 selected variable       8
 selected frequency     75
-strongest competitors  67,68,68
+competitor frequencies 67,68,68
 strict margins          8,7,7
+source delta            0,0,0
 ```
 
-With origin coordinates ordered as
+With coordinates
 
 ```text
 ROOT_NON_MINIMALITY,
@@ -212,108 +189,97 @@ OTHER_DERIVED,
 the selected-minus-competitor vectors are
 
 ```text
-(0,2,10,-4,0)   once
-(0,2,10,-5,0)   twice.
+(0,2,10,-4,0)
+(0,2,10,-5,0)
+(0,2,10,-5,0)
 ```
 
-The tracked deep clause itself gives no frequency advantage:
+The tracked clause itself gives no selector advantage. The strict margin is generated by the frozen local block and partially offset by inherited derived clauses.
+
+The complete 42-lineage finite profile is heterogeneous and contains both strict margins and least-index ties. Therefore component-pair frequency factorization and a universal origin-vector formula are false. Any arbitrary-`n` selector proof must retain clause history, polarity, vertex identity, and exact tie-breaking.
+
+## 8. Two remaining arbitrary-n gates
+
+### Gate A — exact-exchange producer reachability
 
 ```text
-source_delta = 0
+NONROOT_UNSHIELDED_EXACT_EXCHANGE_REACHABILITY_ARBITRARY_N = OPEN
 ```
 
-The strict selector margin instead comes from the frozen local block:
-`ROOT_TRANSITIVITY + LOCAL_RESOLVENT`, partially offset by inherited derived
-clauses.
+Every arbitrary-`n` reachable non-root immediate-local unshielded producer must be shown either to fall into an already proved safe route or to have:
 
-The complete 42-lineage finite profile is heterogeneous. It includes strict
-margins and lexicographic ties, with many different origin vectors. Therefore
-one universal component-pair or one universal origin-vector formula is false.
-Any arbitrary-`n` theorem must retain clause history, polarity, vertex identity,
-and exact tie-breaking.
+1. one directed-cycle parent;
+2. one K-normal component-spanning in-arborescence parent;
+3. a unique external tree pivot;
+4. the same root before and after Resolution;
+5. a resolvent obtained by deleting that pivot edge and adding exactly one external edge.
 
-## 7. Final selector theorem
+Only then does the proved K-normal one-edge growth theorem apply.
 
-### Exposed-subdivision selector dominance or safe diversion
-
-For every arbitrary-`n` reachable non-root immediate-local unshielded
-occurrence, exact Policy-0A does one of the following:
-
-1. selects a variable whose branch is already covered by a proved safe route;
-2. selects the marked exposed comparison of the transient tree, and that
-   comparison joins two singleton relation components.
-
-Equivalently, a falsifier must provide a reachable non-root unshielded state in
-which every selected route avoids the existing safety templates and the exact
-maximum-frequency/least-index variable is not a singleton marked comparison.
+### Gate B — exposed-subdivision selector dominance
 
 ```text
 EXPOSED_SUBDIVISION_SELECTOR_DOMINANCE_ARBITRARY_N = OPEN
 ```
 
-This theorem is history-sensitive. Quotient-component sizes alone cannot prove
-it because component-pair frequency factorization has an exact finite
-counterexample.
+For every reachable non-root immediate-local unshielded state, exact Policy-0A must select either:
 
-## 8. Exact-key induction after the remaining sublemmas
+1. a variable whose branch is already covered by a proved safe route; or
+2. a marked exposed comparison joining two singleton relation components.
 
-The three pending arbitrary-`n` sublemmas are
+A falsifier is a reachable state whose exact maximum-frequency/least-index variable avoids every established safe route and is not such a marked singleton comparison.
 
-```text
-K_TREE_NORMAL_FORM_ARBITRARY_N
-ONE_EXCHANGE_MARKED_GROWTH_ARBITRARY_N
-EXPOSED_SUBDIVISION_SELECTOR_DOMINANCE_ARBITRARY_N
-```
+## 9. Exact-key induction after the two gates
 
-Together with the proved marked singleton-edge absorption lemma, the non-root
-induction is:
+Assuming Gate A and Gate B:
 
 ```text
 K
-  relevant trees are K-normal
+  relevant tree parents are K-normal by the induction hypothesis
 
 K -> R
-  frozen Resolution preserves existing safe routes;
-  an exact exchange may create only a marked transient layer
+  an unsafe producer is an exact same-root one-edge exchange
+  -> proved growth theorem yields K-normal or one marked transient layer
 
 R -> P
-  post-units cannot create a new same-cut pair;
-  extinct/safe clauses leave the tracked route
+  post-units do not create new same-cut pairs
+  extinct or otherwise safe clauses leave the tracked route
 
 P -> B
   selector takes a proved safe diversion or the marked singleton edge
 
 B -> K'
-  satisfying polarity kills the clause;
-  falsifying polarity contracts the marked singleton edge;
-  the transported tree returns to K-normal form
+  satisfying polarity kills the clause
+  falsifying polarity contracts the marked edge
+  -> proved absorption theorem restores K-normal form
 ```
 
-Then
+Therefore K-normality propagates from one exact key to the next. It is an inductive consequence, not a third open hypothesis.
+
+After both gates close:
 
 ```text
 NONROOT_SINGLETON_BRANCH_REACHABILITY_ARBITRARY_N = PROVED
 T3_EXACT_KEY_TEMPORAL_INDUCTION                    = DIRECT
 ```
 
-Neither conclusion may be promoted before every pending sublemma has an
-independent proof or complete replayable certificate.
+Neither conclusion may be promoted earlier.
 
-## 9. Current boundary
+## 10. Current boundary
 
 ```text
-TREE_EXCHANGE_CUT_PRESERVATION                       PROVED
-SINGLETON_BRANCH_SAME_CUT_PRESERVATION               PROVED
-MARKED_SINGLETON_EDGE_ABSORPTION_ARBITRARY_N         PROVED
-FINITE_TREE_EXCHANGE_HANDOFF                          GREEN
-FINITE_DEEP_SHAPE_ABSORPTION                          GREEN
-FINITE_DEEP_SELECTOR_ORIGIN                           GREEN
+TREE_EXCHANGE_CUT_PRESERVATION                         PROVED
+SINGLETON_BRANCH_SAME_CUT_PRESERVATION                 PROVED
+K_NORMAL_ONE_EDGE_EXCHANGE_GROWTH_ARBITRARY_N          PROVED
+MARKED_SINGLETON_EDGE_ABSORPTION_ARBITRARY_N           PROVED
+FINITE_TREE_EXCHANGE_HANDOFF                            GREEN
+FINITE_DEEP_SHAPE_ABSORPTION                            GREEN
+FINITE_DEEP_SELECTOR_ORIGIN                             GREEN
 
-K_TREE_NORMAL_FORM_ARBITRARY_N                        OPEN
-ONE_EXCHANGE_MARKED_GROWTH_ARBITRARY_N                OPEN
-EXPOSED_SUBDIVISION_SELECTOR_DOMINANCE_ARBITRARY_N    OPEN
-NONROOT_SINGLETON_BRANCH_REACHABILITY_ARBITRARY_N     OPEN
-T3_EXACT_KEY_TEMPORAL_INDUCTION                       PENDING_NONROOT_ONLY
-GLOBAL_CACHE_DAG_LOWER_BOUND                          OPEN
-P_VS_NP                                               OPEN
+NONROOT_UNSHIELDED_EXACT_EXCHANGE_REACHABILITY_ARBITRARY_N OPEN
+EXPOSED_SUBDIVISION_SELECTOR_DOMINANCE_ARBITRARY_N         OPEN
+NONROOT_SINGLETON_BRANCH_REACHABILITY_ARBITRARY_N          OPEN
+T3_EXACT_KEY_TEMPORAL_INDUCTION                           PENDING_NONROOT_ONLY
+GLOBAL_CACHE_DAG_LOWER_BOUND                              OPEN
+P_VS_NP                                                   OPEN
 ```
