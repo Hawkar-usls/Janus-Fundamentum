@@ -28,6 +28,7 @@ P_VS_NP=OPEN
 | C039.1 | Symbolic affine factor compiler | Polynomial affine join/project/RREF messages | Explicit continuation rows are unavoidable for affine cuts | `CROSS_LANGUAGE_SYMBOLIC_PROJECTION_CLOSED_UNDER_JOIN` |
 | C039.2 | Low-affine-dimension Horn composer | Exact Horn/dual-Horn plus affine composition in `O(2^d poly(L))` | Raw shared-variable count is the only safe parameter | `CROSS_LANGUAGE_COMPOSITION_BEYOND_LOW_AFFINE_INTERFACE_DIMENSION` |
 | C041 | Affine-coordinate 3-SAT identity | C023 followed by canonical affine coordinates reproduces the source 3-CNF syntactically and preserves supports | Coordinate substitution alone simplifies the hard image | `POLYNOMIAL_DISCOVERY_OF_TRACTABLE_COORDINATE_FACTOR_STRUCTURE_OR_STRICT_OPEN` |
+| C042 | Laminar affine forbidden-subspace cover | Polynomial recognition, exact union counting, SAT witness recovery and UNSAT disjoint-cover certificates for laminar clause-falsifying affine subspaces | High affine dimension alone forces enumeration; coordinate factors cannot be solved without extra structure | `POLYNOMIAL_DECOMPOSITION_OF_CROSSING_AFFINE_FORBIDDEN_SUBSPACES` |
 | C031 | Proof-carrying SAT refuter | Formal lower-bound transfer interface | Free direct-sum amplification | `NO_SHARING_REFUTER_AMPLIFICATION` |
 
 ## Constructive P=NP track
@@ -41,7 +42,8 @@ tractable local languages
 -> fixed-k structured compilation
 -> pure-affine symbolic factor compilation
 -> semantic-dimension cross-language composition
--> proof-carrying coordinate factoring with certified tractable structure
+-> affine-coordinate clause predicates
+-> certified tractable affine-subspace arrangement structure
 -> broader join-closed symbolic projection
 -> SAT witness + independently checkable UNSAT evidence
 -> universal polynomial SAT algorithm
@@ -58,7 +60,15 @@ c_i = 1 XOR lambda_i.
 
 Every negative Horn literal over a falsity indicator translates back to the original source literal. Hence each Horn NAND3 clause becomes exactly its source 3-CNF clause, preserving polarity, support, primal adjacency and satisfiability. Affine-coordinate substitution is therefore only a change of notation on the hard image.
 
-A valid C041 selector must additionally discover a replayable tractable property of the coordinate factors—bounded coordinate interaction width, nested supports, an acyclic product, a decomposable symbolic cover, or another certified structure—or return `OPEN` within a fixed polynomial budget.
+A valid coordinate selector must additionally discover a replayable tractable property of the coordinate factors or return `OPEN` within a fixed polynomial budget.
+
+## C042 laminar arrangement theorem
+
+For `x = p + B lambda`, falsifying one CNF clause imposes an affine system on `lambda`; denote its solution set by `U_C`. C042 recognizes the condition that every two nonempty `U_C` are disjoint or nested.
+
+After removing duplicates and contained factors, the maximal forbidden subspaces are pairwise disjoint. Their exact union cardinality is therefore the sum of `2^dimension`. Equality with `2^d` gives an independently replayable UNSAT cover. Otherwise deterministic conditional counting fixes one coordinate at a time and produces a point outside the union, hence a SAT witness, without enumerating `2^d` assignments.
+
+The C023 hard image contains crossing forbidden subspaces and returns `OPEN_NON_LAMINAR`. The next route must decompose or symbolically cover crossing arrangements with polynomial discovery and proof volume.
 
 ## Canonical cycle allocation
 
@@ -74,6 +84,7 @@ C039.1  pure-affine symbolic vtree factor compiler
 C039.2  low-affine-dimension Horn/dual-Horn composer
 C040    portfolio-guided semantic-vtree discovery (reserved)
 C041    affine-coordinate 3-SAT identity obstruction
+C042    laminar affine forbidden-subspace cover
 ```
 
 ## Converged constructive bottleneck
@@ -82,10 +93,10 @@ C041    affine-coordinate 3-SAT identity obstruction
 Construct, in polynomial total work, a decomposition and join-closed proof-carrying message algebra whose semantic state volume is polynomial on every CNF, with SAT witness recovery and independently checkable UNSAT evidence.
 ```
 
-C041 proves that merely choosing affine coordinates cannot satisfy this obligation: the C023 hard image becomes arbitrary 3-CNF over the free coordinates with unchanged clause supports.
+C041 proves that affine coordinates alone cannot satisfy this obligation. C042 supplies a real polynomial coordinate class, but rejects crossing subspace arrangements, including the deterministic hard-image pressure fixture.
 
 ## Non-duplication and honesty rules
 
-Compare every candidate against PS-width, OBDD/SDD/d-SDNNF/TDD, backdoors, treewidth, Horn/dual-Horn closure, GF(2) elimination, beta-acyclic elimination, DPLL(T)/DPLL(XOR), existential forgetting, intermediate compilation size, and certificate discovery.
+Compare every candidate against PS-width, OBDD/SDD/d-SDNNF/TDD, backdoors, treewidth, Horn/dual-Horn closure, GF(2) elimination, beta-acyclic elimination, DPLL(T)/DPLL(XOR), existential forgetting, finite-field subspace arrangements, intermediate compilation size, and certificate discovery.
 
 Never promote a supplied decomposition as free discovery, an input-dependent exponent as polynomial, finite tests as a theorem, `OPEN` as hardness, one representation lower bound as `P!=NP`, or semantic equivalence decided by a hidden SAT/coNP oracle.
