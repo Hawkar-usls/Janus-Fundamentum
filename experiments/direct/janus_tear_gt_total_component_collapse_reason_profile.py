@@ -1,25 +1,14 @@
 #!/usr/bin/env python3
-"""Profile exact reasons for every reachable post-unit 2->1 component collapse.
+"""Profile every reachable post-unit 2->1 relation-component collapse.
 
-The reachable GT_4,...,GT_8 census found ten post-unit assignments which merge
-relation components.  Every one occurs at novelty n-2 and maps the last two
-components to the single total component.  This checker determines why those
-units exist without choosing an arbitrary reason clause.
+The exact GT_4,...,GT_8 trace contains ten component-merging post-unit events.
+All occur at novelty n-2 and merge the last two relation components into the
+single total component.  This checker keeps every unit-reason candidate rather
+than selecting one convenient clause.
 
-For every merge event it records all clauses in the frozen Resolution output
-which reduce to the propagated unit under earlier units of the same post batch.
-For every such candidate it records:
-
-- whether the clause is inherited in the exact entry key, freshly emitted by
-  the frozen local pass, or both;
-- every local Resolution event producing it;
-- frozen parent widths, safety classes, and inference-pivot geometry;
-- exact root-axiom provenance propagated through the complete trace;
-- non-minimality owners and transitivity ancestry;
-- the relation-component shapes before and after the unit.
-
-The checker is a finite proof-carrying profile.  It asserts replay completeness,
-the already observed ten 2->1 collapses, and no particular reason template.
+For each candidate it records entry/fresh origin, every producing frozen
+Resolution event, parent geometry and safety, and exact root-axiom provenance
+propagated through the full trace.
 """
 
 from __future__ import annotations
@@ -27,25 +16,25 @@ from __future__ import annotations
 from collections import Counter, defaultdict
 
 from janus_tear_gt_component_merge_sources import reduce_clause, source_clauses
-from janus_tear_gt_component_tree_clause_audit import execution_context
 from janus_tear_gt_double_bridge_root_owner_provenance import replay_provenance
 from janus_tear_gt_novel_branch_audit_v2 import comparison_closure, components
 from janus_tear_gt_rank_safety_dichotomy import safety_class
 
 Clause = tuple[int, ...]
 RootSource = tuple[str, int | None, Clause]
+EXPECTED_BY_N = {4: 0, 5: 4, 6: 1, 7: 2, 8: 3}
 
 
-def component_partition(n: int, assignment, pairs):
+def partition(n: int, assignment, pairs):
     closure = comparison_closure(n, assignment, pairs)
     assert closure.acyclic
-    parts = components(closure)
+    parts = tuple(components(closure))
     index = {
-        vertex: component_id
-        for component_id, part in enumerate(parts)
+        vertex: part_id
+        for part_id, part in enumerate(parts)
         for vertex in part
     }
-    return tuple(parts), index
+    return parts, index
 
 
 def root_signature(sources: frozenset[RootSource]):
@@ -54,24 +43,10 @@ def root_signature(sources: frozenset[RootSource]):
         for kind, owner, _clause in sources
         if kind == "N" and owner is not None
     }))
-    transitivity_count = sum(
+    transitivity = sum(
         1 for kind, _owner, _clause in sources if kind == "T"
     )
-    return {
-        "nonminimality_owners": owners,
-        "transitivity_count": transitivity_count,
-        "root_source_count": len(sources),
-    }
-
-
-def origin_labels(clause: Clause, key_set, event_index):
-    labels = []
-    if clause in key_set:
-        labels.append("ENTRY_KEY")
-    if clause in event_index:
-        labels.append("LOCAL_RESOLVENT")
-    assert labels
-    return tuple(labels)
+    return (owners, transitivity, len(sources))
 
 
 def audit(n: int):
@@ -84,17 +59,16 @@ def audit(n: int):
     counts: Counter[str] = Counter()
     novelty_histogram: Counter[int] = Counter()
     candidate_count_histogram: Counter[int] = Counter()
-    candidate_origin_sets: Counter[tuple[tuple[str, ...], ...]] = Counter()
+    origin_sets: Counter[tuple[tuple[str, ...], ...]] = Counter()
     candidate_widths: Counter[int] = Counter()
-    candidate_residual_widths: Counter[int] = Counter()
-    candidate_root_shapes: Counter[tuple[int, int, int]] = Counter()
-    local_event_count_histogram: Counter[int] = Counter()
-    local_parent_width_pairs: Counter[tuple[int, int]] = Counter()
-    local_parent_safety_pairs: Counter[tuple[str, str]] = Counter()
-    local_pivot_geometry: Counter[str] = Counter()
-    local_pivot_equals_unit: Counter[bool] = Counter()
-    merge_endpoint_shapes: Counter[tuple[int, int]] = Counter()
-    unit_position_histogram: Counter[int] = Counter()
+    root_shapes: Counter[tuple[tuple[int, ...], int, int]] = Counter()
+    local_event_counts: Counter[int] = Counter()
+    parent_widths: Counter[tuple[int, int]] = Counter()
+    parent_safety: Counter[tuple[str, str]] = Counter()
+    pivot_geometry: Counter[str] = Counter()
+    pivot_equals_unit: Counter[bool] = Counter()
+    endpoint_shapes: Counter[tuple[int, int]] = Counter()
+    unit_positions: Counter[int] = Counter()
     rows = []
 
     for state in policy.states.values():
@@ -104,8 +78,8 @@ def audit(n: int):
         if novelty > target:
             continue
 
-        events = tuple(state.get("post_units", ()))
-        if not events:
+        post_events = tuple(state.get("post_units", ()))
+        if not post_events:
             continue
 
         key = tuple(tuple(clause) for clause in state["key"])
@@ -113,29 +87,30 @@ def audit(n: int):
         output = tuple(tuple(clause) for clause in state["resolution_output"])
         output_set = set(output)
         assert key_set <= output_set
-        entry_provenance = key_provenance[state_id]
+        key_sources = key_provenance[state_id]
 
         resolution_index: dict[Clause, list[dict[str, object]]] = defaultdict(list)
-        output_provenance: dict[Clause, set[RootSource]] = defaultdict(set)
+        output_sources: dict[Clause, set[RootSource]] = defaultdict(set)
         for clause in key:
-            output_provenance[clause].update(entry_provenance[clause])
-        for event in state.get("resolution_events", ()):
-            left = tuple(event["left"])
-            right = tuple(event["right"])
-            resolvent = tuple(event["resolvent"])
-            assert left in entry_provenance and right in entry_provenance
-            resolution_index[resolvent].append(event)
-            output_provenance[resolvent].update(entry_provenance[left])
-            output_provenance[resolvent].update(entry_provenance[right])
-        assert set(output_provenance) == output_set
+            output_sources[clause].update(key_sources[clause])
+        for resolution_event in state.get("resolution_events", ()):
+            left = tuple(resolution_event["left"])
+            right = tuple(resolution_event["right"])
+            resolvent = tuple(resolution_event["resolvent"])
+            assert left in key_sources and right in key_sources
+            resolution_index[resolvent].append(resolution_event)
+            output_sources[resolvent].update(key_sources[left])
+            output_sources[resolvent].update(key_sources[right])
+        assert set(output_sources) == output_set
 
         frozen_assignment = dict(context["call_after_pre"][call_id])
+        frozen_parts, frozen_index = partition(n, frozen_assignment, pairs)
         current_assignment = dict(frozen_assignment)
         current_cnf = output
-        stage_assignments: dict[int, bool] = {}
+        stage_assignment: dict[int, bool] = {}
         unit_position = 0
 
-        for event_index, event in enumerate(events):
+        for event_index, event in enumerate(post_events):
             if event["kind"] != "unit":
                 continue
             unit_position += 1
@@ -145,157 +120,152 @@ def audit(n: int):
             assert tuple(event["before"]) == current_cnf
             assert variable not in current_assignment
 
-            before_parts, before_index = component_partition(
+            before_parts, before_index = partition(
                 n, current_assignment, pairs
             )
             after_assignment = dict(current_assignment)
             after_assignment[variable] = value
-            after_parts, _after_index = component_partition(
+            after_parts, _after_index = partition(
                 n, after_assignment, pairs
             )
 
-            if len(after_parts) >= len(before_parts):
-                current_assignment = after_assignment
-                stage_assignments[variable] = value
-                after_raw = event.get("after")
-                if after_raw is None:
-                    break
-                current_cnf = tuple(tuple(clause) for clause in after_raw)
-                continue
+            if len(after_parts) < len(before_parts):
+                counts["component_merging_units"] += 1
+                novelty_histogram[novelty] += 1
+                unit_positions[unit_position] += 1
+                assert len(before_parts) - len(after_parts) == 1
 
-            counts["component_merging_units"] += 1
-            novelty_histogram[novelty] += 1
-            unit_position_histogram[unit_position] += 1
-            assert len(before_parts) - len(after_parts) == 1
+                low, high = pairs[variable]
+                endpoint_shapes[tuple(sorted((
+                    len(before_parts[before_index[low]]),
+                    len(before_parts[before_index[high]]),
+                )))] += 1
 
-            endpoint_low, endpoint_high = pairs[variable]
-            left_size = len(before_parts[before_index[endpoint_low]])
-            right_size = len(before_parts[before_index[endpoint_high]])
-            merge_endpoint_shapes[tuple(sorted((left_size, right_size)))] += 1
-
-            candidates = source_clauses(output, stage_assignments, literal)
-            assert candidates
-            candidate_count_histogram[len(candidates)] += 1
-
-            candidate_rows = []
-            origin_set = []
-            for candidate in candidates:
-                candidate = tuple(candidate)
-                labels = origin_labels(candidate, key_set, resolution_index)
-                origin_set.append(labels)
-                candidate_widths[len(candidate)] += 1
-                residual = reduce_clause(candidate, stage_assignments)
-                assert residual == (literal,)
-                candidate_residual_widths[len(residual)] += 1
-
-                roots = frozenset(output_provenance[candidate])
-                root_info = root_signature(roots)
-                candidate_root_shapes[(
-                    len(root_info["nonminimality_owners"]),
-                    int(root_info["transitivity_count"]),
-                    int(root_info["root_source_count"]),
-                )] += 1
-
-                local_rows = []
-                local_events = tuple(resolution_index.get(candidate, ()))
-                local_event_count_histogram[len(local_events)] += 1
-                for producing_event in local_events:
-                    left = tuple(producing_event["left"])
-                    right = tuple(producing_event["right"])
-                    pivot = int(producing_event["pivot"])
-                    parent_widths = tuple(sorted((len(left), len(right))))
-                    parent_safety = tuple(sorted((
-                        str(safety_class(
-                            n, left, frozen_assignment, pairs
-                        )["classification"]),
-                        str(safety_class(
-                            n, right, frozen_assignment, pairs
-                        )["classification"]),
-                    )))
-                    local_parent_width_pairs[parent_widths] += 1
-                    local_parent_safety_pairs[parent_safety] += 1
-
-                    pivot_low, pivot_high = pairs[pivot]
-                    frozen_parts, frozen_index = component_partition(
-                        n, frozen_assignment, pairs
+                candidates = tuple(
+                    tuple(clause)
+                    for clause in source_clauses(
+                        output, stage_assignment, literal
                     )
-                    pivot_geometry = (
-                        "INTERNAL"
-                        if frozen_index[pivot_low] == frozen_index[pivot_high]
-                        else "EXTERNAL"
-                    )
-                    local_pivot_geometry[pivot_geometry] += 1
-                    local_pivot_equals_unit[pivot == variable] += 1
+                )
+                assert candidates
+                candidate_count_histogram[len(candidates)] += 1
+                candidate_rows = []
+                event_origins = []
 
-                    local_rows.append({
-                        "attempt": int(producing_event["attempt"]),
-                        "pivot": pivot,
-                        "pivot_endpoints": pairs[pivot],
-                        "pivot_geometry": pivot_geometry,
-                        "pivot_equals_unit_variable": pivot == variable,
-                        "left": left,
-                        "right": right,
-                        "parent_widths": parent_widths,
-                        "parent_safety": parent_safety,
-                        "left_root": root_signature(
-                            entry_provenance[left]
-                        ),
-                        "right_root": root_signature(
-                            entry_provenance[right]
-                        ),
-                        "frozen_component_shape": tuple(sorted(
-                            len(part) for part in frozen_parts
-                        )),
+                for candidate in candidates:
+                    labels = []
+                    if candidate in key_set:
+                        labels.append("ENTRY_KEY")
+                    if candidate in resolution_index:
+                        labels.append("LOCAL_RESOLVENT")
+                    assert labels
+                    labels_tuple = tuple(labels)
+                    event_origins.append(labels_tuple)
+                    candidate_widths[len(candidate)] += 1
+
+                    residual = reduce_clause(candidate, stage_assignment)
+                    assert residual == (literal,)
+                    source_signature = root_signature(
+                        frozenset(output_sources[candidate])
+                    )
+                    root_shapes[source_signature] += 1
+
+                    producing_rows = []
+                    producing_events = tuple(
+                        resolution_index.get(candidate, ())
+                    )
+                    local_event_counts[len(producing_events)] += 1
+                    for producing_event in producing_events:
+                        left = tuple(producing_event["left"])
+                        right = tuple(producing_event["right"])
+                        pivot = int(producing_event["pivot"])
+                        widths = tuple(sorted((len(left), len(right))))
+                        safety = tuple(sorted((
+                            str(safety_class(
+                                n, left, frozen_assignment, pairs
+                            )["classification"]),
+                            str(safety_class(
+                                n, right, frozen_assignment, pairs
+                            )["classification"]),
+                        )))
+                        parent_widths[widths] += 1
+                        parent_safety[safety] += 1
+
+                        pivot_low, pivot_high = pairs[pivot]
+                        geometry = (
+                            "INTERNAL"
+                            if frozen_index[pivot_low]
+                            == frozen_index[pivot_high]
+                            else "EXTERNAL"
+                        )
+                        pivot_geometry[geometry] += 1
+                        pivot_equals_unit[pivot == variable] += 1
+
+                        producing_rows.append({
+                            "attempt": int(producing_event["attempt"]),
+                            "pivot": pivot,
+                            "pivot_endpoints": pairs[pivot],
+                            "pivot_geometry": geometry,
+                            "pivot_equals_unit": pivot == variable,
+                            "left": left,
+                            "right": right,
+                            "parent_widths": widths,
+                            "parent_safety": safety,
+                            "left_root": root_signature(key_sources[left]),
+                            "right_root": root_signature(key_sources[right]),
+                        })
+
+                    candidate_rows.append({
+                        "clause": candidate,
+                        "origin": labels_tuple,
+                        "width": len(candidate),
+                        "root": source_signature,
+                        "producing_events": tuple(producing_rows),
                     })
 
-                candidate_rows.append({
-                    "clause": candidate,
-                    "origin": labels,
-                    "source_width": len(candidate),
-                    "root": root_info,
-                    "local_event_count": len(local_events),
-                    "local_events": tuple(local_rows),
+                normalized_origins = tuple(sorted(event_origins, key=repr))
+                origin_sets[normalized_origins] += 1
+                if all(
+                    "LOCAL_RESOLVENT" in labels
+                    for labels in event_origins
+                ):
+                    counts["all_candidates_local"] += 1
+                if any("ENTRY_KEY" in labels for labels in event_origins):
+                    counts["has_entry_candidate"] += 1
+                if any(
+                    "LOCAL_RESOLVENT" in labels
+                    for labels in event_origins
+                ):
+                    counts["has_local_candidate"] += 1
+
+                rows.append({
+                    "n": n,
+                    "state_id": state_id,
+                    "call_id": call_id,
+                    "novelty": novelty,
+                    "target": target,
+                    "event_index": event_index,
+                    "unit_position": unit_position,
+                    "literal": literal,
+                    "endpoints": pairs[variable],
+                    "before_parts": before_parts,
+                    "after_parts": after_parts,
+                    "frozen_parts": frozen_parts,
+                    "candidate_count": len(candidates),
+                    "candidates": tuple(candidate_rows),
                 })
 
-            normalized_origins = tuple(sorted(origin_set, key=repr))
-            candidate_origin_sets[normalized_origins] += 1
-            if all("LOCAL_RESOLVENT" in labels for labels in origin_set):
-                counts["all_candidates_local_resolvents"] += 1
-            if any("ENTRY_KEY" in labels for labels in origin_set):
-                counts["has_entry_key_candidate"] += 1
-            if any("LOCAL_RESOLVENT" in labels for labels in origin_set):
-                counts["has_local_resolvent_candidate"] += 1
-
-            rows.append({
-                "n": n,
-                "state_id": state_id,
-                "call_id": call_id,
-                "novelty": novelty,
-                "target": target,
-                "event_index": event_index,
-                "unit_position": unit_position,
-                "literal": literal,
-                "variable": variable,
-                "endpoints": pairs[variable],
-                "before_parts": before_parts,
-                "after_parts": after_parts,
-                "before_component_count": len(before_parts),
-                "after_component_count": len(after_parts),
-                "candidate_count": len(candidates),
-                "candidates": tuple(candidate_rows),
-            })
-
             current_assignment = after_assignment
-            stage_assignments[variable] = value
+            stage_assignment[variable] = value
             after_raw = event.get("after")
             if after_raw is None:
                 break
             current_cnf = tuple(tuple(clause) for clause in after_raw)
 
-    assert counts["component_merging_units"] == 10
-    assert all(int(row["novelty"]) == int(row["target"]) for row in rows)
-    assert all(int(row["before_component_count"]) == 2 for row in rows)
-    assert all(int(row["after_component_count"]) == 1 for row in rows)
+    assert counts["component_merging_units"] == EXPECTED_BY_N[n]
+    assert all(row["novelty"] == row["target"] for row in rows)
+    assert all(len(row["before_parts"]) == 2 for row in rows)
+    assert all(len(row["after_parts"]) == 1 for row in rows)
 
     return {
         "n": n,
@@ -303,17 +273,16 @@ def audit(n: int):
         "counts": tuple(sorted(counts.items())),
         "novelty_histogram": tuple(sorted(novelty_histogram.items())),
         "candidate_count_histogram": tuple(sorted(candidate_count_histogram.items())),
-        "candidate_origin_sets": tuple(sorted(candidate_origin_sets.items(), key=repr)),
+        "origin_sets": tuple(sorted(origin_sets.items(), key=repr)),
         "candidate_widths": tuple(sorted(candidate_widths.items())),
-        "candidate_residual_widths": tuple(sorted(candidate_residual_widths.items())),
-        "candidate_root_shapes": tuple(sorted(candidate_root_shapes.items())),
-        "local_event_count_histogram": tuple(sorted(local_event_count_histogram.items())),
-        "local_parent_width_pairs": tuple(sorted(local_parent_width_pairs.items())),
-        "local_parent_safety_pairs": tuple(sorted(local_parent_safety_pairs.items(), key=repr)),
-        "local_pivot_geometry": tuple(sorted(local_pivot_geometry.items())),
-        "local_pivot_equals_unit": tuple(sorted(local_pivot_equals_unit.items())),
-        "merge_endpoint_shapes": tuple(sorted(merge_endpoint_shapes.items())),
-        "unit_position_histogram": tuple(sorted(unit_position_histogram.items())),
+        "root_shapes": tuple(sorted(root_shapes.items(), key=repr)),
+        "local_event_counts": tuple(sorted(local_event_counts.items())),
+        "parent_widths": tuple(sorted(parent_widths.items())),
+        "parent_safety": tuple(sorted(parent_safety.items(), key=repr)),
+        "pivot_geometry": tuple(sorted(pivot_geometry.items())),
+        "pivot_equals_unit": tuple(sorted(pivot_equals_unit.items())),
+        "endpoint_shapes": tuple(sorted(endpoint_shapes.items())),
+        "unit_positions": tuple(sorted(unit_positions.items())),
         "rows": tuple(rows),
     }
 
@@ -324,13 +293,12 @@ def self_test() -> None:
     aggregate_candidate_counts: Counter[int] = Counter()
     aggregate_origins: Counter[tuple[tuple[str, ...], ...]] = Counter()
     aggregate_widths: Counter[int] = Counter()
-    aggregate_residual_widths: Counter[int] = Counter()
-    aggregate_root_shapes: Counter[tuple[int, int, int]] = Counter()
+    aggregate_root_shapes: Counter = Counter()
     aggregate_local_counts: Counter[int] = Counter()
     aggregate_parent_widths: Counter[tuple[int, int]] = Counter()
     aggregate_parent_safety: Counter[tuple[str, str]] = Counter()
-    aggregate_pivot_geometry: Counter[str] = Counter()
-    aggregate_pivot_equals_unit: Counter[bool] = Counter()
+    aggregate_geometry: Counter[str] = Counter()
+    aggregate_pivot_equals: Counter[bool] = Counter()
     aggregate_endpoint_shapes: Counter[tuple[int, int]] = Counter()
     aggregate_positions: Counter[int] = Counter()
     all_rows = []
@@ -340,33 +308,32 @@ def self_test() -> None:
         aggregate_counts.update(dict(data["counts"]))
         aggregate_novelty.update(dict(data["novelty_histogram"]))
         aggregate_candidate_counts.update(dict(data["candidate_count_histogram"]))
-        aggregate_origins.update(dict(data["candidate_origin_sets"]))
+        aggregate_origins.update(dict(data["origin_sets"]))
         aggregate_widths.update(dict(data["candidate_widths"]))
-        aggregate_residual_widths.update(dict(data["candidate_residual_widths"]))
-        aggregate_root_shapes.update(dict(data["candidate_root_shapes"]))
-        aggregate_local_counts.update(dict(data["local_event_count_histogram"]))
-        aggregate_parent_widths.update(dict(data["local_parent_width_pairs"]))
-        aggregate_parent_safety.update(dict(data["local_parent_safety_pairs"]))
-        aggregate_pivot_geometry.update(dict(data["local_pivot_geometry"]))
-        aggregate_pivot_equals_unit.update(dict(data["local_pivot_equals_unit"]))
-        aggregate_endpoint_shapes.update(dict(data["merge_endpoint_shapes"]))
-        aggregate_positions.update(dict(data["unit_position_histogram"]))
+        aggregate_root_shapes.update(dict(data["root_shapes"]))
+        aggregate_local_counts.update(dict(data["local_event_counts"]))
+        aggregate_parent_widths.update(dict(data["parent_widths"]))
+        aggregate_parent_safety.update(dict(data["parent_safety"]))
+        aggregate_geometry.update(dict(data["pivot_geometry"]))
+        aggregate_pivot_equals.update(dict(data["pivot_equals_unit"]))
+        aggregate_endpoint_shapes.update(dict(data["endpoint_shapes"]))
+        aggregate_positions.update(dict(data["unit_positions"]))
         all_rows.extend(data["rows"])
         print(f"ORDER_SIZE = {n}")
         print(f"  target = {data['target']}")
         print(f"  counts = {data['counts']}")
         print(f"  novelty_histogram = {data['novelty_histogram']}")
         print(f"  candidate_count_histogram = {data['candidate_count_histogram']}")
-        print(f"  candidate_origin_sets = {data['candidate_origin_sets']}")
+        print(f"  origin_sets = {data['origin_sets']}")
         print(f"  candidate_widths = {data['candidate_widths']}")
-        print(f"  candidate_root_shapes = {data['candidate_root_shapes']}")
-        print(f"  local_event_count_histogram = {data['local_event_count_histogram']}")
-        print(f"  local_parent_width_pairs = {data['local_parent_width_pairs']}")
-        print(f"  local_parent_safety_pairs = {data['local_parent_safety_pairs']}")
-        print(f"  local_pivot_geometry = {data['local_pivot_geometry']}")
-        print(f"  local_pivot_equals_unit = {data['local_pivot_equals_unit']}")
-        print(f"  merge_endpoint_shapes = {data['merge_endpoint_shapes']}")
-        print(f"  unit_position_histogram = {data['unit_position_histogram']}")
+        print(f"  root_shapes = {data['root_shapes']}")
+        print(f"  local_event_counts = {data['local_event_counts']}")
+        print(f"  parent_widths = {data['parent_widths']}")
+        print(f"  parent_safety = {data['parent_safety']}")
+        print(f"  pivot_geometry = {data['pivot_geometry']}")
+        print(f"  pivot_equals_unit = {data['pivot_equals_unit']}")
+        print(f"  endpoint_shapes = {data['endpoint_shapes']}")
+        print(f"  unit_positions = {data['unit_positions']}")
         print(f"  rows = {data['rows']}")
 
     assert aggregate_counts["component_merging_units"] == 10
@@ -376,20 +343,19 @@ def self_test() -> None:
     print(f"AGGREGATE_CANDIDATE_COUNTS = {tuple(sorted(aggregate_candidate_counts.items()))}")
     print(f"AGGREGATE_ORIGINS = {tuple(sorted(aggregate_origins.items(), key=repr))}")
     print(f"AGGREGATE_WIDTHS = {tuple(sorted(aggregate_widths.items()))}")
-    print(f"AGGREGATE_RESIDUAL_WIDTHS = {tuple(sorted(aggregate_residual_widths.items()))}")
-    print(f"AGGREGATE_ROOT_SHAPES = {tuple(sorted(aggregate_root_shapes.items()))}")
+    print(f"AGGREGATE_ROOT_SHAPES = {tuple(sorted(aggregate_root_shapes.items(), key=repr))}")
     print(f"AGGREGATE_LOCAL_COUNTS = {tuple(sorted(aggregate_local_counts.items()))}")
     print(f"AGGREGATE_PARENT_WIDTHS = {tuple(sorted(aggregate_parent_widths.items()))}")
     print(f"AGGREGATE_PARENT_SAFETY = {tuple(sorted(aggregate_parent_safety.items(), key=repr))}")
-    print(f"AGGREGATE_PIVOT_GEOMETRY = {tuple(sorted(aggregate_pivot_geometry.items()))}")
-    print(f"AGGREGATE_PIVOT_EQUALS_UNIT = {tuple(sorted(aggregate_pivot_equals_unit.items()))}")
+    print(f"AGGREGATE_PIVOT_GEOMETRY = {tuple(sorted(aggregate_geometry.items()))}")
+    print(f"AGGREGATE_PIVOT_EQUALS_UNIT = {tuple(sorted(aggregate_pivot_equals.items()))}")
     print(f"AGGREGATE_ENDPOINT_SHAPES = {tuple(sorted(aggregate_endpoint_shapes.items()))}")
     print(f"AGGREGATE_UNIT_POSITIONS = {tuple(sorted(aggregate_positions.items()))}")
     for row in all_rows:
         print(f"ROW = {row}")
     print(
-        "claim_boundary = exact finite reason/provenance profile for all ten "
-        "reachable post-unit total-component collapses through GT_8; no "
+        "claim_boundary = exact finite all-reason provenance profile for the "
+        "ten reachable post-unit total-component collapses through GT_8; no "
         "arbitrary-n derived-unit localization theorem asserted"
     )
 
