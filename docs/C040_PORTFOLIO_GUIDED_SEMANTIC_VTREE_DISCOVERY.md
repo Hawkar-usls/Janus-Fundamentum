@@ -7,7 +7,7 @@ P_VS_NP = OPEN
 
 ## Purpose
 
-C039 receives a supplied, verified vtree and validates proof-carrying symbolic
+C039.0 receives a supplied, verified vtree and validates proof-carrying symbolic
 factor operations. C040 defines the missing discovery envelope: construct and
 select one assignment-independent vtree without treating a supplied good tree,
 a width oracle, a hidden truth table, or branch-dependent search as free.
@@ -15,6 +15,23 @@ a width oracle, a hidden truth table, or branch-dependent search as free.
 This cycle is a contract and structural validator. It does not prove that the
 registered candidate portfolio contains a polynomially compiling vtree for every
 CNF.
+
+## Compiler capability ladder
+
+```text
+C039.0  symbolic-factor operation contract
+C039.1  pure-affine symbolic vtree factors
+C039.2  single-head Horn symbolic projection
+C039.3  low-affine-dimension Horn/dual-Horn plus affine composition
+C040    portfolio-guided semantic-vtree discovery
+C041    joint compiler/portfolio completeness
+```
+
+A C040 result is meaningful only relative to the exact compiler capability digest.
+Adding C039.2, C039.3 or a later message implementation can turn a previously
+failing vtree into a complete `CLOSED_POLY` compile. Every older
+`OPEN_PORTFOLIO_EXHAUSTED` record therefore becomes stale when the compiler ladder
+changes.
 
 ## Bounded portfolio-selection theorem
 
@@ -64,8 +81,8 @@ Every feature is bound to the exact formula and capability digest and carries a
 native proof digest. `EXACT_OPEN_TRACE` is advisory only. It cannot certify
 hardness, compatibility or the quality of a related formula or vtree.
 
-C037/C037.2-style equality and affine-hull traces may guide clustering, but remain
-features rather than decomposition proofs.
+Equality and affine-hull traces may guide clustering, but remain features rather
+than decomposition proofs.
 
 ## Registered candidate constructors
 
@@ -139,8 +156,8 @@ INVALID_DISCOVERY_CERTIFICATE
 ```
 
 `OPEN_PORTFOLIO_EXHAUSTED` means only that no candidate in this exact frozen
-portfolio closed under this exact capability and budget. It is not evidence of
-intrinsic hardness and does not transfer by similarity or reduction.
+portfolio closed under this exact compiler capability and budget. It is not
+evidence of intrinsic hardness and does not transfer by similarity or reduction.
 
 ## Vault boundary
 
@@ -186,25 +203,39 @@ hidden truth-table rejection
 capability-locked Vault routing
 ```
 
+## Immediate priority
+
+```text
+1. Integrate PR #55 / C039.2 into the C039 operation envelope.
+2. Integrate PR #56 / C039.3 as a mixed-language probe capability.
+3. Re-run the frozen C040 candidate portfolio under the enlarged capability.
+4. Open C041 only on the exact residual OPEN frontier.
+```
+
+Starting C041 before these integrations would conflate a weak compiler with weak
+vtree discovery.
+
 ## Surviving gate
 
 ```text
 POLYNOMIAL_SEMANTIC_VTREE_CANDIDATE_COMPLETENESS
 ```
 
-The next theorem must prove that one polynomially generated candidate family
-always contains a vtree whose complete C039 compilation is polynomial, or provide
-a stronger adaptive decomposition method that remains assignment-independent and
-charges every generated candidate and intermediate representation.
+The next theorem must prove that one polynomially generated candidate family,
+together with the admitted compiler capability, always contains a vtree whose
+complete C039 compilation is polynomial, or provide a stronger adaptive
+decomposition method that remains assignment-independent and charges every
+generated candidate and intermediate representation.
 
 A good vtree found only by exhaustive search, a supplied decomposition, or a
 portfolio whose size exponent depends on the input does not pass this gate.
 
 ## Numbering note
 
-The low-affine-dimension Horn/affine composer draft is canonically `C039.2`; its
-legacy branch and file names containing `c040` are replay aliases. `C040` is
-reserved here for charged semantic-vtree discovery.
+The single-head Horn projector is canonically `C039.2`. The low-affine-dimension
+Horn/affine composer is canonically `C039.3`; its legacy branch, executable,
+proposal filenames and wire schema containing `c040` are replay aliases. `C040`
+is reserved here for charged semantic-vtree discovery.
 
 ## Claim boundary
 
