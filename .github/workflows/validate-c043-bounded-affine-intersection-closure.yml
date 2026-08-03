@@ -1,8 +1,11 @@
-name: Validate C043 Bounded Affine Intersection Closure
+name: Validate C043 Bounded Live Signed Support
 
 on:
   push:
     paths:
+      - "experiments/direct/janus_c043_crossing_core.py"
+      - "experiments/direct/janus_c043_crossing_solver.py"
+      - "experiments/direct/janus_c043_crossing_verifier.py"
       - "experiments/direct/janus_c043_bounded_affine_intersection_closure.py"
       - "docs/C043_BOUNDED_AFFINE_INTERSECTION_CLOSURE.md"
       - "proposals/C043-JANUS-BOUNDED-AFFINE-INTERSECTION-CLOSURE.json"
@@ -11,6 +14,9 @@ on:
       - ".github/workflows/validate-c043-bounded-affine-intersection-closure.yml"
   pull_request:
     paths:
+      - "experiments/direct/janus_c043_crossing_core.py"
+      - "experiments/direct/janus_c043_crossing_solver.py"
+      - "experiments/direct/janus_c043_crossing_verifier.py"
       - "experiments/direct/janus_c043_bounded_affine_intersection_closure.py"
       - "docs/C043_BOUNDED_AFFINE_INTERSECTION_CLOSURE.md"
       - "proposals/C043-JANUS-BOUNDED-AFFINE-INTERSECTION-CLOSURE.json"
@@ -22,14 +28,20 @@ permissions:
   contents: read
 
 jobs:
-  bounded-affine-intersection-closure:
+  bounded-live-signed-support:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - run: python -m py_compile experiments/direct/janus_c043_bounded_affine_intersection_closure.py
-      - run: python experiments/direct/janus_c043_bounded_affine_intersection_closure.py --self-test
+      - run: >-
+          python -m py_compile
+          experiments/direct/janus_c043_crossing_core.py
+          experiments/direct/janus_c043_crossing_solver.py
+          experiments/direct/janus_c043_crossing_verifier.py
+          experiments/direct/janus_c043_bounded_affine_intersection_closure.py
+      - run: python experiments/direct/janus_c043_bounded_affine_intersection_closure.py --self-test --output /tmp/c043-audit.json
+      - run: python -m json.tool /tmp/c043-audit.json >/dev/null
       - run: python -m json.tool proposals/C043-JANUS-BOUNDED-AFFINE-INTERSECTION-CLOSURE.json >/dev/null
       - run: python -m json.tool registry/c043-source-map.json >/dev/null
