@@ -1,0 +1,66 @@
+name: Validate C049.1 JKO FPT Layout Integration Phase A
+
+on:
+  pull_request:
+    paths:
+      - 'README.md'
+      - 'experiments/direct/janus_c049_fpt_integration*.py'
+      - 'experiments/direct/C049-JANUS-JKO-FPT-LAYOUT-INTEGRATION-PHASE-A.frozen.json'
+      - 'docs/C049_JKO_FPT_LAYOUT_INTEGRATION_PHASE_A.md'
+      - 'docs/C049_1_PHASE_B_COMPACT_TRAJECTORY_PLAN.md'
+      - 'docs/ACTIVE_PROOF_ROUTE_MATRIX_C049_1_APPENDIX.md'
+      - 'proposals/C049-JANUS-JKO-FPT-LAYOUT-INTEGRATION-PHASE-A.json'
+      - 'registry/c049.1-source-map.json'
+      - 'registry/c049.1-phase-b-status.json'
+      - '.github/workflows/validate-c049-jko-fpt-layout-integration-phase-a.yml'
+  workflow_dispatch:
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Compile C049.1 and inherited C047 modules
+        run: |
+          python -m py_compile \
+            experiments/direct/janus_c047_affine_trellis_core.py \
+            experiments/direct/janus_c049_fpt_integration_core.py \
+            experiments/direct/janus_c049_fpt_integration_solver.py \
+            experiments/direct/janus_c049_fpt_integration_verifier.py \
+            experiments/direct/janus_c049_fpt_integration.py
+      - name: Run C049.1 Phase-A audit
+        env:
+          PYTHONPATH: experiments/direct
+        run: |
+          python experiments/direct/janus_c049_fpt_integration.py \
+            --self-test \
+            --output /tmp/c049.json
+      - name: Verify frozen audit byte-for-byte
+        run: |
+          cmp /tmp/c049.json \
+            experiments/direct/C049-JANUS-JKO-FPT-LAYOUT-INTEGRATION-PHASE-A.frozen.json
+      - name: Validate C049.1 machine-readable status
+        run: |
+          python - <<'PY'
+          import json
+
+          source = json.load(open('registry/c049.1-source-map.json', encoding='utf-8'))
+          phase_b = json.load(open('registry/c049.1-phase-b-status.json', encoding='utf-8'))
+          proposal = json.load(open('proposals/C049-JANUS-JKO-FPT-LAYOUT-INTEGRATION-PHASE-A.json', encoding='utf-8'))
+
+          assert source['cycle'] == 'C049.1'
+          assert source['phase_a']['status'] == 'IMPLEMENTED_FULL_CI_GREEN'
+          assert source['phase_b']['status'] == 'ACTIVE_B1_PENDING'
+          assert source['p_vs_np'] == 'OPEN'
+
+          assert phase_b['cycle'] == 'C049.1'
+          assert phase_b['status'] == 'ACTIVE_B1_COMPACT_TRAJECTORY_NORMAL_FORM_PENDING'
+          assert phase_b['current_terminal'] == 'OPEN_TRAJECTORY_ENGINE_INCOMPLETE'
+          assert phase_b['p_vs_np'] == 'OPEN'
+          assert [layer['id'] for layer in phase_b['implementation_layers']] == ['B1', 'B2', 'B3', 'B4', 'B5']
+
+          assert proposal['p_vs_np'] == 'OPEN'
+          PY
