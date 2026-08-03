@@ -12,7 +12,7 @@ Gamma preccurlyeq Delta
 
 by the lattice-path characterization from Section 3.2. A valid path starts at `(0,0)`, ends at `(|Gamma|-1,|Delta|-1)`, uses only `(1,0)`, `(0,1)`, or `(1,1)` steps, and at every visited pair compares statistics with identical `(L,R)` and nondecreasing `lambda`.
 
-The emitted witness contains the complete deterministic lattice path. For the focused positive fixture, the path must repeat a statistic and therefore proves the extension semantics rather than merely pointwise comparison at the original lengths.
+The emitted witness contains the complete deterministic lattice path. For the focused positive fixture, the path repeats a statistic and therefore proves extension semantics rather than merely comparing the original unequal-length trajectories pointwise.
 
 ## 2. Why a removed generator is safe
 
@@ -34,7 +34,7 @@ Transitivity of the published preorder gives
 Gamma preccurlyeq Theta.
 ```
 
-Thus every state covered through `Delta` remains covered through the retained `Gamma`. The reverse inclusion is immediate because every retained generator came from the original family. Therefore
+Thus every state covered through `Delta` remains covered through retained `Gamma`. The reverse inclusion is immediate because every retained generator came from the original family. Therefore
 
 ```text
 up_k(original generators) = up_k(retained generators).
@@ -47,8 +47,7 @@ Equivalent generators are reduced to the lexicographically least canonical repre
 For an admitted boundary dimension `dim(B)` and width cap `k`, the producer:
 
 1. enumerates every `GF(2)` subspace of `B` in canonical RREF form;
-2. enumerates every compact `B`-trajectory up to the published length bound
-   `(2 dim(B)+1)(2k+1)`;
+2. enumerates every compact `B`-trajectory up to the published length bound `(2 dim(B)+1)(2k+1)`;
 3. tests every candidate against the minimized generators using the exact extension preorder;
 4. emits every retained `up_k` entry with a source-generator index and lattice path.
 
@@ -68,11 +67,39 @@ OPEN_CERTIFICATE_VOLUME
 
 Every closed and refused case binds a fixed-point serialized certificate size and an integrity digest.
 
-## 5. Independent audit
+## 5. Two independent verification layers
 
-The verifier imports neither the B2 producer nor the B2 core. It independently reimplements `GF(2)` canonicalization, compactness, the lattice-path relation, all subspaces, all compact trajectories for the audit boundaries, generator minimization, closure equality, and semantic tamper rejection.
+The bounded semantic oracle imports neither the B2 producer nor the B2 core. It independently reimplements `GF(2)` canonicalization, compactness, the lattice-path relation, all subspaces, all compact trajectories for the audit boundaries, generator minimization, closure equality, and semantic tamper rejection.
 
-Frozen results:
+The first green B2 candidate still had one proof-carrying gap: the committed frozen object stored only a summary and producer digest. The bounded oracle regenerated the same mathematical controls, but it did not inspect every producer-issued witness.
+
+The hardened head adds a second verifier:
+
+```text
+experiments/direct/janus_c049_1_b2_full_transcript_verifier.py
+```
+
+CI first generates the complete deterministic producer artifact, whose integrity is fixed at
+
+```text
+4c62118a3d4cf7928c0cd99d016c8063e63c8932b7ee4c020a0be815d22375cd
+```
+
+and whose serialized size is `83,968` bytes. The full-transcript verifier then independently:
+
+- validates every case integrity and fixed-point certificate byte count;
+- replays both positive and negative preorder cases;
+- reconstructs both complete compact universes (`552 + 27 = 579` trajectories);
+- recomputes the preorder-minimal generator family;
+- replays every deletion witness;
+- reconstructs and compares all `42 + 27 = 69` full-set entries;
+- checks equality of closure before and after generator minimization;
+- verifies all three capability refusals;
+- rejects a modified lattice path, missing full-set entry, and modified deletion witness after both case and outer artifact digests are repaired.
+
+Consequently, digest-only acceptance is disabled. The digest binds the deterministic artifact; semantic replay validates its complete contents.
+
+## 6. Frozen audit
 
 ```text
 7 total cases
@@ -92,16 +119,11 @@ dim(B)=0, k=2:
   complete compact universe = 27
   retained up_k entries     = 27
 
-semantic tamper controls:
-  lattice path              rejected
-  missing full-set entry    rejected
-  deletion witness          rejected
-```
-
-Frozen artifact digest:
-
-```text
-4c62118a3d4cf7928c0cd99d016c8063e63c8932b7ee4c020a0be815d22375cd
+full transcript replay:
+  producer artifact bytes   = 83,968
+  universe entries replayed = 579
+  full-set entries replayed = 69
+  digest-repaired tampers   = 3 rejected
 ```
 
 ## Strict boundary
