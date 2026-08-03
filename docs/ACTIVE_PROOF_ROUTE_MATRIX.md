@@ -25,8 +25,12 @@ P_VS_NP=OPEN
 | C037 | Explicit residual OBDD alignment | Exact continuation quotient, distinguishing suffixes, SAT witness and UNSAT DAG after graph generation | Refinement alone avoids state explosion | `POLYNOMIAL_ORDER_AND_REACHABLE_QUOTIENT_CONSTRUCTION` |
 | C038 | Structured vtree factor alignment | Exact cut communication rows and replayable separators on a supplied/discovered candidate vtree | Recursive structure automatically removes exponential interfaces | `POLYNOMIAL_VTREE_DISCOVERY_AND_SYMBOLIC_FACTOR_CONSTRUCTION` |
 | C039 | Fixed-k recursive separator compiler | One assignment-independent vtree and proof-carrying structured DAG in `n^O(k)` for fixed `k` | Graph separators characterize all tractable instances | `PORTFOLIO_GUIDED_SEMANTIC_VTREE_DISCOVERY` |
+| C039.0 | Symbolic-factor operation contract | Proof-carrying `LEAF/JOIN/PROJECT/MERGE/SEPARATE` envelopes and strict `OPEN` terminals on a supplied verified vtree | A supplied vtree counts as discovery; hidden tables count as symbolic messages | `POLYNOMIAL_SYMBOLIC_JOIN_PROJECT_MERGE` |
 | C039.1 | Symbolic affine factor compiler | Polynomial affine join/project/RREF messages on any charged vtree | Explicit continuation rows are unavoidable for affine cuts | `CROSS_LANGUAGE_SYMBOLIC_PROJECTION_CLOSED_UNDER_JOIN` |
-| C040 | Low-affine-dimension Horn composer | Exact Horn/dual-Horn plus affine composition in `O(2^d poly(L))`, where `d` is projected affine interface dimension | Raw shared-variable count is the only safe composition parameter; unary/pairwise facts are complete | `CROSS_LANGUAGE_COMPOSITION_BEYOND_LOW_AFFINE_INTERFACE_DIMENSION` |
+| C039.2 | Single-head Horn projection | Exact proof-carrying projection without clause growth for single-head Horn; unrestricted boundary-only Horn CNF can require `2^n` clauses | Tractable Horn SAT implies compact Horn projection messages | `RICHER_HORN_MESSAGE_LANGUAGE_OR_PORTFOLIO_GUIDED_HEAD_DISJOINT_ISOLATION` |
+| C039.3 | Low-affine-dimension Horn/affine composer | Exact Horn or dual-Horn plus affine composition in `O(2^d poly(L))` for projected affine dimension `d` under one fixed capability exponent | Raw shared-variable count is the only semantic interface measure; an input-dependent exponent is polynomial | `CROSS_LANGUAGE_COMPOSITION_BEYOND_LOW_AFFINE_INTERFACE_DIMENSION` |
+| C040 | Portfolio-guided semantic-vtree discovery | Frozen assignment-independent candidate manifest and one full bounded C039 probe per candidate | Adaptive post-probe vtree repair or a supplied good tree is free discovery | `POLYNOMIAL_SEMANTIC_VTREE_CANDIDATE_COMPLETENESS` |
+| C041 | Joint compiler/portfolio completeness | Reserved: compiler capabilities and candidate constructors must be evaluated together under one fixed capability digest | Portfolio failure can be blamed on discovery without checking message-language closure | `UNIVERSAL_POLYNOMIAL_COMPILE_OR_EXACT_OPEN_FRONTIER` |
 | C031 | Proof-carrying SAT refuter | Formal lower-bound transfer interface | Free direct-sum amplification | `NO_SHARING_REFUTER_AMPLIFICATION` |
 
 ## Constructive P=NP track
@@ -38,14 +42,29 @@ tractable local languages
 -> safe cross-language facts
 -> explicit OBDD / exact vtree factor alignment
 -> fixed-k structured compilation
--> pure-affine symbolic factor compilation
--> semantic-dimension cross-language composition
--> broader join-closed symbolic projection
+-> affine + single-head Horn + low-dimensional mixed capabilities
+-> charged portfolio-guided vtree discovery
+-> joint compiler/portfolio completeness
 -> SAT witness + independently checkable UNSAT evidence
 -> universal polynomial SAT algorithm
 ```
 
-## C040 bridge
+## C039 compiler ladder
+
+```text
+C039.0 supplied-vtree operation contract
+C039.1 pure-affine symbolic factors
+C039.2 single-head Horn symbolic projection
+C039.3 low-affine-dimension Horn/dual-Horn plus affine composition
+```
+
+The compiler ladder and discovery must be assessed together. Adding a language
+implementation can make a previously failing vtree compile; adding a constructor
+can expose a region already supported by the current message algebra. Therefore a
+C040 `OPEN_PORTFOLIO_EXHAUSTED` record is capability-scoped and becomes stale when
+C039.2, C039.3 or any later compiler capability is added.
+
+## C039.3 bridge
 
 For a Horn or dual-Horn module `H` and affine module `A`, let:
 
@@ -55,47 +74,67 @@ R = project_S(Models(A))
 d = dimension(R).
 ```
 
-C040 computes `R` by provenance-carrying Gaussian elimination and enumerates its `2^d` basis states. Each state is checked by native Horn closure and affine extension. For a fixed capability exponent `q`, the branch closes only when:
+C039.3 computes `R` by provenance-carrying Gaussian elimination and enumerates its
+`2^d` basis states. Each state is checked by native Horn closure and affine
+extension. For one fixed capability exponent `q`, the branch closes only when:
 
 ```text
 2^d <= L^q.
 ```
 
-This strictly improves C034 on large raw interfaces with low affine dimension. An 80-variable dense dual-Horn clique-primal instance joined to one equality class has `d=1` and is solved with at most two semantic states.
+This improves raw-boundary enumeration on large interfaces of low affine
+dimension. The C023 `{NAND3,NEQ}` image keeps high projected dimension and returns
+`OPEN_DIMENSION_BUDGET`.
 
-The C023 `{NAND3,NEQ}` image has projected affine dimension equal to the number of source variables and returns `OPEN_DIMENSION_BUDGET`.
-
-A separate Horn/affine obstruction has no unary or pairwise Horn restrictions but is UNSAT over a one-dimensional affine line. Therefore C036.1/C036.3 fact exchange is useful but not complete; complete semantic states can be stronger than bounded-arity facts.
-
-## Canonical cycle allocation
+## C040 route separation
 
 ```text
-C036    same-language refinement
-C036.1  Horn-affine unary negotiation
-C036.2  exact OPEN vault
-C036.3  Horn parity/equality aliases
-C037    explicit residual OBDD alignment
-C038    exact structured-vtree factor alignment
-C039    fixed-k recursive separator compiler
-C039.1  pure-affine symbolic vtree factor compiler
-C040    low-affine-dimension Horn/dual-Horn composer
+C039.x:
+  symbolic factor and composition capabilities
+  supplied verified vtree
+  no universal discovery claim
+
+C040:
+  assignment-independent candidate generation
+  complete manifest frozen before probes
+  one full bounded C039 probe per candidate
+  every failed probe and certificate byte charged
 ```
 
-Legacy branch and file paths may retain older identifiers solely for pre-admission replayability. PR titles, this route matrix, and new machine-readable artifacts define the canonical allocation.
+Branch, executable and wire-schema names containing `c040` in the low-affine
+composer are replay aliases only. The canonical cycle of that theorem is C039.3.
+C040 is reserved for semantic-vtree discovery.
+
+## Immediate priority
+
+```text
+1. Admit and integrate C039.2 single-head Horn into the C039 operation envelope.
+2. Integrate C039.3 as a certified mixed-language probe capability.
+3. Re-run C040 portfolios under the enlarged capability digest.
+4. Open C041 only on the resulting exact OPEN frontier.
+```
+
+Starting C041 before steps 1-3 would conflate weak compilation with weak vtree
+discovery.
 
 ## Converged constructive bottleneck
 
-The surviving universal obligation is:
-
 ```text
-construct, in polynomial total work, a decomposition and a join-closed proof-carrying message algebra whose semantic state volume is polynomial on every CNF, with SAT witness recovery and independently checkable UNSAT evidence.
+POLYNOMIAL_SEMANTIC_VTREE_CANDIDATE_COMPLETENESS
++
+POLYNOMIAL_JOIN-CLOSED_SYMBOLIC_MESSAGE_ALGEBRA
++
+REPLAYABLE_FACTOR_EQUIVALENCE
 ```
 
-C040 closes one real cross-language region, but only when the affine interface has polynomially enumerable dimension under one fixed capability. The next advance must cover high-dimensional interfaces without hiding exhaustive search, or prove a stronger symbolic projection theorem for a larger language.
+No future cycle may claim progress merely by renaming this object. Progress
+requires a new polynomial construction theorem, a stronger replayable message
+algebra, a complete separator/projector for a larger closed language, or a
+decisive obstruction to one explicit route.
 
 ## Non-duplication and honesty rules
 
-Before admitting a new hypothesis compare against:
+Before admission compare against:
 
 ```text
 PS-width and communication rows
