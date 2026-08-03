@@ -69,13 +69,16 @@ def audit(n: int):
     spectrum = Counter(surplus.values())
     top_values = tuple(sorted(spectrum.items(), reverse=True)[:12])
     top_variables = tuple(sorted(
-        (
-            value,
-            variable,
-            tuple(pairs[variable]),
-        )
-        for variable, value in surplus.items()
-    , reverse=True)[:20])
+        [
+            (
+                value,
+                variable,
+                tuple(pairs[variable]),
+            )
+            for variable, value in surplus.items()
+        ],
+        reverse=True,
+    )[:20])
 
     pivot_event_counts = Counter(int(event["pivot"]) for event in events)
     first_event = None if not events else events[0]
