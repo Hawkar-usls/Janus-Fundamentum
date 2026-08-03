@@ -1,0 +1,46 @@
+name: Validate C040.2 Producer-Lane C039 Adapter
+
+on:
+  push:
+    paths:
+      - 'experiments/direct/janus_c040_2_producer_lane_c039_adapter.py'
+      - 'experiments/direct/janus_c040_producer_lane_isolation.py'
+      - 'experiments/direct/janus_c040_portfolio_module_forest.py'
+      - 'schemas/c040-2-producer-lane-c039-adapter-v1.schema.json'
+      - 'registry/c040.2-producer-lane-c039-adapter.json'
+      - 'docs/C040_2_PRODUCER_LANE_C039_ADAPTER.md'
+      - '.github/workflows/validate-c040-2-producer-lane-c039-adapter.yml'
+  pull_request:
+    paths:
+      - 'experiments/direct/janus_c040_2_producer_lane_c039_adapter.py'
+      - 'experiments/direct/janus_c040_producer_lane_isolation.py'
+      - 'experiments/direct/janus_c040_portfolio_module_forest.py'
+      - 'schemas/c040-2-producer-lane-c039-adapter-v1.schema.json'
+      - 'registry/c040.2-producer-lane-c039-adapter.json'
+      - 'docs/C040_2_PRODUCER_LANE_C039_ADAPTER.md'
+      - '.github/workflows/validate-c040-2-producer-lane-c039-adapter.yml'
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Validate JSON artifacts
+        run: |
+          python -m json.tool schemas/c040-2-producer-lane-c039-adapter-v1.schema.json >/dev/null
+          python -m json.tool registry/c040.2-producer-lane-c039-adapter.json >/dev/null
+      - name: Compile Python artifacts
+        run: |
+          python -m py_compile experiments/direct/janus_c040_portfolio_module_forest.py
+          python -m py_compile experiments/direct/janus_c040_producer_lane_isolation.py
+          python -m py_compile experiments/direct/janus_c040_2_producer_lane_c039_adapter.py
+      - name: Run deterministic adapter audit
+        run: python experiments/direct/janus_c040_2_producer_lane_c039_adapter.py --self-test
+      - name: Enforce contract boundary
+        run: |
+          grep -q "direct_module_forest_dp_promoted_to_selection.*False" experiments/direct/janus_c040_2_producer_lane_c039_adapter.py
+          grep -q "FROZEN_BEFORE_PROBES" experiments/direct/janus_c040_2_producer_lane_c039_adapter.py
+          ! grep -R "P_VS_NP *= *CLOSED" docs/C040_2_PRODUCER_LANE_C039_ADAPTER.md registry/c040.2-producer-lane-c039-adapter.json
