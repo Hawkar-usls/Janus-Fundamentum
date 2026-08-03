@@ -1,6 +1,7 @@
 # JANUS Active Proof Route Matrix
 
-**Purpose:** compare every new mechanism against the existing proof graph before creating another hypothesis.
+**Purpose:** compare every new mechanism against the existing proof graph before
+creating another hypothesis.
 
 ```text
 P_VS_NP=OPEN
@@ -31,6 +32,7 @@ P_VS_NP=OPEN
 | C039.2 | Single-head Horn projection | Polynomial proof-carrying projection for single-head Horn; exact exponential boundary-CNF obstruction for general Horn | Horn SAT implies compact Horn boundary messages | `RICHER_HORN_MESSAGES_OR_HEAD_DISJOINT_ISOLATION` |
 | C040 | Low-affine-dimension composer | Horn/dual-Horn plus affine in `O(2^d poly(L))`, where `d` is projected affine dimension | Raw shared-variable count is the only semantic composition parameter | `AFFINE_COORDINATE_CLAUSE_FACTORING_BEYOND_STATE_ENUMERATION` |
 | C041 | Laminar affine-subspace avoidance | Polynomial exact SUB-SAT for laminar clause-falsifying affine subspaces, with SAT witness and UNSAT cover certificate | High affine dimension always forces state enumeration | `NON_LAMINAR_AFFINE_SUBSPACE_UNION_COMPRESSION` |
+| C042 | Bounded signed-intersection support | Exact signed inclusion-exclusion over canonical affine intersections with fixed-polynomial support, budget-bound replay, SAT witness and UNSAT cover | Non-laminar crossings necessarily require point enumeration or the full powerset of factors | `POLYNOMIAL_DECOMPOSITION_BEYOND_BOUNDED_SIGNED_INTERSECTION_SUPPORT` |
 | C031 | Proof-carrying SAT refuter | Formal lower-bound transfer interface | Free direct-sum amplification | `NO_SHARING_REFUTER_AMPLIFICATION` |
 
 ## Constructive P=NP track
@@ -45,6 +47,7 @@ tractable local languages
 -> pure-affine and guarded Horn projection
 -> semantic-dimension cross-language composition
 -> affine-coordinate union-of-subspaces compression
+-> bounded signed-intersection cover compression
 -> broader join-closed symbolic cover language
 -> SAT witness + independently checkable UNSAT evidence
 -> universal polynomial SAT algorithm
@@ -60,7 +63,9 @@ R = project_S(Models(A))
 d = dimension(R).
 ```
 
-C040 enumerates the `2^d` true affine interface states, not all `2^|S|` assignments. This solves large raw interfaces of low affine dimension but returns `OPEN_DIMENSION_BUDGET` on the general `{NAND3,NEQ}` image.
+C040 enumerates the `2^d` true affine interface states, not all `2^|S|`
+assignments. This solves large raw interfaces of low affine dimension but
+returns `OPEN_DIMENSION_BUDGET` on the general `{NAND3,NEQ}` image.
 
 ## C041 bridge
 
@@ -82,9 +87,35 @@ Then:
 F AND A is SAT iff lambda lies outside UNION_C U_C.
 ```
 
-C041 closes this problem when the nonempty `U_C` form a laminar family: each pair is disjoint or one contains the other. Removing contained spaces leaves pairwise-disjoint maxima, so exact cover volume is the sum of their powers-of-two cardinalities. SAT witnesses are recovered by greedy coordinate fixing with exact intersection counts.
+C041 closes this problem when the nonempty `U_C` form a laminar family:
+each pair is disjoint or one contains the other. Removing contained spaces
+leaves pairwise-disjoint maxima, so exact cover volume is the sum of their
+powers-of-two cardinalities. SAT witnesses are recovered by greedy coordinate
+fixing with exact intersection counts.
 
-The `{NAND3,NEQ}` control contains overlapping incomparable forbidden subspaces and returns `OPEN_NON_LAMINAR`.
+The `{NAND3,NEQ}` control contains overlapping incomparable forbidden
+subspaces and returns `OPEN_NON_LAMINAR`.
+
+## C042 bridge
+
+C042 processes the forbidden affine subspaces in deterministic clause order and
+maintains the exact indicator identity:
+
+```text
+1_(UNION processed U) = SUM_S c_S 1_S.
+```
+
+A new factor is incorporated by affine intersection and coefficient
+cancellation. Equal intersections merge by canonical RREF. Let `K` be the
+maximum number of nonzero signed terms at any stage. Under one fixed capability
+with `K <= L^q`, fixed polynomial work and certificate budgets, the complete
+construction, exact counting, SAT witness recovery and UNSAT cover verification
+run in `O(m K poly(d,L))`.
+
+This strictly extends C041: crossing hyperplanes in dimension 64 require only
+three signed terms. The NAND3+NEQ pressure family exceeds the support budget and
+returns `OPEN_INTERSECTION_CLOSURE`; this is a representation refusal, not a
+hardness result.
 
 ## Canonical cycle allocation
 
@@ -102,19 +133,30 @@ C039.1  pure-affine symbolic vtree factors
 C039.2  single-head Horn projection
 C040    low-affine-dimension Horn/dual-Horn composer
 C041    laminar affine-subspace avoidance
+C042    bounded signed-intersection support
 ```
 
-Legacy branch and file paths may retain older identifiers solely for pre-admission replayability. PR titles, this route matrix and new machine-readable artifacts define the canonical allocation.
+Legacy branch and file paths may retain older identifiers solely for
+pre-admission replayability. PR titles, this route matrix and new
+machine-readable artifacts define the canonical allocation.
 
 ## Converged constructive bottleneck
 
 The surviving universal obligation is:
 
 ```text
-construct, in polynomial total work, a decomposition and join-closed proof-carrying message algebra whose semantic state or cover volume is polynomial on every CNF, with SAT witness recovery and independently checkable UNSAT evidence.
+construct, in polynomial total work, a decomposition and join-closed
+proof-carrying message algebra whose semantic state or cover volume is
+polynomial on every CNF, with SAT witness recovery and independently
+checkable UNSAT evidence.
 ```
 
-C041 removes `2^d` enumeration for laminar subspace arrangements. The next advance must compress overlapping incomparable affine subspaces without hiding inclusion-exclusion explosion, a SAT oracle, or exponential intermediate objects.
+C041 removes `2^d` enumeration for laminar subspace arrangements. C042
+extends exact counting to crossing arrangements whose deterministically
+constructed nonzero signed-intersection support remains within one fixed
+polynomial capability. The next advance must decompose or symbolically compress
+instances where this global support is superpolynomial, without hiding a SAT
+oracle or exponential intermediate objects.
 
 ## Non-duplication and honesty rules
 
@@ -127,7 +169,7 @@ treewidth / branch decompositions
 Horn and dual-Horn closure
 GF(2) elimination and affine dimension
 SUB-SAT / union-of-subspace avoidance
-subspace-arrangement intersection posets
+subspace-arrangement intersection posets and Möbius support
 beta-acyclic elimination
 DPLL(T) / DPLL(XOR)
 existential forgetting and projection closure
@@ -145,4 +187,5 @@ OPEN as UNSAT or intrinsic hardness
 one representation lower bound as P!=NP
 semantic equivalence decided by a hidden SAT/coNP oracle
 non-laminarity as a hardness proof
+signed-support explosion as a lower bound against all algorithms
 ```
