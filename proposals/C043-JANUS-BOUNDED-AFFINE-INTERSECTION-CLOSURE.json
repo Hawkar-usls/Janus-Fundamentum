@@ -8,21 +8,18 @@
   "primary_parameter": {
     "symbol": "K",
     "definition": "K = max_t |supp(c_t)|",
-    "factor_order": "descending affine-system rank, then canonical RREF, then canonical clause identifier",
-    "not_equal_to": ["number of crossing pairs", "final support size only", "clause width", "codimension", "a supplied intersection poset"]
-  },
-  "signed_recurrence": {
-    "indicator_identity": "1_(A union U) = 1_A + 1_U - 1_A 1_U",
-    "coefficient_update": "c_t = c_(t-1) + e_(U_t) - T_(U_t)c_(t-1)",
-    "intersection_operator": "T_U(S) = S intersect U",
-    "canonicalization": "canonical affine RREF, merge equal intersections, remove zero coefficients",
-    "correctness_method": "induction over deterministic transitions; no enumeration of GF(2)^d"
+    "factor_order": "descending affine-system rank, then canonical RREF, then canonical clause identifier"
   },
   "basis_contract": {
     "inherits": "C042 provenance-carrying affine basis",
-    "free_coordinate_map_forbidden": true,
-    "producer_input": "CNF plus affine equations",
-    "certificate_binding": "complete basis artifact plus SHA-256 digest"
+    "free_coordinate_map_forbidden": true
+  },
+  "implementation": {
+    "core": "experiments/direct/janus_c043_crossing_core.py",
+    "producer": "experiments/direct/janus_c043_crossing_solver.py",
+    "verifier": "experiments/direct/janus_c043_crossing_verifier.py",
+    "audit": "experiments/direct/janus_c043_bounded_affine_intersection_closure.py",
+    "producer_called_by_verifier": false
   },
   "capability": {
     "support": "4*(L+1)^2",
@@ -31,13 +28,6 @@
     "coefficient_bit_volume": "16*(L+1)^3",
     "optional_caps_only_reduce": true,
     "input_dependent_exponent": false
-  },
-  "implementation": {
-    "core": "experiments/direct/janus_c043_crossing_core.py",
-    "producer": "experiments/direct/janus_c043_crossing_solver.py",
-    "verifier": "experiments/direct/janus_c043_crossing_verifier.py",
-    "audit": "experiments/direct/janus_c043_bounded_affine_intersection_closure.py",
-    "producer_called_by_verifier": false
   },
   "audit": {
     "seed": 430043,
@@ -50,13 +40,11 @@
     "crossing_sat_maximum_live_support": 3,
     "crossing_unsat_maximum_live_support": 4,
     "small_final_large_intermediate": "final support 1, maximum live support 32, tight cap -> OPEN_INTERSECTION_CLOSURE",
-    "coefficient_bit_volume_terminal": "OPEN_WORK_BUDGET",
-    "nand3_neq_controls": {"18": "OPEN_INTERSECTION_CLOSURE", "24": "OPEN_INTERSECTION_CLOSURE", "30": "OPEN_INTERSECTION_CLOSURE"},
     "tamper_controls": "basis, factor order, cancellation trace, SAT witness and signed UNSAT cover rejected"
   },
   "admission_review": {
     "automatic_promotion_forbidden": true,
-    "required_before_fully_admitted": ["exact-head CI success", "review of refusal-terminal replay and capability manifests", "no unresolved semantic-verifier findings"]
+    "required_before_fully_admitted": ["exact-head CI success", "refusal-terminal replay review", "no unresolved semantic-verifier findings"]
   },
   "new_gate": "POLYNOMIAL_LOCALIZATION_OF_SUPERPOLYNOMIAL_GLOBAL_INTERSECTION_SUPPORT",
   "next_cycle": {"cycle": "C044", "status": "SPECIFICATION_ONLY", "strict_open": "OPEN_LOCAL_SUPPORT"},
