@@ -1,60 +1,76 @@
 {
-  "admission_condition": "The deterministic signed inclusion-exclusion construction never exceeds one fixed polynomial capability L^q",
   "artifact_id": "C043-JANUS-BOUNDED-AFFINE-INTERSECTION-CLOSURE",
-  "audit": {
-    "artifact_id": "C043-JANUS-BOUNDED-AFFINE-INTERSECTION-CLOSURE",
-    "budget_control": "OPEN_INTERSECTION_CLOSURE",
-    "claim_boundary": "Only arrangements whose charged signed intersection support remains within one fixed polynomial capability. Exponential intersection closure, arbitrary 3-CNF, unrestricted Horn-affine composition, and P versus NP remain open.",
-    "constructive_theorem": "Affine-coordinate CNF is polynomially decidable whenever the deterministic signed inclusion-exclusion construction has polynomially bounded distinct nonempty intersection support. Exact union counting yields UNSAT covers; conditional counts recover a SAT witness.",
-    "corrupt_certificate_control": "REJECTED",
-    "crossing_sat_control": {
-      "coefficient_terms": 3,
-      "dimension": 64,
-      "status": "SAT"
-    },
-    "crossing_unsat_cover": {
-      "dimension": 64,
-      "input_factors": 4,
-      "status": "UNSAT"
-    },
-    "exact_cases": 300,
-    "integrity_sha256": "96a2191133526b91ace11dc1db00ff6305a8016cacd167f6142f983529ca2377",
-    "mismatches": 0,
-    "nand3_neq_control": "OPEN_INTERSECTION_CLOSURE",
-    "new_gate": "POLYNOMIAL_DECOMPOSITION_BEYOND_BOUNDED_INTERSECTION_SUPPORT",
-    "open_cases": 0,
-    "p_vs_np": "OPEN",
-    "random_cases": 300,
-    "repeated_crossing_compression": {
-      "coefficient_terms": 3,
-      "input_factors": 200,
-      "status": "SAT"
-    },
-    "seed": 430043,
-    "status": "PASS",
-    "verification_failures": 0
-  },
-  "claim_boundary": "Fixed-polynomial signed intersection support only. Exponential closure, arbitrary 3-CNF, unrestricted Horn-affine composition, and P versus NP remain open.",
-  "constructive_theorem": "Affine-coordinate CNF is decidable in polynomial total work when its charged signed affine-intersection support remains polynomially bounded. Exact signed counting gives UNSAT covers and conditional signed counts recover a SAT witness.",
-  "exact_object": "Signed nonzero intersection support of clause-falsifying affine subspaces in GF(2)^d",
-  "new_gate": "POLYNOMIAL_DECOMPOSITION_BEYOND_BOUNDED_INTERSECTION_SUPPORT",
-  "operations": [
-    "coordinate clause translation",
-    "canonical affine RREF",
-    "affine intersection",
-    "signed indicator update",
-    "coefficient cancellation",
-    "exact union counting",
-    "conditional counting",
-    "SAT witness recovery",
-    "UNSAT signed-cover certification",
-    "deterministic replay verification"
-  ],
+  "status": "ARCHITECTURE_CONTRACT_PENDING_FULL_ADMISSION",
   "p_vs_np": "OPEN",
-  "status": "CONSTRUCTIVE_RESTRICTED_COORDINATE_COMPILER",
-  "strict_open": [
-    "OPEN_INTERSECTION_CLOSURE",
-    "OPEN_WORK_BUDGET",
-    "OPEN_CERTIFICATE_VOLUME"
-  ]
+  "exact_object": "Maximum live nonzero signed support during deterministic construction of the union indicator of clause-falsifying affine subspaces",
+  "primary_parameter": {
+    "symbol": "K",
+    "definition": "K = max_t |supp(c_t)|, where c_t is the canonical nonzero coefficient map after processing the first t forbidden subspaces",
+    "not_equal_to": [
+      "number of crossing pairs",
+      "final support size only",
+      "clause width",
+      "codimension",
+      "a supplied raw intersection poset"
+    ]
+  },
+  "signed_recurrence": {
+    "indicator_identity": "1_(A union U) = 1_A + 1_U - 1_A 1_U",
+    "coefficient_update": "c_t = c_(t-1) + e_(U_t) - T_(U_t)c_(t-1)",
+    "intersection_operator": "T_U(S) = S intersect U",
+    "canonicalization": "canonical affine RREF, merge equal intersections, remove zero coefficients"
+  },
+  "admission_condition": {
+    "fixed_support_capability": "K <= min(absolute_support_cap, L^q)",
+    "fixed_exponent": true,
+    "input_dependent_exponent": false,
+    "total_cost": "O(m*K*poly(d,L)) including basis construction, coefficient bit operations, proof volume and verifier work"
+  },
+  "strict_open": {
+    "OPEN_INTERSECTION_CLOSURE": "maximum live signed support exceeds the fixed support capability",
+    "OPEN_WORK_BUDGET": "charged producer or verifier work exceeds the fixed polynomial envelope",
+    "OPEN_CERTIFICATE_VOLUME": "serialized or replayed proof volume exceeds the fixed polynomial envelope"
+  },
+  "basis_contract": {
+    "inherits": "C042 proof-carrying affine basis",
+    "free_coordinate_map_forbidden": true,
+    "required_input": "CNF plus affine system or an exact digest-bound replayable C042 basis artifact"
+  },
+  "verifier_contract": {
+    "dedicated_module": "experiments/direct/janus_c043_crossing_verifier.py",
+    "producer_replay_only_forbidden": true,
+    "shared_primitives": "C042 canonical RREF, provenance, coordinate-form and witness-lifting primitives",
+    "independent_checks": [
+      "affine basis and coordinate forms",
+      "clause factor translation",
+      "deterministic factor order",
+      "every incremental signed-support transition",
+      "canonical intersection keys",
+      "coefficient addition and cancellation",
+      "coefficient bit lengths",
+      "K_t and maximum live K",
+      "root signed union count",
+      "conditional signed-count branches",
+      "SAT witness or UNSAT signed cover",
+      "producer and verifier ledgers"
+    ],
+    "universal_correctness_method": "algebraic induction over the signed recurrence, not enumeration of 2^d assignments"
+  },
+  "constructive_theorem_target": "Affine-coordinate CNF is polynomially decidable with proof-carrying SAT/UNSAT evidence whenever the deterministic maximum live signed affine-intersection support remains within one fixed polynomial capability.",
+  "existing_prototype_evidence": {
+    "random_coordinate_cases": 300,
+    "crossing_sat_terms": 3,
+    "crossing_unsat_cover": true,
+    "repeated_crossing_factors": 200,
+    "hard_image_terminal": "OPEN_INTERSECTION_CLOSURE",
+    "limitation": "prototype accepts a ready coordinate map and verifies by producer replay; these are not full-admission mechanisms"
+  },
+  "c043_gate": "COMPLETE_PROOF_CARRYING_GLOBAL_SIGNED_SUPPORT_COMPILER",
+  "next_cycle": {
+    "cycle": "C044",
+    "title": "LOCAL_SIGNED_SUPPORT_VTREE_COMPOSITION_OR_STRICT_OPEN",
+    "purpose": "decompose globally large signed-support arrangements into polynomial local supports joined by proof-carrying separator messages",
+    "strict_open": "OPEN_LOCAL_SUPPORT"
+  },
+  "claim_boundary": "C043 covers only global bounded maximum live signed support. Local vtree decomposition, arbitrary CNF, unrestricted Horn-affine composition and P versus NP remain open."
 }
