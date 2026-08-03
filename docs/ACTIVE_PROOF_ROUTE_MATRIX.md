@@ -25,6 +25,7 @@ P_VS_NP=OPEN
 | C038 | Structured vtree factor alignment | Exact vtree-cut continuation rows, replayable separators, witness/UNSAT tables and deterministic charged candidate construction | Recursive structure or a supplied vtree automatically removes exponential interfaces | `POLYNOMIAL_VTREE_DISCOVERY_AND_SYMBOLIC_FACTOR_CONSTRUCTION` |
 | C039 | Symbolic affine factor compiler | Exact bottom-up affine join/project/canonicalize on any charged vtree, at most `|B_u|` RREF rows per satisfiable message, replayed merge/separate, SAT recovery and XOR-provenance UNSAT | Exponential communication rows must be materialized; affine closure automatically extends to Horn/affine or arbitrary CNF | `CROSS_LANGUAGE_SYMBOLIC_PROJECTION_CLOSED_UNDER_JOIN` |
 | C039.1 | Horn projection boundary | Polynomial proof-carrying single-head restriction, guarded join and projection; complete explicit Horn merge/separate; exact `2^n` boundary-CNF projection obstruction | Horn expressibility or tractable Horn SAT implies polynomial-size Horn boundary messages; Horn equivalence is the missing operation | `RICHER_HORN_MESSAGE_LANGUAGE_OR_PORTFOLIO_GUIDED_HEAD_DISJOINT_ISOLATION` |
+| C040 | Portfolio-guided module-forest discovery | Deterministically discovers maximal pure affine and single-head Horn modules, verifies an acyclic interaction graph with logarithmic module boundaries, derives a variable-vtree witness, and compiles exact SAT/UNSAT messages | A useful module partition or vtree is free; acyclicity alone suffices; a derived vtree automatically has low standard factor width | `RICHER_MESSAGES_OR_POLYNOMIAL_DISCOVERY_BEYOND_ACYCLIC_LOG_INTERFACES` |
 | C031 | Proof-carrying SAT refuter | Formal lower-bound transfer interface | Uncertified circuit counterexamples and free direct-sum amplification | `NO_SHARING_REFUTER_AMPLIFICATION` |
 
 ## Constructive P=NP track
@@ -40,6 +41,7 @@ tractable local languages
 -> polynomial vtree discovery and symbolic factor construction
 -> cross-language symbolic projection closed under join
 -> richer Horn messages or charged single-head isolation
+-> portfolio-guided module discovery with charged interfaces
 -> SAT witness + UNSAT certificate
 -> universal polynomial SAT algorithm
 ```
@@ -115,18 +117,59 @@ polynomial by clause-by-clause Horn entailment, with a countermodel separator wh
 an implication fails. The unrestricted Horn bottleneck is projection volume and
 join closure, not `OPEN_EQUIVALENCE`.
 
-The immediate target after C039.1 is:
+C040 takes the portfolio-guided decomposition branch. It receives raw tagged
+factors rather than a supplied partition. Same-language factor-variable
+connectivity determines maximal affine and Horn components. Horn components are
+admitted only when every positive head is unique. Shared variables induce the
+module interaction graph.
+
+C040 recognizes and compiles the exact class:
 
 ```text
-RICHER_HORN_MESSAGE_LANGUAGE_OR_PORTFOLIO_GUIDED_HEAD_DISJOINT_ISOLATION
+module graph is a forest
+every shared variable occurs in at most two modules
+for every module M: |B_M| <= floor(log2 L)
 ```
 
-A future construction must either provide a richer Horn representation with
-polynomial, replayable join, projection, equivalence/separation, decision and
-witness recovery, or discover a charged decomposition that isolates compatible
-single-head regions and returns `OPEN` whenever head-disjointness cannot be
-preserved. Retained hidden variables, existential modules, and supplied module
-partitions are not free.
+For every module assignment to its full incident boundary, the native C039 affine
+or C039.1 single-head Horn engine is run. Child messages are joined on exact edge
+separators and projected to the parent separator. The total work and certificate
+volume are
+
+```text
+sum_M 2^|B_M| poly(L_M),
+```
+
+which is polynomial under the admitted logarithmic boundary rule.
+
+C040 also derives and validates a binary variable-vtree witness from the discovered
+forest. The vtree is not itself promoted to a standard factor-width theorem: the
+load-bearing object is the proof-carrying module-forest dynamic program.
+
+Exact refusal terminals include:
+
+```text
+OPEN_HEAD_CONFLICT
+OPEN_MODULE_CYCLE
+OPEN_INTERFACE_WIDTH
+OPEN_LANGUAGE
+OPEN_*_BUDGET
+```
+
+Thus C040 is the first restricted discovery theorem in the active portfolio line,
+not a claim that every instance has a favorable decomposition.
+
+The immediate target after C040 is:
+
+```text
+RICHER_MESSAGES_OR_POLYNOMIAL_DISCOVERY_BEYOND_ACYCLIC_LOG_INTERFACES
+```
+
+A next construction must absorb multi-producer Horn components, extend certified
+composition to a rigorously larger cyclic class, or discover non-enumerative
+polynomial interfaces beyond the logarithmic module boundary. A heuristic score,
+a supplied partition, or a small final artifact without charged construction does
+not pass the gate.
 
 ## Canonical cycle allocation
 
@@ -137,13 +180,14 @@ C037   explicit residual OBDD alignment
 C038   structured vtree factor alignment
 C039   proof-carrying symbolic affine factor compilation
 C039.1 Horn projection boundary
+C040   portfolio-guided module-forest discovery
 ```
 
 The route matrix uses the allocation above. Some older sibling draft PR bodies
 currently contain a different provisional allocation for C036.1/C037/C037.1.
-C039.1 is stacked directly on PR #52 and does not silently rewrite or depend on
-that side-lineage drift. Canonical admission must reconcile those sibling drafts
-separately.
+C039.1 and C040 are stacked on the canonical C039 line and do not silently depend
+on that side-lineage drift. Canonical admission must reconcile those sibling
+drafts separately.
 
 ## Converged constructive bottleneck
 
@@ -161,14 +205,15 @@ C037 order/decomposition and reachable quotient construction
 C038 vtree discovery and symbolic factor construction
 C039 cross-language symbolic projection closed under join
 C039.1 richer Horn messages or portfolio-guided head-disjoint isolation
+C040 richer messages or discovery beyond acyclic logarithmic interfaces
 ```
 
 C039 removes truth-table construction for pure affine subtrees on every vtree.
-C039.1 closes the single-head Horn branch and decisively blocks plain
-boundary-only Horn CNF as a universal message language. It does not close the
-cross-language gate. Progress now requires a richer replayable message algebra, a
-polynomial decomposition theorem preserving the admitted languages, or a decisive
-obstruction to one explicit richer construction route.
+C039.1 closes the single-head Horn branch and blocks plain boundary-only Horn CNF
+as a universal message language. C040 discovers and compiles one mixed acyclic
+portfolio class from raw factors. It does not close the universal cross-language
+gate. Progress now requires a richer replayable message algebra or a strictly
+stronger polynomial decomposition theorem.
 
 ## Separation track
 
@@ -192,6 +237,8 @@ PS-width
 MIM-width / incidence width
 DNNF / d-DNNF / OBDD / SDD / TDD
 factor width and vtree communication rows
+acyclic database and CSP join trees
+hypertree width and fractional hypertree width
 backdoor size
 residual-state width
 proof width and certificate discovery
@@ -209,6 +256,7 @@ cooperating decision procedures and DPLL(T)/DPLL(XOR) propagation
 existential quantification and forgetting closure of the proposed message language
 factor placement and variable-retention cost at vtree joins
 common equivalence over retained variables
+module-partition and decomposition discovery cost
 ```
 
 A renamed known parameter is registered as an alignment result, not promoted as
