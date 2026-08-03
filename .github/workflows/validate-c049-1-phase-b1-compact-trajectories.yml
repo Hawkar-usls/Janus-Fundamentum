@@ -1,0 +1,39 @@
+name: Validate C049.1 Phase B1 Compact B-Trajectories
+
+on:
+  pull_request:
+    paths:
+      - 'experiments/direct/janus_c049_1_b1_compact_trajectory*.py'
+      - 'experiments/direct/C049.1-JANUS-COMPACT-B-TRAJECTORY-B1.frozen.json'
+      - 'docs/C049_1_PHASE_B1_COMPACT_B_TRAJECTORIES.md'
+      - 'registry/c049.1-phase-b1-source-map.json'
+      - 'proposals/C049.1-JANUS-COMPACT-B-TRAJECTORY-B1.json'
+      - '.github/workflows/validate-c049-1-phase-b1-compact-trajectories.yml'
+  workflow_dispatch:
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Compile
+        run: python -m py_compile experiments/direct/janus_c049_1_b1_compact_trajectory_core.py experiments/direct/janus_c049_1_b1_compact_trajectory.py experiments/direct/janus_c049_1_b1_compact_trajectory_verifier.py
+      - name: Run producer audit
+        env:
+          PYTHONPATH: experiments/direct
+        run: python experiments/direct/janus_c049_1_b1_compact_trajectory.py --output /tmp/c049-b1.json
+      - name: Check producer summary
+        run: |
+          python - <<'PY'
+          import json
+          value=json.load(open('/tmp/c049-b1.json'))
+          assert value['summary']=={'cases':120,'failures':0}
+          assert value['integrity']=='dfce8171ececba915c41c1e3e31ca4254cc9f1320377c78ab4edc59cf5c01b4e'
+          PY
+      - name: Independent replay
+        run: python experiments/direct/janus_c049_1_b1_compact_trajectory_verifier.py experiments/direct/C049.1-JANUS-COMPACT-B-TRAJECTORY-B1.frozen.json
+      - name: Validate JSON
+        run: python -c "import json; [json.load(open(p)) for p in ['registry/c049.1-phase-b1-source-map.json','proposals/C049.1-JANUS-COMPACT-B-TRAJECTORY-B1.json','experiments/direct/C049.1-JANUS-COMPACT-B-TRAJECTORY-B1.frozen.json']]"
