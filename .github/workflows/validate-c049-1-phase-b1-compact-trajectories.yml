@@ -1,0 +1,102 @@
+name: Validate C049.1 Phase B1 Compact B-Trajectories
+
+on:
+  pull_request:
+    paths:
+      - 'experiments/direct/janus_c049_1_b1_compact_trajectory*.py'
+      - 'experiments/direct/C049.1-JANUS-COMPACT-B-TRAJECTORY-B1.frozen.json'
+      - 'docs/C049_1_PHASE_B1_COMPACT_B_TRAJECTORIES.md'
+      - 'registry/c049.1-phase-b1-source-map.json'
+      - 'proposals/C049.1-JANUS-COMPACT-B-TRAJECTORY-B1.json'
+      - '.github/workflows/validate-c049-1-phase-b1-compact-trajectories.yml'
+  workflow_dispatch:
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Compile B1 producer and independent verifier
+        run: |
+          python -m py_compile \
+            experiments/direct/janus_c049_1_b1_compact_trajectory_core.py \
+            experiments/direct/janus_c049_1_b1_compact_trajectory.py \
+            experiments/direct/janus_c049_1_b1_compact_trajectory_verifier.py
+
+      - name: Regenerate complete proof-carrying audit
+        env:
+          PYTHONPATH: experiments/direct
+        run: |
+          python experiments/direct/janus_c049_1_b1_compact_trajectory.py \
+            --output /tmp/c049-b1.json
+          cmp /tmp/c049-b1.json \
+            experiments/direct/C049.1-JANUS-COMPACT-B-TRAJECTORY-B1.frozen.json
+
+      - name: Check frozen summary
+        run: |
+          python - <<'PY'
+          import json
+          value=json.load(open('/tmp/c049-b1.json', encoding='utf-8'))
+          assert value['summary'] == {
+              'audit_cases': 120,
+              'audit_failures': 0,
+              'audit_trace_steps': 741,
+              'proof_cases': 2,
+              'proof_trace_steps': 17,
+              'invalid_control_failures': 0,
+              'invalid_controls': 6,
+              'transformed_cases': 48,
+          }
+          assert value['integrity'] == '1167133466834127dbaf4c4412450139bc8eabded3f31e6b4fda38f72a239dd6'
+          PY
+
+      - name: Independently replay every transcript
+        run: |
+          python experiments/direct/janus_c049_1_b1_compact_trajectory_verifier.py \
+            experiments/direct/C049.1-JANUS-COMPACT-B-TRAJECTORY-B1.frozen.json
+
+      - name: Reject semantic trace tampering after digest repair
+        run: |
+          cp experiments/direct/C049.1-JANUS-COMPACT-B-TRAJECTORY-B1.frozen.json /tmp/tampered.json
+          python - <<'PY'
+          import hashlib, json
+
+          def digest(value):
+              return hashlib.sha256(
+                  json.dumps(value, sort_keys=True, separators=(',', ':')).encode()
+              ).hexdigest()
+
+          path='/tmp/tampered.json'
+          value=json.load(open(path, encoding='utf-8'))
+          case=next(case for case in value['proof_cases'] if case['trace'])
+          case['trace'][0]['after_digest']='0'*64
+          unsigned_case=dict(case)
+          unsigned_case.pop('case_digest')
+          case['case_digest']=digest(unsigned_case)
+          value.pop('integrity')
+          value['integrity']=digest(value)
+          with open(path, 'w', encoding='utf-8') as handle:
+              json.dump(value, handle, sort_keys=True, separators=(',', ':'))
+              handle.write('\n')
+          PY
+          if python experiments/direct/janus_c049_1_b1_compact_trajectory_verifier.py /tmp/tampered.json; then
+            echo 'tampered B1 transcript was accepted'
+            exit 1
+          fi
+
+      - name: Validate machine-readable package
+        run: |
+          python - <<'PY'
+          import json
+          for path in [
+              'registry/c049.1-phase-b1-source-map.json',
+              'proposals/C049.1-JANUS-COMPACT-B-TRAJECTORY-B1.json',
+              'experiments/direct/C049.1-JANUS-COMPACT-B-TRAJECTORY-B1.frozen.json',
+          ]:
+              with open(path, encoding='utf-8') as handle:
+                  json.load(handle)
+          PY
