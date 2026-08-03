@@ -15,7 +15,7 @@ A statistic is a triple `(L,R,lambda)` with `L,R <= B`. A valid `B`-trajectory h
 
 ## Hardened certificate
 
-The frozen artifact contains six complete transformed-basis proof cases, each with the input trajectory, compact output, and every removal step. A separate digest-bound audit record is independently regenerated for all 120 deterministic cases. Each step binds:
+The frozen artifact contains two complete transformed-basis proof cases at the minimum and maximum audited caps, each with the input trajectory, compact output, and every removal step. A separate digest-bound audit record is independently regenerated for all 120 deterministic cases. Each step binds:
 
 ```text
 rule
@@ -26,7 +26,7 @@ after length
 after-sequence digest
 ```
 
-The outer artifact and every case have independent SHA-256 integrity fields.
+The outer artifact and every proof case have independent SHA-256 integrity fields.
 
 ## Independent verifier
 
@@ -48,8 +48,8 @@ The verifier does not import the producer or its core. It independently:
 
 ```text
 120 independently regenerated audit trajectories
-6 full proof-carrying trajectories
-49 replayed certified removal steps
+2 full proof-carrying transformed-basis trajectories
+17 replayed certified removal steps
 741 total regenerated removal steps
 48 transformed-basis flag trajectories
 6 malformed controls
@@ -60,7 +60,7 @@ The verifier does not import the producer or its core. It independently:
 Frozen integrity:
 
 ```text
-1376cd7ed4c4c15fbe1d593dccb07fd05465c95f985142015e052e01e2d60021
+1167133466834127dbaf4c4412450139bc8eabded3f31e6b4fda38f72a239dd6
 ```
 
 The workflow additionally mutates one trace, recomputes both the case and outer digests, and requires the independent verifier to reject it. Thus rejection cannot rely only on the outer hash.
