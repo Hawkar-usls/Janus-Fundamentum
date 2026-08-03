@@ -9,7 +9,8 @@ FINITE_RAW_SAME_CUT_TRANSIENTS = TWO_CLASSIFIED
 FINITE_EXACT_KEY_SAME_CUT = ABSENT_THROUGH_GT_8
 T1_FROZEN_FRESH_SIDE_BARRIER = PROVED
 T2A_POST_UNIT_TOTAL_COMPONENT_COLLAPSE = PROVED
-T2B_BRANCH_HANDOFF_EXTINCTION = OPEN
+T2B_BRANCH_ROUTE_CLASSIFICATION = PROVED
+T2B_SELECTED_BRANCH_CUT_OR_SHIELD = OPEN
 T3_EXACT_KEY_TEMPORAL_INDUCTION = PENDING_T2B
 GLOBAL_CACHE_LOWER_BOUND = OPEN
 P_VS_NP = OPEN
@@ -23,8 +24,12 @@ For a reached Policy-0A state, write
 K  = exact entry key after pre-unit closure
 R  = frozen one-pass local-Resolution output
 P  = post-unit residual
-K' = reached child exact key after branch restriction and child pre-units
+B  = raw child input after the selected branch literal
+K' = reached child exact key after child pre-units
 ```
+
+The explicit `B` stage is necessary.  It distinguishes geometry changed by the
+selected branch from extinction or contraction caused later by child pre-units.
 
 A fresh clause in `R` is not a parent in the frozen pass which created it.  It
 can become Resolution-eligible only if it survives into a later exact key.
@@ -35,6 +40,7 @@ can become Resolution-eligible only if it survives into a later exact key.
 K:   611 double-bridge pairs / 0 same-cut
 R:  1391 double-bridge pairs / 2 same-cut transients
 P:  1390 double-bridge pairs / 1 same-cut survivor
+B:  1208 executed children     / 0 same-cut pairs
 K':                              0 same-cut eligible pairs
 ```
 
@@ -49,8 +55,7 @@ same-cut occurrences                           0
 ```
 
 Every non-root exact-key pair has a unique source pair in the immediately
-preceding parent `P`.  No branch/child-preunit transition creates a new
-exact-key pair in the finite trace.
+preceding parent `P`.
 
 ### Raw frozen-pass output R
 
@@ -75,7 +80,29 @@ different-cut pairs                         1389
 same-cut survivors                              1
 ```
 
-## Transient A — GT_4 branch handoff
+### Raw branch child B
+
+Across all pre-frontier branch states:
+
+```text
+branch child records                        1208
+executed children                           1208
+acyclic branch assignments                  1208
+cyclic branch assignments                      0
+component-joining branch states              436
+internal branch states                       168
+
+same-cut pairs in P                            1
+same-cut pairs in B                            0
+transmitted same-cut pairs                     0
+new branch same-cut births                     0
+```
+
+Thus the unique `P` transient disappears already under the selected branch.
+Child pre-units are not needed to establish raw same-cut absence in the finite
+trace.
+
+## Transient A — GT_4 branch extinction
 
 ```text
 state/call/novelty = 1 / 1 / 1
@@ -86,19 +113,22 @@ roles              = HEAD_SINGLETON / TAIL_SINGLETON
 resolvent          = (-2,6)
 ```
 
-The pair survives to `P`.
+The pair survives to `P`.  The selected branch variable is `4`.  It is absent
+from both clauses, so both clauses survive syntactically under either polarity.
+Nevertheless the quotient geometry changes immediately:
 
 ```text
 branch -4:
-  both residual clauses remain;
-  the child terminates before exact-key admission.
+  left residual  (5,6)     = COMPONENT_SPANNING, pivot 5 non-bridge
+  right residual (-2,-5)   = DIRECTED_CYCLE
 
 branch +4:
-  child pre-unit 5=false removes the fresh right clause;
-  the child terminates.
+  left residual  (5,6)     = COMPONENT_SPANNING, pivot 5 non-bridge
+  right residual (-2,-5)   = DIRECTED_CYCLE
 ```
 
-No same-cut pair reaches `K'`.
+Therefore the same-cut pair is absent in raw `B` for both children.  Later child
+pre-unit/terminal behavior is secondary.
 
 ## Transient B — GT_5 post-unit conflict
 
@@ -125,8 +155,6 @@ pair, every same-cut pair first appearing in `R` contains at least one side in
 `F`.  Since the parent universe remains frozen at `K`, that pair cannot be
 co-eligible in the pass which creates it.
 
-This is a set-theoretic arbitrary-`n` proof.
-
 ```text
 T1_FROZEN_FRESH_SIDE_BARRIER = PROVED
 ```
@@ -142,7 +170,7 @@ raw same-cut pairs              2
 fresh sides             one:1 / two:1
 ```
 
-## Pure post-unit birth route
+## Pure contraction birth route
 
 Pure contraction can create same-cut pairs.  The complete abstract gates give:
 
@@ -156,10 +184,6 @@ one-step n=4:
 two-step n=4 with compound components:
   births 6048 / both-safe 2592 / both-safe non-unit 2592
 ```
-
-The two-step gate falsifies universal safe-source exclusion.  Every both-safe
-birth, however, contains at least one `DIRECTED_CYCLE` source.  No
-`COMPONENT_SPANNING + COMPONENT_SPANNING` birth occurs.
 
 The arbitrary quotient proof establishes:
 
@@ -178,36 +202,23 @@ all K clauses are branch-safe;
 K has no same-cut co-eligible parent pair.
 ```
 
-The unsafe-route theorem then implies every clause in `R` is branch-safe.
+The unsafe-route theorem makes every clause in `R` branch-safe.  Before the
+first component-merging post-unit, all earlier units are internal and preserve
+the external graph of every surviving clause.
 
-Consider the first post-unit which joins two distinct relation components.
-Every earlier unit is internal.  Internal unit assignments do not change the
-external graph of any surviving clause.  Therefore the source of the first
-external unit already has the same one-edge external graph in `R`.
+The source of the first external unit therefore already has a one-edge external
+graph in `R`.  A branch-safe one-edge graph spans the quotient only when exactly
+two relation components remain.  The first component-merging post-unit thus
+merges the last two components into one.
 
-A branch-safe clause with exactly one external edge can be component-spanning
-only when exactly two quotient components remain.  Thus the first
-component-merging unit joins the last two components and collapses the entire
-quotient to one component.
-
-Afterward:
-
-```text
-no external edge exists;
-no bridge cut exists;
-no same-cut pair can survive.
-```
-
-If unit closure finds opposite units or an empty clause, the state terminates
-before `P` is admitted.
-
-Therefore post-unit closure cannot create a surviving same-cut pair.
+Afterward no external edge, bridge, or nontrivial cut exists.  Contradictions
+terminate before `P`.
 
 ```text
 T2A_POST_UNIT_TOTAL_COMPONENT_COLLAPSE = PROVED
 ```
 
-Exact support through GT_8:
+Exact support:
 
 ```text
 post-unit events                            33
@@ -220,71 +231,137 @@ collapsed residuals with a bridge             0
 new same-cut births                           0
 ```
 
-All ten merge reasons have the same exact finite profile:
+## T2b — proved pure branch routes
+
+A branch same-cut threat belongs to exactly one of two routes.
+
+### Route A — inherited pair
+
+Suppose two source pivot bridges induce the same cut `S|T`.  If the branch
+identifies one component of `S` with one component of `T`, then after deleting
+the pivot the two former bridge sides share the contracted vertex.  The pivot
+is no longer a bridge in either residual parent.
+
+Assigning the pivot itself also destroys the complementary pair.
+
+Therefore an inherited pair can survive only if both clauses survive and the
+selected branch endpoints lie on the same side of the common cut.
+
+### Route B — newly born pair
+
+If no source pair exists but a same-cut pair appears in `B`, two spanning
+sources cannot be responsible: bridge reflection and cut lifting would imply
+that the source pair already existed.  An internal source cannot become
+spanning.
+
+Hence every new branch-safe pair requires at least one directed-cycle source
+whose last external cycle shield collapses under the selected branch.  It must
+expose a bridge and simultaneously obtain a complementary exposed bridge with
+the identical cut.
 
 ```text
-novelty                         n-2
-reason candidates                 1
-reason origin       LOCAL_RESOLVENT
-reason width                       1
-producing events                   1
-parents                         (2,2)
-parent safety     SPANNING + DIRECTED_CYCLE
-inference pivot            EXTERNAL
-pivot equals unit                 no
-post-unit position                 1
-components                     2 -> 1
+T2B_BRANCH_ROUTE_CLASSIFICATION = PROVED
 ```
 
-The binary immediate-reason profile is finite evidence, not an assumption of
-the total-collapse proof.
+## Finite Route B isolation
 
-## T2b — remaining branch handoff theorem
-
-Only the branch transition remains:
-
-> Every raw same-cut transient which survives into `P` must be removed, become
-> structurally safe, or reach a terminal child before exact-key admission.
-
-A branch assignment may intentionally join components while more than two
-remain, so the post-unit total-collapse argument does not apply.  Abstract
-cycle-shield-collapse counterexamples exist.
-
-The GT_4 transient proves that T2b must handle:
+The branch stage collapses
 
 ```text
-mixed HEAD_SINGLETON / TAIL_SINGLETON roles;
-terminal-before-key admission;
-child pre-unit removal;
-more than one extinction route.
+42,966
 ```
 
-Candidate mechanisms are:
+directed-cycle shields.  Only two residuals expose any bridge.  They are the
+two polarities of one GT_8 lineage:
 
 ```text
-lexicographic singleton-tail handoff;
-canonical root N_a shield;
-frozen fresh-side provenance;
-branch restriction and child pre-unit closure;
-terminal-before-key admission.
+source       = (-9,11,-14,-16,-17,-18,-23)
+source class = DIRECTED_CYCLE
+residuals    = (-9,11,-14,-17,-18,-23)
+               (-9,11,-14,-16,-17,-18)
+exposed edge = -17
+role         = TAIL_SINGLETON
+root ancestry = N_6 + four transitivity axioms
 ```
+
+For the complementary literal `+17`, the two children contain 44 candidate
+occurrences:
+
+```text
+DIRECTED_CYCLE         42
+COMPONENT_SPANNING      2
+SPANNING_NONBRIDGE      2
+SAME_CUT_BRIDGE         0
+```
+
+The sole acyclic spanning candidate in each child is the canonical root clause
+
+```text
+N_6 = (6,12,17,21,24,26,-28).
+```
+
+Parallel entry edges from the merged head component keep `+17` non-bridge.
+Every other complementary candidate retains a directed cycle.
+
+Therefore both finite bridge exposures are isolated and no Route B birth
+occurs.
+
+## Remaining T2b theorem
+
+The open GT-specific statement is now exact.
+
+### Selected-Branch Cut-or-Shield Dichotomy
+
+For every reachable pre-frontier branch state:
+
+1. every inherited raw same-cut pair is crossed by the selected branch, has its
+   pivot assigned, or loses one parent before exact-key admission; and
+2. every cycle-shield collapse exposing a bridge has no complementary exposed
+   bridge with the same cut.  Complementary occurrences remain cycle-protected,
+   internal, terminally unsafe, or carry a pivot-avoiding alternate path.
+
+Existing finite support:
+
+```text
+42 immediate-local lineages reaching a later exact key
+selected branch touching bad tail                    0
+selected branch joining head to another component   39
+disjoint branch after head already merged             3
+
+62 exact-key non-tail bridges
+component-spanning complementary occurrences        119
+explicit pivot-avoiding alternate paths             119
+complementary bridge occurrences                      0
+```
+
+The expected temporal mechanism is:
+
+```text
+branch crosses an inherited common cut -> pair destroyed;
+branch avoids singleton tail and merges head -> canonical N_tail shield gains
+                                                 parallel edges;
+disjoint branch after head merge -> existing shield is preserved.
+```
+
+Converting the exact lexicographic frequency rule and the 119 path witnesses
+into an arbitrary-`n` induction is the remaining local task.
 
 ## Remaining induction
 
 ```text
-T0 root same-cut absence                 available
-T1 frozen fresh-side barrier             PROVED
-T2a post-unit total-collapse barrier     PROVED
-T2b branch handoff extinction            OPEN
-T3 exact-key temporal induction          pending T2b
+T0 root same-cut absence                   available
+T1 frozen fresh-side barrier               PROVED
+T2a post-unit total-collapse barrier       PROVED
+T2b pure branch route classification       PROVED
+T2b selected-branch cut-or-shield          OPEN
+T3 exact-key temporal induction            pending that theorem
 ```
 
-If T2b is proved, T0–T2 preserve same-cut absence in every reached exact key.
-The unsafe-route classification would then close the complete local Resolution
-obstruction for exact Policy-0A on graph tautologies.
+If Selected-Branch Cut-or-Shield is proved, the temporal induction closes the
+local Resolution obstruction for exact Policy-0A on graph tautologies.
 
-The global cache lower bound would still remain separate: the historical
-`2^(n-2)` novelty frontier must be transferred to the exact cache DAG while
+The global cache lower bound remains separate: the historical `2^(n-2)`
+novelty frontier must still be transferred to the exact cache DAG while
 charging local proof events, terminals, and cache reuse.
 
 ## Principal artifacts
@@ -293,15 +370,17 @@ charging local proof events, terminals, and cache reuse.
 proof_attempts/C024/GT_FROZEN_FRESH_SIDE_BARRIER.md
 proof_attempts/C024/GT_POST_UNIT_CYCLE_SHIELD_ROUTE_CLASSIFICATION.md
 proof_attempts/C024/GT_POST_UNIT_TOTAL_COMPONENT_COLLAPSE_BARRIER.md
-experiments/direct/janus_tear_gt_same_cut_transient_elimination.py
-experiments/direct/janus_tear_gt_total_component_collapse_reason_profile.py
-experiments/direct/janus_tear_gt_post_unit_cycle_shield_collapse.py
-experiments/direct/janus_tear_gt_double_bridge_transition_birth.py
+proof_attempts/C024/GT_BRANCH_HANDOFF_ROUTE_CLASSIFICATION.md
+experiments/direct/janus_tear_gt_branch_handoff_stage_census.py
+experiments/direct/janus_tear_gt_branch_bridge_exposure_profile.py
+experiments/direct/janus_tear_gt_bridge_shield_path_witness.py
+experiments/direct/janus_tear_gt_surviving_branch_frequency_certificate.py
 ```
 
 ## Claim boundary
 
-T1 and T2a are proved for arbitrary `n` under the stated exact-key induction
-hypothesis and frozen-pass semantics.  T2b, the completed local induction, the
-global cache-DAG lower bound, unrestricted SAT lower bounds, and `P` versus
-`NP` remain open.
+T1, T2a, and the pure branch-route classification are proved for arbitrary
+`n` under the stated exact-key induction hypothesis and frozen-pass semantics.
+Selected-Branch Cut-or-Shield, the completed local induction, the global
+cache-DAG lower bound, unrestricted SAT lower bounds, and `P` versus `NP`
+remain open.
