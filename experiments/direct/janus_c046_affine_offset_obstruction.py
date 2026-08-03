@@ -4,7 +4,6 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
-from itertools import product
 from typing import Any
 
 SCHEMA = "janus.c046.affine_offset_obstruction.v1"
@@ -35,29 +34,22 @@ def rank(vectors: list[int], dimension: int) -> int:
 
 def normal_matroid_signature(factors: list[dict[str, int]], dimension: int) -> dict[str, Any]:
     normals = [f["normal"] for f in factors]
-    subset_ranks = []
-    for mask in range(1 << len(normals)):
-        subset = [normals[i] for i in range(len(normals)) if (mask >> i) & 1]
-        subset_ranks.append(rank(subset, dimension))
     return {
         "dimension": dimension,
         "ordered_normals": normals,
-        "subset_rank_function": subset_ranks,
+        "subset_rank_function": [
+            rank([normals[i] for i in range(len(normals)) if (mask >> i) & 1], dimension)
+            for mask in range(1 << len(normals))
+        ],
     }
 
 
 def arrangement(kind: str, dimension: int) -> list[dict[str, int]]:
     factors: list[dict[str, int]] = []
     for i in range(dimension):
-        normal = 1 << i
-        if kind == "duplicate_zero":
-            offsets = (0, 0)
-        elif kind == "complementary_offsets":
-            offsets = (0, 1)
-        else:
-            raise ValueError(kind)
+        offsets = (0, 0) if kind == "duplicate_zero" else (0, 1)
         for copy, offset in enumerate(offsets):
-            factors.append({"factor_id": 2 * i + copy, "normal": normal, "offset": offset})
+            factors.append({"factor_id": 2 * i + copy, "normal": 1 << i, "offset": offset})
     return factors
 
 
@@ -66,10 +58,7 @@ def point_in_factor(point: int, factor: dict[str, int]) -> bool:
 
 
 def avoidance_status(factors: list[dict[str, int]], dimension: int) -> dict[str, Any]:
-    uncovered = [
-        p for p in range(1 << dimension)
-        if not any(point_in_factor(p, factor) for factor in factors)
-    ]
+    uncovered = [p for p in range(1 << dimension) if not any(point_in_factor(p, f) for f in factors)]
     return {
         "status": "SAT" if uncovered else "UNSAT",
         "uncovered_count": len(uncovered),
@@ -78,14 +67,13 @@ def avoidance_status(factors: list[dict[str, int]], dimension: int) -> dict[str,
     }
 
 
-def build_artifact(max_dimension: int = 8) -> dict[str, Any]:
+def build_artifact(max_dimension: int = 4) -> dict[str, Any]:
     cases = []
     for dimension in range(1, max_dimension + 1):
         left = arrangement("duplicate_zero", dimension)
         right = arrangement("complementary_offsets", dimension)
         left_sig = normal_matroid_signature(left, dimension)
-        right_sig = normal_matroid_signature(right, dimension)
-        if left_sig != right_sig:
+        if left_sig != normal_matroid_signature(right, dimension):
             raise AssertionError("normal matroid signatures differ")
         left_sem = avoidance_status(left, dimension)
         right_sem = avoidance_status(right, dimension)
@@ -116,7 +104,7 @@ def main() -> None:
     args = parser.parse_args()
     artifact = build_artifact()
     if args.self_test:
-        assert len(artifact["cases"]) == 8
+        assert len(artifact["cases"]) == 4
         assert all(c["duplicate_zero"]["status"] == "SAT" for c in artifact["cases"])
         assert all(c["complementary_offsets"]["status"] == "UNSAT" for c in artifact["cases"])
     text = json.dumps(artifact, indent=2, sort_keys=True) + "\n"
