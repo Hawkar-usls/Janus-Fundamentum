@@ -6,282 +6,302 @@
 RAW_SAME_CUT_NONCREATION = FALSIFIED
 POST_UNIT_553_BIRTH_INTERPRETATION = FALSIFIED
 FINITE_RAW_SAME_CUT_TRANSIENTS = TWO_CLASSIFIED
-FINITE_POST_UNIT_PAIR_CREATION = ABSENT
-FINITE_POST_UNIT_CONFLICT_EXTINCTION = CERTIFIED
-FINITE_BRANCH_HANDOFF_EXTINCTION = CERTIFIED
 FINITE_EXACT_KEY_SAME_CUT = ABSENT_THROUGH_GT_8
-ARBITRARY_N_FROZEN_ELIGIBILITY_EXCLUSION = OPEN
+T1_FROZEN_FRESH_SIDE_BARRIER = PROVED
+T2A_POST_UNIT_TOTAL_COMPONENT_COLLAPSE = PROVED
+T2B_BRANCH_HANDOFF_EXTINCTION = OPEN
+T3_EXACT_KEY_TEMPORAL_INDUCTION = PENDING_T2B
 GLOBAL_CACHE_LOWER_BOUND = OPEN
 P_VS_NP = OPEN
 ```
 
-This note records the exact temporal boundary observed in Policy-0A after two
-overstrong stage interpretations were mechanically falsified.
+## Operational stages
 
-## Four distinct clause stages
-
-For a reached state, write
+For a reached Policy-0A state, write
 
 ```text
 K  = exact entry key after pre-unit closure
-R  = output of the frozen one-pass local-Resolution phase
-P  = residual after post-unit closure
-K' = a reached child exact key after branch restriction and child pre-units
+R  = frozen one-pass local-Resolution output
+P  = post-unit residual
+K' = reached child exact key after branch restriction and child pre-units
 ```
 
-These stages must not be conflated.  A clause freshly added to `R` is not a
-parent in the frozen pass which created it.  It can become Resolution-eligible
-only if it survives into a later exact key `K'`.
+A fresh clause in `R` is not a parent in the frozen pass which created it.  It
+can become Resolution-eligible only if it survives into a later exact key.
 
-## Exact finite census through GT_8
+## Exact finite stage map through GT_8
+
+```text
+K:   611 double-bridge pairs / 0 same-cut
+R:  1391 double-bridge pairs / 2 same-cut transients
+P:  1390 double-bridge pairs / 1 same-cut survivor
+K':                              0 same-cut eligible pairs
+```
 
 ### Frozen exact keys K
 
 ```text
-complementary double-bridge occurrences      611
 root occurrences                              80
 non-root occurrences                         531
-same-cut occurrences                           0
-different-cut occurrences                    611
 tail/tail occurrences                        611
+different-cut occurrences                    611
+same-cut occurrences                           0
 ```
 
-Every one of the 531 non-root exact-key occurrences has a unique complementary
-double-bridge source pair in the immediately preceding parent `P`.  Branch
-restriction plus child pre-unit closure creates no new exact-key pair in the
-finite trace.
+Every non-root exact-key pair has a unique source pair in the immediately
+preceding parent `P`.  No branch/child-preunit transition creates a new
+exact-key pair in the finite trace.
 
 ### Raw frozen-pass output R
 
 ```text
-raw double-bridge occurrences               1391
-already inherited from K                     611
-requiring one fresh local resolvent           611
-requiring two fresh local resolvents          169
-raw different-cut occurrences               1389
-raw same-cut occurrences                       2
-raw tail/tail occurrences                    1352
-raw non-tail occurrences                       39
+pairs inherited from K                       611
+pairs requiring one fresh side               611
+pairs requiring two fresh sides              169
+different-cut pairs                         1389
+same-cut transients                            2
+tail/tail pairs                              1352
+non-tail pairs                                 39
 ```
 
-Local Resolution can therefore create raw complementary double bridges,
-including raw same-cut pairs.  Raw noncreation is false.
+Raw same-cut noncreation is false.
 
 ### Post-unit residual P
 
 ```text
-post-result double-bridge occurrences        1390
-post-result different-cut occurrences        1389
-post-result same-cut occurrences                1
-pairs created by post-units                      0
-raw pairs extinguished before P                  1
+post-unit-created pairs                        0
+raw pairs extinguished before P                1
+different-cut pairs                         1389
+same-cut survivors                              1
 ```
 
-The exact finite stage map is:
+## Transient A — GT_4 branch handoff
 
 ```text
-K:   611 pairs / 0 same-cut
-R:  1391 pairs / 2 same-cut transients
-P:  1390 pairs / 1 same-cut survivor
-K':             / 0 same-cut eligible pairs
+state/call/novelty = 1 / 1 / 1
+pivot              = 5
+left               = (5,6)       [ENTRY_KEY]
+right              = (-2,-5)     [LOCAL_RESOLVENT]
+roles              = HEAD_SINGLETON / TAIL_SINGLETON
+resolvent          = (-2,6)
 ```
 
-## Raw same-cut transient A — GT_4 branch extinction
-
-```text
-n          = 4
-state_id   = 1
-call_id    = 1
-novelty    = 1
-pivot      = 5
-left       = (5, 6)       [ENTRY_KEY]
-right      = (-2, -5)     [LOCAL_RESOLVENT]
-roles      = HEAD_SINGLETON / TAIL_SINGLETON
-cut        = same
-resolvent  = (-2, 6)      [legal, non-tautological]
-```
-
-The fresh clause `(-2,-5)` is created by resolving on a different inference
-pivot.  Its frozen parents have classes
-
-```text
-COMPONENT_SPANNING + DIRECTED_CYCLE.
-```
-
-The pair survives into `P`, where no post-unit assignment is made.  Its two
-reached transitions extinguish it by distinct routes:
+The pair survives to `P`.
 
 ```text
 branch -4:
-  child pre-unit 6=false
-  residuals (5) and (-2,-5) both remain
-  child is terminal before an exact key is admitted
+  both residual clauses remain;
+  the child terminates before exact-key admission.
 
 branch +4:
-  child pre-unit 5=false
-  the fresh right clause is removed
-  child is terminal
+  child pre-unit 5=false removes the fresh right clause;
+  the child terminates.
 ```
 
-No same-cut pair appears in either next exact-key boundary.
+No same-cut pair reaches `K'`.
 
-## Raw same-cut transient B — GT_5 post-unit conflict extinction
+## Transient B — GT_5 post-unit conflict
 
 ```text
-n          = 5
-state_id   = 8
-call_id    = 10
-novelty    = 3 = n-2
-pivot      = 10
-left       = (10)         [LOCAL_RESOLVENT]
-right      = (-10)        [LOCAL_RESOLVENT]
-roles      = BOTH_ENDPOINTS_SINGLETON / BOTH_ENDPOINTS_SINGLETON
-cut        = same
-resolvent  = ()           [legal empty clause]
-terminal   = POST_UNIT_CONTRADICTION
+state/call/novelty = 8 / 10 / 3 = n-2
+pivot              = 10
+left/right         = (10),(-10) [both LOCAL_RESOLVENT]
+roles              = BOTH_ENDPOINTS_SINGLETON / BOTH_ENDPOINTS_SINGLETON
+terminal           = POST_UNIT_CONTRADICTION
 ```
 
-Both sides are fresh in the same frozen pass, so neither can be reused as a
-parent during that pass.  Their complementary unit conflict closes before `P`.
-The state has no post-result and no reached child transition.
+The fresh/fresh complementary units close before a post-result exists.
 
-## What the witnesses prove and refute
+## T1 — Frozen Fresh-Side Barrier
 
-They falsify:
-
-> `K -> R` never creates a raw same-cut double bridge.
-
-They also falsify broad post-unit vacuity on every pair-bearing `R`: transient B
-is eliminated there.
-
-They do not falsify frozen parent eligibility:
-
-> No reached pre-frontier exact key contains a co-eligible same-cut
-> double-bridge pair.
-
-If `K` contains no same-cut pair, every same-cut pair first appearing in `R` has
-at least one fresh side.  Frozen one-pass eligibility therefore prevents its
-reuse during the pass which created it.
-
-## Correct post-unit statement
-
-The earlier interpretation of 553 post-unit births was a stage-counting error.
-Exact replay gives:
+Let
 
 ```text
-post-unit-created double-bridge pairs                     0
-raw pair occurrences extinguished before P                1
-surviving pair-stage states with nonempty post-unit batch  0
-surviving pair-stage states with R != P                    0
+R = K union F,
 ```
 
-Post-units create no double-bridge pair on the finite frontier.  They perform
-one useful extinction: the GT_5 complementary-unit transient.  Every pair-
-bearing state with a surviving `P` has an empty post-unit batch and `R=P`.
+where `F` is the set of fresh frozen-pass outputs.  If `K` contains no same-cut
+pair, every same-cut pair first appearing in `R` contains at least one side in
+`F`.  Since the parent universe remains frozen at `K`, that pair cannot be
+co-eligible in the pass which creates it.
 
-This is a finite result only.
-
-## Transition reflection
-
-The finite `P -> K'` replay gives:
+This is a set-theoretic arbitrary-`n` proof.
 
 ```text
-non-root exact-key pairs                          531
-inherited from parent P                           531
-created by branch or child pre-units                0
+T1_FROZEN_FRESH_SIDE_BARRIER = PROVED
 ```
 
-Transient A is extinguished on both reached transitions by the two mechanisms
-listed above.  Transient B never reaches `P`.  Neither becomes a frozen
-same-cut parent pair.
-
-## Correct local theorem target
-
-### GT Frozen Same-Cut Eligibility Exclusion
-
-For every pre-frontier reachable Policy-0A state on `GT_n`:
-
-> no exact entry key contains two component-spanning clauses with
-> complementary pivot bridges inducing the same quotient cut.
-
-Equivalently, every raw same-cut pair created in `R` must be extinguished or
-structurally separated before its sides can become co-eligible frozen parents
-in a later exact key.
-
-A proof may be decomposed into the following obligations.
-
-### T0 — Root base
-
-The root exact key contains no complementary same-cut double-bridge pair.  The
-canonical `N_a` shield is available at this stage.
-
-### T1 — Frozen-pass temporal barrier
-
-Assume same-cut absence in `K`.  If a same-cut pair first appears in `R`, at
-least one side is fresh and cannot be selected as a parent during the pass which
-created it.
-
-This is definitional once the frozen parent set and the induction hypothesis on
-`K` are fixed.
-
-### T2a — Post-unit extinction/noncreation
-
-Post-unit closure cannot turn an `R` configuration into a new surviving
-same-cut pair in `P`.  Complementary-unit transients close immediately.
-
-Finite evidence: zero created pairs and one GT_5 terminal extinction through
-`GT_8`.
-
-### T2b — Branch handoff extinction
-
-Every same-cut transient surviving into `P` is removed, reaches a terminal
-child before exact-key admission, or ceases to be a same-cut complementary
-double bridge under every reached transition to `K'`.
-
-The GT_4 witness proves that this obligation must handle mixed
-`HEAD_SINGLETON/TAIL_SINGLETON` transients and at least two extinction routes.
-A raw tail/tail-only theorem is false.
-
-Candidate supporting mechanisms are:
+Exact implementation conformance:
 
 ```text
-lexicographic singleton-tail handoff
-canonical root N_a shield
-frozen one-pass parent eligibility
-branch restriction and child pre-unit closure
-terminal-before-key admission
+states                         615
+frozen Resolution events   14,509
+fresh parent reuse              0
+entry-key same-cut pairs        0
+raw same-cut pairs              2
+fresh sides             one:1 / two:1
 ```
 
-### T3 — Induction
+## Pure post-unit birth route
 
-Assuming same-cut absence in `K`, T1, T2a, and T2b imply same-cut absence in
-every reached child exact key `K'`.  Combined with T0, this yields arbitrary-`n`
-frozen same-cut eligibility exclusion.
-
-## Consequence if T0–T3 are proved
-
-The quotient-graph classification proves that an unsafe acyclic low-rank
-resolvent can arise only from a spanning/spanning same-cut double-bridge parent
-pair.  Frozen same-cut eligibility exclusion would therefore close the local
-Resolution obstruction for exact Policy-0A on graph tautologies.
-
-It would not prove the global cache lower bound.  The separate global gate must
-still transfer the historical `2^(n-2)` novelty frontier into the exact
-Policy-0A cache DAG while charging local proof work, terminal events, and cache
-reuse.  It would not resolve unrestricted SAT, unrestricted clause learning,
-or `P` versus `NP`.
-
-## Mechanical witnesses
+Pure contraction can create same-cut pairs.  The complete abstract gates give:
 
 ```text
-experiments/direct/janus_tear_gt_double_bridge_local_creation_v2.py
-experiments/direct/janus_tear_gt_resolution_output_double_bridge_creation.py
-experiments/direct/janus_tear_gt_post_unit_double_bridge_creation.py
-experiments/direct/janus_tear_gt_double_bridge_transition_birth.py
+one-step n=3:
+  births 36 / both-safe 0 / all opposite-unit conflicts
+
+one-step n=4:
+  births 6336 / both-safe 0 / all non-unit
+
+two-step n=4 with compound components:
+  births 6048 / both-safe 2592 / both-safe non-unit 2592
+```
+
+The two-step gate falsifies universal safe-source exclusion.  Every both-safe
+birth, however, contains at least one `DIRECTED_CYCLE` source.  No
+`COMPONENT_SPANNING + COMPONENT_SPANNING` birth occurs.
+
+The arbitrary quotient proof establishes:
+
+```text
+spanning + spanning birth = impossible;
+internal-only source birth = impossible;
+branch-safe birth requires collapse of a directed-cycle shield.
+```
+
+## T2a — Post-Unit Total-Component Collapse Barrier
+
+Assume the exact-key induction hypothesis:
+
+```text
+all K clauses are branch-safe;
+K has no same-cut co-eligible parent pair.
+```
+
+The unsafe-route theorem then implies every clause in `R` is branch-safe.
+
+Consider the first post-unit which joins two distinct relation components.
+Every earlier unit is internal.  Internal unit assignments do not change the
+external graph of any surviving clause.  Therefore the source of the first
+external unit already has the same one-edge external graph in `R`.
+
+A branch-safe clause with exactly one external edge can be component-spanning
+only when exactly two quotient components remain.  Thus the first
+component-merging unit joins the last two components and collapses the entire
+quotient to one component.
+
+Afterward:
+
+```text
+no external edge exists;
+no bridge cut exists;
+no same-cut pair can survive.
+```
+
+If unit closure finds opposite units or an empty clause, the state terminates
+before `P` is admitted.
+
+Therefore post-unit closure cannot create a surviving same-cut pair.
+
+```text
+T2A_POST_UNIT_TOTAL_COMPONENT_COLLAPSE = PROVED
+```
+
+Exact support through GT_8:
+
+```text
+post-unit events                            33
+component-merging events                    10
+internal/redundant events                   23
+total-component collapses                   10
+non-total component merges                   0
+cycle-shield collapses                     385
+collapsed residuals with a bridge             0
+new same-cut births                           0
+```
+
+All ten merge reasons have the same exact finite profile:
+
+```text
+novelty                         n-2
+reason candidates                 1
+reason origin       LOCAL_RESOLVENT
+reason width                       1
+producing events                   1
+parents                         (2,2)
+parent safety     SPANNING + DIRECTED_CYCLE
+inference pivot            EXTERNAL
+pivot equals unit                 no
+post-unit position                 1
+components                     2 -> 1
+```
+
+The binary immediate-reason profile is finite evidence, not an assumption of
+the total-collapse proof.
+
+## T2b — remaining branch handoff theorem
+
+Only the branch transition remains:
+
+> Every raw same-cut transient which survives into `P` must be removed, become
+> structurally safe, or reach a terminal child before exact-key admission.
+
+A branch assignment may intentionally join components while more than two
+remain, so the post-unit total-collapse argument does not apply.  Abstract
+cycle-shield-collapse counterexamples exist.
+
+The GT_4 transient proves that T2b must handle:
+
+```text
+mixed HEAD_SINGLETON / TAIL_SINGLETON roles;
+terminal-before-key admission;
+child pre-unit removal;
+more than one extinction route.
+```
+
+Candidate mechanisms are:
+
+```text
+lexicographic singleton-tail handoff;
+canonical root N_a shield;
+frozen fresh-side provenance;
+branch restriction and child pre-unit closure;
+terminal-before-key admission.
+```
+
+## Remaining induction
+
+```text
+T0 root same-cut absence                 available
+T1 frozen fresh-side barrier             PROVED
+T2a post-unit total-collapse barrier     PROVED
+T2b branch handoff extinction            OPEN
+T3 exact-key temporal induction          pending T2b
+```
+
+If T2b is proved, T0–T2 preserve same-cut absence in every reached exact key.
+The unsafe-route classification would then close the complete local Resolution
+obstruction for exact Policy-0A on graph tautologies.
+
+The global cache lower bound would still remain separate: the historical
+`2^(n-2)` novelty frontier must be transferred to the exact cache DAG while
+charging local proof events, terminals, and cache reuse.
+
+## Principal artifacts
+
+```text
+proof_attempts/C024/GT_FROZEN_FRESH_SIDE_BARRIER.md
+proof_attempts/C024/GT_POST_UNIT_CYCLE_SHIELD_ROUTE_CLASSIFICATION.md
+proof_attempts/C024/GT_POST_UNIT_TOTAL_COMPONENT_COLLAPSE_BARRIER.md
 experiments/direct/janus_tear_gt_same_cut_transient_elimination.py
+experiments/direct/janus_tear_gt_total_component_collapse_reason_profile.py
+experiments/direct/janus_tear_gt_post_unit_cycle_shield_collapse.py
+experiments/direct/janus_tear_gt_double_bridge_transition_birth.py
 ```
 
-The raw-output census separates exact-key parents from fresh clauses.  The
-post-unit regression proves finite noncreation and terminal conflict extinction.
-The transition audit proves finite reflection.  The transient replay follows
-both raw same-cut witnesses through their complete temporal lifetimes.
+## Claim boundary
+
+T1 and T2a are proved for arbitrary `n` under the stated exact-key induction
+hypothesis and frozen-pass semantics.  T2b, the completed local induction, the
+global cache-DAG lower bound, unrestricted SAT lower bounds, and `P` versus
+`NP` remain open.
