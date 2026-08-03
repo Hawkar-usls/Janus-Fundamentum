@@ -1,7 +1,7 @@
 {
   "proposal_id": "C024-NONROOT-EXPOSED-SUBDIVISION-SELECTOR",
   "cycle": "C024",
-  "status": "INDUCTION_ROUTE_FROZEN_GRAPH_GROWTH_AND_ABSORPTION_PROVED_TWO_REACHABILITY_GATES_OPEN",
+  "status": "INDUCTION_ROUTE_FROZEN_CYCLE_TREE_EXCHANGE_GROWTH_AND_ABSORPTION_PROVED_TWO_GT_REACHABILITY_GATES_OPEN",
   "parent_pull_request": 31,
   "supersedes_as_attack_decomposition": "C024-NONROOT-SINGLETON-BRANCH-REACHABILITY",
   "does_not_supersede_theorem_statement": true,
@@ -15,11 +15,37 @@
   "proved_dependencies": [
     "TREE_EXCHANGE_CUT_PRESERVATION",
     "SINGLETON_BRANCH_SAME_CUT_PRESERVATION",
+    "CYCLE_TREE_RESOLVENT_EXACT_EXCHANGE_ARBITRARY_N_UNDER_EXPLICIT_CYCLE_TREE_TREE_RESULT_HYPOTHESES",
+    "TRIANGLE_TREE_RESOLVENT_EXACT_EXCHANGE_ARBITRARY_N_AS_COROLLARY",
     "K_NORMAL_ONE_EDGE_EXCHANGE_GROWTH_ARBITRARY_N_UNDER_EXPLICIT_EXACT_EXCHANGE_HYPOTHESES",
     "MARKED_SINGLETON_EDGE_ABSORPTION_ARBITRARY_N_UNDER_EXPLICIT_MARKED_EXTENSION_HYPOTHESES",
     "ROOT_BRANCH_HANDOFF_ARBITRARY_N",
     "TWO_NODE_TAIL_WING_HANDOFF"
   ],
+  "cycle_tree_exact_exchange_proof": {
+    "status": "PROVED_UNDER_LEGAL_DIRECTED_CYCLE_PARENT_SIMPLE_IN_ARBORESCENCE_PARENT_AND_TREE_RESULT_HYPOTHESES",
+    "statement": "If one legal Resolution parent contains a directed cycle and the complementary pivot, the other parent is a simple in-arborescence D with pivot p, and the simple external resolvent is a tree, then the resolvent is automatically a same-root exact one-edge exchange R=(D-p)+l. The unique new edge is the first edge of the residual directed path left after deleting the cycle pivot.",
+    "independent_falsification_gate": {
+      "source_vertex_range": [3, 6],
+      "tree_parents": 1440,
+      "directed_cycle_paths": 422418,
+      "legal_resolvents": 203816,
+      "non_tree_resolvents": 196020,
+      "tree_resolvents": 7796,
+      "new_edge_positions": {
+        "first_path_edge_index_0": 7796
+      },
+      "violations": 0
+    },
+    "triangle_corollary_gate": {
+      "source_vertex_range": [3, 7],
+      "tree_parents": 18247,
+      "triangle_instances": 531732,
+      "legal_resolvents": 378380,
+      "tree_resolvents": 76676,
+      "violations": 0
+    }
+  },
   "finite_tree_handoff": {
     "range": "GT_4_through_GT_8",
     "exact_exchange_events": 97,
@@ -109,7 +135,8 @@
     "role": "INDUCTIVE_CONCLUSION_NOT_INDEPENDENT_PREMISE",
     "base": "original root component-spanning in-arborescence clauses are stars",
     "preservation_dependencies": [
-      "NONROOT_UNSHIELDED_EXACT_EXCHANGE_REACHABILITY_ARBITRARY_N",
+      "NONROOT_UNSHIELDED_CYCLE_TREE_TREE_RESULT_REACHABILITY_ARBITRARY_N",
+      "CYCLE_TREE_RESOLVENT_EXACT_EXCHANGE_ARBITRARY_N",
       "K_NORMAL_ONE_EDGE_EXCHANGE_GROWTH_ARBITRARY_N",
       "EXPOSED_SUBDIVISION_SELECTOR_DOMINANCE_ARBITRARY_N",
       "MARKED_SINGLETON_EDGE_ABSORPTION_ARBITRARY_N"
@@ -117,8 +144,8 @@
   },
   "pending_sublemmas": [
     {
-      "id": "NONROOT_UNSHIELDED_EXACT_EXCHANGE_REACHABILITY_ARBITRARY_N",
-      "statement": "Every arbitrary-n reachable non-root immediate-local unshielded producer is already covered by another safe route or is an exact same-root one-edge exchange between a directed-cycle parent and a K-normal in-arborescence parent."
+      "id": "NONROOT_UNSHIELDED_CYCLE_TREE_TREE_RESULT_REACHABILITY_ARBITRARY_N",
+      "statement": "Every arbitrary-n reachable non-root immediate-local unshielded producer is already covered by another safe route or has one legal directed-cycle parent carrying the complementary pivot, one simple K-normal in-arborescence parent, and a simple tree external resolvent. Exact same-root one-edge exchange then follows automatically from the proved cycle/tree theorem."
     },
     {
       "id": "EXPOSED_SUBDIVISION_SELECTOR_DOMINANCE_ARBITRARY_N",
@@ -128,7 +155,7 @@
   "remaining_theorem": {
     "id": "NONROOT_SINGLETON_BRANCH_REACHABILITY_ARBITRARY_N",
     "status": "OPEN",
-    "promotion_rule": "may be proved only after both pending reachability/selector sublemmas are independently proved or supplied with complete replayable certificates"
+    "promotion_rule": "may be proved only after both pending GT-specific reachability/selector sublemmas are independently proved or supplied with complete replayable certificates"
   },
   "known_obstructions": [
     {
@@ -142,6 +169,10 @@
       "replacement": "one polarity is extinct and the other survives only in shallow one-subdivision form"
     },
     {
+      "id": "TRIANGLE_PARENT_REQUIRED_FALSE_AS_PROOF_OBLIGATION",
+      "replacement": "the cycle/tree exact-exchange theorem works for an arbitrary directed-cycle parent; GT reachability need not prove root-transitivity triangle ancestry"
+    },
+    {
       "id": "COMPONENT_PAIR_FREQUENCY_FACTORIZATION_FALSE",
       "replacement": "selector proof must retain clause history, polarity, vertex identity, and exact tie-breaking"
     },
@@ -152,8 +183,12 @@
   ],
   "principal_artifacts": [
     "proof_attempts/C024/GT_NONROOT_SINGLETON_REACHABILITY_INDUCTION.md",
+    "proof_attempts/C024/GT_CYCLE_TREE_RESOLVENT_EXACT_EXCHANGE.md",
+    "proof_attempts/C024/GT_TRIANGLE_TREE_RESOLVENT_EXACT_EXCHANGE.md",
     "proof_attempts/C024/GT_K_NORMAL_ONE_EDGE_EXCHANGE_GROWTH.md",
     "proof_attempts/C024/GT_MARKED_SINGLETON_EDGE_ABSORPTION.md",
+    "experiments/direct/janus_tear_cycle_tree_resolvent_exact_exchange.py",
+    "experiments/direct/janus_tear_triangle_tree_resolvent_exact_exchange.py",
     "experiments/direct/janus_tear_k_normal_one_edge_exchange_growth.py",
     "experiments/direct/janus_tear_marked_singleton_edge_absorption.py",
     "experiments/direct/janus_tear_gt_nonroot_tree_exchange_handoff.py",
@@ -162,14 +197,14 @@
     "experiments/direct/janus_tear_gt_branch_frequency_contribution_profile.py"
   ],
   "forbidden_claims": [
-    "promote the finite dangerous-producer census to arbitrary-n exact-exchange reachability",
+    "promote the finite GT dangerous-producer census to arbitrary-n cycle-tree-tree-result reachability",
     "infer selector dominance from quotient-component sizes alone",
-    "claim complete T3 before both pending non-root reachability and selector sublemmas",
+    "claim complete T3 before both pending GT-specific non-root reachability and selector sublemmas",
     "claim the global cache-DAG lower bound",
     "claim unrestricted SAT lower bounds",
     "resolve P versus NP"
   ],
-  "current_terminal": "OPEN_EXACT_EXCHANGE_REACHABILITY_AND_SELECTOR_DOMINANCE",
+  "current_terminal": "OPEN_CYCLE_TREE_TREE_RESULT_REACHABILITY_AND_SELECTOR_DOMINANCE",
   "automatic_merge": false,
   "p_vs_np": "OPEN"
 }
