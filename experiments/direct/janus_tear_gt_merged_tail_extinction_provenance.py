@@ -30,6 +30,7 @@ CONFLICT_FINAL_CLASSES = {
     "OPPOSITE_UNITS_CONFLICT",
     "EMPTY_ON_UNIT_ASSIGNMENT",
 }
+EXPECTED_MERGED_TAIL = {4: 1, 5: 8, 6: 4, 7: 2, 8: 3}
 
 
 def audit(n: int):
@@ -171,10 +172,11 @@ def audit(n: int):
             "executed_child_calls": tuple(int(child["call"]) for child in executed),
         })
 
-    assert counts["fresh_merged_tail_occurrences"] == 18
+    expected = EXPECTED_MERGED_TAIL[n]
+    assert counts["fresh_merged_tail_occurrences"] == expected
     assert counts["post_unit_conflict_occurrences"] + counts[
         "branch_unsat_occurrences"
-    ] == 18
+    ] == expected
     assert branch_child_outcomes.get("BAD_EXACT_KEY", 0) == 0
 
     return {
