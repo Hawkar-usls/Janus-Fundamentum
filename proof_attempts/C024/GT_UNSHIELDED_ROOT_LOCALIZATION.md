@@ -1,19 +1,42 @@
-# C024 — Unshielded root localization
+# C024 — Unshielded handoff localization
 
-Status: **FINITE_CERTIFIED / ARBITRARY_N_OPEN**  
-Scope: immediate-local non-tail bridge lineages that survive into a later pre-frontier exact key of deterministic Policy-0A on `GT_n`.
+Status: **FINITE_ROUTE_COMPLETE / ARBITRARY_N_REACHABILITY_OPEN**  
+Scope: immediate-local component-spanning non-tail bridge occurrences at the branch handoff of exact Policy-0A on `GT_n`.
 
-## 1. Why this reduction matters
+## 1. Correct distinction
 
-The earlier branch-handoff target asked for a history-sensitive frequency theorem covering every one of the 42 surviving immediate-local dangerous lineages through `GT_8`.
+Two populations must not be conflated.
 
-That target is unnecessarily broad. A dangerous non-tail bridge literal
+The first contains the 42 immediate-local lineages that later appear as non-tail bridge occurrences in a parent-eligible exact key through `GT_8`:
 
 ```text
-l : a -> b
+later-surviving immediate-local lineages      42
+already shielded before their branch          30
+singleton/singleton before their branch       12
+those twelve at root                          12
+those twelve non-root                          0
 ```
 
-is already canonically shielded whenever
+The second contains **all** immediate-local unshielded occurrences present in a post-unit residual `P`, whether or not the same non-tail bridge later survives:
+
+```text
+all unshielded P-occurrences                  19
+root                                          16
+non-root                                       3
+unsafe unshielded K' descendants               0
+```
+
+Thus non-root unshielded intermediate forms exist. What is absent is an admitted child exact key carrying the same lineage as an unsafe unshielded non-tail bridge.
+
+## 2. Canonical shield
+
+For a non-tail bridge
+
+```text
+l : a -> b,
+```
+
+the root non-minimality clause `N_a` supplies a canonical complementary shield whenever
 
 ```text
 component(a) = {a}
@@ -21,131 +44,132 @@ and
 |component(b)| >= 2.
 ```
 
-The untouched root non-minimality clause `N_a` then contains the complementary literal `-l` together with at least one parallel quotient edge, so `-l` is not a bridge in that root parent.
+Its residual contains `-l` plus a parallel quotient edge, so `-l` is component-spanning but non-bridge. This implication is already proved graph-theoretically and is independently replayed in every finite child classified as `CANONICALLY_SHIELDED`.
 
-Therefore branch selection matters only while both endpoint components are singleton.
+## 3. Complete finite P-to-K' fate census through GT_8
 
-## 2. Exact finite split through GT_8
-
-The 42 immediate-local lineages that survive into a later parent-eligible exact key split exactly as follows:
+The nineteen unshielded P-occurrences generate thirty-eight branch-polarity transitions:
 
 ```text
-all surviving immediate-local lineages      42
-already shielded before branch              30
-unshielded singleton/singleton               12
-unshielded non-root                           0
-unshielded at root                           12
+CANONICALLY_SHIELDED      12
+CLAUSE_EXTINCT            20
+SPANNING_NONBRIDGE         2
+TAIL_SINGLETON_SAFE        4
+UNSAFE_UNSHIELDED          0
 ```
 
-Head-component sizes:
+Selected relations at the parent stage:
 
 ```text
-head size 1     12
-head size 2     11
-head size 3     14
-head size 4      5
+HEAD_TO_OTHER  12
+TAIL_TO_OTHER   4
+TAIL_HEAD       2
+DISJOINT        1
 ```
 
-Thus every non-root surviving lineage in the finite trace already has a merged head and an active canonical root shield before the branch is selected.
+Every accepted canonical shield is proof-carrying: the checker reconstructs the original `N_a`, reduces it under the child assignment, verifies membership in `K'`, checks the complementary literal, proves it is non-bridge, and emits an explicit parallel edge.
 
-## 3. Exact root family
+## 4. Root route
 
-The twelve unshielded surviving lineages are all in the root state:
+The full recursive trace through `GT_8` contains sixteen root unshielded P-occurrences. A separate exact root-only execution extends the same analysis through `GT_12` without exploring the recursive search tree.
+
+Across `GT_4,...,GT_12`:
 
 ```text
-GT_4: 1
-GT_5: 2
-GT_6: 2
-GT_7: 3
-GT_8: 4
+root unshielded local occurrences            62
+endpoint-touching selected branches          49
+disjoint selected branches                   13
+canonical-shield descendants                 40
+unsafe child descendants                      0
+disjoint unsafe descendants                   0
 ```
 
-For all twelve, the deterministic selected comparison has relation
+A disjoint branch is therefore not itself forbidden. In every observed disjoint case—already at `GT_4`, and again at `GT_11` and `GT_12`—both polarities make the bad pivot `SPANNING_NONBRIDGE`.
+
+The correct root theorem target is:
+
+### Root Endpoint-or-Shield-or-Destruction
+
+Every root immediate-local unshielded occurrence must, under each deterministic branch polarity, become one of:
 
 ```text
-HEAD_TO_OTHER.
+terminal or extinct;
+component-spanning non-bridge;
+tail-singleton safe;
+canonically N_a-shielded.
 ```
 
-The selected branch therefore merges the singleton head with another component while leaving the singleton tail untouched. The child lineage, when admitted, satisfies the canonical shield condition.
+No arbitrary-`n` selector formula is assumed.
 
-Selected variables in the finite family:
+## 5. Non-root route
+
+Exactly three non-root unshielded P-occurrences occur through `GT_8`. They are sibling clauses in one `GT_8` state at depth two:
 
 ```text
-variable 2: 2 occurrences
-variable 3: 10 occurrences
+(-5,-6,-7,-8,11)
+(-5,-6,-7,-8,12)
+(-5,-6,-7,-8,13)
 ```
 
-These counts are finite data only; the arbitrary-`n` root selector formula is not inferred from them.
-
-## 4. Correct replacement for the broad history theorem
-
-The local handoff proof no longer needs one frequency theorem over every surviving lineage. It splits into two narrower obligations.
-
-### U1 — Non-root unshielded-survivor exclusion
-
-Prove for arbitrary `n`:
-
-> Every immediate-local non-tail bridge lineage that survives to a non-root pre-frontier parent state already has singleton tail and merged head, hence an active canonical `N_a` shield.
-
-Equivalently, no singleton-tail/singleton-head dangerous lineage survives into a non-root parent state.
-
-The proof may use extinction, post-unit contradiction, prior branch geometry, and root-clause preservation. It need not determine the exact selected variable once the head is already merged.
-
-### U2 — Root endpoint-or-shield-or-extinction
-
-At the root, follow every immediate-local singleton/singleton dangerous lineage through the deterministic branch and child pre-unit closure. Prove that each polarity yields one of:
+For each bad pivot, the bridge cut has a two-node tail side. The selected literal `-8` is the unique clause edge internal to that tail wing.
 
 ```text
-terminal or clause extinction;
-loss of spanning or bridge status;
-tail-singleton safe form;
-canonical N_a shield after head merge.
+branch -8 satisfied  -> CLAUSE_EXTINCT
+branch -8 falsified  -> tail wing contracted -> TAIL_SINGLETON_SAFE
 ```
 
-A disjoint selected branch is not forbidden by itself. It is forbidden only if it carries an unshielded non-tail bridge into an admitted child exact key.
+The underlying **Two-Node Tail-Wing Handoff Lemma** is proved for arbitrary quotient graphs under these explicit hypotheses. What remains GT-specific is reachability:
 
-## 5. Relation to the frequency obstruction
+### Non-Root Wing Reachability
 
-Quotient-component frequency factorization remains false:
+Prove that every reachable non-root unshielded P-occurrence either is already disposed of by another safe route or has the two-node tail-wing template required by the proved lemma.
+
+## 6. Why the frequency route is no longer primary
+
+Quotient-component frequency factorization is false:
 
 ```text
 nonuniform component-pair groups          1,133 / 1,851
 nonuniform selected component pairs         463 / 604
 ```
 
-The clause-history contribution profile also remains heterogeneous. Those negative results are still valuable, but the root-localization reduction means they may not be needed for the final proof:
+The clause-history contribution profile is also heterogeneous. But route localization avoids needing one global frequency inequality:
 
 ```text
-non-root surviving family: shield already active;
-root unshielded family: explicit root-only calculation.
+root:     direct endpoint/shield/destruction route;
+non-root: proved tail-wing implication + GT reachability;
+already shielded: canonical N_a argument.
 ```
 
-The history-sensitive frequency route is retained as a fallback, not the primary gate.
+History-sensitive frequency accounting remains a fallback diagnostic.
 
-## 6. Falsification conditions
+## 7. Remaining branch obligations
 
-The reduction is falsified by any arbitrary-`n` reachable execution containing:
+```text
+PURE_BRANCH_ROUTE_CLASSIFICATION        PROVED
+TWO_NODE_TAIL_WING_HANDOFF              PROVED
+ROOT_ROUTE_THROUGH_GT_12                FINITE_CERTIFIED
+ALL_BIRTH_HANDOFF_THROUGH_GT_8          FINITE_CERTIFIED
+ROOT_ROUTE_ARBITRARY_N                   OPEN
+NONROOT_WING_REACHABILITY_ARBITRARY_N   OPEN
+```
 
-1. a non-root surviving immediate-local dangerous lineage with singleton head;
-2. an admitted root child carrying the same unshielded non-tail bridge;
-3. a claimed canonical shield whose root residual is absent;
-4. a complementary root literal which remains a bridge;
-5. a lineage classified as extinct despite remaining in the child exact key.
-
-The finite localization checker attacks condition 1 through `GT_8`. The root-only handoff checker attacks conditions 2–5 and extends the root calculation beyond the full-search frontier.
-
-## 7. Consequence if U1 and U2 are proved
-
-Together with the already proved frozen fresh-side barrier, post-unit total-component collapse barrier, and pure branch route classification, U1 and U2 imply that no same-cut double-bridge pair becomes co-eligible in a later exact key.
-
-This would complete T2b and make T3 a direct temporal induction over
+Once the last two GT-specific reachability statements are proved, T2b closes and T3 becomes the direct temporal induction over
 
 ```text
 K -> R -> P -> B -> K'.
 ```
 
-The global Formula-Caching lower-bound transfer would remain separate.
+## Falsification conditions
+
+The route package is falsified by any reachable arbitrary-`n` occurrence with:
+
+1. an admitted child retaining an unsafe unshielded non-tail bridge;
+2. a claimed canonical shield whose root residual is absent or whose complement remains a bridge;
+3. a non-root unshielded occurrence outside every proved safe route, including the two-node tail-wing template;
+4. a root branch polarity outside extinction, non-bridge, tail-singleton, or canonical shield;
+5. a lineage labelled extinct while still present in the exact child key.
 
 ## Claim boundary
 
-Root localization is exhaustively certified for the 42 surviving immediate-local lineages through `GT_8`. U1 and U2 for arbitrary `n`, completed T2b/T3, the global cache lower bound, unrestricted SAT lower bounds, and `P` versus `NP` remain open.
+The complete fate partition is mechanically certified for every unshielded P-occurrence through `GT_8`; the root route is extended exactly through `GT_12`; and the two-node tail-wing implication is proved for arbitrary quotient graphs. Root-route reachability for arbitrary `n`, non-root wing reachability for arbitrary `n`, completed T2b/T3, the global cache lower bound, unrestricted SAT lower bounds, and `P` versus `NP` remain open.
