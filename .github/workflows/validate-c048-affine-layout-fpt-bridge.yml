@@ -1,0 +1,50 @@
+name: Validate C048 Affine Layout FPT Bridge
+
+on:
+  pull_request:
+    paths:
+      - 'experiments/direct/janus_c048_affine_layout_fpt_bridge.py'
+      - 'experiments/direct/janus_c048_affine_layout_fpt_bridge_verifier.py'
+      - 'experiments/direct/C048-JANUS-AFFINE-LAYOUT-FPT-BRIDGE.frozen.json'
+      - 'docs/C048_AFFINE_LAYOUT_FPT_BRIDGE.md'
+      - 'docs/ACTIVE_PROOF_ROUTE_MATRIX_C048_APPENDIX.md'
+      - 'proposals/C048-JANUS-AFFINE-LAYOUT-FPT-BRIDGE.json'
+      - 'registry/c048-source-map.json'
+      - '.github/workflows/validate-c048-affine-layout-fpt-bridge.yml'
+  workflow_dispatch:
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Compile C048 modules
+        run: |
+          python -m py_compile \
+            experiments/direct/janus_c048_affine_layout_fpt_bridge.py \
+            experiments/direct/janus_c048_affine_layout_fpt_bridge_verifier.py
+      - name: Run deterministic C048 identity audit
+        run: |
+          python experiments/direct/janus_c048_affine_layout_fpt_bridge.py \
+            --self-test --output /tmp/c048.json
+      - name: Enforce frozen audit
+        run: cmp /tmp/c048.json experiments/direct/C048-JANUS-AFFINE-LAYOUT-FPT-BRIDGE.frozen.json
+      - name: Run independent C048 verifier
+        run: |
+          python experiments/direct/janus_c048_affine_layout_fpt_bridge_verifier.py \
+            experiments/direct/C048-JANUS-AFFINE-LAYOUT-FPT-BRIDGE.frozen.json
+      - name: Validate machine-readable package
+        run: |
+          python - <<'PY'
+          import json
+          for path in [
+              'proposals/C048-JANUS-AFFINE-LAYOUT-FPT-BRIDGE.json',
+              'registry/c048-source-map.json',
+              'experiments/direct/C048-JANUS-AFFINE-LAYOUT-FPT-BRIDGE.frozen.json',
+          ]:
+              with open(path, encoding='utf-8') as f:
+                  json.load(f)
+          PY
