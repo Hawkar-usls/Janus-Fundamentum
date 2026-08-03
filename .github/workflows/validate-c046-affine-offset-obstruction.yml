@@ -1,0 +1,40 @@
+name: Validate C046 Affine Offset Obstruction
+
+on:
+  pull_request:
+    paths:
+      - 'experiments/direct/janus_c046_affine_offset_obstruction.py'
+      - 'experiments/direct/janus_c046_affine_offset_verifier.py'
+      - 'experiments/direct/C046-JANUS-AFFINE-OFFSET-OBSTRUCTION.v2.frozen.json'
+      - 'docs/C046_AFFINE_OFFSET_OBSTRUCTION.md'
+      - 'proposals/C046-JANUS-AFFINE-OFFSET-OBSTRUCTION.json'
+      - 'registry/c046-source-map.json'
+      - '.github/workflows/validate-c046-affine-offset-obstruction.yml'
+  workflow_dispatch:
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Compile modules
+        run: python -m py_compile experiments/direct/janus_c046_affine_offset_obstruction.py experiments/direct/janus_c046_affine_offset_verifier.py
+      - name: Reproduce audit
+        run: python experiments/direct/janus_c046_affine_offset_obstruction.py --self-test --output /tmp/c046.json
+      - name: Independently verify reproduced and frozen audits
+        run: |
+          python experiments/direct/janus_c046_affine_offset_verifier.py /tmp/c046.json
+          python experiments/direct/janus_c046_affine_offset_verifier.py experiments/direct/C046-JANUS-AFFINE-OFFSET-OBSTRUCTION.v2.frozen.json
+      - name: Enforce semantic identity
+        run: |
+          python - <<'PY'
+          import json
+          with open('/tmp/c046.json') as f: a=json.load(f)
+          with open('experiments/direct/C046-JANUS-AFFINE-OFFSET-OBSTRUCTION.v2.frozen.json') as f: b=json.load(f)
+          assert a == b
+          PY
+      - name: Validate JSON artifacts
+        run: python -m json.tool proposals/C046-JANUS-AFFINE-OFFSET-OBSTRUCTION.json >/dev/null && python -m json.tool registry/c046-source-map.json >/dev/null
