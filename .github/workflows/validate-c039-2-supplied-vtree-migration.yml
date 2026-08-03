@@ -1,0 +1,43 @@
+name: Validate C039.2 Supplied-Vtree Migration
+
+on:
+  push:
+    paths:
+      - 'experiments/direct/janus_c039_2_supplied_vtree_evaluator.py'
+      - 'experiments/direct/janus_c039_1_horn_projection_boundary.py'
+      - 'schemas/c039-2-supplied-vtree-evaluation-v1.schema.json'
+      - 'registry/c039.2-supplied-vtree-migration.json'
+      - 'docs/C039_2_SUPPLIED_VTREE_MIGRATION.md'
+      - '.github/workflows/validate-c039-2-supplied-vtree-migration.yml'
+  pull_request:
+    paths:
+      - 'experiments/direct/janus_c039_2_supplied_vtree_evaluator.py'
+      - 'experiments/direct/janus_c039_1_horn_projection_boundary.py'
+      - 'schemas/c039-2-supplied-vtree-evaluation-v1.schema.json'
+      - 'registry/c039.2-supplied-vtree-migration.json'
+      - 'docs/C039_2_SUPPLIED_VTREE_MIGRATION.md'
+      - '.github/workflows/validate-c039-2-supplied-vtree-migration.yml'
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Validate JSON artifacts
+        run: |
+          python -m json.tool schemas/c039-2-supplied-vtree-evaluation-v1.schema.json >/dev/null
+          python -m json.tool registry/c039.2-supplied-vtree-migration.json >/dev/null
+      - name: Compile Python artifacts
+        run: |
+          python -m py_compile experiments/direct/janus_c039_1_horn_projection_boundary.py
+          python -m py_compile experiments/direct/janus_c039_2_supplied_vtree_evaluator.py
+      - name: Run deterministic migration audit
+        run: python experiments/direct/janus_c039_2_supplied_vtree_evaluator.py --self-test
+      - name: Enforce claim boundary
+        run: |
+          grep -q "GENERAL_HORN_POLY_PROJECTION_IMPLEMENTED.*False" experiments/direct/janus_c039_2_supplied_vtree_evaluator.py
+          grep -q "VTREE_DISCOVERY_IMPLEMENTED.*False" experiments/direct/janus_c039_2_supplied_vtree_evaluator.py
+          ! grep -R "P_VS_NP *= *CLOSED" docs/C039_2_SUPPLIED_VTREE_MIGRATION.md registry/c039.2-supplied-vtree-migration.json
