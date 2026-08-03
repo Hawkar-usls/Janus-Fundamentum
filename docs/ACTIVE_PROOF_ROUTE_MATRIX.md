@@ -30,7 +30,7 @@ P_VS_NP=OPEN
 | C041 | Affine-coordinate 3-SAT identity | C023 followed by canonical affine coordinates reproduces the source 3-CNF syntactically and preserves supports | Coordinate substitution alone simplifies the hard image | `POLYNOMIAL_DISCOVERY_OF_TRACTABLE_COORDINATE_FACTOR_STRUCTURE_OR_STRICT_OPEN` |
 | C042 | Proof-carrying laminar affine cover | Charged basis discovery, semantic certificate replay, exact union counting and witness/certificate recovery under `64(L+1)^6` | A supplied basis, digest-only verification, or small final output makes construction free | `POLYNOMIAL_DECOMPOSITION_OF_CROSSING_AFFINE_FORBIDDEN_SUBSPACES` |
 | C043 | Bounded live signed affine-intersection support | C042 basis inheritance, separate semantic verifier, exact signed recurrence, maximum live-support and coefficient-volume accounting | Compact final support excuses exponential intermediate closure; verifier may call producer | `POLYNOMIAL_LOCALIZATION_OF_SUPERPOLYNOMIAL_GLOBAL_INTERSECTION_SUPPORT` |
-| C044 | Local signed-cover vtree composition (reserved) | Specification only: local signed messages, charged join/project and `OPEN_LOCAL_SUPPORT` | Global OPEN can be bypassed by an uncharged supplied vtree | `LOCAL_SIGNED_SUPPORT_VTREE_COMPOSITION_OR_STRICT_OPEN` |
+| C044 | Local signed-cover vtree composition | Deterministic coordinate-primal separator discovery, local signed-cover leaves, exact branch composition and independent terminal reconstruction in `L^O(k)` for fixed `k` | Global signed-support `OPEN` implies every localization is exponential; a supplied decomposition may be treated as free | `JOINT_AFFINE_BASIS_DECOMPOSITION_AND_MESSAGE_DISCOVERY` |
 | C031 | Proof-carrying SAT refuter | Formal lower-bound transfer interface | Free direct-sum amplification | `NO_SHARING_REFUTER_AMPLIFICATION` |
 
 ## Constructive P=NP track
@@ -47,7 +47,8 @@ tractable local languages
 -> affine-coordinate clause predicates
 -> proof-carrying laminar affine arrangements
 -> proof-carrying bounded live signed support
--> local signed-cover vtree algebra
+-> proof-carrying local signed-support vtree composition
+-> joint affine-basis / decomposition / message discovery
 -> SAT witness + independently checkable UNSAT evidence
 -> universal polynomial SAT algorithm
 ```
@@ -100,17 +101,43 @@ C043 = ARCHITECTURE_CONTRACT_ADMITTED
 
 Final admission requires exact-head CI and review of refusal-terminal capability replay. It is not automatic.
 
-## C044 reservation
+## C044 local signed-support theorem
 
-C044 begins only after a genuine C043 `OPEN_INTERSECTION_CLOSURE` and attempts proof-carrying localization. A message may contain a boundary affine relation, local signed family, coefficients, count semantics and replay trace.
+C044 begins from a genuine C043 `OPEN_INTERSECTION_CLOSURE`.
 
-Every local join and projection charges maximum intermediate support. Overflow returns
+For each coordinate region it first attempts a complete local signed-support compilation. If that overflows, C044 deterministically searches the coordinate primal graph for the first disconnected split or balanced separator of size at most the fixed capability `k`. The complete recursive plan is fixed before any separator values are chosen.
+
+Accepted leaves store exact signed affine-subspace covers and charge both live and pre-cancellation working support. Separator nodes enumerate only `2^|S|` assignments, check separator-local forbidden factors, and combine independent child witnesses or child refutations.
+
+For fixed `k`, bounded local support `K`, and balanced components:
 
 ```text
-OPEN_LOCAL_SUPPORT.
+T(n) <= 2^k sum_i T(n_i) + poly(L,K,n^k)
+max_i n_i <= 2n/3
 ```
 
-C044 remains specification-only until C043 receives final review admission.
+so total discovery, solving, witness recovery, certificate construction and independent verification are `L^O(k)`.
+
+Strict extension controls:
+
+```text
+40 independent units:
+  global C043 -> OPEN_INTERSECTION_CLOSURE
+  C044        -> SAT with separator size 0
+
+40-variable path:
+  global C043 -> OPEN_INTERSECTION_CLOSURE
+  C044        -> SAT with separator size 1
+```
+
+The dense registered hard-image pressure family still returns:
+
+```text
+OPEN_LOCAL_SUPPORT
+reason = NO_ADMITTED_SEPARATOR
+```
+
+This is a capability-scoped refusal, not a hardness theorem.
 
 ## Canonical cycle allocation
 
@@ -124,20 +151,20 @@ C038    exact structured-vtree factor alignment
 C039    fixed-k recursive separator compiler
 C039.1  pure-affine symbolic vtree factor compiler
 C039.2  low-affine-dimension Horn/dual-Horn composer
-C040    portfolio-guided semantic-vtree discovery (reserved)
+C040    portfolio-guided semantic-vtree discovery
 C041    affine-coordinate 3-SAT identity obstruction
 C042    proof-carrying laminar affine forbidden-subspace cover
 C043    bounded live signed affine-intersection support
-C044    local signed-cover vtree composition (reserved)
+C044    local signed-support vtree composition
 ```
 
 ## Converged constructive bottleneck
 
 ```text
-Construct, in polynomial total work, a decomposition and join-closed proof-carrying message algebra whose semantic state volume is polynomial on every CNF, with SAT witness recovery and independently checkable UNSAT evidence.
+Construct, in polynomial total work, an affine basis, decomposition and join-closed proof-carrying message algebra whose semantic state volume is polynomial on every CNF, with SAT witness recovery and independently checkable UNSAT evidence.
 ```
 
-C041 proves that affine coordinates alone cannot satisfy this obligation. C042 supplies a genuine laminar polynomial class. C043 extends it to globally bounded live signed support while charging intermediate closure. C044 asks whether superpolynomial global support can always be localized into polynomial proof-carrying messages.
+C041 proves that affine coordinates alone cannot satisfy this obligation. C042 supplies a genuine laminar polynomial class. C043 extends it to globally bounded live signed support while charging intermediate closure. C044 proves that some superpolynomial global supports can be localized by a deterministically discovered fixed-separator decomposition. The surviving question is whether basis choice, semantic decomposition and message language can be discovered jointly in polynomial total work on every input.
 
 ## Non-duplication and honesty rules
 
