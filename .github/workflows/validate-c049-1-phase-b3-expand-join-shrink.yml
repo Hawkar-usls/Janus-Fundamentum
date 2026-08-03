@@ -1,0 +1,76 @@
+name: Validate C049.1 Phase B3 Expand Join Shrink
+
+on:
+  pull_request:
+    paths:
+      - 'experiments/direct/janus_c049_1_b3_expand_join_shrink*.py'
+      - 'experiments/direct/C049.1-JANUS-PHASE-B3-EXPAND-JOIN-SHRINK.frozen.json'
+      - 'docs/C049_1_PHASE_B3_EXPAND_JOIN_SHRINK.md'
+      - 'proposals/C049.1-JANUS-PHASE-B3-EXPAND-JOIN-SHRINK.json'
+      - 'registry/c049.1-phase-b3-source-map.json'
+      - 'registry/c049.1-phase-b-status.json'
+      - '.github/workflows/validate-c049-1-phase-b3-expand-join-shrink.yml'
+  workflow_dispatch:
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Compile Phase B3 sources
+        run: |
+          python -m py_compile \
+            experiments/direct/janus_c049_1_b3_expand_join_shrink_core.py \
+            experiments/direct/janus_c049_1_b3_expand_join_shrink.py \
+            experiments/direct/janus_c049_1_b3_expand_join_shrink_verifier.py
+      - name: Generate full producer-issued B3 transcript
+        env:
+          PYTHONPATH: experiments/direct
+        run: |
+          python experiments/direct/janus_c049_1_b3_expand_join_shrink.py \
+            --self-test \
+            --output /tmp/c049-b3-full.json
+          python - <<'PY'
+          import hashlib, json, pathlib
+          path=pathlib.Path('/tmp/c049-b3-full.json')
+          raw=path.read_bytes()
+          value=json.loads(raw)
+          frozen=json.load(open('experiments/direct/C049.1-JANUS-PHASE-B3-EXPAND-JOIN-SHRINK.frozen.json'))
+          assert len(raw)==frozen['producer_artifact_bytes']==51428
+          assert value['integrity']==frozen['producer_artifact_digest']=='5a1d8801b2f34265ba6f9b1b2c7c185ff211afd6e50206fd48b2ac4e335e7b0e'
+          assert value['summary']=={
+            'cases':8,
+            'closed_exact':6,
+            'failures':0,
+            'full_pipeline_root_entries':1,
+            'lattice_paths_replayed':6,
+            'open_certificate_volume':1,
+            'open_work_budget':1,
+            'partition_loss_rejected':True,
+            'precompact_statistics_charged':27,
+          }
+          PY
+      - name: Replay every producer-issued B3 transcript
+        run: |
+          python experiments/direct/janus_c049_1_b3_expand_join_shrink_verifier.py \
+            /tmp/c049-b3-full.json \
+            --tamper-self-test
+      - name: Validate frozen manifest and metadata JSON
+        run: |
+          python - <<'PY'
+          import json
+          frozen=json.load(open('experiments/direct/C049.1-JANUS-PHASE-B3-EXPAND-JOIN-SHRINK.frozen.json'))
+          assert frozen['independent_replay']['digest_repaired_tamper_controls']==3
+          assert frozen['current_global_terminal']=='OPEN_TRAJECTORY_ENGINE_INCOMPLETE'
+          assert frozen['complete_no_layout_at_cap'] is False
+          assert frozen['p_vs_np']=='OPEN'
+          for path in [
+            'proposals/C049.1-JANUS-PHASE-B3-EXPAND-JOIN-SHRINK.json',
+            'registry/c049.1-phase-b3-source-map.json',
+            'registry/c049.1-phase-b-status.json',
+          ]:
+            json.load(open(path))
+          PY
