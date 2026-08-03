@@ -16,12 +16,13 @@ from __future__ import annotations
 from collections import Counter
 
 from janus_tear_gt_component_merge_sources import reduce_clause
-from janus_tear_gt_component_tree_clause_audit import execution_context
+from janus_tear_gt_component_tree_clause_audit import (
+    clause_component_graph,
+    execution_context,
+)
 from janus_tear_gt_global_clause_shrink_census import unit_assignments
 from janus_tear_gt_local_resolution_bad_bridge_birth_v2 import audit as raw_audit
-from janus_tear_gt_bad_bridge_birth_lifecycle import endpoint_sizes
 from janus_tear_gt_bridge_endpoint_profile import bridge_record
-from janus_tear_gt_component_tree_clause_audit import clause_component_graph
 from janus_tear_gt_rank_safety_dichotomy import safety_class
 
 
@@ -53,6 +54,10 @@ def audit(n: int):
     pairs = context["pairs"]
     levels = context["levels"]
     raw = raw_audit(n)
+    call_to_state = {
+        int(state["entry_call"]): int(state["id"])
+        for state in policy.states.values()
+    }
 
     counts: Counter[str] = Counter()
     novelty_histogram: Counter[int] = Counter()
@@ -104,12 +109,12 @@ def audit(n: int):
                 absent_children = 0
                 for child in children:
                     child_call = int(child["call"])
-                    child_state_id = context["call_to_state"].get(child_call)
+                    child_state_id = call_to_state.get(child_call)
                     if child_state_id is None:
                         terminal_children += 1
                         child_outcomes["NO_EXACT_KEY"] += 1
                         continue
-                    child_state = policy.states[int(child_state_id)]
+                    child_state = policy.states[child_state_id]
                     child_assignment = context["call_after_pre"][child_call]
                     if child_contains_bad(
                         n,
