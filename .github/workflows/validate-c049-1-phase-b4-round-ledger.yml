@@ -1,0 +1,16 @@
+name: Validate C049.1 Phase B4 Round Ledger
+on:
+  pull_request:
+  push:
+    branches: ['research/c049-1-phase-b4-iterative-compression']
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: '3.11'}
+      - run: python experiments/direct/janus_c049_1_b4_round_ledger.py --output /tmp/b4.json
+      - run: test "$(wc -c < /tmp/b4.json)" = "42202"
+      - run: test "$(sha256sum /tmp/b4.json | cut -d' ' -f1)" = "a7bece691313b6aa5d0d5b134b490b69279567974184f5cbc14479c9a13eaf8d"
+      - run: python experiments/direct/janus_c049_1_b4_round_ledger_verifier.py /tmp/b4.json --self-test
