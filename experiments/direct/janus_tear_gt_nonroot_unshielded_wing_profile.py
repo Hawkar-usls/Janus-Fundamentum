@@ -6,14 +6,16 @@ through GT_8, all in one GT_8 state.  This profile reconstructs their parent
 clause graphs and checks the candidate pure-graph mechanism:
 
 - the bad bridge separates a two-node tail wing from the head side;
+- the selected comparison joins two singleton relation components;
 - the selected clause edge is the unique internal edge of that tail wing;
 - the selected variable occurs in the clause;
 - one branch polarity satisfies the clause;
 - the other deletes the selected literal while contracting the complete tail
   wing to one quotient node, making the bad pivot TAIL_SINGLETON safe.
 
-The output is finite template extraction, not yet an arbitrary-n theorem that
-all reachable non-root unshielded births have this geometry.
+The singleton-endpoint check also instantiates the weaker proved
+Singleton-Branch Same-Cut Preservation theorem.  The output is finite template
+extraction, not yet an arbitrary-n reachability theorem.
 """
 
 from __future__ import annotations
@@ -47,6 +49,7 @@ def audit(n: int):
     counts: Counter[str] = Counter()
     tail_side_sizes: Counter[int] = Counter()
     head_side_sizes: Counter[int] = Counter()
+    selected_component_sizes: Counter[tuple[int, int]] = Counter()
     selected_clause_signs: Counter[int] = Counter()
     selected_internal_multiplicity: Counter[int] = Counter()
     rows = []
@@ -86,6 +89,14 @@ def audit(n: int):
         assert selected_components[0] != selected_components[1]
         assert set(selected_components).issubset(set(tail_side))
         counts["selected_inside_tail_side"] += 1
+
+        component_sizes = tuple(
+            len(graph["parts"][component])
+            for component in selected_components
+        )
+        selected_component_sizes[tuple(sorted(component_sizes))] += 1
+        assert component_sizes == (1, 1)
+        counts["selected_joins_singleton_components"] += 1
 
         selected_literals = tuple(
             candidate for candidate in clause if abs(candidate) == selected
@@ -131,6 +142,7 @@ def audit(n: int):
                 "selected": selected,
                 "selected_literal": selected_literal,
                 "selected_components": selected_components,
+                "selected_component_sizes": component_sizes,
                 "internal_tail_edges": internal_tail_edges,
                 "children": tuple(item["children"]),
             }
@@ -141,6 +153,9 @@ def audit(n: int):
         "counts": tuple(sorted(counts.items())),
         "tail_side_sizes": tuple(sorted(tail_side_sizes.items())),
         "head_side_sizes": tuple(sorted(head_side_sizes.items())),
+        "selected_component_sizes": tuple(
+            sorted(selected_component_sizes.items())
+        ),
         "selected_clause_signs": tuple(sorted(selected_clause_signs.items())),
         "selected_internal_multiplicity": tuple(
             sorted(selected_internal_multiplicity.items())
@@ -153,6 +168,7 @@ def self_test() -> None:
     aggregate_counts: Counter[str] = Counter()
     aggregate_tail_sizes: Counter[int] = Counter()
     aggregate_head_sizes: Counter[int] = Counter()
+    aggregate_selected_sizes: Counter[tuple[int, int]] = Counter()
     aggregate_signs: Counter[int] = Counter()
     aggregate_internal: Counter[int] = Counter()
     all_rows = []
@@ -162,12 +178,14 @@ def self_test() -> None:
         aggregate_counts.update(dict(data["counts"]))
         aggregate_tail_sizes.update(dict(data["tail_side_sizes"]))
         aggregate_head_sizes.update(dict(data["head_side_sizes"]))
+        aggregate_selected_sizes.update(dict(data["selected_component_sizes"]))
         aggregate_signs.update(dict(data["selected_clause_signs"]))
         aggregate_internal.update(dict(data["selected_internal_multiplicity"]))
         all_rows.extend(data["rows"])
         print(f"ORDER_SIZE = {n}")
         print(f"  counts = {data['counts']}")
         print(f"  tail_side_sizes = {data['tail_side_sizes']}")
+        print(f"  selected_component_sizes = {data['selected_component_sizes']}")
         print(f"  selected_clause_signs = {data['selected_clause_signs']}")
         print(f"  rows = {data['rows']}")
 
@@ -175,28 +193,31 @@ def self_test() -> None:
     for name in (
         "nonroot_occurrences",
         "selected_inside_tail_side",
+        "selected_joins_singleton_components",
         "selected_literal_in_clause",
         "selected_unique_tail_internal_edge",
         "two_node_tail_wing",
         "polarity_extinct_or_tail_safe",
     ):
         assert aggregate_counts[name] == expected, (name, aggregate_counts[name])
+    assert aggregate_selected_sizes == Counter({(1, 1): expected})
     assert len({(row["state_id"], row["call_id"]) for row in all_rows}) == 1
 
     print("JANUS_GT_NONROOT_UNSHIELDED_WING_PROFILE = PASS")
     print(f"AGGREGATE_COUNTS = {tuple(sorted(aggregate_counts.items()))}")
     print(f"AGGREGATE_TAIL_SIDE_SIZES = {tuple(sorted(aggregate_tail_sizes.items()))}")
     print(f"AGGREGATE_HEAD_SIDE_SIZES = {tuple(sorted(aggregate_head_sizes.items()))}")
+    print(f"AGGREGATE_SELECTED_COMPONENT_SIZES = {tuple(sorted(aggregate_selected_sizes.items()))}")
     print(f"AGGREGATE_SELECTED_SIGNS = {tuple(sorted(aggregate_signs.items()))}")
     print(f"AGGREGATE_INTERNAL_EDGES = {tuple(sorted(aggregate_internal.items()))}")
     print(
         "finite_result = every non-root unshielded P-occurrence through GT_8 "
-        "is a two-node tail wing whose selected internal edge yields clause "
-        "extinction on one polarity and TAIL_SINGLETON safety on the other"
+        "selects a comparison between singleton components and also instantiates "
+        "the stronger two-node tail-wing handoff"
     )
     print(
-        "claim_boundary = exact finite wing template; arbitrary-n reachability "
-        "of only this template remains open"
+        "claim_boundary = exact finite singleton-branch/wing template; arbitrary-n "
+        "nonroot singleton-branch reachability remains open"
     )
 
 
