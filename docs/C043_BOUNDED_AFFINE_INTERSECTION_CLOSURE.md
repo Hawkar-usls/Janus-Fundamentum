@@ -1,223 +1,192 @@
-# C043 — Bounded Signed Affine-Intersection Support
+# C043 — Bounded Live Signed Affine-Intersection Support
 
 ```text
+C043 = ARCHITECTURE_CONTRACT_ADMITTED
+       / FULL_IMPLEMENTATION_CANDIDATE
 P_VS_NP=OPEN
 ```
 
-## Exact coordinate object
+## Exact input contract
 
-C043 is stacked on the proof-carrying C042 basis layer. Its admitted input is a CNF together with an affine system; the parameterization
+C043 receives a CNF formula together with affine equations over the original variables. It no longer receives a free coordinate map.
+
+The shared C042 affine core constructs and records
 
 ```text
 x = p + B lambda
 ```
 
-must be constructed or replayed through the C042 provenance contract. A free `coordinate_rows/constants` table is not an admitted theorem input.
+by provenance-carrying Gaussian elimination. The certificate binds the complete basis artifact by SHA-256. The independent C043 verifier recomputes canonical RREF, checks every provenance XOR, checks the particular solution, nullspace vectors, free-coordinate independence and every original-variable coordinate form.
 
-For every clause `C`, simultaneous falsification defines an empty set or an affine subspace
+Only after this replay are clause-falsifying affine subspaces constructed.
+
+## Primary parameter
+
+Process the nonempty forbidden subspaces in one deterministic order and maintain
 
 ```text
-U_C subseteq GF(2)^d.
+1_(union_{i <= t} U_i) = sum_S c_t(S) 1_S.
 ```
 
-The coordinate formula is satisfiable exactly when
+The controlling parameter is
 
 ```text
-GF(2)^d \ union_C U_C
+K_t = |supp(c_t)|
+K   = max_t K_t.
 ```
 
-is nonempty.
+`K` is maximum live signed support, not the number of crossing pairs, not final support only, not codimension and not a supplied intersection poset.
 
-## Primary structural parameter
+The deterministic order places higher-rank forbidden systems first and then orders by canonical RREF and clause identifier. A changed order is rejected by the verifier.
 
-“Bounded crossing” does **not** mean a bounded number of crossing pairs, bounded clause width, or bounded codimension.
+## Signed transition
 
-Process the nonempty forbidden subspaces in one deterministic order. After the first `t` factors, maintain
-
-```text
-1_(union_{i <= t} U_i) = sum_S c_t(S) 1_S,
-```
-
-where every key `S` is a canonical nonempty affine intersection and only nonzero coefficients are retained.
-
-Define the live signed-support parameter
+Adding factor `U_t` uses
 
 ```text
-K = max_t |supp(c_t)|.
-```
-
-This maximum intermediate support, not merely the final number of terms, is the C043 admission metric. Equal intersections are merged by canonical RREF and zero coefficients cancel. A raw intersection poset may contain many syntactic subset intersections; C043 materializes only the deterministic canonical nonzero signed support, but every attempted intersection and every intermediate term is charged.
-
-Codimension and the number of crossings are secondary descriptive statistics. They are never promoted as the controlling invariant.
-
-## Exact signed update
-
-Adding `U_t` uses the pointwise identity
-
-```text
-1_(A union U_t) = 1_A + 1_(U_t) - 1_A 1_(U_t)
-1_S 1_(U_t)     = 1_(S intersect U_t).
-```
-
-Equivalently, the coefficient map must satisfy
-
-```text
-c_t = c_(t-1) + e_(U_t) - T_(U_t)(c_(t-1)),
+c_t = c_(t-1) + e_(U_t) - T_(U_t)c_(t-1)
 T_U(S) = S intersect U.
 ```
 
-Every nonempty intersection is canonicalized, equal keys are added, and zero coefficients are removed. This recurrence is the proof-carrying replacement for enumerating the full `2^m` inclusion–exclusion table.
+For every step the proof object records:
 
-## Constructive theorem
+- the exact incoming support size;
+- every independently reproducible affine intersection;
+- every signed delta coefficient;
+- every coefficient merge;
+- zero-coefficient deletion;
+- outgoing canonical terms;
+- `K_t` and temporary working support;
+- total coefficient bit volume.
 
-Let `L` be the complete encoded input length, including the affine system, CNF, capability manifest and coordinate dimension. Fix one capability exponent `q` independently of the input and define
-
-```text
-K_limit(L) = min(absolute_support_cap, L^q).
-```
-
-If the deterministic construction satisfies
-
-```text
-K <= K_limit(L)
-```
-
-and all work, integer-bit and certificate-volume ledgers remain within their fixed polynomial envelopes, then C043 constructs the signed cover, exact counts, and SAT/UNSAT evidence in
+The identity follows by induction from
 
 ```text
-O(m K poly(d,L))
+1_(A union U) = 1_A + 1_U - 1_A 1_U.
 ```
 
-total standard-model work.
+No enumeration of `2^d` coordinate points is required.
 
-Coefficient magnitudes may grow exponentially as integers, so their **bit lengths** are explicitly charged; the sequential inclusion–exclusion recurrence gives an `O(m)`-bit bound per coefficient. Final compactness does not excuse a large intermediate support or large coefficient/certificate volume.
+## Fixed capability
 
-Strict terminals are separated by cause:
+For explicit encoded length `L`, the implementation fixes:
 
 ```text
-OPEN_INTERSECTION_CLOSURE   live signed support exceeds K_limit
-OPEN_WORK_BUDGET            total charged construction or verification work exceeds its polynomial envelope
-OPEN_CERTIFICATE_VOLUME     emitted or replayed proof volume exceeds its polynomial envelope
+K <= 4(L+1)^2
+work <= 128(L+1)^7
+certificate bytes <= 64(L+1)^6
+coefficient bit volume <= 16(L+1)^3
 ```
 
-None of these terminals is a hardness claim.
+Optional operational caps may only reduce these limits. All exponents and multipliers are fixed in the implementation and rebound by the verifier.
 
-## Exact counting and decision
-
-For the final coefficient map `c_m`,
+Exact refusal terminals are:
 
 ```text
-|union_C U_C| = sum_S c_m(S) 2^dim(S).
+OPEN_INTERSECTION_CLOSURE
+OPEN_WORK_BUDGET
+OPEN_CERTIFICATE_VOLUME
 ```
 
-- Equality with `2^d` gives an exact signed affine-cover UNSAT certificate.
-- Otherwise conditional signed counting fixes coordinates one at a time. For a prefix cell `P`,
+A support overflow is emitted at the first step where `K_t` exceeds the effective support limit. Later cancellation cannot rescue that run.
 
-```text
-|P intersect union_C U_C|
-  = sum_S c_m(S) |P intersect S|.
-```
+## Independent verifier
 
-A child with covered count smaller than its cell size preserves an uncovered point. The final coordinate lies outside every clause-falsifying factor and lifts through the certified C042 basis to a complete SAT witness.
-
-## Separate proof-carrying verifier
-
-C043 requires a dedicated module:
+The verifier is a separate module:
 
 ```text
 experiments/direct/janus_c043_crossing_verifier.py
 ```
 
-It may import common affine primitives from C042, but it must not verify a certificate by simply calling the C043 producer and comparing outputs.
+It does not import or call `solve_crossing`.
 
-The verifier independently checks:
+It independently checks:
 
-1. the C042 affine-basis artifact and coordinate forms;
-2. clause-to-forbidden-subspace translation;
-3. the deterministic factor order;
-4. every incremental signed-support transition;
-5. canonical RREF identity of every intersection key;
-6. coefficient addition, cancellation and coefficient bit lengths;
-7. `K_t = |supp(c_t)|`, `K = max_t K_t`, and the fixed support capability;
-8. root union cardinality;
-9. every conditional signed-count branch;
-10. the final coordinate, lifted SAT witness, or signed-cover UNSAT equality;
-11. producer and verifier work/certificate ledgers.
+1. input and capability binding;
+2. the complete C042 affine basis artifact;
+3. clause translation and factor RREF provenance;
+4. deterministic factor order;
+5. every signed transition and cancellation;
+6. maximum live and working support;
+7. coefficient bit volume;
+8. exact signed root count;
+9. conditional signed counts for both children of every prefix;
+10. the coordinate witness and lifted original assignment;
+11. the exact signed UNSAT cover.
 
-The universal indicator identity is verified algebraically, not by enumerating assignments. If the verifier replays
+For `OPEN_INTERSECTION_CLOSURE`, it independently rebuilds the first overflowing transition and verifies the attempted support against the fixed capability.
 
-```text
-c_t = c_(t-1) + e_(U_t) - T_(U_t)c_(t-1)
-```
+## Exact decision
 
-for every `t`, induction proves
+For final coefficients `c(S)`, the union cardinality is
 
 ```text
-sum_S c_t(S) 1_S = 1_(union_{i <= t} U_i)
+|union_i U_i| = sum_S c(S) 2^dim(S).
 ```
 
-on every point of `GF(2)^d` simultaneously.
-
-Möbius inversion over a supplied intersection poset is optional, not required. If used, discovery of the poset, inversion work and proof volume must be charged. The deterministic sequential recurrence is the canonical baseline because it avoids an optimal-poset oracle.
-
-## Relationship to C042
-
-Laminar arrangements are a degenerate signed-support case. After cancellation, the support is represented by the pairwise-disjoint maximal forbidden subspaces with coefficient `+1`.
-
-Two genuinely crossing hyperplanes have support
+Equality with `2^d` gives an exact signed UNSAT cover. Otherwise conditional signed counting fixes one coordinate at a time. At each prefix cell `P`:
 
 ```text
-U,
-V,
-U intersect V
+|P intersect union_i U_i|
+  = sum_S c(S) |P intersect S|.
 ```
 
-and therefore lie outside C042 but inside C043.
+A child whose signed covered count is smaller than its cell size contains an uncovered coordinate. The final coordinate lifts through the verified C042 basis to an original SAT witness.
 
-Thus C043 strictly extends the semantic class of C042 while inheriting its basis, witness and certificate obligations.
+## Frozen hardening audit
 
-## Existing executable evidence
+```bash
+python experiments/direct/janus_c043_bounded_affine_intersection_closure.py --self-test
+```
 
-The current prototype demonstrates the signed recurrence on:
+The deterministic suite includes:
 
 ```text
-300 random coordinate CNFs on d <= 8
-64-dimensional crossing SAT with 3 terms
-64-dimensional crossing UNSAT cover
-200 repeated crossing factors compressed to 3 terms
-24-variable NAND3+NEQ pressure -> OPEN_INTERSECTION_CLOSURE
+120 random CNFs on dimensions <= 7
+120 exact terminals
+0 SAT/UNSAT mismatches
+0 witness failures
+0 independent verification failures
+
+64-dimensional crossing SAT with K=3
+64-dimensional crossing UNSAT signed cover with K=4
+C042 affine-basis inheritance control
+
+32 live singleton terms followed by a universal blocker
+-> final support 1
+-> maximum live support 32
+-> tight capability returns OPEN_INTERSECTION_CLOSURE at K=9
+
+coefficient bit-volume pressure -> OPEN_WORK_BUDGET
+C023/C041 hard images at n=18,24,30 -> OPEN_INTERSECTION_CLOSURE
+
+tampered basis artifact -> REJECTED
+changed factor order -> REJECTED
+corrupt cancellation trace -> REJECTED
+corrupt SAT witness -> REJECTED
+corrupt signed UNSAT cover -> REJECTED
 ```
 
-These controls support the signed-support lemma. They do not yet by themselves admit the full C043 architecture, because the current prototype still accepts a ready coordinate map and uses producer replay as its verifier. The dedicated verifier and C042-basis integration remain explicit admission obligations.
-
-## Boundary and next cycle
-
-C043 closes only the **global bounded-live-signed-support** class. It does not contain local vtree decomposition as part of the same theorem.
-
-The next route is reserved as C044:
+Frozen audit digest:
 
 ```text
-C044 LOCAL_SIGNED_SUPPORT_VTREE_COMPOSITION_OR_STRICT_OPEN
+a98693890ce3cda82d0a2d0860092f2f5b09419b7f548cee110632689681abe2
 ```
 
-C044 may partition a globally large intersection arrangement into local components with polynomial local signed supports and combine them through proof-carrying join/project messages. It must charge vtree discovery, factor placement, local support maxima, separator representation, join/projection work, canonicalization, witness lifting, UNSAT proof volume and all intermediate products.
+## C044 boundary
 
-If a local component, separator message or join exceeds its fixed polynomial capability, C044 returns
+C043 is a global theorem. It does not localize a superpolynomial global signed support.
+
+C044 is reserved for:
 
 ```text
-OPEN_LOCAL_SUPPORT
+POLYNOMIAL_LOCALIZATION_OF_SUPERPOLYNOMIAL_GLOBAL_INTERSECTION_SUPPORT
 ```
 
-rather than weakening the global C043 definition.
+A C044 message may contain a boundary affine relation, local signed family, coefficients, count semantics and replay trace. Every join and projection must charge maximum local intermediate support. Overflow returns `OPEN_LOCAL_SUPPORT`.
 
-The surviving C043 gate is therefore:
+C044 remains specification-only until C043 receives final review admission.
 
-```text
-COMPLETE_PROOF_CARRYING_GLOBAL_SIGNED_SUPPORT_COMPILER
-```
+## Claim boundary
 
-and, after that compiler is admitted, the broader route is:
-
-```text
-LOCAL_SIGNED_SUPPORT_VTREE_COMPOSITION_OR_STRICT_OPEN.
-```
+C043 covers only instances whose global maximum live signed support, coefficient volume, construction work and proof volume fit one fixed polynomial capability. Arbitrary CNF, unrestricted Horn-affine composition, local-vtree completeness and P versus NP remain open.
