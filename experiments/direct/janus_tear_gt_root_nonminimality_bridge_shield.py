@@ -72,10 +72,18 @@ def audit(n: int):
             for clause in key
         }
 
-        # Recover original-vertex membership of each quotient component from
-        # the component map exposed by any clause graph at this state.
+        # Recover original-vertex membership from the quotient partition.
         representative_graph = next(iter(graphs.values()))
-        vertex_component = tuple(int(value) for value in representative_graph["vertex_component"])
+        parts = tuple(
+            tuple(int(vertex) for vertex in part)
+            for part in representative_graph["parts"]
+        )
+        vertex_component_list = [-1] * n
+        for component_index, part in enumerate(parts):
+            for vertex in part:
+                vertex_component_list[vertex] = component_index
+        assert all(value >= 0 for value in vertex_component_list)
+        vertex_component = tuple(vertex_component_list)
         component_members = Counter(vertex_component)
 
         for clause in key:
