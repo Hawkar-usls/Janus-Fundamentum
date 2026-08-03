@@ -4,143 +4,251 @@
 
 ```text
 PURE_POST_UNIT_SAME_CUT_NONCREATION = FALSIFIED
-THREE_VERTEX_BIRTH_CENSUS = COMPLETE
-THREE_VERTEX_SAFE_SOURCE_BIRTH = ABSENT
-THREE_VERTEX_NONUNIT_BIRTH = ABSENT
-ARBITRARY_N_SAFE_SOURCE_EXCLUSION = OPEN
-GT_REACHABLE_T2A = OPEN
+UNIVERSAL_IMMEDIATE_UNIT_CONFLICT_PATTERN = FALSIFIED
+SAFE_SOURCE_BIRTH_EXCLUSION = FALSIFIED
+ONE_STEP_SINGLETON_QUOTIENT_CENSUS = COMPLETE_THROUGH_N4
+TWO_STEP_COMPOUND_COMPONENT_CENSUS = COMPLETE_AT_N4
+SPANNING_SPANNING_BIRTH = ABSENT_IN_ALL_CENSUSES
+CYCLE_SHIELD_COLLAPSE_ROUTE = ISOLATED
+ARBITRARY_N_CYCLE_SHIELD_ROUTE_CLASSIFICATION = FORMALIZING
+GT_REACHABLE_CYCLE_SHIELD_EXCLUSION = OPEN
 P_VS_NP = OPEN
 ```
 
 ## Purpose
 
 The exact GT traces through `GT_8` contain no double-bridge pair created by the
-post-unit phase.  That finite fact could have had two explanations:
+post-unit phase.  Successive abstract gates were used to determine how much of
+that fact follows from quotient geometry alone.
 
-1. a pure quotient-graph theorem saying that restriction/contraction never
-   creates a same-cut double bridge; or
-2. a stronger invariant carried by the clauses and reasons reachable in GT.
+Three increasingly strong pure statements have now been falsified:
 
-The first explanation is false.  A one-assignment exhaustive search on the
-smallest nontrivial quotient finds same-cut births.  Their form is nevertheless
-highly constrained.
+1. contraction never creates a same-cut double bridge;
+2. every abstract birth is an immediate complementary-unit conflict;
+3. two branch-safe source clauses cannot create a same-cut pair.
 
-## Search space
+The surviving structural boundary is narrower:
 
-On three quotient vertices there are three comparison variables and
+> every observed birth from two branch-safe sources uses at least one
+> `DIRECTED_CYCLE` source whose cycle shield collapses under the contraction.
+
+No `COMPONENT_SPANNING + COMPONENT_SPANNING` birth has been found.
+
+## Gate A — one assignment on three singleton components
+
+The complete clause universe has
 
 ```text
 3^3 - 1 = 26
 ```
 
-nonempty non-tautological clauses when each variable is absent, positive, or
-negative.
-
-The checker exhausts:
+clauses.  The exhaustive result is:
 
 ```text
-every one-comparison assignment;
-every surviving ordered clause pair;
-every complementary pivot not fixed by the assignment.
+same-cut births                              36
+opposite-unit conflicts                      36
+non-unit births                               0
+births with two branch-safe sources           0
+births with an unsafe source                 36
 ```
 
-A birth is counted when the residual clauses form a same-cut complementary
-double-bridge pair after the assignment, but their source clauses did not form
-such a pair before it.
-
-No GT reachability, frozen-pass provenance, or unit-reason restriction is
-imposed.
-
-## Complete three-vertex result
+Source classes:
 
 ```text
-same-cut birth occurrences                    36
-opposite-unit conflict births                 36
-non-unit births                                0
-births with two branch-safe sources             0
-births with at least one unsafe source         36
+COMPONENT_SPANNING + UNSAFE_ACYCLIC_LOW_RANK  24
+UNSAFE + UNSAFE                               12
 ```
 
-Source-class pairs are exactly:
+Every residual pair is `(p),(-p)`.
+
+This falsifies pure post-unit noncreation but initially leaves both the
+immediate-conflict and safe-source candidates alive.
+
+## Gate B — one assignment on four singleton components
+
+The complete clause universe has
 
 ```text
-COMPONENT_SPANNING + UNSAFE_ACYCLIC_LOW_RANK   24
-UNSAFE_ACYCLIC_LOW_RANK + UNSAFE_ACYCLIC_LOW_RANK 12
+3^6 - 1 = 728
 ```
 
-Every residual pair has widths
+clauses.  The optimized exhaustive result is:
 
 ```text
-(1,1)
+same-cut births                         6,336
+opposite-unit conflicts                     0
+non-unit births                          6,336
+births with two branch-safe sources          0
+births with an unsafe source              6,336
 ```
 
-and roles
+Source classes:
 
 ```text
-BOTH_ENDPOINTS_SINGLETON / BOTH_ENDPOINTS_SINGLETON.
+COMPONENT_SPANNING + UNSAFE_ACYCLIC_LOW_RANK  4,608
+UNSAFE + UNSAFE                               1,728
 ```
 
-Each residual is therefore the immediate contradictory pair
+Residual widths are:
 
 ```text
-(p), (-p).
+(1,2)  3,456
+(2,2)  2,880
 ```
 
-The six orientations of the assigned comparison each produce six birth
-occurrences.
+This falsifies the universal immediate-conflict pattern.  Safe-source exclusion
+still appears true when the pre-assignment quotient consists only of singleton
+components.
 
-## What is falsified
+## Gate C — two assignments on four original vertices
 
-The following pure statement is false:
-
-> Restriction and quotient contraction cannot create a same-cut
-> double-bridge pair.
-
-Even the three-vertex quotient creates 36 such births.
-
-## What survives
-
-The minimum abstract births satisfy two simultaneous properties:
-
-1. at least one source clause is already
-   `UNSAFE_ACYCLIC_LOW_RANK` before the assignment;
-2. the born pair is an immediate complementary-unit conflict and cannot survive
-   unit closure.
-
-This motivates a sharper candidate.
-
-## Candidate T2a theorem
-
-### Safe-Source Post-Unit Birth Exclusion
-
-Let every source clause acted on by a post-unit assignment lie in the
-branch-safe dichotomy
+The first assignment creates a compound component, giving the pre-step shape
 
 ```text
-DIRECTED_CYCLE
-OR COMPONENT_SPANNING
-OR INTERNAL_ONLY.
+(1,1,2).
 ```
 
-Then post-unit restriction/contraction cannot create a surviving same-cut
-complementary double-bridge pair.
+The second gate exhausts all 120 acyclic assignments joining two distinct
+current components.  The post shapes are
 
-A stronger possible dichotomy is:
+```text
+(1,3)  96 transitions
+(2,2)  24 transitions.
+```
 
-> Every same-cut birth either uses an unsafe source clause or is an immediate
-> complementary-unit contradiction.
+The complete result is:
 
-Neither statement is proved for arbitrary quotient size.
+```text
+same-cut births                         6,048
+opposite-unit conflicts                 1,152
+non-unit births                          4,896
+births with two branch-safe sources      2,592
+both-safe non-unit births                2,592
+births with an unsafe source             3,456
+```
 
-## Relation to the GT trace
+Source-class pairs:
 
-The exact GT pre-frontier trace already certifies:
+```text
+COMPONENT_SPANNING + DIRECTED_CYCLE       2,304
+DIRECTED_CYCLE + DIRECTED_CYCLE             288
+COMPONENT_SPANNING + UNSAFE               2,496
+DIRECTED_CYCLE + UNSAFE                     576
+UNSAFE + UNSAFE                             384
+```
+
+Thus every one of the 2,592 both-safe births contains a directed-cycle source.
+There are no observed
+
+```text
+COMPONENT_SPANNING + COMPONENT_SPANNING
+```
+
+births.
+
+## Minimum both-safe witness
+
+Use the standard `GT_4` comparison numbering
+
+```text
+1=(0,1), 2=(0,2), 3=(0,3),
+4=(1,2), 5=(1,3), 6=(2,3).
+```
+
+Take the pre-assignment
+
+```text
+x_03 = false,
+```
+
+so the current components are
+
+```text
+{0,3}, {1}, {2}.
+```
+
+The two source clauses are
+
+```text
+C = (-5, 6)
+D = (-1, -5, -6).
+```
+
+Their pre-step classes are
+
+```text
+C = COMPONENT_SPANNING
+D = DIRECTED_CYCLE.
+```
+
+Now assign
+
+```text
+x_13 = true.
+```
+
+The components become
+
+```text
+{0,1,3}, {2}.
+```
+
+The false literal `-5` is deleted, and the residuals are
+
+```text
+C' = (6)
+D' = (-1, -6).
+```
+
+Literal `-1` is internal in the merged component.  Externally the residuals are
+the complementary bridge pair `6,-6` with the same two-component cut.  The
+protecting directed two-cycle of `D` has collapsed under the contraction.
+
+This is a non-unit same-cut birth from two branch-safe sources.  It falsifies
+Safe-Source Post-Unit Birth Exclusion.
+
+## Surviving pure graph route
+
+The censuses support the following sharper classification.
+
+### Cycle-Shield Collapse Route
+
+If a same-cut pair is born under a quotient contraction and both source clauses
+are branch-safe, then at least one source must be `DIRECTED_CYCLE`, and every
+directed-cycle protection responsible for its safe classification must fail to
+survive the contraction.
+
+The spanning/spanning subcase is expected to be impossible for a pure graph
+reason:
+
+1. contraction preserves connectedness;
+2. a residual pivot bridge reflects to a source pivot bridge;
+3. the contracted components must lie on the same side of that source bridge
+   cut, otherwise identification reconnects the deletion graph;
+4. equal residual cuts then lift uniquely to equal source cuts.
+
+Therefore two component-spanning sources cannot create a new same-cut pair;
+they can only transmit one already present.
+
+`INTERNAL_ONLY` sources cannot produce a component-spanning residual because
+contraction creates no new external edge.
+
+The only remaining branch-safe source class is `DIRECTED_CYCLE`.  A birth can
+occur only when the cycle shield is internalized or broken by deletion of the
+falsified unit literal.
+
+The arbitrary-quotient proof of this route classification is being separated
+from the finite census.  It does not itself exclude the route in GT.
+
+## Relation to exact GT traces
+
+The exact pre-frontier trace through `GT_8` gives:
 
 ```text
 post-unit-created double-bridge pairs  0
 ```
 
-and the only raw pair destroyed before `P` is the GT_5 fresh/fresh pair
+The only raw pair destroyed before `P` is the fresh/fresh GT_5 conflict
 
 ```text
 (10), (-10),
@@ -148,45 +256,46 @@ and the only raw pair destroyed before `P` is the GT_5 fresh/fresh pair
 
 which closes as `POST_UNIT_CONTRADICTION`.
 
-The abstract census explains why a proof of T2a cannot rely on contraction
-alone.  It must use at least one of:
+The abstract witnesses prove that these finite GT facts cannot be derived from
+contraction, source safety, or immediate-conflict closure alone.  An
+arbitrary-`n` proof of T2a must exclude reachable cycle-shield collapse using
+GT-specific information such as:
 
 ```text
-source safety;
-GT reachability;
 unit-reason provenance;
+transitive-cycle ancestry;
 frozen fresh-side provenance;
-immediate contradiction closure.
+lexicographic branch order;
+terminal-before-key admission.
 ```
 
-## Next falsification gate
+## Revised T2a target
 
-Repeat the optimized birth census on four quotient vertices.
+### GT Post-Unit Cycle-Shield Exclusion
 
-The decisive outcomes are:
+For every reachable pre-frontier post-unit step:
 
-```text
-BOTH_SAFE_NONUNIT_BIRTH:
-  falsifies the safe-source candidate;
+> no directed-cycle clause participating in a potential same-cut birth can
+> lose its last protecting directed cycle while the complementary residual
+> bridge pair survives into `P`.
 
-NONUNIT_BIRTH_WITH_UNSAFE_SOURCE:
-  preserves safe-source exclusion but falsifies the stronger universal
-  immediate-conflict pattern;
+Together with the pure spanning/spanning reflection theorem, this would prove
+post-unit same-cut noncreation on reachable GT states.
 
-ONLY_UNSAFE_SOURCE_OPPOSITE_UNITS:
-  supports both candidate refinements but does not prove them.
-```
-
-## Mechanical artifact
+## Mechanical artifacts
 
 ```text
 experiments/direct/janus_tear_abstract_post_unit_same_cut_birth.py
+experiments/direct/janus_tear_abstract_post_unit_same_cut_birth_n4.py
+experiments/direct/janus_tear_abstract_post_unit_same_cut_birth_two_step_n4.py
 .github/workflows/validate-c024-abstract-post-unit-same-cut-birth.yml
+.github/workflows/validate-c024-abstract-post-unit-same-cut-birth-n4.yml
+.github/workflows/validate-c024-abstract-post-unit-same-cut-birth-two-step-n4.yml
 ```
 
 ## Claim boundary
 
-This is an exhaustive theorem only for one assigned comparison on a
-three-vertex abstract quotient.  It is not an arbitrary-`n` theorem and is not a
-GT reachability theorem.  T2a, the complete local induction, the global cache
+The listed counts are exhaustive for their stated finite abstract spaces.  The
+cycle-shield route classification and its GT exclusion are separate arbitrary-
+`n` obligations.  T2a, T2b, the complete temporal induction, the global cache
 lower bound, and `P` versus `NP` remain open.
