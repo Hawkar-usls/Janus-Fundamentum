@@ -1,0 +1,34 @@
+name: Validate C041 Affine Coordinate Identity
+
+on:
+  push:
+    paths:
+      - "experiments/direct/janus_c041_affine_coordinate_3sat_identity.py"
+      - "docs/C041_AFFINE_COORDINATE_3SAT_IDENTITY.md"
+      - "proposals/C041-JANUS-AFFINE-COORDINATE-3SAT-IDENTITY.json"
+      - "registry/c041-source-map.json"
+      - "docs/ACTIVE_PROOF_ROUTE_MATRIX.md"
+      - ".github/workflows/validate-c041-affine-coordinate-identity.yml"
+  pull_request:
+    paths:
+      - "experiments/direct/janus_c041_affine_coordinate_3sat_identity.py"
+      - "docs/C041_AFFINE_COORDINATE_3SAT_IDENTITY.md"
+      - "proposals/C041-JANUS-AFFINE-COORDINATE-3SAT-IDENTITY.json"
+      - "registry/c041-source-map.json"
+      - "docs/ACTIVE_PROOF_ROUTE_MATRIX.md"
+      - ".github/workflows/validate-c041-affine-coordinate-identity.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  affine-coordinate-identity:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python experiments/direct/janus_c041_affine_coordinate_3sat_identity.py
+      - run: python -m json.tool proposals/C041-JANUS-AFFINE-COORDINATE-3SAT-IDENTITY.json >/dev/null
+      - run: python -m json.tool registry/c041-source-map.json >/dev/null

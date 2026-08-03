@@ -16,17 +16,18 @@ P_VS_NP=OPEN
 | C029 | Occurrence-splitting minor | Connected equality splitting preserves the source incidence graph as a minor | Variable copying plus equalities lowers incidence width | `NON_MINOR_PRESERVING_SEMANTIC_COMPRESSION` |
 | C032 | PS-width alignment | JANUS cut signatures are PS-width signatures; high treewidth may have PS-width 2 | Inventing a renamed enumerative cut parameter | `POLYNOMIAL_PS_DECOMPOSITION_OR_SYMBOLIC_SIGNATURE_COMPRESSION` |
 | C033 | Tractable portfolio | Exact Horn, dual-Horn and beta-acyclic solving with witnesses and strict `OPEN` | Every tractable regime needs small explicit PS tables | `PORTFOLIO_SELECTION_WITH_SYMBOLIC_MESSAGES` |
-| C034 | Affine and bounded heterogeneous composition | Replayable GF(2) certificates and exact `O(2^k poly(L))` composition for raw shared boundary `k` | Tractable modules imply unrestricted tractable mixture | `PROOF_CARRYING_CROSS_CLASS_INTERFACE_COMPRESSION` |
-| C035 | Certified interface congruence | Equal replayed messages give sound merges; affine RREF and absorbing proofs compress states | Diversity in one product language is intrinsic hardness | `JOINT_DECOMPOSITION_LANGUAGE_AND_PROOF_SELECTION` |
+| C034 | Affine and bounded heterogeneous composition | Replayable GF(2) certificates and exact `O(2^k poly(L))` composition | Tractable modules imply unrestricted tractable mixture | `PROOF_CARRYING_CROSS_CLASS_INTERFACE_COMPRESSION` |
+| C035 | Certified interface congruence | Equal replayed messages give sound merges | Diversity in one product language is intrinsic hardness | `JOINT_DECOMPOSITION_LANGUAGE_AND_PROOF_SELECTION` |
 | C036 | Same-language partition refinement | Complete polynomial Horn and affine separator extraction | Missing separator permits merging | `CROSS_LANGUAGE_SYMBOLIC_SEPARATOR_DISCOVERY` |
 | C036.1 | Horn-affine unary negotiation | Complete affine-to-Horn directed inclusion plus replayable literal exchange | Propagation fixpoint certifies compatibility | `STRONGER_CROSS_LANGUAGE_FACT_ALGEBRA` |
 | C036.2 | Proof-carrying OPEN vault | Exact capability-scoped reuse of replayed refusal traces | Similarity or reduction transfers `OPEN` | `SAFE_REUSE_ONLY` |
 | C036.3 | Horn equality aliases | Complete pairwise Horn equality extraction compressed to a proof forest | Pairwise facts decide unrestricted Horn-affine mixtures | `HIGHER_ARITY_OR_NONENUMERATIVE_COMPOSITION` |
-| C037 | Explicit residual OBDD alignment | Exact continuation quotient, distinguishing suffixes, SAT witness and UNSAT DAG after graph generation | Refinement alone avoids state explosion | `POLYNOMIAL_ORDER_AND_REACHABLE_QUOTIENT_CONSTRUCTION` |
-| C038 | Structured vtree factor alignment | Exact cut communication rows and replayable separators on a supplied/discovered candidate vtree | Recursive structure automatically removes exponential interfaces | `POLYNOMIAL_VTREE_DISCOVERY_AND_SYMBOLIC_FACTOR_CONSTRUCTION` |
-| C039 | Fixed-k recursive separator compiler | One assignment-independent vtree and proof-carrying structured DAG in `n^O(k)` for fixed `k` | Graph separators characterize all tractable instances | `PORTFOLIO_GUIDED_SEMANTIC_VTREE_DISCOVERY` |
-| C039.1 | Symbolic affine factor compiler | Polynomial affine join/project/RREF messages on any charged vtree | Explicit continuation rows are unavoidable for affine cuts | `CROSS_LANGUAGE_SYMBOLIC_PROJECTION_CLOSED_UNDER_JOIN` |
-| C040 | Low-affine-dimension Horn composer | Exact Horn/dual-Horn plus affine composition in `O(2^d poly(L))`, where `d` is projected affine interface dimension | Raw shared-variable count is the only safe composition parameter; unary/pairwise facts are complete | `CROSS_LANGUAGE_COMPOSITION_BEYOND_LOW_AFFINE_INTERFACE_DIMENSION` |
+| C037 | Explicit residual OBDD alignment | Exact continuation quotient after graph generation | Refinement alone avoids state explosion | `POLYNOMIAL_ORDER_AND_REACHABLE_QUOTIENT_CONSTRUCTION` |
+| C038 | Structured vtree factor alignment | Exact cut communication rows and replayable separators | Recursive structure automatically removes exponential interfaces | `POLYNOMIAL_VTREE_DISCOVERY_AND_SYMBOLIC_FACTOR_CONSTRUCTION` |
+| C039 | Fixed-k recursive separator compiler | One assignment-independent vtree and proof-carrying DAG in `n^O(k)` | Graph separators characterize all tractable instances | `PORTFOLIO_GUIDED_SEMANTIC_VTREE_DISCOVERY` |
+| C039.1 | Symbolic affine factor compiler | Polynomial affine join/project/RREF messages | Explicit continuation rows are unavoidable for affine cuts | `CROSS_LANGUAGE_SYMBOLIC_PROJECTION_CLOSED_UNDER_JOIN` |
+| C039.2 | Low-affine-dimension Horn composer | Exact Horn/dual-Horn plus affine composition in `O(2^d poly(L))` | Raw shared-variable count is the only safe parameter | `CROSS_LANGUAGE_COMPOSITION_BEYOND_LOW_AFFINE_INTERFACE_DIMENSION` |
+| C041 | Affine-coordinate 3-SAT identity | C023 followed by canonical affine coordinates reproduces the source 3-CNF syntactically and preserves supports | Coordinate substitution alone simplifies the hard image | `POLYNOMIAL_DISCOVERY_OF_TRACTABLE_COORDINATE_FACTOR_STRUCTURE_OR_STRICT_OPEN` |
 | C031 | Proof-carrying SAT refuter | Formal lower-bound transfer interface | Free direct-sum amplification | `NO_SHARING_REFUTER_AMPLIFICATION` |
 
 ## Constructive P=NP track
@@ -40,32 +41,24 @@ tractable local languages
 -> fixed-k structured compilation
 -> pure-affine symbolic factor compilation
 -> semantic-dimension cross-language composition
+-> proof-carrying coordinate factoring with certified tractable structure
 -> broader join-closed symbolic projection
 -> SAT witness + independently checkable UNSAT evidence
 -> universal polynomial SAT algorithm
 ```
 
-## C040 bridge
+## C041 coordinate identity obstruction
 
-For a Horn or dual-Horn module `H` and affine module `A`, let:
-
-```text
-S = Vars(H) intersect Vars(A)
-R = project_S(Models(A))
-d = dimension(R).
-```
-
-C040 computes `R` by provenance-carrying Gaussian elimination and enumerates its `2^d` basis states. Each state is checked by native Horn closure and affine extension. For a fixed capability exponent `q`, the branch closes only when:
+Under the C023 `{NAND3,NEQ}` embedding, use the canonical affine coordinates
 
 ```text
-2^d <= L^q.
+x_i = lambda_i
+c_i = 1 XOR lambda_i.
 ```
 
-This strictly improves C034 on large raw interfaces with low affine dimension. An 80-variable dense dual-Horn clique-primal instance joined to one equality class has `d=1` and is solved with at most two semantic states.
+Every negative Horn literal over a falsity indicator translates back to the original source literal. Hence each Horn NAND3 clause becomes exactly its source 3-CNF clause, preserving polarity, support, primal adjacency and satisfiability. Affine-coordinate substitution is therefore only a change of notation on the hard image.
 
-The C023 `{NAND3,NEQ}` image has projected affine dimension equal to the number of source variables and returns `OPEN_DIMENSION_BUDGET`.
-
-A separate Horn/affine obstruction has no unary or pairwise Horn restrictions but is UNSAT over a one-dimensional affine line. Therefore C036.1/C036.3 fact exchange is useful but not complete; complete semantic states can be stronger than bounded-arity facts.
+A valid C041 selector must additionally discover a replayable tractable property of the coordinate factors—bounded coordinate interaction width, nested supports, an acyclic product, a decomposable symbolic cover, or another certified structure—or return `OPEN` within a fixed polynomial budget.
 
 ## Canonical cycle allocation
 
@@ -78,46 +71,21 @@ C037    explicit residual OBDD alignment
 C038    exact structured-vtree factor alignment
 C039    fixed-k recursive separator compiler
 C039.1  pure-affine symbolic vtree factor compiler
-C040    low-affine-dimension Horn/dual-Horn composer
+C039.2  low-affine-dimension Horn/dual-Horn composer
+C040    portfolio-guided semantic-vtree discovery (reserved)
+C041    affine-coordinate 3-SAT identity obstruction
 ```
-
-Legacy branch and file paths may retain older identifiers solely for pre-admission replayability. PR titles, this route matrix, and new machine-readable artifacts define the canonical allocation.
 
 ## Converged constructive bottleneck
 
-The surviving universal obligation is:
-
 ```text
-construct, in polynomial total work, a decomposition and a join-closed proof-carrying message algebra whose semantic state volume is polynomial on every CNF, with SAT witness recovery and independently checkable UNSAT evidence.
+Construct, in polynomial total work, a decomposition and join-closed proof-carrying message algebra whose semantic state volume is polynomial on every CNF, with SAT witness recovery and independently checkable UNSAT evidence.
 ```
 
-C040 closes one real cross-language region, but only when the affine interface has polynomially enumerable dimension under one fixed capability. The next advance must cover high-dimensional interfaces without hiding exhaustive search, or prove a stronger symbolic projection theorem for a larger language.
+C041 proves that merely choosing affine coordinates cannot satisfy this obligation: the C023 hard image becomes arbitrary 3-CNF over the free coordinates with unchanged clause supports.
 
 ## Non-duplication and honesty rules
 
-Before admitting a new hypothesis compare against:
+Compare every candidate against PS-width, OBDD/SDD/d-SDNNF/TDD, backdoors, treewidth, Horn/dual-Horn closure, GF(2) elimination, beta-acyclic elimination, DPLL(T)/DPLL(XOR), existential forgetting, intermediate compilation size, and certificate discovery.
 
-```text
-PS-width and communication rows
-OBDD / SDD / d-SDNNF / TDD
-backdoor size and backdoor depth
-treewidth / branch decompositions
-Horn and dual-Horn closure
-GF(2) elimination and affine subspace dimension
-beta-acyclic elimination
-DPLL(T) / DPLL(XOR) cooperation
-existential forgetting and projection closure
-intermediate knowledge-compilation size
-certificate discovery, not only verification
-```
-
-Never promote:
-
-```text
-a supplied decomposition as free discovery
-an input-dependent exponent as polynomial
-finite tests as a universal theorem
-OPEN as UNSAT or intrinsic hardness
-one representation lower bound as P!=NP
-semantic equivalence decided by a hidden SAT/coNP oracle
-```
+Never promote a supplied decomposition as free discovery, an input-dependent exponent as polynomial, finite tests as a theorem, `OPEN` as hardness, one representation lower bound as `P!=NP`, or semantic equivalence decided by a hidden SAT/coNP oracle.
