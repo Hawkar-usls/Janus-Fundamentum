@@ -1,33 +1,16 @@
 {
   "proposal_id": "C024-TEMPORAL-SAME-CUT-ELIGIBILITY",
   "parent_proposal": "C024-SPANNING-CYCLE-RESOLUTION-CLOSURE",
-  "status": "T1_FROZEN_FRESH_SIDE_BARRIER_PROVED_T2_HANDOFF_OPEN",
+  "status": "T1_AND_T2A_PROVED_T2B_BRANCH_HANDOFF_OPEN",
   "created_utc": "2026-08-03T06:00:00Z",
-  "updated_utc": "2026-08-03T06:02:00Z",
-  "target": "Replace raw same-cut noncreation with a temporal induction proving that no same-cut double-bridge pair becomes co-eligible in a frozen exact key.",
+  "updated_utc": "2026-08-03T06:45:00Z",
+  "target": "Prove that no same-cut double-bridge pair becomes co-eligible in a frozen exact key by a temporal K-to-R-to-P-to-K-prime induction.",
   "stage_model": {
     "K": "exact entry key after pre-unit closure",
     "R": "frozen one-pass Resolution output",
     "P": "post-unit residual",
     "K_prime": "reached child exact key after branch restriction and child pre-units"
   },
-  "falsified_hypotheses": [
-    {
-      "name": "Raw same-cut noncreation",
-      "status": "FALSIFIED",
-      "reason": "Two same-cut pairs occur in raw frozen-pass outputs through GT_8."
-    },
-    {
-      "name": "553 post-unit pair births",
-      "status": "FALSIFIED",
-      "reason": "The extra raw pairs are local resolvents. Post-units create zero double-bridge pairs on the finite frontier."
-    },
-    {
-      "name": "Post-unit vacuity on every pair-bearing raw output",
-      "status": "FALSIFIED",
-      "reason": "One GT_5 fresh/fresh complementary-unit pair closes as POST_UNIT_CONTRADICTION before a post-result exists."
-    }
-  ],
   "finite_stage_census": {
     "orders": [4, 5, 6, 7, 8],
     "pre_frontier_states": 615,
@@ -56,6 +39,38 @@
       "same_cut_eligible_pairs": 0
     }
   },
+  "falsified_hypotheses": [
+    {
+      "name": "Raw same-cut noncreation",
+      "status": "FALSIFIED",
+      "reason": "Two same-cut pairs occur in raw frozen-pass outputs through GT_8."
+    },
+    {
+      "name": "553 post-unit pair births",
+      "status": "FALSIFIED",
+      "reason": "The extra raw pairs are local Resolution outputs; post-units create zero pairs on the finite GT frontier."
+    },
+    {
+      "name": "Universal post-unit vacuity",
+      "status": "FALSIFIED",
+      "reason": "A GT_5 fresh/fresh complementary-unit pair closes as POST_UNIT_CONTRADICTION before P."
+    },
+    {
+      "name": "Pure contraction same-cut noncreation",
+      "status": "FALSIFIED",
+      "reason": "The complete three-vertex abstract gate finds 36 same-cut births."
+    },
+    {
+      "name": "All abstract post-unit births are opposite-unit conflicts",
+      "status": "FALSIFIED",
+      "reason": "The complete one-step four-vertex gate finds 6336 non-unit births."
+    },
+    {
+      "name": "Two branch-safe sources cannot create a same-cut pair",
+      "status": "FALSIFIED",
+      "reason": "The complete two-step four-vertex gate finds 2592 both-safe non-unit births through directed-cycle shield collapse."
+    }
+  ],
   "raw_same_cut_transients": [
     {
       "name": "GT_4 mixed entry/fresh transient",
@@ -69,8 +84,8 @@
       "roles": ["HEAD_SINGLETON", "TAIL_SINGLETON"],
       "lifetime": "survives to P",
       "extinction": [
-        "one reached child is terminal while both residual clauses remain",
-        "the other reached child removes the fresh right clause by child pre-unit closure"
+        "one child terminates before exact-key admission while both residual clauses remain",
+        "one child removes the fresh right clause by child pre-unit closure"
       ]
     },
     {
@@ -90,9 +105,9 @@
   "proved_theorems": [
     {
       "name": "Frozen Fresh-Side Barrier",
+      "obligation": "T1",
       "status": "PROVED_ARBITRARY_N",
-      "statement": "If an exact entry key K contains no same-cut pair and R=K union F is the frozen-pass output, every same-cut pair in R contains at least one clause from F and therefore cannot be co-eligible during the pass which created it.",
-      "proof_type": "set-theoretic plus frozen-parent semantics",
+      "statement": "If K contains no same-cut pair and R=K union F is the frozen-pass output, every same-cut pair first appearing in R contains a fresh side and cannot be co-eligible in that pass.",
       "implementation_conformance": {
         "states": 615,
         "resolution_events": 14509,
@@ -102,23 +117,50 @@
           "two_fresh_sides": 1
         }
       }
+    },
+    {
+      "name": "Post-Unit Cycle-Shield Birth Route Classification",
+      "status": "PROVED_ARBITRARY_QUOTIENT",
+      "statement": "A newly born same-cut pair from two branch-safe sources requires at least one DIRECTED_CYCLE source whose final cycle shield collapses; spanning-plus-spanning births are impossible."
+    },
+    {
+      "name": "Post-Unit Total-Component Collapse Barrier",
+      "obligation": "T2a",
+      "status": "PROVED_ARBITRARY_N_CONDITIONAL_ON_EXACT_KEY_INVARIANT",
+      "statement": "Before the first component-merging post-unit, all earlier units are internal and preserve external graphs. A branch-safe external unit can exist only with two quotient components, so the first merge collapses the quotient to one component and no same-cut pair survives into P.",
+      "finite_support": {
+        "post_unit_events": 33,
+        "component_merging_events": 10,
+        "internal_or_redundant_events": 23,
+        "total_component_collapses": 10,
+        "non_total_component_merges": 0,
+        "cycle_shield_collapses": 385,
+        "collapsed_residuals_with_bridge": 0,
+        "new_same_cut_births": 0
+      },
+      "reason_profile": {
+        "events": 10,
+        "candidate_count": "one in every event",
+        "origin": "LOCAL_RESOLVENT in every event",
+        "reason_width": 1,
+        "parent_widths": [2, 2],
+        "parent_safety": ["COMPONENT_SPANNING", "DIRECTED_CYCLE"],
+        "inference_pivot": "EXTERNAL and different from unit variable",
+        "unit_position": 1,
+        "component_transition": "2 to 1"
+      }
     }
   ],
   "remaining_local_obligations": [
     {
-      "name": "T2a Post-Unit Extinction/Noncreation",
-      "status": "OPEN_ARBITRARY_N",
-      "statement": "Post-unit closure cannot create a same-cut pair that survives into P; complementary-unit transients close immediately."
-    },
-    {
       "name": "T2b Branch Handoff Extinction",
       "status": "OPEN_ARBITRARY_N",
-      "statement": "Every same-cut transient surviving into P is removed, becomes structurally safe, or reaches a terminal child before K'."
+      "statement": "Every same-cut transient surviving into P is removed, becomes structurally safe, or reaches a terminal child before K-prime."
     },
     {
-      "name": "T3 Temporal Induction",
-      "status": "PENDING_T2A_T2B",
-      "statement": "Root absence plus T1, T2a, and T2b preserves same-cut absence in all reached exact keys."
+      "name": "T3 Temporal Exact-Key Induction",
+      "status": "PENDING_T2B_ONLY",
+      "statement": "T0 root absence plus proved T1 and T2a plus T2b preserve same-cut absence in all reached exact keys."
     }
   ],
   "global_gates": [
@@ -134,12 +176,15 @@
   "artifacts": [
     "proof_attempts/C024/GT_TEMPORAL_DOUBLE_BRIDGE_SAFETY.md",
     "proof_attempts/C024/GT_FROZEN_FRESH_SIDE_BARRIER.md",
-    "experiments/direct/janus_tear_gt_resolution_output_double_bridge_creation.py",
-    "experiments/direct/janus_tear_gt_post_unit_double_bridge_creation.py",
+    "proof_attempts/C024/GT_POST_UNIT_CYCLE_SHIELD_ROUTE_CLASSIFICATION.md",
+    "proof_attempts/C024/GT_POST_UNIT_TOTAL_COMPONENT_COLLAPSE_BARRIER.md",
     "experiments/direct/janus_tear_gt_same_cut_transient_elimination.py",
     "experiments/direct/janus_tear_gt_frozen_fresh_side_barrier.py",
-    ".github/workflows/validate-c024-same-cut-transient-elimination.yml",
-    ".github/workflows/validate-c024-frozen-fresh-side-barrier.yml"
+    "experiments/direct/janus_tear_gt_post_unit_cycle_shield_collapse.py",
+    "experiments/direct/janus_tear_gt_total_component_collapse_reason_profile.py",
+    "experiments/direct/janus_tear_abstract_post_unit_same_cut_birth.py",
+    "experiments/direct/janus_tear_abstract_post_unit_same_cut_birth_n4.py",
+    "experiments/direct/janus_tear_abstract_post_unit_same_cut_birth_two_step_n4.py"
   ],
-  "claim_boundary": "T1 is proved for arbitrary n under the exact-key induction hypothesis and frozen parent semantics. T2a, T2b, the global cache lower bound, and P versus NP remain open."
+  "claim_boundary": "T1 and T2a are proved under the stated exact-key induction hypothesis. T2b, the completed local induction, the global cache lower bound, and P versus NP remain open."
 }
