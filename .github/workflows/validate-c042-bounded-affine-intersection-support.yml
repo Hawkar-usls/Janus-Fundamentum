@@ -6,6 +6,7 @@ on:
       - 'experiments/direct/janus_c042_bounded_affine_intersection_support*.py'
       - 'docs/C042_BOUNDED_AFFINE_INTERSECTION_SUPPORT.md'
       - 'proposals/C042-JANUS-BOUNDED-AFFINE-INTERSECTION-SUPPORT.json'
+      - 'proposals/C042-JANUS-BOUNDED-AFFINE-INTERSECTION-SUPPORT.frozen.json'
       - 'registry/c042-source-map.json'
       - 'docs/ACTIVE_PROOF_ROUTE_MATRIX.md'
       - '.github/workflows/validate-c042-bounded-affine-intersection-support.yml'
@@ -27,7 +28,11 @@ jobs:
         run: |
           python experiments/direct/janus_c042_bounded_affine_intersection_support.py --self-test --output /tmp/c042-frozen.json
           cat /tmp/c042-frozen.json
+      - name: Enforce frozen deterministic audit
+        run: |
+          cmp /tmp/c042-frozen.json proposals/C042-JANUS-BOUNDED-AFFINE-INTERSECTION-SUPPORT.frozen.json
       - name: Validate machine-readable files
         run: |
           python -m json.tool proposals/C042-JANUS-BOUNDED-AFFINE-INTERSECTION-SUPPORT.json >/dev/null
+          python -m json.tool proposals/C042-JANUS-BOUNDED-AFFINE-INTERSECTION-SUPPORT.frozen.json >/dev/null
           python -m json.tool registry/c042-source-map.json >/dev/null
