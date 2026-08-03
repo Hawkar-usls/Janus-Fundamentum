@@ -1,9 +1,9 @@
 {
   "proposal_id": "C024-TEMPORAL-SAME-CUT-ELIGIBILITY",
   "parent_proposal": "C024-SPANNING-CYCLE-RESOLUTION-CLOSURE",
-  "status": "T1_T2A_BRANCH_ROUTES_AND_TAIL_WING_PROVED_ROOT_AND_NONROOT_REACHABILITY_OPEN",
+  "status": "T1_T2A_BRANCH_ROUTES_TAIL_WING_AND_ROOT_GRAPH_IMPLICATIONS_PROVED_SELECTOR_AND_NONROOT_REACHABILITY_OPEN",
   "created_utc": "2026-08-03T06:00:00Z",
-  "updated_utc": "2026-08-03T16:10:00Z",
+  "updated_utc": "2026-08-03T16:30:00Z",
   "target": "Prove that no same-cut double-bridge pair becomes co-eligible in a frozen exact key by a temporal K-to-R-to-P-to-B-to-K-prime induction.",
   "stage_model": {
     "K": "exact entry key after pre-unit closure",
@@ -64,14 +64,55 @@
       "DISJOINT": 1
     }
   },
-  "root_only_extension_gt4_gt12": {
-    "unshielded_local_occurrences": 62,
-    "endpoint_selected": 49,
-    "disjoint_selected": 13,
-    "canonically_shielded_descendants": 40,
-    "unsafe_child_descendants": 0,
-    "disjoint_unsafe_descendants": 0,
-    "first_disjoint_order": 4
+  "root_selected_template_cover_gt4_gt12": {
+    "occurrences": 62,
+    "templates": {
+      "CROSS_CUT": {
+        "occurrences": 13,
+        "selected_literal": "ABSENT",
+        "false_fate": "SPANNING_NONBRIDGE",
+        "true_fate": "SPANNING_NONBRIDGE"
+      },
+      "INTERNAL_HEAD": {
+        "occurrences": 40,
+        "selected_literal": "PRESENT_NEG",
+        "false_fate": "CANONICALLY_SHIELDED",
+        "true_fate": "CLAUSE_EXTINCT"
+      },
+      "INTERNAL_TAIL": {
+        "occurrences": 3,
+        "selected_literal": "PRESENT_POS",
+        "false_fate": "TAIL_SINGLETON_SAFE",
+        "true_fate": "CLAUSE_EXTINCT"
+      },
+      "PIVOT": {
+        "occurrences": 6,
+        "selected_literal": "PRESENT_NEG",
+        "false_fate": "CLAUSE_EXTINCT",
+        "true_fate": "CLAUSE_EXTINCT"
+      }
+    },
+    "unclassified_selected_routes": 0,
+    "unsafe_selected_descendants": 0
+  },
+  "root_selector_necessity_gt4_gt12": {
+    "occurrences": 62,
+    "all_variable_polarity_trials": 6960,
+    "unsafe_unshielded_trials": 3404,
+    "unsafe_selected_variable_trials": 0,
+    "unsafe_nonselected_variable_trials": 3404,
+    "unsafe_trials_by_order": {
+      "4": 12,
+      "5": 14,
+      "6": 22,
+      "7": 54,
+      "8": 130,
+      "9": 210,
+      "10": 322,
+      "11": 718,
+      "12": 1410
+    },
+    "conclusion": "selector-independent root safety is false; deterministic selected-template reachability is essential"
   },
   "nonroot_two_node_tail_wing_gt4_gt8": {
     "occurrences": 3,
@@ -113,6 +154,10 @@
     {
       "name": "Every safe root branch must touch a bad endpoint",
       "reason": "Thirteen disjoint root selections occur through GT_12; all destroy bridgehood rather than producing unsafe descendants."
+    },
+    {
+      "name": "Root safety is selector-independent",
+      "reason": "3404 of 6960 hypothetical all-variable polarity trials are unsafe, while the actual selected variable is unsafe zero times."
     }
   ],
   "proved_theorems": [
@@ -139,13 +184,19 @@
       "obligation": "T2b_nonroot_implication",
       "status": "PROVED_ARBITRARY_QUOTIENT_UNDER_EXPLICIT_TEMPLATE",
       "statement": "If a bad bridge cuts off a two-node tail wing and the selected clause literal is its unique internal edge, one polarity deletes the clause and the other contracts the wing to tail-singleton safety."
+    },
+    {
+      "name": "Root Handoff Graph Implications",
+      "obligation": "T2b_root_implications",
+      "status": "PROVED_UNDER_EXPLICIT_TEMPLATES",
+      "statement": "PIVOT causes lineage extinction; CROSS_CUT destroys bridgehood; INTERNAL_HEAD yields extinction or canonical N_a shielding; INTERNAL_TAIL two-node wing yields extinction or tail-singleton safety."
     }
   ],
   "remaining_local_obligations": [
     {
-      "name": "Root Endpoint-or-Shield-or-Destruction",
+      "name": "Selected Safe-Template Reachability",
       "status": "OPEN_ARBITRARY_N_FINITE_CERTIFIED_THROUGH_GT12",
-      "statement": "Every root unshielded occurrence becomes extinct, non-bridge, tail-singleton safe, or canonically N_a-shielded under each selected branch polarity."
+      "statement": "For every root unshielded occurrence, the minimum-index maximum-frequency selected variable belongs to PIVOT, CROSS_CUT, INTERNAL_HEAD with the required source literal, or the proved two-node INTERNAL_TAIL template."
     },
     {
       "name": "Non-Root Wing Reachability",
@@ -172,12 +223,14 @@
     "proof_attempts/C024/GT_TEMPORAL_DOUBLE_BRIDGE_SAFETY.md",
     "proof_attempts/C024/GT_UNSHIELDED_ROOT_LOCALIZATION.md",
     "proof_attempts/C024/GT_NONROOT_TWO_NODE_TAIL_WING_LEMMA.md",
-    "proof_attempts/C024/GT_BRANCH_HANDOFF_ROUTE_CLASSIFICATION.md",
+    "proof_attempts/C024/GT_ROOT_HANDOFF_GRAPH_LEMMAS.md",
+    "proof_attempts/C024/GT_ROOT_SELECTOR_NECESSITY.md",
     "experiments/direct/janus_tear_gt_root_unshielded_handoff_probe.py",
     "experiments/direct/janus_tear_gt_unshielded_birth_handoff_census.py",
     "experiments/direct/janus_tear_gt_nonroot_unshielded_wing_profile.py",
-    "experiments/direct/janus_tear_gt_branch_frequency_component_law.py",
-    "experiments/direct/janus_tear_gt_branch_frequency_contribution_profile.py"
+    "experiments/direct/janus_tear_gt_root_route_template_profile.py",
+    "experiments/direct/janus_tear_gt_root_all_variable_handoff.py",
+    "experiments/direct/janus_tear_gt_root_unsafe_selector_margin.py"
   ],
-  "claim_boundary": "T1, T2a, the pure branch routes, and the two-node tail-wing implication are proved under explicit hypotheses. Root-route and non-root wing reachability for arbitrary n, T3, the global cache lower bound, and P versus NP remain open."
+  "claim_boundary": "T1, T2a, the pure branch routes, the two-node tail-wing implication, and four root graph implications are proved under explicit hypotheses. Selected root template reachability and non-root wing reachability for arbitrary n, T3, the global cache lower bound, and P versus NP remain open."
 }
