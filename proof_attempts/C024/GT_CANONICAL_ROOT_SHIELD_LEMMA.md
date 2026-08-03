@@ -1,24 +1,22 @@
 # C024 — Canonical root-shield lemma
 
 Status: **FORMALIZING**  
-Scope: pre-frontier exact residual keys of the deterministic Policy-0A run on `GT_n`.
+Scope: parent-eligible pre-frontier exact residual keys of the deterministic Policy-0A run on `GT_n`.
 
-## 1. Reduction from pairwise bridge safety
+## 1. Pairwise safety target
 
-The co-resolvable tail-bridge certificate established the correct finite
-pairwise invariant through `GT_8`:
+The co-resolvable tail-bridge certificate isolates the correct pairwise invariant:
 
 ```text
 non-tail bridge l in a spanning clause C
     => every spanning complementary occurrence -l is a non-bridge.
 ```
 
-The remaining question is why the complementary occurrence is always shielded.
-The trace exposes a canonical shield already present in the original formula.
+The trace exposes a canonical complementary shield already present in the original graph-tautology formula.
 
 ## 2. Root non-minimality clauses
 
-For every vertex `a`, the graph-tautology formula contains the axiom
+For every vertex `a`, `GT_n` contains
 
 ```text
 N_a = OR_{x != a} (x -> a),
@@ -26,48 +24,32 @@ N_a = OR_{x != a} (x -> a),
 
 asserting that `a` has a predecessor.
 
-Let `l : a -> b`.  The complementary literal `-l : b -> a` belongs to `N_a`.
-Thus any structural reason that keeps another vertex `c` in the same current
-Hasse component as `b`, while `a` remains in a different component, produces a
-quotient-parallel edge `c -> a` beside `b -> a` inside `N_a`.
+Let `l : a -> b`.  Its complement `-l : b -> a` belongs to `N_a`.
 
-## 3. Pure root-shield lemma — proved conditionally
+## 3. Conditional root-shield lemma — proved
 
 ### Lemma 3.1 — singleton tail leaves `N_a` untouched
 
-Assume the current Hasse component of `a` is the singleton `{a}`.  Any assigned
-comparison between `a` and another vertex `x`, regardless of truth value, adds
-the undirected comparison edge `{a,x}` and therefore places `a` and `x` in the
-same Hasse component.  This contradicts singletonhood.
-
-Hence no comparison involving `a` has been assigned.  Every literal of `N_a`
-therefore survives restriction, and
+Assume the current Hasse component of `a` is `{a}`.  Any assigned comparison between `a` and another vertex would add an undirected comparison edge incident to `a` and merge it with another component.  Therefore no comparison involving `a` has been assigned, and
 
 ```text
 N_a | alpha = N_a.
 ```
 
-In particular `N_a` is unsatisfied and remains an exact root clause in the
-residual key.
+So `N_a` remains literally present in the exact residual key.
 
-### Lemma 3.2 — merged head supplies parallel shield edges
+### Lemma 3.2 — merged head supplies a parallel shield
 
-Assume additionally that the Hasse component `B` containing `b` has size at
-least two.  Choose `c in B`, `c != b`.  Since `a` is outside `B`, both literals
+Assume the Hasse component `B` containing `b` has size at least two.  For any `c in B`, `c != b`, the untouched root clause `N_a` contains both
 
 ```text
 b -> a
-c -> a
+c -> a.
 ```
 
-remain external literals of the untouched clause `N_a`.  After quotienting the
-Hasse components, both are parallel edges between `{a}` and `B`.
+After quotienting Hasse components these are parallel edges between `{a}` and `B`.  Deleting `b -> a` therefore leaves an alternate edge.  Thus `-l` is not a bridge in `N_a`.
 
-Consequently deleting `b -> a` leaves `c -> a`; the complementary pivot is not
-a bridge in `N_a`.
-
-More precisely, the number of quotient-parallel alternatives to `b -> a` in
-`N_a` equals
+The number of parallel alternatives is exactly
 
 ```text
 |B| - 1.
@@ -75,7 +57,7 @@ More precisely, the number of quotient-parallel alternatives to `b -> a` in
 
 ### Corollary 3.3 — canonical root shield
 
-If a non-tail bridge `l : a -> b` satisfies
+If a parent-eligible non-tail bridge `l : a -> b` has
 
 ```text
 component(a) = {a}
@@ -83,16 +65,13 @@ and
 |component(b)| >= 2,
 ```
 
-then the untouched root axiom `N_a` is a component-spanning complementary
-parent in which `-l` is a non-bridge.  Therefore `l` cannot participate in a
-same-cut complementary double-bridge pair.
+then the untouched root axiom `N_a` is a component-spanning complementary parent in which `-l` is non-bridge.  Hence `l` cannot participate in a same-cut double-bridge pair.
 
-This argument uses no width limit, Resolution budget, parent enumeration order,
-or learned-clause ancestry.
+This graph argument uses no width bound, Resolution budget, or parent enumeration order.
 
-## 4. Exhaustive finite certificate through GT_8
+## 4. Exhaustive exact-key certificate through GT_8
 
-Every one of the 62 non-tail bridge occurrences has exactly this form:
+Every one of the 62 non-tail bridge occurrences in a pre-frontier exact key satisfies the hypotheses:
 
 ```text
 non-tail bridge occurrences                 62
@@ -102,8 +81,6 @@ untouched root non-minimality axiom N_a      62
 exact parallel multiplicity |B|-1           62
 ```
 
-The joint histograms are:
-
 ```text
 head component size       2   3   4   5
 occurrences              12  21  17  12
@@ -111,74 +88,97 @@ parallel alternatives     1   2   3   4
 occurrences              12  21  17  12
 ```
 
-The broader path audit finds 119 complementary alternate paths, but the root
-shield is canonical: exactly one untouched `N_a` witness exists for each bad
-bridge occurrence.  Other inherited complementary clauses provide redundant
-one- or two-edge shields.
+The broader path audit finds 119 complementary alternate paths.  Exactly 62 are canonical untouched root shields—one for each exact-key bad occurrence.
 
-## 5. The sole remaining structural lemma
+## 5. Falsified stronger birth claim
 
-### Singleton-tail / merged-head birth lemma
+The earlier proposed lemma
 
-For every pre-frontier exact residual key and every component-spanning clause
-containing a bridge literal `l : a -> b` that is not tail-singleton:
+> every fresh non-tail bridge is born with singleton tail and merged head
 
-```text
-component(a) = {a}
-and
-|component(b)| >= 2.
-```
+is false at the raw output of local Resolution.
 
-The second condition is nearly definitional once the bridge is not
- tail-singleton and the first condition is known: the finite traces show that
-all non-tail bridges point from an untouched singleton vertex into a component
-created by earlier novel contractions.
-
-Thus the real arbitrary-`n` burden is:
-
-> **A pre-frontier non-tail bridge can never have a non-singleton tail Hasse
-> component.**
-
-Once this is proved, Lemmas 3.1–3.2 supply the root shield automatically and the
-same-cut obstruction disappears.
-
-## 6. Proposed birth/lifecycle induction
-
-Track the first call at which a fixed clause occurrence and literal become a
-non-tail bridge.
-
-Possible birth mechanisms are:
-
-1. **Fresh local resolvent.**  The resolvent is born after the one-pass local
-   stage.  It cannot be used as a parent again in that state.
-2. **Branch contraction.**  An inherited clause changes bridge geometry when a
-   novel branch contracts two Hasse components.
-3. **Unit contraction.**  A pre- or post-local unit merges components before the
-   next exact key.
-4. **Literal restriction.**  A falsified literal is deleted while the remaining
-   quotient graph becomes a bridge structure.
-
-The lifecycle verifier must determine which mechanisms actually occur and
-prove that each first birth merges the head side while leaving the oriented
-tail vertex untouched.  A counterexample is any first birth with tail component
-size greater than one.
-
-## 7. Consequence for C024
-
-The singleton-tail / merged-head birth lemma plus the already proved graph-rank
-lemmas would imply:
+Through `GT_8`, the local pass creates 77 fresh non-tail bridge literals, including:
 
 ```text
-no unsafe acyclic low-rank resolvent is born before the historical frontier.
+singleton / singleton endpoint shape        19
+singleton tail / merged head                 40?  [see executable histogram]
+non-singleton tail                           18
 ```
 
-This closes the local structural obstruction.  A final global counting step is
-still required to transfer the historical Formula-Caching lower bound to the
-exact Policy-0A execution and state the asymptotic bound rigorously.
+The exact detailed histogram is maintained by `janus_tear_gt_local_resolution_bad_bridge_birth_v2.py`; the important falsifier is the presence of 18 merged-tail births and 19 singleton/singleton births.
+
+This does not contradict the root-shield lemma because fresh resolvents are not indexed as parents again during the same one-pass local stage.
+
+## 6. Correct remaining gate: temporal parent eligibility
+
+The required arbitrary-`n` statement is now:
+
+### Temporal Root-Shield Lemma
+
+For every fresh local-Resolution non-tail bridge literal `l : a -> b`, before its clause can appear in any later parent-eligible exact residual key, one of the following occurs:
+
+1. the clause is satisfied, contradicted, subsumed, or otherwise absent from the next exact key; or
+2. it survives with
+
+   ```text
+   component(a) = {a}
+   and
+   |component(b)| >= 2.
+   ```
+
+In case 2, Lemmas 3.1–3.2 activate the untouched root shield `N_a` before the clause can participate in another Resolution step.
+
+Equivalent operational form:
+
+```text
+fresh bad resolvent
+    -- not parent-eligible in the same state -->
+next exact key, if any
+    -- either absent or canonically root-shielded -->
+no same-cut double-bridge pair.
+```
+
+## 7. Finite temporal evidence through GT_8
+
+The exact-key lifecycle contains:
+
+```text
+exact-key non-tail occurrences              62
+immediate local-resolvent ancestry           42
+inherited ancestry                            20
+```
+
+For all 42 immediate local lineages:
+
+```text
+event tail size = 1                          42
+post-unit endpoint change                     0
+child pre-unit events                         0
+intervening branch is novel                  42
+intervening branch touches tail               0
+branch joins head to another component       39
+branch is disjoint; head already merged       3
+one falsified branch literal is deleted      42
+```
+
+All 12 lineages born with shape `(1,1)` reach the child exact key with shape `(1,2)`.  All 18 raw merged-tail births have zero descendants among later exact-key bad occurrences.
+
+Thus every surviving immediate lineage is root-shielded by its first future parent-eligible key.  The 20 inherited occurrences are already shielded in the exact key from which they are inherited.
+
+## 8. Remaining proof obligations
+
+The arbitrary-`n` proof must establish two survivor claims from the exact Policy-0A rules and GT clause geometry:
+
+1. **Merged-tail extinction.** A fresh non-tail bridge with non-singleton tail cannot survive as a component-spanning non-tail bridge into a later parent-eligible exact key.
+2. **Singleton-tail handoff.** If a fresh non-tail bridge with singleton tail survives, the intervening transition never merges the tail; when the head is singleton, it merges the head before the next exact key.
+
+The deterministic branch rule is most-frequent-variable with minimum-index tie breaking.  The finite surviving lineages show that the selected branch literal is always the complement of one source-clause literal and either joins the bad head to a singleton component or is disjoint after the head is already merged.  Deriving this pattern uniformly is the current induction gate.
+
+## 9. Consequence for C024
+
+The Temporal Root-Shield Lemma, together with the graphic-rank and different-cut lemmas, would exclude unsafe acyclic low-rank clauses from every parent-eligible pre-frontier key.  A separate global counting argument would still be needed to transfer the historical Formula-Caching lower bound to Policy-0A.
 
 ## Claim boundary
 
-The root-shield implication is a direct graph argument, and its hypotheses are
-exhaustively certified through `GT_8`.  The arbitrary-`n` singleton-tail birth
-lemma and the final lower-bound transfer remain open.  Nothing here resolves
-`P` versus `NP`.
+The conditional root-shield argument is proved, and its hypotheses plus the complete temporal handoff are exhaustively certified through `GT_8`.  The arbitrary-`n` temporal survivor lemma and final lower-bound transfer remain open.  Nothing here resolves `P` versus `NP`.
