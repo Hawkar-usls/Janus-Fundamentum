@@ -5,23 +5,27 @@ Scope: deterministic Policy-0A on the graph-tautology family `GT_n` before the h
 
 ## 1. Why the invariant must be temporal
 
-A raw local-Resolution output is not yet a parent-eligible state.  Policy-0A builds the parent indices once, emits resolvents into the output set, and never re-indexes fresh clauses during the same pass.
+A raw local-Resolution output is not yet parent-eligible.  Policy-0A constructs the parent indices once, emits resolvents into the output set, and never re-indexes fresh clauses during the same local pass.
 
-Therefore it is unnecessary—and false—to require every fresh resolvent to be structurally safe at the instant of birth.  The relevant requirement is:
+Therefore the false requirement
 
-> A fresh clause must be safe by the first later exact key in which it can be used as a Resolution parent.
+> every fresh resolvent is immediately structurally safe
 
-This distinction survives the strongest finite attacks:
+is unnecessary.  The correct requirement is:
+
+> Every fresh bad lineage is either extinct or canonically shielded before the first later exact key in which it can become a Resolution parent.
+
+The exhaustive trace through `GT_8` separates the two stages:
 
 ```text
-raw local non-tail occurrences              93
-fresh non-tail births                        77
-raw non-singleton-tail occurrences           18
+raw local non-tail resolvent-literal occurrences       93
+fresh non-tail births                                   77
+raw occurrences with non-singleton tail                 18
 
-later exact-key non-tail occurrences         62
-with immediate local ancestry                42
-with inherited ancestry                      20
-later occurrences with non-singleton tail     0
+later exact-key non-tail occurrences                    62
+with immediate local ancestry                           42
+with inherited ancestry                                 20
+later occurrences with non-singleton tail                0
 ```
 
 ## 2. Canonical root shield
@@ -32,131 +36,185 @@ For a non-tail bridge `l : a -> b`, the root graph-tautology axiom
 N_a = OR_{x != a} (x -> a)
 ```
 
-contains the complementary literal `-l : b -> a`.
+contains `-l : b -> a`.
 
-If the Hasse component of `a` is `{a}`, then no comparison involving `a` has been assigned and `N_a` is untouched.  If the component of `b` has another vertex `c`, the literals `b -> a` and `c -> a` become parallel quotient edges.  Hence `-l` is non-bridge in `N_a`.
+If the Hasse component of `a` is `{a}`, no comparison involving `a` has been assigned, so `N_a` remains literally untouched.  If the component of `b` contains another vertex `c`, then `b -> a` and `c -> a` become parallel quotient edges.  Hence `-l` is non-bridge in `N_a`.
 
-Thus the target eligibility condition is
+The parent-eligibility shield condition is therefore
 
 ```text
-tail component is singleton
+component(a) = {a}
 and
-head component has size at least two.
+|component(b)| >= 2.
 ```
+
+This implication is a direct graph argument, independent of width, Resolution budget, and parent enumeration order.
 
 ## 3. Temporal Root-Shield Lemma — open for arbitrary n
 
-Let `R` be a fresh local resolvent containing a non-tail bridge `l : a -> b`.
-Before `R` or a restriction of `R` becomes a parent in a later exact residual key, exactly one of the following must hold:
+Let `R` be a fresh local resolvent containing a non-tail bridge `l : a -> b`.  Before `R` or a restriction of `R` becomes a parent in a later pre-frontier exact key, prove that one of the following holds:
 
-1. **Extinction:** the lineage is satisfied, contradicted, subsumed, terminal, or absent from the next exact key;
-2. **Shielded survival:** the lineage reaches the next parent-eligible exact key with
+1. **Extinction.** The lineage is involved in a terminal contradiction, is eliminated in every recursive child, is satisfied, deleted, subsumed, becomes nonspanning, or otherwise does not enter a later exact key as the same bad bridge.
+2. **Shielded survival.** The lineage enters the later exact key with
 
    ```text
    component(a) = {a},
    |component(b)| >= 2,
    ```
 
-   so the untouched root clause `N_a` makes `-l` non-bridge.
+   so the untouched root clause `N_a` makes the complementary literal non-bridge.
 
-Because `R` is not parent-eligible in its birth state, this lemma is sufficient to exclude a same-cut double-bridge use of `l`.
+Because a fresh resolvent is not a parent during its birth pass, this temporal statement is sufficient to exclude its use in a same-cut double-bridge pair.
 
-## 4. Exact finite handoff through GT_8
+## 4. Shielded exact-key family through GT_8
 
-Every one of the 42 immediate-local lineages that survives into an exact key has a unique local origin and a unique intervening branch:
-
-```text
-unique local origin event                    42
-post-local unit endpoint changes              0
-child pre-unit events                         0
-novel intervening branches                   42
-branches touching the bad tail                0
-branches joining the head to another part    39
-branches disjoint from both endpoints         3
-```
-
-The branch deletes exactly one falsified source literal in all 42 cases.
-
-The endpoint transitions are:
+Every one of the 62 exact-key non-tail occurrences is canonically root-shielded:
 
 ```text
-local event shape      child exact-key shape
-(1,1)  x12             (1,2)  x12
-(1,2)  x11             contributes to shielded heads
-(1,3)  x14             contributes to shielded heads
-(1,4)   x5             contributes to shielded heads
+singleton tail                                  62
+head size at least two                          62
+untouched N_a                                   62
+parallel alternatives exactly head_size - 1    62
 ```
-
-Aggregated over all immediate and inherited exact-key occurrences:
 
 ```text
-child shape (1,2)      12
-child shape (1,3)      21
-child shape (1,4)      17
-child shape (1,5)      12
+head size                  2   3   4   5
+exact-key occurrences     12  21  17  12
+parallel alternatives      1   2   3   4
 ```
 
-These are exactly the 62 canonical root-shield occurrences.
+Twenty occurrences are inherited from an earlier shielded exact key.  Forty-two have immediate local-resolvent ancestry and pass through one intervening branch before entering their first parent-eligible exact key.
 
-### Branch geometry
+## 5. Singleton-tail handoff through GT_8
 
-For 39 lineages, the branch comparison joins the current head component to a different singleton component and leaves the tail untouched.  Therefore the head size increases by exactly one.
-
-For the remaining three lineages, the head already has size three; the branch is disjoint from the bad endpoints.  The root shield is already active and remains active.
-
-No surviving branch merges the tail.
-
-## 5. Inherited lineages
-
-Twenty exact-key occurrences have inherited rather than immediate-local ancestry.  They enter their source exact key already satisfying the root-shield hypotheses.  Any later occurrence counted as the same bad lineage again has singleton tail and merged head, so the untouched `N_a` shield is re-certified at every parent-eligible key rather than assumed to persist syntactically without checking.
-
-## 6. Remaining induction split
-
-The arbitrary-`n` proof can now be divided into two sharply local claims.
-
-### Lemma A — merged-tail extinction
-
-A raw local non-tail occurrence whose tail component is non-singleton cannot become a component-spanning non-tail bridge in a later parent-eligible pre-frontier exact key.
-
-Finite evidence: all 18 such raw occurrences have zero representatives among the 42 immediate-local surviving lineages.
-
-### Lemma B — singleton-tail handoff
-
-For a surviving fresh non-tail bridge with singleton tail:
-
-- post-local units do not merge the tail;
-- the selected branch does not merge the tail;
-- if the head is singleton, the selected branch merges the head with another component;
-- otherwise the root shield is already active.
-
-The branch is chosen by the exact Policy-0A rule:
+For all 42 immediate-local surviving lineages:
 
 ```text
-maximum residual variable frequency,
-minimum variable index on ties,
-false branch first.
+unique local origin event                      42
+post-local endpoint changes                     0
+child pre-unit events                           0
+novel intervening branch                       42
+branch touching the bad tail                    0
+branch joining head to another component       39
+branch disjoint after head already merged       3
+one falsified source literal deleted           42
 ```
 
-The remaining proof must derive the observed branch geometry from this rule and the GT-specific shape of a surviving resolvent lineage.
+The endpoint-shape transition is:
 
-## 7. Consequence if Lemmas A and B are proved
+```text
+local event shapes:
+(1,1) x12
+(1,2) x11
+(1,3) x14
+(1,4)  x5
 
-At every parent-eligible pre-frontier key, every complementary double-bridge pair is tail/tail.  Complementary tail/tail bridges isolate opposite pivot endpoints, so their cuts differ.  The resolvent remains component-spanning; no unsafe acyclic low-rank clause is born at an eligible state.
+child exact-key shapes, including inherited occurrences:
+(1,2) x12
+(1,3) x21
+(1,4) x17
+(1,5) x12
+```
 
-Together with the graphic-rank accounting, this would close the local-Resolution obstruction in C024.  The historical Formula-Caching frontier counting still has to be transferred globally to the exact cache DAG.
+Every `(1,1)` surviving lineage becomes `(1,2)` before parent eligibility.  No surviving branch merges the tail.
 
-## 8. Falsification conditions
+### Exact branch-selection mechanism
+
+Policy-0A chooses the minimum-index variable among those with maximum residual frequency.  Tail exclusion uses both parts of this lexicographic rule:
+
+```text
+strict frequency gap excludes every tail variable       23
+some tail variable ties for maximum                      19
+minimum-index tie-break excludes the tail                19
+selected variable is first among maximum-frequency set   42
+```
+
+Selected branch relation:
+
+```text
+HEAD_TO_OTHER   39
+DISJOINT         3
+TAIL_TO_OTHER    0
+TAIL_HEAD        0
+```
+
+The three disjoint cases already have a merged head and active root shield.  Thus a frequency-only theorem would be false; the arbitrary-`n` proof must preserve variable indices and use the exact lexicographic selector.
+
+## 6. Merged-tail extinction through GT_8
+
+The stronger conjecture
+
+> all 18 raw merged-tail occurrences die by post-unit conflict
+
+is false.  The exact split is:
+
+```text
+fresh merged-tail occurrences                 18
+causal post-unit contradiction                17
+GT_4 branch-UNSAT extinction                   1
+later bad exact-key descendant                 0
+```
+
+For the 17 contradiction cases:
+
+```text
+EMPTY_ON_UNIT_ASSIGNMENT                      12
+OPPOSITE_UNITS                                 5
+merged-tail resolvent is direct conflict source   4
+merged-tail resolvent is ancestor source         13
+merely co-located                                 0
+executed child calls                              0
+```
+
+The all-source backward reason-DAG therefore contains every conflict-state merged-tail resolvent: four directly and thirteen through earlier unit reasons.
+
+The unique `GT_4` exception executes two UNSAT children without post-unit propagation.  Both children terminate before yielding an exact key carrying the bad lineage.
+
+The correct arbitrary-`n` extinction statement is consequently a disjunction of causal unit-conflict extinction, recursive extinction, and any separately proved structural-safety transition.
+
+## 7. Remaining induction split
+
+### Lemma A — Merged-Tail Extinction Disjunction
+
+A fresh non-tail bridge with non-singleton tail cannot enter a later parent-eligible pre-frontier exact key unchanged.  It must be causally consumed by contradiction, eliminated throughout the recursive children, or transformed into a safe structure.
+
+The next proof attack should classify the seventeen finite reason closures by root-axiom ancestry and directed quotient geometry.  The single `GT_4` recursive case may be treated as a finite base case only if a uniform conflict theorem is proved for `n >= 5`.
+
+### Lemma B — Lexicographic Singleton-Tail Handoff
+
+For a surviving fresh non-tail bridge with singleton tail, prove from GT clause geometry and the exact selector that:
+
+```text
+for every tail-touching variable t,
+(-frequency(selected), selected_index)
+    <
+(-frequency(t), t_index),
+```
+
+and that a singleton head is joined to another component before the next exact key.  If the head is already merged, a disjoint selected branch may preserve the existing root shield.
+
+## 8. Consequence if Lemmas A and B are proved
+
+At every parent-eligible pre-frontier exact key, every complementary double-bridge pair is tail/tail.  The complementary pivot orientations isolate opposite endpoints, so the two bridge cuts differ.  Their resolvent remains component-spanning and cannot be an unsafe acyclic low-rank clause.
+
+Together with graphic-rank deficit accounting, this would close the **local-Resolution obstruction** in C024.
+
+A separate theorem is still required to transfer the historical `2^(n-2)` Formula-Caching frontier to the exact Policy-0A cache DAG and state the final asymptotic lower bound.
+
+## 9. Falsification conditions
 
 The temporal lemma is rejected by any arbitrary-`n` execution containing:
 
 1. a later exact-key non-tail bridge with non-singleton tail;
-2. a surviving `(1,1)` non-tail lineage whose intervening branch avoids the head;
-3. a surviving lineage whose branch or units merge the tail;
-4. a fresh bad resolvent reused as a parent in its own local pass;
-5. a parent-eligible shielded lineage in which `N_a` is absent, satisfied, or lacks a parallel complement.
+2. a contradictory merged-tail birth whose all-source reason closure excludes the lineage;
+3. a recursive child carrying the merged-tail bad bridge into a parent-eligible exact key;
+4. a surviving singleton-tail lineage whose transition merges the tail;
+5. a surviving `(1,1)` lineage whose transition does not merge the head;
+6. a parent-eligible lineage whose `N_a` clause is absent or lacks a parallel complement;
+7. a fresh resolvent reused as a parent in its own local pass.
 
-The finite certificate searches directly for all five conditions through `GT_8`.
+The finite certificates search directly for all seven conditions through `GT_8`.
 
 ## Claim boundary
 
-The one-pass temporal reduction and canonical root-shield implication are proved.  The complete survivor handoff is exhaustively certified through `GT_8`.  Lemmas A and B for arbitrary `n`, the global cache-frontier counting theorem, and `P` versus `NP` remain open.
+The one-pass temporal reduction and canonical root-shield implication are proved.  The full extinction/handoff package is exhaustively certified through `GT_8`, including causal reason provenance and exact branch-selection mechanisms.  Lemmas A and B for arbitrary `n`, the global cache-frontier transfer, and `P` versus `NP` remain open.
