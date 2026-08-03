@@ -1,0 +1,37 @@
+name: Validate C048 Affine Layout Discovery
+
+on:
+  pull_request:
+    paths:
+      - 'experiments/direct/janus_c048_layout_*.py'
+      - 'experiments/direct/C048-JANUS-PROOF-CARRYING-AFFINE-LAYOUT-DISCOVERY.frozen.json'
+      - 'docs/C048_AFFINE_LAYOUT_DISCOVERY.md'
+      - 'proposals/C048-JANUS-PROOF-CARRYING-AFFINE-LAYOUT-DISCOVERY.json'
+      - 'registry/c048-source-map.json'
+      - '.github/workflows/validate-c048-affine-layout-discovery.yml'
+  workflow_dispatch:
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Compile C048 modules
+        run: |
+          python -m py_compile \
+            experiments/direct/janus_c048_layout_core.py \
+            experiments/direct/janus_c048_layout_solver.py \
+            experiments/direct/janus_c048_layout_verifier.py \
+            experiments/direct/janus_c048_layout_discovery.py
+      - name: Run C048 audit
+        run: |
+          python experiments/direct/janus_c048_layout_discovery.py \
+            --self-test \
+            --output /tmp/c048.json
+      - name: Verify frozen audit byte-for-byte
+        run: |
+          cmp /tmp/c048.json \
+            experiments/direct/C048-JANUS-PROOF-CARRYING-AFFINE-LAYOUT-DISCOVERY.frozen.json
