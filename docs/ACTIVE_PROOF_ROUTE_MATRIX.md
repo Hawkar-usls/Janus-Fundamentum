@@ -31,6 +31,7 @@ P_VS_NP=OPEN
 | C042 | Proof-carrying laminar affine cover | Charged basis discovery, semantic certificate replay, exact union counting and witness/certificate recovery under `64(L+1)^6` | A supplied basis, digest-only verification, or small final output makes construction free | `POLYNOMIAL_DECOMPOSITION_OF_CROSSING_AFFINE_FORBIDDEN_SUBSPACES` |
 | C043 | Bounded live signed affine-intersection support | C042 basis inheritance, separate semantic verifier, exact signed recurrence, maximum live-support and coefficient-volume accounting | Compact final support excuses exponential intermediate closure; verifier may call producer | `POLYNOMIAL_LOCALIZATION_OF_SUPERPOLYNOMIAL_GLOBAL_INTERSECTION_SUPPORT` |
 | C044 | Local signed-cover vtree composition | Deterministic coordinate-primal separator discovery, local signed-cover leaves, exact branch composition and independent terminal reconstruction in `L^O(k)` for fixed `k` | Global signed-support `OPEN` implies every localization is exponential; a supplied decomposition may be treated as free | `JOINT_AFFINE_BASIS_DECOMPOSITION_AND_MESSAGE_DISCOVERY` |
+| C045 | Frozen affine-basis portfolio | Four assignment-independent provenance-carrying basis constructors receive one complete C044 probe each; an 80-variable hidden-basis family closes while the canonical basis remains OPEN | One canonical Gaussian basis is without loss of generality; basis choice can erase the intrinsic global arrangement | `POLYNOMIAL_BASIS_PORTFOLIO_COMPLETENESS_OR_BASIS_INVARIANT_SEMANTIC_DECOMPOSITION` |
 | C031 | Proof-carrying SAT refuter | Formal lower-bound transfer interface | Free direct-sum amplification | `NO_SHARING_REFUTER_AMPLIFICATION` |
 
 ## Constructive P=NP track
@@ -48,7 +49,7 @@ tractable local languages
 -> proof-carrying laminar affine arrangements
 -> proof-carrying bounded live signed support
 -> proof-carrying local signed-support vtree composition
--> joint affine-basis / decomposition / message discovery
+-> frozen proof-carrying affine-basis portfolio
 -> SAT witness + independently checkable UNSAT evidence
 -> universal polynomial SAT algorithm
 ```
@@ -156,6 +157,7 @@ C041    affine-coordinate 3-SAT identity obstruction
 C042    proof-carrying laminar affine forbidden-subspace cover
 C043    bounded live signed affine-intersection support
 C044    local signed-support vtree composition
+C045    joint affine-basis, decomposition and message discovery
 ```
 
 ## Converged constructive bottleneck
@@ -171,3 +173,9 @@ C041 proves that affine coordinates alone cannot satisfy this obligation. C042 s
 Compare every candidate against C023 NAND3+NEQ, C034 unrestricted Horn-affine NP-hardness, CNF satisfiability in an affine subspace, finite-field intersection-poset methods, PS-width, OBDD/SDD/d-SDNNF/TDD, backdoors, treewidth, DPLL(T)/DPLL(XOR), existential forgetting, intermediate compilation size, certificate discovery and verifier work.
 
 Never promote a supplied decomposition or affine basis as free discovery, an input-dependent exponent as polynomial, compact final output as proof of compact construction, finite tests as a theorem, `OPEN` as hardness, or semantic equivalence decided by a hidden SAT/coNP oracle.
+
+## C045 frozen affine-basis portfolio
+
+C045 constructs a fixed assignment-independent portfolio of affine coordinate systems from original-variable coordinate forms. The candidate manifest is deduplicated and frozen before any C044 probe. Each unique basis receives exactly one complete charged probe; selection uses only independently replayable exact terminals.
+
+The hidden cumulative family `x_i = y_1 XOR ... XOR y_i`, `AND_i x_i` is `OPEN_LOCAL_SUPPORT` in the canonical free-`y` basis but SAT in the clause-exposed `mu_i=x_i` basis. Conversely, an invertible affine change transports every intersection and preserves fixed-order signed-support cardinalities, so basis choice changes locality rather than the intrinsic global arrangement. The 24-variable hard-image control remains `OPEN_PORTFOLIO_EXHAUSTED`.

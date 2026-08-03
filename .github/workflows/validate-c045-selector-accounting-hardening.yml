@@ -1,0 +1,37 @@
+name: Validate C045 Selector Accounting Hardening
+
+on:
+  pull_request:
+    paths:
+      - 'experiments/direct/janus_c045_basis_portfolio_core.py'
+      - 'experiments/direct/janus_c045_basis_portfolio_verifier_v2.py'
+      - 'experiments/direct/janus_c045_joint_basis_discovery_v2.py'
+      - 'experiments/direct/C045-JANUS-JOINT-AFFINE-BASIS-DISCOVERY.v2.frozen.json'
+      - 'docs/C045_SELECTOR_ACCOUNTING_HARDENING.md'
+      - 'proposals/C045-JANUS-SELECTOR-ACCOUNTING-HARDENING.json'
+      - '.github/workflows/validate-c045-selector-accounting-hardening.yml'
+  workflow_dispatch:
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Compile hardened C045 modules
+        run: |
+          python -m py_compile experiments/direct/janus_c045_basis_portfolio_core.py
+          python -m py_compile experiments/direct/janus_c045_basis_portfolio_verifier_v2.py
+          python -m py_compile experiments/direct/janus_c045_joint_basis_discovery_v2.py
+      - name: Run hardened C045 audit
+        run: |
+          PYTHONPATH=experiments/direct python experiments/direct/janus_c045_joint_basis_discovery_v2.py --self-test --output /tmp/c045-v2.json
+          cat /tmp/c045-v2.json
+      - name: Enforce hardened frozen audit
+        run: |
+          cmp /tmp/c045-v2.json experiments/direct/C045-JANUS-JOINT-AFFINE-BASIS-DISCOVERY.v2.frozen.json
+      - name: Validate hardening proposal
+        run: |
+          python -m json.tool proposals/C045-JANUS-SELECTOR-ACCOUNTING-HARDENING.json >/dev/null
