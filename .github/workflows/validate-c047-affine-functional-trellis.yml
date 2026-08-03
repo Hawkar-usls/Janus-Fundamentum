@@ -1,0 +1,50 @@
+name: Validate C047 Affine Functional Trellis
+
+on:
+  pull_request:
+    paths:
+      - 'experiments/direct/janus_c047_affine_trellis_core.py'
+      - 'experiments/direct/janus_c047_affine_trellis_solver.py'
+      - 'experiments/direct/janus_c047_affine_trellis_verifier.py'
+      - 'experiments/direct/janus_c047_affine_functional_trellis.py'
+      - 'experiments/direct/C047-JANUS-AFFINE-FUNCTIONAL-TRELLIS.frozen.json'
+      - 'docs/C047_AFFINE_FUNCTIONAL_TRELLIS.md'
+      - 'docs/ACTIVE_PROOF_ROUTE_MATRIX_C047_APPENDIX.md'
+      - 'proposals/C047-JANUS-AFFINE-FUNCTIONAL-TRELLIS.json'
+      - 'registry/c047-source-map.json'
+      - '.github/workflows/validate-c047-affine-functional-trellis.yml'
+  workflow_dispatch:
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Compile C047 modules
+        run: |
+          python -m py_compile \
+            experiments/direct/janus_c047_affine_trellis_core.py \
+            experiments/direct/janus_c047_affine_trellis_solver.py \
+            experiments/direct/janus_c047_affine_trellis_verifier.py \
+            experiments/direct/janus_c047_affine_functional_trellis.py
+      - name: Run deterministic C047 audit
+        run: |
+          python experiments/direct/janus_c047_affine_functional_trellis.py \
+            --self-test --output /tmp/c047.json
+      - name: Enforce frozen audit
+        run: cmp /tmp/c047.json experiments/direct/C047-JANUS-AFFINE-FUNCTIONAL-TRELLIS.frozen.json
+      - name: Validate machine-readable package
+        run: |
+          python - <<'PY'
+          import json
+          for path in [
+              'proposals/C047-JANUS-AFFINE-FUNCTIONAL-TRELLIS.json',
+              'registry/c047-source-map.json',
+              'experiments/direct/C047-JANUS-AFFINE-FUNCTIONAL-TRELLIS.frozen.json',
+          ]:
+              with open(path, encoding='utf-8') as f:
+                  json.load(f)
+          PY
