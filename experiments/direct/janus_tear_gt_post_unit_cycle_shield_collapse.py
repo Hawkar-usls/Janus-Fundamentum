@@ -6,20 +6,24 @@ The pure quotient theorem isolates the only branch-safe birth route:
     a DIRECTED_CYCLE source loses its final cycle shield under contraction,
     and the residual participates in a newly born same-cut bridge pair.
 
+Exact GT replay reveals a stronger finite barrier.  Every post-unit event which
+merges relation components starts with exactly two components and merges them
+into the single component containing all n vertices.  Directed-cycle shields do
+collapse, but their residuals have zero bridge literals because no nontrivial
+quotient cut remains.
+
 This checker replays every individual post-unit event before novelty n-2 in the
-exact Policy-0A GT_4,...,GT_8 traces.  For each event it records:
+exact Policy-0A GT_4,...,GT_8 traces and records:
 
 - current and next relation-component shapes;
 - every directed-cycle source whose residual is no longer cycle-protected;
 - the residual safety class and bridge count of each collapsed source;
 - every same-cut pair before and after the unit;
-- whether a post-step same-cut pair has a same-cut source pair;
-- whether a newly born pair uses a collapsed cycle source;
+- whether any newly born pair uses a collapsed cycle source;
 - terminal opposite-unit conflicts.
 
-The finite target is discovery, not an arbitrary-n assertion.  Exact replay and
-birth accounting are hard assertions; zero births is reported and regression-
-checked for the current GT frontier.
+The finite target is discovery plus regression.  No arbitrary-n total-component
+collapse theorem is claimed here.
 """
 
 from __future__ import annotations
@@ -73,9 +77,7 @@ def same_cut_pairs(n, clauses, assignment, pairs):
 
 
 def bridge_literal_count(n, clause, assignment, pairs) -> int:
-    _classes, bridges = clause_data(
-        n, (clause,), assignment, pairs
-    )
+    _classes, bridges = clause_data(n, (clause,), assignment, pairs)
     return sum(1 for (candidate, _literal) in bridges if candidate == clause)
 
 
@@ -117,13 +119,9 @@ def audit(n: int):
             if kind == "opposite_units":
                 counts["opposite_unit_events"] += 1
                 units = tuple(int(literal) for literal in event["units"])
-                variables = {abs(literal) for literal in units}
-                assert any(
-                    variable in variables
-                    and variable in {abs(literal) for literal in units if literal < 0}
-                    and variable in {abs(literal) for literal in units if literal > 0}
-                    for variable in variables
-                )
+                positive_variables = {literal for literal in units if literal > 0}
+                negative_variables = {-literal for literal in units if literal < 0}
+                assert positive_variables & negative_variables
                 shape = component_shape(n, current_assignment, pairs)
                 opposite_unit_shapes[shape] += 1
                 raw_same_cut = same_cut_pairs(
@@ -164,6 +162,10 @@ def audit(n: int):
                 counts["internal_or_redundant_unit_events"] += 1
             else:
                 counts["component_merging_unit_events"] += 1
+                if len(before_shape) == 2 and after_shape == (n,):
+                    counts["total_component_collapse_events"] += 1
+                else:
+                    counts["non_total_component_merge_events"] += 1
 
             after_raw = event.get("after")
             after_cnf = (
@@ -181,15 +183,11 @@ def audit(n: int):
 
             false_literal = -literal
             collapsed_sources = []
-            source_to_residual: dict[Clause, Clause] = {}
             if after_cnf is not None:
-                source_map = residual_sources(
-                    current_cnf, {variable: value}
-                )
+                source_map = residual_sources(current_cnf, {variable: value})
                 assert set(after_cnf) == set(source_map)
                 for residual, sources in source_map.items():
                     for source in sources:
-                        source_to_residual[source] = residual
                         if pre_classes[source] != "DIRECTED_CYCLE":
                             continue
                         post_class = str(
@@ -227,9 +225,6 @@ def audit(n: int):
                     post_same_cut
                 )
 
-                reverse_sources = residual_sources(
-                    current_cnf, {variable: value}
-                )
                 collapsed_source_set = {
                     item["source"] for item in collapsed_sources
                 }
@@ -238,7 +233,7 @@ def audit(n: int):
                     left = tuple(record["left"])
                     right = tuple(record["right"])
                     source_pairs = tuple(product(
-                        reverse_sources[left], reverse_sources[right]
+                        source_map[left], source_map[right]
                     ))
                     has_pre_same_cut = any(
                         is_pre_same_cut(
@@ -358,10 +353,21 @@ def self_test() -> None:
         print(f"  opposite_unit_shapes = {data['opposite_unit_shapes']}")
         print(f"  examples = {data['examples']}")
 
+    assert aggregate_counts["unit_events"] == 33
+    assert aggregate_counts["component_merging_unit_events"] == 10
+    assert aggregate_counts["total_component_collapse_events"] == 10
+    assert aggregate_counts["non_total_component_merge_events"] == 0
+    assert aggregate_counts["internal_or_redundant_unit_events"] == 23
+    assert aggregate_counts["cycle_shield_collapses"] == 385
+    assert aggregate_counts["cycle_to_spanning_collapses"] == 385
+    assert aggregate_counts["collapsed_sources_with_bridge"] == 0
+    assert aggregate_counts["pre_unit_same_cut_pair_occurrences"] == 0
+    assert aggregate_counts["post_unit_same_cut_pair_occurrences"] == 0
     assert aggregate_counts["new_same_cut_births"] == 0
     assert aggregate_counts["births_without_collapsed_cycle_source"] == 0
-    assert aggregate_counts["opposite_unit_events"] == 1
+    assert aggregate_counts["opposite_unit_events"] == 4
     assert aggregate_counts["same_cut_pairs_at_opposite_unit_terminal"] == 1
+    assert aggregate_bridge_counts == Counter({0: 385})
 
     print("JANUS_GT_POST_UNIT_CYCLE_SHIELD_COLLAPSE = PASS")
     print(f"ROWS = {tuple(rows)}")
@@ -375,8 +381,8 @@ def self_test() -> None:
     print(f"AGGREGATE_BIRTH_SOURCE_CLASSES = {tuple(sorted(aggregate_birth_classes.items(), key=repr))}")
     print(f"AGGREGATE_OPPOSITE_UNIT_SHAPES = {tuple(sorted(aggregate_opposite_shapes.items()))}")
     print(
-        "claim_boundary = exact reachable post-unit cycle-shield census through "
-        "GT_8 before novelty n-2; arbitrary-n exclusion remains open"
+        "claim_boundary = exact reachable post-unit total-component-collapse "
+        "census through GT_8 before novelty n-2; arbitrary-n barrier open"
     )
 
 
