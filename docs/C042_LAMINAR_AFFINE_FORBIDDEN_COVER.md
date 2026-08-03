@@ -1,4 +1,4 @@
-# C042 — Laminar Affine Forbidden-Subspace Cover
+# C042 — Proof-Carrying Laminar Affine Forbidden-Subspace Cover
 
 ```text
 P_VS_NP=OPEN
@@ -6,25 +6,32 @@ P_VS_NP=OPEN
 
 ## Exact coordinate object
 
-After an affine parameterization
+The input is a CNF formula `F(x)` together with an affine system `A x = b` over `GF(2)`. C042 does not receive a free coordinate basis. Provenance-carrying Gaussian elimination constructs and certifies
 
 ```text
-x_i = p_i XOR <b_i, lambda>,
+x = p + B lambda,
+lambda in GF(2)^d.
 ```
 
-the falsifying set of one CNF clause is the solution set of one affine system over `lambda`: every literal is required to be false simultaneously. Thus each clause defines either an empty forbidden set or an affine subspace `U_C` of `GF(2)^d`.
-
-The coordinate formula is satisfiable exactly when
+For every clause `C`, requiring every literal of `C` to be false gives an affine system over `lambda`. Its solution set is either empty or an affine subspace
 
 ```text
-GF(2)^d \ union_C U_C
+U_C = {lambda : C is false}.
 ```
 
-is nonempty.
+Therefore
+
+```text
+F(x) AND A x=b is SAT
+<=>
+GF(2)^d \ union_C U_C is nonempty.
+```
+
+This is the Union-of-Subspace Avoidance / CNF-in-a-subspace formulation studied by Arvind and Guruswami. The general formulation is not treated as tractable: even 2-SUB-SAT is NP-hard. C042 closes only a separately recognized laminar subclass.
 
 ## Constructive theorem
 
-Assume the nonempty forbidden subspaces form a laminar family: for every pair `U,V`, either
+Assume that every pair of nonempty clause-falsifying subspaces is disjoint or nested:
 
 ```text
 U intersect V = empty,
@@ -32,61 +39,122 @@ U subseteq V,
 or V subseteq U.
 ```
 
-This property is discovered, not supplied. Pairwise intersection and inclusion are decided by provenance-compatible Gaussian elimination.
+The property is discovered by exact affine intersection and inclusion tests; it is not supplied as an oracle.
 
-Delete duplicate and nonmaximal subspaces. Laminarity implies that the remaining maximal members are pairwise disjoint. Hence their union size is exactly
+After duplicate and contained subspaces are removed, the maximal forbidden subspaces are pairwise disjoint. Hence
 
 ```text
-sum_i 2^dim(U_i).
+|union_C U_C| = sum_i 2^dim(M_i).
 ```
 
-- If the sum is `2^d`, the maximal members form a disjoint affine cover and certify UNSAT.
-- Otherwise a SAT coordinate is constructed bit by bit. At each prefix, intersect every maximal subspace with each candidate prefix cell, count the disjoint covered points exactly by rank, and choose a child whose covered count is smaller than its cell size.
+- If the sum equals `2^d`, the maximal members form a replayable disjoint affine cover and certify UNSAT.
+- Otherwise coordinates are fixed one at a time. For both candidate bits, C042 intersects each maximal forbidden subspace with the prefix cell and counts the covered points by rank. It chooses the first branch whose covered count is smaller than the cell size. After `d` steps the resulting `lambda` lies outside every forbidden subspace and lifts through `x=p+B lambda` to a complete SAT witness.
 
-All construction, recognition, counting, witness recovery and replay cost is polynomial in the coordinate dimension, number of clauses and emitted trace volume. No assignment enumeration, SAT oracle or formula-equivalence oracle is used.
+No assignment enumeration, general SAT oracle, formula-equivalence oracle, supplied decomposition, or optimal subspace-arrangement oracle is used.
 
-## Proof objects
+## Basis artifact and provenance
 
-The certificate records:
+The coordinate basis is part of the proof object. The artifact records:
 
-- canonical RREF for every clause-falsifying affine system;
-- every pair relation (`DISJOINT`, `SUBSET`, or strict rejection as `CROSSING`);
-- maximal forbidden-subspace identifiers and exact cardinalities;
-- for UNSAT, a disjoint-cover cardinality equality;
-- for SAT, conditional-counting choices and the final uncovered coordinate.
+- canonical RREF rows of the input affine system;
+- for every RREF row, the exact subset of original equations whose XOR derives it;
+- a contradiction provenance subset when the affine system itself is inconsistent;
+- the free-variable list;
+- one particular solution `p`;
+- a nullspace basis `B`;
+- the affine coordinate form of every original variable.
 
-Crossing arrangements return `OPEN_NON_LAMINAR`. Explicit work exhaustion returns `OPEN_BUDGET`.
+The verifier independently recomputes canonical RREF, checks every provenance XOR, checks `A p=b`, checks `A B=0`, checks basis independence on the declared free coordinates, and reconstructs every coordinate form.
 
-## Frozen controls
+## Independent certificate verifier
+
+`verify_certificate_report` does not accept a digest as semantic evidence. For SAT, UNSAT and non-laminar terminals it independently replays:
+
+1. input canonicalization and digest binding;
+2. affine basis construction and provenance;
+3. clause-to-coordinate translation;
+4. canonical RREF and literal-equation provenance for every forbidden factor;
+5. duplicate compression and every pair relation;
+6. maximality and pairwise disjointness;
+7. exact cardinalities;
+8. the complete conditional-count trace;
+9. the final `lambda` and lifted assignment;
+10. the original CNF and affine constraints.
+
+For `OPEN_BUDGET`, deterministic replay under the identical capability and budget is required. Corrupt witness, basis, relation, count, ledger, or digest fields are rejected.
+
+## Fixed polynomial ledger
+
+Let `L` be the explicit encoded input length used by the executable. The capability fixes one polynomial envelope:
+
+```text
+B(L) = 64 * (L + 1)^6.
+```
+
+An optional smaller operational cap may force an earlier refusal, but never enlarges this theorem budget. The producer ledger charges:
+
+```text
+basis elimination and row scans
+row XORs and swaps
+coordinate-form construction
+clause translation
+all intersections and inclusion tests
+pair and maximality discovery
+big-integer cardinality operations
+conditional counting
+witness recovery
+certificate bytes
+```
+
+The independent verifier uses the same fixed polynomial envelope and records its own work ledger. A certificate is rejected if its stated producer ledger is arithmetically inconsistent, exceeds the capability, or understates its serialized byte volume. Any producer or verifier overflow returns or validates only `OPEN_BUDGET`.
+
+## Frozen audit
 
 ```bash
 python experiments/direct/janus_c042_laminar_affine_forbidden_cover.py --self-test
 ```
 
-The deterministic audit includes:
+Current deterministic audit:
 
 ```text
-180 random laminar coordinate instances checked exhaustively on d <= 8
-64-dimensional SAT without enumerating 2^64 coordinates
-64-dimensional UNSAT from two disjoint halfspaces
-32 nested factors compressed to one maximal forbidden subspace
-crossing-subspace control -> OPEN_NON_LAMINAR
-24-variable NAND3+NEQ coordinate image -> OPEN_NON_LAMINAR
-corrupt digest detection
+120 random laminar instances on d <= 8
+120 EXACT / 0 OPEN
+0 SAT/UNSAT mismatches
+0 witness failures
+0 independent replay failures
+
+128-dimensional SAT without enumerating 2^128
+128-dimensional UNSAT from two disjoint halfspaces
+128-variable affine line with two hidden large-clause blockers -> UNSAT
+24 nested factors -> 1 maximal factor
+same nested family under a tight operational cap -> OPEN_BUDGET
+
+C023 NAND3+NEQ coordinate images at n=24,32,48 -> OPEN_NON_LAMINAR
+explicit crossing control -> OPEN_NON_LAMINAR
+affine contradiction provenance -> UNSAT
+corrupt certificate -> REJECTED
 ```
+
+Finite controls validate the implementation. The universal restricted theorem follows from affine elimination, laminar maximality, disjoint cardinality addition, and the conditional-count invariant.
 
 ## Literature alignment
 
-Counting points on and off unions of affine subspaces is classical subspace-arrangement theory and can be expressed through intersection-poset methods. C042 uses the elementary laminar specialization, where the intersection structure collapses to containment plus disjointness and exact counting needs no exponential inclusion-exclusion. This is an alignment and constructive proof package, not a new general arrangement invariant.
+Björner and Ekedahl place finite-field subspace-union counting in the classical intersection-poset framework. Arvind and Guruswami identify CNF satisfiability in a subspace with both Union-of-Subspace Avoidance and common zeros of products of affine forms, and establish the hardness boundary of the unrestricted problem.
+
+C042 is the elementary laminar specialization. Laminarity collapses the relevant inclusion-exclusion structure to pairwise disjoint maximal members. The implementation contribution is proof-carrying discovery, charged basis construction, exact witness/certificate recovery, and strict polynomial refusal. It is not promoted as a new general arrangement invariant.
 
 ## Decisive boundary
 
-C041 showed that affine coordinates reproduce arbitrary source 3-CNF on the C023 hard image. C042 adds a genuine tractable certificate, but the hard image contains crossing forbidden subspaces and is rejected.
-
-The surviving gate is:
+C041 proves that the C023 `{NAND3,NEQ}` hard image becomes the original arbitrary 3-CNF in affine coordinates. C042 adds real semantic compression only when a further laminar certificate is discovered. The registered high-dimensional hard-image controls contain crossing incomparable forbidden subspaces and therefore return
 
 ```text
-POLYNOMIAL_DECOMPOSITION_OF_CROSSING_AFFINE_FORBIDDEN_SUBSPACES
+OPEN_NON_LAMINAR.
 ```
 
-A next route must discover a broader arrangement decomposition or symbolic cover with polynomial join, projection, counting, SAT witness and UNSAT evidence. Failure remains `OPEN`.
+The surviving gate is
+
+```text
+POLYNOMIAL_DECOMPOSITION_OF_CROSSING_AFFINE_FORBIDDEN_SUBSPACES.
+```
+
+A later route may use bounded intersection support, a decomposable arrangement cover, a vtree, or another join-closed symbolic language, but discovery, intermediate size, projection, counting, SAT witness recovery and UNSAT evidence must all remain inside one fixed polynomial budget.

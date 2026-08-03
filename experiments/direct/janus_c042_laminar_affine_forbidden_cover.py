@@ -1,183 +1,191 @@
 #!/usr/bin/env python3
-from __future__ import annotations
-import argparse, hashlib, itertools, json, random
-from dataclasses import dataclass
-from typing import Any
+from janus_c042_affine_core import *
+from janus_c042_laminar_solver import decide
+from janus_c042_laminar_verifier import verify_certificate, verify_certificate_report
 
-Equation = tuple[int,int]
-Clause = tuple[int,...]
-
-
-def cj(o: Any)->str: return json.dumps(o,sort_keys=True,separators=(',',':'))
-def dg(o: Any)->str: return hashlib.sha256(cj(o).encode()).hexdigest()
-
-@dataclass
-class Row:
-    mask:int; rhs:int; prov:int=0
-    def clone(self): return Row(self.mask,self.rhs,self.prov)
-    def xor(self,o:'Row'): self.mask^=o.mask; self.rhs^=o.rhs; self.prov^=o.prov
+def brute(cnf: CNF, affine: tuple[Equation, ...], nvars_hint: int = 0) -> tuple[bool, int | None]:
+    cnf = normalize_cnf(cnf)
+    nvars = max(nvars_hint, max(variables_in_cnf(cnf) | variables_in_affine(affine), default=0))
+    for assignment_mask in range(1 << nvars):
+        if evaluate_equations(affine, assignment_mask) and evaluate_cnf(cnf, assignment_mask):
+            return True, assignment_mask
+    return False, None
 
 
-def rref(eqs: tuple[Equation,...], d:int)->tuple[tuple[Equation,...], bool, int]:
-    rows=[Row(m,r&1,1<<i) for i,(m,r) in enumerate(eqs)]
-    rank=0
-    for v in range(1,d+1):
-        b=1<<(v-1)
-        p=next((i for i in range(rank,len(rows)) if rows[i].mask&b),None)
-        if p is None: continue
-        rows[rank],rows[p]=rows[p],rows[rank]
-        for i in range(len(rows)):
-            if i!=rank and rows[i].mask&b: rows[i].xor(rows[rank])
-        rank+=1
-    out=[]
-    for row in rows:
-        if row.mask==0:
-            if row.rhs: return (),False,rank
-        else: out.append((row.mask,row.rhs))
-    out.sort(key=lambda x: ((x[0]&-x[0]).bit_length(),x[0],x[1]))
-    return tuple(out),True,len(out)
+def prefix_clause(pattern: tuple[int, ...]) -> Clause:
+    return tuple(index if bit == 0 else -index for index, bit in enumerate(pattern, start=1))
 
 
-def consistent(eqs: tuple[Equation,...], d:int)->bool: return rref(eqs,d)[1]
-def dim(eqs: tuple[Equation,...], d:int)->int:
-    _,ok,rank=rref(eqs,d)
-    return -1 if not ok else d-rank
-
-def intersect(a:tuple[Equation,...],b:tuple[Equation,...],d:int)->tuple[Equation,...]|None:
-    rr,ok,_=rref(a+b,d); return rr if ok else None
-
-def implies(system:tuple[Equation,...], eq:Equation,d:int)->bool:
-    m,r=eq
-    return not consistent(system+((m,r^1),),d)
-def subset(a:tuple[Equation,...],b:tuple[Equation,...],d:int)->bool:
-    return all(implies(a,e,d) for e in b)
-def relation(a,b,d):
-    inter=intersect(a,b,d)
-    if inter is None: return 'DISJOINT'
-    if subset(a,b,d): return 'A_SUBSET_B'
-    if subset(b,a,d): return 'B_SUBSET_A'
-    return 'CROSSING'
+def random_laminar_formula(rng: random.Random, dimension: int, count: int) -> CNF:
+    patterns = {
+        tuple(rng.getrandbits(1) for _ in range(rng.randint(0, dimension)))
+        for _ in range(count)
+    }
+    return normalize_cnf(tuple(prefix_clause(pattern) for pattern in patterns))
 
 
-def clause_forbidden(clause:Clause, rows:dict[int,int], const:dict[int,int], d:int)->tuple[Equation,...]|None:
-    eqs=[]
-    for lit in clause:
-        v=abs(lit); m=rows[v]; c=const.get(v,0)&1
-        target=0 if lit>0 else 1
-        eqs.append((m,target^c))
-    rr,ok,_=rref(tuple(eqs),d)
-    return rr if ok else None
+def c023_hard_image(n: int) -> tuple[CNF, tuple[Equation, ...], int]:
+    if n < 6:
+        raise ValueError("n must be at least 6")
+    source: list[Clause] = [(1, -2, 3), (1, 4, -5)]
+    for index in range(2, n - 1):
+        literals = (index, (index % n) + 1, ((index + 2) % n) + 1)
+        source.append(tuple(literal if (index + offset) % 2 else -literal
+                            for offset, literal in enumerate(literals)))
+    horn = []
+    for clause in source:
+        indicators = [n + abs(literal) if literal > 0 else abs(literal) for literal in clause]
+        horn.append(tuple(-indicator for indicator in indicators))
+    affine = tuple(
+        ((1 << (variable - 1)) | (1 << (n + variable - 1)), 1)
+        for variable in range(1, n + 1)
+    )
+    return normalize_cnf(tuple(horn)), affine, 2 * n
 
 
-def translate(cnf:tuple[Clause,...], rows:dict[int,int], const:dict[int,int], d:int):
-    out=[]
-    for i,c in enumerate(cnf):
-        s=clause_forbidden(c,rows,const,d)
-        if s is not None: out.append({'clause_id':i,'equations':s})
-    return out
+def hidden_large_clause_conflict(n: int) -> tuple[CNF, tuple[Equation, ...], int]:
+    cnf = (tuple(range(1, n + 1)), tuple(-variable for variable in range(1, n + 1)))
+    affine = tuple(((1 << 0) | (1 << (variable - 1)), 0) for variable in range(2, n + 1))
+    return normalize_cnf(cnf), affine, n
 
 
-def solve_laminar(cnf,rows,const,d,work_limit=10_000_000):
-    factors=translate(cnf,rows,const,d)
-    work=0; rels=[]
-    for i in range(len(factors)):
-        for j in range(i+1,len(factors)):
-            work+=1
-            if work>work_limit: return {'status':'OPEN_BUDGET','p_vs_np':'OPEN'}
-            rel=relation(factors[i]['equations'],factors[j]['equations'],d)
-            rels.append([i,j,rel])
-            if rel=='CROSSING':
-                return {'schema':'janus.c042.laminar_affine_forbidden_cover.v1','status':'OPEN_NON_LAMINAR','p_vs_np':'OPEN','crossing_pair':[i,j], 'factor_count':len(factors)}
-    maximal=[]
-    for i,f in enumerate(factors):
-        contained=False
-        for j,g in enumerate(factors):
-            if i!=j and subset(f['equations'],g['equations'],d) and not subset(g['equations'],f['equations'],d):
-                contained=True; break
-        if not contained:
-            if not any(subset(f['equations'],factors[k]['equations'],d) and subset(factors[k]['equations'],f['equations'],d) for k in maximal):
-                maximal.append(i)
-    sizes=[1<<dim(factors[i]['equations'],d) for i in maximal]
-    covered=sum(sizes); total=1<<d
-    base={'schema':'janus.c042.laminar_affine_forbidden_cover.v1','dimension':d,'factor_count':len(factors),'maximal_ids':maximal,'maximal_sizes':sizes,'covered_points':covered,'total_points':total,'relations':rels,'p_vs_np':'OPEN'}
-    if covered==total:
-        base['status']='UNSAT'; base['certificate']='DISJOINT_MAXIMAL_AFFINE_COVER'; base['integrity_sha256']=dg(base); return base
-    prefix=(); witness={}; trace=[]
-    for v in range(1,d+1):
-        chosen=None
-        for bit in (0,1):
-            cand=prefix+((1<<(v-1),bit),)
-            cell_size=1<<(d-v)
-            cov=0; counts=[]
-            for idx in maximal:
-                inter=intersect(factors[idx]['equations'],cand,d)
-                c=0 if inter is None else 1<<dim(inter,d)
-                counts.append(c); cov+=c
-            if cov<cell_size:
-                chosen=bit; trace.append({'var':v,'bit':bit,'covered':cov,'cell_size':cell_size,'counts':counts}); break
-        assert chosen is not None
-        witness[v]=bool(chosen); prefix=prefix+((1<<(v-1),chosen),)
-    def sat_eqs(eqs):
-        for m,r in eqs:
-            p=0
-            while m:
-                b=m&-m; p^=int(witness[b.bit_length()]); m^=b
-            if p!=r:return False
-        return True
-    assert not any(sat_eqs(f['equations']) for f in factors)
-    base['status']='SAT'; base['witness']={str(k):v for k,v in witness.items()}; base['trace']=trace; base['integrity_sha256']=dg(base); return base
+def audit(seed: int = 420042) -> dict[str, Any]:
+    rng = random.Random(seed)
+    random_cases = 120
+    mismatches = witness_failures = verification_failures = 0
+    exact = opened = 0
+    max_verifier_work = 0
+    for _ in range(random_cases):
+        dimension = rng.randint(0, 8)
+        cnf = random_laminar_formula(rng, dimension, rng.randint(0, 14))
+        certificate = decide(cnf, (), nvars_hint=dimension)
+        truth, _ = brute(cnf, (), dimension)
+        if certificate["status"].startswith("OPEN"):
+            opened += 1
+            continue
+        exact += 1
+        mismatches += int((certificate["status"] == "SAT") != truth)
+        verified, verifier_ledger = verify_certificate_report(cnf, (), certificate, nvars_hint=dimension)
+        verification_failures += int(not verified)
+        max_verifier_work = max(max_verifier_work, int(verifier_ledger["total_work_units"]))
+        if certificate["status"] == "SAT":
+            witness_mask = int(certificate["witness_mask"])
+            witness_failures += int(not evaluate_cnf(cnf, witness_mask))
+
+    dimension = 128
+    high_sat = decide((prefix_clause((0,)),), (), nvars_hint=dimension)
+    high_unsat = decide((prefix_clause((0,)), prefix_clause((1,))), (), nvars_hint=dimension)
+    nested_formula = tuple(prefix_clause(tuple(0 for _ in range(length))) for length in range(1, 25))
+    nested = decide(nested_formula, (), nvars_hint=dimension)
+    tight_nested = decide(nested_formula, (), nvars_hint=dimension, budget_cap=2_000)
+    hidden_cnf, hidden_affine, hidden_n = hidden_large_clause_conflict(128)
+    hidden = decide(hidden_cnf, hidden_affine, nvars_hint=hidden_n)
+
+    hard_controls = {}
+    for n in (24, 32, 48):
+        hard_cnf, hard_affine, hard_n = c023_hard_image(n)
+        hard_controls[str(n)] = decide(hard_cnf, hard_affine, nvars_hint=hard_n)["status"]
+
+    crossing = decide(((1,), (2,)), (), nvars_hint=2)
+    affine_bad = decide((), ((1, 0), (1, 1)), nvars_hint=1)
+    corrupt = json.loads(json.dumps(high_sat))
+    corrupt["witness_mask"] = str(int(corrupt["witness_mask"]) ^ 1)
+
+    high_sat_ok, high_sat_verifier = verify_certificate_report(
+        (prefix_clause((0,)),), (), high_sat, nvars_hint=dimension
+    )
+    high_unsat_ok, high_unsat_verifier = verify_certificate_report(
+        (prefix_clause((0,)), prefix_clause((1,))), (), high_unsat, nvars_hint=dimension
+    )
+    nested_ok, nested_verifier = verify_certificate_report(
+        nested_formula, (), nested, nvars_hint=dimension
+    )
+    tight_nested_ok, tight_nested_verifier = verify_certificate_report(
+        nested_formula, (), tight_nested, nvars_hint=dimension
+    )
+    hidden_ok, hidden_verifier = verify_certificate_report(
+        hidden_cnf, hidden_affine, hidden, nvars_hint=hidden_n
+    )
+    max_verifier_work = max(
+        max_verifier_work,
+        int(high_sat_verifier["total_work_units"]),
+        int(high_unsat_verifier["total_work_units"]),
+        int(nested_verifier["total_work_units"]),
+        int(tight_nested_verifier["total_work_units"]),
+        int(hidden_verifier["total_work_units"]),
+    )
+    assert high_sat["status"] == "SAT" and high_sat_ok
+    assert high_unsat["status"] == "UNSAT" and high_unsat_ok
+    assert nested["status"] == "SAT" and len(nested["maximal_indices"]) == 1 and nested_ok
+    assert tight_nested["status"] == "OPEN_BUDGET" and tight_nested_ok
+    assert hidden["status"] == "UNSAT" and hidden_ok
+    assert all(status == "OPEN_NON_LAMINAR" for status in hard_controls.values())
+    assert crossing["status"] == "OPEN_NON_LAMINAR" and verify_certificate(((1,), (2,)), (), crossing, nvars_hint=2)
+    assert affine_bad["status"] == "UNSAT" and affine_bad["reason"] == "AFFINE_CONTRADICTION"
+    assert verify_certificate((), ((1, 0), (1, 1)), affine_bad, nvars_hint=1)
+    assert not verify_certificate((prefix_clause((0,)),), (), corrupt, nvars_hint=dimension)
+
+    result = {
+        "artifact_id": "C042-JANUS-LAMINAR-AFFINE-FORBIDDEN-COVER",
+        "status": "PASS",
+        "p_vs_np": "OPEN",
+        "seed": seed,
+        "schema": SCHEMA,
+        "budget_exponent": BUDGET_EXPONENT,
+        "budget_multiplier": BUDGET_MULTIPLIER,
+        "random_cases": random_cases,
+        "exact": exact,
+        "open": opened,
+        "mismatches": mismatches,
+        "witness_failures": witness_failures,
+        "verification_failures": verification_failures,
+        "max_verifier_work_units": max_verifier_work,
+        "constructive_theorem": (
+            "CNF satisfiability inside an input affine GF(2) space is polynomially decidable with "
+            "independently replayable SAT/UNSAT evidence when clause-falsifying affine subspaces are laminar."
+        ),
+        "basis_construction": "charged provenance-carrying Gaussian elimination",
+        "high_dimension_sat": {"dimension": dimension, "status": high_sat["status"]},
+        "high_dimension_unsat_cover": {"dimension": dimension, "status": high_unsat["status"]},
+        "hidden_large_clause_conflict": {"variables": hidden_n, "status": hidden["status"]},
+        "small_final_large_intermediate": {
+            "input_factors": len(nested_formula),
+            "maximal_factors": len(nested["maximal_indices"]),
+            "normal_status": nested["status"],
+            "tight_budget_status": tight_nested["status"],
+        },
+        "nand3_neq_controls": hard_controls,
+        "crossing_control": crossing["status"],
+        "affine_contradiction_control": affine_bad["status"],
+        "corrupt_certificate_control": "REJECTED",
+        "new_gate": "POLYNOMIAL_DECOMPOSITION_OF_CROSSING_AFFINE_FORBIDDEN_SUBSPACES",
+        "claim_boundary": (
+            "Laminar affine forbidden-subspace arrangements only. Crossing arrangements, arbitrary CNF, "
+            "unrestricted Horn-affine composition, and P versus NP remain open."
+        ),
+    }
+    result["integrity_sha256"] = digest(result)
+    return result
 
 
-def eval_cnf(cnf,rows,const,lam):
-    packed=sum((1<<(i-1)) for i,b in lam.items() if b)
-    x={v: bool(const.get(v,0)^((rows[v]&packed).bit_count()&1)) for v in rows}
-    return all(any(x[abs(l)]==(l>0) for l in c) for c in cnf)
-def brute(cnf,rows,const,d):
-    for bits in itertools.product((False,True),repeat=d):
-        a={i+1:bits[i] for i in range(d)}
-        if eval_cnf(cnf,rows,const,a): return True,a
-    return False,None
-def prefix_clause(pattern:tuple[int,...])->Clause:
-    return tuple((i+1 if b==0 else -(i+1)) for i,b in enumerate(pattern))
-def hard_image(n:int):
-    cnf=[]
-    for i in range(1,n+1): cnf.append((i,-((i%n)+1),((i+1)%n)+1))
-    rows={i:1<<(i-1) for i in range(1,n+1)}; const={i:0 for i in rows}
-    return tuple(cnf),rows,const
+def main() -> None:
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--self-test", action="store_true")
+    parser.add_argument("--output")
+    parser.add_argument("--seed", type=int, default=420042)
+    args = parser.parse_args()
+    result = audit(args.seed)
+    if args.output:
+        with open(args.output, "w", encoding="utf-8") as handle:
+            json.dump(result, handle, indent=2, sort_keys=True)
+            handle.write("\n")
+    print(json.dumps(result, indent=2, sort_keys=True))
+    if args.self_test:
+        assert result["status"] == "PASS"
+        assert result["mismatches"] == 0
+        assert result["witness_failures"] == 0
+        assert result["verification_failures"] == 0
 
-def audit(seed=420042):
-    rng=random.Random(seed); cases=180; mismatch=verify_fail=0; exact=opens=0
-    for _ in range(cases):
-        d=rng.randint(1,8); rows={i:1<<(i-1) for i in range(1,d+1)}; const={i:0 for i in rows}
-        clauses=[]; rootbit=rng.randint(0,1); clauses.append(prefix_clause((rootbit,)))
-        if d>=2 and rng.random()<.5: clauses.append(prefix_clause((1-rootbit,rng.randint(0,1))))
-        for k in range(2,d+1):
-            if rng.random()<.35:
-                pat=(rootbit,)+tuple(rng.randint(0,1) for _ in range(k-1)); clauses.append(prefix_clause(pat))
-        cnf=tuple(clauses); cert=solve_laminar(cnf,rows,const,d); truth,_=brute(cnf,rows,const,d)
-        if cert['status'].startswith('OPEN'): opens+=1; continue
-        exact+=1
-        if (cert['status']=='SAT')!=truth:mismatch+=1
-        body=dict(cert); integ=body.pop('integrity_sha256')
-        if dg(body)!=integ:verify_fail+=1
-    d=64; rows={i:1<<(i-1) for i in range(1,d+1)}; const={i:0 for i in rows}
-    sat=solve_laminar((prefix_clause((0,)),),rows,const,d)
-    assert sat['status']=='SAT' and sat['witness']['1'] is True
-    unsat=solve_laminar((prefix_clause((0,)),prefix_clause((1,))),rows,const,d)
-    assert unsat['status']=='UNSAT' and unsat['covered_points']==1<<64
-    nested=tuple(prefix_clause(tuple(0 for _ in range(k))) for k in range(1,33))
-    nest=solve_laminar(nested,rows,const,d)
-    assert nest['status']=='SAT' and len(nest['maximal_ids'])==1
-    cross=solve_laminar((prefix_clause((0,)),(2,)),rows,const,d)
-    assert cross['status']=='OPEN_NON_LAMINAR'
-    hc,hr,hk=hard_image(24); hard=solve_laminar(hc,hr,hk,24)
-    assert hard['status']=='OPEN_NON_LAMINAR'
-    result={'artifact_id':'C042-JANUS-LAMINAR-AFFINE-FORBIDDEN-COVER','status':'PASS','p_vs_np':'OPEN','seed':seed,'random_cases':cases,'exact':exact,'open':opens,'mismatches':mismatch,'verification_failures':verify_fail,'theorem':'Affine-coordinate CNF is polynomially decidable when clause-falsifying affine subspaces form a laminar family; maximal forbidden subspaces are disjoint, exact union size is additive, SAT witnesses follow by conditional counting, and UNSAT is certified by a disjoint affine cover.','high_dimension_sat':{'dimension':64,'factors':1,'status':sat['status']},'high_dimension_unsat_cover':{'dimension':64,'factors':2,'status':unsat['status']},'nested_compression':{'input_factors':32,'maximal_factors':len(nest['maximal_ids']),'status':nest['status']},'crossing_control':cross['status'],'nand3_neq_control':hard['status'],'new_gate':'POLYNOMIAL_DECOMPOSITION_OF_CROSSING_AFFINE_FORBIDDEN_SUBSPACES','claim_boundary':'Laminar affine forbidden-subspace arrangements only. Crossing arrangements return OPEN; arbitrary 3-CNF and P versus NP remain open.'}
-    result['integrity_sha256']=dg(result); return result
 
-def main():
-    ap=argparse.ArgumentParser();ap.add_argument('--self-test',action='store_true');ap.add_argument('--output');a=ap.parse_args();r=audit()
-    if a.output: open(a.output,'w').write(json.dumps(r,indent=2,sort_keys=True)+'\n')
-    print(json.dumps(r,indent=2,sort_keys=True))
-    if a.self_test: assert r['status']=='PASS' and r['mismatches']==0 and r['verification_failures']==0
-if __name__=='__main__':main()
+if __name__ == "__main__":
+    main()
