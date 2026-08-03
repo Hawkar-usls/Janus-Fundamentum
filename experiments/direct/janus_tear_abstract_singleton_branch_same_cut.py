@@ -14,10 +14,14 @@ parallel residual literals as distinct multigraph edges.
 It verifies:
 
 1. every surviving directed-cycle source still has an external directed cycle;
-2. every surviving spanning source remains spanning;
-3. every child bridge lifts to a source bridge with a unique cut lift;
-4. no source family with no same-cut pair gains a same-cut pair after the
-   singleton branch.
+2. every surviving spanning source remains branch-safe and connected;
+3. every child bridge lifts to a source bridge with the uniquely lifted cut;
+4. every child same-cut complementary pair lifts to the same source pair and
+   source cut.
+
+Item 4 is deliberately pairwise.  The union of *all* abstract safe clauses
+already contains generic same-cut witnesses, so treating that artificial union
+as one source family would test the wrong statement.
 
 The theorem is proved separately in
 `GT_SINGLETON_BRANCH_SAME_CUT_PRESERVATION.md`; this program is an exhaustive
@@ -26,7 +30,7 @@ small-instance falsification gate.
 
 from __future__ import annotations
 
-from collections import Counter
+from collections import Counter, defaultdict
 from itertools import product
 
 Literal = int
@@ -34,13 +38,13 @@ Clause = tuple[Literal, ...]
 
 
 def variables(n: int):
-    pairs = []
+    result = []
     variable = 1
     for low in range(n):
         for high in range(low + 1, n):
-            pairs.append((variable, low, high))
+            result.append((variable, low, high))
             variable += 1
-    return tuple(pairs)
+    return tuple(result)
 
 
 def clauses(n: int):
@@ -165,27 +169,6 @@ def restrict_clause(clause: Clause, variable: int, value: bool):
     return tuple(literal for literal in clause if literal != falsified)
 
 
-def same_cut_pairs(vertex_count: int, clause_records):
-    positive = Counter()
-    negative = Counter()
-    witnesses = []
-    for clause, records in clause_records:
-        if classification(vertex_count, records) != "COMPONENT_SPANNING":
-            continue
-        for _tail, _head, literal in records:
-            cut = bridge_cut(vertex_count, records, literal)
-            if cut is None:
-                continue
-            key = (abs(literal), cut)
-            if literal > 0:
-                positive[key] += 1
-            else:
-                negative[key] += 1
-    for key in set(positive) & set(negative):
-        witnesses.append((key, positive[key], negative[key]))
-    return tuple(sorted(witnesses, key=repr))
-
-
 def lifted_cut(child_cut, groups):
     return frozenset(
         frozenset(
@@ -229,18 +212,14 @@ def audit(n: int):
         mapping, groups = component_map(n, (low, high))
         child_vertex_count = len(groups)
         for value in (False, True):
-            child_family = []
-            source_same_cut = same_cut_pairs(
-                n,
-                tuple((clause, source_records[clause]) for clause in safe_clauses),
-            )
-            assert not source_same_cut
+            bridge_occurrences = defaultdict(lambda: {"positive": [], "negative": []})
 
             for clause in safe_clauses:
                 residual = restrict_clause(clause, branch_variable, value)
                 if residual is None:
                     counts["satisfied_clauses"] += 1
                     continue
+
                 child_records = external_edges(
                     residual,
                     pair_by_variable,
@@ -249,7 +228,6 @@ def audit(n: int):
                 child_class = classification(child_vertex_count, child_records)
                 child_classes[child_class] += 1
                 counts["surviving_clauses"] += 1
-                child_family.append((residual, child_records))
 
                 source_class = source_classes[clause]
                 if source_class == "DIRECTED_CYCLE" and child_class != "DIRECTED_CYCLE":
@@ -304,21 +282,39 @@ def audit(n: int):
                             "child_cut": child_cut,
                             "lifted_cut": lifted,
                         })
+                    if child_class != "COMPONENT_SPANNING":
+                        continue
+                    key = (abs(literal), child_cut)
+                    side = "positive" if literal > 0 else "negative"
+                    bridge_occurrences[key][side].append({
+                        "source_clause": clause,
+                        "source_class": source_class,
+                        "source_cut": source_cut,
+                        "residual": residual,
+                        "literal": literal,
+                    })
 
-            child_same_cut = same_cut_pairs(
-                child_vertex_count,
-                tuple(child_family),
-            )
             counts["branch_instances"] += 1
-            counts["child_same_cut_witnesses"] += len(child_same_cut)
-            if child_same_cut:
-                violations.append({
-                    "kind": "NEW_SAME_CUT_PAIR",
-                    "n": n,
-                    "branch_variable": branch_variable,
-                    "value": value,
-                    "witnesses": child_same_cut,
-                })
+            for key, signs in bridge_occurrences.items():
+                for positive in signs["positive"]:
+                    for negative in signs["negative"]:
+                        counts["child_same_cut_pairs"] += 1
+                        if not (
+                            positive["source_class"] == "COMPONENT_SPANNING"
+                            and negative["source_class"] == "COMPONENT_SPANNING"
+                            and positive["source_cut"] == negative["source_cut"]
+                        ):
+                            violations.append({
+                                "kind": "UNLIFTED_CHILD_SAME_CUT_PAIR",
+                                "n": n,
+                                "branch_variable": branch_variable,
+                                "value": value,
+                                "key": key,
+                                "positive": positive,
+                                "negative": negative,
+                            })
+                        else:
+                            counts["lifted_child_same_cut_pairs"] += 1
 
     return {
         "n": n,
@@ -348,14 +344,19 @@ def self_test():
         print(f"  violations = {data['violations']}")
 
     assert aggregate_counts["branch_instances"] > 0
-    assert aggregate_counts["child_same_cut_witnesses"] == 0
+    assert aggregate_counts["child_same_cut_pairs"] > 0
+    assert (
+        aggregate_counts["child_same_cut_pairs"]
+        == aggregate_counts["lifted_child_same_cut_pairs"]
+    )
     print("JANUS_ABSTRACT_SINGLETON_BRANCH_SAME_CUT = PASS")
     print(f"ROWS = {tuple(rows)}")
     print(f"AGGREGATE_COUNTS = {tuple(sorted(aggregate_counts.items()))}")
     print(f"AGGREGATE_CHILD_CLASSES = {tuple(sorted(aggregate_classes.items()))}")
     print(
-        "claim_boundary = exhaustive legal-clause falsification gate on 3 and "
-        "4 singleton quotient vertices; arbitrary-size theorem proved separately"
+        "claim_boundary = exhaustive legal-clause pairwise falsification gate "
+        "on 3 and 4 singleton quotient vertices; arbitrary-size theorem proved "
+        "separately"
     )
 
 
