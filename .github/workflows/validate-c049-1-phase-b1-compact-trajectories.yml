@@ -19,21 +19,84 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      - name: Compile
-        run: python -m py_compile experiments/direct/janus_c049_1_b1_compact_trajectory_core.py experiments/direct/janus_c049_1_b1_compact_trajectory.py experiments/direct/janus_c049_1_b1_compact_trajectory_verifier.py
-      - name: Run producer audit
+
+      - name: Compile B1 producer and independent verifier
+        run: |
+          python -m py_compile \
+            experiments/direct/janus_c049_1_b1_compact_trajectory_core.py \
+            experiments/direct/janus_c049_1_b1_compact_trajectory.py \
+            experiments/direct/janus_c049_1_b1_compact_trajectory_verifier.py
+
+      - name: Regenerate complete proof-carrying audit
         env:
           PYTHONPATH: experiments/direct
-        run: python experiments/direct/janus_c049_1_b1_compact_trajectory.py --output /tmp/c049-b1.json
-      - name: Check producer summary
+        run: |
+          python experiments/direct/janus_c049_1_b1_compact_trajectory.py \
+            --output /tmp/c049-b1.json
+          cmp /tmp/c049-b1.json \
+            experiments/direct/C049.1-JANUS-COMPACT-B-TRAJECTORY-B1.frozen.json
+
+      - name: Check frozen summary
         run: |
           python - <<'PY'
           import json
-          value=json.load(open('/tmp/c049-b1.json'))
-          assert value['summary']=={'cases':120,'failures':0}
-          assert value['integrity']=='dfce8171ececba915c41c1e3e31ca4254cc9f1320377c78ab4edc59cf5c01b4e'
+          value=json.load(open('/tmp/c049-b1.json', encoding='utf-8'))
+          assert value['summary'] == {
+              'audit_cases': 120,
+              'audit_failures': 0,
+              'audit_trace_steps': 741,
+              'proof_cases': 6,
+              'proof_trace_steps': 49,
+              'invalid_control_failures': 0,
+              'invalid_controls': 6,
+              'transformed_cases': 48,
+          }
+          assert value['integrity'] == '1376cd7ed4c4c15fbe1d593dccb07fd05465c95f985142015e052e01e2d60021'
           PY
-      - name: Independent replay
-        run: python experiments/direct/janus_c049_1_b1_compact_trajectory_verifier.py experiments/direct/C049.1-JANUS-COMPACT-B-TRAJECTORY-B1.frozen.json
-      - name: Validate JSON
-        run: python -c "import json; [json.load(open(p)) for p in ['registry/c049.1-phase-b1-source-map.json','proposals/C049.1-JANUS-COMPACT-B-TRAJECTORY-B1.json','experiments/direct/C049.1-JANUS-COMPACT-B-TRAJECTORY-B1.frozen.json']]"
+
+      - name: Independently replay every transcript
+        run: |
+          python experiments/direct/janus_c049_1_b1_compact_trajectory_verifier.py \
+            experiments/direct/C049.1-JANUS-COMPACT-B-TRAJECTORY-B1.frozen.json
+
+      - name: Reject semantic trace tampering after digest repair
+        run: |
+          cp experiments/direct/C049.1-JANUS-COMPACT-B-TRAJECTORY-B1.frozen.json /tmp/tampered.json
+          python - <<'PY'
+          import hashlib, json
+
+          def digest(value):
+              return hashlib.sha256(
+                  json.dumps(value, sort_keys=True, separators=(',', ':')).encode()
+              ).hexdigest()
+
+          path='/tmp/tampered.json'
+          value=json.load(open(path, encoding='utf-8'))
+          case=next(case for case in value['proof_cases'] if case['trace'])
+          case['trace'][0]['after_digest']='0'*64
+          unsigned_case=dict(case)
+          unsigned_case.pop('case_digest')
+          case['case_digest']=digest(unsigned_case)
+          value.pop('integrity')
+          value['integrity']=digest(value)
+          with open(path, 'w', encoding='utf-8') as handle:
+              json.dump(value, handle, indent=2, sort_keys=True)
+              handle.write('\n')
+          PY
+          if python experiments/direct/janus_c049_1_b1_compact_trajectory_verifier.py /tmp/tampered.json; then
+            echo 'tampered B1 transcript was accepted'
+            exit 1
+          fi
+
+      - name: Validate machine-readable package
+        run: |
+          python - <<'PY'
+          import json
+          for path in [
+              'registry/c049.1-phase-b1-source-map.json',
+              'proposals/C049.1-JANUS-COMPACT-B-TRAJECTORY-B1.json',
+              'experiments/direct/C049.1-JANUS-COMPACT-B-TRAJECTORY-B1.frozen.json',
+          ]:
+              with open(path, encoding='utf-8') as handle:
+                  json.load(handle)
+          PY
