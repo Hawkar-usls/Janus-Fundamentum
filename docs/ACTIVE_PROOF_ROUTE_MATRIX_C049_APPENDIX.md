@@ -8,13 +8,14 @@
 C046 affine offsets are semantically mandatory
 -> C047 offset-aware functional trellis
 -> C048 frozen heuristic layouts
--> C048-FPT-BRIDGE published fixed-k grouped-subspace discovery
+-> C048.1 published fixed-k grouped-subspace discovery bridge
 -> C049 partition-preservation obstruction
 -> partition-aware proof-carrying constructor integration
 ```
 
-The obstruction does not reject the direct grouped-subspace FPT algorithms and does not reject a
-proved partition-aware specialization of newer represented-matroid machinery.
+`C048.1` is the canonical repository allocation for the discussion alias `C048-FPT-BRIDGE`.
+
+The obstruction does not reject the direct grouped-subspace FPT algorithms and does not reject a proved partition-aware specialization of newer represented-matroid machinery.
 
 ```text
 P_VS_NP=OPEN
