@@ -3,13 +3,17 @@
 
 Generate every labelled inward star and one-subdivision star rooted at zero.
 For every deleted tree edge and every possible added directed edge, retain only
-updates which are simple in-arborescences with the same root.  Verify the
+updates which are simple in-arborescences with the same root. Verify the
 arbitrary-size graph theorem's conclusions:
 
 - at most two non-star edges;
 - height at most three;
 - every non-K-normal result becomes K-normal after contracting any non-star
   edge.
+
+Shape tuples use the canonical C024 convention
+
+    (height, non-star edge count, one-subdivision-star flag).
 
 The theorem is proved separately in
 `GT_K_NORMAL_ONE_EDGE_EXCHANGE_GROWTH.md`; this is an independent finite
@@ -79,7 +83,13 @@ def shape(vertex_count: int, edges: tuple[Edge, ...], root: int = 0):
             distance += 1
         maximum = max(maximum, distance)
     nonstar = sum(1 for _left, right in edges if right != root)
-    return maximum, nonstar, maximum <= 2 and nonstar <= 1
+    one_subdivision = maximum == 2 and nonstar == 1
+    return maximum, nonstar, one_subdivision
+
+
+def is_k_normal(shape_value: tuple[int, int, bool]) -> bool:
+    height, nonstar, _one_subdivision = shape_value
+    return height <= 2 and nonstar <= 1
 
 
 def contract_edge(
@@ -127,7 +137,7 @@ def self_test() -> None:
     for vertex_count in range(2, 9):
         for source in source_trees(vertex_count):
             source_shape = shape(vertex_count, source)
-            assert source_shape[2]
+            assert is_k_normal(source_shape)
             source_shapes[source_shape] += 1
             counts["sources"] += 1
 
@@ -145,7 +155,7 @@ def self_test() -> None:
                         counts["exact_one_edge_exchanges"] += 1
                         result_shape = shape(vertex_count, result)
                         result_shapes[result_shape] += 1
-                        height, nonstar, k_normal = result_shape
+                        height, nonstar, _one_subdivision = result_shape
                         if height > 3 or nonstar > 2:
                             violations.append({
                                 "kind": "GROWTH_BOUND",
@@ -158,7 +168,7 @@ def self_test() -> None:
                             })
                             continue
 
-                        if k_normal:
+                        if is_k_normal(result_shape):
                             counts["k_normal_results"] += 1
                             continue
 
@@ -194,7 +204,7 @@ def self_test() -> None:
                             )
                             contraction_shapes[contracted_shape] += 1
                             counts["marked_contractions"] += 1
-                            if not contracted_shape[2]:
+                            if not is_k_normal(contracted_shape):
                                 violations.append({
                                     "kind": "CONTRACTION_NOT_K_NORMAL",
                                     "result": result,
