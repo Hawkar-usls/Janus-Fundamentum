@@ -1,0 +1,203 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://janus.invalid/schemas/c039-1-single-head-horn-v1.schema.json",
+  "title": "C039.1 single-head Horn certificates",
+  "$defs": {
+    "sha256": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$"
+    },
+    "nullableSha256": {
+      "oneOf": [
+        { "$ref": "#/$defs/sha256" },
+        { "type": "null" }
+      ]
+    },
+    "nonNegative": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "atomArray": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "pattern": "^[A-Za-z_][A-Za-z0-9_.:-]*$"
+      },
+      "uniqueItems": true
+    },
+    "rule": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["body", "head"],
+      "properties": {
+        "body": { "$ref": "#/$defs/atomArray" },
+        "head": {
+          "oneOf": [
+            {
+              "type": "string",
+              "pattern": "^[A-Za-z_][A-Za-z0-9_.:-]*$"
+            },
+            { "type": "null" }
+          ]
+        }
+      }
+    },
+    "message": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema",
+        "language_profile",
+        "payload_type",
+        "scope",
+        "boundary",
+        "rules"
+      ],
+      "properties": {
+        "schema": {
+          "const": "janus.c039.1.single-head-horn-message.v1"
+        },
+        "language_profile": { "const": "SINGLE_HEAD_HORN_V1" },
+        "payload_type": { "const": "HORN_CLOSURE" },
+        "scope": { "$ref": "#/$defs/atomArray" },
+        "boundary": { "$ref": "#/$defs/atomArray" },
+        "rules": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/rule" },
+          "uniqueItems": true
+        }
+      }
+    },
+    "growthCertificate": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "source_message_digest",
+        "eliminated_variables",
+        "canonical_generation_order",
+        "first_over_budget_rule_digest",
+        "emitted_before_stop",
+        "emitted_units",
+        "declared_size_bound",
+        "declared_rule_bound",
+        "charged_work",
+        "partial_factor"
+      ],
+      "properties": {
+        "source_message_digest": { "$ref": "#/$defs/sha256" },
+        "eliminated_variables": { "$ref": "#/$defs/atomArray" },
+        "canonical_generation_order": { "type": "string" },
+        "first_over_budget_rule_digest": { "$ref": "#/$defs/nullableSha256" },
+        "emitted_before_stop": { "$ref": "#/$defs/nonNegative" },
+        "emitted_units": { "$ref": "#/$defs/nonNegative" },
+        "declared_size_bound": { "$ref": "#/$defs/nonNegative" },
+        "declared_rule_bound": { "$ref": "#/$defs/nonNegative" },
+        "charged_work": { "$ref": "#/$defs/nonNegative" },
+        "partial_factor": { "type": "null" }
+      }
+    },
+    "evaluation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema",
+        "canonical_id",
+        "terminal",
+        "reason_code",
+        "formula_digest",
+        "vtree_digest",
+        "capability_digest",
+        "language_profile_digest",
+        "budget_digest",
+        "max_message_size",
+        "total_representation_size",
+        "leaf_work",
+        "join_work",
+        "projection_work",
+        "proof_bytes",
+        "closed_nodes",
+        "open_nodes",
+        "first_open_node_digest",
+        "first_open_terminal",
+        "first_open_reason_code",
+        "root_message_digest",
+        "evaluation_certificate_digest"
+      ],
+      "properties": {
+        "schema": { "const": "janus.c039.1.vtree-evaluation.v1" },
+        "canonical_id": { "const": "C039.1" },
+        "terminal": {
+          "enum": [
+            "FACTOR_BUILT",
+            "OPEN_LANGUAGE",
+            "OPEN_BUDGET",
+            "OPEN_REPRESENTATION_GROWTH",
+            "INVALID_CERTIFICATE"
+          ]
+        },
+        "reason_code": {
+          "enum": [
+            "NONE",
+            "SINGLE_HEAD_CLOSURE_LOST",
+            "PROJECTION_VOLUME",
+            "WORK_UNITS",
+            "INVALID_RULE",
+            "INVALID_SCOPE",
+            "INVALID_VTREE",
+            "UNSUPPORTED_OPERATOR"
+          ]
+        },
+        "formula_digest": { "$ref": "#/$defs/nullableSha256" },
+        "vtree_digest": { "$ref": "#/$defs/nullableSha256" },
+        "capability_digest": { "$ref": "#/$defs/sha256" },
+        "language_profile_digest": { "$ref": "#/$defs/sha256" },
+        "budget_digest": { "$ref": "#/$defs/sha256" },
+        "max_message_size": { "$ref": "#/$defs/nonNegative" },
+        "total_representation_size": { "$ref": "#/$defs/nonNegative" },
+        "leaf_work": { "$ref": "#/$defs/nonNegative" },
+        "join_work": { "$ref": "#/$defs/nonNegative" },
+        "projection_work": { "$ref": "#/$defs/nonNegative" },
+        "proof_bytes": { "$ref": "#/$defs/nonNegative" },
+        "closed_nodes": { "$ref": "#/$defs/nonNegative" },
+        "open_nodes": { "$ref": "#/$defs/nonNegative" },
+        "first_open_node_digest": { "$ref": "#/$defs/nullableSha256" },
+        "first_open_terminal": {
+          "oneOf": [
+            {
+              "enum": [
+                "OPEN_LANGUAGE",
+                "OPEN_BUDGET",
+                "OPEN_REPRESENTATION_GROWTH",
+                "INVALID_CERTIFICATE"
+              ]
+            },
+            { "type": "null" }
+          ]
+        },
+        "first_open_reason_code": {
+          "oneOf": [
+            {
+              "enum": [
+                "SINGLE_HEAD_CLOSURE_LOST",
+                "PROJECTION_VOLUME",
+                "WORK_UNITS",
+                "INVALID_RULE",
+                "INVALID_SCOPE",
+                "INVALID_VTREE",
+                "UNSUPPORTED_OPERATOR"
+              ]
+            },
+            { "type": "null" }
+          ]
+        },
+        "root_message_digest": { "$ref": "#/$defs/nullableSha256" },
+        "evaluation_certificate_digest": { "$ref": "#/$defs/sha256" }
+      }
+    }
+  },
+  "oneOf": [
+    { "$ref": "#/$defs/message" },
+    { "$ref": "#/$defs/growthCertificate" },
+    { "$ref": "#/$defs/evaluation" }
+  ]
+}
