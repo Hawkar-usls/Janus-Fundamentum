@@ -19,7 +19,7 @@ the birth histogram is diagnostic finite evidence.
 
 from __future__ import annotations
 
-from collections import Counter, defaultdict
+from collections import Counter
 
 from janus_tear_gt_bridge_endpoint_profile import bridge_record
 from janus_tear_gt_component_merge_sources import reduce_clause
@@ -32,6 +32,7 @@ from janus_tear_gt_rank_safety_dichotomy import safety_class
 from janus_tear_gt_root_nonminimality_bridge_shield import original_direction
 
 Clause = tuple[int, ...]
+EXPECTED_BAD = {4: 1, 5: 4, 6: 8, 7: 21, 8: 28}
 
 
 def component_size_map(graph) -> tuple[dict[int, int], dict[int, int]]:
@@ -145,7 +146,6 @@ def audit(n: int):
                 assert child_sizes["tail_size"] == 1
                 assert child_sizes["head_size"] >= 2
 
-                # The root key has no bad bridges in the finite traces.
                 assert call_id in parents
                 edge = parents[call_id]
                 parent_state = policy.states[int(edge["state_id"])]
@@ -245,8 +245,9 @@ def audit(n: int):
                         "mechanism": mechanism,
                     })
 
-    assert counts["bad_occurrences"] == 62
-    assert counts["first_birth_occurrences"] + counts["inherited_bad_occurrences"] == 62
+    expected = EXPECTED_BAD[n]
+    assert counts["bad_occurrences"] == expected
+    assert counts["first_birth_occurrences"] + counts["inherited_bad_occurrences"] == expected
     return {
         "n": n,
         "target": target,
@@ -285,6 +286,8 @@ def self_test() -> None:
         print(f"  size_transition_histogram = {data['size_transition_histogram']}")
         print(f"  first_birth_examples = {data['first_birth_examples']}")
 
+    assert aggregate_counts["bad_occurrences"] == 62
+    assert aggregate_counts["first_birth_occurrences"] + aggregate_counts["inherited_bad_occurrences"] == 62
     print("JANUS_GT_BAD_BRIDGE_BIRTH_LIFECYCLE = PASS")
     print(f"aggregate_counts = {tuple(sorted(aggregate_counts.items()))}")
     print(f"aggregate_birth_mechanisms = {tuple(sorted(aggregate_mechanisms.items(), key=repr))}")
