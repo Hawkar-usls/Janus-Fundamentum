@@ -1,15 +1,16 @@
 {
   "proposal_id": "C024-TEMPORAL-SAME-CUT-ELIGIBILITY",
   "parent_proposal": "C024-SPANNING-CYCLE-RESOLUTION-CLOSURE",
-  "status": "T1_AND_T2A_PROVED_T2B_BRANCH_HANDOFF_OPEN",
+  "status": "T1_T2A_PROVED_T2B_REDUCED_TO_SELECTED_BRANCH_CUT_OR_SHIELD",
   "created_utc": "2026-08-03T06:00:00Z",
-  "updated_utc": "2026-08-03T06:45:00Z",
-  "target": "Prove that no same-cut double-bridge pair becomes co-eligible in a frozen exact key by a temporal K-to-R-to-P-to-K-prime induction.",
+  "updated_utc": "2026-08-03T07:25:00Z",
+  "target": "Prove that no same-cut double-bridge pair becomes co-eligible in a frozen exact key by a temporal K-to-R-to-P-to-B-to-K-prime induction.",
   "stage_model": {
     "K": "exact entry key after pre-unit closure",
     "R": "frozen one-pass Resolution output",
     "P": "post-unit residual",
-    "K_prime": "reached child exact key after branch restriction and child pre-units"
+    "B": "raw child input after the selected branch literal and before child pre-units",
+    "K_prime": "reached child exact key after child pre-units"
   },
   "finite_stage_census": {
     "orders": [4, 5, 6, 7, 8],
@@ -33,6 +34,16 @@
       "different_cut": 1389,
       "post_unit_created_pairs": 0,
       "raw_pairs_extinguished_before_P": 1
+    },
+    "B": {
+      "executed_children": 1208,
+      "acyclic_branch_assignments": 1208,
+      "same_cut_pairs": 0,
+      "transmitted_same_cut_pairs": 0,
+      "new_same_cut_births": 0,
+      "cycle_shield_collapses": 42966,
+      "collapsed_residuals_with_bridge": 2,
+      "same_cut_bridge_partners": 0
     },
     "K_prime": {
       "new_exact_key_pairs_created_by_transition": 0,
@@ -61,7 +72,7 @@
       "reason": "The complete three-vertex abstract gate finds 36 same-cut births."
     },
     {
-      "name": "All abstract post-unit births are opposite-unit conflicts",
+      "name": "All abstract contraction births are opposite-unit conflicts",
       "status": "FALSIFIED",
       "reason": "The complete one-step four-vertex gate finds 6336 non-unit births."
     },
@@ -82,11 +93,8 @@
       "right": [-2, -5],
       "origins": ["ENTRY_KEY", "LOCAL_RESOLVENT"],
       "roles": ["HEAD_SINGLETON", "TAIL_SINGLETON"],
-      "lifetime": "survives to P",
-      "extinction": [
-        "one child terminates before exact-key admission while both residual clauses remain",
-        "one child removes the fresh right clause by child pre-unit closure"
-      ]
+      "lifetime": "survives to P but not to raw B",
+      "extinction": "under both selected branch polarities the left pivot ceases to be a bridge already in B and the right residual is DIRECTED_CYCLE"
     },
     {
       "name": "GT_5 fresh/fresh complementary-unit transient",
@@ -119,7 +127,7 @@
       }
     },
     {
-      "name": "Post-Unit Cycle-Shield Birth Route Classification",
+      "name": "Cycle-Shield Birth Route Classification",
       "status": "PROVED_ARBITRARY_QUOTIENT",
       "statement": "A newly born same-cut pair from two branch-safe sources requires at least one DIRECTED_CYCLE source whose final cycle shield collapses; spanning-plus-spanning births are impossible."
     },
@@ -137,25 +145,31 @@
         "cycle_shield_collapses": 385,
         "collapsed_residuals_with_bridge": 0,
         "new_same_cut_births": 0
-      },
-      "reason_profile": {
-        "events": 10,
-        "candidate_count": "one in every event",
-        "origin": "LOCAL_RESOLVENT in every event",
-        "reason_width": 1,
-        "parent_widths": [2, 2],
-        "parent_safety": ["COMPONENT_SPANNING", "DIRECTED_CYCLE"],
-        "inference_pivot": "EXTERNAL and different from unit variable",
-        "unit_position": 1,
-        "component_transition": "2 to 1"
+      }
+    },
+    {
+      "name": "Branch-Handoff Same-Cut Route Classification",
+      "status": "PROVED_ARBITRARY_QUOTIENT",
+      "statement": "An inherited same-cut pair is destroyed when the selected branch crosses its common cut or assigns its pivot. A newly born pair from branch-safe sources requires cycle-shield collapse and two complementary exposed bridges with the same cut.",
+      "finite_support": {
+        "executed_children": 1208,
+        "parent_same_cut_pairs": 1,
+        "raw_child_same_cut_pairs": 0,
+        "raw_branch_births": 0,
+        "branch_cycle_shield_collapses": 42966,
+        "bridge_bearing_collapses": 2,
+        "complementary_candidate_occurrences": 44,
+        "complementary_directed_cycles": 42,
+        "complementary_spanning_nonbridges": 2,
+        "same_cut_bridge_partners": 0
       }
     }
   ],
   "remaining_local_obligations": [
     {
-      "name": "T2b Branch Handoff Extinction",
+      "name": "T2b Selected-Branch Cut-or-Shield Dichotomy",
       "status": "OPEN_ARBITRARY_N",
-      "statement": "Every same-cut transient surviving into P is removed, becomes structurally safe, or reaches a terminal child before K-prime."
+      "statement": "Every inherited raw same-cut pair is crossed, assigned, or removed by the selected branch; every cycle-shield bridge exposure has no complementary exposed bridge with the same cut."
     },
     {
       "name": "T3 Temporal Exact-Key Induction",
@@ -178,13 +192,11 @@
     "proof_attempts/C024/GT_FROZEN_FRESH_SIDE_BARRIER.md",
     "proof_attempts/C024/GT_POST_UNIT_CYCLE_SHIELD_ROUTE_CLASSIFICATION.md",
     "proof_attempts/C024/GT_POST_UNIT_TOTAL_COMPONENT_COLLAPSE_BARRIER.md",
-    "experiments/direct/janus_tear_gt_same_cut_transient_elimination.py",
-    "experiments/direct/janus_tear_gt_frozen_fresh_side_barrier.py",
-    "experiments/direct/janus_tear_gt_post_unit_cycle_shield_collapse.py",
-    "experiments/direct/janus_tear_gt_total_component_collapse_reason_profile.py",
-    "experiments/direct/janus_tear_abstract_post_unit_same_cut_birth.py",
-    "experiments/direct/janus_tear_abstract_post_unit_same_cut_birth_n4.py",
-    "experiments/direct/janus_tear_abstract_post_unit_same_cut_birth_two_step_n4.py"
+    "proof_attempts/C024/GT_BRANCH_HANDOFF_ROUTE_CLASSIFICATION.md",
+    "experiments/direct/janus_tear_gt_branch_handoff_stage_census.py",
+    "experiments/direct/janus_tear_gt_branch_bridge_exposure_profile.py",
+    "experiments/direct/janus_tear_gt_bridge_shield_path_witness.py",
+    "experiments/direct/janus_tear_gt_surviving_branch_frequency_certificate.py"
   ],
-  "claim_boundary": "T1 and T2a are proved under the stated exact-key induction hypothesis. T2b, the completed local induction, the global cache lower bound, and P versus NP remain open."
+  "claim_boundary": "T1 and T2a are proved under the exact-key induction hypothesis, and the pure branch routes are classified. The GT-specific Selected-Branch Cut-or-Shield Dichotomy, completed local induction, global cache lower bound, and P versus NP remain open."
 }
