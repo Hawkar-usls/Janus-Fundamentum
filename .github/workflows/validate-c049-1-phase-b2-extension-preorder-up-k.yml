@@ -1,0 +1,87 @@
+name: Validate C049.1 Phase B2 Extension Preorder and up_k
+
+on:
+  pull_request:
+    paths:
+      - 'experiments/direct/janus_c049_1_b2_up_k_core.py'
+      - 'experiments/direct/janus_c049_1_b2_up_k.py'
+      - 'experiments/direct/janus_c049_1_b2_up_k_verifier.py'
+      - 'experiments/direct/janus_c049_1_b2_full_transcript_verifier.py'
+      - 'experiments/direct/C049.1-JANUS-EXTENSION-PREORDER-UP-K-B2.frozen.json'
+      - 'docs/C049_1_PHASE_B2_EXTENSION_PREORDER_UP_K.md'
+      - 'docs/ACTIVE_PROOF_ROUTE_MATRIX_C049_1_APPENDIX.md'
+      - 'proposals/C049.1-JANUS-EXTENSION-PREORDER-UP-K-B2.json'
+      - 'registry/c049.1-phase-b2-source-map.json'
+      - 'registry/c049.1-phase-b-status.json'
+      - '.github/workflows/validate-c049-1-phase-b2-extension-preorder-up-k.yml'
+  workflow_dispatch:
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Compile Phase B2 sources
+        run: |
+          python -m py_compile \
+            experiments/direct/janus_c049_1_b2_up_k_core.py \
+            experiments/direct/janus_c049_1_b2_up_k.py \
+            experiments/direct/janus_c049_1_b2_up_k_verifier.py \
+            experiments/direct/janus_c049_1_b2_full_transcript_verifier.py
+      - name: Run full proof-carrying producer audit
+        env:
+          PYTHONPATH: experiments/direct
+        run: |
+          python experiments/direct/janus_c049_1_b2_up_k.py \
+            --self-test \
+            --output /tmp/c049-b2-full.json
+          python - <<'PY'
+          import json
+          value=json.load(open('/tmp/c049-b2-full.json'))
+          assert value['summary']=={
+            'cases':7,
+            'closed_exact':4,
+            'd0_k2_full_set_entries':27,
+            'd0_k2_universe_size':27,
+            'd1_k1_full_set_entries':42,
+            'd1_k1_universe_size':552,
+            'failures':0,
+            'open_certificate_volume':1,
+            'open_discovery_budget':1,
+            'open_work_budget':1,
+            'preorder_negative':True,
+            'preorder_positive':True,
+            'removed_generators':1,
+            'retained_generators':2,
+          }
+          assert value['integrity']=='4c62118a3d4cf7928c0cd99d016c8063e63c8932b7ee4c020a0be815d22375cd'
+          PY
+      - name: Replay every producer-issued B2 transcript
+        run: |
+          python experiments/direct/janus_c049_1_b2_full_transcript_verifier.py \
+            /tmp/c049-b2-full.json
+      - name: Export full B2 proof cases
+        uses: actions/upload-artifact@v4
+        with:
+          name: c049-b2-full-proof-cases
+          path: /tmp/c049-b2-full.json
+          retention-days: 1
+      - name: Independent bounded semantic oracle
+        run: |
+          python experiments/direct/janus_c049_1_b2_up_k_verifier.py \
+            experiments/direct/C049.1-JANUS-EXTENSION-PREORDER-UP-K-B2.frozen.json
+      - name: Validate metadata JSON
+        run: |
+          python - <<'PY'
+          import json
+          for path in [
+            'experiments/direct/C049.1-JANUS-EXTENSION-PREORDER-UP-K-B2.frozen.json',
+            'proposals/C049.1-JANUS-EXTENSION-PREORDER-UP-K-B2.json',
+            'registry/c049.1-phase-b2-source-map.json',
+            'registry/c049.1-phase-b-status.json',
+          ]:
+            json.load(open(path))
+          PY
