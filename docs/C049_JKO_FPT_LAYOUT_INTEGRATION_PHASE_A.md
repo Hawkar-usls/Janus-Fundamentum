@@ -1,4 +1,4 @@
-# C049 — proof-carrying Jeong–Kim–Oum layout integration, Phase A
+# C049.1 — proof-carrying Jeong–Kim–Oum layout integration, Phase A
 
 ## Status
 
@@ -16,7 +16,7 @@ C048.1 identifies the C047 cut width
 
 with the linear-layout width of a finite-field subspace arrangement. Jeong, Kim and Oum proved a constructive fixed-parameter algorithm for finding a width-at-most-`k` layout when one exists over a fixed finite field.
 
-C049 must integrate that constructor without treating its internal dynamic program or a supplied layout as free. Phase A implements the sound preprocessing and transcript boundary needed before the full B-trajectory/full-set engine is ported.
+C049.1 follows the C049 grouped-subspace partition obstruction and must integrate that constructor without treating its internal dynamic program or a supplied layout as free. Phase A implements the sound preprocessing and transcript boundary needed before the full B-trajectory/full-set engine is ported.
 
 ## Implemented in Phase A
 
@@ -123,7 +123,7 @@ Frozen integrity:
 b38c982c7657f5f5e20a704ad46c65ab54c7b31a6104f4b8cb744f9aeff09ae3
 ```
 
-## Remaining C049 obligation
+## Remaining C049.1 obligation
 
 Phase A does **not** implement the FPT constructor itself. The remaining engine must faithfully port and charge:
 
@@ -135,8 +135,8 @@ Phase A does **not** implement the FPT constructor itself. The remaining engine 
 6. complete replayable `NO_LAYOUT_AT_CAP` when the full set contains no width-`k` trajectory;
 7. all intermediate states, lattice paths, failed refinements, coefficient volume, and certificate bytes.
 
-The published theorem closes existence for fixed `k`; C049 still owes the proof-carrying implementation.
+The published theorem closes existence for fixed `k`; C049.1 still owes the proof-carrying implementation.
 
 ## Claim boundary
 
-C049 Phase A does not claim a complete reimplementation of Jeong–Kim–Oum, does not claim a polynomial algorithm for unbounded `k`, does not solve the NAND3+NEQ hard image, and does not resolve P versus NP.
+C049.1 Phase A does not claim a complete reimplementation of Jeong–Kim–Oum, does not claim a polynomial algorithm for unbounded `k`, does not solve the NAND3+NEQ hard image, and does not resolve P versus NP.
