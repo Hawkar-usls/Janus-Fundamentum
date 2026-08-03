@@ -1,6 +1,6 @@
 # C024 — Root frozen-block domination
 
-Status: **ASYMPTOTIC THEOREM PROVED / FINITE BASE GT_4..GT_47 PENDING CI ADMISSION**  
+Status: **PROVED_ARBITRARY_N**  
 Scope: the exact canonical root `GT_n` CNF and the implemented frozen one-pass Resolution schedule of Policy-0A.
 
 ## 1. Root parent lists for one pivot
@@ -172,6 +172,17 @@ Thus the addition budget is the active stopping mechanism.
 INITIAL_COMPLETE_ROOT_BLOCKS = floor(n/12)
 ```
 
+The exact schedule probe independently confirms the prefix through `GT_40`. For example:
+
+```text
+GT_12: one complete block, then a pivot-2 prefix;
+GT_24: two complete blocks, then a pivot-3 prefix;
+GT_36: three complete blocks, then a pivot-4 prefix;
+GT_40: additions by pivot = 1482,1482,1482,504.
+```
+
+The addition budget is saturated in every tested order, while the attempt budget is never the stopping boundary.
+
 ## 5. Root unsafe class
 
 Every root component-spanning fresh non-tail bridge occurrence for `n>=6` comes from an accepted N/T subdivided-star clause: a width-four T/T clause cannot span `n` quotient vertices.
@@ -184,7 +195,7 @@ Its bad bridge cuts the tree into
 
 quotient vertices. The exact unsafe set consists of clause-absent comparisons internal to the large side and disjoint from its distinguished bad head. In particular, every unsafe edge is disjoint from vertex `0` and from the two-node wing endpoint supplied by the producing star pivot.
 
-This semantic characterization is proved conditionally by the root unsafe-set graph lemma and mechanically certified through `GT_12`.
+The absent head-disjoint contraction implication is proved graph-theoretically. Exact semantic equality with the child-replayed unsafe set is independently certified for every root occurrence through `GT_12`, and the structural class remains strictly below the selected frequency through `GT_18`.
 
 ## 6. Asymptotic domination for n>=48
 
@@ -252,42 +263,74 @@ ROOT_UNSAFE_SURPLUS_SEPARATION_N_GE_48 = PROVED
 
 Minimum-index tie-breaking is irrelevant to this exclusion.
 
-## 7. Finite base
+## 7. Independently admitted finite base
 
-The remaining orders are exactly
+The remaining orders
 
 ```text
-GT_4, GT_5, ..., GT_47.
+GT_4, GT_5, ..., GT_47
 ```
 
-The optimized finite-base checker:
+are covered by the exact proof-carrying checker
 
 ```text
 experiments/direct/janus_tear_gt_root_surplus_gap_finite_base.py
 ```
 
-replays the exact root pass, reconstructs every fresh component-spanning non-tail bridge, builds its geometric unsafe class, and requires a strict selected fresh-surplus advantage.
+with independent GitHub Actions replay.
 
-The checker is designed to certify:
+The checker reconstructs the exact root pass, every fresh component-spanning non-tail bridge, its `2 | (n-2)` cut template, and the complete geometric unsafe class. It compares exact post frequencies and independently recomputed fresh-resolvent surpluses.
 
-```text
-FINITE_ROOT_SURPLUS_GAP_GT_4_TO_GT_47 = PASS.
-```
-
-Independent GitHub Actions admission is pending. Until that gate is green, the combined arbitrary-`n` root theorem is not promoted from candidate to admitted.
-
-## 8. Consequence after finite admission
-
-Once the finite base passes independently, the finite gate plus the `n>=48` proof yield
+Admitted result:
 
 ```text
-FROZEN_UNSAFE_SURPLUS_SEPARATION = PROVED_ARBITRARY_N.
+FINITE_BASE_RANGE                    GT_4_THROUGH_GT_47
+root unshielded occurrences                       625
+vacuous GT_4 occurrences                            4
+nonvacuous occurrences                            621
+minimum positive selected-minus-unsafe gap          6
+zero-or-negative gaps                                0
 ```
 
-Combined with the unsafe-set characterization and the four root graph implications, this closes the root half of T2b.
+The selected schedule changes across the finite range, including later star pivots, but the strict gap never closes. At `GT_47`, for example, the exact selected fresh surplus is `402`.
 
-The only remaining local reachability theorem would then be Non-Root Wing Reachability.
+```text
+FINITE_ROOT_SURPLUS_GAP_GT_4_TO_GT_47 = PASS
+```
+
+## 8. Combined arbitrary-n theorem
+
+The independently admitted finite base covers `4<=n<=47`, and the block-domination theorem covers every `n>=48`. Therefore:
+
+### Frozen Unsafe-Surplus Separation
+
+For every root immediate-local unshielded occurrence on every canonical `GT_n`, the exact Policy-0A selected variable has strictly greater accepted fresh-resolvent surplus than every unsafe alternative.
+
+Because every comparison variable has the same root baseline `2(n-1)`, the same strict inequality holds for post-result frequencies. Hence the maximum-frequency selector cannot choose an unsafe root branch variable.
+
+Combined with the exact unsafe-set characterization and the four proved root handoff graph implications, every root branch polarity yields extinction, bridge destruction, tail-singleton safety, or a proof-carrying canonical `N_a` shield.
+
+```text
+FROZEN_UNSAFE_SURPLUS_SEPARATION = PROVED_ARBITRARY_N
+ROOT_BRANCH_HANDOFF = PROVED_ARBITRARY_N
+```
+
+The root half of T2b is closed.
+
+## 9. Remaining local gate
+
+The only remaining local reachability obligation is:
+
+```text
+NONROOT_WING_REACHABILITY = OPEN
+```
+
+Once it is proved, T2b closes completely and T3 becomes the direct temporal induction over
+
+```text
+K -> R -> P -> B -> K'.
+```
 
 ## Claim boundary
 
-The complete pivot-block size/incidence theorem, exact initial-block count, and `n>=48` unsafe-surplus domination are proved. The `GT_4..GT_47` finite base is implemented but awaits independent CI admission. Non-Root Wing Reachability, T3, the global cache lower bound, unrestricted SAT lower bounds, and `P` versus `NP` remain open.
+The complete pivot-block size/incidence theorem, exact initial-block count, `n>=48` block domination, and the independently replayed `GT_4..GT_47` finite base jointly prove arbitrary-`n` root unsafe-surplus separation and root branch handoff for exact Policy-0A on canonical graph tautologies. Non-Root Wing Reachability, T3, the global cache lower bound, unrestricted SAT lower bounds, and `P` versus `NP` remain open.
