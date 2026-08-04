@@ -1,0 +1,79 @@
+name: Validate C049.1 Phase B4.6.3 semantic up_k root replay hardened
+
+on:
+  push:
+    paths:
+      - 'experiments/direct/janus_c049_1_b4_6_3_semantic_up_k_root_replay_hardened.py'
+      - 'experiments/direct/janus_c049_1_b4_6_3_independent_semantic_up_k_root_replay.py'
+      - 'docs/C049_1_PHASE_B4_6_3_SEMANTIC_UP_K_ROOT_REPLAY_HARDENED.md'
+      - 'registry/c049.1-phase-b4.6.3-semantic-up-k-hardened-status.json'
+      - '.github/workflows/validate-c049-1-phase-b4-6-3-semantic-up-k-root-replay-hardened.yml'
+      - 'experiments/direct/janus_c049_1_b4_6_2_full_iterative_cycle.py'
+      - 'experiments/direct/janus_c049_1_b4_5_bottom_up_scaffold_executor.py'
+  pull_request:
+    paths:
+      - 'experiments/direct/janus_c049_1_b4_6_3_semantic_up_k_root_replay_hardened.py'
+      - 'experiments/direct/janus_c049_1_b4_6_3_independent_semantic_up_k_root_replay.py'
+      - 'docs/C049_1_PHASE_B4_6_3_SEMANTIC_UP_K_ROOT_REPLAY_HARDENED.md'
+      - 'registry/c049.1-phase-b4.6.3-semantic-up-k-hardened-status.json'
+      - '.github/workflows/validate-c049-1-phase-b4-6-3-semantic-up-k-root-replay-hardened.yml'
+      - 'experiments/direct/janus_c049_1_b4_6_2_full_iterative_cycle.py'
+      - 'experiments/direct/janus_c049_1_b4_5_bottom_up_scaffold_executor.py'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate-semantic-up-k-hardened:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Compile hardened verifier
+        run: |
+          python -m py_compile \
+            experiments/direct/janus_c049_1_b4_6_3_independent_semantic_up_k_root_replay.py \
+            experiments/direct/janus_c049_1_b4_6_3_semantic_up_k_root_replay_hardened.py
+      - name: Regenerate complete positive iterative cycle
+        env:
+          PYTHONPATH: experiments/direct
+        run: |
+          mkdir /tmp/c049-b4-6-3-semantic-hardened
+          python experiments/direct/janus_c049_1_b4_6_2_full_iterative_cycle.py \
+            --output-dir /tmp/c049-b4-6-3-semantic-hardened
+      - name: Replay with canonical dimension-two RREF hardening
+        env:
+          PYTHONPATH: experiments/direct
+        run: |
+          python experiments/direct/janus_c049_1_b4_6_3_semantic_up_k_root_replay_hardened.py \
+            /tmp/c049-b4-6-3-semantic-hardened \
+            --output /tmp/c049-b4-6-3-semantic-hardened-receipt.json
+      - name: Enforce hardened result and strict boundary
+        run: |
+          python - <<'PY'
+          import json
+          x=json.load(open('/tmp/c049-b4-6-3-semantic-hardened-receipt.json'))
+          assert x['all_rounds_semantically_replayed'] is True
+          assert x['basis_hardening']['legacy_order_dependence_reproduced'] is True
+          assert x['basis_hardening']['dimension_two_subspace_count'] == 5
+          assert x['basis_hardening']['failures'] == 0
+          assert x['coverage_boundary']['dimension_two_basis_semantics_tested'] is True
+          assert x['coverage_boundary']['dimension_two_full_up_k_closure_replayed'] is False
+          assert x['coverage_boundary']['negative_root_engine_replay'] == 'OPEN'
+          assert x['strict_boundary']['semantic_up_k_rref_hardened'] is True
+          assert x['strict_boundary']['terminal_completeness_proved'] is False
+          assert x['strict_boundary']['found_layout_enabled'] is False
+          assert x['strict_boundary']['no_layout_at_cap_enabled'] is False
+          assert x['strict_boundary']['current_global_terminal'] == 'OPEN_TRAJECTORY_ENGINE_INCOMPLETE'
+          assert x['strict_boundary']['p_vs_np'] == 'OPEN'
+          PY
+      - name: Export hardened semantic replay receipt
+        uses: actions/upload-artifact@v4
+        with:
+          name: c049-b4-6-3-semantic-up-k-root-replay-hardened
+          path: /tmp/c049-b4-6-3-semantic-hardened-receipt.json
+          retention-days: 1
