@@ -1,0 +1,70 @@
+name: Validate C049.1 Phase B4.6.3 terminal-completeness attack
+
+on:
+  push:
+    paths:
+      - 'experiments/direct/janus_c049_1_b4_6_3_terminal_completeness_attack.py'
+      - 'experiments/direct/janus_c049_1_b4_6_3_terminal_completeness_attack_verifier.py'
+      - 'docs/C049_1_PHASE_B4_6_3_TERMINAL_COMPLETENESS_ATTACK.md'
+      - 'registry/c049.1-phase-b4.6.3-attack-status.json'
+      - '.github/workflows/validate-c049-1-phase-b4-6-3-terminal-completeness-attack.yml'
+  pull_request:
+    paths:
+      - 'experiments/direct/janus_c049_1_b4_6_3_terminal_completeness_attack.py'
+      - 'experiments/direct/janus_c049_1_b4_6_3_terminal_completeness_attack_verifier.py'
+      - 'docs/C049_1_PHASE_B4_6_3_TERMINAL_COMPLETENESS_ATTACK.md'
+      - 'registry/c049.1-phase-b4.6.3-attack-status.json'
+      - '.github/workflows/validate-c049-1-phase-b4-6-3-terminal-completeness-attack.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate-b4-6-3-attack:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Compile independent attack pair
+        run: |
+          python -m py_compile \
+            experiments/direct/janus_c049_1_b4_6_3_terminal_completeness_attack.py \
+            experiments/direct/janus_c049_1_b4_6_3_terminal_completeness_attack_verifier.py
+      - name: Generate bounded exhaustive terminal oracle
+        run: |
+          python experiments/direct/janus_c049_1_b4_6_3_terminal_completeness_attack.py \
+            --output /tmp/c049-b4-6-3-attack.json
+      - name: Independently replay every grouped layout
+        run: |
+          python experiments/direct/janus_c049_1_b4_6_3_terminal_completeness_attack_verifier.py \
+            /tmp/c049-b4-6-3-attack.json \
+            --tamper-self-test
+      - name: Enforce attack boundary
+        run: |
+          python - <<'PY'
+          import json
+          x=json.load(open('/tmp/c049-b4-6-3-attack.json'))
+          assert x['summary'] == {
+              'case_count':4,
+              'failures':0,
+              'false_negative_controls':1,
+              'found_layout_cases':3,
+              'no_layout_at_cap_cases':1,
+              'permutations_replayed':734,
+          }
+          assert x['strict_boundary']['bounded_oracle_only'] is True
+          assert x['strict_boundary']['engine_terminal_completeness_proved'] is False
+          assert x['strict_boundary']['found_layout_enabled_in_engine'] is False
+          assert x['strict_boundary']['no_layout_at_cap_enabled_in_engine'] is False
+          assert x['strict_boundary']['current_global_terminal'] == 'OPEN_TRAJECTORY_ENGINE_INCOMPLETE'
+          assert x['strict_boundary']['p_vs_np'] == 'OPEN'
+          PY
+      - name: Export attack ledger
+        uses: actions/upload-artifact@v4
+        with:
+          name: c049-b4-6-3-terminal-completeness-attack
+          path: /tmp/c049-b4-6-3-attack.json
+          retention-days: 1
