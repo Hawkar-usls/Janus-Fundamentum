@@ -5,6 +5,7 @@ on:
     paths:
       - 'experiments/direct/janus_c049_1_b4_6_3_negative_root_engine_replay.py'
       - 'experiments/direct/janus_c049_1_b4_6_3_negative_root_engine_replay_verifier.py'
+      - 'experiments/direct/janus_c049_1_b4_6_3_negative_root_engine_replay_verifier_hardened.py'
       - 'experiments/direct/janus_c049_1_b4_6_3_semantic_up_k_root_replay_hardened.py'
       - 'docs/C049_1_PHASE_B4_6_3_NEGATIVE_ROOT_ENGINE_REPLAY.md'
       - 'registry/c049.1-phase-b4.6.3-negative-root-status.json'
@@ -15,6 +16,7 @@ on:
     paths:
       - 'experiments/direct/janus_c049_1_b4_6_3_negative_root_engine_replay.py'
       - 'experiments/direct/janus_c049_1_b4_6_3_negative_root_engine_replay_verifier.py'
+      - 'experiments/direct/janus_c049_1_b4_6_3_negative_root_engine_replay_verifier_hardened.py'
       - 'experiments/direct/janus_c049_1_b4_6_3_semantic_up_k_root_replay_hardened.py'
       - 'docs/C049_1_PHASE_B4_6_3_NEGATIVE_ROOT_ENGINE_REPLAY.md'
       - 'registry/c049.1-phase-b4.6.3-negative-root-status.json'
@@ -35,11 +37,12 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      - name: Compile producer and independent verifier
+      - name: Compile producer and independent verifiers
         run: |
           python -m py_compile \
             experiments/direct/janus_c049_1_b4_6_3_negative_root_engine_replay.py \
             experiments/direct/janus_c049_1_b4_6_3_negative_root_engine_replay_verifier.py \
+            experiments/direct/janus_c049_1_b4_6_3_negative_root_engine_replay_verifier_hardened.py \
             experiments/direct/janus_c049_1_b4_6_3_semantic_up_k_root_replay_hardened.py
       - name: Enforce dimension-two basis hardening before negative execution
         env:
@@ -59,11 +62,11 @@ jobs:
           mkdir /tmp/c049-b4-6-3-negative-root
           python experiments/direct/janus_c049_1_b4_6_3_negative_root_engine_replay.py \
             --output-dir /tmp/c049-b4-6-3-negative-root
-      - name: Independently replay the complete negative prefix
+      - name: Independently replay the complete negative prefix in streaming mode
         env:
           PYTHONPATH: experiments/direct
         run: |
-          python experiments/direct/janus_c049_1_b4_6_3_negative_root_engine_replay_verifier.py \
+          python experiments/direct/janus_c049_1_b4_6_3_negative_root_engine_replay_verifier_hardened.py \
             /tmp/c049-b4-6-3-negative-root \
             --tamper-self-test
       - name: Enforce honest OPEN boundary
