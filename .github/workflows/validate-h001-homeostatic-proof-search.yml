@@ -1,0 +1,77 @@
+name: Validate H001 homeostatic proof search
+
+on:
+  push:
+    paths:
+      - 'experiments/direct/janus_h001_homeostatic_dpll.py'
+      - 'experiments/direct/janus_h001_homeostatic_dpll_verifier.py'
+      - 'docs/H001_HOMEOSTATIC_PROOF_SEARCH.md'
+      - 'registry/h001-homeostatic-proof-search-status.json'
+      - '.github/workflows/validate-h001-homeostatic-proof-search.yml'
+  pull_request:
+    paths:
+      - 'experiments/direct/janus_h001_homeostatic_dpll.py'
+      - 'experiments/direct/janus_h001_homeostatic_dpll_verifier.py'
+      - 'docs/H001_HOMEOSTATIC_PROOF_SEARCH.md'
+      - 'registry/h001-homeostatic-proof-search-status.json'
+      - '.github/workflows/validate-h001-homeostatic-proof-search.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate-h001:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Compile producer and independent verifier
+        run: |
+          python -m py_compile \
+            experiments/direct/janus_h001_homeostatic_dpll.py \
+            experiments/direct/janus_h001_homeostatic_dpll_verifier.py
+      - name: Generate frozen proof-search transcript
+        run: |
+          python experiments/direct/janus_h001_homeostatic_dpll.py \
+            --output /tmp/H001-JANUS-HOMEOSTATIC-PROOF-SEARCH.json \
+            --max-nodes 200000
+      - name: Independently replay transcript and tamper controls
+        run: |
+          python experiments/direct/janus_h001_homeostatic_dpll_verifier.py \
+            /tmp/H001-JANUS-HOMEOSTATIC-PROOF-SEARCH.json \
+            --tamper-self-test
+      - name: Enforce frozen result and strict boundary
+        run: |
+          python - <<'PY'
+          import hashlib
+          import json
+          from pathlib import Path
+
+          artifact = Path('/tmp/H001-JANUS-HOMEOSTATIC-PROOF-SEARCH.json')
+          data = json.loads(artifact.read_text())
+          assert data['comparison'] == {
+              'case_count': 23,
+              'baseline_closed': 23,
+              'homeostatic_closed': 23,
+              'baseline_nodes': 391,
+              'homeostatic_nodes': 301,
+              'baseline_work': 327383,
+              'homeostatic_work': 624299,
+          }
+          assert data['semantic_digest'] == 'c631f83a220992db54fc9b9be1d46de153a883cd88fd56d0684fba34c1fb104b'
+          assert len(artifact.read_bytes()) == 645617
+          assert hashlib.sha256(artifact.read_bytes()).hexdigest() == 'b8d00288f98f3130f000ecf6a07c2a64a6f4c087a71c7de16723227a483848f7'
+          assert data['strict_boundary']['polynomial_worst_case_proved'] is False
+          assert data['strict_boundary']['p_equals_np_claimed'] is False
+          assert data['strict_boundary']['p_vs_np'] == 'OPEN'
+          PY
+      - name: Export proof transcript
+        uses: actions/upload-artifact@v4
+        with:
+          name: h001-homeostatic-proof-search
+          path: /tmp/H001-JANUS-HOMEOSTATIC-PROOF-SEARCH.json
+          retention-days: 1
