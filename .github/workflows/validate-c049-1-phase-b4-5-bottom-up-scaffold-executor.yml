@@ -1,0 +1,166 @@
+name: Validate C049.1 Phase B4.5 bottom-up scaffold executor
+
+on:
+  push:
+    paths:
+      - 'experiments/direct/janus_c049_1_b4_5_bottom_up_scaffold_executor.py'
+      - 'experiments/direct/janus_c049_1_b4_5_bottom_up_scaffold_executor_verifier.py'
+      - 'experiments/direct/C049.1-JANUS-PHASE-B4.5-BOTTOM-UP-SCAFFOLD-EXECUTOR.manifest.frozen.json'
+      - 'docs/C049_1_PHASE_B4_5_BOTTOM_UP_SCAFFOLD_EXECUTOR.md'
+      - '.github/workflows/validate-c049-1-phase-b4-5-bottom-up-scaffold-executor.yml'
+      - 'experiments/direct/janus_c049_1_b4_4_nonzero_boundary_node_full_set.py'
+      - 'experiments/direct/janus_c049_1_b4_4_nonzero_boundary_node_full_set_verifier.py'
+      - 'experiments/direct/janus_c049_1_b3_expand_join_shrink_core.py'
+      - 'experiments/direct/janus_c049_1_b3_expand_join_shrink_verifier.py'
+      - 'experiments/direct/janus_c049_1_b2_up_k_core.py'
+      - 'experiments/direct/janus_c049_1_b2_full_transcript_verifier.py'
+      - 'experiments/direct/janus_c049_1_b4_2_3k_scaffold.py'
+  pull_request:
+    paths:
+      - 'experiments/direct/janus_c049_1_b4_5_bottom_up_scaffold_executor.py'
+      - 'experiments/direct/janus_c049_1_b4_5_bottom_up_scaffold_executor_verifier.py'
+      - 'experiments/direct/C049.1-JANUS-PHASE-B4.5-BOTTOM-UP-SCAFFOLD-EXECUTOR.manifest.frozen.json'
+      - 'docs/C049_1_PHASE_B4_5_BOTTOM_UP_SCAFFOLD_EXECUTOR.md'
+      - '.github/workflows/validate-c049-1-phase-b4-5-bottom-up-scaffold-executor.yml'
+      - 'experiments/direct/janus_c049_1_b4_4_nonzero_boundary_node_full_set.py'
+      - 'experiments/direct/janus_c049_1_b4_4_nonzero_boundary_node_full_set_verifier.py'
+      - 'experiments/direct/janus_c049_1_b3_expand_join_shrink_core.py'
+      - 'experiments/direct/janus_c049_1_b3_expand_join_shrink_verifier.py'
+      - 'experiments/direct/janus_c049_1_b2_up_k_core.py'
+      - 'experiments/direct/janus_c049_1_b2_full_transcript_verifier.py'
+      - 'experiments/direct/janus_c049_1_b4_2_3k_scaffold.py'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate-b4-5:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Compile executor and independent verifier
+        run: |
+          python -m py_compile \
+            experiments/direct/janus_c049_1_b4_5_bottom_up_scaffold_executor.py \
+            experiments/direct/janus_c049_1_b4_5_bottom_up_scaffold_executor_verifier.py \
+            experiments/direct/janus_c049_1_b4_4_nonzero_boundary_node_full_set.py \
+            experiments/direct/janus_c049_1_b4_4_nonzero_boundary_node_full_set_verifier.py \
+            experiments/direct/janus_c049_1_b3_expand_join_shrink_core.py \
+            experiments/direct/janus_c049_1_b3_expand_join_shrink_verifier.py \
+            experiments/direct/janus_c049_1_b2_up_k_core.py \
+            experiments/direct/janus_c049_1_b2_full_transcript_verifier.py \
+            experiments/direct/janus_c049_1_b4_2_3k_scaffold.py
+      - name: Generate the complete bottom-up transcript
+        env:
+          PYTHONPATH: experiments/direct
+        run: |
+          mkdir /tmp/c049-b4-5
+          python experiments/direct/janus_c049_1_b4_5_bottom_up_scaffold_executor.py \
+            --output-dir /tmp/c049-b4-5
+      - name: Match frozen manifest and audit
+        run: |
+          python - <<'PY'
+          import json
+          produced=json.load(open('/tmp/c049-b4-5/manifest.json'))
+          frozen=json.load(open('experiments/direct/C049.1-JANUS-PHASE-B4.5-BOTTOM-UP-SCAFFOLD-EXECUTOR.manifest.frozen.json'))
+          assert produced == frozen
+          assert produced['manifest_digest'] == 'bc435391247fd136209428cbf002aa9dfacea85044cbc88d9fc671f092d07914'
+          assert produced['chunking']['transcript_root_digest'] == '2506f09d907682b4397365abc39d317103a20c72fe00b27ac82717f114fbbc1a'
+          assert produced['audit'] == {
+              'b2_dominance_deletions':15,
+              'child_pairs_processed':1368,
+              'chunk_count':55,
+              'cumulative_work':5288362,
+              'duplicate_successful_outputs_deleted':3077,
+              'failed_refinements':160977,
+              'failures':0,
+              'internal_nodes_processed':3,
+              'lattice_paths_processed':164072,
+              'leaf_full_sets':4,
+              'raw_precompact_join_statistics':1298304,
+              'retained_generators_across_nodes':3,
+              'root_up_k_entries':6,
+              'successful_refinements':3095,
+              'unique_successful_generators':18,
+          }
+          assert produced['execution']['status'] == 'ROOT_FULL_SET_COMPUTED'
+          assert produced['strict_boundary']['no_layout_at_cap_enabled'] is False
+          assert produced['strict_boundary']['found_layout_enabled'] is False
+          assert produced['strict_boundary']['current_global_terminal'] == 'OPEN_TRAJECTORY_ENGINE_INCOMPLETE'
+          PY
+          test "$(sha256sum experiments/direct/C049.1-JANUS-PHASE-B4.5-BOTTOM-UP-SCAFFOLD-EXECUTOR.manifest.frozen.json | cut -d' ' -f1)" = \
+            "6cce95e2f2a5f22f5c5fccabbb0b3929893d67fa30255a152fb44460947ce3a4"
+      - name: Independently replay every node and chunk
+        env:
+          PYTHONPATH: experiments/direct
+        run: |
+          python experiments/direct/janus_c049_1_b4_5_bottom_up_scaffold_executor_verifier.py \
+            /tmp/c049-b4-5 \
+            --expect-frozen \
+            --tamper-self-test
+      - name: Verify exact open capacity stop
+        env:
+          PYTHONPATH: experiments/direct
+        run: |
+          mkdir /tmp/c049-b4-5-open
+          python experiments/direct/janus_c049_1_b4_5_bottom_up_scaffold_executor.py \
+            --output-dir /tmp/c049-b4-5-open \
+            --max-refinements-per-node 100
+          python experiments/direct/janus_c049_1_b4_5_bottom_up_scaffold_executor_verifier.py \
+            /tmp/c049-b4-5-open
+          python - <<'PY'
+          import json
+          x=json.load(open('/tmp/c049-b4-5-open/manifest.json'))
+          assert x['execution']['status'] == 'OPEN_AT_NODE_CAPACITY'
+          assert x['execution']['stop'] == {
+              'cap':100,
+              'no_layout_at_cap':False,
+              'node_id':4,
+              'reason':'REFINEMENT_CAP_EXCEEDED',
+              'required':163824,
+              'status':'OPEN_AT_NODE_CAPACITY',
+              'terminal':'OPEN_TRAJECTORY_ENGINE_INCOMPLETE',
+          }
+          assert x['execution']['root_full_set_receipt'] is None
+          assert x['strict_boundary']['no_layout_at_cap_enabled'] is False
+          PY
+      - name: Run B2 B3 B4.2 B4.3 and B4.4 regressions
+        env:
+          PYTHONPATH: experiments/direct
+        run: |
+          python experiments/direct/janus_c049_1_b2_up_k.py \
+            --self-test \
+            --output /tmp/c049-b2-regression.json
+          python experiments/direct/janus_c049_1_b2_full_transcript_verifier.py \
+            /tmp/c049-b2-regression.json
+          python experiments/direct/janus_c049_1_b3_expand_join_shrink.py \
+            --self-test \
+            --output /tmp/c049-b3-regression.json
+          python experiments/direct/janus_c049_1_b3_expand_join_shrink_verifier.py \
+            /tmp/c049-b3-regression.json \
+            --tamper-self-test
+          python experiments/direct/janus_c049_1_b4_2_3k_scaffold.py \
+            --output /tmp/c049-b4-2-regression.json
+          python experiments/direct/janus_c049_1_b4_2_3k_scaffold_verifier.py \
+            /tmp/c049-b4-2-regression.json
+          python experiments/direct/janus_c049_1_b4_3_one_node_full_set.py \
+            --output /tmp/c049-b4-3-regression.json
+          python experiments/direct/janus_c049_1_b4_3_one_node_full_set_verifier.py \
+            /tmp/c049-b4-3-regression.json \
+            --tamper-self-test
+          mkdir /tmp/c049-b4-4-regression
+          python experiments/direct/janus_c049_1_b4_4_nonzero_boundary_node_full_set.py \
+            --output-dir /tmp/c049-b4-4-regression
+          python experiments/direct/janus_c049_1_b4_4_nonzero_boundary_node_full_set_verifier.py \
+            /tmp/c049-b4-4-regression
+      - name: Export complete chunked proof transcript
+        uses: actions/upload-artifact@v4
+        with:
+          name: c049-b4-5-bottom-up-scaffold-executor
+          path: /tmp/c049-b4-5
+          retention-days: 1
