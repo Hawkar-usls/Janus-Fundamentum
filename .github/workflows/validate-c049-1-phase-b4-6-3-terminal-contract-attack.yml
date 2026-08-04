@@ -1,0 +1,94 @@
+name: Validate C049.1 Phase B4.6.3 terminal contract attack
+
+on:
+  push:
+    paths:
+      - 'experiments/direct/janus_c049_1_b4_6_3_terminal_completeness_attack.py'
+      - 'experiments/direct/janus_c049_1_b4_6_3_terminal_completeness_attack_verifier.py'
+      - 'experiments/direct/C049.1-JANUS-PHASE-B4.6.3-A-TERMINAL-CONTRACT-ATTACK.frozen.json'
+      - 'experiments/direct/C049.1-JANUS-PHASE-B4.6.2-FULL-ITERATIVE-COMPRESSION-CYCLE.frozen.json'
+      - 'docs/C049_1_PHASE_B4_6_3_A_TERMINAL_CONTRACT_ATTACK.md'
+      - 'registry/c049.1-phase-b4.6.3-status.json'
+      - '.github/workflows/validate-c049-1-phase-b4-6-3-terminal-contract-attack.yml'
+  pull_request:
+    paths:
+      - 'experiments/direct/janus_c049_1_b4_6_3_terminal_completeness_attack.py'
+      - 'experiments/direct/janus_c049_1_b4_6_3_terminal_completeness_attack_verifier.py'
+      - 'experiments/direct/C049.1-JANUS-PHASE-B4.6.3-A-TERMINAL-CONTRACT-ATTACK.frozen.json'
+      - 'experiments/direct/C049.1-JANUS-PHASE-B4.6.2-FULL-ITERATIVE-COMPRESSION-CYCLE.frozen.json'
+      - 'docs/C049_1_PHASE_B4_6_3_A_TERMINAL_CONTRACT_ATTACK.md'
+      - 'registry/c049.1-phase-b4.6.3-status.json'
+      - '.github/workflows/validate-c049-1-phase-b4-6-3-terminal-contract-attack.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate-b4-6-3-a:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Compile producer and independent verifier
+        run: |
+          python -m py_compile \
+            experiments/direct/janus_c049_1_b4_6_3_terminal_completeness_attack.py \
+            experiments/direct/janus_c049_1_b4_6_3_terminal_completeness_attack_verifier.py
+
+      - name: Generate terminal contract attack artifact
+        run: |
+          python experiments/direct/janus_c049_1_b4_6_3_terminal_completeness_attack.py \
+            --b4-6-2-artifact experiments/direct/C049.1-JANUS-PHASE-B4.6.2-FULL-ITERATIVE-COMPRESSION-CYCLE.frozen.json \
+            --output /tmp/c049-b4-6-3-a.json
+
+      - name: Independently replay and attack terminal decisions
+        run: |
+          python experiments/direct/janus_c049_1_b4_6_3_terminal_completeness_attack_verifier.py \
+            /tmp/c049-b4-6-3-a.json \
+            --b4-6-2-artifact experiments/direct/C049.1-JANUS-PHASE-B4.6.2-FULL-ITERATIVE-COMPRESSION-CYCLE.frozen.json \
+            --tamper-self-test
+
+      - name: Check frozen integrity anchor
+        run: |
+          test "$(wc -c < /tmp/c049-b4-6-3-a.json)" = "13939"
+          test "$(sha256sum /tmp/c049-b4-6-3-a.json | cut -d' ' -f1)" = \
+            "98e15569c0d09934f7997f0369754dc0aa29bde983dd1d905bb124c845b74087"
+          python - <<'PY'
+          import json
+          artifact=json.load(open('/tmp/c049-b4-6-3-a.json'))
+          anchor=json.load(open('experiments/direct/C049.1-JANUS-PHASE-B4.6.3-A-TERMINAL-CONTRACT-ATTACK.frozen.json'))
+          assert artifact['artifact_digest'] == anchor['artifact_digest'] == '5984b617e58c07eebf6c4a1eae2a8a1d058c3e43186564c407841cf88e75989a'
+          assert artifact['certificate_accounting']['fixed_point_serialized_bytes'] == anchor['certificate_bytes'] == 13939
+          assert artifact['work_ledger']['oracle_cut_recomputations'] == anchor['oracle_cut_recomputations'] == 5120
+          assert artifact['attack_ledger']['false_no_layout_attempts_rejected'] == 3
+          assert artifact['cases'][0]['terminal_decision']['terminal'] == 'FOUND_LAYOUT'
+          assert artifact['cases'][1]['terminal_decision']['terminal'] == 'OPEN_TERMINAL_COMPLETENESS_PENDING'
+          assert artifact['cases'][1]['independent_oracle']['layout_count_at_cap'] == 0
+          assert artifact['cases'][2]['insertion_only_search']['accepted_count'] == 0
+          assert artifact['cases'][2]['independent_oracle']['layout_count_at_cap'] == 72
+          assert artifact['cases'][2]['terminal_decision']['terminal'] == 'FOUND_LAYOUT'
+          assert artifact['cases'][3]['terminal_decision']['terminal'] == 'OPEN_WORK_BUDGET'
+          assert artifact['strict_boundary']['no_layout_at_cap_enabled'] is False
+          assert artifact['strict_boundary']['terminal_completeness_proved'] is False
+          assert artifact['strict_boundary']['current_global_terminal'] == 'OPEN_TRAJECTORY_ENGINE_INCOMPLETE'
+          assert artifact['strict_boundary']['p_vs_np'] == 'OPEN'
+          PY
+
+      - name: Check deterministic regeneration
+        run: |
+          python experiments/direct/janus_c049_1_b4_6_3_terminal_completeness_attack.py \
+            --b4-6-2-artifact experiments/direct/C049.1-JANUS-PHASE-B4.6.2-FULL-ITERATIVE-COMPRESSION-CYCLE.frozen.json \
+            --output /tmp/c049-b4-6-3-a-repeat.json
+          cmp /tmp/c049-b4-6-3-a.json /tmp/c049-b4-6-3-a-repeat.json
+
+      - name: Export attack artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: c049-b4-6-3-a-terminal-contract-attack
+          path: /tmp/c049-b4-6-3-a.json
+          retention-days: 1
