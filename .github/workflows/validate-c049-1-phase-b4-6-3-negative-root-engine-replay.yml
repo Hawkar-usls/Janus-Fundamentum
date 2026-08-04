@@ -1,0 +1,96 @@
+name: Validate C049.1 Phase B4.6.3 negative root engine replay
+
+on:
+  push:
+    paths:
+      - 'experiments/direct/janus_c049_1_b4_6_3_negative_root_engine_replay.py'
+      - 'experiments/direct/janus_c049_1_b4_6_3_negative_root_engine_replay_verifier.py'
+      - 'experiments/direct/janus_c049_1_b4_6_3_semantic_up_k_root_replay_hardened.py'
+      - 'docs/C049_1_PHASE_B4_6_3_NEGATIVE_ROOT_ENGINE_REPLAY.md'
+      - 'registry/c049.1-phase-b4.6.3-negative-root-status.json'
+      - '.github/workflows/validate-c049-1-phase-b4-6-3-negative-root-engine-replay.yml'
+      - 'experiments/direct/janus_c049_1_b4_5_bottom_up_scaffold_executor.py'
+      - 'experiments/direct/janus_c049_1_b2_up_k_core.py'
+  pull_request:
+    paths:
+      - 'experiments/direct/janus_c049_1_b4_6_3_negative_root_engine_replay.py'
+      - 'experiments/direct/janus_c049_1_b4_6_3_negative_root_engine_replay_verifier.py'
+      - 'experiments/direct/janus_c049_1_b4_6_3_semantic_up_k_root_replay_hardened.py'
+      - 'docs/C049_1_PHASE_B4_6_3_NEGATIVE_ROOT_ENGINE_REPLAY.md'
+      - 'registry/c049.1-phase-b4.6.3-negative-root-status.json'
+      - '.github/workflows/validate-c049-1-phase-b4-6-3-negative-root-engine-replay.yml'
+      - 'experiments/direct/janus_c049_1_b4_5_bottom_up_scaffold_executor.py'
+      - 'experiments/direct/janus_c049_1_b2_up_k_core.py'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate-negative-root-engine:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Compile producer and independent verifier
+        run: |
+          python -m py_compile \
+            experiments/direct/janus_c049_1_b4_6_3_negative_root_engine_replay.py \
+            experiments/direct/janus_c049_1_b4_6_3_negative_root_engine_replay_verifier.py \
+            experiments/direct/janus_c049_1_b4_6_3_semantic_up_k_root_replay_hardened.py
+      - name: Enforce dimension-two basis hardening before negative execution
+        env:
+          PYTHONPATH: experiments/direct
+        run: |
+          python - <<'PY'
+          import janus_c049_1_b4_6_3_semantic_up_k_root_replay_hardened as h
+          x=h.basis_hardening_audit()
+          assert x['legacy_order_dependence_reproduced'] is True
+          assert x['dimension_two_subspace_count'] == 5
+          assert x['failures'] == 0
+          PY
+      - name: Execute bounded negative engine probe
+        env:
+          PYTHONPATH: experiments/direct
+        run: |
+          mkdir /tmp/c049-b4-6-3-negative-root
+          python experiments/direct/janus_c049_1_b4_6_3_negative_root_engine_replay.py \
+            --output-dir /tmp/c049-b4-6-3-negative-root
+      - name: Independently replay the complete negative prefix
+        env:
+          PYTHONPATH: experiments/direct
+        run: |
+          python experiments/direct/janus_c049_1_b4_6_3_negative_root_engine_replay_verifier.py \
+            /tmp/c049-b4-6-3-negative-root \
+            --tamper-self-test
+      - name: Enforce honest OPEN boundary
+        run: |
+          python - <<'PY'
+          import json
+          x=json.load(open('/tmp/c049-b4-6-3-negative-root/negative-root-artifact.json'))
+          assert x['bounded_exhaustive_oracle']['permutation_count'] == 720
+          assert x['bounded_exhaustive_oracle']['minimum_width'] == 2
+          assert x['bounded_exhaustive_oracle']['accepting_layout_count'] == 0
+          assert x['bounded_exhaustive_oracle']['previous_width'] == 1
+          assert x['scaffold_width_vector'] == [1,2,2,2,1]
+          assert x['result'] == 'OPEN_B2_SEMANTIC_UP_K_CAPABILITY'
+          assert x['prefix_receipt']['pair_path_equality'] is True
+          assert x['prefix_receipt']['refinement_partition_equality'] is True
+          assert x['prefix_receipt']['provenance_partition_equality'] is True
+          assert x['attack_findings']['no_trajectory_loss_before_b2'] is True
+          assert x['attack_findings']['no_missing_root_entries_claim'] == 'NOT_REACHED'
+          assert x['strict_boundary']['negative_root_reached'] is False
+          assert x['strict_boundary']['terminal_completeness_proved'] is False
+          assert x['strict_boundary']['no_layout_at_cap_enabled'] is False
+          assert x['strict_boundary']['current_global_terminal'] == 'OPEN_TRAJECTORY_ENGINE_INCOMPLETE'
+          assert x['strict_boundary']['p_vs_np'] == 'OPEN'
+          PY
+      - name: Export negative engine transcript
+        uses: actions/upload-artifact@v4
+        with:
+          name: c049-b4-6-3-negative-root-engine-replay
+          path: /tmp/c049-b4-6-3-negative-root
+          retention-days: 1
