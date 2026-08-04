@@ -1,0 +1,85 @@
+name: Validate C049.1 Phase B4.6.1 layout reconstruction
+
+on:
+  push:
+    paths:
+      - 'experiments/direct/janus_c049_1_b4_6_1_layout_reconstruction.py'
+      - 'experiments/direct/janus_c049_1_b4_6_1_layout_reconstruction_verifier.py'
+      - 'docs/C049_1_PHASE_B4_6_1_LAYOUT_RECONSTRUCTION.md'
+      - 'registry/c049.1-phase-b4.6-status.json'
+      - '.github/workflows/validate-c049-1-phase-b4-6-1-layout-reconstruction.yml'
+      - 'experiments/direct/janus_c049_1_b4_5_bottom_up_scaffold_executor.py'
+      - 'experiments/direct/janus_c049_1_b4_5_bottom_up_scaffold_executor_verifier.py'
+      - 'experiments/direct/janus_c049_1_b4_2_3k_scaffold.py'
+      - 'experiments/direct/janus_c049_1_b2_up_k_core.py'
+      - 'experiments/direct/janus_c049_1_b2_full_transcript_verifier.py'
+      - 'experiments/direct/janus_c049_1_b3_expand_join_shrink_core.py'
+      - 'experiments/direct/janus_c049_1_b3_expand_join_shrink_verifier.py'
+  pull_request:
+    paths:
+      - 'experiments/direct/janus_c049_1_b4_6_1_layout_reconstruction.py'
+      - 'experiments/direct/janus_c049_1_b4_6_1_layout_reconstruction_verifier.py'
+      - 'docs/C049_1_PHASE_B4_6_1_LAYOUT_RECONSTRUCTION.md'
+      - 'registry/c049.1-phase-b4.6-status.json'
+      - '.github/workflows/validate-c049-1-phase-b4-6-1-layout-reconstruction.yml'
+      - 'experiments/direct/janus_c049_1_b4_5_bottom_up_scaffold_executor.py'
+      - 'experiments/direct/janus_c049_1_b4_5_bottom_up_scaffold_executor_verifier.py'
+      - 'experiments/direct/janus_c049_1_b4_2_3k_scaffold.py'
+      - 'experiments/direct/janus_c049_1_b2_up_k_core.py'
+      - 'experiments/direct/janus_c049_1_b2_full_transcript_verifier.py'
+      - 'experiments/direct/janus_c049_1_b3_expand_join_shrink_core.py'
+      - 'experiments/direct/janus_c049_1_b3_expand_join_shrink_verifier.py'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate-b4-6-1:
+    runs-on: ubuntu-latest
+    timeout-minutes: 55
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Compile producer and independent verifier
+        run: |
+          python -m py_compile \
+            experiments/direct/janus_c049_1_b4_6_1_layout_reconstruction.py \
+            experiments/direct/janus_c049_1_b4_6_1_layout_reconstruction_verifier.py
+      - name: Generate B4.5 transcript and reconstruct one root witness
+        env:
+          PYTHONPATH: experiments/direct
+        run: |
+          mkdir /tmp/c049-b4-6-1
+          python experiments/direct/janus_c049_1_b4_6_1_layout_reconstruction.py \
+            --output-dir /tmp/c049-b4-6-1
+      - name: Independently replay B4.5 and B4.6.1 ancestry
+        env:
+          PYTHONPATH: experiments/direct
+        run: |
+          python experiments/direct/janus_c049_1_b4_6_1_layout_reconstruction_verifier.py \
+            /tmp/c049-b4-6-1 \
+            --tamper-self-test
+      - name: Enforce strict terminal boundary
+        run: |
+          python - <<'PY'
+          import json
+          x=json.load(open('/tmp/c049-b4-6-1/artifact.json'))
+          assert x['result'] == 'LAYOUT_WITNESS_RECONSTRUCTED'
+          assert x['exact_maximum_width'] <= x['k']
+          assert x['strict_boundary']['root_ancestry_replayed'] is True
+          assert x['strict_boundary']['all_iterative_compression_rounds_executed'] is False
+          assert x['strict_boundary']['terminal_completeness_proved'] is False
+          assert x['strict_boundary']['found_layout_enabled'] is False
+          assert x['strict_boundary']['no_layout_at_cap_enabled'] is False
+          assert x['strict_boundary']['current_global_terminal'] == 'OPEN_TRAJECTORY_ENGINE_INCOMPLETE'
+          assert x['strict_boundary']['p_vs_np'] == 'OPEN'
+          PY
+      - name: Export proof transcript
+        uses: actions/upload-artifact@v4
+        with:
+          name: c049-b4-6-1-layout-reconstruction
+          path: /tmp/c049-b4-6-1
+          retention-days: 1
