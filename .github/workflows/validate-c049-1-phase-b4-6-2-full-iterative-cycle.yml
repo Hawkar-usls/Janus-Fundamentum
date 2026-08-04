@@ -1,0 +1,158 @@
+name: Validate C049.1 Phase B4.6.2 full iterative cycle
+
+on:
+  push:
+    paths:
+      - 'experiments/direct/janus_c049_1_b4_6_2_full_iterative_cycle.py'
+      - 'experiments/direct/janus_c049_1_b4_6_2_full_iterative_cycle_verifier.py'
+      - 'experiments/direct/janus_c049_1_b4_6_2_full_iterative_cycle_verifier_hardened.py'
+      - 'experiments/direct/C049.1-JANUS-PHASE-B4.6.2-FULL-ITERATIVE-COMPRESSION-CYCLE.frozen.json'
+      - 'docs/C049_1_PHASE_B4_6_2_FULL_ITERATIVE_CYCLE.md'
+      - 'registry/c049.1-phase-b4.6.2-status.json'
+      - '.github/workflows/validate-c049-1-phase-b4-6-2-full-iterative-cycle.yml'
+      - 'experiments/direct/janus_c049_1_b4_6_1_layout_reconstruction.py'
+      - 'experiments/direct/janus_c049_1_b4_5_bottom_up_scaffold_executor.py'
+      - 'experiments/direct/janus_c049_1_b4_5_bottom_up_scaffold_executor_verifier.py'
+      - 'experiments/direct/janus_c049_1_b4_2_3k_scaffold.py'
+      - 'experiments/direct/janus_c049_1_b3_expand_join_shrink_core.py'
+      - 'experiments/direct/janus_c049_1_b3_expand_join_shrink_verifier.py'
+      - 'experiments/direct/janus_c049_1_b2_up_k_core.py'
+      - 'experiments/direct/janus_c049_1_b2_full_transcript_verifier.py'
+  pull_request:
+    paths:
+      - 'experiments/direct/janus_c049_1_b4_6_2_full_iterative_cycle.py'
+      - 'experiments/direct/janus_c049_1_b4_6_2_full_iterative_cycle_verifier.py'
+      - 'experiments/direct/janus_c049_1_b4_6_2_full_iterative_cycle_verifier_hardened.py'
+      - 'experiments/direct/C049.1-JANUS-PHASE-B4.6.2-FULL-ITERATIVE-COMPRESSION-CYCLE.frozen.json'
+      - 'docs/C049_1_PHASE_B4_6_2_FULL_ITERATIVE_CYCLE.md'
+      - 'registry/c049.1-phase-b4.6.2-status.json'
+      - '.github/workflows/validate-c049-1-phase-b4-6-2-full-iterative-cycle.yml'
+      - 'experiments/direct/janus_c049_1_b4_6_1_layout_reconstruction.py'
+      - 'experiments/direct/janus_c049_1_b4_5_bottom_up_scaffold_executor.py'
+      - 'experiments/direct/janus_c049_1_b4_5_bottom_up_scaffold_executor_verifier.py'
+      - 'experiments/direct/janus_c049_1_b4_2_3k_scaffold.py'
+      - 'experiments/direct/janus_c049_1_b3_expand_join_shrink_core.py'
+      - 'experiments/direct/janus_c049_1_b3_expand_join_shrink_verifier.py'
+      - 'experiments/direct/janus_c049_1_b2_up_k_core.py'
+      - 'experiments/direct/janus_c049_1_b2_full_transcript_verifier.py'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate-b4-6-2:
+    runs-on: ubuntu-latest
+    timeout-minutes: 55
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Compile cycle producer and independent verifiers
+        run: |
+          python -m py_compile \
+            experiments/direct/janus_c049_1_b4_6_2_full_iterative_cycle.py \
+            experiments/direct/janus_c049_1_b4_6_2_full_iterative_cycle_verifier.py \
+            experiments/direct/janus_c049_1_b4_6_2_full_iterative_cycle_verifier_hardened.py
+
+      - name: Independently replay B1 through B4.1 prerequisites
+        env:
+          PYTHONPATH: experiments/direct
+        run: |
+          python experiments/direct/janus_c049_1_b1_compact_trajectory.py \
+            --output /tmp/c049-b1.json
+          cmp /tmp/c049-b1.json \
+            experiments/direct/C049.1-JANUS-COMPACT-B-TRAJECTORY-B1.frozen.json
+          python experiments/direct/janus_c049_1_b1_compact_trajectory_verifier.py \
+            /tmp/c049-b1.json
+          python experiments/direct/janus_c049_1_b2_up_k.py \
+            --self-test \
+            --output /tmp/c049-b2.json
+          python experiments/direct/janus_c049_1_b2_full_transcript_verifier.py \
+            /tmp/c049-b2.json
+          python experiments/direct/janus_c049_1_b3_expand_join_shrink.py \
+            --self-test \
+            --output /tmp/c049-b3.json
+          python experiments/direct/janus_c049_1_b3_expand_join_shrink_verifier.py \
+            /tmp/c049-b3.json \
+            --tamper-self-test
+          python experiments/direct/janus_c049_1_b4_round_ledger.py \
+            --output /tmp/c049-b4-1.json
+          python experiments/direct/janus_c049_1_b4_round_ledger_verifier.py \
+            /tmp/c049-b4-1.json \
+            --self-test
+
+      - name: Execute every iterative-compression round
+        env:
+          PYTHONPATH: experiments/direct
+        run: |
+          mkdir /tmp/c049-b4-6-2
+          python experiments/direct/janus_c049_1_b4_6_2_full_iterative_cycle.py \
+            --output-dir /tmp/c049-b4-6-2
+          cmp /tmp/c049-b4-6-2/artifact.json \
+            experiments/direct/C049.1-JANUS-PHASE-B4.6.2-FULL-ITERATIVE-COMPRESSION-CYCLE.frozen.json
+          test "$(wc -c < /tmp/c049-b4-6-2/artifact.json)" = "8623"
+          test "$(sha256sum /tmp/c049-b4-6-2/artifact.json | cut -d' ' -f1)" = \
+            "a644cc7dd94be81ac418a11b6f01f6b56f28579dcf00059f15ba74e6186acacf"
+
+      - name: Independently replay every round and ancestry chain
+        env:
+          PYTHONPATH: experiments/direct
+        run: |
+          python experiments/direct/janus_c049_1_b4_6_2_full_iterative_cycle_verifier_hardened.py \
+            /tmp/c049-b4-6-2 \
+            --tamper-self-test
+
+      - name: Check deterministic regeneration
+        env:
+          PYTHONPATH: experiments/direct
+        run: |
+          mkdir /tmp/c049-b4-6-2-repeat
+          python experiments/direct/janus_c049_1_b4_6_2_full_iterative_cycle.py \
+            --output-dir /tmp/c049-b4-6-2-repeat
+          cmp /tmp/c049-b4-6-2/artifact.json /tmp/c049-b4-6-2-repeat/artifact.json
+          cmp /tmp/c049-b4-6-2/round-02/manifest.json /tmp/c049-b4-6-2-repeat/round-02/manifest.json
+          cmp /tmp/c049-b4-6-2/round-02/reconstruction.json /tmp/c049-b4-6-2-repeat/round-02/reconstruction.json
+          cmp /tmp/c049-b4-6-2/round-03/manifest.json /tmp/c049-b4-6-2-repeat/round-03/manifest.json
+          cmp /tmp/c049-b4-6-2/round-03/reconstruction.json /tmp/c049-b4-6-2-repeat/round-03/reconstruction.json
+
+      - name: Enforce strict terminal boundary
+        run: |
+          python - <<'PY'
+          import json
+          x=json.load(open('/tmp/c049-b4-6-2/artifact.json'))
+          assert x['result'] == 'FULL_ITERATIVE_COMPRESSION_CYCLE_REPLAYED'
+          assert x['manifest_digest'] == '5e7df2407456fe41a5dadda4f8855df5f7ab2ae96dfac637d8857c2c4c0c44e6'
+          assert x['all_rounds_executed'] is True
+          assert x['round_count'] == 2
+          assert x['audit'] == {
+              'child_pairs_processed':1548,
+              'chunk_count':60,
+              'failed_refinements':163051,
+              'failures':0,
+              'lattice_paths_processed':166516,
+              'layouts_reconstructed':2,
+              'raw_precompact_join_statistics':1312448,
+              'root_full_sets_computed':2,
+              'rounds':2,
+              'scaffolds_constructed':2,
+              'successful_refinements':3465,
+          }
+          assert x['work_ledger']['cumulative_work_final'] == 5413165
+          assert x['certificate_accounting']['fixed_point_serialized_bytes'] == 8623
+          assert x['final_exact_maximum_width'] <= x['fixture']['k']
+          assert x['strict_boundary']['terminal_completeness_proved'] is False
+          assert x['strict_boundary']['found_layout_enabled'] is False
+          assert x['strict_boundary']['no_layout_at_cap_enabled'] is False
+          assert x['strict_boundary']['current_global_terminal'] == 'OPEN_TRAJECTORY_ENGINE_INCOMPLETE'
+          assert x['strict_boundary']['p_vs_np'] == 'OPEN'
+          PY
+
+      - name: Export complete cycle transcript
+        uses: actions/upload-artifact@v4
+        with:
+          name: c049-b4-6-2-full-iterative-cycle
+          path: /tmp/c049-b4-6-2
+          retention-days: 1
