@@ -6,6 +6,7 @@ on:
       - 'experiments/direct/janus_c049_1_b4_6_2_full_iterative_cycle.py'
       - 'experiments/direct/janus_c049_1_b4_6_2_full_iterative_cycle_verifier.py'
       - 'experiments/direct/janus_c049_1_b4_6_2_full_iterative_cycle_verifier_hardened.py'
+      - 'experiments/direct/C049.1-JANUS-PHASE-B4.6.2-FULL-ITERATIVE-COMPRESSION-CYCLE.frozen.json'
       - 'docs/C049_1_PHASE_B4_6_2_FULL_ITERATIVE_CYCLE.md'
       - 'registry/c049.1-phase-b4.6.2-status.json'
       - '.github/workflows/validate-c049-1-phase-b4-6-2-full-iterative-cycle.yml'
@@ -22,6 +23,7 @@ on:
       - 'experiments/direct/janus_c049_1_b4_6_2_full_iterative_cycle.py'
       - 'experiments/direct/janus_c049_1_b4_6_2_full_iterative_cycle_verifier.py'
       - 'experiments/direct/janus_c049_1_b4_6_2_full_iterative_cycle_verifier_hardened.py'
+      - 'experiments/direct/C049.1-JANUS-PHASE-B4.6.2-FULL-ITERATIVE-COMPRESSION-CYCLE.frozen.json'
       - 'docs/C049_1_PHASE_B4_6_2_FULL_ITERATIVE_CYCLE.md'
       - 'registry/c049.1-phase-b4.6.2-status.json'
       - '.github/workflows/validate-c049-1-phase-b4-6-2-full-iterative-cycle.yml'
@@ -89,6 +91,11 @@ jobs:
           mkdir /tmp/c049-b4-6-2
           python experiments/direct/janus_c049_1_b4_6_2_full_iterative_cycle.py \
             --output-dir /tmp/c049-b4-6-2
+          cmp /tmp/c049-b4-6-2/artifact.json \
+            experiments/direct/C049.1-JANUS-PHASE-B4.6.2-FULL-ITERATIVE-COMPRESSION-CYCLE.frozen.json
+          test "$(wc -c < /tmp/c049-b4-6-2/artifact.json)" = "8623"
+          test "$(sha256sum /tmp/c049-b4-6-2/artifact.json | cut -d' ' -f1)" = \
+            "9b33c8f97254def1fe3d39a420ebf671d0df6059c7c0add500c4e97f49e899e8"
 
       - name: Independently replay every round and ancestry chain
         env:
@@ -117,11 +124,24 @@ jobs:
           import json
           x=json.load(open('/tmp/c049-b4-6-2/artifact.json'))
           assert x['result'] == 'FULL_ITERATIVE_COMPRESSION_CYCLE_REPLAYED'
+          assert x['manifest_digest'] == '5e7df2407456fe41a5dadda4f8855df5f7ab2ae96dfac637d8857c2c4c0c44e6'
           assert x['all_rounds_executed'] is True
           assert x['round_count'] == 2
-          assert x['audit']['scaffolds_constructed'] == 2
-          assert x['audit']['root_full_sets_computed'] == 2
-          assert x['audit']['layouts_reconstructed'] == 2
+          assert x['audit'] == {
+              'child_pairs_processed':1548,
+              'chunk_count':60,
+              'failed_refinements':163051,
+              'failures':0,
+              'lattice_paths_processed':166516,
+              'layouts_reconstructed':2,
+              'raw_precompact_join_statistics':1312448,
+              'root_full_sets_computed':2,
+              'rounds':2,
+              'scaffolds_constructed':2,
+              'successful_refinements':3465,
+          }
+          assert x['work_ledger']['cumulative_work_final'] == 5413165
+          assert x['certificate_accounting']['fixed_point_serialized_bytes'] == 8623
           assert x['final_exact_maximum_width'] <= x['fixture']['k']
           assert x['strict_boundary']['terminal_completeness_proved'] is False
           assert x['strict_boundary']['found_layout_enabled'] is False
