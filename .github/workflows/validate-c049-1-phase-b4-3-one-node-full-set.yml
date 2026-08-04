@@ -1,0 +1,82 @@
+name: Validate C049.1 Phase B4.3 One Node Full Set
+
+on:
+  push:
+    paths:
+      - "experiments/direct/janus_c049_1_b4_3_one_node_full_set.py"
+      - "experiments/direct/janus_c049_1_b4_3_one_node_full_set_verifier.py"
+      - "experiments/direct/C049.1-JANUS-PHASE-B4.3-ONE-NODE-FULL-SET.frozen.json"
+      - "docs/C049_1_PHASE_B4_3_ONE_NODE_FULL_SET.md"
+      - ".github/workflows/validate-c049-1-phase-b4-3-one-node-full-set.yml"
+  pull_request:
+    paths:
+      - "experiments/direct/janus_c049_1_b4_3_one_node_full_set.py"
+      - "experiments/direct/janus_c049_1_b4_3_one_node_full_set_verifier.py"
+      - "experiments/direct/C049.1-JANUS-PHASE-B4.3-ONE-NODE-FULL-SET.frozen.json"
+      - "docs/C049_1_PHASE_B4_3_ONE_NODE_FULL_SET.md"
+      - ".github/workflows/validate-c049-1-phase-b4-3-one-node-full-set.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  one-node-full-set:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Compile B4.3 producer and independent replay stack
+        run: |
+          python -m py_compile \
+            experiments/direct/janus_c049_1_b4_3_one_node_full_set.py \
+            experiments/direct/janus_c049_1_b4_3_one_node_full_set_verifier.py \
+            experiments/direct/janus_c049_1_b3_expand_join_shrink_verifier.py \
+            experiments/direct/janus_c049_1_b2_full_transcript_verifier.py
+      - name: Generate the complete one-node transcript
+        env:
+          PYTHONPATH: experiments/direct
+        run: |
+          python experiments/direct/janus_c049_1_b4_3_one_node_full_set.py \
+            --output /tmp/c049-b4-3-one-node.json
+      - name: Match the frozen audit
+        run: |
+          python - <<'PY'
+          import json
+          produced=json.load(open('/tmp/c049-b4-3-one-node.json'))
+          frozen=json.load(open('experiments/direct/C049.1-JANUS-PHASE-B4.3-ONE-NODE-FULL-SET.frozen.json'))
+          assert produced == frozen
+          assert produced['artifact_digest'] == '2d23f1fa0e5a8e3a716e9266b4279963f4dd2406636f7cd97fd0c45390a1ee68'
+          assert produced['audit'] == {
+              'b2_dominance_deletions':5,
+              'child_full_set_entries':[6,6],
+              'child_pairs_processed':36,
+              'cumulative_work':2584,
+              'duplicate_successful_outputs_deleted':29,
+              'failed_refinements':89,
+              'failures':0,
+              'final_up_k_entries':6,
+              'lattice_paths_processed':124,
+              'raw_precompact_join_statistics':448,
+              'retained_generators':1,
+              'successful_refinements':35,
+              'unique_successful_generators':6,
+          }
+          assert produced['strict_boundary']['no_layout_at_cap_enabled'] is False
+          assert produced['strict_boundary']['current_global_terminal'] == 'OPEN_TRAJECTORY_ENGINE_INCOMPLETE'
+          PY
+      - name: Independently replay B3, B2, provenance, and work
+        env:
+          PYTHONPATH: experiments/direct
+        run: |
+          python experiments/direct/janus_c049_1_b4_3_one_node_full_set_verifier.py \
+            /tmp/c049-b4-3-one-node.json \
+            --tamper-self-test
+      - name: Export the full proof transcript
+        uses: actions/upload-artifact@v4
+        with:
+          name: c049-b4-3-one-node-full-set
+          path: /tmp/c049-b4-3-one-node.json
+          retention-days: 1

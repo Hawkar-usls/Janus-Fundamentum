@@ -1,0 +1,127 @@
+name: Validate C049.1 Phase B4.4 Nonzero Boundary Node Full Set
+
+on:
+  push:
+    paths:
+      - "experiments/direct/janus_c049_1_b4_4_nonzero_boundary_node_full_set.py"
+      - "experiments/direct/janus_c049_1_b4_4_nonzero_boundary_node_full_set_verifier.py"
+      - "experiments/direct/C049.1-JANUS-PHASE-B4.4-NONZERO-BOUNDARY-NODE-FULL-SET.manifest.frozen.json"
+      - "docs/C049_1_PHASE_B4_4_NONZERO_BOUNDARY_NODE_FULL_SET.md"
+      - ".github/workflows/validate-c049-1-phase-b4-4-nonzero-boundary-node-full-set.yml"
+      - "experiments/direct/janus_c049_1_b1_compact_trajectory_core.py"
+      - "experiments/direct/janus_c049_1_b2_up_k_core.py"
+      - "experiments/direct/janus_c049_1_b2_full_transcript_verifier.py"
+      - "experiments/direct/janus_c049_1_b3_expand_join_shrink_core.py"
+      - "experiments/direct/janus_c049_1_b3_expand_join_shrink_verifier.py"
+      - "experiments/direct/janus_c049_1_b4_2_3k_scaffold.py"
+  pull_request:
+    paths:
+      - "experiments/direct/janus_c049_1_b4_4_nonzero_boundary_node_full_set.py"
+      - "experiments/direct/janus_c049_1_b4_4_nonzero_boundary_node_full_set_verifier.py"
+      - "experiments/direct/C049.1-JANUS-PHASE-B4.4-NONZERO-BOUNDARY-NODE-FULL-SET.manifest.frozen.json"
+      - "docs/C049_1_PHASE_B4_4_NONZERO_BOUNDARY_NODE_FULL_SET.md"
+      - ".github/workflows/validate-c049-1-phase-b4-4-nonzero-boundary-node-full-set.yml"
+      - "experiments/direct/janus_c049_1_b1_compact_trajectory_core.py"
+      - "experiments/direct/janus_c049_1_b2_up_k_core.py"
+      - "experiments/direct/janus_c049_1_b2_full_transcript_verifier.py"
+      - "experiments/direct/janus_c049_1_b3_expand_join_shrink_core.py"
+      - "experiments/direct/janus_c049_1_b3_expand_join_shrink_verifier.py"
+      - "experiments/direct/janus_c049_1_b4_2_3k_scaffold.py"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  nonzero-boundary-node-full-set:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Compile B4.4 producer and independent replay stack
+        run: |
+          python -m py_compile \
+            experiments/direct/janus_c049_1_b4_4_nonzero_boundary_node_full_set.py \
+            experiments/direct/janus_c049_1_b4_4_nonzero_boundary_node_full_set_verifier.py \
+            experiments/direct/janus_c049_1_b3_expand_join_shrink_verifier.py \
+            experiments/direct/janus_c049_1_b2_full_transcript_verifier.py
+      - name: Generate all fixed-size transcript chunks
+        env:
+          PYTHONPATH: experiments/direct
+        run: |
+          mkdir /tmp/c049-b4-4
+          python experiments/direct/janus_c049_1_b4_4_nonzero_boundary_node_full_set.py \
+            --output-dir /tmp/c049-b4-4
+      - name: Match the frozen chunk manifest
+        run: |
+          python - <<'PY'
+          import json
+          produced=json.load(open('/tmp/c049-b4-4/manifest.json'))
+          frozen=json.load(open('experiments/direct/C049.1-JANUS-PHASE-B4.4-NONZERO-BOUNDARY-NODE-FULL-SET.manifest.frozen.json'))
+          assert produced == frozen
+          assert produced['manifest_digest'] == 'de6b1f376ad992550f38881ec72281bde0a38b70bc4fa23a9d96e298a4320b90'
+          assert produced['chunking']['transcript_root_digest'] == '5d6748f2d3b7e65aa7812ba963c7f833034d06c973ac26263a960639f5eeeea0'
+          assert produced['chunking']['chunk_count'] == 59
+          assert produced['chunking']['uncompressed_chunk_bytes'] == 960692616
+          assert produced['chunking']['compressed_chunk_bytes'] == 21008111
+          assert produced['audit'] == {
+              'b2_dominance_deletions':250,
+              'child_full_set_entries':[36,36],
+              'child_pairs_processed':1296,
+              'chunk_count':59,
+              'cumulative_work':7941294,
+              'duplicate_successful_outputs_deleted':11821,
+              'failed_refinements':151751,
+              'failures':0,
+              'final_up_k_entries':252,
+              'lattice_paths_processed':163824,
+              'raw_precompact_join_statistics':1297408,
+              'retained_generators':2,
+              'successful_refinements':12073,
+              'unique_successful_generators':252,
+          }
+          assert produced['strict_boundary']['no_layout_at_cap_enabled'] is False
+          assert produced['strict_boundary']['current_global_terminal'] == 'OPEN_TRAJECTORY_ENGINE_INCOMPLETE'
+          PY
+          test "$(sha256sum experiments/direct/C049.1-JANUS-PHASE-B4.4-NONZERO-BOUNDARY-NODE-FULL-SET.manifest.frozen.json | cut -d' ' -f1)" = \
+            "5df0513c4c693ae7d65e9a247ec782543d48bf54f912a71fca42db181e949392"
+      - name: Independently reconstruct and replay every chunk
+        env:
+          PYTHONPATH: experiments/direct
+        run: |
+          python experiments/direct/janus_c049_1_b4_4_nonzero_boundary_node_full_set_verifier.py \
+            /tmp/c049-b4-4 \
+            --tamper-self-test
+      - name: Run B2 B3 B4.2 and B4.3 regressions
+        env:
+          PYTHONPATH: experiments/direct
+        run: |
+          python experiments/direct/janus_c049_1_b2_up_k.py \
+            --self-test \
+            --output /tmp/c049-b2-regression.json
+          python experiments/direct/janus_c049_1_b2_full_transcript_verifier.py \
+            /tmp/c049-b2-regression.json
+          python experiments/direct/janus_c049_1_b3_expand_join_shrink.py \
+            --self-test \
+            --output /tmp/c049-b3-regression.json
+          python experiments/direct/janus_c049_1_b3_expand_join_shrink_verifier.py \
+            /tmp/c049-b3-regression.json \
+            --tamper-self-test
+          python experiments/direct/janus_c049_1_b4_2_3k_scaffold.py \
+            --output /tmp/c049-b4-2-regression.json
+          python experiments/direct/janus_c049_1_b4_2_3k_scaffold_verifier.py \
+            /tmp/c049-b4-2-regression.json
+          python experiments/direct/janus_c049_1_b4_3_one_node_full_set.py \
+            --output /tmp/c049-b4-3-regression.json
+          python experiments/direct/janus_c049_1_b4_3_one_node_full_set_verifier.py \
+            /tmp/c049-b4-3-regression.json \
+            --tamper-self-test
+      - name: Export the complete chunked proof transcript
+        uses: actions/upload-artifact@v4
+        with:
+          name: c049-b4-4-nonzero-boundary-node-full-set
+          path: /tmp/c049-b4-4
+          retention-days: 1
