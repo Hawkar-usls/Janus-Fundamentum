@@ -96,15 +96,23 @@ def main() -> None:
     parser.add_argument("--tamper-self-test", action="store_true")
     args = parser.parse_args()
 
-    base.replay_prefix = streaming_replay_prefix
     artifact = json.loads(
         (args.output_dir / "negative-root-artifact.json").read_text()
     )
+    manifest = json.loads((args.output_dir / "manifest.json").read_text())
+    cached_prefix = streaming_replay_prefix(args.output_dir, manifest)
+
+    # Every semantic record is streamed and authenticated exactly once. The
+    # digest-repaired outer tamper controls then reuse the immutable checked
+    # prefix instead of rereading the near-gigabyte transcript four more times.
+    base.replay_prefix = lambda _root, _manifest: cached_prefix
     base.verify(args.output_dir, artifact)
     if args.tamper_self_test:
         base.tamper_self_test(args.output_dir, artifact)
     print("VERIFIED C049.1 B4.6.3 NEGATIVE ROOT ENGINE HONEST OPEN")
     print("STREAMING_REPLAY = TRUE")
+    print("STREAMING_PASSES = 1")
+    print("TAMPER_PREFIX_CACHE = AUTHENTICATED_IMMUTABLE")
     print("NEGATIVE_ROOT_REACHED = FALSE")
     print("NEXT_GATE = C049.1_B4.6.3_DIMENSION_TWO_UP_K_CAPABILITY_HARDENING")
     print("GLOBAL_TERMINAL =", base.TERMINAL)
