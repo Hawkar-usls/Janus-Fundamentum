@@ -1,0 +1,96 @@
+name: Validate H002 cheap homeostatic pressure
+
+on:
+  push:
+    paths:
+      - 'experiments/direct/janus_h002_cheap_homeostatic_dpll.py'
+      - 'experiments/direct/janus_h002_cheap_homeostatic_dpll_verifier.py'
+      - 'docs/H002_CHEAP_HOMEOSTATIC_PRESSURE.md'
+      - 'registry/h002-cheap-homeostatic-pressure-status.json'
+      - '.github/workflows/validate-h002-cheap-homeostatic-pressure.yml'
+  pull_request:
+    paths:
+      - 'experiments/direct/janus_h002_cheap_homeostatic_dpll.py'
+      - 'experiments/direct/janus_h002_cheap_homeostatic_dpll_verifier.py'
+      - 'docs/H002_CHEAP_HOMEOSTATIC_PRESSURE.md'
+      - 'registry/h002-cheap-homeostatic-pressure-status.json'
+      - '.github/workflows/validate-h002-cheap-homeostatic-pressure.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate-h002:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Compile producer and independent verifier
+        run: |
+          python -m py_compile \
+            experiments/direct/janus_h002_cheap_homeostatic_dpll.py \
+            experiments/direct/janus_h002_cheap_homeostatic_dpll_verifier.py
+      - name: Generate calibration and frozen holdout transcript
+        run: |
+          python experiments/direct/janus_h002_cheap_homeostatic_dpll.py \
+            --output /tmp/H002-JANUS-CHEAP-HOMEOSTATIC-PRESSURE.json \
+            --max-nodes 200000
+      - name: Independently replay transcript and tamper controls
+        run: |
+          python experiments/direct/janus_h002_cheap_homeostatic_dpll_verifier.py \
+            /tmp/H002-JANUS-CHEAP-HOMEOSTATIC-PRESSURE.json \
+            --tamper-self-test
+      - name: Enforce frozen holdout result and strict boundary
+        run: |
+          python - <<'PY'
+          import hashlib
+          import json
+          from pathlib import Path
+
+          artifact = Path('/tmp/H002-JANUS-CHEAP-HOMEOSTATIC-PRESSURE.json')
+          data = json.loads(artifact.read_text())
+          assert data['comparison'] == {
+              'case_count': 173,
+              'baseline_closed': 173,
+              'cheap_closed': 173,
+              'baseline_nodes': 3263,
+              'cheap_nodes': 1825,
+              'baseline_work': 2806816,
+              'cheap_work': 1907668,
+          }
+          assert data['suite_comparison']['HOLDOUT_A'] == {
+              'case_count': 100,
+              'baseline_closed': 100,
+              'cheap_closed': 100,
+              'baseline_nodes': 1782,
+              'cheap_nodes': 970,
+              'baseline_work': 1441099,
+              'cheap_work': 963433,
+          }
+          assert data['suite_comparison']['HOLDOUT_B'] == {
+              'case_count': 50,
+              'baseline_closed': 50,
+              'cheap_closed': 50,
+              'baseline_nodes': 1090,
+              'cheap_nodes': 562,
+              'baseline_work': 1038334,
+              'cheap_work': 648850,
+          }
+          assert data['benchmark_protocol']['weights_frozen_before_holdout'] is True
+          assert data['semantic_digest'] == '840c4a0cb327002f733b21bdcc6cbff4ac178ecd7e23d902c0815cab9d004afe'
+          assert len(artifact.read_bytes()) == 5995059
+          assert hashlib.sha256(artifact.read_bytes()).hexdigest() == 'd15d8e5ca4d137403ab6aff2f3647b65ce7fa7bb07c1f76b48ea3ad893bd28df'
+          assert data['strict_boundary']['polynomial_worst_case_proved'] is False
+          assert data['strict_boundary']['p_equals_np_claimed'] is False
+          assert data['strict_boundary']['p_vs_np'] == 'OPEN'
+          PY
+      - name: Export proof transcript
+        uses: actions/upload-artifact@v4
+        with:
+          name: h002-cheap-homeostatic-pressure
+          path: /tmp/H002-JANUS-CHEAP-HOMEOSTATIC-PRESSURE.json
+          retention-days: 1
