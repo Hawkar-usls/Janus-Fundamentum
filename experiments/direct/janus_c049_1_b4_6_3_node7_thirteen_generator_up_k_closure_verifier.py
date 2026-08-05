@@ -120,6 +120,7 @@ def compact(sequence: Sequence[Stat]) -> tuple[Stat, ...]:
                             values[0] >= value >= values[-1]
                             for value in between
                         )
+                    )
                     if monotone_interval:
                         del work[start + 1 : end]
                         removed = True
@@ -654,9 +655,7 @@ def main() -> None:
     artifact = json.loads(raw)
     if artifact.get("semantic_digest") != EXPECTED_SEMANTIC_DIGEST:
         raise AssertionError("closure semantic digest drift")
-    summary = verify(
-        args.source_artifact, artifact, args.producer_source
-    )
+    summary = verify(args.source_artifact, artifact, args.producer_source)
     rejected = tamper_self_test(artifact) if args.tamper_self_test else 0
     print("JANUS_C049_1_B4_6_3_NODE7_UP_K_CLOSURE_VERIFIER = PASS")
     print("INVARIANTS = 10/10")
