@@ -1,0 +1,111 @@
+name: Validate C049.1 B4.6.3 node-6 up_k integration and parent refinement
+
+on:
+  push:
+    paths:
+      - 'experiments/direct/janus_c049_1_b4_6_3_node6_up_k_integration_parent_refinement.py'
+      - 'experiments/direct/janus_c049_1_b4_6_3_dimension_two_preorder_hardening.py'
+      - 'experiments/direct/janus_c049_1_b4_6_3_negative_root_engine_replay.py'
+      - 'experiments/direct/janus_c049_1_b4_5_bottom_up_scaffold_executor.py'
+      - '.github/workflows/validate-c049-1-b4-6-3-node6-up-k-integration-parent-refinement.yml'
+  pull_request:
+    paths:
+      - 'experiments/direct/janus_c049_1_b4_6_3_node6_up_k_integration_parent_refinement.py'
+      - 'experiments/direct/janus_c049_1_b4_6_3_dimension_two_preorder_hardening.py'
+      - 'experiments/direct/janus_c049_1_b4_6_3_negative_root_engine_replay.py'
+      - 'experiments/direct/janus_c049_1_b4_5_bottom_up_scaffold_executor.py'
+      - '.github/workflows/validate-c049-1-b4-6-3-node6-up-k-integration-parent-refinement.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  node6-integration-parent-refinement:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Compile integration producer and frozen prerequisites
+        run: |
+          python -m py_compile \
+            experiments/direct/janus_c049_1_b4_6_3_node6_up_k_integration_parent_refinement.py \
+            experiments/direct/janus_c049_1_b4_6_3_dimension_two_preorder_hardening.py \
+            experiments/direct/janus_c049_1_b4_6_3_negative_root_engine_replay.py
+
+      - name: Regenerate the exact frozen negative prefix
+        env:
+          PYTHONPATH: experiments/direct
+        run: |
+          mkdir /tmp/c049-negative-prefix
+          python experiments/direct/janus_c049_1_b4_6_3_negative_root_engine_replay.py \
+            --output-dir /tmp/c049-negative-prefix
+
+      - name: Reproduce the admitted dimension-two hardening artifact
+        env:
+          PYTHONPATH: experiments/direct
+        run: |
+          python experiments/direct/janus_c049_1_b4_6_3_dimension_two_preorder_hardening.py \
+            /tmp/c049-negative-prefix \
+            --output /tmp/c049-dim2-preorder.json
+          test "$(sha256sum /tmp/c049-dim2-preorder.json | cut -d' ' -f1)" = \
+            "a68ea1957382bfa89386a09ab501a052057b1cc5de8db7191a6ab3a26e1d2af9"
+
+      - name: Integrate certified node-6 closure and continue parent execution
+        env:
+          PYTHONPATH: experiments/direct
+        run: |
+          mkdir /tmp/c049-node6-integration
+          python experiments/direct/janus_c049_1_b4_6_3_node6_up_k_integration_parent_refinement.py \
+            /tmp/c049-negative-prefix \
+            /tmp/c049-dim2-preorder.json \
+            --output-dir /tmp/c049-node6-integration \
+            --parent-pair-cap 10000 \
+            --parent-refinement-cap 2000000
+
+      - name: Enforce integration boundary and honest terminal
+        run: |
+          python - <<'PY'
+          import json
+          path='/tmp/c049-node6-integration/node6-integration-summary.json'
+          value=json.load(open(path, encoding='utf-8'))
+          assert len(value['certified_calls']) == 1
+          call=value['certified_calls'][0]
+          assert call['node_id'] == 6
+          assert call['input_generator_count'] == 468
+          assert call['retained_generator_count'] == 3
+          assert call['removal_count'] == 465
+          assert call['entry_count'] == 468
+          assert call['input_generator_family_digest'] == '0d0ef7d96cc83d785909a679db310ac3b4b61db53397f8df4262dab2197c9733'
+          assert call['hardening_artifact_sha256'] == 'a68ea1957382bfa89386a09ab501a052057b1cc5de8db7191a6ab3a26e1d2af9'
+          boundary=value['strict_boundary']
+          assert boundary['dimension_two_hardening_admitted'] is True
+          assert boundary['certified_node6_up_k_integrated'] is True
+          assert boundary['node6_old_b2_capability_stop_removed'] is True
+          assert boundary['parent_execution_started'] is True
+          assert boundary['terminal_completeness_proved'] is False
+          assert boundary['found_layout_enabled'] is False
+          assert boundary['no_layout_at_cap_enabled'] is False
+          assert boundary['current_global_terminal'] == 'OPEN_TRAJECTORY_ENGINE_INCOMPLETE'
+          assert boundary['p_vs_np'] == 'OPEN'
+          execution=value['execution']
+          if execution['stop'] is not None:
+              assert execution['stop']['node_id'] > 6
+              assert execution['stop']['no_layout_at_cap'] is False
+          PY
+
+      - name: Export integration transcript
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: c049-b4-6-3-node6-up-k-integration-parent-refinement
+          path: |
+            /tmp/c049-node6-integration/manifest.json
+            /tmp/c049-node6-integration/node6-integration-summary.json
+            /tmp/c049-node6-integration/chunks
+          retention-days: 1
+          if-no-files-found: warn
