@@ -1,0 +1,147 @@
+name: Validate C049.1 B4.6.3 root parent frontier structural compression
+
+on:
+  push:
+    paths:
+      - 'experiments/direct/janus_c049_1_b4_6_3_root_parent_frontier_structural_compression.py'
+      - 'experiments/direct/janus_c049_1_b4_6_3_root_parent_frontier_structural_compression_verifier.py'
+      - 'docs/C049_1_B4_6_3_ROOT_PARENT_FRONTIER_STRUCTURAL_COMPRESSION.md'
+      - 'docs/ACTIVE_PROOF_ROUTE_MATRIX_C049_1_B4_6_3_ROOT_APPENDIX.md'
+      - 'registry/c049-1-b4-6-3-root-parent-frontier-structural-compression.json'
+      - '.github/workflows/validate-c049-1-b4-6-3-root-parent-frontier-structural-compression.yml'
+  pull_request:
+    paths:
+      - 'experiments/direct/janus_c049_1_b4_6_3_root_parent_frontier_structural_compression.py'
+      - 'experiments/direct/janus_c049_1_b4_6_3_root_parent_frontier_structural_compression_verifier.py'
+      - 'docs/C049_1_B4_6_3_ROOT_PARENT_FRONTIER_STRUCTURAL_COMPRESSION.md'
+      - 'docs/ACTIVE_PROOF_ROUTE_MATRIX_C049_1_B4_6_3_ROOT_APPENDIX.md'
+      - 'registry/c049-1-b4-6-3-root-parent-frontier-structural-compression.json'
+      - '.github/workflows/validate-c049-1-b4-6-3-root-parent-frontier-structural-compression.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  root-parent-frontier-structural-compression:
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+    env:
+      PYTHONPATH: experiments/direct
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Verify admitted PR 104 ancestry and compile gate
+        run: |
+          git merge-base --is-ancestor babdf21ba20c1d24ed97fff4bb14121d0dfc1287 HEAD
+          python -m py_compile \
+            experiments/direct/janus_c049_1_b4_6_3_root_parent_frontier_structural_compression.py \
+            experiments/direct/janus_c049_1_b4_6_3_root_parent_frontier_structural_compression_verifier.py
+
+      - name: Replay admitted PR 104 exactly
+        run: |
+          python experiments/direct/janus_c049_1_b4_6_3_replay_workflow_run_steps.py \
+            .github/workflows/validate-c049-1-b4-6-3-node9-integration-root-preflight-rebound-hardened.yml
+          test "$(sha256sum /tmp/c049-node9-frontier-original.json | cut -d' ' -f1)" = \
+            "6eefd8e31ba4808e5587475c2faa2c000fd0093da4de2c488db42d103c059890"
+          test "$(sha256sum /tmp/c049-node9-up-k-original.json | cut -d' ' -f1)" = \
+            "c6e369099ea2fdf6572409dab7ce6f5172d40543388b366ec37a821262c506e4"
+          test "$(sha256sum /tmp/c049-node9-integration-rebound/manifest.json | cut -d' ' -f1)" = \
+            "563bc6d4148dfb94e7c5aa3c9b8e6ffa28e0b0e9cc6603fe0bffe39e71a636a9"
+
+      - name: Generate root frontier in three entry orders
+        run: |
+          python experiments/direct/janus_c049_1_b4_6_3_root_parent_frontier_structural_compression.py \
+            /tmp/c049-node9-frontier-original.json \
+            /tmp/c049-node9-up-k-original.json \
+            /tmp/c049-node9-integration-rebound/manifest.json \
+            --entry-order original --output /tmp/c049-root-frontier-original.json
+          python experiments/direct/janus_c049_1_b4_6_3_root_parent_frontier_structural_compression.py \
+            /tmp/c049-node9-frontier-original.json \
+            /tmp/c049-node9-up-k-original.json \
+            /tmp/c049-node9-integration-rebound/manifest.json \
+            --entry-order reversed --output /tmp/c049-root-frontier-reversed.json
+          python experiments/direct/janus_c049_1_b4_6_3_root_parent_frontier_structural_compression.py \
+            /tmp/c049-node9-frontier-original.json \
+            /tmp/c049-node9-up-k-original.json \
+            /tmp/c049-node9-integration-rebound/manifest.json \
+            --entry-order seeded-shuffle --output /tmp/c049-root-frontier-shuffled.json
+          cmp /tmp/c049-root-frontier-original.json /tmp/c049-root-frontier-reversed.json
+          cmp /tmp/c049-root-frontier-original.json /tmp/c049-root-frontier-shuffled.json
+
+      - name: Independent replay and ten repaired tamper attacks
+        run: |
+          python experiments/direct/janus_c049_1_b4_6_3_root_parent_frontier_structural_compression_verifier.py \
+            /tmp/c049-node9-frontier-original.json \
+            /tmp/c049-node9-up-k-original.json \
+            /tmp/c049-node9-integration-rebound/manifest.json \
+            /tmp/c049-root-frontier-original.json \
+            --producer-source experiments/direct/janus_c049_1_b4_6_3_root_parent_frontier_structural_compression.py \
+            --tamper-self-test
+
+      - name: Validate frozen theorem and strict boundary
+        run: |
+          test "$(wc -c < /tmp/c049-root-frontier-original.json)" = "31279"
+          test "$(sha256sum /tmp/c049-root-frontier-original.json | cut -d' ' -f1)" = \
+            "086e856eec1edc3ea419d38a99301db833415cf1c5bd373696089734329f3958"
+          python - <<'PY'
+          import json
+          a=json.load(open('/tmp/c049-root-frontier-original.json'))
+          assert a['semantic_digest']=='59952974dcc1735ae3b6eb93d72a6060de62c68c27ece683f0ab28a08d3397a3'
+          p=a['proof_payload']
+          assert p['certificate_bytes']==31279
+          assert p['invariant_vector']=={f'R10-INV-{i:02d}':'PASS' for i in range(1,13)}
+          c=p['child_languages']
+          assert (c['left_entry_count'],c['right_entry_count'],c['child_pair_count'])==(252,36,9072)
+          assert c['child_cartesian_pair_records_materialized']==0
+          d=p['structural_refinement_dp']
+          assert d['fine_lattice_paths_enumerated']==0 and d['fine_refinement_records_materialized']==0
+          assert (d['exact_refinement_multiplicity'],d['global_distinct_raw_scalar_streams'],d['global_compact_scalar_classes'])==(4954128,194247,77)
+          assert d['multiplicity_conservation'] is True
+          f=p['root_frontier']
+          assert (f['successful_refinement_count'],f['failed_refinement_count'])==(7825,4946303)
+          assert (f['successful_compact_generator_count'],f['failed_compact_class_count'])==(6,71)
+          assert f['width_multiplicity_histogram']=={'0':1,'1':7824,'2':1440803,'3':3505500}
+          assert [x['compact_scalar_sequence'] for x in f['successful_generators']]==[[0],[0,1],[0,1,0],[1],[1,0],[1,0,1]]
+          assert [x['refinement_multiplicity'] for x in f['successful_generators']]==[1,1898,1351,221,1898,2456]
+          attack=p['lower_envelope_reflection_attack']
+          assert attack['quotient_paths']==8
+          assert attack['all_lower_envelope_paths_width_at_most_k'] is True
+          assert attack['reflection_to_complete_child_languages'] is False
+          assert attack['counterevidence']['complete_failed_refinement_count']==4946303
+          b=p['strict_boundary']
+          assert b['root_parent_generator_frontier_complete'] is True
+          assert b['root_parent_refinement_complete'] is True
+          assert b['root_parent_up_k_complete'] is False
+          assert b['root_full_set_computed'] is False and b['root_empty_proved'] is False
+          assert b['terminal_completeness_proved'] is False
+          assert b['found_layout']=='FORBIDDEN' and b['no_layout_at_cap']=='FORBIDDEN'
+          assert b['current_global_terminal']=='OPEN_TRAJECTORY_ENGINE_INCOMPLETE'
+          assert b['next_gate']=='C049.1_B4.6.3_ROOT_SIX_GENERATOR_UP_K_CLOSURE'
+          assert b['p_vs_np']=='OPEN'
+          r=json.load(open('registry/c049-1-b4-6-3-root-parent-frontier-structural-compression.json'))
+          assert r['status'] in {'DRAFT_EXACT_HEAD_CI_REQUIRED','IMPLEMENTED_HARDENED_EXACT_HEAD_CI_GREEN'}
+          admitted=r['status']=='IMPLEMENTED_HARDENED_EXACT_HEAD_CI_GREEN'
+          rb=r['admission_boundary']
+          assert rb['root_parent_generator_frontier_complete'] is admitted
+          assert rb['root_parent_refinement_complete'] is admitted
+          assert rb['root_parent_up_k_complete'] is False
+          assert rb['root_full_set_computed'] is False and rb['root_empty_proved'] is False
+          assert rb['found_layout_enabled'] is False and rb['no_layout_at_cap_enabled'] is False
+          assert rb['p_vs_np']=='OPEN'
+          PY
+
+      - name: Export root frontier proof package
+        uses: actions/upload-artifact@v4
+        with:
+          name: c049-b4-6-3-root-parent-frontier-structural-compression
+          path: |
+            /tmp/c049-root-frontier-original.json
+            registry/c049-1-b4-6-3-root-parent-frontier-structural-compression.json
+            docs/C049_1_B4_6_3_ROOT_PARENT_FRONTIER_STRUCTURAL_COMPRESSION.md
+          retention-days: 1
