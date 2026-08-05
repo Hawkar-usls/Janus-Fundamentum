@@ -118,18 +118,29 @@ jobs:
             --producer-source experiments/direct/janus_c049_1_b4_6_3_node7_up_k_integration_node8_parent_refinement.py \
             --tamper-self-test
 
-      - name: Enforce strict node-8 open boundary
+      - name: Match frozen integration bytes and strict node-8 open boundary
         run: |
+          test "$(wc -c < /tmp/c049-node7-integration/manifest.json)" = "5432115"
+          test "$(sha256sum /tmp/c049-node7-integration/manifest.json | cut -d' ' -f1)" = \
+            "895fde2dfc8d730131f2148b0ac8f8140f8bf0cf4fae1ba81655e29841b83413"
+          test "$(wc -c < /tmp/c049-node7-integration/node7-integration-node8-preflight-summary.json)" = "3798"
+          test "$(sha256sum /tmp/c049-node7-integration/node7-integration-node8-preflight-summary.json | cut -d' ' -f1)" = \
+            "eed5e6d7ec35fc741ad46223263478e77290193b1f58f5b788256ba3f36b06af"
           python - <<'PY'
           import json
           manifest=json.load(open('/tmp/c049-node7-integration/manifest.json', encoding='utf-8'))
           summary=json.load(open('/tmp/c049-node7-integration/node7-integration-node8-preflight-summary.json', encoding='utf-8'))
+          assert manifest['manifest_digest'] == 'e2e30368de73c6d54f972dd101305f7b2ffe0ec61e9c91bc6594b53170b3f2e0'
+          assert summary['semantic_digest'] == '4c7106f904cc5c65e939f77f323c7a865f11cc88da1871d8e0d6451ba0fcf1fa'
           assert manifest['execution']['processed_internal_node_ids'] == [6, 7]
           assert manifest['execution']['stop']['node_id'] == 8
           assert manifest['execution']['stop']['reason'] == 'CHILD_PAIR_CAP_EXCEEDED'
           assert manifest['execution']['stop']['required'] == 327888
           assert manifest['execution']['stop']['no_layout_at_cap'] is False
           assert manifest['chunking']['transcript_root_digest'] == 'eb904e833b53cf5626af1eb28493f479f5f54f2066a8b5427cb7e3eb47f515d8'
+          node7=next(node for node in manifest['node_results'] if node['node_id'] == 7)
+          assert node7['node_execution_digest'] == '73a94970af467f87487056e133299e7f9dd391cc8ee274f037d5a5c668d3fe84'
+          assert node7['output_receipt']['receipt_digest'] == '26919945eb52be643a18f0425dc778e88bdde6f4f0a2441dfe3fc4b31903372d'
           preflight=summary['node8_preflight']
           assert preflight['left_entries'] == 9108
           assert preflight['right_entries'] == 36
@@ -139,12 +150,15 @@ jobs:
           strict=summary['strict_boundary']
           assert strict['node7_integrated_into_bottom_up_executor'] is True
           assert strict['node8_reached'] is True
+          assert strict['node8_parent_preflight_complete'] is True
           assert strict['node8_parent_refinement_started'] is False
           assert strict['negative_root_reached'] is False
+          assert strict['terminal_completeness_proved'] is False
           assert strict['found_layout_enabled'] is False
           assert strict['no_layout_at_cap_enabled'] is False
           assert strict['current_global_terminal'] == 'OPEN_TRAJECTORY_ENGINE_INCOMPLETE'
           assert strict['p_vs_np'] == 'OPEN'
+          assert summary['next_gate'] == 'C049.1_B4.6.3_NODE8_PARENT_FRONTIER_STRUCTURAL_COMPRESSION'
           PY
 
       - name: Export node-7 integration and node-8 preflight package
