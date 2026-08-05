@@ -1,0 +1,132 @@
+name: Validate C049.1 B4.6.3 root acceptance-reflection obstruction
+
+on:
+  push:
+    paths:
+      - 'experiments/direct/janus_c049_1_b4_6_3_root_acceptance_reflection_obstruction.py'
+      - 'experiments/direct/janus_c049_1_b4_6_3_root_acceptance_reflection_obstruction_verifier.py'
+      - 'docs/C049_1_B4_6_3_ROOT_ACCEPTANCE_REFLECTION_OBSTRUCTION.md'
+      - 'registry/c049-1-b4-6-3-root-acceptance-reflection-obstruction.json'
+      - '.github/workflows/validate-c049-1-b4-6-3-root-acceptance-reflection-obstruction.yml'
+  pull_request:
+    paths:
+      - 'experiments/direct/janus_c049_1_b4_6_3_root_acceptance_reflection_obstruction.py'
+      - 'experiments/direct/janus_c049_1_b4_6_3_root_acceptance_reflection_obstruction_verifier.py'
+      - 'docs/C049_1_B4_6_3_ROOT_ACCEPTANCE_REFLECTION_OBSTRUCTION.md'
+      - 'registry/c049-1-b4-6-3-root-acceptance-reflection-obstruction.json'
+      - '.github/workflows/validate-c049-1-b4-6-3-root-acceptance-reflection-obstruction.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  root-acceptance-reflection-obstruction:
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+    env:
+      PYTHONPATH: experiments/direct
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Verify admitted ancestry and compile independent proof pair
+        run: |
+          git merge-base --is-ancestor babdf21ba20c1d24ed97fff4bb14121d0dfc1287 HEAD
+          python -m py_compile \
+            experiments/direct/janus_c049_1_b4_6_3_root_acceptance_reflection_obstruction.py \
+            experiments/direct/janus_c049_1_b4_6_3_root_acceptance_reflection_obstruction_verifier.py \
+            experiments/direct/janus_c049_1_b4_6_3_replay_workflow_run_steps.py
+          if grep -E '^from .*root_acceptance_reflection_obstruction|^import .*root_acceptance_reflection_obstruction' \
+            experiments/direct/janus_c049_1_b4_6_3_root_acceptance_reflection_obstruction_verifier.py; then
+            echo 'independent verifier imports producer'
+            exit 1
+          fi
+
+      - name: Replay admitted PR 104 on the exact obstruction head
+        run: |
+          python experiments/direct/janus_c049_1_b4_6_3_replay_workflow_run_steps.py \
+            .github/workflows/validate-c049-1-b4-6-3-node9-integration-root-preflight-rebound-hardened.yml
+          test "$(wc -c < /tmp/c049-node9-integration-rebound/manifest.json)" = "16175333"
+          test "$(sha256sum /tmp/c049-node9-integration-rebound/manifest.json | cut -d' ' -f1)" = \
+            "563bc6d4148dfb94e7c5aa3c9b8e6ffa28e0b0e9cc6603fe0bffe39e71a636a9"
+          test "$(wc -c < /tmp/c049-node9-integration-rebound/node9-integration-root-preflight-summary.json)" = "4406"
+          test "$(sha256sum /tmp/c049-node9-integration-rebound/node9-integration-root-preflight-summary.json | cut -d' ' -f1)" = \
+            "640d0a9f18d7a0e7639d4f0c4fa9d2acfe691662af70b2ad5b2f89458fc8faf0"
+          test "$(wc -c < /tmp/c049-node9-up-k-original.json)" = "555527"
+          test "$(sha256sum /tmp/c049-node9-up-k-original.json | cut -d' ' -f1)" = \
+            "c6e369099ea2fdf6572409dab7ce6f5172d40543388b366ec37a821262c506e4"
+
+      - name: Generate the frozen root reflection obstruction
+        run: |
+          python experiments/direct/janus_c049_1_b4_6_3_root_acceptance_reflection_obstruction.py \
+            /tmp/c049-node9-integration-rebound/manifest.json \
+            /tmp/c049-node9-integration-rebound/node9-integration-root-preflight-summary.json \
+            /tmp/c049-node9-up-k-original.json \
+            --output /tmp/c049-root-reflection-obstruction.json
+          test "$(wc -c < /tmp/c049-root-reflection-obstruction.json)" = "6443"
+          test "$(sha256sum /tmp/c049-root-reflection-obstruction.json | cut -d' ' -f1)" = \
+            "bef0e67cb70c59d4b2f5b3b2a235416fe4121e9f4d1109600355d06cef42996c"
+
+      - name: Independently replay the contradiction and reject repaired tampers
+        run: |
+          python experiments/direct/janus_c049_1_b4_6_3_root_acceptance_reflection_obstruction_verifier.py \
+            /tmp/c049-node9-integration-rebound/manifest.json \
+            /tmp/c049-node9-integration-rebound/node9-integration-root-preflight-summary.json \
+            /tmp/c049-node9-up-k-original.json \
+            /tmp/c049-root-reflection-obstruction.json \
+            --tamper-self-test
+
+      - name: Validate frozen ledger and strict boundary
+        run: |
+          python - <<'PY'
+          import hashlib, json
+          artifact=json.load(open('/tmp/c049-root-reflection-obstruction.json'))
+          assert artifact['semantic_digest']=='44a6c9dadf2f0815f8f5d2be85bae2a23e8a5550cfb525f49adcf46061ef8980'
+          proof=artifact['proof_payload']
+          assert proof['invariant_vector']=={f'RRO-INV-{i:02d}':'PASS' for i in range(1,13)}
+          assert proof['exhaustive_grouped_layout_oracle']['permutations_replayed']==720
+          assert proof['exhaustive_grouped_layout_oracle']['minimum_width']==2
+          assert proof['exhaustive_grouped_layout_oracle']['width_at_most_k_layout_count']==0
+          assert proof['root_preflight']['child_pair_count']==9072
+          assert proof['root_preflight']['naive_refinement_count']==4954128
+          assert proof['current_b3_root_semantics']['successful_child_pair_count']==764
+          assert proof['current_b3_root_semantics']['successful_refinement_count']==7825
+          assert proof['current_b3_root_semantics']['root_output_pattern_counts']['0']==1
+          assert proof['retained_envelope_shortcut_attack']['quotient_path_count']==8
+          assert proof['retained_envelope_shortcut_attack']['admissible_as_root_compression_theorem'] is False
+          assert proof['decisive_obstruction']['root_acceptance_reflection_contradiction'] is True
+          assert proof['decisive_obstruction']['root_structural_compression_admitted'] is False
+          strict=proof['strict_boundary']
+          assert strict['root_parent_refinement_complete'] is False
+          assert strict['root_full_set_computed'] is False
+          assert strict['found_layout_enabled'] is False
+          assert strict['no_layout_at_cap_enabled'] is False
+          assert strict['p_vs_np']=='OPEN'
+
+          receipt=json.load(open('registry/c049-1-b4-6-3-root-acceptance-reflection-obstruction.json'))
+          assert receipt['status'] in {'DRAFT_EXACT_HEAD_CI_REQUIRED','IMPLEMENTED_DECISIVE_OBSTRUCTION_EXACT_HEAD_CI_GREEN'}
+          assert receipt['proof_contract']['digest_repaired_tamper_attacks']==12
+          assert receipt['frozen_candidate_target']['artifact_sha256']=='bef0e67cb70c59d4b2f5b3b2a235416fe4121e9f4d1109600355d06cef42996c'
+          admitted=receipt['status']=='IMPLEMENTED_DECISIVE_OBSTRUCTION_EXACT_HEAD_CI_GREEN'
+          assert receipt['admission_boundary']['decisive_root_reflection_obstruction_admitted'] is admitted
+          assert receipt['admission_boundary']['root_structural_compression_admitted'] is False
+          assert receipt['admission_boundary']['root_parent_refinement_complete'] is False
+          assert receipt['admission_boundary']['found_layout_enabled'] is False
+          assert receipt['admission_boundary']['no_layout_at_cap_enabled'] is False
+          assert receipt['admission_boundary']['p_vs_np']=='OPEN'
+          assert receipt['next_gate_after_green_ci']=='C049.1_B4.6.3_ROOT_ACCEPTANCE_REFLECTION_CORRECTION'
+          PY
+
+      - name: Export root reflection obstruction package
+        uses: actions/upload-artifact@v4
+        with:
+          name: c049-b4-6-3-root-acceptance-reflection-obstruction
+          path: |
+            /tmp/c049-root-reflection-obstruction.json
+            registry/c049-1-b4-6-3-root-acceptance-reflection-obstruction.json
+          retention-days: 1
