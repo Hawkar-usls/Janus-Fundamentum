@@ -277,7 +277,13 @@ def build(transcript_root: Path, output: Path) -> dict:
         "k": k,
         "input_generator_count": len(records),
         "input_generator_family_digest": digest(
-            [record["trajectory_parent_coordinates"] for record in records]
+            sorted(
+                (
+                    record["trajectory_parent_coordinates"]
+                    for record in records
+                ),
+                key=canonical_json,
+            )
         ),
         "preorder_partition": {
             "rule": "COLLAPSED_LEFT_RIGHT_SKELETON_STUTTER_SIGNATURE",
