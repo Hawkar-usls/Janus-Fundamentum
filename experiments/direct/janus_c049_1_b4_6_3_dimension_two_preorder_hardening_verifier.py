@@ -9,11 +9,15 @@ import itertools
 import json
 from collections import defaultdict
 from pathlib import Path
-from typing import Any, Iterable, Sequence
+from typing import Any, Sequence
+
+import janus_c049_1_b4_6_3_independent_semantic_up_k_root_replay as base
+import janus_c049_1_b4_6_3_semantic_up_k_root_replay_hardened as hard
 
 SCHEMA = "C049.1-B4.6.3-DIMENSION-TWO-PREORDER-HARDENING-v1"
 SOURCE_HEAD = "aae75187fa8883b2e99fdc95ce62e21540161e8d"
 TERMINAL = "OPEN_TRAJECTORY_ENGINE_INCOMPLETE"
+base.rref = hard.canonical_rref
 
 
 def canonical_json(value: Any) -> bytes:
@@ -22,88 +26,6 @@ def canonical_json(value: Any) -> bytes:
 
 def digest(value: Any) -> str:
     return hashlib.sha256(canonical_json(value)).hexdigest()
-
-
-def rref(rows: Iterable[int], dim: int) -> tuple[int, ...]:
-    limit = 1 << dim
-    pivots: dict[int, int] = {}
-    for raw in rows:
-        value = int(raw)
-        if value < 0 or value >= limit:
-            raise ValueError("row outside ambient space")
-        while value:
-            pivot = value.bit_length() - 1
-            if pivot in pivots:
-                value ^= pivots[pivot]
-                continue
-            pivots[pivot] = value
-            for other in tuple(pivots):
-                if other != pivot and ((pivots[other] >> pivot) & 1):
-                    pivots[other] ^= value
-            break
-    for pivot in sorted(pivots):
-        row = pivots[pivot]
-        for other in sorted(pivots, reverse=True):
-            if other != pivot and ((pivots[other] >> pivot) & 1):
-                pivots[other] ^= row
-    return tuple(pivots[pivot] for pivot in sorted(pivots, reverse=True))
-
-
-def contains(big: tuple[int, ...], small: tuple[int, ...]) -> bool:
-    for vector in small:
-        remainder = vector
-        for row in big:
-            remainder = min(remainder, remainder ^ row)
-        if remainder:
-            return False
-    return True
-
-
-def compact(sequence: Sequence[tuple]) -> tuple:
-    current = list(sequence)
-    while True:
-        changed = False
-        for index in range(1, len(current)):
-            if current[index - 1] == current[index]:
-                del current[index]
-                changed = True
-                break
-        if changed:
-            continue
-        for first in range(len(current)):
-            for last in range(first + 2, len(current)):
-                if current[first][:2] != current[last][:2]:
-                    continue
-                low = min(current[first][2], current[last][2])
-                high = max(current[first][2], current[last][2])
-                if all(low <= item[2] <= high for item in current[first + 1:last]):
-                    del current[first + 1:last]
-                    changed = True
-                    break
-            if changed:
-                break
-        if not changed:
-            return tuple(current)
-
-
-def parse_trajectory(raw: Sequence[dict], dim: int) -> tuple:
-    if not raw:
-        raise ValueError("empty trajectory")
-    gamma = tuple((rref(item["left"], dim), rref(item["right"], dim), int(item["value"])) for item in raw)
-    if any(item[2] < 0 for item in gamma):
-        raise ValueError("negative value")
-    if gamma[0][1] != gamma[-1][0]:
-        raise ValueError("endpoint mismatch")
-    for before, after in zip(gamma, gamma[1:]):
-        if not contains(after[0], before[0]) or not contains(before[1], after[1]):
-            raise ValueError("monotonicity mismatch")
-    if compact(gamma) != gamma:
-        raise ValueError("noncompact trajectory")
-    return gamma
-
-
-def encode(gamma: Sequence[tuple]) -> list[dict]:
-    return [{"left": list(left), "right": list(right), "value": value} for left, right, value in gamma]
 
 
 def signature(gamma: Sequence[tuple]) -> tuple:
@@ -119,7 +41,7 @@ def encode_signature(value: Sequence[tuple]) -> list[dict]:
     return [{"left": list(left), "right": list(right)} for left, right in value]
 
 
-def empty_preorder_counters() -> dict[str, int]:
+def empty_counters() -> dict[str, int]:
     names = (
         "discovery_work", "work", "rref_input_rows", "rref_pivot_tests",
         "rref_xors", "rref_output_rows", "subspace_inclusion_tests",
@@ -131,35 +53,34 @@ def empty_preorder_counters() -> dict[str, int]:
     return {name: 0 for name in names}
 
 
-def relation(lower: Sequence[tuple], upper: Sequence[tuple], counters: dict | None = None) -> list[tuple[int, int]] | None:
+def relation(lower: Sequence[tuple], upper: Sequence[tuple], counters: dict | None = None):
     if counters is not None:
         counters["generator_pair_tests"] += 1
         counters["work"] += 1
-    parent: dict[tuple[int, int], tuple[int, int] | None] = {}
-    for row in range(len(lower)):
-        for column in range(len(upper)):
+    parent = {}
+    for i in range(len(lower)):
+        for j in range(len(upper)):
             if counters is not None:
                 counters["lattice_cells"] += 1
                 counters["work"] += 1
-            a = lower[row]
-            b = upper[column]
+            a, b = lower[i], upper[j]
             if a[0] != b[0] or a[1] != b[1] or a[2] > b[2]:
                 continue
-            if (row, column) == (0, 0):
-                parent[(row, column)] = None
+            if (i, j) == (0, 0):
+                parent[(i, j)] = None
                 continue
-            for previous in ((row - 1, column - 1), (row - 1, column), (row, column - 1)):
+            for previous in ((i - 1, j - 1), (i - 1, j), (i, j - 1)):
                 if counters is not None:
                     counters["lattice_predecessor_tests"] += 1
                     counters["work"] += 1
                 if previous in parent:
-                    parent[(row, column)] = previous
+                    parent[(i, j)] = previous
                     break
     target = (len(lower) - 1, len(upper) - 1)
     if target not in parent:
         return None
     path = []
-    cursor: tuple[int, int] | None = target
+    cursor = target
     while cursor is not None:
         path.append(cursor)
         cursor = parent[cursor]
@@ -171,46 +92,44 @@ def relation(lower: Sequence[tuple], upper: Sequence[tuple], counters: dict | No
     return path
 
 
-def witness(path: Sequence[tuple[int, int]]) -> dict:
+def witness(path) -> dict:
     return {"path": [list(item) for item in path], "path_length": len(path)}
 
 
-def read_source(root: Path) -> tuple[dict, int, int, int, list[dict]]:
+def read_source(root: Path):
     manifest = json.loads((root / "manifest.json").read_text())
-    body = dict(manifest)
-    claimed = body.pop("manifest_digest", None)
-    if claimed != digest(body):
+    unsigned = dict(manifest)
+    claimed = unsigned.pop("manifest_digest", None)
+    if claimed != digest(unsigned):
         raise AssertionError("source manifest digest mismatch")
     stop = manifest["execution"]["stop"]
     if stop is None or stop["status"] != "OPEN_AT_NODE_B2_CAPABILITY":
         raise AssertionError("source is not the frozen honest OPEN")
     node_id = int(stop["node_id"])
-    dim = int(stop["boundary_coordinate_dimension"])
-    k = int(stop["k"])
     records = []
     for metadata in manifest["chunking"]["chunk_groups"]["GENERATORS"]:
         payload = json.loads(gzip.decompress((root / metadata["filename"]).read_bytes()))
         if payload["kind"] != "GENERATORS" or payload["record_count"] != metadata["record_count"]:
             raise AssertionError("generator chunk metadata mismatch")
         for record in payload["records"]:
-            unsigned = dict(record)
-            record_digest = unsigned.pop("record_digest", None)
-            if record_digest != digest(unsigned):
+            body = dict(record)
+            record_digest = body.pop("record_digest", None)
+            if record_digest != digest(body):
                 raise AssertionError("generator record digest mismatch")
             if int(record["node_id"]) == node_id:
                 records.append(record)
     records.sort(key=lambda item: int(item["generator_id"]))
-    return manifest, node_id, dim, k, records
+    return manifest, stop, records
 
 
-def scalar_patterns() -> tuple[tuple[tuple[int, ...], ...], int]:
+def scalar_patterns():
     accepted = set()
     tested = 0
     for length in range(1, 16):
         for values in itertools.product((0, 1), repeat=length):
             tested += 1
             wrapped = tuple(((), (), value) for value in values)
-            if compact(wrapped) == wrapped:
+            if base.compact(wrapped) == wrapped:
                 accepted.add(tuple(values))
     result = tuple(sorted(accepted))
     expected = ((0,), (0, 1), (0, 1, 0), (1,), (1, 0), (1, 0, 1))
@@ -219,27 +138,27 @@ def scalar_patterns() -> tuple[tuple[tuple[int, ...], ...], int]:
     return result, tested
 
 
-def reachable_catalog(signatures: Sequence[tuple]) -> tuple[tuple, tuple, int]:
+def reachable_catalog(signatures):
     patterns, tested = scalar_patterns()
     values = set()
     for sig in signatures:
         if len(set(sig)) != len(sig):
             raise AssertionError("repeated skeleton run invalidates product catalog")
         for selection in itertools.product(patterns, repeat=len(sig)):
-            candidate = []
+            gamma = []
             for (left, right), run in zip(sig, selection):
-                candidate.extend((left, right, scalar) for scalar in run)
-            gamma = tuple(candidate)
-            if compact(gamma) != gamma:
+                gamma.extend((left, right, scalar) for scalar in run)
+            gamma = tuple(gamma)
+            if base.compact(gamma) != gamma:
                 raise AssertionError("catalog contains noncompact trajectory")
             values.add(gamma)
     return tuple(sorted(values)), patterns, tested
 
 
-def stream_digest(trajectories: Sequence[tuple]) -> str:
+def stream_digest(trajectories) -> str:
     hasher = hashlib.sha256()
     for gamma in trajectories:
-        hasher.update(canonical_json(encode(gamma)))
+        hasher.update(canonical_json(base.encode(gamma)))
         hasher.update(b"\n")
     return hasher.hexdigest()
 
@@ -257,9 +176,12 @@ def verify(root: Path, artifact: dict) -> dict:
     verify_outer(artifact)
     if artifact.get("schema") != SCHEMA or artifact.get("source_head") != SOURCE_HEAD:
         raise AssertionError("schema/source head mismatch")
-    manifest, node_id, dim, k, records = read_source(root)
-    if (node_id, dim, k, len(records)) != (6, 2, 1, 468):
-        raise AssertionError("source generator fixture drift")
+    manifest, stop, records = read_source(root)
+    if (
+        int(stop["node_id"]), int(stop["boundary_coordinate_dimension"]),
+        int(stop["k"]), len(records)
+    ) != (6, 2, 1, 468):
+        raise AssertionError("source fixture drift")
     if artifact["source_manifest_digest"] != manifest["manifest_digest"]:
         raise AssertionError("manifest binding mismatch")
     if artifact["source_transcript_root_digest"] != manifest["chunking"]["transcript_root_digest"]:
@@ -269,14 +191,15 @@ def verify(root: Path, artifact: dict) -> dict:
     trajectory_digests = {}
     for record in records:
         identifier = int(record["generator_id"])
-        gamma = parse_trajectory(record["trajectory_parent_coordinates"], dim)
+        gamma = base.trajectory(record["trajectory_parent_coordinates"], 2)
         if record["trajectory_digest"] != digest(record["trajectory_parent_coordinates"]):
             raise AssertionError("trajectory digest mismatch")
         trajectories[identifier] = gamma
         trajectory_digests[identifier] = record["trajectory_digest"]
     if artifact["input_generator_count"] != 468:
         raise AssertionError("generator count mismatch")
-    if artifact["input_generator_family_digest"] != digest([item["trajectory_parent_coordinates"] for item in records]):
+    expected_family_digest = digest([item["trajectory_parent_coordinates"] for item in records])
+    if artifact["input_generator_family_digest"] != expected_family_digest:
         raise AssertionError("generator family digest mismatch")
 
     grouped = defaultdict(list)
@@ -304,13 +227,12 @@ def verify(root: Path, artifact: dict) -> dict:
                 if relation(trajectories[lower_id], trajectories[upper_id]) is not None:
                     raise AssertionError("cross-signature relation found")
 
-    buckets = artifact["preorder_partition"]["buckets"]
-    if artifact["preorder_partition"]
-    ["rule"] != "COLLAPSED_LEFT_RIGHT_SKELETON_STUTTER_SIGNATURE":
+    partition = artifact["preorder_partition"]
+    if partition["rule"] != "COLLAPSED_LEFT_RIGHT_SKELETON_STUTTER_SIGNATURE":
         raise AssertionError("partition rule mismatch")
-    if artifact["preorder_partition"]["cross_signature_relation_possible"] is not False:
+    if partition["cross_signature_relation_possible"] is not False:
         raise AssertionError("cross-signature guard missing")
-    if artifact["preorder_partition"]["bucket_count"] != 3 or len(buckets) != 3:
+    if partition["bucket_count"] != 3 or len(partition["buckets"]) != 3:
         raise AssertionError("bucket count mismatch")
 
     retained_ids = []
@@ -332,7 +254,6 @@ def verify(root: Path, artifact: dict) -> dict:
         for removed in bucket_ids:
             if removed != retained:
                 expected_source[removed] = retained
-        bucket = buckets[bucket_index]
         count = len(bucket_ids) - 1
         expected_range = {
             "first": removal_cursor,
@@ -346,23 +267,23 @@ def verify(root: Path, artifact: dict) -> dict:
             "signature_digest": digest(encode_signature(sig)),
             "input_generator_count": len(bucket_ids),
             "retained_generator_id": retained,
-            "retained_trajectory": encode(trajectories[retained]),
+            "retained_trajectory": base.encode(trajectories[retained]),
             "retained_trajectory_digest": trajectory_digests[retained],
             "zero_envelope_unique": True,
             "distinct_skeleton_runs": True,
             "removal_range": expected_range,
         }
-        if bucket != expected_bucket:
+        if partition["buckets"][bucket_index] != expected_bucket:
             raise AssertionError("bucket receipt mismatch")
 
     if artifact["retained_generator_ids"] != retained_ids:
         raise AssertionError("retained id order mismatch")
-    if artifact["retained_generators"] != [encode(trajectories[item]) for item in retained_ids]:
+    if artifact["retained_generators"] != [base.encode(trajectories[item]) for item in retained_ids]:
         raise AssertionError("retained trajectories mismatch")
     if artifact["retained_generator_count"] != 3:
         raise AssertionError("retained count mismatch")
 
-    counters = empty_preorder_counters()
+    counters = empty_counters()
     removals = artifact["removals"]
     if len(removals) != 465 or artifact["removal_count"] != 465:
         raise AssertionError("removal count mismatch")
@@ -377,7 +298,7 @@ def verify(root: Path, artifact: dict) -> dict:
         if removal["removal_id"] != index or removed in seen:
             raise AssertionError("removal identity mismatch")
         if expected_source.get(removed) != retained:
-            raise AssertionError("removal retained predecessor mismatch")
+            raise AssertionError("retained predecessor mismatch")
         seen.add(removed)
         if removal["removed_trajectory_digest"] != trajectory_digests[removed]:
             raise AssertionError("removed digest mismatch")
@@ -399,11 +320,11 @@ def verify(root: Path, artifact: dict) -> dict:
     reachable, patterns, scalar_test_count = reachable_catalog(signatures)
     structural["binary_scalar_sequences_tested"] = scalar_test_count
     structural["reachable_catalog_candidates_constructed"] = len(reachable)
-    if len(reachable) != 468:
-        raise AssertionError("reachable catalog size mismatch")
-    if set(reachable) != set(trajectories.values()):
+    if len(reachable) != 468 or set(reachable) != set(trajectories.values()):
         raise AssertionError("reachable set changed")
-    source_by_signature = {signature(trajectories[item]): index for index, item in enumerate(retained_ids)}
+    source_by_signature = {
+        signature(trajectories[item]): index for index, item in enumerate(retained_ids)
+    }
     expected_entries = []
     for candidate in reachable:
         structural["reachable_candidate_tests"] += 1
@@ -413,34 +334,33 @@ def verify(root: Path, artifact: dict) -> dict:
             raise AssertionError("closure witness missing")
         expected_entries.append(
             {
-                "trajectory": encode(candidate),
+                "trajectory": base.encode(candidate),
                 "source_generator_index": source_index,
                 "witness": witness(path),
             }
         )
 
     closure = artifact["exact_reachable_closure"]
-    expected_patterns = [list(item) for item in patterns]
-    if closure["binary_typical_run_patterns"] != expected_patterns:
+    if closure["binary_typical_run_patterns"] != [list(item) for item in patterns]:
         raise AssertionError("run-pattern receipt mismatch")
     if closure["binary_typical_run_pattern_count"] != 6:
         raise AssertionError("run-pattern count mismatch")
     if closure["binary_scalar_sequences_exhaustively_tested"] != scalar_test_count:
         raise AssertionError("scalar exhaustive count mismatch")
     if closure["complete_reachable_catalog_size"] != 468:
-        raise AssertionError("catalog size receipt mismatch")
+        raise AssertionError("catalog size mismatch")
     if closure["complete_reachable_catalog_stream_sha256"] != stream_digest(reachable):
         raise AssertionError("catalog digest mismatch")
     if closure["reachable_from_original_count"] != 468 or closure["reachable_from_retained_count"] != 468:
-        raise AssertionError("closure counts mismatch")
+        raise AssertionError("closure count mismatch")
     if closure["reachable_entries"] != expected_entries:
-        raise AssertionError("closure entries mismatch")
+        raise AssertionError("closure entry transcript mismatch")
     if closure["reachable_entries_digest"] != digest(expected_entries):
-        raise AssertionError("closure entries digest mismatch")
+        raise AssertionError("closure entry digest mismatch")
     if closure["input_generator_set_equals_reachable_set"] is not True:
-        raise AssertionError("generator/reachable equality flag missing")
+        raise AssertionError("generator/reachable equality missing")
     if closure["up_k_original_equals_up_k_retained"] is not True:
-        raise AssertionError("up_k equality flag missing")
+        raise AssertionError("up_k equality missing")
 
     if artifact["work_ledger"]["structural_counters"] != structural:
         raise AssertionError("structural work ledger mismatch")
@@ -450,9 +370,9 @@ def verify(root: Path, artifact: dict) -> dict:
     if artifact["work_ledger"]["total_charged_operations"] != total:
         raise AssertionError("charged operation total mismatch")
     if artifact["work_ledger"]["monotone"] is not True:
-        raise AssertionError("work monotonicity flag missing")
+        raise AssertionError("work monotonicity missing")
 
-    expected_invariants = {
+    invariants = {
         "INV-01_canonical_preorder_unique": "PASS",
         "INV-02_dominance_only_from_certificates": "PASS",
         "INV-03_every_removed_has_direct_witness": "PASS",
@@ -462,10 +382,9 @@ def verify(root: Path, artifact: dict) -> dict:
         "INV-07_deterministic_output_byte_identical": "PASS",
         "INV-08_every_deletion_fully_traceable": "PASS",
     }
-    if artifact["invariant_vector"] != expected_invariants or artifact["admit"] is not True:
+    if artifact["invariant_vector"] != invariants or artifact["admit"] is not True:
         raise AssertionError("invariant admission mismatch")
-
-    expected_boundary = {
+    boundary = {
         "dimension_two_preorder_minimization_complete": True,
         "node_up_k_reachable_set_complete": True,
         "negative_root_reached": False,
@@ -476,7 +395,7 @@ def verify(root: Path, artifact: dict) -> dict:
         "next_gate": "C049.1_B4.6.3_NEGATIVE_NODE_6_UP_K_INTEGRATION_AND_PARENT_REFINEMENT",
         "p_vs_np": "OPEN",
     }
-    if artifact["strict_boundary"] != expected_boundary:
+    if artifact["strict_boundary"] != boundary:
         raise AssertionError("strict boundary mismatch")
     return {
         "input_generators": 468,
@@ -507,14 +426,14 @@ def tamper_self_test(root: Path, artifact: dict) -> int:
     cases = []
     changed = copy.deepcopy(artifact)
     changed["removals"][0]["direct_witness"]["path"] = changed["removals"][0]["direct_witness"]["path"][:-1]
-    unsigned = dict(changed["removals"][0]); unsigned.pop("removal_digest", None)
-    changed["removals"][0]["removal_digest"] = digest(unsigned)
+    body = dict(changed["removals"][0]); body.pop("removal_digest", None)
+    changed["removals"][0]["removal_digest"] = digest(body)
     cases.append(changed)
 
     changed = copy.deepcopy(artifact)
     changed["removals"][0]["retained_generator_id"] = artifact["retained_generator_ids"][1]
-    unsigned = dict(changed["removals"][0]); unsigned.pop("removal_digest", None)
-    changed["removals"][0]["removal_digest"] = digest(unsigned)
+    body = dict(changed["removals"][0]); body.pop("removal_digest", None)
+    changed["removals"][0]["removal_digest"] = digest(body)
     cases.append(changed)
 
     changed = copy.deepcopy(artifact)
@@ -534,9 +453,8 @@ def tamper_self_test(root: Path, artifact: dict) -> int:
 
     rejected = 0
     for case in cases:
-        repaired = bind(case)
         try:
-            verify(root, repaired)
+            verify(root, bind(case))
         except AssertionError:
             rejected += 1
         else:
