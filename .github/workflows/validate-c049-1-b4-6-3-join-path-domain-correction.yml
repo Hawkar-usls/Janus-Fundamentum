@@ -1,0 +1,131 @@
+name: Validate C049.1 B4.6.3 join-path domain correction
+
+on:
+  push:
+    paths:
+      - 'experiments/direct/janus_c049_1_b3_join_path_domain_corrected.py'
+      - 'experiments/direct/janus_c049_1_b4_6_3_join_path_domain_correction.py'
+      - 'experiments/direct/janus_c049_1_b4_6_3_join_path_domain_correction_verifier.py'
+      - 'docs/C049_1_B4_6_3_JOIN_PATH_DOMAIN_CORRECTION.md'
+      - 'registry/c049-1-b4-6-3-join-path-domain-correction.json'
+      - '.github/workflows/validate-c049-1-b4-6-3-join-path-domain-correction.yml'
+  pull_request:
+    paths:
+      - 'experiments/direct/janus_c049_1_b3_join_path_domain_corrected.py'
+      - 'experiments/direct/janus_c049_1_b4_6_3_join_path_domain_correction.py'
+      - 'experiments/direct/janus_c049_1_b4_6_3_join_path_domain_correction_verifier.py'
+      - 'docs/C049_1_B4_6_3_JOIN_PATH_DOMAIN_CORRECTION.md'
+      - 'registry/c049-1-b4-6-3-join-path-domain-correction.json'
+      - '.github/workflows/validate-c049-1-b4-6-3-join-path-domain-correction.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  join-path-domain-correction:
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+    env:
+      PYTHONPATH: experiments/direct
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Verify admitted PR 105 ancestry and compile gate
+        run: |
+          git merge-base --is-ancestor 78c16ef6e43d477660aff85be3cd7cc0a1024791 HEAD
+          python -m py_compile \
+            experiments/direct/janus_c049_1_b3_join_path_domain_corrected.py \
+            experiments/direct/janus_c049_1_b4_6_3_join_path_domain_correction.py \
+            experiments/direct/janus_c049_1_b4_6_3_join_path_domain_correction_verifier.py \
+            experiments/direct/janus_c049_1_b4_6_3_replay_workflow_run_steps.py
+          if grep -E '^from .*join_path_domain_correction|^import .*join_path_domain_correction' \
+            experiments/direct/janus_c049_1_b4_6_3_join_path_domain_correction_verifier.py; then
+            echo 'independent verifier imports producer'
+            exit 1
+          fi
+
+      - name: Replay admitted PR 105 exactly
+        run: |
+          python experiments/direct/janus_c049_1_b4_6_3_replay_workflow_run_steps.py \
+            .github/workflows/validate-c049-1-b4-6-3-root-acceptance-reflection-obstruction.yml
+          test "$(wc -c < /tmp/c049-root-reflection-obstruction.json)" = "6443"
+          test "$(sha256sum /tmp/c049-root-reflection-obstruction.json | cut -d' ' -f1)" = \
+            "bef0e67cb70c59d4b2f5b3b2a235416fe4121e9f4d1109600355d06cef42996c"
+
+      - name: Generate corrected path-domain certificate
+        run: |
+          python experiments/direct/janus_c049_1_b4_6_3_join_path_domain_correction.py \
+            /tmp/c049-root-reflection-obstruction.json \
+            experiments/direct/janus_c049_1_b3_join_path_domain_corrected.py \
+            --output /tmp/c049-join-path-domain-correction.json
+
+      - name: Independent replay and repaired tamper rejection
+        run: |
+          python experiments/direct/janus_c049_1_b4_6_3_join_path_domain_correction_verifier.py \
+            /tmp/c049-root-reflection-obstruction.json \
+            experiments/direct/janus_c049_1_b3_join_path_domain_corrected.py \
+            /tmp/c049-join-path-domain-correction.json \
+            --producer-source experiments/direct/janus_c049_1_b4_6_3_join_path_domain_correction.py \
+            --tamper-self-test
+
+      - name: Validate theorem boundary and registry
+        run: |
+          python - <<'PY'
+          import hashlib, json
+          path='/tmp/c049-join-path-domain-correction.json'
+          artifact=json.load(open(path))
+          proof=artifact['proof_payload']
+          assert artifact['semantic_digest']==hashlib.sha256(json.dumps(proof,sort_keys=True,separators=(',',':')).encode()).hexdigest()
+          assert proof['certificate_bytes']==len(open(path,'rb').read())
+          split=proof['path_domain_split']
+          assert split['join_interleaving_steps']==[[1,0],[0,1]]
+          assert split['extension_preorder_steps']==[[1,0],[0,1],[1,1]]
+          assert split['domains_are_distinct'] is True
+          grid=proof['bounded_exhaustive_grid']
+          assert (grid['ordinary_interleavings'],grid['diagonal_inclusive_paths'],grid['removed_diagonal_domain_paths'])==(923,4494,3571)
+          witness=proof['false_zero_witness_correction']
+          assert witness['legacy_diagonal_root_output']==[0]
+          assert witness['corrected_validator_rejects_diagonal'] is True
+          assert [x['root_output'] for x in witness['ordinary_join_paths']]==[[0,1,0],[0,1,0]]
+          assert witness['corrected_zero_root_outputs']==0
+          assert proof['extension_preorder_preservation']['diagonal_step_preserved'] is True
+          assert proof['invariant_vector']=={f'JPDC-INV-{i:02d}':'PASS' for i in range(1,11)}
+          strict=proof['strict_boundary']
+          assert strict['b3_join_path_domain_corrected_api'] is True
+          assert strict['legacy_b3_join_artifacts_promotable'] is False
+          assert strict['corrected_bottom_up_replay_complete'] is False
+          assert strict['root_structural_compression_admitted'] is False
+          assert strict['root_parent_refinement_complete'] is False
+          assert strict['root_full_set_computed'] is False
+          assert strict['found_layout']=='FORBIDDEN' and strict['no_layout_at_cap']=='FORBIDDEN'
+          assert strict['p_vs_np']=='OPEN'
+
+          receipt=json.load(open('registry/c049-1-b4-6-3-join-path-domain-correction.json'))
+          assert receipt['status'] in {'DRAFT_EXACT_HEAD_CI_REQUIRED','IMPLEMENTED_EXACT_HEAD_CI_GREEN'}
+          admitted=receipt['status']=='IMPLEMENTED_EXACT_HEAD_CI_GREEN'
+          boundary=receipt['admission_boundary']
+          assert boundary['join_path_domain_correction_admitted'] is admitted
+          assert boundary['b3_join_path_domain_corrected_api'] is admitted
+          assert boundary['legacy_b3_join_artifacts_promotable'] is False
+          assert boundary['corrected_bottom_up_replay_complete'] is False
+          assert boundary['root_structural_compression_admitted'] is False
+          assert boundary['found_layout_enabled'] is False and boundary['no_layout_at_cap_enabled'] is False
+          assert boundary['p_vs_np']=='OPEN'
+          assert receipt['next_gate_after_green_ci']=='C049.1_B4.6.3_CORRECTED_REPLAY_FROM_FIRST_INTERNAL_JOIN'
+          PY
+
+      - name: Export correction proof package
+        uses: actions/upload-artifact@v4
+        with:
+          name: c049-b4-6-3-join-path-domain-correction
+          path: |
+            /tmp/c049-join-path-domain-correction.json
+            registry/c049-1-b4-6-3-join-path-domain-correction.json
+            docs/C049_1_B4_6_3_JOIN_PATH_DOMAIN_CORRECTION.md
+          retention-days: 1
