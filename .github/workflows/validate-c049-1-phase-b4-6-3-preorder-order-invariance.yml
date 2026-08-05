@@ -1,0 +1,70 @@
+name: Validate C049.1 B4.6.3 preorder input-order invariance
+
+on:
+  push:
+    paths:
+      - 'experiments/direct/janus_c049_1_b4_6_3_dimension_two_preorder_hardening.py'
+      - 'experiments/direct/janus_c049_1_b4_6_3_dimension_two_preorder_order_invariance_contract.py'
+      - 'experiments/direct/janus_c049_1_b4_6_3_negative_root_engine_replay.py'
+      - 'experiments/direct/janus_c049_1_b4_6_3_negative_root_engine_replay_verifier.py'
+      - 'experiments/direct/janus_c049_1_b4_6_3_negative_root_engine_replay_verifier_hardened.py'
+      - '.github/workflows/validate-c049-1-phase-b4-6-3-preorder-order-invariance.yml'
+  pull_request:
+    paths:
+      - 'experiments/direct/janus_c049_1_b4_6_3_dimension_two_preorder_hardening.py'
+      - 'experiments/direct/janus_c049_1_b4_6_3_dimension_two_preorder_order_invariance_contract.py'
+      - 'experiments/direct/janus_c049_1_b4_6_3_negative_root_engine_replay.py'
+      - 'experiments/direct/janus_c049_1_b4_6_3_negative_root_engine_replay_verifier.py'
+      - 'experiments/direct/janus_c049_1_b4_6_3_negative_root_engine_replay_verifier_hardened.py'
+      - '.github/workflows/validate-c049-1-phase-b4-6-3-preorder-order-invariance.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  inv-07-input-order-replay:
+    runs-on: ubuntu-latest
+    timeout-minutes: 55
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Compile producer and order-invariance contract
+        run: |
+          python -m py_compile \
+            experiments/direct/janus_c049_1_b4_6_3_dimension_two_preorder_hardening.py \
+            experiments/direct/janus_c049_1_b4_6_3_dimension_two_preorder_order_invariance_contract.py
+
+      - name: Regenerate exact frozen negative prefix
+        env:
+          PYTHONPATH: experiments/direct
+        run: |
+          mkdir /tmp/c049-negative-prefix
+          python experiments/direct/janus_c049_1_b4_6_3_negative_root_engine_replay.py \
+            --output-dir /tmp/c049-negative-prefix
+
+      - name: Replay original, reversed, and seeded-shuffled generator orders
+        env:
+          PYTHONPATH: experiments/direct
+        run: |
+          mkdir /tmp/c049-order-invariance
+          set -o pipefail
+          python experiments/direct/janus_c049_1_b4_6_3_dimension_two_preorder_order_invariance_contract.py \
+            /tmp/c049-negative-prefix \
+            --output-dir /tmp/c049-order-invariance \
+            2>&1 | tee /tmp/c049-order-invariance.log
+
+      - name: Upload order-invariance evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: c049-b4-6-3-preorder-input-order-invariance
+          path: |
+            /tmp/c049-order-invariance
+            /tmp/c049-order-invariance.log
+          if-no-files-found: warn
+          retention-days: 30
