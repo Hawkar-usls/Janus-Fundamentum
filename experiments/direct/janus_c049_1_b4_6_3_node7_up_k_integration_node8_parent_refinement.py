@@ -241,6 +241,10 @@ def certified_node7_execute(
         item["class_id"]: copy.deepcopy(item["zero_envelope"])
         for item in frontier_artifact["quotient_frontier"]["classes"]
     }
+    zero_digest_by_class = {
+        item["class_id"]: item["zero_envelope_digest"]
+        for item in frontier_artifact["quotient_frontier"]["classes"]
+    }
     expected_generators = [
         zero_by_class[class_id] for class_id in proof["retained_class_ids"]
     ]
@@ -302,9 +306,7 @@ def certified_node7_execute(
         {
             "input_generator_index": index,
             "class_id": class_id,
-            "frontier_zero_envelope_digest": frontier_artifact[
-                "quotient_frontier"
-            ]["classes"][index]["zero_envelope_digest"],
+            "frontier_zero_envelope_digest": zero_digest_by_class[class_id],
         }
         for index, class_id in enumerate(proof["retained_class_ids"])
     ]
