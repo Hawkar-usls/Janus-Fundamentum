@@ -6,9 +6,7 @@ on:
       - 'experiments/direct/janus_c049_1_b4_6_3_node9_up_k_integration_root_preflight.py'
       - 'experiments/direct/janus_c049_1_b4_6_3_node9_up_k_integration_root_preflight_verifier.py'
       - 'experiments/direct/janus_c049_1_b4_6_3_node9_fifteen_generator_up_k_closure.py'
-      - 'experiments/direct/janus_c049_1_b4_6_3_node9_fifteen_generator_up_k_closure_verifier.py'
       - 'experiments/direct/janus_c049_1_b4_6_3_node9_parent_frontier_structural_compression.py'
-      - 'experiments/direct/janus_c049_1_b4_6_3_node9_parent_frontier_structural_compression_verifier.py'
       - 'experiments/direct/janus_c049_1_b4_6_3_node8_up_k_integration_node9_preflight_v2.py'
       - 'experiments/direct/janus_c049_1_b4_6_3_node8_sixty_one_generator_up_k_closure.py'
       - 'experiments/direct/janus_c049_1_b4_6_3_node8_parent_frontier_structural_compression.py'
@@ -24,9 +22,7 @@ on:
       - 'experiments/direct/janus_c049_1_b4_6_3_node9_up_k_integration_root_preflight.py'
       - 'experiments/direct/janus_c049_1_b4_6_3_node9_up_k_integration_root_preflight_verifier.py'
       - 'experiments/direct/janus_c049_1_b4_6_3_node9_fifteen_generator_up_k_closure.py'
-      - 'experiments/direct/janus_c049_1_b4_6_3_node9_fifteen_generator_up_k_closure_verifier.py'
       - 'experiments/direct/janus_c049_1_b4_6_3_node9_parent_frontier_structural_compression.py'
-      - 'experiments/direct/janus_c049_1_b4_6_3_node9_parent_frontier_structural_compression_verifier.py'
       - 'experiments/direct/janus_c049_1_b4_6_3_node8_up_k_integration_node9_preflight_v2.py'
       - 'experiments/direct/janus_c049_1_b4_6_3_node8_sixty_one_generator_up_k_closure.py'
       - 'experiments/direct/janus_c049_1_b4_6_3_node8_parent_frontier_structural_compression.py'
@@ -46,6 +42,8 @@ jobs:
   node9-up-k-integration-root-preflight:
     runs-on: ubuntu-latest
     timeout-minutes: 130
+    env:
+      PYTHONPATH: experiments/direct
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -71,18 +69,11 @@ jobs:
             experiments/direct/janus_c049_1_b4_6_3_dimension_two_preorder_hardening.py \
             experiments/direct/janus_c049_1_b4_6_3_negative_root_engine_replay.py
 
-      - name: Regenerate exact frozen negative prefix
-        env:
-          PYTHONPATH: experiments/direct
+      - name: Reproduce admitted prefix and node-6
         run: |
           mkdir /tmp/c049-negative-prefix
           python experiments/direct/janus_c049_1_b4_6_3_negative_root_engine_replay.py \
             --output-dir /tmp/c049-negative-prefix
-
-      - name: Reproduce admitted node-6 hardening and integration
-        env:
-          PYTHONPATH: experiments/direct
-        run: |
           python experiments/direct/janus_c049_1_b4_6_3_dimension_two_preorder_hardening.py \
             /tmp/c049-negative-prefix --output /tmp/c049-dim2-preorder.json
           test "$(sha256sum /tmp/c049-dim2-preorder.json | cut -d' ' -f1)" = \
@@ -100,9 +91,7 @@ jobs:
           assert value['execution']['stop']['node_id']==7
           PY
 
-      - name: Reproduce admitted node-7 proof layers
-        env:
-          PYTHONPATH: experiments/direct
+      - name: Reproduce admitted node-7 layers
         run: |
           python experiments/direct/janus_c049_1_b4_6_3_node7_parent_frontier_structural_compression.py \
             /tmp/c049-node6-integration/manifest.json \
@@ -123,9 +112,7 @@ jobs:
           test "$(sha256sum /tmp/c049-node7-integration/manifest.json | cut -d' ' -f1)" = \
             "05a4269be3b15bee40c254f81cc5e668c4903e90777576a9f0d226093892122b"
 
-      - name: Reproduce admitted node-8 proof layers and node-9 preflight
-        env:
-          PYTHONPATH: experiments/direct
+      - name: Reproduce admitted node-8 layers and node-9 preflight
         run: |
           python experiments/direct/janus_c049_1_b4_6_3_node8_parent_frontier_structural_compression.py \
             /tmp/c049-node7-integration/manifest.json \
@@ -147,7 +134,7 @@ jobs:
           test "$(sha256sum /tmp/c049-node8-integration/manifest.json | cut -d' ' -f1)" = \
             "9553263dc70f7a962a7bd95af4d5d4eeea6e1cdab163c616817b97cfcc207d6b"
 
-      - name: Reproduce and independently verify admitted node-9 frontier and up_k
+      - name: Reproduce and verify admitted node-9 frontier and up_k
         run: |
           python experiments/direct/janus_c049_1_b4_6_3_node9_parent_frontier_structural_compression.py \
             /tmp/c049-node8-integration/manifest.json \
@@ -168,9 +155,7 @@ jobs:
             --producer-source experiments/direct/janus_c049_1_b4_6_3_node9_fifteen_generator_up_k_closure.py \
             --tamper-self-test
 
-      - name: Integrate certified node-9 closure and reach exact root preflight
-        env:
-          PYTHONPATH: experiments/direct
+      - name: Integrate node-9 and independently verify root preflight
         run: |
           mkdir /tmp/c049-node9-integration
           python experiments/direct/janus_c049_1_b4_6_3_node9_up_k_integration_root_preflight.py \
@@ -180,39 +165,68 @@ jobs:
             /tmp/c049-node9-frontier.json /tmp/c049-node9-up-k.json \
             --output-dir /tmp/c049-node9-integration \
             --root-pair-cap 10000 --root-refinement-cap 2000000
-
-      - name: Independently replay node-9 handoff and reject tamper attacks
-        run: |
           python experiments/direct/janus_c049_1_b4_6_3_node9_up_k_integration_root_preflight_verifier.py \
             /tmp/c049-node9-frontier.json /tmp/c049-node9-up-k.json \
             /tmp/c049-node9-integration \
             --producer-source experiments/direct/janus_c049_1_b4_6_3_node9_up_k_integration_root_preflight.py \
             --tamper-self-test
 
-      - name: Report candidate root-preflight byte boundary
+      - name: Match frozen root-preflight byte and semantic boundary
         run: |
-          wc -c /tmp/c049-node9-integration/manifest.json
-          sha256sum /tmp/c049-node9-integration/manifest.json
-          wc -c /tmp/c049-node9-integration/node9-integration-root-preflight-summary.json
-          sha256sum /tmp/c049-node9-integration/node9-integration-root-preflight-summary.json
+          test "$(wc -c < /tmp/c049-node9-integration/manifest.json)" = "16175333"
+          test "$(sha256sum /tmp/c049-node9-integration/manifest.json | cut -d' ' -f1)" = \
+            "563bc6d4148dfb94e7c5aa3c9b8e6ffa28e0b0e9cc6603fe0bffe39e71a636a9"
+          test "$(wc -c < /tmp/c049-node9-integration/node9-integration-root-preflight-summary.json)" = "4406"
+          test "$(sha256sum /tmp/c049-node9-integration/node9-integration-root-preflight-summary.json | cut -d' ' -f1)" = \
+            "640d0a9f18d7a0e7639d4f0c4fa9d2acfe691662af70b2ad5b2f89458fc8faf0"
           python - <<'PY'
           import json
           m=json.load(open('/tmp/c049-node9-integration/manifest.json'))
           s=json.load(open('/tmp/c049-node9-integration/node9-integration-root-preflight-summary.json'))
-          n9=next(x for x in m['node_results'] if x['node_id']==9)
-          print('MANIFEST_DIGEST =',m['manifest_digest'])
-          print('TRANSCRIPT_ROOT_DIGEST =',m['chunking']['transcript_root_digest'])
-          print('NODE9_OUTPUT_RECEIPT =',n9['output_receipt']['receipt_digest'])
-          print('SUMMARY_SEMANTIC_DIGEST =',s['semantic_digest'])
+          assert m['manifest_digest']=='cb124decfa45c2adfd58fe7bf86c9e8a7cd45afff84dde4ff90d4090721c74fd'
+          assert m['chunking']['transcript_root_digest']=='eb904e833b53cf5626af1eb28493f479f5f54f2066a8b5427cb7e3eb47f515d8'
           assert m['execution']['processed_internal_node_ids']==[6,7,8,9]
-          assert m['execution']['stop']['node_id']==10
-          assert m['execution']['stop']['reason']=='REFINEMENT_CAP_EXCEEDED'
-          assert m['execution']['stop']['required']==4954128
-          assert s['root_preflight']['child_pair_count']==9072
-          assert s['root_preflight']['naive_refinement_count']==4954128
-          assert s['strict_boundary']['root_reached'] is True
-          assert s['strict_boundary']['negative_root_reached'] is False
-          assert s['strict_boundary']['p_vs_np']=='OPEN'
+          assert m['execution']['root_node_id']==10
+          assert m['execution']['root_full_set_receipt'] is None
+          stop=m['execution']['stop']
+          assert stop['node_id']==10
+          assert stop['reason']=='REFINEMENT_CAP_EXCEEDED'
+          assert stop['required']==4954128
+          assert stop['cap']==2000000
+          assert stop['no_layout_at_cap'] is False
+          n9=next(x for x in m['node_results'] if x['node_id']==9)
+          assert n9['output_receipt']['receipt_digest']=='1a23cdd127a35932d8515c742034e67443ebf4c2a42ac06458f809d63d65ca5a'
+          assert n9['node_up_k']['entry_count']==252
+          assert len(n9['node_up_k']['input_generators'])==15
+          assert len(n9['node_up_k']['retained_generators'])==2
+          assert len(n9['node_up_k']['removals'])==13
+          assert all(x['count']==0 for x in n9['record_ranges'].values())
+          assert s['semantic_digest']=='dc790f6294afb5fec24b5e8686f32725eb616b3125364d11a1fcb4d24b269443'
+          p=s['root_preflight']
+          assert p['child_pair_count']==9072
+          assert p['naive_refinement_count']==4954128
+          assert p['left_boundary']==[1]
+          assert p['right_boundary']==[1]
+          assert p['common_boundary']==[1]
+          assert p['parent_boundary']==[]
+          assert p['left_expand_identity'] is True
+          assert p['right_expand_identity'] is True
+          assert p['shrink_identity'] is False
+          assert p['pair_cap_exceeded'] is False
+          assert p['refinement_cap_exceeded'] is True
+          assert p['generic_root_pair_records_materialized']==0
+          assert p['generic_root_refinement_records_materialized']==0
+          strict=s['strict_boundary']
+          assert strict['node9_integrated_into_bottom_up_executor'] is True
+          assert strict['root_reached'] is True
+          assert strict['root_parent_refinement_started'] is True
+          assert strict['root_parent_refinement_complete'] is False
+          assert strict['root_full_set_computed'] is False
+          assert strict['negative_root_reached'] is False
+          assert strict['found_layout_enabled'] is False
+          assert strict['no_layout_at_cap_enabled'] is False
+          assert strict['current_global_terminal']=='OPEN_TRAJECTORY_ENGINE_INCOMPLETE'
+          assert strict['p_vs_np']=='OPEN'
           PY
 
       - name: Export node-9 integration proof package
