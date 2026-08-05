@@ -81,10 +81,10 @@ jobs:
             /tmp/c049-root-reflection-obstruction.json \
             --tamper-self-test
 
-      - name: Validate frozen ledger and strict boundary
+      - name: Validate frozen ledger, localized route correction, and strict boundary
         run: |
           python - <<'PY'
-          import hashlib, json
+          import json
           artifact=json.load(open('/tmp/c049-root-reflection-obstruction.json'))
           assert artifact['semantic_digest']=='44a6c9dadf2f0815f8f5d2be85bae2a23e8a5550cfb525f49adcf46061ef8980'
           proof=artifact['proof_payload']
@@ -109,17 +109,28 @@ jobs:
           assert strict['p_vs_np']=='OPEN'
 
           receipt=json.load(open('registry/c049-1-b4-6-3-root-acceptance-reflection-obstruction.json'))
-          assert receipt['status'] in {'DRAFT_EXACT_HEAD_CI_REQUIRED','IMPLEMENTED_DECISIVE_OBSTRUCTION_EXACT_HEAD_CI_GREEN'}
+          assert receipt['status']=='IMPLEMENTED_DECISIVE_OBSTRUCTION_EXACT_HEAD_CI_GREEN'
           assert receipt['proof_contract']['digest_repaired_tamper_attacks']==12
-          assert receipt['frozen_candidate_target']['artifact_sha256']=='bef0e67cb70c59d4b2f5b3b2a235416fe4121e9f4d1109600355d06cef42996c'
-          admitted=receipt['status']=='IMPLEMENTED_DECISIVE_OBSTRUCTION_EXACT_HEAD_CI_GREEN'
-          assert receipt['admission_boundary']['decisive_root_reflection_obstruction_admitted'] is admitted
+          assert receipt['frozen_artifact']['artifact_sha256']=='bef0e67cb70c59d4b2f5b3b2a235416fe4121e9f4d1109600355d06cef42996c'
+          assert receipt['admission_boundary']['decisive_root_reflection_obstruction_admitted'] is True
+          assert receipt['admission_boundary']['b3_join_path_domain_correct'] is False
           assert receipt['admission_boundary']['root_structural_compression_admitted'] is False
           assert receipt['admission_boundary']['root_parent_refinement_complete'] is False
           assert receipt['admission_boundary']['found_layout_enabled'] is False
           assert receipt['admission_boundary']['no_layout_at_cap_enabled'] is False
           assert receipt['admission_boundary']['p_vs_np']=='OPEN'
-          assert receipt['next_gate_after_green_ci']=='C049.1_B4.6.3_ROOT_ACCEPTANCE_REFLECTION_CORRECTION'
+          localization=receipt['post_artifact_localization']
+          assert localization['defective_layer']=='B3_JOIN_PATH_DOMAIN'
+          assert localization['committed_join_path_steps']==[[1,0],[0,1],[1,1]]
+          assert localization['correct_join_path_steps']==[[1,0],[0,1]]
+          assert localization['extension_preorder_diagonal_steps_remain_required'] is True
+          assert localization['unique_false_zero_witness_path']==[[0,0],[1,1]]
+          assert localization['unique_false_zero_witness_source_class']=='N9-S07'
+          assert localization['ordinary_hv_refinements_on_contaminated_child_languages']==804032
+          assert localization['ordinary_hv_successful_refinements_on_contaminated_child_languages']==1125
+          assert localization['ordinary_hv_zero_root_refinements_on_contaminated_child_languages']==0
+          assert localization['corrected_bottom_up_replay_required_from_first_internal_join'] is True
+          assert receipt['next_gate_after_green_ci']=='C049.1_B4.6.3_JOIN_PATH_DOMAIN_CORRECTION'
           PY
 
       - name: Export root reflection obstruction package
