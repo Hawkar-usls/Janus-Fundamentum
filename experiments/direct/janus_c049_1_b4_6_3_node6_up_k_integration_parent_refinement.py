@@ -43,7 +43,9 @@ def file_sha256(path: Path) -> str:
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
-def load_frozen_hardening(prefix_root: Path, artifact_path: Path) -> tuple[dict, dict, list[dict]]:
+def load_frozen_hardening(
+    prefix_root: Path, artifact_path: Path
+) -> tuple[dict, dict, list[dict]]:
     manifest = json.loads((prefix_root / "manifest.json").read_text(encoding="utf-8"))
     artifact = json.loads(artifact_path.read_text(encoding="utf-8"))
     if file_sha256(artifact_path) != EXPECTED_HARDENING_SHA256:
@@ -58,7 +60,7 @@ def load_frozen_hardening(prefix_root: Path, artifact_path: Path) -> tuple[dict,
         raise AssertionError("hardening artifact is not bound to the supplied prefix")
     stop = manifest["execution"]["stop"]
     if stop is None or int(stop["node_id"]) != EXPECTED_NODE_ID:
-        raise AssertionError("prefix does not stop at the frozen node-6 capability boundary")
+        raise AssertionError("prefix does not stop at the frozen node-6 boundary")
     records = hardening.read_generators(prefix_root, manifest, EXPECTED_NODE_ID)
     if len(records) != EXPECTED_INPUT_GENERATORS:
         raise AssertionError("frozen node-6 generator inventory drift")
@@ -82,9 +84,11 @@ def certified_closure(
     ordered_generators = tuple(sorted(generators, key=b2.trajectory_key))
     encoded_generators = [encode(gamma) for gamma in ordered_generators]
     prefix_encoded = [record["trajectory_parent_coordinates"] for record in prefix_records]
-    if encoded_generators != prefix_encoded:
-        raise AssertionError("live node-6 family differs from the frozen certified family")
-    family_digest = digest(sorted(encoded_generators, key=canonical_json))
+    canonical_live = sorted(encoded_generators, key=canonical_json)
+    canonical_frozen = sorted(prefix_encoded, key=canonical_json)
+    if canonical_live != canonical_frozen:
+        raise AssertionError("live node-6 family differs from the frozen certified set")
+    family_digest = digest(canonical_live)
     if family_digest != EXPECTED_FAMILY_DIGEST:
         raise AssertionError("live node-6 family digest drift")
     if artifact["input_generator_family_digest"] != family_digest:
@@ -128,7 +132,9 @@ def certified_closure(
     ledger["certified_total_charged_operations"] = int(
         artifact["work_ledger"]["total_charged_operations"]
     )
-    if ledger["discovery_work"] + ledger["work"] != ledger["certified_total_charged_operations"]:
+    if ledger["discovery_work"] + ledger["work"] != ledger[
+        "certified_total_charged_operations"
+    ]:
         raise AssertionError("certified work ledger accounting mismatch")
 
     closure_data = artifact["exact_reachable_closure"]
@@ -237,13 +243,19 @@ def build(
 
     if len(certified_calls) != 1:
         raise AssertionError("certified node-6 closure was not integrated exactly once")
-    processed_ids = [int(value) for value in manifest["execution"]["processed_internal_node_ids"]]
+    processed_ids = [
+        int(value) for value in manifest["execution"]["processed_internal_node_ids"]
+    ]
     if EXPECTED_NODE_ID not in processed_ids:
         raise AssertionError("executor did not complete node 6 after certified integration")
     node6 = next(
-        node for node in manifest["node_results"] if int(node["node_id"]) == EXPECTED_NODE_ID
+        node
+        for node in manifest["node_results"]
+        if int(node["node_id"]) == EXPECTED_NODE_ID
     )
-    if node6["node_up_k"].get("closure_method") != "CERTIFIED_DIMENSION_TWO_REACHABLE_CATALOG":
+    if node6["node_up_k"].get("closure_method") != (
+        "CERTIFIED_DIMENSION_TWO_REACHABLE_CATALOG"
+    ):
         raise AssertionError("node 6 did not carry the certified closure method")
     if node6["audit"]["final_up_k_entries"] != EXPECTED_ENTRIES:
         raise AssertionError("node-6 integrated entry count drift")
@@ -291,9 +303,8 @@ def build(
             "dimension_two_hardening_admitted": True,
             "certified_node6_up_k_integrated": True,
             "node6_old_b2_capability_stop_removed": True,
-            "parent_execution_started": len(processed_ids) > 1 or (
-                stop is not None and int(stop["node_id"]) > EXPECTED_NODE_ID
-            ),
+            "parent_execution_started": len(processed_ids) > 1
+            or (stop is not None and int(stop["node_id"]) > EXPECTED_NODE_ID),
             "negative_root_reached": complete,
             "terminal_completeness_proved": False,
             "found_layout_enabled": False,
@@ -327,9 +338,7 @@ def main() -> None:
     parser.add_argument("prefix_root", type=Path)
     parser.add_argument("hardening_artifact", type=Path)
     parser.add_argument("--output-dir", type=Path, required=True)
-    parser.add_argument(
-        "--parent-pair-cap", type=int, default=DEFAULT_PARENT_PAIR_CAP
-    )
+    parser.add_argument("--parent-pair-cap", type=int, default=DEFAULT_PARENT_PAIR_CAP)
     parser.add_argument(
         "--parent-refinement-cap",
         type=int,
