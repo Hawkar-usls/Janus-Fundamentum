@@ -1,0 +1,170 @@
+name: Validate C049.1 B4.6.3 corrected Node-6 up_k hardening
+
+on:
+  push:
+    paths:
+      - 'experiments/direct/janus_c049_1_b4_6_3_corrected_node6_up_k_hardening.py'
+      - 'experiments/direct/janus_c049_1_b4_6_3_corrected_node6_up_k_hardening_verifier.py'
+      - 'docs/C049_1_B4_6_3_CORRECTED_NODE6_UP_K_HARDENING.md'
+      - 'registry/c049-1-b4-6-3-corrected-node6-up-k-hardening.json'
+      - '.github/workflows/validate-c049-1-b4-6-3-corrected-node6-up-k-hardening.yml'
+  pull_request:
+    paths:
+      - 'experiments/direct/janus_c049_1_b4_6_3_corrected_node6_up_k_hardening.py'
+      - 'experiments/direct/janus_c049_1_b4_6_3_corrected_node6_up_k_hardening_verifier.py'
+      - 'docs/C049_1_B4_6_3_CORRECTED_NODE6_UP_K_HARDENING.md'
+      - 'registry/c049-1-b4-6-3-corrected-node6-up-k-hardening.json'
+      - '.github/workflows/validate-c049-1-b4-6-3-corrected-node6-up-k-hardening.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  corrected-node6-up-k-hardening:
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+    env:
+      PYTHONPATH: experiments/direct
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Verify admitted PR 109 ancestry and compile independent proof pair
+        run: |
+          git merge-base --is-ancestor 243b841f1a3023f0acfb3d8b1e381798f369921b HEAD
+          python -m py_compile \
+            experiments/direct/janus_c049_1_b4_6_3_corrected_node6_up_k_hardening.py \
+            experiments/direct/janus_c049_1_b4_6_3_corrected_node6_up_k_hardening_verifier.py \
+            experiments/direct/janus_c049_1_b4_6_3_replay_workflow_run_steps.py
+          if grep -E '^from .*corrected_node6_up_k_hardening|^import .*corrected_node6_up_k_hardening' \
+            experiments/direct/janus_c049_1_b4_6_3_corrected_node6_up_k_hardening_verifier.py; then
+            echo 'independent verifier imports producer'
+            exit 1
+          fi
+          if grep -E '^from .*janus_c049_1_b[12]_.*core|^import .*janus_c049_1_b[12]_.*core' \
+            experiments/direct/janus_c049_1_b4_6_3_corrected_node6_up_k_hardening_verifier.py; then
+            echo 'independent verifier imports theorem core'
+            exit 1
+          fi
+
+      - name: Replay admitted PR 109 exactly
+        run: |
+          python experiments/direct/janus_c049_1_b4_6_3_replay_workflow_run_steps.py \
+            .github/workflows/validate-c049-1-b4-6-3-corrected-replay-first-internal-join.yml
+          test "$(wc -c < /tmp/c049-corrected-first-internal-join/corrected-first-internal-join-certificate.json)" = "7028"
+          test "$(sha256sum /tmp/c049-corrected-first-internal-join/corrected-first-internal-join-certificate.json | cut -d' ' -f1)" = \
+            "bf4a55fe6c645f4a8d0cd0c10341a550c80c76a3464892712268ab20d1ffdee7"
+          python - <<'PY'
+          import json
+          root='/tmp/c049-corrected-first-internal-join'
+          manifest=json.load(open(f'{root}/manifest.json'))
+          assert manifest['manifest_digest']=='0aab826a3ad35673e786c98fc8bc0dbcffaa698c402015e5958a3d633fe968ac'
+          assert manifest['chunking']['transcript_root_digest']=='5300b299d295c13d9fe6a970bb22994202db35e521785330a97b5b798875381e'
+          stop=manifest['execution']['stop']
+          assert stop['status']=='OPEN_AT_CORRECTED_NODE6_B2_CAPABILITY'
+          assert (stop['node_id'],stop['input_generator_count'],stop['boundary_coordinate_dimension'],stop['k'])==(6,414,2,1)
+          PY
+
+      - name: Generate corrected Node-6 up_k certificate
+        run: |
+          python experiments/direct/janus_c049_1_b4_6_3_corrected_node6_up_k_hardening.py \
+            /tmp/c049-corrected-first-internal-join \
+            /tmp/c049-corrected-first-internal-join/corrected-first-internal-join-certificate.json \
+            --output /tmp/c049-corrected-node6-up-k-hardening.json
+
+      - name: Independent complete replay and repaired tamper rejection
+        run: |
+          python experiments/direct/janus_c049_1_b4_6_3_corrected_node6_up_k_hardening_verifier.py \
+            /tmp/c049-corrected-first-internal-join \
+            /tmp/c049-corrected-first-internal-join/corrected-first-internal-join-certificate.json \
+            /tmp/c049-corrected-node6-up-k-hardening.json \
+            --producer-source experiments/direct/janus_c049_1_b4_6_3_corrected_node6_up_k_hardening.py \
+            --tamper-self-test
+
+      - name: Validate theorem boundary and candidate registry
+        run: |
+          python - <<'PY'
+          import hashlib, json
+          path='/tmp/c049-corrected-node6-up-k-hardening.json'
+          artifact=json.load(open(path))
+          proof=artifact['proof_payload']
+          assert artifact['semantic_digest']==hashlib.sha256(json.dumps(proof,sort_keys=True,separators=(',',':')).encode()).hexdigest()
+          assert proof['certificate_bytes']==len(open(path,'rb').read())
+          assert proof['source']['parent_pr']==109
+          assert proof['source']['parent_exact_head']=='243b841f1a3023f0acfb3d8b1e381798f369921b'
+          assert proof['source']['parent_certificate_sha256']=='bf4a55fe6c645f4a8d0cd0c10341a550c80c76a3464892712268ab20d1ffdee7'
+          assert proof['source']['parent_manifest_digest']=='0aab826a3ad35673e786c98fc8bc0dbcffaa698c402015e5958a3d633fe968ac'
+          assert proof['source']['parent_transcript_root_digest']=='5300b299d295c13d9fe6a970bb22994202db35e521785330a97b5b798875381e'
+          assert (proof['node_id'],proof['ambient_dim'],proof['k'])==(6,2,1)
+          assert proof['input_generator_count']==414
+          partition=proof['preorder_partition']
+          assert partition['bucket_count']==2
+          assert partition['bucket_sizes']==[207,207]
+          assert partition['cross_signature_relation_possible'] is False
+          assert partition['ordered_cross_signature_tests']==85698
+          assert partition['cross_signature_relations_found']==0
+          assert proof['retained_generator_count']==2
+          assert proof['removal_count']==412
+          closure=proof['exact_reachable_closure']
+          assert closure['binary_typical_run_pattern_count']==6
+          assert closure['binary_scalar_sequences_exhaustively_tested']==65534
+          assert closure['complete_reachable_catalog_size']==432
+          assert len(closure['reachable_entries'])==432
+          assert closure['input_generator_set_size']==414
+          assert closure['input_generator_set_is_strict_subset'] is True
+          assert closure['new_reachable_entries_beyond_input']==18
+          assert closure['new_reachable_entries_per_bucket']==[9,9]
+          assert closure['up_k_original_equals_up_k_retained'] is True
+          assert closure['closure_complete'] is True
+          assert proof['invariant_vector']=={f'CNUK-INV-{i:02d}':'PASS' for i in range(1,15)}
+          assert all(value is False for value in proof['legacy_inputs'].values())
+          strict=proof['strict_boundary']
+          assert strict['pr109_corrected_first_join_admitted'] is True
+          assert strict['corrected_node6_parent_refinement_complete'] is True
+          assert strict['corrected_node6_parent_up_k_complete'] is True
+          assert strict['corrected_node6_full_set_entry_count']==432
+          assert strict['corrected_bottom_up_replay_complete'] is False
+          assert strict['corrected_node7_parent_refinement_complete'] is False
+          assert strict['root_structural_compression_admitted'] is False
+          assert strict['root_parent_refinement_complete'] is False
+          assert strict['root_full_set_computed'] is False
+          assert strict['root_empty_proved'] is False
+          assert strict['found_layout']=='FORBIDDEN'
+          assert strict['no_layout_at_cap']=='FORBIDDEN'
+          assert strict['current_global_terminal']=='OPEN_TRAJECTORY_ENGINE_INCOMPLETE'
+          assert strict['p_vs_np']=='OPEN'
+          assert proof['result']=='CORRECTED_NODE6_UP_K_CLOSURE_COMPUTED'
+          assert proof['next_gate']=='C049.1_B4.6.3_CORRECTED_NODE6_INTEGRATION_AND_NODE7_PARENT_REFINEMENT'
+
+          receipt=json.load(open('registry/c049-1-b4-6-3-corrected-node6-up-k-hardening.json'))
+          assert receipt['status'] in {'DRAFT_EXACT_HEAD_CI_REQUIRED','IMPLEMENTED_EXACT_HEAD_CI_GREEN'}
+          admitted=receipt['status']=='IMPLEMENTED_EXACT_HEAD_CI_GREEN'
+          boundary=receipt['admission_boundary']
+          assert boundary['corrected_node6_up_k_hardening_admitted'] is admitted
+          assert boundary['corrected_node6_parent_refinement_complete'] is True
+          assert boundary['corrected_node6_parent_up_k_complete'] is admitted
+          assert boundary['corrected_node6_full_set_entry_count']==(432 if admitted else None)
+          assert boundary['corrected_bottom_up_replay_complete'] is False
+          assert boundary['corrected_node7_parent_refinement_complete'] is False
+          assert boundary['root_structural_compression_admitted'] is False
+          assert boundary['root_full_set_computed'] is False
+          assert boundary['found_layout_enabled'] is False
+          assert boundary['no_layout_at_cap_enabled'] is False
+          assert boundary['p_vs_np']=='OPEN'
+          assert receipt['next_gate_after_green_ci']=='C049.1_B4.6.3_CORRECTED_NODE6_INTEGRATION_AND_NODE7_PARENT_REFINEMENT'
+          PY
+
+      - name: Export corrected Node-6 up_k proof package
+        uses: actions/upload-artifact@v4
+        with:
+          name: c049-b4-6-3-corrected-node6-up-k-hardening
+          path: |
+            /tmp/c049-corrected-node6-up-k-hardening.json
+            registry/c049-1-b4-6-3-corrected-node6-up-k-hardening.json
+            docs/C049_1_B4_6_3_CORRECTED_NODE6_UP_K_HARDENING.md
+          retention-days: 1
