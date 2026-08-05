@@ -1,0 +1,186 @@
+name: Validate C049.1 Phase B4.6.3 dimension-two preorder hardening
+
+on:
+  push:
+    paths:
+      - 'experiments/direct/janus_c049_1_b4_6_3_dimension_two_preorder_hardening.py'
+      - 'experiments/direct/janus_c049_1_b4_6_3_dimension_two_preorder_hardening_verifier.py'
+      - 'experiments/direct/C049.1-JANUS-B4.6.3-DIMENSION-TWO-PREORDER-HARDENING.frozen-summary.json'
+      - 'docs/C049_1_PHASE_B4_6_3_DIMENSION_TWO_PREORDER_HARDENING.md'
+      - 'docs/ACTIVE_PROOF_ROUTE_MATRIX_C049_1_B4_6_3_PREORDER_APPENDIX.md'
+      - 'registry/c049.1-phase-b4.6.3-dimension-two-preorder-status.json'
+      - '.github/workflows/validate-c049-1-phase-b4-6-3-dimension-two-preorder-hardening.yml'
+      - 'experiments/direct/janus_c049_1_b4_6_3_negative_root_engine_replay.py'
+      - 'experiments/direct/janus_c049_1_b4_6_3_negative_root_engine_replay_verifier.py'
+      - 'experiments/direct/janus_c049_1_b4_6_3_negative_root_engine_replay_verifier_hardened.py'
+      - 'experiments/direct/janus_c049_1_b2_up_k_core.py'
+  pull_request:
+    paths:
+      - 'experiments/direct/janus_c049_1_b4_6_3_dimension_two_preorder_hardening.py'
+      - 'experiments/direct/janus_c049_1_b4_6_3_dimension_two_preorder_hardening_verifier.py'
+      - 'experiments/direct/C049.1-JANUS-B4.6.3-DIMENSION-TWO-PREORDER-HARDENING.frozen-summary.json'
+      - 'docs/C049_1_PHASE_B4_6_3_DIMENSION_TWO_PREORDER_HARDENING.md'
+      - 'docs/ACTIVE_PROOF_ROUTE_MATRIX_C049_1_B4_6_3_PREORDER_APPENDIX.md'
+      - 'registry/c049.1-phase-b4.6.3-dimension-two-preorder-status.json'
+      - '.github/workflows/validate-c049-1-phase-b4-6-3-dimension-two-preorder-hardening.yml'
+      - 'experiments/direct/janus_c049_1_b4_6_3_negative_root_engine_replay.py'
+      - 'experiments/direct/janus_c049_1_b4_6_3_negative_root_engine_replay_verifier.py'
+      - 'experiments/direct/janus_c049_1_b4_6_3_negative_root_engine_replay_verifier_hardened.py'
+      - 'experiments/direct/janus_c049_1_b2_up_k_core.py'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate-dimension-two-preorder:
+    runs-on: ubuntu-latest
+    timeout-minutes: 55
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Compile producer and independent verifier
+        run: |
+          python -m py_compile \
+            experiments/direct/janus_c049_1_b4_6_3_dimension_two_preorder_hardening.py \
+            experiments/direct/janus_c049_1_b4_6_3_dimension_two_preorder_hardening_verifier.py
+
+      - name: Independently replay B1 through B4.1 prerequisites
+        env:
+          PYTHONPATH: experiments/direct
+        run: |
+          python experiments/direct/janus_c049_1_b1_compact_trajectory.py \
+            --output /tmp/c049-b1.json
+          cmp /tmp/c049-b1.json \
+            experiments/direct/C049.1-JANUS-COMPACT-B-TRAJECTORY-B1.frozen.json
+          python experiments/direct/janus_c049_1_b1_compact_trajectory_verifier.py \
+            /tmp/c049-b1.json
+          python experiments/direct/janus_c049_1_b2_up_k.py \
+            --self-test \
+            --output /tmp/c049-b2.json
+          python experiments/direct/janus_c049_1_b2_full_transcript_verifier.py \
+            /tmp/c049-b2.json
+          python experiments/direct/janus_c049_1_b3_expand_join_shrink.py \
+            --self-test \
+            --output /tmp/c049-b3.json
+          python experiments/direct/janus_c049_1_b3_expand_join_shrink_verifier.py \
+            /tmp/c049-b3.json \
+            --tamper-self-test
+          python experiments/direct/janus_c049_1_b4_round_ledger.py \
+            --output /tmp/c049-b4-1.json
+          python experiments/direct/janus_c049_1_b4_round_ledger_verifier.py \
+            /tmp/c049-b4-1.json \
+            --self-test
+
+      - name: Regenerate the complete frozen negative prefix
+        env:
+          PYTHONPATH: experiments/direct
+        run: |
+          mkdir /tmp/c049-negative-prefix
+          python experiments/direct/janus_c049_1_b4_6_3_negative_root_engine_replay.py \
+            --output-dir /tmp/c049-negative-prefix
+
+      - name: Produce structural dimension-two minimization receipt
+        env:
+          PYTHONPATH: experiments/direct
+        run: |
+          python experiments/direct/janus_c049_1_b4_6_3_dimension_two_preorder_hardening.py \
+            /tmp/c049-negative-prefix \
+            --output /tmp/c049-dim2-preorder.json
+
+      - name: Independently replay all deletions and exact reachable closure
+        env:
+          PYTHONPATH: experiments/direct
+        run: |
+          python experiments/direct/janus_c049_1_b4_6_3_dimension_two_preorder_hardening_verifier.py \
+            /tmp/c049-negative-prefix \
+            /tmp/c049-dim2-preorder.json \
+            --tamper-self-test
+
+      - name: Check deterministic byte-identical regeneration
+        env:
+          PYTHONPATH: experiments/direct
+        run: |
+          python experiments/direct/janus_c049_1_b4_6_3_dimension_two_preorder_hardening.py \
+            /tmp/c049-negative-prefix \
+            --output /tmp/c049-dim2-preorder-repeat.json
+          cmp /tmp/c049-dim2-preorder.json /tmp/c049-dim2-preorder-repeat.json
+
+      - name: Match frozen integrity and accounting
+        run: |
+          test "$(wc -c < /tmp/c049-dim2-preorder.json)" = "396127"
+          test "$(sha256sum /tmp/c049-dim2-preorder.json | cut -d' ' -f1)" = \
+            "a68ea1957382bfa89386a09ab501a052057b1cc5de8db7191a6ab3a26e1d2af9"
+          python - <<'PY'
+          import json
+          artifact=json.load(open('/tmp/c049-dim2-preorder.json', encoding='utf-8'))
+          frozen=json.load(open(
+              'experiments/direct/C049.1-JANUS-B4.6.3-DIMENSION-TWO-PREORDER-HARDENING.frozen-summary.json',
+              encoding='utf-8',
+          ))
+          assert frozen['artifact_bytes'] == 396127
+          assert frozen['artifact_semantic_digest'] == artifact['semantic_digest']
+          assert frozen['source_manifest_digest'] == artifact['source_manifest_digest']
+          assert frozen['source_transcript_root_digest'] == artifact['source_transcript_root_digest']
+          assert frozen['retained_generator_ids'] == artifact['retained_generator_ids']
+          assert frozen['reachable_entries_digest'] == artifact['exact_reachable_closure']['reachable_entries_digest']
+          assert frozen['reachable_catalog_stream_sha256'] == artifact['exact_reachable_closure']['complete_reachable_catalog_stream_sha256']
+          assert frozen['charged_operations'] == artifact['work_ledger']['total_charged_operations']
+          assert frozen['structural_counters'] == artifact['work_ledger']['structural_counters']
+          assert frozen['preorder_counters'] == artifact['work_ledger']['preorder_counters']
+          PY
+
+      - name: Enforce eight invariants and strict terminal boundary
+        run: |
+          python - <<'PY'
+          import json
+          value=json.load(open('/tmp/c049-dim2-preorder.json', encoding='utf-8'))
+          assert value['input_generator_count'] == 468
+          assert value['retained_generator_count'] == 3
+          assert value['removal_count'] == 465
+          assert value['preorder_partition']['bucket_count'] == 3
+          assert sorted(x['input_generator_count'] for x in value['preorder_partition']['buckets']) == [36,216,216]
+          closure=value['exact_reachable_closure']
+          assert closure['binary_scalar_sequences_exhaustively_tested'] == 65534
+          assert closure['binary_typical_run_pattern_count'] == 6
+          assert closure['complete_reachable_catalog_size'] == 468
+          assert closure['reachable_from_original_count'] == 468
+          assert closure['reachable_from_retained_count'] == 468
+          assert closure['input_generator_set_equals_reachable_set'] is True
+          assert closure['up_k_original_equals_up_k_retained'] is True
+          assert set(value['invariant_vector'].values()) == {'PASS'}
+          assert len(value['invariant_vector']) == 8
+          assert value['admit'] is True
+          boundary=value['strict_boundary']
+          assert boundary['dimension_two_preorder_minimization_complete'] is True
+          assert boundary['node_up_k_reachable_set_complete'] is True
+          assert boundary['negative_root_reached'] is False
+          assert boundary['terminal_completeness_proved'] is False
+          assert boundary['found_layout_enabled'] is False
+          assert boundary['no_layout_at_cap_enabled'] is False
+          assert boundary['current_global_terminal'] == 'OPEN_TRAJECTORY_ENGINE_INCOMPLETE'
+          assert boundary['p_vs_np'] == 'OPEN'
+          PY
+
+      - name: Validate machine-readable package
+        run: |
+          python - <<'PY'
+          import json
+          for path in [
+              'experiments/direct/C049.1-JANUS-B4.6.3-DIMENSION-TWO-PREORDER-HARDENING.frozen-summary.json',
+              'registry/c049.1-phase-b4.6.3-dimension-two-preorder-status.json',
+          ]:
+              json.load(open(path, encoding='utf-8'))
+          PY
+
+      - name: Export proof transcript
+        uses: actions/upload-artifact@v4
+        with:
+          name: c049-b4-6-3-dimension-two-preorder-hardening
+          path: |
+            /tmp/c049-negative-prefix
+            /tmp/c049-dim2-preorder.json
+          retention-days: 1
