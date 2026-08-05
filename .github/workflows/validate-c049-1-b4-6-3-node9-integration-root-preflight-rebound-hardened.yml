@@ -1,0 +1,137 @@
+name: Validate C049.1 B4.6.3 hardened Node-9 integration rebound
+
+on:
+  push:
+    paths:
+      - 'experiments/direct/janus_c049_1_b4_6_3_replay_workflow_run_steps.py'
+      - 'experiments/direct/janus_c049_1_b4_6_3_node9_up_k_integration_root_preflight.py'
+      - 'experiments/direct/janus_c049_1_b4_6_3_node9_up_k_integration_root_preflight_verifier.py'
+      - 'registry/c049-1-b4-6-3-node9-integration-root-preflight-rebound-hardened.json'
+      - 'docs/C049_1_B4_6_3_NODE9_INTEGRATION_ROOT_PREFLIGHT_REBOUND_HARDENED.md'
+      - '.github/workflows/validate-c049-1-b4-6-3-node9-up-k-closure-rebound-hardened.yml'
+      - '.github/workflows/validate-c049-1-b4-6-3-node9-integration-root-preflight-rebound-hardened.yml'
+  pull_request:
+    paths:
+      - 'experiments/direct/janus_c049_1_b4_6_3_replay_workflow_run_steps.py'
+      - 'experiments/direct/janus_c049_1_b4_6_3_node9_up_k_integration_root_preflight.py'
+      - 'experiments/direct/janus_c049_1_b4_6_3_node9_up_k_integration_root_preflight_verifier.py'
+      - 'registry/c049-1-b4-6-3-node9-integration-root-preflight-rebound-hardened.json'
+      - 'docs/C049_1_B4_6_3_NODE9_INTEGRATION_ROOT_PREFLIGHT_REBOUND_HARDENED.md'
+      - '.github/workflows/validate-c049-1-b4-6-3-node9-integration-root-preflight-rebound-hardened.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  hardened-node9-integration-rebound:
+    runs-on: ubuntu-latest
+    timeout-minutes: 300
+    env:
+      PYTHONPATH: experiments/direct
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Verify two-parent proof ancestry and compile gate
+        run: |
+          git merge-base --is-ancestor 775c00396f629ae0361fbc0993e4ce936cbc97e4 HEAD
+          git merge-base --is-ancestor 69c090d432d2af7910b328f763f99b87ab897b3d HEAD
+          test "$(git rev-list --parents -n 1 f5beeebf59dfa9d0b738fdfe9f989c70bcdb6a43)" = \
+            "f5beeebf59dfa9d0b738fdfe9f989c70bcdb6a43 775c00396f629ae0361fbc0993e4ce936cbc97e4 69c090d432d2af7910b328f763f99b87ab897b3d"
+          python -m py_compile \
+            experiments/direct/janus_c049_1_b4_6_3_replay_workflow_run_steps.py \
+            experiments/direct/janus_c049_1_b4_6_3_node9_up_k_integration_root_preflight.py \
+            experiments/direct/janus_c049_1_b4_6_3_node9_up_k_integration_root_preflight_verifier.py
+
+      - name: Replay admitted PR 103 and integrate Node-9
+        run: |
+          python experiments/direct/janus_c049_1_b4_6_3_replay_workflow_run_steps.py \
+            .github/workflows/validate-c049-1-b4-6-3-node9-up-k-closure-rebound-hardened.yml
+          test "$(sha256sum /tmp/c049-node9-frontier-original.json | cut -d' ' -f1)" = \
+            "6eefd8e31ba4808e5587475c2faa2c000fd0093da4de2c488db42d103c059890"
+          test "$(sha256sum /tmp/c049-node9-up-k-original.json | cut -d' ' -f1)" = \
+            "c6e369099ea2fdf6572409dab7ce6f5172d40543388b366ec37a821262c506e4"
+          mkdir /tmp/c049-node9-integration-rebound
+          python experiments/direct/janus_c049_1_b4_6_3_node9_up_k_integration_root_preflight.py \
+            /tmp/c049-negative-prefix /tmp/c049-dim2-preorder.json \
+            /tmp/c049-node7-frontier.json /tmp/c049-node7-up-k.json \
+            /tmp/c049-node8-frontier.json /tmp/c049-node8-up-k-original.json \
+            /tmp/c049-node9-frontier-original.json /tmp/c049-node9-up-k-original.json \
+            --output-dir /tmp/c049-node9-integration-rebound \
+            --root-pair-cap 10000 --root-refinement-cap 2000000
+          python experiments/direct/janus_c049_1_b4_6_3_node9_up_k_integration_root_preflight_verifier.py \
+            /tmp/c049-node9-frontier-original.json /tmp/c049-node9-up-k-original.json \
+            /tmp/c049-node9-integration-rebound \
+            --producer-source experiments/direct/janus_c049_1_b4_6_3_node9_up_k_integration_root_preflight.py \
+            --tamper-self-test
+
+      - name: Validate frozen root-preflight receipt and strict boundary
+        run: |
+          test "$(wc -c < /tmp/c049-node9-integration-rebound/manifest.json)" = "16175333"
+          test "$(sha256sum /tmp/c049-node9-integration-rebound/manifest.json | cut -d' ' -f1)" = \
+            "563bc6d4148dfb94e7c5aa3c9b8e6ffa28e0b0e9cc6603fe0bffe39e71a636a9"
+          test "$(wc -c < /tmp/c049-node9-integration-rebound/node9-integration-root-preflight-summary.json)" = "4406"
+          test "$(sha256sum /tmp/c049-node9-integration-rebound/node9-integration-root-preflight-summary.json | cut -d' ' -f1)" = \
+            "640d0a9f18d7a0e7639d4f0c4fa9d2acfe691662af70b2ad5b2f89458fc8faf0"
+          python - <<'PY'
+          import json
+          m=json.load(open('/tmp/c049-node9-integration-rebound/manifest.json'))
+          s=json.load(open('/tmp/c049-node9-integration-rebound/node9-integration-root-preflight-summary.json'))
+          assert m['manifest_digest']=='cb124decfa45c2adfd58fe7bf86c9e8a7cd45afff84dde4ff90d4090721c74fd'
+          assert m['chunking']['transcript_root_digest']=='eb904e833b53cf5626af1eb28493f479f5f54f2066a8b5427cb7e3eb47f515d8'
+          assert m['execution']['processed_internal_node_ids']==[6,7,8,9]
+          assert m['execution']['root_node_id']==10
+          assert m['execution']['root_full_set_receipt'] is None
+          stop=m['execution']['stop']
+          assert (stop['node_id'],stop['reason'],stop['required'],stop['cap'],stop['no_layout_at_cap'])==(10,'REFINEMENT_CAP_EXCEEDED',4954128,2000000,False)
+          n9=next(x for x in m['node_results'] if x['node_id']==9)
+          assert n9['output_receipt']['receipt_digest']=='1a23cdd127a35932d8515c742034e67443ebf4c2a42ac06458f809d63d65ca5a'
+          assert (len(n9['node_up_k']['input_generators']),len(n9['node_up_k']['retained_generators']),len(n9['node_up_k']['removals']),n9['node_up_k']['entry_count'])==(15,2,13,252)
+          assert all(x['count']==0 for x in n9['record_ranges'].values())
+          assert s['semantic_digest']=='dc790f6294afb5fec24b5e8686f32725eb616b3125364d11a1fcb4d24b269443'
+          root=s['root_preflight']
+          assert (root['child_pair_count'],root['naive_refinement_count'])==(9072,4954128)
+          assert (root['left_boundary'],root['right_boundary'],root['common_boundary'],root['parent_boundary'])==([1],[1],[1],[])
+          assert root['left_expand_identity'] is True and root['right_expand_identity'] is True and root['shrink_identity'] is False
+          assert root['pair_cap_exceeded'] is False and root['refinement_cap_exceeded'] is True
+          assert root['generic_root_pair_records_materialized']==0 and root['generic_root_refinement_records_materialized']==0
+          strict=s['strict_boundary']
+          assert strict['node9_integrated_into_bottom_up_executor'] is True
+          assert strict['root_reached'] is True and strict['root_parent_refinement_started'] is True
+          assert strict['root_parent_refinement_complete'] is False and strict['root_parent_up_k_complete'] is False
+          assert strict['root_full_set_computed'] is False and strict['negative_root_reached'] is False
+          assert strict['terminal_completeness_proved'] is False
+          assert strict['found_layout_enabled'] is False and strict['no_layout_at_cap_enabled'] is False
+          assert strict['current_global_terminal']=='OPEN_TRAJECTORY_ENGINE_INCOMPLETE' and strict['p_vs_np']=='OPEN'
+          r=json.load(open('registry/c049-1-b4-6-3-node9-integration-root-preflight-rebound-hardened.json'))
+          assert r['status'] in {'DRAFT_EXACT_HEAD_CI_REQUIRED','IMPLEMENTED_HARDENED_EXACT_HEAD_CI_GREEN'}
+          assert r['stack_position']['rebound_merge_commit']=='f5beeebf59dfa9d0b738fdfe9f989c70bcdb6a43'
+          assert r['proof_contract']['total_digest_repaired_tampers']==70
+          admitted=r['status']=='IMPLEMENTED_HARDENED_EXACT_HEAD_CI_GREEN'
+          b=r['admission_boundary']
+          assert b['node9_integrated_into_bottom_up_executor'] is admitted
+          assert b['root_reached_on_rebound_chain'] is admitted and b['root_parent_refinement_started'] is admitted
+          assert b['root_parent_refinement_complete'] is False and b['root_parent_up_k_complete'] is False
+          assert b['root_full_set_computed'] is False and b['root_empty_proved'] is False
+          assert b['terminal_completeness_proved'] is False
+          assert b['found_layout_enabled'] is False and b['no_layout_at_cap_enabled'] is False
+          assert b['current_global_terminal']=='OPEN_TRAJECTORY_ENGINE_INCOMPLETE' and b['p_vs_np']=='OPEN'
+          assert r['next_gate_after_green_ci']=='C049.1_B4.6.3_ROOT_PARENT_FRONTIER_STRUCTURAL_COMPRESSION'
+          PY
+
+      - name: Export hardened Node-9 integration rebound package
+        uses: actions/upload-artifact@v4
+        with:
+          name: c049-b4-6-3-node9-integration-root-preflight-rebound-hardened
+          path: |
+            /tmp/c049-node9-frontier-original.json
+            /tmp/c049-node9-up-k-original.json
+            /tmp/c049-node9-integration-rebound/manifest.json
+            /tmp/c049-node9-integration-rebound/node9-integration-root-preflight-summary.json
+            registry/c049-1-b4-6-3-node9-integration-root-preflight-rebound-hardened.json
+          retention-days: 1
