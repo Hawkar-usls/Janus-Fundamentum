@@ -1,0 +1,46 @@
+name: Validate C049.1 B4.6.3 root reflection obstruction
+
+on:
+  pull_request:
+    paths:
+      - 'experiments/direct/janus_c049_1_b4_6_3_root_reflection_obstruction.py'
+      - 'experiments/direct/janus_c049_1_b4_6_3_root_reflection_obstruction_verifier.py'
+      - 'registry/c049-1-b4-6-3-root-reflection-obstruction.json'
+      - 'docs/C049_1_B4_6_3_ROOT_REFLECTION_OBSTRUCTION.md'
+      - '.github/workflows/validate-c049-1-b4-6-3-root-reflection-obstruction.yml'
+  workflow_dispatch:
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Compile producer and independent verifier
+        run: |
+          python -m py_compile \
+            experiments/direct/janus_c049_1_b4_6_3_root_reflection_obstruction.py \
+            experiments/direct/janus_c049_1_b4_6_3_root_reflection_obstruction_verifier.py
+      - name: Generate and independently replay obstruction
+        run: |
+          python experiments/direct/janus_c049_1_b4_6_3_root_reflection_obstruction.py \
+            --output /tmp/root-reflection-obstruction.json
+          python experiments/direct/janus_c049_1_b4_6_3_root_reflection_obstruction_verifier.py \
+            /tmp/root-reflection-obstruction.json --tamper-self-test
+      - name: Validate strict machine-readable boundary
+        run: |
+          python - <<'PY'
+          import json
+          artifact=json.load(open('/tmp/root-reflection-obstruction.json'))
+          registry=json.load(open('registry/c049-1-b4-6-3-root-reflection-obstruction.json'))
+          p=artifact['proof_payload']
+          assert p['obstruction']['reflection_from_lower_envelope_to_entire_quotient_class'] is False
+          assert p['strict_boundary']['root_parent_refinement_complete'] is False
+          assert p['strict_boundary']['root_full_set_computed'] is False
+          assert p['strict_boundary']['no_layout_at_cap']=='FORBIDDEN'
+          assert p['strict_boundary']['p_vs_np']=='OPEN'
+          assert registry['status']=='DECISIVE_OBSTRUCTION_ROUTE_CORRECTION_REQUIRED'
+          assert registry['p_vs_np']=='OPEN'
+          PY
