@@ -169,13 +169,21 @@ jobs:
             --producer-source experiments/direct/janus_c049_1_b4_6_3_node8_up_k_integration_node9_preflight.py \
             --tamper-self-test
 
-      - name: Match exact integration boundary
+      - name: Match frozen byte and semantic integration boundary
         run: |
+          test "$(wc -c < /tmp/c049-node8-integration/manifest.json)" = "15980334"
+          test "$(sha256sum /tmp/c049-node8-integration/manifest.json | cut -d' ' -f1)" = \
+            "9553263dc70f7a962a7bd95af4d5d4eeea6e1cdab163c616817b97cfcc207d6b"
+          test "$(wc -c < /tmp/c049-node8-integration/node8-integration-node9-preflight-summary.json)" = "3991"
+          test "$(sha256sum /tmp/c049-node8-integration/node8-integration-node9-preflight-summary.json | cut -d' ' -f1)" = \
+            "0adcb98bfd202c0f3811a964f32f372e0863d4f5fe7a8cedcc9aca51c1682ae0"
           python - <<'PY'
-          import hashlib,json
+          import json
           mp='/tmp/c049-node8-integration/manifest.json'
           sp='/tmp/c049-node8-integration/node8-integration-node9-preflight-summary.json'
           m=json.load(open(mp)); s=json.load(open(sp))
+          assert m['manifest_digest']=='b46e56a20c714806b3475658aacd82f628c909c3b7dc1492db7adb504dcaf868'
+          assert m['chunking']['transcript_root_digest']=='eb904e833b53cf5626af1eb28493f479f5f54f2066a8b5427cb7e3eb47f515d8'
           assert m['execution']['processed_internal_node_ids']==[6,7,8]
           stop=m['execution']['stop']
           assert stop['node_id']==9
@@ -185,9 +193,11 @@ jobs:
           assert stop['no_layout_at_cap'] is False
           assert m['execution']['root_node_id']==10
           n8=next(x for x in m['node_results'] if x['node_id']==8)
+          assert n8['output_receipt']['receipt_digest']=='befcbb30de8d70ee9816bdf072b92e597cfd7052c7d7931d48190e8e53854b20'
           assert n8['node_up_k']['entry_count']==15948
           assert n8['node_up_k']['reachable_entries_digest']=='6030bb93f1298bf26f4c76d00bbc392dc0a6dd69dd4c1552691c55382fba7468'
           assert all(x['count']==0 for x in n8['record_ranges'].values())
+          assert s['semantic_digest']=='305f6131c14af163d392beaef0a0ca8c08bb94080e6278aba8acc7ad6e3cf5d5'
           p=s['node9_preflight']
           assert p['child_pair_count']==574128
           assert p['naive_refinement_count']==1284995408
@@ -205,13 +215,6 @@ jobs:
           assert strict['found_layout_enabled'] is False
           assert strict['no_layout_at_cap_enabled'] is False
           assert strict['p_vs_np']=='OPEN'
-          print('MANIFEST_BYTES =',len(open(mp,'rb').read()))
-          print('MANIFEST_FILE_SHA256 =',hashlib.sha256(open(mp,'rb').read()).hexdigest())
-          print('MANIFEST_DIGEST =',m['manifest_digest'])
-          print('SUMMARY_BYTES =',len(open(sp,'rb').read()))
-          print('SUMMARY_FILE_SHA256 =',hashlib.sha256(open(sp,'rb').read()).hexdigest())
-          print('SUMMARY_SEMANTIC_DIGEST =',s['semantic_digest'])
-          print('NODE8_OUTPUT_RECEIPT =',n8['output_receipt']['receipt_digest'])
           PY
 
       - name: Export node-8 integration proof package
