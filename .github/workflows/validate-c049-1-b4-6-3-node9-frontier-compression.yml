@@ -1,0 +1,216 @@
+name: Validate C049.1 B4.6.3 node-9 frontier structural compression
+
+on:
+  push:
+    paths:
+      - 'experiments/direct/janus_c049_1_b4_6_3_node9_parent_frontier_structural_compression.py'
+      - 'experiments/direct/janus_c049_1_b4_6_3_node9_parent_frontier_structural_compression_verifier.py'
+      - 'experiments/direct/janus_c049_1_b4_6_3_node8_up_k_integration_node9_preflight_v2.py'
+      - 'experiments/direct/janus_c049_1_b4_6_3_node8_up_k_integration_node9_preflight.py'
+      - 'experiments/direct/janus_c049_1_b4_6_3_node8_sixty_one_generator_up_k_closure.py'
+      - 'experiments/direct/janus_c049_1_b4_6_3_node8_parent_frontier_structural_compression.py'
+      - 'experiments/direct/janus_c049_1_b4_6_3_node7_up_k_integration_node8_preflight.py'
+      - 'experiments/direct/janus_c049_1_b4_6_3_node7_thirteen_generator_up_k_closure.py'
+      - 'experiments/direct/janus_c049_1_b4_6_3_node7_parent_frontier_structural_compression.py'
+      - 'experiments/direct/janus_c049_1_b4_6_3_node6_up_k_integration_parent_refinement.py'
+      - 'experiments/direct/janus_c049_1_b4_6_3_dimension_two_preorder_hardening.py'
+      - 'experiments/direct/janus_c049_1_b4_6_3_negative_root_engine_replay.py'
+      - '.github/workflows/validate-c049-1-b4-6-3-node9-frontier-compression.yml'
+  pull_request:
+    paths:
+      - 'experiments/direct/janus_c049_1_b4_6_3_node9_parent_frontier_structural_compression.py'
+      - 'experiments/direct/janus_c049_1_b4_6_3_node9_parent_frontier_structural_compression_verifier.py'
+      - 'experiments/direct/janus_c049_1_b4_6_3_node8_up_k_integration_node9_preflight_v2.py'
+      - 'experiments/direct/janus_c049_1_b4_6_3_node8_up_k_integration_node9_preflight.py'
+      - 'experiments/direct/janus_c049_1_b4_6_3_node8_sixty_one_generator_up_k_closure.py'
+      - 'experiments/direct/janus_c049_1_b4_6_3_node8_parent_frontier_structural_compression.py'
+      - 'experiments/direct/janus_c049_1_b4_6_3_node7_up_k_integration_node8_preflight.py'
+      - 'experiments/direct/janus_c049_1_b4_6_3_node7_thirteen_generator_up_k_closure.py'
+      - 'experiments/direct/janus_c049_1_b4_6_3_node7_parent_frontier_structural_compression.py'
+      - 'experiments/direct/janus_c049_1_b4_6_3_node6_up_k_integration_parent_refinement.py'
+      - 'experiments/direct/janus_c049_1_b4_6_3_dimension_two_preorder_hardening.py'
+      - 'experiments/direct/janus_c049_1_b4_6_3_negative_root_engine_replay.py'
+      - '.github/workflows/validate-c049-1-b4-6-3-node9-frontier-compression.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  node9-frontier-structural-compression:
+    runs-on: ubuntu-latest
+    timeout-minutes: 110
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Compile theorem producer, independent verifier, and frozen prerequisites
+        run: |
+          python -m py_compile \
+            experiments/direct/janus_c049_1_b4_6_3_node9_parent_frontier_structural_compression.py \
+            experiments/direct/janus_c049_1_b4_6_3_node9_parent_frontier_structural_compression_verifier.py \
+            experiments/direct/janus_c049_1_b4_6_3_node8_up_k_integration_node9_preflight_v2.py \
+            experiments/direct/janus_c049_1_b4_6_3_node8_up_k_integration_node9_preflight.py \
+            experiments/direct/janus_c049_1_b4_6_3_node8_sixty_one_generator_up_k_closure.py \
+            experiments/direct/janus_c049_1_b4_6_3_node8_parent_frontier_structural_compression.py \
+            experiments/direct/janus_c049_1_b4_6_3_node7_up_k_integration_node8_preflight.py \
+            experiments/direct/janus_c049_1_b4_6_3_node7_thirteen_generator_up_k_closure.py \
+            experiments/direct/janus_c049_1_b4_6_3_node7_parent_frontier_structural_compression.py \
+            experiments/direct/janus_c049_1_b4_6_3_node6_up_k_integration_parent_refinement.py \
+            experiments/direct/janus_c049_1_b4_6_3_dimension_two_preorder_hardening.py \
+            experiments/direct/janus_c049_1_b4_6_3_negative_root_engine_replay.py
+
+      - name: Regenerate exact frozen negative prefix
+        env:
+          PYTHONPATH: experiments/direct
+        run: |
+          mkdir /tmp/c049-negative-prefix
+          python experiments/direct/janus_c049_1_b4_6_3_negative_root_engine_replay.py \
+            --output-dir /tmp/c049-negative-prefix
+
+      - name: Reproduce admitted node-6 hardening and integration
+        env:
+          PYTHONPATH: experiments/direct
+        run: |
+          python experiments/direct/janus_c049_1_b4_6_3_dimension_two_preorder_hardening.py \
+            /tmp/c049-negative-prefix --output /tmp/c049-dim2-preorder.json
+          test "$(sha256sum /tmp/c049-dim2-preorder.json | cut -d' ' -f1)" = \
+            "a68ea1957382bfa89386a09ab501a052057b1cc5de8db7191a6ab3a26e1d2af9"
+          mkdir /tmp/c049-node6-integration
+          python experiments/direct/janus_c049_1_b4_6_3_node6_up_k_integration_parent_refinement.py \
+            /tmp/c049-negative-prefix /tmp/c049-dim2-preorder.json \
+            --output-dir /tmp/c049-node6-integration \
+            --parent-pair-cap 10000 --parent-refinement-cap 2000000
+          python - <<'PY'
+          import json
+          v=json.load(open('/tmp/c049-node6-integration/manifest.json'))
+          assert v['manifest_digest']=='2ca2b0bc7566fb2e24f62e9df44499044843fa08388d8573fb74221dfab80512'
+          assert v['execution']['processed_internal_node_ids']==[6]
+          assert v['execution']['stop']['node_id']==7
+          PY
+
+      - name: Reproduce admitted node-7 frontier, closure, and integration
+        env:
+          PYTHONPATH: experiments/direct
+        run: |
+          python experiments/direct/janus_c049_1_b4_6_3_node7_parent_frontier_structural_compression.py \
+            /tmp/c049-node6-integration/manifest.json \
+            --output /tmp/c049-node7-frontier.json --entry-order original
+          test "$(sha256sum /tmp/c049-node7-frontier.json | cut -d' ' -f1)" = \
+            "6a0748219d829434feeb5de2c5488e1fa3aeb1fab16ecbfee0c5629be90130a9"
+          python experiments/direct/janus_c049_1_b4_6_3_node7_thirteen_generator_up_k_closure.py \
+            /tmp/c049-node7-frontier.json \
+            --output /tmp/c049-node7-up-k.json --entry-order original
+          test "$(sha256sum /tmp/c049-node7-up-k.json | cut -d' ' -f1)" = \
+            "c085a3bee4e0c92a01eb22715390079f9858c5704ebcbf8534f9de196087d189"
+          mkdir /tmp/c049-node7-integration
+          python experiments/direct/janus_c049_1_b4_6_3_node7_up_k_integration_node8_preflight.py \
+            /tmp/c049-negative-prefix /tmp/c049-dim2-preorder.json \
+            /tmp/c049-node7-frontier.json /tmp/c049-node7-up-k.json \
+            --output-dir /tmp/c049-node7-integration \
+            --node8-pair-cap 10000 --node8-refinement-cap 2000000
+          test "$(wc -c < /tmp/c049-node7-integration/manifest.json)" = "5430371"
+          test "$(sha256sum /tmp/c049-node7-integration/manifest.json | cut -d' ' -f1)" = \
+            "05a4269be3b15bee40c254f81cc5e668c4903e90777576a9f0d226093892122b"
+
+      - name: Reproduce admitted node-8 frontier, closure, and exact node-9 preflight
+        env:
+          PYTHONPATH: experiments/direct
+        run: |
+          python experiments/direct/janus_c049_1_b4_6_3_node8_parent_frontier_structural_compression.py \
+            /tmp/c049-node7-integration/manifest.json \
+            --output /tmp/c049-node8-frontier.json --entry-order original
+          test "$(wc -c < /tmp/c049-node8-frontier.json)" = "204739"
+          test "$(sha256sum /tmp/c049-node8-frontier.json | cut -d' ' -f1)" = \
+            "93dcd5610eb9df079823b172a4f824ce1c09859e759c6b771dc95b99af394d34"
+          python experiments/direct/janus_c049_1_b4_6_3_node8_sixty_one_generator_up_k_closure.py \
+            /tmp/c049-node8-frontier.json \
+            --output /tmp/c049-node8-up-k.json --entry-order original
+          test "$(wc -c < /tmp/c049-node8-up-k.json)" = "9344591"
+          test "$(sha256sum /tmp/c049-node8-up-k.json | cut -d' ' -f1)" = \
+            "e5202b9eb32ef44b1fdf493c6848ec82f8ce16fa502e623b7fbfdeb6bc735620"
+          mkdir /tmp/c049-node8-integration
+          python experiments/direct/janus_c049_1_b4_6_3_node8_up_k_integration_node9_preflight_v2.py \
+            /tmp/c049-negative-prefix /tmp/c049-dim2-preorder.json \
+            /tmp/c049-node7-frontier.json /tmp/c049-node7-up-k.json \
+            /tmp/c049-node8-frontier.json /tmp/c049-node8-up-k.json \
+            --output-dir /tmp/c049-node8-integration \
+            --node9-pair-cap 10000 --node9-refinement-cap 2000000
+          test "$(wc -c < /tmp/c049-node8-integration/manifest.json)" = "15980334"
+          test "$(sha256sum /tmp/c049-node8-integration/manifest.json | cut -d' ' -f1)" = \
+            "9553263dc70f7a962a7bd95af4d5d4eeea6e1cdab163c616817b97cfcc207d6b"
+          python - <<'PY'
+          import json
+          m=json.load(open('/tmp/c049-node8-integration/manifest.json'))
+          assert m['manifest_digest']=='b46e56a20c714806b3475658aacd82f628c909c3b7dc1492db7adb504dcaf868'
+          assert m['execution']['processed_internal_node_ids']==[6,7,8]
+          stop=m['execution']['stop']
+          assert (stop['node_id'],stop['reason'],stop['required'],stop['no_layout_at_cap'])==(9,'CHILD_PAIR_CAP_EXCEEDED',574128,False)
+          PY
+
+      - name: Generate order-independent node-9 structural theorem artifacts
+        run: |
+          python experiments/direct/janus_c049_1_b4_6_3_node9_parent_frontier_structural_compression.py \
+            /tmp/c049-node8-integration/manifest.json \
+            --output /tmp/c049-node9-frontier-original.json --entry-order original
+          python experiments/direct/janus_c049_1_b4_6_3_node9_parent_frontier_structural_compression.py \
+            /tmp/c049-node8-integration/manifest.json \
+            --output /tmp/c049-node9-frontier-reversed.json --entry-order reversed
+          python experiments/direct/janus_c049_1_b4_6_3_node9_parent_frontier_structural_compression.py \
+            /tmp/c049-node8-integration/manifest.json \
+            --output /tmp/c049-node9-frontier-shuffled.json --entry-order seeded-shuffle
+          cmp /tmp/c049-node9-frontier-original.json /tmp/c049-node9-frontier-reversed.json
+          cmp /tmp/c049-node9-frontier-original.json /tmp/c049-node9-frontier-shuffled.json
+
+      - name: Independently replay theorem and reject tamper attacks
+        run: |
+          python experiments/direct/janus_c049_1_b4_6_3_node9_parent_frontier_structural_compression_verifier.py \
+            /tmp/c049-node8-integration/manifest.json \
+            /tmp/c049-node9-frontier-original.json \
+            --producer-source experiments/direct/janus_c049_1_b4_6_3_node9_parent_frontier_structural_compression.py \
+            --tamper-self-test
+
+      - name: Match frozen node-9 theorem byte and semantic boundary
+        run: |
+          test "$(wc -c < /tmp/c049-node9-frontier-original.json)" = "312448"
+          test "$(sha256sum /tmp/c049-node9-frontier-original.json | cut -d' ' -f1)" = \
+            "6eefd8e31ba4808e5587475c2faa2c000fd0093da4de2c488db42d103c059890"
+          python - <<'PY'
+          import json
+          a=json.load(open('/tmp/c049-node9-frontier-original.json'))
+          assert a['semantic_digest']=='62e9178821fe56cbf094e8512dd20b687796c6fd87e08c0fea8ea833ef6c5e80'
+          p=a['proof_payload']
+          assert p['invariant_vector']=={f'N9-INV-{i:02d}':'PASS' for i in range(1,11)}
+          q=p['quotient_frontier']
+          assert q['quotient_path_count']==182
+          assert q['successful_quotient_path_count']==118
+          assert q['universal_failed_quotient_path_count']==64
+          assert q['post_shrink_successful_class_count']==15
+          assert q['local_direct_assignment_tests']==13248
+          assert q['failed_refinement_partition_complete'] is True
+          assert q['transitive_closure_used'] is False
+          e=p['exact_frontier']
+          assert e['child_pair_count']==574128
+          assert e['naive_refinement_count']==1284995408
+          assert e['cartesian_child_pairs_materialized']==0
+          assert e['fine_lattice_paths_enumerated']==0
+          s=p['strict_boundary']
+          assert s['node9_parent_generator_frontier_complete'] is True
+          assert s['node9_parent_refinement_complete'] is True
+          assert s['node9_parent_up_k_complete'] is False
+          assert s['negative_root_reached'] is False
+          assert s['found_layout_enabled'] is False
+          assert s['no_layout_at_cap_enabled'] is False
+          assert s['current_global_terminal']=='OPEN_TRAJECTORY_ENGINE_INCOMPLETE'
+          assert s['p_vs_np']=='OPEN'
+          assert p['next_gate']=='C049.1_B4.6.3_NODE9_FIFTEEN_GENERATOR_UP_K_CLOSURE'
+          PY
+
+      - name: Export node-9 structural theorem package
+        uses: actions/upload-artifact@v4
+        with:
+          name: c049-b4-6-3-node9-parent-frontier-structural-compression
+          path: /tmp/c049-node9-frontier-original.json
+          retention-days: 1
