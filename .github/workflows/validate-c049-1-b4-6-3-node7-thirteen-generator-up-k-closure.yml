@@ -1,0 +1,186 @@
+name: Validate C049.1 B4.6.3 node-7 thirteen-generator up_k closure
+
+on:
+  push:
+    paths:
+      - 'experiments/direct/janus_c049_1_b4_6_3_node7_thirteen_generator_up_k_closure.py'
+      - 'experiments/direct/janus_c049_1_b4_6_3_node7_thirteen_generator_up_k_closure_verifier.py'
+      - 'experiments/direct/janus_c049_1_b4_6_3_node7_parent_frontier_structural_compression.py'
+      - 'experiments/direct/janus_c049_1_b4_6_3_node7_parent_frontier_structural_compression_verifier.py'
+      - 'experiments/direct/janus_c049_1_b4_6_3_node6_up_k_integration_parent_refinement.py'
+      - 'experiments/direct/janus_c049_1_b4_6_3_dimension_two_preorder_hardening.py'
+      - 'experiments/direct/janus_c049_1_b4_6_3_negative_root_engine_replay.py'
+      - 'experiments/direct/janus_c049_1_b4_5_bottom_up_scaffold_executor.py'
+      - 'experiments/direct/janus_c049_1_b4_4_nonzero_boundary_node_full_set.py'
+      - 'experiments/direct/janus_c049_1_b3_expand_join_shrink_core.py'
+      - 'experiments/direct/janus_c049_1_b2_up_k_core.py'
+      - '.github/workflows/validate-c049-1-b4-6-3-node7-thirteen-generator-up-k-closure.yml'
+  pull_request:
+    paths:
+      - 'experiments/direct/janus_c049_1_b4_6_3_node7_thirteen_generator_up_k_closure.py'
+      - 'experiments/direct/janus_c049_1_b4_6_3_node7_thirteen_generator_up_k_closure_verifier.py'
+      - 'experiments/direct/janus_c049_1_b4_6_3_node7_parent_frontier_structural_compression.py'
+      - 'experiments/direct/janus_c049_1_b4_6_3_node7_parent_frontier_structural_compression_verifier.py'
+      - 'experiments/direct/janus_c049_1_b4_6_3_node6_up_k_integration_parent_refinement.py'
+      - 'experiments/direct/janus_c049_1_b4_6_3_dimension_two_preorder_hardening.py'
+      - 'experiments/direct/janus_c049_1_b4_6_3_negative_root_engine_replay.py'
+      - 'experiments/direct/janus_c049_1_b4_5_bottom_up_scaffold_executor.py'
+      - 'experiments/direct/janus_c049_1_b4_4_nonzero_boundary_node_full_set.py'
+      - 'experiments/direct/janus_c049_1_b3_expand_join_shrink_core.py'
+      - 'experiments/direct/janus_c049_1_b2_up_k_core.py'
+      - '.github/workflows/validate-c049-1-b4-6-3-node7-thirteen-generator-up-k-closure.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  node7-thirteen-generator-up-k-closure:
+    runs-on: ubuntu-latest
+    timeout-minutes: 75
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Compile closure producer, verifier, and frozen prerequisites
+        run: |
+          python -m py_compile \
+            experiments/direct/janus_c049_1_b4_6_3_node7_thirteen_generator_up_k_closure.py \
+            experiments/direct/janus_c049_1_b4_6_3_node7_thirteen_generator_up_k_closure_verifier.py \
+            experiments/direct/janus_c049_1_b4_6_3_node7_parent_frontier_structural_compression.py \
+            experiments/direct/janus_c049_1_b4_6_3_node6_up_k_integration_parent_refinement.py \
+            experiments/direct/janus_c049_1_b4_6_3_dimension_two_preorder_hardening.py \
+            experiments/direct/janus_c049_1_b4_6_3_negative_root_engine_replay.py
+
+      - name: Regenerate the exact frozen negative prefix
+        env:
+          PYTHONPATH: experiments/direct
+        run: |
+          mkdir /tmp/c049-negative-prefix
+          python experiments/direct/janus_c049_1_b4_6_3_negative_root_engine_replay.py \
+            --output-dir /tmp/c049-negative-prefix
+
+      - name: Reproduce admitted dimension-two node-6 hardening
+        env:
+          PYTHONPATH: experiments/direct
+        run: |
+          python experiments/direct/janus_c049_1_b4_6_3_dimension_two_preorder_hardening.py \
+            /tmp/c049-negative-prefix \
+            --output /tmp/c049-dim2-preorder.json
+          test "$(sha256sum /tmp/c049-dim2-preorder.json | cut -d' ' -f1)" = \
+            "a68ea1957382bfa89386a09ab501a052057b1cc5de8db7191a6ab3a26e1d2af9"
+
+      - name: Reproduce certified node-6 integration and node-7 preflight
+        env:
+          PYTHONPATH: experiments/direct
+        run: |
+          mkdir /tmp/c049-node6-integration
+          python experiments/direct/janus_c049_1_b4_6_3_node6_up_k_integration_parent_refinement.py \
+            /tmp/c049-negative-prefix \
+            /tmp/c049-dim2-preorder.json \
+            --output-dir /tmp/c049-node6-integration \
+            --parent-pair-cap 10000 \
+            --parent-refinement-cap 2000000
+          python - <<'PY'
+          import json
+          value=json.load(open('/tmp/c049-node6-integration/manifest.json', encoding='utf-8'))
+          assert value['manifest_digest'] == '2ca2b0bc7566fb2e24f62e9df44499044843fa08388d8573fb74221dfab80512'
+          assert value['execution']['processed_internal_node_ids'] == [6]
+          assert value['execution']['stop']['node_id'] == 7
+          assert value['execution']['stop']['reason'] == 'CHILD_PAIR_CAP_EXCEEDED'
+          assert value['execution']['stop']['required'] == 16848
+          assert value['execution']['stop']['no_layout_at_cap'] is False
+          PY
+
+      - name: Reproduce admitted node-7 parent-frontier compression
+        run: |
+          python experiments/direct/janus_c049_1_b4_6_3_node7_parent_frontier_structural_compression.py \
+            /tmp/c049-node6-integration/manifest.json \
+            --output /tmp/c049-node7-frontier.json \
+            --entry-order original
+          test "$(wc -c < /tmp/c049-node7-frontier.json)" = "819386"
+          test "$(sha256sum /tmp/c049-node7-frontier.json | cut -d' ' -f1)" = \
+            "6a0748219d829434feeb5de2c5488e1fa3aeb1fab16ecbfee0c5629be90130a9"
+          python - <<'PY'
+          import json
+          value=json.load(open('/tmp/c049-node7-frontier.json', encoding='utf-8'))
+          assert value['semantic_digest'] == 'ed6b59821aaef10ac6bdb6286a72ffcafd15e2bbd2619e0edffc7f711a2b1103'
+          assert value['admit'] is True
+          assert value['strict_boundary']['node7_parent_refinement_complete'] is True
+          assert value['strict_boundary']['node7_parent_up_k_complete'] is False
+          assert value['quotient_frontier']['class_count'] == 13
+          PY
+
+      - name: Produce original, reversed, and seeded-shuffled closure artifacts
+        run: |
+          python experiments/direct/janus_c049_1_b4_6_3_node7_thirteen_generator_up_k_closure.py \
+            /tmp/c049-node7-frontier.json \
+            --output /tmp/c049-node7-up-k-original.json \
+            --entry-order original
+          python experiments/direct/janus_c049_1_b4_6_3_node7_thirteen_generator_up_k_closure.py \
+            /tmp/c049-node7-frontier.json \
+            --output /tmp/c049-node7-up-k-reversed.json \
+            --entry-order reversed
+          python experiments/direct/janus_c049_1_b4_6_3_node7_thirteen_generator_up_k_closure.py \
+            /tmp/c049-node7-frontier.json \
+            --output /tmp/c049-node7-up-k-shuffled.json \
+            --entry-order seeded-shuffle
+          cmp /tmp/c049-node7-up-k-original.json /tmp/c049-node7-up-k-reversed.json
+          cmp /tmp/c049-node7-up-k-original.json /tmp/c049-node7-up-k-shuffled.json
+
+      - name: Independently replay closure and reject tamper attacks
+        run: |
+          python experiments/direct/janus_c049_1_b4_6_3_node7_thirteen_generator_up_k_closure_verifier.py \
+            /tmp/c049-node7-frontier.json \
+            /tmp/c049-node7-up-k-original.json \
+            --producer-source experiments/direct/janus_c049_1_b4_6_3_node7_thirteen_generator_up_k_closure.py \
+            --tamper-self-test
+
+      - name: Match frozen closure byte, semantic, and strict boundary
+        run: |
+          test "$(wc -c < /tmp/c049-node7-up-k-original.json)" = "4010990"
+          test "$(sha256sum /tmp/c049-node7-up-k-original.json | cut -d' ' -f1)" = \
+            "c085a3bee4e0c92a01eb22715390079f9858c5704ebcbf8534f9de196087d189"
+          python - <<'PY'
+          import json
+          value=json.load(open('/tmp/c049-node7-up-k-original.json', encoding='utf-8'))
+          assert value['semantic_digest'] == '23079901348590eb39d60d904d52dfd5004f8b287382a288ccbea688802b22f2'
+          assert value['semantic_digest_scope'] == 'proof_payload'
+          assert value['repository_identity']['canonical_repository'] == 'Hawkar-usls/Janus-Fundamentum'
+          assert value['repository_identity']['renaming_witness']['observed_local_datetime'] == '2026-08-05T05:05:00+03:00'
+          proof=value['proof_payload']
+          assert proof['admit'] is True
+          assert len(proof['invariant_vector']) == 10
+          assert set(proof['invariant_vector'].values()) == {'PASS'}
+          assert proof['input_generator_count'] == 13
+          assert proof['retained_generator_count'] == 13
+          assert proof['preorder_minimization']['removal_count'] == 0
+          assert proof['preorder_minimization']['relation_summary']['cross_relation_edges'] == 0
+          closure=proof['exact_reachable_closure']
+          assert closure['complete_reachable_catalog_size'] == 9108
+          assert closure['reachable_entries_digest'] == '269d5cd926d3be3df5641066a7986dfb1df049abab68b4202f6bc9a39e27a46e'
+          assert closure['complete_reachable_catalog_stream_sha256'] == 'aac8623a3c8c13cf284b39de0f5966606f733dd0dc71a55d6fd4227abd49ef8e'
+          assert closure['global_compact_universe_enumerated'] is False
+          strict=proof['strict_boundary']
+          assert strict['node7_parent_up_k_complete'] is True
+          assert strict['node7_integrated_into_bottom_up_executor'] is False
+          assert strict['node8_parent_refinement_started'] is False
+          assert strict['negative_root_reached'] is False
+          assert strict['terminal_completeness_proved'] is False
+          assert strict['found_layout_enabled'] is False
+          assert strict['no_layout_at_cap_enabled'] is False
+          assert strict['current_global_terminal'] == 'OPEN_TRAJECTORY_ENGINE_INCOMPLETE'
+          assert strict['p_vs_np'] == 'OPEN'
+          assert proof['next_gate'] == 'C049.1_B4.6.3_NODE7_UP_K_INTEGRATION_AND_NODE8_PARENT_REFINEMENT'
+          PY
+
+      - name: Export node-7 up_k proof package
+        uses: actions/upload-artifact@v4
+        with:
+          name: c049-b4-6-3-node7-thirteen-generator-up-k-closure
+          path: |
+            /tmp/c049-node7-frontier.json
+            /tmp/c049-node7-up-k-original.json
+          retention-days: 1
