@@ -1,0 +1,141 @@
+name: Validate C049.1 B4.6.3 corrected Node-7 integration and Node-8 parent refinement
+
+on:
+  push:
+    paths:
+      - 'experiments/direct/janus_c049_1_b4_6_3_corrected_node7_integration_node8_parent_refinement.py'
+      - 'experiments/direct/janus_c049_1_b4_6_3_corrected_node7_integration_node8_parent_refinement_verifier.py'
+      - 'experiments/direct/C049_1_B4_6_3_CORRECTED_NODE7_INTEGRATION_NODE8_PARENT_REFINEMENT.frozen.index.json'
+      - 'experiments/direct/.cn8_frozen_b64/**'
+      - 'experiments/direct/C049_1_B4_6_3_CORRECTED_NODE7_INTEGRATION_NODE8_PARENT_REFINEMENT.manifest.json'
+      - 'experiments/direct/C049_1_B4_6_3_CORRECTED_NODE7_INTEGRATION_NODE8_PARENT_REFINEMENT.manifest.sha256'
+      - 'docs/C049_1_B4_6_3_CORRECTED_NODE7_INTEGRATION_NODE8_PARENT_REFINEMENT.md'
+      - 'registry/c049-1-b4-6-3-corrected-node7-integration-node8-parent-refinement.json'
+      - '.github/workflows/validate-c049-1-b4-6-3-corrected-node7-integration-node8-parent-refinement.yml'
+  pull_request:
+    paths:
+      - 'experiments/direct/janus_c049_1_b4_6_3_corrected_node7_integration_node8_parent_refinement.py'
+      - 'experiments/direct/janus_c049_1_b4_6_3_corrected_node7_integration_node8_parent_refinement_verifier.py'
+      - 'experiments/direct/C049_1_B4_6_3_CORRECTED_NODE7_INTEGRATION_NODE8_PARENT_REFINEMENT.frozen.index.json'
+      - 'experiments/direct/.cn8_frozen_b64/**'
+      - 'experiments/direct/C049_1_B4_6_3_CORRECTED_NODE7_INTEGRATION_NODE8_PARENT_REFINEMENT.manifest.json'
+      - 'experiments/direct/C049_1_B4_6_3_CORRECTED_NODE7_INTEGRATION_NODE8_PARENT_REFINEMENT.manifest.sha256'
+      - 'docs/C049_1_B4_6_3_CORRECTED_NODE7_INTEGRATION_NODE8_PARENT_REFINEMENT.md'
+      - 'registry/c049-1-b4-6-3-corrected-node7-integration-node8-parent-refinement.json'
+      - '.github/workflows/validate-c049-1-b4-6-3-corrected-node7-integration-node8-parent-refinement.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  corrected-node7-integration-node8-parent-refinement:
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Verify exact stack ancestry and compile independent pair
+        run: |
+          git merge-base --is-ancestor 024afebb322c67953f310af48818d3386fdcfc27 HEAD
+          python -m py_compile \
+            experiments/direct/janus_c049_1_b4_6_3_corrected_node7_integration_node8_parent_refinement.py \
+            experiments/direct/janus_c049_1_b4_6_3_corrected_node7_integration_node8_parent_refinement_verifier.py \
+            experiments/direct/janus_c049_1_b4_6_3_corrected_node7_six_generator_up_k.py \
+            experiments/direct/janus_c049_1_b4_6_3_corrected_node7_six_generator_up_k_verifier.py \
+            experiments/direct/janus_c049_1_b4_6_3_replay_workflow_run_steps.py
+          python - <<'PY'
+          from pathlib import Path
+          verifier=Path('experiments/direct/janus_c049_1_b4_6_3_corrected_node7_integration_node8_parent_refinement_verifier.py').read_text()
+          forbidden=(
+              'import janus_c049_1_b4_6_3_corrected_node7_integration_node8_parent_refinement',
+              'from janus_c049_1_b4_6_3_corrected_node7_integration_node8_parent_refinement',
+          )
+          assert not any(token in verifier for token in forbidden)
+          PY
+
+      - name: Replay and verify admitted PR 113 source exactly
+        run: |
+          python experiments/direct/janus_c049_1_b4_6_3_replay_workflow_run_steps.py \
+            .github/workflows/validate-c049-1-b4-6-3-corrected-node7-parent-frontier-compression.yml
+          source112=/tmp/c049-corrected-node7-frontier-compression.json
+          test "$(wc -c < "$source112")" = "26583"
+          test "$(sha256sum "$source112" | cut -d' ' -f1)" = \
+            "b0d8d4e51be21f21218fd9ee63a367e3236ff2a53d9d5f29980e1c93340867ca"
+          python experiments/direct/janus_c049_1_b4_6_3_corrected_node7_six_generator_up_k.py \
+            "$source112" --output /tmp/pr113-replay.json --entry-order original
+          cmp /tmp/pr113-replay.json \
+            experiments/direct/C049_1_B4_6_3_CORRECTED_NODE7_SIX_GENERATOR_UP_K.frozen.json
+          test "$(sha256sum /tmp/pr113-replay.json | cut -d' ' -f1)" = \
+            "924e55a651518ce004964f5d7c5ea30e67424ca34507f18eb568341fc96528e0"
+          python experiments/direct/janus_c049_1_b4_6_3_corrected_node7_six_generator_up_k_verifier.py \
+            "$source112" /tmp/pr113-replay.json --tamper-self-test
+
+      - name: Build deterministic corrected Node-8 frontier candidate
+        run: |
+          source=experiments/direct/C049_1_B4_6_3_CORRECTED_NODE7_SIX_GENERATOR_UP_K.frozen.json
+          producer=experiments/direct/janus_c049_1_b4_6_3_corrected_node7_integration_node8_parent_refinement.py
+          for mode in original reversed seeded-shuffle; do
+            python "$producer" "$source" --entry-order "$mode" \
+              --output "/tmp/c049-corrected-node8-$mode.json"
+          done
+          cmp /tmp/c049-corrected-node8-original.json /tmp/c049-corrected-node8-reversed.json
+          cmp /tmp/c049-corrected-node8-original.json /tmp/c049-corrected-node8-seeded-shuffle.json
+          cat experiments/direct/.cn8_frozen_b64/part* | base64 -d > /tmp/c049-corrected-node8-frozen.json
+          cmp /tmp/c049-corrected-node8-original.json /tmp/c049-corrected-node8-frozen.json
+          test "$(sha256sum /tmp/c049-corrected-node8-frozen.json | cut -d' ' -f1)" = "30329bdb77802016ef3479d37a29fdb8e1fc95c5d534484fc179916a0cfdbb0a"
+          sha256sum -c experiments/direct/C049_1_B4_6_3_CORRECTED_NODE7_INTEGRATION_NODE8_PARENT_REFINEMENT.manifest.sha256
+
+      - name: Independent corrected Node-8 replay and tamper rejection
+        run: |
+          python experiments/direct/janus_c049_1_b4_6_3_corrected_node7_integration_node8_parent_refinement_verifier.py \
+            experiments/direct/C049_1_B4_6_3_CORRECTED_NODE7_SIX_GENERATOR_UP_K.frozen.json \
+            /tmp/c049-corrected-node8-original.json --tamper-self-test
+
+      - name: Validate strict pending boundary
+        run: |
+          python - <<'PY'
+          import json, hashlib
+          artifact=json.load(open('/tmp/c049-corrected-node8-original.json'))
+          assert artifact['certificate_bytes']==30024
+          assert artifact['semantic_digest']=='41df529e471aa4fb1c0ce1192cd4e0fa8ae8de2eb230c38343bbf04abf7f6708'
+          assert hashlib.sha256(open('/tmp/c049-corrected-node8-original.json','rb').read()).hexdigest()=='30329bdb77802016ef3479d37a29fdb8e1fc95c5d534484fc179916a0cfdbb0a'
+          node8=artifact['node8_parent_refinement']
+          assert node8['exact_child_product']['child_pair_count']==279936
+          assert node8['exact_child_product']['ordinary_hv_refinement_count']==70875648
+          assert node8['quotient_frontier']['pre_shrink_quotient_path_count']==24
+          assert node8['quotient_frontier']['post_shrink_class_count']==20
+          assert node8['quotient_frontier']['source_path_collision_count']==4
+          assert node8['quotient_frontier']['local_direct_assignment_tests']==17424
+          assert node8['quotient_frontier']['ordinary_join_diagonal_allowed'] is False
+          boundary=artifact['strict_boundary']
+          assert boundary['corrected_node8_parent_refinement_complete'] is True
+          assert boundary['corrected_node8_parent_up_k_complete'] is False
+          assert boundary['found_layout']=='FORBIDDEN'
+          assert boundary['no_layout_at_cap']=='FORBIDDEN'
+          assert boundary['p_vs_np']=='OPEN'
+          registry=json.load(open('registry/c049-1-b4-6-3-corrected-node7-integration-node8-parent-refinement.json'))
+          assert registry['status']=='EXACT_HEAD_CI_REQUIRED'
+          assert registry['admission_boundary']['corrected_node8_parent_refinement_complete'] is False
+          PY
+
+      - name: Export corrected Node-8 candidate proof package
+        uses: actions/upload-artifact@v4
+        with:
+          name: c049-b4-6-3-corrected-node7-integration-node8-parent-refinement
+          path: |
+            /tmp/c049-corrected-node8-original.json
+            experiments/direct/janus_c049_1_b4_6_3_corrected_node7_integration_node8_parent_refinement.py
+            experiments/direct/janus_c049_1_b4_6_3_corrected_node7_integration_node8_parent_refinement_verifier.py
+            experiments/direct/C049_1_B4_6_3_CORRECTED_NODE7_INTEGRATION_NODE8_PARENT_REFINEMENT.frozen.index.json
+            experiments/direct/.cn8_frozen_b64
+            experiments/direct/C049_1_B4_6_3_CORRECTED_NODE7_INTEGRATION_NODE8_PARENT_REFINEMENT.manifest.json
+            experiments/direct/C049_1_B4_6_3_CORRECTED_NODE7_INTEGRATION_NODE8_PARENT_REFINEMENT.manifest.sha256
+            docs/C049_1_B4_6_3_CORRECTED_NODE7_INTEGRATION_NODE8_PARENT_REFINEMENT.md
+            registry/c049-1-b4-6-3-corrected-node7-integration-node8-parent-refinement.json
+          retention-days: 1
