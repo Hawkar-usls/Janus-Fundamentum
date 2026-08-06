@@ -1,0 +1,136 @@
+name: Validate C049.1 B4.6.3 corrected Node-8 twenty-generator up_k hardening
+
+on:
+  push:
+    paths:
+      - 'experiments/direct/janus_c049_1_b4_6_3_corrected_node8_twenty_generator_up_k.py'
+      - 'experiments/direct/janus_c049_1_b4_6_3_corrected_node8_twenty_generator_up_k_verifier.py'
+      - '.github/workflows/validate-c049-1-b4-6-3-corrected-node8-twenty-generator-up-k.yml'
+  pull_request:
+    paths:
+      - 'experiments/direct/janus_c049_1_b4_6_3_corrected_node8_twenty_generator_up_k.py'
+      - 'experiments/direct/janus_c049_1_b4_6_3_corrected_node8_twenty_generator_up_k_verifier.py'
+      - '.github/workflows/validate-c049-1-b4-6-3-corrected-node8-twenty-generator-up-k.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  corrected-node8-twenty-generator-up-k:
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+    env:
+      PYTHONPATH: experiments/direct
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Verify exact admitted stack and compile independent proof pair
+        run: |
+          git merge-base --is-ancestor ee3ca0c90aff2aaca3b3f3a820dc94c2f3c94539 HEAD
+          python -m py_compile \
+            experiments/direct/janus_c049_1_b4_6_3_corrected_node8_twenty_generator_up_k.py \
+            experiments/direct/janus_c049_1_b4_6_3_corrected_node8_twenty_generator_up_k_verifier.py \
+            experiments/direct/janus_c049_1_b4_6_3_replay_workflow_run_steps.py
+          python - <<'PY'
+          from pathlib import Path
+          verifier=Path('experiments/direct/janus_c049_1_b4_6_3_corrected_node8_twenty_generator_up_k_verifier.py').read_text()
+          forbidden=(
+              'import janus_c049_1_b4_6_3_corrected_node8_twenty_generator_up_k',
+              'from janus_c049_1_b4_6_3_corrected_node8_twenty_generator_up_k',
+          )
+          assert not any(token in verifier for token in forbidden)
+          PY
+
+      - name: Replay admitted PR 114 exactly
+        run: |
+          python experiments/direct/janus_c049_1_b4_6_3_replay_workflow_run_steps.py \
+            .github/workflows/validate-c049-1-b4-6-3-corrected-node7-integration-node8-parent-refinement.yml
+
+      - name: Reconstruct exact admitted Node-8 source
+        run: |
+          cat experiments/direct/.cn8_frozen_b64/part* | base64 -d > /tmp/pr114-corrected-node8.json
+          test "$(wc -c < /tmp/pr114-corrected-node8.json)" = "30024"
+          test "$(sha256sum /tmp/pr114-corrected-node8.json | cut -d' ' -f1)" = \
+            "30329bdb77802016ef3479d37a29fdb8e1fc95c5d534484fc179916a0cfdbb0a"
+          python - <<'PY'
+          import json
+          source=json.load(open('/tmp/pr114-corrected-node8.json'))
+          assert source['semantic_digest']=='41df529e471aa4fb1c0ce1192cd4e0fa8ae8de2eb230c38343bbf04abf7f6708'
+          frontier=source['node8_parent_refinement']['quotient_frontier']
+          assert frontier['class_catalog_digest']=='9d5a420647f69454ae6deb8114435f433973ae7262f46d6e716e929acde1616c'
+          assert frontier['post_shrink_class_count']==20
+          assert frontier['local_direct_assignment_tests']==17424
+          assert source['corrected_path_domain']['ordinary_join_diagonal_allowed'] is False
+          PY
+
+      - name: Build deterministic twenty-generator up_k candidate
+        run: |
+          source=/tmp/pr114-corrected-node8.json
+          producer=experiments/direct/janus_c049_1_b4_6_3_corrected_node8_twenty_generator_up_k.py
+          for mode in original reversed seeded-shuffle; do
+            python "$producer" "$source" --entry-order "$mode" \
+              --output "/tmp/c049-corrected-node8-up-k-$mode.json"
+          done
+          cmp /tmp/c049-corrected-node8-up-k-original.json /tmp/c049-corrected-node8-up-k-reversed.json
+          cmp /tmp/c049-corrected-node8-up-k-original.json /tmp/c049-corrected-node8-up-k-seeded-shuffle.json
+          test "$(wc -c < /tmp/c049-corrected-node8-up-k-original.json)" = "5281800"
+          test "$(sha256sum /tmp/c049-corrected-node8-up-k-original.json | cut -d' ' -f1)" = \
+            "80b74b500ae82639e51568a9a6dc70a72668f32991add42bc5ffac05b3f9537f"
+
+      - name: Independent replay and digest-repaired tamper rejection
+        run: |
+          python experiments/direct/janus_c049_1_b4_6_3_corrected_node8_twenty_generator_up_k_verifier.py \
+            /tmp/pr114-corrected-node8.json \
+            /tmp/c049-corrected-node8-up-k-original.json \
+            --producer-source experiments/direct/janus_c049_1_b4_6_3_corrected_node8_twenty_generator_up_k.py \
+            --tamper-self-test
+
+      - name: Validate strict pending admission boundary
+        run: |
+          python - <<'PY'
+          import json
+          artifact=json.load(open('/tmp/c049-corrected-node8-up-k-original.json'))
+          proof=artifact['proof_payload']
+          assert artifact['semantic_digest']=='e0017e4e5de933e520c6ea374ef291c07bbbb373478c6f9952911cc376380622'
+          assert proof['candidate_status']=='CONSTRUCTIVE_CANDIDATE'
+          assert proof['admitted'] is False
+          hardening=proof['preorder_hardening']
+          assert hardening['ordered_pair_tests']==400
+          assert hardening['relation_edges']==20
+          assert hardening['cross_relation_edges']==0
+          assert hardening['retained_generator_count']==20
+          assert hardening['direct_removal_count']==0
+          assert hardening['pairwise_incomparable'] is True
+          closure=proof['reachable_closure']
+          assert closure['reachable_entry_count']==8676
+          assert closure['reachable_entries_digest']=='c6beadf320cf886765d5c8a804887cbf14d854b8f96fc6997058fd0cf0afe480'
+          assert closure['reachable_stream_sha256']=='c109730b8f3608d59059ff07a2235d42510be5cbcb5bac991eeb51a7991c7400'
+          assert proof['idempotence']['scalar_transitivity_checks']==1016
+          assert proof['invariant_vector']=={f'CN8U-INV-{i:02d}':'PASS' for i in range(1,13)}
+          boundary=proof['strict_boundary']
+          assert boundary['pr114_node8_refinement_admitted'] is True
+          assert boundary['corrected_node8_parent_up_k_candidate_complete'] is True
+          assert boundary['corrected_node8_parent_up_k_complete'] is False
+          assert boundary['corrected_node8_up_k_admitted'] is False
+          assert boundary['corrected_node9_parent_refinement_started'] is False
+          assert boundary['found_layout']=='FORBIDDEN'
+          assert boundary['no_layout_at_cap']=='FORBIDDEN'
+          assert boundary['p_vs_np']=='OPEN'
+          assert proof['next_gate_status']=='CLOSED_PENDING_EXACT_HEAD_CI_AND_ADMISSION'
+          PY
+
+      - name: Export twenty-generator candidate proof package
+        uses: actions/upload-artifact@v4
+        with:
+          name: c049-b4-6-3-corrected-node8-twenty-generator-up-k
+          path: |
+            /tmp/c049-corrected-node8-up-k-original.json
+            experiments/direct/janus_c049_1_b4_6_3_corrected_node8_twenty_generator_up_k.py
+            experiments/direct/janus_c049_1_b4_6_3_corrected_node8_twenty_generator_up_k_verifier.py
+          retention-days: 1
