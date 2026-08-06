@@ -1,0 +1,145 @@
+                increasing = values[0] <= values[-1] and all(
+                    values[0] <= value <= values[-1] for value in values[1:-1]
+                )
+                decreasing = values[0] >= values[-1] and all(
+                    values[0] >= value >= values[-1] for value in values[1:-1]
+                )
+                if increasing or decreasing:
+                    del current[start + 1 : end]
+                    changed = True
+                    break
+            if changed:
+                break
+        if not changed:
+            return tuple(current)
+
+
+def extension_preorder_witness(
+    lower: Sequence[Statistic], upper: Sequence[Statistic]
+) -> dict[str, Any] | None:
+    parent: dict[tuple[int, int], tuple[int, int] | None] = {}
+    for i, left in enumerate(lower):
+        for j, right in enumerate(upper):
+            if (
+                left.left != right.left
+                or left.right != right.right
+                or left.value > right.value
+            ):
+                continue
+            if (i, j) == (0, 0):
+                parent[(i, j)] = None
+                continue
+            for previous in ((i - 1, j - 1), (i - 1, j), (i, j - 1)):
+                if previous in parent:
+                    parent[(i, j)] = previous
+                    break
+    endpoint = (len(lower) - 1, len(upper) - 1)
+    if endpoint not in parent:
+        return None
+    path: list[tuple[int, int]] = []
+    cursor: tuple[int, int] | None = endpoint
+    while cursor is not None:
+        path.append(cursor)
+        cursor = parent[cursor]
+    path.reverse()
+    return {"path": [[i, j] for i, j in path], "path_length": len(path)}
+
+
+def ordinary_hv_paths(left_length: int, right_length: int) -> list[tuple[tuple[int, int], ...]]:
+    paths: list[tuple[tuple[int, int], ...]] = []
+
+    def visit(i: int, j: int, path: list[tuple[int, int]]) -> None:
+        if (i, j) == (left_length - 1, right_length - 1):
+            paths.append(tuple(path))
+            return
+        for di, dj in ((1, 0), (0, 1)):
+            next_i, next_j = i + di, j + dj
+            if next_i < left_length and next_j < right_length:
+                path.append((next_i, next_j))
+                visit(next_i, next_j, path)
+                path.pop()
+
+    visit(0, 0, [(0, 0)])
+    return sorted(paths)
+
+
+def reorder(items: list[Any], mode: str) -> list[Any]:
+    output = list(items)
+    if mode == "reversed":
+        output.reverse()
+    elif mode == "seeded-shuffle":
+        random.Random(0xC049115).shuffle(output)
+    elif mode != "original":
+        raise ValueError("unknown input order")
+    return output
+
+
+def load_sources(
+    upk_path: Path, bootstrap_path: Path, order_mode: str
+) -> tuple[dict[str, Any], dict[str, Any], list[dict[str, Any]]]:
+    if file_sha256(upk_path) != UPK_SHA256:
+        raise AssertionError("PR #113 frozen Node-7 up_k byte boundary drift")
+    upk = json.loads(upk_path.read_text(encoding="utf-8"))
+    if upk.get("semantic_digest") != UPK_SEMANTIC:
+        raise AssertionError("PR #113 Node-7 up_k semantic boundary drift")
+    if upk.get("reachable_closure", {}).get("entries_digest") != CLOSURE_DIGEST:
+        raise AssertionError("PR #113 closure digest drift")
+    if int(upk.get("reachable_closure", {}).get("entry_count", -1)) != EXPECTED_NODE7_ENTRIES:
+        raise AssertionError("PR #113 closure cardinality drift")
+
+    bootstrap = json.loads(bootstrap_path.read_text(encoding="utf-8"))
+    if bootstrap.get("schema") != BOOTSTRAP_SCHEMA:
+        raise AssertionError("PR #114 bootstrap schema drift")
+    if bootstrap.get("source", {}).get("base_exact_head") != "024afebb322c67953f310af48818d3386fdcfc27":
+        raise AssertionError("PR #114 source-head binding drift")
+    reconstruction = bootstrap.get("corrected_node7_reconstruction", {})
+    preflight = bootstrap.get("node8_attack_preflight", {})
+    if (
+        int(reconstruction.get("input_generators", -1)),
+        int(reconstruction.get("closure_entries", -1)),
+        reconstruction.get("closure_entries_digest"),
+    ) != (EXPECTED_NODE7_GENERATORS, EXPECTED_NODE7_ENTRIES, CLOSURE_DIGEST):
+        raise AssertionError("PR #114 reconstruction receipt drift")
+    if (
+        int(preflight.get("child_pairs", -1)),
+        int(preflight.get("ordinary_hv_refinements", -1)),
+        preflight.get("ordinary_join_steps"),
+        int(preflight.get("diagonal_join_steps", -1)),
+    ) != (
+        EXPECTED_NODE8_PAIRS,
+        EXPECTED_NODE8_HV_REFINEMENTS,
+        [[1, 0], [0, 1]],
+        0,
+    ):
+        raise AssertionError("PR #114 corrected Node-8 preflight drift")
+
+    generators: list[dict[str, Any]] = []
+    for item in reorder(list(upk["input_generators"]), order_mode):
+        raw = copy.deepcopy(item["trajectory"])
+        if len(raw) != 4 or any(int(stat["value"]) != 0 for stat in raw):
+            raise AssertionError("corrected Node-7 zero-envelope generator drift")
+        lifted = lift_trajectory(raw, LEFT_BOUNDARY, 3)
+        if len({(stat.left, stat.right) for stat in lifted}) != 4:
+            raise AssertionError("corrected Node-7 generator geometry is not injective")
+        generators.append(
+            {
+                "generator_id": str(item["generator_id"]),
+                "coordinate_trajectory": raw,
+                "ambient_trajectory": lifted,
+                "ambient_trajectory_digest": digest(encode_trajectory(lifted)),
+            }
+        )
+    generators.sort(key=lambda item: canonical_json(encode_trajectory(item["ambient_trajectory"])))
+    if len(generators) != EXPECTED_NODE7_GENERATORS:
+        raise AssertionError("corrected Node-7 generator count drift")
+    return upk, bootstrap, generators
+
+
+def seal(artifact: dict[str, Any]) -> dict[str, Any]:
+    output = copy.deepcopy(artifact)
+    output["certificate_bytes"] = 0
+    while True:
+        unsigned = dict(output)
+        unsigned.pop("semantic_digest", None)
+        output["semantic_digest"] = digest(unsigned)
+        raw = canonical_json(output) + b"\n"

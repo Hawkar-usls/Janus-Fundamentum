@@ -1,0 +1,157 @@
+name: Validate C049.1 B4.6.3 corrected Node-8 parent frontier compression
+
+on:
+  push:
+    paths:
+      - 'experiments/direct/janus_c049_1_b4_6_3_corrected_node8_parent_frontier_compression.py'
+      - 'experiments/direct/.cn8f_candidate_producer/**'
+      - 'experiments/direct/janus_c049_1_b4_6_3_corrected_node8_parent_frontier_compression_verifier.py'
+      - 'experiments/direct/.cn8f_candidate_verifier/**'
+      - 'docs/C049_1_B4_6_3_CORRECTED_NODE8_PARENT_FRONTIER_COMPRESSION.md'
+      - 'registry/c049-1-b4-6-3-corrected-node8-parent-frontier-compression.json'
+      - '.github/workflows/validate-c049-1-b4-6-3-corrected-node8-parent-frontier-compression.yml'
+  pull_request:
+    paths:
+      - 'experiments/direct/janus_c049_1_b4_6_3_corrected_node8_parent_frontier_compression.py'
+      - 'experiments/direct/.cn8f_candidate_producer/**'
+      - 'experiments/direct/janus_c049_1_b4_6_3_corrected_node8_parent_frontier_compression_verifier.py'
+      - 'experiments/direct/.cn8f_candidate_verifier/**'
+      - 'docs/C049_1_B4_6_3_CORRECTED_NODE8_PARENT_FRONTIER_COMPRESSION.md'
+      - 'registry/c049-1-b4-6-3-corrected-node8-parent-frontier-compression.json'
+      - '.github/workflows/validate-c049-1-b4-6-3-corrected-node8-parent-frontier-compression.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  corrected-node8-frontier-compression:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Verify exact stacked ancestry and independent source pair
+        run: |
+          git merge-base --is-ancestor cb1c1151c8a71defb72a86cb05ee4fec92ecc046 HEAD
+          python -m py_compile \
+            experiments/direct/janus_c049_1_b4_6_3_corrected_node8_parent_frontier_compression.py \
+            experiments/direct/janus_c049_1_b4_6_3_corrected_node8_parent_frontier_compression_verifier.py
+          python - <<'PY'
+          from pathlib import Path
+          root=Path('experiments/direct')
+          producer=b''.join(path.read_bytes() for path in sorted((root/'.cn8f_candidate_producer').iterdir()))
+          verifier=b''.join(path.read_bytes() for path in sorted((root/'.cn8f_candidate_verifier').iterdir()))
+          compile(producer,'corrected-node8-producer','exec')
+          compile(verifier,'corrected-node8-verifier','exec')
+          verifier=verifier.decode()
+          forbidden=(
+              'janus_c049_1_b4_6_3_corrected_node8_parent_frontier_compression import',
+              'janus_c049_1_b4_6_3_node8_parent_frontier_structural_compression',
+          )
+          assert not any(token in verifier for token in forbidden)
+          PY
+
+      - name: Replay admitted PR 114 bootstrap exactly
+        run: |
+          source=experiments/direct/C049_1_B4_6_3_CORRECTED_NODE7_SIX_GENERATOR_UP_K.frozen.json
+          bootstrap_producer=experiments/direct/janus_c049_1_b4_6_3_corrected_node7_integration_node8_parent_refinement.py
+          bootstrap_verifier=experiments/direct/janus_c049_1_b4_6_3_corrected_node7_integration_node8_parent_refinement_verifier.py
+          python "$bootstrap_producer" "$source" --entry-order original \
+            --output /tmp/c049-pr114-bootstrap.json
+          python "$bootstrap_verifier" "$source" /tmp/c049-pr114-bootstrap.json \
+            --tamper-self-test
+          python - <<'PY'
+          import json
+          a=json.load(open('/tmp/c049-pr114-bootstrap.json'))
+          assert a['corrected_node7_reconstruction']['closure_entries']==7776
+          assert a['node8_attack_preflight']['child_pairs']==279936
+          assert a['node8_attack_preflight']['ordinary_hv_refinements']==70875648
+          assert a['node8_attack_preflight']['ordinary_join_steps']==[[1,0],[0,1]]
+          assert a['node8_attack_preflight']['diagonal_join_steps']==0
+          PY
+
+      - name: Build deterministic corrected Node-8 compression candidate
+        run: |
+          source=experiments/direct/C049_1_B4_6_3_CORRECTED_NODE7_SIX_GENERATOR_UP_K.frozen.json
+          producer=experiments/direct/janus_c049_1_b4_6_3_corrected_node8_parent_frontier_compression.py
+          for mode in original reversed seeded-shuffle; do
+            python "$producer" "$source" /tmp/c049-pr114-bootstrap.json \
+              --entry-order "$mode" \
+              --output "/tmp/c049-corrected-node8-frontier-$mode.json"
+          done
+          cmp /tmp/c049-corrected-node8-frontier-original.json \
+              /tmp/c049-corrected-node8-frontier-reversed.json
+          cmp /tmp/c049-corrected-node8-frontier-original.json \
+              /tmp/c049-corrected-node8-frontier-seeded-shuffle.json
+
+      - name: Independent quotient replay and repaired tamper rejection
+        run: |
+          python \
+            experiments/direct/janus_c049_1_b4_6_3_corrected_node8_parent_frontier_compression_verifier.py \
+            experiments/direct/C049_1_B4_6_3_CORRECTED_NODE7_SIX_GENERATOR_UP_K.frozen.json \
+            /tmp/c049-pr114-bootstrap.json \
+            /tmp/c049-corrected-node8-frontier-original.json \
+            --tamper-self-test
+
+      - name: Enforce strict candidate boundary
+        run: |
+          python - <<'PY'
+          import json
+          artifact=json.load(open('/tmp/c049-corrected-node8-frontier-original.json'))
+          assert artifact['status']=='DRAFT_EXACT_HEAD_CI_REQUIRED'
+          exact=artifact['exact_frontier']
+          assert exact['child_pair_count']==279936
+          assert exact['ordinary_hv_refinement_count']==70875648
+          assert exact['cartesian_child_pairs_materialized']==0
+          assert exact['fine_lattice_paths_enumerated']==0
+          assert exact['diagonal_join_steps']==0
+          geometry=artifact['geometry']
+          assert geometry['join_correction_counts_over_quotient_cells']=={'0':120}
+          assert geometry['shrink_correction_counts_over_quotient_cells']=={'0':80,'1':40}
+          frontier=artifact['quotient_frontier']
+          assert frontier['pre_shrink_quotient_path_count']==24
+          assert frontier['post_shrink_class_count']==20
+          assert frontier['source_path_collision_count']==4
+          assert frontier['source_path_multiplicity_histogram']=={'1':16,'2':4}
+          assert frontier['local_direct_assignment_tests']==17424
+          boundary=artifact['admission_boundary']
+          assert boundary['pr114_corrected_node7_integration_admitted'] is True
+          assert boundary['corrected_node8_parent_refinement_started'] is True
+          assert boundary['corrected_node8_parent_generator_frontier_candidate_complete'] is True
+          assert boundary['corrected_node8_parent_frontier_compression_admitted'] is False
+          assert boundary['corrected_node8_parent_refinement_complete'] is False
+          assert boundary['corrected_node8_parent_up_k_complete'] is False
+          assert boundary['found_layout']=='FORBIDDEN'
+          assert boundary['no_layout_at_cap']=='FORBIDDEN'
+          assert boundary['p_vs_np']=='OPEN'
+          assert artifact['next_gate_status']=='CLOSED_PENDING_CURRENT_GATE_EXACT_HEAD_ADMISSION'
+
+          receipt=json.load(open('registry/c049-1-b4-6-3-corrected-node8-parent-frontier-compression.json'))
+          assert receipt['status']=='DRAFT_EXACT_HEAD_CI_REQUIRED'
+          assert receipt['admission_boundary']['corrected_node8_parent_frontier_compression_admitted'] is False
+          assert receipt['admission_boundary']['corrected_node8_parent_up_k_complete'] is False
+          assert receipt['admission_boundary']['found_layout_enabled'] is False
+          assert receipt['admission_boundary']['no_layout_at_cap_enabled'] is False
+          assert receipt['admission_boundary']['p_vs_np']=='OPEN'
+          PY
+
+      - name: Export corrected Node-8 candidate proof package
+        uses: actions/upload-artifact@v4
+        with:
+          name: c049-b4-6-3-corrected-node8-parent-frontier-compression-candidate
+          path: |
+            /tmp/c049-pr114-bootstrap.json
+            /tmp/c049-corrected-node8-frontier-original.json
+            experiments/direct/janus_c049_1_b4_6_3_corrected_node8_parent_frontier_compression.py
+            experiments/direct/.cn8f_candidate_producer
+            experiments/direct/janus_c049_1_b4_6_3_corrected_node8_parent_frontier_compression_verifier.py
+            experiments/direct/.cn8f_candidate_verifier
+            docs/C049_1_B4_6_3_CORRECTED_NODE8_PARENT_FRONTIER_COMPRESSION.md
+            registry/c049-1-b4-6-3-corrected-node8-parent-frontier-compression.json
+          retention-days: 1

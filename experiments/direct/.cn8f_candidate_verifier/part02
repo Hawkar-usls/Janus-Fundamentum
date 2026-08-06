@@ -1,0 +1,143 @@
+
+            envelope = reduce_typical(projected)
+            if len(envelope) != 5 or max(point.value for point in envelope) != 1:
+                raise AssertionError("post-shrink envelope")
+            source = {
+                "left_class_id": class_id,
+                "local_path_index": local_index,
+                "quotient_path": [[i, j] for i, j in path],
+                "join_corrections": join_values,
+                "shrink_corrections": shrink_values,
+                "projected_precompact": encode(projected),
+            }
+            key = canonical_json(encode(envelope))
+            buckets.setdefault(
+                key,
+                {"generator": encode(envelope), "sources": [], "assignment_tests": 0},
+            )["sources"].append(source)
+
+            count = 0
+            choices = [PATTERNS if correction == 0 else ((1,),) for correction in shrink_values]
+            for assignment in itertools.product(*choices):
+                upper_raw: list[Point] = []
+                for point, pattern in zip(projected, assignment):
+                    upper_raw.extend(
+                        Point(point.left, point.right, int(value)) for value in pattern
+                    )
+                upper = reduce_typical(upper_raw)
+                if not direct_extension(envelope, upper):
+                    raise AssertionError("direct coverage")
+                count += 1
+            buckets[key]["assignment_tests"] += count
+            direct_tests += count
+
+    if (path_count, cell_count, len(buckets), direct_tests) != (24, 120, 20, 17424):
+        raise AssertionError("compressed frontier counts")
+    if join_counts != {0: 120} or shrink_counts != {0: 80, 1: 40}:
+        raise AssertionError("correction ledgers")
+
+    classes: list[dict[str, Any]] = []
+    path_map: list[dict[str, Any]] = []
+    for index, key in enumerate(sorted(buckets)):
+        record = buckets[key]
+        class_id = f"CN8-S{index:02d}"
+        sources = sorted(record["sources"], key=canonical_json)
+        generator = record["generator"]
+        classes.append(
+            {
+                "class_id": class_id,
+                "canonical_generator": generator,
+                "generator_digest": sha(generator),
+                "length": len(generator),
+                "width": max(int(point["value"]) for point in generator),
+                "source_path_multiplicity": len(sources),
+                "canonical_reachability_witness": sources[0],
+                "source_path_digest": sha(sources),
+                "local_direct_assignment_tests": int(record["assignment_tests"]),
+            }
+        )
+        for source in sources:
+            path_map.append(
+                {
+                    "left_class_id": source["left_class_id"],
+                    "local_path_index": source["local_path_index"],
+                    "class_id": class_id,
+                    "quotient_path": source["quotient_path"],
+                    "shrink_corrections": source["shrink_corrections"],
+                }
+            )
+    path_map.sort(key=canonical_json)
+    multiplicities: dict[str, int] = {}
+    for item in classes:
+        key = str(item["source_path_multiplicity"])
+        multiplicities[key] = multiplicities.get(key, 0) + 1
+    if multiplicities != {"1": 16, "2": 4}:
+        raise AssertionError("multiplicity ledger")
+
+    return {
+        "upk": upk,
+        "bootstrap": bootstrap,
+        "classes": classes,
+        "path_map": path_map,
+        "join_counts": join_counts,
+        "shrink_counts": shrink_counts,
+        "path_count": path_count,
+        "cell_count": cell_count,
+        "direct_tests": direct_tests,
+        "multiplicities": multiplicities,
+    }
+
+
+def verify(candidate: dict[str, Any], replayed: dict[str, Any]) -> None:
+    if seal(candidate) != candidate:
+        raise AssertionError("candidate semantic or fixed-point byte seal")
+    if candidate.get("schema") != SCHEMA:
+        raise AssertionError("candidate schema")
+    source = candidate.get("source", {})
+    if (
+        source.get("base_pr"),
+        source.get("base_exact_head"),
+        source.get("corrected_node7_up_k_sha256"),
+        source.get("corrected_node7_up_k_semantic_digest"),
+        source.get("corrected_node7_closure_digest"),
+        source.get("pr114_bootstrap_schema"),
+        source.get("pr114_bootstrap_semantic_digest"),
+        int(source.get("pr114_bootstrap_certificate_bytes", -1)),
+        int(source.get("pr113_source_certificate_bytes", -1)),
+    ) != (
+        114,
+        BASE_HEAD,
+        UPK_SHA256,
+        UPK_SEMANTIC,
+        CLOSURE_DIGEST,
+        BOOTSTRAP_SCHEMA,
+        replayed["bootstrap"]["semantic_digest"],
+        int(replayed["bootstrap"]["certificate_bytes"]),
+        int(replayed["upk"]["certificate_bytes"]),
+    ):
+        raise AssertionError("source bindings")
+
+    exact = candidate.get("exact_frontier", {})
+    if (
+        int(exact.get("left_entry_count", -1)),
+        int(exact.get("right_entry_count", -1)),
+        int(exact.get("child_pair_count", -1)),
+        int(exact.get("ordinary_hv_refinement_count", -1)),
+        int(exact.get("cartesian_child_pairs_materialized", -1)),
+        int(exact.get("fine_lattice_paths_enumerated", -1)),
+        int(exact.get("diagonal_join_steps", -1)),
+    ) != (7776, 36, 279936, 70875648, 0, 0, 0):
+        raise AssertionError("exact frontier")
+
+    geometry = candidate.get("geometry", {})
+    if (
+        geometry.get("left_boundary"),
+        geometry.get("right_boundary"),
+        geometry.get("common_boundary"),
+        geometry.get("parent_boundary"),
+        geometry.get("join_lambda_correction_identically_zero"),
+        geometry.get("shrink_is_identity"),
+        geometry.get("join_correction_counts_over_quotient_cells"),
+        geometry.get("shrink_correction_counts_over_quotient_cells"),
+    ) != (
+        [4, 2],

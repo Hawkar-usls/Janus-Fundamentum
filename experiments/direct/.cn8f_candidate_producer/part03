@@ -1,0 +1,145 @@
+                {
+                    "left_class_id": source["left_class_id"],
+                    "local_path_index": source["local_path_index"],
+                    "class_id": class_id,
+                    "quotient_path": source["quotient_path"],
+                    "shrink_corrections": source["shrink_corrections"],
+                }
+            )
+    path_to_class.sort(key=canonical_json)
+
+    multiplicity_histogram: dict[str, int] = {}
+    for item in classes:
+        key = str(item["source_path_multiplicity"])
+        multiplicity_histogram[key] = multiplicity_histogram.get(key, 0) + 1
+    if multiplicity_histogram != {"1": 16, "2": 4}:
+        raise AssertionError("corrected Node-8 multiplicity histogram drift")
+
+    artifact = {
+        "schema": SCHEMA,
+        "status": "DRAFT_EXACT_HEAD_CI_REQUIRED",
+        "source": {
+            "base_pr": BASE_PR,
+            "base_exact_head": BASE_EXACT_HEAD,
+            "corrected_node7_up_k_sha256": UPK_SHA256,
+            "corrected_node7_up_k_semantic_digest": UPK_SEMANTIC,
+            "corrected_node7_closure_digest": CLOSURE_DIGEST,
+            "pr114_bootstrap_schema": BOOTSTRAP_SCHEMA,
+            "pr114_bootstrap_semantic_digest": bootstrap["semantic_digest"],
+            "pr114_bootstrap_certificate_bytes": int(bootstrap["certificate_bytes"]),
+            "pr113_source_certificate_bytes": int(upk["certificate_bytes"]),
+        },
+        "exact_frontier": {
+            "left_child_node_id": 7,
+            "right_child_leaf_id": 3,
+            "left_entry_count": EXPECTED_NODE7_ENTRIES,
+            "right_entry_count": 36,
+            "child_pair_count": EXPECTED_NODE8_PAIRS,
+            "ordinary_hv_refinement_count": EXPECTED_NODE8_HV_REFINEMENTS,
+            "cartesian_child_pairs_materialized": 0,
+            "fine_lattice_paths_enumerated": 0,
+            "diagonal_join_steps": 0,
+        },
+        "geometry": {
+            "ambient_dim": 3,
+            "k": 1,
+            "left_boundary": list(LEFT_BOUNDARY),
+            "right_boundary": list(RIGHT_BOUNDARY),
+            "common_boundary": list(COMMON_BOUNDARY),
+            "parent_boundary": list(PARENT_BOUNDARY),
+            "left_expand_identity": True,
+            "join_lambda_correction_identically_zero": True,
+            "shrink_is_identity": False,
+            "join_correction_counts_over_quotient_cells": {"0": EXPECTED_QUOTIENT_CELLS},
+            "shrink_correction_counts_over_quotient_cells": {
+                "0": EXPECTED_SHRINK_COUNTS[0],
+                "1": EXPECTED_SHRINK_COUNTS[1],
+            },
+        },
+        "quotient_frontier": {
+            "left_zero_envelope_class_count": EXPECTED_NODE7_GENERATORS,
+            "right_zero_envelope_class_count": 1,
+            "ordinary_hv_paths_per_left_class": 4,
+            "pre_shrink_quotient_path_count": quotient_paths,
+            "quotient_cell_count": quotient_cells,
+            "post_shrink_class_count": len(classes),
+            "source_path_collision_count": quotient_paths - len(classes),
+            "source_path_multiplicity_histogram": multiplicity_histogram,
+            "class_length_histogram": {"5": len(classes)},
+            "class_width_histogram": {"1": len(classes)},
+            "classes": classes,
+            "path_to_class": path_to_class,
+            "class_catalog_digest": digest(classes),
+            "path_partition_digest": digest(path_to_class),
+            "all_zero_envelopes_reachable": True,
+            "all_zero_envelopes_width_at_most_k": True,
+            "universal_direct_coverage": True,
+            "local_direct_assignment_tests": local_assignment_tests,
+            "direct_witness_kind": "EXTENSION_PREORDER_DIRECT",
+            "transitive_closure_used": False,
+        },
+        "work_ledger": {
+            "node7_generators_read": len(generators),
+            "right_zero_generators_read": 1,
+            "quotient_paths_enumerated": quotient_paths,
+            "quotient_cells_checked": quotient_cells,
+            "post_shrink_classes_materialized": len(classes),
+            "local_direct_witness_assignments_tested": local_assignment_tests,
+            "naive_child_pairs_avoided": EXPECTED_NODE8_PAIRS,
+            "naive_hv_refinements_avoided": EXPECTED_NODE8_HV_REFINEMENTS,
+        },
+        "invariant_vector": {f"CN8-INV-{index:02d}": "PASS" for index in range(1, 13)},
+        "result": "CORRECTED_NODE8_PARENT_FRONTIER_COMPRESSION_CANDIDATE",
+        "admission_boundary": {
+            "pr114_corrected_node7_integration_admitted": True,
+            "corrected_node8_parent_refinement_started": True,
+            "corrected_node8_parent_generator_frontier_candidate_complete": True,
+            "corrected_node8_parent_frontier_compression_admitted": False,
+            "corrected_node8_parent_refinement_complete": False,
+            "corrected_node8_parent_up_k_complete": False,
+            "corrected_node8_integrated_into_bottom_up_executor": False,
+            "corrected_bottom_up_replay_complete": False,
+            "root_parent_refinement_complete": False,
+            "root_full_set_computed": False,
+            "root_empty_proved": False,
+            "found_layout": "FORBIDDEN",
+            "no_layout_at_cap": "FORBIDDEN",
+            "current_global_terminal": TERMINAL,
+            "p_vs_np": "OPEN",
+        },
+        "next_gate_status": "CLOSED_PENDING_CURRENT_GATE_EXACT_HEAD_ADMISSION",
+        "certificate_bytes": 0,
+    }
+    return seal(artifact)
+
+
+def main() -> None:
+    parser = argparse.ArgumentParser()
+    parser.add_argument("upk", type=Path)
+    parser.add_argument("bootstrap", type=Path)
+    parser.add_argument("--output", required=True, type=Path)
+    parser.add_argument(
+        "--entry-order",
+        default="original",
+        choices=("original", "reversed", "seeded-shuffle"),
+    )
+    args = parser.parse_args()
+    artifact = build(args.upk, args.bootstrap, args.entry_order)
+    args.output.write_bytes(canonical_json(artifact) + b"\n")
+    print(
+        json.dumps(
+            {
+                "artifact_bytes": args.output.stat().st_size,
+                "artifact_sha256": file_sha256(args.output),
+                "semantic_digest": artifact["semantic_digest"],
+                "quotient_paths": artifact["quotient_frontier"]["pre_shrink_quotient_path_count"],
+                "post_shrink_classes": artifact["quotient_frontier"]["post_shrink_class_count"],
+                "local_direct_assignment_tests": artifact["quotient_frontier"]["local_direct_assignment_tests"],
+            },
+            sort_keys=True,
+        )
+    )
+
+
+if __name__ == "__main__":
+    main()

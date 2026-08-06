@@ -1,0 +1,145 @@
+#!/usr/bin/env python3
+from __future__ import annotations
+
+import argparse
+import copy
+import hashlib
+import itertools
+import json
+import random
+from dataclasses import dataclass
+from pathlib import Path
+from typing import Any, Iterable, Sequence
+
+SCHEMA = "C049.1-B4.6.3-CORRECTED-NODE8-PARENT-FRONTIER-COMPRESSION-CANDIDATE-v1"
+BASE_PR = 114
+BASE_EXACT_HEAD = "cb1c1151c8a71defb72a86cb05ee4fec92ecc046"
+UPK_SHA256 = "924e55a651518ce004964f5d7c5ea30e67424ca34507f18eb568341fc96528e0"
+UPK_SEMANTIC = "cfd99ea716076414847749fb98185cea63c2cf44e9ceaa659bf37eb9e8fc366a"
+CLOSURE_DIGEST = "99a702ea7005e4a41d99fc4454040314ab106632672b267bffb5f59e29afa728"
+BOOTSTRAP_SCHEMA = "C049.1-B4.6.3-CORRECTED-NODE7-INTEGRATION-NODE8-ATTACK-BOOTSTRAP-v1"
+TERMINAL = "OPEN_TRAJECTORY_ENGINE_INCOMPLETE"
+PATTERNS: tuple[tuple[int, ...], ...] = (
+    (0,), (0, 1), (0, 1, 0), (1,), (1, 0), (1, 0, 1)
+)
+LEFT_BOUNDARY = (4, 2)
+RIGHT_BOUNDARY = (3,)
+COMMON_BOUNDARY = (4, 2, 1)
+PARENT_BOUNDARY = (4, 1)
+EXPECTED_NODE7_GENERATORS = 6
+EXPECTED_NODE7_ENTRIES = 7776
+EXPECTED_NODE8_PAIRS = 279936
+EXPECTED_NODE8_HV_REFINEMENTS = 70875648
+EXPECTED_QUOTIENT_PATHS = 24
+EXPECTED_QUOTIENT_CELLS = 120
+EXPECTED_POST_SHRINK_CLASSES = 20
+EXPECTED_COLLISIONS = 4
+EXPECTED_SHRINK_COUNTS = {0: 80, 1: 40}
+EXPECTED_LOCAL_ASSIGNMENTS = 17424
+
+
+@dataclass(frozen=True, order=True)
+class Statistic:
+    left: tuple[int, ...]
+    right: tuple[int, ...]
+    value: int
+
+
+def canonical_json(value: Any) -> bytes:
+    return json.dumps(value, sort_keys=True, separators=(",", ":")).encode("utf-8")
+
+
+def digest(value: Any) -> str:
+    return hashlib.sha256(canonical_json(value)).hexdigest()
+
+
+def file_sha256(path: Path) -> str:
+    return hashlib.sha256(path.read_bytes()).hexdigest()
+
+
+def xor_basis(rows: Iterable[int], ambient_dim: int) -> tuple[int, ...]:
+    table: dict[int, int] = {}
+    for raw in rows:
+        value = int(raw)
+        if value < 0 or value >= (1 << ambient_dim):
+            raise AssertionError("vector outside ambient GF(2) space")
+        while value:
+            pivot = value.bit_length() - 1
+            if pivot in table:
+                value ^= table[pivot]
+                continue
+            table[pivot] = value
+            for other, row in list(table.items()):
+                if other != pivot and ((row >> pivot) & 1):
+                    table[other] = row ^ value
+            break
+    for pivot in sorted(table):
+        for other in sorted(table, reverse=True):
+            if other != pivot and ((table[other] >> pivot) & 1):
+                table[other] ^= table[pivot]
+    return tuple(table[pivot] for pivot in sorted(table, reverse=True))
+
+
+def span_vectors(space: Sequence[int]) -> set[int]:
+    output = {0}
+    for row in space:
+        output |= {value ^ int(row) for value in tuple(output)}
+    return output
+
+
+def subspace_sum(left: Sequence[int], right: Sequence[int], ambient_dim: int) -> tuple[int, ...]:
+    return xor_basis((*left, *right), ambient_dim)
+
+
+def subspace_intersection(left: Sequence[int], right: Sequence[int], ambient_dim: int) -> tuple[int, ...]:
+    return xor_basis(span_vectors(left) & span_vectors(right), ambient_dim)
+
+
+def coordinate_space_to_ambient(space: Sequence[int], basis: Sequence[int], ambient_dim: int) -> tuple[int, ...]:
+    rows: list[int] = []
+    for mask in space:
+        value = 0
+        for index, row in enumerate(basis):
+            if (int(mask) >> index) & 1:
+                value ^= int(row)
+        rows.append(value)
+    return xor_basis(rows, ambient_dim)
+
+
+def lift_trajectory(raw: Sequence[dict[str, Any]], basis: Sequence[int], ambient_dim: int) -> tuple[Statistic, ...]:
+    return tuple(
+        Statistic(
+            coordinate_space_to_ambient(item["left"], basis, ambient_dim),
+            coordinate_space_to_ambient(item["right"], basis, ambient_dim),
+            int(item["value"]),
+        )
+        for item in raw
+    )
+
+
+def encode_trajectory(trajectory: Sequence[Statistic]) -> list[dict[str, Any]]:
+    return [
+        {"left": list(item.left), "right": list(item.right), "value": int(item.value)}
+        for item in trajectory
+    ]
+
+
+def compactify(trajectory: Sequence[Statistic]) -> tuple[Statistic, ...]:
+    current = list(trajectory)
+    while True:
+        changed = False
+        for index in range(1, len(current)):
+            if current[index - 1] == current[index]:
+                current.pop(index)
+                changed = True
+                break
+        if changed:
+            continue
+        for start in range(len(current)):
+            for end in range(start + 2, len(current)):
+                if (current[start].left, current[start].right) != (
+                    current[end].left,
+                    current[end].right,
+                ):
+                    continue
+                values = [item.value for item in current[start : end + 1]]

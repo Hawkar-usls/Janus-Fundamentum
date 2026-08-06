@@ -1,0 +1,142 @@
+        [3],
+        [4, 2, 1],
+        [4, 1],
+        True,
+        False,
+        {"0": 120},
+        {"0": 80, "1": 40},
+    ):
+        raise AssertionError("geometry and corrections")
+
+    frontier = candidate.get("quotient_frontier", {})
+    if (
+        int(frontier.get("left_zero_envelope_class_count", -1)),
+        int(frontier.get("right_zero_envelope_class_count", -1)),
+        int(frontier.get("ordinary_hv_paths_per_left_class", -1)),
+        int(frontier.get("pre_shrink_quotient_path_count", -1)),
+        int(frontier.get("quotient_cell_count", -1)),
+        int(frontier.get("post_shrink_class_count", -1)),
+        int(frontier.get("source_path_collision_count", -1)),
+        frontier.get("source_path_multiplicity_histogram"),
+        frontier.get("class_length_histogram"),
+        frontier.get("class_width_histogram"),
+        int(frontier.get("local_direct_assignment_tests", -1)),
+        frontier.get("direct_witness_kind"),
+        frontier.get("transitive_closure_used"),
+    ) != (
+        6,
+        1,
+        4,
+        24,
+        120,
+        20,
+        4,
+        {"1": 16, "2": 4},
+        {"5": 20},
+        {"1": 20},
+        17424,
+        "EXTENSION_PREORDER_DIRECT",
+        False,
+    ):
+        raise AssertionError("quotient frontier ledger")
+    if frontier.get("classes") != replayed["classes"]:
+        raise AssertionError("independent class catalog replay")
+    if frontier.get("path_to_class") != replayed["path_map"]:
+        raise AssertionError("independent quotient partition replay")
+    if frontier.get("class_catalog_digest") != sha(replayed["classes"]):
+        raise AssertionError("class catalog digest")
+    if frontier.get("path_partition_digest") != sha(replayed["path_map"]):
+        raise AssertionError("path partition digest")
+    if not all(
+        frontier.get(key) is True
+        for key in (
+            "all_zero_envelopes_reachable",
+            "all_zero_envelopes_width_at_most_k",
+            "universal_direct_coverage",
+        )
+    ):
+        raise AssertionError("coverage flags")
+
+    if candidate.get("invariant_vector") != {
+        f"CN8-INV-{index:02d}": "PASS" for index in range(1, 13)
+    }:
+        raise AssertionError("invariant vector")
+    if candidate.get("result") != "CORRECTED_NODE8_PARENT_FRONTIER_COMPRESSION_CANDIDATE":
+        raise AssertionError("candidate result")
+    boundary = candidate.get("admission_boundary", {})
+    expected_boundary = {
+        "pr114_corrected_node7_integration_admitted": True,
+        "corrected_node8_parent_refinement_started": True,
+        "corrected_node8_parent_generator_frontier_candidate_complete": True,
+        "corrected_node8_parent_frontier_compression_admitted": False,
+        "corrected_node8_parent_refinement_complete": False,
+        "corrected_node8_parent_up_k_complete": False,
+        "corrected_node8_integrated_into_bottom_up_executor": False,
+        "corrected_bottom_up_replay_complete": False,
+        "root_parent_refinement_complete": False,
+        "root_full_set_computed": False,
+        "root_empty_proved": False,
+        "found_layout": "FORBIDDEN",
+        "no_layout_at_cap": "FORBIDDEN",
+        "current_global_terminal": TERMINAL,
+        "p_vs_np": "OPEN",
+    }
+    if boundary != expected_boundary:
+        raise AssertionError("strict admission boundary")
+    if candidate.get("next_gate_status") != "CLOSED_PENDING_CURRENT_GATE_EXACT_HEAD_ADMISSION":
+        raise AssertionError("next gate must remain closed")
+
+
+def repaired_tamper_tests(candidate: dict[str, Any], replayed: dict[str, Any]) -> int:
+    mutations = []
+
+    def add(mutator):
+        item = copy.deepcopy(candidate)
+        mutator(item)
+        mutations.append(seal(item))
+
+    add(lambda item: item["source"].__setitem__("base_exact_head", "0" * 40))
+    add(lambda item: item["exact_frontier"].__setitem__("diagonal_join_steps", 1))
+    add(lambda item: item["geometry"]["shrink_correction_counts_over_quotient_cells"].__setitem__("1", 39))
+    add(lambda item: item["quotient_frontier"].__setitem__("pre_shrink_quotient_path_count", 25))
+    add(lambda item: item["quotient_frontier"]["classes"].pop())
+    add(lambda item: item["quotient_frontier"]["path_to_class"][0].__setitem__("class_id", "CN8-S99"))
+    add(lambda item: item["quotient_frontier"].__setitem__("local_direct_assignment_tests", 17423))
+    add(lambda item: item["admission_boundary"].__setitem__("corrected_node8_parent_frontier_compression_admitted", True))
+    add(lambda item: item.__setitem__("next_gate_status", "OPEN"))
+    add(lambda item: item["admission_boundary"].__setitem__("p_vs_np", "RESOLVED"))
+
+    rejected = 0
+    for tampered in mutations:
+        try:
+            verify(tampered, replayed)
+        except AssertionError:
+            rejected += 1
+    if rejected != len(mutations):
+        raise AssertionError("digest-repaired tamper escaped")
+    return rejected
+
+
+def main() -> None:
+    parser = argparse.ArgumentParser()
+    parser.add_argument("upk", type=Path)
+    parser.add_argument("bootstrap", type=Path)
+    parser.add_argument("candidate", type=Path)
+    parser.add_argument("--tamper-self-test", action="store_true")
+    args = parser.parse_args()
+
+    replayed = replay(args.upk, args.bootstrap)
+    candidate = json.loads(args.candidate.read_text(encoding="utf-8"))
+    verify(candidate, replayed)
+    rejected = repaired_tamper_tests(candidate, replayed) if args.tamper_self_test else 0
+    print("JANUS_C049_1_B4_6_3_CORRECTED_NODE8_FRONTIER_VERIFIER = PASS")
+    print("INVARIANTS = 12/12")
+    print("QUOTIENT_PATHS =", replayed["path_count"])
+    print("POST_SHRINK_CLASSES =", len(replayed["classes"]))
+    print("LOCAL_DIRECT_ASSIGNMENTS =", replayed["direct_tests"])
+    if args.tamper_self_test:
+        print(f"DIGEST_REPAIRED_TAMPERS_REJECTED = {rejected}/10")
+
+
+if __name__ == "__main__":
+    main()

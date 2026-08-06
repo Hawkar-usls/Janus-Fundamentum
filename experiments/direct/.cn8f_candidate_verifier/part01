@@ -1,0 +1,143 @@
+                    break
+            if changed:
+                break
+        if not changed:
+            return tuple(current)
+
+
+def direct_extension(lower: Sequence[Point], upper: Sequence[Point]) -> bool:
+    reachable: set[tuple[int, int]] = set()
+    for i, left in enumerate(lower):
+        for j, right in enumerate(upper):
+            if (
+                left.left != right.left
+                or left.right != right.right
+                or left.value > right.value
+            ):
+                continue
+            if (i, j) == (0, 0) or any(
+                previous in reachable
+                for previous in ((i - 1, j - 1), (i - 1, j), (i, j - 1))
+            ):
+                reachable.add((i, j))
+    return (len(lower) - 1, len(upper) - 1) in reachable
+
+
+def hv_paths(m: int, n: int) -> list[tuple[tuple[int, int], ...]]:
+    output: list[tuple[tuple[int, int], ...]] = []
+
+    def walk(i: int, j: int, path: list[tuple[int, int]]) -> None:
+        if (i, j) == (m - 1, n - 1):
+            output.append(tuple(path))
+            return
+        if i + 1 < m:
+            path.append((i + 1, j))
+            walk(i + 1, j, path)
+            path.pop()
+        if j + 1 < n:
+            path.append((i, j + 1))
+            walk(i, j + 1, path)
+            path.pop()
+
+    walk(0, 0, [(0, 0)])
+    return sorted(output)
+
+
+def seal(artifact: dict[str, Any]) -> dict[str, Any]:
+    output = copy.deepcopy(artifact)
+    output["certificate_bytes"] = 0
+    while True:
+        unsigned = dict(output)
+        unsigned.pop("semantic_digest", None)
+        output["semantic_digest"] = sha(unsigned)
+        raw = canonical_json(output) + b"\n"
+        if int(output["certificate_bytes"]) == len(raw):
+            return output
+        output["certificate_bytes"] = len(raw)
+
+
+def replay(upk_path: Path, bootstrap_path: Path) -> dict[str, Any]:
+    if file_sha(upk_path) != UPK_SHA256:
+        raise AssertionError("up_k byte binding")
+    upk = json.loads(upk_path.read_text(encoding="utf-8"))
+    if upk.get("semantic_digest") != UPK_SEMANTIC:
+        raise AssertionError("up_k semantic binding")
+    if (
+        int(upk["reachable_closure"]["entry_count"]),
+        upk["reachable_closure"]["entries_digest"],
+    ) != (7776, CLOSURE_DIGEST):
+        raise AssertionError("up_k closure receipt")
+
+    bootstrap = json.loads(bootstrap_path.read_text(encoding="utf-8"))
+    if bootstrap.get("schema") != BOOTSTRAP_SCHEMA:
+        raise AssertionError("bootstrap schema")
+    if (
+        int(bootstrap["corrected_node7_reconstruction"]["closure_entries"]),
+        bootstrap["corrected_node7_reconstruction"]["closure_entries_digest"],
+        int(bootstrap["node8_attack_preflight"]["child_pairs"]),
+        int(bootstrap["node8_attack_preflight"]["ordinary_hv_refinements"]),
+        bootstrap["node8_attack_preflight"]["ordinary_join_steps"],
+        int(bootstrap["node8_attack_preflight"]["diagonal_join_steps"]),
+    ) != (7776, CLOSURE_DIGEST, 279936, 70875648, [[1, 0], [0, 1]], 0):
+        raise AssertionError("bootstrap theorem receipt")
+
+    left_generators: list[tuple[str, tuple[Point, ...]]] = []
+    for item in upk["input_generators"]:
+        trajectory = lift(item["trajectory"], LEFT_BASIS)
+        if len(trajectory) != 4 or any(point.value != 0 for point in trajectory):
+            raise AssertionError("left zero envelope")
+        left_generators.append((str(item["generator_id"]), trajectory))
+    left_generators.sort(key=lambda item: canonical_json(encode(item[1])))
+    if len(left_generators) != 6:
+        raise AssertionError("left class count")
+
+    right = lift(
+        [
+            {"left": [], "right": [1], "value": 0},
+            {"left": [1], "right": [], "value": 0},
+        ],
+        RIGHT_BASIS,
+    )
+    if add_spaces(LEFT_BASIS, RIGHT_BASIS) != COMMON:
+        raise AssertionError("common boundary")
+
+    buckets: dict[bytes, dict[str, Any]] = {}
+    join_counts = {0: 0}
+    shrink_counts = {0: 0, 1: 0}
+    path_count = 0
+    cell_count = 0
+    direct_tests = 0
+
+    for class_id, left in left_generators:
+        initial = meet_spaces(left[0].right, right[0].right)
+        for local_index, path in enumerate(hv_paths(4, 2)):
+            path_count += 1
+            projected: list[Point] = []
+            join_values: list[int] = []
+            shrink_values: list[int] = []
+            for i, j in path:
+                cell_count += 1
+                left_point = left[i]
+                right_point = right[j]
+                joined_left = add_spaces(left_point.left, right_point.left)
+                joined_right = add_spaces(left_point.right, right_point.right)
+                current = meet_spaces(
+                    add_spaces(left_point.left, left_point.right),
+                    add_spaces(right_point.left, right_point.right),
+                )
+                join_correction = len(initial) - len(current)
+                if join_correction != 0:
+                    raise AssertionError("nonzero join correction")
+                join_counts[0] += 1
+
+                joined_meet = meet_spaces(joined_left, joined_right)
+                projected_left = meet_spaces(joined_left, PARENT)
+                projected_right = meet_spaces(joined_right, PARENT)
+                projected_meet = meet_spaces(joined_meet, PARENT)
+                shrink = len(joined_meet) - len(projected_meet)
+                if shrink not in (0, 1):
+                    raise AssertionError("shrink correction range")
+                shrink_counts[shrink] += 1
+                join_values.append(join_correction)
+                shrink_values.append(shrink)
+                projected.append(Point(projected_left, projected_right, shrink))

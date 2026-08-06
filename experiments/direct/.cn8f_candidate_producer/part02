@@ -1,0 +1,145 @@
+        if int(output["certificate_bytes"]) == len(raw):
+            return output
+        output["certificate_bytes"] = len(raw)
+
+
+def build(upk_path: Path, bootstrap_path: Path, order_mode: str) -> dict[str, Any]:
+    upk, bootstrap, generators = load_sources(upk_path, bootstrap_path, order_mode)
+    right_zero = lift_trajectory(
+        [
+            {"left": [], "right": [1], "value": 0},
+            {"left": [1], "right": [], "value": 0},
+        ],
+        RIGHT_BOUNDARY,
+        3,
+    )
+    common = subspace_sum(LEFT_BOUNDARY, RIGHT_BOUNDARY, 3)
+    if common != COMMON_BOUNDARY:
+        raise AssertionError("corrected Node-8 common boundary drift")
+
+    unique_envelopes: dict[bytes, dict[str, Any]] = {}
+    quotient_paths = 0
+    quotient_cells = 0
+    join_correction_counts: dict[int, int] = {0: 0}
+    shrink_correction_counts: dict[int, int] = {0: 0, 1: 0}
+    local_assignment_tests = 0
+
+    for generator in generators:
+        left_zero = generator["ambient_trajectory"]
+        initial_intersection = subspace_intersection(
+            left_zero[0].right, right_zero[0].right, 3
+        )
+        paths = ordinary_hv_paths(len(left_zero), len(right_zero))
+        if len(paths) != 4:
+            raise AssertionError("4x2 ordinary H/V quotient-path count drift")
+        for local_path_index, path in enumerate(paths):
+            quotient_paths += 1
+            projected_precompact: list[Statistic] = []
+            join_corrections: list[int] = []
+            shrink_corrections: list[int] = []
+            for i, j in path:
+                quotient_cells += 1
+                left = left_zero[i]
+                right = right_zero[j]
+                joined_left = subspace_sum(left.left, right.left, 3)
+                joined_right = subspace_sum(left.right, right.right, 3)
+                left_span = subspace_sum(left.left, left.right, 3)
+                right_span = subspace_sum(right.left, right.right, 3)
+                current_intersection = subspace_intersection(left_span, right_span, 3)
+                join_correction = len(initial_intersection) - len(current_intersection)
+                if join_correction != 0:
+                    raise AssertionError("corrected Node-8 join correction is not zero")
+                join_correction_counts[0] += 1
+
+                joined_intersection = subspace_intersection(joined_left, joined_right, 3)
+                projected_left = subspace_intersection(joined_left, PARENT_BOUNDARY, 3)
+                projected_right = subspace_intersection(joined_right, PARENT_BOUNDARY, 3)
+                projected_intersection = subspace_intersection(
+                    joined_intersection, PARENT_BOUNDARY, 3
+                )
+                shrink_correction = len(joined_intersection) - len(projected_intersection)
+                if shrink_correction not in (0, 1):
+                    raise AssertionError("corrected Node-8 shrink correction outside {0,1}")
+                shrink_correction_counts[shrink_correction] += 1
+                join_corrections.append(join_correction)
+                shrink_corrections.append(shrink_correction)
+                projected_precompact.append(
+                    Statistic(projected_left, projected_right, shrink_correction)
+                )
+
+            envelope = compactify(projected_precompact)
+            if len(envelope) != 5 or max(item.value for item in envelope) != 1:
+                raise AssertionError("corrected Node-8 post-shrink envelope boundary drift")
+            source = {
+                "left_class_id": generator["generator_id"],
+                "local_path_index": local_path_index,
+                "quotient_path": [[i, j] for i, j in path],
+                "join_corrections": join_corrections,
+                "shrink_corrections": shrink_corrections,
+                "projected_precompact": encode_trajectory(projected_precompact),
+            }
+            key = canonical_json(encode_trajectory(envelope))
+            unique_envelopes.setdefault(
+                key,
+                {
+                    "generator": encode_trajectory(envelope),
+                    "sources": [],
+                    "assignment_tests": 0,
+                },
+            )["sources"].append(source)
+
+            choices = [PATTERNS if correction == 0 else ((1,),) for correction in shrink_corrections]
+            path_assignment_tests = 0
+            for assignment in itertools.product(*choices):
+                upper_raw: list[Statistic] = []
+                for statistic, pattern in zip(projected_precompact, assignment):
+                    for value in pattern:
+                        upper_raw.append(
+                            Statistic(statistic.left, statistic.right, int(value))
+                        )
+                upper = compactify(upper_raw)
+                if extension_preorder_witness(envelope, upper) is None:
+                    raise AssertionError("direct post-shrink coverage failed")
+                if max(item.value for item in upper) > 1:
+                    raise AssertionError("successful abstraction exceeds k=1")
+                path_assignment_tests += 1
+            unique_envelopes[key]["assignment_tests"] += path_assignment_tests
+            local_assignment_tests += path_assignment_tests
+
+    if quotient_paths != EXPECTED_QUOTIENT_PATHS:
+        raise AssertionError("corrected Node-8 quotient-path count drift")
+    if quotient_cells != EXPECTED_QUOTIENT_CELLS:
+        raise AssertionError("corrected Node-8 quotient-cell count drift")
+    if join_correction_counts != {0: EXPECTED_QUOTIENT_CELLS}:
+        raise AssertionError("corrected Node-8 join-correction ledger drift")
+    if shrink_correction_counts != EXPECTED_SHRINK_COUNTS:
+        raise AssertionError("corrected Node-8 shrink-correction ledger drift")
+    if len(unique_envelopes) != EXPECTED_POST_SHRINK_CLASSES:
+        raise AssertionError("corrected Node-8 post-shrink class count drift")
+    if quotient_paths - len(unique_envelopes) != EXPECTED_COLLISIONS:
+        raise AssertionError("corrected Node-8 source-path collision count drift")
+    if local_assignment_tests != EXPECTED_LOCAL_ASSIGNMENTS:
+        raise AssertionError("corrected Node-8 direct-assignment workload drift")
+
+    classes: list[dict[str, Any]] = []
+    path_to_class: list[dict[str, Any]] = []
+    for class_index, key in enumerate(sorted(unique_envelopes)):
+        item = unique_envelopes[key]
+        class_id = f"CN8-S{class_index:02d}"
+        sources = sorted(item["sources"], key=canonical_json)
+        generator = item["generator"]
+        classes.append(
+            {
+                "class_id": class_id,
+                "canonical_generator": generator,
+                "generator_digest": digest(generator),
+                "length": len(generator),
+                "width": max(int(stat["value"]) for stat in generator),
+                "source_path_multiplicity": len(sources),
+                "canonical_reachability_witness": sources[0],
+                "source_path_digest": digest(sources),
+                "local_direct_assignment_tests": int(item["assignment_tests"]),
+            }
+        )
+        for source in sources:
+            path_to_class.append(
