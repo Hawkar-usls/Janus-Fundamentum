@@ -1,0 +1,181 @@
+name: Validate C049.1 B4.6.3 corrected Node-6 integration and Node-7 preflight
+
+on:
+  push:
+    paths:
+      - 'experiments/direct/janus_c049_1_b4_6_3_corrected_node6_integration_node7_preflight.py'
+      - 'experiments/direct/janus_c049_1_b4_6_3_corrected_node6_integration_node7_preflight_verifier.py'
+      - 'docs/C049_1_B4_6_3_CORRECTED_NODE6_INTEGRATION_NODE7_PREFLIGHT.md'
+      - 'registry/c049-1-b4-6-3-corrected-node6-integration-node7-preflight.json'
+      - '.github/workflows/validate-c049-1-b4-6-3-corrected-node6-integration-node7-preflight.yml'
+  pull_request:
+    paths:
+      - 'experiments/direct/janus_c049_1_b4_6_3_corrected_node6_integration_node7_preflight.py'
+      - 'experiments/direct/janus_c049_1_b4_6_3_corrected_node6_integration_node7_preflight_verifier.py'
+      - 'docs/C049_1_B4_6_3_CORRECTED_NODE6_INTEGRATION_NODE7_PREFLIGHT.md'
+      - 'registry/c049-1-b4-6-3-corrected-node6-integration-node7-preflight.json'
+      - '.github/workflows/validate-c049-1-b4-6-3-corrected-node6-integration-node7-preflight.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  corrected-node6-integration-node7-preflight:
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+    env:
+      PYTHONPATH: experiments/direct
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Verify admitted PR 110 ancestry and compile independent proof pair
+        run: |
+          git merge-base --is-ancestor 9def1508cb434ff182a14e4efee423a4f64ea653 HEAD
+          python -m py_compile \
+            experiments/direct/janus_c049_1_b4_6_3_corrected_node6_integration_node7_preflight.py \
+            experiments/direct/janus_c049_1_b4_6_3_corrected_node6_integration_node7_preflight_verifier.py \
+            experiments/direct/janus_c049_1_b4_6_3_replay_workflow_run_steps.py
+          if grep -E '^from .*corrected_node6_integration_node7_preflight|^import .*corrected_node6_integration_node7_preflight' \
+            experiments/direct/janus_c049_1_b4_6_3_corrected_node6_integration_node7_preflight_verifier.py; then
+            echo 'independent verifier imports producer'
+            exit 1
+          fi
+          if grep -E '^from .*janus_c049_1_b[12]_.*core|^import .*janus_c049_1_b[12]_.*core' \
+            experiments/direct/janus_c049_1_b4_6_3_corrected_node6_integration_node7_preflight_verifier.py; then
+            echo 'independent verifier imports theorem core'
+            exit 1
+          fi
+
+      - name: Replay admitted PR 110 exactly
+        run: |
+          python experiments/direct/janus_c049_1_b4_6_3_replay_workflow_run_steps.py \
+            .github/workflows/validate-c049-1-b4-6-3-corrected-node6-up-k-hardening.yml
+          test "$(wc -c < /tmp/c049-corrected-node6-up-k-hardening.json)" = "1116805"
+          test "$(sha256sum /tmp/c049-corrected-node6-up-k-hardening.json | cut -d' ' -f1)" = \
+            "f2c6b63d1eb297a57d36cabbf917bbad766e97034ea4e2421db1985a02965f20"
+          test "$(sha256sum /tmp/c049-corrected-first-internal-join/corrected-first-internal-join-certificate.json | cut -d' ' -f1)" = \
+            "bf4a55fe6c645f4a8d0cd0c10341a550c80c76a3464892712268ab20d1ffdee7"
+
+      - name: Integrate corrected Node-6 and compute exact Node-7 H/V preflight
+        run: |
+          rm -rf /tmp/c049-corrected-node6-integration-node7-preflight
+          python experiments/direct/janus_c049_1_b4_6_3_corrected_node6_integration_node7_preflight.py \
+            /tmp/c049-corrected-first-internal-join \
+            /tmp/c049-corrected-first-internal-join/corrected-first-internal-join-certificate.json \
+            /tmp/c049-corrected-node6-up-k-hardening.json \
+            --output-dir /tmp/c049-corrected-node6-integration-node7-preflight \
+            --pair-cap 20000 \
+            --refinement-cap 1500000
+
+      - name: Independent transcript replay and repaired tamper rejection
+        run: |
+          python experiments/direct/janus_c049_1_b4_6_3_corrected_node6_integration_node7_preflight_verifier.py \
+            /tmp/c049-corrected-node6-integration-node7-preflight \
+            /tmp/c049-corrected-node6-up-k-hardening.json \
+            /tmp/c049-corrected-node6-integration-node7-preflight/corrected-node6-integration-node7-preflight-summary.json \
+            --producer-source experiments/direct/janus_c049_1_b4_6_3_corrected_node6_integration_node7_preflight.py \
+            --tamper-self-test
+
+      - name: Validate strict corrected integration boundary and registry
+        run: |
+          python - <<'PY'
+          import hashlib, json
+          root='/tmp/c049-corrected-node6-integration-node7-preflight'
+          summary=json.load(open(f'{root}/corrected-node6-integration-node7-preflight-summary.json'))
+          unsigned=dict(summary)
+          claimed=unsigned.pop('semantic_digest')
+          assert claimed==hashlib.sha256(json.dumps(unsigned,sort_keys=True,separators=(',',':')).encode()).hexdigest()
+          source=summary['source']
+          assert source['parent_pr']==110
+          assert source['parent_exact_head']=='9def1508cb434ff182a14e4efee423a4f64ea653'
+          assert source['parent_hardening_sha256']=='f2c6b63d1eb297a57d36cabbf917bbad766e97034ea4e2421db1985a02965f20'
+          assert source['parent_hardening_semantic_digest']=='a67f7e1b4d4b90460ea3b7f2f242de74c464ecfcdfe5378759eac6e9f3bea9b5'
+          domain=summary['corrected_path_domain']
+          assert domain['join_interleaving_steps']==[[1,0],[0,1]]
+          assert domain['extension_preorder_diagonal_preserved'] is True
+          assert domain['legacy_delannoy_join_domain_used'] is False
+          assert len(summary['certified_calls'])==1
+          call=summary['certified_calls'][0]
+          assert (call['node_id'],call['input_generator_count'],call['retained_generator_count'],call['removal_count'],call['entry_count'])==(6,414,2,412,432)
+          node6=summary['node6']
+          assert node6['entry_count']==432
+          assert node6['entries_digest']=='245cf63c6483d34f351be0c67a604eec1c6dbf33d1b667c73347f0aa837b0601'
+          preflight=summary['node7_preflight']
+          assert preflight['child_entry_counts']==[432,36]
+          assert preflight['child_pairs']==15552
+          assert preflight['ordinary_hv_refinements']==1531584
+          assert preflight['pair_cap']==20000
+          assert preflight['refinement_cap']==1500000
+          assert preflight['pair_cap_admits_child_product'] is True
+          assert preflight['refinement_cap_blocks_enumeration'] is True
+          assert preflight['node7_records_emitted']==0
+          assert preflight['complete_preflight'] is True
+          execution=summary['execution']
+          assert execution['processed_internal_node_ids']==[6]
+          stop=execution['stop']
+          assert stop['status']=='OPEN_AT_NODE_CAPACITY'
+          assert stop['node_id']==7
+          assert stop['reason']=='REFINEMENT_CAP_EXCEEDED'
+          assert stop['required']==1531584
+          assert stop['cap']==1500000
+          assert stop['no_layout_at_cap'] is False
+          assert all(value is False for value in summary['legacy_inputs'].values())
+          assert summary['invariant_vector']=={f'CNI7-INV-{i:02d}':'PASS' for i in range(1,15)}
+          strict=summary['strict_boundary']
+          assert strict['pr110_corrected_node6_up_k_admitted'] is True
+          assert strict['corrected_node6_up_k_integrated'] is True
+          assert strict['corrected_node6_parent_refinement_complete'] is True
+          assert strict['corrected_node6_parent_up_k_complete'] is True
+          assert strict['corrected_node6_full_set_entry_count']==432
+          assert strict['corrected_node7_parent_preflight_complete'] is True
+          assert strict['corrected_node7_parent_refinement_complete'] is False
+          assert strict['corrected_node7_parent_up_k_complete'] is False
+          assert strict['corrected_bottom_up_replay_complete'] is False
+          assert strict['root_structural_compression_admitted'] is False
+          assert strict['root_parent_refinement_complete'] is False
+          assert strict['root_full_set_computed'] is False
+          assert strict['root_empty_proved'] is False
+          assert strict['found_layout']=='FORBIDDEN'
+          assert strict['no_layout_at_cap']=='FORBIDDEN'
+          assert strict['current_global_terminal']=='OPEN_TRAJECTORY_ENGINE_INCOMPLETE'
+          assert strict['p_vs_np']=='OPEN'
+          assert summary['result']=='HONEST_OPEN_AT_CORRECTED_NODE7_PARENT_REFINEMENT_CAPABILITY'
+          assert summary['next_gate']=='C049.1_B4.6.3_CORRECTED_NODE7_PARENT_FRONTIER_COMPRESSION'
+
+          receipt=json.load(open('registry/c049-1-b4-6-3-corrected-node6-integration-node7-preflight.json'))
+          assert receipt['status'] in {'DRAFT_EXACT_HEAD_CI_REQUIRED','IMPLEMENTED_EXACT_HEAD_CI_GREEN'}
+          admitted=receipt['status']=='IMPLEMENTED_EXACT_HEAD_CI_GREEN'
+          boundary=receipt['admission_boundary']
+          assert boundary['corrected_node6_integration_admitted'] is admitted
+          assert boundary['corrected_node6_parent_refinement_complete'] is True
+          assert boundary['corrected_node6_parent_up_k_complete'] is True
+          assert boundary['corrected_node6_full_set_entry_count']==432
+          assert boundary['corrected_node7_parent_preflight_complete'] is admitted
+          assert boundary['corrected_node7_parent_refinement_complete'] is False
+          assert boundary['corrected_node7_parent_up_k_complete'] is False
+          assert boundary['corrected_bottom_up_replay_complete'] is False
+          assert boundary['root_structural_compression_admitted'] is False
+          assert boundary['root_full_set_computed'] is False
+          assert boundary['found_layout_enabled'] is False
+          assert boundary['no_layout_at_cap_enabled'] is False
+          assert boundary['p_vs_np']=='OPEN'
+          assert receipt['next_gate_after_green_ci']=='C049.1_B4.6.3_CORRECTED_NODE7_PARENT_FRONTIER_COMPRESSION'
+          PY
+
+      - name: Export corrected integration proof package
+        uses: actions/upload-artifact@v4
+        with:
+          name: c049-b4-6-3-corrected-node6-integration-node7-preflight
+          path: |
+            /tmp/c049-corrected-node6-integration-node7-preflight/manifest.json
+            /tmp/c049-corrected-node6-integration-node7-preflight/corrected-node6-integration-node7-preflight-summary.json
+            /tmp/c049-corrected-node6-integration-node7-preflight/chunks
+            registry/c049-1-b4-6-3-corrected-node6-integration-node7-preflight.json
+            docs/C049_1_B4_6_3_CORRECTED_NODE6_INTEGRATION_NODE7_PREFLIGHT.md
+          retention-days: 1
