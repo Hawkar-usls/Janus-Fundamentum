@@ -1,4 +1,56 @@
-      message = str(exc)
+        raise AssertionError("CN7U-INV-10: strict boundary")
+    if observed.get("next_gate_after_admission") != "C049.1_B4.6.3_CORRECTED_NODE7_INTEGRATION_AND_NODE8_PARENT_REFINEMENT":
+        raise AssertionError("CN7U-INV-10: next gate")
+    return observed
+
+
+def reseal(value: dict[str, Any]) -> dict[str, Any]:
+    candidate = copy.deepcopy(value)
+    candidate["certificate_bytes"] = 0
+    while True:
+        unsigned = dict(candidate)
+        unsigned.pop("semantic_digest", None)
+        candidate["semantic_digest"] = digest(unsigned)
+        size = len(canonical_json(candidate) + b"\n")
+        if candidate["certificate_bytes"] == size:
+            return candidate
+        candidate["certificate_bytes"] = size
+
+
+def tamper_tests(source_path: Path, artifact_path: Path) -> dict[str, str]:
+    base = json.loads(artifact_path.read_text(encoding="utf-8"))
+
+    def closure_only_removal(candidate: dict[str, Any]) -> None:
+        removal = candidate["nonvacuous_direct_witness_control"]["direct_removals"][1]
+        removal.pop("witness", None)
+        removal["witness_kind"] = "TRANSITIVE_CHAIN_ONLY"
+        removal["transitive_closure_used"] = True
+        removal["closure_only_chain"] = ["CTRL-A", "CTRL-B", "CTRL-C"]
+
+    attacks: list[tuple[str, str, Any]] = [
+        ("source_head", "CN7U-INV-01", lambda x: x["source"].__setitem__("parent_exact_head", "0" * 40)),
+        ("generator_delete", "CN7U-INV-02", lambda x: x["input_generators"].pop()),
+        ("rref_control", "CN7U-INV-01", lambda x: x["canonical_gf2_rref"]["equivalent_basis_controls"][-1].__setitem__("canonical_basis", [3, 1])),
+        ("preorder_flip", "CN7U-INV-03", lambda x: x["preorder"]["matrix"][0][1].__setitem__("holds", True)),
+        ("closure_only_removal", "DIRECT_WITNESS_MISSING", closure_only_removal),
+        ("catalog_delete", "CN7U-INV-05", lambda x: x["binary_typical_catalog"]["codes"].pop()),
+        ("closure_count", "CN7U-INV-06", lambda x: x["reachable_closure"].__setitem__("entry_count", 7775)),
+        ("closure_root", "CN7U-INV-06", lambda x: x["reachable_closure"].__setitem__("entries_digest", "0" * 64)),
+        ("second_up_k_digest", "CN7U-INV-08", lambda x: x["true_up_k_idempotence"].__setitem__("second_stream_sha256", "0" * 64)),
+        ("false_terminal", "CN7U-INV-10", lambda x: x["strict_boundary"].__setitem__("no_layout_at_cap", True)),
+    ]
+    outcomes: dict[str, str] = {}
+    with tempfile.TemporaryDirectory() as directory:
+        for name, expected, mutation in attacks:
+            candidate = copy.deepcopy(base)
+            mutation(candidate)
+            candidate = reseal(candidate)
+            path = Path(directory) / f"{name}.json"
+            path.write_bytes(canonical_json(candidate) + b"\n")
+            try:
+                verify(source_path, path)
+            except AssertionError as exc:
+                message = str(exc)
                 if expected not in message:
                     raise AssertionError(f"tamper {name} failed on wrong invariant: {message}")
                 outcomes[name] = expected

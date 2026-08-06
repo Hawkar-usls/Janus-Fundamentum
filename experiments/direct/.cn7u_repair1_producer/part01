@@ -1,4 +1,15 @@
-          if first in relation and second in relation:
+            candidates.append(upper)
+            edges.append({"lower": RUN_CODES[lower], "upper": RUN_CODES[upper], "witness": witness})
+        upward[lower] = tuple(candidates)
+    edges.sort(key=canonical_json)
+    relation = {(item["lower"], item["upper"]) for item in edges}
+    checks = 0
+    for lower in RUN_PATTERNS:
+        for middle in RUN_PATTERNS:
+            for upper in RUN_PATTERNS:
+                first = (RUN_CODES[lower], RUN_CODES[middle])
+                second = (RUN_CODES[middle], RUN_CODES[upper])
+                if first in relation and second in relation:
                     checks += 1
                     if (RUN_CODES[lower], RUN_CODES[upper]) not in relation:
                         raise AssertionError("scalar relation is not transitive")
@@ -149,4 +160,11 @@ def direct_witness_control() -> dict[str, Any]:
         },
     ]
     return {
-        "generator_trajectories"
+        "generator_trajectories": {item["generator_id"]: encode_trajectory(item["trajectory"]) for item in controls},
+        "retained_generator_ids": ["CTRL-A"],
+        "direct_removals": removals,
+        "transitive_chain_temptation": {
+            "chain": ["CTRL-A", "CTRL-B", "CTRL-C"],
+            "edge_witnesses": [direct_ab, direct_bc],
+            "accepted_as_removal_witness": False,
+        },

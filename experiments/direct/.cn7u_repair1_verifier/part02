@@ -1,4 +1,68 @@
-pper["trajectory"])
+
+
+def verify_direct_control(control: dict[str, Any]) -> None:
+    raw_generators = control.get("generator_trajectories", {})
+    generators = {
+        identifier: compact(tuple(decode_stat(item) for item in trajectory))
+        for identifier, trajectory in raw_generators.items()
+    }
+    if set(generators) != {"CTRL-A", "CTRL-B", "CTRL-C"} or control.get("retained_generator_ids") != ["CTRL-A"]:
+        raise AssertionError("CN7U-INV-04: nonvacuous control inventory")
+    removals = control.get("direct_removals", [])
+    if len(removals) != 2:
+        raise AssertionError("CN7U-INV-04: nonvacuous direct-removal count")
+    for removal in removals:
+        if removal.get("witness_kind") != "EXTENSION_PREORDER_DIRECT" or removal.get("transitive_closure_used") is not False or not removal.get("witness"):
+            raise AssertionError("DIRECT_WITNESS_MISSING")
+        retained = removal.get("retained_generator_id")
+        removed = removal.get("removed_generator_id")
+        expected = direct_path(generators[retained], generators[removed])
+        if expected is None or removal["witness"] != expected:
+            raise AssertionError("DIRECT_WITNESS_MISSING")
+    temptation = control.get("transitive_chain_temptation", {})
+    if temptation.get("chain") != ["CTRL-A", "CTRL-B", "CTRL-C"] or temptation.get("accepted_as_removal_witness") is not False:
+        raise AssertionError("CN7U-INV-04: transitive temptation control")
+    if control.get("every_removal_has_direct_retained_witness") is not True:
+        raise AssertionError("DIRECT_WITNESS_MISSING")
+
+
+def verify(source_path: Path, artifact_path: Path) -> dict[str, Any]:
+    if file_sha256(source_path) != SOURCE_SHA256:
+        raise AssertionError("CN7U-INV-01: source bytes")
+    source = json.loads(source_path.read_text(encoding="utf-8"))
+    if source.get("semantic_digest") != SOURCE_SEMANTIC:
+        raise AssertionError("CN7U-INV-01: source semantic")
+    observed = json.loads(artifact_path.read_text(encoding="utf-8"))
+    if observed.get("schema") != SCHEMA:
+        raise AssertionError("CN7U-INV-01: schema")
+    unsigned = dict(observed)
+    claimed = unsigned.pop("semantic_digest", None)
+    if claimed != digest(unsigned):
+        raise AssertionError("CN7U-INV-10: semantic digest")
+    if observed.get("certificate_bytes") != len(artifact_path.read_bytes()):
+        raise AssertionError("CN7U-INV-10: fixed point bytes")
+    if observed.get("source") != {
+        "parent_pr": 112,
+        "parent_exact_head": PARENT_HEAD,
+        "certificate_sha256": SOURCE_SHA256,
+        "certificate_semantic_digest": SOURCE_SEMANTIC,
+    }:
+        raise AssertionError("CN7U-INV-01: source binding")
+
+    verify_rref_section(observed["canonical_gf2_rref"])
+    generators = source_generators(source)
+    expected_inventory = [
+        {"generator_id": item["generator_id"], "trajectory": item["trajectory_json"], "trajectory_digest": item["trajectory_digest"]}
+        for item in generators
+    ]
+    if observed.get("input_generators") != expected_inventory:
+        raise AssertionError("CN7U-INV-02: generator inventory")
+
+    expected_matrix = []
+    for lower in generators:
+        row = []
+        for upper in generators:
+            path = direct_path(lower["trajectory"], upper["trajectory"])
             row.append({"holds": path is not None, "witness": path})
         expected_matrix.append(row)
     pre = observed["preorder"]
@@ -64,56 +128,3 @@ pper["trajectory"])
         raise AssertionError("CN7U-INV-10: invariant vector")
     strict = observed["strict_boundary"]
     if strict.get("corrected_node7_parent_up_k_complete") is not False or strict.get("found_layout") != "FORBIDDEN" or strict.get("no_layout_at_cap") != "FORBIDDEN" or strict.get("p_vs_np") != "OPEN":
-        raise AssertionError("CN7U-INV-10: strict boundary")
-    if observed.get("next_gate_after_admission") != "C049.1_B4.6.3_CORRECTED_NODE7_INTEGRATION_AND_NODE8_PARENT_REFINEMENT":
-        raise AssertionError("CN7U-INV-10: next gate")
-    return observed
-
-
-def reseal(value: dict[str, Any]) -> dict[str, Any]:
-    candidate = copy.deepcopy(value)
-    candidate["certificate_bytes"] = 0
-    while True:
-        unsigned = dict(candidate)
-        unsigned.pop("semantic_digest", None)
-        candidate["semantic_digest"] = digest(unsigned)
-        size = len(canonical_json(candidate) + b"\n")
-        if candidate["certificate_bytes"] == size:
-            return candidate
-        candidate["certificate_bytes"] = size
-
-
-def tamper_tests(source_path: Path, artifact_path: Path) -> dict[str, str]:
-    base = json.loads(artifact_path.read_text(encoding="utf-8"))
-
-    def closure_only_removal(candidate: dict[str, Any]) -> None:
-        removal = candidate["nonvacuous_direct_witness_control"]["direct_removals"][1]
-        removal.pop("witness", None)
-        removal["witness_kind"] = "TRANSITIVE_CHAIN_ONLY"
-        removal["transitive_closure_used"] = True
-        removal["closure_only_chain"] = ["CTRL-A", "CTRL-B", "CTRL-C"]
-
-    attacks: list[tuple[str, str, Any]] = [
-        ("source_head", "CN7U-INV-01", lambda x: x["source"].__setitem__("parent_exact_head", "0" * 40)),
-        ("generator_delete", "CN7U-INV-02", lambda x: x["input_generators"].pop()),
-        ("rref_control", "CN7U-INV-01", lambda x: x["canonical_gf2_rref"]["equivalent_basis_controls"][-1].__setitem__("canonical_basis", [3, 1])),
-        ("preorder_flip", "CN7U-INV-03", lambda x: x["preorder"]["matrix"][0][1].__setitem__("holds", True)),
-        ("closure_only_removal", "DIRECT_WITNESS_MISSING", closure_only_removal),
-        ("catalog_delete", "CN7U-INV-05", lambda x: x["binary_typical_catalog"]["codes"].pop()),
-        ("closure_count", "CN7U-INV-06", lambda x: x["reachable_closure"].__setitem__("entry_count", 7775)),
-        ("closure_root", "CN7U-INV-06", lambda x: x["reachable_closure"].__setitem__("entries_digest", "0" * 64)),
-        ("second_up_k_digest", "CN7U-INV-08", lambda x: x["true_up_k_idempotence"].__setitem__("second_stream_sha256", "0" * 64)),
-        ("false_terminal", "CN7U-INV-10", lambda x: x["strict_boundary"].__setitem__("no_layout_at_cap", True)),
-    ]
-    outcomes: dict[str, str] = {}
-    with tempfile.TemporaryDirectory() as directory:
-        for name, expected, mutation in attacks:
-            candidate = copy.deepcopy(base)
-            mutation(candidate)
-            candidate = reseal(candidate)
-            path = Path(directory) / f"{name}.json"
-            path.write_bytes(canonical_json(candidate) + b"\n")
-            try:
-                verify(source_path, path)
-            except AssertionError as exc:
-           

@@ -1,4 +1,59 @@
-  raw: list[tuple] = []
+        return None
+    route: list[tuple[int, int]] = []
+    cursor: tuple[int, int] | None = endpoint
+    while cursor is not None:
+        route.append(cursor)
+        cursor = previous[cursor]
+    route.reverse()
+    return {"path": [[i, j] for i, j in route], "path_length": len(route)}
+
+
+def runs(trajectory: Sequence[tuple]) -> tuple[tuple[tuple, ...], tuple[tuple[int, ...], ...]]:
+    skeleton: list[tuple] = []
+    patterns: list[list[int]] = []
+    for left, right, value in trajectory:
+        geometry = (tuple(left), tuple(right))
+        if not skeleton or skeleton[-1] != geometry:
+            skeleton.append(geometry)
+            patterns.append([int(value)])
+        else:
+            patterns[-1].append(int(value))
+    pattern_tuple = tuple(tuple(values) for values in patterns)
+    if any(pattern not in PATTERNS for pattern in pattern_tuple):
+        raise AssertionError("CN7U-INV-05: non-typical scalar run")
+    return tuple(skeleton), pattern_tuple
+
+
+def scalar_traj(pattern: Sequence[int]) -> tuple[tuple, ...]:
+    return tuple(((1,), (), int(value)) for value in pattern)
+
+
+def scalar_upward() -> tuple[dict[tuple[int, ...], tuple[tuple[int, ...], ...]], list[dict[str, Any]], int]:
+    upward: dict[tuple[int, ...], tuple[tuple[int, ...], ...]] = {}
+    edges: list[dict[str, Any]] = []
+    for lower in PATTERNS:
+        targets = []
+        for upper in PATTERNS:
+            path = direct_path(scalar_traj(lower), scalar_traj(upper))
+            if path is not None:
+                targets.append(upper)
+                edges.append({"lower": PATTERN_CODE[lower], "upper": PATTERN_CODE[upper], "witness": path})
+        upward[lower] = tuple(targets)
+    edges.sort(key=canonical_json)
+    relation = {(item["lower"], item["upper"]) for item in edges}
+    checks = 0
+    for lower in PATTERNS:
+        for middle in PATTERNS:
+            for upper in PATTERNS:
+                if (PATTERN_CODE[lower], PATTERN_CODE[middle]) in relation and (PATTERN_CODE[middle], PATTERN_CODE[upper]) in relation:
+                    checks += 1
+                    if (PATTERN_CODE[lower], PATTERN_CODE[upper]) not in relation:
+                        raise AssertionError("CN7U-INV-05: scalar transitivity")
+    return upward, edges, checks
+
+
+def build_trajectory(skeleton: Sequence[tuple], patterns: Sequence[tuple[int, ...]]) -> tuple[tuple, ...]:
+    raw: list[tuple] = []
     for geometry, pattern in zip(skeleton, patterns):
         for value in pattern:
             raw.append((geometry[0], geometry[1], int(value)))
@@ -73,68 +128,3 @@ def verify_rref_section(section: dict[str, Any]) -> None:
             raise AssertionError("CN7U-INV-01: equivalent bases are not canonical")
     if section.get("all_controls_unique") is not True or len(section.get("equivalent_basis_controls", [])) != 5:
         raise AssertionError("CN7U-INV-01: RREF controls")
-
-
-def verify_direct_control(control: dict[str, Any]) -> None:
-    raw_generators = control.get("generator_trajectories", {})
-    generators = {
-        identifier: compact(tuple(decode_stat(item) for item in trajectory))
-        for identifier, trajectory in raw_generators.items()
-    }
-    if set(generators) != {"CTRL-A", "CTRL-B", "CTRL-C"} or control.get("retained_generator_ids") != ["CTRL-A"]:
-        raise AssertionError("CN7U-INV-04: nonvacuous control inventory")
-    removals = control.get("direct_removals", [])
-    if len(removals) != 2:
-        raise AssertionError("CN7U-INV-04: nonvacuous direct-removal count")
-    for removal in removals:
-        if removal.get("witness_kind") != "EXTENSION_PREORDER_DIRECT" or removal.get("transitive_closure_used") is not False or not removal.get("witness"):
-            raise AssertionError("DIRECT_WITNESS_MISSING")
-        retained = removal.get("retained_generator_id")
-        removed = removal.get("removed_generator_id")
-        expected = direct_path(generators[retained], generators[removed])
-        if expected is None or removal["witness"] != expected:
-            raise AssertionError("DIRECT_WITNESS_MISSING")
-    temptation = control.get("transitive_chain_temptation", {})
-    if temptation.get("chain") != ["CTRL-A", "CTRL-B", "CTRL-C"] or temptation.get("accepted_as_removal_witness") is not False:
-        raise AssertionError("CN7U-INV-04: transitive temptation control")
-    if control.get("every_removal_has_direct_retained_witness") is not True:
-        raise AssertionError("DIRECT_WITNESS_MISSING")
-
-
-def verify(source_path: Path, artifact_path: Path) -> dict[str, Any]:
-    if file_sha256(source_path) != SOURCE_SHA256:
-        raise AssertionError("CN7U-INV-01: source bytes")
-    source = json.loads(source_path.read_text(encoding="utf-8"))
-    if source.get("semantic_digest") != SOURCE_SEMANTIC:
-        raise AssertionError("CN7U-INV-01: source semantic")
-    observed = json.loads(artifact_path.read_text(encoding="utf-8"))
-    if observed.get("schema") != SCHEMA:
-        raise AssertionError("CN7U-INV-01: schema")
-    unsigned = dict(observed)
-    claimed = unsigned.pop("semantic_digest", None)
-    if claimed != digest(unsigned):
-        raise AssertionError("CN7U-INV-10: semantic digest")
-    if observed.get("certificate_bytes") != len(artifact_path.read_bytes()):
-        raise AssertionError("CN7U-INV-10: fixed point bytes")
-    if observed.get("source") != {
-        "parent_pr": 112,
-        "parent_exact_head": PARENT_HEAD,
-        "certificate_sha256": SOURCE_SHA256,
-        "certificate_semantic_digest": SOURCE_SEMANTIC,
-    }:
-        raise AssertionError("CN7U-INV-01: source binding")
-
-    verify_rref_section(observed["canonical_gf2_rref"])
-    generators = source_generators(source)
-    expected_inventory = [
-        {"generator_id": item["generator_id"], "trajectory": item["trajectory_json"], "trajectory_digest": item["trajectory_digest"]}
-        for item in generators
-    ]
-    if observed.get("input_generators") != expected_inventory:
-        raise AssertionError("CN7U-INV-02: generator inventory")
-
-    expected_matrix = []
-    for lower in generators:
-        row = []
-        for upper in generators:
-            path = direct_path(lower["trajectory"], u
