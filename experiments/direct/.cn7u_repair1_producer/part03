@@ -1,0 +1,42 @@
+omplete": False,
+            "root_parent_refinement_complete": False,
+            "root_full_set_computed": False,
+            "root_empty_proved": False,
+            "found_layout": "FORBIDDEN",
+            "no_layout_at_cap": "FORBIDDEN",
+            "current_global_terminal": TERMINAL,
+            "p_vs_np": "OPEN",
+        },
+        "next_gate_after_admission": "C049.1_B4.6.3_CORRECTED_NODE7_INTEGRATION_AND_NODE8_PARENT_REFINEMENT",
+        "certificate_bytes": 0,
+    }
+    while True:
+        unsigned = dict(artifact)
+        unsigned.pop("semantic_digest", None)
+        artifact["semantic_digest"] = digest(unsigned)
+        raw = canonical_json(artifact) + b"\n"
+        if artifact["certificate_bytes"] == len(raw):
+            return artifact
+        artifact["certificate_bytes"] = len(raw)
+
+
+def main() -> None:
+    parser = argparse.ArgumentParser()
+    parser.add_argument("source", type=Path)
+    parser.add_argument("--output", required=True, type=Path)
+    parser.add_argument("--entry-order", default="original", choices=("original", "reversed", "seeded-shuffle"))
+    args = parser.parse_args()
+    artifact = build(args.source, args.entry_order)
+    args.output.write_bytes(canonical_json(artifact) + b"\n")
+    print(json.dumps({
+        "artifact_bytes": args.output.stat().st_size,
+        "artifact_sha256": file_sha256(args.output),
+        "semantic_digest": artifact["semantic_digest"],
+        "retained_generators": len(artifact["preorder"]["retained_generator_ids"]),
+        "closure_entries": artifact["reachable_closure"]["entry_count"],
+        "second_up_k_checks": artifact["true_up_k_idempotence"]["repeated_closure_checks"],
+    }, sort_keys=True))
+
+
+if __name__ == "__main__":
+    main()

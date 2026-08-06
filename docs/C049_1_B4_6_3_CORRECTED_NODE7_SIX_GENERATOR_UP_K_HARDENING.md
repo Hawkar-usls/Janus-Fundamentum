@@ -1,113 +1,105 @@
-# C049.1 B4.6.3 — corrected Node-7 six-generator `up_k` hardening
+# C049.1 B4.6.3 — corrected Node-7 six-generator `up_k` repair
 
-## Stack
+## Stack boundary
 
 ```text
 BASE_PR = #112
 BASE_EXACT_HEAD = 796ad144de65906c702e29928f683e6d53e3529c
+REPAIR_TARGET = PR #113
 GATE = C049.1_B4.6.3_CORRECTED_NODE7_SIX_GENERATOR_UP_K_HARDENING
 ```
 
 Draft only. No merge and no automatic merge.
 
-## Candidate construction
+## Repair obligations
 
-The producer binds the frozen PR #112 frontier certificate byte-for-byte and extracts exactly the six admitted corrected Node-7 zero-envelope generators:
+The first exact-head candidate was CI-green but not admitted. REPAIR-1 closes three proof-package defects.
 
-```text
-LEFT_A-HVQ00
-LEFT_A-HVQ01
-LEFT_A-HVQ02
-LEFT_B-HVQ00
-LEFT_B-HVQ01
-LEFT_B-HVQ02
-```
+### 1. True repeated `up_k`
 
-Every generator has four distinct canonical GF(2) geometry blocks. The full `6 × 6` extension-preorder matrix is computed with `(1,0)`, `(0,1)`, and `(1,1)` steps. The candidate has six reflexive relations, retains all six generators, and performs no deletion. Consequently the direct-retained-witness obligation is checked for every deletion and is vacuous on this exact family; no transitive deletion witness is used.
-
-## Complete binary typical closure
-
-For `k=1`, each geometry block uses the complete binary typical catalog:
+The first application materializes the exact `7,776`-trajectory closure of the six corrected Node-7 zero envelopes. The second application accepts those `7,776` trajectories themselves as the new generator family.
 
 ```text
-0, 01, 010, 1, 10, 101
+first up_k input generators  = 6
+first up_k output entries    = 7,776
+second up_k input generators = 7,776
+second up_k relation checks  = 960,000
+second up_k output entries   = 7,776
+first stream bytes           = 2,286,145
+second stream bytes          = 2,286,145
+byte-identical               = TRUE
 ```
 
-Each four-block generator therefore has `6^4 = 1,296` scalar assignments. The complete candidate closure contains:
+The second pass consumes neither original six generator identifiers nor a projection back to the original family.
+
+### 2. Canonical GF(2) RREF
+
+Every boundary subspace is normalized by full Gaussian elimination over GF(2), including elimination above and below each pivot. Rows are ordered by descending pivot, yielding one representation per subspace.
+
+The proof package includes equivalent-basis controls for all five subspaces of `GF(2)^2`, including:
 
 ```text
-6 × 1,296 = 7,776 entries
+span([2,1]) = span([3,1]) = span([3,2]) = [2,1]
 ```
 
-The producer materializes every source generator, four-pattern assignment, independently reconstructible trajectory digest, and width. The frozen certificate stores the complete global closure root plus six per-generator roots; the independent verifier regenerates all 7,776 entries. The producer recomputes the closure from the normalized skeletons of the closure itself and proves byte-for-byte idempotence:
+### 3. Nonvacuous direct-witness control
+
+The actual six-generator family has no removals. A separate three-generator fixture therefore exercises the deletion contract:
 
 ```text
-closure(closure(X)) = closure(X)
+CTRL-A = 0
+CTRL-B = 01
+CTRL-C = 1
 ```
 
-## Independent verifier
-
-The verifier imports neither producer nor historical B1/B2 theorem cores. It independently rebuilds:
+`CTRL-B` and `CTRL-C` are removed only with explicit direct witnesses from retained `CTRL-A`. The digest-repaired tamper suite replaces the `CTRL-A -> CTRL-C` direct witness with the closure-only chain
 
 ```text
-GF(2) RREF normalization for all 24 generator statistics
-six source generators from the frozen PR #112 certificate
-all 36 preorder pairs and direct lattice witnesses
-complete six-pattern scalar catalog
-all 7,776 closure entries and trajectory digests
-closure idempotence over all 7,776 entries
-fixed-point certificate bytes and semantic digest
+CTRL-A -> CTRL-B -> CTRL-C
 ```
 
-Ten digest-repaired semantic attacks are rerun through the full verifier and must fail at their expected invariant:
+and the independent verifier rejects it with:
 
 ```text
-source-head substitution
-generator deletion
-generator-geometry mutation
-preorder-matrix flip
-retained-generator deletion
-scalar-catalog deletion
-closure-count mutation
-closure-root substitution
-false idempotence
-false NO_LAYOUT_AT_CAP terminal
+DIRECT_WITNESS_MISSING
 ```
 
-## Determinism
+## Candidate receipts
 
 ```text
-ORIGINAL
-REVERSED
-SEEDED_SHUFFLE
+input generators       = 6
+ordered preorder pairs = 36
+preorder relations     = 6 reflexive relations
+retained generators    = 6
+direct removals        = 0
+first closure entries  = 7,776
+second closure entries = 7,776
+invariants             = 10/10
+digest-repaired tampers = 10/10
 ```
-
-must produce byte-identical candidate certificates.
-
-## Frozen candidate receipt
 
 ```text
-certificate bytes  = 5,983
-certificate sha256 = 593e926d9b21e2f073df4fdbdeb23f056b519bfe09f5657965615123074f85b8
-semantic digest    = d5ad79fc8ec336cd64ecb9f10ec327507ef4b6a485495f1d8c558569fefc4124
-closure entries    = 7,776
-closure digest     = b7ffb31c984a2181b8c174ba4c5f1765305796ca19a17d5919d467656c6476a6
+certificate bytes  = 10,137
+certificate sha256 = 924e55a651518ce004964f5d7c5ea30e67424ca34507f18eb568341fc96528e0
+semantic digest    = cfd99ea716076414847749fb98185cea63c2cf44e9ceaa659bf37eb9e8fc366a
+closure digest     = 99a702ea7005e4a41d99fc4454040314ab106632672b267bffb5f59e29afa728
 ```
 
-This is a candidate package pending exact-head CI and independent review. It does not admit Node-7 `up_k` merely because a frozen file exists.
+`ORIGINAL`, `REVERSED`, and `SEEDED_SHUFFLE` builds must remain byte-identical.
 
-## Strict boundary
+## Pending admission boundary
 
 ```text
 PR112_CORRECTED_NODE7_FRONTIER_COMPRESSION = ADMITTED
+PR113_REPAIR_1_IMPLEMENTED = TRUE
+PR113_NODE7_SIX_GENERATOR_UP_K_ADMITTED = FALSE
 CORRECTED_NODE7_PARENT_REFINEMENT_COMPLETE = TRUE
 CORRECTED_NODE7_PARENT_UP_K_COMPLETE = FALSE
 CORRECTED_BOTTOM_UP_REPLAY_COMPLETE = FALSE
-ROOT_PARENT_REFINEMENT_COMPLETE = FALSE
-ROOT_FULL_SET_COMPUTED = FALSE
-ROOT_EMPTY_PROVED = FALSE
 FOUND_LAYOUT = FORBIDDEN
 NO_LAYOUT_AT_CAP = FORBIDDEN
 CURRENT_GLOBAL_TERMINAL = OPEN_TRAJECTORY_ENGINE_INCOMPLETE
 P_VS_NP = OPEN
 ```
+
+Only exact-head CI plus a separate semantic admission review may promote the Node-7 `up_k` theorem.

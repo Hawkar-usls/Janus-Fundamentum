@@ -1,0 +1,140 @@
+  raw: list[tuple] = []
+    for geometry, pattern in zip(skeleton, patterns):
+        for value in pattern:
+            raw.append((geometry[0], geometry[1], int(value)))
+    return compact(raw)
+
+
+def closure(generators: Sequence[Sequence[tuple]], upward: dict) -> tuple[list[tuple[tuple, ...]], int]:
+    catalog: dict[bytes, tuple[tuple, ...]] = {}
+    checks = 0
+    for lower in generators:
+        skeleton, patterns = runs(lower)
+        for chosen in itertools.product(*(upward[pattern] for pattern in patterns)):
+            upper = build_trajectory(skeleton, chosen)
+            checks += 1
+            if direct_path(lower, upper) is None:
+                raise AssertionError("CN7U-INV-06: missing direct closure witness")
+            catalog[canonical_json(encode_trajectory(upper))] = upper
+    return [catalog[key] for key in sorted(catalog)], checks
+
+
+def second_closure(first: Sequence[Sequence[tuple]], upward: dict) -> tuple[list[tuple[tuple, ...]], int]:
+    # The only generators accepted here are the first closure trajectories themselves.
+    pattern_sets: dict[bytes, tuple[tuple, set[tuple[tuple[int, ...], ...]]]] = {}
+    checks = 0
+    for lower in first:
+        skeleton, patterns = runs(lower)
+        key = canonical_json([[list(left), list(right)] for left, right in skeleton])
+        if key not in pattern_sets:
+            pattern_sets[key] = (skeleton, set())
+        output = pattern_sets[key][1]
+        for chosen in itertools.product(*(upward[pattern] for pattern in patterns)):
+            checks += 1
+            output.add(tuple(chosen))
+    catalog: dict[bytes, tuple[tuple, ...]] = {}
+    for skeleton, choices in pattern_sets.values():
+        for chosen in sorted(choices, key=canonical_json):
+            upper = build_trajectory(skeleton, chosen)
+            catalog[canonical_json(encode_trajectory(upper))] = upper
+    return [catalog[key] for key in sorted(catalog)], checks
+
+
+def stream(trajectories: Sequence[Sequence[tuple]]) -> bytes:
+    return b"[" + b",".join(canonical_json(encode_trajectory(item)) for item in trajectories) + b"]"
+
+
+def source_generators(source: dict[str, Any]) -> list[dict[str, Any]]:
+    output = []
+    for item in source["quotient_frontier"]["classes"]:
+        trajectory = compact(tuple(decode_stat(raw) for raw in item["zero_envelope"]))
+        if len(trajectory) != 4 or any(stat[2] != 0 for stat in trajectory) or len({geom(stat) for stat in trajectory}) != 4:
+            raise AssertionError("CN7U-INV-02: source generator geometry")
+        encoded = encode_trajectory(trajectory)
+        output.append({
+            "generator_id": str(item["class_id"]),
+            "trajectory": trajectory,
+            "trajectory_json": encoded,
+            "trajectory_digest": digest(encoded),
+        })
+    output.sort(key=lambda item: canonical_json(item["trajectory_json"]))
+    if len(output) != 6:
+        raise AssertionError("CN7U-INV-02: source generator count")
+    return output
+
+
+def verify_rref_section(section: dict[str, Any]) -> None:
+    if section.get("ambient_dim") != 2 or section.get("pivot_order") != "HIGH_TO_LOW" or section.get("full_reverse_elimination") is not True:
+        raise AssertionError("CN7U-INV-01: canonical RREF contract")
+    for fixture in section.get("equivalent_basis_controls", []):
+        expected = tuple(fixture["canonical_basis"])
+        observed = {rref(rows) for rows in fixture["representations"]}
+        if observed != {expected}:
+            raise AssertionError("CN7U-INV-01: equivalent bases are not canonical")
+    if section.get("all_controls_unique") is not True or len(section.get("equivalent_basis_controls", [])) != 5:
+        raise AssertionError("CN7U-INV-01: RREF controls")
+
+
+def verify_direct_control(control: dict[str, Any]) -> None:
+    raw_generators = control.get("generator_trajectories", {})
+    generators = {
+        identifier: compact(tuple(decode_stat(item) for item in trajectory))
+        for identifier, trajectory in raw_generators.items()
+    }
+    if set(generators) != {"CTRL-A", "CTRL-B", "CTRL-C"} or control.get("retained_generator_ids") != ["CTRL-A"]:
+        raise AssertionError("CN7U-INV-04: nonvacuous control inventory")
+    removals = control.get("direct_removals", [])
+    if len(removals) != 2:
+        raise AssertionError("CN7U-INV-04: nonvacuous direct-removal count")
+    for removal in removals:
+        if removal.get("witness_kind") != "EXTENSION_PREORDER_DIRECT" or removal.get("transitive_closure_used") is not False or not removal.get("witness"):
+            raise AssertionError("DIRECT_WITNESS_MISSING")
+        retained = removal.get("retained_generator_id")
+        removed = removal.get("removed_generator_id")
+        expected = direct_path(generators[retained], generators[removed])
+        if expected is None or removal["witness"] != expected:
+            raise AssertionError("DIRECT_WITNESS_MISSING")
+    temptation = control.get("transitive_chain_temptation", {})
+    if temptation.get("chain") != ["CTRL-A", "CTRL-B", "CTRL-C"] or temptation.get("accepted_as_removal_witness") is not False:
+        raise AssertionError("CN7U-INV-04: transitive temptation control")
+    if control.get("every_removal_has_direct_retained_witness") is not True:
+        raise AssertionError("DIRECT_WITNESS_MISSING")
+
+
+def verify(source_path: Path, artifact_path: Path) -> dict[str, Any]:
+    if file_sha256(source_path) != SOURCE_SHA256:
+        raise AssertionError("CN7U-INV-01: source bytes")
+    source = json.loads(source_path.read_text(encoding="utf-8"))
+    if source.get("semantic_digest") != SOURCE_SEMANTIC:
+        raise AssertionError("CN7U-INV-01: source semantic")
+    observed = json.loads(artifact_path.read_text(encoding="utf-8"))
+    if observed.get("schema") != SCHEMA:
+        raise AssertionError("CN7U-INV-01: schema")
+    unsigned = dict(observed)
+    claimed = unsigned.pop("semantic_digest", None)
+    if claimed != digest(unsigned):
+        raise AssertionError("CN7U-INV-10: semantic digest")
+    if observed.get("certificate_bytes") != len(artifact_path.read_bytes()):
+        raise AssertionError("CN7U-INV-10: fixed point bytes")
+    if observed.get("source") != {
+        "parent_pr": 112,
+        "parent_exact_head": PARENT_HEAD,
+        "certificate_sha256": SOURCE_SHA256,
+        "certificate_semantic_digest": SOURCE_SEMANTIC,
+    }:
+        raise AssertionError("CN7U-INV-01: source binding")
+
+    verify_rref_section(observed["canonical_gf2_rref"])
+    generators = source_generators(source)
+    expected_inventory = [
+        {"generator_id": item["generator_id"], "trajectory": item["trajectory_json"], "trajectory_digest": item["trajectory_digest"]}
+        for item in generators
+    ]
+    if observed.get("input_generators") != expected_inventory:
+        raise AssertionError("CN7U-INV-02: generator inventory")
+
+    expected_matrix = []
+    for lower in generators:
+        row = []
+        for upper in generators:
+            path = direct_path(lower["trajectory"], u

@@ -1,0 +1,152 @@
+          if first in relation and second in relation:
+                    checks += 1
+                    if (RUN_CODES[lower], RUN_CODES[upper]) not in relation:
+                        raise AssertionError("scalar relation is not transitive")
+    return upward, edges, checks
+
+
+def rref_controls() -> list[dict[str, Any]]:
+    fixtures = [
+        {"space": "ZERO", "representations": [[], [0, 0]]},
+        {"space": "E1", "representations": [[1], [1, 1, 0]]},
+        {"space": "E2", "representations": [[2], [2, 2, 0]]},
+        {"space": "DIAGONAL", "representations": [[3], [3, 3, 0]]},
+        {"space": "FULL", "representations": [[2, 1], [3, 1], [3, 2], [1, 3, 2], [2, 3, 1]]},
+    ]
+    output = []
+    for fixture in fixtures:
+        bases = [list(canonical_rref(rows)) for rows in fixture["representations"]]
+        if len({tuple(item) for item in bases}) != 1:
+            raise AssertionError("canonical RREF representation drift")
+        output.append({"space": fixture["space"], "representations": fixture["representations"], "canonical_basis": bases[0]})
+    return output
+
+
+def reorder(items: list[Any], mode: str) -> list[Any]:
+    output = list(items)
+    if mode == "reversed":
+        output.reverse()
+    elif mode == "seeded-shuffle":
+        random.Random(0xC049113).shuffle(output)
+    elif mode != "original":
+        raise ValueError("unknown order mode")
+    return output
+
+
+def load_generators(source_path: Path, order_mode: str) -> list[dict[str, Any]]:
+    if file_sha256(source_path) != SOURCE_SHA256:
+        raise AssertionError("PR #112 frozen certificate byte boundary")
+    source = json.loads(source_path.read_text(encoding="utf-8"))
+    if source.get("semantic_digest") != SOURCE_SEMANTIC:
+        raise AssertionError("PR #112 semantic boundary")
+    if source.get("result") != "CORRECTED_NODE7_PARENT_FRONTIER_COMPRESSED_TO_SIX_CLASSES":
+        raise AssertionError("PR #112 theorem result boundary")
+    classes = reorder(list(source["quotient_frontier"]["classes"]), order_mode)
+    generators = []
+    for item in classes:
+        trajectory = compactify(tuple(canonical_stat(stat) for stat in item["zero_envelope"]))
+        if len(trajectory) != 4 or any(stat[2] != 0 for stat in trajectory):
+            raise AssertionError("corrected Node-7 generator boundary")
+        if len({geometry(stat) for stat in trajectory}) != 4:
+            raise AssertionError("corrected Node-7 generator geometry not injective")
+        generators.append({
+            "generator_id": str(item["class_id"]),
+            "trajectory": trajectory,
+            "trajectory_json": encode_trajectory(trajectory),
+            "trajectory_digest": digest(encode_trajectory(trajectory)),
+        })
+    generators.sort(key=lambda item: canonical_json(item["trajectory_json"]))
+    if len(generators) != 6 or len({canonical_json(item["trajectory_json"]) for item in generators}) != 6:
+        raise AssertionError("six-generator input boundary")
+    return generators
+
+
+def minimize(generators: Sequence[dict[str, Any]]) -> tuple[list[dict], list[dict], list[list[dict]]]:
+    matrix: list[list[dict[str, Any]]] = []
+    for lower in generators:
+        row = []
+        for upper in generators:
+            witness = extension_preorder_witness(lower["trajectory"], upper["trajectory"])
+            row.append({"holds": witness is not None, "witness": witness})
+        matrix.append(row)
+    retained: list[dict[str, Any]] = []
+    removals: list[dict[str, Any]] = []
+    for candidate_index, candidate in enumerate(generators):
+        direct = None
+        for retained_item in retained:
+            retained_index = next(index for index, item in enumerate(generators) if item["generator_id"] == retained_item["generator_id"])
+            cell = matrix[retained_index][candidate_index]
+            if cell["holds"]:
+                direct = {
+                    "removed_generator_id": candidate["generator_id"],
+                    "retained_generator_id": retained_item["generator_id"],
+                    "witness_kind": "EXTENSION_PREORDER_DIRECT",
+                    "transitive_closure_used": False,
+                    "witness": cell["witness"],
+                }
+                break
+        if direct is None:
+            retained.append(candidate)
+        else:
+            removals.append(direct)
+    return retained, removals, matrix
+
+
+def build_trajectory(skeleton: Sequence[tuple], patterns: Sequence[tuple[int, ...]]) -> tuple[tuple, ...]:
+    raw: list[tuple] = []
+    for geom, pattern in zip(skeleton, patterns):
+        for value in pattern:
+            raw.append((geom[0], geom[1], int(value)))
+    return compactify(raw)
+
+
+def closure_from_generators(
+    generators: Sequence[Sequence[tuple]], upward: dict[tuple[int, ...], tuple[tuple[int, ...], ...]]
+) -> tuple[list[tuple[tuple, ...]], int]:
+    reachable: dict[bytes, tuple[tuple, ...]] = {}
+    checks = 0
+    for lower in generators:
+        skeleton, patterns = split_runs(lower)
+        for chosen in itertools.product(*(upward[pattern] for pattern in patterns)):
+            upper = build_trajectory(skeleton, chosen)
+            checks += 1
+            if extension_preorder_witness(lower, upper) is None:
+                raise AssertionError("reachable entry lacks direct witness")
+            reachable[canonical_json(encode_trajectory(upper))] = upper
+    return [reachable[key] for key in sorted(reachable)], checks
+
+
+def trajectory_stream(trajectories: Sequence[Sequence[tuple]]) -> bytes:
+    return b"[" + b",".join(canonical_json(encode_trajectory(item)) for item in trajectories) + b"]"
+
+
+def direct_witness_control() -> dict[str, Any]:
+    geom = ((1,), ())
+    controls = [
+        {"generator_id": "CTRL-A", "trajectory": tuple((geom[0], geom[1], value) for value in (0,))},
+        {"generator_id": "CTRL-B", "trajectory": tuple((geom[0], geom[1], value) for value in (0, 1))},
+        {"generator_id": "CTRL-C", "trajectory": tuple((geom[0], geom[1], value) for value in (1,))},
+    ]
+    direct_ab = extension_preorder_witness(controls[0]["trajectory"], controls[1]["trajectory"])
+    direct_bc = extension_preorder_witness(controls[1]["trajectory"], controls[2]["trajectory"])
+    direct_ac = extension_preorder_witness(controls[0]["trajectory"], controls[2]["trajectory"])
+    if not all((direct_ab, direct_bc, direct_ac)):
+        raise AssertionError("direct-witness control relation drift")
+    removals = [
+        {
+            "removed_generator_id": "CTRL-B",
+            "retained_generator_id": "CTRL-A",
+            "witness_kind": "EXTENSION_PREORDER_DIRECT",
+            "transitive_closure_used": False,
+            "witness": direct_ab,
+        },
+        {
+            "removed_generator_id": "CTRL-C",
+            "retained_generator_id": "CTRL-A",
+            "witness_kind": "EXTENSION_PREORDER_DIRECT",
+            "transitive_closure_used": False,
+            "witness": direct_ac,
+        },
+    ]
+    return {
+        "generator_trajectories"

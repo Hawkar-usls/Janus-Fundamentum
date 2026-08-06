@@ -1,0 +1,119 @@
+pper["trajectory"])
+            row.append({"holds": path is not None, "witness": path})
+        expected_matrix.append(row)
+    pre = observed["preorder"]
+    if pre.get("steps") != [list(step) for step in STEPS] or pre.get("pair_count") != 36 or pre.get("matrix") != expected_matrix:
+        raise AssertionError("CN7U-INV-03: 6x6 preorder")
+    relation_count = sum(int(cell["holds"]) for row in expected_matrix for cell in row)
+    if relation_count != 6 or pre.get("relation_count") != relation_count:
+        raise AssertionError("CN7U-INV-03: relation count")
+    if pre.get("retained_generator_ids") != [item["generator_id"] for item in generators] or pre.get("direct_removals") != [] or pre.get("transitive_removal_witnesses_used") != 0:
+        raise AssertionError("CN7U-INV-04: exact minimization")
+
+    verify_direct_control(observed["nonvacuous_direct_witness_control"])
+    upward, scalar_edges, scalar_checks = scalar_upward()
+    expected_catalog = {
+        "patterns": [list(pattern) for pattern in PATTERNS],
+        "codes": sorted(CODE_PATTERN),
+        "relation_edge_count": len(scalar_edges),
+        "relation_edges": scalar_edges,
+        "transitivity_checks": scalar_checks,
+        "assignments_per_zero_generator": 1296,
+    }
+    if observed.get("binary_typical_catalog") != expected_catalog:
+        raise AssertionError("CN7U-INV-05: scalar catalog")
+
+    first, first_checks = closure([item["trajectory"] for item in generators], upward)
+    first_bytes = stream(first)
+    closure_section = observed["reachable_closure"]
+    if closure_section.get("entry_count") != len(first) or closure_section.get("entries_digest") != digest([encode_trajectory(item) for item in first]):
+        raise AssertionError("CN7U-INV-06: first closure")
+    if closure_section.get("stream_sha256") != hashlib.sha256(first_bytes).hexdigest() or closure_section.get("stream_bytes") != len(first_bytes):
+        raise AssertionError("CN7U-INV-06: first closure stream")
+    if closure_section.get("full_entries_stored") is not False or closure_section.get("full_entries_replayed_by_verifier") is not True:
+        raise AssertionError("CN7U-INV-06: closure replay boundary")
+
+    second, second_checks = second_closure(first, upward)
+    second_bytes = stream(second)
+    idem = observed["true_up_k_idempotence"]
+    if first_bytes != second_bytes:
+        raise AssertionError("CN7U-INV-08: true up_k idempotence")
+    if idem != {
+        "method": "EXACT_SECOND_UP_K_ON_FIRST_CLOSURE_TRAJECTORIES",
+        "second_input_generator_count": 7776,
+        "second_output_entry_count": 7776,
+        "second_stream_sha256": hashlib.sha256(second_bytes).hexdigest(),
+        "second_stream_bytes": len(second_bytes),
+        "byte_identical_to_first": True,
+        "original_six_reused_in_second_pass": False,
+        "source_generator_ids_consumed_in_second_pass": False,
+        "repeated_closure_checks": 960000,
+    }:
+        raise AssertionError("CN7U-INV-08: idempotence receipt")
+    if first_checks != 7776 or second_checks != 960000:
+        raise AssertionError("CN7U-INV-09: closure work")
+
+    ledger = observed["work_ledger"]
+    if ledger.get("gf2_generator_statistics_checked") != 24 or ledger.get("preorder_pairs_replayed") != 36:
+        raise AssertionError("CN7U-INV-09: base work ledger")
+    if ledger.get("nonvacuous_control_direct_witnesses_replayed") != 2 or ledger.get("first_up_k_checks") != 7776:
+        raise AssertionError("CN7U-INV-09: direct/first work ledger")
+    if ledger.get("second_up_k_input_generators") != 7776 or ledger.get("second_up_k_checks") != 960000 or ledger.get("second_closure_entries_materialized") != 7776:
+        raise AssertionError("CN7U-INV-09: second work ledger")
+    if observed.get("invariant_vector") != {f"CN7U-INV-{i:02d}": "PASS" for i in range(1, 11)}:
+        raise AssertionError("CN7U-INV-10: invariant vector")
+    strict = observed["strict_boundary"]
+    if strict.get("corrected_node7_parent_up_k_complete") is not False or strict.get("found_layout") != "FORBIDDEN" or strict.get("no_layout_at_cap") != "FORBIDDEN" or strict.get("p_vs_np") != "OPEN":
+        raise AssertionError("CN7U-INV-10: strict boundary")
+    if observed.get("next_gate_after_admission") != "C049.1_B4.6.3_CORRECTED_NODE7_INTEGRATION_AND_NODE8_PARENT_REFINEMENT":
+        raise AssertionError("CN7U-INV-10: next gate")
+    return observed
+
+
+def reseal(value: dict[str, Any]) -> dict[str, Any]:
+    candidate = copy.deepcopy(value)
+    candidate["certificate_bytes"] = 0
+    while True:
+        unsigned = dict(candidate)
+        unsigned.pop("semantic_digest", None)
+        candidate["semantic_digest"] = digest(unsigned)
+        size = len(canonical_json(candidate) + b"\n")
+        if candidate["certificate_bytes"] == size:
+            return candidate
+        candidate["certificate_bytes"] = size
+
+
+def tamper_tests(source_path: Path, artifact_path: Path) -> dict[str, str]:
+    base = json.loads(artifact_path.read_text(encoding="utf-8"))
+
+    def closure_only_removal(candidate: dict[str, Any]) -> None:
+        removal = candidate["nonvacuous_direct_witness_control"]["direct_removals"][1]
+        removal.pop("witness", None)
+        removal["witness_kind"] = "TRANSITIVE_CHAIN_ONLY"
+        removal["transitive_closure_used"] = True
+        removal["closure_only_chain"] = ["CTRL-A", "CTRL-B", "CTRL-C"]
+
+    attacks: list[tuple[str, str, Any]] = [
+        ("source_head", "CN7U-INV-01", lambda x: x["source"].__setitem__("parent_exact_head", "0" * 40)),
+        ("generator_delete", "CN7U-INV-02", lambda x: x["input_generators"].pop()),
+        ("rref_control", "CN7U-INV-01", lambda x: x["canonical_gf2_rref"]["equivalent_basis_controls"][-1].__setitem__("canonical_basis", [3, 1])),
+        ("preorder_flip", "CN7U-INV-03", lambda x: x["preorder"]["matrix"][0][1].__setitem__("holds", True)),
+        ("closure_only_removal", "DIRECT_WITNESS_MISSING", closure_only_removal),
+        ("catalog_delete", "CN7U-INV-05", lambda x: x["binary_typical_catalog"]["codes"].pop()),
+        ("closure_count", "CN7U-INV-06", lambda x: x["reachable_closure"].__setitem__("entry_count", 7775)),
+        ("closure_root", "CN7U-INV-06", lambda x: x["reachable_closure"].__setitem__("entries_digest", "0" * 64)),
+        ("second_up_k_digest", "CN7U-INV-08", lambda x: x["true_up_k_idempotence"].__setitem__("second_stream_sha256", "0" * 64)),
+        ("false_terminal", "CN7U-INV-10", lambda x: x["strict_boundary"].__setitem__("no_layout_at_cap", True)),
+    ]
+    outcomes: dict[str, str] = {}
+    with tempfile.TemporaryDirectory() as directory:
+        for name, expected, mutation in attacks:
+            candidate = copy.deepcopy(base)
+            mutation(candidate)
+            candidate = reseal(candidate)
+            path = Path(directory) / f"{name}.json"
+            path.write_bytes(canonical_json(candidate) + b"\n")
+            try:
+                verify(source_path, path)
+            except AssertionError as exc:
+           

@@ -1,0 +1,31 @@
+      message = str(exc)
+                if expected not in message:
+                    raise AssertionError(f"tamper {name} failed on wrong invariant: {message}")
+                outcomes[name] = expected
+            else:
+                raise AssertionError(f"tamper accepted: {name}")
+    if len(outcomes) != 10:
+        raise AssertionError("CN7U-INV-10: tamper count")
+    return outcomes
+
+
+def main() -> None:
+    parser = argparse.ArgumentParser()
+    parser.add_argument("source", type=Path)
+    parser.add_argument("artifact", type=Path)
+    parser.add_argument("--tamper-self-test", action="store_true")
+    args = parser.parse_args()
+    artifact = verify(args.source, args.artifact)
+    outcomes = tamper_tests(args.source, args.artifact) if args.tamper_self_test else {}
+    print(json.dumps({
+        "status": "PASS",
+        "invariants": "10/10",
+        "tamper_attacks_rejected": len(outcomes),
+        "closure_entries": artifact["reachable_closure"]["entry_count"],
+        "second_up_k_checks": artifact["true_up_k_idempotence"]["repeated_closure_checks"],
+        "semantic_digest": artifact["semantic_digest"],
+    }, sort_keys=True))
+
+
+if __name__ == "__main__":
+    main()

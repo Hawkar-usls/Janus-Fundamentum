@@ -5,6 +5,8 @@ on:
     paths:
       - 'experiments/direct/janus_c049_1_b4_6_3_corrected_node7_six_generator_up_k.py'
       - 'experiments/direct/janus_c049_1_b4_6_3_corrected_node7_six_generator_up_k_verifier.py'
+      - 'experiments/direct/.cn7u_repair1_producer/**'
+      - 'experiments/direct/.cn7u_repair1_verifier/**'
       - 'experiments/direct/C049_1_B4_6_3_CORRECTED_NODE7_SIX_GENERATOR_UP_K.*'
       - 'docs/C049_1_B4_6_3_CORRECTED_NODE7_SIX_GENERATOR_UP_K_HARDENING.md'
       - 'registry/c049-1-b4-6-3-corrected-node7-six-generator-up-k-hardening.json'
@@ -13,6 +15,8 @@ on:
     paths:
       - 'experiments/direct/janus_c049_1_b4_6_3_corrected_node7_six_generator_up_k.py'
       - 'experiments/direct/janus_c049_1_b4_6_3_corrected_node7_six_generator_up_k_verifier.py'
+      - 'experiments/direct/.cn7u_repair1_producer/**'
+      - 'experiments/direct/.cn7u_repair1_verifier/**'
       - 'experiments/direct/C049_1_B4_6_3_CORRECTED_NODE7_SIX_GENERATOR_UP_K.*'
       - 'docs/C049_1_B4_6_3_CORRECTED_NODE7_SIX_GENERATOR_UP_K_HARDENING.md'
       - 'registry/c049-1-b4-6-3-corrected-node7-six-generator-up-k-hardening.json'
@@ -36,17 +40,24 @@ jobs:
         with:
           python-version: '3.12'
 
-      - name: Verify exact ancestry and verifier independence
+      - name: Verify exact ancestry and independent source pair
         run: |
           git merge-base --is-ancestor 796ad144de65906c702e29928f683e6d53e3529c HEAD
+          python - <<'PY'
+          from pathlib import Path
+          root=Path('experiments/direct')
+          producer=b''.join(p.read_bytes() for p in sorted((root/'.cn7u_repair1_producer').iterdir()))
+          verifier=b''.join(p.read_bytes() for p in sorted((root/'.cn7u_repair1_verifier').iterdir()))
+          compile(producer,'producer-repair1','exec')
+          compile(verifier,'verifier-repair1','exec')
+          text=verifier.decode()
+          forbidden=('corrected_node7_six_generator_up_k','janus_c049_1_b1_','janus_c049_1_b2_')
+          assert not any(token in text for token in forbidden)
+          PY
           python -m py_compile \
             experiments/direct/janus_c049_1_b4_6_3_corrected_node7_six_generator_up_k.py \
             experiments/direct/janus_c049_1_b4_6_3_corrected_node7_six_generator_up_k_verifier.py \
             experiments/direct/janus_c049_1_b4_6_3_replay_workflow_run_steps.py
-          ! grep -E '^from .*corrected_node7_six_generator_up_k|^import .*corrected_node7_six_generator_up_k' \
-            experiments/direct/janus_c049_1_b4_6_3_corrected_node7_six_generator_up_k_verifier.py
-          ! grep -E '^from .*janus_c049_1_b[12]_.*core|^import .*janus_c049_1_b[12]_.*core' \
-            experiments/direct/janus_c049_1_b4_6_3_corrected_node7_six_generator_up_k_verifier.py
 
       - name: Replay admitted PR 112 exactly
         run: |
@@ -57,13 +68,12 @@ jobs:
           test "$(sha256sum "$source" | cut -d' ' -f1)" = \
             "b0d8d4e51be21f21218fd9ee63a367e3236ff2a53d9d5f29980e1c93340867ca"
 
-      - name: Build deterministic frozen candidate
+      - name: Build deterministic repaired frozen candidate
         run: |
           source=/tmp/c049-corrected-node7-frontier-compression.json
           producer=experiments/direct/janus_c049_1_b4_6_3_corrected_node7_six_generator_up_k.py
           for mode in original reversed seeded-shuffle; do
-            python "$producer" "$source" \
-              --entry-order "$mode" \
+            python "$producer" "$source" --entry-order "$mode" \
               --output "/tmp/c049-node7-up-k-$mode.json"
           done
           cmp /tmp/c049-node7-up-k-original.json /tmp/c049-node7-up-k-reversed.json
@@ -73,45 +83,53 @@ jobs:
           sha256sum -c \
             experiments/direct/C049_1_B4_6_3_CORRECTED_NODE7_SIX_GENERATOR_UP_K.manifest.sha256
 
-      - name: Independent replay and repaired tamper rejection
+      - name: Independent true second up_k replay and repaired tamper rejection
         run: |
           python experiments/direct/janus_c049_1_b4_6_3_corrected_node7_six_generator_up_k_verifier.py \
             /tmp/c049-corrected-node7-frontier-compression.json \
-            /tmp/c049-node7-up-k-original.json \
-            --tamper-self-test
+            /tmp/c049-node7-up-k-original.json --tamper-self-test
 
-      - name: Validate strict pending boundary
+      - name: Validate strict repair boundary
         run: |
           python - <<'PY'
           import json
           artifact=json.load(open('/tmp/c049-node7-up-k-original.json'))
-          assert artifact['certificate_bytes']==5983
-          assert artifact['semantic_digest']=='d5ad79fc8ec336cd64ecb9f10ec327507ef4b6a485495f1d8c558569fefc4124'
-          assert artifact['preorder']['pair_count']==36
-          assert artifact['preorder']['relation_count']==6
-          assert len(artifact['preorder']['retained_generator_ids'])==6
-          assert artifact['preorder']['direct_removals']==[]
+          assert artifact['schema'].endswith('-v2')
+          assert artifact['certificate_bytes']==10137
+          assert artifact['semantic_digest']=='cfd99ea716076414847749fb98185cea63c2cf44e9ceaa659bf37eb9e8fc366a'
           assert artifact['reachable_closure']['entry_count']==7776
-          assert artifact['reachable_closure']['entries_digest']=='b7ffb31c984a2181b8c174ba4c5f1765305796ca19a17d5919d467656c6476a6'
-          assert artifact['reachable_closure']['idempotent'] is True
-          assert artifact['invariant_vector']=={f'CN7U-INV-{i:02d}':'PASS' for i in range(1,11)}
+          assert artifact['reachable_closure']['entries_digest']=='99a702ea7005e4a41d99fc4454040314ab106632672b267bffb5f59e29afa728'
+          idem=artifact['true_up_k_idempotence']
+          assert idem['second_input_generator_count']==7776
+          assert idem['repeated_closure_checks']==960000
+          assert idem['byte_identical_to_first'] is True
+          assert idem['original_six_reused_in_second_pass'] is False
+          assert idem['source_generator_ids_consumed_in_second_pass'] is False
+          assert artifact['canonical_gf2_rref']['full_reverse_elimination'] is True
+          control=artifact['nonvacuous_direct_witness_control']
+          assert len(control['direct_removals'])==2
+          assert control['transitive_chain_temptation']['accepted_as_removal_witness'] is False
           receipt=json.load(open('registry/c049-1-b4-6-3-corrected-node7-six-generator-up-k-hardening.json'))
-          assert receipt['status']=='DRAFT_EXACT_HEAD_CI_REQUIRED'
+          assert receipt['status']=='REPAIR_1_EXACT_HEAD_CI_REQUIRED'
           boundary=receipt['admission_boundary']
+          assert boundary['pr113_repair_1_implemented'] is True
           assert boundary['corrected_node7_six_generator_up_k_admitted'] is False
-          assert boundary['corrected_node7_parent_refinement_complete'] is True
           assert boundary['corrected_node7_parent_up_k_complete'] is False
           assert boundary['found_layout_enabled'] is False
           assert boundary['no_layout_at_cap_enabled'] is False
           assert boundary['p_vs_np']=='OPEN'
           PY
 
-      - name: Export candidate proof package
+      - name: Export repaired candidate proof package
         uses: actions/upload-artifact@v4
         with:
-          name: c049-b4-6-3-corrected-node7-six-generator-up-k-hardening
+          name: c049-b4-6-3-corrected-node7-six-generator-up-k-repair-1
           path: |
             /tmp/c049-node7-up-k-original.json
+            experiments/direct/janus_c049_1_b4_6_3_corrected_node7_six_generator_up_k.py
+            experiments/direct/janus_c049_1_b4_6_3_corrected_node7_six_generator_up_k_verifier.py
+            experiments/direct/.cn7u_repair1_producer
+            experiments/direct/.cn7u_repair1_verifier
             experiments/direct/C049_1_B4_6_3_CORRECTED_NODE7_SIX_GENERATOR_UP_K.frozen.json
             experiments/direct/C049_1_B4_6_3_CORRECTED_NODE7_SIX_GENERATOR_UP_K.manifest.json
             experiments/direct/C049_1_B4_6_3_CORRECTED_NODE7_SIX_GENERATOR_UP_K.manifest.sha256
