@@ -1,0 +1,130 @@
+
+
+def verify_direct_control(control: dict[str, Any]) -> None:
+    raw_generators = control.get("generator_trajectories", {})
+    generators = {
+        identifier: compact(tuple(decode_stat(item) for item in trajectory))
+        for identifier, trajectory in raw_generators.items()
+    }
+    if set(generators) != {"CTRL-A", "CTRL-B", "CTRL-C"} or control.get("retained_generator_ids") != ["CTRL-A"]:
+        raise AssertionError("CN7U-INV-04: nonvacuous control inventory")
+    removals = control.get("direct_removals", [])
+    if len(removals) != 2:
+        raise AssertionError("CN7U-INV-04: nonvacuous direct-removal count")
+    for removal in removals:
+        if removal.get("witness_kind") != "EXTENSION_PREORDER_DIRECT" or removal.get("transitive_closure_used") is not False or not removal.get("witness"):
+            raise AssertionError("DIRECT_WITNESS_MISSING")
+        retained = removal.get("retained_generator_id")
+        removed = removal.get("removed_generator_id")
+        expected = direct_path(generators[retained], generators[removed])
+        if expected is None or removal["witness"] != expected:
+            raise AssertionError("DIRECT_WITNESS_MISSING")
+    temptation = control.get("transitive_chain_temptation", {})
+    if temptation.get("chain") != ["CTRL-A", "CTRL-B", "CTRL-C"] or temptation.get("accepted_as_removal_witness") is not False:
+        raise AssertionError("CN7U-INV-04: transitive temptation control")
+    if control.get("every_removal_has_direct_retained_witness") is not True:
+        raise AssertionError("DIRECT_WITNESS_MISSING")
+
+
+def verify(source_path: Path, artifact_path: Path) -> dict[str, Any]:
+    if file_sha256(source_path) != SOURCE_SHA256:
+        raise AssertionError("CN7U-INV-01: source bytes")
+    source = json.loads(source_path.read_text(encoding="utf-8"))
+    if source.get("semantic_digest") != SOURCE_SEMANTIC:
+        raise AssertionError("CN7U-INV-01: source semantic")
+    observed = json.loads(artifact_path.read_text(encoding="utf-8"))
+    if observed.get("schema") != SCHEMA:
+        raise AssertionError("CN7U-INV-01: schema")
+    unsigned = dict(observed)
+    claimed = unsigned.pop("semantic_digest", None)
+    if claimed != digest(unsigned):
+        raise AssertionError("CN7U-INV-10: semantic digest")
+    if observed.get("certificate_bytes") != len(artifact_path.read_bytes()):
+        raise AssertionError("CN7U-INV-10: fixed point bytes")
+    if observed.get("source") != {
+        "parent_pr": 112,
+        "parent_exact_head": PARENT_HEAD,
+        "certificate_sha256": SOURCE_SHA256,
+        "certificate_semantic_digest": SOURCE_SEMANTIC,
+    }:
+        raise AssertionError("CN7U-INV-01: source binding")
+
+    verify_rref_section(observed["canonical_gf2_rref"])
+    generators = source_generators(source)
+    expected_inventory = [
+        {"generator_id": item["generator_id"], "trajectory": item["trajectory_json"], "trajectory_digest": item["trajectory_digest"]}
+        for item in generators
+    ]
+    if observed.get("input_generators") != expected_inventory:
+        raise AssertionError("CN7U-INV-02: generator inventory")
+
+    expected_matrix = []
+    for lower in generators:
+        row = []
+        for upper in generators:
+            path = direct_path(lower["trajectory"], upper["trajectory"])
+            row.append({"holds": path is not None, "witness": path})
+        expected_matrix.append(row)
+    pre = observed["preorder"]
+    if pre.get("steps") != [list(step) for step in STEPS] or pre.get("pair_count") != 36 or pre.get("matrix") != expected_matrix:
+        raise AssertionError("CN7U-INV-03: 6x6 preorder")
+    relation_count = sum(int(cell["holds"]) for row in expected_matrix for cell in row)
+    if relation_count != 6 or pre.get("relation_count") != relation_count:
+        raise AssertionError("CN7U-INV-03: relation count")
+    if pre.get("retained_generator_ids") != [item["generator_id"] for item in generators] or pre.get("direct_removals") != [] or pre.get("transitive_removal_witnesses_used") != 0:
+        raise AssertionError("CN7U-INV-04: exact minimization")
+
+    verify_direct_control(observed["nonvacuous_direct_witness_control"])
+    upward, scalar_edges, scalar_checks = scalar_upward()
+    expected_catalog = {
+        "patterns": [list(pattern) for pattern in PATTERNS],
+        "codes": sorted(CODE_PATTERN),
+        "relation_edge_count": len(scalar_edges),
+        "relation_edges": scalar_edges,
+        "transitivity_checks": scalar_checks,
+        "assignments_per_zero_generator": 1296,
+    }
+    if observed.get("binary_typical_catalog") != expected_catalog:
+        raise AssertionError("CN7U-INV-05: scalar catalog")
+
+    first, first_checks = closure([item["trajectory"] for item in generators], upward)
+    first_bytes = stream(first)
+    closure_section = observed["reachable_closure"]
+    if closure_section.get("entry_count") != len(first) or closure_section.get("entries_digest") != digest([encode_trajectory(item) for item in first]):
+        raise AssertionError("CN7U-INV-06: first closure")
+    if closure_section.get("stream_sha256") != hashlib.sha256(first_bytes).hexdigest() or closure_section.get("stream_bytes") != len(first_bytes):
+        raise AssertionError("CN7U-INV-06: first closure stream")
+    if closure_section.get("full_entries_stored") is not False or closure_section.get("full_entries_replayed_by_verifier") is not True:
+        raise AssertionError("CN7U-INV-06: closure replay boundary")
+
+    second, second_checks = second_closure(first, upward)
+    second_bytes = stream(second)
+    idem = observed["true_up_k_idempotence"]
+    if first_bytes != second_bytes:
+        raise AssertionError("CN7U-INV-08: true up_k idempotence")
+    if idem != {
+        "method": "EXACT_SECOND_UP_K_ON_FIRST_CLOSURE_TRAJECTORIES",
+        "second_input_generator_count": 7776,
+        "second_output_entry_count": 7776,
+        "second_stream_sha256": hashlib.sha256(second_bytes).hexdigest(),
+        "second_stream_bytes": len(second_bytes),
+        "byte_identical_to_first": True,
+        "original_six_reused_in_second_pass": False,
+        "source_generator_ids_consumed_in_second_pass": False,
+        "repeated_closure_checks": 960000,
+    }:
+        raise AssertionError("CN7U-INV-08: idempotence receipt")
+    if first_checks != 7776 or second_checks != 960000:
+        raise AssertionError("CN7U-INV-09: closure work")
+
+    ledger = observed["work_ledger"]
+    if ledger.get("gf2_generator_statistics_checked") != 24 or ledger.get("preorder_pairs_replayed") != 36:
+        raise AssertionError("CN7U-INV-09: base work ledger")
+    if ledger.get("nonvacuous_control_direct_witnesses_replayed") != 2 or ledger.get("first_up_k_checks") != 7776:
+        raise AssertionError("CN7U-INV-09: direct/first work ledger")
+    if ledger.get("second_up_k_input_generators") != 7776 or ledger.get("second_up_k_checks") != 960000 or ledger.get("second_closure_entries_materialized") != 7776:
+        raise AssertionError("CN7U-INV-09: second work ledger")
+    if observed.get("invariant_vector") != {f"CN7U-INV-{i:02d}": "PASS" for i in range(1, 11)}:
+        raise AssertionError("CN7U-INV-10: invariant vector")
+    strict = observed["strict_boundary"]
+    if strict.get("corrected_node7_parent_up_k_complete") is not False or strict.get("found_layout") != "FORBIDDEN" or strict.get("no_layout_at_cap") != "FORBIDDEN" or strict.get("p_vs_np") != "OPEN":

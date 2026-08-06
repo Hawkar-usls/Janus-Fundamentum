@@ -1,0 +1,130 @@
+#!/usr/bin/env python3
+from __future__ import annotations
+
+import argparse
+import copy
+import hashlib
+import itertools
+import json
+import tempfile
+from pathlib import Path
+from typing import Any, Iterable, Sequence
+
+SCHEMA = "C049.1-B4.6.3-CORRECTED-NODE7-SIX-GENERATOR-UP-K-v2"
+PARENT_HEAD = "796ad144de65906c702e29928f683e6d53e3529c"
+SOURCE_SHA256 = "b0d8d4e51be21f21218fd9ee63a367e3236ff2a53d9d5f29980e1c93340867ca"
+SOURCE_SEMANTIC = "750990191184f37e321a83a66040fab490fa0db3ad3eb07e9941d3e31e7d88dd"
+PATTERNS = ((0,), (0, 1), (0, 1, 0), (1,), (1, 0), (1, 0, 1))
+PATTERN_CODE = {pattern: "".join(map(str, pattern)) for pattern in PATTERNS}
+CODE_PATTERN = {code: pattern for pattern, code in PATTERN_CODE.items()}
+STEPS = ((1, 0), (0, 1), (1, 1))
+
+
+def canonical_json(value: Any) -> bytes:
+    return json.dumps(value, sort_keys=True, separators=(",", ":")).encode("utf-8")
+
+
+def digest(value: Any) -> str:
+    return hashlib.sha256(canonical_json(value)).hexdigest()
+
+
+def file_sha256(path: Path) -> str:
+    return hashlib.sha256(path.read_bytes()).hexdigest()
+
+
+def rref(rows: Iterable[int], ambient_dim: int = 2) -> tuple[int, ...]:
+    values: list[int] = []
+    for raw in rows:
+        value = int(raw)
+        if value < 0 or value >= (1 << ambient_dim):
+            raise AssertionError("CN7U-INV-01: GF(2) vector range")
+        if value and value not in values:
+            values.append(value)
+    values.sort(reverse=True)
+    target = 0
+    for column in range(ambient_dim - 1, -1, -1):
+        selected = None
+        for index in range(target, len(values)):
+            if (values[index] >> column) & 1:
+                selected = index
+                break
+        if selected is None:
+            continue
+        values[target], values[selected] = values[selected], values[target]
+        pivot = values[target]
+        for index in range(len(values)):
+            if index != target and ((values[index] >> column) & 1):
+                values[index] ^= pivot
+        target += 1
+    output = [value for value in values if value]
+    output.sort(key=lambda value: value.bit_length(), reverse=True)
+    return tuple(output)
+
+
+def decode_stat(raw: dict[str, Any]) -> tuple[tuple[int, ...], tuple[int, ...], int]:
+    value = int(raw["value"])
+    if value not in (0, 1):
+        raise AssertionError("CN7U-INV-02: nonbinary scalar")
+    return rref(raw["left"]), rref(raw["right"]), value
+
+
+def encode_stat(item: tuple) -> dict[str, Any]:
+    return {"left": list(item[0]), "right": list(item[1]), "value": int(item[2])}
+
+
+def encode_trajectory(trajectory: Sequence[tuple]) -> list[dict[str, Any]]:
+    return [encode_stat(item) for item in trajectory]
+
+
+def geom(item: tuple) -> tuple:
+    return item[0], item[1]
+
+
+def compact(trajectory: Sequence[tuple]) -> tuple[tuple, ...]:
+    current = list(trajectory)
+    while True:
+        changed = False
+        for index in range(1, len(current)):
+            if current[index - 1] == current[index]:
+                current.pop(index)
+                changed = True
+                break
+        if changed:
+            continue
+        for start in range(len(current)):
+            for end in range(start + 2, len(current)):
+                if geom(current[start]) != geom(current[end]):
+                    continue
+                values = [int(item[2]) for item in current[start : end + 1]]
+                valid = (
+                    values[0] <= values[-1]
+                    and all(values[0] <= value <= values[-1] for value in values[1:-1])
+                ) or (
+                    values[0] >= values[-1]
+                    and all(values[0] >= value >= values[-1] for value in values[1:-1])
+                )
+                if valid:
+                    del current[start + 1 : end]
+                    changed = True
+                    break
+            if changed:
+                break
+        if not changed:
+            return tuple(current)
+
+
+def direct_path(lower: Sequence[tuple], upper: Sequence[tuple]) -> dict[str, Any] | None:
+    previous: dict[tuple[int, int], tuple[int, int] | None] = {}
+    for i, left in enumerate(lower):
+        for j, right in enumerate(upper):
+            if geom(left) != geom(right) or int(left[2]) > int(right[2]):
+                continue
+            if (i, j) == (0, 0):
+                previous[(i, j)] = None
+                continue
+            for parent in ((i - 1, j - 1), (i - 1, j), (i, j - 1)):
+                if parent in previous:
+                    previous[(i, j)] = parent
+                    break
+    endpoint = (len(lower) - 1, len(upper) - 1)
+    if endpoint not in previous:

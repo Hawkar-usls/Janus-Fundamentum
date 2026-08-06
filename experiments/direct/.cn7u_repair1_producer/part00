@@ -1,0 +1,170 @@
+#!/usr/bin/env python3
+from __future__ import annotations
+
+import argparse
+import copy
+import hashlib
+import itertools
+import json
+import random
+from pathlib import Path
+from typing import Any, Iterable, Sequence
+
+SCHEMA = "C049.1-B4.6.3-CORRECTED-NODE7-SIX-GENERATOR-UP-K-v2"
+PARENT_PR = 112
+PARENT_HEAD = "796ad144de65906c702e29928f683e6d53e3529c"
+SOURCE_SHA256 = "b0d8d4e51be21f21218fd9ee63a367e3236ff2a53d9d5f29980e1c93340867ca"
+SOURCE_SEMANTIC = "750990191184f37e321a83a66040fab490fa0db3ad3eb07e9941d3e31e7d88dd"
+RUN_PATTERNS: tuple[tuple[int, ...], ...] = (
+    (0,), (0, 1), (0, 1, 0), (1,), (1, 0), (1, 0, 1)
+)
+RUN_CODES = {pattern: "".join(map(str, pattern)) for pattern in RUN_PATTERNS}
+CODE_PATTERNS = {code: pattern for pattern, code in RUN_CODES.items()}
+EXTENSION_STEPS = ((1, 0), (0, 1), (1, 1))
+TERMINAL = "OPEN_TRAJECTORY_ENGINE_INCOMPLETE"
+
+
+def canonical_json(value: Any) -> bytes:
+    return json.dumps(value, sort_keys=True, separators=(",", ":")).encode("utf-8")
+
+
+def digest(value: Any) -> str:
+    return hashlib.sha256(canonical_json(value)).hexdigest()
+
+
+def file_sha256(path: Path) -> str:
+    return hashlib.sha256(path.read_bytes()).hexdigest()
+
+
+def canonical_rref(rows: Iterable[int], ambient_dim: int = 2) -> tuple[int, ...]:
+    """Unique reduced row-echelon basis over GF(2), pivots ordered high-to-low."""
+    work: list[int] = []
+    for raw in rows:
+        value = int(raw)
+        if value < 0 or value >= (1 << ambient_dim):
+            raise ValueError("vector outside GF(2) ambient space")
+        if value and value not in work:
+            work.append(value)
+    work.sort(reverse=True)
+    pivot_row = 0
+    for column in range(ambient_dim - 1, -1, -1):
+        candidate = next((index for index in range(pivot_row, len(work)) if (work[index] >> column) & 1), None)
+        if candidate is None:
+            continue
+        work[pivot_row], work[candidate] = work[candidate], work[pivot_row]
+        pivot = work[pivot_row]
+        for index in range(len(work)):
+            if index != pivot_row and ((work[index] >> column) & 1):
+                work[index] ^= pivot
+        pivot_row += 1
+    result = [value for value in work if value]
+    result.sort(key=lambda value: value.bit_length(), reverse=True)
+    return tuple(result)
+
+
+def canonical_stat(item: dict[str, Any]) -> tuple[tuple[int, ...], tuple[int, ...], int]:
+    value = int(item["value"])
+    if value not in (0, 1):
+        raise ValueError("k=1 scalar outside {0,1}")
+    return canonical_rref(item["left"]), canonical_rref(item["right"]), value
+
+
+def encode_stat(stat: tuple[tuple[int, ...], tuple[int, ...], int]) -> dict[str, Any]:
+    return {"left": list(stat[0]), "right": list(stat[1]), "value": int(stat[2])}
+
+
+def encode_trajectory(trajectory: Sequence[tuple]) -> list[dict[str, Any]]:
+    return [encode_stat(stat) for stat in trajectory]
+
+
+def geometry(stat: tuple) -> tuple[tuple[int, ...], tuple[int, ...]]:
+    return stat[0], stat[1]
+
+
+def compactify(trajectory: Sequence[tuple]) -> tuple[tuple, ...]:
+    current = list(trajectory)
+    while True:
+        changed = False
+        for index in range(1, len(current)):
+            if current[index - 1] == current[index]:
+                current.pop(index)
+                changed = True
+                break
+        if changed:
+            continue
+        for start in range(len(current)):
+            for end in range(start + 2, len(current)):
+                if geometry(current[start]) != geometry(current[end]):
+                    continue
+                values = [int(item[2]) for item in current[start : end + 1]]
+                monotone = (
+                    values[0] <= values[-1]
+                    and all(values[0] <= value <= values[-1] for value in values[1:-1])
+                ) or (
+                    values[0] >= values[-1]
+                    and all(values[0] >= value >= values[-1] for value in values[1:-1])
+                )
+                if monotone:
+                    del current[start + 1 : end]
+                    changed = True
+                    break
+            if changed:
+                break
+        if not changed:
+            return tuple(current)
+
+
+def extension_preorder_witness(lower: Sequence[tuple], upper: Sequence[tuple]) -> dict[str, Any] | None:
+    parent: dict[tuple[int, int], tuple[int, int] | None] = {}
+    for i, left in enumerate(lower):
+        for j, right in enumerate(upper):
+            if geometry(left) != geometry(right) or int(left[2]) > int(right[2]):
+                continue
+            if (i, j) == (0, 0):
+                parent[(i, j)] = None
+                continue
+            for previous in ((i - 1, j - 1), (i - 1, j), (i, j - 1)):
+                if previous in parent:
+                    parent[(i, j)] = previous
+                    break
+    endpoint = (len(lower) - 1, len(upper) - 1)
+    if endpoint not in parent:
+        return None
+    path: list[tuple[int, int]] = []
+    cursor: tuple[int, int] | None = endpoint
+    while cursor is not None:
+        path.append(cursor)
+        cursor = parent[cursor]
+    path.reverse()
+    return {"path": [[i, j] for i, j in path], "path_length": len(path)}
+
+
+def split_runs(trajectory: Sequence[tuple]) -> tuple[tuple[tuple, ...], tuple[tuple[int, ...], ...]]:
+    skeleton: list[tuple] = []
+    patterns: list[list[int]] = []
+    for left, right, value in trajectory:
+        geom = (tuple(left), tuple(right))
+        if not skeleton or skeleton[-1] != geom:
+            skeleton.append(geom)
+            patterns.append([int(value)])
+        else:
+            patterns[-1].append(int(value))
+    pattern_tuple = tuple(tuple(values) for values in patterns)
+    if any(pattern not in RUN_PATTERNS for pattern in pattern_tuple):
+        raise AssertionError("trajectory contains a non-typical scalar run")
+    return tuple(skeleton), pattern_tuple
+
+
+def scalar_trajectory(pattern: Sequence[int]) -> tuple[tuple, ...]:
+    return tuple(((1,), (), int(value)) for value in pattern)
+
+
+def scalar_relation() -> tuple[dict[tuple[int, ...], tuple[tuple[int, ...], ...]], list[dict[str, Any]], int]:
+    upward: dict[tuple[int, ...], tuple[tuple[int, ...], ...]] = {}
+    edges: list[dict[str, Any]] = []
+    for lower in RUN_PATTERNS:
+        candidates = []
+        for upper in RUN_PATTERNS:
+            witness = extension_preorder_witness(scalar_trajectory(lower), scalar_trajectory(upper))
+            if witness is None:
+                continue

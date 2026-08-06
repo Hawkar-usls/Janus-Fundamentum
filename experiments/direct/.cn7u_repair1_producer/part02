@@ -1,0 +1,170 @@
+        "every_removal_has_direct_retained_witness": True,
+    }
+
+
+def build(source_path: Path, order_mode: str) -> dict[str, Any]:
+    controls = rref_controls()
+    generators = load_generators(source_path, order_mode)
+    retained, removals, matrix = minimize(generators)
+    relation_count = sum(int(cell["holds"]) for row in matrix for cell in row)
+    if len(retained) != 6 or removals or relation_count != 6:
+        raise AssertionError("Node-7 direct preorder boundary drift")
+
+    upward, scalar_edges, scalar_transitivity_checks = scalar_relation()
+    first, first_checks = closure_from_generators([item["trajectory"] for item in retained], upward)
+    if len(first) != 7776 or first_checks != 7776:
+        raise AssertionError("first up_k closure boundary drift")
+
+    # Genuine second up_k: the 7,776 first-closure trajectories are the new generator family.
+    # No source_generator_id or original retained generator is consulted in this pass.
+    second_pattern_sets: dict[bytes, tuple[tuple, set[tuple[tuple[int, ...], ...]]]] = {}
+    second_checks = 0
+    for lower in first:
+        skeleton, patterns = split_runs(lower)
+        skeleton_key = canonical_json([[list(left), list(right)] for left, right in skeleton])
+        if skeleton_key not in second_pattern_sets:
+            second_pattern_sets[skeleton_key] = (skeleton, set())
+        target = second_pattern_sets[skeleton_key][1]
+        for chosen in itertools.product(*(upward[pattern] for pattern in patterns)):
+            # Membership in each independently replayed scalar upward set is the direct
+            # block witness; injective geometry makes the global witness their concatenation.
+            second_checks += 1
+            target.add(tuple(chosen))
+    second_map: dict[bytes, tuple[tuple, ...]] = {}
+    for skeleton, pattern_set in second_pattern_sets.values():
+        for chosen in sorted(pattern_set, key=canonical_json):
+            upper = build_trajectory(skeleton, chosen)
+            second_map[canonical_json(encode_trajectory(upper))] = upper
+    second = [second_map[key] for key in sorted(second_map)]
+    first_bytes = trajectory_stream(first)
+    second_bytes = trajectory_stream(second)
+    if first_bytes != second_bytes:
+        raise AssertionError("true up_k idempotence failed")
+    if second_checks != 960000:
+        raise AssertionError("second up_k replay workload drift")
+
+    per_skeleton = []
+    for generator in retained:
+        skeleton, _ = split_runs(generator["trajectory"])
+        local = [item for item in first if split_runs(item)[0] == skeleton]
+        per_skeleton.append({
+            "skeleton_digest": digest([[list(left), list(right)] for left, right in skeleton]),
+            "entry_count": len(local),
+            "entries_digest": digest([encode_trajectory(item) for item in local]),
+        })
+    per_skeleton.sort(key=canonical_json)
+
+    direct_control = direct_witness_control()
+    artifact: dict[str, Any] = {
+        "schema": SCHEMA,
+        "source": {
+            "parent_pr": PARENT_PR,
+            "parent_exact_head": PARENT_HEAD,
+            "certificate_sha256": SOURCE_SHA256,
+            "certificate_semantic_digest": SOURCE_SEMANTIC,
+        },
+        "canonical_gf2_rref": {
+            "ambient_dim": 2,
+            "pivot_order": "HIGH_TO_LOW",
+            "full_reverse_elimination": True,
+            "equivalent_basis_controls": controls,
+            "all_controls_unique": True,
+        },
+        "input_generators": [
+            {
+                "generator_id": item["generator_id"],
+                "trajectory": item["trajectory_json"],
+                "trajectory_digest": item["trajectory_digest"],
+            }
+            for item in generators
+        ],
+        "preorder": {
+            "steps": [list(step) for step in EXTENSION_STEPS],
+            "pair_count": 36,
+            "relation_count": relation_count,
+            "matrix": matrix,
+            "retained_generator_ids": [item["generator_id"] for item in retained],
+            "direct_removals": removals,
+            "transitive_removal_witnesses_used": 0,
+        },
+        "nonvacuous_direct_witness_control": direct_control,
+        "binary_typical_catalog": {
+            "patterns": [list(pattern) for pattern in RUN_PATTERNS],
+            "codes": sorted(CODE_PATTERNS),
+            "relation_edge_count": len(scalar_edges),
+            "relation_edges": scalar_edges,
+            "transitivity_checks": scalar_transitivity_checks,
+            "assignments_per_zero_generator": len(RUN_PATTERNS) ** 4,
+        },
+        "reachable_closure": {
+            "entry_count": len(first),
+            "entries_digest": digest([encode_trajectory(item) for item in first]),
+            "stream_sha256": hashlib.sha256(first_bytes).hexdigest(),
+            "stream_bytes": len(first_bytes),
+            "per_skeleton": per_skeleton,
+            "full_entries_stored": False,
+            "full_entries_replayed_by_verifier": True,
+        },
+        "true_up_k_idempotence": {
+            "method": "EXACT_SECOND_UP_K_ON_FIRST_CLOSURE_TRAJECTORIES",
+            "second_input_generator_count": len(first),
+            "second_output_entry_count": len(second),
+            "second_stream_sha256": hashlib.sha256(second_bytes).hexdigest(),
+            "second_stream_bytes": len(second_bytes),
+            "byte_identical_to_first": first_bytes == second_bytes,
+            "original_six_reused_in_second_pass": False,
+            "source_generator_ids_consumed_in_second_pass": False,
+            "repeated_closure_checks": second_checks,
+        },
+        "work_ledger": {
+            "gf2_rref_control_representations": sum(len(item["representations"]) for item in controls),
+            "gf2_generator_statistics_checked": 24,
+            "preorder_pairs_replayed": 36,
+            "direct_removal_witnesses_replayed": len(removals),
+            "nonvacuous_control_direct_witnesses_replayed": len(direct_control["direct_removals"]),
+            "first_up_k_checks": first_checks,
+            "first_closure_entries_materialized": len(first),
+            "second_up_k_input_generators": len(first),
+            "second_up_k_checks": second_checks,
+            "second_closure_entries_materialized": len(second),
+        },
+        "invariant_vector": {f"CN7U-INV-{i:02d}": "PASS" for i in range(1, 11)},
+        "result": "CORRECTED_NODE7_SIX_GENERATOR_UP_K_REPAIR_CANDIDATE",
+        "strict_boundary": {
+            "pr112_corrected_node7_refinement_admitted": True,
+            "corrected_node7_parent_up_k_complete": False,
+            "corrected_bottom_up_replay_complete": False,
+            "root_parent_refinement_complete": False,
+            "root_full_set_computed": False,
+            "root_empty_proved": False,
+            "found_layout": "FORBIDDEN",
+            "no_layout_at_cap": "FORBIDDEN",
+            "current_global_terminal": TERMINAL,
+            "p_vs_np": "OPEN",
+        },
+        "next_gate_after_admission": "C049.1_B4.6.3_CORRECTED_NODE7_INTEGRATION_AND_NODE8_PARENT_REFINEMENT",
+        "certificate_bytes": 0,
+    }
+    while True:
+        unsigned = dict(artifact)
+        unsigned.pop("semantic_digest", None)
+        artifact["semantic_digest"] = digest(unsigned)
+        raw = canonical_json(artifact) + b"\n"
+        if artifact["certificate_bytes"] == len(raw):
+            return artifact
+        artifact["certificate_bytes"] = len(raw)
+
+
+def main() -> None:
+    parser = argparse.ArgumentParser()
+    parser.add_argument("source", type=Path)
+    parser.add_argument("--output", required=True, type=Path)
+    parser.add_argument("--entry-order", default="original", choices=("original", "reversed", "seeded-shuffle"))
+    args = parser.parse_args()
+    artifact = build(args.source, args.entry_order)
+    args.output.write_bytes(canonical_json(artifact) + b"\n")
+    print(json.dumps({
+        "artifact_bytes": args.output.stat().st_size,
+        "artifact_sha256": file_sha256(args.output),
+        "semantic_digest": artifact["semantic_digest"],
+        "retained_generators": len(artifact["preorder"]["retained_generator_ids"]),

@@ -1,0 +1,130 @@
+        return None
+    route: list[tuple[int, int]] = []
+    cursor: tuple[int, int] | None = endpoint
+    while cursor is not None:
+        route.append(cursor)
+        cursor = previous[cursor]
+    route.reverse()
+    return {"path": [[i, j] for i, j in route], "path_length": len(route)}
+
+
+def runs(trajectory: Sequence[tuple]) -> tuple[tuple[tuple, ...], tuple[tuple[int, ...], ...]]:
+    skeleton: list[tuple] = []
+    patterns: list[list[int]] = []
+    for left, right, value in trajectory:
+        geometry = (tuple(left), tuple(right))
+        if not skeleton or skeleton[-1] != geometry:
+            skeleton.append(geometry)
+            patterns.append([int(value)])
+        else:
+            patterns[-1].append(int(value))
+    pattern_tuple = tuple(tuple(values) for values in patterns)
+    if any(pattern not in PATTERNS for pattern in pattern_tuple):
+        raise AssertionError("CN7U-INV-05: non-typical scalar run")
+    return tuple(skeleton), pattern_tuple
+
+
+def scalar_traj(pattern: Sequence[int]) -> tuple[tuple, ...]:
+    return tuple(((1,), (), int(value)) for value in pattern)
+
+
+def scalar_upward() -> tuple[dict[tuple[int, ...], tuple[tuple[int, ...], ...]], list[dict[str, Any]], int]:
+    upward: dict[tuple[int, ...], tuple[tuple[int, ...], ...]] = {}
+    edges: list[dict[str, Any]] = []
+    for lower in PATTERNS:
+        targets = []
+        for upper in PATTERNS:
+            path = direct_path(scalar_traj(lower), scalar_traj(upper))
+            if path is not None:
+                targets.append(upper)
+                edges.append({"lower": PATTERN_CODE[lower], "upper": PATTERN_CODE[upper], "witness": path})
+        upward[lower] = tuple(targets)
+    edges.sort(key=canonical_json)
+    relation = {(item["lower"], item["upper"]) for item in edges}
+    checks = 0
+    for lower in PATTERNS:
+        for middle in PATTERNS:
+            for upper in PATTERNS:
+                if (PATTERN_CODE[lower], PATTERN_CODE[middle]) in relation and (PATTERN_CODE[middle], PATTERN_CODE[upper]) in relation:
+                    checks += 1
+                    if (PATTERN_CODE[lower], PATTERN_CODE[upper]) not in relation:
+                        raise AssertionError("CN7U-INV-05: scalar transitivity")
+    return upward, edges, checks
+
+
+def build_trajectory(skeleton: Sequence[tuple], patterns: Sequence[tuple[int, ...]]) -> tuple[tuple, ...]:
+    raw: list[tuple] = []
+    for geometry, pattern in zip(skeleton, patterns):
+        for value in pattern:
+            raw.append((geometry[0], geometry[1], int(value)))
+    return compact(raw)
+
+
+def closure(generators: Sequence[Sequence[tuple]], upward: dict) -> tuple[list[tuple[tuple, ...]], int]:
+    catalog: dict[bytes, tuple[tuple, ...]] = {}
+    checks = 0
+    for lower in generators:
+        skeleton, patterns = runs(lower)
+        for chosen in itertools.product(*(upward[pattern] for pattern in patterns)):
+            upper = build_trajectory(skeleton, chosen)
+            checks += 1
+            if direct_path(lower, upper) is None:
+                raise AssertionError("CN7U-INV-06: missing direct closure witness")
+            catalog[canonical_json(encode_trajectory(upper))] = upper
+    return [catalog[key] for key in sorted(catalog)], checks
+
+
+def second_closure(first: Sequence[Sequence[tuple]], upward: dict) -> tuple[list[tuple[tuple, ...]], int]:
+    # The only generators accepted here are the first closure trajectories themselves.
+    pattern_sets: dict[bytes, tuple[tuple, set[tuple[tuple[int, ...], ...]]]] = {}
+    checks = 0
+    for lower in first:
+        skeleton, patterns = runs(lower)
+        key = canonical_json([[list(left), list(right)] for left, right in skeleton])
+        if key not in pattern_sets:
+            pattern_sets[key] = (skeleton, set())
+        output = pattern_sets[key][1]
+        for chosen in itertools.product(*(upward[pattern] for pattern in patterns)):
+            checks += 1
+            output.add(tuple(chosen))
+    catalog: dict[bytes, tuple[tuple, ...]] = {}
+    for skeleton, choices in pattern_sets.values():
+        for chosen in sorted(choices, key=canonical_json):
+            upper = build_trajectory(skeleton, chosen)
+            catalog[canonical_json(encode_trajectory(upper))] = upper
+    return [catalog[key] for key in sorted(catalog)], checks
+
+
+def stream(trajectories: Sequence[Sequence[tuple]]) -> bytes:
+    return b"[" + b",".join(canonical_json(encode_trajectory(item)) for item in trajectories) + b"]"
+
+
+def source_generators(source: dict[str, Any]) -> list[dict[str, Any]]:
+    output = []
+    for item in source["quotient_frontier"]["classes"]:
+        trajectory = compact(tuple(decode_stat(raw) for raw in item["zero_envelope"]))
+        if len(trajectory) != 4 or any(stat[2] != 0 for stat in trajectory) or len({geom(stat) for stat in trajectory}) != 4:
+            raise AssertionError("CN7U-INV-02: source generator geometry")
+        encoded = encode_trajectory(trajectory)
+        output.append({
+            "generator_id": str(item["class_id"]),
+            "trajectory": trajectory,
+            "trajectory_json": encoded,
+            "trajectory_digest": digest(encoded),
+        })
+    output.sort(key=lambda item: canonical_json(item["trajectory_json"]))
+    if len(output) != 6:
+        raise AssertionError("CN7U-INV-02: source generator count")
+    return output
+
+
+def verify_rref_section(section: dict[str, Any]) -> None:
+    if section.get("ambient_dim") != 2 or section.get("pivot_order") != "HIGH_TO_LOW" or section.get("full_reverse_elimination") is not True:
+        raise AssertionError("CN7U-INV-01: canonical RREF contract")
+    for fixture in section.get("equivalent_basis_controls", []):
+        expected = tuple(fixture["canonical_basis"])
+        observed = {rref(rows) for rows in fixture["representations"]}
+        if observed != {expected}:
+            raise AssertionError("CN7U-INV-01: equivalent bases are not canonical")
+    if section.get("all_controls_unique") is not True or len(section.get("equivalent_basis_controls", [])) != 5:
+        raise AssertionError("CN7U-INV-01: RREF controls")
