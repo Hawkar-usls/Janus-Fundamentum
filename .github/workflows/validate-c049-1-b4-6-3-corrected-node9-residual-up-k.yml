@@ -27,7 +27,7 @@ jobs:
       PARENT_RESIDUAL_HEAD: 7a49fbe53b3bb7a775a35905106a5695e95579e8
       UPK_SPEC_SUBJECT: 1107992ce268a5f17bcbfb1f39fe2f83d2469529
       UPK_PRODUCER_SUBJECT: 0134dd99c6bf42d222b0044d216113174b9ebd11
-      UPK_VERIFIER_SUBJECT: 0c7f5f77c6c9f25ad7a1bbc60162b237bb9df5d6
+      UPK_VERIFIER_SUBJECT: 6b4f9d3472ac7173c63a5c88f1d45783cedac250
       RESIDUAL_SPEC_SUBJECT: 51cd557386f7e46838116ea144acd961302d349b
       RESIDUAL_PRODUCER_SUBJECT: 6fc069b6525be01dc73fc01cd59cd1d728db29e8
       RESIDUAL_VERIFIER_SUBJECT: 228eb76ebae04d4e675938c6068836a691e819b1
@@ -63,7 +63,7 @@ jobs:
         with:
           python-version: '3.12'
 
-      - name: Bind immutable proof subjects and compile
+      - name: Reconstruct full bound chain and verify residual up_k
         run: |
           set -euo pipefail
           git merge-base --is-ancestor "$PARENT_RESIDUAL_HEAD" HEAD
@@ -86,7 +86,7 @@ jobs:
           python -m py_compile "$UPK_PRODUCER" "$UPK_VERIFIER" "$RESIDUAL_PRODUCER" "$RESIDUAL_VERIFIER" "$SCALAR_PRODUCER" "$SCALAR_VERIFIER" "$Q80_PRODUCER" "$Q80_VERIFIER" "$NODE8_PRODUCER"
           test "$(git hash-object "$UPK_SPEC")" = "f661107212acdca4019dc2d038610e2cdd3beb40"
           test "$(git hash-object "$UPK_PRODUCER")" = "f7082ee031074e6548a49e17227c5c4b410c891d"
-          test "$(git hash-object "$UPK_VERIFIER")" = "e0eec9679849b16ea2deecb63e54b4475820f0f3"
+          test "$(git hash-object "$UPK_VERIFIER")" = "1c14feb2d04b4dee2c66ff97e43e252d5a38ef80"
           python - <<'PY'
           import ast
           from pathlib import Path
@@ -103,19 +103,18 @@ jobs:
           print('UP_K_IMPLEMENTATION_DECOUPLING_STATIC_CHECK = PASS')
           PY
 
-      - name: Reconstruct Node-8, Q80 and admitted scalar candidate
-        run: |
-          set -euo pipefail
           cat experiments/direct/.cn8_frozen_b64/part* | base64 -d > /tmp/pr114-node8.json
           test "$(sha256sum /tmp/pr114-node8.json | cut -d' ' -f1)" = "30329bdb77802016ef3479d37a29fdb8e1fc95c5d534484fc179916a0cfdbb0a"
           python "$NODE8_PRODUCER" /tmp/pr114-node8.json --entry-order original --output /tmp/node8.json > /tmp/node8.log
           test "$(sha256sum /tmp/node8.json | cut -d' ' -f1)" = "80b74b500ae82639e51568a9a6dc70a72668f32991add42bc5ffac05b3f9537f"
+
           for mode in ORIGINAL REVERSED SEEDED_SHUFFLE; do
             python "$Q80_PRODUCER" --spec "$STRUCT_SPEC" --node8-artifact /tmp/node8.json --leaf5-artifact "$LEAF5" --output "/tmp/q80-$mode.json" --order-mode "$mode" > "/tmp/q80-$mode.log"
           done
           cmp /tmp/q80-ORIGINAL.json /tmp/q80-REVERSED.json && cmp /tmp/q80-ORIGINAL.json /tmp/q80-SEEDED_SHUFFLE.json
           python "$Q80_VERIFIER" --spec "$STRUCT_SPEC" --node8-artifact /tmp/node8.json --leaf5-artifact "$LEAF5" --artifact /tmp/q80-ORIGINAL.json --producer-source "$Q80_PRODUCER" --peer-artifact /tmp/q80-REVERSED.json --peer-artifact /tmp/q80-SEEDED_SHUFFLE.json --tamper | tee /tmp/q80-verifier.log
           grep -F 'JANUS_NODE9_Q80_INDEPENDENT_VERIFIER = PASS' /tmp/q80-verifier.log
+
           for mode in ORIGINAL REVERSED SEEDED_SHUFFLE; do
             python "$SCALAR_PRODUCER" --spec "$SCALAR_SPEC" --node8-artifact /tmp/node8.json --leaf5-artifact "$LEAF5" --q80-artifact /tmp/q80-ORIGINAL.json --output "/tmp/scalar-$mode.json" --order-mode "$mode" > "/tmp/scalar-$mode.log"
           done
@@ -124,9 +123,6 @@ jobs:
           python "$SCALAR_VERIFIER" --spec "$SCALAR_SPEC" --producer-source "$SCALAR_PRODUCER" --node8-artifact /tmp/node8.json --leaf5-artifact "$LEAF5" --q80-artifact /tmp/q80-ORIGINAL.json --candidate-original /tmp/scalar-ORIGINAL.json --candidate-reversed /tmp/scalar-REVERSED.json --candidate-seeded-shuffle /tmp/scalar-SEEDED_SHUFFLE.json --tamper-suite | tee /tmp/scalar-verifier.log
           grep -F 'JANUS_NODE9_SCALAR_SYMBOLIC_AUTOMATON_INDEPENDENT_VERIFIER = PASS' /tmp/scalar-verifier.log
 
-      - name: Regenerate and independently verify admitted residual frontier
-        run: |
-          set -euo pipefail
           for mode in ORIGINAL REVERSED SEEDED_SHUFFLE; do
             python "$RESIDUAL_PRODUCER" --spec "$RESIDUAL_SPEC" --scalar-artifact /tmp/scalar-ORIGINAL.json --q80-artifact /tmp/q80-ORIGINAL.json --output "/tmp/residual-$mode.json" --order-mode "$mode" > "/tmp/residual-$mode.log"
           done
@@ -137,9 +133,6 @@ jobs:
           grep -F 'INVARIANTS = 12/12' /tmp/residual-verifier.log
           grep -F 'DIGEST_REPAIRED_TAMPERS_REJECTED = 12/12' /tmp/residual-verifier.log
 
-      - name: Build residual up_k candidate in three deterministic modes
-        run: |
-          set -euo pipefail
           for mode in ORIGINAL REVERSED SEEDED_SHUFFLE; do
             python "$UPK_PRODUCER" --spec "$UPK_SPEC" --residual-artifact /tmp/residual-ORIGINAL.json --output "/tmp/upk-$mode.json" --order-mode "$mode" | tee "/tmp/upk-$mode.log"
           done
@@ -148,26 +141,19 @@ jobs:
           echo 'UP_K_THREE_MODE_BYTE_IDENTITY = PASS'
           echo "UP_K_ARTIFACT_SHA256 = $(sha256sum /tmp/upk-ORIGINAL.json | cut -d' ' -f1)"
 
-      - name: Independent up_k replay and digest-repaired tamper rejection
-        run: |
-          set -euo pipefail
           python "$UPK_VERIFIER" --spec "$UPK_SPEC" --producer-source "$UPK_PRODUCER" --residual-artifact /tmp/residual-ORIGINAL.json --candidate-original /tmp/upk-ORIGINAL.json --candidate-reversed /tmp/upk-REVERSED.json --candidate-seeded-shuffle /tmp/upk-SEEDED_SHUFFLE.json --tamper-suite | tee /tmp/upk-verifier.log
           grep -F 'JANUS_NODE9_RESIDUAL_UP_K_INDEPENDENT_VERIFIER = PASS' /tmp/upk-verifier.log
           grep -F 'INVARIANTS = 12/12' /tmp/upk-verifier.log
           grep -F 'DIGEST_REPAIRED_TAMPERS_REJECTED = 12/12' /tmp/upk-verifier.log
           grep -F 'PRODUCER_IMPORT = FORBIDDEN_AND_NOT_USED' /tmp/upk-verifier.log
 
-      - name: Non-oracular closure and strict boundary audit
-        run: |
-          set -euo pipefail
           python - <<'PY'
           import hashlib,json
           from pathlib import Path
-          r=json.loads(Path('/tmp/residual-ORIGINAL.json').read_text())['proof_payload']
+          residual=json.loads(Path('/tmp/residual-ORIGINAL.json').read_text())['proof_payload']
           a=json.loads(Path('/tmp/upk-ORIGINAL.json').read_text()); p=a['proof_payload']
           assert hashlib.sha256(json.dumps(p,sort_keys=True,separators=(',',':')).encode()).hexdigest()==a['semantic_digest']
-          derived_input=len(r['global_compact_frontier']['outcomes'])
-          assert len(p['input_generators'])==derived_input
+          assert len(p['input_generators'])==len(residual['global_compact_frontier']['outcomes'])
           assert p['expected_input_count_used'] is False
           assert p['ordered_extension_relation']['expected_edge_count_used'] is False
           assert p['minimization']['expected_retained_count_used'] is False
@@ -199,9 +185,6 @@ jobs:
           print('P_VS_NP = OPEN')
           PY
 
-      - name: Build exact-head evidence receipt
-        run: |
-          set -euo pipefail
           {
             echo "GITHUB_SHA=$GITHUB_SHA"
             echo "UPK_SPEC_BLOB=$(git hash-object "$UPK_SPEC")"
