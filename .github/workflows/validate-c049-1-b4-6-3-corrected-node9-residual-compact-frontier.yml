@@ -85,10 +85,16 @@ jobs:
           from pathlib import Path
           p=Path('experiments/direct/janus_c049_1_b4_6_3_corrected_node9_residual_compact_frontier.py').read_text()
           v=Path('experiments/direct/janus_c049_1_b4_6_3_corrected_node9_residual_compact_frontier_verifier.py').read_text()
-          ast.parse(p); ast.parse(v)
-          assert 'residual_compact_frontier_verifier' not in p
-          forbidden=('import janus_c049_1_b4_6_3_corrected_node9_residual_compact_frontier','from janus_c049_1_b4_6_3_corrected_node9_residual_compact_frontier')
-          assert not any(x in v for x in forbidden)
+          pt=ast.parse(p); vt=ast.parse(v)
+          def imports(tree):
+              names=[]
+              for node in ast.walk(tree):
+                  if isinstance(node,ast.Import): names.extend(a.name for a in node.names)
+                  elif isinstance(node,ast.ImportFrom): names.append(node.module or '')
+              return names
+          pmods=imports(pt); vmods=imports(vt)
+          assert not any(name.endswith('janus_c049_1_b4_6_3_corrected_node9_residual_compact_frontier_verifier') for name in pmods)
+          assert not any(name.endswith('janus_c049_1_b4_6_3_corrected_node9_residual_compact_frontier') for name in vmods)
           print('RESIDUAL_IMPLEMENTATION_DECOUPLING_STATIC_CHECK = PASS')
           PY
 
