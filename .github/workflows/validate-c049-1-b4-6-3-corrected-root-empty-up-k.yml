@@ -1,0 +1,227 @@
+name: Validate C049.1 B4.6.3 corrected root empty up_k
+
+on:
+  push:
+    paths:
+      - 'experiments/direct/C049_1_B4_6_3_CORRECTED_ROOT_EMPTY_UP_K_SPEC_V1.json'
+      - 'experiments/direct/janus_c049_1_b4_6_3_corrected_root_empty_up_k.py'
+      - 'experiments/direct/janus_c049_1_b4_6_3_corrected_root_empty_up_k_verifier.py'
+      - '.github/workflows/validate-c049-1-b4-6-3-corrected-root-empty-up-k.yml'
+  pull_request:
+    paths:
+      - 'experiments/direct/C049_1_B4_6_3_CORRECTED_ROOT_EMPTY_UP_K_SPEC_V1.json'
+      - 'experiments/direct/janus_c049_1_b4_6_3_corrected_root_empty_up_k.py'
+      - 'experiments/direct/janus_c049_1_b4_6_3_corrected_root_empty_up_k_verifier.py'
+      - '.github/workflows/validate-c049-1-b4-6-3-corrected-root-empty-up-k.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  corrected-root-empty-up-k:
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+    env:
+      PYTHONPATH: experiments/direct
+      PARENT_ROOT_HEAD: 93db6d068a6b5ca443acd2576710d11df27b82d8
+      EMPTY_SPEC_SUBJECT: 824a0eede4435584f9d2ff2f9272b7ee5dc69280
+      EMPTY_PRODUCER_SUBJECT: ecf42d04163be5c652af49186606646833529477
+      EMPTY_VERIFIER_SUBJECT: 6ac6b44bfc7318063d75b659448ab1de60321c6f
+      ROOT_SPEC_SUBJECT: 6af061d6381a0d2a95cfcff4dc4c283998d7ffc8
+      ROOT_PRODUCER_SUBJECT: 42823c7761463f02bedcac8a53fca1ef5a00a0d6
+      ROOT_VERIFIER_SUBJECT: 245e76770723aacd081a27955a5ab9d405572a1f
+      UPK_SPEC_SUBJECT: 1107992ce268a5f17bcbfb1f39fe2f83d2469529
+      UPK_PRODUCER_SUBJECT: 0134dd99c6bf42d222b0044d216113174b9ebd11
+      UPK_VERIFIER_SUBJECT: b34c3e1031150fcd65f29757c67bb2919b4234a0
+      RESIDUAL_SPEC_SUBJECT: 51cd557386f7e46838116ea144acd961302d349b
+      RESIDUAL_PRODUCER_SUBJECT: 6fc069b6525be01dc73fc01cd59cd1d728db29e8
+      SCALAR_SPEC_SUBJECT: 0b6a472d43096d4508a217c938a2988a3315bddc
+      SCALAR_PRODUCER_SUBJECT: 74d1d6fd02a7c45578b6ba79891ca93796e701b6
+      NODE8_SUBJECT: 0fcdaa168dde2aef27603d51ff547c07860a9fd1
+      LEAF5_SUBJECT: c354d56bf3ac0bb77136b96e869dc95a6b9ba07f
+      Q80_SUBJECT: 97a57154b4fdeed8cbc7ba40fa71b2008757c8f1
+      STRUCT_SPEC_SUBJECT: f942dffdd5ba1b2c4fa4a61da722e0c7c4a18d15
+      EMPTY_SPEC: experiments/direct/C049_1_B4_6_3_CORRECTED_ROOT_EMPTY_UP_K_SPEC_V1.json
+      EMPTY_PRODUCER: experiments/direct/janus_c049_1_b4_6_3_corrected_root_empty_up_k.py
+      EMPTY_VERIFIER: experiments/direct/janus_c049_1_b4_6_3_corrected_root_empty_up_k_verifier.py
+      ROOT_SPEC: experiments/direct/C049_1_B4_6_3_CORRECTED_ROOT_FULL_REFINEMENT_SPEC_V1.json
+      ROOT_PRODUCER: experiments/direct/janus_c049_1_b4_6_3_corrected_root_full_refinement.py
+      ROOT_VERIFIER: experiments/direct/janus_c049_1_b4_6_3_corrected_root_full_refinement_verifier.py
+      UPK_SPEC: experiments/direct/C049_1_B4_6_3_CORRECTED_NODE9_RESIDUAL_UP_K_SPEC_V1.json
+      UPK_PRODUCER: experiments/direct/janus_c049_1_b4_6_3_corrected_node9_residual_up_k.py
+      UPK_VERIFIER: experiments/direct/janus_c049_1_b4_6_3_corrected_node9_residual_up_k_verifier.py
+      RESIDUAL_SPEC: experiments/direct/C049_1_B4_6_3_CORRECTED_NODE9_RESIDUAL_COMPACT_FRONTIER_SPEC_V1.json
+      RESIDUAL_PRODUCER: experiments/direct/janus_c049_1_b4_6_3_corrected_node9_residual_compact_frontier.py
+      SCALAR_SPEC: experiments/direct/C049_1_B4_6_3_CORRECTED_NODE9_SCALAR_SYMBOLIC_AUTOMATON_SPEC_V1_2.json
+      SCALAR_PRODUCER: experiments/direct/janus_c049_1_b4_6_3_corrected_node9_scalar_symbolic_automaton.py
+      NODE8_PRODUCER: experiments/direct/janus_c049_1_b4_6_3_corrected_node8_twenty_generator_up_k.py
+      LEAF5: experiments/direct/C049_1_B4_6_3_CORRECTED_NODE9_RIGHT_LEAF5_CANDIDATE_V1.json
+      STRUCT_SPEC: experiments/direct/C049_1_B4_6_3_CORRECTED_NODE9_PARENT_FRONTIER_STRUCTURAL_COMPRESSION_SPEC_V1.json
+      Q80_PRODUCER: experiments/direct/janus_c049_1_b4_6_3_corrected_node9_quotient_skeleton_stability_analysis.py
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Bind immutable sources and reconstruct admitted root refinement
+        run: |
+          set -euo pipefail
+          git merge-base --is-ancestor "$PARENT_ROOT_HEAD" HEAD
+          bind_blob(){ test "$(git rev-parse "$1:$2")" = "$(git hash-object "$2")"; }
+          bind_blob "$EMPTY_SPEC_SUBJECT" "$EMPTY_SPEC"
+          bind_blob "$EMPTY_PRODUCER_SUBJECT" "$EMPTY_PRODUCER"
+          bind_blob "$EMPTY_VERIFIER_SUBJECT" "$EMPTY_VERIFIER"
+          bind_blob "$ROOT_SPEC_SUBJECT" "$ROOT_SPEC"
+          bind_blob "$ROOT_PRODUCER_SUBJECT" "$ROOT_PRODUCER"
+          bind_blob "$ROOT_VERIFIER_SUBJECT" "$ROOT_VERIFIER"
+          bind_blob "$UPK_SPEC_SUBJECT" "$UPK_SPEC"
+          bind_blob "$UPK_PRODUCER_SUBJECT" "$UPK_PRODUCER"
+          bind_blob "$UPK_VERIFIER_SUBJECT" "$UPK_VERIFIER"
+          bind_blob "$RESIDUAL_SPEC_SUBJECT" "$RESIDUAL_SPEC"
+          bind_blob "$RESIDUAL_PRODUCER_SUBJECT" "$RESIDUAL_PRODUCER"
+          bind_blob "$SCALAR_SPEC_SUBJECT" "$SCALAR_SPEC"
+          bind_blob "$SCALAR_PRODUCER_SUBJECT" "$SCALAR_PRODUCER"
+          bind_blob "$NODE8_SUBJECT" "$NODE8_PRODUCER"
+          bind_blob "$LEAF5_SUBJECT" "$LEAF5"
+          bind_blob "$STRUCT_SPEC_SUBJECT" "$STRUCT_SPEC"
+          bind_blob "$Q80_SUBJECT" "$Q80_PRODUCER"
+          python -m py_compile "$EMPTY_PRODUCER" "$EMPTY_VERIFIER" "$ROOT_PRODUCER" "$ROOT_VERIFIER" "$UPK_PRODUCER" "$UPK_VERIFIER" "$RESIDUAL_PRODUCER" "$SCALAR_PRODUCER" "$Q80_PRODUCER" "$NODE8_PRODUCER"
+          test "$(git hash-object "$EMPTY_SPEC")" = "0715adc3de2b7d206c84971d4538f73f8e5ddf1e"
+          test "$(git hash-object "$EMPTY_PRODUCER")" = "cb65ab5b49d6973e930d4308baa2549021412a7b"
+          test "$(git hash-object "$EMPTY_VERIFIER")" = "503ac83c1304a6a69f04045b885ce344df1693da"
+          python - <<'PY'
+          import ast
+          from pathlib import Path
+          p=ast.parse(Path('experiments/direct/janus_c049_1_b4_6_3_corrected_root_empty_up_k.py').read_text())
+          v=ast.parse(Path('experiments/direct/janus_c049_1_b4_6_3_corrected_root_empty_up_k_verifier.py').read_text())
+          def mods(t):
+              z=[]
+              for n in ast.walk(t):
+                  if isinstance(n,ast.Import): z.extend(a.name for a in n.names)
+                  elif isinstance(n,ast.ImportFrom): z.append(n.module or '')
+              return z
+          assert not any(x.endswith('janus_c049_1_b4_6_3_corrected_root_empty_up_k_verifier') for x in mods(p))
+          assert not any(x.endswith('janus_c049_1_b4_6_3_corrected_root_empty_up_k') for x in mods(v))
+          print('ROOT_EMPTY_UP_K_IMPLEMENTATION_DECOUPLING_STATIC_CHECK = PASS')
+          PY
+
+          cat experiments/direct/.cn8_frozen_b64/part* | base64 -d > /tmp/node8-source.json
+          python "$NODE8_PRODUCER" /tmp/node8-source.json --entry-order original --output /tmp/node8.json > /tmp/node8.log
+          test "$(sha256sum /tmp/node8.json | cut -d' ' -f1)" = "80b74b500ae82639e51568a9a6dc70a72668f32991add42bc5ffac05b3f9537f"
+          python "$Q80_PRODUCER" --spec "$STRUCT_SPEC" --node8-artifact /tmp/node8.json --leaf5-artifact "$LEAF5" --output /tmp/q80.json --order-mode ORIGINAL > /tmp/q80.log
+          test "$(sha256sum /tmp/q80.json | cut -d' ' -f1)" = "fa21c129ad7c03cad0f46c5a5baeb3941d0c94baadea54718d8059652f3a3375"
+          python "$SCALAR_PRODUCER" --spec "$SCALAR_SPEC" --node8-artifact /tmp/node8.json --leaf5-artifact "$LEAF5" --q80-artifact /tmp/q80.json --output /tmp/scalar.json --order-mode ORIGINAL > /tmp/scalar.log
+          test "$(sha256sum /tmp/scalar.json | cut -d' ' -f1)" = "b953c89f95f3deee18fe92080b0988846603a46c17e0f51bcfa2eef50d325aca"
+          python "$RESIDUAL_PRODUCER" --spec "$RESIDUAL_SPEC" --scalar-artifact /tmp/scalar.json --q80-artifact /tmp/q80.json --output /tmp/residual.json --order-mode ORIGINAL > /tmp/residual.log
+          test "$(sha256sum /tmp/residual.json | cut -d' ' -f1)" = "4d81196e48b75d0f138e97fc2c72ef8984581cb0bb42ea0fd187dcb881a0b62f"
+          python "$UPK_PRODUCER" --spec "$UPK_SPEC" --residual-artifact /tmp/residual.json --output /tmp/upk.json --order-mode ORIGINAL > /tmp/upk.log
+          test "$(sha256sum /tmp/upk.json | cut -d' ' -f1)" = "33aa00a538818b90ccaa0506071d579cf02ca49177b7875833c9625356ffc27f"
+          for mode in ORIGINAL REVERSED SEEDED_SHUFFLE; do
+            python "$ROOT_PRODUCER" --spec "$ROOT_SPEC" --up-k-artifact /tmp/upk.json --output "/tmp/root-$mode.json" --order-mode "$mode" > "/tmp/root-$mode.log"
+          done
+          cmp /tmp/root-ORIGINAL.json /tmp/root-REVERSED.json && cmp /tmp/root-ORIGINAL.json /tmp/root-SEEDED_SHUFFLE.json
+          test "$(sha256sum /tmp/root-ORIGINAL.json | cut -d' ' -f1)" = "74b734c8fc64a789dc4f0e40588956f93ad35ac799dea16417b1180ee5a83900"
+          python "$ROOT_VERIFIER" --spec "$ROOT_SPEC" --producer-source "$ROOT_PRODUCER" --up-k-artifact /tmp/upk.json --candidate-original /tmp/root-ORIGINAL.json --candidate-reversed /tmp/root-REVERSED.json --candidate-seeded-shuffle /tmp/root-SEEDED_SHUFFLE.json --tamper-suite | tee /tmp/root-verifier.log
+          grep -F 'JANUS_CORRECTED_ROOT_FULL_REFINEMENT_INDEPENDENT_VERIFIER = PASS' /tmp/root-verifier.log
+          grep -F 'INVARIANTS = 12/12' /tmp/root-verifier.log
+          grep -F 'DIGEST_REPAIRED_TAMPERS_REJECTED = 12/12' /tmp/root-verifier.log
+
+      - name: Build root empty up_k candidate in three deterministic modes
+        run: |
+          set -euo pipefail
+          for mode in ORIGINAL REVERSED SEEDED_SHUFFLE; do
+            python "$EMPTY_PRODUCER" --spec "$EMPTY_SPEC" --root-refinement-artifact /tmp/root-ORIGINAL.json --output "/tmp/empty-$mode.json" --order-mode "$mode" | tee "/tmp/empty-$mode.log"
+          done
+          cmp /tmp/empty-ORIGINAL.json /tmp/empty-REVERSED.json
+          cmp /tmp/empty-ORIGINAL.json /tmp/empty-SEEDED_SHUFFLE.json
+          echo 'ROOT_EMPTY_UP_K_THREE_MODE_BYTE_IDENTITY = PASS'
+          echo "ROOT_EMPTY_UP_K_ARTIFACT_SHA256 = $(sha256sum /tmp/empty-ORIGINAL.json | cut -d' ' -f1)"
+
+      - name: Independent root empty up_k replay and tamper rejection
+        run: |
+          set -euo pipefail
+          python "$EMPTY_VERIFIER" --spec "$EMPTY_SPEC" --producer-source "$EMPTY_PRODUCER" --root-refinement-artifact /tmp/root-ORIGINAL.json --candidate-original /tmp/empty-ORIGINAL.json --candidate-reversed /tmp/empty-REVERSED.json --candidate-seeded-shuffle /tmp/empty-SEEDED_SHUFFLE.json --tamper-suite | tee /tmp/empty-verifier.log
+          grep -F 'JANUS_CORRECTED_ROOT_EMPTY_UP_K_INDEPENDENT_VERIFIER = PASS' /tmp/empty-verifier.log
+          grep -F 'INVARIANTS = 12/12' /tmp/empty-verifier.log
+          grep -F 'DIGEST_REPAIRED_TAMPERS_REJECTED = 12/12' /tmp/empty-verifier.log
+          grep -F 'PRODUCER_IMPORT = FORBIDDEN_AND_NOT_USED' /tmp/empty-verifier.log
+
+      - name: Non-oracular empty-closure and strict boundary audit
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import hashlib,json
+          from pathlib import Path
+          root=json.loads(Path('/tmp/root-ORIGINAL.json').read_text())['proof_payload']
+          a=json.loads(Path('/tmp/empty-ORIGINAL.json').read_text()); p=a['proof_payload']
+          assert hashlib.sha256(json.dumps(p,sort_keys=True,separators=(',',':')).encode()).hexdigest()==a['semantic_digest']
+          derived_success_ids=sorted(r['refinement_id'] for r in root['refinements']['records'] if r['final_width']<=1)
+          assert p['source_scan']['successful_refinement_ids']==derived_success_ids
+          assert p['source_scan']['successful_refinement_count']==len(derived_success_ids)
+          assert p['source_scan']['expected_success_count_used'] is False
+          assert p['successful_generator_family']['expected_count_used'] is False
+          assert p['complete_empty_boundary_universe']['expected_universe_size_used'] is False
+          assert p['complete_empty_boundary_universe']['supplied_universe_used'] is False
+          assert p['root_up_k_closure']['expected_entry_count_used'] is False
+          assert p['root_up_k_closure']['empty']==(p['root_up_k_closure']['entry_count']==0)
+          assert p['idempotence']['first_second_equal'] is True
+          assert p['work_ledger']['supplied_universe_entries_consumed']==0
+          b=p['strict_boundary']
+          assert b['root_reached'] is True and b['root_parent_refinement_complete'] is True
+          assert b['root_parent_up_k_complete'] is False and b['root_full_set_computed'] is False and b['root_empty_proved'] is False
+          assert b['terminal_completeness_proved'] is False
+          assert b['found_layout']=='FORBIDDEN' and b['no_layout_at_cap']=='FORBIDDEN'
+          assert b['formal_admission']=='BLOCKED' and b['next_gate']=='CLOSED' and b['p_vs_np']=='OPEN'
+          print('NON_ORACULAR_ROOT_EMPTY_UP_K = PASS')
+          print('DERIVED_SUCCESS_GENERATORS =',p['successful_generator_family']['generator_count'])
+          print('DERIVED_COMPLETE_EMPTY_BOUNDARY_UNIVERSE =',p['complete_empty_boundary_universe']['entry_count'])
+          print('DERIVED_ROOT_UP_K_CLOSURE =',p['root_up_k_closure']['entry_count'])
+          print('DERIVED_ROOT_UP_K_EMPTY =',p['root_up_k_closure']['empty'])
+          print('ROOT_EMPTY_PROVED = FALSE')
+          print('NO_LAYOUT_AT_CAP = FORBIDDEN')
+          print('P_VS_NP = OPEN')
+          PY
+
+      - name: Build exact-head evidence receipt
+        run: |
+          set -euo pipefail
+          {
+            echo "GITHUB_SHA=$GITHUB_SHA"
+            echo "EMPTY_SPEC_BLOB=$(git hash-object "$EMPTY_SPEC")"
+            echo "EMPTY_PRODUCER_BLOB=$(git hash-object "$EMPTY_PRODUCER")"
+            echo "EMPTY_VERIFIER_BLOB=$(git hash-object "$EMPTY_VERIFIER")"
+            echo "ROOT_SHA256=$(sha256sum /tmp/root-ORIGINAL.json | cut -d' ' -f1)"
+            echo "EMPTY_UP_K_SHA256=$(sha256sum /tmp/empty-ORIGINAL.json | cut -d' ' -f1)"
+            echo "THREE_MODE_BYTE_IDENTITY=PASS"
+            echo "INVARIANTS=12/12"
+            echo "DIGEST_REPAIRED_TAMPERS_REJECTED=12/12"
+            echo "ROOT_EMPTY_PROVED=FALSE"
+            echo "NO_LAYOUT_AT_CAP=FORBIDDEN"
+            echo "P_VS_NP=OPEN"
+          } | tee /tmp/empty-exact-head-receipt.txt
+
+      - name: Export root empty up_k evidence package
+        uses: actions/upload-artifact@v4
+        with:
+          name: c049-b4-6-3-corrected-root-empty-up-k
+          retention-days: 7
+          compression-level: 9
+          path: |
+            /tmp/empty-exact-head-receipt.txt
+            /tmp/root-ORIGINAL.json
+            /tmp/root-verifier.log
+            /tmp/empty-ORIGINAL.json
+            /tmp/empty-REVERSED.json
+            /tmp/empty-SEEDED_SHUFFLE.json
+            /tmp/empty-ORIGINAL.log
+            /tmp/empty-REVERSED.log
+            /tmp/empty-SEEDED_SHUFFLE.log
+            /tmp/empty-verifier.log
+            experiments/direct/C049_1_B4_6_3_CORRECTED_ROOT_EMPTY_UP_K_SPEC_V1.json
+            experiments/direct/janus_c049_1_b4_6_3_corrected_root_empty_up_k.py
+            experiments/direct/janus_c049_1_b4_6_3_corrected_root_empty_up_k_verifier.py
