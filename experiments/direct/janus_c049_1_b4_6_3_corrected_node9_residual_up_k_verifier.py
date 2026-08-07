@@ -30,6 +30,23 @@ def interval(g,i,j):
     if j-i<=1 or (g[i][0],g[i][1])!=(g[j][0],g[j][1]): return False
     a,b=g[i][2],g[j][2]; q=[x[2] for x in g[i+1:j]]
     return (a<=b and all(a<=x<=b for x in q)) or (a>=b and all(a>=x>=b for x in q))
+def compact_b1(g):
+    s=list(g)
+    if not s: raise ValueError('empty')
+    while True:
+        changed=False
+        for i in range(1,len(s)):
+            if s[i-1]==s[i]:
+                del s[i]; changed=True; break
+        if changed: continue
+        hit=None
+        for i in range(len(s)):
+            for j in range(i+2,len(s)):
+                if interval(s,i,j): hit=(i,j); break
+            if hit: break
+        if hit:
+            i,j=hit; del s[i+1:j]; continue
+        return tuple(s)
 def compact_alt(g):
     s=list(g)
     if not s: raise ValueError('empty')
@@ -47,7 +64,7 @@ def compact_alt(g):
 def valid_compact(g):
     if not g or g[0][1]!=g[-1][0]: return False
     if any(not span(b[0],a[0]) or not span(a[1],b[1]) for a,b in zip(g,g[1:])): return False
-    return compact_alt(g)==tuple(g) and max(x[2] for x in g)<=K
+    return compact_b1(g)==tuple(g) and max(x[2] for x in g)<=K
 def sleq(a,b): return a[0]==b[0] and a[1]==b[1] and a[2]<=b[2]
 def relation_exists(lower,upper):
     reachable=set()
