@@ -1,0 +1,244 @@
+name: Validate C049.1 B4.6.3 corrected Node-9 residual compact frontier
+
+on:
+  push:
+    paths:
+      - 'experiments/direct/C049_1_B4_6_3_CORRECTED_NODE9_RESIDUAL_COMPACT_FRONTIER_SPEC_V1.json'
+      - 'experiments/direct/janus_c049_1_b4_6_3_corrected_node9_residual_compact_frontier.py'
+      - 'experiments/direct/janus_c049_1_b4_6_3_corrected_node9_residual_compact_frontier_verifier.py'
+      - '.github/workflows/validate-c049-1-b4-6-3-corrected-node9-residual-compact-frontier.yml'
+  pull_request:
+    paths:
+      - 'experiments/direct/C049_1_B4_6_3_CORRECTED_NODE9_RESIDUAL_COMPACT_FRONTIER_SPEC_V1.json'
+      - 'experiments/direct/janus_c049_1_b4_6_3_corrected_node9_residual_compact_frontier.py'
+      - 'experiments/direct/janus_c049_1_b4_6_3_corrected_node9_residual_compact_frontier_verifier.py'
+      - '.github/workflows/validate-c049-1-b4-6-3-corrected-node9-residual-compact-frontier.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  corrected-node9-residual-compact-frontier:
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+    env:
+      PYTHONPATH: experiments/direct
+      SCALAR_HEAD: 65faf26f3063e2824f907ce0ecfa9ec737b3e809
+      SCALAR_SPEC_SUBJECT: 0b6a472d43096d4508a217c938a2988a3315bddc
+      SCALAR_PRODUCER_SUBJECT: 74d1d6fd02a7c45578b6ba79891ca93796e701b6
+      SCALAR_VERIFIER_SUBJECT: b4f0769601d437a0063f5d2cb1e2586d1773c9e5
+      RESIDUAL_SPEC_SUBJECT: 51cd557386f7e46838116ea144acd961302d349b
+      RESIDUAL_PRODUCER_SUBJECT: 6fc069b6525be01dc73fc01cd59cd1d728db29e8
+      RESIDUAL_VERIFIER_SUBJECT: 228eb76ebae04d4e675938c6068836a691e819b1
+      NODE8_SUBJECT: 0fcdaa168dde2aef27603d51ff547c07860a9fd1
+      LEAF5_SUBJECT: c354d56bf3ac0bb77136b96e869dc95a6b9ba07f
+      Q80_SUBJECT: 97a57154b4fdeed8cbc7ba40fa71b2008757c8f1
+      STRUCT_SPEC_SUBJECT: f942dffdd5ba1b2c4fa4a61da722e0c7c4a18d15
+      STRUCT_PRODUCER_SUBJECT: e31c05c7e85ecda2ebf79aebb504f42f9d14009a
+      SCALAR_SPEC: experiments/direct/C049_1_B4_6_3_CORRECTED_NODE9_SCALAR_SYMBOLIC_AUTOMATON_SPEC_V1_2.json
+      SCALAR_PRODUCER: experiments/direct/janus_c049_1_b4_6_3_corrected_node9_scalar_symbolic_automaton.py
+      SCALAR_VERIFIER: experiments/direct/janus_c049_1_b4_6_3_corrected_node9_scalar_symbolic_automaton_verifier.py
+      RESIDUAL_SPEC: experiments/direct/C049_1_B4_6_3_CORRECTED_NODE9_RESIDUAL_COMPACT_FRONTIER_SPEC_V1.json
+      RESIDUAL_PRODUCER: experiments/direct/janus_c049_1_b4_6_3_corrected_node9_residual_compact_frontier.py
+      RESIDUAL_VERIFIER: experiments/direct/janus_c049_1_b4_6_3_corrected_node9_residual_compact_frontier_verifier.py
+      NODE8_PRODUCER: experiments/direct/janus_c049_1_b4_6_3_corrected_node8_twenty_generator_up_k.py
+      LEAF5: experiments/direct/C049_1_B4_6_3_CORRECTED_NODE9_RIGHT_LEAF5_CANDIDATE_V1.json
+      STRUCT_SPEC: experiments/direct/C049_1_B4_6_3_CORRECTED_NODE9_PARENT_FRONTIER_STRUCTURAL_COMPRESSION_SPEC_V1.json
+      STRUCT_PRODUCER: experiments/direct/janus_c049_1_b4_6_3_corrected_node9_parent_frontier_structural_compression.py
+      Q80_PRODUCER: experiments/direct/janus_c049_1_b4_6_3_corrected_node9_quotient_skeleton_stability_analysis.py
+      Q80_VERIFIER: experiments/direct/janus_c049_1_b4_6_3_corrected_node9_quotient_skeleton_stability_analysis_verifier.py
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Bind immutable subjects and compile all proof programs
+        run: |
+          set -euo pipefail
+          git merge-base --is-ancestor "$SCALAR_HEAD" HEAD
+          bind_blob() {
+            test "$(git rev-parse "$1:$2")" = "$(git hash-object "$2")"
+          }
+          bind_blob "$SCALAR_SPEC_SUBJECT" "$SCALAR_SPEC"
+          bind_blob "$SCALAR_PRODUCER_SUBJECT" "$SCALAR_PRODUCER"
+          bind_blob "$SCALAR_VERIFIER_SUBJECT" "$SCALAR_VERIFIER"
+          bind_blob "$RESIDUAL_SPEC_SUBJECT" "$RESIDUAL_SPEC"
+          bind_blob "$RESIDUAL_PRODUCER_SUBJECT" "$RESIDUAL_PRODUCER"
+          bind_blob "$RESIDUAL_VERIFIER_SUBJECT" "$RESIDUAL_VERIFIER"
+          bind_blob "$NODE8_SUBJECT" "$NODE8_PRODUCER"
+          bind_blob "$LEAF5_SUBJECT" "$LEAF5"
+          bind_blob "$STRUCT_SPEC_SUBJECT" "$STRUCT_SPEC"
+          bind_blob "$STRUCT_PRODUCER_SUBJECT" "$STRUCT_PRODUCER"
+          bind_blob "$Q80_SUBJECT" "$Q80_PRODUCER"
+          bind_blob "$Q80_SUBJECT" "$Q80_VERIFIER"
+          python -m py_compile "$NODE8_PRODUCER" "$STRUCT_PRODUCER" "$Q80_PRODUCER" "$Q80_VERIFIER" "$SCALAR_PRODUCER" "$SCALAR_VERIFIER" "$RESIDUAL_PRODUCER" "$RESIDUAL_VERIFIER"
+          test "$(sha256sum "$RESIDUAL_SPEC" | cut -d' ' -f1)" = "5e7141cfe628a2e0324bafec22febb1d9cec5776c2fb0dea516dfb2252b582c8"
+          test "$(git hash-object "$RESIDUAL_PRODUCER")" = "bba8a73572a4f7e264ddd248ab2fff5d72e149ea"
+          python - <<'PY'
+          import ast
+          from pathlib import Path
+          p=Path('experiments/direct/janus_c049_1_b4_6_3_corrected_node9_residual_compact_frontier.py').read_text()
+          v=Path('experiments/direct/janus_c049_1_b4_6_3_corrected_node9_residual_compact_frontier_verifier.py').read_text()
+          pt=ast.parse(p); vt=ast.parse(v)
+          def imports(tree):
+              names=[]
+              for node in ast.walk(tree):
+                  if isinstance(node,ast.Import): names.extend(a.name for a in node.names)
+                  elif isinstance(node,ast.ImportFrom): names.append(node.module or '')
+              return names
+          pmods=imports(pt); vmods=imports(vt)
+          assert not any(name.endswith('janus_c049_1_b4_6_3_corrected_node9_residual_compact_frontier_verifier') for name in pmods)
+          assert not any(name.endswith('janus_c049_1_b4_6_3_corrected_node9_residual_compact_frontier') for name in vmods)
+          print('RESIDUAL_IMPLEMENTATION_DECOUPLING_STATIC_CHECK = PASS')
+          PY
+
+      - name: Reconstruct exact corrected Node-8 artifact
+        run: |
+          set -euo pipefail
+          cat experiments/direct/.cn8_frozen_b64/part* | base64 -d > /tmp/pr114-corrected-node8.json
+          test "$(wc -c < /tmp/pr114-corrected-node8.json)" = "30024"
+          test "$(sha256sum /tmp/pr114-corrected-node8.json | cut -d' ' -f1)" = "30329bdb77802016ef3479d37a29fdb8e1fc95c5d534484fc179916a0cfdbb0a"
+          python "$NODE8_PRODUCER" /tmp/pr114-corrected-node8.json --entry-order original --output /tmp/corrected-node8-up-k.json | tee /tmp/node8.log
+          test "$(sha256sum /tmp/corrected-node8-up-k.json | cut -d' ' -f1)" = "80b74b500ae82639e51568a9a6dc70a72668f32991add42bc5ffac05b3f9537f"
+
+      - name: Regenerate and independently verify Q80
+        run: |
+          set -euo pipefail
+          for mode in ORIGINAL REVERSED SEEDED_SHUFFLE; do
+            python "$Q80_PRODUCER" --spec "$STRUCT_SPEC" --node8-artifact /tmp/corrected-node8-up-k.json --leaf5-artifact "$LEAF5" --output "/tmp/q80-$mode.json" --order-mode "$mode" | tee "/tmp/q80-$mode.log"
+          done
+          cmp /tmp/q80-ORIGINAL.json /tmp/q80-REVERSED.json
+          cmp /tmp/q80-ORIGINAL.json /tmp/q80-SEEDED_SHUFFLE.json
+          test "$(sha256sum /tmp/q80-ORIGINAL.json | cut -d' ' -f1)" = "fa21c129ad7c03cad0f46c5a5baeb3941d0c94baadea54718d8059652f3a3375"
+          python "$Q80_VERIFIER" --spec "$STRUCT_SPEC" --node8-artifact /tmp/corrected-node8-up-k.json --leaf5-artifact "$LEAF5" --artifact /tmp/q80-ORIGINAL.json --producer-source "$Q80_PRODUCER" --peer-artifact /tmp/q80-REVERSED.json --peer-artifact /tmp/q80-SEEDED_SHUFFLE.json --tamper | tee /tmp/q80-verifier.log
+          grep -F 'JANUS_NODE9_Q80_INDEPENDENT_VERIFIER = PASS' /tmp/q80-verifier.log
+          grep -F 'INVARIANTS = 12/12' /tmp/q80-verifier.log
+          grep -F 'DIGEST_REPAIRED_TAMPERS_REJECTED = 12/12' /tmp/q80-verifier.log
+
+      - name: Regenerate and independently verify admitted scalar candidate
+        run: |
+          set -euo pipefail
+          for mode in ORIGINAL REVERSED SEEDED_SHUFFLE; do
+            python "$SCALAR_PRODUCER" --spec "$SCALAR_SPEC" --node8-artifact /tmp/corrected-node8-up-k.json --leaf5-artifact "$LEAF5" --q80-artifact /tmp/q80-ORIGINAL.json --output "/tmp/scalar-$mode.json" --order-mode "$mode" | tee "/tmp/scalar-$mode.log"
+          done
+          cmp /tmp/scalar-ORIGINAL.json /tmp/scalar-REVERSED.json
+          cmp /tmp/scalar-ORIGINAL.json /tmp/scalar-SEEDED_SHUFFLE.json
+          test "$(sha256sum /tmp/scalar-ORIGINAL.json | cut -d' ' -f1)" = "b953c89f95f3deee18fe92080b0988846603a46c17e0f51bcfa2eef50d325aca"
+          python "$SCALAR_VERIFIER" --spec "$SCALAR_SPEC" --producer-source "$SCALAR_PRODUCER" --node8-artifact /tmp/corrected-node8-up-k.json --leaf5-artifact "$LEAF5" --q80-artifact /tmp/q80-ORIGINAL.json --candidate-original /tmp/scalar-ORIGINAL.json --candidate-reversed /tmp/scalar-REVERSED.json --candidate-seeded-shuffle /tmp/scalar-SEEDED_SHUFFLE.json --tamper-suite | tee /tmp/scalar-verifier.log
+          grep -F 'JANUS_NODE9_SCALAR_SYMBOLIC_AUTOMATON_INDEPENDENT_VERIFIER = PASS' /tmp/scalar-verifier.log
+          grep -F 'INVARIANTS = 12/12' /tmp/scalar-verifier.log
+          grep -F 'DIGEST_REPAIRED_TAMPERS_REJECTED = 12/12' /tmp/scalar-verifier.log
+
+      - name: Build residual compact frontier in three deterministic modes
+        run: |
+          set -euo pipefail
+          for mode in ORIGINAL REVERSED SEEDED_SHUFFLE; do
+            python "$RESIDUAL_PRODUCER" --spec "$RESIDUAL_SPEC" --scalar-artifact /tmp/scalar-ORIGINAL.json --q80-artifact /tmp/q80-ORIGINAL.json --output "/tmp/residual-$mode.json" --order-mode "$mode" | tee "/tmp/residual-$mode.log"
+          done
+          cmp /tmp/residual-ORIGINAL.json /tmp/residual-REVERSED.json
+          cmp /tmp/residual-ORIGINAL.json /tmp/residual-SEEDED_SHUFFLE.json
+          echo 'RESIDUAL_THREE_MODE_BYTE_IDENTITY = PASS'
+          echo "RESIDUAL_ARTIFACT_SHA256 = $(sha256sum /tmp/residual-ORIGINAL.json | cut -d' ' -f1)"
+
+      - name: Independent residual replay and digest-repaired tamper rejection
+        run: |
+          set -euo pipefail
+          python "$RESIDUAL_VERIFIER" --spec "$RESIDUAL_SPEC" --producer-source "$RESIDUAL_PRODUCER" --scalar-artifact /tmp/scalar-ORIGINAL.json --q80-artifact /tmp/q80-ORIGINAL.json --candidate-original /tmp/residual-ORIGINAL.json --candidate-reversed /tmp/residual-REVERSED.json --candidate-seeded-shuffle /tmp/residual-SEEDED_SHUFFLE.json --tamper-suite | tee /tmp/residual-verifier.log
+          grep -F 'JANUS_NODE9_RESIDUAL_COMPACT_FRONTIER_INDEPENDENT_VERIFIER = PASS' /tmp/residual-verifier.log
+          grep -F 'INVARIANTS = 12/12' /tmp/residual-verifier.log
+          grep -F 'DIGEST_REPAIRED_TAMPERS_REJECTED = 12/12' /tmp/residual-verifier.log
+          grep -F 'PRODUCER_IMPORT = FORBIDDEN_AND_NOT_USED' /tmp/residual-verifier.log
+
+      - name: Non-oracular residual conservation and boundary audit
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import hashlib,json
+          from pathlib import Path
+          scalar=json.loads(Path('/tmp/scalar-ORIGINAL.json').read_text())['proof_payload']
+          art=json.loads(Path('/tmp/residual-ORIGINAL.json').read_text())
+          assert art['schema']=='janus.c049_1.corrected_node9_residual_compact_frontier_candidate.v1'
+          p=art['proof_payload']
+          assert hashlib.sha256(json.dumps(p,sort_keys=True,separators=(',',':')).encode()).hexdigest()==art['semantic_digest']
+          derived_mixed=sorted(r['domain_id'] for r in scalar['domain_records'] if r['classification']=='MIXED')
+          assert p['residual_domain_selection']['selected_domain_ids']==derived_mixed
+          assert p['residual_domain_selection']['selected_domain_count']==len(derived_mixed)
+          assert p['residual_domain_selection']['expected_count_used'] is False
+          ledger=p['conservation_ledger']; sledger=scalar['conservation_ledger']
+          assert ledger['upstream_fine_refinements']==sledger['derived_unrestricted_symbolic_run_total']
+          assert ledger['upstream_width_le_1_multiplicity']==sledger['derived_width_le_1_run_total']
+          assert ledger['upstream_width_gt_1_multiplicity']==sledger['derived_width_gt_1_run_total']
+          assert ledger['upstream_fine_refinements']==ledger['upstream_width_le_1_multiplicity']+ledger['upstream_width_gt_1_multiplicity']
+          assert ledger['materialized_accepted_runs']==ledger['upstream_width_le_1_multiplicity']
+          assert ledger['global_compact_outcome_multiplicity_sum']==ledger['materialized_accepted_runs']
+          assert ledger['materialized_failed_fine_paths']==0
+          assert ledger['omitted_accepted_runs']==0 and ledger['duplicated_accepted_runs']==0
+          assert all(r['compact_width']<=1 for r in p['accepted_run_records'])
+          assert all(o['width']<=1 for o in p['global_compact_frontier']['outcomes'])
+          assert p['global_compact_frontier']['expected_count_used'] is False
+          b=p['strict_boundary']
+          assert b['node9_scalar_automaton_candidate_complete'] is True
+          assert b['node9_frontier_candidate_complete'] is False
+          assert b['node9_parent_refinement_complete'] is False
+          assert b['node9_parent_up_k_complete'] is False
+          assert b['repository_failed_domains']==0 and b['repository_successful_domains']==0
+          assert b['formal_admission']=='BLOCKED' and b['next_gate']=='CLOSED'
+          assert b['found_layout']=='FORBIDDEN' and b['no_layout_at_cap']=='FORBIDDEN'
+          assert b['p_vs_np']=='OPEN'
+          print('NON_ORACULAR_RESIDUAL_DOMAIN_SELECTION = PASS')
+          print('ACCEPTED_RUN_CONSERVATION = PASS')
+          print('FAILED_FINE_PATH_MATERIALIZATION = 0')
+          print('DERIVED_MIXED_DOMAINS =',len(derived_mixed))
+          print('DERIVED_ACCEPTED_RUNS =',ledger['materialized_accepted_runs'])
+          print('DERIVED_GLOBAL_COMPACT_TRAJECTORIES =',p['global_compact_frontier']['distinct_compact_trajectory_count'])
+          print('FORMAL_ADMISSION = BLOCKED')
+          print('NEXT_GATE = CLOSED')
+          print('P_VS_NP = OPEN')
+          PY
+
+      - name: Build exact-head evidence receipt
+        run: |
+          set -euo pipefail
+          {
+            echo "GITHUB_SHA=$GITHUB_SHA"
+            echo "RESIDUAL_SPEC_SHA256=$(sha256sum "$RESIDUAL_SPEC" | cut -d' ' -f1)"
+            echo "RESIDUAL_PRODUCER_BLOB=$(git hash-object "$RESIDUAL_PRODUCER")"
+            echo "RESIDUAL_VERIFIER_BLOB=$(git hash-object "$RESIDUAL_VERIFIER")"
+            echo "Q80_SHA256=$(sha256sum /tmp/q80-ORIGINAL.json | cut -d' ' -f1)"
+            echo "SCALAR_SHA256=$(sha256sum /tmp/scalar-ORIGINAL.json | cut -d' ' -f1)"
+            echo "RESIDUAL_SHA256=$(sha256sum /tmp/residual-ORIGINAL.json | cut -d' ' -f1)"
+            echo "THREE_MODE_BYTE_IDENTITY=PASS"
+            echo "INVARIANTS=12/12"
+            echo "DIGEST_REPAIRED_TAMPERS_REJECTED=12/12"
+            echo "FORMAL_ADMISSION=BLOCKED"
+            echo "NEXT_GATE=CLOSED"
+            echo "P_VS_NP=OPEN"
+          } | tee /tmp/residual-exact-head-receipt.txt
+
+      - name: Export residual compact frontier evidence package
+        uses: actions/upload-artifact@v4
+        with:
+          name: c049-b4-6-3-corrected-node9-residual-compact-frontier
+          retention-days: 7
+          path: |
+            /tmp/residual-exact-head-receipt.txt
+            /tmp/q80-ORIGINAL.json
+            /tmp/q80-verifier.log
+            /tmp/scalar-ORIGINAL.json
+            /tmp/scalar-verifier.log
+            /tmp/residual-ORIGINAL.json
+            /tmp/residual-REVERSED.json
+            /tmp/residual-SEEDED_SHUFFLE.json
+            /tmp/residual-ORIGINAL.log
+            /tmp/residual-REVERSED.log
+            /tmp/residual-SEEDED_SHUFFLE.log
+            /tmp/residual-verifier.log
+            experiments/direct/C049_1_B4_6_3_CORRECTED_NODE9_RESIDUAL_COMPACT_FRONTIER_SPEC_V1.json
+            experiments/direct/janus_c049_1_b4_6_3_corrected_node9_residual_compact_frontier.py
+            experiments/direct/janus_c049_1_b4_6_3_corrected_node9_residual_compact_frontier_verifier.py
