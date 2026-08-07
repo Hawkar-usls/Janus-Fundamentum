@@ -105,7 +105,7 @@ def universe_independent():
         for nxt in states:
             if not span(nxt[0],last[0]) or not span(last[1],nxt[1]) or not span(target,nxt[0]): continue
             cand=seq+(nxt,)
-            if not valid_compact(cand): continue
+            if compact_b1(cand)!=cand: continue
             dfs(cand,target)
     for first in states:
         if span(first[1],first[0]): dfs((first,),first[1])
