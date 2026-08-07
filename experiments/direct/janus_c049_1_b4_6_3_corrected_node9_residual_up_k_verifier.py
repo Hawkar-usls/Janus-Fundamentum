@@ -58,7 +58,7 @@ def relation_exists(lower,upper):
             if any(p in reachable for p in ((i-1,j-1),(i-1,j),(i,j-1))): reachable.add((i,j))
     return (len(lower)-1,len(upper)-1) in reachable
 def verify_witness(lower,upper,w):
-    path=w.get('path');
+    path=w.get('path')
     if not isinstance(path,list) or not path or w.get('path_length')!=len(path): return False
     try: cells=[(int(x[0]),int(x[1])) for x in path if isinstance(x,list) and len(x)==2]
     except Exception:return False
@@ -93,8 +93,7 @@ def universe_independent():
     for first in states:
         if span(first[1],first[0]): dfs((first,),first[1])
     return tuple(emitted[k] for k in sorted(emitted))
-def reachable_set(gens,universe):
-    return {tid(c) for c in universe if any(relation_exists(g,c) for g in gens)}
+def reachable_set(gens,universe): return {tid(c) for c in universe if any(relation_exists(g,c) for g in gens)}
 def check_spec_and_sources(specp,producer,residualp):
     req(gb(specp)==SPEC_BLOB,'INV01','spec blob'); s=load(specp); req(s.get('schema')==SPEC_SCHEMA and s.get('status')=='SPEC_FROZEN','INV01','spec')
     e=s['expected_values_policy']; req(all(e[k] is None for k in ('expected_input_generator_count','expected_ordered_relation_count','expected_retained_generator_count','expected_universe_size','expected_closure_entry_count')),'INV01','oracle')
@@ -108,7 +107,7 @@ def check_spec_and_sources(specp,producer,residualp):
 def verify_candidate(cand,spec,residual):
     req(cand.get('schema')==SCHEMA and sem_ok(cand),'INV01','candidate semantic'); p=cand['proof_payload']; req(p['admitted'] is False and p['candidate_phase']=='RESIDUAL_UP_K','INV12','phase/admission')
     req(p['source_binding_receipt']['residual_sha256']==RESIDUAL_SHA and p['source_binding_receipt']['residual_semantic_digest']==RESIDUAL_SEM,'INV01','source receipt')
-    inputs=derive_inputs(residual); icat=p['input_generators']; req(icat==sorted(icat,key=lambda x:x['trajectory_id']),'INV10','input order')
+    inputs=derive_inputs(residual); icat=p['input_generators']; req(icat==sorted(icat,key=lambda x:dec(x['trajectory'])),'INV10','input order')
     got_inputs=tuple(sorted(dec(x['trajectory']) for x in icat)); req(got_inputs==inputs,'INV02','input catalog'); req(p['input_generator_catalog_digest']==dg(icat),'INV02','input digest'); req(p['expected_input_count_used'] is False,'INV02','input oracle')
     for x in icat: req(x['trajectory_id']==tid(dec(x['trajectory'])) and x['trajectory_digest']==dg(x['trajectory']) and valid_compact(dec(x['trajectory'])),'INV02','input receipt')
     rel=relation_set(inputs); edges=p['ordered_extension_relation']['edges']; req(edges==sorted(edges,key=lambda x:(x['lower_id'],x['upper_id'])),'INV10','edge order'); req(p['ordered_extension_relation']['edge_count']==len(edges) and p['ordered_extension_relation']['edge_catalog_digest']==dg(edges),'INV03','edge receipt')
@@ -119,7 +118,7 @@ def verify_candidate(cand,spec,residual):
     retby={tid(g):g for g in retained}; removed={tid(g) for g in inputs}-{tid(g) for g in retained}; recs=p['minimization']['removals']; req({x['removed_id'] for x in recs}==removed and p['minimization']['removal_catalog_digest']==dg(recs),'INV04','removal set')
     for x in recs:
         req(x['retained_id'] in retby and x['removed_id'] in iby,'INV04','removal ids'); req((x['retained_id'],x['removed_id']) in rel,'INV04','direct relation missing'); req(verify_witness(retby[x['retained_id']],iby[x['removed_id']],x['witness']),'INV04','removal witness')
-    universe=universe_independent(); ucat=p['complete_universe']['entries']; req(ucat==sorted(ucat,key=lambda x:x['trajectory_id']),'INV10','universe order'); ugens=tuple(sorted(dec(x['trajectory']) for x in ucat)); req(ugens==universe,'INV05','universe catalog'); req(p['complete_universe']['entry_count']==len(universe) and p['complete_universe']['catalog_digest']==dg(ucat) and p['complete_universe']['supplied_universe_used'] is False,'INV05','universe receipt')
+    universe=universe_independent(); ucat=p['complete_universe']['entries']; req(ucat==sorted(ucat,key=lambda x:dec(x['trajectory'])),'INV10','universe order'); ugens=tuple(sorted(dec(x['trajectory']) for x in ucat)); req(ugens==universe,'INV05','universe catalog'); req(p['complete_universe']['entry_count']==len(universe) and p['complete_universe']['catalog_digest']==dg(ucat) and p['complete_universe']['supplied_universe_used'] is False,'INV05','universe receipt')
     uby={tid(g):g for g in universe}
     orig=reachable_set(inputs,universe); retcl=reachable_set(retained,universe); req(orig==retcl,'INV06','minimization changed closure')
     ce=p['closure']['retained_generator_entries']; req(ce==sorted(ce,key=lambda x:x['trajectory_id']),'INV10','closure order'); ids={x['trajectory_id'] for x in ce}; req(ids==retcl and p['closure']['entry_count']==len(ids),'INV06','closure set/count'); req(p['closure']['original_entry_catalog_digest']==dg(p['closure']['original_generator_entries']) and p['closure']['retained_entry_catalog_digest']==dg(ce) and p['closure']['closures_equal'] is True,'INV06','closure receipts')
