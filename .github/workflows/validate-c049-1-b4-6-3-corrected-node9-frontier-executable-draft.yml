@@ -1,0 +1,145 @@
+name: Validate C049.1 B4.6.3 corrected Node-9 frontier executable discovery draft
+
+on:
+  push:
+    paths:
+      - 'experiments/direct/C049_1_B4_6_3_CORRECTED_NODE9_PARENT_FRONTIER_STRUCTURAL_COMPRESSION_SPEC_V1.json'
+      - 'experiments/direct/janus_c049_1_b4_6_3_corrected_node9_parent_frontier_structural_compression.py'
+      - '.github/workflows/validate-c049-1-b4-6-3-corrected-node9-frontier-executable-draft.yml'
+  pull_request:
+    paths:
+      - 'experiments/direct/C049_1_B4_6_3_CORRECTED_NODE9_PARENT_FRONTIER_STRUCTURAL_COMPRESSION_SPEC_V1.json'
+      - 'experiments/direct/janus_c049_1_b4_6_3_corrected_node9_parent_frontier_structural_compression.py'
+      - '.github/workflows/validate-c049-1-b4-6-3-corrected-node9-frontier-executable-draft.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  corrected-node9-frontier-executable-draft:
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+    env:
+      PYTHONPATH: experiments/direct
+      SPEC: experiments/direct/C049_1_B4_6_3_CORRECTED_NODE9_PARENT_FRONTIER_STRUCTURAL_COMPRESSION_SPEC_V1.json
+      PRODUCER: experiments/direct/janus_c049_1_b4_6_3_corrected_node9_parent_frontier_structural_compression.py
+      LEAF5: experiments/direct/C049_1_B4_6_3_CORRECTED_NODE9_RIGHT_LEAF5_CANDIDATE_V1.json
+      NODE8_PRODUCER: experiments/direct/janus_c049_1_b4_6_3_corrected_node8_twenty_generator_up_k.py
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Bind exact corrected parent and compile executable draft
+        run: |
+          git merge-base --is-ancestor c354d56bf3ac0bb77136b96e869dc95a6b9ba07f HEAD
+          python -m py_compile "$PRODUCER" "$NODE8_PRODUCER"
+          test "$(sha256sum "$LEAF5" | cut -d' ' -f1)" = "6e4bbd67747405846b63a87633e34d41b0f720d33a6f55e877717b5463c01882"
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          leaf=json.loads(Path('experiments/direct/C049_1_B4_6_3_CORRECTED_NODE9_RIGHT_LEAF5_CANDIDATE_V1.json').read_text())
+          assert leaf['schema']=='C049.1-B4.6.3-CORRECTED-NODE9-RIGHT-LEAF5-CANDIDATE-v1'
+          assert leaf['semantic_digest']=='d5dcbaf64366a93420691fd667776f0f577bb0afd0feb588421139c69eb42d65'
+          p=leaf['leaf_payload']
+          assert p['factor_index_zero_based']==4
+          assert p['leaf_ordinal_one_based']==5
+          assert p['block_ambient_rref']==[5]
+          assert p['entry_count']==36
+          assert p['formal_admission'] is False
+          PY
+
+      - name: Reconstruct exact PR114 corrected Node-8 source
+        run: |
+          cat experiments/direct/.cn8_frozen_b64/part* | base64 -d > /tmp/pr114-corrected-node8.json
+          test "$(wc -c < /tmp/pr114-corrected-node8.json)" = "30024"
+          test "$(sha256sum /tmp/pr114-corrected-node8.json | cut -d' ' -f1)" = "30329bdb77802016ef3479d37a29fdb8e1fc95c5d534484fc179916a0cfdbb0a"
+
+      - name: Rebuild exact corrected Node-8 up_k candidate input
+        run: |
+          python "$NODE8_PRODUCER" /tmp/pr114-corrected-node8.json --entry-order original --output /tmp/corrected-node8-up-k.json
+          test "$(wc -c < /tmp/corrected-node8-up-k.json)" = "5281800"
+          test "$(sha256sum /tmp/corrected-node8-up-k.json | cut -d' ' -f1)" = "80b74b500ae82639e51568a9a6dc70a72668f32991add42bc5ffac05b3f9537f"
+
+      - name: Build Node-9 discovery partition in all frozen order modes
+        run: |
+          for mode in ORIGINAL REVERSED SEEDED_SHUFFLE; do
+            python "$PRODUCER" \
+              --spec "$SPEC" \
+              --node8-artifact /tmp/corrected-node8-up-k.json \
+              --leaf5-artifact "$LEAF5" \
+              --output "/tmp/corrected-node9-frontier-$mode.json" \
+              --order "$mode"
+          done
+          cmp /tmp/corrected-node9-frontier-ORIGINAL.json /tmp/corrected-node9-frontier-REVERSED.json
+          cmp /tmp/corrected-node9-frontier-ORIGINAL.json /tmp/corrected-node9-frontier-SEEDED_SHUFFLE.json
+
+      - name: Validate honest discovery-only boundary and conservation
+        run: |
+          python - <<'PY'
+          import hashlib,json
+          from pathlib import Path
+          path=Path('/tmp/corrected-node9-frontier-ORIGINAL.json')
+          art=json.loads(path.read_text())
+          assert art['schema']=='C049.1-B4.6.3-CORRECTED-NODE9-PARENT-FRONTIER-STRUCTURAL-COMPRESSION-CANDIDATE-v1'
+          p=art['proof_payload']
+          assert p['candidate_phase']=='STRUCTURAL_DISCOVERY_PARTITION_ONLY'
+          assert p['candidate_status']=='EXECUTABLE_DRAFT'
+          assert p['admitted'] is False
+          d=p['discovery_partition']
+          c=p['conservation_ledger']
+          m=p['materialization']
+          b=p['strict_boundary']
+          assert d['successful_class_count']==0
+          assert d['failed_class_count']==0
+          assert d['unresolved_class_count']==d['structural_class_count']
+          assert c['left_entry_count']==8676
+          assert c['right_entry_count']==36
+          assert c['child_pair_count']==312336
+          assert c['ordinary_hv_refinement_count']==98319408
+          assert c['omitted_child_pair_multiplicity']==0
+          assert c['duplicated_child_pair_multiplicity']==0
+          assert c['omitted_refinement_multiplicity']==0
+          assert c['duplicated_refinement_multiplicity']==0
+          assert c['conservation_holds'] is True
+          assert m['child_pair_records_materialized']==0
+          assert m['fine_hv_paths_materialized']==0
+          assert b['node9_frontier_candidate_complete'] is False
+          assert b['node9_parent_refinement_complete'] is False
+          assert b['formal_admission']=='BLOCKED'
+          assert b['next_gate']=='CLOSED'
+          assert b['root_reached'] is False
+          assert b['found_layout']=='FORBIDDEN'
+          assert b['no_layout_at_cap']=='FORBIDDEN'
+          assert b['p_vs_np']=='OPEN'
+          print('NODE9_FRONTIER_EXECUTABLE_DRAFT = TRUE')
+          print('LEFT_STRUCTURAL_GROUPS =',d['left_group_count'])
+          print('RIGHT_STRUCTURAL_GROUPS =',d['right_group_count'])
+          print('DISCOVERED_CLASSES =',d['structural_class_count'])
+          print('SUCCESS = 0')
+          print('FAILED = 0')
+          print('UNRESOLVED =',d['unresolved_class_count'])
+          print('CONSERVATION_CHILD_PAIRS =',c['child_pair_count'])
+          print('CONSERVATION_HV_REFINEMENTS =',c['ordinary_hv_refinement_count'])
+          print('CONSERVATION = PASS')
+          print('ARTIFACT_BYTES =',path.stat().st_size)
+          print('ARTIFACT_SHA256 =',hashlib.sha256(path.read_bytes()).hexdigest())
+          print('SEMANTIC_DIGEST =',art['semantic_digest'])
+          print('NEXT_GATE = CLOSED')
+          print('P_VS_NP = OPEN')
+          PY
+
+      - name: Export discovery-only evidence package
+        uses: actions/upload-artifact@v4
+        with:
+          name: c049-b4-6-3-corrected-node9-frontier-executable-draft
+          path: |
+            /tmp/corrected-node9-frontier-ORIGINAL.json
+            experiments/direct/C049_1_B4_6_3_CORRECTED_NODE9_PARENT_FRONTIER_STRUCTURAL_COMPRESSION_SPEC_V1.json
+            experiments/direct/janus_c049_1_b4_6_3_corrected_node9_parent_frontier_structural_compression.py
+          retention-days: 1
