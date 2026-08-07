@@ -1,0 +1,312 @@
+name: Validate C049.1 B4.6.3 corrected Node-9 scalar symbolic automaton
+
+on:
+  push:
+    paths:
+      - 'experiments/direct/C049_1_B4_6_3_CORRECTED_NODE9_SCALAR_SYMBOLIC_AUTOMATON_SPEC_V1_2.json'
+      - 'experiments/direct/janus_c049_1_b4_6_3_corrected_node9_scalar_symbolic_automaton.py'
+      - 'experiments/direct/janus_c049_1_b4_6_3_corrected_node9_scalar_symbolic_automaton_verifier.py'
+      - '.github/workflows/validate-c049-1-b4-6-3-corrected-node9-scalar-symbolic-automaton.yml'
+  pull_request:
+    paths:
+      - 'experiments/direct/C049_1_B4_6_3_CORRECTED_NODE9_SCALAR_SYMBOLIC_AUTOMATON_SPEC_V1_2.json'
+      - 'experiments/direct/janus_c049_1_b4_6_3_corrected_node9_scalar_symbolic_automaton.py'
+      - 'experiments/direct/janus_c049_1_b4_6_3_corrected_node9_scalar_symbolic_automaton_verifier.py'
+      - '.github/workflows/validate-c049-1-b4-6-3-corrected-node9-scalar-symbolic-automaton.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  corrected-node9-scalar-symbolic-automaton:
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+    env:
+      PYTHONPATH: experiments/direct
+      BOUND_VERIFIER_PARENT: b4f0769601d437a0063f5d2cb1e2586d1773c9e5
+      SPEC_SUBJECT: 0b6a472d43096d4508a217c938a2988a3315bddc
+      PRODUCER_SUBJECT: 74d1d6fd02a7c45578b6ba79891ca93796e701b6
+      VERIFIER_SUBJECT: b4f0769601d437a0063f5d2cb1e2586d1773c9e5
+      NODE8_SUBJECT: 0fcdaa168dde2aef27603d51ff547c07860a9fd1
+      LEAF5_SUBJECT: c354d56bf3ac0bb77136b96e869dc95a6b9ba07f
+      Q80_SUBJECT: 97a57154b4fdeed8cbc7ba40fa71b2008757c8f1
+      STRUCT_SPEC_SUBJECT: f942dffdd5ba1b2c4fa4a61da722e0c7c4a18d15
+      STRUCT_PRODUCER_SUBJECT: e31c05c7e85ecda2ebf79aebb504f42f9d14009a
+      SPEC: experiments/direct/C049_1_B4_6_3_CORRECTED_NODE9_SCALAR_SYMBOLIC_AUTOMATON_SPEC_V1_2.json
+      PRODUCER: experiments/direct/janus_c049_1_b4_6_3_corrected_node9_scalar_symbolic_automaton.py
+      VERIFIER: experiments/direct/janus_c049_1_b4_6_3_corrected_node9_scalar_symbolic_automaton_verifier.py
+      NODE8_PRODUCER: experiments/direct/janus_c049_1_b4_6_3_corrected_node8_twenty_generator_up_k.py
+      LEAF5: experiments/direct/C049_1_B4_6_3_CORRECTED_NODE9_RIGHT_LEAF5_CANDIDATE_V1.json
+      STRUCT_SPEC: experiments/direct/C049_1_B4_6_3_CORRECTED_NODE9_PARENT_FRONTIER_STRUCTURAL_COMPRESSION_SPEC_V1.json
+      STRUCT_PRODUCER: experiments/direct/janus_c049_1_b4_6_3_corrected_node9_parent_frontier_structural_compression.py
+      Q80_PRODUCER: experiments/direct/janus_c049_1_b4_6_3_corrected_node9_quotient_skeleton_stability_analysis.py
+      Q80_VERIFIER: experiments/direct/janus_c049_1_b4_6_3_corrected_node9_quotient_skeleton_stability_analysis_verifier.py
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Bind immutable proof subjects and compile the complete proof pair
+        run: |
+          set -euo pipefail
+          git merge-base --is-ancestor "$BOUND_VERIFIER_PARENT" HEAD
+
+          bind_blob() {
+            local subject="$1"
+            local path="$2"
+            test "$(git rev-parse "${subject}:${path}")" = "$(git hash-object "$path")"
+          }
+
+          bind_blob "$SPEC_SUBJECT" "$SPEC"
+          bind_blob "$PRODUCER_SUBJECT" "$PRODUCER"
+          bind_blob "$VERIFIER_SUBJECT" "$VERIFIER"
+          bind_blob "$NODE8_SUBJECT" "$NODE8_PRODUCER"
+          bind_blob "$LEAF5_SUBJECT" "$LEAF5"
+          bind_blob "$STRUCT_SPEC_SUBJECT" "$STRUCT_SPEC"
+          bind_blob "$STRUCT_PRODUCER_SUBJECT" "$STRUCT_PRODUCER"
+          bind_blob "$Q80_SUBJECT" "$Q80_PRODUCER"
+          bind_blob "$Q80_SUBJECT" "$Q80_VERIFIER"
+
+          python -m py_compile \
+            "$NODE8_PRODUCER" \
+            "$STRUCT_PRODUCER" \
+            "$Q80_PRODUCER" \
+            "$Q80_VERIFIER" \
+            "$PRODUCER" \
+            "$VERIFIER"
+
+          test "$(sha256sum "$SPEC" | cut -d' ' -f1)" = "44b43927eebfb8145942d7f28f4ada3e85a0aaf4cd9a001d6546f08b8c8c5a9a"
+          test "$(sha256sum "$PRODUCER" | cut -d' ' -f1)" = "d18442232038833331aa9d11ae81cca2495c1eb1aef163394b1f77f3b9df280d"
+          test "$(sha256sum "$LEAF5" | cut -d' ' -f1)" = "6e4bbd67747405846b63a87633e34d41b0f720d33a6f55e877717b5463c01882"
+
+          python - <<'PY'
+          import ast
+          from pathlib import Path
+
+          verifier_path=Path('experiments/direct/janus_c049_1_b4_6_3_corrected_node9_scalar_symbolic_automaton_verifier.py')
+          producer_path=Path('experiments/direct/janus_c049_1_b4_6_3_corrected_node9_scalar_symbolic_automaton.py')
+          verifier=verifier_path.read_text(encoding='utf-8')
+          producer=producer_path.read_text(encoding='utf-8')
+          ast.parse(verifier); ast.parse(producer)
+          forbidden=(
+              'import janus_c049_1_b4_6_3_corrected_node9_scalar_symbolic_automaton',
+              'from janus_c049_1_b4_6_3_corrected_node9_scalar_symbolic_automaton',
+          )
+          assert not any(x in verifier for x in forbidden)
+          assert 'scalar_symbolic_automaton_verifier' not in producer
+          print('IMPLEMENTATION_DECOUPLING_STATIC_CHECK = PASS')
+          PY
+
+      - name: Reconstruct exact corrected Node-8 bound artifact
+        run: |
+          set -euo pipefail
+          cat experiments/direct/.cn8_frozen_b64/part* | base64 -d > /tmp/pr114-corrected-node8.json
+          test "$(wc -c < /tmp/pr114-corrected-node8.json)" = "30024"
+          test "$(sha256sum /tmp/pr114-corrected-node8.json | cut -d' ' -f1)" = "30329bdb77802016ef3479d37a29fdb8e1fc95c5d534484fc179916a0cfdbb0a"
+
+          python "$NODE8_PRODUCER" \
+            /tmp/pr114-corrected-node8.json \
+            --entry-order original \
+            --output /tmp/corrected-node8-up-k.json \
+            | tee /tmp/node8-reconstruction.log
+
+          test "$(sha256sum /tmp/corrected-node8-up-k.json | cut -d' ' -f1)" = "80b74b500ae82639e51568a9a6dc70a72668f32991add42bc5ffac05b3f9537f"
+          python - <<'PY'
+          import hashlib,json
+          p='/tmp/corrected-node8-up-k.json'
+          a=json.load(open(p))
+          assert a['schema']=='C049.1-B4.6.3-CORRECTED-NODE8-TWENTY-GENERATOR-UP-K-v1'
+          assert a['semantic_digest']=='e0017e4e5de933e520c6ea374ef291c07bbbb373478c6f9952911cc376380622'
+          assert len(a['proof_payload']['reachable_closure']['entries'])==8676
+          print('NODE8_BOUND_RECONSTRUCTION = PASS')
+          print('NODE8_SHA256 =',hashlib.sha256(open(p,'rb').read()).hexdigest())
+          PY
+
+      - name: Regenerate and independently verify exact Q80 input layer
+        run: |
+          set -euo pipefail
+          for mode in ORIGINAL REVERSED SEEDED_SHUFFLE; do
+            python "$Q80_PRODUCER" \
+              --spec "$STRUCT_SPEC" \
+              --node8-artifact /tmp/corrected-node8-up-k.json \
+              --leaf5-artifact "$LEAF5" \
+              --output "/tmp/q80-$mode.json" \
+              --order-mode "$mode" \
+              | tee "/tmp/q80-$mode.log"
+          done
+
+          cmp /tmp/q80-ORIGINAL.json /tmp/q80-REVERSED.json
+          cmp /tmp/q80-ORIGINAL.json /tmp/q80-SEEDED_SHUFFLE.json
+          test "$(sha256sum /tmp/q80-ORIGINAL.json | cut -d' ' -f1)" = "fa21c129ad7c03cad0f46c5a5baeb3941d0c94baadea54718d8059652f3a3375"
+
+          python "$Q80_VERIFIER" \
+            --spec "$STRUCT_SPEC" \
+            --node8-artifact /tmp/corrected-node8-up-k.json \
+            --leaf5-artifact "$LEAF5" \
+            --artifact /tmp/q80-ORIGINAL.json \
+            --producer-source "$Q80_PRODUCER" \
+            --peer-artifact /tmp/q80-REVERSED.json \
+            --peer-artifact /tmp/q80-SEEDED_SHUFFLE.json \
+            --tamper \
+            | tee /tmp/q80-verifier.log
+
+          grep -F 'JANUS_NODE9_Q80_INDEPENDENT_VERIFIER = PASS' /tmp/q80-verifier.log
+          grep -F 'INVARIANTS = 12/12' /tmp/q80-verifier.log
+          grep -F 'DIGEST_REPAIRED_TAMPERS_REJECTED = 12/12' /tmp/q80-verifier.log
+
+      - name: Run frozen scalar producer in all three deterministic modes
+        run: |
+          set -euo pipefail
+          for mode in ORIGINAL REVERSED SEEDED_SHUFFLE; do
+            python "$PRODUCER" \
+              --spec "$SPEC" \
+              --node8-artifact /tmp/corrected-node8-up-k.json \
+              --leaf5-artifact "$LEAF5" \
+              --q80-artifact /tmp/q80-ORIGINAL.json \
+              --output "/tmp/scalar-$mode.json" \
+              --order-mode "$mode" \
+              | tee "/tmp/scalar-producer-$mode.log"
+          done
+
+          cmp /tmp/scalar-ORIGINAL.json /tmp/scalar-REVERSED.json
+          cmp /tmp/scalar-ORIGINAL.json /tmp/scalar-SEEDED_SHUFFLE.json
+          echo "SCALAR_THREE_MODE_BYTE_IDENTITY = PASS"
+          echo "SCALAR_ARTIFACT_SHA256 = $(sha256sum /tmp/scalar-ORIGINAL.json | cut -d' ' -f1)"
+
+      - name: Independent scalar replay and digest-repaired tamper rejection
+        run: |
+          set -euo pipefail
+          python "$VERIFIER" \
+            --spec "$SPEC" \
+            --producer-source "$PRODUCER" \
+            --node8-artifact /tmp/corrected-node8-up-k.json \
+            --leaf5-artifact "$LEAF5" \
+            --q80-artifact /tmp/q80-ORIGINAL.json \
+            --candidate-original /tmp/scalar-ORIGINAL.json \
+            --candidate-reversed /tmp/scalar-REVERSED.json \
+            --candidate-seeded-shuffle /tmp/scalar-SEEDED_SHUFFLE.json \
+            --tamper-suite \
+            | tee /tmp/scalar-verifier.log
+
+          grep -F 'JANUS_NODE9_SCALAR_SYMBOLIC_AUTOMATON_INDEPENDENT_VERIFIER = PASS' /tmp/scalar-verifier.log
+          grep -F 'INVARIANTS = 12/12' /tmp/scalar-verifier.log
+          grep -F 'DIGEST_REPAIRED_TAMPERS_REJECTED = 12/12' /tmp/scalar-verifier.log
+          grep -F 'PRODUCER_IMPORT = FORBIDDEN_AND_NOT_USED' /tmp/scalar-verifier.log
+
+      - name: Validate non-oracular conservation and strict pending boundary
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import hashlib,json
+          from pathlib import Path
+
+          path=Path('/tmp/scalar-ORIGINAL.json')
+          art=json.loads(path.read_text())
+          assert art['schema']=='janus.c049_1.corrected_node9_scalar_symbolic_automaton_candidate.v1'
+          assert art['semantic_digest_scope']=='proof_payload'
+          p=art['proof_payload']
+          canon=json.dumps(p,sort_keys=True,separators=(',',':')).encode()
+          assert hashlib.sha256(canon).hexdigest()==art['semantic_digest']
+          assert p['candidate_phase']=='SCALAR_SYMBOLIC_AUTOMATON'
+          assert p['candidate_status']=='PRODUCER_DERIVED_CANDIDATE'
+          assert p['admitted'] is False
+
+          c=p['classification_summary']
+          assert c['zero_language_domain_count'] + c['mixed_domain_count'] + c['all_accepting_domain_count'] == 80
+          assert c['repository_successful_domain_count']==0
+          assert c['repository_failed_domain_count']==0
+          assert c['classification_promoted_to_repository_success_or_failure'] is False
+          assert c['expected_classification_counts_used'] is False
+
+          ledger=p['conservation_ledger']
+          assert ledger['q80_domain_count']==80
+          assert ledger['q80_bound_fine_refinement_total']==98319408
+          assert ledger['derived_unrestricted_symbolic_run_total']==98319408
+          assert ledger['derived_width_le_1_run_total'] + ledger['derived_width_gt_1_run_total'] == 98319408
+          assert ledger['all_domain_unrestricted_counts_match_q80_fine_lift_multiplicity'] is True
+          assert ledger['omitted_fine_refinement_multiplicity']==0
+          assert ledger['duplicated_fine_refinement_multiplicity']==0
+          assert ledger['fine_refinement_conservation'] is True
+
+          work=p['work_ledger']
+          assert work['fine_hv_path_records_materialized']==0
+          assert work['child_cartesian_records_materialized']==0
+          assert p['symbolic_automaton_contract']['compact_state_memoization_used'] is False
+          assert p['scalar_factorization']['historical_or_local_catalog_used_as_seed'] is False
+          assert p['scalar_factorization']['expected_language_catalog_used'] is False
+
+          b=p['strict_boundary']
+          assert b['node9_scalar_automaton_spec_frozen'] is True
+          assert b['node9_scalar_automaton_producer_created'] is True
+          assert b['node9_scalar_automaton_verifier_created'] is False
+          assert b['node9_scalar_automaton_candidate_complete'] is False
+          assert b['node9_frontier_candidate_complete'] is False
+          assert b['node9_parent_refinement_complete'] is False
+          assert b['node9_parent_up_k_complete'] is False
+          assert b['node9_integrated_into_bottom_up_executor'] is False
+          assert b['root_reached'] is False
+          assert b['root_full_set_computed'] is False
+          assert b['root_empty_proved'] is False
+          assert b['found_layout']=='FORBIDDEN'
+          assert b['no_layout_at_cap']=='FORBIDDEN'
+          assert b['formal_admission']=='BLOCKED'
+          assert b['next_gate']=='CLOSED'
+          assert b['current_global_terminal']=='OPEN_TRAJECTORY_ENGINE_INCOMPLETE'
+          assert b['p_vs_np']=='OPEN'
+
+          print('NON_ORACULAR_CLASSIFICATION_PARTITION = PASS')
+          print('FINE_REFINEMENT_CONSERVATION = PASS')
+          print('FORBIDDEN_MATERIALIZATION = 0')
+          print('FORMAL_ADMISSION = BLOCKED')
+          print('NEXT_GATE = CLOSED')
+          print('P_VS_NP = OPEN')
+          print('ARTIFACT_BYTES =',path.stat().st_size)
+          print('ARTIFACT_SHA256 =',hashlib.sha256(path.read_bytes()).hexdigest())
+          print('SEMANTIC_DIGEST =',art['semantic_digest'])
+          PY
+
+      - name: Build exact-head evidence receipt
+        run: |
+          set -euo pipefail
+          {
+            echo "GITHUB_SHA=$GITHUB_SHA"
+            echo "BOUND_VERIFIER_PARENT=$BOUND_VERIFIER_PARENT"
+            echo "SPEC_SHA256=$(sha256sum "$SPEC" | cut -d' ' -f1)"
+            echo "PRODUCER_SHA256=$(sha256sum "$PRODUCER" | cut -d' ' -f1)"
+            echo "VERIFIER_SHA256=$(sha256sum "$VERIFIER" | cut -d' ' -f1)"
+            echo "NODE8_SHA256=$(sha256sum /tmp/corrected-node8-up-k.json | cut -d' ' -f1)"
+            echo "LEAF5_SHA256=$(sha256sum "$LEAF5" | cut -d' ' -f1)"
+            echo "Q80_SHA256=$(sha256sum /tmp/q80-ORIGINAL.json | cut -d' ' -f1)"
+            echo "SCALAR_SHA256=$(sha256sum /tmp/scalar-ORIGINAL.json | cut -d' ' -f1)"
+            echo "THREE_MODE_BYTE_IDENTITY=PASS"
+            echo "FORMAL_ADMISSION=BLOCKED"
+            echo "NEXT_GATE=CLOSED"
+            echo "P_VS_NP=OPEN"
+          } | tee /tmp/exact-head-receipt.txt
+
+      - name: Export scalar automaton exact-head evidence package
+        uses: actions/upload-artifact@v4
+        with:
+          name: c049-b4-6-3-corrected-node9-scalar-symbolic-automaton
+          path: |
+            /tmp/exact-head-receipt.txt
+            /tmp/node8-reconstruction.log
+            /tmp/q80-ORIGINAL.json
+            /tmp/q80-verifier.log
+            /tmp/scalar-ORIGINAL.json
+            /tmp/scalar-REVERSED.json
+            /tmp/scalar-SEEDED_SHUFFLE.json
+            /tmp/scalar-producer-ORIGINAL.log
+            /tmp/scalar-producer-REVERSED.log
+            /tmp/scalar-producer-SEEDED_SHUFFLE.log
+            /tmp/scalar-verifier.log
+            experiments/direct/C049_1_B4_6_3_CORRECTED_NODE9_SCALAR_SYMBOLIC_AUTOMATON_SPEC_V1_2.json
+            experiments/direct/janus_c049_1_b4_6_3_corrected_node9_scalar_symbolic_automaton.py
+            experiments/direct/janus_c049_1_b4_6_3_corrected_node9_scalar_symbolic_automaton_verifier.py
+          retention-days: 7
