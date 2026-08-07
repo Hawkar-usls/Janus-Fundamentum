@@ -91,15 +91,18 @@ def repair(x):
     p=x['proof_payload']; s=p['source_scan']; s['successful_refinement_count']=len(s['successful_refinement_ids']); s['successful_refinement_ids_digest']=dg(s['successful_refinement_ids']); g=p['successful_generator_family']; g['generator_count']=len(g['generators']); g['catalog_digest']=dg(g['generators']); u=p['complete_empty_boundary_universe']; u['entry_count']=len(u['entries']); u['catalog_digest']=dg(u['entries']); c=p['root_up_k_closure']; c['entry_count']=len(c['entries']); c['catalog_digest']=dg(c['entries']); c['empty']=len(c['entries'])==0; i=p['idempotence']; i['second_input_entry_count']=len(c['entries']); i['second_closure_digest']=dg(i['second_closure_entries']); x['semantic_digest']=dg(p)
 def tamper(candidate,spec,ref):
     ok=[]
-    def atk(name,mut):
+    def atk(name,mut,post_repair=None):
         x=copy.deepcopy(candidate); mut(x); repair(x)
+        if post_repair is not None:
+            post_repair(x)
+            x['semantic_digest']=dg(x['proof_payload'])
         try: verify(x,spec,ref)
         except VError as e: ok.append((name,e.inv)); return
         raise AssertionError('survived '+name)
     atk('T01_ROOT_BINDING',lambda x:x['proof_payload']['source_binding'].__setitem__('root_refinement_sha256','0'*64))
     atk('T02_FAKE_SUCCESS_GENERATOR',lambda x:x['proof_payload']['successful_generator_family']['generators'].append({'trajectory_id':'ROOTUK-fake','trajectory':[{'left':[],'right':[],'value':0}],'trajectory_digest':'0'*64,'length':1,'width':0}))
     atk('T03_SUPPRESS_SUCCESS_SCAN',lambda x:x['proof_payload']['source_scan'].__setitem__('root_refinement_record_count',x['proof_payload']['source_scan']['root_refinement_record_count']-1))
-    atk('T04_GENERATOR_DIGEST',lambda x:x['proof_payload']['successful_generator_family'].__setitem__('catalog_digest','1'*64))
+    atk('T04_GENERATOR_DIGEST',lambda x:None,lambda x:x['proof_payload']['successful_generator_family'].__setitem__('catalog_digest','1'*64))
     atk('T05_OMIT_UNIVERSE',lambda x:x['proof_payload']['complete_empty_boundary_universe']['entries'].pop())
     atk('T06_NONCANONICAL_UNIVERSE',lambda x:x['proof_payload']['complete_empty_boundary_universe']['entries'].append({'trajectory_id':'ROOTUK-x','trajectory':[{'left':[],'right':[],'value':0},{'left':[],'right':[],'value':0}],'trajectory_digest':'2'*64,'length':2,'width':0}))
     atk('T07_FAKE_CLOSURE',lambda x:x['proof_payload']['root_up_k_closure']['entries'].append({'trajectory_id':'ROOTUK-fake','trajectory':[{'left':[],'right':[],'value':0}],'source_generator_id':'ROOTUK-none'}))
