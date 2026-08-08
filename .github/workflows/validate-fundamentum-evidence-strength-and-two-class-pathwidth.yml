@@ -1,0 +1,103 @@
+name: Validate Fundamentum evidence strength and two-class pathwidth
+
+on:
+  pull_request:
+    paths:
+      - 'research_targets/FUNDAMENTUM_EVIDENCE_STRENGTH_SCALE_V1.json'
+      - 'research_targets/FUNDAMENTUM_TARGET_EVIDENCE_TABLE_V1.json'
+      - 'research_targets/priority_records/A3_*PATHWIDTH*_V1.json'
+      - 'research_targets/audits/A3_TWO_CLASS_REPEATED_SUBSPACE_PATHWIDTH_THEOREM_V1_*.json'
+      - 'research_targets/A3_TWO_CLASS_REPEATED_SUBSPACE_PATHWIDTH_THEOREM_V1.json'
+      - 'research_targets/A3_TWO_CLASS_REPEATED_SUBSPACE_PATHWIDTH_LITERATURE_NOVELTY_AUDIT_V1.json'
+      - 'experiments/direct/janus_a3_two_class_repeated_subspace_pathwidth_theorem_v1.py'
+      - 'experiments/direct/janus_a3_two_class_repeated_subspace_pathwidth_theorem_verifier_v1.py'
+      - '.github/workflows/validate-fundamentum-evidence-strength-and-two-class-pathwidth.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  proof:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - name: Validate evidence strength, priority provenance, and novelty ceiling
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json
+          s=json.load(open('research_targets/FUNDAMENTUM_EVIDENCE_STRENGTH_SCALE_V1.json'))
+          assert [x['level'] for x in s['evidence_strength_levels']]==[f'ES{i}' for i in range(8)]
+          assert [x['level'] for x in s['novelty_axis']]==[f'N{i}' for i in range(5)]
+          t=json.load(open('research_targets/FUNDAMENTUM_TARGET_EVIDENCE_TABLE_V1.json')); rows={x['id']:x for x in t['targets']}
+          assert rows['A0_P_VS_NP']['evidence_strength']=='ES1'
+          assert rows['A3_MATROID_TRELLIS_RANK_WIDTH']['evidence_strength']=='ES5'
+          assert rows['A3_MATROID_TRELLIS_RANK_WIDTH']['novelty']=='N3_CANDIDATE_PENDING_EXTERNAL_CONFIRMATION'
+          old=json.load(open('research_targets/priority_records/A3_DUPLICATE_SUBSPACE_PATHWIDTH_PRIORITY_RECORD_V1.json')); lp=old['literature_position']; cc=old['claim_ceiling']
+          assert lp['explicit_identical_standalone_statement_found_in_searched_primary_corpus'] is False
+          assert lp['universal_absence_proved'] is False and lp['priority_claim']=='NOT_ASSERTED'
+          assert cc['WORLD_NOVEL_THEOREM']=='NOT_CLAIMED'
+          new=json.load(open('research_targets/priority_records/A3_TWO_CLASS_REPEATED_SUBSPACE_PATHWIDTH_PRIORITY_RECORD_V1.json'))
+          assert new['project_provenance']['proof_head']=='0af27954cb2ba5426baa3b8d2ce640830f18108c'
+          assert new['priority_position_before_literature_audit']['potential_priority_recorded'] is True
+          assert new['priority_position_before_literature_audit']['historical_priority_claimed'] is False
+          assert new['claim_ceiling']['WE_ARE_FIRST']=='NOT_CLAIMED'
+          nov=json.load(open('research_targets/A3_TWO_CLASS_REPEATED_SUBSPACE_PATHWIDTH_LITERATURE_NOVELTY_AUDIT_V1.json'))
+          assert nov['classification']['evidence_strength'].startswith('ES5_')
+          assert nov['classification']['novelty_axis']=='N3_NOVELTY_CANDIDATE'
+          assert nov['classification']['historical_priority_claim']=='NOT_ASSERTED'
+          assert nov['classification']['universal_absence_proved'] is False
+          assert nov['claim_ceiling']['WORLD_NOVEL_THEOREM']=='NOT_YET_ESTABLISHED'
+          assert nov['claim_ceiling']['P_VS_NP']=='OPEN'
+          print('EVIDENCE_STRENGTH_SCALE = PASS')
+          print('PRIORITY_PROVENANCE_RECORDS = PASS')
+          print('N3_NOVELTY_CEILING = PASS')
+          PY
+      - name: Compile theorem producer and independent verifier
+        run: |
+          python -m py_compile experiments/direct/janus_a3_two_class_repeated_subspace_pathwidth_theorem_v1.py
+          python -m py_compile experiments/direct/janus_a3_two_class_repeated_subspace_pathwidth_theorem_verifier_v1.py
+      - name: Build two-class theorem certificate
+        run: |
+          python experiments/direct/janus_a3_two_class_repeated_subspace_pathwidth_theorem_v1.py --out /tmp/two_class.json --max-n 4 --max-mult 3 | tee /tmp/producer.log
+          grep -Fx 'A3_TWO_CLASS_SYMBOLIC_DERIVATION = PASS' /tmp/producer.log
+          grep -Fx 'A3_TWO_CLASS_FIXED_ORDER_FORMULA = PASS' /tmp/producer.log
+          grep -Fx 'A3_TWO_CLASS_EXHAUSTIVE_GF2_CONTROLS = PASS' /tmp/producer.log
+          grep -Fx 'FIXED_ORDER_COUNTEREXAMPLES = 0' /tmp/producer.log
+          grep -Fx 'PATHWIDTH_COUNTEREXAMPLES = 0' /tmp/producer.log
+          grep -Fx 'P_VS_NP = OPEN' /tmp/producer.log
+      - name: Independently replay theorem and tamper suite
+        run: |
+          python experiments/direct/janus_a3_two_class_repeated_subspace_pathwidth_theorem_verifier_v1.py --certificate /tmp/two_class.json --max-n 4 --max-mult 3 --tamper-test | tee /tmp/verifier.log
+          grep -Fx 'A3_TWO_CLASS_INDEPENDENT_REPLAY = PASS' /tmp/verifier.log
+          grep -Fx 'A3_TWO_CLASS_FIXED_ORDER_FORMULA = PASS' /tmp/verifier.log
+          grep -Fx 'FIXED_ORDER_COUNTEREXAMPLES = 0' /tmp/verifier.log
+          grep -Fx 'PATHWIDTH_COUNTEREXAMPLES = 0' /tmp/verifier.log
+          grep -Fx 'DIGEST_REPAIRED_TAMPERS_REJECTED = 18/18' /tmp/verifier.log
+          grep -Fx 'WORLD_NOVEL_THEOREM_CLAIM = FORBIDDEN_PENDING_AUDIT' /tmp/verifier.log
+          grep -Fx 'P_VS_NP = OPEN' /tmp/verifier.log
+      - name: Freeze exact-head receipt
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json,pathlib,subprocess
+          def git(*a):return subprocess.check_output(['git',*a],text=True).strip()
+          c=json.load(open('/tmp/two_class.json')); s=c['exhaustive_controls']
+          r={'schema':'janus.fundamentum.a3.two_class_pathwidth_exact_head_receipt.v1_2','exact_head':git('rev-parse','HEAD'),'proof_head':'0af27954cb2ba5426baa3b8d2ce640830f18108c','semantic_digest':c['semantic_digest'],'subspace_pairs':s['subspace_pairs'],'multiplicity_cases':s['multiplicity_cases'],'class_pattern_layouts':s['class_pattern_layouts'],'cut_evaluations':s['cut_evaluations'],'mixed_both_orders':s['mixed_both_orders'],'fixed_order_counterexamples':0,'pathwidth_counterexamples':0,'tamper_rejections':'18/18','evidence_strength':'ES5_PROJECT_GENERAL_THEOREM_ADMITTED','novelty':'N3_CANDIDATE_PENDING_EXTERNAL_CONFIRMATION','we_are_first':'NOT_CLAIMED','p_vs_np':'OPEN'}
+          pathlib.Path('/tmp/two_class_receipt.json').write_text(json.dumps(r,indent=2,sort_keys=True)+'\n')
+          print('EXACT_HEAD_RECEIPT = BUILT')
+          PY
+      - name: Upload proof artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: fundamentum-two-class-pathwidth-${{ github.event.pull_request.head.sha || github.sha }}
+          path: |
+            /tmp/two_class.json
+            /tmp/two_class_receipt.json
+            /tmp/producer.log
+            /tmp/verifier.log
+          if-no-files-found: error
