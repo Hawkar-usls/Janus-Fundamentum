@@ -6,12 +6,10 @@ on:
       - 'research_targets/FUNDAMENTUM_RESEARCH_TARGET_REGISTRY_V1.json'
       - 'research_targets/FUNDAMENTUM_MULTIDIRECTIONAL_FRONTIER_AMENDMENT_V1_1.json'
       - 'research_targets/FUNDAMENTUM_MULTIDIRECTIONAL_FRONTIER_AMENDMENT_V1_2.json'
-      - 'experiments/direct/janus_fundamentum_multidirectional_frontier_v1.py'
-      - 'experiments/direct/janus_fundamentum_multidirectional_frontier_v11.py'
-      - 'experiments/direct/janus_fundamentum_multidirectional_frontier_verifier_v1.py'
-      - 'experiments/direct/janus_fundamentum_multidirectional_frontier_verifier_v11.py'
-      - 'docs/FUNDAMENTUM_MULTIDIRECTIONAL_FRONTIER_V1.md'
-      - 'README.md'
+      - 'research_targets/FUNDAMENTUM_MULTIDIRECTIONAL_FRONTIER_AMENDMENT_V1_3.json'
+      - 'research_targets/audits/FUNDAMENTUM_MULTIDIRECTIONAL_FRONTIER_V1_2_EVIDENCE_602F9C09.json'
+      - 'experiments/direct/janus_fundamentum_multidirectional_frontier_v13.py'
+      - 'experiments/direct/janus_fundamentum_multidirectional_frontier_verifier_v13.py'
       - '.github/workflows/validate-fundamentum-multidirectional-frontier-v1.yml'
   workflow_dispatch:
 
@@ -43,12 +41,9 @@ jobs:
             exit 1
           fi
           echo 'B5_4_INHERITED_ADMISSION_BINDING = PASS'
-          echo 'ALL_INPUT_TERMINATION = NOT_ESTABLISHED'
-          echo 'POLYNOMIAL_RUNTIME = NOT_ESTABLISHED'
-          echo 'B5_COMPLETE = FALSE'
           echo 'P_VS_NP = OPEN'
 
-  multidirectional-frontier:
+  multidirectional-frontier-v13:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -56,203 +51,130 @@ jobs:
           fetch-depth: 0
           ref: ${{ github.event.pull_request.head.sha || github.sha }}
 
-      - name: Bind exact-head source surfaces and negative provenance
+      - name: Bind exact-head v1.3 and negative provenance
         shell: bash
         run: |
           set -euo pipefail
           echo "EXACT_HEAD=$(git rev-parse HEAD)"
-          git rev-parse HEAD
+          BASE=e7663ed9be87ebd37bfa51c01501e74c9d5b2603
+          git merge-base --is-ancestor "$BASE" HEAD
+          test "$(git hash-object research_targets/audits/FUNDAMENTUM_MULTIDIRECTIONAL_FRONTIER_V1_2_EVIDENCE_602F9C09.json)" = "6352d6a501ca70e78d745e6d26527e519b448aa9"
           for f in \
             research_targets/FUNDAMENTUM_RESEARCH_TARGET_REGISTRY_V1.json \
             research_targets/FUNDAMENTUM_MULTIDIRECTIONAL_FRONTIER_AMENDMENT_V1_1.json \
             research_targets/FUNDAMENTUM_MULTIDIRECTIONAL_FRONTIER_AMENDMENT_V1_2.json \
-            experiments/direct/janus_fundamentum_multidirectional_frontier_v1.py \
-            experiments/direct/janus_fundamentum_multidirectional_frontier_v11.py \
-            experiments/direct/janus_fundamentum_multidirectional_frontier_verifier_v1.py \
-            experiments/direct/janus_fundamentum_multidirectional_frontier_verifier_v11.py \
+            research_targets/FUNDAMENTUM_MULTIDIRECTIONAL_FRONTIER_AMENDMENT_V1_3.json \
+            experiments/direct/janus_fundamentum_multidirectional_frontier_v13.py \
+            experiments/direct/janus_fundamentum_multidirectional_frontier_verifier_v13.py \
             .github/workflows/validate-fundamentum-multidirectional-frontier-v1.yml; do
-              printf '%s = ' "$f"
-              git hash-object "$f"
+              printf '%s = ' "$f"; git hash-object "$f"
           done
           python - <<'PY'
           import json
-          registry=json.load(open('research_targets/FUNDAMENTUM_RESEARCH_TARGET_REGISTRY_V1.json', encoding='utf-8'))
-          a11=json.load(open('research_targets/FUNDAMENTUM_MULTIDIRECTIONAL_FRONTIER_AMENDMENT_V1_1.json', encoding='utf-8'))
-          a12=json.load(open('research_targets/FUNDAMENTUM_MULTIDIRECTIONAL_FRONTIER_AMENDMENT_V1_2.json', encoding='utf-8'))
-          assert len(registry['targets']) == 23
-          assert registry['policy']['preferred_outcome'] is None
-          assert registry['policy']['route_search_is_not_proof'] is True
-          assert registry['base_binding']['current_ceiling']['P_VS_NP'] == 'OPEN'
-          assert registry['base_binding']['current_ceiling']['B5_COMPLETE'] is False
-          n=a11['negative_provenance']
-          assert n['proof_head'] == '50a3ed1033b9a9d7297b2b083957cac7718b9a98'
-          assert n['run_id'] == 31248978985 and n['job_id'] == 93082164952
-          assert n['classification'] == 'FILESYSTEM_CORPUS_BINDING_NOT_STABLE_BETWEEN_PRODUCER_AND_INDEPENDENT_REPLAY'
-          assert n['producer_completed'] is True and n['independent_replay_completed'] is False
-          n=a12['negative_provenance']
-          assert n['proof_head'] == '8bdf04868e051bb03363dcad4e4dc9916d344834'
-          assert n['run_id'] == 31249082245 and n['job_id'] == 93082429301
-          assert n['artifact_id'] == 9019418657
-          assert n['artifact_zip_sha256'] == '1ed6f5b6070173ae2a76ca8d026b9c75444d93612bee21286ec1f18676c57dff'
-          assert n['classification'] == 'SHORT_MARKER_SUBSTRING_COLLISION_IN_FRONTIER_RANKING'
-          assert n['ci_conclusion'] == 'SUCCESS_BUT_SEARCH_METRIC_NOT_ADMITTED'
-          assert n['independent_replay'] is True
-          assert n['digest_repaired_tampers_rejected'] == '16/16'
-          assert a12['correction']['preserve_git_index_corpus_authority'] is True
-          assert a12['correction']['producer_and_verifier_must_implement_matching_independently'] is True
-          assert a12['claim_ceiling']['FRONTIER_V1_1_RANKING_ADMITTED'] is False
-          assert a12['claim_ceiling']['P_VS_NP'] == 'OPEN'
-          print('TARGET_REGISTRY_BINDING = PASS')
-          print('FRONTIER_V1_NEGATIVE_PROVENANCE = CONFIRMED')
-          print('FRONTIER_V1_1_GREEN_BUT_METRIC_REJECTED = CONFIRMED')
-          print('TARGET_COUNT = 23')
+          a13=json.load(open('research_targets/FUNDAMENTUM_MULTIDIRECTIONAL_FRONTIER_AMENDMENT_V1_3.json'))
+          n=a13['negative_provenance']
+          assert n['proof_head']=='602f9c09ebcc67929f1eac9c25fd9b8046161c77'
+          assert n['evidence_head']=='140b6618fd48bc6a80d3c6e5495e303b3c930d5e'
+          assert n['run_id']==31249245524 and n['job_id']==93082854619 and n['artifact_id']==9019482478
+          assert n['classification']=='HEAD_CORPUS_SELF_REFERENCE_AND_PREDECLARED_ACTIVE_ROUTE_CLASSIFICATION'
+          assert n['ci_conclusion']=='SUCCESS_BUT_ACTIVE_ROUTE_DISCOVERY_CLAIM_WITHDRAWN'
+          assert a13['correction']['corpus_commit']=='e7663ed9be87ebd37bfa51c01501e74c9d5b2603'
+          assert a13['correction']['producer_and_verifier_must_enumerate_base_tree_independently'] is True
+          assert a13['claim_ceiling']['FRONTIER_V1_2_ACTIVE_ROUTE_DISCOVERY_ADMITTED'] is False
+          print('FRONTIER_V1_2_ACTIVE_ROUTE_DISCOVERY_WITHDRAWN = CONFIRMED')
           PY
 
-      - name: Compile and self-test boundary-aware producer/verifier v1.2
+      - name: Compile and self-test v1.3
         shell: bash
         run: |
           set -euo pipefail
           python -m py_compile \
-            experiments/direct/janus_fundamentum_multidirectional_frontier_v1.py \
-            experiments/direct/janus_fundamentum_multidirectional_frontier_v11.py \
-            experiments/direct/janus_fundamentum_multidirectional_frontier_verifier_v1.py \
-            experiments/direct/janus_fundamentum_multidirectional_frontier_verifier_v11.py
-          python experiments/direct/janus_fundamentum_multidirectional_frontier_v11.py --self-test
+            experiments/direct/janus_fundamentum_multidirectional_frontier_v13.py \
+            experiments/direct/janus_fundamentum_multidirectional_frontier_verifier_v13.py
+          python experiments/direct/janus_fundamentum_multidirectional_frontier_v13.py --self-test
 
-      - name: Run repository-wide multidirectional route search v1.2
+      - name: Run immutable pre-frontier evidence search
         shell: bash
         run: |
           set -euo pipefail
-          python experiments/direct/janus_fundamentum_multidirectional_frontier_v11.py \
+          python experiments/direct/janus_fundamentum_multidirectional_frontier_v13.py \
             --root . \
             --registry research_targets/FUNDAMENTUM_RESEARCH_TARGET_REGISTRY_V1.json \
-            --output /tmp/fundamentum_multidirectional_frontier_v12.json | tee /tmp/frontier_search.log
+            --output /tmp/frontier_v13.json | tee /tmp/frontier_search_v13.log
 
-      - name: Independent git-index replay and repaired-digest tamper rejection
+      - name: Independent pre-frontier replay and tamper rejection
         shell: bash
         run: |
           set -euo pipefail
-          python experiments/direct/janus_fundamentum_multidirectional_frontier_verifier_v11.py \
+          python experiments/direct/janus_fundamentum_multidirectional_frontier_verifier_v13.py \
             --root . \
             --registry research_targets/FUNDAMENTUM_RESEARCH_TARGET_REGISTRY_V1.json \
-            --report /tmp/fundamentum_multidirectional_frontier_v12.json \
-            --tamper-test | tee /tmp/frontier_verifier.log
-          grep -Fx 'BOUNDARY_AWARE_MARKER_MATCHING = PASS' /tmp/frontier_verifier.log
-          grep -Fx 'DIGEST_REPAIRED_TAMPERS_REJECTED = 17/17' /tmp/frontier_verifier.log
+            --report /tmp/frontier_v13.json \
+            --tamper-test | tee /tmp/frontier_verifier_v13.log
+          grep -Fx 'INDEPENDENT_FRONTIER_V1_3_REPLAY = PASS' /tmp/frontier_verifier_v13.log
+          grep -Fx 'PRE_FRONTIER_CORPUS_AUTHORITY = PASS' /tmp/frontier_verifier_v13.log
+          grep -Fx 'RELATION_TO_ACTIVE_ROUTE_PROMOTION = FORBIDDEN' /tmp/frontier_verifier_v13.log
+          grep -Fx 'DIGEST_REPAIRED_TAMPERS_REJECTED = 20/20' /tmp/frontier_verifier_v13.log
 
-      - name: Enforce corrected short-marker regression
+      - name: Enforce de-circularized search boundary
         shell: bash
         run: |
           set -euo pipefail
           python - <<'PY'
           import json
-          r=json.load(open('/tmp/fundamentum_multidirectional_frontier_v12.json', encoding='utf-8'))
-          by={x['id']:x for x in r['targets']}
-          old={
-            'A2_NC_VS_P': (783,10007),
-            'A2_L_VS_NL': (446,1130),
-            'A2_PH_COLLAPSE': (434,2448),
-          }
-          for target,(old_surfaces,old_occurrences) in old.items():
-              row=by[target]
-              assert row['repository_surface_count'] < old_surfaces, (target,row['repository_surface_count'],old_surfaces)
-              assert row['marker_occurrences'] < old_occurrences, (target,row['marker_occurrences'],old_occurrences)
-              print(f"BOUNDARY_REGRESSION {target} = PASS surfaces={row['repository_surface_count']} occurrences={row['marker_occurrences']}")
-          assert r['global_terminal'] == 'OPEN'
-          assert all(x['proof_status'] == 'NOT_PROVED_BY_THIS_SEARCH' for x in r['targets'])
-          print('V1_1_SUBSTRING_INFLATION_REJECTED = PASS')
+          r=json.load(open('/tmp/frontier_v13.json'))
+          assert r['corpus_commit']=='e7663ed9be87ebd37bfa51c01501e74c9d5b2603'
+          assert r['global_terminal']=='OPEN'
+          assert r['claim_ceiling']['ANY_A0_A4_TARGET_RESOLVED'] is False
+          assert all(x['proof_status']=='NOT_PROVED_BY_THIS_SEARCH' for x in r['targets'])
+          assert all(x['route_classification']!='ACTIVE_STRUCTURAL_ROUTE' for x in r['targets'])
+          assert all(not p.startswith('research_targets/') for x in r['targets'] for p in x['repository_surfaces'])
+          print('HEAD_SELF_REFERENCE_IN_EVIDENCE = REJECTED')
+          print('PREDECLARED_ACTIVE_ROUTE_PROMOTION = REJECTED')
+          print('SELECTED_A3_CANDIDATE = '+str(r['selected_a3_candidate']))
+          print('A3_EVIDENCE_RANKING = '+','.join(r['a3_evidence_ranking']))
           PY
 
-      - name: Build exact-head machine receipt v1.2
+      - name: Build exact-head v1.3 receipt
         shell: bash
         run: |
           set -euo pipefail
           python - <<'PY'
-          import hashlib, json, pathlib, subprocess
-          def git(*args):
-              return subprocess.check_output(['git', *args], text=True).strip()
-          def sha256(path):
-              return hashlib.sha256(pathlib.Path(path).read_bytes()).hexdigest()
-          report_path=pathlib.Path('/tmp/fundamentum_multidirectional_frontier_v12.json')
-          report=json.loads(report_path.read_text(encoding='utf-8'))
+          import hashlib,json,pathlib,subprocess
+          def git(*a): return subprocess.check_output(['git',*a],text=True).strip()
+          def sha(p): return hashlib.sha256(pathlib.Path(p).read_bytes()).hexdigest()
+          rp=pathlib.Path('/tmp/frontier_v13.json'); r=json.loads(rp.read_text())
           paths={
             'registry':'research_targets/FUNDAMENTUM_RESEARCH_TARGET_REGISTRY_V1.json',
-            'amendment_v11':'research_targets/FUNDAMENTUM_MULTIDIRECTIONAL_FRONTIER_AMENDMENT_V1_1.json',
-            'amendment_v12':'research_targets/FUNDAMENTUM_MULTIDIRECTIONAL_FRONTIER_AMENDMENT_V1_2.json',
-            'producer_base':'experiments/direct/janus_fundamentum_multidirectional_frontier_v1.py',
-            'producer_git_index_wrapper':'experiments/direct/janus_fundamentum_multidirectional_frontier_v11.py',
-            'verifier_base':'experiments/direct/janus_fundamentum_multidirectional_frontier_verifier_v1.py',
-            'verifier_git_index_wrapper':'experiments/direct/janus_fundamentum_multidirectional_frontier_verifier_v11.py',
-            'workflow':'.github/workflows/validate-fundamentum-multidirectional-frontier-v1.yml',
-          }
-          receipt={
-            'schema':'janus.fundamentum.multidirectional_frontier_receipt.v1.2',
-            'exact_head':git('rev-parse','HEAD'),
-            'base_b5_4_evidence_head':'e7663ed9be87ebd37bfa51c01501e74c9d5b2603',
-            'negative_provenance':[
-              {
-                'head':'50a3ed1033b9a9d7297b2b083957cac7718b9a98',
-                'run_id':31248978985,
-                'job_id':93082164952,
-                'classification':'FILESYSTEM_CORPUS_BINDING_NOT_STABLE_BETWEEN_PRODUCER_AND_INDEPENDENT_REPLAY',
-              },
-              {
-                'head':'8bdf04868e051bb03363dcad4e4dc9916d344834',
-                'run_id':31249082245,
-                'job_id':93082429301,
-                'artifact_id':9019418657,
-                'artifact_zip_sha256':'1ed6f5b6070173ae2a76ca8d026b9c75444d93612bee21286ec1f18676c57dff',
-                'classification':'SHORT_MARKER_SUBSTRING_COLLISION_IN_FRONTIER_RANKING',
-                'ci_conclusion':'SUCCESS_BUT_SEARCH_METRIC_NOT_ADMITTED',
-              },
-            ],
-            'corpus_authority':'git ls-files tracked UTF-8 surfaces <= 2 MB excluding research_targets',
-            'marker_matching':'case-insensitive literal with ASCII identifier boundaries on both sides',
+            'amendment_v13':'research_targets/FUNDAMENTUM_MULTIDIRECTIONAL_FRONTIER_AMENDMENT_V1_3.json',
+            'producer_v13':'experiments/direct/janus_fundamentum_multidirectional_frontier_v13.py',
+            'verifier_v13':'experiments/direct/janus_fundamentum_multidirectional_frontier_verifier_v13.py',
+            'workflow':'.github/workflows/validate-fundamentum-multidirectional-frontier-v1.yml'}
+          out={
+            'schema':'janus.fundamentum.multidirectional_frontier_receipt.v1.3',
+            'exact_head':git('rev-parse','HEAD'), 'corpus_commit':r['corpus_commit'],
             'source_git_blobs':{k:git('hash-object',v) for k,v in paths.items()},
-            'source_raw_sha256':{k:sha256(v) for k,v in paths.items()},
-            'report_raw_sha256':sha256(report_path),
-            'report_semantic_sha256':report['report_semantic_sha256'],
-            'corpus_semantic_sha256':report['corpus_semantic_sha256'],
-            'target_count':report['target_count'],
-            'scanned_surface_count':report['scanned_surface_count'],
-            'route_counts':report['route_counts'],
-            'top_frontier':report['ranked_frontier'][:10],
-            'target_results':{
-              row['id']:{
-                'route_classification':row['route_classification'],
-                'repository_surface_count':row['repository_surface_count'],
-                'marker_occurrences':row['marker_occurrences'],
-                'frontier_score':row['frontier_score'],
-                'proof_status':row['proof_status'],
-              } for row in report['targets']
-            },
-            'independent_replay':True,
-            'boundary_aware_marker_matching':True,
-            'digest_repaired_tampers_rejected':'17/17',
-            'global_terminal':'OPEN',
-            'claim_ceiling':{
-              'P_VS_NP':'OPEN',
-              'ALL_INPUT_TERMINATION':'NOT_ESTABLISHED',
-              'POLYNOMIAL_RUNTIME':'NOT_ESTABLISHED',
-              'B5_COMPLETE':False,
-              'MULTIDIRECTIONAL_ROUTE_SEARCH_IS_PROOF':False,
-              'ANY_A0_A4_TARGET_RESOLVED':False,
-            },
-          }
-          out=pathlib.Path('/tmp/fundamentum_multidirectional_frontier_receipt_v12.json')
-          out.write_text(json.dumps(receipt, indent=2, sort_keys=True)+'\n', encoding='utf-8')
-          print('MULTIDIRECTIONAL_FRONTIER_RECEIPT_V1_2 = BUILT')
-          print('TOP_FRONTIER = ' + ','.join(receipt['top_frontier']))
-          print('GLOBAL_TERMINAL = OPEN')
+            'source_raw_sha256':{k:sha(v) for k,v in paths.items()},
+            'report_raw_sha256':sha(rp), 'report_semantic_sha256':r['report_semantic_sha256'],
+            'corpus_semantic_sha256':r['corpus_semantic_sha256'], 'scanned_surface_count':r['scanned_surface_count'],
+            'evidence_ranking':r['evidence_ranking'], 'declared_priority_ranking':r['declared_priority_ranking'],
+            'a3_evidence_ranking':r['a3_evidence_ranking'], 'selected_a3_candidate':r['selected_a3_candidate'],
+            'independent_replay':True, 'digest_repaired_tampers_rejected':'20/20',
+            'head_self_reference_rejected':True, 'predeclared_active_route_promotion_rejected':True,
+            'global_terminal':'OPEN', 'claim_ceiling':r['claim_ceiling']}
+          p=pathlib.Path('/tmp/frontier_v13_receipt.json'); p.write_text(json.dumps(out,indent=2,sort_keys=True)+'\n')
+          print('MULTIDIRECTIONAL_FRONTIER_RECEIPT_V1_3 = BUILT')
+          print('EVIDENCE_TOP10 = '+','.join(r['evidence_ranking'][:10]))
+          print('SELECTED_A3_CANDIDATE = '+str(r['selected_a3_candidate']))
           PY
 
-      - name: Upload frontier v1.2 report and receipt
+      - name: Upload frontier v1.3 report and receipt
         uses: actions/upload-artifact@v4
         with:
-          name: fundamentum-multidirectional-frontier-v12-${{ github.event.pull_request.head.sha || github.sha }}
+          name: fundamentum-multidirectional-frontier-v13-${{ github.event.pull_request.head.sha || github.sha }}
           path: |
-            /tmp/fundamentum_multidirectional_frontier_v12.json
-            /tmp/fundamentum_multidirectional_frontier_receipt_v12.json
-            /tmp/frontier_search.log
-            /tmp/frontier_verifier.log
+            /tmp/frontier_v13.json
+            /tmp/frontier_v13_receipt.json
+            /tmp/frontier_search_v13.log
+            /tmp/frontier_verifier_v13.log
           if-no-files-found: error
