@@ -1,0 +1,202 @@
+name: Validate C049.1 B5 fixed-discovery round2 B5.2 reconstruction
+
+on:
+  pull_request:
+    paths:
+      - 'experiments/direct/C049_1_B5_FIXED_DISCOVERY_ROUND2_B52_RECONSTRUCTION_SPEC_V1.json'
+      - 'experiments/direct/janus_c049_1_b5_fixed_discovery_round2_b52_reconstruction_verifier.py'
+      - '.github/workflows/validate-c049-1-b5-fixed-discovery-round2-b52-reconstruction.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  round2-b52-reconstruction:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    env:
+      PYTHONPATH: experiments/direct
+      PYTHONUNBUFFERED: '1'
+      ROUND12_HEAD: 61a8d436f36df1b83fbd70a3074e03e95edd5a80
+      PRE_SPEC: experiments/direct/C049_1_B5_ITERATIVE_COMPRESSION_PREPROCESSING_BINDING_SPEC_V1.json
+      PRE_V11: experiments/direct/janus_c049_1_b5_iterative_compression_preprocessing_binding_v11.py
+      PRE_VERIFIER: experiments/direct/janus_c049_1_b5_iterative_compression_preprocessing_binding_verifier.py
+      PLAN_SPEC: experiments/direct/C049_1_B5_FIXED_DISCOVERY_ROUND_ORCHESTRATION_BINDING_SPEC_V1_1.json
+      PLAN_PRODUCER: experiments/direct/janus_c049_1_b5_fixed_discovery_round_orchestration_binding_v11.py
+      PLAN_VERIFIER: experiments/direct/janus_c049_1_b5_fixed_discovery_round_orchestration_binding_verifier_v11.py
+      B51_SPEC: experiments/direct/C049_1_B5_1_GENERIC_CORRECTED_RUNTIME_TRACE_EXECUTOR_SPEC_V1.json
+      B51_PRODUCER: experiments/direct/janus_c049_1_b5_1_generic_corrected_runtime_trace_executor.py
+      B51_VERIFIER: experiments/direct/janus_c049_1_b5_1_generic_corrected_runtime_trace_executor_verifier.py
+      B52A_SPEC: experiments/direct/C049_1_B5_2A_GENERIC_ALGORITHM2_PROVENANCE_CARRIER_AMENDMENT_V1_1.json
+      B52A_PRODUCER: experiments/direct/janus_c049_1_b5_2a_generic_algorithm2_provenance_carrier_v11.py
+      B52A_VERIFIER: experiments/direct/janus_c049_1_b5_2a_generic_algorithm2_provenance_carrier_verifier_v11.py
+      B52A_RECEIPT: experiments/direct/audits/C049_1_B5_2A_GENERIC_ALGORITHM2_PROVENANCE_CARRIER_V1_1_ADMISSION_15EA163D.json
+      B52B_SPEC: experiments/direct/C049_1_B5_2B_GENERIC_ALGORITHM2_PRINTORDER_RECONSTRUCTION_SPEC_V1.json
+      B52B_PRODUCER: experiments/direct/janus_c049_1_b5_2b_generic_algorithm2_printorder_reconstruction.py
+      B52B_VERIFIER: experiments/direct/janus_c049_1_b5_2b_generic_algorithm2_printorder_reconstruction_verifier_v11.py
+      B52B_RECEIPT: experiments/direct/audits/C049_1_B5_2B_GENERIC_ALGORITHM2_PRINTORDER_RECONSTRUCTION_ADMISSION_F057B7AF.json
+      SPEC: experiments/direct/C049_1_B5_FIXED_DISCOVERY_ROUND2_B52_RECONSTRUCTION_SPEC_V1.json
+      BINDER: experiments/direct/janus_c049_1_b5_fixed_discovery_round2_b52_reconstruction_verifier.py
+    steps:
+      - name: Checkout exact head
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 0
+      - name: Set up exact Python
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.12.13'
+          check-latest: false
+      - name: Bind predecessor and admitted B5.2 authorities
+        shell: bash
+        run: |
+          set -euo pipefail
+          HEAD="$(git rev-parse HEAD)"; echo "EXACT_HEAD=$HEAD" >> "$GITHUB_ENV"
+          git merge-base --is-ancestor "$ROUND12_HEAD" "$HEAD"
+          test "$(git hash-object "$B52A_SPEC")" = fda6f7d45d0273f957c13014fa62718bc19b465e
+          test "$(git hash-object "$B52A_PRODUCER")" = 9159ad8fb03b47eab354ae85e6756037818597e8
+          test "$(git hash-object "$B52A_VERIFIER")" = 57c95af433b2b97c53a51132f6d3128884f7f6c9
+          test "$(git hash-object "$B52A_RECEIPT")" = 2e076e87029b2bc1ae8e773a6ed16f3897d46b78
+          test "$(git hash-object "$B52B_SPEC")" = 02f1fa3926b70d775dc3415240d6d153007d21a8
+          test "$(git hash-object "$B52B_PRODUCER")" = 90a13116ff7999f81a744d56e0bae56eb6af5ed1
+          test "$(git hash-object "$B52B_VERIFIER")" = 5911c566bab0193214c8aa1b11c49d5d205e2f43
+          test "$(git hash-object "$B52B_RECEIPT")" = 5e60eff4a4bd4c87cbf527cd446fc6b23b013774
+          test "$(git hash-object "$SPEC")" = 7d3cf21ab101273e0c07db572ef5c312ce9b23b6
+          test "$(git hash-object "$BINDER")" = cddf4864d6bfbad6fb2560d6f71b0cdc1d8ab21a
+          echo 'ROUND12_EXACT_HEAD_ANCESTRY = PASS'
+          echo 'B5_2A_ADMITTED_AUTHORITY_BYTES = PASS'
+          echo 'B5_2B_ADMITTED_AUTHORITY_BYTES = PASS'
+      - name: Enforce independent cross-gate binder
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m py_compile "$BINDER"
+          python - <<'PY'
+          import ast
+          from pathlib import Path
+          s=Path('experiments/direct/janus_c049_1_b5_fixed_discovery_round2_b52_reconstruction_verifier.py').read_text()
+          imports=[]
+          for n in ast.walk(ast.parse(s)):
+            if isinstance(n,ast.Import): imports += [a.name for a in n.names]
+            elif isinstance(n,ast.ImportFrom): imports.append(n.module or '')
+          forbidden=('b5_2a_generic_algorithm2_provenance_carrier','b5_2b_generic_algorithm2_printorder_reconstruction')
+          assert not any(any(f in x for f in forbidden) for x in imports),imports
+          assert 'C047' not in '\n'.join(x for x in imports)
+          print('B5_2_PRODUCER_IMPORT_IN_CROSS_GATE_BINDER = FORBIDDEN_CONFIRMED')
+          print('C047_IMPORT_IN_BINDER = ABSENT')
+          PY
+      - name: Rebuild exact bounded fixed-discovery round2 subject
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/round2-b52
+          cat > /tmp/round2-b52/raw.json <<'JSON'
+          {"ambient_dim":2,"k":1,"factors":[{"id":"A","normal_space":[1],"affine_offset":{"tag":"A"}},{"id":"B","normal_space":[1,2],"affine_offset":{"tag":"B"}}]}
+          JSON
+          python "$PRE_V11" --spec "$PRE_SPEC" --input /tmp/round2-b52/raw.json --output /tmp/round2-b52/pre.json > /tmp/round2-b52/pre-producer.log
+          python "$PRE_VERIFIER" --spec "$PRE_SPEC" --input /tmp/round2-b52/raw.json --candidate /tmp/round2-b52/pre.json > /tmp/round2-b52/pre-verifier.log
+          python "$PLAN_PRODUCER" --spec "$PLAN_SPEC" --preprocessing /tmp/round2-b52/pre.json --output /tmp/round2-b52/plan.json > /tmp/round2-b52/plan-producer.log
+          python "$PLAN_VERIFIER" --spec "$PLAN_SPEC" --preprocessing /tmp/round2-b52/pre.json --candidate /tmp/round2-b52/plan.json > /tmp/round2-b52/plan-verifier.log
+          python - <<'PY'
+          import json
+          pre=json.load(open('/tmp/round2-b52/pre.json'))['proof_payload']; plan=json.load(open('/tmp/round2-b52/plan.json'))['proof_payload']; by={int(x['occurrence_index']):x for x in pre['discovery_catalog']}; s=plan['schedule_occurrence_indices']; prefix=s[:2]
+          assert prefix==[0,1],prefix
+          factors=[]
+          for i in prefix:
+            x=by[i]; factors.append({'id':x['factor_id'],'normal_space':x['normal_space'],'affine_offset':x['affine_offset']})
+          caps={'max_boundary_dim':2,'max_k':1,'max_full_set_entries':1000,'max_child_pairs':10000,'max_join_paths':50000}
+          raw={'ambient_dim':2,'k':1,'caps':caps,'factors':factors,'tree':{'root':'round2_root','nodes':[{'id':'round2_root','left':'round2_left','right':'round2_right'},{'id':'round2_left','factor_id':factors[0]['id']},{'id':'round2_right','factor_id':factors[1]['id']}]}}
+          open('/tmp/round2-b52/round2-input.json','w').write(json.dumps(raw,sort_keys=True,separators=(',',':'))+'\n')
+          print('ROUND2_FIXED_PREFIX =',prefix)
+          print('ROUND2_FIXED_FACTOR_IDS =',[x['id'] for x in factors])
+          PY
+          python "$B51_PRODUCER" --spec "$B51_SPEC" --input /tmp/round2-b52/round2-input.json --output /tmp/round2-b52/b51.json | tee /tmp/round2-b52/b51-producer.log
+          python "$B51_VERIFIER" --spec "$B51_SPEC" --input /tmp/round2-b52/round2-input.json --candidate /tmp/round2-b52/b51.json | tee /tmp/round2-b52/b51-verifier.log
+          grep -F 'RUNTIME_RESULT = CLOSED_COMPLETE_TRACE' /tmp/round2-b52/b51-verifier.log
+          grep -F 'ROOT_ENTRY_COUNT = 5' /tmp/round2-b52/b51-producer.log
+          echo 'ROUND2_B5_1_EXACT_SUBJECT_REPLAY = PASS'
+      - name: Execute admitted B5.2A provenance carrier and independent replay
+        shell: bash
+        run: |
+          set -euo pipefail
+          python "$B52A_PRODUCER" --spec "$B52A_SPEC" --input /tmp/round2-b52/round2-input.json --b5-1-artifact /tmp/round2-b52/b51.json --output /tmp/round2-b52/carrier.json | tee /tmp/round2-b52/b52a-producer.log
+          python "$B52A_VERIFIER" --spec "$B52A_SPEC" --input /tmp/round2-b52/round2-input.json --b5-1-artifact /tmp/round2-b52/b51.json --candidate /tmp/round2-b52/carrier.json | tee /tmp/round2-b52/b52a-verifier.log
+          grep -F 'JANUS_B5_2A_GENERIC_ALGORITHM2_PROVENANCE_CARRIER_V1_1_INDEPENDENT_VERIFIER = PASS' /tmp/round2-b52/b52a-verifier.log
+          grep -F 'ROOT_ENTRIES_WITH_COMPLETE_BACKTRACK = 5' /tmp/round2-b52/b52a-verifier.log
+          grep -F 'DANGLING_REFERENCE_COUNT = 0' /tmp/round2-b52/b52a-verifier.log
+          echo 'ROUND2_B5_2A_ADMITTED_REPLAY = PASS'
+      - name: Execute admitted B5.2B printorder and independent replay
+        shell: bash
+        run: |
+          set -euo pipefail
+          python "$B52B_PRODUCER" --spec "$B52B_SPEC" --input /tmp/round2-b52/round2-input.json --b5-1-artifact /tmp/round2-b52/b51.json --carrier /tmp/round2-b52/carrier.json --output /tmp/round2-b52/layout.json | tee /tmp/round2-b52/b52b-producer.log
+          python "$B52B_VERIFIER" --spec "$B52B_SPEC" --input /tmp/round2-b52/round2-input.json --b5-1-artifact /tmp/round2-b52/b51.json --carrier /tmp/round2-b52/carrier.json --candidate /tmp/round2-b52/layout.json | tee /tmp/round2-b52/b52b-verifier.log
+          grep -F 'JANUS_B5_2B_GENERIC_ALGORITHM2_PRINTORDER_INDEPENDENT_VERIFIER_V1_1 = PASS' /tmp/round2-b52/b52b-verifier.log
+          grep -F 'RECONSTRUCTION_STATUS = LAYOUT_CANDIDATE_RECONSTRUCTED_PENDING_REVIEW' /tmp/round2-b52/b52b-verifier.log
+          grep -F 'WHOLE_FACTOR_PERMUTATION = PASS' /tmp/round2-b52/b52b-verifier.log
+          grep -F 'INDEPENDENT_CUT_WIDTH_RECOMPUTATION = PASS' /tmp/round2-b52/b52b-verifier.log
+          grep -F 'MAXIMUM_CUT_WIDTH = 1' /tmp/round2-b52/b52b-verifier.log
+          echo 'ROUND2_B5_2B_ADMITTED_REPLAY = PASS'
+      - name: Bind reconstructed layout to exact fixed round prefix
+        shell: bash
+        run: |
+          set -euo pipefail
+          python "$BINDER" --spec "$SPEC" --preprocessing /tmp/round2-b52/pre.json --plan /tmp/round2-b52/plan.json --round2-input /tmp/round2-b52/round2-input.json --b5-1-artifact /tmp/round2-b52/b51.json --carrier /tmp/round2-b52/carrier.json --layout /tmp/round2-b52/layout.json | tee /tmp/round2-b52/binder.log
+          grep -F 'JANUS_B5_FIXED_DISCOVERY_ROUND2_B52_RECONSTRUCTION_BINDER = PASS' /tmp/round2-b52/binder.log
+          grep -F 'B5_2A_COMPLETE_ROOT_BACKTRACK = PASS' /tmp/round2-b52/binder.log
+          grep -F 'B5_2B_FIXED_PREFIX_PERMUTATION = PASS' /tmp/round2-b52/binder.log
+          grep -F 'B5_2B_AFFINE_IDENTITY = PASS' /tmp/round2-b52/binder.log
+          grep -F 'VERIFIED_WIDTH_K_PREFIX_LAYOUT = PASS' /tmp/round2-b52/binder.log
+          grep -F 'C047 = NOT_INVOKED' /tmp/round2-b52/binder.log
+      - name: Reject digest-repaired cross-gate tampers
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import copy,hashlib,json,sys
+          sys.path.insert(0,'experiments/direct'); import janus_c049_1_b5_fixed_discovery_round2_b52_reconstruction_verifier as v
+          L=lambda p:json.load(open(p)); dg=lambda x:hashlib.sha256(json.dumps(x,sort_keys=True,separators=(',',':')).encode()).hexdigest()
+          args=[L('experiments/direct/C049_1_B5_FIXED_DISCOVERY_ROUND2_B52_RECONSTRUCTION_SPEC_V1.json'),L('/tmp/round2-b52/pre.json'),L('/tmp/round2-b52/plan.json'),L('/tmp/round2-b52/round2-input.json'),L('/tmp/round2-b52/b51.json'),L('/tmp/round2-b52/carrier.json'),L('/tmp/round2-b52/layout.json')]
+          attacks=[]
+          def add(name,index,mut):
+            x=copy.deepcopy(args[index]);mut(x)
+            if isinstance(x,dict) and 'proof_payload' in x:x['semantic_digest']=dg(x['proof_payload'])
+            attacks.append((name,index,x))
+          add('T01_PLAN_PREFIX_REBIND',2,lambda x:x['proof_payload']['schedule_occurrence_indices'].__setitem__(1,x['proof_payload']['schedule_occurrence_indices'][0]))
+          add('T02_B51_ROOT_COUNT',4,lambda x:x['proof_payload'].__setitem__('root_entry_count_if_closed',4))
+          add('T03_CARRIER_SUBJECT',5,lambda x:x['proof_payload']['subject'].__setitem__('b5_1_semantic_digest','0'*64))
+          add('T04_LAYOUT_DUPLICATE_FACTOR',6,lambda x:x['proof_payload']['factor_order_ids'].__setitem__(1,x['proof_payload']['factor_order_ids'][0]))
+          add('T05_LAYOUT_AFFINE_REBIND',6,lambda x:x['proof_payload']['layout_records'][0].__setitem__('affine_offset',{'tamper':True}))
+          add('T06_LAYOUT_WIDTH_FORGE',6,lambda x:x['proof_payload'].__setitem__('maximum_cut_width',0))
+          add('T07_FOUND_LAYOUT_PROMOTION',6,lambda x:x['proof_payload'].__setitem__('found_layout_promotion','TRUE'))
+          rejected=0
+          for name,index,x in attacks:
+            trial=copy.deepcopy(args);trial[index]=x
+            try:v.verify(*trial)
+            except Exception:rejected+=1;print(name,'= REJECTED')
+            else:raise SystemExit(name+' survived')
+          assert rejected==7
+          print('DIGEST_REPAIRED_ROUND2_RECONSTRUCTION_TAMPERS_REJECTED = 7/7')
+          PY
+      - name: Freeze exact-head round2 reconstruction receipt
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import hashlib,json,os,sys
+          from pathlib import Path
+          sys.path.insert(0,'experiments/direct');import janus_c049_1_b5_fixed_discovery_round2_b52_reconstruction_verifier as v
+          L=lambda p:json.load(open(p));report=v.verify(L(os.environ['SPEC']),L('/tmp/round2-b52/pre.json'),L('/tmp/round2-b52/plan.json'),L('/tmp/round2-b52/round2-input.json'),L('/tmp/round2-b52/b51.json'),L('/tmp/round2-b52/carrier.json'),L('/tmp/round2-b52/layout.json'))
+          r={'schema':'janus.c049_1.b5.fixed_discovery_round2_b52_reconstruction_receipt.v1','exact_head':os.environ['EXACT_HEAD'],'round12_head':os.environ['ROUND12_HEAD'],'checks':{'round2_b5_1':'CLOSED_NONEMPTY_VERIFIED','b5_2a_complete_backtrack':'PASS','b5_2b_independent_printorder':'PASS','fixed_prefix_permutation':'PASS','affine_identity':'PASS','width_k_layout':'PASS','tamper_rejection':'7/7','c047':'NOT_INVOKED'},'round2_prefix_occurrence_indices':report['round2_prefix_occurrence_indices'],'verified_factor_order_ids':report['verified_factor_order_ids'],'maximum_cut_width':report['maximum_cut_width'],'k':report['k'],'next_gate':report['next_gate'],'round3_execution':'NOT_ESTABLISHED','full_schedule_execution':'NOT_ESTABLISHED','original_order_lift_admission':'NOT_ESTABLISHED_REPLACEMENT_REPLAY_INCOMPLETE','all_input_termination':'NOT_ESTABLISHED','polynomial_runtime':'NOT_ESTABLISHED','b5_complete':False,'c049_1_complete':False,'p_vs_np':'OPEN'}
+          raw=(json.dumps(r,sort_keys=True,separators=(',',':'))+'\n').encode();Path('/tmp/round2-b52/exact-head-receipt.json').write_bytes(raw)
+          print('ROUND2_B5_2_RECONSTRUCTION_RECEIPT = FROZEN');print('RECEIPT_SHA256 =',hashlib.sha256(raw).hexdigest());print('VERIFIED_FACTOR_ORDER_IDS =',r['verified_factor_order_ids']);print('MAXIMUM_CUT_WIDTH =',r['maximum_cut_width']);print('NEXT_GATE =',r['next_gate']);print('B5_COMPLETE = FALSE');print('P_VS_NP = OPEN')
+          PY
+      - name: Upload evidence
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: c049-b5-round2-b52-reconstruction-${{ github.run_id }}
+          path: /tmp/round2-b52
+          if-no-files-found: error
+          retention-days: 90
