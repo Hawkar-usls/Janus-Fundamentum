@@ -1,0 +1,118 @@
+name: Validate C049.1 B4.6.3 general corrected H/V join semantic bijection
+
+on:
+  push:
+    paths:
+      - 'experiments/direct/C049_1_B4_6_3_GENERAL_CORRECTED_JOIN_SEMANTIC_BIJECTION_SPEC_V1.json'
+      - 'experiments/direct/janus_c049_1_b4_6_3_general_corrected_join_semantic_bijection.py'
+      - 'experiments/direct/janus_c049_1_b4_6_3_general_corrected_join_semantic_bijection_verifier.py'
+      - '.github/workflows/validate-c049-1-b4-6-3-general-corrected-join-semantic-bijection.yml'
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  general-corrected-join-semantic-bijection:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    env:
+      SPEC: experiments/direct/C049_1_B4_6_3_GENERAL_CORRECTED_JOIN_SEMANTIC_BIJECTION_SPEC_V1.json
+      PRODUCER: experiments/direct/janus_c049_1_b4_6_3_general_corrected_join_semantic_bijection.py
+      VERIFIER: experiments/direct/janus_c049_1_b4_6_3_general_corrected_join_semantic_bijection_verifier.py
+      O2_AUDIT: experiments/direct/audits/C049_1_B4_6_3_GENERAL_EXPAND_SEMANTIC_BIJECTION_INDEPENDENT_SOURCE_AUDIT_FAC037C8.json
+    steps:
+      - uses: actions/checkout@v4
+        with: {fetch-depth: 0}
+      - uses: actions/setup-python@v5
+        with: {python-version: '3.12'}
+      - name: Bind immutable theorem and local semantic sources
+        run: |
+          set -euo pipefail
+          test "$(git hash-object "$SPEC")" = '837e839a1c6b0a6daa3644ce5c3c4ca373ed831b'
+          test "$(git hash-object "$PRODUCER")" = '159be23fbbe3bfd032677074972818239e1c5638'
+          test "$(git hash-object "$VERIFIER")" = '90bea1f70950ee0a85992f4c6f81f446e72cc80b'
+          test "$(git hash-object "$O2_AUDIT")" = '6e0e00f9cbcf017c977aea683b62ac201212177e'
+          python -m py_compile "$PRODUCER" "$VERIFIER"
+          materialize(){ git cat-file -e "$1^{blob}"; git cat-file blob "$1" > "$2"; test "$(git hash-object "$2")" = "$1"; }
+          materialize 443566c4b79bf67ec1613413130169cab12ebb0f /tmp/b3-core.py
+          materialize 786f4cc657335f31ca8696167bc2bde66d53180b /tmp/b3-doc.md
+          materialize fcfa6698f87c4f3782354fe1c76fb707ac304c32 /tmp/obstruction.md
+          materialize 401c4856de261f6048d313ca62fa43598ea449e0 /tmp/root-spec.json
+          materialize e4378ee30743a43a0884237b3a51a6930542373a /tmp/root-producer.py
+          python - <<'PY'
+          import ast
+          from pathlib import Path
+          p=ast.parse(Path('experiments/direct/janus_c049_1_b4_6_3_general_corrected_join_semantic_bijection.py').read_text())
+          v=ast.parse(Path('experiments/direct/janus_c049_1_b4_6_3_general_corrected_join_semantic_bijection_verifier.py').read_text())
+          def mods(t):
+            z=[]
+            for n in ast.walk(t):
+              if isinstance(n,ast.Import): z += [a.name for a in n.names]
+              elif isinstance(n,ast.ImportFrom): z.append(n.module or '')
+            return z
+          assert not any(x.endswith('general_corrected_join_semantic_bijection_verifier') for x in mods(p))
+          assert not any(x.endswith('general_corrected_join_semantic_bijection') for x in mods(v))
+          print('CORRECTED_JOIN_IMPLEMENTATION_DECOUPLING_STATIC_CHECK = PASS')
+          PY
+      - name: Build theorem binder twice
+        run: |
+          set -euo pipefail
+          python "$PRODUCER" --spec "$SPEC" --o2-audit "$O2_AUDIT" --b3-core /tmp/b3-core.py --b3-doc /tmp/b3-doc.md --obstruction /tmp/obstruction.md --root-spec /tmp/root-spec.json --root-producer /tmp/root-producer.py --output /tmp/join-a.json | tee /tmp/producer-a.log
+          python "$PRODUCER" --root-producer /tmp/root-producer.py --root-spec /tmp/root-spec.json --obstruction /tmp/obstruction.md --b3-doc /tmp/b3-doc.md --b3-core /tmp/b3-core.py --o2-audit "$O2_AUDIT" --spec "$SPEC" --output /tmp/join-b.json | tee /tmp/producer-b.log
+          cmp /tmp/join-a.json /tmp/join-b.json
+          echo 'GENERAL_CORRECTED_JOIN_BINDER_BYTE_IDENTITY = PASS'
+      - name: Independent theorem mapping replay and tamper rejection
+        run: |
+          set -euo pipefail
+          python "$VERIFIER" --spec "$SPEC" --producer-source "$PRODUCER" --o2-audit "$O2_AUDIT" --b3-core /tmp/b3-core.py --b3-doc /tmp/b3-doc.md --obstruction /tmp/obstruction.md --root-spec /tmp/root-spec.json --root-producer /tmp/root-producer.py --candidate-a /tmp/join-a.json --candidate-b /tmp/join-b.json --tamper-suite | tee /tmp/verifier.log
+          grep -F 'JANUS_GENERAL_CORRECTED_JOIN_SEMANTIC_BIJECTION_INDEPENDENT_VERIFIER = PASS' /tmp/verifier.log
+          grep -F 'INVARIANTS = 12/12' /tmp/verifier.log
+          grep -F 'DIGEST_REPAIRED_TAMPERS_REJECTED = 12/12' /tmp/verifier.log
+          grep -F 'ORDINARY_JOIN_PATH_DOMAIN = H_V_ONLY' /tmp/verifier.log
+          grep -F 'PREORDER_DIAGONAL_DOMAIN_DISTINCT = TRUE' /tmp/verifier.log
+      - name: Strict non-oracular scope audit
+        run: |
+          python - <<'PY'
+          import json,hashlib
+          p=json.load(open('/tmp/join-a.json')); q=p['proof_payload']; b=q['strict_boundary']
+          assert hashlib.sha256(json.dumps(q,sort_keys=True,separators=(',',':')).encode()).hexdigest()==p['semantic_digest']
+          assert q['published_theorem']['result']=='Proposition 4.4'
+          assert q['path_domain_separation']['ordinary_join_steps']==[[1,0],[0,1]] and q['path_domain_separation']['ordinary_join_diagonal_allowed'] is False
+          assert q['path_domain_separation']['preorder_steps']==[[1,0],[0,1],[1,1]]
+          assert q['dependency_ceiling']['caller_join_separation_precondition_automatically_established'] is False
+          assert q['dependency_ceiling']['historical_generic_join_trajectories_semantic_reference'] is False
+          assert b['o3_join_interleaving_preservation_and_reflection'] is False and b['structural_induction_proved'] is False and b['terminal_completeness_proved'] is False and b['p_vs_np']=='OPEN'
+          print('GENERAL_CORRECTED_JOIN_NON_ORACULAR_SCOPE = PASS')
+          PY
+      - name: Build exact-head receipt
+        run: |
+          {
+            echo "GITHUB_SHA=$GITHUB_SHA"
+            echo "ARTIFACT_SHA256=$(sha256sum /tmp/join-a.json | cut -d' ' -f1)"
+            echo "SEMANTIC_DIGEST=$(python -c 'import json;print(json.load(open("/tmp/join-a.json"))["semantic_digest"])')"
+            echo 'PUBLISHED_RESULT=JKO_PROPOSITION_4_4'
+            echo 'ORDINARY_JOIN_PATH_DOMAIN=H_V_ONLY'
+            echo 'PREORDER_DIAGONAL_DOMAIN_DISTINCT=TRUE'
+            echo 'BYTE_IDENTITY=PASS'
+            echo 'INVARIANTS=12/12'
+            echo 'DIGEST_REPAIRED_TAMPERS_REJECTED=12/12'
+            echo 'CALLER_JOIN_SEPARATION_PRECONDITION_AUTOMATICALLY_ESTABLISHED=FALSE'
+            echo 'TERMINAL_COMPLETENESS_PROVED=FALSE'
+            echo 'P_VS_NP=OPEN'
+          } | tee /tmp/exact-head-receipt.txt
+      - name: Export evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: c049-b4-6-3-general-corrected-join-semantic-bijection
+          retention-days: 7
+          compression-level: 9
+          path: |
+            /tmp/exact-head-receipt.txt
+            /tmp/join-a.json
+            /tmp/join-b.json
+            /tmp/producer-a.log
+            /tmp/producer-b.log
+            /tmp/verifier.log
+            experiments/direct/C049_1_B4_6_3_GENERAL_CORRECTED_JOIN_SEMANTIC_BIJECTION_SPEC_V1.json
+            experiments/direct/janus_c049_1_b4_6_3_general_corrected_join_semantic_bijection.py
+            experiments/direct/janus_c049_1_b4_6_3_general_corrected_join_semantic_bijection_verifier.py
