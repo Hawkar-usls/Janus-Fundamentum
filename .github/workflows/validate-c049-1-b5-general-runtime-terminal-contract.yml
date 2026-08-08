@@ -1,0 +1,132 @@
+name: Validate C049.1 B5 general runtime terminal contract
+
+on:
+  pull_request:
+    paths:
+      - 'experiments/direct/C049_1_B5_GENERAL_RUNTIME_TERMINAL_INTEGRATION_SPEC_V1.json'
+      - 'experiments/direct/janus_c049_1_b5_general_runtime_terminal_contract_verifier.py'
+      - '.github/workflows/validate-c049-1-b5-general-runtime-terminal-contract.yml'
+  workflow_dispatch:
+
+jobs:
+  b5-general-runtime-terminal-contract:
+    runs-on: ubuntu-latest
+    env:
+      SPEC: experiments/direct/C049_1_B5_GENERAL_RUNTIME_TERMINAL_INTEGRATION_SPEC_V1.json
+      VERIFIER: experiments/direct/janus_c049_1_b5_general_runtime_terminal_contract_verifier.py
+      FRONTIER_RECEIPT: experiments/direct/audits/C049_1_CURRENT_FRONTIER_AUTHORITY_ADMISSION_1ACDC76D.json
+      GENERAL_SPEC: /tmp/C049_1_B4_6_3_GENERAL_STRUCTURAL_INDUCTION_COMPOSITION_SPEC_V1.json
+      B5_PLAN: /tmp/C049_1_PHASE_B_COMPACT_TRAJECTORY_PLAN.md
+      PHASE_A_CORE: /tmp/janus_c049_fpt_integration_core.py
+      PHASE_A_SOLVER: /tmp/janus_c049_fpt_integration_solver.py
+      B42: /tmp/janus_c049_1_b4_2_3k_scaffold.py
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Bind contract and materialize immutable historical dependencies
+        run: |
+          set -euo pipefail
+          git show 4f8f9424dada0c71c9169e2c037c66d942c567e9:experiments/direct/C049_1_B4_6_3_GENERAL_STRUCTURAL_INDUCTION_COMPOSITION_SPEC_V1.json > "$GENERAL_SPEC"
+          git show 8cf39d35fc0fd03191b5ab28905637a5c842b2cf:docs/C049_1_PHASE_B_COMPACT_TRAJECTORY_PLAN.md > "$B5_PLAN"
+          git show 8cf39d35fc0fd03191b5ab28905637a5c842b2cf:experiments/direct/janus_c049_fpt_integration_core.py > "$PHASE_A_CORE"
+          git show 8cf39d35fc0fd03191b5ab28905637a5c842b2cf:experiments/direct/janus_c049_fpt_integration_solver.py > "$PHASE_A_SOLVER"
+          git show 9bfdef654842fb453f7dd63d34ee23de93266db6:experiments/direct/janus_c049_1_b4_2_3k_scaffold.py > "$B42"
+
+          test "$(git hash-object "$SPEC")" = "b192f5e3f884551c29d574f568a8b2275ecc92c5"
+          test "$(git hash-object "$VERIFIER")" = "f548d441e6ee9c32213946c9322f3281af77e551"
+          test "$(git hash-object "$FRONTIER_RECEIPT")" = "6ce4d7428d9cefc79da15d9e518815e019d86017"
+          test "$(git hash-object "$GENERAL_SPEC")" = "c8f916415215767a9c2e786b26968c08f2c3481e"
+          test "$(git hash-object "$B5_PLAN")" = "a776887c258da5c92414fa3d548beeec6ebcee83"
+          test "$(git hash-object "$PHASE_A_CORE")" = "5eb806a079343f00622886c448d2bfbfa412cbfe"
+          test "$(git hash-object "$PHASE_A_SOLVER")" = "70c06752890e797bdf3a7c87c2cb41703fade163"
+          test "$(git hash-object "$B42")" = "57c16c18a14cecb96264a22fea01cd2c2bdaa857"
+
+          test "$(git rev-parse b54c28d6a668750891f4ef6d5e833c6705bd68f0:experiments/direct/audits/C049_1_CURRENT_FRONTIER_AUTHORITY_ADMISSION_1ACDC76D.json)" = "6ce4d7428d9cefc79da15d9e518815e019d86017"
+          test "$(git rev-parse 4f8f9424dada0c71c9169e2c037c66d942c567e9:experiments/direct/C049_1_B4_6_3_GENERAL_STRUCTURAL_INDUCTION_COMPOSITION_SPEC_V1.json)" = "c8f916415215767a9c2e786b26968c08f2c3481e"
+          test "$(git rev-parse 8cf39d35fc0fd03191b5ab28905637a5c842b2cf:experiments/direct/janus_c049_fpt_integration_solver.py)" = "70c06752890e797bdf3a7c87c2cb41703fade163"
+          test "$(git rev-parse 9bfdef654842fb453f7dd63d34ee23de93266db6:experiments/direct/janus_c049_1_b4_2_3k_scaffold.py)" = "57c16c18a14cecb96264a22fea01cd2c2bdaa857"
+          echo 'B5_CONTRACT_IMMUTABLE_BINDING = PASS'
+          echo 'B5_HISTORICAL_DEPENDENCIES_MATERIALIZED = PASS'
+
+      - name: Compile and enforce verifier decoupling
+        run: |
+          set -euo pipefail
+          python -m py_compile "$VERIFIER"
+          python - <<'PY'
+          import ast
+          from pathlib import Path
+          p=Path('experiments/direct/janus_c049_1_b5_general_runtime_terminal_contract_verifier.py')
+          tree=ast.parse(p.read_text(encoding='utf-8'))
+          imports=[]
+          for n in ast.walk(tree):
+              if isinstance(n,ast.Import): imports.extend(a.name for a in n.names)
+              elif isinstance(n,ast.ImportFrom): imports.append(n.module or '')
+          assert not any('b5_generic_corrected_runtime_trace_executor' in x for x in imports)
+          print('B5_CONTRACT_VERIFIER_DECOUPLING = PASS')
+          PY
+
+      - name: Independently verify B5 contract and anti-promotion boundary
+        run: |
+          set -euo pipefail
+          python "$VERIFIER" \
+            --spec "$SPEC" \
+            --frontier-receipt "$FRONTIER_RECEIPT" \
+            --general-spec "$GENERAL_SPEC" \
+            --b5-plan "$B5_PLAN" \
+            --phase-a-core "$PHASE_A_CORE" \
+            --phase-a-solver "$PHASE_A_SOLVER" \
+            --b42 "$B42" \
+            --tamper-suite | tee /tmp/b5-contract-verifier.log
+          grep -F 'JANUS_B5_GENERAL_RUNTIME_TERMINAL_CONTRACT_INDEPENDENT_VERIFIER = PASS' /tmp/b5-contract-verifier.log
+          grep -F 'CONTRACT_INVARIANTS = 16/16' /tmp/b5-contract-verifier.log
+          grep -F 'B5_SUBGATES = 4/4' /tmp/b5-contract-verifier.log
+          grep -F 'SEMANTIC_TAMPERS_REJECTED = 16/16' /tmp/b5-contract-verifier.log
+          grep -F 'NEXT_GATE = C049.1_B5.1_GENERIC_CORRECTED_RUNTIME_TRACE_EXECUTOR' /tmp/b5-contract-verifier.log
+          grep -F 'PHASE_A_C047_EXISTING_INTERFACE = BOUND' /tmp/b5-contract-verifier.log
+          grep -F 'CORRECTED_GENERIC_C047_HANDOFF = NOT_ADMITTED' /tmp/b5-contract-verifier.log
+          grep -F 'GENERIC_FOUND_LAYOUT_ENABLED = FALSE' /tmp/b5-contract-verifier.log
+          grep -F 'GENERIC_NO_LAYOUT_AT_CAP_ENABLED = FALSE' /tmp/b5-contract-verifier.log
+          grep -F 'B5_COMPLETE = FALSE' /tmp/b5-contract-verifier.log
+          grep -F 'P_VS_NP = OPEN' /tmp/b5-contract-verifier.log
+
+      - name: Freeze exact-head B5 contract receipt
+        run: |
+          set -euo pipefail
+          if [ "${{ github.event_name }}" = "pull_request" ]; then PROOF_HEAD="${{ github.event.pull_request.head.sha }}"; else PROOF_HEAD="$GITHUB_SHA"; fi
+          {
+            echo "GITHUB_SHA=$GITHUB_SHA"
+            echo "PROOF_HEAD=$PROOF_HEAD"
+            echo "SPEC_BLOB=$(git hash-object "$SPEC")"
+            echo "VERIFIER_BLOB=$(git hash-object "$VERIFIER")"
+            echo "FRONTIER_RECEIPT_BLOB=$(git hash-object "$FRONTIER_RECEIPT")"
+            echo "GENERAL_SPEC_BLOB=$(git hash-object "$GENERAL_SPEC")"
+            echo "PHASE_A_CORE_BLOB=$(git hash-object "$PHASE_A_CORE")"
+            echo "PHASE_A_C047_SOLVER_BLOB=$(git hash-object "$PHASE_A_SOLVER")"
+            echo "B42_SCAFFOLD_BLOB=$(git hash-object "$B42")"
+            echo 'CONTRACT_INVARIANTS=16/16'
+            echo 'B5_SUBGATES=4/4'
+            echo 'SEMANTIC_TAMPERS_REJECTED=16/16'
+            echo 'NEXT_GATE=C049.1_B5.1_GENERIC_CORRECTED_RUNTIME_TRACE_EXECUTOR'
+            echo 'GENERIC_FOUND_LAYOUT_ENABLED=FALSE'
+            echo 'GENERIC_NO_LAYOUT_AT_CAP_ENABLED=FALSE'
+            echo 'B5_COMPLETE=FALSE'
+            echo 'P_VS_NP=OPEN'
+          } | tee /tmp/b5-contract-exact-head-receipt.txt
+
+      - name: Export B5 contract evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: c049-b5-general-runtime-terminal-contract
+          retention-days: 7
+          compression-level: 9
+          path: |
+            experiments/direct/C049_1_B5_GENERAL_RUNTIME_TERMINAL_INTEGRATION_SPEC_V1.json
+            experiments/direct/janus_c049_1_b5_general_runtime_terminal_contract_verifier.py
+            /tmp/b5-contract-verifier.log
+            /tmp/b5-contract-exact-head-receipt.txt
