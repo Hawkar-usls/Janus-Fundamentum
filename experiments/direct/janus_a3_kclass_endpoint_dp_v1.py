@@ -55,7 +55,6 @@ def brute(U,mult):
  k=len(U);r=rank_table(U);K=(1<<k)-1;best=INF;count=0
  def rec(P,S,mx):
   nonlocal best,count
-  if mx>=best:return
   if P==K and S==K:
    count+=1;best=min(best,mx);return
   moved=False
@@ -75,7 +74,6 @@ def brute(U,mult):
 
 def controls():
  cases=event_orders=0;counter=0;max_states=0;max_k=0
- # exhaustive geometry for k<=3 over GF(2)^0..2 and all singleton/repeated signatures
  for n in range(3):
   S=subs(n)
   for k in range(1,4):
@@ -83,13 +81,11 @@ def controls():
     for mult in itertools.product((1,2),repeat=k):
      d,_,ns,_,_=dp_solve(U,mult);b,c=brute(U,mult);cases+=1;event_orders+=c;max_states=max(max_states,ns);max_k=max(max_k,k)
      if d!=b:counter+=1
- # k=4 selected geometry families, all signatures
  S=subs(3); picks=[S[:4],(S[1],S[2],S[3],S[4]),(S[1],S[1],S[2],S[3])]
  for U in picks:
   for mult in itertools.product((1,2),repeat=4):
    d,_,ns,_,_=dp_solve(U,mult);b,c=brute(U,mult);cases+=1;event_orders+=c;max_states=max(max_states,ns);max_k=4
    if d!=b:counter+=1
- # k=5 all-repeated stress: 113400 precedence-valid endpoint orders
  U=(S[1],S[2],S[3],S[4],S[5]);mult=(2,2,2,2,2)
  d,_,ns,_,_=dp_solve(U,mult);b,c=brute(U,mult);cases+=1;event_orders+=c;max_states=max(max_states,ns);max_k=5
  if d!=b:counter+=1
