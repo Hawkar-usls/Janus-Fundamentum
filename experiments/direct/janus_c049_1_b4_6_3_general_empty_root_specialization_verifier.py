@@ -120,9 +120,9 @@ def tampers(c,spec,a):
 
 def main():
     p=argparse.ArgumentParser()
-    for f in ('spec','producer-source','o6-audit','b1-core','root-spec','candidate-original','candidate-reordered'): p.add_argument('--'+f,type=Path,required=True)
+    for f in ('spec','producer-source','verifier-source','o6-audit','b1-core','root-spec','candidate-original','candidate-reordered'): p.add_argument('--'+f,type=Path,required=True)
     p.add_argument('--tamper-suite',action='store_true'); a=p.parse_args(); spec=load(a.spec); req(spec['schema']==SPEC_SCHEMA and spec['status']=='SPEC_FROZEN','INV01','spec')
-    req(not any(x.endswith('janus_c049_1_b4_6_3_general_empty_root_specialization') for x in imports(a.producer_source)),'INV01','producer import'); req(a.candidate_original.read_bytes()==a.candidate_reordered.read_bytes(),'INV10','byte identity')
+    req(not any(x.endswith('janus_c049_1_b4_6_3_general_empty_root_specialization') for x in imports(a.verifier_source)),'INV01','verifier imports producer'); req(a.candidate_original.read_bytes()==a.candidate_reordered.read_bytes(),'INV10','byte identity')
     c=load(a.candidate_original); verify(c,spec,a,True); ctrls=finite_controls(); ts=tampers(c,spec,a) if a.tamper_suite else []
     print('JANUS_GENERAL_EMPTY_ROOT_SPECIALIZATION_INDEPENDENT_VERIFIER = PASS'); print('PRODUCER_IMPORT = FORBIDDEN_AND_NOT_USED'); print('IMPLEMENTATION_DECOUPLING = REQUIRED_AND_OBSERVED'); print('INVARIANTS = 12/12'); print('DIGEST_REPAIRED_TAMPERS_REJECTED =',f'{len(ts)}/12' if a.tamper_suite else 'NOT_RUN'); print('ZERO_BOUNDARY_LAYOUT_CONTROLS =',ctrls['layouts']); print('EXTENSION_WIDTH_CONTROLS =',ctrls['extension_checks']); print('ABSTRACT_FS_ZERO_IFF_COMPLETE_LAYOUT_WIDTH_LE_K = PASS_AS_DERIVED_CANDIDATE'); print('ENGINE_ROOT_FULL_SET_EQUALS_FS_K_V_ZERO = FALSE'); print('UPSTREAM_CALLER_PRECONDITIONS_AUTOMATICALLY_ESTABLISHED = FALSE'); print('GENERAL_SEMANTIC_THEOREMS_ESTABLISHED = 6'); print('REMAINING_GENERAL_SEMANTIC_THEOREMS = 1'); print('FIRST_REQUIRED_NEXT_RECEIPT = GENERAL_EMPTY_ROOT_SPECIALIZATION_RECEIPT'); print('AFTER_O7_NEXT_COMPOSITION_RECEIPT = GENERAL_STRUCTURAL_INDUCTION_COMPOSITION_RECEIPT'); print('STRUCTURAL_INDUCTION_PROVED = FALSE'); print('TERMINAL_COMPLETENESS_PROVED = FALSE'); print('GLOBAL_ENGINE_NO_LAYOUT_AT_CAP = FORBIDDEN'); print('P_VS_NP = OPEN')
 if __name__=='__main__': main()
