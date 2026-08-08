@@ -1,0 +1,147 @@
+name: Validate C049.1 B5 iterative compression orchestrator
+
+on:
+  pull_request:
+    paths:
+      - 'experiments/direct/C049_1_B5_ITERATIVE_COMPRESSION_ORCHESTRATOR_SPEC_V1.json'
+      - 'experiments/direct/janus_c049_1_b5_iterative_compression_orchestrator.py'
+      - 'experiments/direct/janus_c049_1_b5_iterative_compression_orchestrator_verifier.py'
+      - 'experiments/direct/janus_c049_1_b5_iterative_compression_orchestrator_ci_harness.py'
+      - '.github/workflows/validate-c049-1-b5-iterative-compression-orchestrator.yml'
+  workflow_dispatch:
+
+jobs:
+  b5-iterative-compression-orchestrator:
+    runs-on: ubuntu-latest
+    env:
+      PYTHONPATH: experiments/direct
+      SPEC: experiments/direct/C049_1_B5_ITERATIVE_COMPRESSION_ORCHESTRATOR_SPEC_V1.json
+      PRODUCER: experiments/direct/janus_c049_1_b5_iterative_compression_orchestrator.py
+      VERIFIER: experiments/direct/janus_c049_1_b5_iterative_compression_orchestrator_verifier.py
+      HARNESS: experiments/direct/janus_c049_1_b5_iterative_compression_orchestrator_ci_harness.py
+      WORKFLOW: .github/workflows/validate-c049-1-b5-iterative-compression-orchestrator.yml
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Bind exact-head orchestrator bytes and admitted upstream authority
+        run: |
+          set -euo pipefail
+          if [ "${{ github.event_name }}" = "pull_request" ]; then PROOF_HEAD="${{ github.event.pull_request.head.sha }}"; else PROOF_HEAD="$GITHUB_SHA"; fi
+          echo "PROOF_HEAD=$PROOF_HEAD" >> "$GITHUB_ENV"
+          for f in "$SPEC" "$PRODUCER" "$VERIFIER" "$HARNESS" "$WORKFLOW"; do
+            test "$(git rev-parse "$PROOF_HEAD:$f")" = "$(git hash-object "$f")"
+          done
+          test "$(git hash-object "$SPEC")" = "29de1760cddcc0dada63958cdabfc25fb7d2b201"
+          test "$(git hash-object "$PRODUCER")" = "723f5418aba0fe3dffbdd079538ba275ebc378f0"
+          test "$(git hash-object "$VERIFIER")" = "4f69776ccc315c9cb8501d43c6ff8e6e6132fd80"
+          test "$(git hash-object "$HARNESS")" = "750f85f010364e863e5284d5a21746fcf232e8ee"
+          test "$(git hash-object experiments/direct/audits/C049_1_B5_INTERFACE_CLOSURE_CURRENT_FRONTIER_ADMISSION_C5F60BF8.json)" = "e4a886bbf9090783c592dd11ec80a6efe34b337a"
+          test "$(git rev-parse 3d077cd5d410109bea9d91544e1bb137bc6d31c7:experiments/direct/audits/C049_1_B5_INTERFACE_CLOSURE_CURRENT_FRONTIER_ADMISSION_C5F60BF8.json)" = "e4a886bbf9090783c592dd11ec80a6efe34b337a"
+          test "$(git hash-object experiments/direct/janus_c049_1_b4_2_3k_scaffold.py)" = "57c16c18a14cecb96264a22fea01cd2c2bdaa857"
+          test "$(git hash-object experiments/direct/C049_1_B5_1_GENERIC_CORRECTED_RUNTIME_TRACE_EXECUTOR_SPEC_V1.json)" = "64f65e4a68cab437392148519af667352fe0665c"
+          test "$(git hash-object experiments/direct/janus_c049_1_b5_1_generic_corrected_runtime_trace_executor.py)" = "8be92b8a663e0d05535861c6f216db28094014fb"
+          test "$(git hash-object experiments/direct/janus_c049_1_b5_1_generic_corrected_runtime_trace_executor_verifier.py)" = "ac40b3f3a370f697e29402e1e1cb3e514b799792"
+          test "$(git hash-object experiments/direct/C049_1_B5_2A_GENERIC_ALGORITHM2_PROVENANCE_CARRIER_AMENDMENT_V1_1.json)" = "fda6f7d45d0273f957c13014fa62718bc19b465e"
+          test "$(git hash-object experiments/direct/janus_c049_1_b5_2a_generic_algorithm2_provenance_carrier_v11.py)" = "9159ad8fb03b47eab354ae85e6756037818597e8"
+          test "$(git hash-object experiments/direct/janus_c049_1_b5_2a_generic_algorithm2_provenance_carrier_verifier_v11.py)" = "57c95af433b2b97c53a51132f6d3128884f7f6c9"
+          test "$(git hash-object experiments/direct/C049_1_B5_2B_GENERIC_ALGORITHM2_PRINTORDER_RECONSTRUCTION_SPEC_V1.json)" = "02f1fa3926b70d775dc3415240d6d153007d21a8"
+          test "$(git hash-object experiments/direct/janus_c049_1_b5_2b_generic_algorithm2_printorder_reconstruction.py)" = "90a13116ff7999f81a744d56e0bae56eb6af5ed1"
+          test "$(git hash-object experiments/direct/janus_c049_1_b5_2b_generic_algorithm2_printorder_reconstruction_verifier.py)" = "a77cec94f0d9ddd702bd4a1528199730076bf295"
+          test "$(git hash-object experiments/direct/janus_c049_1_b5_2b_generic_algorithm2_printorder_reconstruction_verifier_v11.py)" = "5911c566bab0193214c8aa1b11c49d5d205e2f43"
+          test "$(git hash-object experiments/direct/C049_1_B5_3_GENERIC_EMPTY_ROOT_TERMINAL_COMPOSITION_SPEC_V1.json)" = "16c171877176cef806b7e59585db938376d4c910"
+          test "$(git hash-object experiments/direct/janus_c049_1_b5_3_generic_empty_root_terminal_composition.py)" = "35f327993e5def92de62565e60cb10a4df4c5fa7"
+          test "$(git hash-object experiments/direct/janus_c049_1_b5_3_generic_empty_root_terminal_composition_verifier.py)" = "3a2fa3ed5314cc78a1e92e2b629263af1317d1c4"
+          test "$(git hash-object experiments/direct/C049_1_B5_4_CORRECTED_DISCOVERY_C047_REBOUND_SPEC_V1.json)" = "a259728168406cf6de086d74525d5ce2125bab29"
+          test "$(git hash-object experiments/direct/janus_c049_1_b5_4_corrected_discovery_c047_rebound_v11.py)" = "1be22d0f2ca01f07b334eb894488cf30196b3f08"
+          test "$(git hash-object experiments/direct/janus_c049_1_b5_4_corrected_discovery_c047_rebound_verifier_v11.py)" = "a920607a4921d19ef0ecbdf716c0af8cd924aa40"
+          test "$(git hash-object experiments/direct/janus_c049_1_b5_4_corrected_discovery_c047_rebound_verifier_v13.py)" = "eae6d0dedb7b6473a524d491bd1c17718ac86665"
+          test "$(git hash-object experiments/direct/audits/C049_1_B5_4_CORRECTED_DISCOVERY_C047_REBOUND_ADMISSION_135740E9.json)" = "93749562d05a7f2af7276aaa77de7c0beb65293c"
+          python - <<'PY'
+          import json
+          r=json.load(open('experiments/direct/audits/C049_1_B5_INTERFACE_CLOSURE_CURRENT_FRONTIER_ADMISSION_C5F60BF8.json'))
+          p=r['audit_payload']
+          assert p['admitted_statement']['b5_conditional_interface_authority_vector'].startswith('REVIEWER_BOUND_CLOSED')
+          assert p['strict_boundary']['b5_iterative_compression_orchestrator'] is False
+          assert p['strict_boundary']['all_input_termination']=='NOT_ESTABLISHED'
+          assert p['strict_boundary']['polynomial_runtime']=='NOT_ESTABLISHED'
+          assert p['strict_boundary']['b5_complete'] is False
+          assert p['strict_boundary']['p_vs_np']=='OPEN'
+          print('B5_ORCHESTRATOR_BASE_AUTHORITY = PASS')
+          print('B5_ORCHESTRATOR_EXACT_HEAD_SELF_BINDING = PASS')
+          PY
+
+      - name: Compile and audit independent-verifier decoupling
+        run: |
+          set -euo pipefail
+          python -m py_compile "$PRODUCER" "$VERIFIER" "$HARNESS"
+          python - <<'PY'
+          import ast
+          from pathlib import Path
+          v=Path('experiments/direct/janus_c049_1_b5_iterative_compression_orchestrator_verifier.py')
+          text=v.read_text()
+          imports=[]
+          for n in ast.walk(ast.parse(text)):
+              if isinstance(n,ast.Import): imports += [a.name for a in n.names]
+              elif isinstance(n,ast.ImportFrom): imports.append(n.module or '')
+          assert not any(name.endswith('janus_c049_1_b5_iterative_compression_orchestrator') for name in imports)
+          for forbidden in ['P_VS_NP = CLOSED','B5_COMPLETE = TRUE','ALL_INPUT_TERMINATION = ESTABLISHED','POLYNOMIAL_RUNTIME = ESTABLISHED']:
+              assert forbidden not in text
+          p=Path('experiments/direct/janus_c049_1_b5_iterative_compression_orchestrator.py').read_text()
+          assert 'OPEN_LOCAL_2K_CERTIFICATE_REQUIRED' in p
+          assert 'SUBARRANGEMENT_DELETION_MONOTONICITY' in p
+          assert 'b5_3_no_layout_used_as_c047_unsat_premise' in p
+          print('B5_ORCHESTRATOR_VERIFIER_DECOUPLING = PASS')
+          print('PREPROCESSING_IMPLEMENTED = FALSE')
+          print('LOCAL_2K_NEGATIVE_CERTIFICATE_IMPLEMENTED = FALSE')
+          PY
+
+      - name: Rebuild multi-round controls and reject 27 promotions
+        run: |
+          set -euo pipefail
+          python "$HARNESS" | tee /tmp/orchestrator.log
+          grep -F 'B5_ORCHESTRATOR_THREE_ROUND_SAT = PASS' /tmp/orchestrator.log
+          grep -F 'B5_ORCHESTRATOR_THREE_ROUND_UNSAT = PASS' /tmp/orchestrator.log
+          grep -F 'B5_ORCHESTRATOR_STRICT_PREFIX_NEGATIVE = PASS' /tmp/orchestrator.log
+          grep -F 'DELETION_MONOTONICITY_BOUNDED_FALSIFIER = 24/24' /tmp/orchestrator.log
+          grep -F 'OPEN_LOCAL_2K_CERTIFICATE_REQUIRED = PASS' /tmp/orchestrator.log
+          grep -F 'OPEN_B5_RUNTIME_PRESERVED = PASS' /tmp/orchestrator.log
+          grep -F 'OPEN_FINAL_AFFINE_REBOUND_PRESERVED = PASS' /tmp/orchestrator.log
+          grep -F 'OPEN_ROUND_CAP_PRESERVES_COMPLETED_EVIDENCE = PASS' /tmp/orchestrator.log
+          grep -F 'CATALOG_PRESENTATION_ORDER_BYTE_IDENTITY = PASS' /tmp/orchestrator.log
+          grep -F 'DUPLICATE_GEOMETRY_DISTINCT_OCCURRENCES = PASS' /tmp/orchestrator.log
+          grep -F 'DIGEST_REPAIRED_TAMPERS_REJECTED = 27/27' /tmp/orchestrator.log
+          grep -F 'B5_3_NO_LAYOUT_USED_AS_C047_UNSAT_PREMISE = FALSE' /tmp/orchestrator.log
+          grep -F 'ALL_INPUT_TERMINATION = NOT_ESTABLISHED' /tmp/orchestrator.log
+          grep -F 'POLYNOMIAL_RUNTIME = NOT_ESTABLISHED' /tmp/orchestrator.log
+          grep -F 'B5_COMPLETE = FALSE' /tmp/orchestrator.log
+          grep -F 'P_VS_NP = OPEN' /tmp/orchestrator.log
+
+      - name: Bind workflow blob into exact-head receipt
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json,os,subprocess
+          from pathlib import Path
+          path=Path('/tmp/b5-orchestrator-evidence/exact-head-receipt.json')
+          r=json.loads(path.read_text())
+          def blob(p): return subprocess.check_output(['git','hash-object',p],text=True).strip()
+          r['bindings']['workflow_git_blob']=blob(os.environ['WORKFLOW'])
+          r['bindings']['b5_interface_closure_receipt_git_blob']='e4a886bbf9090783c592dd11ec80a6efe34b337a'
+          r['bindings']['b4_2_scaffold_git_blob']='57c16c18a14cecb96264a22fea01cd2c2bdaa857'
+          r['checks']['workflow_exact_head_self_binding']='PASS'
+          path.write_text(json.dumps(r,sort_keys=True,separators=(',',':'))+'\n')
+          print('B5_ORCHESTRATOR_EXACT_HEAD_RECEIPT = FROZEN')
+          print('PROOF_HEAD =',r['proof_head'])
+          print('WORKFLOW_GIT_BLOB =',r['bindings']['workflow_git_blob'])
+          PY
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: c049-1-b5-iterative-compression-orchestrator
+          path: /tmp/b5-orchestrator-evidence
+          if-no-files-found: error
