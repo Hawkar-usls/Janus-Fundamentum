@@ -4,6 +4,9 @@ on:
   pull_request:
     paths:
       - 'research_targets/A3_KCLASS_ENDPOINT_COMPRESSION_THEOREM_V1.json'
+      - 'research_targets/audits/A3_KCLASS_ENDPOINT_COMPRESSION_V1_*.json'
+      - 'research_targets/priority_records/A3_KCLASS_ENDPOINT_COMPRESSION_PRIORITY_RECORD_V1.json'
+      - 'research_targets/reports/A3_REPEATED_SUBSPACE_PATHWIDTH_TECHNICAL_REPORT_V1.md'
       - 'experiments/direct/janus_a3_kclass_endpoint_compression_v1.py'
       - 'experiments/direct/janus_a3_kclass_endpoint_compression_verifier_v1.py'
       - '.github/workflows/validate-a3-kclass-endpoint-compression-v1.yml'
@@ -20,6 +23,22 @@ jobs:
         with:
           fetch-depth: 0
           ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - name: Bind admitted proof authority when receipt exists
+        shell: bash
+        run: |
+          set -euo pipefail
+          R=research_targets/audits/A3_KCLASS_ENDPOINT_COMPRESSION_V1_ADMISSION_6CA16581.json
+          if test -f "$R"; then
+            python - <<'PY'
+          import json
+          r=json.load(open('research_targets/audits/A3_KCLASS_ENDPOINT_COMPRESSION_V1_ADMISSION_6CA16581.json'))
+          assert r['proof_head']=='6ca16581eff08103698250b09ea51aeccd9f800b'
+          assert r['evidence_strength']=='ES5_GENERAL_COMPOSITIONAL_THEOREM_ADMITTED'
+          assert r['world_novelty_n4']=='NOT_ESTABLISHED'
+          assert r['p_vs_np']=='OPEN'
+          print('KCLASS_ADMISSION_AUTHORITY = PASS')
+          PY
+          fi
       - name: Compile producer and verifier
         run: |
           python -m py_compile experiments/direct/janus_a3_kclass_endpoint_compression_v1.py
