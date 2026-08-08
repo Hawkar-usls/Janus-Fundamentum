@@ -26,13 +26,20 @@ def lam(P,S,r,k):
  K=(1<<k)-1
  return r[S]+r[K^P]-r[K]
 
+def expected_graph_counts(mult):
+ s=sum(a==1 for a in mult); rr=len(mult)-s
+ states=(2**s)*(3**rr)
+ atom_edges=0 if s==0 else s*(2**(s-1))*(3**rr)
+ repeated_edges=0 if rr==0 else 2*rr*(2**s)*(3**(rr-1))
+ return states,atom_edges+repeated_edges,s,rr
+
 def dp_solve(U,mult):
  k=len(U);K=(1<<k)-1;r=rank_table(U)
- dp={(0,0):0};parent={};states=0;tests=0
+ dp={(0,0):0};parent={};tests=0
  for level in range(2*k+1):
   cur=[x for x in dp if (x[0].bit_count()+x[1].bit_count())==level]
   for P,S in cur:
-   states+=1;base=dp[(P,S)]
+   base=dp[(P,S)]
    for j,a in enumerate(mult):
     b=1<<j
     if not (S&b):
@@ -49,6 +56,9 @@ def dp_solve(U,mult):
  while x!=(0,0):
   q=parent[x];events.append(q[2]);x=(q[0],q[1])
  events.reverse()
+ exp_states,exp_edges,_,_=expected_graph_counts(mult)
+ assert len(dp)==exp_states
+ assert tests==exp_edges
  return ans,events,len(dp),tests,r
 
 def brute(U,mult):
@@ -73,27 +83,30 @@ def brute(U,mult):
  return best,count
 
 def controls():
- cases=event_orders=0;counter=0;max_states=0;max_k=0
+ cases=event_orders=0;counter=0;max_states=0;max_edges=0;graph_count_checks=0;max_k=0
  for n in range(3):
   S=subs(n)
   for k in range(1,4):
    for U in itertools.product(S,repeat=k):
     for mult in itertools.product((1,2),repeat=k):
-     d,_,ns,_,_=dp_solve(U,mult);b,c=brute(U,mult);cases+=1;event_orders+=c;max_states=max(max_states,ns);max_k=max(max_k,k)
+     d,_,ns,ne,_=dp_solve(U,mult);b,c=brute(U,mult);cases+=1;event_orders+=c;max_states=max(max_states,ns);max_edges=max(max_edges,ne);max_k=max(max_k,k);graph_count_checks+=1
      if d!=b:counter+=1
  S=subs(3); picks=[S[:4],(S[1],S[2],S[3],S[4]),(S[1],S[1],S[2],S[3])]
  for U in picks:
   for mult in itertools.product((1,2),repeat=4):
-   d,_,ns,_,_=dp_solve(U,mult);b,c=brute(U,mult);cases+=1;event_orders+=c;max_states=max(max_states,ns);max_k=4
+   d,_,ns,ne,_=dp_solve(U,mult);b,c=brute(U,mult);cases+=1;event_orders+=c;max_states=max(max_states,ns);max_edges=max(max_edges,ne);max_k=4;graph_count_checks+=1
    if d!=b:counter+=1
  U=(S[1],S[2],S[3],S[4],S[5]);mult=(2,2,2,2,2)
- d,_,ns,_,_=dp_solve(U,mult);b,c=brute(U,mult);cases+=1;event_orders+=c;max_states=max(max_states,ns);max_k=5
+ d,_,ns,ne,_=dp_solve(U,mult);b,c=brute(U,mult);cases+=1;event_orders+=c;max_states=max(max_states,ns);max_edges=max(max_edges,ne);max_k=5;graph_count_checks+=1
  if d!=b:counter+=1
- return {'cases':cases,'bruteforce_event_orders':event_orders,'counterexamples':counter,'max_states_observed':max_states,'max_k':max_k,'k5_all_repeated_valid_orders':c,'k5_state_bound':3**5}
+ exp_states,exp_edges,_,_=expected_graph_counts(mult)
+ assert ns==exp_states==3**5
+ assert ne==exp_edges==5*2*3**4
+ return {'cases':cases,'bruteforce_event_orders':event_orders,'counterexamples':counter,'graph_count_checks':graph_count_checks,'max_states_observed':max_states,'max_edges_observed':max_edges,'max_k':max_k,'k5_all_repeated_valid_orders':c,'k5_exact_states':ns,'k5_exact_transitions':ne,'k5_state_bound':3**5,'k5_transition_bound':5*3**5}
 
 def main():
  ap=argparse.ArgumentParser();ap.add_argument('--out',required=True);a=ap.parse_args();ctl=controls()
- cert={'schema':'janus.fundamentum.a3.kclass_endpoint_dp_certificate.v1','theorem_id':'A3_KCLASS_ENDPOINT_DP_THEOREM_V1','rank_identity':'lambda(P,S)=rho(S)+rho(K\\P)-rho(K)','state_bound':'3^k','transition_bound':'2k*3^k','dp_after_rank_precompute':'O(k*3^k)','subset_rank_entries':'2^k','controls':ctl,'counterexamples':ctl['counterexamples'],'algorithmic_fpt':'CANDIDATE_PENDING_SEMANTIC_ADMISSION','evidence_strength':'ES3_IF_CI_SUCCESS_PENDING_SEMANTIC_ADMISSION','novelty':'N0_PENDING_AUDIT','p_vs_np':'OPEN'}
+ cert={'schema':'janus.fundamentum.a3.kclass_endpoint_dp_certificate.v1_1','theorem_id':'A3_KCLASS_ENDPOINT_DP_THEOREM_V1','rank_identity':'lambda(P,S)=rho(S)+rho(K\\P)-rho(K)','exact_state_count':'2^s*3^r','state_bound':'2^s*3^r<=3^k','exact_transition_count':'s*2^(s-1)*3^r + 2r*2^s*3^(r-1)','transition_bound':'k*2^s*3^r<=k*3^k','dp_after_rank_precompute':'O(k*3^k)','state_width_after_rank_precompute':'O(1)','subset_rank_entries':'2^k','controls':ctl,'counterexamples':ctl['counterexamples'],'algorithmic_fpt':'CANDIDATE_PENDING_SEMANTIC_ADMISSION','evidence_strength':'ES3_IF_CI_SUCCESS_PENDING_SEMANTIC_ADMISSION','novelty':'N0_PENDING_AUDIT','p_vs_np':'OPEN'}
  Path(a.out).write_text(json.dumps(cert,indent=2,sort_keys=True)+'\n')
- print('KCLASS_ENDPOINT_DP_RANK_IDENTITY = PASS');print('KCLASS_ENDPOINT_DP_DAG = PASS');print('BRUTEFORCE_CONTROLS =',ctl['cases']);print('BRUTEFORCE_EVENT_ORDERS =',ctl['bruteforce_event_orders']);print('K5_ALL_REPEATED_VALID_ORDERS =',ctl['k5_all_repeated_valid_orders']);print('K5_DP_STATE_BOUND =',ctl['k5_state_bound']);print('COUNTEREXAMPLES =',ctl['counterexamples']);print('P_VS_NP = OPEN')
+ print('KCLASS_ENDPOINT_DP_RANK_IDENTITY = PASS');print('KCLASS_ENDPOINT_DP_DAG = PASS');print('EXACT_STATE_COUNT = PASS');print('EXACT_TRANSITION_COUNT = PASS');print('BRUTEFORCE_CONTROLS =',ctl['cases']);print('BRUTEFORCE_EVENT_ORDERS =',ctl['bruteforce_event_orders']);print('GRAPH_COUNT_CHECKS =',ctl['graph_count_checks']);print('K5_ALL_REPEATED_VALID_ORDERS =',ctl['k5_all_repeated_valid_orders']);print('K5_EXACT_STATES =',ctl['k5_exact_states']);print('K5_EXACT_TRANSITIONS =',ctl['k5_exact_transitions']);print('K5_STATE_BOUND =',ctl['k5_state_bound']);print('K5_TRANSITION_BOUND =',ctl['k5_transition_bound']);print('COUNTEREXAMPLES =',ctl['counterexamples']);print('P_VS_NP = OPEN')
 if __name__=='__main__':main()
