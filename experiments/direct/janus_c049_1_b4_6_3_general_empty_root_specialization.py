@@ -22,7 +22,7 @@ def build(a):
     pub=s['published_source']; th=s['derived_theorem']; ceil=s['interpretation_ceiling']
     req(pub['primary_results']==['Section 3.2 canonical and realizable B-trajectories','Lemma 3.4 width monotonicity under preccurlyeq','Corollary 3.8 compactification preorder equivalence','Section 4 full-set definition','Proposition 5.8 root criterion'],'published ids')
     req('some extension' in pub['realizable_definition'] and 'linear layout' in pub['realizable_definition'],'realizable')
-    req('B={0}' in pub['canonical_zero_boundary'] and 'layout cut' in pub['canonical_zero_boundary'],'zero boundary')
+    req('B={0}' in pub['canonical_zero_boundary'] and 'prefix span INTER suffix span' in pub['canonical_zero_boundary'] and 'linear-layout width' in pub['canonical_zero_boundary'],'zero boundary')
     req(th['biconditional']=='FS_k(V,{0}) != EMPTY IFF THERE EXISTS A COMPLETE LINEAR LAYOUT OF V WITH WIDTH <= k','biconditional')
     req('complete linear layout' in th['forward'] and 'Lemma 3.4' in th['forward'],'forward')
     req('Compactification tau' in th['backward'] and 'FS_k(V,{0}) is nonempty' in th['backward'],'backward')
