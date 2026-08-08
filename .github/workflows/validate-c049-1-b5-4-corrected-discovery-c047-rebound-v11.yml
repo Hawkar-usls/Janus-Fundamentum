@@ -1,0 +1,112 @@
+name: Validate C049.1 B5.4 corrected discovery to C047 rebound v1.1
+
+on:
+  pull_request:
+    paths:
+      - 'experiments/direct/C049_1_B5_4_CORRECTED_DISCOVERY_C047_REBOUND_AMENDMENT_V1_1.json'
+      - 'experiments/direct/janus_c049_1_b5_4_corrected_discovery_c047_rebound_v11.py'
+      - 'experiments/direct/janus_c049_1_b5_4_corrected_discovery_c047_rebound_verifier_v11.py'
+      - 'experiments/direct/janus_c049_1_b5_4_rebound_ci_harness_v11.py'
+      - '.github/workflows/validate-c049-1-b5-4-corrected-discovery-c047-rebound-v11.yml'
+  workflow_dispatch:
+
+jobs:
+  b5-4-c047-rebound-v11:
+    runs-on: ubuntu-latest
+    env:
+      PYTHONPATH: experiments/direct
+      AMENDMENT: experiments/direct/C049_1_B5_4_CORRECTED_DISCOVERY_C047_REBOUND_AMENDMENT_V1_1.json
+      SPEC: experiments/direct/C049_1_B5_4_CORRECTED_DISCOVERY_C047_REBOUND_SPEC_V1.json
+      PRODUCER_V1: experiments/direct/janus_c049_1_b5_4_corrected_discovery_c047_rebound.py
+      PRODUCER_V11: experiments/direct/janus_c049_1_b5_4_corrected_discovery_c047_rebound_v11.py
+      VERIFIER_V1: experiments/direct/janus_c049_1_b5_4_corrected_discovery_c047_rebound_verifier.py
+      VERIFIER_V11: experiments/direct/janus_c049_1_b5_4_corrected_discovery_c047_rebound_verifier_v11.py
+      HARNESS: experiments/direct/janus_c049_1_b5_4_rebound_ci_harness_v11.py
+      B53_RECEIPT: experiments/direct/audits/C049_1_B5_3_GENERIC_EMPTY_ROOT_TERMINAL_COMPOSITION_ADMISSION_E9841522.json
+      B52_RECEIPT: experiments/direct/audits/C049_1_B5_2B_GENERIC_ALGORITHM2_PRINTORDER_RECONSTRUCTION_ADMISSION_F057B7AF.json
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Bind exact-head v1.1 bytes and corrected immutable authority
+        run: |
+          set -euo pipefail
+          if [ "${{ github.event_name }}" = "pull_request" ]; then PROOF_HEAD="${{ github.event.pull_request.head.sha }}"; else PROOF_HEAD="$GITHUB_SHA"; fi
+          echo "PROOF_HEAD=$PROOF_HEAD" >> "$GITHUB_ENV"
+          for f in "$AMENDMENT" "$PRODUCER_V11" "$VERIFIER_V11" "$HARNESS"; do
+            test "$(git rev-parse "$PROOF_HEAD:$f")" = "$(git hash-object "$f")"
+          done
+          test "$(git hash-object "$SPEC")" = "a259728168406cf6de086d74525d5ce2125bab29"
+          test "$(git hash-object "$PRODUCER_V1")" = "a5e4a009a44d5628b8ac6c1525f692561d9d5c30"
+          test "$(git hash-object "$VERIFIER_V1")" = "efb88c859749a4b8bbc34a6d696da798251a02a4"
+          test "$(git hash-object "$B52_RECEIPT")" = "5e60eff4a4bd4c87cbf527cd446fc6b23b013774"
+          test "$(git hash-object "$B53_RECEIPT")" = "32177caad196ca4640c090212c41bc132448cc7c"
+          test "$(git rev-parse a8e1310dc064197a38284f3bdf8c2d58f0649a07:$B52_RECEIPT)" = "5e60eff4a4bd4c87cbf527cd446fc6b23b013774"
+          test "$(git rev-parse a5e8b45f36a45dd5a0bea148af3f7f90fbcd136e:$B53_RECEIPT)" = "32177caad196ca4640c090212c41bc132448cc7c"
+          test "$(git hash-object experiments/direct/C049_1_B5_1_GENERIC_CORRECTED_RUNTIME_TRACE_EXECUTOR_SPEC_V1.json)" = "64f65e4a68cab437392148519af667352fe0665c"
+          test "$(git hash-object experiments/direct/janus_c049_1_b5_1_generic_corrected_runtime_trace_executor.py)" = "8be92b8a663e0d05535861c6f216db28094014fb"
+          test "$(git hash-object experiments/direct/janus_c049_1_b5_1_generic_corrected_runtime_trace_executor_verifier.py)" = "ac40b3f3a370f697e29402e1e1cb3e514b799792"
+          test "$(git hash-object experiments/direct/C049_1_B5_2A_GENERIC_ALGORITHM2_PROVENANCE_CARRIER_AMENDMENT_V1_1.json)" = "fda6f7d45d0273f957c13014fa62718bc19b465e"
+          test "$(git hash-object experiments/direct/janus_c049_1_b5_2a_generic_algorithm2_provenance_carrier_v11.py)" = "9159ad8fb03b47eab354ae85e6756037818597e8"
+          test "$(git hash-object experiments/direct/janus_c049_1_b5_2a_generic_algorithm2_provenance_carrier_verifier_v11.py)" = "57c95af433b2b97c53a51132f6d3128884f7f6c9"
+          test "$(git hash-object experiments/direct/C049_1_B5_2B_GENERIC_ALGORITHM2_PRINTORDER_RECONSTRUCTION_SPEC_V1.json)" = "02f1fa3926b70d775dc3415240d6d153007d21a8"
+          test "$(git hash-object experiments/direct/janus_c049_1_b5_2b_generic_algorithm2_printorder_reconstruction.py)" = "90a13116ff7999f81a744d56e0bae56eb6af5ed1"
+          test "$(git hash-object experiments/direct/janus_c049_1_b5_2b_generic_algorithm2_printorder_reconstruction_verifier_v11.py)" = "5911c566bab0193214c8aa1b11c49d5d205e2f43"
+          test "$(git hash-object experiments/direct/janus_c049_fpt_integration_core.py)" = "5eb806a079343f00622886c448d2bfbfa412cbfe"
+          test "$(git hash-object experiments/direct/janus_c049_fpt_integration_solver.py)" = "70c06752890e797bdf3a7c87c2cb41703fade163"
+          test "$(git hash-object experiments/direct/janus_c049_fpt_integration_verifier.py)" = "6ae98df69ff53b6157c171cea619865af533c07c"
+          test "$(git hash-object experiments/direct/janus_c047_affine_trellis_core.py)" = "c2905332a83b175eea8bd0a326e1a63555b2130a"
+          python - <<'PY'
+          import json
+          a=json.load(open('experiments/direct/C049_1_B5_4_CORRECTED_DISCOVERY_C047_REBOUND_AMENDMENT_V1_1.json'))
+          r=json.load(open('experiments/direct/audits/C049_1_B5_3_GENERIC_EMPTY_ROOT_TERMINAL_COMPOSITION_ADMISSION_E9841522.json'))
+          c=a['authority_correction']
+          assert c['correct_value']=='32177caad196ca4640c090212c41bc132448cc7c'
+          assert c['semantic_digest']==r['semantic_digest']=='8f87592ea9435d1b5dd914a1e2bb8b8e18b8101d286b29422e44e09134d1884b'
+          assert c['review_id']==r['audit_payload']['admission_review_id']==4888388997
+          assert c['proof_head']==r['audit_payload']['exact_proof_head']=='e98415223c011f69d40d0dc0fbf04aa70215494d'
+          n=a['negative_provenance'][0]
+          assert n['run_id']==31246532882 and n['job_id']==93075963293 and n['semantic_replay_started'] is False
+          print('B5_4_V1_1_AUTHORITY_AMENDMENT_BINDING = PASS')
+          PY
+
+      - name: Compile and audit v1.1 interface hardening
+        run: |
+          set -euo pipefail
+          python -m py_compile "$PRODUCER_V11" "$VERIFIER_V11" "$HARNESS"
+          python - <<'PY'
+          import ast
+          from pathlib import Path
+          v=Path('experiments/direct/janus_c049_1_b5_4_corrected_discovery_c047_rebound_verifier_v11.py')
+          imports=[]
+          for n in ast.walk(ast.parse(v.read_text())):
+              if isinstance(n,ast.Import): imports += [a.name for a in n.names]
+              elif isinstance(n,ast.ImportFrom): imports.append(n.module or '')
+          assert not any(name.endswith('janus_c049_1_b5_4_corrected_discovery_c047_rebound_v11') for name in imports)
+          p=Path('experiments/direct/janus_c049_1_b5_4_corrected_discovery_c047_rebound_v11.py').read_text()
+          vv=v.read_text()
+          assert 'k=capability.k' in p and 'constructor_transcript=transcript' in p
+          assert 'historical_verify_phase_a(factors, dimension, certificate)' in p
+          assert 'is not True' in p and 'is not True' in vv
+          for text in (p,vv):
+              for forbidden in ['def solve_trellis(', 'def affine_trellis(', 'P_VS_NP = CLOSED', 'POLYNOMIAL_RUNTIME = ESTABLISHED']:
+                  assert forbidden not in text
+          print('B5_4_V1_1_KEYWORD_ONLY_PHASE_A_ADAPTER = PASS')
+          print('B5_4_V1_1_HISTORICAL_VERIFIER_TRUE_BINDING = PASS')
+          print('B5_4_V1_1_C047_REIMPLEMENTATION = FORBIDDEN')
+          PY
+
+      - name: Rebuild corrected discovery and C047 rebound controls
+        run: |
+          set -euo pipefail
+          python "$HARNESS"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: c049-1-b5-4-corrected-discovery-c047-rebound-v11
+          path: /tmp/b5-4-v11-evidence
+          if-no-files-found: error
