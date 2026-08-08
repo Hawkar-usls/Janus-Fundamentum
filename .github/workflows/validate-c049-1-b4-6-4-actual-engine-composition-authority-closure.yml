@@ -8,6 +8,7 @@ on:
       - 'experiments/direct/C049_1_B4_6_4_GENERAL_STRUCTURAL_INDUCTION_COMPOSITION_SPEC_V1.json'
       - 'experiments/direct/C049_1_B4_6_4_GENERAL_STRUCTURAL_INDUCTION_COMPOSITION_AUTHORITY_HARDENING_V1.json'
       - 'experiments/direct/C049_1_B4_6_4_GENERAL_STRUCTURAL_INDUCTION_AUTHORITY_GAP_LEDGER_V1.json'
+      - 'experiments/direct/audits/C049_1_B4_6_3_CORRECTED_NODE6_INTEGRATION_NODE7_PREFLIGHT_AUTHORITY_CLOSURE_AF0556D4.json'
       - 'experiments/direct/audits/C049_1_B4_6_4_ACTUAL_ENGINE_TRACE_PREFLIGHT_INDEPENDENT_AUDIT_1914CA89.json'
       - 'experiments/direct/audits/C049_1_B4_6_3_CORRECTED_NODE8_TWENTY_GENERATOR_UP_K_AUTHORITY_CLOSURE_0FCDAA16.json'
       - 'experiments/direct/audits/C049_1_B4_6_4_ACTUAL_ENGINE_Q80_COMPOSITION_REPLAY_AUDIT_A8ECC1CF.json'
@@ -20,6 +21,7 @@ on:
       - 'experiments/direct/C049_1_B4_6_4_GENERAL_STRUCTURAL_INDUCTION_COMPOSITION_SPEC_V1.json'
       - 'experiments/direct/C049_1_B4_6_4_GENERAL_STRUCTURAL_INDUCTION_COMPOSITION_AUTHORITY_HARDENING_V1.json'
       - 'experiments/direct/C049_1_B4_6_4_GENERAL_STRUCTURAL_INDUCTION_AUTHORITY_GAP_LEDGER_V1.json'
+      - 'experiments/direct/audits/C049_1_B4_6_3_CORRECTED_NODE6_INTEGRATION_NODE7_PREFLIGHT_AUTHORITY_CLOSURE_AF0556D4.json'
       - 'experiments/direct/audits/C049_1_B4_6_4_ACTUAL_ENGINE_TRACE_PREFLIGHT_INDEPENDENT_AUDIT_1914CA89.json'
       - 'experiments/direct/audits/C049_1_B4_6_3_CORRECTED_NODE8_TWENTY_GENERATOR_UP_K_AUTHORITY_CLOSURE_0FCDAA16.json'
       - 'experiments/direct/audits/C049_1_B4_6_4_ACTUAL_ENGINE_Q80_COMPOSITION_REPLAY_AUDIT_A8ECC1CF.json'
@@ -36,6 +38,7 @@ env:
   HARDENING: experiments/direct/C049_1_B4_6_4_GENERAL_STRUCTURAL_INDUCTION_COMPOSITION_AUTHORITY_HARDENING_V1.json
   LEDGER: experiments/direct/C049_1_B4_6_4_GENERAL_STRUCTURAL_INDUCTION_AUTHORITY_GAP_LEDGER_V1.json
   PREFLIGHT_AUDIT: experiments/direct/audits/C049_1_B4_6_4_ACTUAL_ENGINE_TRACE_PREFLIGHT_INDEPENDENT_AUDIT_1914CA89.json
+  NODE6_NODE7_AUDIT: experiments/direct/audits/C049_1_B4_6_3_CORRECTED_NODE6_INTEGRATION_NODE7_PREFLIGHT_AUTHORITY_CLOSURE_AF0556D4.json
   NODE8_AUDIT: experiments/direct/audits/C049_1_B4_6_3_CORRECTED_NODE8_TWENTY_GENERATOR_UP_K_AUTHORITY_CLOSURE_0FCDAA16.json
   Q80_AUDIT: experiments/direct/audits/C049_1_B4_6_4_ACTUAL_ENGINE_Q80_COMPOSITION_REPLAY_AUDIT_A8ECC1CF.json
   Q80_AUTHORITY: experiments/direct/audits/C049_1_B4_6_4_ACTUAL_ENGINE_Q80_COMPOSITION_AUTHORITY_CLOSURE_0AB040E0.json
@@ -63,7 +66,7 @@ jobs:
         with:
           python-version: '3.12'
 
-      - name: Bind immutable authorities, proof pair, and engine carriers
+      - name: Bind immutable authorities, v2 proof pair, and engine carriers
         shell: bash
         run: |
           set -euo pipefail
@@ -71,33 +74,28 @@ jobs:
           test "$(git hash-object "$HARDENING")" = "27f95f49090ba2035e5e68f451cd0e1272c90398"
           test "$(git hash-object "$LEDGER")" = "4c4d65ee50aeda9578963a91cedc54572120ce8f"
           test "$(git hash-object "$PREFLIGHT_AUDIT")" = "b5df4741dfe481680ab2c22c971d1c5242a7ed48"
+          test "$(git hash-object "$NODE6_NODE7_AUDIT")" = "d6a13bbb7e5ecdec00d48ee48a2ecd344eea6ff3"
           test "$(git hash-object "$NODE8_AUDIT")" = "b04124490df9737c0799ed856fd7819b37477208"
           test "$(git hash-object "$Q80_AUDIT")" = "7004d0ede69b240d36e59ea3349453ea74b8804f"
           test "$(git hash-object "$Q80_AUTHORITY")" = "d34166085f454d4d480656cb763d68bf39c7e53a"
-          test "$(git hash-object "$PRODUCER")" = "fc51a9dea4ff4fc9748c229c58e36b1c76c818f6"
-          test "$(git hash-object "$VERIFIER")" = "c533df43f3904c308f40fb13788078575d29a5a6"
+          test "$(git hash-object "$PRODUCER")" = "a226df8faa483384a81472898005f0ea23311d7c"
+          test "$(git hash-object "$VERIFIER")" = "73562918141b757fd8820b3847bef31f5b5b7494"
           python -m py_compile "$PRODUCER" "$VERIFIER"
           python - <<'PY'
-          import ast, json
-          from pathlib import Path
-          p=ast.parse(Path('experiments/direct/janus_c049_1_b4_6_4_actual_engine_composition_authority_closure.py').read_text())
-          v=ast.parse(Path('experiments/direct/janus_c049_1_b4_6_4_actual_engine_composition_authority_closure_verifier.py').read_text())
-          def mods(t):
-              out=[]
-              for n in ast.walk(t):
-                  if isinstance(n,ast.Import): out.extend(a.name for a in n.names)
-                  elif isinstance(n,ast.ImportFrom): out.append(n.module or '')
-              return out
-          assert not any(x.endswith('janus_c049_1_b4_6_4_actual_engine_composition_authority_closure_verifier') for x in mods(p))
-          assert not any(x.endswith('janus_c049_1_b4_6_4_actual_engine_composition_authority_closure') for x in mods(v))
+          import hashlib,json
+          n67=json.load(open('experiments/direct/audits/C049_1_B4_6_3_CORRECTED_NODE6_INTEGRATION_NODE7_PREFLIGHT_AUTHORITY_CLOSURE_AF0556D4.json'))
+          got=hashlib.sha256(json.dumps(n67['audit_payload'],sort_keys=True,separators=(',',':')).encode()).hexdigest()
+          assert got==n67['semantic_digest']=='2fb9e7ffe22ee2f4a2e32ceba216df07905473d491070e954e4d4acfb16e331e'
+          assert n67['audit_payload']['review_id']==4888130022
+          assert n67['audit_payload']['parent_authority']['review_id']==4888128147
+          assert n67['audit_payload']['admission']['node6_to_node7_language_handoff']=='ADMITTED'
+          assert n67['audit_payload']['admission']['pr111_corrected_node6_integration']=='ADMITTED'
           q=json.load(open('experiments/direct/audits/C049_1_B4_6_4_ACTUAL_ENGINE_Q80_COMPOSITION_AUTHORITY_CLOSURE_0AB040E0.json'))
-          assert q['semantic_digest']=='3438a254675753c8a886e508a085046edbc861aadd718720a0fe195352f725cf'
+          got=hashlib.sha256(json.dumps(q['audit_payload'],sort_keys=True,separators=(',',':')).encode()).hexdigest()
+          assert got==q['semantic_digest']=='3438a254675753c8a886e508a085046edbc861aadd718720a0fe195352f725cf'
           assert q['audit_payload']['review_id']==4888103958
-          assert q['audit_payload']['node8_authority']['final_admission_review_id']==4888054139
-          assert q['audit_payload']['admission']['q80_composition_replay_complete'] is True
-          assert q['audit_payload']['admission']['q80_downstream_scalar_handoff']=='ADMITTED_FOR_ACTUAL_ENGINE_COMPOSITION'
+          print('NODE6_TO_NODE7_CANONICAL_AUTHORITY_BINDING = PASS')
           print('CANONICAL_Q80_AUTHORITY_CLOSURE_BINDING = PASS')
-          print('ACTUAL_COMPOSITION_IMPLEMENTATION_DECOUPLING = PASS')
           PY
           bind_blob(){ test "$(git rev-parse "$1:$2")" = "$(git hash-object "$2")"; }
           bind_blob ddd18da87fd6c2721deb6b729acdea0af7cf5b6e "$CORRECTED_JOIN"
@@ -110,23 +108,24 @@ jobs:
           bind_blob 93db6d068a6b5ca443acd2576710d11df27b82d8 "$ROOT"
           bind_blob 824a0eede4435584f9d2ff2f9272b7ee5dc69280 "$ROOT_EMPTY"
 
-      - name: Build composition candidate under three ledger traversal orders
+      - name: Build v2 composition candidate under three ledger traversal orders
         shell: bash
         run: |
           set -euo pipefail
           python - <<'PY'
-          import json, random
+          import json,random
           from pathlib import Path
           x=json.load(open('experiments/direct/C049_1_B4_6_4_GENERAL_STRUCTURAL_INDUCTION_AUTHORITY_GAP_LEDGER_V1.json'))
           def save(y,p): Path(p).write_text(json.dumps(y,sort_keys=True,separators=(',',':'))+'\n')
           save(x,'/tmp/ledger-ORIGINAL.json')
           y=json.loads(json.dumps(x)); y['entries']=list(reversed(y['entries'])); save(y,'/tmp/ledger-REVERSED.json')
-          z=json.loads(json.dumps(x)); random.Random(0xC049164C).shuffle(z['entries']); save(z,'/tmp/ledger-SEEDED_SHUFFLE.json')
+          z=json.loads(json.dumps(x)); random.Random(0xC049164D).shuffle(z['entries']); save(z,'/tmp/ledger-SEEDED_SHUFFLE.json')
           PY
           for mode in ORIGINAL REVERSED SEEDED_SHUFFLE; do
             python "$PRODUCER" \
               --spec "$SPEC" --hardening "$HARDENING" --ledger "/tmp/ledger-$mode.json" \
-              --preflight-audit "$PREFLIGHT_AUDIT" --node8-audit "$NODE8_AUDIT" --q80-audit "$Q80_AUDIT" \
+              --preflight-audit "$PREFLIGHT_AUDIT" --node6-node7-audit "$NODE6_NODE7_AUDIT" \
+              --node8-audit "$NODE8_AUDIT" --q80-audit "$Q80_AUDIT" \
               --corrected-join "$CORRECTED_JOIN" --node6-source "$NODE6" --node7-source "$NODE7" \
               --node8-manifest "$NODE8_MANIFEST" --scalar-spec "$SCALAR" --residual-spec "$RESIDUAL" \
               --node9-upk-spec "$NODE9_UPK" --root-spec "$ROOT" --root-empty-spec "$ROOT_EMPTY" \
@@ -134,22 +133,24 @@ jobs:
           done
           cmp /tmp/composition-ORIGINAL.json /tmp/composition-REVERSED.json
           cmp /tmp/composition-ORIGINAL.json /tmp/composition-SEEDED_SHUFFLE.json
-          echo 'ACTUAL_COMPOSITION_THREE_MODE_BYTE_IDENTITY = PASS'
+          echo 'ACTUAL_COMPOSITION_V2_THREE_MODE_BYTE_IDENTITY = PASS'
 
-      - name: Independently verify authority DAG, actual trace, and repaired tampers
+      - name: Independently verify 19-invariant authority DAG
         shell: bash
         run: |
           set -euo pipefail
           python "$VERIFIER" \
             --spec "$SPEC" --hardening "$HARDENING" --ledger "$LEDGER" \
-            --preflight-audit "$PREFLIGHT_AUDIT" --node8-audit "$NODE8_AUDIT" --q80-audit "$Q80_AUDIT" \
+            --preflight-audit "$PREFLIGHT_AUDIT" --node6-node7-audit "$NODE6_NODE7_AUDIT" \
+            --node8-audit "$NODE8_AUDIT" --q80-audit "$Q80_AUDIT" \
             --corrected-join "$CORRECTED_JOIN" --node6-source "$NODE6" --node7-source "$NODE7" \
             --node8-manifest "$NODE8_MANIFEST" --scalar-spec "$SCALAR" --residual-spec "$RESIDUAL" \
             --node9-upk-spec "$NODE9_UPK" --root-spec "$ROOT" --root-empty-spec "$ROOT_EMPTY" \
             --candidate /tmp/composition-ORIGINAL.json --tamper-suite | tee /tmp/verifier.log
           grep -F 'JANUS_ACTUAL_ENGINE_COMPOSITION_AUTHORITY_CLOSURE_INDEPENDENT_VERIFIER = PASS' /tmp/verifier.log
-          grep -F 'INVARIANTS = 18/18' /tmp/verifier.log
-          grep -F 'DIGEST_REPAIRED_TAMPERS_REJECTED = 18/18' /tmp/verifier.log
+          grep -F 'INVARIANTS = 19/19' /tmp/verifier.log
+          grep -F 'DIGEST_REPAIRED_TAMPERS_REJECTED = 19/19' /tmp/verifier.log
+          grep -F 'NODE6_TO_NODE7_AUTHORITY_BOUND = TRUE' /tmp/verifier.log
           grep -F 'GF2_CALLER_PREMISE_NODES = 5/5' /tmp/verifier.log
           grep -F 'ALL_STAGE_AUTHORITY_EDGES_CLOSED = TRUE' /tmp/verifier.log
           grep -F 'Q80_PARTITION_FINE_LANGUAGE_CONSERVATION = PASS' /tmp/verifier.log
@@ -165,8 +166,11 @@ jobs:
           set -euo pipefail
           python - <<'PY'
           import hashlib,json
-          x=json.load(open('/tmp/composition-ORIGINAL.json')); p=x['proof_payload']; c=p['composition']; b=p['strict_boundary']
+          x=json.load(open('/tmp/composition-ORIGINAL.json')); p=x['proof_payload']; c=p['composition']; b=p['strict_boundary']; a=p['authority']; t=p['actual_trace']
           assert hashlib.sha256(json.dumps(p,sort_keys=True,separators=(',',':')).encode()).hexdigest()==x['semantic_digest']
+          assert a['node6_up_k_parent_review_id']==4888128147
+          assert a['node6_to_node7_handoff_review_id']==4888130022
+          assert t['node6_to_node7_handoff_authority_bound'] is True
           assert c['actual_trace_satisfies_complete_algorithm1_contract_candidate'] is True
           assert c['candidate_derives_engine_root_full_set_equals_fs_k_v_zero'] is True
           assert c['root_empty_consumed_as_composition_premise'] is False
@@ -179,10 +183,10 @@ jobs:
           assert b['terminal_completeness_proved'] is False
           assert b['no_layout_at_cap']=='FORBIDDEN' and b['found_layout']=='FORBIDDEN'
           assert b['formal_admission']=='BLOCKED' and b['p_vs_np']=='OPEN'
-          print('ACTUAL_COMPOSITION_REVIEW_ONLY_PROMOTION_CEILING = PASS')
+          print('ACTUAL_COMPOSITION_V2_REVIEW_ONLY_PROMOTION_CEILING = PASS')
           PY
 
-      - name: Freeze exact-head composition candidate receipt
+      - name: Freeze exact-head v2 candidate receipt
         shell: bash
         run: |
           set -euo pipefail
@@ -194,16 +198,19 @@ jobs:
             echo "HARDENING_BLOB=$(git hash-object "$HARDENING")"
             echo "LEDGER_BLOB=$(git hash-object "$LEDGER")"
             echo "PREFLIGHT_AUDIT_BLOB=$(git hash-object "$PREFLIGHT_AUDIT")"
+            echo "NODE6_NODE7_AUDIT_BLOB=$(git hash-object "$NODE6_NODE7_AUDIT")"
             echo "NODE8_AUDIT_BLOB=$(git hash-object "$NODE8_AUDIT")"
             echo "Q80_AUDIT_BLOB=$(git hash-object "$Q80_AUDIT")"
             echo "Q80_AUTHORITY_BLOB=$(git hash-object "$Q80_AUTHORITY")"
             echo "PRODUCER_BLOB=$(git hash-object "$PRODUCER")"
             echo "VERIFIER_BLOB=$(git hash-object "$VERIFIER")"
             echo "CANDIDATE_SHA256=$(sha256sum /tmp/composition-ORIGINAL.json | cut -d' ' -f1)"
-            echo "CANDIDATE_SEMANTIC_DIGEST=$(python -c 'import json; print(json.load(open("/tmp/composition-ORIGINAL.json"))["semantic_digest"])')"
+            echo "CANDIDATE_SEMANTIC_DIGEST=$(python -c 'import json;print(json.load(open("/tmp/composition-ORIGINAL.json"))["semantic_digest"])')"
             echo 'THREE_MODE_BYTE_IDENTITY=PASS'
-            echo 'INVARIANTS=18/18'
-            echo 'DIGEST_REPAIRED_TAMPERS_REJECTED=18/18'
+            echo 'INVARIANTS=19/19'
+            echo 'DIGEST_REPAIRED_TAMPERS_REJECTED=19/19'
+            echo 'NODE6_UP_K_PARENT_REVIEW=4888128147'
+            echo 'NODE6_TO_NODE7_HANDOFF_REVIEW=4888130022'
             echo 'CANONICAL_Q80_AUTHORITY_REVIEW=4888103958'
             echo 'ALL_STAGE_AUTHORITY_EDGES_CLOSED=TRUE'
             echo 'ACTUAL_TRACE_COMPLETE_CANDIDATE=TRUE'
@@ -215,10 +222,10 @@ jobs:
             echo 'P_VS_NP=OPEN'
           } | tee /tmp/exact-head-receipt.txt
 
-      - name: Export actual-engine composition evidence
+      - name: Export v2 actual-engine composition evidence
         uses: actions/upload-artifact@v4
         with:
-          name: c049-b4-6-4-actual-engine-composition-authority-closure
+          name: c049-b4-6-4-actual-engine-composition-authority-closure-v2
           retention-days: 7
           compression-level: 9
           path: |
@@ -230,6 +237,6 @@ jobs:
             /tmp/producer-SEEDED_SHUFFLE.log
             /tmp/verifier.log
             /tmp/exact-head-receipt.txt
+            experiments/direct/audits/C049_1_B4_6_3_CORRECTED_NODE6_INTEGRATION_NODE7_PREFLIGHT_AUTHORITY_CLOSURE_AF0556D4.json
             experiments/direct/janus_c049_1_b4_6_4_actual_engine_composition_authority_closure.py
             experiments/direct/janus_c049_1_b4_6_4_actual_engine_composition_authority_closure_verifier.py
-            experiments/direct/audits/C049_1_B4_6_4_ACTUAL_ENGINE_Q80_COMPOSITION_AUTHORITY_CLOSURE_0AB040E0.json
