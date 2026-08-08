@@ -43,7 +43,7 @@ jobs:
           set -euo pipefail
           test "$(git hash-object "$SPEC")" = "59447d0e9a98abc539fab415ea16ff7bc9e561f2"
           test "$(git hash-object "$PRODUCER")" = "41c2295c14c64f9620746b130e5be5847f08c73e"
-          test "$(git hash-object "$VERIFIER")" = "ee89282e748f6d772d4c23d58da739ae2238b4a4"
+          test "$(git hash-object "$VERIFIER")" = "8cc5c0811d130bb294f80d97a67e7955e363b3bb"
           test "$(git hash-object "$O6_AUDIT")" = "24557f428533be4e418b3087467e1878696adebb"
           python -m py_compile "$PRODUCER" "$VERIFIER"
           python - <<'PY'
@@ -86,7 +86,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          python "$VERIFIER" --spec "$SPEC" --producer-source "$PRODUCER" --o6-audit "$O6_AUDIT" --b1-core /tmp/b1-core.py --root-spec /tmp/root-spec.json --candidate-original /tmp/empty-root-original.json --candidate-reordered /tmp/empty-root-reordered.json --tamper-suite | tee /tmp/verifier.log
+          python "$VERIFIER" --spec "$SPEC" --producer-source "$PRODUCER" --verifier-source "$VERIFIER" --o6-audit "$O6_AUDIT" --b1-core /tmp/b1-core.py --root-spec /tmp/root-spec.json --candidate-original /tmp/empty-root-original.json --candidate-reordered /tmp/empty-root-reordered.json --tamper-suite | tee /tmp/verifier.log
           grep -F 'JANUS_GENERAL_EMPTY_ROOT_SPECIALIZATION_INDEPENDENT_VERIFIER = PASS' /tmp/verifier.log
           grep -F 'INVARIANTS = 12/12' /tmp/verifier.log
           grep -F 'DIGEST_REPAIRED_TAMPERS_REJECTED = 12/12' /tmp/verifier.log
