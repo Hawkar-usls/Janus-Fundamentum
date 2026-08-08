@@ -1,0 +1,193 @@
+name: Validate C049.1 B5 round3 join-path capability aperture
+
+on:
+  pull_request:
+    paths:
+      - 'experiments/direct/C049_1_B5_ROUND3_JOIN_PATH_CAPABILITY_APERTURE_SPEC_V1.json'
+      - 'experiments/direct/janus_c049_1_b5_round3_join_path_capability_aperture_verifier.py'
+      - '.github/workflows/validate-c049-1-b5-round3-join-path-capability-aperture.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  round3-join-path-aperture:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    env:
+      PYTHONPATH: experiments/direct
+      PYTHONUNBUFFERED: '1'
+      ROUND3_OPEN_HEAD: cd826dfe932ef376eed5dea17ae0c85590077d64
+      ROUND3_OPEN_SEMANTIC_DIGEST: b75621223c863b64d0d03b0957d0331d373a946c40cfe108f049d45a811affc5
+      B51_SPEC: experiments/direct/C049_1_B5_1_GENERIC_CORRECTED_RUNTIME_TRACE_EXECUTOR_SPEC_V1.json
+      B51_PRODUCER: experiments/direct/janus_c049_1_b5_1_generic_corrected_runtime_trace_executor.py
+      B51_VERIFIER: experiments/direct/janus_c049_1_b5_1_generic_corrected_runtime_trace_executor_verifier.py
+      SPEC: experiments/direct/C049_1_B5_ROUND3_JOIN_PATH_CAPABILITY_APERTURE_SPEC_V1.json
+      APERTURE_VERIFIER: experiments/direct/janus_c049_1_b5_round3_join_path_capability_aperture_verifier.py
+    steps:
+      - name: Checkout exact aperture head
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 0
+
+      - name: Set up exact Python
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.12.13'
+          check-latest: false
+
+      - name: Bind exact predecessor and unchanged B5.1 authority
+        shell: bash
+        run: |
+          set -euo pipefail
+          HEAD="$(git rev-parse HEAD)"; echo "EXACT_HEAD=$HEAD" >> "$GITHUB_ENV"
+          git merge-base --is-ancestor "$ROUND3_OPEN_HEAD" "$HEAD"
+          test "$(git hash-object "$B51_SPEC")" = 64f65e4a68cab437392148519af667352fe0665c
+          test "$(git hash-object "$B51_PRODUCER")" = 8be92b8a663e0d05535861c6f216db28094014fb
+          test "$(git hash-object "$B51_VERIFIER")" = ac40b3f3a370f697e29402e1e1cb3e514b799792
+          test "$(git hash-object "$SPEC")" = 8ad4b2a528a598cf4568440eb9f0b2f84861cb09
+          test "$(git hash-object "$APERTURE_VERIFIER")" = c6351ebef3f8afce61631ca785e4beef49d6bb12
+          echo 'ROUND3_OPEN_HEAD_ANCESTRY = PASS'
+          echo 'B5_1_AUTHORITY_BYTES_UNCHANGED = PASS'
+
+      - name: Enforce independent aperture verifier
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m py_compile "$APERTURE_VERIFIER"
+          python - <<'PY'
+          import ast
+          from pathlib import Path
+          text=Path('experiments/direct/janus_c049_1_b5_round3_join_path_capability_aperture_verifier.py').read_text(); imports=[]
+          for n in ast.walk(ast.parse(text)):
+            if isinstance(n,ast.Import): imports += [a.name for a in n.names]
+            elif isinstance(n,ast.ImportFrom): imports.append(n.module or '')
+          assert not any('b5_1_generic_corrected_runtime_trace_executor' in x for x in imports), imports
+          assert 'POLYNOMIAL_RUNTIME = NOT_ESTABLISHED' in text
+          print('B5_1_PRODUCER_IMPORT_IN_APERTURE_VERIFIER = FORBIDDEN_CONFIRMED')
+          print('ASYMPTOTIC_PROMOTION_SURFACE = ABSENT')
+          PY
+
+      - name: Materialize baseline and single-variable aperture inputs
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/round3-aperture
+          python - <<'PY'
+          import copy,json
+          baseline={
+            'ambient_dim':2,'k':1,
+            'caps':{'max_boundary_dim':2,'max_k':1,'max_full_set_entries':5000,'max_child_pairs':50000,'max_join_paths':500000},
+            'factors':[
+              {'id':'A','normal_space':[1],'affine_offset':{'tag':'A'}},
+              {'id':'B','normal_space':[1],'affine_offset':{'tag':'B'}},
+              {'id':'C','normal_space':[1],'affine_offset':{'tag':'C'}}],
+            'tree':{'root':'r3_root','nodes':[
+              {'id':'r3_root','left':'r3_prefix','right':'r3_new'},
+              {'id':'r3_prefix','left':'r3_p0','right':'r3_p1'},
+              {'id':'r3_p0','factor_id':'A'},
+              {'id':'r3_p1','factor_id':'B'},
+              {'id':'r3_new','factor_id':'C'}]}}
+          aperture=copy.deepcopy(baseline); aperture['caps']['max_join_paths']=1000000
+          for name,obj in [('baseline-input.json',baseline),('aperture-input.json',aperture)]:
+            open('/tmp/round3-aperture/'+name,'w').write(json.dumps(obj,sort_keys=True,separators=(',',':'))+'\n')
+          check=copy.deepcopy(baseline);check['caps']['max_join_paths']=1000000
+          assert check==aperture
+          print('SINGLE_VARIABLE_INPUT_DELTA = max_join_paths:500000->1000000')
+          print('ROUND3_MATHEMATICAL_SUBJECT_DELTA = ZERO')
+          PY
+
+      - name: Reproduce exact baseline OPEN and independent replay
+        shell: bash
+        run: |
+          set -euo pipefail
+          python "$B51_PRODUCER" --spec "$B51_SPEC" --input /tmp/round3-aperture/baseline-input.json --output /tmp/round3-aperture/baseline.json | tee /tmp/round3-aperture/baseline-producer.log
+          python "$B51_VERIFIER" --spec "$B51_SPEC" --input /tmp/round3-aperture/baseline-input.json --candidate /tmp/round3-aperture/baseline.json | tee /tmp/round3-aperture/baseline-verifier.log
+          python - <<'PY'
+          import json,os
+          a=json.load(open('/tmp/round3-aperture/baseline.json'));p=a['proof_payload']
+          assert a['semantic_digest']==os.environ['ROUND3_OPEN_SEMANTIC_DIGEST'],(a['semantic_digest'],os.environ['ROUND3_OPEN_SEMANTIC_DIGEST'])
+          assert p['capability_status']=='OPEN_RUNTIME_CAPABILITY'
+          assert p['open_reason']=={'status':'OPEN_RUNTIME_CAPABILITY','reason':'JOIN_PATH_CAP','stage':'r3_root:join_precheck','cap':500000,'observed':765792}
+          print('EXACT_PARENT_ROUND3_SEMANTIC_DIGEST_REPRODUCED = PASS')
+          print('BASELINE_OPEN_JOIN_PATH_CAP = REPRODUCED')
+          print('BASELINE_OBSERVED_JOIN_PATH_PRECHECK = 765792')
+          PY
+
+      - name: Execute one-variable join-path aperture and independent replay
+        shell: bash
+        run: |
+          set -euo pipefail
+          python "$B51_PRODUCER" --spec "$B51_SPEC" --input /tmp/round3-aperture/aperture-input.json --output /tmp/round3-aperture/aperture.json | tee /tmp/round3-aperture/aperture-producer.log
+          python "$B51_VERIFIER" --spec "$B51_SPEC" --input /tmp/round3-aperture/aperture-input.json --candidate /tmp/round3-aperture/aperture.json | tee /tmp/round3-aperture/aperture-verifier.log
+          python - <<'PY'
+          import json
+          p=json.load(open('/tmp/round3-aperture/aperture.json'))['proof_payload']
+          assert p['capability_status'] in {'CLOSED_COMPLETE_TRACE','OPEN_RUNTIME_CAPABILITY'}
+          print('APERTURE_CAPABILITY_STATUS =',p['capability_status'])
+          print('APERTURE_ROOT_ENTRIES =',p['root_entry_count_if_closed'])
+          print('APERTURE_OPEN_REASON =',p['open_reason'])
+          PY
+          echo 'APERTURE_B5_1_INDEPENDENT_REPLAY = PASS'
+
+      - name: Independently classify capability causality
+        shell: bash
+        run: |
+          set -euo pipefail
+          python "$APERTURE_VERIFIER" --spec "$SPEC" --baseline-input /tmp/round3-aperture/baseline-input.json --baseline-candidate /tmp/round3-aperture/baseline.json --aperture-input /tmp/round3-aperture/aperture-input.json --aperture-candidate /tmp/round3-aperture/aperture.json | tee /tmp/round3-aperture/aperture-classification.log
+          grep -F 'JANUS_B5_ROUND3_JOIN_PATH_CAPABILITY_APERTURE_VERIFIER = PASS' /tmp/round3-aperture/aperture-classification.log
+          grep -F 'SINGLE_VARIABLE_CAP_CHANGE = PASS' /tmp/round3-aperture/aperture-classification.log
+          grep -F 'ALL_INPUT_TERMINATION = NOT_ESTABLISHED' /tmp/round3-aperture/aperture-classification.log
+          grep -F 'POLYNOMIAL_RUNTIME = NOT_ESTABLISHED' /tmp/round3-aperture/aperture-classification.log
+
+      - name: Reject digest-repaired aperture classification tampers
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import copy,hashlib,json,sys
+          sys.path.insert(0,'experiments/direct'); import janus_c049_1_b5_round3_join_path_capability_aperture_verifier as v
+          L=lambda p:json.load(open(p)); dg=lambda x:hashlib.sha256(json.dumps(x,sort_keys=True,separators=(',',':')).encode()).hexdigest()
+          args=[L('experiments/direct/C049_1_B5_ROUND3_JOIN_PATH_CAPABILITY_APERTURE_SPEC_V1.json'),L('/tmp/round3-aperture/baseline-input.json'),L('/tmp/round3-aperture/baseline.json'),L('/tmp/round3-aperture/aperture-input.json'),L('/tmp/round3-aperture/aperture.json')]; attacks=[]
+          def add(name,index,mut):
+            x=copy.deepcopy(args[index]);mut(x)
+            if isinstance(x,dict) and 'proof_payload' in x:x['semantic_digest']=dg(x['proof_payload'])
+            attacks.append((name,index,x))
+          add('T01_BASELINE_CAP_REBIND',1,lambda x:x['caps'].__setitem__('max_join_paths',499999))
+          add('T02_BASELINE_OBSERVED_REBIND',2,lambda x:x['proof_payload']['open_reason'].__setitem__('observed',765791))
+          add('T03_APERTURE_NONCAP_SUBJECT_REBIND',3,lambda x:x['factors'][2].__setitem__('normal_space',[]))
+          add('T04_APERTURE_CAP_REBIND',3,lambda x:x['caps'].__setitem__('max_join_paths',1000001))
+          add('T05_APERTURE_TERMINAL_PROMOTION',4,lambda x:x['proof_payload'].__setitem__('terminal_promotion','FOUND_LAYOUT'))
+          rejected=0
+          for name,index,x in attacks:
+            trial=copy.deepcopy(args);trial[index]=x
+            try:v.verify(*trial)
+            except Exception:rejected+=1;print(name,'= REJECTED')
+            else:raise SystemExit(name+' survived')
+          assert rejected==5
+          print('DIGEST_REPAIRED_CAPABILITY_APERTURE_TAMPERS_REJECTED = 5/5')
+          PY
+
+      - name: Freeze exact-head aperture receipt
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import hashlib,json,os,sys
+          from pathlib import Path
+          sys.path.insert(0,'experiments/direct'); import janus_c049_1_b5_round3_join_path_capability_aperture_verifier as v
+          L=lambda p:json.load(open(p)); r=v.verify(L(os.environ['SPEC']),L('/tmp/round3-aperture/baseline-input.json'),L('/tmp/round3-aperture/baseline.json'),L('/tmp/round3-aperture/aperture-input.json'),L('/tmp/round3-aperture/aperture.json'))
+          receipt={'schema':'janus.c049_1.b5.round3_join_path_capability_aperture_receipt.v1','exact_head':os.environ['EXACT_HEAD'],'round3_open_head':os.environ['ROUND3_OPEN_HEAD'],'checks':{'exact_parent_semantic_digest_reproduced':'PASS','baseline_join_path_cap_open':'PASS','single_variable_cap_change':'PASS','aperture_b5_1_independent_replay':'PASS','tamper_rejection':'5/5'},'baseline_open_reason':r['baseline_open_reason'],'aperture_capability_status':r['aperture_capability_status'],'aperture_branch':r['aperture_branch'],'aperture_root_entries':r['aperture_root_entries'],'aperture_open_reason':r['aperture_open_reason'],'classification':r['classification'],'next_gate':r['next_gate'],'all_input_termination':'NOT_ESTABLISHED','polynomial_runtime':'NOT_ESTABLISHED','original_order_lift_admission':'NOT_ESTABLISHED_REPLACEMENT_REPLAY_INCOMPLETE','b5_complete':False,'c049_1_complete':False,'p_vs_np':'OPEN'}
+          raw=(json.dumps(receipt,sort_keys=True,separators=(',',':'))+'\n').encode(); Path('/tmp/round3-aperture/exact-head-receipt.json').write_bytes(raw)
+          print('ROUND3_JOIN_PATH_CAPABILITY_APERTURE_RECEIPT = FROZEN'); print('RECEIPT_SHA256 =',hashlib.sha256(raw).hexdigest()); print('APERTURE_CAPABILITY_STATUS =',r['aperture_capability_status']); print('APERTURE_BRANCH =',r['aperture_branch']); print('APERTURE_ROOT_ENTRIES =',r['aperture_root_entries']); print('CAPABILITY_CLASSIFICATION =',r['classification']); print('NEXT_GATE =',r['next_gate']); print('POLYNOMIAL_RUNTIME = NOT_ESTABLISHED'); print('B5_COMPLETE = FALSE'); print('P_VS_NP = OPEN')
+          PY
+
+      - name: Upload exact aperture evidence
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: c049-b5-round3-join-path-aperture-${{ github.run_id }}
+          path: /tmp/round3-aperture
+          if-no-files-found: error
+          retention-days: 90
