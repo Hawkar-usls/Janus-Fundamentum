@@ -10,6 +10,8 @@ def cb(x): return json.dumps(x,sort_keys=True,separators=(',',':')).encode()
 def dg(x): return hashlib.sha256(cb(x)).hexdigest()
 def load(p): return json.loads(Path(p).read_text())
 def save(x,p): Path(p).write_bytes(cb(x)+b'\n')
+def gb(p):
+    b=Path(p).read_bytes(); return hashlib.sha1(f'blob {len(b)}\0'.encode()+b).hexdigest()
 def req(x,m):
     if not x: raise AssertionError(m)
 
@@ -21,12 +23,15 @@ def audit_semantic(a):
 def build(a):
     s=load(a.spec)
     req(s['gate']==SPEC_GATE and s['version']=='1.0' and s['admission'] is False,'spec')
-    audits=[load(p) for p in a.audits]
-    req(len(audits)==7,'audit count')
-    sem=[audit_semantic(x) for x in audits]
     receipts=s['local_semantic_receipts']
     req(list(receipts)==[f'O{i}' for i in range(1,8)],'receipt order')
     req(all(receipts[f'O{i}']['status'].startswith('ESTABLISHED') for i in range(1,8)),'receipt status')
+    audits=[]; sem=[]; blobs={}
+    for i,p in enumerate(a.audits,1):
+        key=f'O{i}'; x=load(p); blob=gb(p)
+        req(blob==receipts[key]['audit_git_blob'],f'{key} audit blob')
+        audits.append(x); sem.append(audit_semantic(x)); blobs[key]=blob
+    req(len(audits)==7,'audit count')
     pub=s['published_source']; req(pub['source']=='arXiv:1507.02184v4' and pub['source_version_required']=='v4','source version')
     req(pub['dependency_status']=='PUBLISHED_LEMMA_2_7_AND_PROPOSITION_5_8_INDUCTION_BOUND_NOT_INDEPENDENTLY_REPROVED','source ceiling')
     t=s['local_trace_contract']; c=s['structural_induction_contract']; cp=c['caller_precondition_discharge']
@@ -50,6 +55,7 @@ def build(a):
       'status':'CANDIDATE_PENDING_ADMISSION',
       'published_dependency_status':pub['dependency_status'],
       'published_source':pub['source'],
+      'audit_git_blobs':blobs,
       'audit_semantic_digests':{f'O{i+1}':sem[i] for i in range(7)},
       'receipt_proof_heads':{k:v['proof_head'] for k,v in receipts.items()},
       'composition_steps':steps,
@@ -71,6 +77,7 @@ def main():
     x=build(a); q=x['proof_payload']
     print('JANUS_GENERAL_STRUCTURAL_INDUCTION_COMPOSITION_BINDER = PASS')
     print('BOUND_GENERAL_SEMANTIC_RECEIPTS = 7/7')
+    print('IMMUTABLE_AUDIT_BLOB_BINDINGS = 7/7')
     print('LEMMA_2_7_CALLER_PRECONDITIONS_DISCHARGE = PASS_AS_PUBLISHED_DEPENDENCY_CANDIDATE')
     print('ALGORITHM1_COMPATIBLE_TRACE_FULL_SET_IDENTITY = PASS_AS_DERIVED_CANDIDATE')
     print('ACTUAL_CORRECTED_ENGINE_COMPLETE_ALGORITHM1_TRACE_ESTABLISHED = FALSE')
