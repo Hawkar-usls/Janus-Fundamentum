@@ -4,10 +4,14 @@ on:
   push:
     paths:
       - 'experiments/direct/janus_c049_1_b4_6_4_actual_engine_q80_composition_replay_verifier.py'
+      - 'experiments/direct/audits/C049_1_B4_6_3_CORRECTED_NODE8_TWENTY_GENERATOR_UP_K_AUTHORITY_CLOSURE_0FCDAA16.json'
+      - 'experiments/direct/C049_1_B4_6_4_GENERAL_STRUCTURAL_INDUCTION_COMPOSITION_AUTHORITY_HARDENING_V1.json'
       - '.github/workflows/validate-c049-1-b4-6-4-actual-engine-q80-composition-replay.yml'
   pull_request:
     paths:
       - 'experiments/direct/janus_c049_1_b4_6_4_actual_engine_q80_composition_replay_verifier.py'
+      - 'experiments/direct/audits/C049_1_B4_6_3_CORRECTED_NODE8_TWENTY_GENERATOR_UP_K_AUTHORITY_CLOSURE_0FCDAA16.json'
+      - 'experiments/direct/C049_1_B4_6_4_GENERAL_STRUCTURAL_INDUCTION_COMPOSITION_AUTHORITY_HARDENING_V1.json'
       - '.github/workflows/validate-c049-1-b4-6-4-actual-engine-q80-composition-replay.yml'
   workflow_dispatch:
 
@@ -22,6 +26,8 @@ env:
   STRUCT_PRODUCER_SUBJECT: e31c05c7e85ecda2ebf79aebb504f42f9d14009a
   Q80_SUBJECT: 97a57154b4fdeed8cbc7ba40fa71b2008757c8f1
   NODE8_PRODUCER: experiments/direct/janus_c049_1_b4_6_3_corrected_node8_twenty_generator_up_k.py
+  NODE8_AUTHORITY: experiments/direct/audits/C049_1_B4_6_3_CORRECTED_NODE8_TWENTY_GENERATOR_UP_K_AUTHORITY_CLOSURE_0FCDAA16.json
+  HARDENING: experiments/direct/C049_1_B4_6_4_GENERAL_STRUCTURAL_INDUCTION_COMPOSITION_AUTHORITY_HARDENING_V1.json
   LEAF5: experiments/direct/C049_1_B4_6_3_CORRECTED_NODE9_RIGHT_LEAF5_CANDIDATE_V1.json
   STRUCT_SPEC: experiments/direct/C049_1_B4_6_3_CORRECTED_NODE9_PARENT_FRONTIER_STRUCTURAL_COMPRESSION_SPEC_V1.json
   STRUCT_PRODUCER: experiments/direct/janus_c049_1_b4_6_3_corrected_node9_parent_frontier_structural_compression.py
@@ -40,7 +46,7 @@ jobs:
         with:
           python-version: '3.12'
 
-      - name: Bind exact historical implementations but no Q80 admission
+      - name: Bind exact historical implementations and admitted Node8 authority
         shell: bash
         run: |
           set -euo pipefail
@@ -50,11 +56,14 @@ jobs:
           bind_blob "$STRUCT_SPEC_SUBJECT" "$STRUCT_SPEC"
           bind_blob "$STRUCT_PRODUCER_SUBJECT" "$STRUCT_PRODUCER"
           bind_blob "$Q80_SUBJECT" "$Q80_PRODUCER"
-          test "$(git hash-object "$REPLAY_VERIFIER")" = "04bef30e60a8dc4de0c36753212fa537686f807a"
+          test "$(git hash-object "$NODE8_AUTHORITY")" = "b04124490df9737c0799ed856fd7819b37477208"
+          test "$(git hash-object "$HARDENING")" = "560fbef764a03555d76802c21f08e8337e501f17"
+          test "$(git hash-object "$REPLAY_VERIFIER")" = "e57354c98e6c315f50bd8774f9d36da523e9273c"
           python -m py_compile "$NODE8_PRODUCER" "$STRUCT_PRODUCER" "$Q80_PRODUCER" "$REPLAY_VERIFIER"
           echo 'Q80_HISTORICAL_STANDALONE_ADMISSION = FALSE'
+          echo 'NODE8_AUTHORITY_RECEIPT_BLOB = EXACT_BOUND'
 
-      - name: Reconstruct exact Node-8 candidate input from admitted PR114 source
+      - name: Reconstruct exact admitted Node-8 language from PR114 source
         shell: bash
         run: |
           set -euo pipefail
@@ -66,8 +75,7 @@ jobs:
           import json
           x=json.load(open('/tmp/node8-up-k.json'))
           assert x['semantic_digest']=='e0017e4e5de933e520c6ea374ef291c07bbbb373478c6f9952911cc376380622'
-          print('NODE8_CANDIDATE_INPUT_RECONSTRUCTION = PASS')
-          print('NODE8_AUTHORITY_CLOSED = FALSE')
+          print('NODE8_ADMITTED_LANGUAGE_RECONSTRUCTION = PASS')
           PY
 
       - name: Regenerate Q80 in three traversal modes
@@ -85,13 +93,23 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          python "$REPLAY_VERIFIER" --node8-artifact /tmp/node8-up-k.json --leaf5-artifact "$LEAF5" --q80-artifact /tmp/q80-ORIGINAL.json --tamper-suite | tee /tmp/q80-composition-verifier.log
+          python "$REPLAY_VERIFIER" \
+            --node8-artifact /tmp/node8-up-k.json \
+            --leaf5-artifact "$LEAF5" \
+            --q80-artifact /tmp/q80-ORIGINAL.json \
+            --node8-authority-receipt "$NODE8_AUTHORITY" \
+            --hardening "$HARDENING" \
+            --tamper-suite | tee /tmp/q80-composition-verifier.log
           grep -F 'JANUS_ACTUAL_ENGINE_Q80_COMPOSITION_REPLAY_VERIFIER = PASS' /tmp/q80-composition-verifier.log
+          grep -F 'NODE8_AUTHORITY_RECEIPT_SEMANTIC_DIGEST = PASS' /tmp/q80-composition-verifier.log
           grep -F 'EXPECTED_DOMAIN_OR_FINE_TOTAL_USED_AS_ACCEPTANCE_ORACLE = FALSE' /tmp/q80-composition-verifier.log
           grep -F 'Q80_PARTITION_FINE_LANGUAGE_CONSERVATION = PASS' /tmp/q80-composition-verifier.log
           grep -F 'DIGEST_REPAIRED_TAMPERS_REJECTED = 12/12' /tmp/q80-composition-verifier.log
+          grep -F 'NODE8_AUTHORITY_DIGEST_REPAIRED_TAMPERS_REJECTED = 4/4' /tmp/q80-composition-verifier.log
+          grep -F 'TOTAL_DIGEST_REPAIRED_TAMPERS_REJECTED = 16/16' /tmp/q80-composition-verifier.log
           grep -F 'Q80_HISTORICAL_STANDALONE_ADMISSION = FALSE' /tmp/q80-composition-verifier.log
-          grep -F 'NODE8_AUTHORITY_CLOSED = FALSE' /tmp/q80-composition-verifier.log
+          grep -F 'NODE8_AUTHORITY_CLOSED = TRUE' /tmp/q80-composition-verifier.log
+          grep -F 'Q80_COMPOSITION_REPLAY_COMPLETE = TRUE' /tmp/q80-composition-verifier.log
 
       - name: Bind independently replayed Q80 output to downstream scalar handoff
         shell: bash
@@ -113,15 +131,19 @@ jobs:
           {
             echo "GITHUB_SHA=$GITHUB_SHA"
             echo "PROOF_HEAD=$PROOF_HEAD"
+            echo "NODE8_AUTHORITY_RECEIPT_BLOB=$(git hash-object "$NODE8_AUTHORITY")"
+            echo "HARDENING_BLOB=$(git hash-object "$HARDENING")"
             echo "REPLAY_VERIFIER_BLOB=$(git hash-object "$REPLAY_VERIFIER")"
             echo "Q80_SHA256=$(sha256sum /tmp/q80-ORIGINAL.json | cut -d' ' -f1)"
             echo "Q80_SEMANTIC_DIGEST=$(python -c 'import json; print(json.load(open("/tmp/q80-ORIGINAL.json"))["semantic_digest"])')"
             grep -E '^(DERIVED_SOURCE_CLASS_COUNT|DERIVED_LEFT_ENTRY_COUNT|DERIVED_RIGHT_ENTRY_COUNT|DERIVED_Q80_DOMAIN_COUNT|DERIVED_FINE_HV_REFINEMENT_TOTAL|RUN_PROFILE_PARTITION_CHECKS) =' /tmp/q80-composition-verifier.log
             echo 'EXPECTED_DOMAIN_OR_FINE_TOTAL_USED_AS_ACCEPTANCE_ORACLE=FALSE'
+            echo 'NODE8_AUTHORITY_CLOSED=TRUE'
             echo 'Q80_PARTITION_FINE_LANGUAGE_CONSERVATION=PASS'
+            echo 'Q80_COMPOSITION_REPLAY_COMPLETE=TRUE'
             echo 'Q80_DOWNSTREAM_SCALAR_HANDOFF_IDENTITY=PASS'
             echo 'DIGEST_REPAIRED_TAMPERS_REJECTED=12/12'
-            echo 'NODE8_AUTHORITY_CLOSED=FALSE'
+            echo 'NODE8_AUTHORITY_DIGEST_REPAIRED_TAMPERS_REJECTED=4/4'
             echo 'ACTUAL_ENGINE_COMPOSITION_ADMITTED=FALSE'
             echo 'TERMINAL_COMPLETENESS_PROVED=FALSE'
             echo 'NO_LAYOUT_AT_CAP=FORBIDDEN'
@@ -143,4 +165,6 @@ jobs:
             /tmp/q80-SEEDED_SHUFFLE.log
             /tmp/q80-composition-verifier.log
             /tmp/q80-exact-head-receipt.txt
+            experiments/direct/audits/C049_1_B4_6_3_CORRECTED_NODE8_TWENTY_GENERATOR_UP_K_AUTHORITY_CLOSURE_0FCDAA16.json
+            experiments/direct/C049_1_B4_6_4_GENERAL_STRUCTURAL_INDUCTION_COMPOSITION_AUTHORITY_HARDENING_V1.json
             experiments/direct/janus_c049_1_b4_6_4_actual_engine_q80_composition_replay_verifier.py
