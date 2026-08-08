@@ -9,6 +9,7 @@ import janus_c049_1_b5_4_corrected_discovery_c047_rebound_verifier_v12 as v12
 EVIDENCE = Path("/tmp/b5-4-v12-evidence")
 RECEIPT = EVIDENCE / "exact-head-receipt-v12.json"
 AMENDMENT_V12 = Path("experiments/direct/C049_1_B5_4_REBOUND_UPSTREAM_TAMPER_HARDENING_AMENDMENT_V1_2.json")
+WORKFLOW_V12 = Path(".github/workflows/validate-c049-1-b5-4-corrected-discovery-c047-rebound-v12.yml")
 
 
 def main() -> None:
@@ -38,8 +39,10 @@ def main() -> None:
     receipt["bindings"]["v1_2_hardening_amendment_git_blob"] = h.git_blob(AMENDMENT_V12)
     receipt["bindings"]["v1_2_hardening_verifier_git_blob"] = h.git_blob(Path("experiments/direct/janus_c049_1_b5_4_corrected_discovery_c047_rebound_verifier_v12.py"))
     receipt["bindings"]["v1_2_harness_git_blob"] = h.git_blob(Path("experiments/direct/janus_c049_1_b5_4_rebound_ci_harness_v12.py"))
+    receipt["bindings"]["v1_2_workflow_git_blob"] = h.git_blob(WORKFLOW_V12)
     receipt["checks"]["upstream_b5_2b_repaired_digest_cut_tampers"] = "2/2"
     receipt["checks"]["tampers_rejected"] = "27/27"
+    receipt["checks"]["workflow_exact_head_self_binding"] = "PASS"
     receipt["hardening_v1_2"] = {
         "semantic_contract_changed": False,
         "new_regressions": [
@@ -57,6 +60,7 @@ def main() -> None:
     print("B5_4_V1_2_UPSTREAM_B5_2B_CUT_WIDTH_REPAIRED_DIGEST_TAMPER = REJECTED")
     print("B5_4_V1_2_UPSTREAM_B5_2B_CUT_BASIS_REPAIRED_DIGEST_TAMPER = REJECTED")
     print("DIGEST_REPAIRED_TAMPERS_REJECTED = 27/27")
+    print("B5_4_V1_2_WORKFLOW_EXACT_HEAD_SELF_BINDING = PASS")
     print("B5_4_V1_2_SEMANTIC_CONTRACT_CHANGED = FALSE")
     print("C047_RESULT_ADMITTED = FALSE")
     print("B5_COMPLETE = FALSE")
