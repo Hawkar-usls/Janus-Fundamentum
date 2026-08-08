@@ -1,0 +1,193 @@
+name: Validate C049.1 B5 full-input original-order lift to C047 rebound
+
+on:
+  pull_request:
+    paths:
+      - 'experiments/direct/C049_1_B5_FULL_INPUT_ORIGINAL_ORDER_LIFT_C047_REBOUND_SPEC_V1.json'
+      - 'experiments/direct/C049_1_B5_FULL_INPUT_ORIGINAL_ORDER_LIFT_C047_REBOUND_AMENDMENT_V1_1.json'
+      - 'experiments/direct/janus_c049_1_b5_full_input_original_order_lift_c047_rebound.py'
+      - 'experiments/direct/janus_c049_1_b5_full_input_original_order_lift_c047_rebound_verifier.py'
+      - 'experiments/direct/janus_c049_1_b5_full_input_original_order_lift_c047_rebound_verifier_v11.py'
+      - 'experiments/direct/janus_c049_1_b5_full_input_original_order_lift_ci_harness_v11.py'
+      - 'experiments/direct/janus_c049_1_b5_full_input_original_order_lift_ci_harness_v12.py'
+      - '.github/workflows/validate-c049-1-b5-full-input-original-order-lift-c047-rebound.yml'
+  workflow_dispatch:
+
+jobs:
+  original-order-lift:
+    runs-on: ubuntu-latest
+    env:
+      PYTHONPATH: experiments/direct
+      SPEC: experiments/direct/C049_1_B5_FULL_INPUT_ORIGINAL_ORDER_LIFT_C047_REBOUND_SPEC_V1.json
+      AMENDMENT: experiments/direct/C049_1_B5_FULL_INPUT_ORIGINAL_ORDER_LIFT_C047_REBOUND_AMENDMENT_V1_1.json
+      PRODUCER: experiments/direct/janus_c049_1_b5_full_input_original_order_lift_c047_rebound.py
+      VERIFIER: experiments/direct/janus_c049_1_b5_full_input_original_order_lift_c047_rebound_verifier.py
+      VERIFIER_V11: experiments/direct/janus_c049_1_b5_full_input_original_order_lift_c047_rebound_verifier_v11.py
+      HARNESS_V11: experiments/direct/janus_c049_1_b5_full_input_original_order_lift_ci_harness_v11.py
+      HARNESS_V12: experiments/direct/janus_c049_1_b5_full_input_original_order_lift_ci_harness_v12.py
+      WORKFLOW: .github/workflows/validate-c049-1-b5-full-input-original-order-lift-c047-rebound.yml
+      PRE_SPEC: experiments/direct/C049_1_B5_ITERATIVE_COMPRESSION_PREPROCESSING_BINDING_SPEC_V1.json
+      PRE_PRODUCER: experiments/direct/janus_c049_1_b5_iterative_compression_preprocessing_binding.py
+      PRE_VERIFIER: experiments/direct/janus_c049_1_b5_iterative_compression_preprocessing_binding_verifier.py
+      PRE_RECEIPT: experiments/direct/audits/C049_1_B5_ITERATIVE_COMPRESSION_PREPROCESSING_BINDING_ADMISSION_8DA1F1DE.json
+      B51_SPEC: experiments/direct/C049_1_B5_1_GENERIC_CORRECTED_RUNTIME_TRACE_EXECUTOR_SPEC_V1.json
+      B51_PRODUCER: experiments/direct/janus_c049_1_b5_1_generic_corrected_runtime_trace_executor.py
+      B51_VERIFIER: experiments/direct/janus_c049_1_b5_1_generic_corrected_runtime_trace_executor_verifier.py
+      B52A_SPEC: experiments/direct/C049_1_B5_2A_GENERIC_ALGORITHM2_PROVENANCE_CARRIER_AMENDMENT_V1_1.json
+      B52A_PRODUCER: experiments/direct/janus_c049_1_b5_2a_generic_algorithm2_provenance_carrier_v11.py
+      B52A_VERIFIER: experiments/direct/janus_c049_1_b5_2a_generic_algorithm2_provenance_carrier_verifier_v11.py
+      B52B_SPEC: experiments/direct/C049_1_B5_2B_GENERIC_ALGORITHM2_PRINTORDER_RECONSTRUCTION_SPEC_V1.json
+      B52B_PRODUCER: experiments/direct/janus_c049_1_b5_2b_generic_algorithm2_printorder_reconstruction.py
+      B52B_VERIFIER: experiments/direct/janus_c049_1_b5_2b_generic_algorithm2_printorder_reconstruction_verifier_v11.py
+      B52B_RECEIPT: experiments/direct/audits/C049_1_B5_2B_GENERIC_ALGORITHM2_PRINTORDER_RECONSTRUCTION_ADMISSION_F057B7AF.json
+      B53_RECEIPT: experiments/direct/audits/C049_1_B5_3_GENERIC_EMPTY_ROOT_TERMINAL_COMPOSITION_ADMISSION_E9841522.json
+      B54_SPEC: experiments/direct/C049_1_B5_4_CORRECTED_DISCOVERY_C047_REBOUND_SPEC_V1.json
+      B54_PRODUCER: experiments/direct/janus_c049_1_b5_4_corrected_discovery_c047_rebound_v11.py
+      B54_VERIFIER: experiments/direct/janus_c049_1_b5_4_corrected_discovery_c047_rebound_verifier_v11.py
+      B54_RECEIPT: experiments/direct/audits/C049_1_B5_4_CORRECTED_DISCOVERY_C047_REBOUND_ADMISSION_135740E9.json
+      PHASE_CORE: experiments/direct/janus_c049_fpt_integration_core.py
+      PHASE_SOLVER: experiments/direct/janus_c049_fpt_integration_solver.py
+      PHASE_VERIFIER: experiments/direct/janus_c049_fpt_integration_verifier.py
+      PHASE_WRAPPER: experiments/direct/janus_c049_fpt_integration.py
+      C047_CORE: experiments/direct/janus_c047_affine_trellis_core.py
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Bind exact-head lift bytes and immutable admitted authorities
+        run: |
+          set -euo pipefail
+          if [ "${{ github.event_name }}" = "pull_request" ]; then PROOF_HEAD="${{ github.event.pull_request.head.sha }}"; else PROOF_HEAD="$GITHUB_SHA"; fi
+          echo "PROOF_HEAD=$PROOF_HEAD" >> "$GITHUB_ENV"
+          for f in "$SPEC" "$AMENDMENT" "$PRODUCER" "$VERIFIER" "$VERIFIER_V11" "$HARNESS_V11" "$HARNESS_V12" "$WORKFLOW"; do
+            test "$(git rev-parse "$PROOF_HEAD:$f")" = "$(git hash-object "$f")"
+          done
+          test "$(git hash-object "$SPEC")" = "36e3eb7d554c35109dec8a12b668fb677a9a519d"
+          test "$(git hash-object "$AMENDMENT")" = "69f945767e7cab53fd28af839e4a14943acd6f0d"
+          test "$(git hash-object "$PRODUCER")" = "a0426e63b41f37ee8c70e4cd5461a322c17cf652"
+          test "$(git hash-object "$VERIFIER")" = "bdb6669a8c23136e6fe655abecb4e3bd06cefcdd"
+          test "$(git hash-object "$VERIFIER_V11")" = "5536588447a72143b6623b89f27e7e0b938b35be"
+          test "$(git hash-object "$HARNESS_V11")" = "c5a6f17eb31482d368f6030e5bd9d20eed677c61"
+          test "$(git hash-object "$HARNESS_V12")" = "dd7f61e0ed99b8651e023328a2278a0b6243bbb1"
+          test "$(git hash-object "$PRE_SPEC")" = "f2508347b7a5a29a6a72127607bc19a9d00f262a"
+          test "$(git hash-object "$PRE_PRODUCER")" = "5eb99fe911aa828e42f952a176b5f396dfa8f609"
+          test "$(git hash-object "$PRE_VERIFIER")" = "762ace290285fbda9ee219984daaf04866ffc222"
+          test "$(git hash-object "$PRE_RECEIPT")" = "69a6d709900df80e263c33405ddc0b19a593b27f"
+          test "$(git hash-object "$B51_SPEC")" = "64f65e4a68cab437392148519af667352fe0665c"
+          test "$(git hash-object "$B51_PRODUCER")" = "8be92b8a663e0d05535861c6f216db28094014fb"
+          test "$(git hash-object "$B51_VERIFIER")" = "ac40b3f3a370f697e29402e1e1cb3e514b799792"
+          test "$(git hash-object "$B52A_SPEC")" = "fda6f7d45d0273f957c13014fa62718bc19b465e"
+          test "$(git hash-object "$B52A_PRODUCER")" = "9159ad8fb03b47eab354ae85e6756037818597e8"
+          test "$(git hash-object "$B52A_VERIFIER")" = "57c95af433b2b97c53a51132f6d3128884f7f6c9"
+          test "$(git hash-object "$B52B_SPEC")" = "02f1fa3926b70d775dc3415240d6d153007d21a8"
+          test "$(git hash-object "$B52B_PRODUCER")" = "90a13116ff7999f81a744d56e0bae56eb6af5ed1"
+          test "$(git hash-object "$B52B_VERIFIER")" = "5911c566bab0193214c8aa1b11c49d5d205e2f43"
+          test "$(git hash-object "$B52B_RECEIPT")" = "5e60eff4a4bd4c87cbf527cd446fc6b23b013774"
+          test "$(git hash-object "$B53_RECEIPT")" = "32177caad196ca4640c090212c41bc132448cc7c"
+          test "$(git hash-object "$B54_SPEC")" = "a259728168406cf6de086d74525d5ce2125bab29"
+          test "$(git hash-object "$B54_PRODUCER")" = "1be22d0f2ca01f07b334eb894488cf30196b3f08"
+          test "$(git hash-object "$B54_VERIFIER")" = "a920607a4921d19ef0ecbdf716c0af8cd924aa40"
+          test "$(git hash-object "$B54_RECEIPT")" = "93749562d05a7f2af7276aaa77de7c0beb65293c"
+          test "$(git hash-object "$PHASE_CORE")" = "5eb806a079343f00622886c448d2bfbfa412cbfe"
+          test "$(git hash-object "$PHASE_SOLVER")" = "70c06752890e797bdf3a7c87c2cb41703fade163"
+          test "$(git hash-object "$PHASE_VERIFIER")" = "6ae98df69ff53b6157c171cea619865af533c07c"
+          test "$(git hash-object "$PHASE_WRAPPER")" = "8894ede26f52c04d903a59ea1c435c6ee23c67da"
+          test "$(git hash-object "$C047_CORE")" = "c2905332a83b175eea8bd0a326e1a63555b2130a"
+          python - <<'PY'
+          import json,os
+          pre=json.load(open(os.environ['PRE_RECEIPT']))
+          b54=json.load(open(os.environ['B54_RECEIPT']))
+          amendment=json.load(open(os.environ['AMENDMENT']))
+          assert pre['audit_payload']['admission_review_id']==4888515566
+          assert pre['semantic_digest']=='deed00cace7434ca19a4c66360182c5db3642b28761f19c545ca08db6f71c6b6'
+          assert b54['audit_payload']['admission_review_id']==4888463198
+          assert amendment['problem']['semantic_theorem_failure'] is False
+          assert amendment['requirements']['all_29_mutations_must_change_canonical_bytes'] is True
+          print('B5_ORIGINAL_ORDER_LIFT_AUTHORITY_BINDING = PASS')
+          print('B5_ORIGINAL_ORDER_LIFT_TAMPER_AMENDMENT = PASS')
+          PY
+
+      - name: Compile and enforce independent verifier separation
+        run: |
+          set -euo pipefail
+          python -m py_compile "$PRODUCER" "$VERIFIER" "$VERIFIER_V11" "$HARNESS_V11" "$HARNESS_V12"
+          python - <<'PY'
+          import ast
+          from pathlib import Path
+          v=Path('experiments/direct/janus_c049_1_b5_full_input_original_order_lift_c047_rebound_verifier.py')
+          imports=[]
+          for n in ast.walk(ast.parse(v.read_text())):
+              if isinstance(n,ast.Import): imports += [a.name for a in n.names]
+              elif isinstance(n,ast.ImportFrom): imports.append(n.module or '')
+          assert not any(x.endswith('janus_c049_1_b5_full_input_original_order_lift_c047_rebound') for x in imports)
+          for path in [Path('experiments/direct/janus_c049_1_b5_full_input_original_order_lift_c047_rebound.py'),v,Path('experiments/direct/janus_c049_1_b5_full_input_original_order_lift_c047_rebound_verifier_v11.py')]:
+              text=path.read_text()
+              for forbidden in ['def solve_trellis(', 'def affine_trellis(', 'P_VS_NP = CLOSED', 'B5_COMPLETE = TRUE', 'POLYNOMIAL_RUNTIME = ESTABLISHED']:
+                  assert forbidden not in text,(path,forbidden)
+          print('B5_ORIGINAL_ORDER_LIFT_INDEPENDENT_VERIFIER_DECOUPLING = PASS')
+          print('HISTORICAL_C047_REIMPLEMENTATION = FORBIDDEN')
+          print('ITERATIVE_COMPRESSION_ORCHESTRATOR_IMPLEMENTATION = FORBIDDEN')
+          PY
+
+      - name: Rebuild full chain and run original-order lift semantic controls
+        run: |
+          set -euo pipefail
+          python "$HARNESS_V12" | tee /tmp/original-order-lift-harness.log
+          grep -F 'B5_FULL_INPUT_ORIGINAL_ORDER_LIFT_C047_REBOUND_HARNESS = PASS' /tmp/original-order-lift-harness.log
+          grep -F 'SAT_CONTROL = PASS' /tmp/original-order-lift-harness.log
+          grep -F 'UNSAT_CONTROL = PASS' /tmp/original-order-lift-harness.log
+          grep -F 'STRICT_SHRINK_CONTROL = PASS' /tmp/original-order-lift-harness.log
+          grep -F 'OPAQUE_OPEN_CONTROL = PASS' /tmp/original-order-lift-harness.log
+          grep -F 'HISTORICAL_OPEN_CONTROL = PASS' /tmp/original-order-lift-harness.log
+          grep -F 'PRESENTATION_REORDER_PROVENANCE_CONTROL = PASS' /tmp/original-order-lift-harness.log
+          grep -F 'DIRECT_REDUCED_B5_4_CONTROL = OPEN_AS_REQUIRED' /tmp/original-order-lift-harness.log
+          grep -F 'DIGEST_REPAIRED_TAMPERS_REJECTED = 29/29' /tmp/original-order-lift-harness.log
+          grep -F 'B5_COMPLETE = FALSE' /tmp/original-order-lift-harness.log
+
+      - name: Freeze workflow-bound exact-head receipt
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json,os,subprocess
+          from pathlib import Path
+          root=Path('/tmp/b5-original-order-lift-evidence')
+          old=root/'exact-head-receipt-v11.json'
+          x=json.loads(old.read_text())
+          def blob(path): return subprocess.check_output(['git','hash-object',path],text=True).strip()
+          x['schema']='janus.c049_1.b5.full_input_original_order_lift_c047_rebound_exact_head_candidate_receipt.v1_2'
+          x['proof_head']=os.environ['PROOF_HEAD']
+          x['bindings'].update({
+            'workflow_git_blob':blob(os.environ['WORKFLOW']),
+            'harness_v1_1_git_blob':blob(os.environ['HARNESS_V11']),
+            'harness_v1_2_git_blob':blob(os.environ['HARNESS_V12']),
+            'b5_4_admission_receipt_git_blob':blob(os.environ['B54_RECEIPT']),
+            'historical_phase_a_core_git_blob':blob(os.environ['PHASE_CORE']),
+            'historical_phase_a_solver_git_blob':blob(os.environ['PHASE_SOLVER']),
+            'historical_phase_a_verifier_git_blob':blob(os.environ['PHASE_VERIFIER']),
+            'historical_c047_core_git_blob':blob(os.environ['C047_CORE']),
+          })
+          x['negative_provenance'].append({'classification':'HARNESS_V1_1_EXPECTED_NONEXISTENT_B5_1_VERIFIER_LOG_LABEL','expected_wrong_label':'CAPABILITY_STATUS = CLOSED_COMPLETE_TRACE','frozen_actual_label':'RUNTIME_RESULT = CLOSED_COMPLETE_TRACE','resolution':'HARNESS_V1_2_BINDS_THE_FROZEN_VERIFIER_OUTPUT','semantic_replay_before_fix':False})
+          x['checks']['workflow_exact_head_self_binding']='PASS'
+          x['checks']['all_29_mutations_change_canonical_bytes']='PASS'
+          out=root/'exact-head-receipt-v12.json'
+          out.write_text(json.dumps(x,sort_keys=True,separators=(',',':'))+'\n')
+          old.unlink()
+          print('B5_ORIGINAL_ORDER_LIFT_EXACT_HEAD_RECEIPT = FROZEN')
+          print('PROOF_HEAD =',x['proof_head'])
+          print('WORKFLOW_GIT_BLOB =',x['bindings']['workflow_git_blob'])
+          print('DIGEST_REPAIRED_TAMPERS_REJECTED = 29/29')
+          print('ITERATIVE_COMPRESSION_ORCHESTRATOR = FALSE')
+          print('B5_COMPLETE = FALSE')
+          print('P_VS_NP = OPEN')
+          PY
+          cp /tmp/original-order-lift-harness.log /tmp/b5-original-order-lift-evidence/
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: c049-1-b5-full-input-original-order-lift-c047-rebound
+          path: /tmp/b5-original-order-lift-evidence
+          if-no-files-found: error
