@@ -1,6 +1,6 @@
 {
   "schema":"janus.c049_1.b5.fixed_discovery_round1_round2_execution_composition_spec.v1",
-  "version":"1.0",
+  "version":"1.1",
   "frozen_at":"2026-08-09",
   "gate":"C049.1_B5_FIXED_DISCOVERY_ROUND1_ROUND2_EXECUTION_COMPOSITION",
   "status":"SPEC_FROZEN_CANDIDATE_ONLY",
@@ -15,17 +15,28 @@
     "b5_1_verifier_git_blob":"ac40b3f3a370f697e29402e1e1cb3e514b799792",
     "b5_1_admission_receipt_git_blob":"f70d56c84874827fd03cc482e37fd9449a7a8a23"
   },
+  "bounded_control":{
+    "ambient_dim":2,
+    "k":1,
+    "fixed_reduced_dimensions":[1,1],
+    "caps":{"max_boundary_dim":2,"max_k":1,"max_full_set_entries":1000,"max_child_pairs":10000,"max_join_paths":50000}
+  },
   "execution_subject":{
     "rounds":[1,2],
     "round1_prefix":"EXACT_FIXED_SCHEDULE_PREFIX_LENGTH_1",
     "round2_prefix":"EXACT_FIXED_SCHEDULE_PREFIX_LENGTH_2",
     "round2_new_factor":"EXACT_FIXED_SCHEDULE_OCCURRENCE_AT_INDEX_1",
     "tree_round1":"SINGLE_LEAF_ROOT",
-    "tree_round2":"BINARY_ROOT_WITH_ROUND1_FACTOR_LEFT_AND_NEW_FACTOR_RIGHT",
+    "tree_round2":"BINARY_ROOT_WITH_ROUND1_OCCURRENCE_LEFT_AND_NEW_OCCURRENCE_RIGHT",
     "runtime":"ADMITTED_B5_1_GENERIC_CORRECTED_RUNTIME_TRACE_EXECUTOR",
     "required_capability_status":"CLOSED_COMPLETE_TRACE"
   },
-  "handoff_law":"ROUND1_ROOT_FULL_SET_DIGEST_MUST_EQUAL_ROUND2_FIRST_FACTOR_LEAF_FULL_SET_DIGEST",
+  "composition_correction":{
+    "raw_round1_root_full_set_digest_equals_round2_left_leaf_digest":"NOT_REQUIRED_AND_SEMANTICALLY_WRONG_WHEN_BOUNDARY_CONTEXT_CHANGES",
+    "reason":"FULL_SET_STATE_IS_BOUNDARY_RELATIVE; ROUND1_ROOT_HAS_ZERO_BOUNDARY_WHILE_THE_SAME_OCCURRENCE_IN_ROUND2_MAY_HAVE_NONZERO_CHILD_BOUNDARY",
+    "inheritance_object":"WHOLE_FACTOR_OCCURRENCE_AND_LAYOUT_IDENTITY_NOT_RAW_BOUNDARY_RELATIVE_FULL_SET_STATE"
+  },
+  "handoff_law":"ROUND1_VERIFIED_PREFIX_OCCURRENCE_IDENTITY_MUST_EQUAL_ROUND2_LEFT_SUBTREE_OCCURRENCE_IDENTITY_WHILE_BOUNDARY_CONTEXT_IS_RECOMPUTED_BY_B5_1",
   "required_checks":[
     "SAME_FULL_PREPROCESSING_SUBJECT",
     "SAME_FIXED_DISCOVERY_CATALOG",
@@ -34,11 +45,14 @@
     "ROUND2_NEW_FACTOR_EQUALS_SCHEDULE_INDEX_1",
     "ROUND1_B5_1_CLOSED_AND_INDEPENDENTLY_VERIFIED",
     "ROUND2_B5_1_CLOSED_AND_INDEPENDENTLY_VERIFIED",
-    "ROUND1_ROOT_TO_ROUND2_LEFT_LEAF_DIGEST_EQUAL",
+    "ROUND1_ROOT_COVERAGE_EQUALS_ROUND2_LEFT_SUBTREE_COVERAGE",
+    "ROUND1_FACTOR_IDENTITY_RECORDS_EQUAL_ROUND2_LEFT_SUBTREE_FACTOR_IDENTITY_RECORDS",
+    "BOUNDARY_CONTEXT_CHANGE_EXPLICITLY_BOUND",
     "AFFINE_OFFSET_IDENTITY_PRESERVED",
     "NO_TERMINAL_PROMOTION"
   ],
   "does_not_establish":[
+    "BOUNDARY_RELATIVE_FULL_SET_STATE_REUSE_ACROSS_ROUNDS",
     "ROUND2_FOUND_LAYOUT",
     "ROUND2_NO_LAYOUT_AT_CAP",
     "ROUND3_OR_LATER_EXECUTION",
@@ -52,6 +66,7 @@
   ],
   "strict_boundary":{
     "round1_round2_execution_composition":"CANDIDATE_ONLY",
+    "raw_boundary_relative_state_handoff":"FORBIDDEN",
     "full_round_execution":"NOT_ESTABLISHED",
     "original_order_lift":"NOT_ADMITTED_REPLACEMENT_EVIDENCE_INCOMPLETE",
     "all_input_termination":"NOT_ESTABLISHED",
