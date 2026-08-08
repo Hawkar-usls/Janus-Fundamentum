@@ -15,13 +15,20 @@ def cb(x): return json.dumps(x,sort_keys=True,separators=(',',':')).encode()
 def dg(x): return hashlib.sha256(cb(x)).hexdigest()
 def load(p): return json.loads(Path(p).read_text())
 def semok(x,scope,payload): return x.get('semantic_digest_scope')==scope and dg(x.get(payload))==x.get('semantic_digest')
+def gb(p):
+    b=Path(p).read_bytes(); return hashlib.sha1(f'blob {len(b)}\0'.encode()+b).hexdigest()
 
-def verifier_import_forbidden(path):
+def imports(path):
     tree=ast.parse(Path(path).read_text()); mods=[]
     for n in ast.walk(tree):
         if isinstance(n,ast.Import): mods.extend(a.name for a in n.names)
         elif isinstance(n,ast.ImportFrom): mods.append(n.module or '')
-    req(not any(x.endswith('janus_c049_1_b4_6_3_general_structural_induction_composition') for x in mods),'INV01','verifier imports producer')
+    return mods
+
+def implementation_decoupling(producer_source,verifier_source):
+    pm=imports(producer_source); vm=imports(verifier_source)
+    req(not any(x.endswith('janus_c049_1_b4_6_3_general_structural_induction_composition_verifier') for x in pm),'INV01','producer imports verifier')
+    req(not any(x.endswith('janus_c049_1_b4_6_3_general_structural_induction_composition') for x in vm),'INV01','verifier imports producer')
 
 def xb(rows):
     basis={}
@@ -68,11 +75,14 @@ def lemma27_controls():
             checked+=1
     return checked
 
-def load_audits(a):
-    out=[]
+def load_audits(a,s):
+    receipts=s['local_semantic_receipts']; out=[]; blobs={}
     for i,p in enumerate(a.audits,1):
-        x=load(p); req(semok(x,'audit_payload','audit_payload'),'INV01',f'O{i} audit semantic'); out.append(x)
-    return out
+        key=f'O{i}'; x=load(p); blob=gb(p)
+        req(blob==receipts[key]['audit_git_blob'],'INV01',f'{key} audit blob')
+        req(semok(x,'audit_payload','audit_payload'),'INV01',f'{key} audit semantic')
+        out.append(x); blobs[key]=blob
+    return out,blobs
 
 def expected_steps(s):
     cp=s['structural_induction_contract']['caller_precondition_discharge']
@@ -88,8 +98,9 @@ def expected_steps(s):
 def verify(c,s,a):
     req(c.get('schema')==SCHEMA and semok(c,'proof_payload','proof_payload'),'INV01','candidate semantic')
     req(s['gate']==GATE and s['version']=='1.0' and s['admission'] is False,'INV01','spec')
-    audits=load_audits(a); r=s['local_semantic_receipts']
+    audits,blobs=load_audits(a,s); r=s['local_semantic_receipts']
     req(list(r)==[f'O{i}' for i in range(1,8)],'INV01','receipt ids')
+    req(c['proof_payload']['audit_git_blobs']==blobs,'INV01','audit blob map')
     req(c['proof_payload']['audit_semantic_digests']=={f'O{i}':audits[i-1]['semantic_digest'] for i in range(1,8)},'INV01','audit digest map')
     req(c['proof_payload']['receipt_proof_heads']=={k:v['proof_head'] for k,v in r.items()},'INV01','proof heads')
     pub=s['published_source']; req(pub['source']=='arXiv:1507.02184v4' and pub['source_version_required']=='v4','INV02','v4')
@@ -116,7 +127,7 @@ def tamper(c,s,a):
         try: verify(x,s,a)
         except VError as e: ok.append((name,e.inv)); return
         raise AssertionError('survived '+name)
-    attack('T01_AUDIT_BINDING',lambda x:x['proof_payload']['audit_semantic_digests'].__setitem__('O1','0'*64))
+    attack('T01_AUDIT_BINDING',lambda x:x['proof_payload']['audit_git_blobs'].__setitem__('O1','0'*40))
     attack('T02_EXPAND_PREMISE',lambda x:x['proof_payload']['composition_steps'][1].__setitem__('premise','B_wi SUBSET Bprime_v'))
     attack('T03_DIAGONAL_ORDINARY_JOIN',lambda x:x['proof_payload']['composition_steps'][2].__setitem__('ordinary_path_domain',[[1,0],[0,1],[1,1]]))
     attack('T04_JOIN_PREMISE',lambda x:x['proof_payload']['composition_steps'][2].__setitem__('premise','WEAK_JOIN_PREMISE'))
@@ -131,17 +142,17 @@ def tamper(c,s,a):
     req(len(ok)==12,'INV11','tamper count'); return ok
 
 def main():
-    p=argparse.ArgumentParser(); p.add_argument('--spec',type=Path,required=True); p.add_argument('--verifier-source',type=Path,required=True)
+    p=argparse.ArgumentParser(); p.add_argument('--spec',type=Path,required=True); p.add_argument('--producer-source',type=Path,required=True); p.add_argument('--verifier-source',type=Path,required=True)
     for i in range(1,8): p.add_argument(f'--o{i}-audit',dest=f'o{i}_audit',type=Path,required=True)
     p.add_argument('--candidate-original',type=Path,required=True); p.add_argument('--candidate-reordered',type=Path,required=True); p.add_argument('--tamper-suite',action='store_true')
-    a=p.parse_args(); a.audits=[getattr(a,f'o{i}_audit') for i in range(1,8)]; verifier_import_forbidden(a.verifier_source)
+    a=p.parse_args(); a.audits=[getattr(a,f'o{i}_audit') for i in range(1,8)]; implementation_decoupling(a.producer_source,a.verifier_source)
     req(a.candidate_original.read_bytes()==a.candidate_reordered.read_bytes(),'INV10','byte identity')
     s=load(a.spec); c=load(a.candidate_original); verify(c,s,a); controls=lemma27_controls(); ts=tamper(c,s,a) if a.tamper_suite else []
     print('JANUS_GENERAL_STRUCTURAL_INDUCTION_COMPOSITION_INDEPENDENT_VERIFIER = PASS')
-    print('PRODUCER_IMPORT = FORBIDDEN_AND_NOT_USED'); print('IMPLEMENTATION_DECOUPLING = REQUIRED_AND_OBSERVED')
+    print('PRODUCER_IMPORT = FORBIDDEN_AND_NOT_USED'); print('VERIFIER_IMPORT_OF_PRODUCER = FORBIDDEN_AND_NOT_USED'); print('IMPLEMENTATION_DECOUPLING = REQUIRED_AND_OBSERVED')
     print('INVARIANTS = 12/12'); print('DIGEST_REPAIRED_TAMPERS_REJECTED =',f'{len(ts)}/12' if a.tamper_suite else 'NOT_RUN')
     print('FINITE_LEMMA_2_7_BUG_FINDING_CONTROLS =',controls)
-    print('GENERAL_SEMANTIC_RECEIPTS_BOUND = 7/7')
+    print('GENERAL_SEMANTIC_RECEIPTS_BOUND = 7/7'); print('IMMUTABLE_AUDIT_BLOB_BINDINGS = 7/7')
     print('ALGORITHM1_COMPATIBLE_TRACE_FULL_SET_IDENTITY = PASS_AS_DERIVED_CANDIDATE')
     print('ACTUAL_CORRECTED_ENGINE_COMPLETE_ALGORITHM1_TRACE_ESTABLISHED = FALSE')
     print('TERMINAL_COMPLETENESS_PROVED = FALSE'); print('GLOBAL_ENGINE_NO_LAYOUT_AT_CAP = FORBIDDEN'); print('P_VS_NP = OPEN')
