@@ -1,0 +1,135 @@
+name: Validate C049.1 B4.6.4 actual-engine trace preflight
+
+on:
+  push:
+    paths:
+      - 'experiments/direct/C049_1_B4_6_4_GENERAL_STRUCTURAL_INDUCTION_AUTHORITY_GAP_LEDGER_V1.json'
+      - 'experiments/direct/C049_1_B4_6_4_GENERAL_STRUCTURAL_INDUCTION_COMPOSITION_AUTHORITY_HARDENING_V1.json'
+      - 'experiments/direct/janus_c049_1_b4_6_4_actual_engine_trace_preflight.py'
+      - 'experiments/direct/janus_c049_1_b4_6_4_actual_engine_trace_preflight_verifier.py'
+      - '.github/workflows/validate-c049-1-b4-6-4-actual-engine-trace-preflight.yml'
+  pull_request:
+    paths:
+      - 'experiments/direct/C049_1_B4_6_4_GENERAL_STRUCTURAL_INDUCTION_AUTHORITY_GAP_LEDGER_V1.json'
+      - 'experiments/direct/C049_1_B4_6_4_GENERAL_STRUCTURAL_INDUCTION_COMPOSITION_AUTHORITY_HARDENING_V1.json'
+      - 'experiments/direct/janus_c049_1_b4_6_4_actual_engine_trace_preflight.py'
+      - 'experiments/direct/janus_c049_1_b4_6_4_actual_engine_trace_preflight_verifier.py'
+      - '.github/workflows/validate-c049-1-b4-6-4-actual-engine-trace-preflight.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  LEDGER: experiments/direct/C049_1_B4_6_4_GENERAL_STRUCTURAL_INDUCTION_AUTHORITY_GAP_LEDGER_V1.json
+  HARDENING: experiments/direct/C049_1_B4_6_4_GENERAL_STRUCTURAL_INDUCTION_COMPOSITION_AUTHORITY_HARDENING_V1.json
+  PRODUCER: experiments/direct/janus_c049_1_b4_6_4_actual_engine_trace_preflight.py
+  VERIFIER: experiments/direct/janus_c049_1_b4_6_4_actual_engine_trace_preflight_verifier.py
+
+jobs:
+  actual-engine-trace-preflight:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Bind exact preflight sources and enforce decoupling
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git hash-object "$LEDGER")" = "d2e6740203ad405bebe4940892394580bd0d4d27"
+          test "$(git hash-object "$HARDENING")" = "a1e511acff63b6f84bab72775a6db8bed03330eb"
+          test "$(git hash-object "$PRODUCER")" = "d729052f7e78eef9554e54e40da4c86acd4f4b51"
+          test "$(git hash-object "$VERIFIER")" = "cbb2b625399524ad6512653b987e2940dd653363"
+          python -m py_compile "$PRODUCER" "$VERIFIER"
+          python - <<'PY'
+          import ast
+          from pathlib import Path
+          for path, forbidden in [
+              ('experiments/direct/janus_c049_1_b4_6_4_actual_engine_trace_preflight.py','janus_c049_1_b4_6_4_actual_engine_trace_preflight_verifier'),
+              ('experiments/direct/janus_c049_1_b4_6_4_actual_engine_trace_preflight_verifier.py','janus_c049_1_b4_6_4_actual_engine_trace_preflight')]:
+              tree=ast.parse(Path(path).read_text())
+              mods=[]
+              for n in ast.walk(tree):
+                  if isinstance(n,ast.Import): mods.extend(a.name for a in n.names)
+                  elif isinstance(n,ast.ImportFrom): mods.append(n.module or '')
+              assert not any(m.endswith(forbidden) for m in mods)
+          print('ACTUAL_TRACE_PREFLIGHT_IMPLEMENTATION_DECOUPLING = PASS')
+          PY
+
+      - name: Build deterministic preflight in three traversal modes
+        shell: bash
+        run: |
+          set -euo pipefail
+          for mode in ORIGINAL REVERSED SEEDED_SHUFFLE; do
+            python "$PRODUCER" --ledger "$LEDGER" --hardening "$HARDENING" --order-mode "$mode" --output "/tmp/preflight-$mode.json" | tee "/tmp/producer-$mode.log"
+          done
+          cmp /tmp/preflight-ORIGINAL.json /tmp/preflight-REVERSED.json
+          cmp /tmp/preflight-ORIGINAL.json /tmp/preflight-SEEDED_SHUFFLE.json
+          echo 'ACTUAL_TRACE_PREFLIGHT_THREE_MODE_BYTE_IDENTITY = PASS'
+
+      - name: Independently replay GF2 caller DAG and reject repaired tampers
+        shell: bash
+        run: |
+          set -euo pipefail
+          python "$VERIFIER" --ledger "$LEDGER" --hardening "$HARDENING" --candidate /tmp/preflight-ORIGINAL.json --tamper-suite | tee /tmp/verifier.log
+          grep -F 'JANUS_ACTUAL_ENGINE_TRACE_PREFLIGHT_INDEPENDENT_VERIFIER = PASS' /tmp/verifier.log
+          grep -F 'INVARIANTS = 12/12' /tmp/verifier.log
+          grep -F 'DIGEST_REPAIRED_TAMPERS_REJECTED = 12/12' /tmp/verifier.log
+          grep -F 'GF2_CALLER_PREMISE_NODES = 5/5' /tmp/verifier.log
+          grep -F 'NODE8_AUTHORITY_CLOSED = FALSE' /tmp/verifier.log
+          grep -F 'Q80_COMPOSITION_REPLAY_COMPLETE = FALSE' /tmp/verifier.log
+          grep -F 'ROOT_EMPTY_CONSUMED_AS_PREMISE = FALSE' /tmp/verifier.log
+          grep -F 'READY_FOR_COMPOSITION_ADMISSION = FALSE' /tmp/verifier.log
+
+      - name: Freeze non-promoting exact-head receipt
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ "${{ github.event_name }}" = "pull_request" ]; then PROOF_HEAD="${{ github.event.pull_request.head.sha }}"; else PROOF_HEAD="$GITHUB_SHA"; fi
+          {
+            echo "GITHUB_SHA=$GITHUB_SHA"
+            echo "PROOF_HEAD=$PROOF_HEAD"
+            echo "LEDGER_BLOB=$(git hash-object "$LEDGER")"
+            echo "HARDENING_BLOB=$(git hash-object "$HARDENING")"
+            echo "PRODUCER_BLOB=$(git hash-object "$PRODUCER")"
+            echo "VERIFIER_BLOB=$(git hash-object "$VERIFIER")"
+            echo "CANDIDATE_SHA256=$(sha256sum /tmp/preflight-ORIGINAL.json | cut -d' ' -f1)"
+            echo "CANDIDATE_SEMANTIC_DIGEST=$(python -c 'import json; print(json.load(open("/tmp/preflight-ORIGINAL.json"))["semantic_digest"])')"
+            echo 'THREE_MODE_BYTE_IDENTITY=PASS'
+            echo 'INVARIANTS=12/12'
+            echo 'DIGEST_REPAIRED_TAMPERS_REJECTED=12/12'
+            echo 'GF2_CALLER_PREMISE_NODES=5/5'
+            echo 'NODE8_AUTHORITY_CLOSED=FALSE'
+            echo 'Q80_COMPOSITION_REPLAY_COMPLETE=FALSE'
+            echo 'ROOT_EMPTY_CONSUMED_AS_PREMISE=FALSE'
+            echo 'ACTUAL_CORRECTED_ENGINE_COMPLETE_ALGORITHM1_TRACE_ESTABLISHED=FALSE'
+            echo 'ENGINE_ROOT_FULL_SET_EQUALS_FS_K_V_ZERO=FALSE'
+            echo 'TERMINAL_COMPLETENESS_PROVED=FALSE'
+            echo 'NO_LAYOUT_AT_CAP=FORBIDDEN'
+            echo 'P_VS_NP=OPEN'
+          } | tee /tmp/exact-head-receipt.txt
+
+      - name: Export preflight evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: c049-b4-6-4-actual-engine-trace-preflight
+          retention-days: 7
+          compression-level: 9
+          path: |
+            /tmp/preflight-ORIGINAL.json
+            /tmp/preflight-REVERSED.json
+            /tmp/preflight-SEEDED_SHUFFLE.json
+            /tmp/producer-ORIGINAL.log
+            /tmp/producer-REVERSED.log
+            /tmp/producer-SEEDED_SHUFFLE.log
+            /tmp/verifier.log
+            /tmp/exact-head-receipt.txt
+            experiments/direct/C049_1_B4_6_4_GENERAL_STRUCTURAL_INDUCTION_AUTHORITY_GAP_LEDGER_V1.json
+            experiments/direct/C049_1_B4_6_4_GENERAL_STRUCTURAL_INDUCTION_COMPOSITION_AUTHORITY_HARDENING_V1.json
+            experiments/direct/janus_c049_1_b4_6_4_actual_engine_trace_preflight.py
+            experiments/direct/janus_c049_1_b4_6_4_actual_engine_trace_preflight_verifier.py
