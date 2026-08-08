@@ -1,0 +1,308 @@
+name: Validate C049.1 B5.4 corrected discovery Phase-A C047 handoff
+
+on:
+  pull_request:
+    paths:
+      - 'experiments/direct/C049_1_B5_4_CORRECTED_DISCOVERY_PHASE_A_C047_HANDOFF_SPEC_V1.json'
+      - 'experiments/direct/janus_c049_1_b5_4_corrected_discovery_phase_a_c047_handoff.py'
+      - 'experiments/direct/janus_c049_1_b5_4_corrected_discovery_phase_a_c047_handoff_verifier.py'
+      - '.github/workflows/validate-c049-1-b5-4-corrected-discovery-phase-a-c047-handoff.yml'
+  workflow_dispatch:
+
+jobs:
+  b5-4-phase-a-c047-handoff:
+    runs-on: ubuntu-latest
+    env:
+      PYTHONPATH: experiments/direct
+      SPEC: experiments/direct/C049_1_B5_4_CORRECTED_DISCOVERY_PHASE_A_C047_HANDOFF_SPEC_V1.json
+      PRODUCER: experiments/direct/janus_c049_1_b5_4_corrected_discovery_phase_a_c047_handoff.py
+      VERIFIER: experiments/direct/janus_c049_1_b5_4_corrected_discovery_phase_a_c047_handoff_verifier.py
+      B5_CONTRACT: experiments/direct/audits/C049_1_B5_GENERAL_RUNTIME_TERMINAL_CONTRACT_ADMISSION_CEBBCFF9.json
+      B51_SPEC: experiments/direct/C049_1_B5_1_GENERIC_CORRECTED_RUNTIME_TRACE_EXECUTOR_SPEC_V1.json
+      B51_PRODUCER: experiments/direct/janus_c049_1_b5_1_generic_corrected_runtime_trace_executor.py
+      B52A_SPEC: experiments/direct/C049_1_B5_2A_GENERIC_ALGORITHM2_PROVENANCE_CARRIER_AMENDMENT_V1_1.json
+      B52A_PRODUCER: experiments/direct/janus_c049_1_b5_2a_generic_algorithm2_provenance_carrier_v11.py
+      B52A_VERIFIER: experiments/direct/janus_c049_1_b5_2a_generic_algorithm2_provenance_carrier_verifier_v11.py
+      B52B_SPEC: experiments/direct/C049_1_B5_2B_GENERIC_ALGORITHM2_PRINTORDER_RECONSTRUCTION_SPEC_V1.json
+      B52B_PRODUCER: experiments/direct/janus_c049_1_b5_2b_generic_algorithm2_printorder_reconstruction.py
+      B52B_VERIFIER: experiments/direct/janus_c049_1_b5_2b_generic_algorithm2_printorder_reconstruction_verifier.py
+      B52B_ADMISSION: experiments/direct/audits/C049_1_B5_2B_GENERIC_ALGORITHM2_PRINTORDER_RECONSTRUCTION_ADMISSION_F057B7AF.json
+      B53_ADMISSION: experiments/direct/audits/C049_1_B5_3_GENERIC_EMPTY_ROOT_TERMINAL_COMPOSITION_ADMISSION_E9841522.json
+      PHASE_FROZEN: experiments/direct/C049-JANUS-JKO-FPT-LAYOUT-INTEGRATION-PHASE-A.frozen.json
+      PHASE_CORE: experiments/direct/janus_c049_fpt_integration_core.py
+      PHASE_SOLVER: experiments/direct/janus_c049_fpt_integration_solver.py
+      PHASE_VERIFIER: experiments/direct/janus_c049_fpt_integration_verifier.py
+      PHASE_CLI: experiments/direct/janus_c049_fpt_integration.py
+      C047_CORE: experiments/direct/janus_c047_affine_trellis_core.py
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Bind exact-head B5.4 files and admitted authority
+        run: |
+          set -euo pipefail
+          if [ "${{ github.event_name }}" = "pull_request" ]; then PROOF_HEAD="${{ github.event.pull_request.head.sha }}"; else PROOF_HEAD="$GITHUB_SHA"; fi
+          echo "PROOF_HEAD=$PROOF_HEAD" >> "$GITHUB_ENV"
+          for f in "$SPEC" "$PRODUCER" "$VERIFIER"; do
+            test "$(git rev-parse "$PROOF_HEAD:$f")" = "$(git hash-object "$f")"
+          done
+          test "$(git hash-object "$B5_CONTRACT")" = "6103a509bca3e91b1950a58e90e8274b3cc5e4c7"
+          test "$(git hash-object "$B52B_ADMISSION")" = "5e60eff4a4bd4c87cbf527cd446fc6b23b013774"
+          test "$(git hash-object "$B53_ADMISSION")" = "32177caad196ca4640c090212c41bc132448cc7c"
+          test "$(git hash-object "$PHASE_FROZEN")" = "58989ac5c26b786b1cc463f62c40ba2ae648276a"
+          test "$(git hash-object "$PHASE_CORE")" = "5eb806a079343f00622886c448d2bfbfa412cbfe"
+          test "$(git hash-object "$PHASE_SOLVER")" = "70c06752890e797bdf3a7c87c2cb41703fade163"
+          test "$(git hash-object "$PHASE_VERIFIER")" = "343ad630743c3325c20da26c2e53895b23f2e8da"
+          test "$(git hash-object "$C047_CORE")" = "c2905332a83b175eea8bd0a326e1a63555b2130a"
+          test "$(git rev-parse 8cf39d35fc0fd03191b5ab28905637a5c842b2cf:$PHASE_FROZEN)" = "58989ac5c26b786b1cc463f62c40ba2ae648276a"
+          python - <<'PY'
+          import hashlib,json,os
+          for env,want in [('B52B_ADMISSION','51b1223b528479aa319f551c7af8173340f06e2a9ac863bb251e9de2b5c87766'),('B53_ADMISSION','8f87592ea9435d1b5dd914a1e2bb8b8e18b8101d286b29422e44e09134d1884b')]:
+              x=json.load(open(os.environ[env])); raw=json.dumps(x['audit_payload'],sort_keys=True,separators=(',',':')).encode(); assert x['semantic_digest']==want and hashlib.sha256(raw).hexdigest()==want
+          print('B5_4_B5_2B_B5_3_AUTHORITY = PASS')
+          print('B5_4_PHASE_A_FILE_AUTHORITY = PASS')
+          PY
+          echo 'B5_4_EXACT_HEAD_BINDING = PASS'
+
+      - name: Replay frozen Phase-A executable audit
+        run: |
+          set -euo pipefail
+          python "$PHASE_CLI" --audit /tmp/phase-a-audit.json
+          test "$(sha256sum /tmp/phase-a-audit.json | awk '{print $1}')" = "b38c982c7657f5f5e20a704ad46c65ab54c7b31a6104f4b8cb744f9aeff09ae3"
+          grep -F 'b38c982c7657f5f5e20a704ad46c65ab54c7b31a6104f4b8cb744f9aeff09ae3' "$PHASE_FROZEN"
+          echo 'B5_4_PHASE_A_FROZEN_AUDIT_REPLAY = PASS'
+
+      - name: Compile and enforce independent adapter verifier plus no direct C047 bypass
+        run: |
+          set -euo pipefail
+          python -m py_compile "$PRODUCER" "$VERIFIER"
+          python - <<'PY'
+          import ast
+          from pathlib import Path
+          vp=Path('experiments/direct/janus_c049_1_b5_4_corrected_discovery_phase_a_c047_handoff_verifier.py')
+          pp=Path('experiments/direct/janus_c049_1_b5_4_corrected_discovery_phase_a_c047_handoff.py')
+          def imports(path):
+              t=ast.parse(path.read_text()); out=[]
+              for n in ast.walk(t):
+                  if isinstance(n,ast.Import): out += [a.name for a in n.names]
+                  elif isinstance(n,ast.ImportFrom): out.append(n.module or '')
+              return out,t
+          iv,tv=imports(vp); ip,tp=imports(pp)
+          assert not any(x.endswith('janus_c049_1_b5_4_corrected_discovery_phase_a_c047_handoff') for x in iv)
+          for tree,name in [(tp,'producer'),(tv,'verifier')]:
+              for n in ast.walk(tree):
+                  if isinstance(n,ast.Name) and n.id=='compile_order_probe': raise AssertionError(name+' directly references compile_order_probe')
+                  if isinstance(n,ast.Attribute) and n.attr=='compile_order_probe': raise AssertionError(name+' directly references compile_order_probe')
+                  if isinstance(n,ast.Name) and n.id=='make_no_layout_transcript': raise AssertionError(name+' can create bare no-layout transcript')
+          print('B5_4_INDEPENDENT_VERIFIER_DECOUPLING = PASS')
+          print('B5_4_DIRECT_COMPILE_ORDER_PROBE_BYPASS = ABSENT')
+          print('B5_4_BARE_NO_LAYOUT_TRANSCRIPT_PATH = ABSENT')
+          PY
+
+      - name: Build SAT UNSAT OPEN and invalid-affine inputs
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          def w(name,x): Path('/tmp/'+name+'.json').write_text(json.dumps(x,sort_keys=True,separators=(',',':'))+'\n')
+          caps={'max_boundary_dim':2,'max_k':1,'max_full_set_entries':5000,'max_child_pairs':100000,'max_join_paths':500000}
+          sat_b5={'ambient_dim':2,'k':0,'caps':caps,'factors':[{'id':10,'normal_space':[1],'affine_offset':{'canonical_affine_equations':[[1,0]]}},{'id':20,'normal_space':[2],'affine_offset':{'canonical_affine_equations':[[2,0]]}}],'tree':{'root':'root','nodes':[{'id':'root','left':'la','right':'lb'},{'id':'la','factor_id':10},{'id':'lb','factor_id':20}]}}
+          sat_phase={'dimension':2,'k':0,'factors':[{'factor_id':10,'equations':[[1,0]]},{'factor_id':20,'equations':[[2,0]]}],'caps':{}}
+          unsat_b5={'ambient_dim':1,'k':1,'caps':caps,'factors':[{'id':101,'normal_space':[1],'affine_offset':{'canonical_affine_equations':[[1,0]]}},{'id':102,'normal_space':[1],'affine_offset':{'canonical_affine_equations':[[1,1]]}}],'tree':{'root':'r','nodes':[{'id':'r','left':'l','right':'q'},{'id':'l','factor_id':101},{'id':'q','factor_id':102}]}}
+          unsat_phase={'dimension':1,'k':1,'factors':[{'factor_id':101,'equations':[[1,0]]},{'factor_id':102,'equations':[[1,1]]}],'caps':{}}
+          open_phase={**sat_phase,'caps':{'trellis_work_cap':1}}
+          wrong_affine=json.loads(json.dumps(unsat_b5)); wrong_affine['factors'][1]['affine_offset']={'canonical_affine_equations':[[1,0]]}
+          for name,x in [('sat-b5',sat_b5),('sat-phase',sat_phase),('unsat-b5',unsat_b5),('unsat-phase',unsat_phase),('open-phase',open_phase),('wrong-affine-b5',wrong_affine)]: w(name,x)
+          print('B5_4_CONTROL_INPUTS = 6')
+          PY
+
+      - name: Build and independently replay B5.2B positive subjects
+        run: |
+          set -euo pipefail
+          for name in sat unsat wrong-affine; do
+            b5=/tmp/$name-b5.json
+            python "$B51_PRODUCER" --spec "$B51_SPEC" --input "$b5" --output "/tmp/$name.b51.json" > "/tmp/$name.b51.log"
+            grep -F 'CAPABILITY_STATUS = CLOSED_COMPLETE_TRACE' "/tmp/$name.b51.log"
+            python "$B52A_PRODUCER" --spec "$B52A_SPEC" --input "$b5" --b5-1-artifact "/tmp/$name.b51.json" --output "/tmp/$name.b52a.json" > "/tmp/$name.b52a.log"
+            python "$B52A_VERIFIER" --spec "$B52A_SPEC" --input "$b5" --b5-1-artifact "/tmp/$name.b51.json" --candidate "/tmp/$name.b52a.json" > "/tmp/$name.b52a.verify.log"
+            grep -F 'JANUS_B5_2A_GENERIC_ALGORITHM2_PROVENANCE_CARRIER_V1_1_INDEPENDENT_VERIFIER = PASS' "/tmp/$name.b52a.verify.log"
+            python "$B52B_PRODUCER" --spec "$B52B_SPEC" --input "$b5" --b5-1-artifact "/tmp/$name.b51.json" --carrier "/tmp/$name.b52a.json" --output "/tmp/$name.b52b.json" > "/tmp/$name.b52b.log"
+            python "$B52B_VERIFIER" --spec "$B52B_SPEC" --input "$b5" --b5-1-artifact "/tmp/$name.b51.json" --carrier "/tmp/$name.b52a.json" --candidate "/tmp/$name.b52b.json" > "/tmp/$name.b52b.verify.log"
+            grep -F 'JANUS_B5_2B_GENERIC_ALGORITHM2_PRINTORDER_INDEPENDENT_VERIFIER = PASS' "/tmp/$name.b52b.verify.log"
+          done
+          python - <<'PY'
+          import json
+          u=json.load(open('/tmp/unsat.b52b.json'))['proof_payload']
+          w=json.load(open('/tmp/wrong-affine.b52b.json'))['proof_payload']
+          assert u['candidate_found_layout'] is True and u['maximum_cut_width']<=1
+          assert len(u['layout_records'])==2 and u['layout_records'][0]['normal_space']==[1] and u['layout_records'][1]['normal_space']==[1]
+          assert {json.dumps(r['affine_offset'],sort_keys=True) for r in u['layout_records']}=={json.dumps({'canonical_affine_equations':[[1,0]]},sort_keys=True),json.dumps({'canonical_affine_equations':[[1,1]]},sort_keys=True)}
+          assert w['candidate_found_layout'] is True
+          print('B5_4_DUPLICATE_GEOMETRY_DISTINCT_AFFINE_OCCURRENCES = PASS')
+          print('B5_4_WRONG_AFFINE_SUBJECT_IS_VALID_FOR_PATHWIDTH = PASS')
+          PY
+
+      - name: Execute and independently verify SAT handoff
+        run: |
+          set -euo pipefail
+          python "$PRODUCER" --spec "$SPEC" --b5-input /tmp/sat-b5.json --phase-a-input /tmp/sat-phase.json --b5-2b-candidate /tmp/sat.b52b.json --b5-2b-admission "$B52B_ADMISSION" --b5-3-admission "$B53_ADMISSION" --output /tmp/sat.b54.json | tee /tmp/sat.b54.log
+          python "$VERIFIER" --spec "$SPEC" --b5-input /tmp/sat-b5.json --phase-a-input /tmp/sat-phase.json --b5-2b-candidate /tmp/sat.b52b.json --b5-2b-admission "$B52B_ADMISSION" --b5-3-admission "$B53_ADMISSION" --candidate /tmp/sat.b54.json | tee /tmp/sat.b54.verify.log
+          grep -F 'C047_STATUS = SAT' /tmp/sat.b54.verify.log
+          grep -F 'PHASE_A_CERTIFICATE_VERIFIER = PASS' /tmp/sat.b54.verify.log
+          python - <<'PY'
+          import json
+          p=json.load(open('/tmp/sat.b54.json'))['proof_payload']
+          assert p['phase_a_result']['status']=='SAT'
+          assert p['phase_a_result']['constructor_terminal']=='FOUND_LAYOUT'
+          assert p['phase_a_result']['ambient_witness'] is not None
+          assert p['handoff_checks']['direct_compile_order_probe_called_by_adapter'] is False
+          print('B5_4_SAT_HANDOFF = PASS')
+          PY
+
+      - name: Execute and independently verify duplicate-geometry UNSAT handoff
+        run: |
+          set -euo pipefail
+          python "$PRODUCER" --spec "$SPEC" --b5-input /tmp/unsat-b5.json --phase-a-input /tmp/unsat-phase.json --b5-2b-candidate /tmp/unsat.b52b.json --b5-2b-admission "$B52B_ADMISSION" --b5-3-admission "$B53_ADMISSION" --output /tmp/unsat.b54.json | tee /tmp/unsat.b54.log
+          python "$VERIFIER" --spec "$SPEC" --b5-input /tmp/unsat-b5.json --phase-a-input /tmp/unsat-phase.json --b5-2b-candidate /tmp/unsat.b52b.json --b5-2b-admission "$B52B_ADMISSION" --b5-3-admission "$B53_ADMISSION" --candidate /tmp/unsat.b54.json | tee /tmp/unsat.b54.verify.log
+          grep -F 'C047_STATUS = UNSAT' /tmp/unsat.b54.verify.log
+          grep -F 'AFFINE_FINGERPRINT_IDENTITY = PASS' /tmp/unsat.b54.verify.log
+          python - <<'PY'
+          import json
+          p=json.load(open('/tmp/unsat.b54.json'))['proof_payload']
+          assert p['phase_a_result']['status']=='UNSAT'
+          assert p['phase_a_result']['constructor_terminal']=='FOUND_LAYOUT'
+          assert [r['factor_id'] for r in p['adapter_identity']['map_records']]==p['adapter_identity']['factor_order_ids']
+          fps=[r['affine_fingerprint'] for r in p['adapter_identity']['map_records']]
+          assert fps[0]!=fps[1]
+          print('B5_4_UNSAT_HANDOFF = PASS')
+          PY
+
+      - name: Execute and independently verify nested capability OPEN propagation
+        run: |
+          set -euo pipefail
+          python "$PRODUCER" --spec "$SPEC" --b5-input /tmp/sat-b5.json --phase-a-input /tmp/open-phase.json --b5-2b-candidate /tmp/sat.b52b.json --b5-2b-admission "$B52B_ADMISSION" --b5-3-admission "$B53_ADMISSION" --output /tmp/open.b54.json | tee /tmp/open.b54.log
+          python "$VERIFIER" --spec "$SPEC" --b5-input /tmp/sat-b5.json --phase-a-input /tmp/open-phase.json --b5-2b-candidate /tmp/sat.b52b.json --b5-2b-admission "$B52B_ADMISSION" --b5-3-admission "$B53_ADMISSION" --candidate /tmp/open.b54.json | tee /tmp/open.b54.verify.log
+          python - <<'PY'
+          import json
+          p=json.load(open('/tmp/open.b54.json'))['proof_payload']
+          assert p['phase_a_result']['constructor_terminal']=='FOUND_LAYOUT'
+          assert p['c047_status'].startswith('OPEN_')
+          assert p['phase_a_result']['status']==p['c047_status']
+          assert p['handoff_checks']['nested_status_propagated_without_promotion'] is True
+          print('B5_4_NESTED_C047_OPEN_PROPAGATION = PASS')
+          PY
+
+      - name: Reject wrong affine fingerprint after valid B5.2B path-width proof
+        run: |
+          set -euo pipefail
+          if python "$PRODUCER" --spec "$SPEC" --b5-input /tmp/wrong-affine-b5.json --phase-a-input /tmp/unsat-phase.json --b5-2b-candidate /tmp/wrong-affine.b52b.json --b5-2b-admission "$B52B_ADMISSION" --b5-3-admission "$B53_ADMISSION" --output /tmp/wrong.b54.json > /tmp/wrong.b54.log 2>&1; then
+            echo 'wrong affine fingerprint unexpectedly accepted'; exit 1
+          fi
+          grep -F 'affine fingerprint' /tmp/wrong.b54.log
+          echo 'B5_4_INVALID_AFFINE_BINDING_REJECTED_BEFORE_PHASE_A_HANDOFF = PASS'
+
+      - name: Reject 24 semantic handoff attacks
+        run: |
+          set -euo pipefail
+          python "$VERIFIER" --spec "$SPEC" --b5-input /tmp/unsat-b5.json --phase-a-input /tmp/unsat-phase.json --b5-2b-candidate /tmp/unsat.b52b.json --b5-2b-admission "$B52B_ADMISSION" --b5-3-admission "$B53_ADMISSION" --candidate /tmp/unsat.b54.json --tamper-suite --open-candidate /tmp/open.b54.json --open-phase-a-input /tmp/open-phase.json | tee /tmp/b54-tamper.log
+          grep -F 'DIGEST_REPAIRED_TAMPERS_REJECTED = 24/24' /tmp/b54-tamper.log
+
+      - name: Check strict B5.4 ceiling
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json
+          for name in ('sat','unsat','open'):
+              p=json.load(open('/tmp/'+name+'.b54.json'))['proof_payload']
+              b=p['strict_boundary']
+              assert b['b5_4_corrected_discovery_to_c047_handoff_candidate'] is False
+              assert b['c047_result_may_be_emitted_only_from_verified_phase_a_result'] is True
+              assert b['b5_complete'] is False
+              assert b['b5_contract_completion_review_required'] is True
+              assert b['all_input_termination']=='NOT_ESTABLISHED'
+              assert b['polynomial_runtime']=='NOT_ESTABLISHED'
+              assert b['arbitrary_input_global_engine_theorem'] is False
+              assert b['p_vs_np']=='OPEN'
+              assert p['handoff_checks']['b5_3_bare_no_layout_transcript_created'] is False
+          print('B5_4_REVIEW_ONLY_CEILING = PASS')
+          PY
+
+      - name: Freeze exact-head B5.4 candidate receipt
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/b54-evidence
+          cp /tmp/sat.b54.json /tmp/unsat.b54.json /tmp/open.b54.json /tmp/b54-evidence/
+          cp /tmp/sat.b54.verify.log /tmp/unsat.b54.verify.log /tmp/open.b54.verify.log /tmp/b54-tamper.log /tmp/b54-evidence/
+          python - <<'PY'
+          import hashlib,json,os,subprocess
+          from pathlib import Path
+          def sha(path): return hashlib.sha256(Path(path).read_bytes()).hexdigest()
+          sat=json.load(open('/tmp/sat.b54.json')); unsat=json.load(open('/tmp/unsat.b54.json')); op=json.load(open('/tmp/open.b54.json'))
+          receipt={
+            'schema':'janus.c049_1.b5_4.corrected_discovery_phase_a_c047_handoff_exact_head_candidate_receipt.v1',
+            'proof_head':os.environ['PROOF_HEAD'],
+            'bindings':{
+              'spec_git_blob':subprocess.check_output(['git','hash-object',os.environ['SPEC']],text=True).strip(),
+              'producer_git_blob':subprocess.check_output(['git','hash-object',os.environ['PRODUCER']],text=True).strip(),
+              'verifier_git_blob':subprocess.check_output(['git','hash-object',os.environ['VERIFIER']],text=True).strip(),
+              'b5_contract_receipt_git_blob':'6103a509bca3e91b1950a58e90e8274b3cc5e4c7',
+              'b5_2b_admission_receipt_git_blob':'5e60eff4a4bd4c87cbf527cd446fc6b23b013774',
+              'b5_3_admission_receipt_git_blob':'32177caad196ca4640c090212c41bc132448cc7c',
+              'phase_a_frozen_manifest_git_blob':'58989ac5c26b786b1cc463f62c40ba2ae648276a',
+              'phase_a_frozen_audit_sha256':'b38c982c7657f5f5e20a704ad46c65ab54c7b31a6104f4b8cb744f9aeff09ae3',
+              'phase_a_core_git_blob':'5eb806a079343f00622886c448d2bfbfa412cbfe',
+              'phase_a_solver_git_blob':'70c06752890e797bdf3a7c87c2cb41703fade163',
+              'phase_a_verifier_git_blob':'343ad630743c3325c20da26c2e53895b23f2e8da',
+              'c047_core_git_blob':'c2905332a83b175eea8bd0a326e1a63555b2130a'
+            },
+            'controls':{
+              'sat':{'sha256':sha('/tmp/sat.b54.json'),'semantic_digest':sat['semantic_digest'],'c047_status':sat['proof_payload']['c047_status'],'factor_order_ids':sat['proof_payload']['adapter_identity']['factor_order_ids']},
+              'unsat':{'sha256':sha('/tmp/unsat.b54.json'),'semantic_digest':unsat['semantic_digest'],'c047_status':unsat['proof_payload']['c047_status'],'factor_order_ids':unsat['proof_payload']['adapter_identity']['factor_order_ids']},
+              'open':{'sha256':sha('/tmp/open.b54.json'),'semantic_digest':op['semantic_digest'],'c047_status':op['proof_payload']['c047_status'],'factor_order_ids':op['proof_payload']['adapter_identity']['factor_order_ids']}
+            },
+            'checks':{
+              'phase_a_frozen_audit_replay':'PASS',
+              'upstream_b5_2b_independent_replay':'PASS_ALL_CONTROLS',
+              'canonical_affine_identity':'PASS',
+              'phase_a_layout_recomputation':'PASS',
+              'canonical_found_layout_transcript':'PASS',
+              'phase_a_solve_reverification':'PASS',
+              'phase_a_certificate_verifier':'PASS',
+              'sat_handoff':'PASS',
+              'unsat_handoff':'PASS',
+              'nested_open_propagation':'PASS',
+              'invalid_affine_binding_rejected':'PASS',
+              'direct_compile_order_probe_called_by_adapter':False,
+              'b5_3_bare_no_layout_transcript_created':False,
+              'digest_repaired_tampers_rejected':'24/24'
+            },
+            'formal_admission':'BLOCKED_PENDING_REVIEW',
+            'b5_complete':False,
+            'b5_contract_completion_review_required':True,
+            'all_input_termination':'NOT_ESTABLISHED',
+            'polynomial_runtime':'NOT_ESTABLISHED',
+            'p_vs_np':'OPEN'
+          }
+          Path('/tmp/b54-evidence/exact-head-receipt.json').write_text(json.dumps(receipt,sort_keys=True,separators=(',',':'))+'\n')
+          print('B5_4_EXACT_HEAD_RECEIPT = FROZEN')
+          print('PROOF_HEAD =',receipt['proof_head'])
+          print('SAT_STATUS =',receipt['controls']['sat']['c047_status'])
+          print('UNSAT_STATUS =',receipt['controls']['unsat']['c047_status'])
+          print('OPEN_STATUS =',receipt['controls']['open']['c047_status'])
+          print('DIGEST_REPAIRED_TAMPERS_REJECTED = 24/24')
+          print('B5_COMPLETE = FALSE_PENDING_CONTRACT_COMPLETION_REVIEW')
+          print('P_VS_NP = OPEN')
+          PY
+
+      - name: Export B5.4 evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: c049-1-b5-4-corrected-discovery-phase-a-c047-handoff
+          path: /tmp/b54-evidence
+          if-no-files-found: error
