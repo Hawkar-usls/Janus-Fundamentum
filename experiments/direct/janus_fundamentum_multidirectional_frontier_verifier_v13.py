@@ -1,5 +1,11 @@
 #!/usr/bin/env python3
-"""Independent verifier for Fundamentum multidirectional frontier v1.3."""
+"""Independent verifier for Fundamentum multidirectional frontier v1.3.
+
+The immutable pre-frontier corpus is materialized once per verifier process and
+reused across repaired-digest tamper attacks.  This changes performance only;
+every attack is still checked against the same independently reconstructed
+Git-authoritative corpus snapshot.
+"""
 from __future__ import annotations
 import argparse, copy, hashlib, json, re, subprocess
 from pathlib import Path
@@ -15,8 +21,7 @@ RELATION_WEIGHT={"MAIN":100,"VERY_HIGH":80,"HIGH":65,"DIRECT_CONTINUATION":85,"V
 def cb(v): return json.dumps(v,sort_keys=True,separators=(",",":"),ensure_ascii=False).encode()
 def oh(v): return hashlib.sha256(cb(v)).hexdigest()
 def git(root,*args): return subprocess.check_output(["git","-C",str(root),*args])
-def mcount(text,marker):
-    return sum(1 for _ in re.finditer(r"(?<![A-Za-z0-9_])"+re.escape(marker)+r"(?![A-Za-z0-9_])",text,re.I))
+def mcount(text,marker): return sum(1 for _ in re.finditer(r"(?<![A-Za-z0-9_])"+re.escape(marker)+r"(?![A-Za-z0-9_])",text,re.I))
 def sclass(rel):
     if rel.startswith("experiments/direct/audits/"): return "AUDIT"
     if rel.startswith(".github/workflows/"): return "WORKFLOW"
@@ -50,7 +55,7 @@ def rclass(t,ps,allc):
     if ps: return "PROOF_BEARING_ROUTE_SURFACE_FOUND_REQUIRES_THEOREM"
     if allc: return "NARRATIVE_ROUTE_SURFACE_ONLY_REQUIRES_THEOREM"
     return "NO_PRE_FRONTIER_ROUTE_SURFACE_FOUND"
-def verify(root,r,report):
+def verify_with_snapshot(r,report,rows,ch):
     assert r["schema"]==REGISTRY_SCHEMA and len(r["targets"])==23
     assert r["base_binding"]["b5_4_evidence_head"]==BASE_COMMIT
     assert r["policy"]["preferred_outcome"] is None and r["policy"]["route_search_is_not_proof"] is True
@@ -60,7 +65,7 @@ def verify(root,r,report):
     assert report["search_policy"]["active_route_from_relation_metadata_forbidden"] is True
     assert report["search_policy"]["declared_priority_separated_from_evidence_ranking"] is True
     unhashed=copy.deepcopy(report); supplied=unhashed.pop("report_semantic_sha256"); assert supplied==oh(unhashed)
-    rows,ch=corpus(root); assert report["corpus_semantic_sha256"]==ch and report["scanned_surface_count"]==len(rows)
+    assert report["corpus_semantic_sha256"]==ch and report["scanned_surface_count"]==len(rows)
     by={x["id"]:x for x in report["targets"]}; assert len(by)==23
     evidence=[]; priority=[]; a3=[]
     for t in r["targets"]:
@@ -91,30 +96,31 @@ def verify(root,r,report):
     pr=[x[0] for x in sorted(priority,key=lambda z:(-z[1],z[0]))]
     ar=[x[0] for x in sorted(a3,key=lambda z:(-z[1][0],-z[1][1],-z[1][2],-z[1][3],z[0]))]
     assert report["evidence_ranking"]==er and report["declared_priority_ranking"]==pr and report["a3_evidence_ranking"]==ar and report["selected_a3_candidate"]==(ar[0] if ar else None)
-def reject(root,r,report,mut):
+def reject(r,report,rows,ch,mut):
     b=copy.deepcopy(report); mut(b); u=copy.deepcopy(b); u.pop("report_semantic_sha256",None); b["report_semantic_sha256"]=oh(u)
-    try: verify(root,r,b)
+    try: verify_with_snapshot(r,b,rows,ch)
     except (AssertionError,KeyError,TypeError,ValueError): return
     raise AssertionError("tamper accepted")
-def tampers(root,r,report):
+def tampers(r,report,rows,ch):
     attacks=[
       lambda x:x.__setitem__("corpus_commit","HEAD"), lambda x:x.__setitem__("global_terminal","P_EQUALS_NP"),
       lambda x:x["claim_ceiling"].__setitem__("ANY_A0_A4_TARGET_RESOLVED",True), lambda x:x["search_policy"].__setitem__("active_route_from_relation_metadata_forbidden",False),
       lambda x:x["targets"][0].__setitem__("proof_status","PROVED"), lambda x:x["targets"][0].__setitem__("route_classification","ACTIVE_STRUCTURAL_ROUTE"),
-      lambda x:x["targets"][0].__setitem__("proof_bearing_surface_count",x["targets"][0]["proof_bearing_surface_count"]+1),
-      lambda x:x["targets"][0].__setitem__("proof_bearing_class_count",9), lambda x:x["targets"][0].__setitem__("proof_marker_coverage",99),
-      lambda x:x["targets"][0].__setitem__("declared_priority_score",9999), lambda x:x["evidence_ranking"].reverse(), lambda x:x["declared_priority_ranking"].reverse(),
-      lambda x:x.__setitem__("selected_a3_candidate","A0_P_VS_NP"), lambda x:x.__setitem__("corpus_semantic_sha256","0"*64),
-      lambda x:x.__setitem__("registry_semantic_sha256","f"*64), lambda x:x["targets"][0]["surface_class_counts"].__setitem__("AUDIT",999),
-      lambda x:x["targets"][0].__setitem__("positive_implication_closure",[]), lambda x:x["targets"][0].__setitem__("can_reach_p_not_np_by_explicit_implication",False),
-      lambda x:x["targets"][0].__setitem__("repository_surfaces",[]), lambda x:x["targets"][0].__setitem__("proof_bearing_surfaces",[])
+      lambda x:x["targets"][0].__setitem__("proof_bearing_surface_count",x["targets"][0]["proof_bearing_surface_count"]+1), lambda x:x["targets"][0].__setitem__("proof_bearing_class_count",9),
+      lambda x:x["targets"][0].__setitem__("proof_marker_coverage",99), lambda x:x["targets"][0].__setitem__("declared_priority_score",9999),
+      lambda x:x["evidence_ranking"].reverse(), lambda x:x["declared_priority_ranking"].reverse(), lambda x:x.__setitem__("selected_a3_candidate","A0_P_VS_NP"),
+      lambda x:x.__setitem__("corpus_semantic_sha256","0"*64), lambda x:x.__setitem__("registry_semantic_sha256","f"*64),
+      lambda x:x["targets"][0]["surface_class_counts"].__setitem__("AUDIT",999), lambda x:x["targets"][0].__setitem__("positive_implication_closure",[]),
+      lambda x:x["targets"][0].__setitem__("can_reach_p_not_np_by_explicit_implication",False), lambda x:x["targets"][0].__setitem__("repository_surfaces",[]),
+      lambda x:x["targets"][0].__setitem__("proof_bearing_surfaces",[])
     ]
-    for a in attacks: reject(root,r,report,a)
+    for a in attacks: reject(r,report,rows,ch,a)
     return len(attacks)
 def main():
     ap=argparse.ArgumentParser(); ap.add_argument("--root",default="."); ap.add_argument("--registry",default="research_targets/FUNDAMENTUM_RESEARCH_TARGET_REGISTRY_V1.json"); ap.add_argument("--report",required=True); ap.add_argument("--tamper-test",action="store_true"); a=ap.parse_args()
-    root=Path(a.root).resolve(); r=json.loads((root/a.registry).read_text()); report=json.loads(Path(a.report).read_text()); verify(root,r,report)
-    print("INDEPENDENT_FRONTIER_V1_3_REPLAY = PASS"); print("PRE_FRONTIER_CORPUS_AUTHORITY = PASS"); print("RELATION_TO_ACTIVE_ROUTE_PROMOTION = FORBIDDEN"); print("GLOBAL_TERMINAL = OPEN")
+    root=Path(a.root).resolve(); r=json.loads((root/a.registry).read_text()); report=json.loads(Path(a.report).read_text()); rows,ch=corpus(root)
+    verify_with_snapshot(r,report,rows,ch)
+    print("INDEPENDENT_FRONTIER_V1_3_REPLAY = PASS"); print("PRE_FRONTIER_CORPUS_AUTHORITY = PASS"); print("IMMUTABLE_CORPUS_SINGLE_SNAPSHOT = PASS"); print("RELATION_TO_ACTIVE_ROUTE_PROMOTION = FORBIDDEN"); print("GLOBAL_TERMINAL = OPEN")
     if a.tamper_test:
-        n=tampers(root,r,report); print(f"DIGEST_REPAIRED_TAMPERS_REJECTED = {n}/{n}")
+        n=tampers(r,report,rows,ch); print(f"DIGEST_REPAIRED_TAMPERS_REJECTED = {n}/{n}")
 if __name__=="__main__": main()
