@@ -1,0 +1,166 @@
+name: Validate A3 duplicate-subspace path-width theorem v1
+
+on:
+  pull_request:
+    paths:
+      - 'research_targets/A3_DUPLICATE_SUBSPACE_PATHWIDTH_THEOREM_SPEC_V1.json'
+      - 'experiments/direct/janus_a3_duplicate_subspace_pathwidth_theorem_v1.py'
+      - 'experiments/direct/janus_a3_duplicate_subspace_pathwidth_theorem_verifier_v1.py'
+      - '.github/workflows/validate-a3-duplicate-subspace-pathwidth-theorem-v1.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  duplicate-subspace-pathwidth-theorem:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+
+      - name: Bind exact-head theorem and frozen authorities
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "EXACT_HEAD=$(git rev-parse HEAD)"
+          FRONTIER_EVIDENCE=dccc046f6b69f39e18199749a2780db0ba05341f
+          FRONTIER_RECEIPT=research_targets/audits/FUNDAMENTUM_MULTIDIRECTIONAL_FRONTIER_V1_3_1_EVIDENCE_A922F8BD.json
+          FRONTIER_RECEIPT_BLOB=7d861896c4ac6c523b5694de72dea453f2f0e349
+          B54=e7663ed9be87ebd37bfa51c01501e74c9d5b2603
+          B52B=experiments/direct/janus_c049_1_b5_2b_generic_algorithm2_printorder_reconstruction.py
+          B52B_BLOB=90a13116ff7999f81a744d56e0bae56eb6af5ed1
+          git merge-base --is-ancestor "$FRONTIER_EVIDENCE" HEAD
+          test "$(git rev-parse "$FRONTIER_EVIDENCE:$FRONTIER_RECEIPT")" = "$FRONTIER_RECEIPT_BLOB"
+          test "$(git hash-object "$FRONTIER_RECEIPT")" = "$FRONTIER_RECEIPT_BLOB"
+          test "$(git rev-parse "$B54:$B52B")" = "$B52B_BLOB"
+          test "$(git hash-object "$B52B")" = "$B52B_BLOB"
+          for f in \
+            research_targets/A3_DUPLICATE_SUBSPACE_PATHWIDTH_THEOREM_SPEC_V1.json \
+            experiments/direct/janus_a3_duplicate_subspace_pathwidth_theorem_v1.py \
+            experiments/direct/janus_a3_duplicate_subspace_pathwidth_theorem_verifier_v1.py \
+            .github/workflows/validate-a3-duplicate-subspace-pathwidth-theorem-v1.yml; do
+              printf '%s = ' "$f"; git hash-object "$f"
+          done
+          python - <<'PY'
+          import json
+          s=json.load(open('research_targets/A3_DUPLICATE_SUBSPACE_PATHWIDTH_THEOREM_SPEC_V1.json'))
+          assert s['theorem_id']=='A3_DUPLICATE_SUBSPACE_PATHWIDTH_V1'
+          assert s['authority_binding']['b5_2b_cut_definition_git_blob']=='90a13116ff7999f81a744d56e0bae56eb6af5ed1'
+          assert s['authority_binding']['frontier_v1_3_1_evidence_commit']=='dccc046f6b69f39e18199749a2780db0ba05341f'
+          assert s['strict_boundary']['literature_novelty']=='NOT_CLAIMED'
+          assert s['strict_boundary']['does_not_establish_p_vs_np'] is True
+          print('THEOREM_AUTHORITY_BINDING = PASS')
+          print('LITERATURE_NOVELTY = NOT_CLAIMED')
+          PY
+
+      - name: Compile theorem producer and independent verifier
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m py_compile \
+            experiments/direct/janus_a3_duplicate_subspace_pathwidth_theorem_v1.py \
+            experiments/direct/janus_a3_duplicate_subspace_pathwidth_theorem_verifier_v1.py
+
+      - name: Build theorem certificate and exhaustive controls
+        shell: bash
+        run: |
+          set -euo pipefail
+          python experiments/direct/janus_a3_duplicate_subspace_pathwidth_theorem_v1.py \
+            --spec research_targets/A3_DUPLICATE_SUBSPACE_PATHWIDTH_THEOREM_SPEC_V1.json \
+            --output /tmp/a3_duplicate_subspace_pathwidth_certificate_v1.json | tee /tmp/theorem_producer.log
+
+      - name: Independent symbolic replay, exhaustive controls, and tamper rejection
+        shell: bash
+        run: |
+          set -euo pipefail
+          python experiments/direct/janus_a3_duplicate_subspace_pathwidth_theorem_verifier_v1.py \
+            --spec research_targets/A3_DUPLICATE_SUBSPACE_PATHWIDTH_THEOREM_SPEC_V1.json \
+            --certificate /tmp/a3_duplicate_subspace_pathwidth_certificate_v1.json \
+            --tamper-test | tee /tmp/theorem_verifier.log
+          grep -Fx 'A3_DUPLICATE_SUBSPACE_PATHWIDTH_INDEPENDENT_REPLAY = PASS' /tmp/theorem_verifier.log
+          grep -Fx 'SYMBOLIC_DERIVATION_BINDING = PASS' /tmp/theorem_verifier.log
+          grep -Fx 'INDEXED_OCCURRENCE_MULTIPLICITY = PRESERVED' /tmp/theorem_verifier.log
+          grep -Fx 'DIGEST_REPAIRED_TAMPERS_REJECTED = 16/16' /tmp/theorem_verifier.log
+          grep -Fx 'LITERATURE_NOVELTY = NOT_CLAIMED' /tmp/theorem_verifier.log
+          grep -Fx 'P_VS_NP = OPEN' /tmp/theorem_verifier.log
+
+      - name: Conform independent theorem width profile to frozen B5.2B definition
+        shell: bash
+        run: |
+          set -euo pipefail
+          PYTHONPATH=experiments/direct python - <<'PY'
+          from janus_c049_1_b5_2b_generic_algorithm2_printorder_reconstruction import exact_cut_certificates
+          cases=0
+          for n in range(5):
+              for d in range(n+1):
+                  U=[1<<i for i in range(d)]
+                  # m=1 is the required excluded case: only endpoint cuts.
+                  catalog=[{'id':'u0','normal_space':U}]
+                  cuts,maximum=exact_cut_certificates(catalog,['u0'],n)
+                  assert [c['width'] for c in cuts]==[0,0]
+                  assert maximum==0
+                  cases += 1
+                  for m in range(2,6):
+                      ids=[f'u{i}' for i in range(m)]
+                      catalog=[{'id':x,'normal_space':U} for x in ids]
+                      cuts,maximum=exact_cut_certificates(catalog,ids,n)
+                      widths=[c['width'] for c in cuts]
+                      assert widths==[0]+[d]*(m-1)+[0], (n,d,m,widths)
+                      assert maximum==d
+                      assert len({str(c['left_factor_ids'])+str(c['right_factor_ids']) for c in cuts})==m+1
+                      cases += 1
+          print(f'FROZEN_B5_2B_DEFINITION_CONFORMANCE_CASES = {cases}')
+          print('FROZEN_B5_2B_DEFINITION_CONFORMANCE = PASS')
+          PY
+
+      - name: Build exact-head theorem verification receipt
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import hashlib,json,pathlib,subprocess
+          def git(*a): return subprocess.check_output(['git',*a],text=True).strip()
+          def sha(p): return hashlib.sha256(pathlib.Path(p).read_bytes()).hexdigest()
+          cp=pathlib.Path('/tmp/a3_duplicate_subspace_pathwidth_certificate_v1.json')
+          c=json.loads(cp.read_text())
+          s=c['proof_payload']['finite_exhaustive_controls']
+          paths={
+            'spec':'research_targets/A3_DUPLICATE_SUBSPACE_PATHWIDTH_THEOREM_SPEC_V1.json',
+            'producer':'experiments/direct/janus_a3_duplicate_subspace_pathwidth_theorem_v1.py',
+            'verifier':'experiments/direct/janus_a3_duplicate_subspace_pathwidth_theorem_verifier_v1.py',
+            'workflow':'.github/workflows/validate-a3-duplicate-subspace-pathwidth-theorem-v1.yml'}
+          r={
+            'schema':'janus.fundamentum.a3.duplicate_subspace_pathwidth_verification_receipt.v1',
+            'exact_head':git('rev-parse','HEAD'),
+            'theorem_id':'A3_DUPLICATE_SUBSPACE_PATHWIDTH_V1',
+            'source_git_blobs':{k:git('hash-object',v) for k,v in paths.items()},
+            'source_raw_sha256':{k:sha(v) for k,v in paths.items()},
+            'certificate_raw_sha256':sha(cp), 'certificate_semantic_digest':c['semantic_digest'],
+            'subspace_counts':s['subspace_counts'], 'arrangement_cases':s['arrangement_cases'],
+            'layouts_checked':s['layouts_checked'], 'internal_cuts_checked':s['internal_cuts_checked'],
+            'single_occurrence_controls':s['single_occurrence_controls'],
+            'independent_symbolic_replay':True, 'frozen_b5_2b_definition_conformance':True,
+            'digest_repaired_tampers_rejected':'16/16',
+            'claim_ceiling':{
+              'PROJECT_LOCAL_THEOREM':'CANDIDATE_PENDING_SEMANTIC_REVIEW',
+              'LITERATURE_NOVELTY':'NOT_CLAIMED','P_VS_NP':'OPEN','B5_COMPLETE':False}}
+          p=pathlib.Path('/tmp/a3_duplicate_subspace_pathwidth_receipt_v1.json'); p.write_text(json.dumps(r,indent=2,sort_keys=True)+'\n')
+          print('A3_DUPLICATE_SUBSPACE_PATHWIDTH_RECEIPT = BUILT')
+          print(f"LAYOUTS_CHECKED = {r['layouts_checked']}")
+          print(f"INTERNAL_CUTS_CHECKED = {r['internal_cuts_checked']}")
+          print('PROJECT_LOCAL_THEOREM = CANDIDATE_PENDING_SEMANTIC_REVIEW')
+          PY
+
+      - name: Upload theorem certificate and receipt
+        uses: actions/upload-artifact@v4
+        with:
+          name: a3-duplicate-subspace-pathwidth-theorem-v1-${{ github.event.pull_request.head.sha || github.sha }}
+          path: |
+            /tmp/a3_duplicate_subspace_pathwidth_certificate_v1.json
+            /tmp/a3_duplicate_subspace_pathwidth_receipt_v1.json
+            /tmp/theorem_producer.log
+            /tmp/theorem_verifier.log
+          if-no-files-found: error
