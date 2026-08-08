@@ -44,10 +44,26 @@ def source_facts(a,spec):
     rb=load(a.root_empty_review); rba=rb.get('audit_payload',{}); facts['root_review']=rba.get('canonical_numeric_review_id')==b['root_empty_authority']['review_id'] and rba.get('exact_proof_head')==b['root_empty_authority']['exact_proof_head'] and rba.get('independent_semantic_audit',{}).get('git_blob')==b['root_empty_authority']['git_blob']
     return facts
 
+def expected_source_bindings(spec):
+    b=spec['input_bindings']
+    return {
+      'phase_a_git_blob':b['phase_a_layout_domain_core']['git_blob'],
+      'group_rule_git_blob':b['grouped_partition_rule']['git_blob'],
+      'root_spec_git_blob':b['root_spec']['git_blob'],
+      'o7_spec_git_blob':b['o7_spec']['git_blob'],
+      'o7_audit_git_blob':b['o7_empty_root_specialization_authority']['git_blob'],
+      'o7_review_id':b['o7_empty_root_specialization_authority']['review_id'],
+      'actual_composition_receipt_git_blob':b['actual_engine_composition_final_receipt']['git_blob'],
+      'actual_composition_review_id':b['actual_engine_composition_final_receipt']['review_id'],
+      'root_empty_audit_git_blob':b['root_empty_authority']['git_blob'],
+      'root_empty_review_bridge_git_blob':b['root_empty_review_bridge']['git_blob'],
+      'root_empty_review_id':b['root_empty_authority']['review_id']}
+
 def verify_candidate(c,a,spec):
     if c.get('schema')!=SCHEMA or c.get('semantic_digest_scope')!='proof_payload' or dg(c.get('proof_payload'))!=c.get('semantic_digest'): raise AssertionError('candidate digest/schema')
     p=c['proof_payload']; target=spec['target']; facts=source_facts(a,spec)
     if not all(v for k,v in facts.items() if k.endswith('_blob')): raise AssertionError('immutable source blob')
+    if p.get('source_bindings')!=expected_source_bindings(spec): raise AssertionError('serialized source authority vector')
     if not all(facts[k] for k in ('phase_permutation_guard','phase_order_map','phase_prefix','phase_suffix','phase_intersection')): raise AssertionError('phase-a semantics')
     if not facts['whole_factor_rule'] or not facts['partition_loss_forbidden']: raise AssertionError('whole-factor rule')
     if facts['root_blocks']!=target['whole_factor_blocks'] or facts['root_d']!=target['ambient_dim'] or facts['root_k']!=target['k']: raise AssertionError('target identity')
@@ -60,7 +76,7 @@ def verify_candidate(c,a,spec):
     w=p['width_identity']
     if w['repository_formula']!='dim(span(prefix) INTER span(suffix))' or w['o7_zero_boundary_formula']!='dim(prefix span INTER suffix span)' or w['same_cut_function'] is not True: raise AssertionError('width identity')
     prem={x['id']:x['value'] for x in p['premises']}
-    if prem!= {'P1_REPOSITORY_DOMAIN':'PERMUTATION_ALL_INPUT_SPACES_EXACTLY_ONCE','P2_GROUP_INDIVISIBILITY':'WHOLE_FACTOR_NORMAL_SPACE','P3_WIDTH_IDENTITY':'DIM_PREFIX_SPAN_INTER_SUFFIX_SPAN','P4_O7_LAYOUT_IMPLIES_FS_NONEMPTY':True,'P5_ACTUAL_ROOT_EQUALS_FS':True,'P6_ACTUAL_ROOT_EMPTY':True}: raise AssertionError('premise vector')
+    if prem!={'P1_REPOSITORY_DOMAIN':'PERMUTATION_ALL_INPUT_SPACES_EXACTLY_ONCE','P2_GROUP_INDIVISIBILITY':'WHOLE_FACTOR_NORMAL_SPACE','P3_WIDTH_IDENTITY':'DIM_PREFIX_SPAN_INTER_SUFFIX_SPAN','P4_O7_LAYOUT_IMPLIES_FS_NONEMPTY':True,'P5_ACTUAL_ROOT_EQUALS_FS':True,'P6_ACTUAL_ROOT_EMPTY':True}: raise AssertionError('premise vector')
     l=p['logical_composition']
     if l['assumption']!='EXISTS_REPOSITORY_LEGAL_LAYOUT_WIDTH_LE_K' or l['step_1_domain_identity']!='SAME_ORDER_IS_O7_COMPLETE_LINEAR_LAYOUT_WIDTH_LE_K' or l['step_2_o7']!='FS_K_V_ZERO_NONEMPTY' or l['step_3_actual_root_identity']!='CORRECTED_ENGINE_ROOT_FULL_SET_NONEMPTY' or l['step_4_root_empty_authority']!='CORRECTED_ENGINE_ROOT_FULL_SET_EMPTY' or l['contradiction'] is not True or l['terminal_completeness_candidate'] is not True or l['no_layout_at_cap_candidate'] is not True: raise AssertionError('logical composition')
     o=p['oracle_policy']
@@ -108,6 +124,7 @@ def main():
     c=load(a.candidate); facts=verify_candidate(c,a,spec)
     inv=[
       all(v for k,v in facts.items() if k.endswith('_blob')),
+      c['proof_payload']['source_bindings']==expected_source_bindings(spec),
       all(facts[k] for k in ('phase_permutation_guard','phase_order_map','phase_prefix','phase_suffix','phase_intersection')),
       facts['whole_factor_rule'] and facts['partition_loss_forbidden'],
       facts['root_blocks']==spec['target']['whole_factor_blocks'],
@@ -118,11 +135,12 @@ def main():
       not any((c['proof_payload']['oracle_policy']['historical_layout_counts_consumed'],c['proof_payload']['oracle_policy']['historical_root_refinement_counts_consumed'],c['proof_payload']['oracle_policy']['pointwise_crosscheck_consumed_as_premise'])),
       c['proof_payload']['strict_boundary']['no_layout_at_cap']=='FORBIDDEN_PENDING_REVIEW' and c['proof_payload']['strict_boundary']['p_vs_np']=='OPEN']
     if not all(inv): raise AssertionError('invariant vector')
-    rejected=total=(0,0)
+    rejected,total=0,0
     if a.tamper_suite: rejected,total=tamper_suite(c,a,spec)
     print('JANUS_TERMINAL_DOMAIN_COMPOSITION_INDEPENDENT_VERIFIER = PASS')
-    print('INVARIANTS = 12/12')
+    print('INVARIANTS = 13/13')
     if a.tamper_suite: print(f'DIGEST_REPAIRED_TAMPERS_REJECTED = {rejected}/{total}')
+    print('SERIALIZED_AUTHORITY_VECTOR = PASS')
     print('REPOSITORY_DOMAIN_EQUALS_O7_LAYOUT_DOMAIN = TRUE')
     print('WIDTH_DEFINITION_IDENTITY = PASS')
     print('LOGICAL_CONTRADICTION_COMPOSITION = PASS')
