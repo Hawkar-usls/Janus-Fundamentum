@@ -1,10 +1,14 @@
 #!/usr/bin/env python3
 """Fundamentum multidirectional frontier search v1.
 
-This is a route/evidence-surface search, NOT a theorem prover.  It scans the
+This is a route/evidence-surface search, NOT a theorem prover. It scans the
 checked-out repository for committed surfaces relevant to each frozen target,
 computes explicit implication reachability, and emits a deterministic report.
 No corpus hit or implication path is promoted to a mathematical terminal.
+
+Amendment v1.2 hardens marker matching: exact literal markers are matched
+case-insensitively with ASCII identifier boundaries on both sides, preventing
+short tokens such as NC, NL, PH, VP, and PIT from matching inside other words.
 """
 
 from __future__ import annotations
@@ -12,6 +16,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import re
 from pathlib import Path
 from typing import Dict, Iterable, List, Tuple
 
@@ -44,6 +49,14 @@ def sha256_obj(obj: object) -> str:
 def load_json(path: Path) -> dict:
     with path.open("r", encoding="utf-8") as f:
         return json.load(f)
+
+
+def marker_occurrences(text: str, marker: str) -> int:
+    pattern = re.compile(
+        r"(?<![A-Za-z0-9_])" + re.escape(marker) + r"(?![A-Za-z0-9_])",
+        re.IGNORECASE,
+    )
+    return sum(1 for _ in pattern.finditer(text))
 
 
 def iter_text_files(root: Path) -> Iterable[Path]:
@@ -116,12 +129,10 @@ def build_report(root: Path, registry: dict) -> dict:
         all_paths = set()
         total_occurrences = 0
         for marker in target["search_markers"]:
-            needle = marker.casefold()
             paths = []
             occurrences = 0
             for rel, text in corpus:
-                hay = text.casefold()
-                count = hay.count(needle)
+                count = marker_occurrences(text, marker)
                 if count:
                     paths.append(rel)
                     occurrences += count
@@ -181,6 +192,7 @@ def build_report(root: Path, registry: dict) -> dict:
             "route_search_is_not_proof": True,
             "preferred_outcome": None,
             "resource_exhaustion_means_open": True,
+            "marker_matching": "case-insensitive literal with ASCII identifier boundaries on both sides",
             "corpus_scope": "UTF-8 committed text surfaces <= 2 MB, excluding research_targets to prevent self-hit inflation",
         },
         "corpus_semantic_sha256": corpus_digest,
@@ -225,7 +237,6 @@ def validate_registry(registry: dict) -> None:
 
 
 def self_test() -> None:
-    # Pure policy/graph tests; repository-dependent search is exercised by CI generation+verifier.
     sample = {
         "schema": "janus.fundamentum.research_target_registry.v1",
         "policy": {"preferred_outcome": None, "route_search_is_not_proof": True},
@@ -242,7 +253,12 @@ def self_test() -> None:
     assert classify({"fundamentum_status": "OPEN", "relation": "DIRECT_CONTINUATION"}, 1) == "ACTIVE_STRUCTURAL_ROUTE"
     assert classify({"fundamentum_status": "OPEN", "relation": "HIGH"}, 0) == "NO_REPOSITORY_ROUTE_SURFACE_FOUND"
     assert classify({"fundamentum_status": "OPEN", "relation": "HIGH"}, 1) == "ROUTE_SURFACE_FOUND_REQUIRES_THEOREM"
+    assert marker_occurrences("NC NCX XNC _NC nc", "NC") == 2
+    assert marker_occurrences("alpha PH beta ph2", "PH") == 1
+    assert marker_occurrences("PIT pitfall PIT_2", "PIT") == 1
+    assert marker_occurrences("P/poly and NP subseteq P/poly", "P/poly") == 2
     print("MULTIDIRECTIONAL_FRONTIER_SELF_TEST = PASS")
+    print("BOUNDARY_AWARE_MARKER_MATCHING = PASS")
 
 
 def main() -> None:
