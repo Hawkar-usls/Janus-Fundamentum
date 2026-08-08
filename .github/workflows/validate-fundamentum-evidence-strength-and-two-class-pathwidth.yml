@@ -39,10 +39,13 @@ jobs:
           assert rows['A3_MATROID_TRELLIS_RANK_WIDTH']['evidence_strength']=='ES4'
           assert rows['A3_MATROID_TRELLIS_RANK_WIDTH']['novelty']=='N1'
           p=json.load(open('research_targets/priority_records/A3_DUPLICATE_SUBSPACE_PATHWIDTH_PRIORITY_RECORD_V1.json'))
+          lp=p['literature_position']; cc=p['claim_ceiling']
           assert p['recorded_date_utc']=='2026-08-08'
-          assert p['explicit_identical_statement_found_in_searched_primary_corpus'] is False
-          assert p['universal_absence_claimed'] is False
-          assert p['historical_priority_claimed'] is False
+          assert lp['explicit_identical_standalone_statement_found_in_searched_primary_corpus'] is False
+          assert lp['universal_absence_proved'] is False
+          assert lp['priority_claim']=='NOT_ASSERTED'
+          assert cc['UNIVERSAL_LITERATURE_ABSENCE']=='NOT_PROVED'
+          assert cc['WORLD_NOVEL_THEOREM']=='NOT_CLAIMED'
           print('EVIDENCE_STRENGTH_SCALE = PASS')
           print('PRIORITY_PROVENANCE_RECORD = PASS')
           PY
@@ -76,7 +79,7 @@ jobs:
         run: |
           set -euo pipefail
           python - <<'PY'
-          import hashlib,json,pathlib,subprocess
+          import json,pathlib,subprocess
           def git(*a):return subprocess.check_output(['git',*a],text=True).strip()
           c=json.load(open('/tmp/two_class.json'))
           r={'schema':'janus.fundamentum.a3.two_class_pathwidth_exact_head_receipt.v1','exact_head':git('rev-parse','HEAD'),'semantic_digest':c['semantic_digest'],'subspace_pairs':c['exhaustive_controls']['subspace_pairs'],'multiplicity_cases':c['exhaustive_controls']['multiplicity_cases'],'class_pattern_layouts':c['exhaustive_controls']['class_pattern_layouts'],'cut_evaluations':c['exhaustive_controls']['cut_evaluations'],'counterexamples':0,'tamper_rejections':'16/16','literature_novelty':'NOT_ESTABLISHED','p_vs_np':'OPEN'}
