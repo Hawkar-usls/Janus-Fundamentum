@@ -1,245 +1,34 @@
-name: Validate C049.1 B5.2A generic Algorithm-2 provenance carrier
+name: Validate C049.1 B5.2A v1 historical negative receipt
 
 on:
-  pull_request:
-    paths:
-      - 'experiments/direct/C049_1_B5_2A_GENERIC_ALGORITHM2_PROVENANCE_CARRIER_SPEC_V1.json'
-      - 'experiments/direct/janus_c049_1_b5_2a_generic_algorithm2_provenance_carrier.py'
-      - 'experiments/direct/janus_c049_1_b5_2a_generic_algorithm2_provenance_carrier_verifier.py'
-      - '.github/workflows/validate-c049-1-b5-2a-generic-algorithm2-provenance-carrier.yml'
   workflow_dispatch:
 
 jobs:
-  b5-2a-provenance-carrier:
+  b5-2a-v1-negative-receipt:
     runs-on: ubuntu-latest
-    env:
-      PYTHONPATH: experiments/direct
-      SPEC: experiments/direct/C049_1_B5_2A_GENERIC_ALGORITHM2_PROVENANCE_CARRIER_SPEC_V1.json
-      PRODUCER: experiments/direct/janus_c049_1_b5_2a_generic_algorithm2_provenance_carrier.py
-      VERIFIER: experiments/direct/janus_c049_1_b5_2a_generic_algorithm2_provenance_carrier_verifier.py
-      B5_1_SPEC: experiments/direct/C049_1_B5_1_GENERIC_CORRECTED_RUNTIME_TRACE_EXECUTOR_SPEC_V1.json
-      B5_1_PRODUCER: experiments/direct/janus_c049_1_b5_1_generic_corrected_runtime_trace_executor.py
-      B5_1_RECEIPT: experiments/direct/audits/C049_1_B5_1_GENERIC_CORRECTED_RUNTIME_TRACE_EXECUTOR_ADMISSION_DDA63620.json
-      B1: experiments/direct/janus_c049_1_b1_compact_trajectory_core.py
-      B2: experiments/direct/janus_c049_1_b2_up_k_core.py
-      B3: experiments/direct/janus_c049_1_b3_expand_join_shrink_core.py
-      JOIN: experiments/direct/janus_c049_1_b3_join_path_domain_corrected.py
     steps:
       - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-
-      - name: Bind B5.2A exact-head files and admitted upstream surfaces
-        run: |
-          set -euo pipefail
-          if [ "${{ github.event_name }}" = "pull_request" ]; then PROOF_HEAD="${{ github.event.pull_request.head.sha }}"; else PROOF_HEAD="$GITHUB_SHA"; fi
-          test "$(git rev-parse "$PROOF_HEAD:$SPEC")" = "$(git hash-object "$SPEC")" && echo 'B5_2A_SPEC_EXACT_HEAD_BINDING = PASS'
-          test "$(git rev-parse "$PROOF_HEAD:$PRODUCER")" = "$(git hash-object "$PRODUCER")" && echo 'B5_2A_PRODUCER_EXACT_HEAD_BINDING = PASS'
-          test "$(git rev-parse "$PROOF_HEAD:$VERIFIER")" = "$(git hash-object "$VERIFIER")" && echo 'B5_2A_VERIFIER_EXACT_HEAD_BINDING = PASS'
-
-          test "$(git hash-object "$B5_1_SPEC")" = "64f65e4a68cab437392148519af667352fe0665c" && echo 'B5_1_SPEC_BINDING = PASS'
-          test "$(git hash-object "$B5_1_PRODUCER")" = "8be92b8a663e0d05535861c6f216db28094014fb" && echo 'B5_1_PRODUCER_BINDING = PASS'
-          test "$(git hash-object "$B5_1_RECEIPT")" = "f70d56c84874827fd03cc482e37fd9449a7a8a23" && echo 'B5_1_ADMISSION_RECEIPT_BINDING = PASS'
-          test "$(git hash-object "$B1")" = "96019d44b8defb97f7b0911b57302004c3d57c61" && echo 'B1_CORE_BINDING = PASS'
-          test "$(git hash-object "$B2")" = "3b66fa2b45702f11ee7a62657754c16800fa90f3" && echo 'B2_CORE_BINDING = PASS'
-          test "$(git hash-object "$B3")" = "443566c4b79bf67ec1613413130169cab12ebb0f" && echo 'B3_CORE_BINDING = PASS'
-          test "$(git hash-object "$JOIN")" = "0d17e0e08060c483fc0f1c3031eddc57337045cd" && echo 'CORRECTED_JOIN_BINDING = PASS'
-          test "$(git rev-parse 763a142947d0ad07d7d5d3b2c2044eed669e3ace:experiments/direct/audits/C049_1_B5_1_GENERIC_CORRECTED_RUNTIME_TRACE_EXECUTOR_ADMISSION_DDA63620.json)" = "f70d56c84874827fd03cc482e37fd9449a7a8a23"
-          echo 'B5_2A_IMMUTABLE_UPSTREAM_BINDING = PASS'
-
-      - name: Compile and enforce carrier verifier decoupling
-        run: |
-          set -euo pipefail
-          python -m py_compile "$PRODUCER" "$VERIFIER"
-          python - <<'PY'
-          import ast
-          from pathlib import Path
-          producer=Path('experiments/direct/janus_c049_1_b5_2a_generic_algorithm2_provenance_carrier.py')
-          verifier=Path('experiments/direct/janus_c049_1_b5_2a_generic_algorithm2_provenance_carrier_verifier.py')
-          def imports(p):
-              t=ast.parse(p.read_text(encoding='utf-8')); out=[]
-              for n in ast.walk(t):
-                  if isinstance(n,ast.Import): out += [a.name for a in n.names]
-                  elif isinstance(n,ast.ImportFrom): out.append(n.module or '')
-              return out
-          vp=imports(verifier)
-          assert not any(x.endswith('janus_c049_1_b5_2a_generic_algorithm2_provenance_carrier') for x in vp)
-          assert not any(x.endswith('janus_c049_1_b5_1_generic_corrected_runtime_trace_executor') for x in vp)
-          allowed={
-            'janus_c049_1_b2_up_k_core',
-            'janus_c049_1_b3_expand_join_shrink_core',
-            'janus_c049_1_b3_join_path_domain_corrected'
-          }
-          assert {x for x in vp if x.startswith('janus_c049_1_')} <= allowed
-          pp=imports(producer)
-          assert any(x.endswith('janus_c049_1_b5_1_generic_corrected_runtime_trace_executor') for x in pp)
-          print('B5_2A_VERIFIER_DECOUPLING = PASS')
-          print('B5_2A_PRODUCER_UPSTREAM_B5_1_DEPENDENCY = EXPLICIT_AND_BOUND')
-          PY
-
-      - name: Reject terminal and printorder promotion in carrier sources
-        run: |
-          set -euo pipefail
-          python - <<'PY'
-          from pathlib import Path
-          for p in [Path('experiments/direct/janus_c049_1_b5_2a_generic_algorithm2_provenance_carrier.py'),Path('experiments/direct/janus_c049_1_b5_2a_generic_algorithm2_provenance_carrier_verifier.py')]:
-              text=p.read_text(encoding='utf-8')
-              for token in ['FOUND_LAYOUT = TRUE','NO_LAYOUT_AT_CAP = TRUE','P_VS_NP = CLOSED','def printorder(','def print_order(']:
-                  assert token not in text,(p,token)
-          print('B5_2A_NO_PRINTORDER_OR_TERMINAL_PROMOTION = PASS')
-          PY
-
-      - name: Build generic B5.1 subject inputs
+      - name: Verify frozen v1 failure classification
         run: |
           set -euo pipefail
           python - <<'PY'
           import json
           from pathlib import Path
-          def w(name,x): Path('/tmp/'+name+'.json').write_text(json.dumps(x,sort_keys=True,separators=(',',':'))+'\n')
-          caps={'max_boundary_dim':2,'max_k':1,'max_full_set_entries':5000,'max_child_pairs':100000,'max_join_paths':500000}
-          positive={'ambient_dim':2,'k':0,'caps':caps,'factors':[{'id':'alpha','normal_space':[1],'affine_offset':{'beta':0}},{'id':'beta','normal_space':[2],'affine_offset':{'beta':1}}],'tree':{'root':'root','nodes':[{'id':'root','left':'la','right':'lb'},{'id':'la','factor_id':'alpha'},{'id':'lb','factor_id':'beta'}]}}
-          reordered={'ambient_dim':2,'k':0,'caps':caps,'factors':list(reversed(positive['factors'])),'tree':{'root':'root','nodes':list(reversed(positive['tree']['nodes']))}}
-          negative={'ambient_dim':1,'k':0,'caps':caps,'factors':[{'id':'left','normal_space':[1],'affine_offset':0},{'id':'right','normal_space':[1],'affine_offset':1}],'tree':{'root':'r','nodes':[{'id':'l','factor_id':'left'},{'id':'r','left':'l','right':'q'},{'id':'q','factor_id':'right'}]}}
-          three={'ambient_dim':2,'k':1,'caps':caps,'factors':[{'id':'a','normal_space':[1],'affine_offset':{'tag':'A'}},{'id':'b','normal_space':[1],'affine_offset':{'tag':'B'}},{'id':'c','normal_space':[2],'affine_offset':{'tag':'C'}}],'tree':{'root':'top','nodes':[{'id':'top','left':'ab','right':'lc'},{'id':'ab','left':'la','right':'lb'},{'id':'la','factor_id':'a'},{'id':'lb','factor_id':'b'},{'id':'lc','factor_id':'c'}]}}
-          for name,x in [('positive',positive),('positive-reordered',reordered),('negative-root',negative),('three-factor',three)]: w(name,x)
-          print('B5_2A_CONTROL_INPUTS = 4')
+          p=Path('experiments/direct/C049_1_B5_2A_GENERIC_ALGORITHM2_PROVENANCE_CARRIER_AMENDMENT_V1_1.json')
+          a=json.loads(p.read_text())
+          n=a['negative_provenance']
+          assert n['run_id']==31243335691
+          assert n['job_id']==93067739013
+          assert n['proof_head']=='ed12d813861fda5ec66cd0fa51945d0bb8023588'
+          assert n['classification']=='B2_STYLE_POINT_OBJECT_ASSUMED_FOR_CANONICAL_B3_PAIR_LIST_WITNESS'
+          assert n['semantic_replay_started'] is False
+          assert n['upstream_b5_1_rebuild_completed'] is True
+          print('B5_2A_V1_NEGATIVE_RECEIPT = PASS')
+          print('RUN_31243335691 = FAILED_BEFORE_CARRIER_BUILD')
+          print('SUPERSEDED_BY = B5_2A_V1_1')
+          print('FOUND_LAYOUT = FORBIDDEN')
+          print('P_VS_NP = OPEN')
           PY
-
-      - name: Rebuild exact B5.1 CLOSED subjects
-        run: |
-          set -euo pipefail
-          for name in positive positive-reordered negative-root three-factor; do
-            python "$B5_1_PRODUCER" --spec "$B5_1_SPEC" --input "/tmp/$name.json" --output "/tmp/$name.b5-1.json" > "/tmp/$name.b5-1.log"
-            grep -F 'CAPABILITY_STATUS = CLOSED_COMPLETE_TRACE' "/tmp/$name.b5-1.log"
-          done
-          cmp /tmp/positive.b5-1.json /tmp/positive-reordered.b5-1.json
-          echo 'B5_2A_UPSTREAM_PRESENTATION_ORDER_BYTE_IDENTITY = PASS'
-
-      - name: Build and independently verify positive carrier with tamper suite
-        run: |
-          set -euo pipefail
-          python "$PRODUCER" --spec "$SPEC" --input /tmp/positive.json --b5-1-artifact /tmp/positive.b5-1.json --output /tmp/positive.carrier.json | tee /tmp/positive.carrier.log
-          python "$VERIFIER" --spec "$SPEC" --input /tmp/positive.json --b5-1-artifact /tmp/positive.b5-1.json --candidate /tmp/positive.carrier.json --tamper-suite | tee /tmp/positive.carrier-verifier.log
-          grep -F 'ROOT_ENTRIES_WITH_COMPLETE_BACKTRACK = 1' /tmp/positive.carrier-verifier.log
-          grep -F 'DIGEST_REPAIRED_TAMPERS_REJECTED = 21/21' /tmp/positive.carrier-verifier.log
-          grep -F 'SEMANTIC_PROJECTION_TO_B5_1 = PASS' /tmp/positive.carrier-verifier.log
-          grep -F 'FACTOR_ORDER_EMITTED = FALSE' /tmp/positive.carrier-verifier.log
-          grep -F 'FOUND_LAYOUT = FORBIDDEN' /tmp/positive.carrier-verifier.log
-
-      - name: Verify carrier presentation-order byte identity
-        run: |
-          set -euo pipefail
-          python "$PRODUCER" --spec "$SPEC" --input /tmp/positive-reordered.json --b5-1-artifact /tmp/positive-reordered.b5-1.json --output /tmp/positive-reordered.carrier.json > /tmp/positive-reordered.carrier.log
-          cmp /tmp/positive.carrier.json /tmp/positive-reordered.carrier.json
-          python "$VERIFIER" --spec "$SPEC" --input /tmp/positive-reordered.json --b5-1-artifact /tmp/positive-reordered.b5-1.json --candidate /tmp/positive-reordered.carrier.json > /tmp/positive-reordered.carrier-verifier.log
-          echo 'B5_2A_CARRIER_PRESENTATION_ORDER_BYTE_IDENTITY = PASS'
-
-      - name: Verify empty-root carrier without terminal promotion
-        run: |
-          set -euo pipefail
-          python "$PRODUCER" --spec "$SPEC" --input /tmp/negative-root.json --b5-1-artifact /tmp/negative-root.b5-1.json --output /tmp/negative-root.carrier.json | tee /tmp/negative-root.carrier.log
-          python "$VERIFIER" --spec "$SPEC" --input /tmp/negative-root.json --b5-1-artifact /tmp/negative-root.b5-1.json --candidate /tmp/negative-root.carrier.json | tee /tmp/negative-root.carrier-verifier.log
-          python - <<'PY'
-          import json
-          p=json.load(open('/tmp/negative-root.carrier.json'))['proof_payload']
-          assert p['backtracking_summary']['root_entries']==0
-          assert p['backtracking_summary']['root_entries_with_complete_backtrack']==0
-          assert p['algorithm2_boundary']['factor_order_emitted'] is False
-          assert p['algorithm2_boundary']['found_layout']=='FORBIDDEN'
-          assert p['strict_boundary']['generic_no_layout_at_cap_enabled'] is False
-          print('B5_2A_EMPTY_ROOT_ZERO_ANCESTRY_NO_TERMINAL = PASS')
-          PY
-
-      - name: Verify all five three-factor root entries have complete traceback
-        run: |
-          set -euo pipefail
-          python "$PRODUCER" --spec "$SPEC" --input /tmp/three-factor.json --b5-1-artifact /tmp/three-factor.b5-1.json --output /tmp/three-factor.carrier.json | tee /tmp/three-factor.carrier.log
-          python "$VERIFIER" --spec "$SPEC" --input /tmp/three-factor.json --b5-1-artifact /tmp/three-factor.b5-1.json --candidate /tmp/three-factor.carrier.json | tee /tmp/three-factor.carrier-verifier.log
-          grep -F 'ROOT_ENTRIES_WITH_COMPLETE_BACKTRACK = 5' /tmp/three-factor.carrier-verifier.log
-          grep -F 'DANGLING_REFERENCE_COUNT = 0' /tmp/three-factor.carrier-verifier.log
-          grep -F 'CYCLE_COUNT = 0' /tmp/three-factor.carrier-verifier.log
-          grep -F 'ALGORITHM2_UP_LABELS = PASS' /tmp/three-factor.carrier-verifier.log
-          grep -F 'JOIN_HV_LABELS = PASS' /tmp/three-factor.carrier-verifier.log
-
-      - name: Check semantic noninterference and review-only ceiling
-        run: |
-          set -euo pipefail
-          python - <<'PY'
-          import json
-          for name in ('positive','negative-root','three-factor'):
-              s=json.load(open('/tmp/'+name+'.b5-1.json'))['proof_payload']
-              c=json.load(open('/tmp/'+name+'.carrier.json'))['proof_payload']
-              assert c['subject']['b5_1_root_full_set_digest']==s['root_full_set_digest_if_closed']
-              assert c['subject']['b5_1_root_entry_count']==s['root_entry_count_if_closed']
-              assert c['semantic_projection']['node_digest_count_matches']==c['semantic_projection']['node_count']
-              assert c['semantic_projection']['node_entry_count_matches']==c['semantic_projection']['node_count']
-              assert c['semantic_projection']['root_full_set_digest_unchanged'] is True
-              assert c['semantic_projection']['root_entry_count_unchanged'] is True
-              assert c['semantic_projection']['new_semantic_entries_added']==0
-              assert c['algorithm2_boundary']['factor_order_emitted'] is False
-              assert c['algorithm2_boundary']['printorder_correctness_claimed'] is False
-              assert c['algorithm2_boundary']['found_layout']=='FORBIDDEN'
-              b=c['strict_boundary']
-              assert b['b5_2b_generic_printorder_reconstruction'] is False
-              assert b['generic_found_layout_enabled'] is False
-              assert b['generic_no_layout_at_cap_enabled'] is False
-              assert b['polynomial_runtime_claim']=='FORBIDDEN'
-              assert b['b5_complete'] is False
-              assert b['p_vs_np']=='OPEN'
-          print('B5_2A_SEMANTIC_NONINTERFERENCE = PASS')
-          print('B5_2A_REVIEW_ONLY_PROMOTION_CEILING = PASS')
-          PY
-
-      - name: Freeze exact-head B5.2A receipt
-        run: |
-          set -euo pipefail
-          if [ "${{ github.event_name }}" = "pull_request" ]; then PROOF_HEAD="${{ github.event.pull_request.head.sha }}"; else PROOF_HEAD="$GITHUB_SHA"; fi
-          {
-            echo "GITHUB_SHA=$GITHUB_SHA"
-            echo "PROOF_HEAD=$PROOF_HEAD"
-            echo "SPEC_BLOB=$(git hash-object "$SPEC")"
-            echo "PRODUCER_BLOB=$(git hash-object "$PRODUCER")"
-            echo "VERIFIER_BLOB=$(git hash-object "$VERIFIER")"
-            echo "B5_1_RECEIPT_BLOB=$(git hash-object "$B5_1_RECEIPT")"
-            echo "POSITIVE_CARRIER_SHA256=$(sha256sum /tmp/positive.carrier.json | cut -d' ' -f1)"
-            echo "THREE_FACTOR_CARRIER_SHA256=$(sha256sum /tmp/three-factor.carrier.json | cut -d' ' -f1)"
-            echo "EMPTY_ROOT_CARRIER_SHA256=$(sha256sum /tmp/negative-root.carrier.json | cut -d' ' -f1)"
-            echo "POSITIVE_SEMANTIC_DIGEST=$(python -c 'import json;print(json.load(open("/tmp/positive.carrier.json"))["semantic_digest"])')"
-            echo "THREE_FACTOR_SEMANTIC_DIGEST=$(python -c 'import json;print(json.load(open("/tmp/three-factor.carrier.json"))["semantic_digest"])')"
-            echo 'DIGEST_REPAIRED_TAMPERS_REJECTED=21/21'
-            echo 'THREE_FACTOR_ROOT_BACKTRACKS=5/5'
-            echo 'DANGLING_REFERENCES=0'
-            echo 'CYCLES=0'
-            echo 'SEMANTIC_PROJECTION_TO_B5_1=PASS'
-            echo 'FACTOR_ORDER_EMITTED=FALSE'
-            echo 'FOUND_LAYOUT=FORBIDDEN'
-            echo 'GENERIC_NO_LAYOUT_AT_CAP=FORBIDDEN'
-            echo 'B5_COMPLETE=FALSE'
-            echo 'FORMAL_ADMISSION=BLOCKED_PENDING_REVIEW'
-            echo 'P_VS_NP=OPEN'
-          } | tee /tmp/b5-2a-exact-head-receipt.txt
-
-      - name: Export B5.2A evidence
-        uses: actions/upload-artifact@v4
-        with:
-          name: c049-b5-2a-generic-algorithm2-provenance-carrier
-          retention-days: 7
-          compression-level: 9
-          path: |
-            /tmp/positive.b5-1.json
-            /tmp/positive.carrier.json
-            /tmp/positive.carrier-verifier.log
-            /tmp/negative-root.b5-1.json
-            /tmp/negative-root.carrier.json
-            /tmp/negative-root.carrier-verifier.log
-            /tmp/three-factor.b5-1.json
-            /tmp/three-factor.carrier.json
-            /tmp/three-factor.carrier-verifier.log
-            /tmp/b5-2a-exact-head-receipt.txt
-            experiments/direct/C049_1_B5_2A_GENERIC_ALGORITHM2_PROVENANCE_CARRIER_SPEC_V1.json
-            experiments/direct/janus_c049_1_b5_2a_generic_algorithm2_provenance_carrier.py
-            experiments/direct/janus_c049_1_b5_2a_generic_algorithm2_provenance_carrier_verifier.py
