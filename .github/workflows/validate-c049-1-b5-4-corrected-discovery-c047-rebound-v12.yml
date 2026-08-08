@@ -3,6 +3,7 @@ name: Validate C049.1 B5.4 corrected discovery to C047 rebound v1.2
 on:
   pull_request:
     paths:
+      - 'experiments/direct/C049_1_B5_4_REBOUND_UPSTREAM_TAMPER_HARDENING_AMENDMENT_V1_2.json'
       - 'experiments/direct/janus_c049_1_b5_4_corrected_discovery_c047_rebound_verifier_v12.py'
       - 'experiments/direct/janus_c049_1_b5_4_rebound_ci_harness_v12.py'
       - '.github/workflows/validate-c049-1-b5-4-corrected-discovery-c047-rebound-v12.yml'
@@ -13,6 +14,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       PYTHONPATH: experiments/direct
+      AMENDMENT_V12: experiments/direct/C049_1_B5_4_REBOUND_UPSTREAM_TAMPER_HARDENING_AMENDMENT_V1_2.json
       VERIFIER_V12: experiments/direct/janus_c049_1_b5_4_corrected_discovery_c047_rebound_verifier_v12.py
       HARNESS_V12: experiments/direct/janus_c049_1_b5_4_rebound_ci_harness_v12.py
     steps:
@@ -28,11 +30,12 @@ jobs:
           set -euo pipefail
           if [ "${{ github.event_name }}" = "pull_request" ]; then PROOF_HEAD="${{ github.event.pull_request.head.sha }}"; else PROOF_HEAD="$GITHUB_SHA"; fi
           echo "PROOF_HEAD=$PROOF_HEAD" >> "$GITHUB_ENV"
-          for f in "$VERIFIER_V12" "$HARNESS_V12"; do
+          for f in "$AMENDMENT_V12" "$VERIFIER_V12" "$HARNESS_V12"; do
             test "$(git rev-parse "$PROOF_HEAD:$f")" = "$(git hash-object "$f")"
           done
+          test "$(git hash-object "$AMENDMENT_V12")" = "62b514b9a26a61afd9ca80c20f2fe2c5545bd047"
           test "$(git hash-object "$VERIFIER_V12")" = "c481b33996e751cb8a530da16d71f3bcc7764d84"
-          test "$(git hash-object "$HARNESS_V12")" = "6edd7143a9cc1edc484cf93cf1a9e88286a3a836"
+          test "$(git hash-object "$HARNESS_V12")" = "0b42fe60efb138a0c605e16acc30a8dac3397bb1"
           test "$(git hash-object experiments/direct/janus_c049_1_b5_4_corrected_discovery_c047_rebound_v11.py)" = "1be22d0f2ca01f07b334eb894488cf30196b3f08"
           test "$(git hash-object experiments/direct/janus_c049_1_b5_4_corrected_discovery_c047_rebound_verifier_v11.py)" = "a920607a4921d19ef0ecbdf716c0af8cd924aa40"
           test "$(git hash-object experiments/direct/janus_c049_1_b5_4_rebound_ci_harness_v11.py)" = "6ecd6a65613e14c80fa5573d6e496c4eefb7565d"
@@ -44,6 +47,19 @@ jobs:
           test "$(git hash-object experiments/direct/janus_c049_fpt_integration_solver.py)" = "70c06752890e797bdf3a7c87c2cb41703fade163"
           test "$(git hash-object experiments/direct/janus_c049_fpt_integration_verifier.py)" = "6ae98df69ff53b6157c171cea619865af533c07c"
           test "$(git hash-object experiments/direct/janus_c047_affine_trellis_core.py)" = "c2905332a83b175eea8bd0a326e1a63555b2130a"
+          python - <<'PY'
+          import json
+          a=json.load(open('experiments/direct/C049_1_B5_4_REBOUND_UPSTREAM_TAMPER_HARDENING_AMENDMENT_V1_2.json'))
+          assert a['base_v1_1']['proof_head']=='69b38e05e3136740760beef1047f77daacb73b1b'
+          assert a['base_v1_1']['run_id']==31247184773
+          assert a['base_v1_1']['job_id']==93077618813
+          assert a['base_v1_1']['artifact_id']==9018874362
+          assert a['base_v1_1']['artifact_zip_sha256']=='bd77c6dc50c062f474997cbe9a5847e95b600e044a2eb55d2bef51fb18da86c2'
+          assert a['hardening']['verifier_git_blob']=='c481b33996e751cb8a530da16d71f3bcc7764d84'
+          assert a['hardening']['required_result']=='27/27'
+          assert a['semantic_effect'].startswith('NO_CHANGE_TO_B5_4_PRODUCER_OR_ADMISSION_STATEMENT')
+          print('B5_4_V1_2_AMENDMENT_AUTHORITY_BINDING = PASS')
+          PY
           echo 'B5_4_V1_2_EXACT_HEAD_AND_AUTHORITY_BINDING = PASS'
 
       - name: Compile and audit v1.2 hardening scope
@@ -58,6 +74,7 @@ jobs:
           assert 'T27_REPAIRED_UPSTREAM_B52_CUT_BASIS' in v
           assert 'expected 27/27 repaired-digest tamper rejection' in h
           assert 'semantic_contract_changed' in h
+          assert 'v1_2_hardening_amendment_git_blob' in h
           for text in (v,h):
               for forbidden in ['def solve_trellis(', 'def affine_trellis(', 'P_VS_NP = CLOSED', 'POLYNOMIAL_RUNTIME = ESTABLISHED']:
                   assert forbidden not in text
