@@ -1,0 +1,66 @@
+name: Validate A3 k-class endpoint compression v1
+
+on:
+  pull_request:
+    paths:
+      - 'research_targets/A3_KCLASS_ENDPOINT_COMPRESSION_THEOREM_V1.json'
+      - 'research_targets/audits/A3_KCLASS_ENDPOINT_COMPRESSION_V1_*.json'
+      - 'research_targets/priority_records/A3_KCLASS_ENDPOINT_COMPRESSION_PRIORITY_RECORD_V1.json'
+      - 'research_targets/reports/A3_REPEATED_SUBSPACE_PATHWIDTH_TECHNICAL_REPORT_V1.md'
+      - 'experiments/direct/janus_a3_kclass_endpoint_compression_v1.py'
+      - 'experiments/direct/janus_a3_kclass_endpoint_compression_verifier_v1.py'
+      - '.github/workflows/validate-a3-kclass-endpoint-compression-v1.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  theorem:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - name: Bind admitted proof authority when receipt exists
+        shell: bash
+        run: |
+          set -euo pipefail
+          R=research_targets/audits/A3_KCLASS_ENDPOINT_COMPRESSION_V1_ADMISSION_6CA16581.json
+          if test -f "$R"; then
+            python - <<'PY'
+          import json
+          r=json.load(open('research_targets/audits/A3_KCLASS_ENDPOINT_COMPRESSION_V1_ADMISSION_6CA16581.json'))
+          assert r['proof_head']=='6ca16581eff08103698250b09ea51aeccd9f800b'
+          assert r['evidence_strength']=='ES5_GENERAL_COMPOSITIONAL_THEOREM_ADMITTED'
+          assert r['world_novelty_n4']=='NOT_ESTABLISHED'
+          assert r['p_vs_np']=='OPEN'
+          print('KCLASS_ADMISSION_AUTHORITY = PASS')
+          PY
+          fi
+      - name: Compile producer and verifier
+        run: |
+          python -m py_compile experiments/direct/janus_a3_kclass_endpoint_compression_v1.py
+          python -m py_compile experiments/direct/janus_a3_kclass_endpoint_compression_verifier_v1.py
+      - name: Build candidate certificate
+        run: |
+          python experiments/direct/janus_a3_kclass_endpoint_compression_v1.py --out /tmp/kclass.json | tee /tmp/producer.log
+          grep -Fx 'KCLASS_ENDPOINT_COMPRESSION_SYMBOLIC = PASS' /tmp/producer.log
+          grep -Fx 'K3_GF2_FALSIFICATION = PASS' /tmp/producer.log
+          grep -Fx 'COUNTEREXAMPLES = 0' /tmp/producer.log
+      - name: Independent replay and falsification
+        run: |
+          python experiments/direct/janus_a3_kclass_endpoint_compression_verifier_v1.py --certificate /tmp/kclass.json --tamper-test | tee /tmp/verifier.log
+          grep -Fx 'KCLASS_ENDPOINT_COMPRESSION_INDEPENDENT_REPLAY = PASS' /tmp/verifier.log
+          grep -Fx 'TAMPERS_REJECTED = 8/8' /tmp/verifier.log
+          grep -Fx 'P_VS_NP = OPEN' /tmp/verifier.log
+      - name: Upload exact-head evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: a3-kclass-endpoint-compression-${{ github.event.pull_request.head.sha || github.sha }}
+          path: |
+            /tmp/kclass.json
+            /tmp/producer.log
+            /tmp/verifier.log
+          if-no-files-found: error
