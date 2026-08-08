@@ -5,6 +5,9 @@ The verifier does not import the producer. It independently rescans the
 repository, recomputes marker counts, implication closure, classifications,
 ranking, corpus digest, and semantic report hash. It also enforces the theorem
 ceiling: every target produced by this search remains NOT_PROVED_BY_THIS_SEARCH.
+
+Amendment v1.2 independently enforces case-insensitive literal matching with
+ASCII identifier boundaries, rejecting substring-inflated short-token counts.
 """
 
 from __future__ import annotations
@@ -13,8 +16,9 @@ import argparse
 import copy
 import hashlib
 import json
+import re
 from pathlib import Path
-from typing import Dict, Iterable, List, Tuple
+from typing import Dict, List, Tuple
 
 REPORT_SCHEMA = "janus.fundamentum.multidirectional_frontier_report.v1"
 REGISTRY_SCHEMA = "janus.fundamentum.research_target_registry.v1"
@@ -44,6 +48,14 @@ def obj_hash(value: object) -> str:
 
 def read_json(path: Path) -> dict:
     return json.loads(path.read_text(encoding="utf-8"))
+
+
+def literal_marker_count(text: str, marker: str) -> int:
+    rx = re.compile(
+        r"(?<![A-Za-z0-9_])" + re.escape(marker) + r"(?![A-Za-z0-9_])",
+        flags=re.IGNORECASE,
+    )
+    return len(rx.findall(text))
 
 
 def corpus(root: Path) -> Tuple[List[Tuple[str, str]], str]:
@@ -106,6 +118,13 @@ def expected_class(target: dict, surface_count: int) -> str:
     return "ROUTE_SURFACE_FOUND_REQUIRES_THEOREM"
 
 
+def verify_matching_semantics() -> None:
+    assert literal_marker_count("NC NCX XNC _NC nc", "NC") == 2
+    assert literal_marker_count("alpha PH beta ph2", "PH") == 1
+    assert literal_marker_count("PIT pitfall PIT_2", "PIT") == 1
+    assert literal_marker_count("P/poly and NP subseteq P/poly", "P/poly") == 2
+
+
 def verify_registry(registry: dict) -> None:
     assert registry["schema"] == REGISTRY_SCHEMA
     policy = registry["policy"]
@@ -148,6 +167,7 @@ def verify_registry(registry: dict) -> None:
 
 
 def verify_report(root: Path, registry: dict, report: dict) -> None:
+    verify_matching_semantics()
     verify_registry(registry)
     assert report["schema"] == REPORT_SCHEMA
     assert report["registry_schema"] == REGISTRY_SCHEMA
@@ -156,6 +176,7 @@ def verify_report(root: Path, registry: dict, report: dict) -> None:
     assert report["search_policy"]["route_search_is_not_proof"] is True
     assert report["search_policy"]["preferred_outcome"] is None
     assert report["search_policy"]["resource_exhaustion_means_open"] is True
+    assert report["search_policy"]["marker_matching"] == "case-insensitive literal with ASCII identifier boundaries on both sides"
     assert report["global_terminal"] == "OPEN"
     assert report["forbidden_promotions_preserved"] == registry["global_forbidden_claims"]
 
@@ -185,11 +206,10 @@ def verify_report(root: Path, registry: dict, report: dict) -> None:
         total_occurrences = 0
         expected_marker_rows = []
         for marker in target["search_markers"]:
-            needle = marker.casefold()
             surfaces = []
             occurrences = 0
             for rel, text in rows:
-                count = text.casefold().count(needle)
+                count = literal_marker_count(text, marker)
                 if count:
                     occurrences += count
                     surfaces.append(rel)
@@ -235,8 +255,6 @@ def verify_report(root: Path, registry: dict, report: dict) -> None:
 def expect_reject(root: Path, registry: dict, report: dict, mutate) -> None:
     bad = copy.deepcopy(report)
     mutate(bad)
-    # Repair the outer semantic hash so each attack tests the semantic verifier,
-    # not merely stale digest detection.
     unhashed = copy.deepcopy(bad)
     unhashed.pop("report_semantic_sha256", None)
     bad["report_semantic_sha256"] = obj_hash(unhashed)
@@ -265,6 +283,7 @@ def tamper_suite(root: Path, registry: dict, report: dict) -> int:
         lambda r: r["targets"][3].__setitem__("negative_implication_closure", []),
         lambda r: r["targets"][-1].__setitem__("route_classification", "ACTIVE_STRUCTURAL_ROUTE"),
         lambda r: r["search_policy"].__setitem__("route_search_is_not_proof", False),
+        lambda r: r["search_policy"].__setitem__("marker_matching", "substring"),
     ]
     for attack in attacks:
         expect_reject(root, registry, report, attack)
@@ -284,6 +303,7 @@ def main() -> None:
     report = read_json((root / args.report).resolve())
     verify_report(root, registry, report)
     print("INDEPENDENT_FRONTIER_REPLAY = PASS")
+    print("BOUNDARY_AWARE_MARKER_MATCHING = PASS")
     print(f"VERIFIED_TARGET_COUNT = {report['target_count']}")
     print(f"GLOBAL_TERMINAL = {report['global_terminal']}")
     if args.tamper_test:
