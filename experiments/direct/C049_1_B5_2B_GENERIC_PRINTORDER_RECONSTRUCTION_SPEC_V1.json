@@ -1,0 +1,118 @@
+{
+  "schema": "janus.c049_1.b5_2b.generic_printorder_reconstruction_spec.v1",
+  "version": "1.0",
+  "frozen_at": "2026-08-08",
+  "gate": "C049.1_B5.2B_GENERIC_PRINTORDER_RECONSTRUCTION",
+  "status": "SPEC_FROZEN_REVIEW_ONLY_FOUND_LAYOUT_CEILING",
+  "purpose": "RECONSTRUCT_ONE_WHOLE_FACTOR_LINEAR_LAYOUT_FROM_EACH_NONEMPTY_VERIFIED_B5_2A_ROOT_ENTRY_USING_JKO_ALGORITHM2_LABELS_AND_INDEPENDENTLY_VERIFY_THE_EMITTED_ORDER",
+  "published_source": {
+    "identifier": "arXiv:1507.02184v4",
+    "title": "The art of trellis decoding is fixed-parameter tractable",
+    "section": "5.5",
+    "algorithm": "Algorithm 2: Print a linear layout of width at most k",
+    "proposition": "Proposition 5.9",
+    "source_contract": [
+      "leaf: print its unique space when the requested interval index is the first interval",
+      "join: follow the stored ordinary H/V path; an H step recurses to the left child interval and a V step to the right child interval",
+      "up: use a monotone sequence selecting a lower/source path coordinate for every upper/output coordinate and recurse over the corresponding source interval range",
+      "shrink_or_transport: preserve interval index and recurse to the unique child",
+      "root: call printorder for every interval of the selected root trajectory"
+    ]
+  },
+  "authority_inputs": {
+    "b5_2a_admission": {
+      "proof_head": "15ea163d918f21be0b7d8479263c1faa3f335614",
+      "review_id": 4888326386,
+      "evidence_commit": "4a1a09ded21d3447929abb6cfc9dff9f4883a973",
+      "receipt_path": "experiments/direct/audits/C049_1_B5_2A_GENERIC_ALGORITHM2_PROVENANCE_CARRIER_V1_1_ADMISSION_15EA163D.json",
+      "receipt_git_blob": "2e076e87029b2bc1ae8e773a6ed16f3897d46b78"
+    },
+    "b5_2a_amendment_git_blob": "fda6f7d45d0273f957c13014fa62718bc19b465e",
+    "b5_2a_producer_git_blob": "9159ad8fb03b47eab354ae85e6756037818597e8",
+    "b5_2a_verifier_git_blob": "57c95af433b2b97c53a51132f6d3128884f7f6c9",
+    "b5_1_producer_git_blob": "8be92b8a663e0d05535861c6f216db28094014fb",
+    "b3_runtime_core_git_blob": "443566c4b79bf67ec1613413130169cab12ebb0f",
+    "corrected_join_git_blob": "0d17e0e08060c483fc0f1c3031eddc57337045cd"
+  },
+  "input_contract": {
+    "runtime_input": "EXACT_INPUT_JSON_USED_TO_BUILD_THE_B5_1_AND_B5_2A_SUBJECTS",
+    "b5_1_artifact": "MUST_BE_CLOSED_COMPLETE_TRACE",
+    "b5_2a_carrier": "MUST_PASS_THE_ADMITTED_B5_2A_V1_1_INDEPENDENT_VERIFIER",
+    "empty_root": "EMIT_NO_ORDER_AND_NO_FOUND_LAYOUT_PROMOTION",
+    "nonempty_root": "RECONSTRUCT_ONE_LAYOUT_PER_ROOT_ENTRY"
+  },
+  "printorder_contract": {
+    "indexing": "ZERO_BASED_IMPLEMENTATION_OF_THE_PAPER_ONE_BASED_INTERVAL_INDICES",
+    "root_entry_selection": "EACH_ROOT_ENTRY_IS_RECONSTRUCTED_IN_CANONICAL_ENTRY_INDEX_ORDER",
+    "up_sequence_derivation": {
+      "witness_path": "CANONICAL_PAIR_LIST_[lower_index,upper_index]",
+      "selected_lower_index_for_upper_j": "MAXIMUM_LOWER_INDEX_i_SUCH_THAT_[i,j]_IS_ON_THE_WITNESS_PATH",
+      "required_properties": [
+        "one selected lower index exists for every upper trajectory position",
+        "the selected sequence is nondecreasing",
+        "first selected lower index is zero",
+        "last selected lower index is the final lower trajectory index"
+      ],
+      "interval_recursion": "FOR_OUTPUT_INTERVAL_i_RECURSE_OVER_SOURCE_INTERVALS_SELECTED[i]..SELECTED[i+1)-1"
+    },
+    "join_sequence_derivation": {
+      "path": "EXACT_STORED_ORDINARY_HV_JOIN_PATH",
+      "H_step_[1,0]": "RECURSE_TO_LEFT_CHILD_AT_CURRENT_LEFT_INDEX",
+      "V_step_[0,1]": "RECURSE_TO_RIGHT_CHILD_AT_CURRENT_RIGHT_INDEX",
+      "diagonal_step": "FORBIDDEN"
+    },
+    "shrink_and_expand_transport": "ORDER_PRESERVING_RECURSE_WITH_SAME_INTERVAL_INDEX",
+    "leaf": "EMIT_FACTOR_ID_EXACTLY_ON_INTERVAL_ZERO",
+    "deduplication": "FORBIDDEN; EACH_FACTOR_MUST_BE_EMITTED_EXACTLY_ONCE_BY_THE_CERTIFIED_RECURSION"
+  },
+  "independent_verifier_contract": {
+    "producer_import": "FORBIDDEN",
+    "must_first_verify_b5_2a_carrier": true,
+    "must_reconstruct_order_from_carrier_labels_independently": true,
+    "must_compare_candidate_order_to_independent_reconstruction": true,
+    "must_verify_factor_order_is_exact_permutation_of_input_factor_ids": true,
+    "must_verify_affine_offset_identity_is_not_changed_or_used_to_merge_factors": true,
+    "must_recompute_every_cut_width_from_input_normal_spaces": true,
+    "cut_width_formula": "dim(span(prefix_normal_spaces) intersect span(suffix_normal_spaces))",
+    "must_verify_max_cut_width_le_k": true,
+    "must_reject_digest_repaired_semantic_tampers": true
+  },
+  "control_matrix": [
+    "positive two-factor CLOSED root: one reconstructed root order",
+    "presentation-reordered equivalent input: byte-identical reconstructed artifact",
+    "negative empty root: zero orders and no promotion",
+    "three-factor CLOSED root: five root entries, five independently reconstructed orders, each a permutation with width<=k"
+  ],
+  "tamper_attack_classes": [
+    "T01 change B5.2A subject semantic digest",
+    "T02 change selected root entry index",
+    "T03 omit one factor from emitted order",
+    "T04 duplicate one emitted factor",
+    "T05 swap two factors while repairing candidate digest",
+    "T06 mutate a reconstructed up selected-index sequence",
+    "T07 inject diagonal into a join path",
+    "T08 redirect a leaf factor identity",
+    "T09 mutate affine offset identity",
+    "T10 lower claimed max cut width",
+    "T11 mutate one cut prefix/suffix width receipt",
+    "T12 emit an order for an empty root",
+    "T13 set FOUND_LAYOUT on an empty root",
+    "T14 promote NO_LAYOUT_AT_CAP",
+    "T15 promote polynomial runtime / B5 complete / P_VS_NP"
+  ],
+  "strict_boundary": {
+    "b5_2a_admitted": true,
+    "b5_2b_printorder_candidate": false,
+    "generic_factor_order_reconstruction": false,
+    "generic_found_layout": "FORBIDDEN_PENDING_B5_2B_IMPLEMENTATION_REVIEW",
+    "generic_no_layout_at_cap": "FORBIDDEN",
+    "all_input_termination": "NOT_ESTABLISHED",
+    "polynomial_runtime": "NOT_ESTABLISHED",
+    "b5_complete": false,
+    "arbitrary_input_global_engine_theorem": false,
+    "formal_admission": "BLOCKED_PENDING_B5_2B_IMPLEMENTATION_REVIEW",
+    "next_gate": "C049.1_B5.2B_GENERIC_PRINTORDER_RECONSTRUCTION_IMPLEMENTATION",
+    "p_vs_np": "OPEN"
+  },
+  "automatic_merge": false
+}
