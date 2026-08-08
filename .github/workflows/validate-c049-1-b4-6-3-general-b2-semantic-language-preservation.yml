@@ -1,0 +1,167 @@
+name: Validate C049.1 B4.6.3 general B2 semantic-language preservation
+
+on:
+  push:
+    paths:
+      - 'experiments/direct/C049_1_B4_6_3_GENERAL_B2_SEMANTIC_LANGUAGE_PRESERVATION_SPEC_V1.json'
+      - 'experiments/direct/janus_c049_1_b4_6_3_general_b2_semantic_language_preservation.py'
+      - 'experiments/direct/janus_c049_1_b4_6_3_general_b2_semantic_language_preservation_verifier.py'
+      - '.github/workflows/validate-c049-1-b4-6-3-general-b2-semantic-language-preservation.yml'
+  pull_request:
+    paths:
+      - 'experiments/direct/C049_1_B4_6_3_GENERAL_B2_SEMANTIC_LANGUAGE_PRESERVATION_SPEC_V1.json'
+      - 'experiments/direct/janus_c049_1_b4_6_3_general_b2_semantic_language_preservation.py'
+      - 'experiments/direct/janus_c049_1_b4_6_3_general_b2_semantic_language_preservation_verifier.py'
+      - '.github/workflows/validate-c049-1-b4-6-3-general-b2-semantic-language-preservation.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  SPEC: experiments/direct/C049_1_B4_6_3_GENERAL_B2_SEMANTIC_LANGUAGE_PRESERVATION_SPEC_V1.json
+  PRODUCER: experiments/direct/janus_c049_1_b4_6_3_general_b2_semantic_language_preservation.py
+  VERIFIER: experiments/direct/janus_c049_1_b4_6_3_general_b2_semantic_language_preservation_verifier.py
+  O5_AUDIT: experiments/direct/audits/C049_1_B4_6_3_GENERAL_WIDTH_FILTER_SOUNDNESS_REFLECTION_INDEPENDENT_SOURCE_AUDIT_28A69B61.json
+
+jobs:
+  general-b2-semantic-language-preservation:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Bind theorem subjects and immutable semantic sources
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git hash-object "$SPEC")" = "e24f18475e1e27ba19cdefd65a768708c25299dc"
+          test "$(git hash-object "$PRODUCER")" = "0f5c4166478693d7ea5fafc0572dfa6e4d133b61"
+          test "$(git hash-object "$VERIFIER")" = "3922b4ecfec643dbf126bd7473756362cf0a3168"
+          test "$(git hash-object "$O5_AUDIT")" = "263be88986fc535f643cbeedf448491d47220752"
+          python -m py_compile "$PRODUCER" "$VERIFIER"
+          python - <<'PY'
+          import ast
+          from pathlib import Path
+          p=ast.parse(Path('experiments/direct/janus_c049_1_b4_6_3_general_b2_semantic_language_preservation.py').read_text())
+          v=ast.parse(Path('experiments/direct/janus_c049_1_b4_6_3_general_b2_semantic_language_preservation_verifier.py').read_text())
+          def mods(t):
+              out=[]
+              for n in ast.walk(t):
+                  if isinstance(n,ast.Import): out.extend(a.name for a in n.names)
+                  elif isinstance(n,ast.ImportFrom): out.append(n.module or '')
+              return out
+          assert not any(x.endswith('janus_c049_1_b4_6_3_general_b2_semantic_language_preservation_verifier') for x in mods(p))
+          assert not any(x.endswith('janus_c049_1_b4_6_3_general_b2_semantic_language_preservation') for x in mods(v))
+          print('GENERAL_B2_LANGUAGE_IMPLEMENTATION_DECOUPLING_STATIC_CHECK = PASS')
+          PY
+          git fetch --force --prune origin '+refs/heads/*:refs/remotes/origin/*'
+          materialize(){ git cat-file -e "$1^{blob}"; git cat-file blob "$1" > "$2"; test "$(git hash-object "$2")" = "$1"; }
+          materialize 96019d44b8defb97f7b0911b57302004c3d57c61 /tmp/b1-core.py
+          materialize 3b66fa2b45702f11ee7a62657754c16800fa90f3 /tmp/b2-core.py
+          materialize a7c5a7a65dfd9839711967f1039a96ba20ad6443 /tmp/b2-doc.md
+
+      - name: Build preservation theorem certificate twice
+        shell: bash
+        run: |
+          set -euo pipefail
+          python "$PRODUCER" --spec "$SPEC" --o5-audit "$O5_AUDIT" --b1-core /tmp/b1-core.py --b2-core /tmp/b2-core.py --b2-doc /tmp/b2-doc.md --output /tmp/b2-language-original.json | tee /tmp/producer-original.log
+          python "$PRODUCER" --b2-doc /tmp/b2-doc.md --b2-core /tmp/b2-core.py --b1-core /tmp/b1-core.py --o5-audit "$O5_AUDIT" --spec "$SPEC" --output /tmp/b2-language-reordered.json | tee /tmp/producer-reordered.log
+          cmp /tmp/b2-language-original.json /tmp/b2-language-reordered.json
+          echo 'GENERAL_B2_LANGUAGE_BINDER_BYTE_IDENTITY = PASS'
+          echo "GENERAL_B2_LANGUAGE_ARTIFACT_SHA256=$(sha256sum /tmp/b2-language-original.json | cut -d' ' -f1)"
+          python - <<'PY'
+          import json
+          x=json.load(open('/tmp/b2-language-original.json'))
+          print('GENERAL_B2_LANGUAGE_SEMANTIC_DIGEST='+x['semantic_digest'])
+          PY
+
+      - name: Independent abstract-preorder replay and tamper rejection
+        shell: bash
+        run: |
+          set -euo pipefail
+          python "$VERIFIER" --spec "$SPEC" --producer-source "$PRODUCER" --o5-audit "$O5_AUDIT" --b1-core /tmp/b1-core.py --b2-core /tmp/b2-core.py --b2-doc /tmp/b2-doc.md --candidate-original /tmp/b2-language-original.json --candidate-reordered /tmp/b2-language-reordered.json --tamper-suite | tee /tmp/verifier.log
+          grep -F 'JANUS_GENERAL_B2_SEMANTIC_LANGUAGE_PRESERVATION_INDEPENDENT_VERIFIER = PASS' /tmp/verifier.log
+          grep -F 'INVARIANTS = 12/12' /tmp/verifier.log
+          grep -F 'DIGEST_REPAIRED_TAMPERS_REJECTED = 12/12' /tmp/verifier.log
+          grep -F 'COFINAL_MINIMIZATION_UP_K_EQUALITY = PASS_AS_DERIVED_CANDIDATE' /tmp/verifier.log
+          grep -F 'DUPLICATE_DELETION_UP_K_PRESERVATION = PASS_AS_DERIVED_CANDIDATE' /tmp/verifier.log
+          grep -F 'UP_K_IDEMPOTENCE = PASS_AS_DERIVED_CANDIDATE' /tmp/verifier.log
+          grep -F 'RETAINED_GENERATOR_MINIMIZATION_CREATES_NEW_REALIZABILITY = FALSE' /tmp/verifier.log
+
+      - name: Non-promoting boundary audit
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import hashlib,json
+          x=json.load(open('/tmp/b2-language-original.json')); p=x['proof_payload']; b=p['strict_boundary']; c=p['b2_preservation_contract']
+          assert hashlib.sha256(json.dumps(p,sort_keys=True,separators=(',',':')).encode()).hexdigest()==x['semantic_digest']
+          assert c['duplicate_deletion_preserves_up_k'] is True
+          assert c['direct_predecessor_minimization_preserves_up_k'] is True
+          assert c['up_k_idempotent'] is True
+          assert c['semantic_language_preserved_if_source_family_semantically_complete'] is True
+          assert c['semantic_language_reflected_if_source_family_semantically_complete'] is True
+          assert c['retained_generator_minimization_creates_new_realizability'] is False
+          assert c['upstream_o2_o5_caller_preconditions_automatically_established'] is False
+          assert p['general_semantic_theorems_established']==5 and p['remaining_general_semantic_theorems']==2
+          assert p['first_required_next_receipt']=='GENERAL_B2_SEMANTIC_LANGUAGE_PRESERVATION_RECEIPT'
+          assert b['o6_b2_semantic_language_preservation_and_reflection'] is False and b['o7_empty_root_specialization_established'] is False
+          assert b['structural_induction_proved'] is False and b['terminal_completeness_proved'] is False
+          assert b['global_engine_no_layout_at_cap']=='FORBIDDEN' and b['found_layout']=='FORBIDDEN'
+          assert b['formal_admission']=='BLOCKED' and b['next_gate']=='CLOSED' and b['p_vs_np']=='OPEN'
+          print('GENERAL_B2_LANGUAGE_NON_PROMOTING_BOUNDARY = PASS')
+          print('NEXT_MATHEMATICAL_RECEIPT = GENERAL_B2_SEMANTIC_LANGUAGE_PRESERVATION_RECEIPT')
+          PY
+
+      - name: Build exact-head-compatible receipt
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ "${{ github.event_name }}" = "pull_request" ]; then PROOF_HEAD="${{ github.event.pull_request.head.sha }}"; else PROOF_HEAD="$GITHUB_SHA"; fi
+          {
+            echo "GITHUB_SHA=$GITHUB_SHA"
+            echo "PROOF_HEAD=$PROOF_HEAD"
+            echo "SPEC_BLOB=$(git hash-object "$SPEC")"
+            echo "PRODUCER_BLOB=$(git hash-object "$PRODUCER")"
+            echo "VERIFIER_BLOB=$(git hash-object "$VERIFIER")"
+            echo "O5_AUDIT_BLOB=$(git hash-object "$O5_AUDIT")"
+            echo "CANDIDATE_SHA256=$(sha256sum /tmp/b2-language-original.json | cut -d' ' -f1)"
+            echo "CANDIDATE_SEMANTIC_DIGEST=$(python -c 'import json;print(json.load(open("/tmp/b2-language-original.json"))["semantic_digest"])')"
+            echo 'BYTE_IDENTITY=PASS'
+            echo 'INVARIANTS=12/12'
+            echo 'DIGEST_REPAIRED_TAMPERS_REJECTED=12/12'
+            echo 'COFINAL_MINIMIZATION_UP_K_EQUALITY=PASS_AS_DERIVED_CANDIDATE'
+            echo 'DUPLICATE_DELETION_UP_K_PRESERVATION=PASS_AS_DERIVED_CANDIDATE'
+            echo 'UP_K_IDEMPOTENCE=PASS_AS_DERIVED_CANDIDATE'
+            echo 'RETAINED_GENERATOR_MINIMIZATION_CREATES_NEW_REALIZABILITY=FALSE'
+            echo 'UPSTREAM_O2_O5_CALLER_PRECONDITIONS_AUTOMATICALLY_ESTABLISHED=FALSE'
+            echo 'GENERAL_SEMANTIC_THEOREMS_ESTABLISHED=5'
+            echo 'REMAINING_GENERAL_SEMANTIC_THEOREMS=2'
+            echo 'FIRST_REQUIRED_NEXT_RECEIPT=GENERAL_B2_SEMANTIC_LANGUAGE_PRESERVATION_RECEIPT'
+            echo 'STRUCTURAL_INDUCTION_PROVED=FALSE'
+            echo 'TERMINAL_COMPLETENESS_PROVED=FALSE'
+            echo 'GLOBAL_ENGINE_NO_LAYOUT_AT_CAP=FORBIDDEN'
+            echo 'P_VS_NP=OPEN'
+          } | tee /tmp/exact-head-receipt.txt
+
+      - name: Export general B2 semantic-language evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: c049-b4-6-3-general-b2-semantic-language-preservation
+          retention-days: 7
+          compression-level: 9
+          path: |
+            /tmp/exact-head-receipt.txt
+            /tmp/b2-language-original.json
+            /tmp/b2-language-reordered.json
+            /tmp/producer-original.log
+            /tmp/producer-reordered.log
+            /tmp/verifier.log
+            experiments/direct/C049_1_B4_6_3_GENERAL_B2_SEMANTIC_LANGUAGE_PRESERVATION_SPEC_V1.json
+            experiments/direct/janus_c049_1_b4_6_3_general_b2_semantic_language_preservation.py
+            experiments/direct/janus_c049_1_b4_6_3_general_b2_semantic_language_preservation_verifier.py
