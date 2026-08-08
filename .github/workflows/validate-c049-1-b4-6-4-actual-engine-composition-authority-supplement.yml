@@ -1,0 +1,192 @@
+name: Validate C049.1 B4.6.4 actual-engine composition authority supplement
+
+on:
+  push:
+    paths:
+      - 'experiments/direct/C049_1_B4_6_4_ACTUAL_ENGINE_COMPOSITION_AUTHORITY_SUPPLEMENT_V2.json'
+      - 'experiments/direct/janus_c049_1_b4_6_4_actual_engine_composition_authority_supplement_verifier.py'
+      - '.github/workflows/validate-c049-1-b4-6-4-actual-engine-composition-authority-supplement.yml'
+  pull_request:
+    paths:
+      - 'experiments/direct/C049_1_B4_6_4_ACTUAL_ENGINE_COMPOSITION_AUTHORITY_SUPPLEMENT_V2.json'
+      - 'experiments/direct/janus_c049_1_b4_6_4_actual_engine_composition_authority_supplement_verifier.py'
+      - '.github/workflows/validate-c049-1-b4-6-4-actual-engine-composition-authority-supplement.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  PYTHONPATH: experiments/direct
+  FROZEN_PROOF_HEAD: 1a7078bab330dd1a80da13be979ff46441d9f4d7
+  FINAL_PRODUCER: experiments/direct/janus_c049_1_b4_6_4_actual_engine_composition_authority_closure.py
+  FINAL_VERIFIER: experiments/direct/janus_c049_1_b4_6_4_actual_engine_composition_authority_closure_verifier.py
+  FINAL_SPEC: experiments/direct/C049_1_B4_6_4_ACTUAL_ENGINE_COMPOSITION_AUTHORITY_CLOSURE_SPEC_V1.json
+  HARDENING: experiments/direct/C049_1_B4_6_4_GENERAL_STRUCTURAL_INDUCTION_COMPOSITION_AUTHORITY_HARDENING_V1.json
+  GENERAL_RECEIPT: experiments/direct/audits/C049_1_B4_6_3_GENERAL_STRUCTURAL_INDUCTION_COMPOSITION_INDEPENDENT_SEMANTIC_AUDIT_4F8F9424.json
+  PREFLIGHT_AUDIT: experiments/direct/audits/C049_1_B4_6_4_ACTUAL_ENGINE_TRACE_PREFLIGHT_INDEPENDENT_AUDIT_1914CA89.json
+  NODE8_AUTHORITY: experiments/direct/audits/C049_1_B4_6_3_CORRECTED_NODE8_TWENTY_GENERATOR_UP_K_AUTHORITY_CLOSURE_0FCDAA16.json
+  OLD_Q80_AUDIT: experiments/direct/audits/C049_1_B4_6_4_ACTUAL_ENGINE_Q80_COMPOSITION_REPLAY_AUDIT_A8ECC1CF.json
+  NODE9_SCALAR: experiments/direct/C049_1_B4_6_3_CORRECTED_NODE9_SCALAR_SYMBOLIC_AUTOMATON_SPEC_V1_2.json
+  NODE9_FRONTIER: experiments/direct/C049_1_B4_6_3_CORRECTED_NODE9_RESIDUAL_COMPACT_FRONTIER_SPEC_V1.json
+  NODE9_UPK: experiments/direct/C049_1_B4_6_3_CORRECTED_NODE9_RESIDUAL_UP_K_SPEC_V1.json
+  ROOT_REFINEMENT: experiments/direct/C049_1_B4_6_3_CORRECTED_ROOT_FULL_REFINEMENT_SPEC_V1.json
+  ROOT_EMPTY: experiments/direct/C049_1_B4_6_3_CORRECTED_ROOT_EMPTY_UP_K_SPEC_V1.json
+  SUPPLEMENT_SPEC: experiments/direct/C049_1_B4_6_4_ACTUAL_ENGINE_COMPOSITION_AUTHORITY_SUPPLEMENT_V2.json
+  SUPPLEMENT_VERIFIER: experiments/direct/janus_c049_1_b4_6_4_actual_engine_composition_authority_supplement_verifier.py
+  R109: experiments/direct/audits/C049_1_B4_6_3_CORRECTED_NODE6_PARENT_REFINEMENT_AUTHORITY_CLOSURE_243B841F.json
+  R110: experiments/direct/audits/C049_1_B4_6_3_CORRECTED_NODE6_UP_K_AUTHORITY_CLOSURE_9DEF1508.json
+  R111: experiments/direct/audits/C049_1_B4_6_3_CORRECTED_NODE6_INTEGRATION_NODE7_PREFLIGHT_AUTHORITY_CLOSURE_AF0556D4.json
+  Q80_AUTHORITY: experiments/direct/audits/C049_1_B4_6_4_ACTUAL_ENGINE_Q80_COMPOSITION_AUTHORITY_CLOSURE_0AB040E0.json
+  FINAL_AUDIT: experiments/direct/audits/C049_1_B4_6_4_ACTUAL_ENGINE_COMPOSITION_INDEPENDENT_SEMANTIC_AUDIT_1A7078BA.json
+
+jobs:
+  authority-supplement:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Bind frozen mathematical proof pair and immutable authority receipts
+        shell: bash
+        run: |
+          set -euo pipefail
+          git merge-base --is-ancestor "$FROZEN_PROOF_HEAD" HEAD
+          test "$(git rev-parse "${FROZEN_PROOF_HEAD}:${FINAL_PRODUCER}")" = "fc51a9dea4ff4fc9748c229c58e36b1c76c818f6"
+          test "$(git rev-parse "${FROZEN_PROOF_HEAD}:${FINAL_VERIFIER}")" = "c533df43f3904c308f40fb13788078575d29a5a6"
+          test "$(git hash-object "$FINAL_PRODUCER")" = "fc51a9dea4ff4fc9748c229c58e36b1c76c818f6"
+          test "$(git hash-object "$FINAL_VERIFIER")" = "c533df43f3904c308f40fb13788078575d29a5a6"
+          test "$(git hash-object "$FINAL_SPEC")" = "8221d8ec7561b5d8ca11ca01d218fd60536352f6"
+          test "$(git hash-object "$R109")" = "1a2a06651fdf0648e4baadcfdee73e271ad28b13"
+          test "$(git hash-object "$R110")" = "2fec660144b0ad20d346c06701496ac365833dfb"
+          test "$(git hash-object "$R111")" = "7e28cd5c701c28731927f68bcc56ccac98b68202"
+          test "$(git hash-object "$Q80_AUTHORITY")" = "d34166085f454d4d480656cb763d68bf39c7e53a"
+          test "$(git hash-object "$FINAL_AUDIT")" = "9ed212e9f7c570e68194f8f0b845afb9bec6a529"
+          python -m py_compile "$FINAL_PRODUCER" "$FINAL_VERIFIER" "$SUPPLEMENT_VERIFIER"
+          echo 'FROZEN_FINAL_PROOF_PAIR = EXACT_BOUND'
+          echo 'EARLY_AUTHORITY_RECEIPTS = 3/3 EXACT_BOUND'
+          echo 'CANONICAL_Q80_AUTHORITY_RECEIPT = EXACT_BOUND'
+
+      - name: Reproduce frozen final composition candidate in three modes
+        shell: bash
+        run: |
+          set -euo pipefail
+          for mode in ORIGINAL REVERSED SEEDED_SHUFFLE; do
+            python "$FINAL_PRODUCER" \
+              --spec "$FINAL_SPEC" \
+              --hardening "$HARDENING" \
+              --general-receipt "$GENERAL_RECEIPT" \
+              --preflight-audit "$PREFLIGHT_AUDIT" \
+              --node8-authority "$NODE8_AUTHORITY" \
+              --q80-audit "$OLD_Q80_AUDIT" \
+              --node9-scalar-spec "$NODE9_SCALAR" \
+              --node9-frontier-spec "$NODE9_FRONTIER" \
+              --node9-upk-spec "$NODE9_UPK" \
+              --root-refinement-spec "$ROOT_REFINEMENT" \
+              --root-empty-spec "$ROOT_EMPTY" \
+              --order-mode "$mode" \
+              --output "/tmp/final-$mode.json" | tee "/tmp/final-producer-$mode.log"
+          done
+          cmp /tmp/final-ORIGINAL.json /tmp/final-REVERSED.json
+          cmp /tmp/final-ORIGINAL.json /tmp/final-SEEDED_SHUFFLE.json
+          test "$(sha256sum /tmp/final-ORIGINAL.json | cut -d' ' -f1)" = "4417368b4039eb1ff727992e5906313c54689e04808300682d6da411abfa70a0"
+          python - <<'PY'
+          import json
+          x=json.load(open('/tmp/final-ORIGINAL.json'))
+          assert x['semantic_digest']=='a8976a4bea1a931c0a7ba96cfbae7387079919b4784a722a9c658f944c1e8c46'
+          print('FROZEN_FINAL_THREE_MODE_BYTE_IDENTITY = PASS')
+          print('FROZEN_FINAL_CANDIDATE_RECEIPTS = PASS')
+          PY
+
+      - name: Re-run frozen independent final verifier and repaired tampers
+        shell: bash
+        run: |
+          set -euo pipefail
+          python "$FINAL_VERIFIER" \
+            --spec "$FINAL_SPEC" \
+            --hardening "$HARDENING" \
+            --general-receipt "$GENERAL_RECEIPT" \
+            --preflight-audit "$PREFLIGHT_AUDIT" \
+            --node8-authority "$NODE8_AUTHORITY" \
+            --q80-audit "$OLD_Q80_AUDIT" \
+            --node9-scalar-spec "$NODE9_SCALAR" \
+            --node9-frontier-spec "$NODE9_FRONTIER" \
+            --node9-upk-spec "$NODE9_UPK" \
+            --root-refinement-spec "$ROOT_REFINEMENT" \
+            --root-empty-spec "$ROOT_EMPTY" \
+            --candidate /tmp/final-ORIGINAL.json \
+            --tamper-suite | tee /tmp/frozen-final-verifier.log
+          grep -F 'JANUS_ACTUAL_ENGINE_COMPOSITION_AUTHORITY_CLOSURE_INDEPENDENT_VERIFIER = PASS' /tmp/frozen-final-verifier.log
+          grep -F 'INVARIANTS = 18/18' /tmp/frozen-final-verifier.log
+          grep -F 'DIGEST_REPAIRED_TAMPERS_REJECTED = 18/18' /tmp/frozen-final-verifier.log
+          grep -F 'ROOT_EMPTY_CONSUMED_AS_COMPOSITION_PREMISE = FALSE' /tmp/frozen-final-verifier.log
+          grep -F 'POSITIVE_CONTROL_PASS = TRUE' /tmp/frozen-final-verifier.log
+
+      - name: Independently verify early authority chain and canonical Q80 supersession
+        shell: bash
+        run: |
+          set -euo pipefail
+          python "$SUPPLEMENT_VERIFIER" \
+            --spec "$SUPPLEMENT_SPEC" \
+            --r109 "$R109" \
+            --r110 "$R110" \
+            --r111 "$R111" \
+            --q80 "$Q80_AUTHORITY" \
+            --final-audit "$FINAL_AUDIT" \
+            --tamper-suite | tee /tmp/supplement-verifier.log
+          grep -F 'JANUS_ACTUAL_ENGINE_COMPOSITION_AUTHORITY_SUPPLEMENT_VERIFIER = PASS' /tmp/supplement-verifier.log
+          grep -F 'EARLY_NODE6_AUTHORITY_CHAIN = 3/3' /tmp/supplement-verifier.log
+          grep -F 'CANONICAL_Q80_AUTHORITY = PASS' /tmp/supplement-verifier.log
+          grep -F 'FROZEN_FINAL_CANDIDATE_AUTHORITY_LINK = PASS' /tmp/supplement-verifier.log
+          grep -F 'AUTHORITY_DIGEST_REPAIRED_TAMPERS_REJECTED = 10/10' /tmp/supplement-verifier.log
+          grep -F 'SUPPLEMENT_SELF_ADMISSION = FALSE' /tmp/supplement-verifier.log
+
+      - name: Freeze verification-only exact-head receipt
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ "${{ github.event_name }}" = "pull_request" ]; then EVIDENCE_HEAD="${{ github.event.pull_request.head.sha }}"; else EVIDENCE_HEAD="$GITHUB_SHA"; fi
+          {
+            echo "EVIDENCE_HEAD=$EVIDENCE_HEAD"
+            echo "FROZEN_MATHEMATICAL_PROOF_HEAD=$FROZEN_PROOF_HEAD"
+            echo "FROZEN_FINAL_CANDIDATE_SHA256=4417368b4039eb1ff727992e5906313c54689e04808300682d6da411abfa70a0"
+            echo "FROZEN_FINAL_CANDIDATE_SEMANTIC_DIGEST=a8976a4bea1a931c0a7ba96cfbae7387079919b4784a722a9c658f944c1e8c46"
+            echo 'FROZEN_FINAL_INVARIANTS=18/18'
+            echo 'FROZEN_FINAL_TAMPERS=18/18'
+            echo 'EARLY_NODE6_AUTHORITY_CHAIN=3/3'
+            echo 'CANONICAL_Q80_AUTHORITY=PASS'
+            echo 'AUTHORITY_SUPPLEMENT_TAMPERS=10/10'
+            echo 'ROOT_EMPTY_CONSUMED_AS_COMPOSITION_PREMISE=FALSE'
+            echo 'POSITIVE_NONVACUITY_CONTROL=PASS'
+            echo 'SUPPLEMENT_SELF_ADMISSION=FALSE'
+            echo 'TERMINAL_COMPLETENESS_PROVED=FALSE'
+            echo 'NO_LAYOUT_AT_CAP=FORBIDDEN'
+            echo 'FOUND_LAYOUT=FORBIDDEN'
+            echo 'FORMAL_ADMISSION=BLOCKED'
+            echo 'P_VS_NP=OPEN'
+          } | tee /tmp/authority-supplement-receipt.txt
+
+      - name: Export authority supplement evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: c049-b4-6-4-actual-engine-composition-authority-supplement
+          retention-days: 7
+          compression-level: 9
+          path: |
+            /tmp/final-ORIGINAL.json
+            /tmp/final-REVERSED.json
+            /tmp/final-SEEDED_SHUFFLE.json
+            /tmp/frozen-final-verifier.log
+            /tmp/supplement-verifier.log
+            /tmp/authority-supplement-receipt.txt
+            experiments/direct/C049_1_B4_6_4_ACTUAL_ENGINE_COMPOSITION_AUTHORITY_SUPPLEMENT_V2.json
+            experiments/direct/janus_c049_1_b4_6_4_actual_engine_composition_authority_supplement_verifier.py
+            experiments/direct/audits/C049_1_B4_6_3_CORRECTED_NODE6_PARENT_REFINEMENT_AUTHORITY_CLOSURE_243B841F.json
+            experiments/direct/audits/C049_1_B4_6_3_CORRECTED_NODE6_UP_K_AUTHORITY_CLOSURE_9DEF1508.json
+            experiments/direct/audits/C049_1_B4_6_3_CORRECTED_NODE6_INTEGRATION_NODE7_PREFLIGHT_AUTHORITY_CLOSURE_AF0556D4.json
+            experiments/direct/audits/C049_1_B4_6_4_ACTUAL_ENGINE_Q80_COMPOSITION_AUTHORITY_CLOSURE_0AB040E0.json
