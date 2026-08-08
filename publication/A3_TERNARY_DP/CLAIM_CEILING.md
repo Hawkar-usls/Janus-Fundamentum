@@ -14,9 +14,15 @@ Frozen publication authority: `publication/A3_TERNARY_DP/PUBLICATION_MANIFEST.js
 
 `ES5_GENERAL_ALGORITHMIC_THEOREM_ADMITTED`.
 
-Novelty status: `N3_NOVELTY_CANDIDATE`.
+Base novelty status: `N3_NOVELTY_CANDIDATE`.
+
+Extended literature-search status: `N3_EXHAUSTIVELY_SEARCHED_WITHIN_DECLARED_PROTOCOL`.
+
+This label means only that the explicit query/source protocol recorded in `LITERATURE_AUDIT_EXTENDED_V1.json` was executed without locating an exact predecessor. It does **not** mean that every publication, database, language, thesis, book, proceedings volume, or unpublished manuscript in the world was searched.
 
 External independent replication: `NOT_ESTABLISHED`.
+
+External bibliographic confirmation: `NOT_ESTABLISHED`.
 
 World-novelty level N4: `NOT_ESTABLISHED`.
 
@@ -28,7 +34,9 @@ This publication package MUST NOT claim that:
 - known NP-hardness for the unrestricted problem has been overturned;
 - the algorithm is polynomial in unrestricted `k`;
 - historical world priority has been proved;
+- universal absence of a prior equivalent theorem has been proved;
 - external independent verification or peer review has occurred;
+- N4 has been established;
 - `P=NP`, `P!=NP`, or any other A0--A2 open problem has been resolved.
 
-A literature search failing to find an equivalent prior result may strengthen the documented N3 search record, but cannot by itself establish universal absence or N4.
+A literature search failing to find an equivalent prior result strengthens the documented N3 record only. N4 requires genuinely external independent verification/review.
