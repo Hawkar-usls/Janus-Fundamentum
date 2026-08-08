@@ -59,7 +59,6 @@ def extension(seq,reps):
     return tuple(out)
 def finite_controls():
     arrangements=0; layouts=0; ext_checks=0
-    # Exhaustive small GF(2)^2 one-dimensional/zero block controls, lengths 1..4.
     catalog=[(),(1,),(2,),(3,)]
     for m in range(1,5):
         for blocks in itertools.product(catalog,repeat=m):
@@ -78,7 +77,7 @@ def derive(spec,a):
     pub=spec['published_source']; th=spec['derived_theorem']; ceil=spec['interpretation_ceiling']
     req(pub['primary_results']==['Section 3.2 canonical and realizable B-trajectories','Lemma 3.4 width monotonicity under preccurlyeq','Corollary 3.8 compactification preorder equivalence','Section 4 full-set definition','Proposition 5.8 root criterion'],'INV02','published ids')
     req('some extension' in pub['realizable_definition'] and 'linear layout' in pub['realizable_definition'],'INV02','realizable')
-    req('B={0}' in pub['canonical_zero_boundary'] and 'layout cut' in pub['canonical_zero_boundary'],'INV03','zero formula')
+    req('B={0}' in pub['canonical_zero_boundary'] and 'prefix span INTER suffix span' in pub['canonical_zero_boundary'] and 'linear-layout width' in pub['canonical_zero_boundary'],'INV03','zero formula')
     req('some realizable Delta' in pub['full_set_definition'] and 'width<=k' in pub['full_set_definition'],'INV02','full set')
     req('V_root=V' in pub['proposition_5_8'] and 'B_root={0}' in pub['proposition_5_8'],'INV02','root identities')
     req('Lemma 3.4' in th['forward'] and 'complete linear layout' in th['forward'],'INV05','forward')
