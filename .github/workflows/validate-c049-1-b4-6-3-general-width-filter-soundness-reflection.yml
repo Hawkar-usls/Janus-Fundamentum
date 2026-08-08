@@ -1,0 +1,165 @@
+name: Validate C049.1 B4.6.3 general width-filter soundness/reflection
+
+on:
+  push:
+    paths:
+      - 'experiments/direct/C049_1_B4_6_3_GENERAL_WIDTH_FILTER_SOUNDNESS_REFLECTION_SPEC_V1.json'
+      - 'experiments/direct/janus_c049_1_b4_6_3_general_width_filter_soundness_reflection.py'
+      - 'experiments/direct/janus_c049_1_b4_6_3_general_width_filter_soundness_reflection_verifier.py'
+      - '.github/workflows/validate-c049-1-b4-6-3-general-width-filter-soundness-reflection.yml'
+  pull_request:
+    paths:
+      - 'experiments/direct/C049_1_B4_6_3_GENERAL_WIDTH_FILTER_SOUNDNESS_REFLECTION_SPEC_V1.json'
+      - 'experiments/direct/janus_c049_1_b4_6_3_general_width_filter_soundness_reflection.py'
+      - 'experiments/direct/janus_c049_1_b4_6_3_general_width_filter_soundness_reflection_verifier.py'
+      - '.github/workflows/validate-c049-1-b4-6-3-general-width-filter-soundness-reflection.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  SPEC: experiments/direct/C049_1_B4_6_3_GENERAL_WIDTH_FILTER_SOUNDNESS_REFLECTION_SPEC_V1.json
+  PRODUCER: experiments/direct/janus_c049_1_b4_6_3_general_width_filter_soundness_reflection.py
+  VERIFIER: experiments/direct/janus_c049_1_b4_6_3_general_width_filter_soundness_reflection_verifier.py
+  O4_AUDIT: experiments/direct/audits/C049_1_B4_6_3_GENERAL_SHRINK_SEMANTIC_BIJECTION_INDEPENDENT_SOURCE_AUDIT_BBF8AE47.json
+  ROOT_SPEC_SUBJECT: 93db6d068a6b5ca443acd2576710d11df27b82d8
+  ROOT_SPEC_PATH: experiments/direct/C049_1_B4_6_3_CORRECTED_ROOT_FULL_REFINEMENT_SPEC_V1.json
+
+jobs:
+  general-width-filter-soundness-reflection:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Bind theorem subjects and immutable semantic sources
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git hash-object "$SPEC")" = "b5a2e6bdee06a71fba0862b70f4dbd2587bee8f6"
+          test "$(git hash-object "$PRODUCER")" = "db3a1aaf4386e470e4b11f7b5d445d0c62703fa1"
+          test "$(git hash-object "$VERIFIER")" = "43189a4c8d52bf05c564bcc9fe3c1129902adbd3"
+          test "$(git hash-object "$O4_AUDIT")" = "c54eb3120457f6927315ba46e52fb29c37619ae2"
+          python -m py_compile "$PRODUCER" "$VERIFIER"
+          python - <<'PY'
+          import ast
+          from pathlib import Path
+          p=ast.parse(Path('experiments/direct/janus_c049_1_b4_6_3_general_width_filter_soundness_reflection.py').read_text())
+          v=ast.parse(Path('experiments/direct/janus_c049_1_b4_6_3_general_width_filter_soundness_reflection_verifier.py').read_text())
+          def mods(t):
+              out=[]
+              for n in ast.walk(t):
+                  if isinstance(n,ast.Import): out.extend(a.name for a in n.names)
+                  elif isinstance(n,ast.ImportFrom): out.append(n.module or '')
+              return out
+          assert not any(x.endswith('janus_c049_1_b4_6_3_general_width_filter_soundness_reflection_verifier') for x in mods(p))
+          assert not any(x.endswith('janus_c049_1_b4_6_3_general_width_filter_soundness_reflection') for x in mods(v))
+          print('GENERAL_WIDTH_FILTER_IMPLEMENTATION_DECOUPLING_STATIC_CHECK = PASS')
+          PY
+          git fetch --force --prune origin '+refs/heads/*:refs/remotes/origin/*'
+          materialize(){ git cat-file -e "$1^{blob}"; git cat-file blob "$1" > "$2"; test "$(git hash-object "$2")" = "$1"; }
+          materialize 96019d44b8defb97f7b0911b57302004c3d57c61 /tmp/b1-core.py
+          materialize 3b66fa2b45702f11ee7a62657754c16800fa90f3 /tmp/b2-core.py
+          git show "$ROOT_SPEC_SUBJECT:$ROOT_SPEC_PATH" > /tmp/root-spec.json
+          test "$(git hash-object /tmp/root-spec.json)" = "401c4856de261f6048d313ca62fa43598ea449e0"
+
+      - name: Build derived theorem certificate twice
+        shell: bash
+        run: |
+          set -euo pipefail
+          python "$PRODUCER" --spec "$SPEC" --o4-audit "$O4_AUDIT" --b1-core /tmp/b1-core.py --b2-core /tmp/b2-core.py --root-spec /tmp/root-spec.json --output /tmp/width-filter-original.json | tee /tmp/producer-original.log
+          python "$PRODUCER" --root-spec /tmp/root-spec.json --b2-core /tmp/b2-core.py --b1-core /tmp/b1-core.py --o4-audit "$O4_AUDIT" --spec "$SPEC" --output /tmp/width-filter-reordered.json | tee /tmp/producer-reordered.log
+          cmp /tmp/width-filter-original.json /tmp/width-filter-reordered.json
+          echo 'GENERAL_WIDTH_FILTER_BINDER_BYTE_IDENTITY = PASS'
+          echo "GENERAL_WIDTH_FILTER_ARTIFACT_SHA256=$(sha256sum /tmp/width-filter-original.json | cut -d' ' -f1)"
+          python - <<'PY'
+          import json
+          x=json.load(open('/tmp/width-filter-original.json'))
+          print('GENERAL_WIDTH_FILTER_SEMANTIC_DIGEST='+x['semantic_digest'])
+          PY
+
+      - name: Independent replay, symbolic controls, and tamper rejection
+        shell: bash
+        run: |
+          set -euo pipefail
+          python "$VERIFIER" --spec "$SPEC" --producer-source "$PRODUCER" --o4-audit "$O4_AUDIT" --b1-core /tmp/b1-core.py --b2-core /tmp/b2-core.py --root-spec /tmp/root-spec.json --candidate-original /tmp/width-filter-original.json --candidate-reordered /tmp/width-filter-reordered.json --tamper-suite | tee /tmp/verifier.log
+          grep -F 'JANUS_GENERAL_WIDTH_FILTER_SOUNDNESS_REFLECTION_INDEPENDENT_VERIFIER = PASS' /tmp/verifier.log
+          grep -F 'INVARIANTS = 12/12' /tmp/verifier.log
+          grep -F 'DIGEST_REPAIRED_TAMPERS_REJECTED = 12/12' /tmp/verifier.log
+          grep -F 'PUBLISHED_LEMMA_3_4_DIRECTION = PASS' /tmp/verifier.log
+          grep -F 'SYMBOLIC_WIDTH_MONOTONICITY = PASS' /tmp/verifier.log
+          grep -F 'FAILED_REFINEMENT_IMPLIES_ALL_SIBLING_REFINEMENTS_FAIL = FALSE' /tmp/verifier.log
+
+      - name: Non-promoting boundary audit
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import hashlib,json
+          x=json.load(open('/tmp/width-filter-original.json')); p=x['proof_payload']; b=p['strict_boundary']; c=p['width_filter_contract']
+          assert hashlib.sha256(json.dumps(p,sort_keys=True,separators=(',',':')).encode()).hexdigest()==x['semantic_digest']
+          assert c['over_cap_source_unnecessary_for_up_k'] is True
+          assert c['every_up_k_target_has_at_least_one_under_cap_source'] is True
+          assert c['failed_refinement_implies_all_sibling_refinements_fail'] is False
+          assert c['complete_composition_source_family_required'] is True
+          assert c['upstream_o2_o4_caller_preconditions_automatically_established'] is False
+          assert p['general_semantic_theorems_established']==4 and p['remaining_general_semantic_theorems']==3
+          assert p['first_required_next_receipt']=='GENERAL_WIDTH_FILTER_SOUNDNESS_REFLECTION_RECEIPT'
+          assert b['o5_width_filter_soundness_and_reflection'] is False and b['o6_o7_established'] is False
+          assert b['structural_induction_proved'] is False and b['terminal_completeness_proved'] is False
+          assert b['global_engine_no_layout_at_cap']=='FORBIDDEN' and b['found_layout']=='FORBIDDEN'
+          assert b['formal_admission']=='BLOCKED' and b['next_gate']=='CLOSED' and b['p_vs_np']=='OPEN'
+          print('GENERAL_WIDTH_FILTER_NON_PROMOTING_BOUNDARY = PASS')
+          print('NEXT_MATHEMATICAL_RECEIPT = GENERAL_WIDTH_FILTER_SOUNDNESS_REFLECTION_RECEIPT')
+          PY
+
+      - name: Build exact-head-compatible receipt
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ "${{ github.event_name }}" = "pull_request" ]; then PROOF_HEAD="${{ github.event.pull_request.head.sha }}"; else PROOF_HEAD="$GITHUB_SHA"; fi
+          {
+            echo "GITHUB_SHA=$GITHUB_SHA"
+            echo "PROOF_HEAD=$PROOF_HEAD"
+            echo "SPEC_BLOB=$(git hash-object "$SPEC")"
+            echo "PRODUCER_BLOB=$(git hash-object "$PRODUCER")"
+            echo "VERIFIER_BLOB=$(git hash-object "$VERIFIER")"
+            echo "CANDIDATE_SHA256=$(sha256sum /tmp/width-filter-original.json | cut -d' ' -f1)"
+            echo "CANDIDATE_SEMANTIC_DIGEST=$(python -c 'import json;print(json.load(open("/tmp/width-filter-original.json"))["semantic_digest"])')"
+            echo 'BYTE_IDENTITY=PASS'
+            echo 'INVARIANTS=12/12'
+            echo 'DIGEST_REPAIRED_TAMPERS_REJECTED=12/12'
+            echo 'PUBLISHED_LEMMA_3_4_DIRECTION=PASS'
+            echo 'SYMBOLIC_WIDTH_MONOTONICITY=PASS'
+            echo 'FAILED_REFINEMENT_IMPLIES_ALL_SIBLING_REFINEMENTS_FAIL=FALSE'
+            echo 'UPSTREAM_O2_O4_CALLER_PRECONDITIONS_AUTOMATICALLY_ESTABLISHED=FALSE'
+            echo 'GENERAL_SEMANTIC_THEOREMS_ESTABLISHED=4'
+            echo 'REMAINING_GENERAL_SEMANTIC_THEOREMS=3'
+            echo 'FIRST_REQUIRED_NEXT_RECEIPT=GENERAL_WIDTH_FILTER_SOUNDNESS_REFLECTION_RECEIPT'
+            echo 'STRUCTURAL_INDUCTION_PROVED=FALSE'
+            echo 'TERMINAL_COMPLETENESS_PROVED=FALSE'
+            echo 'GLOBAL_ENGINE_NO_LAYOUT_AT_CAP=FORBIDDEN'
+            echo 'P_VS_NP=OPEN'
+          } | tee /tmp/exact-head-receipt.txt
+
+      - name: Export general width-filter evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: c049-b4-6-3-general-width-filter-soundness-reflection
+          retention-days: 7
+          compression-level: 9
+          path: |
+            /tmp/exact-head-receipt.txt
+            /tmp/width-filter-original.json
+            /tmp/width-filter-reordered.json
+            /tmp/producer-original.log
+            /tmp/producer-reordered.log
+            /tmp/verifier.log
+            experiments/direct/C049_1_B4_6_3_GENERAL_WIDTH_FILTER_SOUNDNESS_REFLECTION_SPEC_V1.json
+            experiments/direct/janus_c049_1_b4_6_3_general_width_filter_soundness_reflection.py
+            experiments/direct/janus_c049_1_b4_6_3_general_width_filter_soundness_reflection_verifier.py
