@@ -1,0 +1,179 @@
+name: Validate C049.1 B5 fixed-discovery round1-to-round2 execution
+
+on:
+  pull_request:
+    paths:
+      - 'experiments/direct/C049_1_B5_FIXED_DISCOVERY_ROUND1_ROUND2_EXECUTION_COMPOSITION_SPEC_V1.json'
+      - 'experiments/direct/janus_c049_1_b5_fixed_discovery_round1_round2_execution_verifier.py'
+      - '.github/workflows/validate-c049-1-b5-fixed-discovery-round1-round2-execution.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  round1-round2-execution:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    env:
+      PYTHONPATH: experiments/direct
+      PYTHONUNBUFFERED: '1'
+      FIXED_BINDING_HEAD: 5c3a6df47c83645f5e6b50771bc1120023134a92
+      PRE_SPEC: experiments/direct/C049_1_B5_ITERATIVE_COMPRESSION_PREPROCESSING_BINDING_SPEC_V1.json
+      PRE_V11: experiments/direct/janus_c049_1_b5_iterative_compression_preprocessing_binding_v11.py
+      PRE_VERIFIER: experiments/direct/janus_c049_1_b5_iterative_compression_preprocessing_binding_verifier.py
+      PLAN_SPEC: experiments/direct/C049_1_B5_FIXED_DISCOVERY_ROUND_ORCHESTRATION_BINDING_SPEC_V1_1.json
+      PLAN_PRODUCER: experiments/direct/janus_c049_1_b5_fixed_discovery_round_orchestration_binding_v11.py
+      PLAN_VERIFIER: experiments/direct/janus_c049_1_b5_fixed_discovery_round_orchestration_binding_verifier_v11.py
+      B51_SPEC: experiments/direct/C049_1_B5_1_GENERIC_CORRECTED_RUNTIME_TRACE_EXECUTOR_SPEC_V1.json
+      B51_PRODUCER: experiments/direct/janus_c049_1_b5_1_generic_corrected_runtime_trace_executor.py
+      B51_VERIFIER: experiments/direct/janus_c049_1_b5_1_generic_corrected_runtime_trace_executor_verifier.py
+      B51_RECEIPT: experiments/direct/audits/C049_1_B5_1_GENERIC_CORRECTED_RUNTIME_TRACE_EXECUTOR_ADMISSION_DDA63620.json
+      SPEC: experiments/direct/C049_1_B5_FIXED_DISCOVERY_ROUND1_ROUND2_EXECUTION_COMPOSITION_SPEC_V1.json
+      VERIFIER: experiments/direct/janus_c049_1_b5_fixed_discovery_round1_round2_execution_verifier.py
+    steps:
+      - name: Checkout exact head
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 0
+      - name: Set up Python
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.12.13'
+          check-latest: false
+      - name: Bind admitted parent and B5.1 authority
+        shell: bash
+        run: |
+          set -euo pipefail
+          HEAD="$(git rev-parse HEAD)"; echo "EXACT_HEAD=$HEAD" >> "$GITHUB_ENV"
+          git merge-base --is-ancestor "$FIXED_BINDING_HEAD" "$HEAD"
+          test "$(git hash-object "$PRE_V11")" = 89cbbae86aec581bfbe992485da914872a18b50b
+          test "$(git hash-object "$B51_SPEC")" = 64f65e4a68cab437392148519af667352fe0665c
+          test "$(git hash-object "$B51_PRODUCER")" = 8be92b8a663e0d05535861c6f216db28094014fb
+          test "$(git hash-object "$B51_VERIFIER")" = ac40b3f3a370f697e29402e1e1cb3e514b799792
+          test "$(git hash-object "$B51_RECEIPT")" = f70d56c84874827fd03cc482e37fd9449a7a8a23
+          test "$(git hash-object "$VERIFIER")" = debd3506c3311c0d4e8a013248d6db8e132bfda5
+          echo 'FIXED_DISCOVERY_BINDING_HEAD_ANCESTRY = PASS'
+          echo 'B5_1_ADMITTED_AUTHORITY_BYTES = PASS'
+      - name: Build exact bounded nonzero fixed preprocessing and plan
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/round12
+          cat > /tmp/round12/raw.json <<'JSON'
+          {"ambient_dim":2,"k":1,"factors":[{"id":"A","normal_space":[1],"affine_offset":{"tag":"A"}},{"id":"B","normal_space":[1,2],"affine_offset":{"tag":"B"}}]}
+          JSON
+          python "$PRE_V11" --spec "$PRE_SPEC" --input /tmp/round12/raw.json --output /tmp/round12/pre.json > /tmp/round12/pre-producer.log
+          python "$PRE_VERIFIER" --spec "$PRE_SPEC" --input /tmp/round12/raw.json --candidate /tmp/round12/pre.json > /tmp/round12/pre-verifier.log
+          python "$PLAN_PRODUCER" --spec "$PLAN_SPEC" --preprocessing /tmp/round12/pre.json --output /tmp/round12/plan.json > /tmp/round12/plan-producer.log
+          python "$PLAN_VERIFIER" --spec "$PLAN_SPEC" --preprocessing /tmp/round12/pre.json --candidate /tmp/round12/plan.json > /tmp/round12/plan-verifier.log
+          python - <<'PY'
+          import json
+          p=json.load(open('/tmp/round12/pre.json'))['proof_payload']
+          dims=[len(x['normal_space']) for x in p['discovery_catalog']]
+          assert dims == [1,1], dims
+          assert all(x['normal_space']==[1] for x in p['discovery_catalog'])
+          print('BOUNDED_CONTROL_AMBIENT_DIM = 2')
+          print('BOUNDED_CONTROL_K = 1')
+          print('NONZERO_FIXED_REDUCED_DIMENSIONS = [1, 1]')
+          print('FIXED_DISCOVERY_SUBJECT_REPLAY = PASS')
+          PY
+      - name: Materialize exact prefix1 and prefix2 B5.1 inputs
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json
+          pre=json.load(open('/tmp/round12/pre.json'))['proof_payload']; plan=json.load(open('/tmp/round12/plan.json'))['proof_payload']
+          by={int(x['occurrence_index']):x for x in pre['discovery_catalog']}; s=plan['schedule_occurrence_indices']
+          def f(i):
+            x=by[i]; return {'id':x['factor_id'],'normal_space':x['normal_space'],'affine_offset':x['affine_offset']}
+          f1,f2=f(s[0]),f(s[1]); caps={'max_boundary_dim':2,'max_k':1,'max_full_set_entries':1000,'max_child_pairs':10000,'max_join_paths':50000}
+          r1={'ambient_dim':int(pre['ambient_dim']),'k':int(pre['k']),'caps':caps,'factors':[f1],'tree':{'root':'round1_leaf','nodes':[{'id':'round1_leaf','factor_id':f1['id']}]}}
+          r2={'ambient_dim':int(pre['ambient_dim']),'k':int(pre['k']),'caps':caps,'factors':[f1,f2],'tree':{'root':'round2_root','nodes':[{'id':'round2_root','left':'round2_left','right':'round2_right'},{'id':'round2_left','factor_id':f1['id']},{'id':'round2_right','factor_id':f2['id']}]}}
+          for n,x in [('round1-input',r1),('round2-input',r2)]:open('/tmp/round12/'+n+'.json','w').write(json.dumps(x,sort_keys=True,separators=(',',':'))+'\n')
+          print('ROUND1_PREFIX =',s[:1]); print('ROUND2_PREFIX =',s[:2]); print('ROUND2_NEW_OCCURRENCE =',s[1])
+          PY
+      - name: Execute and independently verify round1
+        shell: bash
+        run: |
+          set -euo pipefail
+          python "$B51_PRODUCER" --spec "$B51_SPEC" --input /tmp/round12/round1-input.json --output /tmp/round12/round1.json | tee /tmp/round12/round1-producer.log
+          python "$B51_VERIFIER" --spec "$B51_SPEC" --input /tmp/round12/round1-input.json --candidate /tmp/round12/round1.json | tee /tmp/round12/round1-verifier.log
+          grep -F 'CAPABILITY_STATUS = CLOSED_COMPLETE_TRACE' /tmp/round12/round1-producer.log
+          grep -F 'RUNTIME_RESULT = CLOSED_COMPLETE_TRACE' /tmp/round12/round1-verifier.log
+          echo 'ROUND1_B5_1_INDEPENDENT_REPLAY = PASS'
+      - name: Execute and independently verify round2
+        shell: bash
+        run: |
+          set -euo pipefail
+          python "$B51_PRODUCER" --spec "$B51_SPEC" --input /tmp/round12/round2-input.json --output /tmp/round12/round2.json | tee /tmp/round12/round2-producer.log
+          python "$B51_VERIFIER" --spec "$B51_SPEC" --input /tmp/round12/round2-input.json --candidate /tmp/round12/round2.json | tee /tmp/round12/round2-verifier.log
+          grep -F 'CAPABILITY_STATUS = CLOSED_COMPLETE_TRACE' /tmp/round12/round2-producer.log
+          grep -F 'RUNTIME_RESULT = CLOSED_COMPLETE_TRACE' /tmp/round12/round2-verifier.log
+          echo 'ROUND2_B5_1_INDEPENDENT_REPLAY = PASS'
+      - name: Independently verify boundary-aware round occurrence handoff
+        shell: bash
+        run: |
+          set -euo pipefail
+          python "$VERIFIER" --spec "$SPEC" --preprocessing /tmp/round12/pre.json --plan /tmp/round12/plan.json --round1-input /tmp/round12/round1-input.json --round1-candidate /tmp/round12/round1.json --round2-input /tmp/round12/round2-input.json --round2-candidate /tmp/round12/round2.json | tee /tmp/round12/composition-verifier.log
+          grep -F 'JANUS_B5_FIXED_DISCOVERY_ROUND1_ROUND2_EXECUTION_COMPOSITION_VERIFIER = PASS' /tmp/round12/composition-verifier.log
+          grep -F 'ROUND1_PREFIX_TO_ROUND2_LEFT_OCCURRENCE_IDENTITY = PASS' /tmp/round12/composition-verifier.log
+          grep -F 'BOUNDARY_CONTEXT_CHANGE = ZERO_TO_NONZERO_CONFIRMED' /tmp/round12/composition-verifier.log
+          grep -F 'RAW_BOUNDARY_RELATIVE_FULL_SET_STATE_HANDOFF = FORBIDDEN' /tmp/round12/composition-verifier.log
+      - name: Reject repaired composition tampers
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import copy,hashlib,json,sys
+          sys.path.insert(0,'experiments/direct'); import janus_c049_1_b5_fixed_discovery_round1_round2_execution_verifier as v
+          L=lambda p:json.load(open(p)); dg=lambda x:hashlib.sha256(json.dumps(x,sort_keys=True,separators=(',',':')).encode()).hexdigest()
+          spec=L('experiments/direct/C049_1_B5_FIXED_DISCOVERY_ROUND1_ROUND2_EXECUTION_COMPOSITION_SPEC_V1.json'); pre=L('/tmp/round12/pre.json'); plan=L('/tmp/round12/plan.json'); r1i=L('/tmp/round12/round1-input.json'); r1=L('/tmp/round12/round1.json'); r2i=L('/tmp/round12/round2-input.json'); r2=L('/tmp/round12/round2.json')
+          attacks=[]
+          def add(n,P,mut,which):
+            x=copy.deepcopy(P); mut(x)
+            if isinstance(x,dict) and 'proof_payload' in x:x['semantic_digest']=dg(x['proof_payload'])
+            attacks.append((n,which,x))
+          def mutate_node(x,node_id,field,value):
+            for n in x['proof_payload']['node_receipts']:
+              if n.get('node_id')==node_id:n[field]=value;return
+            raise AssertionError(node_id)
+          add('T01_R1_PREFIX_COVERAGE',r1,lambda x:mutate_node(x,'round1_leaf','covered_factor_ids',[]),'r1')
+          add('T02_R2_LEFT_FACTOR_IDENTITY',r2,lambda x:mutate_node(x,'round2_left','factor_identity_records',[{'factor_id':'REBOUND','affine_offset':{'tag':'A'}}]),'r2')
+          add('T03_R2_INPUT_NEW_FACTOR',r2i,lambda x:x['factors'][1].__setitem__('normal_space',[]),'r2i')
+          add('T04_PLAN_SCHEDULE',plan,lambda x:x['proof_payload']['schedule_occurrence_indices'].__setitem__(1,x['proof_payload']['schedule_occurrence_indices'][0]),'plan')
+          add('T05_R2_TERMINAL_PROMOTION',r2,lambda x:x['proof_payload'].__setitem__('terminal_promotion','FOUND_LAYOUT'),'r2')
+          add('T06_PREPROCESSING_DOWNGRADE',plan,lambda x:x['proof_payload'].__setitem__('preprocessing_authority_version','V1'),'plan')
+          rej=0
+          for n,w,x in attacks:
+            a=[spec,pre,plan,r1i,r1,r2i,r2]
+            a[{'plan':2,'r1':4,'r2i':5,'r2':6}[w]]=x
+            try:v.verify(*a)
+            except Exception:rej+=1;print(n,'= REJECTED')
+            else:raise SystemExit(n+' survived')
+          assert rej==6;print('DIGEST_REPAIRED_ROUND_HANDOFF_TAMPERS_REJECTED = 6/6')
+          PY
+      - name: Freeze exact-head execution-composition receipt
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import hashlib,json,os,sys
+          from pathlib import Path
+          sys.path.insert(0,'experiments/direct'); import janus_c049_1_b5_fixed_discovery_round1_round2_execution_verifier as v
+          L=lambda p:json.load(open(p))
+          spec=L(os.environ['SPEC']);pre=L('/tmp/round12/pre.json');plan=L('/tmp/round12/plan.json');r1i=L('/tmp/round12/round1-input.json');r1=L('/tmp/round12/round1.json');r2i=L('/tmp/round12/round2-input.json');r2=L('/tmp/round12/round2.json')
+          report=v.verify(spec,pre,plan,r1i,r1,r2i,r2)
+          receipt={'schema':'janus.c049_1.b5.fixed_discovery_round1_round2_execution_receipt.v1_1','exact_head':os.environ['EXACT_HEAD'],'fixed_binding_head':os.environ['FIXED_BINDING_HEAD'],'bounded_control':spec['bounded_control'],'checks':{'round1_b5_1':'CLOSED_COMPLETE_TRACE_VERIFIED','round2_b5_1':'CLOSED_COMPLETE_TRACE_VERIFIED','prefix_occurrence_identity_handoff':'PASS','boundary_context_change':'ZERO_TO_NONZERO_CONFIRMED','raw_boundary_relative_state_handoff':'FORBIDDEN','tamper_rejection':'6/6','terminal_promotion':'NONE'},'round1_root_entries':report['round1_root_entries'],'round2_root_entries':report['round2_root_entries'],'round2_root_nonempty':report['round2_root_nonempty'],'next_gate':report['next_gate'],'full_round_execution':'NOT_ESTABLISHED','original_order_lift_admission':'NOT_ESTABLISHED_REPLACEMENT_REPLAY_INCOMPLETE','all_input_termination':'NOT_ESTABLISHED','polynomial_runtime':'NOT_ESTABLISHED','b5_complete':False,'c049_1_complete':False,'p_vs_np':'OPEN'}
+          raw=(json.dumps(receipt,sort_keys=True,separators=(',',':'))+'\n').encode();Path('/tmp/round12/exact-head-receipt.json').write_bytes(raw)
+          print('ROUND1_ROUND2_EXECUTION_COMPOSITION_RECEIPT = FROZEN');print('RECEIPT_SHA256 =',hashlib.sha256(raw).hexdigest());print('ROUND2_ROOT_NONEMPTY =',receipt['round2_root_nonempty']);print('NEXT_GATE =',receipt['next_gate']);print('B5_COMPLETE = FALSE');print('P_VS_NP = OPEN')
+          PY
+      - name: Upload evidence
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: c049-b5-round1-round2-execution-${{ github.run_id }}
+          path: /tmp/round12
+          if-no-files-found: error
+          retention-days: 90
