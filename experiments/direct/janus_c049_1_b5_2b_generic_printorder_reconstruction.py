@@ -29,26 +29,72 @@ def save(value: Any, path: Path) -> None:
     path.write_bytes(cb(value) + b"\n")
 
 
-def selected_lower_indices(label: dict, lower_length: int, upper_length: int) -> list[int]:
-    path = label["native_zero_based_path"]
-    if not isinstance(path, list) or not path:
-        raise AssertionError("empty up path")
-    by_upper: dict[int, list[int]] = {j: [] for j in range(upper_length)}
-    for cell in path:
-        if not isinstance(cell, list) or len(cell) != 2:
+def original_source_index(entry: dict) -> int:
+    return int(entry["source_index"])
+
+
+def normalized_source_index(entry: dict) -> int:
+    return int(entry["b5_1_source_index"])
+
+
+def up_selected_indices(entry: dict, lower_length: int) -> list[int]:
+    upper_length = len(entry["trajectory"])
+    path = entry["algorithm2_up_label"]["native_zero_based_path"]
+    if not isinstance(path, list) or not path or lower_length <= 0 or upper_length <= 0:
+        raise AssertionError("bad up path dimensions")
+    if path[0] != [0, 0] or path[-1] != [lower_length - 1, upper_length - 1]:
+        raise AssertionError("up path endpoints")
+    buckets = [[] for _ in range(upper_length)]
+    previous = None
+    for raw in path:
+        if not isinstance(raw, list) or len(raw) != 2:
             raise AssertionError("bad up path cell")
-        i, j = map(int, cell)
+        i, j = map(int, raw)
         if not (0 <= i < lower_length and 0 <= j < upper_length):
-            raise AssertionError("up path coordinate outside trajectory")
-        by_upper[j].append(i)
-    if any(not by_upper[j] for j in range(upper_length)):
-        raise AssertionError("up path skips an upper coordinate")
-    selected = [max(by_upper[j]) for j in range(upper_length)]
-    if selected[0] != 0 or selected[-1] != lower_length - 1:
-        raise AssertionError("up selection endpoints")
-    if any(a > b for a, b in zip(selected, selected[1:])):
-        raise AssertionError("up selection is not monotone")
+            raise AssertionError("up path coordinate")
+        if previous is not None and (i - previous[0], j - previous[1]) not in ((1, 0), (0, 1), (1, 1)):
+            raise AssertionError("bad extension step")
+        buckets[j].append(i)
+        previous = (i, j)
+    if any(not bucket for bucket in buckets):
+        raise AssertionError("up path skips upper coordinate")
+    if upper_length == 1:
+        if lower_length != 1:
+            raise AssertionError("Algorithm2 up sequence endpoint collision")
+        return [0]
+    selected = [0] + [max(buckets[j]) for j in range(1, upper_length)]
+    if selected[-1] != lower_length - 1 or any(a > b for a, b in zip(selected, selected[1:])):
+        raise AssertionError("invalid Algorithm2 selected sequence")
     return selected
+
+
+def compact_survivor_indices(precompact: Sequence[dict], compact: Sequence[dict], trace: Sequence[dict]) -> list[int]:
+    work = [dict(x) for x in precompact]
+    origins = list(range(len(precompact)))
+    for record in trace:
+        if int(record["before_length"]) != len(work):
+            raise AssertionError("compact trace before length")
+        rule = record["rule"]
+        start, end = int(record["start"]), int(record["end"])
+        if rule == "duplicate":
+            if end != start + 1 or not (0 <= start < end < len(work)) or work[start] != work[end]:
+                raise AssertionError("invalid duplicate compactification record")
+            removed = [work[end]]
+            del work[end]
+            del origins[end]
+        elif rule == "interval":
+            if not (0 <= start < end < len(work)) or end < start + 2:
+                raise AssertionError("invalid interval compactification record")
+            removed = work[start + 1:end]
+            del work[start + 1:end]
+            del origins[start + 1:end]
+        else:
+            raise AssertionError("unknown compactification rule")
+        if record.get("removed") != removed or int(record["after_length"]) != len(work):
+            raise AssertionError("compactification receipt mismatch")
+    if work != list(compact) or len(origins) != len(compact):
+        raise AssertionError("compactification output mismatch")
+    return origins
 
 
 def factor_width_receipt(order: Sequence[str], factors: dict[str, dict], ambient_dim: int) -> dict:
@@ -68,149 +114,167 @@ def factor_width_receipt(order: Sequence[str], factors: dict[str, dict], ambient
             "intersection_rref": list(inter),
             "width": len(inter),
         })
-    return {
-        "cut_count": len(cuts),
-        "cuts": cuts,
-        "max_cut_width": max((c["width"] for c in cuts), default=0),
-    }
-
-
-def normalized_source_index(entry: dict) -> int:
-    label = entry["algorithm2_up_label"]
-    if "b5_1_source_index" in label:
-        return int(label["b5_1_source_index"])
-    # v1.1 carrier keeps original_generator_index as entry.source_index and the
-    # B5.1 normalized source index in the Algorithm-2 label.
-    if "source_index" in label:
-        return int(label["source_index"])
-    raise AssertionError("missing normalized source index")
-
-
-def original_source_index(entry: dict) -> int:
-    if "original_generator_index" in entry:
-        return int(entry["original_generator_index"])
-    return int(entry["source_index"])
-
-
-def emit_from_up(entry: dict, lower_trajectory: Sequence[dict], recurse_interval) -> list[str]:
-    upper_trajectory = entry["trajectory"]
-    lower_len, upper_len = len(lower_trajectory), len(upper_trajectory)
-    selected = selected_lower_indices(entry["algorithm2_up_label"], lower_len, upper_len)
-    emitted: list[str] = []
-    for upper_interval in range(max(0, upper_len - 1)):
-        lo = selected[upper_interval]
-        hi = selected[upper_interval + 1]
-        for lower_interval in range(lo, hi):
-            emitted.extend(recurse_interval(lower_interval))
-    return emitted
+    return {"cut_count": len(cuts), "cuts": cuts, "max_cut_width": max((x["width"] for x in cuts), default=0)}
 
 
 def reconstruct_root_order(carrier: dict, root_entry_index: int) -> tuple[list[str], dict]:
     p = carrier["proof_payload"]
     cnodes = {n["node_id"]: n for n in p["node_carriers"]}
     root = p["root_id"]
-    trace = []
+    events: list[dict] = []
+    zero_boundary_leaf_prefix = sorted(
+        n["leaf_factor_id"] for n in cnodes.values() if n["kind"] == "leaf" and n["B_v_rref"] == []
+    )
+
+    def up_interval(entry: dict, lower: Sequence[dict], interval: int, recurse) -> list[str]:
+        upper = entry["trajectory"]
+        if not (0 <= interval < len(upper) - 1):
+            raise AssertionError("up interval outside output trajectory")
+        if entry["source_trajectory"] != list(lower):
+            raise AssertionError("up source trajectory binding")
+        selected = up_selected_indices(entry, len(lower))
+        lo, hi = selected[interval], selected[interval + 1]
+        events.append({
+            "kind": "up",
+            "entry_index": int(entry["entry_index"]),
+            "output_interval": interval,
+            "selected_lower_indices": selected,
+            "source_interval_range": [lo, hi],
+            "b5_1_source_index": normalized_source_index(entry),
+            "original_generator_index": original_source_index(entry),
+        })
+        out: list[str] = []
+        for source_interval in range(lo, hi):
+            out.extend(recurse(source_interval))
+        return out
+
+    def leaf_source_interval(node: dict, interval: int) -> list[str]:
+        if node["B_v_rref"] == []:
+            return []
+        if interval != 0:
+            raise AssertionError("nonzero-boundary leaf has only its Delta interval")
+        events.append({"kind": "leaf", "node_id": node["node_id"], "factor_id": node["leaf_factor_id"], "interval": interval})
+        return [node["leaf_factor_id"]]
 
     def final_interval(nid: str, entry_index: int, interval: int) -> list[str]:
         node = cnodes[nid]
-        finals = node["final_entries"]
-        if not (0 <= entry_index < len(finals)):
-            raise AssertionError("final entry reference")
-        entry = finals[entry_index]
-        if not (0 <= interval < max(1, len(entry["trajectory"]) - 1)):
-            # length-one zero-boundary trajectories have no ordinary interval;
-            # leaf special handling is reached through the source relation.
-            if not (len(entry["trajectory"]) == 1 and interval == 0):
-                raise AssertionError("final interval reference")
+        entry = node["final_entries"][entry_index]
         oi = original_source_index(entry)
-        trace.append({"kind": "up_final", "node_id": nid, "entry_index": entry_index, "interval": interval, "original_generator_index": oi, "normalized_source_index": normalized_source_index(entry)})
         if node["kind"] == "leaf":
-            # The leaf Delta source has one factor.  Algorithm 2 emits it on its
-            # first interval; for the zero-boundary length-one leaf this is the
-            # paper's explicit root/leaf special case.
-            if interval == 0:
-                return [node["leaf_factor_id"]]
-            return []
-        shrinks = node["shrink_generators"]
-        if not (0 <= oi < len(shrinks)):
-            raise AssertionError("final original source index")
-        lower = shrinks[oi]["shrunk_generator"]
-        return emit_from_up(entry, lower, lambda j: shrink_interval(nid, oi, j)) if len(entry["trajectory"]) > 1 else []
+            delta = node["delta_generators"][oi]["trajectory"]
+            return up_interval(entry, delta, interval, lambda j: leaf_source_interval(node, j))
+        shrink = node["shrink_generators"][oi]
+        return up_interval(entry, shrink["shrunk_generator"], interval, lambda j: shrink_interval(nid, oi, j))
 
-    def shrink_interval(nid: str, shrink_index: int, interval: int) -> list[str]:
+    def shrink_interval(nid: str, shrink_index: int, compact_interval: int) -> list[str]:
         node = cnodes[nid]
         sr = node["shrink_generators"][shrink_index]
+        receipt = sr["shrink_receipt"]
+        if receipt["output"] != sr["shrunk_generator"]:
+            raise AssertionError("shrink output binding")
+        survivors = compact_survivor_indices(receipt["projected_precompact"], receipt["output"], receipt["compactification_trace"])
+        if not (0 <= compact_interval < len(survivors) - 1):
+            raise AssertionError("shrink compact interval")
+        a, b = survivors[compact_interval], survivors[compact_interval + 1]
         joined_entry_index = int(sr["joined_entry_index"])
-        trace.append({"kind": "shrink", "node_id": nid, "shrink_generator_index": shrink_index, "joined_entry_index": joined_entry_index, "interval": interval})
-        # Shrink is order-preserving in Algorithm 2: same interval index.
-        return joined_up_interval(nid, joined_entry_index, interval)
+        events.append({
+            "kind": "shrink_compaction_lift",
+            "node_id": nid,
+            "shrink_generator_index": shrink_index,
+            "joined_entry_index": joined_entry_index,
+            "compact_interval": compact_interval,
+            "survivor_original_indices": survivors,
+            "precompact_interval_range": [a, b],
+        })
+        out: list[str] = []
+        for joined_interval in range(a, b):
+            out.extend(joined_up_interval(nid, joined_entry_index, joined_interval))
+        return out
 
     def joined_up_interval(nid: str, entry_index: int, interval: int) -> list[str]:
         node = cnodes[nid]
         entry = node["joined_entries"][entry_index]
         oi = original_source_index(entry)
-        joins = node["successful_join_generators"]
-        if not (0 <= oi < len(joins)):
-            raise AssertionError("joined original source index")
-        lower = joins[oi]["joined_generator"]
-        trace.append({"kind": "up_joined", "node_id": nid, "entry_index": entry_index, "interval": interval, "successful_join_generator_index": oi, "normalized_source_index": normalized_source_index(entry)})
-        return emit_from_up(entry, lower, lambda j: join_interval(nid, oi, j))
+        join_record = node["successful_join_generators"][oi]
+        return up_interval(entry, join_record["joined_generator"], interval, lambda j: join_interval(nid, oi, j))
 
-    def join_interval(nid: str, join_index: int, interval: int) -> list[str]:
+    def join_interval(nid: str, join_index: int, compact_interval: int) -> list[str]:
         node = cnodes[nid]
         jr = node["successful_join_generators"][join_index]
+        receipt = jr["join_receipt"]
+        if receipt["compact_join"] != jr["joined_generator"] or receipt["path"] != jr["path"]:
+            raise AssertionError("join receipt binding")
+        survivors = compact_survivor_indices(receipt["raw_join"], receipt["compact_join"], receipt["compactification_trace"])
+        if not (0 <= compact_interval < len(survivors) - 1):
+            raise AssertionError("join compact interval")
+        a, b = survivors[compact_interval], survivors[compact_interval + 1]
         path = [tuple(map(int, x)) for x in jr["path"]]
-        if not (0 <= interval < len(path) - 1):
-            raise AssertionError("join interval")
-        (li, ri), (li2, ri2) = path[interval], path[interval + 1]
-        step = (li2 - li, ri2 - ri)
-        trace.append({"kind": "join", "node_id": nid, "successful_join_generator_index": join_index, "interval": interval, "path_point": [li, ri], "step": list(step)})
-        if step == (1, 0):
-            return expanded_up_interval(nid, "left", int(jr["left_expanded_entry_index"]), li)
-        if step == (0, 1):
-            return expanded_up_interval(nid, "right", int(jr["right_expanded_entry_index"]), ri)
-        raise AssertionError("ordinary join path contains non-H/V step")
+        events.append({
+            "kind": "join_compaction_lift",
+            "node_id": nid,
+            "successful_join_generator_index": join_index,
+            "compact_interval": compact_interval,
+            "survivor_raw_indices": survivors,
+            "raw_path_interval_range": [a, b],
+        })
+        out: list[str] = []
+        for raw_interval in range(a, b):
+            (li, ri), (li2, ri2) = path[raw_interval], path[raw_interval + 1]
+            step = (li2 - li, ri2 - ri)
+            events.append({
+                "kind": "join_step",
+                "node_id": nid,
+                "successful_join_generator_index": join_index,
+                "raw_interval": raw_interval,
+                "path_point": [li, ri],
+                "step": list(step),
+            })
+            if step == (1, 0):
+                out.extend(expanded_up_interval(nid, "left", int(jr["left_expanded_entry_index"]), li))
+            elif step == (0, 1):
+                out.extend(expanded_up_interval(nid, "right", int(jr["right_expanded_entry_index"]), ri))
+            else:
+                raise AssertionError("ordinary join contains non-H/V step")
+        return out
 
     def expanded_up_interval(nid: str, side: str, entry_index: int, interval: int) -> list[str]:
         node = cnodes[nid]
-        entries = node[side + "_expanded_entries"]
-        entry = entries[entry_index]
+        entry = node[side + "_expanded_entries"][entry_index]
         oi = original_source_index(entry)
-        transports = node[side + "_transport_generators"]
-        if not (0 <= oi < len(transports)):
-            raise AssertionError("expanded original source index")
-        lower = transports[oi]["transported_generator"]
-        trace.append({"kind": "up_expand", "node_id": nid, "side": side, "entry_index": entry_index, "interval": interval, "transport_generator_index": oi, "normalized_source_index": normalized_source_index(entry)})
-        return emit_from_up(entry, lower, lambda j: transport_interval(nid, side, oi, j))
+        transport = node[side + "_transport_generators"][oi]
+        return up_interval(entry, transport["transported_generator"], interval, lambda j: transport_interval(nid, side, oi, j))
 
     def transport_interval(nid: str, side: str, transport_index: int, interval: int) -> list[str]:
         node = cnodes[nid]
         tr = node[side + "_transport_generators"][transport_index]
         child_id = node[side + "_child_id"]
         child_entry_index = int(tr["child_output_entry_index"])
-        trace.append({"kind": "transport", "node_id": nid, "side": side, "transport_generator_index": transport_index, "child_id": child_id, "child_entry_index": child_entry_index, "interval": interval})
+        events.append({
+            "kind": "transport",
+            "node_id": nid,
+            "side": side,
+            "transport_generator_index": transport_index,
+            "child_id": child_id,
+            "child_entry_index": child_entry_index,
+            "interval": interval,
+        })
         return final_interval(child_id, child_entry_index, interval)
 
+    order = list(zero_boundary_leaf_prefix)
     root_entry = cnodes[root]["final_entries"][root_entry_index]
-    order: list[str] = []
-    if len(root_entry["trajectory"]) == 1:
-        # Paper line 19: zero-boundary single-space root special case.
-        if len(p["canonical_factor_catalog"]) == 1:
-            order = [p["canonical_factor_catalog"][0]["id"]]
-        else:
-            order = []
-    else:
-        for i in range(len(root_entry["trajectory"]) - 1):
-            order.extend(final_interval(root, root_entry_index, i))
-    return order, {"event_count": len(trace), "events": trace}
+    for interval in range(len(root_entry["trajectory"]) - 1):
+        order.extend(final_interval(root, root_entry_index, interval))
+    return order, {
+        "zero_boundary_leaf_prefix": zero_boundary_leaf_prefix,
+        "event_count": len(events),
+        "events": events,
+    }
 
 
 def build(raw: dict, b5_1: dict, carrier: dict, spec: dict, carrier_spec: dict) -> dict:
     if spec.get("schema") != SPEC_SCHEMA or spec.get("status") != "SPEC_FROZEN_REVIEW_ONLY_FOUND_LAYOUT_CEILING":
         raise AssertionError("wrong B5.2B spec")
-    # Admission boundary: the B5.2A verifier is the authority on the carrier's
-    # semantics and provenance.  Do not reconstruct from an unverified carrier.
-    carrier_verifier.verify(carrier, raw, b5_1, carrier_spec)
+    carrier_verifier.verify_v11(carrier, raw, b5_1, carrier_spec)
     p = carrier["proof_payload"]
     factors = {f["id"]: f for f in p["canonical_factor_catalog"]}
     d, k = int(p["ambient_dim"]), int(p["k"])
