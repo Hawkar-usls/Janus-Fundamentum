@@ -1,0 +1,259 @@
+name: Validate C049.1 B5.2B generic Algorithm-2 printorder reconstruction v1.1
+
+on:
+  pull_request:
+    paths:
+      - 'experiments/direct/C049_1_B5_2B_PRINTORDER_TAMPER_HARDENING_AMENDMENT_V1_1.json'
+      - 'experiments/direct/janus_c049_1_b5_2b_generic_algorithm2_printorder_reconstruction_verifier_v11.py'
+      - '.github/workflows/validate-c049-1-b5-2b-generic-algorithm2-printorder-reconstruction-v1-1.yml'
+  workflow_dispatch:
+
+jobs:
+  b5-2b-printorder-v1-1:
+    runs-on: ubuntu-latest
+    env:
+      PYTHONPATH: experiments/direct
+      SPEC: experiments/direct/C049_1_B5_2B_GENERIC_ALGORITHM2_PRINTORDER_RECONSTRUCTION_SPEC_V1.json
+      AMENDMENT: experiments/direct/C049_1_B5_2B_PRINTORDER_TAMPER_HARDENING_AMENDMENT_V1_1.json
+      PRODUCER: experiments/direct/janus_c049_1_b5_2b_generic_algorithm2_printorder_reconstruction.py
+      BASE_VERIFIER: experiments/direct/janus_c049_1_b5_2b_generic_algorithm2_printorder_reconstruction_verifier.py
+      VERIFIER: experiments/direct/janus_c049_1_b5_2b_generic_algorithm2_printorder_reconstruction_verifier_v11.py
+      B5_1_SPEC: experiments/direct/C049_1_B5_1_GENERIC_CORRECTED_RUNTIME_TRACE_EXECUTOR_SPEC_V1.json
+      B5_1_PRODUCER: experiments/direct/janus_c049_1_b5_1_generic_corrected_runtime_trace_executor.py
+      B5_1_RECEIPT: experiments/direct/audits/C049_1_B5_1_GENERIC_CORRECTED_RUNTIME_TRACE_EXECUTOR_ADMISSION_DDA63620.json
+      B5_2A_AMENDMENT: experiments/direct/C049_1_B5_2A_GENERIC_ALGORITHM2_PROVENANCE_CARRIER_AMENDMENT_V1_1.json
+      B5_2A_PRODUCER: experiments/direct/janus_c049_1_b5_2a_generic_algorithm2_provenance_carrier_v11.py
+      B5_2A_VERIFIER: experiments/direct/janus_c049_1_b5_2a_generic_algorithm2_provenance_carrier_verifier_v11.py
+      B5_2A_RECEIPT: experiments/direct/audits/C049_1_B5_2A_GENERIC_ALGORITHM2_PROVENANCE_CARRIER_V1_1_ADMISSION_15EA163D.json
+      B3: experiments/direct/janus_c049_1_b3_expand_join_shrink_core.py
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Bind exact-head hardening and immutable theorem surfaces
+        run: |
+          set -euo pipefail
+          if [ "${{ github.event_name }}" = "pull_request" ]; then PROOF_HEAD="${{ github.event.pull_request.head.sha }}"; else PROOF_HEAD="$GITHUB_SHA"; fi
+          echo "PROOF_HEAD=$PROOF_HEAD" >> "$GITHUB_ENV"
+          test "$(git rev-parse "$PROOF_HEAD:$AMENDMENT")" = "c5f06981def5feda3209834469f5d799f4e2e091"
+          test "$(git rev-parse "$PROOF_HEAD:$VERIFIER")" = "5911c566bab0193214c8aa1b11c49d5d205e2f43"
+          test "$(git hash-object "$SPEC")" = "02f1fa3926b70d775dc3415240d6d153007d21a8"
+          test "$(git hash-object "$PRODUCER")" = "90a13116ff7999f81a744d56e0bae56eb6af5ed1"
+          test "$(git hash-object "$BASE_VERIFIER")" = "a77cec94f0d9ddd702bd4a1528199730076bf295"
+          test "$(git hash-object "$B5_1_PRODUCER")" = "8be92b8a663e0d05535861c6f216db28094014fb"
+          test "$(git hash-object "$B5_1_RECEIPT")" = "f70d56c84874827fd03cc482e37fd9449a7a8a23"
+          test "$(git hash-object "$B5_2A_PRODUCER")" = "9159ad8fb03b47eab354ae85e6756037818597e8"
+          test "$(git hash-object "$B5_2A_VERIFIER")" = "57c95af433b2b97c53a51132f6d3128884f7f6c9"
+          test "$(git hash-object "$B5_2A_RECEIPT")" = "2e076e87029b2bc1ae8e773a6ed16f3897d46b78"
+          test "$(git hash-object "$B3")" = "443566c4b79bf67ec1613413130169cab12ebb0f"
+          echo 'B5_2B_V1_1_EXACT_HEAD_HARDENING_BINDING = PASS'
+          echo 'B5_2B_THEOREM_BYTES_UNCHANGED_FROM_E74F24DA = PASS'
+
+      - name: Bind first red run as negative provenance
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json,os
+          a=json.load(open(os.environ['AMENDMENT']))
+          n=a['negative_provenance']
+          assert (n['run_id'],n['job_id'])==(31244781344,93071478104)
+          assert n['proof_head']=='e74f24da61f9133e09fc3e38248527fe27673cb3'
+          assert n['classification']=='T05_NOOP_TAMPER_FIXTURE_SELECTION'
+          assert n['positive_printorder_passed'] is True
+          assert n['three_factor_printorder_and_compactification_lifts_passed'] is True
+          assert n['empty_root_nonterminal_passed'] is True
+          assert n['failure_stage']=='TAMPER_HARNESS_ONLY'
+          print('B5_2B_NEGATIVE_RUN_31244781344 = BOUND')
+          PY
+
+      - name: Compile and enforce hardened verifier decoupling
+        run: |
+          set -euo pipefail
+          python -m py_compile "$PRODUCER" "$BASE_VERIFIER" "$VERIFIER"
+          python - <<'PY'
+          import ast
+          from pathlib import Path
+          p=Path('experiments/direct/janus_c049_1_b5_2b_generic_algorithm2_printorder_reconstruction_verifier_v11.py')
+          tree=ast.parse(p.read_text()); names=[]
+          for n in ast.walk(tree):
+              if isinstance(n,ast.Import): names += [a.name for a in n.names]
+              elif isinstance(n,ast.ImportFrom): names.append(n.module or '')
+          assert not any(x.endswith('janus_c049_1_b5_2b_generic_algorithm2_printorder_reconstruction') for x in names)
+          assert not any(x.endswith('janus_c049_1_b5_2a_generic_algorithm2_provenance_carrier_v11') for x in names)
+          assert not any(x.endswith('janus_c049_1_b5_1_generic_corrected_runtime_trace_executor') for x in names)
+          assert any(x.endswith('janus_c049_1_b5_2b_generic_algorithm2_printorder_reconstruction_verifier') for x in names)
+          print('B5_2B_V1_1_VERIFIER_DECOUPLING = PASS')
+          PY
+
+      - name: Build generic controls
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          def w(name,x): Path('/tmp/'+name+'.json').write_text(json.dumps(x,sort_keys=True,separators=(',',':'))+'\n')
+          caps={'max_boundary_dim':2,'max_k':1,'max_full_set_entries':5000,'max_child_pairs':100000,'max_join_paths':500000}
+          positive={'ambient_dim':2,'k':0,'caps':caps,'factors':[{'id':'alpha','normal_space':[1],'affine_offset':{'beta':0}},{'id':'beta','normal_space':[2],'affine_offset':{'beta':1}}],'tree':{'root':'root','nodes':[{'id':'root','left':'la','right':'lb'},{'id':'la','factor_id':'alpha'},{'id':'lb','factor_id':'beta'}]}}
+          reordered={'ambient_dim':2,'k':0,'caps':caps,'factors':list(reversed(positive['factors'])),'tree':{'root':'root','nodes':list(reversed(positive['tree']['nodes']))}}
+          negative={'ambient_dim':1,'k':0,'caps':caps,'factors':[{'id':'left','normal_space':[1],'affine_offset':0},{'id':'right','normal_space':[1],'affine_offset':1}],'tree':{'root':'r','nodes':[{'id':'l','factor_id':'left'},{'id':'r','left':'l','right':'q'},{'id':'q','factor_id':'right'}]}}
+          three={'ambient_dim':2,'k':1,'caps':caps,'factors':[{'id':'a','normal_space':[1],'affine_offset':{'tag':'A'}},{'id':'b','normal_space':[1],'affine_offset':{'tag':'B'}},{'id':'c','normal_space':[2],'affine_offset':{'tag':'C'}}],'tree':{'root':'top','nodes':[{'id':'top','left':'ab','right':'lc'},{'id':'ab','left':'la','right':'lb'},{'id':'la','factor_id':'a'},{'id':'lb','factor_id':'b'},{'id':'lc','factor_id':'c'}]}}
+          for name,x in [('positive',positive),('positive-reordered',reordered),('negative-root',negative),('three-factor',three)]: w(name,x)
+          PY
+
+      - name: Rebuild admitted B5.1 and B5.2A subjects
+        run: |
+          set -euo pipefail
+          for name in positive positive-reordered negative-root three-factor; do
+            python "$B5_1_PRODUCER" --spec "$B5_1_SPEC" --input "/tmp/$name.json" --output "/tmp/$name.b5-1.json" > "/tmp/$name.b5-1.log"
+            grep -F 'CAPABILITY_STATUS = CLOSED_COMPLETE_TRACE' "/tmp/$name.b5-1.log"
+            python "$B5_2A_PRODUCER" --spec "$B5_2A_AMENDMENT" --input "/tmp/$name.json" --b5-1-artifact "/tmp/$name.b5-1.json" --output "/tmp/$name.carrier.json" > "/tmp/$name.carrier.log"
+            python "$B5_2A_VERIFIER" --spec "$B5_2A_AMENDMENT" --input "/tmp/$name.json" --b5-1-artifact "/tmp/$name.b5-1.json" --candidate "/tmp/$name.carrier.json" > "/tmp/$name.carrier-verifier.log"
+            grep -F 'JANUS_B5_2A_GENERIC_ALGORITHM2_PROVENANCE_CARRIER_V1_1_INDEPENDENT_VERIFIER = PASS' "/tmp/$name.carrier-verifier.log"
+          done
+          cmp /tmp/positive.b5-1.json /tmp/positive-reordered.b5-1.json
+          cmp /tmp/positive.carrier.json /tmp/positive-reordered.carrier.json
+          echo 'B5_2B_V1_1_UPSTREAM_BYTE_IDENTITY = PASS'
+
+      - name: Rebuild and independently replay all printorder controls
+        run: |
+          set -euo pipefail
+          for name in positive positive-reordered negative-root three-factor; do
+            python "$PRODUCER" --spec "$SPEC" --input "/tmp/$name.json" --b5-1-artifact "/tmp/$name.b5-1.json" --carrier "/tmp/$name.carrier.json" --output "/tmp/$name.printorder.json" > "/tmp/$name.printorder.log"
+            python "$BASE_VERIFIER" --spec "$SPEC" --input "/tmp/$name.json" --b5-1-artifact "/tmp/$name.b5-1.json" --carrier "/tmp/$name.carrier.json" --candidate "/tmp/$name.printorder.json" > "/tmp/$name.printorder-verifier.log"
+            grep -F 'JANUS_B5_2B_GENERIC_ALGORITHM2_PRINTORDER_INDEPENDENT_VERIFIER = PASS' "/tmp/$name.printorder-verifier.log"
+          done
+          cmp /tmp/positive.printorder.json /tmp/positive-reordered.printorder.json
+          python - <<'PY'
+          import json
+          p=json.load(open('/tmp/positive.printorder.json'))['proof_payload']
+          t=json.load(open('/tmp/three-factor.printorder.json'))['proof_payload']
+          e=json.load(open('/tmp/negative-root.printorder.json'))['proof_payload']
+          assert p['factor_order_ids']==['alpha','beta'] and p['maximum_cut_width']==0
+          assert t['factor_order_ids']==['c','a','b'] and t['maximum_cut_width']==1
+          assert len(t['paper_faithful_lift_certificates'])==11
+          assert e['reconstruction_status']=='NOT_APPLICABLE_EMPTY_ROOT' and e['factor_order_ids'] is None
+          assert p['found_layout_promotion']=='FORBIDDEN_PENDING_B5_2B_EXACT_HEAD_CI_AND_REVIEW'
+          assert t['found_layout_promotion']=='FORBIDDEN_PENDING_B5_2B_EXACT_HEAD_CI_AND_REVIEW'
+          print('B5_2B_V1_1_PRINTORDER_CONTROLS = PASS')
+          print('B5_2B_V1_1_PRESENTATION_ORDER_BYTE_IDENTITY = PASS')
+          PY
+
+      - name: Prove nontrivial compactification tamper fixtures exist
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json
+          p=json.load(open('/tmp/three-factor.printorder.json'))['proof_payload']
+          for stage in ('FINAL_UP_FROM_PAPER_SHRINK','JOINED_UP_FROM_RAW_HV_JOIN'):
+              matches=[c for c in p['paper_faithful_lift_certificates'] if c['stage']==stage and c.get('compactification_lift',{}).get('compactification_trace') and c['lower_trajectory_digest'] != c['compactification_lift']['runtime_compact_source_digest']]
+              assert matches, 'INSUFFICIENT_TAMPER_FIXTURE_'+stage
+              print(stage+'_NONTRIVIAL_COMPACTIFICATION_FIXTURE = PASS')
+          PY
+
+      - name: Reject 24 repaired-digest semantic attacks with nontrivial T05/T09
+        run: |
+          set -euo pipefail
+          python "$VERIFIER" --spec "$SPEC" --input /tmp/three-factor.json --b5-1-artifact /tmp/three-factor.b5-1.json --carrier /tmp/three-factor.carrier.json --candidate /tmp/three-factor.printorder.json --tamper-suite --empty-input /tmp/negative-root.json --empty-b5-1-artifact /tmp/negative-root.b5-1.json --empty-carrier /tmp/negative-root.carrier.json --empty-candidate /tmp/negative-root.printorder.json | tee /tmp/tamper-v11.log
+          grep -F 'NONTRIVIAL_COMPACTIFICATION_TAMPER_FIXTURES = REQUIRED' /tmp/tamper-v11.log
+          grep -F 'DIGEST_REPAIRED_TAMPERS_REJECTED = 24/24' /tmp/tamper-v11.log
+
+      - name: Check strict review-only ceiling
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json
+          for name in ('positive','three-factor'):
+              p=json.load(open('/tmp/'+name+'.printorder.json'))['proof_payload']
+              assert p['candidate_found_layout'] is True
+              assert p['found_layout_promotion']=='FORBIDDEN_PENDING_B5_2B_EXACT_HEAD_CI_AND_REVIEW'
+              assert p['compactification_lift_policy']['b5_2a_slack_metadata_used_by_printorder'] is False
+              assert p['maximum_cut_width'] <= p['k']
+              b=p['strict_boundary']
+              assert b['generic_found_layout']=='FORBIDDEN_PENDING_B5_2B_EXACT_HEAD_CI_AND_REVIEW'
+              assert b['generic_no_layout_at_cap']=='FORBIDDEN_PENDING_B5_3'
+              assert b['b5_4_corrected_discovery_to_c047_handoff'] is False
+              assert b['all_input_termination']=='NOT_ESTABLISHED'
+              assert b['polynomial_runtime']=='NOT_ESTABLISHED'
+              assert b['b5_complete'] is False
+              assert b['p_vs_np']=='OPEN'
+          print('B5_2B_V1_1_REVIEW_ONLY_CEILING = PASS')
+          PY
+
+      - name: Freeze exact-head v1.1 candidate receipt
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/b5-2b-v11-evidence
+          cp /tmp/positive.printorder.json /tmp/three-factor.printorder.json /tmp/negative-root.printorder.json /tmp/b5-2b-v11-evidence/
+          cp /tmp/positive.printorder-verifier.log /tmp/three-factor.printorder-verifier.log /tmp/negative-root.printorder-verifier.log /tmp/tamper-v11.log /tmp/b5-2b-v11-evidence/
+          python - <<'PY'
+          import hashlib,json,os,subprocess
+          from pathlib import Path
+          def sha(path): return hashlib.sha256(Path(path).read_bytes()).hexdigest()
+          pos=json.load(open('/tmp/positive.printorder.json'))
+          tri=json.load(open('/tmp/three-factor.printorder.json'))
+          neg=json.load(open('/tmp/negative-root.printorder.json'))
+          amendment=json.load(open(os.environ['AMENDMENT']))
+          receipt={
+            'schema':'janus.c049_1.b5_2b.generic_algorithm2_printorder_exact_head_candidate_receipt.v1_1',
+            'proof_head':os.environ['PROOF_HEAD'],
+            'theorem_subject':{
+              'spec_git_blob':'02f1fa3926b70d775dc3415240d6d153007d21a8',
+              'producer_git_blob':'90a13116ff7999f81a744d56e0bae56eb6af5ed1',
+              'base_verifier_git_blob':'a77cec94f0d9ddd702bd4a1528199730076bf295'
+            },
+            'hardening':{
+              'amendment_git_blob':'c5f06981def5feda3209834469f5d799f4e2e091',
+              'hardened_verifier_git_blob':'5911c566bab0193214c8aa1b11c49d5d205e2f43',
+              'negative_provenance':amendment['negative_provenance']
+            },
+            'authority':{
+              'b5_2a_admission_receipt_git_blob':'2e076e87029b2bc1ae8e773a6ed16f3897d46b78',
+              'b5_1_admission_receipt_git_blob':'f70d56c84874827fd03cc482e37fd9449a7a8a23',
+              'b3_runtime_core_git_blob':'443566c4b79bf67ec1613413130169cab12ebb0f'
+            },
+            'controls':{
+              'positive':{'sha256':sha('/tmp/positive.printorder.json'),'semantic_digest':pos['semantic_digest'],'factor_order':pos['proof_payload']['factor_order_ids'],'maximum_cut_width':pos['proof_payload']['maximum_cut_width']},
+              'three_factor':{'sha256':sha('/tmp/three-factor.printorder.json'),'semantic_digest':tri['semantic_digest'],'factor_order':tri['proof_payload']['factor_order_ids'],'maximum_cut_width':tri['proof_payload']['maximum_cut_width'],'lift_certificate_count':len(tri['proof_payload']['paper_faithful_lift_certificates'])},
+              'empty_root':{'sha256':sha('/tmp/negative-root.printorder.json'),'semantic_digest':neg['semantic_digest'],'status':neg['proof_payload']['reconstruction_status'],'factor_order':None}
+            },
+            'checks':{
+              'independent_root_selection':'PASS',
+              'raw_join_compactification_lift':'PASS',
+              'precompact_shrink_lift':'PASS',
+              'algorithm2_x_sequence_replay':'PASS',
+              'independent_printorder_replay':'PASS',
+              'whole_factor_permutation':'PASS_NONEMPTY_CONTROLS',
+              'independent_cut_width_recomputation':'PASS',
+              'presentation_order_byte_identity':'PASS',
+              'nontrivial_t05_fixture':'PASS',
+              'nontrivial_t09_fixture':'PASS',
+              'digest_repaired_tampers_rejected':'24/24',
+              'b5_2a_slack_used_by_printorder':False,
+              'generic_found_layout':'FORBIDDEN_PENDING_REVIEW'
+            },
+            'formal_admission':'BLOCKED_PENDING_REVIEW',
+            'generic_no_layout_at_cap':'FORBIDDEN_PENDING_B5_3',
+            'b5_complete':False,
+            'p_vs_np':'OPEN'
+          }
+          Path('/tmp/b5-2b-v11-evidence/exact-head-receipt.json').write_text(json.dumps(receipt,sort_keys=True,separators=(',',':'))+'\n')
+          print('B5_2B_V1_1_EXACT_HEAD_RECEIPT = FROZEN')
+          print('PROOF_HEAD =',receipt['proof_head'])
+          print('POSITIVE_FACTOR_ORDER =',json.dumps(receipt['controls']['positive']['factor_order'],separators=(',',':')))
+          print('THREE_FACTOR_ORDER =',json.dumps(receipt['controls']['three_factor']['factor_order'],separators=(',',':')))
+          print('DIGEST_REPAIRED_TAMPERS_REJECTED = 24/24')
+          print('GENERIC_FOUND_LAYOUT = FORBIDDEN_PENDING_REVIEW')
+          print('P_VS_NP = OPEN')
+          PY
+
+      - name: Export B5.2B v1.1 evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: c049-1-b5-2b-generic-algorithm2-printorder-reconstruction-v1-1
+          path: /tmp/b5-2b-v11-evidence
+          if-no-files-found: error
