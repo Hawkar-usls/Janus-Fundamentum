@@ -1,0 +1,212 @@
+{
+  "schema": "janus.c049_1.b5_1.generic_corrected_runtime_trace_executor_spec.v1",
+  "version": "1.1",
+  "frozen_at": "2026-08-08",
+  "gate": "C049.1_B5.1_GENERIC_CORRECTED_RUNTIME_TRACE_EXECUTOR",
+  "status": "SPEC_FROZEN_IMPLEMENTATION_CANDIDATE_NOT_ADMITTED",
+  "authority_inputs": {
+    "b5_contract": {
+      "proof_head": "cebbcff9bdbc405834d6e51e0bf5246534e66af5",
+      "review_id": 4888231726,
+      "receipt_path": "experiments/direct/audits/C049_1_B5_GENERAL_RUNTIME_TERMINAL_CONTRACT_ADMISSION_CEBBCFF9.json",
+      "receipt_git_blob": "6103a509bca3e91b1950a58e90e8274b3cc5e4c7"
+    },
+    "general_leaf": {
+      "proof_head": "c5d43f6806332ceb98c4ade5d0804c9417711f31",
+      "review_id": 4887811559,
+      "spec_path": "experiments/direct/C049_1_B4_6_3_GENERAL_LEAF_SEMANTIC_BIJECTION_SPEC_V1_1.json",
+      "spec_git_blob": "a6e255210cf0df83a92b2e6169cfafcfabc753d5"
+    },
+    "b1_core": {
+      "path": "experiments/direct/janus_c049_1_b1_compact_trajectory_core.py",
+      "git_blob": "96019d44b8defb97f7b0911b57302004c3d57c61"
+    },
+    "b2_core": {
+      "path": "experiments/direct/janus_c049_1_b2_up_k_core.py",
+      "git_blob": "3b66fa2b45702f11ee7a62657754c16800fa90f3"
+    },
+    "b3_core": {
+      "path": "experiments/direct/janus_c049_1_b3_expand_join_shrink_core.py",
+      "proof_subject": "5d3c14a93f65a82666b0d74d908aec4e8d4e5055",
+      "git_blob": "443566c4b79bf67ec1613413130169cab12ebb0f"
+    },
+    "corrected_join": {
+      "path": "experiments/direct/janus_c049_1_b3_join_path_domain_corrected.py",
+      "git_blob": "0d17e0e08060c483fc0f1c3031eddc57337045cd",
+      "ordinary_steps": [[1,0],[0,1]],
+      "preorder_steps": [[1,0],[0,1],[1,1]]
+    }
+  },
+  "input_schema": {
+    "ambient_dim": "POSITIVE_INTEGER",
+    "k": "NONNEGATIVE_INTEGER",
+    "factors": "NONEMPTY_LIST_OF_RECORDS_{id,normal_space,affine_offset}",
+    "factor_id": "UNIQUE_STABLE_STRING",
+    "normal_space": "FINITE_GF2_VECTOR_LIST_CANONICALIZED_BY_XOR_BASIS; ZERO_SUBSPACE_ALLOWED",
+    "affine_offset": "OPAQUE_JSON_VALUE_PRESERVED_BY_FACTOR_ID_IN_B5_1",
+    "tree": "ROOTED_FULL_BINARY_TREE_WITH_LEAVES_REFERENCING_FACTOR_IDS",
+    "leaf_coverage": "EVERY_FACTOR_ID_EXACTLY_ONCE_AND_NO_EXTRA_LEAF",
+    "node_presentation_order": "SEMANTICALLY_IRRELEVANT"
+  },
+  "canonical_boundary_semantics": {
+    "V_v": "SPAN_OF_NORMAL_SPACES_OF_FACTOR_IDS_COVERED_BY_NODE_v",
+    "V_minus_v": "SPAN_OF_NORMAL_SPACES_OF_ALL_OTHER_FACTOR_IDS",
+    "B_v": "V_v_INTERSECTION_V_minus_v",
+    "Bprime_v": "B_left_PLUS_B_right",
+    "root_boundary": "ZERO",
+    "caller_premises_required_at_each_internal_node": [
+      "B_left <= Bprime_v",
+      "SPAN(V_left) INTER Bprime_v <= B_left",
+      "B_right <= Bprime_v",
+      "SPAN(V_right) INTER Bprime_v <= B_right",
+      "(SPAN(V_left)+Bprime_v) INTER (SPAN(V_right)+Bprime_v) = Bprime_v",
+      "B_v <= Bprime_v"
+    ]
+  },
+  "execution_semantics": {
+    "leaf": [
+      "DELTA_B = ((ZERO,B,0),(B,ZERO,0))",
+      "F_leaf = UP_K({DELTA_B}, B)"
+    ],
+    "internal": [
+      "TRANSPORT_EACH_LEFT_CHILD_ENTRY_TO_Bprime",
+      "LEFT_EXPANDED_FULL_SET = UP_K(TRANSPORTED_LEFT_GENERATORS, Bprime)",
+      "TRANSPORT_EACH_RIGHT_CHILD_ENTRY_TO_Bprime",
+      "RIGHT_EXPANDED_FULL_SET = UP_K(TRANSPORTED_RIGHT_GENERATORS, Bprime)",
+      "ENUMERATE_ALL_LEFT_RIGHT_ENTRY_PAIRS",
+      "ENUMERATE_ALL_ORDINARY_HV_INTERLEAVING_PATHS_PER_PAIR",
+      "JOIN_AND_B1_COMPACTIFY_EACH_PATH",
+      "FILTER_JOIN_GENERATORS_BY_WIDTH_LE_K",
+      "JOINED_FULL_SET_AT_Bprime = UP_K(SUCCESSFUL_JOIN_GENERATORS, Bprime)",
+      "SHRINK_EACH_JOINED_ENTRY_TO_B_v_WITH_B1_COMPACTIFICATION",
+      "F_v = UP_K(SHRUNK_GENERATORS, B_v)"
+    ],
+    "empty_source_up_k_shortcut": "UP_K(EMPTY,B)=EMPTY_WITH_EXACT_RECEIPT_AND_NO_UNIVERSE_ENUMERATION",
+    "ordinary_join_domain": "H_V_ONLY",
+    "extension_preorder_domain": "H_V_DIAGONAL_ONLY_IN_UP_K"
+  },
+  "capability_policy": {
+    "parameters": [
+      "max_boundary_dim",
+      "max_k",
+      "max_full_set_entries",
+      "max_child_pairs",
+      "max_join_paths"
+    ],
+    "policy": "IF_A_DECLARED_EXACT_PRECHECK_EXCEEDS_A_CAP_RETURN_OPEN_RUNTIME_CAPABILITY_BEFORE_PARTIAL_PARENT_COMMIT",
+    "open_terminal": "OPEN_RUNTIME_CAPABILITY",
+    "open_is_not": ["FOUND_LAYOUT","NO_LAYOUT_AT_CAP","B5_1_ADMISSION"],
+    "caps_are_capability_limits_not_acceptance_oracles": true
+  },
+  "required_node_receipt": [
+    "node_id",
+    "kind",
+    "covered_factor_ids",
+    "factor_identity_records",
+    "V_v_rref",
+    "B_v_rref",
+    "Bprime_v_rref_if_internal",
+    "caller_premise_certificate_if_internal",
+    "child_output_digests_if_internal",
+    "expanded_left_receipt_if_internal",
+    "expanded_right_receipt_if_internal",
+    "ordinary_join_inventory_if_internal",
+    "joined_up_k_receipt_if_internal",
+    "shrink_inventory_if_internal",
+    "final_up_k_receipt",
+    "output_full_set_digest",
+    "output_entry_count",
+    "charged_work",
+    "capability_status"
+  ],
+  "required_global_receipt": [
+    "canonical_factor_catalog",
+    "canonical_tree",
+    "root_id",
+    "postorder",
+    "all_factor_ids_exactly_once",
+    "root_covers_all_factors",
+    "node_receipts",
+    "root_full_set_digest_if_closed",
+    "root_entry_count_if_closed",
+    "global_work_ledger",
+    "affine_offset_identity_ledger",
+    "capability_status"
+  ],
+  "admission_target": {
+    "statement": "FOR_ANY_VALID_BOUND_INPUT_AND_CERTIFIED_BINARY_TREE, IF_THE_RUNTIME_RETURNS_CLOSED_COMPLETE_TRACE_THEN_THE_EMITTED_NODE_DAG_IS_A_COMPLETE_CORRECTED_ALGORITHM1_COMPATIBLE_TRACE_OVER_EXACTLY_THE_INPUT_WHOLE_FACTOR_UNITS",
+    "does_not_claim_termination_for_all_inputs": true,
+    "does_not_claim_polynomial_runtime": true,
+    "does_not_enable_found_layout": true,
+    "does_not_enable_no_layout_at_cap": true,
+    "does_not_enable_b5_complete": true
+  },
+  "anti_fixture_policy": {
+    "forbidden_in_acceptance_logic": [
+      "six-factor target literal",
+      "historical 720 layout count",
+      "historical 34968 root-refinement count",
+      "historical Node6/Node7/Node8/Node9 identifiers",
+      "historical positive [1,2,1] fixture literal"
+    ],
+    "required_control_matrix": {
+      "closed_positive": true,
+      "closed_negative_root_allowed_without_terminal_promotion": true,
+      "nonzero_affine_offset": true,
+      "distinct_factor_counts": "AT_LEAST_2",
+      "distinct_ambient_dimensions": "AT_LEAST_2",
+      "node_presentation_permutation_identity": true,
+      "explicit_open_capability": true
+    },
+    "controls_are_bug_finding_only": true
+  },
+  "independent_verifier_contract": {
+    "producer_import": "FORBIDDEN",
+    "shared_primitive_dependency": "ALLOWED_ONLY_FOR_IMMUTABLY_BOUND_B1_B2_B3_AND_CORRECTED_JOIN_PRIMITIVES",
+    "must_independently_validate_tree": true,
+    "must_independently_recompute_all_node_cover_sets_and_boundaries": true,
+    "must_independently_recompute_all_caller_premises": true,
+    "must_independently_replay_leaf_expand_join_filter_shrink_up_k_orchestration": true,
+    "must_compare_every_closed_node_output_digest": true,
+    "must_verify_affine_offset_identity_conservation": true,
+    "must_verify_open_has_no_partial_parent_promotion": true,
+    "must_reject_digest_repaired_tampers": true
+  },
+  "tamper_attack_classes": [
+    "T01 duplicate a factor leaf",
+    "T02 omit a factor leaf",
+    "T03 alter a factor normal space after catalog binding",
+    "T04 alter affine offset identity",
+    "T05 alter a canonical node boundary",
+    "T06 alter Bprime",
+    "T07 erase a caller-premise failure or certificate field",
+    "T08 admit diagonal ordinary join",
+    "T09 drop one child full-set entry before expand up_k",
+    "T10 drop one H/V join path",
+    "T11 retain a width>k joined generator",
+    "T12 alter shrink output",
+    "T13 alter final up_k digest",
+    "T14 claim CLOSED after a capability cap was exceeded",
+    "T15 promote root nonempty to FOUND_LAYOUT",
+    "T16 promote root empty to NO_LAYOUT_AT_CAP",
+    "T17 hard-code the historical six-factor target as acceptance logic",
+    "T18 promote polynomial runtime, B5 complete, arbitrary-input theorem, or P_VS_NP"
+  ],
+  "strict_boundary": {
+    "b5_contract_admitted": true,
+    "b5_1_generic_runtime_trace_executor_candidate": false,
+    "generic_corrected_algorithm1_runtime_trace_mapping": false,
+    "b5_2_generic_found_layout_reconstruction": false,
+    "b5_3_generic_no_layout_terminal": false,
+    "b5_4_corrected_discovery_to_c047_rebound": false,
+    "generic_found_layout_enabled": false,
+    "generic_no_layout_at_cap_enabled": false,
+    "polynomial_runtime_claim": "FORBIDDEN",
+    "arbitrary_input_global_engine_theorem": false,
+    "b5_complete": false,
+    "formal_admission": "BLOCKED_PENDING_B5_1_IMPLEMENTATION_REVIEW",
+    "next_gate": "C049.1_B5.1_GENERIC_CORRECTED_RUNTIME_TRACE_EXECUTOR_IMPLEMENTATION",
+    "p_vs_np": "OPEN"
+  },
+  "automatic_merge": false
+}
