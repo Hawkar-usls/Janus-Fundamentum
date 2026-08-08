@@ -5,6 +5,7 @@ from pathlib import Path
 
 import janus_c049_1_b5_4_corrected_discovery_c047_rebound as base
 from janus_c049_fpt_integration_solver import solve_phase_a as historical_solve_phase_a
+from janus_c049_fpt_integration_verifier import verify as historical_verify_phase_a
 
 
 def solve_phase_a_keyword_adapter(factors, dimension, capability, transcript):
@@ -22,13 +23,24 @@ def solve_phase_a_keyword_adapter(factors, dimension, capability, transcript):
     )
 
 
+def strict_historical_verify(factors, dimension, certificate):
+    """The frozen verifier returns bool; B5.4 may promote only literal True."""
+    ok = historical_verify_phase_a(factors, dimension, certificate)
+    if ok is not True:
+        raise AssertionError("historical Phase-A verifier returned false")
+    return True
+
+
 def build(spec, raw, b5_1, carrier, b52, caps):
-    original = base.solve_phase_a
+    original_solve = base.solve_phase_a
+    original_verify = base.verify_phase_a
     try:
         base.solve_phase_a = solve_phase_a_keyword_adapter
+        base.verify_phase_a = strict_historical_verify
         return base.build(spec, raw, b5_1, carrier, b52, caps)
     finally:
-        base.solve_phase_a = original
+        base.solve_phase_a = original_solve
+        base.verify_phase_a = original_verify
 
 
 def main() -> None:
@@ -68,6 +80,7 @@ def main() -> None:
     print("C047_RESULT =", p["c047_result"])
     print("HISTORICAL_PHASE_A_VERIFIER_PASS =", str(p["historical_phase_a_verifier_pass"]).upper())
     print("HISTORICAL_PHASE_A_CALL_ADAPTER = KEYWORD_ONLY_FROZEN_API")
+    print("HISTORICAL_PHASE_A_VERIFIER_RETURN = REQUIRED_TRUE")
     print("B5_3_NO_LAYOUT_USED_AS_C047_UNSAT_PREMISE = FALSE")
     print("AFFINE_INSTANCE_SAT_OR_UNSAT_ADMITTED = FALSE")
     print("B5_COMPLETE = FALSE")
