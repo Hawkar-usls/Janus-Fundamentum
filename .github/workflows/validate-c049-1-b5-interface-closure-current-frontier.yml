@@ -1,0 +1,185 @@
+name: Validate C049.1 B5 interface closure current frontier
+
+on:
+  pull_request:
+    paths:
+      - 'experiments/direct/C049_1_B5_INTERFACE_CLOSURE_CURRENT_FRONTIER_SPEC_V1.json'
+      - 'experiments/direct/janus_c049_1_b5_interface_closure_current_frontier_verifier.py'
+      - 'registry/c049.1-b5-interface-closure-current-frontier.json'
+      - '.github/workflows/validate-c049-1-b5-interface-closure-current-frontier.yml'
+  workflow_dispatch:
+
+jobs:
+  b5-interface-closure:
+    runs-on: ubuntu-latest
+    env:
+      SPEC: experiments/direct/C049_1_B5_INTERFACE_CLOSURE_CURRENT_FRONTIER_SPEC_V1.json
+      CONTRACT_SPEC: experiments/direct/C049_1_B5_GENERAL_RUNTIME_TERMINAL_INTEGRATION_SPEC_V1.json
+      FRONTIER: registry/c049.1-b5-interface-closure-current-frontier.json
+      VERIFIER: experiments/direct/janus_c049_1_b5_interface_closure_current_frontier_verifier.py
+      WORKFLOW: .github/workflows/validate-c049-1-b5-interface-closure-current-frontier.yml
+      B5_CONTRACT_RECEIPT: experiments/direct/audits/C049_1_B5_GENERAL_RUNTIME_TERMINAL_CONTRACT_ADMISSION_CEBBCFF9.json
+      B51_RECEIPT: experiments/direct/audits/C049_1_B5_1_GENERIC_CORRECTED_RUNTIME_TRACE_EXECUTOR_ADMISSION_DDA63620.json
+      B52A_RECEIPT: experiments/direct/audits/C049_1_B5_2A_GENERIC_ALGORITHM2_PROVENANCE_CARRIER_V1_1_ADMISSION_15EA163D.json
+      B52B_RECEIPT: experiments/direct/audits/C049_1_B5_2B_GENERIC_ALGORITHM2_PRINTORDER_RECONSTRUCTION_ADMISSION_F057B7AF.json
+      B53_RECEIPT: experiments/direct/audits/C049_1_B5_3_GENERIC_EMPTY_ROOT_TERMINAL_COMPOSITION_ADMISSION_E9841522.json
+      B54_RECEIPT: experiments/direct/audits/C049_1_B5_4_CORRECTED_DISCOVERY_C047_REBOUND_ADMISSION_135740E9.json
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Bind exact-head closure bytes and admitted authority vector
+        run: |
+          set -euo pipefail
+          if [ "${{ github.event_name }}" = "pull_request" ]; then PROOF_HEAD="${{ github.event.pull_request.head.sha }}"; else PROOF_HEAD="$GITHUB_SHA"; fi
+          echo "PROOF_HEAD=$PROOF_HEAD" >> "$GITHUB_ENV"
+          for f in "$SPEC" "$FRONTIER" "$VERIFIER" "$WORKFLOW"; do
+            test "$(git rev-parse "$PROOF_HEAD:$f")" = "$(git hash-object "$f")"
+          done
+          test "$(git hash-object "$SPEC")" = "f0424518a9918290244933a7bec4f209583fa61b"
+          test "$(git hash-object "$FRONTIER")" = "7134988a80b62dafe27d3a89a08f747dc919ca05"
+          test "$(git hash-object "$VERIFIER")" = "346ddb69781d43754b5574bf9fcea27b6bec09fc"
+          test "$(git hash-object "$CONTRACT_SPEC")" = "b192f5e3f884551c29d574f568a8b2275ecc92c5"
+          test "$(git hash-object "$B5_CONTRACT_RECEIPT")" = "6103a509bca3e91b1950a58e90e8274b3cc5e4c7"
+          test "$(git hash-object "$B51_RECEIPT")" = "f70d56c84874827fd03cc482e37fd9449a7a8a23"
+          test "$(git hash-object "$B52A_RECEIPT")" = "2e076e87029b2bc1ae8e773a6ed16f3897d46b78"
+          test "$(git hash-object "$B52B_RECEIPT")" = "5e60eff4a4bd4c87cbf527cd446fc6b23b013774"
+          test "$(git hash-object "$B53_RECEIPT")" = "32177caad196ca4640c090212c41bc132448cc7c"
+          test "$(git hash-object "$B54_RECEIPT")" = "93749562d05a7f2af7276aaa77de7c0beb65293c"
+          test "$(git rev-parse 8cf39d35fc0fd03191b5ab28905637a5c842b2cf:docs/C049_1_PHASE_B_COMPACT_TRAJECTORY_PLAN.md)" = "a776887c258da5c92414fa3d548beeec6ebcee83"
+          test "$(git rev-parse 9bfdef654842fb453f7dd63d34ee23de93266db6:experiments/direct/janus_c049_1_b4_2_3k_scaffold.py)" = "57c16c18a14cecb96264a22fea01cd2c2bdaa857"
+          python - <<'PY'
+          import json,os
+          names=('B5_CONTRACT_RECEIPT','B51_RECEIPT','B52A_RECEIPT','B52B_RECEIPT','B53_RECEIPT','B54_RECEIPT')
+          docs=[json.load(open(os.environ[n])) for n in names]
+          def p(x): return x.get('audit_payload',x)
+          reviews=[4888231726,4888268512,4888326386,4888359197,4888388997,4888463198]
+          assert [int(p(x)['admission_review_id']) for x in docs]==reviews
+          assert p(docs[-1])['exact_proof_head']=='135740e9ee06030ad0d029cc65cbace95af82cc1'
+          assert docs[-1]['semantic_digest']=='14da3e48d8e2adb553414c8ff36b067de043df8f7c813128929beaaf52416ce2'
+          print('B5_INTERFACE_AUTHORITY_RECEIPTS = 6/6 PASS')
+          print('B5_INTERFACE_EXACT_HEAD_SELF_BINDING = PASS')
+          PY
+
+      - name: Compile independent authority-composition verifier
+        run: |
+          set -euo pipefail
+          python -m py_compile "$VERIFIER"
+          python - <<'PY'
+          import ast
+          from pathlib import Path
+          p=Path('experiments/direct/janus_c049_1_b5_interface_closure_current_frontier_verifier.py')
+          text=p.read_text()
+          imports=[]
+          for n in ast.walk(ast.parse(text)):
+              if isinstance(n,ast.Import): imports += [a.name for a in n.names]
+              elif isinstance(n,ast.ImportFrom): imports.append(n.module or '')
+          assert not any('b5_1_generic_corrected_runtime_trace_executor' in x for x in imports)
+          assert not any('b5_2b_generic_algorithm2_printorder_reconstruction' in x for x in imports)
+          assert not any('b5_4_corrected_discovery_c047_rebound' in x for x in imports)
+          for forbidden in ['def solve_phase_a(', 'def solve_trellis(', 'def run_round(', 'B5_COMPLETE = TRUE', 'P_VS_NP = CLOSED']:
+              assert forbidden not in text, forbidden
+          print('B5_INTERFACE_CLOSURE_VERIFIER_DECOUPLING = PASS')
+          print('B5_ITERATIVE_ORCHESTRATOR_IMPLEMENTATION_IN_THIS_GATE = FORBIDDEN')
+          PY
+
+      - name: Replay receipts, derive frontier and reject 20 promotions
+        run: |
+          set -euo pipefail
+          python "$VERIFIER" \
+            --spec "$SPEC" \
+            --contract-spec "$CONTRACT_SPEC" \
+            --frontier "$FRONTIER" \
+            --b5-contract "$B5_CONTRACT_RECEIPT" \
+            --b5-1 "$B51_RECEIPT" \
+            --b5-2a "$B52A_RECEIPT" \
+            --b5-2b "$B52B_RECEIPT" \
+            --b5-3 "$B53_RECEIPT" \
+            --b5-4 "$B54_RECEIPT" \
+            --tamper-suite | tee /tmp/interface-verifier.log
+          grep -F 'JANUS_B5_INTERFACE_CLOSURE_CURRENT_FRONTIER_INDEPENDENT_VERIFIER = PASS' /tmp/interface-verifier.log
+          grep -F 'AUTHORITY_RECEIPTS_REPLAYED = 6/6' /tmp/interface-verifier.log
+          grep -F 'B5_FROZEN_CONTRACT_SUBGATES = 4/4 CONDITIONAL_INTERFACE_AUTHORITY_AVAILABLE' /tmp/interface-verifier.log
+          grep -F 'B5_CONDITIONAL_INTERFACE_STACK_CLOSED = TRUE' /tmp/interface-verifier.log
+          grep -F 'ANTI_PROMOTION_TAMPERS_REJECTED = 20/20' /tmp/interface-verifier.log
+          grep -F 'B5_ITERATIVE_COMPRESSION_ORCHESTRATOR = NOT_ESTABLISHED' /tmp/interface-verifier.log
+          grep -F 'ALL_INPUT_TERMINATION = NOT_ESTABLISHED' /tmp/interface-verifier.log
+          grep -F 'POLYNOMIAL_RUNTIME = NOT_ESTABLISHED' /tmp/interface-verifier.log
+          grep -F 'B5_COMPLETE = FALSE' /tmp/interface-verifier.log
+          grep -F 'NEXT_GATE = C049.1_B5_ITERATIVE_COMPRESSION_ORCHESTRATOR' /tmp/interface-verifier.log
+          grep -F 'P_VS_NP = OPEN' /tmp/interface-verifier.log
+
+      - name: Freeze exact-head candidate receipt
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/b5-interface-closure-evidence
+          cp "$SPEC" "$FRONTIER" "$VERIFIER" /tmp/interface-verifier.log /tmp/b5-interface-closure-evidence/
+          python - <<'PY'
+          import hashlib,json,os,subprocess
+          from pathlib import Path
+          def blob(path): return subprocess.check_output(['git','hash-object',path],text=True).strip()
+          def sha(path): return hashlib.sha256(Path(path).read_bytes()).hexdigest()
+          receipt={
+            'schema':'janus.c049_1.b5.interface_closure_current_frontier_exact_head_candidate_receipt.v1',
+            'proof_head':os.environ['PROOF_HEAD'],
+            'bindings':{
+              'spec_git_blob':blob(os.environ['SPEC']),
+              'frontier_git_blob':blob(os.environ['FRONTIER']),
+              'verifier_git_blob':blob(os.environ['VERIFIER']),
+              'workflow_git_blob':blob(os.environ['WORKFLOW']),
+              'b5_contract_spec_git_blob':'b192f5e3f884551c29d574f568a8b2275ecc92c5',
+              'b5_contract_receipt_git_blob':'6103a509bca3e91b1950a58e90e8274b3cc5e4c7',
+              'b5_1_receipt_git_blob':'f70d56c84874827fd03cc482e37fd9449a7a8a23',
+              'b5_2a_receipt_git_blob':'2e076e87029b2bc1ae8e773a6ed16f3897d46b78',
+              'b5_2b_receipt_git_blob':'5e60eff4a4bd4c87cbf527cd446fc6b23b013774',
+              'b5_3_receipt_git_blob':'32177caad196ca4640c090212c41bc132448cc7c',
+              'b5_4_receipt_git_blob':'93749562d05a7f2af7276aaa77de7c0beb65293c',
+              'historical_phase_b_plan_git_blob':'a776887c258da5c92414fa3d548beeec6ebcee83',
+              'b4_2_scaffold_git_blob':'57c16c18a14cecb96264a22fea01cd2c2bdaa857'
+            },
+            'sha256':{
+              'spec':sha(os.environ['SPEC']),
+              'frontier':sha(os.environ['FRONTIER'])
+            },
+            'checks':{
+              'authority_receipts_replayed':'6/6',
+              'frozen_contract_subgates':'4/4 conditional authority available',
+              'b5_2_internal_chain':'B5.2A+B5.2B reviewer-bound',
+              'remaining_iterative_orchestration_obligations':'12/12 retained',
+              'anti_promotion_tampers_rejected':'20/20',
+              'b5_3_used_as_c047_unsat_premise':False,
+              'open_preservation':'PASS',
+              'strict_prefix_not_final':'PASS',
+              'factor_occurrence_affine_identity_required':'PASS'
+            },
+            'conclusion':{
+              'b5_conditional_interface_stack_closed':True,
+              'b5_iterative_compression_orchestrator':False,
+              'all_input_termination':'NOT_ESTABLISHED',
+              'polynomial_runtime':'NOT_ESTABLISHED',
+              'b5_complete':False,
+              'c049_1_complete':False,
+              'arbitrary_input_global_engine_theorem':False,
+              'next_gate':'C049.1_B5_ITERATIVE_COMPRESSION_ORCHESTRATOR',
+              'p_vs_np':'OPEN'
+            },
+            'formal_admission':'BLOCKED_PENDING_REVIEW'
+          }
+          Path('/tmp/b5-interface-closure-evidence/exact-head-receipt.json').write_text(json.dumps(receipt,sort_keys=True,separators=(',',':'))+'\n')
+          print('B5_INTERFACE_CLOSURE_EXACT_HEAD_RECEIPT = FROZEN')
+          print('PROOF_HEAD =',receipt['proof_head'])
+          print('WORKFLOW_GIT_BLOB =',receipt['bindings']['workflow_git_blob'])
+          print('B5_CONDITIONAL_INTERFACE_STACK_CLOSED = TRUE_PENDING_REVIEW')
+          print('B5_COMPLETE = FALSE')
+          print('NEXT_GATE =',receipt['conclusion']['next_gate'])
+          PY
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: c049-1-b5-interface-closure-current-frontier
+          path: /tmp/b5-interface-closure-evidence
+          if-no-files-found: error
