@@ -1,0 +1,150 @@
+name: Validate C049.1 B4.6.3 corrected first internal join replay
+
+on:
+  push:
+    paths:
+      - 'experiments/direct/janus_c049_1_b4_6_3_corrected_replay_first_internal_join.py'
+      - 'experiments/direct/janus_c049_1_b4_6_3_corrected_replay_first_internal_join_verifier.py'
+      - 'docs/C049_1_B4_6_3_CORRECTED_REPLAY_FIRST_INTERNAL_JOIN.md'
+      - 'registry/c049-1-b4-6-3-corrected-replay-first-internal-join.json'
+      - '.github/workflows/validate-c049-1-b4-6-3-corrected-replay-first-internal-join.yml'
+  pull_request:
+    paths:
+      - 'experiments/direct/janus_c049_1_b4_6_3_corrected_replay_first_internal_join.py'
+      - 'experiments/direct/janus_c049_1_b4_6_3_corrected_replay_first_internal_join_verifier.py'
+      - 'docs/C049_1_B4_6_3_CORRECTED_REPLAY_FIRST_INTERNAL_JOIN.md'
+      - 'registry/c049-1-b4-6-3-corrected-replay-first-internal-join.json'
+      - '.github/workflows/validate-c049-1-b4-6-3-corrected-replay-first-internal-join.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  corrected-first-internal-join:
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+    env:
+      PYTHONPATH: experiments/direct
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Verify admitted PR 108 ancestry and compile gate
+        run: |
+          git merge-base --is-ancestor ddd18da87fd6c2721deb6b729acdea0af7cf5b6e HEAD
+          python -m py_compile \
+            experiments/direct/janus_c049_1_b4_6_3_corrected_replay_first_internal_join.py \
+            experiments/direct/janus_c049_1_b4_6_3_corrected_replay_first_internal_join_verifier.py \
+            experiments/direct/janus_c049_1_b4_6_3_replay_workflow_run_steps.py
+          if grep -E '^from .*corrected_replay_first_internal_join|^import .*corrected_replay_first_internal_join' \
+            experiments/direct/janus_c049_1_b4_6_3_corrected_replay_first_internal_join_verifier.py; then
+            echo 'independent verifier imports producer'
+            exit 1
+          fi
+
+      - name: Replay admitted PR 108 exactly
+        run: |
+          python experiments/direct/janus_c049_1_b4_6_3_replay_workflow_run_steps.py \
+            .github/workflows/validate-c049-1-b4-6-3-join-path-domain-correction.yml
+          test "$(wc -c < /tmp/c049-join-path-domain-correction.json)" = "6546"
+          test "$(sha256sum /tmp/c049-join-path-domain-correction.json | cut -d' ' -f1)" = \
+            "82e0f373eb713c82102d55f3ba1893681653920364f00d8372a275d09b562ffa"
+
+      - name: Execute corrected replay from the first internal join
+        run: |
+          rm -rf /tmp/c049-corrected-first-internal-join
+          python experiments/direct/janus_c049_1_b4_6_3_corrected_replay_first_internal_join.py \
+            /tmp/c049-join-path-domain-correction.json \
+            --output-dir /tmp/c049-corrected-first-internal-join
+
+      - name: Independent transcript replay and repaired tamper rejection
+        run: |
+          python experiments/direct/janus_c049_1_b4_6_3_corrected_replay_first_internal_join_verifier.py \
+            /tmp/c049-join-path-domain-correction.json \
+            /tmp/c049-corrected-first-internal-join \
+            /tmp/c049-corrected-first-internal-join/corrected-first-internal-join-certificate.json \
+            --producer-source experiments/direct/janus_c049_1_b4_6_3_corrected_replay_first_internal_join.py \
+            --tamper-self-test
+
+      - name: Validate strict corrected replay boundary and registry
+        run: |
+          python - <<'PY'
+          import hashlib, json
+          root='/tmp/c049-corrected-first-internal-join'
+          path=f'{root}/corrected-first-internal-join-certificate.json'
+          artifact=json.load(open(path))
+          proof=artifact['proof_payload']
+          assert artifact['semantic_digest']==hashlib.sha256(json.dumps(proof,sort_keys=True,separators=(',',':')).encode()).hexdigest()
+          assert proof['certificate_bytes']==len(open(path,'rb').read())
+          assert proof['source']['parent_exact_head']=='ddd18da87fd6c2721deb6b729acdea0af7cf5b6e'
+          assert proof['source']['parent_correction_sha256']=='82e0f373eb713c82102d55f3ba1893681653920364f00d8372a275d09b562ffa'
+          oracle=proof['fixture_oracle']
+          assert (oracle['permutation_count'],oracle['minimum_width'],oracle['accepting_layout_count'])==(720,2,0)
+          domain=proof['corrected_path_domain']
+          assert domain['join_interleaving_steps']==[[1,0],[0,1]]
+          assert domain['legacy_delannoy_join_domain_used'] is False
+          receipt=proof['first_internal_join_receipt']
+          assert receipt['node_id']==6
+          assert receipt['child_entry_counts']==[36,36]
+          assert receipt['child_pairs']==1296
+          assert receipt['ordinary_refinements']>0
+          assert receipt['ordinary_refinements']==receipt['ordinary_refinements_from_pair_counts']
+          assert receipt['successful_refinements']+receipt['failed_refinements']==receipt['ordinary_refinements']
+          assert receipt['diagonal_steps']==0
+          assert receipt['refinement_partition_complete'] is True
+          assert receipt['successful_provenance_complete'] is True
+          assert receipt['duplicate_deletion_conservation'] is True
+          assert set(proof['invariant_vector'].values())=={'PASS'}
+          assert len(proof['invariant_vector'])==12
+          legacy=proof['legacy_inputs']
+          assert all(value is False for value in legacy.values())
+          strict=proof['strict_boundary']
+          assert strict['pr108_join_path_domain_correction_admitted'] is True
+          assert strict['corrected_first_internal_join_replayed'] is True
+          assert strict['corrected_node6_parent_refinement_complete'] is True
+          assert strict['corrected_bottom_up_replay_complete'] is False
+          assert strict['root_structural_compression_admitted'] is False
+          assert strict['root_parent_refinement_complete'] is False
+          assert strict['root_full_set_computed'] is False
+          assert strict['root_empty_proved'] is False
+          assert strict['found_layout']=='FORBIDDEN'
+          assert strict['no_layout_at_cap']=='FORBIDDEN'
+          assert strict['current_global_terminal']=='OPEN_TRAJECTORY_ENGINE_INCOMPLETE'
+          assert strict['p_vs_np']=='OPEN'
+          if proof['node6_full_set_complete']:
+              assert proof['result']=='CORRECTED_NODE6_FULL_SET_COMPUTED'
+              assert proof['next_gate']=='C049.1_B4.6.3_CORRECTED_NODE7_PARENT_REFINEMENT'
+              assert strict['corrected_node6_parent_up_k_complete'] is True
+          else:
+              assert proof['result']=='HONEST_OPEN_AT_CORRECTED_NODE6_B2_CAPABILITY'
+              assert proof['next_gate']=='C049.1_B4.6.3_CORRECTED_NODE6_UP_K_HARDENING'
+              assert strict['corrected_node6_parent_up_k_complete'] is False
+
+          receipt_file=json.load(open('registry/c049-1-b4-6-3-corrected-replay-first-internal-join.json'))
+          assert receipt_file['status'] in {'DRAFT_EXACT_HEAD_CI_REQUIRED','IMPLEMENTED_EXACT_HEAD_CI_GREEN'}
+          boundary=receipt_file['admission_boundary']
+          admitted=receipt_file['status']=='IMPLEMENTED_EXACT_HEAD_CI_GREEN'
+          assert boundary['corrected_first_internal_join_replayed'] is admitted
+          assert boundary['corrected_node6_parent_refinement_complete'] is admitted
+          assert boundary['corrected_bottom_up_replay_complete'] is False
+          assert boundary['root_structural_compression_admitted'] is False
+          assert boundary['root_full_set_computed'] is False
+          assert boundary['found_layout_enabled'] is False
+          assert boundary['no_layout_at_cap_enabled'] is False
+          assert boundary['p_vs_np']=='OPEN'
+          PY
+
+      - name: Export corrected replay proof package
+        uses: actions/upload-artifact@v4
+        with:
+          name: c049-b4-6-3-corrected-replay-first-internal-join
+          path: |
+            /tmp/c049-corrected-first-internal-join
+            registry/c049-1-b4-6-3-corrected-replay-first-internal-join.json
+            docs/C049_1_B4_6_3_CORRECTED_REPLAY_FIRST_INTERNAL_JOIN.md
+          retention-days: 1
