@@ -1,0 +1,34 @@
+name: Validate C049.1 B5.2A v1 historical negative receipt
+
+on:
+  workflow_dispatch:
+
+jobs:
+  b5-2a-v1-negative-receipt:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Verify frozen v1 failure classification
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          p=Path('experiments/direct/C049_1_B5_2A_GENERIC_ALGORITHM2_PROVENANCE_CARRIER_AMENDMENT_V1_1.json')
+          a=json.loads(p.read_text())
+          n=a['negative_provenance']
+          assert n['run_id']==31243335691
+          assert n['job_id']==93067739013
+          assert n['proof_head']=='ed12d813861fda5ec66cd0fa51945d0bb8023588'
+          assert n['classification']=='B2_STYLE_POINT_OBJECT_ASSUMED_FOR_CANONICAL_B3_PAIR_LIST_WITNESS'
+          assert n['semantic_replay_started'] is False
+          assert n['upstream_b5_1_rebuild_completed'] is True
+          print('B5_2A_V1_NEGATIVE_RECEIPT = PASS')
+          print('RUN_31243335691 = FAILED_BEFORE_CARRIER_BUILD')
+          print('SUPERSEDED_BY = B5_2A_V1_1')
+          print('FOUND_LAYOUT = FORBIDDEN')
+          print('P_VS_NP = OPEN')
+          PY
