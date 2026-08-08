@@ -8,6 +8,7 @@ import janus_c049_1_b5_4_corrected_discovery_c047_rebound_verifier_v12 as v12
 
 EVIDENCE = Path("/tmp/b5-4-v12-evidence")
 RECEIPT = EVIDENCE / "exact-head-receipt-v12.json"
+AMENDMENT_V12 = Path("experiments/direct/C049_1_B5_4_REBOUND_UPSTREAM_TAMPER_HARDENING_AMENDMENT_V1_2.json")
 
 
 def main() -> None:
@@ -34,6 +35,7 @@ def main() -> None:
     old = EVIDENCE / "exact-head-receipt-v11.json"
     receipt = json.loads(old.read_text(encoding="utf-8"))
     receipt["schema"] = "janus.c049_1.b5_4.corrected_discovery_c047_rebound_exact_head_candidate_receipt.v1_2"
+    receipt["bindings"]["v1_2_hardening_amendment_git_blob"] = h.git_blob(AMENDMENT_V12)
     receipt["bindings"]["v1_2_hardening_verifier_git_blob"] = h.git_blob(Path("experiments/direct/janus_c049_1_b5_4_corrected_discovery_c047_rebound_verifier_v12.py"))
     receipt["bindings"]["v1_2_harness_git_blob"] = h.git_blob(Path("experiments/direct/janus_c049_1_b5_4_rebound_ci_harness_v12.py"))
     receipt["checks"]["upstream_b5_2b_repaired_digest_cut_tampers"] = "2/2"
