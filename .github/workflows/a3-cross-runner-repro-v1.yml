@@ -1,0 +1,132 @@
+name: A3 cross-runner PDF reproduction v1
+
+on:
+  push:
+    branches:
+      - verification/a3-cross-runner-repro-v1
+    paths:
+      - '.github/workflows/a3-cross-runner-repro-v1.yml'
+  pull_request:
+    branches:
+      - publication/a3-ternary-dp-v1
+    paths:
+      - '.github/workflows/a3-cross-runner-repro-v1.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  reproduce:
+    name: reproduce-${{ matrix.replica }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        replica: [runner-a, runner-b]
+    steps:
+      - name: Checkout frozen publication head
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: 811d954e52296893898062d9abea7aaf572629be
+
+      - name: Assert exact target and source lineage
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "811d954e52296893898062d9abea7aaf572629be"
+          git merge-base --is-ancestor 5ee79fc82613f24e621595afa0119312a2f52660 HEAD
+          test "$(git hash-object publication/A3_TERNARY_DP/PUBLICATION_MANIFEST.json)" = "$(git rev-parse 811d954e52296893898062d9abea7aaf572629be:publication/A3_TERNARY_DP/PUBLICATION_MANIFEST.json)"
+          echo 'CROSS_RUNNER_EXACT_HEAD_BINDING = PASS'
+
+      - name: Install frozen-class PDF toolchain
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends texlive-latex-base texlive-latex-recommended poppler-utils
+          pdflatex --version | head -n 1
+          pdftotext -v 2>&1 | head -n 1
+          echo 'CROSS_RUNNER_PDF_TOOLCHAIN = PASS'
+
+      - name: Reproduce exact publication PDF
+        shell: bash
+        env:
+          EXPECTED_PDF_SHA256: a3a6e87376d38e9336d9e101640ebfaf5f41499a885f0477e2f46b88cf3cd5e4
+          TARGET_HEAD: 811d954e52296893898062d9abea7aaf572629be
+          FROZEN_EVIDENCE_HEAD: 5ee79fc82613f24e621595afa0119312a2f52660
+          REPLICA: ${{ matrix.replica }}
+        run: |
+          set -euo pipefail
+          export SOURCE_DATE_EPOCH="$(git show -s --format=%ct "$FROZEN_EVIDENCE_HEAD")"
+          export FORCE_SOURCE_DATE=1
+          export TZ=UTC
+          export LC_ALL=C.UTF-8
+          test "$SOURCE_DATE_EPOCH" = "1786188425"
+
+          cd publication/A3_TERNARY_DP/paper
+          rm -f main.aux main.log main.out main.pdf main.txt main.canonical.txt main.pdf.sha256 PUBLICATION_PDF_RECEIPT.json
+          pdflatex -interaction=nonstopmode -halt-on-error main.tex
+          pdflatex -interaction=nonstopmode -halt-on-error main.tex
+          test -s main.pdf
+          ! grep -F 'Overfull \hbox' main.log
+          pdftotext main.pdf main.txt
+
+          ACTUAL_PDF_SHA256="$(sha256sum main.pdf | awk '{print $1}')"
+          echo "CROSS_RUNNER_REPLICA = $REPLICA"
+          echo "CROSS_RUNNER_EXPECTED_PDF_SHA256 = $EXPECTED_PDF_SHA256"
+          echo "CROSS_RUNNER_ACTUAL_PDF_SHA256 = $ACTUAL_PDF_SHA256"
+          test "$ACTUAL_PDF_SHA256" = "$EXPECTED_PDF_SHA256"
+
+          python - <<'PY'
+          import hashlib,json,os,pathlib,platform,subprocess
+          p=pathlib.Path('main.pdf')
+          receipt={
+              'schema':'janus.fundamentum.a3.cross_runner_pdf_receipt.v1',
+              'target_head':os.environ['TARGET_HEAD'],
+              'frozen_evidence_head':os.environ['FROZEN_EVIDENCE_HEAD'],
+              'replica':os.environ['REPLICA'],
+              'runner_os':os.environ.get('RUNNER_OS'),
+              'runner_arch':os.environ.get('RUNNER_ARCH'),
+              'image_os':os.environ.get('ImageOS'),
+              'image_version':os.environ.get('ImageVersion'),
+              'python_platform':platform.platform(),
+              'source_date_epoch':os.environ['SOURCE_DATE_EPOCH'],
+              'force_source_date':'1',
+              'timezone':'UTC',
+              'pdflatex_version':subprocess.check_output(['pdflatex','--version'],text=True).splitlines()[0],
+              'pdf_sha256':hashlib.sha256(p.read_bytes()).hexdigest(),
+              'expected_pdf_sha256':os.environ['EXPECTED_PDF_SHA256'],
+              'exact_hash_match':'PASS'
+          }
+          pathlib.Path(f'CROSS_RUNNER_RECEIPT_{os.environ["REPLICA"]}.json').write_text(json.dumps(receipt,indent=2,sort_keys=True)+'\n')
+          PY
+
+          echo 'CROSS_RUNNER_REPLICA_REPRODUCIBILITY = PASS'
+
+      - name: Upload runner receipt
+        uses: actions/upload-artifact@v4
+        with:
+          name: a3-cross-runner-${{ matrix.replica }}-811d954e52296893898062d9abea7aaf572629be
+          path: |
+            publication/A3_TERNARY_DP/paper/main.pdf
+            publication/A3_TERNARY_DP/paper/main.txt
+            publication/A3_TERNARY_DP/paper/CROSS_RUNNER_RECEIPT_${{ matrix.replica }}.json
+          if-no-files-found: error
+          compression-level: 6
+
+  certify:
+    name: certify-cross-runner-reproducibility
+    runs-on: ubuntu-24.04
+    needs: reproduce
+    steps:
+      - name: Freeze workflow-level conclusion
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo 'CROSS_RUNNER_REPRODUCIBILITY = PASS'
+          echo 'CROSS_ENVIRONMENT_REPRODUCIBILITY = NOT_ESTABLISHED'
+          echo 'TARGET_HEAD = 811d954e52296893898062d9abea7aaf572629be'
+          echo 'EXPECTED_PDF_SHA256 = a3a6e87376d38e9336d9e101640ebfaf5f41499a885f0477e2f46b88cf3cd5e4'
