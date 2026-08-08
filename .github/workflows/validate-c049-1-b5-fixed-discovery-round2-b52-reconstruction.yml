@@ -83,7 +83,7 @@ jobs:
             elif isinstance(n,ast.ImportFrom): imports.append(n.module or '')
           forbidden=('b5_2a_generic_algorithm2_provenance_carrier','b5_2b_generic_algorithm2_printorder_reconstruction')
           assert not any(any(f in x for f in forbidden) for x in imports),imports
-          assert 'C047' not in '\n'.join(x for x in imports)
+          assert 'C047' not in '\n'.join(imports)
           print('B5_2_PRODUCER_IMPORT_IN_CROSS_GATE_BINDER = FORBIDDEN_CONFIRMED')
           print('C047_IMPORT_IN_BINDER = ABSENT')
           PY
@@ -115,7 +115,13 @@ jobs:
           python "$B51_PRODUCER" --spec "$B51_SPEC" --input /tmp/round2-b52/round2-input.json --output /tmp/round2-b52/b51.json | tee /tmp/round2-b52/b51-producer.log
           python "$B51_VERIFIER" --spec "$B51_SPEC" --input /tmp/round2-b52/round2-input.json --candidate /tmp/round2-b52/b51.json | tee /tmp/round2-b52/b51-verifier.log
           grep -F 'RUNTIME_RESULT = CLOSED_COMPLETE_TRACE' /tmp/round2-b52/b51-verifier.log
-          grep -F 'ROOT_ENTRY_COUNT = 5' /tmp/round2-b52/b51-producer.log
+          python - <<'PY'
+          import json
+          p=json.load(open('/tmp/round2-b52/b51.json'))['proof_payload']
+          assert p['capability_status']=='CLOSED_COMPLETE_TRACE'
+          assert p['root_entry_count_if_closed']==5,p['root_entry_count_if_closed']
+          print('ROUND2_ROOT_ENTRY_COUNT = 5')
+          PY
           echo 'ROUND2_B5_1_EXACT_SUBJECT_REPLAY = PASS'
       - name: Execute admitted B5.2A provenance carrier and independent replay
         shell: bash
