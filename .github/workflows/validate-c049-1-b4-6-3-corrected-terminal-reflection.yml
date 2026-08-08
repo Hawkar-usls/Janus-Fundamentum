@@ -3,13 +3,13 @@ name: Validate C049.1 B4.6.3 corrected terminal reflection
 on:
   push:
     paths:
-      - 'experiments/direct/C049_1_B4_6_3_CORRECTED_TERMINAL_REFLECTION_SPEC_V1.json'
+      - 'experiments/direct/C049_1_B4_6_3_CORRECTED_TERMINAL_REFLECTION_SPEC_V1_1.json'
       - 'experiments/direct/janus_c049_1_b4_6_3_corrected_terminal_reflection.py'
       - 'experiments/direct/janus_c049_1_b4_6_3_corrected_terminal_reflection_verifier.py'
       - '.github/workflows/validate-c049-1-b4-6-3-corrected-terminal-reflection.yml'
   pull_request:
     paths:
-      - 'experiments/direct/C049_1_B4_6_3_CORRECTED_TERMINAL_REFLECTION_SPEC_V1.json'
+      - 'experiments/direct/C049_1_B4_6_3_CORRECTED_TERMINAL_REFLECTION_SPEC_V1_1.json'
       - 'experiments/direct/janus_c049_1_b4_6_3_corrected_terminal_reflection.py'
       - 'experiments/direct/janus_c049_1_b4_6_3_corrected_terminal_reflection_verifier.py'
       - '.github/workflows/validate-c049-1-b4-6-3-corrected-terminal-reflection.yml'
@@ -25,10 +25,11 @@ jobs:
     env:
       PYTHONPATH: experiments/direct
       ROOT_EMPTY_PROOF_SUBJECT: 6178edbb8d10c3c508ded82ea03d84af9bd594bd
-      TRACKED_AUDIT_SUBJECT: 1c4103aa426f3e4c19a47d54c8ea86d5924589a2
-      TERMINAL_SPEC_SUBJECT: e1b0cdf2a33af7be1f1257734573c628a1b66c7a
-      TERMINAL_PRODUCER_SUBJECT: 1849061d6f77439c27e1b031cb4b3af551eaa269
-      TERMINAL_VERIFIER_SUBJECT: cee36b7754a733467d16f6ace07d3ef0f33cfb23
+      CANONICAL_AUDIT_SUBJECT: a170e5aa269627364f7de7789caebce6e1863961
+      LOCAL_AUDIT_MIRROR_SUBJECT: 00f82983e3468fc823d3547cfb4c34de3313641d
+      TERMINAL_SPEC_SUBJECT: e94468a1e834fe3aabe6f0f24184a288d5a4da9b
+      TERMINAL_PRODUCER_SUBJECT: d4580a09378d16f2666bd77da5be01bccbbd43c4
+      TERMINAL_VERIFIER_SUBJECT: f70b09959fb1de18e57b993a0c8e17088fc619f6
       EMPTY_SPEC_SUBJECT: 824a0eede4435584f9d2ff2f9272b7ee5dc69280
       EMPTY_PRODUCER_SUBJECT: ecf42d04163be5c652af49186606646833529477
       EMPTY_VERIFIER_SUBJECT: b1afd3fa5b776f0514f5b844b77df57430d21f54
@@ -46,7 +47,7 @@ jobs:
       LEAF5_SUBJECT: c354d56bf3ac0bb77136b96e869dc95a6b9ba07f
       Q80_SUBJECT: 97a57154b4fdeed8cbc7ba40fa71b2008757c8f1
       STRUCT_SPEC_SUBJECT: f942dffdd5ba1b2c4fa4a61da722e0c7c4a18d15
-      TERMINAL_SPEC: experiments/direct/C049_1_B4_6_3_CORRECTED_TERMINAL_REFLECTION_SPEC_V1.json
+      TERMINAL_SPEC: experiments/direct/C049_1_B4_6_3_CORRECTED_TERMINAL_REFLECTION_SPEC_V1_1.json
       TERMINAL_PRODUCER: experiments/direct/janus_c049_1_b4_6_3_corrected_terminal_reflection.py
       TERMINAL_VERIFIER: experiments/direct/janus_c049_1_b4_6_3_corrected_terminal_reflection_verifier.py
       AUDIT_RECEIPT: experiments/direct/audits/C049_1_B4_6_3_CORRECTED_ROOT_EMPTY_UP_K_INDEPENDENT_SEMANTIC_AUDIT_6178EDBB.json
@@ -80,12 +81,12 @@ jobs:
         run: |
           set -euo pipefail
           git merge-base --is-ancestor "$ROOT_EMPTY_PROOF_SUBJECT" HEAD
-          git merge-base --is-ancestor "$TRACKED_AUDIT_SUBJECT" HEAD
           bind_blob(){ test "$(git rev-parse "$1:$2")" = "$(git hash-object "$2")"; }
           bind_blob "$TERMINAL_SPEC_SUBJECT" "$TERMINAL_SPEC"
           bind_blob "$TERMINAL_PRODUCER_SUBJECT" "$TERMINAL_PRODUCER"
           bind_blob "$TERMINAL_VERIFIER_SUBJECT" "$TERMINAL_VERIFIER"
-          bind_blob "$TRACKED_AUDIT_SUBJECT" "$AUDIT_RECEIPT"
+          bind_blob "$CANONICAL_AUDIT_SUBJECT" "$AUDIT_RECEIPT"
+          bind_blob "$LOCAL_AUDIT_MIRROR_SUBJECT" "$AUDIT_RECEIPT"
           bind_blob "$EMPTY_SPEC_SUBJECT" "$EMPTY_SPEC"
           bind_blob "$EMPTY_PRODUCER_SUBJECT" "$EMPTY_PRODUCER"
           bind_blob "$EMPTY_VERIFIER_SUBJECT" "$EMPTY_VERIFIER"
@@ -104,9 +105,10 @@ jobs:
           bind_blob "$STRUCT_SPEC_SUBJECT" "$STRUCT_SPEC"
           bind_blob "$Q80_SUBJECT" "$Q80_PRODUCER"
           python -m py_compile "$TERMINAL_PRODUCER" "$TERMINAL_VERIFIER" "$EMPTY_PRODUCER" "$EMPTY_VERIFIER" "$ROOT_PRODUCER" "$ROOT_VERIFIER" "$UPK_PRODUCER" "$UPK_VERIFIER" "$RESIDUAL_PRODUCER" "$SCALAR_PRODUCER" "$Q80_PRODUCER" "$NODE8_PRODUCER"
-          test "$(git hash-object "$TERMINAL_SPEC")" = "88a229256c239f473d8766c2c43b77b84dd7ecbb"
-          test "$(git hash-object "$TERMINAL_PRODUCER")" = "c763091c0ddc5f46401d510c8ae245a6232fca3d"
-          test "$(git hash-object "$TERMINAL_VERIFIER")" = "13ca4ec44f04384eb6a3fc35d267d93f66c2d32b"
+          test "$(git hash-object "$TERMINAL_SPEC")" = "f45356b9065ad1d9e7e38f8c08d7e2031b5efa89"
+          test "$(git hash-object "$TERMINAL_PRODUCER")" = "26ff26561febc4a5467d21bd230ad20847616389"
+          test "$(git hash-object "$TERMINAL_VERIFIER")" = "51dd8110ef95839243983ff7ae7a899e1af84d91"
+          test "$(git hash-object "$AUDIT_RECEIPT")" = "80c7b68945fc58c9e2110bd7f94fdf24b9240248"
           test "$(sha256sum "$AUDIT_RECEIPT" | cut -d' ' -f1)" = "dbbbcaaee12dfcbaf073f0e11e182c0c530fe54acb0c05b2996c21a92fa68897"
           python - <<'PY'
           import ast
@@ -219,7 +221,7 @@ jobs:
           a=json.loads(Path('/tmp/terminal-ORIGINAL.json').read_text()); p=a['proof_payload']; o=p['whole_factor_layout_oracle']; x=p['frozen_instance_crosscheck']
           print('GITHUB_SHA='+os.environ['GITHUB_SHA'])
           print('ROOT_EMPTY_PROOF_SUBJECT='+os.environ['ROOT_EMPTY_PROOF_SUBJECT'])
-          print('TRACKED_AUDIT_SUBJECT='+os.environ['TRACKED_AUDIT_SUBJECT'])
+          print('CANONICAL_AUDIT_SUBJECT='+os.environ['CANONICAL_AUDIT_SUBJECT'])
           print('TERMINAL_ARTIFACT_SHA256='+hashlib.sha256(Path('/tmp/terminal-ORIGINAL.json').read_bytes()).hexdigest())
           print('TERMINAL_SEMANTIC_DIGEST='+a['semantic_digest'])
           print('WHOLE_FACTOR_PERMUTATIONS='+str(o['permutation_count']))
@@ -253,7 +255,7 @@ jobs:
             /tmp/terminal-verifier.log
             /tmp/empty-ORIGINAL.json
             /tmp/empty-verifier.log
-            experiments/direct/C049_1_B4_6_3_CORRECTED_TERMINAL_REFLECTION_SPEC_V1.json
+            experiments/direct/C049_1_B4_6_3_CORRECTED_TERMINAL_REFLECTION_SPEC_V1_1.json
             experiments/direct/janus_c049_1_b4_6_3_corrected_terminal_reflection.py
             experiments/direct/janus_c049_1_b4_6_3_corrected_terminal_reflection_verifier.py
             experiments/direct/audits/C049_1_B4_6_3_CORRECTED_ROOT_EMPTY_UP_K_INDEPENDENT_SEMANTIC_AUDIT_6178EDBB.json
