@@ -1,0 +1,44 @@
+name: Validate C049.1 B5.4 corrected discovery to C047 rebound
+
+on:
+  pull_request:
+    paths:
+      - 'experiments/direct/C049_1_B5_4_CORRECTED_DISCOVERY_C047_REBOUND_SPEC_V1.json'
+      - 'experiments/direct/C049_1_B5_4_CORRECTED_DISCOVERY_C047_REBOUND_AMENDMENT_V1_1.json'
+      - 'experiments/direct/janus_c049_1_b5_4_corrected_discovery_c047_rebound.py'
+      - 'experiments/direct/janus_c049_1_b5_4_corrected_discovery_c047_rebound_v11.py'
+      - 'experiments/direct/janus_c049_1_b5_4_corrected_discovery_c047_rebound_verifier.py'
+      - 'experiments/direct/janus_c049_1_b5_4_corrected_discovery_c047_rebound_verifier_v11.py'
+      - '.github/workflows/validate-c049-1-b5-4-corrected-discovery-c047-rebound.yml'
+  workflow_dispatch:
+
+jobs:
+  v1-supersession-provenance:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Verify rejected v1 provenance and v1.1 authority correction
+        run: |
+          set -euo pipefail
+          test "$(git hash-object experiments/direct/audits/C049_1_B5_3_GENERIC_EMPTY_ROOT_TERMINAL_COMPOSITION_ADMISSION_E9841522.json)" = "32177caad196ca4640c090212c41bc132448cc7c"
+          test "$(git rev-parse a5e8b45f36a45dd5a0bea148af3f7f90fbcd136e:experiments/direct/audits/C049_1_B5_3_GENERIC_EMPTY_ROOT_TERMINAL_COMPOSITION_ADMISSION_E9841522.json)" = "32177caad196ca4640c090212c41bc132448cc7c"
+          python - <<'PY'
+          import json
+          a=json.load(open('experiments/direct/C049_1_B5_4_CORRECTED_DISCOVERY_C047_REBOUND_AMENDMENT_V1_1.json'))
+          c=a['authority_correction']
+          n=a['negative_provenance'][0]
+          assert c['incorrect_v1_value']=='32177caa648290b65c8ec9c10fa4c357652515e6'
+          assert c['correct_value']=='32177caad196ca4640c090212c41bc132448cc7c'
+          assert n['proof_head']=='58a8a03004b00e3341181b41d0c32927d1455c17'
+          assert n['run_id']==31246532882 and n['job_id']==93075963293
+          assert n['classification']=='B5_3_AUTHORITY_BLOB_PIN_TYPO_REJECTED_BEFORE_COMPILE_OR_SEMANTIC_REPLAY'
+          assert n['semantic_replay_started'] is False
+          print('B5_4_V1_NEGATIVE_PROVENANCE = CONFIRMED')
+          print('B5_4_V1_SEMANTIC_REPLAY_STARTED = FALSE')
+          print('B5_4_V1_WORKFLOW = SUPERSEDED_BY_V1_1')
+          print('C047_RESULT_ADMITTED = FALSE')
+          print('B5_COMPLETE = FALSE')
+          print('P_VS_NP = OPEN')
+          PY

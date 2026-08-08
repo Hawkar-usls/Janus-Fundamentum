@@ -1,0 +1,96 @@
+name: Validate C049.1 B5.4 corrected discovery to C047 rebound v1.3
+
+on:
+  pull_request:
+    paths:
+      - 'experiments/direct/C049_1_B5_4_NONTRIVIAL_UPSTREAM_REBIND_HARDENING_AMENDMENT_V1_3.json'
+      - 'experiments/direct/janus_c049_1_b5_4_corrected_discovery_c047_rebound_verifier_v13.py'
+      - 'experiments/direct/janus_c049_1_b5_4_rebound_ci_harness_v13.py'
+      - '.github/workflows/validate-c049-1-b5-4-corrected-discovery-c047-rebound-v13.yml'
+  workflow_dispatch:
+
+jobs:
+  b5-4-c047-rebound-v13:
+    runs-on: ubuntu-latest
+    env:
+      PYTHONPATH: experiments/direct
+      AMENDMENT_V13: experiments/direct/C049_1_B5_4_NONTRIVIAL_UPSTREAM_REBIND_HARDENING_AMENDMENT_V1_3.json
+      VERIFIER_V13: experiments/direct/janus_c049_1_b5_4_corrected_discovery_c047_rebound_verifier_v13.py
+      HARNESS_V13: experiments/direct/janus_c049_1_b5_4_rebound_ci_harness_v13.py
+      WORKFLOW_V13: .github/workflows/validate-c049-1-b5-4-corrected-discovery-c047-rebound-v13.yml
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Bind exact-head v1.3 hardening and immutable theorem subject
+        run: |
+          set -euo pipefail
+          if [ "${{ github.event_name }}" = "pull_request" ]; then PROOF_HEAD="${{ github.event.pull_request.head.sha }}"; else PROOF_HEAD="$GITHUB_SHA"; fi
+          echo "PROOF_HEAD=$PROOF_HEAD" >> "$GITHUB_ENV"
+          for f in "$AMENDMENT_V13" "$VERIFIER_V13" "$HARNESS_V13" "$WORKFLOW_V13"; do
+            test "$(git rev-parse "$PROOF_HEAD:$f")" = "$(git hash-object "$f")"
+          done
+          test "$(git hash-object "$AMENDMENT_V13")" = "614c71dea814f25f6a653ceb0b65035d9ac5d4a7"
+          test "$(git hash-object "$VERIFIER_V13")" = "eae6d0dedb7b6473a524d491bd1c17718ac86665"
+          test "$(git hash-object "$HARNESS_V13")" = "7e958b613e73b9d00cf14f89812890633ea3d1ce"
+          test "$(git hash-object experiments/direct/janus_c049_1_b5_4_corrected_discovery_c047_rebound_v11.py)" = "1be22d0f2ca01f07b334eb894488cf30196b3f08"
+          test "$(git hash-object experiments/direct/janus_c049_1_b5_4_corrected_discovery_c047_rebound_verifier_v11.py)" = "a920607a4921d19ef0ecbdf716c0af8cd924aa40"
+          test "$(git hash-object experiments/direct/janus_c049_1_b5_4_rebound_ci_harness_v11.py)" = "6ecd6a65613e14c80fa5573d6e496c4eefb7565d"
+          test "$(git hash-object experiments/direct/C049_1_B5_4_CORRECTED_DISCOVERY_C047_REBOUND_AMENDMENT_V1_1.json)" = "ebe431b825c83052c7e08949029b64db74012dee"
+          test "$(git hash-object experiments/direct/C049_1_B5_4_CORRECTED_DISCOVERY_C047_REBOUND_SPEC_V1.json)" = "a259728168406cf6de086d74525d5ce2125bab29"
+          test "$(git hash-object experiments/direct/audits/C049_1_B5_2B_GENERIC_ALGORITHM2_PRINTORDER_RECONSTRUCTION_ADMISSION_F057B7AF.json)" = "5e60eff4a4bd4c87cbf527cd446fc6b23b013774"
+          test "$(git hash-object experiments/direct/audits/C049_1_B5_3_GENERIC_EMPTY_ROOT_TERMINAL_COMPOSITION_ADMISSION_E9841522.json)" = "32177caad196ca4640c090212c41bc132448cc7c"
+          test "$(git hash-object experiments/direct/janus_c049_fpt_integration_core.py)" = "5eb806a079343f00622886c448d2bfbfa412cbfe"
+          test "$(git hash-object experiments/direct/janus_c049_fpt_integration_solver.py)" = "70c06752890e797bdf3a7c87c2cb41703fade163"
+          test "$(git hash-object experiments/direct/janus_c049_fpt_integration_verifier.py)" = "6ae98df69ff53b6157c171cea619865af533c07c"
+          test "$(git hash-object experiments/direct/janus_c047_affine_trellis_core.py)" = "c2905332a83b175eea8bd0a326e1a63555b2130a"
+          python - <<'PY'
+          import json
+          a=json.load(open('experiments/direct/C049_1_B5_4_NONTRIVIAL_UPSTREAM_REBIND_HARDENING_AMENDMENT_V1_3.json'))
+          assert a['base_v1_1_theorem_subject']['proof_head']=='69b38e05e3136740760beef1047f77daacb73b1b'
+          assert a['base_v1_1_theorem_subject']['run_id']==31247184773
+          assert a['base_v1_1_theorem_subject']['job_id']==93077618813
+          assert a['base_v1_1_theorem_subject']['artifact_id']==9018874362
+          assert a['v1_2_negative_provenance']['verifier_git_blob']=='c481b33996e751cb8a530da16d71f3bcc7764d84'
+          assert a['hardening']['verifier_git_blob']=='eae6d0dedb7b6473a524d491bd1c17718ac86665'
+          assert a['hardening']['required_result']=='27/27'
+          assert 'REBIND_B5_4_SUBJECT_B5_2B_SEMANTIC_DIGEST_TO_REPAIRED_VALUE' in a['hardening']['new_attack_protocol']
+          assert a['semantic_effect'].startswith('NO_CHANGE_TO_B5_4_PRODUCER_OR_ADMISSION_STATEMENT')
+          print('B5_4_V1_3_NONTRIVIAL_REBIND_AMENDMENT = PASS')
+          print('B5_4_V1_3_WORKFLOW_EXACT_HEAD_SELF_BINDING = PASS')
+          PY
+
+      - name: Compile and audit nontrivial attack protocol
+        run: |
+          set -euo pipefail
+          python -m py_compile "$VERIFIER_V13" "$HARNESS_V13"
+          python - <<'PY'
+          from pathlib import Path
+          v=Path('experiments/direct/janus_c049_1_b5_4_corrected_discovery_c047_rebound_verifier_v13.py').read_text()
+          h=Path('experiments/direct/janus_c049_1_b5_4_rebound_ci_harness_v13.py').read_text()
+          assert 'subject"]["b5_2b_semantic_digest"] = b52["semantic_digest"]' in v
+          assert 'direct independent B5.2B replay' in v
+          assert 'REJECTED_AFTER_OUTER_SUBJECT_REBIND' in v
+          assert 'expected 27/27 nontrivial repaired-digest tamper rejection' in h
+          assert 'direct_independent_b5_2b_replay_rejection' in h
+          for text in (v,h):
+              for forbidden in ['def solve_trellis(', 'def affine_trellis(', 'P_VS_NP = CLOSED', 'POLYNOMIAL_RUNTIME = ESTABLISHED']:
+                  assert forbidden not in text
+          print('B5_4_V1_3_T26_T27_NONTRIVIALITY = PASS')
+          print('B5_4_V1_3_C047_REIMPLEMENTATION = FORBIDDEN')
+          PY
+
+      - name: Rebuild full rebound and reject 27 nontrivial repaired-digest attacks
+        run: |
+          set -euo pipefail
+          python "$HARNESS_V13"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: c049-1-b5-4-corrected-discovery-c047-rebound-v13
+          path: /tmp/b5-4-v13-evidence
+          if-no-files-found: error
