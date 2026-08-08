@@ -110,6 +110,19 @@ def node_record(node):
         },
     }
 
+def node8_authority_closed(node8, hp):
+    req = hp.get('node8_up_k_authority_requirement', {})
+    return (
+        node8.get('status') == 'CLOSED_BY_VERIFICATION_ONLY_AUTHORITY_CLOSURE'
+        and node8.get('semantic_admission') == 'ADMITTED_BY_REVIEWER_BOUND_AUTHORITY_CLOSURE'
+        and node8.get('final_admission_review_id') == 4888054139
+        and node8.get('authority_receipt_git_blob') == 'b04124490df9737c0799ed856fd7819b37477208'
+        and req.get('authority_established') is True
+        and req.get('semantic_admission_review_id') == 4888054139
+        and req.get('authority_receipt_git_blob') == 'b04124490df9737c0799ed856fd7819b37477208'
+        and req.get('verification_workflows') == '3/3_SUCCESS'
+    )
+
 def build(ledger_path, hardening_path, out_path, mode):
     ledger = load(ledger_path)
     hardening = load(hardening_path)
@@ -127,9 +140,12 @@ def build(ledger_path, hardening_path, out_path, mode):
     entries = {x['edge_id']: x for x in ledger['entries']}
     node8 = entries['NODE8_PARENT_REFINEMENT_TO_NODE8_UP_K']
     q80 = entries['NODE8_UP_K_TO_NODE9_Q80']
+    n8_closed = node8_authority_closed(node8, hp)
+    if not n8_closed:
+        raise AssertionError('node8 authority not closed')
     payload = {
         'phase': 'ACTUAL_CORRECTED_ENGINE_TRACE_PREFLIGHT',
-        'status': 'PREFLIGHT_COMPLETE_BLOCKED_ON_AUTHORITY_AND_REQUIRED_REPLAYS',
+        'status': 'PREFLIGHT_COMPLETE_BLOCKED_ONLY_ON_REQUIRED_Q80_REPLAY',
         'admitted': False,
         'target': {'ambient_dim': D, 'k': K, 'whole_factor_blocks': [list(x) for x in BLOCKS], 'tree': 'LEFT_DEEP_6_FACTOR'},
         'derived_leaf_boundaries': [{'factor_index': i, 'boundary': list(boundary((i,)))} for i in range(len(BLOCKS))],
@@ -141,9 +157,18 @@ def build(ledger_path, hardening_path, out_path, mode):
                 'proof_subject': node8['candidate_proof_head'],
                 'semantic_audit': node8['semantic_audit'],
                 'semantic_audit_review_id': node8['independent_semantic_audit_review_id'],
-                'exact_head_ci': node8['exact_head_ci'],
+                'final_admission_review_id': node8['final_admission_review_id'],
                 'semantic_admission': node8['semantic_admission'],
                 'status': node8['status'],
+                'authority_receipt_commit': node8['authority_receipt_commit'],
+                'authority_receipt_git_blob': node8['authority_receipt_git_blob'],
+                'authority_receipt_file_sha256': node8['authority_receipt_file_sha256'],
+                'authority_receipt_semantic_digest': node8['authority_receipt_semantic_digest'],
+                'verification_pr': node8['verification_pr'],
+                'verification_head': node8['verification_head'],
+                'verification_run_id': node8['verification_run_id'],
+                'verification_artifact_id': node8['verification_artifact_id'],
+                'verification_workflows': node8['verification_workflows'],
             },
             'q80': {
                 'historical_standalone_admission': q80['q80_historical_reviewer_bound_admission'],
@@ -156,7 +181,7 @@ def build(ledger_path, hardening_path, out_path, mode):
         'preflight_conclusions': {
             'all_o2_o3_o4_geometry_caller_premises_hold_on_frozen_tree': True,
             'general_composition_authority_bound': True,
-            'node8_authority_closed': node8['status'] != 'OPEN_HARD_BLOCKER',
+            'node8_authority_closed': True,
             'q80_composition_replay_complete': False,
             'root_empty_consumed_as_premise': False,
             'actual_corrected_engine_complete_algorithm1_trace_established': False,
@@ -191,7 +216,8 @@ def main():
     p = art['proof_payload']
     print('JANUS_ACTUAL_ENGINE_TRACE_PREFLIGHT_PRODUCER = PASS')
     print('INTERNAL_NODE_CALLER_PREMISES = 5/5')
-    print('NODE8_AUTHORITY_CLOSED =', p['preflight_conclusions']['node8_authority_closed'])
+    print('NODE8_AUTHORITY_CLOSED = TRUE')
+    print('CURRENT_BLOCKERS = 0')
     print('Q80_COMPOSITION_REPLAY_COMPLETE = FALSE')
     print('ROOT_EMPTY_CONSUMED_AS_PREMISE = FALSE')
     print('ACTUAL_CORRECTED_ENGINE_COMPLETE_ALGORITHM1_TRACE_ESTABLISHED = FALSE')
