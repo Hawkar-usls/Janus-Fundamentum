@@ -3,13 +3,13 @@ name: Validate C049.1 B4.6.3 general leaf semantic bijection
 on:
   push:
     paths:
-      - 'experiments/direct/C049_1_B4_6_3_GENERAL_LEAF_SEMANTIC_BIJECTION_SPEC_V1.json'
+      - 'experiments/direct/C049_1_B4_6_3_GENERAL_LEAF_SEMANTIC_BIJECTION_SPEC_V1_1.json'
       - 'experiments/direct/janus_c049_1_b4_6_3_general_leaf_semantic_bijection.py'
       - 'experiments/direct/janus_c049_1_b4_6_3_general_leaf_semantic_bijection_verifier.py'
       - '.github/workflows/validate-c049-1-b4-6-3-general-leaf-semantic-bijection.yml'
   pull_request:
     paths:
-      - 'experiments/direct/C049_1_B4_6_3_GENERAL_LEAF_SEMANTIC_BIJECTION_SPEC_V1.json'
+      - 'experiments/direct/C049_1_B4_6_3_GENERAL_LEAF_SEMANTIC_BIJECTION_SPEC_V1_1.json'
       - 'experiments/direct/janus_c049_1_b4_6_3_general_leaf_semantic_bijection.py'
       - 'experiments/direct/janus_c049_1_b4_6_3_general_leaf_semantic_bijection_verifier.py'
       - '.github/workflows/validate-c049-1-b4-6-3-general-leaf-semantic-bijection.yml'
@@ -23,11 +23,11 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 60
     env:
-      SPEC_SUBJECT: 75a0464592160cb5e7bc8b426ffd11c99f9c13e8
-      PRODUCER_SUBJECT: 71f6a9127316911506224a0e40d8e56a87f65da7
-      VERIFIER_SUBJECT: 9e329b333cc62225e1ab7fc51f2546b5fe09adc0
+      SPEC_SUBJECT: 8ec4e65d094b6269b3e9db2f42ebb6f8776460fc
+      PRODUCER_SUBJECT: 2fdf2271e27a73925e9c7c4961699d0397cfda53
+      VERIFIER_SUBJECT: 592b41427217abff0c43cc415d2f73755bb08236
       GAP_LEDGER_EVIDENCE_SUBJECT: 366477becdba6a0388f92705e908442f1d2236c9
-      SPEC: experiments/direct/C049_1_B4_6_3_GENERAL_LEAF_SEMANTIC_BIJECTION_SPEC_V1.json
+      SPEC: experiments/direct/C049_1_B4_6_3_GENERAL_LEAF_SEMANTIC_BIJECTION_SPEC_V1_1.json
       PRODUCER: experiments/direct/janus_c049_1_b4_6_3_general_leaf_semantic_bijection.py
       VERIFIER: experiments/direct/janus_c049_1_b4_6_3_general_leaf_semantic_bijection_verifier.py
       LEDGER_AUDIT: experiments/direct/audits/C049_1_B4_6_3_CORRECTED_TERMINAL_STRUCTURAL_REFLECTION_LEDGER_INDEPENDENT_SEMANTIC_AUDIT_9741F6D5.json
@@ -40,7 +40,7 @@ jobs:
         with:
           python-version: '3.12'
 
-      - name: Bind theorem subject and local semantic interfaces
+      - name: Bind corrected theorem subject and local semantic interfaces
         run: |
           set -euo pipefail
           bind_blob(){ test "$(git rev-parse "$1:$2")" = "$(git hash-object "$2")"; }
@@ -48,9 +48,9 @@ jobs:
           bind_blob "$PRODUCER_SUBJECT" "$PRODUCER"
           bind_blob "$VERIFIER_SUBJECT" "$VERIFIER"
           bind_blob "$GAP_LEDGER_EVIDENCE_SUBJECT" "$LEDGER_AUDIT"
-          test "$(git hash-object "$SPEC")" = "188e4a2d28ed787d7f8aad75c0f157b085db9b3d"
-          test "$(git hash-object "$PRODUCER")" = "c7aba4bbbc5575ae2f5644f80d7e91bf92fda0e9"
-          test "$(git hash-object "$VERIFIER")" = "5c669be20d6b687bec90f786bcba0c8d721eabef"
+          test "$(git hash-object "$SPEC")" = "a6e255210cf0df83a92b2e6169cfafcfabc753d5"
+          test "$(git hash-object "$PRODUCER")" = "b9863fb2d8ce40770972d0154e8fd6a786faec59"
+          test "$(git hash-object "$VERIFIER")" = "384040fa9fd53d1103a611739bdd9e3462602b2a"
           test "$(git hash-object "$LEDGER_AUDIT")" = "c7ab1da4f38e56034bbf4d3f49c22cbedd1b9d5c"
           python -m py_compile "$PRODUCER" "$VERIFIER"
           python - <<'PY'
@@ -126,6 +126,9 @@ jobs:
             echo "GITHUB_SHA=$GITHUB_SHA"
             echo "GENERAL_LEAF_THEOREM_ARTIFACT_SHA256=$(sha256sum /tmp/leaf-a.json | cut -d' ' -f1)"
             echo "GENERAL_LEAF_THEOREM_SEMANTIC_DIGEST=$(python -c 'import json;print(json.load(open("/tmp/leaf-a.json"))["semantic_digest"])')"
+            echo 'SPEC_VERSION=1.1'
+            echo 'CORRECTS_SPEC_V1_MISSING_SCHEMA=TRUE'
+            echo 'FIRST_FAILED_RUN=31233323421'
             echo 'PUBLISHED_RESULT=JKO_PROPOSITION_4_1'
             echo 'QUANTIFICATION=UNIVERSAL_SYMBOLIC_GF2'
             echo 'LOCAL_SEMANTIC_MAPPING=PASS'
@@ -151,6 +154,6 @@ jobs:
             /tmp/producer-a.log
             /tmp/producer-b.log
             /tmp/verifier.log
-            experiments/direct/C049_1_B4_6_3_GENERAL_LEAF_SEMANTIC_BIJECTION_SPEC_V1.json
+            experiments/direct/C049_1_B4_6_3_GENERAL_LEAF_SEMANTIC_BIJECTION_SPEC_V1_1.json
             experiments/direct/janus_c049_1_b4_6_3_general_leaf_semantic_bijection.py
             experiments/direct/janus_c049_1_b4_6_3_general_leaf_semantic_bijection_verifier.py
