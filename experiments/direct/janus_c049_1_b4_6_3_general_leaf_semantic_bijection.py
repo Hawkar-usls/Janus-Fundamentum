@@ -3,8 +3,8 @@ import argparse, hashlib, json
 from pathlib import Path
 
 SCHEMA='janus.c049_1.general_leaf_semantic_bijection_candidate.v1'
-SPEC_SCHEMA='janus.c049_1.general_leaf_semantic_bijection_spec.v1'
-SPEC_BLOB='188e4a2d28ed787d7f8aad75c0f157b085db9b3d'
+SPEC_SCHEMA='janus.c049_1.general_leaf_semantic_bijection_spec.v1.1'
+SPEC_BLOB='a6e255210cf0df83a92b2e6169cfafcfabc753d5'
 B1_DOC_BLOB='c1807ab523d3269c064db33221c764d1e459bee2'
 B1_CORE_BLOB='96019d44b8defb97f7b0911b57302004c3d57c61'
 B2_DOC_BLOB='a7c5a7a65dfd9839711967f1039a96ba20ad6443'
