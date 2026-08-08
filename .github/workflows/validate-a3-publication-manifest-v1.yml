@@ -148,11 +148,15 @@ jobs:
           pdflatex -interaction=nonstopmode -halt-on-error main.tex
           test -s main.pdf
           pdftotext main.pdf main.txt
+          tr -d '[:space:]' < main.txt > main.compact.txt
+
           grep -F 'Endpoint Compression and a Ternary-State FPT Algorithm' main.txt
-          grep -F '5ee79fc82613f24e621595afa0119312a2f52660' main.txt
-          grep -F '113,400' main.txt
-          grep -F 'N3_NOVELTY_CANDIDATE' main.txt
           ! grep -Eiq 'we (prove|establish).*P[[:space:]]*=[[:space:]]*NP|world.novelty.*established|we are first' main.txt
+
+          grep -F '5ee79fc82613f24e621595afa0119312a2f52660' main.compact.txt
+          grep -F '113,400' main.compact.txt
+          grep -F 'N3_NOVELTY_CANDIDATE' main.compact.txt
+
           sha256sum main.pdf | tee main.pdf.sha256
           echo 'PUBLICATION_PDF_BUILD_AND_TEXT_BINDING = PASS'
 
@@ -166,7 +170,7 @@ jobs:
           manifest=root/'PUBLICATION_MANIFEST.json'; audit=root/'LITERATURE_AUDIT_EXTENDED_V1.json'
           m=json.loads(manifest.read_text()); sha=lambda p: hashlib.sha256(pathlib.Path(p).read_bytes()).hexdigest()
           source_paths=[root/'THEOREM_STATEMENT.tex',root/'proof_endpoint_compression.tex',root/'proof_ternary_dp.tex',root/'complexity_theorem.tex',root/'verification_protocol.tex',root/'CLAIM_CEILING.md',root/'literature_matrix.csv',root/'literature_matrix_extended.csv',audit,paper/'main.tex']
-          receipt={'schema':'janus.fundamentum.a3.publication_pdf_receipt.v1','publication_id':m['publication_id'],'publication_head':subprocess.check_output(['git','rev-parse','HEAD'],text=True).strip(),'frozen_evidence_head':m['frozen_evidence_head'],'theorem_id':m['theorem']['id'],'manifest_sha256':sha(manifest),'extended_literature_audit_sha256':sha(audit),'source_sha256':{str(p.relative_to(root)):sha(p) for p in source_paths},'pdf_path':'paper/main.pdf','pdf_sha256':sha(paper/'main.pdf'),'pdf_text_sha256':sha(paper/'main.txt'),'pdf_build':'PASS','pdf_text_contract':'PASS','claim_ceiling':m['claim_ceiling'],'evidence_strength':m['status']['evidence_strength'],'novelty':m['status']['novelty'],'novelty_search_strength':m['status']['novelty_search_strength'],'external_independent_replication':m['status']['external_independent_replication'],'world_novelty_n4':m['status']['world_novelty_n4']}
+          receipt={'schema':'janus.fundamentum.a3.publication_pdf_receipt.v1','publication_id':m['publication_id'],'publication_head':subprocess.check_output(['git','rev-parse','HEAD'],text=True).strip(),'frozen_evidence_head':m['frozen_evidence_head'],'theorem_id':m['theorem']['id'],'manifest_sha256':sha(manifest),'extended_literature_audit_sha256':sha(audit),'source_sha256':{str(p.relative_to(root)):sha(p) for p in source_paths},'pdf_path':'paper/main.pdf','pdf_sha256':sha(paper/'main.pdf'),'pdf_text_sha256':sha(paper/'main.txt'),'pdf_text_compact_sha256':sha(paper/'main.compact.txt'),'pdf_build':'PASS','pdf_text_contract':'PASS','claim_ceiling':m['claim_ceiling'],'evidence_strength':m['status']['evidence_strength'],'novelty':m['status']['novelty'],'novelty_search_strength':m['status']['novelty_search_strength'],'external_independent_replication':m['status']['external_independent_replication'],'world_novelty_n4':m['status']['world_novelty_n4']}
           (paper/'PUBLICATION_PDF_RECEIPT.json').write_text(json.dumps(receipt,indent=2,sort_keys=True)+'\n')
           print('PUBLICATION_PDF_RECEIPT = BUILT')
           print('PUBLICATION_PDF_SHA256 =',receipt['pdf_sha256'])
