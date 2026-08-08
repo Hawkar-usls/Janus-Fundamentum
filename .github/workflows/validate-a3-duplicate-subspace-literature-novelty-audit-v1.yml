@@ -1,0 +1,115 @@
+name: Validate A3 duplicate-subspace literature novelty audit v1
+
+on:
+  pull_request:
+    paths:
+      - 'research_targets/A3_DUPLICATE_SUBSPACE_PATHWIDTH_LITERATURE_NOVELTY_AUDIT_V1.json'
+      - 'experiments/direct/janus_a3_duplicate_subspace_pathwidth_literature_novelty_audit_verifier_v1.py'
+      - '.github/workflows/validate-a3-duplicate-subspace-literature-novelty-audit-v1.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  literature-novelty-audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+
+      - name: Bind exact theorem admission authority
+        shell: bash
+        run: |
+          set -euo pipefail
+          THEOREM_ADMISSION=23eb740a215dd6fe793483a7e9316c9aa3628c4c
+          RECEIPT=research_targets/audits/A3_DUPLICATE_SUBSPACE_PATHWIDTH_THEOREM_V1_ADMISSION_82674ADF.json
+          RECEIPT_BLOB=26667b8d372d640d094b3ec7f4a4011c679afda1
+          git merge-base --is-ancestor "$THEOREM_ADMISSION" HEAD
+          test "$(git rev-parse "$THEOREM_ADMISSION:$RECEIPT")" = "$RECEIPT_BLOB"
+          test "$(git hash-object "$RECEIPT")" = "$RECEIPT_BLOB"
+          echo "EXACT_HEAD=$(git rev-parse HEAD)"
+          echo "THEOREM_ADMISSION_AUTHORITY = PASS"
+
+      - name: Bind audit sources and strict ceiling
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json
+          p='research_targets/A3_DUPLICATE_SUBSPACE_PATHWIDTH_LITERATURE_NOVELTY_AUDIT_V1.json'
+          a=json.load(open(p,encoding='utf-8'))
+          by={x['id']:x for x in a['primary_sources']}
+          assert by['JKO_2017']['arxiv']=='1507.02184v4'
+          assert by['JKO_2017']['doi']=='10.1109/TIT.2017.2740283'
+          assert by['KASHYAP_2007_2008']['arxiv']=='0705.1384'
+          assert by['HLINENY_2016']['arxiv']=='1605.09520'
+          assert a['search_scope']['absence_proof_claimed'] is False
+          assert a['audit_result']['WORLD_NOVEL_THEOREM_CLAIM']=='FORBIDDEN'
+          assert a['audit_result']['STANDALONE_LITERATURE_NOVELTY']=='NOT_ESTABLISHED'
+          assert a['claim_ceiling']['P_VS_NP']=='OPEN'
+          print('PRIMARY_SOURCE_METADATA_BINDING = PASS')
+          print('UNIVERSAL_ABSENCE_PROOF = NOT_CLAIMED')
+          PY
+          git hash-object research_targets/A3_DUPLICATE_SUBSPACE_PATHWIDTH_LITERATURE_NOVELTY_AUDIT_V1.json
+          git hash-object experiments/direct/janus_a3_duplicate_subspace_pathwidth_literature_novelty_audit_verifier_v1.py
+          git hash-object .github/workflows/validate-a3-duplicate-subspace-literature-novelty-audit-v1.yml
+
+      - name: Compile and independently replay novelty classification
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m py_compile experiments/direct/janus_a3_duplicate_subspace_pathwidth_literature_novelty_audit_verifier_v1.py
+          python experiments/direct/janus_a3_duplicate_subspace_pathwidth_literature_novelty_audit_verifier_v1.py \
+            --audit research_targets/A3_DUPLICATE_SUBSPACE_PATHWIDTH_LITERATURE_NOVELTY_AUDIT_V1.json \
+            --tamper-test | tee /tmp/novelty_audit.log
+          grep -Fx 'LITERATURE_NOVELTY_AUDIT_INDEPENDENT_REPLAY = PASS' /tmp/novelty_audit.log
+          grep -Fx 'DIRECT_JKO_DEFINITIONAL_COROLLARY = CONFIRMED' /tmp/novelty_audit.log
+          grep -Fx 'WORLD_NOVEL_THEOREM_CLAIM = FORBIDDEN' /tmp/novelty_audit.log
+          grep -Fx 'DIGEST_REPAIRED_TAMPERS_REJECTED = 14/14' /tmp/novelty_audit.log
+          grep -Fx 'P_VS_NP = OPEN' /tmp/novelty_audit.log
+
+      - name: Build exact-head audit receipt
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import hashlib,json,pathlib,subprocess
+          def git(*a): return subprocess.check_output(['git',*a],text=True).strip()
+          def sha(p): return hashlib.sha256(pathlib.Path(p).read_bytes()).hexdigest()
+          audit='research_targets/A3_DUPLICATE_SUBSPACE_PATHWIDTH_LITERATURE_NOVELTY_AUDIT_V1.json'
+          verifier='experiments/direct/janus_a3_duplicate_subspace_pathwidth_literature_novelty_audit_verifier_v1.py'
+          workflow='.github/workflows/validate-a3-duplicate-subspace-literature-novelty-audit-v1.yml'
+          a=json.load(open(audit,encoding='utf-8'))
+          r={
+            'schema':'janus.fundamentum.a3.duplicate_subspace_pathwidth_literature_novelty_audit_receipt.v1',
+            'exact_head':git('rev-parse','HEAD'),
+            'theorem_admission_head':'23eb740a215dd6fe793483a7e9316c9aa3628c4c',
+            'source_git_blobs':{'audit':git('hash-object',audit),'verifier':git('hash-object',verifier),'workflow':git('hash-object',workflow)},
+            'source_raw_sha256':{'audit':sha(audit),'verifier':sha(verifier),'workflow':sha(workflow)},
+            'primary_sources':['1507.02184v4','0705.1384','1605.09520'],
+            'direct_jko_definitional_corollary':True,
+            'explicit_identical_prior_theorem_statement_found':False,
+            'universal_absence_proof_claimed':False,
+            'world_novel_theorem_claim':'FORBIDDEN',
+            'standalone_literature_novelty':'NOT_ESTABLISHED',
+            'digest_repaired_tampers_rejected':'14/14',
+            'next_novelty_frontier':a['next_novelty_frontier']['target'],
+            'p_vs_np':'OPEN'
+          }
+          out=pathlib.Path('/tmp/a3_duplicate_subspace_literature_novelty_audit_receipt_v1.json')
+          out.write_text(json.dumps(r,indent=2,sort_keys=True)+'\n',encoding='utf-8')
+          print('LITERATURE_NOVELTY_AUDIT_RECEIPT = BUILT')
+          PY
+
+      - name: Upload novelty audit receipt
+        uses: actions/upload-artifact@v4
+        with:
+          name: a3-duplicate-subspace-literature-novelty-audit-v1-${{ github.event.pull_request.head.sha || github.sha }}
+          path: |
+            research_targets/A3_DUPLICATE_SUBSPACE_PATHWIDTH_LITERATURE_NOVELTY_AUDIT_V1.json
+            /tmp/a3_duplicate_subspace_literature_novelty_audit_receipt_v1.json
+            /tmp/novelty_audit.log
+          if-no-files-found: error
