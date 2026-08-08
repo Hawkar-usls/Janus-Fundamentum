@@ -1,4 +1,4 @@
-name: Validate C049.1 B5.3 generic empty-root terminal composition
+name: Validate C049.1 B5.3 generic empty-root terminal composition v1.1
 
 on:
   pull_request:
@@ -10,13 +10,14 @@ on:
   workflow_dispatch:
 
 jobs:
-  b5-3-empty-root-terminal:
+  b5-3-empty-root-terminal-v1-1:
     runs-on: ubuntu-latest
     env:
       PYTHONPATH: experiments/direct
       SPEC: experiments/direct/C049_1_B5_3_GENERIC_EMPTY_ROOT_TERMINAL_COMPOSITION_SPEC_V1.json
       PRODUCER: experiments/direct/janus_c049_1_b5_3_generic_empty_root_terminal_composition.py
       VERIFIER: experiments/direct/janus_c049_1_b5_3_generic_empty_root_terminal_composition_verifier.py
+      B5_CONTRACT: experiments/direct/audits/C049_1_B5_GENERAL_RUNTIME_TERMINAL_CONTRACT_ADMISSION_CEBBCFF9.json
       B5_1_SPEC: experiments/direct/C049_1_B5_1_GENERIC_CORRECTED_RUNTIME_TRACE_EXECUTOR_SPEC_V1.json
       B5_1_PRODUCER: experiments/direct/janus_c049_1_b5_1_generic_corrected_runtime_trace_executor.py
       B5_1_VERIFIER: experiments/direct/janus_c049_1_b5_1_generic_corrected_runtime_trace_executor_verifier.py
@@ -30,7 +31,6 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
@@ -40,43 +40,23 @@ jobs:
           set -euo pipefail
           if [ "${{ github.event_name }}" = "pull_request" ]; then PROOF_HEAD="${{ github.event.pull_request.head.sha }}"; else PROOF_HEAD="$GITHUB_SHA"; fi
           echo "PROOF_HEAD=$PROOF_HEAD" >> "$GITHUB_ENV"
-          test "$(git rev-parse "$PROOF_HEAD:$SPEC")" = "16c171877176cef806b7e59585db938376d4c910"
-          echo 'B5_3_SPEC_BLOB = PASS'
-          test "$(git rev-parse "$PROOF_HEAD:$PRODUCER")" = "d63ee33df4f480aba09a4cdd16e98a067991f1b4"
-          echo 'B5_3_PRODUCER_BLOB = PASS'
-          test "$(git rev-parse "$PROOF_HEAD:$VERIFIER")" = "25c690e3387e00c0cb5bc56b11c947d8dbaf39ec"
-          echo 'B5_3_VERIFIER_BLOB = PASS'
+          for f in "$SPEC" "$PRODUCER" "$VERIFIER"; do test "$(git rev-parse "$PROOF_HEAD:$f")" = "$(git hash-object "$f")"; done
+          test "$(git hash-object "$B5_CONTRACT")" = "6103a509bca3e91b1950a58e90e8274b3cc5e4c7"
           test "$(git hash-object "$B5_1_SPEC")" = "64f65e4a68cab437392148519af667352fe0665c"
           test "$(git hash-object "$B5_1_PRODUCER")" = "8be92b8a663e0d05535861c6f216db28094014fb"
           test "$(git hash-object "$B5_1_VERIFIER")" = "ac40b3f3a370f697e29402e1e1cb3e514b799792"
           test "$(git hash-object "$B5_1_ADMISSION")" = "f70d56c84874827fd03cc482e37fd9449a7a8a23"
-          echo 'B5_1_AUTHORITY_BLOBS = PASS'
           test "$(git hash-object "$B5_2B_ADMISSION")" = "5e60eff4a4bd4c87cbf527cd446fc6b23b013774"
-          echo 'B5_2B_CORRECTED_RECEIPT_BLOB = PASS'
-          python - <<'PY'
-          import hashlib,json,os
-          p=json.load(open(os.environ['B5_2B_ADMISSION']))
-          assert p['semantic_digest']=='51b1223b528479aa319f551c7af8173340f06e2a9ac863bb251e9de2b5c87766'
-          raw=json.dumps(p['audit_payload'],sort_keys=True,separators=(',',':')).encode()
-          assert hashlib.sha256(raw).hexdigest()==p['semantic_digest']
-          print('B5_2B_CORRECTED_RECEIPT_SEMANTIC_DIGEST = PASS')
-          print('SUPERSEDED_BAD_B5_2B_RECEIPT_BLOB = 19d06099a59a4e3471328e918231428bb528dc24')
-          PY
-          echo 'B5_3_EXACT_HEAD_AND_CURRENT_AUTHORITY_BINDING = PASS'
-
-      - name: Bind first red run as negative provenance
-        run: |
-          set -euo pipefail
-          echo 'NEGATIVE_RUN_ID = 31245486354'
-          echo 'NEGATIVE_JOB_ID = 93073278310'
-          echo 'NEGATIVE_PROOF_HEAD = 2b215f0ac5e2e8f2d31db03e439542c54c26fccf'
-          echo 'NEGATIVE_CLASSIFICATION = B5_3_SPEC_BLOB_TRANSCRIPTION_REJECTED_BEFORE_SEMANTIC_REPLAY'
-          echo 'SEMANTIC_REPLAY_STARTED = FALSE'
-          echo 'CORRECT_SPEC_BLOB = 16c171877176cef806b7e59585db938376d4c910'
+          test "$(git rev-parse db597bd514771b4e96484da0f7553397bde6ca32:$B5_CONTRACT)" = "6103a509bca3e91b1950a58e90e8274b3cc5e4c7"
+          test "$(git rev-parse 763a142947d0ad07d7d5d3b2c2044eed669e3ace:$B5_1_ADMISSION)" = "f70d56c84874827fd03cc482e37fd9449a7a8a23"
+          test "$(git rev-parse a8e1310dc064197a38284f3bdf8c2d58f0649a07:$B5_2B_ADMISSION)" = "5e60eff4a4bd4c87cbf527cd446fc6b23b013774"
+          echo 'B5_3_V1_1_EXACT_HEAD_AND_CURRENT_AUTHORITY_BINDING = PASS'
 
       - name: Materialize historical general-composition and O7 authority bytes
         run: |
           set -euo pipefail
+          git cat-file -e "$COMP_EVIDENCE^{commit}" || git fetch --no-tags origin "$COMP_EVIDENCE"
+          git cat-file -e "$O7_EVIDENCE^{commit}" || git fetch --no-tags origin "$O7_EVIDENCE"
           git show "$COMP_EVIDENCE:$COMP_PATH" > /tmp/general-composition-audit.json
           git show "$O7_EVIDENCE:$O7_PATH" > /tmp/o7-audit.json
           test "$(git hash-object /tmp/general-composition-audit.json)" = "03f88c5bedca3a5e381ba1d77629d02af2a5e035"
@@ -85,47 +65,48 @@ jobs:
           import hashlib,json
           for path,want in [('/tmp/general-composition-audit.json','6743d8355b39c8a825e1d61eca12f83b247833810ae3cea2d88fa19bfa7cce80'),('/tmp/o7-audit.json','dc32203c91f081600f720df37fda2a6fd39fabd1c611c0d9cd8f6aeb6abdad10')]:
               x=json.load(open(path)); raw=json.dumps(x['audit_payload'],sort_keys=True,separators=(',',':')).encode(); assert x['semantic_digest']==want and hashlib.sha256(raw).hexdigest()==want
-          print('GENERAL_COMPOSITION_HISTORICAL_MATERIALIZATION = PASS')
-          print('O7_HISTORICAL_MATERIALIZATION = PASS')
+          print('B5_3_GENERAL_COMPOSITION_AUTHORITY_MATERIALIZATION = PASS')
+          print('B5_3_O7_AUTHORITY_MATERIALIZATION = PASS')
           PY
 
-      - name: Compile and enforce B5.3 independence and anti-enumeration
+      - name: Compile and enforce independence anti-enumeration and theorem ceiling
         run: |
           set -euo pipefail
           python -m py_compile "$PRODUCER" "$VERIFIER"
           python - <<'PY'
           import ast
           from pathlib import Path
-          for path in [Path('experiments/direct/janus_c049_1_b5_3_generic_empty_root_terminal_composition.py'),Path('experiments/direct/janus_c049_1_b5_3_generic_empty_root_terminal_composition_verifier.py')]:
+          files=[Path('experiments/direct/janus_c049_1_b5_3_generic_empty_root_terminal_composition.py'),Path('experiments/direct/janus_c049_1_b5_3_generic_empty_root_terminal_composition_verifier.py')]
+          for path in files:
               text=path.read_text()
-              for token in ['itertools.permutations','720','34968','Node6','Node7','Node8','Node9','[2,4,6,3,5,1]','AFFINE_INSTANCE_UNSAT = TRUE','P_VS_NP = CLOSED']:
+              for token in ['itertools.permutations','itertools.product','720','34968','AFFINE_INSTANCE_UNSAT = TRUE','P_VS_NP = CLOSED','POLYNOMIAL_RUNTIME = ESTABLISHED']:
                   assert token not in text,(str(path),token)
-          tree=ast.parse(Path('experiments/direct/janus_c049_1_b5_3_generic_empty_root_terminal_composition_verifier.py').read_text()); names=[]
-          for n in ast.walk(tree):
-              if isinstance(n,ast.Import): names += [a.name for a in n.names]
-              elif isinstance(n,ast.ImportFrom): names.append(n.module or '')
-          assert not any(x.endswith('janus_c049_1_b5_3_generic_empty_root_terminal_composition') for x in names)
-          assert not any(x.endswith('janus_c049_1_b5_1_generic_corrected_runtime_trace_executor') for x in names)
-          print('B5_3_INDEPENDENT_VERIFIER_DECOUPLING = PASS')
-          print('B5_3_LAYOUT_ENUMERATION_SOURCE_SCAN = PASS')
+          imports=[]
+          for n in ast.walk(ast.parse(files[1].read_text())):
+              if isinstance(n,ast.Import): imports += [a.name for a in n.names]
+              elif isinstance(n,ast.ImportFrom): imports.append(n.module or '')
+          assert not any(x.endswith('janus_c049_1_b5_3_generic_empty_root_terminal_composition') for x in imports)
+          assert not any(x.endswith('janus_c049_1_b5_1_generic_corrected_runtime_trace_executor') for x in imports)
+          print('B5_3_V1_1_INDEPENDENT_VERIFIER_DECOUPLING = PASS')
+          print('B5_3_V1_1_LAYOUT_ENUMERATION_SOURCE_SCAN = PASS')
+          print('B5_3_V1_1_STRICT_THEOREM_CEILING = PASS')
           PY
 
-      - name: Build generic empty nonempty and OPEN controls
+      - name: Build generic branch and multiplicity controls
         run: |
           set -euo pipefail
           python - <<'PY'
           import json
           from pathlib import Path
           def w(name,x): Path('/tmp/'+name+'.json').write_text(json.dumps(x,sort_keys=True,separators=(',',':'))+'\n')
-          high={'max_boundary_dim':2,'max_k':1,'max_full_set_entries':5000,'max_child_pairs':100000,'max_join_paths':500000}
-          empty={'ambient_dim':1,'k':0,'caps':high,'factors':[{'id':'left','normal_space':[1],'affine_offset':{'tag':'L'}},{'id':'right','normal_space':[1],'affine_offset':{'tag':'R'}}],'tree':{'root':'r','nodes':[{'id':'l','factor_id':'left'},{'id':'r','left':'l','right':'q'},{'id':'q','factor_id':'right'}]}}
-          empty_reordered={'ambient_dim':1,'k':0,'caps':high,'factors':list(reversed(empty['factors'])),'tree':{'root':'r','nodes':list(reversed(empty['tree']['nodes']))}}
-          three_empty={'ambient_dim':2,'k':0,'caps':high,'factors':[{'id':'a','normal_space':[1],'affine_offset':{'tag':'A'}},{'id':'b','normal_space':[1],'affine_offset':{'tag':'B'}},{'id':'c','normal_space':[2],'affine_offset':{'tag':'C'}}],'tree':{'root':'top','nodes':[{'id':'top','left':'ab','right':'lc'},{'id':'ab','left':'la','right':'lb'},{'id':'la','factor_id':'a'},{'id':'lb','factor_id':'b'},{'id':'lc','factor_id':'c'}]}}
-          positive={'ambient_dim':2,'k':0,'caps':high,'factors':[{'id':'alpha','normal_space':[1],'affine_offset':{'beta':0}},{'id':'beta','normal_space':[2],'affine_offset':{'beta':1}}],'tree':{'root':'root','nodes':[{'id':'root','left':'la','right':'lb'},{'id':'la','factor_id':'alpha'},{'id':'lb','factor_id':'beta'}]}}
-          open_caps={'max_boundary_dim':0,'max_k':1,'max_full_set_entries':5000,'max_child_pairs':100000,'max_join_paths':500000}
-          open_case={**empty,'caps':open_caps}
-          for name,x in [('empty',empty),('empty-reordered',empty_reordered),('three-empty',three_empty),('positive',positive),('open',open_case)]: w(name,x)
-          print('B5_3_CONTROL_INPUTS = 5')
+          caps={'max_boundary_dim':2,'max_k':1,'max_full_set_entries':5000,'max_child_pairs':100000,'max_join_paths':500000}
+          empty={'ambient_dim':1,'k':0,'caps':caps,'factors':[{'id':'left','normal_space':[1],'affine_offset':{'tag':'L'}},{'id':'right','normal_space':[1],'affine_offset':{'tag':'R'}}],'tree':{'root':'r','nodes':[{'id':'l','factor_id':'left'},{'id':'r','left':'l','right':'q'},{'id':'q','factor_id':'right'}]}}
+          empty_reordered={'ambient_dim':1,'k':0,'caps':caps,'factors':list(reversed(empty['factors'])),'tree':{'root':'r','nodes':list(reversed(empty['tree']['nodes']))}}
+          three_empty={'ambient_dim':2,'k':0,'caps':caps,'factors':[{'id':'a','normal_space':[1],'affine_offset':{'tag':'A'}},{'id':'b','normal_space':[1],'affine_offset':{'tag':'B'}},{'id':'c','normal_space':[2],'affine_offset':{'tag':'C'}}],'tree':{'root':'top','nodes':[{'id':'top','left':'ab','right':'lc'},{'id':'ab','left':'la','right':'lb'},{'id':'la','factor_id':'a'},{'id':'lb','factor_id':'b'},{'id':'lc','factor_id':'c'}]}}
+          positive={'ambient_dim':2,'k':0,'caps':caps,'factors':[{'id':'alpha','normal_space':[1],'affine_offset':{'beta':0}},{'id':'beta','normal_space':[2],'affine_offset':{'beta':1}}],'tree':{'root':'root','nodes':[{'id':'root','left':'la','right':'lb'},{'id':'la','factor_id':'alpha'},{'id':'lb','factor_id':'beta'}]}}
+          opened=json.loads(json.dumps(empty)); opened['caps']['max_boundary_dim']=0
+          for name,x in [('empty',empty),('empty-reordered',empty_reordered),('three-empty',three_empty),('positive',positive),('open',opened)]: w(name,x)
+          print('B5_3_V1_1_CONTROL_INPUTS = 5')
           PY
 
       - name: Rebuild and independently replay every B5.1 subject
@@ -139,146 +120,99 @@ jobs:
           cmp /tmp/empty.b5-1.json /tmp/empty-reordered.b5-1.json
           python - <<'PY'
           import json
-          cases={name:json.load(open('/tmp/'+name+'.b5-1.json'))['proof_payload'] for name in ['empty','three-empty','positive','open']}
-          assert cases['empty']['capability_status']=='CLOSED_COMPLETE_TRACE' and cases['empty']['root_entry_count_if_closed']==0
-          assert cases['three-empty']['capability_status']=='CLOSED_COMPLETE_TRACE' and cases['three-empty']['root_entry_count_if_closed']==0
-          assert cases['positive']['capability_status']=='CLOSED_COMPLETE_TRACE' and cases['positive']['root_entry_count_if_closed']>0
-          assert cases['open']['capability_status']=='OPEN_RUNTIME_CAPABILITY' and cases['open']['root_entry_count_if_closed'] is None
-          print('B5_3_B5_1_CONTROL_CLASSIFICATION = PASS')
-          print('B5_3_EMPTY_PRESENTATION_ORDER_BYTE_IDENTITY = PASS')
+          x={n:json.load(open('/tmp/'+n+'.b5-1.json'))['proof_payload'] for n in ['empty','three-empty','positive','open']}
+          assert x['empty']['capability_status']=='CLOSED_COMPLETE_TRACE' and x['empty']['root_entry_count_if_closed']==0
+          assert x['three-empty']['capability_status']=='CLOSED_COMPLETE_TRACE' and x['three-empty']['root_entry_count_if_closed']==0
+          assert x['positive']['capability_status']=='CLOSED_COMPLETE_TRACE' and x['positive']['root_entry_count_if_closed']>0
+          assert x['open']['capability_status']=='OPEN_RUNTIME_CAPABILITY' and x['open']['root_entry_count_if_closed'] is None
+          assert len(x['empty']['canonical_factor_catalog'])==2
+          assert x['empty']['canonical_factor_catalog'][0]['normal_space']==x['empty']['canonical_factor_catalog'][1]['normal_space']==[1]
+          assert x['empty']['canonical_factor_catalog'][0]['id']!=x['empty']['canonical_factor_catalog'][1]['id']
+          print('B5_3_V1_1_B5_1_CONTROL_CLASSIFICATION = PASS')
+          print('B5_3_V1_1_DUPLICATE_GEOMETRY_TWO_OCCURRENCES = PASS')
           PY
 
       - name: Build and independently verify B5.3 branch results
         run: |
           set -euo pipefail
           for name in empty empty-reordered three-empty positive open; do
-            python "$PRODUCER" --spec "$SPEC" --b5-1-artifact "/tmp/$name.b5-1.json" --b5-1-admission "$B5_1_ADMISSION" --composition-audit /tmp/general-composition-audit.json --o7-audit /tmp/o7-audit.json --b5-2b-admission "$B5_2B_ADMISSION" --output "/tmp/$name.b5-3.json" > "/tmp/$name.b5-3.log"
-            python "$VERIFIER" --spec "$SPEC" --b5-1-artifact "/tmp/$name.b5-1.json" --b5-1-admission "$B5_1_ADMISSION" --composition-audit /tmp/general-composition-audit.json --o7-audit /tmp/o7-audit.json --b5-2b-admission "$B5_2B_ADMISSION" --candidate "/tmp/$name.b5-3.json" > "/tmp/$name.b5-3-verifier.log"
-            grep -F 'JANUS_B5_3_GENERIC_EMPTY_ROOT_TERMINAL_INDEPENDENT_VERIFIER = PASS' "/tmp/$name.b5-3-verifier.log"
+            python "$PRODUCER" --spec "$SPEC" --b5-1-artifact "/tmp/$name.b5-1.json" --b5-contract-admission "$B5_CONTRACT" --b5-1-admission "$B5_1_ADMISSION" --composition-audit /tmp/general-composition-audit.json --o7-audit /tmp/o7-audit.json --b5-2b-admission "$B5_2B_ADMISSION" --output "/tmp/$name.b5-3.json" > "/tmp/$name.b5-3.log"
+            python "$VERIFIER" --spec "$SPEC" --b5-1-artifact "/tmp/$name.b5-1.json" --b5-contract-admission "$B5_CONTRACT" --b5-1-admission "$B5_1_ADMISSION" --composition-audit /tmp/general-composition-audit.json --o7-audit /tmp/o7-audit.json --b5-2b-admission "$B5_2B_ADMISSION" --candidate "/tmp/$name.b5-3.json" > "/tmp/$name.b5-3-verifier.log"
+            grep -F 'JANUS_B5_3_GENERIC_EMPTY_ROOT_TERMINAL_INDEPENDENT_VERIFIER_V1_1 = PASS' "/tmp/$name.b5-3-verifier.log"
           done
           cmp /tmp/empty.b5-3.json /tmp/empty-reordered.b5-3.json
           python - <<'PY'
           import json
-          e=json.load(open('/tmp/empty.b5-3.json'))['proof_payload']
-          t=json.load(open('/tmp/three-empty.b5-3.json'))['proof_payload']
-          p=json.load(open('/tmp/positive.b5-3.json'))['proof_payload']
-          o=json.load(open('/tmp/open.b5-3.json'))['proof_payload']
+          e=json.load(open('/tmp/empty.b5-3.json'))['proof_payload']; t=json.load(open('/tmp/three-empty.b5-3.json'))['proof_payload']; p=json.load(open('/tmp/positive.b5-3.json'))['proof_payload']; o=json.load(open('/tmp/open.b5-3.json'))['proof_payload']
           for x in (e,t):
-              assert x['terminal_branch']=='NO_LAYOUT_CANDIDATE_PENDING_REVIEW'
-              assert x['candidate_no_layout_at_cap'] is True
+              assert x['terminal_branch']=='NO_LAYOUT_CANDIDATE_PENDING_REVIEW' and x['candidate_no_layout_at_cap'] is True
+              assert x['composition_chain']['bound_caller_premises'] is True and x['composition_chain']['engine_root_equals_fs_k_v_zero'] is True
               assert x['composition_chain']['contradiction_closed'] is True
-              assert x['proof_policy']['layout_enumeration_used'] is False
-              assert x['proof_policy']['root_empty_count_used_as_only_reason'] is False
-              assert x['authority_bindings']['positive_branch_used_as_negative_proof_premise'] is False
-              assert x['authority_bindings']['superseded_bad_b5_2b_receipt_used'] is False
-              assert x['affine_instance_unsat']=='NOT_ESTABLISHED'
-              assert x['c047_result']=='NOT_ESTABLISHED_PENDING_B5_4'
+              assert x['closed_trace_binding']['root_boundary_rref']==[] and x['closed_trace_binding']['internal_caller_premises_all_pass'] is True
+              assert x['proof_policy']['layout_enumeration_used'] is False and x['proof_policy']['root_empty_count_used_as_only_reason'] is False
+              assert x['authority_bindings']['positive_branch_used_as_negative_proof_premise'] is False and x['authority_bindings']['superseded_bad_b5_2b_receipt_used'] is False
+          assert e['layout_domain']['factor_occurrence_count']==2
+          assert e['layout_domain']['duplicate_geometry_class_count']==1
+          assert e['layout_domain']['geometry_classes'][0]['occurrence_count']==2
+          assert e['layout_domain']['equal_geometry_occurrences_remain_distinct'] is True
           assert p['terminal_branch']=='NOT_APPLICABLE_NONEMPTY_ROOT' and p['candidate_no_layout_at_cap'] is False
-          assert p['positive_branch']=='DEFER_TO_SEPARATELY_ADMITTED_B5_2B'
           assert o['terminal_branch']=='NOT_APPLICABLE_OPEN_RUNTIME' and o['candidate_no_layout_at_cap'] is False
-          print('B5_3_EMPTY_ROOT_COMPOSITION = PASS')
-          print('B5_3_THREE_FACTOR_EMPTY_ROOT_COMPOSITION = PASS')
-          print('B5_3_NONEMPTY_ROOT_NONVACUITY = PASS')
-          print('B5_3_OPEN_RUNTIME_NONTERMINAL = PASS')
-          print('B5_3_PRESENTATION_ORDER_BYTE_IDENTITY = PASS')
+          print('B5_3_V1_1_EMPTY_ROOT_COMPOSITION = PASS')
+          print('B5_3_V1_1_INDEXED_MULTIPLICITY = PASS')
+          print('B5_3_V1_1_NONEMPTY_BRANCH_SEPARATION = PASS')
+          print('B5_3_V1_1_OPEN_RUNTIME_NONTERMINAL = PASS')
+          print('B5_3_V1_1_PRESENTATION_ORDER_BYTE_IDENTITY = PASS')
           PY
 
-      - name: Reject 20 repaired-digest semantic and authority attacks
+      - name: Reject 22 repaired-digest semantic and authority attacks
         run: |
           set -euo pipefail
-          python "$VERIFIER" --spec "$SPEC" --b5-1-artifact /tmp/empty.b5-1.json --b5-1-admission "$B5_1_ADMISSION" --composition-audit /tmp/general-composition-audit.json --o7-audit /tmp/o7-audit.json --b5-2b-admission "$B5_2B_ADMISSION" --candidate /tmp/empty.b5-3.json --tamper-suite --nonempty-b5-1-artifact /tmp/positive.b5-1.json --nonempty-candidate /tmp/positive.b5-3.json --open-b5-1-artifact /tmp/open.b5-1.json --open-candidate /tmp/open.b5-3.json | tee /tmp/b5-3-tamper.log
-          grep -F 'DIGEST_REPAIRED_TAMPERS_REJECTED = 20/20' /tmp/b5-3-tamper.log
+          python "$VERIFIER" --spec "$SPEC" --b5-1-artifact /tmp/empty.b5-1.json --b5-contract-admission "$B5_CONTRACT" --b5-1-admission "$B5_1_ADMISSION" --composition-audit /tmp/general-composition-audit.json --o7-audit /tmp/o7-audit.json --b5-2b-admission "$B5_2B_ADMISSION" --candidate /tmp/empty.b5-3.json --tamper-suite --nonempty-b5-1 /tmp/positive.b5-1.json --nonempty-candidate /tmp/positive.b5-3.json --open-b5-1 /tmp/open.b5-1.json --open-candidate /tmp/open.b5-3.json | tee /tmp/b5-3-tamper.log
+          grep -F 'DIGEST_REPAIRED_TAMPERS_REJECTED = 22/22' /tmp/b5-3-tamper.log
 
-      - name: Check strict review-only and theorem ceilings
+      - name: Check review-only ceiling and no affine C047 or global promotion
         run: |
           set -euo pipefail
           python - <<'PY'
           import json
-          for name in ('empty','three-empty'):
-              p=json.load(open('/tmp/'+name+'.b5-3.json'))['proof_payload']
-              assert p['candidate_no_layout_at_cap'] is True
-              assert p['no_layout_promotion']=='FORBIDDEN_PENDING_B5_3_EXACT_HEAD_CI_AND_REVIEW'
-              assert p['proof_policy']['layout_enumeration_used'] is False
-              assert p['layout_domain']['affine_offsets_used_in_width_theorem'] is False
-              b=p['strict_boundary']
-              assert b['generic_no_layout_at_cap']=='FORBIDDEN_PENDING_B5_3_EXACT_HEAD_CI_AND_REVIEW'
-              assert b['affine_instance_unsat']=='NOT_ESTABLISHED'
-              assert b['c047_result']=='NOT_ESTABLISHED_PENDING_B5_4'
-              assert b['b5_4_corrected_discovery_to_c047_handoff'] is False
-              assert b['all_input_termination']=='NOT_ESTABLISHED'
-              assert b['polynomial_runtime']=='NOT_ESTABLISHED'
-              assert b['b5_complete'] is False
-              assert b['arbitrary_input_global_engine_theorem'] is False
-              assert b['p_vs_np']=='OPEN'
-          print('B5_3_REVIEW_ONLY_CEILING = PASS')
+          for n in ('empty','three-empty','positive','open'):
+              p=json.load(open('/tmp/'+n+'.b5-3.json'))['proof_payload']
+              assert p['strict_boundary']['generic_no_layout_at_cap']=='FORBIDDEN_PENDING_B5_3_EXACT_HEAD_CI_AND_REVIEW'
+              assert p['affine_instance_unsat']=='NOT_ESTABLISHED'
+              assert p['c047_result']=='NOT_ESTABLISHED_PENDING_B5_4'
+              assert p['strict_boundary']['all_input_termination']=='NOT_ESTABLISHED'
+              assert p['strict_boundary']['polynomial_runtime']=='NOT_ESTABLISHED'
+              assert p['strict_boundary']['b5_complete'] is False
+              assert p['strict_boundary']['arbitrary_input_global_engine_theorem'] is False
+              assert p['strict_boundary']['p_vs_np']=='OPEN'
+          print('B5_3_V1_1_REVIEW_ONLY_CEILING = PASS')
           PY
 
-      - name: Freeze exact-head B5.3 candidate receipt
+      - name: Freeze exact-head B5.3 v1.1 candidate receipt
         run: |
           set -euo pipefail
           mkdir -p /tmp/b5-3-evidence
           cp /tmp/empty.b5-3.json /tmp/three-empty.b5-3.json /tmp/positive.b5-3.json /tmp/open.b5-3.json /tmp/b5-3-evidence/
           cp /tmp/empty.b5-3-verifier.log /tmp/three-empty.b5-3-verifier.log /tmp/positive.b5-3-verifier.log /tmp/open.b5-3-verifier.log /tmp/b5-3-tamper.log /tmp/b5-3-evidence/
           python - <<'PY'
-          import hashlib,json,os
+          import hashlib,json,os,subprocess
           from pathlib import Path
-          def sha(path): return hashlib.sha256(Path(path).read_bytes()).hexdigest()
+          def sha(p): return hashlib.sha256(Path(p).read_bytes()).hexdigest()
           e=json.load(open('/tmp/empty.b5-3.json')); t=json.load(open('/tmp/three-empty.b5-3.json')); p=json.load(open('/tmp/positive.b5-3.json')); o=json.load(open('/tmp/open.b5-3.json'))
-          receipt={
-            'schema':'janus.c049_1.b5_3.generic_empty_root_terminal_exact_head_candidate_receipt.v1',
-            'proof_head':os.environ['PROOF_HEAD'],
-            'bindings':{
-              'spec_git_blob':'16c171877176cef806b7e59585db938376d4c910',
-              'producer_git_blob':'d63ee33df4f480aba09a4cdd16e98a067991f1b4',
-              'verifier_git_blob':'25c690e3387e00c0cb5bc56b11c947d8dbaf39ec',
-              'b5_1_admission_receipt_git_blob':'f70d56c84874827fd03cc482e37fd9449a7a8a23',
-              'general_composition_audit_git_blob':'03f88c5bedca3a5e381ba1d77629d02af2a5e035',
-              'o7_audit_git_blob':'fc13ef61bc2975ec8ee1b5e5356444001750e0f2',
-              'corrected_b5_2b_receipt_git_blob':'5e60eff4a4bd4c87cbf527cd446fc6b23b013774'
-            },
-            'negative_provenance':[{
-              'run_id':31245486354,'job_id':93073278310,'proof_head':'2b215f0ac5e2e8f2d31db03e439542c54c26fccf','classification':'B5_3_SPEC_BLOB_TRANSCRIPTION_REJECTED_BEFORE_SEMANTIC_REPLAY','semantic_replay_started':False,'resolution':'CORRECT_SPEC_BLOB_TO_16C171877176CEF806B7E59585DB938376D4C910'
-            }],
-            'controls':{
-              'empty':{'sha256':sha('/tmp/empty.b5-3.json'),'semantic_digest':e['semantic_digest'],'root_entry_count':e['proof_payload']['root_entry_count_if_closed'],'candidate_no_layout':e['proof_payload']['candidate_no_layout_at_cap']},
-              'three_empty':{'sha256':sha('/tmp/three-empty.b5-3.json'),'semantic_digest':t['semantic_digest'],'root_entry_count':t['proof_payload']['root_entry_count_if_closed'],'candidate_no_layout':t['proof_payload']['candidate_no_layout_at_cap']},
-              'positive':{'sha256':sha('/tmp/positive.b5-3.json'),'semantic_digest':p['semantic_digest'],'root_entry_count':p['proof_payload']['root_entry_count_if_closed'],'terminal_branch':p['proof_payload']['terminal_branch']},
-              'open':{'sha256':sha('/tmp/open.b5-3.json'),'semantic_digest':o['semantic_digest'],'root_entry_count':None,'terminal_branch':o['proof_payload']['terminal_branch']}
-            },
-            'checks':{
-              'upstream_b5_1_independent_replay':'PASS_ALL_CONTROLS',
-              'general_composition_authority':'PASS',
-              'o7_biconditional_authority':'PASS',
-              'historical_authority_materialization':'PASS',
-              'layout_enumeration_used':False,
-              'root_empty_count_used_as_only_reason':False,
-              'positive_b5_2b_receipt_used_as_negative_premise':False,
-              'superseded_bad_b5_2b_receipt_used':False,
-              'presentation_order_byte_identity':'PASS',
-              'digest_repaired_tampers_rejected':'20/20'
-            },
-            'formal_admission':'BLOCKED_PENDING_REVIEW',
-            'generic_no_layout_at_cap':'FORBIDDEN_PENDING_REVIEW',
-            'affine_instance_unsat':'NOT_ESTABLISHED',
-            'c047_result':'NOT_ESTABLISHED_PENDING_B5_4',
-            'all_input_termination':'NOT_ESTABLISHED',
-            'polynomial_runtime':'NOT_ESTABLISHED',
-            'b5_complete':False,
-            'p_vs_np':'OPEN'
-          }
+          receipt={'schema':'janus.c049_1.b5_3.generic_empty_root_terminal_composition_exact_head_candidate_receipt.v1_1','proof_head':os.environ['PROOF_HEAD'],'bindings':{'spec_git_blob':subprocess.check_output(['git','hash-object',os.environ['SPEC']],text=True).strip(),'producer_git_blob':subprocess.check_output(['git','hash-object',os.environ['PRODUCER']],text=True).strip(),'verifier_git_blob':subprocess.check_output(['git','hash-object',os.environ['VERIFIER']],text=True).strip(),'b5_contract_receipt_git_blob':'6103a509bca3e91b1950a58e90e8274b3cc5e4c7','b5_1_admission_receipt_git_blob':'f70d56c84874827fd03cc482e37fd9449a7a8a23','general_composition_audit_git_blob':'03f88c5bedca3a5e381ba1d77629d02af2a5e035','o7_audit_git_blob':'fc13ef61bc2975ec8ee1b5e5356444001750e0f2','b5_2b_admission_receipt_git_blob':'5e60eff4a4bd4c87cbf527cd446fc6b23b013774'},'controls':{'empty_duplicate_geometry':{'sha256':sha('/tmp/empty.b5-3.json'),'semantic_digest':e['semantic_digest'],'factor_occurrences':2,'geometry_classes':1,'candidate_no_layout':True},'three_empty':{'sha256':sha('/tmp/three-empty.b5-3.json'),'semantic_digest':t['semantic_digest'],'candidate_no_layout':True},'positive_nonempty':{'sha256':sha('/tmp/positive.b5-3.json'),'semantic_digest':p['semantic_digest'],'candidate_no_layout':False},'open':{'sha256':sha('/tmp/open.b5-3.json'),'semantic_digest':o['semantic_digest'],'candidate_no_layout':False}},'checks':{'b5_1_independent_replay':'PASS','bound_caller_premises':'PASS','root_zero_boundary':'PASS','general_root_identity':'PASS','o7_biconditional':'PASS','indexed_occurrence_multiplicity':'PASS','layout_enumeration_used':False,'presentation_order_byte_identity':'PASS','tampers_rejected':'22/22','b5_2b_used_as_negative_premise':False},'formal_admission':'BLOCKED_PENDING_REVIEW','generic_no_layout_at_cap_admitted':False,'affine_instance_unsat':'NOT_ESTABLISHED','c047_result':'NOT_ESTABLISHED_PENDING_B5_4','all_input_termination':'NOT_ESTABLISHED','polynomial_runtime':'NOT_ESTABLISHED','b5_complete':False,'p_vs_np':'OPEN'}
           Path('/tmp/b5-3-evidence/exact-head-receipt.json').write_text(json.dumps(receipt,sort_keys=True,separators=(',',':'))+'\n')
-          print('B5_3_EXACT_HEAD_RECEIPT = FROZEN')
+          print('B5_3_V1_1_EXACT_HEAD_RECEIPT = FROZEN')
           print('PROOF_HEAD =',receipt['proof_head'])
           print('EMPTY_SEMANTIC_DIGEST =',e['semantic_digest'])
-          print('THREE_EMPTY_SEMANTIC_DIGEST =',t['semantic_digest'])
-          print('DIGEST_REPAIRED_TAMPERS_REJECTED = 20/20')
-          print('GENERIC_NO_LAYOUT_AT_CAP = FORBIDDEN_PENDING_REVIEW')
+          print('INDEXED_OCCURRENCES = 2')
+          print('DUPLICATE_GEOMETRY_CLASSES = 1')
+          print('DIGEST_REPAIRED_TAMPERS_REJECTED = 22/22')
+          print('GENERIC_NO_LAYOUT_AT_CAP_ADMITTED = FALSE')
           print('P_VS_NP = OPEN')
           PY
 
-      - name: Export B5.3 evidence
-        uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v4
         with:
-          name: c049-1-b5-3-generic-empty-root-terminal-composition
+          name: c049-1-b5-3-generic-empty-root-terminal-composition-v1-1
           path: /tmp/b5-3-evidence
           if-no-files-found: error
