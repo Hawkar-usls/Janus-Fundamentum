@@ -43,7 +43,7 @@ def derive(spec,a):
     leq=fn(tree,'statistic_leq'); pre=fn(tree,'extension_preorder_witness'); up=fn(tree,'up_k_closure')
     req('a.left == b.left' in leq and 'a.right == b.right' in leq and 'a.value <= b.value' in leq,'INV03','stat order')
     req('(i - 1, j - 1)' in pre and '(i - 1, j)' in pre and '(i, j - 1)' in pre,'INV03','unit predecessors')
-    req("terminal = (m - 1, n - 1)" in pre and "parent[(i, j)] = None" in pre,'INV03','endpoints')
+    req("terminal = (m - 1, n - 1)" in pre and ("parent[i, j] = None" in pre or "parent[(i, j)] = None" in pre),'INV03','endpoints')
     req('def width' in b1 and 'max(stat.value' in b1,'INV03','width max')
     req('width(gamma) > k' in up and 'generator exceeds width cap' in up,'INV04','local overcap rejection')
 
