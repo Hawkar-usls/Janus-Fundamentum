@@ -1,0 +1,55 @@
+name: Replay frozen C049.1 B4.6.4 actual-engine trace preflight
+
+# The preflight was semantically admitted at exact proof subject 1914ca89...
+# while Node-8/Q80 authority edges were intentionally still open. Later
+# descendants close those edges, so replaying the old pending-state producer
+# against the mutable current ledger would be a category error. Descendants
+# consume the immutable tracked preflight audit instead. This workflow remains
+# available for explicit frozen-receipt verification.
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  frozen-actual-engine-trace-preflight-receipt:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Verify frozen preflight authority receipt
+        shell: bash
+        run: |
+          set -euo pipefail
+          PROOF_HEAD=1914ca894a317f0f305778ffafc897bc8c0cf160
+          AUDIT=experiments/direct/audits/C049_1_B4_6_4_ACTUAL_ENGINE_TRACE_PREFLIGHT_INDEPENDENT_AUDIT_1914CA89.json
+          test "$(git hash-object "$AUDIT")" = "b5df4741dfe481680ab2c22c971d1c5242a7ed48"
+          git cat-file -e "$PROOF_HEAD^{commit}"
+          python - <<'PY'
+          import hashlib, json
+          path='experiments/direct/audits/C049_1_B4_6_4_ACTUAL_ENGINE_TRACE_PREFLIGHT_INDEPENDENT_AUDIT_1914CA89.json'
+          x=json.load(open(path))
+          payload=x['audit_payload']
+          digest=hashlib.sha256(json.dumps(payload,sort_keys=True,separators=(',',':')).encode()).hexdigest()
+          assert x['schema']=='janus.c049_1.b4_6_4.actual_engine_trace_preflight_independent_audit.v1'
+          assert x['semantic_digest_scope']=='audit_payload'
+          assert digest==x['semantic_digest']=='2c91ba93c5e0fd848ba81b1cd5f446d4d3ebce09c5a0780576660481378254f5'
+          assert payload['exact_proof_head']=='1914ca894a317f0f305778ffafc897bc8c0cf160'
+          assert payload['admission_review_id']==4888055750
+          assert payload['ci']['run_id']==31238844714
+          assert payload['ci']['job_id']==93056227646
+          assert payload['ci']['conclusion']=='SUCCESS'
+          assert payload['derived_geometry']['all_o2_o3_o4_caller_premises_hold'] is True
+          assert payload['semantic_conclusion']['preflight_only'] is True
+          assert payload['semantic_conclusion']['root_empty_consumed_as_premise'] is False
+          assert payload['semantic_conclusion']['actual_corrected_engine_complete_algorithm1_trace_established'] is False
+          print('FROZEN_ACTUAL_ENGINE_TRACE_PREFLIGHT_RECEIPT = PASS')
+          print('PREFLIGHT_PROOF_SUBJECT = 1914ca894a317f0f305778ffafc897bc8c0cf160')
+          print('PREFLIGHT_REVIEW_ID = 4888055750')
+          print('GF2_CALLER_PREMISE_NODES = 5/5')
+          print('ROOT_EMPTY_CONSUMED_AS_PREMISE = FALSE')
+          print('DESCENDANT_AUTHORITY_STATE = OUT_OF_SCOPE_OF_FROZEN_PREFLIGHT')
+          PY
