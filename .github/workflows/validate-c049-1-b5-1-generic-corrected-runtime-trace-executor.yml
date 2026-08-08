@@ -1,0 +1,250 @@
+name: Validate C049.1 B5.1 generic corrected runtime trace executor
+
+on:
+  pull_request:
+    paths:
+      - 'experiments/direct/C049_1_B5_1_GENERIC_CORRECTED_RUNTIME_TRACE_EXECUTOR_SPEC_V1.json'
+      - 'experiments/direct/janus_c049_1_b5_1_generic_corrected_runtime_trace_executor.py'
+      - 'experiments/direct/janus_c049_1_b5_1_generic_corrected_runtime_trace_executor_verifier.py'
+      - '.github/workflows/validate-c049-1-b5-1-generic-corrected-runtime-trace-executor.yml'
+  workflow_dispatch:
+
+jobs:
+  b5-1-generic-runtime:
+    runs-on: ubuntu-latest
+    env:
+      PYTHONPATH: experiments/direct
+      SPEC: experiments/direct/C049_1_B5_1_GENERIC_CORRECTED_RUNTIME_TRACE_EXECUTOR_SPEC_V1.json
+      PRODUCER: experiments/direct/janus_c049_1_b5_1_generic_corrected_runtime_trace_executor.py
+      VERIFIER: experiments/direct/janus_c049_1_b5_1_generic_corrected_runtime_trace_executor_verifier.py
+      CONTRACT_RECEIPT: experiments/direct/audits/C049_1_B5_GENERAL_RUNTIME_TERMINAL_CONTRACT_ADMISSION_CEBBCFF9.json
+      LEAF_SPEC: /tmp/C049_1_B4_6_3_GENERAL_LEAF_SEMANTIC_BIJECTION_SPEC_V1_1.json
+      B1: experiments/direct/janus_c049_1_b1_compact_trajectory_core.py
+      B2: experiments/direct/janus_c049_1_b2_up_k_core.py
+      B3: experiments/direct/janus_c049_1_b3_expand_join_shrink_core.py
+      JOIN: experiments/direct/janus_c049_1_b3_join_path_domain_corrected.py
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Bind B5.1 contract and generic primitive surfaces
+        run: |
+          set -euo pipefail
+          git show c5d43f6806332ceb98c4ade5d0804c9417711f31:experiments/direct/C049_1_B4_6_3_GENERAL_LEAF_SEMANTIC_BIJECTION_SPEC_V1_1.json > "$LEAF_SPEC"
+          test "$(git hash-object "$SPEC")" = "8b3ac35a9f69d88d65d966a872de562cbf98eb63"
+          test "$(git hash-object "$PRODUCER")" = "8be92b8a663e0d05535861c6f216db28094014fb"
+          test "$(git hash-object "$VERIFIER")" = "ac40b3f3a370f697e29402e1e1cb3e514b799792"
+          test "$(git hash-object "$CONTRACT_RECEIPT")" = "6103a509bca3e91b1950a58e90e8274b3cc5e4c7"
+          test "$(git hash-object "$LEAF_SPEC")" = "a6e255210cf0df83a92b2e6169cfafcfabc753d5"
+          test "$(git hash-object "$B1")" = "96019d44b8defb97f7b0911b57302004c3d57c61"
+          test "$(git hash-object "$B2")" = "3b66fa2b45702f11ee7a62657754c16800fa90f3"
+          test "$(git hash-object "$B3")" = "443566c1777c0ea16a42081a611eb1f60a58fc6e"
+          test "$(git hash-object "$JOIN")" = "0d17e0e08060c483fc0f1c3031eddc57337045cd"
+          test "$(git rev-parse db597bd514771b4e96484da0f7553397bde6ca32:experiments/direct/audits/C049_1_B5_GENERAL_RUNTIME_TERMINAL_CONTRACT_ADMISSION_CEBBCFF9.json)" = "6103a509bca3e91b1950a58e90e8274b3cc5e4c7"
+          test "$(git rev-parse c5d43f6806332ceb98c4ade5d0804c9417711f31:experiments/direct/C049_1_B4_6_3_GENERAL_LEAF_SEMANTIC_BIJECTION_SPEC_V1_1.json)" = "a6e255210cf0df83a92b2e6169cfafcfabc753d5"
+          echo 'B5_1_IMMUTABLE_BINDING = PASS'
+
+      - name: Compile and enforce producer verifier decoupling
+        run: |
+          set -euo pipefail
+          python -m py_compile "$PRODUCER" "$VERIFIER"
+          python - <<'PY'
+          import ast
+          from pathlib import Path
+          producer=Path('experiments/direct/janus_c049_1_b5_1_generic_corrected_runtime_trace_executor.py')
+          verifier=Path('experiments/direct/janus_c049_1_b5_1_generic_corrected_runtime_trace_executor_verifier.py')
+          def imports(p):
+              t=ast.parse(p.read_text(encoding='utf-8')); out=[]
+              for n in ast.walk(t):
+                  if isinstance(n,ast.Import): out += [a.name for a in n.names]
+                  elif isinstance(n,ast.ImportFrom): out.append(n.module or '')
+              return out
+          assert not any(x.endswith('janus_c049_1_b5_1_generic_corrected_runtime_trace_executor_verifier') for x in imports(producer))
+          assert not any(x.endswith('janus_c049_1_b5_1_generic_corrected_runtime_trace_executor') for x in imports(verifier))
+          allowed={
+            'janus_c049_1_b3_expand_join_shrink_core',
+            'janus_c049_1_b3_join_path_domain_corrected'
+          }
+          for p in (producer,verifier):
+              local={x for x in imports(p) if x.startswith('janus_c049_1_')}
+              assert local <= allowed, (p,local)
+          print('B5_1_IMPLEMENTATION_DECOUPLING = PASS')
+          PY
+
+      - name: Reject frozen-fixture acceptance logic in implementation sources
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          from pathlib import Path
+          files=[Path('experiments/direct/janus_c049_1_b5_1_generic_corrected_runtime_trace_executor.py'),Path('experiments/direct/janus_c049_1_b5_1_generic_corrected_runtime_trace_executor_verifier.py')]
+          forbidden=['34968','Node6','Node7','Node8','Node9','[2,4,6,3,5,1]','[2, 4, 6, 3, 5, 1]','[1,2,1]','[1, 2, 1]']
+          for p in files:
+              text=p.read_text(encoding='utf-8')
+              for token in forbidden:
+                  assert token not in text,(p,token)
+          print('B5_1_NO_FROZEN_FIXTURE_ACCEPTANCE_LOGIC = PASS')
+          PY
+
+      - name: Build bug-finding control inputs
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          def w(name,x): Path('/tmp/'+name+'.json').write_text(json.dumps(x,sort_keys=True,separators=(',',':'))+'\n')
+          basecaps={'max_boundary_dim':2,'max_k':1,'max_full_set_entries':5000,'max_child_pairs':100000,'max_join_paths':500000}
+          positive={
+            'ambient_dim':2,'k':0,'caps':basecaps,
+            'factors':[{'id':'alpha','normal_space':[1],'affine_offset':{'beta':0}},{'id':'beta','normal_space':[2],'affine_offset':{'beta':1}}],
+            'tree':{'root':'root','nodes':[{'id':'root','left':'la','right':'lb'},{'id':'la','factor_id':'alpha'},{'id':'lb','factor_id':'beta'}]}}
+          reordered={
+            'ambient_dim':2,'k':0,'caps':basecaps,
+            'factors':list(reversed(positive['factors'])),
+            'tree':{'root':'root','nodes':list(reversed(positive['tree']['nodes']))}}
+          negative={
+            'ambient_dim':1,'k':0,'caps':basecaps,
+            'factors':[{'id':'left','normal_space':[1],'affine_offset':0},{'id':'right','normal_space':[1],'affine_offset':1}],
+            'tree':{'root':'r','nodes':[{'id':'l','factor_id':'left'},{'id':'r','left':'l','right':'q'},{'id':'q','factor_id':'right'}]}}
+          three={
+            'ambient_dim':2,'k':1,'caps':basecaps,
+            'factors':[{'id':'a','normal_space':[1],'affine_offset':{'tag':'A'}},{'id':'b','normal_space':[1],'affine_offset':{'tag':'B'}},{'id':'c','normal_space':[2],'affine_offset':{'tag':'C'}}],
+            'tree':{'root':'top','nodes':[{'id':'top','left':'ab','right':'lc'},{'id':'ab','left':'la','right':'lb'},{'id':'la','factor_id':'a'},{'id':'lb','factor_id':'b'},{'id':'lc','factor_id':'c'}]}}
+          opened=json.loads(json.dumps(negative)); opened['caps']['max_boundary_dim']=0
+          for name,x in [('positive',positive),('positive-reordered',reordered),('negative-root',negative),('three-factor',three),('open-capability',opened)]: w(name,x)
+          print('B5_1_CONTROL_MATRIX_INPUTS = 5')
+          PY
+
+      - name: Execute and independently replay closed positive control
+        run: |
+          set -euo pipefail
+          python "$PRODUCER" --spec "$SPEC" --input /tmp/positive.json --output /tmp/positive.out.json | tee /tmp/positive.producer.log
+          python "$VERIFIER" --spec "$SPEC" --input /tmp/positive.json --candidate /tmp/positive.out.json --tamper-suite | tee /tmp/positive.verifier.log
+          grep -F 'CAPABILITY_STATUS = CLOSED_COMPLETE_TRACE' /tmp/positive.producer.log
+          grep -F 'RUNTIME_RESULT = CLOSED_COMPLETE_TRACE' /tmp/positive.verifier.log
+          grep -F 'DIGEST_REPAIRED_TAMPERS_REJECTED = 18/18' /tmp/positive.verifier.log
+
+      - name: Verify presentation-order byte identity
+        run: |
+          set -euo pipefail
+          python "$PRODUCER" --spec "$SPEC" --input /tmp/positive-reordered.json --output /tmp/positive-reordered.out.json > /tmp/positive-reordered.producer.log
+          cmp /tmp/positive.out.json /tmp/positive-reordered.out.json
+          python "$VERIFIER" --spec "$SPEC" --input /tmp/positive-reordered.json --candidate /tmp/positive-reordered.out.json > /tmp/positive-reordered.verifier.log
+          echo 'B5_1_PRESENTATION_ORDER_BYTE_IDENTITY = PASS'
+
+      - name: Execute and independently replay closed empty-root control without terminal promotion
+        run: |
+          set -euo pipefail
+          python "$PRODUCER" --spec "$SPEC" --input /tmp/negative-root.json --output /tmp/negative-root.out.json | tee /tmp/negative-root.producer.log
+          python "$VERIFIER" --spec "$SPEC" --input /tmp/negative-root.json --candidate /tmp/negative-root.out.json | tee /tmp/negative-root.verifier.log
+          python - <<'PY'
+          import json
+          p=json.load(open('/tmp/negative-root.out.json'))['proof_payload']
+          assert p['capability_status']=='CLOSED_COMPLETE_TRACE'
+          assert p['root_entry_count_if_closed']==0
+          assert p['terminal_promotion']=='NONE'
+          assert p['strict_boundary']['no_layout_at_cap']=='FORBIDDEN'
+          print('B5_1_EMPTY_ROOT_WITHOUT_TERMINAL_PROMOTION = PASS')
+          PY
+
+      - name: Execute three-factor nonzero-offset control
+        run: |
+          set -euo pipefail
+          python "$PRODUCER" --spec "$SPEC" --input /tmp/three-factor.json --output /tmp/three-factor.out.json | tee /tmp/three-factor.producer.log
+          python "$VERIFIER" --spec "$SPEC" --input /tmp/three-factor.json --candidate /tmp/three-factor.out.json | tee /tmp/three-factor.verifier.log
+          grep -F 'CAPABILITY_STATUS = CLOSED_COMPLETE_TRACE' /tmp/three-factor.producer.log
+          grep -F 'AFFINE_OFFSET_IDENTITY = PASS' /tmp/three-factor.verifier.log
+
+      - name: Execute explicit capability-open control
+        run: |
+          set -euo pipefail
+          python "$PRODUCER" --spec "$SPEC" --input /tmp/open-capability.json --output /tmp/open-capability.out.json | tee /tmp/open-capability.producer.log
+          python "$VERIFIER" --spec "$SPEC" --input /tmp/open-capability.json --candidate /tmp/open-capability.out.json | tee /tmp/open-capability.verifier.log
+          grep -F 'CAPABILITY_STATUS = OPEN_RUNTIME_CAPABILITY' /tmp/open-capability.producer.log
+          grep -F 'RUNTIME_RESULT = OPEN_RUNTIME_CAPABILITY' /tmp/open-capability.verifier.log
+          python - <<'PY'
+          import json
+          p=json.load(open('/tmp/open-capability.out.json'))['proof_payload']
+          assert p['root_full_set_digest_if_closed'] is None
+          assert p['root_entry_count_if_closed'] is None
+          assert p['terminal_promotion']=='NONE'
+          assert p['strict_boundary']['found_layout']=='FORBIDDEN'
+          assert p['strict_boundary']['no_layout_at_cap']=='FORBIDDEN'
+          print('B5_1_OPEN_ATOMIC_PARENT_CEILING = PASS')
+          PY
+
+      - name: Check generic control matrix coverage and review-only ceiling
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json
+          outs=[json.load(open('/tmp/'+n+'.out.json'))['proof_payload'] for n in ('positive','negative-root','three-factor','open-capability')]
+          assert len({p['ambient_dim'] for p in outs}) >= 2
+          assert len({len(p['canonical_factor_catalog']) for p in outs}) >= 2
+          assert any(any(x['affine_offset'] not in (None,0) for x in p['affine_offset_identity_ledger']) for p in outs)
+          assert any(p['capability_status']=='OPEN_RUNTIME_CAPABILITY' for p in outs)
+          assert any(p['capability_status']=='CLOSED_COMPLETE_TRACE' and p['root_entry_count_if_closed']==0 for p in outs)
+          assert any(p['capability_status']=='CLOSED_COMPLETE_TRACE' and p['root_entry_count_if_closed']>0 for p in outs)
+          for p in outs:
+              assert p['terminal_promotion']=='NONE'
+              assert p['strict_boundary']['found_layout']=='FORBIDDEN'
+              assert p['strict_boundary']['no_layout_at_cap']=='FORBIDDEN'
+              assert p['strict_boundary']['polynomial_runtime_claim']=='FORBIDDEN'
+              assert p['strict_boundary']['b5_complete'] is False
+              assert p['strict_boundary']['p_vs_np']=='OPEN'
+          print('B5_1_CONTROL_MATRIX_COVERAGE = PASS')
+          print('B5_1_REVIEW_ONLY_PROMOTION_CEILING = PASS')
+          PY
+
+      - name: Freeze exact-head B5.1 candidate receipt
+        run: |
+          set -euo pipefail
+          if [ "${{ github.event_name }}" = "pull_request" ]; then PROOF_HEAD="${{ github.event.pull_request.head.sha }}"; else PROOF_HEAD="$GITHUB_SHA"; fi
+          {
+            echo "GITHUB_SHA=$GITHUB_SHA"
+            echo "PROOF_HEAD=$PROOF_HEAD"
+            echo "SPEC_BLOB=$(git hash-object "$SPEC")"
+            echo "PRODUCER_BLOB=$(git hash-object "$PRODUCER")"
+            echo "VERIFIER_BLOB=$(git hash-object "$VERIFIER")"
+            echo "CONTRACT_RECEIPT_BLOB=$(git hash-object "$CONTRACT_RECEIPT")"
+            echo "B3_CORE_BLOB=$(git hash-object "$B3")"
+            echo "CORRECTED_JOIN_BLOB=$(git hash-object "$JOIN")"
+            echo "POSITIVE_SHA256=$(sha256sum /tmp/positive.out.json | cut -d' ' -f1)"
+            echo "NEGATIVE_ROOT_SHA256=$(sha256sum /tmp/negative-root.out.json | cut -d' ' -f1)"
+            echo "THREE_FACTOR_SHA256=$(sha256sum /tmp/three-factor.out.json | cut -d' ' -f1)"
+            echo "OPEN_SHA256=$(sha256sum /tmp/open-capability.out.json | cut -d' ' -f1)"
+            echo 'DIGEST_REPAIRED_TAMPERS_REJECTED=18/18'
+            echo 'PRESENTATION_ORDER_BYTE_IDENTITY=PASS'
+            echo 'CONTROL_MATRIX_COVERAGE=PASS'
+            echo 'GENERIC_RUNTIME_TRACE_MAPPING_CANDIDATE=TRUE_FOR_CLOSED_COMPLETE_TRACE_ONLY'
+            echo 'TERMINAL_PROMOTION=NONE'
+            echo 'GENERIC_FOUND_LAYOUT=FORBIDDEN'
+            echo 'GENERIC_NO_LAYOUT_AT_CAP=FORBIDDEN'
+            echo 'POLYNOMIAL_RUNTIME_CLAIM=FORBIDDEN'
+            echo 'B5_COMPLETE=FALSE'
+            echo 'FORMAL_ADMISSION=BLOCKED_PENDING_REVIEW'
+            echo 'P_VS_NP=OPEN'
+          } | tee /tmp/b5-1-exact-head-receipt.txt
+
+      - name: Export B5.1 evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: c049-b5-1-generic-corrected-runtime-trace-executor
+          retention-days: 7
+          compression-level: 9
+          path: |
+            /tmp/positive.out.json
+            /tmp/positive-reordered.out.json
+            /tmp/negative-root.out.json
+            /tmp/three-factor.out.json
+            /tmp/open-capability.out.json
+            /tmp/*.producer.log
+            /tmp/*.verifier.log
+            /tmp/b5-1-exact-head-receipt.txt
+            experiments/direct/C049_1_B5_1_GENERIC_CORRECTED_RUNTIME_TRACE_EXECUTOR_SPEC_V1.json
+            experiments/direct/janus_c049_1_b5_1_generic_corrected_runtime_trace_executor.py
+            experiments/direct/janus_c049_1_b5_1_generic_corrected_runtime_trace_executor_verifier.py
