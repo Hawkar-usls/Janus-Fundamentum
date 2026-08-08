@@ -3,11 +3,11 @@ import argparse, ast, copy, hashlib, itertools, json, math
 from pathlib import Path
 
 SCHEMA='janus.c049_1.corrected_terminal_reflection_candidate.v1'
-SPEC_SCHEMA='janus.c049_1.corrected_terminal_reflection_spec.v1'
+SPEC_SCHEMA='janus.c049_1.corrected_terminal_reflection_spec.v1.1'
 ROOT_SPEC_SCHEMA='janus.c049_1.corrected_root_full_refinement_spec.v1'
 EMPTY_SCHEMA='janus.c049_1.corrected_root_empty_up_k_candidate.v1'
 AUDIT_SCHEMA='janus.c049_1.corrected_root_empty_up_k_independent_semantic_audit.v1'
-SPEC_BLOB='88a229256c239f473d8766c2c43b77b84dd7ecbb'
+SPEC_BLOB='f45356b9065ad1d9e7e38f8c08d7e2031b5efa89'
 ROOT_SPEC_BLOB='401c4856de261f6048d313ca62fa43598ea449e0'
 EMPTY_SHA='b82fced138820d028898889eb59d059aaa023616ad774e6f31e0dc290fa492ab'
 EMPTY_SEM='b811d3bf3abfd9c48b4454aaf3a9ec863d226092faa164fd8a0cf45bbe1e7ec0'
