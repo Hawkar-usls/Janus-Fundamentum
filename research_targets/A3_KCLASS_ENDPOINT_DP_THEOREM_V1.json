@@ -1,33 +1,40 @@
 {
-  "schema": "janus.fundamentum.a3.kclass_endpoint_dp_theorem.v1",
+  "schema": "janus.fundamentum.a3.kclass_endpoint_dp_theorem.v1_1",
   "theorem_id": "A3_KCLASS_ENDPOINT_DP_THEOREM_V1",
   "recorded_date_utc": "2026-08-08",
   "dependency": {
     "endpoint_compression_evidence_head": "540f40ce554252dad1a95c3a13e435ca8379276b",
-    "endpoint_compression_proof_head": "6ca16581eff08103698250b09ea51aeccd9f800b"
+    "endpoint_compression_proof_head": "6ca16581eff08103698250b09ea51aeccd9f800b",
+    "endpoint_compression_admission_receipt_blob": "8113712cc7ebaa9c259749ff08a75d2649625c2f"
   },
   "domain": "finite-dimensional vector spaces over a finite field; k indexed geometric subspace classes U_j with multiplicities a_j >= 1",
   "rank_oracle": "rho(X)=dim(sum_{j in X} U_j) for X subseteq K",
-  "state": "P subseteq S subseteq K, equivalently ternary Done/Active/NotStarted; Q=S\\P and R=K\\S",
+  "state": "P subseteq S subseteq K, equivalently ternary Done/Active/NotStarted; Q=S\\P and R=K\\S. Singleton classes may only be NotStarted or Done and never Active.",
   "state_width": "lambda(P,S)=rho(S)+rho(K\\P)-rho(K)",
+  "state_width_derivation": "The left span is sum_{j in S}U_j and the right span is sum_{j in K\\P}U_j. Their sum is the full arrangement span sum_{j in K}U_j, so Grassmann's identity gives lambda=rho(S)+rho(K\\P)-rho(K).",
   "transitions": {
     "singleton": "if a_j=1 and j notin S: (P,S)->(P union {j}, S union {j})",
     "repeated_start": "if a_j>=2 and j notin S: (P,S)->(P, S union {j})",
     "repeated_finish": "if a_j>=2 and j in S\\P: (P,S)->(P union {j}, S)"
   },
-  "objective": "dp(P,S)=minimum possible maximum state-width along a valid event path from (empty,empty) to (P,S); answer dp(K,K)",
-  "topological_measure": "|P|+|S| strictly increases on every transition",
+  "dp_recurrence": "dp[next]=min(dp[next], max(dp[current], lambda(next))); dp[empty,empty]=0; answer=dp[K,K]",
+  "topological_measure": "|P|+|S| strictly increases by exactly one on every transition",
+  "correctness_statement": "Every source-to-sink path in the state DAG is in bijection with a precedence-respecting endpoint order of the endpoint-compressed arrangement and has bottleneck cost equal to that layout width. Therefore dp[K,K] equals exact repeated-class path-width by the admitted endpoint-compression theorem.",
   "complexity_claim": {
+    "singleton_count": "s = number of j with a_j=1",
+    "repeated_count": "r = number of j with a_j>=2; s+r=k",
+    "exact_admissible_states": "2^s*3^r",
+    "state_bound": "2^s*3^r <= 3^k",
+    "exact_directed_transitions": "s*2^(s-1)*3^r + 2r*2^s*3^(r-1), with the first term interpreted as 0 when s=0 and the second as 0 when r=0",
+    "transition_bound": "at most k*2^s*3^r <= k*3^k",
     "subset_rank_table": "2^k entries",
-    "state_bound": "at most 3^k states",
-    "transition_bound": "at most 2k outgoing transition tests per state",
+    "state_width_after_rank_precompute": "O(1) table lookups and integer arithmetic",
     "dp_work": "O(k*3^k) after subset-rank preprocessing",
-    "total": "O(2^k*poly(d,input)+k*3^k) finite-field linear algebra work",
+    "total": "O(2^k*poly(d,input)+k*3^k) finite-field linear algebra / combinatorial work",
     "parameterized_classification_candidate": "FPT in k, the number of distinct geometric subspace classes"
   },
-  "correctness_bridge": "By endpoint compression, every occurrence layout has an equal-width endpoint layout and every valid endpoint event order expands to the original multiplicities. The DAG enumerates exactly all valid endpoint event orders, and bottleneck-path DP minimizes their maximum cut width.",
   "claim_ceiling": {
-    "THEOREM_STATUS": "CANDIDATE_PENDING_EXACT_HEAD_REPLAY_AND_SEMANTIC_ADMISSION",
+    "THEOREM_STATUS": "CANDIDATE_PENDING_V1_1_EXACT_HEAD_REPLAY_AND_SEMANTIC_ADMISSION",
     "EVIDENCE_STRENGTH": "ES2",
     "NOVELTY": "N0_PENDING_AUDIT",
     "ALGORITHMIC_FPT": "CANDIDATE_PENDING_ADMISSION",
