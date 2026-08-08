@@ -11,7 +11,7 @@ import janus_c049_1_b3_expand_join_shrink_core as b3
 SCHEMA = "janus.c049_1.b5_2b.generic_algorithm2_printorder_reconstruction_candidate.v1"
 SPEC_SCHEMA = "janus.c049_1.b5_2b.generic_algorithm2_printorder_reconstruction_spec.v1"
 CARRIER_SCHEMA = "janus.c049_1.b5_2a.generic_algorithm2_provenance_carrier.v1_1"
-B5_1_SCHEMA = "janus.c049_1.b5_1.generic_corrected_runtime_trace_executor.v1"
+B5_1_SCHEMA = "janus.c049_1.b5_1.generic_corrected_runtime_trace.v1"
 
 
 def canonical_bytes(value: Any) -> bytes:
@@ -300,7 +300,6 @@ def build(spec: dict, raw_input: dict, b5_1: dict, carrier: dict) -> dict:
                         leaf_interval=child_interval,
                     )
                 elif len(lower) == 1:
-                    # A zero-boundary leaf has no trajectory interval and was emitted in the special preprint phase.
                     continue
                 else:
                     raise AssertionError("unexpected leaf source trajectory interval")
