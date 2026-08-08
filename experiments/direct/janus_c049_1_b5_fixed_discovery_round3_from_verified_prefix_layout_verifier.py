@@ -75,7 +75,7 @@ def verify(spec:dict,pre:dict,plan:dict,round2_layout:dict,round3_input:dict,rou
     if round3.get("schema")!=B51_SCHEMA or round3.get("semantic_digest")!=dg(round3.get("proof_payload")):raise AssertionError("round3 B5.1")
     r=round3["proof_payload"]
     status=r.get("capability_status")
-    if status not in {"CLOSED_COMPLETE_TRACE","OPEN_BOUNDARY_DIMENSION","OPEN_K","OPEN_FULL_SET_ENTRIES","OPEN_CHILD_PAIRS","OPEN_JOIN_PATHS"}:raise AssertionError("round3 capability status")
+    if status not in {"CLOSED_COMPLETE_TRACE","OPEN_RUNTIME_CAPABILITY"}:raise AssertionError("round3 capability status")
     if r.get("terminal_promotion")!="NONE":raise AssertionError("terminal promotion")
     sb=r.get("strict_boundary",{})
     if sb.get("found_layout")!="FORBIDDEN" or sb.get("no_layout_at_cap")!="FORBIDDEN" or sb.get("b5_complete") is not False or sb.get("p_vs_np")!="OPEN":raise AssertionError("round3 claim promotion")
