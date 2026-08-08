@@ -1,0 +1,106 @@
+name: Validate A3 k-class endpoint DP v1
+
+on:
+  pull_request:
+    paths:
+      - 'research_targets/A3_KCLASS_ENDPOINT_DP_THEOREM_V1.json'
+      - 'research_targets/A3_KCLASS_ENDPOINT_DP_LITERATURE_NOVELTY_AUDIT_V1.json'
+      - 'research_targets/audits/A3_KCLASS_ENDPOINT_DP_V1_*.json'
+      - 'research_targets/priority_records/A3_KCLASS_ENDPOINT_DP_PRIORITY_RECORD_V1.json'
+      - 'experiments/direct/janus_a3_kclass_endpoint_dp_v1.py'
+      - 'experiments/direct/janus_a3_kclass_endpoint_dp_verifier_v1.py'
+      - '.github/workflows/validate-a3-kclass-endpoint-dp-v1.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  theorem:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - name: Bind endpoint-compression and historical DP authority
+        shell: bash
+        run: |
+          set -euo pipefail
+          C=research_targets/audits/A3_KCLASS_ENDPOINT_COMPRESSION_V1_ADMISSION_6CA16581.json
+          D=research_targets/audits/A3_KCLASS_ENDPOINT_DP_V1_ADMISSION_FC72CE90.json
+          test "$(git hash-object "$C")" = "8113712cc7ebaa9c259749ff08a75d2649625c2f"
+          test "$(git hash-object "$D")" = "aa049174f41f9a401f9fa7bc14bd2e7e7afbfc3f"
+          python - <<'PY'
+          import json
+          c=json.load(open('research_targets/audits/A3_KCLASS_ENDPOINT_COMPRESSION_V1_ADMISSION_6CA16581.json'))
+          d=json.load(open('research_targets/audits/A3_KCLASS_ENDPOINT_DP_V1_ADMISSION_FC72CE90.json'))
+          assert c['evidence_strength']=='ES5_GENERAL_COMPOSITIONAL_THEOREM_ADMITTED'
+          assert d['proof_head']=='fc72ce901d8bf492573cadbb621e681b9a76abd1'
+          assert d['algorithmic_fpt_in_distinct_geometric_class_count_k']=='ESTABLISHED_IN_STATED_SCOPE'
+          assert d['world_novelty_n4']=='NOT_ESTABLISHED'
+          print('UPSTREAM_AND_HISTORICAL_DP_AUTHORITY = PASS')
+          PY
+      - name: Validate strengthened DP contract and novelty ceiling
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json,pathlib
+          s=json.load(open('research_targets/A3_KCLASS_ENDPOINT_DP_THEOREM_V1.json'))
+          assert s['schema']=='janus.fundamentum.a3.kclass_endpoint_dp_theorem.v1_1'
+          assert s['state_width']=='lambda(P,S)=rho(S)+rho(K\\P)-rho(K)'
+          c=s['complexity_claim']
+          assert c['exact_admissible_states']=='2^s*3^r'
+          assert c['state_bound']=='2^s*3^r <= 3^k'
+          assert c['transition_bound']=='at most k*2^s*3^r <= k*3^k'
+          assert c['state_width_after_rank_precompute']=='O(1) table lookups and integer arithmetic'
+          assert c['dp_work']=='O(k*3^k) after subset-rank preprocessing'
+          assert s['claim_ceiling']['ALGORITHMIC_FPT']=='CANDIDATE_PENDING_ADMISSION'
+          n=pathlib.Path('research_targets/A3_KCLASS_ENDPOINT_DP_LITERATURE_NOVELTY_AUDIT_V1.json')
+          if n.exists():
+            a=json.load(open(n)); assert a['audit_result']['standalone_literature_novelty']=='N3_NOVELTY_CANDIDATE'; assert a['audit_result']['world_novelty_n4']=='NOT_ESTABLISHED'; assert a['audit_result']['we_are_first']=='NOT_CLAIMED'
+          print('DP_V1_1_CONTRACT_AND_CEILING = PASS')
+          PY
+      - name: Compile producer and independent verifier
+        run: |
+          python -m py_compile experiments/direct/janus_a3_kclass_endpoint_dp_v1.py
+          python -m py_compile experiments/direct/janus_a3_kclass_endpoint_dp_verifier_v1.py
+      - name: Build strengthened DP theorem certificate
+        run: |
+          python experiments/direct/janus_a3_kclass_endpoint_dp_v1.py --out /tmp/kdp.json | tee /tmp/producer.log
+          grep -Fx 'KCLASS_ENDPOINT_DP_RANK_IDENTITY = PASS' /tmp/producer.log
+          grep -Fx 'KCLASS_ENDPOINT_DP_DAG = PASS' /tmp/producer.log
+          grep -Fx 'EXACT_STATE_COUNT = PASS' /tmp/producer.log
+          grep -Fx 'EXACT_TRANSITION_COUNT = PASS' /tmp/producer.log
+          grep -Fx 'COUNTEREXAMPLES = 0' /tmp/producer.log
+      - name: Independently replay DP, exact graph counts, and brute-force controls
+        run: |
+          python experiments/direct/janus_a3_kclass_endpoint_dp_verifier_v1.py --certificate /tmp/kdp.json --tamper-test | tee /tmp/verifier.log
+          grep -Fx 'KCLASS_ENDPOINT_DP_INDEPENDENT_REPLAY = PASS' /tmp/verifier.log
+          grep -Fx 'EXACT_STATE_COUNT_REPLAY = PASS' /tmp/verifier.log
+          grep -Fx 'EXACT_TRANSITION_COUNT_REPLAY = PASS' /tmp/verifier.log
+          grep -Fx 'COUNTEREXAMPLES = 0' /tmp/verifier.log
+          grep -Fx 'TAMPERS_REJECTED = 16/16' /tmp/verifier.log
+          grep -Fx 'P_VS_NP = OPEN' /tmp/verifier.log
+      - name: Freeze exact-head v1.1 receipt
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json,pathlib,subprocess,hashlib
+          c=json.load(open('/tmp/kdp.json'))
+          sha=lambda p: hashlib.sha256(pathlib.Path(p).read_bytes()).hexdigest()
+          r={'schema':'janus.fundamentum.a3.kclass_endpoint_dp_exact_head_receipt.v1_1','exact_head':subprocess.check_output(['git','rev-parse','HEAD'],text=True).strip(),'theorem_id':c['theorem_id'],'rank_identity':c['rank_identity'],'exact_state_count':c['exact_state_count'],'state_bound':c['state_bound'],'exact_transition_count':c['exact_transition_count'],'transition_bound':c['transition_bound'],'controls':c['controls'],'counterexamples':0,'tamper_rejections':'16/16','certificate_sha256':sha('/tmp/kdp.json'),'evidence_strength':'ES3_FOR_STRENGTHENED_V1_1_PENDING_SEMANTIC_ADMISSION','historical_v1_es5_preserved':True,'algorithmic_fpt':'HISTORICALLY_ESTABLISHED_V1_STRENGTHENED_BOUND_PENDING_V1_1_ADMISSION','novelty':'N3_CANDIDATE_IF_AUDIT_PRESENT','world_novelty_n4':'NOT_ESTABLISHED','p_vs_np':'OPEN'}
+          pathlib.Path('/tmp/kdp_receipt.json').write_text(json.dumps(r,indent=2,sort_keys=True)+'\n')
+          print('EXACT_HEAD_V1_1_RECEIPT = BUILT')
+          PY
+      - name: Upload exact-head evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: a3-kclass-endpoint-dp-v1-1-${{ github.event.pull_request.head.sha || github.sha }}
+          path: |
+            /tmp/kdp.json
+            /tmp/kdp_receipt.json
+            /tmp/producer.log
+            /tmp/verifier.log
+            research_targets/A3_KCLASS_ENDPOINT_DP_LITERATURE_NOVELTY_AUDIT_V1.json
+          if-no-files-found: error
