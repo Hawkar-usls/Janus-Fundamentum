@@ -43,15 +43,15 @@ def recompute():
     for p in pats(mult):
      orders+=1;cuts+=len(p)+1;assert wd(p,U)==wd(cp(p),U)
  return structural,geometric,orders,cuts
-def verify(c):
+def validate(c,got):
  assert c['schema']=='janus.fundamentum.a3.kclass_endpoint_compression_certificate.v1'
  assert c['theorem_id']=='A3_KCLASS_ENDPOINT_COMPRESSION_V1'
  assert c['counterexamples']==0 and c['p_vs_np']=='OPEN'
  assert c['novelty']=='N0_PENDING_AUDIT'
- got=recompute();exp=(c['structural_patterns'],c['geometric_cases'],c['orders'],c['cuts']);assert got==exp
- return got
+ exp=(c['structural_patterns'],c['geometric_cases'],c['orders'],c['cuts']);assert got==exp
+ return True
 def main():
- ap=argparse.ArgumentParser();ap.add_argument('--certificate',required=True);ap.add_argument('--tamper-test',action='store_true');a=ap.parse_args();c=json.load(open(a.certificate));got=verify(c)
+ ap=argparse.ArgumentParser();ap.add_argument('--certificate',required=True);ap.add_argument('--tamper-test',action='store_true');a=ap.parse_args();c=json.load(open(a.certificate));got=recompute();validate(c,got)
  print('KCLASS_ENDPOINT_COMPRESSION_INDEPENDENT_REPLAY = PASS');print('STRUCTURAL_PATTERNS_RECOMPUTED =',got[0]);print('GEOMETRIC_CASES_RECOMPUTED =',got[1]);print('ORDERS_RECOMPUTED =',got[2]);print('CUTS_RECOMPUTED =',got[3]);print('COUNTEREXAMPLES = 0')
  if a.tamper_test:
   attacks=[]
@@ -59,7 +59,7 @@ def main():
    x=json.loads(json.dumps(c));x[k]=v;attacks.append(x)
   r=0
   for x in attacks:
-   try:verify(x)
+   try:validate(x,got)
    except Exception:r+=1
   assert r==len(attacks);print(f'TAMPERS_REJECTED = {r}/{len(attacks)}')
  print('P_VS_NP = OPEN')
