@@ -1,0 +1,166 @@
+name: Validate C049.1 B4.6.3 general structural-induction composition
+
+on:
+  push:
+    paths:
+      - 'experiments/direct/C049_1_B4_6_3_GENERAL_STRUCTURAL_INDUCTION_COMPOSITION_SPEC_V1.json'
+      - 'experiments/direct/janus_c049_1_b4_6_3_general_structural_induction_composition.py'
+      - 'experiments/direct/janus_c049_1_b4_6_3_general_structural_induction_composition_verifier.py'
+      - '.github/workflows/validate-c049-1-b4-6-3-general-structural-induction-composition.yml'
+  pull_request:
+    paths:
+      - 'experiments/direct/C049_1_B4_6_3_GENERAL_STRUCTURAL_INDUCTION_COMPOSITION_SPEC_V1.json'
+      - 'experiments/direct/janus_c049_1_b4_6_3_general_structural_induction_composition.py'
+      - 'experiments/direct/janus_c049_1_b4_6_3_general_structural_induction_composition_verifier.py'
+      - '.github/workflows/validate-c049-1-b4-6-3-general-structural-induction-composition.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  SPEC: experiments/direct/C049_1_B4_6_3_GENERAL_STRUCTURAL_INDUCTION_COMPOSITION_SPEC_V1.json
+  PRODUCER: experiments/direct/janus_c049_1_b4_6_3_general_structural_induction_composition.py
+  VERIFIER: experiments/direct/janus_c049_1_b4_6_3_general_structural_induction_composition_verifier.py
+  PROOF_HEAD: ${{ github.event.pull_request.head.sha || github.sha }}
+
+jobs:
+  structural-induction-composition:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Bind theorem subjects and immutable O1-O7 authority
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git hash-object "$SPEC")" = "c8f916415215767a9c2e786b26968c08f2c3481e"
+          test "$(git hash-object "$PRODUCER")" = "7c404f2bd5a462372e0bdc87cee4f7936b0d3731"
+          test "$(git hash-object "$VERIFIER")" = "a4b0f253f3856c32f8efcf00a5ff08af53ac7915"
+          git cat-file -e "$PROOF_HEAD^{commit}"
+          python -m py_compile "$PRODUCER" "$VERIFIER"
+          git fetch --force --prune origin '+refs/heads/*:refs/remotes/origin/*'
+          materialize(){ git cat-file -e "$1^{blob}"; git cat-file blob "$1" > "$2"; test "$(git hash-object "$2")" = "$1"; }
+          materialize 5c7ab15e3333afbf124bcfcc5c4a307f27c9ef89 /tmp/o1.json
+          materialize 6e0e00f9cbcf017c977aea683b62ac201212177e /tmp/o2.json
+          materialize 2e53d96f9c0510d2e10f1bce0c7f65feadfdee16 /tmp/o3.json
+          materialize 7c5f591eae0effd05ad4a1f0823672343fa0c47c /tmp/o4.json
+          materialize 263be88986fc535f643cbeedf448491d47220752 /tmp/o5.json
+          materialize 24557f428533be4e418b3087467e1878696adebb /tmp/o6.json
+          materialize fc13ef61bc2975ec8ee1b5e5356444001750e0f2 /tmp/o7.json
+          python - <<'PY'
+          import ast,json
+          from pathlib import Path
+          spec=json.load(open('experiments/direct/C049_1_B4_6_3_GENERAL_STRUCTURAL_INDUCTION_COMPOSITION_SPEC_V1.json'))
+          expected=['5c7ab15e3333afbf124bcfcc5c4a307f27c9ef89','6e0e00f9cbcf017c977aea683b62ac201212177e','2e53d96f9c0510d2e10f1bce0c7f65feadfdee16','7c5f591eae0effd05ad4a1f0823672343fa0c47c','263be88986fc535f643cbeedf448491d47220752','24557f428533be4e418b3087467e1878696adebb','fc13ef61bc2975ec8ee1b5e5356444001750e0f2']
+          assert [spec['local_semantic_receipts'][f'O{i}']['audit_git_blob'] for i in range(1,8)]==expected
+          def mods(path):
+              t=ast.parse(Path(path).read_text()); out=[]
+              for n in ast.walk(t):
+                  if isinstance(n,ast.Import): out.extend(a.name for a in n.names)
+                  elif isinstance(n,ast.ImportFrom): out.append(n.module or '')
+              return out
+          p=mods('experiments/direct/janus_c049_1_b4_6_3_general_structural_induction_composition.py')
+          v=mods('experiments/direct/janus_c049_1_b4_6_3_general_structural_induction_composition_verifier.py')
+          assert not any(x.endswith('janus_c049_1_b4_6_3_general_structural_induction_composition_verifier') for x in p)
+          assert not any(x.endswith('janus_c049_1_b4_6_3_general_structural_induction_composition') for x in v)
+          print('STRUCTURAL_INDUCTION_COMPOSITION_IMPLEMENTATION_DECOUPLING_STATIC_CHECK = PASS')
+          print('O1_O7_IMMUTABLE_AUDIT_BLOB_BINDINGS = 7/7')
+          PY
+
+      - name: Build composition candidate twice
+        shell: bash
+        run: |
+          set -euo pipefail
+          python "$PRODUCER" --spec "$SPEC" --o1-audit /tmp/o1.json --o2-audit /tmp/o2.json --o3-audit /tmp/o3.json --o4-audit /tmp/o4.json --o5-audit /tmp/o5.json --o6-audit /tmp/o6.json --o7-audit /tmp/o7.json --output /tmp/composition-original.json | tee /tmp/producer-original.log
+          python "$PRODUCER" --o7-audit /tmp/o7.json --o6-audit /tmp/o6.json --o5-audit /tmp/o5.json --o4-audit /tmp/o4.json --o3-audit /tmp/o3.json --o2-audit /tmp/o2.json --o1-audit /tmp/o1.json --spec "$SPEC" --output /tmp/composition-reordered.json | tee /tmp/producer-reordered.log
+          cmp /tmp/composition-original.json /tmp/composition-reordered.json
+          echo 'GENERAL_STRUCTURAL_INDUCTION_COMPOSITION_BYTE_IDENTITY = PASS'
+          echo "CANDIDATE_SHA256=$(sha256sum /tmp/composition-original.json | cut -d' ' -f1)"
+          python - <<'PY'
+          import json
+          x=json.load(open('/tmp/composition-original.json'))
+          print('CANDIDATE_SEMANTIC_DIGEST='+x['semantic_digest'])
+          PY
+
+      - name: Independent composition replay and tamper rejection
+        shell: bash
+        run: |
+          set -euo pipefail
+          python "$VERIFIER" --spec "$SPEC" --producer-source "$PRODUCER" --verifier-source "$VERIFIER" --o1-audit /tmp/o1.json --o2-audit /tmp/o2.json --o3-audit /tmp/o3.json --o4-audit /tmp/o4.json --o5-audit /tmp/o5.json --o6-audit /tmp/o6.json --o7-audit /tmp/o7.json --candidate-original /tmp/composition-original.json --candidate-reordered /tmp/composition-reordered.json --tamper-suite | tee /tmp/verifier.log
+          grep -F 'JANUS_GENERAL_STRUCTURAL_INDUCTION_COMPOSITION_INDEPENDENT_VERIFIER = PASS' /tmp/verifier.log
+          grep -F 'INVARIANTS = 12/12' /tmp/verifier.log
+          grep -F 'DIGEST_REPAIRED_TAMPERS_REJECTED = 12/12' /tmp/verifier.log
+          grep -F 'GENERAL_SEMANTIC_RECEIPTS_BOUND = 7/7' /tmp/verifier.log
+          grep -F 'IMMUTABLE_AUDIT_BLOB_BINDINGS = 7/7' /tmp/verifier.log
+          grep -F 'ALGORITHM1_COMPATIBLE_TRACE_FULL_SET_IDENTITY = PASS_AS_DERIVED_CANDIDATE' /tmp/verifier.log
+          grep -F 'ACTUAL_CORRECTED_ENGINE_COMPLETE_ALGORITHM1_TRACE_ESTABLISHED = FALSE' /tmp/verifier.log
+
+      - name: Non-promoting actual-engine boundary audit
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import hashlib,json
+          x=json.load(open('/tmp/composition-original.json')); p=x['proof_payload']; b=p['strict_boundary']
+          assert hashlib.sha256(json.dumps(p,sort_keys=True,separators=(',',':')).encode()).hexdigest()==x['semantic_digest']
+          assert len(p['audit_git_blobs'])==7 and len(p['audit_semantic_digests'])==7
+          assert p['lemma_2_7_caller_preconditions_discharge_candidate'] is True
+          assert p['algorithm1_compatible_trace_full_set_identity_candidate'] is True
+          assert p['terminal_biconditional_candidate_for_complete_trace'] is True
+          assert p['actual_corrected_engine_complete_algorithm1_trace_established'] is False
+          assert b['actual_corrected_engine_complete_algorithm1_trace_established'] is False
+          assert b['algorithm1_compatible_trace_full_set_identity'] is False
+          assert b['structural_induction_proved_for_complete_algorithm1_compatible_trace'] is False
+          assert b['terminal_completeness_proved'] is False
+          assert b['global_engine_no_layout_at_cap']=='FORBIDDEN' and b['found_layout']=='FORBIDDEN'
+          assert b['formal_admission']=='BLOCKED' and b['next_gate']=='CLOSED' and b['p_vs_np']=='OPEN'
+          print('STRUCTURAL_INDUCTION_COMPOSITION_NON_PROMOTING_BOUNDARY = PASS')
+          print('NEXT_IMPLEMENTATION_RECEIPT = COMPLETE_CORRECTED_ALGORITHM1_TRACE_MAPPING_RECEIPT')
+          PY
+
+      - name: Build exact-head composition receipt
+        shell: bash
+        run: |
+          set -euo pipefail
+          {
+            echo "PROOF_HEAD=$PROOF_HEAD"
+            echo "GITHUB_SHA=$GITHUB_SHA"
+            echo "SPEC_BLOB=$(git hash-object "$SPEC")"
+            echo "PRODUCER_BLOB=$(git hash-object "$PRODUCER")"
+            echo "VERIFIER_BLOB=$(git hash-object "$VERIFIER")"
+            echo "CANDIDATE_SHA256=$(sha256sum /tmp/composition-original.json | cut -d' ' -f1)"
+            echo "CANDIDATE_SEMANTIC_DIGEST=$(python -c 'import json;print(json.load(open("/tmp/composition-original.json"))["semantic_digest"])')"
+            echo 'BYTE_IDENTITY=PASS'
+            echo 'INVARIANTS=12/12'
+            echo 'DIGEST_REPAIRED_TAMPERS_REJECTED=12/12'
+            echo 'GENERAL_SEMANTIC_RECEIPTS_BOUND=7/7'
+            echo 'IMMUTABLE_AUDIT_BLOB_BINDINGS=7/7'
+            echo 'ALGORITHM1_COMPATIBLE_TRACE_FULL_SET_IDENTITY=PASS_AS_DERIVED_CANDIDATE'
+            echo 'ACTUAL_CORRECTED_ENGINE_COMPLETE_ALGORITHM1_TRACE_ESTABLISHED=FALSE'
+            echo 'TERMINAL_COMPLETENESS_PROVED=FALSE'
+            echo 'GLOBAL_ENGINE_NO_LAYOUT_AT_CAP=FORBIDDEN'
+            echo 'P_VS_NP=OPEN'
+          } | tee /tmp/exact-head-receipt.txt
+
+      - name: Export structural-induction composition evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: c049-b4-6-3-general-structural-induction-composition
+          retention-days: 7
+          compression-level: 9
+          path: |
+            /tmp/exact-head-receipt.txt
+            /tmp/composition-original.json
+            /tmp/composition-reordered.json
+            /tmp/producer-original.log
+            /tmp/producer-reordered.log
+            /tmp/verifier.log
+            experiments/direct/C049_1_B4_6_3_GENERAL_STRUCTURAL_INDUCTION_COMPOSITION_SPEC_V1.json
+            experiments/direct/janus_c049_1_b4_6_3_general_structural_induction_composition.py
+            experiments/direct/janus_c049_1_b4_6_3_general_structural_induction_composition_verifier.py
