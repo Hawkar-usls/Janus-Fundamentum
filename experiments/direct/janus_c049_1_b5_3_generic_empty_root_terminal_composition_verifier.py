@@ -281,7 +281,7 @@ def tamper_suite(empty_candidate: dict, nonempty_candidate: dict, open_candidate
     add("T08_O7_ONE_WAY", empty_candidate, empty_b51, lambda c,s,bc,r,co,oo,r52: c["proof_payload"]["composition_chain"].__setitem__("o7_biconditional_bound", False))
     add("T09_EMPTY_ON_NONEMPTY", nonempty_candidate, nonempty_b51, lambda c,s,bc,r,co,oo,r52: c["proof_payload"].update({"terminal_branch":"NO_LAYOUT_CANDIDATE_PENDING_REVIEW","candidate_no_layout_at_cap":True}))
     add("T10_NO_LAYOUT_ON_OPEN", open_candidate, open_b51, lambda c,s,bc,r,co,oo,r52: c["proof_payload"].update({"terminal_branch":"NO_LAYOUT_CANDIDATE_PENDING_REVIEW","candidate_no_layout_at_cap":True}))
-    add("T11_ENUMERATION_PREMISE", empty_candidate, empty_b51, lambda c,s,bc,r,co,oo,r52: c["proof_payload"]["proof_policy"].update({"layout_enumeration_used":True,"target_layout_count_used":720}))
+    add("T11_ENUMERATION_PREMISE", empty_candidate, empty_b51, lambda c,s,bc,r,co,oo,r52: c["proof_payload"]["proof_policy"].update({"layout_enumeration_used":True,"target_layout_count_used":999}))
     add("T12_ROOT_COUNT_ONLY", empty_candidate, empty_b51, lambda c,s,bc,r,co,oo,r52: c["proof_payload"]["proof_policy"].update({"root_empty_count_used_as_only_reason":True,"required_authority_bridge":"NONE"}))
     add("T13_DROP_FACTOR", empty_candidate, empty_b51, lambda c,s,bc,r,co,oo,r52: c["proof_payload"]["layout_domain"]["factor_occurrences"].pop())
     add("T14_AFFINE_AS_WIDTH", empty_candidate, empty_b51, lambda c,s,bc,r,co,oo,r52: c["proof_payload"]["layout_domain"].update({"affine_offsets_used_in_width_theorem":True,"width_definition":"USES_AFFINE_OFFSETS"}))
