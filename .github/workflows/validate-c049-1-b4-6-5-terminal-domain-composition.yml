@@ -1,0 +1,203 @@
+name: Validate C049.1 B4.6.5 terminal domain composition
+
+on:
+  pull_request:
+    paths:
+      - 'experiments/direct/C049_1_B4_6_5_TERMINAL_DOMAIN_COMPOSITION_SPEC_V1.json'
+      - 'experiments/direct/janus_c049_1_b4_6_5_terminal_domain_composition.py'
+      - 'experiments/direct/janus_c049_1_b4_6_5_terminal_domain_composition_verifier.py'
+      - 'experiments/direct/audits/C049_1_B4_6_5_ROOT_EMPTY_REVIEW_AUTHORITY_BRIDGE_6178EDBB.json'
+      - 'experiments/direct/audits/C049_1_B4_6_4_ACTUAL_ENGINE_COMPOSITION_FINAL_ADMISSION_BEF8134F.json'
+      - '.github/workflows/validate-c049-1-b4-6-5-terminal-domain-composition.yml'
+  workflow_dispatch:
+
+jobs:
+  terminal-domain-composition:
+    runs-on: ubuntu-latest
+    env:
+      SPEC: experiments/direct/C049_1_B4_6_5_TERMINAL_DOMAIN_COMPOSITION_SPEC_V1.json
+      PRODUCER: experiments/direct/janus_c049_1_b4_6_5_terminal_domain_composition.py
+      VERIFIER: experiments/direct/janus_c049_1_b4_6_5_terminal_domain_composition_verifier.py
+      PHASE_A: experiments/direct/janus_c049_fpt_integration_core.py
+      GROUP_RULE: /tmp/C049_GROUPED_SUBSPACE_PARTITION_OBSTRUCTION.md
+      ROOT_SPEC: experiments/direct/C049_1_B4_6_3_CORRECTED_ROOT_FULL_REFINEMENT_SPEC_V1.json
+      O7_SPEC: experiments/direct/C049_1_B4_6_3_GENERAL_EMPTY_ROOT_SPECIALIZATION_SPEC_V1.json
+      O7_AUDIT: experiments/direct/audits/C049_1_B4_6_3_GENERAL_EMPTY_ROOT_SPECIALIZATION_AUTHORITY_CLOSURE_AUDIT_7F9DF43C.json
+      ACTUAL_RECEIPT: experiments/direct/audits/C049_1_B4_6_4_ACTUAL_ENGINE_COMPOSITION_FINAL_ADMISSION_BEF8134F.json
+      ROOT_EMPTY_AUDIT: experiments/direct/audits/C049_1_B4_6_3_CORRECTED_ROOT_EMPTY_UP_K_INDEPENDENT_SEMANTIC_AUDIT_6178EDBB.json
+      ROOT_EMPTY_REVIEW: experiments/direct/audits/C049_1_B4_6_5_ROOT_EMPTY_REVIEW_AUTHORITY_BRIDGE_6178EDBB.json
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Bind immutable terminal sources and historical definitions
+        run: |
+          set -euo pipefail
+          git show a6a6a9cc11fbfcbc14a0c9bec13a7418594a2b49:docs/C049_GROUPED_SUBSPACE_PARTITION_OBSTRUCTION.md > "$GROUP_RULE"
+
+          test "$(git hash-object "$SPEC")" = "8053289b87650ba97c775b0b31d190d5b5260a05"
+          test "$(git hash-object "$PRODUCER")" = "342c94ef6a1abcb9e6a1260d7457a4b7835f9fe1"
+          test "$(git hash-object "$VERIFIER")" = "34489d3af9d2d9e91626fd3a8b37615b9d231e37"
+          test "$(git hash-object "$PHASE_A")" = "5eb806a079343f00622886c448d2bfbfa412cbfe"
+          test "$(git hash-object "$GROUP_RULE")" = "aed36086b2c5f1b18c8b5df939f28f3e4c22601d"
+          test "$(git hash-object "$ROOT_SPEC")" = "401c4856de261f6048d313ca62fa43598ea449e0"
+          test "$(git hash-object "$O7_SPEC")" = "59447d0e9a98abc539fab415ea16ff7bc9e561f2"
+          test "$(git hash-object "$O7_AUDIT")" = "fc13ef61bc2975ec8ee1b5e5356444001750e0f2"
+          test "$(git hash-object "$ACTUAL_RECEIPT")" = "05478ffe8dee2f658297d12e2cbc3fc8ae15d917"
+          test "$(git hash-object "$ROOT_EMPTY_AUDIT")" = "80c7b68945fc58c9e2110bd7f94fdf24b9240248"
+          test "$(git hash-object "$ROOT_EMPTY_REVIEW")" = "d4f0b6001241a08dd1b7a7c8f60ca6675cb549c9"
+
+          test "$(git rev-parse 8cf39d35fc0fd03191b5ab28905637a5c842b2cf:experiments/direct/janus_c049_fpt_integration_core.py)" = "5eb806a079343f00622886c448d2bfbfa412cbfe"
+          test "$(git rev-parse a6a6a9cc11fbfcbc14a0c9bec13a7418594a2b49:docs/C049_GROUPED_SUBSPACE_PARTITION_OBSTRUCTION.md)" = "aed36086b2c5f1b18c8b5df939f28f3e4c22601d"
+          test "$(git rev-parse 7f9df43ca7cd65dc02cd51df4e6ff4cff4579df1:experiments/direct/C049_1_B4_6_3_GENERAL_EMPTY_ROOT_SPECIALIZATION_SPEC_V1.json)" = "59447d0e9a98abc539fab415ea16ff7bc9e561f2"
+          test "$(git rev-parse db4cd3d5edbe8ff7909f0b309e17659e5b488615:experiments/direct/audits/C049_1_B4_6_3_GENERAL_EMPTY_ROOT_SPECIALIZATION_AUTHORITY_CLOSURE_AUDIT_7F9DF43C.json)" = "fc13ef61bc2975ec8ee1b5e5356444001750e0f2"
+          test "$(git rev-parse 799a8c2a360e01258a32b50f2b605e6a8a51eefb:experiments/direct/C049_1_B4_6_4_TERMINAL_REFLECTION_COMPLETENESS_SPEC_V1.json)" = "a3cfa36d961cb3bf4f4b8311e6e70a0cf597ce44"
+          echo 'TERMINAL_IMMUTABLE_SOURCE_BINDING = PASS'
+          echo 'GROUP_RULE_MATERIALIZED_FROM_HISTORICAL_SUBJECT = PASS'
+          echo 'O7_PROOF_SUBJECT_AND_LATER_AUTHORITY_RECEIPT_DISTINGUISHED = PASS'
+
+      - name: Compile and enforce implementation decoupling
+        run: |
+          set -euo pipefail
+          python -m py_compile "$PRODUCER" "$VERIFIER"
+          python - <<'PY'
+          import ast
+          from pathlib import Path
+          producer = Path('experiments/direct/janus_c049_1_b4_6_5_terminal_domain_composition.py')
+          verifier = Path('experiments/direct/janus_c049_1_b4_6_5_terminal_domain_composition_verifier.py')
+          def imports(path):
+              tree=ast.parse(path.read_text(encoding='utf-8'))
+              out=[]
+              for n in ast.walk(tree):
+                  if isinstance(n,ast.Import): out.extend(a.name for a in n.names)
+                  elif isinstance(n,ast.ImportFrom): out.append(n.module or '')
+              return out
+          assert not any('terminal_domain_composition_verifier' in x for x in imports(producer))
+          assert not any(x.endswith('janus_c049_1_b4_6_5_terminal_domain_composition') for x in imports(verifier))
+          print('TERMINAL_IMPLEMENTATION_DECOUPLING = PASS')
+          PY
+
+      - name: Build terminal composition candidate in three orders
+        run: |
+          set -euo pipefail
+          for mode in ORIGINAL REVERSED SEEDED_SHUFFLE; do
+            python "$PRODUCER" \
+              --spec "$SPEC" \
+              --phase-a "$PHASE_A" \
+              --group-rule "$GROUP_RULE" \
+              --root-spec "$ROOT_SPEC" \
+              --o7-spec "$O7_SPEC" \
+              --o7-audit "$O7_AUDIT" \
+              --actual-receipt "$ACTUAL_RECEIPT" \
+              --root-empty-audit "$ROOT_EMPTY_AUDIT" \
+              --root-empty-review "$ROOT_EMPTY_REVIEW" \
+              --order-mode "$mode" \
+              --output "/tmp/terminal-$mode.json" | tee "/tmp/producer-$mode.log"
+          done
+          cmp /tmp/terminal-ORIGINAL.json /tmp/terminal-REVERSED.json
+          cmp /tmp/terminal-ORIGINAL.json /tmp/terminal-SEEDED_SHUFFLE.json
+          echo 'TERMINAL_COMPOSITION_THREE_MODE_BYTE_IDENTITY = PASS'
+
+      - name: Independently verify domain identity and terminal contradiction
+        run: |
+          set -euo pipefail
+          python "$VERIFIER" \
+            --spec "$SPEC" \
+            --phase-a "$PHASE_A" \
+            --group-rule "$GROUP_RULE" \
+            --root-spec "$ROOT_SPEC" \
+            --o7-spec "$O7_SPEC" \
+            --o7-audit "$O7_AUDIT" \
+            --actual-receipt "$ACTUAL_RECEIPT" \
+            --root-empty-audit "$ROOT_EMPTY_AUDIT" \
+            --root-empty-review "$ROOT_EMPTY_REVIEW" \
+            --candidate /tmp/terminal-ORIGINAL.json \
+            --tamper-suite | tee /tmp/verifier.log
+          grep -F 'JANUS_TERMINAL_DOMAIN_COMPOSITION_INDEPENDENT_VERIFIER = PASS' /tmp/verifier.log
+          grep -F 'INVARIANTS = 13/13' /tmp/verifier.log
+          grep -F 'DIGEST_REPAIRED_TAMPERS_REJECTED = 14/14' /tmp/verifier.log
+          grep -F 'SERIALIZED_AUTHORITY_VECTOR = PASS' /tmp/verifier.log
+          grep -F 'REPOSITORY_DOMAIN_EQUALS_O7_LAYOUT_DOMAIN = TRUE' /tmp/verifier.log
+          grep -F 'WIDTH_DEFINITION_IDENTITY = PASS' /tmp/verifier.log
+          grep -F 'LOGICAL_CONTRADICTION_COMPOSITION = PASS' /tmp/verifier.log
+          grep -F 'TARGET_LAYOUT_ENUMERATION_USED = FALSE' /tmp/verifier.log
+          grep -F 'TERMINAL_COMPLETENESS_CANDIDATE = TRUE' /tmp/verifier.log
+          grep -F 'NO_LAYOUT_AT_CAP_CANDIDATE = TRUE' /tmp/verifier.log
+          grep -F 'FORMAL_ADMISSION = BLOCKED_PENDING_REVIEW' /tmp/verifier.log
+          grep -F 'FOUND_LAYOUT = FORBIDDEN' /tmp/verifier.log
+          grep -F 'P_VS_NP = OPEN' /tmp/verifier.log
+
+      - name: Enforce review-only terminal promotion ceiling
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json
+          x=json.load(open('/tmp/terminal-ORIGINAL.json'))['proof_payload']
+          l=x['logical_composition']; o=x['oracle_policy']; b=x['strict_boundary']
+          assert l['terminal_completeness_candidate'] is True
+          assert l['no_layout_at_cap_candidate'] is True
+          assert l['contradiction'] is True
+          assert o['enumerated_target_layouts'] == 0
+          assert o['historical_layout_counts_consumed'] is False
+          assert o['historical_root_refinement_counts_consumed'] is False
+          assert o['pointwise_crosscheck_consumed_as_premise'] is False
+          assert o['empty_set_agreement_consumed_as_premise'] is False
+          assert b['terminal_completeness_proved'] is False
+          assert b['no_layout_at_cap'] == 'FORBIDDEN_PENDING_REVIEW'
+          assert b['found_layout'] == 'FORBIDDEN'
+          assert b['formal_admission'] == 'BLOCKED_PENDING_REVIEW'
+          assert b['p_vs_np'] == 'OPEN'
+          print('TERMINAL_REVIEW_ONLY_PROMOTION_CEILING = PASS')
+          PY
+
+      - name: Freeze exact-head terminal candidate receipt
+        run: |
+          set -euo pipefail
+          if [ "${{ github.event_name }}" = "pull_request" ]; then PROOF_HEAD="${{ github.event.pull_request.head.sha }}"; else PROOF_HEAD="$GITHUB_SHA"; fi
+          {
+            echo "GITHUB_SHA=$GITHUB_SHA"
+            echo "PROOF_HEAD=$PROOF_HEAD"
+            echo "SPEC_BLOB=$(git hash-object "$SPEC")"
+            echo "PRODUCER_BLOB=$(git hash-object "$PRODUCER")"
+            echo "VERIFIER_BLOB=$(git hash-object "$VERIFIER")"
+            echo "ROOT_EMPTY_REVIEW_BLOB=$(git hash-object "$ROOT_EMPTY_REVIEW")"
+            echo "ACTUAL_COMPOSITION_RECEIPT_BLOB=$(git hash-object "$ACTUAL_RECEIPT")"
+            echo "CANDIDATE_SHA256=$(sha256sum /tmp/terminal-ORIGINAL.json | cut -d' ' -f1)"
+            echo "CANDIDATE_SEMANTIC_DIGEST=$(python -c 'import json;print(json.load(open("/tmp/terminal-ORIGINAL.json"))["semantic_digest"])')"
+            echo 'THREE_MODE_BYTE_IDENTITY=PASS'
+            echo 'INVARIANTS=13/13'
+            echo 'DIGEST_REPAIRED_TAMPERS_REJECTED=14/14'
+            echo 'REPOSITORY_DOMAIN_EQUALS_O7_LAYOUT_DOMAIN=TRUE'
+            echo 'WIDTH_DEFINITION_IDENTITY=PASS'
+            echo 'TARGET_LAYOUT_ENUMERATION_USED=FALSE'
+            echo 'TERMINAL_COMPLETENESS_CANDIDATE=TRUE'
+            echo 'NO_LAYOUT_AT_CAP_CANDIDATE=TRUE'
+            echo 'FORMAL_ADMISSION=BLOCKED_PENDING_REVIEW'
+            echo 'FOUND_LAYOUT=FORBIDDEN'
+            echo 'P_VS_NP=OPEN'
+          } | tee /tmp/exact-head-terminal-receipt.txt
+
+      - name: Export terminal composition evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: c049-b4-6-5-terminal-domain-composition
+          retention-days: 7
+          compression-level: 9
+          path: |
+            /tmp/terminal-ORIGINAL.json
+            /tmp/terminal-REVERSED.json
+            /tmp/terminal-SEEDED_SHUFFLE.json
+            /tmp/producer-ORIGINAL.log
+            /tmp/producer-REVERSED.log
+            /tmp/producer-SEEDED_SHUFFLE.log
+            /tmp/verifier.log
+            /tmp/exact-head-terminal-receipt.txt
+            experiments/direct/C049_1_B4_6_5_TERMINAL_DOMAIN_COMPOSITION_SPEC_V1.json
+            experiments/direct/audits/C049_1_B4_6_5_ROOT_EMPTY_REVIEW_AUTHORITY_BRIDGE_6178EDBB.json
+            experiments/direct/janus_c049_1_b4_6_5_terminal_domain_composition.py
+            experiments/direct/janus_c049_1_b4_6_5_terminal_domain_composition_verifier.py
