@@ -123,6 +123,8 @@ C023_STATUS
 = MACHINE_CHECKABLE_FINITE_CALCULUS
   / REASON_INTERFACE_UNDER_ATTACK
   / ASYMPTOTIC_LOWER_BOUND_OPEN
+
+C023_ASYMPTOTIC_LOWER_BOUND = OPEN
 ```
 
 C023 formalizes the exact `JANUS-FC_local` cached-policy proof interface around Policy-0A. The current finite evidence includes exact serialized replay, cache-context attacks, MAJ3-K4 profiling, graph-tautology probes, and explicit reason-reuse measurements.
@@ -133,6 +135,7 @@ What C023 does **not** establish:
 FORMULA_CACHING_GENERAL_POLYNOMIALITY = NOT_PROVED
 FORMULA_CACHING_GENERAL_EXPONENTIAL_LOWER_BOUND = NOT_PROVED
 C022_NO_CACHE_LOWER_BOUND_TRANSFER_TO_POLICY_0A = NOT_PROVED
+C023_ASYMPTOTIC_LOWER_BOUND = OPEN
 P_VS_NP = OPEN
 ```
 
