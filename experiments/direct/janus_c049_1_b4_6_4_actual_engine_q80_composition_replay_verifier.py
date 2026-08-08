@@ -10,6 +10,8 @@ PARENT_BOUNDARY=(1,)
 Q80_SCHEMA='C049.1-B4.6.3-CORRECTED-NODE9-QUOTIENT-SKELETON-STABILITY-ANALYSIS-v1'
 N8_SCHEMA='C049.1-B4.6.3-CORRECTED-NODE8-TWENTY-GENERATOR-UP-K-v1'
 L5_SCHEMA='C049.1-B4.6.3-CORRECTED-NODE9-RIGHT-LEAF5-CANDIDATE-v1'
+AUTH_SCHEMA='janus.c049_1.b4_6_3.node8_up_k_authority_closure_audit.v1'
+HARDENING_SCHEMA='janus.c049_1.b4_6_4.general_structural_induction_composition_authority_hardening.v1'
 
 class VError(AssertionError):
     def __init__(self,code): super().__init__(code); self.code=code
@@ -19,6 +21,47 @@ def cj(x): return json.dumps(x,sort_keys=True,separators=(',',':')).encode()
 def dg(x): return hashlib.sha256(cj(x)).hexdigest()
 def load(p): return json.loads(Path(p).read_text(encoding='utf-8'))
 def fh(p): return hashlib.sha256(Path(p).read_bytes()).hexdigest()
+
+def verify_node8_authority(receipt, hardening):
+    req(receipt.get('schema')==AUTH_SCHEMA,'AUTH_SCHEMA')
+    req(receipt.get('semantic_digest_scope')=='audit_payload' and dg(receipt.get('audit_payload'))==receipt.get('semantic_digest'),'AUTH_DIGEST')
+    a=receipt['audit_payload']; s=a['semantic_subject']; v=a['verification_child']; adm=a['admission']; sb=a['strict_boundary']
+    req(s['pr']==116 and s['proof_head']=='0fcdaa168dde2aef27603d51ff547c07860a9fd1','AUTH_PROOF_SUBJECT')
+    req(s['independent_semantic_audit_review_id']==4888038247 and s['final_admission_review_id']==4888054139,'AUTH_REVIEW_BINDING')
+    req(s['producer_git_blob']=='4ff08eb7b95743efa8e011e797481a6de0eea006' and s['verifier_git_blob']=='48bf8af106df64646c9ca7be50483da22adac027','AUTH_PROOF_BLOBS')
+    req(v['pr']==136 and v['head']=='294de1472ea0d5ba9ea1565b89777cf99b17f472','AUTH_VERIFICATION_CHILD')
+    req(v['dedicated_run_id']==31238737391 and v['dedicated_job_id']==93055942346 and v['artifact_id']==9016305442,'AUTH_CI_RECEIPT')
+    req(v['workflow_success_count']==3 and v['workflow_total_count']==3 and v['registry_conclusion']=='SUCCESS' and v['round_ledger_conclusion']=='SUCCESS','AUTH_WORKFLOW_CLOSURE')
+    req(adm['corrected_node8_parent_up_k_complete'] is True and adm['corrected_node8_up_k_admitted'] is True and adm['node8_b2_up_k_language_handoff']=='ADMITTED','AUTH_ADMISSION')
+    req(adm['node8_to_node9_composition_edge']=='OPEN_FOR_ACTUAL_ENGINE_COMPOSITION','AUTH_HANDOFF')
+    req(sb['q80_must_be_replayed_inside_actual_engine_composition'] is True and sb['actual_corrected_engine_complete_algorithm1_trace_established'] is False,'AUTH_CEILING')
+    req(hardening.get('schema')==HARDENING_SCHEMA,'HARDENING_SCHEMA')
+    req(hardening.get('semantic_digest_scope')=='hardening_payload' and dg(hardening.get('hardening_payload'))==hardening.get('semantic_digest'),'HARDENING_DIGEST')
+    n8=hardening['hardening_payload']['node8_up_k_authority_requirement']
+    req(n8['authority_established'] is True,'HARDENING_NODE8_AUTHORITY')
+    req(n8['proof_subject']==s['proof_head'] and n8['semantic_audit_review_id']==s['independent_semantic_audit_review_id'] and n8['semantic_admission_review_id']==s['final_admission_review_id'],'HARDENING_AUTHORITY_BINDING')
+    req(n8['authority_receipt_git_blob']=='b04124490df9737c0799ed856fd7819b37477208' and n8['authority_receipt_semantic_digest']==receipt['semantic_digest'],'HARDENING_RECEIPT_BINDING')
+    req(n8['verification_head']==v['head'] and n8['verification_run_id']==v['dedicated_run_id'] and n8['verification_artifact_id']==v['artifact_id'] and n8['verification_workflows']=='3/3_SUCCESS','HARDENING_VERIFICATION_BINDING')
+    return {'proof_subject':s['proof_head'],'review_id':s['final_admission_review_id'],'receipt_semantic_digest':receipt['semantic_digest']}
+
+def authority_tampers(receipt,hardening):
+    out=[]
+    def ar(name,mut):
+        r=copy.deepcopy(receipt); mut(r); r['semantic_digest']=dg(r['audit_payload'])
+        try: verify_node8_authority(r,hardening)
+        except VError as e: out.append((name,e.code)); return
+        raise AssertionError('authority tamper survived '+name)
+    def ah(name,mut):
+        h=copy.deepcopy(hardening); mut(h); h['semantic_digest']=dg(h['hardening_payload'])
+        try: verify_node8_authority(receipt,h)
+        except VError as e: out.append((name,e.code)); return
+        raise AssertionError('hardening tamper survived '+name)
+    ar('A01_REVIEW',lambda r:r['audit_payload']['semantic_subject'].__setitem__('final_admission_review_id',0))
+    ar('A02_ADMISSION',lambda r:r['audit_payload']['admission'].__setitem__('corrected_node8_up_k_admitted',False))
+    ar('A03_WORKFLOW_COUNT',lambda r:r['audit_payload']['verification_child'].__setitem__('workflow_success_count',2))
+    ah('A04_HARDENING_AUTHORITY',lambda h:h['hardening_payload']['node8_up_k_authority_requirement'].__setitem__('authority_established',False))
+    req(len(out)==4,'AUTH_TAMPER_COUNT')
+    return out
 
 def rr(rows):
     vals=[]
@@ -164,9 +207,23 @@ def tampers(q80,n8,l5):
     req(len(out)==12,'TAMPER_COUNT'); return out
 
 def main():
-    ap=argparse.ArgumentParser(); ap.add_argument('--node8-artifact',type=Path,required=True); ap.add_argument('--leaf5-artifact',type=Path,required=True); ap.add_argument('--q80-artifact',type=Path,required=True); ap.add_argument('--tamper-suite',action='store_true'); a=ap.parse_args()
-    n8,l5,q=load(a.node8_artifact),load(a.leaf5_artifact),load(a.q80_artifact); stats=verify(q,n8,l5); ts=tampers(q,n8,l5) if a.tamper_suite else []
+    ap=argparse.ArgumentParser()
+    ap.add_argument('--node8-artifact',type=Path,required=True)
+    ap.add_argument('--leaf5-artifact',type=Path,required=True)
+    ap.add_argument('--q80-artifact',type=Path,required=True)
+    ap.add_argument('--node8-authority-receipt',type=Path,required=True)
+    ap.add_argument('--hardening',type=Path,required=True)
+    ap.add_argument('--tamper-suite',action='store_true')
+    a=ap.parse_args()
+    n8,l5,q=load(a.node8_artifact),load(a.leaf5_artifact),load(a.q80_artifact)
+    receipt,hardening=load(a.node8_authority_receipt),load(a.hardening)
+    authority=verify_node8_authority(receipt,hardening)
+    stats=verify(q,n8,l5)
+    ts=tampers(q,n8,l5) if a.tamper_suite else []
+    ats=authority_tampers(receipt,hardening) if a.tamper_suite else []
     print('JANUS_ACTUAL_ENGINE_Q80_COMPOSITION_REPLAY_VERIFIER = PASS')
+    print('NODE8_AUTHORITY_RECEIPT_SEMANTIC_DIGEST = PASS')
+    print('NODE8_AUTHORITY_REVIEW_ID =',authority['review_id'])
     print('DERIVED_SOURCE_CLASS_COUNT =',stats['derived_source_class_count'])
     print('DERIVED_LEFT_ENTRY_COUNT =',stats['left_entry_count'])
     print('DERIVED_RIGHT_ENTRY_COUNT =',stats['right_entry_count'])
@@ -176,8 +233,11 @@ def main():
     print('EXPECTED_DOMAIN_OR_FINE_TOTAL_USED_AS_ACCEPTANCE_ORACLE = FALSE')
     print('Q80_PARTITION_FINE_LANGUAGE_CONSERVATION = PASS')
     print('DIGEST_REPAIRED_TAMPERS_REJECTED =',f'{len(ts)}/12' if a.tamper_suite else 'NOT_RUN')
+    print('NODE8_AUTHORITY_DIGEST_REPAIRED_TAMPERS_REJECTED =',f'{len(ats)}/4' if a.tamper_suite else 'NOT_RUN')
+    print('TOTAL_DIGEST_REPAIRED_TAMPERS_REJECTED =',f'{len(ts)+len(ats)}/16' if a.tamper_suite else 'NOT_RUN')
     print('Q80_HISTORICAL_STANDALONE_ADMISSION = FALSE')
-    print('NODE8_AUTHORITY_CLOSED = FALSE')
+    print('NODE8_AUTHORITY_CLOSED = TRUE')
+    print('Q80_COMPOSITION_REPLAY_COMPLETE = TRUE')
     print('ACTUAL_ENGINE_COMPOSITION_ADMITTED = FALSE')
     print('P_VS_NP = OPEN')
 
