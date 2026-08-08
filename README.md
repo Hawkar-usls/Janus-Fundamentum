@@ -184,9 +184,12 @@ JANUS uses a few permanent rules.
 
 ## Repository map
 
+The default branch currently exposes the active proof-search and public-navigation surfaces:
+
 ```text
 Janus-Fundamentum/
 ├── README.md
+├── CONTRIBUTING.md
 ├── docs/
 │   ├── CURRENT_RESEARCH_STATUS.md
 │   ├── A3_PUBLICATION_TRACK.md
@@ -197,13 +200,13 @@ Janus-Fundamentum/
 │   └── theta/
 ├── proof_attempts/
 ├── registry/
-├── research_targets/
-├── publication/          # publication branches carry the A3 package
 ├── tools/
-└── .github/workflows/
+└── .github/
+    ├── ISSUE_TEMPLATE/
+    └── workflows/
 ```
 
-Some publication files exist on publication branches rather than the default branch. The navigation documents on `main` intentionally link to the frozen publication PRs instead of copying theorem authority into a documentation commit.
+The frozen A3 publication package and theorem/admission objects live on dedicated research/publication branches. The navigation documents on `main` intentionally link to their immutable PR/commit surfaces instead of pretending those branch-only directories are present on the default branch.
 
 ---
 
