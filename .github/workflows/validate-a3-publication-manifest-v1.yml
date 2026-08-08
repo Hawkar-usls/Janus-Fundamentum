@@ -1,0 +1,91 @@
+name: Validate A3 publication manifest v1
+
+on:
+  pull_request:
+    paths:
+      - 'publication/A3_TERNARY_DP/**'
+      - '.github/workflows/validate-a3-publication-manifest-v1.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  publication-manifest:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+
+      - name: Bind frozen evidence authority
+        shell: bash
+        run: |
+          set -euo pipefail
+          FROZEN=5ee79fc82613f24e621595afa0119312a2f52660
+          RECEIPT=research_targets/audits/A3_KCLASS_ENDPOINT_DP_V1_1_ADMISSION_0E505F46.json
+          git merge-base --is-ancestor "$FROZEN" HEAD
+          python - <<'PY'
+          import json
+          m=json.load(open('publication/A3_TERNARY_DP/PUBLICATION_MANIFEST.json'))
+          r=json.load(open('research_targets/audits/A3_KCLASS_ENDPOINT_DP_V1_1_ADMISSION_0E505F46.json'))
+          assert m['frozen_evidence_head']=='5ee79fc82613f24e621595afa0119312a2f52660'
+          assert m['theorem']['strengthened_proof_head']==r['proof_head']
+          assert m['admitted_statement']==r['admitted_statement']
+          assert m['formulas']['state_count']==r['exact_state_count']
+          assert m['formulas']['transition_count']==r['exact_transition_count']
+          assert m['formulas']['rank_identity']==r['rank_identity']
+          assert m['status']['evidence_strength']=='ES5_GENERAL_ALGORITHMIC_THEOREM_ADMITTED'
+          assert m['status']['novelty']=='N3_NOVELTY_CANDIDATE'
+          assert m['status']['world_novelty_n4']=='NOT_ESTABLISHED'
+          assert m['claim_ceiling']['p_vs_np']=='OPEN'
+          print('PUBLICATION_MANIFEST_AUTHORITY_BINDING = PASS')
+          PY
+
+      - name: Check theorem text and claim ceiling
+        shell: bash
+        run: |
+          set -euo pipefail
+          grep -F '2^s3^r' publication/A3_TERNARY_DP/THEOREM_STATEMENT.tex
+          grep -F 's2^{s-1}3^r+2r2^s3^{r-1}' publication/A3_TERNARY_DP/THEOREM_STATEMENT.tex
+          grep -F 'O(k3^k)' publication/A3_TERNARY_DP/THEOREM_STATEMENT.tex
+          grep -F 'N3_NOVELTY_CANDIDATE' publication/A3_TERNARY_DP/CLAIM_CEILING.md
+          grep -F 'World-novelty level N4: `NOT_ESTABLISHED`' publication/A3_TERNARY_DP/CLAIM_CEILING.md
+          grep -F 'does not claim external confirmation of historical novelty' publication/A3_TERNARY_DP/paper/main.tex
+          ! grep -Eiq 'we (prove|establish).*P[[:space:]]*=[[:space:]]*NP|world.novelty.*established|we are first' publication/A3_TERNARY_DP/paper/main.tex
+          echo 'PUBLICATION_CLAIM_CEILING = PASS'
+
+      - name: Validate publication structure
+        shell: bash
+        run: |
+          set -euo pipefail
+          for f in \
+            PUBLICATION_MANIFEST.json THEOREM_STATEMENT.tex proof_endpoint_compression.tex \
+            proof_ternary_dp.tex complexity_theorem.tex verification_protocol.tex \
+            reproducibility.md literature_matrix.csv CLAIM_CEILING.md paper/main.tex; do
+            test -s "publication/A3_TERNARY_DP/$f"
+          done
+          python -m json.tool publication/A3_TERNARY_DP/PUBLICATION_MANIFEST.json >/dev/null
+          echo 'PUBLICATION_STRUCTURE = PASS'
+
+      - name: Compile paper when pdflatex is available
+        shell: bash
+        run: |
+          set -euo pipefail
+          if command -v pdflatex >/dev/null 2>&1; then
+            cd publication/A3_TERNARY_DP/paper
+            pdflatex -interaction=nonstopmode -halt-on-error main.tex
+            pdflatex -interaction=nonstopmode -halt-on-error main.tex
+            sha256sum main.pdf | tee paper_pdf_sha256.txt
+            echo 'PUBLICATION_PDF_BUILD = PASS'
+          else
+            echo 'PUBLICATION_PDF_BUILD = SKIPPED_PDFLATEX_UNAVAILABLE'
+          fi
+
+      - name: Upload publication package
+        uses: actions/upload-artifact@v4
+        with:
+          name: a3-ternary-dp-publication-v1-${{ github.event.pull_request.head.sha || github.sha }}
+          path: publication/A3_TERNARY_DP/
+          if-no-files-found: error
