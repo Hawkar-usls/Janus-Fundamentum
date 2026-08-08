@@ -7,6 +7,7 @@ on:
       - 'research_targets/FUNDAMENTUM_MULTIDIRECTIONAL_FRONTIER_AMENDMENT_V1_1.json'
       - 'research_targets/FUNDAMENTUM_MULTIDIRECTIONAL_FRONTIER_AMENDMENT_V1_2.json'
       - 'research_targets/FUNDAMENTUM_MULTIDIRECTIONAL_FRONTIER_AMENDMENT_V1_3.json'
+      - 'research_targets/FUNDAMENTUM_MULTIDIRECTIONAL_FRONTIER_AMENDMENT_V1_3_1.json'
       - 'research_targets/audits/FUNDAMENTUM_MULTIDIRECTIONAL_FRONTIER_V1_2_EVIDENCE_602F9C09.json'
       - 'experiments/direct/janus_fundamentum_multidirectional_frontier_v13.py'
       - 'experiments/direct/janus_fundamentum_multidirectional_frontier_verifier_v13.py'
@@ -64,6 +65,7 @@ jobs:
             research_targets/FUNDAMENTUM_MULTIDIRECTIONAL_FRONTIER_AMENDMENT_V1_1.json \
             research_targets/FUNDAMENTUM_MULTIDIRECTIONAL_FRONTIER_AMENDMENT_V1_2.json \
             research_targets/FUNDAMENTUM_MULTIDIRECTIONAL_FRONTIER_AMENDMENT_V1_3.json \
+            research_targets/FUNDAMENTUM_MULTIDIRECTIONAL_FRONTIER_AMENDMENT_V1_3_1.json \
             experiments/direct/janus_fundamentum_multidirectional_frontier_v13.py \
             experiments/direct/janus_fundamentum_multidirectional_frontier_verifier_v13.py \
             .github/workflows/validate-fundamentum-multidirectional-frontier-v1.yml; do
@@ -72,16 +74,22 @@ jobs:
           python - <<'PY'
           import json
           a13=json.load(open('research_targets/FUNDAMENTUM_MULTIDIRECTIONAL_FRONTIER_AMENDMENT_V1_3.json'))
+          a131=json.load(open('research_targets/FUNDAMENTUM_MULTIDIRECTIONAL_FRONTIER_AMENDMENT_V1_3_1.json'))
           n=a13['negative_provenance']
           assert n['proof_head']=='602f9c09ebcc67929f1eac9c25fd9b8046161c77'
           assert n['evidence_head']=='140b6618fd48bc6a80d3c6e5495e303b3c930d5e'
           assert n['run_id']==31249245524 and n['job_id']==93082854619 and n['artifact_id']==9019482478
           assert n['classification']=='HEAD_CORPUS_SELF_REFERENCE_AND_PREDECLARED_ACTIVE_ROUTE_CLASSIFICATION'
           assert n['ci_conclusion']=='SUCCESS_BUT_ACTIVE_ROUTE_DISCOVERY_CLAIM_WITHDRAWN'
-          assert a13['correction']['corpus_commit']=='e7663ed9be87ebd37bfa51c01501e74c9d5b2603'
-          assert a13['correction']['producer_and_verifier_must_enumerate_base_tree_independently'] is True
-          assert a13['claim_ceiling']['FRONTIER_V1_2_ACTIVE_ROUTE_DISCOVERY_ADMITTED'] is False
+          n=a131['negative_provenance']
+          assert n['head']=='7678d7d77af1d610c4a869aea5610704fad280a4'
+          assert n['run_id']==31249920563 and n['job_id']==93084524081
+          assert n['classification']=='TAMPER_FIXTURE_NO_OP_ON_ALREADY_EMPTY_POSITIVE_IMPLICATION_CLOSURE'
+          assert n['semantic_replay_before_tamper_suite']=='PASS'
+          assert n['failure_scope']=='TAMPER_FIXTURE_ONLY'
+          assert a131['correction']['all_tamper_mutations_must_change_their_input'] is True
           print('FRONTIER_V1_2_ACTIVE_ROUTE_DISCOVERY_WITHDRAWN = CONFIRMED')
+          print('FRONTIER_V1_3_NOOP_TAMPER_NEGATIVE_PROVENANCE = CONFIRMED')
           PY
 
       - name: Compile and self-test v1.3
@@ -113,6 +121,8 @@ jobs:
             --tamper-test | tee /tmp/frontier_verifier_v13.log
           grep -Fx 'INDEPENDENT_FRONTIER_V1_3_REPLAY = PASS' /tmp/frontier_verifier_v13.log
           grep -Fx 'PRE_FRONTIER_CORPUS_AUTHORITY = PASS' /tmp/frontier_verifier_v13.log
+          grep -Fx 'IMMUTABLE_CORPUS_SINGLE_SNAPSHOT = PASS' /tmp/frontier_verifier_v13.log
+          grep -Fx 'EFFECTIVE_TAMPER_FIXTURES = ENFORCED' /tmp/frontier_verifier_v13.log
           grep -Fx 'RELATION_TO_ACTIVE_ROUTE_PROMOTION = FORBIDDEN' /tmp/frontier_verifier_v13.log
           grep -Fx 'DIGEST_REPAIRED_TAMPERS_REJECTED = 20/20' /tmp/frontier_verifier_v13.log
 
@@ -147,11 +157,12 @@ jobs:
           paths={
             'registry':'research_targets/FUNDAMENTUM_RESEARCH_TARGET_REGISTRY_V1.json',
             'amendment_v13':'research_targets/FUNDAMENTUM_MULTIDIRECTIONAL_FRONTIER_AMENDMENT_V1_3.json',
+            'amendment_v131':'research_targets/FUNDAMENTUM_MULTIDIRECTIONAL_FRONTIER_AMENDMENT_V1_3_1.json',
             'producer_v13':'experiments/direct/janus_fundamentum_multidirectional_frontier_v13.py',
             'verifier_v13':'experiments/direct/janus_fundamentum_multidirectional_frontier_verifier_v13.py',
             'workflow':'.github/workflows/validate-fundamentum-multidirectional-frontier-v1.yml'}
           out={
-            'schema':'janus.fundamentum.multidirectional_frontier_receipt.v1.3',
+            'schema':'janus.fundamentum.multidirectional_frontier_receipt.v1.3.1',
             'exact_head':git('rev-parse','HEAD'), 'corpus_commit':r['corpus_commit'],
             'source_git_blobs':{k:git('hash-object',v) for k,v in paths.items()},
             'source_raw_sha256':{k:sha(v) for k,v in paths.items()},
@@ -159,11 +170,11 @@ jobs:
             'corpus_semantic_sha256':r['corpus_semantic_sha256'], 'scanned_surface_count':r['scanned_surface_count'],
             'evidence_ranking':r['evidence_ranking'], 'declared_priority_ranking':r['declared_priority_ranking'],
             'a3_evidence_ranking':r['a3_evidence_ranking'], 'selected_a3_candidate':r['selected_a3_candidate'],
-            'independent_replay':True, 'digest_repaired_tampers_rejected':'20/20',
-            'head_self_reference_rejected':True, 'predeclared_active_route_promotion_rejected':True,
-            'global_terminal':'OPEN', 'claim_ceiling':r['claim_ceiling']}
+            'independent_replay':True, 'immutable_corpus_single_snapshot':True, 'effective_tamper_fixtures_enforced':True,
+            'digest_repaired_tampers_rejected':'20/20', 'head_self_reference_rejected':True,
+            'predeclared_active_route_promotion_rejected':True, 'global_terminal':'OPEN', 'claim_ceiling':r['claim_ceiling']}
           p=pathlib.Path('/tmp/frontier_v13_receipt.json'); p.write_text(json.dumps(out,indent=2,sort_keys=True)+'\n')
-          print('MULTIDIRECTIONAL_FRONTIER_RECEIPT_V1_3 = BUILT')
+          print('MULTIDIRECTIONAL_FRONTIER_RECEIPT_V1_3_1 = BUILT')
           print('EVIDENCE_TOP10 = '+','.join(r['evidence_ranking'][:10]))
           print('SELECTED_A3_CANDIDATE = '+str(r['selected_a3_candidate']))
           PY
