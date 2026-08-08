@@ -24,29 +24,82 @@ jobs:
         run: |
           set -euo pipefail
           FROZEN=5ee79fc82613f24e621595afa0119312a2f52660
+          PROOF=0e505f460ec63cbb358c7f66cde18ab8a52684d3
+          COMPRESSION=6ca16581eff08103698250b09ea51aeccd9f800b
           RECEIPT=research_targets/audits/A3_KCLASS_ENDPOINT_DP_V1_1_ADMISSION_0E505F46.json
+
+          git merge-base --is-ancestor "$PROOF" "$FROZEN"
+          git merge-base --is-ancestor "$COMPRESSION" "$FROZEN"
           git merge-base --is-ancestor "$FROZEN" HEAD
+
+          # A publication-only descendant may not silently rewrite the admitted receipt.
+          test "$(git hash-object "$RECEIPT")" = "$(git rev-parse "$FROZEN:$RECEIPT")"
+
           python - <<'PY'
           import json
           m=json.load(open('publication/A3_TERNARY_DP/PUBLICATION_MANIFEST.json'))
           r=json.load(open('research_targets/audits/A3_KCLASS_ENDPOINT_DP_V1_1_ADMISSION_0E505F46.json'))
+
           assert m['frozen_evidence_head']=='5ee79fc82613f24e621595afa0119312a2f52660'
-          assert m['theorem']['strengthened_proof_head']==r['proof_head']
+          assert m['theorem']['strengthened_proof_head']==r['proof_head']=='0e505f460ec63cbb358c7f66cde18ab8a52684d3'
+          assert m['theorem']['endpoint_compression_proof_head']=='6ca16581eff08103698250b09ea51aeccd9f800b'
+          assert m['theorem']['admission_receipt']=='research_targets/audits/A3_KCLASS_ENDPOINT_DP_V1_1_ADMISSION_0E505F46.json'
           assert m['admitted_statement']==r['admitted_statement']
-          assert m['formulas']['state_count']==r['exact_state_count']
-          assert m['formulas']['transition_count']==r['exact_transition_count']
-          assert m['formulas']['rank_identity']==r['rank_identity']
+          assert m['formulas']['state_count']==r['exact_state_count']=='2^s*3^r'
+          assert m['formulas']['transition_count']==r['exact_transition_count']=='s*2^(s-1)*3^r + 2r*2^s*3^(r-1)'
+          assert m['formulas']['rank_identity']==r['rank_identity']=='lambda(P,S)=rho(S)+rho(K\\P)-rho(K)'
+          assert m['formulas']['rank_preprocessing']=='2^k subset ranks'
+          assert m['formulas']['dp_work_after_rank_preprocessing']=='O(k*3^k)'
           assert m['status']['evidence_strength']=='ES5_GENERAL_ALGORITHMIC_THEOREM_ADMITTED'
           assert m['status']['novelty']=='N3_NOVELTY_CANDIDATE'
+          assert m['status']['external_independent_replication']=='NOT_ESTABLISHED'
           assert m['status']['world_novelty_n4']=='NOT_ESTABLISHED'
+          assert m['claim_ceiling']['general_matroid_pathwidth_complexity']=='UNCHANGED'
+          assert m['claim_ceiling']['general_np_hardness']=='NOT_OVERTURNED'
+          assert m['claim_ceiling']['historical_world_priority']=='NOT_CLAIMED'
           assert m['claim_ceiling']['p_vs_np']=='OPEN'
+
+          a={x['id']:x for x in m['artifacts']}
+          assert a[9021089093]['role']=='strengthened_proof_head'
+          assert a[9021089093]['zip_sha256']=='45ee682d4d2b5796886e174ba9fc5dc4ed5292f265b2f3b6706b4f3a70077acd'
+          assert a[9021129185]['role']=='post_admission_exact_head'
+          assert a[9021129185]['zip_sha256']=='c121a7ec6e53c35022ec57a897caba71e72460a5100d1e2c708fe473d0853bc1'
           print('PUBLICATION_MANIFEST_AUTHORITY_BINDING = PASS')
+          PY
+
+      - name: Validate extended literature ceiling
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import csv,json
+          p='publication/A3_TERNARY_DP/'
+          a=json.load(open(p+'LITERATURE_AUDIT_EXTENDED_V1.json'))
+          assert a['frozen_evidence_head']=='5ee79fc82613f24e621595afa0119312a2f52660'
+          assert a['theorem_proof_head']=='0e505f460ec63cbb358c7f66cde18ab8a52684d3'
+          assert a['declared_search_protocol']['universal_bibliographic_completeness_claimed'] is False
+          assert a['declared_search_protocol']['mathscinet_complete_coverage_claimed'] is False
+          assert a['declared_search_protocol']['zbmath_complete_coverage_claimed'] is False
+          assert a['declared_search_protocol']['google_scholar_complete_coverage_claimed'] is False
+          out=a['audit_result']
+          assert out['exact_equivalent_result_found_in_declared_protocol'] is False
+          assert out['universal_absence_proved'] is False
+          assert out['historical_world_priority_proved'] is False
+          assert out['external_independent_replication']=='NOT_ESTABLISHED'
+          assert out['world_novelty_n4']=='NOT_ESTABLISHED'
+          assert out['we_are_first']=='NOT_CLAIMED'
+          assert out['novelty_status'].startswith('N3_')
+          rows=list(csv.DictReader(open(p+'literature_matrix_extended.csv')))
+          assert len(rows)>=8
+          assert all(row['exact_predecessor_found']=='NO' for row in rows)
+          print('EXTENDED_LITERATURE_CEILING = PASS')
           PY
 
       - name: Check theorem text and claim ceiling
         shell: bash
         run: |
           set -euo pipefail
+          grep -F 'arbitrary positive multiplicities' publication/A3_TERNARY_DP/THEOREM_STATEMENT.tex
           grep -F '2^s3^r' publication/A3_TERNARY_DP/THEOREM_STATEMENT.tex
           grep -F 's2^{s-1}3^r+2r2^s3^{r-1}' publication/A3_TERNARY_DP/THEOREM_STATEMENT.tex
           grep -F 'O(k3^k)' publication/A3_TERNARY_DP/THEOREM_STATEMENT.tex
@@ -63,25 +116,93 @@ jobs:
           for f in \
             PUBLICATION_MANIFEST.json THEOREM_STATEMENT.tex proof_endpoint_compression.tex \
             proof_ternary_dp.tex complexity_theorem.tex verification_protocol.tex \
-            reproducibility.md literature_matrix.csv CLAIM_CEILING.md paper/main.tex; do
+            reproducibility.md literature_matrix.csv literature_matrix_extended.csv \
+            LITERATURE_AUDIT_EXTENDED_V1.json CLAIM_CEILING.md paper/main.tex; do
             test -s "publication/A3_TERNARY_DP/$f"
           done
           python -m json.tool publication/A3_TERNARY_DP/PUBLICATION_MANIFEST.json >/dev/null
+          python -m json.tool publication/A3_TERNARY_DP/LITERATURE_AUDIT_EXTENDED_V1.json >/dev/null
           echo 'PUBLICATION_STRUCTURE = PASS'
 
-      - name: Compile paper when pdflatex is available
+      - name: Install deterministic PDF toolchain
         shell: bash
         run: |
           set -euo pipefail
-          if command -v pdflatex >/dev/null 2>&1; then
-            cd publication/A3_TERNARY_DP/paper
-            pdflatex -interaction=nonstopmode -halt-on-error main.tex
-            pdflatex -interaction=nonstopmode -halt-on-error main.tex
-            sha256sum main.pdf | tee paper_pdf_sha256.txt
-            echo 'PUBLICATION_PDF_BUILD = PASS'
-          else
-            echo 'PUBLICATION_PDF_BUILD = SKIPPED_PDFLATEX_UNAVAILABLE'
-          fi
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            texlive-latex-base texlive-latex-recommended poppler-utils
+          command -v pdflatex
+          command -v pdftotext
+          echo 'PUBLICATION_PDF_TOOLCHAIN = PASS'
+
+      - name: Compile and inspect publication PDF
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd publication/A3_TERNARY_DP/paper
+          pdflatex -interaction=nonstopmode -halt-on-error main.tex
+          pdflatex -interaction=nonstopmode -halt-on-error main.tex
+          test -s main.pdf
+          pdftotext main.pdf main.txt
+
+          # These tokens come from imported, manifest-bound proof/publication surfaces.
+          grep -F 'Endpoint Compression and a Ternary-State FPT Algorithm' main.txt
+          grep -F '5ee79fc82613f24e621595afa0119312a2f52660' main.txt
+          grep -F '113,400' main.txt
+          grep -F 'N3_NOVELTY_CANDIDATE' main.txt
+          ! grep -Eiq 'we (prove|establish).*P[[:space:]]*=[[:space:]]*NP|world.novelty.*established|we are first' main.txt
+
+          sha256sum main.pdf | tee main.pdf.sha256
+          echo 'PUBLICATION_PDF_BUILD_AND_TEXT_BINDING = PASS'
+
+      - name: Freeze publication PDF receipt
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import hashlib,json,pathlib,subprocess
+          root=pathlib.Path('publication/A3_TERNARY_DP')
+          paper=root/'paper'
+          manifest=root/'PUBLICATION_MANIFEST.json'
+          audit=root/'LITERATURE_AUDIT_EXTENDED_V1.json'
+          m=json.loads(manifest.read_text())
+          sha=lambda p: hashlib.sha256(pathlib.Path(p).read_bytes()).hexdigest()
+          source_paths=[
+            root/'THEOREM_STATEMENT.tex',
+            root/'proof_endpoint_compression.tex',
+            root/'proof_ternary_dp.tex',
+            root/'complexity_theorem.tex',
+            root/'verification_protocol.tex',
+            root/'CLAIM_CEILING.md',
+            root/'literature_matrix.csv',
+            root/'literature_matrix_extended.csv',
+            audit,
+            paper/'main.tex',
+          ]
+          receipt={
+            'schema':'janus.fundamentum.a3.publication_pdf_receipt.v1',
+            'publication_id':m['publication_id'],
+            'publication_head':subprocess.check_output(['git','rev-parse','HEAD'],text=True).strip(),
+            'frozen_evidence_head':m['frozen_evidence_head'],
+            'theorem_id':m['theorem']['id'],
+            'manifest_sha256':sha(manifest),
+            'extended_literature_audit_sha256':sha(audit),
+            'source_sha256':{str(p.relative_to(root)):sha(p) for p in source_paths},
+            'pdf_path':'paper/main.pdf',
+            'pdf_sha256':sha(paper/'main.pdf'),
+            'pdf_text_sha256':sha(paper/'main.txt'),
+            'pdf_build':'PASS',
+            'pdf_text_contract':'PASS',
+            'claim_ceiling':m['claim_ceiling'],
+            'evidence_strength':m['status']['evidence_strength'],
+            'novelty':m['status']['novelty'],
+            'external_independent_replication':m['status']['external_independent_replication'],
+            'world_novelty_n4':m['status']['world_novelty_n4'],
+          }
+          (paper/'PUBLICATION_PDF_RECEIPT.json').write_text(json.dumps(receipt,indent=2,sort_keys=True)+'\n')
+          print('PUBLICATION_PDF_RECEIPT = BUILT')
+          print('PUBLICATION_PDF_SHA256 =',receipt['pdf_sha256'])
+          PY
 
       - name: Upload publication package
         uses: actions/upload-artifact@v4
