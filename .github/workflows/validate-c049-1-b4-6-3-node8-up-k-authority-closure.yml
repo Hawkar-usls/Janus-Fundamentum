@@ -1,0 +1,153 @@
+name: Validate C049.1 B4.6.3 Node8 up_k authority closure
+
+on:
+  push:
+    paths:
+      - 'experiments/direct/C049_1_B4_6_3_NODE8_UP_K_AUTHORITY_CLOSURE_SPEC_V1.json'
+      - '.github/workflows/validate-c049-1-b4-6-3-node8-up-k-authority-closure.yml'
+  pull_request:
+    paths:
+      - 'experiments/direct/C049_1_B4_6_3_NODE8_UP_K_AUTHORITY_CLOSURE_SPEC_V1.json'
+      - '.github/workflows/validate-c049-1-b4-6-3-node8-up-k-authority-closure.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  node8-up-k-authority-closure:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+    env:
+      PYTHONPATH: experiments/direct
+      PROOF_SUBJECT: 0fcdaa168dde2aef27603d51ff547c07860a9fd1
+      PR114_SUBJECT: ee3ca0c90aff2aaca3b3f3a820dc94c2f3c94539
+      SPEC: experiments/direct/C049_1_B4_6_3_NODE8_UP_K_AUTHORITY_CLOSURE_SPEC_V1.json
+      PRODUCER: experiments/direct/janus_c049_1_b4_6_3_corrected_node8_twenty_generator_up_k.py
+      VERIFIER: experiments/direct/janus_c049_1_b4_6_3_corrected_node8_twenty_generator_up_k_verifier.py
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Bind frozen PR116 proof pair and authority-closure contract
+        shell: bash
+        run: |
+          set -euo pipefail
+          git merge-base --is-ancestor "$PROOF_SUBJECT" HEAD
+          git merge-base --is-ancestor "$PR114_SUBJECT" HEAD
+          test "$(git rev-parse "${PROOF_SUBJECT}:${PRODUCER}")" = "4ff08eb7b95743efa8e011e797481a6de0eea006"
+          test "$(git rev-parse "${PROOF_SUBJECT}:${VERIFIER}")" = "48bf8af106df64646c9ca7be50483da22adac027"
+          test "$(git hash-object "$PRODUCER")" = "4ff08eb7b95743efa8e011e797481a6de0eea006"
+          test "$(git hash-object "$VERIFIER")" = "48bf8af106df64646c9ca7be50483da22adac027"
+          python -m py_compile "$PRODUCER" "$VERIFIER"
+          python - <<'PY'
+          import ast, hashlib, json
+          from pathlib import Path
+          spec=json.loads(Path('experiments/direct/C049_1_B4_6_3_NODE8_UP_K_AUTHORITY_CLOSURE_SPEC_V1.json').read_text())
+          payload=spec['spec_payload']
+          got=hashlib.sha256(json.dumps(payload,sort_keys=True,separators=(',',':')).encode()).hexdigest()
+          assert got==spec['semantic_digest']=='c7db323e048edaebe73884f7da79a0f3b091e133af048a878a470af8af0956b4'
+          assert payload['proof_subject']=='0fcdaa168dde2aef27603d51ff547c07860a9fd1'
+          assert payload['semantic_audit']['review_id']==4888038247
+          def imports(path):
+              tree=ast.parse(Path(path).read_text())
+              out=[]
+              for n in ast.walk(tree):
+                  if isinstance(n,ast.Import): out.extend(x.name for x in n.names)
+                  elif isinstance(n,ast.ImportFrom): out.append(n.module or '')
+              return out
+          p=imports('experiments/direct/janus_c049_1_b4_6_3_corrected_node8_twenty_generator_up_k.py')
+          v=imports('experiments/direct/janus_c049_1_b4_6_3_corrected_node8_twenty_generator_up_k_verifier.py')
+          assert not any(x.endswith('janus_c049_1_b4_6_3_corrected_node8_twenty_generator_up_k_verifier') for x in p)
+          assert not any(x.endswith('janus_c049_1_b4_6_3_corrected_node8_twenty_generator_up_k') for x in v)
+          print('NODE8_UP_K_AUTHORITY_SPEC_SEMANTIC_DIGEST = PASS')
+          print('IMPLEMENTATION_DECOUPLING_STATIC_CHECK = PASS')
+          PY
+
+      - name: Materialize exact admitted PR114 input bytes
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat experiments/direct/.cn8_frozen_b64/part* | base64 -d > /tmp/pr114-corrected-node8.json
+          test "$(wc -c < /tmp/pr114-corrected-node8.json)" = "30024"
+          test "$(sha256sum /tmp/pr114-corrected-node8.json | cut -d' ' -f1)" = "30329bdb77802016ef3479d37a29fdb8e1fc95c5d534484fc179916a0cfdbb0a"
+          python - <<'PY'
+          import json
+          x=json.load(open('/tmp/pr114-corrected-node8.json'))
+          assert x['semantic_digest']=='41df529e471aa4fb1c0ce1192cd4e0fa8ae8de2eb230c38343bbf04abf7f6708'
+          q=x['node8_parent_refinement']['quotient_frontier']
+          assert q['class_catalog_digest']=='9d5a420647f69454ae6deb8114435f433973ae7262f46d6e716e929acde1616c'
+          assert q['post_shrink_class_count']==20
+          assert q['local_direct_assignment_tests']==17424
+          assert x['corrected_path_domain']['ordinary_join_diagonal_allowed'] is False
+          print('PR114_ADMITTED_INPUT_BYTES = EXACT_BOUND')
+          PY
+
+      - name: Rebuild frozen PR116 candidate in three traversal modes
+        shell: bash
+        run: |
+          set -euo pipefail
+          for mode in original reversed seeded-shuffle; do
+            python "$PRODUCER" /tmp/pr114-corrected-node8.json --entry-order "$mode" --output "/tmp/node8-up-k-$mode.json"
+          done
+          cmp /tmp/node8-up-k-original.json /tmp/node8-up-k-reversed.json
+          cmp /tmp/node8-up-k-original.json /tmp/node8-up-k-seeded-shuffle.json
+          test "$(sha256sum /tmp/node8-up-k-original.json | cut -d' ' -f1)" = "80b74b500ae82639e51568a9a6dc70a72668f32991add42bc5ffac05b3f9537f"
+          echo 'NODE8_UP_K_THREE_MODE_BYTE_IDENTITY = PASS'
+
+      - name: Independent verifier and digest-repaired tamper rejection
+        shell: bash
+        run: |
+          set -euo pipefail
+          python "$VERIFIER" \
+            /tmp/pr114-corrected-node8.json \
+            /tmp/node8-up-k-original.json \
+            --producer-source "$PRODUCER" \
+            --tamper-self-test
+
+      - name: Validate candidate receipts and non-promoting boundary
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json
+          x=json.load(open('/tmp/node8-up-k-original.json'))
+          assert x['semantic_digest']=='e0017e4e5de933e520c6ea374ef291c07bbbb373478c6f9952911cc376380622'
+          p=x['proof_payload']
+          h=p['preorder_hardening']; c=p['reachable_closure']; b=p['strict_boundary']
+          assert h['ordered_pair_tests']==400
+          assert h['relation_edges']==20
+          assert h['cross_relation_edges']==0
+          assert h['retained_generator_count']==20
+          assert h['direct_removal_count']==0
+          assert h['pairwise_incomparable'] is True
+          assert c['reachable_entry_count']==8676
+          assert c['reachable_entries_digest']=='c6beadf320cf886765d5c8a804887cbf14d854b8f96fc6997058fd0cf0afe480'
+          assert c['reachable_stream_sha256']=='c109730b8f3608d59059ff07a2235d42510be5cbcb5bac991eeb51a7991c7400'
+          assert p['idempotence']['scalar_transitivity_checks']==1016
+          assert p['invariant_vector']=={f'CN8U-INV-{i:02d}':'PASS' for i in range(1,13)}
+          assert b['pr114_node8_refinement_admitted'] is True
+          assert b['corrected_node8_parent_up_k_candidate_complete'] is True
+          assert b['corrected_node8_parent_up_k_complete'] is False
+          assert b['corrected_node8_up_k_admitted'] is False
+          assert b['found_layout']=='FORBIDDEN'
+          assert b['no_layout_at_cap']=='FORBIDDEN'
+          assert b['p_vs_np']=='OPEN'
+          print('PR116_FROZEN_CANDIDATE_RECEIPTS = PASS')
+          print('AUTHORITY_CLOSURE_CI = PASS_PENDING_SEPARATE_REVIEWER_BOUND_ADMISSION')
+          PY
+
+      - name: Export authority-closure proof package
+        uses: actions/upload-artifact@v4
+        with:
+          name: c049-b4-6-3-node8-up-k-authority-closure
+          path: |
+            /tmp/node8-up-k-original.json
+            experiments/direct/C049_1_B4_6_3_NODE8_UP_K_AUTHORITY_CLOSURE_SPEC_V1.json
+            experiments/direct/janus_c049_1_b4_6_3_corrected_node8_twenty_generator_up_k.py
+            experiments/direct/janus_c049_1_b4_6_3_corrected_node8_twenty_generator_up_k_verifier.py
+          retention-days: 7
