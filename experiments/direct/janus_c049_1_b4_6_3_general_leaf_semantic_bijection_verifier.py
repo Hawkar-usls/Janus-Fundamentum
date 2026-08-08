@@ -2,8 +2,8 @@ from __future__ import annotations
 import argparse, ast, copy, hashlib, json
 from pathlib import Path
 SCHEMA='janus.c049_1.general_leaf_semantic_bijection_candidate.v1'
-SPEC_SCHEMA='janus.c049_1.general_leaf_semantic_bijection_spec.v1'
-SPEC_BLOB='188e4a2d28ed787d7f8aad75c0f157b085db9b3d'
+SPEC_SCHEMA='janus.c049_1.general_leaf_semantic_bijection_spec.v1.1'
+SPEC_BLOB='a6e255210cf0df83a92b2e6169cfafcfabc753d5'
 B1_DOC_BLOB='c1807ab523d3269c064db33221c764d1e459bee2'; B1_CORE_BLOB='96019d44b8defb97f7b0911b57302004c3d57c61'; B2_DOC_BLOB='a7c5a7a65dfd9839711967f1039a96ba20ad6443'; B2_CORE_BLOB='3b66fa2b45702f11ee7a62657754c16800fa90f3'; LEDGER_AUDIT_BLOB='c7ab1da4f38e56034bbf4d3f49c22cbedd1b9d5c'; TERM='OPEN_TRAJECTORY_ENGINE_INCOMPLETE'
 class VError(Exception):
  def __init__(self,inv,msg): super().__init__(f'{inv}:{msg}'); self.inv=inv
@@ -31,7 +31,6 @@ def derive_mapping(a):
  return {'statistic_interface':True,'compactification_interface':True,'preorder_interface':True,'up_k_interface':True,'published_definition_claim_local':True}
 def expected(s,a):
  psrc=s['published_source']; req(psrc['arxiv']=='1507.02184v4' and psrc['doi']=='10.1109/TIT.2017.2740283' and psrc['primary_result']=='Proposition 4.1','INV02','published source'); gt=s['general_theorem']; req(gt['conclusion']=='FS_k({V},B) = up_k({Delta_B},B)' and gt['delta_B']==[['ZERO','B',0],['B','ZERO',0]],'INV07','theorem formula'); req('FOR_ALL' in gt['quantification'] and 'no finite dimension or cap is frozen' in gt['quantification'],'INV03','quantification')
- # Symbolic endpoint derivation: with B<=V, V∩B=B; intersections with ZERO are ZERO; each endpoint prefix∩suffix is ZERO so lambda=0.
  deriv={'singleton_layout_count_expression':'1!','singleton_layout_count':1,'unique_layout':['V'],'premise':'B<=V','intersection_laws':['ZERO_INTER_V=ZERO','V_INTER_ZERO=ZERO','ZERO_INTER_B=ZERO','V_INTER_B=B'],'canonical_definition':['L_i=(prefix span) INTER B','R_i=(suffix span) INTER B','lambda_i=dim(prefix INTER suffix)-dim(prefix INTER suffix INTER B)'],'first_cut':{'prefix':'ZERO','suffix':'V','L':'ZERO','R':'B','lambda':0},'second_cut':{'prefix':'V','suffix':'ZERO','L':'B','R':'ZERO','lambda':0},'delta_B':[['ZERO','B',0],['B','ZERO',0]],'delta_is_unique_canonical_singleton_trajectory':True}
  return deriv,derive_mapping(a)
 def verify(c,s,a):
