@@ -1,0 +1,98 @@
+name: Validate C049.1 B5.4 handoff hardening v1.1
+
+on:
+  pull_request:
+    paths:
+      - 'experiments/direct/C049_1_B5_4_HANDOFF_TAMPER_HARDENING_AMENDMENT_V1_1.json'
+      - 'experiments/direct/janus_c049_1_b5_4_corrected_discovery_phase_a_c047_handoff_hardening_verifier_v11.py'
+      - '.github/workflows/validate-c049-1-b5-4-corrected-discovery-phase-a-c047-handoff-v1-1.yml'
+  workflow_dispatch:
+
+jobs:
+  b5-4-hardening-v1-1:
+    runs-on: ubuntu-latest
+    env:
+      PYTHONPATH: experiments/direct
+      SPEC: experiments/direct/C049_1_B5_4_CORRECTED_DISCOVERY_PHASE_A_C047_HANDOFF_SPEC_V1.json
+      AMENDMENT: experiments/direct/C049_1_B5_4_HANDOFF_TAMPER_HARDENING_AMENDMENT_V1_1.json
+      PRODUCER: experiments/direct/janus_c049_1_b5_4_corrected_discovery_phase_a_c047_handoff.py
+      BASE_VERIFIER: experiments/direct/janus_c049_1_b5_4_corrected_discovery_phase_a_c047_handoff_verifier.py
+      HARDENED_VERIFIER: experiments/direct/janus_c049_1_b5_4_corrected_discovery_phase_a_c047_handoff_hardening_verifier_v11.py
+      B51_SPEC: experiments/direct/C049_1_B5_1_GENERIC_CORRECTED_RUNTIME_TRACE_EXECUTOR_SPEC_V1.json
+      B51_PRODUCER: experiments/direct/janus_c049_1_b5_1_generic_corrected_runtime_trace_executor.py
+      B52A_SPEC: experiments/direct/C049_1_B5_2A_GENERIC_ALGORITHM2_PROVENANCE_CARRIER_AMENDMENT_V1_1.json
+      B52A_PRODUCER: experiments/direct/janus_c049_1_b5_2a_generic_algorithm2_provenance_carrier_v11.py
+      B52A_VERIFIER: experiments/direct/janus_c049_1_b5_2a_generic_algorithm2_provenance_carrier_verifier_v11.py
+      B52B_SPEC: experiments/direct/C049_1_B5_2B_GENERIC_ALGORITHM2_PRINTORDER_RECONSTRUCTION_SPEC_V1.json
+      B52B_PRODUCER: experiments/direct/janus_c049_1_b5_2b_generic_algorithm2_printorder_reconstruction.py
+      B52B_VERIFIER: experiments/direct/janus_c049_1_b5_2b_generic_algorithm2_printorder_reconstruction_verifier.py
+      B52B_ADMISSION: experiments/direct/audits/C049_1_B5_2B_GENERIC_ALGORITHM2_PRINTORDER_RECONSTRUCTION_ADMISSION_F057B7AF.json
+      B53_ADMISSION: experiments/direct/audits/C049_1_B5_3_GENERIC_EMPTY_ROOT_TERMINAL_COMPOSITION_ADMISSION_E9841522.json
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Bind hardening files and unchanged theorem subject
+        run: |
+          set -euo pipefail
+          if [ "${{ github.event_name }}" = "pull_request" ]; then PROOF_HEAD="${{ github.event.pull_request.head.sha }}"; else PROOF_HEAD="$GITHUB_SHA"; fi
+          for f in "$SPEC" "$PRODUCER" "$BASE_VERIFIER" "$AMENDMENT" "$HARDENED_VERIFIER"; do test "$(git rev-parse "$PROOF_HEAD:$f")" = "$(git hash-object "$f")"; done
+          test "$(git hash-object "$B52B_ADMISSION")" = "5e60eff4a4bd4c87cbf527cd446fc6b23b013774"
+          test "$(git hash-object "$B53_ADMISSION")" = "32177caad196ca4640c090212c41bc132448cc7c"
+          python -m py_compile "$PRODUCER" "$BASE_VERIFIER" "$HARDENED_VERIFIER"
+          echo 'B5_4_V1_1_HARDENING_BINDING = PASS'
+          echo 'B5_4_THEOREM_SUBJECT_UNCHANGED = PASS'
+
+      - name: Build UNSAT and matched OPEN subjects
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          def w(name,x): Path('/tmp/'+name+'.json').write_text(json.dumps(x,sort_keys=True,separators=(',',':'))+'\n')
+          caps={'max_boundary_dim':2,'max_k':1,'max_full_set_entries':5000,'max_child_pairs':100000,'max_join_paths':500000}
+          sat_b5={'ambient_dim':2,'k':0,'caps':caps,'factors':[{'id':10,'normal_space':[1],'affine_offset':{'canonical_affine_equations':[[1,0]]}},{'id':20,'normal_space':[2],'affine_offset':{'canonical_affine_equations':[[2,0]]}}],'tree':{'root':'root','nodes':[{'id':'root','left':'la','right':'lb'},{'id':'la','factor_id':10},{'id':'lb','factor_id':20}]}}
+          unsat_b5={'ambient_dim':1,'k':1,'caps':caps,'factors':[{'id':101,'normal_space':[1],'affine_offset':{'canonical_affine_equations':[[1,0]]}},{'id':102,'normal_space':[1],'affine_offset':{'canonical_affine_equations':[[1,1]]}}],'tree':{'root':'r','nodes':[{'id':'r','left':'l','right':'q'},{'id':'l','factor_id':101},{'id':'q','factor_id':102}]}}
+          unsat_phase={'dimension':1,'k':1,'factors':[{'factor_id':101,'equations':[[1,0]]},{'factor_id':102,'equations':[[1,1]]}],'caps':{}}
+          open_phase={'dimension':2,'k':0,'factors':[{'factor_id':10,'equations':[[1,0]]},{'factor_id':20,'equations':[[2,0]]}],'caps':{'trellis_work_cap':1}}
+          for n,x in [('sat-b5',sat_b5),('unsat-b5',unsat_b5),('unsat-phase',unsat_phase),('open-phase',open_phase)]: w(n,x)
+          PY
+
+      - name: Build verified B5.2B subjects
+        run: |
+          set -euo pipefail
+          for name in sat unsat; do
+            b5=/tmp/$name-b5.json
+            python "$B51_PRODUCER" --spec "$B51_SPEC" --input "$b5" --output "/tmp/$name.b51.json" > /dev/null
+            python "$B52A_PRODUCER" --spec "$B52A_SPEC" --input "$b5" --b5-1-artifact "/tmp/$name.b51.json" --output "/tmp/$name.b52a.json" > /dev/null
+            python "$B52A_VERIFIER" --spec "$B52A_SPEC" --input "$b5" --b5-1-artifact "/tmp/$name.b51.json" --candidate "/tmp/$name.b52a.json" > "/tmp/$name.b52a.verify.log"
+            grep -F 'JANUS_B5_2A_GENERIC_ALGORITHM2_PROVENANCE_CARRIER_V1_1_INDEPENDENT_VERIFIER = PASS' "/tmp/$name.b52a.verify.log"
+            python "$B52B_PRODUCER" --spec "$B52B_SPEC" --input "$b5" --b5-1-artifact "/tmp/$name.b51.json" --carrier "/tmp/$name.b52a.json" --output "/tmp/$name.b52b.json" > /dev/null
+            python "$B52B_VERIFIER" --spec "$B52B_SPEC" --input "$b5" --b5-1-artifact "/tmp/$name.b51.json" --carrier "/tmp/$name.b52a.json" --candidate "/tmp/$name.b52b.json" > "/tmp/$name.b52b.verify.log"
+            grep -F 'JANUS_B5_2B_GENERIC_ALGORITHM2_PRINTORDER_INDEPENDENT_VERIFIER = PASS' "/tmp/$name.b52b.verify.log"
+          done
+          echo 'B5_4_V1_1_UPSTREAM_SUBJECTS = PASS'
+
+      - name: Build base UNSAT and matched OPEN handoff candidates
+        run: |
+          set -euo pipefail
+          python "$PRODUCER" --spec "$SPEC" --b5-input /tmp/unsat-b5.json --phase-a-input /tmp/unsat-phase.json --b5-2b-candidate /tmp/unsat.b52b.json --b5-2b-admission "$B52B_ADMISSION" --b5-3-admission "$B53_ADMISSION" --output /tmp/unsat.b54.json > /tmp/unsat.b54.log
+          python "$BASE_VERIFIER" --spec "$SPEC" --b5-input /tmp/unsat-b5.json --phase-a-input /tmp/unsat-phase.json --b5-2b-candidate /tmp/unsat.b52b.json --b5-2b-admission "$B52B_ADMISSION" --b5-3-admission "$B53_ADMISSION" --candidate /tmp/unsat.b54.json > /tmp/unsat.b54.verify.log
+          grep -F 'C047_STATUS = UNSAT' /tmp/unsat.b54.verify.log
+          python "$PRODUCER" --spec "$SPEC" --b5-input /tmp/sat-b5.json --phase-a-input /tmp/open-phase.json --b5-2b-candidate /tmp/sat.b52b.json --b5-2b-admission "$B52B_ADMISSION" --b5-3-admission "$B53_ADMISSION" --output /tmp/open.b54.json > /tmp/open.b54.log
+          python "$BASE_VERIFIER" --spec "$SPEC" --b5-input /tmp/sat-b5.json --phase-a-input /tmp/open-phase.json --b5-2b-candidate /tmp/sat.b52b.json --b5-2b-admission "$B52B_ADMISSION" --b5-3-admission "$B53_ADMISSION" --candidate /tmp/open.b54.json > /tmp/open.b54.verify.log
+          grep -F 'JANUS_B5_4_CORRECTED_DISCOVERY_PHASE_A_C047_HANDOFF_INDEPENDENT_VERIFIER = PASS' /tmp/open.b54.verify.log
+          python - <<'PY'
+          import json
+          p=json.load(open('/tmp/open.b54.json'))['proof_payload']; assert p['c047_status'].startswith('OPEN_')
+          print('B5_4_V1_1_MATCHED_OPEN_SUBJECT = PASS')
+          PY
+
+      - name: Reject strengthened repaired-digest seam attacks
+        run: |
+          set -euo pipefail
+          python "$HARDENED_VERIFIER" --spec "$SPEC" --base-b5-input /tmp/unsat-b5.json --base-phase-a-input /tmp/unsat-phase.json --base-b5-2b-candidate /tmp/unsat.b52b.json --base-candidate /tmp/unsat.b54.json --open-b5-input /tmp/sat-b5.json --open-phase-a-input /tmp/open-phase.json --open-b5-2b-candidate /tmp/sat.b52b.json --open-candidate /tmp/open.b54.json --b5-2b-admission "$B52B_ADMISSION" --b5-3-admission "$B53_ADMISSION" | tee /tmp/b54-hardening.log
+          grep -F 'STRENGTHENED_TAMPERS_REJECTED = 3/3' /tmp/b54-hardening.log
+          grep -F 'B5_4_SUBJECT_CORRECT_REPAIRED_DIGEST_HARDENING = PASS' /tmp/b54-hardening.log
