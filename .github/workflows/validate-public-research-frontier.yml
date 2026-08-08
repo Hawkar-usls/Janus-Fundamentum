@@ -1,0 +1,107 @@
+name: Validate public research frontier
+
+on:
+  pull_request:
+    paths:
+      - "README.md"
+      - "CONTRIBUTING.md"
+      - "docs/CURRENT_RESEARCH_STATUS.md"
+      - "docs/A3_PUBLICATION_TRACK.md"
+      - ".github/ISSUE_TEMPLATE/**"
+      - ".github/workflows/validate-public-research-frontier.yml"
+  push:
+    paths:
+      - "README.md"
+      - "CONTRIBUTING.md"
+      - "docs/CURRENT_RESEARCH_STATUS.md"
+      - "docs/A3_PUBLICATION_TRACK.md"
+      - ".github/ISSUE_TEMPLATE/**"
+      - ".github/workflows/validate-public-research-frontier.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  public-frontier:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out exact source
+        uses: actions/checkout@v4
+
+      - name: Validate public claim ceiling and navigation
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          files = {
+              "README": Path("README.md").read_text(encoding="utf-8"),
+              "STATUS": Path("docs/CURRENT_RESEARCH_STATUS.md").read_text(encoding="utf-8"),
+              "A3": Path("docs/A3_PUBLICATION_TRACK.md").read_text(encoding="utf-8"),
+              "CONTRIBUTING": Path("CONTRIBUTING.md").read_text(encoding="utf-8"),
+          }
+
+          required_everywhere = {
+              "README": [
+                  "P_VS_NP = OPEN",
+                  "5ee79fc82613f24e621595afa0119312a2f52660",
+                  "811d954e52296893898062d9abea7aaf572629be",
+                  "f0ffb9b7afdd1797c4c6648b32f5ee5c5a80a9f0",
+                  "A3_WORLD_NOVELTY_N4 = NOT_ESTABLISHED",
+                  "A3_EXTERNAL_REPLICATION = NOT_ESTABLISHED",
+                  "C023_ASYMPTOTIC_LOWER_BOUND = OPEN",
+              ],
+              "STATUS": [
+                  "P_VS_NP = OPEN",
+                  "ALGORITHMIC_FPT_IN_K = ESTABLISHED_IN_STATED_SCOPE",
+                  "WORLD_NOVELTY_N4 = NOT_ESTABLISHED",
+                  "EXTERNAL_INDEPENDENT_REPLICATION = NOT_ESTABLISHED",
+                  "C023_ASYMPTOTIC_LOWER_BOUND = OPEN",
+              ],
+              "A3": [
+                  "A3_KCLASS_ENDPOINT_COMPRESSION = ES5",
+                  "A3_KCLASS_ENDPOINT_DP = ES5",
+                  "GENERAL_MATROID_PATHWIDTH_COMPLEXITY = UNCHANGED",
+                  "WORLD_NOVELTY_N4 = NOT_ESTABLISHED",
+                  "P_VS_NP = OPEN",
+              ],
+              "CONTRIBUTING": [
+                  "P_VS_NP = OPEN",
+                  "A3_WORLD_NOVELTY_N4 = NOT_ESTABLISHED",
+                  "A3_EXTERNAL_INDEPENDENT_REPLICATION = NOT_ESTABLISHED",
+                  "C023_ASYMPTOTIC_LOWER_BOUND = OPEN",
+              ],
+          }
+
+          for name, tokens in required_everywhere.items():
+              text = files[name]
+              missing = [token for token in tokens if token not in text]
+              if missing:
+                  raise SystemExit(f"{name}: missing required public-frontier tokens: {missing}")
+
+          forbidden = [
+              "P_VS_NP = SOLVED",
+              "P_EQ_NP_PROVED = TRUE",
+              "P_NE_NP_PROVED = TRUE",
+              "WORLD_NOVELTY_N4 = ESTABLISHED",
+              "A3_EXTERNAL_INDEPENDENT_REPLICATION = ESTABLISHED",
+              "C023_ASYMPTOTIC_LOWER_BOUND = PROVED",
+          ]
+          combined = "\n".join(files.values())
+          bad = [token for token in forbidden if token in combined]
+          if bad:
+              raise SystemExit(f"forbidden public overclaim tokens present: {bad}")
+
+          print("PUBLIC_RESEARCH_FRONTIER_CLAIM_CEILING = PASS")
+          print("P_VS_NP = OPEN")
+          print("A3_PUBLICATION_TARGET = 811d954e52296893898062d9abea7aaf572629be")
+          print("C023_RESEARCH_BASELINE = f0ffb9b7afdd1797c4c6648b32f5ee5c5a80a9f0")
+          PY
+
+      - name: Confirm contribution intake files
+        shell: bash
+        run: |
+          test -s .github/ISSUE_TEMPLATE/counterexample.yml
+          test -s .github/ISSUE_TEMPLATE/independent-replication.yml
+          test -s .github/ISSUE_TEMPLATE/prior-art.yml
+          echo "PUBLIC_RESEARCH_INTAKE_SURFACE = PASS"
