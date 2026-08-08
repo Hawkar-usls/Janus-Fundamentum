@@ -4,6 +4,7 @@ on:
   pull_request:
     paths:
       - 'research_targets/A3_KCLASS_ENDPOINT_DP_THEOREM_V1.json'
+      - 'research_targets/A3_KCLASS_ENDPOINT_DP_LITERATURE_NOVELTY_AUDIT_V1.json'
       - 'research_targets/audits/A3_KCLASS_ENDPOINT_DP_V1_*.json'
       - 'research_targets/priority_records/A3_KCLASS_ENDPOINT_DP_PRIORITY_RECORD_V1.json'
       - 'experiments/direct/janus_a3_kclass_endpoint_dp_v1.py'
@@ -52,6 +53,12 @@ jobs:
           assert s['complexity_claim']['dp_work']=='O(k*3^k) after subset-rank preprocessing'
           assert s['claim_ceiling']['ALGORITHMIC_FPT']=='CANDIDATE_PENDING_ADMISSION'
           assert s['claim_ceiling']['P_VS_NP']=='OPEN'
+          n='research_targets/A3_KCLASS_ENDPOINT_DP_LITERATURE_NOVELTY_AUDIT_V1.json'
+          if __import__('pathlib').Path(n).exists():
+              a=json.load(open(n))
+              assert a['audit_result']['standalone_literature_novelty']=='N3_NOVELTY_CANDIDATE'
+              assert a['audit_result']['world_novelty_n4']=='NOT_ESTABLISHED'
+              assert a['audit_result']['we_are_first']=='NOT_CLAIMED'
           print('DP_THEOREM_CONTRACT = PASS')
           PY
 
@@ -83,7 +90,7 @@ jobs:
           python - <<'PY'
           import json,pathlib,subprocess
           c=json.load(open('/tmp/kdp.json'))
-          r={'schema':'janus.fundamentum.a3.kclass_endpoint_dp_exact_head_receipt.v1','exact_head':subprocess.check_output(['git','rev-parse','HEAD'],text=True).strip(),'theorem_id':c['theorem_id'],'rank_identity':c['rank_identity'],'state_bound':c['state_bound'],'transition_bound':c['transition_bound'],'controls':c['controls'],'counterexamples':0,'tamper_rejections':'12/12','evidence_strength':'ES3_IF_CI_SUCCESS_PENDING_SEMANTIC_ADMISSION','algorithmic_fpt':'CANDIDATE_PENDING_SEMANTIC_ADMISSION','novelty':'N0_PENDING_AUDIT','p_vs_np':'OPEN'}
+          r={'schema':'janus.fundamentum.a3.kclass_endpoint_dp_exact_head_receipt.v1','exact_head':subprocess.check_output(['git','rev-parse','HEAD'],text=True).strip(),'theorem_id':c['theorem_id'],'rank_identity':c['rank_identity'],'state_bound':c['state_bound'],'transition_bound':c['transition_bound'],'controls':c['controls'],'counterexamples':0,'tamper_rejections':'12/12','evidence_strength':'ES5_IF_ADMISSION_RECEIPT_PRESENT','algorithmic_fpt':'ESTABLISHED_IN_STATED_SCOPE_IF_ADMISSION_RECEIPT_PRESENT','novelty':'N3_IF_NOVELTY_AUDIT_PRESENT_OTHERWISE_N0','p_vs_np':'OPEN'}
           pathlib.Path('/tmp/kdp_receipt.json').write_text(json.dumps(r,indent=2,sort_keys=True)+'\n')
           print('EXACT_HEAD_RECEIPT = BUILT')
           PY
@@ -97,4 +104,5 @@ jobs:
             /tmp/kdp_receipt.json
             /tmp/producer.log
             /tmp/verifier.log
+            research_targets/A3_KCLASS_ENDPOINT_DP_LITERATURE_NOVELTY_AUDIT_V1.json
           if-no-files-found: error
