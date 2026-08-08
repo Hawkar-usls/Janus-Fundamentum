@@ -1,0 +1,37 @@
+name: Validate C049.1 B5.2B v1 historical negative receipt
+
+on:
+  workflow_dispatch:
+
+jobs:
+  b5-2b-v1-negative-receipt:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Verify frozen v1 tamper-harness failure classification
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          p=Path('experiments/direct/C049_1_B5_2B_PRINTORDER_TAMPER_HARDENING_AMENDMENT_V1_1.json')
+          a=json.loads(p.read_text())
+          n=a['negative_provenance']
+          assert n['run_id']==31244781344
+          assert n['job_id']==93071478104
+          assert n['proof_head']=='e74f24da61f9133e09fc3e38248527fe27673cb3'
+          assert n['classification']=='T05_NOOP_TAMPER_FIXTURE_SELECTION'
+          assert n['positive_printorder_passed'] is True
+          assert n['three_factor_printorder_and_compactification_lifts_passed'] is True
+          assert n['empty_root_nonterminal_passed'] is True
+          assert n['failure_stage']=='TAMPER_HARNESS_ONLY'
+          print('B5_2B_V1_NEGATIVE_RECEIPT = PASS')
+          print('RUN_31244781344 = TAMPER_HARNESS_FAILURE_AFTER_SEMANTIC_CONTROLS_PASS')
+          print('SURVIVING_ATTACK = T05_NOOP_TAMPER_FIXTURE_SELECTION')
+          print('SUPERSEDED_BY = B5_2B_V1_1_NONTRIVIAL_TAMPER_HARDENING')
+          print('GENERIC_FOUND_LAYOUT = FORBIDDEN_PENDING_REVIEW')
+          print('P_VS_NP = OPEN')
+          PY
