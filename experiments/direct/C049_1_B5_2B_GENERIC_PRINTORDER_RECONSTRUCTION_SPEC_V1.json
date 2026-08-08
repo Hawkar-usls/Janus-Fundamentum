@@ -1,6 +1,6 @@
 {
   "schema": "janus.c049_1.b5_2b.generic_printorder_reconstruction_spec.v1",
-  "version": "1.0",
+  "version": "1.1",
   "frozen_at": "2026-08-08",
   "gate": "C049.1_B5.2B_GENERIC_PRINTORDER_RECONSTRUCTION",
   "status": "SPEC_FROZEN_REVIEW_ONLY_FOUND_LAYOUT_CEILING",
@@ -12,10 +12,11 @@
     "algorithm": "Algorithm 2: Print a linear layout of width at most k",
     "proposition": "Proposition 5.9",
     "source_contract": [
-      "leaf: print its unique space when the requested interval index is the first interval",
+      "zero-boundary leaf spaces may be placed at the beginning",
+      "leaf: print its unique space on the first interval",
       "join: follow the stored ordinary H/V path; an H step recurses to the left child interval and a V step to the right child interval",
       "up: use a monotone sequence selecting a lower/source path coordinate for every upper/output coordinate and recurse over the corresponding source interval range",
-      "shrink_or_transport: preserve interval index and recurse to the unique child",
+      "shrink: restriction itself preserves interval order",
       "root: call printorder for every interval of the selected root trajectory"
     ]
   },
@@ -44,9 +45,11 @@
   "printorder_contract": {
     "indexing": "ZERO_BASED_IMPLEMENTATION_OF_THE_PAPER_ONE_BASED_INTERVAL_INDICES",
     "root_entry_selection": "EACH_ROOT_ENTRY_IS_RECONSTRUCTED_IN_CANONICAL_ENTRY_INDEX_ORDER",
+    "zero_boundary_leaf_prefix": "ALL_LEAF_FACTORS_WITH_B_V_EQUAL_ZERO_ARE_EMITTED_FIRST_IN_CANONICAL_FACTOR_ID_ORDER_AND_ARE_NOT_EMITTED_AGAIN_BY_INTERVAL_RECURSION",
     "up_sequence_derivation": {
       "witness_path": "CANONICAL_PAIR_LIST_[lower_index,upper_index]",
-      "selected_lower_index_for_upper_j": "MAXIMUM_LOWER_INDEX_i_SUCH_THAT_[i,j]_IS_ON_THE_WITNESS_PATH",
+      "selected_lower_index_for_upper_0": 0,
+      "selected_lower_index_for_upper_j_gt_0": "MAXIMUM_LOWER_INDEX_i_SUCH_THAT_[i,j]_IS_ON_THE_WITNESS_PATH",
       "required_properties": [
         "one selected lower index exists for every upper trajectory position",
         "the selected sequence is nondecreasing",
@@ -55,21 +58,30 @@
       ],
       "interval_recursion": "FOR_OUTPUT_INTERVAL_i_RECURSE_OVER_SOURCE_INTERVALS_SELECTED[i]..SELECTED[i+1)-1"
     },
+    "embedded_runtime_compactification": {
+      "reason": "REPOSITORY_JOIN_AND_SHRINK_PRIMITIVES_COMPACTIFY_INSIDE_THE_OPERATION_WHILE_THE_PUBLISHED_COMPOSITION_TREE_TREATS_ORDER_PRESERVING_OPERATION_AND_UP/COMPARE_AS_SEPARATE_LAYERS",
+      "required_receipt": "B5_2A_FULL_JOIN_AND_SHRINK_RECEIPTS_INCLUDE_PRECOMPACT_SEQUENCE_COMPACTIFICATION_TRACE_AND_COMPACT_OUTPUT",
+      "survivor_map": "REPLAY_B1_COMPACTIFICATION_DELETIONS_ON_ORIGINAL_STATISTIC_INDICES",
+      "compact_interval_lift": "A_COMPACT_INTERVAL_BETWEEN_SURVIVING_ORIGINAL_POSITIONS_a_AND_b_RECURSES_OVER_ALL_PRECOMPACT_INTERVALS_a..b-1",
+      "join_application": "LIFT_COMPACT_JOINED_GENERATOR_INTERVALS_TO_RAW_HV_PATH_STEP_INTERVALS_BEFORE_LEFT_RIGHT_RECURSION",
+      "shrink_application": "LIFT_COMPACT_SHRUNK_GENERATOR_INTERVALS_TO_PROJECTED_PRECOMPACT_INTERVALS_THEN_USE_THE_SAME_INDICES_IN_THE_JOINED_FULL_SET_TRAJECTORY"
+    },
     "join_sequence_derivation": {
       "path": "EXACT_STORED_ORDINARY_HV_JOIN_PATH",
       "H_step_[1,0]": "RECURSE_TO_LEFT_CHILD_AT_CURRENT_LEFT_INDEX",
       "V_step_[0,1]": "RECURSE_TO_RIGHT_CHILD_AT_CURRENT_RIGHT_INDEX",
       "diagonal_step": "FORBIDDEN"
     },
-    "shrink_and_expand_transport": "ORDER_PRESERVING_RECURSE_WITH_SAME_INTERVAL_INDEX",
-    "leaf": "EMIT_FACTOR_ID_EXACTLY_ON_INTERVAL_ZERO",
-    "deduplication": "FORBIDDEN; EACH_FACTOR_MUST_BE_EMITTED_EXACTLY_ONCE_BY_THE_CERTIFIED_RECURSION"
+    "expand_transport": "ORDER_PRESERVING_RECURSE_WITH_SAME_INTERVAL_INDEX",
+    "leaf": "EMIT_FACTOR_ID_EXACTLY_ON_INTERVAL_ZERO_FOR_NONZERO_BOUNDARY_LEAVES",
+    "deduplication": "FORBIDDEN; EACH_FACTOR_MUST_BE_EMITTED_EXACTLY_ONCE_BY_THE_CERTIFIED_RECURSION_OR_ZERO_BOUNDARY_PREFIX"
   },
   "independent_verifier_contract": {
     "producer_import": "FORBIDDEN",
     "must_first_verify_b5_2a_carrier": true,
     "must_reconstruct_order_from_carrier_labels_independently": true,
-    "must_compare_candidate_order_to_independent_reconstruction": true,
+    "must_replay_join_and_shrink_compactification_survivor_maps": true,
+    "must_compare_candidate_order_and_printorder_trace_to_independent_reconstruction": true,
     "must_verify_factor_order_is_exact_permutation_of_input_factor_ids": true,
     "must_verify_affine_offset_identity_is_not_changed_or_used_to_merge_factors": true,
     "must_recompute_every_cut_width_from_input_normal_spaces": true,
@@ -78,7 +90,7 @@
     "must_reject_digest_repaired_semantic_tampers": true
   },
   "control_matrix": [
-    "positive two-factor CLOSED root: one reconstructed root order",
+    "positive two-factor CLOSED root: one reconstructed root order including zero-boundary leaf prefix handling",
     "presentation-reordered equivalent input: byte-identical reconstructed artifact",
     "negative empty root: zero orders and no promotion",
     "three-factor CLOSED root: five root entries, five independently reconstructed orders, each a permutation with width<=k"
@@ -89,16 +101,19 @@
     "T03 omit one factor from emitted order",
     "T04 duplicate one emitted factor",
     "T05 swap two factors while repairing candidate digest",
-    "T06 mutate a reconstructed up selected-index sequence",
-    "T07 inject diagonal into a join path",
-    "T08 redirect a leaf factor identity",
-    "T09 mutate affine offset identity",
-    "T10 lower claimed max cut width",
-    "T11 mutate one cut prefix/suffix width receipt",
-    "T12 emit an order for an empty root",
-    "T13 set FOUND_LAYOUT on an empty root",
-    "T14 promote NO_LAYOUT_AT_CAP",
-    "T15 promote polynomial runtime / B5 complete / P_VS_NP"
+    "T06 mutate an up selected-index sequence in the printorder trace",
+    "T07 mutate a join H/V step in the printorder trace",
+    "T08 mutate a join compactification survivor map",
+    "T09 mutate a shrink compactification survivor map",
+    "T10 mutate zero-boundary leaf prefix",
+    "T11 alter affine-offset factor identity",
+    "T12 lower claimed max cut width",
+    "T13 mutate one cut width receipt",
+    "T14 change layout count / empty-root behavior",
+    "T15 promote FOUND_LAYOUT admission",
+    "T16 promote NO_LAYOUT_AT_CAP",
+    "T17 promote polynomial runtime / B5 complete / P_VS_NP",
+    "T18 mutate factor-order digest"
   ],
   "strict_boundary": {
     "b5_2a_admitted": true,
