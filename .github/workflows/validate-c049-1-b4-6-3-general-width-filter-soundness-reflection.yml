@@ -41,10 +41,10 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          test "$(git hash-object "$SPEC")" = "b5a2e6bdee06a71fba0862b70f4dbd2587bee8f6"
+          test "$(git hash-object "$SPEC")" = "2111615656d96656223b9a300ec24eecc4ff46f1"
           test "$(git hash-object "$PRODUCER")" = "db3a1aaf4386e470e4b11f7b5d445d0c62703fa1"
           test "$(git hash-object "$VERIFIER")" = "43189a4c8d52bf05c564bcc9fe3c1129902adbd3"
-          test "$(git hash-object "$O4_AUDIT")" = "c54eb3120457f6927315ba46e52fb29c37619ae2"
+          test "$(git hash-object "$O4_AUDIT")" = "7c5f591eae0effd05ad4a1f0823672343fa0c47c"
           python -m py_compile "$PRODUCER" "$VERIFIER"
           python - <<'PY'
           import ast
@@ -67,6 +67,17 @@ jobs:
           materialize 3b66fa2b45702f11ee7a62657754c16800fa90f3 /tmp/b2-core.py
           git show "$ROOT_SPEC_SUBJECT:$ROOT_SPEC_PATH" > /tmp/root-spec.json
           test "$(git hash-object /tmp/root-spec.json)" = "401c4856de261f6048d313ca62fa43598ea449e0"
+          python - <<'PY'
+          import json
+          s=json.load(open('experiments/direct/C049_1_B4_6_3_GENERAL_WIDTH_FILTER_SOUNDNESS_REFLECTION_SPEC_V1.json'))
+          n=s['negative_evidence']
+          assert n['first_ci_run_id']==31236560964
+          assert n['first_ci_job_id']==93049989517
+          assert n['first_ci_failed_before_o5_theorem_replay'] is True
+          assert n['first_ci_failure_class']=='UPSTREAM_O4_AUDIT_SEMANTIC_DIGEST_MISMATCH'
+          assert n['o4_canonicalization_commit']=='a5b9fca9aa3a9fbe994d349d44f6f84371f52338'
+          print('O5_NEGATIVE_PROVENANCE_RETAINED = PASS')
+          PY
 
       - name: Build derived theorem certificate twice
         shell: bash
@@ -129,11 +140,13 @@ jobs:
             echo "SPEC_BLOB=$(git hash-object "$SPEC")"
             echo "PRODUCER_BLOB=$(git hash-object "$PRODUCER")"
             echo "VERIFIER_BLOB=$(git hash-object "$VERIFIER")"
+            echo "O4_AUDIT_BLOB=$(git hash-object "$O4_AUDIT")"
             echo "CANDIDATE_SHA256=$(sha256sum /tmp/width-filter-original.json | cut -d' ' -f1)"
             echo "CANDIDATE_SEMANTIC_DIGEST=$(python -c 'import json;print(json.load(open("/tmp/width-filter-original.json"))["semantic_digest"])')"
             echo 'BYTE_IDENTITY=PASS'
             echo 'INVARIANTS=12/12'
             echo 'DIGEST_REPAIRED_TAMPERS_REJECTED=12/12'
+            echo 'NEGATIVE_PROVENANCE_RETAINED=PASS'
             echo 'PUBLISHED_LEMMA_3_4_DIRECTION=PASS'
             echo 'SYMBOLIC_WIDTH_MONOTONICITY=PASS'
             echo 'FAILED_REFINEMENT_IMPLIES_ALL_SIBLING_REFINEMENTS_FAIL=FALSE'
