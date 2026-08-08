@@ -1,0 +1,159 @@
+name: Validate C049.1 B4.6.3 general leaf semantic bijection
+
+on:
+  push:
+    paths:
+      - 'experiments/direct/C049_1_B4_6_3_GENERAL_LEAF_SEMANTIC_BIJECTION_SPEC_V1_1.json'
+      - 'experiments/direct/janus_c049_1_b4_6_3_general_leaf_semantic_bijection.py'
+      - 'experiments/direct/janus_c049_1_b4_6_3_general_leaf_semantic_bijection_verifier.py'
+      - '.github/workflows/validate-c049-1-b4-6-3-general-leaf-semantic-bijection.yml'
+  pull_request:
+    paths:
+      - 'experiments/direct/C049_1_B4_6_3_GENERAL_LEAF_SEMANTIC_BIJECTION_SPEC_V1_1.json'
+      - 'experiments/direct/janus_c049_1_b4_6_3_general_leaf_semantic_bijection.py'
+      - 'experiments/direct/janus_c049_1_b4_6_3_general_leaf_semantic_bijection_verifier.py'
+      - '.github/workflows/validate-c049-1-b4-6-3-general-leaf-semantic-bijection.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  general-leaf-semantic-bijection:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    env:
+      SPEC_SUBJECT: 8ec4e65d094b6269b3e9db2f42ebb6f8776460fc
+      PRODUCER_SUBJECT: 2fdf2271e27a73925e9c7c4961699d0397cfda53
+      VERIFIER_SUBJECT: 592b41427217abff0c43cc415d2f73755bb08236
+      GAP_LEDGER_EVIDENCE_SUBJECT: 366477becdba6a0388f92705e908442f1d2236c9
+      SPEC: experiments/direct/C049_1_B4_6_3_GENERAL_LEAF_SEMANTIC_BIJECTION_SPEC_V1_1.json
+      PRODUCER: experiments/direct/janus_c049_1_b4_6_3_general_leaf_semantic_bijection.py
+      VERIFIER: experiments/direct/janus_c049_1_b4_6_3_general_leaf_semantic_bijection_verifier.py
+      LEDGER_AUDIT: experiments/direct/audits/C049_1_B4_6_3_CORRECTED_TERMINAL_STRUCTURAL_REFLECTION_LEDGER_INDEPENDENT_SEMANTIC_AUDIT_9741F6D5.json
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Bind corrected theorem subject and local semantic interfaces
+        run: |
+          set -euo pipefail
+          bind_blob(){ test "$(git rev-parse "$1:$2")" = "$(git hash-object "$2")"; }
+          bind_blob "$SPEC_SUBJECT" "$SPEC"
+          bind_blob "$PRODUCER_SUBJECT" "$PRODUCER"
+          bind_blob "$VERIFIER_SUBJECT" "$VERIFIER"
+          bind_blob "$GAP_LEDGER_EVIDENCE_SUBJECT" "$LEDGER_AUDIT"
+          test "$(git hash-object "$SPEC")" = "a6e255210cf0df83a92b2e6169cfafcfabc753d5"
+          test "$(git hash-object "$PRODUCER")" = "b9863fb2d8ce40770972d0154e8fd6a786faec59"
+          test "$(git hash-object "$VERIFIER")" = "384040fa9fd53d1103a611739bdd9e3462602b2a"
+          test "$(git hash-object "$LEDGER_AUDIT")" = "c7ab1da4f38e56034bbf4d3f49c22cbedd1b9d5c"
+          python -m py_compile "$PRODUCER" "$VERIFIER"
+          python - <<'PY'
+          import ast
+          from pathlib import Path
+          p=ast.parse(Path('experiments/direct/janus_c049_1_b4_6_3_general_leaf_semantic_bijection.py').read_text())
+          v=ast.parse(Path('experiments/direct/janus_c049_1_b4_6_3_general_leaf_semantic_bijection_verifier.py').read_text())
+          def mods(t):
+              z=[]
+              for n in ast.walk(t):
+                  if isinstance(n,ast.Import): z.extend(a.name for a in n.names)
+                  elif isinstance(n,ast.ImportFrom): z.append(n.module or '')
+              return z
+          assert not any(x.endswith('janus_c049_1_b4_6_3_general_leaf_semantic_bijection_verifier') for x in mods(p))
+          assert not any(x.endswith('janus_c049_1_b4_6_3_general_leaf_semantic_bijection') for x in mods(v))
+          print('LEAF_SEMANTIC_BIJECTION_IMPLEMENTATION_DECOUPLING_STATIC_CHECK = PASS')
+          PY
+          materialize(){ git cat-file -e "$1^{blob}"; git cat-file blob "$1" > "$2"; test "$(git hash-object "$2")" = "$1"; }
+          materialize c1807ab523d3269c064db33221c764d1e459bee2 /tmp/b1-doc.md
+          materialize 96019d44b8defb97f7b0911b57302004c3d57c61 /tmp/b1-core.py
+          materialize a7c5a7a65dfd9839711967f1039a96ba20ad6443 /tmp/b2-doc.md
+          materialize 3b66fa2b45702f11ee7a62657754c16800fa90f3 /tmp/b2-core.py
+
+      - name: Build universal symbolic theorem binder twice
+        run: |
+          set -euo pipefail
+          python "$PRODUCER" --spec "$SPEC" --b1-doc /tmp/b1-doc.md --b1-core /tmp/b1-core.py --b2-doc /tmp/b2-doc.md --b2-core /tmp/b2-core.py --ledger-audit "$LEDGER_AUDIT" --output /tmp/leaf-a.json | tee /tmp/producer-a.log
+          python "$PRODUCER" --ledger-audit "$LEDGER_AUDIT" --b2-core /tmp/b2-core.py --b2-doc /tmp/b2-doc.md --b1-core /tmp/b1-core.py --b1-doc /tmp/b1-doc.md --spec "$SPEC" --output /tmp/leaf-b.json | tee /tmp/producer-b.log
+          cmp /tmp/leaf-a.json /tmp/leaf-b.json
+          echo 'GENERAL_LEAF_THEOREM_BINDER_BYTE_IDENTITY = PASS'
+          echo "GENERAL_LEAF_THEOREM_ARTIFACT_SHA256=$(sha256sum /tmp/leaf-a.json | cut -d' ' -f1)"
+
+      - name: Independent leaf theorem binding replay and tamper rejection
+        run: |
+          set -euo pipefail
+          python "$VERIFIER" --spec "$SPEC" --producer-source "$PRODUCER" --b1-doc /tmp/b1-doc.md --b1-core /tmp/b1-core.py --b2-doc /tmp/b2-doc.md --b2-core /tmp/b2-core.py --ledger-audit "$LEDGER_AUDIT" --candidate-a /tmp/leaf-a.json --candidate-b /tmp/leaf-b.json --tamper-suite | tee /tmp/verifier.log
+          grep -F 'JANUS_GENERAL_LEAF_SEMANTIC_BIJECTION_INDEPENDENT_VERIFIER = PASS' /tmp/verifier.log
+          grep -F 'INVARIANTS = 12/12' /tmp/verifier.log
+          grep -F 'DIGEST_REPAIRED_TAMPERS_REJECTED = 12/12' /tmp/verifier.log
+          grep -F 'QUANTIFICATION = UNIVERSAL_SYMBOLIC_GF2' /tmp/verifier.log
+          grep -F 'PUBLISHED_RESULT = JKO_PROPOSITION_4_1' /tmp/verifier.log
+          grep -F 'PAPER_MATHEMATICS_INDEPENDENTLY_REPROVED_BY_REPO = FALSE' /tmp/verifier.log
+
+      - name: Non-oracular theorem scope audit
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import hashlib,json
+          from pathlib import Path
+          x=json.loads(Path('/tmp/leaf-a.json').read_text()); p=x['proof_payload']; q=p['quantifiers']; b=p['strict_boundary']
+          assert hashlib.sha256(json.dumps(p,sort_keys=True,separators=(',',':')).encode()).hexdigest()==x['semantic_digest']
+          assert q['concrete_ambient_dimension_used'] is False and q['concrete_boundary_dimension_used'] is False and q['concrete_factor_vector_used'] is False and q['concrete_k_used'] is False
+          assert p['published_theorem']['result']=='Proposition 4.1'
+          assert p['published_theorem']['normalized_formula']=='FS_k({V},B) = up_k({Delta_B},B)'
+          assert p['symbolic_leaf_derivation']['premise']=='B<=V'
+          assert p['symbolic_leaf_derivation']['delta_B']==[['ZERO','B',0],['B','ZERO',0]]
+          assert p['dependency_ceiling']['paper_mathematics_independently_reproved_by_repo'] is False
+          assert p['dependency_ceiling']['published_proposition_used_as_external_mathematical_dependency'] is True
+          assert b['o1_leaf_language_base_case'] is False and b['general_leaf_semantic_bijection_receipt'] is False
+          assert b['remaining_general_semantic_theorems']==7 and b['o2_o7_established'] is False
+          assert b['structural_induction_proved'] is False and b['terminal_completeness_proved'] is False
+          assert b['global_engine_no_layout_at_cap']=='FORBIDDEN' and b['p_vs_np']=='OPEN'
+          print('GENERAL_LEAF_NON_ORACULAR_SCOPE = PASS')
+          print('THEOREM_FORMULA = FS_k({V},B) = up_k({Delta_B},B)')
+          print('GENERAL_LEAF_SEMANTIC_BIJECTION_RECEIPT = FALSE')
+          print('P_VS_NP = OPEN')
+          PY
+
+      - name: Build exact-head leaf theorem receipt
+        run: |
+          set -euo pipefail
+          {
+            echo "GITHUB_SHA=$GITHUB_SHA"
+            echo "GENERAL_LEAF_THEOREM_ARTIFACT_SHA256=$(sha256sum /tmp/leaf-a.json | cut -d' ' -f1)"
+            echo "GENERAL_LEAF_THEOREM_SEMANTIC_DIGEST=$(python -c 'import json;print(json.load(open("/tmp/leaf-a.json"))["semantic_digest"])')"
+            echo 'SPEC_VERSION=1.1'
+            echo 'CORRECTS_SPEC_V1_MISSING_SCHEMA=TRUE'
+            echo 'FIRST_FAILED_RUN=31233323421'
+            echo 'PUBLISHED_RESULT=JKO_PROPOSITION_4_1'
+            echo 'QUANTIFICATION=UNIVERSAL_SYMBOLIC_GF2'
+            echo 'LOCAL_SEMANTIC_MAPPING=PASS'
+            echo 'BYTE_IDENTITY=PASS'
+            echo 'INVARIANTS=12/12'
+            echo 'DIGEST_REPAIRED_TAMPERS_REJECTED=12/12'
+            echo 'PAPER_MATHEMATICS_INDEPENDENTLY_REPROVED_BY_REPO=FALSE'
+            echo 'GENERAL_LEAF_SEMANTIC_BIJECTION_RECEIPT=FALSE'
+            echo 'TERMINAL_COMPLETENESS_PROVED=FALSE'
+            echo 'P_VS_NP=OPEN'
+          } | tee /tmp/exact-head-receipt.txt
+
+      - name: Export general leaf theorem evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: c049-b4-6-3-general-leaf-semantic-bijection
+          retention-days: 7
+          compression-level: 9
+          path: |
+            /tmp/exact-head-receipt.txt
+            /tmp/leaf-a.json
+            /tmp/leaf-b.json
+            /tmp/producer-a.log
+            /tmp/producer-b.log
+            /tmp/verifier.log
+            experiments/direct/C049_1_B4_6_3_GENERAL_LEAF_SEMANTIC_BIJECTION_SPEC_V1_1.json
+            experiments/direct/janus_c049_1_b4_6_3_general_leaf_semantic_bijection.py
+            experiments/direct/janus_c049_1_b4_6_3_general_leaf_semantic_bijection_verifier.py
