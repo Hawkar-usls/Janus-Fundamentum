@@ -1,0 +1,178 @@
+name: Validate C049.1 B4.6.3 general shrink semantic bijection
+
+on:
+  push:
+    paths:
+      - 'experiments/direct/C049_1_B4_6_3_GENERAL_SHRINK_SEMANTIC_BIJECTION_SPEC_V1.json'
+      - 'experiments/direct/janus_c049_1_b4_6_3_general_shrink_semantic_bijection.py'
+      - 'experiments/direct/janus_c049_1_b4_6_3_general_shrink_semantic_bijection_verifier.py'
+      - '.github/workflows/validate-c049-1-b4-6-3-general-shrink-semantic-bijection.yml'
+  pull_request:
+    paths:
+      - 'experiments/direct/C049_1_B4_6_3_GENERAL_SHRINK_SEMANTIC_BIJECTION_SPEC_V1.json'
+      - 'experiments/direct/janus_c049_1_b4_6_3_general_shrink_semantic_bijection.py'
+      - 'experiments/direct/janus_c049_1_b4_6_3_general_shrink_semantic_bijection_verifier.py'
+      - '.github/workflows/validate-c049-1-b4-6-3-general-shrink-semantic-bijection.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  SPEC: experiments/direct/C049_1_B4_6_3_GENERAL_SHRINK_SEMANTIC_BIJECTION_SPEC_V1.json
+  PRODUCER: experiments/direct/janus_c049_1_b4_6_3_general_shrink_semantic_bijection.py
+  VERIFIER: experiments/direct/janus_c049_1_b4_6_3_general_shrink_semantic_bijection_verifier.py
+  O3_AUDIT: experiments/direct/audits/C049_1_B4_6_3_GENERAL_CORRECTED_JOIN_SEMANTIC_BIJECTION_INDEPENDENT_SOURCE_AUDIT_B0130F69.json
+  ROOT_SPEC_SUBJECT: 93db6d068a6b5ca443acd2576710d11df27b82d8
+  ROOT_SPEC_PATH: experiments/direct/C049_1_B4_6_3_CORRECTED_ROOT_FULL_REFINEMENT_SPEC_V1.json
+
+jobs:
+  general-shrink-semantic-bijection:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Bind exact theorem-binder subjects and immutable sources
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git hash-object "$SPEC")" = "2c10b8665ce585ba9229ec3c8e31030905bb41e6"
+          test "$(git hash-object "$PRODUCER")" = "f9d0442d65c610325d34b30066e9c710b039dca4"
+          test "$(git hash-object "$VERIFIER")" = "c5eab9e709ac1c6bdac37754df4de8635b7b24a2"
+          test "$(git hash-object "$O3_AUDIT")" = "2e53d96f9c0510d2e10f1bce0c7f65feadfdee16"
+          python -m py_compile "$PRODUCER" "$VERIFIER"
+          python - <<'PY'
+          import ast
+          from pathlib import Path
+          p=ast.parse(Path('experiments/direct/janus_c049_1_b4_6_3_general_shrink_semantic_bijection.py').read_text())
+          v=ast.parse(Path('experiments/direct/janus_c049_1_b4_6_3_general_shrink_semantic_bijection_verifier.py').read_text())
+          def mods(t):
+              out=[]
+              for n in ast.walk(t):
+                  if isinstance(n,ast.Import): out.extend(a.name for a in n.names)
+                  elif isinstance(n,ast.ImportFrom): out.append(n.module or '')
+              return out
+          assert not any(x.endswith('janus_c049_1_b4_6_3_general_shrink_semantic_bijection_verifier') for x in mods(p))
+          assert not any(x.endswith('janus_c049_1_b4_6_3_general_shrink_semantic_bijection') for x in mods(v))
+          print('GENERAL_SHRINK_IMPLEMENTATION_DECOUPLING_STATIC_CHECK = PASS')
+          PY
+          git fetch --force --prune origin '+refs/heads/*:refs/remotes/origin/*'
+          materialize(){ git cat-file -e "$1^{blob}"; git cat-file blob "$1" > "$2"; test "$(git hash-object "$2")" = "$1"; }
+          materialize 443566c4b79bf67ec1613413130169cab12ebb0f /tmp/b3-core.py
+          materialize 786f4cc657335f31ca8696167bc2bde66d53180b /tmp/b3-doc.md
+          materialize 96019d44b8defb97f7b0911b57302004c3d57c61 /tmp/b1-core.py
+          materialize 3b66fa2b45702f11ee7a62657754c16800fa90f3 /tmp/b2-core.py
+          git show "$ROOT_SPEC_SUBJECT:$ROOT_SPEC_PATH" > /tmp/root-spec.json
+          test "$(git hash-object /tmp/root-spec.json)" = "401c4856de261f6048d313ca62fa43598ea449e0"
+
+      - name: Build theorem binding with two CLI source presentation orders
+        shell: bash
+        run: |
+          set -euo pipefail
+          python "$PRODUCER" \
+            --spec "$SPEC" --o3-audit "$O3_AUDIT" --b3-core /tmp/b3-core.py --b3-doc /tmp/b3-doc.md \
+            --b1-core /tmp/b1-core.py --b2-core /tmp/b2-core.py --root-spec /tmp/root-spec.json \
+            --output /tmp/shrink-original.json | tee /tmp/producer-original.log
+          python "$PRODUCER" \
+            --root-spec /tmp/root-spec.json --b2-core /tmp/b2-core.py --b1-core /tmp/b1-core.py \
+            --b3-doc /tmp/b3-doc.md --b3-core /tmp/b3-core.py --o3-audit "$O3_AUDIT" --spec "$SPEC" \
+            --output /tmp/shrink-reordered.json | tee /tmp/producer-reordered.log
+          cmp /tmp/shrink-original.json /tmp/shrink-reordered.json
+          echo 'GENERAL_SHRINK_BINDER_BYTE_IDENTITY = PASS'
+          echo "GENERAL_SHRINK_THEOREM_ARTIFACT_SHA256=$(sha256sum /tmp/shrink-original.json | cut -d' ' -f1)"
+          python - <<'PY'
+          import json
+          x=json.load(open('/tmp/shrink-original.json'))
+          print('GENERAL_SHRINK_THEOREM_SEMANTIC_DIGEST='+x['semantic_digest'])
+          PY
+
+      - name: Independent theorem-binding replay and tamper rejection
+        shell: bash
+        run: |
+          set -euo pipefail
+          python "$VERIFIER" \
+            --spec "$SPEC" --producer-source "$PRODUCER" --o3-audit "$O3_AUDIT" \
+            --b3-core /tmp/b3-core.py --b3-doc /tmp/b3-doc.md --b1-core /tmp/b1-core.py --b2-core /tmp/b2-core.py \
+            --root-spec /tmp/root-spec.json --candidate-original /tmp/shrink-original.json \
+            --candidate-reordered /tmp/shrink-reordered.json --tamper-suite | tee /tmp/verifier.log
+          grep -F 'JANUS_GENERAL_SHRINK_SEMANTIC_BIJECTION_INDEPENDENT_VERIFIER = PASS' /tmp/verifier.log
+          grep -F 'INVARIANTS = 12/12' /tmp/verifier.log
+          grep -F 'DIGEST_REPAIRED_TAMPERS_REJECTED = 12/12' /tmp/verifier.log
+          grep -F 'PUBLISHED_RESULT = JKO_PROPOSITION_4_3' /tmp/verifier.log
+          grep -F 'CALLER_SHRINK_CONTAINMENT_AUTOMATICALLY_ESTABLISHED = FALSE' /tmp/verifier.log
+
+      - name: Non-promoting structural boundary audit
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import hashlib,json
+          from pathlib import Path
+          x=json.loads(Path('/tmp/shrink-original.json').read_text()); p=x['proof_payload']; b=p['strict_boundary']
+          assert hashlib.sha256(json.dumps(p,sort_keys=True,separators=(',',':')).encode()).hexdigest()==x['semantic_digest']
+          assert p['general_semantic_theorems_established']==3
+          assert p['remaining_general_semantic_theorems']==4
+          assert p['first_required_next_receipt']=='GENERAL_SHRINK_SEMANTIC_BIJECTION_RECEIPT'
+          assert p['candidate_promotion']['o4_shrink_preservation_and_reflection'] is False
+          assert p['local_mapping']['caller_shrink_containment_automatically_established'] is False
+          assert b['o5_o7_established'] is False
+          assert b['structural_induction_proved'] is False
+          assert b['terminal_completeness_proved'] is False
+          assert b['global_engine_no_layout_at_cap']=='FORBIDDEN'
+          assert b['formal_admission']=='BLOCKED' and b['next_gate']=='CLOSED' and b['p_vs_np']=='OPEN'
+          print('GENERAL_SHRINK_NON_PROMOTING_BOUNDARY = PASS')
+          print('NEXT_MATHEMATICAL_RECEIPT = GENERAL_SHRINK_SEMANTIC_BIJECTION_RECEIPT')
+          PY
+
+      - name: Build exact-head-compatible receipt
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            PROOF_HEAD="${{ github.event.pull_request.head.sha }}"
+          else
+            PROOF_HEAD="$GITHUB_SHA"
+          fi
+          {
+            echo "GITHUB_SHA=$GITHUB_SHA"
+            echo "PROOF_HEAD=$PROOF_HEAD"
+            echo "SPEC_BLOB=$(git hash-object "$SPEC")"
+            echo "PRODUCER_BLOB=$(git hash-object "$PRODUCER")"
+            echo "VERIFIER_BLOB=$(git hash-object "$VERIFIER")"
+            echo "CANDIDATE_SHA256=$(sha256sum /tmp/shrink-original.json | cut -d' ' -f1)"
+            echo "CANDIDATE_SEMANTIC_DIGEST=$(python -c 'import json;print(json.load(open("/tmp/shrink-original.json"))["semantic_digest"])')"
+            echo 'BYTE_IDENTITY=PASS'
+            echo 'INVARIANTS=12/12'
+            echo 'DIGEST_REPAIRED_TAMPERS_REJECTED=12/12'
+            echo 'PUBLISHED_RESULT=JKO_PROPOSITION_4_3'
+            echo 'CALLER_SHRINK_CONTAINMENT_AUTOMATICALLY_ESTABLISHED=FALSE'
+            echo 'GENERAL_SEMANTIC_THEOREMS_ESTABLISHED=3'
+            echo 'REMAINING_GENERAL_SEMANTIC_THEOREMS=4'
+            echo 'FIRST_REQUIRED_NEXT_RECEIPT=GENERAL_SHRINK_SEMANTIC_BIJECTION_RECEIPT'
+            echo 'STRUCTURAL_INDUCTION_PROVED=FALSE'
+            echo 'TERMINAL_COMPLETENESS_PROVED=FALSE'
+            echo 'GLOBAL_ENGINE_NO_LAYOUT_AT_CAP=FORBIDDEN'
+            echo 'P_VS_NP=OPEN'
+          } | tee /tmp/exact-head-receipt.txt
+
+      - name: Export general shrink semantic-bijection evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: c049-b4-6-3-general-shrink-semantic-bijection
+          retention-days: 7
+          compression-level: 9
+          path: |
+            /tmp/exact-head-receipt.txt
+            /tmp/shrink-original.json
+            /tmp/shrink-reordered.json
+            /tmp/producer-original.log
+            /tmp/producer-reordered.log
+            /tmp/verifier.log
+            experiments/direct/C049_1_B4_6_3_GENERAL_SHRINK_SEMANTIC_BIJECTION_SPEC_V1.json
+            experiments/direct/janus_c049_1_b4_6_3_general_shrink_semantic_bijection.py
+            experiments/direct/janus_c049_1_b4_6_3_general_shrink_semantic_bijection_verifier.py
