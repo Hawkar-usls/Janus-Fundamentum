@@ -2,9 +2,8 @@
 """Independent verifier for Fundamentum multidirectional frontier v1.3.
 
 The immutable pre-frontier corpus is materialized once per verifier process and
-reused across repaired-digest tamper attacks.  This changes performance only;
-every attack is still checked against the same independently reconstructed
-Git-authoritative corpus snapshot.
+reused across repaired-digest tamper attacks. Every tamper fixture is required
+to actually change its input before semantic replay.
 """
 from __future__ import annotations
 import argparse, copy, hashlib, json, re, subprocess
@@ -97,7 +96,9 @@ def verify_with_snapshot(r,report,rows,ch):
     ar=[x[0] for x in sorted(a3,key=lambda z:(-z[1][0],-z[1][1],-z[1][2],-z[1][3],z[0]))]
     assert report["evidence_ranking"]==er and report["declared_priority_ranking"]==pr and report["a3_evidence_ranking"]==ar and report["selected_a3_candidate"]==(ar[0] if ar else None)
 def reject(r,report,rows,ch,mut):
-    b=copy.deepcopy(report); mut(b); u=copy.deepcopy(b); u.pop("report_semantic_sha256",None); b["report_semantic_sha256"]=oh(u)
+    b=copy.deepcopy(report); before=cb(b); mut(b)
+    if cb(b)==before: raise AssertionError("tamper fixture is a no-op")
+    u=copy.deepcopy(b); u.pop("report_semantic_sha256",None); b["report_semantic_sha256"]=oh(u)
     try: verify_with_snapshot(r,b,rows,ch)
     except (AssertionError,KeyError,TypeError,ValueError): return
     raise AssertionError("tamper accepted")
@@ -110,9 +111,9 @@ def tampers(r,report,rows,ch):
       lambda x:x["targets"][0].__setitem__("proof_marker_coverage",99), lambda x:x["targets"][0].__setitem__("declared_priority_score",9999),
       lambda x:x["evidence_ranking"].reverse(), lambda x:x["declared_priority_ranking"].reverse(), lambda x:x.__setitem__("selected_a3_candidate","A0_P_VS_NP"),
       lambda x:x.__setitem__("corpus_semantic_sha256","0"*64), lambda x:x.__setitem__("registry_semantic_sha256","f"*64),
-      lambda x:x["targets"][0]["surface_class_counts"].__setitem__("AUDIT",999), lambda x:x["targets"][0].__setitem__("positive_implication_closure",[]),
-      lambda x:x["targets"][0].__setitem__("can_reach_p_not_np_by_explicit_implication",False), lambda x:x["targets"][0].__setitem__("repository_surfaces",[]),
-      lambda x:x["targets"][0].__setitem__("proof_bearing_surfaces",[])
+      lambda x:x["targets"][0]["surface_class_counts"].__setitem__("AUDIT",999), lambda x:x["targets"][0].__setitem__("positive_implication_closure",["FORGED_CLOSURE"]),
+      lambda x:x["targets"][0].__setitem__("can_reach_p_not_np_by_explicit_implication",not x["targets"][0]["can_reach_p_not_np_by_explicit_implication"]),
+      lambda x:x["targets"][0].__setitem__("repository_surfaces",[]), lambda x:x["targets"][0].__setitem__("proof_bearing_surfaces",[])
     ]
     for a in attacks: reject(r,report,rows,ch,a)
     return len(attacks)
@@ -120,7 +121,7 @@ def main():
     ap=argparse.ArgumentParser(); ap.add_argument("--root",default="."); ap.add_argument("--registry",default="research_targets/FUNDAMENTUM_RESEARCH_TARGET_REGISTRY_V1.json"); ap.add_argument("--report",required=True); ap.add_argument("--tamper-test",action="store_true"); a=ap.parse_args()
     root=Path(a.root).resolve(); r=json.loads((root/a.registry).read_text()); report=json.loads(Path(a.report).read_text()); rows,ch=corpus(root)
     verify_with_snapshot(r,report,rows,ch)
-    print("INDEPENDENT_FRONTIER_V1_3_REPLAY = PASS"); print("PRE_FRONTIER_CORPUS_AUTHORITY = PASS"); print("IMMUTABLE_CORPUS_SINGLE_SNAPSHOT = PASS"); print("RELATION_TO_ACTIVE_ROUTE_PROMOTION = FORBIDDEN"); print("GLOBAL_TERMINAL = OPEN")
+    print("INDEPENDENT_FRONTIER_V1_3_REPLAY = PASS"); print("PRE_FRONTIER_CORPUS_AUTHORITY = PASS"); print("IMMUTABLE_CORPUS_SINGLE_SNAPSHOT = PASS"); print("EFFECTIVE_TAMPER_FIXTURES = ENFORCED"); print("RELATION_TO_ACTIVE_ROUTE_PROMOTION = FORBIDDEN"); print("GLOBAL_TERMINAL = OPEN")
     if a.tamper_test:
         n=tampers(r,report,rows,ch); print(f"DIGEST_REPAIRED_TAMPERS_REJECTED = {n}/{n}")
 if __name__=="__main__": main()
