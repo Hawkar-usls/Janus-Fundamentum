@@ -1,0 +1,169 @@
+name: Validate C049.1 B4.6.3 general empty-root specialization
+
+on:
+  push:
+    paths:
+      - 'experiments/direct/C049_1_B4_6_3_GENERAL_EMPTY_ROOT_SPECIALIZATION_SPEC_V1.json'
+      - 'experiments/direct/janus_c049_1_b4_6_3_general_empty_root_specialization.py'
+      - 'experiments/direct/janus_c049_1_b4_6_3_general_empty_root_specialization_verifier.py'
+      - '.github/workflows/validate-c049-1-b4-6-3-general-empty-root-specialization.yml'
+  pull_request:
+    paths:
+      - 'experiments/direct/C049_1_B4_6_3_GENERAL_EMPTY_ROOT_SPECIALIZATION_SPEC_V1.json'
+      - 'experiments/direct/janus_c049_1_b4_6_3_general_empty_root_specialization.py'
+      - 'experiments/direct/janus_c049_1_b4_6_3_general_empty_root_specialization_verifier.py'
+      - '.github/workflows/validate-c049-1-b4-6-3-general-empty-root-specialization.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  SPEC: experiments/direct/C049_1_B4_6_3_GENERAL_EMPTY_ROOT_SPECIALIZATION_SPEC_V1.json
+  PRODUCER: experiments/direct/janus_c049_1_b4_6_3_general_empty_root_specialization.py
+  VERIFIER: experiments/direct/janus_c049_1_b4_6_3_general_empty_root_specialization_verifier.py
+  O6_AUDIT: experiments/direct/audits/C049_1_B4_6_3_GENERAL_B2_SEMANTIC_LANGUAGE_PRESERVATION_INDEPENDENT_SOURCE_AUDIT_E2956FB7.json
+  ROOT_SPEC_SUBJECT: 93db6d068a6b5ca443acd2576710d11df27b82d8
+  ROOT_SPEC_PATH: experiments/direct/C049_1_B4_6_3_CORRECTED_ROOT_FULL_REFINEMENT_SPEC_V1.json
+
+jobs:
+  general-empty-root-specialization:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Bind theorem subjects and immutable semantic sources
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git hash-object "$SPEC")" = "59447d0e9a98abc539fab415ea16ff7bc9e561f2"
+          test "$(git hash-object "$PRODUCER")" = "41c2295c14c64f9620746b130e5be5847f08c73e"
+          test "$(git hash-object "$VERIFIER")" = "8cc5c0811d130bb294f80d97a67e7955e363b3bb"
+          test "$(git hash-object "$O6_AUDIT")" = "24557f428533be4e418b3087467e1878696adebb"
+          python -m py_compile "$PRODUCER" "$VERIFIER"
+          python - <<'PY'
+          import ast
+          from pathlib import Path
+          p=ast.parse(Path('experiments/direct/janus_c049_1_b4_6_3_general_empty_root_specialization.py').read_text())
+          v=ast.parse(Path('experiments/direct/janus_c049_1_b4_6_3_general_empty_root_specialization_verifier.py').read_text())
+          def mods(t):
+              out=[]
+              for n in ast.walk(t):
+                  if isinstance(n,ast.Import): out.extend(a.name for a in n.names)
+                  elif isinstance(n,ast.ImportFrom): out.append(n.module or '')
+              return out
+          assert not any(x.endswith('janus_c049_1_b4_6_3_general_empty_root_specialization_verifier') for x in mods(p))
+          assert not any(x.endswith('janus_c049_1_b4_6_3_general_empty_root_specialization') for x in mods(v))
+          print('GENERAL_EMPTY_ROOT_IMPLEMENTATION_DECOUPLING_STATIC_CHECK = PASS')
+          PY
+          git fetch --force --prune origin '+refs/heads/*:refs/remotes/origin/*'
+          materialize(){ git cat-file -e "$1^{blob}"; git cat-file blob "$1" > "$2"; test "$(git hash-object "$2")" = "$1"; }
+          materialize 96019d44b8defb97f7b0911b57302004c3d57c61 /tmp/b1-core.py
+          git show "$ROOT_SPEC_SUBJECT:$ROOT_SPEC_PATH" > /tmp/root-spec.json
+          test "$(git hash-object /tmp/root-spec.json)" = "401c4856de261f6048d313ca62fa43598ea449e0"
+
+      - name: Build abstract empty-root theorem certificate twice
+        shell: bash
+        run: |
+          set -euo pipefail
+          python "$PRODUCER" --spec "$SPEC" --o6-audit "$O6_AUDIT" --b1-core /tmp/b1-core.py --root-spec /tmp/root-spec.json --output /tmp/empty-root-original.json | tee /tmp/producer-original.log
+          python "$PRODUCER" --root-spec /tmp/root-spec.json --b1-core /tmp/b1-core.py --o6-audit "$O6_AUDIT" --spec "$SPEC" --output /tmp/empty-root-reordered.json | tee /tmp/producer-reordered.log
+          cmp /tmp/empty-root-original.json /tmp/empty-root-reordered.json
+          echo 'GENERAL_EMPTY_ROOT_BINDER_BYTE_IDENTITY = PASS'
+          echo "GENERAL_EMPTY_ROOT_ARTIFACT_SHA256=$(sha256sum /tmp/empty-root-original.json | cut -d' ' -f1)"
+          python - <<'PY'
+          import json
+          x=json.load(open('/tmp/empty-root-original.json'))
+          print('GENERAL_EMPTY_ROOT_SEMANTIC_DIGEST='+x['semantic_digest'])
+          PY
+
+      - name: Independent zero-boundary replay and tamper rejection
+        shell: bash
+        run: |
+          set -euo pipefail
+          python "$VERIFIER" --spec "$SPEC" --producer-source "$PRODUCER" --verifier-source "$VERIFIER" --o6-audit "$O6_AUDIT" --b1-core /tmp/b1-core.py --root-spec /tmp/root-spec.json --candidate-original /tmp/empty-root-original.json --candidate-reordered /tmp/empty-root-reordered.json --tamper-suite | tee /tmp/verifier.log
+          grep -F 'JANUS_GENERAL_EMPTY_ROOT_SPECIALIZATION_INDEPENDENT_VERIFIER = PASS' /tmp/verifier.log
+          grep -F 'INVARIANTS = 12/12' /tmp/verifier.log
+          grep -F 'DIGEST_REPAIRED_TAMPERS_REJECTED = 12/12' /tmp/verifier.log
+          grep -F 'ABSTRACT_FS_ZERO_IFF_COMPLETE_LAYOUT_WIDTH_LE_K = PASS_AS_DERIVED_CANDIDATE' /tmp/verifier.log
+          grep -F 'ENGINE_ROOT_FULL_SET_EQUALS_FS_K_V_ZERO = FALSE' /tmp/verifier.log
+          grep -F 'UPSTREAM_CALLER_PRECONDITIONS_AUTOMATICALLY_ESTABLISHED = FALSE' /tmp/verifier.log
+
+      - name: Non-promoting boundary audit
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import hashlib,json
+          x=json.load(open('/tmp/empty-root-original.json')); p=x['proof_payload']; b=p['strict_boundary']; c=p['empty_root_contract']
+          assert hashlib.sha256(json.dumps(p,sort_keys=True,separators=(',',':')).encode()).hexdigest()==x['semantic_digest']
+          assert c['canonical_zero_boundary_width_equals_layout_width'] is True
+          assert c['realizable_trajectory_has_complete_layout_canonical_extension'] is True
+          assert c['extensions_preserve_width'] is True
+          assert c['fs_nonempty_iff_complete_layout_width_le_k'] is True
+          assert c['concrete_fixture_oracle_used'] is False
+          assert c['engine_root_full_set_equals_fs_k_v_zero'] is False
+          assert c['upstream_caller_preconditions_automatically_established'] is False
+          assert p['general_semantic_theorems_established']==6 and p['remaining_general_semantic_theorems']==1
+          assert p['first_required_next_receipt']=='GENERAL_EMPTY_ROOT_SPECIALIZATION_RECEIPT'
+          assert p['after_o7_next_composition_receipt']=='GENERAL_STRUCTURAL_INDUCTION_COMPOSITION_RECEIPT'
+          assert b['o7_empty_root_specialization_to_complete_layouts'] is False and b['engine_root_full_set_equals_fs_k_v_zero'] is False
+          assert b['structural_induction_proved'] is False and b['terminal_completeness_proved'] is False
+          assert b['global_engine_no_layout_at_cap']=='FORBIDDEN' and b['found_layout']=='FORBIDDEN'
+          assert b['formal_admission']=='BLOCKED' and b['next_gate']=='CLOSED' and b['p_vs_np']=='OPEN'
+          print('GENERAL_EMPTY_ROOT_NON_PROMOTING_BOUNDARY = PASS')
+          print('NEXT_MATHEMATICAL_RECEIPT = GENERAL_EMPTY_ROOT_SPECIALIZATION_RECEIPT')
+          print('AFTER_O7_NEXT_COMPOSITION_RECEIPT = GENERAL_STRUCTURAL_INDUCTION_COMPOSITION_RECEIPT')
+          PY
+
+      - name: Build exact-head-compatible receipt
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ "${{ github.event_name }}" = "pull_request" ]; then PROOF_HEAD="${{ github.event.pull_request.head.sha }}"; else PROOF_HEAD="$GITHUB_SHA"; fi
+          {
+            echo "GITHUB_SHA=$GITHUB_SHA"
+            echo "PROOF_HEAD=$PROOF_HEAD"
+            echo "SPEC_BLOB=$(git hash-object "$SPEC")"
+            echo "PRODUCER_BLOB=$(git hash-object "$PRODUCER")"
+            echo "VERIFIER_BLOB=$(git hash-object "$VERIFIER")"
+            echo "O6_AUDIT_BLOB=$(git hash-object "$O6_AUDIT")"
+            echo "CANDIDATE_SHA256=$(sha256sum /tmp/empty-root-original.json | cut -d' ' -f1)"
+            echo "CANDIDATE_SEMANTIC_DIGEST=$(python -c 'import json;print(json.load(open("/tmp/empty-root-original.json"))["semantic_digest"])')"
+            echo 'BYTE_IDENTITY=PASS'
+            echo 'INVARIANTS=12/12'
+            echo 'DIGEST_REPAIRED_TAMPERS_REJECTED=12/12'
+            echo 'ABSTRACT_FS_ZERO_IFF_COMPLETE_LAYOUT_WIDTH_LE_K=PASS_AS_DERIVED_CANDIDATE'
+            echo 'ENGINE_ROOT_FULL_SET_EQUALS_FS_K_V_ZERO=FALSE'
+            echo 'UPSTREAM_CALLER_PRECONDITIONS_AUTOMATICALLY_ESTABLISHED=FALSE'
+            echo 'GENERAL_SEMANTIC_THEOREMS_ESTABLISHED=6'
+            echo 'REMAINING_GENERAL_SEMANTIC_THEOREMS=1'
+            echo 'FIRST_REQUIRED_NEXT_RECEIPT=GENERAL_EMPTY_ROOT_SPECIALIZATION_RECEIPT'
+            echo 'AFTER_O7_NEXT_COMPOSITION_RECEIPT=GENERAL_STRUCTURAL_INDUCTION_COMPOSITION_RECEIPT'
+            echo 'STRUCTURAL_INDUCTION_PROVED=FALSE'
+            echo 'TERMINAL_COMPLETENESS_PROVED=FALSE'
+            echo 'GLOBAL_ENGINE_NO_LAYOUT_AT_CAP=FORBIDDEN'
+            echo 'P_VS_NP=OPEN'
+          } | tee /tmp/exact-head-receipt.txt
+
+      - name: Export general empty-root evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: c049-b4-6-3-general-empty-root-specialization
+          retention-days: 7
+          compression-level: 9
+          path: |
+            /tmp/exact-head-receipt.txt
+            /tmp/empty-root-original.json
+            /tmp/empty-root-reordered.json
+            /tmp/producer-original.log
+            /tmp/producer-reordered.log
+            /tmp/verifier.log
+            experiments/direct/C049_1_B4_6_3_GENERAL_EMPTY_ROOT_SPECIALIZATION_SPEC_V1.json
+            experiments/direct/janus_c049_1_b4_6_3_general_empty_root_specialization.py
+            experiments/direct/janus_c049_1_b4_6_3_general_empty_root_specialization_verifier.py
