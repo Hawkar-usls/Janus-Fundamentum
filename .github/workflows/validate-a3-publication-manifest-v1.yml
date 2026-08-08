@@ -127,7 +127,7 @@ jobs:
           python -m json.tool publication/A3_TERNARY_DP/LITERATURE_AUDIT_EXTENDED_V1.json >/dev/null
           echo 'PUBLICATION_STRUCTURE = PASS'
 
-      - name: Install deterministic PDF toolchain
+      - name: Install required PDF toolchain
         shell: bash
         run: |
           set -euo pipefail
@@ -137,7 +137,7 @@ jobs:
           command -v pdftotext
           echo 'PUBLICATION_PDF_TOOLCHAIN = PASS'
 
-      - name: Compile and inspect publication PDF
+      - name: Compile and semantically inspect publication PDF
         shell: bash
         run: |
           set -euo pipefail
@@ -146,15 +146,20 @@ jobs:
           pdflatex -interaction=nonstopmode -halt-on-error main.tex
           test -s main.pdf
           pdftotext main.pdf main.txt
-          LC_ALL=C tr -cd '[:alnum:]' < main.txt > main.alnum.txt
+          LC_ALL=C tr -cd '[:alnum:]' < main.txt | tr '[:upper:]' '[:lower:]' > main.semantic.txt
+
+          # Human-readable semantic surface in the compiled PDF.
           grep -F 'Endpoint Compression and a Ternary-State FPT Algorithm' main.txt
           ! grep -Eiq 'we (prove|establish).*P[[:space:]]*=[[:space:]]*NP|we are first|world[- ]novelty (is|=|:)[[:space:]]*established|historical world priority (is|=|:)[[:space:]]*established' main.txt
-          grep -F '5ee79fc82613f24e621595afa0119312a2f52660' main.alnum.txt
-          grep -F '113400' main.alnum.txt
-          grep -F 'N3NOVELTYCANDIDATE' main.alnum.txt
-          grep -F 'N3EXHAUSTIVELYSEARCHEDWITHINDECLAREDPROTOCOL' main.alnum.txt
+          grep -F '1257bruteforcecontrols162736validbruteforceendpointorders1257graphcountcheckszerocounterexamplesand1616' main.semantic.txt
+          grep -F '113400validendpointordersagainstadpgraphof243statesand810directedtransitions' main.semantic.txt
+          grep -F 'n3noveltycandidate' main.semantic.txt
+          grep -F 'n3exhaustivelysearchedwithindeclaredprotocol' main.semantic.txt
+          grep -F 'n4' main.semantic.txt
+
+          # Cryptographic/Git identities are bound by source manifest/receipt checks above, not by reverse PDF text extraction.
           sha256sum main.pdf | tee main.pdf.sha256
-          echo 'PUBLICATION_PDF_BUILD_AND_TEXT_BINDING = PASS'
+          echo 'PUBLICATION_PDF_BUILD_AND_SEMANTIC_BINDING = PASS'
 
       - name: Freeze publication PDF receipt
         shell: bash
@@ -166,10 +171,11 @@ jobs:
           manifest=root/'PUBLICATION_MANIFEST.json'; audit=root/'LITERATURE_AUDIT_EXTENDED_V1.json'
           m=json.loads(manifest.read_text()); sha=lambda p: hashlib.sha256(pathlib.Path(p).read_bytes()).hexdigest()
           source_paths=[root/'THEOREM_STATEMENT.tex',root/'proof_endpoint_compression.tex',root/'proof_ternary_dp.tex',root/'complexity_theorem.tex',root/'verification_protocol.tex',root/'CLAIM_CEILING.md',root/'literature_matrix.csv',root/'literature_matrix_extended.csv',audit,paper/'main.tex']
-          receipt={'schema':'janus.fundamentum.a3.publication_pdf_receipt.v1','publication_id':m['publication_id'],'publication_head':subprocess.check_output(['git','rev-parse','HEAD'],text=True).strip(),'frozen_evidence_head':m['frozen_evidence_head'],'theorem_id':m['theorem']['id'],'manifest_sha256':sha(manifest),'extended_literature_audit_sha256':sha(audit),'source_sha256':{str(p.relative_to(root)):sha(p) for p in source_paths},'pdf_path':'paper/main.pdf','pdf_sha256':sha(paper/'main.pdf'),'pdf_text_sha256':sha(paper/'main.txt'),'pdf_canonical_alnum_sha256':sha(paper/'main.alnum.txt'),'pdf_build':'PASS','pdf_text_contract':'PASS','claim_ceiling':m['claim_ceiling'],'evidence_strength':m['status']['evidence_strength'],'novelty':m['status']['novelty'],'novelty_search_strength':m['status']['novelty_search_strength'],'external_independent_replication':m['status']['external_independent_replication'],'world_novelty_n4':m['status']['world_novelty_n4']}
+          receipt={'schema':'janus.fundamentum.a3.publication_pdf_receipt.v1_1','publication_id':m['publication_id'],'publication_head':subprocess.check_output(['git','rev-parse','HEAD'],text=True).strip(),'frozen_evidence_head':m['frozen_evidence_head'],'theorem_id':m['theorem']['id'],'manifest_sha256':sha(manifest),'extended_literature_audit_sha256':sha(audit),'source_sha256':{str(p.relative_to(root)):sha(p) for p in source_paths},'pdf_path':'paper/main.pdf','pdf_sha256':sha(paper/'main.pdf'),'pdf_text_sha256':sha(paper/'main.txt'),'pdf_semantic_projection_sha256':sha(paper/'main.semantic.txt'),'pdf_build':'PASS','pdf_semantic_contract':'PASS','git_identity_channel':'SOURCE_MANIFEST_AND_ADMISSION_RECEIPT','pdf_identity_channel':'HUMAN_VISIBLE_ONLY_NOT_CRYPTOGRAPHICALLY_REVERSED','cross_run_pdf_reproducibility':'NOT_ESTABLISHED','claim_ceiling':m['claim_ceiling'],'evidence_strength':m['status']['evidence_strength'],'novelty':m['status']['novelty'],'novelty_search_strength':m['status']['novelty_search_strength'],'external_independent_replication':m['status']['external_independent_replication'],'world_novelty_n4':m['status']['world_novelty_n4']}
           (paper/'PUBLICATION_PDF_RECEIPT.json').write_text(json.dumps(receipt,indent=2,sort_keys=True)+'\n')
           print('PUBLICATION_PDF_RECEIPT = BUILT')
           print('PUBLICATION_PDF_SHA256 =',receipt['pdf_sha256'])
+          print('CROSS_RUN_PDF_REPRODUCIBILITY = NOT_ESTABLISHED')
           PY
 
       - name: Upload publication package
