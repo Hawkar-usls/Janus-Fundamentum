@@ -1,0 +1,183 @@
+name: Validate C049.1 B5 original-order lift parallel exact-head replay
+
+on:
+  pull_request:
+    paths:
+      - 'experiments/direct/janus_c049_1_b5_full_input_original_order_lift_ci_control_v14.py'
+      - '.github/workflows/validate-c049-1-b5-original-order-lift-parallel-replay.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  bind-exact-parent:
+    runs-on: ubuntu-24.04
+    env:
+      PARENT_VERIFICATION_HEAD: 0c30ac8df9c3a527992517d93fd0807ab126756b
+      FROZEN_PROOF_HEAD: b47f329e6142e4c2fb80d34deaead081ccf33370
+      CONTROL_SCRIPT: experiments/direct/janus_c049_1_b5_full_input_original_order_lift_ci_control_v14.py
+    steps:
+      - name: Checkout exact parallel verification head
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 0
+
+      - name: Bind parent and additive-only parallel delta
+        shell: bash
+        run: |
+          set -euo pipefail
+          HEAD="$(git rev-parse HEAD)"
+          echo "PARALLEL_VERIFICATION_HEAD = $HEAD"
+          git merge-base --is-ancestor "$FROZEN_PROOF_HEAD" "$HEAD"
+          git merge-base --is-ancestor "$PARENT_VERIFICATION_HEAD" "$HEAD"
+          python - <<'PY'
+          import os,subprocess
+          expected={
+            '.github/workflows/validate-c049-1-b5-original-order-lift-parallel-replay.yml',
+            'experiments/direct/janus_c049_1_b5_full_input_original_order_lift_ci_control_v14.py',
+          }
+          head=subprocess.check_output(['git','rev-parse','HEAD'],text=True).strip()
+          actual=set(filter(None,subprocess.check_output(['git','diff','--name-only',os.environ['PARENT_VERIFICATION_HEAD'],head],text=True).splitlines()))
+          if actual!=expected:
+            raise SystemExit(f'PARALLEL_DELTA_REBINDING expected={sorted(expected)} actual={sorted(actual)}')
+          print('PARENT_VERIFICATION_HEAD_ANCESTRY = PASS')
+          print('FROZEN_PROOF_HEAD_ANCESTRY = PASS')
+          print('ADDITIVE_PARALLEL_REPLAY_FILES = 2/2')
+          PY
+          test "$(git hash-object "$CONTROL_SCRIPT")" = 54a2b0152d1f8415f39109ab8949421c7465591c
+          test "$(git hash-object experiments/direct/janus_c049_1_b5_full_input_original_order_lift_c047_rebound_verifier_v12.py)" = 983ea76b2f85349319acfb05c8a07790dd8fc89d
+          test "$(git hash-object experiments/direct/janus_c049_1_b5_full_input_original_order_lift_c047_rebound_verifier.py)" = bdb6669a8c23136e6fe655abecb4e3bd06cefcdd
+          test "$(git hash-object experiments/direct/janus_c049_1_b5_full_input_original_order_lift_c047_rebound.py)" = a0426e63b41f37ee8c70e4cd5461a322c17cf652
+          test "$(git hash-object experiments/direct/C049_1_B5_FULL_INPUT_ORIGINAL_ORDER_LIFT_C047_REBOUND_SPEC_V1.json)" = 36e3eb7d554c35109dec8a12b668fb677a9a519d
+          echo 'PARALLEL_REPLAY_PARENT_BINDING = PASS'
+
+      - name: Enforce wrapper semantics and control partition
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m py_compile "$CONTROL_SCRIPT" experiments/direct/janus_c049_1_b5_full_input_original_order_lift_c047_rebound_verifier_v12.py
+          python - <<'PY'
+          import ast
+          from pathlib import Path
+          control=Path('experiments/direct/janus_c049_1_b5_full_input_original_order_lift_ci_control_v14.py').read_text()
+          wrapper=Path('experiments/direct/janus_c049_1_b5_full_input_original_order_lift_c047_rebound_verifier_v12.py').read_text()
+          tree=ast.parse(control)
+          assert 'return base.verify(' in wrapper
+          assert 'liftv11.verify = liftv12.verify' in control
+          assert '29, 29' in control
+          for name in ('sat','unsat','shrink','opaque','reorder','historical-open','direct-reduced','tamper'):
+              assert name in control
+          print('FAIL_FAST_PASS_DELEGATES_TO_FULL_BASE_VERIFIER = PASS')
+          print('ATTACK_GENERATOR = UNCHANGED_V1_1')
+          print('PARALLEL_CONTROL_SET = 8/8')
+          PY
+
+  semantic-control:
+    needs: bind-exact-parent
+    runs-on: ubuntu-24.04
+    timeout-minutes: 120
+    strategy:
+      fail-fast: false
+      matrix:
+        control: [sat, unsat, shrink, opaque, reorder, historical-open, direct-reduced, tamper]
+    env:
+      PYTHONPATH: experiments/direct
+      PYTHONUNBUFFERED: '1'
+      FROZEN_PROOF_HEAD: b47f329e6142e4c2fb80d34deaead081ccf33370
+      CONTROL_SCRIPT: experiments/direct/janus_c049_1_b5_full_input_original_order_lift_ci_control_v14.py
+    steps:
+      - name: Checkout exact parallel verification head
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 0
+
+      - name: Set up exact Python runtime
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.12.13'
+          check-latest: false
+
+      - name: Execute independent semantic control ${{ matrix.control }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          export VERIFICATION_HEAD="$(git rev-parse HEAD)"
+          rm -rf /tmp/b5-original-order-lift /tmp/b5-original-order-lift-evidence /tmp/b5-original-order-lift-parallel-evidence
+          python "$CONTROL_SCRIPT" --control '${{ matrix.control }}' | tee "/tmp/${{ matrix.control }}.log"
+          grep -F 'PARALLEL_CONTROL_STATUS = PASS' "/tmp/${{ matrix.control }}.log"
+          grep -F 'ITERATIVE_COMPRESSION_ORCHESTRATOR = NOT_ESTABLISHED' "/tmp/${{ matrix.control }}.log"
+          grep -F 'B5_COMPLETE = FALSE' "/tmp/${{ matrix.control }}.log"
+          grep -F 'P_VS_NP = OPEN' "/tmp/${{ matrix.control }}.log"
+          cp "/tmp/${{ matrix.control }}.log" /tmp/b5-original-order-lift-parallel-evidence/
+
+      - name: Upload exact control evidence
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: c049-b5-original-order-lift-${{ matrix.control }}-${{ github.run_id }}
+          path: /tmp/b5-original-order-lift-parallel-evidence
+          if-no-files-found: error
+          retention-days: 90
+
+  aggregate-exact-head-receipt:
+    needs: [bind-exact-parent, semantic-control]
+    runs-on: ubuntu-24.04
+    env:
+      FROZEN_PROOF_HEAD: b47f329e6142e4c2fb80d34deaead081ccf33370
+      PARENT_VERIFICATION_HEAD: 0c30ac8df9c3a527992517d93fd0807ab126756b
+    steps:
+      - name: Checkout exact parallel verification head
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 0
+
+      - name: Freeze parallel replay aggregate receipt
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/b5-original-order-lift-parallel-aggregate
+          python - <<'PY'
+          import hashlib,json,os,subprocess
+          from pathlib import Path
+          head=subprocess.check_output(['git','rev-parse','HEAD'],text=True).strip()
+          controls=['sat','unsat','shrink','opaque','reorder','historical-open','direct-reduced','tamper']
+          receipt={
+            'schema':'janus.c049_1.b5.original_order_lift_parallel_exact_head_aggregate_receipt.v1_4',
+            'frozen_proof_head':os.environ['FROZEN_PROOF_HEAD'],
+            'parent_verification_head':os.environ['PARENT_VERIFICATION_HEAD'],
+            'parallel_verification_head':head,
+            'workflow_run_id':os.environ.get('GITHUB_RUN_ID'),
+            'required_controls':controls,
+            'matrix_dependency_status':'ALL_REQUIRED_CONTROL_JOBS_SUCCESS_TO_REACH_THIS_STEP',
+            'acceptance_path':'UNCHANGED_FULL_BASE_VERIFIER_ON_VALID_CANDIDATE',
+            'tamper_path':'REJECTION_ONLY_FAIL_FAST_THEN_FULL_BASE_IF_PREFLIGHT_PASSES',
+            'historical_cancelled_run':31250151776,
+            'historical_cancelled_job':93085131813,
+            'formal_admission':'BLOCKED_PENDING_ARTIFACT_API_BINDING_AND_SEMANTIC_RECONFIRMATION',
+            'iterative_compression_orchestrator':'NOT_ESTABLISHED',
+            'all_input_termination':'NOT_ESTABLISHED',
+            'polynomial_runtime':'NOT_ESTABLISHED',
+            'b5_complete':False,
+            'c049_1_complete':False,
+            'p_vs_np':'OPEN',
+          }
+          raw=(json.dumps(receipt,sort_keys=True,separators=(',',':'))+'\n').encode()
+          p=Path('/tmp/b5-original-order-lift-parallel-aggregate/aggregate-receipt-v14.json'); p.write_bytes(raw)
+          print('PARALLEL_EXACT_HEAD_AGGREGATE = PASS')
+          print('PARALLEL_VERIFICATION_HEAD =',head)
+          print('REQUIRED_CONTROL_JOBS = 8/8 SUCCESS')
+          print('AGGREGATE_RECEIPT_SHA256 =',hashlib.sha256(raw).hexdigest())
+          print('FORMAL_ADMISSION = BLOCKED_PENDING_ARTIFACT_API_BINDING_AND_SEMANTIC_RECONFIRMATION')
+          print('B5_COMPLETE = FALSE'); print('C049_1_COMPLETE = FALSE'); print('P_VS_NP = OPEN')
+          PY
+
+      - name: Upload aggregate exact-head receipt
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: c049-b5-original-order-lift-parallel-aggregate-${{ github.run_id }}
+          path: /tmp/b5-original-order-lift-parallel-aggregate
+          if-no-files-found: error
+          retention-days: 90
