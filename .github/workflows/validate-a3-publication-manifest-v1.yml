@@ -151,16 +151,27 @@ jobs:
           command -v pdftotext
           echo 'PUBLICATION_PDF_TOOLCHAIN = PASS'
 
-      - name: Compile and inspect publication PDF
+      - name: Compile, inspect, and clean-room replay publication PDF
         shell: bash
         run: |
           set -euo pipefail
-          cd publication/A3_TERNARY_DP/paper
+          FROZEN=5ee79fc82613f24e621595afa0119312a2f52660
+          export SOURCE_DATE_EPOCH="$(git show -s --format=%ct "$FROZEN")"
+          export FORCE_SOURCE_DATE=1
+          export TZ=UTC
+          export LC_ALL=C.UTF-8
+          echo "PUBLICATION_SOURCE_DATE_EPOCH = $SOURCE_DATE_EPOCH"
+
+          ROOT="$PWD/publication/A3_TERNARY_DP"
+          PAPER="$ROOT/paper"
+          cd "$PAPER"
+          rm -f main.aux main.log main.out main.pdf main.txt main.canonical.txt main.pdf.sha256 PUBLICATION_PDF_RECEIPT.json
           pdflatex -interaction=nonstopmode -halt-on-error main.tex
           pdflatex -interaction=nonstopmode -halt-on-error main.tex
           test -s main.pdf
           ! grep -F 'Overfull \hbox' main.log
           pdftotext main.pdf main.txt
+
           python - <<'PY'
           import pathlib,re
           text=pathlib.Path('main.txt').read_text(errors='replace')
@@ -189,14 +200,35 @@ jobs:
           print('PUBLICATION_PDF_LAYOUT_OVERFLOW = NONE')
           print('PUBLICATION_PDF_BUILD_AND_TEXT_BINDING = PASS')
           PY
-          sha256sum main.pdf | tee main.pdf.sha256
+
+          PRIMARY_SHA="$(sha256sum main.pdf | awk '{print $1}')"
+          printf '%s  main.pdf\n' "$PRIMARY_SHA" | tee main.pdf.sha256
+
+          TMP="$(mktemp -d)"
+          trap 'rm -rf "$TMP"' EXIT
+          cp -a "$ROOT" "$TMP/A3_TERNARY_DP"
+          REPLAY="$TMP/A3_TERNARY_DP/paper"
+          cd "$REPLAY"
+          rm -f main.aux main.log main.out main.pdf main.txt main.canonical.txt main.pdf.sha256 PUBLICATION_PDF_RECEIPT.json
+          pdflatex -interaction=nonstopmode -halt-on-error main.tex
+          pdflatex -interaction=nonstopmode -halt-on-error main.tex
+          test -s main.pdf
+          ! grep -F 'Overfull \hbox' main.log
+          REPLAY_SHA="$(sha256sum main.pdf | awk '{print $1}')"
+
+          echo "PUBLICATION_PDF_PRIMARY_SHA256 = $PRIMARY_SHA"
+          echo "PUBLICATION_PDF_CLEAN_REPLAY_SHA256 = $REPLAY_SHA"
+          test "$PRIMARY_SHA" = "$REPLAY_SHA"
+          cmp -s "$PAPER/main.pdf" "$REPLAY/main.pdf"
+          echo 'PUBLICATION_PDF_CLEAN_BUILD_REPRODUCIBILITY = PASS'
 
       - name: Freeze publication PDF receipt
         shell: bash
         run: |
           set -euo pipefail
+          export SOURCE_DATE_EPOCH="$(git show -s --format=%ct 5ee79fc82613f24e621595afa0119312a2f52660)"
           python - <<'PY'
-          import hashlib,json,pathlib,subprocess
+          import hashlib,json,pathlib,subprocess,os
           root=pathlib.Path('publication/A3_TERNARY_DP')
           paper=root/'paper'
           manifest=root/'PUBLICATION_MANIFEST.json'
@@ -209,7 +241,7 @@ jobs:
               root/'literature_matrix.csv',root/'literature_matrix_extended.csv',audit,paper/'main.tex'
           ]
           receipt={
-              'schema':'janus.fundamentum.a3.publication_pdf_receipt.v1_3',
+              'schema':'janus.fundamentum.a3.publication_pdf_receipt.v1_4',
               'publication_id':m['publication_id'],
               'publication_head':subprocess.check_output(['git','rev-parse','HEAD'],text=True).strip(),
               'frozen_evidence_head':m['frozen_evidence_head'],
@@ -227,7 +259,13 @@ jobs:
               'pdf_text_contract':'PASS',
               'pdf_provenance_lineage':'PASS',
               'pdf_layout_overflow':'NONE',
-              'cross_run_pdf_reproducibility':'NOT_ESTABLISHED',
+              'deterministic_build_environment':{
+                  'source_date_epoch':os.environ['SOURCE_DATE_EPOCH'],
+                  'force_source_date':'1',
+                  'timezone':'UTC'
+              },
+              'same_head_clean_build_reproducibility':'PASS',
+              'cross_runner_reproducibility':'NOT_ESTABLISHED',
               'claim_ceiling':m['claim_ceiling'],
               'evidence_strength':m['status']['evidence_strength'],
               'novelty':m['status']['novelty'],
@@ -238,7 +276,8 @@ jobs:
           (paper/'PUBLICATION_PDF_RECEIPT.json').write_text(json.dumps(receipt,indent=2,sort_keys=True)+'\n')
           print('PUBLICATION_PDF_RECEIPT = BUILT')
           print('PUBLICATION_PDF_SHA256 =',receipt['pdf_sha256'])
-          print('CROSS_RUN_PDF_REPRODUCIBILITY = NOT_ESTABLISHED')
+          print('SAME_HEAD_CLEAN_BUILD_REPRODUCIBILITY = PASS')
+          print('CROSS_RUNNER_REPRODUCIBILITY = NOT_ESTABLISHED')
           PY
 
       - name: Upload publication package
