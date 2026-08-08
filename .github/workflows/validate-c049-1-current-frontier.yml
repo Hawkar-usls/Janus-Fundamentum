@@ -16,6 +16,7 @@ jobs:
       VERIFIER: experiments/direct/janus_c049_1_current_frontier_verifier.py
       ACTUAL: experiments/direct/audits/C049_1_B4_6_4_ACTUAL_ENGINE_COMPOSITION_FINAL_ADMISSION_BEF8134F.json
       TERMINAL: experiments/direct/audits/C049_1_B4_6_5_TERMINAL_DOMAIN_COMPOSITION_FINAL_ADMISSION_1E4444D8.json
+      PHASE_A_SOLVER: /tmp/janus_c049_fpt_integration_solver.py
       B5PLAN: /tmp/C049_1_PHASE_B_COMPACT_TRAJECTORY_PLAN.md
       PHASEB: registry/c049.1-phase-b-status.json
       B46: registry/c049.1-phase-b4.6-status.json
@@ -32,17 +33,21 @@ jobs:
         run: |
           set -euo pipefail
           git show 8cf39d35fc0fd03191b5ab28905637a5c842b2cf:docs/C049_1_PHASE_B_COMPACT_TRAJECTORY_PLAN.md > "$B5PLAN"
-          test "$(git hash-object "$FRONTIER")" = "7cac7f119cc30f1e026c7590c94287129cfbc6b4"
-          test "$(git hash-object "$VERIFIER")" = "679af6a68971a442816845c889542c80ce7470ef"
+          git show 8cf39d35fc0fd03191b5ab28905637a5c842b2cf:experiments/direct/janus_c049_fpt_integration_solver.py > "$PHASE_A_SOLVER"
+          test "$(git hash-object "$FRONTIER")" = "9ef247991b1a3a00a46b4d1839c62afb3c3079e5"
+          test "$(git hash-object "$VERIFIER")" = "6f15ef2f580d9b2ef02715129012ae621e975181"
           test "$(git hash-object "$ACTUAL")" = "05478ffe8dee2f658297d12e2cbc3fc8ae15d917"
           test "$(git hash-object "$TERMINAL")" = "a37b11483f17e746c42f0f27bcedeb88e4125240"
+          test "$(git hash-object "$PHASE_A_SOLVER")" = "70c06752890e797bdf3a7c87c2cb41703fade163"
           test "$(git hash-object "$B5PLAN")" = "a776887c258da5c92414fa3d548beeec6ebcee83"
           test "$(git hash-object "$PHASEB")" = "71c35490252ed9bb7f3755753e73e7fbf39c435b"
           test "$(git hash-object "$B46")" = "f4141eca14d62f1f94cf76227f86e0afeb1cc1a4"
           test "$(git hash-object "$B462")" = "c78a834bee039d4a84a68d9bf18581cf32c32e38"
           test "$(git rev-parse d02c0895a3fff82ad81aa6ea90a5fb8cf683daca:experiments/direct/audits/C049_1_B4_6_5_TERMINAL_DOMAIN_COMPOSITION_FINAL_ADMISSION_1E4444D8.json)" = "a37b11483f17e746c42f0f27bcedeb88e4125240"
+          test "$(git rev-parse 8cf39d35fc0fd03191b5ab28905637a5c842b2cf:experiments/direct/janus_c049_fpt_integration_solver.py)" = "70c06752890e797bdf3a7c87c2cb41703fade163"
           echo 'CURRENT_FRONTIER_IMMUTABLE_BINDING = PASS'
           echo 'HISTORICAL_B5_PLAN_MATERIALIZATION = PASS'
+          echo 'PHASE_A_C047_SOLVER_MATERIALIZATION = PASS'
 
       - name: Compile independent frontier verifier
         run: |
@@ -56,6 +61,7 @@ jobs:
             --frontier "$FRONTIER" \
             --actual-receipt "$ACTUAL" \
             --terminal-receipt "$TERMINAL" \
+            --phase-a-solver "$PHASE_A_SOLVER" \
             --b5-plan "$B5PLAN" \
             --phase-b "$PHASEB" \
             --b46 "$B46" \
@@ -63,6 +69,8 @@ jobs:
             --tamper-suite | tee /tmp/frontier-verifier.log
           grep -F 'JANUS_C049_1_CURRENT_FRONTIER_INDEPENDENT_VERIFIER = PASS' /tmp/frontier-verifier.log
           grep -F 'FROZEN_NEGATIVE_TERMINAL_AUTHORITY = PASS' /tmp/frontier-verifier.log
+          grep -F 'PHASE_A_VERIFIED_LAYOUT_TO_C047_IMPLEMENTED = TRUE' /tmp/frontier-verifier.log
+          grep -F 'CORRECTED_GENERIC_DISCOVERY_TO_C047_HANDOFF_ADMITTED = FALSE' /tmp/frontier-verifier.log
           grep -F 'HISTORICAL_STATUS_SNAPSHOTS_CLASSIFIED = 3/3' /tmp/frontier-verifier.log
           grep -F 'OPEN_GENERALIZATION_SEAMS = 5/5' /tmp/frontier-verifier.log
           grep -F 'NEXT_GATE = C049.1_B5_GENERAL_RUNTIME_AND_TERMINAL_INTEGRATION_CONTRACT' /tmp/frontier-verifier.log
@@ -70,7 +78,7 @@ jobs:
           grep -F 'GENERIC_NO_LAYOUT_AT_CAP_ENABLED = FALSE' /tmp/frontier-verifier.log
           grep -F 'B5_COMPLETE = FALSE' /tmp/frontier-verifier.log
           grep -F 'P_VS_NP = OPEN' /tmp/frontier-verifier.log
-          grep -F 'DIGEST_REPAIRED_TAMPERS_REJECTED = 8/8' /tmp/frontier-verifier.log
+          grep -F 'DIGEST_REPAIRED_TAMPERS_REJECTED = 10/10' /tmp/frontier-verifier.log
 
       - name: Freeze exact-head freshness receipt
         run: |
@@ -83,9 +91,12 @@ jobs:
             echo "VERIFIER_BLOB=$(git hash-object "$VERIFIER")"
             echo "ACTUAL_RECEIPT_BLOB=$(git hash-object "$ACTUAL")"
             echo "TERMINAL_RECEIPT_BLOB=$(git hash-object "$TERMINAL")"
+            echo "PHASE_A_C047_SOLVER_BLOB=$(git hash-object "$PHASE_A_SOLVER")"
             echo 'HISTORICAL_SNAPSHOTS_CLASSIFIED=3/3'
             echo 'OPEN_GENERALIZATION_SEAMS=5/5'
             echo 'NEXT_GATE=C049.1_B5_GENERAL_RUNTIME_AND_TERMINAL_INTEGRATION_CONTRACT'
+            echo 'PHASE_A_VERIFIED_LAYOUT_TO_C047_IMPLEMENTED=TRUE'
+            echo 'CORRECTED_GENERIC_DISCOVERY_TO_C047_HANDOFF_ADMITTED=FALSE'
             echo 'GENERIC_FOUND_LAYOUT_ENABLED=FALSE'
             echo 'GENERIC_NO_LAYOUT_AT_CAP_ENABLED=FALSE'
             echo 'B5_COMPLETE=FALSE'
