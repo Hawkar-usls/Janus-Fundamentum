@@ -40,14 +40,19 @@ jobs:
           set -euo pipefail
           if [ "${{ github.event_name }}" = "pull_request" ]; then PROOF_HEAD="${{ github.event.pull_request.head.sha }}"; else PROOF_HEAD="$GITHUB_SHA"; fi
           echo "PROOF_HEAD=$PROOF_HEAD" >> "$GITHUB_ENV"
-          test "$(git rev-parse "$PROOF_HEAD:$SPEC")" = "17e68da7eec7aed5ec754c28bdb42c7f28dc4eed"
+          test "$(git rev-parse "$PROOF_HEAD:$SPEC")" = "16c171877176cef806b7e59585db938376d4c910"
+          echo 'B5_3_SPEC_BLOB = PASS'
           test "$(git rev-parse "$PROOF_HEAD:$PRODUCER")" = "d63ee33df4f480aba09a4cdd16e98a067991f1b4"
+          echo 'B5_3_PRODUCER_BLOB = PASS'
           test "$(git rev-parse "$PROOF_HEAD:$VERIFIER")" = "25c690e3387e00c0cb5bc56b11c947d8dbaf39ec"
+          echo 'B5_3_VERIFIER_BLOB = PASS'
           test "$(git hash-object "$B5_1_SPEC")" = "64f65e4a68cab437392148519af667352fe0665c"
           test "$(git hash-object "$B5_1_PRODUCER")" = "8be92b8a663e0d05535861c6f216db28094014fb"
           test "$(git hash-object "$B5_1_VERIFIER")" = "ac40b3f3a370f697e29402e1e1cb3e514b799792"
           test "$(git hash-object "$B5_1_ADMISSION")" = "f70d56c84874827fd03cc482e37fd9449a7a8a23"
+          echo 'B5_1_AUTHORITY_BLOBS = PASS'
           test "$(git hash-object "$B5_2B_ADMISSION")" = "5e60eff4a4bd4c87cbf527cd446fc6b23b013774"
+          echo 'B5_2B_CORRECTED_RECEIPT_BLOB = PASS'
           python - <<'PY'
           import hashlib,json,os
           p=json.load(open(os.environ['B5_2B_ADMISSION']))
@@ -58,6 +63,16 @@ jobs:
           print('SUPERSEDED_BAD_B5_2B_RECEIPT_BLOB = 19d06099a59a4e3471328e918231428bb528dc24')
           PY
           echo 'B5_3_EXACT_HEAD_AND_CURRENT_AUTHORITY_BINDING = PASS'
+
+      - name: Bind first red run as negative provenance
+        run: |
+          set -euo pipefail
+          echo 'NEGATIVE_RUN_ID = 31245486354'
+          echo 'NEGATIVE_JOB_ID = 93073278310'
+          echo 'NEGATIVE_PROOF_HEAD = 2b215f0ac5e2e8f2d31db03e439542c54c26fccf'
+          echo 'NEGATIVE_CLASSIFICATION = B5_3_SPEC_BLOB_TRANSCRIPTION_REJECTED_BEFORE_SEMANTIC_REPLAY'
+          echo 'SEMANTIC_REPLAY_STARTED = FALSE'
+          echo 'CORRECT_SPEC_BLOB = 16c171877176cef806b7e59585db938376d4c910'
 
       - name: Materialize historical general-composition and O7 authority bytes
         run: |
@@ -205,7 +220,7 @@ jobs:
           cp /tmp/empty.b5-3.json /tmp/three-empty.b5-3.json /tmp/positive.b5-3.json /tmp/open.b5-3.json /tmp/b5-3-evidence/
           cp /tmp/empty.b5-3-verifier.log /tmp/three-empty.b5-3-verifier.log /tmp/positive.b5-3-verifier.log /tmp/open.b5-3-verifier.log /tmp/b5-3-tamper.log /tmp/b5-3-evidence/
           python - <<'PY'
-          import hashlib,json,os,subprocess
+          import hashlib,json,os
           from pathlib import Path
           def sha(path): return hashlib.sha256(Path(path).read_bytes()).hexdigest()
           e=json.load(open('/tmp/empty.b5-3.json')); t=json.load(open('/tmp/three-empty.b5-3.json')); p=json.load(open('/tmp/positive.b5-3.json')); o=json.load(open('/tmp/open.b5-3.json'))
@@ -213,7 +228,7 @@ jobs:
             'schema':'janus.c049_1.b5_3.generic_empty_root_terminal_exact_head_candidate_receipt.v1',
             'proof_head':os.environ['PROOF_HEAD'],
             'bindings':{
-              'spec_git_blob':'17e68da7eec7aed5ec754c28bdb42c7f28dc4eed',
+              'spec_git_blob':'16c171877176cef806b7e59585db938376d4c910',
               'producer_git_blob':'d63ee33df4f480aba09a4cdd16e98a067991f1b4',
               'verifier_git_blob':'25c690e3387e00c0cb5bc56b11c947d8dbaf39ec',
               'b5_1_admission_receipt_git_blob':'f70d56c84874827fd03cc482e37fd9449a7a8a23',
@@ -221,6 +236,9 @@ jobs:
               'o7_audit_git_blob':'fc13ef61bc2975ec8ee1b5e5356444001750e0f2',
               'corrected_b5_2b_receipt_git_blob':'5e60eff4a4bd4c87cbf527cd446fc6b23b013774'
             },
+            'negative_provenance':[{
+              'run_id':31245486354,'job_id':93073278310,'proof_head':'2b215f0ac5e2e8f2d31db03e439542c54c26fccf','classification':'B5_3_SPEC_BLOB_TRANSCRIPTION_REJECTED_BEFORE_SEMANTIC_REPLAY','semantic_replay_started':False,'resolution':'CORRECT_SPEC_BLOB_TO_16C171877176CEF806B7E59585DB938376D4C910'
+            }],
             'controls':{
               'empty':{'sha256':sha('/tmp/empty.b5-3.json'),'semantic_digest':e['semantic_digest'],'root_entry_count':e['proof_payload']['root_entry_count_if_closed'],'candidate_no_layout':e['proof_payload']['candidate_no_layout_at_cap']},
               'three_empty':{'sha256':sha('/tmp/three-empty.b5-3.json'),'semantic_digest':t['semantic_digest'],'root_entry_count':t['proof_payload']['root_entry_count_if_closed'],'candidate_no_layout':t['proof_payload']['candidate_no_layout_at_cap']},
