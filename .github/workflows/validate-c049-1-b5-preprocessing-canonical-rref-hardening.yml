@@ -1,0 +1,168 @@
+name: Validate C049.1 B5 preprocessing canonical RREF hardening
+
+on:
+  pull_request:
+    paths:
+      - 'experiments/direct/C049_1_B5_PREPROCESSING_CANONICAL_RREF_HARDENING_AMENDMENT_V1_1.json'
+      - 'experiments/direct/janus_c049_1_b5_iterative_compression_preprocessing_binding_v11.py'
+      - '.github/workflows/validate-c049-1-b5-preprocessing-canonical-rref-hardening.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  canonical-rref-hardening:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    env:
+      PYTHONPATH: experiments/direct
+      PYTHONUNBUFFERED: '1'
+      PARENT_HEAD: 5be2d6c85a5a7525c08d9975f92ef34344ef9696
+      BASE_PRODUCER: experiments/direct/janus_c049_1_b5_iterative_compression_preprocessing_binding.py
+      V11_PRODUCER: experiments/direct/janus_c049_1_b5_iterative_compression_preprocessing_binding_v11.py
+      VERIFIER: experiments/direct/janus_c049_1_b5_iterative_compression_preprocessing_binding_verifier.py
+      SPEC: experiments/direct/C049_1_B5_ITERATIVE_COMPRESSION_PREPROCESSING_BINDING_SPEC_V1.json
+      AMENDMENT: experiments/direct/C049_1_B5_PREPROCESSING_CANONICAL_RREF_HARDENING_AMENDMENT_V1_1.json
+    steps:
+      - name: Checkout exact hardening head
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 0
+
+      - name: Set up exact Python
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.12.13'
+          check-latest: false
+
+      - name: Bind immutable predecessor and independent verifier
+        shell: bash
+        run: |
+          set -euo pipefail
+          HEAD="$(git rev-parse HEAD)"
+          echo "EXACT_HEAD=$HEAD" >> "$GITHUB_ENV"
+          git merge-base --is-ancestor "$PARENT_HEAD" "$HEAD"
+          test "$(git hash-object "$BASE_PRODUCER")" = 5eb99fe911aa828e42f952a176b5f396dfa8f609
+          test "$(git hash-object "$VERIFIER")" = 762ace290285fbda9ee219984daaf04866ffc222
+          test "$(git hash-object "$V11_PRODUCER")" = 89cbbae86aec581bfbe992485da914872a18b50b
+          test "$(git hash-object experiments/direct/audits/C049_1_B5_ITERATIVE_COMPRESSION_PREPROCESSING_BINDING_ADMISSION_8DA1F1DE.json)" = 69a6d709900df80e263c33405ddc0b19a593b27f
+          echo 'PARENT_HEAD_ANCESTRY = PASS'
+          echo 'BASE_PRODUCER_IDENTITY = PASS'
+          echo 'UNCHANGED_INDEPENDENT_VERIFIER_IDENTITY = PASS'
+          echo 'V1_1_PRODUCER_IDENTITY = PASS'
+
+      - name: Enforce hardening architecture
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m py_compile "$V11_PRODUCER" "$VERIFIER"
+          python - <<'PY'
+          import ast
+          from pathlib import Path
+          src=Path('experiments/direct/janus_c049_1_b5_iterative_compression_preprocessing_binding_v11.py').read_text()
+          ver=Path('experiments/direct/janus_c049_1_b5_iterative_compression_preprocessing_binding_verifier.py').read_text()
+          imports=[]
+          for n in ast.walk(ast.parse(ver)):
+              if isinstance(n,ast.Import): imports += [a.name for a in n.names]
+              elif isinstance(n,ast.ImportFrom): imports.append(n.module or '')
+          assert not any(x.endswith('janus_c049_1_b5_iterative_compression_preprocessing_binding_v11') for x in imports)
+          assert 'canonical_rref' in src and 'base.xor_basis = canonical_rref' in src
+          assert 'P_VS_NP = CLOSED' not in src and 'B5_COMPLETE = TRUE' not in src
+          print('V1_1_PRODUCER_IMPORT_IN_VERIFIER = FORBIDDEN_CONFIRMED')
+          print('HARDENING_SURFACE = PRODUCER_CANONICALIZATION_ONLY')
+          print('INDEPENDENT_VERIFIER_MODIFICATION = ZERO')
+          PY
+
+      - name: Freeze counterexample inputs
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/rref-hardening
+          cat > /tmp/rref-hardening/raw-a.json <<'JSON'
+          {"ambient_dim":4,"k":1,"factors":[{"id":"F2","normal_space":[3,5],"affine_offset":[1,0]},{"id":"F0","normal_space":[1,3],"affine_offset":[0,1]},{"id":"F3","normal_space":[6,10],"affine_offset":[1,1]},{"id":"F1","normal_space":[2,6],"affine_offset":[0,0]}]}
+          JSON
+          cat > /tmp/rref-hardening/raw-b.json <<'JSON'
+          {"ambient_dim":4,"k":1,"factors":[{"id":"F2","normal_space":[3,5],"affine_offset":[1,0]},{"id":"F0","normal_space":[1,2],"affine_offset":[0,1]},{"id":"F3","normal_space":[6,10],"affine_offset":[1,1]},{"id":"F1","normal_space":[2,6],"affine_offset":[0,0]}]}
+          JSON
+          python - <<'PY'
+          import hashlib
+          from pathlib import Path
+          for name in ('raw-a.json','raw-b.json'):
+              p=Path('/tmp/rref-hardening')/name
+              print(name,'SHA256 =',hashlib.sha256(p.read_bytes()).hexdigest())
+          PY
+
+      - name: Reproduce v1 producer verifier mismatch
+        shell: bash
+        run: |
+          set -euo pipefail
+          python "$BASE_PRODUCER" --spec "$SPEC" --input /tmp/rref-hardening/raw-a.json --output /tmp/rref-hardening/v1-a.json | tee /tmp/rref-hardening/v1-producer.log
+          set +e
+          python "$VERIFIER" --spec "$SPEC" --input /tmp/rref-hardening/raw-a.json --candidate /tmp/rref-hardening/v1-a.json > /tmp/rref-hardening/v1-verifier.log 2>&1
+          rc=$?
+          set -e
+          test "$rc" -ne 0
+          grep -F 'AssertionError' /tmp/rref-hardening/v1-verifier.log
+          echo 'V1_NON_RREF_PRESENTATION_COUNTEREXAMPLE = REPRODUCED'
+          echo 'V1_GENERIC_ARBITRARY_BASIS_PRESENTATION = NOT_ESTABLISHED'
+
+      - name: Verify v1.1 fixes same counterexample with unchanged verifier
+        shell: bash
+        run: |
+          set -euo pipefail
+          python "$V11_PRODUCER" --spec "$SPEC" --input /tmp/rref-hardening/raw-a.json --output /tmp/rref-hardening/v11-a.json | tee /tmp/rref-hardening/v11-a-producer.log
+          python "$VERIFIER" --spec "$SPEC" --input /tmp/rref-hardening/raw-a.json --candidate /tmp/rref-hardening/v11-a.json --tamper-suite | tee /tmp/rref-hardening/v11-a-verifier.log
+          grep -F 'JANUS_B5_ITERATIVE_COMPRESSION_PREPROCESSING_BINDING_INDEPENDENT_VERIFIER = PASS' /tmp/rref-hardening/v11-a-verifier.log
+          grep -F 'DIGEST_REPAIRED_TAMPERS_REJECTED = 20/20' /tmp/rref-hardening/v11-a-verifier.log
+          echo 'COUNTEREXAMPLE_V1_1_UNCHANGED_VERIFIER = PASS'
+
+      - name: Verify span-equivalent presentation canonical identity
+        shell: bash
+        run: |
+          set -euo pipefail
+          python "$V11_PRODUCER" --spec "$SPEC" --input /tmp/rref-hardening/raw-b.json --output /tmp/rref-hardening/v11-b.json | tee /tmp/rref-hardening/v11-b-producer.log
+          python "$VERIFIER" --spec "$SPEC" --input /tmp/rref-hardening/raw-b.json --candidate /tmp/rref-hardening/v11-b.json | tee /tmp/rref-hardening/v11-b-verifier.log
+          python - <<'PY'
+          import json
+          a=json.load(open('/tmp/rref-hardening/v11-a.json'))['proof_payload']
+          b=json.load(open('/tmp/rref-hardening/v11-b.json'))['proof_payload']
+          assert a['original_catalog_semantic_digest']==b['original_catalog_semantic_digest']
+          assert a['discovery_catalog_semantic_digest']==b['discovery_catalog_semantic_digest']
+          assert a['original_catalog']==b['original_catalog']
+          assert a['discovery_catalog']==b['discovery_catalog']
+          print('SPAN_EQUIVALENT_PRESENTATION_ORIGINAL_IDENTITY = PASS')
+          print('SPAN_EQUIVALENT_PRESENTATION_DISCOVERY_IDENTITY = PASS')
+          PY
+
+      - name: Freeze exact-head hardening receipt
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import hashlib,json,os,subprocess
+          from pathlib import Path
+          def blob(p): return subprocess.check_output(['git','hash-object',p],text=True).strip()
+          a=json.load(open('/tmp/rref-hardening/v11-a.json'))
+          receipt={
+            'schema':'janus.c049_1.b5.preprocessing_canonical_rref_hardening_exact_head_receipt.v1_1',
+            'exact_head':os.environ['EXACT_HEAD'],'parent_head':os.environ['PARENT_HEAD'],
+            'bindings':{'base_producer_git_blob':blob(os.environ['BASE_PRODUCER']),'v1_1_producer_git_blob':blob(os.environ['V11_PRODUCER']),'unchanged_independent_verifier_git_blob':blob(os.environ['VERIFIER']),'amendment_git_blob':blob(os.environ['AMENDMENT'])},
+            'checks':{'v1_counterexample_reproduced':'PASS','v1_1_same_counterexample_unchanged_verifier':'PASS','span_equivalent_original_identity':'PASS','span_equivalent_discovery_identity':'PASS','digest_repaired_tampers_rejected':'20/20'},
+            'v1_1_candidate_semantic_digest':a['semantic_digest'],
+            'preprocessing_v1_1':'CANDIDATE_PENDING_SEMANTIC_REVIEW','iterative_compression_orchestrator':'NOT_ESTABLISHED','all_input_termination':'NOT_ESTABLISHED','polynomial_runtime':'NOT_ESTABLISHED','b5_complete':False,'c049_1_complete':False,'p_vs_np':'OPEN'}
+          raw=(json.dumps(receipt,sort_keys=True,separators=(',',':'))+'\n').encode(); p=Path('/tmp/rref-hardening/exact-head-receipt-v11.json'); p.write_bytes(raw)
+          print('PREPROCESSING_CANONICAL_RREF_HARDENING_RECEIPT = FROZEN')
+          print('RECEIPT_SHA256 =',hashlib.sha256(raw).hexdigest())
+          print('PREPROCESSING_V1_1 = CANDIDATE_PENDING_SEMANTIC_REVIEW')
+          print('B5_COMPLETE = FALSE'); print('C049_1_COMPLETE = FALSE'); print('P_VS_NP = OPEN')
+          PY
+
+      - name: Upload exact-head hardening evidence
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: c049-b5-preprocessing-canonical-rref-hardening-${{ github.run_id }}
+          path: /tmp/rref-hardening
+          if-no-files-found: error
+          retention-days: 90
