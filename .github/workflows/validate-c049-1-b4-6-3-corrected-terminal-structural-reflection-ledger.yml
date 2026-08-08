@@ -1,0 +1,161 @@
+name: Validate C049.1 B4.6.3 corrected terminal structural-reflection ledger
+
+on:
+  push:
+    paths:
+      - 'experiments/direct/C049_1_B4_6_3_CORRECTED_TERMINAL_STRUCTURAL_REFLECTION_SPEC_V1.json'
+      - 'experiments/direct/janus_c049_1_b4_6_3_corrected_terminal_structural_reflection_ledger.py'
+      - 'experiments/direct/janus_c049_1_b4_6_3_corrected_terminal_structural_reflection_ledger_verifier.py'
+      - '.github/workflows/validate-c049-1-b4-6-3-corrected-terminal-structural-reflection-ledger.yml'
+  pull_request:
+    paths:
+      - 'experiments/direct/C049_1_B4_6_3_CORRECTED_TERMINAL_STRUCTURAL_REFLECTION_SPEC_V1.json'
+      - 'experiments/direct/janus_c049_1_b4_6_3_corrected_terminal_structural_reflection_ledger.py'
+      - 'experiments/direct/janus_c049_1_b4_6_3_corrected_terminal_structural_reflection_ledger_verifier.py'
+      - '.github/workflows/validate-c049-1-b4-6-3-corrected-terminal-structural-reflection-ledger.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  structural-reflection-ledger:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    env:
+      SPEC: experiments/direct/C049_1_B4_6_3_CORRECTED_TERMINAL_STRUCTURAL_REFLECTION_SPEC_V1.json
+      PRODUCER: experiments/direct/janus_c049_1_b4_6_3_corrected_terminal_structural_reflection_ledger.py
+      VERIFIER: experiments/direct/janus_c049_1_b4_6_3_corrected_terminal_structural_reflection_ledger_verifier.py
+      POINTWISE_AUDIT: experiments/direct/audits/C049_1_B4_6_3_CORRECTED_TERMINAL_REFLECTION_INDEPENDENT_SEMANTIC_AUDIT_DAEE1A10.json
+      ROOT_SPEC_SUBJECT: 93db6d068a6b5ca443acd2576710d11df27b82d8
+      ROOT_SPEC_PATH: experiments/direct/C049_1_B4_6_3_CORRECTED_ROOT_FULL_REFINEMENT_SPEC_V1.json
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Bind ledger subjects and historical source blobs
+        run: |
+          set -euo pipefail
+          test "$(git hash-object "$SPEC")" = "518abe8e795bbcf1b99c6dfa259b66af7f7e5732"
+          test "$(git hash-object "$PRODUCER")" = "4de0edaead32085c0df06cab8cc24d382eb52e53"
+          test "$(git hash-object "$VERIFIER")" = "924d8875ba71061830812f379fc94af9b7ac0619"
+          test "$(git hash-object "$POINTWISE_AUDIT")" = "a27634412a6a5b45616d7b763a9d477cbe2ec130"
+          test "$(sha256sum "$POINTWISE_AUDIT" | cut -d' ' -f1)" = "73488490c1e7c2153f5a6bc3cc0e84e8623ad9281968c60aae940a56727c2816"
+          python -m py_compile "$PRODUCER" "$VERIFIER"
+          python - <<'PY'
+          import ast
+          from pathlib import Path
+          p=ast.parse(Path('experiments/direct/janus_c049_1_b4_6_3_corrected_terminal_structural_reflection_ledger.py').read_text())
+          v=ast.parse(Path('experiments/direct/janus_c049_1_b4_6_3_corrected_terminal_structural_reflection_ledger_verifier.py').read_text())
+          def mods(t):
+              out=[]
+              for n in ast.walk(t):
+                  if isinstance(n,ast.Import): out.extend(a.name for a in n.names)
+                  elif isinstance(n,ast.ImportFrom): out.append(n.module or '')
+              return out
+          assert not any(x.endswith('janus_c049_1_b4_6_3_corrected_terminal_structural_reflection_ledger_verifier') for x in mods(p))
+          assert not any(x.endswith('janus_c049_1_b4_6_3_corrected_terminal_structural_reflection_ledger') for x in mods(v))
+          print('STRUCTURAL_REFLECTION_LEDGER_IMPLEMENTATION_DECOUPLING_STATIC_CHECK = PASS')
+          PY
+
+          git fetch --force --prune origin '+refs/heads/*:refs/remotes/origin/*'
+          materialize(){ git cat-file -e "$1^{blob}"; git cat-file blob "$1" > "$2"; test "$(git hash-object "$2")" = "$1"; }
+          materialize c1807ab523d3269c064db33221c764d1e459bee2 /tmp/b1-doc.md
+          materialize 96019d44b8defb97f7b0911b57302004c3d57c61 /tmp/b1-core.py
+          materialize a7c5a7a65dfd9839711967f1039a96ba20ad6443 /tmp/b2-doc.md
+          materialize 3b66fa2b45702f11ee7a62657754c16800fa90f3 /tmp/b2-core.py
+          materialize 786f4cc657335f31ca8696167bc2bde66d53180b /tmp/b3-doc.md
+          materialize fcfa6698f87c4f3782354fe1c76fb707ac304c32 /tmp/obstruction.md
+          materialize c821710ac2238e3763265f90fb42d0be727b99a6 /tmp/plan.md
+          git show "$ROOT_SPEC_SUBJECT:$ROOT_SPEC_PATH" > /tmp/root-spec.json
+          test "$(git hash-object /tmp/root-spec.json)" = "401c4856de261f6048d313ca62fa43598ea449e0"
+
+      - name: Build ledger with two CLI source presentation orders
+        run: |
+          set -euo pipefail
+          python "$PRODUCER" \
+            --spec "$SPEC" --pointwise-audit "$POINTWISE_AUDIT" --root-spec /tmp/root-spec.json \
+            --b1-doc /tmp/b1-doc.md --b1-core /tmp/b1-core.py --b2-doc /tmp/b2-doc.md --b2-core /tmp/b2-core.py \
+            --b3-doc /tmp/b3-doc.md --obstruction /tmp/obstruction.md --plan /tmp/plan.md --output /tmp/ledger-original.json | tee /tmp/producer-original.log
+          python "$PRODUCER" \
+            --plan /tmp/plan.md --obstruction /tmp/obstruction.md --b3-doc /tmp/b3-doc.md --b2-core /tmp/b2-core.py \
+            --b2-doc /tmp/b2-doc.md --b1-core /tmp/b1-core.py --b1-doc /tmp/b1-doc.md --root-spec /tmp/root-spec.json \
+            --pointwise-audit "$POINTWISE_AUDIT" --spec "$SPEC" --output /tmp/ledger-reordered.json | tee /tmp/producer-reordered.log
+          cmp /tmp/ledger-original.json /tmp/ledger-reordered.json
+          echo 'STRUCTURAL_REFLECTION_LEDGER_BYTE_IDENTITY = PASS'
+          echo "LEDGER_ARTIFACT_SHA256=$(sha256sum /tmp/ledger-original.json | cut -d' ' -f1)"
+
+      - name: Independent ledger replay and tamper rejection
+        run: |
+          set -euo pipefail
+          python "$VERIFIER" \
+            --spec "$SPEC" --producer-source "$PRODUCER" --pointwise-audit "$POINTWISE_AUDIT" --root-spec /tmp/root-spec.json \
+            --b1-doc /tmp/b1-doc.md --b1-core /tmp/b1-core.py --b2-doc /tmp/b2-doc.md --b2-core /tmp/b2-core.py \
+            --b3-doc /tmp/b3-doc.md --obstruction /tmp/obstruction.md --plan /tmp/plan.md \
+            --candidate-original /tmp/ledger-original.json --candidate-reordered /tmp/ledger-reordered.json --tamper-suite | tee /tmp/verifier.log
+          grep -F 'JANUS_TERMINAL_STRUCTURAL_REFLECTION_LEDGER_INDEPENDENT_VERIFIER = PASS' /tmp/verifier.log
+          grep -F 'INVARIANTS = 12/12' /tmp/verifier.log
+          grep -F 'DIGEST_REPAIRED_TAMPERS_REJECTED = 12/12' /tmp/verifier.log
+          grep -F 'GENERAL_SEMANTIC_THEOREMS_ESTABLISHED = 0' /tmp/verifier.log
+          grep -F 'REMAINING_GENERAL_SEMANTIC_THEOREMS = 7' /tmp/verifier.log
+
+      - name: Non-promoting boundary audit
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import hashlib,json
+          from pathlib import Path
+          x=json.loads(Path('/tmp/ledger-original.json').read_text()); p=x['proof_payload']; b=p['strict_boundary']
+          assert hashlib.sha256(json.dumps(p,sort_keys=True,separators=(',',':')).encode()).hexdigest()==x['semantic_digest']
+          assert p['obligation_count']==7 and p['general_semantic_theorems_established']==0 and p['remaining_general_semantic_theorems']==7
+          assert all(o['general_semantic_theorem_established'] is False for o in p['obligations'])
+          assert all(o['evidence_ceiling']!='GENERAL_SEMANTIC_THEOREM_ESTABLISHED' for o in p['obligations'])
+          assert p['first_required_next_receipt']=='GENERAL_LEAF_SEMANTIC_BIJECTION_RECEIPT'
+          assert b['structural_reflection_obligation_ledger_complete'] is False
+          assert b['structural_induction_proved'] is False and b['terminal_completeness_proved'] is False
+          assert b['global_engine_no_layout_at_cap']=='FORBIDDEN' and b['found_layout']=='FORBIDDEN'
+          assert b['formal_admission']=='BLOCKED' and b['next_gate']=='CLOSED' and b['p_vs_np']=='OPEN'
+          print('STRUCTURAL_REFLECTION_NON_PROMOTING_BOUNDARY = PASS')
+          print('NEXT_MATHEMATICAL_RECEIPT = GENERAL_LEAF_SEMANTIC_BIJECTION_RECEIPT')
+          PY
+
+      - name: Build exact-head ledger receipt
+        run: |
+          set -euo pipefail
+          {
+            echo "GITHUB_SHA=$GITHUB_SHA"
+            echo "LEDGER_ARTIFACT_SHA256=$(sha256sum /tmp/ledger-original.json | cut -d' ' -f1)"
+            echo "LEDGER_SEMANTIC_DIGEST=$(python -c 'import json;print(json.load(open("/tmp/ledger-original.json"))["semantic_digest"])')"
+            echo 'BYTE_IDENTITY=PASS'
+            echo 'INVARIANTS=12/12'
+            echo 'DIGEST_REPAIRED_TAMPERS_REJECTED=12/12'
+            echo 'OBLIGATIONS=7'
+            echo 'GENERAL_SEMANTIC_THEOREMS_ESTABLISHED=0'
+            echo 'REMAINING_GENERAL_SEMANTIC_THEOREMS=7'
+            echo 'FIRST_REQUIRED_NEXT_RECEIPT=GENERAL_LEAF_SEMANTIC_BIJECTION_RECEIPT'
+            echo 'TERMINAL_COMPLETENESS_PROVED=FALSE'
+            echo 'GLOBAL_ENGINE_NO_LAYOUT_AT_CAP=FORBIDDEN'
+            echo 'P_VS_NP=OPEN'
+          } | tee /tmp/exact-head-receipt.txt
+
+      - name: Export structural-reflection ledger evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: c049-b4-6-3-corrected-terminal-structural-reflection-ledger
+          retention-days: 7
+          compression-level: 9
+          path: |
+            /tmp/exact-head-receipt.txt
+            /tmp/ledger-original.json
+            /tmp/ledger-reordered.json
+            /tmp/producer-original.log
+            /tmp/producer-reordered.log
+            /tmp/verifier.log
+            experiments/direct/C049_1_B4_6_3_CORRECTED_TERMINAL_STRUCTURAL_REFLECTION_SPEC_V1.json
+            experiments/direct/janus_c049_1_b4_6_3_corrected_terminal_structural_reflection_ledger.py
+            experiments/direct/janus_c049_1_b4_6_3_corrected_terminal_structural_reflection_ledger_verifier.py
