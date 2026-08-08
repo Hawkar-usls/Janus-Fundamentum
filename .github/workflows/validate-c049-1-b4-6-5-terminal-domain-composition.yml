@@ -19,7 +19,7 @@ jobs:
       PRODUCER: experiments/direct/janus_c049_1_b4_6_5_terminal_domain_composition.py
       VERIFIER: experiments/direct/janus_c049_1_b4_6_5_terminal_domain_composition_verifier.py
       PHASE_A: experiments/direct/janus_c049_fpt_integration_core.py
-      GROUP_RULE: docs/C049_GROUPED_SUBSPACE_PARTITION_OBSTRUCTION.md
+      GROUP_RULE: /tmp/C049_GROUPED_SUBSPACE_PARTITION_OBSTRUCTION.md
       ROOT_SPEC: experiments/direct/C049_1_B4_6_3_CORRECTED_ROOT_FULL_REFINEMENT_SPEC_V1.json
       O7_SPEC: experiments/direct/C049_1_B4_6_3_GENERAL_EMPTY_ROOT_SPECIALIZATION_SPEC_V1.json
       O7_AUDIT: experiments/direct/audits/C049_1_B4_6_3_GENERAL_EMPTY_ROOT_SPECIALIZATION_AUTHORITY_CLOSURE_AUDIT_7F9DF43C.json
@@ -38,6 +38,8 @@ jobs:
       - name: Bind immutable terminal sources and historical definitions
         run: |
           set -euo pipefail
+          git show a6a6a9cc11fbfcbc14a0c9bec13a7418594a2b49:docs/C049_GROUPED_SUBSPACE_PARTITION_OBSTRUCTION.md > "$GROUP_RULE"
+
           test "$(git hash-object "$SPEC")" = "8053289b87650ba97c775b0b31d190d5b5260a05"
           test "$(git hash-object "$PRODUCER")" = "342c94ef6a1abcb9e6a1260d7457a4b7835f9fe1"
           test "$(git hash-object "$VERIFIER")" = "34489d3af9d2d9e91626fd3a8b37615b9d231e37"
@@ -53,9 +55,11 @@ jobs:
           test "$(git rev-parse 8cf39d35fc0fd03191b5ab28905637a5c842b2cf:experiments/direct/janus_c049_fpt_integration_core.py)" = "5eb806a079343f00622886c448d2bfbfa412cbfe"
           test "$(git rev-parse a6a6a9cc11fbfcbc14a0c9bec13a7418594a2b49:docs/C049_GROUPED_SUBSPACE_PARTITION_OBSTRUCTION.md)" = "aed36086b2c5f1b18c8b5df939f28f3e4c22601d"
           test "$(git rev-parse 7f9df43ca7cd65dc02cd51df4e6ff4cff4579df1:experiments/direct/C049_1_B4_6_3_GENERAL_EMPTY_ROOT_SPECIALIZATION_SPEC_V1.json)" = "59447d0e9a98abc539fab415ea16ff7bc9e561f2"
-          test "$(git rev-parse 7f9df43ca7cd65dc02cd51df4e6ff4cff4579df1:experiments/direct/audits/C049_1_B4_6_3_GENERAL_EMPTY_ROOT_SPECIALIZATION_AUTHORITY_CLOSURE_AUDIT_7F9DF43C.json)" = "fc13ef61bc2975ec8ee1b5e5356444001750e0f2"
+          test "$(git rev-parse db4cd3d5edbe8ff7909f0b309e17659e5b488615:experiments/direct/audits/C049_1_B4_6_3_GENERAL_EMPTY_ROOT_SPECIALIZATION_AUTHORITY_CLOSURE_AUDIT_7F9DF43C.json)" = "fc13ef61bc2975ec8ee1b5e5356444001750e0f2"
           test "$(git rev-parse 799a8c2a360e01258a32b50f2b605e6a8a51eefb:experiments/direct/C049_1_B4_6_4_TERMINAL_REFLECTION_COMPLETENESS_SPEC_V1.json)" = "a3cfa36d961cb3bf4f4b8311e6e70a0cf597ce44"
           echo 'TERMINAL_IMMUTABLE_SOURCE_BINDING = PASS'
+          echo 'GROUP_RULE_MATERIALIZED_FROM_HISTORICAL_SUBJECT = PASS'
+          echo 'O7_PROOF_SUBJECT_AND_LATER_AUTHORITY_RECEIPT_DISTINGUISHED = PASS'
 
       - name: Compile and enforce implementation decoupling
         run: |
