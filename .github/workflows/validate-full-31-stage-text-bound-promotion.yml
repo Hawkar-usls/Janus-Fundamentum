@@ -1,0 +1,65 @@
+name: validate-full-31-stage-text-bound-promotion
+
+on:
+  pull_request:
+    paths:
+      - 'experiments/direct/JANUS_FULL_31_STAGE_TEXT_BOUND_PROMOTION_FROZEN_CONTRACT.json'
+      - 'experiments/direct/janus_full_31_stage_text_bound_promotion.py'
+      - 'experiments/direct/janus_full_text_missing_link_assembly.py'
+      - 'experiments/direct/janus_full_text_missing_link_runtime_adapter.py'
+      - '.github/workflows/validate-full-31-stage-text-bound-promotion.yml'
+
+jobs:
+  full-31-stage:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Compile harness
+        run: python -m py_compile experiments/direct/janus_full_31_stage_text_bound_promotion.py
+      - name: Enforce frozen contract
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          c=json.loads(Path('experiments/direct/JANUS_FULL_31_STAGE_TEXT_BOUND_PROMOTION_FROZEN_CONTRACT.json').read_text())
+          assert c['status']=='FROZEN_BEFORE_RUN'
+          assert c['textual_source_pass']['meta_commit']=='ae0bdb5f605565fbc4686f39451848997be018f9'
+          assert len(c['forward'])==31 and len(c['back'])==31
+          assert c['back']==list(reversed(c['forward']))
+          assert c['directions']==['BACK','FORWARD','LEFT','RIGHT','FORWARD_AGAIN','BACK_AGAIN']
+          assert c['claim_boundary'][-1]=='P_VS_NP = OPEN'
+          PY
+      - name: Execute frozen 31-stage run
+        run: |
+          mkdir -p artifacts
+          cd experiments/direct
+          python janus_full_31_stage_text_bound_promotion.py --self-test --output ../../artifacts/full_31_stage_text_bound_result.json
+      - name: Enforce frozen gates
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          d=json.loads(Path('artifacts/full_31_stage_text_bound_result.json').read_text())
+          assert d['status']=='PASS_KEEP_FULL_31_STAGE_TEXT_BOUND_COMPOSITION'
+          assert all(d['gates'].values())
+          assert d['directions']==['BACK','FORWARD','LEFT','RIGHT','FORWARD_AGAIN','BACK_AGAIN']
+          assert d['stage_counts']=={'forward':31,'back':31,'mirrors':31}
+          n=d['negative_controls']
+          assert n['missing_predecessor_rejects']==31
+          assert n['commitment_bitflip_rejects']==31
+          assert n['cross_parent_anchor_rejects']==31
+          assert d['mathematical_verdict']['P_VS_NP']=='OPEN'
+          print('STATUS =', d['status'])
+          print('MIRRORS =', d['FORWARD_AGAIN']['mirror_passes'], '/', d['FORWARD_AGAIN']['mirror_total'])
+          print('NEGATIVE_CONTROLS = PASS')
+          print('P_VS_NP =', d['mathematical_verdict']['P_VS_NP'])
+          PY
+      - name: Upload receipt
+        uses: actions/upload-artifact@v4
+        with:
+          name: janus-full-31-stage-text-bound-promotion
+          path: artifacts/full_31_stage_text_bound_result.json
+          retention-days: 90
