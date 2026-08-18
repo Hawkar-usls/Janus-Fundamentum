@@ -1,0 +1,79 @@
+name: validate-pt350-352-atomic-triad
+
+on:
+  pull_request:
+    paths:
+      - 'experiments/direct/JANUS_PT350_351_352_ATOMIC_TRIAD_FROZEN_CONTRACT.json'
+      - 'experiments/direct/janus_pt350_351_352_atomic_triad_head_tail.py'
+      - '.github/workflows/validate-pt350-352-atomic-triad.yml'
+  workflow_dispatch:
+
+jobs:
+  atomic-triad:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Compile atomic triad
+        run: python -m py_compile experiments/direct/janus_pt350_351_352_atomic_triad_head_tail.py
+      - name: Enforce frozen triad contract
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          c=json.loads(Path('experiments/direct/JANUS_PT350_351_352_ATOMIC_TRIAD_FROZEN_CONTRACT.json').read_text())
+          assert c['integration']['atomic'] is True
+          assert c['integration']['members'] == ['PT350','PT351','PT352']
+          assert c['integration']['no_posthoc_split'] is True
+          assert c['integration']['PT349'] == 'HEAD_BOUNDARY_WATCHLIST_ONLY'
+          assert c['braid']['BACK'] == ['PT222','PT477','PT366','PT355','PT354','PT353','PT352','PT351','PT350']
+          assert c['braid']['FORWARD'] == ['PT350','PT351','PT352','PT353','PT354','PT355','PT366','PT477','PT222']
+          assert c['operators']['triad']['rule'] == 'FIELD_CONTEXT + GESTATION_BINDING + FORMATION_WITNESS -> ONLY_THEN_PT353_LIVE_STATE'
+          assert c['claim_boundary'][-1] == 'P_VS_NP = OPEN'
+          PY
+      - name: Execute atomic triad full picture
+        run: |
+          mkdir -p artifacts
+          cd experiments/direct
+          python janus_pt350_351_352_atomic_triad_head_tail.py --self-test --output ../../artifacts/pt350_352_atomic_triad_result.json
+      - name: Enforce frozen gates and head-tail audit
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          d=json.loads(Path('artifacts/pt350_352_atomic_triad_result.json').read_text())
+          assert d['status'] == 'PASS_KEEP_PT350_352_ATOMIC_TRIAD'
+          assert all(d['gates'].values())
+          assert d['BACK']['execution'] == ['PT222','PT477','PT366','PT355','PT354','PT353','PT352','PT351','PT350']
+          assert d['FORWARD']['execution'] == ['PT350','PT351','PT352','PT353','PT354','PT355','PT366','PT477','PT222']
+          assert d['FORWARD_AGAIN']['mirror_passes'] == 9
+          assert d['FORWARD_AGAIN']['mirror_total'] == 9
+          t=d['FORWARD']['TRIAD']
+          assert t['total_generators'] == 494
+          assert t['positive_triad_passes'] == 494
+          assert t['positive_live_passes'] == 494
+          assert t['negative_controls_total'] == 2964
+          assert t['blocked_before_PT353'] + t['blocked_at_PT353'] == 2964
+          assert t['negative_PT354_entries'] == 0
+          assert all(v == 494 for v in t['negative_rejects'].values())
+          assert d['HEAD_TO_TAIL_AUDIT']['PT349_status'] == 'HEAD_BOUNDARY_WATCHLIST_ONLY_NOT_IN_CODE'
+          assert d['legacy_PT353_control']['exact'] is True
+          assert d['mathematical_verdict']['P_VS_NP'] == 'OPEN'
+          print('STATUS =', d['status'])
+          print('BACK =', d['BACK']['execution'])
+          print('FORWARD =', d['FORWARD']['execution'])
+          print('MIRRORS =', d['FORWARD_AGAIN']['mirror_passes'], '/', d['FORWARD_AGAIN']['mirror_total'])
+          print('TRIAD_POSITIVE =', t['positive_triad_passes'], '/', t['total_generators'])
+          print('TRIAD_NEGATIVE_BLOCKS =', t['blocked_before_PT353'] + t['blocked_at_PT353'], '/', t['negative_controls_total'])
+          print('HEAD_PREDECESSOR =', d['HEAD_TO_TAIL_AUDIT']['immediate_textual_predecessor'])
+          print('LITERAL_RATIO_NEW_OVER_LEGACY_PT353 =', d['cost_comparison_same_units']['literal_visit_ratio_new_over_legacy'])
+          print('P_VS_NP =', d['mathematical_verdict']['P_VS_NP'])
+          PY
+      - name: Upload triad receipt
+        uses: actions/upload-artifact@v4
+        with:
+          name: janus-pt350-352-atomic-triad-head-tail
+          path: artifacts/pt350_352_atomic_triad_result.json
+          retention-days: 90
