@@ -1,0 +1,52 @@
+name: validate-pt477-v2-apep-two-ways-route-tombstone
+
+on:
+  pull_request:
+    paths:
+      - 'experiments/direct/JANUS_PT477_V2_APEP_TWO_WAYS_ROUTE_TOMBSTONE_FROZEN_CONTRACT.json'
+      - 'experiments/direct/janus_pt477_v2_apep_two_ways_route_tombstone.py'
+      - '.github/workflows/validate-pt477-v2-apep-two-ways-route-tombstone.yml'
+  workflow_dispatch:
+
+jobs:
+  pt477-v2:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Compile frozen PT477-v2 probe
+        run: python -m py_compile experiments/direct/janus_pt477_v2_apep_two_ways_route_tombstone.py
+
+      - name: Execute Apep / Book-of-Two-Ways route tombstone calibration
+        working-directory: experiments/direct
+        run: |
+          python janus_pt477_v2_apep_two_ways_route_tombstone.py \
+            --self-test \
+            --output ../../artifacts/pt477_v2_apep_two_ways_route_tombstone_result.json
+
+      - name: Enforce fail-closed ladder and claim ceiling
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          p = Path('artifacts/pt477_v2_apep_two_ways_route_tombstone_result.json')
+          d = json.loads(p.read_text())
+          assert d['mathematical_verdict']['P_VS_NP'] == 'OPEN'
+          assert d['status'] in {'PASS_KEEP_PT477_V2', 'STOP_AT_PT477_V2_NO_IMPROVEMENT'}
+          assert d['gates']['no_extra_residual_scan'] is True
+          print('PT477_V2_STATUS =', d['status'])
+          print('BASELINE =', d['baseline'])
+          print('CANDIDATE =', d['candidate'])
+          print('GATES =', d['gates'])
+          PY
+
+      - name: Upload exact PT477-v2 receipt
+        uses: actions/upload-artifact@v4
+        with:
+          name: janus-pt477-v2-apep-two-ways-route-tombstone
+          path: artifacts/pt477_v2_apep_two_ways_route_tombstone_result.json
+          if-no-files-found: error
