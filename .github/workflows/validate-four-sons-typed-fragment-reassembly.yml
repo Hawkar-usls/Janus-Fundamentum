@@ -1,0 +1,54 @@
+name: validate-four-sons-typed-fragment-reassembly
+
+on:
+  pull_request:
+    paths:
+      - 'experiments/direct/JANUS_FOUR_SONS_TYPED_FRAGMENT_REASSEMBLY_FROZEN_CONTRACT.json'
+      - 'experiments/direct/janus_four_sons_typed_fragment_reassembly.py'
+      - '.github/workflows/validate-four-sons-typed-fragment-reassembly.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  four-sons-fragment-ledger:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Compile frozen fragment-ledger probe
+        run: python -m py_compile experiments/direct/janus_four_sons_typed_fragment_reassembly.py
+      - name: Execute revealed GT3..GT9 typed reassembly calibration
+        working-directory: experiments/direct
+        run: |
+          python janus_four_sons_typed_fragment_reassembly.py \
+            --self-test \
+            --output ../../artifacts/four_sons_typed_fragment_reassembly_result.json
+      - name: Enforce frozen claim ceiling
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          d=json.loads(Path('artifacts/four_sons_typed_fragment_reassembly_result.json').read_text())
+          assert d['mathematical_verdict']['P_VS_NP'] == 'OPEN'
+          assert d['status'] in {
+              'PASS_KEEP_FOUR_SONS_TYPED_FRAGMENT_REASSEMBLY',
+              'STOP_AT_FOUR_SONS_TYPED_FRAGMENT_REASSEMBLY_NO_IMPROVEMENT',
+          }
+          assert d['gates']['frozen_son_return_parent_reproduced'] is True
+          assert d['gates']['zero_extra_residual_scans_for_fragmentation'] is True
+          print('FOUR_SONS_STATUS =', d['status'])
+          print('LEDGER =', d['fragment_ledger'])
+          print('GATES =', d['gates'])
+          PY
+      - name: Upload exact fragment-ledger receipt
+        uses: actions/upload-artifact@v4
+        with:
+          name: janus-four-sons-typed-fragment-reassembly
+          path: artifacts/four_sons_typed_fragment_reassembly_result.json
+          if-no-files-found: error
+          retention-days: 90
