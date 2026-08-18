@@ -1,0 +1,64 @@
+name: validate-full-picture-pt350-to-pt222-source-completeness
+on:
+  pull_request:
+  workflow_dispatch:
+jobs:
+  full-picture:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Compile full-picture audit
+        run: python -m py_compile experiments/direct/janus_full_picture_pt350_to_pt222_source_completeness.py
+      - name: Enforce frozen source-completeness contract
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          c=json.loads(Path('experiments/direct/JANUS_FULL_PICTURE_PT350_TO_PT222_SOURCE_COMPLETENESS_FROZEN_CONTRACT.json').read_text())
+          assert c['run_type']=='FULL_REPLAY_AND_SOURCE_BOUNDARY_AUDIT_NO_NEW_OPERATOR'
+          assert c['integrated_machine']['FORWARD']==['PT350','PT351','PT352','PT353','PT354','PT355','PT366','PT477','PT222']
+          assert c['integrated_machine']['BACK']==['PT222','PT477','PT366','PT355','PT354','PT353','PT352','PT351','PT350']
+          assert c['source_tail_audit']['PT349_status']=='SOURCE_CONTINUATION_CANDIDATE_NOT_INTEGRATED'
+          assert c['source_head_audit']['PT223']['status'].startswith('HIGH_CONFIDENCE')
+          assert c['source_head_audit']['PT224']['status'].startswith('HIGH_CONFIDENCE')
+          assert c['source_head_audit']['head_source_completeness']=='OPEN'
+          assert c['mathematical_verdict']['P_VS_NP']=='OPEN'
+          PY
+      - name: Execute full picture from head to tail and back
+        run: |
+          mkdir -p artifacts
+          cd experiments/direct
+          python janus_full_picture_pt350_to_pt222_source_completeness.py --self-test --output ../../artifacts/full_picture_pt350_to_pt222_source_completeness.json
+      - name: Enforce full-picture gates
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          d=json.loads(Path('artifacts/full_picture_pt350_to_pt222_source_completeness.json').read_text())
+          assert d['status']=='PASS_FULL_PICTURE_WITH_OPEN_HEAD_AND_TAIL_SOURCE_CONTINUATIONS'
+          assert all(d['gates'].values())
+          assert d['machine_snapshot']['FORWARD']==['PT350','PT351','PT352','PT353','PT354','PT355','PT366','PT477','PT222']
+          assert d['machine_snapshot']['BACK']==['PT222','PT477','PT366','PT355','PT354','PT353','PT352','PT351','PT350']
+          assert d['machine_snapshot']['mirrors']=='9/9'
+          assert d['source_tail_audit']['PT349_status']=='SOURCE_CONTINUATION_CANDIDATE_NOT_INTEGRATED'
+          assert d['source_head_audit']['PT223']['status'].startswith('HIGH_CONFIDENCE')
+          assert d['source_head_audit']['PT224']['status'].startswith('HIGH_CONFIDENCE')
+          assert d['completeness_verdict']['source_head_completeness']=='OPEN'
+          assert d['completeness_verdict']['source_tail_completeness']=='OPEN'
+          assert d['mathematical_verdict']['P_VS_NP']=='OPEN'
+          print('STATUS =',d['status'])
+          print('FORWARD =',d['machine_snapshot']['FORWARD'])
+          print('BACK =',d['machine_snapshot']['BACK'])
+          print('MIRRORS =',d['machine_snapshot']['mirrors'])
+          print('TAIL NEXT =',d['completeness_verdict']['next_tail_candidate'])
+          print('HEAD NEXT =',d['completeness_verdict']['next_head_candidates'])
+          print('P_VS_NP =',d['mathematical_verdict']['P_VS_NP'])
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: janus-full-picture-pt350-to-pt222-source-completeness
+          path: artifacts/full_picture_pt350_to_pt222_source_completeness.json
+          retention-days: 90
