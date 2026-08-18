@@ -45,7 +45,7 @@ def main() -> None:
     }
     assert apply_permutation(g, g_to_f) == f
 
-    witness_f = {1: False, 2: False, 3: True}
+    witness_f = {1: True, 2: False, 3: True}
     assert satisfies(f, witness_f)
 
     canonical_witness = {
