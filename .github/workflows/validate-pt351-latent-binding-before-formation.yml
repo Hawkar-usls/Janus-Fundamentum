@@ -1,0 +1,60 @@
+name: validate-pt351-latent-binding-before-formation
+on:
+  pull_request:
+  workflow_dispatch:
+jobs:
+  pt351-latent-binding:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Compile PT351 integration
+        run: python -m py_compile experiments/direct/janus_pt351_latent_binding_before_formation.py
+      - name: Enforce frozen PT351 contract
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          c=json.loads(Path('experiments/direct/JANUS_PT351_LATENT_BINDING_BEFORE_FORMATION_FROZEN_CONTRACT.json').read_text())
+          assert c['integration_discipline']['integrated_now']=='PT351'
+          assert c['integration_discipline']['PT350_status']=='WATCHLIST_ONLY_NOT_IN_CODE_NOT_IN_GATES'
+          assert c['braid']['BACK']==['PT222','PT477','PT366','PT355','PT354','PT353','PT352','PT351_UNBIND_VERIFY']
+          assert c['braid']['FORWARD']==['PT351_BIND','PT352','PT353','PT354','PT355','PT366','PT477','PT222']
+          assert c['operator']['rule']=='BIND_LATENT_SUPPORT_TO_CURRENT_PARENT -> ONLY_THEN_FORM_BRANCH_STATE'
+          assert 'P_VS_NP = OPEN' in c['claim_boundary']
+          PY
+      - name: Execute PT351 eight-stage extension
+        run: |
+          mkdir -p artifacts
+          cd experiments/direct
+          python janus_pt351_latent_binding_before_formation.py --self-test --output ../../artifacts/pt351_latent_binding_result.json
+      - name: Enforce PT351 gates
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          d=json.loads(Path('artifacts/pt351_latent_binding_result.json').read_text())
+          assert d['status']=='PASS_KEEP_PT351_LATENT_BINDING_BEFORE_FORMATION'
+          assert all(d['gates'].values())
+          assert d['BACK']['execution']==['PT222','PT477','PT366','PT355','PT354','PT353','PT352','PT351']
+          assert d['FORWARD']['execution']==['PT351','PT352','PT353','PT354','PT355','PT366','PT477','PT222']
+          assert d['FORWARD_AGAIN']['mirror_passes']==8
+          assert d['FORWARD']['PT351']['positive_bindings']==494
+          assert d['FORWARD']['PT351']['blocked_before_pt352']==2470
+          assert d['FORWARD']['PT351']['negative_pt352_entries']==0
+          assert d['cost_vector']['PT352_plus_manifest_PT353_literal_visits_each_direction']==1397752
+          assert d['BACK_AGAIN']['PT350_status']=='WATCHLIST_ONLY_NOT_IN_CODE_NOT_IN_GATES'
+          assert d['mathematical_verdict']['P_VS_NP']=='OPEN'
+          print('STATUS =',d['status'])
+          print('MIRRORS =',d['FORWARD_AGAIN']['mirror_passes'],'/',d['FORWARD_AGAIN']['mirror_total'])
+          print('PT351 BLOCKS =',d['FORWARD']['PT351']['blocked_before_pt352'],'/',d['FORWARD']['PT351']['negative_controls_total'])
+          print('PT351 LITS =',d['cost_vector']['PT351_literal_visits_each_direction'])
+          print('P_VS_NP =',d['mathematical_verdict']['P_VS_NP'])
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: janus-pt351-latent-binding-before-formation
+          path: artifacts/pt351_latent_binding_result.json
+          retention-days: 90
