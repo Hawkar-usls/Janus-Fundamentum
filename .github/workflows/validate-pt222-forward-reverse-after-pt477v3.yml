@@ -1,0 +1,54 @@
+name: validate-pt222-forward-reverse-after-pt477v3
+
+on:
+  pull_request:
+    paths:
+      - 'experiments/direct/JANUS_PT222_FORWARD_REVERSE_AFTER_PT477V3_FROZEN_CONTRACT.json'
+      - 'experiments/direct/janus_pt222_forward_reverse_after_pt477v3.py'
+      - '.github/workflows/validate-pt222-forward-reverse-after-pt477v3.yml'
+  workflow_dispatch:
+
+jobs:
+  pt222:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Compile frozen PT222 continuation
+        run: python -m py_compile experiments/direct/janus_pt222_forward_reverse_after_pt477v3.py
+
+      - name: Execute PT477-v3 reproduction plus PT222 reverse replay
+        working-directory: experiments/direct
+        run: |
+          python janus_pt222_forward_reverse_after_pt477v3.py \
+            --n 14 \
+            --self-test \
+            --output ../../artifacts/pt222_forward_reverse_after_pt477v3_result.json
+
+      - name: Enforce claim ceiling and exact replay gate
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          d=json.loads(Path('artifacts/pt222_forward_reverse_after_pt477v3_result.json').read_text())
+          assert d['mathematical_verdict']['P_VS_NP'] == 'OPEN'
+          assert d['status'] in {
+              'PASS_KEEP_PT222_FORWARD_REVERSE_REPLAY',
+              'STOP_AT_PT222_REPLAY_FAILURE',
+          }
+          print('PT222_STATUS =', d['status'])
+          print('GATES =', d['gates'])
+          print('PT222_AUDIT =', d['pt222_audit'])
+          print('NEXT_TARGET =', d['next_target'])
+          PY
+
+      - name: Upload exact PT222 receipt
+        uses: actions/upload-artifact@v4
+        with:
+          name: janus-pt222-forward-reverse-after-pt477v3
+          path: artifacts/pt222_forward_reverse_after_pt477v3_result.json
+          if-no-files-found: error
