@@ -5,6 +5,7 @@ on:
       - 'experiments/direct/S_PHALLUS_H_GATE_2_BOUNDED_K_SCALING_HOLDOUT_FROZEN_CONTRACT.json'
       - 'experiments/direct/S_PHALLUS_H_GATE_2_BOUNDED_K_FIXTURES_FROZEN.json'
       - 'experiments/direct/s_phallus_h_gate_2_bounded_k_scaling_holdout.py'
+      - 'experiments/direct/s_phallus_h_gate_2_bounded_k_scaling_holdout_budget_guard.py'
       - '.github/workflows/validate-s-phallus-h-gate-2-bounded-k-scaling-holdout.yml'
   workflow_dispatch:
 jobs:
@@ -16,7 +17,9 @@ jobs:
         with:
           python-version: '3.11'
       - name: Compile gate
-        run: python -m py_compile experiments/direct/s_phallus_h_gate_2_bounded_k_scaling_holdout.py
+        run: |
+          python -m py_compile experiments/direct/s_phallus_h_gate_2_bounded_k_scaling_holdout.py
+          python -m py_compile experiments/direct/s_phallus_h_gate_2_bounded_k_scaling_holdout_budget_guard.py
       - name: Enforce frozen preregistration
         run: |
           python - <<'PY'
@@ -43,7 +46,7 @@ jobs:
         run: |
           mkdir -p artifacts
           cd experiments/direct
-          python s_phallus_h_gate_2_bounded_k_scaling_holdout.py --self-test --output ../../artifacts/s_phallus_h_gate_2_bounded_k_scaling_holdout_result.json
+          python s_phallus_h_gate_2_bounded_k_scaling_holdout_budget_guard.py --self-test --output ../../artifacts/s_phallus_h_gate_2_bounded_k_scaling_holdout_result.json
       - name: Enforce frozen gates and scaling identities
         run: |
           python - <<'PY'
@@ -58,7 +61,9 @@ jobs:
           assert len(d['regression'])==8 and all(x['passed'] for x in d['regression'])
           assert len(d['gate0_regression'])==5 and all(x['passed'] and x['found_k']==1 for x in d['gate0_regression'])
           assert len(d['gate1_regression'])==5 and all(x['passed'] and x['found_k']==2 for x in d['gate1_regression'])
-          assert len(d['hard_controls'])==2 and all(x['passed'] for x in d['hard_controls'])
+          assert len(d['hard_controls'])==2 and all(x['passed'] and x['lane']=='GENERIC_OSIRIS_V2_FALLBACK' for x in d['hard_controls'])
+          assert d['implementation_conformance']['new_posthoc_threshold_added'] is False
+          assert d['implementation_conformance']['hard_Tseitin_auto_k_not_invoked_after_parent_budget_reject'] is True
           for row in d['calibration']+d['holdout']:
               n=int(row['n']); k=int(row['found_k'])
               expected=sum(math.comb(n,j) for j in range(1,k+1))
