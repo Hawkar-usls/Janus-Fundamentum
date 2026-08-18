@@ -1,0 +1,85 @@
+name: validate-s-phallus-h-gate-2-bounded-k-scaling-holdout
+on:
+  pull_request:
+    paths:
+      - 'experiments/direct/S_PHALLUS_H_GATE_2_BOUNDED_K_SCALING_HOLDOUT_FROZEN_CONTRACT.json'
+      - 'experiments/direct/S_PHALLUS_H_GATE_2_BOUNDED_K_FIXTURES_FROZEN.json'
+      - 'experiments/direct/s_phallus_h_gate_2_bounded_k_scaling_holdout.py'
+      - '.github/workflows/validate-s-phallus-h-gate-2-bounded-k-scaling-holdout.yml'
+  workflow_dispatch:
+jobs:
+  gate2-bounded-k:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Compile gate
+        run: python -m py_compile experiments/direct/s_phallus_h_gate_2_bounded_k_scaling_holdout.py
+      - name: Enforce frozen preregistration
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          c=json.loads(Path('experiments/direct/S_PHALLUS_H_GATE_2_BOUNDED_K_SCALING_HOLDOUT_FROZEN_CONTRACT.json').read_text())
+          f=json.loads(Path('experiments/direct/S_PHALLUS_H_GATE_2_BOUNDED_K_FIXTURES_FROZEN.json').read_text())
+          assert c['status']=='FROZEN_BEFORE_IMPLEMENTATION_AND_RUN'
+          assert f['status']=='FROZEN_BEFORE_IMPLEMENTATION_AND_RUN'
+          assert c['parent']['sha']=='f9d1e0f73ec9e628731afd45d7078f6623601a44'
+          assert c['parent']['result_integrity_sha256']=='450cb257a7888528b8987f35b4358eab8c97028acf4caa86ff1386dfacb90462'
+          assert c['finite_scope']['K_MAX']==4
+          assert c['minimum_separator_detector']['all_candidates_for_every_k_below_found_k_must_be_examined_and_charged'] is True
+          assert c['minimum_separator_detector']['all_candidates_at_found_k_must_be_examined_and_charged'] is True
+          assert c['boundary_table']['all_rows_mandatory'] is True
+          assert c['boundary_table']['all_components_per_row_mandatory'] is True
+          assert c['fixtures']['calibration_count']==8 and c['fixtures']['holdout_count']==6
+          assert len([x for x in f['fixtures'] if x['split']=='calibration'])==8
+          assert len([x for x in f['fixtures'] if x['split']=='holdout'])==6
+          assert c['tranception']['direction_order']==['BACK','FORWARD','LEFT','RIGHT','FORWARD_AGAIN','BACK_AGAIN']
+          assert c['promotion_gates']['P_VS_NP']=='OPEN'
+          PY
+      - name: Execute frozen gate
+        run: |
+          mkdir -p artifacts
+          cd experiments/direct
+          python s_phallus_h_gate_2_bounded_k_scaling_holdout.py --self-test --output ../../artifacts/s_phallus_h_gate_2_bounded_k_scaling_holdout_result.json
+      - name: Enforce frozen gates and scaling identities
+        run: |
+          python - <<'PY'
+          import json, math
+          from pathlib import Path
+          d=json.loads(Path('artifacts/s_phallus_h_gate_2_bounded_k_scaling_holdout_result.json').read_text())
+          assert d['status']=='PASS_KEEP_S_PHALLUS_H_GATE_2_BOUNDED_K_SCALING_HOLDOUT__MASTER_P_VS_NP_GATE_REMAINS_OPEN'
+          assert all(d['gates'].values())
+          assert len(d['calibration'])==8 and all(x['exact_correct'] and x['minimum_k_correct'] and x['minimum_k_proof_verified'] for x in d['calibration'])
+          assert len(d['holdout'])==6 and all(x['exact_correct'] and x['minimum_k_correct'] and x['minimum_k_proof_verified'] for x in d['holdout'])
+          assert len(d['negative_controls'])==6 and all(x['passed'] for x in d['negative_controls'])
+          assert len(d['regression'])==8 and all(x['passed'] for x in d['regression'])
+          assert len(d['gate0_regression'])==5 and all(x['passed'] and x['found_k']==1 for x in d['gate0_regression'])
+          assert len(d['gate1_regression'])==5 and all(x['passed'] and x['found_k']==2 for x in d['gate1_regression'])
+          assert len(d['hard_controls'])==2 and all(x['passed'] for x in d['hard_controls'])
+          for row in d['calibration']+d['holdout']:
+              n=int(row['n']); k=int(row['found_k'])
+              expected=sum(math.comb(n,j) for j in range(1,k+1))
+              assert row['cumulative_candidate_count']==expected, (row['id'],row['cumulative_candidate_count'],expected)
+              assert row['boundary_rows']==2**k
+              assert all(int(row['verified_separator_counts_by_k'].get(str(j),0))==0 for j in range(1,k))
+          r=d['ribbon_state']
+          assert r['POSITION_RETURN_EQUALS_ORIGIN_POSITION'] is True
+          assert r['STATE_RETURN_DIFFERS_FROM_ORIGINAL_STATE'] is True
+          assert r['origin']['position_commitment']==r['origin_prime_1']['position_commitment']==r['origin_prime_2']['position_commitment']
+          assert len({r['origin']['state_commitment'],r['origin_prime_1']['state_commitment'],r['origin_prime_2']['state_commitment']})==3
+          assert d['mathematical_verdict']['P_VS_NP']=='OPEN'
+          print('STATUS =',d['status'])
+          print('CALIBRATION = 8/8')
+          print('HOLDOUT = 6/6')
+          print('NEGATIVE = 6/6')
+          print('K OBSERVED =',sorted({x['found_k'] for x in d['calibration']+d['holdout']}))
+          print('P_VS_NP =',d['mathematical_verdict']['P_VS_NP'])
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: s-phallus-h-gate-2-bounded-k-scaling-holdout
+          path: artifacts/s_phallus_h_gate_2_bounded_k_scaling_holdout_result.json
+          retention-days: 90
