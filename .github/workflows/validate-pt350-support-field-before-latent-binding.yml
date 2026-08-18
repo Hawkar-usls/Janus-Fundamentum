@@ -1,0 +1,64 @@
+name: validate-pt350-support-field-before-latent-binding
+on:
+  pull_request:
+  workflow_dispatch:
+jobs:
+  pt350-support-field:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Compile PT350 integration
+        run: python -m py_compile experiments/direct/janus_pt350_support_field_before_latent_binding.py
+      - name: Enforce frozen PT350 contract
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          c=json.loads(Path('experiments/direct/JANUS_PT350_SUPPORT_FIELD_BEFORE_LATENT_BINDING_FROZEN_CONTRACT.json').read_text())
+          assert c['integration_discipline']['integrated_now']=='PT350'
+          assert c['integration_discipline']['next_earlier_text_PT349']=='BOUNDARY_AUDIT_ONLY_NOT_IN_CODE_NOT_IN_GATES'
+          assert c['braid']['BACK']==['PT222','PT477','PT366','PT355','PT354','PT353','PT352','PT351','PT350_UNFIELD_VERIFY']
+          assert c['braid']['FORWARD']==['PT350_FIELD','PT351','PT352','PT353','PT354','PT355','PT366','PT477','PT222']
+          assert c['operator']['rule']=='ESTABLISH_DISJOINT_SUPPORT_FIELD -> ONLY_THEN_GESTATE_LATENT_BINDINGS'
+          assert 'P_VS_NP = OPEN' in c['claim_boundary']
+          PY
+      - name: Execute PT350 nine-stage extension
+        run: |
+          mkdir -p artifacts
+          cd experiments/direct
+          python janus_pt350_support_field_before_latent_binding.py --self-test --output ../../artifacts/pt350_support_field_result.json
+      - name: Enforce PT350 gates
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          d=json.loads(Path('artifacts/pt350_support_field_result.json').read_text())
+          assert d['status']=='PASS_KEEP_PT350_SUPPORT_FIELD_BEFORE_LATENT_BINDING'
+          assert all(d['gates'].values())
+          assert d['BACK']['execution']==['PT222','PT477','PT366','PT355','PT354','PT353','PT352','PT351','PT350']
+          assert d['FORWARD']['execution']==['PT350','PT351','PT352','PT353','PT354','PT355','PT366','PT477','PT222']
+          assert d['FORWARD_AGAIN']['mirror_passes']==9
+          assert d['FORWARD']['PT350']['positive_field_manifests']==5
+          assert d['FORWARD']['PT350']['positive_support_pairs_total']==494
+          assert d['FORWARD']['PT350']['negative_field_controls_total']==30
+          assert sum(d['FORWARD']['PT350']['negative_rejects'].values())==30
+          assert d['FORWARD']['PT350']['negative_pt351_entries']==0
+          assert d['cost_vector']['PT352_plus_manifest_PT353_literal_visits_each_direction']==1397752
+          assert d['cost_vector']['PT351_literal_visits_each_direction']==1976
+          assert d['BACK_AGAIN']['PT349_status']=='BOUNDARY_AUDIT_ONLY_NOT_IN_CODE_NOT_IN_GATES'
+          assert d['mathematical_verdict']['P_VS_NP']=='OPEN'
+          print('STATUS =',d['status'])
+          print('MIRRORS =',d['FORWARD_AGAIN']['mirror_passes'],'/',d['FORWARD_AGAIN']['mirror_total'])
+          print('PT350 FIELDS =',d['FORWARD']['PT350']['positive_field_manifests'])
+          print('PT350 NEGATIVE FIELD BLOCKS =',sum(d['FORWARD']['PT350']['negative_rejects'].values()),'/',d['FORWARD']['PT350']['negative_field_controls_total'])
+          print('EARLY LITERAL SUBTOTAL =',d['cost_vector']['early_literal_visit_subtotal_PT350_to_PT353'])
+          print('P_VS_NP =',d['mathematical_verdict']['P_VS_NP'])
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: janus-pt350-support-field-before-latent-binding
+          path: artifacts/pt350_support_field_result.json
+          retention-days: 90
