@@ -1,0 +1,57 @@
+name: validate-s-phallus-h-reversible-namespace-alias
+
+on:
+  pull_request:
+    paths:
+      - 'experiments/direct/JANUS_S_PHALLUS_H_REVERSIBLE_NAMESPACE_ALIAS_FROZEN_CONTRACT.json'
+      - 'experiments/direct/janus_s_phallus_h_reversible_namespace_alias.py'
+      - '.github/workflows/validate-s-phallus-h-reversible-namespace-alias.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  s-phallus-h-reversible-alias:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Compile frozen S𓂸ḥ probe
+        run: python -m py_compile experiments/direct/janus_s_phallus_h_reversible_namespace_alias.py
+      - name: Execute revealed GT3..GT9 S𓂸ḥ reversible-alias calibration
+        working-directory: experiments/direct
+        run: |
+          python janus_s_phallus_h_reversible_namespace_alias.py \
+            --self-test \
+            --output ../../artifacts/s_phallus_h_reversible_namespace_alias_result.json
+      - name: Enforce frozen parent, reverse path, and claim ceiling
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          d=json.loads(Path('artifacts/s_phallus_h_reversible_namespace_alias_result.json').read_text())
+          assert d['mathematical_verdict']['P_VS_NP'] == 'OPEN'
+          assert d['status'] in {
+              'PASS_KEEP_S_PHALLUS_H_REVERSIBLE_NAMESPACE_ALIAS',
+              'STOP_AT_S_PHALLUS_H_REVERSIBLE_NAMESPACE_ALIAS',
+          }
+          assert d['gates']['frozen_parent_solver_reproduced'] is True
+          assert d['gates']['frozen_parent_ren_reproduced'] is True
+          assert d['gates']['candidate_ren_exactly_matches_parent'] is True
+          assert d['gates']['zero_extra_solver_residual_scans'] is True
+          print('S_PHALLUS_H_STATUS =', d['status'])
+          print('ALIAS =', d['alias'])
+          print('STORAGE =', d['storage'])
+          print('GATES =', d['gates'])
+          PY
+      - name: Upload exact S𓂸ḥ receipt
+        uses: actions/upload-artifact@v4
+        with:
+          name: janus-s-phallus-h-reversible-namespace-alias
+          path: artifacts/s_phallus_h_reversible_namespace_alias_result.json
+          if-no-files-found: error
+          retention-days: 90
