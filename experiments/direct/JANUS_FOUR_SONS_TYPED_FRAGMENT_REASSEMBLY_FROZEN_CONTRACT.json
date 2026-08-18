@@ -1,0 +1,61 @@
+{
+  "artifact_id": "JANUS-FOUR-SONS-TYPED-FRAGMENT-REASSEMBLY-FROZEN-CONTRACT-2026-08-18-v1",
+  "status": "PREREGISTERED_BEFORE_FIRST_RUN",
+  "parent": {
+    "branch": "janus-son-return-path-parent-delta",
+    "required_terminal": "PASS_KEEP_SON_RETURN_PATH_PARENT_DELTA",
+    "required_transition_count": 5366,
+    "required_monolithic_delta_wire_bytes": 6736086
+  },
+  "historical_prompt_boundary": {
+    "Book_of_the_Dead_151": "FOUR_SONS_PROTECT_REASSEMBLE_AND_RESTORE_OSIRIS_PROMPT_ONLY",
+    "modern_fragment_roles_are_not_historical_deity_translations": true,
+    "ancient_text_is_algorithmic_evidence": false
+  },
+  "frozen_operator": {
+    "name": "FOUR_SONS_TYPED_FRAGMENT_REASSEMBLY_LEDGER",
+    "law": "A recovery certificate is accepted only when four typed content-addressed fragments are present, hash-valid, type-correct, and together reconstruct the exact monolithic parent-delta certificate.",
+    "four_modern_fragment_slots": [
+      "BRANCH_IDENTITY",
+      "PARENT_CLAUSES_TO_RESTORE",
+      "CHILD_ARTIFACTS_TO_REMOVE",
+      "PARENT_COMMITMENT"
+    ],
+    "storage_rule": "Fragment payloads are content-addressed and stored once per run; each transition stores exactly four 32-byte SHA-256 references in fixed typed slots.",
+    "hash_rule": "fragment_ref = SHA256(type_tag || payload_length || payload)",
+    "reassembly_rule": "Resolve all four references, verify hash and expected type, rebuild ParentRecoveryDelta, reconstruct exact parent, verify parent commitment, and forward-replay to exact child.",
+    "authorization_rule": "Fragment ledger can reconstruct/verify recovery data only. It cannot authorize SAT, UNSAT, equivalence, absorption, pruning, or a semantic merge."
+  },
+  "frozen_wire_accounting": {
+    "fragment_store_entry": "1 byte type tag + 4 byte payload length + payload bytes",
+    "transition_manifest": "exactly 4 SHA-256 references = 128 bytes; slot order carries type",
+    "branch_payload": "4-byte signed variable + 1-byte Boolean value",
+    "clause_list_payload": "same encoding as parent-delta: 4-byte clause count + each clause as 2-byte literal count + 4 bytes per signed literal",
+    "commitment_payload": "32 raw SHA-256 bytes",
+    "comparison_baseline": "monolithic recovery_delta_wire_bytes from frozen parent run"
+  },
+  "frozen_calibration": {
+    "corpus": "REVEALED_GT3_TO_GT9_ONLY_NO_NEW_HOLDOUT",
+    "solver_trajectory_must_match_parent_exactly": true,
+    "gates": [
+      "parent SON_RETURN_PATH result is reproduced exactly",
+      "transition count is exactly 5366",
+      "every transition resolves exactly four typed fragments",
+      "every fragment reference hash verifies",
+      "every reassembled delta equals the original monolithic delta",
+      "every reassembled delta reconstructs the exact immediate parent",
+      "every parent commitment verifies",
+      "every reconstructed parent forward-replays to the exact child",
+      "total unique fragment-store bytes plus transition-manifest bytes is strictly less than 6736086 monolithic-delta bytes",
+      "all fragment-store/manifests bookkeeping is charged",
+      "zero new residual scans for fragmentation"
+    ]
+  },
+  "stop_rule": "Any failed gate freezes this implementation as a negative result. No post-hoc change of fragment count, slot semantics, hashing, or accounting.",
+  "claim_ceiling": [
+    "A pass establishes only exact typed content-addressed recovery-certificate reassembly with smaller aggregate stored payload on revealed GT3..GT9.",
+    "A pass does not establish lower runtime or RAM on arbitrary CNFs.",
+    "A pass does not establish a universal polynomial residual automaton.",
+    "P_VS_NP = OPEN"
+  ]
+}
