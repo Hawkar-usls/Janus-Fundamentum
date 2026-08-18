@@ -1,0 +1,54 @@
+name: validate-son-return-path-parent-delta
+
+on:
+  pull_request:
+    paths:
+      - 'experiments/direct/JANUS_SON_RETURN_PATH_PARENT_DELTA_FROZEN_CONTRACT.json'
+      - 'experiments/direct/janus_son_return_path_parent_delta.py'
+      - '.github/workflows/validate-son-return-path-parent-delta.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  son-return-parent-delta:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Compile frozen son-return probe
+        run: python -m py_compile experiments/direct/janus_son_return_path_parent_delta.py
+      - name: Execute revealed GT3..GT9 parent-delta calibration
+        working-directory: experiments/direct
+        run: |
+          python janus_son_return_path_parent_delta.py \
+            --self-test \
+            --output ../../artifacts/son_return_path_parent_delta_result.json
+      - name: Enforce frozen claim ceiling
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          d=json.loads(Path('artifacts/son_return_path_parent_delta_result.json').read_text())
+          assert d['mathematical_verdict']['P_VS_NP'] == 'OPEN'
+          assert d['status'] in {
+              'PASS_KEEP_SON_RETURN_PATH_PARENT_DELTA',
+              'STOP_AT_SON_RETURN_PATH_PARENT_DELTA_NO_IMPROVEMENT',
+          }
+          assert d['gates']['frozen_pt477_v3_parent_reproduced'] is True
+          assert d['gates']['zero_extra_parent_rescans_for_delta_generation'] is True
+          print('SON_RETURN_STATUS =', d['status'])
+          print('RECOVERY =', d['recovery'])
+          print('GATES =', d['gates'])
+          PY
+      - name: Upload exact recovery receipt
+        uses: actions/upload-artifact@v4
+        with:
+          name: janus-son-return-path-parent-delta
+          path: artifacts/son_return_path_parent_delta_result.json
+          if-no-files-found: error
+          retention-days: 90
