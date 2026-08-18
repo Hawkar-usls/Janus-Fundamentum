@@ -1,0 +1,52 @@
+name: validate-egyptian-operator-sync-ladder
+
+on:
+  pull_request:
+    paths:
+      - 'experiments/direct/janus_egyptian_operator_sync_ladder.py'
+      - '.github/workflows/validate-egyptian-operator-sync-ladder.yml'
+  workflow_dispatch:
+
+jobs:
+  staged-sync:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Compile synchronization ladder
+        run: python -m py_compile experiments/direct/janus_egyptian_operator_sync_ladder.py
+
+      - name: Run PT355 -> PT366 -> PT477 -> PT222 staged audit
+        working-directory: experiments/direct
+        run: |
+          python janus_egyptian_operator_sync_ladder.py \
+            --self-test \
+            --output ../../artifacts/egyptian_operator_sync_ladder_result.json
+
+      - name: Enforce epistemic ceiling and report stop/continue
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          p = Path('artifacts/egyptian_operator_sync_ladder_result.json')
+          d = json.loads(p.read_text())
+          assert d['mathematical_verdict']['P_VS_NP'] == 'OPEN'
+          assert d['status'] in {
+              'PASS_CONTINUE', 'STOP_AT_PT355', 'STOP_AT_PT366',
+              'STOP_AT_PT477', 'STOP_AT_PT222'
+          }
+          print('SYNC_LADDER_STATUS =', d['status'])
+          for stage in d['stages']:
+              print(stage['stage'], 'pass=', stage['test_pass'], 'improved=', stage['metric_improved'], 'continue=', stage['continue'])
+          PY
+
+      - name: Upload synchronization receipt
+        uses: actions/upload-artifact@v4
+        with:
+          name: janus-egyptian-operator-sync-ladder
+          path: artifacts/egyptian_operator_sync_ladder_result.json
+          if-no-files-found: error
