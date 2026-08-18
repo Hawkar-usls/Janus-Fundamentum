@@ -1,0 +1,65 @@
+name: validate-full-mechanics-reverse-return-first
+
+on:
+  pull_request:
+    paths:
+      - 'experiments/direct/JANUS_FULL_MECHANICS_REVERSE_RETURN_FIRST_FROZEN_CONTRACT.json'
+      - 'experiments/direct/janus_full_mechanics_reverse_return_first.py'
+      - '.github/workflows/validate-full-mechanics-reverse-return-first.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  reverse-return-first:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Compile frozen reverse mechanics probe
+        run: python -m py_compile experiments/direct/janus_full_mechanics_reverse_return_first.py
+      - name: Enforce no post-birth exhaustive enumeration or full generator construction
+        run: |
+          if grep -Fq 'itertools.product' experiments/direct/janus_full_mechanics_reverse_return_first.py; then
+            echo 'forbidden exhaustive prefix enumeration found'
+            exit 1
+          fi
+          if grep -Fq 'full_generator(' experiments/direct/janus_full_mechanics_reverse_return_first.py; then
+            echo 'forbidden full 2n generator construction found in candidate'
+            exit 1
+          fi
+      - name: Execute frozen reverse return-first probe
+        working-directory: experiments/direct
+        run: |
+          python janus_full_mechanics_reverse_return_first.py \
+            --self-test \
+            --output ../../artifacts/full_mechanics_reverse_return_first_result.json
+      - name: Enforce claim ceiling and inspect frozen gates
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          d=json.loads(Path('artifacts/full_mechanics_reverse_return_first_result.json').read_text())
+          assert d['mathematical_verdict']['P_VS_NP'] == 'OPEN'
+          assert d['comparison_n14']['PT222_post_birth']['raw_prefixes_enumerated'] == 16384
+          assert d['comparison_n14']['PR190_prebirth_full_generator']['conservative_work_proxy'] == 9037
+          for row in d['rows']:
+              assert row['raw_prefixes_enumerated'] == 0
+              assert row['symbolic_states'] == row['n'] + 1
+              assert row['symbolic_transitions'] == row['n']
+              assert row['gates']['no_semantic_or_sat_oracle'] is True
+              print('ROW', row['n'], 'status=', row['passed'], 'work=', row['candidate_work_proxy'], 'old=', row['prior_pr190_work_proxy'], 'ratio=', row['work_ratio_vs_pr190'])
+          print('STATUS =', d['status'])
+          print('N14 =', d['comparison_n14'])
+          PY
+      - name: Upload exact reverse mechanics receipt
+        uses: actions/upload-artifact@v4
+        with:
+          name: janus-full-mechanics-reverse-return-first
+          path: artifacts/full_mechanics_reverse_return_first_result.json
+          if-no-files-found: error
+          retention-days: 90
