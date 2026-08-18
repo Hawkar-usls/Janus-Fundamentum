@@ -1,0 +1,62 @@
+name: validate-tranception-prebirth-orbit-generators
+
+on:
+  pull_request:
+    paths:
+      - 'experiments/direct/JANUS_TRANCEPTION_PREBIRTH_ORBIT_GENERATORS_FROZEN_CONTRACT.json'
+      - 'experiments/direct/janus_tranception_prebirth_orbit_generators.py'
+      - '.github/workflows/validate-tranception-prebirth-orbit-generators.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  prebirth-orbit-generators:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Compile frozen BACK-FORTH probe
+        run: python -m py_compile experiments/direct/janus_tranception_prebirth_orbit_generators.py
+      - name: Enforce no exhaustive prefix product in new probe
+        run: |
+          if grep -Fq 'itertools.product' experiments/direct/janus_tranception_prebirth_orbit_generators.py; then
+            echo 'forbidden exhaustive prefix product found'
+            exit 1
+          fi
+      - name: Execute frozen symbolic pre-birth quotient control
+        working-directory: experiments/direct
+        run: |
+          python janus_tranception_prebirth_orbit_generators.py \
+            --self-test \
+            --output ../../artifacts/tranception_prebirth_orbit_generators_result.json
+      - name: Enforce frozen gates and claim ceiling
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          d=json.loads(Path('artifacts/tranception_prebirth_orbit_generators_result.json').read_text())
+          assert d['mathematical_verdict']['P_VS_NP'] == 'OPEN'
+          assert d['gates']['s_phallus_parent_reproduced'] is True
+          assert d['gates']['zero_raw_prefix_enumeration'] is True
+          assert d['comparison_n14']['old_pt222_prefixes_enumerated'] == 16384
+          assert d['comparison_n14']['new_prefixes_enumerated'] == 0
+          assert d['comparison_n14']['new_exact_generator_count'] == 14
+          assert d['comparison_n14']['new_symbolic_quotient_states'] == 15
+          print('STATUS =', d['status'])
+          print('N14 =', d['comparison_n14'])
+          print('GATES =', d['gates'])
+          for row in d['rows']:
+              print('ROW', row['n'], 'represented=', row['represented_raw_prefixes'], 'states=', row['symbolic_quotient_states'], 'poly_work=', row['charged_work']['polynomial_work_proxy'])
+          PY
+      - name: Upload exact BACK-FORTH receipt
+        uses: actions/upload-artifact@v4
+        with:
+          name: janus-tranception-prebirth-orbit-generators
+          path: artifacts/tranception_prebirth_orbit_generators_result.json
+          if-no-files-found: error
+          retention-days: 90
