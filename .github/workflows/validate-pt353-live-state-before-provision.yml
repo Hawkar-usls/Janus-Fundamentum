@@ -1,0 +1,101 @@
+name: validate-pt353-live-state-before-provision
+
+on:
+  pull_request:
+    paths:
+      - 'experiments/direct/JANUS_PT353_LIVE_STATE_BEFORE_PROVISION_FROZEN_CONTRACT.json'
+      - 'experiments/direct/janus_pt353_live_state_before_provision.py'
+      - '.github/workflows/validate-pt353-live-state-before-provision.yml'
+  workflow_dispatch:
+
+jobs:
+  pt353-live-state:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Compile PT353 integration
+        run: python -m py_compile experiments/direct/janus_pt353_live_state_before_provision.py
+
+      - name: Enforce frozen one-integration contract
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          c = json.loads(Path('experiments/direct/JANUS_PT353_LIVE_STATE_BEFORE_PROVISION_FROZEN_CONTRACT.json').read_text())
+          assert c['integration_discipline']['integrated_now'] == 'PT353'
+          assert c['integration_discipline']['PT352_status'] == 'WATCHLIST_ONLY_NOT_IN_CODE_NOT_IN_GATES'
+          assert c['integration_discipline']['one_text_one_operator_one_run'] is True
+          assert c['six_direction_sequence'] == ['BACK','FORWARD','LEFT','RIGHT','FORWARD_AGAIN','BACK_AGAIN']
+          assert c['braid']['BACK'] == ['PT222_PR190_KERNEL','PT477_V3','PT366','PT355','PT354','PT353_UNLIVE_VERIFY']
+          assert c['braid']['FORWARD'] == ['PT353_LIVE_VERIFY','PT354','PT355','PT366','PT477_V3','PT222_PR190_KERNEL']
+          assert c['operator']['name'] == 'PT353_LIVE_STATE_WITNESS_BEFORE_PROVISIONING'
+          assert c['operator']['rule'] == 'VERIFY_THE_LIVE_STATE -> ONLY_THEN_PREPARE_PAYLOAD_AND_RETURN'
+          assert 'PT352 operator' in c['operator']['must_not_use']
+          assert c['frozen_controls']['n'] == [14,32,64,128,256]
+          assert 'P_VS_NP = OPEN' in c['claim_boundary']
+          PY
+
+      - name: Execute PT353 six-direction extension
+        run: |
+          mkdir -p artifacts
+          cd experiments/direct
+          python janus_pt353_live_state_before_provision.py --self-test --output ../../artifacts/pt353_live_state_before_provision_result.json
+
+      - name: Enforce frozen PT353 gates and print statistics
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          d = json.loads(Path('artifacts/pt353_live_state_before_provision_result.json').read_text())
+          assert d['status'] == 'PASS_KEEP_PT353_LIVE_STATE_BEFORE_PROVISION'
+          for key, value in d['gates'].items():
+              print('GATE', key, '=', value)
+              assert value is True
+          assert d['executed_direction_sequence'] == ['BACK','FORWARD','LEFT','RIGHT','FORWARD_AGAIN','BACK_AGAIN']
+          assert d['BACK']['execution'] == ['PT222','PT477','PT366','PT355','PT354','PT353']
+          assert d['FORWARD']['execution'] == ['PT353','PT354','PT355','PT366','PT477','PT222']
+          assert d['FORWARD_AGAIN']['mirror_passes'] == 6
+          assert d['FORWARD_AGAIN']['mirror_total'] == 6
+          assert d['FORWARD']['PT353']['total_generators'] == 494
+          assert d['FORWARD']['PT353']['positive_live_passes'] == 494
+          assert d['FORWARD']['PT353']['positive_pt354_entries'] == 494
+          assert d['FORWARD']['PT353']['negative_controls_total'] == 2964
+          assert d['FORWARD']['PT353']['blocked_before_pt354'] == 2964
+          assert d['FORWARD']['PT353']['negative_pt354_entries'] == 0
+          assert all(v == 494 for v in d['FORWARD']['PT353']['negative_rejects'].values())
+          assert d['FORWARD']['PT353']['uses_action_certificate'] is False
+          assert d['FORWARD']['PT353']['uses_sat_oracle'] is False
+          assert d['BACK_AGAIN']['PT352_status'] == 'WATCHLIST_ONLY_NOT_IN_CODE_NOT_IN_GATES'
+          # Inherited PR194 receipts must reproduce exactly.
+          assert d['FORWARD']['PT354']['authorized'] == 494
+          assert d['FORWARD']['PT354']['hash_ops'] == 3952
+          assert d['FORWARD']['PT354']['literal_visits'] == 1043868
+          assert d['FORWARD']['PT355']['raw_residual_states'] == 4096
+          assert d['FORWARD']['PT355']['normalized_residual_states'] == 1
+          assert d['FORWARD']['PT366']['samples'] == 256
+          assert d['FORWARD']['PT366']['reverse_map_passes'] == 256
+          assert d['FORWARD']['PT477']['candidate']['residual_states'] == 2822
+          assert d['FORWARD']['PT477']['candidate']['saved_buzz_return_checks'] == 1050
+          assert sum(row['canonical_work_proxy'] for row in d['FORWARD']['PT222']['rows']) == 3893117
+          assert d['mathematical_verdict']['P_VS_NP'] == 'OPEN'
+          print('STATUS =', d['status'])
+          print('BACK =', d['BACK']['execution'])
+          print('FORWARD =', d['FORWARD']['execution'])
+          print('MIRRORS =', d['FORWARD_AGAIN']['mirror_passes'], '/', d['FORWARD_AGAIN']['mirror_total'])
+          print('PT353 LIVE =', d['FORWARD']['PT353']['positive_live_passes'], '/', d['FORWARD']['PT353']['total_generators'])
+          print('PT353 NEGATIVE BLOCKS =', d['FORWARD']['PT353']['blocked_before_pt354'], '/', d['FORWARD']['PT353']['negative_controls_total'])
+          print('PT353 HASH OPS =', d['cost_vector']['PT353_hash_ops_each_direction'])
+          print('PT353 LITERAL VISITS =', d['cost_vector']['PT353_literal_visits_each_direction'])
+          print('P_VS_NP =', d['mathematical_verdict']['P_VS_NP'])
+          PY
+
+      - name: Upload PT353 receipt
+        uses: actions/upload-artifact@v4
+        with:
+          name: janus-pt353-live-state-before-provision
+          path: artifacts/pt353_live_state_before_provision_result.json
+          retention-days: 90
