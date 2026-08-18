@@ -4,6 +4,7 @@ on:
   pull_request:
     paths:
       - 'experiments/direct/janus_tear_policy0a_q0_typed_anchor_gauge_probe.py'
+      - 'experiments/direct/janus_tear_policy0a_q0_witness_lift_selftest.py'
       - 'proposals/Q0_TYPED_ANCHOR_GAUGE_QUOTIENT.md'
       - '.github/workflows/validate-q0-typed-anchor-gauge.yml'
   workflow_dispatch:
@@ -17,7 +18,11 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-      - name: Compile Q0 probe
-        run: python -m py_compile experiments/direct/janus_tear_policy0a_q0_typed_anchor_gauge_probe.py
+      - name: Compile Q0 probes
+        run: |
+          python -m py_compile experiments/direct/janus_tear_policy0a_q0_typed_anchor_gauge_probe.py
+          python -m py_compile experiments/direct/janus_tear_policy0a_q0_witness_lift_selftest.py
+      - name: Q0 SAT witness-lift self-test
+        run: python experiments/direct/janus_tear_policy0a_q0_witness_lift_selftest.py
       - name: Q0 graph-tautology calibration 3..9
         run: python experiments/direct/janus_tear_policy0a_q0_typed_anchor_gauge_probe.py --orders 3,4,5,6,7,8,9
