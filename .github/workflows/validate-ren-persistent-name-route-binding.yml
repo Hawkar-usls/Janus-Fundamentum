@@ -1,0 +1,56 @@
+name: validate-ren-persistent-name-route-binding
+
+on:
+  pull_request:
+    paths:
+      - 'experiments/direct/JANUS_REN_PERSISTENT_NAME_ROUTE_BINDING_FROZEN_CONTRACT.json'
+      - 'experiments/direct/janus_ren_persistent_name_route_binding.py'
+      - '.github/workflows/validate-ren-persistent-name-route-binding.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  ren-persistent-name:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Compile frozen ren probe
+        run: python -m py_compile experiments/direct/janus_ren_persistent_name_route_binding.py
+      - name: Execute revealed GT3..GT9 ren calibration
+        working-directory: experiments/direct
+        run: |
+          python janus_ren_persistent_name_route_binding.py \
+            --self-test \
+            --output ../../artifacts/ren_persistent_name_route_binding_result.json
+      - name: Enforce frozen parent and claim ceiling
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          d=json.loads(Path('artifacts/ren_persistent_name_route_binding_result.json').read_text())
+          assert d['mathematical_verdict']['P_VS_NP'] == 'OPEN'
+          assert d['status'] in {
+              'PASS_KEEP_REN_PERSISTENT_NAME_ROUTE_BINDING',
+              'STOP_AT_REN_PERSISTENT_NAME_ROUTE_BINDING_NO_IMPROVEMENT',
+          }
+          assert d['gates']['frozen_sah_parent_solver_reproduced'] is True
+          assert d['gates']['frozen_sah_parent_counters_reproduced'] is True
+          assert d['gates']['zero_extra_solver_residual_scans'] is True
+          print('REN_STATUS =', d['status'])
+          print('STORAGE =', d['storage'])
+          print('REN =', d['ren'])
+          print('GATES =', d['gates'])
+          PY
+      - name: Upload exact ren receipt
+        uses: actions/upload-artifact@v4
+        with:
+          name: janus-ren-persistent-name-route-binding
+          path: artifacts/ren_persistent_name_route_binding_result.json
+          if-no-files-found: error
+          retention-days: 90
