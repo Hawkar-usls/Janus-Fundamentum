@@ -1,0 +1,55 @@
+name: validate-corrected-six-direction-reverse
+on:
+  pull_request:
+    paths:
+      - 'experiments/direct/janus_corrected_six_direction_reverse_pass.py'
+      - 'experiments/direct/JANUS_CORRECTED_SIX_DIRECTION_REVERSE_FROZEN_CONTRACT.json'
+      - '.github/workflows/validate-corrected-six-direction-reverse.yml'
+  workflow_dispatch:
+
+jobs:
+  six-direction:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Compile corrected pass
+        run: python -m py_compile experiments/direct/janus_corrected_six_direction_reverse_pass.py
+      - name: Enforce literal six-direction order and no claim drift
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          c=json.loads(Path('experiments/direct/JANUS_CORRECTED_SIX_DIRECTION_REVERSE_FROZEN_CONTRACT.json').read_text())
+          assert c['sequence'] == ['BACK','FORWARD','LEFT','RIGHT','FORWARD_AGAIN','BACK_AGAIN']
+          assert c['BACK'] == ['PT222_PREBIRTH','PT477_V3','PT366','PT355']
+          assert c['FORWARD'] == ['PT355','PT366','PT477_V3','PT222_PREBIRTH']
+          assert 'P_VS_NP=OPEN' in c['claim_boundary']
+          PY
+      - name: Execute corrected six-direction pass
+        working-directory: experiments/direct
+        run: |
+          python janus_corrected_six_direction_reverse_pass.py --self-test --output ../../artifacts/corrected_six_direction_reverse_result.json
+      - name: Enforce frozen gates and print statistics
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          d=json.loads(Path('artifacts/corrected_six_direction_reverse_result.json').read_text())
+          assert d['executed_direction_sequence'] == ['BACK','FORWARD','LEFT','RIGHT','FORWARD_AGAIN','BACK_AGAIN']
+          assert d['mathematical_verdict']['P_VS_NP'] == 'OPEN'
+          for k,v in d['gates'].items():
+              print('GATE', k, '=', v)
+          print('STATUS =', d['status'])
+          print('MIRRORS =', d['FORWARD_AGAIN']['mirror_passes'], '/', d['FORWARD_AGAIN']['mirror_total'])
+          print('LEFT =', d['LEFT']['passed'], 'RIGHT =', d['RIGHT']['passed'])
+          print('COST_VECTOR =', json.dumps(d['cost_vector'], sort_keys=True))
+          PY
+      - name: Upload corrected receipt
+        uses: actions/upload-artifact@v4
+        with:
+          name: janus-corrected-six-direction-reverse
+          path: artifacts/corrected_six_direction_reverse_result.json
+          retention-days: 90
