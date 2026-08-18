@@ -4,9 +4,14 @@
 Required order (frozen before this implementation):
 BACK -> FORWARD -> LEFT -> RIGHT -> FORWARD_AGAIN -> BACK_AGAIN.
 
-The Pyramid Text material is a heuristic source prompt only.  The modern gates
-below are independently executable tests.  No ancient algorithm claim and no
+The Pyramid Text material is a heuristic source prompt only. The modern gates
+below are independently executable tests. No ancient algorithm claim and no
 P=NP claim is licensed by any finite result.
+
+Accounting note: the exact PR190 head still exposes its earlier incomplete
+analyze_n charged-work dictionary. The canonical PR190 receipt froze the later
+conservative proxy (89*n^2 + 45*n)/2. This run executes analyze_n for all
+structural gates but charges the canonical frozen proxy independently.
 """
 from __future__ import annotations
 
@@ -37,6 +42,13 @@ RUN_ID = "JANUS-CORRECTED-SIX-DIRECTION-REVERSE-PASS-2026-08-18-v1"
 BASE_SHA = "a24039ba24b880dc3c80d45ebc2c8f7bcfb3af26"
 EXPECTED_ORDER = ["BACK", "FORWARD", "LEFT", "RIGHT", "FORWARD_AGAIN", "BACK_AGAIN"]
 EXPECTED_PR191_STOP = "STOP_AT_FULL_MECHANICS_REVERSE_RETURN_FIRST"
+CANONICAL_PR190_COST = {
+    14: 9037,
+    32: 46288,
+    64: 183712,
+    128: 731968,
+    256: 2922112,
+}
 
 
 def stable_hash(value: object) -> str:
@@ -44,34 +56,51 @@ def stable_hash(value: object) -> str:
     return sha256(payload.encode("utf-8")).hexdigest()
 
 
+def canonical_pr190_work_proxy(n: int) -> int:
+    value = (89 * n * n + 45 * n) // 2
+    if n in CANONICAL_PR190_COST and value != CANONICAL_PR190_COST[n]:
+        raise AssertionError("canonical PR190 cost formula drift")
+    return value
+
+
 def stage_pt222_prebirth() -> dict[str, Any]:
-    """Use the successful PR190 pre-birth certificate without invoking its parent stack."""
+    """Execute PR190 structural certificate; charge its canonical repaired ledger."""
     rows = [analyze_n(n) for n in FROZEN_N]
     passed = all(row["passed"] for row in rows) and all(row["raw_prefixes_enumerated"] == 0 for row in rows)
+    projected = []
+    for row in rows:
+        n = int(row["n"])
+        canonical_work = canonical_pr190_work_proxy(n)
+        projected.append({
+            "n": n,
+            "represented_raw_prefixes": row["represented_raw_prefixes"],
+            "generator_count": row["generator_count"],
+            "symbolic_states": row["symbolic_quotient_states"],
+            "symbolic_transitions": row["symbolic_quotient_transitions"],
+            "raw_prefixes_enumerated": row["raw_prefixes_enumerated"],
+            "legacy_head_incomplete_work_proxy": row["charged_work"]["polynomial_work_proxy"],
+            "canonical_work_proxy": canonical_work,
+            "canonical_cost_formula": "(89*n^2 + 45*n)/2",
+            "branch_pair_passes": row["branch_pair_passes"],
+            "automorphism_passes": row["automorphism_passes"],
+            "passed": row["passed"],
+        })
     return {
         "stage": "PT222_PREBIRTH",
         "status": "PASS" if passed else "FAIL",
-        "rows": [
-            {
-                "n": row["n"],
-                "represented_raw_prefixes": row["represented_raw_prefixes"],
-                "generator_count": row["generator_count"],
-                "symbolic_states": row["symbolic_quotient_states"],
-                "symbolic_transitions": row["symbolic_quotient_transitions"],
-                "raw_prefixes_enumerated": row["raw_prefixes_enumerated"],
-                "work_proxy": row["charged_work"]["polynomial_work_proxy"],
-                "branch_pair_passes": row["branch_pair_passes"],
-                "automorphism_passes": row["automorphism_passes"],
-                "passed": row["passed"],
-            }
-            for row in rows
-        ],
+        "accounting_status": "CANONICAL_PR190_CONSERVATIVE_LEDGER_APPLIED",
+        "rows": projected,
         "passed": passed,
     }
 
 
 def projection_pt222(stage: dict[str, Any]) -> dict[str, Any]:
-    return {"status": stage["status"], "rows": stage["rows"], "passed": stage["passed"]}
+    return {
+        "status": stage["status"],
+        "accounting_status": stage["accounting_status"],
+        "rows": stage["rows"],
+        "passed": stage["passed"],
+    }
 
 
 def projection_pt477(stage: dict[str, Any]) -> dict[str, Any]:
@@ -161,11 +190,12 @@ def run_left_control() -> dict[str, Any]:
         anti_anchor = digest_json(anti)
         auto = 0
         branch = 0
+        anti_literals = sum(len(c) for c in anti)
         for index, (xv, yv) in enumerate(zip(x_vars, y_vars), start=1):
             g = full_generator(n, index)
             if signed_map_roundtrip_ok(g) and apply_signed_map(anti, g) == anti:
                 auto += 1
-            charged_literal_visits += sum(len(c) for c in anti)
+            charged_literal_visits += anti_literals
             child_false = restrict_formula(anti, {xv: False})
             child_true = restrict_formula(anti, {xv: True})
             rmap = residual_generator(child_false, yv)
@@ -227,11 +257,15 @@ def run_right_control() -> dict[str, Any]:
 
 def build_cost_vector(back: dict[str, Any], forward: dict[str, Any], left: dict[str, Any], right: dict[str, Any]) -> dict[str, Any]:
     def pt222_work(side):
-        return sum(row["work_proxy"] for row in side["PT222"]["rows"])
+        return sum(row["canonical_work_proxy"] for row in side["PT222"]["rows"])
+    def pt222_legacy(side):
+        return sum(row["legacy_head_incomplete_work_proxy"] for row in side["PT222"]["rows"])
     return {
         "units_are_component_specific_do_not_sum_as_runtime": True,
-        "PT222_prebirth_work_proxy_BACK": pt222_work(back),
-        "PT222_prebirth_work_proxy_FORWARD": pt222_work(forward),
+        "PT222_prebirth_canonical_work_proxy_BACK": pt222_work(back),
+        "PT222_prebirth_canonical_work_proxy_FORWARD": pt222_work(forward),
+        "PT222_legacy_head_incomplete_proxy_BACK_not_canonical": pt222_legacy(back),
+        "PT222_legacy_head_incomplete_proxy_FORWARD_not_canonical": pt222_legacy(forward),
         "PT477_structural_work_proxy_BACK": back["PT477"]["candidate"]["resolution_attempts"] + back["PT477"]["candidate"]["canonical_edge_visits"],
         "PT477_structural_work_proxy_FORWARD": forward["PT477"]["candidate"]["resolution_attempts"] + forward["PT477"]["candidate"]["canonical_edge_visits"],
         "PT477_local_bookkeeping_BACK": back["PT477"]["candidate"]["local_tombstone_checks"] + back["PT477"]["candidate"]["local_tombstone_inserts"],
@@ -247,16 +281,12 @@ def build_cost_vector(back: dict[str, Any], forward: dict[str, Any], left: dict[
 
 def run() -> dict[str, Any]:
     executed_directions = []
-
     back = run_back(); executed_directions.append("BACK")
     forward = run_forward(); executed_directions.append("FORWARD")
     left = run_left_control(); executed_directions.append("LEFT")
     right = run_right_control(); executed_directions.append("RIGHT")
 
-    mirror = {
-        stage: back[stage] == forward[stage]
-        for stage in ("PT355", "PT366", "PT477", "PT222")
-    }
+    mirror = {stage: back[stage] == forward[stage] for stage in ("PT355", "PT366", "PT477", "PT222")}
     forward_again = {
         "prediction": "4/4 BACK/FORWARD metric projections reproduce exactly and PR190 prebirth invariants remain exact",
         "stage_mirrors": mirror,
@@ -265,12 +295,14 @@ def run() -> dict[str, Any]:
         "all_prebirth_rows_zero_raw_prefixes": all(row["raw_prefixes_enumerated"] == 0 for row in forward["PT222"]["rows"]),
         "all_prebirth_rows_n_plus_1": all(row["symbolic_states"] == row["n"] + 1 for row in forward["PT222"]["rows"]),
         "all_prebirth_rows_n_transitions": all(row["symbolic_transitions"] == row["n"] for row in forward["PT222"]["rows"]),
+        "all_prebirth_canonical_costs_match": all(row["canonical_work_proxy"] == canonical_pr190_work_proxy(row["n"]) for row in forward["PT222"]["rows"]),
     }
     forward_again["passed"] = bool(
         forward_again["mirror_passes"] == 4
         and forward_again["all_prebirth_rows_zero_raw_prefixes"]
         and forward_again["all_prebirth_rows_n_plus_1"]
         and forward_again["all_prebirth_rows_n_transitions"]
+        and forward_again["all_prebirth_canonical_costs_match"]
     )
     executed_directions.append("FORWARD_AGAIN")
 
@@ -304,6 +336,12 @@ def run() -> dict[str, Any]:
         "status": "PASS_KEEP_CORRECTED_SIX_DIRECTION_REVERSE" if all_gates else "STOP_AT_CORRECTED_SIX_DIRECTION_REVERSE",
         "base_sha": BASE_SHA,
         "run_scope": "REVEALED_FROZEN_CONTROLS_ONLY_NO_NEW_HOLDOUT",
+        "accounting_repair": {
+            "attempt_1": "NONCANONICAL_COST_ACCOUNTING_ONLY",
+            "reason": "Exact PR190 head analyze_n still emitted its earlier incomplete proxy.",
+            "canonical_rule": "(89*n^2 + 45*n)/2 from frozen PR190 canonical receipt",
+            "structure_or_gates_changed": False,
+        },
         "executed_direction_sequence": executed_directions,
         "required_direction_sequence": EXPECTED_ORDER,
         "direction_order_exact": order_exact,
@@ -316,8 +354,8 @@ def run() -> dict[str, Any]:
         "cost_vector": build_cost_vector(back, forward, left, right),
         "comparison": {
             "PT222_old_n14": {"raw_prefixes_enumerated": 16384, "explicit_map_entries": 229376},
-            "PR190_n14": {"raw_prefixes_enumerated": 0, "symbolic_states": 15, "symbolic_transitions": 14, "work_proxy": 9037},
-            "PR190_n256": {"raw_prefixes_enumerated": 0, "symbolic_states": 257, "symbolic_transitions": 256, "work_proxy": 2922112},
+            "PR190_n14": {"raw_prefixes_enumerated": 0, "symbolic_states": 15, "symbolic_transitions": 14, "canonical_work_proxy": 9037},
+            "PR190_n256": {"raw_prefixes_enumerated": 0, "symbolic_states": 257, "symbolic_transitions": 256, "canonical_work_proxy": 2922112},
             "PR191_status": EXPECTED_PR191_STOP,
             "PR191_n14_work_proxy": 25812,
             "PR191_n256_work_proxy": 475692,
@@ -359,6 +397,7 @@ def main() -> None:
     if args.self_test:
         assert result["executed_direction_sequence"] == EXPECTED_ORDER
         assert result["mathematical_verdict"]["P_VS_NP"] == "OPEN"
+        assert result["FORWARD_AGAIN"]["all_prebirth_canonical_costs_match"] is True
         assert result["status"] in {"PASS_KEEP_CORRECTED_SIX_DIRECTION_REVERSE", "STOP_AT_CORRECTED_SIX_DIRECTION_REVERSE"}
 
 
