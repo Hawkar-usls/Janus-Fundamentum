@@ -1,0 +1,59 @@
+name: validate-pt354-bidirectional-braid-190-192
+
+on:
+  pull_request:
+    branches:
+      - janus-rerun-190-192-paired-comparison
+  workflow_dispatch:
+
+jobs:
+  braid:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Compile braid
+        run: python -m py_compile experiments/direct/janus_pt354_bidirectional_braid_190_192.py
+      - name: Enforce frozen contract
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          c=json.loads(Path('experiments/direct/JANUS_PT354_BIDIRECTIONAL_BRAID_190_192_FROZEN_CONTRACT.json').read_text())
+          assert c['six_direction_sequence'] == ['BACK','FORWARD','LEFT','RIGHT','FORWARD_AGAIN','BACK_AGAIN']
+          assert c['braid']['BACK'] == ['PT222_PR190_KERNEL','PT477_V3','PT366','PT355','PT354_UNPREPARE_VERIFY']
+          assert c['braid']['FORWARD'] == ['PT354_PREPARE','PT355','PT366','PT477_V3','PT222_PR190_KERNEL']
+          assert c['PT354']['rule'] == 'PREPARE_THE_PAYLOAD + PREPARE_THE_RETURN -> ONLY_THEN_OPEN_THE_GATE'
+          assert c['classification_firewall']['P_VS_NP'] == 'OPEN'
+          PY
+      - name: Execute PT354 bidirectional braid
+        run: |
+          cd experiments/direct
+          python janus_pt354_bidirectional_braid_190_192.py --self-test --output ../../artifacts/pt354_bidirectional_braid_result.json
+      - name: Enforce frozen gates and print statistics
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          d=json.loads(Path('artifacts/pt354_bidirectional_braid_result.json').read_text())
+          for k,v in d['gates'].items():
+              print('GATE', k, '=', v)
+              assert v is True
+          print('STATUS =', d['status'])
+          print('DIRECTIONS =', d['executed_direction_sequence'])
+          print('BACK =', d['BACK']['execution'])
+          print('FORWARD =', d['FORWARD']['execution'])
+          print('MIRRORS =', d['FORWARD_AGAIN']['mirror_passes'], '/', d['FORWARD_AGAIN']['mirror_total'])
+          print('PT354_AUTH =', d['FORWARD']['PT354']['authorized'], '/', d['FORWARD']['PT354']['total_generators'])
+          print('PT354_HASH_OPS =', d['cost_vector']['PT354_hash_ops_each_direction'])
+          print('PT354_LITERAL_VISITS =', d['cost_vector']['PT354_literal_visits_each_direction'])
+          print('P_VS_NP =', d['mathematical_verdict']['P_VS_NP'])
+          PY
+      - name: Upload braid receipt
+        uses: actions/upload-artifact@v4
+        with:
+          name: janus-pt354-bidirectional-braid-190-192
+          path: artifacts/pt354_bidirectional_braid_result.json
+          retention-days: 90
