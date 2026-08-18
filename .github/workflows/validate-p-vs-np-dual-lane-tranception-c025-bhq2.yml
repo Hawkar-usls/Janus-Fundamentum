@@ -1,0 +1,71 @@
+name: validate-p-vs-np-dual-lane-tranception-c025-bhq2
+
+on:
+  pull_request:
+    paths:
+      - 'experiments/direct/janus_c025_core.py'
+      - 'experiments/direct/janus_c025_families.py'
+      - 'experiments/direct/janus_certified_residual_quotient.py'
+      - 'experiments/direct/janus_p_vs_np_dual_lane_tranception_c025_bhq2.py'
+      - 'experiments/direct/janus_tear_policy0a_bh_q2_buzz_physarum_signed_singularity_probe.py'
+      - 'experiments/direct/janus_tear_policy0a_bh_q2_buzz_physarum_selftest.py'
+      - '.github/workflows/validate-p-vs-np-dual-lane-tranception-c025-bhq2.yml'
+  workflow_dispatch:
+
+jobs:
+  dual-lane:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Prepare artifact directory
+        run: mkdir -p artifacts
+
+      - name: Compile restored and new probes
+        run: |
+          python -m py_compile experiments/direct/janus_c025_core.py
+          python -m py_compile experiments/direct/janus_c025_families.py
+          python -m py_compile experiments/direct/janus_certified_residual_quotient.py
+          python -m py_compile experiments/direct/janus_p_vs_np_dual_lane_tranception_c025_bhq2.py
+
+      - name: Replay restored C025 exact controls
+        working-directory: experiments/direct
+        run: python janus_certified_residual_quotient.py --self-test --output ../../artifacts/c025_restored_result.json
+
+      - name: Replay BH-Q2 Buzz return calibration
+        working-directory: experiments/direct
+        run: python janus_tear_policy0a_bh_q2_buzz_physarum_selftest.py
+
+      - name: Run P=NP JANUS P!=NP dual lane with Tranception reverse
+        working-directory: experiments/direct
+        run: |
+          python janus_p_vs_np_dual_lane_tranception_c025_bhq2.py \
+            --equality-n 14 \
+            --self-test \
+            --output ../../artifacts/p_vs_np_dual_lane_result.json
+
+      - name: Enforce claim ceiling
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          p=Path('artifacts/p_vs_np_dual_lane_result.json')
+          d=json.loads(p.read_text())
+          assert d['mathematical_verdict']['P_VS_NP']=='OPEN'
+          assert d['dual_lane']['P_EQUALS_NP_LANE']['promotion_allowed'] is False
+          assert d['dual_lane']['P_NOT_EQUALS_NP_LANE']['promotion_allowed'] is False
+          assert d['bh_q2_signed_orbit_attack']['all_absorptions_reversible'] is True
+          assert d['bh_q2_signed_orbit_attack']['signed_orbit_singularities']==1
+          print('CLAIM_CEILING_AND_REVERSE_RETURN = PASS')
+          PY
+
+      - name: Upload dual-lane receipts
+        uses: actions/upload-artifact@v4
+        with:
+          name: p-vs-np-dual-lane-tranception-c025-bhq2
+          path: artifacts/*.json
+          if-no-files-found: error
