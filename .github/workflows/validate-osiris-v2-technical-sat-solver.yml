@@ -1,0 +1,67 @@
+name: validate-osiris-v2-technical-sat-solver
+
+on:
+  pull_request:
+    paths:
+      - 'experiments/direct/OSIRIS_V2_TECHNICAL_SAT_SOLVER_FROZEN_CONTRACT.json'
+      - 'experiments/direct/osiris_v2_technical_sat_solver.py'
+      - '.github/workflows/validate-osiris-v2-technical-sat-solver.yml'
+  workflow_dispatch:
+
+jobs:
+  osiris-v2-technical:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Compile technical solver
+        run: python -m py_compile experiments/direct/osiris_v2_technical_sat_solver.py
+      - name: Enforce frozen contract
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          c=json.loads(Path('experiments/direct/OSIRIS_V2_TECHNICAL_SAT_SOLVER_FROZEN_CONTRACT.json').read_text())
+          assert c['status']=='FROZEN_BEFORE_IMPLEMENTATION_AND_RUN'
+          assert c['parent']['sha']=='108ceb0e6ca875517bcf17ef503ee0e0c6455c57'
+          assert c['technical_lineage']['reference_pr']==192
+          assert c['missing_link']['id']=='CNF0_STRUCTURAL_WITNESS'
+          assert c['missing_link']['egyptian_pt_number'] is None
+          assert c['technical_lineage']['required_direction_sequence']==['BACK','FORWARD','LEFT','RIGHT','FORWARD_AGAIN','BACK_AGAIN']
+          assert c['scientific_boundary'][-1]=='P_VS_NP = OPEN'
+          PY
+      - name: Execute frozen OSIRIS v2 technical run
+        run: |
+          mkdir -p artifacts
+          cd experiments/direct
+          python osiris_v2_technical_sat_solver.py --self-test --output ../../artifacts/osiris_v2_technical_sat_result.json
+      - name: Enforce frozen technical gates
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          d=json.loads(Path('artifacts/osiris_v2_technical_sat_result.json').read_text())
+          assert d['status']=='PASS_KEEP_OSIRIS_V2_TECHNICAL_SAT_SOLVER'
+          assert all(d['gates'].values())
+          assert d['summary']['calibration_exact']==8
+          assert d['summary']['hard_fail_closed_or_correct']==2
+          assert d['summary']['distinct_nonidentity_behavior_vectors']>1
+          assert d['summary']['solver_content_channel']=='CNF0_STRUCTURAL_WITNESS_PLUS_EXECUTABLE_RESIDUAL_MECHANICS'
+          assert d['technical_stage_count']==32 and d['pt_stage_count']==31
+          assert d['BACK']['bindings']==32 and d['BACK']['total']==32
+          assert d['mathematical_verdict']['P_VS_NP']=='OPEN'
+          print('STATUS =', d['status'])
+          print('CALIBRATION =', d['summary']['calibration_exact'], '/', d['summary']['calibration_total'])
+          print('HARD =', d['summary']['hard_fail_closed_or_correct'], '/', d['summary']['hard_total'])
+          print('BEHAVIOR_VECTORS =', d['summary']['distinct_nonidentity_behavior_vectors'])
+          print('P_VS_NP =', d['mathematical_verdict']['P_VS_NP'])
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: osiris-v2-technical-sat-solver
+          path: artifacts/osiris_v2_technical_sat_result.json
+          retention-days: 90
