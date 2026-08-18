@@ -1,0 +1,60 @@
+name: validate-osiris-v1-content-sensitivity-revealed-controls
+
+on:
+  pull_request:
+    paths:
+      - 'experiments/direct/OSIRIS_V1_CONTENT_SENSITIVITY_REVEALED_CONTROLS_FROZEN_CONTRACT.json'
+      - 'experiments/direct/osiris_v1_content_sensitivity_revealed_controls.py'
+      - '.github/workflows/validate-osiris-v1-content-sensitivity-revealed-controls.yml'
+  workflow_dispatch:
+
+jobs:
+  content-sensitivity:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Compile diagnostic
+        run: python -m py_compile experiments/direct/osiris_v1_content_sensitivity_revealed_controls.py
+      - name: Enforce frozen contract
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          c=json.loads(Path('experiments/direct/OSIRIS_V1_CONTENT_SENSITIVITY_REVEALED_CONTROLS_FROZEN_CONTRACT.json').read_text())
+          assert c['status']=='FROZEN_BEFORE_RUN'
+          assert c['osiris_identity']['sha']=='108ceb0e6ca875517bcf17ef503ee0e0c6455c57'
+          assert c['osiris_identity']['canonical_result_sha256']=='0e03c64e38919b2022642786825fc43d52f60ac8d4acf36aa9150c0fa21989fa'
+          assert c['claim_boundary'][-1]=='P_VS_NP = OPEN'
+          PY
+      - name: Execute revealed-control diagnostic
+        run: |
+          mkdir -p artifacts
+          cd experiments/direct
+          python osiris_v1_content_sensitivity_revealed_controls.py --output ../../artifacts/osiris_v1_content_sensitivity_result.json
+      - name: Enforce frozen diagnostic gates
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          d=json.loads(Path('artifacts/osiris_v1_content_sensitivity_result.json').read_text())
+          assert d['status']=='DIAGNOSTIC_PASS_OSIRIS_V1_INPUT_ANCHOR_ONLY_CONTENT_GENERALIZATION_NOT_ESTABLISHED'
+          assert all(d['gates'].values())
+          assert d['summary']['controls_total']==13
+          assert d['summary']['distinct_behavior_vectors']==1
+          assert d['summary']['semantic_sat_unsat_discrimination'] is False
+          assert d['summary']['solver_promotion'] is False
+          assert d['mathematical_verdict']['P_VS_NP']=='OPEN'
+          print('STATUS =', d['status'])
+          print('CONTROLS =', d['summary']['controls_total'])
+          print('DISTINCT_BEHAVIOR_VECTORS =', d['summary']['distinct_behavior_vectors'])
+          print('SEMANTIC_SAT_UNSAT_DISCRIMINATION =', d['summary']['semantic_sat_unsat_discrimination'])
+          print('P_VS_NP =', d['mathematical_verdict']['P_VS_NP'])
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: osiris-v1-content-sensitivity-revealed-controls
+          path: artifacts/osiris_v1_content_sensitivity_result.json
+          retention-days: 90
