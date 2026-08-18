@@ -1,0 +1,58 @@
+name: validate-pr190-pr192-paired-rerun
+
+on:
+  push:
+    branches:
+      - janus-rerun-190-192-paired-comparison
+  pull_request:
+    branches:
+      - janus-corrected-six-direction-reverse-pass
+
+jobs:
+  paired-rerun:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Compile paired rerun
+        run: python -m py_compile experiments/direct/janus_pr190_pr192_paired_rerun.py
+      - name: Enforce frozen comparison contract
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          c=json.loads(Path('experiments/direct/JANUS_PR190_PR192_PAIRED_RERUN_FROZEN_CONTRACT.json').read_text())
+          assert c['subjects']['PR190']['classification'] == 'RESTRICTED_FAMILY_REPAIR_NOT_CANONICAL_PYRAMID_FORWARD'
+          assert c['subjects']['PR192']['classification'] == 'CANONICAL_STRICT_SIX_DIRECTION_TRANCEPTION'
+          assert c['frozen_n'] == [14,32,64,128,256]
+          assert c['canonical_pr190_cost_formula'] == '(89*n^2 + 45*n)/2'
+          assert 'P_VS_NP=OPEN' in c['claim_boundary']
+          PY
+      - name: Execute paired rerun
+        run: |
+          cd experiments/direct
+          python janus_pr190_pr192_paired_rerun.py --self-test --output ../../artifacts/pr190_pr192_paired_rerun_result.json
+      - name: Enforce frozen gates and print comparison
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          d=json.loads(Path('artifacts/pr190_pr192_paired_rerun_result.json').read_text())
+          for k,v in d['gates'].items():
+              print('GATE', k, '=', v)
+              assert v is True
+          print('STATUS =', d['status'])
+          print('PR190_COST_SUM =', d['PR190']['canonical_work_proxy_sum'])
+          print('PR192_COST_SUM_EACH_DIRECTION =', d['PR192']['PT222_canonical_work_proxy_sum_each_direction'])
+          print('BACK_EXACT =', d['comparison']['shared_kernel_BACK_exact'])
+          print('FORWARD_EXACT =', d['comparison']['shared_kernel_FORWARD_exact'])
+          print('PR192_EXTRA =', json.dumps(d['PR192']['extra_six_direction_evidence'], sort_keys=True))
+          PY
+      - name: Upload paired rerun receipt
+        uses: actions/upload-artifact@v4
+        with:
+          name: janus-pr190-pr192-paired-rerun
+          path: artifacts/pr190_pr192_paired_rerun_result.json
+          retention-days: 90
