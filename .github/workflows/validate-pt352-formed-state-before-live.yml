@@ -1,0 +1,64 @@
+name: validate-pt352-formed-state-before-live
+on:
+  pull_request:
+  workflow_dispatch:
+jobs:
+  pt352-formed-state:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Compile PT352 integration
+        run: python -m py_compile experiments/direct/janus_pt352_formed_state_before_live.py
+      - name: Enforce frozen one-integration contract
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          c=json.loads(Path('experiments/direct/JANUS_PT352_FORMED_STATE_BEFORE_LIVE_FROZEN_CONTRACT.json').read_text())
+          assert c['integration_discipline']['integrated_now']=='PT352'
+          assert c['integration_discipline']['PT351_status']=='WATCHLIST_ONLY_NOT_IN_CODE_NOT_IN_GATES'
+          assert c['integration_discipline']['PT350_status']=='WATCHLIST_ONLY_NOT_IN_CODE_NOT_IN_GATES'
+          assert c['braid']['BACK']==['PT222_PR190_KERNEL','PT477_V3','PT366','PT355','PT354','PT353','PT352_UNFORM_VERIFY']
+          assert c['braid']['FORWARD']==['PT352_FORM','PT353_LIVE_VERIFY','PT354','PT355','PT366','PT477_V3','PT222_PR190_KERNEL']
+          assert c['operator']['rule']=='FORM_AND_BIND_CURRENT_BRANCH_STATE -> ONLY_THEN_VERIFY_LIVE_STATE'
+          assert 'P_VS_NP = OPEN' in c['claim_boundary']
+          PY
+      - name: Execute PT352 seven-stage extension
+        run: |
+          mkdir -p artifacts
+          cd experiments/direct
+          python janus_pt352_formed_state_before_live.py --self-test --output ../../artifacts/pt352_formed_state_before_live_result.json
+      - name: Enforce frozen PT352 gates
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          d=json.loads(Path('artifacts/pt352_formed_state_before_live_result.json').read_text())
+          assert d['status']=='PASS_KEEP_PT352_FORMED_STATE_BEFORE_LIVE'
+          assert all(d['gates'].values())
+          assert d['BACK']['execution']==['PT222','PT477','PT366','PT355','PT354','PT353','PT352']
+          assert d['FORWARD']['execution']==['PT352','PT353','PT354','PT355','PT366','PT477','PT222']
+          assert d['FORWARD_AGAIN']['mirror_passes']==7
+          assert d['FORWARD']['PT352']['verified']==494
+          assert d['FORWARD']['PT353']['blocked_before_pt354']==2964
+          assert d['FORWARD']['PT353']['negative_pt354_entries']==0
+          assert d['cost_comparison']['combined_PT352_PT353_literal_visits_each_direction'] < 8362800
+          assert d['BACK_AGAIN']['PT351_status']=='WATCHLIST_ONLY_NOT_IN_CODE_NOT_IN_GATES'
+          assert d['BACK_AGAIN']['PT350_status']=='WATCHLIST_ONLY_NOT_IN_CODE_NOT_IN_GATES'
+          assert d['mathematical_verdict']['P_VS_NP']=='OPEN'
+          print('STATUS =', d['status'])
+          print('MIRRORS =', d['FORWARD_AGAIN']['mirror_passes'], '/', d['FORWARD_AGAIN']['mirror_total'])
+          print('PT352 VERIFIED =', d['FORWARD']['PT352']['verified'])
+          print('LEGACY PT353 LITS =', d['cost_comparison']['legacy_PT353_literal_visits_each_direction'])
+          print('PT352+NEW PT353 LITS =', d['cost_comparison']['combined_PT352_PT353_literal_visits_each_direction'])
+          print('RATIO =', d['cost_comparison']['literal_visit_ratio_vs_legacy_PT353'])
+          print('P_VS_NP =', d['mathematical_verdict']['P_VS_NP'])
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: janus-pt352-formed-state-before-live
+          path: artifacts/pt352_formed_state_before_live_result.json
+          retention-days: 90
