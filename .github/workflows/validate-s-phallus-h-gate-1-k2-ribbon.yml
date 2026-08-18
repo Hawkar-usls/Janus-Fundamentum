@@ -1,0 +1,75 @@
+name: validate-s-phallus-h-gate-1-k2-ribbon
+on:
+  pull_request:
+    paths:
+      - 'experiments/direct/S_PHALLUS_H_GATE_1_K2_RIBBON_DECOMPOSITION_FROZEN_CONTRACT.json'
+      - 'experiments/direct/s_phallus_h_gate_1_k2_ribbon_decomposition.py'
+      - 'experiments/direct/s_phallus_h_gate_1_k2_ribbon_decomposition_strict.py'
+      - '.github/workflows/validate-s-phallus-h-gate-1-k2-ribbon.yml'
+  workflow_dispatch:
+jobs:
+  gate1-k2-ribbon:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Compile gate
+        run: |
+          python -m py_compile experiments/direct/s_phallus_h_gate_1_k2_ribbon_decomposition.py
+          python -m py_compile experiments/direct/s_phallus_h_gate_1_k2_ribbon_decomposition_strict.py
+      - name: Enforce frozen contract
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          c=json.loads(Path('experiments/direct/S_PHALLUS_H_GATE_1_K2_RIBBON_DECOMPOSITION_FROZEN_CONTRACT.json').read_text())
+          assert c['status']=='FROZEN_BEFORE_IMPLEMENTATION_AND_RUN'
+          assert c['parent']['sha']=='325620a1befb84a3a7a8235fd2f587e4ea224e37'
+          assert c['parent']['result_integrity_sha256']=='c0dbc2d5ed3635fd8ca2f72d13a2c8b04e2282730c3bec2f1971915e01e3df0a'
+          assert c['k2_detector']['separator_size']==2
+          assert c['k2_detector']['all_candidate_pairs_must_be_examined_and_charged'] is True
+          assert c['k2_detector']['boundary_table']['rows']==4
+          assert c['k2_detector']['boundary_table']['all_rows_mandatory'] is True
+          assert c['tranception']['direction_order']==['BACK','FORWARD','LEFT','RIGHT','FORWARD_AGAIN','BACK_AGAIN']
+          assert c['ribbon_state']['second_identical_traversal_must_preserve_position_and_advance_generation'] is True
+          assert c['promotion_gates']['P_VS_NP']=='OPEN'
+          PY
+      - name: Execute frozen gate
+        run: |
+          mkdir -p artifacts
+          cd experiments/direct
+          python s_phallus_h_gate_1_k2_ribbon_decomposition_strict.py --self-test --output ../../artifacts/s_phallus_h_gate_1_k2_ribbon_result.json
+      - name: Enforce frozen gates
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          d=json.loads(Path('artifacts/s_phallus_h_gate_1_k2_ribbon_result.json').read_text())
+          assert d['status']=='PASS_KEEP_S_PHALLUS_H_GATE_1_K2_RIBBON_DECOMPOSITION__MASTER_P_VS_NP_GATE_REMAINS_OPEN'
+          assert all(d['gates'].values())
+          assert len(d['calibration'])==5 and all(x['exact_correct'] and x['k2_used'] for x in d['calibration'])
+          assert len(d['negative_controls'])==5 and all(x['passed'] for x in d['negative_controls'])
+          assert len(d['regression'])==8 and all(x['passed'] for x in d['regression'])
+          assert len(d['gate0_regression'])==5 and all(x['passed'] for x in d['gate0_regression'])
+          assert len(d['hard_controls'])==2 and all(x['passed'] for x in d['hard_controls'])
+          r=d['ribbon_state']
+          assert r['POSITION_RETURN_EQUALS_ORIGIN_POSITION'] is True
+          assert r['STATE_RETURN_DIFFERS_FROM_ORIGINAL_STATE'] is True
+          assert r['origin']['position_commitment']==r['origin_prime_1']['position_commitment']==r['origin_prime_2']['position_commitment']
+          assert len({r['origin']['state_commitment'],r['origin_prime_1']['state_commitment'],r['origin_prime_2']['state_commitment']})==3
+          assert d['mathematical_verdict']['P_VS_NP']=='OPEN'
+          print('STATUS =',d['status'])
+          print('K2 = 5/5')
+          print('NEGATIVE = 5/5')
+          print('GATE0 = 5/5')
+          print('OSIRIS = 8/8')
+          print('HARD = 2/2')
+          print('P_VS_NP =',d['mathematical_verdict']['P_VS_NP'])
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: s-phallus-h-gate-1-k2-ribbon-decomposition
+          path: artifacts/s_phallus_h_gate_1_k2_ribbon_result.json
+          retention-days: 90
