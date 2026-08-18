@@ -1,0 +1,56 @@
+name: validate-sah-orion-external-state-anchor
+
+on:
+  pull_request:
+    paths:
+      - 'experiments/direct/JANUS_SAH_ORION_EXTERNAL_STATE_ANCHOR_FROZEN_CONTRACT.json'
+      - 'experiments/direct/janus_sah_orion_external_state_anchor.py'
+      - '.github/workflows/validate-sah-orion-external-state-anchor.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  sah-orion-external-anchor:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Compile frozen Sah external-anchor probe
+        run: python -m py_compile experiments/direct/janus_sah_orion_external_state_anchor.py
+      - name: Execute revealed GT3..GT9 external-anchor calibration
+        working-directory: experiments/direct
+        run: |
+          python janus_sah_orion_external_state_anchor.py \
+            --self-test \
+            --output ../../artifacts/sah_orion_external_state_anchor_result.json
+      - name: Enforce frozen claim ceiling and parent reproduction
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          d=json.loads(Path('artifacts/sah_orion_external_state_anchor_result.json').read_text())
+          assert d['mathematical_verdict']['P_VS_NP'] == 'OPEN'
+          assert d['status'] in {
+              'PASS_KEEP_SAH_ORION_EXTERNAL_STATE_ANCHOR',
+              'STOP_AT_SAH_ORION_EXTERNAL_STATE_ANCHOR_NO_IMPROVEMENT',
+          }
+          assert d['gates']['frozen_dual_parent_solver_reproduced'] is True
+          assert d['gates']['frozen_dual_parent_counters_reproduced'] is True
+          assert d['gates']['zero_extra_solver_residual_scans'] is True
+          print('SAH_ANCHOR_STATUS =', d['status'])
+          print('STORAGE =', d['storage'])
+          print('ANCHOR =', d['external_anchor'])
+          print('GATES =', d['gates'])
+          PY
+      - name: Upload exact Sah external-anchor receipt
+        uses: actions/upload-artifact@v4
+        with:
+          name: janus-sah-orion-external-state-anchor
+          path: artifacts/sah_orion_external_state_anchor_result.json
+          if-no-files-found: error
+          retention-days: 90
