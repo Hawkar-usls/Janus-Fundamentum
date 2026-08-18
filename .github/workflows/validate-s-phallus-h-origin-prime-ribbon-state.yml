@@ -1,0 +1,64 @@
+name: validate-s-phallus-h-origin-prime-ribbon-state
+
+on:
+  pull_request:
+    branches:
+      - s-phallus-h-gate-0-articulation-decomposition
+  workflow_dispatch:
+
+jobs:
+  origin-prime-ribbon-state:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Compile ribbon-state mechanic
+        run: python -m py_compile experiments/direct/s_phallus_h_origin_prime_ribbon_state.py
+      - name: Enforce frozen contract
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          c=json.loads(Path('experiments/direct/S_PHALLUS_H_ORIGIN_PRIME_RIBBON_STATE_FROZEN_CONTRACT.json').read_text())
+          assert c['status']=='FROZEN_BEFORE_IMPLEMENTATION_AND_RUN'
+          assert c['parent']['sha']=='f5299edb21c72b2f32fcc54862af1910d45d4c34'
+          assert c['parent']['result_integrity_sha256']=='343cfa6a5727d898def5eea2d0b43e6c39eb1c39331b6f1c2d3bf31daf7a1ef7'
+          assert c['mechanic']['new_path']==['ORIGIN','EXPERIENCE','RETURN','ORIGIN_PRIME']
+          assert c['mechanic']['legacy_cycle_rejected']=='A->B->C->A'
+          assert c['tranception']['direction_order']==['BACK','FORWARD','LEFT','RIGHT','FORWARD_AGAIN','BACK_AGAIN']
+          assert c['promotion_gates']['second_identical_traversal_must_preserve_position_and_advance_state_generation'] is True
+          assert c['promotion_gates']['P_VS_NP']=='OPEN'
+          PY
+      - name: Execute frozen ribbon-state run
+        run: |
+          mkdir -p artifacts
+          cd experiments/direct
+          python s_phallus_h_origin_prime_ribbon_state.py --self-test --output ../../artifacts/s_phallus_h_origin_prime_ribbon_state_result.json
+      - name: Enforce frozen ribbon-state gates
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          d=json.loads(Path('artifacts/s_phallus_h_origin_prime_ribbon_state_result.json').read_text())
+          assert d['status']=='PASS_KEEP_ORIGIN_PRIME_RIBBON_STATE'
+          assert all(d['gates'].values())
+          assert d['law']['POSITION_APPROX_ORIGIN'] is True
+          assert d['law']['STATE_NOT_EQUAL_ORIGINAL_STATE'] is True
+          o=d['first_traversal']['origin']
+          p1=d['first_traversal']['origin_prime']
+          p2=d['second_traversal']['origin_prime']
+          assert o['position_commitment']==p1['position_commitment']==p2['position_commitment']
+          assert len({o['state_commitment'],p1['state_commitment'],p2['state_commitment']})==3
+          assert p1['previous_state_commitment']==o['state_commitment']
+          assert p2['previous_state_commitment']==p1['state_commitment']
+          assert p1['generation']==1 and p2['generation']==2
+          assert all(d['negative_controls'].values())
+          assert d['technical_verdict']=='SAT'
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: s-phallus-h-origin-prime-ribbon-state
+          path: artifacts/s_phallus_h_origin_prime_ribbon_state_result.json
+          retention-days: 90
