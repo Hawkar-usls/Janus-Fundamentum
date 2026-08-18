@@ -1,0 +1,74 @@
+name: validate-osiris-v2-1-pr192-prebirth-quotient
+
+on:
+  pull_request:
+    paths:
+      - 'experiments/direct/OSIRIS_V2_1_PR192_PREBIRTH_QUOTIENT_FROZEN_CONTRACT.json'
+      - 'experiments/direct/osiris_v2_1_pr192_prebirth_quotient.py'
+      - '.github/workflows/validate-osiris-v2-1-pr192-prebirth-quotient.yml'
+  workflow_dispatch:
+
+jobs:
+  osiris-v2-1-quotient:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Compile quotient integration
+        run: python -m py_compile experiments/direct/osiris_v2_1_pr192_prebirth_quotient.py
+      - name: Enforce frozen contract
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          c=json.loads(Path('experiments/direct/OSIRIS_V2_1_PR192_PREBIRTH_QUOTIENT_FROZEN_CONTRACT.json').read_text())
+          assert c['status']=='FROZEN_BEFORE_IMPLEMENTATION_AND_RUN'
+          assert c['parent']['sha']=='6f4e41a99f0bf05daf03d781e878dec0c3b4814a'
+          assert c['parent']['result_integrity_sha256']=='d733ebb45fa15dbb1531aabe96fa1b0977b2ea95cfa90a3346934d7b20932277'
+          assert c['new_internal_lane']['id']=='Q0_PR192_VERIFIED_PAIR_PRODUCT_PREBIRTH_QUOTIENT'
+          assert c['new_internal_lane']['fixture_id_must_not_be_read'] is True
+          assert c['reference']['n14_reference']=={'symbolic_states':15,'symbolic_transitions':14,'raw_prefixes_enumerated':0,'canonical_work_proxy':9037}
+          assert c['tranception']['direction_order']==['BACK','FORWARD','LEFT','RIGHT','FORWARD_AGAIN','BACK_AGAIN']
+          assert c['scientific_boundary'][-1]=='P_VS_NP = OPEN'
+          PY
+      - name: Execute frozen quotient run
+        run: |
+          mkdir -p artifacts
+          cd experiments/direct
+          python osiris_v2_1_pr192_prebirth_quotient.py --self-test --output ../../artifacts/osiris_v2_1_pr192_quotient_result.json
+      - name: Enforce frozen quotient gates
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          d=json.loads(Path('artifacts/osiris_v2_1_pr192_quotient_result.json').read_text())
+          assert d['status']=='PASS_KEEP_OSIRIS_V2_1_PR192_VERIFIED_PREBIRTH_QUOTIENT'
+          assert all(d['gates'].values())
+          eq=d['comparison']['EQUALITY_N14']
+          anti=d['comparison']['ANTI_EQUALITY_N14']
+          assert eq['osiris_v2_generic_residual_states']==49164
+          assert eq['osiris_v2_1_symbolic_states']==15
+          assert eq['symbolic_transitions']==14
+          assert eq['raw_prefixes_enumerated']==0
+          assert eq['represented_symmetric_branch_choices']==16384
+          assert anti['osiris_v2_1_symbolic_states']==15
+          assert anti['symbolic_transitions']==14
+          assert anti['raw_prefixes_enumerated']==0
+          assert len(d['detector_negative_controls'])==5 and all(x['passed'] for x in d['detector_negative_controls'])
+          assert d['mathematical_verdict']['P_VS_NP']=='OPEN'
+          print('STATUS =', d['status'])
+          print('EQUALITY_N14 = 49164 ->', eq['osiris_v2_1_symbolic_states'])
+          print('TRANSITIONS =', eq['symbolic_transitions'])
+          print('RAW_PREFIXES =', eq['raw_prefixes_enumerated'])
+          print('NEGATIVE_DETECTOR_CONTROLS = 5/5')
+          print('P_VS_NP =', d['mathematical_verdict']['P_VS_NP'])
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: osiris-v2-1-pr192-prebirth-quotient
+          path: artifacts/osiris_v2_1_pr192_quotient_result.json
+          retention-days: 90
