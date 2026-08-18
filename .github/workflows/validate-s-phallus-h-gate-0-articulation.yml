@@ -1,0 +1,74 @@
+name: validate-s-phallus-h-gate-0-articulation
+
+on:
+  pull_request:
+    branches:
+      - osiris-v2-1-pr192-prebirth-quotient-lane
+  workflow_dispatch:
+
+jobs:
+  s-phallus-h-gate-0:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Compile S𓂸ḥ gate
+        run: |
+          python -m py_compile experiments/direct/s_phallus_h_gate_0_articulation_decomposition.py
+          python -m py_compile experiments/direct/s_phallus_h_gate_0_articulation_decomposition_strict.py
+      - name: Enforce frozen contract
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          c=json.loads(Path('experiments/direct/S_PHALLUS_H_GATE_0_ARTICULATION_DECOMPOSITION_FROZEN_CONTRACT.json').read_text())
+          assert c['status']=='FROZEN_BEFORE_IMPLEMENTATION_AND_RUN'
+          assert c['gate_identity']['display']=='S𓂸ḥ'
+          assert c['gate_identity']['role']=='P_VS_NP_GATE'
+          assert c['parent']['sha']=='c99bddd4702a26e5c061430a856bae9985dc908d'
+          assert c['parent']['result_integrity_sha256']=='3e66f37125f709a54f1220f83d4b6c0fed6f79dbbf39ba3918f8277f7c1d864e'
+          assert c['subgate']['separator_size']==1
+          assert c['subgate']['fixture_id_must_not_be_read'] is True
+          assert c['subgate']['expected_sat_label_must_not_be_read'] is True
+          assert c['tranception']['direction_order']==['BACK','FORWARD','LEFT','RIGHT','FORWARD_AGAIN','BACK_AGAIN']
+          assert c['claim_boundary'][-1]=='P_VS_NP = OPEN'
+          PY
+      - name: Execute frozen S𓂸ḥ gate run
+        run: |
+          mkdir -p artifacts
+          cd experiments/direct
+          python s_phallus_h_gate_0_articulation_decomposition_strict.py --self-test --output ../../artifacts/s_phallus_h_gate_0_result.json
+      - name: Enforce frozen S𓂸ḥ gates
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          d=json.loads(Path('artifacts/s_phallus_h_gate_0_result.json').read_text())
+          assert d['status']=='PASS_KEEP_S_PHALLUS_H_GATE_0_ARTICULATION_DECOMPOSITION__MASTER_P_VS_NP_GATE_REMAINS_OPEN'
+          assert all(d['gates'].values())
+          assert len(d['calibration'])==5 and all(x['exact_correct'] and x['s_gate_used'] for x in d['calibration'])
+          assert len(d['detector_negative_controls'])==5 and all(x['passed'] for x in d['detector_negative_controls'])
+          assert len(d['regression'])==8 and all(x['passed'] for x in d['regression'])
+          assert len(d['hard_controls'])==2 and all(x['passed'] for x in d['hard_controls'])
+          eq=next(x for x in d['regression'] if x['id']=='EQUALITY_N14')
+          anti=next(x for x in d['regression'] if x['id']=='ANTI_EQUALITY_N14')
+          assert eq['lane']=='PR192_VERIFIED_PAIR_PRODUCT_PREBIRTH_QUOTIENT'
+          assert anti['lane']=='PR192_VERIFIED_PAIR_PRODUCT_PREBIRTH_QUOTIENT'
+          assert d['implementation_conformance']['both_boundary_valuations_mandatory'] is True
+          assert d['implementation_conformance']['all_claimed_components_solved_per_boundary'] is True
+          assert d['mathematical_verdict']['P_VS_NP']=='OPEN'
+          print('STATUS =', d['status'])
+          print('S_GATE_CALIBRATION = 5/5')
+          print('NEGATIVE_CONTROLS = 5/5')
+          print('OSIRIS_V2_1_REGRESSION = 8/8')
+          print('HARD = 2/2')
+          print('P_VS_NP =', d['mathematical_verdict']['P_VS_NP'])
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: s-phallus-h-gate-0-articulation-decomposition
+          path: artifacts/s_phallus_h_gate_0_result.json
+          retention-days: 90
