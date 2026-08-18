@@ -5,6 +5,7 @@ on:
       - 'experiments/direct/S_PHALLUS_H_GATE_1_K2_RIBBON_DECOMPOSITION_FROZEN_CONTRACT.json'
       - 'experiments/direct/s_phallus_h_gate_1_k2_ribbon_decomposition.py'
       - 'experiments/direct/s_phallus_h_gate_1_k2_ribbon_decomposition_strict.py'
+      - 'experiments/direct/s_phallus_h_gate_1_k2_ribbon_decomposition_bitset.py'
       - '.github/workflows/validate-s-phallus-h-gate-1-k2-ribbon.yml'
   workflow_dispatch:
 jobs:
@@ -19,6 +20,7 @@ jobs:
         run: |
           python -m py_compile experiments/direct/s_phallus_h_gate_1_k2_ribbon_decomposition.py
           python -m py_compile experiments/direct/s_phallus_h_gate_1_k2_ribbon_decomposition_strict.py
+          python -m py_compile experiments/direct/s_phallus_h_gate_1_k2_ribbon_decomposition_bitset.py
       - name: Enforce frozen contract
         run: |
           python - <<'PY'
@@ -40,7 +42,7 @@ jobs:
         run: |
           mkdir -p artifacts
           cd experiments/direct
-          python s_phallus_h_gate_1_k2_ribbon_decomposition_strict.py --self-test --output ../../artifacts/s_phallus_h_gate_1_k2_ribbon_result.json
+          python s_phallus_h_gate_1_k2_ribbon_decomposition_bitset.py --self-test --output ../../artifacts/s_phallus_h_gate_1_k2_ribbon_result.json
       - name: Enforce frozen gates
         run: |
           python - <<'PY'
@@ -59,6 +61,8 @@ jobs:
           assert r['STATE_RETURN_DIFFERS_FROM_ORIGINAL_STATE'] is True
           assert r['origin']['position_commitment']==r['origin_prime_1']['position_commitment']==r['origin_prime_2']['position_commitment']
           assert len({r['origin']['state_commitment'],r['origin_prime_1']['state_commitment'],r['origin_prime_2']['state_commitment']})==3
+          assert d['implementation_conformance']['all_candidate_pairs_exhaustively_examined'] is True
+          assert d['implementation_conformance']['exact_bitset_connectivity_per_pair'] is True
           assert d['mathematical_verdict']['P_VS_NP']=='OPEN'
           print('STATUS =',d['status'])
           print('K2 = 5/5')
