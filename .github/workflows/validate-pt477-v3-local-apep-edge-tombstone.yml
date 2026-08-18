@@ -1,0 +1,56 @@
+name: validate-pt477-v3-local-apep-edge-tombstone
+
+on:
+  pull_request:
+    paths:
+      - 'experiments/direct/JANUS_PT477_V3_LOCAL_APEP_EDGE_TOMBSTONE_FROZEN_CONTRACT.json'
+      - 'experiments/direct/janus_pt477_v3_local_apep_edge_tombstone.py'
+      - '.github/workflows/validate-pt477-v3-local-apep-edge-tombstone.yml'
+  workflow_dispatch:
+
+jobs:
+  pt477-v3:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Compile frozen PT477-v3 probe
+        run: python -m py_compile experiments/direct/janus_pt477_v3_local_apep_edge_tombstone.py
+
+      - name: Execute local Apep edge tombstone calibration
+        working-directory: experiments/direct
+        run: |
+          python janus_pt477_v3_local_apep_edge_tombstone.py \
+            --self-test \
+            --output ../../artifacts/pt477_v3_local_apep_edge_tombstone_result.json
+
+      - name: Enforce fail-closed ladder and exact-trajectory ceiling
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          p = Path('artifacts/pt477_v3_local_apep_edge_tombstone_result.json')
+          d = json.loads(p.read_text())
+          assert d['mathematical_verdict']['P_VS_NP'] == 'OPEN'
+          assert d['status'] in {
+              'PASS_KEEP_PT477_V3_LOCAL_REPLAY_DEDUP',
+              'STOP_AT_PT477_V3_NO_IMPROVEMENT',
+          }
+          assert d['gates']['no_extra_residual_scan'] is True
+          assert d['scope_invariant']['future_residual_inheritance'] is False
+          print('PT477_V3_STATUS =', d['status'])
+          print('BASELINE =', d['baseline'])
+          print('CANDIDATE =', d['candidate'])
+          print('GATES =', d['gates'])
+          PY
+
+      - name: Upload exact PT477-v3 receipt
+        uses: actions/upload-artifact@v4
+        with:
+          name: janus-pt477-v3-local-apep-edge-tombstone
+          path: artifacts/pt477_v3_local_apep_edge_tombstone_result.json
+          if-no-files-found: error
