@@ -1,0 +1,61 @@
+name: validate-pnp-janus-pnep-bidirectional-c025-bhq2
+
+on:
+  pull_request:
+    paths:
+      - 'experiments/direct/JANUS_PNP_BIDIRECTIONAL_C025_BHQ2_FROZEN_CONTRACT.json'
+      - 'experiments/direct/janus_c025_core.py'
+      - 'experiments/direct/janus_c025_families.py'
+      - 'experiments/direct/janus_certified_residual_quotient.py'
+      - 'experiments/direct/janus_pnp_bidirectional_c025_bhq2_gt12_run.py'
+      - '.github/workflows/validate-pnp-janus-pnep-bidirectional-c025-bhq2.yml'
+  workflow_dispatch:
+
+jobs:
+  frozen-bidirectional-gt12:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Verify frozen C025 blob identities
+        run: |
+          test "$(git hash-object experiments/direct/janus_c025_core.py)" = "414c81edf4e20248965d12069b2fe88937f9f7e1"
+          test "$(git hash-object experiments/direct/janus_c025_families.py)" = "4385c73819a53ae624717edff7edc10a4de7b998"
+          test "$(git hash-object experiments/direct/janus_certified_residual_quotient.py)" = "aef9ddefb9d4aff5cddc6852363c3fdc7c418693"
+
+      - name: Compile frozen corridor
+        run: |
+          python -m py_compile experiments/direct/janus_c025_core.py
+          python -m py_compile experiments/direct/janus_c025_families.py
+          python -m py_compile experiments/direct/janus_certified_residual_quotient.py
+          python -m py_compile experiments/direct/janus_pnp_bidirectional_c025_bhq2_gt12_run.py
+
+      - name: Reconfirm BH-Q2 Buzz return self-test
+        working-directory: experiments/direct
+        run: python janus_tear_policy0a_bh_q2_buzz_physarum_selftest.py
+
+      - name: Execute frozen GT12 forward plus reverse Tranception corridor
+        working-directory: experiments/direct
+        run: |
+          python janus_pnp_bidirectional_c025_bhq2_gt12_run.py \
+            --output "$GITHUB_WORKSPACE/JANUS_PNP_BIDIRECTIONAL_C025_BHQ2_GT12_RESULT.json" \
+            | tee "$GITHUB_WORKSPACE/JANUS_PNP_BIDIRECTIONAL_C025_BHQ2_GT12_RUN.log"
+
+      - name: Enforce claim ceiling
+        run: |
+          grep -q '"p_vs_np": "OPEN"' JANUS_PNP_BIDIRECTIONAL_C025_BHQ2_GT12_RESULT.json
+          grep -q '"general_all_input_polynomial_gate": false' JANUS_PNP_BIDIRECTIONAL_C025_BHQ2_GT12_RESULT.json
+          grep -q '"general_algorithm_lower_bound_gate": false' JANUS_PNP_BIDIRECTIONAL_C025_BHQ2_GT12_RESULT.json
+
+      - name: Upload exact run receipt
+        uses: actions/upload-artifact@v4
+        with:
+          name: janus-pnp-bidirectional-c025-bhq2-gt12
+          path: |
+            JANUS_PNP_BIDIRECTIONAL_C025_BHQ2_GT12_RESULT.json
+            JANUS_PNP_BIDIRECTIONAL_C025_BHQ2_GT12_RUN.log
+          if-no-files-found: error
