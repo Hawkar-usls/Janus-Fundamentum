@@ -1,0 +1,82 @@
+name: validate-tranception-prebirth-orbit-generators
+
+on:
+  pull_request:
+    paths:
+      - 'experiments/direct/JANUS_TRANCEPTION_PREBIRTH_ORBIT_GENERATORS_FROZEN_CONTRACT.json'
+      - 'experiments/direct/janus_tranception_prebirth_orbit_generators.py'
+      - 'experiments/direct/janus_tranception_prebirth_orbit_generators_cost_audit.py'
+      - '.github/workflows/validate-tranception-prebirth-orbit-generators.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  prebirth-orbit-generators:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Compile frozen BACK-FORTH probes
+        run: |
+          python -m py_compile experiments/direct/janus_tranception_prebirth_orbit_generators.py
+          python -m py_compile experiments/direct/janus_tranception_prebirth_orbit_generators_cost_audit.py
+      - name: Enforce no exhaustive prefix product in new probes
+        run: |
+          if grep -Fq 'itertools.product' experiments/direct/janus_tranception_prebirth_orbit_generators.py; then
+            echo 'forbidden exhaustive prefix product found in main probe'
+            exit 1
+          fi
+          if grep -Fq 'itertools.product' experiments/direct/janus_tranception_prebirth_orbit_generators_cost_audit.py; then
+            echo 'forbidden exhaustive prefix product found in cost audit'
+            exit 1
+          fi
+      - name: Execute frozen symbolic pre-birth quotient control
+        working-directory: experiments/direct
+        run: |
+          python janus_tranception_prebirth_orbit_generators.py \
+            --self-test \
+            --output ../../artifacts/tranception_prebirth_orbit_generators_result.json
+      - name: Execute conservative cost ledger
+        working-directory: experiments/direct
+        run: |
+          python janus_tranception_prebirth_orbit_generators_cost_audit.py \
+            --output ../../artifacts/tranception_prebirth_orbit_generators_cost_audit.json
+      - name: Enforce frozen gates and claim ceiling
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          d=json.loads(Path('artifacts/tranception_prebirth_orbit_generators_result.json').read_text())
+          c=json.loads(Path('artifacts/tranception_prebirth_orbit_generators_cost_audit.json').read_text())
+          assert d['mathematical_verdict']['P_VS_NP'] == 'OPEN'
+          assert d['gates']['s_phallus_parent_reproduced'] is True
+          assert d['gates']['zero_raw_prefix_enumeration'] is True
+          assert d['comparison_n14']['old_pt222_prefixes_enumerated'] == 16384
+          assert d['comparison_n14']['new_prefixes_enumerated'] == 0
+          assert d['comparison_n14']['new_exact_generator_count'] == 14
+          assert d['comparison_n14']['new_symbolic_quotient_states'] == 15
+          assert c['status'] == 'PASS_CONSERVATIVE_POLYNOMIAL_COST_LEDGER'
+          assert c['gates']['all_degree_upper_bounds_quadratic'] is True
+          assert c['gates']['all_raw_prefix_enumeration_zero'] is True
+          print('STATUS =', d['status'])
+          print('N14 =', d['comparison_n14'])
+          print('GATES =', d['gates'])
+          for row in d['rows']:
+              print('ROW', row['n'], 'represented=', row['represented_raw_prefixes'], 'states=', row['symbolic_quotient_states'])
+          for row in c['rows']:
+              print('COST', row['n'], 'proxy=', row['conservative_polynomial_work_proxy'], 'proxy/n^2=', row['work_proxy_over_n_squared'])
+          PY
+      - name: Upload exact BACK-FORTH receipts
+        uses: actions/upload-artifact@v4
+        with:
+          name: janus-tranception-prebirth-orbit-generators
+          path: |
+            artifacts/tranception_prebirth_orbit_generators_result.json
+            artifacts/tranception_prebirth_orbit_generators_cost_audit.json
+          if-no-files-found: error
+          retention-days: 90
