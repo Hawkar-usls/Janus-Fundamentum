@@ -1,0 +1,55 @@
+name: validate-dual-residency-veta
+
+on:
+  pull_request:
+    paths:
+      - 'experiments/direct/JANUS_DUAL_RESIDENCY_REJUVENATION_VETA_FROZEN_CONTRACT.json'
+      - 'experiments/direct/janus_dual_residency_rejuvenation_veta.py'
+      - '.github/workflows/validate-dual-residency-veta.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  dual-residency-veta:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Compile frozen dual-residency probe
+        run: python -m py_compile experiments/direct/janus_dual_residency_rejuvenation_veta.py
+      - name: Execute revealed GT3..GT9 Veta identity calibration
+        working-directory: experiments/direct
+        run: |
+          python janus_dual_residency_rejuvenation_veta.py \
+            --self-test \
+            --output ../../artifacts/dual_residency_rejuvenation_veta_result.json
+      - name: Enforce frozen claim ceiling and gates
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          d=json.loads(Path('artifacts/dual_residency_rejuvenation_veta_result.json').read_text())
+          assert d['mathematical_verdict']['P_VS_NP'] == 'OPEN'
+          assert d['status'] in {
+              'PASS_KEEP_DUAL_RESIDENCY_REJUVENATION_CHECKPOINT',
+              'STOP_AT_DUAL_RESIDENCY_REJUVENATION_NO_IMPROVEMENT',
+          }
+          assert d['gates']['frozen_four_sons_solver_reproduced'] is True
+          assert d['gates']['zero_extra_solver_residual_scans'] is True
+          print('DUAL_RESIDENCY_STATUS =', d['status'])
+          print('STORAGE =', d['storage'])
+          print('DUAL =', d['dual_residency'])
+          print('GATES =', d['gates'])
+          PY
+      - name: Upload exact dual-residency receipt
+        uses: actions/upload-artifact@v4
+        with:
+          name: janus-dual-residency-veta
+          path: artifacts/dual_residency_rejuvenation_veta_result.json
+          if-no-files-found: error
+          retention-days: 90
