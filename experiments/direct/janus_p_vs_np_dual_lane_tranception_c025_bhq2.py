@@ -23,7 +23,12 @@ from pathlib import Path
 from typing import Any
 
 from janus_certified_residual_quotient import run as run_c025
-from janus_c025_core import normalize_subsumption, restrict_formula, satisfies
+from janus_c025_core import (
+    normalize_subsumption,
+    restrict_formula,
+    satisfies,
+    verify_normalization,
+)
 from janus_c025_families import equality_family
 from janus_tear_policy0a_bh_q2_buzz_physarum_signed_singularity_probe import (
     apply_signed_map,
@@ -60,8 +65,9 @@ def audit_blocked_equality_signed_orbit(n: int = 14) -> dict[str, Any]:
     are distinct, but for SAT decision they form one signed-coordinate orbit.
 
     We do NOT call them semantically equal. Each absorption carries a bijective
-    polarity map and is accepted only after exact forward, inverse and full
-    witness replay. The enumerated total map volume is charged explicitly.
+    polarity map and is accepted only after exact normalization verification,
+    exact forward/inverse replay, and full witness replay. The enumerated total
+    map volume is charged explicitly.
     """
     formula, x_vars, y_vars = equality_family(n)
     expected = bh_canonical_cnf((index,) for index in range(1, n + 1))
@@ -81,10 +87,9 @@ def audit_blocked_equality_signed_orbit(n: int = 14) -> dict[str, Any]:
         prefix = dict(zip(x_vars, bits))
         raw = restrict_formula(formula, prefix)
         normalized, certificate = normalize_subsumption(raw)
-        # The certificate is part of the C025 proof-carrying input layer.
-        # For this cut, normalization should preserve a unit-only residual.
-        if certificate is not None:
-            normalization_passes += 1
+        if not verify_normalization(raw, normalized, certificate):
+            raise AssertionError("C025 normalization certificate failed in orbit replay")
+        normalization_passes += 1
 
         signs: dict[int, bool] = {}
         for clause in normalized:
@@ -142,16 +147,17 @@ def audit_blocked_equality_signed_orbit(n: int = 14) -> dict[str, Any]:
         "raw_fixed_coordinate_states": len(raw_states),
         "expected_raw_fixed_coordinate_states": expected_raw,
         "signed_orbit_singularities": len(orbit_states),
+        "normalization_certificate_passes": normalization_passes,
         "forward_map_passes": forward_passes,
         "inverse_map_passes": inverse_passes,
         "residual_witness_passes": residual_witness_passes,
         "full_formula_witness_passes": full_witness_passes,
-        "normalization_certificates_seen": normalization_passes,
         "per_residual_map_entries": n,
         "enumerated_total_map_entries": total_map_entries,
         "polarity_flips_total": polarity_flips,
         "all_absorptions_reversible": (
-            forward_passes == expected_raw
+            normalization_passes == expected_raw
+            and forward_passes == expected_raw
             and inverse_passes == expected_raw
             and residual_witness_passes == expected_raw
             and full_witness_passes == expected_raw
@@ -194,8 +200,6 @@ def build_dual_lane(c025: dict[str, Any], orbit: dict[str, Any]) -> dict[str, An
         ),
     }
 
-    # These are theorem-level gates. They are intentionally false because the
-    # present run contains no universal construction/bound for arbitrary CNF.
     p_equal_theorem_gates = {
         "universal_polynomial_order_or_decomposition_discovery": False,
         "universal_polynomial_certified_state_bound": False,
@@ -223,7 +227,7 @@ def build_dual_lane(c025: dict[str, Any], orbit: dict[str, Any]) -> dict[str, An
 
     tranception_reverse = {
         "forward_lane": (
-            "CNF -> certified normalization -> proof-carrying orbit/singularity -> decision/witness"
+            "CNF -> verified normalization -> proof-carrying orbit/singularity -> decision/witness"
         ),
         "reverse_lane": (
             "decision/witness -> inverse Buzz map -> pre-absorption residual -> original formula witness"
@@ -238,20 +242,16 @@ def build_dual_lane(c025: dict[str, Any], orbit: dict[str, Any]) -> dict[str, An
         "physical_retrocausality_claim": False,
     }
 
-    p_equal_status = "OPEN"
-    p_not_equal_status = "OPEN"
-    janus_status = "DUAL_OPEN"
-
     return {
         "P_EQUALS_NP_LANE": {
             "finite_forward_gates": p_equal_forward_gates,
             "theorem_gates": p_equal_theorem_gates,
-            "status": p_equal_status,
+            "status": "OPEN",
             "promotion_allowed": False,
         },
         "JANUS": {
             "role": "CLAIM_BOUNDARY_AND_BIDIRECTIONAL_VERIFIER",
-            "status": janus_status,
+            "status": "DUAL_OPEN",
             "located_bottleneck": "UNIVERSAL_CERTIFIED_RESIDUAL_ORBIT_AUTOMATON_COMPLEXITY",
             "forbidden_shortcuts": [
                 "FINITE_COMPRESSION => P_EQUALS_NP",
@@ -263,7 +263,7 @@ def build_dual_lane(c025: dict[str, Any], orbit: dict[str, Any]) -> dict[str, An
         "P_NOT_EQUALS_NP_LANE": {
             "restricted_obstruction_gates": p_not_equal_obstruction_gates,
             "theorem_gates": p_not_equal_theorem_gates,
-            "status": p_not_equal_status,
+            "status": "OPEN",
             "promotion_allowed": False,
         },
         "TRANCEPTION_REVERSE": tranception_reverse,
@@ -298,9 +298,10 @@ def run(n: int = 14) -> dict[str, Any]:
             "P_NOT_EQUALS_NP": "NOT_ESTABLISHED",
             "new_result": (
                 "The C025 blocked-equality 2^n fixed-coordinate cut collapses to one "
-                "explicit signed-coordinate orbit with exact inverse witness replay. "
-                "This removes that particular cut as a general P!=NP obstruction, but "
-                "does not supply a universal polynomial orbit discovery/construction."
+                "explicit signed-coordinate orbit with verified normalization and exact "
+                "inverse witness replay. This removes that particular cut as a general "
+                "P!=NP obstruction, but does not supply a universal polynomial orbit "
+                "discovery/construction."
             ),
             "next_exact_target": (
                 "Define a general proof-carrying residual-orbit automaton whose transform "
