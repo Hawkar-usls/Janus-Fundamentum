@@ -1,0 +1,30 @@
+name: validate-bh-q2-buzz-physarum-signed-singularity
+
+on:
+  pull_request:
+    paths:
+      - 'experiments/direct/janus_tear_policy0a_bh_q2_buzz_physarum_signed_singularity_probe.py'
+      - 'experiments/direct/janus_tear_policy0a_bh_q2_buzz_physarum_selftest.py'
+      - 'proposals/BH_Q2_BUZZ_PHYSARUM_SIGNED_SINGULARITY.md'
+      - '.github/workflows/validate-bh-q2-buzz-physarum-signed-singularity.yml'
+  workflow_dispatch:
+
+jobs:
+  bh-q2-calibration:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Compile BH-Q2 probes
+        run: |
+          python -m py_compile experiments/direct/janus_tear_policy0a_bh_q2_buzz_physarum_signed_singularity_probe.py
+          python -m py_compile experiments/direct/janus_tear_policy0a_bh_q2_buzz_physarum_selftest.py
+      - name: Buzz signed witness return plus Q1 frozen calibration
+        working-directory: experiments/direct
+        run: python janus_tear_policy0a_bh_q2_buzz_physarum_selftest.py
+      - name: BH-Q2 detailed frozen calibration ledger
+        working-directory: experiments/direct
+        run: python janus_tear_policy0a_bh_q2_buzz_physarum_signed_singularity_probe.py --orders 3,4,5,6,7,8,9
