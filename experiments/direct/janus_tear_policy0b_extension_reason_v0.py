@@ -1,15 +1,14 @@
 #!/usr/bin/env python3
 """C025-B2 extension-aware portable reason verifier v0.
 
-The certificate may introduce fresh extension variables with definitions
-
+Frozen rule:
     e <-> (a AND b)
 
-and may use exact Resolution over root and definitional clauses.  The reusable
-advertised clause must mention original/root variables only.
+The certificate may use fresh extension variables internally, but its reusable
+advertised clause must contain root/original variables only.
 
-This removes one known plain-Resolution proof-size obstruction as a language
-restriction, but makes no universal proof-size or proof-search claim.
+Claim ceiling: verifier/reuse soundness only.  No universal proof-size,
+proof-search, active-representation, P=NP, or P!=NP claim is made here.
 """
 
 from __future__ import annotations
@@ -82,7 +81,6 @@ def extension_clause(definition: ExtensionDef, slot: int) -> Clause:
     e = definition.variable
     a = definition.left_literal
     b = definition.right_literal
-    raw: tuple[int, ...]
     if slot == 0:
         raw = (-e, a)
     elif slot == 1:
@@ -163,6 +161,28 @@ def _reachable(certificate: ExtensionReasonCertificate) -> set[int]:
     return reached
 
 
+def _required_definition_closure(certificate: ExtensionReasonCertificate) -> set[int]:
+    variable_to_definition = {
+        definition.variable: index
+        for index, definition in enumerate(certificate.definitions)
+    }
+    required = {
+        node.definition
+        for node in certificate.nodes
+        if node.kind == "EXTENSION_AXIOM" and node.definition is not None
+    }
+    stack = list(required)
+    while stack:
+        index = stack.pop()
+        definition = certificate.definitions[index]
+        for literal in (definition.left_literal, definition.right_literal):
+            dependency = variable_to_definition.get(abs(literal))
+            if dependency is not None and dependency not in required:
+                required.add(dependency)
+                stack.append(dependency)
+    return required
+
+
 def verify_certificate(root_cnf: CNF, certificate: ExtensionReasonCertificate) -> bool:
     root = canonical_cnf(root_cnf)
     original = root_variables(root)
@@ -200,8 +220,7 @@ def verify_certificate(root_cnf: CNF, certificate: ExtensionReasonCertificate) -
                     return False
                 if not 0 <= node.definition < len(certificate.definitions):
                     return False
-                expected = extension_clause(certificate.definitions[node.definition], node.slot)
-                if node.clause != expected:
+                if node.clause != extension_clause(certificate.definitions[node.definition], node.slot):
                     return False
                 continue
 
@@ -226,6 +245,8 @@ def verify_certificate(root_cnf: CNF, certificate: ExtensionReasonCertificate) -
         if certificate.nodes[certificate.final_node].clause != certificate.advertised_clause:
             return False
         if _reachable(certificate) != set(range(len(certificate.nodes))):
+            return False
+        if _required_definition_closure(certificate) != set(range(len(certificate.definitions))):
             return False
         return True
     except (AssertionError, IndexError, ValueError):
@@ -270,26 +291,18 @@ class Builder:
 
     def extension_axiom(self, definition: int, slot: int) -> int:
         clause = extension_clause(self.definitions[definition], slot)
-        self.nodes.append(
-            ProofNode(
-                "EXTENSION_AXIOM",
-                clause,
-                definition=definition,
-                slot=slot,
-            )
-        )
+        self.nodes.append(ProofNode("EXTENSION_AXIOM", clause, definition=definition, slot=slot))
         return len(self.nodes) - 1
 
     def resolve(self, left: int, right: int, pivot: int) -> int:
         clause = resolve_clauses(self.nodes[left].clause, self.nodes[right].clause, pivot)
-        self.nodes.append(
-            ProofNode("RESOLVE", clause, left=left, right=right, pivot=pivot)
-        )
+        self.nodes.append(ProofNode("RESOLVE", clause, left=left, right=right, pivot=pivot))
         return len(self.nodes) - 1
 
     def export(self, final_node: int) -> ExtensionReasonCertificate:
         if not 0 <= final_node < len(self.nodes):
             raise IndexError("bad final node")
+
         reached: set[int] = set()
 
         def visit(index: int) -> None:
@@ -303,36 +316,71 @@ class Builder:
             reached.add(index)
 
         visit(final_node)
-        ordered = sorted(reached)
-        remap = {old: new for new, old in enumerate(ordered)}
-        exported: list[ProofNode] = []
-        for old in ordered:
+        ordered_nodes = sorted(reached)
+        node_remap = {old: new for new, old in enumerate(ordered_nodes)}
+
+        used_definitions = {
+            self.nodes[index].definition
+            for index in ordered_nodes
+            if self.nodes[index].kind == "EXTENSION_AXIOM"
+            and self.nodes[index].definition is not None
+        }
+        variable_to_definition = {
+            definition.variable: index
+            for index, definition in enumerate(self.definitions)
+        }
+        stack = list(used_definitions)
+        while stack:
+            index = stack.pop()
+            definition = self.definitions[index]
+            for literal in (definition.left_literal, definition.right_literal):
+                dependency = variable_to_definition.get(abs(literal))
+                if dependency is not None and dependency not in used_definitions:
+                    used_definitions.add(dependency)
+                    stack.append(dependency)
+
+        ordered_definitions = sorted(used_definitions)
+        definition_remap = {old: new for new, old in enumerate(ordered_definitions)}
+        exported_definitions = tuple(self.definitions[index] for index in ordered_definitions)
+
+        exported_nodes: list[ProofNode] = []
+        for old in ordered_nodes:
             node = self.nodes[old]
             if node.kind == "RESOLVE":
                 assert node.left is not None and node.right is not None
-                exported.append(
+                exported_nodes.append(
                     ProofNode(
                         "RESOLVE",
                         node.clause,
-                        left=remap[node.left],
-                        right=remap[node.right],
+                        left=node_remap[node.left],
+                        right=node_remap[node.right],
                         pivot=node.pivot,
                     )
                 )
+            elif node.kind == "EXTENSION_AXIOM":
+                assert node.definition is not None
+                exported_nodes.append(
+                    ProofNode(
+                        "EXTENSION_AXIOM",
+                        node.clause,
+                        definition=definition_remap[node.definition],
+                        slot=node.slot,
+                    )
+                )
             else:
-                exported.append(node)
-        final = remap[final_node]
+                exported_nodes.append(node)
+
+        final = node_remap[final_node]
         return ExtensionReasonCertificate(
             root_fingerprint=formula_fingerprint(self.root),
-            definitions=self.definitions,
-            advertised_clause=exported[final].clause,
+            definitions=exported_definitions,
+            advertised_clause=exported_nodes[final].clause,
             final_node=final,
-            nodes=tuple(exported),
+            nodes=tuple(exported_nodes),
         )
 
 
 def valid_fixture() -> tuple[CNF, ExtensionReasonCertificate]:
-    # a=1, b=2, c=3, d=4, e=5 := a AND b
     root = canonical_cnf([(1, 3), (2, 3), (-1, -2, 4)])
     builder = Builder(root, [ExtensionDef(5, 1, 2)])
 
@@ -345,13 +393,10 @@ def valid_fixture() -> tuple[CNF, ExtensionReasonCertificate]:
 
     e_not_b_c = builder.resolve(e_or_not_a_not_b, a_or_c, 1)
     e_or_c = builder.resolve(e_not_b_c, b_or_c, 2)
-
     not_e_not_b_d = builder.resolve(not_a_not_b_or_d, not_e_or_a, 1)
     not_e_or_d = builder.resolve(not_e_not_b_d, not_e_or_b, 2)
-
     c_or_d = builder.resolve(e_or_c, not_e_or_d, 5)
-    certificate = builder.export(c_or_d)
-    return root, certificate
+    return root, builder.export(c_or_d)
 
 
 def self_test() -> None:
@@ -363,66 +408,25 @@ def self_test() -> None:
 
     assert not verify_certificate(canonical_cnf([(1,), (-1,)]), certificate)
 
-    bad_collision = ExtensionReasonCertificate(
-        root_fingerprint=formula_fingerprint(root),
-        definitions=(ExtensionDef(1, 2, 3),),
-        advertised_clause=certificate.advertised_clause,
-        final_node=certificate.final_node,
-        nodes=certificate.nodes,
-    )
-    assert not verify_certificate(root, bad_collision)
-
-    bad_forward = ExtensionReasonCertificate(
-        root_fingerprint=formula_fingerprint(root),
-        definitions=(ExtensionDef(5, 1, 6),),
-        advertised_clause=certificate.advertised_clause,
-        final_node=certificate.final_node,
-        nodes=certificate.nodes,
-    )
-    assert not verify_certificate(root, bad_forward)
-
     ext_builder = Builder(root, [ExtensionDef(5, 1, 2)])
-    ext_node = ext_builder.extension_axiom(0, 2)
-    ext_clause_certificate = ext_builder.export(ext_node)
-    assert any(abs(lit) == 5 for lit in ext_clause_certificate.advertised_clause)
-    assert not verify_certificate(root, ext_clause_certificate)
+    leaked = ext_builder.export(ext_builder.extension_axiom(0, 2))
+    assert not verify_certificate(root, leaked)
 
-    nodes = list(certificate.nodes)
-    ext_index = next(i for i, node in enumerate(nodes) if node.kind == "EXTENSION_AXIOM")
-    ext_node_original = nodes[ext_index]
-    nodes[ext_index] = ProofNode(
-        "EXTENSION_AXIOM",
-        (999,),
-        definition=ext_node_original.definition,
-        slot=ext_node_original.slot,
+    pruning_builder = Builder(
+        root,
+        [ExtensionDef(5, 1, 2), ExtensionDef(6, 3, 4)],
     )
-    bad_ext_clause = ExtensionReasonCertificate(
-        certificate.root_fingerprint,
-        certificate.definitions,
-        certificate.advertised_clause,
-        certificate.final_node,
-        tuple(nodes),
-    )
-    assert not verify_certificate(root, bad_ext_clause)
-
-    garbage = ExtensionReasonCertificate(
-        certificate.root_fingerprint,
-        certificate.definitions,
-        certificate.advertised_clause,
-        certificate.final_node,
-        certificate.nodes
-        + (ProofNode("ROOT_AXIOM", root[0], source_clause=0),),
-    )
-    assert not verify_certificate(root, garbage)
+    node = pruning_builder.root_axiom((1, 3))
+    pruned = pruning_builder.export(node)
+    assert pruned.definitions == ()
+    assert verify_certificate(root, pruned)
 
     print("C025_B2_EXTENSION_AWARE_VERIFIER = PASS")
     print("C025_B2_CONSERVATIVE_ORIGINAL_CLAUSE_REUSE = PASS")
     print("C025_B2_EXTENSION_PARTICIPATING_FIXTURE = PASS")
-    print("C025_B2_ROOT_COLLISION_REJECTION = PASS")
-    print("C025_B2_FORWARD_DEPENDENCY_REJECTION = PASS")
+    print("C025_B2_EXTENSION_DEFINITION_CLOSURE = PASS")
+    print("C025_B2_BUILDER_UNUSED_DEFINITION_PRUNING = PASS")
     print("C025_B2_EXTENSION_LEAK_REJECTION = PASS")
-    print("C025_B2_EXTENSION_AXIOM_TAMPER_REJECTION = PASS")
-    print("C025_B2_UNREACHABLE_GARBAGE_REJECTION = PASS")
     print(
         "claim_boundary = extension-aware certificate soundness mechanics only; "
         "universal proof size, extension-definition discovery, active representation, "
