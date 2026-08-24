@@ -1,0 +1,114 @@
+{
+  "schema_id": "janus.fundamentum.experiment_gate.v1",
+  "experiment_id": "ODONTOFORGE_TRANSIENT_STATE_EXIT_GATE_v0.1",
+  "created": "2026-08-25",
+  "status": "PREREGISTERED_EXPERIMENTAL_BRIDGE",
+  "question": "Does the OdontoForge exact-search architecture reduce explored state growth on preregistered hard SAT families, and how does transient-state lifetime behave as n grows?",
+  "scientific_boundary": {
+    "P_VS_NP": "OPEN",
+    "finite_benchmark_is_not_a_proof": true,
+    "biological_analogy_is_not_complexity_evidence": true,
+    "SAT_requires_independent_assignment_verification": true,
+    "UNSAT_requires_exact_frontier_exhaustion": true,
+    "budget_exhaustion_must_return_UNKNOWN": true
+  },
+  "implementation": "tools/OdontoForge_PNP_EXP.py",
+  "anatomy": {
+    "pulp": "immutable SAT instance fingerprint",
+    "tubule": "exact-search branch",
+    "dentin": "partial assignment",
+    "enamel": "independently verified SAT certificate or exact terminal closure",
+    "vitality": "branch consistency/viability",
+    "regeneration": "replacement of dead/conflicting branch from still-live frontier without dropping exact branches"
+  },
+  "primary_metrics": [
+    "nodes_visited",
+    "nodes_odonto_div_2_pow_n",
+    "log2_nodes_growth_slope",
+    "transient_state_lifetime_in_depth",
+    "transient_state_lifetime_in_steps",
+    "conflict_fraction",
+    "successful_exit_fraction",
+    "unit_propagations",
+    "regeneration_count",
+    "wall_time_secondary_only"
+  ],
+  "controls": [
+    "full 2^n brute-force baseline where feasible",
+    "deterministic seeds",
+    "independent SAT assignment verifier",
+    "exact UNSAT exhaustion rule",
+    "held-out instances not used to tune search ordering",
+    "negative-result preservation"
+  ],
+  "hard_families": [
+    {
+      "family": "random_3sat_phase_transition",
+      "parameters": "clause/variable ratio centered near the hard region; freeze seeds before run",
+      "role": "distributional hard-instance control"
+    },
+    {
+      "family": "pigeonhole_principle_cnf",
+      "role": "structured UNSAT family"
+    },
+    {
+      "family": "graph_3_coloring_cnf",
+      "role": "structured NP-complete SAT/UNSAT family"
+    },
+    {
+      "family": "clique_cnf",
+      "role": "structured NP-complete family"
+    },
+    {
+      "family": "tseitin_or_parity_style_cnf",
+      "role": "proof/search stress control when generator is frozen and independently checked"
+    }
+  ],
+  "stages": [
+    {
+      "id": "G0_CORRECTNESS",
+      "pass": "Odonto status matches independent exact baseline on all feasible small instances and every SAT certificate verifies independently."
+    },
+    {
+      "id": "G1_EXACTNESS",
+      "pass": "No branch required for exactness is pruned by score, entropy, CRYSTALLIZE, INJECT_CHAOS, or regeneration policy."
+    },
+    {
+      "id": "G2_HOLDOUT_ADVANTAGE",
+      "pass": "Any claimed search reduction survives frozen held-out instances and is reported with full failures/variance."
+    },
+    {
+      "id": "G3_GROWTH",
+      "pass": "Report empirical slope of log2(nodes+1) versus n with confidence/dispersion; never label sub-1 finite slope as polynomial proof."
+    },
+    {
+      "id": "G4_ADVERSARIAL",
+      "pass": "Actively search for families where Odonto loses its apparent advantage or returns toward exponential growth."
+    }
+  ],
+  "transient_state_exit_clock": {
+    "entry": "branch creation after a decision or propagation event",
+    "exit_classes": [
+      "SAT_CERTIFICATE",
+      "CONFLICT_DEATH",
+      "EXACT_CLOSURE",
+      "REGENERATED_REPLACEMENT",
+      "UNKNOWN_BUDGET"
+    ],
+    "lifetime_measure": "number of branch-growth/propagation steps from entry to terminal exit",
+    "purpose": "Test whether branch lifetime contains reusable predictive structure about search difficulty; this is an algorithmic observable only."
+  },
+  "cross_domain_reference": {
+    "repository": "Hawkar-usls/janus-lapis",
+    "artifact": "data/resolution_gate/ODONTOFORGE_TRANSIENT_STATE_BRIDGE_2026-08-25.json",
+    "allowed_use": "shared abstract bookkeeping and hypothesis generation only",
+    "forbidden_use": "biological evidence as support for a complexity claim"
+  },
+  "promotion_rules": [
+    "performance claim requires preregistered metric plus holdout replication",
+    "complexity-class claim requires a formal general proof",
+    "P_VS_NP remains OPEN until such proof exists"
+  ],
+  "next_action": "Run G0 on small frozen instances, then freeze the first hard-family seed manifest before inspecting G2/G3 performance.",
+  "reviewed": "2026-08-25"
+}
