@@ -85,8 +85,13 @@ def fair_frozen_layer_scan(cnf: CNF) -> FairScanResult:
     )
 
 
-def starvation_fixture(p: int = 80) -> tuple[CNF, int, int]:
-    """Small analogue of the C024 sink plus one later informative core pivot."""
+def starvation_fixture(p: int = 80) -> tuple[CNF, int, int, int]:
+    """Small analogue of the C024 sink plus one later informative core pivot.
+
+    Both d and a occur with both polarities.  That fact is intentional: a fair
+    scheduler must account for *both* adversarial sink pivots instead of silently
+    treating only the smallest one as eligible.
+    """
     d, a = 1, 2
     next_var = 3
     clauses: list[Clause] = []
@@ -104,26 +109,30 @@ def starvation_fixture(p: int = 80) -> tuple[CNF, int, int]:
     y = next_var + 1
     z = next_var + 2
     clauses.extend(((core, y), (-core, z)))
-    return canonical_cnf(clauses), d, core
+    return canonical_cnf(clauses), d, a, core
 
 
 def self_test() -> None:
-    cnf, sink_pivot, core_pivot = starvation_fixture()
+    p = 80
+    cnf, sink_d, sink_a, core_pivot = starvation_fixture(p)
     result = fair_frozen_layer_scan(cnf)
     attempts = dict(result.attempts_by_pivot)
 
-    assert result.eligible_pivots[0] == sink_pivot
-    assert attempts[sink_pivot] == 80 * 80
+    assert result.eligible_pivots[0] == sink_d
+    assert result.eligible_pivots[1] == sink_a
+    assert attempts[sink_d] == p * p
+    assert attempts[sink_a] == p * p
     assert core_pivot in result.eligible_pivots
     assert attempts[core_pivot] == 1
-    assert result.attempts == 80 * 80 + 1
+    assert result.attempts == 2 * p * p + 1
     assert 4 * result.attempts <= result.literal_occurrences**2
 
     print("JANUS_POLICY0B_FAIR_SCHEDULER = PASS")
     print(f"literal_occurrences = {result.literal_occurrences}")
     print(f"attempts = {result.attempts}")
     print(f"eligible_pivots = {result.eligible_pivots}")
-    print(f"sink_attempts = {attempts[sink_pivot]}")
+    print(f"sink_d_attempts = {attempts[sink_d]}")
+    print(f"sink_a_attempts = {attempts[sink_a]}")
     print(f"core_attempts = {attempts[core_pivot]}")
     print(f"distinct_non_tautological_candidates = {result.distinct_candidates}")
     print("claim_boundary = scheduler-only; candidate retention and global polynomiality remain open")
