@@ -1,0 +1,40 @@
+name: Validate C025 F2 Pure Macro Cut
+
+on:
+  push:
+    paths:
+      - "experiments/direct/janus_tear_e2r_polarity_inversion_budget.py"
+      - "experiments/direct/janus_tear_e2r_macro_cut_elimination_f2.py"
+      - "experiments/direct/janus_tear_e2r_macro_cut_pure_context_f2.py"
+      - "proof_attempts/C025/C025_E2R_L1G_F2_MACRO_CUT_ELIMINATION.md"
+      - ".github/workflows/validate-c025-f2-pure.yml"
+  pull_request:
+    paths:
+      - "experiments/direct/janus_tear_e2r_polarity_inversion_budget.py"
+      - "experiments/direct/janus_tear_e2r_macro_cut_elimination_f2.py"
+      - "experiments/direct/janus_tear_e2r_macro_cut_pure_context_f2.py"
+      - "proof_attempts/C025/C025_E2R_L1G_F2_MACRO_CUT_ELIMINATION.md"
+      - ".github/workflows/validate-c025-f2-pure.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  verify-f2:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Compile F1/F2 probes
+        run: |
+          python -m py_compile experiments/direct/janus_tear_e2r_polarity_inversion_budget.py
+          python -m py_compile experiments/direct/janus_tear_e2r_macro_cut_elimination_f2.py
+          python -m py_compile experiments/direct/janus_tear_e2r_macro_cut_pure_context_f2.py
+      - name: Replay F1 negative-edge representation budget
+        run: python experiments/direct/janus_tear_e2r_polarity_inversion_budget.py
+      - name: Replay F2 nested complement and recurrence mechanics
+        run: python experiments/direct/janus_tear_e2r_macro_cut_elimination_f2.py
+      - name: Replay F2 pure restriction-lift overlap
+        run: python experiments/direct/janus_tear_e2r_macro_cut_pure_context_f2.py
