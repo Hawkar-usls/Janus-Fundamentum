@@ -2,7 +2,7 @@
 """Provider replay for C025-E2R-L1G-F1 finite expansion mechanics."""
 from dataclasses import dataclass
 from itertools import product
-from math import factorial
+from math import factorial, log
 
 Clause=frozenset[int]
 
@@ -40,7 +40,9 @@ def exact_expansions(local_atoms:set[int],gates:list[Gate]):
         qe[g.var]=frozenset(edges); known.add(g.var)
     return pos,neg,qe
 
-def bound(S,q): return S**factorial(q+2)
+def within_factorial_bound(count:int,S:int,q:int)->bool:
+    if count<=1: return True
+    return log(count) <= factorial(q+2)*log(S) + 1e-12
 
 def parity_b2(n):
     gates=[]; y=1; nxt=n+1
@@ -56,7 +58,7 @@ def main():
         gs=[Gate(5,1,-2),Gate(6,s12*5,3),Gate(7,s23*6,-4)]
         pos,neg,qe=exact_expansions(locals_,gs); S=len(locals_)+3*len(gs)
         for v in (5,6,7):
-            q=len(qe[v]); assert len(pos[v])<=bound(S,q); assert len(neg[v])<=bound(S,q)
+            q=len(qe[v]); assert within_factorial_bound(len(pos[v]),S,q); assert within_factorial_bound(len(neg[v]),S,q)
     gs=[Gate(6,1,-2),Gate(7,6,3),Gate(8,7,-4),Gate(9,8,5)]
     pos,neg,qe=exact_expansions({1,2,3,4,5},gs)
     assert len(qe[9])==0 and len(pos[9])==5 and len(neg[9])==1
@@ -64,10 +66,12 @@ def main():
         gs,out=parity_b2(n); pos,neg,qe=exact_expansions(set(range(1,n+1)),gs)
         q=len(qe[out]); S=n+3*len(gs)
         assert q==3*n-4 and len(pos[out])==2**(n-1)
-        assert len(pos[out])<=bound(S,q) and len(neg[out])<=bound(S,q)
+        assert within_factorial_bound(len(pos[out]),S,q)
+        assert within_factorial_bound(len(neg[out]),S,q)
     print("C025_E2R_L1G_F1_NEGATIVE_EDGE_ACCOUNTING = PASS")
     print("C025_E2R_L1G_F1_Q0_MONOTONE_EXPANSION = PASS")
     print("C025_E2R_L1G_F1_FACTORIAL_EXPANSION_BOUND_FINITE = PASS")
+    print("C025_E2R_L1G_F1_BOUND_MATERIALIZATION_AVOIDED = PASS")
     print("C025_E2R_L1G_F1_PARITY_NEGATIVE_EDGE_GROWTH = PASS")
     print("claim_boundary = formula-representation mechanics only; proof-level macro-cut elimination handled separately")
 
