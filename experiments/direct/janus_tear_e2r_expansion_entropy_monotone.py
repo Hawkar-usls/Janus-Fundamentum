@@ -124,8 +124,13 @@ def main():
     assert macros[22] == (1,2,3,-4)
     assert len(expand_clause((22,), macros)) == 4
     assert expand_clause((-22,), macros) == {frozenset({-1,-2,-3,4})}
-    assert len(expand_clause((20,21,22), macros)) == 24
-    assert len(expand_clause((20,21,22), macros)) <= (1+sum(map(len, macros.values())))**3
+
+    # Overlapping macro supports collapse Cartesian choices.  The product is
+    # an upper bound, not an exact count: this fixture yields 11 <= 2*3*4.
+    expanded = expand_clause((20,21,22), macros)
+    assert len(expanded) == 11
+    assert len(expanded) <= 2*3*4
+    assert len(expanded) <= (1+sum(map(len, macros.values())))**3
     assert not crossing_monotone([Gate(20,1,2), Gate(21,-20,3)], locals_)
 
     for r in range(2,9):
@@ -141,7 +146,8 @@ def main():
     print("C025_E2R_L1G_GENERIC_POLY_ELIMINATION_ROUTE = REFUTED")
     print("C025_E2R_L1G_CROSSING_MONOTONE_ADMISSION = PASS")
     print("C025_E2R_L1G_MONOTONE_FLATTENING = PASS")
-    print("C025_E2R_L1G_ER3_MACRO_CLAUSE_POLY_EXPANSION = PASS")
+    print("C025_E2R_L1G_OVERLAP_CANONICALIZATION = PASS")
+    print("C025_E2R_L1G_ER3_MACRO_CLAUSE_POLY_UPPER_BOUND = PASS")
     print("C025_E2R_L1G_FLATTENED_PIVOT_CHAIN = PASS")
     print("C025_E2R_L1G_NEGATIVE_CROSSING_DEPENDENCY_REJECTION = PASS")
     print("claim_boundary = finite mechanics only; restricted asymptotic consequence uses the established NW local-functional lower bound")
