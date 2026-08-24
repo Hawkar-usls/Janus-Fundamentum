@@ -1,29 +1,37 @@
-name: Validate C025 Fair Scheduler
+name: Validate C025 Fair Scheduler and Reasons
 
 on:
   push:
     paths:
       - "experiments/direct/janus_tear_policy0b_fair_scheduler.py"
+      - "experiments/direct/janus_tear_policy0b_proof_carrying_reason.py"
       - "proof_attempts/C025/POLICY0B_FAIR_REASON_CALCULUS.md"
+      - "proof_attempts/C025/C025_B_CONTEXT_INDEPENDENT_PROOF_CARRYING_REASON.md"
       - ".github/workflows/validate-c025-fair-scheduler.yml"
   pull_request:
     paths:
       - "experiments/direct/janus_tear_policy0b_fair_scheduler.py"
+      - "experiments/direct/janus_tear_policy0b_proof_carrying_reason.py"
       - "proof_attempts/C025/POLICY0B_FAIR_REASON_CALCULUS.md"
+      - "proof_attempts/C025/C025_B_CONTEXT_INDEPENDENT_PROOF_CARRYING_REASON.md"
       - ".github/workflows/validate-c025-fair-scheduler.yml"
 
 permissions:
   contents: read
 
 jobs:
-  verify-fair-scheduler:
+  verify-c025:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - name: Compile scheduler
-        run: python -m py_compile experiments/direct/janus_tear_policy0b_fair_scheduler.py
+      - name: Compile C025 probes
+        run: |
+          python -m py_compile experiments/direct/janus_tear_policy0b_fair_scheduler.py
+          python -m py_compile experiments/direct/janus_tear_policy0b_proof_carrying_reason.py
       - name: Replay starvation fixture
         run: python experiments/direct/janus_tear_policy0b_fair_scheduler.py
+      - name: Verify proof-carrying reasons
+        run: python experiments/direct/janus_tear_policy0b_proof_carrying_reason.py
