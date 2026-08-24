@@ -1,35 +1,15 @@
 # C025-B2 — Extension-Aware Portable Reason v0
 
-**Status:** candidate stronger reason language; conservative-extension soundness proved on paper; provider verifier/replay required before promotion.
+**Status:** `PROVED_IN_SCOPE` for certificate soundness, context-independent original-variable reuse, and frozen verifier admission rules. Provider replay PASS after post-PASS definition-closure repair.
 
-**Claim ceiling:** this language is designed to remove the known plain-Resolution pigeonhole certificate-size obstruction. It does **not** establish universal polynomial proof size, polynomial active representation, deterministic polynomial proof search, `P=NP`, or `P!=NP`.
+**Claim ceiling:** this does **not** establish universal polynomial proof size, polynomial active representation, deterministic polynomial proof search, `P=NP`, or `P!=NP`.
 
-## 1. Motivation
+## Frozen language
 
-C025-B-v1 uses only root axioms + Resolution. A root-applicable reason is therefore a Resolution refutation, and C025-E1 shows that explicit polynomial-size CNF families require superpolynomial/exponential such certificates.
-
-Haken's Resolution lower-bound paper explicitly notes that Extended Resolution can furnish polynomial-length proofs for the pigeonhole formulas used in the lower bound. Extension variables therefore remove that specific obstruction and are a natural next language to test.
-
-## 2. Frozen extension rule
-
-Let root variables be the variables occurring in canonical root CNF `F0`.
-
-An extension definition is
+For canonical root CNF `F0`, an extension definition is
 
 ```text
 EXTEND(e, a, b)
-```
-
-where:
-
-- `e` is a fresh positive variable id not in the root and not previously defined;
-- `a,b` are literals whose variables are root variables or earlier extension variables;
-- `e` does not occur in `a` or `b`;
-- definitions are topologically ordered.
-
-The semantics is
-
-```text
 e <-> (a AND b)
 ```
 
@@ -41,75 +21,37 @@ with exact definitional CNF
 (e OR ~a OR ~b)
 ```
 
-No other clause may be called an extension axiom.
+Rules:
 
-For v0, extension variable ids must be strictly increasing above every root variable and every operand variable. This is stronger than logically necessary but makes freshness/dependency verification deterministic and trivial.
+1. extension ids are fresh and strictly increasing above root ids;
+2. operands reference root or earlier extension variables only;
+3. proof nodes are `ROOT_AXIOM`, `EXTENSION_AXIOM`, or exact `RESOLVE`;
+4. the advertised reusable clause contains root/original variables only;
+5. every serialized proof node is reachable from the final node;
+6. every declared extension definition is in the transitive definition closure required by reachable extension axioms;
+7. portable export prunes unused nodes and definitions.
 
-## 3. Portable certificate grammar
+## Conservative-extension theorem
 
-A returned reason is
-
-```text
-R_ext = (
-  root_fingerprint,
-  extension_definitions,
-  advertised_clause C,
-  final_node,
-  reachable_proof_DAG
-)
-```
-
-Proof nodes are:
+Every assignment to root variables extends sequentially by setting
 
 ```text
-ROOT_AXIOM(source_clause_index)
-EXTENSION_AXIOM(definition_index, slot in {0,1,2})
-RESOLVE(left_node, right_node, pivot)
+e := value(a) AND value(b).
 ```
 
-The verifier recomputes every extension axiom and every resolvent.
+Because dependencies are topological, every definition is well-defined and all three definitional clauses are satisfied.
 
-### Original-variable boundary
-
-The advertised reusable clause `C` must contain **only root/original variables**. Internal proof clauses may contain extension variables.
-
-This boundary is what makes cross-context reuse refer to the original SAT instance rather than to an accidental extension-variable valuation.
-
-## 4. Conservative-extension theorem
-
-### Lemma B2.1 — every root assignment extends through the definitions
-
-For any truth assignment `alpha` to root variables, process extension definitions in order and set
-
-```text
-e := value_alpha(a) AND value_alpha(b).
-```
-
-Because operands mention only root or earlier extension variables, this is well-defined. The resulting extended assignment satisfies all three definitional clauses for every extension. □
-
-### Theorem B2.2 — accepted original-variable reason is globally implied by F0
-
-If the standalone verifier accepts `R_ext` and advertised clause `C` mentions only root variables, then
+Therefore, if the verifier accepts a derivation of original-variable clause `C`, then every model of `F0` extends to a model of the definitions and hence satisfies `C`. Since `C` contains original variables only,
 
 ```text
 F0 |= C.
 ```
 
-**Proof.** Take any model `alpha` of `F0`. By Lemma B2.1 extend it to satisfy all verified definitions. Every proof axiom is then true: root axioms because `alpha |= F0`, extension axioms by construction. Resolution preserves consequence, so the final clause `C` is true in the extended assignment. Since `C` contains only original variables, its truth depends only on the original `alpha`. Hence every model of `F0` satisfies `C`. □
+If a partial root assignment `rho` falsifies `C`, then `F0|rho` is UNSAT. □
 
-### Corollary B2.3 — context-independent reuse survives
+## Extension-participating fixture
 
-If a partial assignment `rho` over root variables falsifies all literals of accepted advertised clause `C`, then `F0|rho` is UNSAT. □
-
-## 5. Why extension-variable advertised clauses are rejected in v0
-
-A clause containing extension variable `e` can be valid in the conservative extension without being directly evaluable from a partial assignment over only root variables. Reusing such a clause would require separately transporting/evaluating extension semantics under the context.
-
-Rather than hide that complexity, v0 rejects it. A later language may add certified extension-expression evaluation as a separate rule.
-
-## 6. Small proof fixture
-
-Root CNF:
+From
 
 ```text
 (a OR c)
@@ -117,74 +59,62 @@ Root CNF:
 (~a OR ~b OR d)
 ```
 
-Define
+with `e <-> (a AND b)`, the verified derivation obtains `(e OR c)`, `(~e OR d)`, and finally original-only `(c OR d)`.
+
+## Strengthened provider replay
+
+Authoritative replay occurred after TOPA found a certificate-payload loophole involving unused extension definitions.
 
 ```text
-e <-> (a AND b).
+branch      = c025-policy0b-fair-reason
+PR          = #214
+head        = 736f4b7e532ee285bcb6f05b48e47c483a2c0613
+workflow    = Validate C025 Fair Scheduler and Reasons
+run         = 32720170819
+job         = 97409694435
+conclusion  = SUCCESS
 ```
 
-Using the definition and Resolution:
-
-1. derive `(e OR c)` from `(a OR c)`, `(b OR c)`, and `(e OR ~a OR ~b)`;
-2. derive `(~e OR d)` from `(~a OR ~b OR d)`, `(~e OR a)`, and `(~e OR b)`;
-3. resolve on `e` to derive original-only clause
+Positive provider markers include:
 
 ```text
-(c OR d).
+C025_B2_EXTENSION_AWARE_VERIFIER = PASS
+C025_B2_CONSERVATIVE_ORIGINAL_CLAUSE_REUSE = PASS
+C025_B2_EXTENSION_PARTICIPATING_FIXTURE = PASS
+C025_B2_EXTENSION_DEFINITION_CLOSURE = PASS
+C025_B2_BUILDER_UNUSED_DEFINITION_PRUNING = PASS
+C025_B2_EXTENSION_LEAK_REJECTION = PASS
 ```
 
-Thus the extension participates essentially in the presented derivation while the reusable output contains no extension variable. Context `{c=0,d=0}` falsifies the certified clause and is therefore UNSAT for the root formula.
+Adversarial replay rejects root collision, duplicate/nonfresh ids, descending ids, forward and cyclic dependency attempts, extension leak, extension-axiom clause/slot tampering, Resolution tampering, advertised-clause tampering, wrong root binding, unreachable proof-node garbage, and unused-definition garbage.
 
-## 7. Required negative tests
+## Authority split
 
-Provider replay must reject:
+Canonical research/process source and machine-readable receipt live in `Hawkar-usls/TOPA`.
 
-- extension variable colliding with a root variable;
-- duplicate/nonfresh extension variable;
-- descending/noncanonical extension ids;
-- forward dependency;
-- cyclic dependency attempt;
-- malformed extension-axiom slot/clause;
-- advertised clause containing any extension variable;
-- wrong root fingerprint;
-- malformed Resolution step;
-- advertised-clause/final-node mismatch;
-- unreachable serialized proof garbage.
+Fundamentum is the proof-provider/replay surface. Provider PASS establishes only the frozen verifier/soundness scope.
 
-## 8. Proof-size and search firewall
-
-The known pigeonhole obstruction for **plain Resolution** is removed as an objection to the language class because Extended Resolution has polynomial proofs for that family.
-
-But no universal conclusion follows:
+## Exact frontier
 
 ```text
-PHP_HAS_SHORT_ER_PROOF != ALL_UNSAT_CNF_HAVE_POLY_ER_PROOFS
-SHORT_ER_PROOF_EXISTS != POLICY0B_FINDS_IT_IN_POLYTIME
-POLY_VERIFY_IN_CERT_SIZE != POLY_CERT_SIZE_IN_INPUT_N
+C025_B2_EXTENSION_RULE_SEMANTICS             = FROZEN_V0
+C025_B2_CONSERVATIVE_EXTENSION_SOUNDNESS     = PROVED
+C025_B2_ORIGINAL_CLAUSE_REUSE                = PROVED
+C025_B2_STANDALONE_VERIFIER                  = PROVIDER_PASS
+C025_B2_ADVERSARIAL_ADMISSION_SUITE          = PROVIDER_PASS
+C025_B2_DEFINITION_CLOSURE                   = PROVIDER_PASS
+C025_B2_STATUS                               = PROVED_IN_SCOPE
+
+C025_E1_PLAIN_RESOLUTION_CERT_SIZE           = REFUTED
+C025_E2_UNIVERSAL_EXTENSION_AWARE_PROOF_SIZE = OPEN
+C025_C2_EXTENSION_DEFINITION_DISCOVERY       = OPEN
+C025_C2_GLOBAL_DETERMINISTIC_PROOF_SEARCH    = OPEN
+ISSUE_212_ACTIVE_REPRESENTATION              = OPEN
+P_VS_NP                                      = OPEN
 ```
 
-The extension-definition search space can itself be enormous. Choosing useful abbreviations is part of C025-C2 proof search and must be charged.
-
-## 9. Authority split
-
-Canonical research/process source:
-
-`Hawkar-usls/TOPA/research/mathematics/p-vs-np/C025_B2_EXTENSION_AWARE_REASON_V0.md`
-
-This Fundamentum mirror is the proof-provider/replay surface. Mirroring does not create theorem authority; the derivation plus provider replay does.
-
-## 10. Exact frontier before provider replay
+Hard law:
 
 ```text
-C025_B_PLAIN_RESOLUTION_SOUNDNESS       = PROVED_IN_SCOPE
-C025_E1_PLAIN_RESOLUTION_CERT_SIZE      = REFUTED
-
-C025_B2_EXTENSION_RULE_SEMANTICS        = FROZEN_V0
-C025_B2_CONSERVATIVE_SOUNDNESS          = PROVED_ON_PAPER
-C025_B2_STANDALONE_VERIFIER             = IMPLEMENTED_PENDING_PROVIDER_REPLAY
-C025_B2_NEGATIVE_ADMISSION_SUITE        = IMPLEMENTED_PENDING_PROVIDER_REPLAY
-C025_E2_UNIVERSAL_EXTENDED_PROOF_SIZE   = OPEN
-C025_C2_EXTENSION_DEFINITION_SEARCH     = OPEN
-C025_C2_GLOBAL_DETERMINISTIC_SEARCH     = OPEN
-P_VS_NP                                 = OPEN
+SOUNDNESS != CERTIFICATE_SIZE != CACHE_SIZE != PROOF_DISCOVERY != TOTAL_RUNTIME
 ```
