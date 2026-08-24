@@ -1,0 +1,27 @@
+name: Validate External Vega K3,3 Claim Audit
+
+on:
+  push:
+    paths:
+      - "experiments/direct/janus_tear_external_vega_k33_linegraph_counterexample.py"
+      - ".github/workflows/validate-external-vega-claim.yml"
+  pull_request:
+    paths:
+      - "experiments/direct/janus_tear_external_vega_k33_linegraph_counterexample.py"
+      - ".github/workflows/validate-external-vega-claim.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  verify-vega-k33:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Compile counterexample probe
+        run: python -m py_compile experiments/direct/janus_tear_external_vega_k33_linegraph_counterexample.py
+      - name: Replay K3,3 line-graph falsifier
+        run: python experiments/direct/janus_tear_external_vega_k33_linegraph_counterexample.py
