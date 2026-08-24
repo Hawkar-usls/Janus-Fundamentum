@@ -1,0 +1,28 @@
+name: Validate C025 F3D-D2 Completion Divergence
+
+on:
+  push:
+    paths:
+      - "experiments/direct/janus_tear_e2r_f3d_d2_completion_divergence.py"
+      - ".github/workflows/validate-c025-f3d-d2-completion.yml"
+  pull_request:
+    paths:
+      - "experiments/direct/janus_tear_e2r_f3d_d2_completion_divergence.py"
+      - ".github/workflows/validate-c025-f3d-d2-completion.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify-f3d-d2:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Compile F3D-D2 probe
+        run: python -m py_compile experiments/direct/janus_tear_e2r_f3d_d2_completion_divergence.py
+      - name: Replay F-D2-01 and F-D2-02 completion divergence
+        run: python experiments/direct/janus_tear_e2r_f3d_d2_completion_divergence.py
