@@ -1,0 +1,29 @@
+name: Validate C025 PHP54 Stage4 Obstruction Analysis
+
+on:
+  push:
+    branches:
+      - research/c025-unified-proof-carrying-akinator-jec
+    paths:
+      - 'experiments/direct/janus_php54_stage4_overcap_obstruction_analyzer.py'
+      - 'experiments/direct/janus_jec_extension_progress_proof_gate.py'
+      - 'experiments/direct/janus_unified_macro_restore_v2.py'
+      - '.github/workflows/validate-c025-php54-stage4-obstruction-analysis.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  obstruction-analysis:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Compile frozen obstruction analyzer
+        run: python -m py_compile experiments/direct/janus_php54_stage4_overcap_obstruction_analyzer.py
+      - name: Replay and analyze frozen PHP54 Stage4 obstruction
+        run: python experiments/direct/janus_php54_stage4_overcap_obstruction_analyzer.py
