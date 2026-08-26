@@ -17,7 +17,13 @@ allowing heuristic state promotion.  P_VS_NP remains OPEN.
 """
 from __future__ import annotations
 
-from typing import List, Optional, Tuple
+from pathlib import Path
+import sys
+from typing import List, Tuple
+
+ROOT = Path(__file__).resolve().parents[2]
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
 
 from experiments.direct import janus_unified_proof_carrying_akinator_jec as base
 
