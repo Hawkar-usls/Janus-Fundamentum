@@ -1,5 +1,11 @@
 import itertools
+from pathlib import Path
 import random
+import sys
+
+ROOT = Path(__file__).resolve().parents[1]
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
 
 from experiments.direct.janus_unified_proof_carrying_akinator_jec import (
     apply_or_pair_via_b2_and,
