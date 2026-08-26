@@ -1,0 +1,134 @@
+{
+  "schema": "JANUS/C025/FACTORIZED-RESOLUTION-PRODUCT-HOLDOUT-SEARCH-PREREGISTRATION/v1",
+  "date": "2026-08-26",
+  "status": "FROZEN_BEFORE_HOLDOUT_SEARCH_AND_BEFORE_FACTORIZER_IMPLEMENTATION",
+  "purpose": "Select one non-training exact elimination context whose ordinary explicit resolution materialization exceeds the same frozen cap, without using any future factorizer behavior to choose the specimen.",
+  "training_exclusion": {
+    "known_training_specimen_fingerprint": "990124522dc5ee1a6871de798a0f3ef40f05c20a28cd9f3d9d2f062841695ea6",
+    "exclude_exact_training_fingerprint": true,
+    "exclude_direct_php_generator_inputs": true,
+    "family_label_used_for_selection": false,
+    "reason": "The PHP_5_4 obstruction motivated the representation grammar and cannot serve as an independent holdout."
+  },
+  "frozen_source_corpus": {
+    "name": "C025_OPEN3_STAGE4_SCALING_LADDER",
+    "workflow_run": 32996218608,
+    "validated_stage4_grammar_head": "b19f4a094b52c60d022f5c5eac298f9c062c6d1f",
+    "instrument_commit": "acc63bfd0b67fde8f4cd1f36507f1502b5e7b3ac",
+    "rungs_in_order": [
+      {"id": "R1", "nvars": 4, "clauses": 5, "min_width": 3, "max_width": 3, "connected_limit": 5000},
+      {"id": "R2", "nvars": 4, "clauses": 6, "min_width": 3, "max_width": 3, "connected_limit": 10000},
+      {"id": "R3", "nvars": 5, "clauses": 6, "min_width": 3, "max_width": 3, "connected_limit": 10000},
+      {"id": "R4", "nvars": 5, "clauses": 7, "min_width": 3, "max_width": 3, "connected_limit": 20000}
+    ],
+    "known_open3_total": 23956,
+    "known_stage4_progress_total": 23956,
+    "known_open_after_stage4": 0,
+    "scientific_boundary": "Finite bounded corpus only; successful Stage4 coverage is not a totality theorem."
+  },
+  "deterministic_formula_order": {
+    "clause_universe": "Exactly experiments/direct/janus_open3_stage4_bounded_coverage_probe.py clause_universe ordering: canonical clauses sorted by (len(clause), clause).",
+    "formula_enumeration": "itertools.combinations(universe, clause_count) in Python deterministic lexicographic combination order, followed by canonicalization, exact variable-count filter, fingerprint de-duplication, primal-connected filter and the preregistered connected limit.",
+    "rung_order": "R1 then R2 then R3 then R4.",
+    "eligibility": "Only formulas for which stage3.solve_one_variable_escape returns neither SAT nor UNSAT and hence are members of OPEN3."
+  },
+  "frozen_context_enumeration_per_formula": {
+    "cap_exponent": 2,
+    "extension_exponent": 1,
+    "context_order": [
+      "RAW_OPEN3_SOURCE_STATE",
+      "EACH_B2_OR_PAIR_MACRO_STATE_UNDER_CAP_IN_FROZEN_V2_CANDIDATE_ORDER",
+      "EACH_FIRST_ELIMINATION_STATE_THAT_FITS_THE_CAP_IN_ASCENDING_LIVE_PIVOT_ORDER"
+    ],
+    "macro_order": "Use v2.all_or_pair_candidates on the exact source state, unchanged.",
+    "macro_fresh_variable": "max(live variables and root variables, default 0) + 1, matching frozen Stage4 v3.",
+    "first_elimination_order": "Ascending variables that were live before the macro, using base.eliminate_var_capped with the same frozen cap.",
+    "probe_pivot_order": "For each exact context state, inspect each variable still live in that state in ascending numeric order.",
+    "future_factorizer_import_forbidden": true
+  },
+  "diagnostic_explicit_elimination": {
+    "definition": "For a context CNF C and pivot x, partition positive/negative/untouched clauses; enumerate the complete positive-times-negative resolution product; omit tautological resolvents; canonicalize and deduplicate exact resolvents; reconstruct the exact ordinary-resolution CNF C' = untouched union unique non-tautological resolvents.",
+    "selection_metric": "base.state_units(C')",
+    "selection_condition": "base.state_units(C') > frozen state_cap",
+    "selection_does_not_depend_on": [
+      "duplicate resolvent count",
+      "resolvent widths",
+      "future factor representation size",
+      "whether the future factorizer succeeds",
+      "SAT/UNSAT answer",
+      "family identity",
+      "heuristic score"
+    ],
+    "diagnostic_metrics_recorded_but_not_used_for_selection": [
+      "positive_occurrences",
+      "negative_occurrences",
+      "raw_resolution_pairs",
+      "non_tautological_resolvent_instances",
+      "unique_resolvents_after_dedup",
+      "duplicate_resolvent_instances",
+      "resolvent_width_histogram",
+      "explicit_result_fingerprint"
+    ]
+  },
+  "holdout_selection_rule": "Freeze the FIRST eligible tuple in the fully deterministic order (rung, formula, context type/order, macro candidate if any, first pivot if any, probe pivot) for which exact explicit elimination yields state_units strictly above the same frozen cap.",
+  "required_frozen_holdout_fields": [
+    "rung",
+    "formula_enumeration_index",
+    "source_cnf",
+    "source_fingerprint",
+    "source_N",
+    "state_cap",
+    "context_kind",
+    "context_provenance",
+    "context_cnf",
+    "context_fingerprint",
+    "context_state_units",
+    "probe_pivot",
+    "positive_occurrences",
+    "negative_occurrences",
+    "raw_resolution_pairs",
+    "non_tautological_resolvent_instances",
+    "unique_resolvents_after_dedup",
+    "duplicate_resolvent_instances",
+    "explicit_result_cnf",
+    "explicit_result_fingerprint",
+    "explicit_result_state_units",
+    "resolvent_width_histogram"
+  ],
+  "no_hit_rule": {
+    "if_no_context_in_frozen_corpus_matches": "Emit and freeze status NO_HOLDOUT_FOUND_IN_FROZEN_OPEN3_CORPUS with exact counts and corpus hash commitments.",
+    "then": "Preregister a deterministic expanded search before examining any expanded-search result.",
+    "forbidden": "Do not weaken or change the selection condition after a no-hit."
+  },
+  "historical_adversarial_debts_carried_forward": {
+    "C010_PROOF_COMPRESSION": [
+      "DAG sharing may only postpone full expansion.",
+      "Dependency depth is an independently charged resource.",
+      "Coefficient/encoding growth or expanded size cannot be hidden by a compact surface representation."
+    ],
+    "C020_FORMULA_CACHING_BARRIER": [
+      "A compact cache/DAG representation is not automatically p-equivalent to ordinary Resolution.",
+      "Incoming contexts/reuse edges and cache proof rules are separately charged resources."
+    ],
+    "POLICY0A_CONTEXT_INTERSECTION": "Context-independent reuse can fail when one state is reached under incompatible decision boundaries; shared-node semantics must carry sufficient context.",
+    "POLICY0A_DIAMOND_BYPASS": "Speedup over one execution policy is not evidence of a proof-system separation or universal complexity gain."
+  },
+  "holdout_firewall": {
+    "factorizer_code_must_not_exist_before_holdout_is_frozen": true,
+    "factorizer_behavior_must_not_be_observed_during_selection": true,
+    "grammar_change_after_holdout_exposure": "FORBIDDEN",
+    "cap_change_after_holdout_exposure": "FORBIDDEN",
+    "shannon_depth_increase": "FORBIDDEN",
+    "randomness_in_selection": false,
+    "manual_specimen_choice": false
+  },
+  "success_interpretation": {
+    "holdout_found": "Produces a blind exact representation challenge only; it says nothing about whether the preregistered factor grammar will pass.",
+    "future_factorizer_pass": "Would establish one finite exact non-training representation pass only.",
+    "future_factorizer_fail": "Is a valid falsification of the v1 representation/admission route on that frozen holdout.",
+    "universal_totality": "OPEN",
+    "P_VS_NP": "OPEN"
+  },
+  "next_allowed_code": "A holdout-search instrument implementing only this frozen deterministic enumeration and explicit diagnostic elimination. It may import frozen Stage3/Stage4 components but MUST NOT contain or import factorized-resolution representation code.",
+  "P_VS_NP": "OPEN"
+}
