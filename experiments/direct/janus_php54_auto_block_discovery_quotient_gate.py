@@ -80,9 +80,9 @@ def oriented_signature(
         sig_rows = []
         for clause in clauses:
             row = tuple(sorted(
-                (pos[abs(lit)] if lit > 0 else -pos[abs(lit)])
-                for lit in clause
-            , key=lambda z: (abs(z), z < 0)))
+                ((pos[abs(lit)] if lit > 0 else -pos[abs(lit)]) for lit in clause),
+                key=lambda z: (abs(z), z < 0),
+            ))
             sig_rows.append(row)
         signature = tuple(sorted(sig_rows, key=lambda c: (len(c), c)))
         candidates.append((signature, tuple(role_vars)))
@@ -133,7 +133,6 @@ def enumerate_local_gadgets(residual: base.CNF):
         if not connected_local_interaction(clauses, triple):
             continue
         signature, oriented = oriented_signature(clauses, triple)
-        # Recompute internal clauses in the canonical role order; semantics are unchanged.
         oriented_clauses = local_clauses(residual, oriented)
         alphabet = local_state_alphabet(oriented, oriented_clauses)
         if not (1 < len(alphabet) < (1 << BLOCK_WIDTH)):
@@ -158,7 +157,6 @@ def maximal_disjoint_packings(rows: list[dict]) -> list[tuple[int, ...]]:
 
     def rec(i: int, used: frozenset[int], chosen: tuple[int, ...]) -> None:
         nonlocal best_size, best
-        # Exact branch bound; it prunes only branches unable to match current optimum.
         if len(chosen) + (len(rows) - i) < best_size:
             return
         if i == len(rows):
@@ -175,7 +173,6 @@ def maximal_disjoint_packings(rows: list[dict]) -> list[tuple[int, ...]]:
             rec(i + 1, used | rvars, chosen + (i,))
 
     rec(0, frozenset(), ())
-    # Remove duplicate systems, canonicalized by sorted variable sets.
     uniq = {}
     for indices in best:
         key = tuple(sorted(rows[i]["vars"] for i in indices))
@@ -192,7 +189,6 @@ def discover_unique_block_system(residual: base.CNF):
         if not packings:
             continue
         size = len(packings[0])
-        # A repeated gadget must occur at least twice; singleton motifs are not a block system.
         if size < 2:
             continue
         for indices in packings:
@@ -213,7 +209,6 @@ def discover_unique_block_system(residual: base.CNF):
     max_blocks = max(c["block_count"] for c in candidates)
     finalists = [c for c in candidates if c["block_count"] == max_blocks]
 
-    # Same geometric partition may arise through duplicate bookkeeping; dedupe exactly.
     uniq = {}
     for c in finalists:
         partition = tuple(sorted(tuple(sorted(b)) for b in c["blocks"]))
@@ -237,7 +232,6 @@ def discover_unique_block_system(residual: base.CNF):
     winner = finalists[0]
     vars_ = set(base.vars_of(residual))
     outside = tuple(sorted(vars_ - set(winner["covered"])))
-    # Rebuild per-block local clauses/alphabet from the selected orientation.
     block_rows = []
     for block in winner["blocks"]:
         clauses = local_clauses(residual, block)
@@ -354,16 +348,12 @@ def compile_templates(residual: base.CNF, blocks, outside):
         buckets[template].append(clause)
         arities[template] = arity
 
-    # Exact replay: materialize every injective role->block assignment, never k! permutations.
     reconstructed = set()
     replay_rows = []
     for template in sorted(buckets, key=repr):
         arity = arities[template]
         images = set()
-        if arity == 0:
-            assignments = [()]
-        else:
-            assignments = permutations(range(len(blocks)), arity)
+        assignments = [()] if arity == 0 else permutations(range(len(blocks)), arity)
         for assignment in assignments:
             images.add(materialize_template(template, tuple(assignment), blocks, outside))
         reconstructed |= images
@@ -470,7 +460,6 @@ def main() -> None:
     outside = discovery["outside"]
     local_states = discovery["alphabet"]
 
-    # Frozen regression expectations are structural only; no variable IDs are supplied.
     assert len(blocks) == 4
     assert all(len(block) == BLOCK_WIDTH for block in blocks)
     assert len(outside) == 1
