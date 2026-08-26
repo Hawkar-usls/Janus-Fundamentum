@@ -72,7 +72,7 @@ def main() -> int:
         "scientific_boundary": {
             "what_pass_would_show": "ONE_FAIL_CLOSED_SELECTOR_CAN_CHOOSE_BETWEEN_TWO_DISTINCT_EXACT_ALGEBRAIC_COORDINATE_SYSTEMS_FROM_RAW_CNF_WITHOUT_A_FAMILY_LABEL",
             "what_pass_would_not_show": "AUTONOMOUS_INVENTION_OF_ALL_POSSIBLE_ALGEBRAS_OR_ARBITRARY_CNF_POLYNOMIAL_SOLVABILITY",
-            "current_portfolio_is_finite": true,
+            "current_portfolio_is_finite": True,
             "arbitrary_CNF_coverage": "OPEN",
             "P_VS_NP": "OPEN"
         }
