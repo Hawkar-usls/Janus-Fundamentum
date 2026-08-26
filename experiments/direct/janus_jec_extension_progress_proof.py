@@ -30,6 +30,9 @@ from experiments.direct import janus_unified_proof_carrying_akinator_jec as base
 from experiments.direct import janus_unified_macro_restore_v2 as v2
 from experiments.direct import janus_unified_macro_restore_v3 as v3
 
+ALLOWED_MODES = {"ROOT_RESTORE_V2", "EXTENSION_TAIL_V3"}
+ALLOWED_CONTEXTS = {"INITIAL_CONTEXT", "ENGINE_CONTEXT"}
+
 
 def _cnf_json(cnf: base.CNF) -> list[list[int]]:
     return [list(clause) for clause in cnf]
@@ -89,6 +92,8 @@ def _assemble_proof(
     discovery_delta: dict[str, int],
     context_mode: str,
 ) -> dict:
+    if mode not in ALLOWED_MODES or context_mode not in ALLOWED_CONTEXTS:
+        raise ValueError("UNSUPPORTED_PROOF_GRAMMAR")
     before = state.residual
     after = _cnf_from_json(elimination_steps[-1]["after_cnf"])
     root_vars = tuple(int(v) for v in state.root_vars)
@@ -221,6 +226,10 @@ def verify_extension_progress_proof(
         source = base.canon_cnf(raw_clauses)
         if proof.get("kind") != "JANUS_JEC_EXTENSION_PROGRESS_PROOF":
             return False
+        mode = proof.get("mode")
+        context_mode = proof.get("context_mode")
+        if mode not in ALLOWED_MODES or context_mode not in ALLOWED_CONTEXTS:
+            return False
         if proof.get("source_fingerprint") != base.fingerprint(source):
             return False
         if _cnf_from_json(proof.get("source_cnf", [])) != source:
@@ -238,38 +247,58 @@ def verify_extension_progress_proof(
         extension_exponent = int(proof["extension_exponent"])
         if N < 2 or cap_exponent < 1 or extension_exponent < 0:
             return False
+        if N != base.input_size_units(root):
+            return False
         if int(proof["state_cap"]) != N ** cap_exponent:
             return False
         if int(proof["extension_cap"]) != N ** extension_exponent:
             return False
         if int(proof["extension_count_after"]) != int(proof["extension_count_before"]) + 1:
             return False
+        if int(proof["extension_count_before"]) < 0:
+            return False
         if int(proof["extension_count_after"]) > int(proof["extension_cap"]):
             return False
 
         if require_initial_context:
-            if proof.get("context_mode") != "INITIAL_CONTEXT":
+            if context_mode != "INITIAL_CONTEXT":
                 return False
             if root != source:
-                return False
-            if N != base.input_size_units(root):
                 return False
             if int(proof["extension_count_before"]) != 0:
                 return False
 
         cap = int(proof["state_cap"])
+        if base.state_units(source) > cap:
+            return False
         macro_cnf = _cnf_from_json(proof["macro_cnf"])
         if base.state_units(macro_cnf) > cap:
             return False
         macro_certificate = _normalize_macro_certificate(proof["macro_certificate"])
         if not v2.verify_or_pair_v2(source, macro_cnf, macro_certificate):
             return False
+        extension = int(macro_certificate["extension"])
+        if extension in set(base.vars_of(source)):
+            return False
 
         current = macro_cnf
         steps = proof.get("elimination_steps", [])
-        expected_length = 1 if proof.get("mode") == "ROOT_RESTORE_V2" else 2
+        expected_length = 1 if mode == "ROOT_RESTORE_V2" else 2
         if len(steps) != expected_length:
             return False
+        pivots = [int(row["pivot"]) for row in steps]
+        if mode == "ROOT_RESTORE_V2":
+            if pivots[0] not in set(root_vars):
+                return False
+        else:
+            source_vars = set(base.vars_of(source))
+            if len(set(pivots)) != 2:
+                return False
+            if any(pivot not in source_vars for pivot in pivots):
+                return False
+            if extension in pivots:
+                return False
+
         for row in steps:
             before_step = _cnf_from_json(row["before_cnf"])
             after_step = _cnf_from_json(row["after_cnf"])
