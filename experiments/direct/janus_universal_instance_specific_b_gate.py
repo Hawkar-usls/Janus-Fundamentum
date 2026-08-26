@@ -7,8 +7,9 @@ For a RAW CNF it:
   * canonicalizes the instance;
   * measures N and explicit state volume;
   * exposes the extensionalization upper bound 2^w for maximum clause width w;
-  * invokes only currently independently verified exact selectors;
-  * verifies any returned certificate;
+  * runs the current exact JANUS stack:
+      global exact algebra -> exact component direct-sum -> one-variable escape;
+  * independently verifies any closed finite-instance result;
   * records whether this ONE instance is decided;
   * keeps the universal gate OPEN until a separate proof establishes one fixed
     polynomial bound and totality for every CNF.
@@ -27,7 +28,7 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 from experiments.direct import janus_unified_proof_carrying_akinator_jec as base
-from experiments.direct import janus_b_to_a_exact_algebra_selector as selector
+from experiments.direct import janus_one_variable_separator_escape as current_solver
 
 
 @dataclass
@@ -76,36 +77,44 @@ def inspect_instance(raw_clauses) -> dict:
         max_state_units=state,
     )
 
-    result = selector.select_exact_algebra(cnf)
-    ledger.discovery_work += 2  # two exact lanes in the current finite selector
+    result = current_solver.solve_one_variable_escape(cnf)
+    nested_ledger = result.get("ledger", {})
+    ledger.discovery_work += (
+        int(nested_ledger.get("variables_considered", 0))
+        + int(nested_ledger.get("branch_attempts", 0))
+        + int(nested_ledger.get("unit_propagation_work", 0))
+    )
+    ledger.progress_steps = int(nested_ledger.get("progress_steps", 0))
 
-    instance_decision = "OPEN"
-    selected_algebra = None
+    instance_decision = result.get("status", "OPEN")
     certificate_verified = False
-    if result.get("status") in {"SAT", "UNSAT"}:
-        selected_algebra = result.get("selected_algebra")
-        certificate_verified = selector.verify_selector_result(cnf, result)
-        ledger.verification_work += max(1, state)
+    if instance_decision in {"SAT", "UNSAT"}:
+        certificate_verified = current_solver.verify_one_variable_escape(cnf, result)
         if not certificate_verified:
-            raise AssertionError("CURRENT_SELECTOR_RETURNED_UNVERIFIED_CERTIFICATE")
-        instance_decision = result["status"]
-        certificate_bytes = len(
-            json.dumps(
-                result.get("certificate"),
-                sort_keys=True,
-                separators=(",", ":"),
-            ).encode()
+            raise AssertionError("CURRENT_INSTANCE_SOLVER_RETURNED_UNVERIFIED_CERTIFICATE")
+        ledger.verification_work = max(
+            int(nested_ledger.get("verification_work", 0)),
+            max(1, state),
         )
-        ledger.certificate_bytes = certificate_bytes
-        ledger.progress_steps = 1
+        ledger.certificate_bytes = len(
+            json.dumps(result, sort_keys=True, separators=(",", ":")).encode()
+        )
 
     return {
-        "schema": "JANUS/C025/UNIVERSAL-INSTANCE-SPECIFIC-B-EXISTENCE-GATE/v1",
+        "schema": "JANUS/C025/UNIVERSAL-INSTANCE-SPECIFIC-B-EXISTENCE-GATE/v2",
         "instance": {
             "fingerprint": base.fingerprint(cnf),
-            "decision_with_current_exact_portfolio": instance_decision,
-            "selected_algebra": selected_algebra,
+            "decision_with_current_exact_stack": instance_decision,
+            "current_solver_mode": result.get("mode"),
+            "selected_variable": result.get("selected_variable"),
             "selected_certificate_verified": certificate_verified,
+        },
+        "current_exact_stack": {
+            "stage_1": "GLOBAL_EXACT_ALGEBRA_SELECTOR",
+            "stage_2": "EXACT_COMPONENT_DIRECT_SUM",
+            "stage_3": "ONE_VARIABLE_EXACT_SHANNON_ESCAPE",
+            "recursive_branching": False,
+            "finite_instance_result": result,
         },
         "ledger": asdict(ledger),
         "universal_gate": {
@@ -117,6 +126,7 @@ def inspect_instance(raw_clauses) -> dict:
             "one_fixed_polynomial_verification_bound_proved": False,
             "one_fixed_polynomial_progress_step_bound_proved": False,
             "unbounded_width_extensionalization_removed": False,
+            "connected_instances_without_one_variable_escape": "MAY_RETURN_OPEN",
             "arbitrary_CNF_coverage": "OPEN",
             "P_VS_NP": "OPEN",
         },
@@ -127,7 +137,6 @@ def inspect_instance(raw_clauses) -> dict:
 
 
 def main() -> int:
-    # A tiny out-of-portfolio smoke control.  It is not evidence for totality.
     raw = ((1, 2, 3), (-1, -2))
     report = inspect_instance(raw)
     if report["universal_gate"]["status"] != "OPEN":
