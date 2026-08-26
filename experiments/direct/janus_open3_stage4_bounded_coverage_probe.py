@@ -66,6 +66,17 @@ def primal_connected(cnf: base.CNF) -> bool:
     return len(seen) == len(variables)
 
 
+def _frozen_instance_record(cnf: base.CNF, fingerprint: str) -> dict:
+    return {
+        "fingerprint": fingerprint,
+        "cnf": [list(clause) for clause in cnf],
+        "variables": list(base.vars_of(cnf)),
+        "clauses": len(cnf),
+        "state_units": base.state_units(cnf),
+        "N": base.input_size_units(cnf),
+    }
+
+
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--nvars", type=int, default=3)
@@ -73,7 +84,12 @@ def main() -> int:
     parser.add_argument("--min-width", type=int, default=2)
     parser.add_argument("--max-width", type=int, default=3)
     parser.add_argument("--cap-exponent", type=int, default=2)
-    parser.add_argument("--limit", type=int, default=0, help="0 means exhaustive over the frozen combination space")
+    parser.add_argument(
+        "--limit",
+        type=int,
+        default=0,
+        help="0 means exhaustive; otherwise process at most this many connected canonical CNFs",
+    )
     args = parser.parse_args()
 
     universe = clause_universe(args.nvars, args.min_width, args.max_width)
@@ -87,7 +103,9 @@ def main() -> int:
         "open_after_stage4": 0,
     }
     seen_fingerprints = set()
+    first_open3 = None
     first_barrier = None
+    connected_limit_reached = False
 
     for raw_rows in combinations(universe, args.clauses):
         totals["raw_combinations"] += 1
@@ -103,6 +121,9 @@ def main() -> int:
         totals["canonical_distinct_examined"] += 1
         if not primal_connected(cnf):
             continue
+        if args.limit and totals["connected_examined"] >= args.limit:
+            connected_limit_reached = True
+            break
         totals["connected_examined"] += 1
 
         result3 = stage3.solve_one_variable_escape(cnf)
@@ -113,6 +134,13 @@ def main() -> int:
             continue
 
         totals["open3"] += 1
+        if first_open3 is None:
+            first_open3 = {
+                **_frozen_instance_record(cnf, fingerprint),
+                "stage3_mode": result3.get("mode"),
+                "stage3_reason": result3.get("reason"),
+            }
+
         proof = stage4.discover_initial_extension_progress(
             cnf,
             cap_exponent=args.cap_exponent,
@@ -126,20 +154,12 @@ def main() -> int:
             totals["open_after_stage4"] += 1
             if first_barrier is None:
                 first_barrier = {
-                    "fingerprint": fingerprint,
-                    "cnf": [list(clause) for clause in cnf],
-                    "variables": list(base.vars_of(cnf)),
-                    "clauses": len(cnf),
-                    "state_units": base.state_units(cnf),
-                    "N": base.input_size_units(cnf),
+                    **_frozen_instance_record(cnf, fingerprint),
                     "stage3_mode": result3.get("mode"),
                     "stage3_reason": result3.get("reason"),
                     "stage4_cap_exponent": args.cap_exponent,
                 }
                 break
-
-        if args.limit and totals["connected_examined"] >= args.limit:
-            break
 
     status = (
         "FINITE_COUNTEREXAMPLE_TO_CURRENT_STAGE4_GRAMMAR_FOUND"
@@ -147,7 +167,7 @@ def main() -> int:
         else "NO_COUNTEREXAMPLE_IN_BOUNDED_PROBE"
     )
     report = {
-        "schema": "JANUS/C025/OPEN3-STAGE4-BOUNDED-COVERAGE-PROBE/v1",
+        "schema": "JANUS/C025/OPEN3-STAGE4-BOUNDED-COVERAGE-PROBE/v2",
         "status": status,
         "search_space": {
             "nvars": args.nvars,
@@ -157,13 +177,16 @@ def main() -> int:
             "clause_universe_size": len(universe),
             "cap_exponent": args.cap_exponent,
             "limit": args.limit,
+            "connected_limit_reached": connected_limit_reached,
         },
         "totals": totals,
+        "first_open3": first_open3,
         "first_barrier": first_barrier,
         "scientific_boundary": {
             "bounded_finite_probe_only": True,
             "absence_of_counterexample_is_not_totality_proof": True,
             "presence_of_counterexample_refutes_only_current_stage4_grammar_at_frozen_cap": True,
+            "zero_open3_means_no_stage4_coverage_was_exercised": totals["open3"] == 0,
             "universal_OPEN3_move_availability": "OPEN",
             "P_VS_NP": "OPEN",
         },
