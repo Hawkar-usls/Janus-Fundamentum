@@ -116,6 +116,31 @@ def solve_by_component_escape(raw_clauses) -> dict:
         "progress_steps": 0,
     }
 
+    if cnf == tuple():
+        ledger["progress_steps"] = 1
+        return {
+            "kind": "JANUS_INSTANCE_SPECIFIC_ALGEBRAIC_ESCAPE",
+            "source_fingerprint": base.fingerprint(cnf),
+            "status": "SAT",
+            "mode": "TRIVIAL_EMPTY_CNF",
+            "components": [],
+            "ledger": ledger,
+            "reason": "EMPTY_CONJUNCTION_IS_TRUE",
+            "P_VS_NP": "OPEN",
+        }
+    if () in cnf:
+        ledger["progress_steps"] = 1
+        return {
+            "kind": "JANUS_INSTANCE_SPECIFIC_ALGEBRAIC_ESCAPE",
+            "source_fingerprint": base.fingerprint(cnf),
+            "status": "UNSAT",
+            "mode": "TRIVIAL_EMPTY_CLAUSE",
+            "components": [],
+            "ledger": ledger,
+            "reason": "EMPTY_CLAUSE_IS_FALSE",
+            "P_VS_NP": "OPEN",
+        }
+
     global_result = selector.select_exact_algebra(cnf)
     ledger["selector_calls"] += 1
     if global_result.get("status") in {"SAT", "UNSAT"}:
@@ -232,6 +257,10 @@ def verify_escape_result(raw_clauses, result: dict) -> bool:
         status = result.get("status")
         mode = result.get("mode")
 
+        if mode == "TRIVIAL_EMPTY_CNF":
+            return status == "SAT" and cnf == tuple()
+        if mode == "TRIVIAL_EMPTY_CLAUSE":
+            return status == "UNSAT" and () in cnf
         if mode == "GLOBAL_EXACT_ALGEBRA":
             global_result = result["global_selector_result"]
             return status == global_result.get("status") and selector.verify_selector_result(cnf, global_result)
