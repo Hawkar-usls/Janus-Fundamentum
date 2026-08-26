@@ -2,6 +2,12 @@
 from __future__ import annotations
 
 import json
+from pathlib import Path
+import sys
+
+ROOT = Path(__file__).resolve().parents[2]
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
 
 from experiments.direct import janus_unified_proof_carrying_akinator_jec as v1
 from experiments.direct.janus_unified_macro_restore_v2 import solve_fail_closed_v2
@@ -51,9 +57,6 @@ def main() -> None:
     old = v1.solve_fail_closed(f, cap_exponent=1, extension_exponent=1)
     new = solve_fail_closed_v2(f, cap_exponent=1, extension_exponent=1)
 
-    # PHP(5,4) cannot have a satisfying total assignment.  If an implementation
-    # ever reports SAT, require the claimed witness to verify against the root;
-    # that would expose either the generator or solver as broken immediately.
     if new["status"] == "SAT":
         assert new["witness"] is not None
         assert v1.verify_total_assignment(v1.canon_cnf(f), new["witness"])
