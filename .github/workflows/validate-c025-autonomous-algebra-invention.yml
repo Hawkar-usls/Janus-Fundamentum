@@ -1,0 +1,50 @@
+name: Validate C025 Autonomous Algebra Invention
+
+on:
+  push:
+    branches:
+      - research/c025-unified-proof-carrying-akinator-jec
+    paths:
+      - 'experiments/direct/janus_autonomous_boolean_operation_discovery.py'
+      - 'experiments/direct/janus_autonomous_algebra_invention_gate_v2.py'
+      - 'experiments/direct/janus_schaefer_escape_negative_gate.py'
+      - 'experiments/direct/janus_universal_instance_specific_b_gate.py'
+      - 'research/C025_AUTONOMOUS_ALGEBRA_**'
+      - '.github/workflows/validate-c025-autonomous-algebra-invention.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  exact-discovery:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Compile autonomous algebra modules
+        run: |
+          python -m py_compile experiments/direct/janus_autonomous_boolean_operation_discovery.py
+          python -m py_compile experiments/direct/janus_autonomous_algebra_invention_gate_v2.py
+          python -m py_compile experiments/direct/janus_schaefer_escape_negative_gate.py
+          python -m py_compile experiments/direct/janus_universal_instance_specific_b_gate.py
+      - name: Enforce discovery contamination firewall
+        shell: bash
+        run: |
+          set -euo pipefail
+          target=experiments/direct/janus_autonomous_boolean_operation_discovery.py
+          if grep -Eqi 'horn|dual[-_ ]?horn|majority|minority|xor|affine|counting|schaefer|1[-_ ]?in[-_ ]?3' "$target"; then
+            echo 'Named algebra/family hint leaked into generic producer'
+            exit 1
+          fi
+      - name: Run generic producer smoke test
+        run: python experiments/direct/janus_autonomous_boolean_operation_discovery.py
+      - name: Run autonomous algebra invention calibration gate
+        run: python experiments/direct/janus_autonomous_algebra_invention_gate_v2.py
+      - name: Run Schaefer escape negative gate
+        run: python experiments/direct/janus_schaefer_escape_negative_gate.py
+      - name: Run universal instance-specific B theorem ledger gate
+        run: python experiments/direct/janus_universal_instance_specific_b_gate.py
