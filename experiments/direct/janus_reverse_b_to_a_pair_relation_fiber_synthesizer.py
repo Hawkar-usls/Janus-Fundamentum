@@ -1,37 +1,38 @@
 #!/usr/bin/env python3
-"""C025 reverse B->A pair-relation fiber synthesizer.
+"""C025 reverse B->A exact pair-relation + nested-core fiber synthesizer.
 
-The first width-free role-color attempt was intentionally fail-closed and was
-not strong enough on PHP_6_5: 1-WL left two 12-variable role classes with two
-valid pair alignments.  This stage raises the discovery language from unary
-roles to exact binary relations.
-
-No block ids, center ids, or block width are supplied.  From the frozen CNF:
+No block ids, center ids, or block width are supplied. From a frozen CNF the
+machine derives a candidate coordinate system from exact signed binary relation
+classes and then subjects that candidate to proof gates:
 
   signed incidence colors (candidate invariant only)
-    -> canonical signed pair-relation classes
-    -> select every nonempty relation that is a matching (degree <= 1)
-    -> union those exact sparse relations
-    -> connected components = candidate fibers/core
-    -> repeated component-size classes = candidate block systems
-    -> canonical local orientation under all internal permutations
-    -> exact full-residual adjacent-swap certificate (S_k)
-    -> exact local alphabet q
+    -> endpoint-order-invariant signed pair relations
+    -> union every nonempty matching relation (degree <= 1)
+    -> connected components
+    -> repeated component-size class = candidate outer fibers
+    -> canonical internal orientation
+    -> full-residual adjacent swaps (certificate for S_k)
+    -> exact local block alphabet q
     -> exact orbit-template replay
-    -> exact histogram x labeled-core quotient
-    -> zero-survivor certificate.
+    -> exact local alphabet of the remaining core
+    -> histogram(blocks) x core-alphabet nested quotient
+    -> zero-survivor exact certificate.
 
-The matching relation is not itself a semantic proof.  Admission still requires
-full residual symmetry, exact template replay and zero quotient survivors.
-Finite exhaustive replay is allowed here only as a diagnostic witness and is
-fully charged.  The implementation explicitly records factorial/2^w and
-histogram/core-state complexity debts.  P_VS_NP remains OPEN.
+The pair-relation construction is only a deterministic candidate generator. It
+is never counted as a semantic proof. Admission requires exact full-residual
+symmetry, exact template replay and exhaustive zero-survivor replay of the
+finite nested quotient.
+
+Complexity debts are explicit: internal orientation currently uses w!, local
+block alphabet synthesis uses 2^w, core alphabet synthesis uses 2^core, and the
+histogram count can grow superpolynomially if q grows. Three finite witnesses
+do not establish a PHP-family theorem or P=NP. P_VS_NP remains OPEN.
 """
 from __future__ import annotations
 
 import argparse
 from collections import Counter, defaultdict
-from itertools import combinations, product
+from itertools import combinations
 import json
 from math import comb
 from pathlib import Path
@@ -48,7 +49,7 @@ from experiments.direct import janus_php54_auto_block_discovery_quotient_gate as
 from experiments.direct import janus_reverse_b_to_a_role_fiber_synthesizer as role
 
 MAX_COMPONENT_WIDTH = 8
-MAX_EXACT_QUOTIENT_STATES = 300_000
+MAX_EXACT_NESTED_QUOTIENT_STATES = 100_000
 
 
 def capture_case(pigeons: int, holes: int):
@@ -75,7 +76,7 @@ def capture_case(pigeons: int, holes: int):
 
 
 def canonical_pair_relation_key(cnf: base.CNF, a: int, b: int, colors: dict[int, int]):
-    """Endpoint-order-invariant signed pair relation key."""
+    """Canonicalize a signed binary incidence relation against endpoint reversal."""
     ab = role.pair_relation_signature(cnf, a, b, colors)
     ba = role.pair_relation_signature(cnf, b, a, colors)
     ka = (colors[a], colors[b], ab)
@@ -89,7 +90,7 @@ def matching_relation_components(cnf: base.CNF):
     variables = base.vars_of(cnf)
     for a, b in combinations(variables, 2):
         key = canonical_pair_relation_key(cnf, a, b, colors)
-        if key[2]:  # ignore pairs that never co-occur in a clause
+        if key[2]:
             relations[key].append((a, b))
 
     matching_keys = []
@@ -168,7 +169,7 @@ def exact_candidate(cnf: base.CNF, raw_blocks: tuple[tuple[int, ...], ...], stat
 
     blocks = tuple(sorted(oriented_blocks, key=lambda b: tuple(sorted(b))))
     covered = {v for block in blocks for v in block}
-    outside = tuple(sorted(set(base.vars_of(cnf)) - covered))
+    core = tuple(sorted(set(base.vars_of(cnf)) - covered))
 
     old_width = auto.BLOCK_WIDTH
     auto.BLOCK_WIDTH = width
@@ -177,42 +178,55 @@ def exact_candidate(cnf: base.CNF, raw_blocks: tuple[tuple[int, ...], ...], stat
     finally:
         auto.BLOCK_WIDTH = old_width
 
-    templates, arities, replay_rows = auto.compile_templates(cnf, blocks, outside)
+    templates, arities, replay_rows = auto.compile_templates(cnf, blocks, core)
     max_arity = max(arities.values(), default=0)
     q = len(alphabet)
     histogram_count = comb(len(blocks) + q - 1, q - 1)
-    outside_state_count = 1 << len(outside)
-    quotient_count = histogram_count * outside_state_count
-    if quotient_count > MAX_EXACT_QUOTIENT_STATES:
-        raise AssertionError(f"QUOTIENT_EXCEEDS_FROZEN_FINITE_REPLAY_LIMIT={quotient_count}")
+
+    flat_core_state_count = 1 << len(core)
+    flat_quotient_count = histogram_count * flat_core_state_count
+
+    # Exact second-layer compression: keep only core assignments satisfying all
+    # clauses wholly internal to the discovered core. This never drops a global
+    # model, because every global model must satisfy this clause subset.
+    core_clauses = auto.local_clauses(cnf, core)
+    core_states = auto.local_state_alphabet(core, core_clauses)
+    if not core_states:
+        raise AssertionError("CORE_LOCAL_CLAUSES_ALREADY_UNSAT")
+    core_state_count = len(core_states)
+    nested_quotient_count = histogram_count * core_state_count
+    if nested_quotient_count > MAX_EXACT_NESTED_QUOTIENT_STATES:
+        raise AssertionError(
+            f"NESTED_QUOTIENT_EXCEEDS_FROZEN_FINITE_REPLAY_LIMIT={nested_quotient_count}"
+        )
 
     survivors = []
     direct_checks = 0
-    for outside_bits in product((0, 1), repeat=len(outside)):
+    for core_bits in core_states:
         for hist in auto.compositions(len(blocks), q):
             holds = True
             for template in templates:
                 direct_checks += 1
-                if not auto.template_holds_direct(template, hist, outside_bits, alphabet):
+                if not auto.template_holds_direct(template, hist, core_bits, alphabet):
                     holds = False
                     break
             if holds:
-                survivors.append({"outside": list(outside_bits), "hist": list(hist)})
+                survivors.append({"core_state": list(core_bits), "hist": list(hist)})
                 if len(survivors) >= 4:
                     break
         if len(survivors) >= 4:
             break
 
     minimum_cap_exponent = next(
-        (c for c in range(1, 7) if quotient_count <= state.N ** c),
+        (c for c in range(1, 7) if nested_quotient_count <= state.N ** c),
         None,
     )
     return {
         "width": width,
         "block_count": len(blocks),
         "blocks": [list(b) for b in blocks],
-        "outside_variables": list(outside),
-        "core_variable_count": len(outside),
+        "core_variables": list(core),
+        "core_variable_count": len(core),
         "q": q,
         "local_alphabet": [list(x) for x in alphabet],
         "adjacent_generator_count": len(generators),
@@ -222,22 +236,27 @@ def exact_candidate(cnf: base.CNF, raw_blocks: tuple[tuple[int, ...], ...], stat
         "exact_template_replay": True,
         "template_replay_rows": replay_rows,
         "histogram_count": histogram_count,
-        "outside_state_count": outside_state_count,
-        "quotient_state_count": quotient_count,
+        "flat_core_state_count": flat_core_state_count,
+        "flat_quotient_state_count": flat_quotient_count,
+        "core_local_clause_count": len(core_clauses),
+        "core_local_state_units": base.state_units(core_clauses),
+        "core_local_alphabet_count": core_state_count,
+        "core_local_alphabet": [list(x) for x in core_states],
+        "nested_quotient_state_count": nested_quotient_count,
         "raw_assignment_space": 1 << len(base.vars_of(cnf)),
-        "local_valid_assignment_space_before_core_quotient": (q ** len(blocks)) * outside_state_count,
+        "local_valid_assignment_space_before_core_quotient": (q ** len(blocks)) * flat_core_state_count,
         "direct_decision_checks": direct_checks,
         "survivor_count": len(survivors),
         "survivor_examples": survivors,
         "status": "UNSAT" if not survivors else "OPEN",
         "minimum_observed_cap_exponent": minimum_cap_exponent,
-        "under_old_C1_state_cap": quotient_count <= state.state_cap,
+        "under_old_C1_state_cap": nested_quotient_count <= state.state_cap,
         "resource_key": [
             minimum_cap_exponent if minimum_cap_exponent is not None else 7,
-            quotient_count,
+            nested_quotient_count,
             len(templates),
             max_arity,
-            len(outside),
+            len(core),
             width,
         ],
     }
@@ -259,7 +278,11 @@ def synthesize(state: base.EngineState):
         try:
             candidates.append(exact_candidate(cnf, components, state))
         except AssertionError as exc:
-            failures.append({"component_width": width, "component_count": len(components), "reason": str(exc)})
+            failures.append({
+                "component_width": width,
+                "component_count": len(components),
+                "reason": str(exc),
+            })
 
     admitted = [c for c in candidates if c["status"] == "UNSAT"]
     admitted.sort(key=lambda c: tuple(c["resource_key"]))
@@ -289,7 +312,7 @@ def synthesize(state: base.EngineState):
 
 def probe(pigeons: int, holes: int):
     result, state = capture_case(pigeons, holes)
-    row = {
+    return {
         "case": f"PHP_{pigeons}_{holes}_C1",
         "N": state.N,
         "old_state_cap": state.state_cap,
@@ -305,7 +328,6 @@ def probe(pigeons: int, holes: int):
         "pair_relation_fiber_synthesis": synthesize(state),
         "P_VS_NP": "OPEN",
     }
-    return row
 
 
 def regression_gate(rows: list[dict]):
@@ -313,15 +335,18 @@ def regression_gate(rows: list[dict]):
     expected = {
         "PHP_5_4_C1": {
             "fingerprint": "990124522dc5ee1a6871de798a0f3ef40f05c20a28cd9f3d9d2f062841695ea6",
-            "width": 3, "block_count": 4, "q": 4, "quotient": 70, "core": 1,
+            "width": 3, "block_count": 4, "q": 4,
+            "core": 1, "core_q": 2, "nested_quotient": 70, "min_cap_exp": 1,
         },
         "PHP_6_5_C1": {
             "fingerprint": "7110fc5dfba96dfd9517b9f354739b09180e3452d694b85312682d13bd2a6008",
-            "width": 4, "block_count": 6, "q": 5, "quotient": 210, "core": 0,
+            "width": 4, "block_count": 6, "q": 5,
+            "core": 0, "core_q": 1, "nested_quotient": 210, "min_cap_exp": 1,
         },
         "PHP_7_6_C1": {
             "fingerprint": "440b51533ee1bce92a30a076c31d5a9cfbba2713fc2547968b9662b3f980845e",
-            "width": 5, "block_count": 5, "q": 6, "quotient": 258048, "core": 10,
+            "width": 5, "block_count": 5, "q": 6,
+            "core": 10, "core_q": 30, "nested_quotient": 7560, "min_cap_exp": 2,
         },
     }
     checks = []
@@ -336,13 +361,15 @@ def regression_gate(rows: list[dict]):
             and winner["width"] == exp["width"]
             and winner["block_count"] == exp["block_count"]
             and winner["q"] == exp["q"]
-            and winner["quotient_state_count"] == exp["quotient"]
             and winner["core_variable_count"] == exp["core"]
+            and winner["core_local_alphabet_count"] == exp["core_q"]
+            and winner["nested_quotient_state_count"] == exp["nested_quotient"]
+            and winner["minimum_observed_cap_exponent"] == exp["min_cap_exp"]
             and winner["survivor_count"] == 0
         )
         checks.append({"case": case, "pass": ok})
         if not ok:
-            raise AssertionError(f"PAIR_RELATION_REGRESSION_FAILED_{case}")
+            raise AssertionError(f"PAIR_RELATION_NESTED_REGRESSION_FAILED_{case}")
     return checks
 
 
@@ -353,14 +380,16 @@ def main():
     requested = []
     for token in args.cases.split(","):
         p, h = (int(x) for x in token.split(":"))
+        if p != h + 1:
+            raise SystemExit("Only PHP_(m+1)_m is admitted in this finite regression probe")
         requested.append((p, h))
 
     rows = [probe(p, h) for p, h in requested]
     checks = regression_gate(rows)
     report = {
-        "schema": "JANUS/C025/REVERSE-B-TO-A-PAIR-RELATION-FIBER-SYNTHESIZER/v1",
+        "schema": "JANUS/C025/REVERSE-B-TO-A-PAIR-RELATION-NESTED-FIBER-SYNTHESIZER/v2",
         "direction": "B_TO_A",
-        "target": "DERIVE_BLOCK_WIDTH_AND_FIBER_PARTITION_FROM_EXACT_BINARY_RELATION_ALGEBRA",
+        "target": "DERIVE_W_K_Q_CORE_ALPHABET_AND_TEMPLATE_PROGRAM_WITHOUT_BLOCK_WIDTH_INPUT",
         "regression_gate": checks,
         "cases": rows,
         "discovery_grammar": {
@@ -373,7 +402,8 @@ def main():
             "component_partition_is_deterministic": True,
             "full_residual_Sk_is_required": True,
             "exact_template_replay_is_required": True,
-            "zero_quotient_survivors_are_required": True,
+            "core_local_alphabet_is_exact": True,
+            "zero_nested_quotient_survivors_are_required": True,
             "heuristic_score_promotion": False,
             "randomness": False,
             "SAT_oracle": False,
@@ -383,17 +413,18 @@ def main():
             "pair_relation_discovery_polynomial_in_explicit_residual_size": True,
             "component_discovery_polynomial": True,
             "internal_orientation_currently_enumerates_w_factorial": True,
-            "local_alphabet_currently_enumerates_2_pow_w": True,
-            "labeled_core_contributes_2_pow_core": True,
+            "local_block_alphabet_currently_enumerates_2_pow_w": True,
+            "core_local_alphabet_currently_enumerates_2_pow_core": True,
             "histogram_count_may_be_superpolynomial_if_q_grows": True,
-            "PHP_7_6_flat_quotient_is_not_under_C1": True,
-            "next_required_compression": "QUOTIENT_OR_SYMBOLICALLY_ELIMINATE_THE_DISCOVERED_CORE_WITHOUT_HIDING_EXPONENTIAL_WORK",
+            "PHP_7_6_nested_quotient_under_C1": False,
+            "PHP_7_6_nested_quotient_under_C2_finite_observation": True,
             "general_polynomial_bound": "OPEN",
         },
         "scientific_boundary": {
             "finite_exact_witness_count_if_all_regressions_pass": 3,
             "PHP_family_law": "OPEN",
             "predictive_holdout_PHP_8_7": "NOT_RUN",
+            "reason_holdout_not_run": "NO_NON_OVERFIT_PARAMETRIC_LAW_FOR_K_CORE_AND_TEMPLATE_PROGRAM_YET",
             "arbitrary_CNF_coverage": "OPEN",
             "universal_polynomial_algorithm": "OPEN",
             "P_VS_NP": "OPEN",
