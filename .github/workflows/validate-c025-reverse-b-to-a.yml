@@ -6,11 +6,13 @@ on:
       - research/c025-unified-proof-carrying-akinator-jec
     paths:
       - 'experiments/direct/janus_reverse_b_to_a_quotient_search.py'
+      - 'experiments/direct/janus_reverse_b_to_a_php_family_probe.py'
       - 'experiments/direct/janus_php54_auto_block_discovery_quotient_gate.py'
       - '.github/workflows/validate-c025-reverse-b-to-a.yml'
   pull_request:
     paths:
       - 'experiments/direct/janus_reverse_b_to_a_quotient_search.py'
+      - 'experiments/direct/janus_reverse_b_to_a_php_family_probe.py'
       - 'experiments/direct/janus_php54_auto_block_discovery_quotient_gate.py'
       - '.github/workflows/validate-c025-reverse-b-to-a.yml'
 
@@ -27,6 +29,27 @@ jobs:
         with:
           python-version: '3.12'
       - name: Compile reverse search
-        run: python -m py_compile experiments/direct/janus_reverse_b_to_a_quotient_search.py
+        run: python -m py_compile experiments/direct/janus_reverse_b_to_a_quotient_search.py experiments/direct/janus_reverse_b_to_a_php_family_probe.py
       - name: Search exact quotient from B back to A
         run: python experiments/direct/janus_reverse_b_to_a_quotient_search.py
+
+  php-family-transfer:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - pigeons: 6
+            holes: 5
+          - pigeons: 7
+            holes: 6
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Compile family probe
+        run: python -m py_compile experiments/direct/janus_reverse_b_to_a_php_family_probe.py
+      - name: Probe PHP_${{ matrix.pigeons }}_${{ matrix.holes }} C1
+        run: python experiments/direct/janus_reverse_b_to_a_php_family_probe.py --pigeons ${{ matrix.pigeons }} --holes ${{ matrix.holes }}
