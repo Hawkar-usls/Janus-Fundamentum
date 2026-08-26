@@ -9,6 +9,7 @@ on:
       - 'experiments/direct/janus_reverse_b_to_a_php_family_probe.py'
       - 'experiments/direct/janus_reverse_b_to_a_global_disambiguation.py'
       - 'experiments/direct/janus_reverse_b_to_a_php65_width4.py'
+      - 'experiments/direct/janus_reverse_b_to_a_role_fiber_synthesizer.py'
       - 'experiments/direct/janus_php54_auto_block_discovery_quotient_gate.py'
       - '.github/workflows/validate-c025-reverse-b-to-a.yml'
   pull_request:
@@ -17,6 +18,7 @@ on:
       - 'experiments/direct/janus_reverse_b_to_a_php_family_probe.py'
       - 'experiments/direct/janus_reverse_b_to_a_global_disambiguation.py'
       - 'experiments/direct/janus_reverse_b_to_a_php65_width4.py'
+      - 'experiments/direct/janus_reverse_b_to_a_role_fiber_synthesizer.py'
       - 'experiments/direct/janus_php54_auto_block_discovery_quotient_gate.py'
       - '.github/workflows/validate-c025-reverse-b-to-a.yml'
 
@@ -33,7 +35,7 @@ jobs:
         with:
           python-version: '3.12'
       - name: Compile reverse search
-        run: python -m py_compile experiments/direct/janus_reverse_b_to_a_quotient_search.py experiments/direct/janus_reverse_b_to_a_php_family_probe.py experiments/direct/janus_reverse_b_to_a_global_disambiguation.py experiments/direct/janus_reverse_b_to_a_php65_width4.py
+        run: python -m py_compile experiments/direct/janus_reverse_b_to_a_quotient_search.py experiments/direct/janus_reverse_b_to_a_php_family_probe.py experiments/direct/janus_reverse_b_to_a_global_disambiguation.py experiments/direct/janus_reverse_b_to_a_php65_width4.py experiments/direct/janus_reverse_b_to_a_role_fiber_synthesizer.py
       - name: Search exact quotient from B back to A
         run: python experiments/direct/janus_reverse_b_to_a_quotient_search.py
 
@@ -83,3 +85,16 @@ jobs:
         run: python -m py_compile experiments/direct/janus_reverse_b_to_a_php65_width4.py
       - name: Test width-4 fiber by exact global B constraints
         run: python experiments/direct/janus_reverse_b_to_a_php65_width4.py
+
+  role-fiber-synthesis:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Compile width-free role fiber synthesizer
+        run: python -m py_compile experiments/direct/janus_reverse_b_to_a_role_fiber_synthesizer.py
+      - name: Infer PHP_5_4 through PHP_7_6 fibers without width input
+        run: python experiments/direct/janus_reverse_b_to_a_role_fiber_synthesizer.py --cases 5:4,6:5,7:6
