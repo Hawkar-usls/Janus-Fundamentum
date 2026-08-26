@@ -10,20 +10,26 @@ starts from the desired proof object B:
   * an exact UNSAT decision on that quotient,
   * and an explicit resource ledger.
 
-It then searches a bounded width grammar for a coordinate system A->B.  Width
-is NOT supplied as 3.  Candidates are admitted only by exact semantics/replay
+It then searches a bounded width grammar for a coordinate system A->B. Width
+is NOT supplied as 3. Candidates are admitted only by exact semantics/replay
 and a deterministic resource ordering; similarity to the known PHP structure
 is never a criterion.
 
-This is still a finite frozen-case experiment.  The width grammar is bounded,
+This is still a finite frozen-case experiment. The width grammar is bounded,
 family scaling is unproved, arbitrary-CNF coverage is open, and P_VS_NP=OPEN.
 """
 from __future__ import annotations
 
 from collections import Counter
-from itertools import combinations, product
+from itertools import product
 from math import comb, factorial
 import json
+from pathlib import Path
+import sys
+
+ROOT = Path(__file__).resolve().parents[2]
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
 
 from experiments.direct import janus_unified_proof_carrying_akinator_jec as base
 from experiments.direct import janus_unified_macro_restore_v2 as v2
@@ -93,8 +99,8 @@ def exact_candidate(residual: base.CNF, width: int) -> dict:
     if len(quotient_states) != quotient_count:
         raise AssertionError("QUOTIENT_COUNT_REPLAY_MISMATCH")
 
-    # Exact coverage ledger: the histogram orbits must cover every assignment
-    # satisfying the discovered local gadget constraints exactly once.
+    # Exact coverage ledger: histogram orbits cover every assignment satisfying
+    # the discovered local gadget constraints exactly once.
     orbit_coverage = 0
     for hist in hists:
         denom = 1
