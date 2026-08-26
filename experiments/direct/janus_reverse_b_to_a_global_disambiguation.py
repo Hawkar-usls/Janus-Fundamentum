@@ -1,23 +1,22 @@
 #!/usr/bin/env python3
 """Reverse B->A global exact disambiguation on PHP_6_5_C1.
 
-Local gadget discovery on PHP_6_5 admits several equally large width-3 block
-systems.  This script deliberately does NOT tie-break them locally.  Instead it
-asks whether the desired final object B determines the coordinates A:
+PHP_6_5 has many locally maximal width-3 coordinate systems. We do not choose
+among them locally. Every maximum system is streamed through progressively
+stronger exact B-side invariants:
 
-  local maximum packings
-    -> full-residual adjacent-swap automorphism
+  full-residual adjacent-transposition automorphism
     -> exact orbit-template replay
     -> exact histogram quotient
     -> zero surviving quotient states.
 
-Only exact global properties may eliminate candidates.  If more than one
-non-isomorphic candidate survives, the result remains ambiguous/fail-closed.
-P_VS_NP remains OPEN.
+No similarity score or heuristic tie-break is allowed. If multiple globally
+exact systems survive, the next target is their common quotient/fiber rather
+than an arbitrary representative. P_VS_NP remains OPEN.
 """
 from __future__ import annotations
 
-from collections import defaultdict
+from collections import Counter
 from itertools import product
 from math import comb
 import json
@@ -34,7 +33,7 @@ from experiments.direct.janus_php54_macro_restore_attack import pigeonhole
 from experiments.direct import janus_php54_auto_block_discovery_quotient_gate as auto
 
 WIDTH = 3
-MAX_FINALISTS = 128
+MAX_EXAMPLES = 8
 
 
 def capture_php65_root_free_tail():
@@ -90,8 +89,6 @@ def enumerate_maximum_systems(residual: base.CNF):
         partition = tuple(sorted(tuple(sorted(b)) for b in c["blocks"]))
         uniq[(partition, c["key"])] = c
     finalists = [uniq[k] for k in sorted(uniq, key=repr)]
-    if len(finalists) > MAX_FINALISTS:
-        raise AssertionError(f"TOO_MANY_LOCAL_FINALISTS={len(finalists)}")
     return finalists, inspected, admitted, len(grouped), max_blocks
 
 
@@ -137,76 +134,92 @@ def quotient_survivors(templates, blocks, outside, alphabet):
     return quotient_count, survivors, direct_checks
 
 
+def compact_system(blocks, outside, alphabet, signature):
+    return {
+        "blocks": [list(b) for b in blocks],
+        "outside": list(outside),
+        "q": len(alphabet),
+        "signature": [list(x) for x in signature],
+    }
+
+
 def main() -> None:
     engine_result, state = capture_php65_root_free_tail()
     residual = state.residual
     fingerprint = base.fingerprint(residual)
     finalists, inspected, admitted, signature_classes, max_blocks = enumerate_maximum_systems(residual)
 
-    rows = []
-    globally_admitted = []
+    rejection_counts = Counter()
+    rejection_examples = {}
+    symmetry_pass = []
+
+    # Cheap exact B invariant first: the chosen blocks must really be
+    # exchangeable in the ENTIRE residual, not merely look alike locally.
     for idx, candidate in enumerate(finalists):
         blocks, outside, alphabet, signature = normalize_system(residual, candidate)
-        row = {
-            "candidate_index": idx,
-            "blocks": [list(b) for b in blocks],
-            "outside": list(outside),
-            "q": len(alphabet),
-            "signature": [list(x) for x in signature],
-        }
         try:
             swap_rows = auto.certify_adjacent_block_swaps(residual, blocks)
-            row["global_Sk_adjacent_generators"] = True
-            row["generator_count"] = len(swap_rows)
         except AssertionError as exc:
-            row["global_Sk_adjacent_generators"] = False
-            row["rejected_by"] = str(exc)
-            rows.append(row)
+            reason = str(exc).split("=")[0]
+            rejection_counts[reason] += 1
+            rejection_examples.setdefault(reason, compact_system(blocks, outside, alphabet, signature))
             continue
+        symmetry_pass.append((idx, blocks, outside, alphabet, signature, swap_rows))
 
+    replay_pass = []
+    for idx, blocks, outside, alphabet, signature, swap_rows in symmetry_pass:
         try:
             templates, arities, replay = auto.compile_templates(residual, blocks, outside)
-            row["exact_template_replay"] = True
-            row["template_count"] = len(templates)
-            row["max_block_arity"] = max(arities.values(), default=0)
-            row["template_replay_rows"] = replay
         except AssertionError as exc:
-            row["exact_template_replay"] = False
-            row["rejected_by"] = str(exc)
-            rows.append(row)
+            reason = "TEMPLATE_REPLAY_MISMATCH"
+            rejection_counts[reason] += 1
+            rejection_examples.setdefault(reason, compact_system(blocks, outside, alphabet, signature))
             continue
+        replay_pass.append((idx, blocks, outside, alphabet, signature, swap_rows, templates, arities, replay))
 
+    global_rows = []
+    globally_admitted = []
+    for idx, blocks, outside, alphabet, signature, swap_rows, templates, arities, replay in replay_pass:
         quotient_count, survivors, direct_checks = quotient_survivors(
             templates, blocks, outside, alphabet
         )
-        row["histogram_count"] = comb(len(blocks) + len(alphabet) - 1, len(alphabet) - 1)
-        row["outside_state_count"] = 2 ** len(outside)
-        row["quotient_state_count"] = quotient_count
-        row["local_valid_assignment_space"] = (len(alphabet) ** len(blocks)) * (2 ** len(outside))
-        row["raw_assignment_space"] = 2 ** len(base.vars_of(residual))
-        row["direct_decision_checks"] = direct_checks
-        row["survivor_count_observed"] = len(survivors)
-        row["survivor_examples"] = [
-            {"outside": list(o), "hist": list(h)} for o, h in survivors
-        ]
+        row = compact_system(blocks, outside, alphabet, signature)
+        row.update({
+            "candidate_index": idx,
+            "generator_count": len(swap_rows),
+            "template_count": len(templates),
+            "max_block_arity": max(arities.values(), default=0),
+            "histogram_count": comb(len(blocks) + len(alphabet) - 1, len(alphabet) - 1),
+            "outside_state_count": 2 ** len(outside),
+            "quotient_state_count": quotient_count,
+            "local_valid_assignment_space": (len(alphabet) ** len(blocks)) * (2 ** len(outside)),
+            "raw_assignment_space": 2 ** len(base.vars_of(residual)),
+            "direct_decision_checks": direct_checks,
+            "survivor_count_observed": len(survivors),
+            "survivor_examples": [
+                {"outside": list(o), "hist": list(h)} for o, h in survivors
+            ],
+        })
         if survivors:
-            row["rejected_by"] = "QUOTIENT_SURVIVOR_EXISTS"
-            rows.append(row)
+            row["status"] = "REJECTED_QUOTIENT_SURVIVOR"
+            rejection_counts["QUOTIENT_SURVIVOR_EXISTS"] += 1
+            if len(global_rows) < MAX_EXAMPLES:
+                global_rows.append(row)
             continue
-
-        row["globally_exact_unsat_quotient"] = True
-        rows.append(row)
+        row["status"] = "GLOBALLY_EXACT_UNSAT_QUOTIENT"
         globally_admitted.append(row)
+        if len(global_rows) < MAX_EXAMPLES:
+            global_rows.append(row)
 
-    # If several globally exact systems remain, do not silently select one.
     canonical_partitions = {
         tuple(sorted(tuple(sorted(b)) for b in row["blocks"]))
         for row in globally_admitted
     }
-    unique_global = len(canonical_partitions) == 1 and len(globally_admitted) >= 1
+    unique_global = len(canonical_partitions) == 1 and bool(globally_admitted)
 
+    # Do not dump thousands of rows; preserve exact counts plus bounded examples.
     report = {
-        "schema": "JANUS/C025/REVERSE-B-TO-A-GLOBAL-DISAMBIGUATION/v1",
+        "schema": "JANUS/C025/REVERSE-B-TO-A-GLOBAL-DISAMBIGUATION/v2",
         "P_VS_NP": "OPEN",
         "direction": "B_TO_A",
         "case": "PHP_6_5_C1",
@@ -226,10 +239,15 @@ def main() -> None:
         "global_B_filter": {
             "rule": "FULL_RESIDUAL_S_k_THEN_EXACT_TEMPLATE_REPLAY_THEN_ZERO_QUOTIENT_SURVIVORS",
             "heuristic_tie_break": False,
+            "symmetry_pass_count": len(symmetry_pass),
+            "template_replay_pass_count": len(replay_pass),
             "globally_admitted_count": len(globally_admitted),
             "unique_global_coordinate_system": unique_global,
+            "rejection_counts": dict(sorted(rejection_counts.items())),
+            "rejection_examples": rejection_examples,
         },
-        "rows": rows,
+        "global_examples": global_rows,
+        "globally_admitted_examples": globally_admitted[:MAX_EXAMPLES],
         "result": (
             "UNIQUE_GLOBAL_B_DETERMINES_A"
             if unique_global else
@@ -238,8 +256,9 @@ def main() -> None:
             "NO_GLOBAL_B_ADMISSIBLE_SYSTEM"
         ),
         "interpretation": {
-            "positive": "A-side local ambiguity can be resolved only by exact B-side global semantics, never by local similarity scores.",
-            "if_multiple": "If several exact coordinate systems survive, the next object is their common quotient/fiber, not an arbitrary choice among them.",
+            "positive": "A-side local ambiguity is filtered only by exact B-side global semantics.",
+            "if_multiple": "Several surviving exact coordinate systems are evidence to quotient their common fiber rather than choose one.",
+            "if_none": "The one-layer block quotient is insufficient; search a nested/fiber representation instead of weakening exactness.",
         },
         "scientific_boundary": {
             "finite_php65_probe": True,
