@@ -1,0 +1,32 @@
+name: Validate C025 Reverse B-to-A Quotient Search
+
+on:
+  push:
+    branches:
+      - research/c025-unified-proof-carrying-akinator-jec
+    paths:
+      - 'experiments/direct/janus_reverse_b_to_a_quotient_search.py'
+      - 'experiments/direct/janus_php54_auto_block_discovery_quotient_gate.py'
+      - '.github/workflows/validate-c025-reverse-b-to-a.yml'
+  pull_request:
+    paths:
+      - 'experiments/direct/janus_reverse_b_to_a_quotient_search.py'
+      - 'experiments/direct/janus_php54_auto_block_discovery_quotient_gate.py'
+      - '.github/workflows/validate-c025-reverse-b-to-a.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  reverse-search:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Compile reverse search
+        run: python -m py_compile experiments/direct/janus_reverse_b_to_a_quotient_search.py
+      - name: Search exact quotient from B back to A
+        run: python experiments/direct/janus_reverse_b_to_a_quotient_search.py
