@@ -1,0 +1,33 @@
+name: Validate C025 OPEN3 Stage4 Scaling Ladder
+
+on:
+  push:
+    branches:
+      - research/c025-unified-proof-carrying-akinator-jec
+    paths:
+      - 'experiments/direct/janus_open3_stage4_bounded_coverage_probe.py'
+      - 'experiments/direct/janus_open3_stage4_scaling_ladder_gate.py'
+      - 'experiments/direct/janus_jec_extension_progress_proof.py'
+      - 'research/C025_OPEN3_STAGE4_SCALING_LADDER_PREREGISTRATION_2026-08-26.json'
+      - '.github/workflows/validate-c025-open3-stage4-scaling-ladder.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  scaling-ladder:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Compile frozen scaling harness
+        run: |
+          python -m py_compile experiments/direct/janus_open3_stage4_bounded_coverage_probe.py
+          python -m py_compile experiments/direct/janus_open3_stage4_scaling_ladder_gate.py
+          python -m py_compile experiments/direct/janus_jec_extension_progress_proof.py
+      - name: Execute preregistered OPEN3 scaling ladder
+        run: python experiments/direct/janus_open3_stage4_scaling_ladder_gate.py
