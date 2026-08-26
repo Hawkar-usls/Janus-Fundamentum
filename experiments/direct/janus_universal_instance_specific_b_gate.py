@@ -9,8 +9,10 @@ For a RAW CNF it:
   * exposes the extensionalization upper bound 2^w for maximum clause width w;
   * runs the current exact JANUS stack:
       global exact algebra -> exact component direct-sum -> one-variable escape;
-  * independently verifies any closed finite-instance result;
-  * records whether this ONE instance is decided;
+  * if stages 1-3 remain OPEN, asks stage 4 only for one independently verified
+    exact extension/representation progress proof with strict frozen-potential
+    decrease; stage 4 is NOT allowed to turn progress alone into SAT/UNSAT;
+  * independently verifies every closed finite-instance decision/progress object;
   * keeps the universal gate OPEN until a separate proof establishes one fixed
     polynomial bound and totality for every CNF.
 
@@ -29,6 +31,7 @@ if str(ROOT) not in sys.path:
 
 from experiments.direct import janus_unified_proof_carrying_akinator_jec as base
 from experiments.direct import janus_one_variable_separator_escape as current_solver
+from experiments.direct import janus_jec_extension_progress_proof as stage4
 
 
 @dataclass
@@ -56,6 +59,16 @@ def _min_poly_exponent(N: int, value: int) -> int:
         exponent += 1
         bound *= N
     return exponent
+
+
+def _proof_state_max(proof: dict) -> int:
+    candidates = [base.state_units(base.canon_cnf(proof.get("source_cnf", [])))]
+    candidates.append(base.state_units(base.canon_cnf(proof.get("macro_cnf", []))))
+    candidates.append(base.state_units(base.canon_cnf(proof.get("result_cnf", []))))
+    for step in proof.get("elimination_steps", []):
+        candidates.append(base.state_units(base.canon_cnf(step.get("before_cnf", []))))
+        candidates.append(base.state_units(base.canon_cnf(step.get("after_cnf", []))))
+    return max(candidates, default=0)
 
 
 def inspect_instance(raw_clauses) -> dict:
@@ -88,6 +101,9 @@ def inspect_instance(raw_clauses) -> dict:
 
     instance_decision = result.get("status", "OPEN")
     certificate_verified = False
+    stage4_proof = None
+    stage4_verified = False
+
     if instance_decision in {"SAT", "UNSAT"}:
         certificate_verified = current_solver.verify_one_variable_escape(cnf, result)
         if not certificate_verified:
@@ -99,22 +115,54 @@ def inspect_instance(raw_clauses) -> dict:
         ledger.certificate_bytes = len(
             json.dumps(result, sort_keys=True, separators=(",", ":")).encode()
         )
+    else:
+        stage4_proof = stage4.discover_initial_extension_progress(
+            cnf,
+            cap_exponent=2,
+            extension_exponent=1,
+        )
+        if stage4_proof is not None:
+            stage4_verified = stage4.verify_extension_progress_proof(
+                cnf,
+                stage4_proof,
+                require_initial_context=True,
+            )
+            if not stage4_verified:
+                raise AssertionError("STAGE4_RETURNED_UNVERIFIED_PROGRESS_PROOF")
+            delta = stage4_proof.get("discovery_ledger_delta", {})
+            ledger.discovery_work += (
+                int(delta.get("proposal_work", 0))
+                + int(delta.get("certificate_discovery_work", 0))
+                + int(delta.get("elimination_pair_work", 0))
+            )
+            ledger.verification_work += int(delta.get("verification_work", 0))
+            ledger.max_state_units = max(ledger.max_state_units, _proof_state_max(stage4_proof))
+            ledger.certificate_bytes = int(stage4_proof.get("proof_bytes", 0))
+            ledger.progress_steps = max(ledger.progress_steps, 1)
 
     return {
-        "schema": "JANUS/C025/UNIVERSAL-INSTANCE-SPECIFIC-B-EXISTENCE-GATE/v2",
+        "schema": "JANUS/C025/UNIVERSAL-INSTANCE-SPECIFIC-B-EXISTENCE-GATE/v3",
         "instance": {
             "fingerprint": base.fingerprint(cnf),
             "decision_with_current_exact_stack": instance_decision,
             "current_solver_mode": result.get("mode"),
             "selected_variable": result.get("selected_variable"),
             "selected_certificate_verified": certificate_verified,
+            "stage4_exact_progress_available": stage4_proof is not None,
+            "stage4_exact_progress_verified": stage4_verified,
+            "stage4_result_fingerprint": None if stage4_proof is None else stage4_proof.get("result_fingerprint"),
+            "stage4_before_phi": None if stage4_proof is None else stage4_proof.get("before_phi"),
+            "stage4_after_phi": None if stage4_proof is None else stage4_proof.get("after_phi"),
         },
         "current_exact_stack": {
             "stage_1": "GLOBAL_EXACT_ALGEBRA_SELECTOR",
             "stage_2": "EXACT_COMPONENT_DIRECT_SUM",
             "stage_3": "ONE_VARIABLE_EXACT_SHANNON_ESCAPE",
+            "stage_4": "ONE_EXACT_EXTENSION_REPRESENTATION_PROGRESS_MOVE",
             "recursive_branching": False,
+            "stage_4_progress_is_not_a_decision": True,
             "finite_instance_result": result,
+            "stage_4_progress_proof": stage4_proof,
         },
         "ledger": asdict(ledger),
         "universal_gate": {
@@ -126,12 +174,14 @@ def inspect_instance(raw_clauses) -> dict:
             "one_fixed_polynomial_verification_bound_proved": False,
             "one_fixed_polynomial_progress_step_bound_proved": False,
             "unbounded_width_extensionalization_removed": False,
-            "connected_instances_without_one_variable_escape": "MAY_RETURN_OPEN",
+            "connected_instances_without_one_variable_escape": "STAGE4_MAY_FIND_ONE_EXACT_PROGRESS_MOVE",
+            "stage4_move_exists_for_every_OPEN3_instance": False,
+            "stage4_iteration_totality_and_polynomial_step_bound_proved": False,
             "arbitrary_CNF_coverage": "OPEN",
             "P_VS_NP": "OPEN",
         },
         "promotion_firewall": (
-            "FINITE_INSTANCE_SUCCESS_MUST_NOT_CHANGE_UNIVERSAL_GATE_STATUS"
+            "FINITE_INSTANCE_SUCCESS_OR_ONE_PROGRESS_MOVE_MUST_NOT_CHANGE_UNIVERSAL_GATE_STATUS"
         ),
     }
 
