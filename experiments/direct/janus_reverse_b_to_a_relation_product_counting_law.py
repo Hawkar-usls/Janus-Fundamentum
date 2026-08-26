@@ -386,8 +386,8 @@ def main():
             "exact_replay_verification": "POLYNOMIAL_IN_EXPLICIT_CNF_SIZE",
             "pair_relation_alignment": "POLYNOMIAL_IN_EXPLICIT_CNF_SIZE",
             "adjacent_generator_replay_count": "p+h-2",
-            "histogram_enumeration_required_for_decision": false,
-            "exponential_assignment_enumeration_required_for_decision": false,
+            "histogram_enumeration_required_for_decision": False,
+            "exponential_assignment_enumeration_required_for_decision": False,
             "counting_certificate": "p,h_AND_EXACT_PRODUCT_REPLAY"
         },
         "holdout_policy": {
@@ -396,7 +396,7 @@ def main():
         },
         "scientific_boundary": {
             "theorem_scope": "EXACT_RECOGNIZED_RELATION_PRODUCT_CNF_CLASS",
-            "standard_pairwise_PHP_family_is_in_scope": true,
+            "standard_pairwise_PHP_family_is_in_scope": True,
             "general_CNF": "NOT_IN_SCOPE",
             "arbitrary_SAT": "OPEN",
             "P_VS_NP": "OPEN"
