@@ -1,0 +1,41 @@
+name: validate-c025-pirc-gpei
+
+on:
+  push:
+    branches:
+      - research/c025-pirc-gpei-2026-08-27
+    paths:
+      - 'experiments/direct/janus_matching_hall_escape.py'
+      - 'experiments/direct/janus_pirc_theorem_mode_v0_1.py'
+      - 'research/C025_PIRC_GPEI_COMPOSITION_BRIDGE_2026-08-27.json'
+      - '.github/workflows/validate-c025-pirc-gpei.yml'
+  pull_request:
+    paths:
+      - 'experiments/direct/janus_matching_hall_escape.py'
+      - 'experiments/direct/janus_pirc_theorem_mode_v0_1.py'
+      - 'research/C025_PIRC_GPEI_COMPOSITION_BRIDGE_2026-08-27.json'
+
+jobs:
+  exact-selftests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Matching Hall escape self-test
+        run: python experiments/direct/janus_matching_hall_escape.py
+      - name: Frozen PIRC theorem-mode path self-test
+        run: python experiments/direct/janus_pirc_theorem_mode_v0_1.py
+      - name: Verify claim ceiling remains open
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          p = Path('research/C025_PIRC_GPEI_COMPOSITION_BRIDGE_2026-08-27.json')
+          data = json.loads(p.read_text(encoding='utf-8'))
+          assert data['P_VS_NP'] == 'OPEN'
+          assert data['current_status']['UNIVERSAL_GPEI_PRESERVATION'] == 'OPEN'
+          print('CLAIM_CEILING_FIREWALL=PASS')
+          print('P_VS_NP=OPEN')
+          PY
