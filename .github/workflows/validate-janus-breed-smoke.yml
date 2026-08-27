@@ -1,0 +1,50 @@
+name: validate-janus-breed-smoke
+
+on:
+  push:
+    branches:
+      - research/janus-mad-lab-prime-probes-2026-08-28
+    paths:
+      - 'experiments/mad_lab/janus_breed.py'
+      - 'experiments/mad_lab/JANUS_BREED_POLICY.json'
+      - '.github/workflows/validate-janus-breed-smoke.yml'
+  workflow_dispatch:
+
+jobs:
+  breed-smoke:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Anti-self-deception selftest
+        run: python -m experiments.mad_lab.janus_breed --selftest
+      - name: Run JANUS BREED 58 through 73
+        run: python -m experiments.mad_lab.janus_breed --min 58 --max 73 --out janus_breed_smoke.json
+      - name: Validate claim ceiling and role swap
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          x=json.loads(Path('janus_breed_smoke.json').read_text())
+          assert x['name']=='JANUS BREED'
+          assert x['lane']=='JANUS_MAD_LAB'
+          assert x['status']=='EXPERIMENTAL_NOT_THEOREM'
+          assert x['P_VS_NP']=='OPEN'
+          assert x['N_min']==58 and x['N_max']==73
+          assert x['scientific_boundary']['breed_credit_is_theorem_frontier_credit'] is False
+          assert x['scientific_boundary']['unproved_m2r_repair_can_be_credited'] is False
+          for r in x['results']:
+              n=r['N']; prime=r['prime']
+              assert r['FACE_A']['mode']==('M2R' if prime else 'DIRECT')
+              assert r['FACE_B']['mode']==('DIRECT' if prime else 'M2R')
+          print('JANUS_BREED_CLAIM_CEILING=PASS')
+          print('JANUS_BREED_ROLE_ASSIGNMENT=PASS')
+          print('P_VS_NP=OPEN')
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: janus-breed-smoke-58-73
+          path: janus_breed_smoke.json
