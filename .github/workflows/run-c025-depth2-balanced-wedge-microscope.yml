@@ -1,0 +1,44 @@
+name: run-c025-depth2-balanced-wedge-microscope
+
+on:
+  push:
+    branches:
+      - research/c025-balanced-pressure-wedge-2026-08-27
+    paths:
+      - 'experiments/direct/janus_depth2_balanced_wedge_microscope.py'
+      - '.github/workflows/run-c025-depth2-balanced-wedge-microscope.yml'
+
+jobs:
+  structural-microscope:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Execute exact structural microscope
+        run: |
+          python -m experiments.direct.janus_depth2_balanced_wedge_microscope \
+            | tee depth2-balanced-wedge-microscope.json
+      - name: Verify scientific boundary
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          d = json.loads(Path('depth2-balanced-wedge-microscope.json').read_text())
+          b = d['scientific_boundary']
+          assert b['finite_structural_diagnostic_only'] is True
+          assert b['presence_of_wedge_candidate_is_not_an_OPEN_until_exact_frozen_scan_fails'] is True
+          assert b['P_VS_NP'] == 'OPEN'
+          p = d['post_top_product']
+          print('DEPTH2_PRODUCT_STATE_UNITS=' + str(p['state_units']))
+          print('DEPTH2_MAX_PAIR_FREQUENCY=' + str(p['max_pair_frequency']))
+          print('DEPTH2_V2_THRESHOLD=' + str(p['v2_frequent_pair_threshold']))
+          print('DEPTH2_CERTIFIED_LOCAL_FIT_COUNT=' + str(p['certified_local_fit_count']))
+          print('DEPTH2_STRUCTURAL_CLASSIFICATION=' + p['classification'])
+          print('P_VS_NP=OPEN')
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: c025-depth2-balanced-wedge-microscope
+          path: depth2-balanced-wedge-microscope.json
