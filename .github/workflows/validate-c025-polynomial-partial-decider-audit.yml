@@ -6,19 +6,24 @@ on:
       - research/c025-pirc-gpei-2026-08-27
     paths:
       - 'experiments/direct/janus_theorem_input_normal_form.py'
+      - 'experiments/direct/janus_pirc_decision_core_v0_3.py'
       - 'experiments/direct/janus_full_trajectory_frozen_open3_probe.py'
       - 'research/C025_FIXED_ENGINE_POLYNOMIAL_PARTIAL_DECIDER_AUDIT_2026-08-27.json'
+      - 'research/C025_PIRC_DECISION_CORE_V0_3_FREEZE_2026-08-27.json'
       - '.github/workflows/validate-c025-polynomial-partial-decider-audit.yml'
   pull_request:
     paths:
       - 'experiments/direct/janus_theorem_input_normal_form.py'
+      - 'experiments/direct/janus_pirc_decision_core_v0_3.py'
       - 'experiments/direct/janus_full_trajectory_frozen_open3_probe.py'
       - 'research/C025_FIXED_ENGINE_POLYNOMIAL_PARTIAL_DECIDER_AUDIT_2026-08-27.json'
+      - 'research/C025_PIRC_DECISION_CORE_V0_3_FREEZE_2026-08-27.json'
       - '.github/workflows/validate-c025-polynomial-partial-decider-audit.yml'
 
 jobs:
   theorem-firewalls:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -27,6 +32,9 @@ jobs:
 
       - name: Dense theorem-input normal form self-test
         run: python -m experiments.direct.janus_theorem_input_normal_form
+
+      - name: Frozen PIRC decision core v0.3 self-test
+        run: python -m experiments.direct.janus_pirc_decision_core_v0_3
 
       - name: Focused full-trajectory frozen OPEN3 regression
         run: |
@@ -49,7 +57,7 @@ jobs:
           print('P_VS_NP=OPEN')
           PY
 
-      - name: Verify polynomial partial-decider audit ceiling
+      - name: Verify append-only parent audit ceiling
         run: |
           python - <<'PY'
           import json
@@ -61,7 +69,24 @@ jobs:
           assert data['remaining_central_theorem']['status'] == 'OPEN_CENTRAL'
           assert data['decision_vs_witness_correction']['required_implementation_status'] == 'DECISION_CORE_REFACTOR_PENDING'
           assert data['theorem_consequence_if_closed']['current_status'] == 'CONDITIONAL_ONLY'
-          print('POLYNOMIAL_PARTIAL_DECIDER_AUDIT=PASS')
+          print('PARENT_AUDIT_APPEND_ONLY=PASS')
+          print('P_VS_NP=OPEN')
+          PY
+
+      - name: Verify decision core v0.3 freeze and claim ceiling
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          p = Path('research/C025_PIRC_DECISION_CORE_V0_3_FREEZE_2026-08-27.json')
+          data = json.loads(p.read_text(encoding='utf-8'))
+          assert data['status'] == 'FIXED_POLYNOMIAL_PARTIAL_DECISION_MACHINE_FROZEN__UNIVERSAL_TOTALITY_OPEN'
+          assert data['P_VS_NP'] == 'OPEN'
+          assert data['decision_witness_split']['status'] == 'IMPLEMENTED'
+          assert data['input_bit_complexity_firewall']['status'] == 'IMPLEMENTED'
+          assert data['central_unproved_lemma']['status'] == 'OPEN_CENTRAL'
+          assert data['conditional_theorem']['status'] == 'CONDITIONAL_NOT_PROMOTED'
+          print('PIRC_DECISION_CORE_V0_3_FREEZE=PASS')
           print('REACHABLE_MOVE_OR_TERMINAL_TOTALITY=OPEN_CENTRAL')
           print('P_VS_NP=OPEN')
           PY
