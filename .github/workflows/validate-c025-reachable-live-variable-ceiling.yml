@@ -1,0 +1,41 @@
+name: validate-c025-reachable-live-variable-ceiling
+
+on:
+  push:
+    branches:
+      - research/c025-balanced-pressure-wedge-2026-08-27
+    paths:
+      - 'research/C025_REACHABLE_LIVE_VARIABLE_CEILING_AND_N10_GAP_REJECTION_2026-08-27.json'
+      - 'experiments/direct/janus_reachable_live_variable_ceiling_certificate.py'
+      - '.github/workflows/validate-c025-reachable-live-variable-ceiling.yml'
+
+jobs:
+  reachable-live-ceiling:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Execute structural regression
+        run: python -m experiments.direct.janus_reachable_live_variable_ceiling_certificate
+      - name: Verify theorem ceiling
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          d = json.loads(Path('research/C025_REACHABLE_LIVE_VARIABLE_CEILING_AND_N10_GAP_REJECTION_2026-08-27.json').read_text())
+          assert d['status'] == 'PROVED_FROZEN_ENGINE_REACHABILITY_INVARIANT__N10_SEED172_LOCAL_GAP_UNREACHABLE'
+          assert d['P_VS_NP'] == 'OPEN'
+          assert d['lemma_root_variable_ceiling']['status'] == 'PROVED'
+          assert d['lemma_live_count_monotonicity']['status'] == 'PROVED_FROM_FROZEN_TRANSITION_SHAPE'
+          assert d['theorem']['status'] == 'PROVED'
+          assert d['application']['reachable_ceiling_at_N10'] == 4
+          assert d['application']['witness_live_variables'] == 10
+          assert d['application']['conclusion'].startswith('UNREACHABLE_FROM_ANY_LEGITIMATE_ROOT')
+          assert d['scientific_boundary']['does_not_prove_reachable_totality'] is True
+          assert d['scientific_boundary']['does_not_prove_P_equals_NP'] is True
+          print('REACHABLE_LIVE_VARIABLE_CEILING_SCOPE=PASS')
+          print('N10_SEED172_REACHABILITY=REFUTED_FOR_FROZEN_ENGINE')
+          print('P_VS_NP=OPEN')
+          PY
