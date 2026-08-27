@@ -1,0 +1,47 @@
+name: validate-c025-abstract-N58-first-open
+
+on:
+  push:
+    branches:
+      - research/c025-proof-selector-v0-5-2026-08-27
+    paths:
+      - 'research/C025_ABSTRACT_FRONTIER_N58_FIRST_OPEN_2026-08-27.json'
+      - 'experiments/direct/janus_v05_abstract_N58_first_open.py'
+      - 'experiments/direct/janus_v05_abstract_frontier_support_mass.py'
+      - '.github/workflows/validate-c025-abstract-N58-first-open.yml'
+  pull_request:
+    paths:
+      - 'research/C025_ABSTRACT_FRONTIER_N58_FIRST_OPEN_2026-08-27.json'
+      - 'experiments/direct/janus_v05_abstract_N58_first_open.py'
+      - 'experiments/direct/janus_v05_abstract_frontier_support_mass.py'
+      - '.github/workflows/validate-c025-abstract-N58-first-open.yml'
+
+jobs:
+  abstract-N58-first-open:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Reproduce first N58 abstract OPEN
+        run: python -m experiments.direct.janus_v05_abstract_N58_first_open
+      - name: Verify OPEN claim ceiling
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          a=json.loads(Path('research/C025_ABSTRACT_FRONTIER_N58_FIRST_OPEN_2026-08-27.json').read_text())
+          assert a['status']=='ABSTRACT_BOUND_OPEN__NOT_ACTUAL_COUNTEREXAMPLE'
+          assert a['scientific_boundary']['finite_frontier_N_le_57_remains_proved'] is True
+          assert a['scientific_boundary']['N58_proved'] is False
+          assert a['scientific_boundary']['actual_reachable_counterexample_found'] is False
+          assert a['first_open']['raw_units_bound']==3375
+          assert a['cap']==3364
+          assert a['first_open']['cap_excess']==11
+          assert a['theorem_runtime_heuristics']=='FORBIDDEN'
+          assert a['P_VS_NP']=='OPEN'
+          print('N58_ABSTRACT_OPEN_CLAIM_CEILING=PASS')
+          print('P_VS_NP=OPEN')
+          PY
