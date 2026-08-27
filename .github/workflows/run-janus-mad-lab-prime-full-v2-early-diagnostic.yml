@@ -1,0 +1,40 @@
+name: run-janus-mad-lab-prime-full-v2-early-diagnostic
+
+on:
+  push:
+    branches:
+      - research/janus-mad-lab-prime-probes-2026-08-28
+    paths:
+      - '.github/workflows/run-janus-mad-lab-prime-full-v2-early-diagnostic.yml'
+  workflow_dispatch:
+
+jobs:
+  early-v2:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Run v2 early diagnostic primes 59 through 97
+        run: |
+          python -m experiments.mad_lab.prime_stress_full_closure_v2 \
+            --min 59 --max 97 --out prime_v2_early.json
+      - name: Print exact early map
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          x=json.loads(Path('prime_v2_early.json').read_text())
+          assert x['P_VS_NP']=='OPEN'
+          for r in x['results']:
+              if r['verdict']=='OPEN':
+                  o=r['first_open']
+                  print(f"EARLY N={r['N']} OPEN state={o['state']} d={o['d']} p={o['p']} q={o['q']} raw={o['raw_final']} cap={r['cap']} debt={o['raw_final']-r['cap']}")
+              else:
+                  print(f"EARLY N={r['N']} {r['verdict']}")
+          print(f"EARLY_OPEN_COUNT={x['open_prime_count']}")
+          print(f"EARLY_FIRST_OPEN={x['first_open_prime']}")
+          print('P_VS_NP=OPEN')
+          PY
