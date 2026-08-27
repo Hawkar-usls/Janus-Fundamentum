@@ -1,0 +1,100 @@
+{
+  "schema": "JANUS/C025/PROOF-SELECTOR-V0.5-BRIDGE-AND-CAP-REPLAY-THROUGH-N42/v1",
+  "date": "2026-08-27",
+  "status": "PROVED_SELECTOR_BRIDGE__PROVED_V0_5_CAP_AVAILABILITY_REPLAY_N_LE_42__UNBOUNDED_TOTALITY_OPEN",
+  "P_VS_NP": "OPEN",
+  "candidate_engine": "PIRC_DECISION_CORE_V0_5_PROOF_SELECTOR_CANDIDATE",
+  "base_engine_semantics": "v0.4 exact transition/replay/cap/terminal semantics retained; only pivot ordering is changed in the candidate wrapper process",
+  "depends_on": [
+    "research/C025_CANONICAL_FIRST_SELECTOR_GAP_AUDIT_2026-08-27.json",
+    "research/C025_GENERIC_RAW_ELIMINATION_BUDGET_LEMMA_2026-08-27-v1.1.json",
+    "research/C025_BOUNDED_WIDTH_AVERAGE_DEGREE_SAFE_PIVOT_CORRIDOR_2026-08-27-v1.2.json",
+    "research/C025_SPARSE_ROOT_CLAUSE_COUNT_INVARIANT_AND_NO_CAP_RESCUE_THROUGH_N25_2026-08-27.json",
+    "research/C025_DEGREE1_REROOT_AND_NO_CAP_RESCUE_THROUGH_N26_2026-08-27.json",
+    "research/C025_LOW_INCIDENCE_REROOT_INDUCTION_AND_NO_CAP_RESCUE_THROUGH_N41_2026-08-27.json",
+    "research/C025_DEGREE3_BOUNDARY_AND_NO_CAP_RESCUE_THROUGH_N42_2026-08-27.json"
+  ],
+  "selector": {
+    "root_class_priority": "If live roots exist, roots precede extensions exactly as in v0.4. Within roots order by (d_x, frozen root position).",
+    "extension_class_priority": "After roots, extensions order by (d_x, variable id).",
+    "d_x": "Number of canonical clauses containing +x or -x.",
+    "theorem_runtime_heuristics": "FORBIDDEN",
+    "randomness": "FORBIDDEN",
+    "semantic_oracle": "FORBIDDEN",
+    "SAT_oracle": "FORBIDDEN"
+  },
+  "selector_lemma": {
+    "name": "MINIMUM_INCIDENCE_WITNESS_IS_CONSTRUCTIVELY_SELECTED",
+    "statement": "For a root state with r>0 live root variables and total literal incidence L, the v0.5 proof-selector returns a root x* with d_x*=min_x d_x<=floor(L/r).",
+    "proof": [
+      "Each literal occurrence contributes exactly one to the incidence degree of its underlying live variable, hence sum_x d_x=L.",
+      "If every d_x were at least floor(L/r)+1, their sum would exceed L; therefore min_x d_x<=floor(L/r).",
+      "The candidate computes every d_x by exact syntactic clause scans and sorts roots by (d_x, frozen root position). Therefore its first root is exactly a minimum-incidence witness with deterministic tie-break."
+    ],
+    "cost": "O(L+r log r) comparison-model work on the explicit state; polynomial under the existing state envelope.",
+    "status": "PROVED_ELEMENTARY_AND_CONSTRUCTIVE"
+  },
+  "N_le_25_base": {
+    "statement": "Inherited pivot-order-independent cap availability: N<=24 is covered by the audited T/Smax/Uraw envelope; at N=25 the remaining roots have <=4 clauses and the proved small-clause invariant makes every ordinary pivot cap-safe.",
+    "status": "INHERITED_PROVED"
+  },
+  "N26_selector_bridge": {
+    "remaining_root_counts": [9,10],
+    "proof": [
+      "For N=26,r=9, every legitimate remaining root has L=25-r-m<=15<18=2r.",
+      "For N=26,r=10, every legitimate remaining root has L<=14<20=2r.",
+      "Thus floor(L/r)<=1. Every live variable has positive incidence, so the selected minimum-incidence root has d=1.",
+      "The proved degree-1 exact elimination creates no resolvent and reroots to local N'<=22<=25."
+    ],
+    "status": "PROVED_FOR_V0_5_SELECTOR"
+  },
+  "N27_to_N41_strong_induction": {
+    "partition": [
+      {
+        "case": "m<=4",
+        "result": "Every continuing ordinary pivot is cap-safe by the proved small-clause invariant; selector choice is irrelevant."
+      },
+      {
+        "case": "m>=5 AND L<3r",
+        "result": "Selector lemma gives d_x*<=2. Existing low-incidence proof gives an exact cap-safe transition with N'<=N-4; strong induction and cap monotonicity finish the residual."
+      },
+      {
+        "case": "m>=5 AND L>=3r",
+        "result": "N=1+m+L+r>=6+4r, hence r<=floor((N-6)/4). The already-proved exact T/Smax/Uraw recurrence is below N^2 for every such r throughout N=27..41."
+      }
+    ],
+    "status": "PROVED_WITH_SELECTOR_ALIGNED_TO_LOW_INCIDENCE_WITNESS"
+  },
+  "N42_boundary": {
+    "partition": "All cases except r=9,m=5,L=27 are inherited from the N<=41 partition or r<=8 recurrence.",
+    "unique_cell": {"N":42,"r":9,"m":5,"L":27,"s":33,"cap":1764},
+    "proof": [
+      "Selector lemma gives d_min<=floor(27/9)=3.",
+      "If d_min<=2, the existing low-incidence N-minus-4 reroot applies to the actually selected pivot.",
+      "If d_min=3, all nine degrees equal 3 because their sum is 27.",
+      "For any selected degree-3 pivot: pure polarity is deletion-only; mixed polarity has split {1,2}. The proved generic raw bound yields B_x<=37.",
+      "After the selected exact step, live variables<=8 and state_units<=37. The already-proved tail recurrence 109,973,1053,297,81,21 remains below 42^2=1764 to the exact terminal range."
+    ],
+    "status": "PROVED_FOR_V0_5_SELECTOR"
+  },
+  "finite_frontier_theorem": {
+    "name": "V0_5_PROOF_SELECTOR_NO_RAW_CAP_RESCUE_REQUIRED_THROUGH_N42",
+    "statement": "For every legitimate canonical root input of normalized encoding size N<=42, the v0.5 proof-selector candidate has an ordinary exact cap-safe continuation covered by the inherited exact corridors; when the proof needs a low-incidence witness, the executed selector constructively chooses such a witness. Thus the selector gap identified in v0.4 is closed for this finite cap-availability frontier.",
+    "status": "PROVED_FINITE_N_CAP_AVAILABILITY"
+  },
+  "what_this_does_not_prove": [
+    "It does not prove the same property for all N.",
+    "It does not prove root-phase HIGH_VOLUME_RESCUE_TOTALITY in the unbounded case.",
+    "It does not prove root-free v3 universal availability.",
+    "It does not prove universal GPEI/PIRC preservation.",
+    "It does not prove P=NP."
+  ],
+  "scientific_boundary": {
+    "P_VS_NP": "OPEN",
+    "unbounded_totality": "OPEN",
+    "v3_universal_availability": "OPEN",
+    "universal_GPEI": "OPEN"
+  },
+  "next_exact_target": "Run executable selector/regression CI, then advance beyond N=42 only with this explicit selector semantics or prove pivot-order independence. Freeze the first uncertified reachable cell without mutating theorem rules mid-run.",
+  "seal": "IANUS VIAS SERVAT."
+}
