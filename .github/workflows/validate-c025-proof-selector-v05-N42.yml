@@ -1,0 +1,58 @@
+name: validate-c025-proof-selector-v05-N42
+
+on:
+  push:
+    branches:
+      - research/c025-proof-selector-v0-5-2026-08-27
+    paths:
+      - 'research/C025_CANONICAL_FIRST_SELECTOR_GAP_AUDIT_2026-08-27.json'
+      - 'research/C025_PROOF_SELECTOR_V05_BRIDGE_AND_CAP_REPLAY_THROUGH_N42_2026-08-27.json'
+      - 'experiments/direct/janus_proof_selector_v05_candidate.py'
+      - 'experiments/direct/janus_proof_selector_v05_N42_replay.py'
+      - '.github/workflows/validate-c025-proof-selector-v05-N42.yml'
+  pull_request:
+    paths:
+      - 'research/C025_CANONICAL_FIRST_SELECTOR_GAP_AUDIT_2026-08-27.json'
+      - 'research/C025_PROOF_SELECTOR_V05_BRIDGE_AND_CAP_REPLAY_THROUGH_N42_2026-08-27.json'
+      - 'experiments/direct/janus_proof_selector_v05_candidate.py'
+      - 'experiments/direct/janus_proof_selector_v05_N42_replay.py'
+      - '.github/workflows/validate-c025-proof-selector-v05-N42.yml'
+
+jobs:
+  proof-selector-v05-N42:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Execute proof-selector candidate selftest
+        run: python -m experiments.direct.janus_proof_selector_v05_candidate
+      - name: Execute selector-bridge and N42 replay regression
+        run: python -m experiments.direct.janus_proof_selector_v05_N42_replay
+      - name: Verify theorem scope and claim ceiling
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          audit = json.loads(Path('research/C025_CANONICAL_FIRST_SELECTOR_GAP_AUDIT_2026-08-27.json').read_text())
+          theorem = json.loads(Path('research/C025_PROOF_SELECTOR_V05_BRIDGE_AND_CAP_REPLAY_THROUGH_N42_2026-08-27.json').read_text())
+          assert audit['P_VS_NP'] == 'OPEN'
+          assert audit['finding']['status'] == 'CONFIRMED_BY_CODE_AUDIT'
+          assert theorem['P_VS_NP'] == 'OPEN'
+          assert theorem['selector']['theorem_runtime_heuristics'] == 'FORBIDDEN'
+          assert theorem['selector_lemma']['status'] == 'PROVED_ELEMENTARY_AND_CONSTRUCTIVE'
+          assert theorem['N26_selector_bridge']['status'] == 'PROVED_FOR_V0_5_SELECTOR'
+          assert theorem['N27_to_N41_strong_induction']['status'] == 'PROVED_WITH_SELECTOR_ALIGNED_TO_LOW_INCIDENCE_WITNESS'
+          assert theorem['N42_boundary']['status'] == 'PROVED_FOR_V0_5_SELECTOR'
+          assert theorem['finite_frontier_theorem']['status'] == 'PROVED_FINITE_N_CAP_AVAILABILITY'
+          assert theorem['scientific_boundary']['unbounded_totality'] == 'OPEN'
+          assert theorem['scientific_boundary']['v3_universal_availability'] == 'OPEN'
+          assert theorem['scientific_boundary']['universal_GPEI'] == 'OPEN'
+          print('SELECTOR_GAP_AUDIT=PASS')
+          print('V05_SELECTOR_LEMMA=PASS')
+          print('V05_N_LE_42_CAP_FRONTIER=PASS')
+          print('THEOREM_RUNTIME_HEURISTICS=FORBIDDEN')
+          print('P_VS_NP=OPEN')
+          PY
