@@ -1,0 +1,89 @@
+name: run-janus-breed-58-937
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - research/janus-mad-lab-prime-probes-2026-08-28
+    paths:
+      - '.github/workflows/run-janus-breed-58-937.yml'
+
+jobs:
+  gate:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: JANUS BREED anti-self-deception gate
+        run: |
+          python -m experiments.mad_lab.janus_breed --selftest
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          p=json.loads(Path('experiments/mad_lab/JANUS_BREED_POLICY.json').read_text())
+          assert p['name']=='JANUS BREED'
+          assert p['lane']=='JANUS_MAD_LAB'
+          assert p['status']=='EXPERIMENTAL_NOT_THEOREM'
+          assert p['P_VS_NP']=='OPEN'
+          assert 'NO_SAME_RUN_NEW_LEMMA_USE' in p['hard_rules']
+          assert 'OPEN_IS_NOT_CREDITED' in p['hard_rules']
+          print('JANUS_BREED_POLICY_GATE=PASS')
+          print('P_VS_NP=OPEN')
+          PY
+
+  segment:
+    needs: gate
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - {id: s01, lo: 58,  hi: 127}
+          - {id: s02, lo: 128, hi: 199}
+          - {id: s03, lo: 200, hi: 271}
+          - {id: s04, lo: 272, hi: 349}
+          - {id: s05, lo: 350, hi: 431}
+          - {id: s06, lo: 432, hi: 509}
+          - {id: s07, lo: 510, hi: 587}
+          - {id: s08, lo: 588, hi: 661}
+          - {id: s09, lo: 662, hi: 739}
+          - {id: s10, lo: 740, hi: 821}
+          - {id: s11, lo: 822, hi: 887}
+          - {id: s12, lo: 888, hi: 937}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 180
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Run frozen JANUS BREED segment
+        run: |
+          python -m experiments.mad_lab.janus_breed \
+            --min ${{ matrix.lo }} --max ${{ matrix.hi }} \
+            --out janus_breed_${{ matrix.id }}.json
+      - name: Segment claim-ceiling audit
+        run: |
+          python - <<'PY'
+          import json, os
+          from pathlib import Path
+          sid='${{ matrix.id }}'
+          x=json.loads(Path(f'janus_breed_{sid}.json').read_text())
+          assert x['name']=='JANUS BREED'
+          assert x['lane']=='JANUS_MAD_LAB'
+          assert x['status']=='EXPERIMENTAL_NOT_THEOREM'
+          assert x['P_VS_NP']=='OPEN'
+          assert x['scientific_boundary']['breed_credit_is_theorem_frontier_credit'] is False
+          assert x['scientific_boundary']['same_run_new_lemma_use'] is False
+          assert x['scientific_boundary']['unproved_m2r_repair_can_be_credited'] is False
+          expected=x['N_max']-x['N_min']+1
+          assert x['N_count']==expected
+          print(f"JANUS_BREED_SEGMENT={sid} N={x['N_min']}..{x['N_max']} counts={x['pair_counts']} disagreements={x['verdict_disagreement_N']}")
+          print('JANUS_BREED_SEGMENT_CLAIM_CEILING=PASS')
+          print('P_VS_NP=OPEN')
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: janus-breed-${{ matrix.id }}-${{ matrix.lo }}-${{ matrix.hi }}
+          path: janus_breed_${{ matrix.id }}.json
