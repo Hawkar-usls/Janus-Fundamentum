@@ -1,0 +1,51 @@
+name: run-c025-v0-4-rescue-mechanism-audit
+
+on:
+  push:
+    branches:
+      - research/c025-pirc-gpei-2026-08-27
+    paths:
+      - 'experiments/direct/janus_v0_4_rescue_mechanism_audit.py'
+      - '.github/workflows/run-c025-v0-4-rescue-mechanism-audit.yml'
+  pull_request:
+    paths:
+      - 'experiments/direct/janus_v0_4_rescue_mechanism_audit.py'
+      - '.github/workflows/run-c025-v0-4-rescue-mechanism-audit.yml'
+
+jobs:
+  rescue-mechanism-audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Replay frozen corpus and classify exact move mechanisms
+        run: |
+          python -m experiments.direct.janus_v0_4_rescue_mechanism_audit \
+            | tee v0-4-rescue-mechanism-audit.json
+      - name: Verify measurement boundary
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          data = json.loads(Path('v0-4-rescue-mechanism-audit.json').read_text())
+          b = data['scientific_boundary']
+          assert b['measurement_only_replay'] is True
+          assert b['same_frozen_seed_corpus'] is True
+          assert b['event_presence_is_not_totality_proof'] is True
+          assert b['HIGH_VOLUME_RESCUE_TOTALITY'] == 'OPEN'
+          assert b['P_VS_NP'] == 'OPEN'
+          print('STATUS=' + data['status'])
+          print('HIGH_VOLUME=' + str(data['totals']['high_volume']))
+          print('V2_RESCUE_RUNS=' + str(data['totals']['v2_rescue_runs']))
+          print('V3_RESCUE_RUNS=' + str(data['totals']['v3_rescue_runs']))
+          print('ANY_MACRO_RESCUE_RUNS=' + str(data['totals']['any_macro_rescue_runs']))
+          print('OPEN=' + str(data['totals']['OPEN']))
+          print('P_VS_NP=OPEN')
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: c025-v0-4-rescue-mechanism-audit
+          path: v0-4-rescue-mechanism-audit.json
