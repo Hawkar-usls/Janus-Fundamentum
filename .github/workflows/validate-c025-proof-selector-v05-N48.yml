@@ -1,0 +1,62 @@
+name: validate-c025-proof-selector-v05-N48
+
+on:
+  push:
+    branches:
+      - research/c025-proof-selector-v0-5-2026-08-27
+    paths:
+      - 'research/C025_MIN_DEGREE_SIX_CLAUSE_INVARIANT_2026-08-27.json'
+      - 'research/C025_PROOF_SELECTOR_V05_CAP_FRONTIER_THROUGH_N48_2026-08-27.json'
+      - 'experiments/direct/janus_min_degree_six_clause_invariant.py'
+      - 'experiments/direct/janus_proof_selector_v05_N48_replay.py'
+      - 'experiments/direct/janus_proof_selector_v05_candidate.py'
+      - '.github/workflows/validate-c025-proof-selector-v05-N48.yml'
+  pull_request:
+    paths:
+      - 'research/C025_MIN_DEGREE_SIX_CLAUSE_INVARIANT_2026-08-27.json'
+      - 'research/C025_PROOF_SELECTOR_V05_CAP_FRONTIER_THROUGH_N48_2026-08-27.json'
+      - 'experiments/direct/janus_min_degree_six_clause_invariant.py'
+      - 'experiments/direct/janus_proof_selector_v05_N48_replay.py'
+      - 'experiments/direct/janus_proof_selector_v05_candidate.py'
+      - '.github/workflows/validate-c025-proof-selector-v05-N48.yml'
+
+jobs:
+  proof-selector-v05-N48:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Execute proof-selector candidate selftest
+        run: python -m experiments.direct.janus_proof_selector_v05_candidate
+      - name: Execute six-clause invariant regression
+        run: python -m experiments.direct.janus_min_degree_six_clause_invariant
+      - name: Execute N48 selector replay regression
+        run: python -m experiments.direct.janus_proof_selector_v05_N48_replay
+      - name: Verify theorem scope and claim ceiling
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          inv = json.loads(Path('research/C025_MIN_DEGREE_SIX_CLAUSE_INVARIANT_2026-08-27.json').read_text())
+          theorem = json.loads(Path('research/C025_PROOF_SELECTOR_V05_CAP_FRONTIER_THROUGH_N48_2026-08-27.json').read_text())
+          assert inv['P_VS_NP'] == 'OPEN'
+          assert inv['status'] == 'PROVED_MIN_DEGREE_M_LE_6_CLAUSE_COUNT_INVARIANT'
+          assert theorem['P_VS_NP'] == 'OPEN'
+          assert theorem['theorem_runtime_heuristics'] == 'FORBIDDEN'
+          assert theorem['runtime_change_from_N47'] is False
+          assert theorem['N48_partition']['status'] == 'PROVED'
+          assert theorem['r9_region']['status'] == 'PROVED'
+          assert theorem['r10_unique_cell']['status'] == 'PROVED'
+          assert theorem['r10_unique_cell']['degree_3_clause_collapse']['conclusion'] == 'POST_STEP_M_LE_6_INVARIANT'
+          assert theorem['finite_frontier_theorem']['status'] == 'PROVED_FINITE_N_CAP_AVAILABILITY'
+          assert theorem['scientific_boundary']['unbounded_totality'] == 'OPEN'
+          assert theorem['scientific_boundary']['v3_universal_availability'] == 'OPEN'
+          assert theorem['scientific_boundary']['universal_GPEI'] == 'OPEN'
+          print('M_LE_6_INVARIANT_CLAIM=PASS')
+          print('V05_N48_FINITE_FRONTIER_CLAIM=PASS')
+          print('THEOREM_RUNTIME_HEURISTICS=FORBIDDEN')
+          print('P_VS_NP=OPEN')
+          PY
