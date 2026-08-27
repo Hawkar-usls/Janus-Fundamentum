@@ -1,0 +1,50 @@
+{
+  "schema": "JANUS/C025/PAIR-SUPPORT-MASS-DISTINCT-RESOLVENT-CEILING/v1",
+  "date": "2026-08-27",
+  "status": "PROVED_EXACT_DISTINCT_RESOLVENT_SUPPORT_CEILING",
+  "P_VS_NP": "OPEN",
+  "engine_scope": "PIRC_DECISION_CORE_V0_5_PROOF_SELECTOR_CANDIDATE",
+  "theorem_runtime_heuristics": "FORBIDDEN",
+  "runtime_change": false,
+  "definitions": {
+    "r": "n-1 nonpivot live variables",
+    "c": "m-d retained clauses",
+    "o": "min(d,c), an upper bound on how many of the d pivot-parent clauses can omit any fixed nonpivot variable",
+    "M_p_q_o": "max a*b over 0<=a<=p, 0<=b<=q, a+b<=o",
+    "Wmax_r_R": "maximum possible sum of widths of R distinct signed non-tautological clauses over r variables; compute by taking clause widths r,r-1,...,0 with multiplicities C(r,w)2^w"
+  },
+  "statement": "Let a selected pivot have p positive and q negative parent clauses, d=p+q, in a canonical ordinary CNF with n live variables and m clauses. For each nonpivot variable y let a_y,b_y be the number of positive/negative pivot parents omitting y. Minimum-incidence selection implies a_y+b_y<=o=min(d,m-d). Hence total pair-support mass over all pq cross-polarity parent pairs is at least Smin=r*(pq-M(p,q,o)). If R distinct non-tautological resolvents are produced, total pair-support mass is at most Wmax_r(R)+(pq-R)r. Therefore any R satisfying Wmax_r(R)+(pq-R)r<Smin is impossible, and the maximum feasible R gives an exact ceiling on the number of distinct resolvents. Consequently raw_units is at most 1+c+c*r+R+Wmax_r(R), or tighter when a separate retained-literal bound is available.",
+  "proof": [
+    "Because the selected pivot has minimum incidence d, every live nonpivot variable has total incidence at least d.",
+    "A nonpivot variable can occur in at most c=m-d retained clauses, so it occurs in at least max(0,d-c) pivot-parent clauses and is omitted from at most d-max(0,d-c)=min(d,c)=o pivot parents.",
+    "If a_y positive parents and b_y negative parents omit variable y, then exactly a_y*b_y cross pairs have union-support omitting y. Since a_y+b_y<=o, a_y*b_y<=M(p,q,o). Thus at least pq-M(p,q,o) parent pairs contain y in their union support.",
+    "Summing this lower bound over all r nonpivot variables gives total pair-support mass S>=r*(pq-M(p,q,o))=Smin.",
+    "For each distinct non-tautological resolvent choose one parent pair that produces it. Its support size equals the resolvent width. Among R distinct signed clauses over r variables, the maximum possible total width is Wmax_r(R).",
+    "Every remaining parent pair, whether tautological or duplicating an already-counted resolvent, has union-support size at most r. Hence total pair-support mass is at most Wmax_r(R)+(pq-R)r.",
+    "If that upper bound is below Smin, such an R is impossible. Since Wmax_r(R)+(pq-R)r is nonincreasing in R, the largest feasible R is a well-defined exact ceiling and is computable by scanning or binary search over 0<=R<=min(pq,3^r).",
+    "The engine raw set contains at most c retained clauses and R distinct resolvents. Retained widths are at most r; distinct resolvent total width is at most Wmax_r(R). Therefore raw_units<=1+c+c*r+R+Wmax_r(R). Canonicalization can only reduce this further."
+  ],
+  "worked_specimen": {
+    "state": {"n":7,"m":59,"L":367,"d":43,"p":18,"q":25},
+    "r":6,
+    "c":16,
+    "o":16,
+    "M":64,
+    "pq":450,
+    "Smin":2316,
+    "distinct_resolvent_ceiling_R":352,
+    "Wmax_6_352":1728,
+    "raw_units_ceiling":2193,
+    "comparison_cap_for_N57":3249,
+    "conclusion": "ABSTRACT_COARSE_ALARM_REPAIRED_BY_EXACT_SUPPORT_CEILING"
+  },
+  "scientific_boundary": {
+    "local_exact_combinatorial_bound_only": true,
+    "abstract_specimen_is_not_an_actual_reachable_counterexample": true,
+    "does_not_change_runtime": true,
+    "does_not_prove_unbounded_totality": true,
+    "does_not_prove_P_equals_NP": true,
+    "P_VS_NP": "OPEN"
+  },
+  "seal": "IANUS VIAS SERVAT."
+}
