@@ -5,13 +5,13 @@ on:
     branches:
       - research/c025-proof-selector-v0-5-2026-08-27
     paths:
-      - 'research/C025_PROOF_SELECTOR_V05_CAP_FRONTIER_THROUGH_N46_2026-08-27.json'
+      - 'research/C025_PROOF_SELECTOR_V05_CAP_FRONTIER_THROUGH_N46_2026-08-27-v1.1.json'
       - 'experiments/direct/janus_proof_selector_v05_N46_replay.py'
       - 'experiments/direct/janus_proof_selector_v05_candidate.py'
       - '.github/workflows/validate-c025-proof-selector-v05-N46.yml'
   pull_request:
     paths:
-      - 'research/C025_PROOF_SELECTOR_V05_CAP_FRONTIER_THROUGH_N46_2026-08-27.json'
+      - 'research/C025_PROOF_SELECTOR_V05_CAP_FRONTIER_THROUGH_N46_2026-08-27-v1.1.json'
       - 'experiments/direct/janus_proof_selector_v05_N46_replay.py'
       - 'experiments/direct/janus_proof_selector_v05_candidate.py'
       - '.github/workflows/validate-c025-proof-selector-v05-N46.yml'
@@ -27,28 +27,32 @@ jobs:
           python-version: '3.12'
       - name: Execute proof-selector candidate selftest
         run: python -m experiments.direct.janus_proof_selector_v05_candidate
-      - name: Execute N46 selector replay regression
+      - name: Execute corrected N46 selector replay regression
         run: python -m experiments.direct.janus_proof_selector_v05_N46_replay
-      - name: Verify theorem scope and claim ceiling
+      - name: Verify corrected theorem scope and claim ceiling
         run: |
           python - <<'PY'
           import json
           from pathlib import Path
-          theorem = json.loads(Path('research/C025_PROOF_SELECTOR_V05_CAP_FRONTIER_THROUGH_N46_2026-08-27.json').read_text())
+          theorem = json.loads(Path('research/C025_PROOF_SELECTOR_V05_CAP_FRONTIER_THROUGH_N46_2026-08-27-v1.1.json').read_text())
           assert theorem['P_VS_NP'] == 'OPEN'
           assert theorem['theorem_runtime_heuristics'] == 'FORBIDDEN'
           assert theorem['runtime_change_from_N45'] is False
           assert theorem['N46_partition']['status'] == 'PROVED'
+          assert theorem['hard_recurrence_r_le_8']['maximum_raw_bound'] == '1875889/1728'
+          assert theorem['hard_recurrence_r_le_8']['status'] == 'PROVED_BY_EXACT_RECURRENCE__CORRECTED_FROM_V1'
           assert theorem['r9_region']['status'] == 'PROVED'
           assert theorem['r10_unique_cell']['status'] == 'PROVED'
           assert theorem['r10_unique_cell']['degree3_clause_collapse']['conclusion'] == 'POST_STEP_M_LE_4'
           assert theorem['coarse_bound_warning']['status'] == 'COARSE_SUFFICIENT_BOUND_FALSE_ALARM'
           assert theorem['finite_frontier_theorem']['status'] == 'PROVED_FINITE_N_CAP_AVAILABILITY'
+          assert theorem['audit']['failed_run_preserved'] == 33097792011
           assert theorem['scientific_boundary']['unbounded_totality'] == 'OPEN'
           assert theorem['scientific_boundary']['v3_universal_availability'] == 'OPEN'
           assert theorem['scientific_boundary']['universal_GPEI'] == 'OPEN'
-          print('V05_N46_FINITE_FRONTIER_CLAIM=PASS')
+          print('V05_N46_CORRECTED_FINITE_FRONTIER_CLAIM=PASS')
           print('V05_N46_R10_M5_DEGREE3_COLLAPSE=PASS')
+          print('FAILED_RUN_33097792011=PRESERVED')
           print('THEOREM_RUNTIME_HEURISTICS=FORBIDDEN')
           print('P_VS_NP=OPEN')
           PY
