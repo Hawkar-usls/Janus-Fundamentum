@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
 """Exact-rational regression for the C025 iterated envelope corridor through N=19.
 
-Uses fractions only. Confirms that every allowed root-variable budget for each
+Uses fractions as authority. Confirms that every allowed root-variable budget for
 N<=19 stays under N^2 for enough ordinary eliminations, and that the same
 sufficient recurrence intentionally becomes uncertified at N=20,r0=4.
 
+Decimal renderings are display-only and are never compared for theorem status.
 This validates the arithmetic boundary; it does not turn recurrence failure at
 N=20 into an algorithm failure. P_VS_NP remains OPEN.
 """
@@ -72,23 +73,31 @@ def selftest() -> None:
     maxima = verify_through_N19()
     seq20, escape20 = verify_N20_negative_control()
 
-    expected_rounded = {
-        16: 17.528356,
-        17: 23.765547,
-        18: 44.189179,
-        19: 156.442097,
+    # Exact values are theorem authority.  Previous v1 display metadata rounded
+    # the N=16 value one micro-unit upward; that presentation drift is preserved
+    # in the append-only v1.1 audit artifact, not encoded into this verifier.
+    expected_exact = {
+        16: Fraction(30289, 1728),
+        17: Fraction(851562529, 35831808),
+        18: Fraction(680823630757766209, 15407021574586368),
+        19: Fraction(
+            445627779542437935980260595645962369,
+            2848515765597237675947403497177088,
+        ),
     }
-    for N, expected in expected_rounded.items():
-        actual = round(float(maxima[N]), 6)
+    for N, expected in expected_exact.items():
+        actual = maxima[N]
         if actual != expected:
-            raise AssertionError(("PUBLISHED_MAXIMUM_DRIFT", N, actual, expected, maxima[N]))
+            raise AssertionError(("EXACT_MAXIMUM_DRIFT", N, actual, expected))
 
     print("ITERATED_UNIT_FREE_ENVELOPE_N_LE_19=PASS")
     for N in (16, 17, 18, 19):
-        print(f"N{N}_MAX_ENVELOPE={float(maxima[N]):.6f}")
+        print(f"N{N}_MAX_ENVELOPE_EXACT={maxima[N].numerator}/{maxima[N].denominator}")
+        print(f"N{N}_MAX_ENVELOPE_DISPLAY={float(maxima[N]):.6f}")
         print(f"N{N}_CAP={N*N}")
     print(f"N20_R4_FIRST_UNCERTIFIED_STEP={escape20}")
-    print(f"N20_R4_ESCAPE_ENVELOPE={float(seq20[escape20]):.6f}")
+    print(f"N20_R4_ESCAPE_ENVELOPE_EXACT={seq20[escape20].numerator}/{seq20[escape20].denominator}")
+    print(f"N20_R4_ESCAPE_ENVELOPE_DISPLAY={float(seq20[escape20]):.6f}")
     print("N20_RECURRENCE_FAILURE_IS_NOT_SOLVER_FAILURE=PASS")
     print("P_VS_NP=OPEN")
 
