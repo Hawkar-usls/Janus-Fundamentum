@@ -18,6 +18,10 @@ the same frozen N^C cap, every transition independently replays, and the final
 frozen progress potential is strictly smaller than the pre-macro potential.
 The elimination-chain length is the fixed constant 2.
 
+Iterative contexts inherit v2's historical-extension freshness rule: an
+extension identifier that disappeared from the live residual is still reserved
+forever by state.extension_defs and may not be reused.
+
 P_VS_NP remains OPEN.
 """
 from __future__ import annotations
@@ -95,7 +99,7 @@ def discover_extension_tail_plan_v3(state: base.EngineState) -> Optional[MacroPl
     if len(live_before) < 2:
         return None
 
-    fresh = max([*live_before, *state.root_vars], default=0) + 1
+    fresh = v2.next_fresh_extension(state)
     before_phi = state.progress_phi()
 
     for a, b in v2.all_or_pair_candidates(state.residual):
