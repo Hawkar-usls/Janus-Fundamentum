@@ -1,0 +1,52 @@
+name: run-c025-v3-exhaustive-legitimate-roots-N12
+
+on:
+  push:
+    branches:
+      - research/c025-balanced-pressure-wedge-2026-08-27
+    paths:
+      - 'experiments/direct/janus_v3_exhaustive_legitimate_roots_N12.py'
+      - '.github/workflows/run-c025-v3-exhaustive-legitimate-roots-N12.yml'
+
+jobs:
+  exhaustive-N12:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Execute exhaustive forward census
+        run: |
+          python -m experiments.direct.janus_v3_exhaustive_legitimate_roots_N12 \
+            | tee c025-v3-exhaustive-N12.json
+      - name: Verify finite claim ceiling
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          d = json.loads(Path('c025-v3-exhaustive-N12.json').read_text())
+          b = d['scientific_boundary']
+          assert d['N'] == 12
+          assert b['exhaustive_only_for_N12'] is True
+          assert b['order_preserving_variable_renaming_only'] is True
+          assert b['finite_totality_does_not_imply_asymptotic_totality'] is True
+          assert b['no_open_at_N12_does_not_prove_universal_availability'] is True
+          assert b['heuristic_or_predictive_layer_has_theorem_authority'] is False
+          assert b['P_VS_NP'] == 'OPEN'
+          assert sum(d['counts_by_root_var_count'].values()) == d['total_roots']
+          print('N12_ROOTS=' + str(d['total_roots']))
+          print('N12_STATUS=' + d['status'])
+          print('N12_OPEN_COUNT=' + str(d['status_counts'].get('OPEN', 0)))
+          print('N12_V2_ROOTS=' + str(d['roots_using_v2_macro_restore']))
+          print('N12_V3_TAIL_ROOTS=' + str(d['roots_using_v3_tail']))
+          if d['first_open'] is not None:
+              print('FIRST_REACHABLE_OPEN_ROOT=' + d['first_open']['root_fingerprint'])
+              print('FIRST_REACHABLE_OPEN_RESIDUAL=' + d['first_open']['residual_fingerprint'])
+          print('P_VS_NP=OPEN')
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: c025-v3-exhaustive-legitimate-roots-N12
+          path: c025-v3-exhaustive-N12.json
