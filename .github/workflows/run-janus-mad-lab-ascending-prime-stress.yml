@@ -1,0 +1,64 @@
+name: run-janus-mad-lab-ascending-prime-stress
+
+on:
+  push:
+    branches:
+      - research/janus-mad-lab-prime-probes-2026-08-28
+    paths:
+      - 'experiments/mad_lab/prime_stress_ascending.py'
+      - 'experiments/mad_lab/m2r_self_repair.py'
+      - 'experiments/mad_lab/spider_method_gate.py'
+      - 'experiments/mad_lab/SPIDER_METHOD_IMPORT.json'
+      - 'experiments/mad_lab/POLICY.json'
+      - '.github/workflows/run-janus-mad-lab-ascending-prime-stress.yml'
+  workflow_dispatch:
+
+jobs:
+  prime-stress:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Preflight anti-self-deception gates
+        run: |
+          python -m experiments.mad_lab.spider_method_gate
+          python -m experiments.mad_lab.m2r_self_repair
+
+      - name: Run ascending primes 2 through 937
+        run: |
+          python -m experiments.mad_lab.prime_stress_ascending \
+            --min 2 --max 937 --out prime_stress_result.json
+
+      - name: Validate result claim ceiling
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          x=json.loads(Path('prime_stress_result.json').read_text())
+          assert x['lane']=='JANUS_MAD_LAB'
+          assert x['status']=='EXPERIMENTAL_NOT_THEOREM'
+          assert x['P_VS_NP']=='OPEN'
+          assert x['prime_min']==2 and x['prime_max']==937
+          assert x['last_prime_scanned']==937
+          assert x['discovery_only'] is True
+          assert x['scientific_boundary']['proves_composites'] is False
+          assert x['scientific_boundary']['proves_each_prime_N'] is False
+          assert x['scientific_boundary']['proves_unbounded_totality'] is False
+          assert x['scientific_boundary']['same_run_new_lemma_use'] is False
+          print(f"PRIME_COUNT={x['prime_count']}")
+          print(f"OPEN_PRIME_COUNT={x['open_prime_count']}")
+          print(f"FIRST_OPEN_PRIME={x['first_open_prime']}")
+          print(f"LAST_PRIME_SCANNED={x['last_prime_scanned']}")
+          print('MAD_LAB_STRESS_CLAIM_CEILING=PASS')
+          print('P_VS_NP=OPEN')
+          PY
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: janus-mad-lab-ascending-prime-stress-2-937
+          path: prime_stress_result.json
+          if-no-files-found: error
