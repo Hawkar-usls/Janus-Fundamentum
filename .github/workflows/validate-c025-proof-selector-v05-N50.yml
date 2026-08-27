@@ -1,0 +1,61 @@
+name: validate-c025-proof-selector-v05-N50
+
+on:
+  push:
+    branches:
+      - research/c025-proof-selector-v0-5-2026-08-27
+    paths:
+      - 'research/C025_PROOF_SELECTOR_V05_CAP_FRONTIER_THROUGH_N50_2026-08-27.json'
+      - 'research/C025_MIN_DEGREE_SEVEN_CLAUSE_INVARIANT_COUNTEREXAMPLE_2026-08-27.json'
+      - 'experiments/direct/janus_min_degree_seven_clause_counterexample.py'
+      - 'experiments/direct/janus_proof_selector_v05_N50_replay.py'
+      - 'experiments/direct/janus_proof_selector_v05_candidate.py'
+      - '.github/workflows/validate-c025-proof-selector-v05-N50.yml'
+  pull_request:
+    paths:
+      - 'research/C025_PROOF_SELECTOR_V05_CAP_FRONTIER_THROUGH_N50_2026-08-27.json'
+      - 'research/C025_MIN_DEGREE_SEVEN_CLAUSE_INVARIANT_COUNTEREXAMPLE_2026-08-27.json'
+      - 'experiments/direct/janus_min_degree_seven_clause_counterexample.py'
+      - 'experiments/direct/janus_proof_selector_v05_N50_replay.py'
+      - 'experiments/direct/janus_proof_selector_v05_candidate.py'
+      - '.github/workflows/validate-c025-proof-selector-v05-N50.yml'
+
+jobs:
+  proof-selector-v05-N50:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Execute proof-selector candidate selftest
+        run: python -m experiments.direct.janus_proof_selector_v05_candidate
+      - name: Execute seven-clause negative control
+        run: python -m experiments.direct.janus_min_degree_seven_clause_counterexample
+      - name: Execute N50 reachable-bridge regression
+        run: python -m experiments.direct.janus_proof_selector_v05_N50_replay
+      - name: Verify theorem scope and claim ceiling
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          neg = json.loads(Path('research/C025_MIN_DEGREE_SEVEN_CLAUSE_INVARIANT_COUNTEREXAMPLE_2026-08-27.json').read_text())
+          theorem = json.loads(Path('research/C025_PROOF_SELECTOR_V05_CAP_FRONTIER_THROUGH_N50_2026-08-27.json').read_text())
+          assert neg['status'] == 'COUNTEREXAMPLE__M_LE_7_NOT_INVARIANT'
+          assert theorem['P_VS_NP'] == 'OPEN'
+          assert theorem['theorem_runtime_heuristics'] == 'FORBIDDEN'
+          assert theorem['runtime_change_from_N49'] is False
+          assert theorem['N50_partition']['status'] == 'PROVED'
+          assert theorem['r9_region']['status'] == 'PROVED'
+          assert theorem['r10_region']['status'] == 'PROVED'
+          assert theorem['r10_region']['degree_3_m9_L30']['conclusion'] == 'CAP_SAFE_BRIDGE_TO_N_LE_6'
+          assert theorem['finite_frontier_theorem']['status'] == 'PROVED_FINITE_N_CAP_AVAILABILITY'
+          assert theorem['scientific_boundary']['unbounded_totality'] == 'OPEN'
+          assert theorem['scientific_boundary']['v3_universal_availability'] == 'OPEN'
+          assert theorem['scientific_boundary']['universal_GPEI'] == 'OPEN'
+          print('M_LE_7_NEGATIVE_CONTROL=PASS')
+          print('V05_N50_FINITE_FRONTIER_CLAIM=PASS')
+          print('THEOREM_RUNTIME_HEURISTICS=FORBIDDEN')
+          print('P_VS_NP=OPEN')
+          PY
