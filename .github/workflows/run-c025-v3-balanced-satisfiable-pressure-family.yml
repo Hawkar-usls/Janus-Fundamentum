@@ -1,0 +1,50 @@
+name: run-c025-v3-balanced-satisfiable-pressure-family
+
+on:
+  push:
+    branches:
+      - research/c025-balanced-pressure-wedge-2026-08-27
+    paths:
+      - 'experiments/direct/janus_v3_balanced_satisfiable_pressure_family_probe.py'
+      - '.github/workflows/run-c025-v3-balanced-satisfiable-pressure-family.yml'
+
+jobs:
+  balanced-sat-pressure:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Run deterministic exact family probe
+        run: |
+          python -m experiments.direct.janus_v3_balanced_satisfiable_pressure_family_probe \
+            | tee v3-balanced-satisfiable-pressure-family.json
+      - name: Verify claim ceiling
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          d = json.loads(Path('v3-balanced-satisfiable-pressure-family.json').read_text())
+          b = d['scientific_boundary']
+          assert b['deterministic_constructed_family'] is True
+          assert b['SAT_status_has_explicit_all_ones_witness'] is True
+          assert b['states_not_proved_reachable_under_frozen_forward_machine'] is True
+          assert b['finite_success_does_not_prove_availability'] is True
+          assert b['V3_ROOT_FREE_TAIL_AVAILABILITY'] == 'OPEN'
+          assert b['P_VS_NP'] == 'OPEN'
+          print('BALANCED_SAT_PRESSURE_STATUS=' + d['status'])
+          for r in d['rows']:
+              print(
+                  f"n={r['nvars']} s={r['state_units']} N={r['synthetic_N']} "
+                  f"headroom={r['headroom']} ordinary_fit={len(r['ordinary_fit_pivots'])} "
+                  f"class={r['classification']}"
+              )
+          print('V3_ROOT_FREE_TAIL_AVAILABILITY=OPEN')
+          print('P_VS_NP=OPEN')
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: c025-v3-balanced-satisfiable-pressure-family
+          path: v3-balanced-satisfiable-pressure-family.json
