@@ -1,0 +1,56 @@
+{
+  "schema": "JANUS/C025/GENERIC-RAW-ELIMINATION-BUDGET-LEMMA/v1",
+  "date": "2026-08-27",
+  "status": "PROVED_GENERIC_SUFFICIENT_RAW_CAP_BOUND__NOT_TOTALITY",
+  "P_VS_NP": "OPEN",
+  "scope": "Any canonical CNF state and any live pivot variable x under the frozen eliminate_var_capped semantics.",
+  "definitions": {
+    "s": "state_units(F)=1+number_of_clauses+total_literal_occurrences",
+    "P": "clauses containing literal +x",
+    "N": "clauses containing literal -x",
+    "p": "|P|",
+    "q": "|N|",
+    "U_plus": "sum_{C in P} (|C|-1)",
+    "U_minus": "sum_{C in N} (|C|-1)",
+    "R": "state_units of clauses retaining neither +x nor -x",
+    "B_x": "R + p*q + q*U_plus + p*U_minus"
+  },
+  "lemma": {
+    "name": "GENERIC_PRE_SUBSUMPTION_RAW_ELIMINATION_UPPER_BOUND",
+    "statement": "For frozen eliminate_var_capped(F,x,cap), the monotone raw accumulator can never exceed B_x = R + p*q + q*U_plus + p*U_minus. Therefore B_x<=cap is a deterministic sufficient certificate that exact elimination of x cannot abort from the raw cap.",
+    "proof": [
+      "The raw accumulator begins with exactly the retained clauses, whose state_units contribution is R.",
+      "There are at most p*q parent pairs. For a positive parent C+=(x OR A) and negative parent C-=(-x OR B), the exact resolvent is canon_clause(A union B). If it is tautological it contributes zero; if duplicate it contributes zero additional raw units.",
+      "Otherwise its length is at most |A|+|B|. Its raw state-unit increment is therefore at most 1+|A|+|B|.",
+      "Summing the constant 1 over all p*q possible parent pairs contributes p*q.",
+      "Every positive tail A participates in q pairs, so all positive-tail lengths contribute at most q*U_plus. Every negative tail B participates in p pairs, contributing at most p*U_minus.",
+      "Thus the total monotone raw accumulator is bounded by R+p*q+q*U_plus+p*U_minus. Because eliminate_var_capped only aborts when this monotone accumulator exceeds cap, B_x<=cap guarantees no raw-cap abort.",
+      "No appeal to tautology frequency, duplicate frequency, subsumption, heuristic score, SAT semantics, or future information is needed. Those effects can only reduce the actual raw/canonical result relative to the bound."
+    ],
+    "equivalent_whole_state_form": {
+      "identity": "R = s - 2p - 2q - U_plus - U_minus",
+      "bound": "B_x = s + p*q - 2p - 2q + (q-1)*U_plus + (p-1)*U_minus",
+      "derivation": "Each pivot-containing clause C contributes one clause unit plus |C|=1+(1+tail), hence 2+tail. Removing all p+q pivot clauses from s leaves R."
+    },
+    "edge_cases": {
+      "p_zero_or_q_zero": "Then p*q and the corresponding cross terms vanish; elimination is pure deletion and the formula reduces to the retained-state size.",
+      "tautological_resolvents": "Ignored by the upper bound and therefore only help.",
+      "duplicate_resolvents": "Ignored by the upper bound and therefore only help.",
+      "canonical_subsumption": "Occurs after raw charging in the frozen engine and is not used to justify safety."
+    },
+    "algorithmic_certificate": {
+      "computation": "Single scan of clauses to obtain p,q,U_plus,U_minus,R for a specified pivot.",
+      "authority": "Sufficient cap certificate only. If B_x>cap, actual elimination may still succeed because the bound can overcount tautologies/duplicates; rejection is therefore UNKNOWN/NO_CERTIFICATE, not proof of overflow."
+    },
+    "scientific_boundary": {
+      "sufficient_not_necessary": true,
+      "does_not_claim_all_pivots_fit": true,
+      "does_not_claim_a_safe_pivot_always_exists": true,
+      "does_not_modify_the_frozen_solver": true,
+      "does_not_prove_v3_availability": true,
+      "does_not_prove_P_equals_NP": true,
+      "P_VS_NP": "OPEN"
+    },
+    "next_exact_target": "Compose this one-pivot bound sequentially across a v3 B2 macro: certify first old pivot, materialize its exact capped output, then certify a second distinct old pivot and strict root-free progress.",
+    "seal": "IANUS VIAS SERVAT."
+}
