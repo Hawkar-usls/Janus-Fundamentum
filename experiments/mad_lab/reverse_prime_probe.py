@@ -2,7 +2,9 @@
 """Reverse-prime stress-probe scheduler for JANUS MAD-LAB.
 
 This file does not prove any theorem. It only produces an isolated experimental
-schedule and normalized result envelopes for stress testing.
+schedule and normalized result envelopes for stress testing. The schedule does
+not fabricate actions; every future action is expected to pass through the M2R
+pre-action jump gate first.
 """
 
 from __future__ import annotations
@@ -42,6 +44,8 @@ class ProbeEnvelope:
     status: str = STATUS
     P_VS_NP: str = P_VS_NP
     theorem_runtime_heuristics: str = THEOREM_RUNTIME_HEURISTICS
+    m2r_preflight_required_before_action: bool = True
+    jump_semantics: str = "ACTION_LEVEL_NOT_N_SKIP"
     proves_intermediate_N: bool = False
     proves_unbounded_totality: bool = False
     automatic_promotion: bool = False
@@ -63,8 +67,11 @@ def selftest() -> None:
     assert env["N"] == 937
     assert env["status"] == STATUS
     assert env["P_VS_NP"] == "OPEN"
+    assert env["m2r_preflight_required_before_action"] is True
+    assert env["jump_semantics"] == "ACTION_LEVEL_NOT_N_SKIP"
     assert env["automatic_promotion"] is False
     print("MAD_LAB_REVERSE_PRIME_SCHEDULE=PASS")
+    print("M2R_PREFLIGHT_REQUIRED_BEFORE_ACTION=true")
     print(json.dumps([asdict(x) for x in schedule(8)], indent=2))
     print("P_VS_NP=OPEN")
 
