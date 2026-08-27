@@ -1,0 +1,38 @@
+name: validate-c025-unit-free-raw-envelope
+
+on:
+  push:
+    branches:
+      - research/c025-balanced-pressure-wedge-2026-08-27
+    paths:
+      - 'research/C025_UNIT_FREE_RAW_ELIMINATION_ENVELOPE_AND_ROOT_ALL_PIVOTS_SAFE_2026-08-27-v1.1.json'
+      - 'experiments/direct/janus_unit_free_raw_envelope_certificate.py'
+      - '.github/workflows/validate-c025-unit-free-raw-envelope.yml'
+
+jobs:
+  unit-free-envelope:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Execute frozen-accounting regression
+        run: python -m experiments.direct.janus_unit_free_raw_envelope_certificate
+      - name: Verify theorem ceiling
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          d = json.loads(Path('research/C025_UNIT_FREE_RAW_ELIMINATION_ENVELOPE_AND_ROOT_ALL_PIVOTS_SAFE_2026-08-27-v1.1.json').read_text())
+          assert d['status'] == 'AUDITED_PROVED_GENERIC_UNIT_FREE_ENVELOPE__PROVED_FIRST_ORDINARY_STATE_ALL_PIVOTS_SAFE'
+          assert d['P_VS_NP'] == 'OPEN'
+          assert d['generic_lemma']['status'] == 'PROVED'
+          assert d['first_ordinary_state_corollary']['status'] == 'PROVED'
+          assert d['first_ordinary_projection_envelope']['status'] == 'PROVED'
+          assert d['scientific_boundary']['does_not_prove_second_ordinary_state_all_pivots_safe_for_unbounded_N'] is True
+          assert d['scientific_boundary']['does_not_prove_P_equals_NP'] is True
+          print('UNIT_FREE_RAW_ENVELOPE_SCOPE=PASS')
+          print('P_VS_NP=OPEN')
+          PY
