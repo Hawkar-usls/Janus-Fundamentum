@@ -8,17 +8,20 @@ on:
       - 'experiments/direct/janus_unified_macro_restore_v2.py'
       - 'experiments/direct/janus_unified_macro_restore_v3.py'
       - 'experiments/direct/janus_second_stage4_root_anchored_probe.py'
+      - 'experiments/direct/janus_stage4_root_anchored_depth_probe.py'
       - '.github/workflows/validate-c025-root-anchored-iteration.yml'
   pull_request:
     paths:
       - 'experiments/direct/janus_unified_macro_restore_v2.py'
       - 'experiments/direct/janus_unified_macro_restore_v3.py'
       - 'experiments/direct/janus_second_stage4_root_anchored_probe.py'
+      - 'experiments/direct/janus_stage4_root_anchored_depth_probe.py'
       - '.github/workflows/validate-c025-root-anchored-iteration.yml'
 
 jobs:
   root-anchored-iteration:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -32,7 +35,7 @@ jobs:
         run: |
           python -m experiments.direct.janus_second_stage4_root_anchored_probe \
             | tee second-stage4-root-anchored.json
-      - name: Print exact result and enforce boundaries
+      - name: Print exact second-step result and enforce boundaries
         run: |
           python - <<'PY'
           import json
@@ -58,7 +61,6 @@ jobs:
               print('SECOND_REENTRY_MODE=' + str(data['second_reentry']['mode']))
               print('MAX_STATE_UNITS=' + str(r['max_state_units_seen']))
               print('CUMULATIVE_PROOF_BYTES=' + str(r['cumulative_proof_bytes']))
-              print('CUMULATIVE_WORK=' + json.dumps(r['cumulative_work'], sort_keys=True))
           print('UNIVERSAL_GPEI_PRESERVATION=OPEN')
           print('P_VS_NP=OPEN')
           PY
@@ -66,3 +68,38 @@ jobs:
         with:
           name: c025-second-stage4-root-anchored-latest
           path: second-stage4-root-anchored.json
+      - name: Run root-anchored Stage4 depth probe on frozen R1 enumeration
+        run: |
+          python -m experiments.direct.janus_stage4_root_anchored_depth_probe \
+            --nvars 4 --clauses 5 --min-width 3 --max-width 3 \
+            --cap-exponent 2 --extension-exponent 1 --limit 5000 \
+            | tee stage4-root-anchored-depth-r1.json
+      - name: Print R1 depth profile and enforce scientific boundary
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          data = json.loads(Path('stage4-root-anchored-depth-r1.json').read_text())
+          b = data['scientific_boundary']
+          assert b['bounded_finite_probe_only'] is True
+          assert b['root_budget_rebased'] is False
+          assert b['grammar_changed_during_probe'] is False
+          assert b['absence_of_open_is_not_universal_totality'] is True
+          assert b['universal_stage4_iterability'] == 'OPEN'
+          assert b['universal_GPEI_preservation'] == 'OPEN'
+          assert b['P_VS_NP'] == 'OPEN'
+          t = data['totals']
+          print('R1_DEPTH_STATUS=' + data['status'])
+          print('R1_OPEN3=' + str(t['open3']))
+          print('R1_EVENTUALLY_DECIDED=' + str(t['eventually_decided']))
+          print('R1_REMAINING_OPEN=' + str(t['remaining_open']))
+          print('R1_DEPTH_HISTOGRAM=' + json.dumps(data['stage4_depth_histogram'], sort_keys=True))
+          if data['first_remaining_open'] is not None:
+              print('R1_FIRST_REMAINING_OPEN=' + data['first_remaining_open']['source_fingerprint'])
+              print('R1_FIRST_REMAINING_BARRIER=' + data['first_remaining_open']['result']['barrier'])
+          print('P_VS_NP=OPEN')
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: c025-stage4-root-anchored-depth-r1
+          path: stage4-root-anchored-depth-r1.json
