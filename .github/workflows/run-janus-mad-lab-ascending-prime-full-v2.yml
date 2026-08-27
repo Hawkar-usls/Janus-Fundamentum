@@ -1,0 +1,65 @@
+name: run-janus-mad-lab-ascending-prime-full-v2
+
+on:
+  push:
+    branches:
+      - research/janus-mad-lab-prime-probes-2026-08-28
+    paths:
+      - 'experiments/mad_lab/prime_stress_full_closure_v2.py'
+      - '.github/workflows/run-janus-mad-lab-ascending-prime-full-v2.yml'
+  workflow_dispatch:
+
+jobs:
+  full-prime-stress-v2:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Run sensitivity and anti-self-deception selftest
+        run: python -m experiments.mad_lab.prime_stress_full_closure_v2 --selftest
+
+      - name: Run full reachable closure on ascending primes 2 through 937
+        run: |
+          python -m experiments.mad_lab.prime_stress_full_closure_v2 \
+            --min 2 --max 937 --out prime_stress_full_v2.json
+
+      - name: Validate v2 claim ceiling
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          x=json.loads(Path('prime_stress_full_v2.json').read_text())
+          assert x['schema'].endswith('/v2')
+          assert x['lane']=='JANUS_MAD_LAB'
+          assert x['status']=='EXPERIMENTAL_NOT_THEOREM'
+          assert x['P_VS_NP']=='OPEN'
+          assert x['scope']=='FULL_REACHABLE_ABSTRACT_CLOSURE_FROM_HARD_ROOTS'
+          assert x['proved_base_frontier']==57
+          assert x['prime_min']==2 and x['prime_max']==937
+          assert x['last_prime_scanned']==937
+          assert x['discovery_only'] is True
+          b=x['scientific_boundary']
+          assert b['abstract_overapprox_not_actual_cnf_witness'] is True
+          assert b['proves_composites'] is False
+          assert b['promotes_to_theorem_automatically'] is False
+          assert b['proves_unbounded_totality'] is False
+          assert b['same_run_new_lemma_use'] is False
+          print(f"V2_PRIME_COUNT={x['prime_count']}")
+          print(f"V2_BASE_CLOSED={x['base_closed_prime_count']}")
+          print(f"V2_OPEN_COUNT={x['open_prime_count']}")
+          print(f"V2_NO_OPEN_FULL={x['no_open_full_closure_count']}")
+          print(f"V2_FIRST_OPEN={x['first_open_prime']}")
+          print(f"V2_LAST={x['last_prime_scanned']}")
+          print('V2_CLAIM_CEILING=PASS')
+          print('P_VS_NP=OPEN')
+          PY
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: janus-mad-lab-ascending-prime-full-v2-2-937
+          path: prime_stress_full_v2.json
+          if-no-files-found: error
