@@ -1,0 +1,41 @@
+name: probe-c025-resource-simplex-N58
+
+on:
+  push:
+    branches:
+      - research/c025-proof-selector-v0-5-2026-08-27
+    paths:
+      - 'experiments/direct/janus_v05_abstract_frontier_resource_simplex.py'
+      - 'experiments/direct/janus_v05_abstract_frontier_global_raw_universe.py'
+      - 'research/C025_ABSTRACT_N58_SECOND_OPEN_AFTER_GLOBAL_RAW_UNIVERSE_2026-08-27.json'
+      - '.github/workflows/probe-c025-resource-simplex-N58.yml'
+  pull_request:
+    paths:
+      - 'experiments/direct/janus_v05_abstract_frontier_resource_simplex.py'
+      - 'experiments/direct/janus_v05_abstract_frontier_global_raw_universe.py'
+      - '.github/workflows/probe-c025-resource-simplex-N58.yml'
+
+jobs:
+  resource-simplex-N58:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Execute resource-simplex N58 probe
+        run: python -m experiments.direct.janus_v05_abstract_frontier_resource_simplex
+      - name: Preserve scientific claim ceiling
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          old=json.loads(Path('research/C025_ABSTRACT_N58_SECOND_OPEN_AFTER_GLOBAL_RAW_UNIVERSE_2026-08-27.json').read_text())
+          assert old['status']=='ABSTRACT_BOUND_OPEN_AFTER_FIRST_REPAIR__NOT_ACTUAL_COUNTEREXAMPLE'
+          assert old['P_VS_NP']=='OPEN'
+          print('SECOND_N58_OPEN_PRESERVED_APPEND_ONLY=PASS')
+          print('THEOREM_RUNTIME_HEURISTICS=FORBIDDEN')
+          print('UNBOUNDED_TOTALITY=OPEN')
+          print('P_VS_NP=OPEN')
+          PY
