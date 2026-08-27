@@ -1,0 +1,53 @@
+{
+  "schema": "JANUS/C025/MIN-DEGREE-EXCESS-GLOBAL-SUPPORT-FEASIBILITY/v1",
+  "date": "2026-08-27",
+  "status": "PROVED_EXACT_MIN_DEGREE_EXCESS_RAW_FEASIBILITY_BOUND",
+  "P_VS_NP": "OPEN",
+  "engine_scope": "PIRC_DECISION_CORE_V0_5_PROOF_SELECTOR_CANDIDATE",
+  "theorem_runtime_heuristics": "FORBIDDEN",
+  "runtime_change": false,
+  "definitions": {
+    "d": "selected minimum incidence degree",
+    "E": "L-n*d, the total degree excess of nonpivot variables above d",
+    "r": "n-1 nonpivot variables",
+    "c": "m-d retained clauses",
+    "R0": "retained-clause literal mass",
+    "e_y": "degree excess of nonpivot variable y, so deg(y)=d+e_y and sum e_y=E",
+    "t_y": "retained incidence of y",
+    "s_y": "number of pivot-parent clauses omitting y; exactly s_y=t_y-e_y",
+    "f_p_q_s": "max a*b subject to 0<=a<=p, 0<=b<=q, a+b=s",
+    "Omax_T": "max sum_y f_p_q(s_y) subject to 0<=s_y<=min(c,d) and sum_y s_y=T"
+  },
+  "statement": "For every unit-free canonical ordinary CNF state and every actual selected minimum-degree pivot of degree d with split p+q=d, set E=L-n*d. For a feasible retained literal mass R0, total omission count among pivot parents is exactly T=R0-E. Thus total pair-support mass is at least Smin(R0)=r*pq-Omax(R0-E). If D distinct non-tautological resolvents exist and h of them coincide with retained clauses, then K=c+D-h global raw clauses must satisfy R0+max(0,Smin-(pq-D)r)-h*r<=Wmax_r(K), K<=3^r. Therefore raw_units is at most the maximum 1+K+Wmax_r(K) over all feasible integer R0,D,h. This strictly generalizes the regular L=n*d theorem, which is the E=0 case.",
+  "proof": [
+    "The selected pivot has degree exactly d. Every other live variable has degree at least d because d is the minimum. Write deg(y)=d+e_y with e_y>=0. Summing degrees gives sum_y e_y=L-n*d=E.",
+    "For a nonpivot variable y, let t_y be its retained incidence. Its incidence among the d pivot-parent clauses is d+e_y-t_y. Therefore its omission count among those d parents is s_y=d-(d+e_y-t_y)=t_y-e_y>=0.",
+    "Summing over nonpivot variables gives sum_y s_y=R0-E. Also s_y<=c because t_y<=c, and s_y<=d because there are only d pivot parents.",
+    "If a_y of the p positive parents and b_y of the q negative parents omit y, then a_y+b_y=s_y and exactly a_y*b_y cross-polarity parent pairs omit y. Hence omitted pair-variable incidences are at most Omax(R0-E), and total pair-support mass is at least Smin=r*pq-Omax(R0-E).",
+    "Choose one parent pair for each of D distinct non-tautological resolvents. Removing the other pq-D pairs discards at most (pq-D)r support mass, so representative resolvent widths total at least max(0,Smin-(pq-D)r).",
+    "The c retained clauses have total width R0. If h distinct resolvents coincide with retained clauses, retained-plus-resolvent width double-counts at most h*r. Thus K=c+D-h distinct raw clauses have literal mass at least R0+representative_width_lower-h*r.",
+    "K distinct signed non-tautological clauses over r variables have total width at most Wmax_r(K), and K<=3^r. Therefore only the stated integer triples are feasible.",
+    "At a unit-free stage 2c<=R0, every pivot-parent clause has at least one tail literal so R0<=L-2d, and trivially R0<=c*r. Also R0>=E because sum omissions R0-E is nonnegative. Scanning this finite interval and all D,h yields a deterministic exact resource ceiling.",
+    "No runtime decision changes: this theorem is invoked only to certify resource availability of the already frozen exact elimination."
+  ],
+  "specializations": {
+    "E0": "C025_REGULAR_MIN_DEGREE_GLOBAL_SUPPORT_FEASIBILITY",
+    "N58_E1_specimen": {
+      "state": {"n":7,"m":77,"L":351,"d":50,"p":22,"q":28},
+      "E": 1,
+      "old_bound": 3389,
+      "exact_feasibility_raw_ceiling": 3341,
+      "cap": 3364,
+      "margin": 23,
+      "maximizing_feasible_witness": {"R0":162,"omission_sum":161,"Omax":1079,"Smin":2617,"D":604,"h":0,"K":631,"representative_resolvent_width_lower":2545,"raw_width_lower":2707,"Wmax_6_631":2709}
+    }
+  },
+  "scientific_boundary": {
+    "exact_resource_lemma_for_a_selected_minimum_degree_pivot": true,
+    "does_not_change_runtime": true,
+    "does_not_by_itself_prove_N58_or_unbounded_totality": true,
+    "does_not_prove_P_equals_NP": true,
+    "P_VS_NP": "OPEN"
+  },
+  "seal": "IANUS VIAS SERVAT."
+}
