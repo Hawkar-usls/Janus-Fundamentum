@@ -1,0 +1,52 @@
+name: probe-c025-regular-support-N58
+
+on:
+  push:
+    branches:
+      - research/c025-proof-selector-v0-5-2026-08-27
+    paths:
+      - 'research/C025_REGULAR_MIN_DEGREE_GLOBAL_SUPPORT_FEASIBILITY_2026-08-27.json'
+      - 'research/C025_N58_RESOURCE_SIMPLEX_NO_GAIN_2026-08-27.json'
+      - 'experiments/direct/janus_regular_min_degree_global_support_feasibility.py'
+      - 'experiments/direct/janus_v05_abstract_frontier_regular_support_repair.py'
+      - '.github/workflows/probe-c025-regular-support-N58.yml'
+  pull_request:
+    paths:
+      - 'research/C025_REGULAR_MIN_DEGREE_GLOBAL_SUPPORT_FEASIBILITY_2026-08-27.json'
+      - 'experiments/direct/janus_regular_min_degree_global_support_feasibility.py'
+      - 'experiments/direct/janus_v05_abstract_frontier_regular_support_repair.py'
+      - '.github/workflows/probe-c025-regular-support-N58.yml'
+
+jobs:
+  regular-support-N58:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Execute regular-support feasibility regression
+        run: python -m experiments.direct.janus_regular_min_degree_global_support_feasibility
+      - name: Execute exact N58 regular-support abstract repair
+        run: python -m experiments.direct.janus_v05_abstract_frontier_regular_support_repair
+      - name: Verify append-only history and claim ceiling
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          lemma=json.loads(Path('research/C025_REGULAR_MIN_DEGREE_GLOBAL_SUPPORT_FEASIBILITY_2026-08-27.json').read_text())
+          neg=json.loads(Path('research/C025_N58_RESOURCE_SIMPLEX_NO_GAIN_2026-08-27.json').read_text())
+          assert lemma['status']=='PROVED_EXACT_REGULAR_STATE_RAW_FEASIBILITY_BOUND'
+          assert lemma['N58_second_open_repair']['exact_feasibility_raw_ceiling']==3361
+          assert lemma['N58_second_open_repair']['N58_cap']==3364
+          assert lemma['P_VS_NP']=='OPEN'
+          assert lemma['runtime_change'] is False
+          assert neg['status']=='NEGATIVE_RESULT__RESOURCE_SIMPLEX_DID_NOT_CLOSE_N58'
+          assert neg['N58_status_at_this_event']=='ABSTRACT_OPEN'
+          print('REGULAR_SUPPORT_THEOREM_SCOPE=PASS')
+          print('RESOURCE_SIMPLEX_FAILURE_PRESERVED_APPEND_ONLY=PASS')
+          print('THEOREM_RUNTIME_HEURISTICS=FORBIDDEN')
+          print('UNBOUNDED_TOTALITY=OPEN')
+          print('P_VS_NP=OPEN')
+          PY
