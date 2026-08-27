@@ -1,0 +1,62 @@
+name: validate-c025-proof-selector-v05-N52
+
+on:
+  push:
+    branches:
+      - research/c025-proof-selector-v0-5-2026-08-27
+    paths:
+      - 'research/C025_PROOF_SELECTOR_V05_CAP_FRONTIER_THROUGH_N52_2026-08-27.json'
+      - 'research/C025_MIN_DEGREE_EQUALS_CLAUSE_COUNT_FULL_WIDTH_COLLAPSE_2026-08-27.json'
+      - 'experiments/direct/janus_min_degree_equals_clause_count_full_width_collapse.py'
+      - 'experiments/direct/janus_proof_selector_v05_N52_replay.py'
+      - 'experiments/direct/janus_proof_selector_v05_candidate.py'
+      - '.github/workflows/validate-c025-proof-selector-v05-N52.yml'
+  pull_request:
+    paths:
+      - 'research/C025_PROOF_SELECTOR_V05_CAP_FRONTIER_THROUGH_N52_2026-08-27.json'
+      - 'research/C025_MIN_DEGREE_EQUALS_CLAUSE_COUNT_FULL_WIDTH_COLLAPSE_2026-08-27.json'
+      - 'experiments/direct/janus_min_degree_equals_clause_count_full_width_collapse.py'
+      - 'experiments/direct/janus_proof_selector_v05_N52_replay.py'
+      - 'experiments/direct/janus_proof_selector_v05_candidate.py'
+      - '.github/workflows/validate-c025-proof-selector-v05-N52.yml'
+
+jobs:
+  proof-selector-v05-N52:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Execute proof-selector candidate selftest
+        run: python -m experiments.direct.janus_proof_selector_v05_candidate
+      - name: Execute full-width-collapse regression
+        run: python -m experiments.direct.janus_min_degree_equals_clause_count_full_width_collapse
+      - name: Execute N52 selector replay regression
+        run: python -m experiments.direct.janus_proof_selector_v05_N52_replay
+      - name: Verify theorem scope and claim ceiling
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          lemma = json.loads(Path('research/C025_MIN_DEGREE_EQUALS_CLAUSE_COUNT_FULL_WIDTH_COLLAPSE_2026-08-27.json').read_text())
+          theorem = json.loads(Path('research/C025_PROOF_SELECTOR_V05_CAP_FRONTIER_THROUGH_N52_2026-08-27.json').read_text())
+          assert lemma['status'] == 'PROVED_GENERAL_FULL_WIDTH_COLLAPSE'
+          assert lemma['P_VS_NP'] == 'OPEN'
+          assert theorem['P_VS_NP'] == 'OPEN'
+          assert theorem['theorem_runtime_heuristics'] == 'FORBIDDEN'
+          assert theorem['runtime_change_from_N51'] is False
+          assert theorem['N52_partition']['status'] == 'PROVED'
+          assert theorem['r9_region']['status'] == 'PROVED'
+          assert theorem['r10_region']['status'] == 'PROVED'
+          assert theorem['r11_region']['status'] == 'PROVED'
+          assert theorem['r10_region']['degree_3']['conclusion'] == 'CAP_SAFE_BRIDGE_TO_N_LE_6'
+          assert theorem['finite_frontier_theorem']['status'] == 'PROVED_FINITE_N_CAP_AVAILABILITY'
+          assert theorem['scientific_boundary']['unbounded_totality'] == 'OPEN'
+          assert theorem['scientific_boundary']['universal_GPEI'] == 'OPEN'
+          print('GENERAL_FULL_WIDTH_COLLAPSE_CLAIM=PASS')
+          print('V05_N52_FINITE_FRONTIER_CLAIM=PASS')
+          print('THEOREM_RUNTIME_HEURISTICS=FORBIDDEN')
+          print('P_VS_NP=OPEN')
+          PY
