@@ -1,0 +1,43 @@
+name: validate-c025-N58-22x28-core-split
+
+on:
+  push:
+    branches:
+      - research/c025-n58-regular-occupancy-2026-08-27
+    paths:
+      - 'research/C025_N58_22X28_CORE_SPLIT_OBSTRUCTION_2026-08-28.json'
+      - 'experiments/direct/janus_v05_abstract_frontier_N58_22x28_core_split.py'
+      - '.github/workflows/validate-c025-N58-22x28-core-split.yml'
+  pull_request:
+    paths:
+      - 'research/C025_N58_22X28_CORE_SPLIT_OBSTRUCTION_2026-08-28.json'
+      - 'experiments/direct/janus_v05_abstract_frontier_N58_22x28_core_split.py'
+      - '.github/workflows/validate-c025-N58-22x28-core-split.yml'
+
+jobs:
+  N58-22x28-core-split:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Execute exact N58 22x28 replay
+        run: python -m experiments.direct.janus_v05_abstract_frontier_N58_22x28_core_split
+      - name: Verify theorem scope
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          x=json.loads(Path('research/C025_N58_22X28_CORE_SPLIT_OBSTRUCTION_2026-08-28.json').read_text())
+          assert x['status']=='PROVED_22X28_RAW_CAP_VIOLATION_IMPOSSIBLE'
+          assert x['conclusion']['actual_raw_units_ceiling']==3364
+          assert x['conclusion']['cap_safe'] is True
+          assert x['runtime_change'] is False
+          assert x['scientific_boundary']['full_N58_requires_replay'] is True
+          assert x['theorem_runtime_heuristics']=='FORBIDDEN'
+          assert x['P_VS_NP']=='OPEN'
+          print('N58_22X28_THEOREM_SCOPE=PASS')
+          print('P_VS_NP=OPEN')
+          PY
