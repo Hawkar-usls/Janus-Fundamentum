@@ -1,0 +1,50 @@
+name: validate-c025-existing-raw-budget-reroot-N30
+
+on:
+  push:
+    branches:
+      - research/c025-balanced-pressure-wedge-2026-08-27
+    paths:
+      - 'research/C025_EXISTING_RAW_BUDGET_REROOT_AND_NO_CAP_RESCUE_THROUGH_N30_2026-08-27.json'
+      - 'experiments/direct/janus_existing_raw_budget_reroot_N30_certificate.py'
+      - '.github/workflows/validate-c025-existing-raw-budget-reroot-N30.yml'
+  pull_request:
+    paths:
+      - 'research/C025_EXISTING_RAW_BUDGET_REROOT_AND_NO_CAP_RESCUE_THROUGH_N30_2026-08-27.json'
+      - 'experiments/direct/janus_existing_raw_budget_reroot_N30_certificate.py'
+      - '.github/workflows/validate-c025-existing-raw-budget-reroot-N30.yml'
+
+jobs:
+  existing-raw-budget-reroot-N30:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Execute exact arithmetic regression
+        run: python -m experiments.direct.janus_existing_raw_budget_reroot_N30_certificate
+      - name: Verify theorem scope and claim ceiling
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          d = json.loads(Path('research/C025_EXISTING_RAW_BUDGET_REROOT_AND_NO_CAP_RESCUE_THROUGH_N30_2026-08-27.json').read_text())
+          assert d['status'] == 'PROVED_EXISTING_RAW_BUDGET_COMPOSITION__PROVED_NO_RAW_CAP_RESCUE_N_LE_30'
+          assert d['P_VS_NP'] == 'OPEN'
+          assert d['frozen_grammar_changed'] is False
+          assert d['theorem_runtime_heuristics'] == 'FORBIDDEN'
+          assert d['N30_legitimate_root_range']['status'] == 'PROVED'
+          assert d['low_r_combined_recurrence']['status'] == 'PROVED_BY_EXISTING_RECURRENCE'
+          assert d['r8_partition']['status'] == 'PROVED_PARTITION'
+          assert d['r8_m5_degree2_composition']['status'] == 'PROVED_BY_EXISTING_GENERIC_RAW_LEMMA'
+          assert d['r9_partition']['status'] == 'PROVED'
+          assert d['high_r_degree1_corridor']['status'] == 'PROVED'
+          assert d['theorem']['status'] == 'PROVED'
+          assert d['scientific_boundary']['does_not_prove_P_equals_NP'] is True
+          assert d['scientific_boundary']['does_not_prove_unbounded_reachable_totality'] is True
+          print('N30_EXISTING_RAW_BUDGET_SCOPE=PASS')
+          print('THEOREM_RUNTIME_HEURISTICS=FORBIDDEN')
+          print('P_VS_NP=OPEN')
+          PY
