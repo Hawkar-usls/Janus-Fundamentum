@@ -1,0 +1,39 @@
+{
+  "schema": "JANUS/C025/V2-FREQUENT-PAIR-RESCUE-SUFFICIENT-LEMMA/v1",
+  "date": "2026-08-27",
+  "status": "PROVED_SUFFICIENT_RESCUE_CONDITION__UNIVERSAL_PAIR_EXISTENCE_OPEN",
+  "P_VS_NP": "OPEN",
+  "dependencies": [
+    "research/C025_LOW_VOLUME_ELIMINATION_THRESHOLD_STRENGTHENING_2026-08-27.json",
+    "experiments/direct/janus_unified_macro_restore_v2.py"
+  ],
+  "lemma": {
+    "id": "FREQUENT_PAIR_FORCES_V2_ROOT_RESCUE",
+    "statement": "Let S be a reachable nonterminal canonical CNF state of PIRC_DECISION_CORE_V0_4 with at least one live root variable, root-relative input budget N, and state_units s. If some nondegenerate literal pair (a,b) co-occurs in t clauses with t >= s-2N+11, then the frozen exhaustive v2 B2 macro lane is guaranteed to admit an exact strict-progress root-rescue move under the N^2 state cap.",
+    "proof": [
+      "v2 enumerates every nondegenerate literal pair that co-occurs in a live clause in canonical order, so the pair (a,b) is deterministically reached unless an earlier pair already succeeds.",
+      "Replacing (a,b) by -e in each of t clauses removes one literal occurrence per replaced clause and leaves clause count unchanged for those clauses. The three exact definition clauses (-e,-a),(-e,-b),(e,a,b) add 3 clause units and 7 literal units, total 10 units.",
+      "Therefore before any beneficial canonical duplicate/subsumption cleanup, macro state_units <= s-t+10.",
+      "The frequency premise gives s-t+10 <= 2N-1.",
+      "By TWO_N_MINUS_ONE_ELIMINATION_CORRIDOR, exact Davis-Putnam elimination of every live pivot in the macro CNF fits the N^2 cap.",
+      "The B2 macro is a definitional extension and does not eliminate original variables; while a root was live before the macro, at least one root remains available for roots_only elimination. v2 scans the frozen root order and therefore finds a capped root pivot.",
+      "That root elimination decreases the live-root count by one. The frozen potential phi=r*(n+N^2+1)+v strictly decreases because the macro adds at most one live extension while root elimination removes one live root, whereas the lost root coefficient n+N^2+1 is strictly larger than any possible +1 live-variable change.",
+      "Exact macro replay plus exact capped elimination therefore satisfy all v2 admission gates."
+    ],
+    "status": "PROVED_FROM_FROZEN_V2_SEMANTICS_AND_ELIMINATION_BOUND"
+  },
+  "root_phase_reduction": {
+    "old_open_region": "ROOTS_LIVE AND state_units>=2N AND EVERY_ORDINARY_PIVOT_OVERFLOWS",
+    "new_open_region": "ROOTS_LIVE AND state_units>=2N AND EVERY_ORDINARY_PIVOT_OVERFLOWS AND max_pair_cooccurrence < state_units-2N+11",
+    "name": "PAIR_DISPERSED_HIGH_VOLUME_ROOT_GAP",
+    "status": "OPEN"
+  },
+  "important_boundary": {
+    "does_not_prove_a_frequent_pair_always_exists": true,
+    "does_not_cover_root_free_v3_tail": true,
+    "does_not_prove_HIGH_VOLUME_RESCUE_TOTALITY": true,
+    "does_not_prove_P_equals_NP": true,
+    "P_VS_NP": "OPEN"
+  },
+  "next_mathematical_target": "Combine pair-incidence counting with the all-pivot-overflow condition. Either prove that every reachable root-phase all-pivot-overflow state must violate the pair-dispersed inequality, thereby closing ROOT_PHASE_HIGH_VOLUME_RESCUE, or freeze a reachable pair-dispersed counterexample."
+}
