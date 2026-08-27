@@ -1,0 +1,60 @@
+{
+  "schema": "JANUS/C025/SIGN-SPLIT-PAIR-DISPERSION-STRENGTHENING/v1.1",
+  "date": "2026-08-27",
+  "status": "PROVED_STRONGER_SUFFICIENT_CORRIDOR__BALANCED_PRESSURE_WEDGE_OPEN",
+  "P_VS_NP": "OPEN",
+  "supersedes_only_in_sharpness": "research/C025_PAIR_DISPERSION_RAW_ELIMINATION_CORRIDOR_2026-08-27.json",
+  "history_policy": "APPEND_ONLY__V1_BOUND_REMAINS_VALID_BUT_NONSHARP",
+  "definitions": {
+    "N": "root-relative normalized input budget",
+    "s": "current canonical state_units after unit propagation fixed point",
+    "n": "number of live variables",
+    "T": "maximum cooccurrence frequency of any nondegenerate sign-aware literal pair",
+    "B": "2(n-1)T",
+    "A_plus_x": "sum(|C|-1) over clauses containing +x",
+    "A_minus_x": "sum(|C|-1) over clauses containing -x"
+  },
+  "lemma": {
+    "id": "SIGN_SPLIT_PAIR_DISPERSION_FORCES_RAW_ELIMINATION_FIT",
+    "statement": "Every live pivot x has A_plus_x<=B and A_minus_x<=B. At a unit-propagation fixed point the positive/negative bucket counts p,q satisfy p<=A_plus_x and q<=A_minus_x. The Davis-Putnam raw multiset bound therefore satisfies R_x<=s+3B^2-6B = s+12(n-1)^2*T^2-12(n-1)T. Hence if this quantity is <=N^2, every live pivot fits the frozen monotone N^2 raw cap.",
+    "proof": [
+      "Fix literal +x. For each other underlying variable y there are only two partner signs, +y and -y, hence at most 2(n-1) sign-aware pair types touching +x. Each occurs at most T times, so A_plus_x<=2(n-1)T=B. The same holds for -x.",
+      "No unit clause remains. Every clause in the +x bucket contributes at least one nonpivot pair incidence, so p<=A_plus_x; similarly q<=A_minus_x.",
+      "The exact raw-multiset delta derived in v1 is D=pq+(q-1)A_plus_x+(p-1)A_minus_x-2(p+q).",
+      "If p=0 or q=0 the pivot cannot create a cross-product overflow. Otherwise p,q>=1 and the delta is nondecreasing in p and q because q+A_minus_x-2>=0 and p+A_plus_x-2>=0.",
+      "Thus for fixed A_plus_x,A_minus_x the maximum occurs at p=A_plus_x and q=A_minus_x, giving D<=3*A_plus_x*A_minus_x-3(A_plus_x+A_minus_x).",
+      "For A_plus_x,A_minus_x>=1 this is nondecreasing in each argument, so the maximum under both <=B is 3B^2-6B.",
+      "The implementation discards tautological and duplicate resolvents during raw-set construction, so its monotone raw_units never exceed the multiset bound."
+    ],
+    "status": "PROVED_ELEMENTARY"
+  },
+  "strengthened_corridor": {
+    "condition": "s+12(n-1)^2*T^2-12(n-1)T <= N^2",
+    "consequence": "EVERY_LIVE_PIVOT_HAS_A_CERTIFIED_N2_CAPPED_EXACT_ELIMINATION",
+    "selection": "The frozen canonical first_capped_elimination therefore returns a move without heuristic choice."
+  },
+  "strengthened_remaining_wedge": {
+    "name": "SIGN_SPLIT_BALANCED_PAIR_PRESSURE_ROOT_WEDGE",
+    "necessary_conditions": [
+      "ROOT_VARIABLES_REMAIN_LIVE",
+      "NO_EARLIER_EXACT_TERMINAL_LANE_DECIDES",
+      "s>=2N",
+      "EVERY_FROZEN_ORDINARY_PIVOT_HITS_THE_MONOTONE_N2_RAW_CAP",
+      "T<=s-2N+10",
+      "s+12(n-1)^2*T^2-12(n-1)T>N^2",
+      "V2_EXHAUSTIVE_FROZEN_GRAMMAR_FINDS_NO_CERTIFIED_MOVE"
+    ],
+    "status": "OPEN"
+  },
+  "derived_live_variable_floor": {
+    "statement": "For T>0, any state not covered by the strengthened raw corridor must satisfy (n-1)^2 > (N^2-s+12(n-1)T)/(12T^2); the simpler weaker necessary condition n>1+sqrt(max(0,N^2-s)/(12T^2)) follows by dropping the positive correction term.",
+    "role": "Necessary geometry of a possible gap witness, not a totality theorem."
+  },
+  "scientific_boundary": {
+    "does_not_prove_v0_4_totality": true,
+    "does_not_prove_v2_pair_exists": true,
+    "does_not_cover_root_free_v3_tail": true,
+    "P_VS_NP": "OPEN"
+  },
+  "next_exact_target": "Target only the strengthened balanced-pressure wedge in reachable trajectories; do not spend theorem effort on states already certified by low-volume, raw-dispersion, or frequent-pair corridors."
+}
