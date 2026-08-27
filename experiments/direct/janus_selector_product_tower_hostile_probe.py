@@ -33,13 +33,19 @@ def relabel(cnf: base.CNF, mapping: dict[int, int]) -> base.CNF:
     )
 
 
-def k5_leaf_with_offset(offset: int) -> tuple[base.CNF, int]:
+def k5_leaf_with_first_var(first_var: int) -> tuple[base.CNF, int]:
+    """Return one disjoint K5 4-coloring leaf using first_var..last inclusive."""
+    if first_var < 1:
+        raise ValueError("first_var must be positive")
     edges = tuple((u, v) for u in range(5) for v in range(u + 1, 5))
     raw = color.color_cnf(5, 4, edges)
     vars0 = base.vars_of(raw)
-    mapping = {old: offset + i for i, old in enumerate(vars0)}
+    mapping = {old: first_var + i for i, old in enumerate(vars0)}
     out = relabel(raw, mapping)
-    return out, offset + len(vars0)
+    last_var = first_var + len(vars0) - 1
+    if base.vars_of(out) != tuple(range(first_var, last_var + 1)):
+        raise AssertionError("K5_LEAF_DENSE_RANGE_DRIFT")
+    return out, last_var
 
 
 def selector_join(selector: int, left: base.CNF, right: base.CNF) -> base.CNF:
@@ -56,17 +62,28 @@ def build_tree(depth: int) -> base.CNF:
         raise ValueError("depth must be >=1")
     leaves = 1 << depth
     selectors = leaves - 1
+
+    # Reserve 1..selectors exclusively for selector variables.  Leaf variables
+    # start at selectors+1, so no hostile-generator collision is possible.
     next_var = selectors + 1
     nodes = []
+    leaf_ranges = []
     for _ in range(leaves):
-        leaf, last = k5_leaf_with_offset(next_var - 1)
+        leaf, last = k5_leaf_with_first_var(next_var)
         nodes.append(leaf)
+        leaf_ranges.append((next_var, last))
         next_var = last + 1
 
-    # Allocate selector ids bottom-up from the already-reserved 1..selectors,
-    # but use smaller ids at higher levels so dense canonical pivot order reaches
-    # the top selector before descendant selectors.
-    levels = depth
+    selector_set = set(range(1, selectors + 1))
+    leaf_var_set = set()
+    for first, last in leaf_ranges:
+        leaf_var_set.update(range(first, last + 1))
+    if selector_set & leaf_var_set:
+        raise AssertionError("SELECTOR_LEAF_ID_COLLISION")
+
+    # Allocate selector ids bottom-up in descending order: depth=2 uses 3,2 at
+    # the lower joins and 1 at the root.  Thus the top selector remains variable
+    # 1 under dense canonical ordering, which is frozen hostile-test structure.
     selector_ids = list(range(selectors, 0, -1))
     cursor = 0
     while len(nodes) > 1:
@@ -76,18 +93,19 @@ def build_tree(depth: int) -> base.CNF:
             cursor += 1
             joined.append(selector_join(sid, nodes[i], nodes[i + 1]))
         nodes = joined
-        levels -= 1
-    # Renumber selectors by tree depth so the final root is variable 1.
+
     root = nodes[0]
-    used = base.vars_of(root)
-    selector_set = set(range(1, selectors + 1))
-    old_root_selector = selector_ids[cursor - 1]
-    if old_root_selector != 1:
-        # The construction above actually consumes descending ids and ends at 1;
-        # keep this assertion explicit because pivot order is part of the hostile design.
+    used = set(base.vars_of(root))
+    if cursor != selectors:
+        raise AssertionError("SELECTOR_COUNT_DRIFT")
+    if selector_ids[cursor - 1] != 1:
         raise AssertionError("ROOT_SELECTOR_ORDER_DRIFT")
-    if not selector_set.issubset(set(used)):
+    if not selector_set.issubset(used):
         raise AssertionError("SELECTOR_SET_DRIFT")
+    if not leaf_var_set.issubset(used):
+        raise AssertionError("LEAF_SET_DRIFT")
+    if len(used) != selectors + 20 * leaves:
+        raise AssertionError("TOTAL_VARIABLE_COUNT_DRIFT")
     return root
 
 
