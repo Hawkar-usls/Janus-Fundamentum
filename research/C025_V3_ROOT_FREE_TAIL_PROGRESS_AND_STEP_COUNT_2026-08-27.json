@@ -1,0 +1,83 @@
+{
+  "schema": "JANUS/C025/V3-ROOT-FREE-TAIL-PROGRESS-STEP-COUNT/v1",
+  "date": "2026-08-27",
+  "status": "PROVED_CONDITIONAL_TAIL_TERMINATION_AND_STEP_COUNT__AVAILABILITY_OPEN",
+  "P_VS_NP": "OPEN",
+  "source_contract": {
+    "implementation": "experiments/direct/janus_unified_macro_restore_v3.py",
+    "state_model": "experiments/direct/janus_unified_proof_carrying_akinator_jec.py",
+    "frozen_cap_exponent": 2,
+    "v3_chain_length": 2,
+    "v3_plan_shape": "ONE_FRESH_OR_PAIR_EXTENSION_MACRO_THEN_TWO_DISTINCT_PRE_MACRO_LIVE_PIVOT_ELIMINATIONS",
+    "fresh_macro_variable_is_not_a_descent_pivot": true
+  },
+  "definitions": {
+    "N": "original normalized input budget",
+    "S_i": "a root-free v3-reachable state inside the frozen N^2 representation envelope",
+    "v_i": "number of live Boolean variables in S_i",
+    "r_i": "number of live root variables in S_i; root-free means r_i=0",
+    "Phi_i": "frozen progress potential r_i*(|root_vars|+extension_cap+1)+v_i"
+  },
+  "lemma_1_root_free_potential": {
+    "name": "ROOT_FREE_PHI_EQUALS_LIVE_VARIABLE_COUNT",
+    "statement": "For every root-free state, Phi_i=v_i.",
+    "proof": "The first term of the frozen potential is multiplied by r_i=0.",
+    "status": "PROVED_FROM_FROZEN_DEFINITION"
+  },
+  "lemma_2_atomic_v3_live_count_descent": {
+    "name": "V3_ATOMIC_PLAN_DECREASES_LIVE_COUNT_BY_AT_LEAST_ONE",
+    "statement": "Every admitted v3 extension-tail plan satisfies v_(i+1)<=v_i-1.",
+    "proof": [
+      "The v3 guard records live_before and requires at least two live variables with no live root variables.",
+      "The macro introduces at most one fresh extension variable e and introduces no other variable identifiers.",
+      "The frozen plan eliminates pivot1 and pivot2, which must be distinct and both belong to live_before; the fresh macro variable itself is forbidden as a descent pivot.",
+      "Exact Davis-Putnam elimination removes the eliminated pivot variable from its result and does not introduce any new variable identifier.",
+      "Therefore after the two eliminations the live set is contained in (live_before minus {pivot1,pivot2}) union {e}, so its cardinality is at most v_i-1.",
+      "The implementation independently enforces the same conclusion through after_phi<before_phi."
+    ],
+    "status": "PROVED_FROM_FROZEN_TRANSITION_SHAPE"
+  },
+  "lemma_3_original_N_step_bound": {
+    "name": "V3_SUCCESSFUL_SUFFIX_HAS_AT_MOST_N_SQUARED_MACROSTEPS",
+    "statement": "Any contiguous root-free suffix consisting of successful admitted v3 atomic plans has length at most N^2.",
+    "proof": [
+      "Inside the frozen envelope, state_units(S_i)<=N^2.",
+      "Every live variable occurs in at least one literal, so v_i<=literal_occurrences(S_i)<=state_units(S_i)<=N^2.",
+      "Lemma 2 decreases v by at least one at every successful v3 macrostep and v is a nonnegative integer.",
+      "Hence there can be at most v_entry<=N^2 successful v3 macrosteps before the suffix terminates or another lane becomes terminal/applicable."
+    ],
+    "status": "PROVED_ELEMENTARY"
+  },
+  "lemma_4_discovery_is_polynomial_under_envelope": {
+    "name": "ONE_V3_DISCOVERY_PASS_IS_POLYNOMIAL_IN_ORIGINAL_N_UNDER_N2_ENVELOPE",
+    "statement": "For one root-free state with explicit representation size <=N^2, the frozen discover_extension_tail_plan_v3 search performs only polynomially many syntactic candidate attempts and each attempted macro/elimination/replay operation has polynomial work in N.",
+    "proof": [
+      "OR-pair candidates are drawn only from literal pairs occurring in the explicit CNF; their number is polynomial in the explicit representation size.",
+      "For each macro candidate, pivot1 and pivot2 range over the pre-macro live-variable list, so there are at most v_i^2<=N^4 ordered pivot attempts.",
+      "The state cap prevents any admitted intermediate explicit representation from exceeding N^2 units; a failed capped elimination stops once the monotone raw cap is crossed.",
+      "Clause scans, pair generation, canonical set insertion, fixed-depth elimination, certificate serialization and independent replay are finite nested loops over polynomially bounded explicit objects; no subset-of-variables search, SAT oracle, semantic equivalence oracle or unbounded chain depth is invoked by v3.",
+      "Variable identifiers remain polynomial-bit integers because fresh extension creation is bounded by the frozen extension cap and uses deterministic fresh identifiers."
+    ],
+    "status": "PROVED_AT_ALGORITHM_STRUCTURE_LEVEL_WITH_COARSE_FIXED_POLYNOMIAL_BOUND"
+  },
+  "corollary": {
+    "name": "V3_TAIL_RUNTIME_IS_POLYNOMIAL_CONDITIONAL_ON_AVAILABILITY_AND_ENVELOPE_PRESERVATION",
+    "statement": "If every nonterminal root-free state reached by the frozen machine either terminates in an earlier exact lane or admits a v3 plan whose intermediates preserve the N^2 envelope, then the root-free suffix has polynomial total runtime in original N.",
+    "reason": "At most N^2 successful v3 macrosteps by Lemma 3, with polynomial discovery/execution/replay work per macrostep by Lemma 4.",
+    "status": "PROVED_CONDITIONAL_COROLLARY"
+  },
+  "remaining_open_obligation": {
+    "name": "V3_ROOT_FREE_TAIL_AVAILABILITY",
+    "statement": "For every nonterminal root-free state reachable under the frozen decision core after earlier exact lanes and ordinary capped elimination fail, discover_extension_tail_plan_v3 returns an admitted exact plan before the extension cap is exhausted.",
+    "status": "OPEN",
+    "failure_meaning": "A reachable state with no earlier exact decision, no ordinary capped pivot and no admitted v3 plan is a concrete OPEN witness for the current frozen theorem machine; it does not prove P!=NP."
+  },
+  "scientific_boundary": {
+    "does_not_prove_v3_availability": true,
+    "does_not_prove_root_phase_totality": true,
+    "does_not_prove_universal_GPEI": true,
+    "does_not_prove_P_equals_NP": true,
+    "P_VS_NP": "OPEN"
+  },
+  "next_exact_target": "Prove or refute V3_ROOT_FREE_TAIL_AVAILABILITY on reachable states. Separate candidate-existence, first-elimination-cap, second-elimination-cap and extension-cap exhaustion as typed failure obligations."
+}
