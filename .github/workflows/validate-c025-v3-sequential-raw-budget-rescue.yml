@@ -1,0 +1,52 @@
+name: validate-c025-v3-sequential-raw-budget-rescue
+
+on:
+  push:
+    branches:
+      - research/c025-balanced-pressure-wedge-2026-08-27
+    paths:
+      - 'research/C025_V3_SEQUENTIAL_RAW_BUDGET_RESCUE_CORRIDOR_2026-08-27.json'
+      - 'research/C025_GENERIC_RAW_ELIMINATION_BUDGET_LEMMA_2026-08-27.json'
+      - 'experiments/direct/janus_generic_raw_elimination_budget_certificate.py'
+      - 'experiments/direct/janus_v3_sequential_raw_budget_certificate.py'
+      - '.github/workflows/validate-c025-v3-sequential-raw-budget-rescue.yml'
+  pull_request:
+    paths:
+      - 'research/C025_V3_SEQUENTIAL_RAW_BUDGET_RESCUE_CORRIDOR_2026-08-27.json'
+      - 'research/C025_GENERIC_RAW_ELIMINATION_BUDGET_LEMMA_2026-08-27.json'
+      - 'experiments/direct/janus_generic_raw_elimination_budget_certificate.py'
+      - 'experiments/direct/janus_v3_sequential_raw_budget_certificate.py'
+      - '.github/workflows/validate-c025-v3-sequential-raw-budget-rescue.yml'
+
+jobs:
+  sequential-v3-budget:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Execute generic raw-budget regression
+        run: python -m experiments.direct.janus_generic_raw_elimination_budget_certificate
+      - name: Execute mixed-sign sequential v3 certificate
+        run: python -m experiments.direct.janus_v3_sequential_raw_budget_certificate
+      - name: Verify theorem scope and remaining open frontier
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          d = json.loads(Path('research/C025_V3_SEQUENTIAL_RAW_BUDGET_RESCUE_CORRIDOR_2026-08-27.json').read_text())
+          assert d['status'] == 'PROVED_GENERAL_V3_SUFFICIENT_BUDGET_CORRIDOR__UNIVERSAL_AVAILABILITY_OPEN'
+          assert d['P_VS_NP'] == 'OPEN'
+          assert d['theorem']['status'] == 'PROVED_BY_COMPOSITION_OF_GENERIC_RAW_BOUND_AND_FROZEN_V3_TRANSITION_SHAPE'
+          assert d['remaining_open_gap']['name'] == 'ALL_CANDIDATE_SEQUENTIAL_BUDGET_FAILURE'
+          assert d['remaining_open_gap']['status'] == 'OPEN'
+          assert d['scientific_boundary']['sufficient_not_necessary'] is True
+          assert d['scientific_boundary']['bound_failure_does_not_imply_actual_elimination_failure'] is True
+          assert d['scientific_boundary']['does_not_change_frozen_v3_runtime'] is True
+          assert d['scientific_boundary']['does_not_establish_v3_universal_availability'] is True
+          assert d['scientific_boundary']['does_not_prove_P_equals_NP'] is True
+          print('V3_SEQUENTIAL_RAW_BUDGET_RESCUE_THEOREM_SCOPE=PASS')
+          print('ALL_CANDIDATE_SEQUENTIAL_BUDGET_FAILURE=OPEN')
+          print('P_VS_NP=OPEN')
+          PY
