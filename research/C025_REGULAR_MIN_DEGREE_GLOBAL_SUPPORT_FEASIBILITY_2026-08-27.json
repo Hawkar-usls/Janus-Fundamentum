@@ -1,0 +1,53 @@
+{
+  "schema": "JANUS/C025/REGULAR-MIN-DEGREE-GLOBAL-SUPPORT-FEASIBILITY/v1",
+  "date": "2026-08-27",
+  "status": "PROVED_EXACT_REGULAR_STATE_RAW_FEASIBILITY_BOUND",
+  "P_VS_NP": "OPEN",
+  "engine_scope": "PIRC_DECISION_CORE_V0_5_PROOF_SELECTOR_CANDIDATE",
+  "theorem_runtime_heuristics": "FORBIDDEN",
+  "runtime_change": false,
+  "trigger": "L=n*d_min, so every live variable has incidence degree exactly d_min",
+  "definitions": {
+    "r": "n-1 nonpivot variables",
+    "c": "m-d retained clauses",
+    "R0": "retained-clause literal mass",
+    "t_y": "retained incidence of nonpivot variable y; in the regular case this is exactly its omission count among the d pivot parents",
+    "f_p_q_t": "max a*b subject to 0<=a<=p, 0<=b<=q, a+b=t",
+    "Omax_R0": "max sum_y f_p_q(t_y) subject to 0<=t_y<=c and sum_y t_y=R0",
+    "D": "number of distinct non-tautological resolvents",
+    "h": "number of those D resolvent clauses already present among the c retained clauses",
+    "K": "c+D-h distinct clauses in the global raw set"
+  },
+  "statement": "At a unit-free canonical state with L=n*d_min, fix selected-pivot split p+q=d. For each feasible retained literal mass 2c<=R0<=cr, total cross-pair support mass is at least Smin(R0)=r*pq-Omax(R0). If D distinct non-tautological resolvents exist, representatives for them have total width at least max(0,Smin(R0)-(pq-D)r). If h of those resolvents coincide with retained clauses, global raw literal mass is at least R0+max(0,Smin-(pq-D)r)-h*r, while K=c+D-h distinct raw clauses can have total width at most Wmax_r(K). Therefore only triples (R0,D,h) satisfying R0+max(0,Smin-(pq-D)r)-h*r<=Wmax_r(K) and K<=3^r are feasible. The exact raw resource ceiling is the maximum of 1+K+Wmax_r(K) over these feasible integer triples.",
+  "proof": [
+    "L=n*d_min and every variable degree is at least d_min; since degree sum is L, every live variable has degree exactly d_min.",
+    "For a nonpivot variable y with retained incidence t_y, its pivot-parent incidence is d-t_y because its total degree is d. Among exactly d pivot-parent clauses it is therefore omitted exactly t_y times. Splitting those omissions as a_y on the p side and b_y on the q side gives a_y+b_y=t_y and at most f_p_q(t_y)=a_y*b_y omitted cross pairs.",
+    "Summing over all r variables, at most Omax(R0) pair-variable incidences are omitted, so pair-support mass is at least Smin(R0)=r*pq-Omax(R0).",
+    "From pq parent pairs remove all tautological pairs and all but one representative of each duplicate resolvent. Exactly D representative pairs remain. Each removed pair has support at most r, so the D representatives have total support, hence resolvent width, at least max(0,Smin-(pq-D)r).",
+    "The c retained clauses have literal mass R0. If h distinct resolvents equal retained clauses, adding retained and resolvent width double-counts at most h*r literals. Thus global raw literal mass is at least R0+resolvent_width_lower-h*r.",
+    "The raw container is one set of K=c+D-h distinct signed clauses over r variables. Its literal mass is at most Wmax_r(K), and K<=3^r. Therefore every actual state induces a feasible integer triple satisfying the stated inequality.",
+    "Taking the maximum 1+K+Wmax_r(K) over all feasible R0,D,h yields an exact upper bound on engine raw_units for this regular state. The finite optimization is deterministic and polynomial in the explicit state parameters."
+  ],
+  "N58_second_open_repair": {
+    "state": {"n":7,"m":77,"L":350,"d":50,"p":22,"q":28},
+    "regularity": "350=7*50",
+    "r":6,
+    "c":27,
+    "pq":616,
+    "previous_bound":3389,
+    "N58_cap":3364,
+    "exact_feasibility_raw_ceiling":3361,
+    "maximizing_feasible_witness": {"R0":162,"Omax":1092,"Smin":2604,"D":609,"h":0,"K":636,"representative_resolvent_width_lower":2562,"raw_width_lower":2724,"Wmax_6_636":2724},
+    "margin_below_cap":3,
+    "conclusion": "SECOND_N58_ABSTRACT_OPEN_LOCALLY_REPAIRED"
+  },
+  "scientific_boundary": {
+    "regular_state_resource_lemma_only": true,
+    "local_repair_does_not_by_itself_prove_all_N58": true,
+    "does_not_change_runtime": true,
+    "does_not_prove_unbounded_totality": true,
+    "does_not_prove_P_equals_NP": true,
+    "P_VS_NP": "OPEN"
+  },
+  "seal": "IANUS VIAS SERVAT."
+}
