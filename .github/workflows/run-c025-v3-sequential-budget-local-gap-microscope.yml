@@ -1,0 +1,51 @@
+name: run-c025-v3-sequential-budget-local-gap-microscope
+
+on:
+  push:
+    branches:
+      - research/c025-balanced-pressure-wedge-2026-08-27
+    paths:
+      - 'experiments/direct/janus_v3_sequential_budget_local_gap_microscope.py'
+      - 'experiments/direct/janus_generic_raw_elimination_budget_certificate.py'
+      - '.github/workflows/run-c025-v3-sequential-budget-local-gap-microscope.yml'
+
+jobs:
+  sequential-budget-local-gap:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Execute frozen bounded microscope
+        run: |
+          python -m experiments.direct.janus_v3_sequential_budget_local_gap_microscope \
+            | tee v3-sequential-budget-local-gap-microscope.json
+      - name: Verify claim ceiling
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          d = json.loads(Path('v3-sequential-budget-local-gap-microscope.json').read_text())
+          b = d['scientific_boundary']
+          assert b['deterministic_finite_probe_only'] is True
+          assert b['generic_budget_is_sufficient_not_necessary'] is True
+          assert b['arbitrary_root_free_states_not_proved_reachable'] is True
+          assert b['true_local_gap_is_not_reachable_gap_without_forward_certificate'] is True
+          assert b['no_gap_is_not_availability_proof'] is True
+          assert b['heuristic_or_predictive_layer_has_theorem_authority'] is False
+          assert b['V3_ROOT_FREE_TAIL_AVAILABILITY'] == 'OPEN'
+          assert b['P_VS_NP'] == 'OPEN'
+          print('SEQUENTIAL_BUDGET_MICROSCOPE_STATUS=' + d['status'])
+          if d['first_bound_false_negative'] is not None:
+              print('FIRST_BOUND_FALSE_NEGATIVE=' + d['first_bound_false_negative']['fingerprint'])
+          if d['first_true_local_v3_gap'] is not None:
+              print('FIRST_TRUE_LOCAL_V3_GAP=' + d['first_true_local_v3_gap']['fingerprint'])
+          print('V3_ROOT_FREE_TAIL_AVAILABILITY=OPEN')
+          print('P_VS_NP=OPEN')
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: c025-v3-sequential-budget-local-gap-microscope
+          path: v3-sequential-budget-local-gap-microscope.json
