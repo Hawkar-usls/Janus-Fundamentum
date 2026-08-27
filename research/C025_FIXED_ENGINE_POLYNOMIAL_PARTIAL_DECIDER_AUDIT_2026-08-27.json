@@ -1,0 +1,104 @@
+{
+  "schema": "JANUS/C025/FIXED-ENGINE-POLYNOMIAL-PARTIAL-DECIDER-AUDIT/v1",
+  "date": "2026-08-27",
+  "status": "POLYNOMIAL_PARTIAL_DECIDER_BOUND_DERIVED__UNIVERSAL_TOTALITY_OPEN",
+  "P_VS_NP": "OPEN",
+  "scope": {
+    "branch": "research/c025-pirc-gpei-2026-08-27",
+    "cap_exponent_C": 2,
+    "extension_exponent_k": 1,
+    "bounded_resolution_width": 3,
+    "input_normal_form": "experiments/direct/janus_theorem_input_normal_form.py",
+    "core_engine": "experiments/direct/janus_unified_macro_restore_v3.py",
+    "stage4_proof_object": "experiments/direct/janus_jec_extension_progress_proof.py"
+  },
+  "critical_input_correction": {
+    "problem": "The historical internal state_units measure treats a literal occurrence as one unit and therefore does not by itself charge the bit length of arbitrarily large variable identifiers.",
+    "repair": "Before theorem-mode accounting, densely relabel sorted source variables v_1<...<v_n to 1,...,n. Preserve the inverse map only for optional witness presentation.",
+    "semantic_status": "EXACT_SAT_ISOMORPHISM",
+    "effect": "All internal variable identifiers then have O(log N) bit length; internal unit accounting is polynomially dominated by ordinary encoded input length."
+  },
+  "derived_invariants": [
+    {
+      "id": "I1_ROOT_SIZE",
+      "statement": "For normalized input size N>=2, root state_units < N <= N^2, so ROOT_EXCEEDS_FIXED_CAP is unreachable."
+    },
+    {
+      "id": "I2_RESIDUAL_CAP",
+      "statement": "Every retained residual has state_units <= N^2: restriction/unit propagation does not increase the represented CNF; capped elimination rejects before retaining an over-cap result; v2/v3 macro plans are admitted only when every required intermediate/result is <= N^2."
+    },
+    {
+      "id": "I3_VARIABLE_UNIVERSE",
+      "statement": "There are at most N root variables and at most N admitted historical extension variables, hence every reachable live variable set is contained in a universe of size <=2N."
+    },
+    {
+      "id": "I4_STAGE4_COUNT",
+      "statement": "Every admitted Stage4 macro allocates exactly one fresh extension and extension_count is capped by N, so successful Stage4 macro count <=N."
+    },
+    {
+      "id": "I5_PROGRESS_BOUND",
+      "statement": "With n=root variable count <=N and kmax=N, initial phi=n*(n+N+2)<=2N^2+2N. Unit propagation with a genuine unit removes at least one live variable; pure elimination is admitted only with strict phi decrease; v2/v3 macro plans are admitted only with strict phi decrease. Therefore the number of state-changing outer-loop continuations before SAT/UNSAT/OPEN is O(N^2)."
+    }
+  ],
+  "coarse_deterministic_work_bound": {
+    "model": "Paper-level deterministic implementation using sorted vectors/balanced dictionaries; the Python reference implementation is an executable reference, not a worst-case hash-table complexity proof.",
+    "facts": [
+      "Residual clause count and literal occurrences are <=N^2 and live variable universe <=2N.",
+      "The number of distinct co-occurring OR-pair candidates is O(N^3): sum_c binom(width(c),2) <= O(max_width * total_literal_occurrences) with max_width<=2N.",
+      "One capped resolution elimination examines at most O(N^4) parent pairs; deterministic clause merge/canonical handling adds at most an O(N) literal factor, giving a conservative O(N^5) bound per attempted pivot replay.",
+      "v2 root-restore discovery has O(N^3) macro candidates and O(N) root pivots per candidate, hence is bounded by a fixed polynomial (coarsely O(N^9) including replay/canonical overhead).",
+      "v3 extension-tail discovery has O(N^3) macro candidates and O(N^2) ordered old-pivot pairs per candidate, hence is bounded by a fixed polynomial (coarsely O(N^10) including replay/canonical overhead).",
+      "For fixed resolution width 3 over <=2N variables, the universe of possible width<=3 clauses is O(N^3). Naive deterministic saturation needs at most O(N^3) growth passes and O(N^6) pair comparisons per pass, hence O(N^9) per call.",
+      "2-SAT, bounded-width affine recovery (MAX_SCOPE_WIDTH=8), relation-product recognition, component decomposition, Hall recognition, and one-variable nonrecursive escape are all fixed-polynomial on an N^2-bounded residual."
+    ],
+    "conservative_total_bound": "Combining an O(N^10) conservative per-state discovery bound with O(N^2) strict-progress states gives O(N^12) word/literal operations; after dense relabeling, an extra logarithmic bit factor can be absorbed into O(N^13) bit operations. This is intentionally loose and should be tightened in a formal machine model before publication.",
+    "claim": "The frozen capped engine can be implemented as a deterministic polynomial-time exact partial SAT decider returning SAT, UNSAT, or OPEN."
+  },
+  "decision_vs_witness_correction": {
+    "problem": "The current executable may return OPEN after an already exact SAT terminal condition solely because local witness reconstruction/lift failed.",
+    "theorem_repair": "The P-vs-NP theorem core is a decision algorithm. Exact SAT terminal truth must return SAT in DECISION_CORE even if an optional local witness lift fails. Once a polynomial SAT decider is universal, a source assignment is recoverable by standard polynomial self-reduction.",
+    "required_implementation_status": "DECISION_CORE_REFACTOR_PENDING",
+    "witness_layer": "OPTIONAL_STRONGER_PROOF_CARRYING_LAYER"
+  },
+  "finite_full_trajectory_evidence": {
+    "workflow_run_id": 33048889686,
+    "status": "ALL_PREREGISTERED_FINITE_RUNGS_DECIDED",
+    "connected_examined": 45000,
+    "stage3_open_roots": 23956,
+    "eventually_decided": 23956,
+    "remaining_open": 0,
+    "maximum_stage4_depth_observed": 5,
+    "aggregate_stage4_depth_histogram": {
+      "1": 19780,
+      "2": 3465,
+      "3": 352,
+      "4": 352,
+      "5": 7
+    },
+    "scientific_boundary": "Finite success is falsification evidence only and does not establish universal totality."
+  },
+  "remaining_central_theorem": {
+    "name": "REACHABLE_MOVE_OR_TERMINAL_TOTALITY",
+    "statement": "For every densely normalized CNF phi and every nonterminal state reachable by the one frozen theorem-mode JANUS algorithm under the original root budget N, before resource caps are exhausted, at least one exact admitted terminal lane or exact strict-progress transition is available; equivalently the decision core never returns OPEN.",
+    "equivalent_failure_target": "Exhibit one reachable state satisfying the frozen root-relative resource invariants for which every terminal lane, capped exact elimination, v2 root-restore plan, and v3 extension-tail plan rejects, or prove no such reachable state exists.",
+    "status": "OPEN_CENTRAL"
+  },
+  "theorem_consequence_if_closed": {
+    "premises": [
+      "dense input normalization exact and polynomial",
+      "local transition/terminal semantics exact",
+      "fixed-engine polynomial partial-decider bound above",
+      "REACHABLE_MOVE_OR_TERMINAL_TOTALITY"
+    ],
+    "conclusion": "The OPEN outcome is unreachable, so the fixed algorithm decides SAT for every CNF in polynomial time. Hence SAT is in P and, because SAT is NP-complete, P=NP.",
+    "current_status": "CONDITIONAL_ONLY"
+  },
+  "forbidden_promotions": [
+    "FINITE_SUCCESS_TO_UNIVERSAL_TOTALITY",
+    "GREEN_CI_TO_P_EQUALS_NP",
+    "EXACT_BUT_UNBOUNDED_TO_THEOREM_MODE",
+    "WITNESS_LIFT_FAILURE_TO_DECISION_FAILURE",
+    "RUNTIME_GRAMMAR_MUTATION_AFTER_SEEING_A_COUNTEREXAMPLE"
+  ],
+  "next_action": "Implement the decision-core/witness split, then attack REACHABLE_MOVE_OR_TERMINAL_TOTALITY directly with an exact structural proof attempt and hostile counterexample search under the frozen grammar."
+}
