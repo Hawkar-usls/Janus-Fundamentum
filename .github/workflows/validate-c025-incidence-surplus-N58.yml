@@ -1,0 +1,46 @@
+name: validate-c025-incidence-surplus-N58
+
+on:
+  push:
+    branches:
+      - research/c025-n58-regular-occupancy-2026-08-27
+    paths:
+      - 'research/C025_MIN_INCIDENCE_SURPLUS_RETAINED_OCCUPANCY_RESOLVENT_CEILING_2026-08-27.json'
+      - 'experiments/direct/janus_v05_abstract_frontier_incidence_surplus.py'
+      - '.github/workflows/validate-c025-incidence-surplus-N58.yml'
+  pull_request:
+    paths:
+      - 'research/C025_MIN_INCIDENCE_SURPLUS_RETAINED_OCCUPANCY_RESOLVENT_CEILING_2026-08-27.json'
+      - 'experiments/direct/janus_v05_abstract_frontier_incidence_surplus.py'
+      - '.github/workflows/validate-c025-incidence-surplus-N58.yml'
+
+jobs:
+  incidence-surplus-N58:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Execute incidence-surplus N58 verifier
+        run: python -m experiments.direct.janus_v05_abstract_frontier_incidence_surplus
+      - name: Verify theorem scope and claim ceiling
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          x=json.loads(Path('research/C025_MIN_INCIDENCE_SURPLUS_RETAINED_OCCUPANCY_RESOLVENT_CEILING_2026-08-27.json').read_text())
+          assert x['status']=='PROVED_EXACT_MIN_INCIDENCE_SURPLUS_NEW_RESOLVENT_CEILING'
+          assert x['runtime_change'] is False
+          assert x['N58_E1_specimen']['new_resolvent_ceiling_J']==607
+          assert x['N58_E1_specimen']['raw_units_ceiling']==3353
+          assert x['N58_E1_specimen']['N58_cap']==3364
+          assert x['scientific_boundary']['full_N58_requires_full_abstract_replay'] is True
+          assert x['theorem_runtime_heuristics']=='FORBIDDEN'
+          assert x['P_VS_NP']=='OPEN'
+          print('INCIDENCE_SURPLUS_LEMMA_SCOPE=PASS')
+          print('THEOREM_RUNTIME_HEURISTICS=FORBIDDEN')
+          print('UNBOUNDED_TOTALITY=OPEN')
+          print('P_VS_NP=OPEN')
+          PY
