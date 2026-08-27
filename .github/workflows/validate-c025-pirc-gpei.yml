@@ -8,6 +8,7 @@ on:
       - 'experiments/direct/janus_matching_hall_escape.py'
       - 'experiments/direct/janus_pirc_theorem_mode_v0_1.py'
       - 'experiments/direct/janus_pirc_theorem_mode_v0_2.py'
+      - 'experiments/direct/janus_stage4_exact_reentry_probe.py'
       - 'experiments/direct/janus_open3_stage4_scaling_ladder_runner.py'
       - 'research/C025_PIRC_GPEI_COMPOSITION_BRIDGE_2026-08-27.json'
       - '.github/workflows/validate-c025-pirc-gpei.yml'
@@ -16,6 +17,7 @@ on:
       - 'experiments/direct/janus_matching_hall_escape.py'
       - 'experiments/direct/janus_pirc_theorem_mode_v0_1.py'
       - 'experiments/direct/janus_pirc_theorem_mode_v0_2.py'
+      - 'experiments/direct/janus_stage4_exact_reentry_probe.py'
       - 'experiments/direct/janus_open3_stage4_scaling_ladder_runner.py'
       - 'research/C025_PIRC_GPEI_COMPOSITION_BRIDGE_2026-08-27.json'
 
@@ -34,6 +36,35 @@ jobs:
         run: python -m experiments.direct.janus_pirc_theorem_mode_v0_1
       - name: Reverse-pass PIRC theorem-mode v0.2 self-test
         run: python -m experiments.direct.janus_pirc_theorem_mode_v0_2
+      - name: Measure one-Stage4 exact re-entry on frozen R1 space
+        run: |
+          python -m experiments.direct.janus_stage4_exact_reentry_probe \
+            --nvars 4 --clauses 5 --min-width 3 --max-width 3 \
+            --cap-exponent 2 --limit 5000 \
+            | tee stage4-exact-reentry-r1.json
+      - name: Verify re-entry scientific boundary
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          data = json.loads(Path('stage4-exact-reentry-r1.json').read_text())
+          b = data['scientific_boundary']
+          assert b['bounded_finite_probe_only'] is True
+          assert b['one_stage4_move_maximum'] is True
+          assert b['absence_of_second_stage4_requirement_is_not_universal_closure'] is True
+          assert b['universal_GPEI_preservation'] == 'OPEN'
+          assert b['P_VS_NP'] == 'OPEN'
+          t = data['totals']
+          print('REENTRY_STATUS=' + data['status'])
+          print('REENTRY_OPEN3=' + str(t['open3']))
+          print('REENTRY_DECIDED_AFTER_ONE_STAGE4=' + str(t['decided_after_one_stage4']))
+          print('REENTRY_STILL_OPEN_AFTER_ONE_STAGE4=' + str(t['still_open_after_one_stage4']))
+          print('P_VS_NP=OPEN')
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: c025-stage4-exact-reentry-r1
+          path: stage4-exact-reentry-r1.json
       - name: Execute full preregistered OPEN3 Stage4 scaling ladder
         run: |
           python -m experiments.direct.janus_open3_stage4_scaling_ladder_runner \
