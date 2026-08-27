@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """Executable regression for JANUS C025 v0.5 proof-selector through N=46.
 
-Regression checks the finite N46 partition, the r=9 degree-3 tail,
-and the new r=10,m=5,L=30 degree-3 -> m<=4 structural collapse.
+Regression checks the finite N46 partition, the corrected r<=8 ledger,
+the r=9 degree-3 tail, and the r=10,m=5,L=30 degree-3 -> m<=4 collapse.
 P vs NP remains OPEN.
 """
 
@@ -74,13 +74,18 @@ def verify_N46_partition() -> None:
 def verify_N46_r_le_8_recurrence() -> None:
     cap = 46 * 46
     maximum = Fraction(0)
+    where = None
     for r in range(1, 9):
-        for _, _, raw, _ in recurrence_raw_bounds_root(46, r):
-            maximum = max(maximum, raw)
-            assert raw <= cap, (r, raw, cap)
-    assert maximum == 1053, maximum
+        for n, s, raw, _ in recurrence_raw_bounds_root(46, r):
+            if raw > maximum:
+                maximum = raw
+                where = (r, n, s)
+            assert raw <= cap, (r, n, raw, cap)
+    assert maximum == Fraction(1875889, 1728), maximum
+    assert where == (8, 7, Fraction(1381, 12)), where
     print("V05_N46_R_LE_8_RECURRENCE=PASS")
     print(f"V05_N46_R_LE_8_MAX_RAW={maximum}")
+    print(f"V05_N46_R_LE_8_MAX_AT={where}")
 
 
 def build_N46_r9_m9_L27_fixture() -> core.CNF:
@@ -144,9 +149,6 @@ def verify_N46_r9_tail() -> None:
 
 
 def build_N46_r10_m5_L30_fixture() -> core.CNF:
-    # Ten variables correspond to the ten unordered pairs of five clauses.
-    # Variable v is absent exactly from its pair, hence appears in exactly 3/5 clauses.
-    # Five clauses therefore each have width 6, total L=30, and every variable degree=3.
     raw = [
         (5, 6, 7, 8, 9, 10),
         (2, 3, 4, 8, 9, 10),
@@ -185,8 +187,6 @@ def verify_N46_r10_clause_collapse() -> None:
     assert stats["pairs"] == 2, stats
     assert len(out) <= 4, (out, stats)
     assert len(core.vars_of(out)) <= 9
-
-    # Existing m<=4 raw-size corollary: RAW_UNITS <= 1+4n <=37 for n<=9.
     assert 1 + 4 * len(core.vars_of(out)) <= 37
     print(f"V05_N46_R10_SELECTED_PIVOT={pivot}")
     print(f"V05_N46_R10_POST_CLAUSES={len(out)}")
