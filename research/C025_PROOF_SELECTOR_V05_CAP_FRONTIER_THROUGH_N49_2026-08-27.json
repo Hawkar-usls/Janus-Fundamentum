@@ -1,0 +1,99 @@
+{
+  "schema": "JANUS/C025/PROOF-SELECTOR-V0.5-CAP-FRONTIER-THROUGH-N49/v1",
+  "date": "2026-08-27",
+  "status": "PROVED_FINITE_N_CAP_AVAILABILITY_THROUGH_N49__UNBOUNDED_TOTALITY_OPEN",
+  "P_VS_NP": "OPEN",
+  "candidate_engine": "PIRC_DECISION_CORE_V0_5_PROOF_SELECTOR_CANDIDATE",
+  "depends_on": [
+    "research/C025_PROOF_SELECTOR_V05_CAP_FRONTIER_THROUGH_N48_2026-08-27.json",
+    "research/C025_MIN_DEGREE_SIX_CLAUSE_INVARIANT_2026-08-27.json",
+    "research/C025_MIN_DEGREE_SEVEN_CLAUSE_INVARIANT_COUNTEREXAMPLE_2026-08-27.json",
+    "research/C025_GENERIC_RAW_ELIMINATION_BUDGET_LEMMA_2026-08-27-v1.1.json"
+  ],
+  "theorem_runtime_heuristics": "FORBIDDEN",
+  "runtime_change_from_N48": false,
+  "N49_partition": {
+    "N": 49,
+    "cap": 2401,
+    "cases": [
+      {
+        "case": "m<=6",
+        "result": "CLOSED_BY_PROVED_M_LE_6_INVARIANT"
+      },
+      {
+        "case": "m>=7 AND L<3r",
+        "result": "LOW_INCIDENCE_REROOT_TO_N_LE_45",
+        "reason": "v0.5 selects d_min<=2 and the existing N-minus-4 reroot enters the proved N<=48 frontier."
+      },
+      {
+        "case": "m>=7 AND L>=3r",
+        "derivation": "49>=1+7+3r+r=8+4r, hence r<=10.",
+        "result": "REDUCES_TO_R_LE_10"
+      }
+    ],
+    "status": "PROVED"
+  },
+  "r_le_8_region": {
+    "statement": "Existing exact T/Smax/Uraw recurrence stays below cap 2401 for every r<=8.",
+    "status": "PROVED_BY_EXISTING_EXACT_RECURRENCE"
+  },
+  "r9_region": {
+    "cells": [[7,32],[8,31],[9,30],[10,29],[11,28],[12,27]],
+    "derivation": "For r=9, m+L=39; hard assumptions m>=7,L>=27 give exactly the six listed cells.",
+    "selector": "d_min<=floor(L/9)<=3",
+    "degree_le_2": "REROOT_TO_N_LE_45",
+    "degree_3": {
+      "root_state_units": 40,
+      "generic_raw_bound": "B_x<=40-4+8=44",
+      "post_live_n_max": 8,
+      "tail_exact_raw_ledger": ["1861/12","3420529/1728","1053","297","81","21"],
+      "tail_max": "3420529/1728",
+      "tail_max_decimal": 1979.472800925926,
+      "cap": 2401,
+      "conclusion": "TAIL_BELOW_CAP"
+    },
+    "status": "PROVED"
+  },
+  "r10_region": {
+    "cells": [[7,31],[8,30]],
+    "derivation": "For r=10, m+L=38; hard assumptions m>=7,L>=30 leave exactly (7,31) and (8,30).",
+    "selector": "d_min<=3",
+    "degree_le_2": "REROOT_TO_N_LE_45",
+    "degree_3_m7": "m'<=7-3+2=6, hence enter the proved m<=6 invariant.",
+    "degree_3_m8_L30_reachable_bridge": {
+      "root_fact": "L=30=3r and d_min=3 imply every one of the ten root variables has incidence degree exactly 3.",
+      "pure_pivot": "If the degree-3 pivot is pure, m'<=8-3=5 and the m<=6 invariant applies.",
+      "mixed_pivot": "The only hard split is 1+2. Then m1<=8-3+2=7 and the existing generic raw bound gives state_units s1<=39-4+9=44.",
+      "if_m1_le_6": "CLOSED_BY_M_LE_6_INVARIANT",
+      "if_m1_eq_7": [
+        "Both resolvents must survive as distinct non-tautological canonical clauses and all five retained clauses survive.",
+        "Every nonpivot root variable remains live: a variable present in a retained clause remains directly; a variable absent from all retained clauses had all three degree-3 occurrences in the three pivot clauses, and survival of both non-tautological resolvents forces compatible signs and presence in both resolvents.",
+        "Therefore n1=9. Since s1<=44 and m1=7, L1<=36, so the v0.5 selector constructively has d1<=floor(36/9)=4.",
+        "Second elimination is cap-safe because T(44)=1861/12<2401. Its clause count satisfies m2<=7-d1+floor(d1^2/4)<=7.",
+        "After the second elimination n2<=8 and every clause has width<=8, hence s2<=1+7*(1+8)=64.",
+        "Third elimination is cap-safe because T(64)=1327/4<2401.",
+        "From m2<=7, the raw clause-count bound gives m3<=max_{1<=d<=7}(7-d+floor(d^2/4))=12. With n3<=7 and width<=7, s3<=1+12*(1+7)=97.",
+        "Fourth elimination is cap-safe because T(97)=769<2401.",
+        "After the fourth elimination n4<=6. Thereafter Uraw(n)<=Uraw(6)=1053<2401 for every remaining ordinary-elimination step."
+      ],
+      "important_negative_control": "This bridge does NOT assume m<=7 invariance; that candidate statement is false and has an explicit archived counterexample.",
+      "conclusion": "CAP_SAFE_BRIDGE_TO_N_LE_6"
+    },
+    "status": "PROVED"
+  },
+  "finite_frontier_theorem": {
+    "name": "V0_5_PROOF_SELECTOR_NO_RAW_CAP_RESCUE_REQUIRED_THROUGH_N49",
+    "statement": "Inherit N<=48. At N=49, m<=6 is invariant; low-incidence roots reroot into the previous frontier; the remaining hard region has r<=10. The r<=8 region is closed by the existing exact recurrence. The r=9 degree-3 tail stays below 2401. The r=10,m=7 branch enters m<=6. The sole new r=10,m=8,L=30 branch uses exact reachability structure: if its first mixed degree-3 step leaves seven clauses then all nine remaining variables stay live, forcing the next selected degree <=4; two additional size-and-clause-count bounds give cap-safe steps until n<=6, after which Uraw(6)=1053<2401 closes the tail. No m<=7 invariant is assumed.",
+    "status": "PROVED_FINITE_N_CAP_AVAILABILITY"
+  },
+  "scientific_boundary": {
+    "finite_N_frontier_only": true,
+    "does_not_prove_unbounded_reachable_totality": true,
+    "unbounded_totality": "OPEN",
+    "v3_universal_availability": "OPEN",
+    "universal_GPEI": "OPEN",
+    "P_VS_NP": "OPEN"
+  },
+  "next_exact_target": "Run the seven-clause negative-control regression, N49 reachable-bridge replay, and claim-ceiling CI. If green, journal both the counterexample and the N49 success append-only, then advance to N50 without changing v0.5 semantics.",
+  "seal": "IANUS VIAS SERVAT."
+}
