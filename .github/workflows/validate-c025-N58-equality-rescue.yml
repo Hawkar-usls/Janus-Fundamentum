@@ -1,0 +1,43 @@
+name: validate-c025-N58-equality-rescue
+
+on:
+  push:
+    branches:
+      - research/c025-n58-regular-occupancy-2026-08-27
+    paths:
+      - 'research/C025_N58_ONE_UNIT_EQUALITY_SIGN_COMPATIBILITY_2026-08-27.json'
+      - 'experiments/direct/janus_v05_abstract_frontier_N58_equality_rescue.py'
+      - '.github/workflows/validate-c025-N58-equality-rescue.yml'
+  pull_request:
+    paths:
+      - 'research/C025_N58_ONE_UNIT_EQUALITY_SIGN_COMPATIBILITY_2026-08-27.json'
+      - 'experiments/direct/janus_v05_abstract_frontier_N58_equality_rescue.py'
+      - '.github/workflows/validate-c025-N58-equality-rescue.yml'
+
+jobs:
+  N58-equality-rescue:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Execute N58 equality-case replay
+        run: python -m experiments.direct.janus_v05_abstract_frontier_N58_equality_rescue
+      - name: Verify equality theorem scope
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          x=json.loads(Path('research/C025_N58_ONE_UNIT_EQUALITY_SIGN_COMPATIBILITY_2026-08-27.json').read_text())
+          assert x['status']=='PROVED_EXACT_ONE_UNIT_EQUALITY_CASE_IMPOSSIBLE'
+          assert x['conclusion']['actual_raw_units_ceiling']==3364
+          assert x['conclusion']['cap_safe'] is True
+          assert x['runtime_change'] is False
+          assert x['scientific_boundary']['full_N58_requires_replay'] is True
+          assert x['theorem_runtime_heuristics']=='FORBIDDEN'
+          assert x['P_VS_NP']=='OPEN'
+          print('N58_EQUALITY_CASE_THEOREM_SCOPE=PASS')
+          print('P_VS_NP=OPEN')
+          PY
