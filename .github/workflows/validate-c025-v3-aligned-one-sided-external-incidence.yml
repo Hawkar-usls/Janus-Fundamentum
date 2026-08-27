@@ -1,0 +1,51 @@
+name: validate-c025-v3-aligned-one-sided-external-incidence
+
+on:
+  push:
+    branches:
+      - research/c025-balanced-pressure-wedge-2026-08-27
+    paths:
+      - 'research/C025_V3_ALIGNED_ONE_SIDED_EXTERNAL_INCIDENCE_RESCUE_2026-08-27.json'
+      - 'research/C025_V3_ALIGNED_ONE_SIDED_EXTERNAL_INCIDENCE_RESCUE_2026-08-27-v1.1.json'
+      - 'experiments/direct/janus_v3_aligned_one_sided_external_incidence_certificate.py'
+      - '.github/workflows/validate-c025-v3-aligned-one-sided-external-incidence.yml'
+  pull_request:
+    paths:
+      - 'research/C025_V3_ALIGNED_ONE_SIDED_EXTERNAL_INCIDENCE_RESCUE_2026-08-27.json'
+      - 'research/C025_V3_ALIGNED_ONE_SIDED_EXTERNAL_INCIDENCE_RESCUE_2026-08-27-v1.1.json'
+      - 'experiments/direct/janus_v3_aligned_one_sided_external_incidence_certificate.py'
+      - '.github/workflows/validate-c025-v3-aligned-one-sided-external-incidence.yml'
+
+jobs:
+  exact-aligned-corridor:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Execute aligned one-sided structural certificate
+        run: python -m experiments.direct.janus_v3_aligned_one_sided_external_incidence_certificate
+      - name: Verify audited theorem scope and append-only correction
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          p = Path('research/C025_V3_ALIGNED_ONE_SIDED_EXTERNAL_INCIDENCE_RESCUE_2026-08-27-v1.1.json')
+          d = json.loads(p.read_text())
+          assert d['status'] == 'AUDITED_PROVED_STRUCTURAL_CORRIDOR__NUMERIC_SHARPENING_CORRECTED__UNIVERSAL_AVAILABILITY_OPEN'
+          assert d['P_VS_NP'] == 'OPEN'
+          assert d['history_policy'] == 'APPEND_ONLY__V1_RETAINED_AS_AUDIT_WITNESS'
+          assert d['corrected_theorem']['status'] == 'PROVED_SUFFICIENT_CORRIDOR_NOT_UNIVERSAL'
+          assert d['corrected_theorem']['unconditional_raw_bounds']['after_A'] == 'raw_units_A <= s_M'
+          assert d['corrected_theorem']['unconditional_raw_bounds']['after_B'] == 'raw_units_B <= state_units(M_A) <= s_M'
+          assert d['corrected_theorem']['conditional_sharpening']['status'] == 'CONDITIONAL_ONLY'
+          assert d['remaining_gap']['name'] == 'MIXED_SIGN_EXTERNAL_BUCKET_PRODUCT'
+          assert d['epistemic_witness']['v1_not_deleted_or_rewritten'] is True
+          assert d['scientific_boundary']['does_not_modify_frozen_v3_runtime'] is True
+          assert d['scientific_boundary']['does_not_prove_universal_v3_availability'] is True
+          assert d['scientific_boundary']['does_not_prove_P_equals_NP'] is True
+          print('C025_V3_ALIGNED_ONE_SIDED_AUDITED_THEOREM=PASS')
+          print('MIXED_SIGN_EXTERNAL_BUCKET_PRODUCT=OPEN')
+          print('P_VS_NP=OPEN')
+          PY
