@@ -19,10 +19,36 @@ soundness/completeness scope, polynomial accounting where relevant, independent
 replay, claim-ceiling audit, and an explicit human-reviewed promotion commit.
 There is no automatic promotion.
 
+## M2R pre-action jump gate
+
+`m2r_jump_counter.py` is the MAD-LAB pre-action counter.
+
+Before a supplied abstract action is taken, M2R computes its frozen theorem-side
+raw upper bound and compares it with the current cap `N^2`:
+
+- `LAND` — bound is at or below the cap; the action may be tested.
+- `VETO` — bound is above the cap; the primary action is not taken.
+- `JUMP` — after a veto, another *already supplied* cap-safe action for the same
+  state is selected by a deterministic canonical order.
+- `OPEN` — no supplied action is certified cap-safe; the obstruction is kept.
+
+M2R has **veto power, not truth power**. It never invents a pivot/action, never
+hides a failed state, and never upgrades an experimental route into a theorem.
+A jump is **action-level**, not an instruction to skip a failed `N`. Therefore a
+MAD-LAB jump cannot advance the finite theorem frontier.
+
+The counter also records `jump_debt = max(0, raw_bound - N^2)`, cumulative debt,
+maximum debt, number of landings, vetoes, jumps, and OPEN outcomes. This lets us
+look for repeated obstruction geometry without contaminating theorem runtime.
+
 ## Reverse-prime probe lane
 
 The first calibration schedule is a descending prime sequence beginning at
 `N=937`: `937, 929, 919, 911, 907, ...`.
+
+Every future action executed by this lane is expected to pass through the M2R
+pre-action gate first. The prime schedule itself is only a schedule; it does not
+fabricate action candidates.
 
 These probes are stress tests only. A PASS at `N=937` does **not** prove any
 intermediate N, unbounded totality, universal GPEI, SAT in P, or P=NP. Their
