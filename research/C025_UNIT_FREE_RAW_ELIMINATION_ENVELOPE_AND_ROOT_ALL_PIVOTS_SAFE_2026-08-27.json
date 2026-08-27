@@ -1,0 +1,67 @@
+{
+  "schema": "JANUS/C025/UNIT-FREE-RAW-ELIMINATION-ENVELOPE-AND-ROOT-ALL-PIVOTS-SAFE/v1",
+  "date": "2026-08-27",
+  "status": "PROVED_GENERIC_UNIT_FREE_ENVELOPE__PROVED_ALL_LEGITIMATE_ROOT_PIVOTS_SAFE",
+  "P_VS_NP": "OPEN",
+  "depends_on": [
+    "research/C025_GENERIC_RAW_ELIMINATION_BUDGET_LEMMA_2026-08-27-v1.1.json",
+    "research/C025_LEGITIMATE_ROOT_FIRST_ORDINARY_PIVOT_AND_EXTENSION_ERA_LIVE_CEILING_2026-08-27.json"
+  ],
+  "definitions": {
+    "F": "canonical CNF state after unit propagation has reached a fixed point and before ordinary elimination",
+    "s": "state_units(F)",
+    "x": "live pivot variable",
+    "p_q": "positive/negative pivot-clause counts",
+    "U_plus_U_minus": "sums of pivot-removed tail lengths in the positive/negative buckets",
+    "A": "2p+U_plus, total state-unit contribution of positive pivot clauses",
+    "B": "2q+U_minus, total state-unit contribution of negative pivot clauses",
+    "R": "state_units of retained pivot-free clauses, so A+B=s-R",
+    "X": "p*q+q*U_plus+p*U_minus, generic cross-product raw upper contribution"
+  },
+  "lemma_mixed_pivot": {
+    "name": "UNIT_FREE_MIXED_PIVOT_RAW_ENVELOPE",
+    "statement": "If both pivot polarities occur in a unit-free state, then RAW_x <= 1+(s-1)^2/12 under the frozen pre-subsumption raw accounting.",
+    "proof": [
+      "Unit-free means every pivot-containing clause has width at least 2, hence every tail has length at least 1: U_plus>=p and U_minus>=q.",
+      "Direct expansion gives A*B-3X=(U_plus-p)*(U_minus-q)>=0, hence X<=A*B/3.",
+      "By AM-GM, A*B<=(A+B)^2/4=(s-R)^2/4, so RAW_x<=R+(s-R)^2/12.",
+      "For a mixed pivot A>=3 and B>=3, hence 1<=R<=s-6. The function g(R)=R+(s-R)^2/12 is convex, so its maximum on this interval is at an endpoint.",
+      "g(1)=1+(s-1)^2/12 and g(s-6)=s-3. Their difference is (s-7)^2/12>=0. Therefore RAW_x<=1+(s-1)^2/12."
+    ],
+    "status": "PROVED"
+  },
+  "lemma_pure_pivot": {
+    "statement": "If one pivot polarity is absent, no resolvent cross-product is generated and RAW_x=state_units(retained)<=s.",
+    "status": "PROVED_DIRECTLY_FROM_FROZEN_ELIMINATION"
+  },
+  "combined_envelope": {
+    "statement": "For every live pivot in a unit-free canonical state, RAW_x <= max(s, 1+(s-1)^2/12). For every mixed pivot the sharper second term alone applies.",
+    "status": "PROVED"
+  },
+  "root_corollary": {
+    "name": "EVERY_LEGITIMATE_ROOT_PIVOT_IS_N2_CAP_SAFE_AFTER_UNIT_FIXPOINT",
+    "statement": "Let a legitimate root have r live variables, root state size s0=N-r, and suppose the frozen solver has reached the ordinary-elimination stage without terminating. Every live root pivot is safe under cap N^2, not merely one pivot.",
+    "proof": [
+      "Pure pivots satisfy RAW<=s0<N<N^2.",
+      "Mixed pivots satisfy RAW<=1+(s0-1)^2/12 <= 1+(N-r-1)^2/12 < N^2 for every nontrivial legitimate root.",
+      "Therefore first_capped_elimination cannot reject any root pivot for raw-cap reasons once unit propagation is at a fixed point."
+    ],
+    "status": "PROVED_STRONGER_THAN_PREVIOUS_ROOT_EXISTENCE_THEOREM"
+  },
+  "first_residual_envelope": {
+    "statement": "If the root proceeds by ordinary elimination of a mixed pivot, the exact canonical next residual has state_units <= raw_units <= 1+(N-r-1)^2/12. If the chosen root pivot is pure, the next residual has state_units<=N-r.",
+    "importance": "The first reachable residual begins far below the full N^2 cap envelope; rescue pressure must be created by later exact projection structure, not already exist at the legitimate root.",
+    "status": "PROVED"
+  },
+  "scientific_boundary": {
+    "unit_fixpoint_required_for_mixed_envelope": true,
+    "does_not_iterate_the_quadratic_envelope_as_a_polynomial_totality_proof": true,
+    "does_not_prove_every_later_pivot_safe": true,
+    "does_not_prove_v2_v3_never_needed": true,
+    "does_not_prove_reachable_totality": true,
+    "does_not_prove_P_equals_NP": true,
+    "P_VS_NP": "OPEN"
+  },
+  "next_exact_target": "Use the first-residual envelope together with decreasing live-variable count and canonical-state combinatorics to bound the second and later reachable projections, while current-v3 N^2 structured scouting searches for an actual extension witness.",
+  "seal": "IANUS VIAS SERVAT."
+}
