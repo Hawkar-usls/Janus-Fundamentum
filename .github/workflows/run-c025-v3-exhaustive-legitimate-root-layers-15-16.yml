@@ -1,0 +1,47 @@
+name: run-c025-v3-exhaustive-legitimate-root-layers-15-16
+
+on:
+  push:
+    branches:
+      - research/c025-balanced-pressure-wedge-2026-08-27
+    paths:
+      - 'experiments/direct/janus_v3_exhaustive_legitimate_root_layers_15_16.py'
+      - '.github/workflows/run-c025-v3-exhaustive-legitimate-root-layers-15-16.yml'
+
+jobs:
+  exhaustive-N15-N16:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Execute exhaustive forward census N15-N16
+        run: |
+          python -m experiments.direct.janus_v3_exhaustive_legitimate_root_layers_15_16 \
+            | tee c025-v3-exhaustive-N15-N16.json
+      - name: Verify finite claim ceiling
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          d = json.loads(Path('c025-v3-exhaustive-N15-N16.json').read_text())
+          assert [x['N'] for x in d['layers']] == [15,16]
+          b = d['scientific_boundary']
+          assert b['exhaustive_only_for_listed_finite_layers'] is True
+          assert b['finite_totality_does_not_imply_asymptotic_totality'] is True
+          assert b['P_VS_NP'] == 'OPEN'
+          for row in d['layers']:
+              assert sum(row['counts_by_root_var_count'].values()) == row['total_roots']
+              print('N%d_ROOTS=%d' % (row['N'], row['total_roots']))
+              print('N%d_OPEN=%d' % (row['N'], row['status_counts'].get('OPEN',0)))
+              print('N%d_V2=%d' % (row['N'], row['roots_using_v2_macro_restore']))
+              print('N%d_V3=%d' % (row['N'], row['roots_using_v3_tail']))
+          print('SCAN_STATUS=' + d['status'])
+          print('P_VS_NP=OPEN')
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: c025-v3-exhaustive-legitimate-root-layers-15-16
+          path: c025-v3-exhaustive-N15-N16.json
