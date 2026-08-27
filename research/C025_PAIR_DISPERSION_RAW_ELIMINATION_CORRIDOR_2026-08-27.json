@@ -1,0 +1,75 @@
+{
+  "schema": "JANUS/C025/PAIR-DISPERSION-RAW-ELIMINATION-CORRIDOR/v1",
+  "date": "2026-08-27",
+  "status": "PROVED_SUFFICIENT_CORRIDOR__BALANCED_PRESSURE_WEDGE_OPEN",
+  "P_VS_NP": "OPEN",
+  "dependencies": [
+    "research/C025_LOW_VOLUME_ELIMINATION_THRESHOLD_STRENGTHENING_2026-08-27.json",
+    "research/C025_V2_FREQUENT_PAIR_RESCUE_SUFFICIENT_LEMMA_2026-08-27.json",
+    "research/C025_PAIR_INCIDENCE_DENSITY_RESCUE_COROLLARY_2026-08-27.json",
+    "experiments/direct/janus_unified_proof_carrying_akinator_jec.py"
+  ],
+  "definitions": {
+    "N": "root-relative normalized input budget",
+    "F": "canonical nonterminal residual after unit propagation has reached a fixed point",
+    "s": "state_units(F)=1+#clauses+#literal_occurrences",
+    "n": "number of live underlying Boolean variables in F",
+    "T": "maximum cooccurrence frequency of any nondegenerate sign-aware unordered literal pair in F",
+    "d_x": "number of clauses containing x or -x",
+    "A_x": "sum over clauses containing x or -x of (|C|-1), equivalently the total pair-incidence mass touching underlying variable x"
+  },
+  "local_raw_bound": {
+    "id": "PIVOT_RAW_MULTISET_UPPER_BOUND",
+    "statement": "For a live pivot x, let p/q be the positive/negative bucket counts and A_P/A_Q the corresponding sums of (|C|-1). Before tautology, duplicate and subsumption cleanup, Davis-Putnam elimination has raw state_units R_x = s + p*q + (q-1)A_P + (p-1)A_Q - 2(p+q). Hence R_x <= s + d_x^2/4 + (d_x-1)A_x - 2d_x.",
+    "proof": [
+      "The retained part contributes exactly the original state after removing the p+q pivot clauses and their literals.",
+      "There are at most p*q resolvent clauses in the raw multiset.",
+      "Across all p*q parent pairs, nonpivot literal occurrences contribute q*A_P+p*A_Q.",
+      "Subtracting the removed pivot-clause contribution yields R_x = s+p*q+(q-1)A_P+(p-1)A_Q-2(p+q).",
+      "AM-GM gives p*q <= (p+q)^2/4=d_x^2/4, and both q-1 and p-1 are <=d_x-1."
+    ],
+    "status": "PROVED_ELEMENTARY"
+  },
+  "pair_dispersion_lemma": {
+    "id": "PAIR_DISPERSION_FORCES_RAW_ELIMINATION_FIT",
+    "statement": "At a unit-propagation fixed point, every live pivot x satisfies d_x<=A_x<=4(n-1)T. Therefore every pivot raw output satisfies R_x <= s+20(n-1)^2*T^2. In particular, if s+20(n-1)^2*T^2 <= N^2, frozen ordinary exact elimination is guaranteed to admit the first canonical live pivot under the N^2 cap.",
+    "proof": [
+      "No unit clause remains, so every pivot-clause has at least one nonpivot literal; hence d_x<=A_x.",
+      "For each other underlying variable y there are at most four sign-aware pair types between x and y. With n-1 choices of y and per-type frequency at most T, A_x<=4(n-1)T.",
+      "Using d_x<=A_x in the local bound gives R_x<=s+A_x^2/4+A_x^2 <= s+(5/4)A_x^2.",
+      "Substitute A_x<=4(n-1)T to obtain R_x<=s+20(n-1)^2*T^2.",
+      "The implementation's monotone raw set can only be smaller than this multiset bound because tautologies and duplicates are discarded; optional canonical subsumption only decreases size further.",
+      "Therefore the cap cannot be crossed when the stated inequality holds."
+    ],
+    "status": "PROVED_ELEMENTARY"
+  },
+  "combined_root_phase_dichotomy": {
+    "facts": [
+      "If s<=2N-1, TWO_N_MINUS_ONE_ELIMINATION_CORRIDOR guarantees every pivot fits.",
+      "If T>=s-2N+11 and roots remain live, FREQUENT_PAIR_FORCES_V2_ROOT_RESCUE guarantees a v2 move.",
+      "If s+20(n-1)^2*T^2<=N^2, ordinary elimination is guaranteed to fit even when s>=2N."
+    ],
+    "remaining_wedge": {
+      "name": "BALANCED_PAIR_PRESSURE_ROOT_WEDGE",
+      "necessary_conditions_for_a_root_phase_gap_witness": [
+        "ROOT_VARIABLES_REMAIN_LIVE",
+        "NO_EARLIER_EXACT_TERMINAL_LANE_DECIDES",
+        "s>=2N",
+        "EVERY_FROZEN_ORDINARY_PIVOT_HITS_THE_MONOTONE_N2_RAW_CAP",
+        "T<=s-2N+10",
+        "s+20(n-1)^2*T^2>N^2",
+        "V2_EXHAUSTIVE_FROZEN_GRAMMAR_FINDS_NO_CERTIFIED_MOVE"
+      ],
+      "status": "OPEN"
+    }
+  },
+  "interpretation": "The unresolved root-phase region is no longer generic high volume. A witness must simultaneously have enough distributed local pair pressure to defeat the raw-elimination bound while avoiding enough concentration in any one pair to trigger the proved v2 rescue threshold.",
+  "scientific_boundary": {
+    "sufficient_not_necessary_bounds": true,
+    "does_not_prove_root_phase_totality": true,
+    "does_not_cover_root_free_v3_totality": true,
+    "does_not_prove_P_equals_NP": true,
+    "P_VS_NP": "OPEN"
+  },
+  "next_exact_target": "Search the frozen reachable trajectory specifically for BALANCED_PAIR_PRESSURE_ROOT_WEDGE states. A reachable witness refutes current root-phase totality; absence in finite probes is not proof. In parallel, seek a combinatorial contradiction between all-pivot monotone-cap overflow and pair dispersion on reachable states."
+}
