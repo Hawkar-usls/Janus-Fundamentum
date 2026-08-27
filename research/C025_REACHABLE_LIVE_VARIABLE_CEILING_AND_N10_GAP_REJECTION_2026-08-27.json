@@ -1,0 +1,69 @@
+{
+  "schema": "JANUS/C025/REACHABLE-LIVE-VARIABLE-CEILING/v1",
+  "date": "2026-08-27",
+  "status": "PROVED_FROZEN_ENGINE_REACHABILITY_INVARIANT__N10_SEED172_LOCAL_GAP_UNREACHABLE",
+  "P_VS_NP": "OPEN",
+  "depends_on": [
+    "experiments/direct/janus_unified_proof_carrying_akinator_jec.py",
+    "experiments/direct/janus_unified_macro_restore_v2.py",
+    "experiments/direct/janus_unified_macro_restore_v3.py",
+    "research/C025_V3_BALANCED_PRESSURE_LOCAL_GAP_N10_SEED172_2026-08-27.json"
+  ],
+  "definitions": {
+    "root": "canonical nonterminal input CNF supplied to the frozen v3 engine",
+    "N": "input_size_units(root)=max(2,state_units(root)+|Vars(root)|)",
+    "r0": "|Vars(root)|",
+    "v_t": "number of live semantic variables in the residual at any continuing frozen-engine state t"
+  },
+  "lemma_root_variable_ceiling": {
+    "statement": "For every nonempty nonterminal root with r0>=1, N>=2*r0+2 and therefore r0<=floor((N-2)/2).",
+    "proof": [
+      "state_units(root)=1+#clauses+#literal_occurrences.",
+      "A nonempty root containing r0 distinct variables has at least one clause and at least r0 literal occurrences.",
+      "Hence state_units(root)>=1+1+r0=r0+2.",
+      "N=state_units(root)+r0 for this nontrivial case, so N>=2*r0+2."
+    ],
+    "status": "PROVED"
+  },
+  "lemma_live_count_monotonicity": {
+    "statement": "Every nonterminal continuing transition admitted by the frozen v3 engine satisfies v_{t+1}<=v_t; every successful root-free v3 macro-tail step satisfies v_{t+1}<=v_t-1.",
+    "cases": [
+      "Unit propagation/restriction removes literals/variables and introduces none.",
+      "Ordinary exact existential elimination removes the pivot and introduces no fresh variable.",
+      "v2 B2 root-restoration macro introduces at most one fresh extension variable and is admitted atomically only together with elimination of one old live root pivot, so live count does not increase.",
+      "v3 tail introduces at most one fresh extension variable and atomically eliminates two distinct old pre-macro live pivots, so live count decreases by at least one.",
+      "2-SAT/GF2/bounded-resolution certificate lanes terminate with a verdict rather than produce a continuing enlarged residual."
+    ],
+    "status": "PROVED_FROM_FROZEN_TRANSITION_SHAPE"
+  },
+  "theorem": {
+    "name": "FROZEN_REACHABLE_LIVE_VARIABLE_CEILING",
+    "statement": "For every continuing state reachable from a legitimate nonterminal root under the frozen v3 engine, v_t<=r0<=floor((N-2)/2).",
+    "proof": "Combine the root-variable ceiling with induction over the live-count-nonincreasing transition relation.",
+    "status": "PROVED"
+  },
+  "application": {
+    "witness": "83afc9261dd0ac71142f0f18b0c5ba97396f295e2f238f5c6f88e98bb6e19f45",
+    "synthetic_N": 10,
+    "witness_live_variables": 10,
+    "reachable_ceiling_at_N10": 4,
+    "comparison": "10 > floor((10-2)/2)=4",
+    "conclusion": "UNREACHABLE_FROM_ANY_LEGITIMATE_ROOT_WITH_SAME_FROZEN_N_UNDER_CURRENT_V3_TRANSITIONS",
+    "effect_on_claim": "The witness remains a valid arbitrary-state grammar gap but is not a counterexample to reachable-state totality. Frozen v3 grammar must not be patched merely to cover this witness."
+  },
+  "new_research_constraint": {
+    "name": "REACHABILITY_COMPATIBLE_ADVERSARY_CEILING",
+    "rule": "Any future synthetic root-free stress state intended to challenge reachable-state totality at original N must satisfy live_variables<=floor((N-2)/2) before deeper reachability analysis is worth attempting.",
+    "stronger_requirement": "Passing this necessary ceiling still does not establish reachability; exact forward provenance remains required for a true reachable counterexample."
+  },
+  "scientific_boundary": {
+    "proves_only_current_frozen_engine_invariant": true,
+    "future_grammar_versions_require_reaudit": true,
+    "does_not_prove_v3_universal_availability": true,
+    "does_not_prove_reachable_totality": true,
+    "does_not_prove_P_equals_NP": true,
+    "P_VS_NP": "OPEN"
+  },
+  "next_exact_target": "Regenerate balanced-pressure adversaries inside live_variables<=floor((N-2)/2), then distinguish local gaps from states with exact forward reachability certificates.",
+  "seal": "IANUS VIAS SERVAT."
+}
