@@ -1,0 +1,55 @@
+name: run-c025-balanced-product-pressure-microscope
+
+on:
+  push:
+    branches:
+      - research/c025-pirc-gpei-2026-08-27
+    paths:
+      - 'experiments/direct/janus_balanced_product_pressure_microscope.py'
+      - '.github/workflows/run-c025-balanced-product-pressure-microscope.yml'
+  pull_request:
+    paths:
+      - 'experiments/direct/janus_balanced_product_pressure_microscope.py'
+      - '.github/workflows/run-c025-balanced-product-pressure-microscope.yml'
+
+jobs:
+  pressure-microscope:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Inspect every pivot on the frozen first product state
+        run: |
+          python -m experiments.direct.janus_balanced_product_pressure_microscope \
+            | tee balanced-product-pressure.json
+      - name: Verify measurement-only boundary
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          data=json.loads(Path('balanced-product-pressure.json').read_text())
+          b=data['scientific_boundary']
+          assert b['measurement_only'] is True
+          assert b['one_previously_frozen_reachable_state'] is True
+          assert b['does_not_change_decision_core'] is True
+          assert b['HIGH_VOLUME_RESCUE_TOTALITY']=='OPEN'
+          assert b['P_VS_NP']=='OPEN'
+          p=data['pivot_pressure']
+          q=data['pair_pressure']
+          print('PRESSURE_STATUS='+data['status'])
+          print('FIT='+str(p['fit_count']))
+          print('OVERFLOW='+str(p['overflow_count']))
+          print('FIRST_FIT='+str(p['first_fit_pivot']))
+          print('FIRST_OVERFLOW='+str(p['first_overflow_pivot']))
+          print('PAIR_P='+str(q['pair_incidences_P']))
+          print('TMAX='+str(q['max_pair_frequency']))
+          print('FREQUENT_THRESHOLD='+str(q['frequent_pair_sufficient_threshold']))
+          print('P_VS_NP=OPEN')
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: c025-balanced-product-pressure
+          path: balanced-product-pressure.json
