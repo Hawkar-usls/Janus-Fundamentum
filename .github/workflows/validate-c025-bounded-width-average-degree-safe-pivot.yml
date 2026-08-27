@@ -1,0 +1,47 @@
+name: validate-c025-bounded-width-average-degree-safe-pivot
+
+on:
+  push:
+    branches:
+      - research/c025-balanced-pressure-wedge-2026-08-27
+    paths:
+      - 'research/C025_BOUNDED_WIDTH_AVERAGE_DEGREE_SAFE_PIVOT_CORRIDOR_2026-08-27-v1.1.json'
+      - 'experiments/direct/janus_bounded_width_degree_corridor_certificate.py'
+      - '.github/workflows/validate-c025-bounded-width-average-degree-safe-pivot.yml'
+  pull_request:
+    paths:
+      - 'research/C025_BOUNDED_WIDTH_AVERAGE_DEGREE_SAFE_PIVOT_CORRIDOR_2026-08-27-v1.1.json'
+      - 'experiments/direct/janus_bounded_width_degree_corridor_certificate.py'
+      - '.github/workflows/validate-c025-bounded-width-average-degree-safe-pivot.yml'
+
+jobs:
+  bounded-width-degree:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Execute bounded-width degree regression
+        run: python -m experiments.direct.janus_bounded_width_degree_corridor_certificate
+      - name: Verify audited theorem ceiling
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          d = json.loads(Path('research/C025_BOUNDED_WIDTH_AVERAGE_DEGREE_SAFE_PIVOT_CORRIDOR_2026-08-27-v1.1.json').read_text())
+          assert d['status'] == 'AUDITED_PROVED_SUFFICIENT_ORDINARY_PIVOT_CORRIDOR__NUMERIC_APPROXIMATION_CORRECTED__NOT_TOTALITY'
+          assert d['P_VS_NP'] == 'OPEN'
+          assert d['history_policy'] == 'APPEND_ONLY__V1_RETAINED_AS_NUMERIC_APPROXIMATION_WITNESS'
+          assert d['audit']['mathematical_content_changed'] is False
+          assert d['audit']['classification_changed'] is False
+          assert d['theorem']['status'] == 'PROVED'
+          assert d['corollary']['status'] == 'PROVED'
+          conclusions = [x['conclusion'] for x in d['frozen_width3_probe_ladder']]
+          assert conclusions.count('ORDINARY_SAFE_PIVOT_FORCED') == 3
+          assert conclusions.count('NOT_CERTIFIED_BY_AVERAGE_DEGREE_CORRIDOR') == 1
+          assert d['scientific_boundary']['sufficient_not_necessary'] is True
+          assert d['scientific_boundary']['does_not_prove_P_equals_NP'] is True
+          print('BOUNDED_WIDTH_AVERAGE_DEGREE_CORRIDOR_SCOPE=PASS')
+          print('P_VS_NP=OPEN')
+          PY
