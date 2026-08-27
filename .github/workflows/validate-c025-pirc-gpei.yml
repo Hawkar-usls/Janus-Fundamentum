@@ -7,17 +7,20 @@ on:
     paths:
       - 'experiments/direct/janus_matching_hall_escape.py'
       - 'experiments/direct/janus_pirc_theorem_mode_v0_1.py'
+      - 'experiments/direct/janus_open3_stage4_scaling_ladder_runner.py'
       - 'research/C025_PIRC_GPEI_COMPOSITION_BRIDGE_2026-08-27.json'
       - '.github/workflows/validate-c025-pirc-gpei.yml'
   pull_request:
     paths:
       - 'experiments/direct/janus_matching_hall_escape.py'
       - 'experiments/direct/janus_pirc_theorem_mode_v0_1.py'
+      - 'experiments/direct/janus_open3_stage4_scaling_ladder_runner.py'
       - 'research/C025_PIRC_GPEI_COMPOSITION_BRIDGE_2026-08-27.json'
 
 jobs:
   exact-selftests:
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -27,34 +30,36 @@ jobs:
         run: python -m experiments.direct.janus_matching_hall_escape
       - name: Frozen PIRC theorem-mode path self-test
         run: python -m experiments.direct.janus_pirc_theorem_mode_v0_1
-      - name: Run preregistered OPEN3 R1 reverse-pass probe
+      - name: Execute full preregistered OPEN3 Stage4 scaling ladder
         run: |
-          python -m experiments.direct.janus_open3_stage4_bounded_coverage_probe \
-            --nvars 4 \
-            --clauses 5 \
-            --min-width 3 \
-            --max-width 3 \
-            --cap-exponent 2 \
-            --limit 5000 | tee open3-r1-reverse-pass.json
-      - name: Verify R1 scientific boundary
+          python -m experiments.direct.janus_open3_stage4_scaling_ladder_runner \
+            | tee open3-stage4-scaling-ladder-reverse-pass.json
+      - name: Verify ladder scientific boundary and print rung summary
         run: |
           python - <<'PY'
           import json
           from pathlib import Path
-          data = json.loads(Path('open3-r1-reverse-pass.json').read_text())
-          assert data['scientific_boundary']['bounded_finite_probe_only'] is True
-          assert data['scientific_boundary']['absence_of_counterexample_is_not_totality_proof'] is True
-          assert data['scientific_boundary']['P_VS_NP'] == 'OPEN'
-          print('R1_SCIENTIFIC_BOUNDARY=PASS')
-          print('R1_STATUS=' + data['status'])
-          print('R1_OPEN3=' + str(data['totals']['open3']))
-          print('R1_OPEN_AFTER_STAGE4=' + str(data['totals']['open_after_stage4']))
+          data = json.loads(Path('open3-stage4-scaling-ladder-reverse-pass.json').read_text())
+          boundary = data['scientific_boundary']
+          assert boundary['bounded_finite_ladder_only'] is True
+          assert boundary['absence_of_barrier_is_not_totality_proof'] is True
+          assert boundary['universal_OPEN3_move_availability'] == 'OPEN'
+          assert boundary['universal_GPEI_preservation'] == 'OPEN'
+          assert boundary['P_VS_NP'] == 'OPEN'
+          print('LADDER_STATUS=' + data['status'])
+          for rung in data['rungs_executed']:
+              totals = rung['totals']
+              print(
+                  f"{rung['id']}: connected={totals['connected_examined']} "
+                  f"open3={totals['open3']} stage4_progress={totals['stage4_progress']} "
+                  f"open_after_stage4={totals['open_after_stage4']}"
+              )
           print('P_VS_NP=OPEN')
           PY
       - uses: actions/upload-artifact@v4
         with:
-          name: c025-open3-r1-reverse-pass
-          path: open3-r1-reverse-pass.json
+          name: c025-open3-stage4-scaling-ladder-reverse-pass
+          path: open3-stage4-scaling-ladder-reverse-pass.json
       - name: Verify claim ceiling remains open
         run: |
           python - <<'PY'
