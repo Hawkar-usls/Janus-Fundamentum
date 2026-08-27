@@ -1,0 +1,50 @@
+name: validate-c025-regular-occupancy-N58
+
+on:
+  push:
+    branches:
+      - research/c025-n58-regular-occupancy-2026-08-27
+    paths:
+      - 'research/C025_REGULAR_INCIDENCE_RETAINED_OCCUPANCY_RESOLVENT_CEILING_2026-08-27.json'
+      - 'experiments/direct/janus_v05_abstract_frontier_regular_occupancy.py'
+      - 'experiments/direct/janus_v05_abstract_frontier_resource_simplex.py'
+      - 'experiments/direct/janus_v05_abstract_frontier_global_raw_universe.py'
+      - '.github/workflows/validate-c025-regular-occupancy-N58.yml'
+  pull_request:
+    paths:
+      - 'research/C025_REGULAR_INCIDENCE_RETAINED_OCCUPANCY_RESOLVENT_CEILING_2026-08-27.json'
+      - 'experiments/direct/janus_v05_abstract_frontier_regular_occupancy.py'
+      - 'experiments/direct/janus_v05_abstract_frontier_resource_simplex.py'
+      - 'experiments/direct/janus_v05_abstract_frontier_global_raw_universe.py'
+      - '.github/workflows/validate-c025-regular-occupancy-N58.yml'
+
+jobs:
+  regular-occupancy-N58:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Execute regular-incidence N58 verifier
+        run: python -m experiments.direct.janus_v05_abstract_frontier_regular_occupancy
+      - name: Verify theorem scope and claim ceiling
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          x=json.loads(Path('research/C025_REGULAR_INCIDENCE_RETAINED_OCCUPANCY_RESOLVENT_CEILING_2026-08-27.json').read_text())
+          assert x['status']=='PROVED_EXACT_REGULAR_INCIDENCE_NEW_RESOLVENT_CEILING'
+          assert x['runtime_change'] is False
+          assert x['N58_second_open_repair']['new_resolvent_ceiling_J']==609
+          assert x['N58_second_open_repair']['raw_units_ceiling']==3361
+          assert x['N58_second_open_repair']['N58_cap']==3364
+          assert x['scientific_boundary']['does_not_by_itself_prove_all_N58_abstract_states'] is True
+          assert x['theorem_runtime_heuristics']=='FORBIDDEN'
+          assert x['P_VS_NP']=='OPEN'
+          print('REGULAR_OCCUPANCY_LEMMA_SCOPE=PASS')
+          print('THEOREM_RUNTIME_HEURISTICS=FORBIDDEN')
+          print('UNBOUNDED_TOTALITY=OPEN')
+          print('P_VS_NP=OPEN')
+          PY
