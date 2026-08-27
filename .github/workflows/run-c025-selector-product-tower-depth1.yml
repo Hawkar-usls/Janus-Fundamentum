@@ -1,0 +1,84 @@
+name: run-c025-selector-product-tower-depth1
+
+on:
+  push:
+    branches:
+      - research/c025-pirc-gpei-2026-08-27
+    paths:
+      - 'experiments/direct/janus_selector_product_tower_hostile_probe.py'
+      - 'research/C025_SELECTOR_PRODUCT_TOWER_DEPTH1_PREREGISTRATION_2026-08-27.json'
+      - '.github/workflows/run-c025-selector-product-tower-depth1.yml'
+  pull_request:
+    paths:
+      - 'experiments/direct/janus_selector_product_tower_hostile_probe.py'
+      - 'research/C025_SELECTOR_PRODUCT_TOWER_DEPTH1_PREREGISTRATION_2026-08-27.json'
+      - '.github/workflows/run-c025-selector-product-tower-depth1.yml'
+
+jobs:
+  selector-product-depth1:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Verify preregistration ceiling
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          p = Path('research/C025_SELECTOR_PRODUCT_TOWER_DEPTH1_PREREGISTRATION_2026-08-27.json')
+          data = json.loads(p.read_text())
+          assert data['status'] == 'FROZEN_BEFORE_FIRST_SELECTOR_TOWER_RESULT'
+          assert data['frozen_run']['max_depth'] == 1
+          assert data['stopping_rule'].startswith('EXECUTE_DEPTH_1_ONLY')
+          assert data['scientific_boundary']['HIGH_VOLUME_RESCUE_TOTALITY'] == 'OPEN'
+          assert data['P_VS_NP'] == 'OPEN'
+          print('SELECTOR_TOWER_DEPTH1_PREREGISTRATION=PASS')
+          print('P_VS_NP=OPEN')
+          PY
+
+      - name: Execute frozen selector-product depth-1 probe
+        run: |
+          python -m experiments.direct.janus_selector_product_tower_hostile_probe \
+            --max-depth 1 | tee selector-product-depth1.json
+
+      - name: Verify scientific boundary and print mechanism
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          data = json.loads(Path('selector-product-depth1.json').read_text())
+          assert len(data['rows']) == 1
+          row = data['rows'][0]
+          assert row['depth'] == 1
+          assert row['known_external_truth'] == 'UNSAT'
+          # Independent post-run soundness check only: a SAT verdict on this known
+          # UNSAT specimen would be a concrete soundness failure, never a success.
+          assert row['status'] != 'SAT', 'SOUNDNESS_FAILURE_ON_K5_SELECTOR_PRODUCT'
+          b = data['scientific_boundary']
+          assert b['structured_finite_hostile_family_only'] is True
+          assert b['family_label_not_supplied_to_decision_core'] is True
+          assert b['known_truth_not_used_by_decision_core'] is True
+          assert b['absence_of_open_is_not_totality_proof'] is True
+          assert b['HIGH_VOLUME_RESCUE_TOTALITY'] == 'OPEN'
+          assert b['P_VS_NP'] == 'OPEN'
+          print('SELECTOR_DEPTH1_STATUS=' + row['status'])
+          print('SELECTOR_DEPTH1_REASON=' + row['reason'])
+          print('SELECTOR_DEPTH1_N=' + str(row['N']))
+          print('SELECTOR_DEPTH1_MAX_STATE_UNITS=' + str(row['max_state_units']))
+          print('SELECTOR_DEPTH1_MAX_VOLUME_RATIO=' + str(row['max_volume_ratio']))
+          print('SELECTOR_DEPTH1_ORDINARY=' + str(row['ordinary_elimination_events']))
+          print('SELECTOR_DEPTH1_V2=' + str(row['v2_macro_rescue_events']))
+          print('SELECTOR_DEPTH1_V3=' + str(row['v3_tail_rescue_events']))
+          print('SELECTOR_DEPTH1_EXTENSION_COUNT=' + str(row['extension_count']))
+          print('SELECTOR_DEPTH1_MISSING_BRIDGE=' + str(row['missing_bridge']))
+          print('P_VS_NP=OPEN')
+          PY
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: c025-selector-product-tower-depth1
+          path: selector-product-depth1.json
