@@ -1,0 +1,44 @@
+name: validate-c025-degree1-reroot-N26
+
+on:
+  push:
+    branches:
+      - research/c025-balanced-pressure-wedge-2026-08-27
+    paths:
+      - 'research/C025_DEGREE1_REROOT_AND_NO_CAP_RESCUE_THROUGH_N26_2026-08-27.json'
+      - 'experiments/direct/janus_degree1_reroot_N26_certificate.py'
+      - '.github/workflows/validate-c025-degree1-reroot-N26.yml'
+  pull_request:
+    paths:
+      - 'research/C025_DEGREE1_REROOT_AND_NO_CAP_RESCUE_THROUGH_N26_2026-08-27.json'
+      - 'experiments/direct/janus_degree1_reroot_N26_certificate.py'
+      - '.github/workflows/validate-c025-degree1-reroot-N26.yml'
+
+jobs:
+  degree1-reroot-N26:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Execute exact arithmetic regression
+        run: python -m experiments.direct.janus_degree1_reroot_N26_certificate
+      - name: Verify theorem scope and claim ceiling
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          d = json.loads(Path('research/C025_DEGREE1_REROOT_AND_NO_CAP_RESCUE_THROUGH_N26_2026-08-27.json').read_text())
+          assert d['status'] == 'PROVED_DEGREE1_REROOT_CORRIDOR__PROVED_NO_RAW_CAP_RESCUE_N_LE_26'
+          assert d['P_VS_NP'] == 'OPEN'
+          assert d['lemma_degree1']['status'] == 'PROVED'
+          assert d['lemma_degree1_elimination_reroot']['status'] == 'PROVED'
+          assert d['cap_monotonicity']['status'] == 'PROVED'
+          assert d['theorem']['status'] == 'PROVED'
+          assert d['scientific_boundary']['does_not_prove_P_equals_NP'] is True
+          assert d['scientific_boundary']['does_not_prove_unbounded_reachable_totality'] is True
+          print('N26_DEGREE1_REROOT_SCOPE=PASS')
+          print('P_VS_NP=OPEN')
+          PY
