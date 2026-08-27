@@ -1,0 +1,55 @@
+name: run-c025-colorability-totality-hostile-probe
+
+on:
+  push:
+    branches:
+      - research/c025-pirc-gpei-2026-08-27
+    paths:
+      - 'experiments/direct/janus_colorability_totality_hostile_probe.py'
+      - '.github/workflows/run-c025-colorability-totality-hostile-probe.yml'
+  pull_request:
+    paths:
+      - 'experiments/direct/janus_colorability_totality_hostile_probe.py'
+      - '.github/workflows/run-c025-colorability-totality-hostile-probe.yml'
+
+jobs:
+  hostile-totality-probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Run frozen 4-colorability corpus
+        run: |
+          python -m experiments.direct.janus_colorability_totality_hostile_probe \
+            --cases-per-rung 8 | tee colorability-totality-hostile.json
+      - name: Verify scientific boundary and expose first OPEN
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          data = json.loads(Path('colorability-totality-hostile.json').read_text())
+          b = data['scientific_boundary']
+          assert b['bounded_finite_probe_only'] is True
+          assert b['graph_family_label_not_supplied_to_decision_core'] is True
+          assert b['absence_of_open_is_not_totality_proof'] is True
+          assert b['found_open_refutes_only_frozen_v0_3_totality'] is True
+          assert b['REACHABLE_MOVE_OR_TERMINAL_TOTALITY'] == 'OPEN'
+          assert b['P_VS_NP'] == 'OPEN'
+          print('HOSTILE_STATUS=' + data['status'])
+          print('EXAMINED=' + str(data['totals']['examined']))
+          print('SAT=' + str(data['totals']['SAT']))
+          print('UNSAT=' + str(data['totals']['UNSAT']))
+          print('OPEN=' + str(data['totals']['OPEN']))
+          if data['first_open'] is not None:
+              print('FIRST_OPEN_FINGERPRINT=' + data['first_open']['cnf_fingerprint'])
+              print('FIRST_OPEN_TRUTH=' + data['first_open']['independent_finite_truth_label'])
+              print('FIRST_OPEN_REASON=' + data['first_open']['reason'])
+          print('P_VS_NP=OPEN')
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: c025-colorability-totality-hostile
+          path: colorability-totality-hostile.json
