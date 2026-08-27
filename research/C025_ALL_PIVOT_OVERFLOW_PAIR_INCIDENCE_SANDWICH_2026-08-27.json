@@ -1,0 +1,99 @@
+{
+  "schema": "JANUS/C025/ALL-PIVOT-OVERFLOW-PAIR-INCIDENCE-SANDWICH/v1",
+  "date": "2026-08-27",
+  "status": "PROVED_SUFFICIENT_DICHOTOMY_CORRIDOR__RESIDUAL_WEDGE_OPEN",
+  "P_VS_NP": "OPEN",
+  "dependencies": [
+    "research/C025_LOW_VOLUME_ELIMINATION_THRESHOLD_STRENGTHENING_2026-08-27.json",
+    "research/C025_V2_FREQUENT_PAIR_RESCUE_SUFFICIENT_LEMMA_2026-08-27.json",
+    "research/C025_SIGN_SPLIT_PAIR_DISPERSION_STRENGTHENING_2026-08-27-v1.1.json",
+    "experiments/direct/janus_unified_proof_carrying_akinator_jec.py"
+  ],
+  "scope": "Root-phase, nonterminal, unit-propagation fixed-point states within the frozen original-N N^2 state envelope, with at least one live root variable and before root-free v3 tail mode.",
+  "definitions": {
+    "N": "original normalized root input budget",
+    "F": "current canonical residual",
+    "s": "state_units(F)",
+    "m": "number of clauses in F",
+    "L": "total literal occurrences in F",
+    "n": "number of live variables in F",
+    "P": "total nondegenerate sign-aware unordered literal-pair incidences, equivalently sum_C binom(|C|,2)",
+    "T": "maximum frequency of any one sign-aware literal-pair type",
+    "d_x": "number of clauses containing x or -x",
+    "A_x": "sum over clauses containing x or -x of (|C|-1)"
+  },
+  "identities": [
+    "sum_x d_x = L",
+    "sum_x A_x = 2P",
+    "d_x <= m for every x",
+    "there are at most 2n(n-1) nondegenerate sign-aware unordered literal-pair types"
+  ],
+  "lemma_1_all_pivot_overflow_forces_pair_mass": {
+    "name": "ALL_PIVOT_OVERFLOW_PAIR_INCIDENCE_FLOOR",
+    "statement": "If every live Davis-Putnam pivot exceeds the frozen monotone N^2 raw cap, then 2mP + (mL)/4 > n(N^2-s). Equivalently P > n(N^2-s)/(2m) - L/8.",
+    "proof": [
+      "For pivot x, the raw multiset upper bound from the elimination accounting is at most s + d_x^2/4 + d_x A_x after dropping negative terms.",
+      "If the implementation's monotone raw set actually overflows N^2, then the completed raw set would exceed N^2, hence every valid upper bound on that completed set must also exceed N^2. Therefore d_x^2/4 + d_x A_x > N^2-s.",
+      "Sum over all n live pivots: n(N^2-s) < sum_x[d_x^2/4+d_xA_x].",
+      "Because d_x<=m, d_x^2<=m d_x and d_xA_x<=mA_x.",
+      "Use sum_x d_x=L and sum_x A_x=2P to get sum_x[d_x^2/4+d_xA_x] <= mL/4+2mP.",
+      "Combining the strict lower and upper inequalities yields 2mP+mL/4>n(N^2-s)."
+    ],
+    "status": "PROVED_ELEMENTARY"
+  },
+  "lemma_2_no_v2_trigger_caps_pair_mass": {
+    "name": "NO_FREQUENT_PAIR_PAIR_INCIDENCE_CEILING",
+    "statement": "Assume s>=2N and no sign-aware literal pair reaches the proved v2 trigger T>=s-2N+11. Since frequencies are integers, T<=s-2N+10 and therefore P<=2n(n-1)(s-2N+10).",
+    "proof": [
+      "Every pair incidence belongs to one of at most 4*binom(n,2)=2n(n-1) sign-aware pair types.",
+      "If the v2 trigger is absent, each type appears at most s-2N+10 times.",
+      "Summing over pair types yields the ceiling."
+    ],
+    "status": "PROVED_ELEMENTARY"
+  },
+  "sandwich_theorem": {
+    "name": "ALL_PIVOT_OVERFLOW_V2_SANDWICH_CORRIDOR",
+    "integer_condition": "4n(N^2-s)-mL >= 16mn(n-1)(s-2N+10)",
+    "statement": "Under the stated scope and s>=2N, if the integer condition holds, it is impossible that both (a) every ordinary exact pivot overflows the N^2 monotone cap and (b) the v2 frequent-pair trigger is absent. Therefore at least one frozen theorem-mode certified action exists: either first_capped_elimination finds an exact ordinary pivot, or the already-proved v2 frequent-pair rescue condition holds.",
+    "proof": [
+      "Lemma 1 says all-pivot overflow requires P > n(N^2-s)/(2m)-L/8.",
+      "Lemma 2 says absence of the v2 trigger requires P <= 2n(n-1)(s-2N+10).",
+      "The integer condition is exactly the assertion that the Lemma-1 lower threshold is >= the Lemma-2 upper ceiling after multiplication by positive 8m.",
+      "Thus all-pivot overflow and no-v2 cannot coexist.",
+      "The frozen decision core scans every canonical ordinary pivot before v2. Hence existence of a fitting ordinary pivot is algorithmically discoverable by its existing exact capped scan; otherwise the v2 frequency theorem supplies the certified rescue condition."
+    ],
+    "status": "PROVED_SUFFICIENT_DICHOTOMY"
+  },
+  "algorithmic_cost": {
+    "certificate_statistics": "m,L,n,s,P,T are computable by deterministic syntactic scans in polynomial time in the explicit current representation size; under GPEI that size is polynomial in original N.",
+    "no_new_runtime_oracle": true,
+    "does_not_change_frozen_lane_order": true,
+    "ordinary_scan_cost_still_charged": true,
+    "v2_discovery_and_verification_cost_still_charged": true
+  },
+  "remaining_wedge": {
+    "name": "ALL_VARIABLE_BALANCED_PRESSURE_WEDGE",
+    "necessary_conditions_for_a_root_phase_gap_witness": [
+      "s>=2N",
+      "s<=N^2",
+      "m>0 and n>0",
+      "EVERY_LIVE_ORDINARY_PIVOT_OVERFLOWS_N2_MONOTONE_RAW_CAP",
+      "T<=s-2N+10",
+      "4n(N^2-s)-mL < 16mn(n-1)(s-2N+10)",
+      "SIGN_SPLIT_GLOBAL_RAW_CORRIDOR_DOES_NOT_CERTIFY",
+      "NO_EARLIER_EXACT_TERMINAL_LANE_DECIDES",
+      "V2_EXHAUSTIVE_FROZEN_GRAMMAR_FINDS_NO_CERTIFIED_MOVE"
+    ],
+    "interpretation": "A surviving obstruction must distribute enough two-sided elimination pressure over essentially every live variable while keeping that pressure sufficiently dispersed that no single literal pair crosses the v2 repetition threshold.",
+    "status": "OPEN"
+  },
+  "scientific_boundary": {
+    "sufficient_not_necessary": true,
+    "does_not_prove_root_phase_totality": true,
+    "does_not_cover_root_free_v3_totality": true,
+    "does_not_prove_universal_GPEI": true,
+    "does_not_prove_P_equals_NP": true,
+    "P_VS_NP": "OPEN"
+  },
+  "next_exact_target": "Attack the ALL_VARIABLE_BALANCED_PRESSURE_WEDGE by summing stronger sign-split bucket inequalities, or construct a reachable exact witness. A finite search failure is not proof."
+}
