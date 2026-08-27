@@ -1,0 +1,91 @@
+{
+  "schema": "JANUS/C025/PROOF-SELECTOR-V0.5-CAP-FRONTIER-THROUGH-N48/v1",
+  "date": "2026-08-27",
+  "status": "PROVED_FINITE_N_CAP_AVAILABILITY_THROUGH_N48__UNBOUNDED_TOTALITY_OPEN",
+  "P_VS_NP": "OPEN",
+  "candidate_engine": "PIRC_DECISION_CORE_V0_5_PROOF_SELECTOR_CANDIDATE",
+  "depends_on": [
+    "research/C025_PROOF_SELECTOR_V05_CAP_FRONTIER_THROUGH_N47_2026-08-27.json",
+    "research/C025_MIN_DEGREE_SIX_CLAUSE_INVARIANT_2026-08-27.json",
+    "research/C025_GENERIC_RAW_ELIMINATION_BUDGET_LEMMA_2026-08-27-v1.1.json"
+  ],
+  "theorem_runtime_heuristics": "FORBIDDEN",
+  "runtime_change_from_N47": false,
+  "N48_partition": {
+    "N": 48,
+    "cap": 2304,
+    "cases": [
+      {
+        "case": "m<=6",
+        "result": "CLOSED_BY_MIN_DEGREE_SIX_CLAUSE_INVARIANT",
+        "reason": "The v0.5 selected pivot preserves m<=6. With n live variables every next raw state has at most 1+6n charged state units; n decreases and at N=48 this is far below cap 2304."
+      },
+      {
+        "case": "m>=7 AND L<3r",
+        "result": "CLOSED_BY_EXISTING_LOW_INCIDENCE_REROOT",
+        "reason": "The constructive selector has d_min<=2, and the existing low-incidence proof gives N'<=N-4=44, inside the proved N<=47 frontier."
+      },
+      {
+        "case": "m>=7 AND L>=3r",
+        "derivation": "48=1+m+L+r>=1+7+3r+r=8+4r, hence r<=10.",
+        "result": "REDUCES_TO_R_LE_10"
+      }
+    ],
+    "status": "PROVED"
+  },
+  "r_le_8_region": {
+    "statement": "The existing exact T/Smax/Uraw recurrence from root state_units s=48-r stays below cap 2304 for every r<=8.",
+    "status": "PROVED_BY_EXISTING_EXACT_RECURRENCE"
+  },
+  "r9_region": {
+    "derivation": [
+      "For r=9, m+L=38.",
+      "Hard-region assumptions m>=7 and L>=27 give exactly (m,L)=(7,31),(8,30),(9,29),(10,28),(11,27).",
+      "In every cell d_min<=floor(L/9)<=3, and v0.5 selects such a minimum-degree pivot."
+    ],
+    "cells": [[7,31],[8,30],[9,29],[10,28],[11,27]],
+    "degree_le_2": "REROOT_TO_N_LE_44",
+    "degree_3": {
+      "root_state_units": 39,
+      "generic_raw_bound": "B_x<=39-4+8=43",
+      "post_live_n_max": 8,
+      "tail_exact_raw_ledger": ["148","7207/4","1053","297","81","21"],
+      "tail_max": "7207/4",
+      "tail_max_decimal": 1801.75,
+      "cap": 2304,
+      "conclusion": "TAIL_BELOW_CAP"
+    },
+    "status": "PROVED"
+  },
+  "r10_unique_cell": {
+    "derivation": [
+      "For r=10, m+L=37.",
+      "Hard-region assumptions m>=7 and L>=30 force the unique cell (m,L)=(7,30).",
+      "The selector has d_min<=floor(30/10)=3."
+    ],
+    "cell": {"r":10,"m":7,"L":30,"state_units":38},
+    "degree_le_2": "REROOT_TO_N_LE_44",
+    "degree_3_clause_collapse": {
+      "clause_bound": "m'<=m-d+p*q<=7-3+2=6",
+      "first_step_raw_state_bound": "RAW_UNITS<=1+6*10=61<2304",
+      "continuation": "The proved minimum-degree six-clause invariant preserves m<=6 for all later ordinary-elimination steps while live-variable count decreases.",
+      "conclusion": "POST_STEP_M_LE_6_INVARIANT"
+    },
+    "status": "PROVED"
+  },
+  "finite_frontier_theorem": {
+    "name": "V0_5_PROOF_SELECTOR_NO_RAW_CAP_RESCUE_REQUIRED_THROUGH_N48",
+    "statement": "Inherit the proved N<=47 v0.5 frontier. At N=48, m<=6 is closed by the proved minimum-degree six-clause invariant; m>=7,L<3r is constructively rerouted into N<=44; m>=7,L>=3r implies r<=10. The r<=8 region is below cap by the existing exact recurrence. The r=9 region has only five cells and the selected degree-3 branch has raw bound <=43 followed by an exact tail maximum 7207/4<2304. The unique r=10 hard cell is (m,L)=(7,30); a selected degree-3 pivot yields at most six clauses, entering the proved m<=6 invariant. Therefore ordinary exact cap-safe continuation is proved for every legitimate N<=48 root covered by these finite structural cases, without changing v0.5 runtime semantics.",
+    "status": "PROVED_FINITE_N_CAP_AVAILABILITY"
+  },
+  "scientific_boundary": {
+    "finite_N_frontier_only": true,
+    "does_not_prove_unbounded_reachable_totality": true,
+    "unbounded_totality": "OPEN",
+    "v3_universal_availability": "OPEN",
+    "universal_GPEI": "OPEN",
+    "P_VS_NP": "OPEN"
+  },
+  "next_exact_target": "Run N48 executable selector/replay regression, six-clause invariant regression, and claim-ceiling CI. If green, append success journal event and advance to N49 under identical v0.5 semantics; otherwise preserve failure append-only.",
+  "seal": "IANUS VIAS SERVAT."
+}
