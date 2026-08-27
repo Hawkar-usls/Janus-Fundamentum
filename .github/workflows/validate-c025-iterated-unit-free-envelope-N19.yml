@@ -1,0 +1,41 @@
+name: validate-c025-iterated-unit-free-envelope-N19
+
+on:
+  push:
+    branches:
+      - research/c025-balanced-pressure-wedge-2026-08-27
+    paths:
+      - 'research/C025_ITERATED_UNIT_FREE_ENVELOPE_NO_CAP_RESCUE_THROUGH_N19_2026-08-27.json'
+      - 'experiments/direct/janus_iterated_unit_free_envelope_N19_certificate.py'
+      - '.github/workflows/validate-c025-iterated-unit-free-envelope-N19.yml'
+
+jobs:
+  iterated-envelope-N19:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Execute exact-rational recurrence regression
+        run: python -m experiments.direct.janus_iterated_unit_free_envelope_N19_certificate
+      - name: Verify theorem ceiling and N20 negative control
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          d = json.loads(Path('research/C025_ITERATED_UNIT_FREE_ENVELOPE_NO_CAP_RESCUE_THROUGH_N19_2026-08-27.json').read_text())
+          assert d['status'] == 'PROVED_NO_RAW_CAP_RESCUE_REQUIRED_FOR_LEGITIMATE_ROOTS_N_LE_19__N20_FIRST_UNCERTIFIED_BY_THIS_ENVELOPE'
+          assert d['P_VS_NP'] == 'OPEN'
+          assert d['transition_lemma']['status'] == 'PROVED'
+          assert d['small_N_closed_form']['status'] == 'PROVED'
+          assert d['theorem']['status'] == 'PROVED_FROM_ITERATED_UNIT_FREE_ENVELOPE'
+          assert d['first_unresolved_size_by_this_method']['N'] == 20
+          assert d['first_unresolved_size_by_this_method']['status'] == 'OPEN'
+          assert d['scientific_boundary']['does_not_claim_N20_failure'] is True
+          assert d['scientific_boundary']['does_not_prove_P_equals_NP'] is True
+          print('ITERATED_ENVELOPE_N19_SCOPE=PASS')
+          print('N20_IS_UNCERTIFIED_NOT_FAILED=PASS')
+          print('P_VS_NP=OPEN')
+          PY
