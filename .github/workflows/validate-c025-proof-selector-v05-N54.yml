@@ -1,0 +1,57 @@
+name: validate-c025-proof-selector-v05-N54
+
+on:
+  push:
+    branches:
+      - research/c025-proof-selector-v0-5-2026-08-27
+    paths:
+      - 'research/C025_PROOF_SELECTOR_V05_CAP_FRONTIER_THROUGH_N54_2026-08-27.json'
+      - 'research/C025_DEGREE4_BALANCED_SURVIVAL_LITERAL_TRANSPORT_2026-08-27.json'
+      - 'experiments/direct/janus_proof_selector_v05_N54_replay.py'
+      - 'experiments/direct/janus_proof_selector_v05_candidate.py'
+      - '.github/workflows/validate-c025-proof-selector-v05-N54.yml'
+  pull_request:
+    paths:
+      - 'research/C025_PROOF_SELECTOR_V05_CAP_FRONTIER_THROUGH_N54_2026-08-27.json'
+      - 'research/C025_DEGREE4_BALANCED_SURVIVAL_LITERAL_TRANSPORT_2026-08-27.json'
+      - 'experiments/direct/janus_proof_selector_v05_N54_replay.py'
+      - 'experiments/direct/janus_proof_selector_v05_candidate.py'
+      - '.github/workflows/validate-c025-proof-selector-v05-N54.yml'
+
+jobs:
+  proof-selector-v05-N54:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Execute proof-selector candidate selftest
+        run: python -m experiments.direct.janus_proof_selector_v05_candidate
+      - name: Execute N54 selector replay regression
+        run: python -m experiments.direct.janus_proof_selector_v05_N54_replay
+      - name: Verify theorem scope and claim ceiling
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          lemma=json.loads(Path('research/C025_DEGREE4_BALANCED_SURVIVAL_LITERAL_TRANSPORT_2026-08-27.json').read_text())
+          theorem=json.loads(Path('research/C025_PROOF_SELECTOR_V05_CAP_FRONTIER_THROUGH_N54_2026-08-27.json').read_text())
+          assert lemma['status']=='PROVED_LOCAL_LITERAL_TRANSPORT_BOUND'
+          assert lemma['P_VS_NP']=='OPEN'
+          assert theorem['P_VS_NP']=='OPEN'
+          assert theorem['theorem_runtime_heuristics']=='FORBIDDEN'
+          assert theorem['runtime_change_from_N53'] is False
+          assert theorem['N54_partition']['status']=='PROVED'
+          assert theorem['r9_region']['status']=='PROVED'
+          assert theorem['r10_region']['status']=='PROVED'
+          assert theorem['r11_region']['status']=='PROVED'
+          assert theorem['finite_frontier_theorem']['status']=='PROVED_FINITE_N_CAP_AVAILABILITY'
+          assert theorem['scientific_boundary']['unbounded_totality']=='OPEN'
+          assert theorem['scientific_boundary']['universal_GPEI']=='OPEN'
+          print('DEGREE4_LITERAL_TRANSPORT_CLAIM=PASS')
+          print('V05_N54_FINITE_FRONTIER_CLAIM=PASS')
+          print('THEOREM_RUNTIME_HEURISTICS=FORBIDDEN')
+          print('P_VS_NP=OPEN')
+          PY
