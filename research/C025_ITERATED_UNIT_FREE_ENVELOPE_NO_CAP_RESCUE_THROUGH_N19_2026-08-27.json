@@ -1,0 +1,90 @@
+{
+  "schema": "JANUS/C025/ITERATED-UNIT-FREE-ENVELOPE-NO-CAP-RESCUE-THROUGH-N19/v1",
+  "date": "2026-08-27",
+  "status": "PROVED_NO_RAW_CAP_RESCUE_REQUIRED_FOR_LEGITIMATE_ROOTS_N_LE_19__N20_FIRST_UNCERTIFIED_BY_THIS_ENVELOPE",
+  "P_VS_NP": "OPEN",
+  "depends_on": "research/C025_UNIT_FREE_RAW_ELIMINATION_ENVELOPE_AND_ROOT_ALL_PIVOTS_SAFE_2026-08-27-v1.1.json",
+  "definitions": {
+    "N": "frozen original-root input_size_units",
+    "r0": "number of variables in the legitimate original root before any propagation",
+    "T(s)": "max(s, 1+(s-1)^2/12)",
+    "s0": "N-r0, an upper bound on the first ordinary-state size after zero or more unit-propagation steps",
+    "recurrence": "s_{j+1}=T(s_j)"
+  },
+  "transition_lemma": {
+    "statement": "At any frozen ordinary-elimination stage whose unit-free canonical residual has state_units<=s, if T(s)<=N^2 then every live pivot is raw-cap safe. The exact canonical residual after the deterministic ordinary elimination, followed by any subsequent unit propagation/restriction, has state_units<=T(s) and at least one fewer live variable.",
+    "proof": [
+      "Pure pivots satisfy RAW<=state_units<=s<=T(s).",
+      "Mixed pivots satisfy RAW<=1+(state_units-1)^2/12<=1+(s-1)^2/12<=T(s) by monotonicity for s>=1.",
+      "If T(s)<=N^2, eliminate_var_capped cannot raw-abort on any live pivot; therefore first_capped_elimination selects its deterministic first live pivot.",
+      "Canonicalization cannot enlarge beyond the charged raw accumulator, and exact unit propagation/restriction after the step cannot enlarge the residual.",
+      "Ordinary existential elimination removes its pivot and introduces no fresh semantic variable, so live-variable count decreases by at least one."
+    ],
+    "status": "PROVED"
+  },
+  "small_N_closed_form": {
+    "range": "N<=15",
+    "proof": "For every nonterminal root with r0>=2, s0<=N-2<=13. On 1<=s<=13, 1+(s-1)^2/12<=s, hence T(s)=s. The envelope is nonincreasing through every ordinary elimination, so raw-cap rescue cannot be needed.",
+    "status": "PROVED"
+  },
+  "finite_parameter_check_N16_N19": [
+    {
+      "N": 16,
+      "allowed_r0": "2..7",
+      "maximum_iterated_envelope_over_all_allowed_r0_and_required_steps": 17.528357,
+      "cap": 256,
+      "conclusion": "ALL_ORDINARY_STEPS_CAP_CERTIFIED"
+    },
+    {
+      "N": 17,
+      "allowed_r0": "2..7",
+      "maximum_iterated_envelope_over_all_allowed_r0_and_required_steps": 23.765548,
+      "cap": 289,
+      "conclusion": "ALL_ORDINARY_STEPS_CAP_CERTIFIED"
+    },
+    {
+      "N": 18,
+      "allowed_r0": "2..8",
+      "maximum_iterated_envelope_over_all_allowed_r0_and_required_steps": 44.189179,
+      "cap": 324,
+      "conclusion": "ALL_ORDINARY_STEPS_CAP_CERTIFIED"
+    },
+    {
+      "N": 19,
+      "allowed_r0": "2..8",
+      "maximum_iterated_envelope_over_all_allowed_r0_and_required_steps": 156.442097,
+      "cap": 361,
+      "conclusion": "ALL_ORDINARY_STEPS_CAP_CERTIFIED"
+    }
+  ],
+  "theorem": {
+    "name": "NO_RAW_CAP_RESCUE_REQUIRED_THROUGH_N19",
+    "statement": "For every legitimate root with frozen input size N<=19, whenever the current solver reaches an ordinary-elimination stage instead of terminating in an earlier exact lane, ordinary exact elimination remains raw-cap available for enough successive variable-removal steps to exhaust the original live-variable budget. Therefore v2/v3 extension rescue cannot be required because of NO_CAPPED_CERTIFIED_MOVE/raw-cap unavailability on these size layers.",
+    "status": "PROVED_FROM_ITERATED_UNIT_FREE_ENVELOPE"
+  },
+  "first_unresolved_size_by_this_method": {
+    "N": 20,
+    "example_parameter_case": {
+      "r0": 4,
+      "s0": 16,
+      "note": "The sufficient recurrence eventually permits an envelope approximately 427.326, exceeding cap 400."
+    },
+    "interpretation": "This is only failure of the sufficient envelope certificate. It does NOT prove any legitimate N=20 root actually needs extension or reaches OPEN.",
+    "status": "OPEN"
+  },
+  "relationship_to_exhaustive_census": {
+    "N12_N17": "The previously completed exhaustive frozen-v3 census through N=17 observed OPEN=0 and extension_count=0 on 444946 normalized legitimate roots. The new theorem independently explains the absence of raw-cap rescue on these layers and extends the cap-availability guarantee through N=19 without enumerating N18 or N19 roots.",
+    "finite_census_remains_useful_for": "implementation replay, terminal-lane behavior and witness reconstruction; it is not needed for the new cap-availability theorem."
+  },
+  "scientific_boundary": {
+    "proves_cap_availability_not_all_software_failure_paths": true,
+    "does_not_claim_witness_reconstruction_totality": true,
+    "does_not_claim_N20_failure": true,
+    "does_not_prove_unbounded_reachable_totality": true,
+    "does_not_prove_v2_v3_never_needed_for_N_ge_20": true,
+    "does_not_prove_P_equals_NP": true,
+    "P_VS_NP": "OPEN"
+  },
+  "next_exact_target": "Analyze legitimate N=20 roots or derive a sharper reachable-state envelope using remaining-variable combinatorics, while the current-v3 N^2 selector-tower scout searches for a larger-N extension witness.",
+  "seal": "IANUS VIAS SERVAT."
+}
