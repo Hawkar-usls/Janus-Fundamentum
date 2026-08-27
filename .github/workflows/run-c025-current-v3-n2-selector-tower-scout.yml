@@ -1,0 +1,62 @@
+name: run-c025-current-v3-n2-selector-tower-scout
+
+on:
+  push:
+    branches:
+      - research/c025-balanced-pressure-wedge-2026-08-27
+    paths:
+      - 'experiments/direct/janus_v3_current_n2_selector_tower_scout.py'
+      - '.github/workflows/run-c025-current-v3-n2-selector-tower-scout.yml'
+
+jobs:
+  current-v3-n2-selector-tower:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Execute current frozen-v3 N2 selector tower
+        run: |
+          python -m experiments.direct.janus_v3_current_n2_selector_tower_scout \
+            | tee current-v3-n2-selector-tower.json
+      - name: Verify claim ceiling
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          d = json.loads(Path('current-v3-n2-selector-tower.json').read_text())
+          b = d['scientific_boundary']
+          assert d['solver'] == 'janus_unified_macro_restore_v3.solve_fail_closed_v3'
+          assert b['legitimate_root_N_recomputed_from_root'] is True
+          assert b['root_anchored_N_not_rebased'] is True
+          assert b['current_default_cap_exponent'] == 2
+          assert b['historical_v0_4_decision_core_not_used'] is True
+          assert b['finite_structured_scout_only'] is True
+          assert b['no_extension_is_not_universal_proof'] is True
+          assert b['P_VS_NP'] == 'OPEN'
+          for row in d['rows']:
+              assert row['N'] == row['expected_N']
+              assert row['state_cap'] == row['N'] ** 2
+              print('DEPTH%d_N=%d' % (row['depth'], row['N']))
+              print('DEPTH%d_STATUS=%s' % (row['depth'], row['status']))
+              print('DEPTH%d_MAX_STATE=%d' % (row['depth'], row['max_state_units']))
+              print('DEPTH%d_ORDINARY=%d' % (row['depth'], row['ordinary_elimination_events']))
+              print('DEPTH%d_V2=%d' % (row['depth'], row['v2_macro_rescue_events']))
+              print('DEPTH%d_V3=%d' % (row['depth'], row['v3_tail_rescue_events']))
+              print('DEPTH%d_EXT=%d' % (row['depth'], row['extension_count']))
+          print('SCOUT_STATUS=' + d['status'])
+          if d['first_extension'] is not None:
+              print('FIRST_EXTENSION_N=' + str(d['first_extension']['N']))
+              print('FIRST_EXTENSION_ROOT=' + d['first_extension']['root_fingerprint'])
+          if d['first_open'] is not None:
+              print('FIRST_OPEN_N=' + str(d['first_open']['N']))
+              print('FIRST_OPEN_ROOT=' + d['first_open']['root_fingerprint'])
+              print('FIRST_OPEN_RESIDUAL=' + d['first_open']['residual_fingerprint'])
+          print('P_VS_NP=OPEN')
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: c025-current-v3-n2-selector-tower-scout
+          path: current-v3-n2-selector-tower.json
