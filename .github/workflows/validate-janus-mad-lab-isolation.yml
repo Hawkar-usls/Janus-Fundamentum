@@ -1,0 +1,83 @@
+name: validate-janus-mad-lab-isolation
+
+on:
+  push:
+    branches:
+      - research/janus-mad-lab-prime-probes-2026-08-28
+    paths:
+      - 'experiments/mad_lab/**'
+      - '.github/workflows/validate-janus-mad-lab-isolation.yml'
+  pull_request:
+    paths:
+      - 'experiments/mad_lab/**'
+      - '.github/workflows/validate-janus-mad-lab-isolation.yml'
+
+jobs:
+  isolation:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Validate reverse-prime schedule
+        run: python -m experiments.mad_lab.reverse_prime_probe
+
+      - name: Validate MAD-LAB policy and claim ceiling
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          p=json.loads(Path('experiments/mad_lab/POLICY.json').read_text())
+          assert p['lane']=='JANUS_MAD_LAB'
+          assert p['status']=='EXPERIMENTAL_NOT_THEOREM'
+          assert p['P_VS_NP']=='OPEN'
+          assert p['theorem_runtime_heuristics']=='FORBIDDEN'
+          assert p['automatic_promotion'] is False
+          assert 'NO_PROMOTION_WITHOUT_PROOF' in p['rules']
+          assert p['reverse_prime_probe']['start']==937
+          assert p['reverse_prime_probe']['proves_intermediate_N'] is False
+          assert p['reverse_prime_probe']['proves_unbounded_totality'] is False
+          print('MAD_LAB_POLICY=PASS')
+          print('P_VS_NP=OPEN')
+          PY
+
+      - name: Prove theorem runtime does not import MAD-LAB
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          bad=[]
+          for f in Path('.').rglob('*.py'):
+              s=f.as_posix()
+              if s.startswith('experiments/mad_lab/'):
+                  continue
+              text=f.read_text(errors='ignore')
+              if 'from experiments.mad_lab' in text or 'import experiments.mad_lab' in text:
+                  bad.append(s)
+          assert not bad, f'theorem-side MAD-LAB imports forbidden: {bad}'
+          print('NO_THEOREM_RUNTIME_IMPORT_FROM_MAD_LAB=PASS')
+          PY
+
+      - name: Reject theorem claims inside MAD-LAB
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          forbidden=(
+              'P_VS_NP = "PROVED_EQUAL"',
+              "P_VS_NP = 'PROVED_EQUAL'",
+              'P_VS_NP=PROVED_EQUAL',
+              'SAT_IN_P = PROVED',
+          )
+          bad=[]
+          for f in Path('experiments/mad_lab').rglob('*'):
+              if not f.is_file():
+                  continue
+              text=f.read_text(errors='ignore')
+              if any(x in text for x in forbidden):
+                  bad.append(f.as_posix())
+          assert not bad, f'forbidden theorem claims in MAD-LAB: {bad}'
+          print('MAD_LAB_CLAIM_CEILING=PASS')
+          print('AUTOMATIC_PROMOTION=false')
+          PY
