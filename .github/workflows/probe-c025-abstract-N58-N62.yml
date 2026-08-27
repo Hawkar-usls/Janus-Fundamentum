@@ -1,0 +1,41 @@
+name: probe-c025-abstract-N58-N62
+
+on:
+  push:
+    branches:
+      - research/c025-proof-selector-v0-5-2026-08-27
+    paths:
+      - 'experiments/direct/janus_v05_abstract_frontier_support_mass.py'
+      - 'experiments/direct/janus_v05_abstract_frontier_extend_N62.py'
+      - 'research/C025_V05_EXACT_ABSTRACT_CAP_FRONTIER_THROUGH_N57_2026-08-27.json'
+      - '.github/workflows/probe-c025-abstract-N58-N62.yml'
+  pull_request:
+    paths:
+      - 'experiments/direct/janus_v05_abstract_frontier_support_mass.py'
+      - 'experiments/direct/janus_v05_abstract_frontier_extend_N62.py'
+      - 'research/C025_V05_EXACT_ABSTRACT_CAP_FRONTIER_THROUGH_N57_2026-08-27.json'
+      - '.github/workflows/probe-c025-abstract-N58-N62.yml'
+
+jobs:
+  abstract-N58-N62:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Verify frozen N57 theorem base
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          x=json.loads(Path('research/C025_V05_EXACT_ABSTRACT_CAP_FRONTIER_THROUGH_N57_2026-08-27.json').read_text())
+          assert x['proved_frontier']==57
+          assert x['P_VS_NP']=='OPEN'
+          assert x['theorem_runtime_heuristics']=='FORBIDDEN'
+          assert x['finite_frontier_theorem']['status']=='PROVED_FINITE_N_CAP_AVAILABILITY'
+          print('N57_ABSTRACT_BASE=PASS')
+          PY
+      - name: Probe exact abstract frontier N58 through N62
+        run: python -m experiments.direct.janus_v05_abstract_frontier_extend_N62
