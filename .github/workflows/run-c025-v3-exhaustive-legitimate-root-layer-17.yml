@@ -1,0 +1,52 @@
+name: run-c025-v3-exhaustive-legitimate-root-layer-17
+
+on:
+  push:
+    branches:
+      - research/c025-balanced-pressure-wedge-2026-08-27
+    paths:
+      - 'experiments/direct/janus_v3_exhaustive_legitimate_root_layer_17.py'
+      - '.github/workflows/run-c025-v3-exhaustive-legitimate-root-layer-17.yml'
+
+jobs:
+  exhaustive-N17:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Execute exhaustive forward census N17
+        run: |
+          python -m experiments.direct.janus_v3_exhaustive_legitimate_root_layer_17 \
+            | tee c025-v3-exhaustive-N17.json
+      - name: Verify finite claim ceiling
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          d = json.loads(Path('c025-v3-exhaustive-N17.json').read_text())
+          row = d['layer']
+          assert row['N'] == 17
+          assert sum(row['counts_by_root_var_count'].values()) == row['total_roots']
+          b = d['scientific_boundary']
+          assert b['exhaustive_only_for_N17'] is True
+          assert b['finite_totality_does_not_imply_asymptotic_totality'] is True
+          assert b['P_VS_NP'] == 'OPEN'
+          print('N17_ROOTS=' + str(row['total_roots']))
+          print('N17_OPEN=' + str(row['status_counts'].get('OPEN',0)))
+          print('N17_V2=' + str(row['roots_using_v2_macro_restore']))
+          print('N17_V3=' + str(row['roots_using_v3_tail']))
+          print('N17_STATUS=' + d['status'])
+          if row['first_extension'] is not None:
+              print('FIRST_EXTENSION_ROOT=' + row['first_extension']['root_fingerprint'])
+          if row['first_open'] is not None:
+              print('FIRST_OPEN_ROOT=' + row['first_open']['root_fingerprint'])
+              print('FIRST_OPEN_RESIDUAL=' + row['first_open']['residual_fingerprint'])
+          print('P_VS_NP=OPEN')
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: c025-v3-exhaustive-legitimate-root-layer-17
+          path: c025-v3-exhaustive-N17.json
