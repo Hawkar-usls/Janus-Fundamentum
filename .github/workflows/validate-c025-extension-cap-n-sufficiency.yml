@@ -1,0 +1,44 @@
+name: validate-c025-extension-cap-n-sufficiency
+
+on:
+  push:
+    branches:
+      - research/c025-balanced-pressure-wedge-2026-08-27
+    paths:
+      - 'research/C025_EXTENSION_CAP_N_SUFFICIENCY_FOR_V2_V3_2026-08-27.json'
+      - '.github/workflows/validate-c025-extension-cap-n-sufficiency.yml'
+
+jobs:
+  exact-bound:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Verify arithmetic bound and claim ceiling
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          d = json.loads(Path('research/C025_EXTENSION_CAP_N_SUFFICIENCY_FOR_V2_V3_2026-08-27.json').read_text())
+          assert d['status'] == 'PROVED_EXTENSION_CAP_EXHAUSTION_NOT_A_V2_V3_TOTAL_MACRO_COUNT_BARRIER'
+          assert d['P_VS_NP'] == 'OPEN'
+          assert d['theorem']['status'] == 'PROVED'
+          assert d['scientific_boundary']['does_not_prove_v3_move_availability'] is True
+          # Exhaust elementary integer envelope for a broad finite sanity range;
+          # theorem itself is the symbolic inequality stored in the artifact.
+          for r0 in range(1, 101):
+              for m in range(1, 8):
+                  for extra_L in range(0, 8):
+                      L = r0 + extra_L
+                      N = max(2, 1 + m + L + r0)
+                      assert 2*r0 - 1 < N
+                      for k2 in range(1, r0 + 1):
+                          for h in range(0, k2 + 1):
+                              k3max = max(0, h - 1)
+                              assert k2 + k3max <= 2*r0 - 1 < N
+          print('EXTENSION_CAP_N_SUFFICIENCY_ARITHMETIC=PASS')
+          print('V3_ROOT_FREE_TAIL_AVAILABILITY=OPEN')
+          print('P_VS_NP=OPEN')
+          PY
