@@ -1,0 +1,39 @@
+name: validate-c025-bounded-width-integer-degree-corridor
+
+on:
+  push:
+    branches:
+      - research/c025-balanced-pressure-wedge-2026-08-27
+    paths:
+      - 'research/C025_BOUNDED_WIDTH_AVERAGE_DEGREE_SAFE_PIVOT_CORRIDOR_2026-08-27-v1.2.json'
+      - 'experiments/direct/janus_bounded_width_integer_degree_corridor_certificate.py'
+      - '.github/workflows/validate-c025-bounded-width-integer-degree-corridor.yml'
+
+jobs:
+  integer-degree-corridor:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Execute integer degree strengthening regression
+        run: python -m experiments.direct.janus_bounded_width_integer_degree_corridor_certificate
+      - name: Verify theorem ceiling
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          d = json.loads(Path('research/C025_BOUNDED_WIDTH_AVERAGE_DEGREE_SAFE_PIVOT_CORRIDOR_2026-08-27-v1.2.json').read_text())
+          assert d['status'] == 'PROVED_INTEGER_STRENGTHENED_BOUNDED_WIDTH_SAFE_PIVOT_CORRIDOR__FROZEN_WIDTH3_LADDER_CLOSED'
+          assert d['P_VS_NP'] == 'OPEN'
+          assert d['integer_corollary']['status'] == 'PROVED'
+          assert d['frozen_ladder_theorem']['status'] == 'PROVED_FROM_INTEGER_AVERAGE_DEGREE_COROLLARY'
+          assert all(x['conclusion'].startswith('ORDINARY_SAFE_PIVOT_FORCED') for x in d['frozen_width3_probe_ladder'])
+          assert d['scientific_boundary']['closes_only_the_frozen_width3_ladder'] is True
+          assert d['scientific_boundary']['does_not_prove_v3_availability'] is True
+          assert d['scientific_boundary']['does_not_prove_P_equals_NP'] is True
+          print('INTEGER_BOUNDED_WIDTH_CORRIDOR_SCOPE=PASS')
+          print('FROZEN_WIDTH3_LADDER_CLOSED=PASS')
+          print('P_VS_NP=OPEN')
+          PY
