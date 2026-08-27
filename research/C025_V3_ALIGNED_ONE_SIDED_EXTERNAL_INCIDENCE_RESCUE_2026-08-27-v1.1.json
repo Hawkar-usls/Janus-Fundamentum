@@ -1,0 +1,59 @@
+{
+  "schema": "JANUS/C025/V3-ALIGNED-ONE-SIDED-EXTERNAL-INCIDENCE-RESCUE/v1.1",
+  "date": "2026-08-27",
+  "status": "AUDITED_PROVED_STRUCTURAL_CORRIDOR__NUMERIC_SHARPENING_CORRECTED__UNIVERSAL_AVAILABILITY_OPEN",
+  "P_VS_NP": "OPEN",
+  "supersedes_for_interpretation": "research/C025_V3_ALIGNED_ONE_SIDED_EXTERNAL_INCIDENCE_RESCUE_2026-08-27.json",
+  "history_policy": "APPEND_ONLY__V1_RETAINED_AS_AUDIT_WITNESS",
+  "audit_trigger": "The v1 proof implicitly counted D_A, D_B and D_plus as surviving clauses of the canonical B2 macro. apply_or_pair_v2 canonicalizes/subsumes its output, so a replaced pair clause (a OR b) can become unit (-e), which may subsume D_A=(-e OR -a) and D_B=(-e OR -b). Therefore the unconditional numerical decrements -7 and -10 were too strong.",
+  "definitions": {
+    "F": "root-free canonical residual",
+    "pair": "nondegenerate sign-aware cooccurring pair (a,b), A=|a|, B=|b|, A!=B",
+    "P_ab": "clauses containing both selected literals a and b",
+    "aligned_one_sided_external_incidence": "For each clause outside P_ab, A may occur only as a (never -a), and B may occur only as b (never -b).",
+    "M": "canonical exact B2 macro apply_or_pair_v2(F,a,b,e)",
+    "s_M": "state_units(M)",
+    "cap": "frozen N^2 raw elimination cap"
+  },
+  "corrected_theorem": {
+    "name": "CANONICAL_MACRO_FIT_PLUS_ALIGNED_ONE_SIDED_INCIDENCE_GUARANTEES_TWO_CAPPED_ELIMINATIONS",
+    "statement": "If F is root-free, (a,b) satisfies aligned one-sided external incidence, and the canonical B2 macro M fits the frozen cap, then eliminate_var_capped(M,A,cap) succeeds and its canonical output M_A satisfies the same cap; eliminate_var_capped(M_A,B,cap) also succeeds. The final live-variable count is at most the pre-macro count minus one, hence root-free Phi strictly decreases.",
+    "proof": [
+      "Canonicalization can only delete or shorten clauses through tautology removal, deduplication and subsumption; it does not create an opposite-sign external A or B occurrence that was absent structurally.",
+      "In M, every A-clause other than an optional D_A=(-e OR -a) has selected polarity a. If D_A is absent, A has no negative bucket and elimination is pure deletion, so raw_A<=s_M.",
+      "If D_A is present, every positive external A-clause (a OR R) resolves only against D_A, yielding (-e OR R), whose clause-unit cost is no greater than the parent because e is fresh and canonicalization may only shorten/drop it. Optional D_plus=(e OR a OR b) resolves with D_A tautologically. Hence the raw accumulator never exceeds s_M.",
+      "An external A-clause cannot contain variable B: selected b together with selected a would place it in P_ab, while -b is forbidden by the aligned condition. Thus A-resolvents introduce no B occurrence.",
+      "After A elimination, every B-clause other than optional D_B=(-e OR -b) has selected polarity b. If D_B is absent, B elimination is pure deletion. If D_B is present, every (b OR S) resolves only with D_B to (-e OR S), with no greater clause-unit cost. Hence raw_B<=state_units(M_A)<=s_M.",
+      "Therefore cap admission of M alone guarantees both raw-capped exact eliminations under the aligned condition; no post-macro Cartesian external-bucket explosion exists in this corridor.",
+      "A and B are distinct old live variables and at most fresh e is added, so final live-variable count is <=v_before-1. In the root-free phase Phi=v, giving strict progress.",
+      "Frozen v3 enumerates all cooccurring pair candidates and ordered pairs of distinct pre-macro live pivots, so the certified plan is discoverable by the existing deterministic search."
+    ],
+    "unconditional_raw_bounds": {
+      "after_A": "raw_units_A <= s_M",
+      "after_B": "raw_units_B <= state_units(M_A) <= s_M"
+    },
+    "conditional_sharpening": {
+      "condition": "If D_A, D_B and D_plus all survive in canonical M and the relevant same-polarity external clauses survive as charged parents, then the stronger bookkeeping reductions from v1 apply: raw_A<=s_M-7 and raw_B<=s_M-10. These are optional sharpenings, not prerequisites for cap safety.",
+      "status": "CONDITIONAL_ONLY"
+    },
+    "status": "PROVED_SUFFICIENT_CORRIDOR_NOT_UNIVERSAL"
+  },
+  "remaining_gap": {
+    "name": "MIXED_SIGN_EXTERNAL_BUCKET_PRODUCT",
+    "necessary_for_escaping_this_corridor": "For every cap-admissible candidate pair in a genuine v3 availability gap, at least one selected variable must have opposite-sign external incidence after structural/canonical effects, or another gate such as extension budget must block the plan.",
+    "next_target": "Quantify mixed-sign external positive/negative bucket product using counts and tail-literal masses, with raw pre-subsumption charging and second-pivot propagation explicitly included."
+  },
+  "epistemic_witness": {
+    "failure_preserved": true,
+    "v1_not_deleted_or_rewritten": true,
+    "correction_reason_recorded": true,
+    "theorem_core_survives_audit": true
+  },
+  "scientific_boundary": {
+    "does_not_modify_frozen_v3_runtime": true,
+    "does_not_prove_universal_v3_availability": true,
+    "does_not_prove_P_equals_NP": true,
+    "P_VS_NP": "OPEN"
+  },
+  "seal": "IANUS VIAS SERVAT."
+}
