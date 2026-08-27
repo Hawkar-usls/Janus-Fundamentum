@@ -1,0 +1,42 @@
+{
+  "schema": "JANUS/C025/JANUS-VIAS-SERVAT-POLYNOMIAL-REVERSE-LEDGER/v1",
+  "date": "2026-08-27",
+  "status": "CONDITIONAL_ON_EXISTING_FORWARD_STEPS__POLYNOMIAL_REVERSE_TRANSPORT_PROVED",
+  "P_VS_NP": "OPEN",
+  "motto": "IANUS VIAS SERVAT",
+  "scope": "Any finite trajectory actually produced by the frozen capped JANUS decision architecture; this theorem does not assert that a forward move always exists.",
+  "definitions": {
+    "N": "dense-normalized original input budget",
+    "S_i": "canonical retained decision state after the i-th exact state-changing transition",
+    "reverse_record_i": "the exact pre-state plus transition kind and local certificate needed to replay S_i <- S_(i+1) without inverse search"
+  },
+  "premises_already_proved_or_frozen": [
+    "Every retained state has state_units<=N^2 by the frozen state cap.",
+    "Dense input normalization plus at most 2N extension births keeps every variable identifier O(N), hence O(log N) bits.",
+    "Successful v2 births<=n and successful v3 births<=n.",
+    "Retained live-variable count never exceeds initial n<=N.",
+    "Unit propagation and exact eliminations remove live variables; total state-changing transitions are O(N) under the frozen grammar."
+  ],
+  "theorem": {
+    "id": "POLYNOMIAL_FULL_PATH_REVERSE_LEDGER",
+    "statement": "Store a canonical full pre-state snapshot for every exact state-changing transition together with its transition schema/version and local certificate. Then any reached S_k can be traversed exactly backward to S_0 with no reconstruction search. The total reverse ledger uses O(N^3) internal state units and O(N^3 log N) bits under dense identifiers; reverse replay work is polynomial in N.",
+    "proof": [
+      "There are O(N) state-changing transitions.",
+      "Each pre-state snapshot has at most N^2 internal state units.",
+      "Therefore all snapshots together use O(N^3) internal units.",
+      "Each literal/identifier needs O(log N) bits after the proved dense-ID and <=2N-birth bounds, giving O(N^3 log N) bits.",
+      "Backward motion reads the immediately preceding stored canonical state and independently rechecks the recorded local forward certificate; no preimage search or semantic inversion is required.",
+      "Thus arbitrary direction switches along an already-created path are polynomial exact operations."
+    ],
+    "status": "PROVED_RESOURCE_AND_REPLAY_CONSTRUCTION"
+  },
+  "important_boundary": {
+    "does_not_prove_forward_totality": true,
+    "does_not_make_existential_elimination_intrinsically_invertible": true,
+    "uses_proof_carrying_history_not_inverse_search": true,
+    "does_not_prove_P_equals_NP": true,
+    "P_VS_NP": "OPEN"
+  },
+  "relation_to_BPIRC": "This discharges the polynomial reverse-transport/history-size side of BPIRC for every path that the forward theorem machine actually reaches. The remaining P-vs-NP obstacle is forward HIGH_VOLUME_RESCUE_TOTALITY, not backward replay.",
+  "implementation_target": "Add a theorem-mode reversible trace wrapper that records UNIT/ELIM/V2/V3 pre-state snapshots and runs FORWARD->BACKWARD->FORWARD fingerprint round trips without changing decision authority."
+}

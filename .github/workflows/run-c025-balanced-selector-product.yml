@@ -1,0 +1,82 @@
+name: run-c025-balanced-selector-product
+
+on:
+  push:
+    branches:
+      - research/c025-pirc-gpei-2026-08-27
+    paths:
+      - 'research/C025_BALANCED_SELECTOR_PRODUCT_PREREGISTRATION_2026-08-27.json'
+      - '.github/workflows/run-c025-balanced-selector-product.yml'
+  pull_request:
+    paths:
+      - 'research/C025_BALANCED_SELECTOR_PRODUCT_PREREGISTRATION_2026-08-27.json'
+      - '.github/workflows/run-c025-balanced-selector-product.yml'
+
+jobs:
+  balanced-selector-product:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Verify frozen code and preregistration
+        run: |
+          python - <<'PY'
+          import json, subprocess
+          from pathlib import Path
+          p = Path('research/C025_BALANCED_SELECTOR_PRODUCT_PREREGISTRATION_2026-08-27.json')
+          data = json.loads(p.read_text())
+          assert data['status'] == 'FROZEN_BEFORE_FIRST_BALANCED_SELECTOR_PRODUCT_RESULT'
+          for item in (data['decision_core'], data['probe']):
+              actual = subprocess.check_output(['git', 'hash-object', item['path']], text=True).strip()
+              assert actual == item['content_sha'], (item['path'], actual, item['content_sha'])
+          assert data['frozen_structural_selection']['solver_outcome_allowed_in_selection'] is False
+          assert data['scientific_boundary']['HIGH_VOLUME_RESCUE_TOTALITY'] == 'OPEN'
+          assert data['P_VS_NP'] == 'OPEN'
+          print('BALANCED_SELECTOR_PRODUCT_PREREGISTRATION=PASS')
+          print('P_VS_NP=OPEN')
+          PY
+
+      - name: Execute exactly one frozen balanced selector product
+        run: |
+          python -m experiments.direct.janus_balanced_selector_product_hostile_probe \
+            | tee balanced-selector-product.json
+
+      - name: Verify boundary and expose mechanism
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          data = json.loads(Path('balanced-selector-product.json').read_text())
+          b = data['scientific_boundary']
+          r = data['result']
+          assert b['single_frozen_structurally_selected_specimen'] is True
+          assert b['family_label_not_supplied_to_decision_core'] is True
+          assert b['leaf_truth_not_used_to_select_structural_seed'] is True
+          assert b['external_truth_computed_only_after_core_return'] is True
+          assert b['finite_decisive_result_is_not_totality_proof'] is True
+          assert b['HIGH_VOLUME_RESCUE_TOTALITY'] == 'OPEN'
+          assert b['P_VS_NP'] == 'OPEN'
+          print('BALANCED_STATUS=' + r['status'])
+          print('BALANCED_REASON=' + r['reason'])
+          print('LEFT_SEED=' + str(r['left_structural_seed']))
+          print('RIGHT_SEED=' + str(r['right_structural_seed']))
+          print('N=' + str(r['N']))
+          print('MAX_STATE_UNITS=' + str(r['max_state_units']))
+          print('MAX_VOLUME_RATIO=' + str(r['max_volume_ratio']))
+          print('ORDINARY=' + str(r['ordinary_elimination_events']))
+          print('V2=' + str(r['v2_macro_rescue_events']))
+          print('V3=' + str(r['v3_tail_rescue_events']))
+          print('EXTENSIONS=' + str(r['extension_count']))
+          print('MISSING_BRIDGE=' + str(r['missing_bridge']))
+          print('EXTERNAL_TRUTH=' + r['source_external_truth'])
+          print('P_VS_NP=OPEN')
+          PY
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: c025-balanced-selector-product
+          path: balanced-selector-product.json

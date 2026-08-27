@@ -12,6 +12,11 @@ only when:
   3. it immediately restores an exact capped elimination of an ORIGINAL variable;
   4. the frozen global progress potential strictly decreases.
 
+Iterative-context firewall:
+  fresh extension identifiers are chosen above every live/root variable AND every
+  historical extension identifier retained in state.extension_defs.  A dead
+  extension id may therefore never be silently reused on a later Stage4 pass.
+
 Thus removing the frequency filter enlarges deterministic discovery without
 allowing heuristic state promotion.  P_VS_NP remains OPEN.
 """
@@ -96,12 +101,33 @@ def verify_or_pair_v2(before: CNF, after: CNF, cert: dict) -> bool:
         return False
 
 
+def historical_extension_ids(state: base.EngineState) -> tuple[int, ...]:
+    """Return every previously allocated extension id recorded by the state."""
+    ids = []
+    for definition in state.extension_defs:
+        try:
+            extension = int(definition["extension"])
+        except (KeyError, TypeError, ValueError):
+            raise AssertionError("INVALID_HISTORICAL_EXTENSION_DEFINITION")
+        if extension <= 0:
+            raise AssertionError("INVALID_HISTORICAL_EXTENSION_ID")
+        ids.append(extension)
+    if len(ids) != len(set(ids)):
+        raise AssertionError("HISTORICAL_EXTENSION_ID_REUSE_ALREADY_PRESENT")
+    return tuple(ids)
+
+
+def next_fresh_extension(state: base.EngineState) -> int:
+    """Topologically fresh id across root, live residual and dead history."""
+    history = historical_extension_ids(state)
+    return max([*base.vars_of(state.residual), *state.root_vars, *history], default=0) + 1
+
+
 def discover_macro_restore_v2(state: base.EngineState):
     if state.ledger.extension_count >= state.extension_cap:
         return None
 
-    live = base.vars_of(state.residual)
-    fresh = max([*live, *state.root_vars], default=0) + 1
+    fresh = next_fresh_extension(state)
     before_phi = state.progress_phi()
 
     for a, b in all_or_pair_candidates(state.residual):
@@ -158,7 +184,26 @@ def selftest() -> None:
         ext[5] = e
         assert base.verify_total_assignment(before, root) == base.verify_total_assignment(after, ext)
 
+    # Iterative freshness regression: extension 5 disappeared from the residual,
+    # but the next id must still be 6 rather than reusing 5.
+    state = base.EngineState(
+        root=before,
+        residual=base.canon_cnf([[1, 2, 3]]),
+        fixed_assignment={},
+        root_vars=base.vars_of(before),
+        extension_defs=[cert],
+        elimination_history=[],
+        seen=set(),
+        N=base.input_size_units(before),
+        cap_exponent=2,
+        extension_exponent=1,
+        ledger=base.Ledger(extension_count=1),
+    )
+    assert 5 not in base.vars_of(state.residual)
+    assert next_fresh_extension(state) == 6
+
     print("PASS: MACRO_RESTORE_CAP exhaustive OR-pair v2 selftest")
+    print("PASS: ITERATIVE_EXTENSION_FRESHNESS")
     print("P_VS_NP = OPEN")
 
 

@@ -1,0 +1,81 @@
+{
+  "schema": "JANUS/C025/PIRC-GPEI-COMPOSITION-BRIDGE/v1",
+  "date": "2026-08-27",
+  "status": "CONDITIONAL_COMPOSITION_LEMMA_PROVED__UNIVERSAL_PRESERVATION_OPEN",
+  "P_VS_NP": "OPEN",
+  "purpose": "Freeze the exact bridge from an input-relative invariant polynomial representation envelope to a polynomial total SAT decision runtime, while keeping the universal preservation premise explicitly open.",
+  "definitions": {
+    "N": "encoded length of the original CNF input phi",
+    "A": "one fixed deterministic JANUS theorem-mode algorithm frozen before the input is seen",
+    "S_i": "the i-th reachable representation state produced by A on phi",
+    "B_N": "N^c for one fixed universal integer c",
+    "E_N_S": "encoded state and every retained representation resource are <= B_N and the state belongs to the admitted tractable representation language"
+  },
+  "premises": [
+    {
+      "id": "P1_INITIAL",
+      "statement": "For every CNF phi of encoded length N, the canonical initial state S_0 satisfies E_N(S_0)."
+    },
+    {
+      "id": "P2_REACHABLE_PRESERVATION",
+      "statement": "For every state S_i reachable under A, if E_N(S_i) holds and S_i is nonterminal, the unique frozen scheduled transition followed by normalization terminates and returns S_(i+1) satisfying E_N(S_(i+1))."
+    },
+    {
+      "id": "P3_EXACTNESS",
+      "statement": "Every scheduled transition is decision preserving with the required contextual semantics; conservative extensions carry explicit projection semantics where used."
+    },
+    {
+      "id": "P4_STEP_WORK",
+      "statement": "There exists one fixed b such that transition discovery/recognition, execution, normalization, certificate production and independent verification at each reachable step use at most N^b bit operations."
+    },
+    {
+      "id": "P5_STEP_COUNT",
+      "statement": "There exists one fixed a such that A performs at most N^a scheduled macrosteps."
+    },
+    {
+      "id": "P6_TERMINAL",
+      "statement": "The terminal state has an exact truth query computable in polynomial time in N."
+    },
+    {
+      "id": "P7_NO_HIDDEN_RESOURCES",
+      "statement": "The envelope/work ledgers include clauses, factors, DAG nodes and edges, contexts/boundary states, semantic auxiliary variables, integer/coefficient bit lengths, proof/certificate bytes, normalization microsteps, indexes and failed deterministic discovery work."
+    }
+  ],
+  "lemma": {
+    "name": "POLYNOMIAL_ENVELOPE_INDUCTION_LEMMA",
+    "statement": "P1 and P2 imply E_N(S_i) for every reachable step by induction. P4 and P5 bound the sum of all nonterminal work by N^(a+b) up to fixed polynomial overhead; P6 adds only polynomial terminal work. P3 transfers terminal truth back to the original CNF decision. Therefore A decides SAT in polynomial time if P1-P7 hold universally.",
+    "proof": [
+      "Base: P1 gives E_N(S_0).",
+      "Induction: assume E_N(S_i); if nonterminal, P2 returns S_(i+1) and preserves E_N.",
+      "Hence the representation never leaves the fixed input-relative envelope before termination.",
+      "There are at most N^a macrosteps by P5, each costing at most N^b bit operations by P4, so scheduled work is at most N^(a+b).",
+      "Terminal work is polynomial by P6.",
+      "Exact decision preservation from P3 makes the returned terminal truth equal to SAT(phi)."
+    ],
+    "status": "PROVED_AS_CONDITIONAL_ELEMENTARY_BRIDGE"
+  },
+  "critical_correction": {
+    "forbidden_inference": "EACH_STEP_POLYNOMIAL_IN_CURRENT_STATE => TOTAL_RUN_POLYNOMIAL_IN_ORIGINAL_N",
+    "counterexample": "s_0=N and s_(i+1)=s_i^2 gives s_i=N^(2^i)",
+    "replacement": "PROVE_INPUT_RELATIVE_ENVELOPE_PRESERVATION"
+  },
+  "relation_to_existing_frontier": {
+    "SRR_ENFC": "P2 is the size/tractability-preservation core of the schedule-relative reachable closure target.",
+    "PIRC": "E_N defines the polynomial invariant representation corridor in an input-relative form.",
+    "M2R": "M2R may forecast the first likely P2/P4/P7 failure but has no proof authority.",
+    "TOPA": "TOPA attacks P1-P7 and searches for a first exact counterexample/failure witness.",
+    "Fundamentum": "Only exact proofs/certificates may discharge P1-P7 for theorem promotion."
+  },
+  "current_status": {
+    "P1_INITIAL": "PLAUSIBLE_FOR_CANONICAL_CNF_ENCODING_BUT_MUST_MATCH_FINAL_STATE_MODEL",
+    "P2_REACHABLE_PRESERVATION": "OPEN_CENTRAL",
+    "P3_EXACTNESS": "PARTIAL_FAMILY_AND_REWRITE_SPECIFIC",
+    "P4_STEP_WORK": "PARTIAL_FAMILY_SPECIFIC",
+    "P5_STEP_COUNT": "MACRO_VARIABLE_ELIMINATION_COUNT_CAN_BE_POLYNOMIAL_UNDER_FROZEN_SCHEDULE_BUT_AUXILIARY_AND_MICROSTEP_ACCOUNTING_REMAINS_REQUIRED",
+    "P6_TERMINAL": "REQUIRES_TRACTABLE_TERMINAL_REPRESENTATION",
+    "P7_NO_HIDDEN_RESOURCES": "OPEN_GLOBAL_LEDGER",
+    "UNIVERSAL_GPEI_PRESERVATION": "OPEN",
+    "P_VS_NP": "OPEN"
+  },
+  "next_theorem_target": "Prove or refute P2 on the typed reachable corridor using exact family recognition, residual-interface quotient accounting and hostile fixed-language/boundary-width controls."
+}

@@ -1,0 +1,47 @@
+name: run-c025-open3-r1-reverse-pass
+
+on:
+  push:
+    branches:
+      - research/c025-pirc-gpei-2026-08-27
+    paths:
+      - '.github/workflows/run-c025-open3-r1-reverse-pass.yml'
+  workflow_dispatch:
+
+jobs:
+  r1:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Run frozen R1 probe
+        run: |
+          python -m experiments.direct.janus_open3_stage4_bounded_coverage_probe \
+            --nvars 4 \
+            --clauses 5 \
+            --min-width 3 \
+            --max-width 3 \
+            --cap-exponent 2 \
+            --limit 5000 | tee open3-r1-reverse-pass.json
+      - name: Enforce scientific boundary
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          data = json.loads(Path('open3-r1-reverse-pass.json').read_text())
+          assert data['scientific_boundary']['bounded_finite_probe_only'] is True
+          assert data['scientific_boundary']['absence_of_counterexample_is_not_totality_proof'] is True
+          assert data['scientific_boundary']['P_VS_NP'] == 'OPEN'
+          print('R1_SCIENTIFIC_BOUNDARY=PASS')
+          print('R1_STATUS=' + data['status'])
+          print('R1_OPEN3=' + str(data['totals']['open3']))
+          print('R1_OPEN_AFTER_STAGE4=' + str(data['totals']['open_after_stage4']))
+          print('P_VS_NP=OPEN')
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: c025-open3-r1-reverse-pass
+          path: open3-r1-reverse-pass.json

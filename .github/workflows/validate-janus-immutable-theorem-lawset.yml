@@ -1,0 +1,62 @@
+name: validate-janus-immutable-theorem-lawset
+
+on:
+  push:
+    branches:
+      - research/c025-pirc-gpei-2026-08-27
+    paths:
+      - 'research/C025_JANUS_IMMUTABLE_THEOREM_LAWSET_2026-08-27.json'
+      - '.github/workflows/validate-janus-immutable-theorem-lawset.yml'
+  pull_request:
+    paths:
+      - 'research/C025_JANUS_IMMUTABLE_THEOREM_LAWSET_2026-08-27.json'
+      - '.github/workflows/validate-janus-immutable-theorem-lawset.yml'
+
+jobs:
+  immutable-lawset:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Verify theorem lawset and claim ceiling
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          p = Path('research/C025_JANUS_IMMUTABLE_THEOREM_LAWSET_2026-08-27.json')
+          data = json.loads(p.read_text(encoding='utf-8'))
+          assert data['status'] == 'FROZEN_ACTIVE__UNIVERSAL_GPEI_OPEN'
+          assert data['P_VS_NP'] == 'OPEN'
+          assert data['central_open_obligation']['status'] == 'OPEN'
+
+          required = {
+              'NO_HEURISTIC_PROMOTION',
+              'NO_GENERAL_SAT_OR_SEMANTIC_EQUIVALENCE_ORACLE',
+              'GLOBAL_BOUNDS_ANCHORED_TO_ORIGINAL_INPUT_N_NO_REBASING',
+              'CHARGE_DISCOVERY_FAILURES_NORMALIZATION_CONTEXTS_DAG_BYTES_BIT_LENGTH_CERTS_VERIFIER_AND_RECOVERY_DEBT',
+              'FINITE_TEST_NOT_UNIVERSAL_THEOREM',
+              'GRAMMAR_HOLE_RETURNS_OPEN_NO_RUNTIME_REPAIR',
+              'M2R_AND_TOPA_HAVE_NO_TRUTH_AUTHORITY',
+              'ONLY_TYPED_LOCAL_POLYNOMIAL_PULLBACKS',
+              'RECOVERY_DEBT_AND_REVERSE_WORK_ARE_CHARGED',
+              'INDEPENDENT_REPLAY_AND_SEMANTIC_TAMPER_REJECTION',
+              'DECISION_CORE_SEPARATE_FROM_WITNESS_LAYER',
+              'NO_POST_HOC_GATE_OR_BOUND_REINTERPRETATION',
+              'LOCAL_OR_FAMILY_THEOREMS_REQUIRE_A_SEPARATE_UNIVERSAL_BRIDGE',
+          }
+          laws = set(data['immutable_laws'])
+          missing = sorted(required - laws)
+          assert not missing, missing
+
+          forbidden = set(data['forbidden_promotions'])
+          assert 'FINITE_CI_SUCCESS_TO_UNIVERSAL_CLAIM' in forbidden
+          assert 'LOCAL_POLYNOMIALITY_TO_GLOBAL_POLYNOMIALITY' in forbidden
+          assert 'USER_APPROVAL_TO_THEOREM_STATUS' in forbidden
+
+          print('JANUS_IMMUTABLE_THEOREM_LAWSET=PASS')
+          print('UNIVERSAL_CERTIFIED_USEFUL_ACTION_GPEI=OPEN')
+          print('P_VS_NP=OPEN')
+          PY
