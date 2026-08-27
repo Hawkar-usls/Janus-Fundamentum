@@ -1,0 +1,63 @@
+{
+  "schema": "JANUS/C025/V3-MACRO-CAP-HEADROOM-CORRIDOR/v1",
+  "date": "2026-08-27",
+  "status": "PROVED_V3_MACRO_ADMISSION_CORRIDOR__ELIMINATION_AVAILABILITY_OPEN",
+  "P_VS_NP": "OPEN",
+  "scope": "Root-free nonterminal state after unit propagation and before/after the exact 2-SAT eligibility check, inside the frozen N^2 state envelope.",
+  "definitions": {
+    "N": "original normalized input budget",
+    "s": "current state_units",
+    "H": "state-cap headroom N^2-s",
+    "k_ab": "number of clauses containing a particular nondegenerate cooccurring sign-aware literal pair (a,b)",
+    "T": "maximum k_ab over all pair candidates"
+  },
+  "lemma_1_pair_candidate_exists_after_2sat_rejection": {
+    "statement": "At a unit-propagation fixed point, if the residual is nonterminal and solve_2sat_exact returns None, all_or_pair_candidates is nonempty.",
+    "proof": [
+      "No unit or empty clause remains at the fixed point.",
+      "solve_2sat_exact returns a decision object whenever every clause has width at most 2.",
+      "Therefore rejection by the 2-SAT eligibility guard implies at least one clause has width at least 3.",
+      "Canonical clauses contain no duplicate/complementary copy of one underlying variable, so any width>=3 clause contains a nondegenerate literal pair.",
+      "all_or_pair_candidates deterministically enumerates every such cooccurring pair."
+    ],
+    "status": "PROVED_FROM_FROZEN_LANE_DEFINITIONS"
+  },
+  "lemma_2_exact_macro_size_upper": {
+    "statement": "For a pair occurring in k_ab clauses, apply_or_pair_v2 returns a canonical macro CNF with state_units <= s+10-k_ab.",
+    "proof": [
+      "Before canonical cleanup, the k_ab replaced clauses remain k_ab clauses but each loses the two pair literals and gains one fresh -e literal, reducing literal count by exactly k_ab.",
+      "The definitional extension adds exactly three clauses of widths 2,2,3: +3 clauses and +7 literal occurrences.",
+      "Thus pre-canonical state_units changes by +3+7-k_ab=10-k_ab.",
+      "canon_cnf can only remove duplicate/subsumed clauses or tautologies and cannot increase the representation, so canonical output is <=s+10-k_ab."
+    ],
+    "status": "PROVED_ELEMENTARY"
+  },
+  "theorem": {
+    "name": "V3_OR_PAIR_MACRO_HEADROOM_ADMISSION",
+    "statement": "If there exists a pair with k_ab >= max(1,10-H), then at least one frozen v3 OR-pair macro candidate fits the same N^2 state cap. In particular, if H>=9 (equivalently s<=N^2-9), every nonterminal root-free state that reaches the v3 eligibility region has at least one cap-admissible OR-pair macro.",
+    "proof": [
+      "By Lemma 1 at least one candidate has k_ab>=1 after 2-SAT rejection.",
+      "By Lemma 2 a pair with k_ab>=10-H has macro size <=s+10-k_ab<=s+H=N^2.",
+      "If H>=9 then max(1,10-H)=1, so any candidate suffices."
+    ],
+    "status": "PROVED"
+  },
+  "near_cap_failure_band": {
+    "statement": "If every v3 OR-pair macro exceeds N^2, necessarily H<=8 and T<=9-H. Equivalently the state lies in the final nine units below the cap and every cooccurring literal pair is too dispersed to recover the missing headroom.",
+    "status": "PROVED_NECESSARY_CONDITION_FOR_MACRO_CAP_FAILURE"
+  },
+  "interaction_with_other_v3_results": {
+    "extension_cap": "Already proved not to be an independent v2/v3 total macro-count barrier under the frozen N definition.",
+    "step_count": "Every successful v3 atomic plan decreases live-variable count by at least one; successful tail length is polynomial.",
+    "remaining_main_problem": "After a cap-admissible macro exists, prove existence of two distinct pre-macro old pivots whose sequential exact eliminations both stay within N^2, or find a reachable counterexample."
+  },
+  "scientific_boundary": {
+    "does_not_prove_first_elimination_availability": true,
+    "does_not_prove_second_elimination_availability": true,
+    "does_not_prove_v3_total_availability": true,
+    "does_not_prove_universal_GPEI": true,
+    "does_not_prove_P_equals_NP": true,
+    "P_VS_NP": "OPEN"
+  },
+  "next_exact_target": "Condition on a cap-admissible macro and derive an exact two-pivot elimination sandwich. The only separate macro-cap obstruction left is the proved near-cap sparse-pair band H<=8 and T<=9-H."
+}
