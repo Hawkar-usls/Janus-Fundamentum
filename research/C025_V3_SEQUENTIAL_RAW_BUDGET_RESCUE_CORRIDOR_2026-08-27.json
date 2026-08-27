@@ -1,0 +1,67 @@
+{
+  "schema": "JANUS/C025/V3-SEQUENTIAL-RAW-BUDGET-RESCUE-CORRIDOR/v1",
+  "date": "2026-08-27",
+  "status": "PROVED_GENERAL_V3_SUFFICIENT_BUDGET_CORRIDOR__UNIVERSAL_AVAILABILITY_OPEN",
+  "P_VS_NP": "OPEN",
+  "depends_on": [
+    "research/C025_GENERIC_RAW_ELIMINATION_BUDGET_LEMMA_2026-08-27.json",
+    "research/C025_V3_ROOT_FREE_TAIL_PROGRESS_AND_STEP_COUNT_2026-08-27.json",
+    "experiments/direct/janus_unified_macro_restore_v3.py"
+  ],
+  "frozen_preconditions": {
+    "phase": "root-free v3 tail",
+    "extension_budget": "state.ledger.extension_count < state.extension_cap",
+    "minimum_live_old_variables": 2,
+    "macro_candidate": "a nondegenerate cooccurring sign-aware pair (a,b) enumerated by all_or_pair_candidates",
+    "fresh_extension": "next_fresh_extension(state)",
+    "state_cap": "same original-N anchored frozen cap used by v3"
+  },
+  "definitions": {
+    "F": "current root-free canonical residual",
+    "V0": "pre-macro live-variable set vars_of(F)",
+    "M": "canonical exact B2 macro apply_or_pair_v2(F,a,b,e)",
+    "B_x(G)": "generic raw upper bound R+p*q+q*U_plus+p*U_minus for pivot x in canonical state G",
+    "x_y": "two distinct variables from V0",
+    "M_x": "exact canonical output eliminate_var_capped(M,x,cap)",
+    "M_xy": "exact canonical output eliminate_var_capped(M_x,y,cap)"
+  },
+  "theorem": {
+    "name": "SEQUENTIAL_RAW_BUDGET_CERTIFICATE_GUARANTEES_FROZEN_V3_PLAN",
+    "statement": "Suppose M fits cap. If there exist distinct x,y in V0 such that B_x(M)<=cap, exact elimination yields M_x with y still live, and B_y(M_x)<=cap, then frozen v3 has an exact admissible two-elimination macro plan for that candidate/order and the final root-free progress potential is strictly lower than before.",
+    "proof": [
+      "By the generic raw elimination budget lemma, B_x(M)<=cap guarantees eliminate_var_capped(M,x,cap) cannot abort on the pre-subsumption raw accumulator. Its exact canonical output M_x is therefore defined and independently replayable.",
+      "The hypothesis y in vars_of(M_x) matches the frozen v3 requirement that the second distinct pre-macro pivot remain live after the first elimination.",
+      "Applying the same generic lemma to M_x gives that B_y(M_x)<=cap guarantees the second exact elimination and defines M_xy under the same original-N anchored cap.",
+      "Both x and y are distinct members of V0 and exact variable elimination removes them from the final state. The macro introduces at most one fresh variable e and no other fresh semantic variable. Therefore vars(M_xy) is a subset of (V0 minus {x,y}) union {e}, so |vars(M_xy)|<=|V0|-1.",
+      "In root-free mode the frozen v3 progress Phi equals live-variable count. Hence Phi(M_xy)<Phi(F).",
+      "The frozen v3 discovery loop deterministically enumerates all cooccurring macro pairs and all ordered pairs of distinct variables from V0. For this candidate/order, its own exact capped elimination calls succeed and its replay/progress gates pass; therefore the plan will be encountered and admitted without heuristic promotion."
+    ],
+    "status": "PROVED_BY_COMPOSITION_OF_GENERIC_RAW_BOUND_AND_FROZEN_V3_TRANSITION_SHAPE"
+  },
+  "relationship_to_previous_corridors": {
+    "closed_pair": "special case with zero external incidence; sequential bounds are trivially safe when macro fits cap",
+    "aligned_one_sided": "special case where each elimination has no external-by-external opposite-sign product and the robust raw bound stays <= its input macro/intermediate size",
+    "mixed_sign": "now admitted whenever the actual canonical post-macro bucket statistics satisfy the two sequential generic inequalities; mixed signs are no longer categorically outside a proved corridor"
+  },
+  "discovery_cost_boundary": {
+    "note": "This theorem is a sufficiency statement for an already frozen candidate/order. The frozen v3 enumerator remains finite and deterministic; no semantic oracle or heuristic ranking is introduced.",
+    "important": "A proof that some candidate/order always satisfies these inequalities for every reachable root-free nonterminal state is NOT supplied here."
+  },
+  "remaining_open_gap": {
+    "name": "ALL_CANDIDATE_SEQUENTIAL_BUDGET_FAILURE",
+    "definition": "A genuine residual v3 availability witness must survive the earlier exact lanes and, for every cap-admissible B2 macro candidate and every ordered distinct old-pivot pair compatible with the frozen search, fail at least one of: first generic raw budget certificate, second-pivot liveness, second generic raw budget certificate, extension budget, exact replay, or strict-progress gate.",
+    "sharpening": "For the exact B2/frozen-v3 setting, replay and strict progress are structurally controlled once both eliminations exist on two distinct old pivots; the main quantitative frontier is therefore universal existence of a macro/order with both sequential raw budgets under cap, plus extension availability.",
+    "status": "OPEN"
+  },
+  "scientific_boundary": {
+    "sufficient_not_necessary": true,
+    "bound_failure_does_not_imply_actual_elimination_failure": true,
+    "does_not_change_frozen_v3_runtime": true,
+    "does_not_establish_universal_candidate_existence": true,
+    "does_not_establish_v3_universal_availability": true,
+    "does_not_prove_P_equals_NP": true,
+    "P_VS_NP": "OPEN"
+  },
+  "next_exact_target": "Derive aggregate incidence/pressure conditions forcing at least one cap-admissible macro and ordered old-pivot pair to satisfy both sequential raw-budget inequalities, or construct a minimal reachable root-free counterexample in ALL_CANDIDATE_SEQUENTIAL_BUDGET_FAILURE.",
+  "seal": "IANUS VIAS SERVAT."
+}
