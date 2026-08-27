@@ -1,0 +1,53 @@
+name: run-c025-v3-balanced-pressure-adversary
+
+on:
+  push:
+    branches:
+      - research/c025-balanced-pressure-wedge-2026-08-27
+    paths:
+      - 'experiments/direct/janus_v3_balanced_pressure_adversary_probe.py'
+      - '.github/workflows/run-c025-v3-balanced-pressure-adversary.yml'
+
+jobs:
+  balanced-pressure-adversary:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Execute deterministic balanced-pressure adversary
+        run: |
+          python -m experiments.direct.janus_v3_balanced_pressure_adversary_probe \
+            | tee v3-balanced-pressure-adversary.json
+      - name: Verify claim ceiling
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          d = json.loads(Path('v3-balanced-pressure-adversary.json').read_text())
+          b = d['scientific_boundary']
+          assert b['offline_generated_adversary_only'] is True
+          assert b['deterministic_seeded'] is True
+          assert b['synthetic_original_N_budget'] is True
+          assert b['arbitrary_root_free_state'] is True
+          assert b['reachability_from_legitimate_root_not_established'] is True
+          assert b['found_local_gap_does_not_refute_reachable_totality'] is True
+          assert b['no_gap_does_not_prove_availability'] is True
+          assert b['generative_or_predictive_layer_has_theorem_authority'] is False
+          assert b['V3_ROOT_FREE_TAIL_AVAILABILITY'] == 'OPEN'
+          assert b['P_VS_NP'] == 'OPEN'
+          print('BALANCED_PRESSURE_ADVERSARY_STATUS=' + d['status'])
+          if d['first_true_local_v3_gap'] is not None:
+              g = d['first_true_local_v3_gap']
+              print('FIRST_TRUE_LOCAL_V3_GAP=' + g['fingerprint'])
+              print('FIRST_TRUE_LOCAL_V3_GAP_N=' + str(g['N']))
+              print('FIRST_TRUE_LOCAL_V3_GAP_SEED=' + str(g['seed']))
+              print('REACHABILITY_FROM_LEGITIMATE_ROOT=OPEN')
+          print('P_VS_NP=OPEN')
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: c025-v3-balanced-pressure-adversary
+          path: v3-balanced-pressure-adversary.json
