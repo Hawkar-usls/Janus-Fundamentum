@@ -1,0 +1,73 @@
+{
+  "schema": "JANUS/C025/LEGITIMATE-ROOT-FIRST-ORDINARY-PIVOT-AND-EXTENSION-ERA-LIVE-CEILING/v1",
+  "date": "2026-08-27",
+  "status": "PROVED_ROOT_SAFE_PIVOT__PROVED_STRONGER_EXTENSION_ERA_LIVE_CEILING",
+  "P_VS_NP": "OPEN",
+  "depends_on": [
+    "research/C025_GENERIC_RAW_ELIMINATION_BUDGET_LEMMA_2026-08-27-v1.1.json",
+    "research/C025_BOUNDED_WIDTH_AVERAGE_DEGREE_SAFE_PIVOT_CORRIDOR_2026-08-27-v1.2.json",
+    "research/C025_REACHABLE_LIVE_VARIABLE_CEILING_AND_N10_GAP_REJECTION_2026-08-27.json"
+  ],
+  "definitions": {
+    "F": "legitimate canonical nonempty root CNF",
+    "r": "number of distinct root variables",
+    "m": "number of root clauses",
+    "L": "root literal occurrences",
+    "s": "state_units(F)=1+m+L",
+    "N": "input_size_units(F)=s+r for every nonempty root",
+    "cap": "N^2 in frozen C025 v3",
+    "d_x": "number of root clauses containing variable x in either polarity",
+    "w": "maximum root clause width"
+  },
+  "theorem_root_safe_pivot": {
+    "name": "EVERY_LEGITIMATE_NONTRIVIAL_ROOT_HAS_AN_ORDINARY_N2_CAPPED_PIVOT",
+    "statement": "For every legitimate canonical nonempty root with r>=2, at least one live variable x has exact ordinary elimination raw-bound B_x<N^2. Hence if the frozen solver reaches the ordinary-elimination stage at the root, first_capped_elimination cannot fail for every pivot.",
+    "proof": [
+      "Because all r root variables are live, L>=r; because the root is nonempty, m>=1. Thus N=1+m+L+r>=2r+2, so for r>=2 we have N>=6.",
+      "By integer averaging there is a live pivot x with incidence degree d_x<=floor(L/r)<=L/r.",
+      "Every root clause has width at most r, so w<=r. If x is pure, exact elimination is pure deletion and is immediately cap-safe.",
+      "Otherwise apply the proved bounded-width degree bound: B_x<=s-(w+1)d_x+(2w-1)d_x^2/4 <= s+(2r-1)L^2/(4r^2).",
+      "For r>=2, (2r-1)/(4r^2)<=3/16. Also s=N-r<N and L=N-r-m-1<N.",
+      "Therefore B_x<N+(3/16)N^2. Since N>=6, N<=N^2/6, so B_x<(1/6+3/16)N^2=(17/48)N^2<N^2.",
+      "The generic raw-budget lemma then guarantees exact eliminate_var_capped on x cannot abort under the frozen N^2 cap."
+    ],
+    "small_r_case": "For r=1 the root is a unit/contradictory-unit canonical formula and is handled by exact unit/2-SAT logic; direct elimination is also trivially within N^2. No rescue macro is needed.",
+    "status": "PROVED"
+  },
+  "corollary_no_extension_as_first_rescue": {
+    "statement": "On every legitimate root, the frozen solver either terminates in an earlier exact lane, performs nonempty unit propagation, or has an ordinary capped pivot. Therefore v2/v3 extension machinery is never the first required nonterminal rescue at the root.",
+    "status": "PROVED_FROM_FROZEN_SOLVER_ORDER_AND_ROOT_SAFE_PIVOT"
+  },
+  "corollary_extension_era_live_ceiling": {
+    "statement": "If a continuing frozen run ever reaches a state at which extension machinery can be relevant, then at least one original live variable has already disappeared without adding an extension. Since all later continuing v2 transitions are live-count nonincreasing and v3 transitions decrease live count, every such state satisfies v_t<=r0-1<=floor((N-2)/2)-1.",
+    "formula": "v_extension_era <= floor((N-2)/2)-1",
+    "status": "PROVED"
+  },
+  "applications": [
+    {
+      "fingerprint": "83afc9261dd0ac71142f0f18b0c5ba97396f295e2f238f5c6f88e98bb6e19f45",
+      "N": 10,
+      "live_variables": 10,
+      "strong_ceiling": 3,
+      "conclusion": "UNREACHABLE"
+    },
+    {
+      "fingerprint": "deb3bdc96ba564ea5eadfe429e26a1f0cc79a9330a86a9dc3713f3e7c4541887",
+      "N": 12,
+      "live_variables": 5,
+      "strong_ceiling": 4,
+      "conclusion": "UNREACHABLE_AS_EXTENSION_ERA_ROOT_FREE_STATE"
+    }
+  ],
+  "relationship_to_N12_census": "The general ceiling independently rejects the N12 planted local gap. The exhaustive N12 census is stronger for that one size layer: all 800 legitimate N12 roots terminate without allocating any extension at all.",
+  "scientific_boundary": {
+    "does_not_prove_every_later_reachable_state_has_an_ordinary_pivot": true,
+    "does_not_prove_v2_or_v3_never_needed_at_larger_N": true,
+    "does_not_prove_reachable_totality_for_unbounded_N": true,
+    "future_transition_grammar_changes_require_reaudit": true,
+    "does_not_prove_P_equals_NP": true,
+    "P_VS_NP": "OPEN"
+  },
+  "next_exact_target": "Search only adversaries with live_variables<=floor((N-2)/2)-1, or preferably scan legitimate roots directly for the first N whose frozen forward trace allocates an extension or returns OPEN.",
+  "seal": "IANUS VIAS SERVAT."
+}
