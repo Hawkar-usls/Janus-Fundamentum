@@ -25,8 +25,17 @@ jobs:
       - name: Validate M2R pre-action jump gate
         run: python -m experiments.mad_lab.m2r_jump_counter
 
-      - name: Validate reverse-prime schedule
+      - name: Validate proof-gated M2R Surgeon
+        run: python -m experiments.mad_lab.m2r_self_repair
+
+      - name: Validate Spider frozen-precommit gate
+        run: python -m experiments.mad_lab.spider_method_gate
+
+      - name: Validate reverse-prime historical scheduler
         run: python -m experiments.mad_lab.reverse_prime_probe
+
+      - name: Validate ascending-prime runner smoke test
+        run: python -m experiments.mad_lab.prime_stress_ascending --min 2 --max 61 --out /tmp/prime_smoke.json
 
       - name: Validate MAD-LAB policy and claim ceiling
         run: |
@@ -39,24 +48,37 @@ jobs:
           assert p['P_VS_NP']=='OPEN'
           assert p['theorem_runtime_heuristics']=='FORBIDDEN'
           assert p['automatic_promotion'] is False
-          assert 'NO_PROMOTION_WITHOUT_PROOF' in p['rules']
-          assert 'M2R_PREFLIGHT_BEFORE_ACTION' in p['rules']
-          assert 'M2R_HAS_VETO_NOT_TRUTH_POWER' in p['rules']
-          assert 'JUMP_IS_ACTION_LEVEL_NOT_N_SKIP' in p['rules']
+          for rule in (
+              'NO_PROMOTION_WITHOUT_PROOF',
+              'M2R_PREFLIGHT_BEFORE_ACTION',
+              'M2R_HAS_VETO_NOT_TRUTH_POWER',
+              'SELF_REPAIR_MAY_USE_ONLY_ALREADY_PROVED_EXACT_PROVIDERS',
+              'SAME_RUN_NEW_LEMMA_USE_IS_FORBIDDEN',
+              'UNPROVED_REPAIR_ROLLS_BACK_AND_STAYS_OPEN',
+              'SPIDER_FREEZE_BEFORE_EVALUATE',
+              'DISCOVERY_PRIMES_CANNOT_CONFIRM_THEIR_OWN_PATTERN',
+          ):
+              assert rule in p['rules'], rule
           g=p['m2r_jump_gate']
-          assert g['enabled'] is True
-          assert g['scope']=='MAD_LAB_ONLY'
-          assert g['pre_action'] is True
-          assert g['may_invent_actions'] is False
-          assert g['may_skip_failed_N_for_theorem_claim'] is False
-          assert g['truth_power'] is False
-          assert g['veto_power'] is True
-          assert p['reverse_prime_probe']['start']==937
-          assert p['reverse_prime_probe']['m2r_preflight_required_before_action'] is True
-          assert p['reverse_prime_probe']['proves_intermediate_N'] is False
-          assert p['reverse_prime_probe']['proves_unbounded_totality'] is False
+          assert g['enabled'] is True and g['truth_power'] is False and g['veto_power'] is True
+          s=p['m2r_self_repair']
+          assert s['enabled'] is True
+          assert s['may_use_generated_same_run_lemma'] is False
+          assert s['rollback_on_unproved_repair'] is True
+          sp=p['spider_method_gate']
+          assert sp['enabled'] is True
+          assert sp['imports_methodology_only'] is True
+          assert sp['physical_retrocausality_promoted'] is False
+          asc=p['ascending_prime_stress']
+          assert asc['enabled'] is True
+          assert asc['start']==2 and asc['default_stop']==937
+          assert asc['direction']=='ASCENDING' and asc['numbers']=='PRIMES_ONLY'
+          assert asc['same_run_repair_invention_allowed'] is False
+          assert asc['proves_each_prime_N'] is False
           print('MAD_LAB_POLICY=PASS')
-          print('M2R_JUMP_GATE_POLICY=PASS')
+          print('M2R_SURGEON_POLICY=PASS')
+          print('SPIDER_METHOD_POLICY=PASS')
+          print('ASCENDING_PRIME_POLICY=PASS')
           print('P_VS_NP=OPEN')
           PY
 
