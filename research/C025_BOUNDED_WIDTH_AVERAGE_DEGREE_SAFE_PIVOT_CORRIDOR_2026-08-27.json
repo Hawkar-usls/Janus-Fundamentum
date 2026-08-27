@@ -1,0 +1,90 @@
+{
+  "schema": "JANUS/C025/BOUNDED-WIDTH-AVERAGE-DEGREE-SAFE-PIVOT-CORRIDOR/v1",
+  "date": "2026-08-27",
+  "status": "PROVED_SUFFICIENT_ORDINARY_PIVOT_CORRIDOR__NOT_TOTALITY",
+  "P_VS_NP": "OPEN",
+  "depends_on": "research/C025_GENERIC_RAW_ELIMINATION_BUDGET_LEMMA_2026-08-27-v1.1.json",
+  "definitions": {
+    "F": "canonical CNF state",
+    "s": "state_units(F)",
+    "cap": "frozen raw cap C with s<=C",
+    "Delta": "C-s",
+    "w": "maximum clause width, w>=2",
+    "n": "number of live variables",
+    "L": "total literal occurrences",
+    "p_x_q_x": "positive/negative clause-incidence counts for pivot x",
+    "d_x": "p_x+q_x"
+  },
+  "theorem": {
+    "name": "BOUNDED_WIDTH_LOW_INCIDENCE_PIVOT_IS_RAW_CAP_SAFE",
+    "statement": "For any live pivot x, if one polarity is absent then elimination is pure deletion and fits whenever s<=C. Otherwise, with d=d_x and maximum clause width w, the generic raw bound satisfies B_x <= s-(w+1)d+(2w-1)d^2/4. Hence every pivot with d<=D_w(Delta) is guaranteed to fit, where D_w(Delta)=2*((w+1)+sqrt((w+1)^2+(2w-1)*Delta))/(2w-1).",
+    "proof": [
+      "For p,q>=1, U_plus<=(w-1)p and U_minus<=(w-1)q.",
+      "Substitute these into B_x=s+p*q-2p-2q+(q-1)U_plus+(p-1)U_minus.",
+      "Because q-1 and p-1 are nonnegative, B_x<=s+p*q-2d+(w-1)(2p*q-d)=s-(w+1)d+(2w-1)p*q.",
+      "AM-GM gives p*q<=d^2/4, so B_x<=s-(w+1)d+(2w-1)d^2/4.",
+      "The positive root of ((2w-1)/4)d^2-(w+1)d-Delta=0 is D_w(Delta). For 0<=d<=D_w(Delta), the displayed upper bound is <=C, so the generic raw-budget lemma certifies exact capped elimination.",
+      "If p=0 or q=0, no cross-product exists; elimination only removes pivot clauses and is cap-safe directly."
+    ],
+    "status": "PROVED"
+  },
+  "corollary": {
+    "name": "AVERAGE_DEGREE_FORCES_A_SAFE_PIVOT",
+    "statement": "Since sum_x d_x=L, some live variable has d_x<=L/n. Therefore L/n<=D_w(Delta) implies existence of at least one ordinary exact capped pivot.",
+    "contrapositive_pressure": "If every live pivot truly overflows the cap, then necessarily d_x>D_w(Delta) for every x and L>n*D_w(Delta).",
+    "status": "PROVED"
+  },
+  "frozen_width3_probe_ladder": [
+    {
+      "parameters": {"nvars": 4, "clauses": 8, "N": 8},
+      "w": 3,
+      "s": 33,
+      "cap": 64,
+      "Delta": 31,
+      "L_over_n": 6.0,
+      "D_w_approx": 6.830259,
+      "conclusion": "ORDINARY_SAFE_PIVOT_FORCED"
+    },
+    {
+      "parameters": {"nvars": 4, "clauses": 10, "N": 9},
+      "w": 3,
+      "s": 41,
+      "cap": 81,
+      "Delta": 40,
+      "L_over_n": 7.5,
+      "D_w_approx": 7.478775,
+      "conclusion": "NOT_CERTIFIED_BY_AVERAGE_DEGREE_CORRIDOR"
+    },
+    {
+      "parameters": {"nvars": 5, "clauses": 10, "N": 9},
+      "w": 3,
+      "s": 41,
+      "cap": 81,
+      "Delta": 40,
+      "L_over_n": 6.0,
+      "D_w_approx": 7.478775,
+      "conclusion": "ORDINARY_SAFE_PIVOT_FORCED"
+    },
+    {
+      "parameters": {"nvars": 5, "clauses": 12, "N": 10},
+      "w": 3,
+      "s": 49,
+      "cap": 100,
+      "Delta": 51,
+      "L_over_n": 7.2,
+      "D_w_approx": 8.184849,
+      "conclusion": "ORDINARY_SAFE_PIVOT_FORCED"
+    }
+  ],
+  "interpretation": "Three frozen width-3 probe rungs are theorem-level incapable of reaching the all-pivot-overflow filter. Only the 4-variable/10-clause/N=9 rung remains potentially capable of exercising the v3 tail under this sufficient analysis.",
+  "scientific_boundary": {
+    "sufficient_not_necessary": true,
+    "the_uncertified_rung_is_not_proved_to_overflow": true,
+    "bounded_width_corridor_does_not_cover_unbounded_width_reachable_states": true,
+    "does_not_prove_v3_availability": true,
+    "does_not_prove_P_equals_NP": true,
+    "P_VS_NP": "OPEN"
+  },
+  "next_exact_target": "Analyze the sole uncertified frozen width-3 rung or use the degree-pressure inequality to construct a sharper adversary at larger width/depth.",
+  "seal": "IANUS VIAS SERVAT."
+}
