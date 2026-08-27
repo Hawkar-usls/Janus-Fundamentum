@@ -1,0 +1,63 @@
+{
+  "schema": "JANUS/C025/TOTALITY-REDUCTION-LOW-VOLUME-AND-EXTENSION-BUDGET/v1",
+  "date": "2026-08-27",
+  "status": "TWO_STRUCTURAL_SUBLEMMAS_PROVED__CENTRAL_TOTALITY_STILL_OPEN",
+  "P_VS_NP": "OPEN",
+  "scope": "Decision-only theorem architecture using exact capped Davis-Putnam elimination plus v2 root macro restore and root-free fixed-depth v3 extension-tail descent.",
+  "lemma_1": {
+    "id": "LOW_VOLUME_ELIMINATION_ALWAYS_FITS",
+    "statement": "Let F be any canonical CNF with state_units s=1+m+L, where m is clause count and L is total literal occurrences. For any live pivot x, the raw exact existential-elimination output before canonical duplicate/subsumption cleanup has state_units <= s + mL <= s + (s-1)^2/4 < s^2 for s>=2. Therefore whenever s<=N and the frozen cap is N^2, every live pivot fits the exact elimination cap; in particular first_capped_elimination cannot fail on a nonterminal state of volume <=N.",
+    "proof": [
+      "Partition pivot-containing clauses into p positive and q negative buckets plus r neutral clauses. Let Lp,Lq,Ln be their literal-occurrence sums.",
+      "There are at most pq raw resolvents. Their total literal occurrences after removing the pivot literals are at most q(Lp-p)+p(Lq-q).",
+      "Adding the pq clause-header units gives pq+q(Lp-p)+p(Lq-q)=qLp+pLq-pq <= qLp+pLq.",
+      "Neutral contribution is r+Ln. Hence raw state_units <=1+r+Ln+qLp+pLq <=1+m+L+mL=s+mL.",
+      "Since m+L=s-1, AM-GM gives mL<=(s-1)^2/4. Thus raw state_units<s^2 for s>=2.",
+      "Tautology rejection, duplicate removal, canonicalization and subsumption can only decrease this raw bound."
+    ],
+    "consequence": "A terminal failure NO_CAPPED_CERTIFIED_MOVE is possible only after the retained representation has crossed the original-volume threshold state_units>N, unless an earlier exact terminal lane already decides the residual.",
+    "status": "PROVED_ELEMENTARY"
+  },
+  "lemma_2": {
+    "id": "N2_EXTENSION_CAP_NONBINDING",
+    "statement": "For the frozen v2/v3 grammar, changing the historical extension cap from N to N^2 removes an artificial fail-closed boundary without creating an unbounded resource: the number of successful macro introductions over any run is at most 2n, where n is the number of original root variables and n<=N. Hence for N>=2 the N^2 cap cannot bind on any run before all structurally possible v2/v3 macro steps have already been consumed.",
+    "proof": [
+      "A successful v2 macro is admitted only together with roots_only=True exact elimination of one currently live root variable. No transition can recreate a root identifier as a fresh extension. Therefore successful v2 macro count<=n.",
+      "v3 is syntactically guarded to run only when no root variable remains live.",
+      "At entry to the root-free tail, every live variable is an extension introduced by earlier v2 moves, so the live tail population is <=n.",
+      "Each successful v3 step introduces one fresh extension and then exactly eliminates two distinct variables that were live before the macro. Thus retained live-variable count drops by at least one per v3 step, giving successful v3 count<=n.",
+      "Therefore total successful extension introductions<=2n<=2N<=N^2 for every N>=2."
+    ],
+    "implementation_implication": "A theorem-mode successor may freeze extension_exponent=2. This is a resource relaxation justified before any new totality result is observed; it preserves a fixed polynomial cap and makes historical-extension exhaustion unreachable by the grammar's own structural count.",
+    "status": "PROVED_FROM_FROZEN_V2_V3_GUARDS"
+  },
+  "corollaries": [
+    {
+      "id": "RETAINED_LIVE_VARIABLE_NONINCREASE",
+      "statement": "Unit propagation and ordinary elimination strictly remove live variables; v2 adds one extension while eliminating one root so retained live count does not increase; v3 adds one and eliminates two so retained live count decreases. Thus retained live-variable count never exceeds the initial n<=N."
+    },
+    {
+      "id": "COARSE_OUTER_TRANSITION_COUNT",
+      "statement": "Across the whole decision run at most n v2 births and n v3 births occur. Nonmacro removal steps can remove only variables among the n initial plus at most 2n introduced variables. Therefore a coarse outer state-changing transition bound is O(N), independent of finite experiments."
+    },
+    {
+      "id": "FRESH_ID_BIT_LENGTH",
+      "statement": "Even retaining historical nonreused extension IDs, at most 2N successful macros imply maximum generated identifier O(N) after dense input normalization; identifier bit length remains O(log N)."
+    }
+  ],
+  "remaining_totality_region": {
+    "name": "HIGH_VOLUME_RESCUE_REGION",
+    "definition": "Reachable nonterminal states with state_units>N for which no exact typed terminal lane decides immediately.",
+    "reason": "LOW_VOLUME_ELIMINATION_ALWAYS_FITS already proves a capped existential move below or at volume N.",
+    "open_sublemmas": [
+      "ROOT_PHASE_HIGH_VOLUME_RESCUE: while roots remain and ordinary capped elimination fails, prove v2 exact macro restore exists or find a reachable counterexample.",
+      "ROOT_FREE_HIGH_VOLUME_RESCUE: after roots vanish and ordinary capped elimination fails, prove v3 fixed-depth descent exists or find a reachable counterexample."
+    ],
+    "status": "OPEN_CENTRAL_REDUCED"
+  },
+  "scientific_boundary": {
+    "these_lemmas_do_not_prove_totality": true,
+    "finite_tests_not_used_in_the_proofs": true,
+    "P_VS_NP": "OPEN"
+  }
+}
