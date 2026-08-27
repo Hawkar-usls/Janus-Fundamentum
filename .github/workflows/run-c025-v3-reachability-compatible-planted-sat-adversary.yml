@@ -1,0 +1,55 @@
+name: run-c025-v3-reachability-compatible-planted-sat-adversary
+
+on:
+  push:
+    branches:
+      - research/c025-balanced-pressure-wedge-2026-08-27
+    paths:
+      - 'experiments/direct/janus_v3_reachability_compatible_planted_sat_adversary.py'
+      - '.github/workflows/run-c025-v3-reachability-compatible-planted-sat-adversary.yml'
+
+jobs:
+  planted-sat-adversary:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Execute reachability-compatible planted-SAT adversary
+        run: |
+          python -m experiments.direct.janus_v3_reachability_compatible_planted_sat_adversary \
+            | tee v3-reachability-compatible-planted-sat-adversary.json
+      - name: Verify claim ceiling
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          d = json.loads(Path('v3-reachability-compatible-planted-sat-adversary.json').read_text())
+          b = d['scientific_boundary']
+          assert b['offline_generated_adversary_only'] is True
+          assert b['live_variable_ceiling_respected'] is True
+          assert b['planted_sat_witness_verified'] is True
+          assert b['passing_live_ceiling_does_not_establish_forward_reachability'] is True
+          assert b['exact_forward_reachability_certificate_required'] is True
+          assert b['found_local_gap_does_not_refute_reachable_totality'] is True
+          assert b['no_gap_does_not_prove_availability'] is True
+          assert b['generative_layer_has_theorem_authority'] is False
+          assert b['V3_ROOT_FREE_TAIL_AVAILABILITY'] == 'OPEN'
+          assert b['P_VS_NP'] == 'OPEN'
+          print('PLANTED_SAT_ADVERSARY_STATUS=' + d['status'])
+          if d['first_true_local_v3_gap'] is not None:
+              g = d['first_true_local_v3_gap']
+              print('FIRST_LIVE_COMPATIBLE_GAP=' + g['fingerprint'])
+              print('FIRST_LIVE_COMPATIBLE_GAP_N=' + str(g['N']))
+              print('FIRST_LIVE_COMPATIBLE_GAP_NVAR=' + str(g['nvars']))
+              print('FIRST_LIVE_COMPATIBLE_GAP_SEED=' + str(g['seed']))
+              print('PLANTED_SAT_VERIFIED=' + str(g['planted_sat_verified']))
+              print('EXACT_FORWARD_REACHABILITY=OPEN')
+          print('P_VS_NP=OPEN')
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: c025-v3-reachability-compatible-planted-sat-adversary
+          path: v3-reachability-compatible-planted-sat-adversary.json
