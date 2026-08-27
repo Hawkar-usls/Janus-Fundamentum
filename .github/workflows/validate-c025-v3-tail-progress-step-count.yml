@@ -1,0 +1,44 @@
+name: validate-c025-v3-tail-progress-step-count
+
+on:
+  push:
+    branches:
+      - research/c025-balanced-pressure-wedge-2026-08-27
+    paths:
+      - 'research/C025_V3_ROOT_FREE_TAIL_PROGRESS_AND_STEP_COUNT_2026-08-27.json'
+      - 'experiments/direct/janus_v3_tail_progress_contract.py'
+      - '.github/workflows/validate-c025-v3-tail-progress-step-count.yml'
+  pull_request:
+    paths:
+      - 'research/C025_V3_ROOT_FREE_TAIL_PROGRESS_AND_STEP_COUNT_2026-08-27.json'
+      - 'experiments/direct/janus_v3_tail_progress_contract.py'
+      - '.github/workflows/validate-c025-v3-tail-progress-step-count.yml'
+
+jobs:
+  exact-tail-progress:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Execute admitted-plan progress contract
+        run: python -m experiments.direct.janus_v3_tail_progress_contract
+      - name: Verify theorem scope and open availability boundary
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          d = json.loads(Path('research/C025_V3_ROOT_FREE_TAIL_PROGRESS_AND_STEP_COUNT_2026-08-27.json').read_text())
+          assert d['status'] == 'PROVED_CONDITIONAL_TAIL_TERMINATION_AND_STEP_COUNT__AVAILABILITY_OPEN'
+          assert d['P_VS_NP'] == 'OPEN'
+          assert d['lemma_1_root_free_potential']['status'] == 'PROVED_FROM_FROZEN_DEFINITION'
+          assert d['lemma_2_atomic_v3_live_count_descent']['status'] == 'PROVED_FROM_FROZEN_TRANSITION_SHAPE'
+          assert d['lemma_3_original_N_step_bound']['status'] == 'PROVED_ELEMENTARY'
+          assert d['remaining_open_obligation']['status'] == 'OPEN'
+          assert d['scientific_boundary']['does_not_prove_v3_availability'] is True
+          assert d['scientific_boundary']['does_not_prove_P_equals_NP'] is True
+          print('V3_TAIL_PROGRESS_AND_STEP_COUNT_THEOREM=PASS')
+          print('V3_ROOT_FREE_TAIL_AVAILABILITY=OPEN')
+          print('P_VS_NP=OPEN')
+          PY
