@@ -1,0 +1,43 @@
+{
+  "schema": "JANUS/C025/V3-CLOSED-PAIR-TWO-ELIMINATION-RESCUE/v1",
+  "date": "2026-08-27",
+  "status": "PROVED_STRUCTURAL_V3_RESCUE_CORRIDOR__UNIVERSAL_AVAILABILITY_OPEN",
+  "P_VS_NP": "OPEN",
+  "definitions": {
+    "F": "root-free canonical residual",
+    "pair": "a nondegenerate sign-aware cooccurring literal pair (a,b)",
+    "pair_clauses": "the clauses of F containing both a and b",
+    "closed_pair": "every clause containing underlying variable |a| or |b| belongs to pair_clauses and contains exactly the candidate signs a and b for those variables",
+    "e": "fresh v3 OR-pair extension variable"
+  },
+  "theorem": {
+    "name": "CAP_ADMISSIBLE_CLOSED_PAIR_GUARANTEES_V3_TWO_ELIMINATION_PLAN",
+    "statement": "If (a,b) is a closed pair and its apply_or_pair_v2 macro output fits the frozen N^2 cap, then the frozen v3 search has an exact plan using pivots |a| and |b| (in either suitable canonical order); both elimination intermediates stay within the macro size cap and the final live-variable count is at least one smaller than before.",
+    "proof": [
+      "Because the pair is closed, after replacement no payload/untouched clause contains either underlying variable |a| or |b|. Their only remaining occurrences are in the three definitions (-e,-a), (-e,-b), (e,a,b).",
+      "Eliminate underlying variable |a|. Its two definitional parent clauses resolve to a clause containing both e and -e, hence the only cross-resolvent is tautological and is discarded exactly. The two |a|-clauses disappear and no new clause is materialized; (-e,-b) remains.",
+      "Therefore the first exact elimination strictly decreases representation size and cannot exceed the already cap-admissible macro state.",
+      "Now underlying variable |b| occurs only in the remaining binary definition (-e,-b) with one polarity, so exact elimination is pure: the clause disappears and no resolvent is generated.",
+      "The second intermediate therefore also stays below the macro state size and under the same N^2 cap.",
+      "The macro introduced only e while the two distinct old variables |a| and |b| are gone, so live-variable count decreases by at least one; in root-free mode this strictly decreases frozen progress Phi.",
+      "The v3 search enumerates every cooccurring literal pair and every ordered pair of distinct pre-macro live variables, so it will algorithmically encounter and independently replay this plan without heuristic selection."
+    ],
+    "status": "PROVED_FROM_FROZEN_MACRO_AND_ELIMINATION_SEMANTICS"
+  },
+  "macro_cap_bridge": {
+    "statement": "The closed-pair theorem composes with C025_V3_MACRO_CAP_HEADROOM_CORRIDOR: if state headroom H>=9, any closed pair is automatically macro-cap-admissible because every candidate occurs at least once; for H<9 use the exact frequency condition k_ab>=10-H.",
+    "status": "PROVED_BY_COMPOSITION_OF_SUFFICIENT_LEMMAS"
+  },
+  "necessary_condition_for_remaining_gap": {
+    "statement": "A root-free v3 availability gap cannot contain a cap-admissible closed pair. Therefore every cap-admissible candidate pair in a surviving gap witness must have external incidence of at least one underlying pair variable outside the jointly replaced pair clauses or a sign mismatch that violates closed-pair structure.",
+    "status": "PROVED_NECESSARY_CONDITION"
+  },
+  "scientific_boundary": {
+    "closed_pair_is_sufficient_not_necessary": true,
+    "does_not_prove_every_state_has_a_closed_pair": true,
+    "does_not_prove_v3_universal_availability": true,
+    "does_not_prove_P_equals_NP": true,
+    "P_VS_NP": "OPEN"
+  },
+  "next_exact_target": "Generalize from zero external incidence to bounded external incidence: derive a polynomial cap condition for macro plus first/second elimination as a function of the two pair variables' external positive/negative bucket masses."
+}
