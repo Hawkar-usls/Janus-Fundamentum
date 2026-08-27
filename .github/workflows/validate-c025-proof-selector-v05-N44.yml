@@ -1,0 +1,52 @@
+name: validate-c025-proof-selector-v05-N44
+
+on:
+  push:
+    branches:
+      - research/c025-proof-selector-v0-5-2026-08-27
+    paths:
+      - 'research/C025_PROOF_SELECTOR_V05_CAP_FRONTIER_THROUGH_N44_2026-08-27.json'
+      - 'experiments/direct/janus_proof_selector_v05_candidate.py'
+      - 'experiments/direct/janus_proof_selector_v05_N44_replay.py'
+      - '.github/workflows/validate-c025-proof-selector-v05-N44.yml'
+  pull_request:
+    paths:
+      - 'research/C025_PROOF_SELECTOR_V05_CAP_FRONTIER_THROUGH_N44_2026-08-27.json'
+      - 'experiments/direct/janus_proof_selector_v05_candidate.py'
+      - 'experiments/direct/janus_proof_selector_v05_N44_replay.py'
+      - '.github/workflows/validate-c025-proof-selector-v05-N44.yml'
+
+jobs:
+  proof-selector-v05-N44:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Execute proof-selector candidate selftest
+        run: python -m experiments.direct.janus_proof_selector_v05_candidate
+      - name: Execute N44 selector replay regression
+        run: python -m experiments.direct.janus_proof_selector_v05_N44_replay
+      - name: Verify theorem scope and claim ceiling
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          theorem = json.loads(Path('research/C025_PROOF_SELECTOR_V05_CAP_FRONTIER_THROUGH_N44_2026-08-27.json').read_text())
+          assert theorem['P_VS_NP'] == 'OPEN'
+          assert theorem['theorem_runtime_heuristics'] == 'FORBIDDEN'
+          assert theorem['runtime_change_from_N43'] is False
+          assert theorem['N44_partition']['status'] == 'PROVED'
+          assert theorem['selector_degree_bound']['status'] == 'PROVED_FROM_EXISTING_CONSTRUCTIVE_SELECTOR_LEMMA'
+          assert theorem['selected_degree3_raw_bound']['status'] == 'PROVED_BY_EXISTING_GENERIC_RAW_BOUND'
+          assert theorem['post_selected_step_tail']['status'] == 'PROVED_BELOW_CAP_BY_EXISTING_RECURRENCE'
+          assert theorem['finite_frontier_theorem']['status'] == 'PROVED_FINITE_N_CAP_AVAILABILITY'
+          assert theorem['scientific_boundary']['unbounded_totality'] == 'OPEN'
+          assert theorem['scientific_boundary']['v3_universal_availability'] == 'OPEN'
+          assert theorem['scientific_boundary']['universal_GPEI'] == 'OPEN'
+          print('V05_N_LE_44_CAP_FRONTIER=PASS')
+          print('THEOREM_RUNTIME_HEURISTICS=FORBIDDEN')
+          print('P_VS_NP=OPEN')
+          PY
