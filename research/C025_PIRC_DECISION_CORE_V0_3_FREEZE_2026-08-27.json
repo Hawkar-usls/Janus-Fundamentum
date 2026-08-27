@@ -1,0 +1,74 @@
+{
+  "schema": "JANUS/C025/PIRC-DECISION-CORE-V0.3-FREEZE/v1",
+  "date": "2026-08-27",
+  "status": "FIXED_POLYNOMIAL_PARTIAL_DECISION_MACHINE_FROZEN__UNIVERSAL_TOTALITY_OPEN",
+  "P_VS_NP": "OPEN",
+  "implementation": "experiments/direct/janus_pirc_decision_core_v0_3.py",
+  "parent_audit": "research/C025_FIXED_ENGINE_POLYNOMIAL_PARTIAL_DECIDER_AUDIT_2026-08-27.json",
+  "historical_correction_policy": "APPEND_ONLY__PARENT_REMAINS_UNCHANGED",
+  "frozen_parameters": {
+    "cap_exponent_C": 2,
+    "extension_exponent_k": 1,
+    "bounded_resolution_width": 3,
+    "runtime_grammar_mutation": false,
+    "heuristic_state_promotion": false,
+    "random_branching": false
+  },
+  "frozen_flow": [
+    "DENSE_THEOREM_INPUT_NORMALIZATION",
+    "UNIT_PROPAGATION",
+    "MATCHING_HALL_EXACT_TERMINAL",
+    "ONE_VARIABLE_NONRECURSIVE_COMPONENT_ALGEBRA_EXACT_TERMINAL",
+    "2SAT_EXACT_TERMINAL",
+    "EXPLICIT_GF2_EXACT_TERMINAL",
+    "FIXED_WIDTH_3_RESOLUTION_REFUTATION",
+    "CAPPED_EXACT_EXISTENTIAL_ELIMINATION",
+    "V2_EXHAUSTIVE_OR_PAIR_ROOT_RESTORE",
+    "V3_FIXED_DEPTH_2_EXTENSION_TAIL_DESCENT",
+    "OPEN_NO_CAPPED_CERTIFIED_MOVE"
+  ],
+  "decision_witness_split": {
+    "status": "IMPLEMENTED",
+    "rule": "An exact SAT terminal residual yields SAT in DECISION_CORE without requiring local reconstruction of a root assignment.",
+    "why_sound_for_P_vs_NP": "The theorem target is the SAT decision problem. If this fixed decision core is universally polynomial and total, a satisfying assignment is recoverable by standard polynomial self-reduction using the decider.",
+    "witness_layer": "OPTIONAL_STRONGER_PROOF_CARRYING_LAYER"
+  },
+  "input_bit_complexity_firewall": {
+    "status": "IMPLEMENTED",
+    "implementation": "experiments/direct/janus_theorem_input_normal_form.py",
+    "rule": "Sorted source variables are densely relabeled to 1..n before internal N and caps are frozen; original identifier bit lengths are charged in source_binary_units."
+  },
+  "partial_decider_claim": {
+    "status": "CONDITIONAL_PAPER_LEVEL_BOUND_WITH_EXECUTABLE_REFERENCE",
+    "statement": "With deterministic comparison-based data structures and the frozen C=2,k=1,width=3 grammar, every individual run terminates in polynomial work with one of SAT, UNSAT, OPEN. A conservative previously frozen bound is O(N^13) bit operations; this exponent is intentionally loose and not a claim of optimized complexity.",
+    "not_yet_a_P_algorithm": "OPEN is still an admitted output."
+  },
+  "central_unproved_lemma": {
+    "id": "REACHABLE_MOVE_OR_TERMINAL_TOTALITY",
+    "formal_target": "For every densely normalized CNF phi and every nonterminal state S reachable by PIRC_DECISION_CORE_V0_3 under the original root input budget N, at least one frozen exact terminal lane or frozen exact strict-progress transition is available before the resource caps are exhausted.",
+    "equivalent": "PIRC_DECISION_CORE_V0_3 never returns OPEN on any CNF.",
+    "status": "OPEN_CENTRAL"
+  },
+  "conditional_theorem": {
+    "statement": "If REACHABLE_MOVE_OR_TERMINAL_TOTALITY is proved for this exact frozen machine, then the already-bounded partial decider becomes a polynomial-time total SAT decider; therefore SAT is in P and P=NP.",
+    "status": "CONDITIONAL_NOT_PROMOTED"
+  },
+  "finite_evidence_only": {
+    "root_anchored_full_trajectory_run": 33048889686,
+    "connected_CNF_examined": 45000,
+    "stage3_open_roots": 23956,
+    "remaining_open": 0,
+    "maximum_observed_stage4_depth": 5,
+    "meaning": "Hostile bounded evidence against easy counterexamples only; not universal proof."
+  },
+  "next_proof_task": {
+    "primary": "ATTACK_REACHABLE_MOVE_OR_TERMINAL_TOTALITY",
+    "proof_direction": "Derive structural conditions forced by the failure of all earlier exact lanes, then prove that those conditions imply existence of either a capped pivot, a v2 root-restoring OR-pair, or a v3 extension-tail pair; otherwise freeze the first exact counterexample.",
+    "counterexample_direction": "Search only under this frozen v0.3 grammar. A found OPEN refutes this machine's totality but not P=NP itself.",
+    "forbidden": [
+      "CHANGE_GRAMMAR_AFTER_OBSERVING_A_FAILURE_WITHIN_THE_SAME_THEOREM_RUN",
+      "PROMOTE_FINITE_NO_OPEN_TO_UNIVERSAL_TOTALITY",
+      "USE_M2R_OR_ML_AS_PROOF_AUTHORITY"
+    ]
+  }
+}
