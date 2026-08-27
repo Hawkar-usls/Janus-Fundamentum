@@ -1,0 +1,56 @@
+{
+  "schema": "JANUS/C025/UNIT-FREE-RAW-ELIMINATION-ENVELOPE-AND-FIRST-ORDINARY-STATE-ALL-PIVOTS-SAFE/v1.1",
+  "date": "2026-08-27",
+  "status": "AUDITED_PROVED_GENERIC_UNIT_FREE_ENVELOPE__PROVED_FIRST_ORDINARY_STATE_ALL_PIVOTS_SAFE",
+  "P_VS_NP": "OPEN",
+  "supersedes_for_interpretation": "research/C025_UNIT_FREE_RAW_ELIMINATION_ENVELOPE_AND_ROOT_ALL_PIVOTS_SAFE_2026-08-27.json",
+  "history_policy": "APPEND_ONLY__V1_RETAINED_AS_WORDING_SCOPE_WITNESS",
+  "audit": {
+    "generic_unit_free_lemma_changed": false,
+    "root_corollary_mathematics_changed": false,
+    "wording_scope_corrected": true,
+    "reason": "If the input root contains units, the first ordinary-elimination stage is reached only after one or more exact unit-propagation/restriction steps. The correct object is therefore the first unit-free ordinary residual, not necessarily the byte-identical input root."
+  },
+  "generic_lemma": {
+    "state": "Any canonical unit-free CNF F at an ordinary-elimination stage, with s=state_units(F).",
+    "mixed_pivot_bound": "RAW_x <= 1+(s-1)^2/12",
+    "pure_pivot_bound": "RAW_x <= s",
+    "proof_identity": "With A=2p+U_plus, B=2q+U_minus, X=pq+qU_plus+pU_minus and unit-free U_plus>=p,U_minus>=q: A*B-3X=(U_plus-p)(U_minus-q)>=0.",
+    "status": "PROVED"
+  },
+  "first_ordinary_state_corollary": {
+    "definitions": {
+      "G": "legitimate original root",
+      "r0": "|Vars(G)|",
+      "N": "input_size_units(G)=state_units(G)+r0 for nonempty G",
+      "F1": "the first residual on the frozen run at which ordinary elimination is attempted, before any ordinary or extension transition; F1 may equal G or be obtained from G solely by exact unit propagation/restriction"
+    },
+    "statement": "Every live pivot in F1 is raw-cap safe under the frozen original-root cap N^2.",
+    "proof": [
+      "Unit propagation/restriction and canonicalization introduce no new clauses/literals and therefore state_units(F1)<=state_units(G)=N-r0.",
+      "F1 is unit-free by solver order; otherwise unit propagation would run again before ordinary elimination.",
+      "A pure pivot has RAW<=state_units(F1)<=N-r0<N^2.",
+      "A mixed pivot has RAW<=1+(state_units(F1)-1)^2/12 <= 1+(N-r0-1)^2/12 < N^2.",
+      "Thus every live pivot offered to first_capped_elimination in this first ordinary state is cap-safe; the deterministic lowest-ID scan does not depend on finding a special low-degree pivot."
+    ],
+    "status": "PROVED"
+  },
+  "first_ordinary_projection_envelope": {
+    "statement": "If F1 proceeds by mixed-pivot ordinary elimination, its next canonical residual F2 satisfies state_units(F2)<=1+(state_units(F1)-1)^2/12<=1+(N-r0-1)^2/12. If the chosen pivot is pure, state_units(F2)<=state_units(F1)<=N-r0.",
+    "status": "PROVED"
+  },
+  "consequence_for_extension_timing": {
+    "statement": "No extension rescue can be required before at least one ordinary elimination has occurred, unless the run already terminates in an earlier exact lane. Any first extension state therefore descends from a first projection whose size obeys the envelope above.",
+    "status": "PROVED_FROM_FROZEN_SOLVER_ORDER"
+  },
+  "scientific_boundary": {
+    "does_not_prove_second_ordinary_state_all_pivots_safe_for_unbounded_N": true,
+    "does_not_iterate_quadratic_envelope_as_totality_proof": true,
+    "does_not_prove_v2_v3_never_needed": true,
+    "does_not_prove_reachable_totality": true,
+    "does_not_prove_P_equals_NP": true,
+    "P_VS_NP": "OPEN"
+  },
+  "next_exact_target": "Combine the first-projection envelope with remaining-variable count and canonical representation constraints to control the second ordinary stage, while structured current-v3 N^2 scouts search for an actual extension witness.",
+  "seal": "IANUS VIAS SERVAT."
+}
