@@ -6,11 +6,13 @@ on:
       - research/c025-balanced-pressure-wedge-2026-08-27
     paths:
       - 'research/C025_GENERIC_RAW_ELIMINATION_BUDGET_LEMMA_2026-08-27.json'
+      - 'research/C025_GENERIC_RAW_ELIMINATION_BUDGET_LEMMA_2026-08-27-v1.1.json'
       - 'experiments/direct/janus_generic_raw_elimination_budget_certificate.py'
       - '.github/workflows/validate-c025-generic-raw-elimination-budget.yml'
   pull_request:
     paths:
       - 'research/C025_GENERIC_RAW_ELIMINATION_BUDGET_LEMMA_2026-08-27.json'
+      - 'research/C025_GENERIC_RAW_ELIMINATION_BUDGET_LEMMA_2026-08-27-v1.1.json'
       - 'experiments/direct/janus_generic_raw_elimination_budget_certificate.py'
       - '.github/workflows/validate-c025-generic-raw-elimination-budget.yml'
 
@@ -24,19 +26,26 @@ jobs:
           python-version: '3.12'
       - name: Execute raw-budget implementation regression
         run: python -m experiments.direct.janus_generic_raw_elimination_budget_certificate
-      - name: Verify theorem ceiling
+      - name: Verify audited theorem ceiling and packaging witness
         run: |
           python - <<'PY'
           import json
           from pathlib import Path
-          d = json.loads(Path('research/C025_GENERIC_RAW_ELIMINATION_BUDGET_LEMMA_2026-08-27.json').read_text())
-          assert d['status'] == 'PROVED_GENERIC_SUFFICIENT_RAW_CAP_BOUND__NOT_TOTALITY'
+          p = Path('research/C025_GENERIC_RAW_ELIMINATION_BUDGET_LEMMA_2026-08-27-v1.1.json')
+          d = json.loads(p.read_text())
+          assert d['status'] == 'AUDITED_PROVED_GENERIC_SUFFICIENT_RAW_CAP_BOUND__PACKAGING_CORRECTED__NOT_TOTALITY'
           assert d['P_VS_NP'] == 'OPEN'
+          assert d['history_policy'] == 'APPEND_ONLY__V1_INVALID_JSON_RETAINED_AS_PACKAGING_FAILURE_WITNESS'
+          assert d['audit']['mathematical_content_changed'] is False
+          assert d['audit']['packaging_corrected'] is True
           assert d['lemma']['name'] == 'GENERIC_PRE_SUBSUMPTION_RAW_ELIMINATION_UPPER_BOUND'
           assert d['lemma']['algorithmic_certificate']['authority'].startswith('Sufficient cap certificate only')
           assert d['lemma']['scientific_boundary']['sufficient_not_necessary'] is True
           assert d['lemma']['scientific_boundary']['does_not_claim_a_safe_pivot_always_exists'] is True
           assert d['lemma']['scientific_boundary']['does_not_prove_P_equals_NP'] is True
+          assert d['regression_evidence']['small_canonical_states'] == 1463
+          assert d['regression_evidence']['small_pivots'] == 4257
           print('GENERIC_RAW_ELIMINATION_BUDGET_LEMMA_SCOPE=PASS')
+          print('PACKAGING_FAILURE_WITNESS_PRESERVED=PASS')
           print('P_VS_NP=OPEN')
           PY
