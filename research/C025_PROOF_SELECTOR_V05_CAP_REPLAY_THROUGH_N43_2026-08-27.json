@@ -1,0 +1,106 @@
+{
+  "schema": "JANUS/C025/PROOF-SELECTOR-V0.5-CAP-REPLAY-THROUGH-N43/v1",
+  "date": "2026-08-27",
+  "status": "PROVED_V0_5_FINITE_CAP_AVAILABILITY_N_LE_43__UNBOUNDED_TOTALITY_OPEN",
+  "P_VS_NP": "OPEN",
+  "candidate_engine": "PIRC_DECISION_CORE_V0_5_PROOF_SELECTOR_CANDIDATE",
+  "depends_on": [
+    "research/C025_PROOF_SELECTOR_V05_BRIDGE_AND_CAP_REPLAY_THROUGH_N42_2026-08-27.json",
+    "research/C025_GENERIC_RAW_ELIMINATION_BUDGET_LEMMA_2026-08-27-v1.1.json",
+    "research/C025_LOW_INCIDENCE_REROOT_INDUCTION_AND_NO_CAP_RESCUE_THROUGH_N41_2026-08-27.json",
+    "research/C025_DEGREE3_BOUNDARY_AND_NO_CAP_RESCUE_THROUGH_N42_2026-08-27.json"
+  ],
+  "theorem_runtime_heuristics": "FORBIDDEN",
+  "selector_semantics_changed_from_v0_5": false,
+  "N43_partition": {
+    "identity": "N=1+m+L+r=43",
+    "cases": [
+      {
+        "case": "m<=4",
+        "conclusion": "CLOSED_BY_EXISTING_SMALL_CLAUSE_INVARIANT"
+      },
+      {
+        "case": "m>=5 AND L<3r",
+        "conclusion": "V0.5 minimum-incidence selector chooses d<=2 and existing low-incidence reroot gives N'<=39<=42"
+      },
+      {
+        "case": "m>=5 AND L>=3r",
+        "derivation": "43=1+m+L+r>=6+4r, hence r<=9",
+        "subcases": {
+          "r<=8": "CLOSED_BY_EXISTING_T_SMAX_URAW_RECURRENCE_UNDER_CAP_1849",
+          "r=9": "REDUCES_TO_TWO_ROOT_CELLS"
+        }
+      }
+    ],
+    "status": "PROVED"
+  },
+  "r9_cells": {
+    "derivation": [
+      "For r=9, m+L=33.",
+      "Hard-region premises m>=5 and L>=27 imply m<=6.",
+      "Therefore exactly two integer cells remain: (m,L)=(5,28) and (6,27)."
+    ],
+    "cells": [
+      {"N":43,"r":9,"m":5,"L":28,"s":34,"cap":1849},
+      {"N":43,"r":9,"m":6,"L":27,"s":34,"cap":1849}
+    ],
+    "status": "PROVED"
+  },
+  "minimum_degree_boundary": {
+    "statement": "In either r=9 cell the executed v0.5 selector chooses a root of incidence degree at most 3.",
+    "proof": [
+      "The selector constructively chooses d_min<=floor(L/r).",
+      "For L=28,r=9, floor(28/9)=3.",
+      "For L=27,r=9, floor(27/9)=3.",
+      "If d_min<=2, the already-proved low-incidence reroot gives N'<=N-4=39, inside the N<=42 induction base."
+    ],
+    "status": "PROVED_FROM_EXISTING_SELECTOR_LEMMA"
+  },
+  "degree3_case": {
+    "statement": "If the selected minimum degree is 3, the selected pivot is raw-cap safe and produces state_units at most 38.",
+    "proof": [
+      "For (m,L)=(6,27), if d_min=3 then all nine positive incidence degrees sum to 27 and therefore all equal 3.",
+      "For (m,L)=(5,28), if d_min=3 then every degree is at least 3 and their sum is 28; hence the degree multiset is eight 3s and one 4, so the minimum-incidence selector necessarily chooses a degree-3 pivot.",
+      "A degree-3 pivot is either pure, hence deletion-only, or mixed with polarity bucket split {1,2}.",
+      "For mixed split p=1,q=2 (or symmetrically p=2,q=1), the proved generic whole-state raw bound is B_x=s-4+U_singleton.",
+      "The singleton pivot clause contains at most the other r-1=8 live variables, so U_singleton<=8.",
+      "Both root cells have s=1+m+L=34, therefore B_x<=34-4+8=38 << 1849."
+    ],
+    "status": "PROVED_BY_EXISTING_GENERIC_RAW_BOUND"
+  },
+  "post_first_step_tail": {
+    "initial_bound": {"live_n_max":8,"state_units_s_max":38,"cap":1849},
+    "exact_recurrence_ledger": [
+      {"live_n":8,"s":"38","raw_bound":"1381/12"},
+      {"live_n":7,"s":"1381/12","raw_bound":"1875889/1728"},
+      {"live_n":6,"raw_bound":"1053","next_canonical_s_bound":"401"},
+      {"live_n":5,"s":"401","raw_bound":"297","next_canonical_s_bound":"129"},
+      {"live_n":4,"s":"129","raw_bound":"81","next_canonical_s_bound":"37"},
+      {"live_n":3,"s":"37","raw_bound":"21","next_canonical_s_bound":"13"}
+    ],
+    "maximum_raw_bound": "1875889/1728",
+    "maximum_raw_bound_decimal_approx": 1085.583912037037,
+    "cap": 1849,
+    "conclusion": "EVERY_REQUIRED_ORDINARY_TAIL_STEP_CAP_SAFE_TO_EXACT_TERMINAL_RANGE",
+    "status": "PROVED_BY_EXISTING_RECURRENCE"
+  },
+  "finite_frontier_theorem": {
+    "name": "V0_5_PROOF_SELECTOR_NO_RAW_CAP_RESCUE_REQUIRED_THROUGH_N43",
+    "statement": "Inherit the selector-aligned N<=42 theorem. At N=43 all roots are covered by the existing small-clause, low-incidence reroot, hard-region recurrence, or the two r=9 degree-3 boundary cells above. In the only new cells the actual v0.5 selector either chooses d<=2 and reroots into N<=42, or chooses degree 3, for which the existing generic raw bound gives s'<=38 and the existing tail recurrence remains below 43^2. Thus no legitimate canonical root with N<=43 requires v2/v3 because of ordinary raw-cap unavailability under the v0.5 selector semantics.",
+    "status": "PROVED_FINITE_N_CAP_AVAILABILITY"
+  },
+  "scientific_boundary": {
+    "finite_N_frontier_only": true,
+    "does_not_prove_unbounded_reachable_totality": true,
+    "does_not_prove_root_phase_high_volume_totality": true,
+    "does_not_prove_v3_universal_availability": true,
+    "does_not_prove_universal_GPEI": true,
+    "does_not_prove_P_equals_NP": true,
+    "unbounded_totality": "OPEN",
+    "v3_universal_availability": "OPEN",
+    "universal_GPEI": "OPEN",
+    "P_VS_NP": "OPEN"
+  },
+  "next_exact_target": "Advance the same explicit v0.5 selector semantics to N=44. Do not alter theorem runtime while testing. Freeze any first uncertified cell as OPEN rather than repairing it post hoc.",
+  "seal": "IANUS VIAS SERVAT."
+}
