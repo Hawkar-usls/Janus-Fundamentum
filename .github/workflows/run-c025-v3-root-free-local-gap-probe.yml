@@ -1,0 +1,46 @@
+name: run-c025-v3-root-free-local-gap-probe
+
+on:
+  push:
+    branches:
+      - research/c025-balanced-pressure-wedge-2026-08-27
+    paths:
+      - 'experiments/direct/janus_v3_root_free_local_gap_probe.py'
+      - '.github/workflows/run-c025-v3-root-free-local-gap-probe.yml'
+
+jobs:
+  local-gap-probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Execute deterministic bounded local grammar probe
+        run: |
+          python -m experiments.direct.janus_v3_root_free_local_gap_probe \
+            | tee v3-root-free-local-gap-probe.json
+      - name: Verify claim ceiling
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          d = json.loads(Path('v3-root-free-local-gap-probe.json').read_text())
+          b = d['scientific_boundary']
+          assert b['deterministic_finite_probe_only'] is True
+          assert b['arbitrary_root_free_states_not_proved_reachable'] is True
+          assert b['local_gap_is_not_reachable_gap_without_forward_certificate'] is True
+          assert b['no_gap_is_not_availability_proof'] is True
+          assert b['V3_ROOT_FREE_TAIL_AVAILABILITY'] == 'OPEN'
+          assert b['P_VS_NP'] == 'OPEN'
+          print('V3_LOCAL_GAP_PROBE_STATUS=' + d['status'])
+          if d['first_local_gap'] is not None:
+              print('V3_LOCAL_GAP_FINGERPRINT=' + d['first_local_gap']['fingerprint'])
+          print('V3_ROOT_FREE_TAIL_AVAILABILITY=OPEN')
+          print('P_VS_NP=OPEN')
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: c025-v3-root-free-local-gap-probe
+          path: v3-root-free-local-gap-probe.json
