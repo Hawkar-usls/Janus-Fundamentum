@@ -1,0 +1,60 @@
+{
+  "schema": "JANUS/C025/V3-ALIGNED-ONE-SIDED-EXTERNAL-INCIDENCE-RESCUE/v1",
+  "date": "2026-08-27",
+  "status": "PROVED_STRUCTURAL_V3_RESCUE_CORRIDOR__UNIVERSAL_AVAILABILITY_OPEN",
+  "P_VS_NP": "OPEN",
+  "inherits": [
+    "C025_V3_ROOT_FREE_MACRO_CAP_HEADROOM_2026-08-27",
+    "C025_V3_MACRO_CAP_HEADROOM_CORRIDOR_2026-08-27",
+    "C025_V3_CLOSED_PAIR_TWO_ELIMINATION_RESCUE_2026-08-27"
+  ],
+  "definitions": {
+    "F": "root-free canonical residual",
+    "pair": "nondegenerate sign-aware cooccurring literal pair (a,b) with A=|a|, B=|b| and A!=B",
+    "P_ab": "all clauses of F containing both selected literals a and b; these are replaced by the B2 OR-pair macro",
+    "aligned_one_sided_external_incidence": "For every clause C outside P_ab: if C contains variable A then it contains a and not -a; if C contains variable B then it contains b and not -b. Thus external occurrences of A and B, if any, are aligned with the selected literal signs and never occur in the opposite polarity.",
+    "e": "fresh extension variable introduced by apply_or_pair_v2",
+    "D_A": "(-e OR -a)",
+    "D_B": "(-e OR -b)",
+    "D_plus": "(e OR a OR b)",
+    "state_units": "1 + number_of_clauses + total_literal_occurrences",
+    "cap": "N^2 in the frozen C025 v3 configuration"
+  },
+  "theorem": {
+    "name": "CAP_ADMISSIBLE_ALIGNED_ONE_SIDED_PAIR_GUARANTEES_V3_TWO_ELIMINATION_PLAN",
+    "statement": "Let F be root-free. If a cooccurring pair (a,b) satisfies aligned_one_sided_external_incidence and its exact B2 macro M fits the frozen cap, then the frozen v3 search has an exact two-pivot plan eliminating A=|a| and B=|b|. Both eliminate_var_capped calls stay within the same raw cap before optional canonical/subsumption compression, and the final root-free progress potential strictly decreases.",
+    "proof": [
+      "After B2 replacement, every external A occurrence is in a clause (a OR R); there is no external -a clause. The only -a clause is D_A=(-e OR -a), while D_plus=(e OR a OR b) is on the a side.",
+      "Eliminating A therefore has no external-by-external Cartesian product: each external (a OR R) pairs only with D_A and resolves to (-e OR R), which has exactly the same clause-unit cost 1+|C| as its parent external clause because e is fresh. D_plus paired with D_A yields a tautology containing both e and -e and is discarded.",
+      "The raw elimination accumulator starts from all A-free retained clauses. Removing the external A clauses, D_A and D_plus and then re-adding at most one same-size resolvent for each external A clause gives raw_units_after_A <= state_units(M)-units(D_A)-units(D_plus)=state_units(M)-3-4=state_units(M)-7. Duplicate or tautological resolvents can only lower this value.",
+      "The aligned condition also forbids any B occurrence inside an external A clause: a clause outside P_ab cannot contain both selected literals a and b, and opposite-sign B is forbidden. Hence the new (-e OR R) resolvents created by eliminating A contain no B.",
+      "After eliminating A, every remaining B occurrence outside D_B is therefore an original external clause (b OR S), with no external -b clause. The only -b clause is D_B=(-e OR -b).",
+      "Eliminating B is again one-sided: each (b OR S) resolves with D_B to (-e OR S), preserving that clause's unit cost. Therefore raw_units_after_B <= state_units(after_A)-units(D_B) <= state_units(M)-10.",
+      "Because both raw bounds are <= state_units(M), macro cap admission alone implies both exact eliminations remain under cap even though eliminate_var_capped charges raw_units before subsumption compression.",
+      "The macro introduces at most the fresh variable e and the two distinct pre-macro variables A and B are eliminated. Thus final live-variable count is at most v_before-1. In root-free mode frozen Phi equals live-variable count, so progress is strict.",
+      "v3 enumerates all cooccurring literal pairs and ordered pairs of distinct pre-macro live pivots. Therefore it eventually inspects this pair and a valid A/B pivot order; exact replay, not heuristic preference, admits the plan."
+    ],
+    "raw_budget_bounds": {
+      "after_first_elimination": "raw_units <= state_units(M) - 7",
+      "after_second_elimination": "raw_units <= state_units(M) - 10",
+      "consequence": "If state_units(M)<=N^2, neither elimination can hit RAW_CAP_EXCEEDED in this corridor."
+    },
+    "strict_generalization": "Closed-pair rescue is the zero-external-incidence special case. This theorem allows arbitrarily many external A/B clauses and arbitrary clause widths, provided those external incidences are aligned and one-sided as defined.",
+    "status": "PROVED_FROM_FROZEN_B2_MACRO_AND_RAW_CAPPED_ELIMINATION_SEMANTICS"
+  },
+  "remaining_gap": {
+    "name": "MIXED_SIGN_EXTERNAL_BUCKET_PRODUCT",
+    "description": "A surviving cap-admissible pair outside this corridor must expose opposite-sign external incidence for at least one selected variable. Then positive/negative external buckets can cross-product under elimination and require a quantitative bucket-mass bound or another exact representation.",
+    "next_exact_target": "Derive a sufficient raw-cap inequality for mixed-sign external incidence using positive/negative bucket counts and tail-literal masses, then propagate the first elimination's effect into the second pivot without hiding quadratic work."
+  },
+  "scientific_boundary": {
+    "sufficient_not_necessary": true,
+    "does_not_prove_every_root_free_state_contains_such_pair": true,
+    "does_not_prove_v3_universal_availability": true,
+    "does_not_modify_frozen_v3_runtime": true,
+    "no_heuristic_truth_promotion": true,
+    "does_not_prove_P_equals_NP": true,
+    "P_VS_NP": "OPEN"
+  },
+  "seal": "IANUS VIAS SERVAT."
+}
