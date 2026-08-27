@@ -1,0 +1,49 @@
+name: validate-c025-signed-lym-raw-universe-N24
+
+on:
+  push:
+    branches:
+      - research/c025-balanced-pressure-wedge-2026-08-27
+    paths:
+      - 'research/C025_SIGNED_LYM_CANONICAL_CNF_CEILING_AND_NO_CAP_RESCUE_THROUGH_N22_2026-08-27.json'
+      - 'research/C025_UNIQUE_RAW_CLAUSE_UNIVERSE_CEILING_AND_NO_CAP_RESCUE_THROUGH_N24_2026-08-27-v1.1.json'
+      - 'experiments/direct/janus_signed_lym_raw_universe_N24_certificate.py'
+      - '.github/workflows/validate-c025-signed-lym-raw-universe-N24.yml'
+  pull_request:
+    paths:
+      - 'research/C025_SIGNED_LYM_CANONICAL_CNF_CEILING_AND_NO_CAP_RESCUE_THROUGH_N22_2026-08-27.json'
+      - 'research/C025_UNIQUE_RAW_CLAUSE_UNIVERSE_CEILING_AND_NO_CAP_RESCUE_THROUGH_N24_2026-08-27-v1.1.json'
+      - 'experiments/direct/janus_signed_lym_raw_universe_N24_certificate.py'
+      - '.github/workflows/validate-c025-signed-lym-raw-universe-N24.yml'
+
+jobs:
+  signed-lym-raw-universe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Execute exact arithmetic and frozen-accounting regression
+        run: python -m experiments.direct.janus_signed_lym_raw_universe_N24_certificate
+      - name: Verify audited theorem scope
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          d = json.loads(Path('research/C025_UNIQUE_RAW_CLAUSE_UNIVERSE_CEILING_AND_NO_CAP_RESCUE_THROUGH_N24_2026-08-27-v1.1.json').read_text())
+          assert d['status'] == 'AUDITED_PROVED_UNIQUE_RAW_UNIVERSE_CEILING__PROVED_NO_RAW_CAP_RESCUE_N_LE_24__N25_R10_R11_UNCERTIFIED'
+          assert d['P_VS_NP'] == 'OPEN'
+          assert d['audit']['theorem_through_N24_changed'] is False
+          assert d['raw_universe_theorem']['status'] == 'PROVED'
+          assert d['combined_recurrence']['status'] == 'PROVED_BY_COMPOSITION'
+          assert d['theorem']['status'] == 'PROVED'
+          assert [x['r0'] for x in d['N25_frontier']] == [10,11]
+          assert all(x['status'] == 'UNCERTIFIED_BY_CURRENT_SUFFICIENT_BOUNDS' for x in d['N25_frontier'])
+          assert d['scientific_boundary']['does_not_claim_N25_failure'] is True
+          assert d['scientific_boundary']['does_not_prove_P_equals_NP'] is True
+          print('SIGNED_LYM_RAW_UNIVERSE_N24_SCOPE=PASS')
+          print('N25_FRONTIER_R0=10,11')
+          print('P_VS_NP=OPEN')
+          PY
