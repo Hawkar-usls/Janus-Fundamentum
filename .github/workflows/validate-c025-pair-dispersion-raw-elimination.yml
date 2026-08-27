@@ -1,0 +1,42 @@
+name: validate-c025-pair-dispersion-raw-elimination
+
+on:
+  push:
+    branches:
+      - research/c025-balanced-pressure-wedge-2026-08-27
+    paths:
+      - 'research/C025_PAIR_DISPERSION_RAW_ELIMINATION_CORRIDOR_2026-08-27.json'
+      - 'experiments/direct/janus_pair_dispersion_raw_elimination_certificate.py'
+      - '.github/workflows/validate-c025-pair-dispersion-raw-elimination.yml'
+  pull_request:
+    paths:
+      - 'research/C025_PAIR_DISPERSION_RAW_ELIMINATION_CORRIDOR_2026-08-27.json'
+      - 'experiments/direct/janus_pair_dispersion_raw_elimination_certificate.py'
+      - '.github/workflows/validate-c025-pair-dispersion-raw-elimination.yml'
+
+jobs:
+  exact-certificate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Run exact certificate self-test
+        run: python -m experiments.direct.janus_pair_dispersion_raw_elimination_certificate
+      - name: Verify theorem claim ceiling
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          p = Path('research/C025_PAIR_DISPERSION_RAW_ELIMINATION_CORRIDOR_2026-08-27.json')
+          d = json.loads(p.read_text(encoding='utf-8'))
+          assert d['status'] == 'PROVED_SUFFICIENT_CORRIDOR__BALANCED_PRESSURE_WEDGE_OPEN'
+          assert d['P_VS_NP'] == 'OPEN'
+          assert d['combined_root_phase_dichotomy']['remaining_wedge']['status'] == 'OPEN'
+          assert d['scientific_boundary']['does_not_prove_root_phase_totality'] is True
+          assert d['scientific_boundary']['does_not_prove_P_equals_NP'] is True
+          print('PAIR_DISPERSION_THEOREM_CLAIM_CEILING=PASS')
+          print('BALANCED_PAIR_PRESSURE_ROOT_WEDGE=OPEN')
+          print('P_VS_NP=OPEN')
+          PY
