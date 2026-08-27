@@ -4,13 +4,20 @@
 Accepted raw CNF shape:
   * every clause is either all-positive (one left-demand clause) or binary all-negative;
   * every variable occurs in exactly one positive demand clause;
-  * the graph induced by negative binary conflicts is a disjoint union of cliques;
-  * each conflict clique contains at most one variable from each demand clause.
+  * negative clauses whose endpoints belong to the same demand are admitted as
+    intra-demand AMO constraints (the theorem-matched PHP encoding may contain them);
+  * after removing those intra-demand edges, the cross-demand conflict graph is
+    a disjoint union of cliques;
+  * each cross-demand conflict clique contains at most one variable from each demand.
 
-Each conflict clique is then one right-side resource/hole. The CNF is SAT iff the
-resulting bipartite graph has a matching covering every left demand. Ambiguous or
-nonconforming inputs return OPEN. This lane is exact and family-specific; it does
-not claim arbitrary-CNF coverage or P=NP.
+Each cross-demand conflict clique (including singleton variables) is one right-side
+resource/hole. The CNF is SAT iff the resulting bipartite graph has a matching
+covering every left demand. Intra-demand negative clauses cannot invalidate the
+matching witness because that witness selects exactly one variable per demand.
+Ambiguous or nonconforming inputs return OPEN.
+
+This lane is exact and family-specific. It does not claim arbitrary-CNF coverage
+or P=NP.
 """
 from __future__ import annotations
 
@@ -40,6 +47,7 @@ def recognize_injective_assignment(raw_clauses: Iterable[Iterable[int]]) -> Opti
     if not positive:
         return None
 
+    # Positive clauses must form a partition of all variables into left demands.
     var_to_left: Dict[int, int] = {}
     for left, clause in enumerate(positive):
         for var in clause:
@@ -51,8 +59,13 @@ def recognize_injective_assignment(raw_clauses: Iterable[Iterable[int]]) -> Opti
     if all_vars != set(var_to_left):
         return None
 
-    conflict: Dict[int, set[int]] = {v: set() for v in sorted(all_vars)}
+    # Separate harmless intra-demand AMO edges from the cross-demand exclusion
+    # relation that defines right-side resources.
+    cross_conflict: Dict[int, set[int]] = {v: set() for v in sorted(all_vars)}
+    intra_demand_edges: list[tuple[int, int]] = []
+    cross_edges: set[tuple[int, int]] = set()
     seen_edges: set[tuple[int, int]] = set()
+
     for clause in negative:
         u, v = sorted((abs(clause[0]), abs(clause[1])))
         if u == v or u not in var_to_left or v not in var_to_left:
@@ -61,9 +74,18 @@ def recognize_injective_assignment(raw_clauses: Iterable[Iterable[int]]) -> Opti
         if edge in seen_edges:
             return None
         seen_edges.add(edge)
-        conflict[u].add(v)
-        conflict[v].add(u)
 
+        if var_to_left[u] == var_to_left[v]:
+            intra_demand_edges.append(edge)
+            continue
+
+        cross_edges.add(edge)
+        cross_conflict[u].add(v)
+        cross_conflict[v].add(u)
+
+    # The cross-demand conflict relation must be exactly an equivalence-by-resource:
+    # connected components are cliques, and each component contains at most one
+    # variable from any left demand. Isolated variables are singleton resources.
     components: list[tuple[int, ...]] = []
     unseen = set(all_vars)
     while unseen:
@@ -74,21 +96,20 @@ def recognize_injective_assignment(raw_clauses: Iterable[Iterable[int]]) -> Opti
         while stack:
             u = stack.pop()
             comp.add(u)
-            for v in sorted(conflict[u]):
+            for v in sorted(cross_conflict[u]):
                 if v in unseen:
                     unseen.remove(v)
                     stack.append(v)
+
         ordered = tuple(sorted(comp))
-        # Exact clique check: all variables assigned to one right resource must
-        # have all pairwise exclusion clauses, and no hidden conflict can cross
-        # components because components were built from every negative edge.
-        for i, u in enumerate(ordered):
-            for v in ordered[i + 1 :]:
-                if v not in conflict[u]:
-                    return None
         lefts = [var_to_left[v] for v in ordered]
         if len(lefts) != len(set(lefts)):
             return None
+
+        for i, u in enumerate(ordered):
+            for v in ordered[i + 1 :]:
+                if v not in cross_conflict[u]:
+                    return None
         components.append(ordered)
 
     components.sort(key=lambda comp: comp)
@@ -113,6 +134,8 @@ def recognize_injective_assignment(raw_clauses: Iterable[Iterable[int]]) -> Opti
         "right_count": len(components),
         "positive_clauses": positive,
         "right_components": components,
+        "intra_demand_negative_edges": tuple(sorted(intra_demand_edges)),
+        "cross_demand_negative_edges": tuple(sorted(cross_edges)),
         "var_to_left": var_to_left,
         "var_to_right": var_to_right,
         "edges": edges,
@@ -258,13 +281,23 @@ def verify_matching_hall_escape(raw_clauses: Iterable[Iterable[int]], result: di
     return False
 
 
-def _php(m: int, n: int):
+def _php(m: int, n: int, *, row_amo: bool = False):
     def var(p: int, h: int) -> int:
         return 1 + p * n + h
 
     clauses = []
+    # Every pigeon/left demand chooses at least one hole/right resource.
     for p in range(m):
         clauses.append(tuple(var(p, h) for h in range(n)))
+
+    # Optional theorem-matched exactly-one row constraints.
+    if row_amo:
+        for p in range(m):
+            for h in range(n):
+                for k in range(h + 1, n):
+                    clauses.append((-var(p, h), -var(p, k)))
+
+    # Every hole/right resource has capacity one across distinct pigeons.
     for h in range(n):
         for p in range(m):
             for q in range(p + 1, m):
@@ -273,6 +306,7 @@ def _php(m: int, n: int):
 
 
 def self_test() -> None:
+    # Minimal pairwise PHP form: row ALO + column AMO.
     unsat = _php(5, 4)
     result = solve_matching_hall_escape(unsat)
     assert result["status"] == "UNSAT"
@@ -284,6 +318,20 @@ def self_test() -> None:
     assert result["status"] == "SAT"
     assert verify_matching_hall_escape(sat, result)
 
+    # Historical theorem-matched holdout shape from the frozen PHP_8_7 artifact:
+    # 8 row ALO + 8*C(7,2) row AMO + 7*C(8,2) column AMO = 372 clauses.
+    php87_exact_one = _php(8, 7, row_amo=True)
+    assert len(php87_exact_one) == 372
+    model = recognize_injective_assignment(php87_exact_one)
+    assert model is not None
+    assert model["left_count"] == 8
+    assert model["right_count"] == 7
+    result = solve_matching_hall_escape(php87_exact_one)
+    assert result["status"] == "UNSAT"
+    assert result["matching_size"] == 7
+    assert result["hall_deficiency"] >= 1
+    assert verify_matching_hall_escape(php87_exact_one, result)
+
     unrelated = ((1, 2, 3), (-1, -2, -3))
     assert solve_matching_hall_escape(unrelated)["status"] == "OPEN"
 
@@ -291,4 +339,5 @@ def self_test() -> None:
 if __name__ == "__main__":
     self_test()
     print("MATCHING_HALL_ESCAPE_SELF_TEST=PASS")
+    print("THEOREM_MATCHED_PHP8_7_REGRESSION=PASS")
     print("P_VS_NP=OPEN")
