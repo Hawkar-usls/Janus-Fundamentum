@@ -1,0 +1,58 @@
+name: validate-c025-support-mass-abstract-N57
+
+on:
+  push:
+    branches:
+      - research/c025-proof-selector-v0-5-2026-08-27
+    paths:
+      - 'research/C025_PAIR_SUPPORT_MASS_DISTINCT_RESOLVENT_CEILING_2026-08-27.json'
+      - 'research/C025_GENERAL_LOW_DEGREE_LITERAL_TRANSPORT_2026-08-27.json'
+      - 'experiments/direct/janus_pair_support_mass_distinct_resolvent_ceiling.py'
+      - 'experiments/direct/janus_general_low_degree_literal_transport.py'
+      - 'experiments/direct/janus_v05_abstract_frontier_support_mass.py'
+      - '.github/workflows/validate-c025-support-mass-abstract-N57.yml'
+  pull_request:
+    paths:
+      - 'research/C025_PAIR_SUPPORT_MASS_DISTINCT_RESOLVENT_CEILING_2026-08-27.json'
+      - 'research/C025_GENERAL_LOW_DEGREE_LITERAL_TRANSPORT_2026-08-27.json'
+      - 'experiments/direct/janus_pair_support_mass_distinct_resolvent_ceiling.py'
+      - 'experiments/direct/janus_general_low_degree_literal_transport.py'
+      - 'experiments/direct/janus_v05_abstract_frontier_support_mass.py'
+      - '.github/workflows/validate-c025-support-mass-abstract-N57.yml'
+
+jobs:
+  support-mass-abstract-N57:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Execute general literal-transport regression
+        run: python -m experiments.direct.janus_general_low_degree_literal_transport
+      - name: Execute pair-support distinct-resolvent regression
+        run: python -m experiments.direct.janus_pair_support_mass_distinct_resolvent_ceiling
+      - name: Execute exact abstract frontier verifier N55 through N57
+        run: python -m experiments.direct.janus_v05_abstract_frontier_support_mass
+      - name: Verify lemma scope and claim ceiling
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          support=json.loads(Path('research/C025_PAIR_SUPPORT_MASS_DISTINCT_RESOLVENT_CEILING_2026-08-27.json').read_text())
+          transport=json.loads(Path('research/C025_GENERAL_LOW_DEGREE_LITERAL_TRANSPORT_2026-08-27.json').read_text())
+          assert support['status']=='PROVED_EXACT_DISTINCT_RESOLVENT_SUPPORT_CEILING'
+          assert support['P_VS_NP']=='OPEN'
+          assert support['runtime_change'] is False
+          assert support['worked_specimen']['distinct_resolvent_ceiling_R']==352
+          assert support['worked_specimen']['raw_units_ceiling']==2193
+          assert support['scientific_boundary']['abstract_specimen_is_not_an_actual_reachable_counterexample'] is True
+          assert transport['status']=='PROVED_GENERAL_LITERAL_TRANSPORT_BOUND'
+          assert transport['P_VS_NP']=='OPEN'
+          print('PAIR_SUPPORT_MASS_THEOREM_SCOPE=PASS')
+          print('GENERAL_LITERAL_TRANSPORT_SCOPE=PASS')
+          print('THEOREM_RUNTIME_HEURISTICS=FORBIDDEN')
+          print('UNBOUNDED_TOTALITY=OPEN')
+          print('P_VS_NP=OPEN')
+          PY
