@@ -1,0 +1,88 @@
+{
+  "schema": "JANUS/C025/EXTENSION-CAP-N-SUFFICIENCY-V2-V3/v1",
+  "date": "2026-08-27",
+  "status": "PROVED_EXTENSION_CAP_EXHAUSTION_NOT_A_V2_V3_TOTAL_MACRO_COUNT_BARRIER",
+  "P_VS_NP": "OPEN",
+  "source_contract": {
+    "input_size": "N=max(2,state_units(root)+|vars(root)|)",
+    "extension_cap": "N^1=N",
+    "v2": "each admitted root-restore macro allocates one fresh extension and then exactly eliminates one live original/root variable",
+    "v3": "runs only after no root variable is live; each admitted tail macro allocates one fresh extension and eliminates two distinct variables live before the macro"
+  },
+  "definitions": {
+    "r0": "number of variables in the original canonical root CNF",
+    "k2": "number of committed v2 macro-restore steps before root-free phase",
+    "h": "number of live variables at first root-free v3 entry",
+    "k3": "number of committed v3 extension-tail macrosteps",
+    "K": "total committed v2+v3 macro extensions k2+k3"
+  },
+  "lemma_1_root_input_dominates_twice_root_variable_count": {
+    "statement": "For every nonterminal nonempty canonical root CNF, N>2r0.",
+    "proof": [
+      "state_units(root)=1+m+L where m is clause count and L is total literal occurrences.",
+      "Every root variable occurs in at least one literal, so L>=r0.",
+      "A nonempty nonterminal root has m>=1.",
+      "Therefore N=state_units(root)+r0=1+m+L+r0>=2+2r0>2r0. The max(2,...) wrapper only strengthens the inequality in degenerate small cases."
+    ],
+    "status": "PROVED_ELEMENTARY"
+  },
+  "lemma_2_v2_count": {
+    "statement": "k2<=r0.",
+    "proof": [
+      "Each committed v2 plan chooses its exact elimination pivot from the live original/root variables.",
+      "The definitional macro introduces only one fresh extension identifier and no new root identifier.",
+      "Exact elimination removes the chosen root pivot, so live-root count decreases by at least one per committed v2 macrostep.",
+      "No transition can create a new original/root identifier. Hence at most r0 such v2 commits occur."
+    ],
+    "status": "PROVED_FROM_FROZEN_TRANSITION_SHAPE"
+  },
+  "lemma_3_root_free_entry_live_count": {
+    "statement": "At first root-free v3 entry, h<=k2.",
+    "proof": [
+      "All original variables are absent by definition of root-free entry.",
+      "Before v3 begins, the only transformation in this v2/v3 engine that introduces a new Boolean variable is a committed v2 definitional extension.",
+      "Each v2 commit introduces exactly one historical extension identifier.",
+      "Pure elimination, unit propagation and exact certificate lanes introduce no variable identifiers.",
+      "Therefore every live root-free variable is among the at most k2 extensions introduced earlier, so h<=k2."
+    ],
+    "status": "PROVED_FOR_FROZEN_V2_V3_ENGINE"
+  },
+  "lemma_4_v3_count": {
+    "statement": "k3<=max(0,h-1)<=max(0,k2-1).",
+    "proof": [
+      "v3 requires at least two live variables to commit a plan.",
+      "Every committed v3 plan introduces at most one fresh variable and exactly eliminates two distinct variables that were live before the macro.",
+      "Hence live-variable count decreases by at least one per v3 commit.",
+      "Starting from h live variables, at most h-1 such commits can occur before fewer than two variables remain; earlier terminal or ordinary exact lanes only shorten the suffix."
+    ],
+    "status": "PROVED_FROM_V3_PROGRESS_LEMMA"
+  },
+  "theorem": {
+    "name": "FROZEN_EXTENSION_CAP_N_DOMINATES_TOTAL_V2_V3_MACRO_COUNT",
+    "statement": "For every execution of the frozen v2/v3 engine, K=k2+k3<=2r0-1<N whenever k2>0; if k2=0 then K=0. Therefore the frozen extension_cap=N cannot be exhausted by a sequence of otherwise-admissible v2/v3 macro commits before the macro descent itself is finished.",
+    "proof": [
+      "If k2=0, root-free entry has h=0 under Lemma 3 and no v3 macro is possible or needed, so K=0.",
+      "If k2>0, Lemmas 2-4 give K<=k2+(k2-1)=2k2-1<=2r0-1.",
+      "Lemma 1 gives 2r0-1<N.",
+      "Since extension_cap=N and extension_count starts at zero and increases by exactly one per committed v2/v3 macro, cap exhaustion cannot precede the maximal structurally possible macro sequence."
+    ],
+    "status": "PROVED"
+  },
+  "consequence_for_open_frontier": {
+    "removed_failure_class": "EXTENSION_CAP_EXHAUSTION_AS_AN_INDEPENDENT_V2_V3_AVAILABILITY_BARRIER",
+    "remaining_v3_availability_failures": [
+      "NO_ADMISSIBLE_OR_PAIR_MACRO_UNDER_STATE_CAP",
+      "NO_FIRST_OLD_PIVOT_FITS_AFTER_ANY_MACRO",
+      "NO_SECOND_DISTINCT_OLD_PIVOT_FITS_AFTER_ANY_SUCCESSFUL_FIRST_ELIMINATION",
+      "NO_PLAN_PASSES_EXACT_REPLAY_AND_STRICT_PROGRESS"
+    ],
+    "note": "The theorem does not prove any of these remaining move-availability obligations."
+  },
+  "scientific_boundary": {
+    "does_not_prove_v2_move_availability": true,
+    "does_not_prove_v3_move_availability": true,
+    "does_not_prove_universal_GPEI": true,
+    "does_not_prove_P_equals_NP": true,
+    "P_VS_NP": "OPEN"
+  }
+}
