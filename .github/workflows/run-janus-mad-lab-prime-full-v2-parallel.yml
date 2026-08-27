@@ -1,0 +1,105 @@
+name: run-janus-mad-lab-prime-full-v2-parallel
+
+on:
+  push:
+    branches:
+      - research/janus-mad-lab-prime-probes-2026-08-28
+    paths:
+      - '.github/workflows/run-janus-mad-lab-prime-full-v2-parallel.yml'
+  workflow_dispatch:
+
+jobs:
+  segment:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - {label: s01, lo: 59,  hi: 149}
+          - {label: s02, lo: 151, hi: 263}
+          - {label: s03, lo: 269, hi: 383}
+          - {label: s04, lo: 389, hi: 499}
+          - {label: s05, lo: 503, hi: 613}
+          - {label: s06, lo: 617, hi: 727}
+          - {label: s07, lo: 733, hi: 839}
+          - {label: s08, lo: 853, hi: 937}
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Run frozen full-closure prime segment
+        run: |
+          python -m experiments.mad_lab.prime_stress_full_closure_v2 \
+            --min ${{ matrix.lo }} --max ${{ matrix.hi }} \
+            --out segment_${{ matrix.label }}.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: mad-v2-${{ matrix.label }}
+          path: segment_${{ matrix.label }}.json
+          if-no-files-found: error
+
+  aggregate:
+    needs: segment
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: mad-v2-*
+          path: segments
+          merge-multiple: true
+      - name: Merge and verify exact prime coverage
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          from experiments.mad_lab.reverse_prime_probe import is_prime
+
+          files=sorted(Path('segments').glob('segment_*.json'))
+          assert len(files)==8, files
+          rows=[]
+          for f in files:
+              x=json.loads(f.read_text())
+              assert x['lane']=='JANUS_MAD_LAB'
+              assert x['P_VS_NP']=='OPEN'
+              assert x['scope']=='FULL_REACHABLE_ABSTRACT_CLOSURE_FROM_HARD_ROOTS'
+              rows.extend(x['results'])
+          rows.sort(key=lambda r:r['N'])
+          got=[r['N'] for r in rows]
+          expected=[n for n in range(59,938) if is_prime(n)]
+          assert got==expected, (len(got),len(expected),set(expected)-set(got),set(got)-set(expected))
+          opens=[r for r in rows if r['verdict']=='OPEN']
+          noopen=[r for r in rows if r['verdict']=='NO_OPEN_IN_FULL_ABSTRACT_CLOSURE']
+          out={
+              'schema':'JANUS/MAD-LAB/ASCENDING-PRIME-FULL-CLOSURE-STRESS-PARALLEL/v2',
+              'lane':'JANUS_MAD_LAB',
+              'status':'EXPERIMENTAL_NOT_THEOREM',
+              'P_VS_NP':'OPEN',
+              'prime_min':59,
+              'prime_max':937,
+              'prime_count':len(rows),
+              'open_prime_count':len(opens),
+              'no_open_full_closure_count':len(noopen),
+              'first_open_prime':opens[0]['N'] if opens else None,
+              'last_prime_scanned':rows[-1]['N'],
+              'results':rows,
+              'coverage_verified_exactly_once':True,
+              'same_run_new_lemma_use':False,
+              'claim_ceiling':'MAD_LAB_DISCOVERY_ONLY__NOT_THEOREM__P_VS_NP_OPEN'
+          }
+          Path('prime_stress_full_v2_merged.json').write_text(json.dumps(out,indent=2,sort_keys=True))
+          print(f"MERGED_PRIMES={len(rows)}")
+          print(f"MERGED_OPEN={len(opens)}")
+          print(f"MERGED_NO_OPEN={len(noopen)}")
+          print(f"MERGED_FIRST_OPEN={out['first_open_prime']}")
+          print(f"MERGED_LAST={out['last_prime_scanned']}")
+          print('EXACT_PRIME_COVERAGE=PASS')
+          print('P_VS_NP=OPEN')
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: janus-mad-lab-prime-full-v2-merged-59-937
+          path: prime_stress_full_v2_merged.json
+          if-no-files-found: error
