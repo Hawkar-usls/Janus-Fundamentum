@@ -1,0 +1,68 @@
+name: validate-c025-root-anchored-iteration
+
+on:
+  push:
+    branches:
+      - research/c025-pirc-gpei-2026-08-27
+    paths:
+      - 'experiments/direct/janus_unified_macro_restore_v2.py'
+      - 'experiments/direct/janus_unified_macro_restore_v3.py'
+      - 'experiments/direct/janus_second_stage4_root_anchored_probe.py'
+      - '.github/workflows/validate-c025-root-anchored-iteration.yml'
+  pull_request:
+    paths:
+      - 'experiments/direct/janus_unified_macro_restore_v2.py'
+      - 'experiments/direct/janus_unified_macro_restore_v3.py'
+      - 'experiments/direct/janus_second_stage4_root_anchored_probe.py'
+      - '.github/workflows/validate-c025-root-anchored-iteration.yml'
+
+jobs:
+  root-anchored-iteration:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: v2 historical extension freshness
+        run: python -m experiments.direct.janus_unified_macro_restore_v2
+      - name: v3 extension-tail regression
+        run: python -m experiments.direct.janus_unified_macro_restore_v3
+      - name: Run root-anchored second Stage4 probe
+        run: |
+          python -m experiments.direct.janus_second_stage4_root_anchored_probe \
+            | tee second-stage4-root-anchored.json
+      - name: Print exact result and enforce boundaries
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          data = json.loads(Path('second-stage4-root-anchored.json').read_text())
+          b = data['scientific_boundary']
+          assert b['finite_specimen_only'] is True
+          assert b['universal_GPEI_preservation'] == 'OPEN'
+          assert b['P_VS_NP'] == 'OPEN'
+          print('SECOND_STAGE4_STATUS=' + data['status'])
+          print('ROOT_FINGERPRINT=' + data['root_fingerprint'])
+          print('ROOT_N=' + str(data['root_N']))
+          print('ROOT_STATE_CAP=' + str(data['root_state_cap']))
+          if data.get('second_stage4') is not None:
+              assert b['root_budget_rebased'] is False
+              ids = data['historical_extension_ids']
+              assert ids == sorted(set(ids))
+              r = data['resource_observation']
+              assert r['within_root_state_cap'] is True
+              print('SECOND_MODE=' + data['second_stage4']['mode'])
+              print('EXTENSIONS=' + ','.join(map(str, ids)))
+              print('SECOND_REENTRY=' + data['second_reentry']['status'])
+              print('SECOND_REENTRY_MODE=' + str(data['second_reentry']['mode']))
+              print('MAX_STATE_UNITS=' + str(r['max_state_units_seen']))
+              print('CUMULATIVE_PROOF_BYTES=' + str(r['cumulative_proof_bytes']))
+              print('CUMULATIVE_WORK=' + json.dumps(r['cumulative_work'], sort_keys=True))
+          print('UNIVERSAL_GPEI_PRESERVATION=OPEN')
+          print('P_VS_NP=OPEN')
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: c025-second-stage4-root-anchored-latest
+          path: second-stage4-root-anchored.json
