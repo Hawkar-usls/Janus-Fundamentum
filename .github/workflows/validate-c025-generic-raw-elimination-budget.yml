@@ -1,0 +1,42 @@
+name: validate-c025-generic-raw-elimination-budget
+
+on:
+  push:
+    branches:
+      - research/c025-balanced-pressure-wedge-2026-08-27
+    paths:
+      - 'research/C025_GENERIC_RAW_ELIMINATION_BUDGET_LEMMA_2026-08-27.json'
+      - 'experiments/direct/janus_generic_raw_elimination_budget_certificate.py'
+      - '.github/workflows/validate-c025-generic-raw-elimination-budget.yml'
+  pull_request:
+    paths:
+      - 'research/C025_GENERIC_RAW_ELIMINATION_BUDGET_LEMMA_2026-08-27.json'
+      - 'experiments/direct/janus_generic_raw_elimination_budget_certificate.py'
+      - '.github/workflows/validate-c025-generic-raw-elimination-budget.yml'
+
+jobs:
+  generic-raw-budget:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Execute raw-budget implementation regression
+        run: python -m experiments.direct.janus_generic_raw_elimination_budget_certificate
+      - name: Verify theorem ceiling
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          d = json.loads(Path('research/C025_GENERIC_RAW_ELIMINATION_BUDGET_LEMMA_2026-08-27.json').read_text())
+          assert d['status'] == 'PROVED_GENERIC_SUFFICIENT_RAW_CAP_BOUND__NOT_TOTALITY'
+          assert d['P_VS_NP'] == 'OPEN'
+          assert d['lemma']['name'] == 'GENERIC_PRE_SUBSUMPTION_RAW_ELIMINATION_UPPER_BOUND'
+          assert d['lemma']['algorithmic_certificate']['authority'].startswith('Sufficient cap certificate only')
+          assert d['lemma']['scientific_boundary']['sufficient_not_necessary'] is True
+          assert d['lemma']['scientific_boundary']['does_not_claim_a_safe_pivot_always_exists'] is True
+          assert d['lemma']['scientific_boundary']['does_not_prove_P_equals_NP'] is True
+          print('GENERIC_RAW_ELIMINATION_BUDGET_LEMMA_SCOPE=PASS')
+          print('P_VS_NP=OPEN')
+          PY
