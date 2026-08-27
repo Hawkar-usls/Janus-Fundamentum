@@ -1,0 +1,60 @@
+name: run-c025-v3-exhaustive-N20-unresolved-r
+
+on:
+  push:
+    branches:
+      - research/c025-balanced-pressure-wedge-2026-08-27
+    paths:
+      - 'experiments/direct/janus_v3_exhaustive_N20_unresolved_r.py'
+      - '.github/workflows/run-c025-v3-exhaustive-N20-unresolved-r.yml'
+
+jobs:
+  exhaustive-N20-r:
+    strategy:
+      fail-fast: false
+      matrix:
+        r0: [4, 5, 6]
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Execute complete normalized N20 r-layer
+        run: |
+          python -m experiments.direct.janus_v3_exhaustive_N20_unresolved_r --r ${{ matrix.r0 }} \
+            | tee c025-v3-N20-r${{ matrix.r0 }}.json
+      - name: Verify claim ceiling
+        run: |
+          python - <<'PY'
+          import json, os
+          from pathlib import Path
+          r = int(os.environ['R0'])
+          d = json.loads(Path(f'c025-v3-N20-r{r}.json').read_text())
+          assert d['N'] == 20 and d['r0'] == r
+          b = d['scientific_boundary']
+          assert b['complete_normalized_root_layer'] is True
+          assert b['current_frozen_v3'] is True
+          assert b['current_cap_exponent'] == 2
+          assert b['N_root_anchored'] is True
+          assert b['this_layer_selected_because_N20_recurrence_unresolved'] is True
+          assert b['no_extension_closes_only_this_r0_layer'] is True
+          assert b['P_VS_NP'] == 'OPEN'
+          print(f'N20_R{r}_ROOTS={d["total_roots"]}')
+          print(f'N20_R{r}_OPEN={d["status_counts"].get("OPEN",0)}')
+          print(f'N20_R{r}_V2={d["roots_using_v2_macro_restore"]}')
+          print(f'N20_R{r}_V3={d["roots_using_v3_tail"]}')
+          print(f'N20_R{r}_EXTENSION_FREE={d["extension_free_for_complete_layer"]}')
+          if d['first_extension'] is not None:
+              print('FIRST_EXTENSION_ROOT=' + d['first_extension']['root_fingerprint'])
+          if d['first_open'] is not None:
+              print('FIRST_OPEN_ROOT=' + d['first_open']['root_fingerprint'])
+          print('P_VS_NP=OPEN')
+          PY
+        env:
+          R0: ${{ matrix.r0 }}
+      - uses: actions/upload-artifact@v4
+        with:
+          name: c025-v3-N20-r${{ matrix.r0 }}
+          path: c025-v3-N20-r${{ matrix.r0 }}.json
