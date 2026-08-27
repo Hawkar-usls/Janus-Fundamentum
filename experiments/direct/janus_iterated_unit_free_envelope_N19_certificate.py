@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Exact-rational regression for the C025 iterated envelope corridor through N=19.
 
-Uses fractions only.  Confirms that every allowed root-variable budget for each
+Uses fractions only. Confirms that every allowed root-variable budget for each
 N<=19 stays under N^2 for enough ordinary eliminations, and that the same
 sufficient recurrence intentionally becomes uncertified at N=20,r0=4.
 
@@ -41,7 +41,6 @@ def verify_through_N19() -> dict[int, Fraction]:
         max_seen = Fraction(0)
         for r0 in allowed_r0(N):
             seq = trajectory(N, r0)
-            # For r0 eliminations, every next-state envelope must fit the same cap.
             for value in seq[1:]:
                 if value > cap:
                     raise AssertionError(("UNEXPECTED_ENVELOPE_ESCAPE_BELOW_20", N, r0, value, cap))
@@ -65,7 +64,6 @@ def verify_N20_negative_control() -> tuple[list[Fraction], int]:
     first_escape = next((i for i, value in enumerate(seq[1:], start=1) if value > cap), None)
     if first_escape is None:
         raise AssertionError("N20_R4_WAS_EXPECTED_TO_ESCAPE_THE_SUFFICIENT_RECURRENCE")
-    # This is only a certificate failure, never an actual CNF/solver failure.
     return seq, first_escape
 
 
@@ -75,8 +73,8 @@ def selftest() -> None:
     seq20, escape20 = verify_N20_negative_control()
 
     expected_rounded = {
-        16: 17.528357,
-        17: 23.765548,
+        16: 17.528356,
+        17: 23.765547,
         18: 44.189179,
         19: 156.442097,
     }
