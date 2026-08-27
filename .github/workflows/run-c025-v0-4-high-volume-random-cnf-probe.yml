@@ -1,0 +1,55 @@
+name: run-c025-v0-4-high-volume-random-cnf-probe
+
+on:
+  push:
+    branches:
+      - research/c025-pirc-gpei-2026-08-27
+    paths:
+      - 'experiments/direct/janus_v0_4_high_volume_random_cnf_probe.py'
+      - '.github/workflows/run-c025-v0-4-high-volume-random-cnf-probe.yml'
+  pull_request:
+    paths:
+      - 'experiments/direct/janus_v0_4_high_volume_random_cnf_probe.py'
+      - '.github/workflows/run-c025-v0-4-high-volume-random-cnf-probe.yml'
+
+jobs:
+  hostile-high-volume:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Run frozen high-volume random width-4 corpus
+        run: |
+          python -m experiments.direct.janus_v0_4_high_volume_random_cnf_probe \
+            --cases-per-rung 2 | tee v0-4-high-volume-random-cnf.json
+      - name: Verify boundary and expose result
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          data = json.loads(Path('v0-4-high-volume-random-cnf.json').read_text())
+          b = data['scientific_boundary']
+          assert b['bounded_finite_probe_only'] is True
+          assert b['aimed_at_high_volume_rescue_region'] is True
+          assert b['absence_of_open_is_not_totality_proof'] is True
+          assert b['bruteforce_forbidden_from_theorem_runtime'] is True
+          assert b['HIGH_VOLUME_RESCUE_TOTALITY'] == 'OPEN'
+          assert b['P_VS_NP'] == 'OPEN'
+          print('STATUS=' + data['status'])
+          print('EXAMINED=' + str(data['totals']['examined']))
+          print('CROSSED_ORIGINAL_N=' + str(data['totals']['crossed_original_N']))
+          print('MAX_VOLUME_RATIO=' + str(data['totals']['max_volume_ratio']))
+          print('OPEN=' + str(data['totals']['OPEN']))
+          if data['first_open'] is not None:
+              print('FIRST_OPEN=' + data['first_open']['fingerprint'])
+              print('FIRST_OPEN_TRUTH=' + data['first_open']['finite_truth_label'])
+              print('FIRST_OPEN_REASON=' + data['first_open']['reason'])
+          print('P_VS_NP=OPEN')
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: c025-v0-4-high-volume-random-cnf
+          path: v0-4-high-volume-random-cnf.json
