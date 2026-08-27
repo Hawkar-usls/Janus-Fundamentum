@@ -76,6 +76,32 @@ that N, any composite gap, unbounded totality, SAT in P, or P=NP.
 The older descending `937 -> ...` prime scheduler is retained as a historical
 alternate experiment but is no longer the active route.
 
+## JANUS BREED
+
+`janus_breed.py` is the dual-face stress protocol requested for MAD-LAB.
+It traverses every integer N in the selected interval twice under the same frozen
+abstract-closure ordering:
+
+- `FACE_A`: prime N -> `M2R`, composite N -> `DIRECT`;
+- `FACE_B`: prime N -> `DIRECT`, composite N -> `M2R`.
+
+Thus every N is inspected by both faces, while the prime/composite mask controls
+only which face goes first. It is a stress rhythm, not a SAT theorem assumption.
+
+`DIRECT` uses only the frozen pre-existing exact theorem-side bound/repair chain.
+`M2R` uses the same exact chain plus mandatory Surgeon preflight, proof-gate and
+rollback audit. An M2R result can receive BREED experimental credit only when it
+contains no unresolved `OPEN` and every repair used was already proof-gated.
+BREED credit is never theorem-frontier credit.
+
+The pair classes are `PASS_PASS`, `PASS_OPEN`, `OPEN_PASS`, and `OPEN_OPEN`.
+A disagreement is preserved as data. A shared `OPEN_OPEN` is a candidate common
+bottleneck, not evidence for P=NP. A same-run invented lemma is never allowed to
+repair the N that suggested it.
+
+Policy: `JANUS_BREED_POLICY.json`.
+Full segmented stress workflow: `run-janus-breed-58-937.yml`.
+
 ## Labels
 
 Every result produced here must carry:
