@@ -1,0 +1,137 @@
+name: run-c025-root-anchored-depth-ladder
+
+on:
+  push:
+    branches:
+      - research/c025-pirc-gpei-2026-08-27
+    paths:
+      - '.github/workflows/run-c025-root-anchored-depth-ladder.yml'
+  workflow_dispatch:
+
+jobs:
+  depth-ladder:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: R1 root-anchored depth
+        run: |
+          python -m experiments.direct.janus_stage4_root_anchored_depth_probe \
+            --nvars 4 --clauses 5 --min-width 3 --max-width 3 \
+            --cap-exponent 2 --extension-exponent 1 --limit 5000 \
+            > root-depth-R1.json
+      - name: R2 root-anchored depth
+        run: |
+          python -m experiments.direct.janus_stage4_root_anchored_depth_probe \
+            --nvars 4 --clauses 6 --min-width 3 --max-width 3 \
+            --cap-exponent 2 --extension-exponent 1 --limit 10000 \
+            > root-depth-R2.json
+      - name: R3 root-anchored depth
+        run: |
+          python -m experiments.direct.janus_stage4_root_anchored_depth_probe \
+            --nvars 5 --clauses 6 --min-width 3 --max-width 3 \
+            --cap-exponent 2 --extension-exponent 1 --limit 10000 \
+            > root-depth-R3.json
+      - name: R4 root-anchored depth
+        run: |
+          python -m experiments.direct.janus_stage4_root_anchored_depth_probe \
+            --nvars 5 --clauses 7 --min-width 3 --max-width 3 \
+            --cap-exponent 2 --extension-exponent 1 --limit 20000 \
+            > root-depth-R4.json
+      - name: Aggregate frozen ladder
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          rows = []
+          any_open = False
+          max_depth = 0
+          total_connected = 0
+          total_open3 = 0
+          total_decided = 0
+          aggregate_hist = {}
+
+          for rid in ('R1','R2','R3','R4'):
+              data = json.loads(Path(f'root-depth-{rid}.json').read_text())
+              b = data['scientific_boundary']
+              assert b['bounded_finite_probe_only'] is True
+              assert b['root_budget_rebased'] is False
+              assert b['grammar_changed_during_probe'] is False
+              assert b['absence_of_open_is_not_universal_totality'] is True
+              assert b['universal_stage4_iterability'] == 'OPEN'
+              assert b['universal_GPEI_preservation'] == 'OPEN'
+              assert b['P_VS_NP'] == 'OPEN'
+
+              t = data['totals']
+              total_connected += t['connected_examined']
+              total_open3 += t['open3']
+              total_decided += t['eventually_decided']
+              any_open |= t['remaining_open'] > 0
+              for depth, count in data['stage4_depth_histogram'].items():
+                  aggregate_hist[depth] = aggregate_hist.get(depth, 0) + count
+                  max_depth = max(max_depth, int(depth))
+              rows.append({
+                  'id': rid,
+                  'status': data['status'],
+                  'search_space': data['search_space'],
+                  'totals': t,
+                  'depth_histogram': data['stage4_depth_histogram'],
+                  'first_remaining_open': data['first_remaining_open'],
+                  'deepest_decision_or_attempt': data['deepest_decision_or_attempt'],
+              })
+
+          report = {
+              'schema': 'JANUS/C025/ROOT-ANCHORED-STAGE4-DEPTH-LADDER/v1',
+              'status': 'FINITE_OPEN_REMAINS' if any_open else 'ALL_PREREGISTERED_FINITE_RUNGS_DECIDED',
+              'rungs': rows,
+              'totals': {
+                  'connected_examined': total_connected,
+                  'open3': total_open3,
+                  'eventually_decided': total_decided,
+                  'remaining_open': total_open3 - total_decided,
+                  'max_stage4_depth_observed': max_depth,
+              },
+              'aggregate_depth_histogram': dict(sorted(aggregate_hist.items(), key=lambda kv: int(kv[0]))),
+              'scientific_boundary': {
+                  'preregistered_finite_ladder_only': True,
+                  'root_budget_rebased': False,
+                  'grammar_changed_during_ladder': False,
+                  'finite_success_is_not_universal_totality': True,
+                  'universal_stage4_iterability': 'OPEN',
+                  'universal_GPEI_preservation': 'OPEN',
+                  'arbitrary_CNF_totality': 'OPEN',
+                  'P_VS_NP': 'OPEN',
+              },
+          }
+          Path('root-anchored-depth-ladder.json').write_text(json.dumps(report, indent=2, sort_keys=True))
+          print('ROOT_DEPTH_LADDER_STATUS=' + report['status'])
+          print('ROOT_DEPTH_TOTAL_CONNECTED=' + str(total_connected))
+          print('ROOT_DEPTH_TOTAL_OPEN3=' + str(total_open3))
+          print('ROOT_DEPTH_EVENTUALLY_DECIDED=' + str(total_decided))
+          print('ROOT_DEPTH_REMAINING_OPEN=' + str(total_open3-total_decided))
+          print('ROOT_DEPTH_MAX_STAGE4=' + str(max_depth))
+          print('ROOT_DEPTH_HISTOGRAM=' + json.dumps(report['aggregate_depth_histogram'], sort_keys=True))
+          for row in rows:
+              print(row['id'] + '=' + json.dumps({
+                  'status': row['status'],
+                  'open3': row['totals']['open3'],
+                  'decided': row['totals']['eventually_decided'],
+                  'remaining_open': row['totals']['remaining_open'],
+                  'depth_histogram': row['depth_histogram'],
+              }, sort_keys=True))
+          print('UNIVERSAL_GPEI_PRESERVATION=OPEN')
+          print('P_VS_NP=OPEN')
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: c025-root-anchored-depth-ladder
+          path: |
+            root-depth-R1.json
+            root-depth-R2.json
+            root-depth-R3.json
+            root-depth-R4.json
+            root-anchored-depth-ladder.json
