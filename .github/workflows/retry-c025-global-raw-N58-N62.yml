@@ -1,0 +1,54 @@
+name: retry-c025-global-raw-N58-N62
+
+on:
+  push:
+    branches:
+      - research/c025-proof-selector-v0-5-2026-08-27
+    paths:
+      - 'research/C025_GLOBAL_RAW_SIGNED_CLAUSE_UNIVERSE_BOUND_2026-08-27.json'
+      - 'research/C025_ABSTRACT_N58_BOUND_OPEN_BEFORE_GLOBAL_RAW_UNIVERSE_2026-08-27.json'
+      - 'experiments/direct/janus_global_raw_signed_clause_universe_bound.py'
+      - 'experiments/direct/janus_v05_abstract_frontier_global_raw_universe.py'
+      - 'experiments/direct/janus_v05_abstract_frontier_global_raw_universe_N62.py'
+      - '.github/workflows/retry-c025-global-raw-N58-N62.yml'
+  pull_request:
+    paths:
+      - 'research/C025_GLOBAL_RAW_SIGNED_CLAUSE_UNIVERSE_BOUND_2026-08-27.json'
+      - 'experiments/direct/janus_global_raw_signed_clause_universe_bound.py'
+      - 'experiments/direct/janus_v05_abstract_frontier_global_raw_universe.py'
+      - 'experiments/direct/janus_v05_abstract_frontier_global_raw_universe_N62.py'
+      - '.github/workflows/retry-c025-global-raw-N58-N62.yml'
+
+jobs:
+  global-raw-N58-N62:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Execute global raw-universe regression
+        run: python -m experiments.direct.janus_global_raw_signed_clause_universe_bound
+      - name: Retry exact abstract frontier N58 through N62
+        run: python -m experiments.direct.janus_v05_abstract_frontier_global_raw_universe_N62
+      - name: Verify repair scope and claim ceiling
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          old=json.loads(Path('research/C025_ABSTRACT_N58_BOUND_OPEN_BEFORE_GLOBAL_RAW_UNIVERSE_2026-08-27.json').read_text())
+          lemma=json.loads(Path('research/C025_GLOBAL_RAW_SIGNED_CLAUSE_UNIVERSE_BOUND_2026-08-27.json').read_text())
+          assert old['status']=='ABSTRACT_BOUND_OPEN__NOT_ACTUAL_COUNTEREXAMPLE'
+          assert old['probe']['old_raw_bound']==3375
+          assert lemma['status']=='PROVED_GLOBAL_RAW_SET_UNIVERSE_BOUND'
+          assert lemma['N58_repair_specimen']['global_raw_units_ceiling']==3297
+          assert lemma['N58_repair_specimen']['N58_cap']==3364
+          assert lemma['runtime_change'] is False
+          assert lemma['P_VS_NP']=='OPEN'
+          print('GLOBAL_RAW_UNIVERSE_REPAIR_SCOPE=PASS')
+          print('OLD_N58_OPEN_PRESERVED_APPEND_ONLY=PASS')
+          print('THEOREM_RUNTIME_HEURISTICS=FORBIDDEN')
+          print('UNBOUNDED_TOTALITY=OPEN')
+          print('P_VS_NP=OPEN')
+          PY
