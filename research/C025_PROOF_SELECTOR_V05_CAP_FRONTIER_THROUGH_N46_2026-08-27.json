@@ -1,0 +1,114 @@
+{
+  "schema": "JANUS/C025/PROOF-SELECTOR-V0.5-CAP-FRONTIER-THROUGH-N46/v1",
+  "date": "2026-08-27",
+  "status": "PROVED_FINITE_N_CAP_AVAILABILITY_THROUGH_N46__UNBOUNDED_TOTALITY_OPEN",
+  "P_VS_NP": "OPEN",
+  "candidate_engine": "PIRC_DECISION_CORE_V0_5_PROOF_SELECTOR_CANDIDATE",
+  "depends_on": [
+    "research/C025_PROOF_SELECTOR_V05_CAP_FRONTIER_THROUGH_N45_2026-08-27.json",
+    "research/C025_GENERIC_RAW_ELIMINATION_BUDGET_LEMMA_2026-08-27-v1.1.json",
+    "research/C025_SPARSE_ROOT_CLAUSE_COUNT_INVARIANT_AND_NO_CAP_RESCUE_THROUGH_N25_2026-08-27.json",
+    "research/C025_BOUNDED_WIDTH_AVERAGE_DEGREE_SAFE_PIVOT_CORRIDOR_2026-08-27-v1.2.json"
+  ],
+  "theorem_runtime_heuristics": "FORBIDDEN",
+  "runtime_change_from_N45": false,
+  "N46_partition": {
+    "N": 46,
+    "cap": 2116,
+    "cases": [
+      {
+        "case": "m<=4",
+        "result": "CLOSED_BY_EXISTING_SMALL_CLAUSE_INVARIANT"
+      },
+      {
+        "case": "m>=5 AND L<3r",
+        "result": "V0.5 selector chooses a minimum-incidence root with d<=2; the existing low-incidence proof gives N'<=N-4<=42 and strong induction enters the proved N<=45 frontier."
+      },
+      {
+        "case": "m>=5 AND L>=3r",
+        "derivation": "46=1+m+L+r>=6+4r, hence r<=floor(40/4)=10.",
+        "r_le_8": "CLOSED_BY_EXISTING_T_SMAX_URAW_RECURRENCE_UNDER_CAP_2116",
+        "r_eq_9": "CLOSED_BY_DEGREE3_BOUND_PLUS_EXISTING_TAIL",
+        "r_eq_10": "UNIQUE_CELL_CLOSED_BY_DEGREE3_TO_M_LE_4_COLLAPSE"
+      }
+    ],
+    "status": "PROVED"
+  },
+  "hard_recurrence_r_le_8": {
+    "maximum_raw_bound": "1053",
+    "cap": 2116,
+    "status": "PROVED_BY_EXISTING_EXACT_RECURRENCE"
+  },
+  "r9_region": {
+    "cells": [
+      {"r":9,"m":5,"L":31,"s":37},
+      {"r":9,"m":6,"L":30,"s":37},
+      {"r":9,"m":7,"L":29,"s":37},
+      {"r":9,"m":8,"L":28,"s":37},
+      {"r":9,"m":9,"L":27,"s":37}
+    ],
+    "selector": "d_min<=floor(L/9)<=3",
+    "degree_le_2": "REROOT_TO_N_LE_42",
+    "degree_eq_3_raw_bound": "B_x<=37-4+8=41",
+    "post_step_initial": {"live_n_max":8,"state_units_max":41},
+    "exact_raw_ledger": [
+      {"live_n":8,"raw_bound":"403/3"},
+      {"live_n":7,"raw_bound":"40027/27"},
+      {"live_n":6,"raw_bound":"1053"},
+      {"live_n":5,"raw_bound":"297"},
+      {"live_n":4,"raw_bound":"81"},
+      {"live_n":3,"raw_bound":"21"}
+    ],
+    "maximum_raw_bound": "40027/27",
+    "maximum_raw_decimal": 1482.4814814814815,
+    "cap": 2116,
+    "status": "PROVED"
+  },
+  "r10_unique_cell": {
+    "parameters": {"r":10,"m":5,"L":30,"s":36,"cap":2116},
+    "uniqueness": [
+      "For r=10, N=46 gives m+L=35.",
+      "Hard-region L>=3r=30 gives m<=5.",
+      "Hard-region m>=5 therefore forces m=5,L=30."
+    ],
+    "selector_degree": [
+      "The v0.5 selector gives d_min<=floor(30/10)=3.",
+      "If d_min<=2, the existing low-incidence reroot applies and returns to N<=42.",
+      "If d_min=3, all ten live variables have incidence exactly 3 because ten positive integer degrees each at least 3 sum to 30."
+    ],
+    "degree3_clause_collapse": {
+      "statement": "Eliminating the actually selected degree-3 pivot produces at most four distinct raw clauses.",
+      "proof": [
+        "If the pivot is pure, one polarity bucket is empty and only m-3=2 retained clauses remain.",
+        "If mixed, a degree-3 pivot has polarity split {1,2}; there are m-3=2 retained clauses and at most 1*2=2 distinct resolvents.",
+        "Therefore raw clause count <=2+2=4. Tautology removal, duplicate suppression and canonical subsumption can only reduce it."
+      ],
+      "conclusion": "POST_STEP_M_LE_4"
+    },
+    "tail": {
+      "statement": "The already-proved m<=4 invariant now applies to every continuing ordinary elimination. With at most n<=9 live variables, its raw-size corollary gives RAW_UNITS<=1+4n<=37<<2116.",
+      "status": "PROVED_BY_EXISTING_SMALL_CLAUSE_INVARIANT"
+    },
+    "status": "PROVED"
+  },
+  "coarse_bound_warning": {
+    "observation": "The generic T/Smax/Uraw tail started only from s<=41,n<=9 produces a sufficient-bound value 3645 at live n=7, exceeding cap 2116.",
+    "interpretation": "THIS_IS_NOT_AN_ACTUAL_OVERFLOW. The r=10 root has additional exact m=5,d=3 structure, which collapses immediately to m<=4 and closes the trajectory by a stronger existing invariant.",
+    "status": "COARSE_SUFFICIENT_BOUND_FALSE_ALARM"
+  },
+  "finite_frontier_theorem": {
+    "name": "V0_5_PROOF_SELECTOR_NO_RAW_CAP_RESCUE_REQUIRED_THROUGH_N46",
+    "statement": "Inherit the proved N<=45 v0.5 frontier. At N=46, the standard partition gives r<=10 in the hard region. r<=8 is covered by the existing recurrence. r=9 is covered because the selector chooses d<=3; d<=2 reroots and d=3 gives B_x<=41 followed by an exact tail below cap. The only r=10 hard cell is m=5,L=30. There the selector chooses d<=3; d<=2 reroots, while d=3 forces all degrees to equal 3 and one exact elimination leaves at most four raw clauses, after which the existing m<=4 invariant keeps every continuing step below cap. Thus every legitimate N<=46 root is covered by the finite structural proof without invoking v2/v3 due to raw-cap unavailability.",
+    "status": "PROVED_FINITE_N_CAP_AVAILABILITY"
+  },
+  "scientific_boundary": {
+    "finite_N_frontier_only": true,
+    "does_not_prove_unbounded_reachable_totality": true,
+    "unbounded_totality": "OPEN",
+    "v3_universal_availability": "OPEN",
+    "universal_GPEI": "OPEN",
+    "P_VS_NP": "OPEN"
+  },
+  "next_exact_target": "Run executable N46 selector/replay regression including the r=10,m=5,L=30 degree-3-to-m<=4 collapse. If green, advance to N47 under identical v0.5 semantics; preserve any failure append-only.",
+  "seal": "IANUS VIAS SERVAT."
+}
