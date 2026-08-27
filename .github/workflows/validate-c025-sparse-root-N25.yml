@@ -1,0 +1,46 @@
+name: validate-c025-sparse-root-N25
+
+on:
+  push:
+    branches:
+      - research/c025-balanced-pressure-wedge-2026-08-27
+    paths:
+      - 'research/C025_SPARSE_ROOT_CLAUSE_COUNT_INVARIANT_AND_NO_CAP_RESCUE_THROUGH_N25_2026-08-27.json'
+      - 'experiments/direct/janus_sparse_root_clause_invariant_N25_certificate.py'
+      - '.github/workflows/validate-c025-sparse-root-N25.yml'
+  pull_request:
+    paths:
+      - 'research/C025_SPARSE_ROOT_CLAUSE_COUNT_INVARIANT_AND_NO_CAP_RESCUE_THROUGH_N25_2026-08-27.json'
+      - 'experiments/direct/janus_sparse_root_clause_invariant_N25_certificate.py'
+      - '.github/workflows/validate-c025-sparse-root-N25.yml'
+
+jobs:
+  sparse-root-N25:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Execute sparse clause-count regression
+        run: python -m experiments.direct.janus_sparse_root_clause_invariant_N25_certificate
+      - name: Verify theorem scope
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          d = json.loads(Path('research/C025_SPARSE_ROOT_CLAUSE_COUNT_INVARIANT_AND_NO_CAP_RESCUE_THROUGH_N25_2026-08-27.json').read_text())
+          assert d['status'] == 'PROVED_SPARSE_CLAUSE_COUNT_INVARIANT__PROVED_NO_RAW_CAP_RESCUE_N_LE_25__N26_R9_R10_FRONTIER'
+          assert d['P_VS_NP'] == 'OPEN'
+          assert d['root_clause_count_bound']['status'] == 'PROVED'
+          assert d['small_clause_elimination_invariant']['status'] == 'PROVED'
+          assert d['raw_size_corollary']['status'] == 'PROVED'
+          assert d['theorem']['status'] == 'PROVED'
+          assert d['N26_frontier']['remaining_cases'] == [9,10]
+          assert d['scientific_boundary']['does_not_claim_N26_failure'] is True
+          assert d['scientific_boundary']['does_not_prove_P_equals_NP'] is True
+          print('SPARSE_ROOT_N25_SCOPE=PASS')
+          print('N26_REMAINING_R0=9,10')
+          print('P_VS_NP=OPEN')
+          PY
