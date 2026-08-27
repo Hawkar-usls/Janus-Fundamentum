@@ -1,0 +1,45 @@
+name: validate-c025-all-pivot-overflow-incidence-sandwich
+
+on:
+  push:
+    branches:
+      - research/c025-balanced-pressure-wedge-2026-08-27
+    paths:
+      - 'research/C025_ALL_PIVOT_OVERFLOW_PAIR_INCIDENCE_SANDWICH_2026-08-27.json'
+      - 'experiments/direct/janus_all_pivot_overflow_incidence_sandwich.py'
+      - '.github/workflows/validate-c025-all-pivot-overflow-incidence-sandwich.yml'
+  pull_request:
+    paths:
+      - 'research/C025_ALL_PIVOT_OVERFLOW_PAIR_INCIDENCE_SANDWICH_2026-08-27.json'
+      - 'experiments/direct/janus_all_pivot_overflow_incidence_sandwich.py'
+      - '.github/workflows/validate-c025-all-pivot-overflow-incidence-sandwich.yml'
+
+jobs:
+  exact-sandwich:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Run exact arithmetic/syntactic self-test
+        run: python -m experiments.direct.janus_all_pivot_overflow_incidence_sandwich
+      - name: Verify theorem scope and claim ceiling
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          p = Path('research/C025_ALL_PIVOT_OVERFLOW_PAIR_INCIDENCE_SANDWICH_2026-08-27.json')
+          d = json.loads(p.read_text(encoding='utf-8'))
+          assert d['status'] == 'PROVED_SUFFICIENT_DICHOTOMY_CORRIDOR__RESIDUAL_WEDGE_OPEN'
+          assert d['P_VS_NP'] == 'OPEN'
+          assert d['lemma_1_all_pivot_overflow_forces_pair_mass']['status'] == 'PROVED_ELEMENTARY'
+          assert d['lemma_2_no_v2_trigger_caps_pair_mass']['status'] == 'PROVED_ELEMENTARY'
+          assert d['sandwich_theorem']['status'] == 'PROVED_SUFFICIENT_DICHOTOMY'
+          assert d['remaining_wedge']['status'] == 'OPEN'
+          assert d['scientific_boundary']['does_not_prove_root_phase_totality'] is True
+          assert d['scientific_boundary']['does_not_prove_P_equals_NP'] is True
+          print('ALL_PIVOT_OVERFLOW_PAIR_INCIDENCE_SANDWICH=PASS')
+          print('ALL_VARIABLE_BALANCED_PRESSURE_WEDGE=OPEN')
+          print('P_VS_NP=OPEN')
+          PY
