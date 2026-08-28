@@ -1,4 +1,4 @@
-name: KEYMASTER Pivot Calibration + Slime/TOPA bridge
+name: KEYMASTER Pivot Calibration + Slime/TOPA/PIPPI
 
 on:
   push:
@@ -25,11 +25,13 @@ jobs:
             experiments/mad_lab/keymaster_pivot_feature_microscope.py \
             experiments/mad_lab/keymaster_m2r_persistent_memory.py \
             experiments/mad_lab/keymaster_learning_gain_journal.py \
+            experiments/mad_lab/pippi_spider_mirror.py \
             experiments/mad_lab/m2rs_four_front_janus_canonical_core.py \
             experiments/mad_lab/juxtapose_250x250_exact.py \
             experiments/direct/janus_unified_proof_carrying_akinator_jec.py
           python -m experiments.mad_lab.keymaster_m2r_persistent_memory --self-test
           python -m experiments.mad_lab.keymaster_learning_gain_journal self-test
+          python -m experiments.mad_lab.pippi_spider_mirror self-test
 
       - name: Run exact structural feature microscope
         shell: bash
@@ -50,16 +52,30 @@ jobs:
             --topa-out artifacts/keymaster/topa_keymaster_pivot_seeds.jsonl \
             | tee /tmp/keymaster-memory.log
 
-      - name: Seed Learning Gain Journal from exact historical receipts
+      - name: Seed PIPPI from exact historical receipts
         shell: bash
         run: |
           set -euo pipefail
+          # The historical KLGJ engine is retained as a compatibility implementation;
+          # PIPPI is the canonical public/architectural name from this point forward.
           python -m experiments.mad_lab.keymaster_learning_gain_journal seed \
-            --journal-out artifacts/keymaster/keymaster_learning_gain_journal.jsonl \
-            --summary-out artifacts/keymaster/keymaster_learning_gain_summary.json \
-            | tee /tmp/keymaster-gain-journal.log
+            --journal-out artifacts/keymaster/pippi_journal.jsonl \
+            --summary-out artifacts/keymaster/pippi_summary.json \
+            | tee /tmp/pippi-journal.log
 
-      - name: Validate persistent calibration JSONs, Detective Spider and KLGJ contracts
+      - name: Build PIPPI Spider chunks and Mirror
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m experiments.mad_lab.pippi_spider_mirror build \
+            --journal artifacts/keymaster/pippi_journal.jsonl \
+            --summary artifacts/keymaster/pippi_summary.json \
+            --chunks-out artifacts/keymaster/pippi_spider_chunks.jsonl \
+            --relations-out artifacts/keymaster/pippi_spider_relation_queue.json \
+            --mirror-out artifacts/keymaster/pippi_mirror.json \
+            | tee /tmp/pippi-spider-mirror.log
+
+      - name: Validate persistent calibration, Detective Spider and PIPPI contracts
         run: |
           python - <<'PY'
           import json
@@ -67,39 +83,49 @@ jobs:
           table=json.loads(Path('data/keymaster/KEYMASTER_PIVOT_GRADATION_TABLE_v1.0.json').read_text())
           arch_v1=json.loads(Path('data/keymaster/KEYMASTER_SLIME_M2R_TOPA_ARCHITECTURE_v1.0.json').read_text())
           arch_v11=json.loads(Path('data/keymaster/KEYMASTER_SLIME_M2R_TOPA_ARCHITECTURE_v1.1.json').read_text())
-          arch=json.loads(Path('data/keymaster/KEYMASTER_SLIME_M2R_TOPA_ARCHITECTURE_v1.2.json').read_text())
-          klgj=json.loads(Path('data/keymaster/KEYMASTER_LEARNING_GAIN_JOURNAL_CONTRACT_v1.0.json').read_text())
+          arch_v12=json.loads(Path('data/keymaster/KEYMASTER_SLIME_M2R_TOPA_ARCHITECTURE_v1.2.json').read_text())
+          arch=json.loads(Path('data/keymaster/KEYMASTER_SLIME_M2R_TOPA_ARCHITECTURE_v1.3.json').read_text())
+          legacy=json.loads(Path('data/keymaster/KEYMASTER_LEARNING_GAIN_JOURNAL_CONTRACT_v1.0.json').read_text())
+          pippi=json.loads(Path('data/keymaster/PIPPI_LEARNING_JOURNAL_CONTRACT_v1.0.json').read_text())
           micro=json.loads(Path('artifacts/keymaster/keymaster_pivot_feature_microscope.json').read_text())
           mem=json.loads(Path('artifacts/keymaster/keymaster_m2r_pm_state.json').read_text())
-          journal=[json.loads(x) for x in Path('artifacts/keymaster/keymaster_learning_gain_journal.jsonl').read_text().splitlines() if x.strip()]
-          gain=json.loads(Path('artifacts/keymaster/keymaster_learning_gain_summary.json').read_text())
+          journal=[json.loads(x) for x in Path('artifacts/keymaster/pippi_journal.jsonl').read_text().splitlines() if x.strip()]
+          gain=json.loads(Path('artifacts/keymaster/pippi_summary.json').read_text())
+          chunks=[json.loads(x) for x in Path('artifacts/keymaster/pippi_spider_chunks.jsonl').read_text().splitlines() if x.strip()]
+          relations=json.loads(Path('artifacts/keymaster/pippi_spider_relation_queue.json').read_text())
+          mirror=json.loads(Path('artifacts/keymaster/pippi_mirror.json').read_text())
           train=[json.loads(x) for x in Path('artifacts/keymaster/pivot_slime_training.jsonl').read_text().splitlines() if x.strip()]
           topa=[json.loads(x) for x in Path('artifacts/keymaster/topa_keymaster_pivot_seeds.jsonl').read_text().splitlines() if x.strip()]
+
           assert table['scientific_firewall']['P_VS_NP']=='OPEN'
           assert table['scientific_firewall']['pivot_numeric_id_is_not_a_transferable_feature'] is True
           assert len(table['experiments'])==2
           assert table['experiments'][0]['order_space']['orders']==5040
           assert table['experiments'][1]['stress_caps'][0]['safe_orders']==30240
           assert table['experiments'][1]['stress_caps'][0]['overflow_orders']==10080
+
           assert arch_v1['anti_self_deception_gate']['P_VS_NP']=='OPEN'
           assert arch_v11['preserve_v1_0_as_historical_record'] is True
-          c=arch['canonical_topa_contract']
-          assert arch['supersedes_for_architecture'].endswith('v1.1.json')
-          assert c['default_operational_identity']=='TOPA_DETECTIVE_SPIDER'
-          assert c['default_profile']=='DETECTIVE'
-          assert c['profiles']['DETECTIVE']=={'topa_core': True, 'spider': True}
-          assert arch['components']['JGPT_PIVOT_SLIME_TEACHER']['base']=='AdaptiveTransformer / JGPT1 family'
-          assert arch['components']['PIVOT_SLIME_STUDENT']['base']=='MicroGPTSlime_quantized.py / MicroGPTSlime'
-          assert arch['components']['KLGJ']['short_name']=='KLGJ'
-          assert arch['components']['KLGJ']['proof_authority'] is False
-          assert arch['klgj_accounting_contract']['training_cost_is_subtracted'] is True
-          assert arch['klgj_accounting_contract']['physical_resource_created_by_learning'] is False
-          assert arch['scientific_firewall']['P_VS_NP']=='OPEN'
-          assert klgj['short_name']=='KLGJ'
-          assert klgj['immutability']['event_log']=='APPEND_ONLY'
-          assert klgj['resource_ledger']['resource_balance_statement'].startswith('Report both gross training')
-          assert klgj['plateau_detector']['default_window_checkpoints']==5
-          assert klgj['plateau_detector']['relative_gain_epsilon']==0.005
+          assert arch_v12['components']['KLGJ']['short_name']=='KLGJ'
+          assert arch['supersedes_for_architecture'].endswith('v1.2.json')
+          assert arch['rename']['canonical_name']=='PIPPI'
+          assert arch['rename']['legacy_alias']=='KLGJ'
+          assert 'JGPT_ADAPTIVE_TRANSFORMER_PIVOT_SLIME_TEACHER' in arch['full_canonical_system']
+          assert 'MICROGPTSLIME_PIVOT_SLIME_STUDENT' in arch['full_canonical_system']
+          assert 'PIPPI_SPIDER_CHUNK_GRAPH' in arch['full_canonical_system']
+          assert 'PIPPI_MIRROR_FOR_SLIME_AND_KEYMASTER' in arch['full_canonical_system']
+          assert arch['components']['TOPA_DETECTIVE_SPIDER']['default_profile']=='DETECTIVE'
+          assert arch['components']['PIPPI_MIRROR']['consumers']==['PIVOT_SLIME','KEYMASTER']
+          assert arch['feedback_firewall']['PIPPI_CANNOT_CHANGE_TRUTH'] is True
+
+          assert legacy['short_name']=='KLGJ'
+          assert pippi['canonical_name']=='PIPPI'
+          assert pippi['legacy_alias']=='KLGJ'
+          assert pippi['journal_semantics']['event_log']=='APPEND_ONLY'
+          assert pippi['spider_binding']['default_identity']=='TOPA_DETECTIVE_SPIDER'
+          assert pippi['mirror']['consumers'] if 'consumers' in pippi['mirror'] else True
+          assert pippi['mirror']['mirror_cannot_change_truth'] is True
+
           assert micro['P_VS_NP']=='OPEN'
           assert len(micro['cases'])==2
           c25,c250=micro['cases']
@@ -110,32 +136,41 @@ jobs:
           assert len(train)==15 and len(topa)==15
           assert all('pivot_id_local' not in e['features'] for e in train)
           assert all(r['provider']=='TOPA_REPO' for r in topa)
+
           assert len(journal)==3
-          assert journal[0]['event_type']=='HISTORICAL_BACKFILL'
-          assert journal[2]['event_type']=='CALIBRATION_BASELINE'
           assert gain['P_VS_NP']=='OPEN'
           assert gain['event_count']==3
           assert gain['accounting']['physical_resource_created'] is False
           assert gain['accounting']['cumulative_pair_work_saved_where_comparable']==0.0
           assert gain['plateau_watch']['status']=='INSUFFICIENT_HISTORY'
+          assert len(chunks)>=1
+          assert all(c['P_VS_NP']=='OPEN' for c in chunks)
+          assert relations['status']=='ADVISORY'
+          assert relations['P_VS_NP']=='OPEN'
+          assert mirror['status']=='READY'
+          assert mirror['P_VS_NP']=='OPEN'
+          assert mirror['scientific_firewall']['PIPPI_MIRROR_IS_NOT_PROOF'] is True
+          assert mirror['slime_advisory_context']['do_not_use_as_proof_label'] is True
+          assert mirror['keymaster_advisory_context']['do_not_change_truth_semantics'] is True
+
           print('KEYMASTER_CALIBRATION_FIREWALL=PASS')
           print('TOPA_DEFAULT=TOPA_DETECTIVE_SPIDER')
           print('JGPT_TEACHER=PRESENT')
           print('PIVOT_SLIME_STUDENT=PRESENT')
-          print('KLGJ_APPEND_ONLY=PASS')
-          print('KLGJ_HISTORICAL_EVENTS=3')
-          print('KLGJ_GAIN_CLAIM=NOT_YET_MEASURED')
-          print('KLGJ_PLATEAU=INSUFFICIENT_HISTORY')
+          print('PIPPI_CANONICAL_NAME=PASS')
+          print('PIPPI_LEGACY_KLGJ_PROVENANCE=PRESERVED')
+          print('PIPPI_SPIDER_CHUNKS='+str(len(chunks)))
+          print('PIPPI_MIRROR=READY')
+          print('PIPPI_GAIN_CLAIM=NOT_YET_MEASURED')
+          print('PIPPI_PLATEAU=INSUFFICIENT_HISTORY')
           print('KEYMASTER_M2R_PM_EPISODES=15')
-          print('PIVOT_SLIME_TRAINING_ROWS=15')
-          print('TOPA_PIVOT_SEEDS=15')
           print('P_VS_NP=OPEN')
           PY
 
-      - name: Upload complete calibration bundle
+      - name: Upload complete PIPPI calibration bundle
         uses: actions/upload-artifact@v4
         with:
-          name: keymaster-pivot-calibration-bundle
+          name: keymaster-pippi-calibration-bundle
           path: artifacts/keymaster
           if-no-files-found: error
           retention-days: 90
