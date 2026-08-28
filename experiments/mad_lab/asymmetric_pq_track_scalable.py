@@ -20,7 +20,7 @@ from experiments.direct import janus_unified_proof_carrying_akinator_jec as base
 from experiments.mad_lab import asymmetric_pq_track as slow
 
 P_VS_NP = "OPEN"
-SCHEMA = "JANUS/MAD-LAB/ASYMMETRIC-PQ-TRACK-SCALABLE-CANON/v1.0.0"
+SCHEMA = "JANUS/MAD-LAB/ASYMMETRIC-PQ-TRACK-SCALABLE-CANON/v1.0.1"
 
 
 def canon_uniform_width2_exact(clauses: list[base.Clause]) -> base.CNF:
@@ -33,7 +33,13 @@ def canon_uniform_width2_exact(clauses: list[base.Clause]) -> base.CNF:
 
 def construct_fast(p: int, q: int, seed: int, n: int | None = None) -> tuple[base.CNF, dict[str, Any]]:
     if p == q == 1:
-        return slow.construct(p, q, seed, n)
+        # Keep the formation special-case local. This avoids alias recursion when
+        # a harness intentionally monkeypatches slow.construct = construct_fast.
+        var = 20_000_000 + seed
+        cnf = base.canon_cnf(((var,), (-var,)))
+        return cnf, {"p": 1, "q": 1, "n": 1, "mode": "UNIT_FORMATION", "xor_unsat": True,
+                     "fingerprint": base.fingerprint(cnf), "exact_2sat_unsat": True,
+                     "canonicalizer": "GENERIC_UNIT_FORMATION"}
     if min(p, q) < 2:
         raise ValueError("general asymmetric track requires min(p,q)>=2; 1:1 is the only formation special case")
     if n is None:
@@ -109,15 +115,16 @@ def construct_fast(p: int, q: int, seed: int, n: int | None = None) -> tuple[bas
 
 def self_test() -> dict[str, Any]:
     rows = []
-    for p, q, seed in [(3, 3, 8101), (11, 11, 8102), (13, 16, 8103), (16, 13, 8104), (31, 31, 8105)]:
+    for p, q, seed in [(1, 1, 8100), (3, 3, 8101), (11, 11, 8102), (13, 16, 8103), (16, 13, 8104), (31, 31, 8105)]:
         a, am = slow.construct(p, q, seed)
         b, bm = construct_fast(p, q, seed)
         if a != b or base.fingerprint(a) != base.fingerprint(b):
             raise AssertionError((p, q, base.fingerprint(a), base.fingerprint(b)))
-        rows.append({"p": p, "q": q, "n": bm["n"], "m": bm["m"], "fingerprint": bm["fingerprint"], "bit_identical": True})
+        rows.append({"p": p, "q": q, "n": bm["n"], "m": len(b), "fingerprint": base.fingerprint(b), "bit_identical": True})
     return {
         "schema": SCHEMA + "/self-test", "status": "PASS", "cases": rows,
         "formula_semantics_changed": False, "canonical_cnf_bit_identical": True,
+        "formation_special_case_local": True,
         "P_VS_NP": P_VS_NP,
     }
 
