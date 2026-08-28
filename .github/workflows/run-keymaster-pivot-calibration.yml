@@ -19,19 +19,30 @@ jobs:
         with:
           python-version: '3.11'
 
-      - name: Compile calibration microscope
+      - name: Compile calibration runners
         run: |
           python -m py_compile \
             experiments/mad_lab/keymaster_pivot_feature_microscope.py \
+            experiments/mad_lab/keymaster_m2r_persistent_memory.py \
             experiments/mad_lab/m2rs_four_front_janus_canonical_core.py \
             experiments/mad_lab/juxtapose_250x250_exact.py \
             experiments/direct/janus_unified_proof_carrying_akinator_jec.py
+          python -m experiments.mad_lab.keymaster_m2r_persistent_memory --self-test
 
       - name: Run exact structural feature microscope
         run: |
           python -m experiments.mad_lab.keymaster_pivot_feature_microscope \
             --json-out artifacts/keymaster/keymaster_pivot_feature_microscope.json \
             | tee /tmp/keymaster-microscope.log
+
+      - name: Build persistent M2R-PM memory, Slime training set, and TOPA seeds
+        run: |
+          python -m experiments.mad_lab.keymaster_m2r_persistent_memory \
+            --microscope artifacts/keymaster/keymaster_pivot_feature_microscope.json \
+            --state-out artifacts/keymaster/keymaster_m2r_pm_state.json \
+            --training-out artifacts/keymaster/pivot_slime_training.jsonl \
+            --topa-out artifacts/keymaster/topa_keymaster_pivot_seeds.jsonl \
+            | tee /tmp/keymaster-memory.log
 
       - name: Validate persistent calibration JSONs
         run: |
@@ -41,6 +52,9 @@ jobs:
           table=json.loads(Path('data/keymaster/KEYMASTER_PIVOT_GRADATION_TABLE_v1.0.json').read_text())
           arch=json.loads(Path('data/keymaster/KEYMASTER_SLIME_M2R_TOPA_ARCHITECTURE_v1.0.json').read_text())
           micro=json.loads(Path('artifacts/keymaster/keymaster_pivot_feature_microscope.json').read_text())
+          mem=json.loads(Path('artifacts/keymaster/keymaster_m2r_pm_state.json').read_text())
+          train=[json.loads(x) for x in Path('artifacts/keymaster/pivot_slime_training.jsonl').read_text().splitlines() if x.strip()]
+          topa=[json.loads(x) for x in Path('artifacts/keymaster/topa_keymaster_pivot_seeds.jsonl').read_text().splitlines() if x.strip()]
           assert table['scientific_firewall']['P_VS_NP']=='OPEN'
           assert table['scientific_firewall']['pivot_numeric_id_is_not_a_transferable_feature'] is True
           assert len(table['experiments'])==2
@@ -58,14 +72,22 @@ jobs:
           assert c250['best_raw_units']==10787 and c250['worst_raw_units']==10849
           assert all('cheap_cooccurrence_features' in r for c in micro['cases'] for r in c['rows'])
           assert all('exact_pair_structure' in r for c in micro['cases'] for r in c['rows'])
+          assert mem['P_VS_NP']=='OPEN'
+          assert mem['episode_count']==15
+          assert len(train)==15 and len(topa)==15
+          assert all('pivot_id_local' not in e['features'] for e in train)
+          assert all(r['provider']=='TOPA_REPO' for r in topa)
           print('KEYMASTER_CALIBRATION_FIREWALL=PASS')
+          print('KEYMASTER_M2R_PM_EPISODES=15')
+          print('PIVOT_SLIME_TRAINING_ROWS=15')
+          print('TOPA_PIVOT_SEEDS=15')
           print('P_VS_NP=OPEN')
           PY
 
-      - name: Upload calibration microscope
+      - name: Upload complete calibration bundle
         uses: actions/upload-artifact@v4
         with:
-          name: keymaster-pivot-calibration-microscope
-          path: artifacts/keymaster/keymaster_pivot_feature_microscope.json
+          name: keymaster-pivot-calibration-bundle
+          path: artifacts/keymaster
           if-no-files-found: error
           retention-days: 90
