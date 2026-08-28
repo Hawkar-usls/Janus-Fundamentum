@@ -1,0 +1,51 @@
+name: run-c025-m80-l1-seed-sweep
+on:
+  push:
+    branches:
+      - research/c025-phase5-9-polynomial-pivot-grammar-2026-08-28
+    paths:
+      - '.github/workflows/run-c025-m80-l1-seed-sweep.yml'
+  workflow_dispatch:
+jobs:
+  m80-seed:
+    strategy:
+      fail-fast: false
+      matrix:
+        seed: [33100, 34100, 35100, 36100]
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      PYTHONPATH: .
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Attack L1 on independent certified M80 product
+        shell: bash
+        run: |
+          set -o pipefail
+          python experiments/theorem_extraction/c025_selector_prefix_pressure_probe.py \
+            --leaf-clauses 80 --seed ${{ matrix.seed }} | tee m80-${{ matrix.seed }}.json
+      - name: Expose exact candidate verdict
+        run: |
+          python - <<'PY'
+          import json,os
+          from pathlib import Path
+          seed=os.environ['SEED']
+          d=json.loads(Path(f'm80-{seed}.json').read_text())
+          assert d['P_VS_NP']=='OPEN'
+          print('SEED='+seed+' STATUS='+d['status'])
+          print('REACHABLE='+str(d.get('certified_reachable_product')))
+          if d.get('candidate_status'):
+              print('FITS='+str(d['ordinary_fit_count']))
+              print('L1='+d['candidate_status']['L1'])
+              print('V2='+str(d.get('v2_rescue_exists')))
+          print('P_VS_NP=OPEN')
+          PY
+        env:
+          SEED: ${{ matrix.seed }}
+      - uses: actions/upload-artifact@v4
+        with:
+          name: c025-m80-seed-${{ matrix.seed }}
+          path: m80-${{ matrix.seed }}.json
