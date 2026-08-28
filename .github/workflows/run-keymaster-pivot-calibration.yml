@@ -1,0 +1,71 @@
+name: KEYMASTER Pivot Calibration + Slime/TOPA bridge
+
+on:
+  push:
+    branches:
+      - research/janus-keymaster-calibration-pivot-slime-topa-2026-08-28
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  calibration:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Compile calibration microscope
+        run: |
+          python -m py_compile \
+            experiments/mad_lab/keymaster_pivot_feature_microscope.py \
+            experiments/mad_lab/m2rs_four_front_janus_canonical_core.py \
+            experiments/mad_lab/juxtapose_250x250_exact.py \
+            experiments/direct/janus_unified_proof_carrying_akinator_jec.py
+
+      - name: Run exact structural feature microscope
+        run: |
+          python -m experiments.mad_lab.keymaster_pivot_feature_microscope \
+            --json-out artifacts/keymaster/keymaster_pivot_feature_microscope.json \
+            | tee /tmp/keymaster-microscope.log
+
+      - name: Validate persistent calibration JSONs
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          table=json.loads(Path('data/keymaster/KEYMASTER_PIVOT_GRADATION_TABLE_v1.0.json').read_text())
+          arch=json.loads(Path('data/keymaster/KEYMASTER_SLIME_M2R_TOPA_ARCHITECTURE_v1.0.json').read_text())
+          micro=json.loads(Path('artifacts/keymaster/keymaster_pivot_feature_microscope.json').read_text())
+          assert table['scientific_firewall']['P_VS_NP']=='OPEN'
+          assert table['scientific_firewall']['pivot_numeric_id_is_not_a_transferable_feature'] is True
+          assert len(table['experiments'])==2
+          assert table['experiments'][0]['order_space']['orders']==5040
+          assert table['experiments'][1]['stress_caps'][0]['safe_orders']==30240
+          assert table['experiments'][1]['stress_caps'][0]['overflow_orders']==10080
+          assert arch['anti_self_deception_gate']['P_VS_NP']=='OPEN'
+          assert arch['components']['KEYMASTER']['online_learning']['source']=='EXACT_VERIFIED_RECEIPTS_ONLY'
+          assert arch['components']['PIVOT_SLIME_STUDENT']['base'].startswith('MicroGPTSlime_quantized.py')
+          assert arch['components']['TOPA_SPIDER']['role']=='RELATION_MINER_AND_HYPOTHESIS_WEAVER'
+          assert micro['P_VS_NP']=='OPEN'
+          assert len(micro['cases'])==2
+          c25,c250=micro['cases']
+          assert c25['best_raw_units']==718 and c25['worst_raw_units']==949
+          assert c250['best_raw_units']==10787 and c250['worst_raw_units']==10849
+          assert all('cheap_cooccurrence_features' in r for c in micro['cases'] for r in c['rows'])
+          assert all('exact_pair_structure' in r for c in micro['cases'] for r in c['rows'])
+          print('KEYMASTER_CALIBRATION_FIREWALL=PASS')
+          print('P_VS_NP=OPEN')
+          PY
+
+      - name: Upload calibration microscope
+        uses: actions/upload-artifact@v4
+        with:
+          name: keymaster-pivot-calibration-microscope
+          path: artifacts/keymaster/keymaster_pivot_feature_microscope.json
+          if-no-files-found: error
+          retention-days: 90
