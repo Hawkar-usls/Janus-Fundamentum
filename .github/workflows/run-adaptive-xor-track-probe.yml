@@ -1,0 +1,59 @@
+name: JANUS Adaptive XOR Track Shakedown
+
+on:
+  push:
+    branches:
+      - research/janus-keymaster-calibration-pivot-slime-topa-2026-08-28
+    paths:
+      - 'experiments/mad_lab/adaptive_xor_track_probe.py'
+      - '.github/workflows/run-adaptive-xor-track-probe.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  track-probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Compile
+        run: python -m py_compile experiments/mad_lab/adaptive_xor_track_probe.py
+      - name: Probe exact 1:1 through 16:16 track
+        run: |
+          mkdir -p artifacts/adaptive-track
+          python -m experiments.mad_lab.adaptive_xor_track_probe \
+            --max-d 16 \
+            --seeds-per-level 4 \
+            --out artifacts/adaptive-track/track-probe.json \
+            | tee /tmp/adaptive-track.log
+      - name: Scientific firewall
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          p=json.loads(Path('artifacts/adaptive-track/track-probe.json').read_text())
+          assert p['status']=='TRACK_SHAKEDOWN_COMPLETE__NO_LEARNING_GAIN_CLAIM'
+          assert p['P_VS_NP']=='OPEN'
+          assert len(p['levels'])==16
+          for level in p['levels']:
+              d=level['d']
+              for f in level['formulas']:
+                  assert f['stats']['exact_2sat_unsat'] is True
+                  assert all(x==d for x in f['stats']['positive'])
+                  assert all(x==d for x in f['stats']['negative'])
+                  assert f['landscape']['safe_pivots']>=1
+          assert p['firewall']['learning_gain_measured'] is False
+          print('ADAPTIVE_XOR_TRACK_FIREWALL=PASS')
+          print('P_VS_NP=OPEN')
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: janus-adaptive-xor-track-shakedown
+          path: artifacts/adaptive-track
+          if-no-files-found: error
+          retention-days: 90
