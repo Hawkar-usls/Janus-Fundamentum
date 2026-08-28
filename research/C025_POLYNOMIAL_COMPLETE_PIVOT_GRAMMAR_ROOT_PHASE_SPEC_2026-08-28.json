@@ -1,0 +1,80 @@
+{
+  "schema": "JANUS/C025/POLYNOMIAL-COMPLETE-PIVOT-GRAMMAR/ROOT-PHASE/v1",
+  "date": "2026-08-28",
+  "status": "THEOREM_TARGET_FROZEN__NOT_PROVED",
+  "P_VS_NP": "OPEN",
+  "depends_on": [
+    "research/C025_PIRC_GPEI_COMPOSITION_BRIDGE_2026-08-27.json",
+    "research/C025_TOTALITY_REDUCTION_LOW_VOLUME_AND_EXTENSION_BUDGET_2026-08-27.json",
+    "research/C025_V2_FREQUENT_PAIR_RESCUE_SUFFICIENT_LEMMA_2026-08-27.json",
+    "research/C025_PAIR_INCIDENCE_DENSITY_RESCUE_COROLLARY_2026-08-27.json"
+  ],
+  "fixed_algorithm": "PIRC_DECISION_CORE_V0_4",
+  "definitions": {
+    "N": "normalized root input_size_units fixed for the whole run",
+    "S": "a nonterminal canonical residual reachable under the fixed deterministic theorem-mode algorithm",
+    "s": "state_units(S)",
+    "R": "the set of currently live original root variables",
+    "G_elim(S)": "canonical live-pivot list tested by first_capped_elimination",
+    "G_v2(S)": "all nondegenerate sign-aware literal pairs co-occurring in S, enumerated in frozen canonical order by v2",
+    "SAFE_elim(S,x)": "exact eliminate_var_capped(S,x,N^2) returns a CNF and exact replay verifies it",
+    "SAFE_v2(S,a,b)": "the frozen exact B2 pair macro for (a,b), followed atomically by a roots_only exact capped elimination, is admitted and strictly decreases frozen progress phi"
+  },
+  "already_proved_polynomial_grammar_size": {
+    "ordinary_candidates": "|G_elim(S)| <= number of live variables <= N",
+    "v2_pair_types": "|G_v2(S)| <= 4*binom(n,2) = 2*n*(n-1) = O(N^2), because retained live-variable count never exceeds the original n<=N",
+    "consequence": "The root-phase candidate grammar itself is polynomial-size. The missing theorem is availability/totality, not enumeration size."
+  },
+  "main_candidate": {
+    "id": "L1_ROOT_PHASE_POLYNOMIAL_GRAMMAR_TOTALITY",
+    "statement": "For every reachable nonterminal root-phase state S of the fixed algorithm after the exact terminal portfolio has declined to decide, either there exists x in G_elim(S) with SAFE_elim(S,x), or there exists (a,b) in G_v2(S) with SAFE_v2(S,a,b).",
+    "equivalent_failure_witness": "A reachable root-phase state at the ordinary-elimination call site for which every canonical ordinary pivot overflows the fixed N^2 raw cap and frozen exhaustive v2 returns no exact strict-progress root rescue.",
+    "status": "OPEN_CENTRAL_ROOT_PHASE"
+  },
+  "strong_counting_subcandidate": {
+    "id": "L1A_ALL_PIVOT_OVERFLOW_FORCES_FREQUENT_PAIR",
+    "statement": "Every reachable root-phase state S with all ordinary pivots overflowing N^2 has max sign-aware literal-pair cooccurrence t_max >= s-2N+11.",
+    "why_useful": "Together with the already proved FREQUENT_PAIR_FORCES_V2_ROOT_RESCUE lemma, L1A would imply L1 in the all-pivot-overflow region.",
+    "status": "CANDIDATE_ONLY__MUST_BE_FALSIFIED_BEFORE_PROOF_ATTEMPT"
+  },
+  "weaker_density_subcandidate": {
+    "id": "L1B_ALL_PIVOT_OVERFLOW_FORCES_PAIR_DENSITY",
+    "statement": "Every reachable root-phase all-pivot-overflow state satisfies P >= 2*n*(n-1)*(s-2N+11), where P=sum_C binom(|C|,2).",
+    "status": "CANDIDATE_ONLY__STRONGER_THAN_NEEDED"
+  },
+  "known_reductions": {
+    "low_volume": "If s<=N, every live pivot fits N^2; therefore L1 is automatic there.",
+    "frequent_pair": "If t_max>=s-2N+11, frozen v2 rescue is guaranteed.",
+    "pair_density": "If P>=2*n*(n-1)*(s-2N+11), the frequent-pair condition follows by pigeonhole and v2 rescue is guaranteed.",
+    "unresolved_region": "roots live AND all ordinary pivots overflow N^2 AND the sufficient frequent-pair/density conditions do not trigger."
+  },
+  "falsification_protocol": {
+    "authority": "EXACT_REACHABILITY_UNDER_FIXED_A_ONLY",
+    "rule": "A state that is not reachable under the fixed deterministic theorem core cannot refute L1.",
+    "procedure": [
+      "Generate hostile canonical root CNFs without using SAT truth labels in selection.",
+      "Run exactly PIRC_DECISION_CORE_V0_4.",
+      "Instrument only the ordinary-elimination and v2 discovery call sites without changing their return values.",
+      "Freeze every reachable root-phase state where ordinary elimination returns None.",
+      "Measure t_max and P exactly on that frozen state.",
+      "Run the unmodified frozen v2 discovery on the same state.",
+      "If v2 also returns None, freeze the source CNF, state CNF, event prefix and exact measurements as an L1 counterexample.",
+      "If t_max<s-2N+11, reject L1A even when v2 succeeds by another mechanism.",
+      "If P<2*n*(n-1)*(s-2N+11), reject L1B even when v2 succeeds.",
+      "Absence of a bounded counterexample never promotes L1/L1A/L1B to a theorem."
+    ]
+  },
+  "proof_obligations_if_L1_survives": [
+    "Give a symbolic existence proof for at least one exact ordinary or v2 grammar move on every reachable root-phase state.",
+    "Show deterministic discovery and exact verification work remain polynomial in original N, including failed grammar candidates.",
+    "Compose L1 with the already proved O(N) outer-transition bound and PIRC input-relative envelope bridge.",
+    "Separately close the root-free v3 tail; L1 alone is insufficient for P2 universal preservation."
+  ],
+  "scientific_boundary": {
+    "finite_search_is_falsification_only": true,
+    "no_model_prediction_has_proof_authority": true,
+    "root_free_tail_remains_open": true,
+    "P2_REACHABLE_PRESERVATION_remains_open_until_symbolic_closure": true,
+    "P_VS_NP": "OPEN"
+  }
+}
