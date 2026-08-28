@@ -1,0 +1,78 @@
+name: run-c025-root-pivot-grammar-falsifier
+
+on:
+  push:
+    branches:
+      - research/c025-phase5-9-polynomial-pivot-grammar-2026-08-28
+    paths:
+      - 'research/C025_POLYNOMIAL_COMPLETE_PIVOT_GRAMMAR_ROOT_PHASE_SPEC_2026-08-28.json'
+      - 'experiments/theorem_extraction/c025_root_pivot_grammar_falsifier.py'
+      - '.github/workflows/run-c025-root-pivot-grammar-falsifier.yml'
+  workflow_dispatch:
+
+jobs:
+  falsify-root-grammar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Verify frozen theorem target boundary
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          p=Path('research/C025_POLYNOMIAL_COMPLETE_PIVOT_GRAMMAR_ROOT_PHASE_SPEC_2026-08-28.json')
+          d=json.loads(p.read_text())
+          assert d['status']=='THEOREM_TARGET_FROZEN__NOT_PROVED'
+          assert d['main_candidate']['status']=='OPEN_CENTRAL_ROOT_PHASE'
+          assert d['falsification_protocol']['authority']=='EXACT_REACHABILITY_UNDER_FIXED_A_ONLY'
+          assert d['scientific_boundary']['finite_search_is_falsification_only'] is True
+          assert d['P_VS_NP']=='OPEN'
+          print('ROOT_PIVOT_GRAMMAR_SPEC=FROZEN')
+          print('P_VS_NP=OPEN')
+          PY
+
+      - name: Run reachable-state candidate attack
+        run: |
+          python experiments/theorem_extraction/c025_root_pivot_grammar_falsifier.py \
+            --cases-per-rung 1 | tee root-pivot-grammar-falsifier.json
+
+      - name: Enforce fail-closed scientific interpretation
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          d=json.loads(Path('root-pivot-grammar-falsifier.json').read_text())
+          b=d['scientific_boundary']
+          assert b['bounded_finite_falsification_only'] is True
+          assert b['only_states_reachable_at_frozen_core_callsite_are_tested'] is True
+          assert b['instrumentation_does_not_change_transition_return_values'] is True
+          assert b['absence_of_counterexample_is_not_proof'] is True
+          assert b['models_or_heuristics_used_for_theorem_promotion'] is False
+          assert b['root_free_v3_tail_addressed'] is False
+          assert b['P2_REACHABLE_PRESERVATION']=='OPEN'
+          assert b['P_VS_NP']=='OPEN'
+          print('STATUS='+d['status'])
+          print('CASES='+str(d['cases_examined']))
+          print('ALL_PIVOT_OVERFLOW_REACHABLE='+str(d['ordinary_all_pivot_overflow_reachable_states']))
+          for cid,row in d['candidate_results'].items():
+              print(cid+'='+row['bounded_status'])
+              c=row.get('counterexample')
+              if c is not None:
+                  print(cid+'_FP='+c['reachable_state_fingerprint'])
+                  print(cid+'_S='+str(c['state_units']))
+                  print(cid+'_N='+str(c['N']))
+                  print(cid+'_TMAX='+str(c['max_pair_frequency']))
+                  print(cid+'_TREQ='+str(c['frequent_pair_threshold']))
+                  print(cid+'_V2='+str(c['v2_rescue_exists']))
+          print('P_VS_NP=OPEN')
+          PY
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: c025-root-pivot-grammar-falsifier
+          path: root-pivot-grammar-falsifier.json
