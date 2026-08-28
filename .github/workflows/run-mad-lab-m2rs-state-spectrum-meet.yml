@@ -1,0 +1,62 @@
+name: MAD-LAB M2R-S state-spectrum meet
+
+on:
+  push:
+    branches:
+      - research/janus-mad-lab-m2rs-state-spectrum-meet-2026-08-28
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  state-spectrum-meet:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Compile audit runner
+        run: python -m py_compile experiments/mad_lab/m2rs_state_spectrum_meet.py experiments/mad_lab/m2rs_tranception_meet.py
+
+      - name: Run theorem-safe state spectrum and prime stress
+        run: |
+          python -m experiments.mad_lab.m2rs_state_spectrum_meet \
+            --out artifacts/mad_lab/m2rs_state_spectrum_meet.json \
+            | tee /tmp/m2rs-state-spectrum.log
+
+      - name: Verify anti-self-deception invariants
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          p = json.loads(Path('artifacts/mad_lab/m2rs_state_spectrum_meet.json').read_text())
+          assert p['P_VS_NP'] == 'OPEN'
+          cur = p['current_door']
+          old = p['historic_descendant']
+          assert cur['direct_target']['B'] == 3433
+          assert cur['direct_target']['verdict'] == 'OPEN'
+          assert cur['theorem_verdict'] == 'OPEN_REPAIR_REQUIRED'
+          assert old['theorem_verdict'] == 'OPEN_REPAIR_REQUIRED'
+          assert not cur['anti_self_deception_gate']['pivot_availability_proved']
+          assert not old['anti_self_deception_gate']['pivot_availability_proved']
+          assert cur['meet']['exact_inverse_witness_replay']
+          assert old['meet']['exact_inverse_witness_replay']
+          for row in p['prime_stress_59_97']:
+              assert row['P_VS_NP'] == 'OPEN'
+              assert not row['theorem_credit_allowed']
+          print('ANTI_SELF_DECEPTION_GATE=PASS')
+          PY
+
+      - name: Upload JSON audit
+        uses: actions/upload-artifact@v4
+        with:
+          name: m2rs-state-spectrum-meet-audit
+          path: artifacts/mad_lab/m2rs_state_spectrum_meet.json
+          if-no-files-found: error
