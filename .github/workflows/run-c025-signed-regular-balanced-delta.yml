@@ -1,0 +1,85 @@
+name: run-c025-signed-regular-balanced-delta
+
+on:
+  push:
+    branches:
+      - research/c025-phase5-11-signed-regular-delta-2026-08-28
+    paths:
+      - 'research/C025_SIGNED_REGULAR_BALANCED_DELTA_ATTACK_SPEC_2026-08-28.json'
+      - 'experiments/theorem_extraction/c025_signed_regular_balanced_delta_attack.py'
+      - '.github/workflows/run-c025-signed-regular-balanced-delta.yml'
+  workflow_dispatch:
+
+jobs:
+  signed-regular-delta:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      PYTHONPATH: .
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Verify frozen signed-regular objective
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          d=json.loads(Path('research/C025_SIGNED_REGULAR_BALANCED_DELTA_ATTACK_SPEC_2026-08-28.json').read_text())
+          assert d['status']=='FROZEN_FALSIFICATION_OBJECTIVE__NOT_PROOF'
+          assert d['chassis']['exact_signed_regular_constraint'].startswith('for every leaf variable')
+          assert d['scientific_boundary']['signed_regular_constraint_is_preregistered_before_results'] is True
+          assert d['P_VS_NP']=='OPEN'
+          print('SIGNED_REGULAR_OBJECTIVE=FROZEN')
+          print('P_VS_NP=OPEN')
+          PY
+
+      - name: Run signed-regular JUXTAPOSE coverage
+        shell: bash
+        run: |
+          set -o pipefail
+          python experiments/theorem_extraction/c025_signed_regular_balanced_delta_attack.py \
+            --leaf-pool 1200 --pair-samples 120000 --seed 26082811 \
+            | tee c025-signed-regular-balanced-delta.json
+
+      - name: Enforce fail-closed interpretation
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          d=json.loads(Path('c025-signed-regular-balanced-delta.json').read_text())
+          b=d['scientific_boundary']
+          assert d['search']['predecessor_factorization_selftest']=='PASS'
+          assert d['search']['compact_feature_equivalence']=='PASS'
+          assert b['fixed_chassis_N_not_gamed'] is True
+          assert b['signed_regular_constraint_frozen_before_results'] is True
+          assert b['coverage_search_has_no_theorem_authority'] is True
+          assert b['final_refutation_requires_exact_frozen_core_reachability'] is True
+          assert b['absence_of_counterexample_is_not_proof'] is True
+          assert b['same_run_theorem_promotion'] is False
+          assert b['P2_REACHABLE_PRESERVATION']=='OPEN'
+          assert b['P_VS_NP']=='OPEN'
+          e=d['best_candidate']['evaluation']
+          print('STATUS='+d['status'])
+          print('DELTA='+str(e['delta']))
+          print('MIN_RAW='+str(e['min_raw_units']))
+          print('CAP='+str(e['cap']))
+          print('PAIR_MARGIN='+str(e['pair_rescue_margin']))
+          print('ALL_PIVOT_OVERFLOW='+str(e['all_pivot_overflow']))
+          print('L1='+d['candidate_results']['L1_ROOT_PHASE_POLYNOMIAL_GRAMMAR_TOTALITY'])
+          print('L1A='+d['candidate_results']['L1A_ALL_PIVOT_OVERFLOW_FORCES_FREQUENT_PAIR'])
+          print('L1B='+d['candidate_results']['L1B_ALL_PIVOT_OVERFLOW_FORCES_PAIR_DENSITY'])
+          r=d.get('exact_reachability_replay')
+          if r is not None:
+              print('TARGET_REACHED='+str(r['selector_reaches_target']))
+              print('TARGET_ALL_OVERFLOW='+str(r['all_ordinary_pivots_overflow_at_target']))
+              print('V2_RESCUE='+str(r['v2_rescue_exists']))
+          print('P_VS_NP=OPEN')
+          PY
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: c025-signed-regular-balanced-delta
+          path: c025-signed-regular-balanced-delta.json
