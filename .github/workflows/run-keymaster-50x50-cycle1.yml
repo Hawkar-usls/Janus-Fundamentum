@@ -1,0 +1,162 @@
+name: JANUS 50x50 Cycle1 JGPT Slime Keymaster PIPPI
+
+on:
+  push:
+    branches:
+      - research/janus-keymaster-calibration-pivot-slime-topa-2026-08-28
+    paths:
+      - 'experiments/mad_lab/keymaster_50x50_cycle1_teacher_slime.py'
+      - 'experiments/mad_lab/juxtapose_50x50_multiformula_corpus.py'
+      - 'experiments/mad_lab/pippi_attention_mirror_adapter.py'
+      - '.github/workflows/run-keymaster-50x50-cycle1.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  cycle1:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+        with:
+          repository: Hawkar-usls/TOPA
+          ref: 7cd9225d78c881093d0f767f0d17dc3e6e7c142f
+          path: _topa
+        continue-on-error: true
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Ensure PyTorch CPU
+        shell: bash
+        run: |
+          set -euo pipefail
+          if ! python -c 'import torch; print(torch.__version__)'; then
+            python -m pip install --disable-pip-version-check --index-url https://download.pytorch.org/whl/cpu torch==2.10.0
+          fi
+          python - <<'PY'
+          import torch
+          print('TORCH='+torch.__version__)
+          print('CUDA='+str(torch.cuda.is_available()))
+          PY
+
+      - name: Compile Cycle1 runners
+        run: |
+          python -m py_compile \
+            experiments/mad_lab/juxtapose_50x50_multiformula_corpus.py \
+            experiments/mad_lab/keymaster_50x50_cycle1_teacher_slime.py \
+            experiments/mad_lab/pippi_attention_mirror_adapter.py
+          python -m experiments.mad_lab.pippi_attention_mirror_adapter self-test
+
+      - name: Rebuild frozen-formula exact Cycle0 corpus
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p artifacts/50x50-cycle1
+          python -m experiments.mad_lab.juxtapose_50x50_multiformula_corpus \
+            --count 32 \
+            --train-count 24 \
+            --max-seed 5000 \
+            --json-out artifacts/50x50-cycle1/corpus.json \
+            | tee /tmp/50x50-cycle1-corpus.log
+
+      - name: Train JGPT derivative, distill Pivot-Slime, exact-score holdout
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m experiments.mad_lab.keymaster_50x50_cycle1_teacher_slime \
+            --corpus artifacts/50x50-cycle1/corpus.json \
+            --json-out artifacts/50x50-cycle1/cycle1.json \
+            --spider-edge-out artifacts/50x50-cycle1/spider_train_edge_state.jsonl \
+            | tee /tmp/50x50-cycle1-model.log
+
+      - name: Run canonical TOPA Spider attention ecology over train-only relations
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ ! -f _topa/tools/topa_spider_attention_ecosystem.py ]; then
+            git clone --depth 1 https://github.com/Hawkar-usls/TOPA.git _topa_fallback
+            TOPA_DIR=_topa_fallback
+          else
+            TOPA_DIR=_topa
+          fi
+          python "$TOPA_DIR/tools/topa_spider_attention_ecosystem.py" self-test
+          python "$TOPA_DIR/tools/topa_spider_attention_ecosystem.py" calibrate \
+            --edge-state artifacts/50x50-cycle1/spider_train_edge_state.jsonl \
+            --state artifacts/50x50-cycle1/attention-p1.jsonl \
+            --history artifacts/50x50-cycle1/attention-history.jsonl \
+            --receipt artifacts/50x50-cycle1/attention-receipt-p1.json \
+            --pass-id CYCLE1-TRAIN-FRESH \
+            --spiral-rings 3
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          src=Path('artifacts/50x50-cycle1/spider_train_edge_state.jsonl')
+          dst=Path('artifacts/50x50-cycle1/spider_train_edge_state_replay.jsonl')
+          rows=[]
+          for line in src.read_text().splitlines():
+              if not line.strip(): continue
+              r=json.loads(line); r['fresh_evidence_signature']=False; rows.append(r)
+          dst.write_text(''.join(json.dumps(r,sort_keys=True,separators=(',',':'))+'\n' for r in rows))
+          PY
+          python "$TOPA_DIR/tools/topa_spider_attention_ecosystem.py" calibrate \
+            --edge-state artifacts/50x50-cycle1/spider_train_edge_state_replay.jsonl \
+            --previous-attention artifacts/50x50-cycle1/attention-p1.jsonl \
+            --state artifacts/50x50-cycle1/attention-p2.jsonl \
+            --history artifacts/50x50-cycle1/attention-history.jsonl \
+            --receipt artifacts/50x50-cycle1/attention-receipt-p2.json \
+            --pass-id CYCLE1-TRAIN-REPLAY \
+            --spiral-rings 3
+
+      - name: Close PIPPI Mirror with Spider attention ecology
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m experiments.mad_lab.pippi_attention_mirror_adapter enrich \
+            --mirror artifacts/50x50-cycle1/cycle1.json \
+            --attention-state artifacts/50x50-cycle1/attention-p2.jsonl \
+            --out artifacts/50x50-cycle1/pippi_cycle1_mirror.json
+
+      - name: Scientific firewall and holdout assertions
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          p=json.loads(Path('artifacts/50x50-cycle1/cycle1.json').read_text())
+          m=json.loads(Path('artifacts/50x50-cycle1/pippi_cycle1_mirror.json').read_text())
+          a=json.loads(Path('artifacts/50x50-cycle1/attention-receipt-p2.json').read_text())
+          assert p['P_VS_NP']=='OPEN'
+          assert p['split']=={'model_train':18,'calibration':6,'holdout':8,'by_formula_fingerprint':True}
+          fw=p['feature_firewall']
+          assert fw['pivot_numeric_id_in_model_input'] is False
+          assert fw['exact_raw_units_in_model_input'] is False
+          assert fw['oracle_route_in_model_input'] is False
+          assert fw['safe_overflow_label_in_model_input'] is False
+          assert len(p['per_holdout_formula'])==8
+          for name,x in p['aggregate_exact_runtime'].items():
+              assert x['terminal_unsat_count']==8, name
+          assert p['keymaster_fusion']['TOPA_SPIDER_ATTENTION_IN_CURRENT_RANKING'] is False
+          assert p['PIPPI_DELTA1']['baseline']=='STATIC_NUMERIC_NEGATIVE_CONTROL'
+          assert p['student_int8_quantization']['tensor_count']>0
+          assert a['status']=='PASS'
+          assert 'ATTENTION_WEIGHT_IS_NOT_EVIDENCE_WEIGHT' in a['laws']
+          assert m['spider_attention_ecology']['P_VS_NP']=='OPEN'
+          assert m['scientific_firewall']['SPIDER_ATTENTION_IS_NOT_PROOF'] is True
+          assert p['scientific_firewall']['STATIC_NUMERIC_BASELINE_IS_A_NEGATIVE_CONTROL_NOT_A_UNIVERSAL_BASELINE'] is True
+          assert p['scientific_firewall']['P_VS_NP']=='OPEN'
+          print('CYCLE1_HOLDOUT_FIREWALL=PASS')
+          print('PIPPI_DELTA1='+json.dumps(p['PIPPI_DELTA1'],sort_keys=True))
+          print('KEYMASTER='+json.dumps(p['aggregate_exact_runtime']['KEYMASTER_FUSED'],sort_keys=True))
+          print('STATIC='+json.dumps(p['aggregate_exact_runtime']['STATIC_NUMERIC_NEGATIVE_CONTROL'],sort_keys=True))
+          print('P_VS_NP=OPEN')
+          PY
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: janus-50x50-cycle1-pippi
+          path: artifacts/50x50-cycle1
+          if-no-files-found: error
+          retention-days: 90
