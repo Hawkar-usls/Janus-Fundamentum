@@ -1,0 +1,98 @@
+name: validate-c025-roosters-v5-1-theorem-governance
+
+on:
+  push:
+    branches:
+      - research/c025-phase5-9-polynomial-pivot-grammar-2026-08-28
+    paths:
+      - 'research/C025_ROOSTERS_THEOREM_GOVERNANCE_V1_2_2026-08-28.json'
+      - 'experiments/theorem_extraction/c025_roosters_v5_1_governance_gate.py'
+      - '.github/workflows/validate-c025-roosters-v5-1-theorem-governance.yml'
+  workflow_dispatch:
+
+jobs:
+  governance-and-theorem-smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      PYTHONPATH: .
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Run executable ROOSTERS v5.1 governance gates
+        shell: bash
+        run: |
+          set -o pipefail
+          python experiments/theorem_extraction/c025_roosters_v5_1_governance_gate.py \
+            | tee roosters-v5-1-governance-stdout.json
+
+      - name: Run frozen-semantics theorem smoke
+        shell: bash
+        run: |
+          set -o pipefail
+          python experiments/theorem_extraction/c025_v2_gap_adversarial_search.py \
+            --leaf-nvars 10 --leaf-clauses 90 --leaf-width 4 --seed 39100 \
+            | tee c025-v2-gap-theorem-smoke.json
+
+      - name: Enforce integration firewall
+        shell: bash
+        run: |
+          set -o pipefail
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          g=json.loads(Path('roosters-v5-1-governance-receipt.json').read_text())
+          t=json.loads(Path('c025-v2-gap-theorem-smoke.json').read_text())
+
+          assert g['status']=='PASS'
+          assert g['gates_passed']==g['gates_total']==12
+          assert g['P_VS_NP']=='OPEN'
+
+          sb=t['scientific_boundary']
+          assert sb['fast_screen_has_theorem_authority'] is False
+          assert sb['original_reachability_required'] is True
+          assert sb['original_full_v2_none_required_to_refute_L1'] is True
+          assert sb['finite_rescue_does_not_prove_L1'] is True
+          assert sb['P_VS_NP']=='OPEN'
+
+          summary={
+            'schema':'JANUS/C025/ROOSTERS-v5.1-THEOREM-INTEGRATION-TEST/v1',
+            'status':'PASS',
+            'governance_gates':f"{g['gates_passed']}/{g['gates_total']} PASS",
+            'v5_1_source_sha256':g['source_sha256'],
+            'theorem_smoke_status':t['status'],
+            'N':t['source_meta']['N'],
+            'product_state_units':t['source_meta']['product_state_units'],
+            'ordinary_all_overflow':t['ordinary_pressure']['all_overflow'],
+            'reachable_at_frozen_ordinary_callsite':t['original_reachability_replay']['reachable_at_frozen_ordinary_callsite'],
+            'v2_screen':t['fast_v2_screen'],
+            'next_gate':t['next_gate'],
+            'semantic_firewall':{
+              'governance_changes_exact_transition':False,
+              'ranking_can_prune_frozen_grammar':False,
+              'partial_scope_can_claim_no_rescue':False,
+              'finite_nonrefutation_is_proof':False
+            },
+            'candidate_status':{
+              'L1':'OPEN',
+              'L1A':'REFUTED_PREVIOUSLY',
+              'L1B':'REFUTED_PREVIOUSLY',
+              'L1C':'REFUTED_BY_M80_EXACT_BOUND_NEGATIVE_CERTIFICATE'
+            },
+            'P_VS_NP':'OPEN'
+          }
+          Path('c025-roosters-v5-1-integration-test.json').write_text(json.dumps(summary,indent=2,sort_keys=True)+'\n')
+          print(json.dumps(summary,indent=2,sort_keys=True))
+          PY
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: c025-roosters-v5-1-theorem-integration-test
+          path: |
+            roosters-v5-1-governance-receipt.json
+            c025-v2-gap-theorem-smoke.json
+            c025-roosters-v5-1-integration-test.json
