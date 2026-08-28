@@ -1,0 +1,47 @@
+{
+  "schema": "JANUS/C025/ADVERSARIAL-DELTA-PAIR-SEARCH-SPEC/v1",
+  "date": "2026-08-28",
+  "status": "FALSIFICATION_TARGET_FROZEN__NOT_A_PROOF",
+  "fixed_algorithm": "PIRC_DECISION_CORE_V0_4",
+  "target_candidates": [
+    "L1_ROOT_PHASE_POLYNOMIAL_GRAMMAR_TOTALITY",
+    "L1A_ALL_PIVOT_OVERFLOW_FORCES_FREQUENT_PAIR",
+    "L1B_ALL_PIVOT_OVERFLOW_FORCES_PAIR_DENSITY"
+  ],
+  "objective": {
+    "primary": "maximize Delta(F)=min_v(U(exists v.F)-N^2) on states reachable at the frozen ordinary-elimination callsite",
+    "secondary": "minimize pair_margin=t_max-(s-2N+11)",
+    "tertiary": "minimize density_margin=P-2*n*(n-1)*(s-2N+11)",
+    "monster_target": [
+      "Delta(F)>0",
+      "pair_margin<0"
+    ]
+  },
+  "search_policy": {
+    "family": "DISJOINT_SELECTOR_PRODUCT",
+    "reason": "selector elimination creates a large exact reachable product state while the source remains compact",
+    "juxtapose": "evaluate multiple deterministic source clones across increasing leaf clause counts and independent seeds",
+    "theorem_promotion_authority": "NONE",
+    "candidate_ranking_only": true
+  },
+  "exactness": {
+    "U": "raw unique state units before optional subsumption, matching eliminate_var_capped cap semantics",
+    "overflow_witness": "for a pivot, exact streaming generation may stop immediately after raw units first exceed N^2; this proves final U>N^2",
+    "Delta_positive_gate": "every live pivot must independently cross N^2",
+    "reachability_gate": "final candidate must be replayed by unmodified PIRC_DECISION_CORE_V0_4 up to the exact ordinary-elimination callsite and match the candidate fingerprint"
+  },
+  "falsification_logic": {
+    "L1A_refuted_if": "reachable AND all pivots overflow AND max_pair_frequency < s-2N+11",
+    "L1B_refuted_if": "reachable AND all pivots overflow AND P < 2*n*(n-1)*(s-2N+11)",
+    "L1_requires_additional_gate": "after a reachable all-pivot-overflow state is found, frozen exhaustive v2 must also return no rescue; L1 is not refuted by L1A/L1B failure alone"
+  },
+  "scientific_boundary": {
+    "finite_search_is_falsification_only": true,
+    "absence_of_monster_is_not_proof": true,
+    "source_family_restriction_is_not_universal": true,
+    "models_or_heuristics_may_rank_candidates_but_not_promote_lemmas": true,
+    "P2_REACHABLE_PRESERVATION": "OPEN",
+    "P_VS_NP": "OPEN"
+  },
+  "P_VS_NP": "OPEN"
+}
