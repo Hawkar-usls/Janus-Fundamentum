@@ -1,0 +1,43 @@
+name: run-c025-m80-polarity-drainage
+on:
+  push:
+    branches:
+      - research/c025-phase5-9-polynomial-pivot-grammar-2026-08-28
+    paths:
+      - 'experiments/theorem_extraction/c025_m80_polarity_drainage_microscope.py'
+      - '.github/workflows/run-c025-m80-polarity-drainage.yml'
+  workflow_dispatch:
+jobs:
+  microscope:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      PYTHONPATH: .
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Run M80 drainage microscope
+        shell: bash
+        run: |
+          set -o pipefail
+          python experiments/theorem_extraction/c025_m80_polarity_drainage_microscope.py | tee m80-drainage.json
+      - name: Verify boundary
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          d=json.loads(Path('m80-drainage.json').read_text())
+          assert d['P_VS_NP']=='OPEN'
+          assert d['product_fingerprint']=='2e92d85f5c02976a9a5d6036dbc83d31f88236e6455c7e27f5f9224e8c02708e'
+          print('L1C_M80='+d['L1C_on_M80'])
+          print('QUALIFYING='+str(d['qualifying_drainage_count']))
+          print('FIRST='+str(d['first_qualifying_canonical']))
+          print('ACTUAL='+str(d['actual_v2']['pair'] if d['actual_v2'] else None))
+          print('P_VS_NP=OPEN')
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: c025-m80-polarity-drainage
+          path: m80-drainage.json
