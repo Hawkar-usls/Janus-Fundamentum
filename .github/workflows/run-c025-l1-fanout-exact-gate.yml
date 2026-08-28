@@ -1,0 +1,138 @@
+name: run-c025-l1-fanout-exact-gate
+
+on:
+  push:
+    branches:
+      - research/c025-phase5-9-polynomial-pivot-grammar-2026-08-28
+    paths:
+      - 'experiments/theorem_extraction/c025_l1_fanout_exact_gate.py'
+      - 'experiments/theorem_extraction/c025_l1_fanout_aggregate.py'
+      - '.github/workflows/run-c025-l1-fanout-exact-gate.yml'
+  workflow_dispatch:
+
+jobs:
+  reachability:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      PYTHONPATH: .
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Exact frozen callsite reachability
+        run: |
+          python experiments/theorem_extraction/c025_l1_fanout_exact_gate.py \
+            --mode reachability --out reachability.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: c025-l1-fanout-reachability
+          path: reachability.json
+
+  ordinary:
+    continue-on-error: true
+    strategy:
+      fail-fast: false
+      max-parallel: 8
+      matrix:
+        shard: [0, 1, 2, 3, 4, 5, 6, 7]
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      PYTHONPATH: .
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Exact ordinary pivot shard
+        run: |
+          python experiments/theorem_extraction/c025_l1_fanout_exact_gate.py \
+            --mode ordinary --shard-index ${{ matrix.shard }} --shard-count 8 \
+            --out ordinary-${{ matrix.shard }}.json
+      - if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: c025-l1-fanout-ordinary-${{ matrix.shard }}
+          path: ordinary-${{ matrix.shard }}.json
+          if-no-files-found: warn
+
+  v2:
+    continue-on-error: true
+    strategy:
+      fail-fast: false
+      max-parallel: 20
+      matrix:
+        shard: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19]
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      PYTHONPATH: .
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Exact original-v2 pair shard
+        run: |
+          python experiments/theorem_extraction/c025_l1_fanout_exact_gate.py \
+            --mode v2 --shard-index ${{ matrix.shard }} --shard-count 20 \
+            --out v2-${{ matrix.shard }}.json
+      - if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: c025-l1-fanout-v2-${{ matrix.shard }}
+          path: v2-${{ matrix.shard }}.json
+          if-no-files-found: warn
+
+  aggregate:
+    if: always()
+    needs: [reachability, ordinary, v2]
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      PYTHONPATH: .
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Download available receipts
+        uses: actions/download-artifact@v4
+        with:
+          pattern: c025-l1-fanout-*
+          path: receipts
+          merge-multiple: true
+      - name: Fail-closed aggregate
+        run: |
+          python experiments/theorem_extraction/c025_l1_fanout_aggregate.py \
+            --input-dir receipts --ordinary-shards 8 --v2-shards 20 \
+            --out c025-l1-fanout-aggregate.json
+      - name: Enforce boundary
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          d=json.loads(Path('c025-l1-fanout-aggregate.json').read_text())
+          assert d['P_VS_NP']=='OPEN'
+          assert d['scientific_boundary']['missing_scope_maps_to_UNKNOWN'] is True
+          if d['status']=='L1_ROOT_GRAMMAR_COUNTEREXAMPLE_FOUND':
+              assert d['reachability']['pass'] is True
+              assert d['Delta']['positive_exact'] is True
+              assert d['Gamma']['positive_exact'] is True
+              assert d['Gamma']['first_exact_rescue'] is None
+          elif d['status']=='EXACT_V2_RESCUE_FOUND__L1_SURVIVES_THIS_WITNESS':
+              assert d['Gamma']['first_exact_rescue'] is not None
+          else:
+              assert d['status']=='UNKNOWN_INCOMPLETE_OR_UNSATISFIED_SCOPE'
+          print('STATUS='+d['status'])
+          print('DELTA_POSITIVE='+str(d['Delta']['positive_exact']))
+          print('GAMMA_POSITIVE='+str(d['Gamma']['positive_exact']))
+          print('L1='+d['candidate_results']['L1_ROOT_PHASE_POLYNOMIAL_GRAMMAR_TOTALITY'])
+          print('P_VS_NP=OPEN')
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: c025-l1-fanout-exact-gate
+          path: c025-l1-fanout-aggregate.json
