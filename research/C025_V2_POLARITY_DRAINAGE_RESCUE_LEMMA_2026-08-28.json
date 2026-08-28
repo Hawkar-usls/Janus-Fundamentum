@@ -1,0 +1,54 @@
+{
+  "schema": "JANUS/C025/V2-POLARITY-DRAINAGE-RESCUE-LEMMA/v1",
+  "date": "2026-08-28",
+  "status": "PROVED_SUFFICIENT_LEMMA",
+  "P_VS_NP": "OPEN",
+  "scope": "One frozen exhaustive B2 OR-pair candidate followed by the frozen roots_only exact capped elimination in a reachable root-phase state.",
+  "definitions": {
+    "F": "current canonical root-phase CNF",
+    "N": "fixed normalized root input size units",
+    "s": "state_units(F)",
+    "n": "number of live variables in F",
+    "x": "a live original root variable",
+    "a": "one signed literal sigma*x",
+    "b": "a nondegenerate literal on another variable that co-occurs with a",
+    "t": "number of clauses containing both a and b",
+    "c_sigma": "number of clauses containing a",
+    "c_opp": "number of clauses containing -a",
+    "B_drain": "s - t + 10 + (n+1)*(c_sigma - t + 1)*(c_opp + 1)"
+  },
+  "lemma": {
+    "id": "B2_POLARITY_DRAINAGE_SUFFICIENT_ROOT_RESCUE",
+    "statement": "If B_drain <= N^2, then the frozen exhaustive v2 grammar has an admitted exact strict-progress root rescue at this state no later than candidate (a,b) in canonical pair order.",
+    "proof": [
+      "Frozen v2 deterministically enumerates every nondegenerate sign-aware literal pair that co-occurs in a live clause, so candidate (a,b) is eventually considered unless an earlier candidate already succeeds.",
+      "apply_or_pair_v2 replaces every clause containing both a and b by a clause in which both literals are absent and fresh -e is present, and adds exactly the three B2 definition clauses (-e,-a), (-e,-b), (e,a,b).",
+      "Every one of the t replaced clauses loses one literal relative to its source clause; the three definition clauses contribute 7 literal occurrences and 3 clauses. Before any extra canonical subsumption benefit, this gives state_units(macro) <= s - t + 10.",
+      "All t replaced clauses contained signed literal a. After replacement they contain neither a nor -a. Among the three definitions, exactly (e,a,b) contains a and exactly (-e,-a) contains -a. Canonical duplicate/subsumption reduction can only remove occurrences. Therefore the post-macro pivot incidences satisfy c_sigma' <= c_sigma - t + 1 and c_opp' <= c_opp + 1.",
+      "The macro introduces at most the one fresh extension e, so it has at most n+1 live variables. Eliminating root variable x leaves at most n live variables; every non-tautological canonical resolvent therefore has width at most n and contributes at most n+1 state units including its clause-count unit.",
+      "The exact resolution parent-pair count for x is at most c_sigma'*c_opp' <= (c_sigma-t+1)*(c_opp+1). Unique non-tautological resolvents cannot exceed the number of parent pairs.",
+      "The retained raw representation before adding resolvents is a subrepresentation of the macro CNF, hence its state units are <= state_units(macro). Consequently raw_units(eliminate x from macro) <= s-t+10 + (n+1)*(c_sigma-t+1)*(c_opp+1) = B_drain.",
+      "If B_drain<=N^2, the macro itself also fits the N^2 cap and the exact elimination of x cannot abort above N^2. The independent exact transition verifier therefore has a valid roots_only pivot available. first_capped_elimination may choose an earlier canonical live root pivot instead; that is already a root rescue, so discovery succeeds no later than x.",
+      "Frozen progress_phi gives every surviving original root variable a coefficient len(root_vars)+extension_cap+1, strictly larger than the possible one-variable change in ordinary live-variable count. A successful roots_only elimination removes an original root while B2 adds at most one non-root extension, hence after_phi < before_phi. Thus the frozen strict-progress gate passes.",
+      "Therefore the frozen candidate is an exact admitted v2 root rescue."
+    ]
+  },
+  "important_difference_from_frequent_pair_lemma": {
+    "old_sufficient_mechanism": "Require t >= s-2N+11 so the entire macro falls into the <=2N-1 corridor where some root pivot is guaranteed to fit.",
+    "new_sufficient_mechanism": "The macro may remain very large. It is enough that replacing t occurrences of one signed root literal makes that root variable's own post-macro resolution product fit the fixed N^2 cap.",
+    "relation": "Neither sufficient condition is claimed necessary."
+  },
+  "new_totality_candidate": {
+    "id": "L1C_ALL_PIVOT_OVERFLOW_FORCES_DRAINABLE_ROOT_PAIR",
+    "statement": "Every reachable root-phase state in which all ordinary pivots overflow N^2 contains some co-occurring pair (a,b), with a a signed literal of a live original root variable, satisfying B_drain(a,b)<=N^2.",
+    "status": "CANDIDATE_ONLY__MUST_BE_FALSIFIED",
+    "consequence_if_proved": "L1C plus B2_POLARITY_DRAINAGE_SUFFICIENT_ROOT_RESCUE implies L1_ROOT_PHASE_POLYNOMIAL_GRAMMAR_TOTALITY."
+  },
+  "scientific_boundary": {
+    "local_sufficient_lemma_is_symbolic": true,
+    "L1C_is_not_proved": true,
+    "L1_root_totality_is_not_proved": true,
+    "root_free_tail_is_not_addressed": true,
+    "P_VS_NP": "OPEN"
+  }
+}
