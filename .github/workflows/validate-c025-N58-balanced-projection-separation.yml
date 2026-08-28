@@ -1,0 +1,44 @@
+name: validate-c025-N58-balanced-projection-separation
+
+on:
+  push:
+    branches:
+      - research/c025-n58-regular-occupancy-2026-08-27
+    paths:
+      - 'research/C025_N58_BALANCED_PROJECTION_SEPARATION_2026-08-28.json'
+      - 'experiments/direct/janus_v05_abstract_frontier_N58_balanced_projection_separation.py'
+      - '.github/workflows/validate-c025-N58-balanced-projection-separation.yml'
+  pull_request:
+    paths:
+      - 'research/C025_N58_BALANCED_PROJECTION_SEPARATION_2026-08-28.json'
+      - 'experiments/direct/janus_v05_abstract_frontier_N58_balanced_projection_separation.py'
+      - '.github/workflows/validate-c025-N58-balanced-projection-separation.yml'
+
+jobs:
+  N58-balanced-projection-separation:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Execute unified balanced-projection replay
+        run: python -m experiments.direct.janus_v05_abstract_frontier_N58_balanced_projection_separation
+      - name: Verify theorem scope and claim ceiling
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          x=json.loads(Path('research/C025_N58_BALANCED_PROJECTION_SEPARATION_2026-08-28.json').read_text())
+          assert x['status']=='PROVED_BALANCED_21_TO_25_RAW_CAP_VIOLATION_IMPOSSIBLE'
+          assert x['conclusion']['actual_raw_units_ceiling']==3364
+          assert x['conclusion']['cap_safe_for_all_listed_splits'] is True
+          assert x['conclusion']['newly_closed_splits']==[[24,26],[25,25]]
+          assert x['runtime_change'] is False
+          assert x['theorem_runtime_heuristics']=='FORBIDDEN'
+          assert x['scientific_boundary']['full_N58_requires_replay'] is True
+          assert x['P_VS_NP']=='OPEN'
+          print('N58_BALANCED_THEOREM_SCOPE=PASS')
+          print('P_VS_NP=OPEN')
+          PY
