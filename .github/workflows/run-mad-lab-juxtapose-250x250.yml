@@ -22,15 +22,16 @@ jobs:
         with:
           python-version: '3.11'
 
-      - name: Compile exact scaling runner
+      - name: Compile exact scaling runners
         run: |
           python -m py_compile \
             experiments/mad_lab/juxtapose_250x250_exact.py \
+            experiments/mad_lab/juxtapose_250x250_exact_cached.py \
             experiments/direct/janus_unified_proof_carrying_akinator_jec.py
 
       - name: Run n7 obstruction plus n8 40320-order tournaments
         run: |
-          python -m experiments.mad_lab.juxtapose_250x250_exact \
+          python -m experiments.mad_lab.juxtapose_250x250_exact_cached \
             --json-out artifacts/mad_lab/juxtapose_250x250_exact.json \
             | tee /tmp/juxtapose-250x250.log
 
@@ -76,6 +77,9 @@ jobs:
           assert t105['champion']['order'] == [3,1,4,5,2,6,7,8]
           assert t105['champion']['peak_raw_units'] == 10787
           assert t105['champion']['terminal_step'] == 4
+          assert p['execution_cache']['unique_verified_transition_cache'] is True
+          assert p['execution_cache']['verification_reused_only_after_exact_success'] is True
+          assert p['execution_cache']['cache_changes_mathematical_verdict'] is False
           g = p['anti_self_deception_gate']
           assert g['forward_reachability_proved'] is False
           assert g['stress_N_values_are_not_claimed_reachable_root_sizes'] is True
