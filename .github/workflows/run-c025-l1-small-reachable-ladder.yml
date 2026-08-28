@@ -1,0 +1,88 @@
+name: run-c025-l1-small-reachable-ladder
+
+on:
+  push:
+    branches:
+      - research/c025-phase5-9-polynomial-pivot-grammar-2026-08-28
+    paths:
+      - 'experiments/theorem_extraction/c025_uniform_exact_checker_general.cpp'
+      - '.github/workflows/run-c025-l1-small-reachable-ladder.yml'
+  workflow_dispatch:
+
+jobs:
+  rung:
+    strategy:
+      fail-fast: false
+      max-parallel: 8
+      matrix:
+        m: [74, 76, 78, 80, 82, 84, 86, 88]
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      PYTHONPATH: .
+      M: ${{ matrix.m }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Build predeclared selector-product rung
+        shell: bash
+        run: |
+          python - <<'PY'
+          import json, os
+          from pathlib import Path
+          from experiments.direct import janus_unified_proof_carrying_akinator_jec as base
+          from experiments.theorem_extraction import c025_adversarial_delta_pair_search as adv
+          m=int(os.environ['M'])
+          source,left,right=adv.build_selector_source(8,m,4,29100)
+          product=adv.direct_selector_product(left,right)
+          N=base.input_size_units(source)
+          meta={
+            'family':'DISJOINT_SELECTOR_PRODUCT','leaf_nvars':8,'leaf_clauses':m,
+            'leaf_width':4,'seed':29100,'source_fingerprint':base.fingerprint(source),
+            'product_fingerprint':base.fingerprint(product),'N':N,'cap':N*N,
+            'product_units':base.state_units(product),'product_clauses':len(product)
+          }
+          Path('meta.json').write_text(json.dumps(meta,indent=2,sort_keys=True)+'\n')
+          Path('product.txt').write_text('\n'.join(' '.join(map(str,c)) for c in product)+'\n')
+          PY
+      - name: Compile generalized exact v2 checker
+        run: g++ -O3 -fopenmp -std=c++20 experiments/theorem_extraction/c025_uniform_exact_checker_general.cpp -o checker
+      - name: Exhaust exact frozen v2 grammar for rung
+        shell: bash
+        run: |
+          CAP=$(python -c "import json;print(json.load(open('meta.json'))['cap'])")
+          OMP_NUM_THREADS=4 ./checker product.txt "$CAP" 2 17 > v2.json
+          cat v2.json
+      - name: If v2 has no rescue, verify Delta and unmodified frozen callsite
+        shell: bash
+        run: |
+          python - <<'PY'
+          import json, os
+          from pathlib import Path
+          from experiments.direct import janus_unified_proof_carrying_akinator_jec as base
+          from experiments.theorem_extraction import c025_adversarial_delta_pair_search as adv
+          m=int(os.environ['M']); meta=json.load(open('meta.json')); v2=json.load(open('v2.json'))
+          report={'schema':'JANUS/C025/SMALL-REACHABLE-L1-KILL-LADDER/RUNG/v1','meta':meta,'v2':v2,'P_VS_NP':'OPEN'}
+          if v2['status']=='COMPLETE_NO_V2_RESCUE':
+              source,left,right=adv.build_selector_source(8,m,4,29100)
+              product=adv.direct_selector_product(left,right)
+              rows=[adv.raw_units_probe(product,v,meta['cap']) for v in base.vars_of(product)]
+              report['Delta']={
+                'all_overflow':all(r['overflow'] for r in rows),
+                'minimum_crossing_margin':min((int(r.get('delta_lower_bound',-10**18)) for r in rows),default=None),
+                'rows':rows
+              }
+              report['reachability']=adv.verify_reachable_callsite(source,product)
+              report['status']='FULL_COUNTEREXAMPLE_CANDIDATE' if report['Delta']['all_overflow'] and report['reachability']['reachable_at_frozen_ordinary_callsite'] else 'NO_RESCUE_BUT_OTHER_REQUIRED_GATE_FAILED_OR_FALSE'
+          else:
+              report['status']='V2_RESCUE_FOUND_ON_RUNG'
+          Path(f'rung-{m}.json').write_text(json.dumps(report,indent=2,sort_keys=True)+'\n')
+          print('STATUS='+report['status'])
+          if 'reachability' in report: print('REACHABLE='+str(report['reachability']['reachable_at_frozen_ordinary_callsite']))
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: c025-l1-small-rung-${{ matrix.m }}
+          path: rung-${{ matrix.m }}.json
