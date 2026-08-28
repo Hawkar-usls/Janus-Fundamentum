@@ -7,7 +7,9 @@ on:
     paths:
       - 'experiments/mad_lab/asymmetric_pq_track.py'
       - 'experiments/mad_lab/keymaster_adviser_governance_v2.py'
+      - 'experiments/mad_lab/keymaster_scalable_feature_tokens.py'
       - 'experiments/mad_lab/adaptive_pippi_gauntlet_v2.py'
+      - 'experiments/mad_lab/adaptive_pippi_gauntlet_v2_1.py'
       - '.github/workflows/run-pippi-ruthless-gauntlet-v2.yml'
   workflow_dispatch:
 
@@ -40,21 +42,24 @@ jobs:
           print('TORCH='+torch.__version__)
           print('CUDA='+str(torch.cuda.is_available()))
           PY
-      - name: Compile and self-test new track/governance/Spider
+      - name: Compile and self-test track governance scalable-features Spider
         run: |
           python -m py_compile \
             experiments/mad_lab/asymmetric_pq_track.py \
             experiments/mad_lab/keymaster_adviser_governance_v2.py \
-            experiments/mad_lab/adaptive_pippi_gauntlet_v2.py
+            experiments/mad_lab/keymaster_scalable_feature_tokens.py \
+            experiments/mad_lab/adaptive_pippi_gauntlet_v2.py \
+            experiments/mad_lab/adaptive_pippi_gauntlet_v2_1.py
           python -m experiments.mad_lab.asymmetric_pq_track --self-test
           python -m experiments.mad_lab.keymaster_adviser_governance_v2
+          python -m experiments.mad_lab.keymaster_scalable_feature_tokens
           python _topa/tools/topa_spider_attention_ecosystem.py self-test
       - name: Run ruthless +10:+10 / asymmetric-shock gauntlet
         shell: bash
         run: |
           set -euo pipefail
           mkdir -p artifacts/pippi-ruthless-gauntlet-v2
-          python -m experiments.mad_lab.adaptive_pippi_gauntlet_v2 \
+          python -m experiments.mad_lab.adaptive_pippi_gauntlet_v2_1 \
             --topa-dir _topa \
             --out-dir artifacts/pippi-ruthless-gauntlet-v2 \
             --base-formulas-per-stage 4 \
@@ -92,7 +97,7 @@ jobs:
           PY
       - uses: actions/upload-artifact@v4
         with:
-          name: janus-pippi-ruthless-gauntlet-v2
+          name: janus-pippi-ruthless-gauntlet-v2-1
           path: artifacts/pippi-ruthless-gauntlet-v2
           if-no-files-found: error
           retention-days: 90
