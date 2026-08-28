@@ -1,0 +1,66 @@
+name: run-c025-l1-independent-exact-checker
+
+on:
+  push:
+    branches:
+      - research/c025-phase5-9-polynomial-pivot-grammar-2026-08-28
+    paths:
+      - 'experiments/theorem_extraction/c025_l1_uniform_exact_checker.cpp'
+      - '.github/workflows/run-c025-l1-independent-exact-checker.yml'
+  workflow_dispatch:
+
+jobs:
+  exact-uniform-checker:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      PYTHONPATH: .
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Reconstruct frozen product exactly
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          from experiments.direct import janus_unified_proof_carrying_akinator_jec as base
+          from experiments.theorem_extraction import c025_adversarial_delta_pair_search as adv
+          source,left,right=adv.build_selector_source(10,90,4,39100)
+          product=adv.direct_selector_product(left,right)
+          assert base.fingerprint(source)=='bc07cfeb7d1ef62916d7319ed59edc8d2e4a92ce34881a13186d2c47991c66bc'
+          assert base.fingerprint(product)=='037cbc224816408ca1c76c65c9bb78ad660d3b612c40ef91d1ac76943c7c79c3'
+          assert base.input_size_units(source)==1102
+          assert base.state_units(product)==72901
+          Path('c025-product.txt').write_text('\n'.join(' '.join(map(str,c)) for c in product)+'\n')
+          PY
+      - name: Compile independent exact checker
+        run: g++ -O3 -fopenmp -std=c++20 experiments/theorem_extraction/c025_l1_uniform_exact_checker.cpp -o c025_l1_uniform_exact_checker
+      - name: Exhaust all 744 x 20 frozen v2 pair-root probes
+        shell: bash
+        run: |
+          set -o pipefail
+          OMP_NUM_THREADS=4 ./c025_l1_uniform_exact_checker c025-product.txt | tee c025-l1-independent-exact-checker.json
+      - name: Enforce finite exact boundary
+        shell: bash
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          d=json.loads(Path('c025-l1-independent-exact-checker.json').read_text())
+          assert d['candidate_pair_count']==744
+          assert d['root_pivot_count_per_pair']==20
+          assert d['P_VS_NP']=='OPEN'
+          if d['status']=='COMPLETE_NO_V2_RESCUE':
+              assert d['checked_pair_pivot_scope']==14880
+              assert d['rescue'] is None
+              assert d['minimum_observed_cap_margin']>0
+          else:
+              assert d['status']=='EXACT_V2_RESCUE_FOUND'
+              assert d['rescue'] is not None
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: c025-l1-independent-exact-checker
+          path: c025-l1-independent-exact-checker.json
