@@ -1,0 +1,49 @@
+name: Validate PIPPI Spider Attention Ecology
+
+on:
+  push:
+    branches:
+      - research/janus-keymaster-calibration-pivot-slime-topa-2026-08-28
+    paths:
+      - 'experiments/mad_lab/pippi_attention_mirror_adapter.py'
+      - 'data/keymaster/KEYMASTER_SLIME_M2R_TOPA_ARCHITECTURE_v1.4.json'
+      - '.github/workflows/validate-pippi-spider-attention-ecology.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Compile and self-test mirror adapter
+        run: |
+          python -m py_compile experiments/mad_lab/pippi_attention_mirror_adapter.py
+          python -m experiments.mad_lab.pippi_attention_mirror_adapter self-test
+      - name: Validate canonical v1.4 attention contract
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          a=json.loads(Path('data/keymaster/KEYMASTER_SLIME_M2R_TOPA_ARCHITECTURE_v1.4.json').read_text())
+          assert a['supersedes_for_architecture'].endswith('v1.3.json')
+          assert a['canonical_spider_attention_source']['engine']=='tools/topa_spider_attention_ecosystem.py'
+          assert a['canonical_spider_attention_source']['verified_live_run_id']==33149291935
+          assert a['canonical_spider_attention_source']['verified_live_conclusion']=='SUCCESS'
+          assert a['attention_ecology']['no_fixed_hypothesis_center'] is True
+          assert a['attention_ecology']['replay_saturation_and_fatigue'] is True
+          assert a['attention_ecology']['focus_may_migrate_or_die'] is True
+          assert a['pippi_binding']['attention_mirror_adapter']=='experiments/mad_lab/pippi_attention_mirror_adapter.py'
+          assert a['scientific_firewall']['ATTENTION_WEIGHT_IS_NOT_EVIDENCE_WEIGHT'] is True
+          assert a['scientific_firewall']['REPETITION_IS_NOT_NEW_EVIDENCE'] is True
+          assert a['scientific_firewall']['EXACT_JANUS_REPLAY_REMAINS_AUTHORITY'] is True
+          assert a['scientific_firewall']['P_VS_NP']=='OPEN'
+          print('PIPPI_SPIDER_ATTENTION_ECOLOGY=PASS')
+          print('PIPPI_MIRROR_CONSUMERS=PIVOT_SLIME+KEYMASTER')
+          print('P_VS_NP=OPEN')
+          PY
