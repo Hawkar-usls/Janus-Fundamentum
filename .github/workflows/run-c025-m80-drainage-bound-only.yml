@@ -1,0 +1,42 @@
+name: run-c025-m80-drainage-bound-only
+on:
+  push:
+    branches:
+      - research/c025-phase5-9-polynomial-pivot-grammar-2026-08-28
+    paths:
+      - 'experiments/theorem_extraction/c025_m80_drainage_bound_only.py'
+      - '.github/workflows/run-c025-m80-drainage-bound-only.yml'
+  workflow_dispatch:
+jobs:
+  bound-only:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      PYTHONPATH: .
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Test M80 drainage bound only
+        shell: bash
+        run: |
+          set -o pipefail
+          python experiments/theorem_extraction/c025_m80_drainage_bound_only.py | tee m80-drainage-bound.json
+      - name: Expose verdict
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          d=json.loads(Path('m80-drainage-bound.json').read_text())
+          assert d['scientific_boundary']['P_VS_NP']=='OPEN'
+          print('L1C_M80='+d['L1C_M80'])
+          print('QUALIFYING='+str(d['qualifying_count']))
+          print('BEST='+str(d['best'][0] if d['best'] else None))
+          print('ACTUAL_V2_PAIR_BOUND='+str(d['actual_v2_pair_2_4_pivot_2_rows']))
+          print('P_VS_NP=OPEN')
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: c025-m80-drainage-bound-only
+          path: m80-drainage-bound.json
