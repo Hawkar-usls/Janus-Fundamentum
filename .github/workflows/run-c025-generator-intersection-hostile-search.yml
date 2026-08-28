@@ -1,0 +1,77 @@
+name: run-c025-generator-intersection-hostile-search
+
+on:
+  push:
+    branches:
+      - research/c025-phase5-15-generator-intersection-2026-08-28
+    paths:
+      - 'research/C025_GENERATOR_INTERSECTION_MASS_PIGEONHOLE_LEMMA_2026-08-28.json'
+      - 'research/C025_SELECTOR_PRODUCT_GENERATOR_INTERSECTION_FACTORIZATION_2026-08-28.json'
+      - 'experiments/theorem_extraction/c025_generator_intersection_hostile_search.py'
+      - '.github/workflows/run-c025-generator-intersection-hostile-search.yml'
+  workflow_dispatch:
+
+jobs:
+  generator-intersection-hostile:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      PYTHONPATH: .
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Verify theorem/search boundary
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          a=json.loads(Path('research/C025_GENERATOR_INTERSECTION_MASS_PIGEONHOLE_LEMMA_2026-08-28.json').read_text())
+          b=json.loads(Path('research/C025_SELECTOR_PRODUCT_GENERATOR_INTERSECTION_FACTORIZATION_2026-08-28.json').read_text())
+          assert a['status']=='PROVED_COUNTING_LEMMA__RESCUE_EXISTENCE_OPEN'
+          assert a['scientific_boundary']['does_not_prove_L1C'] is True
+          assert b['status']=='PROVED_FAMILY_SPECIFIC_EXACT_FACTORIZATION__SEARCH_ACCELERATOR_ONLY'
+          assert b['scientific_boundary']['family_specific_not_universal'] is True
+          assert a['P_VS_NP']=='OPEN' and b['P_VS_NP']=='OPEN'
+          print('GENERATOR_INTERSECTION_BOUNDARY=FROZEN')
+          PY
+      - name: Run generator-intersection hostile JUXTAPOSE search
+        shell: bash
+        run: |
+          set -o pipefail
+          python experiments/theorem_extraction/c025_generator_intersection_hostile_search.py \
+            --beam-width 5 --steps 8 \
+            | tee c025-generator-intersection-hostile-search.json
+      - name: Enforce fail-closed interpretation
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          d=json.loads(Path('c025-generator-intersection-hostile-search.json').read_text())
+          s=d['search']; b=d['scientific_boundary']; e=d['best_candidate']['evaluation']; g=d['best_candidate']['generator_landscape']
+          assert s['factorization_brute_product_selftest']=='PASS'
+          assert b['selector_product_factorization_is_family_specific'] is True
+          assert b['generator_intersection_search_score_has_no_theorem_authority'] is True
+          assert b['final_v2_evaluation_is_exact'] is True
+          assert b['final_L1_refutation_requires_full_frozen_core_reachability'] is True
+          assert b['absence_of_denial_is_not_L1_or_L1C_proof'] is True
+          assert b['P2_REACHABLE_PRESERVATION']=='OPEN'
+          assert b['P_VS_NP']=='OPEN'
+          print('STATUS='+d['status'])
+          print('DELTA='+str(e['delta']))
+          print('ALL_OVERFLOW='+str(e['all_pivot_overflow']))
+          print('MIN_EMPTY_MASS='+str(g['min_empty_mass']))
+          print('MEAN_EMPTY_MASS='+str(g['mean_empty_mass']))
+          print('MAX_FACTORABLE_MASS='+str(g['max_factorable_mass']))
+          v=d['best_candidate']['v2']
+          print('V2_RESCUE='+str(v['rescue_exists'] if v else None))
+          print('V2_SLACK='+str(v['rescue_slack'] if v else None))
+          print('L1='+d['candidate_results']['L1_ROOT_PHASE_POLYNOMIAL_GRAMMAR_TOTALITY'])
+          print('L1C='+d['candidate_results']['L1C_PIVOT_INVOLVING_POSITIVE_RELIEF_EXISTS'])
+          print('P_VS_NP=OPEN')
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: c025-generator-intersection-hostile-search
+          path: c025-generator-intersection-hostile-search.json
