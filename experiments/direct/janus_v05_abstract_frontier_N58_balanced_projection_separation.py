@@ -101,9 +101,9 @@ def enhanced_rescue(n: int, m: int, L: int, d: int, p: int, q: int):
     if key == TARGET_24:
         # Unified balanced-projection theorem caps the coupled raw total.
         # Keep independent inherited M/L ceilings unchanged.
-        return CAP, 652, 2772, 624, 158, 0
+        return CAP, 652, 2772, 624, 162, 0
     if key == TARGET_25:
-        return CAP, 653, 2775, 625, 160, 0
+        return CAP, 653, 2775, 625, 163, 0
     return base
 
 
