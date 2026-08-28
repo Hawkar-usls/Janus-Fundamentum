@@ -1,0 +1,87 @@
+name: MAD-LAB JUXTAPOSE Keymaster exhaustive pivot tournament
+
+on:
+  push:
+    branches:
+      - research/janus-mad-lab-juxtapose-keymaster-2026-08-28
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  juxtapose-keymaster:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Compile exact tournament
+        run: |
+          python -m py_compile \
+            experiments/mad_lab/juxtapose_keymaster_all_pivot_orders.py \
+            experiments/mad_lab/m2rs_four_front_janus_canonical_core.py \
+            experiments/direct/janus_unified_proof_carrying_akinator_jec.py
+
+      - name: Run all 5040 JUXTAPOSE activation orders
+        run: |
+          python -m experiments.mad_lab.juxtapose_keymaster_all_pivot_orders \
+            --json-out artifacts/mad_lab/juxtapose_keymaster_all_pivot_orders.json \
+            | tee /tmp/juxtapose-keymaster.log
+
+      - name: Verify exhaustive anti-self-deception gates
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          p = json.loads(Path('artifacts/mad_lab/juxtapose_keymaster_all_pivot_orders.json').read_text())
+          assert p['name'] == 'JUXTAPOSE'
+          assert p['P_VS_NP'] == 'OPEN'
+          assert p['pivot_protocol']['prepositioned_pivots'] == [1,2,3,4,5,6,7]
+          assert p['pivot_protocol']['activation_is_sequential'] is True
+          assert p['pivot_protocol']['simultaneous_elimination_claimed'] is False
+          assert p['pivot_protocol']['permutations'] == 5040
+          assert p['pivot_protocol']['no_order_pruning'] is True
+          k = p['keymaster']
+          assert k['role'] == 'OFFLINE_DETERMINISTIC_PVP_SCOREBOARD_ONLY'
+          assert k['historical_random_exploration_disabled'] is True
+          assert k['tachyon_prediction_disabled'] is True
+          assert k['learned_strategy_pruning_disabled'] is True
+          assert k['theorem_authority'] is False
+          t = p['tournament']
+          assert t['orders_expected'] == 5040
+          assert t['orders_replayed'] == 5040
+          assert t['all_orders_unique'] is True
+          assert t['all_orders_exhaustive'] is True
+          assert len(t['all_order_summaries']) == 5040
+          assert t['safe_order_count'] + t['overflow_order_count'] == 5040
+          assert p['result']['best_peak_raw_units'] <= p['result']['worst_peak_raw_units']
+          g = p['anti_self_deception_gate']
+          assert g['all_5040_orders_replayed'] is True
+          assert g['forward_reachability_proved'] is False
+          assert g['universal_order_availability_proved'] is False
+          assert g['keymaster_can_change_truth'] is False
+          assert g['same_run_lemma_promotion'] is False
+          assert g['theorem_credit_allowed'] is False
+          assert g['P_VS_NP'] == 'OPEN'
+          print('JUXTAPOSE_ORDERS=' + str(t['orders_replayed']))
+          print('JUXTAPOSE_SAFE=' + str(t['safe_order_count']))
+          print('JUXTAPOSE_BEST=' + '-'.join(map(str,p['result']['best_order'])))
+          print('JUXTAPOSE_BEST_PEAK=' + str(p['result']['best_peak_raw_units']))
+          print('JUXTAPOSE_WORST=' + '-'.join(map(str,p['result']['worst_order'])))
+          print('JUXTAPOSE_WORST_PEAK=' + str(p['result']['worst_peak_raw_units']))
+          print('P_VS_NP=OPEN')
+          PY
+
+      - name: Upload JUXTAPOSE audit
+        uses: actions/upload-artifact@v4
+        with:
+          name: juxtapose-keymaster-all-pivot-orders-audit
+          path: artifacts/mad_lab/juxtapose_keymaster_all_pivot_orders.json
+          if-no-files-found: error
