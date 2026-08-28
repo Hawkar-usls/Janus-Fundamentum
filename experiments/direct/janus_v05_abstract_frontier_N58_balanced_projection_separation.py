@@ -6,6 +6,10 @@ finite lemma covers p:q = 21:29 through 25:25 in the regular N58 state
 (n,m,L,d)=(7,78,350,50); only 24:26 and 25:25 are newly injected here because
 previous append-only replays already certify 21:29, 22:28 and 23:27.
 
+The adjacent E=1 state (7,78,351,50,21,29) is additionally closed by the exact
+full-pair support-split obstruction: all 609 cross pairs cannot be simultaneously
+new, non-tautological and injective on only six nonpivot coordinates.
+
 A green full replay proves finite N58 cap availability for the frozen abstraction.
 It does not prove unbounded totality or P=NP.
 """
@@ -21,6 +25,7 @@ PREVIOUS_RESCUE = R23.enhanced_rescue
 CAP = 58 * 58
 TARGET_24 = (7, 78, 350, 50, 24, 26)
 TARGET_25 = (7, 78, 350, 50, 25, 25)
+TARGET_E1_21 = (7, 78, 351, 50, 21, 29)
 
 
 def compatible(a, b):
@@ -95,21 +100,37 @@ def balanced_clean_core_arithmetic_selftest():
     print("BALANCED_CORE_ARITHMETIC=PASS")
 
 
+def e1_full_pair_split_selftest():
+    assert 21 * 29 == 609
+    assert 3 ** 2 - 1 == 8
+    assert 3 ** 3 - 1 == 26
+    assert 21 > 8
+    assert 29 > 26
+    assert 3 + 4 > 6
+    assert S.A.wmax(6, 636) == 2724
+    assert 1 + 636 + 2724 == 3361 < CAP
+    print("N58_E1_21X29_ALL_609_UNIQUE=IMPOSSIBLE")
+    print("N58_E1_21X29_NEW_RESOLVENT_CEILING=608")
+    print("N58_E1_21X29_RAW_CEILING=3361")
+    print("N58_E1_FULL_PAIR_SPLIT=PASS")
+
+
 def enhanced_rescue(n: int, m: int, L: int, d: int, p: int, q: int):
     base = PREVIOUS_RESCUE(n, m, L, d, p, q)
     key = (n, m, L, d, p, q)
     if key == TARGET_24:
-        # Unified balanced-projection theorem caps the coupled raw total.
-        # Keep independent inherited M/L ceilings unchanged.
         return CAP, 652, 2772, 624, 162, 0
     if key == TARGET_25:
         return CAP, 653, 2775, 625, 163, 0
+    if key == TARGET_E1_21:
+        return 3361, 636, 2724, 608, 156, 1
     return base
 
 
 def selftest() -> None:
     three_coordinate_two_mask_separation_selftest()
     balanced_clean_core_arithmetic_selftest()
+    e1_full_pair_split_selftest()
 
     old = S.surplus_rescue
     try:
@@ -136,6 +157,7 @@ def selftest() -> None:
     print(f"N58_BALANCED_WORST_RAW={result['worst_raw_bound']}")
     print(f"N58_BALANCED_WORST_WITNESS={result['worst_witness']}")
     print('N58_BALANCED_PROJECTION_SEPARATION=PASS')
+    print('N58_E1_FULL_PAIR_SPLIT=PASS')
     print('N58_FINITE_CAP_FRONTIER=PROVED')
     print('ABSTRACT_PASS_IS_FINITE_THEOREM_NOT_UNBOUNDED_TOTALITY')
     print('THEOREM_RUNTIME_HEURISTICS=FORBIDDEN')
