@@ -1,0 +1,57 @@
+name: run-c025-v2-junction-relief-microscope-fast
+
+on:
+  push:
+    branches:
+      - research/c025-phase5-13-v2-junction-relief-2026-08-28
+    paths:
+      - 'experiments/theorem_extraction/c025_v2_junction_relief_microscope_fast.py'
+      - '.github/workflows/run-c025-v2-junction-relief-microscope-fast.yml'
+  workflow_dispatch:
+
+jobs:
+  junction-relief-fast:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      PYTHONPATH: .
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Run optimized exact raw-relief microscope
+        shell: bash
+        run: |
+          set -o pipefail
+          python experiments/theorem_extraction/c025_v2_junction_relief_microscope_fast.py \
+            | tee c025-v2-junction-relief-microscope-fast.json
+      - name: Enforce exact scientific boundary
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          d=json.loads(Path('c025-v2-junction-relief-microscope-fast.json').read_text())
+          assert d['status']=='EXACT_WITNESS_RELIEF_DECOMPOSED'
+          assert d['parent_pair_relief_identity']['status']=='PASS'
+          b=d['scientific_boundary']
+          assert b['same_scientific_measurement_as_slow_microscope'] is True
+          assert b['only_irrelevant_post_subsumption_cost_removed'] is True
+          assert b['finite_observation_is_not_totality_proof'] is True
+          assert b['L1A']=='REFUTED' and b['L1B']=='REFUTED' and b['L1']=='OPEN'
+          assert b['P2_REACHABLE_PRESERVATION']=='OPEN' and b['P_VS_NP']=='OPEN'
+          w=d['winning_root_relief']
+          print('PAIR_FREQUENCY='+str(d['winning_pair_frequency']))
+          print('OLD_THRESHOLD='+str(d['old_frequent_pair_sufficient_threshold']))
+          print('PARENT_PAIR_RELIEF='+str(d['parent_pair_relief_identity']['observed_parent_pair_relief']))
+          print('RAW_RELIEF='+str(w['junction_relief']))
+          print('RETAINED_DELTA='+str(w['retained_units_delta']))
+          print('UNIQUE_NEW_RESOLVENT_DELTA='+str(w['unique_new_resolvent_units_delta']))
+          print('POST_CAP_MARGIN='+str(w['post_cap_margin']))
+          print('RESTORED_ROOTS='+str(d['roots_restored_under_cap_by_same_macro']))
+          print('P_VS_NP=OPEN')
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: c025-v2-junction-relief-microscope-fast
+          path: c025-v2-junction-relief-microscope-fast.json
