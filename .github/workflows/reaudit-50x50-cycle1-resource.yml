@@ -58,12 +58,15 @@ jobs:
           import json
           from pathlib import Path
           r=json.loads(Path('artifacts/reaudit/pippi_resource_reaudit.json').read_text())
-          assert r['status']=='PASS__RESOURCE_UNITS_SEPARATED'
+          assert r['status']=='PASS__CROSS_FORMULA_CACHE_REUSE_ACCOUNTED'
           assert r['P_VS_NP']=='OPEN'
           imp=r['implemented_cached_generator']
           cf=r['route_equivalent_counterfactual']
           assert imp['unique_transition_computations']==11560
+          assert imp['cross_formula_cache_reuse_enabled'] is True
+          assert imp['actual_unique_transition_pair_work']==3297784
           assert imp['actual_unique_transition_pair_work'] < cf['exhaustive_pair_work']
+          assert r['pair_work_accounting_horizon']['PAIR_WORK_RESOURCE_POSITIVE'] is False
           assert r['global_resource_statement']['GLOBAL_RESOURCE_POSITIVE']=='UNKNOWN'
           assert r['separate_model_training_resource']['pair_work_conversion_declared'] is False
           assert r['firewall']['DO_NOT_ADD_PAIR_WORK_AND_SECONDS'] is True
