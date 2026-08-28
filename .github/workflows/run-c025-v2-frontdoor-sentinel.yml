@@ -1,0 +1,66 @@
+name: run-c025-v2-frontdoor-sentinel
+
+on:
+  push:
+    branches:
+      - research/c025-phase5-9-polynomial-pivot-grammar-2026-08-28
+    paths:
+      - 'experiments/theorem_extraction/c025_v2_frontdoor_sentinel.py'
+      - '.github/workflows/run-c025-v2-frontdoor-sentinel.yml'
+  workflow_dispatch:
+
+jobs:
+  sentinel:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - id: n10-m90
+            n: 10
+            m: 90
+            seed: 39100
+          - id: n12-m108
+            n: 12
+            m: 108
+            seed: 49100
+          - id: n14-m126
+            n: 14
+            m: 126
+            seed: 59100
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      PYTHONPATH: .
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Run first-eight-pair sentinel
+        shell: bash
+        run: |
+          set -o pipefail
+          python experiments/theorem_extraction/c025_v2_frontdoor_sentinel.py \
+            --leaf-nvars ${{ matrix.n }} --leaf-clauses ${{ matrix.m }} --leaf-width 4 \
+            --seed ${{ matrix.seed }} --first-k 8 | tee sentinel-${{ matrix.id }}.json
+      - name: Expose sentinel
+        run: |
+          python - <<'PY'
+          import json,glob
+          d=json.load(open(glob.glob('sentinel-*.json')[0]))
+          assert d['scientific_boundary']['ranking_only'] is True
+          assert d['scientific_boundary']['P_VS_NP']=='OPEN'
+          print('STATUS='+d['status'])
+          print('N='+str(d['source_meta']['N']))
+          print('PAIR_COUNT='+str(d['source_meta']['pair_count']))
+          print('PROBES='+str(d['root_probes']))
+          if d['rescue']:
+              print('RESCUE_PAIR='+str(d['rescue']['pair']))
+              print('RESCUE_PIVOT='+str(d['rescue']['pivot']))
+              print('RESCUE_RAW='+str(d['rescue']['raw_units']))
+          print('P_VS_NP=OPEN')
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: c025-v2-frontdoor-${{ matrix.id }}
+          path: sentinel-${{ matrix.id }}.json
