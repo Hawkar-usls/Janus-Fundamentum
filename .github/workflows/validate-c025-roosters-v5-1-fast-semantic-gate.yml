@@ -1,0 +1,32 @@
+name: validate-c025-roosters-v5-1-fast-semantic-gate
+
+on:
+  push:
+    branches:
+      - research/c025-phase5-9-polynomial-pivot-grammar-2026-08-28
+    paths:
+      - 'experiments/theorem_extraction/c025_roosters_v5_1_fast_semantic_gate.py'
+      - '.github/workflows/validate-c025-roosters-v5-1-fast-semantic-gate.yml'
+  workflow_dispatch:
+
+jobs:
+  fast-semantic-gate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      PYTHONPATH: .
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Run fast exact semantic integration gate
+        shell: bash
+        run: |
+          set -o pipefail
+          python experiments/theorem_extraction/c025_roosters_v5_1_fast_semantic_gate.py \
+            | tee c025-roosters-v5-1-fast-semantic-stdout.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: c025-roosters-v5-1-fast-semantic-gate
+          path: c025-roosters-v5-1-fast-semantic-gate.json
