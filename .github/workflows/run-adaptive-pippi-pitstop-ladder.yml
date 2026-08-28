@@ -1,0 +1,93 @@
+name: JANUS PIPPI Adaptive Pit-Stop Ladder
+
+on:
+  push:
+    branches:
+      - research/janus-keymaster-calibration-pivot-slime-topa-2026-08-28
+    paths:
+      - 'experiments/mad_lab/adaptive_pippi_pitstop_ladder.py'
+      - 'experiments/mad_lab/adaptive_xor_track_probe.py'
+      - '.github/workflows/run-adaptive-pippi-pitstop-ladder.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  adaptive-race:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+        with:
+          repository: Hawkar-usls/TOPA
+          ref: 7cd9225d78c881093d8f00df33124d5dba1e8c90
+          path: _topa
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Ensure PyTorch CPU
+        shell: bash
+        run: |
+          set -euo pipefail
+          if ! python -c 'import torch; print(torch.__version__)'; then
+            python -m pip install --disable-pip-version-check --index-url https://download.pytorch.org/whl/cpu torch==2.10.0
+          fi
+          python - <<'PY'
+          import torch
+          print('TORCH='+torch.__version__)
+          print('CUDA='+str(torch.cuda.is_available()))
+          PY
+      - name: Compile and Spider self-test
+        run: |
+          python -m py_compile \
+            experiments/mad_lab/adaptive_xor_track_probe.py \
+            experiments/mad_lab/adaptive_pippi_pitstop_ladder.py
+          python _topa/tools/topa_spider_attention_ecosystem.py self-test
+      - name: Race 1:1 upward with PIPPI pit-stops
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p artifacts/pippi-adaptive-race
+          python -m experiments.mad_lab.adaptive_pippi_pitstop_ladder \
+            --topa-dir _topa \
+            --out-dir artifacts/pippi-adaptive-race \
+            --max-d 32 \
+            --formulas-per-stage 6 \
+            --max-stages 64 \
+            --time-budget-seconds 780 \
+            --recovery-margin 3.0 \
+            | tee /tmp/pippi-adaptive-race.log
+      - name: Scientific firewall
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          p=json.loads(Path('artifacts/pippi-adaptive-race/adaptive-race-result.json').read_text())
+          assert p['status']=='ADAPTIVE_RACE_COMPLETE__EXACT_TRANSITIONS_VERIFIED'
+          assert p['P_VS_NP']=='OPEN'
+          assert p['scope']['exact_2sat_shortcut_used_for_race_runtime'] is False
+          assert p['scope']['general_sat_hardness_claim'] is False
+          assert p['rules']['pitstop_before_every_next_stage'] is True
+          assert p['rules']['recovery_margin_points']==3.0
+          fw=p['scientific_firewall']
+          assert fw['FRESH_STAGE_SCORED_BEFORE_LEARNING_FROM_IT'] is True
+          assert fw['ROLLBACK_USES_FRESH_FINGERPRINTS'] is True
+          assert fw['PIVOT_NUMERIC_ID_IS_NOT_MODEL_FEATURE'] is True
+          assert fw['ATTENTION_WEIGHT_IS_NOT_EVIDENCE_WEIGHT'] is True
+          assert fw['MODEL_PREDICTION_IS_NOT_PROOF'] is True
+          assert fw['EVERY_ACCEPTED_TRANSITION_EXACT_VERIFIED'] is True
+          assert fw['P_VS_NP']=='OPEN'
+          assert p['stages_completed']>=3
+          print('PIPPI_ADAPTIVE_RACE_FIREWALL=PASS')
+          print('FRONTIER='+str(p['frontier']))
+          print('STOP_REASON='+p['stop_reason'])
+          print('P_VS_NP=OPEN')
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: janus-pippi-adaptive-pitstop-race
+          path: artifacts/pippi-adaptive-race
+          if-no-files-found: error
+          retention-days: 90
