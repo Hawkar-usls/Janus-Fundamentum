@@ -7,6 +7,7 @@ on:
     paths:
       - 'experiments/mad_lab/adaptive_pippi_pitstop_ladder.py'
       - 'experiments/mad_lab/adaptive_pippi_pitstop_ladder_v1_1.py'
+      - 'experiments/mad_lab/adaptive_pippi_pitstop_ladder_v1_2.py'
       - 'experiments/mad_lab/adaptive_xor_track_probe.py'
       - '.github/workflows/run-adaptive-pippi-pitstop-ladder.yml'
   workflow_dispatch:
@@ -45,21 +46,23 @@ jobs:
           python -m py_compile \
             experiments/mad_lab/adaptive_xor_track_probe.py \
             experiments/mad_lab/adaptive_pippi_pitstop_ladder.py \
-            experiments/mad_lab/adaptive_pippi_pitstop_ladder_v1_1.py
+            experiments/mad_lab/adaptive_pippi_pitstop_ladder_v1_1.py \
+            experiments/mad_lab/adaptive_pippi_pitstop_ladder_v1_2.py
           python _topa/tools/topa_spider_attention_ecosystem.py self-test
-      - name: Race 1:1 upward with PIPPI pit-stops
+      - name: Race 1:1 upward with PIPPI pit-stops and floor endurance
         shell: bash
         run: |
           set -euo pipefail
           mkdir -p artifacts/pippi-adaptive-race
-          python -m experiments.mad_lab.adaptive_pippi_pitstop_ladder_v1_1 \
+          python -m experiments.mad_lab.adaptive_pippi_pitstop_ladder_v1_2 \
             --topa-dir _topa \
             --out-dir artifacts/pippi-adaptive-race \
             --max-d 32 \
             --formulas-per-stage 6 \
-            --max-stages 64 \
+            --max-stages 72 \
             --time-budget-seconds 780 \
             --recovery-margin 3.0 \
+            --max-floor-recovery-laps 4 \
             | tee /tmp/pippi-adaptive-race.log
       - name: Scientific firewall
         run: |
@@ -73,6 +76,7 @@ jobs:
           assert p['scope']['general_sat_hardness_claim'] is False
           assert p['rules']['pitstop_before_every_next_stage'] is True
           assert p['rules']['recovery_margin_points']==3.0
+          assert p['rules']['max_floor_recovery_laps']==4
           fw=p['scientific_firewall']
           assert fw['FRESH_STAGE_SCORED_BEFORE_LEARNING_FROM_IT'] is True
           assert fw['ROLLBACK_USES_FRESH_FINGERPRINTS'] is True
@@ -81,15 +85,16 @@ jobs:
           assert fw['MODEL_PREDICTION_IS_NOT_PROOF'] is True
           assert fw['EVERY_ACCEPTED_TRANSITION_EXACT_VERIFIED'] is True
           assert fw['P_VS_NP']=='OPEN'
-          assert p['stages_completed']>=3
-          print('PIPPI_ADAPTIVE_RACE_FIREWALL=PASS')
+          assert p['stages_completed']>=5
+          print('PIPPI_ADAPTIVE_RACE_V1_2_FIREWALL=PASS')
           print('FRONTIER='+str(p['frontier']))
           print('STOP_REASON='+p['stop_reason'])
+          print('STAGES='+str(p['stages_completed']))
           print('P_VS_NP=OPEN')
           PY
       - uses: actions/upload-artifact@v4
         with:
-          name: janus-pippi-adaptive-pitstop-race
+          name: janus-pippi-adaptive-pitstop-race-v1-2
           path: artifacts/pippi-adaptive-race
           if-no-files-found: error
           retention-days: 90
