@@ -1,0 +1,76 @@
+name: run-c025-v2-junction-relief-microscope
+
+on:
+  push:
+    branches:
+      - research/c025-phase5-13-v2-junction-relief-2026-08-28
+    paths:
+      - 'research/C025_L1A_L1B_WITNESS_CNF_2026-08-28.json'
+      - 'research/C025_V2_PIVOT_INVOLVING_PARENT_PAIR_RELIEF_LEMMA_2026-08-28.json'
+      - 'experiments/theorem_extraction/c025_v2_junction_relief_microscope.py'
+      - '.github/workflows/run-c025-v2-junction-relief-microscope.yml'
+  workflow_dispatch:
+
+jobs:
+  junction-relief-microscope:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      PYTHONPATH: .
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Verify theorem boundary and parent-pair lemma
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          d=json.loads(Path('research/C025_V2_PIVOT_INVOLVING_PARENT_PAIR_RELIEF_LEMMA_2026-08-28.json').read_text())
+          assert d['status']=='PROVED_SYNTACTIC_PARENT_PAIR_BOUND__RAW_UNIT_TOTALITY_OPEN'
+          assert d['important_boundary']['parent_pair_relief_is_not_raw_unit_relief'] is True
+          assert d['important_boundary']['does_not_prove_v2_totality'] is True
+          assert d['P_VS_NP']=='OPEN'
+          print('PARENT_PAIR_RELIEF_LEMMA=FROZEN')
+          PY
+
+      - name: Run exact junction-relief microscope
+        shell: bash
+        run: |
+          set -o pipefail
+          python experiments/theorem_extraction/c025_v2_junction_relief_microscope.py \
+            | tee c025-v2-junction-relief-microscope.json
+
+      - name: Enforce exact decomposition
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          d=json.loads(Path('c025-v2-junction-relief-microscope.json').read_text())
+          assert d['status']=='EXACT_WITNESS_RELIEF_DECOMPOSED'
+          assert d['source_fingerprint']=='03506158fa7d60deb18f1832f1733e27f511d354024aff21f7afd33e27935b0f'
+          assert d['product_fingerprint']=='3559df2656aade8e446d3a5eeedd419578fcebcf07ebecd35b2556ae35f68089'
+          assert d['parent_pair_relief_identity']['status']=='PASS'
+          assert d['scientific_boundary']['L1A']=='REFUTED'
+          assert d['scientific_boundary']['L1B']=='REFUTED'
+          assert d['scientific_boundary']['L1']=='OPEN'
+          assert d['scientific_boundary']['P2_REACHABLE_PRESERVATION']=='OPEN'
+          assert d['scientific_boundary']['P_VS_NP']=='OPEN'
+          w=d['winning_root_relief']
+          print('PAIR_FREQUENCY='+str(d['winning_pair_frequency']))
+          print('OLD_THRESHOLD='+str(d['old_frequent_pair_sufficient_threshold']))
+          print('PARENT_PAIR_RELIEF='+str(d['parent_pair_relief_identity']['observed_parent_pair_relief']))
+          print('RAW_RELIEF='+str(w['junction_relief']))
+          print('RETAINED_DELTA='+str(w['retained_units_delta']))
+          print('UNIQUE_NEW_RESOLVENT_DELTA='+str(w['unique_new_resolvent_units_delta']))
+          print('POST_CAP_MARGIN='+str(w['post_cap_margin']))
+          print('RESTORED_ROOTS='+str(d['roots_restored_under_cap_by_same_macro']))
+          print('P_VS_NP=OPEN')
+          PY
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: c025-v2-junction-relief-microscope
+          path: c025-v2-junction-relief-microscope.json
