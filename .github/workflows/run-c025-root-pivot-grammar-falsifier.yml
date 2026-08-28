@@ -14,6 +14,8 @@ jobs:
   falsify-root-grammar:
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    env:
+      PYTHONPATH: .
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -37,7 +39,9 @@ jobs:
           PY
 
       - name: Run reachable-state candidate attack
+        shell: bash
         run: |
+          set -o pipefail
           python experiments/theorem_extraction/c025_root_pivot_grammar_falsifier.py \
             --cases-per-rung 1 | tee root-pivot-grammar-falsifier.json
 
