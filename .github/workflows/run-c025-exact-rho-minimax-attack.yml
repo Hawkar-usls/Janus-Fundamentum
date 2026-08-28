@@ -1,0 +1,75 @@
+name: run-c025-exact-rho-minimax-attack
+
+on:
+  push:
+    branches:
+      - research/c025-phase5-16-exact-rho-minimax-2026-08-28
+    paths:
+      - 'research/C025_SELECTOR_PRODUCT_EXACT_RHO_MINIMAX_ATTACK_SPEC_2026-08-28.json'
+      - 'experiments/theorem_extraction/c025_exact_rho_minimax_attack.py'
+      - '.github/workflows/run-c025-exact-rho-minimax-attack.yml'
+  workflow_dispatch:
+
+jobs:
+  exact-rho-minimax:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      PYTHONPATH: .
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Verify frozen minimax objective
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          d=json.loads(Path('research/C025_SELECTOR_PRODUCT_EXACT_RHO_MINIMAX_ATTACK_SPEC_2026-08-28.json').read_text())
+          assert d['status']=='FROZEN_L1C_FALSIFICATION_OBJECTIVE__NOT_PROOF'
+          assert d['primary_objective']['success_gate']=='MAX_RHO < 0 while DELTA>0'
+          assert d['scientific_boundary']['rho_is_exact_for_each_fixed_pair'] is True
+          assert d['scientific_boundary']['final_L1C_or_L1_refutation_requires_full_frozen_core_reachability'] is True
+          assert d['P_VS_NP']=='OPEN'
+          print('EXACT_RHO_MINIMAX_OBJECTIVE=FROZEN')
+          PY
+      - name: Run exact-rho minimax JUXTAPOSE attack
+        shell: bash
+        run: |
+          set -o pipefail
+          python experiments/theorem_extraction/c025_exact_rho_minimax_attack.py \
+            --beam-width 5 --steps 10 \
+            | tee c025-exact-rho-minimax-attack.json
+      - name: Enforce fail-closed interpretation
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          d=json.loads(Path('c025-exact-rho-minimax-attack.json').read_text())
+          s=d['search']; b=d['scientific_boundary']; e=d['best_candidate']['evaluation']; r=d['best_candidate']['rho_landscape']
+          assert s['representative_full_exact_rho_selftests']=='PASS'
+          assert s['winning_pair_rho_fixture']=='PASS'
+          assert e['all_pivot_overflow'] is True
+          assert b['rho_factorization_is_family_specific_but_exact_for_fixed_pair'] is True
+          assert b['search_minimax_has_no_theorem_authority'] is True
+          assert b['negative_MAX_RHO_requires_independent_all_pair_exact_replay'] is True
+          assert b['final_L1C_and_L1_refutation_require_full_core_reachability'] is True
+          assert b['failure_to_find_negative_MAX_RHO_is_not_L1C_proof'] is True
+          assert b['P2_REACHABLE_PRESERVATION']=='OPEN'
+          assert b['P_VS_NP']=='OPEN'
+          print('STATUS='+d['status'])
+          print('DELTA='+str(e['delta']))
+          print('MAX_RHO='+str(r['max_rho']))
+          print('NONNEG_RHO='+str(r['nonnegative_rho_count']))
+          print('POSITIVE_RHO_SUM='+str(r['positive_rho_sum']))
+          print('BEST_PAIR='+str(r['best_pair']))
+          print('FULL_V2='+str(d['best_candidate']['full_v2']))
+          print('L1C='+d['candidate_results']['L1C_PIVOT_INVOLVING_POSITIVE_RELIEF_EXISTS'])
+          print('L1='+d['candidate_results']['L1_ROOT_PHASE_POLYNOMIAL_GRAMMAR_TOTALITY'])
+          print('P_VS_NP=OPEN')
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: c025-exact-rho-minimax-attack
+          path: c025-exact-rho-minimax-attack.json
