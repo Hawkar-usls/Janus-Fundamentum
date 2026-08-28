@@ -1,0 +1,59 @@
+name: run-c025-selector-product-gap-probe
+
+on:
+  push:
+    branches:
+      - research/c025-phase5-9-polynomial-pivot-grammar-2026-08-28
+    paths:
+      - 'experiments/theorem_extraction/c025_selector_product_gap_probe.py'
+      - '.github/workflows/run-c025-selector-product-gap-probe.yml'
+  workflow_dispatch:
+
+jobs:
+  selector-gap:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      PYTHONPATH: .
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Run focused reachable-gap probe
+        shell: bash
+        run: |
+          set -o pipefail
+          python experiments/theorem_extraction/c025_selector_product_gap_probe.py \
+            --max-leaf-clauses 60 | tee selector-product-gap-probe.json
+      - name: Verify boundary and expose candidate status
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          d=json.loads(Path('selector-product-gap-probe.json').read_text())
+          b=d['scientific_boundary']
+          assert b['uses_frozen_v0_4_prefix'] is True
+          assert b['gap_recorded_only_after_frozen_ordinary_failure'] is True
+          assert b['v2_result_from_unmodified_frozen_discovery'] is True
+          assert b['suffix_stop_after_gap_does_not_promote_unreachable_state'] is True
+          assert b['finite_absence_is_not_proof'] is True
+          assert b['P_VS_NP']=='OPEN'
+          print('STATUS='+d['status'])
+          for cid,status in d['candidate_results'].items():
+              print(cid+'='+status)
+          for row in d['rows']:
+              print('RUNG_M='+str(row['source_case']['leaf_clauses'])+' GAP='+str(row['gap_observed']))
+              g=row.get('gap')
+              if g:
+                  print('  FP='+g['reachable_state_fingerprint'])
+                  print('  N='+str(g['N'])+' S='+str(g['state_units']))
+                  print('  TMAX='+str(g['max_pair_frequency'])+' TREQ='+str(g['frequent_pair_threshold']))
+                  print('  P='+str(g['pair_incidences_P'])+' PREQ='+str(g['pair_density_threshold']))
+                  print('  V2='+str(g['v2_rescue_exists']))
+          print('P_VS_NP=OPEN')
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: c025-selector-product-gap-probe
+          path: selector-product-gap-probe.json
