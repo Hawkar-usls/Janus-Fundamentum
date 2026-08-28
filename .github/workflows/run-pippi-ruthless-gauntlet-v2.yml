@@ -6,12 +6,13 @@ on:
       - research/janus-keymaster-calibration-pivot-slime-topa-2026-08-28
     paths:
       - 'experiments/mad_lab/asymmetric_pq_track.py'
+      - 'experiments/mad_lab/asymmetric_pq_track_scalable.py'
       - 'experiments/mad_lab/keymaster_adviser_governance_v2.py'
       - 'experiments/mad_lab/keymaster_scalable_feature_tokens.py'
       - 'experiments/mad_lab/keymaster_scalable_exact_root_labels.py'
+      - 'experiments/mad_lab/keymaster_scalable_exact_2cnf_transition.py'
       - 'experiments/mad_lab/adaptive_pippi_gauntlet_v2.py'
-      - 'experiments/mad_lab/adaptive_pippi_gauntlet_v2_1.py'
-      - 'experiments/mad_lab/adaptive_pippi_gauntlet_v2_2.py'
+      - 'experiments/mad_lab/adaptive_pippi_gauntlet_v2_3.py'
       - '.github/workflows/run-pippi-ruthless-gauntlet-v2.yml'
   workflow_dispatch:
 
@@ -44,26 +45,30 @@ jobs:
           print('TORCH='+torch.__version__)
           print('CUDA='+str(torch.cuda.is_available()))
           PY
-      - name: Compile and self-test exact scalable track governance Spider
+      - name: Compile and self-test exact scalable semantics governance Spider
         run: |
           python -m py_compile \
             experiments/mad_lab/asymmetric_pq_track.py \
+            experiments/mad_lab/asymmetric_pq_track_scalable.py \
             experiments/mad_lab/keymaster_adviser_governance_v2.py \
             experiments/mad_lab/keymaster_scalable_feature_tokens.py \
             experiments/mad_lab/keymaster_scalable_exact_root_labels.py \
+            experiments/mad_lab/keymaster_scalable_exact_2cnf_transition.py \
             experiments/mad_lab/adaptive_pippi_gauntlet_v2.py \
-            experiments/mad_lab/adaptive_pippi_gauntlet_v2_2.py
+            experiments/mad_lab/adaptive_pippi_gauntlet_v2_3.py
           python -m experiments.mad_lab.asymmetric_pq_track --self-test
+          python -m experiments.mad_lab.asymmetric_pq_track_scalable
           python -m experiments.mad_lab.keymaster_adviser_governance_v2
           python -m experiments.mad_lab.keymaster_scalable_feature_tokens
           python -m experiments.mad_lab.keymaster_scalable_exact_root_labels
+          python -m experiments.mad_lab.keymaster_scalable_exact_2cnf_transition
           python _topa/tools/topa_spider_attention_ecosystem.py self-test
       - name: Run ruthless +10:+10 / asymmetric-shock gauntlet
         shell: bash
         run: |
           set -euo pipefail
           mkdir -p artifacts/pippi-ruthless-gauntlet-v2
-          python -m experiments.mad_lab.adaptive_pippi_gauntlet_v2_2 \
+          python -m experiments.mad_lab.adaptive_pippi_gauntlet_v2_3 \
             --topa-dir _topa \
             --out-dir artifacts/pippi-ruthless-gauntlet-v2 \
             --base-formulas-per-stage 4 \
@@ -101,7 +106,7 @@ jobs:
           PY
       - uses: actions/upload-artifact@v4
         with:
-          name: janus-pippi-ruthless-gauntlet-v2-2
+          name: janus-pippi-ruthless-gauntlet-v2-3
           path: artifacts/pippi-ruthless-gauntlet-v2
           if-no-files-found: error
           retention-days: 90
