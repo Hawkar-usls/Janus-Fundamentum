@@ -1,0 +1,50 @@
+name: run-c025-pivot-incident-pair-bound-probe
+
+on:
+  push:
+    branches:
+      - research/c025-phase5-9-polynomial-pivot-grammar-2026-08-28
+    paths:
+      - 'experiments/theorem_extraction/c025_pivot_incident_pair_bound_probe.py'
+      - '.github/workflows/run-c025-pivot-incident-pair-bound-probe.yml'
+  workflow_dispatch:
+
+jobs:
+  pivot-incident-bound:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      PYTHONPATH: .
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Run algebraic bound probe
+        shell: bash
+        run: |
+          set -o pipefail
+          python experiments/theorem_extraction/c025_pivot_incident_pair_bound_probe.py \
+            | tee pivot-incident-pair-bound-probe.json
+      - name: Verify scientific boundary
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          d=json.loads(Path('pivot-incident-pair-bound-probe.json').read_text())
+          b=d['scientific_boundary']
+          assert b['algebraic_formula_uses_only_syntactic_bucket_counts'] is True
+          assert b['canonical_cleanup_can_only_improve_bound'] is True
+          assert b['probe_is_not_universal_proof'] is True
+          assert b['P_VS_NP']=='OPEN'
+          print('STATUS='+d['status'])
+          print('TARGET_BOUND='+str(d['target']['raw_elimination_upper_bound']))
+          print('TARGET_ACTUAL_RAW='+str(d['target']['actual_raw_units']))
+          print('TARGET_FITS='+str(d['target']['bound_fits']))
+          print('BOUND_CERTIFIED_CASES='+str(d['bound_certified_cases']))
+          print('P_VS_NP=OPEN')
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: c025-pivot-incident-pair-bound-probe
+          path: pivot-incident-pair-bound-probe.json
