@@ -48,13 +48,14 @@ jobs:
             --topa-out artifacts/keymaster/topa_keymaster_pivot_seeds.jsonl \
             | tee /tmp/keymaster-memory.log
 
-      - name: Validate persistent calibration JSONs
+      - name: Validate persistent calibration JSONs and Detective Spider contract
         run: |
           python - <<'PY'
           import json
           from pathlib import Path
           table=json.loads(Path('data/keymaster/KEYMASTER_PIVOT_GRADATION_TABLE_v1.0.json').read_text())
-          arch=json.loads(Path('data/keymaster/KEYMASTER_SLIME_M2R_TOPA_ARCHITECTURE_v1.0.json').read_text())
+          arch_v1=json.loads(Path('data/keymaster/KEYMASTER_SLIME_M2R_TOPA_ARCHITECTURE_v1.0.json').read_text())
+          arch=json.loads(Path('data/keymaster/KEYMASTER_SLIME_M2R_TOPA_ARCHITECTURE_v1.1.json').read_text())
           micro=json.loads(Path('artifacts/keymaster/keymaster_pivot_feature_microscope.json').read_text())
           mem=json.loads(Path('artifacts/keymaster/keymaster_m2r_pm_state.json').read_text())
           train=[json.loads(x) for x in Path('artifacts/keymaster/pivot_slime_training.jsonl').read_text().splitlines() if x.strip()]
@@ -65,23 +66,39 @@ jobs:
           assert table['experiments'][0]['order_space']['orders']==5040
           assert table['experiments'][1]['stress_caps'][0]['safe_orders']==30240
           assert table['experiments'][1]['stress_caps'][0]['overflow_orders']==10080
-          assert arch['anti_self_deception_gate']['P_VS_NP']=='OPEN'
-          assert arch['components']['KEYMASTER']['online_learning']['source']=='EXACT_VERIFIED_RECEIPTS_ONLY'
-          assert arch['components']['PIVOT_SLIME_STUDENT']['base'].startswith('MicroGPTSlime_quantized.py')
-          assert arch['components']['TOPA_SPIDER']['role']=='RELATION_MINER_AND_HYPOTHESIS_WEAVER'
+          # v1.0 is preserved as provenance; v1.1 is the canonical composition contract.
+          assert arch_v1['anti_self_deception_gate']['P_VS_NP']=='OPEN'
+          assert arch['preserve_v1_0_as_historical_record'] is True
+          c=arch['canonical_topa_contract']
+          assert c['default_operational_identity']=='TOPA_DETECTIVE_SPIDER'
+          assert c['default_profile']=='DETECTIVE'
+          assert c['activation_rule']=='TOPA_REQUEST_WITHOUT_EXPLICIT_PROFILE => DETECTIVE'
+          assert c['profiles']['DETECTIVE']['topa_core'] is True
+          assert c['profiles']['DETECTIVE']['spider'] is True
+          assert c['profiles']['TOPA_CORE_ONLY']['topa_core'] is True
+          assert c['profiles']['TOPA_CORE_ONLY']['spider'] is False
+          assert c['profiles']['SPIDER_STANDALONE']['topa_core'] is False
+          assert c['profiles']['SPIDER_STANDALONE']['spider'] is True
+          assert arch['hrain_residence']['status']=='ACTIVE_RESIDENT'
+          assert arch['hrain_residence']['mode']=='spider.html'
+          assert arch['hrain_residence']['bridge']=='spider-bridge.js'
+          assert arch['keymaster_topa_integration']['production_default']=='DETECTIVE'
+          assert arch['scientific_firewall']['P_VS_NP']=='OPEN'
           assert micro['P_VS_NP']=='OPEN'
           assert len(micro['cases'])==2
           c25,c250=micro['cases']
           assert c25['best_raw_units']==718 and c25['worst_raw_units']==949
           assert c250['best_raw_units']==10787 and c250['worst_raw_units']==10849
-          assert all('cheap_cooccurrence_features' in r for c in micro['cases'] for r in c['rows'])
-          assert all('exact_pair_structure' in r for c in micro['cases'] for r in c['rows'])
+          assert all('cheap_cooccurrence_features' in r for cse in micro['cases'] for r in cse['rows'])
+          assert all('exact_pair_structure' in r for cse in micro['cases'] for r in cse['rows'])
           assert mem['P_VS_NP']=='OPEN'
           assert mem['episode_count']==15
           assert len(train)==15 and len(topa)==15
           assert all('pivot_id_local' not in e['features'] for e in train)
           assert all(r['provider']=='TOPA_REPO' for r in topa)
           print('KEYMASTER_CALIBRATION_FIREWALL=PASS')
+          print('TOPA_DEFAULT=TOPA_DETECTIVE_SPIDER')
+          print('TOPA_DETECTIVE_DEFAULT_INCLUDES_SPIDER=PASS')
           print('KEYMASTER_M2R_PM_EPISODES=15')
           print('PIVOT_SLIME_TRAINING_ROWS=15')
           print('TOPA_PIVOT_SEEDS=15')
