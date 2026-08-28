@@ -1,0 +1,87 @@
+name: MAD-LAB M2R-S four-front real CNF core
+
+on:
+  push:
+    branches:
+      - research/janus-mad-lab-m2rs-four-front-real-cnf-core-2026-08-28
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  four-front-real-cnf-core:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Compile exact witness runner
+        run: |
+          python -m py_compile \
+            experiments/mad_lab/m2rs_four_front_real_cnf_core.py \
+            experiments/mad_lab/m2rs_tranception_meet.py
+
+      - name: Construct and replay exact static witness
+        run: |
+          python -m experiments.mad_lab.m2rs_four_front_real_cnf_core \
+            --json-out artifacts/mad_lab/m2rs_four_front_real_cnf_core.json \
+            --cnf-out artifacts/mad_lab/m2rs_four_front_real_cnf_core.cnf \
+            | tee /tmp/m2rs-four-front-real-cnf-core.log
+
+      - name: Verify anti-self-deception invariants
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          p = json.loads(Path('artifacts/mad_lab/m2rs_four_front_real_cnf_core.json').read_text())
+          assert p['P_VS_NP'] == 'OPEN'
+          assert p['static_realizable'] is True
+          assert p['state'] == [7, 79, 350]
+          s = p['witness_stats']
+          assert s['m'] == 79 and s['L'] == 350
+          assert s['distinct_clauses'] == 79
+          assert s['width_min'] >= 2
+          assert s['degree'] == [50] * 7
+          assert s['positive'] == [25] * 7
+          assert s['negative'] == [25] * 7
+          assert s['minority'] == [25] * 7
+          assert len(p['actual_pivot_bounds']) == 7
+          for row in p['actual_pivot_bounds']:
+              assert row['actual_signature'] == [50, 25, 25]
+              assert row['B'] == 3433
+              assert row['cap'] == 3364
+              assert row['verdict'] == 'OPEN'
+          ff = p['four_front_replay']
+          assert ff['consensus'] is True
+          assert ff['all_formula_digests_equal'] is True
+          assert ff['all_final_stats_equal'] is True
+          assert ff['all_traversal_chains_distinct'] is True
+          g = p['anti_self_deception_gate']
+          assert g['static_witness_exact'] is True
+          assert g['repo_normalization_compatibility_proved'] is False
+          assert g['pipeline_reachability_proved'] is False
+          assert g['same_run_lemma_promotion'] is False
+          assert g['theorem_credit_allowed'] is False
+          assert g['claim_ceiling'] == 'STATIC_CANONICAL_CORE_REALIZABLE__REACHABILITY_UNPROVED'
+          cnf = Path('artifacts/mad_lab/m2rs_four_front_real_cnf_core.cnf').read_text()
+          assert 'p cnf 7 79' in cnf
+          print('STATIC_WITNESS_GATE=PASS')
+          print('P_VS_NP=OPEN')
+          PY
+
+      - name: Upload exact witness audit
+        uses: actions/upload-artifact@v4
+        with:
+          name: m2rs-four-front-real-cnf-core-audit
+          path: |
+            artifacts/mad_lab/m2rs_four_front_real_cnf_core.json
+            artifacts/mad_lab/m2rs_four_front_real_cnf_core.cnf
+          if-no-files-found: error
