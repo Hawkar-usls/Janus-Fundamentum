@@ -1,0 +1,64 @@
+name: JANUS 50x50 Multi-Formula Cycle0
+
+on:
+  push:
+    branches:
+      - research/janus-keymaster-calibration-pivot-slime-topa-2026-08-28
+    paths:
+      - 'experiments/mad_lab/juxtapose_50x50_multiformula_corpus.py'
+      - '.github/workflows/run-juxtapose-50x50-multiformula-cycle0.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  cycle0:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Compile
+        run: python -m py_compile experiments/mad_lab/juxtapose_50x50_multiformula_corpus.py
+      - name: Build exact 50x50 train/holdout corpus
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m experiments.mad_lab.juxtapose_50x50_multiformula_corpus \
+            --count 8 \
+            --train-count 5 \
+            --max-seed 500 \
+            --json-out artifacts/50x50/juxtapose_50x50_multiformula_cycle0.json \
+            | tee /tmp/50x50-cycle0.log
+      - name: Firewall assertions
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          p=json.loads(Path('artifacts/50x50/juxtapose_50x50_multiformula_cycle0.json').read_text())
+          assert p['P_VS_NP']=='OPEN'
+          assert p['status']=='EXACT_CYCLE0_CORPUS_READY__NO_LEARNING_GAIN_CLAIM'
+          assert p['selection']['train_formulas']==5
+          assert p['selection']['holdout_formulas']==3
+          assert len(p['formulas'])==8
+          fps=[f['stats']['fingerprint'] for f in p['formulas']]
+          assert len(set(fps))==8
+          assert all(f['truth']['UNSAT'] for f in p['formulas'])
+          assert all(f['stats']['positive']==[50]*7 for f in p['formulas'])
+          assert all(f['stats']['negative']==[50]*7 for f in p['formulas'])
+          assert all(f['stats']['degree']==[100]*7 for f in p['formulas'])
+          assert all(f['stress']['safe_orders']>=1 for f in p['formulas'])
+          assert all(f['stress']['safe_orders']+f['stress']['overflow_orders']==5040 for f in p['formulas'])
+          assert p['firewall']['learning_gain_measured'] is False
+          print('JANUS_50x50_CYCLE0_FIREWALL=PASS')
+          print('P_VS_NP=OPEN')
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: janus-50x50-multiformula-cycle0
+          path: artifacts/50x50
+          if-no-files-found: error
+          retention-days: 90
