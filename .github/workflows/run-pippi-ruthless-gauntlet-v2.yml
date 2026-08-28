@@ -7,12 +7,13 @@ on:
     paths:
       - 'experiments/mad_lab/asymmetric_pq_track.py'
       - 'experiments/mad_lab/asymmetric_pq_track_scalable.py'
+      - 'experiments/mad_lab/asymmetric_pq_track_relabelled.py'
       - 'experiments/mad_lab/keymaster_adviser_governance_v2.py'
       - 'experiments/mad_lab/keymaster_scalable_feature_tokens.py'
       - 'experiments/mad_lab/keymaster_scalable_exact_root_labels.py'
       - 'experiments/mad_lab/keymaster_scalable_exact_2cnf_transition.py'
       - 'experiments/mad_lab/adaptive_pippi_gauntlet_v2.py'
-      - 'experiments/mad_lab/adaptive_pippi_gauntlet_v2_3.py'
+      - 'experiments/mad_lab/adaptive_pippi_gauntlet_v2_4.py'
       - '.github/workflows/run-pippi-ruthless-gauntlet-v2.yml'
   workflow_dispatch:
 
@@ -45,30 +46,32 @@ jobs:
           print('TORCH='+torch.__version__)
           print('CUDA='+str(torch.cuda.is_available()))
           PY
-      - name: Compile and self-test exact scalable semantics governance Spider
+      - name: Compile and self-test corrected exact benchmark semantics
         run: |
           python -m py_compile \
             experiments/mad_lab/asymmetric_pq_track.py \
             experiments/mad_lab/asymmetric_pq_track_scalable.py \
+            experiments/mad_lab/asymmetric_pq_track_relabelled.py \
             experiments/mad_lab/keymaster_adviser_governance_v2.py \
             experiments/mad_lab/keymaster_scalable_feature_tokens.py \
             experiments/mad_lab/keymaster_scalable_exact_root_labels.py \
             experiments/mad_lab/keymaster_scalable_exact_2cnf_transition.py \
             experiments/mad_lab/adaptive_pippi_gauntlet_v2.py \
-            experiments/mad_lab/adaptive_pippi_gauntlet_v2_3.py
+            experiments/mad_lab/adaptive_pippi_gauntlet_v2_4.py
           python -m experiments.mad_lab.asymmetric_pq_track --self-test
           python -m experiments.mad_lab.asymmetric_pq_track_scalable
+          python -m experiments.mad_lab.asymmetric_pq_track_relabelled
           python -m experiments.mad_lab.keymaster_adviser_governance_v2
           python -m experiments.mad_lab.keymaster_scalable_feature_tokens
           python -m experiments.mad_lab.keymaster_scalable_exact_root_labels
           python -m experiments.mad_lab.keymaster_scalable_exact_2cnf_transition
           python _topa/tools/topa_spider_attention_ecosystem.py self-test
-      - name: Run ruthless +10:+10 / asymmetric-shock gauntlet
+      - name: Run ruthless gauntlet plus corrected hard 250 boss
         shell: bash
         run: |
           set -euo pipefail
           mkdir -p artifacts/pippi-ruthless-gauntlet-v2
-          python -m experiments.mad_lab.adaptive_pippi_gauntlet_v2_3 \
+          python -m experiments.mad_lab.adaptive_pippi_gauntlet_v2_4 \
             --topa-dir _topa \
             --out-dir artifacts/pippi-ruthless-gauntlet-v2 \
             --base-formulas-per-stage 4 \
@@ -83,6 +86,7 @@ jobs:
           p=json.loads(Path('artifacts/pippi-ruthless-gauntlet-v2/gauntlet-result.json').read_text())
           assert p['status']=='RUTHLESS_GAUNTLET_COMPLETE__EXACT_ROOT_TRANSITIONS_VERIFIED'
           assert p['P_VS_NP']=='OPEN'
+          assert p['schema']=='JANUS/PIPPI/RUTHLESS-GAUNTLET/v2.4.0'
           fw=p['scientific_firewall']
           assert fw['FRESH_STAGE_SCORED_BEFORE_LEARNING_FROM_IT'] is True
           assert fw['BOSS_250x250_IS_BLIND_OOD_AND_DOES_NOT_REWRITE_FRONTIER'] is True
@@ -90,23 +94,32 @@ jobs:
           assert fw['NO_ADVISER_100_PERCENT'] is True
           assert fw['MODEL_PREDICTION_IS_NOT_PROOF'] is True
           assert fw['EVERY_COUNTED_ROOT_TRANSITION_EXACT_VERIFIED'] is True
+          assert fw['BOSS_NUMERIC_BASELINE_ROLE_CORRELATION_BROKEN'] is True
+          assert fw['BOSS_REQUIRES_EXACT_MIN_RAW_PIVOT'] is True
+          assert fw['BOSS_FORMULA_COUNT']==4
           assert fw['P_VS_NP']=='OPEN'
-          assert p['boss_250x250'] is not None
-          assert p['boss_250x250']['difficulty']=='250:250'
+          boss=p['boss_250x250']
+          assert boss is not None and boss['difficulty']=='250:250'
+          assert boss['formula_count']==4
+          assert boss['strict_min_raw_cap'] is True
+          assert boss['cap_policy']=='EXACT_MIN_RAW_ONLY'
+          assert len(boss['fresh_fingerprints'])==4 and len(set(boss['fresh_fingerprints']))==4
+          assert max(boss['safe_pivot_counts_per_formula']) < boss['n']
           trap=p['fixed_chassis_impossibility_trap']
           assert trap['status']=='TRACK_CONSTRUCTION_IMPOSSIBLE_BY_SIGNED_OCCURRENCE_CAPACITY'
           assert trap['p']==251 and trap['q']==251 and trap['n']==126
           assert max(p['final_fusion_weights'].values()) < 1.0
-          print('RUTHLESS_GAUNTLET_FIREWALL=PASS')
+          print('RUTHLESS_GAUNTLET_V2_4_FIREWALL=PASS')
           print('FRONTIER='+str(p['official_frontier']))
           print('STOP_REASON='+p['stop_reason'])
-          print('BOSS_250_SCORE='+str(p['boss_250x250']['score']))
+          print('HARD_BOSS_250_SCORE='+str(boss['score']))
+          print('HARD_BOSS_SAFE_COUNTS='+str(boss['safe_pivot_counts_per_formula']))
           print('IMPOSSIBILITY_TRAP='+trap['status'])
           print('P_VS_NP=OPEN')
           PY
       - uses: actions/upload-artifact@v4
         with:
-          name: janus-pippi-ruthless-gauntlet-v2-3
+          name: janus-pippi-ruthless-gauntlet-v2-4
           path: artifacts/pippi-ruthless-gauntlet-v2
           if-no-files-found: error
           retention-days: 90
