@@ -1,0 +1,93 @@
+name: MAD-LAB M2R-S four-front JANUS canonical core
+
+on:
+  push:
+    branches:
+      - research/janus-mad-lab-m2rs-four-front-real-cnf-core-2026-08-28
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  four-front-janus-canonical-core:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Compile exact canonical runner
+        run: |
+          python -m py_compile \
+            experiments/mad_lab/m2rs_four_front_janus_canonical_core.py \
+            experiments/mad_lab/m2rs_tranception_meet.py \
+            experiments/direct/janus_unified_proof_carrying_akinator_jec.py \
+            experiments/direct/janus_v3_root_free_local_gap_probe.py
+
+      - name: Run exact JANUS-canonical four-front audit
+        run: |
+          python -m experiments.mad_lab.m2rs_four_front_janus_canonical_core \
+            --json-out artifacts/mad_lab/m2rs_four_front_janus_canonical_core.json \
+            --cnf-out artifacts/mad_lab/m2rs_four_front_janus_canonical_core.cnf \
+            | tee /tmp/m2rs-four-front-janus-canonical-core.log
+
+      - name: Verify anti-self-deception invariants
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          p = json.loads(Path('artifacts/mad_lab/m2rs_four_front_janus_canonical_core.json').read_text())
+          assert p['P_VS_NP'] == 'OPEN'
+          assert p['JANUS_canonical_CNF'] is True
+          assert p['forward_reachability_proved'] is False
+          s = p['witness']['stats']
+          assert [s['n'], s['m'], s['L']] == [7, 79, 350]
+          assert s['width_histogram'] == {'4': 45, '5': 34}
+          assert s['degree'] == [50] * 7
+          assert s['positive'] == [25] * 7
+          assert s['negative'] == [25] * 7
+          assert p['exact_truth_table']['assignments_checked'] == 128
+          assert p['exact_truth_table']['satisfying_count'] == 0
+          assert p['exact_truth_table']['UNSAT_exact_for_this_formula'] is True
+          assert p['preexisting_exact_local_lane_before_elimination'] is None
+          assert len(p['abstract_peak_replay']) == 7
+          assert len(p['exact_single_pivot_replay_C025']) == 7
+          assert p['abstract_open_but_exact_pivot_fits_count'] == 7
+          assert all(r['abstract_B'] == 3433 for r in p['abstract_peak_replay'])
+          assert all(r['abstract_verdict'] == 'OPEN' for r in p['abstract_peak_replay'])
+          assert all(r['fit'] for r in p['exact_single_pivot_replay_C025'])
+          assert max(r['raw_units_C025'] for r in p['exact_single_pivot_replay_C025']) == 949
+          ff = p['four_front_exact_elimination']
+          assert ff['all_four_terminal_unsat'] is True
+          assert ff['all_four_stay_under_cap'] is True
+          assert ff['max_raw_units_any_front'] == 949
+          assert len(ff['fronts']) == 4
+          assert all(f['terminal_cnf'] == [[]] for f in ff['fronts'])
+          c = p['correction_of_initial_weak_static_witness']
+          assert c['initial_79_clause_witness_after_JANUS_canon_cnf'] == {'m': 50, 'L': 206}
+          assert c['initial_witness_canonical_status'] == 'REJECTED_NEGATIVE_CONTROL'
+          g = p['anti_self_deception_gate']
+          assert g['same_run_lemma_promotion'] is False
+          assert g['theorem_credit_allowed'] is False
+          assert g['forward_reachability_proved'] is False
+          assert g['universal_balanced_core_totality_proved'] is False
+          assert g['P_VS_NP'] == 'OPEN'
+          print('JANUS_CANONICAL_CORE_GATE=PASS')
+          print('ABSTRACT_OPEN_BUT_EXACT_PIVOT_FITS=7/7')
+          print('P_VS_NP=OPEN')
+          PY
+
+      - name: Upload exact canonical audit
+        uses: actions/upload-artifact@v4
+        with:
+          name: m2rs-four-front-janus-canonical-core-audit
+          path: |
+            artifacts/mad_lab/m2rs_four_front_janus_canonical_core.json
+            artifacts/mad_lab/m2rs_four_front_janus_canonical_core.cnf
+          if-no-files-found: error
