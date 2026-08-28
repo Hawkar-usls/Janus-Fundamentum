@@ -1,0 +1,71 @@
+name: run-c025-reachable-monster-v2-gate
+
+on:
+  push:
+    branches:
+      - research/c025-phase5-9-polynomial-pivot-grammar-2026-08-28
+    paths:
+      - 'research/C025_REACHABLE_MONSTER_V2_GATE_SPEC_2026-08-28.json'
+      - 'experiments/theorem_extraction/c025_reachable_monster_v2_gate.py'
+      - '.github/workflows/run-c025-reachable-monster-v2-gate.yml'
+  workflow_dispatch:
+
+jobs:
+  exact-v2-gate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      PYTHONPATH: .
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Verify frozen witness gate
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          d=json.loads(Path('research/C025_REACHABLE_MONSTER_V2_GATE_SPEC_2026-08-28.json').read_text())
+          assert d['status']=='EXACT_FOLLOWUP_GATE_FROZEN_BEFORE_V2_RESULT'
+          assert d['expected_source_fingerprint']=='69e4c811b0e34534c09beb27b75578ba3bfb6625c27aaeea1f8838f44d6281c4'
+          assert d['expected_reachable_product_fingerprint']=='e10600e0f79ad6f143f3b67b04d4b616da5f59e4a4832af5cbb329a574f0dac7'
+          assert d['scientific_boundary']['v2_implementation_must_be_unmodified'] is True
+          assert d['P_VS_NP']=='OPEN'
+          print('REACHABLE_MONSTER_V2_GATE=FROZEN')
+          print('P_VS_NP=OPEN')
+          PY
+
+      - name: Run exact frozen exhaustive v2 gate
+        shell: bash
+        run: |
+          set -o pipefail
+          python experiments/theorem_extraction/c025_reachable_monster_v2_gate.py \
+            | tee reachable-monster-v2-gate.json
+
+      - name: Enforce scientific interpretation
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          d=json.loads(Path('reachable-monster-v2-gate.json').read_text())
+          b=d['scientific_boundary']
+          assert b['original_v2_return_value_observed_without_candidate_skipping'] is True
+          assert b['outer_run_stopped_only_after_target_v2_returned'] is True
+          assert b['v2_rescue_if_present_replayed_exactly'] is True
+          assert b['finite_witness_can_refute_candidate_but_not_prove_universal_totality'] is True
+          assert b['P2_REACHABLE_PRESERVATION']=='OPEN'
+          assert b['P_VS_NP']=='OPEN'
+          print('STATUS='+d['status'])
+          print('V2_RESCUE='+str(d['exact_v2_gate']['v2_rescue_exists']))
+          print('V2_SECONDS='+str(d['exact_v2_gate']['v2_elapsed_seconds']))
+          print('L1='+d['candidate_results']['L1_ROOT_PHASE_POLYNOMIAL_GRAMMAR_TOTALITY'])
+          print('NEXT_GATE='+d['next_gate'])
+          print('P_VS_NP=OPEN')
+          PY
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: c025-reachable-monster-v2-gate
+          path: reachable-monster-v2-gate.json
