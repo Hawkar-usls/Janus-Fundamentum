@@ -142,7 +142,17 @@ def truth(cnf: base.CNF) -> dict[str, Any]:
 
 @functools.lru_cache(maxsize=None)
 def transition(cnf: base.CNF, pivot: int, cap: int):
-    return base.eliminate_var_capped(cnf, pivot, cap)
+    """Compute and exact-verify a unique transition once, then cache its receipt.
+
+    This does not weaken verification: the first request for a concrete
+    (canonical_state, pivot, cap) is verified by the canonical verifier. Later
+    routes reuse the already verified transition instead of rerunning the same
+    verifier on identical bytes.
+    """
+    out, st = base.eliminate_var_capped(cnf, pivot, cap)
+    if out is not None:
+        assert base.verify_elimination_transition(cnf, pivot, out, cap)
+    return out, st
 
 
 def replay(root: base.CNF, order: tuple[int, ...], cap: int) -> dict[str, Any]:
@@ -169,7 +179,6 @@ def replay(root: base.CNF, order: tuple[int, ...], cap: int) -> dict[str, Any]:
         if out is None:
             overflow = True
             break
-        assert base.verify_elimination_transition(state, p, out, cap)
         state = out
         if state == ((),) and terminal is None:
             terminal = step
@@ -190,6 +199,7 @@ def rank(r: dict[str, Any]):
 
 
 def analyze_formula(seed: int, cnf: base.CNF, split: str) -> dict[str, Any]:
+    cache_before = transition.cache_info()
     unbounded = [replay(cnf, o, UNBOUNDED_CAP) for o in itertools.permutations(PIVOTS)]
     assert len(unbounded) == ORDERS
     assert all(not r["overflow"] for r in unbounded)
@@ -216,6 +226,12 @@ def analyze_formula(seed: int, cnf: base.CNF, split: str) -> dict[str, Any]:
 
     exhaustive_checks = sum(r["exact_checks"] for r in stressed)
     exhaustive_pair_work = sum(r["pair_work"] for r in stressed)
+    cache_after = transition.cache_info()
+    cache_delta = {
+        "hits": cache_after.hits - cache_before.hits,
+        "misses_exact_verified": cache_after.misses - cache_before.misses,
+        "currsize": cache_after.currsize,
+    }
     return {
         "seed": seed,
         "split": split,
@@ -233,6 +249,7 @@ def analyze_formula(seed: int, cnf: base.CNF, split: str) -> dict[str, Any]:
             "oracle_champion": champion_s,
             "unbounded_champion": champion_u,
             "first_pivot": first_pivot,
+            "transition_cache": cache_delta,
         },
     }
 
@@ -283,6 +300,10 @@ def build_corpus(count: int, train_count: int, max_seed: int) -> dict[str, Any]:
             "seeds_scanned": scanned,
             "selection_rule": "first distinct exact-UNSAT fingerprints in deterministic seed order",
         },
+        "verification_cache_policy": {
+            "rule": "Each unique (canonical_state,pivot,cap) transition is exact-verified once and then reused by identical route prefixes.",
+            "proof_semantics_changed": False,
+        },
         "formulas": formulas,
         "firewall": {
             "formula_fingerprint_split": True,
@@ -315,6 +336,7 @@ def main() -> int:
         "seeds_scanned": out["selection"]["seeds_scanned"],
         "caps": [f["stress"]["cap"] for f in out["formulas"]],
         "safe_orders": [f["stress"]["safe_orders"] for f in out["formulas"]],
+        "exact_verified_transition_misses": [f["stress"]["transition_cache"]["misses_exact_verified"] for f in out["formulas"]],
         "P_VS_NP": P_VS_NP,
     }
     print(json.dumps(compact, indent=2, sort_keys=True))
