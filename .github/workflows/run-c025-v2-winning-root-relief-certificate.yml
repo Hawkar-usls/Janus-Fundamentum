@@ -1,0 +1,53 @@
+name: run-c025-v2-winning-root-relief-certificate
+
+on:
+  push:
+    branches:
+      - research/c025-phase5-13-v2-junction-relief-2026-08-28
+    paths:
+      - 'experiments/theorem_extraction/c025_v2_winning_root_relief_certificate.py'
+      - '.github/workflows/run-c025-v2-winning-root-relief-certificate.yml'
+  workflow_dispatch:
+
+jobs:
+  winning-root-relief:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      PYTHONPATH: .
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Run exact winning-root relief certificate
+        shell: bash
+        run: |
+          set -o pipefail
+          python experiments/theorem_extraction/c025_v2_winning_root_relief_certificate.py \
+            | tee c025-v2-winning-root-relief-certificate.json
+      - name: Enforce certificate boundary
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          d=json.loads(Path('c025-v2-winning-root-relief-certificate.json').read_text())
+          assert d['status']=='EXACT_LOCAL_RELIEF_CERTIFIED'
+          assert d['pair_frequency']==180
+          assert d['parent_product']['observed_parent_pair_relief']==160379
+          assert d['raw_relief']['junction_relief']==44197
+          assert d['raw_relief']['retained_units_delta']==1083
+          assert d['raw_relief']['unique_new_resolvent_units_delta']==-45280
+          assert d['raw_relief']['post_cap_margin']==38816
+          b=d['scientific_boundary']
+          assert b['does_not_prove_raw_relief_lower_bound_in_general'] is True
+          assert b['does_not_prove_v2_totality'] is True
+          assert b['L1A']=='REFUTED' and b['L1B']=='REFUTED' and b['L1']=='OPEN'
+          assert b['P_VS_NP']=='OPEN'
+          print('EXACT_LOCAL_RELIEF_CERTIFIED=PASS')
+          print('P_VS_NP=OPEN')
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: c025-v2-winning-root-relief-certificate
+          path: c025-v2-winning-root-relief-certificate.json
