@@ -1,0 +1,98 @@
+name: MAD-LAB JUXTAPOSE 250x250 exact scaling
+
+on:
+  push:
+    branches:
+      - research/janus-mad-lab-juxtapose-250x250-2026-08-28
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  juxtapose-250x250:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Compile exact scaling runner
+        run: |
+          python -m py_compile \
+            experiments/mad_lab/juxtapose_250x250_exact.py \
+            experiments/direct/janus_unified_proof_carrying_akinator_jec.py
+
+      - name: Run n7 obstruction plus n8 40320-order tournaments
+        run: |
+          python -m experiments.mad_lab.juxtapose_250x250_exact \
+            --json-out artifacts/mad_lab/juxtapose_250x250_exact.json \
+            | tee /tmp/juxtapose-250x250.log
+
+      - name: Verify exact anti-self-deception gates
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          p = json.loads(Path('artifacts/mad_lab/juxtapose_250x250_exact.json').read_text())
+          assert p['name'] == 'JUXTAPOSE-250x250'
+          assert p['P_VS_NP'] == 'OPEN'
+          o = p['n7_exact_obstruction']
+          assert o['250x250_n7_canonical_core_exists'] is False
+          assert o['max_canonical_literal_mass'] == 3360
+          assert o['required_literal_mass_for_250_250_every_variable'] == 3500
+          c = p['n8_constructive_core']
+          assert c['construction_is_deterministic'] is True
+          assert c['MILP_used'] is False
+          assert c['randomness_used'] is False
+          assert c['JANUS_canonical_CNF'] is True
+          assert c['stats']['n'] == 8
+          assert c['stats']['m'] == 1000
+          assert c['stats']['L'] == 4000
+          assert c['stats']['positive'] == [250]*8
+          assert c['stats']['negative'] == [250]*8
+          assert c['stats']['degree'] == [500]*8
+          assert c['truth']['UNSAT_exact_for_this_formula'] is True
+          m = p['first_pivot_microscope']
+          assert m['parent_pairs_per_pivot'] == 62500
+          assert m['min_exact_raw_units'] == 10787
+          assert m['max_exact_raw_units'] == 10849
+          assert m['first_N_with_any_initial_pivot_fitting_N_squared'] == 104
+          assert m['first_N_with_all_initial_pivots_fitting_N_squared'] == 105
+          t104, t105 = p['tournaments']
+          assert t104['orders'] == 40320
+          assert t104['safe_orders'] == 30240
+          assert t104['overflow_orders'] == 10080
+          assert t104['terminal_unsat_safe_orders'] == 30240
+          assert t105['orders'] == 40320
+          assert t105['safe_orders'] == 40320
+          assert t105['overflow_orders'] == 0
+          assert t105['terminal_unsat_safe_orders'] == 40320
+          assert t105['champion']['order'] == [3,1,4,5,2,6,7,8]
+          assert t105['champion']['peak_raw_units'] == 10787
+          assert t105['champion']['terminal_step'] == 4
+          g = p['anti_self_deception_gate']
+          assert g['forward_reachability_proved'] is False
+          assert g['stress_N_values_are_not_claimed_reachable_root_sizes'] is True
+          assert g['universal_250x250_theorem_proved'] is False
+          assert g['same_run_theorem_promotion'] is False
+          assert g['P_VS_NP'] == 'OPEN'
+          print('JUXTAPOSE_250x250_N7=IMPOSSIBLE_CANONICAL')
+          print('JUXTAPOSE_250x250_N104_SAFE=30240/40320')
+          print('JUXTAPOSE_250x250_N105_SAFE=40320/40320')
+          print('JUXTAPOSE_250x250_BEST=3-1-4-5-2-6-7-8')
+          print('JUXTAPOSE_250x250_BEST_PEAK=10787')
+          print('P_VS_NP=OPEN')
+          PY
+
+      - name: Upload JUXTAPOSE 250x250 audit
+        uses: actions/upload-artifact@v4
+        with:
+          name: juxtapose-250x250-exact-audit
+          path: artifacts/mad_lab/juxtapose_250x250_exact.json
+          if-no-files-found: error
