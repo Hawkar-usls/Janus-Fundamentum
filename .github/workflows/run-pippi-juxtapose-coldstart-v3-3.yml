@@ -1,0 +1,102 @@
+name: JANUS PIPPI Evolutionary JUXTAPOSE v3.3
+
+on:
+  push:
+    branches:
+      - research/janus-keymaster-calibration-pivot-slime-topa-2026-08-28
+    paths:
+      - 'experiments/mad_lab/adaptive_pippi_juxtapose_coldstart_v3_3.py'
+      - '.github/workflows/run-pippi-juxtapose-coldstart-v3-3.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  v3-3:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+        with:
+          repository: Hawkar-usls/TOPA
+          ref: 7cd9225d78c881093d8f00df33124d5dba1e8c90
+          path: _topa
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Ensure PyTorch CPU
+        shell: bash
+        run: |
+          set -euo pipefail
+          if ! python -c 'import torch; print(torch.__version__)'; then
+            python -m pip install --disable-pip-version-check --index-url https://download.pytorch.org/whl/cpu torch==2.10.0
+          fi
+      - name: Compile and exact guards
+        run: |
+          python -m py_compile \
+            experiments/mad_lab/adaptive_pippi_juxtapose_coldstart_v3.py \
+            experiments/mad_lab/adaptive_pippi_juxtapose_coldstart_v3_3.py
+          python -m experiments.mad_lab.asymmetric_pq_track_relabelled
+          python -m experiments.mad_lab.keymaster_scalable_feature_tokens
+          python -m experiments.mad_lab.keymaster_scalable_exact_root_labels
+          python -m experiments.mad_lab.keymaster_scalable_exact_2cnf_transition
+          python -m experiments.mad_lab.keymaster_adviser_governance_v2
+          python _topa/tools/topa_spider_attention_ecosystem.py self-test
+      - name: Run evolutionary sentinel-first gauntlet
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p artifacts/pippi-coldstart-v3-3
+          python -m experiments.mad_lab.adaptive_pippi_juxtapose_coldstart_v3_3 \
+            --topa-dir _topa \
+            --out-dir artifacts/pippi-coldstart-v3-3 \
+            --base-formulas-per-stage 4 \
+            --max-recovery-laps 3 \
+            --time-budget-seconds 900 \
+            | tee /tmp/pippi-coldstart-v3-3.log
+      - name: Scientific firewall
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          p=json.loads(Path('artifacts/pippi-coldstart-v3-3/gauntlet-result.json').read_text())
+          assert p['schema']=='JANUS/PIPPI/JUXTAPOSE-COLDSTART-GAUNTLET/v3.3.0'
+          assert p['status']=='RUTHLESS_GAUNTLET_COMPLETE__EXACT_ROOT_TRANSITIONS_VERIFIED'
+          assert p['P_VS_NP']=='OPEN'
+          b=p['bootstrap']
+          assert b['status']=='EVOLUTIONARY_WARM_HISTORY_160_EXACT_EPISODES'
+          assert b['base_lessons']==60
+          assert b['added_generation_lessons']=={'V3_0':44,'V3_1':24,'V3_2':32}
+          assert b['total_exact_lesson_formulas']==160
+          assert b['new_exam_fingerprints_seen_during_bootstrap']==0
+          c=p['controlled_change_v3_3']
+          assert c['warm_exact_lessons']==160
+          assert c['new_prior_lessons_include_v3_0_v3_1_v3_2'] is True
+          assert c['fresh_seed_namespace']==6300000000
+          fw=p['scientific_firewall']
+          assert fw['FRESH_STAGE_SCORED_BEFORE_LEARNING_FROM_IT'] is True
+          assert fw['EVERY_COUNTED_ROOT_TRANSITION_EXACT_VERIFIED'] is True
+          assert fw['EVOLUTIONARY_WARM_START_160_EXACT_LESSONS'] is True
+          assert fw['WARM_SENTINEL_BEFORE_INSURANCE'] is True
+          assert fw['COLD_FULL_FIELD_REFLEX_PRESERVED'] is True
+          assert fw['ALL_CLONE_COMPUTE_IS_CHARGED'] is True
+          assert fw['P_VS_NP']=='OPEN'
+          boss=p['boss_250x250']
+          assert boss is not None and boss['formula_count']==4
+          assert boss['strict_min_raw_cap'] is True
+          assert boss['cap_policy']=='EXACT_MIN_RAW_ONLY'
+          print('PIPPI_JUXTAPOSE_V3_3_FIREWALL=PASS')
+          print('FRONTIER='+json.dumps(p['official_frontier'],sort_keys=True))
+          print('STOP_REASON='+str(p['stop_reason']))
+          print('BOSS_SCORE='+str(boss['score']))
+          print('WARM_LESSONS='+str(b['total_exact_lesson_formulas']))
+          print('P_VS_NP=OPEN')
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: janus-pippi-juxtapose-coldstart-v3-3
+          path: artifacts/pippi-coldstart-v3-3
+          if-no-files-found: error
+          retention-days: 90
