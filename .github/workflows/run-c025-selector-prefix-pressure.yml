@@ -1,0 +1,58 @@
+name: run-c025-selector-prefix-pressure
+
+on:
+  push:
+    branches:
+      - research/c025-phase5-9-polynomial-pivot-grammar-2026-08-28
+    paths:
+      - 'experiments/theorem_extraction/c025_selector_prefix_pressure_probe.py'
+      - '.github/workflows/run-c025-selector-prefix-pressure.yml'
+  workflow_dispatch:
+
+jobs:
+  prefix-pressure:
+    strategy:
+      fail-fast: false
+      matrix:
+        leaf_clauses: [50, 60, 70]
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      PYTHONPATH: .
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Measure certified reachable selector product
+        shell: bash
+        run: |
+          set -o pipefail
+          python experiments/theorem_extraction/c025_selector_prefix_pressure_probe.py \
+            --leaf-clauses ${{ matrix.leaf_clauses }} | tee selector-prefix-${{ matrix.leaf_clauses }}.json
+      - name: Verify epistemic boundary
+        run: |
+          python - <<'PY'
+          import json,os
+          from pathlib import Path
+          m=os.environ['MATRIX_M']
+          d=json.loads(Path(f'selector-prefix-{m}.json').read_text())
+          assert d['P_VS_NP']=='OPEN'
+          if d.get('certified_reachable_product'):
+              assert d.get('first_pivot')==1
+          print('M='+m+' STATUS='+d['status'])
+          if d.get('candidate_status'):
+              print('L1='+d['candidate_status']['L1'])
+              print('L1A='+d['candidate_status']['L1A'])
+              print('L1B='+d['candidate_status']['L1B'])
+              print('FITS='+str(d['ordinary_fit_count']))
+              print('TMAX='+str(d['pair_pressure']['tmax'])+' TREQ='+str(d['pair_pressure']['frequent_required']))
+              print('V2='+str(d.get('v2_rescue_exists')))
+          print('P_VS_NP=OPEN')
+          PY
+        env:
+          MATRIX_M: ${{ matrix.leaf_clauses }}
+      - uses: actions/upload-artifact@v4
+        with:
+          name: c025-selector-prefix-${{ matrix.leaf_clauses }}
+          path: selector-prefix-${{ matrix.leaf_clauses }}.json
