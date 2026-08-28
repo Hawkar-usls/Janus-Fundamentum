@@ -1,0 +1,28 @@
+name: C024 Safe Pivot Double Count
+
+on:
+  push:
+    branches:
+      - research/janus-keymaster-calibration-pivot-slime-topa-2026-08-28
+    paths:
+      - 'proof_attempts/C024/**'
+      - 'experiments/direct/janus_c024_safe_pivot_double_count.py'
+      - '.github/workflows/c024-safe-pivot-double-count.yml'
+  workflow_dispatch:
+
+jobs:
+  validate-c024:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Exhaustive pair-type identity and arithmetic gate
+        run: python experiments/direct/janus_c024_safe_pivot_double_count.py
+      - name: Scientific claim ceiling
+        run: |
+          grep -q 'PROOF_CANDIDATE / NOT YET ADMITTED' proof_attempts/C024/SAFE_PIVOT_DOUBLE_COUNT.md
+          grep -q 'P_VS_NP = OPEN' proof_attempts/C024/SAFE_PIVOT_DOUBLE_COUNT.md
+          grep -q 'POLYNOMIAL_SELECTOR = OPEN' proof_attempts/C024/SAFE_PIVOT_DOUBLE_COUNT.md
