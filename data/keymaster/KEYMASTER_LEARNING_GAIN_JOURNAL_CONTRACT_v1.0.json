@@ -1,0 +1,272 @@
+{
+  "schema": "JANUS/KEYMASTER/LEARNING-GAIN-JOURNAL/v1.0.0",
+  "registry_id": "JANUS-KEYMASTER-LEARNING-GAIN-JOURNAL-2026-08-28-v1.0",
+  "status": "ACTIVE_CONTRACT__APPEND_ONLY_MEASUREMENT_LAYER",
+  "purpose": "Continuously document how Keymaster/Pivot-Slime/JGPT/M2R-PM/TOPA-DETECTIVE-SPIDER learning changes exact-search resource use over time, where gains arise, how large they are, and when marginal learning gains slow or plateau.",
+  "canonical_name": "KEYMASTER LEARNING GAIN JOURNAL",
+  "short_name": "KLGJ",
+  "metaphor": "COUNTER_JOURNAL",
+  "position_in_system": "OBSERVATION_AND_ACCOUNTING_LAYER_AROUND_THE_FULL_LOOP",
+  "authority": {
+    "can_change_pivot_order": false,
+    "can_change_proof_verdict": false,
+    "can_promote_theorem": false,
+    "exact_replay_remains_authority": true,
+    "P_VS_NP": "OPEN"
+  },
+  "immutability": {
+    "event_log": "APPEND_ONLY",
+    "raw_measurements": "NEVER_REWRITE",
+    "derived_views": "RECOMPUTABLE",
+    "negative_or_regression_events": "NEVER_DELETE",
+    "corrections": "APPEND_CORRECTION_EVENT_REFERENCING_PRIOR_EVENT_ID"
+  },
+  "event_identity": {
+    "required": [
+      "event_id",
+      "sequence_no",
+      "recorded_at_utc",
+      "run_id",
+      "formula_fingerprint",
+      "configuration_id",
+      "measurement_scope"
+    ],
+    "configuration_id_rule": "Hash/version the full enabled-module configuration and model/checkpoint versions; never compare unnamed changing systems as if they were the same configuration."
+  },
+  "measurement_scopes": [
+    "ROOT_FIRST_PIVOT",
+    "ACTIVE_PREFIX",
+    "FULL_ROUTE",
+    "FORMULA_BATCH",
+    "HOLDOUT_CORPUS",
+    "CI_RUN"
+  ],
+  "raw_metrics": {
+    "proof_search": [
+      "exact_checks_attempted",
+      "exact_checks_successful",
+      "exact_checks_failed_or_overflow",
+      "pair_work",
+      "raw_units_sum",
+      "peak_raw_units",
+      "canonical_units_sum",
+      "terminal_depth",
+      "orders_or_candidates_considered",
+      "orders_or_candidates_exactly_replayed"
+    ],
+    "learning_quality": [
+      "top1_exact_best_hit",
+      "topk_contains_exact_best",
+      "overflow_avoidance_hit",
+      "peak_raw_regret",
+      "sum_raw_regret",
+      "pair_work_regret",
+      "terminal_depth_regret",
+      "prediction_calibration_error_if_available"
+    ],
+    "machine_resource_diagnostic_only": [
+      "wall_time_seconds",
+      "cpu_time_seconds",
+      "peak_rss_bytes",
+      "artifact_bytes",
+      "model_bytes",
+      "energy_joules_if_measured"
+    ]
+  },
+  "baseline_policy": {
+    "primary_baseline": "EXHAUSTIVE_ORACLE_OR_FROZEN_EXACT_BASELINE_ON_THE_SAME_FORMULA_FINGERPRINT_AND_CAP",
+    "allowed_secondary_baselines": [
+      "STATIC_NUMERIC_ORDER_NEGATIVE_CONTROL",
+      "RANDOM_ORDER_WITH_FROZEN_SEED_DIAGNOSTIC_ONLY",
+      "PREVIOUS_KEYMASTER_CHECKPOINT",
+      "KEYMASTER_WITHOUT_M2R_PM",
+      "KEYMASTER_WITHOUT_JGPT_TEACHER",
+      "KEYMASTER_WITHOUT_PIVOT_SLIME",
+      "KEYMASTER_WITHOUT_TOPA_DETECTIVE_SPIDER",
+      "KEYMASTER_WITH_SPIDER_STANDALONE_ONLY"
+    ],
+    "comparability_gate": [
+      "same_formula_fingerprint_or_same_holdout_corpus",
+      "same_exact_semantics",
+      "same_resource_cap",
+      "same_measurement_scope",
+      "same_success_correctness_requirement",
+      "same_hardware_required_only_for_wall_clock_or_energy_claims"
+    ],
+    "if_gate_fails": "RECORD_BUT_DO_NOT_COMPUTE_CAUSAL_OR_SPEEDUP_DELTA"
+  },
+  "derived_metrics": {
+    "exact_checks_saved": "baseline.exact_checks_attempted - current.exact_checks_attempted",
+    "exact_checks_saved_fraction": "exact_checks_saved / max(1, baseline.exact_checks_attempted)",
+    "exact_check_capacity_multiplier": "baseline.exact_checks_attempted / max(1, current.exact_checks_attempted)",
+    "pair_work_saved": "baseline.pair_work - current.pair_work",
+    "pair_work_saved_fraction": "pair_work_saved / max(1, baseline.pair_work)",
+    "pair_work_capacity_multiplier": "baseline.pair_work / max(1, current.pair_work)",
+    "raw_work_saved": "baseline.raw_units_sum - current.raw_units_sum",
+    "peak_raw_reduction": "baseline.peak_raw_units - current.peak_raw_units",
+    "terminal_depth_reduction": "baseline.terminal_depth - current.terminal_depth",
+    "wall_clock_speedup_diagnostic": "baseline.wall_time_seconds / current.wall_time_seconds, only when hardware/environment comparability gate passes",
+    "effective_resource_interpretation": "Capacity multipliers describe equivalent search capacity under the same measured budget; they do NOT mean physical CPU/RAM has literally increased."
+  },
+  "boost_attribution": {
+    "method": "MATCHED_ABLATION_DELTA",
+    "required_for_module_boost_claim": "Compare two configurations on the same frozen formula/corpus/cap where exactly one named subsystem or policy changes, or use a preregistered factorial ablation.",
+    "module_axes": [
+      "M2R_PM",
+      "JGPT_TEACHER",
+      "PIVOT_SLIME_STUDENT",
+      "TOPA_DETECTIVE_SPIDER",
+      "SPIDER_RELATION_FEATURES",
+      "TOPA_CORE_FALSIFICATION_FILTER",
+      "KEYMASTER_RANKER",
+      "JUXTAPOSE_PREPOSITIONING"
+    ],
+    "store": [
+      "parent_configuration_id",
+      "changed_axis",
+      "delta_exact_checks",
+      "delta_pair_work",
+      "delta_peak_raw",
+      "delta_terminal_depth",
+      "delta_overflow_avoidance",
+      "confidence_scope"
+    ],
+    "anti_double_counting": "Do not sum overlapping module deltas as total gain unless a factorial/Shapley-style attribution experiment explicitly supports it."
+  },
+  "learning_curve": {
+    "x_axes": [
+      "exact_verified_training_episode_count",
+      "distinct_formula_fingerprint_count",
+      "distinct_scale_count",
+      "model_checkpoint_sequence",
+      "cumulative_pair_work_spent_on_training_data_generation"
+    ],
+    "y_axes": [
+      "exact_checks_saved_fraction_on_holdout",
+      "pair_work_saved_fraction_on_holdout",
+      "overflow_avoidance_recall_on_holdout",
+      "topk_exact_best_recall_on_holdout",
+      "peak_raw_regret_on_holdout",
+      "terminal_depth_regret_on_holdout"
+    ],
+    "holdout_rule": "Learning-curve claims must be evaluated by formula fingerprint holdout, not by replaying trajectories from formulas used to train the router."
+  },
+  "plateau_detector": {
+    "status_values": [
+      "INSUFFICIENT_HISTORY",
+      "LEARNING_ACTIVE",
+      "SLOWING_CANDIDATE",
+      "PLATEAU_CANDIDATE",
+      "REGRESSION"
+    ],
+    "default_window_checkpoints": 5,
+    "default_min_distinct_holdout_formulas": 5,
+    "relative_gain_epsilon": 0.005,
+    "rule": "On comparable holdout checkpoints, mark SLOWING_CANDIDATE when median marginal improvement of both exact_checks_saved_fraction and pair_work_saved_fraction over the last window is positive but below epsilon; mark PLATEAU_CANDIDATE when their absolute median marginal improvements are below epsilon and no meaningful overflow/top-k improvement occurs; mark REGRESSION when protected metrics worsen beyond the preregistered tolerance.",
+    "not_a_theorem": true,
+    "response_to_plateau": [
+      "do_not_fake_more_learning_by_replaying_same_formulas",
+      "increase formula diversity",
+      "add adversarial near-cap cases",
+      "ask TOPA_DETECTIVE_SPIDER for missing relation/counterexample targets",
+      "re-run ablations before increasing model size",
+      "check whether teacher-student distillation is bottlenecking"
+    ]
+  },
+  "resource_ledger": {
+    "tracks_spent": [
+      "exact_checks",
+      "pair_work",
+      "raw_work",
+      "wall_clock_diagnostic",
+      "memory_diagnostic",
+      "energy_if_measured"
+    ],
+    "tracks_saved": [
+      "exact_checks_saved_vs_baseline",
+      "pair_work_saved_vs_baseline",
+      "raw_work_saved_vs_baseline"
+    ],
+    "tracks_effective_capacity": [
+      "exact_check_capacity_multiplier",
+      "pair_work_capacity_multiplier",
+      "wall_clock_speedup_diagnostic"
+    ],
+    "resource_balance_statement": "Report both gross training/data-generation cost and downstream inference/search savings. A learning system is not called resource-positive until cumulative downstream savings exceed its measured additional training/calibration cost on the declared accounting horizon."
+  },
+  "historical_backfill_policy": {
+    "enabled": true,
+    "rule": "Backfill only metrics already present in frozen exact receipts/artifacts. Unknown historical fields remain null; never reconstruct or estimate missing numbers from memory.",
+    "initial_known_milestones": [
+      {
+        "milestone": "JUXTAPOSE_25x25_N7",
+        "known": {
+          "orders_exhaustive": 5040,
+          "champion_peak_raw": 718,
+          "champion_sum_raw": 1096,
+          "champion_pair_work": 803,
+          "champion_terminal_depth": 5
+        },
+        "unknown_or_not_yet_accounted": [
+          "total_exhaustive_pair_work",
+          "total_exhaustive_wall_time",
+          "learning_speedup"
+        ]
+      },
+      {
+        "milestone": "JUXTAPOSE_250x250_N8_CAP105SQ",
+        "known": {
+          "orders_exhaustive": 40320,
+          "champion_peak_raw": 10787,
+          "champion_terminal_depth": 4
+        },
+        "unknown_or_not_yet_accounted": [
+          "total_exhaustive_pair_work",
+          "total_exhaustive_wall_time",
+          "learning_speedup"
+        ]
+      }
+    ]
+  },
+  "reporting_views": [
+    "CURRENT_GAIN_SNAPSHOT",
+    "GAIN_BY_MODULE_ABLATION",
+    "GAIN_BY_FORMULA_SCALE",
+    "GAIN_BY_PIVOT_CONTEXT",
+    "RESOURCE_SPENT_VS_SAVED",
+    "LEARNING_CURVE",
+    "PLATEAU_AND_REGRESSION_WATCH",
+    "BEST_AND_WORST_CHECKPOINTS",
+    "UNEXPLAINED_GAIN_OR_LOSS_QUEUE_FOR_TOPA"
+  ],
+  "integration": {
+    "reads_from": [
+      "EXACT_JANUS_RECEIPTS",
+      "M2R_PM",
+      "KEYMASTER_RANKER_RECEIPTS",
+      "JGPT_TEACHER_CHECKPOINT_METADATA",
+      "PIVOT_SLIME_CHECKPOINT_METADATA",
+      "TOPA_DETECTIVE_SPIDER_ABLATION_TAGS",
+      "CI_RESOURCE_MEASUREMENTS_WHEN_AVAILABLE"
+    ],
+    "writes_to": [
+      "APPEND_ONLY_KLGJ_JSONL",
+      "RECOMPUTABLE_SUMMARY_JSON",
+      "TOPA_DETECTIVE_SPIDER_UNEXPLAINED_DELTA_QUEUE",
+      "META_REGISTRY_CHECKPOINT_SUMMARIES"
+    ]
+  },
+  "laws": [
+    "MEASURE_FROM_BASELINE_BEFORE_CLAIMING_BOOST",
+    "NO_CROSS_FORMULA_SPEEDUP_WITHOUT_COMPARABILITY_GATE",
+    "PHYSICAL_RESOURCE_IS_NOT_CREATED_BY_LEARNING",
+    "EFFECTIVE_CAPACITY_MAY_INCREASE_WHEN_WORK_PER_SOLVED_CASE_DECREASES",
+    "TRAINING_COST_MUST_BE_COUNTED",
+    "NEGATIVE_AND_REGRESSION_EVENTS_ARE_IMMUTABLE",
+    "PLATEAU_IS_A_MEASUREMENT_STATE_NOT_A_FAILURE",
+    "MODULE_BOOST_REQUIRES_MATCHED_ABLATION",
+    "MODEL_PREDICTION_IS_NOT_PROOF",
+    "EXACT_REPLAY_IS_THE_PROOF_STATE_AUTHORITY",
+    "P_VS_NP_IS_OPEN"
+  ]
+}
