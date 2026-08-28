@@ -1,0 +1,98 @@
+name: JANUS PIPPI Ruthless Gauntlet v2
+
+on:
+  push:
+    branches:
+      - research/janus-keymaster-calibration-pivot-slime-topa-2026-08-28
+    paths:
+      - 'experiments/mad_lab/asymmetric_pq_track.py'
+      - 'experiments/mad_lab/keymaster_adviser_governance_v2.py'
+      - 'experiments/mad_lab/adaptive_pippi_gauntlet_v2.py'
+      - '.github/workflows/run-pippi-ruthless-gauntlet-v2.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  ruthless-gauntlet:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+        with:
+          repository: Hawkar-usls/TOPA
+          ref: 7cd9225d78c881093d8f00df33124d5dba1e8c90
+          path: _topa
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Ensure PyTorch CPU
+        shell: bash
+        run: |
+          set -euo pipefail
+          if ! python -c 'import torch; print(torch.__version__)'; then
+            python -m pip install --disable-pip-version-check --index-url https://download.pytorch.org/whl/cpu torch==2.10.0
+          fi
+          python - <<'PY'
+          import torch
+          print('TORCH='+torch.__version__)
+          print('CUDA='+str(torch.cuda.is_available()))
+          PY
+      - name: Compile and self-test new track/governance/Spider
+        run: |
+          python -m py_compile \
+            experiments/mad_lab/asymmetric_pq_track.py \
+            experiments/mad_lab/keymaster_adviser_governance_v2.py \
+            experiments/mad_lab/adaptive_pippi_gauntlet_v2.py
+          python -m experiments.mad_lab.asymmetric_pq_track --self-test
+          python -m experiments.mad_lab.keymaster_adviser_governance_v2
+          python _topa/tools/topa_spider_attention_ecosystem.py self-test
+      - name: Run ruthless +10:+10 / asymmetric-shock gauntlet
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p artifacts/pippi-ruthless-gauntlet-v2
+          python -m experiments.mad_lab.adaptive_pippi_gauntlet_v2 \
+            --topa-dir _topa \
+            --out-dir artifacts/pippi-ruthless-gauntlet-v2 \
+            --base-formulas-per-stage 4 \
+            --max-recovery-laps 3 \
+            --time-budget-seconds 1200 \
+            | tee /tmp/pippi-ruthless-gauntlet-v2.log
+      - name: Scientific firewall
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          p=json.loads(Path('artifacts/pippi-ruthless-gauntlet-v2/gauntlet-result.json').read_text())
+          assert p['status']=='RUTHLESS_GAUNTLET_COMPLETE__EXACT_ROOT_TRANSITIONS_VERIFIED'
+          assert p['P_VS_NP']=='OPEN'
+          fw=p['scientific_firewall']
+          assert fw['FRESH_STAGE_SCORED_BEFORE_LEARNING_FROM_IT'] is True
+          assert fw['BOSS_250x250_IS_BLIND_OOD_AND_DOES_NOT_REWRITE_FRONTIER'] is True
+          assert fw['TRACK_CONSTRUCTION_IMPOSSIBILITY_IS_NOT_SOLVER_FAILURE'] is True
+          assert fw['NO_ADVISER_100_PERCENT'] is True
+          assert fw['MODEL_PREDICTION_IS_NOT_PROOF'] is True
+          assert fw['EVERY_COUNTED_ROOT_TRANSITION_EXACT_VERIFIED'] is True
+          assert fw['P_VS_NP']=='OPEN'
+          assert p['boss_250x250'] is not None
+          assert p['boss_250x250']['difficulty']=='250:250'
+          trap=p['fixed_chassis_impossibility_trap']
+          assert trap['status']=='TRACK_CONSTRUCTION_IMPOSSIBLE_BY_SIGNED_OCCURRENCE_CAPACITY'
+          assert trap['p']==251 and trap['q']==251 and trap['n']==126
+          assert max(p['final_fusion_weights'].values()) < 1.0
+          print('RUTHLESS_GAUNTLET_FIREWALL=PASS')
+          print('FRONTIER='+str(p['official_frontier']))
+          print('STOP_REASON='+p['stop_reason'])
+          print('BOSS_250_SCORE='+str(p['boss_250x250']['score']))
+          print('IMPOSSIBILITY_TRAP='+trap['status'])
+          print('P_VS_NP=OPEN')
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: janus-pippi-ruthless-gauntlet-v2
+          path: artifacts/pippi-ruthless-gauntlet-v2
+          if-no-files-found: error
+          retention-days: 90
