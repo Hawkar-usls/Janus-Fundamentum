@@ -1,0 +1,75 @@
+name: run-c025-v2-gap-screen-clones
+
+on:
+  push:
+    branches:
+      - research/c025-phase5-9-polynomial-pivot-grammar-2026-08-28
+    paths:
+      - 'experiments/theorem_extraction/c025_v2_gap_screen_only.py'
+      - '.github/workflows/run-c025-v2-gap-screen-clones.yml'
+  workflow_dispatch:
+
+jobs:
+  screen:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - id: n10-m90
+            n: 10
+            m: 90
+            seed: 39100
+          - id: n12-m108
+            n: 12
+            m: 108
+            seed: 49100
+          - id: n14-m126
+            n: 14
+            m: 126
+            seed: 59100
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      PYTHONPATH: .
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Run screen-only clone
+        shell: bash
+        run: |
+          set -o pipefail
+          python experiments/theorem_extraction/c025_v2_gap_screen_only.py \
+            --leaf-nvars ${{ matrix.n }} --leaf-clauses ${{ matrix.m }} \
+            --leaf-width 4 --seed ${{ matrix.seed }} \
+            | tee v2-gap-screen-${{ matrix.id }}.json
+      - name: Expose clone result
+        run: |
+          python - <<'PY'
+          import json,glob
+          p=glob.glob('v2-gap-screen-*.json')[0]
+          d=json.load(open(p))
+          b=d['scientific_boundary']
+          assert b['screen_only'] is True
+          assert b['original_reachability_replay_performed'] is False
+          assert b['screen_none_has_theorem_authority'] is False
+          assert b['P_VS_NP']=='OPEN'
+          print('STATUS='+d['status'])
+          print('N='+str(d['source_meta']['N']))
+          print('ORDINARY_ALL_OVERFLOW='+str(d['ordinary']['all_overflow']))
+          s=d['fast_v2_screen']
+          if s:
+              print('V2_RESCUE='+str(s['rescue_exists']))
+              print('PAIRS_TESTED='+str(s['pairs_tested_through_rescue']))
+              print('PAIR_COUNT='+str(s['candidate_pair_count']))
+              if s['rescue_exists']:
+                  print('RESCUE_PAIR='+str(s['pair']))
+                  print('RESCUE_PIVOT='+str(s['pivot']))
+                  print('RESCUE_RAW='+str(s['raw_units']))
+          print('P_VS_NP=OPEN')
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: c025-v2-gap-screen-${{ matrix.id }}
+          path: v2-gap-screen-${{ matrix.id }}.json
