@@ -1,0 +1,132 @@
+name: JANUS PIPPI Warm Instinctive Coverage v3
+
+on:
+  push:
+    branches:
+      - research/janus-keymaster-calibration-pivot-slime-topa-2026-08-28
+    paths:
+      - 'experiments/mad_lab/adaptive_pippi_gauntlet_v3_instinctive_coverage.py'
+      - '.github/workflows/run-pippi-warm-instinctive-coverage-v3.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  warm-instinctive-gauntlet:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+        with:
+          repository: Hawkar-usls/TOPA
+          ref: 7cd9225d78c881093d8f00df33124d5dba1e8c90
+          path: _topa
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Ensure PyTorch CPU
+        shell: bash
+        run: |
+          set -euo pipefail
+          if ! python -c 'import torch; print(torch.__version__)'; then
+            python -m pip install --disable-pip-version-check --index-url https://download.pytorch.org/whl/cpu torch==2.10.0
+          fi
+          python - <<'PY'
+          import torch
+          print('TORCH='+torch.__version__)
+          print('CUDA='+str(torch.cuda.is_available()))
+          PY
+
+      - name: Compile and exact self-tests
+        run: |
+          python -m py_compile \
+            experiments/mad_lab/adaptive_pippi_gauntlet_v3_instinctive_coverage.py \
+            experiments/mad_lab/adaptive_pippi_gauntlet_v2.py \
+            experiments/mad_lab/asymmetric_pq_track_relabelled.py \
+            experiments/mad_lab/keymaster_scalable_feature_tokens.py \
+            experiments/mad_lab/keymaster_scalable_exact_root_labels.py \
+            experiments/mad_lab/keymaster_scalable_exact_2cnf_transition.py \
+            experiments/mad_lab/keymaster_adviser_governance_v2.py
+          python -m experiments.mad_lab.asymmetric_pq_track_relabelled
+          python -m experiments.mad_lab.keymaster_scalable_feature_tokens
+          python -m experiments.mad_lab.keymaster_scalable_exact_root_labels
+          python -m experiments.mad_lab.keymaster_scalable_exact_2cnf_transition
+          python -m experiments.mad_lab.keymaster_adviser_governance_v2
+          python _topa/tools/topa_spider_attention_ecosystem.py self-test
+
+      - name: Run warm-memory instinctive JUXTAPOSE gauntlet
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p artifacts/pippi-warm-instinctive-v3
+          python -m experiments.mad_lab.adaptive_pippi_gauntlet_v3_instinctive_coverage \
+            --topa-dir _topa \
+            --out-dir artifacts/pippi-warm-instinctive-v3 \
+            --base-formulas-per-stage 4 \
+            --max-recovery-laps 3 \
+            --time-budget-seconds 1500 \
+            | tee /tmp/pippi-warm-instinctive-v3.log
+
+      - name: Scientific firewall
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          p=json.loads(Path('artifacts/pippi-warm-instinctive-v3/gauntlet-result.json').read_text())
+          assert p['schema']=='JANUS/PIPPI/WARM-INSTINCTIVE-JUXTAPOSE-GAUNTLET/v3.0.0'
+          assert p['status']=='RUTHLESS_GAUNTLET_COMPLETE__EXACT_ROOT_TRANSITIONS_VERIFIED'
+          assert p['P_VS_NP']=='OPEN'
+          warm=p['warm_start']
+          assert warm['base_50_exact_formulas']==24
+          assert warm['replayed_ruthless_stage_formulas']==32
+          assert warm['replayed_hard_boss_250_formulas']==4
+          assert warm['warm_exact_episode_total']>=60
+          assert warm['previous_v2_4_boss_fingerprints_replayed'] is True
+          assert warm['prior_klgj_events_loaded']>=21
+          assert warm['new_boss_fingerprints_disjoint_from_previous_boss'] is True
+          c=p['instinctive_juxtapose']
+          assert c['total_compute_is_not_free'] is True
+          assert sum(c['mode_counts'].values())>0
+          assert c['mode_counts'].get('COLD_JUXTAPOSE_FULL',0)>0
+          fw=p['scientific_firewall']
+          assert fw['FRESH_STAGE_SCORED_BEFORE_LEARNING_FROM_IT'] is True
+          assert fw['WARM_START_USES_ONLY_PREVIOUSLY_SCORED_EXACT_LESSONS'] is True
+          assert fw['NEW_RACE_FINGERPRINTS_USE_DISJOINT_SEED_NAMESPACE'] is True
+          assert fw['NEW_BOSS_FINGERPRINTS_DISJOINT_FROM_PREVIOUS_BOSS'] is True
+          assert fw['UNCERTAINTY_MODE_DOES_NOT_READ_CURRENT_EXACT_LABELS'] is True
+          assert fw['ALL_COVERAGE_PROBES_USE_EXACT_WIDTH2_REPLAY'] is True
+          assert fw['CHOSEN_COVERAGE_TRANSITIONS_EXACT_VERIFIED'] is True
+          assert fw['LATENCY_PROXY_SEPARATE_FROM_TOTAL_COMPUTE'] is True
+          assert fw['PARALLELISM_IS_NOT_FREE_COMPUTE'] is True
+          assert fw['LEARNING_MAY_REDUCE_SEARCH_BUT_NOT_REMOVE_SEARCH'] is True
+          assert fw['NO_ADVISER_100_PERCENT'] is True
+          assert fw['MODEL_PREDICTION_IS_NOT_PROOF'] is True
+          assert fw['BOSS_REQUIRES_EXACT_MIN_RAW_PIVOT'] is True
+          assert fw['BOSS_FORMULA_COUNT']==4
+          assert fw['P_VS_NP']=='OPEN'
+          boss=p['boss_250x250']
+          assert boss['formula_count']==4
+          assert boss['strict_min_raw_cap'] is True
+          assert boss['cap_policy']=='EXACT_MIN_RAW_ONLY'
+          trap=p['fixed_chassis_impossibility_trap']
+          assert trap['status']=='TRACK_CONSTRUCTION_IMPOSSIBLE_BY_SIGNED_OCCURRENCE_CAPACITY'
+          print('WARM_INSTINCTIVE_V3_FIREWALL=PASS')
+          print('PREVIOUS_FRONTIER='+p['generation_comparison']['v2_4_frontier'])
+          print('V3_FRONTIER='+p['generation_comparison']['v3_frontier'])
+          print('MODES='+json.dumps(c['mode_counts'],sort_keys=True))
+          print('MEAN_COVERAGE='+str(c['mean_stage_coverage_ratio']))
+          print('TOTAL_CLONE_PAIR_WORK='+str(c['total_clone_compute_pair_work']))
+          print('LATENCY_PAIR_PROXY='+str(c['total_parallel_latency_pair_work_proxy']))
+          print('BOSS_SCORE='+str(boss['score']))
+          print('P_VS_NP=OPEN')
+          PY
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: janus-pippi-warm-instinctive-coverage-v3
+          path: artifacts/pippi-warm-instinctive-v3
+          if-no-files-found: error
+          retention-days: 90
