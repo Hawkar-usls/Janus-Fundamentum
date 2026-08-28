@@ -1,0 +1,80 @@
+name: run-c025-v2-direct-denial-attack
+
+on:
+  push:
+    branches:
+      - research/c025-phase5-14-v2-denial-2026-08-28
+    paths:
+      - 'research/C025_V2_DIRECT_DENIAL_ATTACK_SPEC_2026-08-28.json'
+      - 'experiments/theorem_extraction/c025_v2_direct_denial_attack.py'
+      - '.github/workflows/run-c025-v2-direct-denial-attack.yml'
+  workflow_dispatch:
+
+jobs:
+  v2-denial:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      PYTHONPATH: .
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Verify frozen direct-denial objective
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          d=json.loads(Path('research/C025_V2_DIRECT_DENIAL_ATTACK_SPEC_2026-08-28.json').read_text())
+          assert d['status']=='FROZEN_DIRECT_L1_FALSIFICATION_OBJECTIVE__NOT_PROOF'
+          assert d['target']=='L1_ROOT_PHASE_POLYNOMIAL_GRAMMAR_TOTALITY'
+          assert d['refutation_gate']['verdict_if_all_hold']=='L1_REFUTED_BY_EXACT_REACHABLE_WITNESS'
+          assert d['scientific_boundary']['L1']=='OPEN_BEFORE_RUN'
+          assert d['P_VS_NP']=='OPEN'
+          print('V2_DIRECT_DENIAL_OBJECTIVE=FROZEN')
+          PY
+      - name: Run direct v2-denial JUXTAPOSE beam
+        shell: bash
+        run: |
+          set -o pipefail
+          python experiments/theorem_extraction/c025_v2_direct_denial_attack.py \
+            --beam-width 3 --steps 5 --exact-v2-budget 160 \
+            | tee c025-v2-direct-denial-attack.json
+      - name: Enforce fail-closed interpretation
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          d=json.loads(Path('c025-v2-direct-denial-attack.json').read_text())
+          b=d['scientific_boundary']; e=d['best_candidate']['evaluation']; v=d['best_candidate']['v2']
+          assert d['search']['factorized_delta_selftest']=='PASS'
+          assert e['all_pivot_overflow'] is True
+          assert b['beam_search_has_no_theorem_authority'] is True
+          assert b['exact_v2_used_for_search_score_but_not_theorem_promotion'] is True
+          assert b['final_L1_refutation_requires_full_frozen_core_reachability'] is True
+          assert b['failure_to_find_v2_denial_is_not_L1_proof'] is True
+          assert b['same_run_theorem_promotion'] is False
+          assert b['P2_REACHABLE_PRESERVATION']=='OPEN'
+          assert b['P_VS_NP']=='OPEN'
+          print('STATUS='+d['status'])
+          print('DELTA='+str(e['delta']))
+          print('V2_RESCUE='+str(v['rescue_exists']))
+          print('V2_SLACK='+str(v['rescue_slack']))
+          print('V2_PAIR='+str(v['pair']))
+          print('V2_ROOT='+str(v['root_pivot']))
+          print('V2_RAW='+str(v['raw_units']))
+          print('EXACT_V2_CALLS='+str(d['search']['exact_v2_calls']))
+          print('L1='+d['candidate_results']['L1_ROOT_PHASE_POLYNOMIAL_GRAMMAR_TOTALITY'])
+          r=d.get('exact_reachability_replay')
+          if r is not None:
+              print('TARGET_REACHED='+str(r['selector_reaches_target']))
+              print('TARGET_ALL_OVERFLOW='+str(r['all_ordinary_pivots_overflow_at_target']))
+              print('V2_CALLED='+str(r['v2_called_on_target']))
+              print('V2_REPLAY_RESCUE='+str(r['v2_rescue_exists']))
+          print('P_VS_NP=OPEN')
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: c025-v2-direct-denial-attack
+          path: c025-v2-direct-denial-attack.json
