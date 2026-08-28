@@ -9,15 +9,20 @@ polarity line p+q=d:
     CENTER_RIGHT   center -> d:0
     EDGE_RIGHT     d:0  -> center
 
-The fronts do not vote on truth.  Every visited row is recomputed through the
-pre-existing proof-gated ``exact_action_bound``.  Direction changes only visit
-order.  The useful event is a *verdict-front collision*: an edge-born LAND
+The fronts do not vote on truth. Every visited row is recomputed through the
+pre-existing proof-gated ``exact_action_bound``. Direction changes only visit
+order. The useful event is a *verdict-front collision*: an edge-born LAND
 region and a center-born OPEN region independently discover the same adjacent
 boundary from opposite directions.
 
+The signed line is only traversal geometry. Existing bound/rescue providers
+are defined on canonical polarity classes, so every signed (p,q) is normalized
+to (min(p,q), max(p,q)) before exact evaluation. This prevents the unfolded
+right half from silently changing theorem-provider semantics.
+
 For even d the two center fronts intentionally start from the same balanced
-split as two labelled copies.  This is a traversal device, not duplicate proof
-credit.  Mirror equality is checked explicitly on the unfolded signed line.
+split as two labelled copies. This is a traversal device, not duplicate proof
+credit. Mirror equality is checked explicitly on the unfolded signed line.
 
 BOUND_SAFE != CONCRETE_PIVOT_AVAILABILITY_PROVED.
 P vs NP remains OPEN.
@@ -41,10 +46,13 @@ THEOREM_CREDIT_ALLOWED = False
 def row(N: int, state: tuple[int, int, int], d: int, p: int) -> dict[str, Any]:
     n, m, L = state
     q = d - p
-    a = dict(M.exact_action_bound(N, n, m, L, d, p, q))
+    cp, cq = sorted((p, q))
+    a = dict(M.exact_action_bound(N, n, m, L, d, cp, cq))
     return {
         "p": p,
         "q": q,
+        "canonical_p": cp,
+        "canonical_q": cq,
         "B": int(a["raw_final"]),
         "raw_base": int(a["raw_base"]),
         "m_out": int(a["m_out"]),
@@ -72,6 +80,7 @@ def mirror_check(spec: list[dict[str, Any]]) -> dict[str, Any]:
             mismatches.append({"p": p, "mirror_p": q, "fields": bad})
     return {
         "checked_fields": fields,
+        "normalization": "SIGNED_PQ_TO_CANONICAL_MIN_MAX_BEFORE_BOUND",
         "exact_signed_mirror": not mismatches,
         "mismatches": mismatches,
     }
@@ -188,6 +197,7 @@ def four_front_probe(
         "four_front_contract": {
             "fronts": ["EDGE_LEFT", "CENTER_LEFT", "CENTER_RIGHT", "EDGE_RIGHT"],
             "movement": "EDGE_TO_CENTER_AND_CENTER_TO_EDGE_SIMULTANEOUSLY",
+            "signed_geometry_normalized_before_bound": True,
             "ranking_changes_truth": False,
             "same_run_lemma_promotion": False,
             "concrete_pivot_availability_proved": False,
