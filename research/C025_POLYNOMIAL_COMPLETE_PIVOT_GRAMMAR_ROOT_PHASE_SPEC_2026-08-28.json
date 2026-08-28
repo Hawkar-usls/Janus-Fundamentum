@@ -1,13 +1,15 @@
 {
-  "schema": "JANUS/C025/POLYNOMIAL-COMPLETE-PIVOT-GRAMMAR/ROOT-PHASE/v1",
+  "schema": "JANUS/C025/POLYNOMIAL-COMPLETE-PIVOT-GRAMMAR/ROOT-PHASE/v1.1",
   "date": "2026-08-28",
-  "status": "THEOREM_TARGET_FROZEN__NOT_PROVED",
+  "status": "THEOREM_TARGET_FROZEN__L1_OPEN__COUNTING_ROUTES_REFUTED",
   "P_VS_NP": "OPEN",
   "depends_on": [
     "research/C025_PIRC_GPEI_COMPOSITION_BRIDGE_2026-08-27.json",
     "research/C025_TOTALITY_REDUCTION_LOW_VOLUME_AND_EXTENSION_BUDGET_2026-08-27.json",
     "research/C025_V2_FREQUENT_PAIR_RESCUE_SUFFICIENT_LEMMA_2026-08-27.json",
-    "research/C025_PAIR_INCIDENCE_DENSITY_RESCUE_COROLLARY_2026-08-27.json"
+    "research/C025_PAIR_INCIDENCE_DENSITY_RESCUE_COROLLARY_2026-08-27.json",
+    "research/C025_V2_POLARITY_DRAINAGE_RESCUE_LEMMA_2026-08-28.json",
+    "research/C025_L1A_L1B_REACHABLE_REFUTATION_M80_2026-08-28.json"
   ],
   "fixed_algorithm": "PIRC_DECISION_CORE_V0_4",
   "definitions": {
@@ -31,49 +33,55 @@
     "equivalent_failure_witness": "A reachable root-phase state at the ordinary-elimination call site for which every canonical ordinary pivot overflows the fixed N^2 raw cap and frozen exhaustive v2 returns no exact strict-progress root rescue.",
     "status": "OPEN_CENTRAL_ROOT_PHASE"
   },
-  "strong_counting_subcandidate": {
-    "id": "L1A_ALL_PIVOT_OVERFLOW_FORCES_FREQUENT_PAIR",
-    "statement": "Every reachable root-phase state S with all ordinary pivots overflowing N^2 has max sign-aware literal-pair cooccurrence t_max >= s-2N+11.",
-    "why_useful": "Together with the already proved FREQUENT_PAIR_FORCES_V2_ROOT_RESCUE lemma, L1A would imply L1 in the all-pivot-overflow region.",
-    "status": "CANDIDATE_ONLY__MUST_BE_FALSIFIED_BEFORE_PROOF_ATTEMPT"
+  "retired_counting_subcandidates": {
+    "L1A_ALL_PIVOT_OVERFLOW_FORCES_FREQUENT_PAIR": {
+      "statement": "Every reachable root-phase state S with all ordinary pivots overflowing N^2 has max sign-aware literal-pair cooccurrence t_max >= s-2N+11.",
+      "status": "REFUTED_BY_CERTIFIED_REACHABLE_M80",
+      "witness": "research/C025_L1A_L1B_REACHABLE_REFUTATION_M80_2026-08-28.json"
+    },
+    "L1B_ALL_PIVOT_OVERFLOW_FORCES_PAIR_DENSITY": {
+      "statement": "Every reachable root-phase all-pivot-overflow state satisfies P >= 2*n*(n-1)*(s-2N+11), where P=sum_C binom(|C|,2).",
+      "status": "REFUTED_BY_CERTIFIED_REACHABLE_M80",
+      "witness": "research/C025_L1A_L1B_REACHABLE_REFUTATION_M80_2026-08-28.json"
+    }
   },
-  "weaker_density_subcandidate": {
-    "id": "L1B_ALL_PIVOT_OVERFLOW_FORCES_PAIR_DENSITY",
-    "statement": "Every reachable root-phase all-pivot-overflow state satisfies P >= 2*n*(n-1)*(s-2N+11), where P=sum_C binom(|C|,2).",
-    "status": "CANDIDATE_ONLY__STRONGER_THAN_NEEDED"
+  "current_structural_subcandidate": {
+    "id": "L1C_ALL_PIVOT_OVERFLOW_FORCES_DRAINABLE_ROOT_PAIR",
+    "statement": "Every reachable root-phase all-ordinary-overflow state contains some co-occurring pair (a,b), where a is a signed literal of a live original root variable x, such that B_drain(a,b)=s-t+10+(n+1)*(c_sigma-t+1)*(c_opp+1) <= N^2.",
+    "why_useful": "The proved B2_POLARITY_DRAINAGE_SUFFICIENT_ROOT_RESCUE lemma makes such a pair sufficient for an exact frozen v2 root rescue; therefore L1C would imply L1 in the all-ordinary-overflow region.",
+    "status": "CANDIDATE_ONLY__MUST_BE_FALSIFIED_BEFORE_PROOF_ATTEMPT"
   },
   "known_reductions": {
     "low_volume": "If s<=N, every live pivot fits N^2; therefore L1 is automatic there.",
-    "frequent_pair": "If t_max>=s-2N+11, frozen v2 rescue is guaranteed.",
-    "pair_density": "If P>=2*n*(n-1)*(s-2N+11), the frequent-pair condition follows by pigeonhole and v2 rescue is guaranteed.",
-    "unresolved_region": "roots live AND all ordinary pivots overflow N^2 AND the sufficient frequent-pair/density conditions do not trigger."
+    "frequent_pair": "If t_max>=s-2N+11, frozen v2 rescue is guaranteed, but M80 proves this condition is not necessary.",
+    "pair_density": "If P>=2*n*(n-1)*(s-2N+11), v2 rescue is guaranteed, but M80 proves this condition is not necessary.",
+    "polarity_drainage": "If any live-root literal pair satisfies B_drain<=N^2, frozen v2 root rescue is guaranteed even when the macro remains high-volume.",
+    "unresolved_region": "roots live AND all ordinary pivots overflow N^2 AND no currently proved sufficient v2 rescue condition is known to trigger."
   },
   "falsification_protocol": {
     "authority": "EXACT_REACHABILITY_UNDER_FIXED_A_ONLY",
-    "rule": "A state that is not reachable under the fixed deterministic theorem core cannot refute L1.",
+    "rule": "A state that is not reachable under the fixed deterministic theorem core cannot refute L1 or L1C.",
     "procedure": [
       "Generate hostile canonical root CNFs without using SAT truth labels in selection.",
-      "Run exactly PIRC_DECISION_CORE_V0_4.",
-      "Instrument only the ordinary-elimination and v2 discovery call sites without changing their return values.",
-      "Freeze every reachable root-phase state where ordinary elimination returns None.",
-      "Measure t_max and P exactly on that frozen state.",
+      "Replay the frozen theorem-mode prefix exactly and freeze only certified reachable root-phase states.",
+      "At every state where every ordinary pivot overflows, enumerate all co-occurring sign-aware pairs exactly.",
+      "Evaluate B_drain for every pair whose first literal or second literal belongs to a live original root variable, considering the actual sign used by the pair.",
       "Run the unmodified frozen v2 discovery on the same state.",
-      "If v2 also returns None, freeze the source CNF, state CNF, event prefix and exact measurements as an L1 counterexample.",
-      "If t_max<s-2N+11, reject L1A even when v2 succeeds by another mechanism.",
-      "If P<2*n*(n-1)*(s-2N+11), reject L1B even when v2 succeeds.",
-      "Absence of a bounded counterexample never promotes L1/L1A/L1B to a theorem."
+      "If v2 returns None, freeze the source CNF, state CNF, exact event prefix and candidate measurements as an L1 counterexample.",
+      "If no pair satisfies B_drain<=N^2 but v2 succeeds, refute L1C and inspect the exact successful v2 mechanism to derive a weaker candidate.",
+      "Absence of a bounded counterexample never promotes L1 or L1C to a theorem."
     ]
   },
   "proof_obligations_if_L1_survives": [
     "Give a symbolic existence proof for at least one exact ordinary or v2 grammar move on every reachable root-phase state.",
     "Show deterministic discovery and exact verification work remain polynomial in original N, including failed grammar candidates.",
-    "Compose L1 with the already proved O(N) outer-transition bound and PIRC input-relative envelope bridge.",
-    "Separately close the root-free v3 tail; L1 alone is insufficient for P2 universal preservation."
+    "Compose L1 with the proved conditional root-phase grammar composition lemma and the PIRC input-relative envelope bridge.",
+    "Separately close the root-free v3 tail; L1 alone is insufficient for universal P2 preservation."
   ],
   "scientific_boundary": {
     "finite_search_is_falsification_only": true,
     "no_model_prediction_has_proof_authority": true,
-    "root_free_tail_remains_open": true,
+    "root_free_v3_tail_remains_open": true,
     "P2_REACHABLE_PRESERVATION_remains_open_until_symbolic_closure": true,
     "P_VS_NP": "OPEN"
   }
