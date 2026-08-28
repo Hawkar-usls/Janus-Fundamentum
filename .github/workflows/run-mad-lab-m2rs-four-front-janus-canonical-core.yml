@@ -22,10 +22,11 @@ jobs:
         with:
           python-version: '3.11'
 
-      - name: Compile exact canonical runner
+      - name: Compile exact canonical runners
         run: |
           python -m py_compile \
             experiments/mad_lab/m2rs_four_front_janus_canonical_core.py \
+            experiments/mad_lab/m2rs_exact_resolvent_packing_gap.py \
             experiments/mad_lab/m2rs_tranception_meet.py \
             experiments/direct/janus_unified_proof_carrying_akinator_jec.py \
             experiments/direct/janus_v3_root_free_local_gap_probe.py
@@ -37,13 +38,21 @@ jobs:
             --cnf-out artifacts/mad_lab/m2rs_four_front_janus_canonical_core.cnf \
             | tee /tmp/m2rs-four-front-janus-canonical-core.log
 
+      - name: Run exact resolvent packing microscope
+        run: |
+          python -m experiments.mad_lab.m2rs_exact_resolvent_packing_gap \
+            --out artifacts/mad_lab/m2rs_exact_resolvent_packing_gap.json \
+            | tee /tmp/m2rs-exact-resolvent-packing-gap.log
+
       - name: Verify anti-self-deception invariants
         run: |
           python - <<'PY'
           import json
           from pathlib import Path
           p = json.loads(Path('artifacts/mad_lab/m2rs_four_front_janus_canonical_core.json').read_text())
+          q = json.loads(Path('artifacts/mad_lab/m2rs_exact_resolvent_packing_gap.json').read_text())
           assert p['P_VS_NP'] == 'OPEN'
+          assert q['P_VS_NP'] == 'OPEN'
           assert p['JANUS_canonical_CNF'] is True
           assert p['forward_reachability_proved'] is False
           s = p['witness']['stats']
@@ -72,6 +81,15 @@ jobs:
           c = p['correction_of_initial_weak_static_witness']
           assert c['initial_79_clause_witness_after_JANUS_canon_cnf'] == {'m': 50, 'L': 206}
           assert c['initial_witness_canonical_status'] == 'REJECTED_NEGATIVE_CONTROL'
+          pack = q['packing_identity']
+          assert pack['raw_distinct_clause_cardinality_cap'] == 654
+          assert pack['exact_extremal_state_units'] == 3433
+          assert pack['N2_cap'] == 3364
+          assert pack['required_universal_structural_deficit_to_land'] == 69
+          assert q['frozen_canonical_witness']['max_exact_raw_units'] == 949
+          assert q['frozen_canonical_witness']['minimum_observed_packing_deficit'] == 2484
+          assert q['interpretation']['3433_explained_as_structure_forgetting_extremal_packing'] is True
+          assert q['interpretation']['universal_69_unit_deficit_proved'] is False
           g = p['anti_self_deception_gate']
           assert g['same_run_lemma_promotion'] is False
           assert g['theorem_credit_allowed'] is False
@@ -80,6 +98,8 @@ jobs:
           assert g['P_VS_NP'] == 'OPEN'
           print('JANUS_CANONICAL_CORE_GATE=PASS')
           print('ABSTRACT_OPEN_BUT_EXACT_PIVOT_FITS=7/7')
+          print('EXTREMAL_PACKING=3433')
+          print('UNIVERSAL_DEFICIT_TARGET=69')
           print('P_VS_NP=OPEN')
           PY
 
@@ -90,4 +110,5 @@ jobs:
           path: |
             artifacts/mad_lab/m2rs_four_front_janus_canonical_core.json
             artifacts/mad_lab/m2rs_four_front_janus_canonical_core.cnf
+            artifacts/mad_lab/m2rs_exact_resolvent_packing_gap.json
           if-no-files-found: error
