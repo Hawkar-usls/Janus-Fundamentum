@@ -110,7 +110,7 @@ def pivot_features(cnf: base.CNF, pivot: int, cap: int) -> dict[str, Any]:
                 tautologies += 1
                 continue
             non_taut += 1
-            res = base.resolve_on(left, right, pivot)
+            res = base.resolve_on_var(left, right, pivot)
             assert res is not None
             raw_resolvent_width_hist[len(res)] += 1
             unique_resolvents_seen.add(res)
