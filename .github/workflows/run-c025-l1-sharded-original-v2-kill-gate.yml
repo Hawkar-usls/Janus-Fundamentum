@@ -1,0 +1,99 @@
+name: run-c025-l1-sharded-original-v2-kill-gate
+
+on:
+  push:
+    branches:
+      - research/c025-phase5-9-polynomial-pivot-grammar-2026-08-28
+    paths:
+      - 'experiments/theorem_extraction/c025_l1_sharded_original_v2_kill_gate.py'
+      - 'experiments/theorem_extraction/c025_l1_sharded_original_v2_aggregate.py'
+      - '.github/workflows/run-c025-l1-sharded-original-v2-kill-gate.yml'
+  workflow_dispatch:
+
+jobs:
+  exact-v2-shard:
+    continue-on-error: true
+    strategy:
+      fail-fast: false
+      max-parallel: 16
+      matrix:
+        shard: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      PYTHONPATH: .
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Scan exact original-v2 shard
+        shell: bash
+        run: |
+          set -o pipefail
+          python experiments/theorem_extraction/c025_l1_sharded_original_v2_kill_gate.py \
+            --shard-index ${{ matrix.shard }} --shard-count 16 \
+            --out shard-${{ matrix.shard }}.json \
+            | tee shard-${{ matrix.shard }}-stdout.json
+      - name: Upload shard receipt
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: c025-l1-shard-${{ matrix.shard }}
+          path: shard-${{ matrix.shard }}.json
+          if-no-files-found: warn
+
+  aggregate:
+    if: always()
+    needs: exact-v2-shard
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      PYTHONPATH: .
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Download all available shard receipts
+        uses: actions/download-artifact@v4
+        with:
+          pattern: c025-l1-shard-*
+          path: shard-receipts
+          merge-multiple: true
+      - name: Aggregate with fail-closed scope semantics
+        shell: bash
+        run: |
+          set -o pipefail
+          python experiments/theorem_extraction/c025_l1_sharded_original_v2_aggregate.py \
+            --input-dir shard-receipts --expected-shards 16 \
+            --out c025-l1-sharded-original-v2-aggregate.json \
+            | tee c025-l1-sharded-original-v2-aggregate-stdout.json
+      - name: Enforce theorem boundary
+        shell: bash
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          d=json.loads(Path('c025-l1-sharded-original-v2-aggregate.json').read_text())
+          assert d['P_VS_NP']=='OPEN'
+          assert d['scientific_boundary']['no_rescue_requires_complete_canonical_pair_scope'] is True
+          assert d['scientific_boundary']['missing_scope_maps_to_UNKNOWN'] is True
+          if d['status']=='L1_ROOT_GRAMMAR_COUNTEREXAMPLE_FOUND':
+              assert d['scope_accounting']['exact_full_coverage'] is True
+              assert not d['shard_accounting']['missing']
+              assert d['first_exact_rescue'] is None
+          elif d['status']=='EXACT_ORIGINAL_V2_RESCUE_FOUND__L1_SURVIVES_THIS_WITNESS':
+              assert d['first_exact_rescue'] is not None
+          else:
+              assert d['status']=='UNKNOWN_INCOMPLETE_SHARDED_SCOPE'
+          print('STATUS='+d['status'])
+          print('L1='+d['candidate_results']['L1_ROOT_PHASE_POLYNOMIAL_GRAMMAR_TOTALITY'])
+          print('CANDIDATES='+str(d['scope_accounting']['candidate_count_global']))
+          print('COVERED='+str(d['scope_accounting']['covered_candidate_indices_count']))
+          print('P_VS_NP=OPEN')
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: c025-l1-sharded-original-v2-kill-gate
+          path: c025-l1-sharded-original-v2-aggregate.json
