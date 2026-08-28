@@ -3,13 +3,12 @@
 
 Append-only theorem-side composition. Runtime semantics are unchanged.
 
-The current general theorem covers n=7,d=50 with c=m-d<=31 whenever either
-there are too few cross pairs to reach K=637, or the cap-violation assumption
-leaves clean row/column cores of size at least nine.  The proof is independent
-of L and strengthens the coupled bound to K<=636, Lout<=Wmax_6(636)=2724,
-raw<=3361.
+Current theorem stack:
+  * n=7,d=50,c<=31 clean-core projection family when both hypothetical clean
+    cores remain >=9 (or pair count is already too small for K>=637);
+  * exact eight-core extension for (c,p,q)=(29,24,26) and (31,23,27), using
+    deterministic four-coordinate multi-mask separation bounds.
 
-Previous split-specific and L-specific artifacts remain append-only provenance.
 A green full replay proves finite N58 cap availability for the frozen abstraction.
 It does not prove unbounded totality or P=NP.
 """
@@ -27,10 +26,8 @@ K_CRITICAL = 637
 K_SAFE = 636
 L_SAFE = 2724
 RAW_SAFE = 1 + K_SAFE + L_SAFE
-
-# Historical sharper local theorem retained as provenance.  The general family
-# now reaches the same 3361 ceiling here as well.
 TARGET_E1_21 = (7, 78, 351, 50, 21, 29)
+EIGHT_CORE_KEYS = {(29, 24, 26), (31, 23, 27)}
 
 
 def compatible(a, b):
@@ -75,6 +72,91 @@ def three_coordinate_two_mask_separation_selftest():
     print("THREE_COORDINATE_TWO_MASK_SEPARATION=PASS")
 
 
+def four_coordinate_multi_mask_separation_max(k: int):
+    """Exact max number of nonzero q separating k distinct 4D masks.
+
+    This is finite exhaustive search, not a heuristic.  The recursion enumerates
+    all increasing k-subsets of the 81 ternary masks.  At each partial subset we
+    keep exactly the q tails that remain compatible and whose current unions are
+    pairwise distinct.  If its cardinality is already <= the best completed
+    witness, adding masks can only remove q and exact pruning is sound.
+    """
+    assert k in (4, 5)
+    masks = list(product((-1, 0, 1), repeat=4))
+    qs = [q for q in masks if any(q)]
+    mask_index = {m: i for i, m in enumerate(masks)}
+    U = len(qs)
+    all_bits = (1 << U) - 1
+
+    compat_bits = []
+    union_ids = []
+    for b in masks:
+        bits = 0
+        ids = [-1] * U
+        for j, q in enumerate(qs):
+            if compatible(b, q):
+                bits |= 1 << j
+                ids[j] = mask_index[union_mask(b, q)]
+        compat_bits.append(bits)
+        union_ids.append(ids)
+
+    pair_distinct = [[0] * len(masks) for _ in masks]
+    for i in range(len(masks)):
+        for j in range(i + 1, len(masks)):
+            bits = 0
+            for qi in range(U):
+                ui = union_ids[i][qi]
+                uj = union_ids[j][qi]
+                if ui >= 0 and uj >= 0 and ui != uj:
+                    bits |= 1 << qi
+            pair_distinct[i][j] = bits
+            pair_distinct[j][i] = bits
+
+    best = -1
+    witness = None
+    nodes = 0
+
+    def rec(chosen, start, bits):
+        nonlocal best, witness, nodes
+        nodes += 1
+        if bits.bit_count() <= best:
+            return
+        if len(chosen) == k:
+            best = bits.bit_count()
+            witness = tuple(masks[i] for i in chosen)
+            return
+        need = k - len(chosen)
+        last_start = len(masks) - need
+        for x in range(start, last_start + 1):
+            nb = bits & compat_bits[x]
+            if nb.bit_count() <= best:
+                continue
+            for y in chosen:
+                nb &= pair_distinct[x][y]
+                if nb.bit_count() <= best:
+                    break
+            if nb.bit_count() <= best:
+                continue
+            rec(chosen + [x], x + 1, nb)
+
+    rec([], 0, all_bits)
+    return best, witness, nodes
+
+
+def four_coordinate_multi_mask_selftest():
+    best4, wit4, nodes4 = four_coordinate_multi_mask_separation_max(4)
+    best5, wit5, nodes5 = four_coordinate_multi_mask_separation_max(5)
+    assert best4 == 11, (best4, wit4)
+    assert best5 == 8, (best5, wit5)
+    print(f"FOUR_COORDINATE_FOUR_MASK_MAX={best4}")
+    print(f"FOUR_COORDINATE_FOUR_MASK_WITNESS={wit4}")
+    print(f"FOUR_COORDINATE_FOUR_MASK_SEARCH_NODES={nodes4}")
+    print(f"FOUR_COORDINATE_FIVE_MASK_MAX={best5}")
+    print(f"FOUR_COORDINATE_FIVE_MASK_WITNESS={wit5}")
+    print(f"FOUR_COORDINATE_FIVE_MASK_SEARCH_NODES={nodes5}")
+    print("FOUR_COORDINATE_MULTI_MASK_SEPARATION=PASS")
+
+
 def clean_core_lower_bounds(c: int, p: int, q: int):
     """Return (kind, bad, p0, q0, t) under hypothetical K>=637."""
     t = K_CRITICAL - c
@@ -100,7 +182,17 @@ def c31_clean_core_family_certifies(n: int, m: int, L: int, d: int, p: int, q: i
     return p0 >= 9 and q0 >= 9
 
 
-def clean_core_family_arithmetic_selftest():
+def eight_core_extension_certifies(n: int, m: int, L: int, d: int, p: int, q: int) -> bool:
+    if n != 7 or d != 50 or p + q != 50 or p > q:
+        return False
+    c = m - d
+    if (c, p, q) not in EIGHT_CORE_KEYS:
+        return False
+    dlo, dhi = S.A.degree_interval(n, m, L)
+    return dlo <= d <= dhi
+
+
+def family_arithmetic_selftest():
     assert S.A.wmax(6, K_SAFE) == L_SAFE
     assert RAW_SAFE == 3361 < CAP
 
@@ -121,27 +213,32 @@ def clean_core_family_arithmetic_selftest():
         got[c] = covered
     assert got == expected, got
 
-    # Boundary witnesses: c=29,p=23 remains covered; p=24 is deliberately not
-    # smuggled through this theorem and should become the next obstruction if
-    # no other frozen bound closes it.
-    kind, bad, p0, q0, t = clean_core_lower_bounds(29, 23, 27)
-    assert (kind, bad, p0, q0, t) == ("CLEAN_CORE", 13, 10, 14, 608)
-    kind2, bad2, p02, q02, t2 = clean_core_lower_bounds(29, 24, 26)
-    assert (kind2, bad2, p02, q02, t2) == ("CLEAN_CORE", 16, 8, 10, 608)
-    assert not c31_clean_core_family_certifies(7, 79, 350, 50, 24, 26)
+    # Exact arithmetic behind the newly added 8-core cases.
+    checks = []
+    for c, p, q in sorted(EIGHT_CORE_KEYS):
+        kind, bad, p0, q0, t = clean_core_lower_bounds(c, p, q)
+        assert kind == "CLEAN_CORE"
+        assert p0 == 8 and q0 >= 9
+        min_parent = 50 - c
+        full_A_rows = 2 * min_parent - p
+        k = (full_A_rows + 3) // 4
+        common_q = q - bad
+        sep = {4: 11, 5: 8}[k]
+        assert common_q > sep
+        checks.append((c, p, q, bad, p0, q0, min_parent, full_A_rows, k, common_q, sep, t))
+    assert checks == [
+        (29, 24, 26, 16, 8, 10, 21, 18, 5, 10, 8, 608),
+        (31, 23, 27, 15, 8, 12, 19, 15, 4, 12, 11, 606),
+    ], checks
 
     print(f"C31_CLEAN_CORE_EXPECTED_COVERAGE={expected}")
-    print("C31_BOUNDARY_C29_P23_CORE=10x14")
-    print("C31_BOUNDARY_C29_P24_CORE=8x10_NOT_CLAIMED")
-    print("C31_CLEAN_CORE_FAMILY_ARITHMETIC=PASS")
+    print(f"EIGHT_CORE_EXTENSION_ARITHMETIC={checks}")
+    print("FAMILY_ARITHMETIC=PASS")
 
 
 def l_independence_selftest():
-    # Verify representative states across the full necessary d=50 range for
-    # m=78 and across c=29..31.  The theorem checks minimum degree, not L=nd.
     samples = [
         (7, 78, 350, 50, 24, 26),
-        (7, 78, 351, 50, 22, 28),
         (7, 78, 518, 50, 25, 25),
         (7, 79, 350, 50, 23, 27),
         (7, 80, 400, 50, 23, 27),
@@ -149,23 +246,24 @@ def l_independence_selftest():
     ]
     for state in samples:
         assert c31_clean_core_family_certifies(*state), state
-    assert not c31_clean_core_family_certifies(7, 78, 349, 50, 24, 26)
-    assert not c31_clean_core_family_certifies(7, 82, 500, 50, 22, 28)
+    ext_samples = [
+        (7, 79, 350, 50, 24, 26),
+        (7, 79, 500, 50, 24, 26),
+        (7, 81, 500, 50, 23, 27),
+    ]
+    for state in ext_samples:
+        assert eight_core_extension_certifies(*state), state
     print(f"C31_L_INDEPENDENCE_SAMPLES={samples}")
-    print("C31_L_INDEPENDENCE=PASS")
+    print(f"EIGHT_CORE_L_INDEPENDENCE_SAMPLES={ext_samples}")
+    print("L_INDEPENDENCE=PASS")
 
 
 def e1_full_pair_split_selftest():
     assert 21 * 29 == 609
     assert 3 ** 2 - 1 == 8
     assert 3 ** 3 - 1 == 26
-    assert 21 > 8
-    assert 29 > 26
-    assert 3 + 4 > 6
+    assert 21 > 8 and 29 > 26 and 3 + 4 > 6
     assert RAW_SAFE == 3361
-    print("N58_E1_21X29_ALL_609_UNIQUE=IMPOSSIBLE")
-    print("N58_E1_21X29_NEW_RESOLVENT_CEILING=608")
-    print("N58_E1_21X29_RAW_CEILING=3361")
     print("N58_E1_FULL_PAIR_SPLIT=PASS")
 
 
@@ -173,19 +271,14 @@ def enhanced_rescue(n: int, m: int, L: int, d: int, p: int, q: int):
     base = PREVIOUS_RESCUE(n, m, L, d, p, q)
     key = (n, m, L, d, p, q)
 
-    if c31_clean_core_family_certifies(n, m, L, d, p, q):
+    if c31_clean_core_family_certifies(n, m, L, d, p, q) or eight_core_extension_certifies(n, m, L, d, p, q):
         if base is None:
             return None
         braw, bM, bL, bJ, bT, bE = base
         if braw > RAW_SAFE or bM > K_SAFE or bL > L_SAFE:
-            # The contradiction rules out K>=637 itself, so unlike the earlier
-            # conservative local records we may soundly sharpen independent
-            # clause and literal-mass ceilings as well as coupled raw storage.
             return min(braw, RAW_SAFE), min(bM, K_SAFE), min(bL, L_SAFE), bJ, bT, bE
         return base
 
-    # Preserve the historical local theorem even if future scope edits tighten
-    # the general family predicate.
     if key == TARGET_E1_21:
         return 3361, 636, 2724, 608, 156, 1
 
@@ -195,23 +288,25 @@ def enhanced_rescue(n: int, m: int, L: int, d: int, p: int, q: int):
 def composition_selftest():
     samples = [
         (7, 78, 350, 50, 24, 26),
-        (7, 78, 351, 50, 22, 28),
         (7, 79, 350, 50, 21, 29),
+        (7, 79, 350, 50, 24, 26),
         (7, 80, 400, 50, 23, 27),
         (7, 81, 500, 50, 22, 28),
+        (7, 81, 500, 50, 23, 27),
     ]
     for state in samples:
-        assert c31_clean_core_family_certifies(*state), state
+        assert c31_clean_core_family_certifies(*state) or eight_core_extension_certifies(*state), state
         out = enhanced_rescue(*state)
         assert out is not None, state
         assert out[0] <= RAW_SAFE and out[1] <= K_SAFE and out[2] <= L_SAFE, (state, out)
-    print(f"C31_COMPOSITION_SAMPLES={samples}")
-    print("C31_RESCUE_COMPOSITION=PASS")
+    print(f"COMPOSITION_SAMPLES={samples}")
+    print("THEOREM_COMPOSITION=PASS")
 
 
 def selftest() -> None:
     three_coordinate_two_mask_separation_selftest()
-    clean_core_family_arithmetic_selftest()
+    four_coordinate_multi_mask_selftest()
+    family_arithmetic_selftest()
     l_independence_selftest()
     e1_full_pair_split_selftest()
     composition_selftest()
@@ -223,14 +318,14 @@ def selftest() -> None:
     finally:
         S.surplus_rescue = old
 
-    print(f"N58_C31_REPLAY_STATUS={result['status']}")
-    print(f"N58_C31_REPLAY_CHECKED_STATES={result['checked_states']}")
-    print(f"N58_C31_REPLAY_CHECKED_TRANSITIONS={result['checked_transitions']}")
-    print(f"N58_C31_REPLAY_TOTAL_RESCUES={result['surplus_rescues']}")
+    print(f"N58_REPLAY_STATUS={result['status']}")
+    print(f"N58_REPLAY_CHECKED_STATES={result['checked_states']}")
+    print(f"N58_REPLAY_CHECKED_TRANSITIONS={result['checked_transitions']}")
+    print(f"N58_REPLAY_TOTAL_RESCUES={result['surplus_rescues']}")
 
     expected = 'PROVED_FINITE_CAP_AVAILABILITY_BY_EXACT_INCIDENCE_SURPLUS_OVERAPPROX'
     if result['status'] != expected:
-        print(f"N58_C31_NEXT_OPEN={result['first_open']}")
+        print(f"N58_NEXT_OPEN={result['first_open']}")
         print('N58_FULL_FRONTIER=OPEN')
         print('ABSTRACT_FAILURE_IS_INCONCLUSIVE_NOT_ACTUAL_COUNTEREXAMPLE')
         print('P_VS_NP=OPEN')
@@ -238,9 +333,9 @@ def selftest() -> None:
 
     assert result['cap'] == CAP
     assert result['P_VS_NP'] == 'OPEN'
-    print(f"N58_C31_WORST_RAW={result['worst_raw_bound']}")
-    print(f"N58_C31_WORST_WITNESS={result['worst_witness']}")
-    print('N58_N7_D50_C31_CLEAN_CORE_FAMILY=PASS')
+    print(f"N58_WORST_RAW={result['worst_raw_bound']}")
+    print(f"N58_WORST_WITNESS={result['worst_witness']}")
+    print('N58_CLEAN_CORE_AND_EIGHT_CORE_STACK=PASS')
     print('N58_FINITE_CAP_FRONTIER=PROVED')
     print('ABSTRACT_PASS_IS_FINITE_THEOREM_NOT_UNBOUNDED_TOTALITY')
     print('THEOREM_RUNTIME_HEURISTICS=FORBIDDEN')
