@@ -1,0 +1,44 @@
+name: run-c025-m80-resolvent-mechanism
+on:
+  push:
+    branches:
+      - research/c025-phase5-9-polynomial-pivot-grammar-2026-08-28
+    paths:
+      - 'experiments/theorem_extraction/c025_m80_resolvent_mechanism_microscope.py'
+      - '.github/workflows/run-c025-m80-resolvent-mechanism.yml'
+  workflow_dispatch:
+jobs:
+  mechanism:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      PYTHONPATH: .
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Decompose exact M80 rescue
+        shell: bash
+        run: |
+          set -o pipefail
+          python experiments/theorem_extraction/c025_m80_resolvent_mechanism_microscope.py | tee m80-resolvent-mechanism.json
+      - name: Verify exact reconstruction
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          d=json.loads(Path('m80-resolvent-mechanism.json').read_text())
+          assert d['P_VS_NP']=='OPEN'
+          assert d['bounds']['exact_full_raw_reconstructed']==d['bounds']['exact_engine_raw_units']
+          assert d['bounds']['exact_engine_raw_units']<=d['cap']
+          print('FIRST_SUFFICIENT_LAYER='+str(d['first_sufficient_layer']))
+          print('TAUT_FRAC='+str(d['tautology_fraction']))
+          print('UNIQUE='+str(d['unique_new_resolvents']))
+          print('COLLISIONS='+str(d['duplicate_or_retained_collisions']))
+          print('P_VS_NP=OPEN')
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: c025-m80-resolvent-mechanism
+          path: m80-resolvent-mechanism.json
