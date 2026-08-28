@@ -1,0 +1,233 @@
+{
+  "anti_self_deception_gate": {
+    "M2R_PM_is_advisory": true,
+    "P_VS_NP": "OPEN",
+    "TOPA_is_hypothesis_generator": true,
+    "exact_replay_is_authority": true,
+    "forward_reachability_unproved_for_static_calibration_witnesses": true,
+    "model_is_advisory": true,
+    "same_run_theorem_promotion": false
+  },
+  "components": {
+    "JUXTAPOSE": {
+      "larger_n": "Use exact prefix DAG / dynamic programming / bounded beam only as data-generation strategy; any omitted order means no exhaustive claim.",
+      "output": "ground-truth ranking labels for Keymaster/Pivot-Slime calibration",
+      "role": "EXHAUSTIVE_OR_BOUNDED_ROUTE_LABEL_GENERATOR",
+      "small_n": "Enumerate all pivot activation permutations when factorial space is tractable."
+    },
+    "KEYMASTER": {
+      "forbidden": [
+        "changing SAT/UNSAT/OPEN verdict",
+        "dropping required exact verification",
+        "treating model confidence as theorem credit",
+        "memorizing pivot numeric labels as universal rules"
+      ],
+      "inputs": [
+        "current canonical CNF structural features",
+        "calibration database",
+        "Pivot-Slime ranked proposals",
+        "M2R-PM context memory",
+        "TOPA candidate relations",
+        "resource cap"
+      ],
+      "online_learning": {
+        "cold_start": "exhaustive Juxtapose where tractable",
+        "enabled": true,
+        "exploration": "shadow-only until enough exact calibration; never hide exact failure",
+        "memory": "append-only episodes + online context aggregates",
+        "source": "EXACT_VERIFIED_RECEIPTS_ONLY",
+        "warm_start": "ranked top-k proposal followed by exact verification"
+      },
+      "outputs": [
+        "ranked pivot placement/activation plan",
+        "top-k alternate plans",
+        "expected resource profile",
+        "confidence/calibration metadata"
+      ],
+      "role": "GLOBAL_PIVOT_NAVIGATOR_AND_MEMORY_ARBITER"
+    },
+    "M2R_PM": {
+      "episode_fields": [
+        "context_hash",
+        "root_fingerprint",
+        "step",
+        "pivot_features",
+        "before_units",
+        "raw_units",
+        "canonical_units",
+        "pairs",
+        "tautologies",
+        "cap",
+        "fit",
+        "terminal_after",
+        "trajectory_id"
+      ],
+      "expansion": "Movement-to-Resource Persistent Memory",
+      "memory_policy": {
+        "aggregates": "RECOMPUTABLE",
+        "exact_episode_log": "IMMUTABLE",
+        "forgetting": "no deletion of exact receipts; optional age weighting only in advisory model",
+        "model_weights": "VERSIONED",
+        "rollback": "required when holdout calibration regresses"
+      },
+      "name": "M2R Pivot Memory",
+      "online_statistics": {
+        "definitions": {
+          "cap_margin_fraction": "(cap-raw_units)/max(1,cap)",
+          "pair_efficiency": "max(0,before_units-after_units)/max(1,pairs)",
+          "raw_efficiency": "max(0,before_units-after_units)/max(1,raw_units)",
+          "state_reduction_fraction": "max(0,before_units-after_units)/max(1,before_units)"
+        },
+        "method": "Welford count/mean/M2 per structural context bucket",
+        "metrics": [
+          "state_reduction_fraction",
+          "raw_efficiency",
+          "pair_efficiency",
+          "cap_margin_fraction",
+          "terminal_probability_on_next_k_steps"
+        ]
+      },
+      "relationship_to_historical_M2R": "Modified memory-bearing calibration branch; historical M2R movement/resource intuition retained, theorem authority not added."
+    },
+    "PIVOT_SLIME_STUDENT": {
+      "base": "MicroGPTSlime_quantized.py / MicroGPTSlime",
+      "input_tokens": "Quantized structural feature tokens, not raw source text.",
+      "online_calibration": {
+        "enabled": true,
+        "slime_trace_semantics": "Strengthen parameters associated with repeatedly useful structural/action patterns; never treat slime trace as proof.",
+        "source": "exact Keymaster receipts"
+      },
+      "output": "top-k pivot actions + route continuation logits + uncertainty proxy",
+      "quantization": {
+        "default": "mixed/slime-aware",
+        "promotion_gate": "No deployment if top-k recall or overflow-avoidance calibration regresses beyond frozen threshold.",
+        "teacher_student_check": "Every quantized release must be compared to float teacher on frozen holdout."
+      },
+      "role": "Compact route proposer / local pivot scout for edge or swarm deployment.",
+      "why_selected": "Already contains slime_trace, online train_step, oxytocin-bond adaptation, piston history, structural cleanup/expand and slime-aware INT8/INT4/mixed quantization."
+    },
+    "PIVOT_SLIME_TEACHER": {
+      "base": "AdaptiveTransformer / JGPT1 family",
+      "distillation_target": "PIVOT_SLIME_STUDENT",
+      "loss_contract": "multi-task advisory loss; no theorem semantics encoded in loss",
+      "role": "Learn sequence policy over structural pivot tokens and predict top-k activation routes.",
+      "source_basis": "Full non-quantized teacher selected for NAS/CI because route-ranking accuracy and feature capacity matter more than edge footprint.",
+      "training_data": "Keymaster calibration episodes + prefix trajectories + negative/overflow examples",
+      "training_target": [
+        "next pivot rank",
+        "expected peak_raw",
+        "expected cumulative raw",
+        "expected pair work",
+        "expected terminal depth",
+        "overflow risk under given cap"
+      ]
+    },
+    "TOPA_SPIDER": {
+      "existing_assets": [
+        "tools/topa_spider_v24.py",
+        "tools/topa_spider_seed_bridge.py",
+        "tools/topa_repo_assimilator.py",
+        "tools/topa_spider_silk.py",
+        "tools/topa_spider_silk_strict.py",
+        ".github/workflows/spider-relation-pull-v2.yml",
+        ".github/workflows/spider-silk-janus-proof-search.yml"
+      ],
+      "inputs": [
+        "immutable exact pivot receipts",
+        "Keymaster aggregate tables",
+        "overflow/safe contrasts",
+        "champion/anti-champion prefixes"
+      ],
+      "outputs": [
+        "feature-outcome relation graph",
+        "candidate causal/structural mechanisms",
+        "counterexample targets",
+        "new controlled experiments"
+      ],
+      "role": "RELATION_MINER_AND_HYPOTHESIS_WEAVER",
+      "scientific_firewall": {
+        "cannot_promote_to_proved_lemma": true,
+        "must_use_holdout_or_exact_counterexample_search": true,
+        "relations_are_hypotheses": true,
+        "retain_negative_relations": true
+      },
+      "source_repository": "Hawkar-usls/TOPA"
+    }
+  },
+  "created_at": "2026-08-28T06:20:00+03:00",
+  "initial_known_calibration_rules": [
+    {
+      "reason": "25:25 and 250:250 witnesses show pivot IDs are witness-local labels; transferable signal must be structural.",
+      "rule": "Do not transfer local variable numbers across formulas.",
+      "status": "ARCHITECTURAL_LAW"
+    },
+    {
+      "rule": "On frozen 250:250 n=8 witness at cap 104^2, local pivots 1 and 2 are first-step overflow while 3..8 fit.",
+      "status": "LOCAL_EXACT_RULE",
+      "transferable": false
+    },
+    {
+      "proof_status": "NOT_UNIVERSAL",
+      "rule": "At cap near first-step raw threshold, first-pivot ranking can decide route survival.",
+      "status": "CROSS_CONTEXT_CANDIDATE"
+    }
+  ],
+  "keymaster_ranking_contract": {
+    "advisory_lexicographic_targets": [
+      "predicted overflow risk",
+      "predicted peak_raw",
+      "predicted cumulative raw",
+      "predicted pair_work",
+      "predicted terminal depth"
+    ],
+    "calibration_metrics": [
+      "top1_best-pivot accuracy",
+      "topk contains exact-best",
+      "overflow avoidance recall",
+      "regret_peak_raw = chosen_peak - exact_best_peak",
+      "regret_sum_raw",
+      "terminal_depth_regret",
+      "exact_checks_saved_vs exhaustive baseline"
+    ],
+    "diversity_rule": "Keep at least one structurally dissimilar alternate in top-k to reduce correlated model error.",
+    "proof_lane": "Exact fit/overflow and terminal semantics first; model only orders which exact check to attempt."
+  },
+  "mission": "Turn Keymaster into a persistent pivot navigator calibrated from exact Juxtapose receipts, with Pivot-Slime proposing routes, M2R-PM retaining movement/resource efficiency, and TOPA SPIDER mining hidden relationships. Exact JANUS replay remains sole proof-state authority.",
+  "registry_id": "JANUS-KEYMASTER-PIVOT-SLIME-M2R-TOPA-ARCHITECTURE-2026-08-28-v1.0",
+  "runtime_loop": [
+    "1. Canonical exact state arrives.",
+    "2. Feature extractor builds structural pivot candidates for every live variable.",
+    "3. M2R-PM retrieves structurally similar exact episodes and aggregate efficiency statistics.",
+    "4. Pivot-Slime teacher/student proposes top-k pivot placements and activation prefixes.",
+    "5. Keymaster combines model proposal, exact calibration nearest-neighbours, cap margin and diversity into an advisory ranking.",
+    "6. Exact JANUS elimination engine verifies the chosen candidate; on failure Keymaster tries the next ranked candidate, without changing the exact verdict.",
+    "7. Exact receipt is appended immutably; M2R-PM aggregates update online.",
+    "8. Pivot-Slime receives the verified sample for online/periodic retraining; student is distilled/quantized only after holdout checks.",
+    "9. TOPA SPIDER periodically weaves relations across accumulated logs and proposes new frozen experiments.",
+    "10. Any discovered pattern remains heuristic until independently replayed/replicated; theorem claims require separate proof certificates."
+  ],
+  "schema": "JANUS/KEYMASTER/PIVOT-SLIME-M2R-TOPA-ARCHITECTURE/v1.0.0",
+  "simulation_program": {
+    "baselines": [
+      "EXHAUSTIVE_JUXTAPOSE",
+      "STATIC_NUMERIC_PIVOT_RULE_NEGATIVE_CONTROL",
+      "GREEDY_LOWEST_EXACT_FIRST_STEP_RAW_ORACLE_UPPER_REFERENCE",
+      "KEYMASTER_CALIBRATION_ONLY",
+      "KEYMASTER_PLUS_M2R_PM",
+      "KEYMASTER_PLUS_PIVOT_SLIME",
+      "KEYMASTER_PLUS_PIVOT_SLIME_PLUS_TOPA_FEATURES"
+    ],
+    "evaluation": "Frozen train/validation/holdout split by formula fingerprint, never random trajectory split from the same formula only.",
+    "goal": "Estimate resource savings before enough real calibration data accumulates.",
+    "no_claim_without_data": "Savings are unknown until measured on holdout; do not infer from architecture.",
+    "primary_measure": "Exact checks saved at equal proof correctness.",
+    "secondary_measures": [
+      "peak regret",
+      "overflow avoidance",
+      "terminal depth",
+      "pair work",
+      "wall-clock/resource estimates"
+    ]
+  },
+  "status": "ARCHITECTURE_FROZEN__IMPLEMENTATION_SHADOW_FIRST"
+}
