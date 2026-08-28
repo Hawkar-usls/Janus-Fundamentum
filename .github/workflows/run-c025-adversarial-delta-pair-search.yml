@@ -1,0 +1,83 @@
+name: run-c025-adversarial-delta-pair-search
+
+on:
+  push:
+    branches:
+      - research/c025-phase5-9-polynomial-pivot-grammar-2026-08-28
+    paths:
+      - 'research/C025_ADVERSARIAL_DELTA_PAIR_SEARCH_SPEC_2026-08-28.json'
+      - 'experiments/theorem_extraction/c025_adversarial_delta_pair_search.py'
+      - '.github/workflows/run-c025-adversarial-delta-pair-search.yml'
+  workflow_dispatch:
+
+jobs:
+  adversarial-delta-pair:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      PYTHONPATH: .
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Verify frozen theorem-search boundary
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          d=json.loads(Path('research/C025_ADVERSARIAL_DELTA_PAIR_SEARCH_SPEC_2026-08-28.json').read_text())
+          assert d['status']=='FALSIFICATION_TARGET_FROZEN__NOT_A_PROOF'
+          assert d['exactness']['Delta_positive_gate']=='every live pivot must independently cross N^2'
+          assert d['scientific_boundary']['finite_search_is_falsification_only'] is True
+          assert d['P_VS_NP']=='OPEN'
+          print('ADVERSARIAL_DELTA_PAIR_SPEC=FROZEN')
+          print('P_VS_NP=OPEN')
+          PY
+
+      - name: Run exact adversarial JUXTAPOSE search
+        shell: bash
+        run: |
+          set -o pipefail
+          python experiments/theorem_extraction/c025_adversarial_delta_pair_search.py \
+            --leaf-nvars 8 \
+            --leaf-width 4 \
+            --leaf-clauses 64,72,80,88 \
+            --seeds-per-rung 1 \
+            --seed0 28100 | tee adversarial-delta-pair-search.json
+
+      - name: Enforce fail-closed scientific interpretation
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          d=json.loads(Path('adversarial-delta-pair-search.json').read_text())
+          b=d['scientific_boundary']
+          assert b['bounded_finite_falsification_only'] is True
+          assert b['search_ranking_has_theorem_authority'] is False
+          assert b['Delta_positive_requires_all_exact_cap_crossings'] is True
+          assert b['reachability_requires_frozen_core_callsite_replay'] is True
+          assert b['L1_not_refuted_without_exact_v2_failure'] is True
+          assert b['P2_REACHABLE_PRESERVATION']=='OPEN'
+          assert b['P_VS_NP']=='OPEN'
+          print('STATUS='+d['status'])
+          print('CANDIDATES='+str(d['candidates_evaluated']))
+          c=d['champion']
+          print('CHAMPION_N='+str(c['N']))
+          print('CHAMPION_S='+str(c['product_state_units']))
+          print('CHAMPION_DELTA_STATUS='+c['Delta_status'])
+          print('CHAMPION_DELTA='+str(c['Delta_value_or_strict_lower_bound']))
+          print('CHAMPION_PAIR_MARGIN='+str(c['pair_margin']))
+          print('CHAMPION_DENSITY_MARGIN='+str(c['density_margin']))
+          print('REACHABLE='+str(d['reachability_replay']['reachable_at_frozen_ordinary_callsite']))
+          for k,v in d['candidate_results'].items():
+              print(k+'='+v['bounded_status'])
+          print('NEXT_GATE='+d['next_gate'])
+          print('P_VS_NP=OPEN')
+          PY
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: c025-adversarial-delta-pair-search
+          path: adversarial-delta-pair-search.json
