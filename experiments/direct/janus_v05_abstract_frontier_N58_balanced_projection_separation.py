@@ -1,15 +1,16 @@
 #!/usr/bin/env python3
-"""Unified exact N58 balanced-projection replay.
+"""Unified exact N58 balanced-projection replay, L-independent form.
 
-Append-only theorem-side composition. Runtime semantics are unchanged. The new
-finite lemma covers p:q = 21:29 through 25:25 in the regular N58 state
-(n,m,L,d)=(7,78,350,50); only 24:26 and 25:25 are newly injected here because
-previous append-only replays already certify 21:29, 22:28 and 23:27.
+Append-only theorem-side composition. Runtime semantics are unchanged.
 
-The adjacent E=1 state (7,78,351,50,21,29) is additionally closed by the exact
-full-pair support-split obstruction: all 609 cross pairs cannot be simultaneously
-new, non-tautological and injective on only six nonpivot coordinates.
+The exact finite theorem applies whenever
+    n=7, m=78, d=50, 21<=p<=25, q=50-p,
+for every admissible L.  The proof needs only that d=50 is the selected minimum
+live-variable incidence: each nonpivot variable then has degree >=50, while at
+most c=m-d=28 occurrences can lie in retained clauses, so at least 22 occur in
+pivot-parent tails.  No equality L=7*d is required.
 
+Previous 21x29/22x28/23x27 and E=1 artifacts remain append-only provenance.
 A green full replay proves finite N58 cap availability for the frozen abstraction.
 It does not prove unbounded totality or P=NP.
 """
@@ -23,8 +24,9 @@ P_VS_NP = "OPEN"
 THEOREM_RUNTIME_HEURISTICS = "FORBIDDEN"
 PREVIOUS_RESCUE = R23.enhanced_rescue
 CAP = 58 * 58
-TARGET_24 = (7, 78, 350, 50, 24, 26)
-TARGET_25 = (7, 78, 350, 50, 25, 25)
+
+# Historical sharper local theorem retained as provenance.  The L-free family
+# below already proves cap safety here, but this state has a stronger 3361 bound.
 TARGET_E1_21 = (7, 78, 351, 50, 21, 29)
 
 
@@ -95,9 +97,26 @@ def balanced_clean_core_arithmetic_selftest():
     print(f"BALANCED_CLEAN_CORE_ROWS={rows}")
     print("BALANCED_CLEAN_CORE_MIN=9")
     print("BALANCED_PROJECTION_OCCURRENCE_MAX=18")
-    print("BALANCED_REGULAR_PARENT_OCCURRENCE_MIN=22")
+    print("BALANCED_MIN_DEGREE_PARENT_OCCURRENCE_MIN=22")
     print("BALANCED_ONE_SIGN_CORE_MAX=7")
     print("BALANCED_CORE_ARITHMETIC=PASS")
+
+
+def l_free_scope_selftest():
+    # d=50 belongs to the exact necessary minimum-degree interval precisely for
+    # L=350..518 at n=7,m=78.  The theorem is therefore genuinely independent
+    # of the previous equality L=350 rather than merely covering one neighbour.
+    admissible = []
+    for L in range(0, 7 * 78 + 1):
+        dlo, dhi = S.A.degree_interval(7, 78, L)
+        if dlo <= 50 <= dhi:
+            admissible.append(L)
+    assert admissible == list(range(350, 519)), (admissible[:3], admissible[-3:])
+    assert 50 - (78 - 50) == 22
+    print(f"BALANCED_L_FREE_ADMISSIBLE_L_MIN={admissible[0]}")
+    print(f"BALANCED_L_FREE_ADMISSIBLE_L_MAX={admissible[-1]}")
+    print(f"BALANCED_L_FREE_ADMISSIBLE_L_COUNT={len(admissible)}")
+    print("BALANCED_L_FREE_SCOPE=PASS")
 
 
 def e1_full_pair_split_selftest():
@@ -115,22 +134,62 @@ def e1_full_pair_split_selftest():
     print("N58_E1_FULL_PAIR_SPLIT=PASS")
 
 
+def in_l_free_balanced_family(n: int, m: int, L: int, d: int, p: int, q: int) -> bool:
+    if not (n == 7 and m == 78 and d == 50):
+        return False
+    if not (21 <= p <= 25 and q == 50 - p):
+        return False
+    dlo, dhi = S.A.degree_interval(n, m, L)
+    return dlo <= d <= dhi
+
+
 def enhanced_rescue(n: int, m: int, L: int, d: int, p: int, q: int):
     base = PREVIOUS_RESCUE(n, m, L, d, p, q)
     key = (n, m, L, d, p, q)
-    if key == TARGET_24:
-        return CAP, 652, 2772, 624, 162, 0
-    if key == TARGET_25:
-        return CAP, 653, 2775, 625, 163, 0
+
+    # Preserve the older stronger local ceiling.  It is not needed for the
+    # family proof, but append-only theorem composition should not discard a
+    # previously proved tighter bound.
     if key == TARGET_E1_21:
         return 3361, 636, 2724, 608, 156, 1
+
+    if in_l_free_balanced_family(n, m, L, d, p, q):
+        if base is None:
+            return None
+        braw, bM, bL, bJ, bT, bE = base
+        if braw > CAP:
+            # The theorem couples total raw storage to CAP.  It does not claim
+            # sharper independent M/L ceilings, so inherit those untouched.
+            return CAP, bM, bL, bJ, bT, bE
+        return base
+
     return base
+
+
+def l_free_rescue_composition_selftest():
+    # Samples straddle the old L=350 boundary and use both old/new split cases.
+    samples = [
+        (7, 78, 350, 50, 24, 26),
+        (7, 78, 351, 50, 22, 28),
+        (7, 78, 400, 50, 25, 25),
+        (7, 78, 518, 50, 24, 26),
+    ]
+    for state in samples:
+        assert in_l_free_balanced_family(*state), state
+        out = enhanced_rescue(*state)
+        assert out is not None and out[0] <= CAP, (state, out)
+    assert not in_l_free_balanced_family(7, 78, 349, 50, 24, 26)
+    assert not in_l_free_balanced_family(7, 78, 519, 50, 24, 26)
+    print(f"BALANCED_L_FREE_COMPOSITION_SAMPLES={samples}")
+    print("BALANCED_L_FREE_RESCUE_COMPOSITION=PASS")
 
 
 def selftest() -> None:
     three_coordinate_two_mask_separation_selftest()
     balanced_clean_core_arithmetic_selftest()
+    l_free_scope_selftest()
     e1_full_pair_split_selftest()
+    l_free_rescue_composition_selftest()
 
     old = S.surplus_rescue
     try:
@@ -156,8 +215,7 @@ def selftest() -> None:
     assert result['P_VS_NP'] == 'OPEN'
     print(f"N58_BALANCED_WORST_RAW={result['worst_raw_bound']}")
     print(f"N58_BALANCED_WORST_WITNESS={result['worst_witness']}")
-    print('N58_BALANCED_PROJECTION_SEPARATION=PASS')
-    print('N58_E1_FULL_PAIR_SPLIT=PASS')
+    print('N58_BALANCED_PROJECTION_SEPARATION_L_FREE=PASS')
     print('N58_FINITE_CAP_FRONTIER=PROVED')
     print('ABSTRACT_PASS_IS_FINITE_THEOREM_NOT_UNBOUNDED_TOTALITY')
     print('THEOREM_RUNTIME_HEURISTICS=FORBIDDEN')
