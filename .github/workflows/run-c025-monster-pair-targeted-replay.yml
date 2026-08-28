@@ -1,0 +1,59 @@
+name: run-c025-monster-pair-targeted-replay
+
+on:
+  push:
+    branches:
+      - research/c025-phase5-9-polynomial-pivot-grammar-2026-08-28
+    paths:
+      - 'experiments/theorem_extraction/c025_monster_pair_targeted_replay.py'
+      - '.github/workflows/run-c025-monster-pair-targeted-replay.yml'
+  workflow_dispatch:
+
+jobs:
+  targeted-v2-replay:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      PYTHONPATH: .
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Replay exact candidate rescue using original semantics
+        shell: bash
+        run: |
+          set -o pipefail
+          python experiments/theorem_extraction/c025_monster_pair_targeted_replay.py \
+            | tee monster-pair-targeted-replay.json
+
+      - name: Enforce scientific boundary
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          d=json.loads(Path('monster-pair-targeted-replay.json').read_text())
+          b=d['scientific_boundary']
+          assert b['fast_screen_has_theorem_authority'] is False
+          assert b['P_VS_NP']=='OPEN'
+          assert d['source_fingerprint']=='69e4c811b0e34534c09beb27b75578ba3bfb6625c27aaeea1f8838f44d6281c4'
+          assert d['product_fingerprint']=='e10600e0f79ad6f143f3b67b04d4b616da5f59e4a4832af5cbb329a574f0dac7'
+          print('STATUS='+d['status'])
+          print('PAIR='+str(d['pair']))
+          if d['status']=='EXACT_V2_GRAMMAR_RESCUE_WITNESS_CONFIRMED':
+              assert b['pair_membership_in_frozen_exhaustive_v2_grammar_verified'] is True
+              assert b['original_v2_apply_and_verify_used'] is True
+              assert b['original_first_capped_elimination_roots_only_used'] is True
+              assert d['strict_progress'] is True
+              print('ROOT_PIVOT='+str(d['selected_root_pivot_by_original_first_capped']))
+              print('MACRO_UNITS='+str(d['macro_state_units']))
+              print('AFTER_UNITS='+str(d['after_state_units']))
+          print('L1='+d['scientific_boundary']['L1'])
+          print('P_VS_NP=OPEN')
+          PY
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: c025-monster-pair-targeted-replay
+          path: monster-pair-targeted-replay.json
