@@ -1,0 +1,60 @@
+name: run-c025-v2-gap-adversarial-search
+
+on:
+  push:
+    branches:
+      - research/c025-phase5-9-polynomial-pivot-grammar-2026-08-28
+    paths:
+      - 'experiments/theorem_extraction/c025_v2_gap_adversarial_search.py'
+      - '.github/workflows/run-c025-v2-gap-adversarial-search.yml'
+  workflow_dispatch:
+
+jobs:
+  v2-gap-search:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      PYTHONPATH: .
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Run direct v2-gap adversarial search
+        shell: bash
+        run: |
+          set -o pipefail
+          python experiments/theorem_extraction/c025_v2_gap_adversarial_search.py \
+            --leaf-nvars 10 --leaf-clauses 90 --leaf-width 4 --seed 39100 \
+            | tee v2-gap-adversarial-search.json
+      - name: Enforce scientific boundary
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          d=json.loads(Path('v2-gap-adversarial-search.json').read_text())
+          b=d['scientific_boundary']
+          assert b['fast_screen_has_theorem_authority'] is False
+          assert b['original_reachability_required'] is True
+          assert b['original_full_v2_none_required_to_refute_L1'] is True
+          assert b['finite_rescue_does_not_prove_L1'] is True
+          assert b['P_VS_NP']=='OPEN'
+          print('STATUS='+d['status'])
+          print('N='+str(d['source_meta']['N']))
+          print('PRODUCT_UNITS='+str(d['source_meta']['product_state_units']))
+          print('ORDINARY_ALL_OVERFLOW='+str(d['ordinary_pressure']['all_overflow']))
+          if d['fast_v2_screen'] is not None:
+              print('V2_RESCUE='+str(d['fast_v2_screen']['rescue_exists']))
+              print('PAIRS_TESTED='+str(d['fast_v2_screen']['pairs_tested_through_rescue']))
+              if d['fast_v2_screen']['rescue_exists']:
+                  print('FIRST_RESCUE_PAIR='+str(d['fast_v2_screen']['pair']))
+                  print('FIRST_RESCUE_PIVOT='+str(d['fast_v2_screen']['pivot']))
+                  print('FIRST_RESCUE_RAW='+str(d['fast_v2_screen']['raw_units']))
+          print('REACHABLE='+str(d['original_reachability_replay']['reachable_at_frozen_ordinary_callsite']))
+          print('NEXT_GATE='+d['next_gate'])
+          print('P_VS_NP=OPEN')
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: c025-v2-gap-adversarial-search
+          path: v2-gap-adversarial-search.json
