@@ -1,0 +1,53 @@
+name: run-c025-v2-direct-denial-scout
+
+on:
+  push:
+    branches:
+      - research/c025-phase5-14-v2-denial-2026-08-28
+    paths:
+      - '.github/workflows/run-c025-v2-direct-denial-scout.yml'
+  workflow_dispatch:
+
+jobs:
+  v2-denial-scout:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    env:
+      PYTHONPATH: .
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Run exact v2-denial scout
+        shell: bash
+        run: |
+          set -o pipefail
+          python experiments/theorem_extraction/c025_v2_direct_denial_attack.py \
+            --beam-width 2 --steps 2 --exact-v2-budget 24 \
+            | tee c025-v2-direct-denial-scout.json
+      - name: Enforce scout boundary
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          d=json.loads(Path('c025-v2-direct-denial-scout.json').read_text())
+          b=d['scientific_boundary']; e=d['best_candidate']['evaluation']; v=d['best_candidate']['v2']
+          assert e['all_pivot_overflow'] is True
+          assert b['beam_search_has_no_theorem_authority'] is True
+          assert b['final_L1_refutation_requires_full_frozen_core_reachability'] is True
+          assert b['failure_to_find_v2_denial_is_not_L1_proof'] is True
+          assert b['P_VS_NP']=='OPEN'
+          print('STATUS='+d['status'])
+          print('DELTA='+str(e['delta']))
+          print('V2_RESCUE='+str(v['rescue_exists']))
+          print('V2_SLACK='+str(v['rescue_slack']))
+          print('V2_PAIR='+str(v['pair']))
+          print('V2_ROOT='+str(v['root_pivot']))
+          print('EXACT_V2_CALLS='+str(d['search']['exact_v2_calls']))
+          print('P_VS_NP=OPEN')
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: c025-v2-direct-denial-scout
+          path: c025-v2-direct-denial-scout.json
