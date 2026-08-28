@@ -1,0 +1,82 @@
+name: MAD-LAB M2R-S four-front meet
+
+on:
+  push:
+    branches:
+      - research/janus-mad-lab-m2rs-four-front-meet-2026-08-28
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  four-front-meet:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Compile audit runners
+        run: |
+          python -m py_compile \
+            experiments/mad_lab/m2rs_four_front_meet.py \
+            experiments/mad_lab/m2rs_tranception_meet.py
+
+      - name: Run four-front exact-spectrum audit
+        run: |
+          python -m experiments.mad_lab.m2rs_four_front_meet \
+            --out artifacts/mad_lab/m2rs_four_front_meet.json \
+            | tee /tmp/m2rs-four-front.log
+
+      - name: Verify four-front anti-self-deception invariants
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          p = json.loads(Path('artifacts/mad_lab/m2rs_four_front_meet.json').read_text())
+          assert p['P_VS_NP'] == 'OPEN'
+
+          cur = p['current_door']
+          old = p['historic_descendant']
+
+          assert cur['target']['B'] == 3433
+          assert cur['target']['verdict'] == 'OPEN'
+          assert cur['mirror_check']['exact_signed_mirror']
+          assert cur['double_exact_verdict_front_meet']
+          assert cur['meetings'][0]['boundary']['positions'] == [20, 21]
+          assert cur['meetings'][1]['boundary']['positions'] == [29, 30]
+          assert cur['unsafe_positions'] == list(range(21, 30))
+
+          assert old['mirror_check']['exact_signed_mirror']
+          assert old['double_exact_verdict_front_meet']
+          assert old['meetings'][0]['boundary']['positions'] == [23, 24]
+          assert old['meetings'][1]['boundary']['positions'] == [26, 27]
+          assert old['unsafe_positions'] == [24, 25, 26]
+
+          assert not cur['anti_self_deception_gate']['theorem_credit_allowed']
+          assert not old['anti_self_deception_gate']['theorem_credit_allowed']
+          assert cur['theorem_verdict'] == 'OPEN_REPAIR_REQUIRED'
+          assert old['theorem_verdict'] == 'OPEN_REPAIR_REQUIRED'
+
+          for r in p['prime_stress_59_97']:
+              assert r['P_VS_NP'] == 'OPEN'
+              assert not r['theorem_credit_allowed']
+              assert r['first_open_B_matches']
+              assert r['mirror_exact']
+
+          print('FOUR_FRONT_ANTI_SELF_DECEPTION_GATE=PASS')
+          PY
+
+      - name: Upload JSON audit
+        uses: actions/upload-artifact@v4
+        with:
+          name: m2rs-four-front-meet-audit
+          path: artifacts/mad_lab/m2rs_four_front_meet.json
+          if-no-files-found: error
