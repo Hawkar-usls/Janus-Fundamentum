@@ -1,0 +1,231 @@
+name: validate-c025-l1-39100-promotion
+
+on:
+  push:
+    branches:
+      - research/c025-phase5-9-polynomial-pivot-grammar-2026-08-28
+    paths:
+      - 'experiments/theorem_extraction/c025_l1_39100_promotion_gate.py'
+      - 'experiments/theorem_extraction/c025_l1_39100_admission_verifier.py'
+      - 'experiments/theorem_extraction/c025_l1_uniform_exact_checker.cpp'
+      - 'experiments/theorem_extraction/c025_uniform_exact_checker_general.cpp'
+      - 'experiments/theorem_extraction/c025_l1_fanout_exact_gate.py'
+      - 'research/C025_L1_39100_EXACT_COUNTEREXAMPLE_PROMOTION_GATE_2026-08-28.json'
+      - 'research/C025_L1_39100_UNIFORM_V2_SEMANTIC_EQUIVALENCE_LEMMA_2026-08-28.json'
+      - '.github/workflows/validate-c025-l1-39100-promotion.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: c025-l1-39100-promotion-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  PYTHONPATH: .
+
+jobs:
+  identity:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Reconstruct exact candidate identity
+        run: |
+          python experiments/theorem_extraction/c025_l1_39100_promotion_gate.py identity \
+            --out identity.json --product-out product.txt
+      - uses: actions/upload-artifact@v4
+        with:
+          name: c025-l1-39100-identity
+          path: |
+            identity.json
+            product.txt
+
+  ordinary:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      max-parallel: 8
+      matrix:
+        shard: [0, 1, 2, 3, 4, 5, 6, 7]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Exact original ordinary pivot shard
+        run: |
+          python experiments/theorem_extraction/c025_l1_39100_promotion_gate.py ordinary \
+            --shard-index ${{ matrix.shard }} --shard-count 8 \
+            --out ordinary-${{ matrix.shard }}.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: c025-l1-39100-ordinary-${{ matrix.shard }}
+          path: ordinary-${{ matrix.shard }}.json
+
+  gamma:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Reconstruct candidate product
+        run: |
+          python experiments/theorem_extraction/c025_l1_39100_promotion_gate.py identity \
+            --out gamma-identity.json --product-out product.txt
+      - name: Compile separately sourced exact backends
+        run: |
+          g++ -O3 -fopenmp -std=c++20 \
+            experiments/theorem_extraction/c025_l1_uniform_exact_checker.cpp \
+            -o checker-independent
+          g++ -O3 -fopenmp -std=c++20 \
+            experiments/theorem_extraction/c025_uniform_exact_checker_general.cpp \
+            -o checker-general
+      - name: Complete frozen Gamma scope with independent schedules
+        run: |
+          OMP_NUM_THREADS=1 ./checker-independent product.txt > gamma-independent.json
+          OMP_NUM_THREADS=4 ./checker-general product.txt 1214404 2 21 > gamma-general.json
+      - name: Audit original semantics, boundary route and positive controls
+        run: |
+          python experiments/theorem_extraction/c025_l1_39100_promotion_gate.py gamma-audit \
+            --product product.txt \
+            --independent gamma-independent.json \
+            --general gamma-general.json \
+            --independent-checker ./checker-independent \
+            --general-checker ./checker-general \
+            --out gamma.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: c025-l1-39100-gamma
+          path: |
+            gamma.json
+            gamma-independent.json
+            gamma-general.json
+            checker-independent
+            checker-general
+
+  reachability:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Replay unmodified frozen v0.4 prefix to target callsite
+        run: |
+          python experiments/theorem_extraction/c025_l1_39100_promotion_gate.py reachability \
+            --out reachability.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: c025-l1-39100-reachability
+          path: reachability.json
+
+  original-v2:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    strategy:
+      fail-fast: false
+      max-parallel: 32
+      matrix:
+        shard: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Replay disjoint canonical shard through literal frozen v2 semantics
+        run: |
+          python experiments/theorem_extraction/c025_l1_fanout_exact_gate.py \
+            --mode v2 --shard-index ${{ matrix.shard }} --shard-count 64 \
+            --out original-v2-${{ matrix.shard }}.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: c025-l1-39100-original-v2-${{ matrix.shard }}
+          path: original-v2-${{ matrix.shard }}.json
+
+  assemble:
+    needs: [identity, ordinary, gamma, reachability, original-v2]
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: c025-l1-39100-*
+          path: evidence
+          merge-multiple: false
+      - name: Assemble hash-bound composite without granting admission
+        run: |
+          python experiments/theorem_extraction/c025_l1_39100_promotion_gate.py assemble \
+            --input-dir evidence --ordinary-shards 8 --original-v2-shards 64 \
+            --repository '${{ github.repository }}' \
+            --subject-commit '${{ github.sha }}' \
+            --branch '${{ github.ref_name }}' \
+            --out composite.json
+      - name: Enforce producer authority boundary
+        run: |
+          python - <<'PY'
+          import json
+          d=json.load(open('composite.json'))
+          assert d['production_state']=='EXACT_COUNTEREXAMPLE_PRODUCED__INDEPENDENT_ADMISSION_REQUIRED'
+          assert d['admission']['state']=='PENDING_SEPARATE_NO_IMPORT_VERIFIER'
+          assert d['P_VS_NP']=='OPEN'
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: c025-l1-39100-composite
+          path: |
+            composite.json
+            evidence
+
+  admission:
+    needs: assemble
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/download-artifact@v4
+        with:
+          name: c025-l1-39100-composite
+          path: bundle
+      - name: Run separate no-import semantic admission and tamper audit
+        run: |
+          python experiments/theorem_extraction/c025_l1_39100_admission_verifier.py \
+            --receipt bundle/composite.json \
+            --evidence-dir bundle/evidence \
+            --expected-repository '${{ github.repository }}' \
+            --expected-commit '${{ github.sha }}' \
+            --expected-branch '${{ github.ref_name }}' \
+            --out admission.json
+      - name: Enforce admitted subject-bound verdict and claim ceiling
+        run: |
+          python - <<'PY'
+          import json
+          d=json.load(open('admission.json'))
+          assert d['admission_state']=='ADMITTED'
+          assert d['tamper_rejection']['false_accepts']==0
+          assert d['candidate_results']['L1_ROOT_PHASE_POLYNOMIAL_GRAMMAR_TOTALITY']=='REFUTED_BY_EXACT_REACHABLE_39100_COUNTEREXAMPLE'
+          assert d['scientific_boundary']['P2_REACHABLE_PRESERVATION']=='OPEN'
+          assert d['P_VS_NP']=='OPEN'
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: c025-l1-39100-admission
+          path: |
+            admission.json
+            bundle/composite.json

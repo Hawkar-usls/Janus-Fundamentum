@@ -1,0 +1,60 @@
+{
+  "schema": "JANUS/C025/L1-39100-UNIFORM-V2-SEMANTIC-EQUIVALENCE-LEMMA/v1",
+  "date": "2026-08-28",
+  "status": "PROVED_FOR_FROZEN_UNIFORM_PRODUCT_FAMILY__EXECUTABLE_PRECONDITIONS_REQUIRED",
+  "P_VS_NP": "OPEN",
+  "subject": {
+    "original_macro": "experiments/direct/janus_unified_macro_restore_v2.py::apply_or_pair_v2",
+    "original_elimination": "experiments/direct/janus_unified_proof_carrying_akinator_jec.py::eliminate_var_capped",
+    "specialized_exact_backends": [
+      "experiments/theorem_extraction/c025_l1_uniform_exact_checker.cpp",
+      "experiments/theorem_extraction/c025_uniform_exact_checker_general.cpp"
+    ],
+    "candidate_product_fingerprint": "037cbc224816408ca1c76c65c9bb78ad660d3b612c40ef91d1ac76943c7c79c3"
+  },
+  "executable_preconditions": {
+    "product_clause_count": 8100,
+    "every_product_clause_width": 8,
+    "product_is_canonical_unique": true,
+    "product_is_tautology_free": true,
+    "live_roots": [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21],
+    "fresh_extension": 22,
+    "candidate_pair_count": 744
+  },
+  "macro_set_equality_proof": [
+    "For a frozen candidate pair (a,b), each original width-8 product clause is either untouched at width 8 with no extension literal, or has a and b removed and fresh -e inserted, producing width 7.",
+    "The three definition clauses have widths 2, 2 and 3 and are exactly (-e,-a), (-e,-b), and (e,a,b).",
+    "A definition clause cannot subsume an untouched clause because untouched clauses contain no e or -e.",
+    "The positive-e definition cannot subsume a replaced clause because every replaced clause contains -e and not e.",
+    "A negative-e width-2 definition cannot subsume a replaced clause: the source clause contained a and b and was tautology-free, so after a and b are removed its remainder cannot contain -a or -b.",
+    "A replaced clause cannot subsume an untouched clause because it contains fresh -e; an untouched clause cannot subsume a replaced clause because it lacks -e and has greater width.",
+    "Within either the untouched width-8 class or replaced width-7 class, distinct equal-width clauses cannot strictly subsume one another.",
+    "Therefore original canon_cnf performs only exact set deduplication on these macro rows. The specialized backend constructs precisely the same clause set."
+  ],
+  "raw_elimination_equivalence_proof": [
+    "Both implementations partition the identical macro CNF into positive-pivot parents, negative-pivot parents and retained clauses.",
+    "Both enumerate the complete Cartesian product of complementary parents, remove the pivot literals, discard a resolvent exactly when its positive and negative literal masks intersect, and charge each non-tautological resolvent only on first insertion into the raw unique set.",
+    "Both start from state_units(retained)=1+sum over retained clauses of (1+width), then add exactly 1+width for each new raw resolvent.",
+    "The raw unique set and its final unit charge are independent of parent enumeration order. Thus FIT if and only if final raw units are at most N^2, and OVERFLOW if and only if final raw units exceed N^2, are identical.",
+    "The positive amount observed at the first cap crossing may differ with enumeration order; that diagnostic amount is not used as an exact value of Delta or Gamma. Only its strict positivity is used as a cap-crossing certificate."
+  ],
+  "frozen_v2_consequence": {
+    "root_order_set": "The original roots_only pivot set is exactly roots 2 through 21; the extension 22 is excluded.",
+    "progress_gate": "If no root pivot fits for a macro, frozen v2 cannot reach or pass its later strict-progress test. Therefore complete no-fit over all 744 by 20 routes implies discover_macro_restore_v2 returns None on the frozen state.",
+    "scope": 14880
+  },
+  "required_independent_checks": [
+    "Two separately compiled exact backend sources agree on the complete negative candidate verdict.",
+    "All 744 canonical candidates are also replayed once through original Python all_or_pair_candidates, apply_or_pair_v2, verify_or_pair_v2, first_capped_elimination with roots_only, and the original progress gate in disjoint fail-closed shards.",
+    "Original Python macro construction and verification agree with the specialized macro on predeclared canonical pair positions.",
+    "The closest recorded boundary route is replayed through original Python apply_or_pair_v2, verify_or_pair_v2 and eliminate_var_capped and still overflows.",
+    "Smaller frozen positive-control products return exact rescues, rejecting an always-negative backend fault.",
+    "A no-import admission verifier checks the composite semantic digest, exact scope and tamper rejection."
+  ],
+  "claim_ceiling": {
+    "not_a_general_backend_equivalence_theorem": true,
+    "not_valid_without_all_executable_preconditions": true,
+    "does_not_prove_L1_or_any_successor_grammar_total": true,
+    "P_VS_NP": "OPEN"
+  }
+}
