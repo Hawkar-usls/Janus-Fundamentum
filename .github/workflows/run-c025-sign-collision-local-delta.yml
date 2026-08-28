@@ -1,0 +1,89 @@
+name: run-c025-sign-collision-local-delta
+
+on:
+  push:
+    branches:
+      - research/c025-phase5-12-sign-collision-delta-2026-08-28
+    paths:
+      - 'research/C025_SIGN_COLLISION_LOCAL_DELTA_ATTACK_SPEC_2026-08-28.json'
+      - 'experiments/theorem_extraction/c025_sign_collision_local_delta_attack.py'
+      - '.github/workflows/run-c025-sign-collision-local-delta.yml'
+  workflow_dispatch:
+
+jobs:
+  sign-collision-delta:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      PYTHONPATH: .
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Verify frozen local mutation contract
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          d=json.loads(Path('research/C025_SIGN_COLLISION_LOCAL_DELTA_ATTACK_SPEC_2026-08-28.json').read_text())
+          assert d['status']=='FROZEN_FALSIFICATION_OBJECTIVE__NOT_PROOF'
+          assert d['mutation_contract']['support_multiset_fixed'] is True
+          assert d['mutation_contract']['signed_degree_fixed']=='15:15 for every variable'
+          assert d['mutation_contract']['N_fixed'] is True
+          assert d['scientific_boundary']['final_refutation_requires_exact_frozen_core_reachability'] is True
+          assert d['P_VS_NP']=='OPEN'
+          print('SIGN_COLLISION_OBJECTIVE=FROZEN')
+          PY
+
+      - name: Run local sign-collision JUXTAPOSE beam
+        shell: bash
+        run: |
+          set -o pipefail
+          python experiments/theorem_extraction/c025_sign_collision_local_delta_attack.py \
+            --beam-width 4 --steps 24 \
+            | tee c025-sign-collision-local-delta.json
+
+      - name: Enforce fail-closed interpretation
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          d=json.loads(Path('c025-sign-collision-local-delta.json').read_text())
+          s=d['search']; b=d['scientific_boundary']; e=d['best_candidate']['evaluation']
+          assert s['predecessor_delta_verified']=='PASS'
+          assert s['exact_factorization_selftest']=='PASS'
+          assert b['support_multiset_fixed'] is True
+          assert b['signed_15_15_invariant'] is True
+          assert b['N_and_cap_fixed'] is True
+          assert b['only_sign_collision_geometry_changed'] is True
+          assert b['search_score_is_not_proof'] is True
+          assert b['final_refutation_requires_exact_frozen_core_reachability'] is True
+          assert b['absence_of_counterexample_is_not_proof'] is True
+          assert b['same_run_theorem_promotion'] is False
+          assert b['P2_REACHABLE_PRESERVATION']=='OPEN'
+          assert b['P_VS_NP']=='OPEN'
+          print('STATUS='+d['status'])
+          print('DELTA='+str(e['delta']))
+          print('MIN_RAW='+str(e['min_raw_units']))
+          print('CAP='+str(e['cap']))
+          print('PAIR_MARGIN='+str(e['pair_rescue_margin']))
+          print('STEPS='+str(s['steps_executed']))
+          print('LEAF_STATES='+str(s['leaf_states_evaluated']))
+          print('PAIR_STATES='+str(s['pair_states_evaluated']))
+          print('L1='+d['candidate_results']['L1_ROOT_PHASE_POLYNOMIAL_GRAMMAR_TOTALITY'])
+          print('L1A='+d['candidate_results']['L1A_ALL_PIVOT_OVERFLOW_FORCES_FREQUENT_PAIR'])
+          print('L1B='+d['candidate_results']['L1B_ALL_PIVOT_OVERFLOW_FORCES_PAIR_DENSITY'])
+          r=d.get('exact_reachability_replay')
+          if r is not None:
+              print('TARGET_REACHED='+str(r['selector_reaches_target']))
+              print('TARGET_ALL_OVERFLOW='+str(r['all_ordinary_pivots_overflow_at_target']))
+              print('V2_RESCUE='+str(r['v2_rescue_exists']))
+          print('P_VS_NP=OPEN')
+          PY
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: c025-sign-collision-local-delta
+          path: c025-sign-collision-local-delta.json
