@@ -1,0 +1,48 @@
+name: JANUS Classical Shor Arena
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - research/janus-classical-shor-arena-2026-08-29
+    paths:
+      - 'research/JANUS_CLASSICAL_SHOR_ARENA_PREREGISTRATION_2026-08-29.json'
+      - 'experiments/shor_arena/janus_classical_shor_arena.py'
+      - '.github/workflows/janus-classical-shor-arena.yml'
+
+jobs:
+  holdout:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Self tests only
+        run: |
+          python experiments/shor_arena/janus_classical_shor_arena.py --self-test-only
+      - name: Frozen disjoint holdout
+        run: |
+          mkdir -p artifacts
+          python experiments/shor_arena/janus_classical_shor_arena.py \
+            --prereg research/JANUS_CLASSICAL_SHOR_ARENA_PREREGISTRATION_2026-08-29.json \
+            --output artifacts/JANUS_CLASSICAL_SHOR_ARENA_HOLDOUT_RESULT_v1.0.json
+      - name: Scientific gate
+        run: |
+          python - <<'PY'
+          import json
+          p='artifacts/JANUS_CLASSICAL_SHOR_ARENA_HOLDOUT_RESULT_v1.0.json'
+          d=json.load(open(p))
+          print(json.dumps(d['summary'], indent=2))
+          for g in d['gates']:
+              print(g['gate'], 'PASS' if g['passed'] else 'FAIL', g['value'], g['criterion'])
+          if not d['gates'][0]['passed']:
+              raise SystemExit('Exact correctness gate failed')
+          # Non-performance gate failures are preserved in JSON but do not erase the exact receipts.
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: janus-classical-shor-arena-holdout-v1
+          path: artifacts/JANUS_CLASSICAL_SHOR_ARENA_HOLDOUT_RESULT_v1.0.json
+          if-no-files-found: error
