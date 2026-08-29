@@ -1,0 +1,113 @@
+name: validate-c025-exact-resolution-product-39100
+
+on:
+  push:
+    branches:
+      - research/c025-phase5-9-polynomial-pivot-grammar-2026-08-28
+    paths:
+      - 'experiments/theorem_extraction/c025_exact_resolution_product_factor.py'
+      - 'experiments/theorem_extraction/c025_exact_resolution_product_factor_verifier.py'
+      - 'experiments/theorem_extraction/c025_exact_resolution_product_39100_coverage_gate.py'
+      - 'research/C025_EXACT_RESOLUTION_PRODUCT_FACTOR_39100_COVERAGE_GATE_2026-08-29.json'
+      - '.github/workflows/validate-c025-exact-resolution-product-39100.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: c025-exact-resolution-product-39100-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  produce-factor:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Compile constructor, producer and independent verifier
+        run: |
+          python -m py_compile experiments/theorem_extraction/c025_exact_resolution_product_factor.py
+          python -m py_compile experiments/theorem_extraction/c025_exact_resolution_product_factor_verifier.py
+          python -m py_compile experiments/theorem_extraction/c025_exact_resolution_product_39100_coverage_gate.py
+      - name: Construct exact local factor without resolvent expansion
+        run: |
+          python experiments/theorem_extraction/c025_exact_resolution_product_39100_coverage_gate.py \
+            --expected-commit '${{ github.sha }}' \
+            --expected-factorizer-parent 1978ad6a8b6eadbbd6b684369098492e2389fda6 \
+            --expected-branch '${{ github.ref_name }}' \
+            --source-out source.json \
+            --factor-out factor.json \
+            --out producer.json
+      - name: Enforce producer authority boundary
+        run: |
+          python - <<'PY'
+          import json
+          d = json.load(open('producer.json'))
+          assert d['production_state'] == 'EXACT_LOCAL_FACTOR_PRODUCED__INDEPENDENT_ADMISSION_REQUIRED'
+          assert d['constructor_static_audit']['forbidden_calls_absent'] is True
+          assert d['factor']['resource_ledger']['explicit_resolution_pairs_avoided'] == 1960200
+          assert d['factor']['resource_ledger']['hidden_expansion_executed'] is False
+          assert d['admission']['state'] == 'PENDING_SEPARATE_STANDARD_LIBRARY_VERIFIER'
+          assert d['P_VS_NP'] == 'OPEN'
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: c025-exact-resolution-product-39100-producer
+          path: |
+            source.json
+            factor.json
+            producer.json
+
+  admit-factor:
+    needs: produce-factor
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/download-artifact@v4
+        with:
+          name: c025-exact-resolution-product-39100-producer
+          path: bundle
+      - name: Run independent no-project-import admission and tamper audit
+        run: |
+          python experiments/theorem_extraction/c025_exact_resolution_product_factor_verifier.py \
+            --source bundle/source.json \
+            --factor bundle/factor.json \
+            --expected-commit '${{ github.sha }}' \
+            --expected-factorizer-parent 1978ad6a8b6eadbbd6b684369098492e2389fda6 \
+            --out admission.json
+      - name: Enforce admitted local coverage and global claim ceiling
+        run: |
+          python - <<'PY'
+          import json
+          d = json.load(open('admission.json'))
+          assert d['admission_state'] == 'ADMITTED_LOCAL_39100_FACTOR_TRANSITION'
+          assert d['verifier']['project_module_import_count'] == 0
+          assert d['constructor']['called_by_verifier'] is False
+          assert d['coverage']['exact_resolution_pairs_not_materialized'] == 1960200
+          assert d['coverage']['strict_local_progress'] is True
+          assert d['tamper_rejection']['rejected'] == 8
+          assert d['tamper_rejection']['false_accepts'] == 0
+          assert d['scientific_boundary']['nested_factor_dag_operations'] == 'OPEN'
+          assert d['scientific_boundary']['successor_grammar_totality'] == 'OPEN'
+          assert d['P_VS_NP'] == 'OPEN'
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: c025-exact-resolution-product-39100-admission
+          path: |
+            admission.json
+            bundle/source.json
+            bundle/factor.json
+            bundle/producer.json
