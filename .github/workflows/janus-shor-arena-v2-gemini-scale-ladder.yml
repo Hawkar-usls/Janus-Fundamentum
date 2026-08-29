@@ -1,0 +1,45 @@
+name: JANUS Shor Arena v2 Gemini Scale Ladder
+
+on:
+  push:
+    branches:
+      - research/janus-shor-arena-v2-gemini-scale-ladder-2026-08-29
+    paths:
+      - 'experiments/shor_arena_v2/**'
+      - 'research/JANUS_SHOR_ARENA_V2_GEMINI_**'
+      - '.github/workflows/janus-shor-arena-v2-gemini-scale-ladder.yml'
+  workflow_dispatch:
+
+jobs:
+  scale-ladder:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Frozen self-tests
+        run: python experiments/shor_arena_v2/janus_shor_arena_v2_gemini.py --self-test-only
+      - name: Frozen v2 scale ladder
+        run: |
+          mkdir -p artifacts
+          python experiments/shor_arena_v2/janus_shor_arena_v2_gemini.py --output artifacts/JANUS_SHOR_ARENA_V2_GEMINI_SCALE_LADDER_RESULT_v1.0.json
+      - name: Scientific boundary gate
+        run: |
+          python - <<'PY'
+          import json
+          p='artifacts/JANUS_SHOR_ARENA_V2_GEMINI_SCALE_LADDER_RESULT_v1.0.json'
+          d=json.load(open(p))
+          print(json.dumps(d['summary'], indent=2))
+          for g in d['gates']:
+              print(g['gate'], 'PASS' if g['passed'] else 'FAIL', g['value'])
+          if not d['gates'][0]['passed']:
+              raise SystemExit('Exact order gate failed')
+          # Performance failures remain valid scientific results and do not fail CI.
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: janus-shor-arena-v2-gemini-scale-ladder
+          path: artifacts/JANUS_SHOR_ARENA_V2_GEMINI_SCALE_LADDER_RESULT_v1.0.json
+          if-no-files-found: error
