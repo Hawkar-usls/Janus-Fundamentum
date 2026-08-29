@@ -1,0 +1,40 @@
+name: JANUS Unified Factor Kernel v1 Core
+on:
+  push:
+    branches:
+      - research/janus-unified-factor-kernel-v1-portfolio-projection-dag-width-2026-08-29
+    paths:
+      - 'experiments/shor_arena_v2/janus_unified_factor_kernel_v1_core.py'
+      - '.github/workflows/janus-unified-factor-kernel-v1-core.yml'
+  workflow_dispatch:
+jobs:
+  exact-restoration-selftests:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Execute restored exact core
+        run: |
+          mkdir -p artifacts
+          python experiments/shor_arena_v2/janus_unified_factor_kernel_v1_core.py | tee artifacts/JANUS_UNIFIED_FACTOR_KERNEL_V1_CORE_SELFTEST.txt
+      - name: Frozen restoration gate
+        run: |
+          python - <<'PY'
+          import json,subprocess
+          p=subprocess.run(['python','experiments/shor_arena_v2/janus_unified_factor_kernel_v1_core.py'],check=True,capture_output=True,text=True)
+          d=json.loads(p.stdout)
+          print('tests',d['test_count'],'capability',d['capability_digest'])
+          print('ledger',d['ledger'])
+          assert d['status']=='PASS'
+          assert d['test_count']==16
+          required={'hash_cons_multi_provenance','near4_no_fake_projection','collision_order_divides_only','symbolic_nonvoting','language_interface_accounting','hash_pointer_cheat_rejected','spider_not_proof','delayed_learning_no_prune','m2r_capability_replay','fingerprint_ranking_only','pippi_next_epoch_switch','boundary_cert_join','open_exact_frontier_witness'}
+          assert required.issubset(set(d['tests']))
+          assert d['ledger']['serialized']>0 and d['ledger']['canon']>0 and d['ledger']['refs']>0
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: janus-unified-factor-kernel-v1-core-selftest
+          path: artifacts/JANUS_UNIFIED_FACTOR_KERNEL_V1_CORE_SELFTEST.txt
+          if-no-files-found: error
