@@ -1,0 +1,58 @@
+name: validate-c025-factorized-resolution-39100-holdout
+
+on:
+  push:
+    branches:
+      - research/c025-phase5-9-polynomial-pivot-grammar-2026-08-28
+    paths:
+      - 'research/C025_FACTORIZED_RESOLUTION_PRODUCT_39100_HOLDOUT_FREEZE_2026-08-29.json'
+      - 'experiments/theorem_extraction/c025_factorized_resolution_39100_holdout_gate.py'
+      - '.github/workflows/validate-c025-factorized-resolution-39100-holdout.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: c025-factorized-resolution-39100-holdout-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  freeze-holdout:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Compile holdout-only gate
+        run: |
+          python -m py_compile experiments/theorem_extraction/c025_factorized_resolution_39100_holdout_gate.py
+      - name: Freeze exact reachable over-cap challenge before factorizer code exists
+        run: |
+          python experiments/theorem_extraction/c025_factorized_resolution_39100_holdout_gate.py \
+            --expected-commit '${{ github.sha }}' \
+            --expected-branch '${{ github.ref_name }}' \
+            --out factorized-resolution-39100-holdout.json
+      - name: Enforce firewall and claim ceiling
+        run: |
+          python - <<'PY'
+          import json
+          d = json.load(open('factorized-resolution-39100-holdout.json'))
+          assert d['status'] == 'FROZEN_EXACT_HOLDOUT__FACTORIZER_PATHS_ABSENT'
+          assert d['holdout']['reachable_at_frozen_ordinary_callsite'] is True
+          assert d['holdout']['original_capped_elimination_result'] == 'NONE__STRICT_CAP_CROSSING'
+          assert d['holdout']['canonical_first_live_root_pivot'] == 2
+          assert d['admitted_reachability_binding']['independent_admission_state'] == 'ADMITTED'
+          assert d['admitted_reachability_binding']['local_exact_selector_transition_replayed'] is True
+          assert d['future_factorizer_paths_present'] == []
+          assert d['factorizer_imported_or_executed'] is False
+          assert d['scientific_boundary']['this_does_not_validate_the_factorizer'] is True
+          assert d['scientific_boundary']['this_does_not_establish_successor_totality'] is True
+          assert d['P_VS_NP'] == 'OPEN'
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: c025-factorized-resolution-39100-holdout
+          path: factorized-resolution-39100-holdout.json
