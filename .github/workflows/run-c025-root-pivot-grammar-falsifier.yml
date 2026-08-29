@@ -22,19 +22,26 @@ jobs:
         with:
           python-version: '3.12'
 
-      - name: Verify frozen theorem target boundary
+      - name: Verify frozen theorem target terminal boundary
         run: |
           python - <<'PY'
           import json
           from pathlib import Path
           p=Path('research/C025_POLYNOMIAL_COMPLETE_PIVOT_GRAMMAR_ROOT_PHASE_SPEC_2026-08-28.json')
           d=json.loads(p.read_text())
-          assert d['status']=='THEOREM_TARGET_FROZEN__NOT_PROVED'
-          assert d['main_candidate']['status']=='OPEN_CENTRAL_ROOT_PHASE'
+          assert d['schema']=='JANUS/C025/POLYNOMIAL-COMPLETE-PIVOT-GRAMMAR/ROOT-PHASE/v1.2'
+          assert d['status']=='L1_REFUTED_BY_EXACT_REACHABLE_39100_COUNTEREXAMPLE__SUCCESSOR_GRAMMAR_REQUIRED'
+          assert d['main_candidate']['status']=='REFUTED_BY_EXACT_REACHABLE_39100_COUNTEREXAMPLE'
+          assert d['main_candidate']['witness']=='research/C025_L1_39100_EXACT_COUNTEREXAMPLE_ADMISSION_2026-08-29.json'
+          assert d['admitted_counterexample']['reachable'] is True
+          assert d['admitted_counterexample']['Delta_strictly_positive'] is True
+          assert d['admitted_counterexample']['Gamma_strictly_positive'] is True
+          assert d['admitted_counterexample']['independent_admission']=='ADMITTED'
           assert d['falsification_protocol']['authority']=='EXACT_REACHABILITY_UNDER_FIXED_A_ONLY'
-          assert d['scientific_boundary']['finite_search_is_falsification_only'] is True
+          assert d['scientific_boundary']['finite_exact_counterexample_has_universal_falsification_authority_for_L1'] is True
+          assert d['scientific_boundary']['absence_of_bounded_counterexample_would_not_have_proved_L1'] is True
           assert d['P_VS_NP']=='OPEN'
-          print('ROOT_PIVOT_GRAMMAR_SPEC=FROZEN')
+          print('ROOT_PIVOT_GRAMMAR_SPEC=FROZEN_L1_REFUTED')
           print('P_VS_NP=OPEN')
           PY
 
@@ -51,6 +58,7 @@ jobs:
           import json
           from pathlib import Path
           d=json.loads(Path('root-pivot-grammar-falsifier.json').read_text())
+          spec=json.loads(Path('research/C025_POLYNOMIAL_COMPLETE_PIVOT_GRAMMAR_ROOT_PHASE_SPEC_2026-08-28.json').read_text())
           b=d['scientific_boundary']
           assert b['bounded_finite_falsification_only'] is True
           assert b['only_states_reachable_at_frozen_core_callsite_are_tested'] is True
@@ -60,6 +68,9 @@ jobs:
           assert b['root_free_v3_tail_addressed'] is False
           assert b['P2_REACHABLE_PRESERVATION']=='OPEN'
           assert b['P_VS_NP']=='OPEN'
+          assert spec['main_candidate']['status']=='REFUTED_BY_EXACT_REACHABLE_39100_COUNTEREXAMPLE'
+          assert spec['admitted_counterexample']['independent_admission']=='ADMITTED'
+          assert spec['P_VS_NP']=='OPEN'
           print('STATUS='+d['status'])
           print('CASES='+str(d['cases_examined']))
           print('ALL_PIVOT_OVERFLOW_REACHABLE='+str(d['ordinary_all_pivot_overflow_reachable_states']))
@@ -73,6 +84,7 @@ jobs:
                   print(cid+'_TMAX='+str(c['max_pair_frequency']))
                   print(cid+'_TREQ='+str(c['frequent_pair_threshold']))
                   print(cid+'_V2='+str(c['v2_rescue_exists']))
+          print('AUTHORITATIVE_L1=REFUTED_BY_EXACT_REACHABLE_39100_COUNTEREXAMPLE')
           print('P_VS_NP=OPEN')
           PY
 
