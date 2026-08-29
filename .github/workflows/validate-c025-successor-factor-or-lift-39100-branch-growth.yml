@@ -1,0 +1,55 @@
+name: validate-c025-successor-factor-or-lift-39100-branch-growth
+
+on:
+  push:
+    branches:
+      - research/c025-phase5-9-polynomial-pivot-grammar-2026-08-28
+    paths:
+      - 'research/C025_SUCCESSOR_FACTOR_OR_LIFT_39100_BRANCH_GROWTH_ATTACK_PREREGISTRATION_2026-08-29.json'
+      - 'experiments/theorem_extraction/c025_successor_factor_or_lift_39100_branch_growth_attack.py'
+      - '.github/workflows/validate-c025-successor-factor-or-lift-39100-branch-growth.yml'
+  workflow_dispatch:
+
+jobs:
+  branch-growth-attack:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      PYTHONPATH: .
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Execute frozen recursive OR-lift attack
+        shell: bash
+        run: |
+          set -o pipefail
+          python experiments/theorem_extraction/c025_successor_factor_or_lift_39100_branch_growth_attack.py \
+            | tee c025-successor-factor-or-lift-39100-branch-growth-stdout.json
+      - name: Enforce no overclaim
+        shell: bash
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          d=json.loads(Path('c025-successor-factor-or-lift-39100-branch-growth-attack.json').read_text())
+          assert d['tiny_recursive_semantic_regression']['status']=='PASS'
+          assert d['candidate_verdict']['SUCCESSOR_NESTED_OPERATIONAL_CLOSURE']=='OPEN'
+          assert d['candidate_verdict']['SUCCESSOR_TOTALITY']=='OPEN'
+          assert d['candidate_verdict']['P2_REACHABLE_PRESERVATION']=='OPEN'
+          assert d['candidate_verdict']['P_VS_NP']=='OPEN'
+          assert d['scientific_boundary']['no_cap_change'] is True
+          assert d['scientific_boundary']['no_posthoc_branch_merge'] is True
+          print('STATUS='+d['status'])
+          print('ROWS='+str(len(d['rows'])))
+          print('FIRST_CROSSING='+json.dumps(d['first_crossing'],sort_keys=True))
+          print('NEXT_GATE='+d['next_gate'])
+          print('P_VS_NP=OPEN')
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: c025-successor-factor-or-lift-39100-branch-growth
+          path: |
+            c025-successor-factor-or-lift-39100-branch-growth-attack.json
+            c025-successor-factor-or-lift-39100-branch-growth-stdout.json
