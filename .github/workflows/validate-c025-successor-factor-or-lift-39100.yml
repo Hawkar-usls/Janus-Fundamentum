@@ -1,0 +1,64 @@
+name: validate-c025-successor-factor-or-lift-39100
+
+on:
+  push:
+    branches:
+      - research/c025-phase5-9-polynomial-pivot-grammar-2026-08-28
+    paths:
+      - 'research/C025_SUCCESSOR_FACTOR_OR_LIFT_OPERATIONAL_GRAMMAR_V1_PREREGISTRATION_2026-08-29.json'
+      - 'experiments/theorem_extraction/c025_successor_factor_or_lift_39100_gate.py'
+      - '.github/workflows/validate-c025-successor-factor-or-lift-39100.yml'
+  workflow_dispatch:
+
+jobs:
+  successor-operational-gate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      PYTHONPATH: .
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Run frozen successor OR-lift operational gate
+        shell: bash
+        run: |
+          set -o pipefail
+          python experiments/theorem_extraction/c025_successor_factor_or_lift_39100_gate.py \
+            | tee c025-successor-factor-or-lift-39100-stdout.json
+      - name: Enforce scientific boundary
+        shell: bash
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          d=json.loads(Path('c025-successor-factor-or-lift-39100-gate.json').read_text())
+          assert d['status']=='ADMITTED_LOCAL_39100_SECOND_OPERATIONAL_MOVE'
+          assert d['tiny_independent_semantic_regression']['status']=='PASS'
+          assert d['witness']['product_fingerprint']=='037cbc224816408ca1c76c65c9bb78ad660d3b612c40ef91d1ac76943c7c79c3'
+          assert d['witness']['second_pivot_absent_from_all_output_atoms'] is True
+          r=d['resource_ledger']
+          assert r['output_under_cap'] is True
+          assert r['atomic_parent_plus_output_under_cap'] is True
+          assert r['output_serialized_bytes_under_cap'] is True
+          assert r['explicit_resolution_cross_product_materialized'] is False
+          b=d['scientific_boundary']
+          assert b['successor_nested_operational_closure']=='OPEN'
+          assert b['successor_totality']=='OPEN'
+          assert b['P2_REACHABLE_PRESERVATION']=='OPEN'
+          assert b['P_VS_NP']=='OPEN'
+          print('STATUS='+d['status'])
+          print('OUTPUT_UNITS='+str(r['output_structural_units']))
+          print('ATOMIC_UNITS='+str(r['atomic_parent_plus_output_units']))
+          print('OUTPUT_BYTES='+str(r['output_serialized_bytes']))
+          print('RESOLUTION_PAIRS_AVOIDED='+str(r['explicit_resolution_pairs_avoided_in_child_factors']))
+          print('NEXT_GATE='+d['next_gate'])
+          print('P_VS_NP=OPEN')
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: c025-successor-factor-or-lift-39100
+          path: |
+            c025-successor-factor-or-lift-39100-gate.json
+            c025-successor-factor-or-lift-39100-stdout.json
