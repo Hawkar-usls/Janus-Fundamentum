@@ -1,0 +1,53 @@
+name: JANUS Unified Factor Kernel v1 MAD-LAB
+on:
+  push:
+    branches:
+      - research/janus-unified-factor-kernel-v1-portfolio-projection-dag-width-2026-08-29
+    paths:
+      - 'experiments/shor_arena_v2/janus_unified_factor_kernel_v1_madlab.py'
+      - 'research/JANUS_UFK_V1_MAD_LAB_REPRESENTATION_PROJECTION_PREREGISTRATION_2026-08-29.json'
+      - '.github/workflows/janus-unified-factor-kernel-v1-madlab.yml'
+  workflow_dispatch:
+jobs:
+  attack-restored-layer:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Validate frozen preregistration
+        run: |
+          python - <<'PY'
+          import json
+          p='research/JANUS_UFK_V1_MAD_LAB_REPRESENTATION_PROJECTION_PREREGISTRATION_2026-08-29.json'
+          d=json.load(open(p))
+          print(d['status'])
+          assert d['status']=='FROZEN_BEFORE_MAD_LAB_EXECUTION'
+          assert len(d['attack_families'])==16
+          PY
+      - name: Execute frozen MAD-LAB
+        run: |
+          mkdir -p artifacts
+          python experiments/shor_arena_v2/janus_unified_factor_kernel_v1_madlab.py | tee artifacts/JANUS_UFK_V1_MAD_LAB_RESULT_v1.0.json
+      - name: Hard integrity gate
+        run: |
+          python - <<'PY'
+          import json
+          p='artifacts/JANUS_UFK_V1_MAD_LAB_RESULT_v1.0.json'
+          d=json.load(open(p))
+          print('status',d['status'],'passed',d['passed'],'failed',d['failed'])
+          for x in d['attacks']:
+              print(x['attack'], 'PASS' if x['passed'] else 'FAIL', x.get('detail',x.get('error')))
+          assert d['status']=='PASS'
+          assert d['attack_count']==16
+          assert d['passed']==16
+          assert d['failed']==0
+          assert d['scientific_boundary']['polynomial_time_factoring'] is False
+          assert d['scientific_boundary']['P_VS_NP']=='OPEN'
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: janus-ufk-v1-madlab
+          path: artifacts/JANUS_UFK_V1_MAD_LAB_RESULT_v1.0.json
+          if-no-files-found: error
