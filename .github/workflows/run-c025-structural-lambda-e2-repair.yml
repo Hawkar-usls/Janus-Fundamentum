@@ -1,0 +1,54 @@
+name: run-c025-structural-lambda-e2-repair
+
+on:
+  push:
+    branches:
+      - research/c025-phase5-9-polynomial-pivot-grammar-2026-08-28
+    paths:
+      - 'research/C025_STRUCTURAL_LAMBDA_E2_BALANCED_CONSTRUCTOR_REPAIR_2026-08-29.json'
+      - 'experiments/theorem_extraction/c025_structural_lambda_roosters_multi_epoch_e2_repair.py'
+      - '.github/workflows/run-c025-structural-lambda-e2-repair.yml'
+  workflow_dispatch:
+
+jobs:
+  e2-repair-final-gate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Run isolated E2 repair over unchanged frozen engine
+        env:
+          PYTHONPATH: .
+        run: |
+          set -o pipefail
+          python experiments/theorem_extraction/c025_structural_lambda_roosters_multi_epoch_e2_repair.py \
+            | tee c025-structural-lambda-e2-repair-stdout.txt
+      - name: Enforce seven-epoch and immutability gates
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          d=json.loads(Path('c025-structural-lambda-roosters-multi-epoch-result.json').read_text())
+          assert d['aggregate']['valid_independent_epochs']==7
+          assert d['implementation_repair']['non_E2_epoch_summary_immutable'] is True
+          assert d['implementation_repair']['run1_unknown_remains_immutable'] is True
+          assert d['status'] in {'REPLICATED_CANDIDATE_SCALE','REFUTED_OR_GEOMETRY_SPECIFIC'}
+          assert d['scientific_boundary']['P_VS_NP']=='OPEN'
+          print('FINAL_STATUS='+d['status'])
+          print('STRICT='+str(d['aggregate']['strict_support']))
+          print('BROAD='+str(d['aggregate']['broad_support']))
+          print('OUTSIDE='+str(d['aggregate']['outside']))
+          for e in d['epochs']:
+              c=e['classification']
+              print(e['epoch_id']+':'+c['label']+':lambda='+str(c['primary']['wavelength_generations'])+':ratio='+str(c['top_to_second_power_ratio']))
+          print('P_VS_NP=OPEN')
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: c025-structural-lambda-roosters-multi-epoch-final
+          path: |
+            c025-structural-lambda-roosters-multi-epoch-result.json
+            c025-structural-lambda-e2-repair-stdout.txt
