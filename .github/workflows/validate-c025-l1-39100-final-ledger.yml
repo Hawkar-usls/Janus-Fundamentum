@@ -1,0 +1,57 @@
+name: validate-c025-l1-39100-final-ledger
+
+on:
+  push:
+    branches:
+      - research/c025-phase5-9-polynomial-pivot-grammar-2026-08-28
+    paths:
+      - 'research/C025_L1_39100_EXACT_COUNTEREXAMPLE_ADMISSION_2026-08-29.json'
+      - 'research/C025_POLYNOMIAL_COMPLETE_PIVOT_GRAMMAR_ROOT_PHASE_SPEC_2026-08-28.json'
+      - 'research/C025_ROOT_PHASE_GRAMMAR_COMPOSITION_LEMMA_2026-08-28.json'
+      - 'experiments/theorem_extraction/c025_l1_39100_final_ledger_verifier.py'
+      - '.github/workflows/validate-c025-l1-39100-final-ledger.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: c025-l1-39100-final-ledger-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  validate-final-ledger:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Verify append-only lineage and exact theorem transcription
+        run: |
+          python experiments/theorem_extraction/c025_l1_39100_final_ledger_verifier.py \
+            --expected-ledger-parent 817523b67e9d032458227d43db1c3a0f73c260f8 \
+            --out final-ledger-validation.json
+      - name: Enforce final claim boundary
+        run: |
+          python - <<'PY'
+          import json
+          d = json.load(open('final-ledger-validation.json'))
+          assert d['ledger_state'] == 'VALIDATED_FINAL_ADMISSION_LEDGER'
+          assert d['authority']['L1_ROOT_PHASE_POLYNOMIAL_GRAMMAR_TOTALITY'] == 'REFUTED_BY_EXACT_REACHABLE_39100_COUNTEREXAMPLE'
+          assert d['tamper_rejection']['false_accepts'] == 0
+          assert d['scientific_boundary']['P2_REACHABLE_PRESERVATION'] == 'OPEN'
+          assert d['scientific_boundary']['ROOT_FREE_V3_TAIL'] == 'OPEN'
+          assert d['P_VS_NP'] == 'OPEN'
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: c025-l1-39100-final-ledger-validation
+          path: |
+            final-ledger-validation.json
+            research/C025_L1_39100_EXACT_COUNTEREXAMPLE_ADMISSION_2026-08-29.json
+            research/C025_POLYNOMIAL_COMPLETE_PIVOT_GRAMMAR_ROOT_PHASE_SPEC_2026-08-28.json
+            research/C025_ROOT_PHASE_GRAMMAR_COMPOSITION_LEMMA_2026-08-28.json
