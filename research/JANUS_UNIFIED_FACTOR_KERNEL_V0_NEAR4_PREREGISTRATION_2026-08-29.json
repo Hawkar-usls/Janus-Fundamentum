@@ -1,0 +1,67 @@
+{
+  "schema": "JANUS/UNIFIED-FACTOR-KERNEL/NEAR4-RELATION-SEEDED-ORBIT/PREREGISTRATION/v0.0",
+  "status": "FROZEN_BEFORE_UNIFIED_KERNEL_EXECUTION",
+  "date": "2026-08-29",
+  "parent_gemini_v1_result_commit": "ec8d50661ebbf9bcc412508d45ff982e1dd578c9",
+  "architecture_change": {
+    "old": "two independently accounted cores with optional routing",
+    "new": "one shared exact state with switchable mathematical operators",
+    "principle": "operator switching may reuse exact state, but all prior work remains charged"
+  },
+  "shared_state": ["N", "current_base", "relation_certificates", "orbit_certificates", "gcd_receipts", "resource_ledger"],
+  "operator_grammar": ["RELATE", "NORMALIZE_NEAR4", "GCD_EXTRACT", "ORBIT_WALK", "COLLIDE", "ORDER_REDUCE", "FACTOR_VERIFY"],
+  "first_gate": {
+    "name": "NEAR4_INVERSE_PAIR_TO_RELATION_SEEDED_ORBIT",
+    "certificate": "For odd N, if x^2 - N = y^2 + 4, define inv2 = 2^{-1} mod N, u=(x-y)inv2 mod N and v=(x+y)inv2 mod N. The kernel must verify u*v mod N = 1 before using u or v as an orbit base.",
+    "exact_checks": [
+      "x*x - N - y*y == 4",
+      "gcd(2,N) == 1",
+      "u*v mod N == 1",
+      "every returned factor g satisfies 1 < g < N and N mod g == 0"
+    ],
+    "switch_rule": "RELATE scans its frozen budget in increasing x. On the first exact lower-square gap epsilon=4 certificate, it stops relation scanning and switches to NORMALIZE_NEAR4 then relation-seeded ORBIT. An exact factor found earlier terminates normally.",
+    "seeded_orbit": "Run the same frozen incremental collision/order machinery with relation-derived base u; if u is non-coprime, gcd(u,N) is an exact factor receipt. Before orbit escalation, try gcd(u-1,N) and gcd(u+1,N), charging both gcds. The original base a is retained only as fallback/reference, not mixed into the same collision certificate.",
+    "comparison": "Compare seeded ORBIT from u against unseeded incremental ORBIT from the original base a under the same transition cap. Relation scan and normalization costs remain charged in unified total work."
+  },
+  "historical_nonvoting_regression": [
+    {"N":25789069,"family":"SKEWED","bits":26},
+    {"N":417756517,"family":"SKEWED","bits":30},
+    {"N":5643825779,"family":"SKEWED","bits":34}
+  ],
+  "blind_holdout": {
+    "seed_family": "JANUS-UNIFIED-KERNEL-V0-BLIND-SKEWED-2026-08-29",
+    "bit_targets": [26,30,34],
+    "cases_per_rung": 8,
+    "total_cases": 24,
+    "geometry": "SKEWED semiprime generator; no filtering on epsilon, factor gap, order, or result after generation",
+    "solver_inputs": ["N", "a"],
+    "hidden_factors": "p,q may be used only by the evaluation oracle after solver execution"
+  },
+  "budgets_and_accounting": {
+    "relation_budget": "actual_bit_length^3 integer square tests",
+    "orbit_transition_cap": "4*isqrt(N)+64",
+    "work_proxy": "modular multiplications + integer square/multiplication tests + gcd operations + trial divisions",
+    "memory": "peak stored orbit residues and relation-state units reported separately",
+    "no_free_switching": true,
+    "no_free_parallelism": true
+  },
+  "frozen_verdict_rules": {
+    "historical_regression": "diagnostic only; cannot establish success",
+    "eligibility": "A blind case is NEAR4-eligible only if the frozen relation scan reaches an exact epsilon=4 certificate before an exact factor and before budget exhaustion.",
+    "insufficient_near4": "If fewer than 6 blind cases are NEAR4-eligible, verdict is UNKNOWN_INSUFFICIENT_NEAR4_EVIDENCE regardless of historical performance.",
+    "G1_exactness": "all returned certificates/factors must verify exactly",
+    "G2_conditional_compression": "Among NEAR4-eligible blind cases, relation-seeded orbit must reduce median orbit transition count versus unseeded orbit and achieve strict transition reduction in >= 60% of eligible cases.",
+    "G3_paid_total_work": "Among cases where both produce a factor/order certificate, median charged unified work (including relation+normalization) must be <= standalone unseeded orbit work.",
+    "G4_strong_baseline": "Report versus BSGS/rho-like strong baselines; no success claim from beating linear scan.",
+    "overall_PASS": "G1,G2,G3 pass with >=6 eligible blind cases.",
+    "overall_FAIL": "At least 6 eligible blind cases exist and G2 or G3 fails.",
+    "overall_UNKNOWN": "eligibility/evidence threshold is not met or resource limits prevent the frozen scope."
+  },
+  "forbidden_promotions": [
+    "No polynomial-time factoring claim from finite ladders",
+    "No quantum speedup claim",
+    "No P=NP inference",
+    "No post-hoc change to epsilon, budgets, thresholds, seeds, or operator order"
+  ],
+  "P_VS_NP": "OPEN"
+}
