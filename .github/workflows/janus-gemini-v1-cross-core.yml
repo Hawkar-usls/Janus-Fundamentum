@@ -1,0 +1,47 @@
+name: JANUS GEMINI v1 Cross-Core Fresh Scale
+
+on:
+  push:
+    branches:
+      - research/janus-shor-arena-v2-gemini-scale-ladder-2026-08-29
+    paths:
+      - 'experiments/shor_arena_v2/janus_gemini_v1_cross_core.py'
+      - 'research/JANUS_GEMINI_V1_FRESH_SCALE_PREREGISTRATION_2026-08-29.json'
+      - 'research/JANUS_GEMINI_V1_EXECUTION_ACCOUNTING_SPEC_2026-08-29.json'
+      - '.github/workflows/janus-gemini-v1-cross-core.yml'
+  workflow_dispatch:
+
+jobs:
+  fresh-scale:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Frozen self-tests
+        run: python experiments/shor_arena_v2/janus_gemini_v1_cross_core.py --self-test-only
+      - name: Frozen fresh scale ladder
+        run: |
+          mkdir -p artifacts
+          python experiments/shor_arena_v2/janus_gemini_v1_cross_core.py \
+            --output artifacts/JANUS_GEMINI_V1_FRESH_SCALE_RESULT_v1.0.json
+      - name: Scientific gate summary
+        run: |
+          python - <<'PY'
+          import json
+          p='artifacts/JANUS_GEMINI_V1_FRESH_SCALE_RESULT_v1.0.json'
+          d=json.load(open(p))
+          print(json.dumps(d['summary'], indent=2))
+          for g in d['gates']:
+              print(g['gate'], 'PASS' if g['passed'] else 'FAIL', g.get('value'))
+          if not d['gates'][0]['passed']:
+              raise SystemExit('Exactness gate failed')
+          # Performance failures are scientific results and do not erase receipts.
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: janus-gemini-v1-fresh-scale
+          path: artifacts/JANUS_GEMINI_V1_FRESH_SCALE_RESULT_v1.0.json
+          if-no-files-found: error
