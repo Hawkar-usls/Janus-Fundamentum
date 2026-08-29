@@ -1,0 +1,40 @@
+name: JANUS Unified Factor Kernel v0
+on:
+  push:
+    branches:
+      - research/janus-unified-factor-kernel-v0-2026-08-29
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  near4-gate:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Frozen self tests
+        run: python experiments/shor_arena_v2/janus_unified_factor_kernel_v0.py --self-test-only
+      - name: Historical nonvoting plus blind SKEWED holdout
+        run: |
+          mkdir -p artifacts
+          python experiments/shor_arena_v2/janus_unified_factor_kernel_v0.py --output artifacts/JANUS_UNIFIED_FACTOR_KERNEL_V0_NEAR4_RESULT_v0.0.json
+      - name: Scientific summary
+        run: |
+          python - <<'PY'
+          import json
+          p='artifacts/JANUS_UNIFIED_FACTOR_KERNEL_V0_NEAR4_RESULT_v0.0.json'
+          d=json.load(open(p))
+          print(json.dumps(d['blind_summary'], indent=2))
+          for g in d['gates']:
+              print(g['gate'], 'PASS' if g['passed'] else 'FAIL', g.get('value'))
+          if not d['gates'][0]['passed']:
+              raise SystemExit('Exactness gate failed')
+          # Performance/refutation gates are scientific outcomes and do not make execution fail.
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: janus-unified-factor-kernel-v0-near4
+          path: artifacts/JANUS_UNIFIED_FACTOR_KERNEL_V0_NEAR4_RESULT_v0.0.json
+          if-no-files-found: error
