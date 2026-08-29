@@ -1,0 +1,70 @@
+{
+  "schema": "JANUS/SHOR-ARENA-v2/GEMINI-SCALE-LADDER-PREREGISTRATION/v1.0",
+  "status": "FROZEN_BEFORE_SCALE_LADDER_EXECUTION",
+  "date": "2026-08-29",
+  "parent": {
+    "arena": "JANUS Classical Shor Arena v1",
+    "branch": "research/janus-classical-shor-arena-2026-08-29",
+    "v1_holdout_run": 33262319245,
+    "v1_result_commit": "621ad6c228835edcf3b3081962604f8270c3cd0c"
+  },
+  "question": "Does JUXTAPOSE/SPIDER/KEYMASTER order finding retain a genuine total-compute advantage once compared against strong classical sqrt-scale order-finding baselines, and does a dual-core GEMINI fusion add anything beyond the best constituent core?",
+  "scale_ladder": {
+    "semiprime_bit_lengths": [14, 18, 22, 26, 30, 34],
+    "cases_per_rung": 6,
+    "total_cases": 36,
+    "fresh_case_generation": "deterministic from frozen SHA256 seeds; no v1 holdout N values may be reused",
+    "base_selection": "first coprime a from deterministic sequence [2,3,5,7,11,13,17,19]",
+    "families_per_rung": ["BALANCED", "BLUM", "SKEWED", "ROUGH_P_MINUS_1", "SMOOTH_P_MINUS_1", "MIXED"]
+  },
+  "frozen_seeds": {
+    "case_seed": "JANUS-SHOR-V2-GEMINI-SCALE-2026-08-29",
+    "orbit_seed_domain": "JANUS-SHOR-V2-ORBIT",
+    "rho_seed_domain": "JANUS-SHOR-V2-RHO",
+    "madlab_seed_domain": "JANUS-SHOR-V2-MADLAB"
+  },
+  "competitors": {
+    "LINEAR_REFERENCE": "sequential multiplication until a^r == 1; diagnostic only, not the v2 strong baseline",
+    "BSGS_ORDER": "deterministic baby-step/giant-step-like order finder with O(sqrt(N)) table/walk scale and incremental group multiplication; exact-reduce any positive collision multiple to minimal order",
+    "RHO_COLLISION": "deterministic-seeded generic collision walk; exact reduction required before a found order is accepted",
+    "JANUS_ORBIT": "v1-style diversified exponent waves; SPIDER residue collisions; KEYMASTER gcd of collision gaps; EXACT_JANUS minimal-order certification",
+    "GEMINI_RELATION_V0": "independent congruence-of-squares scout using Fermat-style x^2-y^2=N search; exact gcd/factor receipt only; explicitly not claimed to be Quadratic Sieve or NFS",
+    "GEMINI_FUSION_V0": "ORBIT and RELATION run as independent cores; exact factor/order receipts may terminate useful postprocessing; total compute is the SUM of both cores up to termination, while latency is tracked separately"
+  },
+  "resource_accounting": {
+    "primary_units": ["modular_multiplications", "integer_multiplications", "gcd_operations", "hash_table_lookups", "stored_group_elements", "relation_steps"],
+    "total_compute_rule": "never count parallel cores as free; GEMINI total compute sums constituent work",
+    "latency_rule": "report critical-path/wave latency separately",
+    "memory_rule": "BSGS table size and all core memory are explicit",
+    "factor_generation_cost": "excluded from solver runtime but factors are never passed into any solver"
+  },
+  "mad_lab": {
+    "role": "falsification-first",
+    "target": "find fresh semiprime families where JANUS_ORBIT loses to BSGS_ORDER and where GEMINI_FUSION loses to the best single core after honest total-compute accounting",
+    "no_posthoc_retargeting": true,
+    "negative_results_immutable": true
+  },
+  "frozen_gates": [
+    {"gate":"G1_EXACT_ORDER","criterion":"all order-finding solvers that return FOUND must match independently certified order on 36/36 cases; JANUS_ORBIT must be exact on 36/36"},
+    {"gate":"G2_JANUS_VS_BSGS_TOTAL_COMPUTE","criterion":"report median ratio; PASS only if JANUS_ORBIT median primary group/modular-multiplication work <= BSGS_ORDER median work"},
+    {"gate":"G3_JANUS_VS_BSGS_CASEWISE","criterion":"PASS only if JANUS_ORBIT total-compute wins on >= 50% cases"},
+    {"gate":"G4_SCALE_SLOPE","criterion":"fit log2(work) vs bit_length separately; PASS only if JANUS_ORBIT fitted slope is strictly lower than BSGS_ORDER by >= 0.05 on this finite ladder; descriptive, not asymptotic proof"},
+    {"gate":"G5_GEMINI_ADDED_VALUE","criterion":"PASS only if GEMINI_FUSION total compute beats min(ORBIT, RELATION) on >= 25% cases; because compute is summed, this is intentionally difficult"},
+    {"gate":"G6_NO_LEAKAGE","criterion":"solver APIs receive only N,a and frozen public algorithm parameters"},
+    {"gate":"G7_SCIENTIFIC_BOUNDARY","criterion":"no quantum-speedup, polynomial-factoring, or P=NP claim from finite scaling data"}
+  ],
+  "interpretation_ceiling": {
+    "allowed": [
+      "Determine whether v1 JANUS collision behavior exceeds a strong classical sqrt-scale baseline on this ladder.",
+      "Determine whether GEMINI v0 fusion has measurable added value under honest total-compute accounting.",
+      "Use failures to redesign MAD-LAB and successor cores."
+    ],
+    "forbidden": [
+      "Claim polynomial-time factoring from finite rung fits.",
+      "Claim equivalence to Shor quantum period finding.",
+      "Treat a lower fitted exponent on six rungs as a theorem.",
+      "Hide memory or parallel-core work."
+    ],
+    "P_VS_NP": "OPEN"
+  }
+}
