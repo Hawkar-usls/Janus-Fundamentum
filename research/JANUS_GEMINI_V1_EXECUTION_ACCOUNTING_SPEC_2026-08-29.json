@@ -1,0 +1,24 @@
+{
+  "schema":"JANUS/GEMINI-FACTOR-ENGINE/EXECUTION-ACCOUNTING-SPEC/v1.0",
+  "status":"FROZEN_BEFORE_FRESH_EXECUTION",
+  "task_primary":"NONTRIVIAL_INTEGER_FACTOR",
+  "task_secondary":"MULTIPLICATIVE_ORDER_DIAGNOSTIC",
+  "factor_baselines":{
+    "BSGS_SHOR":"BSGS exact order followed by standard even-order/non-minus-one gcd postprocess for the frozen base a",
+    "RHO_SHOR":"incremental rho-like exact order followed by the same postprocess",
+    "RELATION_SCOUT":"bounded bitlength^3 Fermat/congruence-of-squares scout"
+  },
+  "gemini_route":"bounded RELATION_SCOUT first; on UNKNOWN, run INCREMENTAL_ORBIT; every exact collision gap d is offered to EARLY_COLLISION_FACTOR before any full minimal-order reduction; if early factor fails, exact-reduce order then standard postprocess",
+  "cross_core_synergy_definition":"A case is a synergy win only if GEMINI succeeds and its charged total work is strictly lower than the best successful standalone constituent available on that case. A direct RELATION_SCOUT success equal to standalone relation work is not a synergy win.",
+  "strong_baseline_ratio":"For factor-comparable cases, compare GEMINI charged total work to min(BSGS_SHOR,RHO_SHOR) successful work. Relation scout remains a constituent comparator, not the strong order-finding baseline.",
+  "work_ledgers":{
+    "modular_multiplications":"count every modular group multiplication including precomputation, walk transitions, candidate checks, order reduction and Shor postprocess",
+    "integer_square_multiplications":"count every x*x in relation scout",
+    "gcd_operations":"reported separately and also charged one normalized arithmetic operation in scalar_work_proxy",
+    "trial_divisions":"reported separately and charged one normalized arithmetic operation in scalar_work_proxy",
+    "memory":"peak stored group residues/table entries reported separately; never treated as free"
+  },
+  "scalar_work_proxy":"modular_multiplications + integer_square_multiplications + gcd_operations + trial_divisions; finite-ladder engineering proxy only, not a bit-complexity theorem",
+  "latency_rule":"parallel/independent core latency may be reported separately but cannot replace total-work accounting",
+  "scientific_boundary":{"finite_benchmark_not_asymptotic_proof":true,"polynomial_time_factoring":false,"P_VS_NP":"OPEN"}
+}
