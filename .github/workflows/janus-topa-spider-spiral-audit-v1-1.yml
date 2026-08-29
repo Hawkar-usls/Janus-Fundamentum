@@ -1,0 +1,50 @@
+name: JANUS TOPA Spider Spiral Audit v1.1
+on:
+  push:
+    branches:
+      - research/janus-unified-factor-kernel-v1-portfolio-projection-dag-width-2026-08-29
+    paths:
+      - 'experiments/shor_arena_v2/janus_topa_spider_spiral_audit_v1_1.py'
+      - 'research/TOPA_SPIDER_SPIRAL_AUDIT_SOURCE_MANIFEST_V1_1_2026-08-29.json'
+      - '.github/workflows/janus-topa-spider-spiral-audit-v1-1.yml'
+  workflow_dispatch:
+jobs:
+  normalized-adaptive-audit:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          path: fundamentum
+      - uses: actions/checkout@v4
+        with:
+          repository: Hawkar-usls/janus-meta-registry
+          ref: main
+          path: meta
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Run frozen normalized adaptive successor
+        working-directory: fundamentum
+        run: |
+          mkdir -p artifacts
+          python experiments/shor_arena_v2/janus_topa_spider_spiral_audit_v1_1.py \
+            --manifest research/TOPA_SPIDER_SPIRAL_AUDIT_SOURCE_MANIFEST_V1_1_2026-08-29.json \
+            --output artifacts/TOPA_SPIDER_SPIRAL_AUDIT_RESULT_V1_1_2026-08-29.json
+      - name: Boundary gate
+        working-directory: fundamentum
+        run: |
+          python - <<'PY'
+          import json
+          d=json.load(open('artifacts/TOPA_SPIDER_SPIRAL_AUDIT_RESULT_V1_1_2026-08-29.json'))
+          print('sources',d['source_inventory']['count'],'bytes',d['source_inventory']['bytes'])
+          print('adaptive findings',[(f['id'],f['status']) for f in d['predefined_findings'] if f['id'].startswith('F1') and int(f['id'][1:3])>=13])
+          assert d['successor_metadata']['run1_preserved']
+          assert d['governance']['association_is_not_proof']
+          assert d['source_inventory']['count'] > 378
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: janus-topa-spider-spiral-audit-v1-1
+          path: fundamentum/artifacts/TOPA_SPIDER_SPIRAL_AUDIT_RESULT_V1_1_2026-08-29.json
+          if-no-files-found: error
