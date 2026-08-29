@@ -1,0 +1,64 @@
+name: run-c025-structural-lambda-roosters-multi-epoch
+
+on:
+  push:
+    branches:
+      - research/c025-phase5-9-polynomial-pivot-grammar-2026-08-28
+    paths:
+      - 'research/C025_STRUCTURAL_LAMBDA_ROOSTERS_MULTI_EPOCH_PREREGISTRATION_2026-08-29.json'
+      - 'experiments/theorem_extraction/c025_structural_lambda_roosters_multi_epoch_gate.py'
+      - '.github/workflows/run-c025-structural-lambda-roosters-multi-epoch.yml'
+  workflow_dispatch:
+
+jobs:
+  multi-epoch-lambda:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Run frozen seven-geometry lambda gate
+        env:
+          PYTHONPATH: .
+        run: |
+          set -o pipefail
+          python experiments/theorem_extraction/c025_structural_lambda_roosters_multi_epoch_gate.py \
+            | tee c025-structural-lambda-roosters-multi-epoch-stdout.txt
+      - name: Enforce frozen scientific boundary
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          p=Path('c025-structural-lambda-roosters-multi-epoch-result.json')
+          d=json.loads(p.read_text())
+          assert d['status'] in {
+            'REPLICATED_CANDIDATE_SCALE',
+            'REFUTED_OR_GEOMETRY_SPECIFIC',
+            'UNKNOWN_INSUFFICIENT_INDEPENDENT_EVIDENCE',
+          }
+          b=d['scientific_boundary']
+          assert b['historical_anchor_did_not_vote'] is True
+          assert b['seven_different_constructors_required'] is True
+          assert b['structural_not_physical'] is True
+          assert b['finite_replication_not_universal_constant'] is True
+          assert b['spectral_result_not_theorem_authority'] is True
+          assert b['P_VS_NP']=='OPEN'
+          assert d['P_VS_NP']=='OPEN'
+          print('STATUS='+d['status'])
+          print('VALID='+str(d['aggregate']['valid_independent_epochs']))
+          print('STRICT='+str(d['aggregate']['strict_support']))
+          print('BROAD='+str(d['aggregate']['broad_support']))
+          print('OUTSIDE='+str(d['aggregate']['outside']))
+          for e in d['epochs']:
+              c=e['classification']
+              print(e['epoch_id']+':'+str(c.get('label'))+':lambda='+str(c.get('primary',{}).get('wavelength_generations')))
+          print('P_VS_NP=OPEN')
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: c025-structural-lambda-roosters-multi-epoch
+          path: |
+            c025-structural-lambda-roosters-multi-epoch-result.json
+            c025-structural-lambda-roosters-multi-epoch-stdout.txt
