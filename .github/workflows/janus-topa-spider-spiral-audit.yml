@@ -1,0 +1,67 @@
+name: JANUS TOPA Spider Spiral Audit
+on:
+  push:
+    branches:
+      - research/janus-unified-factor-kernel-v1-portfolio-projection-dag-width-2026-08-29
+    paths:
+      - 'experiments/shor_arena_v2/janus_topa_spider_spiral_audit.py'
+      - 'research/TOPA_SPIDER_SPIRAL_AUDIT_SOURCE_MANIFEST_2026-08-29.json'
+      - '.github/workflows/janus-topa-spider-spiral-audit.yml'
+  workflow_dispatch:
+jobs:
+  audit:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout Fundamentum with all history
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          path: fundamentum
+      - name: Checkout meta registry
+        uses: actions/checkout@v4
+        with:
+          repository: Hawkar-usls/janus-meta-registry
+          ref: main
+          path: meta
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Validate frozen restoration and manifest
+        working-directory: fundamentum
+        run: |
+          python - <<'PY'
+          import json
+          for p in [
+            'research/JANUS_UNIFIED_FACTOR_KERNEL_V1_ARCHITECTURE_RESTORATION_2026-08-29.json',
+            'research/TOPA_SPIDER_SPIRAL_AUDIT_SOURCE_MANIFEST_2026-08-29.json']:
+              d=json.load(open(p)); print(p,d['status'])
+          PY
+      - name: TOPA Spider deterministic evidence graph
+        working-directory: fundamentum
+        run: |
+          mkdir -p artifacts
+          python experiments/shor_arena_v2/janus_topa_spider_spiral_audit.py \
+            --manifest research/TOPA_SPIDER_SPIRAL_AUDIT_SOURCE_MANIFEST_2026-08-29.json \
+            --output artifacts/TOPA_SPIDER_SPIRAL_AUDIT_RESULT_2026-08-29.json
+      - name: Scientific boundary and source-count gate
+        working-directory: fundamentum
+        run: |
+          python - <<'PY'
+          import json
+          p='artifacts/TOPA_SPIDER_SPIRAL_AUDIT_RESULT_2026-08-29.json'
+          d=json.load(open(p))
+          print('sources',d['source_inventory']['count'])
+          print('bytes',d['source_inventory']['bytes'])
+          print('supported findings',sum(x['status']=='SUPPORTED_ASSOCIATION' for x in d['predefined_findings']))
+          assert d['scientific_boundary']['this_is_evidence_graph_association_not_proof'] is True
+          assert d['scientific_boundary']['polynomial_time_factoring'] is False
+          assert d['scientific_boundary']['P_VS_NP']=='OPEN'
+          assert d['source_inventory']['count'] >= 30
+          PY
+      - name: Upload audit artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: janus-topa-spider-spiral-audit
+          path: fundamentum/artifacts/TOPA_SPIDER_SPIRAL_AUDIT_RESULT_2026-08-29.json
+          if-no-files-found: error
