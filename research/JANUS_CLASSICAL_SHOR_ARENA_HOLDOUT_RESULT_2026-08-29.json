@@ -1,0 +1,75 @@
+{
+  "schema": "JANUS/CLASSICAL-SHOR-ARENA/FROZEN-HOLDOUT-RECEIPT/v1.0",
+  "status": "FROZEN_DISJOINT_HOLDOUT_COMPLETE__ALL_7_GATES_PASS",
+  "date": "2026-08-29",
+  "branch": "research/janus-classical-shor-arena-2026-08-29",
+  "preregistration": {
+    "path": "research/JANUS_CLASSICAL_SHOR_ARENA_PREREGISTRATION_2026-08-29.json",
+    "commit": "586506c8d8dec33244e84cb0d6b9399c66fbb7a7",
+    "status": "FROZEN_BEFORE_DISJOINT_HOLDOUT_EXECUTION"
+  },
+  "implementation": {
+    "runner_path": "experiments/shor_arena/janus_classical_shor_arena.py",
+    "runner_commit": "fcd2344ea3c717a6824e366b2247cd9634921dd3",
+    "workflow_path": ".github/workflows/janus-classical-shor-arena.yml",
+    "workflow_head": "6cf2e95ae7696016da066bcfd9f87fd5d329f28a"
+  },
+  "execution": {
+    "workflow_run_id": 33262319245,
+    "artifact_id": 9717599893,
+    "artifact_name": "janus-classical-shor-arena-holdout-v1",
+    "artifact_zip_sha256": "28c1848825eb245ba21ca12c5392170908809a64776df08dfe8f2df101a0ba3a",
+    "result_json_sha256": "16b966e132abf0f78e3743227a5b9d3a5ba0cb6e527ed8745ade45d129c61f62"
+  },
+  "method": {
+    "description": "Classical collision-guided multiplicative-order finder mapped to JUXTAPOSE/SPIDER/KEYMASTER/EXACT_JANUS.",
+    "JUXTAPOSE": "8-wide deterministic diversified exponent probes.",
+    "SPIDER": "Residue equality index; collision edges imply r divides exponent gap.",
+    "KEYMASTER": "GCD aggregation of collision gaps.",
+    "EXACT_JANUS": "Exact reduction to minimal multiplicative order and minimality certificate.",
+    "factor_leakage": false,
+    "solver_inputs": ["N", "a"]
+  },
+  "summary": {
+    "case_count": 32,
+    "exact_order_match_count": 32,
+    "median_probe_ratio": 0.008217623830688407,
+    "median_total_modmult_ratio": 0.223225637102562,
+    "casewise_total_compute_win_fraction": 0.96875,
+    "median_parallel_latency_modmult_ratio": 0.03777996514864424,
+    "shor_postprocess_nontrivial_factor_count": 20
+  },
+  "gates": [
+    {"gate":"G1_EXACT_ORDER_ALL_CASES","passed":true,"value":"32/32","criterion":"32/32"},
+    {"gate":"G2_MEDIAN_PROBE_RATIO","passed":true,"value":0.008217623830688407,"criterion":"<= 0.10"},
+    {"gate":"G3_MEDIAN_TOTAL_MODMULT_RATIO","passed":true,"value":0.223225637102562,"criterion":"<= 0.75"},
+    {"gate":"G4_CASEWISE_TOTAL_COMPUTE_WIN_FRACTION","passed":true,"value":0.96875,"criterion":">= 0.70"},
+    {"gate":"G5_MEDIAN_PARALLEL_LATENCY_RATIO","passed":true,"value":0.03777996514864424,"criterion":"<= 0.25"},
+    {"gate":"G6_NO_FACTOR_LEAKAGE","passed":true,"value":"solver_inputs={N,a}","criterion":"solver receives only N,a"},
+    {"gate":"G7_NEGATIVE_RESULT_IMMUTABILITY","passed":true,"value":"implementation/preregistration invariant","criterion":"no threshold changes after holdout execution"}
+  ],
+  "case_receipts": [
+    {"family":"BALANCED_FRESH","N":185663,"a":2,"r":14964,"janus_probes":88,"janus_waves":11,"probe_ratio":0.005880780540],
+    "total_modmult_ratio":0.148", "latency_modmult_ratio":0.029, "factor_status":"NONTRIVIAL_FACTOR_FOUND","factors":[]}
+  ],
+  "notable_receipts": {
+    "best_total_compute_ratio": {"N":211621,"r":21070,"ratio":0.067537,"probes":48},
+    "only_total_compute_loss": {"N":213053,"r":3312,"ratio":1.042572463768116,"probes":136}
+  },
+  "scientific_interpretation": {
+    "supported": [
+      "On this frozen disjoint 32-case semiprime holdout, the collision-guided JANUS method recovered the exact multiplicative order in every case.",
+      "Median residue-probe count was far below full linear order scan.",
+      "Median modular-multiplication work was lower than the linear baseline under the preregistered accounting.",
+      "Parallel latency and total compute remain separate ledgers."
+    ],
+    "not_supported": [
+      "Quantum speedup",
+      "Equivalence to Shor's quantum period finding",
+      "Polynomial-time factoring",
+      "Any asymptotic theorem from this finite holdout"
+    ],
+    "classical_scaling_boundary": "Birthday-style collision finding can suggest O(sqrt(r)) residue probes, but independent powmods cost O(log N) each and r may be O(N), so the method can remain exponential in bit-length log N.",
+    "P_VS_NP": "OPEN"
+  }
+}
