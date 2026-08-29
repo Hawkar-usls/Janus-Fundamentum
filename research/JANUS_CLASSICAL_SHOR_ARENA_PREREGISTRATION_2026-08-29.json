@@ -1,0 +1,82 @@
+{
+  "schema": "JANUS/CLASSICAL-SHOR-ARENA/PREREGISTRATION/v1.0",
+  "status": "FROZEN_BEFORE_DISJOINT_HOLDOUT_EXECUTION",
+  "date": "2026-08-29",
+  "branch": "research/janus-classical-shor-arena-2026-08-29",
+  "objective": {
+    "primary": "Test whether a JANUS collision-guided classical order finder extracts the exact multiplicative order r substantially earlier than a full linear order scan on disjoint semiprimes.",
+    "shor_core": "Find minimal r>0 such that a^r mod N = 1, then optionally attempt gcd(a^(r/2) ± 1, N).",
+    "claim_ceiling": "Classical order-finding experiment only; no quantum speedup claim and no polynomial-time factoring claim."
+  },
+  "roles": {
+    "JUXTAPOSE": "Issue diversified exponent probes x in deterministic waves.",
+    "SPIDER": "Hash/index residues a^x mod N and emit equality edges when residues collide.",
+    "KEYMASTER": "Aggregate collision gaps d=|x_i-x_j| using gcd and decide when an exact reduction attempt is warranted.",
+    "EXACT_JANUS": "Verify candidate multiples, reduce to the minimal exact order, and certify minimality."
+  },
+  "algorithm": {
+    "exponent_schedule": "Deterministic PRNG without replacement over [0,N-1], seed = SHA256(arena_id|N|a), no holdout outcomes used.",
+    "arena_id": "JANUS_CLASSICAL_SHOR_ARENA_V1_HOLDOUT",
+    "wave_width": 8,
+    "max_probes": "N",
+    "collision_fact": "a^x == a^y (mod N) with gcd(a,N)=1 implies r divides |x-y|.",
+    "candidate": "gcd of all nonzero collision gaps observed so far.",
+    "exact_reduction": "Factor candidate by deterministic trial division; repeatedly test candidate/q with exact modular exponentiation for prime q; certify r by a^r=1 and a^(r/q)!=1 for every prime q|r.",
+    "fallback": "If no certified order is found before max_probes, return UNKNOWN_RESOURCE_LIMIT; never infer absence."
+  },
+  "baselines": {
+    "LINEAR_ORDER_SCAN": "Starting at residue 1, multiply by a modulo N once per step until residue returns to 1. Baseline total modular multiplications = r.",
+    "comparison_scope": "Same N,a; factors p,q are not provided to the solver."
+  },
+  "resource_accounting": {
+    "separate_ledgers": {
+      "total_compute": [
+        "residue_probes",
+        "modular_multiplications_in_powmod",
+        "exact_reduction_powmods",
+        "integer_trial_divisions",
+        "gcd_operations"
+      ],
+      "parallel_latency": [
+        "waves",
+        "critical_path_modular_multiplications"
+      ]
+    },
+    "forbidden": [
+      "treating an 8-wide JUXTAPOSE wave as one unit of total compute",
+      "using known semiprime factors to infer phi(N) or r",
+      "calling probe-count improvement alone a compute speedup"
+    ]
+  },
+  "engineering_calibration_disjoint_from_holdout": {
+    "used_only_to_check_harness_and_choose_frozen_thresholds": true,
+    "examples_included_N": [15,21,35,143,10403],
+    "holdout_overlap": false
+  },
+  "holdout": {
+    "cases": [
+      {"family":"BALANCED_FRESH","N":185663,"a":2},{"family":"BALANCED_FRESH","N":191003,"a":2},{"family":"BALANCED_FRESH","N":200701,"a":2},{"family":"BALANCED_FRESH","N":205027,"a":2},{"family":"BALANCED_FRESH","N":211621,"a":2},{"family":"BALANCED_FRESH","N":216067,"a":2},{"family":"BALANCED_FRESH","N":220817,"a":2},{"family":"BALANCED_FRESH","N":225487,"a":2},
+      {"family":"SKEWED_FRESH","N":59531,"a":2},{"family":"SKEWED_FRESH","N":67871,"a":2},{"family":"SKEWED_FRESH","N":74387,"a":2},{"family":"SKEWED_FRESH","N":80659,"a":2},{"family":"SKEWED_FRESH","N":91759,"a":2},{"family":"SKEWED_FRESH","N":100201,"a":2},{"family":"SKEWED_FRESH","N":107017,"a":2},{"family":"SKEWED_FRESH","N":118537,"a":2},
+      {"family":"BLUM_FRESH","N":317393,"a":2},{"family":"BLUM_FRESH","N":336289,"a":2},{"family":"BLUM_FRESH","N":353909,"a":2},{"family":"BLUM_FRESH","N":371017,"a":2},{"family":"BLUM_FRESH","N":389993,"a":2},{"family":"BLUM_FRESH","N":405617,"a":2},{"family":"BLUM_FRESH","N":430681,"a":2},{"family":"BLUM_FRESH","N":441289,"a":2},
+      {"family":"MIXED_FRESH","N":102743,"a":2},{"family":"MIXED_FRESH","N":120839,"a":2},{"family":"MIXED_FRESH","N":142033,"a":2},{"family":"MIXED_FRESH","N":162131,"a":2},{"family":"MIXED_FRESH","N":192691,"a":2},{"family":"MIXED_FRESH","N":213053,"a":2},{"family":"MIXED_FRESH","N":232403,"a":2},{"family":"MIXED_FRESH","N":270401,"a":2}
+    ],
+    "case_count": 32,
+    "families": ["BALANCED_FRESH","BLUM_FRESH","MIXED_FRESH","SKEWED_FRESH"],
+    "note": "Only N and a are frozen here; no multiplicative orders or prime factors are stored in the holdout specification."
+  },
+  "frozen_gates": {
+    "G1_EXACT_ORDER_ALL_CASES": "32/32 JANUS orders equal independent linear-scan orders.",
+    "G2_MEDIAN_PROBE_RATIO": "median(JANUS residue probes / r) <= 0.10",
+    "G3_MEDIAN_TOTAL_MODMULT_RATIO": "median(JANUS total modular multiplications / r) <= 0.75",
+    "G4_CASEWISE_TOTAL_COMPUTE_WIN_FRACTION": "fraction of cases with JANUS total modular multiplications < r >= 0.70",
+    "G5_MEDIAN_PARALLEL_LATENCY_RATIO": "median(JANUS critical-path modular multiplications / r) <= 0.25",
+    "G6_NO_FACTOR_LEAKAGE": "Solver interface receives only N,a and frozen public constants.",
+    "G7_NEGATIVE_RESULT_IMMUTABILITY": "Any failed gate remains failed; no threshold changes after holdout run."
+  },
+  "scientific_boundary": {
+    "expected_classical_scaling_hypothesis": "Birthday-style residue collision may require O(sqrt(r)) residue probes; independent powmods add O(log N) modular multiplications per probe.",
+    "not_proved": "No asymptotic theorem is inferred from finite benchmarks.",
+    "worst_case_warning": "Since r can scale as O(N), O(sqrt(r) log N) remains exponential in input bit-length log N.",
+    "P_VS_NP": "OPEN"
+  }
+}
