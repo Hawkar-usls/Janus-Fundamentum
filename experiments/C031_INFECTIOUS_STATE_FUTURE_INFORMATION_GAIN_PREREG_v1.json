@@ -1,0 +1,99 @@
+{
+  "experiment_id": "C031_INFECTIOUS_STATE_FUTURE_INFORMATION_GAIN_PREREG_v1",
+  "status": "FROZEN_BEFORE_PREDICTIVE_COMPUTATION",
+  "created_date": "2026-08-31",
+  "scope": "Non-operational computational analysis of an already-public longitudinal SARS-CoV-2 cohort. No pathogen engineering, wet-lab protocol, clinical recommendation, or treatment claim.",
+  "meta_registry_transfer": {
+    "primary_operators": [
+      "AMBIGUITY_IS_A_FIRST_CLASS_STATE",
+      "DIVERGENT_PASTS_ARE_PRESERVED_NOT_AVERAGED",
+      "NON_TRANSITIVE_EVIDENCE_BINDING_LADDER",
+      "CAUSAL_ISOLATION_DSEPARATION_HARDENING"
+    ],
+    "question": "Does an orthogonal infectious-virus state carry correctness-relevant successor information that a current PCR snapshot plus phase coordinate does not encode?"
+  },
+  "target": {
+    "repository": "BROOKELAB/Viral-dynamics-modeling",
+    "commit": "8d71ca82ac453a4b3c3c13d61a7174fbed4bdf8d",
+    "path": "Data/data_samples.csv",
+    "git_blob_sha": "a4b5cd9e06af494c859f9fefab194a703500af01",
+    "known_schema_only": {
+      "subject": "Ind",
+      "time": "Time",
+      "nasal_pcr": "Nasal_CN",
+      "saliva_pcr": "Saliva_Ct",
+      "culture_ttp": "Virus_pos_days"
+    },
+    "known_measurement_boundary_from_public_analysis_code": "Negative CN values are encoded as 48, saliva Ct as 47, and negative culture as Virus_pos_days=5.9."
+  },
+  "exposure_boundary": {
+    "already_seen_before_freeze": "Header, four exemplar data rows, and authors' public R code describing field meanings and their published figure analyses.",
+    "not_done_before_freeze": [
+      "No next-day predictive dataset constructed.",
+      "No model A/model B comparison computed.",
+      "No culture-label permutation null computed.",
+      "No threshold selected from predictive results.",
+      "No search for the exact claim that culture time-to-positivity predicts next-day PCR conditional on current PCR and phase."
+    ]
+  },
+  "claim": {
+    "IF": "two observations share the same modeled PCR-state variables but differ in infectious-virus culture state",
+    "UNDER": "subject-held-out prediction of the next exact-day nasal PCR transition with current nasal PCR and time-from-nasal-peak already provided",
+    "THEN": "adding current viral-culture time-to-positivity will improve out-of-subject prediction of next-day nasal CN",
+    "BECAUSE": "infectious-virus state may encode productive-infection information not contained in RNA burden plus phase alone",
+    "UNLESS": "culture state is merely redundant with current PCR/phase or the public sampling design does not identify the incremental information"
+  },
+  "endpoint": {
+    "unit": "eligible subject-day transition t -> t+1",
+    "eligibility": [
+      "same subject has finite Nasal_CN at exact Time=t and exact Time=t+1",
+      "current row at t has finite Virus_pos_days",
+      "current Nasal_CN < 48 and next-day Nasal_CN < 48 so the primary continuous transition is not an encoded PCR non-detection boundary",
+      "no interpolation or nearest-neighbor time matching"
+    ],
+    "outcome": "delta_nasal_CN = Nasal_CN(t+1)-Nasal_CN(t)",
+    "baseline_model_A": "ordinary least squares fitted only on training subjects: delta ~ intercept + current_Nasal_CN + Time",
+    "enriched_model_B": "same OLS model plus current Virus_pos_days",
+    "cross_validation": "leave-one-subject-out; every prediction for a subject is produced by a model trained on all other eligible subjects only",
+    "primary_metric": "MAE across all held-out eligible transitions",
+    "effect": "relative_MAE_gain=(MAE_A-MAE_B)/MAE_A"
+  },
+  "frozen_pass_fail": {
+    "PASS": "relative_MAE_gain >= 0.10 AND deterministic permutation-null p <= 0.01",
+    "FAIL": "relative_MAE_gain <= 0 OR permutation-null p > 0.05",
+    "EVIDENCE_INSUFFICIENT": "fewer than 30 eligible transitions or fewer than 10 held-out subjects, or intermediate result not meeting PASS/FAIL"
+  },
+  "permutation_null": {
+    "iterations": 1000,
+    "seed": 31031,
+    "operation": "For each iteration, permute Virus_pos_days across eligible current rows globally, rerun the exact same leave-one-subject-out enriched model, and compute relative MAE gain versus the unchanged baseline model A.",
+    "p_value": "(1 + number(null_gain >= observed_gain))/(1001)",
+    "purpose": "Test whether the culture feature adds more held-out prediction than an equally-shaped but relationship-destroyed feature. This is a dataset-specific randomization test, not a universal causal p-value."
+  },
+  "secondary_cross_modal_endpoint": {
+    "status": "PRE_FROZEN_SECONDARY_NOT_REQUIRED_FOR_PRIMARY_PASS",
+    "outcome": "next-day saliva Ct transition among rows with finite uncensored saliva Ct at t and t+1",
+    "baseline": "delta_saliva_Ct ~ intercept + current_Saliva_Ct + Time",
+    "enriched": "baseline + current Virus_pos_days",
+    "same_cross_validation": true,
+    "interpretation": "Concordant information gain in saliva would be cross-modal support inside the same cohort, not independent replication."
+  },
+  "causal_firewalls": [
+    "PREDICTIVE_INFORMATION_GAIN_IS_NOT_CAUSATION",
+    "CULTURE_TTP_MAY_SHARE_LATENT_CAUSES_WITH_FUTURE_PCR",
+    "TIME_IS_A_PHASE_COORDINATE_NOT_CAUSAL_ANTIVIRAL_AGENT",
+    "SAME_COHORT_CROSS_MODAL_SUPPORT_IS_NOT_INDEPENDENT_REPLICATION",
+    "SELECTION_ON_COMPLETE_T_TO_TPLUS1_TRANSITIONS_CAN_BIAS_THE_ELIGIBLE_SET",
+    "NO_CLINICAL_THRESHOLD_OR_TREATMENT_INFERENCE"
+  ],
+  "breakthrough_ceiling": {
+    "C031_alone_can_set_SCIENTIFIC_BREAKTHROUGH": false,
+    "if_PASS_then_required": [
+      "post-result exact prior-art killer search",
+      "independent external cohort with serial PCR plus infectious-virus measurement",
+      "same-direction preregistered replication without retuning",
+      "material consequence analysis showing why the extra state changes model/measurement interpretation",
+      "replayable provenance"
+    ]
+  }
+}
