@@ -1,0 +1,53 @@
+{
+  "experiment_id": "C034_SPECIMEN_PHASE_HYSTERESIS_LOOP_SCHEMA_BINDING_v1",
+  "status": "FROZEN_BEFORE_PARTICIPANT_VALUE_COMPUTATION",
+  "parent_prereg_commit": "7117688fdec64f8c35f3d0870f4e1ba2315da7c9",
+  "schema_probe": {
+    "workflow_run_id": 33337653257,
+    "workflow_job_id": 99327356296,
+    "artifact_id": 9739527864,
+    "artifact_zip_sha256": "032cbe45522512ea2285a07dd592705aaa2482e2c1cc20d4949fefe8d51991b4",
+    "source_md5": "6e6216d751c95b6afb6a7d0d96da6f1a",
+    "source_bytes": 226075,
+    "values_exposed_by_probe": false,
+    "probe_scope": "sheet names, dimensions, and first non-empty row/header only"
+  },
+  "binding": {
+    "sheet": "MainDataTable",
+    "subject": "participantid",
+    "time": "timefromenrollment",
+    "saliva_load": "salivaviralload",
+    "nasal_load": "nasalviralload",
+    "source_unit": "copies/mL as indicated by workbook/header and associated dataset",
+    "coordinate_transform": "x=log10(nasal_load), y=log10(saliva_load) for strictly positive finite numeric values"
+  },
+  "deterministic_rules": {
+    "eligible_visit": "subject and time finite/present; saliva_load and nasal_load parse as finite numeric values strictly greater than zero",
+    "non_numeric_or_nonpositive_load": "missing/non-quantifiable for C034; do not impute a detection-limit value",
+    "duplicate_subject_time": "if more than one eligible raw row shares the same subject and exact numeric time, mark that time ambiguous and exclude all rows at that key",
+    "chronology": "sort by numeric time ascending",
+    "minimum_visits": 5,
+    "minimum_axis_log10_range": 1.0,
+    "signed_area": "close chronological polyline from last point to first and apply the frozen shoelace formula",
+    "normalized_area": "signed_area/(nasal_log10_range*saliva_log10_range)",
+    "no_smoothing": true,
+    "no_interpolation": true,
+    "no_subgroup_filtering": true
+  },
+  "unchanged_scientific_gate": {
+    "minimum_eligible_subjects": 10,
+    "predicted_direction": "NEGATIVE_CLOCKWISE",
+    "median_normalized_area_max_for_PASS": -0.10,
+    "two_sided_exact_sign_test_p_max": 0.01,
+    "chronology_permutations": 10000,
+    "permutation_seed": 34034,
+    "permutation_p_max": 0.01,
+    "no_retuning": true
+  },
+  "firewall": [
+    "HEADER_SCHEMA_IS_NOT_RESULT",
+    "NO_SOURCE_LOD_SUBSTITUTION_AS_EXACT_VALUE",
+    "NO_THRESHOLD_CHANGE_AFTER_VALUES",
+    "NO_SWITCH_TO_THROAT_IF_SALIVA_NASAL_FAILS"
+  ]
+}
