@@ -1,0 +1,52 @@
+name: JANUS TRUMP P-vs-NP Direct Challenge R0
+on:
+  push:
+    branches:
+      - research/janus-trump-p-vs-np-direct-challenge-r0-2026-08-30
+  workflow_dispatch:
+jobs:
+  direct_challenge:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Verify prereg freeze
+        run: |
+          python - <<'PY'
+          import json
+          p=json.load(open('research/JANUS_TRUMP_P_VS_NP_DIRECT_CHALLENGE_R0_PREREGISTRATION_2026-08-30.json'))
+          assert p['status']=='FROZEN_BEFORE_EXECUTION'
+          assert p['scientific_boundary']['P_VS_NP']=='OPEN'
+          assert p['darpa_comparison_freeze']['baseline'].startswith('JUXTAPOSE DARPA v5.1')
+          print('P_VS_NP_R0_PREREG_OK')
+          PY
+      - name: Execute frozen direct challenge
+        run: |
+          mkdir -p artifacts
+          python experiments/janus_trump_p_vs_np_direct_challenge_r0.py \
+            --output artifacts/JANUS_TRUMP_P_VS_NP_DIRECT_CHALLENGE_R0_RESULT_2026-08-30.json \
+            --journal artifacts/JANUS_TRUMP_P_VS_NP_DIRECT_CHALLENGE_R0_JOURNAL_2026-08-30.jsonl
+      - name: Scientific gate
+        run: |
+          python - <<'PY'
+          import json
+          d=json.load(open('artifacts/JANUS_TRUMP_P_VS_NP_DIRECT_CHALLENGE_R0_RESULT_2026-08-30.json'))
+          print(d['verdict'],d['summary'])
+          assert d['P_VS_NP']=='OPEN'
+          assert d['summary']['cases']==24
+          assert d['summary']['families']==5
+          assert d['summary']['all_finite_exact'] is True
+          assert d['summary']['theorem_gate_passed'] is False
+          assert all(d['gates'].values())
+          assert d['verdict']=='BARRIER_LOCALIZED__P_VS_NP_OPEN'
+          PY
+      - name: Upload immutable evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: janus-trump-p-vs-np-direct-challenge-r0
+          path: |
+            artifacts/JANUS_TRUMP_P_VS_NP_DIRECT_CHALLENGE_R0_RESULT_2026-08-30.json
+            artifacts/JANUS_TRUMP_P_VS_NP_DIRECT_CHALLENGE_R0_JOURNAL_2026-08-30.jsonl
