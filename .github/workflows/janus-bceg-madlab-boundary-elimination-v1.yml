@@ -1,0 +1,56 @@
+name: JANUS BCEG MAD-LAB Boundary Elimination v1
+
+on:
+  push:
+    branches:
+      - research/janus-bceg-madlab-boundary-elimination-v1-2026-08-30
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  madlab:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Verify frozen preregistration
+        run: |
+          python - <<'PY'
+          import json
+          p='research/JANUS_BCEG_MADLAB_BOUNDARY_ELIMINATION_V1_PREREGISTRATION_2026-08-30.json'
+          d=json.load(open(p))
+          assert d['status']=='FROZEN_BEFORE_HOLDOUT_EXECUTION'
+          assert d['target_lemma']=='UNIVERSAL_POLYNOMIAL_BOUNDARY_ELIMINATION_LEMMA'
+          assert d['scientific_boundary']['P_VS_NP']=='OPEN'
+          print('FROZEN', d['holdout_seed'])
+          PY
+      - name: Execute frozen MAD-LAB
+        run: |
+          mkdir -p artifacts
+          python experiments/bceg/janus_bceg_madlab_boundary_elimination_v1.py \
+            --output artifacts/JANUS_BCEG_MADLAB_BOUNDARY_ELIMINATION_V1_RESULT_2026-08-30.json \
+            --journal artifacts/JANUS_BCEG_MADLAB_BOUNDARY_ELIMINATION_V1_JOURNAL_2026-08-30.jsonl \
+            | tee artifacts/JANUS_BCEG_MADLAB_BOUNDARY_ELIMINATION_V1_CONSOLE_2026-08-30.txt
+      - name: Scientific integrity gate
+        run: |
+          python - <<'PY'
+          import json
+          p='artifacts/JANUS_BCEG_MADLAB_BOUNDARY_ELIMINATION_V1_RESULT_2026-08-30.json'
+          r=json.load(open(p))
+          assert r['status']=='COMPLETE'
+          assert r['summary']['P_VS_NP']=='OPEN'
+          assert r['summary']['universal_polynomial_boundary_elimination_lemma']=='OPEN'
+          assert next(g for g in r['gates'] if g['gate']=='G8_UNIVERSAL_LEMMA')['passed'] is False
+          assert all(c['portfolio_terminal']!='SAT' for c in r['cases_detail'])
+          print(json.dumps({'summary':r['summary'],'gates':r['gates'],'by_family':r['by_family']}, indent=2))
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: janus-bceg-madlab-boundary-elimination-v1
+          path: artifacts/
+          if-no-files-found: error
