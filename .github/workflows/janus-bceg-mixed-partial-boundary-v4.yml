@@ -1,0 +1,63 @@
+name: JANUS BCEG Mixed Partial Boundary v4
+
+on:
+  push:
+    branches:
+      - research/janus-bceg-mixed-partial-boundary-v4-2026-08-30
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  mixed-partial-boundary:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Verify frozen preregistration
+        run: |
+          python - <<'PY'
+          import json
+          p='research/JANUS_BCEG_MIXED_PARTIAL_BOUNDARY_V4_PREREGISTRATION_2026-08-30.json'
+          d=json.load(open(p))
+          assert d['status']=='FROZEN_BEFORE_HOLDOUT_EXECUTION'
+          assert d['scientific_boundary']['P_VS_NP']=='OPEN'
+          assert d['holdout']['expected_cases']==72
+          print('FROZEN',d['holdout']['seed'])
+          PY
+      - name: Exact mixed-projector self-tests
+        run: |
+          mkdir -p artifacts
+          python experiments/bceg/janus_bceg_mixed_partial_boundary_v4.py \
+            --output artifacts/selftest-unused.json \
+            --journal artifacts/selftest-unused.jsonl \
+            --self-test | tee artifacts/JANUS_BCEG_MIXED_PARTIAL_BOUNDARY_V4_SELFTEST_2026-08-30.txt
+      - name: Execute frozen mixed partial holdout
+        run: |
+          python experiments/bceg/janus_bceg_mixed_partial_boundary_v4.py \
+            --output artifacts/JANUS_BCEG_MIXED_PARTIAL_BOUNDARY_V4_RESULT_2026-08-30.json \
+            --journal artifacts/JANUS_BCEG_MIXED_PARTIAL_BOUNDARY_V4_JOURNAL_2026-08-30.jsonl \
+            | tee artifacts/JANUS_BCEG_MIXED_PARTIAL_BOUNDARY_V4_CONSOLE_2026-08-30.txt
+      - name: Scientific integrity gate
+        run: |
+          python - <<'PY'
+          import json
+          r=json.load(open('artifacts/JANUS_BCEG_MIXED_PARTIAL_BOUNDARY_V4_RESULT_2026-08-30.json'))
+          assert r['status']=='COMPLETE'
+          assert r['summary']['cases']==72
+          assert r['summary']['P_VS_NP']=='OPEN'
+          assert r['summary']['algorithmic_boundary_assignments_enumerated_total']==0
+          assert all(g['passed'] for g in r['gates'] if g['gate']!='M11_UNIVERSAL_LEMMA')
+          assert next(g for g in r['gates'] if g['gate']=='M11_UNIVERSAL_LEMMA')['passed'] is False
+          assert all(c['terminal']=='UNSAT' for c in r['cases_detail'])
+          print(json.dumps({'summary':r['summary'],'gates':r['gates'],'by_family_k':r['by_family_k']},indent=2))
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: janus-bceg-mixed-partial-boundary-v4
+          path: artifacts/
+          if-no-files-found: error
