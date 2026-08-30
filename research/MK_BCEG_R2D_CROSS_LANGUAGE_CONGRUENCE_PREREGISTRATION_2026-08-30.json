@@ -1,0 +1,31 @@
+{
+  "schema":"JANUS/THE_MAGIC_KEY/MK_BCEG_R2D_CROSS_LANGUAGE_CONGRUENCE/PREREG/v1.0",
+  "status":"FROZEN_BEFORE_EXECUTION",
+  "date":"2026-08-30",
+  "parent_R2C_result_commit":"05fb6d1c2e498258bf5b89053caa1c43504da089",
+  "objective":"Test whether JANUS can switch an exact future-interface from ROBDD to d-DNNF and preserve projected Boolean semantics under authorized ASSIGN transitions with replayable translation certificates and explicit translation/verification cost.",
+  "scope_boundary":"R2D tests switch correctness, not succinctness advantage. R2E remains cumulative switching-cost attack.",
+  "languages":{"source":"ROBDD","destination":"d-DNNF produced by structural Shannon translation"},
+  "translation_rule":"Each ROBDD node (v,lo,hi) becomes OR(AND(NOT(v),T(lo)),AND(v,T(hi))). Terminals map to constants. Shared ROBDD nodes remain shared destination DAG nodes.",
+  "local_certificate_obligations":[
+    "DETERMINISM: the two OR branches contain complementary v guards and are mutually exclusive",
+    "DECOMPOSABILITY: v is absent from the support of both translated child subcircuits because ROBDD children respect the remaining variable suffix",
+    "SHARING: identical source node ids map to one destination node id",
+    "TERMINAL_PRESERVATION: source 0/1 map to destination false/true"
+  ],
+  "frozen_corpus":{"families":["RENAMED_EQ_PAIR","RENAMED_XOR_PAIR","MATCHED_RANDOM_2CNF_CONTROL"],"m_values":[4,6,8],"instances_per_family_per_m":1,"source_order_policy":"R2C selector policy, family label hidden"},
+  "authorized_transition":"ASSIGN(variable,0|1) for every interface variable",
+  "cross_language_congruence":"For every state/action, condition translated d-DNNF and compare against the exact CNF successor semantics. Exhaustive remaining-variable assignments are used in the bounded R2D universe.",
+  "cost_accounting":{"translation":"source/destination DAG nodes and constructed connective count","verification":"local certificate checks plus exhaustive semantic evaluations","rule":"translation or verification work is never zero merely because source/destination are equivalent by construction"},
+  "gates":{
+    "G1_TRANSLATION_LOCAL_CERT":"all translated internal nodes satisfy frozen determinism/decomposability/support checks",
+    "G2_IDENTITY_SEMANTICS":"translated d-DNNF matches source CNF on every assignment in frozen corpus",
+    "G3_ASSIGN_CONGRUENCE":"for every variable/value action, conditioned d-DNNF matches exact restricted CNF on every remaining assignment",
+    "G4_LINEAR_TRANSLATION_SIGNATURE":"destination structural node/connective count <= 5 * source ROBDD total nodes on every case",
+    "G5_COST_ACCOUNTING":"translation and semantic verification work are explicitly nonzero",
+    "G6_NO_AUTHORITY_PROMOTION":"finite congruence survivor is not a universal cross-language theorem and P_VS_NP remains OPEN"
+  },
+  "verdict_taxonomy":["FINITE_CROSS_LANGUAGE_CONGRUENCE_SURVIVOR_NOT_THEOREM","REFUTED_CROSS_LANGUAGE_TRANSLATION","UNKNOWN_RESOURCE_LIMIT"],
+  "journal_rule":"Store every case, first local-certificate failure, first semantic mismatch with action/assignment, source/destination sizes, verification work and next R2E frontier append-only.",
+  "scientific_boundary":{"P_VS_NP":"OPEN","universal_cross_language_portfolio_proved":false,"R2E_tested":false}
+}
