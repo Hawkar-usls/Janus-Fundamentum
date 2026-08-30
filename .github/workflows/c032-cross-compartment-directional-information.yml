@@ -1,0 +1,58 @@
+name: C032 Cross-Compartment Directional Information
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'experiments/C032_CROSS_COMPARTMENT_DIRECTIONAL_INFORMATION_PREREG_v1.json'
+      - 'experiments/c032_cross_compartment_directional_information.py'
+      - '.github/workflows/c032-cross-compartment-directional-information.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  c032-directional:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with: {fetch-depth: 1}
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with: {python-version: '3.12'}
+      - name: Install pinned numpy
+        run: python -m pip install --disable-pip-version-check numpy==2.3.2
+      - name: Verify freeze
+        run: |
+          python - <<'PY'
+          import json
+          p=json.load(open('experiments/C032_CROSS_COMPARTMENT_DIRECTIONAL_INFORMATION_PREREG_v1.json'))
+          assert p['status']=='FROZEN_BEFORE_CROSS_COMPARTMENT_COMPUTATION'
+          assert p['target']['git_blob_sha']=='a4b5cd9e06af494c859f9fefab194a703500af01'
+          print('C032_FREEZE=PASS')
+          PY
+      - name: Execute frozen C032
+        run: python experiments/c032_cross_compartment_directional_information.py | tee out.log
+      - name: Enforce claim ceiling
+        run: |
+          python - <<'PY'
+          import json
+          d=json.load(open('out/C032_CROSS_COMPARTMENT_DIRECTIONAL_INFORMATION_RESULT.json'))
+          if d.get('claim_ceiling'):
+              assert d['claim_ceiling']['scientific_breakthrough'] is False
+              assert d['claim_ceiling']['scientific_novelty'] is False
+          print('C032_CLAIM_CEILING=PASS')
+          print(json.dumps({k:d.get(k) for k in ['eligibility','S_to_N','N_to_S','directional_gain_gap_SN_minus_NS','terminal','status']},sort_keys=True))
+          PY
+      - name: Upload receipt
+        uses: actions/upload-artifact@v4
+        with:
+          name: c032-cross-compartment-directional-information
+          path: |
+            out/C032_CROSS_COMPARTMENT_DIRECTIONAL_INFORMATION_RESULT.json
+            out.log
+          if-no-files-found: error
+          retention-days: 30
