@@ -1,0 +1,86 @@
+{
+  "experiment_id": "C030_META_REGISTRY_FIRST_BREAK_VIRAL_TRAJECTORY_PREREG_v1",
+  "status": "FROZEN_BEFORE_TARGET_RAW_CSV_INSPECTION",
+  "created_date": "2026-08-31",
+  "scope": "Non-operational computational analysis of de-identified public viral trajectory data. No pathogen engineering, wet-lab protocol, or clinical recommendation.",
+  "transfer_sources": [
+    "janus-meta-registry/data/JANUS-CONNECTION-FULL-CORPUS-HIDDEN-PATTERNS-2026-08-14-v1.2.json::HIDDEN-003_FIRST_BREAK_LOCALIZATION",
+    "janus-meta-registry/data/JANUS-CONNECTION-HIDDEN-PATTERN-FORMAL-BENCHMARK-2026-08-14-v1.0.json",
+    "janus-meta-registry/data/JANUS-REVERSE-PATTERN-BLIND-SEQUENTIAL-PROTOCOL-2026-08-19-v1.0.json",
+    "janus-meta-registry/data/proofs/JANUS-CAUSAL-ISOLATION-DSEPARATION-HARDENING-v0.8.json",
+    "janus-meta-registry/registry/causal_topology/JANUS-TEMPORAL-CONTINUITY-ROLLBACK-REPLAY-GATE-v0.9.0.json"
+  ],
+  "target_primary": {
+    "repository": "gradlab/CtTrajectories",
+    "raw_file_expected": "data/* longitudinal Ct measurements",
+    "allowed_preinspection_information": [
+      "README states measurements are longitudinal SARS-CoV-2 Ct trajectories",
+      "time is indexed relative to each person's minimum Ct",
+      "the publication studied acute viral dynamics"
+    ],
+    "forbidden_until_freeze_complete": [
+      "inspection of target CSV row values",
+      "outcome-specific fitting",
+      "threshold tuning from target values"
+    ]
+  },
+  "target_replication": {
+    "repository": "skissler/CtTrajectories_B117",
+    "role": "independent related cohort/variant replication after primary scoring",
+    "no_threshold_retuning": true
+  },
+  "core_object": {
+    "name": "MIRROR_FIRST_BREAK_INDEX",
+    "definition": "For each subject aligned at day 0 = minimum Ct, construct matched observations at equal absolute day offsets on the pre-peak and post-peak arms. For offset d, define mirror residual R_i(d)=Ct_i(+d)-Ct_i(-d). Aggregate only subjects with both sides observed at that d.",
+    "first_break": "The smallest positive integer offset d for which the preregistered population-level mirror-asymmetry criterion passes; otherwise NONE/UNKNOWN.",
+    "interpretation": "FIRST_BREAK localizes where the rising and falling trajectories cease to be mirror-compatible at the observable Ct resolution; it does not identify a molecular cause by itself."
+  },
+  "primary_hypothesis": {
+    "H1": "Acute SARS-CoV-2 Ct trajectories are not mirror-symmetric around their within-person minimum Ct; a reproducible FIRST_BREAK exists on the early offsets rather than only as a global duration difference.",
+    "directional_prediction": "At the first robust break, median R(d) is expected to be negative, corresponding to slower post-peak clearance than pre-peak approach to peak viral burden.",
+    "novelty_status_before_analysis": "UNKNOWN; exact first-break observable must undergo post-result prior-art search."
+  },
+  "scoring_rule": {
+    "eligible_offset_days": [1,2,3,4,5,6,7],
+    "minimum_matched_subjects_per_offset": 10,
+    "robust_effect_threshold_ct": 1.0,
+    "criterion": "FIRST_BREAK at earliest d with n_matched>=10, absolute median(R_i(d))>=1.0 Ct, and two-sided exact sign-test p<=0.01 against median zero. No multiple-comparison relaxation; offsets are tested sequentially and the first passing boundary is reported.",
+    "secondary_outputs": [
+      "median mirror residual by d",
+      "matched-subject count by d",
+      "sign-test p by d",
+      "first-break direction",
+      "distribution of per-subject arm slopes where estimable"
+    ],
+    "missingness": "No interpolation for primary endpoint. Missing mirror partner means subject is excluded only at that offset.",
+    "threshold_retuning_after_target_inspection": false
+  },
+  "replication_rule": {
+    "apply_identical_offsets_threshold_and_sign_test_to_replication_dataset": true,
+    "pass": "Replication has a FIRST_BREAK in the same direction within plus/minus 2 offset days of the primary FIRST_BREAK, with no threshold changes.",
+    "fail": "No qualifying break, opposite direction, or break differs by more than 2 days.",
+    "unknown": "Insufficient matched observations under frozen eligibility."
+  },
+  "negative_control": {
+    "name": "WITHIN_DATASET_SIDE_LABEL_PERMUTATION_NULL",
+    "construction": "For each matched subject-offset pair, independently randomize which member is called pre versus post, preserving absolute Ct pair values and missingness. Repeat conceptually as an exact sign-flip null for R_i(d).",
+    "requirement": "Observed first-break evidence must not be reproducible under the side-symmetric null; the exact sign test is the frozen analytic implementation of this control."
+  },
+  "causal_isolation_firewall": [
+    "The primary and replication cohorts are not automatically independent if they share participants, laboratories, or processing lineage; inspect provenance before calling replication independent.",
+    "Selection on having both pre/post observations can act as a collider; report eligible counts and do not generalize beyond the sampled cohort without a missingness analysis.",
+    "Ct mirror asymmetry is an observable trajectory property, not proof of immune mechanism, infectivity, or treatment effect.",
+    "Time index is treated as ordering/offset, not as a causal antiviral agent."
+  ],
+  "breakthrough_gate": {
+    "this_experiment_alone_can_establish_scientific_breakthrough": false,
+    "required_after_hit": [
+      "independent replication",
+      "post-result prior-art null for the exact observable",
+      "material consequence beyond already-known rise/decline asymmetry",
+      "second virus or mechanistically distinct dataset if claiming a general law",
+      "replayable data/code provenance"
+    ]
+  },
+  "anti_retrospective_rule": "If target raw values were inspected before this commit, mark the experiment contaminated. Otherwise this commit is the freeze receipt for the declared scoring rule."
+}
