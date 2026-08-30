@@ -1,0 +1,61 @@
+name: JANUS BCEG Compact Boundary Discovery v3
+
+on:
+  push:
+    branches:
+      - research/janus-bceg-compact-boundary-discovery-v3-2026-08-30
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  compact-boundary:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Verify frozen preregistration
+        run: |
+          python - <<'PY'
+          import json
+          p='research/JANUS_BCEG_COMPACT_BOUNDARY_DISCOVERY_V3_PREREGISTRATION_2026-08-30.json'
+          d=json.load(open(p))
+          assert d['status']=='FROZEN_BEFORE_HOLDOUT_EXECUTION'
+          assert d['scientific_boundary']['P_VS_NP']=='OPEN'
+          assert d['expected_case_count']==54
+          print('FROZEN',d['holdout_seed'],d['boundary_width_ladder'])
+          PY
+      - name: Exact projector self-tests
+        run: |
+          python experiments/bceg/janus_bceg_compact_boundary_discovery_v3.py --self-test
+      - name: Execute frozen compact boundary holdout
+        run: |
+          mkdir -p artifacts
+          python experiments/bceg/janus_bceg_compact_boundary_discovery_v3.py \
+            --output artifacts/JANUS_BCEG_COMPACT_BOUNDARY_DISCOVERY_V3_RESULT_2026-08-30.json \
+            --journal artifacts/JANUS_BCEG_COMPACT_BOUNDARY_DISCOVERY_V3_JOURNAL_2026-08-30.jsonl \
+            | tee artifacts/JANUS_BCEG_COMPACT_BOUNDARY_DISCOVERY_V3_CONSOLE_2026-08-30.txt
+      - name: Scientific integrity gate
+        run: |
+          python - <<'PY'
+          import json
+          p='artifacts/JANUS_BCEG_COMPACT_BOUNDARY_DISCOVERY_V3_RESULT_2026-08-30.json'
+          r=json.load(open(p))
+          assert r['status']=='COMPLETE'
+          assert r['summary']['P_VS_NP']=='OPEN'
+          assert r['summary']['algorithmic_boundary_assignments_enumerated_total']==0
+          g={x['gate']:x for x in r['gates']}
+          assert g['C3_ZERO_ALGORITHMIC_BOUNDARY_ENUMERATION']['passed'] is True
+          assert g['C11_UNIVERSAL_POLYNOMIAL_BOUNDARY_ELIMINATION']['passed'] is False
+          assert all(c['solver_received_family_or_language_label'] is False for c in r['cases_detail'])
+          print(json.dumps({'summary':r['summary'],'gates':r['gates'],'by_k':r['by_k']},indent=2))
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: janus-bceg-compact-boundary-discovery-v3
+          path: artifacts/
+          if-no-files-found: error
