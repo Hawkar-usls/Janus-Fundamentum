@@ -1,0 +1,65 @@
+{
+  "experiment_id": "C035_MUCOSAL_SITE_HYSTERESIS_LOOP_REPLICATION_PREREG_v1",
+  "status": "FROZEN_BEFORE_UNDERLYING_WORKBOOK_VALUE_INSPECTION",
+  "created_date": "2026-08-31",
+  "scope": "Non-operational computational analysis of de-identified public longitudinal SARS-CoV-2 viral-load measurements. No pathogen engineering, wet-lab protocol, clinical recommendation, or treatment claim.",
+  "origin_and_independence": {
+    "parent_observable": "C034 specimen-phase signed hysteresis loop",
+    "C034_result_known_at_freeze": "C034 could not score its frozen primary gate because only 8 participants met its minimum eligibility of 10; no C034 cohort-level loop direction or p-value was used to tune C035.",
+    "independent_target": "A separate 2026 prospective case-control cohort with daily paired upper-respiratory sampling from incident naturally acquired infections.",
+    "no_retuning": "C035 copies the substantive C034 thresholds unchanged."
+  },
+  "target": {
+    "dataset_title": "Early Mucosal Type II Interferon Limits SARS-CoV-2 Replication in Humans",
+    "caltechdata_record": "10.22002/krbp7-h5z17",
+    "file": "20260529_EarlyTypeIIIFNLimitsViralReplication_UnderlyingData_Fig1-5_Deidentfied.xlsx",
+    "expected_md5": "0aa6236431794c44815c9bfb3d6301d5",
+    "public_design_known_before_freeze": "16 incident SARS-CoV-2 cases with daily or twice-daily paired oral cavity, nasal cavity, and oropharyngeal samples; participant-level workbook values and sheet schemas have not been inspected in this C035 pass."
+  },
+  "primary_pair": {
+    "x_axis": "nasal-cavity SARS-CoV-2 viral load on log10 scale",
+    "y_axis": "oral-cavity SARS-CoV-2 viral load on log10 scale",
+    "prediction": "chronological nasal-vs-oral trajectories form a predominantly clockwise loop (negative signed area with x=nasal,y=oral), consistent with oral-state lead relative to nasal-state progression",
+    "anti_cherry_pick": "oropharynx may not replace oral cavity if the primary oral-nasal pair fails"
+  },
+  "observable": {
+    "signed_loop_area": "A_i=0.5*sum_j(x_j*y_{j+1}-x_{j+1}*y_j), closing the chronological paired-visit polyline from last to first",
+    "normalized_area": "a_i=A_i/((max(x)-min(x))*(max(y)-min(y)))",
+    "reverse_identity": "Reversing the identical chronological sequence flips the sign exactly; translating either assay/site coordinate by a constant leaves area unchanged."
+  },
+  "eligibility": {
+    "minimum_paired_quantifiable_visits_per_infected_subject": 5,
+    "minimum_log10_dynamic_range_each_axis": 1.0,
+    "minimum_eligible_infected_subjects": 10,
+    "nonquantifiable_or_missing": "exclude the paired visit; do not substitute an exact detection-limit value",
+    "duplicate_subject_time": "conflicting duplicate subject-time records are ambiguous and excluded rather than averaged",
+    "controls": "uninfected matched controls are not included in the primary loop-sign test because they are expected to lack sufficient viral-load dynamic range; their failure to meet eligibility is not a positive result"
+  },
+  "frozen_primary_gate": {
+    "effect": "median normalized signed area <= -0.10",
+    "sign_test": "two-sided exact sign test across eligible infected subjects, p<=0.01 and negative signs predominate",
+    "chronology_null": "10,000 deterministic within-subject chronology permutations, seed 35035; statistic=cohort median normalized signed area; one-sided p=(1+count(null_median<=observed_median))/10001 <=0.01",
+    "PASS": "all: eligible subjects>=10; median area<=-0.10; exact sign p<=0.01 in predicted negative direction; chronology permutation p<=0.01",
+    "FAIL": "median area>=0, robust opposite sign at p<=0.01, or either null p>0.05",
+    "EVIDENCE_INSUFFICIENT": "eligibility below 10 or intermediate evidence",
+    "no_retuning": true
+  },
+  "pre_frozen_secondary": {
+    "pair": "nasal cavity vs oropharynx",
+    "same_geometry_and_thresholds": true,
+    "role": "cross-site robustness within the same cohort only; cannot substitute for primary oral-nasal PASS and is not independent replication"
+  },
+  "causal_and_novelty_firewalls": [
+    "LOOP_ORIENTATION_IS_A_TRAJECTORY_PROPERTY_NOT_CAUSATION",
+    "ANATOMICAL_SITE_HYSTERESIS_DOES_NOT_IDENTIFY_A_MOLECULAR_DRIVER",
+    "CURRENT_DATASET_ARTICLE_ALREADY_REPORTS_SPATIAL_AND_TEMPORAL_IMMUNE_HETEROGENEITY; THAT_PRIOR_ART_IS_NOT_OURS",
+    "C035_PASS_WOULD_REPLICATE_A_GEOMETRIC_REPRESENTATION_CLAIM_NOT_PROVE_TIME_NONEXISTENCE",
+    "NO_OUTREACH_OR_BREAKTHROUGH_LABEL_BEFORE_POST_RESULT_PRIOR_ART_AND_MATERIAL_CONSEQUENCE_GATES"
+  ],
+  "if_PASS_next_gates": [
+    "post-result exact prior-art killer search for within-host multi-site viral-load signed loop area/hysteresis/path-dependent mapping",
+    "material consequence test: compare static cross-site mapping versus orientation/phase-aware representation on held-out successor prediction",
+    "independent third dataset or second virus if claiming generality",
+    "full replayable provenance"
+  ]
+}
