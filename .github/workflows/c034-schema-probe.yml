@@ -1,0 +1,42 @@
+name: C034 Value-Blind Schema Probe
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'experiments/C034_SPECIMEN_PHASE_HYSTERESIS_LOOP_PREREG_v1.json'
+      - 'experiments/c034_schema_probe.py'
+      - '.github/workflows/c034-schema-probe.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  schema:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: '3.12'}
+      - name: Install workbook reader
+        run: python -m pip install --disable-pip-version-check openpyxl==3.1.5
+      - name: Verify prereg exists before source values
+        run: |
+          python - <<'PY'
+          import json
+          p=json.load(open('experiments/C034_SPECIMEN_PHASE_HYSTERESIS_LOOP_PREREG_v1.json'))
+          assert p['status']=='FROZEN_BEFORE_OMICRON_WORKBOOK_VALUE_INSPECTION'
+          assert p['primary_target']['expected_md5_from_repository_metadata']=='6e6216d751c95b6afb6a7d0d96da6f1a'
+          print('C034_PREREG=PASS')
+          PY
+      - name: Probe workbook schema only
+        run: python experiments/c034_schema_probe.py | tee schema.log
+      - uses: actions/upload-artifact@v4
+        with:
+          name: c034-schema-only
+          path: |
+            out/C034_SCHEMA.json
+            schema.log
+          retention-days: 30
