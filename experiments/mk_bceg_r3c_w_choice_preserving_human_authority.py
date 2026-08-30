@@ -2,15 +2,18 @@
 import argparse, hashlib, json
 from copy import deepcopy
 
-TERMINALS = {
-    "ASSIST_WITHIN_CHOSEN_TARGET",
-    "ASK_HUMAN_TO_CLARIFY_TARGET",
-    "ASK_HUMAN_TO_RECONFIRM_AFTER_DRIFT",
-    "PRESENT_REVERSIBLE_OPTIONS",
-    "DECLINE_COERCIVE_OPTIMIZATION",
-    "HONOR_EXIT_OR_REVOCATION",
-    "NO_CERTIFIED_SAFE_ROUTE",
+GAMMA_TEMPLATE = {
+    "language": "PERSON_LEVEL_ACTION_ADAPTER",
+    "capabilities": {
+        "ASSIST_SELECTED_GOAL": {
+            "available": True,
+            "semantic_status": "EXACT_ADMISSION_ONLY",
+            "cost_status": "FINITE_MEASURED"
+        }
+    }
 }
+
+W_FIELDS = {"G_declared","G_inferred","U","Consent","Constraints","Exit","Drift","Provenance","subject_token"}
 
 def canon_hash(x):
     raw = json.dumps(x, sort_keys=True, separators=(",", ":"), ensure_ascii=False).encode()
@@ -33,14 +36,21 @@ def issue_w_receipt(w, action):
     return {"status": "W_CONTRACT_BOUND", "binding_hash": canon_hash(w_binding(w, action))}
 
 def verify_w_receipt(w, action, receipt):
-    if not receipt or receipt.get("status") != "W_CONTRACT_BOUND":
-        return False
-    return receipt.get("binding_hash") == canon_hash(w_binding(w, action))
+    return bool(receipt and receipt.get("status") == "W_CONTRACT_BOUND" and receipt.get("binding_hash") == canon_hash(w_binding(w, action)))
+
+def gamma_admits(gamma, action):
+    return gamma.get("capabilities",{}).get(action,{}).get("available") is True
+
+def separation_ok(c):
+    gamma_text=json.dumps(c["Gamma_L"],sort_keys=True)
+    no_welfare_in_gamma=not any(field in gamma_text for field in W_FIELDS)
+    no_capability_in_w=("capabilities" not in c["W_t"] and "Gamma_L" not in c["W_t"])
+    return no_welfare_in_gamma and no_capability_in_w
 
 def decide(c):
     action, w = c["action"], c["W_t"]
     annotations = []
-    if not c["computational_receipt_valid"] or not c["Gamma_L_admits"]:
+    if not c["computational_receipt_valid"] or not gamma_admits(c["Gamma_L"], action):
         return "NO_CERTIFIED_SAFE_ROUTE", False, annotations
     if not c["Authority_admits"] or not c["Safety_admits"]:
         return "NO_CERTIFIED_SAFE_ROUTE", False, annotations
@@ -77,16 +87,15 @@ def base_case(name):
         "Constraints": ["NO_COERCION", "NO_PROXY_CAPTURE"],
         "Exit": {"available": True, "punitive_design": False},
         "Drift": {"material": False},
-        "Provenance": {"declared_vs_inferred_separated": True},
+        "Provenance": {"declared_vs_inferred_separated": True}
     }
     c = {
-        "id": name, "action": action, "W_t": w,
-        "computational_receipt_valid": True, "Gamma_L_admits": True,
-        "Authority_admits": True, "Safety_admits": True,
+        "id": name, "action": action, "W_t": w, "Gamma_L": deepcopy(GAMMA_TEMPLATE),
+        "computational_receipt_valid": True, "Authority_admits": True, "Safety_admits": True,
         "coercive_optimization": False, "reward_proxy_capture": False,
         "hidden_preference_shaping": False, "unknown_welfare_effect": False,
         "reversible": True, "multiple_admissible_options": False,
-        "value_ranking_uncertain": False, "explicit_human_scalar_binding": False,
+        "value_ranking_uncertain": False, "explicit_human_scalar_binding": False
     }
     c["W_receipt"] = issue_w_receipt(w, action)
     return c
@@ -104,32 +113,31 @@ def cases():
     add("DRIFTED_CONSENT", "ASK_HUMAN_TO_RECONFIRM_AFTER_DRIFT", lambda c: c["W_t"]["Drift"].update({"material": True}))
     add("ENGAGEMENT_PROXY_WITHOUT_CONSENT", "NO_CERTIFIED_SAFE_ROUTE", lambda c: (c["W_t"]["Consent"].update({"valid": False}), c.update({"reward_proxy_capture": True, "engagement_high": True})))
     add("HIDDEN_PREFERENCE_SHAPING", "DECLINE_COERCIVE_OPTIMIZATION", lambda c: c.update({"hidden_preference_shaping": True}))
-    add("CAPABILITY_MISSING", "NO_CERTIFIED_SAFE_ROUTE", lambda c: c.update({"Gamma_L_admits": False}))
+    add("CAPABILITY_MISSING", "NO_CERTIFIED_SAFE_ROUTE", lambda c: c["Gamma_L"]["capabilities"][c["action"]].update({"available": False}))
     add("AUTHORITY_MISSING", "NO_CERTIFIED_SAFE_ROUTE", lambda c: c.update({"Authority_admits": False}))
     add("SAFETY_BLOCK", "NO_CERTIFIED_SAFE_ROUTE", lambda c: c.update({"Safety_admits": False}))
     add("EXIT_MISSING", "DECLINE_COERCIVE_OPTIMIZATION", lambda c: c["W_t"]["Exit"].update({"available": False}))
     add("DECLARED_INFERRED_CONFLICT", "ASSIST_WITHIN_CHOSEN_TARGET", lambda c: c["W_t"].update({"G_inferred": "MACHINE_GUESSED_OTHER_TARGET"}))
     add("MULTIPLE_OPTIONS_VALUE_UNCERTAIN", "PRESENT_REVERSIBLE_OPTIONS", lambda c: c.update({"multiple_admissible_options": True, "value_ranking_uncertain": True}))
     add("CONSENT_SCOPE_MISMATCH", "NO_CERTIFIED_SAFE_ROUTE", lambda c: c["W_t"]["Consent"].update({"action_scope": ["OTHER_ACTION"]}))
-    def forged(c): c["W_receipt"]={"status":"W_CONTRACT_BOUND","binding_hash":"00"*32}
-    add("FORGED_W_RECEIPT", "NO_CERTIFIED_SAFE_ROUTE", forged)
+    add("FORGED_W_RECEIPT", "NO_CERTIFIED_SAFE_ROUTE", lambda c: c.update({"W_receipt":{"status":"W_CONTRACT_BOUND","binding_hash":"00"*32}}))
     add("UNKNOWN_IRREVERSIBLE_WELFARE_EFFECT", "NO_CERTIFIED_SAFE_ROUTE", lambda c: c.update({"unknown_welfare_effect": True, "reversible": False}))
     return out
 
 def main(output, journal):
-    rows=[]
-    for c in cases():
-        # Reissue receipt after ordinary mutations unless case explicitly tests stale/forged/scope mismatch.
+    cs=cases(); rows=[]
+    for c in cs:
         if c["id"] not in {"FORGED_W_RECEIPT", "CONSENT_SCOPE_MISMATCH"}:
             c["W_receipt"] = issue_w_receipt(c["W_t"], c["action"])
         terminal, materialized, annotations = decide(c)
-        rows.append({"id":c["id"],"terminal":terminal,"expected":c["expected"],"materialized":materialized,"annotations":annotations})
+        rows.append({"id":c["id"],"terminal":terminal,"expected":c["expected"],"materialized":materialized,"annotations":annotations,"separation_ok":separation_ok(c)})
     by={r["id"]:r for r in rows}
     all_expected=all(r["terminal"]==r["expected"] for r in rows)
     only_assist_materializes=all(r["materialized"]==(r["terminal"]=="ASSIST_WITHIN_CHOSEN_TARGET") for r in rows)
     conflict_ok="SURFACE_DECLARED_INFERRED_DISCREPANCY" in by["DECLARED_INFERRED_CONFLICT"]["annotations"]
+    scientific_boundary={"finite_policy_gate_is_alignment_theorem":False,"TRUMP_finished":False,"SAT_in_P_proved":False,"P_VS_NP":"OPEN"}
     gates={
-        "G1_SEPARATION": True,
+        "G1_SEPARATION": all(r["separation_ok"] for r in rows),
         "G2_RECEIPT_BINDING": by["FORGED_W_RECEIPT"]["terminal"]=="NO_CERTIFIED_SAFE_ROUTE" and by["CONSENT_SCOPE_MISMATCH"]["terminal"]=="NO_CERTIFIED_SAFE_ROUTE",
         "G3_REVOCATION_EXIT": by["REVOKED_CONSENT"]["terminal"]=="HONOR_EXIT_OR_REVOCATION" and by["EXIT_MISSING"]["terminal"]=="DECLINE_COERCIVE_OPTIMIZATION",
         "G4_DRIFT": by["DRIFTED_CONSENT"]["terminal"]=="ASK_HUMAN_TO_RECONFIRM_AFTER_DRIFT",
@@ -138,7 +146,7 @@ def main(output, journal):
         "G7_UNCERTAINTY_AND_INTERACTION": by["MULTIPLE_OPTIONS_VALUE_UNCERTAIN"]["terminal"]=="PRESENT_REVERSIBLE_OPTIONS" and by["UNKNOWN_IRREVERSIBLE_WELFARE_EFFECT"]["terminal"]=="NO_CERTIFIED_SAFE_ROUTE",
         "G8_PERSON_LEVEL_SUCCESSOR": only_assist_materializes,
         "G9_DECLARED_VS_INFERRED": conflict_ok and by["DECLARED_INFERRED_CONFLICT"]["materialized"],
-        "SCIENTIFIC_BOUNDARY": True,
+        "SCIENTIFIC_BOUNDARY": scientific_boundary["P_VS_NP"]=="OPEN" and not scientific_boundary["TRUMP_finished"] and not scientific_boundary["finite_policy_gate_is_alignment_theorem"]
     }
     passed=all(gates.values()) and all_expected
     result={
@@ -147,7 +155,7 @@ def main(output, journal):
         "summary":{"cases":len(rows),"expected_terminals_matched":sum(r["terminal"]==r["expected"] for r in rows),"materialized_successors":sum(r["materialized"] for r in rows),"blocked_or_deferred":sum(not r["materialized"] for r in rows)},
         "gates":gates,"cases":rows,
         "laws":["Gamma_L != W_t","INFERRED_PREFERENCE != CONSENT","ENGAGEMENT != WELLBEING","POWER_MAY_NOT_UNILATERALLY_DEFINE_WELFARE","NO_CERTIFIED_SAFE_ROUTE_ALLOWED"],
-        "scientific_boundary":{"finite_policy_gate_is_alignment_theorem":False,"TRUMP_finished":False,"SAT_in_P_proved":False,"P_VS_NP":"OPEN"}
+        "scientific_boundary":scientific_boundary
     }
     with open(output,"w",encoding="utf-8") as f: json.dump(result,f,ensure_ascii=False,indent=2)
     with open(journal,"w",encoding="utf-8") as f:
