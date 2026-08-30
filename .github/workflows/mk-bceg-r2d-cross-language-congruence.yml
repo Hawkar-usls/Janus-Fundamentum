@@ -1,0 +1,52 @@
+name: MK BCEG R2D Cross Language Congruence
+on:
+  push:
+    branches:
+      - research/mk-bceg-r2d-cross-language-congruence-2026-08-30
+    paths:
+      - 'research/MK_BCEG_R2D_CROSS_LANGUAGE_CONGRUENCE_PREREGISTRATION_2026-08-30.json'
+      - 'experiments/mk_r2d_core.py'
+      - 'experiments/mk_bceg_r2d_cross_language_congruence.py'
+      - '.github/workflows/mk-bceg-r2d-cross-language-congruence.yml'
+  workflow_dispatch:
+jobs:
+  r2d:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Verify prereg
+        run: |
+          python - <<'PY'
+          import json
+          d=json.load(open('research/MK_BCEG_R2D_CROSS_LANGUAGE_CONGRUENCE_PREREGISTRATION_2026-08-30.json'))
+          assert d['status']=='FROZEN_BEFORE_EXECUTION'
+          assert d['scientific_boundary']['P_VS_NP']=='OPEN'
+          assert d['languages']['source']=='ROBDD'
+          print('R2D_PREREG_FROZEN')
+          PY
+      - name: Run exact cross-language congruence
+        run: |
+          mkdir -p artifacts
+          PYTHONPATH=experiments python experiments/mk_bceg_r2d_cross_language_congruence.py \
+            --output artifacts/MK_BCEG_R2D_CROSS_LANGUAGE_CONGRUENCE_RESULT_2026-08-30.json \
+            --journal artifacts/MK_BCEG_R2D_CROSS_LANGUAGE_CONGRUENCE_JOURNAL_2026-08-30.jsonl
+      - name: Frozen scientific gate
+        run: |
+          python - <<'PY'
+          import json
+          d=json.load(open('artifacts/MK_BCEG_R2D_CROSS_LANGUAGE_CONGRUENCE_RESULT_2026-08-30.json'))
+          print('VERDICT',d['verdict'],'SUMMARY',d['summary'])
+          assert all(g['passed'] for g in d['gates'])
+          assert d['post_result_boundary']['R2E']=='OPEN'
+          assert d['scientific_boundary']['P_VS_NP']=='OPEN'
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: mk-bceg-r2d-cross-language-congruence
+          path: |
+            artifacts/MK_BCEG_R2D_CROSS_LANGUAGE_CONGRUENCE_RESULT_2026-08-30.json
+            artifacts/MK_BCEG_R2D_CROSS_LANGUAGE_CONGRUENCE_JOURNAL_2026-08-30.jsonl
+          if-no-files-found: error
