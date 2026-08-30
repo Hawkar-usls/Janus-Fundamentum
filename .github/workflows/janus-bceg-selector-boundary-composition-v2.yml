@@ -1,0 +1,53 @@
+name: JANUS BCEG Selector Boundary Composition v2
+
+on:
+  push:
+    branches:
+      - research/janus-bceg-selector-boundary-composition-v2-2026-08-30
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  compose:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Verify frozen preregistration
+        run: |
+          python - <<'PY'
+          import json
+          p='research/JANUS_BCEG_SELECTOR_BOUNDARY_COMPOSITION_V2_PREREGISTRATION_2026-08-30.json'
+          d=json.load(open(p))
+          assert d['status']=='FROZEN_BEFORE_HOLDOUT_EXECUTION'
+          assert d['scientific_boundary']['P_VS_NP']=='OPEN'
+          print('FROZEN',d['holdout_seed'])
+          PY
+      - name: Execute selector composition holdout
+        run: |
+          mkdir -p artifacts
+          python experiments/bceg/janus_bceg_selector_boundary_composition_v2.py \
+            --output artifacts/JANUS_BCEG_SELECTOR_BOUNDARY_COMPOSITION_V2_RESULT_2026-08-30.json \
+            --journal artifacts/JANUS_BCEG_SELECTOR_BOUNDARY_COMPOSITION_V2_JOURNAL_2026-08-30.jsonl \
+            | tee artifacts/JANUS_BCEG_SELECTOR_BOUNDARY_COMPOSITION_V2_CONSOLE_2026-08-30.txt
+      - name: Scientific integrity gate
+        run: |
+          python - <<'PY'
+          import json
+          r=json.load(open('artifacts/JANUS_BCEG_SELECTOR_BOUNDARY_COMPOSITION_V2_RESULT_2026-08-30.json'))
+          assert r['status']=='COMPLETE'
+          assert r['summary']['P_VS_NP']=='OPEN'
+          assert next(g for g in r['gates'] if g['gate']=='S8_UNIVERSAL_LEMMA')['passed'] is False
+          assert all(c['terminal']!='SAT' for c in r['cases_detail'])
+          print(json.dumps({'summary':r['summary'],'gates':r['gates'],'by_pair':r['by_pair']},indent=2))
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: janus-bceg-selector-boundary-composition-v2
+          path: artifacts/
+          if-no-files-found: error
