@@ -1,0 +1,73 @@
+{
+  "experiment_id": "C034_SPECIMEN_PHASE_HYSTERESIS_LOOP_PREREG_v1",
+  "status": "FROZEN_BEFORE_OMICRON_WORKBOOK_VALUE_INSPECTION",
+  "created_date": "2026-08-31",
+  "scope": "Non-operational computational analysis of de-identified public longitudinal viral-load data. No pathogen engineering, wet-lab protocol, clinical recommendation, or treatment claim.",
+  "origin": {
+    "meta_registry_operators": [
+      "MIRROR_REVERSE_DIRECTIONAL_COMPARISON",
+      "DIVERGENT_PASTS_ARE_PRESERVED_NOT_AVERAGED",
+      "AMBIGUITY_IS_A_FIRST_CLASS_STATE",
+      "MEASURE_OR_EXTRACT_BEFORE_ROLE_ASSIGNMENT"
+    ],
+    "preceding_internal_evidence": "C033 found a pre-frozen secondary global positive saliva-minus-nasal mirror-hysteresis tendency in an earlier daily cohort but failed its stricter local FIRST_BREAK primary endpoint. C034 does not relabel C033; it defines a new geometric observable for a separate unseen cohort."
+  },
+  "primary_target": {
+    "dataset": "Extreme Differences in SARS-CoV-2 Omicron Viral Loads Among Specimen Types",
+    "caltechdata_record": "10.22002/D1.20223",
+    "file": "SARS_CoV_2_extreme_differences_in_viral_loads.xlsx",
+    "expected_md5_from_repository_metadata": "6e6216d751c95b6afb6a7d0d96da6f1a",
+    "known_before_freeze": [
+      "14 incident Omicron participants were reported in the associated article",
+      "paired longitudinal saliva, nasal and throat viral loads were collected",
+      "the article reports that oral loads often began rising before nasal loads",
+      "workbook values, sheet structure and participant-level trajectories have not been inspected in this C034 pass"
+    ]
+  },
+  "geometric_observable": {
+    "coordinates": "For each paired visit with quantifiable saliva and anterior-nares viral loads, x=log10(nasal viral load), y=log10(saliva viral load). If the workbook already stores log10 loads, use those values directly; if it stores positive copies-per-volume, transform with log10. Schema binding must document which applies before computation.",
+    "trajectory": "Order paired visits by the source collection timestamp/visit order. Do not sort by viral load and do not align by a fitted model.",
+    "signed_loop_area": "A_i = 0.5 * sum_j (x_j*y_{j+1}-x_{j+1}*y_j), with the chronological polyline closed by connecting last point to first point.",
+    "normalized_area": "a_i=A_i/((max(x)-min(x))*(max(y)-min(y))). Subjects with zero range in either axis are ineligible.",
+    "time_reverse_property": "Reversing the same ordered trajectory exactly changes A_i to -A_i; translation by a constant assay offset does not change A_i.",
+    "orientation_prediction": "With x=nasal and y=saliva, saliva-leading-nasal dynamics predict a negative (clockwise) signed loop area."
+  },
+  "eligibility": {
+    "minimum_paired_quantifiable_visits_per_subject": 5,
+    "minimum_log10_dynamic_range_each_axis": 1.0,
+    "minimum_eligible_subjects_for_primary_test": 10,
+    "missing_or_below_quantification": "Exclude that paired visit rather than substitute an arbitrary exact value. Do not interpolate missing visits.",
+    "duplicate_timestamp": "If multiple records conflict at the same subject/timestamp for the same specimen, mark that timestamp ambiguous and exclude it rather than averaging."
+  },
+  "primary_hypothesis": {
+    "statement": "Independent Omicron paired saliva/nasal trajectories have a consistently clockwise specimen-phase hysteresis loop, showing that the saliva↔nasal mapping is path-dependent rather than single-valued over infection progression.",
+    "frozen_effect": "median normalized area <= -0.10",
+    "frozen_sign_test": "two-sided exact sign test for subject normalized-area sign, p<=0.01",
+    "frozen_permutation": "10,000 deterministic within-subject chronology permutations, seed 34034; statistic is the cohort median normalized signed area; p=(1+count(null_median<=observed_median))/10001",
+    "permutation_threshold": "p<=0.01",
+    "PASS": "at least 10 eligible subjects, median normalized area<=-0.10, exact sign-test p<=0.01 in the predicted negative direction, and chronology-permutation p<=0.01",
+    "FAIL": "median normalized area>=0, or robust opposite-direction sign test p<=0.01, or either frozen null p>0.05",
+    "EVIDENCE_INSUFFICIENT": "eligibility below minimum or intermediate result"
+  },
+  "anti_posthoc": [
+    "Both direction and magnitude threshold are frozen before workbook values/sheets are inspected.",
+    "No participant exclusion based on observed loop direction or effect.",
+    "No change from saliva/nasal to throat/nasal after result; throat is not part of the C034 primary endpoint.",
+    "No threshold relaxation after seeing eligible sample count or p-values."
+  ],
+  "scientific_interpretation_if_pass": {
+    "allowed": "A cross-compartment viral-load state map can exhibit reproducible trajectory hysteresis; a static one-to-one conversion between specimen types is representation-incomplete for this cohort.",
+    "not_allowed": [
+      "saliva causally drives nasal infection",
+      "the direction is universal across viruses or variants",
+      "a treatment conclusion",
+      "SCIENTIFIC_BREAKTHROUGH before independent replication and prior-art/material-consequence gates"
+    ]
+  },
+  "next_gates_if_pass": [
+    "independent second cohort with paired longitudinal nasal+saliva values and no threshold retuning",
+    "post-result prior-art killer search for signed loop area / hysteresis / path-dependent specimen mapping in within-host viral-load data",
+    "material-consequence test: compare static specimen conversion versus phase-aware/hysteretic representation on held-out data",
+    "replayable provenance"
+  ]
+}
