@@ -1,0 +1,98 @@
+{
+  "schema": "JANUS/THE_MAGIC_KEY/MK_BCEG_R0_FUTURE_EQUIVALENCE_ARENA/PREREG/v1.0",
+  "status": "FROZEN_BEFORE_FINAL_HOLDOUT_EXECUTION__DEVELOPMENT_DRY_RUN_PRESERVED",
+  "date": "2026-08-30",
+  "parent_bceg_commit": "efe10e82582e548697b009689828bf69f5fa511e",
+  "source_magic_key_spec_commit": "87d65442785c5488f9f78f49af4b2e907c0eee4a",
+  "branch": "research/mk-bceg-r0-future-equivalence-arena-2026-08-30",
+  "objective": "Test whether candidate MK_FUTURE representations safely quotient a frozen small reachable CNF state universe by exact correctness-relevant future semantics.",
+  "critical_distinction": {
+    "MK_ID": "Exact canonical-state identity for audit/replay; equal MK_ID implies identical canonical CNF state.",
+    "MK_FUTURE": "Future-semantic interface; equal keys may intentionally merge different exact states only when every authorized continuation has the same correctness-relevant result."
+  },
+  "future_equivalence": {
+    "notation": "S1 ≡_J S2",
+    "authorized_continuations": [
+      "TOTAL_ASSIGN(variable,0|1) over frozen variable universe",
+      "TOTAL_EXISTS(variable) over frozen variable universe"
+    ],
+    "terminal_observation": "Boolean truth after any total continuation; actions on semantically irrelevant variables are identity at the quotient level.",
+    "exact_characterization_in_R0": "Future equivalence is exact equality of the Boolean function over the fixed global variable universe {1,2,3,4}. A differing row yields an explicit distinguishing ASSIGN continuation.",
+    "semantic_collision": "K(S1)=K(S2) AND S1 not ≡_J S2",
+    "certified_merge_candidate": "S1!=S2 AND K(S1)=K(S2) AND S1 ≡_J S2"
+  },
+  "frozen_universe": {
+    "variables": [1, 2, 3, 4],
+    "clause_widths": [1, 2, 3],
+    "base_clause_pool": "all non-tautological clauses over variables 1..4 of width 1..3 with no repeated variable",
+    "base_cnfs": [
+      "all unique canonical CNFs with 1 or 2 clauses from the pool",
+      "plus 2048 deterministic three-clause CNFs selected by SHA256(namespace||clause_indices) order"
+    ],
+    "namespace": "JANUS-MK-BCEG-R0-FINAL-2026-08-30-A",
+    "reachable_closure": "close the frozen base CNFs under every total ASSIGN and EXISTS transition over variables 1..4 until no new canonical CNF state appears",
+    "canonicalization": [
+      "remove tautological clauses",
+      "deduplicate clauses",
+      "subsumption reduction",
+      "sort literals",
+      "sort clauses",
+      "represent TRUE as empty CNF",
+      "represent FALSE as CNF containing empty clause"
+    ]
+  },
+  "frozen_key_languages": {
+    "MK_ID_CANONICAL_CNF": {
+      "role": "identity control",
+      "payload": "canonical CNF tuple"
+    },
+    "MK_FUTURE_STRUCT_V0": {
+      "role": "lossy candidate expected to face counterexamples",
+      "payload": [
+        "ordered live variables",
+        "clause count",
+        "sorted clause-width multiset",
+        "unit literal set",
+        "per-variable positive/negative occurrence counts"
+      ]
+    },
+    "MK_FUTURE_TRUTH_V0": {
+      "role": "exact semantic oracle/control, not a polynomial-size claim",
+      "payload": "fixed global variable universe + full 16-bit truth-table vector"
+    },
+    "MK_FUTURE_ROBDD_V0": {
+      "role": "exact canonical representation candidate under one frozen variable order",
+      "variable_order": [1, 2, 3, 4],
+      "payload": "canonical reduced ordered binary decision DAG for the Boolean function over fixed order [1,2,3,4]; semantically irrelevant variables reduce away",
+      "warning": "finite exactness does not establish polynomial worst-case BDD size"
+    }
+  },
+  "gates": {
+    "G1_MK_ID_EXACT": "zero collisions among distinct canonical states",
+    "G2_STRUCTURAL_MONSTER_EXISTS": "at least one MK_FUTURE_STRUCT_V0 semantic collision with explicit distinguishing continuation",
+    "G3_TRUTH_INTERFACE_SOUND": "zero semantic collisions for MK_FUTURE_TRUTH_V0",
+    "G4_ROBDD_INTERFACE_SOUND": "zero semantic collisions for MK_FUTURE_ROBDD_V0",
+    "G5_ROBDD_NONTRIVIAL_MERGE": "at least one pair of distinct canonical CNFs with equal ROBDD key and exact future equivalence",
+    "G6_TRANSITION_CONGRUENCE": "for every reachable state and every total ASSIGN/EXISTS action over variables 1..4, direct ROBDD key of the exact CNF successor equals the ROBDD key obtained by semantic update U_a from the predecessor truth function",
+    "G7_COST_ACCOUNTING": "record state bytes, truth-interface bits, ROBDD nodes/bytes, discovery/update work proxies and collision-search work; no pointer/hash-only accounting",
+    "G8_SCIENTIFIC_BOUNDARY": "finite survivor is never promoted to universal theorem; P_VS_NP remains OPEN"
+  },
+  "verdict_taxonomy": [
+    "REFUTED_FUTURE_INTERFACE_CANDIDATE",
+    "FINITE_SURVIVOR_NOT_THEOREM",
+    "FORMALLY_CERTIFIED"
+  ],
+  "promotion_rule": "R0 cannot emit FORMALLY_CERTIFIED; that verdict requires an independent symbolic proof of transition congruence and claimed-domain sufficiency beyond bounded enumeration.",
+  "journal_rule": "Every failed key language stores the first exact collision monster and its distinguishing continuation. Every survivor stores all measured costs and explicit unresolved theorem obligations.",
+  "development_history": {
+    "nonvoting_dry_run": "A pre-freeze engineering dry-run used syntactic live-variable applicability inside K and exposed a transition-congruence mismatch: semantic function equality did not reconstruct syntactic variable disappearance after canonical simplification.",
+    "preserved_lesson": "MK_FUTURE is intended to quotient correctness-relevant future semantics, not reconstruct the full CNF syntax. Final R0 therefore freezes a total semantic continuation algebra on a fixed variable universe; syntactically absent variables act as semantic identity.",
+    "authority": "DEVELOPMENT_ONLY__NOT_FINAL_EVIDENCE"
+  },
+  "scientific_boundary": {
+    "P_VS_NP": "OPEN",
+    "finite_testing_is_proof": false,
+    "robdd_polynomial_bound_claimed": false,
+    "minimal_magic_key_required": false
+  }
+}
