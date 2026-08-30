@@ -1,0 +1,56 @@
+name: MK BCEG R1 Scale Order Symbolic Congruence
+on:
+  push:
+    branches:
+      - research/mk-bceg-r1-scale-order-symbolic-congruence-2026-08-30
+    paths:
+      - 'experiments/mk_bceg_r1_scale_order.py'
+      - 'research/MK_BCEG_R1_SCALE_ORDER_SYMBOLIC_CONGRUENCE_PREREGISTRATION_2026-08-30.json'
+      - '.github/workflows/mk-bceg-r1-scale-order-symbolic-congruence.yml'
+  workflow_dispatch:
+jobs:
+  r1:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Verify prereg
+        run: |
+          python - <<'PY'
+          import json
+          d=json.load(open('research/MK_BCEG_R1_SCALE_ORDER_SYMBOLIC_CONGRUENCE_PREREGISTRATION_2026-08-30.json'))
+          assert d['status']=='FROZEN_BEFORE_EXECUTION'
+          assert d['scientific_boundary']['P_VS_NP']=='OPEN'
+          print('R1_PREREG_FROZEN')
+          PY
+      - name: Run R1
+        run: |
+          mkdir -p artifacts
+          python experiments/mk_bceg_r1_scale_order.py \
+            --output artifacts/MK_BCEG_R1_SCALE_ORDER_SYMBOLIC_CONGRUENCE_RESULT_2026-08-30.json \
+            --journal artifacts/MK_BCEG_R1_SCALE_ORDER_SYMBOLIC_CONGRUENCE_JOURNAL_2026-08-30.jsonl
+      - name: Scientific gate
+        run: |
+          python - <<'PY'
+          import json
+          d=json.load(open('artifacts/MK_BCEG_R1_SCALE_ORDER_SYMBOLIC_CONGRUENCE_RESULT_2026-08-30.json'))
+          print('VERDICT',d['verdict'])
+          r13=[x for x in d['rows'] if x['m']==13][0]
+          r14=[x for x in d['rows'] if x['m']==14][0]
+          print('M13',r13['grouped_nodes'],r13['interleaved_nodes'])
+          print('M14_RATIO',r14['ratio_grouped_over_interleaved'])
+          assert all(g['passed'] for g in d['gates'])
+          assert d['verdict']=='FIXED_ORDER_ROBDD_POLY_CANDIDATE_REFUTED__ORDER_AWARE_ESCAPE_SURVIVES'
+          assert r13['grouped_nodes']==24573 and r13['interleaved_nodes']==39
+          assert r14['ratio_grouped_over_interleaved']>1000
+          assert d['scientific_boundary']['P_VS_NP']=='OPEN'
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: mk-bceg-r1-scale-order-symbolic-congruence
+          path: |
+            artifacts/MK_BCEG_R1_SCALE_ORDER_SYMBOLIC_CONGRUENCE_RESULT_2026-08-30.json
+            artifacts/MK_BCEG_R1_SCALE_ORDER_SYMBOLIC_CONGRUENCE_JOURNAL_2026-08-30.jsonl
+          if-no-files-found: error
