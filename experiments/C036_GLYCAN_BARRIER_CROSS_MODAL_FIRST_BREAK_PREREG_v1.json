@@ -1,0 +1,63 @@
+{
+  "schema": "JANUS/FUNDAMENTUM/C036/GLYCAN-BARRIER-CROSS-MODAL-FIRST-BREAK-PREREG/v1",
+  "status": "FROZEN_BEFORE_CSV_VALUE_EXPOSURE",
+  "created_date": "2026-08-31",
+  "target": {
+    "repository": "ykaizuka/eLife_glycoprotein-virus",
+    "files": ["Coloc_Exclusion_Rate.csv", "Sep_Exclusion_Rate.csv", "Simulated.csv"],
+    "metadata_seen_before_freeze": "filenames and file sizes only; paper-level prior art that glycans form a nonspecific kinetic barrier is known",
+    "numeric_values_seen_before_freeze": false
+  },
+  "janus_prior": [
+    "HIDDEN-001 NON_TRANSITIVE_EVIDENCE_BINDING_LADDER",
+    "HIDDEN-002 AMBIGUITY_IS_A_FIRST_CLASS_STATE",
+    "HIDDEN-003 FIRST_BREAK_LOCALIZATION",
+    "cross-modal evidence must not be double-counted"
+  ],
+  "question": "Do two experimental exclusion-rate projections exhibit a shared localized departure from the supplied simulation, indicating a missing regime/state variable that an aggregate fit would obscure?",
+  "frozen_parser": {
+    "table": "standard comma-separated header plus rows",
+    "key_rule": "use exact shared non-outcome key column names across all three files. If exactly one common numeric key exists, use it as ordered x. If no unique common numeric key exists, PARSE_FAIL.",
+    "outcome_rule": "in each file, after removing key/index-like columns, require exactly one numeric measurement column; otherwise PARSE_FAIL.",
+    "join": "inner join exact x values present in all three files; require >=8 joined points; no manual point removal"
+  },
+  "normalization": {
+    "per_series": "robust z=(y-median(y))/(1.4826*MAD(y)); if MAD=0 PARSE_FAIL",
+    "experimental_composite": "mean of z(Coloc) and z(Sep)",
+    "simulation": "z(Simulated)",
+    "residual": "R(x)=experimental_composite-simulation"
+  },
+  "cross_modal_requirement": {
+    "directional_agreement": "sign(zColoc-zSim)==sign(zSep-zSim) at a point",
+    "reason": "a single assay disagreement cannot promote a shared missing-regime claim"
+  },
+  "first_break_detector": {
+    "ordered_by": "ascending x",
+    "baseline": "first max(3, floor(0.25*N)) joined points",
+    "scale": "1.4826*MAD of baseline residuals; if zero use full-series residual MAD only as a predeclared fallback",
+    "candidate": "earliest post-baseline point with |R-baseline_median| >= 2.5*scale AND cross-modal directional agreement",
+    "persistence": "same residual sign and cross-modal directional agreement for candidate plus next 2 joined points",
+    "severity": "minimum standardized absolute residual over the persistent 3-point run",
+    "no_candidate": "NO_FIRST_BREAK"
+  },
+  "null": {
+    "method": "permute Simulated measurement values across fixed x while preserving both experimental series and all marginals",
+    "enumeration": "exact if N!<=100000; otherwise 10000 deterministic SHA256 permutations",
+    "score": "maximum 3-point persistent severity under the same detector",
+    "pass": "native first-break exists and native severity strictly exceeds 95th percentile null",
+    "tie": "FAIL"
+  },
+  "claim_if_pass": "Within the supplied processed data, there is a cross-modally supported localized regime where both experimental exclusion-rate observables depart from the supplied simulation more coherently than expected under x-label randomization.",
+  "claim_ceiling": {
+    "missing_state_variable": "CANDIDATE_ONLY",
+    "glycan_barrier_prior_art": "NOT_OURS",
+    "scientific_breakthrough": false,
+    "required_next": ["identify physical variable without post-hoc overfit", "independent dataset transport", "prior-art killer sweep"]
+  },
+  "firewalls": [
+    "MODEL_MISFIT != NEW_MECHANISM",
+    "TWO_ASSAYS_WITH_SHARED_PIPELINE != TWO_INDEPENDENT_REPLICATIONS",
+    "FIRST_BREAK != CAUSAL_BOUNDARY_UNLESS_ORTHOGONALLY_VALIDATED",
+    "PRIOR_ART_IS_NOT_OURS"
+  ]
+}
