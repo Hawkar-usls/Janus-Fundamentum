@@ -1,0 +1,49 @@
+name: MK BCEG R3 Deferred Transformation Debt
+on:
+  push:
+    branches:
+      - research/mk-bceg-r3-deferred-transformation-debt-2026-08-30
+    paths:
+      - 'research/MK_BCEG_R3_DEFERRED_TRANSFORMATION_DEBT_PREREGISTRATION_2026-08-30.json'
+      - 'experiments/mk_bceg_r3_deferred_transformation_debt.py'
+      - '.github/workflows/mk-bceg-r3-deferred-transformation-debt.yml'
+  workflow_dispatch:
+jobs:
+  r3:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Verify prereg
+        run: |
+          python - <<'PY'
+          import json
+          d=json.load(open('research/MK_BCEG_R3_DEFERRED_TRANSFORMATION_DEBT_PREREGISTRATION_2026-08-30.json'))
+          assert d['status']=='FROZEN_BEFORE_EXECUTION'
+          assert d['scientific_boundary']['P_VS_NP']=='OPEN'
+          print('R3_PREREG_FROZEN')
+          PY
+      - name: Run deferred-debt trap
+        run: |
+          mkdir -p artifacts
+          python experiments/mk_bceg_r3_deferred_transformation_debt.py \
+            --output artifacts/MK_BCEG_R3_DEFERRED_TRANSFORMATION_DEBT_RESULT_2026-08-30.json \
+            --journal artifacts/MK_BCEG_R3_DEFERRED_TRANSFORMATION_DEBT_JOURNAL_2026-08-30.jsonl
+      - name: Frozen scientific gate
+        run: |
+          python - <<'PY'
+          import json
+          d=json.load(open('artifacts/MK_BCEG_R3_DEFERRED_TRANSFORMATION_DEBT_RESULT_2026-08-30.json'))
+          print('VERDICT',d['verdict'],'SUMMARY',d['summary'])
+          assert all(g['passed'] for g in d['gates'])
+          assert d['post_result_boundary']['P_VS_NP']=='OPEN'
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: mk-bceg-r3-deferred-transformation-debt
+          path: |
+            artifacts/MK_BCEG_R3_DEFERRED_TRANSFORMATION_DEBT_RESULT_2026-08-30.json
+            artifacts/MK_BCEG_R3_DEFERRED_TRANSFORMATION_DEBT_JOURNAL_2026-08-30.jsonl
+          if-no-files-found: error
