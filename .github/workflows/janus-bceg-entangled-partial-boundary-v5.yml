@@ -1,0 +1,57 @@
+name: JANUS BCEG Entangled Partial Boundary v5
+
+on:
+  push:
+    branches:
+      - research/janus-bceg-entangled-partial-boundary-v5-2026-08-30
+  workflow_dispatch:
+
+jobs:
+  scientific-gate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Frozen preregistration integrity
+        run: |
+          python - <<'PY'
+          import json
+          p='research/JANUS_BCEG_ENTANGLED_PARTIAL_BOUNDARY_V5_PREREGISTRATION_2026-08-30.json'
+          d=json.load(open(p))
+          assert d['status']=='FROZEN_BEFORE_HOLDOUT_EXECUTION'
+          assert d['expected_cases']==60
+          assert d['scientific_boundary']['P_VS_NP']=='OPEN'
+          print('PREREG PASS')
+          PY
+      - name: Development self-tests
+        run: python experiments/janus_bceg_entangled_partial_boundary_v5.py --self-test
+      - name: Frozen scientific holdout
+        run: |
+          mkdir -p artifacts
+          python experiments/janus_bceg_entangled_partial_boundary_v5.py \
+            --output artifacts/JANUS_BCEG_ENTANGLED_PARTIAL_BOUNDARY_V5_RESULT_2026-08-30.json \
+            --journal artifacts/JANUS_BCEG_ENTANGLED_PARTIAL_BOUNDARY_V5_JOURNAL_2026-08-30.jsonl
+      - name: Scientific integrity gate
+        run: |
+          python - <<'PY'
+          import json
+          p='artifacts/JANUS_BCEG_ENTANGLED_PARTIAL_BOUNDARY_V5_RESULT_2026-08-30.json'
+          d=json.load(open(p))
+          g={x['gate']:x for x in d['gates']}
+          assert d['summary']['cases']==60
+          assert d['summary']['algorithmic_boundary_assignments_enumerated_total']==0
+          assert g['E9_UNIVERSAL_POLYNOMIAL_BOUNDARY_ELIMINATION']['passed'] is False
+          assert d['summary']['P_VS_NP']=='OPEN'
+          assert all(x['audit_mismatches']==0 for x in d['cases_detail'] if x.get('message'))
+          print('SCIENTIFIC INTEGRITY PASS')
+          PY
+      - name: SHA256 manifest
+        run: sha256sum artifacts/* | tee artifacts/SHA256SUMS.txt
+      - uses: actions/upload-artifact@v4
+        with:
+          name: janus-bceg-entangled-partial-boundary-v5
+          path: artifacts/
+          if-no-files-found: error
