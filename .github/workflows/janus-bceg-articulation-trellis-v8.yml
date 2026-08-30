@@ -1,0 +1,41 @@
+name: JANUS BCEG Articulation Trellis v8
+on:
+  push:
+    branches: [research/janus-bceg-articulation-trellis-v8-2026-08-30]
+  workflow_dispatch:
+jobs:
+  gate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: '3.11'}
+      - name: prereg
+        run: |
+          python - <<'PY'
+          import json
+          d=json.load(open('research/JANUS_BCEG_ARTICULATION_TRELLIS_V8_PREREGISTRATION_2026-08-30.json'))
+          assert d['status']=='FROZEN_BEFORE_HOLDOUT_EXECUTION'; assert d['fresh_holdout']['expected_cases']==16; assert d['scientific_boundary']['P_VS_NP']=='OPEN'
+          print('PREREG PASS')
+          PY
+      - name: selftest
+        run: python experiments/janus_bceg_articulation_trellis_v8.py --self-test
+      - name: holdout
+        run: |
+          mkdir -p artifacts
+          python experiments/janus_bceg_articulation_trellis_v8.py --output artifacts/JANUS_BCEG_ARTICULATION_TRELLIS_V8_RESULT_2026-08-30.json --journal artifacts/JANUS_BCEG_ARTICULATION_TRELLIS_V8_JOURNAL_2026-08-30.jsonl
+      - name: integrity
+        run: |
+          python - <<'PY'
+          import json
+          d=json.load(open('artifacts/JANUS_BCEG_ARTICULATION_TRELLIS_V8_RESULT_2026-08-30.json'))
+          assert d['summary']['cases']==16; assert d['summary']['global_boundary_assignments_enumerated_total']==0; assert d['summary']['P_VS_NP']=='OPEN'; assert d['gates'][-1]['passed'] is False
+          assert all(x['audit_mismatches']==0 for x in d['cases_detail'] if x['trellis_success'])
+          print('INTEGRITY PASS')
+          PY
+      - run: sha256sum artifacts/* | tee artifacts/SHA256SUMS.txt
+      - uses: actions/upload-artifact@v4
+        with:
+          name: janus-bceg-articulation-trellis-v8
+          path: artifacts/
