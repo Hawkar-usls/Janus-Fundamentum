@@ -1,0 +1,51 @@
+name: JANUS UFK v1 Hard Geometry Portfolio Actuation
+on:
+  push:
+    branches:
+      - research/janus-ufk-v1-hard-geometry-portfolio-actuation-2026-08-30
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  hard-geometry-gate:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Verify frozen preregistration
+        run: |
+          python - <<'PY'
+          import json
+          d=json.load(open('research/JANUS_UFK_V1_HARD_GEOMETRY_PORTFOLIO_ACTUATION_PREREGISTRATION_2026-08-30.json'))
+          assert d['status']=='FROZEN_BEFORE_OUTCOME_INSPECTION'
+          assert d['design']['total_cases']==12
+          assert d['scientific_boundary']['not_a_rewrite_of_first_gate']
+          print(d['status'],d['design'])
+          PY
+      - name: Self tests
+        run: |
+          mkdir -p artifacts
+          python experiments/shor_arena_v2/janus_ufk_v1_hard_geometry_portfolio_actuation.py --self-test-only --output artifacts/unused.json
+      - name: Execute frozen hard geometry gate
+        run: |
+          python experiments/shor_arena_v2/janus_ufk_v1_hard_geometry_portfolio_actuation.py --output artifacts/JANUS_UFK_V1_HARD_GEOMETRY_PORTFOLIO_ACTUATION_RESULT_2026-08-30.json | tee artifacts/JANUS_UFK_V1_HARD_GEOMETRY_PORTFOLIO_ACTUATION_CONSOLE_2026-08-30.txt
+      - name: Integrity gate
+        run: |
+          python - <<'PY'
+          import json
+          d=json.load(open('artifacts/JANUS_UFK_V1_HARD_GEOMETRY_PORTFOLIO_ACTUATION_RESULT_2026-08-30.json'))
+          print(json.dumps(d['summary'],indent=2)); print(json.dumps(d['gates'],indent=2))
+          assert d['status']=='COMPLETE'
+          assert d['summary']['cases']==12
+          assert d['gates'][0]['passed']
+          assert d['scientific_boundary']['polynomial_time_factoring'] is False
+          assert d['scientific_boundary']['P_VS_NP']=='OPEN'
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: janus-ufk-v1-hard-geometry-portfolio-actuation
+          path: artifacts/
+          if-no-files-found: error
