@@ -1,0 +1,42 @@
+name: JANUS BCEG Cyclic Nonaffine Entanglement v6
+on:
+  push:
+    branches: [research/janus-bceg-cyclic-nonaffine-entanglement-v6-2026-08-30]
+  workflow_dispatch:
+jobs:
+  gate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: '3.11'}
+      - name: prereg
+        run: |
+          python - <<'PY'
+          import json
+          d=json.load(open('research/JANUS_BCEG_CYCLIC_NONAFFINE_ENTANGLEMENT_V6_PREREGISTRATION_2026-08-30.json'))
+          assert d['status']=='FROZEN_BEFORE_HOLDOUT_EXECUTION'; assert d['expected_cases']==16; assert d['scientific_boundary']['P_VS_NP']=='OPEN'
+          print('PREREG PASS')
+          PY
+      - name: selftest
+        run: python experiments/janus_bceg_cyclic_nonaffine_entanglement_v6.py --self-test
+      - name: holdout
+        run: |
+          mkdir -p artifacts
+          python experiments/janus_bceg_cyclic_nonaffine_entanglement_v6.py --output artifacts/JANUS_BCEG_CYCLIC_NONAFFINE_ENTANGLEMENT_V6_RESULT_2026-08-30.json --journal artifacts/JANUS_BCEG_CYCLIC_NONAFFINE_ENTANGLEMENT_V6_JOURNAL_2026-08-30.jsonl
+      - name: integrity
+        run: |
+          python - <<'PY'
+          import json
+          d=json.load(open('artifacts/JANUS_BCEG_CYCLIC_NONAFFINE_ENTANGLEMENT_V6_RESULT_2026-08-30.json'))
+          assert d['summary']['cases']==16; assert d['summary']['algorithmic_boundary_assignments_enumerated_total']==0; assert d['summary']['P_VS_NP']=='OPEN'
+          assert all(x['audit_mismatches']==0 for x in d['cases_detail'])
+          assert d['gates'][-1]['passed'] is False
+          print('INTEGRITY PASS')
+          PY
+      - run: sha256sum artifacts/* | tee artifacts/SHA256SUMS.txt
+      - uses: actions/upload-artifact@v4
+        with:
+          name: janus-bceg-cyclic-nonaffine-entanglement-v6
+          path: artifacts/
