@@ -1,0 +1,135 @@
+name: MK BCEG R3C Proof-Carrying Executable Lifecycle
+on:
+  push:
+    branches:
+      - research/mk-bceg-r3c-proof-carrying-lifecycle-package-2026-08-30
+  workflow_dispatch:
+
+jobs:
+  r3c:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Freeze preregistration and compile programs
+        run: |
+          python - <<'PY'
+          import json
+          p=json.load(open('research/MK_BCEG_R3C_PROOF_CARRYING_EXECUTABLE_LIFECYCLE_PREREGISTRATION_2026-08-30.json'))
+          assert p['status']=='FROZEN_BEFORE_EXECUTION'
+          assert p['central_law']=='NO_FREE_SEMANTIC_COMPRESSION'
+          assert p['scientific_boundary']['P_VS_NP']=='OPEN'
+          assert p['scientific_boundary']['universal_polynomial_lifecycle_interface_proved'] is False
+          print('R3C_PREREG_FREEZE_OK')
+          PY
+          python -m py_compile \
+            experiments/mk_bceg_r3c_producer.py \
+            experiments/mk_bceg_r3c_replay_verifier.py \
+            experiments/mk_bceg_r3c_audit.py
+          mkdir -p artifacts/r3c
+
+      - name: Produce seed ROBDD package
+        run: |
+          python experiments/mk_bceg_r3c_producer.py seed \
+            --output artifacts/r3c/package_0.json
+
+      - name: Receipt-chain negative control
+        run: |
+          cat > artifacts/r3c/forged_receipt.json <<'JSON'
+          {"verdict":"PASS","accepted_package_hash":"FORGED","accepted_phi":0,"verification_work_units":0}
+          JSON
+          if python experiments/mk_bceg_r3c_producer.py transition \
+            --input artifacts/r3c/package_0.json \
+            --receipt artifacts/r3c/forged_receipt.json \
+            --operation ASSIGN --var 1 --value true \
+            --output artifacts/r3c/should_not_exist.json \
+            --certificate artifacts/r3c/should_not_exist_cert.json; then
+            echo 'FORGED_RECEIPT_WAS_ACCEPTED'
+            exit 1
+          else
+            echo 'FORGED_RECEIPT_REJECTED_AS_REQUIRED'
+          fi
+          test ! -e artifacts/r3c/should_not_exist.json
+
+      - name: Independent replay of seed
+        run: |
+          python experiments/mk_bceg_r3c_replay_verifier.py verify-package \
+            --package artifacts/r3c/package_0.json \
+            --output artifacts/r3c/receipt_0.json
+
+      - name: Transition 1 — ASSIGN x1=true in ROBDD
+        run: |
+          python experiments/mk_bceg_r3c_producer.py transition \
+            --input artifacts/r3c/package_0.json \
+            --receipt artifacts/r3c/receipt_0.json \
+            --operation ASSIGN --var 1 --value true \
+            --output artifacts/r3c/package_1.json \
+            --certificate artifacts/r3c/cert_1.json
+          python experiments/mk_bceg_r3c_replay_verifier.py verify-transition \
+            --input artifacts/r3c/package_0.json \
+            --output-package artifacts/r3c/package_1.json \
+            --certificate artifacts/r3c/cert_1.json \
+            --receipt artifacts/r3c/receipt_1.json
+
+      - name: Transition 2 — proof-carrying ROBDD to d-DNNF
+        run: |
+          python experiments/mk_bceg_r3c_producer.py transition \
+            --input artifacts/r3c/package_1.json \
+            --receipt artifacts/r3c/receipt_1.json \
+            --operation TRANSLATE_ROBDD_TO_D_DNNF \
+            --output artifacts/r3c/package_2.json \
+            --certificate artifacts/r3c/cert_2.json
+          python experiments/mk_bceg_r3c_replay_verifier.py verify-transition \
+            --input artifacts/r3c/package_1.json \
+            --output-package artifacts/r3c/package_2.json \
+            --certificate artifacts/r3c/cert_2.json \
+            --receipt artifacts/r3c/receipt_2.json
+
+      - name: Transition 3 — ASSIGN x3=false in d-DNNF
+        run: |
+          python experiments/mk_bceg_r3c_producer.py transition \
+            --input artifacts/r3c/package_2.json \
+            --receipt artifacts/r3c/receipt_2.json \
+            --operation ASSIGN --var 3 --value false \
+            --output artifacts/r3c/package_3.json \
+            --certificate artifacts/r3c/cert_3.json
+          python experiments/mk_bceg_r3c_replay_verifier.py verify-transition \
+            --input artifacts/r3c/package_2.json \
+            --output-package artifacts/r3c/package_3.json \
+            --certificate artifacts/r3c/cert_3.json \
+            --receipt artifacts/r3c/receipt_3.json
+
+      - name: Audit lifecycle, Phi and scientific firewalls
+        run: |
+          python experiments/mk_bceg_r3c_audit.py \
+            --dir artifacts/r3c \
+            --prereg research/MK_BCEG_R3C_PROOF_CARRYING_EXECUTABLE_LIFECYCLE_PREREGISTRATION_2026-08-30.json \
+            --output artifacts/MK_BCEG_R3C_PROOF_CARRYING_EXECUTABLE_LIFECYCLE_RESULT_2026-08-30.json \
+            --journal artifacts/MK_BCEG_R3C_PROOF_CARRYING_EXECUTABLE_LIFECYCLE_JOURNAL_2026-08-30.jsonl
+
+      - name: Frozen scientific verdict
+        run: |
+          python - <<'PY'
+          import json
+          d=json.load(open('artifacts/MK_BCEG_R3C_PROOF_CARRYING_EXECUTABLE_LIFECYCLE_RESULT_2026-08-30.json'))
+          assert d['verdict']=='FINITE_PROOF_CARRYING_EXECUTABLE_LIFECYCLE_SURVIVOR_NOT_THEOREM'
+          assert all(g['passed'] for g in d['gates'])
+          assert d['scientific_boundary']['P_VS_NP']=='OPEN'
+          assert d['scientific_boundary']['SAT_in_P_proved'] is False
+          assert d['scientific_boundary']['universal_polynomial_lifecycle_interface_proved'] is False
+          print('R3C_VERDICT', d['verdict'])
+          PY
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: mk-bceg-r3c-proof-carrying-executable-lifecycle
+          path: |
+            artifacts/r3c/package_*.json
+            artifacts/r3c/receipt_*.json
+            artifacts/r3c/cert_*.json
+            artifacts/MK_BCEG_R3C_PROOF_CARRYING_EXECUTABLE_LIFECYCLE_RESULT_2026-08-30.json
+            artifacts/MK_BCEG_R3C_PROOF_CARRYING_EXECUTABLE_LIFECYCLE_JOURNAL_2026-08-30.jsonl
