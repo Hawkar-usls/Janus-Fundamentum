@@ -1,0 +1,73 @@
+{
+  "schema": "JANUS/FUNDAMENTUM/C030/VIRAL-FIRST-BREAK-RAW-TRAJECTORY-PREREG/v1",
+  "status": "FROZEN_BEFORE_OUTCOME_DATA_EXPOSURE",
+  "created_date": "2026-08-31",
+  "purpose": "Test whether a pre-existing JANUS first-break localization operator, developed before the viral mirror branch, extracts predictive information from external viral molecular-dynamics trajectories beyond aggregate trajectory summaries.",
+  "internal_prior_lineage": [
+    "janus-meta-registry:data/JANUS-CONNECTION-FULL-CORPUS-HIDDEN-PATTERNS-2026-08-14-v1.2.json#HIDDEN-003",
+    "janus-meta-registry:data/JANUS-CONNECTION-HIDDEN-PATTERN-FORMAL-BENCHMARK-2026-08-14-v1.0.json#HIDDEN-003",
+    "janus-meta-registry:data/JANUS-REVERSE-PATTERN-BLIND-SEQUENTIAL-PROTOCOL-2026-08-19-v1.0.json",
+    "janus-meta-registry:data/proofs/JANUS-CAUSAL-ISOLATION-DSEPARATION-HARDENING-v0.8.json"
+  ],
+  "external_target": {
+    "record": "Zenodo 21114056",
+    "title": "Molecular dynamic trajectory videos and analysis information for Madariaga and NA-EEEV viruses with complexed VLDLR receptor",
+    "selection_basis_seen_before_freeze": [
+      "record metadata states that Desmond trajectories are provided",
+      "record metadata states that raw RMSD and MM-GBSA analysis data are provided",
+      "systems include MADV-BRA, MADV-PAN, EEEV and CHIKV bound to human VLDLR"
+    ],
+    "forbidden_before_freeze": [
+      "numeric trajectory values",
+      "numeric MM-GBSA values",
+      "paper result/discussion conclusions about relative stability",
+      "manual inspection of trajectory videos"
+    ]
+  },
+  "frozen_hypothesis": {
+    "name": "EARLY_FIRST_BREAK_PREDICTS_LATE_ENERGETIC_STATE",
+    "claim": "Across receptor-bound viral MD systems, the location and magnitude of the earliest persistent RMSD regime break in the early trajectory carries information about the later energetic state that is not captured by the early-window mean RMSD alone.",
+    "scientific_scope": "computational trajectory analysis only; no wet-lab, pathogenicity, treatment or gain-of-function claim"
+  },
+  "frozen_analysis": {
+    "time_normalization": "map each trajectory to fractional progress u in [0,1]",
+    "feature_window": "u <= 0.35",
+    "outcome_window": "u >= 0.65",
+    "first_break_detector": {
+      "baseline": "first 10% of feature window",
+      "candidate_break": "earliest point after baseline where a two-segment mean model improves SSE over one-segment mean model by >=25% and the post-break mean shift persists for >=10% of the feature window",
+      "features": ["normalized break location", "absolute standardized mean shift", "post/pre local variance ratio"]
+    },
+    "aggregate_baseline": ["early-window mean RMSD", "early-window RMSD standard deviation"],
+    "withheld_outcome": "late-window MM-GBSA central tendency/rank if time-resolved values are available; otherwise the narrowest pre-existing per-system MM-GBSA endpoint in the dataset",
+    "primary_test": "leave-one-virus-out rank prediction: compare first-break feature model versus aggregate-baseline model for predicting late energetic rank; first-break must reduce absolute rank error in >=3 of 4 held-out systems",
+    "secondary_test": "Spearman association of frozen first-break severity with late energetic state must exceed the association of early mean RMSD with that outcome",
+    "null_controls": [
+      "within-system random circular time shift applied before first-break detection",
+      "time-order permutation preserving the RMSD value multiset",
+      "outcome-label permutation across viral systems"
+    ],
+    "null_requirement": "real ordering must outperform >=95% of deterministic/permutation null scores where enumeration is feasible; otherwise NO_PASS",
+    "ambiguity_rule": "ties, missing MM-GBSA alignment, or insufficient sampling remain UNRESOLVED and cannot be converted to PASS",
+    "selection_firewall": "no system may be dropped after values are viewed except for a pre-declared parse failure; all exclusions must be recorded"
+  },
+  "promotion_gate": {
+    "method_signal": "PASS only if primary test and null requirement pass",
+    "breakthrough": "PROHIBITED from this dataset alone",
+    "required_after_method_signal": [
+      "second independently authored viral raw-trajectory dataset",
+      "same frozen analysis without retuning",
+      "negative/reversible control",
+      "post-result prior-art killer sweep",
+      "material scientific consequence beyond re-description"
+    ]
+  },
+  "firewalls": [
+    "FIRST_BREAK_INFORMATION_ADVANTAGE_IN_INTERNAL_FORMAL_MODEL != VIRAL_SCIENTIFIC_LAW",
+    "ONE_DATASET != INDEPENDENT_REPLICATION",
+    "SIMULATION != IN_VIVO_VIRAL_MECHANISM",
+    "CORRELATION != CAUSATION",
+    "POST_SELECTION != DISCOVERY",
+    "PRIOR_ART_IS_NOT_OURS"
+  ]
+}
