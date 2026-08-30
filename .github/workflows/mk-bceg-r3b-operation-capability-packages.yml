@@ -1,0 +1,48 @@
+name: MK BCEG R3B Operation Capability Packages
+on:
+  push:
+    branches:
+      - research/mk-bceg-r3b-operation-capability-packages-2026-08-30
+  workflow_dispatch:
+jobs:
+  r3b:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Verify prereg and capability map freeze
+        run: |
+          python - <<'PY'
+          import json
+          p=json.load(open('research/MK_BCEG_R3B_OPERATION_CAPABILITY_PACKAGES_PREREGISTRATION_2026-08-30.json'))
+          m=json.load(open('research/MK_BCEG_R3B_OPERATION_CAPABILITY_MAP_2026-08-30.json'))
+          assert p['status']=='FROZEN_BEFORE_EXECUTION'
+          assert m['status']=='FROZEN_EXTERNAL_AND_INTERNAL_EVIDENCE_MAP'
+          assert m['law']=='UNKNOWN_IS_NOT_POLY_CERTIFIED__DEFERRED_IS_NOT_FREE'
+          assert p['post_result_boundary']['P_VS_NP']=='OPEN'
+          print('R3B_FREEZE_OK')
+          PY
+      - name: Run capability lifecycle planner
+        run: |
+          mkdir -p artifacts
+          python experiments/mk_bceg_r3b_operation_capability_packages.py \
+            --output artifacts/MK_BCEG_R3B_OPERATION_CAPABILITY_PACKAGES_RESULT_2026-08-30.json \
+            --journal artifacts/MK_BCEG_R3B_OPERATION_CAPABILITY_PACKAGES_JOURNAL_2026-08-30.jsonl
+      - name: Frozen scientific gate
+        run: |
+          python - <<'PY'
+          import json
+          d=json.load(open('artifacts/MK_BCEG_R3B_OPERATION_CAPABILITY_PACKAGES_RESULT_2026-08-30.json'))
+          assert d['verdict']=='FINITE_CAPABILITY_LIFECYCLE_SURVIVOR_NOT_THEOREM'
+          assert all(g['passed'] for g in d['gates'])
+          assert d['scientific_boundary']['P_VS_NP']=='OPEN'
+          print('R3B_VERDICT',d['verdict'],d['summary'])
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: mk-bceg-r3b-operation-capability-packages
+          path: |
+            artifacts/MK_BCEG_R3B_OPERATION_CAPABILITY_PACKAGES_RESULT_2026-08-30.json
+            artifacts/MK_BCEG_R3B_OPERATION_CAPABILITY_PACKAGES_JOURNAL_2026-08-30.jsonl
