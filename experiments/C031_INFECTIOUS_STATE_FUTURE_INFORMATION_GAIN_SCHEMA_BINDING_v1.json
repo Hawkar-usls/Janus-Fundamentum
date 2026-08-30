@@ -1,0 +1,51 @@
+{
+  "experiment_id": "C031_INFECTIOUS_STATE_FUTURE_INFORMATION_GAIN_SCHEMA_BINDING_v1",
+  "parent_prereg_commit": "f4a85baaa4de6433947649dddae0650863a26fea",
+  "status": "FROZEN_BEFORE_PREDICTIVE_COMPUTATION__NO_SCIENTIFIC_THRESHOLD_CHANGE",
+  "target": {
+    "repository": "BROOKELAB/Viral-dynamics-modeling",
+    "commit": "8d71ca82ac453a4b3c3c13d61a7174fbed4bdf8d",
+    "path": "Data/data_samples.csv",
+    "git_blob_sha": "a4b5cd9e06af494c859f9fefab194a703500af01",
+    "subject_column": "Ind",
+    "time_column": "Time",
+    "nasal_column": "Nasal_CN",
+    "saliva_column": "Saliva_Ct",
+    "culture_column": "Virus_pos_days"
+  },
+  "deterministic_row_binding": {
+    "exact_time": "Numeric Time values must match exactly at t and t+1 within floating tolerance 1e-9; no interpolation or nearest-neighbor matching.",
+    "duplicate_subject_time": "If more than one raw row has the same subject and same Time, that subject-time key is AMBIGUOUS and is excluded rather than averaged or arbitrarily selected.",
+    "reason": "Preserves AMBIGUITY_IS_A_FIRST_CLASS_STATE and avoids constructing a synthetic joint PCR/culture state from separate rows.",
+    "finite_numeric": "Blank, NA, NaN, inf and non-numeric values are missing.",
+    "nasal_detection_boundary": "Nasal_CN >= 48 is excluded from the primary continuous-transition endpoint because 48 encodes PCR non-detection in the source analysis.",
+    "saliva_detection_boundary": "Saliva_Ct >= 47 is excluded from the secondary continuous-transition endpoint because 47 encodes PCR non-detection in the source analysis.",
+    "culture_encoding": "Virus_pos_days is used exactly as the source numeric assay-state variable, including 5.9 as the source's encoded negative-culture boundary; no binary recoding is used in the primary frozen model.",
+    "subject_filter": "No filter by Index, Lineage, Age, Antigen, or clinical subgroup is permitted in C031."
+  },
+  "model_binding": {
+    "solver": "numpy.linalg.lstsq ordinary least squares with intercept; no ridge penalty, no feature standardization, no hyperparameter tuning.",
+    "fold": "leave-one-subject-out",
+    "baseline_features": ["intercept", "current_Nasal_CN", "Time"],
+    "enriched_features": ["intercept", "current_Nasal_CN", "Time", "current_Virus_pos_days"],
+    "metric": "mean absolute error pooled over all held-out eligible transitions",
+    "permutation": "Globally permute culture values across eligible current transitions using deterministic Python random seed 31031 for each of 1000 sequential shuffles; subject labels, PCR variables, Time and outcomes remain fixed.",
+    "permutation_p": "(1 + count(null_relative_gain >= observed_relative_gain))/1001"
+  },
+  "unchanged_from_parent": {
+    "pass_relative_MAE_gain_min": 0.10,
+    "pass_permutation_p_max": 0.01,
+    "fail_gain_nonpositive": true,
+    "fail_permutation_p_above": 0.05,
+    "minimum_eligible_transitions": 30,
+    "minimum_heldout_subjects": 10,
+    "no_retuning": true
+  },
+  "firewall": [
+    "SCHEMA_BINDING_IS_NOT_RESULT",
+    "AMBIGUOUS_DUPLICATES_ARE_EXCLUDED_NOT_AVERAGED",
+    "SOURCE_NONDETECTION_CODES_ARE_BOUNDARIES_NOT_EXACT BIOLOGICAL VALUES",
+    "NO_POSTHOC_SUBGROUP_SELECTION",
+    "NO_THRESHOLD_CHANGE_AFTER_COMPUTATION"
+  ]
+}
