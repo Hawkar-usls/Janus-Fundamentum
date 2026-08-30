@@ -1,0 +1,58 @@
+name: MK BCEG R2 HWB SDD Portfolio
+on:
+  push:
+    branches:
+      - research/mk-bceg-r2-hwb-sdd-portfolio-2026-08-30
+    paths:
+      - 'research/MK_BCEG_R2_HWB_SDD_PORTFOLIO_PREREGISTRATION_2026-08-30.json'
+      - 'experiments/mk_bceg_r2_hwb_sdd_portfolio.py'
+      - '.github/workflows/mk-bceg-r2-hwb-sdd-portfolio.yml'
+  workflow_dispatch:
+jobs:
+  r2ab:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Verify preregistration
+        run: |
+          python - <<'PY'
+          import json
+          d=json.load(open('research/MK_BCEG_R2_HWB_SDD_PORTFOLIO_PREREGISTRATION_2026-08-30.json'))
+          assert d['status']=='FROZEN_BEFORE_EXECUTION'
+          assert d['scientific_boundary']['P_VS_NP']=='OPEN'
+          assert d['PROJECTED_SEMANTICS_HARDNESS_GUARD']['law']=='AUXILIARY_VARIABLES_MUST_NOT_HIDE_INTERFACE_COMPLEXITY'
+          print('R2AB_PREREG_FROZEN')
+          PY
+      - name: Run R2A/B exact representation experiment
+        run: |
+          mkdir -p artifacts
+          python experiments/mk_bceg_r2_hwb_sdd_portfolio.py \
+            --output artifacts/MK_BCEG_R2_HWB_SDD_PORTFOLIO_RESULT_2026-08-30.json \
+            --journal artifacts/MK_BCEG_R2_HWB_SDD_PORTFOLIO_JOURNAL_2026-08-30.jsonl
+      - name: Frozen scientific gate
+        run: |
+          python - <<'PY'
+          import json
+          d=json.load(open('artifacts/MK_BCEG_R2_HWB_SDD_PORTFOLIO_RESULT_2026-08-30.json'))
+          print('VERDICT',d['verdict'])
+          g={x['gate']:x for x in d['gates']}
+          assert g['G1_HWB_TRUTH']['passed']
+          assert g['G2_ALL_ORDER_FINITE']['passed']
+          assert g['G3_SDD_CERT_SOUND']['passed']
+          assert g['G5_PROJECTED_SEMANTICS_GUARD']['passed']
+          assert g['G6_COST_ACCOUNTING']['passed']
+          assert g['G7_SCIENTIFIC_BOUNDARY']['passed']
+          # G4 may scientifically FAIL; that is a valid frozen result, not CI failure.
+          assert d['scientific_boundary']['P_VS_NP']=='OPEN'
+          assert d['post_result_boundary']['R2C']=='OPEN'
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: mk-bceg-r2-hwb-sdd-portfolio
+          path: |
+            artifacts/MK_BCEG_R2_HWB_SDD_PORTFOLIO_RESULT_2026-08-30.json
+            artifacts/MK_BCEG_R2_HWB_SDD_PORTFOLIO_JOURNAL_2026-08-30.jsonl
+          if-no-files-found: error
