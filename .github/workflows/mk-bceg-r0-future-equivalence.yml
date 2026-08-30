@@ -1,0 +1,63 @@
+name: MK-BCEG R0 Future Equivalence Arena
+on:
+  push:
+    branches:
+      - research/mk-bceg-r0-future-equivalence-arena-2026-08-30
+    paths:
+      - 'research/MK_BCEG_R0_FUTURE_EQUIVALENCE_PREREGISTRATION_2026-08-30.json'
+      - 'research/MK_BCEG_R0_DEVELOPMENT_DRY_RUN_JOURNAL_2026-08-30.json'
+      - 'experiments/mk_bceg/janus_mk_bceg_r0_future_equivalence.py'
+      - '.github/workflows/mk-bceg-r0-future-equivalence.yml'
+  workflow_dispatch:
+
+jobs:
+  future-equivalence-arena:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Validate frozen preregistration
+        run: |
+          python - <<'PY'
+          import json
+          p='research/MK_BCEG_R0_FUTURE_EQUIVALENCE_PREREGISTRATION_2026-08-30.json'
+          d=json.load(open(p))
+          assert d['status']=='FROZEN_BEFORE_FINAL_HOLDOUT_EXECUTION__DEVELOPMENT_DRY_RUN_PRESERVED'
+          assert d['scientific_boundary']['P_VS_NP']=='OPEN'
+          assert d['scientific_boundary']['finite_testing_is_proof'] is False
+          assert d['frozen_universe']['namespace']=='JANUS-MK-BCEG-R0-FINAL-2026-08-30-A'
+          print('prereg OK')
+          PY
+      - name: Runner self-tests
+        run: python experiments/mk_bceg/janus_mk_bceg_r0_future_equivalence.py --self-test-only
+      - name: Run final frozen R0 holdout
+        run: |
+          mkdir -p artifacts
+          python experiments/mk_bceg/janus_mk_bceg_r0_future_equivalence.py \
+            --output artifacts/MK_BCEG_R0_FUTURE_EQUIVALENCE_RESULT_2026-08-30.json \
+            --journal artifacts/MK_BCEG_R0_FUTURE_EQUIVALENCE_JOURNAL_2026-08-30.jsonl
+      - name: Scientific gate
+        run: |
+          python - <<'PY'
+          import json
+          p='artifacts/MK_BCEG_R0_FUTURE_EQUIVALENCE_RESULT_2026-08-30.json'
+          d=json.load(open(p))
+          gates={x['gate']:x for x in d['gates']}
+          for g in ['G1_MK_ID_EXACT','G2_STRUCTURAL_MONSTER_EXISTS','G3_TRUTH_INTERFACE_SOUND','G4_ROBDD_INTERFACE_SOUND','G5_ROBDD_NONTRIVIAL_MERGE','G6_TRANSITION_CONGRUENCE','G7_COST_ACCOUNTING','G8_SCIENTIFIC_BOUNDARY']:
+              print(g,gates[g]['passed'])
+              assert gates[g]['passed'] is True
+          assert d['verdict']=='FINITE_SURVIVOR_NOT_THEOREM'
+          assert d['scientific_boundary']['P_VS_NP']=='OPEN'
+          assert d['scientific_boundary']['FORMALLY_CERTIFIED_emitted'] is False
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: mk-bceg-r0-future-equivalence-arena
+          path: |
+            artifacts/MK_BCEG_R0_FUTURE_EQUIVALENCE_RESULT_2026-08-30.json
+            artifacts/MK_BCEG_R0_FUTURE_EQUIVALENCE_JOURNAL_2026-08-30.jsonl
+          if-no-files-found: error
