@@ -1,0 +1,62 @@
+name: C034 Specimen-Phase Hysteresis Loop
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'experiments/C034_SPECIMEN_PHASE_HYSTERESIS_LOOP_PREREG_v1.json'
+      - 'experiments/C034_SPECIMEN_PHASE_HYSTERESIS_LOOP_SCHEMA_BINDING_v1.json'
+      - 'experiments/c034_specimen_phase_hysteresis_loop.py'
+      - '.github/workflows/c034-specimen-phase-hysteresis-loop.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  c034-loop:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with: {fetch-depth: 1}
+      - uses: actions/setup-python@v5
+        with: {python-version: '3.12'}
+      - name: Install pinned workbook reader
+        run: python -m pip install --disable-pip-version-check openpyxl==3.1.5
+      - name: Verify freeze lineage
+        run: |
+          python - <<'PY'
+          import json
+          p=json.load(open('experiments/C034_SPECIMEN_PHASE_HYSTERESIS_LOOP_PREREG_v1.json'))
+          b=json.load(open('experiments/C034_SPECIMEN_PHASE_HYSTERESIS_LOOP_SCHEMA_BINDING_v1.json'))
+          assert p['status']=='FROZEN_BEFORE_OMICRON_WORKBOOK_VALUE_INSPECTION'
+          assert b['status']=='FROZEN_BEFORE_PARTICIPANT_VALUE_COMPUTATION'
+          assert b['parent_prereg_commit']=='7117688fdec64f8c35f3d0870f4e1ba2315da7c9'
+          assert b['unchanged_scientific_gate']['no_retuning'] is True
+          print('C034_FREEZE_LINEAGE=PASS')
+          PY
+      - name: Execute frozen C034 loop endpoint
+        shell: bash
+        run: |
+          set -euo pipefail
+          python experiments/c034_specimen_phase_hysteresis_loop.py | tee out.log
+      - name: Enforce claim ceiling
+        run: |
+          python - <<'PY'
+          import json
+          d=json.load(open('out/C034_SPECIMEN_PHASE_HYSTERESIS_LOOP_RESULT.json'))
+          assert d['prereg_commit']=='7117688fdec64f8c35f3d0870f4e1ba2315da7c9'
+          assert d['schema_binding_commit']=='45c232f90e4db23c6b2a390b1c5ddfa65fa34088'
+          assert d['claim_ceiling']['scientific_breakthrough'] is False
+          print('C034_CLAIM_CEILING=PASS')
+          print(json.dumps({k:d.get(k) for k in ['eligible_subjects','median_normalized_area','sign_test_p','negative_areas','positive_areas','chronology_permutation_p','terminal','reason']},sort_keys=True))
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: c034-specimen-phase-hysteresis-loop
+          path: |
+            out/C034_SPECIMEN_PHASE_HYSTERESIS_LOOP_RESULT.json
+            out.log
+          if-no-files-found: error
+          retention-days: 30
