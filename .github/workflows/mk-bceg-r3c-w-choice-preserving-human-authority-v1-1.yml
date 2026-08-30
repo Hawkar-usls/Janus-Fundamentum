@@ -1,0 +1,55 @@
+name: MK BCEG R3C-W Choice Preserving Human Authority v1.1
+
+on:
+  push:
+    branches:
+      - research/mk-bceg-r3c-w-choice-preserving-human-contract-2026-08-30
+  workflow_dispatch:
+
+jobs:
+  r3c_w_v1_1:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Verify original freeze and correction freeze
+        run: |
+          python - <<'PY'
+          import json
+          p=json.load(open('research/MK_BCEG_R3C_W_CHOICE_PRESERVING_HUMAN_AUTHORITY_PREREGISTRATION_2026-08-30.json'))
+          q=json.load(open('research/MK_BCEG_R3C_W_V1_1_CHECKER_CORRECTION_FREEZE_2026-08-30.json'))
+          assert p['status']=='FROZEN_BEFORE_EXECUTION'
+          assert q['status']=='FROZEN_BEFORE_CORRECTION_RERUN'
+          assert q['scientific_boundary']['P_VS_NP']=='OPEN'
+          print('R3C_W_V1_1_FREEZE_OK')
+          PY
+      - name: Run exact-key corrected admission gate
+        run: |
+          mkdir -p artifacts
+          PYTHONPATH=experiments python experiments/mk_bceg_r3c_w_choice_preserving_human_authority_v1_1.py \
+            --output artifacts/MK_BCEG_R3C_W_CHOICE_PRESERVING_HUMAN_AUTHORITY_V1_1_RESULT_2026-08-30.json \
+            --journal artifacts/MK_BCEG_R3C_W_CHOICE_PRESERVING_HUMAN_AUTHORITY_V1_1_JOURNAL_2026-08-30.jsonl
+      - name: Frozen scientific gate
+        run: |
+          python - <<'PY'
+          import json
+          d=json.load(open('artifacts/MK_BCEG_R3C_W_CHOICE_PRESERVING_HUMAN_AUTHORITY_V1_1_RESULT_2026-08-30.json'))
+          print('R3C_W_V1_1_VERDICT',d['verdict'],d['summary'],d['gates'])
+          assert d['verdict']=='FINITE_CHOICE_PRESERVING_AUTHORITY_GATE_SURVIVOR_NOT_THEOREM'
+          assert all(d['gates'].values())
+          assert d['summary']['cases']==15
+          assert d['summary']['expected_terminals_matched']==15
+          assert d['scientific_boundary']['TRUMP_finished'] is False
+          assert d['scientific_boundary']['P_VS_NP']=='OPEN'
+          PY
+      - name: Upload immutable evidence even on scientific failure
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: mk-bceg-r3c-w-choice-preserving-human-authority-v1-1
+          path: |
+            artifacts/MK_BCEG_R3C_W_CHOICE_PRESERVING_HUMAN_AUTHORITY_V1_1_RESULT_2026-08-30.json
+            artifacts/MK_BCEG_R3C_W_CHOICE_PRESERVING_HUMAN_AUTHORITY_V1_1_JOURNAL_2026-08-30.jsonl
+          if-no-files-found: warn
