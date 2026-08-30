@@ -32,11 +32,16 @@ jobs:
           print('C034_PREREG=PASS')
           PY
       - name: Probe workbook schema only
-        run: python experiments/c034_schema_probe.py | tee schema.log
+        shell: bash
+        run: |
+          set -euo pipefail
+          python experiments/c034_schema_probe.py | tee schema.log
       - uses: actions/upload-artifact@v4
+        if: always()
         with:
           name: c034-schema-only
           path: |
             out/C034_SCHEMA.json
             schema.log
+          if-no-files-found: warn
           retention-days: 30
