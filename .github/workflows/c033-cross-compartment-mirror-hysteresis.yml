@@ -1,0 +1,52 @@
+name: C033 Cross-Compartment Mirror Hysteresis
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'experiments/C033_CROSS_COMPARTMENT_MIRROR_HYSTERESIS_PREREG_v1.json'
+      - 'experiments/c033_cross_compartment_mirror_hysteresis.py'
+      - '.github/workflows/c033-cross-compartment-mirror-hysteresis.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  c033-hysteresis:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with: {fetch-depth: 1}
+      - uses: actions/setup-python@v5
+        with: {python-version: '3.12'}
+      - name: Verify freeze
+        run: |
+          python - <<'PY'
+          import json
+          p=json.load(open('experiments/C033_CROSS_COMPARTMENT_MIRROR_HYSTERESIS_PREREG_v1.json'))
+          assert p['status']=='FROZEN_BEFORE_HYSTERESIS_COMPUTATION'
+          assert p['target']['git_blob_sha']=='a4b5cd9e06af494c859f9fefab194a703500af01'
+          print('C033_FREEZE=PASS')
+          PY
+      - name: Execute C033
+        run: python experiments/c033_cross_compartment_mirror_hysteresis.py | tee out.log
+      - name: Enforce claim ceiling
+        run: |
+          python - <<'PY'
+          import json
+          d=json.load(open('out/C033_CROSS_COMPARTMENT_MIRROR_HYSTERESIS_RESULT.json'))
+          assert d['prereg_commit']=='cb3cc9f20262e4d0c144d06ad4132cd35b83ac48'
+          assert d['claim_ceiling']['scientific_breakthrough'] is False
+          print('C033_CLAIM_CEILING=PASS')
+          print(json.dumps({k:d.get(k) for k in ['first_break','opposite_first_break','global_A_sum_median_H','observed_max_median_H','familywise_signflip_p','terminal']},sort_keys=True))
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: c033-cross-compartment-mirror-hysteresis
+          path: |
+            out/C033_CROSS_COMPARTMENT_MIRROR_HYSTERESIS_RESULT.json
+            out.log
+          if-no-files-found: error
+          retention-days: 30
