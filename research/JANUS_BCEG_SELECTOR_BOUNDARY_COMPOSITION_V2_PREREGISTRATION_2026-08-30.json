@@ -1,0 +1,31 @@
+{
+  "schema":"JANUS/BCEG/SELECTOR-BOUNDARY-COMPOSITION/V2/PREREGISTRATION/v1.0",
+  "date":"2026-08-30",
+  "status":"FROZEN_BEFORE_HOLDOUT_EXECUTION",
+  "parent_result_commit":"2c2384691f2e2b5a77844c149c57174e11daea2a",
+  "target":"Test true cross-language exact composition by hiding two different UNSAT typed systems behind one shared internal selector variable s, requiring discovery of s, exact restriction into both branches, different typed certificates, and elimination of s.",
+  "holdout_seed":"JANUS-BCEG-SELECTOR-COMPOSE-V2-2026-08-30-FROZEN",
+  "pair_families":[
+    {"left":"TSEITIN_PARITY","right":"PIGEONHOLE","scales":[[8,3],[12,4],[16,5],[20,6]]},
+    {"left":"TSEITIN_PARITY","right":"HORN_PEBBLING","scales":[[8,8],[12,16],[16,24],[20,32]]},
+    {"left":"PIGEONHOLE","right":"HORN_PEBBLING","scales":[[3,8],[4,16],[5,24],[6,32]]}
+  ],
+  "variants_per_scale":2,
+  "guard_construction":"Fresh selector s. Left clauses become (-s OR C), active only under s=true. Right clauses become (s OR D), active only under s=false. Variables of left/right components are disjoint before deterministic global obfuscation.",
+  "solver_visibility":"Composition solver receives only canonical CNF and caps; no pair/family labels, original selector id, component boundaries or ground-truth decomposition.",
+  "composition_algorithm":["TRY_DIRECT_TYPED_LANGUAGES","FOR_EACH_VARIABLE_v","RESTRICT_v_TRUE_AND_RUN_TYPED_PORTFOLIO","RESTRICT_v_FALSE_AND_RUN_TYPED_PORTFOLIO","IF_BOTH_BRANCHES_EXACT_UNSAT_CREATE_SELECTOR_SPLIT_CERTIFICATE","ELIMINATE_v_AND_TERMINATE_UNSAT","ELSE_BOUNDED_DP_FALLBACK"],
+  "typed_languages":["GF2_AFFINE","COUNTING_HALL","HORN_CLOSURE"],
+  "accounting":["selector_candidates_tested","branch_restrictions","typed_discovery_checks","typed_certificate_bytes","composition_certificate_bytes","initial_live_boundary","selector_boundary_width","final_live_boundary","dp_resolvents","dp_peak_clause_count","dp_peak_literal_volume"],
+  "dp_caps":{"max_clauses":50000,"max_literal_volume":500000,"max_resolvents":500000},
+  "gates":[
+    {"id":"S1_EXACTNESS","criterion":"100% returned SAT/UNSAT terminals correct."},
+    {"id":"S2_BASE_LANGUAGE_HIDDEN","criterion":">=90% holdout cases are not terminally solved by any direct GF2/Hall/Horn recognizer on the unreduced original CNF."},
+    {"id":"S3_SELECTOR_COMPOSITION_ACTUATION","criterion":">=75% cases terminate through BCEG_SELECTOR_SPLIT."},
+    {"id":"S4_CROSS_LANGUAGE_CERTIFICATE","criterion":"Every selector-split success has two replayable UNSAT branch certificates and the two branch languages differ."},
+    {"id":"S5_REAL_INTERNAL_VARIABLE_ELIMINATION","criterion":"Every selector-split success records selector_boundary_width=1 and final_live_boundary < initial_live_boundary."},
+    {"id":"S6_DISCOVERY_ACCOUNTING","criterion":"Candidate search charges every tested variable and both restrictions; no hidden selector oracle."},
+    {"id":"S7_DP_BLOWUP_ESCAPE_WITNESS","criterion":"At least one case solved by selector composition while bounded DP reaches OPEN_RESOURCE_LIMIT on the same original CNF."},
+    {"id":"S8_UNIVERSAL_LEMMA","criterion":"Remains OPEN; finite width-1 composition cannot prove universal polynomial boundary width."}
+  ],
+  "scientific_boundary":{"P_VS_NP":"OPEN","width_one_selector_success_is_not_arbitrary_CNF_result":true,"branching_over_unbounded_boundary_can_be_exponential":true}
+}
