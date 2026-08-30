@@ -1,0 +1,30 @@
+{
+  "schema":"JANUS/MK_BCEG/R4/PREREGISTRATION/v1.0",
+  "status":"FROZEN_BEFORE_EXECUTION",
+  "date":"2026-08-30",
+  "title":"R4 — HOSTILE PROOF-STATE PORTABILITY",
+  "objective":"Test whether a verified proof-state package preserves semantic authority, receipt lineage, canonical identity and lifecycle accounting after producer context is destroyed, runtime/backend identity changes, receipts are replayed or corrupted, liabilities accumulate, verification scales, representation switches repeat, and the correct result is sometimes refusal.",
+  "substrate":"R3C proof-carrying executable lifecycle packages",
+  "canonical_passport":"Passport_t=(Meaning,Representation,Capabilities,Costs,Debt,Liabilities,Provenance,Receipts)",
+  "authority_law":"AUTHORITY_IS_TRANSITIVE_ONLY_THROUGH_VERIFIED_TRANSITIONS",
+  "receipt_binding":"receipt=f(parent_package_hash,operation,parameters,successor_package_hash,capability_digest,backend_contract_digest,certificate_hash,verifier_identity)",
+  "canonicalization_profile":{"id":"JANUS_CANON_JSON_V1","rule":"UTF-8 JSON with recursively sorted object keys, no insignificant whitespace, ensure_ascii=false; R4 package/certificate payloads forbid floating-point numbers so the profile is deterministic across tested runtimes.","not_claimed":"This profile is not advertised as full RFC 8785 JCS."},
+  "gates":{
+    "R4_A":{"name":"FRESH_PROCESS_AMNESIA","pass":"A verifier running in a fresh job/process with no producer cache accepts frozen package/certificate artifacts solely from serialized inputs and immutable repository verifier code."},
+    "R4_B":{"name":"CROSS_MACHINE_CANONICAL_REPLAY","pass":"Independent runners on at least two OS families recompute the same canonical package hash and exact semantics verdict from the same frozen package artifact."},
+    "R4_C":{"name":"RECEIPT_NECROMANCER","pass":"Valid old receipts fail closed when rebound to a mutated package, parent, operation, parameters, successor, capability digest, backend contract or certificate; stale/replayed receipts cannot authorize a successor."},
+    "R4_D":{"name":"BACKEND_SHIP_OF_THESEUS","pass":"A package produced by backend version B_v remains independently replayable after B_v is no longer the active producer, and a B_(v+1) successor may consume authority only through the verified receipt chain rather than by trusting backend name/version."},
+    "R4_E":{"name":"LIABILITY_BOMB","pass":"Individually bounded small liabilities are accumulated explicitly; once the frozen lifecycle budget is exceeded, materialization is blocked and no per-step-small shortcut is accepted."},
+    "R4_F":{"name":"VERIFICATION_SCALING","pass":"Producer and verifier work are measured separately over a frozen scale ladder. If the exact fallback verifier enumerates 2^n assignments by construction, the result is labeled BACKEND_VERIFICATION_COMPLEXITY_BARRIER rather than promoted to a language theorem."},
+    "R4_G":{"name":"SWITCH_STORM","pass":"A frozen repeated ROBDD<->D_DNNF switch trajectory preserves exact semantics and uninterrupted provenance/receipt lineage while charging every producer and verifier step."},
+    "R4_H":{"name":"CORRECT_REFUSAL","pass":"For a frozen capability trajectory with no theorem/receipt-backed cheap route, planner returns NO_CERTIFIED_CHEAP_ROUTE without UNKNOWN promotion, hidden fallback materialization or external-theorem-as-internal-receipt substitution."}
+  },
+  "scale_ladder":{"pair_counts":[2,3,4,5,6,7,8],"variables":"2*pairs","exact_fallback_assignments":"2^(2*pairs)","classification_rule":"Finite measured data never establishes an asymptotic language theorem; verifier enumeration complexity may be inferred only from the verifier algorithm itself."},
+  "switch_storm":{"steps":6,"pattern":["ROBDD_TO_D_DNNF","D_DNNF_TO_ROBDD_RECOMPILE_EXACT_FALLBACK","ROBDD_TO_D_DNNF","D_DNNF_TO_ROBDD_RECOMPILE_EXACT_FALLBACK","ROBDD_TO_D_DNNF","D_DNNF_TO_ROBDD_RECOMPILE_EXACT_FALLBACK"]},
+  "liability_bomb":{"per_step_upper":2,"steps":64,"frozen_lifecycle_budget":100,"expected_first_block_after_cumulative_upper_exceeds_budget":true},
+  "correct_refusal_case":{"start":"STRUCTURED_D_DNNF","operations":["EXISTS_SINGLE","COUNT"],"expected":"NO_CERTIFIED_CHEAP_ROUTE","reason":"Known exact relaxation to DNNF supports EXISTS but loses the certified COUNT capability; no frozen certified route restores COUNT."},
+  "verdict_taxonomy":["FINITE_HOSTILE_PORTABILITY_SURVIVOR_NOT_THEOREM","REFUTED_PORTABILITY_AUTHORITY","STALE_OR_REPLAYED_RECEIPT","BACKEND_VERIFICATION_COMPLEXITY_BARRIER","LIFECYCLE_BUDGET_EXCEEDED","NO_CERTIFIED_CHEAP_ROUTE"],
+  "forbidden_shortcuts":["TRUST_PRODUCER_CACHE","TRUST_BACKEND_NAME_AS_AUTHORITY","PASS_STRING_ONLY_RECEIPT","HASH_AS_SEMANTIC_PROOF","UNKNOWN_AS_POLY","FREE_VERIFICATION","FREE_SWITCH","FREE_DEBT","PER_STEP_SMALL_IMPLIES_CUMULATIVE_SMALL","EXTERNAL_THEOREM_AS_INTERNAL_RECEIPT","SILENT_FALLBACK_MATERIALIZATION"],
+  "theorem_candidate":"POLYNOMIAL_PORTABLE_CERTIFIED_LIFECYCLE_INTERFACE_LEMMA",
+  "scientific_boundary":{"R4_finite_success_is_universal_theorem":false,"portable_polynomial_verification_proved":false,"SAT_in_P_proved":false,"P_VS_NP":"OPEN","TRUMP_released":false}
+}
