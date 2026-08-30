@@ -1,0 +1,51 @@
+name: MK BCEG R2E Cumulative Switching Monster
+on:
+  push:
+    branches:
+      - research/mk-bceg-r2e-cumulative-switching-monster-2026-08-30
+    paths:
+      - 'research/MK_BCEG_R2E_CUMULATIVE_SWITCHING_MONSTER_PREREGISTRATION_2026-08-30.json'
+      - 'experiments/mk_bceg_r2e_cumulative_switching_monster.py'
+      - '.github/workflows/mk-bceg-r2e-cumulative-switching-monster.yml'
+  workflow_dispatch:
+jobs:
+  r2e:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Verify prereg
+        run: |
+          python - <<'PY'
+          import json
+          d=json.load(open('research/MK_BCEG_R2E_CUMULATIVE_SWITCHING_MONSTER_PREREGISTRATION_2026-08-30.json'))
+          assert d['status']=='FROZEN_BEFORE_EXECUTION'
+          assert d['R2E_B_UNAVOIDABLE_SMALL_SNAPSHOT_MONSTER']['status']=='OPEN_SEARCH_TARGET'
+          assert d['scientific_boundary']['P_VS_NP']=='OPEN'
+          print('R2E_PREREG_FROZEN')
+          PY
+      - name: Run exact poison-switch admission attack
+        run: |
+          mkdir -p artifacts
+          PYTHONPATH=experiments python experiments/mk_bceg_r2e_cumulative_switching_monster.py \
+            --output artifacts/MK_BCEG_R2E_CUMULATIVE_SWITCHING_MONSTER_RESULT_2026-08-30.json \
+            --journal artifacts/MK_BCEG_R2E_CUMULATIVE_SWITCHING_MONSTER_JOURNAL_2026-08-30.jsonl
+      - name: Frozen scientific gate
+        run: |
+          python - <<'PY'
+          import json
+          d=json.load(open('artifacts/MK_BCEG_R2E_CUMULATIVE_SWITCHING_MONSTER_RESULT_2026-08-30.json'))
+          print('VERDICT',d['verdict'],'SUMMARY',d['summary'])
+          assert all(g['passed'] for g in d['gates'])
+          assert d['R2E_B']['status']=='OPEN_SEARCH_TARGET'
+          assert d['post_result_boundary']['P_VS_NP']=='OPEN'
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: mk-bceg-r2e-cumulative-switching-monster
+          path: |
+            artifacts/MK_BCEG_R2E_CUMULATIVE_SWITCHING_MONSTER_RESULT_2026-08-30.json
+            artifacts/MK_BCEG_R2E_CUMULATIVE_SWITCHING_MONSTER_JOURNAL_2026-08-30.jsonl
+          if-no-files-found: error
