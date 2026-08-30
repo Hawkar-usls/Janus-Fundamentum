@@ -1,0 +1,41 @@
+name: JANUS BCEG Factor DAG Compiler v7
+on:
+  push:
+    branches: [research/janus-bceg-factor-dag-compiler-v7-2026-08-30]
+  workflow_dispatch:
+jobs:
+  gate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: '3.11'}
+      - name: prereg
+        run: |
+          python - <<'PY'
+          import json
+          d=json.load(open('research/JANUS_BCEG_FACTOR_DAG_COMPILER_V7_PREREGISTRATION_2026-08-30.json'))
+          assert d['status']=='FROZEN_BEFORE_HOLDOUT_EXECUTION'; assert d['fresh_holdout']['expected_cases']==20; assert d['scientific_boundary']['P_VS_NP']=='OPEN'
+          print('PREREG PASS')
+          PY
+      - name: selftest
+        run: python experiments/janus_bceg_factor_dag_compiler_v7.py --self-test
+      - name: fresh holdout
+        run: |
+          mkdir -p artifacts
+          python experiments/janus_bceg_factor_dag_compiler_v7.py --output artifacts/JANUS_BCEG_FACTOR_DAG_COMPILER_V7_RESULT_2026-08-30.json --journal artifacts/JANUS_BCEG_FACTOR_DAG_COMPILER_V7_JOURNAL_2026-08-30.jsonl
+      - name: integrity
+        run: |
+          python - <<'PY'
+          import json
+          d=json.load(open('artifacts/JANUS_BCEG_FACTOR_DAG_COMPILER_V7_RESULT_2026-08-30.json'))
+          assert d['summary']['cases']==20; assert d['summary']['global_boundary_assignments_enumerated_total']==0; assert d['summary']['P_VS_NP']=='OPEN'; assert d['gates'][-1]['passed'] is False
+          assert all(x['audit_mismatches']==0 for x in d['cases_detail'] if x['factor_success'])
+          print('INTEGRITY PASS')
+          PY
+      - run: sha256sum artifacts/* | tee artifacts/SHA256SUMS.txt
+      - uses: actions/upload-artifact@v4
+        with:
+          name: janus-bceg-factor-dag-compiler-v7
+          path: artifacts/
