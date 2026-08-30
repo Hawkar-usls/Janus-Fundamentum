@@ -1,0 +1,143 @@
+name: C034 Viral Nucleosome Mirror Gate
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/c034-viral-nucleosome-mirror.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  c034:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Execute frozen C034 gate
+        run: |
+          mkdir -p out
+          python - <<'PY'
+          import csv, io, json, math, statistics, urllib.request
+          from itertools import combinations
+          from pathlib import Path
+
+          BASE='https://raw.githubusercontent.com/WereszczynskiGroup/supplemental-data-melo-viral-2025/main/results/Figure2-BP_Unwrapping/entry_exit_DNA'
+          CONDITIONS=['virus_alpha','trunc_euk_alpha','virus_widom','trunc_euk_widom']
+          N=1024
+
+          def corr(a,b):
+              if len(a)!=len(b) or len(a)<2: raise ValueError('correlation length')
+              ma=sum(a)/len(a); mb=sum(b)/len(b)
+              da=[x-ma for x in a]; db=[x-mb for x in b]
+              va=sum(x*x for x in da); vb=sum(x*x for x in db)
+              if va<=0 or vb<=0: raise ValueError('zero variance')
+              return sum(x*y for x,y in zip(da,db))/math.sqrt(va*vb)
+
+          def get_series(condition,side,rep):
+              url=f'{BASE}/{condition}/{side}_unwrapped_{rep}.csv'
+              raw=urllib.request.urlopen(url,timeout=60).read().decode('utf-8-sig')
+              rows=list(csv.reader(io.StringIO(raw)))
+              if len(rows)<N+1: raise ValueError(f'{condition}/{side}/{rep}: fewer than {N} rows')
+              header=rows[0]
+              bp_names=[f'BP{i}' for i in range(1,74)]
+              if not all(x in header for x in bp_names): raise ValueError('missing BP columns')
+              idx=[header.index(x) for x in bp_names]
+              vals=[]
+              for row in rows[1:N+1]:
+                  bp=[float(row[j]) for j in idx]
+                  if any(x not in (0.0,1.0) for x in bp): raise ValueError('nonbinary BP')
+                  vals.append(sum(bp))
+              return vals,url
+
+          rs={}; sources={}
+          for condition in CONDITIONS:
+              rs[condition]=[]; sources[condition]=[]
+              for rep in range(1,5):
+                  e,ue=get_series(condition,'entry',rep)
+                  x,ux=get_series(condition,'exit',rep)
+                  de=[e[i]-e[i-1] for i in range(1,len(e))]
+                  dx=[x[i]-x[i-1] for i in range(1,len(x))]
+                  r=corr(de,dx)
+                  rs[condition].append(r)
+                  sources[condition].append({'replicate':rep,'entry':ue,'exit':ux})
+
+          def median(xs): return statistics.median(xs)
+          def exact_p(v,c):
+              allv=list(v)+list(c); observed=median(v)-median(c)
+              diffs=[]
+              for comb in combinations(range(8),4):
+                  s=set(comb)
+                  a=[allv[i] for i in range(8) if i in s]
+                  b=[allv[i] for i in range(8) if i not in s]
+                  diffs.append(median(a)-median(b))
+              p=sum(d<=observed+1e-15 for d in diffs)/len(diffs)
+              return observed,p,diffs
+
+          da,pa,_=exact_p(rs['virus_alpha'],rs['trunc_euk_alpha'])
+          dw,pw,_=exact_p(rs['virus_widom'],rs['trunc_euk_widom'])
+          ma=median(rs['virus_alpha']); mw=median(rs['virus_widom'])
+          neg_a=sum(r<0 for r in rs['virus_alpha'])
+          neg_w=sum(r<0 for r in rs['virus_widom'])
+          discovery=(ma<=-0.10 and da<=-0.10 and neg_a>=3 and pa<=0.05)
+          replication=(mw<0 and dw<=-0.10 and neg_w>=3 and pw<=0.05)
+          passed=discovery and replication
+
+          first_break={}
+          if passed:
+              for cond in ['virus_alpha','virus_widom']:
+                  first_break[cond]=[]
+                  for rep in range(1,5):
+                      e,_=get_series(cond,'entry',rep); x,_=get_series(cond,'exit',rep)
+                      de=[e[i]-e[i-1] for i in range(1,len(e))]
+                      dx=[x[i]-x[i-1] for i in range(1,len(x))]
+                      checkpoints=list(range(128,1025,128))
+                      cr=[]
+                      for cp in checkpoints:
+                          k=min(cp-1,len(de))
+                          cr.append(corr(de[:k],dx[:k]) if k>=2 else None)
+                      fb=None
+                      for j,(cp,r) in enumerate(zip(checkpoints,cr)):
+                          if r is not None and r<=-0.10 and all(z is not None and z<=-0.10 for z in cr[j:]):
+                              fb=cp; break
+                      first_break[cond].append({'replicate':rep,'checkpoints':checkpoints,'cumulative_r':cr,'first_persistent_row':fb})
+
+          result={
+            'schema':'JANUS/FUNDAMENTUM/C034/EXECUTION-RECEIPT/v1',
+            'prereg':'experiments/C034_VIRAL_NUCLEOSOME_ENTRY_EXIT_MIRROR_COUPLING_PREREG_v1.json',
+            'rows_per_csv':N,
+            'r':rs,
+            'discovery':{'median_viral_alpha':ma,'median_trunc_euk_alpha':median(rs['trunc_euk_alpha']),'effect':da,'viral_negative_count':neg_a,'exact_label_p':pa,'pass':discovery},
+            'replication':{'median_viral_widom':mw,'median_trunc_euk_widom':median(rs['trunc_euk_widom']),'effect':dw,'viral_negative_count':neg_w,'exact_label_p':pw,'pass':replication},
+            'main_gate_pass':passed,
+            'first_break_if_main_pass':first_break,
+            'sources':sources,
+            'claim_ceiling':{'candidate_unreported_dynamical_observable':passed,'scientific_breakthrough':False,'requires_prior_art_and_external_transport':True},
+            'firewalls':['CORRELATION != MECHANISTIC_CAUSATION','SIMULATION != IN_VIVO_PROOF','REPLICATES != INDEPENDENT STUDIES','PRIOR_ART_IS_NOT_OURS']
+          }
+          Path('out/C034_RESULT.json').write_text(json.dumps(result,indent=2,sort_keys=True),encoding='utf-8')
+          print(json.dumps(result,indent=2,sort_keys=True))
+          PY
+      - name: Summary
+        run: |
+          python - <<'PY' >> "$GITHUB_STEP_SUMMARY"
+          import json
+          d=json.load(open('out/C034_RESULT.json'))
+          print('## C034 frozen viral nucleosome mirror gate')
+          print('')
+          print(f"- discovery pass: **{d['discovery']['pass']}**")
+          print(f"- alpha median viral r: `{d['discovery']['median_viral_alpha']:.6f}`; effect: `{d['discovery']['effect']:.6f}`; exact p: `{d['discovery']['exact_label_p']:.6f}`")
+          print(f"- replication pass: **{d['replication']['pass']}**")
+          print(f"- Widom median viral r: `{d['replication']['median_viral_widom']:.6f}`; effect: `{d['replication']['effect']:.6f}`; exact p: `{d['replication']['exact_label_p']:.6f}`")
+          print(f"- MAIN GATE: **{d['main_gate_pass']}**")
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: c034-viral-nucleosome-mirror-result
+          path: out/C034_RESULT.json
+          retention-days: 30
