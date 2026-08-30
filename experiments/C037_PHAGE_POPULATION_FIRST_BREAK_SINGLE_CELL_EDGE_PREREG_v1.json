@@ -1,0 +1,89 @@
+{
+  "schema": "JANUS/FUNDAMENTUM/C037/PHAGE-POPULATION-FIRST-BREAK-SINGLE-CELL-EDGE-PREREG/v1",
+  "status": "FROZEN_BEFORE_TARGET_NUMERIC_EXPOSURE",
+  "created_date": "2026-08-31",
+  "target": {
+    "repository": "mariandm/InferringSingleCellHetereogeneity",
+    "population_file": "Data/TimeseriesVirus.csv",
+    "truth_file": "IntermediateFiles/SingleCellInfections.csv",
+    "metadata_seen_before_freeze": [
+      "TimeseriesVirus: first column sampling time, next four columns independent PFU/ml population replicates",
+      "SingleCellInfections.csv is generated from raw SingleCellData by the published SingleCellInfections.m script",
+      "SingleCellInfections columns by published code: sample_time, replicate_id, successful_plate_count, infected_plate_count, lysed_plate_count",
+      "paper already studies inference of latent-period heterogeneity from population dynamics; that broad claim is prior art and is NOT the C037 claim"
+    ],
+    "numeric_values_seen_before_freeze": false
+  },
+  "janus_prior": [
+    "HIDDEN-003 FIRST_BREAK_LOCALIZATION_GENERALIZES_BEYOND_VISUAL_SCORING",
+    "HIDDEN-002 AMBIGUITY_IS_A_FIRST_CLASS_STATE",
+    "reverse-pattern blind sequential negative preservation",
+    "RETRODICTION != RETROCAUSATION"
+  ],
+  "frozen_claim": {
+    "name": "MODEL_FREE_POPULATION_FIRST_BREAK_LOCATES_EARLY_SINGLE_CELL_LYSIS_EDGE",
+    "statement": "The earliest persistent release-like break in the population free-infectious-particle trajectory, detected without fitting the authors' lytic ODE or a latent-period distribution, localizes the independently measured early edge of the single-cell lysis CDF more accurately than a maximum-slope summary and than the time-reversed trajectory."
+  },
+  "population_parser": {
+    "format": "CSV with header optional; first numeric column time, next exactly four numeric PFU columns; rows sorted by time after parsing",
+    "requirements": ["at least 6 distinct timepoints", "all PFU values finite and >0"],
+    "transform": "Y_r(t)=log10(PFU_r(t))"
+  },
+  "first_break_detector": {
+    "interval_slopes": "s_r[i]=(Y_r[i+1]-Y_r[i])/(t[i+1]-t[i])",
+    "ensemble_slope": "median across four replicate slopes at each interval",
+    "baseline_intervals": "first max(2,floor(0.25*Nintervals)) intervals",
+    "baseline_center": "median ensemble slope over baseline intervals",
+    "baseline_scale": "1.4826*MAD over baseline ensemble slopes; if zero, use 0.05 log10(PFU)/time-unit as fixed floor",
+    "candidate": "earliest post-baseline interval whose ensemble slope exceeds baseline_center+2.5*max(baseline_scale,0.05) AND at least 3/4 replicate slopes are positive",
+    "persistence": "candidate and immediately following interval both satisfy ensemble slope > baseline_center+1.5*max(baseline_scale,0.05) with at least 3/4 positive replicate slopes",
+    "break_time": "right endpoint time of candidate interval",
+    "no_break": "NO_BREAK"
+  },
+  "aggregate_baseline": {
+    "max_slope_time": "right endpoint of interval with maximum ensemble_slope; earliest on ties"
+  },
+  "single_cell_truth": {
+    "per_time_fraction": "pooled across replicate IDs at each sample_time: sum(lysed_plate_count)/sum(infected_plate_count), using only rows with finite counts and denominator>0",
+    "monotone_cdf": "cumulative maximum of the pooled fraction over ascending sample_time",
+    "t10": "earliest sample_time with monotone_cdf >=0.10",
+    "truth_missing": "UNRESOLVED if no t10 exists"
+  },
+  "primary_gate": {
+    "sampling_tolerance": "median positive spacing between adjacent single-cell sample times",
+    "required": [
+      "native first_break exists",
+      "abs(first_break_time-t10) <= sampling_tolerance",
+      "abs(first_break_time-t10) < abs(max_slope_time-t10)"
+    ]
+  },
+  "mirror_control": {
+    "construction": "keep original time grid ascending but reverse each replicate's Y values, then run the identical frozen first-break detector",
+    "requirement": "reversed detector is NO_BREAK OR abs(reverse_break_time-t10) > abs(native_break_time-t10)"
+  },
+  "permutation_null": {
+    "construction": "independently permute each replicate's Y values over the fixed time grid using deterministic SHA256('C037'||replicate||permutation_index||original_index) ordering",
+    "permutations": 10000,
+    "score": "absolute distance from detected break to t10; NO_BREAK receives +infinity",
+    "one_sided_p": "(1 + count(null_distance <= native_distance))/(1+10000)",
+    "requirement": "p<=0.05"
+  },
+  "all_required_for_C037_PASS": true,
+  "claim_ceiling": {
+    "if_pass": "model-free cross-scale boundary-localization signal in this independent experimental bacteriophage dataset",
+    "single_dataset_breakthrough": false,
+    "required_after_pass": [
+      "post-result prior-art killer search specifically for model-free population first-break prediction of single-cell lysis onset",
+      "unchanged transport to a second independently authored lytic-virus/phage dataset with population and orthogonal lysis/release measurements",
+      "negative/control system where no synchronized lytic release boundary is expected"
+    ]
+  },
+  "firewalls": [
+    "AUTHORS_POPULATION_INFERENCE_RESULT != OUR_RESULT",
+    "T10_ALIGNMENT != CAUSATION",
+    "FOUR_PFU_REPLICATES != FOUR_INDEPENDENT STUDIES",
+    "SINGLE_CELL_DERIVED_FILE != INDEPENDENT_AUTHORSHIP_REPLICATION",
+    "TIME_REVERSAL_CONTROL != PHYSICAL_REVERSE_TIME",
+    "PRIOR_ART_IS_NOT_OURS"
+  ]
+}
