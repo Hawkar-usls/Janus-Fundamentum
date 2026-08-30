@@ -1,0 +1,59 @@
+name: MK BCEG R2C Discovery Attack
+on:
+  push:
+    branches:
+      - research/mk-bceg-r2c-discovery-attack-2026-08-30
+    paths:
+      - 'research/MK_BCEG_R2C_DISCOVERY_ATTACK_PREREGISTRATION_2026-08-30.json'
+      - 'experiments/mk_r2c_core.py'
+      - 'experiments/mk_bceg_r2c_discovery_attack.py'
+      - '.github/workflows/mk-bceg-r2c-discovery-attack.yml'
+  workflow_dispatch:
+jobs:
+  r2c:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Verify prereg
+        run: |
+          python - <<'PY'
+          import json
+          d=json.load(open('research/MK_BCEG_R2C_DISCOVERY_ATTACK_PREREGISTRATION_2026-08-30.json'))
+          assert d['status']=='FROZEN_BEFORE_EXECUTION'
+          assert d['scientific_boundary']['P_VS_NP']=='OPEN'
+          assert d['frozen_corpus']['family_label_visible_to_selector'] is False
+          print('R2C_PREREG_FROZEN')
+          PY
+      - name: Run exact R2C discovery attack
+        run: |
+          mkdir -p artifacts
+          PYTHONPATH=experiments python experiments/mk_bceg_r2c_discovery_attack.py \
+            --output artifacts/MK_BCEG_R2C_DISCOVERY_ATTACK_RESULT_2026-08-30.json \
+            --journal artifacts/MK_BCEG_R2C_DISCOVERY_ATTACK_JOURNAL_2026-08-30.jsonl
+      - name: Frozen scientific gate
+        run: |
+          python - <<'PY'
+          import json
+          d=json.load(open('artifacts/MK_BCEG_R2C_DISCOVERY_ATTACK_RESULT_2026-08-30.json'))
+          g={x['gate']:x for x in d['gates']}
+          assert g['G1_NO_ORACLE_LEAKAGE']['passed']
+          assert g['G2_EXACT_SEMANTICS']['passed']
+          assert g['G3_PAIR_DISCOVERY']['passed']
+          assert g['G4_CONTROL_SPECIFICITY']['passed']
+          assert g['G5_ORACLE_ORDER_MATCH']['passed']
+          # G6 is a voting scientific gate and may fail without failing CI.
+          assert g['G7_SCIENTIFIC_BOUNDARY']['passed']
+          assert d['post_result_boundary']['R2D']=='OPEN'
+          assert d['scientific_boundary']['P_VS_NP']=='OPEN'
+          print('VERDICT',d['verdict'],'SUMMARY',d['summary'])
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: mk-bceg-r2c-discovery-attack
+          path: |
+            artifacts/MK_BCEG_R2C_DISCOVERY_ATTACK_RESULT_2026-08-30.json
+            artifacts/MK_BCEG_R2C_DISCOVERY_ATTACK_JOURNAL_2026-08-30.jsonl
+          if-no-files-found: error
