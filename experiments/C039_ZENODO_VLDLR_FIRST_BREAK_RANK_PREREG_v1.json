@@ -1,0 +1,102 @@
+{
+  "schema": "JANUS/FUNDAMENTUM/C039/ZENODO-VLDLR-FIRST-BREAK-RANK-PREREG/v1",
+  "status": "FROZEN_BEFORE_NUMERIC_RMSD_OR_MMGBSA_EXPOSURE",
+  "created_date": "2026-08-31",
+  "target": {
+    "record": "Zenodo 21114056",
+    "doi": "10.5281/zenodo.21114056",
+    "systems": ["CHIKV", "EEEV", "MADV-BRA", "MADV-PAN"],
+    "schema_only_exposure": {
+      "workflow_run": 33339534415,
+      "rmsd": "time_ns plus exactly two RMSD columns in each system",
+      "mmgbsa": "common column r_psp_MMGBSA_dG_Bind present in each system",
+      "numeric_rows_exposed": false
+    }
+  },
+  "preexisting_janus_basis": [
+    "HIDDEN-003 FIRST_BREAK_LOCALIZATION_GENERALIZES_BEYOND_VISUAL_SCORING",
+    "HIDDEN-002 AMBIGUITY_IS_A_FIRST_CLASS_STATE",
+    "reverse-pattern negative-preservation contract",
+    "C030 invalidated before numeric exposure because predictor was underspecified"
+  ],
+  "frozen_hypothesis": {
+    "name": "EARLY_STRUCTURAL_FIRST_BREAK_ORDERS_BINDING_STABILITY",
+    "direction": "larger early structural first-break severity predicts less favorable receptor binding, operationalized as a higher (less negative) median r_psp_MMGBSA_dG_Bind",
+    "scope": "computational receptor-bound viral MD only"
+  },
+  "rmsd_parser": {
+    "file_rule": "one *_rmsd.csv per named system",
+    "columns": "time_ns plus exactly the two remaining numeric RMSD columns; sort by increasing time_ns; require >=100 finite rows and strictly increasing time after duplicate-time rows are collapsed by first occurrence",
+    "missing": "any nonfinite value in the selected three columns => PARSE_FAIL for the whole gate"
+  },
+  "structural_series": {
+    "feature_end": "largest row index with normalized progress u=(t-tmin)/(tmax-tmin) <=0.35",
+    "baseline_end": "largest feature-row index with feature-progress <=0.10; require at least 5 baseline rows",
+    "per_coordinate_standardization": "z_j=(RMSD_j-median_baseline_j)/(1.4826*MAD_baseline_j); if MAD_j=0 use baseline sample SD; if both are zero PARSE_FAIL",
+    "Z": "sqrt(z_1^2+z_2^2)"
+  },
+  "first_break_detector": {
+    "feature_rows": "all rows through feature_end",
+    "persistence_block": "p=max(5,ceil(0.10*N_feature)) rows",
+    "candidate_k": "all k from baseline_count through N_feature-2p inclusive",
+    "sse_rule": "SSE(two constant means split at k) <=0.75*SSE(one constant mean over full feature window)",
+    "baseline_center": "mean Z over baseline rows",
+    "baseline_scale": "sample SD of Z over baseline rows; if zero use 1e-12",
+    "block1_shift": "(mean Z[k:k+p]-baseline_center)/baseline_scale",
+    "block2_shift": "(mean Z[k+p:k+2p]-baseline_center)/baseline_scale",
+    "persistence_rule": "block1_shift and block2_shift have the same nonzero sign and each absolute value >=0.5",
+    "break": "earliest k satisfying sse_rule and persistence_rule",
+    "severity": "absolute block1_shift at the earliest qualifying k",
+    "no_break": "FAIL for the whole C039 gate; do not impute a severity"
+  },
+  "aggregate_baseline": {
+    "scalar": "mean Z over the full feature window"
+  },
+  "mmgbsa_parser": {
+    "file_rule": "corresponding MMGBSA_*_LArepeats-prime-out.csv",
+    "outcome": "median of all finite numeric values in exact column r_psp_MMGBSA_dG_Bind",
+    "minimum_rows": 10,
+    "title_not_used_for_order_or_alignment": true
+  },
+  "primary_test": {
+    "statistic": "Spearman rho across the four systems between first-break severity and median dG_Bind",
+    "required_direction_and_strength": "rho == +1.0 (exact rank concordance 4/4; larger break severity -> higher/less favorable dG_Bind)",
+    "baseline_requirement": "rho(first-break severity,dG_Bind) > rho(aggregate early mean Z,dG_Bind)",
+    "ties": "any tie in severity or dG rank => FAIL"
+  },
+  "exact_outcome_label_null": {
+    "enumeration": "all 4! = 24 permutations of observed dG_Bind labels across the four frozen system severities",
+    "one_sided_p": "fraction of permutations with Spearman rho >= native rho",
+    "requirement": "p <= 1/24"
+  },
+  "reverse_time_control": {
+    "construction": "for each system keep the ascending original time grid but reverse the two RMSD value sequences together, then recompute Z, first-break and severity by identical rules",
+    "requirement": "if reverse produces all four severities without parse/no-break failure, rho(reverse_severity,dG_Bind) must be < native rho; a reverse NO_BREAK in any system counts as control PASS but never as evidence for the native association"
+  },
+  "within_system_order_null": {
+    "construction": "within each system jointly permute the paired two-coordinate RMSD rows over the fixed time grid using SHA256('C039'||system||perm_index||row_index) ordering; preserve paired coordinates and marginal values",
+    "permutations": 1000,
+    "score": "Spearman rho between resulting four severities and fixed dG_Bind labels; a null NO_BREAK receives score -infinity",
+    "requirement": "fraction null scores >= native rho <=0.05"
+  },
+  "C039_PASS": "all four native breaks exist AND primary exact concordance passes AND baseline requirement passes AND exact outcome-label null passes AND reverse control passes AND within-system order null passes",
+  "claim_if_pass": "In this frozen four-system dataset, an early model-free structural first-break severity perfectly orders the later/aggregate MM-GBSA binding-stability endpoint and this ordering depends on native temporal order.",
+  "claim_ceiling": {
+    "method_signal": "allowed on C039_PASS",
+    "new_biological_mechanism": false,
+    "scientific_breakthrough": false,
+    "next_required": [
+      "unchanged external transport to independently authored receptor-bound viral MD data",
+      "post-result prior-art killer sweep for early structural change-point prediction of MM-GBSA rank",
+      "orthogonal/experimental consequence if available"
+    ]
+  },
+  "firewalls": [
+    "FOUR_SYSTEM_RANK_ORDER != GENERAL_LAW",
+    "RELATED_ALPHAVIRUSES != FOUR_INDEPENDENT_STUDIES",
+    "SIMULATION != IN_VIVO_MECHANISM",
+    "MMGBSA != EXPERIMENTAL_BINDING_AFFINITY",
+    "SCHEMA_ONLY_EXPOSURE != NUMERIC_OUTCOME_EXPOSURE",
+    "PRIOR_ART_IS_NOT_OURS"
+  ]
+}
