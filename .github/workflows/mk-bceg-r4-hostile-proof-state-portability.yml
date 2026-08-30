@@ -1,0 +1,208 @@
+name: MK BCEG R4 Hostile Proof-State Portability
+
+on:
+  push:
+    branches:
+      - research/mk-bceg-r4-hostile-proof-state-portability-2026-08-30
+  workflow_dispatch:
+
+jobs:
+  build-frozen-artifacts:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Freeze preregistration and compile R4 programs
+        run: |
+          python - <<'PY'
+          import json
+          p=json.load(open('research/MK_BCEG_R4_HOSTILE_PROOF_STATE_PORTABILITY_PREREGISTRATION_2026-08-30.json'))
+          assert p['status']=='FROZEN_BEFORE_EXECUTION'
+          assert p['title']=='R4 — HOSTILE PROOF-STATE PORTABILITY'
+          assert p['authority_law']=='AUTHORITY_IS_TRANSITIVE_ONLY_THROUGH_VERIFIED_TRANSITIONS'
+          assert p['scientific_boundary']['P_VS_NP']=='OPEN'
+          assert p['scientific_boundary']['SAT_in_P_proved'] is False
+          print('R4_PREREG_FREEZE_OK')
+          PY
+          python -m py_compile \
+            experiments/mk_bceg_r4_producer.py \
+            experiments/mk_bceg_r4_replay_verifier.py \
+            experiments/mk_bceg_r4_hostile_attacks.py \
+            experiments/mk_bceg_r4_verification_scaling.py \
+            experiments/mk_bceg_r4_switch_storm.py \
+            experiments/mk_bceg_r4_audit.py
+          mkdir -p artifacts/r4/base
+      - name: Build base proof-carrying chain across backend versions
+        run: |
+          python experiments/mk_bceg_r4_producer.py seed \
+            --pairs 4 --backend-version 1.0 \
+            --output artifacts/r4/base/package_0.json
+          python experiments/mk_bceg_r4_replay_verifier.py verify-package \
+            --package artifacts/r4/base/package_0.json \
+            --output artifacts/r4/base/receipt_0.json \
+            --verifier-release 1.0
+          python experiments/mk_bceg_r4_producer.py transition \
+            --input artifacts/r4/base/package_0.json \
+            --receipt artifacts/r4/base/receipt_0.json \
+            --operation ASSIGN --var 1 --value true \
+            --backend-version 1.0 \
+            --output artifacts/r4/base/package_1.json \
+            --certificate artifacts/r4/base/cert_1.json
+          python experiments/mk_bceg_r4_replay_verifier.py verify-transition \
+            --input artifacts/r4/base/package_0.json \
+            --parent-receipt artifacts/r4/base/receipt_0.json \
+            --output-package artifacts/r4/base/package_1.json \
+            --certificate artifacts/r4/base/cert_1.json \
+            --receipt artifacts/r4/base/receipt_1.json \
+            --verifier-release 1.0
+          python experiments/mk_bceg_r4_producer.py transition \
+            --input artifacts/r4/base/package_1.json \
+            --receipt artifacts/r4/base/receipt_1.json \
+            --operation ROBDD_TO_D_DNNF \
+            --backend-version 2.0 \
+            --output artifacts/r4/base/package_2.json \
+            --certificate artifacts/r4/base/cert_2.json
+          python experiments/mk_bceg_r4_replay_verifier.py verify-transition \
+            --input artifacts/r4/base/package_1.json \
+            --parent-receipt artifacts/r4/base/receipt_1.json \
+            --output-package artifacts/r4/base/package_2.json \
+            --certificate artifacts/r4/base/cert_2.json \
+            --receipt artifacts/r4/base/receipt_2.json \
+            --verifier-release 1.0
+          python experiments/mk_bceg_r4_producer.py transition \
+            --input artifacts/r4/base/package_2.json \
+            --receipt artifacts/r4/base/receipt_2.json \
+            --operation ASSIGN --var 3 --value false \
+            --backend-version 2.1 \
+            --output artifacts/r4/base/package_3.json \
+            --certificate artifacts/r4/base/cert_3.json
+          python experiments/mk_bceg_r4_replay_verifier.py verify-transition \
+            --input artifacts/r4/base/package_2.json \
+            --parent-receipt artifacts/r4/base/receipt_2.json \
+            --output-package artifacts/r4/base/package_3.json \
+            --certificate artifacts/r4/base/cert_3.json \
+            --receipt artifacts/r4/base/receipt_3.json \
+            --verifier-release 1.0
+      - name: Ship of Theseus old-package replay under new verifier release
+        run: |
+          python experiments/mk_bceg_r4_replay_verifier.py verify-package \
+            --package artifacts/r4/base/package_0.json \
+            --output artifacts/r4/base/old_package_reverify.json \
+            --verifier-release 2.0
+      - name: Receipt Necromancer, liability bomb and correct refusal
+        run: |
+          python experiments/mk_bceg_r4_hostile_attacks.py \
+            --dir artifacts/r4/base \
+            --output artifacts/r4/hostile_result.json
+      - name: Verification scaling ladder
+        run: |
+          python experiments/mk_bceg_r4_verification_scaling.py \
+            --dir artifacts/r4/scaling \
+            --output artifacts/r4/scaling_result.json
+      - name: Repeated representation switch storm
+        run: |
+          python experiments/mk_bceg_r4_switch_storm.py \
+            --dir artifacts/r4/storm \
+            --output artifacts/r4/storm/storm_result.json
+          python experiments/mk_bceg_r4_replay_verifier.py verify-chain \
+            --dir artifacts/r4/storm --steps 6 \
+            --output artifacts/r4/storm/local_chain_replay.json \
+            --verifier-release local-2.0
+      - uses: actions/upload-artifact@v4
+        with:
+          name: r4-frozen-artifacts
+          path: artifacts/r4
+
+  cross-machine-replay:
+    needs: build-frozen-artifacts
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-24.04
+            tag: Linux
+          - os: windows-latest
+            tag: Windows
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/download-artifact@v4
+        with:
+          name: r4-frozen-artifacts
+          path: portable
+      - name: Destroy producer source on Unix verifier host
+        if: runner.os != 'Windows'
+        shell: bash
+        run: |
+          rm experiments/mk_bceg_r4_producer.py
+          rm experiments/mk_bceg_r3c_producer.py
+          test ! -e experiments/mk_bceg_r4_producer.py
+          test ! -e experiments/mk_bceg_r3c_producer.py
+      - name: Destroy producer source on Windows verifier host
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          Remove-Item experiments/mk_bceg_r4_producer.py
+          Remove-Item experiments/mk_bceg_r3c_producer.py
+          if (Test-Path experiments/mk_bceg_r4_producer.py) { throw 'R4 producer survived amnesia' }
+          if (Test-Path experiments/mk_bceg_r3c_producer.py) { throw 'R3C producer dependency survived amnesia' }
+      - name: Fresh-process cross-machine exact chain replay
+        run: |
+          python experiments/mk_bceg_r4_replay_verifier.py verify-chain --dir portable/storm --steps 6 --output cross_${{ matrix.tag }}.json --verifier-release portable-2.0
+      - uses: actions/upload-artifact@v4
+        with:
+          name: r4-cross-${{ matrix.tag }}
+          path: cross_${{ matrix.tag }}.json
+
+  frozen-audit:
+    needs: [build-frozen-artifacts, cross-machine-replay]
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/download-artifact@v4
+        with:
+          name: r4-frozen-artifacts
+          path: audit/r4
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: r4-cross-*
+          path: audit/cross
+          merge-multiple: true
+      - name: Frozen R4 audit
+        run: |
+          mkdir -p artifacts
+          python experiments/mk_bceg_r4_audit.py \
+            --root audit/r4 \
+            --cross-dir audit/cross \
+            --prereg research/MK_BCEG_R4_HOSTILE_PROOF_STATE_PORTABILITY_PREREGISTRATION_2026-08-30.json \
+            --output artifacts/MK_BCEG_R4_HOSTILE_PROOF_STATE_PORTABILITY_RESULT_2026-08-30.json \
+            --journal artifacts/MK_BCEG_R4_HOSTILE_PROOF_STATE_PORTABILITY_JOURNAL_2026-08-30.jsonl
+      - name: Scientific boundary gate
+        run: |
+          python - <<'PY'
+          import json
+          d=json.load(open('artifacts/MK_BCEG_R4_HOSTILE_PROOF_STATE_PORTABILITY_RESULT_2026-08-30.json'))
+          assert all(g['passed'] for g in d['core_gates'])
+          assert d['verdict'] in {
+            'FINITE_HOSTILE_PORTABILITY_CORE_SURVIVOR__RECEIPT_SIGNER_AUTHENTICATION_GAP_OPEN',
+            'FINITE_HOSTILE_PORTABILITY_SURVIVOR_NOT_THEOREM'
+          }
+          assert d['scientific_boundary']['SAT_in_P_proved'] is False
+          assert d['scientific_boundary']['P_VS_NP']=='OPEN'
+          assert d['scientific_boundary']['TRUMP_released'] is False
+          print('R4_VERDICT',d['verdict'])
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: mk-bceg-r4-hostile-proof-state-portability
+          path: |
+            artifacts/MK_BCEG_R4_HOSTILE_PROOF_STATE_PORTABILITY_RESULT_2026-08-30.json
+            artifacts/MK_BCEG_R4_HOSTILE_PROOF_STATE_PORTABILITY_JOURNAL_2026-08-30.jsonl
