@@ -1,0 +1,52 @@
+name: JANUS Einstein Light TOPA Spider 100x
+on:
+  push:
+    branches:
+      - research/janus-einstein-light-topa-spider-100x-2026-08-30
+  workflow_dispatch:
+
+jobs:
+  spiral-100x:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Verify frozen preregistration
+        run: |
+          python - <<'PY'
+          import json
+          d=json.load(open('research/JANUS_EINSTEIN_LIGHT_TOPA_SPIDER_100X_PREREGISTRATION_2026-08-30.json'))
+          assert d['status']=='FROZEN_BEFORE_100X_RESULT_INSPECTION'
+          assert d['passes']==100
+          assert d['scientific_boundary']['P_VS_NP']=='OPEN'
+          print('FROZEN',d['passes'])
+          PY
+      - name: Execute 100x forward reverse spiral
+        run: |
+          mkdir -p artifacts
+          python experiments/shor_arena_v2/janus_einstein_light_topa_spider_100x.py \
+            --output artifacts/JANUS_EINSTEIN_LIGHT_TOPA_SPIDER_100X_RESULT_2026-08-30.json \
+            --journal artifacts/JANUS_EINSTEIN_LIGHT_TOPA_SPIDER_100X_JOURNAL_2026-08-30.jsonl \
+            | tee artifacts/JANUS_EINSTEIN_LIGHT_TOPA_SPIDER_100X_CONSOLE_2026-08-30.txt
+      - name: Integrity gate
+        run: |
+          python - <<'PY'
+          import json
+          r=json.load(open('artifacts/JANUS_EINSTEIN_LIGHT_TOPA_SPIDER_100X_RESULT_2026-08-30.json'))
+          assert r['status']=='COMPLETE'
+          assert r['passes']==100
+          assert len(open('artifacts/JANUS_EINSTEIN_LIGHT_TOPA_SPIDER_100X_JOURNAL_2026-08-30.jsonl').read().splitlines())==100
+          g=r['proof_gate']
+          if g['passed']:
+              assert all(g['checks'].values())
+          else:
+              assert r['scientific_boundary']['P_VS_NP']=='OPEN'
+          print(json.dumps({'top_bridges':r['top_bridges'][:8],'proof_gate':g,'candidate':r['theorem_candidate']['name']},indent=2))
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: janus-einstein-light-topa-spider-100x
+          path: artifacts/
+          if-no-files-found: error
