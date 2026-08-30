@@ -1,0 +1,72 @@
+{
+  "schema": "JANUS/THE_MAGIC_KEY/MK_BCEG_R0_FUTURE_EQUIVALENCE_ARENA/PREREGISTRATION/v1.0",
+  "date": "2026-08-30",
+  "status": "FROZEN_BEFORE_EXECUTION",
+  "branch": "research/mk-bceg-r0-future-equivalence-arena-2026-08-30",
+  "crosslinks": {
+    "magic_key_spec": "Hawkar-usls/janus-meta-registry@87d65442785c5488f9f78f49af4b2e907c0eee4a:research/the_magic_key/bceg_magic_key_typed_proof_state_compiler.v1.json",
+    "bceg_candidate": "Hawkar-usls/Janus-Fundamentum@efe10e82582e548697b009689828bf69f5fa511e:research/JANUS_BOUNDARY_CERTIFICATE_ELIMINATION_GRAMMAR_CANDIDATE_2026-08-30.json"
+  },
+  "research_question": "Can a compact typed MK_FUTURE map distinct reachable CNF proof states into exact future-equivalence classes and be updated from the prior interface plus a local authorized transition without reprocessing the full CNF state?",
+  "critical_distinction": {
+    "MK_ID": "Exact state identity for provenance/replay; equality should imply exact canonical state equality.",
+    "MK_FUTURE": "Correctness-relevant future interface; equality may intentionally merge distinct states iff all authorized future continuations are observationally equivalent."
+  },
+  "future_equivalence": {
+    "notation": "S1 equiv_J S2",
+    "frozen_global_variables": [1,2,3,4],
+    "authorized_transitions": ["ASSIGN(v,false)", "ASSIGN(v,true)", "EXISTS(v)"],
+    "transition_domain": "v in {1,2,3,4}; operations on absent variables are exact no-ops",
+    "observation": "SAT/UNSAT terminal verdict after any finite authorized continuation",
+    "finite_oracle": "Exact truth function over all 2^4 assignments. Equality of the frozen truth function is the evaluation oracle for future-equivalence in R0 only.",
+    "distinguishing_continuation": "For unequal truth functions, emit the lexicographically first complete ASSIGN continuation whose terminal verdicts differ."
+  },
+  "reachable_universe": {
+    "variables": 4,
+    "clause_pool": "All non-tautological width-1 and width-2 clauses over variables 1..4.",
+    "seed_family": "All canonical CNFs containing one or two distinct clauses from the frozen pool.",
+    "closure": "BFS closure under every authorized ASSIGN and EXISTS transition, with exact CNF canonicalization, tautology removal, deduplication and subsumption.",
+    "holdout_policy": "R0 is a finite structural arena, not a generalization claim. No theorem promotion from bounded survival."
+  },
+  "frozen_key_languages": {
+    "MK_STRUCT_V0": {
+      "role": "deliberately lossy structural candidate to test collision detection",
+      "fields": ["syntactic active-variable set", "clause count", "clause-width multiset", "per-variable unsigned polarity-degree multiset"],
+      "authority": "CANDIDATE_ONLY"
+    },
+    "MK_TRUTH_ORACLE": {
+      "role": "evaluation control",
+      "representation": "16-bit exact truth function over variables 1..4",
+      "authority": "R0_ORACLE_ONLY",
+      "complexity_warning": "Exponential in variable count; never a polynomial-interface claim."
+    },
+    "MK_ROBDD_FIXED_ORDER": {
+      "role": "first exact factor-map candidate",
+      "variable_order": [1,2,3,4],
+      "representation": "Reduced ordered binary decision diagram with canonical hash-consed nodes and terminals 0/1.",
+      "update_algebra": ["BDD_RESTRICT for ASSIGN", "BDD_EXISTS implemented as OR of false/true restrictions"],
+      "complexity_warning": "R0 tests exact future semantics and local update congruence only. Universal polynomial ROBDD size/discovery is not assumed and remains OPEN/known-risk."
+    }
+  },
+  "gates": {
+    "G1_COLLISION_DETECTOR": "Every equal-key pair that is not future-equivalent must yield and preserve an exact distinguishing continuation.",
+    "G2_ROBDD_SOUND_MERGE": "No pair with equal MK_ROBDD_FIXED_ORDER may have different exact future truth functions.",
+    "G3_NONTRIVIAL_CERTIFIED_MERGE": "At least one pair of distinct canonical CNF states must share the same exact future interface.",
+    "G4_TRANSITION_CONGRUENCE": "For every reachable state and every authorized transition a, ROBDD(T_a(S)) must equal U_a(ROBDD(S)).",
+    "G5_DECISION_SUFFICIENCY": "Terminal SAT/UNSAT observation must factor through MK_ROBDD_FIXED_ORDER.",
+    "G6_REPLAY_LIFT": "Every distinguishing collision receipt must include source states, key, continuation and replayed terminal verdicts.",
+    "G7_COST_ACCOUNTING": "Record state bytes, key bytes/nodes, discovery work, update work, comparison count and closure transition count; no pointer/hash is free.",
+    "G8_NO_THEOREM_PROMOTION": "Finite survival must never be reported as P=NP, universal polynomiality, or arbitrary-CNF sufficiency."
+  },
+  "verdict_taxonomy": {
+    "per_key": ["REFUTED_FUTURE_INTERFACE_CANDIDATE", "FINITE_SURVIVOR_NOT_THEOREM", "CONTROL_EXACT_NOT_POLYNOMIAL_CLAIM"],
+    "formal_equivalence_status": ["NOT_CERTIFIED", "FINITE_EXACTLY_VERIFIED", "FORMALLY_CERTIFIED_FOR_FROZEN_TRANSITION_SEMANTICS"],
+    "complexity_status": ["NO_POLY_CLAIM", "UNIVERSAL_POLY_BOUND_OPEN"]
+  },
+  "scientific_boundary": {
+    "minimality_required": false,
+    "finite_survival_is_theorem": false,
+    "P_VS_NP": "OPEN",
+    "P_EQUALS_NP_claim_allowed": false
+  }
+}
