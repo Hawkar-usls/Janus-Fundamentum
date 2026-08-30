@@ -1,0 +1,53 @@
+{
+  "experiment_id": "C030_META_REGISTRY_FIRST_BREAK_SCHEMA_BINDING_v1",
+  "parent_prereg_commit": "88fe44a3ea23031134e10fe2ae9dbfc7bc8e8da8",
+  "status": "FROZEN_BEFORE_COMPUTATION__NO_THRESHOLD_CHANGE",
+  "purpose": "Bind external CSV schemas to the already-frozen C030 endpoint without changing its hypothesis, offsets, effect threshold, sign-test threshold, replication tolerance, or interpretation.",
+  "exposure_boundary": {
+    "before_parent_freeze": "No target raw CSV values inspected.",
+    "after_parent_freeze_before_this_binding": "CSV header requests exposed the header plus two exemplar rows for each dataset; no aggregate statistics, matched-pair residuals, FIRST_BREAK values, or threshold tuning were performed.",
+    "consequence": "This binding may resolve column names and deterministic duplicate/zero handling only; it may not alter any scientific threshold."
+  },
+  "primary": {
+    "repo": "gradlab/CtTrajectories",
+    "commit": "f02192d0ad38cb5e1c2009fb16b139166ae99d86",
+    "path": "data/ct_dat_clean.csv",
+    "git_blob_sha": "6e85916e210e4e434631e7d3f7b11398ea1800bf",
+    "subject_column": "Person.ID",
+    "offset_column": "Date.Index",
+    "ct_column": "CT.Mean"
+  },
+  "replication": {
+    "repo": "skissler/CtTrajectories_B117",
+    "commit": "9a5b14eeb01d7c4b26eec80932d28eb3e9349ca1",
+    "path": "data/ct_dat_refined.csv",
+    "git_blob_sha": "14c727f5e7e858635bb1c43bce17032ac4726811",
+    "subject_column": "PersonIDClean",
+    "offset_column": "TestDateIndex",
+    "ct_column": "CtT1"
+  },
+  "deterministic_binding_rules": {
+    "time_match": "Exact numeric equality to integer offsets -d and +d within floating representation tolerance 1e-9; no nearest-neighbor matching and no interpolation in C030.",
+    "duplicate_subject_day": "If multiple finite Ct observations exist for the exact same subject and exact same offset, use their median before mirror pairing.",
+    "finite_values": "Parse numeric finite Ct values only; blank/NA/non-finite values are missing.",
+    "sign_test_zero_residual": "Zero residuals contribute to n_matched and to the median effect but are omitted from the Bernoulli sign count; if all residuals are zero, sign-test p=1.",
+    "sign_test": "Two-sided exact Binomial(n_nonzero,0.5), p=2*min(P[X<=k],P[X>=k]) capped at 1.",
+    "primary_scope": "Use all subjects present in the frozen file; no post-hoc subgroup filtering.",
+    "replication_scope": "Use all subjects present in the frozen file; B117Status is not used for subgroup tuning in C030."
+  },
+  "unchanged_from_parent": {
+    "eligible_offsets_days": [1,2,3,4,5,6,7],
+    "minimum_matched_subjects": 10,
+    "absolute_median_residual_threshold_ct": 1.0,
+    "two_sided_sign_test_threshold": 0.01,
+    "direction_prediction": "median Ct(+d)-Ct(-d) < 0 at the first robust break",
+    "replication_tolerance_days": 2,
+    "no_retuning": true
+  },
+  "firewall": [
+    "SCHEMA_BINDING_IS_NOT_RESULT",
+    "HEADER_EXPOSURE_DOES_NOT_LICENSE_THRESHOLD_CHANGE",
+    "C030_MAY_RETURN_UNKNOWN_IF_EXACT_OFFSET_MATCHING_IS_TOO_SPARSE",
+    "UNKNOWN_MUST_NOT_BE_REPAIRED_POST_HOC_INSIDE_C030"
+  ]
+}
