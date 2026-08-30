@@ -1,0 +1,86 @@
+name: C030 Meta-Registry Viral Mirror First-Break
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'experiments/C030_META_REGISTRY_FIRST_BREAK_VIRAL_TRAJECTORY_PREREG_v1.json'
+      - 'experiments/C030_META_REGISTRY_FIRST_BREAK_SCHEMA_BINDING_v1.json'
+      - 'experiments/c030_meta_registry_first_break.py'
+      - '.github/workflows/c030-meta-registry-first-break.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  c030-first-break:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout exact analysis commit
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Verify frozen preregistration lineage
+        run: |
+          python - <<'PY'
+          import json
+          p=json.load(open('experiments/C030_META_REGISTRY_FIRST_BREAK_VIRAL_TRAJECTORY_PREREG_v1.json'))
+          b=json.load(open('experiments/C030_META_REGISTRY_FIRST_BREAK_SCHEMA_BINDING_v1.json'))
+          assert p['status']=='FROZEN_BEFORE_TARGET_RAW_CSV_INSPECTION'
+          assert b['parent_prereg_commit']=='88fe44a3ea23031134e10fe2ae9dbfc7bc8e8da8'
+          assert b['unchanged_from_parent']['no_retuning'] is True
+          print('C030_FREEZE_LINEAGE=PASS')
+          PY
+
+      - name: Execute frozen mirror first-break endpoint
+        run: |
+          python experiments/c030_meta_registry_first_break.py | tee out.log
+
+      - name: Validate result claim ceiling
+        run: |
+          python - <<'PY'
+          import json
+          d=json.load(open('out/C030_META_REGISTRY_FIRST_BREAK_RESULT.json'))
+          assert d['prereg_commit']=='88fe44a3ea23031134e10fe2ae9dbfc7bc8e8da8'
+          assert d['schema_binding_commit']=='c2f1754931df809185fc1ea8128d879e82232b50'
+          assert d['claim_ceiling']['scientific_breakthrough'] is False
+          assert d['claim_ceiling']['scientific_novelty'] is False
+          print('C030_CLAIM_CEILING=PASS')
+          print(json.dumps({
+            'primary_first_break':d['primary']['first_break'],
+            'replication_first_break':d['replication']['first_break'],
+            'replication_verdict':d['replication_verdict'],
+            'directional_prediction_primary':d['directional_prediction_primary']
+          },sort_keys=True))
+          PY
+
+      - name: Write workflow summary
+        run: |
+          python - <<'PY' >> "$GITHUB_STEP_SUMMARY"
+          import json
+          d=json.load(open('out/C030_META_REGISTRY_FIRST_BREAK_RESULT.json'))
+          print('## C030 Mirror First-Break')
+          print(f"- primary first break: `{d['primary']['first_break']}`")
+          print(f"- replication first break: `{d['replication']['first_break']}`")
+          print(f"- replication verdict: **{d['replication_verdict']}**")
+          print(f"- directional prediction: **{d['directional_prediction_primary']}**")
+          print('- scientific breakthrough: **FALSE by construction pending later gates**')
+          PY
+
+      - name: Upload immutable computation receipt
+        uses: actions/upload-artifact@v4
+        with:
+          name: c030-meta-registry-first-break
+          path: |
+            out/C030_META_REGISTRY_FIRST_BREAK_RESULT.json
+            out.log
+          if-no-files-found: error
+          retention-days: 30
