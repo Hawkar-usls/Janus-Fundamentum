@@ -1,0 +1,27 @@
+{
+  "schema":"JANUS/MK_BCEG/R3B/PREREGISTRATION/v1.0",
+  "status":"FROZEN_BEFORE_EXECUTION",
+  "date":"2026-08-30",
+  "objective":"Test whether JANUS can treat representation packages as exact semantic objects with theorem/receipt-backed operation capabilities, conserved deferred debt, and lifecycle-aware route planning without promoting UNKNOWN to cheap or hiding unsupported operations behind compact syntax.",
+  "package_type":"K_PACKAGE = (L, theta, K, semantics_ref, Gamma_L, paid_costs, debt_ledger, provenance)",
+  "gates":{
+    "R3B_A":{"name":"CAPABILITY_MAP_FREEZE","pass":"Every listed operation has an explicit capability_status and proof_status; UNKNOWN remains first-class; external theorem evidence is not internal receipt authority."},
+    "R3B_B":{"name":"CLOSURE_HARDNESS_KILLER","pass":"For STRUCTURED_D_DNNF + EXISTS_SINGLE, planner must not promise same-language polynomial closure and must return either an exact certified escape route or NO_CERTIFIED_CHEAP_ROUTE."},
+    "R3B_C":{"name":"CAPABILITY_AWARE_ESCAPE","pass":"For trajectories where exact relaxation to DNNF preserves required future operations, planner may use it only after charging translation and preserving provenance; routes that lose a required future capability must be rejected."},
+    "R3B_D":{"name":"DEFERRED_DEBT_ATTACK","pass":"DEFERRED_WITH_DEBT must increase D; UNKNOWN upper bound blocks polynomial lifecycle claim; debt may decrease only with a discharge receipt."},
+    "R3B_E":{"name":"MULTI_OPERATION_PLANNER","pass":"Planner must choose routes by total certified lifecycle status/cost across the frozen trajectory, not by current node count or one-step operation cost. It must allow NO_CERTIFIED_CHEAP_ROUTE as a correct outcome."}
+  },
+  "frozen_trajectories":[
+    {"id":"T1","start":"STRUCTURED_D_DNNF","ops":["COUNT"],"expected_policy":"STAY_IF_POLY_CERTIFIED"},
+    {"id":"T2","start":"STRUCTURED_D_DNNF","ops":["EXISTS_SINGLE"],"expected_policy":"ESCAPE_TO_DNNF_ALLOWED"},
+    {"id":"T3","start":"STRUCTURED_D_DNNF","ops":["EXISTS_SINGLE","COUNT"],"expected_policy":"NO_CERTIFIED_CHEAP_ROUTE_UNLESS_NEW_CERTIFIED_LANGUAGE_EXISTS"},
+    {"id":"T4","start":"ROBDD_FIXED_ORDER","ops":["ASSIGN","COUNT","NOT"],"expected_policy":"STAY_IF_POLY_CERTIFIED"},
+    {"id":"T5","start":"ROBDD_FIXED_ORDER","ops":["EXISTS_SINGLE","COUNT"],"expected_policy":"STAY_IF_POLY_CERTIFIED"},
+    {"id":"T6","start":"ROBDD_FIXED_ORDER","ops":["EXISTS_MULTI"],"expected_policy":"ESCAPE_TO_DNNF_ALLOWED_IF_TRANSLATION_ROUTE_IS_CERTIFIED"}
+  ],
+  "cost_model":{"translate":1,"execute":1,"verify":1,"retype":1,"defer_issue":1,"unknown_upper_bound":"BLOCK_POLY_LIFECYCLE_CLAIM"},
+  "debt_law":"D_next = D_current + D_incurred - D_discharged; every discharge requires replayable receipt.",
+  "forbidden_shortcuts":["UNKNOWN_AS_POLY","EXTERNAL_THEOREM_AS_INTERNAL_RECEIPT","UNSUPPORTED_AS_DEFERRED_WITHOUT_DEBT","NODE_COUNT_ONLY_ROUTE_SELECTION","FREE_TRANSLATION","FREE_VERIFICATION","FREE_DEBT_DISCHARGE","AUXILIARY_STATE_HIDES_PROJECTED_SEMANTICS"],
+  "verdict_taxonomy":["FINITE_CAPABILITY_LIFECYCLE_SURVIVOR_NOT_THEOREM","REFUTED_CAPABILITY_CONTRACT","REFUTED_DEBT_ACCOUNTING","NO_CERTIFIED_CHEAP_ROUTE"],
+  "post_result_boundary":{"universal_polynomial_lifecycle_interface":false,"P_VS_NP":"OPEN"}
+}
