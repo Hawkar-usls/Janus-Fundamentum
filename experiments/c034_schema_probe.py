@@ -6,7 +6,11 @@ import openpyxl
 URL='https://data.caltech.edu/records/0yw13-j0441/files/SARS_CoV_2_extreme_differences_in_viral_loads.xlsx?download=1'
 EXPECTED_MD5='6e6216d751c95b6afb6a7d0d96da6f1a'
 
-with urllib.request.urlopen(URL, timeout=60) as r:
+req=urllib.request.Request(URL, headers={
+    'User-Agent':'Mozilla/5.0 JANUS-C034-public-data-replay/1.0',
+    'Accept':'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/octet-stream;q=0.9,*/*;q=0.1'
+})
+with urllib.request.urlopen(req, timeout=60) as r:
     data=r.read()
 md5=hashlib.md5(data).hexdigest()
 if md5!=EXPECTED_MD5:
