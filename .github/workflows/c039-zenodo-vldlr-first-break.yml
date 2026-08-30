@@ -1,0 +1,214 @@
+name: C039 Zenodo VLDLR First-Break Rank Gate
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/c039-zenodo-vldlr-first-break.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  c039:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Execute frozen C039
+        run: |
+          mkdir -p out
+          python - <<'PY'
+          import csv, hashlib, io, itertools, json, math, statistics, urllib.parse, urllib.request
+          from pathlib import Path
+
+          BASE='https://zenodo.org/records/21114056/files/'
+          SYSTEMS=['CHIKV','EEEV','MADV-BRA','MADV-PAN']
+          RMSD={s:f'{s}_rmsd.csv' for s in SYSTEMS}
+          MM={
+            'CHIKV':'MMGBSA_CHIKV_LArepeats-prime-out.csv',
+            'EEEV':'MMGBSA_EEEV_LArepeats-prime-out.csv',
+            'MADV-BRA':'MMGBSA_MADV-BRA_LArepeats-prime-out.csv',
+            'MADV-PAN':'MMGBSA_MADV-PAN_LArepeats-prime-out.csv'
+          }
+
+          def fetch(name):
+              url=BASE+urllib.parse.quote(name)+'?download=1'
+              req=urllib.request.Request(url,headers={'User-Agent':'JANUS-C039-frozen-executor'})
+              return urllib.request.urlopen(req,timeout=60).read().decode('utf-8-sig'),url
+
+          def median(xs): return statistics.median(xs)
+          def mad(xs):
+              m=median(xs); return median([abs(x-m) for x in xs])
+          def sample_sd(xs):
+              return statistics.stdev(xs) if len(xs)>=2 else 0.0
+          def mean(xs): return sum(xs)/len(xs)
+          def sse(xs):
+              if not xs:return 0.0
+              m=mean(xs); return sum((x-m)**2 for x in xs)
+
+          def avg_ranks(vals):
+              order=sorted(range(len(vals)),key=lambda i: vals[i])
+              ranks=[0.0]*len(vals); i=0
+              while i<len(order):
+                  j=i+1
+                  while j<len(order) and vals[order[j]]==vals[order[i]]: j+=1
+                  r=(i+1+j)/2.0
+                  for k in range(i,j): ranks[order[k]]=r
+                  i=j
+              return ranks
+          def pearson(a,b):
+              ma=mean(a); mb=mean(b)
+              da=[x-ma for x in a]; db=[x-mb for x in b]
+              va=sum(x*x for x in da); vb=sum(x*x for x in db)
+              if va==0 or vb==0:return float('nan')
+              return sum(x*y for x,y in zip(da,db))/math.sqrt(va*vb)
+          def spearman(a,b): return pearson(avg_ranks(a),avg_ranks(b))
+          def has_ties(x): return len(set(x))!=len(x)
+
+          def parse_rmsd(text):
+              rows=list(csv.reader(io.StringIO(text)))
+              if len(rows)<101: raise ValueError('RMSD fewer than 100 data rows')
+              header=rows[0]
+              if len(header)!=3 or header[0]!='time_ns': raise ValueError(f'unexpected RMSD header {header}')
+              vals=[]; seen=set()
+              for row in rows[1:]:
+                  if len(row)<3: continue
+                  try:t=float(row[0]); a=float(row[1]); b=float(row[2])
+                  except: raise ValueError('nonfinite/non-numeric RMSD row')
+                  if not all(math.isfinite(x) for x in (t,a,b)): raise ValueError('nonfinite RMSD')
+                  if t in seen: continue
+                  seen.add(t); vals.append((t,a,b))
+              vals.sort()
+              if len(vals)<100 or any(vals[i][0]>=vals[i+1][0] for i in range(len(vals)-1)): raise ValueError('bad time order')
+              return vals,header
+
+          def feature_result(vals, reverse=False, perm=None):
+              t=[x[0] for x in vals]; a=[x[1] for x in vals]; b=[x[2] for x in vals]
+              if reverse:
+                  a=list(reversed(a)); b=list(reversed(b))
+              if perm is not None:
+                  a=[a[i] for i in perm]; b=[b[i] for i in perm]
+              u=[(x-t[0])/(t[-1]-t[0]) for x in t]
+              fi=[i for i,x in enumerate(u) if x<=0.35]
+              nf=len(fi)
+              if nf<20: raise ValueError('too few feature rows')
+              tf=t[nf-1]
+              fp=[(t[i]-t[0])/(tf-t[0]) if tf>t[0] else 0 for i in range(nf)]
+              base=[i for i,x in enumerate(fp) if x<=0.10]
+              nb=len(base)
+              if nb<5: raise ValueError('too few baseline rows')
+              za=[]; zb=[]
+              for arr,out in ((a,za),(b,zb)):
+                  bv=[arr[i] for i in base]
+                  med=median(bv); sc=1.4826*mad(bv)
+                  if sc==0: sc=sample_sd(bv)
+                  if sc==0: raise ValueError('zero coordinate baseline scale')
+                  out.extend([(arr[i]-med)/sc for i in range(nf)])
+              Z=[math.sqrt(x*x+y*y) for x,y in zip(za,zb)]
+              baseZ=Z[:nb]; bc=mean(baseZ); bs=sample_sd(baseZ) or 1e-12
+              p=max(5,math.ceil(0.10*nf))
+              sse1=sse(Z)
+              if sse1==0: return {'break':None,'severity':None,'aggregate':mean(Z),'nf':nf,'nb':nb,'p':p}
+              br=None
+              for k in range(nb,nf-2*p+1):
+                  sse2=sse(Z[:k])+sse(Z[k:])
+                  if sse2>0.75*sse1: continue
+                  sh1=(mean(Z[k:k+p])-bc)/bs
+                  sh2=(mean(Z[k+p:k+2*p])-bc)/bs
+                  if sh1==0 or sh2==0 or sh1*sh2<=0: continue
+                  if abs(sh1)<0.5 or abs(sh2)<0.5: continue
+                  br={'k':k,'u':u[k],'shift1':sh1,'shift2':sh2,'sse_ratio':sse2/sse1}
+                  return {'break':br,'severity':abs(sh1),'aggregate':mean(Z),'nf':nf,'nb':nb,'p':p}
+              return {'break':None,'severity':None,'aggregate':mean(Z),'nf':nf,'nb':nb,'p':p}
+
+          rmsd={}; headers={}; urls={}
+          for s in SYSTEMS:
+              text,url=fetch(RMSD[s]); urls[RMSD[s]]=url
+              rmsd[s],headers[s]=parse_rmsd(text)
+
+          dg={}
+          for s in SYSTEMS:
+              text,url=fetch(MM[s]); urls[MM[s]]=url
+              rows=list(csv.DictReader(io.StringIO(text)))
+              col='r_psp_MMGBSA_dG_Bind'
+              if not rows or col not in rows[0]: raise ValueError('missing dG_Bind')
+              xs=[]
+              for r in rows:
+                  try:x=float(r[col])
+                  except: continue
+                  if math.isfinite(x):xs.append(x)
+              if len(xs)<10: raise ValueError('fewer than 10 finite MMGBSA rows')
+              dg[s]=median(xs)
+
+          native={s:feature_result(rmsd[s]) for s in SYSTEMS}
+          native_all=all(native[s]['severity'] is not None for s in SYSTEMS)
+          sever=[native[s]['severity'] for s in SYSTEMS] if native_all else []
+          agg=[native[s]['aggregate'] for s in SYSTEMS]
+          dgs=[dg[s] for s in SYSTEMS]
+          tie_fail=(not native_all) or has_ties(sever) or has_ties(dgs)
+          rho_native=spearman(sever,dgs) if not tie_fail else float('nan')
+          rho_base=spearman(agg,dgs)
+          primary=(not tie_fail and abs(rho_native-1.0)<1e-12 and rho_native>rho_base)
+
+          perm_rhos=[]
+          if not tie_fail:
+              for perm in itertools.permutations(dgs): perm_rhos.append(spearman(sever,list(perm)))
+              label_p=sum(r>=rho_native-1e-12 for r in perm_rhos)/len(perm_rhos)
+          else: label_p=1.0
+          label_pass=label_p<=1/24+1e-15
+
+          rev={s:feature_result(rmsd[s],reverse=True) for s in SYSTEMS}
+          if any(rev[s]['severity'] is None for s in SYSTEMS):
+              rev_rho=None; rev_pass=True
+          else:
+              rev_rho=spearman([rev[s]['severity'] for s in SYSTEMS],dgs)
+              rev_pass=rev_rho<rho_native-1e-12 if math.isfinite(rho_native) else False
+
+          null_scores=[]
+          for pi in range(1000):
+              ns=[]; ok=True
+              for s in SYSTEMS:
+                  n=len(rmsd[s])
+                  order=sorted(range(n),key=lambda i: hashlib.sha256(f'C039|{s}|{pi}|{i}'.encode()).digest())
+                  fr=feature_result(rmsd[s],perm=order)
+                  if fr['severity'] is None: ok=False; break
+                  ns.append(fr['severity'])
+              null_scores.append(spearman(ns,dgs) if ok and not has_ties(ns) else float('-inf'))
+          null_fraction=sum(r>=rho_native-1e-12 for r in null_scores)/1000 if math.isfinite(rho_native) else 1.0
+          order_null_pass=null_fraction<=0.05
+
+          passed=(native_all and primary and label_pass and rev_pass and order_null_pass)
+          result={
+            'schema':'JANUS/FUNDAMENTUM/C039/EXECUTION-RECEIPT/v1',
+            'prereg':'experiments/C039_ZENODO_VLDLR_FIRST_BREAK_RANK_PREREG_v1.json',
+            'systems':SYSTEMS,
+            'native':native,
+            'median_dG_Bind':dg,
+            'severity_order':[{'system':s,'severity':native[s]['severity'],'dG':dg[s]} for s in SYSTEMS],
+            'rho_native':rho_native,'rho_aggregate_baseline':rho_base,
+            'primary_pass':primary,'ties_or_no_break_fail':tie_fail,
+            'outcome_label_exact_p':label_p,'outcome_label_pass':label_pass,
+            'reverse':rev,'reverse_rho':rev_rho,'reverse_pass':rev_pass,
+            'within_order_null_fraction_ge_native':null_fraction,
+            'within_order_null_pass':order_null_pass,
+            'within_order_null_score_counts':{
+              '-inf':sum(x==float('-inf') for x in null_scores),
+              'rho_ge_native':sum(x>=rho_native-1e-12 for x in null_scores) if math.isfinite(rho_native) else 1000
+            },
+            'C039_PASS':passed,
+            'source_urls':urls,
+            'claim_ceiling':{'method_signal':passed,'scientific_breakthrough':False,'requires_external_transport_and_prior_art':True}
+          }
+          Path('out/C039_RESULT.json').write_text(json.dumps(result,indent=2,sort_keys=True,allow_nan=True),encoding='utf-8')
+          print(json.dumps(result,indent=2,sort_keys=True,allow_nan=True))
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: c039-zenodo-vldlr-first-break-result
+          path: out/C039_RESULT.json
+          retention-days: 30
