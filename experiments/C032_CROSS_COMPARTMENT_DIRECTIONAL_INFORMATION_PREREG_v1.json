@@ -1,0 +1,93 @@
+{
+  "experiment_id": "C032_CROSS_COMPARTMENT_DIRECTIONAL_INFORMATION_PREREG_v1",
+  "status": "FROZEN_BEFORE_CROSS_COMPARTMENT_COMPUTATION",
+  "created_date": "2026-08-31",
+  "scope": "Non-operational computational analysis of already-public longitudinal SARS-CoV-2 measurements. No pathogen engineering, wet-lab protocol, clinical recommendation, or treatment claim.",
+  "meta_registry_transfer": {
+    "operators": [
+      "HIDDEN-004_MEASURE_OR_EXTRACT_BEFORE_ROLE_ASSIGNMENT",
+      "MIRROR_DIRECTIONAL_COMPARISON",
+      "AMBIGUITY_IS_A_FIRST_CLASS_STATE",
+      "DIVERGENT_PASTS_ARE_PRESERVED_NOT_AVERAGED"
+    ],
+    "principle": "Measure both directional successor-information channels under one frozen rule before deciding which compartment, if either, acts as a useful leading coordinate."
+  },
+  "target": {
+    "repository": "BROOKELAB/Viral-dynamics-modeling",
+    "commit": "8d71ca82ac453a4b3c3c13d61a7174fbed4bdf8d",
+    "path": "Data/data_samples.csv",
+    "git_blob_sha": "a4b5cd9e06af494c859f9fefab194a703500af01"
+  },
+  "exposure_boundary": {
+    "already_known": [
+      "dataset schema and source non-detection codes",
+      "C031 results for adding culture time-to-positivity to next-day nasal/saliva prediction"
+    ],
+    "not_computed_before_this_freeze": [
+      "saliva-to-nasal next-day incremental prediction",
+      "nasal-to-saliva next-day incremental prediction",
+      "directional gain gap",
+      "cross-feature permutation nulls"
+    ],
+    "rule": "C031 culture-state results may not be used as a feature or tuning signal in C032."
+  },
+  "shared_endpoint": {
+    "unit": "subject-day t -> t+1",
+    "eligibility": [
+      "unique subject-Time key at t and t+1",
+      "finite current and next-day Nasal_CN with both <48",
+      "finite current and next-day Saliva_Ct with both <47",
+      "exact one-day successor only; no interpolation",
+      "no filtering by lineage, age, antigen, culture, Index or post-hoc subgroup"
+    ],
+    "cross_validation": "leave-one-subject-out ordinary least squares using numpy.linalg.lstsq; pooled held-out MAE",
+    "ambiguous_duplicate_rule": "exclude duplicate subject-Time keys rather than averaging"
+  },
+  "direction_S_to_N": {
+    "outcome": "delta_nasal = Nasal_CN(t+1)-Nasal_CN(t)",
+    "baseline": "delta_nasal ~ intercept + current_Nasal_CN + Time",
+    "enriched": "baseline + current_Saliva_Ct",
+    "gain": "G_SN=(MAE_baseline-MAE_enriched)/MAE_baseline"
+  },
+  "direction_N_to_S": {
+    "outcome": "delta_saliva = Saliva_Ct(t+1)-Saliva_Ct(t)",
+    "baseline": "delta_saliva ~ intercept + current_Saliva_Ct + Time",
+    "enriched": "baseline + current_Nasal_CN",
+    "gain": "G_NS=(MAE_baseline-MAE_enriched)/MAE_baseline"
+  },
+  "primary_hypothesis": {
+    "statement": "The two compartments are directionally non-equivalent at successor prediction: current saliva carries materially more information about next-day nasal change than current nasal carries about next-day saliva change.",
+    "prediction": "G_SN >= 0.10, permutation p_SN <= 0.01, and G_SN-G_NS >= 0.05.",
+    "anti_cherry_pick": "Both directions are always reported. A strong N->S result with weak S->N is a directional MISS, not relabeled success."
+  },
+  "nulls": {
+    "iterations": 1000,
+    "seed_SN": 32032,
+    "seed_NS": 32033,
+    "SN": "globally permute current Saliva_Ct across frozen eligible transitions, rerun identical LOSO enriched model",
+    "NS": "globally permute current Nasal_CN across frozen eligible transitions, rerun identical LOSO enriched model",
+    "p": "(1+count(null_gain>=observed_gain))/1001"
+  },
+  "frozen_terminal": {
+    "PASS": "n>=30 transitions and >=10 subjects; G_SN>=0.10; p_SN<=0.01; G_SN-G_NS>=0.05; and the enriched S->N model improves MAE.",
+    "FAIL": "G_SN<=0; or p_SN>0.05; or G_SN-G_NS<=0; or a clearly opposite N->S dominance satisfies the same material-effect logic.",
+    "EVIDENCE_INSUFFICIENT": "eligibility below minimum or intermediate values that meet neither PASS nor FAIL."
+  },
+  "causal_firewalls": [
+    "DIRECTIONAL_PREDICTIVE_INFORMATION_IS_NOT_PHYSICAL_CAUSATION",
+    "TIME_IS_SUCCESSOR_ORDER_AND_PHASE_COORDINATE_NOT_ANTIVIRAL_FORCE",
+    "SAME_COHORT_TWO_MODALITIES_ARE_NOT_INDEPENDENT_REPLICATION",
+    "SHARED_HOST_DYNAMICS_CAN_CAUSE_BOTH_MODALITIES",
+    "SELECTION_ON_COMPLETE_TWO_MODALITY_PAIRS_CAN_BIAS_SCOPE"
+  ],
+  "breakthrough_ceiling": {
+    "C032_alone_can_set_breakthrough": false,
+    "if_PASS": [
+      "post-result exact prior-art killer search",
+      "independent cohort replication without retuning",
+      "material consequence demonstration",
+      "negative/null control receipt",
+      "replayable provenance"
+    ]
+  }
+}
