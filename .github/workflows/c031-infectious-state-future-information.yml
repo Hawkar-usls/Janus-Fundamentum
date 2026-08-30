@@ -1,0 +1,91 @@
+name: C031 Infectious-State Future Information Gain
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'experiments/C031_INFECTIOUS_STATE_FUTURE_INFORMATION_GAIN_PREREG_v1.json'
+      - 'experiments/C031_INFECTIOUS_STATE_FUTURE_INFORMATION_GAIN_SCHEMA_BINDING_v1.json'
+      - 'experiments/c031_infectious_state_future_information_gain.py'
+      - '.github/workflows/c031-infectious-state-future-information.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  c031-future-information:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout exact analysis commit
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install pinned numerical dependency
+        run: python -m pip install --disable-pip-version-check numpy==2.3.2
+
+      - name: Verify frozen C031 lineage
+        run: |
+          python - <<'PY'
+          import json
+          p=json.load(open('experiments/C031_INFECTIOUS_STATE_FUTURE_INFORMATION_GAIN_PREREG_v1.json'))
+          b=json.load(open('experiments/C031_INFECTIOUS_STATE_FUTURE_INFORMATION_GAIN_SCHEMA_BINDING_v1.json'))
+          assert p['status']=='FROZEN_BEFORE_PREDICTIVE_COMPUTATION'
+          assert b['parent_prereg_commit']=='f4a85baaa4de6433947649dddae0650863a26fea'
+          assert b['unchanged_from_parent']['no_retuning'] is True
+          print('C031_FREEZE_LINEAGE=PASS')
+          PY
+
+      - name: Execute frozen future-information endpoint
+        run: python experiments/c031_infectious_state_future_information_gain.py | tee out.log
+
+      - name: Validate claim ceiling and emit compact receipt
+        run: |
+          python - <<'PY'
+          import json
+          d=json.load(open('out/C031_INFECTIOUS_STATE_FUTURE_INFORMATION_GAIN_RESULT.json'))
+          assert d['prereg_commit']=='f4a85baaa4de6433947649dddae0650863a26fea'
+          assert d['schema_binding_commit']=='0a2272e6c6e67333436773d9e64116a1592fb146'
+          assert d['claim_ceiling']['scientific_breakthrough'] is False
+          assert d['claim_ceiling']['scientific_novelty'] is False
+          assert d['claim_ceiling']['independent_replication'] is False
+          print('C031_CLAIM_CEILING=PASS')
+          print(json.dumps({
+            'primary': {k:d['primary_nasal_endpoint'].get(k) for k in ['terminal','eligibility','MAE_A','MAE_B','relative_MAE_gain','permutation_p']},
+            'secondary': {k:d['secondary_saliva_endpoint'].get(k) for k in ['terminal','eligibility','MAE_A','MAE_B','relative_MAE_gain','permutation_p']},
+            'ambiguous_subject_time_keys': d['row_binding']['ambiguous_subject_time_keys']
+          }, sort_keys=True))
+          PY
+
+      - name: Write summary
+        run: |
+          python - <<'PY' >> "$GITHUB_STEP_SUMMARY"
+          import json
+          d=json.load(open('out/C031_INFECTIOUS_STATE_FUTURE_INFORMATION_GAIN_RESULT.json'))
+          p=d['primary_nasal_endpoint']; s=d['secondary_saliva_endpoint']
+          print('## C031 Infectious-State Future Information Gain')
+          print(f"- primary nasal terminal: **{p.get('terminal')}**")
+          print(f"- primary gain: `{p.get('relative_MAE_gain')}`")
+          print(f"- primary permutation p: `{p.get('permutation_p')}`")
+          print(f"- primary eligibility: `{p.get('eligibility')}`")
+          print(f"- secondary saliva terminal: **{s.get('terminal')}**")
+          print(f"- secondary gain: `{s.get('relative_MAE_gain')}`")
+          print(f"- scientific breakthrough: **FALSE pending novelty + independent replication**")
+          PY
+
+      - name: Upload computation receipt
+        uses: actions/upload-artifact@v4
+        with:
+          name: c031-infectious-state-future-information
+          path: |
+            out/C031_INFECTIOUS_STATE_FUTURE_INFORMATION_GAIN_RESULT.json
+            out.log
+          if-no-files-found: error
+          retention-days: 30
