@@ -1,0 +1,57 @@
+name: MK BCEG R3C-W v1.2 Typed Path Separation
+
+on:
+  push:
+    branches:
+      - research/mk-bceg-r3c-w-v1-2-typed-path-separation-2026-08-30
+  workflow_dispatch:
+
+jobs:
+  r3c_w_v1_2:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Verify original prereg and v1.2 freeze
+        run: |
+          python - <<'PY'
+          import json
+          p=json.load(open('research/MK_BCEG_R3C_W_CHOICE_PRESERVING_HUMAN_AUTHORITY_PREREGISTRATION_2026-08-30.json'))
+          q=json.load(open('research/MK_BCEG_R3C_W_V1_2_TYPED_PATH_SEPARATION_FREEZE_2026-08-30.json'))
+          assert p['status']=='FROZEN_BEFORE_EXECUTION'
+          assert q['status']=='FROZEN_BEFORE_V1_2_EXECUTION'
+          assert q['G1_operationalization']['law']=='SAME_FIELD_TOKEN != SAME_SEMANTIC_NAMESPACE; KEY != PATH+TYPE'
+          assert q['scientific_boundary']['P_VS_NP']=='OPEN'
+          print('R3C_W_V1_2_FREEZE_OK')
+          PY
+      - name: Run typed-path and counterfactual-independence gate
+        run: |
+          mkdir -p artifacts
+          PYTHONPATH=experiments python experiments/mk_bceg_r3c_w_choice_preserving_human_authority_v1_2.py \
+            --output artifacts/MK_BCEG_R3C_W_V1_2_RESULT_2026-08-30.json \
+            --journal artifacts/MK_BCEG_R3C_W_V1_2_JOURNAL_2026-08-30.jsonl
+      - name: Frozen scientific gate
+        run: |
+          python - <<'PY'
+          import json
+          d=json.load(open('artifacts/MK_BCEG_R3C_W_V1_2_RESULT_2026-08-30.json'))
+          print('R3C_W_V1_2_VERDICT',d['verdict'],d['summary'],d['gates'])
+          assert d['verdict']=='FINITE_CHOICE_PRESERVING_AUTHORITY_GATE_SURVIVOR_NOT_THEOREM'
+          assert all(d['gates'].values())
+          assert d['summary']['cases']==15
+          assert d['summary']['expected_terminals_matched']==15
+          assert d['scientific_boundary']['finite_policy_gate_is_alignment_theorem'] is False
+          assert d['scientific_boundary']['TRUMP_finished'] is False
+          assert d['scientific_boundary']['P_VS_NP']=='OPEN'
+          PY
+      - name: Upload immutable evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: mk-bceg-r3c-w-v1-2-typed-path-separation
+          path: |
+            artifacts/MK_BCEG_R3C_W_V1_2_RESULT_2026-08-30.json
+            artifacts/MK_BCEG_R3C_W_V1_2_JOURNAL_2026-08-30.jsonl
+          if-no-files-found: warn
