@@ -1,0 +1,45 @@
+{
+  "schema":"JANUS/THE_MAGIC_KEY/MK_BCEG_R2C_DISCOVERY_ATTACK/PREREG/v1.0",
+  "status":"FROZEN_BEFORE_EXECUTION",
+  "date":"2026-08-30",
+  "parent_R2AB_result_commit":"5f63dc6d5a461955e07c50dd5ba3ac17f5efdd29",
+  "objective":"Test whether JANUS can discover a useful exact OBDD ordering package from opaque frozen CNF structure without family labels or semantic oracle access, while charging detection and structure-selection work and comparing against an oracle-best candidate order only for evaluation.",
+  "scope_boundary":"R2C tests REPRESENTATION_DISCOVERY inside one exact language (OBDD). Cross-language switching remains R2D; cumulative switching remains R2E.",
+  "frozen_corpus":{
+    "namespace":"JANUS-MK-BCEG-R2C-DISCOVERY-2026-08-30-A",
+    "families":[
+      "RENAMED_EQ_PAIR: conjunction of hidden variable-pair equivalences encoded as two 2-clauses per pair",
+      "RENAMED_XOR_PAIR: conjunction of hidden variable-pair inequalities encoded as two 2-clauses per pair",
+      "MATCHED_RANDOM_2CNF_CONTROL: same variable/clause counts, deterministic random non-tautological 2-CNF"
+    ],
+    "m_values":[6,8,10,12,14],
+    "instances_per_family_per_m":2,
+    "family_label_visible_to_selector":false,
+    "variable_names":"deterministically permuted integer ids; original pair ordering hidden from selector"
+  },
+  "candidate_structures":{
+    "NUMERIC_ORDER":"ascending variable id",
+    "DEGREE_ORDER":"ascending occurrence degree then variable id",
+    "PAIR_GRAPH_ORDER":"scan the opaque 2-CNF co-occurrence/signature graph; when a disjoint two-variable component is encoded by complementary clause-pairs, emit its variables adjacent; unmatched variables append deterministically"
+  },
+  "JANUS_selector":{
+    "input":"opaque canonical CNF only",
+    "forbidden":["family label","truth table","satisfying assignment","oracle-best order","original variable pairing before renaming"],
+    "policy":"If pair-signature detector certifies a complete disjoint pair decomposition covering all variables, choose PAIR_GRAPH_ORDER; otherwise choose DEGREE_ORDER. NUMERIC_ORDER is retained as baseline, not selector default.",
+    "charged_work":["literal scans","pair-map insert/lookups","signature comparisons","candidate-order construction"]
+  },
+  "oracle_evaluation":"Compile the same CNF under every frozen candidate structure and take the smallest exact OBDD node count. Oracle-best never enters selector state.",
+  "cost_metric":"C_discovered = detection_work + structure_selection_work + exact_OBDD_compile_nodes; compare against C_oracle_nodes for evaluation, while keeping detection cost explicit rather than erased.",
+  "gates":{
+    "G1_NO_ORACLE_LEAKAGE":"selector receives only CNF and deterministic namespace-independent code path",
+    "G2_EXACT_SEMANTICS":"all compiled OBDDs agree with CNF semantics on exhaustive truth assignments for m<=8 and via exact residual-CNF compiler identity thereafter",
+    "G3_PAIR_DISCOVERY":"100% of RENAMED_EQ_PAIR and RENAMED_XOR_PAIR instances receive certified complete pair decomposition",
+    "G4_CONTROL_SPECIFICITY":"MATCHED_RANDOM_2CNF_CONTROL is not falsely certified as complete pair decomposition on more than 20% of controls",
+    "G5_ORACLE_ORDER_MATCH":"JANUS selected order has the same OBDD node count as oracle-best candidate on at least 90% of pair-family instances",
+    "G6_PAID_REGRET":"median (detection_work + selected_nodes) / oracle_best_nodes <= 1.50 on pair-family instances; this is finite accounting, not an asymptotic theorem",
+    "G7_SCIENTIFIC_BOUNDARY":"R2C cannot claim universal order discovery, cross-language portfolio success or P=NP"
+  },
+  "verdict_taxonomy":["FINITE_DISCOVERY_SURVIVOR_NOT_THEOREM","REFUTED_REPRESENTATION_DISCOVERY_POLICY","UNKNOWN_RESOURCE_LIMIT"],
+  "journal_rule":"Append every detector decision, false positive/negative, oracle comparison, detection work, OBDD compile size, first regret outlier and post-result lesson. Do not rewrite R2AB negative result.",
+  "scientific_boundary":{"P_VS_NP":"OPEN","cross_language_switching_tested":false,"universal_polynomial_representation_discovery_proved":false}
+}
