@@ -1,0 +1,54 @@
+name: JANUS UFK v1 Fresh Blind Factor Gate
+on:
+  push:
+    branches:
+      - research/janus-ufk-v1-fresh-blind-factor-gate-2026-08-30
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  frozen-blind-gate:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Verify frozen preregistration
+        run: |
+          python - <<'PY'
+          import json
+          p='research/JANUS_UFK_V1_FRESH_BLIND_FACTOR_GATE_PREREGISTRATION_2026-08-30.json'
+          d=json.load(open(p))
+          print(d['status'], d['blind_design']['total_cases'])
+          assert d['status']=='FROZEN_BEFORE_OUTCOME_INSPECTION'
+          assert d['blind_design']['total_cases']==30
+          assert d['scientific_boundary']['P_VS_NP']=='OPEN'
+          PY
+      - name: Self tests
+        run: |
+          mkdir -p artifacts
+          python experiments/shor_arena_v2/janus_ufk_v1_fresh_blind_factor_gate.py --self-test-only --output artifacts/unused.json
+      - name: Execute frozen 30-case gate
+        run: |
+          python experiments/shor_arena_v2/janus_ufk_v1_fresh_blind_factor_gate.py --output artifacts/JANUS_UFK_V1_FRESH_BLIND_FACTOR_GATE_RESULT_2026-08-30.json | tee artifacts/JANUS_UFK_V1_FRESH_BLIND_FACTOR_GATE_CONSOLE_2026-08-30.txt
+      - name: Integrity gate
+        run: |
+          python - <<'PY'
+          import json
+          p='artifacts/JANUS_UFK_V1_FRESH_BLIND_FACTOR_GATE_RESULT_2026-08-30.json'
+          d=json.load(open(p))
+          print(json.dumps(d['summary'],indent=2))
+          print(json.dumps(d['gates'],indent=2))
+          assert d['status']=='COMPLETE'
+          assert d['summary']['cases']==30
+          assert d['gates'][0]['passed']
+          assert d['scientific_boundary']['polynomial_time_factoring'] is False
+          assert d['scientific_boundary']['P_VS_NP']=='OPEN'
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: janus-ufk-v1-fresh-blind-factor-gate
+          path: artifacts/
+          if-no-files-found: error
