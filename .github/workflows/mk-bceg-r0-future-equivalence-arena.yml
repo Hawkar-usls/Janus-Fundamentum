@@ -1,0 +1,60 @@
+name: MK BCEG R0 Future Equivalence Arena
+on:
+  push:
+    branches:
+      - research/mk-bceg-r0-future-equivalence-arena-2026-08-30
+    paths:
+      - 'experiments/mk_bceg_r0_future_equivalence_arena.py'
+      - 'research/MK_BCEG_R0_FUTURE_EQUIVALENCE_ARENA_PREREGISTRATION_2026-08-30.json'
+      - 'research/MK_BCEG_R0_PROCESS_JOURNAL_SEED_2026-08-30.json'
+      - '.github/workflows/mk-bceg-r0-future-equivalence-arena.yml'
+  workflow_dispatch:
+jobs:
+  exact-arena:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Verify frozen preregistration
+        run: |
+          python - <<'PY'
+          import json
+          p='research/MK_BCEG_R0_FUTURE_EQUIVALENCE_ARENA_PREREGISTRATION_2026-08-30.json'
+          d=json.load(open(p))
+          assert d['status']=='FROZEN_BEFORE_EXECUTION'
+          assert d['scientific_boundary']['P_VS_NP']=='OPEN'
+          assert d['scientific_boundary']['P_EQUALS_NP_claim_allowed'] is False
+          print('PREREG_FROZEN', d['research_question'])
+          PY
+      - name: Execute exact future-equivalence arena
+        run: |
+          mkdir -p artifacts
+          python experiments/mk_bceg_r0_future_equivalence_arena.py \
+            --output artifacts/MK_BCEG_R0_FUTURE_EQUIVALENCE_ARENA_RESULT_2026-08-30.json \
+            --journal artifacts/MK_BCEG_R0_FUTURE_EQUIVALENCE_ARENA_JOURNAL_2026-08-30.jsonl
+      - name: Frozen scientific gate
+        run: |
+          python - <<'PY'
+          import json
+          p='artifacts/MK_BCEG_R0_FUTURE_EQUIVALENCE_ARENA_RESULT_2026-08-30.json'
+          d=json.load(open(p))
+          print('VERDICT',d['overall_verdict'])
+          print('STATES',d['universe']['reachable_state_count'],'FUTURE_CLASSES',d['universe']['future_equivalence_class_count'])
+          print('STRUCT_COLLISIONS',d['keys']['MK_STRUCT_V0']['semantic_collision_pair_count'])
+          print('ROBDD_COLLISIONS',d['keys']['MK_ROBDD_FIXED_ORDER']['semantic_collision_pair_count'])
+          print('CONGRUENCE',d['keys']['MK_ROBDD_FIXED_ORDER']['transition_congruence'])
+          assert all(g['passed'] for g in d['gates'])
+          assert d['keys']['MK_STRUCT_V0']['verdict']=='REFUTED_FUTURE_INTERFACE_CANDIDATE'
+          assert d['keys']['MK_ROBDD_FIXED_ORDER']['verdict']=='FINITE_SURVIVOR_NOT_THEOREM'
+          assert d['post_result_boundary']['universal_polynomial_ROBDD_size_or_discovery_proved'] is False
+          assert d['post_result_boundary']['P_VS_NP']=='OPEN'
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: mk-bceg-r0-future-equivalence-arena
+          path: |
+            artifacts/MK_BCEG_R0_FUTURE_EQUIVALENCE_ARENA_RESULT_2026-08-30.json
+            artifacts/MK_BCEG_R0_FUTURE_EQUIVALENCE_ARENA_JOURNAL_2026-08-30.jsonl
+          if-no-files-found: error
