@@ -1,0 +1,78 @@
+{
+  "schema": "JANUS/FUNDAMENTUM/C034/VIRAL-NUCLEOSOME-ENTRY-EXIT-MIRROR-COUPLING-PREREG/v1",
+  "status": "FROZEN_BEFORE_NUMERIC_CSV_EXPOSURE",
+  "created_date": "2026-08-31",
+  "target": {
+    "repository": "WereszczynskiGroup/supplemental-data-melo-viral-2025",
+    "study": "Viral Nucleosome-Like Particles Show Increased Dynamic Behavior and Altered Thermodynamic Stability",
+    "data_root": "results/Figure2-BP_Unwrapping/entry_exit_DNA",
+    "metadata_seen_before_freeze": "README only: synchronized time-series of unwrapped status for 73 bp on Entry and Exit DNA, folders by protein type and DNA type, four replicate files per end visible from tree names",
+    "numeric_csv_seen_before_freeze": false
+  },
+  "novel_candidate_question": "Beyond a difference in marginal unwrapping magnitude, do viral nucleosome-like particles exhibit a reproducible dynamical coupling/asymmetry between Entry and Exit DNA ends that is absent or weaker in matched truncated-eukaryotic controls?",
+  "discovery_panel": {
+    "viral": "virus_alpha entry_unwrapped_1..4.csv and exit_unwrapped_1..4.csv",
+    "control": "trunc_euk_alpha entry_unwrapped_1..4.csv and exit_unwrapped_1..4.csv"
+  },
+  "replication_panel": {
+    "viral": "virus_widom entry_unwrapped_1..4.csv and exit_unwrapped_1..4.csv",
+    "control": "trunc_euk_widom entry_unwrapped_1..4.csv and exit_unwrapped_1..4.csv"
+  },
+  "frozen_sampling": {
+    "rows": "first 1024 parseable data rows from each CSV; header rows ignored",
+    "no_manual_window_selection": true,
+    "reason": "bounded deterministic window that can be retrieved/replayed without selecting visually favorable trajectory segments"
+  },
+  "frozen_parse": {
+    "per_row": "read numeric fields; if exactly 73 binary-like status fields exist use all 73; if one leading monotonically nondecreasing time/index field plus 73 binary-like fields exists, discard only the leading field; otherwise PARSE_FAIL",
+    "binary_like": "values exactly 0/1 or values whose two unique finite values can be mapped monotonically to 0/1 without using condition labels",
+    "U_t": "sum of the 73 unwrapped-status fields",
+    "paired_series": "entry and exit files with identical replicate suffix; truncate to common sampled length"
+  },
+  "frozen_statistic": {
+    "transform": "first differences dU_t = U_t - U_(t-1) to remove slow level/trend effects",
+    "per_replicate_coupling": "Pearson correlation r between dU_entry and dU_exit over sampled common rows",
+    "candidate_signature": "negative r means anti-coupled mirror breathing: increments of unwrapping at one end tend to accompany decrements at the other end",
+    "discovery_effect": "median(r_viral_alpha) - median(r_trunc_euk_alpha)",
+    "replication_effect": "median(r_viral_widom) - median(r_trunc_euk_widom)"
+  },
+  "frozen_gate": {
+    "discovery": [
+      "median viral-alpha coupling <= -0.10",
+      "discovery_effect <= -0.10",
+      "at least 3 of 4 viral-alpha replicate r values < 0"
+    ],
+    "replication": [
+      "median viral-widom coupling < 0",
+      "replication_effect <= -0.10",
+      "at least 3 of 4 viral-widom replicate r values < 0"
+    ],
+    "exact_label_null": "within each DNA panel separately, enumerate all C(8,4)=70 assignments of four observed replicate-r values to VIRAL vs CONTROL, preserving group sizes; one-sided p is fraction with median difference <= observed",
+    "null_requirement": "one-sided exact p <=0.05 in discovery and p<=0.05 in replication",
+    "all_required": true
+  },
+  "first_break_extension": {
+    "enabled_only_if_main_gate_passes": true,
+    "definition": "on cumulative dU-entry/dU-exit correlation, earliest row >=128 at which r<=-0.10 and remains <=-0.10 for all checkpoints spaced every 128 rows through row 1024",
+    "purpose": "localize where directional coupling first becomes persistent; localization is descriptive until separately validated"
+  },
+  "causal_isolation_firewall": {
+    "same_trajectory_entry_exit": "shared latent dynamics means coupling is association within one simulated system, not independent evidence",
+    "independence_unit": "replicate trajectory, not individual frame/base pair",
+    "no_frame_pseudoreplication": true,
+    "selection_collider": "no replicate may be dropped for having weak/no coupling after values are seen"
+  },
+  "promotion_logic": {
+    "if_fail": "retain negative result; no threshold tuning on these panels",
+    "if_pass": "candidate unreported dynamical observable requiring dedicated post-result prior-art search and transport to another independently authored viral dataset",
+    "scientific_breakthrough": "NOT YET even on full C034 PASS"
+  },
+  "firewalls": [
+    "MORE_UNWRAPPING != MIRROR_COUPLING",
+    "CORRELATION != MECHANISTIC_CAUSATION",
+    "SIMULATION != IN_VIVO_PROOF",
+    "FOUR_REPLICATES != FRAME_LEVEL_N",
+    "PUBLISHED_PROCESSED_DATA_CAN_SUPPORT_NEW_ANALYSIS_BUT_NOT_RETROACTIVE_PREDICTION_OF_PUBLISHED_RESULT",
+    "PRIOR_ART_IS_NOT_OURS"
+  ]
+}
