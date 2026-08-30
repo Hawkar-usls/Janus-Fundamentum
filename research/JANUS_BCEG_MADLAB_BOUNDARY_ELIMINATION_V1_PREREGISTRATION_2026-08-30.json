@@ -1,0 +1,37 @@
+{
+  "schema":"JANUS/BCEG/MADLAB-BOUNDARY-ELIMINATION/V1/PREREGISTRATION/v1.0",
+  "date":"2026-08-30",
+  "status":"FROZEN_BEFORE_HOLDOUT_EXECUTION",
+  "parent_candidate":"research/JANUS_BOUNDARY_CERTIFICATE_ELIMINATION_GRAMMAR_CANDIDATE_2026-08-30.json",
+  "target_lemma":"UNIVERSAL_POLYNOMIAL_BOUNDARY_ELIMINATION_LEMMA",
+  "hypothesis":"Typed exact certificate languages can sometimes eliminate a live boundary where ordinary CNF variable elimination expands; any such success is family/instance evidence only unless arbitrary-CNF polynomial discovery, representation and runtime are formally proved.",
+  "holdout_seed":"JANUS-BCEG-MADLAB-V1-2026-08-30-FROZEN",
+  "families":[
+    {"name":"TSEITIN_PARITY","sizes":[8,12,16,20],"variants":2,"typed_language":"GF2_AFFINE","solver_receives_family_label":false},
+    {"name":"PIGEONHOLE","sizes":[3,4,5,6],"variants":2,"typed_language":"COUNTING_HALL","solver_receives_family_label":false},
+    {"name":"HORN_PEBBLING","sizes":[8,16,24,32],"variants":2,"typed_language":"HORN_CLOSURE","solver_receives_family_label":false},
+    {"name":"RANDOM_3CNF_UNSAT","sizes":[12,14,16,18],"variants":2,"typed_language":"NONE_FROZEN","solver_receives_family_label":false}
+  ],
+  "obfuscation":"Every structured instance receives deterministic variable permutation, literal/clause order shuffle and harmless duplicate-clause noise before the portfolio sees it. Evaluator retains the family label; portfolio does not.",
+  "portfolio_order":["GF2_AFFINE_EXTRACT_AND_ELIMINATE","COUNTING_HALL_EXTRACT_AND_REFUTE","HORN_FORWARD_CLOSURE","BOUNDED_DAVIS_PUTNAM_FALLBACK"],
+  "proof_requirements":{
+    "GF2_AFFINE":"Only accept a complete XOR-clause block whose truth table exactly matches one affine parity equation; Gaussian elimination must derive 0=1 for UNSAT.",
+    "COUNTING_HALL":"Only accept an exact syntactic pigeon-to-hole encoding reconstructed from clauses after variable renaming; refutation requires m>n with every pigeon having an at-least-one-hole clause and every hole pairwise at-most-one occupancy clauses.",
+    "HORN_CLOSURE":"Only accept clauses with at most one positive literal and derive contradiction by exact forward chaining/unit closure.",
+    "DP_FALLBACK":"Exact Davis-Putnam variable elimination with tautology deletion, subsumption and an immutable representation cap; cap exhaustion returns OPEN_RESOURCE_LIMIT, never SAT/UNSAT."
+  },
+  "accounting":["certificate_discovery_checks","projection_steps","gaussian_row_ops","horn_firings","counting_checks","dp_resolvents_generated","dp_peak_clause_count","dp_peak_literal_volume","proof_dag_nodes","serialized_certificate_bytes","initial_live_boundary","final_live_boundary"],
+  "dp_caps":{"max_clauses":50000,"max_literal_volume":500000,"max_resolvents":500000},
+  "gates":[
+    {"id":"G1_EXACTNESS","criterion":"100% of returned SAT/UNSAT terminals match evaluator truth; no false theorem terminal."},
+    {"id":"G2_STRUCTURED_LANGUAGE_ACTUATION","criterion":">=75% of TSEITIN_PARITY + PIGEONHOLE + HORN_PEBBLING cases terminate through their exact typed language rather than DP."},
+    {"id":"G3_OBFUSCATION_INVARIANCE","criterion":"100% paired variants of each structured base size agree in terminal truth and typed-language class."},
+    {"id":"G4_REAL_BOUNDARY_REDUCTION","criterion":"Every typed success must end with final_live_boundary < initial_live_boundary and a replayable certificate."},
+    {"id":"G5_DP_BLOWUP_ESCAPE_WITNESS","criterion":"At least one finite holdout case must be solved by a typed language while bounded DP reaches an immutable representation/resource cap on the same CNF."},
+    {"id":"G6_UNKNOWN_DISCIPLINE","criterion":"Any unresolved RANDOM_3CNF_UNSAT or capped DP case remains OPEN/UNKNOWN and is never negative evidence."},
+    {"id":"G7_NO_FAMILY_LABEL_LEAKAGE","criterion":"Portfolio APIs receive only canonical CNF plus accounting caps; family labels remain evaluator-only."},
+    {"id":"G8_UNIVERSAL_LEMMA","criterion":"Cannot PASS from finite experiments. Remains OPEN unless a separate formal arbitrary-CNF polynomial proof is supplied."}
+  ],
+  "verdict_vocabulary":["FINITE_TYPED_ELIMINATION_ESCAPE","PORTFOLIO_PARTIAL_ESCAPE","REFUTED_TYPED_BOUNDARY_ESCAPE","OPEN_RESOURCE_LIMIT","OPEN_NO_TRACTABLE_TYPED_PROJECTION","P_VS_NP_OPEN"],
+  "scientific_boundary":{"P_VS_NP":"OPEN","finite_family_escape_is_not_universal_polynomial_elimination":true,"known_proof_system_lower_bounds_must_not_be_overgeneralized":true}
+}
