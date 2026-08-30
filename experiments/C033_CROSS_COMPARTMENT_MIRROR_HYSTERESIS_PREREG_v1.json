@@ -1,0 +1,80 @@
+{
+  "experiment_id": "C033_CROSS_COMPARTMENT_MIRROR_HYSTERESIS_PREREG_v1",
+  "status": "FROZEN_BEFORE_HYSTERESIS_COMPUTATION",
+  "created_date": "2026-08-31",
+  "scope": "Non-operational computational analysis of public longitudinal SARS-CoV-2 measurements; no pathogen engineering, wet-lab protocol, clinical recommendation, or treatment claim.",
+  "meta_registry_transfer": {
+    "operators": [
+      "HIDDEN-003_FIRST_BREAK_LOCALIZATION",
+      "MIRROR_REVERSE_DIRECTIONAL_COMPARISON",
+      "DIVERGENT_PASTS_ARE_PRESERVED_NOT_AVERAGED",
+      "AMBIGUITY_IS_A_FIRST_CLASS_STATE"
+    ],
+    "core_question": "Does the saliva-versus-nasal measurement relation depend on which side of the within-person nasal viral-load peak the infection trajectory occupies?"
+  },
+  "target": {
+    "repository": "BROOKELAB/Viral-dynamics-modeling",
+    "commit": "8d71ca82ac453a4b3c3c13d61a7174fbed4bdf8d",
+    "path": "Data/data_samples.csv",
+    "git_blob_sha": "a4b5cd9e06af494c859f9fefab194a703500af01",
+    "time_coordinate": "Time = days since lowest nasal CN value, as documented by source code"
+  },
+  "exposure_boundary": {
+    "already_seen": [
+      "dataset schema and source boundary encodings",
+      "C031 culture-state successor-prediction results",
+      "C032 cross-compartment one-day predictive-gain results"
+    ],
+    "not_computed_before_freeze": [
+      "symmetric-offset cross-compartment residual H_i(d)",
+      "C033 first-break offset",
+      "C033 hysteresis-area summary",
+      "any post-result prior-art search for this exact observable"
+    ]
+  },
+  "observable": {
+    "cross_compartment_difference": "D_i(t)=Saliva_Ct_i(t)-Nasal_CN_i(t)",
+    "mirror_hysteresis_residual": "H_i(d)=D_i(+d)-D_i(-d)",
+    "reason": "Any subject-independent constant assay offset cancels in the pre/post difference. H=0 is mirror compatibility of the relative compartment relation at that offset.",
+    "eligible_offsets_days": [1,2,3,4,5,6,7],
+    "eligibility_per_offset": "same subject has unique uncensored nasal and saliva measurements at exact Time=-d and Time=+d; Nasal_CN<48 and Saliva_Ct<47 on both sides; no interpolation",
+    "duplicate_rule": "ambiguous duplicate subject-Time keys excluded, never averaged"
+  },
+  "primary_hypothesis": {
+    "statement": "A reproducible positive cross-compartment mirror hysteresis emerges on early symmetric offsets around the nasal peak.",
+    "direction": "median H(d)>0, corresponding to saliva being relatively more virus-rich before the nasal peak and/or nasal being relatively more virus-rich after the peak.",
+    "first_break": "smallest d with n_matched>=10, median H(d)>=2.0 Ct-units, and two-sided exact sign-test p<=0.01 against median zero.",
+    "anti_cherry_pick": "Negative H of equal magnitude is a directional MISS, not a relabeled discovery."
+  },
+  "global_hysteresis_summary": {
+    "A": "sum over eligible d=1..7 of median H(d) for offsets with n_matched>=10; reported regardless of first-break verdict",
+    "role": "secondary magnitude summary only; cannot rescue a failed first-break."
+  },
+  "null_control": {
+    "analytic": "two-sided exact sign test on H_i(d); random pre/post label exchange is exactly a sign-flip null",
+    "additional_deterministic_permutation": "10000 subject-level random sign flips of each subject's complete H-vector using seed 33033; compute max over eligible offsets of median H(d).",
+    "familywise_p": "(1 + count(null_max >= observed_max))/(10001)",
+    "PASS_requires_familywise_p": "<=0.01"
+  },
+  "frozen_terminal": {
+    "PASS": "directional first-break criterion passes and familywise permutation p<=0.01",
+    "FAIL": "all eligible offsets have median H<=0 or familywise p>0.05, or a robust opposite-direction first-break passes equivalent magnitude/sign-test criteria",
+    "EVIDENCE_INSUFFICIENT": "fewer than 10 matched subjects at every offset or intermediate results"
+  },
+  "causal_firewalls": [
+    "HYSTERESIS_IS_NOT_CAUSATION",
+    "CROSS_COMPARTMENT_PHASE_DEPENDENCE_DOES_NOT_IDENTIFY_A_MOLECULAR_MECHANISM",
+    "TIME_OFFSET_IS_ORDERING_AROUND_A_FROZEN_PEAK_NOT_A_CAUSAL_AGENT",
+    "ASSAY_DIFFERENCES_CAN_CONTRIBUTE_BUT_CONSTANT_OFFSETS_CANCEL_IN_H",
+    "SAME_COHORT_IS_NOT_INDEPENDENT_REPLICATION"
+  ],
+  "breakthrough_ceiling": {
+    "C033_alone_can_set_breakthrough": false,
+    "if_PASS": [
+      "post-result exact prior-art killer search for cross-compartment viral-load hysteresis / phase-dependent same-load relations",
+      "independent high-frequency multi-compartment cohort replication without retuning",
+      "show material consequence for state representation or sampling interpretation",
+      "replayable code/data provenance"
+    ]
+  }
+}
