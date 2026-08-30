@@ -1,0 +1,67 @@
+{
+  "schema": "JANUS/FUNDAMENTUM/C035/VIRAL-NUCLEOSOME-ENERGETIC-LOAD-TRANSFER-PREREG/v1",
+  "status": "FROZEN_BEFORE_MMGBSA_CHUNK_VALUE_EXPOSURE",
+  "created_date": "2026-08-31",
+  "target": {
+    "repository": "WereszczynskiGroup/supplemental-data-melo-viral-2025",
+    "root": "results/MMGBSA_tables",
+    "metadata_seen_before_freeze": [
+      "README says folders contain segment-specific single-trajectory MM/GBSA calculations",
+      "virus_alpha exposes H2B_H2A_dna and H4_H3_dna directories",
+      "protein-DNA calculations are chunked into sequential decomp_chunk files"
+    ],
+    "numeric_chunk_values_seen_before_freeze": false
+  },
+  "candidate_hypothesis": {
+    "name": "VIRAL_HISTONE_PAIR_ENERGETIC_LOAD_TRANSFER",
+    "claim": "In viral nucleosome-like particles, sequential changes in H2B/H2A-DNA and H4/H3-DNA interaction-energy contributions are compensatory (anti-coupled) more strongly than in truncated-eukaryotic controls, and this direction replicates across alpha-satellite and Widom-601 DNA contexts.",
+    "distinction_from_known_marginal_result": "A lower or more variable overall viral DNA-binding energy does not imply anti-coupled redistribution between histone-pair interfaces."
+  },
+  "panels": {
+    "discovery": ["virus_alpha", "trunc_euk_alpha"],
+    "replication": ["virus_widom", "trunc_euk_widom"],
+    "interfaces": ["H2B_H2A_dna", "H4_H3_dna"]
+  },
+  "frozen_file_rule": "Use every decomp_chunkNN.dat file present in both interface directories of a panel condition, intersected by identical NN and ordered numerically. Require >=8 paired chunks or PARSE_FAIL.",
+  "frozen_scalar_extraction": {
+    "preferred": "If file contains a standard MM/GBSA decomposition table with a TOTAL average/mean column, sum the per-residue TOTAL mean contributions over all data rows after excluding summary/footer rows.",
+    "fallback": "If file instead contains an explicit single aggregate DELTA TOTAL/Delta Total mean for the declared complex, use that scalar.",
+    "forbidden": "No manual row/residue subset chosen after values are viewed; if neither parse is unambiguous, PARSE_FAIL."
+  },
+  "frozen_statistic": {
+    "series": "E_A[k]=H2B/H2A-DNA scalar; E_B[k]=H4/H3-DNA scalar",
+    "transform": "first differences dE_A[k], dE_B[k] across adjacent chunks",
+    "coupling": "Pearson r(dE_A,dE_B)",
+    "compensatory_signature": "r<0",
+    "discovery_effect": "r(virus_alpha) - r(trunc_euk_alpha)",
+    "replication_effect": "r(virus_widom) - r(trunc_euk_widom)"
+  },
+  "frozen_gate": {
+    "discovery": "r(virus_alpha)<=-0.30 AND discovery_effect<=-0.30",
+    "replication": "r(virus_widom)<0 AND replication_effect<=-0.20",
+    "chunk_order_null": "For each condition independently permute the H4/H3 chunk order over all exact permutations if N<=10, otherwise 10000 deterministic SHA256 permutations; preserve both marginal energy multisets. Compute one-sided probability of r<=native.",
+    "null_requirement": "viral discovery and replication each p<=0.05; control correlations are not required to be zero but must not be more negative than their matched viral value",
+    "all_required": true
+  },
+  "first_break_extension": {
+    "if_main_gate_passes": "localize earliest chunk transition where dE_A and dE_B acquire opposite signs and remain opposite for >=3 of the next 4 transitions",
+    "status": "descriptive_only_until_external_transport"
+  },
+  "epistemic_firewall": {
+    "independence_unit": "DNA-context/system trajectory, not residues or energy terms",
+    "chunk_pseudoreplication": "permutation null tests temporal alignment within a trajectory; it does not create independent biological replicates",
+    "causation": "energetic anti-coupling is a simulation-derived association, not proof of physical load transfer mechanism"
+  },
+  "promotion": {
+    "C035_PASS": "candidate unreported energetic redistribution signature",
+    "required_next": ["post-result prior-art killer sweep", "independent external viral system with frozen transport rule", "experimental/orthogonal consequence if available"],
+    "scientific_breakthrough": false
+  },
+  "firewalls": [
+    "OVERALL_WEAKER_BINDING != COMPENSATORY_REDISTRIBUTION",
+    "CHUNK_CORRELATION != INDEPENDENT_REPLICATION",
+    "SIMULATION_ASSOCIATION != CAUSAL_MECHANISM",
+    "PARSE_FAIL != RETARGET_PERMISSION",
+    "PRIOR_ART_IS_NOT_OURS"
+  ]
+}
