@@ -1,0 +1,48 @@
+{
+  "schema": "JANUS/FUNDAMENTUM/C032/HIV-CA-MATURATION-ADJACENCY-HOLDOUT-PREREG/v1",
+  "status": "FROZEN_BEFORE_HOLDOUT_NUMERIC_INSPECTION",
+  "created_date": "2026-08-31",
+  "reason": "Replace the invalid adjacency-preserving C031 null with a destructive null while refusing to rescore the already exposed C031 PMF as confirmatory evidence.",
+  "holdout": {
+    "repository": "theory-and-computation/CA-maturation",
+    "directory": "umbrella-sampling/wham-0126-blocks",
+    "numeric_content_seen_before_freeze": false,
+    "selection_rule": "use pmf.dat if present; otherwise PARSE_FAIL without substituting another numeric target"
+  },
+  "analysis_panel": {
+    "rule": "scan file order and retain the first six primary-coordinate bins containing >=20 finite-energy secondary-coordinate samples; this deterministic panel is fixed before values are inspected",
+    "reason": "keeps the holdout computationally bounded while preventing manual selection of visually favorable bins"
+  },
+  "branch_detector": {
+    "local_minimum": "energy lower than both immediately adjacent finite secondary-grid samples",
+    "near_global": "minimum is within 1.2 energy units of the lowest finite energy in that primary bin",
+    "pair_separation": ">=3 native secondary-grid steps",
+    "barrier": "maximum finite energy between pair exceeds the higher-energy minimum by >=0.6 energy units",
+    "bin_pass": "at least one pair satisfies all criteria",
+    "persistent_branch": ">=3 consecutive panel bins PASS",
+    "first_break": "earliest panel bin starting a >=3-bin persistent branch"
+  },
+  "destructive_null": {
+    "method": "for each primary bin independently, permute finite energy values across fixed secondary-coordinate positions using SHA256('C032' || primary_value || permutation_index || secondary_index) ordering",
+    "permutations": 1000,
+    "preserve": ["primary bins", "secondary coordinate grid", "finite/missing mask", "per-bin energy multiset"],
+    "destroy": "native secondary-coordinate adjacency between energy values",
+    "score": "maximum consecutive bin-pass run in the six-bin panel",
+    "pass_requirement": "native score >=3 and strictly greater than the 95th percentile of null scores",
+    "tie_rule": "a tie at the null 95th percentile is FAIL"
+  },
+  "claim_if_pass": "Within this holdout panel, native 2D adjacency contains branch topology not explained by each bin's energy multiset alone; a one-coordinate projection loses branch identity in that region.",
+  "claim_ceiling": {
+    "same_repository_holdout": true,
+    "independent_authorship_replication": false,
+    "new_biological_mechanism": false,
+    "scientific_breakthrough": false
+  },
+  "next_if_pass": "transport the identical frozen detector to an independently authored viral free-energy/trajectory dataset and then run a post-result prior-art killer sweep.",
+  "firewalls": [
+    "C031_EXPOSURE_CANNOT_SUPPORT_C032",
+    "SAME_REPOSITORY_HOLDOUT != INDEPENDENT_REPLICATION",
+    "REPRESENTATION_DEBT != NEW_MECHANISM",
+    "NULL_MUST_DESTROY_THE_FEATURE_BEING_TESTED"
+  ]
+}
