@@ -1,0 +1,107 @@
+{
+  "experiment_id": "C023_MIRROR_REVERSE_BENCHMARK_v1",
+  "status": "R1_LITERATURE_CONSISTENCY_PASS__R2_BLIND_HOLDOUT_OPEN",
+  "goal": "Stress-test whether a mirror/reverse audit distinguishes missing state classes from missing transition metadata and does not manufacture asymmetry in explicitly reversible controls.",
+  "scorer_contract": {
+    "input": {
+      "forward_state_classes": "set",
+      "reverse_state_classes_mirrored": "set",
+      "forward_edge_classes": "set of transition descriptors",
+      "reverse_edge_classes_mirrored": "set of transition descriptors",
+      "context_classes": "set",
+      "observability_notes": "set"
+    },
+    "derived": {
+      "state_delta": "reverse_state_classes_mirrored - forward_state_classes",
+      "edge_delta": "reverse_edge_classes_mirrored - forward_edge_classes",
+      "context_delta": "reverse-required contexts absent from forward contract",
+      "observation_debt": "unresolved state/edge identity due finite resolution or averaging"
+    },
+    "verdict_priority": [
+      "UNKNOWN_INSUFFICIENT_OBSERVABILITY",
+      "MIXED_DEBT_DETECTED",
+      "STATE_DEBT_DETECTED",
+      "EDGE_DEBT_DETECTED",
+      "CONTEXT_DEBT_DETECTED",
+      "MIRROR_COMPATIBLE_AT_RESOLUTION"
+    ]
+  },
+  "cases": [
+    {
+      "case": "CCMV_2015_2016",
+      "references": ["10.1021/acs.jpclett.5b01478", "10.1039/C6SM01060A"],
+      "evidence_class": "cross-direction structural intermediates",
+      "expected_verdict": "STATE_DEBT_DETECTED",
+      "witness": "reverse observations reported two unexpected intermediate structure classes not identified in prior self-assembly experiments",
+      "control_role": "positive_state_debt"
+    },
+    {
+      "case": "HBV_CP149_2020",
+      "references": ["10.1021/acs.jpcb.0c05024"],
+      "evidence_class": "structural plus kinetic asymmetry",
+      "expected_verdict": "MIXED_DEBT_DETECTED",
+      "witness": "assembly has capsid-like transient relaxation while disassembly contains unexpected fractal-branched clusters and nonsymmetrical dynamics",
+      "control_role": "positive_mixed_debt"
+    },
+    {
+      "case": "HBV_GUHCL_2024",
+      "references": ["10.1021/acs.biochem.4c00077"],
+      "evidence_class": "kinetic/barrier asymmetry",
+      "expected_verdict": "EDGE_DEBT_DETECTED",
+      "witness": "direction-dependent inferred energy barriers and critical-nucleus behavior",
+      "control_role": "positive_edge_debt"
+    },
+    {
+      "case": "ELP_CCMV_T1_T3_2022",
+      "references": ["10.1021/jacs.2c04074"],
+      "evidence_class": "same macro-state vocabulary with direction-dependent kinetics",
+      "expected_verdict": "EDGE_DEBT_DETECTED",
+      "witness": "reversible T=1/T=3 conversion uses the same macro-state vocabulary yet T=1 to T=3 conversion was reported about tenfold slower than T=3 to T=1",
+      "adversarial_property": "A node-only mirror score would incorrectly return compatibility; transition metadata is required.",
+      "control_role": "node_only_false_negative_trap"
+    },
+    {
+      "case": "MVM_2012_2016",
+      "references": ["10.1016/j.bpj.2012.04.026", "10.1021/jacs.6b07663"],
+      "evidence_class": "reversible state-class control",
+      "expected_verdict": "MIRROR_COMPATIBLE_AT_RESOLUTION",
+      "witness": "mechanically observed disassembly intermediates corresponded to intermediates predicted by reversible models and later experiment supported a reversible assembly/disassembly pathway",
+      "control_role": "negative_control"
+    },
+    {
+      "case": "HIV_CA_LATTICE_2020",
+      "references": ["10.1021/acsnano.0c03207"],
+      "evidence_class": "direct single-molecule local reversibility control",
+      "expected_verdict": "MIRROR_COMPATIBLE_AT_RESOLUTION",
+      "witness": "HS-AFM directly observed stochastic association/dissociation and the same alternative local pathways were described as available in reverse",
+      "control_role": "strong_negative_control"
+    }
+  ],
+  "R1_result": {
+    "positive_debt_cases": 4,
+    "mirror_compatible_controls": 2,
+    "important_failure_of_naive_model": "ELP_CCMV_T1_T3_2022 demonstrates that state-set comparison alone is insufficient; edge/kinetic debt must be represented.",
+    "important_false_positive_guard": "HIV_CA_LATTICE_2020 demonstrates that the audit must permit a genuine mirror-compatible verdict at the selected local resolution.",
+    "interpretation": "R1 establishes internal coherence and useful failure modes of the typed-debt formulation against external literature cases. Because case labels are derived retrospectively from those reports, this is a consistency benchmark, not predictive validation."
+  },
+  "R2_blind_protocol": {
+    "status": "OPEN",
+    "requirements": [
+      "public raw or independently annotated forward/reverse trajectories",
+      "pre-frozen state and edge encoder",
+      "withheld reverse segment or state/edge labels inaccessible during inference",
+      "ranked debt hypothesis frozen before unblinding",
+      "at least one explicit reversibility control",
+      "baseline comparator such as node-only symmetric difference",
+      "no post-hoc retargeting"
+    ],
+    "primary_metric": "information gain over node-only baseline on withheld reverse labels",
+    "secondary_metrics": [
+      "false-positive rate on reversible controls",
+      "state-debt precision",
+      "edge-debt precision",
+      "UNKNOWN calibration"
+    ]
+  },
+  "safety": "This fixture encodes published pathway descriptions and abstract graph properties only; it contains no operational viral manipulation protocol."
+}
