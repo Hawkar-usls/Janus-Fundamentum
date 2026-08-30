@@ -1,0 +1,44 @@
+name: C040 Duke 3D-TrIm Inventory Only
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/c040-duke-3dtrim-inventory.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  inventory:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Discover metadata/file links only
+        run: |
+          python - <<'PY'
+          import json,re,urllib.request
+          urls=[
+            'https://research.repository.duke.edu/record/144',
+            'https://research.repository.duke.edu/api/records/144',
+            'https://research.repository.duke.edu/records/144'
+          ]
+          out={}
+          for url in urls:
+              try:
+                  req=urllib.request.Request(url,headers={'User-Agent':'Mozilla/5.0 JANUS-C040-inventory'})
+                  b=urllib.request.urlopen(req,timeout=30).read().decode('utf-8','replace')
+                  links=sorted(set(re.findall(r'href=[\"\']([^\"\']+)[\"\']',b)))
+                  out[url]={
+                    'bytes':len(b),
+                    'links':[x for x in links if any(k in x.lower() for k in ['file','zip','download','globus','api'])][:200]
+                  }
+              except Exception as e:
+                  out[url]={'error':repr(e)}
+          print(json.dumps(out,indent=2,sort_keys=True))
+          PY
