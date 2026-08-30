@@ -1,0 +1,80 @@
+{
+  "schema": "JANUS/UFK-V1/FRESH-BLIND-FACTOR-GATE/PREREGISTRATION/v1.0",
+  "status": "FROZEN_BEFORE_OUTCOME_INSPECTION",
+  "date": "2026-08-30",
+  "parent_restoration_commit": "704c41877d5d518ca599cde1986b2280a919ad7d",
+  "branch": "research/janus-ufk-v1-fresh-blind-factor-gate-2026-08-30",
+  "blind_design": {
+    "namespace": "JANUS-UFK-V1-FRESH-BLIND-2026-08-30",
+    "target_bits": [18, 22, 26, 30, 34],
+    "families": ["BALANCED", "BLUM", "SKEWED", "ROUGH_P_MINUS_1", "FAR_FROM_SQUARE", "MIXED"],
+    "cases_per_bit": 6,
+    "total_cases": 30,
+    "hidden_from_solver": ["p", "q", "true_order"],
+    "solver_inputs": ["N"],
+    "fixed_base_order": [2, 3, 5, 7],
+    "max_bases_per_case": 4
+  },
+  "ufk_algorithm": {
+    "name": "UFK_V1_CERTIFICATE_PORTFOLIO_PROJECTION_DAG",
+    "required_layers": [
+      "certificate portfolio",
+      "context projection",
+      "content-addressed exact proof DAG",
+      "message-language-aware live interface profile",
+      "M2R capability-bound exact retrieval",
+      "fingerprint ranking-only discipline",
+      "immutable OPEN frontier receipt"
+    ],
+    "certificate_languages": [
+      "DIRECT_GCD_FACTOR",
+      "DIFFERENCE_OF_SQUARES",
+      "NEAR_SQUARE_EXACT_RELATION",
+      "RESIDUE_COLLISION_ORDER_MULTIPLE",
+      "EXACT_MULTIPLICATIVE_ORDER",
+      "SHOR_POSTPROCESS_FACTOR",
+      "SYMBOLIC_ARITHMETIC_FACTOR"
+    ],
+    "relation_budget_per_case": "actual_bit_length^3",
+    "orbit_budget_per_base": "4*isqrt(N)+64",
+    "same_case_exact_DAG_shared_across_bases": true,
+    "no_similarity_merge": true,
+    "cross_language_merge_requires_certificate": true
+  },
+  "strong_baselines": {
+    "BSGS_PORTFOLIO": "same fixed base order; cumulative charged work until factor or four bases exhausted",
+    "RHO_PORTFOLIO": "same fixed base order; cumulative charged work until factor or four bases exhausted",
+    "strong_reference": "minimum cumulative arithmetic work among successful BSGS_PORTFOLIO and RHO_PORTFOLIO; no oracle selection before execution"
+  },
+  "frozen_metrics": {
+    "correctness": ["returned factor validity", "certificate replay status"],
+    "discovery": ["relation steps", "orbit transitions", "modular multiplications", "integer multiplications", "gcds", "trial divisions"],
+    "projection": ["exact projections emitted", "terminal factors reached through projection", "NO_TRACTABLE_PROJECTION count"],
+    "representation": ["unique payload bytes", "serialized certificate bytes", "canonicalization bytes", "provenance bytes", "lookup count"],
+    "interface": ["peak frontier nodes", "peak frontier bytes", "peak language count", "unresolved cross-language joins"],
+    "reuse": ["hash-cons duplicate additions", "M2R exact retrieval hits", "reuse hit fraction"],
+    "performance": ["arithmetic work proxy", "UFK/strong-baseline arithmetic-work ratio", "factor success rate"]
+  },
+  "frozen_gates": [
+    {"id": "G1_EXACTNESS", "criterion": "all UFK returned factors are exact nontrivial divisors and every promoted certificate replays"},
+    {"id": "G2_FACTOR_COVERAGE", "criterion": "UFK factors at least 90% of the 30 blind cases"},
+    {"id": "G3_PROJECTION_UTILITY", "criterion": "at least 60% of cases emit an exact nonterminal projection and at least 50% of UFK successes terminate through a projection-derived factor path"},
+    {"id": "G4_SHARED_DAG_REUSE", "criterion": "at least 50% of cases record at least one exact DAG or M2R reuse hit"},
+    {"id": "G5_INTERFACE_AND_REPRESENTATION_INTEGRITY", "criterion": "no cap bypass; any overflow returns OPEN_* with frozen frontier witness rather than negative evidence"},
+    {"id": "G6_STRONG_BASELINE_COST", "criterion": "median UFK/strong-baseline arithmetic-work ratio <= 1.0 among mutually successful cases"},
+    {"id": "G7_NO_LEAKAGE", "criterion": "p, q and true order are evaluation-only and never passed to UFK or baselines"}
+  ],
+  "verdict_policy": {
+    "PASS_EXACT_AND_COST_COMPETITIVE": "G1-G7 pass",
+    "PASS_EXACT_AND_ARCHITECTURAL_SIGNAL__NOT_COST_COMPETITIVE": "G1-G5 and G7 pass but G6 fails",
+    "REFUTED_ARCHITECTURAL_UTILITY": "G1 passes but one or more of G2-G5 fail without a resource UNKNOWN",
+    "UNKNOWN_RESOURCE_LIMIT": "execution cannot complete frozen scope because of explicit resource limit",
+    "CERTIFICATE_FAILURE": "any promoted exact certificate fails replay"
+  },
+  "scientific_boundary": {
+    "finite_holdout_is_not_asymptotic_proof": true,
+    "polynomial_time_factoring": false,
+    "asymptotic_theorem": false,
+    "P_VS_NP": "OPEN"
+  }
+}
