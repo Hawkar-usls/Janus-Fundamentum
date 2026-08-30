@@ -1,0 +1,39 @@
+name: C039 Zenodo Schema Only
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/c039-zenodo-schema-only.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  schema:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Read headers only
+        run: |
+          python - <<'PY'
+          import json, urllib.request
+          base='https://zenodo.org/records/21114056/files/'
+          files=[
+            'CHIKV_rmsd.csv','EEEV_rmsd.csv','MADV-BRA_rmsd.csv','MADV-PAN_rmsd.csv',
+            'MMGBSA_CHIKV_LArepeats-prime-out.csv','MMGBSA_EEEV_LArepeats-prime-out.csv',
+            'MMGBSA_MADV-BRA_LArepeats-prime-out.csv','MMGBSA_MADV-PAN_LArepeats-prime-out.csv'
+          ]
+          out={}
+          for f in files:
+              req=urllib.request.Request(base+urllib.parse.quote(f)+'?download=1',headers={'User-Agent':'JANUS-C039-schema-only'})
+              with urllib.request.urlopen(req,timeout=60) as r:
+                  line=r.readline().decode('utf-8-sig').rstrip('\r\n')
+              out[f]=line
+          print(json.dumps(out,indent=2,ensure_ascii=False,sort_keys=True))
+          PY
