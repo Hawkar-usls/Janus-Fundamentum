@@ -1,0 +1,66 @@
+{
+  "schema": "JANUS/FUNDAMENTUM/C033/CAPSID-SOUFFLE-FIRST-BREAK-TRANSPORT-PREREG/v1",
+  "status": "FROZEN_BEFORE_CLUSTER_CONTENT_INSPECTION",
+  "created_date": "2026-08-31",
+  "target": {
+    "repository": "softmaterialslab/capsid-souffle",
+    "independent_from_janus": true,
+    "selection_basis_seen_before_freeze": [
+      "repository is public data/code for Molecular Dynamics Simulations of Deformable Viral Capsomers",
+      "data/simulation contains parameterized bd_b*_e2.3 directories with numbered cluster files",
+      "data/movie contains corresponding LAMMPS trajectories"
+    ],
+    "cluster_numeric_content_seen_before_freeze": false,
+    "paper_outcome_conclusions_used_for_hypothesis": false
+  },
+  "janus_prior": {
+    "operator": "HIDDEN-003 FIRST_BREAK_LOCALIZATION_GENERALIZES_BEYOND_VISUAL_SCORING",
+    "frozen_before_viral_mirror_branch": true,
+    "supporting_firewalls": ["HIDDEN-002 AMBIGUITY_IS_A_FIRST_CLASS_STATE", "negative-result preservation", "causal-isolation/selection-collider audit"]
+  },
+  "data_contract": {
+    "systems": "all data/simulation/bd_b*_e2.3 directories present at target repository snapshot",
+    "ordering": "numeric suffix of cluster<N> files; no manual omissions",
+    "parse_rule": "for each cluster<N> UTF-8 text file, remove blank lines and comment lines beginning with #; tokenize remaining lines on whitespace. Define structural_mass S_N as total count of parseable integer tokens after the first token of each data line. If no such tokens exist, PARSE_FAIL for the entire gate rather than inventing a substitute statistic.",
+    "reason_for_parse_rule": "uses only the numbered cluster output itself and is fixed before contents are viewed"
+  },
+  "frozen_hypothesis": {
+    "name": "EARLY_FIRST_BREAK_CARRIES_LATE_ASSEMBLY_INFORMATION",
+    "claim": "Across independent parameter regimes, the earliest persistent regime break in the ordered cluster-derived structural_mass sequence predicts late structural_mass rank better than an early-window aggregate mean alone."
+  },
+  "frozen_analysis": {
+    "normalize_index": "u=N/Nmax per system",
+    "feature_window": "u<=0.35",
+    "outcome_window": "u>=0.75",
+    "first_break": {
+      "candidate_points": "all positions after at least 10 observations and before end of feature window",
+      "criterion": "two-segment constant-mean SSE <=0.70 * one-segment SSE",
+      "persistence": "absolute post/pre mean difference >=0.5 pooled early-window standard deviations and same sign when recomputed on the next 5 observations",
+      "if_none": "NO_BREAK, not imputed"
+    },
+    "first_break_features": ["normalized break location or 1.0 for NO_BREAK", "standardized mean shift", "post/pre variance ratio"],
+    "aggregate_baseline": ["feature-window mean", "feature-window standard deviation"],
+    "outcome": "median structural_mass over u>=0.75",
+    "primary_endpoint": "leave-one-system-out absolute rank error for late outcome; first-break feature model must beat aggregate baseline in >=ceil(0.6*Nsystems) held-out systems",
+    "secondary_endpoint": "Spearman association between standardized break shift and late outcome rank exceeds absolute Spearman association of early mean with late outcome rank"
+  },
+  "temporal_null": {
+    "method": "within each system, deterministically permute feature-window sequence order by SHA256('C033'||system||permutation_index||original_index), preserving the value multiset and late outcome",
+    "permutations": 1000,
+    "score": "number of held-out systems in which first-break beats aggregate baseline",
+    "requirement": "native primary score must be strictly above the 95th percentile null score",
+    "tie": "FAIL"
+  },
+  "promotion": {
+    "PASS": "internal JANUS first-break operator transports to an independently authored viral capsomer simulation corpus under the frozen parse/statistical rules",
+    "FAIL": "retain as negative transport result",
+    "SCIENTIFIC_BREAKTHROUGH": "PROHIBITED from C033 alone"
+  },
+  "firewalls": [
+    "SIMULATION_TRANSPORT != BIOLOGICAL_LAW",
+    "EARLY_LATE_ASSOCIATION != CAUSATION",
+    "PARAMETER_REGIMES_FROM_ONE_MODEL != INDEPENDENT_VIRAL_SYSTEMS",
+    "PARSE_FAILURE != LICENSE_TO_RETARGET",
+    "PRIOR_ART_IS_NOT_OURS"
+  ]
+}
