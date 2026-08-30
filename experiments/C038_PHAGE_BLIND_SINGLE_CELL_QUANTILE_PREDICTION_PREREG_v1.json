@@ -1,0 +1,68 @@
+{
+  "schema": "JANUS/FUNDAMENTUM/C038/PHAGE-BLIND-SINGLE-CELL-QUANTILE-PREDICTION-PREREG/v1",
+  "status": "FROZEN_BEFORE_SINGLE_CELL_TRUTH_UNBLIND",
+  "created_date": "2026-08-31",
+  "discovery_source": {
+    "repository": "mariandm/InferringSingleCellHetereogeneity",
+    "file": "Data/TimeseriesVirus.csv",
+    "status": "FULLY_EXPOSED_AFTER_C037_PARSE_FAIL",
+    "allowed_role": "DISCOVERY_ONLY"
+  },
+  "withheld_truth": {
+    "file": "IntermediateFiles/SingleCellInfections.csv",
+    "status_at_freeze": "NOT_OPENED",
+    "schema_known_from_published_code": ["sample_time", "replicate_id", "successful_plate_count", "infected_plate_count", "lysed_plate_count"]
+  },
+  "discovery_calculation": {
+    "transform": "log10(PFU)",
+    "missing_policy": "for discovery-only interval median slope, use all finite replicate slopes and require >=2; no missing PFU is imputed",
+    "observed_release_signature": "population free-PFU trajectory declines through early adsorption-like phase, then shows sustained positive median log-slope; strong release-like transition lies in 5.0-5.5 h region",
+    "release_weight": "positive median log-slope multiplied by interval duration, starting at first nonnegative interval in the sustained release segment and ending at the first subsequent nonpositive median-slope interval",
+    "quantile_map": "cumulative release_weight / total release_weight; predicted quantile time is right endpoint of first interval crossing target quantile"
+  },
+  "frozen_predictions": {
+    "single_cell_t10_hours": 5.5,
+    "single_cell_t50_hours": 6.0,
+    "prediction_created_without_truth_values": true
+  },
+  "truth_extraction": {
+    "parse": "headerless numeric rows from SingleCellInfections.csv with exactly five columns",
+    "per_time_fraction": "sum(lysed)/sum(infected) pooled over replicate IDs at identical sample_time, finite rows only, denominator>0",
+    "monotone_cdf": "cumulative maximum over ascending sample_time",
+    "t10": "earliest sampled time with CDF>=0.10",
+    "t50": "earliest sampled time with CDF>=0.50",
+    "missing": "UNRESOLVED if either threshold is not reached"
+  },
+  "primary_gate": {
+    "exact_hit": "observed t10 == 5.5 AND observed t50 == 6.0",
+    "near_hit": "if exact_hit fails, BOTH predictions must be within one median single-cell sampling interval; near_hit is recorded but cannot be promoted to BLIND_EXACT_PASS",
+    "failure": "either prediction farther than one median sampling interval"
+  },
+  "combinatorial_null": {
+    "candidate_space": "all ordered pairs (a,b) drawn from observed unique single-cell sample times with a<=b",
+    "distance": "|a-observed_t10|/sampling_interval + |b-observed_t50|/sampling_interval",
+    "p": "fraction of candidate pairs with distance <= distance of frozen pair (5.5,6.0)",
+    "requirement_for_STATISTICALLY_RARE_HIT": "p<=0.05"
+  },
+  "mirror_control": {
+    "construction": "reverse the exposed population log-PFU values over the original ascending time grid, retain missingness as reversed values, calculate finite median interval slopes, and apply the same sustained-positive release-weight quantile map",
+    "requirement": "the reverse-derived quantile pair must have strictly larger combinatorial distance to observed (t10,t50) than the frozen native pair"
+  },
+  "promotion": {
+    "C038_STRONG_PASS": "exact_hit AND statistically_rare_hit AND mirror_control_pass",
+    "C038_WEAK_PASS": "near_hit but not exact/rare; cannot support novelty",
+    "next_on_strong_pass": [
+      "dedicated prior-art killer sweep for model-free population-trajectory prediction of empirical single-cell lysis quantiles",
+      "freeze unchanged transport to a second independently authored lytic phage/virus dataset"
+    ],
+    "scientific_breakthrough": false
+  },
+  "firewalls": [
+    "DISCOVERY_CURVE_WAS_EXPOSED_BEFORE_PREDICTION_AND_IS_NOT_BLIND_EVIDENCE",
+    "SINGLE_CELL_TRUTH_IS_THE_BLIND EVIDENCE",
+    "AUTHORS_BROAD_HETEROGENEITY_INFERENCE_IS_PRIOR_ART",
+    "EXACT_QUANTILE_HIT != CAUSAL_MECHANISM",
+    "ONE_STUDY != INDEPENDENT_REPLICATION",
+    "PRIOR_ART_IS_NOT_OURS"
+  ]
+}
