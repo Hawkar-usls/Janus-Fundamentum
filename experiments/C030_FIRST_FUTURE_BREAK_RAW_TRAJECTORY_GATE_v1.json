@@ -1,0 +1,106 @@
+{
+  "schema": "janus.fundamentum.experiment.first_future_break_raw_trajectory_gate.v1",
+  "experiment_id": "C030_FIRST_FUTURE_BREAK_RAW_TRAJECTORY_GATE_v1",
+  "parent_proposal": "proposals/C030-FIRST-FUTURE-BREAK-TRANCEPTION-JUXTAPOSE-FROZEN-LAWS.json",
+  "status": "PREREGISTERED__NO_OUTCOME_SCORED",
+  "objective": "Test whether a frozen local representation around the earliest future-changing transition contains out-of-sample information about later branch fate beyond whole-trajectory aggregate baselines.",
+  "prospective_only": true,
+  "non_retroactivity": "This gate must not be scored on an outcome already inspected while designing the gate. Earlier FIRST_BREAK records remain historical and immutable.",
+  "state_contract": {
+    "input": "ordered single-particle trajectory with declared observation channels and provenance",
+    "latent_warning": "observed trajectory is a projection, not full biological state",
+    "target": "later branch fate label supplied only after feature extraction and freeze",
+    "ambiguity": "AMBIGUOUS is a valid state and must not be coerced into a binary class"
+  },
+  "first_future_break_estimator": {
+    "symbol": "tau_hat_star",
+    "principle": "estimate the earliest interval where local transition features imply a change in the distribution of declared future fate classes",
+    "restriction": "the estimator and thresholds are frozen before outcome labels are opened",
+    "censoring": "report an interval when sampling resolution does not support an exact transition time"
+  },
+  "feature_families": {
+    "local_ffb": [
+      "pre_post_step_distribution_change",
+      "local_directionality_change",
+      "local_speed_or_diffusivity_change",
+      "local_confinement_or_persistence_change",
+      "local_dwell_or_pause_structure",
+      "local_reversibility_signature",
+      "change_point_uncertainty",
+      "distance_to_declared_boundary_if_publicly_available_and_predeclared"
+    ],
+    "aggregate_baseline": [
+      "trajectory_duration",
+      "net_displacement",
+      "path_length",
+      "mean_step",
+      "step_variance",
+      "global_msd_like_summary",
+      "global_confinement_summary"
+    ]
+  },
+  "primary_score": {
+    "comparison": "held_out_predictive_information(local_ffb_features, fate) - held_out_predictive_information(aggregate_baseline, fate)",
+    "pass_condition": "local_ffb advantage is positive under the frozen metric, survives multiplicity handling if applicable, and is absent in mandatory null controls",
+    "no_magic_threshold": "No universal numeric effect-size threshold is claimed before dataset-specific scale and label balance are known; scoring function and decision rule must be frozen after metadata-only inspection and before outcome unblinding."
+  },
+  "mandatory_nulls": [
+    {
+      "id": "N1_ORDER_SHUFFLE",
+      "operation": "shuffle increment order within trajectories while preserving permitted aggregate summaries",
+      "expected": "FIRST_FUTURE_BREAK advantage collapses"
+    },
+    {
+      "id": "N2_AGGREGATE_PRESERVING_SURROGATE",
+      "operation": "generate a surrogate preserving declared global aggregates but destroying local branch-order structure",
+      "expected": "FIRST_FUTURE_BREAK advantage collapses"
+    },
+    {
+      "id": "N3_LABEL_PERMUTATION",
+      "operation": "permute future-fate labels at the independent unit level",
+      "expected": "no systematic advantage"
+    },
+    {
+      "id": "N4_REVERSIBLE_OR_FREE_CONTROL",
+      "operation": "use a condition or class without committed downstream fate when the dataset supplies a defensible control",
+      "expected": "no false committed-break signal at the frozen threshold"
+    }
+  ],
+  "independence_firewall": {
+    "unit_of_split": "independent biological acquisition or experiment fingerprint whenever available, never neighboring frames from the same trajectory",
+    "forbidden": [
+      "train_and_test_frames_from_same_track",
+      "shared_preprocessing_batch_counted_as_independent_replication",
+      "same_underlying_acquisition_repackaged_as_second_dataset",
+      "post_selection_on_future_outcome"
+    ],
+    "audits": ["d_separation", "selection_collider", "batch_lineage", "track_lineage"]
+  },
+  "unblinding_sequence": [
+    "acquire exact source bytes",
+    "hash and record sizes",
+    "verify sample/trajectory manifest",
+    "freeze inclusion/exclusion rules",
+    "freeze feature extraction",
+    "freeze score and split rule",
+    "extract features without outcome labels",
+    "lock feature table hash",
+    "open outcome labels",
+    "score primary comparison",
+    "run mandatory nulls",
+    "replicate on second independent system",
+    "run post-result prior-art killer sweep",
+    "issue PASS/FAIL/UNKNOWN receipt"
+  ],
+  "terminals": [
+    "PASS_METHOD_INFORMATION_GAIN",
+    "FAIL_NO_INCREMENTAL_INFORMATION",
+    "FAIL_NULL_CONTROL",
+    "FAIL_LEAKAGE_OR_SELECTION",
+    "UNKNOWN_INSUFFICIENT_OBSERVABILITY",
+    "UNKNOWN_INSUFFICIENT_INDEPENDENCE",
+    "HOLDOUT_CONTAMINATED_VOID"
+  ],
+  "breakthrough_rule": "PASS_METHOD_INFORMATION_GAIN on one dataset is not a scientific breakthrough. Breakthrough remains blocked until independent replication, novelty, material consequence and replayable provenance all independently pass.",
+  "safety_scope": "Computational analysis of public observational trajectory data only; no pathogen enhancement, wet-lab optimization, gain-of-function design or clinical treatment claims."
+}
