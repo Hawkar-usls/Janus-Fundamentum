@@ -1,0 +1,80 @@
+name: JANUS BCEG v9.1 Opaque Language Recovery Roundtrip
+on:
+  push:
+    branches:
+      - research/janus-bceg-v9-1-opaque-language-recovery-roundtrip-2026-08-31
+    paths:
+      - 'research/JANUS_BCEG_V9_1_OPAQUE_LANGUAGE_RECOVERY_ROUNDTRIP_PREREGISTRATION_2026-08-31.json'
+      - 'experiments/janus_bceg_v9_1_opaque_language_recovery_roundtrip.py'
+      - '.github/workflows/janus-bceg-v9-1-opaque-language-recovery-roundtrip.yml'
+  workflow_dispatch:
+
+jobs:
+  frozen-v9-1:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Verify frozen preregistration
+        run: |
+          python - <<'PY'
+          import json
+          p=json.load(open('research/JANUS_BCEG_V9_1_OPAQUE_LANGUAGE_RECOVERY_ROUNDTRIP_PREREGISTRATION_2026-08-31.json'))
+          assert p['status']=='FROZEN_BEFORE_HOLDOUT_EXECUTION'
+          assert p['opaque_candidate_contract']['family_label_available_to_candidate'] is False
+          assert p['opaque_candidate_contract']['solver_side_full_boundary_enumeration_allowed'] is False
+          assert p['frozen_portfolio']['discovery_order']==['SIGNED_EQ_DSU','GF2_RREF']
+          assert sum(len(x['widths'])*x['variants_per_width'] for x in p['frozen_supported_families'])==16
+          assert len(p['frozen_hostile_family']['widths'])*p['frozen_hostile_family']['variants_per_width']==4
+          assert p['scientific_boundary']['P_VS_NP']=='OPEN'
+          print('V9_1_PREREG_FROZEN')
+          PY
+      - name: Compile and self-test
+        run: |
+          python -m py_compile experiments/janus_bceg_v9_1_opaque_language_recovery_roundtrip.py
+          python experiments/janus_bceg_v9_1_opaque_language_recovery_roundtrip.py --self-test
+      - name: Run frozen v9.1 holdout
+        run: |
+          mkdir -p artifacts
+          python experiments/janus_bceg_v9_1_opaque_language_recovery_roundtrip.py \
+            --output artifacts/JANUS_BCEG_V9_1_OPAQUE_LANGUAGE_RECOVERY_ROUNDTRIP_RESULT_2026-08-31.json \
+            --journal artifacts/JANUS_BCEG_V9_1_OPAQUE_LANGUAGE_RECOVERY_ROUNDTRIP_JOURNAL_2026-08-31.jsonl
+      - name: Frozen scientific integrity gate
+        run: |
+          python - <<'PY'
+          import json
+          d=json.load(open('artifacts/JANUS_BCEG_V9_1_OPAQUE_LANGUAGE_RECOVERY_ROUNDTRIP_RESULT_2026-08-31.json'))
+          g={x['gate']:x for x in d['gates']}
+          for name in [
+            'V9_1_G1_OPAQUE_INPUT_FIREWALL',
+            'V9_1_G2_SUPPORTED_LANGUAGE_DISCOVERY',
+            'V9_1_G3_CORRECT_HOSTILE_REFUSAL',
+            'V9_1_G4_ZERO_ALGORITHMIC_BOUNDARY_ENUMERATION',
+            'V9_1_G5_BOUNDED_EXACTNESS',
+            'V9_1_G6_RECOVERY_ROUNDTRIP',
+            'V9_1_G7_REAL_DELTA_PROVENANCE',
+            'V9_1_G8_FULL_EXERCISED_LEDGER',
+            'V9_1_G9_FINITE_POLYNOMIAL_LIFECYCLE_SIGNATURE',
+            'V9_1_G11_SCIENTIFIC_BOUNDARY'
+          ]:
+            assert g[name]['passed'] is True,(name,g[name])
+          assert g['V9_1_G10_UNIVERSAL_OPAQUE_DISCOVERY']['passed'] is False
+          assert g['V9_1_G10_UNIVERSAL_OPAQUE_DISCOVERY']['status']=='OPEN'
+          assert d['summary']['supported_cases']==16
+          assert d['summary']['hostile_cases']==4
+          assert d['summary']['supported_certified_recovery']==16
+          assert d['summary']['hostile_correct_refusal']==4
+          assert d['summary']['algorithmic_boundary_assignments_enumerated_total']==0
+          assert d['scientific_boundary']['P_VS_NP']=='OPEN'
+          print(json.dumps({'verdict':d['verdict'],'summary':d['summary'],'by_language':d['by_language'],'gates':[(x['gate'],x['passed']) for x in d['gates']]},indent=2))
+          PY
+      - name: Freeze hashes
+        run: sha256sum artifacts/* | tee artifacts/SHA256SUMS.txt
+      - uses: actions/upload-artifact@v4
+        with:
+          name: janus-bceg-v9-1-opaque-language-recovery-roundtrip
+          path: artifacts/
+          if-no-files-found: error
