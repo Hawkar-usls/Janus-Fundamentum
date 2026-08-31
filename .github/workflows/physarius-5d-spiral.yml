@@ -1,0 +1,56 @@
+name: Physarius 5D Spiral
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'registry/PHYSARIUS_5D_SPIRAL_CONTRACT_v1.json'
+      - 'tools/physarius_5d_spiral.py'
+      - '.github/workflows/physarius-5d-spiral.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  spiral-all-blind-data:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - name: Syntax check
+        run: |
+          python -m py_compile tools/physarius_tube.py
+          python -m py_compile tools/physarius_network.py
+          python -m py_compile tools/physarius_5d_spiral.py
+      - name: Rebuild all blind vessel indices
+        run: |
+          python tools/physarius_network.py \
+            --manifest registry/PHYSARIUS_VASCULAR_NETWORK_v1.json \
+            --out out/spiral/network
+      - name: Run canonical 5D spiral across every blind member
+        run: |
+          python tools/physarius_5d_spiral.py \
+            --receipts-root out/spiral/network \
+            --contract registry/PHYSARIUS_5D_SPIRAL_CONTRACT_v1.json \
+            --out out/spiral/spiral_result.json
+          python - <<'PY'
+          import json
+          d=json.load(open('out/spiral/spiral_result.json',encoding='utf-8'))
+          assert d['status']=='SPIRAL_METADATA_PASS__CONTENT_NOT_UNBLINDED'
+          assert d['origin']['entries']==19857
+          assert d['holdout_selector']['content_exposed'] is False
+          assert d['holdout_selector']['member_names_exposed'] is False
+          assert d['origin_prime']['scientific_breakthrough'] is False
+          print('ORIGIN -> ORIGIN_PRIME PASS')
+          print('result_sha256=',d['result_sha256'])
+          print('TUM selected opaque members=',len(d['holdout_selector']['selected']))
+          for x in d['holdout_selector']['selected']:
+              print(x)
+          PY
+      - name: Upload spiral receipt
+        uses: actions/upload-artifact@v4
+        with:
+          name: physarius-5d-spiral-${{ github.run_id }}
+          path: out/spiral/
+          retention-days: 14
