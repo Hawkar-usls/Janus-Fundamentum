@@ -1,0 +1,83 @@
+name: JANUS BCEG Semantic Cut Compression v9
+
+on:
+  push:
+    branches: [research/janus-bceg-semantic-cut-compression-v9-2026-08-31]
+    paths:
+      - 'research/JANUS_BCEG_SEMANTIC_CUT_COMPRESSION_V9_PREREGISTRATION_2026-08-31.json'
+      - 'experiments/janus_bceg_semantic_cut_compression_v9.py'
+      - '.github/workflows/janus-bceg-semantic-cut-compression-v9.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  frozen-v9:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Verify frozen preregistration
+        run: |
+          python - <<'PY'
+          import json
+          p=json.load(open('research/JANUS_BCEG_SEMANTIC_CUT_COMPRESSION_V9_PREREGISTRATION_2026-08-31.json'))
+          assert p['status']=='FROZEN_BEFORE_HOLDOUT_EXECUTION'
+          assert p['frozen_positive_family']['raw_separator_widths']==[6,8,10,12,14,16]
+          assert p['frozen_positive_family']['algorithmic_global_boundary_enumeration_allowed'] is False
+          assert p['frozen_hostile_control']['id']=='HWB_CURRENT_CONSTRUCTOR_LIFECYCLE'
+          assert p['scientific_boundary']['P_VS_NP']=='OPEN'
+          print('V9_PREREG_FROZEN')
+          PY
+      - name: Compile and self-test
+        run: |
+          python -m py_compile experiments/janus_bceg_semantic_cut_compression_v9.py
+          python experiments/janus_bceg_semantic_cut_compression_v9.py --self-test
+      - name: Run frozen v9 holdout
+        run: |
+          mkdir -p artifacts
+          python experiments/janus_bceg_semantic_cut_compression_v9.py \
+            --output artifacts/JANUS_BCEG_SEMANTIC_CUT_COMPRESSION_V9_RESULT_2026-08-31.json \
+            --journal artifacts/JANUS_BCEG_SEMANTIC_CUT_COMPRESSION_V9_JOURNAL_2026-08-31.jsonl
+      - name: Frozen scientific integrity gate
+        run: |
+          python - <<'PY'
+          import json
+          d=json.load(open('artifacts/JANUS_BCEG_SEMANTIC_CUT_COMPRESSION_V9_RESULT_2026-08-31.json'))
+          g={x['gate']:x for x in d['gates']}
+          for name in [
+            'V9_G1_AFFINE_EXACTNESS_BOUNDED_AUDIT',
+            'V9_G2_AFFINE_REPLAY',
+            'V9_G3_ZERO_ALGORITHMIC_BOUNDARY_ENUMERATION',
+            'V9_G4_AFFINE_POLYNOMIAL_LIFECYCLE_SIGNATURE',
+            'V9_G5_PROJECTED_EXACTNESS_BOUNDED_AUDIT',
+            'V9_G6_FINITE_SEMANTIC_COMPRESSION',
+            'V9_G7_HWB_CERTIFICATE_EXACTNESS',
+            'V9_G8_HWB_HIDDEN_EXPONENTIAL_DETECTION',
+            'V9_G10_SCIENTIFIC_BOUNDARY'
+          ]:
+            assert g[name]['passed'] is True, (name,g[name])
+          assert g['V9_G9_UNIVERSAL_FULL_LIFECYCLE_ESCAPE']['passed'] is False
+          assert g['V9_G9_UNIVERSAL_FULL_LIFECYCLE_ESCAPE']['status']=='OPEN'
+          assert all(x['algorithmic_boundary_assignments_enumerated']==0 for x in d['affine_cases'])
+          assert d['hostile_diagnosis']['hidden_exponential_compilation_detected'] is True
+          assert d['scientific_boundary']['arbitrary_CNF_coverage_proved'] is False
+          assert d['scientific_boundary']['P_VS_NP']=='OPEN'
+          print(json.dumps({
+            'verdict':d['verdict'],
+            'gates':[(x['gate'],x['passed']) for x in d['gates']],
+            'hostile':d['hostile_diagnosis'],
+            'P_VS_NP':d['scientific_boundary']['P_VS_NP']
+          },indent=2))
+          PY
+      - name: Freeze hashes
+        run: sha256sum artifacts/* | tee artifacts/SHA256SUMS.txt
+      - uses: actions/upload-artifact@v4
+        with:
+          name: janus-bceg-semantic-cut-compression-v9
+          path: artifacts/
+          if-no-files-found: error
