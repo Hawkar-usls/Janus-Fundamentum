@@ -1,0 +1,35 @@
+name: Physarius Internal Selective Pull Smoke
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/physarius-internal-selective-pull-smoke.yml'
+      - 'tools/physarius_git_pull.py'
+
+permissions:
+  contents: read
+
+jobs:
+  smoke-bound-pull:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Pull commit-bound Lapis README
+        run: |
+          python tools/physarius_git_pull.py \
+            --repo Hawkar-usls/janus-lapis \
+            --ref 955c3646157a3de92280cdbf692548b3ddaa6115 \
+            --path README.md \
+            --expected-blob-sha 26393eace56d504de881db454f6a0f702db699f7 \
+            --out out/smoke/README.md \
+            --receipt out/smoke/receipt.json
+          python - <<'PY'
+          import json
+          d=json.load(open('out/smoke/receipt.json'))
+          assert d['status']=='BOUND_BLOB_PULL_OK'
+          assert d['git_blob_sha']=='26393eace56d504de881db454f6a0f702db699f7'
+          assert d['source_mutation_authority'] is False
+          print('PHYSARIUS_INTERNAL_SELECTIVE_PULL_PASS', d)
+          PY
