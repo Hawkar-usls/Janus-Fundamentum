@@ -1,0 +1,103 @@
+{
+  "schema": "janus.fundamentum.physarius_tube.remote_zip_siphon.v1",
+  "artifact_id": "PHYSARIUS_TUBE_ZENODO_11074305_v1",
+  "date": "2026-08-31",
+  "status": "LIVE_RANGE_TUBE_PASS__BLIND_INDEX_PASS__CONTENT_NOT_UNBLINDED",
+  "purpose": "Provide a Physarum/vascular-style selective data tube from JANUS to a very large remote ZIP/ZIP64 archive without downloading the entire object and without revealing member names or contents before the scientific freeze permits it.",
+  "module": {
+    "core": "tools/physarius_tube.py",
+    "safe_probe": "tools/physarius_probe_safe.py",
+    "service_relay": ".github/workflows/physarius-tube.yml",
+    "execution_service": "GitHub Actions hosted runner",
+    "transport": "HTTPS byte-range requests",
+    "dependency_policy": "PYTHON_STDLIB_ONLY"
+  },
+  "source": {
+    "provider": "Zenodo",
+    "record_id": "11074305",
+    "doi": "10.5281/zenodo.11074305",
+    "filename": "Source data.zip",
+    "direct_url_template": "https://zenodo.org/records/{record_id}/files/{urlencoded_filename}?download=1",
+    "public_metadata_md5": "4e6df4f1e2c07f8754ae6301ba0f6e68",
+    "public_metadata_md5_state": "EXPECTED_FROM_ZENODO_METADATA__NOT_FULL_ARCHIVE_REVERIFIED_BY_PHYSARIUS"
+  },
+  "live_receipt": {
+    "workflow_run_id": 33356390339,
+    "workflow_conclusion": "success",
+    "head_sha": "b40d9e1f0edfe7ffc90e17fd6f02eb57bb3f3d39",
+    "artifact_id": 9745261027,
+    "artifact_digest": "sha256:9516f34761c74c4c82c50ae45b26d8a74432a41775dd930e64bf296771fa7db7",
+    "range_probe": {
+      "status": "RANGE_OK",
+      "accept_ranges": "bytes",
+      "content_range": "bytes 0-0/16795322875",
+      "archive_size_bytes": 16795322875,
+      "content_type": "application/octet-stream",
+      "tail_probe_bytes": 64,
+      "tail_probe_sha256": "cf50f5d2f026620bac06a29edca31d2b7d54f50a01deab90c8a132581f492b9d",
+      "header_policy": "SAFE_WHITELIST_ONLY"
+    },
+    "zip_index": {
+      "status": "INDEX_OK",
+      "zip64": true,
+      "blind_by_default": true,
+      "central_directory_size_bytes": 8656,
+      "total_entries": 72,
+      "index_sha256": "0b23651fb11f263b1336d57ea4ad17531a52d5493edccec95eaf07e23f9c85fd",
+      "plaintext_member_names_exposed": false,
+      "member_content_exposed": false
+    }
+  },
+  "blind_shape": {
+    "extension_counts": {
+      "NO_EXTENSION_OR_DIRECTORY": 28,
+      ".txt": 14,
+      ".tif": 11,
+      ".nd2": 11,
+      ".png": 6,
+      ".xlsx": 1,
+      ".pptx": 1
+    },
+    "uncompressed_size_ranges_bytes": {
+      ".txt": [4911342, 68547029],
+      ".tif": [2702601, 2211949267],
+      ".nd2": [11296768, 11063582720],
+      ".png": [336590, 806235],
+      ".xlsx": [13702, 13702],
+      ".pptx": [8661408, 8661408],
+      "NO_EXTENSION_OR_DIRECTORY": [0, 6148]
+    },
+    "rule": "EXTENSION_AND_SIZE_METADATA_MAY_GUIDE RESOURCE PLANNING BUT MUST NOT BE TREATED AS SCIENTIFIC OUTCOME EVIDENCE"
+  },
+  "physarius_semantics": {
+    "analogy": "Grow a thin vessel toward a large nutrient source, sense the vessel geometry first, then thicken only the branch that carries requested information.",
+    "probe": "touch one byte and verify random access",
+    "index": "read the ZIP/ZIP64 tail and central directory rather than the full body",
+    "member_id": "SHA256 of raw ZIP member-name bytes; permits selection without printing the name",
+    "pull": "fetch only the selected member's compressed byte interval, decompress locally, verify CRC32, emit SHA256 receipt",
+    "fallback": "FAIL_CLOSED if Range is ignored, ZIP structure is unsupported, selector is ambiguous, CRC fails, or output guard is exceeded"
+  },
+  "holdout_firewall": {
+    "current_state": "METADATA_ONLY",
+    "member_names": "HIDDEN",
+    "member_contents": "NOT_READ",
+    "pull_requires_explicit_flag": "--allow-content",
+    "workflow_pull_requires": ["member_id", "allow_content=true"],
+    "default_hosted_pull_guard_mb": 256,
+    "rules": [
+      "BLIND_INDEX_NE_OUTCOME_UNBLINDING",
+      "MEMBER_ID_NE_SEMANTIC_LABEL",
+      "CONTENT_PULL_IS_UNBLINDING",
+      "NO_CONTENT_PULL_BEFORE_C030_C031_FEATURE_SCORE_FREEZE",
+      "NO_FILENAME_REVEAL_BEFORE_HOLDOUT_POLICY_ALLOWS_IT",
+      "ANY_ACCIDENTAL_OUTCOME_EXPOSURE_MUST_BE_RECORDED_AS_CONTAMINATION"
+    ]
+  },
+  "technical_limits": [
+    "single-disk ZIP/ZIP64 only",
+    "selective extraction supports stored method 0 and deflate method 8",
+    "hosted GitHub Actions pull is guarded to avoid uncontrolled large artifacts",
+    "very large ND2/TIF members should be consumed on a self-hosted/NAS runner or through additional chunk-aware format adapters rather than uploaded as one GitHub artifact"
+  ],
+  "next_gate": "Use only blind index metadata to freeze an eligible member-selection rule. After scientific feature/score/split freeze, pull the selected member by member_id and create a CRC32+SHA256 byte receipt before any content interpretation."
+}
