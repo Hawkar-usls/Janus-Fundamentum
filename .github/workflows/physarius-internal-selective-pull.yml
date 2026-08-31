@@ -1,0 +1,64 @@
+name: Physarius Internal Selective Pull
+
+on:
+  workflow_dispatch:
+    inputs:
+      repo_id:
+        description: Internal trunk id
+        required: true
+        type: choice
+        options:
+          - meta_registry_trunk
+          - janus_lapis_trunk
+      ref:
+        description: Exact branch or commit ref
+        required: true
+        type: string
+      path:
+        description: Exact repository path
+        required: true
+        type: string
+      expected_blob_sha:
+        description: Git blob SHA from the frozen trunk index
+        required: true
+        type: string
+      max_bytes:
+        description: Maximum content bytes to admit
+        required: false
+        default: '8000000'
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  selective-pull:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Resolve allowed repository
+        id: resolve
+        shell: bash
+        run: |
+          case '${{ inputs.repo_id }}' in
+            meta_registry_trunk) echo 'repo=Hawkar-usls/janus-meta-registry' >> "$GITHUB_OUTPUT" ;;
+            janus_lapis_trunk) echo 'repo=Hawkar-usls/janus-lapis' >> "$GITHUB_OUTPUT" ;;
+            *) echo 'Unknown repo id' >&2; exit 2 ;;
+          esac
+      - name: Pull exactly bound blob
+        run: |
+          python tools/physarius_git_pull.py \
+            --repo '${{ steps.resolve.outputs.repo }}' \
+            --ref '${{ inputs.ref }}' \
+            --path '${{ inputs.path }}' \
+            --expected-blob-sha '${{ inputs.expected_blob_sha }}' \
+            --max-bytes '${{ inputs.max_bytes }}' \
+            --out out/pulled/blob.bin \
+            --receipt out/pulled/receipt.json
+      - name: Upload bound pull receipt and content
+        uses: actions/upload-artifact@v4
+        with:
+          name: physarius-internal-pull-${{ github.run_id }}
+          path: out/pulled/
+          retention-days: 7
