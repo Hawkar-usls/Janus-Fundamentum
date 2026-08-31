@@ -1,0 +1,51 @@
+name: Physarius Vascular Network
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'registry/PHYSARIUS_VASCULAR_NETWORK_v1.json'
+      - 'tools/physarius_network.py'
+      - 'tools/hrain_physarius_bridge.py'
+      - '.github/workflows/physarius-network.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  grow-network:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - name: Syntax check
+        run: |
+          python -m py_compile tools/physarius_tube.py
+          python -m py_compile tools/physarius_network.py
+          python -m py_compile tools/hrain_physarius_bridge.py
+      - name: Grow blind vessels
+        run: |
+          python tools/physarius_network.py \
+            --manifest registry/PHYSARIUS_VASCULAR_NETWORK_v1.json \
+            --out out/physarius-network
+          cat out/physarius-network/network_receipt.json
+      - name: Feed HRaiN read-only intake
+        run: |
+          python tools/hrain_physarius_bridge.py \
+            --manifest registry/PHYSARIUS_VASCULAR_NETWORK_v1.json \
+            --receipts-root out/physarius-network \
+            --out out/physarius-network/hrain-physarius-network.json
+          python - <<'PY'
+          import json
+          p='out/physarius-network/hrain-physarius-network.json'
+          d=json.load(open(p, encoding='utf-8'))
+          print({k:d[k] for k in ('status','source_network','graph_sha256')})
+          print('nodes=',len(d['nodes']),'edges=',len(d['edges']))
+          PY
+      - name: Upload vascular receipts
+        uses: actions/upload-artifact@v4
+        with:
+          name: physarius-network-${{ github.run_id }}
+          path: out/physarius-network/
+          retention-days: 14
