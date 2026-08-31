@@ -1,0 +1,59 @@
+name: Physarius Hemispheric Commissure
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'registry/PHYSARIUS_HEMISPHERIC_COMMISSURE_CONTRACT_v1.json'
+      - 'tools/physarius_hemispheric_commissure.py'
+      - '.github/workflows/physarius-hemispheric-commissure.yml'
+permissions:
+  contents: read
+jobs:
+  duplex-roundtrip:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Fetch both hemisphere implementations
+        run: |
+          git clone --depth 1 https://github.com/Hawkar-usls/Hrain.git out/hrain
+          git clone --depth 1 https://github.com/Hawkar-usls/iNaiHR.git out/inaihr
+      - name: Build real bridge packets and cross-accept both lanes
+        run: |
+          mkdir -p out/commissure
+          node - <<'NODE'
+          const fs=require('fs');
+          const leftBridge=require('./out/hrain/demihead-bridge.js');
+          const rightBridge=require('./out/inaihr/demihead-bridge.js');
+          const leftCom=require('./out/hrain/hemispheric-commissure.js');
+          const rightCom=require('./out/inaihr/hemispheric-commissure.js');
+          (async()=>{
+            const left=leftBridge.buildUnattestedPacket({nodes:[{id:'L1',label:'structure',origin:'SYSTEM'}],links:[]},{packetId:'left-smoke-0001',capturedAt:'2026-08-31T00:00:00Z'});
+            const right=rightBridge.buildUnattestedPacket({nodes:[{id:'R1',label:'association',origin:'SYSTEM'}],links:[]},{packetId:'right-smoke-0001',capturedAt:'2026-08-31T00:00:00Z'});
+            const l2r=await leftCom.buildExchange(left,'ATTENTION_POINTER',{query:'find associative alternatives'},null,'left-to-right-smoke-0001');
+            const acceptedRight=await rightCom.acceptExchange(l2r);
+            const r2l=await rightCom.buildExchange(right,'HYPOTHESIS_CANDIDATE',{candidate:'preserve as candidate only'},l2r.exchange_sha256,'right-to-left-smoke-0002');
+            const acceptedLeft=await leftCom.acceptExchange(r2l);
+            if(acceptedRight.evidence_authority!==false||acceptedLeft.evidence_authority!==false) throw new Error('authority leak');
+            fs.writeFileSync('out/commissure/left.json',JSON.stringify(left,null,2));
+            fs.writeFileSync('out/commissure/right.json',JSON.stringify(right,null,2));
+            fs.writeFileSync('out/commissure/js-roundtrip.json',JSON.stringify({status:'JS_DUPLEX_PASS',l2r,acceptedRight,r2l,acceptedLeft},null,2));
+            console.log('PHYSARIUS_COMMISSURE_JS_DUPLEX_PASS',l2r.exchange_sha256,r2l.exchange_sha256);
+          })().catch(e=>{console.error(e);process.exit(1)});
+          NODE
+      - name: Issue independent Fundamentum receipt
+        run: |
+          python tools/physarius_hemispheric_commissure.py --left out/commissure/left.json --right out/commissure/right.json --out out/commissure/fundamentum-receipt.json
+          python - <<'PY'
+          import json
+          d=json.load(open('out/commissure/fundamentum-receipt.json'))
+          assert d['status']=='COMMISSURE_DUPLEX_PASS'
+          assert d['scientific_claim_promoted'] is False
+          assert d['proof_promoted'] is False
+          assert d['independent_replication_claimed'] is False
+          print('PHYSARIUS_HEMISPHERIC_COMMISSURE_PASS',d['receipt_sha256'])
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: physarius-hemispheric-commissure-${{ github.run_id }}
+          path: out/commissure/
+          retention-days: 14
