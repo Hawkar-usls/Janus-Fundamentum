@@ -1,0 +1,154 @@
+name: Physarius Tube
+
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: "probe | index | pull"
+        required: true
+        default: "index"
+        type: choice
+        options:
+          - probe
+          - index
+          - pull
+      record_id:
+        description: "Zenodo record ID"
+        required: true
+        default: "11074305"
+        type: string
+      filename:
+        description: "Zenodo filename"
+        required: true
+        default: "Source data.zip"
+        type: string
+      member_id:
+        description: "Blind member_id from a prior index (required for pull)"
+        required: false
+        default: ""
+        type: string
+      reveal_names:
+        description: "UNBLIND: include plaintext ZIP member names in index"
+        required: true
+        default: false
+        type: boolean
+      allow_content:
+        description: "UNBLIND: permit extraction of member content"
+        required: true
+        default: false
+        type: boolean
+      max_output_mb:
+        description: "Maximum uncompressed member size for pull"
+        required: true
+        default: "256"
+        type: string
+  push:
+    paths:
+      - "tools/physarius_tube.py"
+      - ".github/workflows/physarius-tube.yml"
+      - "registry/PHYSARIUS_TUBE_ZENODO_11074305_v1.json"
+
+permissions:
+  contents: read
+
+jobs:
+  tube:
+    name: Remote range siphon
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Python syntax check
+        run: python -m py_compile tools/physarius_tube.py
+
+      - name: Resolve mode
+        id: cfg
+        shell: bash
+        run: |
+          if [[ "${{ github.event_name }}" == "push" ]]; then
+            echo "mode=index" >> "$GITHUB_OUTPUT"
+            echo "record_id=11074305" >> "$GITHUB_OUTPUT"
+            echo "filename=Source data.zip" >> "$GITHUB_OUTPUT"
+            echo "reveal_names=false" >> "$GITHUB_OUTPUT"
+            echo "allow_content=false" >> "$GITHUB_OUTPUT"
+            echo "member_id=" >> "$GITHUB_OUTPUT"
+            echo "max_output_mb=256" >> "$GITHUB_OUTPUT"
+          else
+            echo "mode=${{ inputs.mode }}" >> "$GITHUB_OUTPUT"
+            echo "record_id=${{ inputs.record_id }}" >> "$GITHUB_OUTPUT"
+            echo "filename=${{ inputs.filename }}" >> "$GITHUB_OUTPUT"
+            echo "reveal_names=${{ inputs.reveal_names }}" >> "$GITHUB_OUTPUT"
+            echo "allow_content=${{ inputs.allow_content }}" >> "$GITHUB_OUTPUT"
+            echo "member_id=${{ inputs.member_id }}" >> "$GITHUB_OUTPUT"
+            echo "max_output_mb=${{ inputs.max_output_mb }}" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Prepare output
+        run: mkdir -p out/physarius
+
+      - name: Probe remote vessel
+        if: steps.cfg.outputs.mode == 'probe' || steps.cfg.outputs.mode == 'index' || steps.cfg.outputs.mode == 'pull'
+        shell: bash
+        run: |
+          python tools/physarius_tube.py \
+            --record-id "${{ steps.cfg.outputs.record_id }}" \
+            --filename "${{ steps.cfg.outputs.filename }}" \
+            probe \
+            --json-out out/physarius/probe.json
+          cat out/physarius/probe.json
+
+      - name: Blind central-directory index
+        if: steps.cfg.outputs.mode == 'index'
+        shell: bash
+        run: |
+          EXTRA=""
+          if [[ "${{ steps.cfg.outputs.reveal_names }}" == "true" ]]; then
+            EXTRA="--reveal-names"
+          fi
+          python tools/physarius_tube.py \
+            --record-id "${{ steps.cfg.outputs.record_id }}" \
+            --filename "${{ steps.cfg.outputs.filename }}" \
+            index $EXTRA \
+            --json-out out/physarius/index.json
+          python - <<'PY'
+          import json
+          p='out/physarius/index.json'
+          d=json.load(open(p, encoding='utf-8'))
+          print({k:d[k] for k in ['status','blind_by_default','archive_size','zip64','central_directory_size','total_entries','index_sha256']})
+          print('member_ids_preview=', [e['member_id'] for e in d['entries'][:10]])
+          PY
+
+      - name: Pull one member by blind ID
+        if: steps.cfg.outputs.mode == 'pull'
+        shell: bash
+        run: |
+          if [[ -z "${{ steps.cfg.outputs.member_id }}" ]]; then
+            echo "member_id is required for pull" >&2
+            exit 2
+          fi
+          if [[ "${{ steps.cfg.outputs.allow_content }}" != "true" ]]; then
+            echo "pull requires allow_content=true" >&2
+            exit 2
+          fi
+          MAX_BYTES=$(( ${{ steps.cfg.outputs.max_output_mb }} * 1024 * 1024 ))
+          python tools/physarius_tube.py \
+            --record-id "${{ steps.cfg.outputs.record_id }}" \
+            --filename "${{ steps.cfg.outputs.filename }}" \
+            pull \
+            --member-id "${{ steps.cfg.outputs.member_id }}" \
+            --output out/physarius/member.bin \
+            --max-output-bytes "$MAX_BYTES" \
+            --allow-content \
+            --receipt-out out/physarius/pull_receipt.json
+          cat out/physarius/pull_receipt.json
+
+      - name: Upload receipts and selected member
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: physarius-tube-${{ github.run_id }}
+          path: out/physarius/
+          if-no-files-found: warn
+          retention-days: 14
