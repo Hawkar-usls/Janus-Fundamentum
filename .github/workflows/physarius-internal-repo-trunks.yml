@@ -1,0 +1,79 @@
+name: Physarius Internal Repo Trunks
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '23 */6 * * *'
+  push:
+    branches: [main]
+    paths:
+      - 'registry/PHYSARIUS_INTERNAL_REPO_NETWORK_v1.json'
+      - 'tools/physarius_git_trunks.py'
+      - 'tools/hrain_internal_physarius_bridge.py'
+      - 'tools/physarius_git_pull.py'
+      - '.github/workflows/physarius-internal-repo-trunks.yml'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: physarius-internal-repo-trunks
+  cancel-in-progress: false
+
+jobs:
+  grow-internal-trunks:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - name: Syntax check
+        run: |
+          python -m py_compile tools/physarius_git_trunks.py
+          python -m py_compile tools/hrain_internal_physarius_bridge.py
+          python -m py_compile tools/physarius_git_pull.py
+      - name: Index all branch-head trees without blob contents
+        run: |
+          python tools/physarius_git_trunks.py \
+            --manifest registry/PHYSARIUS_INTERNAL_REPO_NETWORK_v1.json \
+            --out out/internal-trunks
+      - name: Build HRaiN read-only internal graph
+        run: |
+          python tools/hrain_internal_physarius_bridge.py \
+            --manifest registry/PHYSARIUS_INTERNAL_REPO_NETWORK_v1.json \
+            --receipts-root out/internal-trunks \
+            --out out/internal-trunks/hrain-internal-physarius.json
+      - name: Assert authority ceilings
+        run: |
+          python - <<'PY'
+          import json
+          p='out/internal-trunks/hrain-internal-physarius.json'
+          d=json.load(open(p,encoding='utf-8'))
+          assert d['status']=='READ_ONLY_INTERNAL_REPO_GRAPH'
+          assert d['contentPolicy']['contentExposed'] is False
+          assert d['mutationPolicy']=={'delete':False,'sourceMutation':False,'write':False}
+          n=json.load(open('out/internal-trunks/network_receipt.json',encoding='utf-8'))
+          assert n['status']=='INTERNAL_TRUNKS_INDEXED'
+          assert n['repo_count']==2
+          assert n['blob_content_exposed'] is False
+          print('PHYSARIUS_INTERNAL_TRUNKS_PASS', n)
+          print('HRAIN_GRAPH_SHA256', d['graph_sha256'])
+          PY
+      - name: Publish current HRaiN trunk projection
+        run: |
+          cp out/internal-trunks/hrain-internal-physarius.json registry/PHYSARIUS_INTERNAL_REPO_HRAIN_LIVE_v1.json
+          git config user.name 'JANUS Physarius'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add registry/PHYSARIUS_INTERNAL_REPO_HRAIN_LIVE_v1.json
+          if git diff --cached --quiet; then
+            echo 'No live graph drift.'
+          else
+            git commit -m 'chore(physarius): refresh Meta Registry and Lapis trunks'
+            git pull --rebase origin main
+            git push origin HEAD:main
+          fi
+      - name: Upload full internal trunk receipts
+        uses: actions/upload-artifact@v4
+        with:
+          name: physarius-internal-trunks-${{ github.run_id }}
+          path: out/internal-trunks/
+          retention-days: 14
