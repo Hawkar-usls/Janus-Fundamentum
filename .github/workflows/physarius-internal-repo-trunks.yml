@@ -53,7 +53,9 @@ jobs:
           assert d['mutationPolicy']=={'delete':False,'sourceMutation':False,'write':False}
           n=json.load(open('out/internal-trunks/network_receipt.json',encoding='utf-8'))
           assert n['status']=='INTERNAL_TRUNKS_INDEXED'
-          assert n['repo_count']==2
+          assert n['repo_count']==3
+          ids={r['repo_id'] for r in n['repositories']}
+          assert {'meta_registry_trunk','janus_lapis_trunk','inaihr_trunk'} <= ids
           assert n['blob_content_exposed'] is False
           print('PHYSARIUS_INTERNAL_TRUNKS_PASS', n)
           print('HRAIN_GRAPH_SHA256', d['graph_sha256'])
@@ -67,7 +69,7 @@ jobs:
           if git diff --cached --quiet; then
             echo 'No live graph drift.'
           else
-            git commit -m 'chore(physarius): refresh Meta Registry and Lapis trunks'
+            git commit -m 'chore(physarius): refresh Meta Registry, Lapis and iNaiHR trunks'
             git pull --rebase origin main
             git push origin HEAD:main
           fi
