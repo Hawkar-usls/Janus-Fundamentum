@@ -1,0 +1,70 @@
+name: JANUS TRUMP R7C OPEN49 Polynomial Kernel Assault
+
+on:
+  push:
+    branches:
+      - research/janus-trump-r7c-open49-poly-kernel-assault-2026-09-01
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  r7c-open49-poly-kernel-assault:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Verify frozen R7C preregistration
+        run: |
+          python - <<'PY'
+          import json
+          p=json.load(open('research/JANUS_TRUMP_R7C_OPEN49_POLY_KERNEL_ASSAULT_PREREGISTRATION_2026-09-01.json'))
+          assert p['status']=='FROZEN_BEFORE_R7C_EXECUTION'
+          assert p['P_VS_NP_before_R7C']=='OPEN'
+          assert p['scope']['expected_target_count']==49
+          assert p['scope']['custom_R7C_generator_allowed'] is False
+          assert p['scope']['exposed_discovery_set'] is True
+          print('R7C_FREEZE_OK')
+          PY
+      - name: Compile R7C
+        run: |
+          PYTHONPATH=experiments:. python -m py_compile experiments/janus_trump_r7c_open49_poly_kernel_assault.py tests/test_janus_trump_r7c_open49_poly_kernel_assault.py
+      - name: R7C firewall tests
+        run: |
+          PYTHONPATH=experiments:. python - <<'PY'
+          import importlib.util
+          spec=importlib.util.spec_from_file_location('r7ctests','tests/test_janus_trump_r7c_open49_poly_kernel_assault.py')
+          m=importlib.util.module_from_spec(spec); spec.loader.exec_module(m)
+          tests=[getattr(m,n) for n in dir(m) if n.startswith('test_') and callable(getattr(m,n))]
+          for t in tests: t()
+          print('R7C_FIREWALL_TESTS_PASS', len(tests))
+          PY
+      - name: Run frozen R7C OPEN49 assault
+        run: |
+          mkdir -p artifacts
+          PYTHONPATH=experiments:. python experiments/janus_trump_r7c_open49_poly_kernel_assault.py --output artifacts/JANUS_TRUMP_R7C_OPEN49_POLY_KERNEL_ASSAULT_RESULT_2026-09-01.json
+      - name: Scientific gate
+        run: |
+          python - <<'PY'
+          import json
+          d=json.load(open('artifacts/JANUS_TRUMP_R7C_OPEN49_POLY_KERNEL_ASSAULT_RESULT_2026-09-01.json'))
+          print(d['verdict'])
+          print(d['summary'])
+          assert d['P_VS_NP']=='OPEN'
+          assert d['scope']=='EXPOSED_R7B_OPEN_KERNEL_DISCOVERY_ONLY'
+          assert d['summary']['targets']==49
+          assert d['summary']['recovered_terminal_cases']>0
+          assert d['summary']['false_terminals']==0
+          assert d['summary']['sat_replay_failures']==0
+          assert d['candidate_source_firewall']['pass'] is True
+          assert all(d['gates'].values())
+          PY
+      - name: Upload immutable R7C evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: janus-trump-r7c-open49-poly-kernel-assault
+          path: artifacts/JANUS_TRUMP_R7C_OPEN49_POLY_KERNEL_ASSAULT_RESULT_2026-09-01.json
+          if-no-files-found: error
