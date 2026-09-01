@@ -1,0 +1,50 @@
+name: JANUS TRUMP TOPA P vs NP Closure Audit
+on:
+  push:
+    branches:
+      - research/janus-trump-osiris-r5-fehlerbild-positive-roi-discovery-2026-09-01
+  workflow_dispatch:
+jobs:
+  topa-closure-audit:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Verify frozen TOPA closure audit preregistration
+        run: |
+          python - <<'PY'
+          import json
+          p=json.load(open('research/JANUS_TRUMP_TOPA_P_VS_NP_CLOSURE_AUDIT_PREREGISTRATION_2026-09-01.json'))
+          assert p['status']=='FROZEN_BEFORE_TOPA_CLOSURE_AUDIT_EXECUTION'
+          assert p['P_VS_NP_before_audit']=='OPEN'
+          assert len(p['mandatory_obligations'])==11
+          print('TOPA_CLOSURE_AUDIT_FREEZE_OK')
+          PY
+      - name: Compile TOPA audit spider
+        run: python -m py_compile experiments/janus_trump_topa_p_vs_np_closure_audit.py
+      - name: Run TOPA over current TRUMP lineage
+        run: |
+          mkdir -p artifacts
+          python experiments/janus_trump_topa_p_vs_np_closure_audit.py --output artifacts/JANUS_TRUMP_TOPA_P_VS_NP_CLOSURE_AUDIT_RESULT_2026-09-01.json
+      - name: Scientific closure gate
+        run: |
+          python - <<'PY'
+          import json
+          d=json.load(open('artifacts/JANUS_TRUMP_TOPA_P_VS_NP_CLOSURE_AUDIT_RESULT_2026-09-01.json'))
+          print(d['verdict'])
+          print('BLOCKERS=', d['blocking_obligations'])
+          if d['closure_ready']:
+              assert d['P_VS_NP']=='CLOSED'
+              assert all(d['mandatory_obligations'].values())
+          else:
+              assert d['P_VS_NP']=='OPEN'
+              assert len(d['blocking_obligations'])>0
+          PY
+      - name: Upload immutable TOPA closure evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: janus-trump-topa-p-vs-np-closure-audit
+          path: artifacts/JANUS_TRUMP_TOPA_P_VS_NP_CLOSURE_AUDIT_RESULT_2026-09-01.json
