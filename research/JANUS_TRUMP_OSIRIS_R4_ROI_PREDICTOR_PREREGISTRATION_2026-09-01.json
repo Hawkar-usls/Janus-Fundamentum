@@ -1,0 +1,50 @@
+{
+  "schema": "JANUS/TRUMP/OSIRIS-R4-ROI-PREDICTOR/PREREGISTRATION/v1.0",
+  "status": "FROZEN_BEFORE_R4_HOLDOUT_BRANCH",
+  "date": "2026-09-01",
+  "objective": "Learn when NOT to invoke the exact double-spiral meet, using only already-exposed R3A/R3B experience, then test the frozen gate on previously unexposed pre-existing workloads.",
+  "training_sources": {
+    "R3A_artifact_sha256": "571a9f6b5c8492d2c8a51ed8286b1f28b107813265850b159389c4765b263b52",
+    "R3B_artifact_sha256": "3eae5b8aaf584bab09a7aee488634e8b07fcd62286ad7ca1d109d2374a33c30e",
+    "rows": 108,
+    "profitable_spiral_rows": 0,
+    "exact_meet_rows": 52,
+    "candidate_to_baseline_ratio": {
+      "minimum": 2.75,
+      "median": 6.483333333333333,
+      "mean": 7.691038467483343,
+      "maximum": 37.0
+    }
+  },
+  "frozen_predictor": {
+    "id": "TRUMP_R4_CONSERVATIVE_ROI_GATE_v1",
+    "input": "pretruth structural signature only",
+    "rule": "ALLOW_SPIRAL only if training evidence contains at least one independently verified row with candidate_charged_ops < baseline_exact_work in the applicable support region; otherwise ABSTAIN_TO_EXACT",
+    "current_training_consequence": "ABSTAIN_TO_EXACT for every R4 holdout residual",
+    "rationale": "R3A/R3B contain zero positive ROI labels, so manufacturing a positive class would be post-hoc optimism. R4 therefore tests whether conservative abstention generalizes and whether it prevents the known natural-residual overhead."
+  },
+  "holdout_constraints": {
+    "must_preexist_before_R4": true,
+    "must_not_be_one_of_R3_training_families": true,
+    "sources": [
+      "experiments/direct/janus_tear_marginal_collision.py",
+      "experiments/direct/janus_tear_nonlinear_affine_masking.py",
+      "experiments/direct/janus_tear_maj3_lift_encoding_match.py"
+    ],
+    "truth_must_not_enter_predictor": true,
+    "shadow_spiral_may_run_after_route_decision_for_counterfactual_ROI_audit": true
+  },
+  "primary_gates": {
+    "G1_PRETRUTH_DECISION": "100% predictor decisions made before SAT/UNSAT verification",
+    "G2_EXACTNESS": "100% guarded terminals match independent exact verifier",
+    "G3_SAT_REPLAY": "0 SAT witness replay failures",
+    "G4_NO_HARM_POLICY": "guarded route never executes the expensive spiral when predictor abstains",
+    "G5_COUNTERFACTUAL_AUDIT": "after decision, shadow spiral is measured on all holdout residuals to count false-negative profitable skips",
+    "G6_NO_THEOREM_INFLATION": "P_VS_NP remains OPEN"
+  },
+  "scientific_boundary": {
+    "P_VS_NP": "OPEN",
+    "general_speedup_claim_allowed": false,
+    "positive_R4_claim_if_pass": "A frozen conservative ROI gate can prevent previously observed double-spiral overhead on unexposed existing workloads while preserving exactness; this is policy validation, not SAT-in-P."
+  }
+}
