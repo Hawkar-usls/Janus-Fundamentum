@@ -1,0 +1,61 @@
+name: JANUS TRUMP R7B Meet Then Diverge Central Kernel
+on:
+  push:
+    branches:
+      - research/janus-trump-r7b-meet-then-diverge-central-kernel-2026-09-01
+  workflow_dispatch:
+jobs:
+  r7b-meet-then-diverge:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Verify frozen R7B preregistration
+        run: |
+          python - <<'PY'
+          import json
+          p=json.load(open('research/JANUS_TRUMP_R7B_MEET_THEN_DIVERGE_CENTRAL_KERNEL_PREREGISTRATION_2026-09-01.json'))
+          assert p['status']=='FROZEN_BEFORE_R7B_EXECUTION'
+          assert p['P_VS_NP_before_R7B']=='OPEN'
+          assert p['architecture']['meet_is_not_terminal'] is True
+          assert p['frozen_inputs']['custom_R7B_generator_allowed'] is False
+          print('R7B_FREEZE_OK')
+          PY
+      - name: Compile R7B
+        run: |
+          PYTHONPATH=experiments:. python -m py_compile experiments/janus_trump_r7b_meet_then_diverge_central_kernel.py tests/test_janus_trump_r7b_meet_then_diverge_central_kernel.py
+      - name: R7B firewall tests
+        run: |
+          PYTHONPATH=experiments:. python - <<'PY'
+          import importlib.util
+          spec=importlib.util.spec_from_file_location('r7btests','tests/test_janus_trump_r7b_meet_then_diverge_central_kernel.py')
+          m=importlib.util.module_from_spec(spec); spec.loader.exec_module(m)
+          tests=[getattr(m,n) for n in dir(m) if n.startswith('test_') and callable(getattr(m,n))]
+          for t in tests: t()
+          print('R7B_FIREWALL_TESTS_PASS', len(tests))
+          PY
+      - name: Run frozen R7B meet-then-diverge test
+        run: |
+          mkdir -p artifacts
+          PYTHONPATH=experiments:. python experiments/janus_trump_r7b_meet_then_diverge_central_kernel.py --output artifacts/JANUS_TRUMP_R7B_MEET_THEN_DIVERGE_CENTRAL_KERNEL_RESULT_2026-09-01.json
+      - name: Scientific gate
+        run: |
+          python - <<'PY'
+          import json
+          d=json.load(open('artifacts/JANUS_TRUMP_R7B_MEET_THEN_DIVERGE_CENTRAL_KERNEL_RESULT_2026-09-01.json'))
+          print(d['verdict'])
+          print(d['summary'])
+          assert d['P_VS_NP']=='OPEN'
+          assert d['candidate_source_firewall']['pass'] is True
+          assert all(d['gates'].values())
+          assert d['summary']['candidate_open_cases'] > 0
+          assert d['summary']['candidate_terminal_cases'] > 0
+          PY
+      - name: Upload immutable R7B evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: janus-trump-r7b-meet-then-diverge-central-kernel
+          path: artifacts/JANUS_TRUMP_R7B_MEET_THEN_DIVERGE_CENTRAL_KERNEL_RESULT_2026-09-01.json
