@@ -1,0 +1,54 @@
+name: JANUS TRUMP Osiris R4 ROI Gate
+on:
+  push:
+    branches:
+      - research/janus-trump-osiris-r4-roi-gate-2026-09-01
+  workflow_dispatch:
+jobs:
+  frozen-r4-holdout:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Verify frozen R4 spec
+        run: |
+          python - <<'PY'
+          import json
+          p=json.load(open('research/JANUS_TRUMP_OSIRIS_R4_ROI_PREDICTOR_PREREGISTRATION_2026-09-01.json'))
+          s=json.load(open('research/JANUS_TRUMP_OSIRIS_R4_ROI_GATE_FROZEN_SPEC_2026-09-01.json'))
+          assert p['status']=='FROZEN_BEFORE_R4_HOLDOUT_BRANCH'
+          assert s['status']=='FROZEN_BEFORE_EXECUTION'
+          assert s['training']['rows']==108
+          assert s['training']['profitable']==0
+          assert s['P_VS_NP']=='OPEN'
+          print('R4_FREEZE_OK')
+          PY
+      - name: Compile R4
+        run: |
+          python -m py_compile experiments/janus_trump_osiris_r4_roi_gate.py experiments/janus_trump_osiris_r4_roi_gate_runner.py
+      - name: R4 unit and firewall tests
+        run: |
+          python -m pytest -q tests/test_janus_trump_osiris_r4_roi_gate.py
+      - name: Execute frozen unexposed workload holdout
+        run: |
+          mkdir -p artifacts
+          PYTHONPATH=experiments python experiments/janus_trump_osiris_r4_roi_gate_runner.py --output artifacts/JANUS_TRUMP_OSIRIS_R4_ROI_GATE_RESULT_2026-09-01.json
+      - name: Scientific gate
+        run: |
+          python - <<'PY'
+          import json
+          d=json.load(open('artifacts/JANUS_TRUMP_OSIRIS_R4_ROI_GATE_RESULT_2026-09-01.json'))
+          print(d['verdict'], d['summary'])
+          assert d['P_VS_NP']=='OPEN'
+          assert all(d['gates'].values())
+          assert d['summary']['shadow_profitable_cases_skipped']==0
+          assert d['summary']['ops_avoided_by_frozen_abstention'] >= 0
+          PY
+      - name: Upload immutable R4 evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: janus-trump-osiris-r4-roi-gate
+          path: artifacts/JANUS_TRUMP_OSIRIS_R4_ROI_GATE_RESULT_2026-09-01.json
