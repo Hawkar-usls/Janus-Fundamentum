@@ -52,7 +52,6 @@ def resolve_pair(a: Clause, b: Clause, pivot: int) -> Optional[Clause]:
 
 
 def clause_universe_bound(nvars: int, k: int = WIDTH_K) -> int:
-    # Safe over-count: choose up to k literals from 2n signed literals.
     return sum(comb(2 * nvars, i) for i in range(0, min(k, 2 * nvars) + 1))
 
 
@@ -131,7 +130,6 @@ def fixed_width_resolution(cnf: CNF, k: int = WIDTH_K) -> ResolutionResult:
 
     while agenda:
         c = agenda.popleft()
-        # Resolve c with every already-indexed clause carrying the opposite literal.
         for lit in c:
             for d in list(index.get(-lit, ())):
                 ops += len(c) + len(d) + 1
@@ -166,7 +164,6 @@ def pivot_resolvents(cnf: CNF, v: int, k: int = WIDTH_K) -> dict:
     rest = [c for c in f if v not in c and -v not in c]
     resolvents: Set[Clause] = set()
     ops = 0
-    blocked: Optional[dict] = None
     for a in pos:
         for b in neg:
             ops += len(a) + len(b) + 1
@@ -174,8 +171,7 @@ def pivot_resolvents(cnf: CNF, v: int, k: int = WIDTH_K) -> dict:
             if rr is None:
                 continue
             if len(rr) > k:
-                blocked = {"width": len(rr), "left": list(a), "right": list(b), "pivot": v}
-                return {"safe": False, "pivot": v, "resolvents": set(), "rest": rest, "pos": pos, "neg": neg, "ops": ops, "blocked": blocked}
+                return {"safe": False, "pivot": v, "resolvents": set(), "rest": rest, "pos": pos, "neg": neg, "ops": ops, "blocked": {"width": len(rr), "left": list(a), "right": list(b), "pivot": v}}
             resolvents.add(rr)
     return {"safe": True, "pivot": v, "resolvents": resolvents, "rest": rest, "pos": pos, "neg": neg, "ops": ops, "blocked": None}
 
@@ -212,7 +208,12 @@ class EliminationResult:
 
 
 def reconstruct_elimination(original: CNF, records: Sequence[dict]) -> Optional[Assignment]:
-    a: Assignment = {}
+    pivot_vars = {int(rec["pivot"]) for rec in records}
+    # A variable may disappear from the reduced formula without ever becoming a
+    # pivot (for example after a pure-variable elimination).  Semantically it is
+    # still a remaining variable of the existential projection, so fix such
+    # unconstrained variables deterministically before reverse extension.
+    a: Assignment = {v: False for v in variables(original) if v not in pivot_vars}
     for rec in reversed(records):
         v = int(rec["pivot"])
         required: Set[bool] = set()
@@ -302,66 +303,19 @@ def attack_component(part: CNF) -> dict:
     rr = fixed_width_resolution(f, WIDTH_K)
     ops = rr.ops
     if rr.status == "UNSAT":
-        return {
-            "status": "UNSAT",
-            "class": "WIDTH4_RESOLUTION_REFUTATION",
-            "assignment": None,
-            "ops": ops,
-            "certificate": {
-                "type": "WIDTH4_RESOLUTION_REFUTATION",
-                "width": WIDTH_K,
-                "proof": rr.proof,
-                "derived_clauses": rr.derived,
-                "blocked_wide_resolvents": rr.blocked_wide,
-                "clause_universe_bound": rr.universe_bound,
-            },
-        }
-    if rr.status not in ("SATURATION_COMPLETE_NO_REFUTATION",):
+        return {"status": "UNSAT", "class": "WIDTH4_RESOLUTION_REFUTATION", "assignment": None, "ops": ops, "certificate": {"type": "WIDTH4_RESOLUTION_REFUTATION", "width": WIDTH_K, "proof": rr.proof, "derived_clauses": rr.derived, "blocked_wide_resolvents": rr.blocked_wide, "clause_universe_bound": rr.universe_bound}}
+    if rr.status != "SATURATION_COMPLETE_NO_REFUTATION":
         return {"status": "OPEN", "class": "WIDTH4_UNSUPPORTED", "assignment": None, "ops": ops, "certificate": {"type": rr.status}}
 
     er = width_bounded_eliminate(rr.saturated, WIDTH_K)
     ops += er.ops
     if er.status == "UNSAT":
-        return {
-            "status": "UNSAT",
-            "class": "WIDTH4_EXACT_ELIMINATION",
-            "assignment": None,
-            "ops": ops,
-            "certificate": {"type": "WIDTH4_EXACT_ELIMINATION_REFUTATION", "width": WIDTH_K, "records": er.records, "final_cnf": [list(c) for c in er.final_cnf]},
-        }
+        return {"status": "UNSAT", "class": "WIDTH4_EXACT_ELIMINATION", "assignment": None, "ops": ops, "certificate": {"type": "WIDTH4_EXACT_ELIMINATION_REFUTATION", "width": WIDTH_K, "records": er.records, "final_cnf": [list(c) for c in er.final_cnf]}}
     if er.status == "SAT":
-        # The saturated CNF contains only consequences of f, so a model of it is a model of f.
         if er.witness is None or not r7b.verify_sat(f, er.witness):
             return {"status": "OPEN", "class": "WIDTH4_RECONSTRUCTION_FAILURE", "assignment": None, "ops": ops, "certificate": {"type": "MODEL_REPLAY_FAILED"}}
-        return {
-            "status": "SAT",
-            "class": "WIDTH4_EXACT_ELIMINATION",
-            "assignment": er.witness,
-            "ops": ops,
-            "certificate": {
-                "type": "WIDTH4_EXACT_ELIMINATION_MODEL",
-                "width": WIDTH_K,
-                "records": er.records,
-                "saturation_derived_clauses": rr.derived,
-                "blocked_wide_resolvents": rr.blocked_wide,
-            },
-        }
-    return {
-        "status": "OPEN",
-        "class": "WIDTH4_BARRIER",
-        "assignment": None,
-        "ops": ops,
-        "certificate": {
-            "type": er.status,
-            "width": WIDTH_K,
-            "safe_elimination_steps": len(er.records),
-            "remaining_variables": len(variables(er.final_cnf)),
-            "remaining_clauses": len(er.final_cnf),
-            "blocked_pivot_witnesses": er.blocked_pivots[:32],
-            "saturation_derived_clauses": rr.derived,
-            "blocked_wide_resolvents": rr.blocked_wide,
-        },
-    }
+        return {"status": "SAT", "class": "WIDTH4_EXACT_ELIMINATION", "assignment": er.witness, "ops": ops, "certificate": {"type": "WIDTH4_EXACT_ELIMINATION_MODEL", "width": WIDTH_K, "records": er.records, "saturation_derived_clauses": rr.derived, "blocked_wide_resolvents": rr.blocked_wide}}
+    return {"status": "OPEN", "class": "WIDTH4_BARRIER", "assignment": None, "ops": ops, "certificate": {"type": er.status, "width": WIDTH_K, "safe_elimination_steps": len(er.records), "remaining_variables": len(variables(er.final_cnf)), "remaining_clauses": len(er.final_cnf), "blocked_pivot_witnesses": er.blocked_pivots[:32], "saturation_derived_clauses": rr.derived, "blocked_wide_resolvents": rr.blocked_wide}}
 
 
 @dataclass
@@ -373,13 +327,7 @@ class Candidate:
     ops: int
 
     def as_dict(self) -> dict:
-        return {
-            "terminal": self.terminal,
-            "witness": None if self.witness is None else {str(k): bool(v) for k, v in sorted(self.witness.items())},
-            "certificate": self.certificate,
-            "component_classes": self.component_classes,
-            "charged_ops": self.ops,
-        }
+        return {"terminal": self.terminal, "witness": None if self.witness is None else {str(k): bool(v) for k, v in sorted(self.witness.items())}, "certificate": self.certificate, "component_classes": self.component_classes, "charged_ops": self.ops}
 
 
 def r7d_candidate(cnf: CNF) -> Candidate:
@@ -450,12 +398,7 @@ def shadow_verify(cnf: CNF, candidate: Candidate) -> dict:
     oracle = dpll(canon(cnf))
     exact = oracle["status"] == "EXACT"
     truth = None if not exact else ("SAT" if oracle["sat"] else "UNSAT")
-    return {
-        "oracle": oracle,
-        "truth": truth,
-        "terminal_match": candidate.terminal == "OPEN" or (exact and candidate.terminal == truth),
-        "sat_replay": candidate.terminal != "SAT" or r7b.verify_sat(cnf, candidate.witness),
-    }
+    return {"oracle": oracle, "truth": truth, "terminal_match": candidate.terminal == "OPEN" or (exact and candidate.terminal == truth), "sat_replay": candidate.terminal != "SAT" or r7b.verify_sat(cnf, candidate.witness)}
 
 
 def candidate_source_firewall() -> dict:
@@ -471,12 +414,7 @@ def run() -> dict:
     rows = []
     for case in targets:
         candidate = r7d_candidate(case["cnf"])
-        sealed = {
-            "source": {k: v for k, v in case.items() if k != "cnf"},
-            "formula_sha256": r7b.digest_cnf(case["cnf"]),
-            "candidate": candidate.as_dict(),
-            "truth": None,
-        }
+        sealed = {"source": {k: v for k, v in case.items() if k != "cnf"}, "formula_sha256": r7b.digest_cnf(case["cnf"]), "candidate": candidate.as_dict(), "truth": None}
         seal = sha256(json.dumps(sealed, sort_keys=True, separators=(",", ":")).encode()).hexdigest()
         verification = shadow_verify(case["cnf"], candidate)
         rows.append({**sealed, "preverification_seal_sha256": seal, "shadow_verification": verification})
