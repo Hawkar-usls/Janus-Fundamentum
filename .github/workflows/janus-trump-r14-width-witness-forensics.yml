@@ -1,0 +1,82 @@
+name: JANUS TRUMP R14 Width Witness Forensics
+
+on:
+  push:
+    branches:
+      - research/janus-trump-r14-width-witness-forensics-2026-09-02
+    paths:
+      - 'research/JANUS_TRUMP_R14_WIDTH_WITNESS_FORENSICS_PREREGISTRATION_2026-09-02.json'
+      - 'experiments/janus_trump_r14_width_witness_forensics.py'
+      - 'tests/test_janus_trump_r14_width_witness_forensics.py'
+      - '.github/workflows/janus-trump-r14-width-witness-forensics.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  r14-forensics:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Verify frozen R14 preregistration
+        run: |
+          python - <<'PY'
+          import json
+          p=json.load(open('research/JANUS_TRUMP_R14_WIDTH_WITNESS_FORENSICS_PREREGISTRATION_2026-09-02.json'))
+          assert p['status']=='FROZEN_BEFORE_R14_IMPLEMENTATION_AND_EXECUTION'
+          assert p['parent_R13_result_commit']=='5a7cac2b7108a5a006d53c097f61906633851867'
+          assert p['target_world']['id']=='R13-W05'
+          assert p['target_world']['frame_sha256']=='84fa0fbdd127b1c73f3c8ef6820a0d0cdf154093750ed9c600289fce4b6aae88'
+          assert p['target_world']['truth_table_sha256']=='acf8828272994c0ad05a44590aa4335e1828d5b7d3e3d4f438b0d497cfcad92f'
+          assert p['P_VS_NP']=='OPEN'
+          print('R14_FREEZE_OK')
+          PY
+
+      - name: Compile R14
+        run: |
+          PYTHONPATH=experiments:. python -m py_compile \
+            experiments/janus_trump_r14_width_witness_forensics.py \
+            tests/test_janus_trump_r14_width_witness_forensics.py
+
+      - name: R14 forensic unit tests
+        run: |
+          PYTHONPATH=experiments:. python - <<'PY'
+          import importlib.util
+          spec=importlib.util.spec_from_file_location('r14tests','tests/test_janus_trump_r14_width_witness_forensics.py')
+          m=importlib.util.module_from_spec(spec); spec.loader.exec_module(m)
+          tests=[getattr(m,n) for n in dir(m) if n.startswith('test_r14')]
+          for t in tests: t()
+          print('R14_TESTS_PASS',len(tests))
+          PY
+
+      - name: Run frozen R14 forensics
+        run: |
+          mkdir -p artifacts
+          PYTHONPATH=experiments:. python experiments/janus_trump_r14_width_witness_forensics.py \
+            --output artifacts/JANUS_TRUMP_R14_WIDTH_WITNESS_FORENSICS_RESULT_2026-09-02.json
+
+      - name: R14 scientific integrity gate
+        run: |
+          python - <<'PY'
+          import json
+          d=json.load(open('artifacts/JANUS_TRUMP_R14_WIDTH_WITNESS_FORENSICS_RESULT_2026-09-02.json'))
+          assert d['P_VS_NP']=='OPEN'
+          assert all(d['gates'].values()), d['gates']
+          assert d['verdict']!='FORENSIC_INTEGRITY_FAIL'
+          assert d['reconstructed_frozen_k4_endpoint']['false_positive_masks']==[32050,32546,32562,65328,65332]
+          assert d['exact_interface_geometry']['missing_beyond_k4_count']==14
+          print(d['verdict'])
+          PY
+
+      - name: Upload immutable R14 evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: janus-trump-r14-width-witness-forensics
+          path: artifacts/JANUS_TRUMP_R14_WIDTH_WITNESS_FORENSICS_RESULT_2026-09-02.json
+          if-no-files-found: error
