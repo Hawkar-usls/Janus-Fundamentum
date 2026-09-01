@@ -1,0 +1,52 @@
+name: JANUS TRUMP R8B2 Toroidal Width Barrier Theorem Audit
+
+on:
+  push:
+    branches:
+      - research/janus-trump-r8b2-toroidal-width-barrier-theorem-audit-2026-09-01
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  r8b2-theorem-audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Verify frozen R8B2 preregistration
+        run: |
+          python - <<'PY'
+          import json
+          p=json.load(open('research/JANUS_TRUMP_R8B2_TOROIDAL_WIDTH_BARRIER_THEOREM_AUDIT_PREREGISTRATION_2026-09-01.json'))
+          assert p['status']=='FROZEN_BEFORE_R8B2_EXECUTION'
+          assert p['existing_family']['input_clause_width']==4
+          assert p['P_VS_NP']=='OPEN'
+          print('R8B2_FREEZE_OK')
+          PY
+      - name: Compile theorem carrier
+        run: python -m py_compile experiments/janus_trump_r8b2_toroidal_width_barrier_theorem_audit.py experiments/direct/toroidal_tseitin_twins.py
+      - name: Execute frozen repository-side family audit
+        run: |
+          mkdir -p artifacts
+          python experiments/janus_trump_r8b2_toroidal_width_barrier_theorem_audit.py --output artifacts/JANUS_TRUMP_R8B2_TOROIDAL_WIDTH_BARRIER_THEOREM_AUDIT_RESULT_2026-09-01.json
+      - name: Scientific boundary gate
+        run: |
+          python - <<'PY'
+          import json
+          d=json.load(open('artifacts/JANUS_TRUMP_R8B2_TOROIDAL_WIDTH_BARRIER_THEOREM_AUDIT_RESULT_2026-09-01.json'))
+          assert d['P_VS_NP']=='OPEN'
+          assert all(d['gates'].values())
+          assert d['inference']['smallest_R_requiring_width_gt_4']=='NOT_DERIVED_FROM_ASYMPTOTIC_CONSTANTS'
+          print(d['verdict'])
+          PY
+      - name: Upload immutable R8B2 evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: janus-trump-r8b2-toroidal-width-barrier-theorem-audit
+          path: artifacts/JANUS_TRUMP_R8B2_TOROIDAL_WIDTH_BARRIER_THEOREM_AUDIT_RESULT_2026-09-01.json
+          if-no-files-found: error
