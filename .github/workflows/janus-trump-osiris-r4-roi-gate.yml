@@ -27,10 +27,17 @@ jobs:
           PY
       - name: Compile R4
         run: |
-          python -m py_compile experiments/janus_trump_osiris_r4_roi_gate.py experiments/janus_trump_osiris_r4_roi_gate_runner.py
+          python -m py_compile experiments/janus_trump_osiris_r4_roi_gate.py experiments/janus_trump_osiris_r4_roi_gate_runner.py tests/test_janus_trump_osiris_r4_roi_gate.py
       - name: R4 unit and firewall tests
         run: |
-          python -m pytest -q tests/test_janus_trump_osiris_r4_roi_gate.py
+          python - <<'PY'
+          import importlib.util
+          spec=importlib.util.spec_from_file_location('r4tests','tests/test_janus_trump_osiris_r4_roi_gate.py')
+          m=importlib.util.module_from_spec(spec); spec.loader.exec_module(m)
+          tests=[getattr(m,n) for n in dir(m) if n.startswith('test_') and callable(getattr(m,n))]
+          for t in tests: t()
+          print('R4_FIREWALL_TESTS_PASS', len(tests))
+          PY
       - name: Execute frozen unexposed workload holdout
         run: |
           mkdir -p artifacts
