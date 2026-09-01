@@ -1,0 +1,81 @@
+name: JANUS TRUMP Osiris R3 Natural Residuals
+
+on:
+  push:
+    branches:
+      - research/janus-trump-osiris-r3-natural-residuals-2026-09-01
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: janus-trump-osiris-r3-natural-residuals
+  cancel-in-progress: false
+
+jobs:
+  frozen-natural-residual-holdout:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Verify preregistration and pre-holdout seal
+        run: |
+          python - <<'PY'
+          import json
+          p=json.load(open('research/JANUS_TRUMP_OSIRIS_R3_NATURAL_RESIDUALS_PREREGISTRATION_2026-09-01.json'))
+          f=json.load(open('research/JANUS_TRUMP_OSIRIS_R3_NATURAL_RESIDUALS_PRE_HOLDOUT_FREEZE_2026-09-01.json'))
+          assert p['status']=='FROZEN_BEFORE_EXECUTION'
+          assert p['residual_acquisition_freeze']['custom_R3_formula_generator'] is False
+          assert p['residual_acquisition_freeze']['selection_may_use_truth'] is False
+          assert p['scientific_boundary']['P_VS_NP']=='OPEN'
+          assert f['status']=='SEALED_BEFORE_HOLDOUT'
+          assert f['holdout_seen'] is False
+          assert f['parameters_mutable_after_this_record'] is False
+          print('R3_PRE_HOLDOUT_FREEZE_OK')
+          PY
+      - name: Compile R3 natural residual lane
+        run: |
+          python -m py_compile \
+            experiments/janus_trump_p_vs_np_direct_challenge_r0.py \
+            experiments/janus_trump_osiris_r3_natural_residuals.py \
+            experiments/janus_trump_osiris_r3_natural_residuals_runner.py \
+            tests/test_janus_trump_osiris_r3_natural_residuals.py
+      - name: Run R3 unit and epistemic firewall tests
+        run: python -m unittest tests.test_janus_trump_osiris_r3_natural_residuals -v
+      - name: Execute frozen natural residual killer-test
+        run: |
+          mkdir -p artifacts
+          python experiments/janus_trump_osiris_r3_natural_residuals_runner.py \
+            --output artifacts/JANUS_TRUMP_OSIRIS_R3_NATURAL_RESIDUALS_RESULT_2026-09-01.json
+      - name: Receipt integrity
+        run: |
+          python - <<'PY'
+          import json
+          d=json.load(open('artifacts/JANUS_TRUMP_OSIRIS_R3_NATURAL_RESIDUALS_RESULT_2026-09-01.json'))
+          assert d['P_VS_NP']=='OPEN'
+          assert d['provenance']['custom_R3_formula_generator_used'] is False
+          assert d['provenance']['residual_probe_uses_truth'] is False
+          assert len(d['rows']) > 0
+          print(d['status'])
+          for name,g in d['gates'].items():
+              print(name, g['pass'])
+          PY
+      - name: Print compact result
+        if: always()
+        run: |
+          python - <<'PY'
+          import json, pathlib
+          p=pathlib.Path('artifacts/JANUS_TRUMP_OSIRIS_R3_NATURAL_RESIDUALS_RESULT_2026-09-01.json')
+          if p.exists():
+              d=json.load(open(p))
+              print(json.dumps({'status':d['status'],'gates':d['gates']},indent=2))
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: janus-trump-osiris-r3-natural-residuals
+          path: artifacts/JANUS_TRUMP_OSIRIS_R3_NATURAL_RESIDUALS_RESULT_2026-09-01.json
+          if-no-files-found: error
