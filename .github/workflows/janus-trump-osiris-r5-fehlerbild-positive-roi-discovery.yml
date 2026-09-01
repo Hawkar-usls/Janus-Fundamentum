@@ -1,0 +1,60 @@
+name: JANUS TRUMP Osiris R5 Fehlerbild Positive ROI Discovery
+on:
+  push:
+    branches:
+      - research/janus-trump-osiris-r5-fehlerbild-positive-roi-discovery-2026-09-01
+  workflow_dispatch:
+jobs:
+  frozen-r5-discovery:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Verify frozen R5 preregistration
+        run: |
+          python - <<'PY'
+          import json
+          p=json.load(open('research/JANUS_TRUMP_OSIRIS_R5_FEHLERBILD_POSITIVE_ROI_DISCOVERY_PREREGISTRATION_2026-09-01.json'))
+          assert p['status']=='FROZEN_BEFORE_R5_DISCOVERY_EXECUTION'
+          assert p['frozen_arena']['max_variables_for_exact_discovery']==14
+          assert p['discovery_not_validation']['promotion_allowed'] is False
+          assert p['P_VS_NP']=='OPEN'
+          print('R5_FREEZE_OK')
+          PY
+      - name: Compile R5
+        run: |
+          PYTHONPATH=experiments python -m py_compile experiments/janus_trump_osiris_r5_fehlerbild_positive_roi_discovery.py experiments/janus_trump_osiris_r5_fehlerbild_positive_roi_discovery_runner.py tests/test_janus_trump_osiris_r5_fehlerbild_positive_roi_discovery.py
+      - name: R5 unit and firewall tests
+        run: |
+          PYTHONPATH=experiments python - <<'PY'
+          import importlib.util
+          spec=importlib.util.spec_from_file_location('r5tests','tests/test_janus_trump_osiris_r5_fehlerbild_positive_roi_discovery.py')
+          m=importlib.util.module_from_spec(spec); spec.loader.exec_module(m)
+          tests=[getattr(m,n) for n in dir(m) if n.startswith('test_') and callable(getattr(m,n))]
+          for t in tests: t()
+          print('R5_FIREWALL_TESTS_PASS', len(tests))
+          PY
+      - name: Execute frozen R5 discovery arena
+        run: |
+          mkdir -p artifacts
+          PYTHONPATH=experiments python experiments/janus_trump_osiris_r5_fehlerbild_positive_roi_discovery_runner.py --output artifacts/JANUS_TRUMP_OSIRIS_R5_FEHLERBILD_POSITIVE_ROI_DISCOVERY_RESULT_2026-09-01.json
+      - name: Scientific gate
+        run: |
+          python - <<'PY'
+          import json
+          d=json.load(open('artifacts/JANUS_TRUMP_OSIRIS_R5_FEHLERBILD_POSITIVE_ROI_DISCOVERY_RESULT_2026-09-01.json'))
+          print(d['verdict'])
+          print(d['summary'])
+          assert d['P_VS_NP']=='OPEN'
+          assert d['discovery_only'] is True
+          assert d['routing_authority_changed'] is False
+          assert all(d['gates'].values())
+          PY
+      - name: Upload immutable R5 evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: janus-trump-osiris-r5-fehlerbild-positive-roi-discovery
+          path: artifacts/JANUS_TRUMP_OSIRIS_R5_FEHLERBILD_POSITIVE_ROI_DISCOVERY_RESULT_2026-09-01.json
