@@ -1,0 +1,114 @@
+name: JANUS TRUMP R8 Dual Killer Test
+
+on:
+  push:
+    branches:
+      - research/janus-trump-r8-dual-killer-test-2026-09-01
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  r8a-unseen-natural-holdout:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Verify R8 preregistration
+        run: |
+          python - <<'PY'
+          import json
+          p=json.load(open('research/JANUS_TRUMP_R8_DUAL_KILLER_TEST_PREREGISTRATION_2026-09-01.json'))
+          assert p['status']=='FROZEN_BEFORE_R8_EXECUTION'
+          assert p['R8A']['expected_residuals']==16
+          assert p['frozen_candidate']['k']==4
+          assert p['P_VS_NP']=='OPEN'
+          print('R8A_FREEZE_OK')
+          PY
+      - name: Compile R8A
+        run: PYTHONPATH=experiments:. python -m py_compile experiments/janus_trump_r8a_unseen_natural_holdout.py tests/test_janus_trump_r8_dual_killer_test.py
+      - name: R8A firewall tests
+        run: |
+          PYTHONPATH=experiments:. python - <<'PY'
+          import importlib.util
+          spec=importlib.util.spec_from_file_location('r8tests','tests/test_janus_trump_r8_dual_killer_test.py')
+          m=importlib.util.module_from_spec(spec); spec.loader.exec_module(m)
+          tests=[getattr(m,n) for n in dir(m) if n.startswith('test_r8a_')]
+          for t in tests: t()
+          print('R8A_FIREWALL_TESTS_PASS',len(tests))
+          PY
+      - name: Run frozen R8A
+        run: |
+          mkdir -p artifacts
+          PYTHONPATH=experiments:. python experiments/janus_trump_r8a_unseen_natural_holdout.py --output artifacts/JANUS_TRUMP_R8A_UNSEEN_NATURAL_HOLDOUT_RESULT_2026-09-01.json
+      - name: R8A scientific integrity gate
+        run: |
+          python - <<'PY'
+          import json
+          d=json.load(open('artifacts/JANUS_TRUMP_R8A_UNSEEN_NATURAL_HOLDOUT_RESULT_2026-09-01.json'))
+          assert d['P_VS_NP']=='OPEN'
+          assert d['summary']['residuals']==16
+          assert all(d['gates'].values()), d['gates']
+          print(d['verdict']); print(d['summary'])
+          PY
+      - name: Upload immutable R8A evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: janus-trump-r8a-unseen-natural-holdout
+          path: artifacts/JANUS_TRUMP_R8A_UNSEEN_NATURAL_HOLDOUT_RESULT_2026-09-01.json
+          if-no-files-found: error
+
+  r8b-width-barrier-hunt:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Verify R8 preregistration
+        run: |
+          python - <<'PY'
+          import json
+          p=json.load(open('research/JANUS_TRUMP_R8_DUAL_KILLER_TEST_PREREGISTRATION_2026-09-01.json'))
+          assert p['status']=='FROZEN_BEFORE_R8_EXECUTION'
+          assert p['R8B']['frozen_width_sweep']==[3,4,5]
+          assert p['frozen_candidate']['k']==4
+          assert p['P_VS_NP']=='OPEN'
+          print('R8B_FREEZE_OK')
+          PY
+      - name: Compile R8B
+        run: PYTHONPATH=experiments:. python -m py_compile experiments/janus_trump_r8b_width_barrier_hunt.py tests/test_janus_trump_r8_dual_killer_test.py
+      - name: R8B firewall tests
+        run: |
+          PYTHONPATH=experiments:. python - <<'PY'
+          import importlib.util
+          spec=importlib.util.spec_from_file_location('r8tests','tests/test_janus_trump_r8_dual_killer_test.py')
+          m=importlib.util.module_from_spec(spec); spec.loader.exec_module(m)
+          tests=[getattr(m,n) for n in dir(m) if n.startswith('test_r8b_')]
+          for t in tests: t()
+          print('R8B_FIREWALL_TESTS_PASS',len(tests))
+          PY
+      - name: Run frozen R8B kill test
+        run: |
+          mkdir -p artifacts
+          PYTHONPATH=experiments:. python experiments/janus_trump_r8b_width_barrier_hunt.py --output artifacts/JANUS_TRUMP_R8B_WIDTH_BARRIER_HUNT_RESULT_2026-09-01.json
+      - name: R8B scientific integrity gate
+        run: |
+          python - <<'PY'
+          import json
+          d=json.load(open('artifacts/JANUS_TRUMP_R8B_WIDTH_BARRIER_HUNT_RESULT_2026-09-01.json'))
+          assert d['P_VS_NP']=='OPEN'
+          assert all(d['gates'].values()), d['gates']
+          print(d['verdict']); print('barrier_found=',d['barrier_found'])
+          PY
+      - name: Upload immutable R8B evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: janus-trump-r8b-width-barrier-hunt
+          path: artifacts/JANUS_TRUMP_R8B_WIDTH_BARRIER_HUNT_RESULT_2026-09-01.json
+          if-no-files-found: error
