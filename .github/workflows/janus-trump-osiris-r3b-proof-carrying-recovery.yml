@@ -1,0 +1,70 @@
+name: JANUS TRUMP Osiris R3B Proof-Carrying Recovery
+
+on:
+  push:
+    branches:
+      - research/janus-trump-osiris-r3b-proof-carrying-recovery-2026-09-01
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: janus-trump-osiris-r3b-proof-carrying-recovery
+  cancel-in-progress: false
+
+jobs:
+  frozen-recovery:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Verify R3B freeze and immutable R3A
+        run: |
+          python - <<'PY'
+          import json
+          p=json.load(open('research/JANUS_TRUMP_OSIRIS_R3B_PROOF_CARRYING_RECOVERY_PREREGISTRATION_2026-09-01.json'))
+          f=json.load(open('research/JANUS_TRUMP_OSIRIS_R3B_PRE_HOLDOUT_FREEZE_2026-09-01.json'))
+          a=json.load(open('research/JANUS_TRUMP_OSIRIS_R3A_NATURAL_RESIDUALS_RESULT_SUMMARY_2026-09-01.json'))
+          assert p['status']=='FROZEN_BEFORE_R3B_EXECUTION'
+          assert f['status']=='SEALED_BEFORE_R3B_EXECUTION'
+          assert f['holdout_seen'] is False
+          assert p['changes_allowed']['R2_route_rule']=='UNCHANGED'
+          assert a['status']=='NATURAL_RESIDUAL_GATE_FAIL__SHADOW_ONLY__P_VS_NP_OPEN'
+          print('R3B_FREEZE_OK__R3A_IMMUTABLE')
+          PY
+      - name: Compile R3B
+        run: |
+          python -m py_compile \
+            experiments/janus_trump_p_vs_np_direct_challenge_r0.py \
+            experiments/janus_trump_osiris_r3_natural_residuals.py \
+            experiments/janus_trump_osiris_r3b_proof_carrying_recovery.py \
+            experiments/janus_trump_osiris_r3b_proof_carrying_recovery_runner.py \
+            tests/test_janus_trump_osiris_r3b_proof_carrying_recovery.py
+      - name: Unit and proof-carrying firewall tests
+        run: python -m unittest tests.test_janus_trump_osiris_r3b_proof_carrying_recovery -v
+      - name: Execute frozen R3B recovery validation
+        run: |
+          mkdir -p artifacts
+          python experiments/janus_trump_osiris_r3b_proof_carrying_recovery_runner.py \
+            --output artifacts/JANUS_TRUMP_OSIRIS_R3B_PROOF_CARRYING_RECOVERY_RESULT_2026-09-01.json
+      - name: Receipt integrity
+        run: |
+          python - <<'PY'
+          import json
+          d=json.load(open('artifacts/JANUS_TRUMP_OSIRIS_R3B_PROOF_CARRYING_RECOVERY_RESULT_2026-09-01.json'))
+          assert d['P_VS_NP']=='OPEN'
+          assert d['scientific_boundary']['R3A_remains_failed'] is True
+          assert d['primary_gates']['proof_carrying']['sat_replay_failures']==0
+          print(d['status'])
+          print(json.dumps(d['primary_gates'],indent=2))
+          print(json.dumps(d['observations'],indent=2))
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: janus-trump-osiris-r3b-proof-carrying-recovery
+          path: artifacts/JANUS_TRUMP_OSIRIS_R3B_PROOF_CARRYING_RECOVERY_RESULT_2026-09-01.json
+          if-no-files-found: error
