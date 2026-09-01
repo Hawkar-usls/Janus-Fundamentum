@@ -1,0 +1,71 @@
+name: JANUS TRUMP R7D Dense 3SAT Polynomial Proof Attack Fastpath
+
+on:
+  push:
+    branches:
+      - research/janus-trump-r7d-dense-3sat-polynomial-proof-attack-2026-09-01
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  r7d-dense-3sat-fastpath:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Verify frozen R7D preregistration
+        run: |
+          python - <<'PY'
+          import json
+          p=json.load(open('research/JANUS_TRUMP_R7D_DENSE_3SAT_POLYNOMIAL_PROOF_ATTACK_PREREGISTRATION_2026-09-01.json'))
+          assert p['status']=='FROZEN_BEFORE_R7D_EXECUTION'
+          assert p['P_VS_NP_before_R7D']=='OPEN'
+          assert p['scope']['expected_target_count']==10
+          assert p['frozen_width']['k']==4
+          print('R7D_FREEZE_OK')
+          PY
+      - name: Compile R7D fastpath
+        run: |
+          PYTHONPATH=experiments:. python -m py_compile experiments/janus_trump_r7d_dense_3sat_polynomial_proof_attack.py experiments/janus_trump_r7d_dense_3sat_polynomial_proof_attack_fastpath.py tests/test_janus_trump_r7d_dense_3sat_polynomial_proof_attack.py
+      - name: R7D firewall tests
+        run: |
+          PYTHONPATH=experiments:. python - <<'PY'
+          import importlib.util
+          spec=importlib.util.spec_from_file_location('r7dtests','tests/test_janus_trump_r7d_dense_3sat_polynomial_proof_attack.py')
+          m=importlib.util.module_from_spec(spec); spec.loader.exec_module(m)
+          tests=[getattr(m,n) for n in dir(m) if n.startswith('test_') and callable(getattr(m,n))]
+          for t in tests: t()
+          print('R7D_FIREWALL_TESTS_PASS', len(tests))
+          PY
+      - name: Run frozen R7D fastpath
+        run: |
+          mkdir -p artifacts
+          PYTHONPATH=experiments:. python experiments/janus_trump_r7d_dense_3sat_polynomial_proof_attack_fastpath.py --output artifacts/JANUS_TRUMP_R7D_DENSE_3SAT_POLYNOMIAL_PROOF_ATTACK_FASTPATH_RESULT_2026-09-01.json
+      - name: Scientific gate
+        run: |
+          python - <<'PY'
+          import json
+          d=json.load(open('artifacts/JANUS_TRUMP_R7D_DENSE_3SAT_POLYNOMIAL_PROOF_ATTACK_FASTPATH_RESULT_2026-09-01.json'))
+          print(d['verdict'])
+          print(d['summary'])
+          assert d['P_VS_NP']=='OPEN'
+          assert d['scope']=='EXPOSED_R7C_REMAINDER_DISCOVERY_ONLY'
+          assert d['frozen_width']==4
+          assert d['summary']['targets']==10
+          assert d['summary']['target_families']==['RANDOM_3SAT_NEAR_DENSE']
+          assert d['summary']['false_terminals']==0
+          assert d['summary']['sat_replay_failures']==0
+          assert d['candidate_source_firewall']['pass'] is True
+          assert all(d['gates'].values())
+          PY
+      - name: Upload immutable R7D fastpath evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: janus-trump-r7d-dense-3sat-polynomial-proof-attack-fastpath
+          path: artifacts/JANUS_TRUMP_R7D_DENSE_3SAT_POLYNOMIAL_PROOF_ATTACK_FASTPATH_RESULT_2026-09-01.json
+          if-no-files-found: error
