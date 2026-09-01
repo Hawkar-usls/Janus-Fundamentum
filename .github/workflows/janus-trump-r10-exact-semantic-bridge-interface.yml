@@ -1,0 +1,67 @@
+name: JANUS TRUMP R10 Exact Semantic Bridge Interface
+
+on:
+  push:
+    branches:
+      - research/janus-trump-r10-exact-semantic-bridge-interface-2026-09-01
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  r10-killer-test:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Verify frozen R10 preregistration
+        run: |
+          python - <<'PY'
+          import json
+          p=json.load(open('research/JANUS_TRUMP_R10_EXACT_SEMANTIC_BRIDGE_INTERFACE_PREREGISTRATION_2026-09-01.json'))
+          assert p['status']=='FROZEN_BEFORE_R10_EXECUTION'
+          assert p['parent_R9_result_summary_commit']=='2876047887eec0573040cb16aff954b762d85b70'
+          assert p['candidate_language']['width_cap']==4
+          assert [x['global_index'] for x in p['frozen_worlds']]==[3,7]
+          assert p['admission_gate']=='NO_HIDDEN_SEARCH'
+          assert p['P_VS_NP']=='OPEN'
+          print('R10_FREEZE_OK')
+          PY
+      - name: Compile R10
+        run: |
+          PYTHONPATH=experiments:. python -m py_compile experiments/janus_trump_r10_exact_semantic_bridge_interface.py tests/test_janus_trump_r10_exact_semantic_bridge_interface.py
+      - name: R10 firewall tests
+        run: |
+          PYTHONPATH=experiments:. python - <<'PY'
+          import importlib.util
+          spec=importlib.util.spec_from_file_location('r10tests','tests/test_janus_trump_r10_exact_semantic_bridge_interface.py')
+          m=importlib.util.module_from_spec(spec); spec.loader.exec_module(m)
+          tests=[getattr(m,n) for n in dir(m) if n.startswith('test_r10')]
+          for t in tests: t()
+          print('R10_FIREWALL_TESTS_PASS',len(tests))
+          PY
+      - name: Run frozen R10 killer test
+        run: |
+          mkdir -p artifacts
+          PYTHONPATH=experiments:. python experiments/janus_trump_r10_exact_semantic_bridge_interface.py --output artifacts/JANUS_TRUMP_R10_EXACT_SEMANTIC_BRIDGE_INTERFACE_RESULT_2026-09-01.json
+      - name: R10 scientific integrity gate
+        run: |
+          python - <<'PY'
+          import json
+          d=json.load(open('artifacts/JANUS_TRUMP_R10_EXACT_SEMANTIC_BRIDGE_INTERFACE_RESULT_2026-09-01.json'))
+          assert d['P_VS_NP']=='OPEN'
+          assert all(d['gates'].values()), d['gates']
+          assert d['summary']['worlds']==2
+          print(d['verdict'])
+          print(d['summary'])
+          PY
+      - name: Upload immutable R10 evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: janus-trump-r10-exact-semantic-bridge-interface
+          path: artifacts/JANUS_TRUMP_R10_EXACT_SEMANTIC_BRIDGE_INTERFACE_RESULT_2026-09-01.json
+          if-no-files-found: error
