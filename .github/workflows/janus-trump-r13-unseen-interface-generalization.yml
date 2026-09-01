@@ -1,0 +1,207 @@
+name: JANUS TRUMP R13 Unseen Interface Generalization
+
+on:
+  push:
+    branches:
+      - research/janus-trump-r13-unseen-interface-generalization-2026-09-02
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  unseen-world:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    strategy:
+      fail-fast: false
+      matrix:
+        world: [R13-W01, R13-W02, R13-W03, R13-W04, R13-W05, R13-W06]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Verify byte-frozen R12B compiler and R13 world freeze
+        run: |
+          set -euo pipefail
+          F=experiments/janus_trump_r12b_forbidden_pattern_quotient_compiler.py
+          OLD=$(git rev-parse 36eb47a967d78b8e54142554ebe8ca0b420d02cd:$F)
+          NOW=$(git rev-parse HEAD:$F)
+          echo "R12B_FROZEN_BLOB=$NOW"
+          test "$OLD" = "$NOW"
+          python - <<'PY'
+          import json, hashlib
+          p='research/JANUS_TRUMP_R13_UNSEEN_INTERFACE_WORLD_SET_FREEZE_2026-09-02.json'
+          d=json.load(open(p))
+          assert d['status']=='FROZEN_BEFORE_CANDIDATE_EXECUTION'
+          assert d['compiler_freeze']['logic_changes_allowed'] is False
+          assert d['compiler_freeze']['width_cap']==4
+          assert len(d['worlds'])==6
+          assert d['P_VS_NP']=='OPEN'
+          for w in d['worlds']:
+              expect=int.from_bytes(hashlib.sha256(w['derivation_string'].encode()).digest()[:8],'big')%(2**31)
+              assert expect==w['seed'], (w['id'],expect,w['seed'])
+          print('R13_WORLD_FREEZE_OK')
+          PY
+
+      - name: Compile harness and frozen compiler
+        run: |
+          PYTHONPATH=experiments:. python -m py_compile \
+            experiments/janus_trump_r12b_forbidden_pattern_quotient_compiler.py \
+            experiments/janus_trump_r13_unseen_interface_generalization.py
+
+      - name: Run unseen world without in-place tuning
+        env:
+          WORLD: ${{ matrix.world }}
+        run: |
+          set -uo pipefail
+          mkdir -p artifacts
+          OUT="artifacts/JANUS_TRUMP_R13_${WORLD}_RESULT_2026-09-02.json"
+          set +e
+          timeout 1400s env PYTHONPATH=experiments:. python experiments/janus_trump_r13_unseen_interface_generalization.py \
+            --world "$WORLD" --output "$OUT"
+          RC=$?
+          set -e
+          if [ "$RC" -eq 124 ]; then
+            python - "$WORLD" "$OUT" <<'PY'
+          import json,sys
+          world,out=sys.argv[1:]
+          json.dump({
+            'schema':'JANUS/TRUMP/R13/UNSEEN_INTERFACE_GENERALIZATION/WORLD_RESULT/v1.0',
+            'created_date':'2026-09-02','world_id':world,
+            'verdict':'BLOCKED_RESOURCE_LIMIT','candidate_ran':True,
+            'witness_ran':False,'reason':'OUTER_WORLD_EXECUTION_TIMEOUT_BEFORE_COMPLETE_SCIENTIFIC_GATE',
+            'P_VS_NP':'OPEN'
+          },open(out,'w'),indent=2,sort_keys=True)
+          PY
+          elif [ "$RC" -ne 0 ]; then
+            python - "$WORLD" "$OUT" "$RC" <<'PY'
+          import json,sys
+          world,out,rc=sys.argv[1],sys.argv[2],int(sys.argv[3])
+          json.dump({
+            'schema':'JANUS/TRUMP/R13/UNSEEN_INTERFACE_GENERALIZATION/WORLD_RESULT/v1.0',
+            'created_date':'2026-09-02','world_id':world,
+            'verdict':'BLOCKED_EXECUTION_ERROR','candidate_ran':None,
+            'witness_ran':False,'reason':f'HARNESS_EXIT_{rc}',
+            'P_VS_NP':'OPEN'
+          },open(out,'w'),indent=2,sort_keys=True)
+          PY
+          fi
+          test -s "$OUT"
+
+      - name: Upload immutable per-world evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: janus-trump-r13-${{ matrix.world }}
+          path: artifacts/JANUS_TRUMP_R13_${{ matrix.world }}_RESULT_2026-09-02.json
+          if-no-files-found: error
+
+  aggregate:
+    if: always()
+    needs: unseen-world
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: janus-trump-r13-R13-W*
+          path: downloaded
+          merge-multiple: true
+
+      - name: Aggregate exactness and scaling without theorem inflation
+        run: |
+          mkdir -p artifacts
+          python - <<'PY'
+          import glob,json,math,os
+          expected=[f'R13-W{i:02d}' for i in range(1,7)]
+          rows=[]
+          for p in sorted(glob.glob('downloaded/*.json')):
+              try:
+                  rows.append(json.load(open(p)))
+              except Exception as e:
+                  rows.append({'world_id':os.path.basename(p),'verdict':'BLOCKED_BAD_RECEIPT','reason':repr(e),'P_VS_NP':'OPEN'})
+          got={r.get('world_id') for r in rows}
+          for w in expected:
+              if w not in got:
+                  rows.append({'world_id':w,'verdict':'BLOCKED_MISSING_RECEIPT','reason':'NO_PER_WORLD_ARTIFACT_AVAILABLE','P_VS_NP':'OPEN'})
+
+          verdicts=[r.get('verdict') for r in rows]
+          if any(v=='FAIL_UNSOUND' for v in verdicts):
+              overall='FAIL_UNSOUND'
+          elif any(v=='OPEN_WIDTH_WITNESS' for v in verdicts):
+              overall='OPEN_WIDTH_WITNESS'
+          elif any(v=='OPEN_INTERFACE_STRUCTURE_MISMATCH' for v in verdicts):
+              overall='OPEN_INTERFACE_STRUCTURE_MISMATCH'
+          elif any(v and v.startswith('BLOCKED') for v in verdicts):
+              overall='BLOCKED_RESOURCE_OR_EXECUTION_LIMIT'
+          elif len(rows)==6 and all(v=='PASS_EXACT_SCOPED' for v in verdicts):
+              overall='PASS_EXACT_SCOPED'
+          else:
+              overall='OPEN_MIXED_RESULT'
+
+          scaling=[]
+          for r in sorted(rows,key=lambda x:x.get('world_id','')):
+              src=r.get('source',{})
+              st=r.get('candidate',{}).get('stats',{})
+              n=src.get('n_requested')
+              pairs=st.get('pair_pivots_attempted')
+              seen=st.get('seen_content_states')
+              elapsed=st.get('elapsed_seconds')
+              scaling.append({
+                  'world_id':r.get('world_id'),'suite':src.get('suite'),'n':n,
+                  'seen_content_states':seen,'active_basis_size':st.get('active_basis_size'),
+                  'pair_pivots_attempted':pairs,'elapsed_seconds':elapsed,
+                  'pairs_over_n4': (pairs/(n**4)) if isinstance(pairs,(int,float)) and n else None,
+                  'seen_over_n4': (seen/(n**4)) if isinstance(seen,(int,float)) and n else None,
+                  'verdict':r.get('verdict')
+              })
+
+          exact_rows=[r for r in rows if r.get('witness_ran')]
+          aggregate={
+              'schema':'JANUS/TRUMP/R13/UNSEEN_INTERFACE_GENERALIZATION/AGGREGATE_RESULT/v1.0',
+              'created_date':'2026-09-02',
+              'status':'EXECUTED_AGGREGATE',
+              'overall_verdict':overall,
+              'world_count_expected':6,
+              'world_count_received':len([r for r in rows if r.get('world_id') in expected]),
+              'verdict_counts':{v:verdicts.count(v) for v in sorted(set(verdicts),key=str)},
+              'exact_worlds_scored':len(exact_rows),
+              'all_scored_worlds_fp0_fn0':all(r.get('witness',{}).get('false_positive_count')==0 and r.get('witness',{}).get('false_negative_count')==0 for r in exact_rows),
+              'all_scored_worlds_prime_exact':all(r.get('witness',{}).get('prime_interface_exact') is True for r in exact_rows),
+              'scaling':scaling,
+              'scaling_assessment':'EXPLORATORY_THREE_SIZE_LADDER__INSUFFICIENT_FOR_COMPLEXITY_CLASS_CLAIM',
+              'compiler_logic_frozen':True,
+              'width_cap':4,
+              'claim_ceiling':'UNSEEN_GENERALIZATION_EVIDENCE_ONLY; O(n^4) STATE UNIVERSE IS NOT A PROVED END-TO-END POLYNOMIAL RUNTIME BOUND',
+              'P_VS_NP':'OPEN',
+              'worlds':rows,
+              'seal':'THE COMPILER WAS FROZEN BEFORE THE NEW WORLDS. EXACTNESS GETS SCORED FIRST; SCALING REMAINS A SEPARATE QUESTION; ANY COUNTEREXAMPLE IS PRESERVED.'
+          }
+          json.dump(aggregate,open('artifacts/JANUS_TRUMP_R13_UNSEEN_INTERFACE_GENERALIZATION_AGGREGATE_RESULT_2026-09-02.json','w'),indent=2,sort_keys=True)
+          print(json.dumps({k:aggregate[k] for k in ['overall_verdict','verdict_counts','exact_worlds_scored','all_scored_worlds_fp0_fn0','all_scored_worlds_prime_exact','scaling_assessment','P_VS_NP']},indent=2,sort_keys=True))
+          PY
+
+      - name: Scientific aggregate gate
+        run: |
+          python - <<'PY'
+          import json
+          p='artifacts/JANUS_TRUMP_R13_UNSEEN_INTERFACE_GENERALIZATION_AGGREGATE_RESULT_2026-09-02.json'
+          d=json.load(open(p))
+          assert d['P_VS_NP']=='OPEN'
+          assert d['compiler_logic_frozen'] is True
+          assert d['width_cap']==4
+          assert d['scaling_assessment'].startswith('EXPLORATORY')
+          assert len(d['worlds'])==6
+          print('R13_AGGREGATE_GATE_PASS',d['overall_verdict'])
+          PY
+
+      - name: Upload immutable R13 aggregate evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: janus-trump-r13-unseen-interface-generalization
+          path: artifacts/JANUS_TRUMP_R13_UNSEEN_INTERFACE_GENERALIZATION_AGGREGATE_RESULT_2026-09-02.json
+          if-no-files-found: error
