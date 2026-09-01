@@ -1,18 +1,87 @@
 #!/usr/bin/env python3
-"""Execution-order optimization for frozen R7D.
+"""Execution-order and subsumption optimization for frozen R7D.
 
-The preregistered proof rules and frozen width k=4 are unchanged.  We first try
+The preregistered proof rules and frozen width k=4 are unchanged. We first try
 exact width-bounded elimination directly; only an OPEN width barrier proceeds to
-fixed-width resolution saturation, after which exact width-bounded elimination
-is retried.  This changes execution order/cost only, not theorem authority.
+fixed-width resolution saturation. Saturation uses standard subsumption deletion
+so only currently minimal clauses participate. This changes execution cost, not
+logical/theorem authority.
 """
 from __future__ import annotations
 
 import argparse
 import json
+from collections import defaultdict, deque
 from pathlib import Path
 
 import janus_trump_r7d_dense_3sat_polynomial_proof_attack as base
+
+
+def subsuming_fixed_width_resolution(cnf, k=base.WIDTH_K):
+    f = base.canon(cnf)
+    ub = base.clause_universe_bound(len(base.variables(f)), k)
+    if any(len(c) > k for c in f):
+        return base.ResolutionResult("OPEN_INPUT_WIDTH", f, 0, 0, 0, None, ub)
+    if () in f:
+        proof = [{"clause": [], "kind": "AXIOM"}]
+        return base.ResolutionResult("UNSAT", f, 1, 0, 0, proof, ub)
+
+    all_known = set(f)
+    active = set(f)
+    parents = {c: None for c in f}
+    index = defaultdict(set)
+    agenda = deque(sorted(f, key=base.clause_key))
+    ops = 0
+    derived = 0
+    blocked = 0
+
+    while agenda:
+        c = agenda.popleft()
+        if c not in active:
+            continue
+        for lit in c:
+            for d in list(index.get(-lit, ())):
+                if d not in active:
+                    continue
+                ops += len(c) + len(d) + 1
+                rr = base.resolve_pair(c, d, lit)
+                if rr is None:
+                    continue
+                if len(rr) > k:
+                    blocked += 1
+                    continue
+                if rr in all_known:
+                    continue
+                sr = set(rr)
+                # If an active stronger clause already exists, rr is redundant.
+                if any(set(e).issubset(sr) for e in active):
+                    continue
+                all_known.add(rr)
+                parents[rr] = (c, d, lit)
+                derived += 1
+                if rr == ():
+                    proof = base.proof_ancestors(rr, parents)
+                    if not base.replay_resolution_proof(f, proof, k):
+                        return base.ResolutionResult("INTERNAL_PROOF_REPLAY_FAILURE", base.canon(tuple(active | {rr})), ops, derived, blocked, proof, ub)
+                    return base.ResolutionResult("UNSAT", base.canon(tuple(active | {rr})), ops, derived, blocked, proof, ub)
+
+                # Standard subsumption deletion: the new stronger clause replaces
+                # active supersets. Parent records remain immutable for proof DAGs.
+                supersets = [e for e in active if sr.issubset(set(e)) and e != rr]
+                for e in supersets:
+                    active.discard(e)
+                active.add(rr)
+                agenda.append(rr)
+                if len(all_known) > ub:
+                    return base.ResolutionResult("INTERNAL_UNIVERSE_BOUND_FAILURE", base.canon(tuple(active)), ops, derived, blocked, None, ub)
+        for lit in c:
+            index[lit].add(c)
+
+    return base.ResolutionResult("SATURATION_COMPLETE_NO_REFUTATION", base.canon(tuple(active)), ops, derived, blocked, None, ub)
+
+
+# Same frozen logical rule, optimized implementation.
+base.fixed_width_resolution = subsuming_fixed_width_resolution
 
 
 def fast_attack_component(part):
@@ -82,7 +151,6 @@ def fast_attack_component(part):
     }
 
 
-# Monkey-patch only the execution order of the already frozen candidate proof rules.
 base.attack_component = fast_attack_component
 
 
@@ -91,7 +159,8 @@ def main() -> int:
     ap.add_argument("--output", required=True)
     args = ap.parse_args()
     result = base.run()
-    result["execution_order"] = "WIDTH4_EXACT_ELIMINATION -> IF_OPEN WIDTH4_RESOLUTION_SATURATION -> WIDTH4_EXACT_ELIMINATION"
+    result["execution_order"] = "WIDTH4_EXACT_ELIMINATION -> IF_OPEN SUBSUMPTION_WIDTH4_RESOLUTION_SATURATION -> WIDTH4_EXACT_ELIMINATION"
+    result["optimization"] = "STANDARD_SUBSUMPTION_DELETION_ONLY__FROZEN_LOGICAL_RULES_UNCHANGED"
     Path(args.output).write_text(json.dumps(result, indent=2, sort_keys=True), encoding="utf-8")
     print(json.dumps({"verdict": result["verdict"], "summary": result["summary"], "gates": result["gates"], "candidate_source_firewall": result["candidate_source_firewall"], "P_VS_NP": result["P_VS_NP"]}, indent=2))
     return 0 if all(result["gates"].values()) else 2
