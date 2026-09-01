@@ -1,0 +1,60 @@
+name: JANUS TRUMP Osiris R4B Counterfactual Replay Recovery
+on:
+  push:
+    branches:
+      - research/janus-trump-osiris-r4b-counterfactual-replay-recovery-2026-09-01
+  workflow_dispatch:
+jobs:
+  frozen-r4b-recovery:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Verify immutable R4 and frozen R4B recovery spec
+        run: |
+          python - <<'PY'
+          import json
+          s=json.load(open('research/JANUS_TRUMP_OSIRIS_R4B_COUNTERFACTUAL_REPLAY_RECOVERY_FROZEN_SPEC_2026-09-01.json'))
+          assert s['status']=='FROZEN_BEFORE_R4B_EXECUTION'
+          assert s['parent_R4_run']==33457525940
+          assert s['parent_R4_verdict']=='R4_ROI_GATE_FAIL__KEEP_SHADOW_ONLY__P_VS_NP_OPEN'
+          assert s['frozen_predictor_unchanged']['decision']=='ABSTAIN_TO_EXACT'
+          assert s['P_VS_NP']=='OPEN'
+          print('R4B_FREEZE_OK')
+          PY
+      - name: Compile R4B
+        run: |
+          python -m py_compile experiments/janus_trump_osiris_r4_roi_gate.py experiments/janus_trump_osiris_r4_roi_gate_runner.py
+      - name: Execute frozen R4B recovery
+        run: |
+          mkdir -p artifacts
+          PYTHONPATH=experiments python experiments/janus_trump_osiris_r4_roi_gate_runner.py --output artifacts/JANUS_TRUMP_OSIRIS_R4B_COUNTERFACTUAL_REPLAY_RECOVERY_RESULT_2026-09-01.json
+      - name: Invariant and scientific gates
+        run: |
+          python - <<'PY'
+          import json
+          d=json.load(open('artifacts/JANUS_TRUMP_OSIRIS_R4B_COUNTERFACTUAL_REPLAY_RECOVERY_RESULT_2026-09-01.json'))
+          s=d['summary']
+          print(d['verdict'], s)
+          assert d['P_VS_NP']=='OPEN'
+          assert all(d['gates'].values())
+          assert s['residuals']==20
+          assert s['holdout_roots']==11
+          assert s['holdout_families']==3
+          assert s['pretruth_decisions']==20
+          assert s['guarded_terminal_matches']==20
+          assert s['guarded_sat_replay_failures']==0
+          assert s['shadow_terminal_matches']==20
+          assert s['shadow_profitable_cases_skipped']==0
+          assert s['guarded_total_ops']==1742
+          assert s['unconditional_shadow_spiral_ops']==3001
+          assert s['ops_avoided_by_frozen_abstention']==1259
+          PY
+      - name: Upload immutable R4B evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: janus-trump-osiris-r4b-counterfactual-replay-recovery
+          path: artifacts/JANUS_TRUMP_OSIRIS_R4B_COUNTERFACTUAL_REPLAY_RECOVERY_RESULT_2026-09-01.json
