@@ -1,0 +1,86 @@
+name: JANUS TRUMP R12B Forbidden Pattern Quotient Compiler
+
+on:
+  push:
+    branches:
+      - research/janus-trump-r12b-forbidden-pattern-quotient-compiler-2026-09-01
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  r12b-compiler:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Verify frozen R12B preregistration and resource envelope
+        run: |
+          python - <<'PY'
+          import json
+          p=json.load(open('research/JANUS_TRUMP_R12B_FORBIDDEN_PATTERN_QUOTIENT_COMPILER_PREREGISTRATION_2026-09-01.json'))
+          e=json.load(open('research/JANUS_TRUMP_R12B_EXECUTION_RESOURCE_ENVELOPE_FREEZE_2026-09-01.json'))
+          assert p['status']=='FROZEN_BEFORE_R12B_EXECUTION'
+          assert p['parent_R12_resource_limit_summary_commit']=='596c9117545aa8776de61f443e3bd9d2a78d1bbd'
+          assert p['candidate']['width_cap']==4
+          assert [x['global_index'] for x in p['frozen_worlds']]==[3,7]
+          assert e['status']=='FROZEN_BEFORE_IMPLEMENTATION_AND_EXECUTION'
+          assert e['candidate_wall_seconds_per_world']==600
+          assert e['workflow_timeout_minutes']==25
+          assert p['P_VS_NP']=='OPEN'
+          print('R12B_FREEZE_OK')
+          PY
+
+      - name: Compile R12B
+        run: |
+          PYTHONPATH=experiments:. python -m py_compile \
+            experiments/janus_trump_r12b_forbidden_pattern_quotient_compiler.py \
+            tests/test_janus_trump_r12b_forbidden_pattern_quotient_compiler.py
+
+      - name: R12B quotient and firewall tests
+        run: |
+          PYTHONPATH=experiments:. python - <<'PY'
+          import importlib.util
+          spec=importlib.util.spec_from_file_location('r12btests','tests/test_janus_trump_r12b_forbidden_pattern_quotient_compiler.py')
+          m=importlib.util.module_from_spec(spec); spec.loader.exec_module(m)
+          tests=[getattr(m,n) for n in dir(m) if n.startswith('test_r12b')]
+          for t in tests: t()
+          print('R12B_TESTS_PASS',len(tests))
+          PY
+
+      - name: Run frozen R12B killer test
+        run: |
+          mkdir -p artifacts
+          PYTHONPATH=experiments:. python experiments/janus_trump_r12b_forbidden_pattern_quotient_compiler.py \
+            --output artifacts/JANUS_TRUMP_R12B_FORBIDDEN_PATTERN_QUOTIENT_COMPILER_RESULT_2026-09-01.json
+
+      - name: R12B scientific integrity gate
+        run: |
+          python - <<'PY'
+          import json
+          d=json.load(open('artifacts/JANUS_TRUMP_R12B_FORBIDDEN_PATTERN_QUOTIENT_COMPILER_RESULT_2026-09-01.json'))
+          assert d['P_VS_NP']=='OPEN'
+          assert all(d['gates'].values()), d['gates']
+          assert d['verdict']!='R12B_FAIL_INTEGRITY__P_VS_NP_OPEN'
+          for row in d['worlds']:
+              if row['candidate_status']=='FIXED_POINT':
+                  assert row['proof_replay'] is True
+                  assert row['comparison']['witness_ran'] is True
+                  assert row['comparison']['false_negative_count']==0
+              else:
+                  assert row['candidate_status']=='OPEN_RESOURCE'
+                  assert row['comparison']['witness_ran'] is False
+          print(d['verdict'])
+          PY
+
+      - name: Upload immutable R12B evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: janus-trump-r12b-forbidden-pattern-quotient-compiler
+          path: artifacts/JANUS_TRUMP_R12B_FORBIDDEN_PATTERN_QUOTIENT_COMPILER_RESULT_2026-09-01.json
+          if-no-files-found: error
