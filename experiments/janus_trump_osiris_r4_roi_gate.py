@@ -14,7 +14,12 @@ not R3 training families.
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Iterable
+from pathlib import Path
+import sys
+
+DIRECT = Path(__file__).resolve().parent / "direct"
+if str(DIRECT) not in sys.path:
+    sys.path.insert(0, str(DIRECT))
 
 from janus_trump_p_vs_np_direct_challenge_r0 import canon, dpll, variables
 from janus_trump_osiris_r3_natural_residuals import (
@@ -27,9 +32,9 @@ from janus_trump_osiris_r3b_proof_carrying_recovery import (
     _root_candidate_states,
     r3b_candidate,
 )
-from direct.janus_tear_marginal_collision import SAT_FORMULA, UNSAT_FORMULA
-from direct.janus_tear_nonlinear_affine_masking import relation_cnf
-from direct.janus_tear_maj3_lift_encoding_match import direct_local_relation_cnf
+from janus_tear_marginal_collision import SAT_FORMULA, UNSAT_FORMULA
+from janus_tear_nonlinear_affine_masking import relation_cnf
+from janus_tear_maj3_lift_encoding_match import direct_local_relation_cnf
 
 R4_RULE_ID = "TRUMP_R4_CONSERVATIVE_ROI_GATE_v1"
 R4_TRAINING_ROWS = 108
@@ -46,7 +51,6 @@ class RootWorkload:
 
 
 def frozen_roi_prediction(signature: dict) -> str:
-    # Frozen before holdout. No truth, family label, or holdout outcome enters.
     assert R4_TRAINING_PROFITABLE == 0
     assert signature["variables"] >= 0
     return "ABSTAIN_TO_EXACT"
@@ -81,8 +85,6 @@ def collect_holdout_residuals() -> list[dict]:
     for idx, root in enumerate(holdout_roots()):
         candidates = _root_candidate_states(idx, root.family, len(variables(root.formula)), 0, root.formula)
         if not candidates:
-            # Tiny roots can close too quickly to yield an intermediate state.
-            # The root itself is still a solver-native state and is sealed pretruth.
             sig = graph_signature(root.formula)
             source = {
                 "root_index": idx,
@@ -99,12 +101,10 @@ def collect_holdout_residuals() -> list[dict]:
             src["workload_name"] = root.name
             src["source_path"] = root.source_path
             row["source"] = src
-            # Replace R2 route prediction with the R4 decision while truth is null.
             w = dict(row["pretruth_witness"])
             sig = w["signature"]
-            decision = frozen_roi_prediction(sig)
             w["frozen_rule_id"] = R4_RULE_ID
-            w["route_prediction"] = decision
+            w["route_prediction"] = frozen_roi_prediction(sig)
             w["truth"] = None
             w["candidate_result"] = None
             w["verification_result"] = None
@@ -126,7 +126,6 @@ def evaluate_row(row: dict) -> dict:
     assert w["truth"] is None
     assert w["route_prediction"] == "ABSTAIN_TO_EXACT"
 
-    # Primary guarded route: no spiral is permitted here.
     guarded = proof_carrying_exact(f)
     independent = dpll(f)
     assert independent["status"] == "EXACT"
@@ -134,7 +133,6 @@ def evaluate_row(row: dict) -> dict:
     terminal_match = guarded["terminal"] == baseline_terminal
     replay = guarded["terminal"] != "SAT" or verify_sat(f, guarded["witness"])
 
-    # Counterfactual audit only after the frozen route has been executed.
     shadow_w = dict(w)
     shadow_w["route_prediction"] = "TRY_EXACT_MEET"
     shadow = r3b_candidate(f, shadow_w).as_dict()
