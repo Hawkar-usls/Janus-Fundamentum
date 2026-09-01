@@ -1,0 +1,66 @@
+name: JANUS TRUMP R11 Exact Interface Structure Microscope
+
+on:
+  push:
+    branches:
+      - research/janus-trump-r11-exact-interface-structure-microscope-2026-09-01
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  r11-microscope:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Verify frozen R11 preregistration
+        run: |
+          python - <<'PY'
+          import json
+          p=json.load(open('research/JANUS_TRUMP_R11_EXACT_INTERFACE_STRUCTURE_MICROSCOPE_PREREGISTRATION_2026-09-01.json'))
+          assert p['status']=='FROZEN_BEFORE_R11_EXECUTION'
+          assert p['parent_R10_result_summary_commit']=='963760916d1c8baa56237273cd313a7f6053b7eb'
+          assert p['representation_contract_commit']=='d993b9bfc972b85af90b814de1eaa02bde0c3717'
+          assert [x['global_index'] for x in p['frozen_worlds']]==[3,7]
+          assert p['P_VS_NP']=='OPEN'
+          print('R11_FREEZE_OK')
+          PY
+      - name: Compile R11
+        run: PYTHONPATH=experiments:. python -m py_compile experiments/janus_trump_r11_exact_interface_structure_microscope.py tests/test_janus_trump_r11_exact_interface_structure_microscope.py
+      - name: R11 representation-contract controls
+        run: |
+          PYTHONPATH=experiments:. python - <<'PY'
+          import importlib.util
+          spec=importlib.util.spec_from_file_location('r11tests','tests/test_janus_trump_r11_exact_interface_structure_microscope.py')
+          m=importlib.util.module_from_spec(spec); spec.loader.exec_module(m)
+          tests=[getattr(m,n) for n in dir(m) if n.startswith('test_r11')]
+          for t in tests: t()
+          print('R11_TESTS_PASS',len(tests))
+          PY
+      - name: Run frozen R11 microscope
+        run: |
+          mkdir -p artifacts
+          PYTHONPATH=experiments:. python experiments/janus_trump_r11_exact_interface_structure_microscope.py --output artifacts/JANUS_TRUMP_R11_EXACT_INTERFACE_STRUCTURE_MICROSCOPE_RESULT_2026-09-01.json
+      - name: R11 scientific integrity gate
+        run: |
+          python - <<'PY'
+          import json
+          d=json.load(open('artifacts/JANUS_TRUMP_R11_EXACT_INTERFACE_STRUCTURE_MICROSCOPE_RESULT_2026-09-01.json'))
+          assert d['P_VS_NP']=='OPEN'
+          assert all(d['gates'].values()), d['gates']
+          assert len(d['worlds'])==2
+          for row in d['worlds']:
+              assert row['microscope']['same_variable_cnf']['bounded_width_hulls'][-1]['false_positives']==0
+          print(d['verdict'])
+          PY
+      - name: Upload immutable R11 evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: janus-trump-r11-exact-interface-structure-microscope
+          path: artifacts/JANUS_TRUMP_R11_EXACT_INTERFACE_STRUCTURE_MICROSCOPE_RESULT_2026-09-01.json
+          if-no-files-found: error
