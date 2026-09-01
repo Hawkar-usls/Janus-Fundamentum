@@ -1,0 +1,76 @@
+name: JANUS TRUMP R12 Direct Width4 Interface Compiler
+
+on:
+  push:
+    branches:
+      - research/janus-trump-r12-direct-width4-interface-compiler-2026-09-01
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  r12-compiler:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Verify frozen R12 preregistration
+        run: |
+          python - <<'PY'
+          import json
+          p=json.load(open('research/JANUS_TRUMP_R12_DIRECT_WIDTH4_INTERFACE_COMPILER_PREREGISTRATION_2026-09-01.json'))
+          assert p['status']=='FROZEN_BEFORE_R12_EXECUTION'
+          assert p['parent_R11_result_summary_commit']=='26e8dba689b2bbe13289087a153b7423b6eb1106'
+          assert p['representation_contract_commit']=='d993b9bfc972b85af90b814de1eaa02bde0c3717'
+          assert p['quotient_hypothesis_commit']=='69dff72747c545645d4eb17af56461ce7a8f7033'
+          assert p['candidate']['width_cap']==4
+          assert [x['global_index'] for x in p['frozen_worlds']]==[3,7]
+          assert p['P_VS_NP']=='OPEN'
+          print('R12_FREEZE_OK')
+          PY
+
+      - name: Compile R12
+        run: PYTHONPATH=experiments:. python -m py_compile experiments/janus_trump_r12_direct_width4_interface_compiler.py tests/test_janus_trump_r12_direct_width4_interface_compiler.py
+
+      - name: R12 quotient and firewall tests
+        run: |
+          PYTHONPATH=experiments:. python - <<'PY'
+          import importlib.util
+          spec=importlib.util.spec_from_file_location('r12tests','tests/test_janus_trump_r12_direct_width4_interface_compiler.py')
+          m=importlib.util.module_from_spec(spec); spec.loader.exec_module(m)
+          tests=[getattr(m,n) for n in dir(m) if n.startswith('test_r12')]
+          for t in tests: t()
+          print('R12_TESTS_PASS',len(tests))
+          PY
+
+      - name: Run frozen R12 compiler killer test
+        run: |
+          mkdir -p artifacts
+          PYTHONPATH=experiments:. python experiments/janus_trump_r12_direct_width4_interface_compiler.py --output artifacts/JANUS_TRUMP_R12_DIRECT_WIDTH4_INTERFACE_COMPILER_RESULT_2026-09-01.json
+
+      - name: R12 scientific integrity gate
+        run: |
+          python - <<'PY'
+          import json
+          d=json.load(open('artifacts/JANUS_TRUMP_R12_DIRECT_WIDTH4_INTERFACE_COMPILER_RESULT_2026-09-01.json'))
+          assert d['P_VS_NP']=='OPEN'
+          assert all(d['gates'].values()), d['gates']
+          assert len(d['worlds'])==2
+          for row in d['worlds']:
+              assert row['comparison']['false_negative_count']==0
+              assert row['proof_replay'] is True
+          print(d['verdict'])
+          print([{'index':r['global_index'],'comparison':r['comparison']['verdict'],'candidate_allowed':r['comparison']['candidate_allowed_count'],'exact_allowed':r['comparison']['exact_allowed_count'],'duplicates':r['candidate_stats']['duplicate_resolvents_collapsed'],'unique':r['candidate_stats']['unique_canonical_clauses']} for r in d['worlds']])
+          PY
+
+      - name: Upload immutable R12 evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: janus-trump-r12-direct-width4-interface-compiler
+          path: artifacts/JANUS_TRUMP_R12_DIRECT_WIDTH4_INTERFACE_COMPILER_RESULT_2026-09-01.json
+          if-no-files-found: error
