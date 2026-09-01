@@ -1,0 +1,64 @@
+name: JANUS TRUMP R6 Exponential Debt Elimination
+on:
+  push:
+    branches:
+      - research/janus-trump-r6-exponential-debt-elimination-2026-09-01
+  workflow_dispatch:
+jobs:
+  r6-exponential-debt-elimination:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Verify frozen R6 preregistration
+        run: |
+          python - <<'PY'
+          import json
+          p=json.load(open('research/JANUS_TRUMP_R6_EXPONENTIAL_DEBT_ELIMINATION_PREREGISTRATION_2026-09-01.json'))
+          assert p['status']=='FROZEN_BEFORE_R6_EXECUTION'
+          assert p['P_VS_NP_before_R6']=='OPEN'
+          assert len(p['audited_files'])==5
+          assert len(p['allowed_resolutions'])==2
+          print('R6_FREEZE_OK')
+          PY
+      - name: Compile R6 spider
+        run: |
+          python -m py_compile experiments/janus_trump_r6_exponential_debt_elimination.py tests/test_janus_trump_r6_exponential_debt_elimination.py
+      - name: R6 firewall tests
+        run: |
+          PYTHONPATH=. python - <<'PY'
+          import importlib.util
+          spec=importlib.util.spec_from_file_location('r6tests','tests/test_janus_trump_r6_exponential_debt_elimination.py')
+          m=importlib.util.module_from_spec(spec); spec.loader.exec_module(m)
+          tests=[getattr(m,n) for n in dir(m) if n.startswith('test_') and callable(getattr(m,n))]
+          for t in tests: t()
+          print('R6_FIREWALL_TESTS_PASS', len(tests))
+          PY
+      - name: Run R6 line-level debt spider
+        run: |
+          mkdir -p artifacts
+          python experiments/janus_trump_r6_exponential_debt_elimination.py --output artifacts/JANUS_TRUMP_R6_EXPONENTIAL_DEBT_ELIMINATION_RESULT_2026-09-01.json
+      - name: Scientific gate
+        run: |
+          python - <<'PY'
+          import json
+          d=json.load(open('artifacts/JANUS_TRUMP_R6_EXPONENTIAL_DEBT_ELIMINATION_RESULT_2026-09-01.json'))
+          print(d['verdict'])
+          print('SCAN=', d['scan'])
+          print('BLOCKERS=', d['blocking_obligations'])
+          assert d['elimination_pass'] is True
+          assert d['P_VS_NP']=='OPEN'
+          assert d['closure_ready'] is False
+          assert d['scan']['hazard_hits'] > 0
+          assert d['scan']['resolution_counts'].get('POLYNOMIAL_BOUND_PROVED',0)==0
+          assert d['scan']['resolution_counts']['QUARANTINED_FROM_P_EQUALS_NP_CANDIDATE_PATH']==d['scan']['hazard_hits']
+          assert d['candidate_proof_path_after_quarantine']['total_for_arbitrary_cnf'] is False
+          PY
+      - name: Upload immutable R6 evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: janus-trump-r6-exponential-debt-elimination
+          path: artifacts/JANUS_TRUMP_R6_EXPONENTIAL_DEBT_ELIMINATION_RESULT_2026-09-01.json
