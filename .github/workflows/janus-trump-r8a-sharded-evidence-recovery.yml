@@ -1,0 +1,47 @@
+name: JANUS TRUMP R8A Sharded Evidence Recovery
+
+on:
+  push:
+    branches:
+      - research/janus-trump-r8a-sharded-evidence-recovery-2026-09-01
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  r8a-shards:
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [0,1,2,3,4,5,6,7]
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Verify recovery freeze
+        run: |
+          python - <<'PY'
+          import json
+          p=json.load(open('research/JANUS_TRUMP_R8A_SHARDED_EVIDENCE_RECOVERY_PREREGISTRATION_2026-09-01.json'))
+          assert p['status']=='FROZEN_BEFORE_SHARDED_EXECUTION'
+          assert p['frozen_parent_commit']=='57d4b0aee3c456d18e3440dc61ef0924290a1928'
+          assert p['logical_changes'] is False
+          assert p['target_count']==16 and p['shards']==8
+          print('R8A_SHARD_FREEZE_OK')
+          PY
+      - name: Compile carrier
+        run: PYTHONPATH=experiments:. python -m py_compile experiments/janus_trump_r8a_shard_runner.py
+      - name: Run frozen shard
+        run: |
+          mkdir -p artifacts
+          PYTHONPATH=experiments:. python experiments/janus_trump_r8a_shard_runner.py --shard-index ${{ matrix.shard }} --shard-count 8 --output artifacts/R8A_SHARD_${{ matrix.shard }}.json
+      - name: Upload immutable shard evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: janus-trump-r8a-shard-${{ matrix.shard }}
+          path: artifacts/R8A_SHARD_${{ matrix.shard }}.json
+          if-no-files-found: error
