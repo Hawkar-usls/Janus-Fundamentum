@@ -1,0 +1,75 @@
+name: JANUS TRUMP R9 Reference Frame Difference Kernel
+
+on:
+  push:
+    branches:
+      - research/janus-trump-r9-reference-frame-difference-kernel-2026-09-01
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  r9-killer-test:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Verify frozen R9 preregistration
+        run: |
+          python - <<'PY'
+          import json
+          p=json.load(open('research/JANUS_TRUMP_R9_REFERENCE_FRAME_DIFFERENCE_KERNEL_PREREGISTRATION_2026-09-01.json'))
+          assert p['status']=='FROZEN_BEFORE_R9_EXECUTION'
+          assert p['parent_R8_summary_commit']=='659fc92c61010fec7d2e2dd32001148e34edc5d0'
+          assert p['R9B']['frozen_open_indices']==[3,7]
+          assert p['admission_gate']=='NO_HIDDEN_SEARCH'
+          assert p['P_VS_NP']=='OPEN'
+          print('R9_FREEZE_OK')
+          PY
+
+      - name: Compile R9
+        run: |
+          PYTHONPATH=experiments:. python -m py_compile experiments/janus_trump_r9_reference_frame_difference_kernel.py tests/test_janus_trump_r9_reference_frame_difference_kernel.py
+
+      - name: R9 firewall tests
+        run: |
+          PYTHONPATH=experiments:. python - <<'PY'
+          import importlib.util
+          spec=importlib.util.spec_from_file_location('r9tests','tests/test_janus_trump_r9_reference_frame_difference_kernel.py')
+          m=importlib.util.module_from_spec(spec); spec.loader.exec_module(m)
+          tests=[getattr(m,n) for n in dir(m) if n.startswith('test_r9')]
+          for t in tests: t()
+          print('R9_FIREWALL_TESTS_PASS',len(tests))
+          PY
+
+      - name: Run frozen R9 killer test
+        run: |
+          mkdir -p artifacts
+          PYTHONPATH=experiments:. python experiments/janus_trump_r9_reference_frame_difference_kernel.py --output artifacts/JANUS_TRUMP_R9_REFERENCE_FRAME_DIFFERENCE_KERNEL_RESULT_2026-09-01.json
+
+      - name: R9 scientific integrity gate
+        run: |
+          python - <<'PY'
+          import json
+          d=json.load(open('artifacts/JANUS_TRUMP_R9_REFERENCE_FRAME_DIFFERENCE_KERNEL_RESULT_2026-09-01.json'))
+          assert d['P_VS_NP']=='OPEN'
+          assert all(d['gates'].values()), d['gates']
+          assert d['R9A']['all_exact']
+          assert d['R9A']['all_same_frame']
+          assert d['R9B']['all_exact_reconstruction']
+          assert d['R9B']['all_same_sibling_frame']
+          assert d['R9C']['open']==2
+          print(d['verdict'])
+          PY
+
+      - name: Upload immutable R9 evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: janus-trump-r9-reference-frame-difference-kernel
+          path: artifacts/JANUS_TRUMP_R9_REFERENCE_FRAME_DIFFERENCE_KERNEL_RESULT_2026-09-01.json
+          if-no-files-found: error
