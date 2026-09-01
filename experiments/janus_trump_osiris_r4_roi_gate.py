@@ -8,8 +8,10 @@ ABSTAIN_TO_EXACT on every holdout state.  The expensive spiral is executed only
 AFTER the route decision, in shadow, to audit whether the frozen predictor
 skipped any genuinely profitable case.
 
-The holdout formulas are imported from pre-existing direct experiments that were
-not R3 training families.
+R4B changes only the counterfactual audit carrier: a shadow CandidateResult SAT
+witness is replayed while its variable keys are still integers, before as_dict
+serializes keys for JSON.  The frozen predictor, holdout, work accounting and
+truth authority are unchanged.
 """
 from __future__ import annotations
 
@@ -135,9 +137,10 @@ def evaluate_row(row: dict) -> dict:
 
     shadow_w = dict(w)
     shadow_w["route_prediction"] = "TRY_EXACT_MEET"
-    shadow = r3b_candidate(f, shadow_w).as_dict()
-    shadow_terminal_match = shadow["terminal"] == baseline_terminal
-    shadow_replay = shadow["terminal"] != "SAT" or verify_sat(f, shadow["witness"])
+    shadow_obj = r3b_candidate(f, shadow_w)
+    shadow_terminal_match = shadow_obj.terminal == baseline_terminal
+    shadow_replay = shadow_obj.terminal != "SAT" or verify_sat(f, shadow_obj.witness)
+    shadow = shadow_obj.as_dict()
 
     guard_cost = int(w["signature"]["signature_ops"]) + int(guarded["work"])
     shadow_cost = int(shadow["work"]["charged_abstract_ops"])
