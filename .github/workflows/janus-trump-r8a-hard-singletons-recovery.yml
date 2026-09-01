@@ -1,0 +1,43 @@
+name: JANUS TRUMP R8A Hard Singleton Recovery
+
+on:
+  push:
+    branches:
+      - research/janus-trump-r8a-hard-singletons-recovery-2026-09-01
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  hard-singletons:
+    strategy:
+      fail-fast: false
+      matrix:
+        index: [1,3,9,11]
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Verify inherited freeze
+        run: |
+          python - <<'PY'
+          import json
+          p=json.load(open('research/JANUS_TRUMP_R8A_SHARDED_EVIDENCE_RECOVERY_PREREGISTRATION_2026-09-01.json'))
+          assert p['frozen_parent_commit']=='57d4b0aee3c456d18e3440dc61ef0924290a1928'
+          assert p['logical_changes'] is False
+          print('R8A_SINGLETON_CARRIER_OK')
+          PY
+      - name: Run one frozen residual
+        run: |
+          mkdir -p artifacts
+          PYTHONPATH=experiments:. python experiments/janus_trump_r8a_singleton_runner.py --index ${{ matrix.index }} --output artifacts/R8A_SINGLE_${{ matrix.index }}.json
+      - name: Upload singleton evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: janus-trump-r8a-single-${{ matrix.index }}
+          path: artifacts/R8A_SINGLE_${{ matrix.index }}.json
+          if-no-files-found: error
