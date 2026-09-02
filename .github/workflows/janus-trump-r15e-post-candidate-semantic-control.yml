@@ -1,0 +1,57 @@
+name: JANUS TRUMP R15E Post Candidate Semantic Control
+
+on:
+  push:
+    branches:
+      - research/janus-trump-r15e-post-candidate-semantic-control-2026-09-02
+    paths:
+      - 'research/JANUS_TRUMP_R15E_POST_CANDIDATE_SEMANTIC_CONTROL_PREREGISTRATION_2026-09-02.json'
+      - 'experiments/janus_trump_r15e_post_candidate_semantic_control.py'
+      - '.github/workflows/janus-trump-r15e-post-candidate-semantic-control.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  r15e-control:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Verify frozen candidate identity and preregistration
+        run: |
+          python - <<'PY'
+          import json,subprocess
+          p=json.load(open('research/JANUS_TRUMP_R15E_POST_CANDIDATE_SEMANTIC_CONTROL_PREREGISTRATION_2026-09-02.json'))
+          assert p['status']=='FROZEN_BEFORE_R15E_EXECUTION'
+          want=p['frozen_candidate']['blob_sha']
+          got=subprocess.check_output(['git','hash-object',p['frozen_candidate']['path']],text=True).strip()
+          assert got==want,(got,want)
+          assert p['P_VS_NP']=='OPEN'
+          print('R15E_FREEZE_OK',got)
+          PY
+      - name: Compile R15E wrapper
+        run: |
+          PYTHONPATH=experiments:. python -m py_compile experiments/janus_trump_r15e_post_candidate_semantic_control.py
+      - name: Run R15E candidate then independent control
+        run: |
+          mkdir -p artifacts
+          PYTHONPATH=experiments:. python experiments/janus_trump_r15e_post_candidate_semantic_control.py --output artifacts/JANUS_TRUMP_R15E_POST_CANDIDATE_SEMANTIC_CONTROL_RESULT_2026-09-02.json
+      - name: R15E scientific gate
+        run: |
+          python - <<'PY'
+          import json
+          d=json.load(open('artifacts/JANUS_TRUMP_R15E_POST_CANDIDATE_SEMANTIC_CONTROL_RESULT_2026-09-02.json'))
+          assert d['P_VS_NP']=='OPEN'
+          assert all(d['gates'].values()),d['gates']
+          assert d['verdict'] in ('R15E_SEMANTIC_CONTROL_MATCH','R15E_SEMANTIC_CONTROL_MISMATCH')
+          print(d['verdict'])
+          PY
+      - name: Upload immutable R15E evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: janus-trump-r15e-post-candidate-semantic-control
+          path: artifacts/JANUS_TRUMP_R15E_POST_CANDIDATE_SEMANTIC_CONTROL_RESULT_2026-09-02.json
+          if-no-files-found: error
