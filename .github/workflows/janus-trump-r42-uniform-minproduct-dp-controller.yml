@@ -1,0 +1,59 @@
+name: JANUS TRUMP R42 Uniform MinProduct DP Controller
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - 'research/JANUS_TRUMP_R42_UNIFORM_MINPRODUCT_DP_CONTROLLER_PREREGISTRATION_2026-09-03.json'
+      - 'research/janus_trump_r42_uniform_minproduct_dp_controller.py'
+      - 'research/janus_trump_r40_pyramidal_obstruction_regeneration.py'
+      - 'research/JANUS_TRUMP_R39_QHORN_SEALED_INPUT_2026-09-03.json'
+      - '.github/workflows/janus-trump-r42-uniform-minproduct-dp-controller.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  exact-replay:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Execute frozen uniform controller
+        run: python research/janus_trump_r42_uniform_minproduct_dp_controller.py > /tmp/r42-replay.json
+      - name: Verify preregistration and proof boundaries
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          result = json.loads(Path('/tmp/r42-replay.json').read_text())
+          pre = json.loads(Path('research/JANUS_TRUMP_R42_UNIFORM_MINPRODUCT_DP_CONTROLLER_PREREGISTRATION_2026-09-03.json').read_text())
+          assert result['controller_id'] == pre['controller']['id'] == 'UNIFORM_MINPRODUCT_DP_V1'
+          assert len(result['trajectory']) <= pre['resource_caps']['max_eliminations']
+          assert result['charged_work']['peak_clause_count'] <= pre['resource_caps']['max_clause_count']
+          assert result['charged_work']['total_resolvent_pairs_attempted'] <= pre['resource_caps']['max_total_resolvent_pairs_attempted']
+          # Recompute the selector condition from every recorded score: no result-based override is allowed.
+          assert all(step['selector_score']['positive_x_negative'] >= 0 for step in result['trajectory'])
+          if result['status'] == 'UNIFORM_CONTROLLER_REACHED_POLYNOMIAL_TERMINAL':
+              assert result['terminal_decision'] is not None
+              assert result['terminal_decision']['solver'] == 'EXACT_2SAT_IMPLICATION_SCC'
+              assert '2CNF' in result['terminal_hits']
+              assert result['terminal_decision']['finite_control_agrees'] is True
+          assert result['scientific_interpretation']['universal_coverage_proved'] is False
+          assert result['scientific_interpretation']['worst_case_polynomial_bound_proved'] is False
+          assert result['scientific_interpretation']['decision_completeness_proved_for_all_3cnf'] is False
+          assert result['proof_authority_delta'] == 0
+          assert result['TRUMP_finished'] is False
+          assert result['SAT_IN_P'] == 'NOT_PROVED'
+          assert result['P_VS_NP'] == 'OPEN'
+          print('R42 UNIFORM CONTROLLER REPLAY PASS')
+          PY
+      - name: Upload full controller receipt
+        uses: actions/upload-artifact@v4
+        with:
+          name: janus-trump-r42-uniform-minproduct-dp-controller-replay
+          path: /tmp/r42-replay.json
+          if-no-files-found: error
