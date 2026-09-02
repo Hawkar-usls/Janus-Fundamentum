@@ -1,0 +1,112 @@
+{
+  "schema": "JANUS_TRUMP_R42_SUBSUMPTION_AWARE_BVE_SUCCESSOR_PREREGISTRATION",
+  "version": "1.0",
+  "date": "2026-09-02",
+  "status": "FROZEN_BEFORE_R42_SUCCESSOR_EXECUTION",
+  "branch": "research/janus-trump-r42-subsumption-aware-bve-successor-2026-09-02",
+  "parent": {
+    "stage": "R41",
+    "sealed_commit": "3976df85579e26b4e038c043363ff71df82abef3",
+    "verdict": "R41_GRAMMAR_CONTRACT_FROZEN__NO_SUCCESSOR_CONTROLLER_RELEASED"
+  },
+  "candidate_id": "TRUMP_R42_FIXED_SUCCESSOR_R33_R34_R35B_SA_BVE_v1",
+  "scientific_question": "Does one frozen successor controller, extending the R37B composition with a class-level subsumption-aware bounded-variable-elimination operator and completing the already-declared Horn/2CNF terminals, eliminate the exposed R37B stall while preserving certified strict descent, exactness, bounded representation and falsifiable stall detection on preregistered unseen inputs?",
+  "new_progress_operator": {
+    "id": "SUBSUMPTION_AWARE_BOUNDED_VARIABLE_ELIMINATION",
+    "scope": "ANY_CANONICAL_CNF_STATE_WITH_AN_EXACT_ELIMINATION_CANDIDATE_THAT_STRICTLY_DECREASES_CLV",
+    "definition": [
+      "For each variable x with both polarities, form all non-tautological Davis-Putnam resolvents.",
+      "Combine resolvents with clauses not containing x.",
+      "Delete clauses subsumed by another clause in that combined set.",
+      "Canonicalize deterministically.",
+      "Candidate is admissible only if resulting (C,L,V)_LEX is strictly smaller than the input state.",
+      "Choose the admissible candidate with lexicographically smallest resulting CLV, then smallest variable id."
+    ],
+    "class_level_coverage_delta": "Covers every reachable canonical CNF state containing at least one variable whose exact DP elimination followed only by logically redundant subsumption deletion strictly decreases CLV; the statement is syntactic and input-independent, not indexed by the exposed witness.",
+    "semantic_contract": "EXISTS x F is satisfiable iff the DP-eliminated formula is satisfiable; subsumption deletion preserves equivalence. SAT models are reconstructed by replaying eliminated positive/negative clause sets in reverse.",
+    "cost_contract": "Enumerating polarity clause pairs, canonicalizing resolvents and pairwise subsumption are charged polynomial scans over the current bounded state; no truth-assignment enumeration is used by the operator."
+  },
+  "already_declared_terminal_debt_completion": {
+    "new_terminal_languages_added": false,
+    "Horn": "Integrate deterministic forward-chaining least-model solve plus independent original-CNF model replay or contradiction replay.",
+    "2CNF": "Integrate implication-graph SCC satisfiability plus deterministic polynomial witness extraction by repeated SCC checks; independently replay the final model or contradiction.",
+    "reason": "R33 already recognized HORN and 2CNF as declared polynomial terminals; R42 closes solver-integration debt rather than inventing a new terminal language."
+  },
+  "fixed_operator_order": [
+    "R33_CERTIFIED_SAFE_REDUCTION_TO_FIXPOINT",
+    "SOLVE_ALREADY_DECLARED_HORN_OR_2CNF_TERMINAL_IF_REACHED",
+    "R34_AFFINE_COMPLETE_BUNDLE_RECOGNITION_AND_GF2_SOLVE",
+    "R35B_SINGLE_LITERAL_RUP_TO_FIXPOINT",
+    "SUBSUMPTION_AWARE_BVE_ONE_BEST_EXACT_STEP",
+    "RESTART_IF_ANY_CERTIFIED_CHANGE_ELSE_STALL"
+  ],
+  "global_rank": {
+    "state_measure": "(C,L,V)_LEX",
+    "integer_rank": "mu(C,L,V;C0,V0)=C*(C0*V0+1)*(V0+1)+L*(V0+1)+V",
+    "frozen_bounds": "C<=C0, V<=V0, L<=C*V0<=C0*V0",
+    "every_committed_nonterminal_transition_must_strictly_decrease_mu": true,
+    "initial_rank_polynomial_in_original_encoding": true,
+    "rank_reset_allowed": false
+  },
+  "exactness_and_reconstruction": {
+    "R33": "Use existing reconstruction trace and semantic controls.",
+    "R34": "Use existing affine certificate verifier.",
+    "R35B": "Use existing independent RUP replay; vivification is implication-preserving and needs no model-variable reconstruction.",
+    "SA_BVE": "Store eliminated variable plus all removed positive/negative source clauses; independent checker recomputes full DP resolvents and verifies every omitted resolvent is subsumed; reverse reconstruction chooses a Boolean value satisfying all removed source clauses.",
+    "final_SAT": "Reconstruct through every R33 and SA_BVE step and replay the model against the original input CNF.",
+    "final_UNSAT": "Require terminal-specific independent replay; no silent UNSAT assertion."
+  },
+  "preregistered_tests": {
+    "exposed_regression_not_holdout": [
+      {"kind": "RANDOM_3CNF", "seed": 36001, "n": 28, "ratio": 4.2, "known_role": "R37B_STALL_WITNESS"}
+    ],
+    "unseen_random_holdout_frozen_before_execution": [
+      {"seed": 42001, "n": 28, "ratio": 4.2},
+      {"seed": 42002, "n": 28, "ratio": 4.2},
+      {"seed": 42003, "n": 28, "ratio": 4.2},
+      {"seed": 42004, "n": 28, "ratio": 4.2},
+      {"seed": 42005, "n": 28, "ratio": 4.2},
+      {"seed": 42006, "n": 28, "ratio": 4.2},
+      {"seed": 42101, "n": 36, "ratio": 4.3},
+      {"seed": 42102, "n": 36, "ratio": 4.3},
+      {"seed": 42103, "n": 36, "ratio": 4.3}
+    ],
+    "structured_controls": [
+      "R33_BVE_CONTROL_MUST_REMAIN_EXACT",
+      "SA_BVE_SUBSUMPTION_DELTA_POSITIVE_CONTROL",
+      "SA_BVE_NO_ADMISSIBLE_CANDIDATE_NEGATIVE_CONTROL",
+      "AFFINE_TSEITIN_PRISM_CONTROLS_n_8_16_24",
+      "HORN_SAT_AND_HORN_UNSAT_CONTROLS",
+      "2CNF_SAT_AND_2CNF_UNSAT_CONTROLS"
+    ]
+  },
+  "allowed_verdicts": [
+    "R42_EXPOSED_STALL_REPAIRED__UNSEEN_STALL_REMAINS__SUCCESSOR_REFUTED_FOR_L2",
+    "R42_EXPOSED_AND_PREREGISTERED_HOLDOUTS_DECIDED__L2_STILL_UNPROVED",
+    "R42_EXPOSED_STALL_NOT_REPAIRED__SUCCESSOR_REFUTED",
+    "R42_FAIL_INTEGRITY"
+  ],
+  "promotion_rules": {
+    "exposed_witness_repair_may_close_L2": false,
+    "all_preregistered_holdouts_decided_may_close_L2": false,
+    "no_counterexample_found_may_close_L2": false,
+    "finite_success_may_close_L3": false,
+    "empirical_runtime_may_close_L4": false,
+    "valid_reachable_stall_immediately_refutes_this_frozen_successor_for_L2": true
+  },
+  "claim_ceiling": {
+    "L2_UNIVERSAL_3CNF_COVERAGE": false,
+    "L3_ONE_UNIFORM_TOTAL_TRUMP_RESOLVER": false,
+    "L4_WORST_CASE_POLYNOMIAL_UNIFORM_TRUMP_RESOLVER": false,
+    "SAT_IN_P": "NOT_PROVED",
+    "P_VS_NP": "OPEN"
+  },
+  "next_gate_policy": {
+    "if_any_valid_stall": "FREEZE_FIRST_NEW_STALL_AND_RETURN_TO_CAPTAIN_FOR_CLASS_LEVEL_MECHANISM_EXTRACTION; DO_NOT_PATCH_THIS_FROZEN_CONTROLLER",
+    "if_no_test_stall": "ATTACK_SYMBOLIC_DECIDE_OR_DESCEND_COVERAGE; FINITE PASS DOES NOT CLOSE L2"
+  },
+  "TRUMP_finished": false,
+  "SAT_IN_P": "NOT_PROVED",
+  "P_VS_NP": "OPEN",
+  "runtime_authority": false
+}
