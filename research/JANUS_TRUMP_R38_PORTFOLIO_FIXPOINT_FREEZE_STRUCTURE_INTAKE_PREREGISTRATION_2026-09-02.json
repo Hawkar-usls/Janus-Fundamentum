@@ -1,0 +1,97 @@
+{
+  "schema": "JANUS_TRUMP_R38_PORTFOLIO_FIXPOINT_FREEZE_STRUCTURE_INTAKE_PREREGISTRATION",
+  "version": "1.0",
+  "date": "2026-09-02",
+  "status": "FROZEN_BEFORE_R38_FIXPOINT_MATERIALIZATION",
+  "parent_R37B": {
+    "sealed_result_commit": "a5ddd0bc7aa637df08f9cd6e3f480c8aabd85896",
+    "successful_run_id": 33662869297,
+    "artifact_id": 9859377036,
+    "artifact_sha256": "64d5d0eded6511c531bb8fd81697a6bd8f8f4811cc596192f13921e983810fd3",
+    "result_json_sha256": "acbc347ee5b1064e416f8e6c9b933667b196a554dc1200ee2bf0431d765411dd",
+    "verdict": "R37B_FIXED_RESTART_CYCLE_STALLS_AT_PORTFOLIO_FIXPOINT__NO_SEMANTIC_VERDICT"
+  },
+  "frozen_fixpoint_selector": {
+    "seed": 36001,
+    "generator": "r33.deterministic_random_3cnf(seed=36001,n=28,ratio=4.2)",
+    "controller": "R37B byte-frozen fixed certified portfolio restart cycle",
+    "expected_terminal_status": "STALLED_PORTFOLIO_FIXPOINT",
+    "expected_measure_CLV": [45,105,13],
+    "expected_canonical_formula_sha256": "3361190b3fe683457061662dd9244cd37ca79283828139666d35b01b11d2fe95",
+    "expected_cycle_count": 3,
+    "expected_restart_count": 2,
+    "expected_successful_transformations": 184
+  },
+  "phase_scope": {
+    "authority": "STRUCTURE_INTAKE_ONLY",
+    "allowed": [
+      "materialize the exact canonical portfolio fixpoint and preserve its clause list/hash",
+      "compute polynomial structural statistics independent of known SAT truth",
+      "recognize standard tractable syntactic/structural classes using deterministic polynomial recognition only",
+      "record a witness for positive class recognition so a later gate can integrate that already-known polynomial solver"
+    ],
+    "forbidden": [
+      "adding a new reduction rule",
+      "adding a new terminal solver",
+      "DPLL/CDCL",
+      "external SAT solver",
+      "assignment enumeration",
+      "using the R36 known SAT truth to choose or tune a class recognizer",
+      "using a bounded-width/FPT probe as a P-time claim",
+      "post-hoc changing the fixpoint selector after structure results"
+    ]
+  },
+  "TOPA_class_candidates": {
+    "RENAMABLE_HORN": {
+      "recognition": "Reduce the choice of variable polarity flips to a 2-SAT constraint system enforcing at most one positive literal in every renamed clause; recognition is polynomial.",
+      "scientific_use": "If positive, preserve the renaming witness only. A separate gate must integrate a standard Horn solver on the renamed formula."
+    },
+    "DUAL_HORN": {
+      "recognition": "Every clause has at most one negative literal.",
+      "scientific_use": "If positive, preserve as an already-known Schaefer tractable class."
+    },
+    "BETA_ACYCLIC": {
+      "recognition": "Repeatedly eliminate a weakly simplicial variable whose incident hyperedges form an inclusion chain; this yields a polynomial recognition/elimination witness for beta-acyclic CNFs.",
+      "scientific_use": "If positive, later integrate the known polynomial Davis-Putnam elimination for this class."
+    },
+    "Q_HORN": {
+      "literature_status": "Known linear-time recognizable/solvable class generalizing Horn, quadratic and disguised Horn.",
+      "R38_policy": "Literature candidate only in this gate unless a fully audited exact q-Horn recognizer is separately preregistered; do not infer q-Horn from approximate statistics."
+    },
+    "BACKDOOR_OR_TREEWIDTH": {
+      "R38_policy": "Measure only as non-authoritative structure. FPT dependence or small observed parameter is not P without a universal polynomial bound on the parameter and detection cost."
+    }
+  },
+  "required_structure_receipt": [
+    "clause_width_histogram",
+    "positive_literal_count_per_clause_histogram",
+    "negative_literal_count_per_clause_histogram",
+    "variable_occurrence_histogram",
+    "primal_graph_degree_histogram",
+    "connected_components",
+    "articulation_points",
+    "Horn_fraction",
+    "dual_Horn_fraction",
+    "2CNF_fraction",
+    "complete_affine_bundle_coverage_fraction",
+    "renamable_Horn_recognition_and_flip_witness",
+    "beta_acyclic_recognition_and_elimination_witness",
+    "non_authoritative_min_fill_width_probe"
+  ],
+  "admissible_verdicts": [
+    "R38_FAIL_INTEGRITY",
+    "R38_FIXPOINT_FROZEN__RENAMABLE_HORN_RECOGNIZED",
+    "R38_FIXPOINT_FROZEN__DUAL_HORN_RECOGNIZED",
+    "R38_FIXPOINT_FROZEN__BETA_ACYCLIC_RECOGNIZED",
+    "R38_FIXPOINT_FROZEN__NO_AUDITED_STANDARD_TERMINAL_RECOGNIZED"
+  ],
+  "captain_obvious_law": "WHEN A POLYNOMIALLY TERMINATING PORTFOLIO STOPS, FIRST ASK WHETHER THE FIXPOINT ALREADY BELONGS TO A KNOWN POLYNOMIAL LANGUAGE. RECOGNITION MUST ITSELF BE POLYNOMIAL AND EXACT.",
+  "next_gate_policy": {
+    "if_recognized": "Create one separate preregistered gate integrating only the standard solver for the first recognized class in frozen priority RENAMABLE_HORN, DUAL_HORN, BETA_ACYCLIC. Then run a new prospective holdout after sealing.",
+    "if_none": "Return to TOPA/Captain with the exact fixpoint and choose at most one new audited mechanism; q-Horn may be preregistered next only with a complete exact recognizer."
+  },
+  "TRUMP_finished": false,
+  "SAT_IN_P": "NOT_PROVED",
+  "P_VS_NP": "OPEN",
+  "runtime_authority": false
+}
