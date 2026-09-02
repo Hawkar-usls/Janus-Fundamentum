@@ -1,0 +1,155 @@
+name: JANUS TRUMP R40 Universal Quotient Coverage
+
+on:
+  push:
+    branches:
+      - research/janus-trump-r40-universal-quotient-coverage-2026-09-02
+    paths:
+      - 'research/JANUS_TRUMP_R40_UNIVERSAL_QUOTIENT_COVERAGE_PREREGISTRATION_2026-09-02.json'
+      - 'experiments/janus_trump_r40_universal_quotient_coverage.py'
+      - 'tests/test_janus_trump_r40_universal_quotient_coverage.py'
+      - '.github/workflows/janus-trump-r40-universal-quotient-coverage.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  r40-universal-quotient-coverage:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Verify sealed R39 lineage and frozen R40 bytes
+        run: |
+          set -euo pipefail
+          git merge-base --is-ancestor 221887994664e8b1bb1de00dec29eaac49f86269 "$GITHUB_SHA"
+          test "$(git hash-object research/JANUS_TRUMP_R40_UNIVERSAL_QUOTIENT_COVERAGE_PREREGISTRATION_2026-09-02.json)" = "13118c0120b045cbc90ed06248d891487b138ebe"
+          test "$(git hash-object experiments/janus_trump_r40_universal_quotient_coverage.py)" = "3b90738ca62dfa535673d2a1965f5ce9c4e38b59"
+          test "$(git hash-object tests/test_janus_trump_r40_universal_quotient_coverage.py)" = "a95e0ee9a7cd88a68c552cb54c3120592a953b03"
+          python - <<'PY'
+          import json
+          p=json.load(open('research/JANUS_TRUMP_R40_UNIVERSAL_QUOTIENT_COVERAGE_PREREGISTRATION_2026-09-02.json',encoding='utf-8'))
+          assert p['status']=='FROZEN_BEFORE_R40_EXECUTION'
+          assert p['parent']['sealed_commit']=='221887994664e8b1bb1de00dec29eaac49f86269'
+          assert p['formal_mechanism']['pipeline']==[
+              'REPRESENTATIVE','PROPERTY','TRANSPORT_CERTIFICATE','TOTAL_COVERAGE','UNIVERSAL_CLAIM'
+          ]
+          assert p['formal_mechanism']['coverage_scope']=='FINITE_EXPLICIT_FIXTURE_UNIVERSE_ONLY'
+          assert p['depths']==[1,2,3,4,5,6]
+          assert p['complexity_firewall']['finite_runs_can_prove_polynomiality'] is False
+          assert p['complexity_firewall']['POLYNOMIALITY_PROVEN_default'] is False
+          assert p['complexity_firewall']['P_VS_NP']=='OPEN'
+          print('R40_PREREGISTRATION_LINEAGE_AND_BYTES_OK')
+          PY
+
+      - name: Static soundness firewall
+        run: |
+          python - <<'PY'
+          import ast
+          from pathlib import Path
+          p=Path('experiments/janus_trump_r40_universal_quotient_coverage.py')
+          source=p.read_text(encoding='utf-8')
+          tree=ast.parse(source)
+          forbidden={'pysat','z3','pycosat','subprocess','socket','requests','urllib','scipy','numpy'}
+          imported=set()
+          for node in ast.walk(tree):
+              if isinstance(node,ast.Import):
+                  imported.update(a.name.split('.')[0] for a in node.names)
+              elif isinstance(node,ast.ImportFrom):
+                  imported.add((node.module or '').split('.')[0])
+          assert not (imported & forbidden),(imported & forbidden)
+          for token in [
+              'transport_recheck',
+              'R_uncovered_or_nonexact_membership',
+              'F_transport_failures',
+              'QUOTIENT_COMPRESSION_OBSERVED',
+              'FINITE_UNIVERSAL_COVERAGE_CERTIFIED',
+              'POLYNOMIALITY_PROVEN',
+              'R39_UNIVERSAL_FIXPOINT_REMAINDER_OBLIGATION_CLOSED',
+          ]:
+              assert token in source, token
+          print({'external_solver':False,'finite_coverage_engine':True,'polynomiality_promoted':False})
+          PY
+
+      - name: Compile and adversarial unit tests
+        run: |
+          python -m py_compile experiments/janus_trump_r40_universal_quotient_coverage.py
+          python -m py_compile tests/test_janus_trump_r40_universal_quotient_coverage.py
+          python -m unittest -v tests/test_janus_trump_r40_universal_quotient_coverage.py
+          python experiments/janus_trump_r40_universal_quotient_coverage.py --self-test
+
+      - name: Execute R40 quotient coverage gate
+        run: |
+          mkdir -p artifacts
+          python experiments/janus_trump_r40_universal_quotient_coverage.py \
+            --output artifacts/JANUS_TRUMP_R40_UNIVERSAL_QUOTIENT_COVERAGE_RESULT_2026-09-02.json
+
+      - name: R40 scientific integrity gate
+        if: always()
+        run: |
+          python - <<'PY'
+          import json,os
+          path='artifacts/JANUS_TRUMP_R40_UNIVERSAL_QUOTIENT_COVERAGE_RESULT_2026-09-02.json'
+          assert os.path.exists(path)
+          d=json.load(open(path,encoding='utf-8'))
+          assert d['source_git_commit']==os.environ['GITHUB_SHA']
+          assert d['parent_R39_sealed_commit']=='221887994664e8b1bb1de00dec29eaac49f86269'
+          assert d['verdict']=='R40_FINITE_QUOTIENT_COVERAGE_CERTIFIED__POLYNOMIALITY_OPEN'
+          s=d['status']
+          assert s['QUOTIENT_COMPRESSION_OBSERVED'] is True
+          assert s['FINITE_UNIVERSAL_COVERAGE_CERTIFIED'] is True
+          assert s['NEGATIVE_CONTROL_UNIVERSAL_CLAIM_REJECTED'] is True
+          assert s['BOUNDARY_DEPENDENCY_BLOCKS_COMPRESSION'] is True
+          assert s['POLYNOMIALITY_PROVEN'] is False
+          for item in d['depth_results']:
+              n=item['depth_n']; N=4**n; f=item['fixtures']
+              sym=f['PYRAMID_SYMMETRIC_4ARY']
+              assert sym['N_raw_states']==N and sym['K_quotient_classes']==1
+              assert sym['R_uncovered_or_nonexact_membership']==0 and sym['F_transport_failures']==0
+              assert sym['FINITE_UNIVERSAL_COVERAGE_CERTIFIED'] is True
+              broken=f['PYRAMID_BROKEN_BRANCH_SAFE']
+              assert broken['K_quotient_classes']==2 and broken['F_transport_failures']==0
+              assert broken['representative_property_failures']==1
+              assert broken['FINITE_UNIVERSAL_COVERAGE_CERTIFIED'] is False
+              unsafe=f['PYRAMID_BROKEN_BRANCH_UNSAFE_NEGATIVE_CONTROL']
+              assert unsafe['K_quotient_classes']==1 and unsafe['F_transport_failures']==1
+              assert unsafe['FINITE_UNIVERSAL_COVERAGE_CERTIFIED'] is False
+              boundary=f['PYRAMID_BOUNDARY_DEPENDENCY']
+              assert boundary['K_quotient_classes']==N
+              assert boundary['R_uncovered_or_nonexact_membership']==0 and boundary['F_transport_failures']==0
+              assert boundary['QUOTIENT_COMPRESSION_OBSERVED'] is False
+              assert boundary['FINITE_UNIVERSAL_COVERAGE_CERTIFIED'] is True
+          c=d['complexity_observations']
+          assert c['symbolic_all_n_K_bound_proved'] is False
+          assert c['polynomial_construction_cost_proved'] is False
+          assert c['polynomial_verification_cost_proved'] is False
+          assert d['proof_ladder']['R39_UNIVERSAL_FIXPOINT_REMAINDER_OBLIGATION_CLOSED'] is False
+          assert d['proof_ladder']['L2_UNIVERSAL_3CNF_COVERAGE'] is False
+          assert d['R31_obligation_impact']['obligations_closed']==0
+          assert d['TRUMP_finished'] is False and d['SAT_IN_P']=='NOT_PROVED' and d['P_VS_NP']=='OPEN'
+          print(json.dumps({
+              'verdict':d['verdict'],
+              'status':d['status'],
+              'symmetric_K':[x['fixtures']['PYRAMID_SYMMETRIC_4ARY']['K_quotient_classes'] for x in d['depth_results']],
+              'boundary_K':[x['fixtures']['PYRAMID_BOUNDARY_DEPENDENCY']['K_quotient_classes'] for x in d['depth_results']],
+              'raw_N':[x['fixtures']['PYRAMID_SYMMETRIC_4ARY']['N_raw_states'] for x in d['depth_results']],
+              'next_gate':d['captain_verdict']['next_gate'],
+              'P_VS_NP':d['P_VS_NP'],
+          },indent=2,sort_keys=True))
+          PY
+
+      - name: Upload immutable R40 evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: janus-trump-r40-universal-quotient-coverage
+          path: artifacts/JANUS_TRUMP_R40_UNIVERSAL_QUOTIENT_COVERAGE_RESULT_2026-09-02.json
+          if-no-files-found: error
