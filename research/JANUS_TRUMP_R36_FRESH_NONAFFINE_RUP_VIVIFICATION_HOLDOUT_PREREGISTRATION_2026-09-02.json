@@ -1,0 +1,99 @@
+{
+  "schema": "JANUS_TRUMP_R36_FRESH_NONAFFINE_RUP_VIVIFICATION_HOLDOUT_PREREGISTRATION",
+  "version": "1.0",
+  "date": "2026-09-02",
+  "status": "FROZEN_BEFORE_R36_WORLD_GENERATION_IMPLEMENTATION_AND_EXECUTION",
+  "parent_R35B": {
+    "sealed_result_commit": "cbcd88854aa58b6fdb61857c0c32199ceec7ed5b",
+    "successful_run_id": 33661433636,
+    "artifact_id": 9858824538,
+    "artifact_sha256": "e7fc7d8e63abda0a2f2575e8d480fca9f75ea6238817a832fab3b9326f7a5e86",
+    "result_json_sha256": "27fd6050500630fde1b664f14d4d859925624fbb32361c09d4013fc98f665ff9",
+    "R35B_implementation_commit": "21c4166e92eebe50116fdc11dec7ad83b59bbd71",
+    "R35B_implementation_blob": "259d2e38947d09b0c058963ad825a57f2e734203"
+  },
+  "prospective_holdout": {
+    "selection_time": "AFTER_R35B_SEAL_AND_BEFORE_ANY_R36_GENERATION",
+    "selection_rule": "Eight consecutive deterministic seeds chosen now as a fresh block; no outcome-based filtering or replacement is permitted.",
+    "seeds": [36001,36002,36003,36004,36005,36006,36007,36008],
+    "generator": "r33.deterministic_random_3cnf(seed,n=28,ratio=4.2)",
+    "n": 28,
+    "ratio": 4.2,
+    "world_count": 8,
+    "replacement_of_worlds_after_observation": false
+  },
+  "byte_frozen_candidate_portfolio": {
+    "stage_1": "R33 safe-reduction stack from blob c9234a1ef639a009cc6cb4c8a6098fd09bf9affe",
+    "stage_2": "R34 complete-affine recognizer/GF(2) terminal from blob 7f9bec920fa47af066570d874fe9127dc4b9b968, invoked only on R33 stalled cores",
+    "stage_3": "R35B SINGLE_LITERAL_RUP_VIVIFICATION from blob 259d2e38947d09b0c058963ad825a57f2e734203, invoked only on stalled non-affine residuals",
+    "no_candidate_logic_changes": true,
+    "no_new_mechanism": true,
+    "fixed_stage_order": true
+  },
+  "candidate_world_classification": {
+    "R33_terminal": "If R33 reaches a frozen tractable/empty terminal, preserve it as PRE_RUP_TERMINAL and do not count it as RUP generalization evidence.",
+    "affine_terminal": "If a stalled R33 residual is completely recognized by the frozen R34 affine terminal, preserve AFFINE_XOR_SAT/UNSAT and do not count it as RUP generalization evidence.",
+    "RUP_UNSAT": "If the frozen R35B mechanism terminates UNSAT_BY_UNIT_PROPAGATION with an independently replayable RUP sequence, classify candidate RUP success before truth verification.",
+    "RUP_STALL": "If the frozen R35B mechanism reaches STALLED_RUP_CORE, make no SAT/UNSAT candidate claim."
+  },
+  "post_candidate_independent_verifier": {
+    "allowed_only_after_world_candidate_terminal": true,
+    "solver": "PySAT Minisat22 pinned via python-sat==1.9.dev15",
+    "scope": "Verify the original generated CNF after the full candidate path is terminal. The verifier must not influence candidate routing, clause order, RUP proposals, or stopping.",
+    "RUP_UNSAT_requirement": "Independent RUP replay must pass AND Minisat22 must return UNSAT on the original world.",
+    "affine_terminal_requirement": "Frozen affine certificate must pass; Minisat22 additionally cross-checks the original world.",
+    "RUP_STALL_truth": "Minisat22 may label the stalled world SAT or UNSAT for diagnostics only; the candidate verdict remains OPEN_RUP_STALL.",
+    "verifier_failure": "Any contradiction between a candidate semantic claim and independent verification is SEMANTIC_MISMATCH."
+  },
+  "resource_and_cost_ledger": {
+    "candidate": [
+      "R33 rule applications and check-operation ledger",
+      "R34 recognition literal inspections / GF2 row-xor ledger when invoked",
+      "R35B successful strengthenings, RUP checks, UP clause scans, UP literal inspections, certificate bytes"
+    ],
+    "verifier_cost_is_separate": true,
+    "no_verifier_work_may_be_charged_as_candidate_progress": true
+  },
+  "forbidden": [
+    "REGENERATING_OR_REPLACING_A_SEED_AFTER_OBSERVING_ITS_RESULT",
+    "TUNING_R33_R34_OR_R35B_ON_R36",
+    "DPLL_OR_CDCL_INSIDE_CANDIDATE",
+    "EXTERNAL_SAT_SOLVER_INSIDE_CANDIDATE",
+    "TRUTH_TABLE_INSIDE_CANDIDATE",
+    "ADDING_A_NEW_SAFE_REDUCTION_OR_TERMINAL_CLASS",
+    "SKIPPING_STALLED_WORLDS_FROM_AGGREGATE",
+    "CALLING_RUP_STALL_A_NEGATIVE_SEMANTIC_RESULT",
+    "COUNTING_PRE_RUP_OR_AFFINE_TERMINALS_AS_RUP_SUCCESS",
+    "CLAIMING_GENERAL_3SAT_PROGRESS_FROM_EIGHT_WORLDS"
+  ],
+  "per_world_admissible_verdicts": [
+    "PASS_PRE_RUP_TERMINAL__NOT_RUP_EVIDENCE",
+    "PASS_AFFINE_TERMINAL__NOT_RUP_EVIDENCE",
+    "PASS_EXACT_UNSEEN_RUP_UNSAT",
+    "OPEN_UNSEEN_RUP_STALL__TRUTH_SAT_DIAGNOSTIC_ONLY",
+    "OPEN_UNSEEN_RUP_STALL__TRUTH_UNSAT_DIAGNOSTIC_ONLY",
+    "FAIL_SEMANTIC_MISMATCH",
+    "FAIL_INTEGRITY"
+  ],
+  "aggregate_admissible_verdicts": [
+    "R36_FAIL_INTEGRITY_OR_SEMANTIC_MISMATCH",
+    "R36_FRESH_UNSEEN_RUP_SURVIVAL_WITH_OPEN_STALLS",
+    "R36_FRESH_UNSEEN_RUP_EXACT_ON_ALL_ELIGIBLE_NONAFFINE_WORLDS__NO_UNIVERSAL_CLAIM",
+    "R36_NO_ELIGIBLE_NONAFFINE_RUP_WORLDS__INCONCLUSIVE"
+  ],
+  "captain_obvious_law": "DISCOVERY SUCCESS BECOMES EVIDENCE ONLY AFTER THE MACHINE IS FROZEN AND SENT INTO WORLDS SELECTED AFTER THE FREEZE. STALL IS OPEN; MISMATCH IS FAILURE; EARLIER PORTFOLIO TERMINALS ARE NOT CREDITED TO THE NEW RULE.",
+  "interpretation_firewall": {
+    "R31_obligations_closed_by_R36": 0,
+    "fresh_finite_success": "Generalization evidence for the frozen mechanism only, never a universal theorem.",
+    "stall": "Preserve the fresh stalled residual before proposing any next mechanism.",
+    "semantic_mismatch": "Preserve the counterexample and stop promotion.",
+    "TRUMP_finished": false,
+    "SAT_IN_P": "NOT_PROVED",
+    "P_VS_NP": "OPEN",
+    "runtime_authority": false
+  },
+  "next_gate_policy": {
+    "if_stalls": "R37_FRESH_RUP_STALL_FORENSICS__FREEZE_FIRST_STALLED_RESIDUAL_BEFORE_ANY_NEW_RULE",
+    "if_all_eligible_RUP_exact": "Scale with a new preregistered size ladder and adversarial families; do not infer polynomial universal progress from finite holdout."
+  }
+}
