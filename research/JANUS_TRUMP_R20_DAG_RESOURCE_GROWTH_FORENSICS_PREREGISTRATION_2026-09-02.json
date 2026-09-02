@@ -1,0 +1,78 @@
+{
+  "schema": "JANUS/TRUMP/R20/DAG_RESOURCE_GROWTH_FORENSICS/PREREGISTRATION/v1.0",
+  "created_date": "2026-09-02",
+  "status": "FROZEN_BEFORE_R20_FORENSIC_OBSERVER_IMPLEMENTATION_AND_REPLAY",
+  "parent_R19_result_summary_commit": "f633c567450bc61969a75e535cda1da4f641a670",
+  "parent_R19_verdict": "R19_OPEN_RESOURCE_LIMIT__PARTIAL_EXACT_SURVIVAL_ONLY",
+  "scientific_role": "RESOURCE_FORENSICS_ONLY__NO_LOGIC_TUNING__NO_SEMANTIC_RESCORING",
+  "frozen_candidate": {
+    "path": "experiments/janus_trump_r18_shannon_hashcons_interface_dag_discovery.py",
+    "git_blob_sha": "afa95321ec6edbb33bef222d8ee7234fe631a599",
+    "candidate_logic_changes_allowed": false,
+    "resource_envelope_changes_allowed": false,
+    "wall_seconds": 120,
+    "maximum_active_or_temporary_nodes": 1000000,
+    "maximum_restrict_calls": 20000000
+  },
+  "observer_contract": {
+    "method": "Replay the exact frozen R18 compile_cnf -> occurrence elimination_order -> per-variable Dag.exists -> Dag.gc sequence using the imported frozen R18 Budget, Dag, compile_cnf, elimination_order and ResourceLimit primitives. Add observation only around the same operations; do not alter them.",
+    "truth_access": false,
+    "SAT_solver_access": false,
+    "assignment_enumeration": false,
+    "candidate_evaluation": false,
+    "allowed_set_access": false,
+    "post_answer_tuning": false,
+    "open_worlds_truth_must_remain_hidden": ["R19-W05","R19-W06","R19-W07","R19-W08"],
+    "per_completed_step_fields": [
+      "step","quantified_var","elapsed_seconds_after_step","before_active_nodes","pre_gc_nodes","after_active_nodes","gc_removed_nodes","support_variables_before","support_variables_after","new_nodes_created_step","restrict_calls_step","restrict_memo_entries_step","cumulative_nodes_created","cumulative_restrict_calls","cumulative_hashcons_hits"
+    ],
+    "partial_open_step_fields": [
+      "step","quantified_var","elapsed_seconds_at_open","reason","before_active_nodes","active_nodes_at_open","support_variables_before","partial_nodes_created_step","partial_restrict_calls_step","cumulative_nodes_created","cumulative_restrict_calls","cumulative_hashcons_hits"
+    ]
+  },
+  "observer_equivalence_gate": {
+    "purpose": "The forensic observer has no authority on OPEN worlds unless it exactly reproduces deterministic frozen-candidate counters on all four completed R19 PASS worlds.",
+    "reference": {
+      "R19-W01": {"final_active_nodes":960,"maximum_nodes_seen_before_gc":78951,"nodes_created_total":580271,"restrict_calls_total":1180827,"hashcons_hits":31067,"gc_calls":49,"gc_removed_total":579313,"elimination_steps":48},
+      "R19-W02": {"final_active_nodes":1406,"maximum_nodes_seen_before_gc":51040,"nodes_created_total":411568,"restrict_calls_total":840370,"hashcons_hits":25336,"gc_calls":47,"gc_removed_total":410164,"elimination_steps":46},
+      "R19-W03": {"final_active_nodes":2010,"maximum_nodes_seen_before_gc":76421,"nodes_created_total":857791,"restrict_calls_total":1740016,"hashcons_hits":35229,"gc_calls":55,"gc_removed_total":855783,"elimination_steps":54},
+      "R19-W04": {"final_active_nodes":187,"maximum_nodes_seen_before_gc":104847,"nodes_created_total":701322,"restrict_calls_total":1421526,"hashcons_hits":9815,"gc_calls":54,"gc_removed_total":701137,"elimination_steps":53}
+    },
+    "required": "8_OF_8_DETERMINISTIC_COUNTER_FIELDS_AND_ELIMINATION_STEP_COUNT_MATCH_PER_PASS_WORLD",
+    "timing_is_not_an_equivalence_field": true,
+    "failure_verdict": "R20_FAIL_OBSERVER_EQUIVALENCE__NO_OPEN_WORLD_INTERPRETATION"
+  },
+  "frozen_forensic_landmarks": {
+    "initial_active_node_multiple": [10, 50, 100],
+    "absolute_after_active_node_thresholds": [10000, 50000, 100000, 250000, 500000],
+    "absolute_pre_gc_node_thresholds": [10000, 50000, 100000, 250000, 500000],
+    "cumulative_nodes_created_thresholds": [100000, 250000, 500000, 1000000],
+    "cumulative_restrict_call_thresholds": [250000, 500000, 1000000, 2000000],
+    "report": "For each world report the earliest completed step crossing each threshold, normalized elimination progress step/total_internal, the peak completed pre-GC step, the peak completed after-GC step, and if OPEN the partial current step at deadline. Thresholds are descriptive landmarks only, not claims of asymptotic phase transitions."
+  },
+  "comparison_plan": [
+    "Compare W01-W04 PASS trajectories with W05-W08 OPEN trajectories at equal normalized elimination progress.",
+    "Determine whether OPEN occurs before or after the active-node peak and how much support remains at deadline.",
+    "Separate retained active-node growth from temporary-node churn removed by GC.",
+    "Measure restrict calls and nodes created per eliminated variable; do not collapse them into one invented complexity unit.",
+    "Identify whether n72/n80 OPEN is dominated by retained DAG width, temporary construction churn, restrict recursion, or a mixture."
+  ],
+  "verdict_space": [
+    "R20_DAG_GROWTH_WALL_LOCALIZED",
+    "R20_MIXED_RESOURCE_WALL_LOCALIZED",
+    "R20_NO_SINGLE_WALL_LOCALIZED__FORENSICS_PRESERVED",
+    "R20_FAIL_OBSERVER_EQUIVALENCE__NO_OPEN_WORLD_INTERPRETATION",
+    "R20_FAIL_INTEGRITY"
+  ],
+  "dominance_rule": {
+    "retained_node_dominated": "At OPEN, active_nodes_at_open >= 500000 on at least 3 of 4 OPEN worlds and partial/current-step restrict calls do not alone explain all OPENs.",
+    "temporary_churn_dominated": "At least 3 of 4 OPEN worlds cross cumulative_nodes_created >= 1000000 while active_nodes_at_open < 500000 and GC has removed a majority of all created nodes before OPEN.",
+    "restrict_dominated": "At least 3 of 4 OPEN worlds cross cumulative_restrict_calls >= 2000000 before OPEN while active_nodes_at_open < 500000.",
+    "mixed": "No single preregistered dominance rule covers at least 3 of 4 OPEN worlds, but at least two resource mechanisms independently cover different OPEN worlds."
+  },
+  "next_action_rule": "R20 may recommend a new R21 representation or scheduling hypothesis only after preserving the observed wall. R20 itself must not modify R18, rerun R19 with larger limits, or convert OPEN into PASS/FAIL.",
+  "claim_ceiling": "Resource forensics on eight finite frozen worlds only. No asymptotic complexity law, arbitrary-CNF totality, SAT-in-P, P=NP, or P!=NP conclusion.",
+  "law": "WHEN_THE_MACHINE_STOPS__DO_NOT_TURN_UP_THE_CLOCK__OPEN_THE_HOOD_AND_FIND_WHICH_GEAR_GREW",
+  "seal": "R20_WILL_WATCH_THE_SAME_MACHINE_HIT_THE_SAME_WALL_WITH_MORE_GAUGES__NOT_A_STRONGER_ENGINE",
+  "P_VS_NP": "OPEN"
+}
