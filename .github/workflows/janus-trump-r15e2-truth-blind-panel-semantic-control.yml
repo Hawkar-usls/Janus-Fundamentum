@@ -1,0 +1,58 @@
+name: JANUS TRUMP R15E2 Truth Blind Panel Semantic Control
+
+on:
+  push:
+    branches:
+      - research/janus-trump-r15e2-truth-blind-panel-semantic-control-2026-09-02
+    paths:
+      - 'research/JANUS_TRUMP_R15E2_TRUTH_BLIND_PANEL_SEMANTIC_CONTROL_PREREGISTRATION_2026-09-02.json'
+      - 'experiments/janus_trump_r15e2_truth_blind_panel_semantic_control.py'
+      - '.github/workflows/janus-trump-r15e2-truth-blind-panel-semantic-control.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  r15e2-control:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Verify frozen R15E2 preregistration and candidate identity
+        run: |
+          python - <<'PY'
+          import json,subprocess
+          p=json.load(open('research/JANUS_TRUMP_R15E2_TRUTH_BLIND_PANEL_SEMANTIC_CONTROL_PREREGISTRATION_2026-09-02.json'))
+          assert p['status']=='FROZEN_BEFORE_R15E2_EXECUTION'
+          got=subprocess.check_output(['git','hash-object',p['frozen_candidate']['path']],text=True).strip()
+          assert got==p['frozen_candidate']['blob_sha'],(got,p['frozen_candidate']['blob_sha'])
+          assert p['panel']['total_target_size']==37
+          assert p['P_VS_NP']=='OPEN'
+          print('R15E2_FREEZE_OK',got)
+          PY
+      - name: Compile R15E2
+        run: |
+          PYTHONPATH=experiments:. python -m py_compile experiments/janus_trump_r15e2_truth_blind_panel_semantic_control.py
+      - name: Run frozen candidate then finite exact panel
+        run: |
+          mkdir -p artifacts
+          PYTHONPATH=experiments:. python experiments/janus_trump_r15e2_truth_blind_panel_semantic_control.py --output artifacts/JANUS_TRUMP_R15E2_TRUTH_BLIND_PANEL_SEMANTIC_CONTROL_RESULT_2026-09-02.json
+      - name: R15E2 scientific gate
+        run: |
+          python - <<'PY'
+          import json
+          d=json.load(open('artifacts/JANUS_TRUMP_R15E2_TRUTH_BLIND_PANEL_SEMANTIC_CONTROL_RESULT_2026-09-02.json'))
+          assert d['P_VS_NP']=='OPEN'
+          assert all(d['gates'].values()),d['gates']
+          assert d['verdict'] in ('R15E2_PANEL_MATCH','R15E2_PANEL_MISMATCH')
+          assert d['panel']['size']==37
+          print(d['verdict'])
+          PY
+      - name: Upload immutable R15E2 evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: janus-trump-r15e2-truth-blind-panel-semantic-control
+          path: artifacts/JANUS_TRUMP_R15E2_TRUTH_BLIND_PANEL_SEMANTIC_CONTROL_RESULT_2026-09-02.json
+          if-no-files-found: error
