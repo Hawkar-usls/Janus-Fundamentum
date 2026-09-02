@@ -1,0 +1,172 @@
+name: JANUS TRUMP R45B Frozen 26-Stall Quotient Macro Coverage
+
+on:
+  push:
+    branches:
+      - research/janus-trump-r45b-frozen-26-stall-quotient-macro-coverage-2026-09-02
+    paths:
+      - 'research/JANUS_TRUMP_R45B_FROZEN_26_STALL_QUOTIENT_MACRO_COVERAGE_PREREGISTRATION_2026-09-02.json'
+      - 'research/JANUS_TRUMP_R45B_FROZEN_26_STALL_QUOTIENT_MACRO_COVERAGE_EXECUTION_PREREGISTRATION_2026-09-02.json'
+      - 'experiments/janus_trump_r45b_frozen_26_stall_quotient_macro_coverage.py'
+      - 'tests/test_janus_trump_r45b_frozen_26_stall_quotient_macro_coverage.py'
+      - '.github/workflows/janus-trump-r45b-frozen-26-stall-quotient-macro-coverage.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  r45b-frozen-26-stall-coverage:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Verify sealed lineage, frozen universe, and byte pins
+        run: |
+          set -euo pipefail
+          git merge-base --is-ancestor d07b28eafe99fb3df9ab025a274ac88fa76ce955 "$GITHUB_SHA"
+          test "$(git hash-object research/JANUS_TRUMP_R45B_FROZEN_26_STALL_QUOTIENT_MACRO_COVERAGE_PREREGISTRATION_2026-09-02.json)" = "c121b25e10658d04af18ccee4e0efc775c4c17ef"
+          test "$(git hash-object research/JANUS_TRUMP_R45B_FROZEN_26_STALL_QUOTIENT_MACRO_COVERAGE_EXECUTION_PREREGISTRATION_2026-09-02.json)" = "f8814934f425198b941eb39e25dbb5661103bf91"
+          test "$(git hash-object experiments/janus_trump_r45b_frozen_26_stall_quotient_macro_coverage.py)" = "d49c31c6a192c63bd66b99206fef375cc54ace66"
+          test "$(git hash-object tests/test_janus_trump_r45b_frozen_26_stall_quotient_macro_coverage.py)" = "d8be9c9976c127c086bed8dace0d452c219da159"
+          test "$(git hash-object experiments/janus_trump_r45a_byte_pinned_ascent_descent_macro.py)" = "a88ea0b9bbeab3e62a21b1351d5887a00c79416a"
+          test "$(git hash-object experiments/janus_trump_r43_frozen_r42_counterexample_hunt.py)" = "a272cd7b32953d481f5d26dc5ddbbe1dbba3be5b"
+          test "$(git hash-object experiments/janus_trump_r42_subsumption_aware_bve_successor.py)" = "d71d7edb284a37bc7d7039c0d585d64cf2844de9"
+          test "$(git hash-object experiments/janus_trump_r35b_single_literal_rup_vivification.py)" = "259d2e38947d09b0c058963ad825a57f2e734203"
+          test "$(git hash-object experiments/janus_trump_r34_affine_xor_terminal_against_tseitin_core.py)" = "7f9bec920fa47af066570d874fe9127dc4b9b968"
+          test "$(git hash-object experiments/janus_trump_r33_certified_safe_reduction_stack_lean_core_forensics.py)" = "c9234a1ef639a009cc6cb4c8a6098fd09bf9affe"
+          python - <<'PY'
+          import json
+          frozen=[43004,43101,43102,43103,43104,43105,43106,43107,43108,43109,43110,43111,43112,43113,43115,43201,43203,43204,43205,43206,43207,43209,43210,43212,43213,43216]
+          p=json.load(open('research/JANUS_TRUMP_R45B_FROZEN_26_STALL_QUOTIENT_MACRO_COVERAGE_PREREGISTRATION_2026-09-02.json',encoding='utf-8'))
+          e=json.load(open('research/JANUS_TRUMP_R45B_FROZEN_26_STALL_QUOTIENT_MACRO_COVERAGE_EXECUTION_PREREGISTRATION_2026-09-02.json',encoding='utf-8'))
+          assert p['status']=='FROZEN_BEFORE_R45B_IMPLEMENTATION_AND_EXECUTION'
+          assert e['status']=='FROZEN_AFTER_IMPLEMENTATION_BEFORE_EXECUTION'
+          assert p['frozen_stall_seeds']==frozen and e['frozen_stall_seeds']==frozen
+          assert p['frozen_stall_count']==26
+          assert p['parent']['R44_frozen_83_case_result']=={'N':83,'K':66,'R':0,'F':0,'Q_false_stalls':26,'stall_representative_classes':25}
+          assert p['finite_gate']['PASS_iff'][0]=='N == 26'
+          assert e['expected']=={'N':26,'K_R44_truth_blind_quotient_regression':25,'R':0,'finite_PASS_requires_F':0,'finite_PASS_requires_Q_macro_false':0}
+          assert e['execution_contract']['one_uncovered_stall_is_scientific_negative_not_harness_failure'] is True
+          assert e['claim_ceiling']['FULL_ALGORITHM_POLYNOMIALITY_PROVEN'] is False
+          assert e['claim_ceiling']['P_VS_NP']=='OPEN'
+          print('R45B_LINEAGE_UNIVERSE_AND_BYTE_PINS=PASS')
+          PY
+
+      - name: Static anti-leakage and audit-only quotient firewall
+        run: |
+          python - <<'PY'
+          import ast
+          from pathlib import Path
+          source=Path('experiments/janus_trump_r45b_frozen_26_stall_quotient_macro_coverage.py').read_text(encoding='utf-8')
+          tree=ast.parse(source)
+          forbidden={'pysat','z3','pycosat','socket','requests','urllib','numpy','scipy'}
+          imported=set()
+          for node in ast.walk(tree):
+              if isinstance(node,ast.Import): imported.update(a.name.split('.')[0] for a in node.names)
+              elif isinstance(node,ast.ImportFrom): imported.add((node.module or '').split('.')[0])
+          assert not (imported & forbidden),(imported & forbidden)
+          for token in [
+              'FROZEN_STALL_SEEDS','replay_r42_terminal_formula','r45a.select_macro',
+              'F_Q_macro_transport_failures','AUDIT_TRANSPORT_ONLY',
+              'RUNTIME_QUOTIENT_COMPRESSION_PROVEN','UNIVERSAL_REACHABLE_STALL_COVERAGE_PROVEN',
+              'FULL_ALGORITHM_POLYNOMIALITY_PROVEN'
+          ]:
+              assert token in source,token
+          assert 'ProcessPoolExecutor' in source
+          print({'external_solver_added':False,'all_member_macro_scans_required':True,'quotient_runtime_authority':False})
+          PY
+
+      - name: Compile, unit tests, and self-test
+        run: |
+          python -m py_compile experiments/janus_trump_r45b_frozen_26_stall_quotient_macro_coverage.py
+          python -m py_compile tests/test_janus_trump_r45b_frozen_26_stall_quotient_macro_coverage.py
+          python -m unittest -v tests/test_janus_trump_r45b_frozen_26_stall_quotient_macro_coverage.py
+          cd experiments
+          python janus_trump_r45b_frozen_26_stall_quotient_macro_coverage.py --self-test
+
+      - name: Execute frozen 26-of-26 stall macro coverage audit
+        working-directory: experiments
+        run: |
+          mkdir -p ../artifacts
+          python janus_trump_r45b_frozen_26_stall_quotient_macro_coverage.py \
+            --workers 4 \
+            --output ../artifacts/JANUS_TRUMP_R45B_FROZEN_26_STALL_QUOTIENT_MACRO_COVERAGE_RESULT_2026-09-02.json
+
+      - name: R45B scientific integrity gate
+        if: always()
+        run: |
+          python - <<'PY'
+          import json,os
+          path='artifacts/JANUS_TRUMP_R45B_FROZEN_26_STALL_QUOTIENT_MACRO_COVERAGE_RESULT_2026-09-02.json'
+          assert os.path.exists(path), 'R45B result artifact missing: harness/integrity failure'
+          d=json.load(open(path,encoding='utf-8'))
+          frozen=[43004,43101,43102,43103,43104,43105,43106,43107,43108,43109,43110,43111,43112,43113,43115,43201,43203,43204,43205,43206,43207,43209,43210,43212,43213,43216]
+          assert d['source_git_commit']==os.environ['GITHUB_SHA']
+          assert d['lineage']['R45A_seal_commit']=='d07b28eafe99fb3df9ab025a274ac88fa76ce955'
+          assert d['lineage']['R45A_macro_blob_sha']=='a88ea0b9bbeab3e62a21b1351d5887a00c79416a'
+          assert d['frozen_stall_seeds']==frozen
+          assert [r['seed'] for r in d['rows']]==sorted(frozen)
+          m=d['metrics']; q=d['quotient']; s=d['status']
+          assert m['N']==26 and q['N_raw_stalls']==26
+          assert m['K']==25 and q['K_quotient_classes']==25
+          assert m['R']==0 and q['R_uncovered_or_nonexact_membership']==0
+          assert q['AUDIT_TRANSPORT_ONLY'] is True
+          assert q['RUNTIME_QUOTIENT_COMPRESSION_PROVEN'] is False
+          for row in d['rows']:
+              assert row['selected_independent_replay_pass'] is bool(row['Q_macro'])
+              assert row['global_polynomial_scan_bounds']['pass'] is True
+              if row['Q_macro']:
+                  assert row['selected_var'] is not None
+                  assert row['acceptable_candidate_count']>0
+                  assert row['selected_macro_certificate_sha256'] is not None
+          negative = (m['F']>0 or m['Q_macro_false']>0)
+          if negative:
+              assert d['verdict']=='R45B_UNCOVERED_FROZEN_STALL_OR_TRANSPORT_FAILURE'
+              assert s['FINITE_26_STALL_MACRO_APPLICABILITY_CERTIFIED'] is False
+              assert d['next_gate']=='RETURN_TO_CAPTAIN_WITH_R45B_UNCOVERED_STALL_OR_QUOTIENT_FAILURE'
+              if m['F']>0:
+                  assert q['first_transport_failure'] is not None
+              if m['Q_macro_false']>0:
+                  assert set(m['uncovered_seeds'])=={r['seed'] for r in d['rows'] if not r['Q_macro']}
+          else:
+              assert d['verdict']=='R45B_FINITE_26_STALL_MACRO_APPLICABILITY_CERTIFIED__UNIVERSAL_COVERAGE_OPEN'
+              assert s['FINITE_26_STALL_MACRO_APPLICABILITY_CERTIFIED'] is True
+              assert s['QUOTIENT_Q_MACRO_TRANSPORT_SOUND'] is True
+              assert d['next_gate']=='R46_INTEGRATED_R42_PLUS_R45_RESTART_CONTROLLER_PROSPECTIVE_STALL_HUNT'
+          assert s['AUDIT_TRANSPORT_ONLY'] is True
+          assert s['RUNTIME_QUOTIENT_COMPRESSION_PROVEN'] is False
+          assert s['UNIVERSAL_REACHABLE_STALL_COVERAGE_PROVEN'] is False
+          assert s['FULL_ALGORITHM_POLYNOMIALITY_PROVEN'] is False
+          assert d['TRUMP_finished'] is False and d['SAT_IN_P']=='NOT_PROVED' and d['P_VS_NP']=='OPEN'
+          print(json.dumps({
+              'verdict':d['verdict'],
+              'metrics':m,
+              'mixed_Q_macro_class_count':q['mixed_Q_macro_class_count'],
+              'first_transport_failure':q['first_transport_failure'],
+              'rows':[{
+                  'seed':r['seed'],'stall_CLV':r['stall_measure_CLV'],'Q_macro':r['Q_macro'],
+                  'acceptable':r['acceptable_candidate_count'],'selected_var':r['selected_var'],
+                  'selected_terminal':r['selected_terminal'],'selected_final_CLV':r['selected_final_CLV'],
+                  'temporary_ascent':r['selected_temporary_internal_ascent']
+              } for r in d['rows']],
+              'resource_ledger':d['resource_ledger'],
+              'next_gate':d['next_gate'],
+              'P_VS_NP':d['P_VS_NP'],
+          },indent=2,sort_keys=True))
+          PY
+
+      - name: Upload immutable R45B evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: janus-trump-r45b-frozen-26-stall-quotient-macro-coverage
+          path: artifacts/JANUS_TRUMP_R45B_FROZEN_26_STALL_QUOTIENT_MACRO_COVERAGE_RESULT_2026-09-02.json
+          if-no-files-found: error
