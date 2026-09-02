@@ -1,0 +1,114 @@
+name: JANUS TRUMP R24B Post-Discovery Structural Cutset Controls W06-W08
+
+on:
+  push:
+    branches:
+      - research/janus-trump-r24b-post-discovery-structural-cutset-controls-w06-w08-2026-09-02
+    paths:
+      - 'research/JANUS_TRUMP_R24B_POST_DISCOVERY_STRUCTURAL_CUTSET_CONTROLS_W06_W08_PREREGISTRATION_2026-09-02.json'
+      - 'experiments/janus_trump_r24b_post_discovery_structural_cutset_controls_w06_w08.py'
+      - '.github/workflows/janus-trump-r24b-post-discovery-structural-cutset-controls-w06-w08.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  r24b-control:
+    strategy:
+      fail-fast: false
+      matrix:
+        world: [R19-W06, R19-W07, R19-W08]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Verify frozen R24 algorithm and R24B contract
+        run: |
+          set -euo pipefail
+          test "$(git hash-object experiments/janus_trump_r24_truth_blind_structural_cutset_width_profile.py)" = "2478c671dd3b3f87477de679af832e0ea9c88f8d"
+          python - <<'PY'
+          import json
+          p=json.load(open('research/JANUS_TRUMP_R24B_POST_DISCOVERY_STRUCTURAL_CUTSET_CONTROLS_W06_W08_PREREGISTRATION_2026-09-02.json'))
+          assert p['status']=='FROZEN_BEFORE_R24B_HARNESS_IMPLEMENTATION_AND_CONTROL_EXECUTION'
+          assert p['parent_R24_result_summary_commit']=='d5467d9e944cab773fecf3c1831606720f0bacf7'
+          assert p['frozen_R24_algorithm']['git_blob_sha']=='2478c671dd3b3f87477de679af832e0ea9c88f8d'
+          assert p['frozen_R24_algorithm']['algorithm_changes_allowed'] is False
+          assert p['sealed_reference']['R23_PASS_width_band']==[38,43]
+          assert p['firewall']['truth_access'] is False
+          assert p['firewall']['control_specific_rule_tuning_forbidden'] is True
+          assert p['P_VS_NP']=='OPEN'
+          print('R24B_FREEZE_OK')
+          PY
+      - name: Compile R24B harness
+        run: PYTHONPATH=experiments:. python -m py_compile experiments/janus_trump_r24b_post_discovery_structural_cutset_controls_w06_w08.py
+      - name: Run structural control
+        run: |
+          mkdir -p artifacts
+          PYTHONPATH=experiments:. python experiments/janus_trump_r24b_post_discovery_structural_cutset_controls_w06_w08.py \
+            --world '${{ matrix.world }}' --output 'artifacts/${{ matrix.world }}.json'
+      - name: Per-control scientific gate
+        if: always()
+        run: |
+          python - <<'PY'
+          import json,os
+          p='artifacts/${{ matrix.world }}.json'; assert os.path.exists(p)
+          d=json.load(open(p))
+          assert d['scientific_role']=='POST_DISCOVERY_STRUCTURAL_CONTROL__NO_SEMANTIC_TRUTH__NOT_UNSEEN'
+          assert d['frozen_R24_algorithm_blob']=='2478c671dd3b3f87477de679af832e0ea9c88f8d'
+          assert d['truth_accessed'] is False and d['cutset_values_assigned'] is False and d['semantic_candidate_ran'] is False
+          assert d['world_id']=='${{ matrix.world }}'
+          assert len(d['selected_cutset'])==8 and len(d['profiles'])==9
+          assert d['P_VS_NP']=='OPEN'
+          print(d['verdict'],d['final_k8_width'],d['final_k8_drop'])
+          PY
+      - name: Upload control evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: janus-trump-r24b-${{ matrix.world }}
+          path: artifacts/${{ matrix.world }}.json
+          if-no-files-found: error
+
+  r24b-aggregate:
+    if: always()
+    needs: r24b-control
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: janus-trump-r24b-R19-W*
+          path: control-results
+          merge-multiple: true
+      - name: Aggregate without rescoring
+        run: |
+          mkdir -p artifacts
+          PYTHONPATH=experiments:. python experiments/janus_trump_r24b_post_discovery_structural_cutset_controls_w06_w08.py \
+            --aggregate-dir control-results --output artifacts/JANUS_TRUMP_R24B_POST_DISCOVERY_STRUCTURAL_CUTSET_CONTROLS_W06_W08_AGGREGATE_RESULT_2026-09-02.json
+      - name: Aggregate gate
+        if: always()
+        run: |
+          python - <<'PY'
+          import json,os
+          p='artifacts/JANUS_TRUMP_R24B_POST_DISCOVERY_STRUCTURAL_CUTSET_CONTROLS_W06_W08_AGGREGATE_RESULT_2026-09-02.json'; assert os.path.exists(p)
+          d=json.load(open(p))
+          allowed={'R24B_3_OF_3_OPEN_STRUCTURAL_CONTROLS_ENTER_R23_PASS_BAND_AT_K8','R24B_PARTIAL_OPEN_STRUCTURAL_CONTROLS_ENTER_R23_PASS_BAND_AT_K8','R24B_NO_OPEN_STRUCTURAL_CONTROL_ENTERS_R23_PASS_BAND_AT_K8','R24B_FAIL_INTEGRITY'}
+          assert d['verdict'] in allowed,d['verdict']
+          assert d['truth_accessed'] is False and d['control_count']==3 and d['P_VS_NP']=='OPEN'
+          print(d['verdict'],d['enter_pass_band_count'])
+          PY
+      - name: Upload aggregate evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: janus-trump-r24b-post-discovery-structural-cutset-controls-aggregate
+          path: artifacts/JANUS_TRUMP_R24B_POST_DISCOVERY_STRUCTURAL_CUTSET_CONTROLS_W06_W08_AGGREGATE_RESULT_2026-09-02.json
+          if-no-files-found: error
