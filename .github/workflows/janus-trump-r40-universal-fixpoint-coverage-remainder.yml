@@ -1,0 +1,95 @@
+name: JANUS TRUMP R40 Universal Fixpoint Coverage Remainder
+
+on:
+  push:
+    branches:
+      - research/janus-trump-r40-universal-fixpoint-coverage-remainder-2026-09-02
+    paths:
+      - 'research/JANUS_TRUMP_R40_UNIVERSAL_FIXPOINT_COVERAGE_AND_REMAINDER_PREREGISTRATION_2026-09-02.json'
+      - 'experiments/janus_trump_r40_universal_fixpoint_coverage_remainder.py'
+      - '.github/workflows/janus-trump-r40-universal-fixpoint-coverage-remainder.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  r40-coverage:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Verify sealed lineage and frozen R40 bytes
+        run: |
+          set -euo pipefail
+          git merge-base --is-ancestor a5ddd0bc7aa637df08f9cd6e3f480c8aabd85896 "$GITHUB_SHA"
+          git merge-base --is-ancestor 0b941a484143aa130bad9f7bdf9ca94fbbff79cb "$GITHUB_SHA"
+          git merge-base --is-ancestor 221887994664e8b1bb1de00dec29eaac49f86269 "$GITHUB_SHA"
+          test "$(git hash-object research/JANUS_TRUMP_R40_UNIVERSAL_FIXPOINT_COVERAGE_AND_REMAINDER_PREREGISTRATION_2026-09-02.json)" = "8e688e79675dce082bf975df6377d903f64601c2"
+          test "$(git hash-object experiments/janus_trump_r40_universal_fixpoint_coverage_remainder.py)" = "38c67e9c7405cfee890942e85654f28e595fe710"
+          python - <<'PY'
+          import json
+          p=json.load(open('research/JANUS_TRUMP_R40_UNIVERSAL_FIXPOINT_COVERAGE_AND_REMAINDER_PREREGISTRATION_2026-09-02.json',encoding='utf-8'))
+          assert p['status']=='FROZEN_BEFORE_R40_COVERAGE_AUDIT'
+          assert p['target_controller']['sealed_commit']=='a5ddd0bc7aa637df08f9cd6e3f480c8aabd85896'
+          assert p['coverage_law']['DECIDE_OR_DESCEND']
+          assert p['claim_ceiling']['L2_UNIVERSAL_3CNF_COVERAGE'] is False
+          assert p['claim_ceiling']['P_VS_NP']=='OPEN'
+          print('R40_PREREGISTRATION_AND_LINEAGE_OK')
+          PY
+
+      - name: Compile and self-test
+        run: |
+          python -m py_compile experiments/janus_trump_r40_universal_fixpoint_coverage_remainder.py
+          python experiments/janus_trump_r40_universal_fixpoint_coverage_remainder.py --self-test
+
+      - name: Execute R40 coverage audit
+        run: |
+          mkdir -p artifacts
+          python experiments/janus_trump_r40_universal_fixpoint_coverage_remainder.py \
+            --output artifacts/JANUS_TRUMP_R40_UNIVERSAL_FIXPOINT_COVERAGE_AND_REMAINDER_RESULT_2026-09-02.json
+
+      - name: R40 scientific integrity gate
+        if: always()
+        run: |
+          python - <<'PY'
+          import json,os
+          p='artifacts/JANUS_TRUMP_R40_UNIVERSAL_FIXPOINT_COVERAGE_AND_REMAINDER_RESULT_2026-09-02.json'
+          assert os.path.exists(p)
+          d=json.load(open(p,encoding='utf-8'))
+          assert d['source_git_commit']==os.environ['GITHUB_SHA']
+          assert d['verdict'] in {
+            'R40_CURRENT_FIXED_CONTROLLER_UNIVERSAL_COVERAGE_REFUTED_BY_REACHABLE_STALLED_FIXPOINT',
+            'R40_COVERAGE_WITNESS_INVALID_OR_LINEAGE_DRIFT'
+          }
+          assert all(d['lineage_checks'].values())
+          assert d['current_controller_universal_decision_coverage_refuted'] is True
+          assert d['sealed_witness']['controller_stop']=='STALLED_PORTFOLIO_FIXPOINT'
+          assert d['sealed_witness']['semantic_verdict'] is None
+          assert d['sealed_witness']['polynomial_termination_of_this_controller'] is True
+          assert d['verdict']=='R40_CURRENT_FIXED_CONTROLLER_UNIVERSAL_COVERAGE_REFUTED_BY_REACHABLE_STALLED_FIXPOINT'
+          assert d['captain_verdict']['next_gate']=='R41_SUCCESSOR_CONTROLLER_DECIDE_OR_DESCEND_GRAMMAR_PREREGISTRATION'
+          assert d['proof_ladder']['L2_UNIVERSAL_3CNF_COVERAGE'] is False
+          assert d['TRUMP_finished'] is False and d['SAT_IN_P']=='NOT_PROVED' and d['P_VS_NP']=='OPEN'
+          print(json.dumps({
+            'verdict':d['verdict'],
+            'witness':d['sealed_witness'],
+            'next_gate':d['captain_verdict']['next_gate'],
+            'P_VS_NP':d['P_VS_NP']
+          },indent=2,sort_keys=True))
+          PY
+
+      - name: Upload immutable R40 evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: janus-trump-r40-universal-fixpoint-coverage-remainder
+          path: artifacts/JANUS_TRUMP_R40_UNIVERSAL_FIXPOINT_COVERAGE_AND_REMAINDER_RESULT_2026-09-02.json
+          if-no-files-found: error
