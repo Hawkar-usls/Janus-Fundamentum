@@ -1,0 +1,49 @@
+name: JANUS TRUMP R40 Pyramidal Obstruction Regeneration
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - 'research/JANUS_TRUMP_R40_PYRAMIDAL_OBSTRUCTION_REGENERATION_PREREGISTRATION_2026-09-03.json'
+      - 'research/JANUS_TRUMP_R40_PYRAMIDAL_OBSTRUCTION_REGENERATION_RESULT_2026-09-03.json'
+      - 'research/janus_trump_r40_pyramidal_obstruction_regeneration.py'
+      - 'research/JANUS_TRUMP_R39_QHORN_SEALED_INPUT_2026-09-03.json'
+      - '.github/workflows/janus-trump-r40-pyramidal-obstruction-regeneration.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  exact-replay:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Regenerate frozen children
+        run: python research/janus_trump_r40_pyramidal_obstruction_regeneration.py > /tmp/r40-replay.json
+      - name: Require byte-independent semantic match with candidate result
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          replay = json.loads(Path('/tmp/r40-replay.json').read_text())
+          expected = json.loads(Path('research/JANUS_TRUMP_R40_PYRAMIDAL_OBSTRUCTION_REGENERATION_RESULT_2026-09-03.json').read_text())
+          assert replay == expected, 'R40_REPLAY_RESULT_MISMATCH'
+          assert replay['generation_depth'] == 1
+          assert replay['frozen_child_count'] == 8
+          assert replay['aggregate_charged_work']['resolvent_pairs_attempted'] == 137
+          assert replay['status'] == 'REGENERATED_STILL_OPEN'
+          assert replay['decisive_children'] == []
+          assert replay['P_VS_NP'] == 'OPEN'
+          assert replay['SAT_IN_P'] == 'NOT_PROVED'
+          print('R40 EXACT REPLAY PASS')
+          PY
+      - name: Upload replay receipt
+        uses: actions/upload-artifact@v4
+        with:
+          name: janus-trump-r40-pyramidal-obstruction-regeneration-replay
+          path: /tmp/r40-replay.json
+          if-no-files-found: error
