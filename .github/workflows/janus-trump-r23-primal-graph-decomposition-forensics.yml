@@ -1,0 +1,74 @@
+name: JANUS TRUMP R23 Primal Graph Decomposition Forensics
+
+on:
+  push:
+    branches:
+      - research/janus-trump-r23-primal-graph-decomposition-forensics-2026-09-02
+    paths:
+      - 'research/JANUS_TRUMP_R23_PRIMAL_GRAPH_DECOMPOSITION_FORENSICS_PREREGISTRATION_2026-09-02.json'
+      - 'experiments/janus_trump_r23_primal_graph_decomposition_forensics.py'
+      - '.github/workflows/janus-trump-r23-primal-graph-decomposition-forensics.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  r23-structural-forensics:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Verify frozen R23 structural contract
+        run: |
+          python - <<'PY'
+          import json
+          p=json.load(open('research/JANUS_TRUMP_R23_PRIMAL_GRAPH_DECOMPOSITION_FORENSICS_PREREGISTRATION_2026-09-02.json'))
+          assert p['status']=='FROZEN_BEFORE_R23_IMPLEMENTATION_AND_EXECUTION'
+          assert p['parent_R22_result_summary_commit']=='fc46806c93346ee088fc94847e1d0f2296bffc8c'
+          assert p['scientific_role']=='STRUCTURAL_DECOMPOSITION_FORENSICS_ONLY__NO_SEMANTIC_TRUTH__NO_CANDIDATE_EXECUTION'
+          assert [h['id'] for h in p['frozen_elimination_heuristics']]==['MIN_FILL_INTERNAL','MIN_DEGREE_INTERNAL']
+          assert p['firewall']['SAT_solver_forbidden'] is True
+          assert p['firewall']['candidate_compile_forbidden'] is True
+          assert p['firewall']['dynamic_heuristic_choice_after_results_forbidden'] is True
+          assert p['P_VS_NP']=='OPEN'
+          print('R23_PREREG_OK')
+          PY
+      - name: Compile structural observer
+        run: PYTHONPATH=experiments:. python -m py_compile experiments/janus_trump_r23_primal_graph_decomposition_forensics.py
+      - name: Run edge-only decomposition forensics
+        run: |
+          mkdir -p artifacts
+          PYTHONPATH=experiments:. python experiments/janus_trump_r23_primal_graph_decomposition_forensics.py \
+            --output artifacts/JANUS_TRUMP_R23_PRIMAL_GRAPH_DECOMPOSITION_FORENSICS_AGGREGATE_RESULT_2026-09-02.json
+      - name: R23 scientific gate
+        if: always()
+        run: |
+          python - <<'PY'
+          import json,os
+          p='artifacts/JANUS_TRUMP_R23_PRIMAL_GRAPH_DECOMPOSITION_FORENSICS_AGGREGATE_RESULT_2026-09-02.json'
+          assert os.path.exists(p),'missing R23 result'
+          d=json.load(open(p))
+          allowed={'R23_COMPONENT_FACTORIZATION_STRUCTURALLY_PROMISING','R23_LOW_WIDTH_DECOMPOSITION_STRUCTURALLY_PROMISING','R23_DECOMPOSITION_HEURISTICS_STILL_WIDE__PRESERVE_STRUCTURE','R23_MIXED_STRUCTURAL_SIGNAL__NO_SINGLE_DECOMPOSITION_STORY','R23_FAIL_INTEGRITY'}
+          assert d['verdict'] in allowed,d['verdict']
+          assert d['structural_firewall']['pass'] is True,d['structural_firewall']
+          assert d['truth_accessed'] is False
+          assert d['semantic_candidate_ran'] is False
+          assert d['world_count']==8
+          assert d['P_VS_NP']=='OPEN'
+          if d['verdict']=='R23_FAIL_INTEGRITY': raise SystemExit(2)
+          print(d['verdict'])
+          print('W05',d['R19_W05_verdict_inputs'])
+          print('PASS_WIDTHS',d['R19_PASS_group']['minimum_heuristic_widths'])
+          print('OPEN_WIDTHS',d['R19_OPEN_group']['minimum_heuristic_widths'])
+          PY
+      - name: Upload immutable R23 evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: janus-trump-r23-primal-graph-decomposition-forensics
+          path: artifacts/JANUS_TRUMP_R23_PRIMAL_GRAPH_DECOMPOSITION_FORENSICS_AGGREGATE_RESULT_2026-09-02.json
+          if-no-files-found: error
