@@ -1,0 +1,86 @@
+{
+  "schema": "JANUS/TRUMP/R21/CANONICAL_ROBDD_FUNCTION_DAG_DISCOVERY/PREREGISTRATION/v1.0",
+  "created_date": "2026-09-02",
+  "status": "FROZEN_BEFORE_R21_IMPLEMENTATION_AND_EXECUTION",
+  "parent_R20_result_summary_commit": "7b424f925a6a1039550f090fc0e0d8d80be4c86e",
+  "scientific_role": "EXPOSED_REPRESENTATION_DISCOVERY__NOT_UNSEEN",
+  "discovery_target": {
+    "world_id": "R19-W05",
+    "frame_sha256": "cd8e7168819401fc2510f351b0c7d319fc9cacfa400b181cf6e91cecd1288384",
+    "n": 72,
+    "frame_clause_count": 287,
+    "internal_variable_count": 60,
+    "bridge_variable_count": 11,
+    "R19_status": "R19_OPEN_CANDIDATE_RESOURCE_LIMIT",
+    "R20_completed_elimination_steps": 25,
+    "R20_total_elimination_steps": 60,
+    "reason_for_choice": "W05 is already exposed by R19/R20, satisfies the dominant temporary-churn forensic rule, and therefore may be used for discovery without contaminating a future unseen set."
+  },
+  "representation_contract": {
+    "name": "CANONICAL_REDUCED_ORDERED_BINARY_DECISION_DIAGRAM",
+    "node_types": ["FALSE_TERMINAL","TRUE_TERMINAL","DECISION(var,low,high)"],
+    "reduction_rules": [
+      "if low == high return low",
+      "unique-table canonicalize every (var,low,high) triple",
+      "all decision paths obey one frozen total variable order"
+    ],
+    "boolean_compose": "memoized Shannon APPLY for AND/OR over two ROBDD roots",
+    "literal_build": "positive x := DECISION(x,FALSE,TRUE); negative x := DECISION(x,TRUE,FALSE)",
+    "clause_build": "left-fold OR over literals in the frozen clause literal order",
+    "cnf_build": "left-fold AND over clauses in the frozen frame order; reachability GC after each completed clause conjunction",
+    "existential_quantification": "EXISTS_x(F) recursively replaces an x decision by APPLY_OR(low,high), preserving the same frozen variable order; reachability GC after each completed quantified variable",
+    "variable_order_rule": "First all internal variables in the exact R18 occurrence-based elimination_order(frame,bridge). Then bridge variables in direct.occurrence_order(frame) restricted to bridge; append any missing bridge variables in ascending numeric order.",
+    "candidate_forbidden": [
+      "assignment enumeration",
+      "truth-table construction",
+      "SAT/DPLL oracle use",
+      "independent verifier access",
+      "semantic equivalence oracle outside ROBDD canonical reduction",
+      "dynamic variable reordering",
+      "post-answer variable-order tuning",
+      "resolution fallback"
+    ],
+    "why_this_is_a_new_language": "R18 merges only syntactically identical AND/OR subgraphs. A reduced ordered BDD is canonical for the Boolean function under its frozen variable order, so functionally identical residual subfunctions receive the same node even when produced through different AND/OR histories."
+  },
+  "resource_envelope": {
+    "wall_seconds": 120,
+    "maximum_live_or_temporary_nodes": 1000000,
+    "maximum_apply_recursive_calls": 20000000,
+    "maximum_quantify_recursive_calls": 20000000,
+    "maximum_gc_calls": 1000,
+    "resource_limit_verdict": "R21_OPEN_RESOURCE_LIMIT__NO_SEMANTIC_VERDICT"
+  },
+  "execution_firewall": {
+    "candidate_runs_before_truth": true,
+    "truth_may_be_accessed_only_after_COMPLETE_INTERFACE_ROBDD": true,
+    "full_bridge_domain_required_after_candidate_terminal": true,
+    "independent_solver": "Minisat22/m22",
+    "sat_model_replay_required": true,
+    "semantic_mismatch_must_be_preserved": true
+  },
+  "measurement_contract": [
+    "elapsed_seconds",
+    "initial_compiled_nodes",
+    "final_active_nodes",
+    "maximum_nodes_seen",
+    "nodes_created_total",
+    "unique_table_hits",
+    "apply_calls_total",
+    "quantify_calls_total",
+    "gc_removed_total",
+    "per_clause_build_trajectory",
+    "per_quantified_variable_trajectory",
+    "final_support"
+  ],
+  "verdict_space": [
+    "R21_EXPOSED_W05_FULL_DOMAIN_SEMANTIC_MATCH",
+    "R21_EXPOSED_W05_SEMANTIC_MISMATCH",
+    "R21_OPEN_RESOURCE_LIMIT__NO_SEMANTIC_VERDICT",
+    "R21_FAIL_INTEGRITY"
+  ],
+  "promotion_rule": "Only an exact exposed W05 MATCH permits freezing this exact R21 implementation byte-for-byte for post-discovery controls. W05 success itself is never unseen evidence.",
+  "claim_ceiling": "Even exact W05 success would show only that this frozen ROBDD language can carry this exposed interface under this variable order and resource envelope. ROBDDs can have exponential size for some functions/orders; no polynomial scaling or complexity-class claim is authorized.",
+  "law": "IF_SYNTACTIC_SHARING_DIES__TEST_FUNCTION_CANONICALIZATION__BUT_FREEZE_THE_ORDER_BEFORE_THE_FIRST_NODE_EXISTS",
+  "seal": "W05_HAS_ALREADY_SHOWN_US_THE_WALL__R21_MAY_LEARN_A_NEW_LANGUAGE_FROM_THE_RUBBLE__NOT_CALL_THE_RUBBLE_UNSEEN",
+  "P_VS_NP": "OPEN"
+}
