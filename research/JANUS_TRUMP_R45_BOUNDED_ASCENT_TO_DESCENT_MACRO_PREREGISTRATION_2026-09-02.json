@@ -1,0 +1,108 @@
+{
+  "schema": "JANUS_TRUMP_R45_BOUNDED_ASCENT_TO_DESCENT_MACRO_PREREGISTRATION",
+  "version": "1.0",
+  "date": "2026-09-02",
+  "status": "FROZEN_MACRO_CONTRACT__IMPLEMENTATION_NOT_YET_EXECUTED",
+  "branch": "research/janus-trump-r45-bounded-ascent-to-descent-macro-prereg-2026-09-02",
+  "parent": {
+    "stage": "R44",
+    "sealed_commit": "0cf34cc3697a24a9b824dfccb9b5731dfa04d029",
+    "verdict": "R44_MONOTONE_CLV_LOCAL_MINIMUM__ONE_ELIMINATION_ASCENT_TO_DESCENT_ESCAPE_EXISTS",
+    "mechanism": "MONOTONE_CLV_LOCAL_MINIMUM",
+    "diagnostic_escape_count": 42,
+    "best_diagnostic_variable": 26
+  },
+  "captain_law": "DO NOT ADD A WITNESS-SPECIFIC TERMINAL. PRICE THE TEMPORARY ASCENT AND REQUIRE NET DESCENT AT THE MACRO BOUNDARY.",
+  "macro_id": "EXACT_DP_NORMALIZE_NET_DESCENT_MACRO_v1",
+  "applicability": {
+    "input": "ANY_CANONICAL_CNF_STATE_S_REACHED_BY_THE_FROZEN_SUCCESSOR_GRAMMAR",
+    "precondition": "ordinary frozen R33 reduction, declared terminals, affine recognition, R35B RUP and immediate-descent SA-BVE expose no committed move",
+    "witness_specific_hash_or_seed_lookup_forbidden": true
+  },
+  "candidate_generation": {
+    "for_each_variable_with_both_polarities": [
+      "compute the complete non-tautological Davis-Putnam resolvent set for x",
+      "remove x and -x source clauses",
+      "add all resolvents",
+      "delete only clauses independently shown subsumed by another retained clause",
+      "canonicalize",
+      "apply the already-frozen R33 exact reduction stack",
+      "check already-declared semantic terminals and frozen affine terminal",
+      "if still nonterminal, apply frozen R35B single-literal RUP to fixpoint with independent replay"
+    ],
+    "selection": "Among candidates that end in an independently verified semantic terminal or strict CLV decrease relative to S, choose semantic terminal first; otherwise lexicographically smallest output CLV; tie-break by smallest eliminated variable id.",
+    "no_acceptable_candidate": "MACRO_NOT_APPLICABLE__COVERAGE_OBLIGATION_REMAINS_OPEN"
+  },
+  "atomic_commit_rule": {
+    "temporary_internal_ascent_allowed": true,
+    "intermediate_states_are_not_controller_states": true,
+    "commit_only_if": "SEMANTIC_TERMINAL_VERIFIED OR CLV(output)<CLV(input)",
+    "macro_boundary_rank_must_strictly_descend_for_nonterminal_output": true,
+    "post_hoc_choice_after_observing_external_truth_forbidden": true
+  },
+  "polynomial_intermediate_envelope": {
+    "single_variable_DP_pair_count_upper_bound": "pos(x)*neg(x) <= C^2/4",
+    "intermediate_clause_count_upper_bound": "C + C^2/4 before subsumption, hence O(C^2)",
+    "intermediate_literal_count_upper_bound": "O(C^2*V)",
+    "all_variable_scan_multiplier": "at most V candidates",
+    "required_implementation_ledger": [
+      "resolution_pair_checks",
+      "generated_resolvent_literals",
+      "subsumption_pair_checks",
+      "R33 work and certificate bytes",
+      "RUP checks, propagation scans and literal inspections",
+      "terminal recognizer/solver work",
+      "certificate construction and independent replay",
+      "peak intermediate clauses, literals and bytes"
+    ],
+    "warning": "These syntactic envelopes establish only that the proposed one-level macro can be implemented with polynomially bounded local work under standard explicit representations; they do not prove universal applicability or the full TRUMP L4 bound."
+  },
+  "exactness_contract": {
+    "DP_elimination": "independent checker recomputes every polarity pair and every non-tautological resolvent",
+    "subsumption": "every omitted clause/resolvent must have a retained subsuming clause",
+    "R33": "existing transition certificates and reconstruction trace",
+    "R35B": "existing independent RUP replay",
+    "SAT_after_elimination": "reconstruct every eliminated variable in reverse and replay the final model against the original pre-macro CNF",
+    "UNSAT_after_elimination": "equisatisfiability of exact DP elimination plus independently replayed terminal refutation transfers UNSAT back to the pre-macro CNF"
+  },
+  "coverage_obligation": {
+    "statement": "FOR_ALL reachable nonsemantic stalls S of the successor controller: EXISTS x such that EXACT_DP_NORMALIZE_NET_DESCENT_MACRO_v1(S,x) returns a verified semantic terminal or strict net CLV descent",
+    "proved": false,
+    "finite_testing_may_prove": false,
+    "R44_seed_43004_is_positive_example_only": true,
+    "one_new_stall_without_an_acceptable_macro_candidate_refutes_the_R45_successor_candidate": true
+  },
+  "implementation_gate": {
+    "id": "R45A_IMPLEMENT_BYTE_PINNED_MACRO_AND_INDEPENDENT_REPLAY",
+    "must_freeze_before_execution": [
+      "implementation blob",
+      "all inherited R33/R34/R35B/R42 dependency blobs",
+      "deterministic variable order and tie-breaking",
+      "resource ledger schema",
+      "exposed 43004 regression",
+      "fresh unseen adversarial suite"
+    ]
+  },
+  "claim_ceiling": {
+    "macro_contract_defined": true,
+    "macro_implemented": false,
+    "R42_remains_refuted": true,
+    "L2_UNIVERSAL_3CNF_COVERAGE": false,
+    "L3_ONE_UNIFORM_TOTAL_TRUMP_RESOLVER": false,
+    "L4_WORST_CASE_POLYNOMIAL_UNIFORM_TRUMP_RESOLVER": false,
+    "SAT_IN_P": "NOT_PROVED",
+    "P_VS_NP": "OPEN"
+  },
+  "firewalls": [
+    "TEMPORARY_POLYNOMIAL_ASCENT != UNBOUNDED_ASCENT",
+    "NET_DESCENT_ON_ONE_WITNESS != UNIVERSAL_DECIDE_OR_DESCEND",
+    "LOCAL_POLYNOMIAL_MACRO_COST != FULL_ALGORITHM_WORST_CASE_POLYNOMIALITY",
+    "R44_DIAGNOSTIC_ESCAPE != R45_RUNTIME_AUTHORITY",
+    "COUNTEREXAMPLE_MAY_KILL_R45_WITHOUT_PATCHING_IT_POST_HOC",
+    "P_VS_NP = OPEN"
+  ],
+  "TRUMP_finished": false,
+  "SAT_IN_P": "NOT_PROVED",
+  "P_VS_NP": "OPEN",
+  "runtime_authority": false
+}
