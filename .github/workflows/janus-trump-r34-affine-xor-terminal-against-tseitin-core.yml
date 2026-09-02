@@ -27,16 +27,26 @@ jobs:
         with:
           python-version: '3.12'
 
-      - name: Verify frozen R33 parent and R34 preregistration
+      - name: Verify frozen R33 parent, sibling seal, and R34 preregistration
         run: |
           set -euo pipefail
           test "$(git hash-object experiments/janus_trump_r33_certified_safe_reduction_stack_lean_core_forensics.py)" = "c9234a1ef639a009cc6cb4c8a6098fd09bf9affe"
           test "$(git hash-object research/JANUS_TRUMP_R34_AFFINE_XOR_TERMINAL_AGAINST_TSEITIN_CORE_PREREGISTRATION_2026-09-02.json)" = "a0740ded99a6c2103f4ce13e5676eddbd4b779be"
           test "$(git hash-object experiments/janus_trump_r34_affine_xor_terminal_against_tseitin_core.py)" = "7f9bec920fa47af066570d874fe9127dc4b9b968"
-          git merge-base --is-ancestor e8d4babee70d8800b0eaca4ff5149a4e1a3ed4fe "$GITHUB_SHA"
+          git merge-base --is-ancestor 9070cf7b710da2ab9f7051f93d2749afb355d577 "$GITHUB_SHA"
           git merge-base --is-ancestor fa2a4e3a6a265e5f4cb50742bd818e17e747c6d9 "$GITHUB_SHA"
+          git cat-file -e 'e8d4babee70d8800b0eaca4ff5149a4e1a3ed4fe^{commit}'
+          git show e8d4babee70d8800b0eaca4ff5149a4e1a3ed4fe:research/JANUS_TRUMP_R33_CERTIFIED_SAFE_REDUCTION_STACK_LEAN_CORE_FORENSICS_RESULT_SUMMARY_2026-09-02.json > /tmp/r33-seal.json
           python - <<'PY'
           import json
+          seal=json.load(open('/tmp/r33-seal.json',encoding='utf-8'))
+          assert seal['status']=='SEALED_FROM_SUCCESSFUL_GITHUB_ACTIONS_RUN'
+          assert seal['execution_head']=='9070cf7b710da2ab9f7051f93d2749afb355d577'
+          assert seal['workflow_run']['id']==33659095444
+          assert seal['workflow_run']['artifact_id']==9857923903
+          assert seal['workflow_run']['artifact_sha256']=='53fb880f48a97a4b9cbac5c10037abece4b5773f6c2d03bf42c768b0d71c1282'
+          assert seal['workflow_run']['result_json_sha256']=='4b3d71b8bc6df8cdbba85531b47a248fb39b55dab31d0ce5ff9642f4f6a80b0e'
+          assert seal['verdict']=='R33_CERTIFIED_REDUCTION_STACK_STALLS_ON_LEAN_CORE'
           p=json.load(open('research/JANUS_TRUMP_R34_AFFINE_XOR_TERMINAL_AGAINST_TSEITIN_CORE_PREREGISTRATION_2026-09-02.json',encoding='utf-8'))
           assert p['status']=='FROZEN_BEFORE_R34_IMPLEMENTATION_AND_EXECUTION'
           assert p['single_new_mechanism']['id']=='AFFINE_XOR_TERMINAL_RECOGNITION_AND_GF2_CERTIFIED_SOLVE'
