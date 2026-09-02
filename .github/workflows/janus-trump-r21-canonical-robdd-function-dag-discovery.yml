@@ -1,0 +1,81 @@
+name: JANUS TRUMP R21 Canonical ROBDD Function DAG Discovery
+
+on:
+  push:
+    branches:
+      - research/janus-trump-r21-canonical-robdd-function-dag-discovery-2026-09-02
+    paths:
+      - 'research/JANUS_TRUMP_R21_CANONICAL_ROBDD_FUNCTION_DAG_DISCOVERY_PREREGISTRATION_2026-09-02.json'
+      - 'experiments/janus_trump_r21_canonical_robdd_function_dag_discovery.py'
+      - '.github/workflows/janus-trump-r21-canonical-robdd-function-dag-discovery.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  r21-discovery:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Verify R21 preregistration frozen before implementation
+        run: |
+          python - <<'PY'
+          import json
+          p=json.load(open('research/JANUS_TRUMP_R21_CANONICAL_ROBDD_FUNCTION_DAG_DISCOVERY_PREREGISTRATION_2026-09-02.json'))
+          assert p['status']=='FROZEN_BEFORE_R21_IMPLEMENTATION_AND_EXECUTION'
+          assert p['parent_R20_result_summary_commit']=='7b424f925a6a1039550f090fc0e0d8d80be4c86e'
+          assert p['discovery_target']['world_id']=='R19-W05'
+          assert p['discovery_target']['frame_sha256']=='cd8e7168819401fc2510f351b0c7d319fc9cacfa400b181cf6e91cecd1288384'
+          assert p['representation_contract']['name']=='CANONICAL_REDUCED_ORDERED_BINARY_DECISION_DIAGRAM'
+          assert p['resource_envelope']['wall_seconds']==120
+          assert p['resource_envelope']['maximum_live_or_temporary_nodes']==1000000
+          assert p['representation_contract']['variable_order_rule'].startswith('First all internal variables')
+          assert 'dynamic variable reordering' in p['representation_contract']['candidate_forbidden']
+          assert p['P_VS_NP']=='OPEN'
+          print('R21_PREREG_OK')
+          PY
+      - name: Install independent verifier dependency
+        run: python -m pip install --disable-pip-version-check 'python-sat==1.9.dev15'
+      - name: Compile R21
+        run: PYTHONPATH=experiments:. python -m py_compile experiments/janus_trump_r21_canonical_robdd_function_dag_discovery.py
+      - name: Run exposed W05 discovery
+        run: |
+          mkdir -p artifacts
+          PYTHONPATH=experiments:. python experiments/janus_trump_r21_canonical_robdd_function_dag_discovery.py \
+            --output artifacts/JANUS_TRUMP_R21_CANONICAL_ROBDD_FUNCTION_DAG_DISCOVERY_RESULT_2026-09-02.json
+      - name: R21 scientific integrity gate
+        if: always()
+        run: |
+          python - <<'PY'
+          import json, os
+          p='artifacts/JANUS_TRUMP_R21_CANONICAL_ROBDD_FUNCTION_DAG_DISCOVERY_RESULT_2026-09-02.json'
+          assert os.path.exists(p),'missing R21 result'
+          d=json.load(open(p))
+          allowed={'R21_EXPOSED_W05_FULL_DOMAIN_SEMANTIC_MATCH','R21_EXPOSED_W05_SEMANTIC_MISMATCH','R21_OPEN_RESOURCE_LIMIT__NO_SEMANTIC_VERDICT','R21_FAIL_INTEGRITY'}
+          assert d['verdict'] in allowed,d['verdict']
+          assert d['scientific_role']=='EXPOSED_REPRESENTATION_DISCOVERY__NOT_UNSEEN'
+          assert d['candidate_firewall']['pass'] is True,d['candidate_firewall']
+          assert d['tiny_control'] is True
+          assert d['world']['frame_sha256']=='cd8e7168819401fc2510f351b0c7d319fc9cacfa400b181cf6e91cecd1288384'
+          if d['verdict']=='R21_OPEN_RESOURCE_LIMIT__NO_SEMANTIC_VERDICT':
+              assert d['verifier_ran'] is False
+              assert d['scientific_firewall']['truth_not_accessed'] is True
+          if d['verdict'] in ('R21_EXPOSED_W05_FULL_DOMAIN_SEMANTIC_MATCH','R21_EXPOSED_W05_SEMANTIC_MISMATCH'):
+              assert d['verifier_ran'] is True
+              assert d['scientific_firewall']['candidate_terminal_before_truth'] is True
+              assert d['comparison']['full_domain'] is True
+          assert d['P_VS_NP']=='OPEN'
+          print(d['verdict'])
+          PY
+      - name: Upload immutable R21 evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: janus-trump-r21-canonical-robdd-function-dag-discovery
+          path: artifacts/JANUS_TRUMP_R21_CANONICAL_ROBDD_FUNCTION_DAG_DISCOVERY_RESULT_2026-09-02.json
+          if-no-files-found: error
