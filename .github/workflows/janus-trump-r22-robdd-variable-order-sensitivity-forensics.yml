@@ -1,0 +1,135 @@
+name: JANUS TRUMP R22 ROBDD Variable Order Sensitivity Forensics
+
+on:
+  push:
+    branches:
+      - research/janus-trump-r22-robdd-variable-order-sensitivity-forensics-2026-09-02
+    paths:
+      - 'research/JANUS_TRUMP_R22_ROBDD_VARIABLE_ORDER_SENSITIVITY_FORENSICS_PREREGISTRATION_2026-09-02.json'
+      - 'experiments/janus_trump_r22_robdd_variable_order_sensitivity_forensics.py'
+      - '.github/workflows/janus-trump-r22-robdd-variable-order-sensitivity-forensics.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  orders:
+    name: r22-order (${{ matrix.order }})
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    strategy:
+      fail-fast: false
+      matrix:
+        order:
+          - R21_INTERNAL_FIRST_OCCURRENCE
+          - GLOBAL_OCCURRENCE
+          - GLOBAL_OCCURRENCE_REVERSED
+          - BRIDGE_FIRST_OCCURRENCE
+          - FREQUENCY_DESCENDING
+          - FREQUENCY_ASCENDING
+          - VARIABLE_ASCENDING
+          - VARIABLE_DESCENDING
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Verify R22 freeze and sealed R21 machine
+        run: |
+          python - <<'PY'
+          import json,subprocess
+          p=json.load(open('research/JANUS_TRUMP_R22_ROBDD_VARIABLE_ORDER_SENSITIVITY_FORENSICS_PREREGISTRATION_2026-09-02.json'))
+          assert p['status']=='FROZEN_BEFORE_R22_IMPLEMENTATION_AND_EXECUTION'
+          assert p['parent_R21_result_summary_commit']=='1ff91dbd10d2efb5672f52b7bbc0f4e689716a7c'
+          assert len(p['frozen_order_family'])==8
+          assert p['truth_firewall']['semantic_verifier_forbidden'] is True
+          assert p['frozen_machine']['quantification']=='NOT_RUN_IN_R22__BUILD_PHASE_ONLY'
+          got=subprocess.check_output(['git','hash-object','experiments/janus_trump_r21_canonical_robdd_function_dag_discovery.py'],text=True).strip()
+          assert got=='752cf785076c62815e6bf1b6af083640b21dd6b0',got
+          print('R22_FREEZE_OK',got)
+          PY
+      - name: Install import-only dependency
+        run: |
+          python -m pip install --disable-pip-version-check 'python-sat==1.9.dev15'
+          echo 'R22_NOTE: PySAT exists only because sealed R21 module imports its post-terminal verifier; R22 never calls semantic truth.'
+      - name: Compile R22
+        run: PYTHONPATH=experiments:. python -m py_compile experiments/janus_trump_r22_robdd_variable_order_sensitivity_forensics.py
+      - name: Run frozen order lane
+        run: |
+          mkdir -p artifacts
+          PYTHONPATH=experiments:. python experiments/janus_trump_r22_robdd_variable_order_sensitivity_forensics.py \
+            --order '${{ matrix.order }}' \
+            --output 'artifacts/JANUS_TRUMP_R22_ORDER_${{ matrix.order }}_RESULT_2026-09-02.json'
+      - name: Per-order scientific gate
+        run: |
+          ORDER='${{ matrix.order }}' python - <<'PY'
+          import json,os
+          order=os.environ['ORDER']
+          p=f'artifacts/JANUS_TRUMP_R22_ORDER_{order}_RESULT_2026-09-02.json'
+          d=json.load(open(p))
+          assert d['order_id']==order
+          assert d['truth_accessed'] is False
+          assert d['firewall']['pass'] is True,d['firewall']
+          assert d['P_VS_NP']=='OPEN'
+          if order=='R21_INTERNAL_FIRST_OCCURRENCE':
+              assert d['verdict']=='R22_R21_ORDER_OBSERVER_EQUIVALENT',d['verdict']
+              assert d['R21_observer_equivalence']['pass'] is True
+          else:
+              assert d['verdict'] in {'R22_BUILD_SURVIVOR','R22_ORDER_RESOURCE_OPEN'},d['verdict']
+          print(order,d['verdict'],d['build_survivor'])
+          PY
+      - name: Upload immutable order evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: janus-trump-r22-${{ matrix.order }}
+          path: artifacts/JANUS_TRUMP_R22_ORDER_${{ matrix.order }}_RESULT_2026-09-02.json
+          if-no-files-found: error
+
+  aggregate:
+    name: r22-aggregate
+    needs: orders
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install import-only dependency
+        run: python -m pip install --disable-pip-version-check 'python-sat==1.9.dev15'
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: janus-trump-r22-*
+          path: order-results
+          merge-multiple: true
+      - name: Aggregate without semantic truth
+        run: |
+          mkdir -p artifacts
+          PYTHONPATH=experiments:. python experiments/janus_trump_r22_robdd_variable_order_sensitivity_forensics.py \
+            --aggregate-dir order-results \
+            --output artifacts/JANUS_TRUMP_R22_ROBDD_VARIABLE_ORDER_SENSITIVITY_FORENSICS_AGGREGATE_RESULT_2026-09-02.json
+      - name: Aggregate scientific gate
+        run: |
+          python - <<'PY'
+          import json
+          d=json.load(open('artifacts/JANUS_TRUMP_R22_ROBDD_VARIABLE_ORDER_SENSITIVITY_FORENSICS_AGGREGATE_RESULT_2026-09-02.json'))
+          allowed={'R22_ORDER_SENSITIVITY_CONFIRMED__BUILD_SURVIVOR_EXISTS','R22_NO_BUILD_SURVIVOR_IN_FROZEN_ORDER_FAMILY','R22_FAIL_R21_OBSERVER_EQUIVALENCE__NO_ORDER_INTERPRETATION','R22_FAIL_INTEGRITY'}
+          assert d['verdict'] in allowed,d['verdict']
+          assert d['order_count']==8,d['order_count']
+          assert d['truth_accessed'] is False
+          assert d['P_VS_NP']=='OPEN'
+          if d['verdict'].startswith('R22_FAIL'):
+              raise SystemExit(2)
+          assert d['R21_observer_equivalence_pass'] is True
+          assert d['integrity_pass'] is True
+          print(d['verdict'])
+          print('SURVIVORS',d['build_survivor_order_ids'])
+          print('RESOURCE_BEST',d['resource_selected_best_build_order'])
+          PY
+      - name: Upload immutable R22 aggregate evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: janus-trump-r22-aggregate
+          path: artifacts/JANUS_TRUMP_R22_ROBDD_VARIABLE_ORDER_SENSITIVITY_FORENSICS_AGGREGATE_RESULT_2026-09-02.json
+          if-no-files-found: error
