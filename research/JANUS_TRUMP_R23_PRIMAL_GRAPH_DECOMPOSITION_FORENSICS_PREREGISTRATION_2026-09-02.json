@@ -1,0 +1,94 @@
+{
+  "schema": "JANUS/TRUMP/R23/PRIMAL_GRAPH_DECOMPOSITION_FORENSICS/PREREGISTRATION/v1.0",
+  "created_date": "2026-09-02",
+  "status": "FROZEN_BEFORE_R23_IMPLEMENTATION_AND_EXECUTION",
+  "parent_R22_result_summary_commit": "fc46806c93346ee088fc94847e1d0f2296bffc8c",
+  "scientific_role": "STRUCTURAL_DECOMPOSITION_FORENSICS_ONLY__NO_SEMANTIC_TRUTH__NO_CANDIDATE_EXECUTION",
+  "world_set": {
+    "source": "R19 frozen prospective holdout worlds R19-W01 through R19-W08",
+    "reason": "Compare the four R19 exact-PASS worlds against the four R19 candidate-resource-OPEN worlds using only CNF graph structure already frozen before R19 execution.",
+    "pass_group": ["R19-W01","R19-W02","R19-W03","R19-W04"],
+    "open_group": ["R19-W05","R19-W06","R19-W07","R19-W08"],
+    "truth_access": false
+  },
+  "primal_graph_contract": {
+    "vertices": "all variables present in the frozen frame CNF",
+    "edges": "undirected edge {u,v} iff u and v co-occur in at least one frozen frame clause",
+    "bridge_variables": "R19 frozen bridge set; never eliminated during R23 heuristic replay",
+    "internal_variables": "all frame variables not in bridge set",
+    "component_view": "remove bridge vertices, compute connected components on the internal-induced graph, and for each internal component report the set of adjacent bridge variables"
+  },
+  "frozen_elimination_heuristics": [
+    {
+      "id": "MIN_FILL_INTERNAL",
+      "rule": "At each step among remaining internal variables choose the variable with the fewest missing edges among its current neighbors; ties by current degree, then original frame literal-occurrence count descending, then numeric variable id ascending. Add all missing edges among its current neighbors before removing it. Bridge variables participate as neighbors but are never selected."
+    },
+    {
+      "id": "MIN_DEGREE_INTERNAL",
+      "rule": "At each step among remaining internal variables choose the variable with smallest current degree; ties by missing-fill-edge count, then original frame literal-occurrence count descending, then numeric variable id ascending. Add all missing edges among its current neighbors before removing it. Bridge variables participate as neighbors but are never selected."
+    }
+  ],
+  "per_world_measurements": [
+    "frame_variables",
+    "frame_clauses",
+    "internal_variables",
+    "bridge_variables",
+    "initial_primal_edges",
+    "internal_component_count_after_bridge_removal",
+    "largest_internal_component_size",
+    "largest_component_bridge_boundary_size",
+    "component_internal_size_and_bridge_boundary_distribution",
+    "heuristic_elimination_order",
+    "heuristic_induced_width_max_neighbor_count",
+    "heuristic_max_bag_size",
+    "heuristic_total_fill_edges_added",
+    "heuristic_max_bridge_neighbors_in_any_bag",
+    "heuristic_max_internal_neighbors_in_any_bag",
+    "heuristic_step_of_peak_bag",
+    "heuristic_final_bridge_edge_count",
+    "heuristic_final_bridge_is_clique"
+  ],
+  "local_table_feasibility_landmarks": {
+    "separator_width_16": "At most 2^16 = 65,536 assignments over an induced separator neighborhood. This is a descriptive engineering landmark, not a complexity theorem.",
+    "separator_width_20": "At most 2^20 = 1,048,576 assignments over an induced separator neighborhood. This is a secondary caution landmark.",
+    "interpretation_rule": "A heuristic width above a landmark is evidence only about that frozen heuristic order, not a lower bound on treewidth or proof that no better decomposition exists."
+  },
+  "group_comparison": {
+    "compare": [
+      "minimum of the two heuristic induced widths per world",
+      "largest internal component size",
+      "largest component bridge boundary",
+      "fill edges added",
+      "peak-bag normalized elimination position"
+    ],
+    "no_statistical_significance_claim": true,
+    "purpose": "Determine whether the R19 OPEN frontier coincides with visibly larger structural separator burden under two fixed truth-blind heuristics and whether component factoring is structurally plausible before implementing a new semantic representation."
+  },
+  "verdict_space": [
+    "R23_COMPONENT_FACTORIZATION_STRUCTURALLY_PROMISING",
+    "R23_LOW_WIDTH_DECOMPOSITION_STRUCTURALLY_PROMISING",
+    "R23_DECOMPOSITION_HEURISTICS_STILL_WIDE__PRESERVE_STRUCTURE",
+    "R23_MIXED_STRUCTURAL_SIGNAL__NO_SINGLE_DECOMPOSITION_STORY",
+    "R23_FAIL_INTEGRITY"
+  ],
+  "verdict_rules": {
+    "component_promising": "R19-W05 has at least 2 internal components after bridge removal AND largest_internal_component_size <= 32 AND largest_component_bridge_boundary_size <= 16.",
+    "low_width_promising": "If component_promising is false, R19-W05 minimum induced width across the two frozen heuristics <= 16.",
+    "still_wide": "If neither promising rule holds and R19-W05 minimum induced width across the two heuristics > 20.",
+    "mixed": "All other integrity-valid outcomes."
+  },
+  "firewall": {
+    "SAT_solver_forbidden": true,
+    "assignment_enumeration_forbidden": true,
+    "truth_table_forbidden": true,
+    "candidate_compile_forbidden": true,
+    "R18_R21_semantic_candidate_forbidden": true,
+    "dynamic_heuristic_choice_after_results_forbidden": true,
+    "post_answer_threshold_change_forbidden": true
+  },
+  "next_action_rule": "Only after R23 preserves the structural result may a new decomposition-based semantic representation be specified. R23 itself may not claim that a heuristic induced width is optimal treewidth or that decomposition solves SAT efficiently.",
+  "claim_ceiling": "Graph-structural evidence on eight finite frozen worlds only. No exact treewidth theorem, no lower bound for all decompositions, no unseen semantic evidence beyond already-sealed R19, no SAT-in-P, P=NP, or P!=NP conclusion.",
+  "law": "BEFORE_BUILDING_SMALL_BAGS__MEASURE_HOW_BIG_THE_FROZEN_GRAPH_FORCES_OUR_CHOSEN_BAGS_TO_BECOME",
+  "seal": "R23_WILL_READ_EDGES_NOT_ANSWERS",
+  "P_VS_NP": "OPEN"
+}
