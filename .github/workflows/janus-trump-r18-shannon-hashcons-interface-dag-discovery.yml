@@ -1,0 +1,95 @@
+name: JANUS TRUMP R18 Shannon Hashcons Interface DAG Discovery
+
+on:
+  push:
+    branches:
+      - research/janus-trump-r18-shannon-hashcons-interface-dag-discovery-2026-09-02
+    paths:
+      - 'research/JANUS_TRUMP_R18_SHANNON_HASHCONS_INTERFACE_DAG_DISCOVERY_PREREGISTRATION_2026-09-02.json'
+      - 'experiments/janus_trump_r18_shannon_hashcons_interface_dag_discovery.py'
+      - 'tests/test_janus_trump_r18_shannon_hashcons_interface_dag_discovery.py'
+      - '.github/workflows/janus-trump-r18-shannon-hashcons-interface-dag-discovery.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  r18-discovery:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Verify frozen R18 contract
+        run: |
+          python - <<'PY'
+          import json
+          p=json.load(open('research/JANUS_TRUMP_R18_SHANNON_HASHCONS_INTERFACE_DAG_DISCOVERY_PREREGISTRATION_2026-09-02.json'))
+          assert p['status']=='FROZEN_BEFORE_R18_IMPLEMENTATION_AND_EXECUTION'
+          assert p['discovery_target']['world_id']=='R16-W04'
+          assert p['resource_envelope']['maximum_active_or_temporary_nodes']==1000000
+          assert p['resource_envelope']['maximum_restrict_calls']==20000000
+          assert p['P_VS_NP']=='OPEN'
+          print('R18_FREEZE_OK')
+          PY
+      - name: Install independent post-candidate verifier
+        run: python -m pip install --disable-pip-version-check 'python-sat==1.9.dev15'
+      - name: Compile R18
+        run: |
+          PYTHONPATH=experiments:. python -m py_compile \
+            experiments/janus_trump_r18_shannon_hashcons_interface_dag_discovery.py \
+            tests/test_janus_trump_r18_shannon_hashcons_interface_dag_discovery.py
+      - name: R18 local exactness and firewall controls
+        run: |
+          PYTHONPATH=experiments:. python - <<'PY'
+          import importlib.util
+          p='tests/test_janus_trump_r18_shannon_hashcons_interface_dag_discovery.py'
+          spec=importlib.util.spec_from_file_location('r18tests',p)
+          m=importlib.util.module_from_spec(spec); spec.loader.exec_module(m)
+          tests=[getattr(m,n) for n in dir(m) if n.startswith('test_r18')]
+          for t in tests: t()
+          print('R18_TESTS_PASS',len(tests))
+          PY
+      - name: Run exposed W04 semantic-DAG discovery
+        id: execute
+        continue-on-error: true
+        run: |
+          mkdir -p artifacts
+          PYTHONPATH=experiments:. python experiments/janus_trump_r18_shannon_hashcons_interface_dag_discovery.py \
+            --output artifacts/JANUS_TRUMP_R18_SHANNON_HASHCONS_INTERFACE_DAG_DISCOVERY_RESULT_2026-09-02.json
+      - name: R18 scientific gate
+        run: |
+          python - <<'PY'
+          import json,sys
+          d=json.load(open('artifacts/JANUS_TRUMP_R18_SHANNON_HASHCONS_INTERFACE_DAG_DISCOVERY_RESULT_2026-09-02.json'))
+          allowed={'R18_EXPOSED_W04_FULL_DOMAIN_SEMANTIC_MATCH','R18_EXPOSED_W04_SEMANTIC_MISMATCH','R18_OPEN_RESOURCE_LIMIT','R18_FAIL_INTEGRITY'}
+          assert d['verdict'] in allowed,d['verdict']
+          assert d['P_VS_NP']=='OPEN'
+          assert d['candidate_firewall']['pass'] is True
+          assert d['tiny_control'] is True
+          if d['verdict']=='R18_EXPOSED_W04_FULL_DOMAIN_SEMANTIC_MATCH':
+              assert d['comparison']['full_domain'] is True
+              assert d['comparison']['allowed_set_equal'] is True
+              assert d['comparison']['false_positive_count']==0
+              assert d['comparison']['false_negative_count']==0
+              assert d['comparison']['original_sat_model_replay_failures']==[]
+              assert d['candidate']['final_support']==d['world']['bridge_vars'] or set(d['candidate']['final_support']) <= set(d['world']['bridge_vars'])
+          elif d['verdict']=='R18_EXPOSED_W04_SEMANTIC_MISMATCH':
+              assert d['comparison']['full_domain'] is True
+              assert not d['comparison']['allowed_set_equal']
+          elif d['verdict']=='R18_OPEN_RESOURCE_LIMIT':
+              assert d['verifier']['not_run'] is True
+          else:
+              sys.exit(2)
+          print(d['verdict'])
+          PY
+      - name: Upload immutable R18 evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: janus-trump-r18-shannon-hashcons-interface-dag-discovery
+          path: artifacts/JANUS_TRUMP_R18_SHANNON_HASHCONS_INTERFACE_DAG_DISCOVERY_RESULT_2026-09-02.json
+          if-no-files-found: error
