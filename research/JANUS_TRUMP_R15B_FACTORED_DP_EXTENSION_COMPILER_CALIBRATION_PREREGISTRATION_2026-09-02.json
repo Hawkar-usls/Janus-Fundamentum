@@ -1,0 +1,46 @@
+{
+  "schema": "JANUS/TRUMP/R15B/FACTORED_DP_EXTENSION_COMPILER_CALIBRATION/PREREGISTRATION/v1.0",
+  "created_date": "2026-09-02",
+  "status": "FROZEN_BEFORE_R15B_IMPLEMENTATION_AND_EXECUTION",
+  "parent_R15A_result_summary_commit": "c25440cd546046a22be098676fd8d70d83447676",
+  "target": "EXPOSED_R13_W05_CALIBRATION_ONLY",
+  "candidate": {
+    "name": "FACTORED_DP_EXTENSION_PROJECTION",
+    "input": "W05 GENERAL_CNF frame and frozen 16-variable bridge only; exact truth/interface is inaccessible until candidate terminates.",
+    "internal_variables": "original frame variables minus bridge variables",
+    "elimination": "Exact Davis-Putnam elimination over original internal variables only; choose the current variable with minimum pos_count*neg_count, tie by variable id.",
+    "width_rule": "Maintain physical CNF clause width <=3. Every non-tautological width-4 resolvent is immediately replaced by a fresh acyclic definitional OR-chain extension encoding whose existential projection is exactly that resolvent. Aux variables are never eliminated.",
+    "dedupe": "Canonical clauses are deduplicated. No resolvent is dropped for being wide; width-4 is factored. Any generated width>4 is an integrity failure because width<=3 parents can resolve to at most width4.",
+    "terminal": "All original internal variables eliminated; output K(B,A) contains only bridge and fresh auxiliary variables and must satisfy I(B)=EXISTS A K(B,A)."
+  },
+  "resource_envelope": {
+    "wall_seconds": 600,
+    "max_pair_attempts": 30000000,
+    "max_active_clauses": 150000,
+    "max_auxiliary_variables": 100000,
+    "resource_exhaustion_verdict": "OPEN_RESOURCE_LIMIT"
+  },
+  "candidate_firewall": [
+    "NO DPLL",
+    "NO BRANCHING",
+    "NO ASSIGNMENT ENUMERATION",
+    "NO EXACT SHADOW ACCESS",
+    "NO R14 MISSING PRIME LIST",
+    "NO POSTHOC FALSE_POSITIVE MASKS FOR ROUTING",
+    "NO WIDTH4 STATE RETENTION; WIDTH4 MUST BE FACTORED OR INTEGRITY FAIL"
+  ],
+  "post_candidate_control": {
+    "allowed": "After candidate terminates, invoke the independent exact W05 witness and test a deterministic panel against EXISTS-A satisfiability of K using the pre-existing exact DPLL verifier.",
+    "panel": "all five R13 frozen k4 false-positive masks + first 16 exact-allowed masks + first 16 exact-disallowed masks not already in the five, ordered numerically",
+    "authority": "verification only; cannot alter candidate"
+  },
+  "verdict_space": [
+    "CALIBRATION_PROJECTION_COMPLETE__CONTROL_MATCH",
+    "CALIBRATION_PROJECTION_COMPLETE__CONTROL_MISMATCH",
+    "OPEN_RESOURCE_LIMIT",
+    "FAIL_INTEGRITY"
+  ],
+  "claim_ceiling": "Calibration on an exposed world only. Even a PASS cannot establish generalization, a polynomial bound, SAT in P, or P=NP.",
+  "seal": "DO_NOT_KEEP_THE_WIDE_CLAUSE__KEEP_ITS_MEANING_BEHIND_A_FRESH_ATOM__THEN_ELIMINATE_THE_OLD_WORLD",
+  "P_VS_NP": "OPEN"
+}
