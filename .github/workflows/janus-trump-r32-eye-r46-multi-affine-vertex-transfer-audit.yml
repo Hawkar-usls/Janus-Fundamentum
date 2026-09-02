@@ -1,0 +1,145 @@
+name: JANUS TRUMP R32 EYE R4.6 Multi-Affine Vertex Transfer Audit
+
+on:
+  push:
+    branches:
+      - research/janus-trump-r32-eye-r46-multi-affine-transfer-audit-2026-09-02
+    paths:
+      - 'research/JANUS_TRUMP_R31_POLICY_SELECTED_DECISION_STATE_THEOREM_CONTRACT_2026-09-02.json'
+      - 'research/JANUS_TRUMP_R32_EYE_R46_MULTI_AFFINE_VERTEX_TRANSFER_AUDIT_PREREGISTRATION_2026-09-02.json'
+      - 'experiments/janus_trump_r32_eye_r46_multi_affine_vertex_transfer_audit.py'
+      - '.github/workflows/janus-trump-r32-eye-r46-multi-affine-vertex-transfer-audit.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  r32-eye-transfer-audit:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Verify frozen preregistration and lineage
+        run: |
+          set -euo pipefail
+          test "$(git hash-object research/JANUS_TRUMP_R31_POLICY_SELECTED_DECISION_STATE_THEOREM_CONTRACT_2026-09-02.json)" = "af89883218ac98fab807b136ac5934fcc194b9b4"
+          test "$(git hash-object research/JANUS_TRUMP_R32_EYE_R46_MULTI_AFFINE_VERTEX_TRANSFER_AUDIT_PREREGISTRATION_2026-09-02.json)" = "322108716166f650dd36ce9704583d260b210a90"
+          test "$(git hash-object experiments/janus_trump_r32_eye_r46_multi_affine_vertex_transfer_audit.py)" = "c45b333b307d22218d1abce01a935ff647f103f6"
+          git merge-base --is-ancestor 31e767296cbaa436ef97ac16b0c603880e38443f "$GITHUB_SHA"
+          python - <<'PY'
+          import json
+          p=json.load(open('research/JANUS_TRUMP_R32_EYE_R46_MULTI_AFFINE_VERTEX_TRANSFER_AUDIT_PREREGISTRATION_2026-09-02.json',encoding='utf-8'))
+          assert p['status']=='FROZEN_BEFORE_R32_IMPLEMENTATION_AND_EXECUTION'
+          assert p['parent_R31']['contract_commit']=='31e767296cbaa436ef97ac16b0c603880e38443f'
+          assert p['external_EYE_R4_6_evidence']['merge_commit']=='14ac2d09e80dfa9141c72cd5ed35092b84e5f35a'
+          assert p['external_EYE_R4_6_evidence']['receipt_commit']=='6fe24536ac34f83971aac02bd6cedee6d091d87e'
+          assert p['external_EYE_R4_6_evidence']['main_run_id']==33644301485
+          assert p['resource_envelope']['MAX_CONTROL_VARIABLES']==18
+          assert p['resource_envelope']['MAX_VERTICES_IN_ONE_CONTROL']==262144
+          assert p['R31_obligation_policy']['obligations_closed_by_R32']==0
+          assert p['TRUMP_finished'] is False
+          assert p['SAT_IN_P']=='NOT_PROVED'
+          assert p['P_VS_NP']=='OPEN'
+          print('R32_PREREGISTRATION_AND_LINEAGE_OK')
+          PY
+
+      - name: Static observer firewall
+        run: |
+          python - <<'PY'
+          import ast
+          from pathlib import Path
+          path=Path('experiments/janus_trump_r32_eye_r46_multi_affine_vertex_transfer_audit.py')
+          source=path.read_text(encoding='utf-8')
+          tree=ast.parse(source)
+          allowed={'__future__','argparse','itertools','json','os','random','fractions','pathlib','typing'}
+          imported=set()
+          for node in ast.walk(tree):
+              if isinstance(node,ast.Import):
+                  imported.update(alias.name.split('.')[0] for alias in node.names)
+              elif isinstance(node,ast.ImportFrom):
+                  imported.add((node.module or '').split('.')[0])
+              elif isinstance(node,ast.Call):
+                  if isinstance(node.func,ast.Name) and node.func.id in {'eval','exec','compile','__import__'}:
+                      raise AssertionError(f'forbidden dynamic call: {node.func.id}')
+                  if isinstance(node.func,ast.Attribute) and node.func.attr in {'system','popen','Popen','urlopen','connect'}:
+                      raise AssertionError(f'forbidden external call: {node.func.attr}')
+          assert imported <= allowed,(imported,allowed)
+          assert 'for mask in range(total_vertices)' in source
+          assert 'stop_at_zero=True' in source
+          assert 'External SAT' not in source
+          print({'imports':sorted(imported),'direct_vertex_loop_visible':True,'external_solver_imported':False})
+          PY
+
+      - name: Compile and run frozen controls
+        run: |
+          python -m py_compile experiments/janus_trump_r32_eye_r46_multi_affine_vertex_transfer_audit.py
+          python experiments/janus_trump_r32_eye_r46_multi_affine_vertex_transfer_audit.py --self-test
+
+      - name: Execute R32 transfer audit
+        run: |
+          mkdir -p artifacts
+          python experiments/janus_trump_r32_eye_r46_multi_affine_vertex_transfer_audit.py \
+            --output artifacts/JANUS_TRUMP_R32_EYE_R46_MULTI_AFFINE_VERTEX_TRANSFER_AUDIT_RESULT_2026-09-02.json
+
+      - name: R32 scientific integrity gate
+        if: always()
+        run: |
+          python - <<'PY'
+          import json,os,sys
+          path='artifacts/JANUS_TRUMP_R32_EYE_R46_MULTI_AFFINE_VERTEX_TRANSFER_AUDIT_RESULT_2026-09-02.json'
+          assert os.path.exists(path)
+          d=json.load(open(path,encoding='utf-8'))
+          expected='R32_TRANSFER_SPLIT_CONFIRMED__EYE_GOVERNANCE_RETAINED__DIRECT_VERTEX_ROUTE_REJECTED_AS_R31_POLYNOMIAL_SOLVER'
+          if d.get('verdict')!=expected:
+              print(json.dumps(d,indent=2,sort_keys=True))
+              sys.exit(2)
+          assert d['source_git_commit']==os.environ['GITHUB_SHA']
+          assert d['all_controls_pass'] is True
+          assert d['captain_verdict']['answer']=='PARTLY_AS_METHOD__NO_AS_POLYNOMIAL_SOLVER'
+          assert d['controls']['hand_cases']['pass'] is True
+          suite=d['controls']['deterministic_formula_suite']
+          assert suite['pass'] is True
+          assert suite['formula_count']==192
+          assert suite['assignments_checked']==7036
+          assert suite['exact_rational_grid_cases']==29
+          assert suite['exact_rational_grid_points_checked']==885
+          family=d['controls']['false_first_last_vertex_family']
+          assert family['pass'] is True
+          assert family['aggregate_vertices_evaluated']==524286
+          assert family['aggregate_literal_factors_evaluated']==8912898
+          assert family['largest_case']['n']==18
+          assert family['largest_case']['vertices_evaluated']==262144
+          assert family['largest_case']['first_zero_index']==262143
+          assert family['largest_case']['peak_retained_vertex_records']==2
+          assert d['EYE_R4_6_default_envelope_boundary']['corners_at_dimension_17']==131072
+          assert d['R31_obligation_impact']['obligations_closed']==0
+          assert d['next_gate']['implementation_authorized'] is False
+          assert d['TRUMP_finished'] is False
+          assert d['SAT_IN_P']=='NOT_PROVED'
+          assert d['P_VS_NP']=='OPEN'
+          assert d['runtime_authority'] is False
+          print(json.dumps({
+              'verdict':d['verdict'],
+              'formula_controls':suite['formula_count'],
+              'assignments_checked':suite['assignments_checked'],
+              'largest_direct_policy_case':family['largest_case'],
+              'R31_obligations_closed':d['R31_obligation_impact']['obligations_closed'],
+              'TRUMP_finished':d['TRUMP_finished'],
+              'SAT_IN_P':d['SAT_IN_P'],
+              'P_VS_NP':d['P_VS_NP'],
+          },indent=2,sort_keys=True))
+          PY
+
+      - name: Upload immutable R32 evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: janus-trump-r32-eye-r46-multi-affine-vertex-transfer-audit
+          path: artifacts/JANUS_TRUMP_R32_EYE_R46_MULTI_AFFINE_VERTEX_TRANSFER_AUDIT_RESULT_2026-09-02.json
+          if-no-files-found: error
