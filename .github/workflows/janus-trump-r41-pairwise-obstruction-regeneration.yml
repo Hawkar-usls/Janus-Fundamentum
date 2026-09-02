@@ -1,0 +1,60 @@
+name: JANUS TRUMP R41 Pairwise Obstruction Regeneration
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - 'research/JANUS_TRUMP_R41_PAIRWISE_OBSTRUCTION_REGENERATION_PREREGISTRATION_2026-09-03.json'
+      - 'research/janus_trump_r41_pairwise_obstruction_regeneration.py'
+      - 'research/janus_trump_r40_pyramidal_obstruction_regeneration.py'
+      - 'research/JANUS_TRUMP_R39_QHORN_SEALED_INPUT_2026-09-03.json'
+      - '.github/workflows/janus-trump-r41-pairwise-obstruction-regeneration.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  exact-replay:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Execute frozen 28-pair generation
+        run: python research/janus_trump_r41_pairwise_obstruction_regeneration.py > /tmp/r41-replay.json
+      - name: Verify preregistration and fail-closed boundaries
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          result = json.loads(Path('/tmp/r41-replay.json').read_text())
+          pre = json.loads(Path('research/JANUS_TRUMP_R41_PAIRWISE_OBSTRUCTION_REGENERATION_PREREGISTRATION_2026-09-03.json').read_text())
+          expected_pairs = pre['frozen_child_grammar']['pairs']
+          actual_pairs = [c['elimination_pair'] for c in result['children']]
+          assert actual_pairs == expected_pairs, 'PAIR_GRAMMAR_DRIFT'
+          assert result['generation_depth'] == pre['frozen_child_grammar']['generation_depth'] == 2
+          assert result['frozen_pair_count'] == pre['frozen_child_grammar']['child_count'] == 28
+          assert len({tuple(x) for x in actual_pairs}) == 28
+          assert result['status'] in {'PAIRWISE_REGENERATED_AND_DECISIVE','PAIRWISE_RESOURCE_BOUND_HIT','PAIRWISE_REGENERATED_STILL_OPEN'}
+          for child in result['children']:
+              if 'resource_ledger' in child:
+                  r = child['resource_ledger']
+                  assert r['peak_clause_count'] <= pre['hard_resource_caps_per_child']['max_intermediate_or_output_clauses']
+                  assert r['total_resolvent_pairs'] <= pre['hard_resource_caps_per_child']['max_total_resolvent_pairs_attempted']
+                  assert child['finite_semantic_control_sat'] is True
+                  assert child['decisive'] == bool(child['audited_terminal_hits'])
+          assert result['complexity_interpretation']['asymptotic_polynomiality_inferred'] is False
+          assert result['proof_authority_delta'] == 0
+          assert result['TRUMP_finished'] is False
+          assert result['SAT_IN_P'] == 'NOT_PROVED'
+          assert result['P_VS_NP'] == 'OPEN'
+          print('R41 EXACT PAIRWISE REPLAY PASS')
+          PY
+      - name: Upload full pairwise receipt
+        uses: actions/upload-artifact@v4
+        with:
+          name: janus-trump-r41-pairwise-obstruction-regeneration-replay
+          path: /tmp/r41-replay.json
+          if-no-files-found: error
