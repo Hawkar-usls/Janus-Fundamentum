@@ -1,0 +1,142 @@
+name: JANUS TRUMP R39 Exact q-Horn Recognition
+
+on:
+  push:
+    branches:
+      - research/janus-trump-r39-exact-qhorn-on-sealed-fixpoint-2026-09-02
+    paths:
+      - 'research/JANUS_TRUMP_R39_EXACT_QHORN_RECOGNITION_PREREGISTRATION_2026-09-02.json'
+      - 'experiments/janus_trump_r39_exact_qhorn_on_sealed_fixpoint.py'
+      - '.github/workflows/janus-trump-r39-exact-qhorn-on-sealed-fixpoint.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  r39-exact-qhorn:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Verify sealed R38 parent and frozen R39 bytes
+        run: |
+          set -euo pipefail
+          git merge-base --is-ancestor 0b941a484143aa130bad9f7bdf9ca94fbbff79cb "$GITHUB_SHA"
+          test "$(git hash-object research/JANUS_TRUMP_R39_EXACT_QHORN_RECOGNITION_PREREGISTRATION_2026-09-02.json)" = "a2691ebc5b1c3c1b7cc0ac411983dfff40fc2908"
+          test "$(git hash-object experiments/janus_trump_r39_exact_qhorn_on_sealed_fixpoint.py)" = "01f850e6290ac217adc20b6896d546c90e5ba6ad"
+          python - <<'PY'
+          import json
+          p=json.load(open('research/JANUS_TRUMP_R39_EXACT_QHORN_RECOGNITION_PREREGISTRATION_2026-09-02.json',encoding='utf-8'))
+          assert p['status']=='FROZEN_BEFORE_R39_EXECUTION'
+          f=p['frozen_fixpoint_selector']
+          assert f['expected_measure_CLV']==[45,105,13]
+          assert f['expected_canonical_formula_sha256']=='3361190b3fe683457061662dd9244cd37ca79283828139666d35b01b11d2fe95'
+          assert p['method']['authority']=='EXACT_MEMBERSHIP_DECISION_ON_ONE_SEALED_FINITE_FIXPOINT_ONLY'
+          assert p['method']['polynomial_recognizer_claimed'] is False
+          assert p['claim_ceiling']['highest_proof_scope']=='L1_LOCAL_FINITE_INSTANCE_EXACTNESS_ONLY'
+          assert p['claim_ceiling']['P_VS_NP']=='OPEN'
+          print('R39_PREREGISTRATION_AND_LINEAGE_OK')
+          PY
+
+      - name: Static exact-local-recognizer firewall
+        run: |
+          python - <<'PY'
+          import ast
+          from pathlib import Path
+          p=Path('experiments/janus_trump_r39_exact_qhorn_on_sealed_fixpoint.py')
+          source=p.read_text(encoding='utf-8')
+          tree=ast.parse(source)
+          forbidden={'pysat','z3','pycosat','subprocess','socket','requests','urllib','scipy','numpy'}
+          imported=set()
+          for node in ast.walk(tree):
+              if isinstance(node,ast.Import):
+                  imported.update(a.name.split('.')[0] for a in node.names)
+              elif isinstance(node,ast.ImportFrom):
+                  imported.add((node.module or '').split('.')[0])
+          assert not (imported & forbidden),(imported & forbidden)
+          assert 'itertools.product' in source
+          assert 'general_polynomial_recognizer_claimed' in source
+          assert 'independent_core_exhaustive_replay' in source
+          assert 'BETA2_VALUES = (0, 1, 2)' in source
+          print({'external_solver':False,'exact_local_qhorn_membership':True,'general_polynomial_recognizer_claimed':False})
+          PY
+
+      - name: Compile and frozen self-test
+        run: |
+          python -m py_compile experiments/janus_trump_r39_exact_qhorn_on_sealed_fixpoint.py
+          python experiments/janus_trump_r39_exact_qhorn_on_sealed_fixpoint.py --self-test
+
+      - name: Execute R39 exact q-Horn gate
+        run: |
+          mkdir -p artifacts
+          python experiments/janus_trump_r39_exact_qhorn_on_sealed_fixpoint.py \
+            --output artifacts/JANUS_TRUMP_R39_EXACT_QHORN_RECOGNITION_RESULT_2026-09-02.json
+
+      - name: R39 scientific integrity gate
+        if: always()
+        run: |
+          python - <<'PY'
+          import json,os
+          path='artifacts/JANUS_TRUMP_R39_EXACT_QHORN_RECOGNITION_RESULT_2026-09-02.json'
+          assert os.path.exists(path)
+          d=json.load(open(path,encoding='utf-8'))
+          allowed={
+            'R39_QHORN_RECOGNIZED_LOCAL_EXACT__TERMINAL_INTEGRATION_REQUIRED_SEPARATELY',
+            'R39_QHORN_REJECTED_LOCAL_EXACT__RETURN_TO_UNIVERSAL_COVERAGE',
+            'R39_FAIL_INTEGRITY'
+          }
+          assert d['verdict'] in allowed
+          assert d['source_git_commit']==os.environ['GITHUB_SHA']
+          f=d['frozen_fixpoint']
+          assert f['measure_CLV']==[45,105,13]
+          assert f['canonical_formula_sha256']=='3361190b3fe683457061662dd9244cd37ca79283828139666d35b01b11d2fe95'
+          assert f['clause_count']==45 and f['variable_count']==13
+          assert d['complexity_firewall']['this_R39_membership_decision_is_exact'] is True
+          assert d['complexity_firewall']['this_R39_recognizer_claimed_polynomial'] is False
+          assert d['complexity_firewall']['external_SAT_solver_used'] is False
+          q=d['q_horn_membership']
+          assert q['independent_replay']['pass'] is True
+          if q['recognized']:
+              assert q['certificate']['valuation_recheck'] is True
+              assert d['verdict']=='R39_QHORN_RECOGNIZED_LOCAL_EXACT__TERMINAL_INTEGRATION_REQUIRED_SEPARATELY'
+          else:
+              core=q['rejection_core']
+              replay=q['independent_replay']
+              assert core['deletion_minimal'] is True
+              assert replay['accepted_valuations']==0
+              assert replay['valuation_space_size']==3**len(core['variables'])
+              assert d['verdict']=='R39_QHORN_REJECTED_LOCAL_EXACT__RETURN_TO_UNIVERSAL_COVERAGE'
+              assert d['captain_verdict']['next_gate']=='R40_UNIVERSAL_FIXPOINT_COVERAGE_AND_REMAINDER_OBLIGATION'
+          ladder=d['proof_ladder']
+          assert ladder['highest_verified_level']=='L1_LOCAL_FINITE_INSTANCE_EXACTNESS_ONLY'
+          assert ladder['L2_UNIVERSAL_3CNF_COVERAGE'] is False
+          assert ladder['L3_ONE_UNIFORM_TOTAL_TRUMP_RESOLVER'] is False
+          assert ladder['L4_WORST_CASE_POLYNOMIAL_UNIFORM_TRUMP_RESOLVER'] is False
+          assert d['R31_obligation_impact']['obligations_closed']==0
+          assert d['TRUMP_finished'] is False and d['SAT_IN_P']=='NOT_PROVED' and d['P_VS_NP']=='OPEN'
+          print(json.dumps({
+            'verdict':d['verdict'],
+            'fixpoint_hash':f['canonical_formula_sha256'],
+            'recognized_qHorn':q['recognized'],
+            'rejection_core':q['rejection_core']['clauses'] if not q['recognized'] else None,
+            'independent_replay':q['independent_replay'],
+            'next_gate':d['captain_verdict']['next_gate'],
+            'P_VS_NP':d['P_VS_NP']
+          },indent=2,sort_keys=True))
+          PY
+
+      - name: Upload immutable R39 evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: janus-trump-r39-exact-qhorn-on-sealed-fixpoint
+          path: artifacts/JANUS_TRUMP_R39_EXACT_QHORN_RECOGNITION_RESULT_2026-09-02.json
+          if-no-files-found: error
