@@ -1,0 +1,112 @@
+name: JANUS TRUMP R43 Frozen R42 Counterexample Hunt
+
+on:
+  push:
+    branches:
+      - research/janus-trump-r43-frozen-r42-counterexample-hunt-2026-09-02
+    paths:
+      - 'research/JANUS_TRUMP_R43_FROZEN_R42_CONTROLLER_COUNTEREXAMPLE_HUNT_PREREGISTRATION_2026-09-02.json'
+      - 'experiments/janus_trump_r43_frozen_r42_counterexample_hunt.py'
+      - '.github/workflows/janus-trump-r43-frozen-r42-counterexample-hunt.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  r43-counterexample-hunt:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Verify sealed R42 ancestry and immutable controller
+        run: |
+          set -euo pipefail
+          git merge-base --is-ancestor b2f851b5724052039046489966a5f43d179cf733 "$GITHUB_SHA"
+          test "$(git hash-object experiments/janus_trump_r42_subsumption_aware_bve_successor.py)" = "d71d7edb284a37bc7d7039c0d585d64cf2844de9"
+          test "$(git hash-object research/JANUS_TRUMP_R43_FROZEN_R42_CONTROLLER_COUNTEREXAMPLE_HUNT_PREREGISTRATION_2026-09-02.json)" = "72439072b618262da9dc0c2f806468fc93b9f641"
+          test "$(git hash-object experiments/janus_trump_r43_frozen_r42_counterexample_hunt.py)" = "a272cd7b32953d481f5d26dc5ddbbe1dbba3be5b"
+          python - <<'PY'
+          import json
+          p=json.load(open('research/JANUS_TRUMP_R43_FROZEN_R42_CONTROLLER_COUNTEREXAMPLE_HUNT_PREREGISTRATION_2026-09-02.json',encoding='utf-8'))
+          assert p['status']=='FROZEN_BEFORE_R43_COUNTEREXAMPLE_SEARCH'
+          assert p['parent']['sealed_commit']=='b2f851b5724052039046489966a5f43d179cf733'
+          assert p['parent']['controller_source_blob_sha']=='d71d7edb284a37bc7d7039c0d585d64cf2844de9'
+          assert p['frozen_controller_rule']['controller_may_change_during_R43'] is False
+          assert p['frozen_controller_rule']['new_operator_or_terminal_may_be_added'] is False
+          assert p['counterexample_definition']['one_valid_counterexample_refutes_R42_L2_candidate'] is True
+          assert p['claim_ceiling']['no_counterexample_in_finite_search_may_close_L2'] is False
+          assert p['P_VS_NP']=='OPEN'
+          print('R43_PREREG_AND_FROZEN_R42_CONTROLLER=PASS')
+          PY
+
+      - name: Compile and generator self-test
+        working-directory: experiments
+        run: |
+          python -m py_compile janus_trump_r43_frozen_r42_counterexample_hunt.py
+          python janus_trump_r43_frozen_r42_counterexample_hunt.py --self-test
+
+      - name: Execute frozen counterexample search
+        working-directory: experiments
+        run: |
+          mkdir -p ../artifacts
+          python janus_trump_r43_frozen_r42_counterexample_hunt.py \
+            --output ../artifacts/JANUS_TRUMP_R43_FROZEN_R42_CONTROLLER_COUNTEREXAMPLE_HUNT_RESULT_2026-09-02.json
+
+      - name: R43 scientific integrity gate
+        if: always()
+        run: |
+          python - <<'PY'
+          import json,os
+          path='artifacts/JANUS_TRUMP_R43_FROZEN_R42_CONTROLLER_COUNTEREXAMPLE_HUNT_RESULT_2026-09-02.json'
+          assert os.path.exists(path)
+          d=json.load(open(path,encoding='utf-8'))
+          assert d['source_git_commit']==os.environ['GITHUB_SHA']
+          assert d['frozen_controller']['source_blob_sha']=='d71d7edb284a37bc7d7039c0d585d64cf2844de9'
+          assert d['frozen_controller']['modified_during_R43'] is False
+          assert d['verdict'] in {
+            'R43_COUNTEREXAMPLE_FOUND__R42_SUCCESSOR_REFUTED_FOR_L2',
+            'R43_NO_COUNTEREXAMPLE_IN_FROZEN_FINITE_SEARCH__L2_STILL_OPEN',
+            'R43_FAIL_INTEGRITY'
+          }
+          assert d['integrity_error'] is None
+          assert d['tested_count'] == len(d['tested'])
+          for row in d['tested']:
+              if row['semantic_sat'] is True:
+                  assert row['SAT_model_replay_pass'] is True
+          if d['first_counterexample'] is not None:
+              c=d['first_counterexample']
+              assert c['controller_terminal_status']=='STALLED_FIXED_SUCCESSOR'
+              assert c['input_formula'] and all(len(clause)==3 for clause in c['input_formula'])
+              assert d['verdict']=='R43_COUNTEREXAMPLE_FOUND__R42_SUCCESSOR_REFUTED_FOR_L2'
+              assert d['claim_ceiling']['counterexample_refutes_only_this_frozen_R42_controller'] is True
+          else:
+              assert d['verdict']=='R43_NO_COUNTEREXAMPLE_IN_FROZEN_FINITE_SEARCH__L2_STILL_OPEN'
+              assert d['tested_count']==83
+          assert d['claim_ceiling']['L2_UNIVERSAL_3CNF_COVERAGE'] is False
+          assert d['claim_ceiling']['L3_ONE_UNIFORM_TOTAL_TRUMP_RESOLVER'] is False
+          assert d['claim_ceiling']['L4_WORST_CASE_POLYNOMIAL_UNIFORM_TRUMP_RESOLVER'] is False
+          assert d['TRUMP_finished'] is False and d['SAT_IN_P']=='NOT_PROVED' and d['P_VS_NP']=='OPEN'
+          print(json.dumps({
+            'verdict':d['verdict'],
+            'tested_count':d['tested_count'],
+            'semantic_decision_count':d['semantic_decision_count'],
+            'first_counterexample':d['first_counterexample'],
+            'P_VS_NP':d['P_VS_NP']
+          },indent=2,sort_keys=True))
+          PY
+
+      - name: Upload immutable R43 evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: janus-trump-r43-frozen-r42-counterexample-hunt
+          path: artifacts/JANUS_TRUMP_R43_FROZEN_R42_CONTROLLER_COUNTEREXAMPLE_HUNT_RESULT_2026-09-02.json
+          if-no-files-found: error
