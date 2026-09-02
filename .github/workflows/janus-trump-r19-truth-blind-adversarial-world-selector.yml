@@ -1,0 +1,80 @@
+name: JANUS TRUMP R19 Truth-Blind Adversarial World Selector
+
+on:
+  push:
+    branches:
+      - research/janus-trump-r19-fresh-unseen-shannon-hashcons-interface-dag-holdout-2026-09-02
+    paths:
+      - 'research/JANUS_TRUMP_R19_FRESH_UNSEEN_DAG_WORLD_SELECTOR_PREREGISTRATION_2026-09-02.json'
+      - 'experiments/janus_trump_r19_truth_blind_adversarial_world_selector.py'
+      - '.github/workflows/janus-trump-r19-truth-blind-adversarial-world-selector.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  r19-selector:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Verify selector preregistration and frozen candidate identity
+        run: |
+          set -euo pipefail
+          test "$(git hash-object experiments/janus_trump_r18_shannon_hashcons_interface_dag_discovery.py)" = "afa95321ec6edbb33bef222d8ee7234fe631a599"
+          python - <<'PY'
+          import json
+          p=json.load(open('research/JANUS_TRUMP_R19_FRESH_UNSEEN_DAG_WORLD_SELECTOR_PREREGISTRATION_2026-09-02.json'))
+          assert p['status']=='FROZEN_BEFORE_R19_WORLD_GENERATION'
+          assert p['parent_R18B_result_summary_commit']=='08b5b204d01f4318ed8a33646635ee57e315a538'
+          assert p['frozen_candidate']['git_blob_sha']=='afa95321ec6edbb33bef222d8ee7234fe631a599'
+          assert p['frozen_candidate']['candidate_access_during_selection'] is False
+          assert p['selector_contract']['replicates_per_cell']==48
+          assert p['selector_contract']['truth_access'] is False
+          assert p['selector_contract']['candidate_access'] is False
+          assert p['verifier_tractability_guard']['maximum_bridge_variables']==16
+          assert p['P_VS_NP']=='OPEN'
+          print('R19_SELECTOR_PREREG_OK')
+          PY
+
+      - name: Compile selector
+        run: PYTHONPATH=experiments:. python -m py_compile experiments/janus_trump_r19_truth_blind_adversarial_world_selector.py
+
+      - name: Run selector without candidate or truth dependencies
+        run: |
+          mkdir -p artifacts
+          PYTHONPATH=experiments:. python experiments/janus_trump_r19_truth_blind_adversarial_world_selector.py \
+            --output artifacts/JANUS_TRUMP_R19_FRESH_UNSEEN_WORLD_SELECTION_RESULT_2026-09-02.json
+
+      - name: Selector scientific firewall gate
+        run: |
+          python - <<'PY'
+          import json
+          d=json.load(open('artifacts/JANUS_TRUMP_R19_FRESH_UNSEEN_WORLD_SELECTION_RESULT_2026-09-02.json'))
+          assert d['status'] in ('R19_SELECTOR_PASS','R19_SELECTOR_BLOCKED')
+          assert d['selector_firewall']['pass'] is True,d['selector_firewall']
+          assert d['truth_accessed'] is False
+          assert d['candidate_accessed'] is False
+          assert d['semantic_witness_accessed'] is False
+          assert d['selection_is_adversarial_on_frozen_structural_score'] is True
+          if d['status']=='R19_SELECTOR_PASS':
+              assert d['selected_world_count']==8
+              assert len({w['frame_sha256'] for w in d['selected_worlds']})==8
+              assert all(6 <= w['bridge_variable_count'] <= 16 for w in d['selected_worlds'])
+              assert all(w['n'] in (56,64,72,80) for w in d['selected_worlds'])
+          assert d['P_VS_NP']=='OPEN'
+          print(d['status'])
+          PY
+
+      - name: Upload immutable selector evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: janus-trump-r19-truth-blind-adversarial-world-selector
+          path: artifacts/JANUS_TRUMP_R19_FRESH_UNSEEN_WORLD_SELECTION_RESULT_2026-09-02.json
+          if-no-files-found: error
