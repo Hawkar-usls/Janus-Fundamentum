@@ -1,0 +1,175 @@
+name: JANUS TRUMP R45A Byte-Pinned Bounded Ascent Macro
+
+on:
+  push:
+    branches:
+      - research/janus-trump-r45a-byte-pinned-ascent-descent-macro-2026-09-02
+    paths:
+      - 'research/JANUS_TRUMP_R45A_BYTE_PINNED_ASCENT_DESCENT_MACRO_EXECUTION_PREREGISTRATION_2026-09-02.json'
+      - 'experiments/janus_trump_r45a_byte_pinned_ascent_descent_macro.py'
+      - 'tests/test_janus_trump_r45a_byte_pinned_ascent_descent_macro.py'
+      - '.github/workflows/janus-trump-r45a-byte-pinned-ascent-descent-macro.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  r45a-byte-pinned-macro:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Verify R45 contract lineage and byte pins
+        run: |
+          set -euo pipefail
+          git merge-base --is-ancestor 24a346044ca6db939a2d85e91e0bd00365dc1362 "$GITHUB_SHA"
+          test "$(git hash-object research/JANUS_TRUMP_R45A_BYTE_PINNED_ASCENT_DESCENT_MACRO_EXECUTION_PREREGISTRATION_2026-09-02.json)" = "d85805155a424ae924b15c4f8ad9dbab3f060ddc"
+          test "$(git hash-object experiments/janus_trump_r45a_byte_pinned_ascent_descent_macro.py)" = "a88ea0b9bbeab3e62a21b1351d5887a00c79416a"
+          test "$(git hash-object tests/test_janus_trump_r45a_byte_pinned_ascent_descent_macro.py)" = "9c9e41f62ba9fac3e47d4fbaff471ed00c92fee5"
+          test "$(git hash-object experiments/janus_trump_r33_certified_safe_reduction_stack_lean_core_forensics.py)" = "c9234a1ef639a009cc6cb4c8a6098fd09bf9affe"
+          test "$(git hash-object experiments/janus_trump_r34_affine_xor_terminal_against_tseitin_core.py)" = "7f9bec920fa47af066570d874fe9127dc4b9b968"
+          test "$(git hash-object experiments/janus_trump_r35b_single_literal_rup_vivification.py)" = "259d2e38947d09b0c058963ad825a57f2e734203"
+          test "$(git hash-object experiments/janus_trump_r42_subsumption_aware_bve_successor.py)" = "d71d7edb284a37bc7d7039c0d585d64cf2844de9"
+          test "$(git hash-object experiments/janus_trump_r44_43004_stall_class_forensics.py)" = "aeb1fab1eaa59399e9f738deba9a59bc1ff1a9c5"
+          python - <<'PY'
+          import json
+          p=json.load(open('research/JANUS_TRUMP_R45A_BYTE_PINNED_ASCENT_DESCENT_MACRO_EXECUTION_PREREGISTRATION_2026-09-02.json',encoding='utf-8'))
+          assert p['status']=='FROZEN_AFTER_IMPLEMENTATION_BEFORE_EXECUTION'
+          assert p['parent_R45_contract']['commit']=='24a346044ca6db939a2d85e91e0bd00365dc1362'
+          assert p['exposed_regression']['R44_expected_selected_var_under_frozen_order']==26
+          assert p['exposed_regression']['R44_expected_terminal']=='RUP_UNSAT'
+          assert p['exposed_regression']['R44_expected_final_CLV']==[196,534,47]
+          assert [x['seed'] for x in p['fresh_unseen_suite']]==[45001,45002,45003,45004,45005,45006]
+          assert p['fresh_suite_gate']['one_uncovered_fresh_stall_refutes_candidate'] is True
+          assert p['claim_ceiling']['FULL_ALGORITHM_POLYNOMIALITY_PROVEN'] is False
+          assert p['claim_ceiling']['P_VS_NP']=='OPEN'
+          print('R45A_BYTE_PINS_AND_PREREGISTRATION=PASS')
+          PY
+
+      - name: Static anti-leakage and complexity firewall
+        run: |
+          python - <<'PY'
+          import ast
+          from pathlib import Path
+          source=Path('experiments/janus_trump_r45a_byte_pinned_ascent_descent_macro.py').read_text(encoding='utf-8')
+          tree=ast.parse(source)
+          forbidden={'pysat','z3','pycosat','subprocess','socket','requests','urllib','numpy','scipy'}
+          imported=set()
+          for node in ast.walk(tree):
+              if isinstance(node,ast.Import):
+                  imported.update(a.name.split('.')[0] for a in node.names)
+              elif isinstance(node,ast.ImportFrom):
+                  imported.add((node.module or '').split('.')[0])
+          assert not (imported & forbidden),(imported & forbidden)
+          for token in [
+              'independent_dp_replay',
+              'polynomial_envelope',
+              'reconstruct_macro_sat',
+              'independent_macro_replay',
+              'temporary_internal_ascent',
+              'UNIVERSAL_STALL_COVERAGE_PROVEN',
+              'FULL_ALGORITHM_POLYNOMIALITY_PROVEN',
+          ]:
+              assert token in source,token
+          print({'external_solver_added':False,'truth_oracle_lookup':False,'proof_carrying_macro':True})
+          PY
+
+      - name: Compile and adversarial unit tests
+        run: |
+          python -m py_compile experiments/janus_trump_r45a_byte_pinned_ascent_descent_macro.py
+          python -m py_compile tests/test_janus_trump_r45a_byte_pinned_ascent_descent_macro.py
+          python -m unittest -v tests/test_janus_trump_r45a_byte_pinned_ascent_descent_macro.py
+          cd experiments
+          python janus_trump_r45a_byte_pinned_ascent_descent_macro.py --self-test
+
+      - name: Execute exposed regression and frozen unseen suite
+        working-directory: experiments
+        run: |
+          mkdir -p ../artifacts
+          python janus_trump_r45a_byte_pinned_ascent_descent_macro.py \
+            --output ../artifacts/JANUS_TRUMP_R45A_BYTE_PINNED_ASCENT_DESCENT_MACRO_RESULT_2026-09-02.json
+
+      - name: R45A scientific integrity gate
+        if: always()
+        run: |
+          python - <<'PY'
+          import json,os
+          path='artifacts/JANUS_TRUMP_R45A_BYTE_PINNED_ASCENT_DESCENT_MACRO_RESULT_2026-09-02.json'
+          assert os.path.exists(path)
+          d=json.load(open(path,encoding='utf-8'))
+          assert d['source_git_commit']==os.environ['GITHUB_SHA']
+          assert d['lineage']['R45_prereg_commit']=='24a346044ca6db939a2d85e91e0bd00365dc1362'
+          e=d['exposed_43004_regression']
+          assert e['stall_hash']=='95c0051895557d9353cc889cc7b1a35d225e60f264dfd8da56bb4da67439a6b7'
+          assert e['stall_CLV']==[203,603,48]
+          assert e['pass'] is True
+          assert e['selected_var']==26
+          assert e['selected_terminal']=='RUP_UNSAT'
+          assert e['selected_final_CLV']==[196,534,47]
+          assert e['selected_temporary_internal_ascent'] is True
+          assert e['selected_replay_pass'] is True
+          assert e['scan']['global_polynomial_scan_bounds']['pass'] is True
+          assert e['scan']['selected']['DP_independent_replay']['pass'] is True
+          assert e['scan']['selected']['polynomial_intermediate_envelope']['pass'] is True
+          fresh=d['fresh_unseen_suite']
+          assert [x['seed'] for x in fresh['specs']]==[45001,45002,45003,45004,45005,45006]
+          assert fresh['fresh_case_count']==6
+          for row in fresh['rows']:
+              probe=row['macro_probe']
+              if probe is not None and probe['selected_var'] is not None:
+                  assert probe['selected_replay_pass'] is True
+                  assert probe['global_polynomial_scan_bounds']['pass'] is True
+          if fresh['uncovered_stall_seeds']:
+              assert fresh['candidate_survives_fresh_suite'] is False
+              assert d['verdict']=='R45A_MACRO_CANDIDATE_REFUTED_BY_FRESH_STALL'
+              assert d['next_gate']=='RETURN_TO_CAPTAIN_WITH_FRESH_UNCOVERED_STALL'
+          else:
+              assert fresh['candidate_survives_fresh_suite'] is True
+              assert d['verdict']=='R45A_BYTE_PINNED_MACRO_IMPLEMENTED__FRESH_SUITE_SURVIVED__UNIVERSAL_COVERAGE_OPEN'
+              assert d['next_gate']=='R45B_FROZEN_26_STALL_QUOTIENT_MACRO_COVERAGE_AUDIT'
+          s=d['status']
+          assert s['MACRO_IMPLEMENTATION_SOUND_ON_EXECUTED_CASES'] is True
+          assert s['LOCAL_POLYNOMIAL_INTERMEDIATE_ENVELOPE_CHECKED'] is True
+          assert s['EXPOSED_43004_MACRO_ESCAPE_CERTIFIED'] is True
+          assert s['UNIVERSAL_STALL_COVERAGE_PROVEN'] is False
+          assert s['FULL_ALGORITHM_POLYNOMIALITY_PROVEN'] is False
+          assert d['claim_ceiling']['L2_UNIVERSAL_3CNF_COVERAGE'] is False
+          assert d['TRUMP_finished'] is False and d['SAT_IN_P']=='NOT_PROVED' and d['P_VS_NP']=='OPEN'
+          print(json.dumps({
+              'verdict':d['verdict'],
+              '43004':{
+                  'acceptable_candidates':e['acceptable_candidate_count'],
+                  'selected_var':e['selected_var'],
+                  'selected_terminal':e['selected_terminal'],
+                  'selected_final_CLV':e['selected_final_CLV'],
+                  'resource_ledger':e['scan']['resource_ledger'],
+              },
+              'fresh_stall_count':fresh['fresh_R42_stall_count'],
+              'fresh_uncovered':fresh['uncovered_stall_seeds'],
+              'fresh_rows':[{
+                  'seed':r['spec']['seed'],
+                  'R42_decided':r['R42_semantic_decided'],
+                  'macro_selected_var':None if r['macro_probe'] is None else r['macro_probe']['selected_var'],
+                  'macro_terminal':None if r['macro_probe'] is None else r['macro_probe']['selected_terminal'],
+                  'macro_final_CLV':None if r['macro_probe'] is None else r['macro_probe']['selected_final_CLV'],
+              } for r in fresh['rows']],
+              'next_gate':d['next_gate'],
+              'P_VS_NP':d['P_VS_NP'],
+          },indent=2,sort_keys=True))
+          PY
+
+      - name: Upload immutable R45A evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: janus-trump-r45a-byte-pinned-ascent-descent-macro
+          path: artifacts/JANUS_TRUMP_R45A_BYTE_PINNED_ASCENT_DESCENT_MACRO_RESULT_2026-09-02.json
+          if-no-files-found: error
