@@ -1,0 +1,155 @@
+name: JANUS TRUMP R38 Portfolio Fixpoint Freeze Structure Intake
+
+on:
+  push:
+    branches:
+      - research/janus-trump-r38-portfolio-fixpoint-freeze-structure-intake-2026-09-02
+    paths:
+      - 'research/JANUS_TRUMP_R38_PORTFOLIO_FIXPOINT_FREEZE_STRUCTURE_INTAKE_PREREGISTRATION_2026-09-02.json'
+      - 'experiments/janus_trump_r33_certified_safe_reduction_stack_lean_core_forensics.py'
+      - 'experiments/janus_trump_r34_affine_xor_terminal_against_tseitin_core.py'
+      - 'experiments/janus_trump_r35_nonaffine_core_freeze_structure_intake.py'
+      - 'experiments/janus_trump_r35b_single_literal_rup_vivification.py'
+      - 'experiments/janus_trump_r38_portfolio_fixpoint_freeze_structure_intake.py'
+      - '.github/workflows/janus-trump-r38-portfolio-fixpoint-freeze-structure-intake.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  r38-structure-intake:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Verify sealed R37B parent and R38 bytes
+        run: |
+          set -euo pipefail
+          test "$(git hash-object experiments/janus_trump_r33_certified_safe_reduction_stack_lean_core_forensics.py)" = "c9234a1ef639a009cc6cb4c8a6098fd09bf9affe"
+          test "$(git hash-object experiments/janus_trump_r34_affine_xor_terminal_against_tseitin_core.py)" = "7f9bec920fa47af066570d874fe9127dc4b9b968"
+          test "$(git hash-object experiments/janus_trump_r35_nonaffine_core_freeze_structure_intake.py)" = "ad237e341d9659d33da0568f134815776c1f95d8"
+          test "$(git hash-object experiments/janus_trump_r35b_single_literal_rup_vivification.py)" = "259d2e38947d09b0c058963ad825a57f2e734203"
+          test "$(git hash-object research/JANUS_TRUMP_R38_PORTFOLIO_FIXPOINT_FREEZE_STRUCTURE_INTAKE_PREREGISTRATION_2026-09-02.json)" = "1fd60a8f3fa02c9fe30803ee39856cd4169d0fbb"
+          test "$(git hash-object experiments/janus_trump_r38_portfolio_fixpoint_freeze_structure_intake.py)" = "816b53c390d78af415e580eaf358acf191796205"
+          git merge-base --is-ancestor a5ddd0bc7aa637df08f9cd6e3f480c8aabd85896 "$GITHUB_SHA"
+          git merge-base --is-ancestor bc0181d69fa993d40f8699ed9a47927d29e4cbd4 "$GITHUB_SHA"
+          python - <<'PY'
+          import json
+          p=json.load(open('research/JANUS_TRUMP_R38_PORTFOLIO_FIXPOINT_FREEZE_STRUCTURE_INTAKE_PREREGISTRATION_2026-09-02.json',encoding='utf-8'))
+          assert p['status']=='FROZEN_BEFORE_R38_FIXPOINT_MATERIALIZATION'
+          assert p['frozen_fixpoint_selector']['expected_measure_CLV']==[45,105,13]
+          assert p['frozen_fixpoint_selector']['expected_canonical_formula_sha256']=='3361190b3fe683457061662dd9244cd37ca79283828139666d35b01b11d2fe95'
+          assert p['phase_scope']['authority']=='STRUCTURE_INTAKE_ONLY'
+          assert p['P_VS_NP']=='OPEN'
+          print('R38_PREREGISTRATION_AND_LINEAGE_OK')
+          PY
+
+      - name: Static structure-only firewall
+        run: |
+          python - <<'PY'
+          import ast
+          from pathlib import Path
+          p=Path('experiments/janus_trump_r38_portfolio_fixpoint_freeze_structure_intake.py')
+          source=p.read_text(encoding='utf-8')
+          tree=ast.parse(source)
+          forbidden={'pysat','z3','pycosat','subprocess','socket','requests','urllib'}
+          imported=set()
+          for node in ast.walk(tree):
+              if isinstance(node,ast.Import): imported.update(a.name.split('.')[0] for a in node.names)
+              elif isinstance(node,ast.ImportFrom): imported.add((node.module or '').split('.')[0])
+          assert not (imported & forbidden),(imported & forbidden)
+          assert 'brute_force_model' not in source
+          assert 'itertools.product' not in source
+          assert 'Minisat' not in source
+          assert 'two_sat_satisfiable' in source
+          assert 'beta_acyclic_recognition' in source
+          print({'new_solver':False,'external_solver':False,'assignment_enumeration':False,'exact_polynomial_recognizers_only':True})
+          PY
+
+      - name: Compile and frozen self-test
+        run: |
+          python -m py_compile experiments/janus_trump_r33_certified_safe_reduction_stack_lean_core_forensics.py
+          python -m py_compile experiments/janus_trump_r34_affine_xor_terminal_against_tseitin_core.py
+          python -m py_compile experiments/janus_trump_r35_nonaffine_core_freeze_structure_intake.py
+          python -m py_compile experiments/janus_trump_r35b_single_literal_rup_vivification.py
+          python -m py_compile experiments/janus_trump_r38_portfolio_fixpoint_freeze_structure_intake.py
+          PYTHONPATH=experiments:. python experiments/janus_trump_r38_portfolio_fixpoint_freeze_structure_intake.py --self-test
+
+      - name: Execute R38 frozen structure intake
+        run: |
+          mkdir -p artifacts
+          PYTHONPATH=experiments:. python experiments/janus_trump_r38_portfolio_fixpoint_freeze_structure_intake.py \
+            --output artifacts/JANUS_TRUMP_R38_PORTFOLIO_FIXPOINT_FREEZE_STRUCTURE_INTAKE_RESULT_2026-09-02.json
+
+      - name: R38 scientific integrity gate
+        if: always()
+        run: |
+          python - <<'PY'
+          import json,os
+          path='artifacts/JANUS_TRUMP_R38_PORTFOLIO_FIXPOINT_FREEZE_STRUCTURE_INTAKE_RESULT_2026-09-02.json'
+          assert os.path.exists(path)
+          d=json.load(open(path,encoding='utf-8'))
+          allowed={
+            'R38_FAIL_INTEGRITY',
+            'R38_FIXPOINT_FROZEN__RENAMABLE_HORN_RECOGNIZED',
+            'R38_FIXPOINT_FROZEN__DUAL_HORN_RECOGNIZED',
+            'R38_FIXPOINT_FROZEN__BETA_ACYCLIC_RECOGNIZED',
+            'R38_FIXPOINT_FROZEN__NO_AUDITED_STANDARD_TERMINAL_RECOGNIZED'
+          }
+          assert d['verdict'] in allowed
+          assert d['source_git_commit']==os.environ['GITHUB_SHA']
+          f=d['frozen_fixpoint']
+          assert f['measure_CLV']==[45,105,13]
+          assert f['canonical_formula_sha256']=='3361190b3fe683457061662dd9244cd37ca79283828139666d35b01b11d2fe95'
+          assert f['cycle_count']==3 and f['restart_count']==2 and f['successful_transformations']==184
+          assert len(f['clauses'])==45
+          assert not any(d['candidate_firewall'].values())
+          x=d['exact_class_recognition']
+          if x['renamable_Horn']['recognized']:
+              assert x['renamable_Horn']['renamed_formula_horn_recheck'] is True
+              assert d['verdict']=='R38_FIXPOINT_FROZEN__RENAMABLE_HORN_RECOGNIZED'
+          elif x['dual_Horn']['recognized']:
+              assert d['verdict']=='R38_FIXPOINT_FROZEN__DUAL_HORN_RECOGNIZED'
+          elif x['beta_acyclic']['recognized']:
+              assert d['verdict']=='R38_FIXPOINT_FROZEN__BETA_ACYCLIC_RECOGNIZED'
+          else:
+              assert d['verdict']=='R38_FIXPOINT_FROZEN__NO_AUDITED_STANDARD_TERMINAL_RECOGNIZED'
+          assert d['R31_obligation_impact']['obligations_closed']==0
+          assert d['TRUMP_finished'] is False and d['SAT_IN_P']=='NOT_PROVED' and d['P_VS_NP']=='OPEN'
+          print(json.dumps({
+            'verdict':d['verdict'],
+            'measure_CLV':f['measure_CLV'],
+            'fixpoint_hash':f['canonical_formula_sha256'],
+            'structure':{
+              'width_hist':d['structure_intake']['clause_width_histogram'],
+              'components':d['structure_intake']['connected_component_sizes'],
+              'articulations':d['structure_intake']['articulation_points'],
+              'Horn_fraction':d['structure_intake']['Horn_clause_fraction'],
+              'dual_Horn_fraction':d['structure_intake']['dual_Horn_clause_fraction'],
+              '2CNF_fraction':d['structure_intake']['2CNF_clause_fraction'],
+              'affine_coverage':d['structure_intake']['affine_bundle_coverage']['coverage_fraction'],
+              'min_fill':d['structure_intake']['min_fill_probe']
+            },
+            'renamable_Horn':x['renamable_Horn'],
+            'dual_Horn':x['dual_Horn'],
+            'beta_acyclic':x['beta_acyclic'],
+            'q_Horn':x['q_Horn'],
+            'P_VS_NP':d['P_VS_NP']
+          },indent=2,sort_keys=True))
+          PY
+
+      - name: Upload immutable R38 evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: janus-trump-r38-portfolio-fixpoint-freeze-structure-intake
+          path: artifacts/JANUS_TRUMP_R38_PORTFOLIO_FIXPOINT_FREEZE_STRUCTURE_INTAKE_RESULT_2026-09-02.json
+          if-no-files-found: error
