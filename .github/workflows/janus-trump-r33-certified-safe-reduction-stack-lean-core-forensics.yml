@@ -1,0 +1,130 @@
+name: JANUS TRUMP R33 Certified Safe Reduction Stack Lean-Core Forensics
+
+on:
+  push:
+    branches:
+      - research/janus-trump-r33-certified-safe-reduction-stack-lean-core-forensics-2026-09-02
+    paths:
+      - 'research/JANUS_TRUMP_R33_CERTIFIED_SAFE_REDUCTION_STACK_LEAN_CORE_FORENSICS_PREREGISTRATION_2026-09-02.json'
+      - 'experiments/janus_trump_r33_certified_safe_reduction_stack_lean_core_forensics.py'
+      - '.github/workflows/janus-trump-r33-certified-safe-reduction-stack-lean-core-forensics.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  r33-certified-safe-reduction-stack:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Verify frozen preregistration and implementation lineage
+        run: |
+          set -euo pipefail
+          test "$(git hash-object research/JANUS_TRUMP_R33_CERTIFIED_SAFE_REDUCTION_STACK_LEAN_CORE_FORENSICS_PREREGISTRATION_2026-09-02.json)" = "735f4252cb1d514ce430b4c8e2c507788d7f9763"
+          test "$(git hash-object experiments/janus_trump_r33_certified_safe_reduction_stack_lean_core_forensics.py)" = "c9234a1ef639a009cc6cb4c8a6098fd09bf9affe"
+          git merge-base --is-ancestor 6a48de00646ebbc00a340377c47acfa6322811f4 "$GITHUB_SHA"
+          git merge-base --is-ancestor 4b4dc8088cda1c453c5f0ccb8bdacae0f9ee3d47 "$GITHUB_SHA"
+          python - <<'PY'
+          import json
+          p=json.load(open('research/JANUS_TRUMP_R33_CERTIFIED_SAFE_REDUCTION_STACK_LEAN_CORE_FORENSICS_PREREGISTRATION_2026-09-02.json',encoding='utf-8'))
+          assert p['status']=='FROZEN_BEFORE_R33_IMPLEMENTATION_AND_EXECUTION'
+          assert p['parent']['head_commit_at_freeze']=='4b4dc8088cda1c453c5f0ccb8bdacae0f9ee3d47'
+          assert p['captain_obvious_transfer']['required_complete_shape']=='SAFE_REDUCTION + POLY_CHECK + GUARANTEED_PROGRESS + POLY_TERMINAL_CLASS'
+          assert p['interpretation_firewall']['R31_obligations_closed_by_R33']==0
+          assert p['interpretation_firewall']['TRUMP_finished'] is False
+          assert p['interpretation_firewall']['SAT_IN_P']=='NOT_PROVED'
+          assert p['interpretation_firewall']['P_VS_NP']=='OPEN'
+          print('R33_PREREGISTRATION_AND_LINEAGE_OK')
+          PY
+
+      - name: Static candidate firewall
+        run: |
+          python - <<'PY'
+          import ast
+          from pathlib import Path
+          p=Path('experiments/janus_trump_r33_certified_safe_reduction_stack_lean_core_forensics.py')
+          source=p.read_text(encoding='utf-8')
+          tree=ast.parse(source)
+          forbidden_imports={'pysat','z3','pycosat','subprocess','socket','requests','urllib'}
+          imported=set()
+          for node in ast.walk(tree):
+              if isinstance(node,ast.Import):
+                  imported.update(alias.name.split('.')[0] for alias in node.names)
+              elif isinstance(node,ast.ImportFrom):
+                  imported.add((node.module or '').split('.')[0])
+          assert not (imported & forbidden_imports),(imported & forbidden_imports)
+          simplify=next(n for n in tree.body if isinstance(n,ast.FunctionDef) and n.name=='simplify')
+          simplify_text=ast.get_source_segment(source,simplify) or ''
+          assert 'brute_force_model' not in simplify_text
+          assert 'itertools.product' not in simplify_text
+          assert 'DPLL' not in simplify_text and 'CDCL' not in simplify_text
+          print({'candidate_external_solver':False,'candidate_assignment_enumeration':False,'imports':sorted(imported)})
+          PY
+
+      - name: Compile and run frozen self-test
+        run: |
+          python -m py_compile experiments/janus_trump_r33_certified_safe_reduction_stack_lean_core_forensics.py
+          python experiments/janus_trump_r33_certified_safe_reduction_stack_lean_core_forensics.py --self-test
+
+      - name: Execute R33 frozen audit
+        run: |
+          mkdir -p artifacts
+          python experiments/janus_trump_r33_certified_safe_reduction_stack_lean_core_forensics.py \
+            --output artifacts/JANUS_TRUMP_R33_CERTIFIED_SAFE_REDUCTION_STACK_LEAN_CORE_FORENSICS_RESULT_2026-09-02.json
+
+      - name: R33 scientific integrity gate
+        if: always()
+        run: |
+          python - <<'PY'
+          import json,os
+          path='artifacts/JANUS_TRUMP_R33_CERTIFIED_SAFE_REDUCTION_STACK_LEAN_CORE_FORENSICS_RESULT_2026-09-02.json'
+          assert os.path.exists(path)
+          d=json.load(open(path,encoding='utf-8'))
+          assert d['verdict']=='R33_CERTIFIED_REDUCTION_STACK_STALLS_ON_LEAN_CORE'
+          assert d['candidate_firewall']['external_SAT_solver_used'] is False
+          assert d['candidate_firewall']['assignment_enumeration_inside_candidate'] is False
+          assert d['candidate_firewall']['global_semantic_redundancy_check'] is False
+          pcs=d['positive_semantic_controls']
+          assert len(pcs)==3 and all(x['pass'] for x in pcs)
+          assert any(x['required_rule']=='BLOCKED_CLAUSE_ELIMINATION' and x['required_rule_seen'] for x in pcs)
+          assert any(x['required_rule']=='BOUNDED_VARIABLE_ELIMINATION' and x['required_rule_seen'] for x in pcs)
+          ts=d['tseitin_3regular_prism_family']
+          assert [x['n_vertices'] for x in ts]==[8,12,16,20,24,28,32]
+          assert all(x['terminal']=='STALLED_STACK_LEAN_CORE' for x in ts)
+          assert all(x['total_rule_applications']==0 for x in ts)
+          assert all(x['initial_measure']==x['final_measure'] for x in ts)
+          assert all(x['core_fraction_clauses']==1.0 for x in ts)
+          rc=d['deterministic_random_3cnf']
+          assert len(rc)==4 and all(x['terminal']=='STALLED_STACK_LEAN_CORE' for x in rc)
+          assert d['R31_obligation_impact']['obligations_closed']==0
+          assert d['next_gate']['id']=='R34_SINGLE_NEW_CERTIFIED_PROGRESS_RULE_AGAINST_TSEITIN_STALL_CORE'
+          assert d['TRUMP_finished'] is False
+          assert d['SAT_IN_P']=='NOT_PROVED'
+          assert d['P_VS_NP']=='OPEN'
+          assert d['runtime_authority'] is False
+          print(json.dumps({
+            'verdict':d['verdict'],
+            'tseitin_stalls':len(ts),
+            'smallest_stalled_core':ts[0],
+            'random_stalls':len(rc),
+            'next_gate':d['next_gate']['id'],
+            'P_VS_NP':d['P_VS_NP']
+          },indent=2,sort_keys=True))
+          PY
+
+      - name: Upload immutable R33 evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: janus-trump-r33-certified-safe-reduction-stack-lean-core-forensics
+          path: artifacts/JANUS_TRUMP_R33_CERTIFIED_SAFE_REDUCTION_STACK_LEAN_CORE_FORENSICS_RESULT_2026-09-02.json
+          if-no-files-found: error
