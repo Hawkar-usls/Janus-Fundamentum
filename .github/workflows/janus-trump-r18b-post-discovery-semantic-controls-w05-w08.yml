@@ -1,0 +1,97 @@
+name: JANUS TRUMP R18B Post-Discovery Semantic Controls W05-W08
+
+on:
+  push:
+    branches:
+      - research/janus-trump-r18b-post-discovery-semantic-controls-w05-w08-2026-09-02
+    paths:
+      - 'research/JANUS_TRUMP_R18B_POST_DISCOVERY_SEMANTIC_CONTROLS_W05_W08_PREREGISTRATION_2026-09-02.json'
+      - 'experiments/janus_trump_r18b_post_discovery_semantic_controls_w05_w08.py'
+      - '.github/workflows/janus-trump-r18b-post-discovery-semantic-controls-w05-w08.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  r18b-controls:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Verify R18 byte freeze and R18B preregistration
+        run: |
+          set -euo pipefail
+          test "$(git hash-object experiments/janus_trump_r18_shannon_hashcons_interface_dag_discovery.py)" = "afa95321ec6edbb33bef222d8ee7234fe631a599"
+          python - <<'PY'
+          import json
+          p=json.load(open('research/JANUS_TRUMP_R18B_POST_DISCOVERY_SEMANTIC_CONTROLS_W05_W08_PREREGISTRATION_2026-09-02.json'))
+          assert p['status']=='FROZEN_BEFORE_R18B_HARNESS_IMPLEMENTATION_AND_CONTROL_EXECUTION'
+          assert p['parent_R18_result_summary_commit']=='2062d30e34f751976fff576702c9bbb151a44a7a'
+          assert p['scientific_role']=='POST_DISCOVERY_SEMANTIC_CONTROLS__NOT_UNSEEN'
+          assert p['frozen_candidate']['git_blob_sha']=='afa95321ec6edbb33bef222d8ee7234fe631a599'
+          assert p['frozen_candidate']['logic_changes_allowed'] is False
+          assert [x['id'] for x in p['controls']]==['R16-W05','R16-W06','R16-W07','R16-W08']
+          assert p['execution_firewall']['candidate_must_run_before_truth_verifier'] is True
+          assert p['execution_firewall']['no_logic_tuning_during_R18B'] is True
+          assert p['P_VS_NP']=='OPEN'
+          print('R18B_FREEZE_OK')
+          PY
+
+      - name: Install independent verifier dependency
+        run: python -m pip install --disable-pip-version-check 'python-sat==1.9.dev15'
+
+      - name: Compile frozen candidate and control harness
+        run: |
+          PYTHONPATH=experiments:. python -m py_compile \
+            experiments/janus_trump_r18_shannon_hashcons_interface_dag_discovery.py \
+            experiments/janus_trump_r18b_post_discovery_semantic_controls_w05_w08.py
+
+      - name: Run R18B W05-W08 controls
+        run: |
+          mkdir -p artifacts
+          PYTHONPATH=experiments:. python experiments/janus_trump_r18b_post_discovery_semantic_controls_w05_w08.py \
+            --output artifacts/JANUS_TRUMP_R18B_POST_DISCOVERY_SEMANTIC_CONTROLS_W05_W08_RESULT_2026-09-02.json
+
+      - name: R18B scientific integrity gate
+        run: |
+          python - <<'PY'
+          import json
+          d=json.load(open('artifacts/JANUS_TRUMP_R18B_POST_DISCOVERY_SEMANTIC_CONTROLS_W05_W08_RESULT_2026-09-02.json'))
+          allowed={
+            'R18B_4_OF_4_POST_DISCOVERY_EXACT_CONTROLS__R19_UNSEEN_PERMITTED',
+            'R18B_SEMANTIC_COUNTEREXAMPLE__PRESERVE_AND_STOP',
+            'R18B_OPEN_RESOURCE_LIMIT__NO_UNSEEN_ADVANCEMENT',
+            'R18B_FAIL_INTEGRITY__NO_SCIENTIFIC_CLAIM',
+          }
+          assert d['verdict'] in allowed,d['verdict']
+          assert d['scientific_role']=='POST_DISCOVERY_SEMANTIC_CONTROLS__NOT_UNSEEN'
+          assert d['frozen_candidate_git_blob_sha']=='afa95321ec6edbb33bef222d8ee7234fe631a599'
+          assert d['control_count']==4
+          assert [x['world']['id'] for x in d['results']]==['R16-W05','R16-W06','R16-W07','R16-W08']
+          for r in d['results']:
+              assert r['scientific_role']=='POST_DISCOVERY_SEMANTIC_CONTROL__NOT_UNSEEN'
+              assert r['frozen_candidate']['git_blob_sha']=='afa95321ec6edbb33bef222d8ee7234fe631a599'
+              assert r['P_VS_NP']=='OPEN'
+              if r['verdict']=='R18B_OPEN_RESOURCE_LIMIT':
+                  assert r['verifier_ran'] is False
+                  assert r['scientific_firewall']['truth_not_accessed'] is True
+              if r['verdict'] in ('R18B_POST_DISCOVERY_EXACT_MATCH','R18B_POST_DISCOVERY_SEMANTIC_MISMATCH'):
+                  assert r['verifier_ran'] is True
+                  assert r['scientific_firewall']['candidate_terminal_before_truth'] is True
+                  assert r['comparison']['full_domain'] is True
+          assert d['P_VS_NP']=='OPEN'
+          print(d['verdict'])
+          PY
+
+      - name: Upload immutable R18B evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: janus-trump-r18b-post-discovery-semantic-controls-w05-w08
+          path: artifacts/JANUS_TRUMP_R18B_POST_DISCOVERY_SEMANTIC_CONTROLS_W05_W08_RESULT_2026-09-02.json
+          if-no-files-found: error
