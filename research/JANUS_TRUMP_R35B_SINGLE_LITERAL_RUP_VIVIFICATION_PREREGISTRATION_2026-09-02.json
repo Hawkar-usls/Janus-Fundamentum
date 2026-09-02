@@ -1,0 +1,102 @@
+{
+  "schema": "JANUS_TRUMP_R35B_SINGLE_LITERAL_RUP_VIVIFICATION_PREREGISTRATION",
+  "version": "1.0",
+  "date": "2026-09-02",
+  "status": "FROZEN_BEFORE_R35B_IMPLEMENTATION_AND_EXECUTION",
+  "parent_R35": {
+    "sealed_result_commit": "6912577a1e70e01170539aff284873b178a3e932",
+    "successful_run_id": 33660725713,
+    "artifact_id": 9858556900,
+    "artifact_sha256": "15a618616d1844f61a05ca831820a7beab6b006bd6743789d997c61464596424",
+    "result_json_sha256": "6d55784941bb0dfe8cc0a107c3eeb410209fe3ddfb1ef18d7876dd0ecb11698e",
+    "frozen_core": {
+      "seed": 33004,
+      "measure": [98,300,23],
+      "canonical_clause_list_sha256": "7c42618d0fbb3b6e2d6681e265e56a76fa80b4021fd2ad1590d6f5fe9fb608ff"
+    }
+  },
+  "TOPA_and_captain_basis": {
+    "literature_mechanism": "Clause vivification / asymmetric literal elimination by unit propagation; RUP clauses are independently checkable by propagating the negation to conflict.",
+    "theta_transfer": "A literal is removed only when the omitted part is certified decision-irrelevant by a polynomial check; there is no heuristic rank cutoff.",
+    "why_selected": "The R35 core is connected, has no articulation points, has zero complete affine-bundle coverage, no 2-CNF clauses, and a non-authoritative min-fill width of 16 on 23 variables. A discovery probe on the exposed core found many one-literal RUP strengthening opportunities, while failed-literal probing alone found no forced literal.",
+    "scientific_role": "EXPOSED_CORE_DISCOVERY_ONLY__NOT_UNSEEN_GENERALIZATION"
+  },
+  "single_new_mechanism": {
+    "id": "SINGLE_LITERAL_RUP_VIVIFICATION",
+    "input": "The exact frozen R35 residual only, reconstructed from the byte-frozen seed/generator/R33 stack and checked against the frozen core hash.",
+    "rule": "For canonical clause C and one literal l in frozen literal order, let D=C\\{l}. D is admissible exactly when deterministic unit propagation on current F conjoined with the negations of every literal in D reaches conflict. Replace C by D, canonicalize duplicate clauses, and restart the scan from the first clause.",
+    "rule_semantics": "The RUP check proves F entails D. Since D subsumes C, adding D and deleting C preserves logical equivalence, hence SAT/UNSAT and all models.",
+    "terminal_unsat": "After every successful strengthening and at fixpoint, deterministic unit propagation on the whole current formula may certify contradiction. Only such a checked conflict licenses UNSAT.",
+    "stall": "If no one-literal RUP strengthening exists and whole-formula unit propagation does not conflict, return STALLED_RUP_CORE with no SAT/UNSAT verdict.",
+    "tie_break": "Canonical clause tuple order, then literal key (absolute variable, positive before negative).",
+    "progress_measure": ["literal_occurrences", "clause_count", "variable_count"],
+    "strict_progress": "Every successful rule deletes at least one literal and never adds a literal. Therefore the number of successful strengthenings is at most the initial literal-occurrence count."
+  },
+  "certificate_contract": {
+    "per_strengthening": [
+      "formula-state hash before step",
+      "source clause",
+      "removed literal",
+      "strengthened subclause",
+      "negated-subclause assumptions",
+      "deterministic unit-propagation conflict witness / replay receipt",
+      "formula-state hash after canonical replacement"
+    ],
+    "independent_checker": "Replay the exact sequence from the frozen R35 core. For every proposed D, independently run unit propagation on the current formula with all literals of D assigned false and require conflict before applying the replacement.",
+    "final_UNSAT_checker": "Independently run unit propagation on the final formula and require conflict.",
+    "no_semantic_oracle": true
+  },
+  "complexity_contract": {
+    "successful_steps_bound": "<= initial literal occurrences L",
+    "candidate_checks_per_full_scan_bound": "<= current literal occurrences <= L",
+    "unit_propagation_per_check": "polynomial in current CNF size; implementation must expose a deterministic operation ledger rather than call a SAT solver",
+    "overall_claim": "R35B may claim only that this fixed rule is polynomially executable/checkable. It may not close the R31 universal-progress obligation because a future formula may have zero RUP strengthenings.",
+    "memory": "No truth table, DPLL state, or assignment cube may be stored."
+  },
+  "frozen_controls": [
+    {
+      "id": "R35_CORE_HASH_REPLAY",
+      "expected": "Exact measure [98,300,23] and SHA-256 7c42618d0fbb3b6e2d6681e265e56a76fa80b4021fd2ad1590d6f5fe9fb608ff before candidate execution."
+    },
+    {
+      "id": "RUP_POSITIVE_SMALL",
+      "formula": [[1,2],[-1,2],[1,-2]],
+      "purpose": "Small independently enumerable control in which a RUP strengthening and checker can be cross-validated after candidate terminal."
+    },
+    {
+      "id": "RUP_NEGATIVE_SMALL",
+      "formula": [[1,2,3],[-1,-2,-3]],
+      "purpose": "Control where the mechanism must not invent an unsupported one-literal strengthening."
+    }
+  ],
+  "forbidden": [
+    "DPLL_OR_CDCL",
+    "EXTERNAL_SAT_SOLVER",
+    "ASSIGNMENT_ENUMERATION_INSIDE_CANDIDATE",
+    "TRUTH_TABLE",
+    "GLOBAL_SEMANTIC_REDUNDANCY_ORACLE",
+    "REMOVING_TWO_OR_MORE_LITERALS_IN_ONE_RULE_APPLICATION",
+    "ADDING_A_SECOND_NEW_REDUCTION_OR_TERMINAL_MECHANISM",
+    "CHANGING_CLAUSE_OR_LITERAL_ORDER_AFTER_OBSERVING_RESULTS",
+    "CLAIMING_UNSAT_WITHOUT_FINAL_UNIT_PROPAGATION_CONFLICT",
+    "CLAIMING_SAT_FROM_STALL",
+    "RESOURCE_LIMIT_INCREASE_AS_SCIENTIFIC_SUCCESS"
+  ],
+  "admissible_verdicts": [
+    "R35B_FAIL_INTEGRITY",
+    "R35B_RUP_CERTIFICATE_MISMATCH",
+    "R35B_RUP_VIVIFICATION_PROVES_UNSAT_ON_EXPOSED_CORE__NO_UNIVERSAL_CLAIM",
+    "R35B_RUP_VIVIFICATION_REDUCES_THEN_STALLS__NO_SEMANTIC_VERDICT",
+    "R35B_RUP_VIVIFICATION_STALLS_WITHOUT_REDUCTION__NO_SEMANTIC_VERDICT"
+  ],
+  "interpretation_firewall": {
+    "success_on_exposed_core": "Closes only the sealed R35 counterexample for the extended fixed portfolio. The core was used to discover this rule, so a fresh unseen non-affine holdout is mandatory before any generalization evidence.",
+    "stall": "Falsifies completeness of the fixed R35B mechanism on this core only; preserve the residual before proposing another rule.",
+    "next_if_UNSAT_success": "Freeze the implementation byte-for-byte and run R36_FRESH_NONAFFINE_RUP_VIVIFICATION_HOLDOUT on newly generated seeds selected after freeze, without tuning.",
+    "R31_obligations_closed_by_R35B": 0,
+    "TRUMP_finished": false,
+    "SAT_IN_P": "NOT_PROVED",
+    "P_VS_NP": "OPEN",
+    "runtime_authority": false
+  }
+}
