@@ -1,0 +1,118 @@
+name: JANUS TRUMP R15F Incremental Independent Semantic Control
+
+on:
+  push:
+    branches:
+      - research/janus-trump-r15f-incremental-independent-semantic-control-2026-09-02
+    paths:
+      - 'research/JANUS_TRUMP_R15F_INCREMENTAL_INDEPENDENT_SEMANTIC_CONTROL_PREREGISTRATION_2026-09-02.json'
+      - 'experiments/janus_trump_r15f_incremental_independent_semantic_control.py'
+      - 'tests/test_janus_trump_r15f_incremental_independent_semantic_control.py'
+      - '.github/workflows/janus-trump-r15f-incremental-independent-semantic-control.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  r15f-full-domain-control:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Verify frozen preregistration and candidate identity
+        run: |
+          python - <<'PY'
+          import json, subprocess
+          p=json.load(open('research/JANUS_TRUMP_R15F_INCREMENTAL_INDEPENDENT_SEMANTIC_CONTROL_PREREGISTRATION_2026-09-02.json'))
+          assert p['status']=='FROZEN_BEFORE_R15F_IMPLEMENTATION_AND_EXECUTION'
+          assert p['verifier']['version']=='1.9.dev15'
+          assert p['verifier']['domain']=='ALL_2^16_BRIDGE_ASSIGNMENTS'
+          assert p['P_VS_NP']=='OPEN'
+          got=subprocess.check_output(['git','hash-object',p['frozen_candidate']['path']],text=True).strip()
+          assert got==p['frozen_candidate']['blob_sha'],(got,p['frozen_candidate']['blob_sha'])
+          print('R15F_FREEZE_OK',got)
+          PY
+
+      - name: Install frozen independent verifier
+        run: |
+          python -m pip install --disable-pip-version-check 'python-sat==1.9.dev15'
+          python - <<'PY'
+          import importlib.metadata
+          got=importlib.metadata.version('python-sat')
+          assert got=='1.9.dev15',got
+          print('R15F_PYSAT_OK',got)
+          PY
+
+      - name: Compile R15F
+        run: |
+          PYTHONPATH=experiments:. python -m py_compile \
+            experiments/janus_trump_r15f_incremental_independent_semantic_control.py \
+            tests/test_janus_trump_r15f_incremental_independent_semantic_control.py
+
+      - name: R15F verifier controls
+        run: |
+          PYTHONPATH=experiments:. python - <<'PY'
+          import importlib.util
+          p='tests/test_janus_trump_r15f_incremental_independent_semantic_control.py'
+          spec=importlib.util.spec_from_file_location('r15f_tests',p)
+          m=importlib.util.module_from_spec(spec); spec.loader.exec_module(m)
+          tests=[getattr(m,n) for n in dir(m) if n.startswith('test_r15f')]
+          for t in tests: t()
+          print('R15F_TESTS_PASS',len(tests))
+          PY
+
+      - name: Run frozen R15F candidate then full-domain witnesses
+        id: execute
+        continue-on-error: true
+        run: |
+          mkdir -p artifacts
+          PYTHONPATH=experiments:. python experiments/janus_trump_r15f_incremental_independent_semantic_control.py \
+            --output artifacts/JANUS_TRUMP_R15F_INCREMENTAL_INDEPENDENT_SEMANTIC_CONTROL_RESULT_2026-09-02.json
+
+      - name: R15F scientific integrity gate
+        run: |
+          python - <<'PY'
+          import json,sys
+          path='artifacts/JANUS_TRUMP_R15F_INCREMENTAL_INDEPENDENT_SEMANTIC_CONTROL_RESULT_2026-09-02.json'
+          d=json.load(open(path))
+          assert d['P_VS_NP']=='OPEN'
+          allowed={
+            'R15F_FULL_DOMAIN_SEMANTIC_MATCH',
+            'R15F_FULL_DOMAIN_SEMANTIC_MISMATCH',
+            'R15F_OPEN_VERIFIER_RESOURCE_LIMIT',
+            'R15F_CANDIDATE_NONTERMINAL',
+            'R15F_INTEGRITY_FAIL',
+          }
+          assert d['verdict'] in allowed,d['verdict']
+          if d['verdict']=='R15F_FULL_DOMAIN_SEMANTIC_MATCH':
+              assert all(d['gates'].values()),d['gates']
+              assert d['comparison']['full_domain'] is True
+              assert d['comparison']['allowed_set_equal'] is True
+              assert d['original_frame_verifier']['allowed_count']==287
+              assert d['candidate_interface_verifier']['allowed_count']==287
+              assert d['comparison']['original_truth_table_sha256']=='acf8828272994c0ad05a44590aa4335e1828d5b7d3e3d4f438b0d497cfcad92f'
+              assert d['comparison']['candidate_truth_table_sha256']==d['comparison']['original_truth_table_sha256']
+          elif d['verdict']=='R15F_FULL_DOMAIN_SEMANTIC_MISMATCH':
+              assert d['comparison']['full_domain'] is True
+              assert not d['comparison']['allowed_set_equal']
+          elif d['verdict']=='R15F_OPEN_VERIFIER_RESOURCE_LIMIT':
+              assert d['candidate']['status']=='COMPLETE_EXTENDED_INTERFACE'
+          elif d['verdict']=='R15F_INTEGRITY_FAIL':
+              print('R15F_INTEGRITY_FAIL')
+              sys.exit(2)
+          print(d['verdict'])
+          PY
+
+      - name: Upload immutable R15F evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: janus-trump-r15f-incremental-independent-semantic-control
+          path: artifacts/JANUS_TRUMP_R15F_INCREMENTAL_INDEPENDENT_SEMANTIC_CONTROL_RESULT_2026-09-02.json
+          if-no-files-found: error
