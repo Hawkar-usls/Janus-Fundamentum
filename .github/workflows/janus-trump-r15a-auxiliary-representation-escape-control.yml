@@ -1,0 +1,81 @@
+name: JANUS TRUMP R15A Auxiliary Representation Escape Control
+
+on:
+  push:
+    branches:
+      - research/janus-trump-r15a-auxiliary-representation-escape-control-2026-09-02
+    paths:
+      - 'research/JANUS_TRUMP_R15A_AUXILIARY_REPRESENTATION_ESCAPE_CONTROL_PREREGISTRATION_2026-09-02.json'
+      - 'experiments/janus_trump_r15a_auxiliary_representation_escape_control.py'
+      - 'tests/test_janus_trump_r15a_auxiliary_representation_escape_control.py'
+      - '.github/workflows/janus-trump-r15a-auxiliary-representation-escape-control.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  r15a-control:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Verify frozen R15A preregistration
+        run: |
+          python - <<'PY'
+          import json
+          p=json.load(open('research/JANUS_TRUMP_R15A_AUXILIARY_REPRESENTATION_ESCAPE_CONTROL_PREREGISTRATION_2026-09-02.json'))
+          assert p['status']=='FROZEN_BEFORE_R15A_IMPLEMENTATION_AND_EXECUTION'
+          assert p['parent_R14_result_summary_commit']=='5689b9239fcf7aa044d2713f2452b743940fd93b'
+          assert p['method']['width_gate']==3
+          assert p['P_VS_NP']=='OPEN'
+          print('R15A_FREEZE_OK')
+          PY
+
+      - name: Compile R15A
+        run: |
+          PYTHONPATH=experiments:. python -m py_compile \
+            experiments/janus_trump_r15a_auxiliary_representation_escape_control.py \
+            tests/test_janus_trump_r15a_auxiliary_representation_escape_control.py
+
+      - name: R15A unit controls
+        run: |
+          PYTHONPATH=experiments:. python - <<'PY'
+          import importlib.util
+          spec=importlib.util.spec_from_file_location('r15atests','tests/test_janus_trump_r15a_auxiliary_representation_escape_control.py')
+          m=importlib.util.module_from_spec(spec); spec.loader.exec_module(m)
+          tests=[getattr(m,n) for n in dir(m) if n.startswith('test_r15a')]
+          for t in tests: t()
+          print('R15A_TESTS_PASS',len(tests))
+          PY
+
+      - name: Run frozen R15A control
+        run: |
+          mkdir -p artifacts
+          PYTHONPATH=experiments:. python experiments/janus_trump_r15a_auxiliary_representation_escape_control.py \
+            --output artifacts/JANUS_TRUMP_R15A_AUXILIARY_REPRESENTATION_ESCAPE_CONTROL_RESULT_2026-09-02.json
+
+      - name: R15A scientific integrity gate
+        run: |
+          python - <<'PY'
+          import json
+          d=json.load(open('artifacts/JANUS_TRUMP_R15A_AUXILIARY_REPRESENTATION_ESCAPE_CONTROL_RESULT_2026-09-02.json'))
+          assert d['P_VS_NP']=='OPEN'
+          assert all(d['gates'].values()), d['gates']
+          assert d['verdict']=='AUXILIARY_WIDTH3_REPRESENTATION_ESCAPE_CONFIRMED'
+          assert d['extended_representation']['maximum_clause_width'] <= 3
+          assert d['extended_representation']['false_positive_count']==0
+          assert d['extended_representation']['false_negative_count']==0
+          print(d['verdict'])
+          PY
+
+      - name: Upload immutable R15A evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: janus-trump-r15a-auxiliary-representation-escape-control
+          path: artifacts/JANUS_TRUMP_R15A_AUXILIARY_REPRESENTATION_ESCAPE_CONTROL_RESULT_2026-09-02.json
+          if-no-files-found: error
