@@ -1,0 +1,103 @@
+name: JANUS TRUMP R19 Fresh Prospective Unseen Shannon DAG Holdout
+on:
+  push:
+    branches: [research/janus-trump-r19-fresh-prospective-unseen-shannon-dag-holdout-2026-09-02]
+    paths:
+      - 'research/JANUS_TRUMP_R19_FRESH_PROSPECTIVE_UNSEEN_WORLD_SET_FREEZE_2026-09-02.json'
+      - 'research/JANUS_TRUMP_R19_EXECUTION_RESOURCE_ENVELOPE_FREEZE_2026-09-02.json'
+      - 'experiments/janus_trump_r19_fresh_prospective_unseen_shannon_dag_holdout.py'
+      - 'experiments/janus_trump_r19_aggregate_results.py'
+      - '.github/workflows/janus-trump-r19-fresh-prospective-unseen-shannon-dag-holdout.yml'
+  workflow_dispatch:
+permissions: {contents: read}
+jobs:
+  preflight:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: '3.12'}
+      - name: Verify fresh world set, resource envelope, and candidate freeze
+        run: |
+          python - <<'PY'
+          import json,subprocess
+          f=json.load(open('research/JANUS_TRUMP_R19_FRESH_PROSPECTIVE_UNSEEN_WORLD_SET_FREEZE_2026-09-02.json'));r=json.load(open('research/JANUS_TRUMP_R19_EXECUTION_RESOURCE_ENVELOPE_FREEZE_2026-09-02.json'))
+          assert f['status']=='FROZEN_BEFORE_R19_CANDIDATE_EXECUTION';assert r['status']=='FROZEN_BEFORE_R19_HARNESS_IMPLEMENTATION_AND_EXECUTION';assert len(f['worlds'])==10;assert f['selector']['truth_accessed'] is False and f['selector']['candidate_accessed'] is False and f['selector']['freshness_pass'] is True
+          got=subprocess.check_output(['git','hash-object',f['frozen_candidate']['path']],text=True).strip();assert got==f['frozen_candidate']['blob_sha']==r['candidate']['blob_sha']=='afa95321ec6edbb33bef222d8ee7234fe631a599';assert f['P_VS_NP']==r['P_VS_NP']=='OPEN';print('R19_PREFLIGHT_OK',got)
+          PY
+      - run: python -m pip install --disable-pip-version-check 'python-sat==1.9.dev15'
+      - name: Compile harness
+        run: PYTHONPATH=experiments:. python -m py_compile experiments/janus_trump_r19_fresh_prospective_unseen_shannon_dag_holdout.py experiments/janus_trump_r19_aggregate_results.py
+      - name: Regenerate all ten worlds before candidate execution
+        run: |
+          PYTHONPATH=experiments:. python - <<'PY'
+          import janus_trump_r19_fresh_prospective_unseen_shannon_dag_holdout as r
+          f,_=r.load_contracts()
+          for w in f['worlds']:
+              frame,bridge,checks=r.generate_world(w);assert all(checks.values())
+          assert r.r18.candidate_firewall()['pass'] is True
+          print('R19_REGENERATION_AND_FIREWALL_PASS')
+          PY
+  worlds:
+    needs: preflight
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    strategy:
+      fail-fast: false
+      matrix: {world: [R19-W01,R19-W02,R19-W03,R19-W04,R19-W05,R19-W06,R19-W07,R19-W08,R19-W09,R19-W10]}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: '3.12'}
+      - run: python -m pip install --disable-pip-version-check 'python-sat==1.9.dev15'
+      - name: Recheck frozen candidate blob
+        run: test "$(git hash-object experiments/janus_trump_r18_shannon_hashcons_interface_dag_discovery.py)" = "afa95321ec6edbb33bef222d8ee7234fe631a599"
+      - name: Run frozen candidate then full-domain judge
+        run: |
+          mkdir -p artifacts
+          PYTHONPATH=experiments:. python experiments/janus_trump_r19_fresh_prospective_unseen_shannon_dag_holdout.py --world '${{ matrix.world }}' --output 'artifacts/JANUS_TRUMP_R19_${{ matrix.world }}_RESULT_2026-09-02.json'
+      - name: Per-world gate
+        run: |
+          WORLD='${{ matrix.world }}' python - <<'PY'
+          import json,os,sys
+          w=os.environ['WORLD'];d=json.load(open(f'artifacts/JANUS_TRUMP_R19_{w}_RESULT_2026-09-02.json'));assert d['P_VS_NP']=='OPEN' and d['candidate_firewall']['pass'] is True;assert d['verdict'] in {'PASS_EXACT_FRESH_UNSEEN','MISMATCH_FRESH_UNSEEN','OPEN_CANDIDATE_RESOURCE_LIMIT','FAIL_INTEGRITY'}
+          if d['verdict']=='PASS_EXACT_FRESH_UNSEEN':assert d['comparison']['full_domain'] and d['comparison']['allowed_set_equal'] and d['comparison']['false_positive_count']==0 and d['comparison']['false_negative_count']==0 and d['comparison']['original_sat_model_replay_failures']==[]
+          elif d['verdict']=='MISMATCH_FRESH_UNSEEN':assert d['comparison']['full_domain'] and not d['comparison']['allowed_set_equal']
+          elif d['verdict']=='OPEN_CANDIDATE_RESOURCE_LIMIT':assert d['verifier']['not_run'] is True
+          else:sys.exit(2)
+          print(w,d['verdict'])
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: janus-trump-r19-${{ matrix.world }}
+          path: artifacts/JANUS_TRUMP_R19_${{ matrix.world }}_RESULT_2026-09-02.json
+          if-no-files-found: error
+  aggregate:
+    needs: [preflight,worlds]
+    if: always()
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with: {pattern: 'janus-trump-r19-R19-*', path: artifacts/worlds, merge-multiple: true}
+      - name: Aggregate
+        run: |
+          mkdir -p artifacts/aggregate
+          PYTHONPATH=experiments:. python experiments/janus_trump_r19_aggregate_results.py --input-dir artifacts/worlds --output artifacts/aggregate/JANUS_TRUMP_R19_FRESH_PROSPECTIVE_UNSEEN_SHANNON_DAG_HOLDOUT_RESULT_2026-09-02.json
+      - name: Aggregate gate
+        run: |
+          python - <<'PY'
+          import json,sys
+          d=json.load(open('artifacts/aggregate/JANUS_TRUMP_R19_FRESH_PROSPECTIVE_UNSEEN_SHANNON_DAG_HOLDOUT_RESULT_2026-09-02.json'));assert d['overall_verdict'] in {'R19_PASS_EXACT_FRESH_UNSEEN_10_OF_10','R19_FRESH_UNSEEN_SEMANTIC_MISMATCH','R19_FRESH_UNSEEN_RESOURCE_OPEN','FAIL_INTEGRITY'};assert d['P_VS_NP']=='OPEN';
+          if d['overall_verdict']=='FAIL_INTEGRITY':sys.exit(2)
+          print(d['overall_verdict'],d.get('verdict_counts'))
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: janus-trump-r19-fresh-prospective-unseen-shannon-dag-holdout
+          path: artifacts/aggregate/JANUS_TRUMP_R19_FRESH_PROSPECTIVE_UNSEEN_SHANNON_DAG_HOLDOUT_RESULT_2026-09-02.json
+          if-no-files-found: error
