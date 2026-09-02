@@ -1,0 +1,148 @@
+name: JANUS TRUMP R37 First Fresh RUP Stall Forensics
+
+on:
+  push:
+    branches:
+      - research/janus-trump-r37-first-fresh-rup-stall-forensics-2026-09-02
+    paths:
+      - 'research/JANUS_TRUMP_R37_FIRST_FRESH_RUP_STALL_FORENSICS_PREREGISTRATION_2026-09-02.json'
+      - 'experiments/janus_trump_r33_certified_safe_reduction_stack_lean_core_forensics.py'
+      - 'experiments/janus_trump_r34_affine_xor_terminal_against_tseitin_core.py'
+      - 'experiments/janus_trump_r35_nonaffine_core_freeze_structure_intake.py'
+      - 'experiments/janus_trump_r35b_single_literal_rup_vivification.py'
+      - 'experiments/janus_trump_r37_first_fresh_rup_stall_forensics.py'
+      - '.github/workflows/janus-trump-r37-first-fresh-rup-stall-forensics.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  r37-first-stall-forensics:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Verify frozen R36 lineage and R37 bytes
+        run: |
+          set -euo pipefail
+          test "$(git hash-object experiments/janus_trump_r33_certified_safe_reduction_stack_lean_core_forensics.py)" = "c9234a1ef639a009cc6cb4c8a6098fd09bf9affe"
+          test "$(git hash-object experiments/janus_trump_r34_affine_xor_terminal_against_tseitin_core.py)" = "7f9bec920fa47af066570d874fe9127dc4b9b968"
+          test "$(git hash-object experiments/janus_trump_r35b_single_literal_rup_vivification.py)" = "259d2e38947d09b0c058963ad825a57f2e734203"
+          test "$(git hash-object research/JANUS_TRUMP_R37_FIRST_FRESH_RUP_STALL_FORENSICS_PREREGISTRATION_2026-09-02.json)" = "b18ddb4ffbf165aeb60d3d5f907ebd7e72d02437"
+          test "$(git hash-object experiments/janus_trump_r37_first_fresh_rup_stall_forensics.py)" = "88b06ae659a27aabd38faa1aa8d71118199e2e62"
+          git merge-base --is-ancestor 4115e29860c6a16ab14061f2a98def8d6e7a2be9 "$GITHUB_SHA"
+          git merge-base --is-ancestor 930b4b502b532ba2cd3e65b8b3954513d503fa6b "$GITHUB_SHA"
+          python - <<'PY'
+          import json
+          p=json.load(open('research/JANUS_TRUMP_R37_FIRST_FRESH_RUP_STALL_FORENSICS_PREREGISTRATION_2026-09-02.json',encoding='utf-8'))
+          assert p['status']=='FROZEN_BEFORE_R37_STALL_MATERIALIZATION_AND_FORENSICS'
+          assert p['frozen_stall_selector']['seed']==36001
+          assert p['frozen_stall_selector']['expected_RUP_strengthenings']==153
+          assert p['frozen_stall_selector']['expected_RUP_final_measure_LCV']==[146,71,28]
+          assert p['frozen_stall_selector']['expected_RUP_final_formula_sha256']=='6cda29fd34c3f4f0495f696ba3d371ebce4d4593c1f71face5ecf4af182751b0'
+          assert p['R37_scope']['authority']=='FORENSICS_ONLY'
+          assert p['P_VS_NP']=='OPEN'
+          print('R37_PREREGISTRATION_AND_LINEAGE_OK')
+          PY
+
+      - name: Static forensics-only firewall
+        run: |
+          python - <<'PY'
+          import ast
+          from pathlib import Path
+          p=Path('experiments/janus_trump_r37_first_fresh_rup_stall_forensics.py')
+          source=p.read_text(encoding='utf-8')
+          tree=ast.parse(source)
+          forbidden={'pysat','z3','pycosat','subprocess','socket','requests','urllib'}
+          imported=set()
+          for node in ast.walk(tree):
+              if isinstance(node,ast.Import): imported.update(a.name.split('.')[0] for a in node.names)
+              elif isinstance(node,ast.ImportFrom): imported.add((node.module or '').split('.')[0])
+          assert not (imported & forbidden),(imported & forbidden)
+          assert 'brute_force_model' not in source
+          assert 'itertools.product' not in source
+          assert source.count('r33.simplify(residual)')==1
+          assert source.count('r35b.run_candidate(replay_formula)')==1
+          assert 'while True' not in (ast.get_source_segment(source,next(n for n in tree.body if isinstance(n,ast.FunctionDef) and n.name=='existing_portfolio_composition_probe')) or '')
+          print({'external_solver':False,'assignment_enumeration':False,'single_R33_replay':True,'single_diagnostic_RUP_after_replay':True,'cycle_not_iterated':True})
+          PY
+
+      - name: Compile and frozen self-test
+        run: |
+          python -m py_compile experiments/janus_trump_r33_certified_safe_reduction_stack_lean_core_forensics.py
+          python -m py_compile experiments/janus_trump_r34_affine_xor_terminal_against_tseitin_core.py
+          python -m py_compile experiments/janus_trump_r35_nonaffine_core_freeze_structure_intake.py
+          python -m py_compile experiments/janus_trump_r35b_single_literal_rup_vivification.py
+          python -m py_compile experiments/janus_trump_r37_first_fresh_rup_stall_forensics.py
+          PYTHONPATH=experiments:. python experiments/janus_trump_r37_first_fresh_rup_stall_forensics.py --self-test
+
+      - name: Execute R37 frozen forensics
+        run: |
+          mkdir -p artifacts
+          PYTHONPATH=experiments:. python experiments/janus_trump_r37_first_fresh_rup_stall_forensics.py \
+            --output artifacts/JANUS_TRUMP_R37_FIRST_FRESH_RUP_STALL_FORENSICS_RESULT_2026-09-02.json
+
+      - name: R37 scientific integrity gate
+        if: always()
+        run: |
+          python - <<'PY'
+          import json,os
+          path='artifacts/JANUS_TRUMP_R37_FIRST_FRESH_RUP_STALL_FORENSICS_RESULT_2026-09-02.json'
+          assert os.path.exists(path)
+          d=json.load(open(path,encoding='utf-8'))
+          allowed={
+            'R37_FAIL_INTEGRITY',
+            'R37_FIRST_FRESH_RUP_STALL_FROZEN__NO_EXISTING_RULE_REACTIVATED',
+            'R37_FIRST_FRESH_RUP_STALL_FROZEN__EXISTING_R33_RULE_REACTIVATED',
+            'R37_FIRST_FRESH_RUP_STALL_FROZEN__R33_REPLAY_REACHES_EXISTING_TERMINAL'
+          }
+          assert d['verdict'] in allowed
+          assert d['source_git_commit']==os.environ['GITHUB_SHA']
+          assert d['frozen_selector']=={'seed':36001,'n':28,'ratio':4.2,'selection':'FIRST_STALL_IN_R36_PREREGISTERED_ORDER'}
+          r=d['reconstruction']
+          assert r['RUP_status']=='STALLED_RUP_CORE'
+          assert r['RUP_strengthenings']==153
+          assert r['RUP_checker_pass'] is True
+          assert r['RUP_residual_measure_LCV']==[146,71,28]
+          assert r['RUP_residual_hash']=='6cda29fd34c3f4f0495f696ba3d371ebce4d4593c1f71face5ecf4af182751b0'
+          assert len(r['RUP_residual_clauses'])==71
+          assert not any(d['candidate_firewall'].values())
+          p=d['existing_portfolio_composition_probe']
+          if p['R33_replay']['changed']:
+              assert p['R33_replay']['rule_applications']>0
+              if p['one_diagnostic_R35B_pass_after_R33_replay'] is not None:
+                  assert p['one_diagnostic_R35B_pass_after_R33_replay']['independent_certificate_checker']['pass'] is True
+          assert d['R31_obligation_impact']['obligations_closed']==0
+          assert d['TRUMP_finished'] is False and d['SAT_IN_P']=='NOT_PROVED' and d['P_VS_NP']=='OPEN'
+          print(json.dumps({
+            'verdict':d['verdict'],
+            'residual_measure_LCV':r['RUP_residual_measure_LCV'],
+            'residual_hash':r['RUP_residual_hash'],
+            'structure':{
+              'components':d['structure_intake']['connected_component_sizes'],
+              'articulation_points':d['structure_intake']['articulation_points'],
+              'Horn_fraction':d['structure_intake']['Horn_clause_fraction'],
+              'two_cnf_fraction':d['structure_intake']['2CNF_clause_fraction'],
+              'affine_coverage':d['structure_intake']['affine_bundle_coverage']['coverage_fraction'],
+              'min_fill':d['structure_intake']['min_fill_probe']
+            },
+            'composition_probe':p,
+            'P_VS_NP':d['P_VS_NP']
+          },indent=2,sort_keys=True))
+          PY
+
+      - name: Upload immutable R37 evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: janus-trump-r37-first-fresh-rup-stall-forensics
+          path: artifacts/JANUS_TRUMP_R37_FIRST_FRESH_RUP_STALL_FORENSICS_RESULT_2026-09-02.json
+          if-no-files-found: error
