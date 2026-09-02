@@ -1,0 +1,188 @@
+{
+  "schema": "JANUS_TRUMP_R33_CERTIFIED_SAFE_REDUCTION_STACK_LEAN_CORE_FORENSICS_PREREGISTRATION",
+  "version": "1.0",
+  "date": "2026-09-02",
+  "status": "FROZEN_BEFORE_R33_IMPLEMENTATION_AND_EXECUTION",
+  "parent": {
+    "branch": "research/janus-trump-r32-eye-r46-multi-affine-transfer-audit-2026-09-02",
+    "head_commit_at_freeze": "4b4dc8088cda1c453c5f0ccb8bdacae0f9ee3d47",
+    "R31_contract_commit": "31e767296cbaa436ef97ac16b0c603880e38443f"
+  },
+  "captain_obvious_transfer": {
+    "question": "Can TRUMP replace a full exact projected Boolean state by a polynomially checkable sequence of decision-safe deletions, leaving only a tractable decision-sufficient core?",
+    "theta_analogy_retained": "A finite truncation is useful only when the omitted tail is certified irrelevant to the final decision.",
+    "theta_analogy_rejected": "A cutoff chosen only by rank, depth, coefficient size, or an empirical threshold is not a SAT-preservation proof.",
+    "required_complete_shape": "SAFE_REDUCTION + POLY_CHECK + GUARANTEED_PROGRESS + POLY_TERMINAL_CLASS",
+    "success_condition": "For every 3-CNF, a fixed polynomial-time policy either decides in a polynomial-time terminal class or finds a polynomially checkable satisfiability-preserving reduction that strictly decreases a polynomially bounded measure, with polynomial-time witness reconstruction."
+  },
+  "TOPA_literature_map": [
+    {
+      "topic": "bounded_variable_elimination",
+      "reference": "Een and Biere, SAT 2005, Effective Preprocessing in SAT through Variable and Clause Elimination",
+      "transfer": "Davis-Putnam variable elimination is satisfiability-equivalent; practical BVE bounds resolvent growth."
+    },
+    {
+      "topic": "blocked_clause_elimination",
+      "reference": "Jarvisalo, Biere, Heule, TACAS 2010, Blocked Clause Elimination",
+      "transfer": "Polynomially recognizable blocked clauses may be deleted while preserving satisfiability; BCE is confluent."
+    },
+    {
+      "topic": "local_redundancy",
+      "reference": "Kiesl, Seidl, Tompits, Biere, LMCS 2018, Local Redundancy in SAT",
+      "transfer": "Semantic blocking is the most general local redundancy property; local safe deletion does not imply global completeness."
+    },
+    {
+      "topic": "autarky_and_lean_kernel",
+      "reference": "Kullmann, Discrete Applied Mathematics 2003, Lean clause-sets",
+      "transfer": "Safe autarky deletion naturally produces a lean kernel in which the selected autarky system has no further deletion."
+    },
+    {
+      "topic": "proof_logging",
+      "reference": "DRAT/LPR/Propagation Redundancy literature including verified LPR checking",
+      "transfer": "Safe preprocessing should emit independently checkable witnesses instead of relying on hidden semantic SAT calls."
+    },
+    {
+      "topic": "knowledge_compilation_lower_bounds",
+      "reference": "Bova and Slivovsky, Theory of Computing Systems 2017; de Colnet and Mengel, AAAI 2022",
+      "transfer": "General CNFs can require exponential OBDD-like representations, and bottom-up compilation can suffer exponential intermediate blow-up even when a small final representation exists."
+    },
+    {
+      "topic": "instance_compression_barrier",
+      "reference": "Fortnow and Santhanam, JCSS 2011 / ECCC TR07-096",
+      "transfer": "Strong generic SAT compression has major complexity-theoretic consequences; R33 must not silently assume universal polynomial compression."
+    },
+    {
+      "topic": "representative_families",
+      "reference": "Fomin, Lokshtanov, Panolan, Saurabh, JACM 2016",
+      "transfer": "Representative families justify decision-safe table reduction only under an explicit algebraic/parameterized structure; their size bound is not automatically polynomial in unrestricted SAT input size."
+    },
+    {
+      "topic": "backdoors",
+      "reference": "Dreier, Ordyniak, Szeider, JCSS 2024; Gaspers and Szeider review 2026",
+      "transfer": "A small backdoor can reduce SAT to tractable residuals, but existence and discovery of a universally small backdoor are separate obligations."
+    },
+    {
+      "topic": "sparsification",
+      "reference": "Impagliazzo, Paturi, Zane, JCSS 2001",
+      "transfer": "Sparse hard instances remain central: reducing clause count to O(n) does not by itself yield polynomial-time SAT."
+    }
+  ],
+  "candidate_rule_stack": {
+    "allowed_rules": [
+      "TAUTOLOGY_DELETION",
+      "UNIT_PROPAGATION_WITH_RECONSTRUCTION_TRACE",
+      "PURE_LITERAL_AUTARKY",
+      "SUBSUMPTION",
+      "BLOCKED_CLAUSE_ELIMINATION",
+      "BOUNDED_VARIABLE_ELIMINATION_ONLY_WHEN_NONTAUTOLOGICAL_RESOLVENT_COUNT_DOES_NOT_EXCEED_REMOVED_CLAUSE_COUNT"
+    ],
+    "all_rules_must": [
+      "be deterministic under the frozen tie-breaking policy",
+      "be polynomial-time checkable without invoking a SAT solver",
+      "preserve SAT/UNSAT status",
+      "emit a local certificate or reconstruction record",
+      "strictly decrease the frozen lexicographic progress measure when applied"
+    ],
+    "forbidden": [
+      "DPLL_OR_CDCL_INSIDE_REDUCTION_DETECTOR",
+      "EXHAUSTIVE_ASSIGNMENT_ENUMERATION",
+      "TRUTH_TABLE_ORACLE",
+      "GLOBAL_SEMANTIC_REDUNDANCY_CHECK",
+      "POST_HOC_RULE_CHANGES_AFTER_TEST_FAMILY_RESULTS",
+      "RESOURCE_LIMIT_INCREASE_AS_SCIENTIFIC_SUCCESS",
+      "CLAIM_THAT_SMALL_INPUT_FORMULA_EQUALS_SMALL_DECISION_STATE"
+    ]
+  },
+  "frozen_policy": {
+    "rule_order": [
+      "TAUTOLOGY_DELETION",
+      "UNIT_PROPAGATION_WITH_RECONSTRUCTION_TRACE",
+      "PURE_LITERAL_AUTARKY",
+      "SUBSUMPTION",
+      "BLOCKED_CLAUSE_ELIMINATION",
+      "BOUNDED_VARIABLE_ELIMINATION"
+    ],
+    "within_rule_tie_break": "lexicographic variable/literal/clause order after canonical clause normalization",
+    "repeat": "restart from the first rule after every successful reduction until fixpoint",
+    "progress_measure": [
+      "number_of_active_clauses",
+      "number_of_active_literal_occurrences",
+      "number_of_active_variables"
+    ],
+    "terminal_classes": [
+      "EMPTY_CNF_SAT",
+      "EMPTY_CLAUSE_UNSAT",
+      "HORN",
+      "2CNF"
+    ]
+  },
+  "frozen_test_families": [
+    {
+      "id": "EASY_REDUNDANT_TAIL",
+      "purpose": "positive control where certified deletion must remove an intentionally redundant tail"
+    },
+    {
+      "id": "BLOCKED_CLAUSE_CONTROL",
+      "purpose": "positive control for BCE and confluence-compatible deletion"
+    },
+    {
+      "id": "BVE_CONTROL",
+      "purpose": "positive control for bounded Davis-Putnam elimination and model reconstruction trace"
+    },
+    {
+      "id": "TSEITIN_3REGULAR_PRISM_FAMILY",
+      "sizes": [8, 12, 16, 20, 24, 28, 32],
+      "purpose": "adversarial sparse 3-CNF family intended to expose a nontrivial lean/stall core"
+    },
+    {
+      "id": "DETERMINISTIC_RANDOM_3CNF",
+      "seeds": [33001, 33002, 33003, 33004],
+      "n": 24,
+      "clause_ratio": 4.2,
+      "purpose": "non-hand-tuned structural controls; no scientific claim from SAT hardness"
+    }
+  ],
+  "measurement_contract": {
+    "record_per_reduction": [
+      "rule",
+      "certificate",
+      "clauses_before_after",
+      "literal_occurrences_before_after",
+      "variables_before_after",
+      "reconstruction_record_size",
+      "check_operation_count"
+    ],
+    "record_per_instance": [
+      "initial_size",
+      "final_core_size",
+      "core_fraction",
+      "terminal_class_or_STALLED_LEAN_CORE",
+      "total_rule_applications",
+      "total_certificate_bytes",
+      "total_check_operation_count"
+    ],
+    "no_truth_required_for_candidate": true,
+    "small_positive_controls_may_use_independent_full_domain_replay_after_candidate_terminal": true
+  },
+  "admissible_verdicts": [
+    "R33_FAIL_INTEGRITY",
+    "R33_SEMANTIC_MISMATCH",
+    "R33_CERTIFIED_REDUCTION_STACK_REACHES_TRACTABLE_TERMINAL_ON_ALL_FROZEN_CONTROLS__NO_UNIVERSAL_CLAIM",
+    "R33_CERTIFIED_REDUCTION_STACK_STALLS_ON_LEAN_CORE"
+  ],
+  "interpretation_firewall": {
+    "stall_meaning": "The currently frozen polynomially checkable safe-rule stack is incomplete. It does not disprove the existence of another polynomial progress rule.",
+    "success_on_controls_meaning": "Finite evidence only. It does not establish a universal progress theorem.",
+    "theorem_gate": "A P=NP route requires a proof that every nonterminal 3-CNF admits a rule from one fixed polynomial-time detectable safe family that decreases the measure, or an equivalent polynomial-state invariant.",
+    "R31_obligations_closed_by_R33": 0,
+    "TRUMP_finished": false,
+    "SAT_IN_P": "NOT_PROVED",
+    "P_VS_NP": "OPEN",
+    "runtime_authority": false
+  },
+  "next_gate_policy": {
+    "if_stall": "Preserve the smallest reproducible stalled core and attack exactly why every frozen safe rule rejects it. R34 may propose one new polynomially checkable rule only after the counterexample is sealed.",
+    "if_all_controls_terminal": "Freeze the stack byte-for-byte and run new unseen sparse families; do not tune on the frozen controls.",
+    "if_mismatch": "Preserve the counterexample and repair in a new version; never rewrite R33 history."
+  }
+}
