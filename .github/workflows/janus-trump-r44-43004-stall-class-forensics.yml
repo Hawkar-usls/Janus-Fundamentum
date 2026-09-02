@@ -1,0 +1,71 @@
+name: JANUS TRUMP R44 43004 Stall Class Forensics
+
+on:
+  push:
+    branches:
+      - research/janus-trump-r44-43004-stall-class-forensics-2026-09-02
+    paths:
+      - 'research/JANUS_TRUMP_R44_43004_STALL_CLASS_FORENSICS_PREREGISTRATION_2026-09-02.json'
+      - 'experiments/janus_trump_r44_43004_stall_class_forensics.py'
+      - '.github/workflows/janus-trump-r44-43004-stall-class-forensics.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  r44-forensics:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Verify R43 seal and byte-pinned forensic inputs
+        run: |
+          set -euo pipefail
+          git merge-base --is-ancestor 48fd0dd9b846d42ef0654eed6bfb2e041b013e16 "$GITHUB_SHA"
+          test "$(git hash-object experiments/janus_trump_r42_subsumption_aware_bve_successor.py)" = "d71d7edb284a37bc7d7039c0d585d64cf2844de9"
+          test "$(git hash-object research/JANUS_TRUMP_R44_43004_STALL_CLASS_FORENSICS_PREREGISTRATION_2026-09-02.json)" = "139b3cd7a1f4a9b4a54d2099d08c7ce106547916"
+          test "$(git hash-object experiments/janus_trump_r44_43004_stall_class_forensics.py)" = "aeb1fab1eaa59399e9f738deba9a59bc1ff1a9c5"
+      - name: Compile and self-test
+        working-directory: experiments
+        run: |
+          python -m py_compile janus_trump_r44_43004_stall_class_forensics.py
+          python janus_trump_r44_43004_stall_class_forensics.py --self-test
+      - name: Execute R44 forensic probe
+        working-directory: experiments
+        run: |
+          mkdir -p ../artifacts
+          python janus_trump_r44_43004_stall_class_forensics.py --output ../artifacts/JANUS_TRUMP_R44_43004_STALL_CLASS_FORENSICS_RESULT_2026-09-02.json
+      - name: Scientific integrity gate
+        if: always()
+        run: |
+          python - <<'PY'
+          import json,os
+          p='artifacts/JANUS_TRUMP_R44_43004_STALL_CLASS_FORENSICS_RESULT_2026-09-02.json'
+          assert os.path.exists(p)
+          d=json.load(open(p,encoding='utf-8'))
+          assert d['source_git_commit']==os.environ['GITHUB_SHA']
+          assert d['sealed_counterexample']['stall_sha256']=='95c0051895557d9353cc889cc7b1a35d225e60f264dfd8da56bb4da67439a6b7'
+          assert d['operator_exhaustion']['monotone_CLV_local_minimum'] is True
+          assert d['forced_exact_DP_probe']['immediate_descent_count']==0
+          assert d['verdict'] in {
+            'R44_MONOTONE_CLV_LOCAL_MINIMUM__ONE_ELIMINATION_ASCENT_TO_DESCENT_ESCAPE_EXISTS',
+            'R44_MONOTONE_CLV_LOCAL_MINIMUM__NO_ONE_ELIMINATION_ESCAPE'
+          }
+          assert d['claim_ceiling']['R42_remains_refuted'] is True
+          assert d['claim_ceiling']['L2_UNIVERSAL_3CNF_COVERAGE'] is False
+          assert d['TRUMP_finished'] is False and d['SAT_IN_P']=='NOT_PROVED' and d['P_VS_NP']=='OPEN'
+          print(json.dumps({'verdict':d['verdict'],'escape_count':d['forced_exact_DP_probe']['escape_count'],'best_escape':d['forced_exact_DP_probe']['best_escape'],'next_gate':d['next_gate']},indent=2,sort_keys=True))
+          PY
+      - name: Upload immutable R44 evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: janus-trump-r44-43004-stall-class-forensics
+          path: artifacts/JANUS_TRUMP_R44_43004_STALL_CLASS_FORENSICS_RESULT_2026-09-02.json
+          if-no-files-found: error
