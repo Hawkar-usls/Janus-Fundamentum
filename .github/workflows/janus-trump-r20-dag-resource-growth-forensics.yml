@@ -1,0 +1,129 @@
+name: JANUS TRUMP R20 DAG Resource Growth Forensics
+
+on:
+  push:
+    branches:
+      - research/janus-trump-r20-dag-resource-growth-forensics-2026-09-02
+    paths:
+      - 'research/JANUS_TRUMP_R20_DAG_RESOURCE_GROWTH_FORENSICS_PREREGISTRATION_2026-09-02.json'
+      - 'experiments/janus_trump_r20_dag_resource_growth_forensics.py'
+      - '.github/workflows/janus-trump-r20-dag-resource-growth-forensics.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  r20-world:
+    strategy:
+      fail-fast: false
+      matrix:
+        world: [R19-W01, R19-W02, R19-W03, R19-W04, R19-W05, R19-W06, R19-W07, R19-W08]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Verify frozen R18 machine and R20 forensic contract
+        run: |
+          set -euo pipefail
+          test "$(git hash-object experiments/janus_trump_r18_shannon_hashcons_interface_dag_discovery.py)" = "afa95321ec6edbb33bef222d8ee7234fe631a599"
+          python - <<'PY'
+          import json
+          p=json.load(open('research/JANUS_TRUMP_R20_DAG_RESOURCE_GROWTH_FORENSICS_PREREGISTRATION_2026-09-02.json'))
+          assert p['status']=='FROZEN_BEFORE_R20_FORENSIC_OBSERVER_IMPLEMENTATION_AND_REPLAY'
+          assert p['parent_R19_result_summary_commit']=='f633c567450bc61969a75e535cda1da4f641a670'
+          assert p['scientific_role']=='RESOURCE_FORENSICS_ONLY__NO_LOGIC_TUNING__NO_SEMANTIC_RESCORING'
+          assert p['frozen_candidate']['git_blob_sha']=='afa95321ec6edbb33bef222d8ee7234fe631a599'
+          assert p['frozen_candidate']['candidate_logic_changes_allowed'] is False
+          assert p['frozen_candidate']['resource_envelope_changes_allowed'] is False
+          assert p['observer_contract']['truth_access'] is False
+          assert p['observer_contract']['SAT_solver_access'] is False
+          assert p['P_VS_NP']=='OPEN'
+          print('R20_FORENSIC_CONTRACT_OK')
+          PY
+      - name: Install import dependency without granting semantic authority
+        run: python -m pip install --disable-pip-version-check 'python-sat==1.9.dev15'
+      - name: Compile forensic observer
+        run: PYTHONPATH=experiments:. python -m py_compile experiments/janus_trump_r20_dag_resource_growth_forensics.py
+      - name: Replay frozen machine with observation only
+        run: |
+          mkdir -p artifacts
+          PYTHONPATH=experiments:. python experiments/janus_trump_r20_dag_resource_growth_forensics.py \
+            --world '${{ matrix.world }}' \
+            --output 'artifacts/${{ matrix.world }}.json'
+      - name: Per-world forensic integrity gate
+        if: always()
+        run: |
+          python - <<'PY'
+          import json, os
+          p='artifacts/${{ matrix.world }}.json'
+          assert os.path.exists(p),'missing forensic result'
+          d=json.load(open(p))
+          assert d['scientific_role']=='RESOURCE_FORENSICS_ONLY__NO_SEMANTIC_RESCORING'
+          assert d['frozen_candidate_git_blob_sha']=='afa95321ec6edbb33bef222d8ee7234fe631a599'
+          assert d['observer_firewall']['pass'] is True,d['observer_firewall']
+          assert d['truth_accessed'] is False
+          assert d['P_VS_NP']=='OPEN'
+          if d['world_id'] in ('R19-W01','R19-W02','R19-W03','R19-W04'):
+              assert d['status']=='COMPLETE_INTERFACE_DAG',d['status']
+              assert d['observer_equivalence']['pass'] is True,d['observer_equivalence']
+          if d['status']=='OPEN_RESOURCE_LIMIT':
+              assert d['partial_open_step'] is not None or d['phase_at_terminal']=='COMPILE_CNF'
+          print(d['world_id'],d['status'],d['completed_elimination_steps'],d['total_elimination_steps'])
+          PY
+      - name: Upload immutable per-world forensic evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: janus-trump-r20-${{ matrix.world }}
+          path: artifacts/${{ matrix.world }}.json
+          if-no-files-found: error
+
+  r20-aggregate:
+    if: always()
+    needs: r20-world
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install import dependency
+        run: python -m pip install --disable-pip-version-check 'python-sat==1.9.dev15'
+      - name: Download forensic evidence
+        uses: actions/download-artifact@v4
+        with:
+          pattern: janus-trump-r20-R19-W*
+          path: world-results
+          merge-multiple: true
+      - name: Aggregate without semantic rescoring
+        run: |
+          mkdir -p artifacts
+          PYTHONPATH=experiments:. python experiments/janus_trump_r20_dag_resource_growth_forensics.py \
+            --aggregate-dir world-results \
+            --output artifacts/JANUS_TRUMP_R20_DAG_RESOURCE_GROWTH_FORENSICS_AGGREGATE_RESULT_2026-09-02.json
+      - name: Aggregate forensic gate
+        if: always()
+        run: |
+          python - <<'PY'
+          import json, os
+          p='artifacts/JANUS_TRUMP_R20_DAG_RESOURCE_GROWTH_FORENSICS_AGGREGATE_RESULT_2026-09-02.json'
+          assert os.path.exists(p),'missing R20 aggregate'
+          d=json.load(open(p))
+          allowed={'R20_DAG_GROWTH_WALL_LOCALIZED','R20_MIXED_RESOURCE_WALL_LOCALIZED','R20_NO_SINGLE_WALL_LOCALIZED__FORENSICS_PRESERVED','R20_FAIL_OBSERVER_EQUIVALENCE__NO_OPEN_WORLD_INTERPRETATION','R20_FAIL_INTEGRITY'}
+          assert d['verdict'] in allowed,d['verdict']
+          assert d['P_VS_NP']=='OPEN'
+          print(d['verdict'])
+          print(d['mechanism_coverage'])
+          PY
+      - name: Upload immutable R20 aggregate evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: janus-trump-r20-dag-resource-growth-forensics-aggregate
+          path: artifacts/JANUS_TRUMP_R20_DAG_RESOURCE_GROWTH_FORENSICS_AGGREGATE_RESULT_2026-09-02.json
+          if-no-files-found: error
