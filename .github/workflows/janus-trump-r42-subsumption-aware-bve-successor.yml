@@ -1,0 +1,143 @@
+name: JANUS TRUMP R42 Subsumption-Aware BVE Successor
+
+on:
+  push:
+    branches:
+      - research/janus-trump-r42-subsumption-aware-bve-successor-2026-09-02
+    paths:
+      - 'research/JANUS_TRUMP_R42_SUBSUMPTION_AWARE_BVE_SUCCESSOR_PREREGISTRATION_2026-09-02.json'
+      - 'experiments/janus_trump_r42_subsumption_aware_bve_successor.py'
+      - '.github/workflows/janus-trump-r42-subsumption-aware-bve-successor.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  r42-fixed-successor:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Verify R41 seal ancestry and byte-pinned R42 snapshot
+        run: |
+          set -euo pipefail
+          git merge-base --is-ancestor 3976df85579e26b4e038c043363ff71df82abef3 "$GITHUB_SHA"
+          test "$(git hash-object research/JANUS_TRUMP_R42_SUBSUMPTION_AWARE_BVE_SUCCESSOR_PREREGISTRATION_2026-09-02.json)" = "c46947ce8cb5d17c5fddaf68722f7dcf8386d293"
+          test "$(git hash-object experiments/janus_trump_r42_subsumption_aware_bve_successor.py)" = "d71d7edb284a37bc7d7039c0d585d64cf2844de9"
+          python - <<'PY'
+          import json
+          p=json.load(open('research/JANUS_TRUMP_R42_SUBSUMPTION_AWARE_BVE_SUCCESSOR_PREREGISTRATION_2026-09-02.json',encoding='utf-8'))
+          assert p['status']=='FROZEN_BEFORE_R42_SUCCESSOR_EXECUTION'
+          assert p['parent']['sealed_commit']=='3976df85579e26b4e038c043363ff71df82abef3'
+          assert p['candidate_id']=='TRUMP_R42_FIXED_SUCCESSOR_R33_R34_R35B_SA_BVE_v1'
+          assert p['new_progress_operator']['id']=='SUBSUMPTION_AWARE_BOUNDED_VARIABLE_ELIMINATION'
+          assert p['global_rank']['rank_reset_allowed'] is False
+          assert p['promotion_rules']['all_preregistered_holdouts_decided_may_close_L2'] is False
+          assert p['promotion_rules']['valid_reachable_stall_immediately_refutes_this_frozen_successor_for_L2'] is True
+          assert p['claim_ceiling']['P_VS_NP']=='OPEN'
+          print('R42_PREREGISTRATION_AND_SNAPSHOT_PIN=PASS')
+          PY
+
+      - name: Static no-oracle and no-enumeration firewall
+        run: |
+          python - <<'PY'
+          import ast
+          from pathlib import Path
+          p=Path('experiments/janus_trump_r42_subsumption_aware_bve_successor.py')
+          source=p.read_text(encoding='utf-8')
+          tree=ast.parse(source)
+          forbidden={'pysat','z3','pycosat','subprocess','socket','requests','urllib','scipy','numpy'}
+          imported=set()
+          for node in ast.walk(tree):
+              if isinstance(node,ast.Import):
+                  imported.update(a.name.split('.')[0] for a in node.names)
+              elif isinstance(node,ast.ImportFrom):
+                  imported.add((node.module or '').split('.')[0])
+          assert not (imported & forbidden),(imported & forbidden)
+          assert 'brute_force_model' not in source
+          assert 'itertools.product' not in source
+          assert 'SUBSUMPTION_AWARE_BVE' in source
+          assert 'EXPECTED_EXPOSED_R37B_STALL_HASH' in source
+          print({'external_solver':False,'truth_assignment_enumeration':False,'snapshot_frozen':True})
+          PY
+
+      - name: Compile and structured self-test before holdout execution
+        working-directory: experiments
+        run: |
+          python -m py_compile janus_trump_r42_subsumption_aware_bve_successor.py
+          python janus_trump_r42_subsumption_aware_bve_successor.py --self-test
+
+      - name: Execute frozen exposed and preregistered unseen suite
+        working-directory: experiments
+        run: |
+          mkdir -p ../artifacts
+          python janus_trump_r42_subsumption_aware_bve_successor.py \
+            --output ../artifacts/JANUS_TRUMP_R42_SUBSUMPTION_AWARE_BVE_SUCCESSOR_RESULT_2026-09-02.json
+
+      - name: R42 scientific integrity and claim-ceiling gate
+        if: always()
+        run: |
+          python - <<'PY'
+          import json,os
+          path='artifacts/JANUS_TRUMP_R42_SUBSUMPTION_AWARE_BVE_SUCCESSOR_RESULT_2026-09-02.json'
+          assert os.path.exists(path)
+          d=json.load(open(path,encoding='utf-8'))
+          allowed={
+            'R42_EXPOSED_STALL_REPAIRED__UNSEEN_STALL_REMAINS__SUCCESSOR_REFUTED_FOR_L2',
+            'R42_EXPOSED_AND_PREREGISTERED_HOLDOUTS_DECIDED__L2_STILL_UNPROVED',
+            'R42_EXPOSED_STALL_NOT_REPAIRED__SUCCESSOR_REFUTED',
+            'R42_FAIL_INTEGRITY'
+          }
+          assert d['source_git_commit']==os.environ['GITHUB_SHA']
+          assert d['verdict'] in allowed
+          assert d['fixed_controller_id']=='TRUMP_R42_FIXED_SUCCESSOR_R33_R34_R35B_SA_BVE_v1'
+          assert all(x['pass'] for x in d['structured_controls'].values())
+          expected=[42001,42002,42003,42004,42005,42006,42101,42102,42103]
+          assert [x['seed'] for x in d['unseen_holdouts']]==expected
+          assert d['unseen_holdout_count']==len(expected)
+          all_rows=[d['exposed_regression'],*d['unseen_holdouts']]
+          for row in all_rows:
+              assert row['rank']['initial_mu'] >= 0
+              if row['semantic_sat'] is True:
+                  assert row['final_original_model_replay']['pass'] is True
+              if row['semantic_decided']:
+                  assert row['terminal_verification'] is not None
+          if d['first_new_stall'] is not None:
+              assert d['first_new_stall']['formula_hash']
+              assert d['proof_ladder']['L2_UNIVERSAL_3CNF_COVERAGE'] is False
+          if d['unseen_stall_count']:
+              assert d['verdict']=='R42_EXPOSED_STALL_REPAIRED__UNSEEN_STALL_REMAINS__SUCCESSOR_REFUTED_FOR_L2' or d['verdict']=='R42_EXPOSED_STALL_NOT_REPAIRED__SUCCESSOR_REFUTED'
+          if d['verdict']=='R42_EXPOSED_AND_PREREGISTERED_HOLDOUTS_DECIDED__L2_STILL_UNPROVED':
+              assert d['unseen_stall_count']==0 and d['exposed_regression']['semantic_decided'] is True
+          assert d['proof_ladder']['L2_UNIVERSAL_3CNF_COVERAGE'] is False
+          assert d['proof_ladder']['L3_ONE_UNIFORM_TOTAL_TRUMP_RESOLVER'] is False
+          assert d['proof_ladder']['L4_WORST_CASE_POLYNOMIAL_UNIFORM_TRUMP_RESOLVER'] is False
+          assert d['complexity_firewall']['SA_BVE_assignment_enumeration_used'] is False
+          assert d['complexity_firewall']['external_SAT_solver_used'] is False
+          assert d['TRUMP_finished'] is False and d['SAT_IN_P']=='NOT_PROVED' and d['P_VS_NP']=='OPEN'
+          print(json.dumps({
+            'verdict':d['verdict'],
+            'exposed_repaired':d['exposed_repaired'],
+            'exposed_terminal':d['exposed_regression']['terminal_status'],
+            'exposed_SA_BVE_applications':d['exposed_regression']['SA_BVE_applications'],
+            'unseen_stall_count':d['unseen_stall_count'],
+            'first_new_stall':d['first_new_stall'],
+            'P_VS_NP':d['P_VS_NP']
+          },indent=2,sort_keys=True))
+          PY
+
+      - name: Upload immutable R42 evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: janus-trump-r42-subsumption-aware-bve-successor
+          path: artifacts/JANUS_TRUMP_R42_SUBSUMPTION_AWARE_BVE_SUCCESSOR_RESULT_2026-09-02.json
+          if-no-files-found: error
