@@ -1,0 +1,122 @@
+{
+  "schema": "JANUS_TRUMP_R40_UNIVERSAL_QUOTIENT_COVERAGE_PREREGISTRATION",
+  "version": "1.0",
+  "date": "2026-09-02",
+  "status": "FROZEN_BEFORE_R40_EXECUTION",
+  "branch": "research/janus-trump-r40-universal-quotient-coverage-2026-09-02",
+  "parent": {
+    "stage": "R39",
+    "sealed_commit": "221887994664e8b1bb1de00dec29eaac49f86269",
+    "verdict": "R39_QHORN_REJECTED_LOCAL_EXACT__RETURN_TO_UNIVERSAL_COVERAGE",
+    "workflow_run_id": 33666176423,
+    "next_gate": "R40_UNIVERSAL_FIXPOINT_COVERAGE_AND_REMAINDER_OBLIGATION"
+  },
+  "formal_mechanism": {
+    "pipeline": [
+      "REPRESENTATIVE",
+      "PROPERTY",
+      "TRANSPORT_CERTIFICATE",
+      "TOTAL_COVERAGE",
+      "UNIVERSAL_CLAIM"
+    ],
+    "forbidden_inference": "EXISTS w:Q(w) DOES_NOT_IMPLY FOR_ALL x:Q(x)",
+    "allowed_inference": "Q(w_i) AND FOR_ALL x IN C(w_i):Transport(w_i,x) AND U=UNION_i C(w_i) IMPLIES FOR_ALL x IN U:Q(x)",
+    "coverage_scope": "FINITE_EXPLICIT_FIXTURE_UNIVERSE_ONLY"
+  },
+  "metrics": {
+    "N(n)": "raw explicit states",
+    "K(n)": "quotient classes induced by the preregistered canonical signature",
+    "R(n)": "raw states not covered exactly once by a certified quotient class",
+    "F(n)": "failed representative-to-member transport certificates",
+    "compression_ratio": "N(n)/K(n) when K(n)>0"
+  },
+  "finite_coverage_gate": {
+    "PASS_iff": [
+      "R(n) == 0",
+      "F(n) == 0",
+      "every representative satisfies the class property",
+      "every class member is connected to its representative by an explicit rechecked transport certificate"
+    ],
+    "claim_if_pass": "FINITE_UNIVERSAL_COVERAGE_CERTIFIED",
+    "does_not_claim": [
+      "UNIVERSAL_3CNF_COVERAGE",
+      "ONE_UNIFORM_TOTAL_TRUMP_RESOLVER",
+      "WORST_CASE_POLYNOMIAL_UNIFORM_TRUMP_RESOLVER",
+      "SAT_IN_P",
+      "P_EQUALS_NP"
+    ]
+  },
+  "quotient_policy": {
+    "safe_signature_fields": [
+      "level",
+      "local_property",
+      "boundary_signature"
+    ],
+    "transport_recheck": "member.local_property == representative.local_property AND member.boundary_signature == representative.boundary_signature AND member.level == representative.level",
+    "unsafe_control_signature_fields": [
+      "level"
+    ],
+    "reason": "The unsafe control intentionally ignores property and boundary information and MUST be rejected when it merges non-transportable members."
+  },
+  "adversarial_fixtures": [
+    {
+      "id": "PYRAMID_SYMMETRIC_4ARY",
+      "generator": "explicitly enumerate 4^n leaf states for n in the frozen depth set",
+      "expected": "safe quotient compresses leaves to one canonical class per level/signature family; R=0; F=0; QUOTIENT_COMPRESSION_OBSERVED=true for n>0"
+    },
+    {
+      "id": "PYRAMID_BROKEN_BRANCH",
+      "generator": "flip the relevant local property on exactly one deterministic leaf",
+      "expected": "safe quotient splits the broken leaf; R=0; F=0; deliberately unsafe level-only quotient yields F>0 and is rejected"
+    },
+    {
+      "id": "PYRAMID_BOUNDARY_DEPENDENCY",
+      "generator": "assign each leaf a path-derived boundary signature so dependencies preserve branch identity",
+      "expected": "K(n)=N(n) on leaves; QUOTIENT_COMPRESSION_OBSERVED=false; no compression or polynomiality claim is allowed"
+    }
+  ],
+  "depths": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6
+  ],
+  "source_fixture": {
+    "role": "ADVERSARIAL_DESIGN_REFERENCE_NOT_PROOF",
+    "conversation_attachment": "Lvl6_pyr_1_6_trimmer.3mf",
+    "observed_size_bytes": 6283724,
+    "binding_note": "R40 uses a deterministic abstract 4-ary pyramid state generator inspired by the uploaded level-6 pyramid asset; it does not infer theorem-level geometry from the binary attachment."
+  },
+  "status_separation": {
+    "QUOTIENT_COMPRESSION_OBSERVED": "finite measured K<N on a preregistered fixture",
+    "FINITE_UNIVERSAL_COVERAGE_CERTIFIED": "finite exact coverage with R=0 and F=0",
+    "POLYNOMIALITY_PROVEN": "requires a symbolic all-n bound on K(n) and polynomial construction plus verification cost; finite measurements never set this true"
+  },
+  "complexity_firewall": {
+    "finite_runs_can_prove_polynomiality": false,
+    "POLYNOMIALITY_PROVEN_default": false,
+    "P_VS_NP": "OPEN",
+    "SAT_IN_P": "NOT_PROVED",
+    "TRUMP_finished": false
+  },
+  "allowed_verdicts": [
+    "R40_FINITE_QUOTIENT_COVERAGE_CERTIFIED__POLYNOMIALITY_OPEN",
+    "R40_FAIL_COVERAGE_OR_TRANSPORT",
+    "R40_FAIL_INTEGRITY"
+  ],
+  "captain_command": {
+    "if_pass": "Carry the certified witness-to-coverage mechanism forward, but do not promote finite compression observations to polynomiality or universal 3-CNF coverage.",
+    "if_fail": "Preserve the counterexample and refine only the quotient signature or transport obligation; never erase a failed transport by coarsening evidence.",
+    "next_gate_if_pass": "R41_SYMBOLIC_ALL_N_QUOTIENT_GROWTH_AND_CERTIFICATE_COST_OBLIGATION"
+  },
+  "firewalls": [
+    "EXISTENTIAL_WITNESS != UNIVERSAL_COVERAGE",
+    "QUOTIENT_COMPRESSION_OBSERVED != POLYNOMIALITY_PROVEN",
+    "FINITE_UNIVERSAL_COVERAGE_CERTIFIED != UNIVERSAL_3CNF_COVERAGE",
+    "EXPONENTIAL_ENUMERATION != EXPONENTIAL_NUMBER_OF_ESSENTIAL_STATES",
+    "EXPECTED_NEGATIVE_CONTROL != PIPELINE_FAILURE",
+    "P_VS_NP = OPEN"
+  ]
+}
