@@ -1,0 +1,64 @@
+{
+  "schema": "JANUS/TRUMP/R24/TRUTH_BLIND_STRUCTURAL_CUTSET_WIDTH_PROFILE/PREREGISTRATION/v1.0",
+  "created_date": "2026-09-02",
+  "status": "FROZEN_BEFORE_R24_IMPLEMENTATION_AND_EXECUTION",
+  "parent_R23_result_summary_commit": "71804e78b045e24c4065147a2d63a74275185189",
+  "scientific_role": "EXPOSED_STRUCTURAL_CUTSET_FORENSICS__NO_SEMANTIC_TRUTH__NO_BOOLEAN_BRANCHING",
+  "target": {
+    "world_id": "R19-W05",
+    "frame_sha256": "cd8e7168819401fc2510f351b0c7d319fc9cacfa400b181cf6e91cecd1288384",
+    "R23_internal_component_count": 1,
+    "R23_internal_component_size": 60,
+    "R23_bridge_boundary_size": 11,
+    "R23_minimum_frozen_heuristic_width": 48,
+    "scope": "EXPOSED_STRUCTURE_ONLY__NOT_UNSEEN"
+  },
+  "cutset_contract": {
+    "meaning": "A selected cutset variable is deleted from the primal graph only as a structural probe. R24 does not assign it 0/1, enumerate its values, simplify clauses semantically, or execute a Boolean branch.",
+    "eligible_vertices": "remaining internal variables only; frozen R19 bridge variables are never selected",
+    "maximum_cutset_size": 8,
+    "profile_sizes": [0,1,2,3,4,5,6,7,8],
+    "greedy_lookahead_rule": "At each round, for every eligible remaining internal variable v, delete v and its incident edges from the current primal graph; run both frozen R23 internal elimination heuristics on that reduced graph; score v lexicographically by (minimum induced width across MIN_FILL_INTERNAL and MIN_DEGREE_INTERNAL, maximum induced width across the two, minimum total fill edges across the two, negative current degree of v, negative original frame literal-occurrence count of v, numeric variable id ascending). Select the unique lexicographic minimum, permanently delete it for the next round, and never revise earlier choices.",
+    "heuristics_reused_byte_semantically": ["MIN_FILL_INTERNAL","MIN_DEGREE_INTERNAL"],
+    "bridge_behavior": "bridge vertices remain present as neighbors and are never eliminated by the width heuristics",
+    "no_post_result_cutset_reselection": true
+  },
+  "measurements_per_profile_size": [
+    "selected_cutset_prefix",
+    "remaining_internal_variables",
+    "internal_component_count_after_cutset_and_bridge_removal",
+    "largest_internal_component_size",
+    "largest_component_bridge_boundary_size",
+    "MIN_FILL_INTERNAL induced width and fill edges",
+    "MIN_DEGREE_INTERNAL induced width and fill edges",
+    "minimum_frozen_heuristic_width",
+    "width_drop_from_k0",
+    "final_bridge_is_clique under both heuristics"
+  ],
+  "verdict_rules": {
+    "small_cutset_promising": "R24_SMALL_STRUCTURAL_CUTSET_PROMISING if minimum frozen heuristic width reaches <=20 at any k<=8.",
+    "concentrated_core_signal": "If small_cutset_promising is false, R24_CONCENTRATED_STRUCTURAL_CORE_SIGNAL if width drop from k=0 to k=8 is >=16.",
+    "distributed_width_signal": "If neither prior rule holds, R24_DISTRIBUTED_WIDTH_SIGNAL if width drop from k=0 to k=8 is <=8.",
+    "mixed": "All other integrity-valid outcomes are R24_MIXED_CUTSET_WIDTH_SIGNAL."
+  },
+  "firewall": {
+    "SAT_solver_forbidden": true,
+    "assignment_enumeration_forbidden": true,
+    "truth_table_forbidden": true,
+    "candidate_compile_forbidden": true,
+    "clause_semantic_simplification_after_cutset_forbidden": true,
+    "cutset_value_assignment_forbidden": true,
+    "dynamic_threshold_change_forbidden": true,
+    "post_answer_cutset_reselection_forbidden": true
+  },
+  "interpretation_limits": [
+    "Deleting k graph vertices is a structural sensitivity probe, not a proof that a semantic algorithm can branch on 2^k assignments efficiently.",
+    "The resulting induced widths are upper bounds for the two frozen heuristic orders, not exact treewidth.",
+    "A large width drop may motivate a new symbolic separator representation, but cannot by itself authorize assignment enumeration inside a candidate."
+  ],
+  "next_action_rule": "Only after R24 preserves the cutset-width profile may a new semantic representation be proposed. If width remains distributed, do not hide exponential cutset enumeration behind the word factorization.",
+  "claim_ceiling": "Exposed graph-structural sensitivity on one frozen world only. No semantic verdict, no treewidth theorem, no polynomial scaling, no SAT-in-P, P=NP, or P!=NP conclusion.",
+  "law": "IF_A_SMALL_CORE_HOLDS_THE_WIDTH__DELETING_THAT_CORE_SHOULD_MOVE_THE_STRUCTURAL_WALL_MORE_THAN_ONE_STEP_PER_VERTEX",
+  "seal": "R24_WILL_REMOVE_VERTICES_FROM_A_GRAPH__NOT_ASSIGN_BITS_TO_A_FORMULA",
+  "P_VS_NP": "OPEN"
+}
