@@ -1,0 +1,79 @@
+{
+  "schema": "JANUS/TRUMP/R23/BRIDGE_SEPARATOR_COMPONENT_FACTORED_INTERFACE/PREREGISTRATION/v1.0",
+  "created_date": "2026-09-02",
+  "status": "FROZEN_BEFORE_R23_IMPLEMENTATION_AND_EXECUTION",
+  "parent_R22_result_summary_commit": "fc46806c93346ee088fc94847e1d0f2296bffc8c",
+  "scientific_role": "EXPOSED_COMPONENT_DECOMPOSITION_DISCOVERY__SEMANTIC_TRUTH_ONLY_AFTER_TERMINAL_CANDIDATE",
+  "target": {
+    "world_id": "R19-W05",
+    "frame_sha256": "cd8e7168819401fc2510f351b0c7d319fc9cacfa400b181cf6e91cecd1288384",
+    "frame_clause_count": 287,
+    "frame_variable_count": 71,
+    "internal_variable_count": 60,
+    "bridge_variable_count": 11,
+    "scope": "EXPOSED_DISCOVERY_ONLY__NOT_UNSEEN"
+  },
+  "representation_contract": {
+    "name": "BRIDGE_SEPARATOR_COMPONENT_FACTORED_BOOLEAN_INTERFACE",
+    "target_invariant": "I_F(B)=exists_Y F(Y,B)",
+    "separator": "THE_FROZEN_R19_W05_BRIDGE_VARIABLE_SET_B_ONLY",
+    "primal_graph": "one vertex per frame variable; undirected edge between every pair of variables co-occurring in one frozen CNF clause",
+    "component_rule": "remove all bridge vertices B from the primal graph; take deterministic connected components of the remaining internal-variable graph; sort variables within each component ascending and sort components lexicographically by their variable tuples",
+    "clause_partition_rule": "a clause containing internal variables belongs to the unique internal component containing all of its internal variables; a clause containing only bridge variables belongs to BRIDGE_ONLY. If one clause contains internal variables from multiple computed components, FAIL_INTEGRITY because the primal decomposition is inconsistent.",
+    "factor_semantics": "for component C_i, F_i(C_i,B_i) is the conjunction of all clauses assigned to C_i; the local factor is G_i(B_i)=exists_C_i F_i(C_i,B_i); bridge-only clauses form G_0(B). The terminal representation is the factor set {G_0,G_1,...,G_k}, evaluated by conjunction without materializing a global Boolean DAG.",
+    "exact_identity": "exists_Y F(Y,B) = G_0(B) AND product_i G_i(B_i), because internal component variable sets are pairwise disjoint and clauses couple distinct components only through bridge variables",
+    "local_compiler": "sealed R18 HASHCONS_AND_OR_DAG_WITH_SHANNON_EXISTENTIAL_QUANTIFICATION operations applied independently to each component factor; no new Boolean simplification rule",
+    "local_elimination_order": "sealed r18.elimination_order on each local component CNF with its local bridge support; all component internal variables must be eliminated",
+    "global_materialization_forbidden": true,
+    "terminal_support": "every local factor root may reference only frozen bridge variables; no original internal variable may remain"
+  },
+  "resource_envelope": {
+    "wall_seconds_total": 120,
+    "maximum_total_live_nodes_across_retained_factor_dags": 1000000,
+    "maximum_total_nodes_created": 5000000,
+    "maximum_total_restrict_calls": 20000000,
+    "maximum_component_count": 1000,
+    "on_limit": "R23_OPEN_RESOURCE_LIMIT__NO_SEMANTIC_VERDICT",
+    "note": "The envelope is global across the whole factorized candidate; components do not each receive a fresh 120-second or 1M-node budget."
+  },
+  "candidate_firewall": {
+    "SAT_solver_forbidden": true,
+    "DPLL_forbidden": true,
+    "assignment_enumeration_forbidden": true,
+    "truth_table_forbidden": true,
+    "semantic_oracle_forbidden": true,
+    "truth_guided_decomposition_forbidden": true,
+    "dynamic_separator_search_forbidden": true,
+    "bridge_separator_is_fixed_before_execution": true,
+    "global_monolithic_BDD_or_DAG_build_forbidden": true
+  },
+  "structural_outcomes": {
+    "if_internal_component_count_is_one": "R23_NO_BRIDGE_SEPARATOR_DECOMPOSITION__PRESERVE_RESULT_AND_DO_NOT_FORCE_A_SEPARATOR_POST_HOC",
+    "if_multiple_components_but_candidate_resource_limit": "R23_OPEN_RESOURCE_LIMIT__NO_SEMANTIC_VERDICT",
+    "if_terminal_factor_set": "ONLY_THEN_RUN_INDEPENDENT_FULL_DOMAIN_SEMANTIC_VERIFIER"
+  },
+  "post_terminal_verifier": {
+    "domain": "all 2^11 assignments of the frozen W05 bridge",
+    "original_frame_solver": "independent Minisat22",
+    "candidate_factor_evaluation": "evaluate each retained local factor DAG directly and AND the Boolean results; no global factor materialization",
+    "replay_every_original_SAT_model": true,
+    "match": "FP=0 AND FN=0 AND allowed-set hashes equal",
+    "mismatch": "freeze semantic counterexample; do not retune decomposition in R23"
+  },
+  "success_gate": [
+    "internal_component_count >= 2",
+    "candidate firewall PASS",
+    "all original internal variables assigned to exactly one component",
+    "all clauses assigned consistently",
+    "all component internal variables existentially eliminated",
+    "all terminal factor supports subset of frozen bridge",
+    "global resource envelope respected",
+    "full 2048-assignment independent semantic verification MATCH with FP=0 and FN=0",
+    "all original SAT models replay"
+  ],
+  "promotion_rule": "An exposed W05 exact factorized match authorizes only post-discovery controls on previously exposed R19 OPEN worlds. A new byte-freeze and fresh unseen holdout are required before any new generalization claim.",
+  "claim_ceiling": "R23 can show exact component-factorization behavior on one exposed world only. It does not establish bounded treewidth, polynomial decomposition size, arbitrary-CNF totality, SAT-in-P, P=NP, or P!=NP.",
+  "law": "IF_THE_MONOLITH_HITS_A_MILLION_NODES__KEEP_INDEPENDENT_INTERNAL_COMPONENTS_INDEPENDENT_AND_SHARE_ONLY_THE_BRIDGE",
+  "seal": "CAPTAIN_OBVIOUS_SAYS__DO_NOT_GLUE_ROOMS_TOGETHER_BEFORE_CHECKING_WHETHER_THE_DOORS_ARE_THE_ONLY_THING_THEY_SHARE",
+  "P_VS_NP": "OPEN"
+}
