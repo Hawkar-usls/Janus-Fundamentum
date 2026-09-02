@@ -1,0 +1,50 @@
+{
+  "schema": "JANUS/TRUMP/R15F/INCREMENTAL_INDEPENDENT_SEMANTIC_CONTROL/PREREGISTRATION/v1.0",
+  "created_date": "2026-09-02",
+  "status": "FROZEN_BEFORE_R15F_IMPLEMENTATION_AND_EXECUTION",
+  "parent_R15E_resource_witness_commit": "e8791270939633ab533e9293859231ac46878387",
+  "target": "EXPOSED_R13_W05_CALIBRATION_ONLY",
+  "frozen_candidate": {
+    "path": "experiments/janus_trump_r15d_bounded_observer_equivalent_refactor.py",
+    "blob_sha": "e6def9fef656c8f1af1b9f245bc855081f13a586",
+    "rule": "The candidate compiler is imported and executed byte-for-byte unchanged. R15F may change only the post-terminal verifier."
+  },
+  "frozen_world": {
+    "world_id": "R13-W05",
+    "frame_sha256": "84fa0fbdd127b1c73f3c8ef6820a0d0cdf154093750ed9c600289fce4b6aae88",
+    "bridge_size": 16,
+    "expected_exact_allowed": 287,
+    "expected_truth_table_sha256": "acf8828272994c0ad05a44590aa4335e1828d5b7d3e3d4f438b0d497cfcad92f"
+  },
+  "verifier": {
+    "package": "python-sat",
+    "version": "1.9.dev15",
+    "original_frame_solver": "m22",
+    "candidate_interface_solver": "g4",
+    "domain": "ALL_2^16_BRIDGE_ASSIGNMENTS",
+    "protocol": [
+      "Run the frozen candidate to a terminal extended interface before constructing either semantic verifier.",
+      "Construct one incremental Minisat22 solver over the original GENERAL_CNF frame and one incremental Glucose4 solver over the completed extended candidate CNF.",
+      "For each bridge mask 0..65535, query each solver using bridge literals only as assumptions. Internal/or auxiliary variables remain existential.",
+      "Replay every SAT model directly against the corresponding CNF and the bridge assumptions.",
+      "Compute allowed-mask lists independently and hash them with sha256(json.dumps(allowed,separators=(',',':'))).",
+      "Require the original-frame hash to equal the frozen R13/R14 exact witness hash before interpreting candidate comparison.",
+      "Compare the complete allowed-mask sets, not a sample panel."
+    ],
+    "wall_seconds": 600,
+    "on_resource_limit": "OPEN_VERIFIER_RESOURCE_LIMIT__NO_CANDIDATE_VERDICT"
+  },
+  "verdict_space": [
+    "R15F_FULL_DOMAIN_SEMANTIC_MATCH",
+    "R15F_FULL_DOMAIN_SEMANTIC_MISMATCH",
+    "R15F_OPEN_VERIFIER_RESOURCE_LIMIT",
+    "R15F_CANDIDATE_NONTERMINAL",
+    "R15F_INTEGRITY_FAIL"
+  ],
+  "admission_gate": "FIRST_CANDIDATE_TERMINAL__THEN_INDEPENDENT_FULL_DOMAIN_VERIFICATION",
+  "generalization_rule": "Only R15F_FULL_DOMAIN_SEMANTIC_MATCH authorizes creation of R16 prospective unseen holdout with the candidate logic frozen byte-for-byte. A mismatch freezes the candidate as failed calibration. A verifier resource limit authorizes only verifier recovery, not candidate tuning.",
+  "claim_ceiling": "A MATCH would establish exact semantic equivalence on exposed W05 only. It would not establish unseen generalization, a polynomial runtime envelope, arbitrary-CNF totality, SAT in P, or P=NP.",
+  "law": "FIX_THE_SLOW_WITNESS_WITHOUT_TOUCHING_THE_FROZEN_MACHINE",
+  "seal": "CAPTAIN_OBVIOUS_SAYS__IF_THE_OBSERVER_IS_SLOW__MAKE_THE_OBSERVER_FASTER__NOT_THE_ANSWER_EASIER",
+  "P_VS_NP": "OPEN"
+}
