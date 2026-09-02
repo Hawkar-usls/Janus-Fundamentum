@@ -1,0 +1,50 @@
+{
+  "schema": "JANUS/C025/SINGLE-ELIMINATION-N2-BOUND-LEMMA/v1",
+  "date": "2026-08-26",
+  "status": "ALGEBRAIC_RESOURCE_BOUND__DOES_NOT_DECIDE_SAT",
+  "statement": "For a root canonical CNF F measured by the current C025 input_size_units N = max(2, 1 + m + L + n), one complete ordinary Resolution elimination of one variable, charged before optional subsumption and with duplicate resolvents charged at most once in the implementation, cannot exceed N^2 state units. Therefore a RAW root context cannot be an explicit-elimination over-cap witness when cap_exponent = 2.",
+  "definitions": {
+    "m": "number of clauses in the current root CNF",
+    "L": "total literal occurrences in the current root CNF",
+    "n": "number of variables in the current root CNF",
+    "N": "max(2, 1 + m + L + n)",
+    "p": "number of clauses containing pivot x",
+    "q": "number of clauses containing pivot -x",
+    "state_units": "1 + clause_count + total_literal_occurrences"
+  },
+  "proof": {
+    "step_1": "There are at most p*q <= m^2 pivot pairs. Tautological pairs only reduce output.",
+    "step_2": "Ignoring deduplication and subsumption can only increase the upper bound, so it is safe to charge every pair as if it produced a distinct resolvent.",
+    "step_3": "For a positive parent P and negative parent Q, the resolvent contributes at most one clause-count unit plus |P|+|Q|-2 literal units, hence no more than 1+|P|+|Q| units.",
+    "step_4": "Summing pair contributions gives at most p*q + q*sum_{P}|P| + p*sum_{Q}|Q| <= m^2 + 2mL.",
+    "step_5": "Retained clauses contribute at most m+L units; adding the global leading unit yields U' <= 1 + m + L + m^2 + 2mL.",
+    "step_6": "(1+m+L)^2 - (1+m+L+m^2+2mL) = L^2 + m + L >= 0.",
+    "step_7": "Since N >= 1+m+L, U' <= (1+m+L)^2 <= N^2."
+  },
+  "implementation_relation": {
+    "engine": "experiments/direct/janus_unified_proof_carrying_akinator_jec.py",
+    "function": "eliminate_var_capped",
+    "implementation_is_no_worse_than_bound": [
+      "tautological resolvents are omitted",
+      "duplicate resolvents are stored in a set",
+      "canonical subsumption after raw generation can only shrink the returned CNF"
+    ]
+  },
+  "consequences": {
+    "RAW_SOURCE_OVERCAP_AT_C2": "IMPOSSIBLE_UNDER_CURRENT_MEASURE",
+    "frozen_holdout_no_hit_RAW_portion": "EXPLAINED_BY_GENERAL_BOUND",
+    "where_a_C2_barrier_can_first_appear": "A later elimination from an intermediate state measured against the original root N^2 cap, because the intermediate state may already have grown relative to root input size.",
+    "next_search_focus": "Reachable intermediate states after one or more exact transitions; test the next exact elimination against the unchanged root N^2 cap.",
+    "does_not_establish_global_polynomial_chain": true,
+    "does_not_bound_number_of_eliminations": true,
+    "does_not_bound_nested_representation_manipulation": true,
+    "universal_stage4_totality": "OPEN",
+    "P_VS_NP": "OPEN"
+  },
+  "forbidden_overinterpretation": [
+    "Do not claim that all elimination sequences stay within N^2.",
+    "Do not replace the root-relative cap with a cap recomputed from each intermediate state.",
+    "Do not infer P=NP."
+  ],
+  "P_VS_NP": "OPEN"
+}
