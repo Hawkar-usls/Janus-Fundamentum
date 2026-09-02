@@ -1,0 +1,108 @@
+name: JANUS TRUMP R30 Restriction Branch Isolation Forensics
+
+on:
+  push:
+    branches:
+      - research/janus-trump-r30-restriction-branch-isolation-forensics-2026-09-02
+    paths:
+      - 'research/JANUS_TRUMP_R30_RESTRICTION_BRANCH_ISOLATION_FORENSICS_PREREGISTRATION_2026-09-02.json'
+      - 'experiments/janus_trump_r30_restriction_branch_isolation_forensics.py'
+      - '.github/workflows/janus-trump-r30-restriction-branch-isolation-forensics.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  r30-restriction-isolation:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Verify frozen R30 contract and machine blobs
+        run: |
+          set -euo pipefail
+          test "$(git hash-object experiments/janus_trump_r27_local_bucket_factored_shannon_elimination_discovery.py)" = "ff1139a4da7e9eaf43945995db95a6d22fb45dbe"
+          test "$(git hash-object experiments/janus_trump_r18_shannon_hashcons_interface_dag_discovery.py)" = "afa95321ec6edbb33bef222d8ee7234fe631a599"
+          python - <<'PY'
+          import json
+          p=json.load(open('research/JANUS_TRUMP_R30_RESTRICTION_BRANCH_ISOLATION_FORENSICS_PREREGISTRATION_2026-09-02.json'))
+          assert p['status']=='FROZEN_BEFORE_R30_OBSERVER_IMPLEMENTATION_AND_REPLAY'
+          assert p['parent_R29_sealed_result_commit']=='1f1ca71c4a7a23dcca463fde5e3787772bbeac8e'
+          assert p['frozen_inputs']['R27_candidate_git_blob']=='ff1139a4da7e9eaf43945995db95a6d22fb45dbe'
+          assert p['frozen_inputs']['R18_machine_git_blob']=='afa95321ec6edbb33bef222d8ee7234fe631a599'
+          assert p['frozen_inputs']['resource_node_cap']==1000000
+          assert p['counterfactual_isolation_protocol']['final_OR_forbidden'] is True
+          assert p['counterfactual_isolation_protocol']['truth_access'] is False
+          assert p['counterfactual_isolation_protocol']['semantic_verifier'] is False
+          assert p['P_VS_NP']=='OPEN'
+          print('R30_FREEZE_OK')
+          PY
+
+      - name: Install import-only sealed dependency
+        run: python -m pip install --disable-pip-version-check 'python-sat==1.9.dev15'
+
+      - name: Compile R30 observer
+        run: PYTHONPATH=experiments:. python -m py_compile experiments/janus_trump_r30_restriction_branch_isolation_forensics.py
+
+      - name: Run two independent fresh restriction replays
+        run: |
+          mkdir -p artifacts
+          PYTHONPATH=experiments:. python experiments/janus_trump_r30_restriction_branch_isolation_forensics.py \
+            --output artifacts/JANUS_TRUMP_R30_RESTRICTION_BRANCH_ISOLATION_FORENSICS_RESULT_2026-09-02.json
+
+      - name: R30 scientific integrity gate
+        if: always()
+        run: |
+          python - <<'PY'
+          import json,os,sys
+          p='artifacts/JANUS_TRUMP_R30_RESTRICTION_BRANCH_ISOLATION_FORENSICS_RESULT_2026-09-02.json'
+          assert os.path.exists(p)
+          d=json.load(open(p))
+          assert d['observer_firewall']['pass'] is True
+          assert d['truth_accessed'] is False
+          assert d['semantic_verifier_ran'] is False
+          assert d['final_OR_ran_in_isolated_step'] is False
+          assert d['P_VS_NP']=='OPEN'
+          assert d['result_class'] in {
+            'TRUE_BRANCH_INTRINSIC_RESOURCE_WALL',
+            'SEQUENTIAL_ACCUMULATION_DOMINANT',
+            'OBSERVER_EQUIVALENCE_FAIL',
+            'UNKNOWN_RESOURCE_LIMIT',
+          }
+          if d['result_class']=='OBSERVER_EQUIVALENCE_FAIL':
+              print(json.dumps(d['equivalence_gates'],indent=2,sort_keys=True))
+              sys.exit(2)
+          assert d['equivalence_gates']['pass'] is True
+          assert d['interpretation_allowed'] is True
+          assert d['isolated_false']['branch_terminal_or_resource_open']=='COMPLETE'
+          assert d['isolated_false']['branch_output_reachable_nodes_if_terminal']==266433
+          assert d['isolated_false']['nodes_created_by_branch']==282818
+          assert d['isolated_false']['pre_restriction_DAG_fingerprint']==d['isolated_true']['pre_restriction_DAG_fingerprint']
+          if d['result_class']=='SEQUENTIAL_ACCUMULATION_DOMINANT':
+              assert d['isolated_true']['branch_terminal_or_resource_open']=='COMPLETE'
+              assert d['secondary_observation_class']=='BOTH_ISOLATED_BRANCHES_COMPLETE__COMBINATION_UNMEASURED'
+          elif d['result_class']=='TRUE_BRANCH_INTRINSIC_RESOURCE_WALL':
+              assert d['isolated_true']['branch_terminal_or_resource_open']=='RESOURCE_OPEN'
+              assert d['isolated_true']['resource_reason']=='NODE_CAP'
+          print(json.dumps({
+            'result_class':d['result_class'],
+            'secondary':d['secondary_observation_class'],
+            'false':d['isolated_false'],
+            'true':d['isolated_true'],
+            'P_VS_NP':d['P_VS_NP'],
+          },indent=2,sort_keys=True))
+          PY
+
+      - name: Upload immutable R30 evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: janus-trump-r30-restriction-branch-isolation-forensics
+          path: artifacts/JANUS_TRUMP_R30_RESTRICTION_BRANCH_ISOLATION_FORENSICS_RESULT_2026-09-02.json
+          if-no-files-found: error
