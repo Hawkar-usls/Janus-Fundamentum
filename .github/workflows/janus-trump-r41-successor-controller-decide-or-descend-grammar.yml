@@ -1,0 +1,84 @@
+name: JANUS TRUMP R41 Successor Controller Decide-or-Descend Grammar
+
+on:
+  push:
+    branches:
+      - research/janus-trump-r41-successor-controller-decide-or-descend-grammar-2026-09-02
+    paths:
+      - 'research/JANUS_TRUMP_R41_SUCCESSOR_CONTROLLER_DECIDE_OR_DESCEND_GRAMMAR_PREREGISTRATION_2026-09-02.json'
+      - '.github/workflows/janus-trump-r41-successor-controller-decide-or-descend-grammar.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  r41-grammar-freeze:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Verify R40 seal ancestry and R41 frozen grammar bytes
+        run: |
+          set -euo pipefail
+          git merge-base --is-ancestor 2a4a08668d9b742dc446877a56795aabda262077 "$GITHUB_SHA"
+          test "$(git hash-object research/JANUS_TRUMP_R41_SUCCESSOR_CONTROLLER_DECIDE_OR_DESCEND_GRAMMAR_PREREGISTRATION_2026-09-02.json)" = "748f1d78efcdeee523441e13cf0129997019aa9c"
+
+      - name: Validate Captain decide-or-descend contract
+        run: |
+          python - <<'PY'
+          import json
+          p='research/JANUS_TRUMP_R41_SUCCESSOR_CONTROLLER_DECIDE_OR_DESCEND_GRAMMAR_PREREGISTRATION_2026-09-02.json'
+          d=json.load(open(p,encoding='utf-8'))
+          assert d['status']=='FROZEN_GRAMMAR_ADMISSION_CONTRACT__NO_SUCCESSOR_CONTROLLER_RELEASED'
+          assert d['parent']['sealed_commit']=='2a4a08668d9b742dc446877a56795aabda262077'
+          assert d['domain_contract']['target_language']=='ARBITRARY_FINITE_CANONICALLY_ENCODED_3CNF'
+          s=d['successor_controller_snapshot_contract']
+          assert s['one_fixed_controller_source_required'] is True
+          assert s['controller_frozen_before_adversarial_input'] is True
+          assert s['dispatcher_deterministic'] is True
+          assert s['post_hoc_operator_addition_after_OPEN_or_STALL_forbidden'] is True
+          assert s['post_hoc_terminal_class_addition_after_OPEN_or_STALL_forbidden'] is True
+          assert s['external_semantic_oracle_allowed'] is False
+          op=d['operator_admission_interface']
+          required={
+            'operator_id','source_blob_sha','exact_applicability_predicate',
+            'deterministic_state_transition','semantic_preservation_or_exactness_lemma',
+            'independent_transition_checker','progress_certificate','charged_work_bound',
+            'charged_representation_growth_bound','coverage_delta_statement'
+          }
+          assert set(op['required_fields'])==required
+          dd=d['decide_or_descend_contract']
+          assert dd['same_frozen_controller_must_supply_action'] is True
+          assert dd['no_action_available_at_reachable_nonterminal_state']=='COVERAGE_COUNTEREXAMPLE'
+          rank=dd['rank_contract']
+          assert rank['one_global_well_founded_rank_definition_required_at_controller_freeze'] is True
+          assert rank['initial_rank_range_must_be_polynomially_bounded_in_original_N'] is True
+          assert rank['rank_definition_for_successor_controller_currently_frozen'] is False
+          cov=d['coverage_proof_contract']
+          assert cov['finite_testing_may_close_L2'] is False
+          assert cov['no_counterexample_found_may_close_L2'] is False
+          assert cov['benchmark_success_may_close_L2'] is False
+          state=d['R41_current_state']
+          assert state['grammar_contract_frozen'] is True
+          assert state['successor_controller_snapshot_frozen'] is False
+          assert state['new_operator_admitted'] is False
+          assert state['new_terminal_admitted'] is False
+          assert state['L2_UNIVERSAL_3CNF_COVERAGE'] is False
+          assert state['L3_ONE_UNIFORM_TOTAL_TRUMP_RESOLVER'] is False
+          assert state['L4_WORST_CASE_POLYNOMIAL_UNIFORM_TRUMP_RESOLVER'] is False
+          assert d['next_gate']['id']=='R42_FREEZE_ONE_FIXED_SUCCESSOR_CONTROLLER_SNAPSHOT_AND_ATTACK_DECIDE_OR_DESCEND'
+          assert d['TRUMP_finished'] is False
+          assert d['SAT_IN_P']=='NOT_PROVED'
+          assert d['P_VS_NP']=='OPEN'
+          print('R41_GRAMMAR_CONTRACT_FREEZE=PASS')
+          print('SUCCESSOR_CONTROLLER_RELEASED=FALSE')
+          print('NEXT_GATE='+d['next_gate']['id'])
+          PY
