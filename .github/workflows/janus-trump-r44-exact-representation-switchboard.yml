@@ -1,0 +1,53 @@
+name: JANUS TRUMP R44 Exact Representation Switchboard
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - 'research/JANUS_TRUMP_R44_EXACT_REPRESENTATION_SWITCHBOARD_PREREGISTRATION_2026-09-03.json'
+      - 'research/janus_trump_r44_exact_representation_switchboard.py'
+      - '.github/workflows/janus-trump-r44-exact-representation-switchboard.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  exact-replay:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Execute R44 switchboard
+        run: python research/janus_trump_r44_exact_representation_switchboard.py > /tmp/r44.json
+      - name: Verify epistemic firewalls
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          r=json.loads(Path('/tmp/r44.json').read_text())
+          assert r['gate_id']=='R44_EXACT_REPRESENTATION_SWITCHBOARD_COVERAGE_OR_COUNTEREXAMPLE'
+          assert r['status']=='FROZEN_EXPECTATIONS_REPRODUCED'
+          assert r['counterexample_to_frozen_switchboard']=='ADVERSARIAL_OPEN_3CNF'
+          assert r['universal_coverage_proved'] is False
+          assert r['proof_authority_delta']==0
+          assert r['TRUMP_finished'] is False
+          assert r['SAT_IN_P']=='NOT_PROVED'
+          assert r['P_VS_NP']=='OPEN'
+          tests={x['id']:x for x in r['tests']}
+          assert tests['TWO_SAT_SAT']['route']=='TWO_SAT'
+          assert tests['HORN_UNSAT']['route']=='HORN'
+          assert tests['DUAL_HORN_SAT']['route']=='DUAL_HORN'
+          assert tests['XOR3_SAT']['route']=='EXACT_WIDTH3_XOR_BUNDLE_TO_GF2_V1'
+          assert tests['ADVERSARIAL_OPEN_3CNF']['status']=='OPEN_OUTSIDE_SWITCHBOARD'
+          assert tests['ADVERSARIAL_OPEN_3CNF']['decision_authority'] is False
+          print('R44 SWITCHBOARD COVERAGE-OR-COUNTEREXAMPLE PASS')
+          PY
+      - name: Upload replay receipt
+        uses: actions/upload-artifact@v4
+        with:
+          name: janus-trump-r44-switchboard-replay
+          path: /tmp/r44.json
+          if-no-files-found: error
