@@ -1,0 +1,151 @@
+name: JANUS TRUMP R36 Fresh Non-Affine RUP Vivification Holdout
+
+on:
+  push:
+    branches:
+      - research/janus-trump-r36-fresh-nonaffine-rup-vivification-holdout-2026-09-02
+    paths:
+      - 'research/JANUS_TRUMP_R36_FRESH_NONAFFINE_RUP_VIVIFICATION_HOLDOUT_PREREGISTRATION_2026-09-02.json'
+      - 'experiments/janus_trump_r33_certified_safe_reduction_stack_lean_core_forensics.py'
+      - 'experiments/janus_trump_r34_affine_xor_terminal_against_tseitin_core.py'
+      - 'experiments/janus_trump_r35b_single_literal_rup_vivification.py'
+      - 'experiments/janus_trump_r36_fresh_nonaffine_rup_vivification_holdout.py'
+      - '.github/workflows/janus-trump-r36-fresh-nonaffine-rup-vivification-holdout.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  r36-fresh-unseen-holdout:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install post-candidate verifier only
+        run: |
+          python -m pip install --disable-pip-version-check 'python-sat==1.9.dev15'
+
+      - name: Verify frozen R35B parent, worlds, and candidate bytes
+        run: |
+          set -euo pipefail
+          test "$(git hash-object experiments/janus_trump_r33_certified_safe_reduction_stack_lean_core_forensics.py)" = "c9234a1ef639a009cc6cb4c8a6098fd09bf9affe"
+          test "$(git hash-object experiments/janus_trump_r34_affine_xor_terminal_against_tseitin_core.py)" = "7f9bec920fa47af066570d874fe9127dc4b9b968"
+          test "$(git hash-object experiments/janus_trump_r35b_single_literal_rup_vivification.py)" = "259d2e38947d09b0c058963ad825a57f2e734203"
+          test "$(git hash-object research/JANUS_TRUMP_R36_FRESH_NONAFFINE_RUP_VIVIFICATION_HOLDOUT_PREREGISTRATION_2026-09-02.json)" = "05c4f357513e465d21be3ccfabfbb9459b033a31"
+          test "$(git hash-object experiments/janus_trump_r36_fresh_nonaffine_rup_vivification_holdout.py)" = "c4845deeb631b81362874648173cf3f15e193097"
+          git merge-base --is-ancestor cbcd88854aa58b6fdb61857c0c32199ceec7ed5b "$GITHUB_SHA"
+          git merge-base --is-ancestor 66b4f45ebb8fe2ffb6d58f43687dcc2f0f2bc00d "$GITHUB_SHA"
+          python - <<'PY'
+          import json
+          p=json.load(open('research/JANUS_TRUMP_R36_FRESH_NONAFFINE_RUP_VIVIFICATION_HOLDOUT_PREREGISTRATION_2026-09-02.json',encoding='utf-8'))
+          assert p['status']=='FROZEN_BEFORE_R36_WORLD_GENERATION_IMPLEMENTATION_AND_EXECUTION'
+          assert p['prospective_holdout']['seeds']==[36001,36002,36003,36004,36005,36006,36007,36008]
+          assert p['prospective_holdout']['n']==28 and p['prospective_holdout']['ratio']==4.2
+          assert p['prospective_holdout']['replacement_of_worlds_after_observation'] is False
+          assert p['byte_frozen_candidate_portfolio']['no_candidate_logic_changes'] is True
+          assert p['post_candidate_independent_verifier']['allowed_only_after_world_candidate_terminal'] is True
+          assert p['interpretation_firewall']['R31_obligations_closed_by_R36']==0
+          assert p['interpretation_firewall']['P_VS_NP']=='OPEN'
+          print('R36_PREREGISTRATION_WORLDS_AND_LINEAGE_OK')
+          PY
+
+      - name: Static candidate versus verifier firewall
+        run: |
+          python - <<'PY'
+          import ast
+          from pathlib import Path
+          p=Path('experiments/janus_trump_r36_fresh_nonaffine_rup_vivification_holdout.py')
+          source=p.read_text(encoding='utf-8')
+          tree=ast.parse(source)
+          funcs={n.name:n for n in tree.body if isinstance(n,ast.FunctionDef)}
+          candidate_text=ast.get_source_segment(source,funcs['candidate_world']) or ''
+          verifier_text=ast.get_source_segment(source,funcs['post_candidate_minisat22_verify']) or ''
+          holdout_text=ast.get_source_segment(source,funcs['run_holdout']) or ''
+          self_test_text=ast.get_source_segment(source,funcs['self_test']) or ''
+          assert 'pysat' not in candidate_text.lower()
+          assert 'Minisat22' not in candidate_text
+          assert 'from pysat.solvers import Minisat22' in verifier_text
+          assert holdout_text.index('candidate_results: List[dict] = [candidate_world') < holdout_text.index('post_candidate_minisat22_verify')
+          assert 'candidate_world(' not in self_test_text
+          assert 'FROZEN_SEEDS' not in self_test_text
+          forbidden_candidate_terms=('DPLL','CDCL','truth_table','brute_force')
+          assert not any(term.lower() in candidate_text.lower() for term in forbidden_candidate_terms)
+          print({'candidate_external_solver':False,'verifier_Minisat22':True,'all_candidates_before_truth':True,'self_test_generates_holdout':False})
+          PY
+
+      - name: Compile and classification-only self-test
+        run: |
+          python -m py_compile experiments/janus_trump_r33_certified_safe_reduction_stack_lean_core_forensics.py
+          python -m py_compile experiments/janus_trump_r34_affine_xor_terminal_against_tseitin_core.py
+          python -m py_compile experiments/janus_trump_r35b_single_literal_rup_vivification.py
+          python -m py_compile experiments/janus_trump_r36_fresh_nonaffine_rup_vivification_holdout.py
+          PYTHONPATH=experiments:. python experiments/janus_trump_r36_fresh_nonaffine_rup_vivification_holdout.py --self-test
+
+      - name: Execute frozen R36 prospective holdout
+        run: |
+          mkdir -p artifacts
+          PYTHONPATH=experiments:. python experiments/janus_trump_r36_fresh_nonaffine_rup_vivification_holdout.py \
+            --output artifacts/JANUS_TRUMP_R36_FRESH_NONAFFINE_RUP_VIVIFICATION_HOLDOUT_RESULT_2026-09-02.json
+
+      - name: R36 scientific integrity gate
+        if: always()
+        run: |
+          python - <<'PY'
+          import json,os
+          path='artifacts/JANUS_TRUMP_R36_FRESH_NONAFFINE_RUP_VIVIFICATION_HOLDOUT_RESULT_2026-09-02.json'
+          assert os.path.exists(path)
+          d=json.load(open(path,encoding='utf-8'))
+          allowed={
+            'R36_FAIL_INTEGRITY_OR_SEMANTIC_MISMATCH',
+            'R36_FRESH_UNSEEN_RUP_SURVIVAL_WITH_OPEN_STALLS',
+            'R36_FRESH_UNSEEN_RUP_EXACT_ON_ALL_ELIGIBLE_NONAFFINE_WORLDS__NO_UNIVERSAL_CLAIM',
+            'R36_NO_ELIGIBLE_NONAFFINE_RUP_WORLDS__INCONCLUSIVE'
+          }
+          assert d['aggregate_verdict'] in allowed
+          assert d['source_git_commit']==os.environ['GITHUB_SHA']
+          assert d['frozen_holdout']['seeds']==[36001,36002,36003,36004,36005,36006,36007,36008]
+          assert d['frozen_holdout']['world_count']==8
+          assert d['frozen_holdout']['replacement_or_filtering'] is False
+          assert len(d['worlds'])==8 and [w['seed'] for w in d['worlds']]==[36001,36002,36003,36004,36005,36006,36007,36008]
+          fw=d['candidate_firewall']
+          assert not any(fw.values())
+          for w in d['worlds']:
+              assert w['post_candidate_verifier']['solver']=='PySAT_Minisat22'
+              if w['post_candidate_verifier']['sat']:
+                  assert w['post_candidate_verifier']['model_rechecks_original_CNF'] is True
+              if w['candidate_stage']=='RUP':
+                  assert w['candidate']['RUP']['independent_certificate_checker']['pass'] is True
+                  if w['candidate_status']=='UNSAT_BY_UNIT_PROPAGATION':
+                      assert w['verdict'] in {'PASS_EXACT_UNSEEN_RUP_UNSAT','FAIL_SEMANTIC_MISMATCH'}
+                  else:
+                      assert w['verdict'].startswith('OPEN_UNSEEN_RUP_STALL') or w['verdict'].startswith('FAIL_')
+              elif w['candidate_stage']=='AFFINE_TERMINAL':
+                  assert w['candidate']['affine']['certificate']['pass'] is True
+          counts=d['counts']
+          assert counts['eligible_nonaffine_RUP_worlds'] == counts['RUP_exact_UNSAT_successes'] + counts['RUP_open_stalls'] + sum(w['verdict'].startswith('FAIL_') and w['candidate_stage']=='RUP' for w in d['worlds'])
+          assert d['R31_obligation_impact']['obligations_closed']==0
+          assert d['TRUMP_finished'] is False and d['SAT_IN_P']=='NOT_PROVED' and d['P_VS_NP']=='OPEN'
+          print(json.dumps({
+            'aggregate_verdict':d['aggregate_verdict'],
+            'counts':counts,
+            'worlds':[{k:w[k] for k in ('seed','verdict','candidate_stage','candidate_status','independent_truth_sat')} | ({'RUP_strengthenings':w['candidate']['RUP']['successful_strengthenings'],'RUP_final_measure':w['candidate']['RUP']['final_measure_LCV']} if w['candidate_stage']=='RUP' else {}) for w in d['worlds']],
+            'next_gate':d['next_gate'],
+            'P_VS_NP':d['P_VS_NP']
+          },indent=2,sort_keys=True))
+          PY
+
+      - name: Upload immutable R36 evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: janus-trump-r36-fresh-nonaffine-rup-vivification-holdout
+          path: artifacts/JANUS_TRUMP_R36_FRESH_NONAFFINE_RUP_VIVIFICATION_HOLDOUT_RESULT_2026-09-02.json
+          if-no-files-found: error
