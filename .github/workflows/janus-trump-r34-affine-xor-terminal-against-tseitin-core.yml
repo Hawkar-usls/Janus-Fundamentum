@@ -1,0 +1,124 @@
+name: JANUS TRUMP R34 Affine XOR Terminal Against Tseitin Core
+
+on:
+  push:
+    branches:
+      - research/janus-trump-r34-affine-xor-terminal-against-tseitin-core-2026-09-02
+    paths:
+      - 'research/JANUS_TRUMP_R34_AFFINE_XOR_TERMINAL_AGAINST_TSEITIN_CORE_PREREGISTRATION_2026-09-02.json'
+      - 'experiments/janus_trump_r33_certified_safe_reduction_stack_lean_core_forensics.py'
+      - 'experiments/janus_trump_r34_affine_xor_terminal_against_tseitin_core.py'
+      - '.github/workflows/janus-trump-r34-affine-xor-terminal-against-tseitin-core.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  r34-affine-xor-terminal:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Verify frozen R33 parent and R34 preregistration
+        run: |
+          set -euo pipefail
+          test "$(git hash-object experiments/janus_trump_r33_certified_safe_reduction_stack_lean_core_forensics.py)" = "c9234a1ef639a009cc6cb4c8a6098fd09bf9affe"
+          test "$(git hash-object research/JANUS_TRUMP_R34_AFFINE_XOR_TERMINAL_AGAINST_TSEITIN_CORE_PREREGISTRATION_2026-09-02.json)" = "a0740ded99a6c2103f4ce13e5676eddbd4b779be"
+          test "$(git hash-object experiments/janus_trump_r34_affine_xor_terminal_against_tseitin_core.py)" = "7f9bec920fa47af066570d874fe9127dc4b9b968"
+          git merge-base --is-ancestor e8d4babee70d8800b0eaca4ff5149a4e1a3ed4fe "$GITHUB_SHA"
+          git merge-base --is-ancestor fa2a4e3a6a265e5f4cb50742bd818e17e747c6d9 "$GITHUB_SHA"
+          python - <<'PY'
+          import json
+          p=json.load(open('research/JANUS_TRUMP_R34_AFFINE_XOR_TERMINAL_AGAINST_TSEITIN_CORE_PREREGISTRATION_2026-09-02.json',encoding='utf-8'))
+          assert p['status']=='FROZEN_BEFORE_R34_IMPLEMENTATION_AND_EXECUTION'
+          assert p['single_new_mechanism']['id']=='AFFINE_XOR_TERMINAL_RECOGNITION_AND_GF2_CERTIFIED_SOLVE'
+          assert p['frozen_firewall']['exactly_one_new_mechanism'] is True
+          assert p['frozen_firewall']['R33_stack_byte_frozen'] is True
+          assert p['interpretation_firewall']['R31_obligations_closed_by_R34']==0
+          assert p['interpretation_firewall']['P_VS_NP']=='OPEN'
+          print('R34_PREREGISTRATION_AND_LINEAGE_OK')
+          PY
+
+      - name: Static single-mechanism firewall
+        run: |
+          python - <<'PY'
+          import ast
+          from pathlib import Path
+          p=Path('experiments/janus_trump_r34_affine_xor_terminal_against_tseitin_core.py')
+          source=p.read_text(encoding='utf-8')
+          tree=ast.parse(source)
+          forbidden={'pysat','z3','pycosat','subprocess','socket','requests','urllib'}
+          imported=set()
+          for node in ast.walk(tree):
+              if isinstance(node,ast.Import): imported.update(a.name.split('.')[0] for a in node.names)
+              elif isinstance(node,ast.ImportFrom): imported.add((node.module or '').split('.')[0])
+          assert not (imported & forbidden),(imported & forbidden)
+          for fn in ('recognize_complete_affine_cnf','solve_gf2_with_certificate'):
+              node=next(n for n in tree.body if isinstance(n,ast.FunctionDef) and n.name==fn)
+              text=ast.get_source_segment(source,node) or ''
+              assert 'itertools.product' not in text
+              assert 'brute_force_model' not in text
+          assert source.count('AFFINE_XOR_TERMINAL_RECOGNITION_AND_GF2_CERTIFIED_SOLVE')==1
+          print({'single_new_mechanism':True,'external_solver':False,'assignment_cube_enumeration_in_candidate':False})
+          PY
+
+      - name: Compile and run frozen self-test
+        run: |
+          python -m py_compile experiments/janus_trump_r33_certified_safe_reduction_stack_lean_core_forensics.py
+          python -m py_compile experiments/janus_trump_r34_affine_xor_terminal_against_tseitin_core.py
+          PYTHONPATH=experiments:. python experiments/janus_trump_r34_affine_xor_terminal_against_tseitin_core.py --self-test
+
+      - name: Execute R34 frozen audit
+        run: |
+          mkdir -p artifacts
+          PYTHONPATH=experiments:. python experiments/janus_trump_r34_affine_xor_terminal_against_tseitin_core.py \
+            --output artifacts/JANUS_TRUMP_R34_AFFINE_XOR_TERMINAL_AGAINST_TSEITIN_CORE_RESULT_2026-09-02.json
+
+      - name: R34 scientific integrity gate
+        if: always()
+        run: |
+          python - <<'PY'
+          import json,os
+          path='artifacts/JANUS_TRUMP_R34_AFFINE_XOR_TERMINAL_AGAINST_TSEITIN_CORE_RESULT_2026-09-02.json'
+          assert os.path.exists(path)
+          d=json.load(open(path,encoding='utf-8'))
+          assert d['verdict']=='R34_AFFINE_TERMINAL_CLOSES_TSEITIN_CORE__NONAFFINE_CORE_REMAINS__NO_UNIVERSAL_CLAIM'
+          assert d['source_git_commit']==os.environ['GITHUB_SHA']
+          assert d['single_new_mechanism']=='AFFINE_XOR_TERMINAL_RECOGNITION_AND_GF2_CERTIFIED_SOLVE'
+          assert d['candidate_firewall']['R33_stack_modified'] is False
+          assert d['candidate_firewall']['external_SAT_solver_used'] is False
+          assert d['candidate_firewall']['assignment_enumeration_inside_recognizer_or_GF2_solver'] is False
+          assert d['candidate_firewall']['second_new_mechanism_added'] is False
+          assert all(x['pass'] for x in d['R33_positive_controls'])
+          assert d['affine_sat_control']['terminal']=='AFFINE_XOR_SAT'
+          assert d['affine_sat_control']['verification']['pass'] is True
+          ts=d['tseitin_3regular_prism_family']
+          assert [x['n_vertices'] for x in ts]==[8,12,16,20,24,28,32]
+          assert all(x['R33_terminal']=='STALLED_STACK_LEAN_CORE' and x['R33_rule_applications']==0 for x in ts)
+          assert all(x['R34_terminal']=='AFFINE_XOR_UNSAT' and x['recognized'] and x['certificate_pass'] for x in ts)
+          rc=d['deterministic_random_3cnf']
+          assert len(rc)==4
+          assert any(x['R34_terminal']=='STALLED_NONAFFINE_CORE' for x in rc)
+          assert d['R31_obligation_impact']['obligations_closed']==0
+          assert d['next_gate']['id']=='R35_FREEZE_SMALLEST_NONAFFINE_RANDOM_CORE_AND_PROPOSE_AT_MOST_ONE_NEW_MECHANISM'
+          assert d['TRUMP_finished'] is False
+          assert d['SAT_IN_P']=='NOT_PROVED'
+          assert d['P_VS_NP']=='OPEN'
+          print(json.dumps({'verdict':d['verdict'],'tseitin_closed':len(ts),'random_terminals':[x['R34_terminal'] for x in rc],'next_gate':d['next_gate']['id'],'P_VS_NP':d['P_VS_NP']},indent=2,sort_keys=True))
+          PY
+
+      - name: Upload immutable R34 evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: janus-trump-r34-affine-xor-terminal-against-tseitin-core
+          path: artifacts/JANUS_TRUMP_R34_AFFINE_XOR_TERMINAL_AGAINST_TSEITIN_CORE_RESULT_2026-09-02.json
+          if-no-files-found: error
