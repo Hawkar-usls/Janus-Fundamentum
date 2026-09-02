@@ -1,0 +1,63 @@
+name: JANUS TRUMP R17 Resource Growth Forensics
+
+on:
+  push:
+    branches:
+      - research/janus-trump-r17-resource-growth-forensics-2026-09-02
+    paths:
+      - 'research/JANUS_TRUMP_R17_RESOURCE_GROWTH_FORENSICS_PREREGISTRATION_2026-09-02.json'
+      - 'experiments/janus_trump_r17_resource_growth_forensics.py'
+      - '.github/workflows/janus-trump-r17-resource-growth-forensics.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  r17-forensics:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Verify frozen forensic contract and candidate identity
+        run: |
+          python - <<'PY'
+          import json,subprocess
+          p=json.load(open('research/JANUS_TRUMP_R17_RESOURCE_GROWTH_FORENSICS_PREREGISTRATION_2026-09-02.json'))
+          assert p['status']=='FROZEN_BEFORE_R17_IMPLEMENTATION_AND_EXECUTION'
+          assert p['frozen_candidate']['resource_caps_unchanged'] is True
+          assert p['frozen_candidate']['active_clause_cap']==150000
+          got=subprocess.check_output(['git','hash-object',p['frozen_candidate']['path']],text=True).strip()
+          assert got==p['frozen_candidate']['blob_sha']=='e6def9fef656c8f1af1b9f245bc855081f13a586'
+          assert p['P_VS_NP']=='OPEN'
+          print('R17_FREEZE_OK',got)
+          PY
+      - name: Compile R17
+        run: PYTHONPATH=experiments:. python -m py_compile experiments/janus_trump_r17_resource_growth_forensics.py
+      - name: Run frozen diagnostic replay
+        run: |
+          mkdir -p artifacts
+          PYTHONPATH=experiments:. python experiments/janus_trump_r17_resource_growth_forensics.py \
+            --output artifacts/JANUS_TRUMP_R17_RESOURCE_GROWTH_FORENSICS_RESULT_2026-09-02.json
+      - name: R17 scientific integrity gate
+        run: |
+          python - <<'PY'
+          import json
+          d=json.load(open('artifacts/JANUS_TRUMP_R17_RESOURCE_GROWTH_FORENSICS_RESULT_2026-09-02.json'))
+          assert d['verdict']=='R17_PHYSICAL_CLAUSE_MATERIALIZATION_WALL_REPRODUCED',d['verdict']
+          assert all(d['gates'].values()),d['gates']
+          assert d['summary']['worlds']==8
+          assert d['summary']['active_clause_cap_worlds']==5
+          assert 'R16-W04' in d['summary']['terminal_representation_over_cap_worlds']
+          assert d['P_VS_NP']=='OPEN'
+          print(d['verdict'])
+          PY
+      - name: Upload immutable R17 evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: janus-trump-r17-resource-growth-forensics
+          path: artifacts/JANUS_TRUMP_R17_RESOURCE_GROWTH_FORENSICS_RESULT_2026-09-02.json
+          if-no-files-found: error
