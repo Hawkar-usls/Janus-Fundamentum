@@ -1,0 +1,110 @@
+name: JANUS TRUMP R18B Post Discovery Semantic Controls
+on:
+  push:
+    branches: [research/janus-trump-r18b-post-discovery-semantic-controls-2026-09-02]
+    paths:
+      - 'research/JANUS_TRUMP_R18B_POST_DISCOVERY_SEMANTIC_CONTROLS_PREREGISTRATION_2026-09-02.json'
+      - 'experiments/janus_trump_r18b_post_discovery_semantic_controls.py'
+      - 'experiments/janus_trump_r18b_aggregate_controls.py'
+      - '.github/workflows/janus-trump-r18b-post-discovery-semantic-controls.yml'
+  workflow_dispatch:
+permissions: {contents: read}
+jobs:
+  preflight:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: '3.12'}
+      - name: Verify frozen control contract and candidate blob
+        run: |
+          python - <<'PY'
+          import json,subprocess
+          p=json.load(open('research/JANUS_TRUMP_R18B_POST_DISCOVERY_SEMANTIC_CONTROLS_PREREGISTRATION_2026-09-02.json'))
+          assert p['status']=='FROZEN_BEFORE_R18B_IMPLEMENTATION_AND_EXECUTION'
+          got=subprocess.check_output(['git','hash-object',p['candidate_freeze']['path']],text=True).strip()
+          assert got==p['candidate_freeze']['blob_sha']=='afa95321ec6edbb33bef222d8ee7234fe631a599'
+          assert p['control_worlds']==['R16-W05','R16-W06','R16-W07','R16-W08']
+          assert p['P_VS_NP']=='OPEN'
+          print('R18B_FREEZE_OK',got)
+          PY
+      - name: Install independent verifier
+        run: python -m pip install --disable-pip-version-check 'python-sat==1.9.dev15'
+      - name: Compile harness
+        run: PYTHONPATH=experiments:. python -m py_compile experiments/janus_trump_r18b_post_discovery_semantic_controls.py experiments/janus_trump_r18b_aggregate_controls.py
+      - name: Re-run frozen R18 local controls
+        run: |
+          PYTHONPATH=experiments:. python - <<'PY'
+          import janus_trump_r18_shannon_hashcons_interface_dag_discovery as r
+          assert r.candidate_firewall()['pass'] is True
+          assert r.tiny_controls() is True
+          print('R18B_CANDIDATE_CONTROLS_PASS')
+          PY
+  controls:
+    needs: preflight
+    runs-on: ubuntu-24.04
+    timeout-minutes: 4
+    strategy:
+      fail-fast: false
+      matrix: {world: [R16-W05, R16-W06, R16-W07, R16-W08]}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: '3.12'}
+      - run: python -m pip install --disable-pip-version-check 'python-sat==1.9.dev15'
+      - name: Recheck candidate byte identity
+        run: test "$(git hash-object experiments/janus_trump_r18_shannon_hashcons_interface_dag_discovery.py)" = "afa95321ec6edbb33bef222d8ee7234fe631a599"
+      - name: Run frozen control
+        run: |
+          mkdir -p artifacts
+          PYTHONPATH=experiments:. python experiments/janus_trump_r18b_post_discovery_semantic_controls.py --world '${{ matrix.world }}' --output 'artifacts/JANUS_TRUMP_R18B_${{ matrix.world }}_RESULT_2026-09-02.json'
+      - name: Per-control gate
+        run: |
+          WORLD='${{ matrix.world }}' python - <<'PY'
+          import json,os,sys
+          w=os.environ['WORLD']; d=json.load(open(f'artifacts/JANUS_TRUMP_R18B_{w}_RESULT_2026-09-02.json'))
+          assert d['P_VS_NP']=='OPEN' and d['candidate_firewall']['pass'] is True
+          assert d['verdict'] in {'PASS_EXACT_POST_DISCOVERY_CONTROL','MISMATCH_POST_DISCOVERY_CONTROL','OPEN_RESOURCE_LIMIT','FAIL_INTEGRITY'}
+          if d['verdict']=='PASS_EXACT_POST_DISCOVERY_CONTROL':
+              assert d['comparison']['full_domain'] and d['comparison']['allowed_set_equal']
+              assert d['comparison']['false_positive_count']==d['comparison']['false_negative_count']==0
+              assert d['comparison']['original_sat_model_replay_failures']==[]
+          elif d['verdict']=='MISMATCH_POST_DISCOVERY_CONTROL': assert not d['comparison']['allowed_set_equal']
+          elif d['verdict']=='OPEN_RESOURCE_LIMIT': assert d['verifier']['not_run'] is True
+          else: sys.exit(2)
+          print(w,d['verdict'])
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: janus-trump-r18b-${{ matrix.world }}
+          path: artifacts/JANUS_TRUMP_R18B_${{ matrix.world }}_RESULT_2026-09-02.json
+          if-no-files-found: error
+  aggregate:
+    needs: [preflight, controls]
+    if: always()
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with: {pattern: 'janus-trump-r18b-*', path: artifacts/controls, merge-multiple: true}
+      - name: Aggregate
+        run: |
+          mkdir -p artifacts/aggregate
+          PYTHONPATH=experiments:. python experiments/janus_trump_r18b_aggregate_controls.py --input-dir artifacts/controls --output artifacts/aggregate/JANUS_TRUMP_R18B_POST_DISCOVERY_SEMANTIC_CONTROLS_RESULT_2026-09-02.json
+      - name: Aggregate gate
+        run: |
+          python - <<'PY'
+          import json,sys
+          d=json.load(open('artifacts/aggregate/JANUS_TRUMP_R18B_POST_DISCOVERY_SEMANTIC_CONTROLS_RESULT_2026-09-02.json'))
+          assert d['overall_verdict'] in {'R18B_PASS_EXACT_4_OF_4__R19_FRESH_UNSEEN_AUTHORIZED','R18B_CONTROL_MISMATCH','R18B_CONTROL_RESOURCE_OPEN','FAIL_INTEGRITY'}
+          assert d['P_VS_NP']=='OPEN'
+          if d['overall_verdict']=='FAIL_INTEGRITY': sys.exit(2)
+          print(d['overall_verdict'],d.get('verdict_counts'))
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: janus-trump-r18b-post-discovery-semantic-controls
+          path: artifacts/aggregate/JANUS_TRUMP_R18B_POST_DISCOVERY_SEMANTIC_CONTROLS_RESULT_2026-09-02.json
+          if-no-files-found: error
