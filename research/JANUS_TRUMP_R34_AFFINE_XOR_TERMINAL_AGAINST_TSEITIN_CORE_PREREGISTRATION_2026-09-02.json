@@ -1,0 +1,90 @@
+{
+  "schema": "JANUS_TRUMP_R34_AFFINE_XOR_TERMINAL_AGAINST_TSEITIN_CORE_PREREGISTRATION",
+  "version": "1.0",
+  "date": "2026-09-02",
+  "status": "FROZEN_BEFORE_R34_IMPLEMENTATION_AND_EXECUTION",
+  "parent_R33": {
+    "branch": "research/janus-trump-r33-certified-safe-reduction-stack-lean-core-forensics-2026-09-02",
+    "sealed_result_commit": "e8d4babee70d8800b0eaca4ff5149a4e1a3ed4fe",
+    "successful_run_id": 33659095444,
+    "artifact_id": 9857923903,
+    "artifact_sha256": "53fb880f48a97a4b9cbac5c10037abece4b5773f6c2d03bf42c768b0d71c1282",
+    "smallest_stalled_core": {
+      "family": "TSEITIN_3REGULAR_PRISM_FAMILY",
+      "n_vertices": 8,
+      "measure": [32,96,12],
+      "R33_rule_applications": 0
+    }
+  },
+  "single_new_mechanism": {
+    "id": "AFFINE_XOR_TERMINAL_RECOGNITION_AND_GF2_CERTIFIED_SOLVE",
+    "kind": "POLYNOMIAL_TERMINAL_CLASS",
+    "scientific_reason": "TOPA and the sealed R33 counterexample show that the Tseitin core is a parity/affine object. Schaefer-type affine satisfiability is polynomial-time solvable by Gaussian elimination, so R34 tests one structural terminal recognizer rather than adding another CNF deletion heuristic.",
+    "recognition_contract": [
+      "Run the R33 safe-reduction stack byte-for-byte first.",
+      "Invoke the new mechanism only on a nonterminal R33 STALLED_STACK_LEAN_CORE.",
+      "Group every remaining CNF clause by its exact absolute variable set.",
+      "A group is an XOR bundle only when its clauses are exactly the complete set of wrong-parity assignments for one affine equation over that variable set.",
+      "The entire remaining formula must partition into recognized XOR bundles. Partial recognition is not enough; no hybrid SAT search is permitted in R34.",
+      "Solve the recovered system over GF(2) by deterministic Gaussian elimination."
+    ],
+    "certificate_contract": {
+      "UNSAT": "Carry source-equation combination bits through row operations; a contradiction certificate must re-check as XOR of selected source equations = 0 = 1 without a SAT solver.",
+      "SAT": "Emit one GF(2) assignment and re-check it against every recovered affine equation and every original CNF clause.",
+      "recognition": "Each recovered equation must be independently re-expanded to its forbidden parity assignments and match the source CNF group exactly."
+    },
+    "complexity_contract": "Recognition and GF(2) elimination must use an explicitly counted polynomial number of bit/row operations in numbers of active variables, clauses and equations. No enumeration of 2^n assignments is allowed."
+  },
+  "frozen_firewall": {
+    "exactly_one_new_mechanism": true,
+    "R33_stack_byte_frozen": true,
+    "no_DPLL_CDCL": true,
+    "no_external_SAT_solver": true,
+    "no_truth_table": true,
+    "no_post_hoc_second_rule": true,
+    "no_partial_XOR_plus_search": true,
+    "no_claim_that_affine_terminal_covers_general_3SAT": true,
+    "resource_limit_increase_is_not_success": true
+  },
+  "frozen_controls": [
+    {
+      "id": "R33_POSITIVE_CONTROLS_REPLAY",
+      "expected": "All three R33 semantic controls remain PASS and the R33 rule stack behavior is unchanged."
+    },
+    {
+      "id": "AFFINE_SAT_CONTROL",
+      "equations": [
+        "x1 XOR x2 XOR x3 = 0",
+        "x3 XOR x4 XOR x5 = 1"
+      ],
+      "expected": "Recognized as complete affine CNF and solved SAT with independently rechecked assignment."
+    },
+    {
+      "id": "TSEITIN_3REGULAR_PRISM_FAMILY",
+      "sizes": [8,12,16,20,24,28,32],
+      "expected_scientific_question": "Does the one frozen affine terminal recognize and certify the R33 stalled family without changing the R33 stack?"
+    },
+    {
+      "id": "R33_DETERMINISTIC_RANDOM_3CNF_REPLAY",
+      "seeds": [33001,33002,33003,33004],
+      "expected_scientific_question": "After the single XOR terminal is added, what residual non-affine stalled cores remain? No second mechanism may be added in R34."
+    }
+  ],
+  "admissible_verdicts": [
+    "R34_FAIL_INTEGRITY",
+    "R34_SEMANTIC_OR_CERTIFICATE_MISMATCH",
+    "R34_AFFINE_TERMINAL_FAILS_TO_CLOSE_SOME_TSEITIN_CORES",
+    "R34_AFFINE_TERMINAL_CLOSES_TSEITIN_CORE__NONAFFINE_CORE_REMAINS__NO_UNIVERSAL_CLAIM",
+    "R34_AFFINE_TERMINAL_CLOSES_ALL_FROZEN_CORES__NO_UNIVERSAL_CLAIM"
+  ],
+  "captain_obvious_law": "IF THE SEALED CORE IS IN A KNOWN POLYNOMIAL LANGUAGE, RECOGNIZE THAT LANGUAGE EXACTLY; DO NOT PRETEND THE LANGUAGE COVERS INPUTS IT DOES NOT RECOGNIZE.",
+  "interpretation_firewall": {
+    "success_on_tseitin": "Closes the R33 Tseitin counterexample for the extended fixed policy only. It is evidence for a structured terminal class, not universal progress.",
+    "random_stall": "Becomes the next preserved counterexample. R34 ends there; a second mechanism requires R35 preregistration.",
+    "R31_obligations_closed_by_R34": 0,
+    "TRUMP_finished": false,
+    "SAT_IN_P": "NOT_PROVED",
+    "P_VS_NP": "OPEN",
+    "runtime_authority": false
+  }
+}
