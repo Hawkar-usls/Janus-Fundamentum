@@ -1,0 +1,140 @@
+name: JANUS TRUMP R35 Non-Affine Core Freeze Structure Intake
+
+on:
+  push:
+    branches:
+      - research/janus-trump-r35-nonaffine-core-freeze-structure-intake-2026-09-02
+    paths:
+      - 'research/JANUS_TRUMP_R35_NONAFFINE_CORE_FREEZE_STRUCTURE_INTAKE_PREREGISTRATION_2026-09-02.json'
+      - 'experiments/janus_trump_r33_certified_safe_reduction_stack_lean_core_forensics.py'
+      - 'experiments/janus_trump_r34_affine_xor_terminal_against_tseitin_core.py'
+      - 'experiments/janus_trump_r35_nonaffine_core_freeze_structure_intake.py'
+      - '.github/workflows/janus-trump-r35-nonaffine-core-freeze-structure-intake.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  r35-freeze-structure-intake:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Verify frozen selector, parent evidence, and byte lineage
+        run: |
+          set -euo pipefail
+          test "$(git hash-object experiments/janus_trump_r33_certified_safe_reduction_stack_lean_core_forensics.py)" = "c9234a1ef639a009cc6cb4c8a6098fd09bf9affe"
+          test "$(git hash-object experiments/janus_trump_r34_affine_xor_terminal_against_tseitin_core.py)" = "7f9bec920fa47af066570d874fe9127dc4b9b968"
+          test "$(git hash-object research/JANUS_TRUMP_R35_NONAFFINE_CORE_FREEZE_STRUCTURE_INTAKE_PREREGISTRATION_2026-09-02.json)" = "c917172088bc0fe3dbc64243aa2d2884855f10a5"
+          test "$(git hash-object experiments/janus_trump_r35_nonaffine_core_freeze_structure_intake.py)" = "ad237e341d9659d33da0568f134815776c1f95d8"
+          git merge-base --is-ancestor 5dfd70b3463161073ce15db24eb5aaac0cb85117 "$GITHUB_SHA"
+          git merge-base --is-ancestor f4552ef4be4d72a872e7447aaf98b74031ce298b "$GITHUB_SHA"
+          python - <<'PY'
+          import json
+          p=json.load(open('research/JANUS_TRUMP_R35_NONAFFINE_CORE_FREEZE_STRUCTURE_INTAKE_PREREGISTRATION_2026-09-02.json',encoding='utf-8'))
+          assert p['status']=='FROZEN_BEFORE_R35_CORE_MATERIALIZATION'
+          assert p['parent_R34B']['sealed_result_commit']=='5dfd70b3463161073ce15db24eb5aaac0cb85117'
+          assert p['parent_R34B']['successful_run_id']==33660298743
+          assert p['parent_R34B']['artifact_id']==9858389322
+          assert p['parent_R34B']['artifact_sha256']=='6d013260b14594016ba6b5372b52020789e3acb78261885c5303597b04197e15'
+          assert p['frozen_core_selector']['seed']==33004
+          assert p['frozen_core_selector']['expected_initial_measure']==[101,303,24]
+          assert p['frozen_core_selector']['expected_final_measure']==[98,300,23]
+          assert p['R35_phase_scope']['forbidden'][0]=='adding a new SAT reduction rule'
+          assert p['TRUMP_finished'] is False and p['SAT_IN_P']=='NOT_PROVED' and p['P_VS_NP']=='OPEN'
+          print('R35_PREREGISTRATION_AND_LINEAGE_OK')
+          PY
+
+      - name: Static structure-only firewall
+        run: |
+          python - <<'PY'
+          import ast
+          from pathlib import Path
+          path=Path('experiments/janus_trump_r35_nonaffine_core_freeze_structure_intake.py')
+          source=path.read_text(encoding='utf-8')
+          tree=ast.parse(source)
+          forbidden_imports={'pysat','z3','pycosat','subprocess','socket','requests','urllib'}
+          imported=set()
+          for node in ast.walk(tree):
+              if isinstance(node,ast.Import): imported.update(a.name.split('.')[0] for a in node.names)
+              elif isinstance(node,ast.ImportFrom): imported.add((node.module or '').split('.')[0])
+          assert not (imported & forbidden_imports),(imported & forbidden_imports)
+          assert 'brute_force_model' not in source
+          assert 'itertools.product' not in source
+          assert 'solve_gf2_with_certificate' not in source
+          assert 'apply_extended_policy(source)' in source
+          assert 'structure_intake(core)' in source
+          print({'structure_only':True,'external_solver':False,'assignment_enumeration':False,'new_terminal_solver':False})
+          PY
+
+      - name: Compile and run frozen self-test
+        run: |
+          python -m py_compile experiments/janus_trump_r33_certified_safe_reduction_stack_lean_core_forensics.py
+          python -m py_compile experiments/janus_trump_r34_affine_xor_terminal_against_tseitin_core.py
+          python -m py_compile experiments/janus_trump_r35_nonaffine_core_freeze_structure_intake.py
+          PYTHONPATH=experiments:. python experiments/janus_trump_r35_nonaffine_core_freeze_structure_intake.py --self-test
+
+      - name: Execute R35 frozen core intake
+        run: |
+          mkdir -p artifacts
+          PYTHONPATH=experiments:. python experiments/janus_trump_r35_nonaffine_core_freeze_structure_intake.py \
+            --output artifacts/JANUS_TRUMP_R35_NONAFFINE_CORE_FREEZE_STRUCTURE_INTAKE_RESULT_2026-09-02.json
+
+      - name: R35 scientific integrity gate
+        if: always()
+        run: |
+          python - <<'PY'
+          import json,os
+          path='artifacts/JANUS_TRUMP_R35_NONAFFINE_CORE_FREEZE_STRUCTURE_INTAKE_RESULT_2026-09-02.json'
+          assert os.path.exists(path)
+          d=json.load(open(path,encoding='utf-8'))
+          assert d['verdict']=='R35_NONAFFINE_CORE_FROZEN__STRUCTURE_INTAKE_ONLY'
+          assert d['source']['measure']==[101,303,24]
+          assert d['R33_reduction']['final_measure']==[98,300,23]
+          assert d['R33_reduction']['total_rule_applications']==3
+          assert d['R34_route']['terminal']=='STALLED_NONAFFINE_CORE'
+          assert d['R34_route']['recognition_reason']=='INCOMPLETE_PARITY_BUNDLE'
+          core=d['frozen_nonaffine_core']
+          assert core['measure']==[98,300,23]
+          assert len(core['clauses'])==98
+          assert len(core['canonical_clause_list_sha256'])==64
+          s=d['structure_intake']
+          assert sum(s['connected_component_sizes'])==23
+          assert s['affine_bundle_coverage']['total_clauses']==98
+          assert s['min_fill_probe']['authority']=='NON_AUTHORITATIVE_UPPER_BOUND_PROBE'
+          fw=d['candidate_firewall']
+          assert not any(fw.values())
+          assert d['TRUMP_finished'] is False and d['SAT_IN_P']=='NOT_PROVED' and d['P_VS_NP']=='OPEN'
+          print(json.dumps({
+            'verdict':d['verdict'],
+            'source_hash':d['source']['canonical_clause_list_sha256'],
+            'core_hash':core['canonical_clause_list_sha256'],
+            'core_measure':core['measure'],
+            'R33_rule_counts':d['R33_reduction']['rule_counts'],
+            'components':s['connected_component_sizes'],
+            'articulation_points':s['articulation_points'],
+            'primal_degree_histogram':s['primal_graph_degree_histogram'],
+            'primal_edges':s['primal_graph_edge_count'],
+            'min_fill_probe':s['min_fill_probe'],
+            'Horn_fraction':s['Horn_clause_fraction'],
+            'two_cnf_fraction':s['2CNF_clause_fraction'],
+            'affine_bundle_coverage':s['affine_bundle_coverage'],
+            'P_VS_NP':d['P_VS_NP']
+          },indent=2,sort_keys=True))
+          PY
+
+      - name: Upload immutable R35 core evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: janus-trump-r35-nonaffine-core-freeze-structure-intake
+          path: artifacts/JANUS_TRUMP_R35_NONAFFINE_CORE_FREEZE_STRUCTURE_INTAKE_RESULT_2026-09-02.json
+          if-no-files-found: error
