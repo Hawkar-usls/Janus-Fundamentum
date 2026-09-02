@@ -1,0 +1,144 @@
+name: JANUS TRUMP R19 Fresh Unseen DAG Holdout
+
+on:
+  push:
+    branches:
+      - research/janus-trump-r19-fresh-unseen-shannon-hashcons-interface-dag-holdout-2026-09-02
+    paths:
+      - 'research/JANUS_TRUMP_R19_FRESH_UNSEEN_DAG_WORLD_SET_AND_RESOURCE_FREEZE_2026-09-02.json'
+      - 'experiments/janus_trump_r19_fresh_unseen_dag_holdout.py'
+      - '.github/workflows/janus-trump-r19-fresh-unseen-dag-holdout.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  r19-world:
+    strategy:
+      fail-fast: false
+      matrix:
+        world: [R19-W01, R19-W02, R19-W03, R19-W04, R19-W05, R19-W06, R19-W07, R19-W08]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Verify frozen machine and frozen exam
+        run: |
+          set -euo pipefail
+          test "$(git hash-object experiments/janus_trump_r18_shannon_hashcons_interface_dag_discovery.py)" = "afa95321ec6edbb33bef222d8ee7234fe631a599"
+          python - <<'PY'
+          import json
+          d=json.load(open('research/JANUS_TRUMP_R19_FRESH_UNSEEN_DAG_WORLD_SET_AND_RESOURCE_FREEZE_2026-09-02.json'))
+          assert d['status']=='FROZEN_BEFORE_R19_CANDIDATE_HARNESS_IMPLEMENTATION_AND_EXECUTION'
+          assert d['frozen_candidate']['git_blob_sha']=='afa95321ec6edbb33bef222d8ee7234fe631a599'
+          assert d['frozen_candidate']['logic_changes_allowed'] is False
+          assert d['selector_receipt']['truth_accessed'] is False
+          assert d['selector_receipt']['candidate_accessed'] is False
+          assert d['selector_receipt']['selector_firewall_pass'] is True
+          assert len(d['worlds'])==8
+          assert d['P_VS_NP']=='OPEN'
+          print('R19_MACHINE_AND_EXAM_FREEZE_OK')
+          PY
+
+      - name: Install independent verifier dependency
+        run: python -m pip install --disable-pip-version-check 'python-sat==1.9.dev15'
+
+      - name: Compile frozen candidate and R19 harness
+        run: |
+          PYTHONPATH=experiments:. python -m py_compile \
+            experiments/janus_trump_r18_shannon_hashcons_interface_dag_discovery.py \
+            experiments/janus_trump_r19_truth_blind_adversarial_world_selector.py \
+            experiments/janus_trump_r19_fresh_unseen_dag_holdout.py
+
+      - name: Run frozen candidate then independent witness
+        run: |
+          mkdir -p artifacts
+          PYTHONPATH=experiments:. python experiments/janus_trump_r19_fresh_unseen_dag_holdout.py \
+            --world '${{ matrix.world }}' \
+            --output 'artifacts/${{ matrix.world }}.json'
+
+      - name: Per-world scientific gate
+        if: always()
+        run: |
+          python - <<'PY'
+          import json, os
+          p='artifacts/${{ matrix.world }}.json'
+          assert os.path.exists(p), 'missing scientific result'
+          d=json.load(open(p))
+          allowed={'R19_PASS_EXACT_UNSEEN','R19_MISMATCH_UNSEEN','R19_OPEN_CANDIDATE_RESOURCE_LIMIT','R19_OPEN_VERIFIER_RESOURCE_LIMIT','R19_FAIL_INTEGRITY'}
+          assert d['verdict'] in allowed,d['verdict']
+          assert d['scientific_role']=='FRESH_UNSEEN_PROSPECTIVE_HOLDOUT'
+          assert d['frozen_candidate']['git_blob_sha']=='afa95321ec6edbb33bef222d8ee7234fe631a599'
+          assert d['P_VS_NP']=='OPEN'
+          if d['verdict']=='R19_OPEN_CANDIDATE_RESOURCE_LIMIT':
+              assert d['verifier_ran'] is False
+              assert d['scientific_firewall']['truth_not_accessed'] is True
+          if d['verdict'] in ('R19_PASS_EXACT_UNSEEN','R19_MISMATCH_UNSEEN'):
+              assert d['verifier_ran'] is True
+              assert d['scientific_firewall']['candidate_terminal_before_verifier'] is True
+              assert d['scientific_firewall']['world_selected_and_frozen_before_candidate'] is True
+              assert d['comparison']['full_domain'] is True
+          print(d['verdict'])
+          PY
+
+      - name: Upload immutable per-world evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: janus-trump-r19-${{ matrix.world }}
+          path: artifacts/${{ matrix.world }}.json
+          if-no-files-found: error
+
+  r19-aggregate:
+    if: always()
+    needs: r19-world
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install verifier dependency for import-stable aggregation
+        run: python -m pip install --disable-pip-version-check 'python-sat==1.9.dev15'
+      - name: Download all world evidence
+        uses: actions/download-artifact@v4
+        with:
+          pattern: janus-trump-r19-R19-W*
+          path: world-results
+          merge-multiple: true
+      - name: Aggregate without rescoring
+        run: |
+          mkdir -p artifacts
+          PYTHONPATH=experiments:. python experiments/janus_trump_r19_fresh_unseen_dag_holdout.py \
+            --aggregate-dir world-results \
+            --output artifacts/JANUS_TRUMP_R19_FRESH_UNSEEN_DAG_HOLDOUT_AGGREGATE_RESULT_2026-09-02.json
+      - name: Aggregate scientific gate
+        if: always()
+        run: |
+          python - <<'PY'
+          import json, os
+          p='artifacts/JANUS_TRUMP_R19_FRESH_UNSEEN_DAG_HOLDOUT_AGGREGATE_RESULT_2026-09-02.json'
+          assert os.path.exists(p),'missing aggregate result'
+          d=json.load(open(p))
+          allowed={'R19_8_OF_8_PASS_EXACT_UNSEEN','R19_SEMANTIC_COUNTEREXAMPLE_UNSEEN__PRESERVE_AND_STOP','R19_OPEN_RESOURCE_LIMIT__PARTIAL_EXACT_SURVIVAL_ONLY','R19_FAIL_INTEGRITY__NO_SCIENTIFIC_CLAIM'}
+          assert d['verdict'] in allowed,d['verdict']
+          assert d['scientific_role']=='FRESH_UNSEEN_PROSPECTIVE_HOLDOUT'
+          assert d['frozen_candidate_git_blob_sha']=='afa95321ec6edbb33bef222d8ee7234fe631a599'
+          assert d['world_count_expected']==8
+          assert d['P_VS_NP']=='OPEN'
+          print(d['verdict'])
+          print(d['verdict_counts'])
+          PY
+      - name: Upload immutable R19 aggregate evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: janus-trump-r19-fresh-unseen-dag-holdout-aggregate
+          path: artifacts/JANUS_TRUMP_R19_FRESH_UNSEEN_DAG_HOLDOUT_AGGREGATE_RESULT_2026-09-02.json
+          if-no-files-found: error
