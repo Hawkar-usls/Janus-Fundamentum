@@ -1,0 +1,72 @@
+name: JANUS TRUMP R15C Shared Extension Quotient Calibration
+
+on:
+  push:
+    branches:
+      - research/janus-trump-r15c-shared-extension-quotient-calibration-2026-09-02
+    paths:
+      - 'research/JANUS_TRUMP_R15C_SHARED_EXTENSION_QUOTIENT_CALIBRATION_PREREGISTRATION_2026-09-02.json'
+      - 'experiments/janus_trump_r15c_shared_extension_quotient_calibration.py'
+      - 'tests/test_janus_trump_r15c_shared_extension_quotient_calibration.py'
+      - '.github/workflows/janus-trump-r15c-shared-extension-quotient-calibration.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  r15c-calibration:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Verify frozen R15C preregistration
+        run: |
+          python - <<'PY'
+          import json
+          p=json.load(open('research/JANUS_TRUMP_R15C_SHARED_EXTENSION_QUOTIENT_CALIBRATION_PREREGISTRATION_2026-09-02.json'))
+          assert p['status']=='FROZEN_BEFORE_R15C_IMPLEMENTATION_AND_EXECUTION'
+          assert p['parent_R15B_result_summary_commit']=='62050132fb791c01ad42bd5418d429f0c790ca86'
+          assert p['resource_envelope']['max_active_clauses']==150000
+          assert p['P_VS_NP']=='OPEN'
+          print('R15C_FREEZE_OK')
+          PY
+      - name: Compile R15C
+        run: |
+          PYTHONPATH=experiments:. python -m py_compile experiments/janus_trump_r15c_shared_extension_quotient_calibration.py tests/test_janus_trump_r15c_shared_extension_quotient_calibration.py
+      - name: R15C unit controls
+        run: |
+          PYTHONPATH=experiments:. python - <<'PY'
+          import importlib.util
+          spec=importlib.util.spec_from_file_location('r15ctests','tests/test_janus_trump_r15c_shared_extension_quotient_calibration.py')
+          m=importlib.util.module_from_spec(spec); spec.loader.exec_module(m)
+          tests=[getattr(m,n) for n in dir(m) if n.startswith('test_r15c')]
+          for t in tests: t()
+          print('R15C_TESTS_PASS',len(tests))
+          PY
+      - name: Run frozen R15C calibration
+        run: |
+          mkdir -p artifacts
+          PYTHONPATH=experiments:. python experiments/janus_trump_r15c_shared_extension_quotient_calibration.py --output artifacts/JANUS_TRUMP_R15C_SHARED_EXTENSION_QUOTIENT_CALIBRATION_RESULT_2026-09-02.json
+      - name: R15C scientific integrity gate
+        run: |
+          python - <<'PY'
+          import json
+          d=json.load(open('artifacts/JANUS_TRUMP_R15C_SHARED_EXTENSION_QUOTIENT_CALIBRATION_RESULT_2026-09-02.json'))
+          assert d['P_VS_NP']=='OPEN'
+          assert all(d['gates'].values()), d['gates']
+          assert d['verdict']!='FAIL_INTEGRITY'
+          if d['candidate']['status'].startswith('COMPLETE'):
+              assert d['post_candidate_control']['mismatch_count']==0
+          else:
+              assert d['candidate']['status']=='OPEN_RESOURCE_LIMIT'
+              assert d['post_candidate_control']['not_run'] is True
+          print(d['verdict'])
+          PY
+      - name: Upload immutable R15C evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: janus-trump-r15c-shared-extension-quotient-calibration
+          path: artifacts/JANUS_TRUMP_R15C_SHARED_EXTENSION_QUOTIENT_CALIBRATION_RESULT_2026-09-02.json
+          if-no-files-found: error
