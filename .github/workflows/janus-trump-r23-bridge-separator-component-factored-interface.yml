@@ -1,0 +1,93 @@
+name: JANUS TRUMP R23 Bridge Separator Component Factored Interface
+
+on:
+  push:
+    branches:
+      - research/janus-trump-r23-primal-graph-decomposition-forensics-2026-09-02
+    paths:
+      - 'research/JANUS_TRUMP_R23_BRIDGE_SEPARATOR_COMPONENT_FACTORED_INTERFACE_PREREGISTRATION_2026-09-02.json'
+      - 'experiments/janus_trump_r23_bridge_separator_component_factored_interface.py'
+      - '.github/workflows/janus-trump-r23-bridge-separator-component-factored-interface.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  r23-discovery:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Verify R23 preregistration freeze
+        run: |
+          python - <<'PY'
+          import json
+          p=json.load(open('research/JANUS_TRUMP_R23_BRIDGE_SEPARATOR_COMPONENT_FACTORED_INTERFACE_PREREGISTRATION_2026-09-02.json'))
+          assert p['status']=='FROZEN_BEFORE_R23_IMPLEMENTATION_AND_EXECUTION'
+          assert p['parent_R22_result_summary_commit']=='fc46806c93346ee088fc94847e1d0f2296bffc8c'
+          assert p['representation_contract']['separator']=='THE_FROZEN_R19_W05_BRIDGE_VARIABLE_SET_B_ONLY'
+          assert p['candidate_firewall']['truth_guided_decomposition_forbidden'] is True
+          assert p['resource_envelope']['wall_seconds_total']==120
+          assert p['resource_envelope']['maximum_total_live_nodes_across_retained_factor_dags']==1000000
+          assert p['P_VS_NP']=='OPEN'
+          print('R23_FREEZE_OK')
+          PY
+      - name: Install independent post-terminal verifier dependency
+        run: python -m pip install --disable-pip-version-check 'python-sat==1.9.dev15'
+      - name: Compile R23
+        run: PYTHONPATH=experiments:. python -m py_compile experiments/janus_trump_r23_bridge_separator_component_factored_interface.py
+      - name: Run exposed W05 component-factor discovery
+        run: |
+          mkdir -p artifacts
+          PYTHONPATH=experiments:. python experiments/janus_trump_r23_bridge_separator_component_factored_interface.py \
+            --output artifacts/JANUS_TRUMP_R23_BRIDGE_SEPARATOR_COMPONENT_FACTORED_INTERFACE_RESULT_2026-09-02.json
+      - name: R23 scientific integrity gate
+        run: |
+          python - <<'PY'
+          import json,sys
+          d=json.load(open('artifacts/JANUS_TRUMP_R23_BRIDGE_SEPARATOR_COMPONENT_FACTORED_INTERFACE_RESULT_2026-09-02.json'))
+          allowed={
+            'R23_NO_BRIDGE_SEPARATOR_DECOMPOSITION',
+            'R23_OPEN_RESOURCE_LIMIT__NO_SEMANTIC_VERDICT',
+            'R23_EXPOSED_W05_FACTORED_INTERFACE_FULL_DOMAIN_MATCH',
+            'R23_EXPOSED_W05_FACTORED_INTERFACE_SEMANTIC_MISMATCH',
+            'R23_FAIL_INTEGRITY'
+          }
+          assert d['verdict'] in allowed,d['verdict']
+          assert d['candidate_firewall']['pass'] is True,d['candidate_firewall']
+          assert d['tiny_structural_control'] is True
+          assert d['P_VS_NP']=='OPEN'
+          if d['verdict']=='R23_NO_BRIDGE_SEPARATOR_DECOMPOSITION':
+              assert d['candidate']['structural']['internal_component_count']==1
+              assert d['truth_accessed'] is False
+              assert d['verifier']['not_run'] is True
+          elif d['verdict']=='R23_OPEN_RESOURCE_LIMIT__NO_SEMANTIC_VERDICT':
+              assert d['truth_accessed'] is False
+              assert d['verifier']['not_run'] is True
+          elif d['verdict']=='R23_EXPOSED_W05_FACTORED_INTERFACE_FULL_DOMAIN_MATCH':
+              assert d['candidate']['structural']['internal_component_count']>=2
+              assert d['comparison']['full_domain'] is True
+              assert d['comparison']['domain_size']==2048
+              assert d['comparison']['allowed_set_equal'] is True
+              assert d['comparison']['false_positive_count']==0
+              assert d['comparison']['false_negative_count']==0
+              assert d['comparison']['original_sat_model_replay_failures']==[]
+              assert d['truth_accessed'] is True
+          elif d['verdict']=='R23_EXPOSED_W05_FACTORED_INTERFACE_SEMANTIC_MISMATCH':
+              assert d['comparison']['full_domain'] is True
+              assert not d['comparison']['allowed_set_equal']
+          else:
+              sys.exit(2)
+          print(d['verdict'])
+          PY
+      - name: Upload immutable R23 evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: janus-trump-r23-bridge-separator-component-factored-interface
+          path: artifacts/JANUS_TRUMP_R23_BRIDGE_SEPARATOR_COMPONENT_FACTORED_INTERFACE_RESULT_2026-09-02.json
+          if-no-files-found: error
