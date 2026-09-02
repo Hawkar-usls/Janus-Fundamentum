@@ -1,0 +1,94 @@
+name: JANUS TRUMP R29 Bucket Message Complexity Forensics
+
+on:
+  push:
+    branches:
+      - research/janus-trump-r29-bucket-message-complexity-forensics-2026-09-02
+    paths:
+      - 'research/JANUS_TRUMP_R29_BUCKET_MESSAGE_COMPLEXITY_FORENSICS_PREREGISTRATION_2026-09-02.json'
+      - 'experiments/janus_trump_r29_bucket_message_complexity_forensics.py'
+      - '.github/workflows/janus-trump-r29-bucket-message-complexity-forensics.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  r29-message-forensics:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Verify frozen R29 contract and machine blobs
+        run: |
+          set -euo pipefail
+          test "$(git hash-object experiments/janus_trump_r27_local_bucket_factored_shannon_elimination_discovery.py)" = "ff1139a4da7e9eaf43945995db95a6d22fb45dbe"
+          test "$(git hash-object experiments/janus_trump_r18_shannon_hashcons_interface_dag_discovery.py)" = "afa95321ec6edbb33bef222d8ee7234fe631a599"
+          python - <<'PY'
+          import json
+          p=json.load(open('research/JANUS_TRUMP_R29_BUCKET_MESSAGE_COMPLEXITY_FORENSICS_PREREGISTRATION_2026-09-02.json'))
+          assert p['status']=='FROZEN_BEFORE_R29_OBSERVER_IMPLEMENTATION_AND_REPLAY'
+          assert p['parent_R28_result_summary_commit']=='9059e26a1d797e3cdd75c3a385ede14ed0cfd7b3'
+          assert p['frozen_R27_candidate']['git_blob_sha']=='ff1139a4da7e9eaf43945995db95a6d22fb45dbe'
+          assert p['frozen_local_machine']['git_blob_sha']=='afa95321ec6edbb33bef222d8ee7234fe631a599'
+          assert p['frozen_local_machine']['exists_sequence']=='restrict(false), restrict(true), OR'
+          assert p['observer_contract']['truth_access'] is False
+          assert p['observer_contract']['semantic_verifier'] is False
+          assert p['P_VS_NP']=='OPEN'
+          print('R29_FREEZE_OK')
+          PY
+
+      - name: Install import-only sealed dependency
+        run: python -m pip install --disable-pip-version-check 'python-sat==1.9.dev15'
+
+      - name: Compile R29 observer
+        run: PYTHONPATH=experiments:. python -m py_compile experiments/janus_trump_r29_bucket_message_complexity_forensics.py
+
+      - name: Replay frozen R27 and measure exact Boolean messages
+        run: |
+          mkdir -p artifacts
+          PYTHONPATH=experiments:. python experiments/janus_trump_r29_bucket_message_complexity_forensics.py \
+            --output artifacts/JANUS_TRUMP_R29_BUCKET_MESSAGE_COMPLEXITY_FORENSICS_RESULT_2026-09-02.json
+
+      - name: R29 scientific integrity gate
+        if: always()
+        run: |
+          python - <<'PY'
+          import json,os,sys
+          p='artifacts/JANUS_TRUMP_R29_BUCKET_MESSAGE_COMPLEXITY_FORENSICS_RESULT_2026-09-02.json'
+          assert os.path.exists(p)
+          d=json.load(open(p))
+          assert d['verdict'] in {'R29_BUCKET_MESSAGE_COMPLEXITY_CAPTURED','R29_FAIL_OBSERVER_EQUIVALENCE'}
+          assert d['observer_firewall']['pass'] is True
+          assert d['truth_accessed'] is False
+          assert d['semantic_verifier_ran'] is False
+          assert d['P_VS_NP']=='OPEN'
+          if d['verdict']=='R29_FAIL_OBSERVER_EQUIVALENCE':
+              sys.exit(2)
+          assert d['R27_observer_equivalence']['pass'] is True
+          assert d['analysis']['interpretation_allowed'] is True
+          assert len(d['analysis']['trajectory'])==24
+          assert d['analysis']['partial_open_step']['step']==25
+          assert d['analysis']['phase_at_resource_open'] in {
+              'LOCAL_AND','RESTRICT_FALSE','RESTRICT_TRUE','EXISTENTIAL_OR','MULTI_ROOT_GC'
+          }
+          print(json.dumps({
+              'verdict':d['verdict'],
+              'phase_at_resource_open':d['analysis']['phase_at_resource_open'],
+              'fatal_message_forensics':d['analysis']['fatal_message_forensics'],
+              'P_VS_NP':d['P_VS_NP'],
+          },indent=2,sort_keys=True))
+          PY
+
+      - name: Upload immutable R29 evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: janus-trump-r29-bucket-message-complexity-forensics
+          path: artifacts/JANUS_TRUMP_R29_BUCKET_MESSAGE_COMPLEXITY_FORENSICS_RESULT_2026-09-02.json
+          if-no-files-found: error
