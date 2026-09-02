@@ -1,0 +1,56 @@
+name: JANUS TRUMP R40 Pyramidal Obstruction Regeneration
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - 'research/JANUS_TRUMP_R40_PYRAMIDAL_OBSTRUCTION_REGENERATION_PREREGISTRATION_2026-09-03.json'
+      - 'research/JANUS_TRUMP_R40_PYRAMIDAL_OBSTRUCTION_REGENERATION_RESULT_2026-09-03.json'
+      - 'research/JANUS_TRUMP_R40_PYRAMIDAL_OBSTRUCTION_REGENERATION_SEAL_2026-09-03.json'
+      - 'research/janus_trump_r40_pyramidal_obstruction_regeneration.py'
+      - 'research/JANUS_TRUMP_R39_QHORN_SEALED_INPUT_2026-09-03.json'
+      - '.github/workflows/janus-trump-r40-pyramidal-obstruction-regeneration.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  exact-replay:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Regenerate frozen children
+        run: python research/janus_trump_r40_pyramidal_obstruction_regeneration.py > /tmp/r40-replay.json
+      - name: Require semantic replay and sealed first-pass receipt
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          replay = json.loads(Path('/tmp/r40-replay.json').read_text())
+          expected = json.loads(Path('research/JANUS_TRUMP_R40_PYRAMIDAL_OBSTRUCTION_REGENERATION_RESULT_2026-09-03.json').read_text())
+          seal = json.loads(Path('research/JANUS_TRUMP_R40_PYRAMIDAL_OBSTRUCTION_REGENERATION_SEAL_2026-09-03.json').read_text())
+          assert replay == expected, 'R40_REPLAY_RESULT_MISMATCH'
+          assert replay['generation_depth'] == seal['generation_depth'] == 1
+          assert replay['frozen_child_count'] == seal['frozen_child_count'] == 8
+          assert replay['aggregate_charged_work']['resolvent_pairs_attempted'] == seal['charged_resolvent_pairs'] == 137
+          assert replay['aggregate_charged_work']['child_output_literals_materialized'] == seal['child_output_literals_materialized'] == 975
+          assert replay['status'] == seal['verdict'] == 'REGENERATED_STILL_OPEN'
+          assert replay['decisive_children'] == []
+          assert seal['github_actions_replay']['workflow_run'] == 33689866678
+          assert seal['github_actions_replay']['conclusion'] == 'success'
+          assert seal['github_actions_replay']['artifact_id'] == 9869577647
+          assert seal['github_actions_replay']['artifact_sha256'] == '7cba82b05d62c0b2812762ca070d762d716d835b10ef59a88055681837681cd1'
+          assert replay['P_VS_NP'] == seal['P_VS_NP'] == 'OPEN'
+          assert replay['SAT_IN_P'] == seal['SAT_IN_P'] == 'NOT_PROVED'
+          print('R40 SEALED EXACT REPLAY PASS')
+          PY
+      - name: Upload replay receipt
+        uses: actions/upload-artifact@v4
+        with:
+          name: janus-trump-r40-pyramidal-obstruction-regeneration-replay
+          path: /tmp/r40-replay.json
+          if-no-files-found: error
