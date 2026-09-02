@@ -1,0 +1,92 @@
+name: JANUS TRUMP R25 Cutset First Symbolic Shannon Schedule Discovery
+
+on:
+  push:
+    branches:
+      - research/janus-trump-r25-cutset-first-symbolic-shannon-schedule-discovery-2026-09-02
+    paths:
+      - 'research/JANUS_TRUMP_R25_CUTSET_FIRST_SYMBOLIC_SHANNON_SCHEDULE_DISCOVERY_PREREGISTRATION_2026-09-02.json'
+      - 'experiments/janus_trump_r25_cutset_first_symbolic_shannon_schedule_discovery.py'
+      - '.github/workflows/janus-trump-r25-cutset-first-symbolic-shannon-schedule-discovery.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  r25-discovery:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Verify R25 freeze and sealed R18 machine
+        run: |
+          set -euo pipefail
+          test "$(git hash-object experiments/janus_trump_r18_shannon_hashcons_interface_dag_discovery.py)" = "afa95321ec6edbb33bef222d8ee7234fe631a599"
+          python - <<'PY'
+          import json
+          p=json.load(open('research/JANUS_TRUMP_R25_CUTSET_FIRST_SYMBOLIC_SHANNON_SCHEDULE_DISCOVERY_PREREGISTRATION_2026-09-02.json'))
+          assert p['status']=='FROZEN_BEFORE_R25_IMPLEMENTATION_AND_EXECUTION'
+          assert p['parent_R24B_result_summary_commit']=='a92f0fdf88caf57ceb98a320038d327e76fd2501'
+          assert p['sealed_structural_input']['cutset_variables_in_frozen_selection_order']==[35,1,32,2,37,69,59,23]
+          assert p['frozen_candidate_machine']['git_blob_sha']=='afa95321ec6edbb33bef222d8ee7234fe631a599'
+          assert p['resource_envelope']['wall_seconds']==120
+          assert p['resource_envelope']['maximum_active_or_temporary_nodes']==1000000
+          assert p['resource_envelope']['maximum_restrict_calls']==20000000
+          assert p['candidate_firewall']['cutset_assignment_enumeration_forbidden'] is True
+          assert p['P_VS_NP']=='OPEN'
+          print('R25_FREEZE_OK')
+          PY
+      - name: Install independent post-terminal verifier dependency
+        run: python -m pip install --disable-pip-version-check 'python-sat==1.9.dev15'
+      - name: Compile R25
+        run: PYTHONPATH=experiments:. python -m py_compile experiments/janus_trump_r25_cutset_first_symbolic_shannon_schedule_discovery.py
+      - name: Run exposed W05 cutset-first symbolic schedule
+        run: |
+          mkdir -p artifacts
+          PYTHONPATH=experiments:. python experiments/janus_trump_r25_cutset_first_symbolic_shannon_schedule_discovery.py \
+            --output artifacts/JANUS_TRUMP_R25_CUTSET_FIRST_SYMBOLIC_SHANNON_SCHEDULE_DISCOVERY_RESULT_2026-09-02.json
+      - name: R25 scientific gate
+        if: always()
+        run: |
+          python - <<'PY'
+          import json,os,sys
+          p='artifacts/JANUS_TRUMP_R25_CUTSET_FIRST_SYMBOLIC_SHANNON_SCHEDULE_DISCOVERY_RESULT_2026-09-02.json'; assert os.path.exists(p)
+          d=json.load(open(p))
+          allowed={
+            'R25_EXPOSED_W05_CUTSET_FIRST_FULL_DOMAIN_SEMANTIC_MATCH',
+            'R25_EXPOSED_W05_CUTSET_FIRST_SEMANTIC_MISMATCH',
+            'R25_OPEN_RESOURCE_LIMIT__NO_SEMANTIC_VERDICT',
+            'R25_FAIL_INTEGRITY'
+          }
+          assert d['verdict'] in allowed,d['verdict']
+          assert d['candidate_firewall']['pass'] is True,d['candidate_firewall']
+          assert d['R24_cutset_prefix']==[35,1,32,2,37,69,59,23]
+          assert d['P_VS_NP']=='OPEN'
+          if d['verdict']=='R25_OPEN_RESOURCE_LIMIT__NO_SEMANTIC_VERDICT':
+              assert d['truth_accessed'] is False and d['verifier']['not_run'] is True
+          elif d['verdict']=='R25_EXPOSED_W05_CUTSET_FIRST_FULL_DOMAIN_SEMANTIC_MATCH':
+              assert d['truth_accessed'] is True
+              assert d['candidate']['status']=='COMPLETE_INTERFACE_DAG'
+              assert d['candidate']['completed_quantification_steps']==60
+              assert d['comparison']['full_domain'] is True and d['comparison']['domain_size']==2048
+              assert d['comparison']['allowed_set_equal'] is True
+              assert d['comparison']['false_positive_count']==0 and d['comparison']['false_negative_count']==0
+              assert d['comparison']['original_sat_model_replay_failures']==[]
+          elif d['verdict']=='R25_EXPOSED_W05_CUTSET_FIRST_SEMANTIC_MISMATCH':
+              assert d['truth_accessed'] is True
+              assert d['comparison']['full_domain'] is True and not d['comparison']['allowed_set_equal']
+          else:
+              sys.exit(2)
+          print(d['verdict'])
+          PY
+      - name: Upload immutable R25 evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: janus-trump-r25-cutset-first-symbolic-shannon-schedule-discovery
+          path: artifacts/JANUS_TRUMP_R25_CUTSET_FIRST_SYMBOLIC_SHANNON_SCHEDULE_DISCOVERY_RESULT_2026-09-02.json
+          if-no-files-found: error
