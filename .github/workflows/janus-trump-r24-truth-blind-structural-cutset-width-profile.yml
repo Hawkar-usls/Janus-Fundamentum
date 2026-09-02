@@ -1,0 +1,79 @@
+name: JANUS TRUMP R24 Truth-Blind Structural Cutset Width Profile
+
+on:
+  push:
+    branches:
+      - research/janus-trump-r24-truth-blind-structural-cutset-width-profile-2026-09-02
+    paths:
+      - 'research/JANUS_TRUMP_R24_TRUTH_BLIND_STRUCTURAL_CUTSET_WIDTH_PROFILE_PREREGISTRATION_2026-09-02.json'
+      - 'experiments/janus_trump_r24_truth_blind_structural_cutset_width_profile.py'
+      - '.github/workflows/janus-trump-r24-truth-blind-structural-cutset-width-profile.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  r24-cutset-profile:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Verify frozen R24 contract
+        run: |
+          python - <<'PY'
+          import json
+          p=json.load(open('research/JANUS_TRUMP_R24_TRUTH_BLIND_STRUCTURAL_CUTSET_WIDTH_PROFILE_PREREGISTRATION_2026-09-02.json'))
+          assert p['status']=='FROZEN_BEFORE_R24_IMPLEMENTATION_AND_EXECUTION'
+          assert p['parent_R23_result_summary_commit']=='71804e78b045e24c4065147a2d63a74275185189'
+          assert p['scientific_role']=='EXPOSED_STRUCTURAL_CUTSET_FORENSICS__NO_SEMANTIC_TRUTH__NO_BOOLEAN_BRANCHING'
+          assert p['target']['world_id']=='R19-W05'
+          assert p['target']['frame_sha256']=='cd8e7168819401fc2510f351b0c7d319fc9cacfa400b181cf6e91cecd1288384'
+          assert p['cutset_contract']['maximum_cutset_size']==8
+          assert p['cutset_contract']['profile_sizes']==[0,1,2,3,4,5,6,7,8]
+          assert p['firewall']['SAT_solver_forbidden'] is True
+          assert p['firewall']['cutset_value_assignment_forbidden'] is True
+          assert p['firewall']['post_answer_cutset_reselection_forbidden'] is True
+          assert p['P_VS_NP']=='OPEN'
+          print('R24_PREREG_OK')
+          PY
+      - name: Compile structural cutset observer
+        run: PYTHONPATH=experiments:. python -m py_compile experiments/janus_trump_r24_truth_blind_structural_cutset_width_profile.py
+      - name: Run frozen greedy structural cutset lookahead
+        run: |
+          mkdir -p artifacts
+          PYTHONPATH=experiments:. python experiments/janus_trump_r24_truth_blind_structural_cutset_width_profile.py \
+            --output artifacts/JANUS_TRUMP_R24_TRUTH_BLIND_STRUCTURAL_CUTSET_WIDTH_PROFILE_RESULT_2026-09-02.json
+      - name: R24 scientific gate
+        if: always()
+        run: |
+          python - <<'PY'
+          import json,os
+          p='artifacts/JANUS_TRUMP_R24_TRUTH_BLIND_STRUCTURAL_CUTSET_WIDTH_PROFILE_RESULT_2026-09-02.json'
+          assert os.path.exists(p),'missing R24 result'
+          d=json.load(open(p))
+          allowed={'R24_SMALL_STRUCTURAL_CUTSET_PROMISING','R24_CONCENTRATED_STRUCTURAL_CORE_SIGNAL','R24_DISTRIBUTED_WIDTH_SIGNAL','R24_MIXED_CUTSET_WIDTH_SIGNAL','R24_FAIL_INTEGRITY'}
+          assert d['verdict'] in allowed,d['verdict']
+          assert d['structural_firewall']['pass'] is True,d['structural_firewall']
+          assert d['truth_accessed'] is False
+          assert d['cutset_values_assigned'] is False
+          assert d['semantic_candidate_ran'] is False
+          assert d['baseline_minimum_width']==48
+          assert len(d['profiles'])==9
+          assert len(d['selected_cutset'])==8
+          assert d['P_VS_NP']=='OPEN'
+          if d['verdict']=='R24_FAIL_INTEGRITY': raise SystemExit(2)
+          print(d['verdict'])
+          print('CUTSET',d['selected_cutset'])
+          print('PROFILE',[(x['cutset_size'],x['minimum_frozen_heuristic_width'],x['width_drop_from_k0'],x['internal_component_count_after_cutset_and_bridge_removal']) for x in d['profiles']])
+          PY
+      - name: Upload immutable R24 evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: janus-trump-r24-truth-blind-structural-cutset-width-profile
+          path: artifacts/JANUS_TRUMP_R24_TRUTH_BLIND_STRUCTURAL_CUTSET_WIDTH_PROFILE_RESULT_2026-09-02.json
+          if-no-files-found: error
