@@ -1,0 +1,156 @@
+name: JANUS TRUMP R37B Fixed Certified Portfolio Restart Cycle
+
+on:
+  push:
+    branches:
+      - research/janus-trump-r37b-fixed-certified-portfolio-restart-cycle-2026-09-02
+    paths:
+      - 'research/JANUS_TRUMP_R37B_FIXED_CERTIFIED_PORTFOLIO_RESTART_CYCLE_PREREGISTRATION_2026-09-02.json'
+      - 'experiments/janus_trump_r33_certified_safe_reduction_stack_lean_core_forensics.py'
+      - 'experiments/janus_trump_r34_affine_xor_terminal_against_tseitin_core.py'
+      - 'experiments/janus_trump_r35b_single_literal_rup_vivification.py'
+      - 'experiments/janus_trump_r37b_fixed_certified_portfolio_restart_cycle.py'
+      - '.github/workflows/janus-trump-r37b-fixed-certified-portfolio-restart-cycle.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  r37b-fixed-restart-cycle:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Verify frozen R37 parent and operator bytes
+        run: |
+          set -euo pipefail
+          test "$(git hash-object experiments/janus_trump_r33_certified_safe_reduction_stack_lean_core_forensics.py)" = "c9234a1ef639a009cc6cb4c8a6098fd09bf9affe"
+          test "$(git hash-object experiments/janus_trump_r34_affine_xor_terminal_against_tseitin_core.py)" = "7f9bec920fa47af066570d874fe9127dc4b9b968"
+          test "$(git hash-object experiments/janus_trump_r35b_single_literal_rup_vivification.py)" = "259d2e38947d09b0c058963ad825a57f2e734203"
+          test "$(git hash-object research/JANUS_TRUMP_R37B_FIXED_CERTIFIED_PORTFOLIO_RESTART_CYCLE_PREREGISTRATION_2026-09-02.json)" = "15ab00713498ccf7293ef47bf1d074ddbb068172"
+          test "$(git hash-object experiments/janus_trump_r37b_fixed_certified_portfolio_restart_cycle.py)" = "f37da1c2e1696e35695096a2c748a222af7920cc"
+          git merge-base --is-ancestor 11a766b0205eb6a301f3eb79f070d43bb93fee15 "$GITHUB_SHA"
+          git merge-base --is-ancestor 0743ae0f39093118a93eaf1277178c314f0a2096 "$GITHUB_SHA"
+          python - <<'PY'
+          import json
+          p=json.load(open('research/JANUS_TRUMP_R37B_FIXED_CERTIFIED_PORTFOLIO_RESTART_CYCLE_PREREGISTRATION_2026-09-02.json',encoding='utf-8'))
+          assert p['status']=='FROZEN_BEFORE_R37B_IMPLEMENTATION_AND_EXECUTION'
+          assert p['byte_frozen_operators']['new_semantic_rule_added'] is False
+          assert p['fixed_cycle']['no_reordering'] is True
+          assert p['global_progress_theorem_contract']['measure'].startswith('M(F)=(C(F),L(F),V(F))')
+          assert p['interpretation_firewall']['R31_obligations_closed_by_R37B']==0
+          assert p['interpretation_firewall']['P_VS_NP']=='OPEN'
+          print('R37B_PREREGISTRATION_AND_LINEAGE_OK')
+          PY
+
+      - name: Static fixed-cycle firewall
+        run: |
+          python - <<'PY'
+          import ast
+          from pathlib import Path
+          p=Path('experiments/janus_trump_r37b_fixed_certified_portfolio_restart_cycle.py')
+          source=p.read_text(encoding='utf-8')
+          tree=ast.parse(source)
+          forbidden={'pysat','z3','pycosat','subprocess','socket','requests','urllib'}
+          imported=set()
+          for node in ast.walk(tree):
+              if isinstance(node,ast.Import): imported.update(a.name.split('.')[0] for a in node.names)
+              elif isinstance(node,ast.ImportFrom): imported.add((node.module or '').split('.')[0])
+          assert not (imported & forbidden),(imported & forbidden)
+          assert 'brute_force_model' not in source
+          assert 'itertools.product' not in source
+          assert source.count('r33.simplify(cycle_before)')==1
+          assert source.count('r34.recognize_complete_affine_cnf(after_r33)')==1
+          assert source.count('r35b.run_candidate(after_r33)')==1
+          assert 'RESTART_IF_RUP_CHANGED' in source
+          assert 'state_measure_bound = (m + 1) * (m * n + 1) * (n + 1) - 1' in source
+          print({'new_rule':False,'external_solver':False,'assignment_enumeration':False,'fixed_order':True,'global_measure_bound_explicit':True})
+          PY
+
+      - name: Compile and frozen self-test
+        run: |
+          python -m py_compile experiments/janus_trump_r33_certified_safe_reduction_stack_lean_core_forensics.py
+          python -m py_compile experiments/janus_trump_r34_affine_xor_terminal_against_tseitin_core.py
+          python -m py_compile experiments/janus_trump_r35b_single_literal_rup_vivification.py
+          python -m py_compile experiments/janus_trump_r37b_fixed_certified_portfolio_restart_cycle.py
+          PYTHONPATH=experiments:. python experiments/janus_trump_r37b_fixed_certified_portfolio_restart_cycle.py --self-test
+
+      - name: Execute R37B frozen restart cycle
+        run: |
+          mkdir -p artifacts
+          PYTHONPATH=experiments:. python experiments/janus_trump_r37b_fixed_certified_portfolio_restart_cycle.py \
+            --output artifacts/JANUS_TRUMP_R37B_FIXED_CERTIFIED_PORTFOLIO_RESTART_CYCLE_RESULT_2026-09-02.json
+
+      - name: R37B scientific integrity gate
+        if: always()
+        run: |
+          python - <<'PY'
+          import json,os
+          path='artifacts/JANUS_TRUMP_R37B_FIXED_CERTIFIED_PORTFOLIO_RESTART_CYCLE_RESULT_2026-09-02.json'
+          assert os.path.exists(path)
+          d=json.load(open(path,encoding='utf-8'))
+          allowed={
+            'R37B_FAIL_INTEGRITY',
+            'R37B_FIXED_RESTART_CYCLE_REACHES_DIRECT_SEMANTIC_TERMINAL__EXPOSED_ONLY',
+            'R37B_FIXED_RESTART_CYCLE_REACHES_DECLARED_POLY_CLASS__SOLVER_NOT_INTEGRATED',
+            'R37B_FIXED_RESTART_CYCLE_REACHES_AFFINE_TERMINAL__EXPOSED_ONLY',
+            'R37B_FIXED_RESTART_CYCLE_RUP_UNSAT__EXPOSED_ONLY',
+            'R37B_FIXED_RESTART_CYCLE_STALLS_AT_PORTFOLIO_FIXPOINT__NO_SEMANTIC_VERDICT'
+          }
+          assert d['verdict'] in allowed
+          assert d['source_git_commit']==os.environ['GITHUB_SHA']
+          assert not any(d['candidate_firewall'].values())
+          g=d['global_progress_theorem_receipt']
+          assert g['measure']=='(C,L,V)_LEX'
+          assert g['polynomial_termination_of_this_controller'] is True
+          assert g['decision_completeness_proved'] is False
+          assert g['observed_successful_transformations'] <= g['state_measure_domain_upper_bound']
+          c=d['candidate']
+          assert c['cycles'][0]['RUP']['after_hash']=='6cda29fd34c3f4f0495f696ba3d371ebce4d4593c1f71face5ecf4af182751b0'
+          assert c['cycles'][0]['RUP']['successful_strengthenings']==153
+          assert c['cycles'][1]['R33']['rule_applications']==26
+          assert c['cycles'][1]['R33']['after_measure_CLV']==[45,110,13]
+          assert c['cycles'][1]['RUP']['after_hash']=='3361190b3fe683457061662dd9244cd37ca79283828139666d35b01b11d2fe95'
+          assert c['cycles'][1]['RUP']['successful_strengthenings']==5
+          for cyc in c['cycles']:
+              before=tuple(cyc['before_measure_CLV'])
+              after_r33=tuple(cyc['R33']['after_measure_CLV'])
+              if cyc['R33']['changed']:
+                  assert after_r33 < before
+              if 'RUP' in cyc and cyc['RUP']['changed']:
+                  after_rup=tuple(cyc['RUP']['after_measure_CLV'])
+                  assert after_rup < after_r33 and after_rup < before
+                  assert cyc['RUP']['independent_certificate_checker']['pass'] is True
+          assert d['R31_obligation_impact']['obligations_closed']==0
+          assert d['TRUMP_finished'] is False and d['SAT_IN_P']=='NOT_PROVED' and d['P_VS_NP']=='OPEN'
+          print(json.dumps({
+            'verdict':d['verdict'],
+            'terminal_status':c['terminal_status'],
+            'terminal_semantic_claim':c['terminal_semantic_claim'],
+            'cycle_count':c['cycle_count'],
+            'restart_count':c['restart_count'],
+            'total_successful_transformations':c['total_successful_transformations'],
+            'initial_measure_CLV':c['initial_measure_CLV'],
+            'terminal_measure_CLV':c['terminal_measure_CLV'],
+            'state_measure_domain_upper_bound':c['state_measure_domain_upper_bound'],
+            'ledger':c['ledger'],
+            'cycles':[{'cycle':x['cycle'],'before':x['before_measure_CLV'],'R33_after':x['R33']['after_measure_CLV'],'R33_apps':x['R33']['rule_applications'],'RUP_after':x.get('RUP',{}).get('after_measure_CLV'),'RUP_apps':x.get('RUP',{}).get('successful_strengthenings'),'stop':x.get('stop'),'restart':x.get('restart',False)} for x in c['cycles']],
+            'P_VS_NP':d['P_VS_NP']
+          },indent=2,sort_keys=True))
+          PY
+
+      - name: Upload immutable R37B evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: janus-trump-r37b-fixed-certified-portfolio-restart-cycle
+          path: artifacts/JANUS_TRUMP_R37B_FIXED_CERTIFIED_PORTFOLIO_RESTART_CYCLE_RESULT_2026-09-02.json
+          if-no-files-found: error
