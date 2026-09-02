@@ -1,0 +1,154 @@
+name: JANUS TRUMP R35B Single-Literal RUP Vivification
+
+on:
+  push:
+    branches:
+      - research/janus-trump-r35b-single-literal-rup-vivification-2026-09-02
+    paths:
+      - 'research/JANUS_TRUMP_R35B_SINGLE_LITERAL_RUP_VIVIFICATION_PREREGISTRATION_2026-09-02.json'
+      - 'experiments/janus_trump_r33_certified_safe_reduction_stack_lean_core_forensics.py'
+      - 'experiments/janus_trump_r35_nonaffine_core_freeze_structure_intake.py'
+      - 'experiments/janus_trump_r35b_single_literal_rup_vivification.py'
+      - '.github/workflows/janus-trump-r35b-single-literal-rup-vivification.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  r35b-rup-vivification:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Verify frozen R35 parent and R35B bytes
+        run: |
+          set -euo pipefail
+          test "$(git hash-object experiments/janus_trump_r33_certified_safe_reduction_stack_lean_core_forensics.py)" = "c9234a1ef639a009cc6cb4c8a6098fd09bf9affe"
+          test "$(git hash-object experiments/janus_trump_r35_nonaffine_core_freeze_structure_intake.py)" = "ad237e341d9659d33da0568f134815776c1f95d8"
+          test "$(git hash-object research/JANUS_TRUMP_R35B_SINGLE_LITERAL_RUP_VIVIFICATION_PREREGISTRATION_2026-09-02.json)" = "1fbfca9d4a7c90a1fc2d6df5495e1f2137fa6e8c"
+          test "$(git hash-object experiments/janus_trump_r35b_single_literal_rup_vivification.py)" = "259d2e38947d09b0c058963ad825a57f2e734203"
+          git merge-base --is-ancestor 6912577a1e70e01170539aff284873b178a3e932 "$GITHUB_SHA"
+          git merge-base --is-ancestor 67e96feebc38b33bbae0a061a101913289f462ab "$GITHUB_SHA"
+          python - <<'PY'
+          import json
+          p=json.load(open('research/JANUS_TRUMP_R35B_SINGLE_LITERAL_RUP_VIVIFICATION_PREREGISTRATION_2026-09-02.json',encoding='utf-8'))
+          assert p['status']=='FROZEN_BEFORE_R35B_IMPLEMENTATION_AND_EXECUTION'
+          assert p['parent_R35']['frozen_core']['measure']==[98,300,23]
+          assert p['parent_R35']['frozen_core']['canonical_clause_list_sha256']=='7c42618d0fbb3b6e2d6681e265e56a76fa80b4021fd2ad1590d6f5fe9fb608ff'
+          assert p['single_new_mechanism']['id']=='SINGLE_LITERAL_RUP_VIVIFICATION'
+          assert p['certificate_contract']['no_semantic_oracle'] is True
+          assert p['interpretation_firewall']['R31_obligations_closed_by_R35B']==0
+          assert p['interpretation_firewall']['P_VS_NP']=='OPEN'
+          print('R35B_PREREGISTRATION_AND_LINEAGE_OK')
+          PY
+
+      - name: Static candidate/verifier firewall
+        run: |
+          python - <<'PY'
+          import ast
+          from pathlib import Path
+          p=Path('experiments/janus_trump_r35b_single_literal_rup_vivification.py')
+          source=p.read_text(encoding='utf-8')
+          tree=ast.parse(source)
+          forbidden_imports={'pysat','z3','pycosat','subprocess','socket','requests','urllib'}
+          imported=set()
+          funcs={}
+          for node in tree.body:
+              if isinstance(node,ast.FunctionDef): funcs[node.name]=node
+          for node in ast.walk(tree):
+              if isinstance(node,ast.Import): imported.update(a.name.split('.')[0] for a in node.names)
+              elif isinstance(node,ast.ImportFrom): imported.add((node.module or '').split('.')[0])
+          assert not (imported & forbidden_imports),(imported & forbidden_imports)
+          candidate_names={'candidate_unit_propagation_trace','first_rup_strengthening','run_candidate'}
+          for name in candidate_names:
+              text=ast.get_source_segment(source,funcs[name]) or ''
+              assert 'itertools.product' not in text
+              assert 'model_set_small' not in text
+              assert 'brute_force_model' not in text
+              assert 'pysat' not in text and 'z3' not in text
+          assert 'itertools.product' in (ast.get_source_segment(source,funcs['model_set_small']) or '')
+          print({'candidate_truth_enumeration':False,'post_candidate_small_verifier_enumeration':True,'external_solver':False,'single_new_mechanism':True})
+          PY
+
+      - name: Compile and frozen self-test
+        run: |
+          python -m py_compile experiments/janus_trump_r33_certified_safe_reduction_stack_lean_core_forensics.py
+          python -m py_compile experiments/janus_trump_r35_nonaffine_core_freeze_structure_intake.py
+          python -m py_compile experiments/janus_trump_r35b_single_literal_rup_vivification.py
+          PYTHONPATH=experiments:. python experiments/janus_trump_r35b_single_literal_rup_vivification.py --self-test
+
+      - name: Execute R35B frozen candidate
+        run: |
+          mkdir -p artifacts
+          PYTHONPATH=experiments:. python experiments/janus_trump_r35b_single_literal_rup_vivification.py \
+            --output artifacts/JANUS_TRUMP_R35B_SINGLE_LITERAL_RUP_VIVIFICATION_RESULT_2026-09-02.json
+
+      - name: R35B scientific integrity gate
+        if: always()
+        run: |
+          python - <<'PY'
+          import json,os
+          path='artifacts/JANUS_TRUMP_R35B_SINGLE_LITERAL_RUP_VIVIFICATION_RESULT_2026-09-02.json'
+          assert os.path.exists(path)
+          d=json.load(open(path,encoding='utf-8'))
+          allowed={
+            'R35B_FAIL_INTEGRITY',
+            'R35B_RUP_CERTIFICATE_MISMATCH',
+            'R35B_RUP_VIVIFICATION_PROVES_UNSAT_ON_EXPOSED_CORE__NO_UNIVERSAL_CLAIM',
+            'R35B_RUP_VIVIFICATION_REDUCES_THEN_STALLS__NO_SEMANTIC_VERDICT',
+            'R35B_RUP_VIVIFICATION_STALLS_WITHOUT_REDUCTION__NO_SEMANTIC_VERDICT'
+          }
+          assert d['verdict'] in allowed
+          assert d['source_git_commit']==os.environ['GITHUB_SHA']
+          assert d['mechanism']=='SINGLE_LITERAL_RUP_VIVIFICATION'
+          assert d['frozen_R35_core_replay']['core_hash']=='7c42618d0fbb3b6e2d6681e265e56a76fa80b4021fd2ad1590d6f5fe9fb608ff'
+          assert d['frozen_R35_core_replay']['core_measure']==[98,300,23]
+          fw=d['candidate_firewall']
+          assert not any(fw.values())
+          assert all(x['pass'] for x in d['small_post_candidate_semantic_controls'].values())
+          assert d['independent_certificate_checker']['pass'] is True
+          cand=d['candidate']
+          assert cand['initial_measure_LCV']==[300,98,23]
+          assert cand['successful_strengthenings'] <= 300
+          for step in cand['history']:
+              assert len(step['source_clause']) == len(step['strengthened_clause']) + 1
+              assert step['measure_after'] < step['measure_before']
+              assert step['up_receipt']['conflict'] is True
+          if d['verdict']=='R35B_RUP_VIVIFICATION_PROVES_UNSAT_ON_EXPOSED_CORE__NO_UNIVERSAL_CLAIM':
+              assert cand['status']=='UNSAT_BY_UNIT_PROPAGATION'
+              assert cand['final_up_receipt']['conflict'] is True
+              assert d['independent_certificate_checker']['final_conflict'] is True
+          else:
+              assert cand['status']=='STALLED_RUP_CORE' or d['verdict'] in {'R35B_FAIL_INTEGRITY','R35B_RUP_CERTIFICATE_MISMATCH'}
+          assert d['R31_obligation_impact']['obligations_closed']==0
+          assert d['TRUMP_finished'] is False and d['SAT_IN_P']=='NOT_PROVED' and d['P_VS_NP']=='OPEN'
+          print(json.dumps({
+            'verdict':d['verdict'],
+            'candidate_status':cand['status'],
+            'successful_strengthenings':cand['successful_strengthenings'],
+            'initial_measure_LCV':cand['initial_measure_LCV'],
+            'final_measure_LCV':cand['final_measure_LCV'],
+            'ledger':cand['ledger'],
+            'certificate_history_bytes':cand['certificate_history_bytes'],
+            'independent_checker':d['independent_certificate_checker'],
+            'small_controls':d['small_post_candidate_semantic_controls'],
+            'next_gate':d['next_gate'],
+            'P_VS_NP':d['P_VS_NP']
+          },indent=2,sort_keys=True))
+          PY
+
+      - name: Upload immutable R35B evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: janus-trump-r35b-single-literal-rup-vivification
+          path: artifacts/JANUS_TRUMP_R35B_SINGLE_LITERAL_RUP_VIVIFICATION_RESULT_2026-09-02.json
+          if-no-files-found: error
