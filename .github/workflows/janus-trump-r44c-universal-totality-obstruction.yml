@@ -1,0 +1,46 @@
+name: JANUS TRUMP R44C Universal Totality Obstruction
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - 'research/JANUS_TRUMP_R44C_UNIVERSAL_TOTALITY_OR_EXPLICIT_OBSTRUCTION_2026-09-03.json'
+      - 'research/janus_trump_r44c_verify_universal_totality_obstruction.py'
+      - 'research/janus_trump_r44_exact_representation_switchboard.py'
+      - '.github/workflows/janus-trump-r44c-universal-totality-obstruction.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  verify-obstruction:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Verify exact obstruction to current U1 switchboard
+        run: |
+          cd research
+          python janus_trump_r44c_verify_universal_totality_obstruction.py > /tmp/r44c.json
+      - name: Enforce epistemic firewall
+        run: |
+          python - <<'PY'
+          import json
+          r=json.load(open('/tmp/r44c.json'))
+          assert r['status']=='EXPLICIT_OBSTRUCTION_VERIFIED'
+          assert r['U1_current_frozen_switchboard']=='REFUTED'
+          assert r['U1_all_future_algorithms']=='OPEN'
+          assert r['decision_authority'] is False
+          assert r['P_EQUALS_NP']=='NOT_PROVED'
+          assert r['P_NE_NP']=='NOT_PROVED'
+          assert r['P_VS_NP']=='OPEN'
+          print('R44C OBSTRUCTION PASS')
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: janus-trump-r44c-universal-totality-obstruction
+          path: /tmp/r44c.json
+          if-no-files-found: error
