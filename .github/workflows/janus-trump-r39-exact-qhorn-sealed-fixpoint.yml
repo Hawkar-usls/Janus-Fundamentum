@@ -1,0 +1,51 @@
+name: JANUS TRUMP R39 Exact q-Horn Sealed Fixpoint
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - 'research/JANUS_TRUMP_R39_QHORN_SEALED_INPUT_2026-09-03.json'
+      - 'research/JANUS_R39_QHORN_EXACT_RESULT_2026-09-03.json'
+      - 'research/janus_trump_r39_exact_qhorn_certificate.py'
+      - '.github/workflows/janus-trump-r39-exact-qhorn-sealed-fixpoint.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  exact-replay:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Replay exact certificate
+        run: |
+          python research/janus_trump_r39_exact_qhorn_certificate.py > /tmp/r39-replay.json
+      - name: Verify replay against sealed result
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          replay = json.loads(Path('/tmp/r39-replay.json').read_text())
+          sealed = json.loads(Path('research/JANUS_R39_QHORN_EXACT_RESULT_2026-09-03.json').read_text())
+
+          assert replay['canonical_formula_sha256'] == sealed['formula_sha256']
+          assert replay['recognized_q_horn'] is False
+          assert sealed['recognized_q_horn'] is False
+          assert replay['weighted_rhs'] == sealed['exact_weighted_rhs'] == '-2'
+          assert replay['derived_contradiction'] == sealed['derived_contradiction'] == '0 <= -2'
+          assert replay['certificate_clause_indices'] == sealed['clause_indices_1_based']
+          assert replay['P_VS_NP'] == sealed['P_VS_NP'] == 'OPEN'
+          assert replay['SAT_IN_P'] == sealed['SAT_IN_P'] == 'NOT_PROVED'
+          print('R39 EXACT REPLAY PASS')
+          PY
+      - name: Upload replay receipt
+        uses: actions/upload-artifact@v4
+        with:
+          name: janus-trump-r39-exact-qhorn-replay
+          path: /tmp/r39-replay.json
+          if-no-files-found: error
