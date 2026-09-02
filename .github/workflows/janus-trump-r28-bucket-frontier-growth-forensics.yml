@@ -1,0 +1,69 @@
+name: JANUS TRUMP R28 Bucket Frontier Growth Forensics
+
+on:
+  push:
+    branches:
+      - research/janus-trump-r28-bucket-frontier-growth-forensics-2026-09-02
+    paths:
+      - 'research/JANUS_TRUMP_R28_BUCKET_FRONTIER_GROWTH_FORENSICS_PREREGISTRATION_2026-09-02.json'
+      - 'experiments/janus_trump_r28_bucket_frontier_growth_forensics.py'
+      - '.github/workflows/janus-trump-r28-bucket-frontier-growth-forensics.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  r28-forensics:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Verify frozen R28 observer contract and R27 blob
+        run: |
+          set -euo pipefail
+          test "$(git hash-object experiments/janus_trump_r27_local_bucket_factored_shannon_elimination_discovery.py)" = "ff1139a4da7e9eaf43945995db95a6d22fb45dbe"
+          python - <<'PY'
+          import json
+          p=json.load(open('research/JANUS_TRUMP_R28_BUCKET_FRONTIER_GROWTH_FORENSICS_PREREGISTRATION_2026-09-02.json'))
+          assert p['status']=='FROZEN_BEFORE_R28_OBSERVER_IMPLEMENTATION_AND_REPLAY'
+          assert p['parent_R27_result_summary_commit']=='55c18e317d7a8081dc5ce6c20ee11e7d59f71cb8'
+          assert p['frozen_R27_candidate']['git_blob_sha']=='ff1139a4da7e9eaf43945995db95a6d22fb45dbe'
+          assert p['observer_contract']['truth_access'] is False
+          assert p['P_VS_NP']=='OPEN'
+          print('R28_FREEZE_OK')
+          PY
+      - name: Install import-only sealed dependency
+        run: python -m pip install --disable-pip-version-check 'python-sat==1.9.dev15'
+      - name: Compile R28 observer
+        run: PYTHONPATH=experiments:. python -m py_compile experiments/janus_trump_r28_bucket_frontier_growth_forensics.py
+      - name: Replay frozen R27 with full trajectory capture
+        run: |
+          mkdir -p artifacts
+          PYTHONPATH=experiments:. python experiments/janus_trump_r28_bucket_frontier_growth_forensics.py \
+            --output artifacts/JANUS_TRUMP_R28_BUCKET_FRONTIER_GROWTH_FORENSICS_RESULT_2026-09-02.json
+      - name: R28 scientific integrity gate
+        if: always()
+        run: |
+          python - <<'PY'
+          import json,os,sys
+          p='artifacts/JANUS_TRUMP_R28_BUCKET_FRONTIER_GROWTH_FORENSICS_RESULT_2026-09-02.json'; assert os.path.exists(p)
+          d=json.load(open(p)); assert d['verdict'] in {'R28_BUCKET_FRONTIER_TRAJECTORY_CAPTURED','R28_FAIL_OBSERVER_EQUIVALENCE'}
+          assert d['observer_firewall']['pass'] is True
+          assert d['truth_accessed'] is False and d['semantic_verifier_ran'] is False and d['P_VS_NP']=='OPEN'
+          if d['verdict']=='R28_FAIL_OBSERVER_EQUIVALENCE': sys.exit(2)
+          assert d['R27_observer_equivalence']['pass'] is True
+          assert len(d['analysis']['trajectory'])==24
+          assert d['analysis']['partial_open_step']['step']==25
+          print(d['verdict'])
+          PY
+      - name: Upload immutable R28 evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: janus-trump-r28-bucket-frontier-growth-forensics
+          path: artifacts/JANUS_TRUMP_R28_BUCKET_FRONTIER_GROWTH_FORENSICS_RESULT_2026-09-02.json
+          if-no-files-found: error
