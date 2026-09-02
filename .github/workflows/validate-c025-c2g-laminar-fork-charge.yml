@@ -1,0 +1,33 @@
+name: Validate C025 C2G Laminar Fork Charge
+
+on:
+  push:
+    paths:
+      - "experiments/direct/janus_tear_policy0b_c2g_laminar_fork_charge.py"
+      - "experiments/direct/janus_tear_policy0b1_total_machine.py"
+      - "proof_attempts/C025/C025_C2G_V1_2_LAMINAR_FORK_CHARGE.md"
+      - ".github/workflows/validate-c025-c2g-laminar-fork-charge.yml"
+  pull_request:
+    paths:
+      - "experiments/direct/janus_tear_policy0b_c2g_laminar_fork_charge.py"
+      - "experiments/direct/janus_tear_policy0b1_total_machine.py"
+      - "proof_attempts/C025/C025_C2G_V1_2_LAMINAR_FORK_CHARGE.md"
+      - ".github/workflows/validate-c025-c2g-laminar-fork-charge.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  verify-c2g-laminar:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Compile laminar replay
+        run: |
+          python -m py_compile experiments/direct/janus_tear_policy0b1_total_machine.py
+          python -m py_compile experiments/direct/janus_tear_policy0b_c2g_laminar_fork_charge.py
+      - name: Replay K4 nested-fork and laminar mechanics
+        run: python experiments/direct/janus_tear_policy0b_c2g_laminar_fork_charge.py

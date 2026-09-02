@@ -1,0 +1,29 @@
+name: Validate C025 C2G Selector Lift
+
+on:
+  push:
+    paths:
+      - "experiments/direct/janus_tear_policy0b_c2g_selector_lift.py"
+      - "proof_attempts/C025/C025_C2G_V1_3_SELECTOR_LIFT_DERIVATIONAL_BARRIER.md"
+      - ".github/workflows/validate-c025-c2g-selector-lift.yml"
+  pull_request:
+    paths:
+      - "experiments/direct/janus_tear_policy0b_c2g_selector_lift.py"
+      - "proof_attempts/C025/C025_C2G_V1_3_SELECTOR_LIFT_DERIVATIONAL_BARRIER.md"
+      - ".github/workflows/validate-c025-c2g-selector-lift.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  verify-c2g-selector:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Compile selector-lift replay
+        run: python -m py_compile experiments/direct/janus_tear_policy0b_c2g_selector_lift.py
+      - name: Replay selector semantic/proof mechanics
+        run: python experiments/direct/janus_tear_policy0b_c2g_selector_lift.py
