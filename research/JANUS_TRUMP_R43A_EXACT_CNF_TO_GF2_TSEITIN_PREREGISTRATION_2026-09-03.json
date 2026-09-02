@@ -1,0 +1,60 @@
+{
+  "schema": "janus.trump.r43a.exact_cnf_to_gf2_tseitin.preregistration.v1",
+  "date": "2026-09-03",
+  "status": "PREREGISTERED_BEFORE_EXECUTOR_RESULTS",
+  "parent_stage": "R43_RESOLUTION_BARRIER_XOR_REPRESENTATION_PIVOT",
+  "route_id": "EXACT_WIDTH3_XOR_BUNDLE_TO_GF2_V1",
+  "accepted_input_contract": {
+    "formula_form": "CNF",
+    "all_clauses_width": 3,
+    "bundle_key": "sorted absolute variable triple",
+    "bundle_clause_count": 4,
+    "bundle_semantics": "The four clauses for one variable triple must forbid exactly all four assignments of one parity and no assignment of the other parity.",
+    "whole_formula_requirement": "Every input clause belongs to exactly one accepted bundle; otherwise detector returns NOT_RECOGNIZED and no GF2 decision authority is granted."
+  },
+  "compiler": {
+    "output": "one GF2 equation x_a XOR x_b XOR x_c = rhs per accepted bundle",
+    "rhs_rule": "rhs = 1 XOR forbidden_assignment_parity",
+    "no_approximate_recovery": true,
+    "no_partial_bundle_inference": true
+  },
+  "solver": {
+    "algorithm": "GAUSSIAN_ELIMINATION_OVER_GF2_WITH_ROW_PROVENANCE",
+    "unsat_certificate": "subset of recovered equations whose XOR is 0 = 1",
+    "sat_certificate": "assignment satisfying every recovered equation and every original CNF clause",
+    "independent_verifier_required": true
+  },
+  "frozen_tests": [
+    {"id":"K4_ODD","graph":"K4_3_REGULAR","charge":"vertex_0_only","expected":"UNSAT"},
+    {"id":"PRISM6_ODD","graph":"TRIANGULAR_PRISM_3_REGULAR","charge":"vertex_0_only","expected":"UNSAT"},
+    {"id":"PETERSEN10_ODD","graph":"PETERSEN_3_REGULAR","charge":"vertex_0_only","expected":"UNSAT"},
+    {"id":"PETERSEN10_EVEN","graph":"PETERSEN_3_REGULAR","charge":"all_zero","expected":"SAT"},
+    {"id":"MALFORMED_MISSING_CLAUSE","mutation":"remove_one_clause_from_K4_ODD","expected":"NOT_RECOGNIZED"},
+    {"id":"MALFORMED_EXTRA_CLAUSE","mutation":"append_nonbundle_clause_to_K4_ODD","expected":"NOT_RECOGNIZED"}
+  ],
+  "resource_ledger": [
+    "input_clause_count",
+    "input_literal_count",
+    "bundle_count",
+    "detector_clause_visits",
+    "gf2_row_xors",
+    "gf2_pivot_count",
+    "certificate_equation_count",
+    "verification_clause_visits"
+  ],
+  "success_criterion": "All four recognized tests return their preregistered SAT/UNSAT outcomes with independently verified certificates; both malformed controls return NOT_RECOGNIZED without decision authority.",
+  "hard_firewalls": [
+    "EXACT_XOR_RECOGNITION != GENERAL_3CNF_RECOGNITION",
+    "TSEITIN_ESCAPE != SAT_IN_P",
+    "SPECIALIZED_POLYNOMIAL_TERMINAL != UNIVERSAL_COVERAGE",
+    "PARTIAL_BUNDLE != EQUATION",
+    "NOT_RECOGNIZED != UNSAT",
+    "CERTIFICATE_REQUIRED_BEFORE_DECISION_AUTHORITY",
+    "COMPILER_AND_VERIFIER_WORK_MUST_BE_CHARGED",
+    "P_VS_NP = OPEN"
+  ],
+  "proof_authority_delta": 0,
+  "TRUMP_finished": false,
+  "SAT_IN_P": "NOT_PROVED",
+  "P_VS_NP": "OPEN"
+}

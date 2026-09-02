@@ -1,0 +1,62 @@
+name: JANUS TRUMP R43A Exact CNF to GF2 Tseitin
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - 'research/JANUS_TRUMP_R43_RESOLUTION_BARRIER_XOR_REPRESENTATION_PIVOT_2026-09-03.json'
+      - 'research/JANUS_TRUMP_R43A_EXACT_CNF_TO_GF2_TSEITIN_PREREGISTRATION_2026-09-03.json'
+      - 'research/janus_trump_r43a_exact_cnf_to_gf2_tseitin.py'
+      - '.github/workflows/janus-trump-r43a-exact-cnf-to-gf2-tseitin.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  exact-replay:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Execute exact representation switch suite
+        run: python research/janus_trump_r43a_exact_cnf_to_gf2_tseitin.py > /tmp/r43a-replay.json
+      - name: Verify frozen outcomes and fail-closed authority
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          r = json.loads(Path('/tmp/r43a-replay.json').read_text())
+          pre = json.loads(Path('research/JANUS_TRUMP_R43A_EXACT_CNF_TO_GF2_TSEITIN_PREREGISTRATION_2026-09-03.json').read_text())
+          assert r['route_id'] == pre['route_id']
+          assert r['status'] == 'ALL_FROZEN_TESTS_PASS'
+          expected = {x['id']: x['expected'] for x in pre['frozen_tests']}
+          assert len(r['tests']) == len(expected) == 6
+          for test in r['tests']:
+              tid = test['id']
+              result = test['result']
+              actual = result.get('decision', result['status'])
+              assert actual == expected[tid]
+              if expected[tid] == 'NOT_RECOGNIZED':
+                  assert result['decision_authority'] is False
+                  assert result['status'] == 'NOT_RECOGNIZED'
+              else:
+                  assert result['decision_authority'] is True
+                  assert result['status'] == 'RECOGNIZED_AND_CERTIFIED'
+                  assert result['certificate']['verified'] is True
+                  assert result['detector']['recognized'] is True
+          assert r['scientific_interpretation']['general_3cnf_coverage_proved'] is False
+          assert r['proof_authority_delta'] == 0
+          assert r['TRUMP_finished'] is False
+          assert r['SAT_IN_P'] == 'NOT_PROVED'
+          assert r['P_VS_NP'] == 'OPEN'
+          print('R43A EXACT REPRESENTATION SWITCH PASS')
+          PY
+      - name: Upload certified replay receipt
+        uses: actions/upload-artifact@v4
+        with:
+          name: janus-trump-r43a-exact-cnf-to-gf2-tseitin-replay
+          path: /tmp/r43a-replay.json
+          if-no-files-found: error
