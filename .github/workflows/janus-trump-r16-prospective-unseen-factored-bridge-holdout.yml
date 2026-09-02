@@ -1,0 +1,166 @@
+name: JANUS TRUMP R16 Prospective Unseen Factored Bridge Holdout
+
+on:
+  push:
+    branches:
+      - research/janus-trump-r16-prospective-unseen-factored-bridge-holdout-2026-09-02
+    paths:
+      - 'research/JANUS_TRUMP_R16_PROSPECTIVE_UNSEEN_WORLD_SET_FREEZE_2026-09-02.json'
+      - 'research/JANUS_TRUMP_R16_EXECUTION_RESOURCE_ENVELOPE_FREEZE_2026-09-02.json'
+      - 'experiments/janus_trump_r16_prospective_unseen_factored_bridge_holdout.py'
+      - 'experiments/janus_trump_r16_aggregate_results.py'
+      - 'tests/test_janus_trump_r16_prospective_unseen_factored_bridge_holdout.py'
+      - '.github/workflows/janus-trump-r16-prospective-unseen-factored-bridge-holdout.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  preflight:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Verify exact world freeze and byte-frozen candidate
+        run: |
+          python - <<'PY'
+          import json,subprocess
+          f=json.load(open('research/JANUS_TRUMP_R16_PROSPECTIVE_UNSEEN_WORLD_SET_FREEZE_2026-09-02.json'))
+          r=json.load(open('research/JANUS_TRUMP_R16_EXECUTION_RESOURCE_ENVELOPE_FREEZE_2026-09-02.json'))
+          assert f['status']=='FROZEN_BEFORE_R16_CANDIDATE_EXECUTION'
+          assert r['status']=='FROZEN_BEFORE_R16_HARNESS_IMPLEMENTATION_AND_EXECUTION'
+          assert len(f['worlds'])==8
+          assert f['primary_endpoint']=='FULL_BRIDGE_ALLOWED_SET_EXACTNESS'
+          got=subprocess.check_output(['git','hash-object',f['frozen_candidate']['path']],text=True).strip()
+          assert got==f['frozen_candidate']['blob_sha']==r['candidate']['blob_sha'],(got,f['frozen_candidate']['blob_sha'])
+          assert got=='e6def9fef656c8f1af1b9f245bc855081f13a586'
+          assert f['P_VS_NP']==r['P_VS_NP']=='OPEN'
+          print('R16_PREFLIGHT_FREEZE_OK',got)
+          PY
+      - name: Install frozen semantic verifier
+        run: python -m pip install --disable-pip-version-check 'python-sat==1.9.dev15'
+      - name: Compile R16
+        run: |
+          PYTHONPATH=experiments:. python -m py_compile \
+            experiments/janus_trump_r16_prospective_unseen_factored_bridge_holdout.py \
+            experiments/janus_trump_r16_aggregate_results.py \
+            tests/test_janus_trump_r16_prospective_unseen_factored_bridge_holdout.py
+      - name: R16 regeneration and firewall controls
+        run: |
+          PYTHONPATH=experiments:. python - <<'PY'
+          import importlib.util
+          p='tests/test_janus_trump_r16_prospective_unseen_factored_bridge_holdout.py'
+          spec=importlib.util.spec_from_file_location('r16_tests',p)
+          m=importlib.util.module_from_spec(spec); spec.loader.exec_module(m)
+          tests=[getattr(m,n) for n in dir(m) if n.startswith('test_r16')]
+          for t in tests: t()
+          print('R16_TESTS_PASS',len(tests))
+          PY
+
+  worlds:
+    needs: preflight
+    runs-on: ubuntu-24.04
+    timeout-minutes: 8
+    strategy:
+      fail-fast: false
+      matrix:
+        world: [R16-W01, R16-W02, R16-W03, R16-W04, R16-W05, R16-W06, R16-W07, R16-W08]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Recheck frozen candidate identity
+        run: |
+          test "$(git hash-object experiments/janus_trump_r15d_bounded_observer_equivalent_refactor.py)" = "e6def9fef656c8f1af1b9f245bc855081f13a586"
+      - name: Install frozen semantic verifier
+        run: python -m pip install --disable-pip-version-check 'python-sat==1.9.dev15'
+      - name: Run frozen candidate then independent full-domain witness
+        id: execute
+        continue-on-error: true
+        run: |
+          mkdir -p artifacts
+          PYTHONPATH=experiments:. python experiments/janus_trump_r16_prospective_unseen_factored_bridge_holdout.py \
+            --world '${{ matrix.world }}' \
+            --output 'artifacts/JANUS_TRUMP_R16_WORLD_${{ matrix.world }}_RESULT_2026-09-02.json'
+      - name: Per-world scientific integrity gate
+        run: |
+          WORLD='${{ matrix.world }}' python - <<'PY'
+          import json,os,sys
+          w=os.environ['WORLD']
+          p=f'artifacts/JANUS_TRUMP_R16_WORLD_{w}_RESULT_2026-09-02.json'
+          d=json.load(open(p))
+          assert d['world_id']==w
+          assert d['P_VS_NP']=='OPEN'
+          allowed={'PASS_EXACT_UNSEEN','MISMATCH_UNSEEN','OPEN_CANDIDATE_RESOURCE_LIMIT','OPEN_VERIFIER_RESOURCE_LIMIT','FAIL_INTEGRITY'}
+          assert d['verdict'] in allowed,d['verdict']
+          if d['verdict']=='PASS_EXACT_UNSEEN':
+              assert d['comparison']['full_domain'] is True
+              assert d['comparison']['allowed_set_equal'] is True
+              assert d['comparison']['false_positive_count']==0
+              assert d['comparison']['false_negative_count']==0
+              assert d['scientific_firewall']['all_pass'] is True
+          elif d['verdict']=='MISMATCH_UNSEEN':
+              assert d['comparison']['full_domain'] is True
+              assert not d['comparison']['allowed_set_equal']
+          elif d['verdict']=='OPEN_CANDIDATE_RESOURCE_LIMIT':
+              assert d['verifier_ran'] is False
+          elif d['verdict']=='OPEN_VERIFIER_RESOURCE_LIMIT':
+              assert d['candidate']['status'] in ('COMPLETE_EXTENDED_INTERFACE','COMPLETE_UNSAT_INTERFACE')
+          else:
+              print('R16_FAIL_INTEGRITY',w)
+              sys.exit(2)
+          print(w,d['verdict'])
+          PY
+      - name: Upload immutable per-world evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: janus-trump-r16-world-${{ matrix.world }}
+          path: artifacts/JANUS_TRUMP_R16_WORLD_${{ matrix.world }}_RESULT_2026-09-02.json
+          if-no-files-found: error
+
+  aggregate:
+    needs: [preflight, worlds]
+    if: always()
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download all frozen world evidence
+        uses: actions/download-artifact@v4
+        with:
+          pattern: janus-trump-r16-world-*
+          path: artifacts/worlds
+          merge-multiple: true
+      - name: Aggregate complete holdout
+        run: |
+          mkdir -p artifacts/aggregate
+          PYTHONPATH=experiments:. python experiments/janus_trump_r16_aggregate_results.py \
+            --input-dir artifacts/worlds \
+            --output artifacts/aggregate/JANUS_TRUMP_R16_PROSPECTIVE_UNSEEN_FACTORED_BRIDGE_HOLDOUT_RESULT_2026-09-02.json
+      - name: Aggregate scientific gate
+        run: |
+          python - <<'PY'
+          import json,sys
+          p='artifacts/aggregate/JANUS_TRUMP_R16_PROSPECTIVE_UNSEEN_FACTORED_BRIDGE_HOLDOUT_RESULT_2026-09-02.json'
+          d=json.load(open(p))
+          allowed={'R16_PASS_EXACT_UNSEEN_8_OF_8','R16_UNSEEN_SEMANTIC_MISMATCH','R16_OPEN_CANDIDATE_RESOURCE_LIMIT','R16_OPEN_VERIFIER_RESOURCE_LIMIT','FAIL_INTEGRITY'}
+          assert d['overall_verdict'] in allowed,d['overall_verdict']
+          assert d['P_VS_NP']=='OPEN'
+          assert d.get('world_count')==8 or d['overall_verdict']=='FAIL_INTEGRITY'
+          if d['overall_verdict']=='FAIL_INTEGRITY':
+              sys.exit(2)
+          print(d['overall_verdict'],d['verdict_counts'])
+          PY
+      - name: Upload immutable aggregate evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: janus-trump-r16-prospective-unseen-factored-bridge-holdout
+          path: artifacts/aggregate/JANUS_TRUMP_R16_PROSPECTIVE_UNSEEN_FACTORED_BRIDGE_HOLDOUT_RESULT_2026-09-02.json
+          if-no-files-found: error
