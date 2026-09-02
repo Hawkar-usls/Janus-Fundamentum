@@ -1,0 +1,85 @@
+name: JANUS TRUMP R27 Local Bucket Factored Shannon Elimination Discovery
+
+on:
+  push:
+    branches:
+      - research/janus-trump-r27-local-bucket-factored-shannon-elimination-discovery-2026-09-02
+    paths:
+      - 'research/JANUS_TRUMP_R27_LOCAL_BUCKET_FACTORED_SHANNON_ELIMINATION_DISCOVERY_PREREGISTRATION_2026-09-02.json'
+      - 'experiments/janus_trump_r27_local_bucket_factored_shannon_elimination_discovery.py'
+      - '.github/workflows/janus-trump-r27-local-bucket-factored-shannon-elimination-discovery.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  r27-discovery:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Verify R27 freeze and sealed local Boolean machine
+        run: |
+          set -euo pipefail
+          test "$(git hash-object experiments/janus_trump_r18_shannon_hashcons_interface_dag_discovery.py)" = "afa95321ec6edbb33bef222d8ee7234fe631a599"
+          python - <<'PY'
+          import json
+          p=json.load(open('research/JANUS_TRUMP_R27_LOCAL_BUCKET_FACTORED_SHANNON_ELIMINATION_DISCOVERY_PREREGISTRATION_2026-09-02.json'))
+          assert p['status']=='FROZEN_BEFORE_R27_IMPLEMENTATION_AND_EXECUTION'
+          assert p['parent_R26_result_summary_commit']=='371a2825b3e2846202daf6f93995209207b31971'
+          assert p['frozen_local_boolean_machine']['git_blob_sha']=='afa95321ec6edbb33bef222d8ee7234fe631a599'
+          assert p['representation_contract']['global_monolithic_conjunction_forbidden'] is True
+          assert p['resource_envelope']['wall_seconds']==120
+          assert p['resource_envelope']['maximum_live_or_temporary_nodes']==1000000
+          assert p['resource_envelope']['maximum_restrict_calls']==20000000
+          assert p['P_VS_NP']=='OPEN'
+          print('R27_FREEZE_OK')
+          PY
+      - name: Install independent post-terminal verifier dependency
+        run: python -m pip install --disable-pip-version-check 'python-sat==1.9.dev15'
+      - name: Compile R27
+        run: PYTHONPATH=experiments:. python -m py_compile experiments/janus_trump_r27_local_bucket_factored_shannon_elimination_discovery.py
+      - name: Run exposed W05 local-bucket discovery
+        run: |
+          mkdir -p artifacts
+          PYTHONPATH=experiments:. python experiments/janus_trump_r27_local_bucket_factored_shannon_elimination_discovery.py \
+            --output artifacts/JANUS_TRUMP_R27_LOCAL_BUCKET_FACTORED_SHANNON_ELIMINATION_DISCOVERY_RESULT_2026-09-02.json
+      - name: R27 scientific gate
+        if: always()
+        run: |
+          python - <<'PY'
+          import json,os,sys
+          p='artifacts/JANUS_TRUMP_R27_LOCAL_BUCKET_FACTORED_SHANNON_ELIMINATION_DISCOVERY_RESULT_2026-09-02.json'; assert os.path.exists(p)
+          d=json.load(open(p))
+          allowed={'R27_EXPOSED_W05_FACTORED_BUCKET_FULL_DOMAIN_SEMANTIC_MATCH','R27_EXPOSED_W05_FACTORED_BUCKET_SEMANTIC_MISMATCH','R27_OPEN_RESOURCE_LIMIT__NO_SEMANTIC_VERDICT','R27_FAIL_INTEGRITY'}
+          assert d['verdict'] in allowed,d['verdict']
+          assert d['candidate_firewall']['pass'] is True,d['candidate_firewall']
+          assert d['tiny_factor_identity_control'] is True
+          assert d['P_VS_NP']=='OPEN'
+          if d['verdict']=='R27_OPEN_RESOURCE_LIMIT__NO_SEMANTIC_VERDICT':
+              assert d['truth_accessed'] is False and d['verifier']['not_run'] is True
+          elif d['verdict']=='R27_EXPOSED_W05_FACTORED_BUCKET_FULL_DOMAIN_SEMANTIC_MATCH':
+              assert d['truth_accessed'] is True
+              assert d['candidate']['status']=='COMPLETE_FACTORED_BRIDGE_INTERFACE'
+              assert d['candidate']['completed_quantification_steps']==60
+              assert d['comparison']['full_domain'] is True and d['comparison']['domain_size']==2048
+              assert d['comparison']['allowed_set_equal'] is True
+              assert d['comparison']['false_positive_count']==0 and d['comparison']['false_negative_count']==0
+              assert d['comparison']['original_sat_model_replay_failures']==[]
+          elif d['verdict']=='R27_EXPOSED_W05_FACTORED_BUCKET_SEMANTIC_MISMATCH':
+              assert d['truth_accessed'] is True and d['comparison']['full_domain'] is True and not d['comparison']['allowed_set_equal']
+          else:
+              sys.exit(2)
+          print(d['verdict'])
+          PY
+      - name: Upload immutable R27 evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: janus-trump-r27-local-bucket-factored-shannon-elimination-discovery
+          path: artifacts/JANUS_TRUMP_R27_LOCAL_BUCKET_FACTORED_SHANNON_ELIMINATION_DISCOVERY_RESULT_2026-09-02.json
+          if-no-files-found: error
