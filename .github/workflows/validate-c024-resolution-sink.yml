@@ -1,0 +1,36 @@
+name: Validate C024 Resolution Sink
+
+on:
+  push:
+    paths:
+      - "experiments/direct/janus_tear_policy0a_source_gt.py"
+      - "experiments/direct/janus_tear_policy0a_padded_gt_counterfamily.py"
+      - "proof_attempts/C024/C024_A_ISSUE_211_RESOLUTION_SINK_COUNTERFAMILY.md"
+      - ".github/workflows/validate-c024-resolution-sink.yml"
+  pull_request:
+    paths:
+      - "experiments/direct/janus_tear_policy0a_source_gt.py"
+      - "experiments/direct/janus_tear_policy0a_padded_gt_counterfamily.py"
+      - "proof_attempts/C024/C024_A_ISSUE_211_RESOLUTION_SINK_COUNTERFAMILY.md"
+      - ".github/workflows/validate-c024-resolution-sink.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  verify-resolution-sink:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Verify theorem-matched GT encoding
+        run: python experiments/direct/janus_tear_policy0a_source_gt.py
+
+      - name: Verify exact Policy-0A resolution-sink mechanics
+        run: python experiments/direct/janus_tear_policy0a_padded_gt_counterfamily.py
