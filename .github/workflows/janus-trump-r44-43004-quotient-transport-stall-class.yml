@@ -1,0 +1,166 @@
+name: JANUS TRUMP R44 43004 Quotient Transport Stall Class
+
+on:
+  push:
+    branches:
+      - research/janus-trump-r44-43004-stall-class-forensics-2026-09-02
+    paths:
+      - 'research/JANUS_TRUMP_R44_43004_QUOTIENT_TRANSPORT_STALL_CLASS_PREREGISTRATION_2026-09-02.json'
+      - 'experiments/janus_trump_r44_43004_quotient_transport_stall_class.py'
+      - 'tests/test_janus_trump_r44_43004_quotient_transport_stall_class.py'
+      - '.github/workflows/janus-trump-r44-43004-quotient-transport-stall-class.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  r44-quotient-transport-stall-class:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Verify sealed R43 lineage and frozen R44 bytes
+        run: |
+          set -euo pipefail
+          git merge-base --is-ancestor 48fd0dd9b846d42ef0654eed6bfb2e041b013e16 "$GITHUB_SHA"
+          test "$(git hash-object experiments/janus_trump_r42_subsumption_aware_bve_successor.py)" = "d71d7edb284a37bc7d7039c0d585d64cf2844de9"
+          test "$(git hash-object experiments/janus_trump_r43_frozen_r42_counterexample_hunt.py)" = "a272cd7b32953d481f5d26dc5ddbbe1dbba3be5b"
+          test "$(git hash-object research/JANUS_TRUMP_R44_43004_QUOTIENT_TRANSPORT_STALL_CLASS_PREREGISTRATION_2026-09-02.json)" = "d3bf75080b7da4bdd107c42640867fafc6be2f12"
+          test "$(git hash-object experiments/janus_trump_r44_43004_quotient_transport_stall_class.py)" = "4b2728495fbc0cd14ece0c1448f9f7ea609652f0"
+          test "$(git hash-object tests/test_janus_trump_r44_43004_quotient_transport_stall_class.py)" = "8d8159853b2002bd9a38dbff1811ac027d8ce407"
+          python - <<'PY'
+          import json
+          p=json.load(open('research/JANUS_TRUMP_R44_43004_QUOTIENT_TRANSPORT_STALL_CLASS_PREREGISTRATION_2026-09-02.json',encoding='utf-8'))
+          assert p['status']=='FROZEN_BEFORE_R44_EXECUTION'
+          assert p['parent']['sealed_R43_commit']=='48fd0dd9b846d42ef0654eed6bfb2e041b013e16'
+          assert p['parent']['first_counterexample_seed']==43004
+          assert p['parent']['first_counterexample_formula_sha256']=='eab8907cd5e97c244548797f226a91dfd0d43c196fb4461fb8880234c7de43a6'
+          assert p['frozen_universe']['expected_case_count']==83
+          assert p['frozen_universe']['execute_all_cases_even_after_first_stall'] is True
+          assert 'semantic_decided' in p['candidate_truth_blind_quotient']['forbidden_signature_fields']
+          assert p['universal_decision_gate']['expected_from_sealed_R43'].startswith('MUST_NOT_PASS')
+          assert p['claim_ceiling']['POLYNOMIALITY_PROVEN'] is False
+          assert p['claim_ceiling']['P_VS_NP']=='OPEN'
+          print('R44_PREREGISTRATION_LINEAGE_AND_BYTES=PASS')
+          PY
+
+      - name: Static anti-leakage and no-post-hoc-patch firewall
+        run: |
+          python - <<'PY'
+          import ast
+          from pathlib import Path
+          p=Path('experiments/janus_trump_r44_43004_quotient_transport_stall_class.py')
+          source=p.read_text(encoding='utf-8')
+          tree=ast.parse(source)
+          forbidden={'pysat','z3','pycosat','subprocess','socket','requests','urllib'}
+          imported=set()
+          for node in ast.walk(tree):
+              if isinstance(node,ast.Import):
+                  imported.update(a.name.split('.')[0] for a in node.names)
+              elif isinstance(node,ast.ImportFrom):
+                  imported.add((node.module or '').split('.')[0])
+          assert not (imported & forbidden),(imported & forbidden)
+          for token in [
+              'truth_blind_signature',
+              'F_transport_failures',
+              'Q_false',
+              'FINITE_UNIVERSAL_DECISION_COVERAGE_CERTIFIED',
+              'POLYNOMIALITY_PROVEN',
+              'SEALED_COUNTEREXAMPLE_SEED',
+          ]:
+              assert token in source,token
+          print({'external_solver_added':False,'R42_patch':False,'truth_blind_quotient':True})
+          PY
+
+      - name: Compile, unit tests, and self-test
+        run: |
+          python -m py_compile experiments/janus_trump_r44_43004_quotient_transport_stall_class.py
+          python -m py_compile tests/test_janus_trump_r44_43004_quotient_transport_stall_class.py
+          python -m unittest -v tests/test_janus_trump_r44_43004_quotient_transport_stall_class.py
+          cd experiments
+          python janus_trump_r44_43004_quotient_transport_stall_class.py --self-test
+
+      - name: Execute all 83 frozen R43 cases through byte-pinned R42
+        working-directory: experiments
+        run: |
+          mkdir -p ../artifacts
+          python janus_trump_r44_43004_quotient_transport_stall_class.py \
+            --output ../artifacts/JANUS_TRUMP_R44_43004_QUOTIENT_TRANSPORT_STALL_CLASS_RESULT_2026-09-02.json
+
+      - name: R44 scientific integrity gate
+        if: always()
+        run: |
+          python - <<'PY'
+          import json,os
+          path='artifacts/JANUS_TRUMP_R44_43004_QUOTIENT_TRANSPORT_STALL_CLASS_RESULT_2026-09-02.json'
+          assert os.path.exists(path)
+          d=json.load(open(path,encoding='utf-8'))
+          assert d['source_git_commit']==os.environ['GITHUB_SHA']
+          assert d['lineage']['sealed_R43_commit']=='48fd0dd9b846d42ef0654eed6bfb2e041b013e16'
+          assert d['lineage']['frozen_R42_controller_blob_sha']=='d71d7edb284a37bc7d7039c0d585d64cf2844de9'
+          assert d['lineage']['R42_modified_during_R44'] is False
+          assert d['lineage']['new_operator_or_terminal_added_during_R44'] is False
+          assert d['frozen_universe']['expected_case_count']==83
+          assert d['frozen_universe']['executed_case_count']==83
+          assert d['metrics']['N']==83
+          assert d['metrics']['R']==0
+          assert d['metrics']['Q_false']>=1
+          assert 43004 in d['outcome_counts']['stall_seeds']
+          sealed=d['sealed_43004_replay']
+          assert sealed['seed']==43004
+          assert sealed['input_formula_sha256']=='eab8907cd5e97c244548797f226a91dfd0d43c196fb4461fb8880234c7de43a6'
+          assert sealed['semantic_decided'] is False
+          assert sealed['terminal_status']=='STALLED_FIXED_SUCCESSOR'
+          q=d['candidate_truth_blind_quotient']
+          assert q['N_raw_states']==83
+          assert q['K_quotient_classes']==d['metrics']['K']
+          assert q['R_uncovered_or_nonexact_membership']==0
+          assert q['F_transport_failures']==d['metrics']['F']
+          if d['metrics']['F']>0:
+              assert q['first_mixed_transport_failure'] is not None
+              assert q['CANDIDATE_QUOTIENT_TRANSPORT_SOUND'] is False
+          else:
+              assert q['mixed_Q_class_count']==0
+              assert q['CANDIDATE_QUOTIENT_TRANSPORT_SOUND'] is True
+          assert d['status']['FINITE_TRANSPORT_AUDIT_CERTIFIED'] is True
+          assert d['status']['FINITE_UNIVERSAL_DECISION_COVERAGE_CERTIFIED'] is False
+          assert d['status']['SEALED_43004_STALL_REPRODUCED'] is True
+          assert d['status']['PYRAMID_ADVERSARIAL_CONTROLS_PASS'] is True
+          assert d['status']['POLYNOMIALITY_PROVEN'] is False
+          assert d['complexity_firewall']['symbolic_all_n_K_bound_proved'] is False
+          assert d['proof_ladder']['R42_L2_restored'] is False
+          assert d['proof_ladder']['L2_UNIVERSAL_3CNF_COVERAGE'] is False
+          assert d['verdict'] in {
+              'R44_STALL_CLASS_EXTRACTED__R42_L2_REMAINS_REFUTED',
+              'R44_NO_ADDITIONAL_STALL_BUT_43004_CONFIRMED__R42_L2_REMAINS_REFUTED',
+          }
+          assert d['TRUMP_finished'] is False and d['SAT_IN_P']=='NOT_PROVED' and d['P_VS_NP']=='OPEN'
+          print(json.dumps({
+              'verdict':d['verdict'],
+              'metrics':d['metrics'],
+              'status':d['status'],
+              'stall_seeds':d['outcome_counts']['stall_seeds'],
+              'mixed_Q_class_count':q['mixed_Q_class_count'],
+              'compressed_class_count':q['compressed_class_count'],
+              'first_mixed_transport_failure':q['first_mixed_transport_failure'],
+              'seed_43004_class':d['sealed_43004_candidate_class'],
+              'next_gate':d['captain_verdict']['next_gate'],
+              'P_VS_NP':d['P_VS_NP'],
+          },indent=2,sort_keys=True))
+          PY
+
+      - name: Upload immutable R44 evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: janus-trump-r44-43004-quotient-transport-stall-class
+          path: artifacts/JANUS_TRUMP_R44_43004_QUOTIENT_TRANSPORT_STALL_CLASS_RESULT_2026-09-02.json
+          if-no-files-found: error
