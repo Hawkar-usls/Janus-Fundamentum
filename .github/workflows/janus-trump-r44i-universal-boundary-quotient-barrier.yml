@@ -1,0 +1,35 @@
+name: JANUS TRUMP R44I Universal Boundary Quotient Barrier
+
+on:
+  push:
+    branches:
+      - research/r44-exact-representation-switchboard-coverage-counterexample-2026-09-03
+  pull_request:
+    paths:
+      - 'research/JANUS_TRUMP_R44I_UNIVERSAL_BOUNDARY_QUOTIENT_BARRIER_2026-09-03.json'
+      - 'research/janus_trump_r44i_verify_universal_boundary_quotient_barrier.py'
+      - '.github/workflows/janus-trump-r44i-universal-boundary-quotient-barrier.yml'
+  workflow_dispatch:
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Replay R44I boundary distinguishability theorem
+        run: |
+          python research/janus_trump_r44i_verify_universal_boundary_quotient_barrier.py > /tmp/r44i.json
+          python - <<'PY'
+          import json
+          r=json.load(open('/tmp/r44i.json'))
+          assert r['status']=='PAIRWISE_DISTINGUISHABILITY_REPLAYED'
+          assert r['generic_context_independent_state_bound']=='2^w'
+          assert r['structured_or_representation_specific_compression_still_open'] is True
+          assert r['U1']=='OPEN'
+          assert r['P_VS_NP']=='OPEN'
+          print('R44I UNIVERSAL BOUNDARY QUOTIENT BARRIER PASS')
+          PY
