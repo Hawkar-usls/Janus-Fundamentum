@@ -1,0 +1,132 @@
+{
+  "schema": "JANUS/TRUMP/R22/ROBDD_VARIABLE_ORDER_SENSITIVITY_FORENSICS/PREREGISTRATION/v1.0",
+  "created_date": "2026-09-02",
+  "status": "FROZEN_BEFORE_R22_IMPLEMENTATION_AND_EXECUTION",
+  "parent_R21_result_summary_commit": "1ff91dbd10d2efb5672f52b7bbc0f4e689716a7c",
+  "scientific_role": "EXPOSED_BUILD_PHASE_ORDER_SENSITIVITY_FORENSICS__NO_SEMANTIC_TRUTH",
+  "target": {
+    "world_id": "R19-W05",
+    "frame_sha256": "cd8e7168819401fc2510f351b0c7d319fc9cacfa400b181cf6e91cecd1288384",
+    "frame_clause_count": 287,
+    "frame_variable_count": 71,
+    "internal_variable_count": 60,
+    "bridge_variable_count": 11,
+    "R21_result": "R21_OPEN_RESOURCE_LIMIT__NO_SEMANTIC_VERDICT",
+    "R21_failure_phase": "BUILD_CNF",
+    "R21_completed_clause_steps": 48,
+    "R21_reason": "NODE_CAP"
+  },
+  "frozen_machine": {
+    "implementation_source": "experiments/janus_trump_r21_canonical_robdd_function_dag_discovery.py",
+    "representation": "CANONICAL_REDUCED_ORDERED_BINARY_DECISION_DIAGRAM",
+    "logic_changes_allowed": false,
+    "ROBDD_mk_reduction_changes_allowed": false,
+    "APPLY_changes_allowed": false,
+    "clause_order_changes_allowed": false,
+    "clause_build_rule": "same R21 left-fold OR over each frozen clause then left-fold AND into root",
+    "gc_rule": "same R21 reachability GC after every completed clause conjunction",
+    "quantification": "NOT_RUN_IN_R22__BUILD_PHASE_ONLY"
+  },
+  "resource_envelope_per_order": {
+    "wall_seconds": 120,
+    "maximum_live_or_temporary_nodes": 1000000,
+    "maximum_apply_recursive_calls": 20000000,
+    "maximum_gc_calls": 1000,
+    "resource_open_is_not_failure": true
+  },
+  "order_normalization": "Every order must contain every variable appearing in the frozen frame exactly once. Any structural source order is deduplicated in first-occurrence order and then any missing frame variables are appended in ascending numeric order before any stated reversal/partition transformation.",
+  "frozen_order_family": [
+    {
+      "id": "R21_INTERNAL_FIRST_OCCURRENCE",
+      "rule": "Exact R21 frozen_variable_order: all internal variables in r18.elimination_order(frame,bridge), then bridge variables in direct.occurrence_order(frame), missing bridge variables ascending."
+    },
+    {
+      "id": "GLOBAL_OCCURRENCE",
+      "rule": "direct.occurrence_order(frame) over all frame variables, normalized by the frozen normalization rule."
+    },
+    {
+      "id": "GLOBAL_OCCURRENCE_REVERSED",
+      "rule": "Reverse the complete normalized GLOBAL_OCCURRENCE order."
+    },
+    {
+      "id": "BRIDGE_FIRST_OCCURRENCE",
+      "rule": "Bridge variables first in normalized GLOBAL_OCCURRENCE relative order, then internal variables in r18.elimination_order(frame,bridge)."
+    },
+    {
+      "id": "FREQUENCY_DESCENDING",
+      "rule": "Sort all frame variables by descending literal-occurrence count in the frozen frame, tie by ascending variable id."
+    },
+    {
+      "id": "FREQUENCY_ASCENDING",
+      "rule": "Sort all frame variables by ascending literal-occurrence count in the frozen frame, tie by ascending variable id."
+    },
+    {
+      "id": "VARIABLE_ASCENDING",
+      "rule": "All frame variables in ascending numeric id."
+    },
+    {
+      "id": "VARIABLE_DESCENDING",
+      "rule": "All frame variables in descending numeric id."
+    }
+  ],
+  "truth_firewall": {
+    "SAT_solver_forbidden": true,
+    "DPLL_forbidden": true,
+    "bridge_assignment_enumeration_forbidden": true,
+    "truth_table_forbidden": true,
+    "semantic_verifier_forbidden": true,
+    "semantic_result_may_not_select_or_rank_orders": true,
+    "dynamic_variable_reordering_forbidden": true,
+    "post_execution_new_order_addition_forbidden": true
+  },
+  "R21_observer_equivalence_gate": {
+    "required": true,
+    "timing_is_not_equivalence_field": true,
+    "reference": {
+      "order_id": "R21_INTERNAL_FIRST_OCCURRENCE",
+      "status": "OPEN_RESOURCE_LIMIT",
+      "reason": "NODE_CAP",
+      "phase": "BUILD_CNF",
+      "completed_clause_steps": 48,
+      "active_nodes_at_open": 1000000,
+      "maximum_nodes_seen": 1000000,
+      "nodes_created_total": 1844915,
+      "apply_calls_total": 5502260,
+      "unique_table_hits": 798805,
+      "gc_calls": 48,
+      "gc_removed_total": 844917,
+      "quantify_calls_total": 0
+    },
+    "on_mismatch": "R22_FAIL_R21_OBSERVER_EQUIVALENCE__NO_ORDER_INTERPRETATION"
+  },
+  "per_order_metrics": [
+    "status",
+    "reason",
+    "completed_clause_steps",
+    "completion_fraction",
+    "active_nodes_at_terminal_or_open",
+    "maximum_nodes_seen",
+    "nodes_created_total",
+    "apply_calls_total",
+    "unique_table_hits",
+    "gc_calls",
+    "gc_removed_total",
+    "first_clause_crossing_10000_live_nodes",
+    "first_clause_crossing_100000_live_nodes",
+    "first_clause_crossing_500000_live_nodes",
+    "last_completed_clause_trajectory_row"
+  ],
+  "survivor_definition": "An order is a BUILD_SURVIVOR iff all 287 frozen clauses are compiled under the exact R21 ROBDD/build/GC semantics within the frozen per-order resource envelope. No semantic claim follows.",
+  "resource_only_ranking": "Among BUILD_SURVIVOR orders rank by maximum_nodes_seen, then nodes_created_total, then apply_calls_total, then final_active_nodes, then order id. This ranking is structural-resource-only and has no semantic authority.",
+  "aggregate_verdict_rule": {
+    "if_R21_equivalence_fails": "R22_FAIL_R21_OBSERVER_EQUIVALENCE__NO_ORDER_INTERPRETATION",
+    "if_at_least_one_non_R21_build_survivor": "R22_ORDER_SENSITIVITY_CONFIRMED__BUILD_SURVIVOR_EXISTS",
+    "if_no_build_survivor": "R22_NO_BUILD_SURVIVOR_IN_FROZEN_ORDER_FAMILY",
+    "integrity_failure": "R22_FAIL_INTEGRITY"
+  },
+  "promotion_rule": "R22 never runs semantic truth. If a build survivor exists, a new later gate must freeze one resource-selected order and the full ROBDD candidate before existential quantification and semantic verification. R22 itself authorizes no semantic PASS and no unseen claim.",
+  "claim_ceiling": "Finite exposed-world build-phase order sensitivity only. It cannot establish an optimal order, polynomial ROBDD size, arbitrary-CNF totality, SAT-in-P, P=NP, or P!=NP.",
+  "law": "IF_A_CANONICAL_DECISION_GRAPH_EXPLODES__CHANGE_NOTHING_EXCEPT_PREDECLARED_STRUCTURE_ONLY_ORDERS_AND_SEE_WHETHER_THE_WALL_MOVES",
+  "seal": "EIGHT_ORDERS_ARE_WRITTEN_BEFORE_THE_RACE__NO_NINTH_HORSE_MAY_APPEAR_AFTER_THE_FINISH_LINE",
+  "P_VS_NP": "OPEN"
+}
