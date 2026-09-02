@@ -1,0 +1,136 @@
+name: JANUS TRUMP R34B Affine XOR Terminal Harness Recovery
+
+on:
+  push:
+    branches:
+      - research/janus-trump-r34b-affine-xor-terminal-harness-recovery-2026-09-02
+    paths:
+      - 'research/JANUS_TRUMP_R34B_AFFINE_XOR_TERMINAL_HARNESS_RECOVERY_PREREGISTRATION_2026-09-02.json'
+      - 'experiments/janus_trump_r33_certified_safe_reduction_stack_lean_core_forensics.py'
+      - 'experiments/janus_trump_r34_affine_xor_terminal_against_tseitin_core.py'
+      - 'experiments/janus_trump_r34b_affine_xor_terminal_harness_recovery.py'
+      - '.github/workflows/janus-trump-r34b-affine-xor-terminal-harness-recovery.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  r34b-harness-recovery:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Verify immutable R34 failure, frozen mechanism, and R34B preregistration
+        run: |
+          set -euo pipefail
+          test "$(git hash-object experiments/janus_trump_r33_certified_safe_reduction_stack_lean_core_forensics.py)" = "c9234a1ef639a009cc6cb4c8a6098fd09bf9affe"
+          test "$(git hash-object experiments/janus_trump_r34_affine_xor_terminal_against_tseitin_core.py)" = "7f9bec920fa47af066570d874fe9127dc4b9b968"
+          test "$(git hash-object research/JANUS_TRUMP_R34B_AFFINE_XOR_TERMINAL_HARNESS_RECOVERY_PREREGISTRATION_2026-09-02.json)" = "9f55d9714794511cb94f8e1639298a14fe7bf689"
+          test "$(git hash-object experiments/janus_trump_r34b_affine_xor_terminal_harness_recovery.py)" = "fd4e28061028e244c6116a1aa60ef0bcb734ad5a"
+          git merge-base --is-ancestor 6903daab8d5a23f1170cd3ee2f4de5ae8899e4e7 "$GITHUB_SHA"
+          git merge-base --is-ancestor dda2a90f13dfa15ea84dad1148a4450d3a7f6246 "$GITHUB_SHA"
+          python - <<'PY'
+          import json
+          fail=json.load(open('research/JANUS_TRUMP_R34_FAIL_INTEGRITY_RESULT_SUMMARY_2026-09-02.json',encoding='utf-8'))
+          assert fail['status']=='SEALED_FAILED_EXECUTION__NO_SCIENTIFIC_VERDICT_ON_AFFINE_MECHANISM'
+          assert fail['next_gate']=='R34B_AFFINE_XOR_TERMINAL_HARNESS_RECOVERY'
+          p=json.load(open('research/JANUS_TRUMP_R34B_AFFINE_XOR_TERMINAL_HARNESS_RECOVERY_PREREGISTRATION_2026-09-02.json',encoding='utf-8'))
+          assert p['status']=='FROZEN_BEFORE_R34B_IMPLEMENTATION_AND_EXECUTION'
+          assert p['frozen_R34_mechanism']['implementation_blob']=='7f9bec920fa47af066570d874fe9127dc4b9b968'
+          assert p['single_recovery_change']['replacement_control']=='CONNECTED_EVEN_CHARGE_TSEITIN_PRISM_SAT'
+          assert p['firewall']['R34_affine_mechanism_byte_frozen'] is True
+          assert p['interpretation_firewall']['P_VS_NP']=='OPEN'
+          print('R34B_PREREGISTRATION_AND_LINEAGE_OK')
+          PY
+
+      - name: Static harness-only firewall
+        run: |
+          python - <<'PY'
+          import ast
+          from pathlib import Path
+          path=Path('experiments/janus_trump_r34b_affine_xor_terminal_harness_recovery.py')
+          source=path.read_text(encoding='utf-8')
+          tree=ast.parse(source)
+          defined={n.name for n in tree.body if isinstance(n,ast.FunctionDef)}
+          forbidden_redefinitions={'recognize_complete_affine_cnf','solve_gf2_with_certificate','verify_affine_certificate','apply_extended_policy'}
+          assert not (defined & forbidden_redefinitions),(defined & forbidden_redefinitions)
+          assert 'import janus_trump_r34_affine_xor_terminal_against_tseitin_core as r34' in source
+          assert source.count('r34.apply_extended_policy') >= 3
+          forbidden_imports={'pysat','z3','pycosat','subprocess','socket','requests','urllib'}
+          imported=set()
+          for node in ast.walk(tree):
+              if isinstance(node,ast.Import): imported.update(a.name.split('.')[0] for a in node.names)
+              elif isinstance(node,ast.ImportFrom): imported.add((node.module or '').split('.')[0])
+          assert not (imported & forbidden_imports),(imported & forbidden_imports)
+          print({'R34_mechanism_redefined':False,'harness_only':True,'external_solver':False})
+          PY
+
+      - name: Compile and run R34B frozen self-test
+        run: |
+          python -m py_compile experiments/janus_trump_r33_certified_safe_reduction_stack_lean_core_forensics.py
+          python -m py_compile experiments/janus_trump_r34_affine_xor_terminal_against_tseitin_core.py
+          python -m py_compile experiments/janus_trump_r34b_affine_xor_terminal_harness_recovery.py
+          PYTHONPATH=experiments:. python experiments/janus_trump_r34b_affine_xor_terminal_harness_recovery.py --self-test
+
+      - name: Execute R34B frozen audit
+        run: |
+          mkdir -p artifacts
+          PYTHONPATH=experiments:. python experiments/janus_trump_r34b_affine_xor_terminal_harness_recovery.py \
+            --output artifacts/JANUS_TRUMP_R34B_AFFINE_XOR_TERMINAL_HARNESS_RECOVERY_RESULT_2026-09-02.json
+
+      - name: R34B scientific integrity gate
+        if: always()
+        run: |
+          python - <<'PY'
+          import json,os
+          path='artifacts/JANUS_TRUMP_R34B_AFFINE_XOR_TERMINAL_HARNESS_RECOVERY_RESULT_2026-09-02.json'
+          assert os.path.exists(path)
+          d=json.load(open(path,encoding='utf-8'))
+          assert d['verdict']=='R34B_AFFINE_TERMINAL_CLOSES_TSEITIN_CORE__NONAFFINE_CORE_REMAINS__NO_UNIVERSAL_CLAIM'
+          assert d['source_git_commit']==os.environ['GITHUB_SHA']
+          assert d['frozen_mechanism_provenance']['R34_implementation_blob']=='7f9bec920fa47af066570d874fe9127dc4b9b968'
+          assert d['frozen_mechanism_provenance']['mechanism_modified_in_R34B'] is False
+          assert d['candidate_firewall']['R33_stack_modified'] is False
+          assert d['candidate_firewall']['R34_affine_mechanism_modified'] is False
+          assert d['candidate_firewall']['second_new_mechanism_added'] is False
+          assert all(x['pass'] for x in d['R33_positive_controls'])
+          sat=d['connected_even_charge_tseitin_sat_control']
+          assert sat['R33_terminal']=='STALLED_STACK_LEAN_CORE'
+          assert sat['R33_rule_applications']==0
+          assert sat['R34_terminal']=='AFFINE_XOR_SAT' and sat['recognized'] and sat['certificate_pass']
+          ts=d['odd_charge_tseitin_3regular_prism_family']
+          assert [x['n_vertices'] for x in ts]==[8,12,16,20,24,28,32]
+          assert all(x['R33_terminal']=='STALLED_STACK_LEAN_CORE' and x['R33_rule_applications']==0 for x in ts)
+          assert all(x['R34_terminal']=='AFFINE_XOR_UNSAT' and x['recognized'] and x['certificate_pass'] for x in ts)
+          rc=d['deterministic_random_3cnf']
+          assert len(rc)==4 and any(x['R34_terminal']=='STALLED_NONAFFINE_CORE' for x in rc)
+          assert d['smallest_nonaffine_stalled_control_by_frozen_measure'] is not None
+          assert d['R31_obligation_impact']['obligations_closed']==0
+          assert d['next_gate']['id']=='R35_FREEZE_SMALLEST_NONAFFINE_RANDOM_CORE_AND_PROPOSE_AT_MOST_ONE_NEW_MECHANISM'
+          assert d['TRUMP_finished'] is False and d['SAT_IN_P']=='NOT_PROVED' and d['P_VS_NP']=='OPEN'
+          print(json.dumps({
+            'verdict':d['verdict'],
+            'sat_affine_control':sat,
+            'tseitin_closed':len(ts),
+            'random_terminals':[x['R34_terminal'] for x in rc],
+            'smallest_nonaffine':d['smallest_nonaffine_stalled_control_by_frozen_measure'],
+            'next_gate':d['next_gate']['id'],
+            'P_VS_NP':d['P_VS_NP']
+          },indent=2,sort_keys=True))
+          PY
+
+      - name: Upload immutable R34B evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: janus-trump-r34b-affine-xor-terminal-harness-recovery
+          path: artifacts/JANUS_TRUMP_R34B_AFFINE_XOR_TERMINAL_HARNESS_RECOVERY_RESULT_2026-09-02.json
+          if-no-files-found: error
