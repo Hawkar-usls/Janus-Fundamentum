@@ -1,0 +1,67 @@
+name: JANUS TRUMP R15D Bounded Observer Equivalent Refactor
+
+on:
+  push:
+    branches:
+      - research/janus-trump-r15d-bounded-observer-equivalent-refactor-2026-09-02
+    paths:
+      - 'research/JANUS_TRUMP_R15D_BOUNDED_OBSERVER_EQUIVALENT_REFACTOR_PREREGISTRATION_2026-09-02.json'
+      - 'experiments/janus_trump_r15d_bounded_observer_equivalent_refactor.py'
+      - 'tests/test_janus_trump_r15d_bounded_observer_equivalent_refactor.py'
+      - '.github/workflows/janus-trump-r15d-bounded-observer-equivalent-refactor.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  r15d-observer:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Verify frozen R15D preregistration
+        run: |
+          python - <<'PY'
+          import json
+          p=json.load(open('research/JANUS_TRUMP_R15D_BOUNDED_OBSERVER_EQUIVALENT_REFACTOR_PREREGISTRATION_2026-09-02.json'))
+          assert p['status']=='FROZEN_BEFORE_R15D_IMPLEMENTATION_AND_EXECUTION'
+          assert p['parent_R15C_resource_witness_commit']=='6f973f66057a4daa24f47733f88976f384c63fc2'
+          assert p['diagnostic_envelope']['candidate_wall_seconds']==120
+          assert p['P_VS_NP']=='OPEN'
+          print('R15D_FREEZE_OK')
+          PY
+      - name: Compile R15D
+        run: |
+          PYTHONPATH=experiments:. python -m py_compile experiments/janus_trump_r15d_bounded_observer_equivalent_refactor.py tests/test_janus_trump_r15d_bounded_observer_equivalent_refactor.py
+      - name: R15D equivalence controls
+        run: |
+          PYTHONPATH=experiments:. python - <<'PY'
+          import importlib.util
+          spec=importlib.util.spec_from_file_location('r15dtests','tests/test_janus_trump_r15d_bounded_observer_equivalent_refactor.py')
+          m=importlib.util.module_from_spec(spec); spec.loader.exec_module(m)
+          tests=[getattr(m,n) for n in dir(m) if n.startswith('test_r15d')]
+          for t in tests: t()
+          print('R15D_TESTS_PASS',len(tests))
+          PY
+      - name: Run frozen R15D observer
+        run: |
+          mkdir -p artifacts
+          PYTHONPATH=experiments:. python experiments/janus_trump_r15d_bounded_observer_equivalent_refactor.py --output artifacts/JANUS_TRUMP_R15D_BOUNDED_OBSERVER_EQUIVALENT_REFACTOR_RESULT_2026-09-02.json
+      - name: R15D integrity gate
+        run: |
+          python - <<'PY'
+          import json
+          d=json.load(open('artifacts/JANUS_TRUMP_R15D_BOUNDED_OBSERVER_EQUIVALENT_REFACTOR_RESULT_2026-09-02.json'))
+          assert d['P_VS_NP']=='OPEN'
+          assert all(d['gates'].values()), d['gates']
+          assert not d['verdict'].startswith('FAIL'), d['verdict']
+          print(d['verdict'])
+          PY
+      - name: Upload immutable R15D observer
+        uses: actions/upload-artifact@v4
+        with:
+          name: janus-trump-r15d-bounded-observer-equivalent-refactor
+          path: artifacts/JANUS_TRUMP_R15D_BOUNDED_OBSERVER_EQUIVALENT_REFACTOR_RESULT_2026-09-02.json
+          if-no-files-found: error
