@@ -63,65 +63,62 @@ def frozen_authoritative_terminal(cnf):
     route,res,_=dispatch_r44d(norm(cnf))
     if route is None:
         return False
-    # R44 renamable-Horn route is explicitly diagnostic-only and carries no asymptotic authority.
     if route.startswith('RENAMABLE_HORN_'):
         return False
     return res.get('verified') is True
 
-# Verify the base gadget has the intended local obstruction properties.
-assert all(len(c)==3 for c in BASE)
-assert not is_horn(BASE)
-assert not is_dual_horn(BASE)
-assert not is_renamable_horn_exact(BASE)
-route,res,_=dispatch_r44d(BASE)
-assert route is None
 
-# Any single variable hit makes one gadget a 2-SAT residual for both assignments.
-for v in (1,2,3):
-    for bit in (False,True):
-        r=simplify(BASE,{v:bit})
-        assert all(len(c)<=2 for c in r)
-        assert frozen_authoritative_terminal(r)
+def replay():
+    assert all(len(c)==3 for c in BASE)
+    assert not is_horn(BASE)
+    assert not is_dual_horn(BASE)
+    assert not is_renamable_horn_exact(BASE)
+    route,res,_=dispatch_r44d(BASE)
+    assert route is None
 
-checks=[]
-for t in range(1,7):
-    F=family(t)
-    route,res,_=dispatch_r44d(F)
-    assert route is None, (t,route)
-    supports=[set(range(3*i+1,3*i+4)) for i in range(t)]
-    # Structural lower bound: any B with |B|<t misses at least one disjoint support.
-    # An untouched copy is exactly BASE up to renaming and blocks every currently authoritative frozen terminal class.
-    lower_bound=t
-    # Constructive upper bound: hit first variable of every gadget; every branch is 2-SAT.
-    B=[3*i+1 for i in range(t)]
-    branch_ok=True
-    # Exhaustive branch replay is only for t<=6 fixtures; theorem authority comes from the structural argument above.
-    for bits in itertools.product([False,True], repeat=t):
-        r=simplify(F,dict(zip(B,bits)))
-        if not all(len(c)<=2 for c in r) or not frozen_authoritative_terminal(r):
-            branch_ok=False; break
-    assert branch_ok
-    checks.append({
-        't':t,
-        'variables':3*t,
-        'clauses':3*t,
-        'frozen_route_before_backdoor':route,
-        'proved_lower_bound':lower_bound,
-        'constructive_backdoor':B,
-        'constructive_upper_bound':t,
-        'minimum_backdoor_size':t
-    })
+    for v in (1,2,3):
+        for bit in (False,True):
+            r=simplify(BASE,{v:bit})
+            assert all(len(c)<=2 for c in r)
+            assert frozen_authoritative_terminal(r)
 
-print(json.dumps({
-    'gate_id':'R44F_SCALABLE_RESIDUAL_FAMILY_OUTSIDE_FIXED_BACKDOOR_RADIUS',
-    'family':'DISJOINT_NONRENAMABLE_3CLAUSE_GADGETS_V1',
-    'base_gadget':BASE,
-    'fixture_checks':checks,
-    'theorem':'For every fixed k, G_(k+1) has strong-backdoor size at least k+1 into the current authoritative frozen terminal portfolio, while size k+1 is sufficient. Hence no fixed-k R44E backdoor radius covers this family.',
-    'fixed_k_route_universal':False,
-    'U1':'OPEN',
-    'P_NE_NP':'NOT_PROVED',
-    'P_EQUALS_NP':'NOT_PROVED',
-    'P_VS_NP':'OPEN',
-    'next_gate':'R44G_COMPRESS_OR_BYPASS_LINEAR_BACKDOOR_COST'
-}, sort_keys=True))
+    checks=[]
+    for t in range(1,7):
+        F=family(t)
+        route,res,_=dispatch_r44d(F)
+        assert route is None, (t,route)
+        lower_bound=t
+        B=[3*i+1 for i in range(t)]
+        branch_ok=True
+        for bits in itertools.product([False,True], repeat=t):
+            r=simplify(F,dict(zip(B,bits)))
+            if not all(len(c)<=2 for c in r) or not frozen_authoritative_terminal(r):
+                branch_ok=False; break
+        assert branch_ok
+        checks.append({
+            't':t,
+            'variables':3*t,
+            'clauses':3*t,
+            'frozen_route_before_backdoor':route,
+            'proved_lower_bound':lower_bound,
+            'constructive_backdoor':B,
+            'constructive_upper_bound':t,
+            'minimum_backdoor_size':t
+        })
+    return {
+        'gate_id':'R44F_SCALABLE_RESIDUAL_FAMILY_OUTSIDE_FIXED_BACKDOOR_RADIUS',
+        'family':'DISJOINT_NONRENAMABLE_3CLAUSE_GADGETS_V1',
+        'base_gadget':BASE,
+        'fixture_checks':checks,
+        'theorem':'For every fixed k, G_(k+1) has strong-backdoor size at least k+1 into the current authoritative frozen terminal portfolio, while size k+1 is sufficient. Hence no fixed-k R44E backdoor radius covers this family.',
+        'fixed_k_route_universal':False,
+        'U1':'OPEN',
+        'P_NE_NP':'NOT_PROVED',
+        'P_EQUALS_NP':'NOT_PROVED',
+        'P_VS_NP':'OPEN',
+        'next_gate':'R44G_COMPRESS_OR_BYPASS_LINEAR_BACKDOOR_COST'
+    }
+
+
+if __name__ == '__main__':
+    print(json.dumps(replay(), sort_keys=True))
