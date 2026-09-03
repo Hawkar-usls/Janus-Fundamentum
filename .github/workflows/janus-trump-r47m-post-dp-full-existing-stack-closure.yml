@@ -1,0 +1,78 @@
+name: JANUS TRUMP R47M Post DP Full Existing Stack Closure
+
+on:
+  push:
+    branches:
+      - research/r47m-post-dp-full-existing-stack-closure-2026-09-03
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  r47m-full-closure:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Verify frozen preregistration
+        run: |
+          python - <<'PY'
+          import json, subprocess
+          parent='6395882f3d2b59b554fc6282c271ba04ae2a4c14'
+          subprocess.run(['git','merge-base','--is-ancestor',parent,'HEAD'], check=True)
+          d=json.load(open('research/JANUS_TRUMP_R47M_POST_DP_FULL_EXISTING_STACK_CLOSURE_PREREGISTRATION_2026-09-03.json'))
+          assert d['status']=='FROZEN_BEFORE_EXECUTION'
+          assert d['parent']['commit']==parent
+          assert d['sealed_counterexample']['fixpoint_hash']=='9a84c02f1570e752ac0c017037b8a4a40c2599b53faf51bcd6d957f40aa81dde'
+          assert d['sealed_counterexample']['R47J_extended_accepted_pivots']==[]
+          assert d['single_new_mechanism']['new_inference_rule_added'] is False
+          assert d['single_new_mechanism']['new_proof_authority_added'] is False
+          assert d['epistemic_firewall']['O4_UNIVERSAL_COVERAGE_FOR_FULL_EXISTING_STACK_CLOSURE']=='OPEN'
+          assert d['epistemic_firewall']['SAT_IN_P']=='NOT_PROVED'
+          assert d['epistemic_firewall']['P_VS_NP']=='OPEN'
+          PY
+      - name: Compile
+        run: python -m py_compile experiments/janus_trump_r47m_post_dp_full_existing_stack_closure.py
+      - name: Execute frozen full-stack closure attack
+        run: |
+          mkdir -p artifacts
+          PYTHONPATH=experiments python experiments/janus_trump_r47m_post_dp_full_existing_stack_closure.py \
+            --output artifacts/JANUS_TRUMP_R47M_POST_DP_FULL_EXISTING_STACK_CLOSURE_RESULT_2026-09-03.json \
+            | tee /tmp/r47m.json
+          python - <<'PY'
+          import json
+          d=json.load(open('/tmp/r47m.json'))
+          assert d['gate']=='JANUS_TRUMP_R47M_POST_DP_FULL_EXISTING_STACK_CLOSURE'
+          assert d['verdict'] in {
+              'R47K_COUNTEREXAMPLE_RESCUED_BY_POST_DP_FULL_EXISTING_STACK_CLOSURE',
+              'R47K_COUNTEREXAMPLE_SURVIVES_POST_DP_FULL_EXISTING_STACK_CLOSURE',
+          }
+          assert d['sealed_counterexample']['R47J_accepted_pivots']==[]
+          assert d['resource_envelope']['polynomial'] is True
+          assert d['interpretation']['new_inference_rule_added'] is False
+          assert d['interpretation']['new_proof_authority_added'] is False
+          assert d['firewall']['O4_UNIVERSAL_COVERAGE_FOR_FULL_EXISTING_STACK_CLOSURE']=='OPEN'
+          assert d['firewall']['SAT_IN_P']=='NOT_PROVED'
+          assert d['firewall']['P_VS_NP']=='OPEN'
+          if d['first_accepted'] is not None:
+              assert d['first_accepted']['accepted'] is True
+              assert d['first_accepted']['independent_replay_pass'] is True
+          print('R47M_GATE=PASS')
+          print('R47M_VERDICT=', d['verdict'])
+          print('R47M_ACCEPTED=', d['accepted_pivots'])
+          print('R47M_CLOSEST=', json.dumps(d['closest_pivots_7_20'], sort_keys=True))
+          PY
+      - name: Upload full result
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: JANUS_TRUMP_R47M_POST_DP_FULL_EXISTING_STACK_CLOSURE_RESULT
+          path: artifacts/JANUS_TRUMP_R47M_POST_DP_FULL_EXISTING_STACK_CLOSURE_RESULT_2026-09-03.json
+          if-no-files-found: error
+          retention-days: 90
