@@ -1,0 +1,81 @@
+name: JANUS TRUMP R44CC Internal Ternary Transport Inequality Realizability
+
+on:
+  push:
+    branches:
+      - research/r44cc-internal-ternary-transport-inequality-realizability-2026-09-03
+  pull_request:
+    branches:
+      - research/r44cb-domain3-pairwise-csp-3color-boundary-2026-09-03
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  r44cc-realizability:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Verify frozen lineage and claim ceiling
+        run: |
+          set -euo pipefail
+          git merge-base --is-ancestor 47e0e207ec5a9de35e593f3a09c8d729d657c20b "$GITHUB_SHA"
+          python - <<'PY'
+          import json
+          p=json.load(open('research/JANUS_TRUMP_R44CC_INTERNAL_TERNARY_TRANSPORT_INEQUALITY_REALIZABILITY_PREREGISTRATION_2026-09-03.json'))
+          assert p['status']=='FROZEN_BEFORE_EXECUTION'
+          assert p['parent']['commit']=='47e0e207ec5a9de35e593f3a09c8d729d657c20b'
+          assert p['parent']['workflow_conclusion']=='success'
+          assert p['claim_ceiling']['P_VS_NP']=='OPEN'
+          assert p['claim_ceiling']['full_transport_polynomiality_proven'] is False
+          print('R44CC_PREREG_LINEAGE=PASS')
+          PY
+      - name: Static anti-leakage firewall
+        run: |
+          python - <<'PY'
+          import ast
+          from pathlib import Path
+          path=Path('experiments/janus_trump_r44cc_internal_ternary_transport_inequality_realizability.py')
+          source=path.read_text()
+          tree=ast.parse(source)
+          forbidden={'pysat','z3','pycosat','networkx','numpy','scipy','requests','socket'}
+          imported=set()
+          for node in ast.walk(tree):
+              if isinstance(node,ast.Import): imported.update(a.name.split('.')[0] for a in node.names)
+              elif isinstance(node,ast.ImportFrom): imported.add((node.module or '').split('.')[0])
+          assert not (imported & forbidden), imported & forbidden
+          assert 'recover_blocks(target, source)' in source
+          assert 'construction_labels_supplied_to_recovery' in source
+          print({'external_solver_added':False,'construction_labels_supplied_to_recovery':False})
+          PY
+      - name: Compile and unit tests
+        run: |
+          python -m py_compile experiments/janus_trump_r44cc_internal_ternary_transport_inequality_realizability.py
+          python -m unittest -v tests/test_janus_trump_r44cc_internal_ternary_transport_inequality_realizability.py
+      - name: Execute exact finite realizability audit
+        run: |
+          python experiments/janus_trump_r44cc_internal_ternary_transport_inequality_realizability.py | tee r44cc-result.json
+          python - <<'PY'
+          import json
+          d=json.load(open('r44cc-result.json'))
+          assert d['local_block_size']==3
+          assert d['local_transport_candidate_count']==3
+          assert d['edge_relation']=='EXACT_INEQUALITY_ON_THREE_RECOVERED_TRANSPORT_CANDIDATES'
+          assert d['blocks_recovered_from_formula_common_core'] is True
+          assert d['construction_labels_supplied_to_recovery'] is False
+          assert d['triangle_transport_assignment_count']==6
+          assert d['k4_transport_assignment_count']==0
+          assert d['exact_bijection_with_graph_3colorings_on_enumerated_universe'] is True
+          assert d['formula_size']=={'target':'4n+m','source':'4n+6m'}
+          assert d['internal_ternary_inequality_realizable'] is True
+          assert d['full_transport_polynomiality_proven'] is False
+          assert d['P_VS_NP']=='OPEN'
+          print('R44CC_SCIENTIFIC_GATE=PASS')
+          PY
