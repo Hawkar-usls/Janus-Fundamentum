@@ -1,0 +1,69 @@
+name: JANUS TRUMP R47A9 Frozen Fixpoint DP R33 Rescue Or True Macro Core
+
+on:
+  push:
+    branches:
+      - research/r47a9-frozen-fixpoint-dp-r33-rescue-or-true-macro-core-2026-09-03
+  pull_request:
+    branches:
+      - research/r47a8-dp-r33-first-certified-rescue-complement-hunt-2026-09-03
+
+jobs:
+  r47a9-fixpoints:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Verify frozen preregistration
+        run: |
+          python - <<'PY'
+          import json, subprocess
+          parent='9e5fba7e6b411e1b45615a0a2404e6d098ae9fe3'
+          subprocess.run(['git','merge-base','--is-ancestor',parent,'HEAD'], check=True)
+          p='research/JANUS_TRUMP_R47A9_FROZEN_FIXPOINT_DP_R33_RESCUE_OR_TRUE_MACRO_CORE_PREREGISTRATION_2026-09-03.json'
+          d=json.load(open(p))
+          assert d['status']=='FROZEN_BEFORE_EXECUTION'
+          assert d['parent']['commit']==parent
+          assert d['corpus']['required_count']==26
+          assert d['epistemic_firewall']['DP_R33_RESCUE_UNIVERSAL']=='NOT_PROVED'
+          assert d['epistemic_firewall']['R47A_UNIVERSAL_COVERAGE']=='OPEN'
+          assert d['epistemic_firewall']['SAT_IN_P']=='NOT_PROVED'
+          assert d['epistemic_firewall']['P_VS_NP']=='OPEN'
+          assert d['epistemic_firewall']['TRUMP_finished'] is False
+          PY
+      - name: Compile
+        run: python -m py_compile experiments/janus_trump_r47a9_frozen_fixpoint_dp_r33_rescue_or_true_macro_core.py
+      - name: Execute frozen true-fixpoint audit
+        run: |
+          PYTHONPATH=experiments python experiments/janus_trump_r47a9_frozen_fixpoint_dp_r33_rescue_or_true_macro_core.py | tee /tmp/r47a9.json
+          python - <<'PY'
+          import json
+          d=json.load(open('/tmp/r47a9.json'))
+          assert d['gate']=='JANUS_TRUMP_R47A9_FROZEN_FIXPOINT_DP_R33_RESCUE_OR_TRUE_MACRO_CORE'
+          assert d['metrics']['frozen_fixpoint_count']==26
+          assert d['metrics']['early_rescue_count'] + d['metrics']['fallback_count'] + d['metrics']['uncovered_count'] == 26
+          assert all(r['fixpoint']['R33_terminal']=='STALLED_STACK_LEAN_CORE' for r in d['rows'])
+          assert all(r['fixpoint']['RUP_status']=='STALLED_RUP_CORE' for r in d['rows'])
+          assert all(r['fixpoint']['RUP_history_count']==0 for r in d['rows'])
+          assert all(r['fixpoint']['RUP_replay_pass'] is True for r in d['rows'])
+          assert d['verdict'] in {
+              'EARLY_DP_R33_RESCUES_ALL_26_FROZEN_FIXPOINTS__FINITE_ONLY',
+              'EARLY_DP_R33_RESCUES_SUBSET__R45A_FALLBACK_COVERS_REMAINDER',
+              'FROZEN_FIXPOINT_WITH_NO_ACCEPTED_MACRO_FOUND',
+          }
+          assert d['interpretation']['universal_theorem_elevation_allowed'] is False
+          assert d['firewall']['DP_R33_RESCUE_UNIVERSAL']=='NOT_PROVED'
+          assert d['firewall']['R47A_UNIVERSAL_COVERAGE']=='OPEN'
+          assert d['firewall']['SAT_IN_P']=='NOT_PROVED'
+          assert d['firewall']['P_VS_NP']=='OPEN'
+          print('R47A9_GATE=PASS')
+          print('R47A9_VERDICT=', d['verdict'])
+          print('METRICS=', json.dumps(d['metrics'], sort_keys=True))
+          if d['first_uncovered'] is not None:
+              print('FIRST_UNCOVERED=', json.dumps(d['first_uncovered'], sort_keys=True))
+          PY
