@@ -1,0 +1,73 @@
+name: JANUS TRUMP R44CD Global Transport 3Color Reduction Seal
+
+on:
+  push:
+    branches:
+      - research/r44cd-global-transport-3color-reduction-seal-2026-09-03
+  pull_request:
+    branches:
+      - research/r44cc-internal-ternary-transport-inequality-realizability-2026-09-03
+  workflow_dispatch:
+
+jobs:
+  r44cd-reduction-seal:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Verify frozen parent and preregistration
+        run: |
+          set -euo pipefail
+          PARENT=a990d54140b7ddd45583a2e265d873c1fc4d69f7
+          git merge-base --is-ancestor "$PARENT" "$GITHUB_SHA"
+          python - <<'PY'
+          import json
+          p='research/JANUS_TRUMP_R44CD_GLOBAL_TRANSPORT_3COLOR_REDUCTION_SEAL_PREREGISTRATION_2026-09-03.json'
+          d=json.load(open(p))
+          assert d['status']=='FROZEN_BEFORE_EXECUTION'
+          assert d['parent_commit']=='a990d54140b7ddd45583a2e265d873c1fc4d69f7'
+          assert d['firewall']['TRUMP_finished'] is False
+          assert d['firewall']['SAT_IN_P']=='NOT_PROVED'
+          assert d['firewall']['P_VS_NP']=='OPEN'
+          PY
+
+      - name: Static anti-leakage firewall
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          from pathlib import Path
+          p=Path('experiments/janus_trump_r44cd_global_transport_3color_reduction_seal.py').read_text()
+          assert 'recover_transport_csp(A, B)' in p
+          assert 'recover_transport_csp(A, B,' not in p
+          assert 'finite_audit_is_not_claimed_as_transport_algorithm' in p
+          PY
+
+      - name: Compile and unit tests
+        run: |
+          python -m py_compile experiments/janus_trump_r44cd_global_transport_3color_reduction_seal.py
+          python tests/test_janus_trump_r44cd_global_transport_3color_reduction_seal.py
+
+      - name: Execute exact finite reduction audit
+        run: |
+          set -euo pipefail
+          python experiments/janus_trump_r44cd_global_transport_3color_reduction_seal.py | tee /tmp/r44cd.json
+          python - <<'PY'
+          import json
+          d=json.load(open('/tmp/r44cd.json'))
+          assert d['gate']=='R44CD_GLOBAL_TRANSPORT_3COLOR_REDUCTION_SEAL'
+          assert d['exact_bijection_on_enumerated_universe'] is True
+          assert d['construction_polynomial'] is True
+          assert d['triangle_global_transport_count']==6
+          assert d['k4_global_transport_count']==0
+          assert d['additional_polynomial_invariant_ruled_out'] is False
+          assert d['full_TRUMP_polynomiality_proven'] is False
+          assert d['TRUMP_finished'] is False
+          assert d['SAT_IN_P']=='NOT_PROVED'
+          assert d['P_VS_NP']=='OPEN'
+          PY
