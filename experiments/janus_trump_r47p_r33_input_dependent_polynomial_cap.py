@@ -4,6 +4,7 @@ import json
 from pathlib import Path
 
 import janus_trump_r33_certified_safe_reduction_stack_lean_core_forensics as r33
+import janus_trump_r47f_small_reachable_fixpoint_full_macro_falsifier as r47f
 
 ROOT = Path(__file__).resolve().parents[1]
 R47G_CHECKPOINT = ROOT / "research" / "JANUS_TRUMP_R47_O4_ATTACK_CHECKPOINT_R47J_2026-09-03.json"
@@ -57,13 +58,16 @@ def audit_case(name, formula):
 
 
 def load_r47g_residual():
-    d = json.loads(R47G_CHECKPOINT.read_text())
-    target_hash = d["sealed_lineage"]["R47G"]["fixpoint_hash"]
-    # Regenerate from the sealed deterministic source rather than trusting an ad hoc residual literal list.
+    checkpoint = json.loads(R47G_CHECKPOINT.read_text())
+    target_hash = checkpoint["sealed_lineage"]["R47G"]["fixpoint_hash"]
     original = r33.deterministic_random_3cnf(473383, n=30, ratio=3.8)
-    # The R47P audit only needs R33 behavior on a known residual; the exact residual is stored in R47G checkpoint lineage,
-    # while R47I gives an explicit residual literal list. Use the latter for a byte-pinned residual and retain R47G as a source integrity receipt.
-    return target_hash, original
+    reached = r47f.reachable_fixpoint(original)
+    if reached is None:
+        raise AssertionError("R47P_R47G_SOURCE_NO_LONGER_REACHES_FIXPOINT")
+    residual = r33.canonical_formula(reached["formula"])
+    if r47f.formula_hash(residual) != target_hash:
+        raise AssertionError(("R47P_R47G_FIXPOINT_HASH_DRIFT", r47f.formula_hash(residual), target_hash))
+    return residual
 
 
 def frozen_cases():
@@ -74,10 +78,9 @@ def frozen_cases():
         yield f"PRISM_TSEITIN_{n}", r33.prism_tseitin(n)
     for seed in (33001, 33002, 33003, 33004):
         yield f"RANDOM_{seed}", r33.deterministic_random_3cnf(seed)
+    yield "R47G_EARLIEST_FROZEN_LADDER_RESIDUAL", load_r47g_residual()
     r47i = json.loads(R47I_RESULT.read_text())
     yield "R47I_EXPLICIT_RESIDUAL", r33.canonical_formula(r47i["genuine_residual_fixpoint"]["formula"])
-    _, r47g_source = load_r47g_residual()
-    yield "R47G_SEALED_SOURCE_3CNF", r47g_source
 
 
 def run():
