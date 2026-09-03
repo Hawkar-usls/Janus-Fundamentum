@@ -9,13 +9,13 @@
     "statement": "There exists a Cook-Reckhow proof system that is both polynomially bounded and polynomial-time automatizable if and only if P=NP.",
     "forward_direction": [
       "Let Psys be polynomially bounded: every tautology phi has a Psys-proof of size at most q(|phi|) for one fixed polynomial q.",
-      "Let Psys be polynomial-time automatizable in the standard shortest-proof sense: on a tautology phi it outputs a Psys-proof in time polynomial in |phi| plus the length of a shortest Psys-proof.",
-      "By polynomial boundedness, the shortest proof length is at most q(|phi|), so the automatizer runs in polynomial time in |phi|.",
-      "Thus TAUT is decidable in deterministic polynomial time: run the automatizer with its totality/acceptance convention and verify the returned proof; equivalently use the corresponding refutation formulation for UNSAT.",
-      "Since TAUT is coNP-complete and P is closed under complement, TAUT in P implies SAT in P, hence P=NP."
+      "Let Psys be polynomial-time automatizable in the standard shortest-proof sense: on a tautology phi it outputs a Psys-proof in time r(|phi|+s_Psys(phi)) for one fixed polynomial r, where s_Psys(phi) is the shortest Psys-proof length.",
+      "By polynomial boundedness, s_Psys(phi) <= q(|phi|) on every tautology, so every tautology receives a proof within T(n)=r(n+q(n)) steps, a fixed polynomial in n=|phi|.",
+      "A deterministic TAUT decider simulates the automatizer for exactly T(|phi|) steps and accepts only if a syntactically valid Psys-proof of phi is returned and verified. If no valid proof is returned by the cutoff, reject. On tautologies the runtime guarantee forces a proof before cutoff; on non-tautologies soundness of the Cook-Reckhow system forbids any valid proof of phi.",
+      "Therefore TAUT is in P. Since TAUT is coNP-complete and P is closed under complement, SAT is in P and hence P=NP."
     ],
     "reverse_direction": [
-      "Assume P=NP. Then TAUT is in P because P=coP and NP=coNP=P.",
+      "Assume P=NP. Then TAUT is in P because P is closed under complement and SAT is in P.",
       "Define a Cook-Reckhow system whose proof of a tautology phi can be phi itself, with the proof-system function checking tautologicity in polynomial time and outputting phi when valid (and a fixed tautology otherwise).",
       "This system is polynomially bounded because proof length is O(|phi|).",
       "It is polynomial-time automatizable because on tautological input the automatizer outputs phi itself.",
@@ -27,7 +27,7 @@
     "new_TRUMP_use": "Adding polynomial-time proof discovery to polynomial boundedness raises the requirement from NP=coNP-level short-proof existence to P=NP-level uniform discovery.",
     "sources": [
       "Stephen A. Cook and Robert A. Reckhow, The relative efficiency of propositional proof systems, JSL 44(1), 1979",
-      "standard automatizability definition: output a proof in time polynomial in formula size and shortest-proof length"
+      "standard automatizability definition: output a proof on tautologies in time polynomial in formula size and shortest-proof length"
     ]
   },
   "derived_TRUMP_consequence": {
@@ -49,6 +49,8 @@
     "SHORT_PROOFS_EXIST != SHORT_PROOFS_CAN_BE_FOUND",
     "NP_EQUALS_CO_NP != P_EQUALS_NP",
     "PROOF_SIZE_STRENGTH != SEARCH_EASINESS",
+    "AUTOMATIZER_PROMISE_ON_TAUTOLOGIES != TOTAL_DECIDER_ASSUMPTION",
+    "POLYNOMIAL_CUTOFF_PLUS_PROOF_SOUNDNESS_CONVERTS_THE_PROMISE_TO_A_DECIDER",
     "META_BARRIER != P_NE_NP",
     "NO_PROOF_FOUND != PROOF_DOES_NOT_EXIST",
     "P_VS_NP=OPEN"
