@@ -12,27 +12,29 @@ The candidate machine derives progress/negative information only through one fix
 
 Albert Atserias, *On Sufficient Conditions for Unsatisfiability of Random Formulas*, Journal of the ACM 51(2):281–311, 2004, DOI `10.1145/972639.972645`.
 
-The theorem shows that unsatisfiability of any significant fraction of random 3-CNF formulas cannot be certified by any Datalog-expressible property. The paper explicitly states the consequence that constraint-propagation algorithms working with small constraints fail to certify unsatisfiability almost always in the random 3-CNF regime studied.
+The theorem is quantified per fixed Datalog mechanism: for every fixed Datalog-expressible sufficient condition/program of the kind considered, that fixed program fails to certify unsatisfiability on almost all relevant random 3-CNF instances in the studied regime. The paper states the corresponding consequence that constraint-propagation algorithms working with small constraints fail to certify unsatisfiability almost always.
+
+R44AE does **not** claim a single common formula that simultaneously defeats all possible Datalog programs.
 
 The proof proceeds through existential pebble games and extension properties, and connects the pebble requirement to Resolution width.
 
 ## TRUMP consequence
 
-For the fixed route,
+For any one fixed candidate route,
 
 `NO_LOCAL_CONTRADICTION_FOUND != SAT`.
 
-There are globally unsatisfiable 3-CNF instances whose bounded-local view remains consistent for the fixed mechanism. Therefore a TRUMP machine whose universal decision/progress authority is exhausted by this bounded-local propagation model cannot discharge `L1` universal exact exit.
+Fix the Datalog/bounded-local mechanism first. The theorem then supplies many globally unsatisfiable 3-CNF instances that this fixed mechanism fails to certify. Therefore a TRUMP machine whose universal decision/progress authority is exhausted by that fixed bounded-local propagation model cannot discharge `L1` universal exact exit.
 
-This is also an `L3` architectural barrier: every individual local propagation operation can be cheap while the information available to the transition law is still insufficient for total exact decision.
+This is also an `L3` architectural barrier: every individual local propagation operation can be cheap while the information available to that fixed transition law is still insufficient for total exact decision.
 
-The obstruction is not cost per local step. It is missing global information.
+The obstruction is not cost per local step. It is missing global information for the fixed mechanism.
 
 ## Dead-Zone law
 
 `LOCALLY_CONSISTENT != GLOBALLY_SATISFIABLE`.
 
-A saturated local observer may have a genuine information dead zone. Its failure to observe a contradiction must remain typed as `NO_LOCAL_CONTRADICTION_FOUND`, never promoted to `SAT`.
+A saturated fixed local observer may have a genuine information dead zone. Its failure to observe a contradiction must remain typed as `NO_LOCAL_CONTRADICTION_FOUND`, never promoted to `SAT`.
 
 ## Scope
 
