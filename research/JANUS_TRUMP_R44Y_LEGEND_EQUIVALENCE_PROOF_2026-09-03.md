@@ -16,11 +16,11 @@ L6 is stronger than what is needed merely to decide 3SAT: it adds an independent
 
 ### `P = NP => LEGEND`
 
-Assume `P = NP`. Then there exists a deterministic polynomial-time 3SAT decider `A`.
+Assume `P = NP`. Then there exists a correct deterministic polynomial-time 3SAT decider `A`.
 
 For a satisfiable formula, standard SAT self-reducibility recovers a full satisfying assignment by fixing variables one at a time and querying `A`; this uses only polynomially many polynomial-time calls.
 
-For an unsatisfiable formula, run `A` to rejection. Because `A` is deterministic and polynomial-time, its complete accepting/rejecting computation history has polynomial length and can be checked locally in polynomial time against the original input and the fixed transition function of `A`.
+For an unsatisfiable formula, run `A` to rejection. Because `A` is deterministic and polynomial-time, its complete computation history has polynomial length. A separately specified verifier can check, in polynomial time, that the transcript starts from the encoded input, that every adjacent configuration obeys the fixed transition relation of `A`, and that the final configuration is rejecting. Soundness of this replay relies only on the fixed mathematical correctness of `A`, which is part of the assumed `P=NP` witness; the verifier does not need to rediscover the SAT answer.
 
 Define `D` to execute this polynomial procedure and emit a terminal result directly. Its live state, discovery/work and returned witness/transcript are polynomial. Set `Phi_F(start)=1` and `Phi_F(terminal)=0`. Therefore L1--L6 all hold.
 
@@ -48,7 +48,7 @@ The six obligations remain a useful audit decomposition, but they are not six in
 
 In particular:
 
-- L5 is a discrete certificate for a polynomial macrostep bound, not a new source of computational power.
+- The frozen L5 rank is a sufficient discrete certificate of a polynomial macrostep bound. Conversely, once a deterministic terminating trajectory is already known to have polynomial length, an abstract `remaining steps` rank exists; however, if TRUMP wants to compute or verify that rank operationally, that work must be charged under L3. Thus the rank is not free computational power.
 - L1/L2/L4/L5/L6 on the universal UNSAT side already demand a proof-size/verification phenomenon at the `NP=coNP` frontier.
 - L3 is the uniform discovery requirement: existentially short evidence does not discharge it.
 - L1--L6 for one fixed constructor are collectively equivalent to the original `P=NP` target.
