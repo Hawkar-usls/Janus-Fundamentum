@@ -1,0 +1,67 @@
+{
+  "id": "JANUS_TRUMP_R44BQ_K5_POLYNOMIAL_SIGNED_TRANSPORT_DISCOVERY_2026-09-03",
+  "status": "EXACT_POLYNOMIAL_DISCOVERY_CLASS_WITH_INFINITE_FAMILY_WITNESS__UNIVERSAL_COVERAGE_OPEN",
+  "parent": "R44BP_SIGNED_MODEL_TRANSPORT_SAFE_SIBLING_DELETION",
+  "target": "POLYNOMIAL_TIME_DISCOVERABLE_TRANSPORT_CLASS",
+  "general_theorem": {
+    "name": "FIXED_SUPPORT_SIGNED_TRANSPORT_DISCOVERY",
+    "parameter": "K is a fixed constant independent of input size",
+    "algorithm": [
+      "Given sibling CNFs A and B on variable universe V, enumerate support sizes s=0..K in deterministic order.",
+      "Enumerate every subset S subseteq V with |S|=s.",
+      "Enumerate every permutation rho of S and every sign vector epsilon in {+1,-1}^S; extend pi to V by pi(v)=epsilon(v)*rho(v) on S and pi(v)=v outside S.",
+      "For each candidate pi, verify B->A transport by checking for every C in A whether some D in B satisfies D subseteq pi(C). Also check the reverse orientation A->B.",
+      "On the first valid transport, safely delete the transported-from sibling and retain the transported-to sibling. If no candidate exists, return NO_RULE_APPLICABLE rather than an answer."
+    ],
+    "candidate_count_bound": "sum_{s=0}^K binom(n,s) s! 2^s <= c_K n^K for fixed K",
+    "verification_cost_per_candidate": "O(m_A*m_B*w) by direct clause-subsumption checking, where w is maximum encoded clause width",
+    "total_discovery_bound": "O(n^K * m_A * m_B * w) up to a constant depending only on fixed K",
+    "soundness": "Every accepted candidate is sound by the R44BP signed-subsumption model-transport theorem.",
+    "completeness_for_class": "If either sibling direction admits a signed transport whose support size is at most K, exhaustive bounded-support enumeration finds one.",
+    "failure_semantics": "NO_RULE_APPLICABLE is not UNSAT and carries no theorem authority beyond absence of this fixed-support certificate class."
+  },
+  "K5_instantiation": {
+    "K": 5,
+    "uniform_algorithm_name": "K5_SIGNED_TRANSPORT_DISCOVER_DELETE_V1",
+    "complexity": "O(n^5 * m_A * m_B * w)",
+    "R44AS_certificate_support": [1,3,4,5,6],
+    "R44AS_signed_permutation": {"1":-3,"3":-5,"4":6,"5":-1,"6":-4},
+    "R44AS_effect": "The deterministic K=5 algorithm must enumerate and accept a valid B=G[x2=true] -> A=G[x2=false] certificate, after which B is safely deleted and maxdef moves 2->1.",
+    "discovery_status_on_R44AS": "POLYNOMIAL_BY_FIXED_K_ENUMERATION"
+  },
+  "infinite_disjoint_lift": {
+    "construction": "For arbitrary k>=1, take k variable-disjoint renamed copies of the R44AS base formula and branch on the distinguished x2 variable of one chosen copy.",
+    "parent_rank": "delta*=2k",
+    "both_sibling_ranks": "delta*=2k-1",
+    "why_rank_is_additive": "Every clause subset decomposes uniquely across variable-disjoint components and deficiency adds; maximizing independently in each component gives additivity of maximal deficiency.",
+    "transport": "Use the same support-5 signed permutation inside the distinguished copy and identity on every variable of all other copies. Common outside-copy clauses map to themselves, while distinguished-copy clauses use the R44BP witnesses.",
+    "discovery": "K5_SIGNED_TRANSPORT_DISCOVER_DELETE_V1 enumerates this global signed permutation because its non-identity support is still exactly five variables, independent of k.",
+    "safe_delete_effect": "For every k, one sibling is safely deleted and the retained state has rank 2k-1.",
+    "unbounded_size_consequence": "There is an infinite family of arbitrarily large sibling states for which a fixed deterministic polynomial-time transport-discovery rule performs exact destructive rank descent."
+  },
+  "r44bd_accounting": {
+    "exact_sibling_sat_or_on_covered_class": "PROVED",
+    "rank_descent_on_covered_family": "PROVED_BY_ONE",
+    "polynomial_discovery": "PROVED_FOR_FIXED_K5_CLASS",
+    "polynomial_certificate_verification": "PROVED",
+    "polynomial_state_overhead": "YES__enumeration uses polynomial counters plus one candidate permutation/certificate",
+    "witness_lifting": "POLYNOMIAL__apply signed permutation when needed, then restore branch pivot",
+    "universal_critical_sibling_coverage": "OPEN",
+    "global_termination": "OPEN"
+  },
+  "scope_firewalls": [
+    "FIXED_K_TRANSPORT_DISCOVERY != UNBOUNDED_TRANSPORT_DISCOVERY",
+    "INFINITE_FAMILY_COVERAGE != UNIVERSAL_3CNF_COVERAGE",
+    "ONE_POLYNOMIAL_SAFE_DELETE_RULE != COMPLETE_POLYNOMIAL_RESOLVER",
+    "NO_RULE_APPLICABLE != UNSAT",
+    "LOCAL_RANK_DESCENT != GLOBAL_POLYNOMIAL_TERMINATION",
+    "TRUMP_finished=false",
+    "SAT_IN_P=NOT_PROVED",
+    "P_VS_NP=OPEN"
+  ],
+  "next_exact_question": "Does every maxdef-critical sibling pair admit a bounded-support signed transport for one universal constant K, or can one construct an exact critical family whose minimum signed-transport support grows unboundedly or has no signed transport at all?",
+  "TRUMP_finished": false,
+  "SAT_IN_P": "NOT_PROVED",
+  "P_EQUALS_NP": "NOT_PROVED",
+  "P_VS_NP": "OPEN"
+}
