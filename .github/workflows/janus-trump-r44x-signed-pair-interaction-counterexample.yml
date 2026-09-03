@@ -1,0 +1,52 @@
+name: JANUS TRUMP R44X Signed Pair Interaction Counterexample
+
+on:
+  pull_request:
+    paths:
+      - 'research/JANUS_TRUMP_R44X_SIGNED_PAIR_INTERACTION_COUNTEREXAMPLE_2026-09-03.json'
+      - 'research/janus_trump_r44x_verify_signed_pair_interaction_counterexample.py'
+      - 'research/TRUMP_LEGEND_SEAL_UNIVERSAL_PROOF_CARRYING_DECOMPOSITION_CONTRACT_2026-09-03.json'
+      - '.github/workflows/janus-trump-r44x-signed-pair-interaction-counterexample.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  exact-replay:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Replay exact signed-pair collision
+        run: python research/janus_trump_r44x_verify_signed_pair_interaction_counterexample.py > /tmp/r44x.json
+      - name: Enforce theorem boundary and Legend target
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          r=json.loads(Path('/tmp/r44x.json').read_text())
+          legend=json.loads(Path('research/TRUMP_LEGEND_SEAL_UNIVERSAL_PROOF_CARRYING_DECOMPOSITION_CONTRACT_2026-09-03.json').read_text())
+          assert r['status']=='EXPLICIT_SIGNED_PAIR_COLLISION_VERIFIED'
+          assert r['shared_n']==4 and r['shared_m']==10
+          assert r['sat_status']=='SAT'
+          assert r['unsat_status']=='UNSAT'
+          assert r['order_le_2_local_marginals_sufficient'] is False
+          assert r['global_polynomial_compression_ruled_out'] is False
+          assert r['P_VS_NP']=='OPEN'
+          assert legend['status']=='FINAL_THEOREM_TARGET_FROZEN__NOT_PROVED'
+          assert legend['target_lemma']=='TRUMP_UNIVERSAL_PROOF_CARRYING_DECOMPOSITION_LEMMA'
+          assert len(legend['required_obligations'])==6
+          assert legend['TRUMP_finished'] is False
+          assert legend['P_VS_NP']=='OPEN'
+          print('R44X SIGNED-PAIR COUNTEREXAMPLE + LEGEND TARGET PASS')
+          PY
+      - name: Upload replay receipt
+        uses: actions/upload-artifact@v4
+        with:
+          name: janus-trump-r44x-signed-pair-interaction-counterexample
+          path: /tmp/r44x.json
+          if-no-files-found: error
