@@ -1,0 +1,67 @@
+name: JANUS TRUMP R47A5 Post Subsumption Descent Structural Theorem Or Counterexample
+
+on:
+  push:
+    branches:
+      - research/r47a5-post-subsumption-descent-structural-theorem-or-counterexample-2026-09-03
+  pull_request:
+    branches:
+      - research/r47a4-post-subsumption-universal-obstruction-hunt-2026-09-03
+
+jobs:
+  r47a5-structural:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Verify frozen parent and preregistration
+        run: |
+          python - <<'PY'
+          import json, subprocess
+          parent='616190ec5162f3a4d31d89987608a0791b23339b'
+          subprocess.run(['git','merge-base','--is-ancestor',parent,'HEAD'], check=True)
+          p='research/JANUS_TRUMP_R47A5_POST_SUBSUMPTION_DESCENT_STRUCTURAL_THEOREM_OR_COUNTEREXAMPLE_PREREGISTRATION_2026-09-03.json'
+          d=json.load(open(p))
+          assert d['status']=='FROZEN_BEFORE_EXECUTION'
+          assert d['parent']['commit']==parent
+          assert d['epistemic_firewall']['R47A_UNIVERSAL_COVERAGE']=='OPEN'
+          assert d['epistemic_firewall']['SAT_IN_P']=='NOT_PROVED'
+          assert d['epistemic_firewall']['P_VS_NP']=='OPEN'
+          PY
+      - name: Compile
+        run: |
+          python -m py_compile experiments/janus_trump_r47a5_post_subsumption_descent_structural_theorem_or_counterexample.py
+      - name: Execute structural theorem-or-counterexample gate
+        run: |
+          PYTHONPATH=experiments python experiments/janus_trump_r47a5_post_subsumption_descent_structural_theorem_or_counterexample.py | tee /tmp/r47a5.json
+          python - <<'PY'
+          import json
+          d=json.load(open('/tmp/r47a5.json'))
+          assert d['gate']=='JANUS_TRUMP_R47A5_POST_SUBSUMPTION_DESCENT_STRUCTURAL_THEOREM_OR_COUNTEREXAMPLE'
+          assert d['identity_checks'] > 0
+          assert d['verdict'] in {
+            'EXPLICIT_COUNTEREXAMPLE_FOUND',
+            'STRUCTURAL_NECESSARY_CONDITION_SEALED__UNIVERSAL_EXISTENCE_OPEN',
+            'UNIVERSAL_THEOREM_PROVED',
+          }
+          assert d['firewall']['R47A_UNIVERSAL_COVERAGE']=='OPEN'
+          assert d['firewall']['SAT_IN_P']=='NOT_PROVED'
+          assert d['firewall']['P_VS_NP']=='OPEN'
+          if d['verdict']=='EXPLICIT_COUNTEREXAMPLE_FOUND':
+              c=d['counterexample']
+              assert c is not None
+              assert all(r['g_v'] <= 0 for r in c['rows'])
+              assert c['RUP_independent_replay_pass'] is True
+          else:
+              assert d['interpretation']['finite_no_counterexample_is_not_theorem'] is True
+              assert d['interpretation']['symbolic_universal_existence_proof_present'] is False
+          print('R47A5_GATE=PASS')
+          print('R47A5_VERDICT=', d['verdict'])
+          print('IDENTITY_CHECKS=', d['identity_checks'])
+          print('SEARCH=', json.dumps(d['search'], sort_keys=True))
+          PY
