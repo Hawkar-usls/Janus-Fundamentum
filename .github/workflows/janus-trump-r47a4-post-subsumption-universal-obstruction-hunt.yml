@@ -1,0 +1,61 @@
+name: JANUS TRUMP R47A4 Post Subsumption Universal Obstruction Hunt
+
+on:
+  push:
+    branches:
+      - research/r47a4-post-subsumption-universal-obstruction-hunt-2026-09-03
+  workflow_dispatch:
+
+jobs:
+  r47a4-hunt:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Verify frozen preregistration
+        run: |
+          python - <<'PY'
+          import json, subprocess
+          parent='0b897a2d95b9e614da00729ca50e56a36a7c4fb5'
+          subprocess.run(['git','merge-base','--is-ancestor',parent,'HEAD'], check=True)
+          p='research/JANUS_TRUMP_R47A4_POST_SUBSUMPTION_UNIVERSAL_OBSTRUCTION_HUNT_PREREGISTRATION_2026-09-03.json'
+          d=json.load(open(p))
+          assert d['status']=='FROZEN_BEFORE_EXECUTION'
+          assert d['parent']['commit']==parent
+          assert d['firewall']['R47A_UNIVERSAL_COVERAGE']=='OPEN'
+          assert d['firewall']['DIRECT_POST_SUBSUMPTION_DP_UNIVERSAL']=='NOT_PROVED'
+          assert d['firewall']['SAT_IN_P']=='NOT_PROVED'
+          assert d['firewall']['P_VS_NP']=='OPEN'
+          assert d['firewall']['TRUMP_finished'] is False
+          PY
+      - name: Compile
+        run: python -m py_compile experiments/janus_trump_r47a4_post_subsumption_universal_obstruction_hunt.py
+      - name: Execute deterministic hunt
+        run: |
+          PYTHONPATH=experiments python experiments/janus_trump_r47a4_post_subsumption_universal_obstruction_hunt.py | tee /tmp/r47a4.json
+          python - <<'PY'
+          import json
+          d=json.load(open('/tmp/r47a4.json'))
+          assert d['gate']=='JANUS_TRUMP_R47A4_POST_SUBSUMPTION_UNIVERSAL_OBSTRUCTION_HUNT'
+          assert d['status'] in {'FOUND_SURVIVOR','NO_SURVIVOR_WITHIN_BUDGET'}
+          assert d['interpretation']['finite_search_only'] is True
+          assert d['interpretation']['universal_theorem_elevation_allowed'] is False
+          assert d['firewall']['R47A_UNIVERSAL_COVERAGE']=='OPEN'
+          assert d['firewall']['DIRECT_POST_SUBSUMPTION_DP_UNIVERSAL']=='NOT_PROVED'
+          assert d['firewall']['SAT_IN_P']=='NOT_PROVED'
+          assert d['firewall']['P_VS_NP']=='OPEN'
+          if d['status']=='FOUND_SURVIVOR':
+              s=d['survivor']
+              assert all(r['gain'] <= 0 for r in s['post_subsumption_rows'])
+              assert s['RUP']['independent_replay_pass'] is True
+          print('R47A4_GATE=PASS')
+          print('R47A4_STATUS=', d['status'])
+          print('COUNTERS=', json.dumps(d['counters'], sort_keys=True))
+          if d['survivor'] is not None:
+              print('SURVIVOR=', json.dumps(d['survivor'], sort_keys=True))
+          PY
