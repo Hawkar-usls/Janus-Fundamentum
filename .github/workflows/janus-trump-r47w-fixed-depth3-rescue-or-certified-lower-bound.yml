@@ -1,0 +1,63 @@
+name: JANUS TRUMP R47W Fixed Depth3 Rescue Or Certified Lower Bound
+
+on:
+  push:
+    branches:
+      - research/r47w-fixed-depth3-rescue-or-certified-lower-bound-2026-09-04
+
+jobs:
+  fixed-depth3:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 180
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Verify frozen prereg and compile
+        run: |
+          python - <<'PY'
+          import hashlib, json
+          from pathlib import Path
+          p=Path('research/JANUS_TRUMP_R47W_FIXED_DEPTH3_RESCUE_OR_CERTIFIED_LOWER_BOUND_PREREGISTRATION_2026-09-04.json')
+          d=json.loads(p.read_text())
+          assert d['status']=='FROZEN_BEFORE_EXECUTION'
+          assert d['parent']['commit']=='d3ae7985a45cbf57af8fbf33015c69de85f52ec1'
+          assert d['witness']['residual_hash']=='eb653802ae710e5770e21878b5b38b2871cf0db16451b04cfc5451ca2c2e7502'
+          assert d['witness']['depth2_failed_pair_count']==462
+          assert d['resource_contract']['depth_is_fixed_constant']==3
+          print('R47W_PREREG_SHA256='+hashlib.sha256(p.read_bytes()).hexdigest())
+          PY
+          python -m py_compile experiments/janus_trump_r47w_fixed_depth3_rescue_or_certified_lower_bound.py
+      - name: Execute fixed depth3 gate
+        run: |
+          PYTHONPATH=experiments python experiments/janus_trump_r47w_fixed_depth3_rescue_or_certified_lower_bound.py | tee /tmp/r47w.json
+          python - <<'PY'
+          import json
+          d=json.load(open('/tmp/r47w.json'))
+          assert d['gate']=='JANUS_TRUMP_R47W_FIXED_DEPTH3_RESCUE_OR_CERTIFIED_LOWER_BOUND'
+          assert d['input_hash']=='eb653802ae710e5770e21878b5b38b2871cf0db16451b04cfc5451ca2c2e7502'
+          assert d['input_CLV']==[76,203,22]
+          assert d['depth1_reconfirmed_dead'] is True
+          assert d['depth2_reconfirmed_dead'] is True
+          assert d['depth2_failed_pair_count']==462
+          assert d['depth2_failed_pair_ledger_sha256']=='72416db56bcff832efed776c902e8d2e158cc706139bfac44e6c5366ab8340ed'
+          assert d['firewall']['O4_UNIVERSAL_COVERAGE']=='OPEN'
+          assert d['firewall']['SAT_IN_P']=='NOT_PROVED'
+          assert d['firewall']['P_VS_NP']=='OPEN'
+          if d['selected'] is not None:
+              assert d['verdict']=='EXPLICIT_CERTIFIED_DEPTH3_RESCUE_FOUND__d(F)=3_FOR_THIS_WITNESS'
+              assert d['certified_depth_statement']=='d(F)=3_FOR_THIS_FINITE_REACHABLE_WITNESS'
+              assert d['selected']['accepted'] is True
+              assert d['selected']['all_three_independent_replays_pass'] is True
+          else:
+              assert d['verdict']=='ALL_LEGAL_DEPTH3_SEQUENCES_FAILED__d(F)>3_FOR_THIS_WITNESS'
+              assert d['certified_depth_statement']=='d(F)>3_FOR_THIS_FINITE_REACHABLE_WITNESS'
+          print('R47W_GATE=PASS')
+          print('R47W_VERDICT='+d['verdict'])
+          print('R47W_DEPTH3_TESTED='+str(d['depth3_tested_triples']))
+          print('R47W_SELECTED='+json.dumps(d['selected'],sort_keys=True))
+          print('R47W_BEST_FAILURE='+json.dumps(d['best_depth3_failure'],sort_keys=True))
+          PY
