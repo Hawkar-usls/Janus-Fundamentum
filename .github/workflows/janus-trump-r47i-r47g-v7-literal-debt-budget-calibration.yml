@@ -1,0 +1,66 @@
+name: JANUS TRUMP R47I R47G v7 Literal Debt Budget Calibration
+
+on:
+  push:
+    branches:
+      - research/r47i-literal-debt-repayment-budget-2026-09-03
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  r47i-calibration:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Verify frozen preregistration
+        run: |
+          python - <<'PY'
+          import json
+          p='research/JANUS_TRUMP_R47I_R47G_V7_LITERAL_DEBT_BUDGET_CALIBRATION_PREREGISTRATION_2026-09-03.json'
+          d=json.load(open(p))
+          assert d['status']=='FROZEN_BEFORE_EXECUTION'
+          assert d['witness']['pivot']==7
+          assert d['witness']['fixpoint_CLV']==[87,233,25]
+          assert d['witness']['forced_DP_CLV']==[87,238,24]
+          assert d['witness']['final_CLV']==[87,233,24]
+          assert d['firewall']['O4_UNIVERSAL_COVERAGE']=='OPEN'
+          assert d['firewall']['SAT_IN_P']=='NOT_PROVED'
+          assert d['firewall']['P_VS_NP']=='OPEN'
+          PY
+      - name: Compile
+        run: python -m py_compile experiments/janus_trump_r47i_r47g_v7_literal_debt_budget_calibration.py
+      - name: Execute calibration
+        run: |
+          mkdir -p artifacts
+          PYTHONPATH=experiments python experiments/janus_trump_r47i_r47g_v7_literal_debt_budget_calibration.py \
+            --output artifacts/JANUS_TRUMP_R47I_R47G_V7_LITERAL_DEBT_BUDGET_CALIBRATION_RESULT_2026-09-03.json \
+            | tee /tmp/r47i.json
+          python - <<'PY'
+          import json
+          d=json.load(open('artifacts/JANUS_TRUMP_R47I_R47G_V7_LITERAL_DEBT_BUDGET_CALIBRATION_RESULT_2026-09-03.json'))
+          assert d['verdict']=='R47G_V7_LITERAL_DEBT_BUDGET_CALIBRATED__O4_OPEN'
+          assert d['literal_debt_d']==5
+          assert d['certificate_visible_budget_q_plus_s'] >= 5
+          assert d['RUP_independent_replay_pass'] is True
+          assert d['macro_independent_replay_pass'] is True
+          assert d['strict_descent_only_by_variable_tiebreak'] is True
+          assert d['firewall']['O4_UNIVERSAL_COVERAGE']=='OPEN'
+          print('R47I_GATE=PASS')
+          print('R47I_BUDGET=', {'d':d['literal_debt_d'],'q':d['R33_literal_repayment_q'],'s':d['RUP_successful_strengthenings_s'],'q+s':d['certificate_visible_budget_q_plus_s'],'rL':d['actual_total_literal_repayment_rL']})
+          PY
+      - name: Upload full calibration trace
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: JANUS_TRUMP_R47I_R47G_V7_LITERAL_DEBT_BUDGET_CALIBRATION_RESULT
+          path: artifacts/JANUS_TRUMP_R47I_R47G_V7_LITERAL_DEBT_BUDGET_CALIBRATION_RESULT_2026-09-03.json
+          if-no-files-found: error
+          retention-days: 90
