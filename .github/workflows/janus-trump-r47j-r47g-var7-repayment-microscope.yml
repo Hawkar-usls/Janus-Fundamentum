@@ -1,0 +1,67 @@
+name: JANUS TRUMP R47J R47G Var7 Repayment Microscope
+
+on:
+  push:
+    branches:
+      - research/r47j-r47g-var7-repayment-microscope-2026-09-03
+  pull_request:
+    branches:
+      - research/r47h-ascent-debt-compensation-ledger-2026-09-03
+
+permissions:
+  contents: read
+
+jobs:
+  r47j-microscope:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Verify frozen preregistration
+        run: |
+          python - <<'PY'
+          import json
+          d=json.load(open('research/JANUS_TRUMP_R47J_R47G_VAR7_REPAYMENT_MICROSCOPE_PREREGISTRATION_2026-09-03.json'))
+          assert d['status']=='FROZEN_BEFORE_EXECUTION'
+          assert d['parent_witness']['pivot']==7
+          assert d['epistemic_firewall']['O4_UNIVERSAL_COVERAGE']=='OPEN'
+          assert d['epistemic_firewall']['SAT_IN_P']=='NOT_PROVED'
+          assert d['epistemic_firewall']['P_VS_NP']=='OPEN'
+          PY
+      - name: Compile and self-test
+        run: |
+          python -m py_compile experiments/janus_trump_r47j_r47g_var7_repayment_microscope.py
+          PYTHONPATH=experiments python experiments/janus_trump_r47j_r47g_var7_repayment_microscope.py --self-test
+      - name: Execute frozen microscope
+        run: |
+          PYTHONPATH=experiments python experiments/janus_trump_r47j_r47g_var7_repayment_microscope.py --output /tmp/r47j-full.json | tee /tmp/r47j-summary.json
+          python - <<'PY'
+          import json
+          d=json.load(open('/tmp/r47j-full.json'))
+          assert d['gate']=='JANUS_TRUMP_R47J_R47G_VAR7_REPAYMENT_MICROSCOPE'
+          assert d['F_CLV']==[87,233,25]
+          assert d['D_after_exact_DP_CLV']==[87,238,24]
+          assert d['final_CLV']==[87,233,24]
+          assert d['candidate']['accepted'] is True
+          assert d['candidate']['independent_macro_replay_pass'] is True
+          assert d['firewall']['O4_UNIVERSAL_COVERAGE']=='OPEN'
+          assert d['firewall']['SAT_IN_P']=='NOT_PROVED'
+          assert d['firewall']['P_VS_NP']=='OPEN'
+          print('R47J_GATE=PASS')
+          print('R47J_REPAYMENT_OWNER=', d['repayment_owner'])
+          print('R47J_POST_R33_CLV=', d['post_R33_CLV'])
+          print('R47J_R33_RULE_COUNTS=', json.dumps(d['R33']['rule_counts'], sort_keys=True))
+          print('R47J_RUP=', json.dumps(None if d['RUP'] is None else {'status':d['RUP']['status'],'successful_strengthenings':d['RUP']['successful_strengthenings']}, sort_keys=True))
+          PY
+      - name: Upload full microscope receipt
+        uses: actions/upload-artifact@v4
+        with:
+          name: r47j-r47g-var7-repayment-microscope-result
+          path: /tmp/r47j-full.json
+          if-no-files-found: error
+          retention-days: 30
