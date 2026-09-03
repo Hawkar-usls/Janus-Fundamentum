@@ -1,0 +1,60 @@
+name: JANUS TRUMP R47F Small Reachable Fixpoint Full Macro Falsifier
+
+on:
+  push:
+    branches:
+      - research/r47f-small-reachable-fixpoint-full-macro-falsifier-2026-09-03
+
+jobs:
+  r47f-small-falsifier:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Verify frozen preregistration
+        run: |
+          python - <<'PY'
+          import json, subprocess
+          parent='839465b3bab9fcd8289365487bcd182768532818'
+          subprocess.run(['git','merge-base','--is-ancestor',parent,'HEAD'], check=True)
+          p='research/JANUS_TRUMP_R47F_SMALL_REACHABLE_FIXPOINT_FULL_MACRO_FALSIFIER_PREREGISTRATION_2026-09-03.json'
+          d=json.load(open(p))
+          assert d['status']=='FROZEN_BEFORE_EXECUTION'
+          assert d['parent']['commit']==parent
+          assert d['epistemic_firewall']['O4_UNIVERSAL_COVERAGE']=='OPEN'
+          assert d['epistemic_firewall']['SAT_IN_P']=='NOT_PROVED'
+          assert d['epistemic_firewall']['P_VS_NP']=='OPEN'
+          assert d['epistemic_firewall']['TRUMP_finished'] is False
+          PY
+      - name: Compile
+        run: python -m py_compile experiments/janus_trump_r47f_small_reachable_fixpoint_full_macro_falsifier.py
+      - name: Execute frozen falsifier
+        run: |
+          PYTHONPATH=experiments python experiments/janus_trump_r47f_small_reachable_fixpoint_full_macro_falsifier.py | tee /tmp/r47f.json
+          python - <<'PY'
+          import json
+          d=json.load(open('/tmp/r47f.json'))
+          assert d['gate']=='JANUS_TRUMP_R47F_SMALL_REACHABLE_FIXPOINT_FULL_MACRO_FALSIFIER'
+          assert d['verdict'] in {
+              'EXPLICIT_SMALL_REACHABLE_MACRO_COVERAGE_COUNTEREXAMPLE_FOUND',
+              'NO_COUNTEREXAMPLE_IN_FROZEN_SMALL_REACHABLE_SEARCH__O4_OPEN',
+          }
+          assert d['interpretation']['finite_search_only'] is True
+          assert d['interpretation']['universal_theorem_elevation_allowed'] is False
+          assert d['firewall']['O4_UNIVERSAL_COVERAGE']=='OPEN'
+          assert d['firewall']['SAT_IN_P']=='NOT_PROVED'
+          assert d['firewall']['P_VS_NP']=='OPEN'
+          if d['counterexample'] is not None:
+              assert d['counters']['macro_dead_fixpoints'] >= 1
+              assert all(not r.get('accepted', False) for r in d['counterexample']['macro_rows'])
+          print('R47F_GATE=PASS')
+          print('R47F_VERDICT=', d['verdict'])
+          print('COUNTERS=', json.dumps(d['counters'], sort_keys=True))
+          if d['counterexample'] is not None:
+              print('COUNTEREXAMPLE=', json.dumps(d['counterexample'], sort_keys=True))
+          PY
