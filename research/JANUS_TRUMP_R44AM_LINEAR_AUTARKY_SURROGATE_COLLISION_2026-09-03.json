@@ -1,0 +1,79 @@
+{
+  "id": "JANUS_TRUMP_R44AM_LINEAR_AUTARKY_SURROGATE_COLLISION_2026-09-03",
+  "status": "POLYTIME_SURROGATE_REFUTED_BY_EXACT_COLLISION",
+  "parent": "R44AL_GENERAL_LEAN_KERNEL_COMPLETE_INVARIANT_BOUNDARY",
+  "target": "POLYTIME_SURROGATE_FOR_GENERAL_LEAN_KERNEL_EMPTINESS",
+  "candidate": {
+    "name": "LINEAR_AUTARKY_LEAN_KERNEL",
+    "notation": "N_lin(F)",
+    "definition": "Reduce F by linear autarkies obtained from nonzero rational solutions of M(F)x >= 0 until the unique linearly-lean kernel is reached.",
+    "computability": "Polynomial-time by linear programming for Boolean CNF.",
+    "strength_relation": "LEAN subset LLEAN subset MLEAN; linear autarkies are strictly stronger than matching autarkies as a reduction system.",
+    "sources": [
+      "Oliver Kullmann, Investigations on autark assignments, Discrete Applied Mathematics 107 (2000), 99-137",
+      "Oliver Kullmann, Lean clause-sets: generalizations of minimally unsatisfiable clause-sets, Discrete Applied Mathematics 130(2) (2003)"
+    ]
+  },
+  "sat_collision_base": {
+    "variables": ["a","b","c"],
+    "clauses": [
+      "(a OR b OR c)",
+      "(a OR not b OR not c)",
+      "(not a OR b OR not c)",
+      "(not a OR not b OR c)",
+      "(a OR b OR not c)"
+    ],
+    "sat_witness": "a=b=c=true",
+    "sign_matrix_core": [
+      [1,1,1],
+      [1,-1,-1],
+      [-1,1,-1],
+      [-1,-1,1]
+    ],
+    "linear_lean_proof": [
+      "Let x=(x1,x2,x3) satisfy all four core inequalities Mx>=0.",
+      "The first row gives s=x1+x2+x3>=0.",
+      "The sum of the other three rows is (-1,-1,-1), giving -s>=0; hence s=0.",
+      "With s=0, the three signed rows become 2x1>=0, 2x2>=0, 2x3>=0.",
+      "Thus x1,x2,x3>=0 and s=0, forcing x=0.",
+      "Therefore the four-clause core is linearly lean. Adding the fifth clause cannot create a new nonzero solution to Mx>=0, so the five-clause formula remains linearly lean while breaking the exact four-clause XOR-bundle shape."
+    ],
+    "conclusion": "The formula is SAT but N_lin(F)=F is nonempty."
+  },
+  "infinite_connected_sat_family": {
+    "construction": "Take k variable-disjoint copies of the five-clause base and add arbitrary connector 3-clauses satisfied by the all-true assignment, e.g. (a_i OR a_{i+1} OR b_i), to make the incidence graph connected.",
+    "proof": "Each base block alone forces its LP vector coordinates to zero. Adding connector inequalities cannot enlarge the feasible cone, so the full connected formula remains linearly lean. The all-true assignment satisfies every base and connector clause.",
+    "result": "Arbitrarily large connected SAT formulas have nonempty linearly-lean kernel equal to the whole formula."
+  },
+  "unsat_side": {
+    "family": "U_n implication-chain minimally-unsatisfiable formulas from R44AI/R44AK",
+    "reason": "Every minimally unsatisfiable formula is general-lean, hence linearly lean; therefore N_lin(U_n)=U_n is nonempty.",
+    "result": "The same surrogate output condition N_lin(F)!=EMPTY occurs on arbitrarily large SAT and UNSAT formulas."
+  },
+  "surrogate_collision": {
+    "claim_refuted": "N_lin(F) empty/nonempty exactly determines whether the complete general lean kernel N_a(F) is empty/nonempty.",
+    "sat_case": "For the SAT collision family, N_a(F)=EMPTY but N_lin(F)=F!=EMPTY.",
+    "unsat_case": "For U_n, both N_a(F) and N_lin(F) are nonempty.",
+    "conclusion": "Polynomial linear-autarky reduction is strictly stronger than matching reduction but still loses completeness exactly where R44AL requires it."
+  },
+  "legend_ledger": {
+    "E1_EXACTNESS": "PASS_AS_SAFE_AUTARKY_REDUCTION",
+    "E2_POLYTIME_TRANSITION": "PASS",
+    "E3_POLYNOMIAL_LIVE_STATE": "PASS",
+    "E4_COMPLETE_TERMINAL_DISTINCTION": "REFUTED_BY_CONNECTED_SAT_LINEARLY_LEAN_FAMILY",
+    "E5_POLYNOMIAL_RANK_HEIGHT": "NOT_RELEVANT_AFTER_COMPLETENESS_FAILURE",
+    "E6_EXACT_TERMINALITY": "NOT_ESTABLISHED"
+  },
+  "seals": [
+    "STRONGER_POLYTIME_AUTARKY_SYSTEM != COMPLETE_GENERAL_AUTARKY_SYSTEM",
+    "LP_FEASIBLE_AUTARKY_SEARCH != SAT_DECISION",
+    "LINEARLY_LEAN_NONEMPTY != UNSAT",
+    "POLYTIME_SURROGATE != COMPLETE_INVARIANT_WITHOUT_PROOF",
+    "P_VS_NP=OPEN"
+  ],
+  "next_rule": "Any successor surrogate must distinguish the explicit connected SAT linearly-lean family from general-lean UNSAT families while remaining polynomially computable and exact.",
+  "TRUMP_finished": false,
+  "SAT_IN_P": "NOT_PROVED",
+  "P_EQUALS_NP": "NOT_PROVED",
+  "P_VS_NP": "OPEN"
+}
