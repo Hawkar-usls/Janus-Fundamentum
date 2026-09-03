@@ -1,0 +1,67 @@
+name: JANUS TRUMP R47A7 Full CLV Direct DP Rescue Or Obstruction
+
+on:
+  push:
+    branches:
+      - research/r47a7-full-clv-direct-dp-rescue-or-obstruction-2026-09-03
+  pull_request:
+    branches:
+      - research/r47a6-unit-gap-near-obstruction-closure-2026-09-03
+
+jobs:
+  r47a7-full-clv:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Verify frozen preregistration
+        run: |
+          python - <<'PY'
+          import json, subprocess
+          parent='5993adcb3e9cac746cdb0869cd9fd2de344a44fb'
+          subprocess.run(['git','merge-base','--is-ancestor',parent,'HEAD'], check=True)
+          p='research/JANUS_TRUMP_R47A7_FULL_CLV_DIRECT_DP_RESCUE_OR_OBSTRUCTION_PREREGISTRATION_2026-09-03.json'
+          d=json.load(open(p))
+          assert d['status']=='FROZEN_BEFORE_EXECUTION'
+          assert d['parent']['commit']==parent
+          assert d['epistemic_firewall']['FULL_CLV_DIRECT_DP_UNIVERSAL']=='NOT_PROVED'
+          assert d['epistemic_firewall']['R47A_UNIVERSAL_COVERAGE']=='OPEN'
+          assert d['epistemic_firewall']['SAT_IN_P']=='NOT_PROVED'
+          assert d['epistemic_firewall']['P_VS_NP']=='OPEN'
+          assert d['epistemic_firewall']['TRUMP_finished'] is False
+          PY
+      - name: Compile
+        run: python -m py_compile experiments/janus_trump_r47a7_full_clv_direct_dp_rescue_or_obstruction.py
+      - name: Execute frozen full-CLV diagnosis
+        run: |
+          PYTHONPATH=experiments python experiments/janus_trump_r47a7_full_clv_direct_dp_rescue_or_obstruction.py | tee /tmp/r47a7.json
+          python - <<'PY'
+          import json
+          d=json.load(open('/tmp/r47a7.json'))
+          assert d['gate']=='JANUS_TRUMP_R47A7_FULL_CLV_DIRECT_DP_RESCUE_OR_OBSTRUCTION'
+          assert d['input_CLV']==[19,57,7]
+          assert all(r['DP_replay_pass'] for r in d['rows'])
+          assert all(r['DP_polynomial_envelope_pass'] for r in d['rows'])
+          assert d['verdict'] in {
+              'CLAUSE_ONLY_OBSTRUCTION__FULL_CLV_DIRECT_DP_DESCENT_EXISTS',
+              'FULL_CLV_DIRECT_DP_OBSTRUCTION__NORMALIZATION_RESCUE_EXISTS',
+              'FULL_CLV_DIRECT_DP_AND_NORMALIZATION_OBSTRUCTION',
+          }
+          assert d['firewall']['FULL_CLV_DIRECT_DP_UNIVERSAL']=='NOT_PROVED'
+          assert d['firewall']['R47A_UNIVERSAL_COVERAGE']=='OPEN'
+          assert d['firewall']['SAT_IN_P']=='NOT_PROVED'
+          assert d['firewall']['P_VS_NP']=='OPEN'
+          print('R47A7_GATE=PASS')
+          print('R47A7_VERDICT=', d['verdict'])
+          print('DIRECT=', d['any_immediate_full_CLV_descent'])
+          print('NORMALIZED=', d['any_normalized_macro_acceptance'])
+          print('SELECTED_VAR=', d['selected_var'])
+          print('SELECTED_FINAL_CLV=', d['selected_final_CLV'])
+          for r in d['rows']:
+              print('PIVOT', r['var'], 'DP', r['immediate_DP_CLV'], 'direct=', r['immediate_DP_CLV_descent'], 'afterR33=', r['after_R33_CLV'], 'RUP=', r['RUP_status'], 'final=', r['final_CLV'], 'accepted=', r['macro_accepted'])
+          PY
