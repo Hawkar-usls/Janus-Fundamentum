@@ -1,0 +1,64 @@
+{
+  "id": "JANUS_TRUMP_R44BD_MAXDEF_DESCENT_PRESERVING_OR_MERGE_INTERFACE_2026-09-03",
+  "status": "FROZEN_THEOREM_TARGET__NOT_PROVED",
+  "parent": "R44BC_LOG_MAXDEF_UNIFORM_TERMINAL",
+  "published_rejoin": {
+    "basis": "Szeider maximum-deficiency FPT SAT algorithm",
+    "fact": "There is a polynomial reduction to a delta*-critical formula G such that assigning any remaining variable either truth value decreases maximum deficiency by at least one.",
+    "meaning": "The remaining 2^k factor is branch multiplicity, not failure to find a decreasing rank."
+  },
+  "critical_state": {
+    "input": "delta*-critical CNF G",
+    "k": "delta*(G)",
+    "choose": "any deterministic remaining variable x",
+    "children": [
+      "G0 = simplify(G[x=0])",
+      "G1 = simplify(G[x=1])"
+    ],
+    "branchwise_rank": "delta*(G0), delta*(G1) <= k-1"
+  },
+  "target_operator": {
+    "name": "MAXDEF_DESCENT_PRESERVING_OR_MERGE",
+    "notation": "M(G0,G1)",
+    "obligations": {
+      "M1_EXACT_OR_SEMANTICS": "SAT(M(G0,G1)) iff SAT(G0) or SAT(G1)",
+      "M2_RANK_PRESERVATION": "delta*(M(G0,G1)) <= k-1",
+      "M3_POLYNOMIAL_CONSTRUCTION": "M is constructed in N^O(1) charged work with exponent independent of k",
+      "M4_POLYNOMIAL_LIVE_STATE": "encoded size of M and all merge metadata is N^O(1) in the original input size",
+      "M5_REPLAY": "SAT witness or UNSAT certificate returned downstream lifts through M to the parent G in polynomial time",
+      "M6_CLOSURE": "after polynomial normalization/reduction the next nonterminal state again satisfies the interface prerequisites without increasing the original-N polynomial envelope"
+    }
+  },
+  "consequence_if_proved": {
+    "argument": [
+      "Polynomially reduce arbitrary CNF to a delta*-critical/terminal state.",
+      "At a critical state of rank k>0, form the two children; both have rank <=k-1.",
+      "Apply M to obtain one exact state of rank <=k-1.",
+      "Repeat. Maximum deficiency is a nonnegative integer at most the number of clauses, hence at most N.",
+      "After at most N merged macrosteps reach rank 0 / matched terminal territory, with all work/state polynomial by M3-M6."
+    ],
+    "result": "A universal M satisfying M1-M6 would give a deterministic polynomial SAT decider and therefore P=NP."
+  },
+  "known_failed_natural_merges": {
+    "selector_merge": "Exact OR semantics but reifies the binary choice and does not establish maxdef descent.",
+    "ordinary_CNF_DP_projection": "Exact projection, but R44AS-RANK gives an explicit maxdef rebound example.",
+    "auxiliary_free_CNF_projection": "Parity projection can require exponentially many clauses.",
+    "quantifier_hiding": "Keeps small syntax/rank but defers SAT to terminal evaluation."
+  },
+  "firewalls": [
+    "BRANCHWISE_DELTA_STAR_DESCENT != SINGLE_STATE_DELTA_STAR_DESCENT",
+    "EXACT_OR_MERGE != DESCENT_PRESERVING_OR_MERGE",
+    "SMALL_MERGE_SYNTAX != EASY_TERMINAL_EVALUATION",
+    "SELECTOR != COMPRESSED_BRANCH",
+    "TARGET_INTERFACE_FROZEN != TARGET_PROVED",
+    "P_VS_NP=OPEN"
+  ],
+  "allowed_next_outcomes": [
+    "PROVE_M1_THROUGH_M6_FOR_ONE_FIXED_OPERATOR",
+    "PROVE_A_BARRIER_FOR_ONE_PRECISELY_SPECIFIED_OPERATOR_CLASS"
+  ],
+  "TRUMP_finished": false,
+  "SAT_IN_P": "NOT_PROVED",
+  "P_EQUALS_NP": "NOT_PROVED",
+  "P_VS_NP": "OPEN"
+}
