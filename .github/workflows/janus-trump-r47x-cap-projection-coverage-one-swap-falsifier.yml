@@ -1,0 +1,120 @@
+name: JANUS TRUMP R47X Cap Projection Coverage One Swap Falsifier
+
+on:
+  push:
+    branches:
+      - research/r47x-cap-projection-coverage-one-swap-falsifier-2026-09-04
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  r47x-falsifier:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 180
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Verify frozen preregistration and parent seal
+        run: |
+          python - <<'PY'
+          import json, subprocess
+          parent='827692ab4742b582b5bebef90cbced97ff1ddb5c'
+          prereg_commit='002593136981b215735d69162a7b79f5131d3dd5'
+          subprocess.run(['git','merge-base','--is-ancestor',parent,'HEAD'], check=True)
+          subprocess.run(['git','merge-base','--is-ancestor',prereg_commit,'HEAD'], check=True)
+          d=json.load(open('research/JANUS_TRUMP_R47X_CAP_PROJECTION_COVERAGE_ONE_SWAP_FALSIFIER_PREREGISTRATION_2026-09-04.json'))
+          assert d['status']=='FROZEN_BEFORE_EXECUTION'
+          assert d['parent']['commit']==parent
+          assert d['theorem_under_attack']['id']=='CAP_PROJECTION_COVERAGE'
+          assert d['theorem_under_attack']['status_before_execution']=='OPEN'
+          assert d['mandatory_regression']['root_hash']=='eb653802ae710e5770e21878b5b38b2871cf0db16451b04cfc5451ca2c2e7502'
+          assert d['mandatory_regression']['expected_selected_pivots']==[7,11,12]
+          assert d['frozen_falsification_frontier']['center_original_hash']=='eb13be26c29c106cf172db0be435aaf852d1e1248fced151c5356791f70024da'
+          assert d['frozen_falsification_frontier']['center_fixpoint_hash']=='9a84c02f1570e752ac0c017037b8a4a40c2599b53faf51bcd6d957f40aa81dde'
+          assert d['per_root_runtime_policy']['sequence_enumeration'] is False
+          assert d['interpretation_ceiling']['finite_no_counterexample_is_universal_theorem'] is False
+          assert d['epistemic_firewall']['CAP_PROJECTION_COVERAGE']=='OPEN'
+          assert d['epistemic_firewall']['O4_UNIVERSAL_COVERAGE']=='OPEN'
+          assert d['epistemic_firewall']['SAT_IN_P']=='NOT_PROVED'
+          assert d['epistemic_firewall']['P_VS_NP']=='OPEN'
+          assert d['epistemic_firewall']['TRUMP_finished'] is False
+          PY
+
+      - name: Compile frozen falsifier
+        run: python -m py_compile experiments/janus_trump_r47x_cap_projection_coverage_one_swap_falsifier.py
+
+      - name: Execute frozen cap-projection coverage falsifier
+        run: |
+          mkdir -p artifacts
+          PYTHONPATH=experiments python experiments/janus_trump_r47x_cap_projection_coverage_one_swap_falsifier.py \
+            --output artifacts/JANUS_TRUMP_R47X_CAP_PROJECTION_COVERAGE_ONE_SWAP_FALSIFIER_RESULT_2026-09-04.json \
+            | tee /tmp/r47x.json
+          python - <<'PY'
+          import json
+          d=json.load(open('artifacts/JANUS_TRUMP_R47X_CAP_PROJECTION_COVERAGE_ONE_SWAP_FALSIFIER_RESULT_2026-09-04.json'))
+          assert d['gate']=='JANUS_TRUMP_R47X_CAP_PROJECTION_COVERAGE_ONE_SWAP_FALSIFIER'
+          assert d['verdict'] in {
+              'EXPLICIT_REACHABLE_CAP_PROJECTION_COVERAGE_COUNTEREXAMPLE_FOUND',
+              'NO_CAP_PROJECTION_COUNTEREXAMPLE_IN_FROZEN_ONE_SWAP_FRONTIER__UNIVERSAL_COVERAGE_STILL_OPEN',
+          }
+          reg=d['mandatory_R47V_regression']
+          assert reg['root_hash']=='eb653802ae710e5770e21878b5b38b2871cf0db16451b04cfc5451ca2c2e7502'
+          assert reg['selected_pivots']==[7,11,12]
+          assert reg['SAT_root_reconstruction_pass'] is True
+          assert d['center_regression']['covered'] is True
+          m=d['metrics']
+          assert m['cap_chain_obstructions'] in (0,1)
+          assert m['cap_chain_covered'] <= m['unique_fixpoints']
+          if d['first_counterexample'] is not None:
+              assert d['verdict']=='EXPLICIT_REACHABLE_CAP_PROJECTION_COVERAGE_COUNTEREXAMPLE_FOUND'
+              fc=d['first_counterexample']
+              assert fc['full_chain']['covered'] is False
+              assert fc['full_chain']['obstruction'] is not None
+              assert not any(r.get('cap_accepted') for r in fc['full_chain']['obstruction']['candidate_receipts'])
+              assert fc['full_chain']['candidate_probe_count'] <= fc['full_chain']['V0'] ** 2
+              assert len(fc['full_chain']['selected_steps']) <= fc['full_chain']['V0']
+          else:
+              assert d['verdict']=='NO_CAP_PROJECTION_COUNTEREXAMPLE_IN_FROZEN_ONE_SWAP_FRONTIER__UNIVERSAL_COVERAGE_STILL_OPEN'
+              assert m['cap_chain_obstructions']==0
+          assert d['interpretation']['finite_no_counterexample_is_universal_theorem'] is False
+          assert d['interpretation']['sequence_enumeration_used'] is False
+          assert d['firewall']['CAP_PROJECTION_COVERAGE']=='OPEN'
+          assert d['firewall']['O4_UNIVERSAL_COVERAGE']=='OPEN'
+          assert d['firewall']['SAT_IN_P']=='NOT_PROVED'
+          assert d['firewall']['P_EQ_NP']=='NOT_PROVED'
+          assert d['firewall']['P_NE_NP']=='NOT_PROVED'
+          assert d['firewall']['P_VS_NP']=='OPEN'
+          assert d['firewall']['TRUMP_finished'] is False
+          print('R47X_GATE=PASS')
+          print('R47X_VERDICT=', d['verdict'])
+          print('R47X_METRICS=', json.dumps(m, sort_keys=True))
+          print('R47X_CENTER=', json.dumps(d['center_regression'], sort_keys=True))
+          print('R47X_COUNTEREXAMPLE=', json.dumps(None if d['first_counterexample'] is None else {
+              'frontier_ordinal':d['first_counterexample']['frontier_ordinal'],
+              'phase':d['first_counterexample']['phase'],
+              'source_clause':d['first_counterexample']['source_clause'],
+              'replacement_clause':d['first_counterexample']['replacement_clause'],
+              'mutated_original_hash':d['first_counterexample']['mutated_original_hash'],
+              'fixpoint_hash':d['first_counterexample']['fixpoint_hash'],
+              'fixpoint_CLV':d['first_counterexample']['fixpoint_CLV'],
+              'chain':d['first_counterexample']['chain'],
+          }, sort_keys=True))
+          print('R47X_HARDEST_COVERED=', json.dumps(d['hardest_covered'], sort_keys=True))
+          PY
+
+      - name: Upload full scientific result
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: JANUS_TRUMP_R47X_CAP_PROJECTION_COVERAGE_ONE_SWAP_FALSIFIER_RESULT
+          path: artifacts/JANUS_TRUMP_R47X_CAP_PROJECTION_COVERAGE_ONE_SWAP_FALSIFIER_RESULT_2026-09-04.json
+          if-no-files-found: error
+          retention-days: 90
