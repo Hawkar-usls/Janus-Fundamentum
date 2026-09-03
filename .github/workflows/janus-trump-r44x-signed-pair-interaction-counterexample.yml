@@ -24,7 +24,7 @@ jobs:
           python-version: '3.12'
       - name: Replay exact signed-pair collision from canonical evidence
         run: python research/janus_trump_r44x_verify_signed_pair_interaction_counterexample.py > /tmp/r44x.json
-      - name: Enforce evidence binding, theorem boundary, Legend target, and sealed first-pass receipt
+      - name: Enforce canonical evidence binding, Legend theorem boundary, and v2 seal
         run: |
           python - <<'PY'
           import hashlib
@@ -52,14 +52,19 @@ jobs:
           assert 'at most ceil(N^d) nonterminal macrosteps' in l5['requirement']
           assert legend['TRUMP_finished'] is False
           assert legend['P_VS_NP']=='OPEN'
-          assert seal['status']=='SEALED_FROM_SUCCESSFUL_GITHUB_ACTIONS_REPLAY'
-          assert seal['workflow_run']==33701703939
+          assert seal['schema']=='janus.trump.r44x.signed_pair_interaction_counterexample.seal.v2'
+          assert seal['status']=='SEALED_FROM_CANONICAL_EVIDENCE_BOUND_GITHUB_ACTIONS_REPLAY'
+          assert seal['workflow_run']==33702272298
           assert seal['workflow_conclusion']=='success'
-          assert seal['artifact_id']==9873742901
-          assert seal['artifact_zip_sha256']=='4eb9a8fb7d4e55a34353224499ea0c47a679040e46dbe4bd08bcbb15fe7c0cd6'
+          assert seal['artifact_id']==9873931247
+          assert seal['artifact_zip_sha256']=='2e11984f8a5606bd7825b4d57d9d0dd6119ba878f6c91dd3f9e4816c769cdbc4'
+          assert seal['evidence_binding']['canonical_json_loaded_by_verifier'] is True
+          assert seal['evidence_binding']['workflow_recomputes_and_compares_canonical_json_sha256'] is True
+          assert seal['legend_contract_repair']['termination_rank_integer_valued'] is True
+          assert seal['legend_contract_repair']['minimum_decrement_per_nonterminal_macrostep']==1
           assert seal['verified_verdict']==r['status']
           assert seal['P_VS_NP']=='OPEN'
-          print('R44X CANONICAL-EVIDENCE BINDING + LEGEND RANK PASS')
+          print('R44X V2 SEAL FRESH-REPLAY PASS')
           PY
       - name: Upload replay receipt
         uses: actions/upload-artifact@v4
