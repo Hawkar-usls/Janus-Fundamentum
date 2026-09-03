@@ -1,0 +1,32 @@
+name: JANUS TRUMP R44BR Critical Sibling No Signed Transport
+
+on:
+  pull_request:
+    paths:
+      - 'research/JANUS_TRUMP_R44BR_CRITICAL_SIBLING_NO_SIGNED_TRANSPORT_COUNTEREXAMPLE_2026-09-03.json'
+      - 'research/janus_trump_r44br_verify_critical_no_signed_transport.py'
+      - '.github/workflows/janus-trump-r44br-critical-no-signed-transport.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  exact-counterexample-replay:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout exact head
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Replay JSON-bound exhaustive counterexample
+        run: python research/janus_trump_r44br_verify_critical_no_signed_transport.py
+      - name: Enforce theorem boundary
+        run: |
+          grep -q '"TRUMP_finished": false' research/JANUS_TRUMP_R44BR_CRITICAL_SIBLING_NO_SIGNED_TRANSPORT_COUNTEREXAMPLE_2026-09-03.json
+          grep -q '"SAT_IN_P": "NOT_PROVED"' research/JANUS_TRUMP_R44BR_CRITICAL_SIBLING_NO_SIGNED_TRANSPORT_COUNTEREXAMPLE_2026-09-03.json
+          grep -q '"P_VS_NP": "OPEN"' research/JANUS_TRUMP_R44BR_CRITICAL_SIBLING_NO_SIGNED_TRANSPORT_COUNTEREXAMPLE_2026-09-03.json
