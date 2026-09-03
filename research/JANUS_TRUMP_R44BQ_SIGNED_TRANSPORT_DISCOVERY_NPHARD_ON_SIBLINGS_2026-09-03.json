@@ -1,0 +1,63 @@
+{
+  "id": "JANUS_TRUMP_R44BQ_SIGNED_TRANSPORT_DISCOVERY_NPHARD_ON_SIBLINGS_2026-09-03",
+  "status": "THEOREM_BARRIER__GENERIC_SIGNED_SUBSUMPTION_TRANSPORT_DISCOVERY_IS_NP_COMPLETE_ON_3CNF_SIBLING_PAIRS",
+  "parent_frontier": "R44BP_SIGNED_MODEL_TRANSPORT_SAFE_SIBLING_DELETION",
+  "target": "POLYNOMIAL_DISCOVERY_OF_R44BP_STYLE_TRANSPORT_CERTIFICATES",
+  "problem": {
+    "name": "SIGNED_SUBSUMPTION_TRANSPORT_DISCOVERY",
+    "input": "Two CNFs A and B over the same variable set V, here restricted to monotone width-2 formulas.",
+    "question": "Does there exist a signed permutation pi of V, extended by pi(-l)=-pi(l), such that for every clause C in A there exists D in B with D subseteq pi(C)?",
+    "verification": "Given pi and one witnessing B-clause for each A-clause, verification is polynomial."
+  },
+  "theorem": {
+    "claim": "SIGNED_SUBSUMPTION_TRANSPORT_DISCOVERY is NP-complete, already on monotone 2CNF pairs that arise as the two siblings of one 3CNF parent.",
+    "reduction_from": "HAMILTONIAN_CYCLE",
+    "construction": [
+      "Let G=(V,E) be a simple graph on V={1,...,n}, n>=3.",
+      "Let A be the monotone 2CNF whose clauses are (x_i OR x_{i+1}) for the edges of the fixed cycle C_n, with indices modulo n.",
+      "Let B_G be the monotone 2CNF whose clauses are (x_u OR x_v) for every edge {u,v} in E(G).",
+      "Both A and B_G use the same n variables and contain no unit clauses."
+    ],
+    "forward_direction": [
+      "If G has a Hamiltonian cycle, choose the variable permutation mapping the fixed cycle C_n to that Hamiltonian cycle and use no sign flips.",
+      "Every A-clause then maps exactly to a B_G-clause, hence the transport certificate exists."
+    ],
+    "reverse_direction": [
+      "Suppose a signed permutation pi is a valid transport certificate.",
+      "Every pi(C) has width 2 and every B_G clause has width 2, so D subseteq pi(C) forces D=pi(C).",
+      "B_G is monotone. Since every variable occurs in the cycle A, any negative image pi(x_i) would occur in some pi(C) and could not equal a monotone B_G clause. Therefore all signs are positive.",
+      "Thus pi is an ordinary vertex permutation whose image sends every edge of C_n to an edge of G.",
+      "The image pi(C_n) is therefore a Hamiltonian cycle of G."
+    ],
+    "membership_in_NP": "A signed permutation and clause witnesses form a polynomial-size certificate checkable in polynomial time.",
+    "conclusion": "The discovery problem is NP-complete."
+  },
+  "sibling_lift": {
+    "fresh_pivot": "z",
+    "parent_3cnf": "P_G = { z OR C : C in A } union { NOT z OR D : D in B_G }.",
+    "cofactor_zero": "P_G[z=0] simplifies exactly to A.",
+    "cofactor_one": "P_G[z=1] simplifies exactly to B_G.",
+    "effect": "The NP-hardness therefore already holds when the two transport inputs are genuine siblings of one width-3 CNF parent."
+  },
+  "effect_on_R44BP": {
+    "certificate_verification": "POLYNOMIAL",
+    "generic_certificate_discovery": "NP_COMPLETE",
+    "meaning": "R44BP is a genuine constructive safe-deletion primitive when a certificate is supplied, but generic discovery of that certificate class cannot be the missing polynomial L3 mechanism unless P=NP.",
+    "remaining_escape": "The reduction does not force the parent to be maximum-deficiency-critical. A polynomial discovery theorem exploiting maxdef-critical sibling structure remains logically open."
+  },
+  "scope_firewalls": [
+    "NP_HARD_GENERIC_SIBLING_DISCOVERY != NP_HARD_MAXDEF_CRITICAL_SIBLING_DISCOVERY",
+    "NP_COMPLETE_CERTIFICATE_DISCOVERY != P_NE_NP",
+    "POLYNOMIAL_CERTIFICATE_VERIFICATION != POLYNOMIAL_CERTIFICATE_DISCOVERY",
+    "R44BP_FIXED_INSTANCE_SUCCESS != UNIVERSAL_COVERAGE",
+    "TRANSPORT_DISCOVERY_BARRIER != BARRIER_FOR_OTHER_SAFE_DELETION_CERTIFICATES",
+    "TRUMP_finished=false",
+    "SAT_IN_P=NOT_PROVED",
+    "P_VS_NP=OPEN"
+  ],
+  "next_exact_question": "Does maximum-deficiency criticality force enough structure to make a nontrivial safe-deletion certificate polynomially discoverable on every critical sibling pair, or can an exact critical-family counterexample/barrier refute one fixed discovery rule?",
+  "TRUMP_finished": false,
+  "SAT_IN_P": "NOT_PROVED",
+  "P_EQUALS_NP": "NOT_PROVED",
+  "P_VS_NP": "OPEN"
+}
