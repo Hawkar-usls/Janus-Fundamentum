@@ -1,0 +1,36 @@
+name: JANUS TRUMP R47T Compact Receipt Replay
+
+on:
+  push:
+    branches:
+      - research/r47t-depth2-pivot-unlocking-forensics-2026-09-03
+
+jobs:
+  r47t-compact:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Compile compact harness
+        run: python -m py_compile experiments/janus_trump_r47t_compact_receipt.py
+      - name: Replay and emit compact receipt
+        run: |
+          PYTHONPATH=experiments python experiments/janus_trump_r47t_compact_receipt.py | tee /tmp/r47t-compact.json
+          python - <<'PY'
+          import json
+          d=json.load(open('/tmp/r47t-compact.json'))
+          assert d['gate']=='JANUS_TRUMP_R47T_COMPACT_RECEIPT'
+          assert d['source_gate']=='JANUS_TRUMP_R47T_DEPTH2_PIVOT_UNLOCKING_FORENSICS'
+          assert d['v20_before_summary']['accepted'] is False
+          assert d['v20_after_summary']['accepted'] is True
+          assert d['interpretation']['selector_promoted'] is False
+          assert d['firewall']['O4_UNIVERSAL_COVERAGE']=='OPEN'
+          assert d['firewall']['P_VS_NP']=='OPEN'
+          print('R47T_COMPACT_GATE=PASS')
+          print('R47T_COMPACT=',json.dumps(d,sort_keys=True))
+          PY
