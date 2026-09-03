@@ -1,6 +1,6 @@
 {
   "id": "JANUS_TRUMP_R44BG_OCCURRENCE_SPLITTING_MAXDEF_CONSERVATION_2026-09-03",
-  "status": "EXACT_MAXDEF_CONSERVATION_BARRIER_FOR_OCCURRENCE_SPLITTING",
+  "status": "EXACT_MAXDEF_CONSERVATION_BARRIER_FOR_OCCURRENCE_SPLITTING__SCOPE_REPAIRED",
   "parent": "R44BF_PRIVATE_FORCED_AUX_MAXDEF_CONSERVATION",
   "transform": {
     "name": "POLARITY_AWARE_LITERAL_OCCURRENCE_SPLITTING",
@@ -9,13 +9,14 @@
       "If the original occurrence is positive x, add link clause (not y_e OR x), i.e. y_e -> x.",
       "If the original occurrence is negative not-x, add link clause (not x OR y_e), i.e. x -> y_e."
     ],
-    "semantic_status": "After existentially quantifying all occurrence variables y_e, the transformed CNF is exactly equivalent to the original CNF as a Boolean function of the master variables."
+    "semantic_status": "After existentially quantifying all occurrence variables y_e, the transformed CNF is exactly equivalent to the original CNF as a Boolean function of the master variables.",
+    "degree_scope": "Each occurrence variable y_e has degree 2 and main clauses no longer directly reuse the master variable across occurrences. However a master variable of original degree d appears in exactly d link clauses, so the standard total/master occurrence degree and formula maximum variable degree are NOT reduced in general."
   },
   "semantic_proof": [
     "Fix any assignment alpha to master variables.",
     "If an original positive literal x is false, link y_e->x forces y_e=0, so the replacement literal is false; if x is true, y_e may be chosen true when needed.",
     "If an original negative literal not-x is false, then x=1 and link x->y_e forces y_e=1, so replacement not-y_e is false; if not-x is true, y_e may be chosen false when needed.",
-    "Therefore an original clause is satisfiable under alpha exactly when its occurrence-split main clause has an extension to its occurrence variables satisfying all corresponding links. Independent occurrence variables let these choices be made clause-by-clause.",
+    "Therefore an original clause is satisfiable under alpha exactly when its occurrence-split main clause has an extension to its occurrence variables satisfying all corresponding links.",
     "Hence exists_y T_split(F)(alpha,y) iff F(alpha)."
   ],
   "maxdef_theorem": {
@@ -30,12 +31,13 @@
     ]
   },
   "R44BD_effect": {
-    "meaning": "Literal-occurrence splitting can reduce clause overlap and variable occurrence degree while preserving exact semantics, but it cannot lower maximum deficiency.",
+    "meaning": "Literal-occurrence splitting separates main-clause occurrences into private degree-2 variables while preserving exact semantics, but it does not lower maximum deficiency.",
     "selector_application": "Applying occurrence splitting to a selector-guarded OR merge leaves the R44BE additive maximum-deficiency debt unchanged.",
-    "anti_loophole": "Shared master variables plus private occurrence copies are therefore not a route to free maxdef descent."
+    "anti_loophole": "Shared masters plus private occurrence copies do not provide free maxdef descent."
   },
+  "review_repair": "Codex P2 accepted: removed the misleading claim that the transform lowers standard/master occurrence degree; only private occurrence variables and direct main-clause reuse are lowered/separated.",
   "seals": [
-    "LOWER_OCCURRENCE_DEGREE != LOWER_MAXIMUM_DEFICIENCY",
+    "PRIVATE_OCCURRENCE_DEGREE_TWO != LOWER_STANDARD_MAX_VARIABLE_DEGREE",
     "OCCURRENCE_COPIES != FREE_MATCHING_CREDIT",
     "EXACT_POLARITY_LINKS_CONSERVE_MAXDEF",
     "R44BG_BARRIER != BARRIER_FOR_ALL_SHARED_AUXILIARY_GADGETS",
