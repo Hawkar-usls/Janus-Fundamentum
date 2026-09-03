@@ -1,0 +1,67 @@
+name: JANUS TRUMP R47J Normalization Fixpoint Restart V25 Gap
+
+on:
+  push:
+    branches:
+      - research/r47j-normalization-fixpoint-restart-v25-gap-2026-09-03
+  pull_request:
+    branches:
+      - research/r47i-r47g-one-swap-macro-dead-complement-hunt-2026-09-03
+
+jobs:
+  r47j-normalization-fixpoint:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Verify frozen preregistration and sealed counterexample
+        run: |
+          python - <<'PY'
+          import json, subprocess
+          parent='a01dfe15b4214748203f5bf912e0fd2a7c00a9d3'
+          subprocess.run(['git','merge-base','--is-ancestor',parent,'HEAD'], check=True)
+          p='research/JANUS_TRUMP_R47J_NORMALIZATION_FIXPOINT_RESTART_V25_GAP_PREREGISTRATION_2026-09-03.json'
+          d=json.load(open(p))
+          assert d['status']=='FROZEN_BEFORE_EXECUTION'
+          assert d['parent']['commit']==parent
+          assert d['sealed_counterexample']['fixpoint_hash']=='c379fb11374c4259a736545f6652a417b6d98d016e9dcaed62d44d3740b71adb'
+          assert d['sealed_counterexample']['closest_pivot']==25
+          assert d['single_new_mechanism']['new_inference_rule_added'] is False
+          assert d['single_new_mechanism']['new_proof_authority_added'] is False
+          assert d['epistemic_firewall']['O4_UNIVERSAL_COVERAGE_FOR_STRONGER_GRAMMAR']=='OPEN'
+          assert d['epistemic_firewall']['SAT_IN_P']=='NOT_PROVED'
+          assert d['epistemic_firewall']['P_VS_NP']=='OPEN'
+          PY
+      - name: Compile
+        run: python -m py_compile experiments/janus_trump_r47j_normalization_fixpoint_restart_v25_gap.py
+      - name: Execute frozen R47J attack
+        run: |
+          PYTHONPATH=experiments python experiments/janus_trump_r47j_normalization_fixpoint_restart_v25_gap.py | tee /tmp/r47j.json
+          python - <<'PY'
+          import json
+          d=json.load(open('/tmp/r47j.json'))
+          assert d['gate']=='JANUS_TRUMP_R47J_NORMALIZATION_FIXPOINT_RESTART_V25_GAP'
+          assert d['verdict'] in {
+              'R47I_COUNTEREXAMPLE_RESCUED_BY_CERTIFIED_NORMALIZATION_FIXPOINT_CLOSURE',
+              'R47I_COUNTEREXAMPLE_SURVIVES_CERTIFIED_NORMALIZATION_FIXPOINT_CLOSURE',
+          }
+          assert d['old_frozen_R45A']['accepted_pivots']==[]
+          assert d['pivot25']['old_one_pass_final_CLV']==[63,156,19]
+          assert d['interpretation']['new_inference_rule_added'] is False
+          assert d['interpretation']['new_proof_authority_added'] is False
+          assert d['firewall']['O4_UNIVERSAL_COVERAGE_FOR_EXTENDED_GRAMMAR']=='OPEN'
+          assert d['firewall']['SAT_IN_P']=='NOT_PROVED'
+          assert d['firewall']['P_VS_NP']=='OPEN'
+          if d['verdict'].startswith('R47I_COUNTEREXAMPLE_RESCUED'):
+              assert d['new_accepted_pivots']
+              assert all(row['independent_replay_pass'] is True for row in d['all_pivot_rows'] if row['accepted'])
+          print('R47J_GATE=PASS')
+          print('R47J_VERDICT=', d['verdict'])
+          print('R47J_ACCEPTED_PIVOTS=', d['new_accepted_pivots'])
+          print('R47J_PIVOT25=', json.dumps(d['pivot25'], sort_keys=True))
+          PY
