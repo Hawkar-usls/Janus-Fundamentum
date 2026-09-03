@@ -1,0 +1,72 @@
+name: JANUS TRUMP R47I R47G One Swap Macro Dead Complement Hunt
+
+on:
+  push:
+    branches:
+      - research/r47i-r47g-one-swap-macro-dead-complement-hunt-2026-09-03
+  pull_request:
+    branches:
+      - research/r47h-ascent-debt-compensation-ledger-2026-09-03
+
+jobs:
+  r47i-one-swap:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Verify frozen preregistration
+        run: |
+          python - <<'PY'
+          import json, subprocess
+          parent='dce643d88ee1b110060bb11578c5c6e1547f4879'
+          subprocess.run(['git','merge-base','--is-ancestor',parent,'HEAD'], check=True)
+          p='research/JANUS_TRUMP_R47I_R47G_ONE_SWAP_MACRO_DEAD_COMPLEMENT_HUNT_PREREGISTRATION_2026-09-03.json'
+          d=json.load(open(p))
+          assert d['status']=='FROZEN_BEFORE_EXECUTION'
+          assert d['parent']['commit']==parent
+          assert d['baseline_witness']['original_hash']=='31621a04517fa41a334187572001608dff9b338dc529d8a809b5ee95bccf9297'
+          assert d['baseline_witness']['fixpoint_hash']=='3130377ee52a6d6abf01f44fdc5f1a96cf83d701e30f70debea26cd347b7a495'
+          assert d['epistemic_firewall']['O4_UNIVERSAL_COVERAGE']=='OPEN'
+          assert d['epistemic_firewall']['SAT_IN_P']=='NOT_PROVED'
+          assert d['epistemic_firewall']['P_VS_NP']=='OPEN'
+          assert d['epistemic_firewall']['TRUMP_finished'] is False
+          PY
+      - name: Compile
+        run: python -m py_compile experiments/janus_trump_r47i_r47g_one_swap_macro_dead_complement_hunt.py
+      - name: Execute frozen reachability-preserving one-swap hunt
+        run: |
+          PYTHONPATH=experiments python experiments/janus_trump_r47i_r47g_one_swap_macro_dead_complement_hunt.py | tee /tmp/r47i.json
+          python - <<'PY'
+          import json
+          d=json.load(open('/tmp/r47i.json'))
+          assert d['gate']=='JANUS_TRUMP_R47I_R47G_ONE_SWAP_MACRO_DEAD_COMPLEMENT_HUNT'
+          assert d['verdict'] in {
+              'EXPLICIT_REACHABLE_ONE_SWAP_MACRO_DEAD_COUNTEREXAMPLE_FOUND',
+              'NO_MACRO_DEAD_COUNTEREXAMPLE_IN_FROZEN_ONE_SWAP_FRONTIER__O4_OPEN',
+          }
+          b=d['baseline']
+          assert b['fixpoint_CLV']==[87,233,25]
+          assert b['baseline_scan']['selected']['var']==7
+          assert b['baseline_scan']['selected']['final_CLV']==[87,233,24]
+          assert b['baseline_scan']['selected']['independent_replay_pass'] is True
+          assert d['firewall']['O4_UNIVERSAL_COVERAGE']=='OPEN'
+          assert d['firewall']['SAT_IN_P']=='NOT_PROVED'
+          assert d['firewall']['P_VS_NP']=='OPEN'
+          if d['first_counterexample'] is not None:
+              assert d['metrics']['macro_dead_fixpoints'] >= 1
+              assert d['first_counterexample']['selected'] is None
+              assert d['first_counterexample']['mutated_original_formula']
+              assert d['first_counterexample']['fixpoint_formula']
+          print('R47I_GATE=PASS')
+          print('R47I_VERDICT=', d['verdict'])
+          print('R47I_METRICS=', json.dumps(d['metrics'], sort_keys=True))
+          if d['first_counterexample'] is not None:
+              print('R47I_COUNTEREXAMPLE=', json.dumps(d['first_counterexample'], sort_keys=True))
+          else:
+              print('R47I_HARDEST_COVERED=', json.dumps(d['hardest_covered'], sort_keys=True))
+          PY
