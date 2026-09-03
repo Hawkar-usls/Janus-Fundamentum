@@ -1,0 +1,35 @@
+{
+  "gate": "JANUS_TRUMP_R47B_POLYNOMIAL_R33_RUP_RESOURCE_ENVELOPE",
+  "status": "FROZEN_BEFORE_EXECUTION",
+  "parent": {
+    "commit": "ca87a70f65cfb038ce1422cba3bad9c3e4205010"
+  },
+  "purpose": "Close the hidden per-transition resource question for the frozen exact-DP -> R33 -> affine/RUP macro as far as the current grammar permits, and remove theorem dependence on R33's magic default max_steps=100000 by deriving an input-dependent polynomial cap.",
+  "R33_cap": {
+    "C": "canonical input clause count",
+    "V": "canonical input variable count",
+    "Lmax_safe": "2*C*max(1,V), because a canonical clause contains at most both signs of each variable before tautology deletion",
+    "H": "(C+1)*(Lmax_safe+1)*(V+1)",
+    "claim": "Every successful R33 rule application strictly decreases lexicographic CLV and introduces no fresh variable; clause count never increases. Therefore fewer than H successful rule applications are possible, and H loop iterations suffice for the final terminal/fixpoint check. H=O(C^2 V^2)."
+  },
+  "DP_envelope": "At one pivot, p*n <= C^2/4; the canonical DP pool has O(C^2) clauses and O(C^2 V) literal mass.",
+  "RUP_envelope": "On a formula of literal mass L and V variables, at most L successful single-literal strengthenings occur. Each proposal search tests at most L literal deletions; each UP run assigns at most V variables and scans O(L) literals per propagation round. A coarse deterministic bound is O(V*L^3) search work; independent replay is polynomial as well.",
+  "scan_composition": "Scanning at most V pivots multiplies a polynomial per-pivot bound by V, hence remains polynomial. Certificate histories are polynomial because DP records contain O(C^2 V) literal data, R33 history length is polynomially bounded by H, and RUP history has at most L records with trails of at most V assignments.",
+  "execution": {
+    "implement": "theorem-safe wrapper r33_simplify_polycap(formula) calling canonical r33.simplify with H rather than the magic constant",
+    "audit": "compare default R33 and explicit polynomial-cap R33 on frozen controls and representative DP-forced formulas; require identical terminal, final formula, history and rule counts wherever default does not hit its cap",
+    "resource_receipt": "emit symbolic bounds from C,V and observed ledgers"
+  },
+  "allowed_verdicts": [
+    "POLYNOMIAL_R33_CAP_AND_RUP_ENVELOPE_SEALED__UNIVERSAL_COVERAGE_OPEN",
+    "RESOURCE_ENVELOPE_REGRESSION_MISMATCH"
+  ],
+  "epistemic_firewall": {
+    "polynomial_per_transition_does_not_imply_universal_coverage": true,
+    "O3_POLYNOMIAL_WORK_PER_TRANSITION": "CANDIDATE_FOR_SYMBOLIC_CLOSURE",
+    "O4_UNIVERSAL_COVERAGE": "OPEN",
+    "SAT_IN_P": "NOT_PROVED",
+    "P_VS_NP": "OPEN",
+    "TRUMP_finished": false
+  }
+}
