@@ -1,0 +1,128 @@
+name: JANUS TRUMP R47V R47N First Cap Preserving Projection Chain
+
+on:
+  push:
+    branches:
+      - research/r47v-clause-capped-projection-chain-theorem-2026-09-03
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  r47v-cap-chain:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 180
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Verify frozen theorem and preregistration
+        run: |
+          python - <<'PY'
+          import json, subprocess
+          theorem='a7fe75d4bea9ea07c0b1265ef4302538a1a92678'
+          prereg_commit='ca6be98bd0aef933a31d5d5583bad7c0fe676144'
+          subprocess.run(['git','merge-base','--is-ancestor',theorem,'HEAD'], check=True)
+          subprocess.run(['git','merge-base','--is-ancestor',prereg_commit,'HEAD'], check=True)
+          d=json.load(open('research/JANUS_TRUMP_R47V_R47N_FIRST_CAP_PRESERVING_PROJECTION_CHAIN_PREREGISTRATION_2026-09-03.json'))
+          assert d['status']=='FROZEN_BEFORE_EXECUTION'
+          assert d['sealed_root']['residual_hash']=='eb653802ae710e5770e21878b5b38b2871cf0db16451b04cfc5451ca2c2e7502'
+          assert d['sealed_root']['residual_CLV']==[76,203,22]
+          assert d['sealed_root']['root_clause_cap_C0']==76
+          assert d['sealed_root']['root_variable_cap_V0']==22
+          assert d['sealed_root']['root_literal_cap_C0_times_V0']==1672
+          assert d['frozen_runtime_policy']['selection']=='FIRST_CAP_PRESERVING_CERTIFIED_PIVOT'
+          assert d['frozen_runtime_policy']['max_nonterminal_selected_steps']==22
+          assert d['frozen_runtime_policy']['max_candidate_probes']==484
+          assert d['interpretation_ceiling']['success_on_R47N_proves_universal_cap_projection_coverage'] is False
+          assert d['epistemic_firewall']['CAP_PROJECTION_COVERAGE']=='OPEN'
+          assert d['epistemic_firewall']['O4_UNIVERSAL_COVERAGE']=='OPEN'
+          assert d['epistemic_firewall']['SAT_IN_P']=='NOT_PROVED'
+          assert d['epistemic_firewall']['P_VS_NP']=='OPEN'
+          assert d['epistemic_firewall']['TRUMP_finished'] is False
+          PY
+
+      - name: Compile frozen executor
+        run: python -m py_compile experiments/janus_trump_r47v_r47n_first_cap_preserving_projection_chain.py
+
+      - name: Execute first cap-preserving certified projection chain
+        run: |
+          mkdir -p artifacts
+          PYTHONPATH=experiments python experiments/janus_trump_r47v_r47n_first_cap_preserving_projection_chain.py \
+            --output artifacts/JANUS_TRUMP_R47V_R47N_FIRST_CAP_PRESERVING_PROJECTION_CHAIN_RESULT_2026-09-04.json \
+            | tee /tmp/r47v.json
+          python - <<'PY'
+          import json
+          d=json.load(open('artifacts/JANUS_TRUMP_R47V_R47N_FIRST_CAP_PRESERVING_PROJECTION_CHAIN_RESULT_2026-09-04.json'))
+          assert d['gate']=='JANUS_TRUMP_R47V_R47N_FIRST_CAP_PRESERVING_PROJECTION_CHAIN'
+          assert d['verdict'] in {
+              'R47N_REACHES_CERTIFIED_TERMINAL_UNDER_FIRST_CAP_PRESERVING_PROJECTION_CHAIN__FINITE_ONLY',
+              'EXPLICIT_R47N_CHAIN_STATE_WITH_NO_CAP_PRESERVING_CERTIFIED_PIVOT_FOUND',
+          }
+          assert d['sealed_root']['hash']=='eb653802ae710e5770e21878b5b38b2871cf0db16451b04cfc5451ca2c2e7502'
+          assert d['sealed_root']['CLV']==[76,203,22]
+          m=d['metrics']
+          assert m['selected_step_count'] <= 22
+          assert m['candidate_probe_count'] <= 484
+          assert m['rejected_probe_count'] <= m['candidate_probe_count']
+          for row in d['selected_steps']:
+              assert row['cap_accepted'] is True
+              assert row['DP_independent_replay_pass'] is True
+              assert row['polynomial_intermediate_envelope_pass'] is True
+              assert row['full_R47M_independent_replay_pass'] is True
+              if row['terminal'] is None:
+                  assert row['clause_cap_pass'] is True
+                  assert row['literal_cap_pass'] is True
+                  assert row['variable_rank_strict'] is True
+                  assert row['variables_subset_root'] is True
+                  assert row['selected_pivot_absent_after'] is True
+                  assert row['final_CLV'][0] <= 76
+                  assert row['final_CLV'][1] <= 1672
+          if d['obstruction'] is None:
+              assert d['terminal'] is not None
+              if d['terminal']['semantic_sat'] is True:
+                  assert d['SAT_root_reconstruction']['applicable'] is True
+                  assert d['SAT_root_reconstruction']['pass'] is True
+          else:
+              assert d['terminal'] is None
+              assert d['obstruction']['candidate_count'] == len(d['obstruction']['candidate_receipts'])
+              assert not any(r.get('cap_accepted') for r in d['obstruction']['candidate_receipts'])
+          assert d['interpretation']['finite_success_proves_universal_cap_projection_coverage'] is False
+          assert d['firewall']['CAP_PROJECTION_COVERAGE']=='OPEN'
+          assert d['firewall']['O4_UNIVERSAL_COVERAGE']=='OPEN'
+          assert d['firewall']['SAT_IN_P']=='NOT_PROVED'
+          assert d['firewall']['P_EQ_NP']=='NOT_PROVED'
+          assert d['firewall']['P_NE_NP']=='NOT_PROVED'
+          assert d['firewall']['P_VS_NP']=='OPEN'
+          assert d['firewall']['TRUMP_finished'] is False
+          print('R47V_GATE=PASS')
+          print('R47V_VERDICT=', d['verdict'])
+          print('R47V_METRICS=', json.dumps(d['metrics'], sort_keys=True))
+          print('R47V_SELECTED=', json.dumps([
+              {'step':r['step'],'var':r['var'],'input_CLV':r['input_CLV'],'forced_DP_CLV':r['forced_DP_CLV'],'final_CLV':r['final_CLV'],'terminal':r['terminal'],'rejected_before_selection':r['rejected_before_selection']}
+              for r in d['selected_steps']
+          ], sort_keys=True))
+          if d['obstruction'] is not None:
+              print('R47V_OBSTRUCTION=', json.dumps({
+                  'state_hash':d['obstruction']['state_hash'],
+                  'state_CLV':d['obstruction']['state_CLV'],
+                  'candidate_count':d['obstruction']['candidate_count'],
+              }, sort_keys=True))
+          else:
+              print('R47V_TERMINAL=', json.dumps(d['terminal'], sort_keys=True))
+          PY
+
+      - name: Upload full scientific result
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: JANUS_TRUMP_R47V_R47N_FIRST_CAP_PRESERVING_PROJECTION_CHAIN_RESULT
+          path: artifacts/JANUS_TRUMP_R47V_R47N_FIRST_CAP_PRESERVING_PROJECTION_CHAIN_RESULT_2026-09-04.json
+          if-no-files-found: error
+          retention-days: 90
