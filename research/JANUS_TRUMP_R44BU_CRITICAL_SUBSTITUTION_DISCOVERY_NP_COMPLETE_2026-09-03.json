@@ -1,0 +1,63 @@
+{
+  "id": "JANUS_TRUMP_R44BU_CRITICAL_SUBSTITUTION_DISCOVERY_NP_COMPLETE_2026-09-03",
+  "status": "THEOREM_BARRIER__SIGNED_LITERAL_SUBSTITUTION_DISCOVERY_REMAINS_NP_COMPLETE_ON_MAXDEF_CRITICAL_SIBLINGS",
+  "parent_frontier": "R44BT_GENERIC_SUBSTITUTION_DISCOVERY_NP_COMPLETE",
+  "target": "POLYNOMIAL_DISCOVERY_OF_R44BS_SUBSTITUTION_CERTIFICATES_USING_ONLY_MAXDEF_CRITICAL_SIBLING_STRUCTURE",
+  "problem": {
+    "name": "CRITICAL_SIBLING_SIGNED_LITERAL_SUBSTITUTION_TRANSPORT_DISCOVERY",
+    "input": "A width-3 CNF parent P with distinguished pivot z, promised maximum-deficiency-critical, together with the two simplified siblings A=P[z=0] and B=P[z=1].",
+    "question": "Does there exist a many-to-one signed literal substitution phi from variables of target A to signed literals over variables of source B such that every target clause image is tautological or contains a source clause?",
+    "verification": "A supplied phi and clause witnesses are polynomially checkable."
+  },
+  "theorem": {
+    "claim": "CRITICAL_SIBLING_SIGNED_LITERAL_SUBSTITUTION_TRANSPORT_DISCOVERY is NP-complete.",
+    "reduction_from": "GRAPH_3_COLORING",
+    "construction": [
+      "Given G=(V,E), add one universal vertex u adjacent to every original vertex. Call the result Gplus. Then Gplus is 4-colorable iff G is 3-colorable.",
+      "For every vertex v of Gplus add three private vertices a_v,b_v,c_v and all six edges of the K4 on {v,a_v,b_v,c_v}. Retain every edge of Gplus. Call the resulting graph H_G.",
+      "Let target A_G be the monotone 2CNF having one clause (x_p OR x_q) for every edge {p,q} of H_G.",
+      "Let source B_K4 be the fixed monotone 2CNF containing all six edge clauses of K4 on y1,y2,y3,y4.",
+      "Introduce fresh pivot z and set P_G={z OR C:C in A_G} union {NOT z OR D:D in B_K4}."
+    ],
+    "substitution_correctness": {
+      "allowed_signed_graph": "On signed source literals {+yi,-yi}, a target edge image is valid exactly when it is a positive K4 edge or a tautological opposite-sign pair {+yi,-yi}. Thus the allowed graph is positive K4 plus four negative leaves -yi attached only to +yi.",
+      "private_K4_force": "The only 4-clique of the allowed signed graph is the positive K4. Hence every private target K4 maps bijectively to +y1,+y2,+y3,+y4 and in particular every original Gplus vertex receives a positive color.",
+      "original_edges": "Every Gplus edge forces distinct positive colors.",
+      "equivalence": "A substitution A_G -> B_K4 exists iff Gplus is 4-colorable iff G is 3-colorable."
+    },
+    "criticality": {
+      "graph_excess_definition": "For a monotone graph-CNF clause subset S, deficiency equals graph excess ex(S)=|E(S)|-|V(S)|.",
+      "target_full_excess": "If N=|V(Gplus)| and M=|E(Gplus)|, then H_G has 4N vertices and M+6N edges, so ex(H_G)=M+2N.",
+      "target_unique_maximum": [
+        "For any selected edge subset S of H_G, let E0 be selected Gplus edges; let O be original Gplus vertices incident to S; for each v let T_v be selected edges of the private K4 at v and P_v the selected private vertices incident to T_v.",
+        "Then ex(S)=|E0|-|O|+sum_v(|T_v|-|P_v|).",
+        "If v is not in O, T_v uses only private vertices and |T_v|-|P_v|<=0. If v is in O, |T_v|-|P_v|<=3, with equality 3 only when all six private-K4 edges are selected.",
+        "Therefore ex(S)<=|E0|+2|O|<=M+2N. Equality forces E0=E(Gplus), O=V(Gplus), and every private K4 complete, hence S=E(H_G). Thus every proper target clause subset has excess <=M+2N-1."
+      ],
+      "source_unique_maximum": "For K4, full excess is 6-4=2. Every proper edge subset has excess <=1; the empty subset has excess 0.",
+      "parent_rank": "For any nonempty parent clause subset Q=Q_A union Q_B, delta(Q)=ex(Q_A)+ex(Q_B)-1 because the two variable sets are disjoint except for the common pivot z. Hence the full parent has delta*=M+2N+1 and is the unique maximum-deficiency subset.",
+      "siblings": "P_G[z=0]=A_G with delta*=M+2N; P_G[z=1]=B_K4 with delta*=2. Both are strict rank descendants of the maxdef-critical parent."
+    },
+    "membership_in_NP": "The substitution certificate has polynomial size and is checked clause-by-clause in polynomial time.",
+    "conclusion": "The discovery problem remains NP-complete even under the promise that the two siblings come from a maximum-deficiency-critical width-3 parent."
+  },
+  "effect_on_TRUMP": {
+    "closed_escape": "MAXDEF_CRITICALITY_ALONE_DOES_NOT_MAKE_GENERIC_R44BS_SUBSTITUTION_DISCOVERY_POLYNOMIAL_UNLESS_P_EQUALS_NP",
+    "meaning": "Many-to-one substitution remains a valid exact safe-deletion relation, but universal polynomial discovery of that relation cannot be the missing L3 mechanism merely by restricting inputs to maxdef-critical siblings.",
+    "next_frontier": "Either find a strictly different polynomially discoverable safe-deletion relation, or prove additional structural restrictions beyond maxdef-criticality that make substitution discovery tractable and cover every remaining critical state."
+  },
+  "scope_firewalls": [
+    "NP_COMPLETE_CRITICAL_SUBSTITUTION_DISCOVERY != P_NE_NP",
+    "NP_COMPLETE_DISCOVERY != NO_USEFUL_SUBSTITUTION_CERTIFICATES",
+    "CRITICALITY_ALONE_INSUFFICIENT != ALL_CRITICAL_SUBSTRUCTURE_USELESS",
+    "SUBSTITUTION_DISCOVERY_BARRIER != BARRIER_FOR_OTHER_SAFE_DELETION_RELATIONS",
+    "CERTIFICATE_VERIFICATION_REMAINS_POLYNOMIAL",
+    "TRUMP_finished=false",
+    "SAT_IN_P=NOT_PROVED",
+    "P_VS_NP=OPEN"
+  ],
+  "TRUMP_finished": false,
+  "SAT_IN_P": "NOT_PROVED",
+  "P_EQUALS_NP": "NOT_PROVED",
+  "P_VS_NP": "OPEN"
+}
