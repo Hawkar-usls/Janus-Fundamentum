@@ -65,7 +65,6 @@ def reachable_fixpoint(original):
             "after_BVE_CLV": list(r33.measure(after_bve)),
         })
         if after_bve == before:
-            # Reassert exact terminal fixpoint conditions.
             if reduced["history"] or after_r33 != before:
                 raise AssertionError("R47F_FALSE_R33_FIXPOINT")
             if rup.get("history", []) or after_rup != before:
@@ -90,7 +89,7 @@ def macro_rows(fixpoint):
             "var": int(var),
             "candidate": True,
             "accepted": bool(candidate["accepted"]),
-            "forced_DP_CLV": candidate["forced_DP_CLV"],
+            "forced_DP_CLV": candidate["DP"]["measure_after_forced_DP"],
             "final_CLV": candidate["final_CLV"],
             "terminal": candidate["normalization"].get("terminal"),
             "net_CLV_descent": bool(candidate["net_CLV_descent"]),
