@@ -1,0 +1,49 @@
+{
+  "id": "JANUS_TRUMP_R44BZ_SYMDIFF_BLOCK_PATH_TRANSPORT_RECOVERY_2026-09-03",
+  "status": "NEW_EXACT_POLYTIME_SAFE_DELETE_PRIMITIVE_ON_BOUNDED_SYMDIFF_BLOCK_PATH_CLASS",
+  "parent": "R44BX_ORBIT_COUPLED_CONGRUENCE_RIGID_UNBOUNDED_SUPPORT",
+  "primitive": "SYMDIFF_BLOCK_PATH_TRANSPORT_V1",
+  "input": "Two sibling CNFs A,B on the same post-pivot variable universe, plus the parent only for final rank/replay verification.",
+  "algorithm": [
+    "Canonicalize clauses and compute the clause symmetric difference D=A triangle B.",
+    "Build the variable co-occurrence graph using only clauses in D and take connected components.",
+    "Require every component to have size at most fixed b=5 and require the components to cover the active variables. Otherwise return NO_RULE_APPLICABLE.",
+    "For each component V_i and each transport direction, enumerate all signed permutations of V_i to itself (at most b!*2^b). Keep only maps satisfying all target clauses whose variables lie wholly in V_i against source clauses on V_i.",
+    "Build the component interaction graph from clauses spanning more than one component. Require it to be a path and every cross-clause to touch exactly two adjacent components. Otherwise return NO_RULE_APPLICABLE.",
+    "For each path edge, compute compatibility of candidate maps by exact clause-image/subsumption verification on all cross-clauses for that edge.",
+    "Run dynamic programming along the path. A surviving state sequence yields one global block-preserving signed permutation transport.",
+    "Verify the assembled transport globally, compute/verify the retained-child rank, and safe-delete the transported source sibling only if SAT(source)=>SAT(target) and the required rank drop/terminal condition holds."
+  ],
+  "complexity": {
+    "fixed_b": 5,
+    "local_candidate_bound": "5!*2^5=3840 per component",
+    "path_dp": "O(r*C^2*q) for r blocks, constant C<=3840 and bounded per-edge clause work q on the R44BX family; more generally polynomial in encoded input size for fixed b.",
+    "maxdef_check": "polynomial via bipartite maximum matching",
+    "hidden_unbounded_search": false
+  },
+  "r44bx_family_theorem": {
+    "symmetric_difference": "All 12(k-1) orbit connector clauses and all common local clauses cancel between siblings. In every block D contains exactly the four pivot-dependent binary clauses {-x1 OR x4, x3 OR -x4, -x5 OR -x6, x3 OR x6} up to local renaming/sign convention.",
+    "block_recovery": "Those four clauses have a connected variable graph on all five local variables, while no D-clause crosses blocks. Therefore the connected components of D are exactly the k five-variable blocks.",
+    "interaction_recovery": "The surviving common nonlocal clauses are exactly the connector orbits between adjacent blocks, hence the recovered interaction graph is a path.",
+    "local_search": "The valid B->A local R44BP transport is found by the constant exhaustive local map enumeration; the algorithm does not receive pi as input.",
+    "global_search": "The repeated orbit connectors make the local choices compatible; path DP recovers a globally valid transport without enumerating its 5k-variable support.",
+    "rank_effect": "parent delta*=15k-13, retained child delta*=13k-12, strict drop 2k-1",
+    "coverage": "all k>=2 members of the explicit R44BX orbit-coupled family"
+  },
+  "new_laws": [
+    "UNBOUNDED_RAW_TRANSPORT_SUPPORT != UNBOUNDED_TRANSPORT_DISCOVERY",
+    "GLOBAL_GENERATOR_NEED_NOT_BE_GUESSED_IF_SIBLING_DIFFERENCE_DECOMPOSES_INTO_BOUNDED_BLOCKS",
+    "SYMMETRIC_DIFFERENCE_CAN_BE_AN_EXACT_SIBLING_STRUCTURE_INVARIANT",
+    "BLOCK_LOCAL_SEARCH + BOUNDED_TREEWIDTH_COMPATIBILITY != GLOBAL_EXPONENTIAL_SEARCH"
+  ],
+  "scope_firewalls": [
+    "R44BZ_POLYTIME_ON_BLOCK_PATH_CLASS != UNIVERSAL_CRITICAL_SIBLING_COVERAGE",
+    "BOUNDED_SYMDIFF_COMPONENT_SIZE_IS_A_REAL_RESTRICTION",
+    "PATH_INTERACTION != ARBITRARY_COMPONENT_INTERACTION",
+    "RECOVERING_R44BX_TRANSPORT != P_EQUALS_NP",
+    "TRUMP_finished=false",
+    "SAT_IN_P=NOT_PROVED",
+    "P_VS_NP=OPEN"
+  ],
+  "next_exact_frontier": "Construct or analyze critical siblings whose symmetric-difference components themselves grow/unboundedly couple, or whose component interaction graph defeats bounded-width compatibility DP, while preserving exact nonterminal rank growth and avoiding already-known terminal/quotient escapes."
+}
