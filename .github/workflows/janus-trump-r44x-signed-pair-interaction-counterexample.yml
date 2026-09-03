@@ -1,0 +1,74 @@
+name: JANUS TRUMP R44X Signed Pair Interaction Counterexample
+
+on:
+  pull_request:
+    paths:
+      - 'research/JANUS_TRUMP_R44X_SIGNED_PAIR_INTERACTION_COUNTEREXAMPLE_2026-09-03.json'
+      - 'research/JANUS_TRUMP_R44X_SIGNED_PAIR_INTERACTION_COUNTEREXAMPLE_SEAL_2026-09-03.json'
+      - 'research/janus_trump_r44x_verify_signed_pair_interaction_counterexample.py'
+      - 'research/TRUMP_LEGEND_SEAL_UNIVERSAL_PROOF_CARRYING_DECOMPOSITION_CONTRACT_2026-09-03.json'
+      - '.github/workflows/janus-trump-r44x-signed-pair-interaction-counterexample.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  exact-replay:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Replay exact signed-pair collision from canonical evidence
+        run: python research/janus_trump_r44x_verify_signed_pair_interaction_counterexample.py > /tmp/r44x.json
+      - name: Enforce canonical evidence binding, Legend theorem boundary, and v2 seal
+        run: |
+          python - <<'PY'
+          import hashlib
+          import json
+          from pathlib import Path
+          r=json.loads(Path('/tmp/r44x.json').read_text())
+          evidence_path=Path('research/JANUS_TRUMP_R44X_SIGNED_PAIR_INTERACTION_COUNTEREXAMPLE_2026-09-03.json')
+          legend=json.loads(Path('research/TRUMP_LEGEND_SEAL_UNIVERSAL_PROOF_CARRYING_DECOMPOSITION_CONTRACT_2026-09-03.json').read_text())
+          seal=json.loads(Path('research/JANUS_TRUMP_R44X_SIGNED_PAIR_INTERACTION_COUNTEREXAMPLE_SEAL_2026-09-03.json').read_text())
+          assert r['canonical_evidence_sha256']==hashlib.sha256(evidence_path.read_bytes()).hexdigest()
+          assert r['status']=='EXPLICIT_SIGNED_PAIR_COLLISION_VERIFIED'
+          assert r['shared_n']==4 and r['shared_m']==10
+          assert r['sat_status']=='SAT'
+          assert r['unsat_status']=='UNSAT'
+          assert r['order_le_2_local_marginals_sufficient'] is False
+          assert r['global_polynomial_compression_ruled_out'] is False
+          assert r['P_VS_NP']=='OPEN'
+          assert legend['status']=='FINAL_THEOREM_TARGET_FROZEN__NOT_PROVED'
+          assert legend['target_lemma']=='TRUMP_UNIVERSAL_PROOF_CARRYING_DECOMPOSITION_LEMMA'
+          assert len(legend['required_obligations'])==6
+          assert legend['formal_target']['rank_codomain']=='NONNEGATIVE_INTEGERS_0_TO_CEIL_N_POW_D'
+          assert legend['formal_target']['rank_minimum_decrement_per_nonterminal_macrostep']==1
+          assert legend['formal_target']['constructor_polynomiality_is_an_obligation_not_an_assumption'] is True
+          l5={x['id']:x for x in legend['required_obligations']}['L5_POLYNOMIAL_TERMINATION']
+          assert 'at most ceil(N^d) nonterminal macrosteps' in l5['requirement']
+          assert legend['TRUMP_finished'] is False
+          assert legend['P_VS_NP']=='OPEN'
+          assert seal['schema']=='janus.trump.r44x.signed_pair_interaction_counterexample.seal.v2'
+          assert seal['status']=='SEALED_FROM_CANONICAL_EVIDENCE_BOUND_GITHUB_ACTIONS_REPLAY'
+          assert seal['workflow_run']==33702272298
+          assert seal['workflow_conclusion']=='success'
+          assert seal['artifact_id']==9873931247
+          assert seal['artifact_zip_sha256']=='2e11984f8a5606bd7825b4d57d9d0dd6119ba878f6c91dd3f9e4816c769cdbc4'
+          assert seal['evidence_binding']['canonical_json_loaded_by_verifier'] is True
+          assert seal['evidence_binding']['workflow_recomputes_and_compares_canonical_json_sha256'] is True
+          assert seal['legend_contract_repair']['termination_rank_integer_valued'] is True
+          assert seal['legend_contract_repair']['minimum_decrement_per_nonterminal_macrostep']==1
+          assert seal['verified_verdict']==r['status']
+          assert seal['P_VS_NP']=='OPEN'
+          print('R44X V2 SEAL FRESH-REPLAY PASS')
+          PY
+      - name: Upload replay receipt
+        uses: actions/upload-artifact@v4
+        with:
+          name: janus-trump-r44x-signed-pair-interaction-counterexample
+          path: /tmp/r44x.json
+          if-no-files-found: error
