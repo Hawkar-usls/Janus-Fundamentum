@@ -1,0 +1,62 @@
+{
+  "id": "JANUS_TRUMP_R44CA_SYMDIFF_BLOCK_BOOLEAN_CSP_TRANSPORT_RECOVERY_2026-09-03",
+  "status": "NEW_EXACT_POLYTIME_SAFE_DELETE_PRIMITIVE_WITH_UNBOUNDED_INTERACTION_TREEWIDTH",
+  "parents": [
+    "R44BZ_SYMDIFF_BLOCK_PATH_TRANSPORT_RECOVERY",
+    "R44BZ_GRID_ORBIT_COUPLED_UNBOUNDED_TREEWIDTH"
+  ],
+  "primitive": "SYMDIFF_BLOCK_BOOLEAN_CSP_TRANSPORT_V1",
+  "admission_conditions": [
+    "Sibling clause symmetric difference decomposes the active variable set into components of fixed size b<=5.",
+    "Every cross-component target clause touches exactly two recovered components.",
+    "After exact local signed-permutation filtering, each component has at most two valid local transport candidates in the tested direction.",
+    "All candidate compatibility and final global transport checks are exact; otherwise return NO_RULE_APPLICABLE."
+  ],
+  "algorithm": [
+    "Recover blocks as connected components of the variable graph of A triangle B.",
+    "Enumerate at most b!*2^b signed maps inside every block and keep exact local transports.",
+    "For every interacting block pair, compute the exact allowed candidate-pair relation by replaying all cross-component target clauses against the source CNF.",
+    "Because each domain has size at most 2, encode every forbidden candidate pair (a,b) as one 2-CNF clause: (X_i != a) OR (X_j != b). One-candidate blocks become unit constraints.",
+    "Solve the resulting 2-SAT instance by implication-SCC in polynomial time, with no restriction on interaction-graph treewidth.",
+    "Assemble the selected block maps, globally verify the transport, and safe-delete only after independent maxdef/terminal/replay checks."
+  ],
+  "complexity": {
+    "local_block_size": "fixed b<=5",
+    "raw_local_enumeration": "<=3840 maps per block",
+    "postfilter_domain": "<=2 candidates per block",
+    "compatibility": "at most 4 candidate pairs per interacting block pair",
+    "global_solver": "linear-time 2-SAT in the compatibility instance after construction",
+    "interaction_treewidth_requirement": "NONE",
+    "overall": "polynomial in encoded sibling size for fixed b"
+  },
+  "grid_family_application": {
+    "source_family": "R44BZ grid-coupled r x r orbit family",
+    "symmetric_difference_blocks": "exactly r^2 five-variable R44AS blocks",
+    "local_candidate_count_B_to_A": 2,
+    "connector_compatibility": "For the R44AS orbit connector, among the four pairs of the two local candidates, exactly the pair using the R44BP generator on both endpoints is compatible.",
+    "interaction_graph": "r x r grid, hence unbounded treewidth as r grows",
+    "discovery": "Boolean compatibility 2-SAT recovers a global blockwise transport without enumerating support Theta(r^2)",
+    "rank": {
+      "parent": "27r^2-24r-1",
+      "retained_child": "25r^2-24r",
+      "strict_drop": "2r^2-1"
+    },
+    "R44BC_escape": "child maxdef Theta(r^2) while encoded size Theta(r^2), so the logarithmic low-maxdef terminal does not apply for sufficiently large r",
+    "treewidth_escape": "child primal treewidth is unbounded, yet transport recovery is polynomial"
+  },
+  "new_laws": [
+    "UNBOUNDED_INTERACTION_TREEWIDTH != HARD_TRANSPORT_DISCOVERY",
+    "BINARY_LOCAL_AMBIGUITY + PAIRWISE_COMPATIBILITY => POLYNOMIAL_GLOBAL_TRANSPORT_VIA_2SAT",
+    "UNBOUNDED_SUPPORT + UNBOUNDED_TREEWIDTH != EXPONENTIAL_DISCOVERY"
+  ],
+  "scope_firewalls": [
+    "DOMAIN_SIZE_2_IS_A_REAL_RESTRICTION",
+    "PAIRWISE_CROSS_COMPONENT_CLAUSES_IS_A_REAL_RESTRICTION",
+    "R44CA_DOES_NOT_SOLVE_DOMAIN_SIZE_3_OR_HIGHER_COMPATIBILITY_CSP",
+    "R44CA_GRID_SUCCESS != UNIVERSAL_CRITICAL_SIBLING_COVERAGE",
+    "TRUMP_finished=false",
+    "SAT_IN_P=NOT_PROVED",
+    "P_VS_NP=OPEN"
+  ],
+  "next_exact_frontier": "Force at least three genuinely distinct local transport states per recovered block with connector constraints not reducible to 2-SAT, or make symmetric-difference components/cross-component arity unbounded, while retaining maxdef-criticality, R44BC escape, and no independent polynomial terminal."
+}
