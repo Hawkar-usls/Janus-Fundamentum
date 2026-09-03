@@ -29,7 +29,8 @@ jobs:
           from pathlib import Path
           r=json.loads(Path('/tmp/r44.json').read_text())
           assert r['gate_id']=='R44_EXACT_REPRESENTATION_SWITCHBOARD_COVERAGE_OR_COUNTEREXAMPLE'
-          assert r['status']=='FROZEN_EXPECTATIONS_REPRODUCED'
+          assert r['status']=='FROZEN_EXPECTATIONS_REPRODUCED_WITH_SCC_2SAT'
+          assert r['two_sat_algorithm']=='SCC_2SAT_V1'
           assert r['counterexample_to_frozen_switchboard']=='ADVERSARIAL_OPEN_3CNF'
           assert r['universal_coverage_proved'] is False
           assert r['proof_authority_delta']==0
@@ -37,13 +38,14 @@ jobs:
           assert r['SAT_IN_P']=='NOT_PROVED'
           assert r['P_VS_NP']=='OPEN'
           tests={x['id']:x for x in r['tests']}
-          assert tests['TWO_SAT_SAT']['route']=='TWO_SAT'
+          assert tests['TWO_SAT_SAT']['route']=='TWO_SAT_SCC_V1'
+          assert tests['TWO_SAT_UNSAT']['route']=='TWO_SAT_SCC_V1'
           assert tests['HORN_UNSAT']['route']=='HORN'
           assert tests['DUAL_HORN_SAT']['route']=='DUAL_HORN'
           assert tests['XOR3_SAT']['route']=='EXACT_WIDTH3_XOR_BUNDLE_TO_GF2_V1'
           assert tests['ADVERSARIAL_OPEN_3CNF']['status']=='OPEN_OUTSIDE_SWITCHBOARD'
           assert tests['ADVERSARIAL_OPEN_3CNF']['decision_authority'] is False
-          print('R44 SWITCHBOARD COVERAGE-OR-COUNTEREXAMPLE PASS')
+          print('R44 SWITCHBOARD SCC-2SAT COVERAGE-OR-COUNTEREXAMPLE PASS')
           PY
       - name: Upload replay receipt
         uses: actions/upload-artifact@v4
