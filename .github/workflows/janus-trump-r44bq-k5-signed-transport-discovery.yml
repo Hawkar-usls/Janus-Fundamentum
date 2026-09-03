@@ -1,0 +1,40 @@
+name: JANUS TRUMP R44BQ K5 Polynomial Signed Transport Discovery
+
+on:
+  pull_request:
+    paths:
+      - 'research/JANUS_TRUMP_R44BQ_K5_POLYNOMIAL_SIGNED_TRANSPORT_DISCOVERY_2026-09-03.json'
+      - 'research/janus_trump_r44bq_verify_k5_signed_transport_discovery.py'
+      - '.github/workflows/janus-trump-r44bq-k5-signed-transport-discovery.yml'
+  workflow_dispatch:
+
+jobs:
+  exact-k5-discovery-replay:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout exact head
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Replay deterministic K5 discovery theorem
+        run: python research/janus_trump_r44bq_verify_k5_signed_transport_discovery.py
+
+      - name: Enforce theorem boundary
+        run: |
+          python - <<'PY'
+          import json
+          p='research/JANUS_TRUMP_R44BQ_K5_POLYNOMIAL_SIGNED_TRANSPORT_DISCOVERY_2026-09-03.json'
+          d=json.load(open(p, encoding='utf-8'))
+          assert d['TRUMP_finished'] is False
+          assert d['SAT_IN_P'] == 'NOT_PROVED'
+          assert d['P_VS_NP'] == 'OPEN'
+          assert d['r44bd_accounting']['universal_critical_sibling_coverage'] == 'OPEN'
+          assert d['r44bd_accounting']['global_termination'] == 'OPEN'
+          print('theorem boundary PASS')
+          PY
