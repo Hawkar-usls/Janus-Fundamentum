@@ -1,52 +1,42 @@
 {
   "id": "JANUS_TRUMP_R44BB_FIXED_SURPLUS_EXACT_STEP_META_THEOREM_2026-09-03",
-  "status": "POSITIVE_EXACT_ONE_STEP_META_THEOREM__FIXED_SURPLUS_ONLY",
+  "status": "STRUCTURAL_FIXED_SURPLUS_BATCH_ELIMINATION_BOUND__NOT_NEW_UNIFORM_ONE_STEP_FRONTIER",
   "parent": "R44BA_LOW_SURPLUS_EXACT_STEP_CLOSURE",
   "domain": "normalized Boolean CNF of maximum clause width <=3",
   "theorem": {
-    "statement": "For every fixed constant s>=1, every nonempty width<=3 CNF F with surplus sigma(F)=s admits a deterministic polynomial-time satisfiability-preserving transition that strictly decreases the number of variables.",
-    "algorithm": [
-      "Compute p(v), q(v) for every variable.",
-      "If some v satisfies p(v)q(v)<=p(v)+q(v), apply exact Davis-Putnam elimination to v (R44AT).",
-      "Otherwise compute a nonempty surplus witness V with |Gamma(V)|-|V|=s using the inherited polynomial surplus-witness algorithm.",
-      "Because no variable satisfies the R44AT inequality, every variable has total degree at least 5.",
-      "Width<=3 gives sum_{v in V} d(v) <= 3|Gamma(V)| = 3(|V|+s), while the no-R44AT condition gives sum_{v in V} d(v) >=5|V|. Hence |V|<=floor(3s/2).",
-      "Eliminate all variables in V by ordinary exact Davis-Putnam elimination in a fixed deterministic order."
+    "statement": "Fix a constant s>=1. If a width<=3 CNF F with sigma(F)=s has no R44AT nonexpanding variable, then a polynomially computable surplus witness V with |Gamma(V)|-|V|=s has |V|<=floor(3s/2); therefore the entire witness can be exactly eliminated by a constant number of Davis-Putnam eliminations with polynomial charged work for that fixed s.",
+    "proof_core": [
+      "No R44AT variable means p(v)q(v)>p(v)+q(v) for every variable, hence every variable has total degree at least 5.",
+      "For a surplus witness V, width<=3 gives sum_{v in V} d(v)<=3|Gamma(V)|=3(|V|+s).",
+      "Thus 5|V|<=3(|V|+s), so |V|<=floor(3s/2).",
+      "Eliminating at most floor(3s/2) variables by exact Davis-Putnam has a polynomial bound whose exponent may depend on fixed s."
     ]
   },
+  "review_correction": {
+    "important": "The mere existence of one exact polynomial Davis-Putnam step is generic for arbitrary CNF and is NOT the theorem progress here.",
+    "nontrivial_content": "The bounded size of an entire minimum-surplus witness under the no-R44AT condition, and therefore fixed-s polynomial batch elimination of that witness.",
+    "removed_claim": "UNBOUNDED_SURPLUS_COMPRESSION_OR_DESCENT is not justified as a new frontier merely by this theorem."
+  },
   "complexity": {
-    "cheap_case": "R44AT is polynomial with nonincreasing clause count.",
-    "bounded_witness_case": "Let M_i be the clause count after i eliminations. A crude bound is M_{i+1}<=M_i+M_i^2<=2M_i^2. After k<=floor(3s/2) eliminations, M_k<=2^(2^k-1) m^(2^k). For fixed s, k and 2^k are constants, so state and charged work are polynomial in the original input size.",
-    "uniformity_ceiling": "The polynomial exponent depends on s. This is not a uniform polynomial bound when s grows with the input."
+    "bounded_witness_case": "If M_{i+1}<=2M_i^2 and k=|V|<=floor(3s/2), then M_k<=2^(2^k-1)m^(2^k). For each fixed s this is polynomial in the original input size.",
+    "ceiling": "The exponent depends on s; no closed polynomial trajectory or uniform unbounded-s algorithm is established."
   },
   "exactness": {
-    "semantics": "Each Davis-Putnam elimination is exact existential projection of the eliminated variable and preserves satisfiability.",
-    "strict_progress": "At least one variable is eliminated; in the bounded-witness case every variable in nonempty V is eliminated.",
-    "terminality": "NOT_CLAIMED. This is a one-step theorem, not a complete decision algorithm."
+    "semantics": "Each Davis-Putnam elimination is exact existential projection and preserves satisfiability.",
+    "strict_batch_progress": "All variables of the nonempty witness V are removed in the batch.",
+    "terminality": "NOT_CLAIMED"
   },
-  "consequences": [
-    "R44BA's sigma<=2 theorem is subsumed at the existence-of-one-step level, though R44BA has much cheaper transitions.",
-    "The sigma=3 layer cannot be a width-3 fixed-point layer: if no cheap R44AT variable exists, a surplus witness has at most 4 variables and can be eliminated with fixed polynomial overhead.",
-    "More generally, no fixed constant surplus level s can by itself form an irreducible width-3 obstruction family against exact polynomial one-step progress.",
-    "Any obstruction family to this meta-theorem's fixed-s strategy must have surplus unbounded along the family or leave the width<=3 domain after the transition."
-  ],
   "firewalls": [
-    "FIXED_SURPLUS_POLYNOMIAL != UNIFORM_POLYNOMIAL_IN_UNBOUNDED_SURPLUS",
-    "ONE_STEP_EXACT_PROGRESS != CLOSED_POLYNOMIAL_TRAJECTORY",
-    "DP_ON_O(s)_VARIABLES != UNIVERSAL_POLYNOMIAL_DP_WHEN_s_GROWS",
+    "ONE_CURRENT_DP_STEP_IS_ALREADY_UNIFORMLY_POLYNOMIAL",
+    "BOUNDED_WITNESS_BATCH_ELIMINATION != CLOSED_POLYNOMIAL_TRAJECTORY",
+    "FIXED_s_POLYNOMIAL_BATCH != P_FOR_UNBOUNDED_s",
+    "VARIABLE_COUNT_DESCENT != POLYNOMIAL_TOTAL_STATE",
     "WIDTH3_INPUT != WIDTH3_SUCCESSOR_AFTER_DP",
-    "NO_FIXED_SURPLUS_FIXED_POINT != P_EQUALS_NP",
     "P_VS_NP=OPEN"
   ],
   "next_admissible_math": {
-    "frontier": "UNBOUNDED_SURPLUS_COMPRESSION_OR_DESCENT",
-    "question": "Can the bounded-witness elimination step be replaced by a uniform exact transition whose polynomial exponent is independent of sigma(F), or can one prove a barrier for one precisely specified such compression?",
-    "forbidden_shortcuts": [
-      "treat s as a hidden constant",
-      "increase a fixed DP budget under a new name",
-      "hide exponential projection in a terminal evaluator",
-      "claim fixed-parameter or XP behavior as ordinary polynomial time"
-    ]
+    "frontier": "INHERIT_CURRENT_R44BC_R44BD_MAXDEF_BRANCH_COMPRESSION_FRONTIER",
+    "rule": "Do not use R44BB-SURPLUS as evidence that unbounded surplus alone is the unique remaining obstruction."
   },
   "TRUMP_finished": false,
   "SAT_IN_P": "NOT_PROVED",
