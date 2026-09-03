@@ -1,0 +1,84 @@
+{
+  "id": "JANUS_TRUMP_R44AZ_FAILED_2SAT_COFACTOR_SAFE_CHOICE_2026-09-03",
+  "status": "NEW_EXACT_POLYTIME_SAFE_CHOICE_PRIMITIVE__NOT_UNIVERSAL",
+  "parent": "R44AY_LOCAL_AFFINE_CONSEQUENCE_RIGID_CORE",
+  "target": "POLYTIME_EXACT_SAFE_CHOICE_ON_TRIPLE_RIGID_CORE",
+  "candidate_invariant": {
+    "name": "FAILED_2SAT_COFACTOR_CERTIFICATE",
+    "notation": "C_2(F,v,epsilon)",
+    "definition": "For each variable v and value epsilon, simplify the cofactor F[v=epsilon]. Let B_2(F[v=epsilon]) be its width<=2 subformula. Decide B_2 exactly by implication-graph SCCs."
+  },
+  "authorized_transitions": {
+    "one_failed_side": "If B_2(F[v=epsilon]) is UNSAT, then the full cofactor F[v=epsilon] is UNSAT, hence SAT(F) iff SAT(F[v=1-epsilon]); choose 1-epsilon exactly and simplify.",
+    "both_failed": "If both width<=2 cofactor subformulas are UNSAT, both Boolean cofactors are UNSAT and therefore F is UNSAT.",
+    "neither_failed": "No choice receives authority; return NO_PROGRESS for this variable."
+  },
+  "polynomial_cost": {
+    "per_probe": "Cofactor simplification plus 2-SAT SCC analysis is polynomial, in fact linear in the generated binary subformula after simplification.",
+    "full_scan": "Testing both values of every variable is polynomial in the current input size.",
+    "no_oracle": "The rule never asks whether an arbitrary cofactor is SAT/UNSAT; it only accepts a cofactor rejection when a polynomially decidable 2-CNF subformula already certifies contradiction."
+  },
+  "exactness_theorem": {
+    "soundness": "B_2(F[v=epsilon]) is a conjunction-subformula of F[v=epsilon]. If the subformula is UNSAT then the full cofactor is UNSAT.",
+    "safe_choice": "SAT(F)=SAT(F[v=0]) OR SAT(F[v=1]); once one cofactor is proved UNSAT, the other cofactor has exactly the same SAT status as F.",
+    "strict_progress": "An authorized one-sided failure fixes one variable without recursive branching, DP elimination, proof search, or SAT-oracle use."
+  },
+  "triple_rigid_witness": {
+    "base_unsat_linear_2cnf": [
+      "(not x1 OR x2)",
+      "(not x2 OR x3)",
+      "(not x3 OR x4)",
+      "(not x4 OR x1)",
+      "(x1 OR x3)",
+      "(not x2 OR not x4)"
+    ],
+    "guard_construction": "Introduce fresh g and replace every binary clause C_i by (g OR C_i).",
+    "before_probe": [
+      "Every clause has exact width 3.",
+      "Every 3-variable support occurs once, so each local support relation is a single OR3 relation with full affine hull and R44AY derives no equation.",
+      "There are no width<=2 clauses, so R44AX is silent.",
+      "Each singleton sign pattern has trivial local sign-translation stabilizer, so H(F)={0} and R44AW is silent."
+    ],
+    "probe_effect": "At g=0 the guarded clauses reduce exactly to the unsatisfiable linear 2-CNF above, so SCC contradiction certifies F[g=0] UNSAT. Therefore g=1 is an exact safe choice and all guarded clauses disappear."
+  },
+  "nonuniversality": {
+    "linear_3cnf_argument": "Let F be an exact-width-3 linear CNF, meaning any two distinct clauses share at most one variable. Fix v=epsilon. Every new binary clause comes from an original clause containing the falsified literal of v. Any two such original clauses already share v, so linearity forbids them from sharing any second variable. After v is removed, the resulting binary clauses have pairwise disjoint variable supports and are jointly satisfiable.",
+    "consequence": "For every variable and both values, the generated width<=2 subformula is satisfiable; R44AZ has no safe-choice trigger on any exact-width-3 linear CNF.",
+    "SAT_fixed_points": "Arbitrarily large disjoint unions of fresh single 3-clauses are satisfiable linear exact-3-CNF fixed points.",
+    "UNSAT_fixed_points": "Published constructions give unsatisfiable linear 3-CNF formulas; disjoint satisfiable padding yields arbitrarily large UNSAT fixed points.",
+    "verdict": "FAILED_2SAT_COFACTOR IS A NEW EXACT SAFE-CHOICE PRIMITIVE BUT NOT UNIVERSAL"
+  },
+  "relation_to_R44AV": {
+    "law": "POLYTIME_CERTIFIED_SAFE_CHOICE_ON_A_SUBCLASS != UNIVERSAL_SAFE_CHOOSER",
+    "reason": "R44AV proved that a universal polynomial exact safe chooser is equivalent to P=NP. R44AZ supplies only a sound sufficient certificate when a 2-SAT contradiction is exposed in one cofactor."
+  },
+  "legend_ledger": {
+    "E1_EXACTNESS": "PASS_ON_TRIGGER",
+    "E2_POLYTIME_TRANSITION": "PASS",
+    "E3_POLYNOMIAL_LIVE_STATE": "PASS",
+    "E4_UNIVERSAL_STRICT_DESCENT": "FAIL__LINEAR_EXACT3_FIXED_POINTS",
+    "E5_POLYNOMIAL_RANK_HEIGHT": "PASS_FOR_VARIABLE_COUNT_ON_TRIGGERED_STEPS",
+    "E6_EXACT_TERMINALITY": "PASS_FOR_BOTH_FAILED_CASE_ONLY__NOT_A_GENERAL_TERMINAL_DECIDER"
+  },
+  "seals": [
+    "FAILED_2SAT_CERTIFICATE != RECURSIVE_BRANCHING",
+    "COFACTOR_PROBE != SAT_ORACLE",
+    "ONE_SIDE_PROVED_UNSAT => OTHER_SIDE_SAFE",
+    "NO_2SAT_CONTRADICTION != COFACTOR_SAT",
+    "LINEAR_3CNF_FIXED_POINT != SAT",
+    "LINEAR_3CNF_FIXED_POINT != UNSAT",
+    "P_VS_NP=OPEN"
+  ],
+  "next_admissible_math": {
+    "current_residual_core": "sign-flip rigid + binary-congruence fixed + no local-affine forced unit/equivalence + no one-step cofactor whose width<=2 subformula is contradictory",
+    "question": "Find one polynomial exact invariant that strictly progresses on this quadruple-rigid core without escalating failed-cofactor depth into exponential branching or repackaging an inherited proof-search machine.",
+    "allowed_outcomes": [
+      "PROVE_NEW_EXACT_POLYTIME_SAFE_DESCENT_PRIMITIVE",
+      "PROVE_BARRIER_FOR_ONE_FIXED_SUCCESSOR_INVARIANT"
+    ]
+  },
+  "TRUMP_finished": false,
+  "SAT_IN_P": "NOT_PROVED",
+  "P_EQUALS_NP": "NOT_PROVED",
+  "P_VS_NP": "OPEN"
+}
