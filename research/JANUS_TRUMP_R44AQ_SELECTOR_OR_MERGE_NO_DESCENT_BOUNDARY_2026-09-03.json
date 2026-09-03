@@ -1,6 +1,6 @@
 {
   "id": "JANUS_TRUMP_R44AQ_SELECTOR_OR_MERGE_NO_DESCENT_BOUNDARY_2026-09-03",
-  "status": "EXACT_POLYTIME_MERGE__NO_GLOBAL_DESCENT",
+  "status": "EXACT_POLYTIME_MERGE__CNF_PROJECTION_ROUTE_BARRIER",
   "parent": "R44AP_BRANCHWISE_MAXDEF_DESCENT_OR_MERGE_BOUNDARY",
   "target": "EXACT_POLYNOMIAL_OR_MERGE",
   "candidate": {
@@ -14,39 +14,54 @@
   "shannon_reconstruction_theorem": {
     "statement": "For A=F[v=0] and B=F[v=1], M_s(A,B) represents the same Boolean function as F after renaming v to s, modulo ordinary cofactor simplifications.",
     "proof": "For every assignment alpha to the remaining variables, M_s(0,alpha)=F(0,alpha) and M_s(1,alpha)=F(1,alpha). Hence the truth tables agree under v<->s.",
-    "effect": "The selector merge does not eliminate the branch degree of freedom; it reifies it as a new variable."
+    "effect": "The selector merge does not eliminate the branch degree of freedom; it reifies it as a fresh variable."
+  },
+  "selector_free_cnf_projection_theorem": {
+    "statement": "Exact existential elimination of a CNF variable x back into CNF is Davis-Putnam elimination: retain clauses not containing x; for every x-clause (x OR C) and every not-x-clause (not x OR D), add the non-tautological resolvent (C OR D); then delete all clauses containing x or not x.",
+    "semantics": "The resulting CNF is equivalent to existentially quantifying x from the original CNF and is satisfiable iff the original CNF is satisfiable.",
+    "single_step_cost": "At most quadratic in the current clause count for one variable elimination, hence polynomial in the current state size.",
+    "route_identity": "SELECTOR_FREE_EXACT_CNF_PROJECTION == DAVIS_PUTNAM_VARIABLE_ELIMINATION == RESOLUTION_ON_THE_ELIMINATED_PIVOT"
+  },
+  "published_unconditional_dp_barrier": {
+    "source": "G. S. Tseitin, On the complexity of derivation in propositional calculus / On the complexity of regular resolution and the Davis-Putnam procedure lineage; TCS 4(1), 1977, 23-46, DOI 10.1016/0304-3975(77)90054-8",
+    "statement_used": "There are infinitely many contradictory CNF formulas on n variables for which the Davis-Putnam procedure generates 2^{c n} distinct clauses for some c>0 for every variable elimination order.",
+    "effect": "Repeated exact selector-free projection within ordinary CNF cannot have a universal polynomial live-state/total-work bound, even when the elimination order is chosen optimally within the Davis-Putnam model.",
+    "scope": "This is a route-specific unconditional lower bound for Davis-Putnam/regular-resolution-style CNF elimination. It is not a lower bound for all SAT algorithms or all possible SAT-sufficient representations."
   },
   "rank_effect": {
     "law": "POLYNOMIAL_OR_MERGE != DESCENT_PRESERVING_OR_MERGE",
-    "reason": "The child rank may have decreased after fixing v, but selector reconstruction introduces a fresh binary choice whose semantics is exactly the eliminated variable's Shannon choice. No universal strict single-state descent follows.",
-    "required_next_operation": "To obtain real variable/rank elimination one must project the selector away: existentially quantify s from M_s(A,B), producing A OR B without retaining s."
-  },
-  "projection_frontier": {
-    "target": "POLYNOMIAL_EXACT_SELECTOR_FREE_EXISTENTIAL_PROJECTION",
-    "CNF_baseline": "Davis-Putnam resolution is an exact CNF-level selector/variable elimination mechanism, but known resolution lower bounds block pure polynomially bounded resolution as a universal route.",
-    "representation_baseline": "Structured full-function compilation can support exact projection but has architecture-specific exponential state barriers already recorded in R44AC.",
-    "open_scope": "These facts do not rule out every SAT-sufficient compact projection invariant."
+    "reason": "Selector reconstruction restores exactly the eliminated binary choice. Projecting that choice away inside CNF returns to Davis-Putnam elimination, whose repeated state can be exponentially large on an infinite hard family.",
+    "consequence": "Neither keeping the selector nor eliminating it by exact CNF projection supplies the required universal polynomial single-state descent."
   },
   "legend_ledger": {
-    "E1_EXACTNESS": "PASS_FOR_SAT_OR_SEMANTICS",
-    "E2_POLYTIME_TRANSITION": "PASS",
-    "E3_POLYNOMIAL_LIVE_STATE": "PASS_FOR_ONE_SELECTOR_MERGE",
-    "E4_UNIVERSAL_STRICT_DESCENT": "FAIL__SELECTOR_REINTRODUCES_THE_ELIMINATED_BINARY_CHOICE",
-    "E5_POLYNOMIAL_RANK_HEIGHT": "NOT_ESTABLISHED",
-    "E6_EXACT_TERMINALITY": "NOT_ESTABLISHED"
+    "E1_EXACTNESS": "PASS_FOR_SELECTOR_OR_AND_FOR_DAVIS_PUTNAM_PROJECTION",
+    "E2_POLYTIME_TRANSITION": "PASS_PER_SINGLE_CURRENT_STATE_STEP",
+    "E3_POLYNOMIAL_LIVE_STATE": "FAIL_UNIVERSALLY_FOR_REPEATED_DAVIS_PUTNAM_CNF_PROJECTION",
+    "E4_UNIVERSAL_STRICT_DESCENT": "FAIL_FOR_SELECTOR_MERGE; VARIABLE_COUNT_DESCENDS_UNDER_DP_BUT_STATE_CAN_EXPLODE",
+    "E5_POLYNOMIAL_RANK_HEIGHT": "VARIABLE_COUNT_HAS_POLYNOMIAL_HEIGHT_BUT_DOES_NOT_CONTROL_STATE_SIZE",
+    "E6_EXACT_TERMINALITY": "DP_IS_COMPLETE_BUT_NOT_POLYNOMIALLY_BOUNDED_ON_ALL_INPUTS"
   },
   "seals": [
     "OR_SEMANTICS != VARIABLE_ELIMINATION",
     "SELECTOR_VARIABLE != COMPRESSED_BRANCH",
     "HIDING_BRANCH_IN_A_FRESH_VARIABLE != STRICT_DESCENT",
-    "EXISTENTIAL_PROJECTION != FREE_OPERATION",
+    "SELECTOR_FREE_CNF_PROJECTION == DAVIS_PUTNAM",
+    "POLYNOMIAL_SINGLE_ELIMINATION != POLYNOMIAL_TOTAL_TRAJECTORY",
+    "VARIABLE_COUNT_DESCENT != POLYNOMIAL_STATE_ENVELOPE",
+    "DP_BARRIER != BARRIER_FOR_ALL_SAT_SUFFICIENT_REPRESENTATIONS",
     "P_VS_NP=OPEN"
   ],
   "next_admissible_math": {
-    "question": "Is there one concrete SAT-sufficient selector-free projection invariant P(F,v), computable and representable in polynomial size, such that SAT(P(F,v)) iff SAT(F) and a fixed polynomial rank strictly decreases for every nonterminal 3CNF?",
+    "question": "Can one retain exact SAT semantics while eliminating branch choice in a representation weaker than full Boolean-function compilation and stronger than ordinary CNF, with polynomial live state, polynomial charged update cost, strict rank descent, and polynomial terminal evaluation?",
     "allowed_outcomes": [
-      "PROVE_EXACT_POLYNOMIAL_DESCENT_PRESERVING_PROJECTION",
-      "PROVE_BARRIER_FOR_ONE_FIXED_PROJECTION_INVARIANT"
+      "PROVE_EXACT_POLYNOMIAL_DESCENT_PRESERVING_NON_CNF_PROJECTION",
+      "PROVE_BARRIER_FOR_ONE_FIXED_NON_CNF_PROJECTION_INVARIANT"
+    ],
+    "forbidden": [
+      "relabeling Davis-Putnam/resolution as a new projection",
+      "using selector variables while claiming the branch disappeared",
+      "counting only variable decrease while ignoring clause/state blowup",
+      "claiming a lower bound for all SAT algorithms from the DP lower bound"
     ]
   },
   "TRUMP_finished": false,
