@@ -1,0 +1,37 @@
+name: JANUS TRUMP R47A3 Post Subsumption First Descent
+
+on:
+  push:
+    branches:
+      - research/r47a3-post-subsumption-descent-correction-2026-09-03
+  workflow_dispatch:
+
+jobs:
+  r47a3-post-subsumption:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Compile
+        run: python -m py_compile experiments/janus_trump_r47a3_post_subsumption_first_descent.py
+      - name: Execute corrected producer audit
+        run: |
+          PYTHONPATH=experiments python experiments/janus_trump_r47a3_post_subsumption_first_descent.py | tee /tmp/r47a3.json
+          python - <<'PY'
+          import json
+          d=json.load(open('/tmp/r47a3.json'))
+          x=d['post_subsumption_first_descent']
+          assert x['selected_var'] is not None
+          assert x['gain'] > 0
+          assert x['strict_descent'] is True
+          assert x['independent_replay_pass'] is True
+          assert x['polynomial_envelope_pass'] is True
+          assert d['firewall']['R47A_UNIVERSAL_COVERAGE']=='OPEN'
+          assert d['firewall']['SAT_IN_P']=='NOT_PROVED'
+          assert d['firewall']['P_VS_NP']=='OPEN'
+          print('R47A3_CORRECTED_PRODUCER=PASS')
+          PY
