@@ -1,0 +1,74 @@
+{
+  "id": "JANUS_TRUMP_R44AO_3CNF_MLCR_CONSTRUCTIVE_AUTARKY_WITNESS_2026-09-03",
+  "status": "MATHEMATICAL_CONSTRUCTIVE_SUBTHEOREM",
+  "parent": "R44AN_SURPLUS_DEGREE_SURROGATE_BARRIER",
+  "target": "MLCR_AUTARKY_WITNESS_CONJECTURE_RESTRICTED_TO_BOOLEAN_CLAUSE_WIDTH_AT_MOST_3",
+  "theorem": {
+    "name": "WIDTH3_MLCR_MODEL_IS_POLYTIME_CONSTRUCTIBLE",
+    "statement": "For every Boolean clause-set F in MLCR with maximum clause size at most 3, a satisfying assignment for F can be computed in deterministic polynomial time.",
+    "proof": [
+      "Let n=n(F), m=c(F), and k=delta(F)=sigma(F)>=1. By the MLCR definition, mu_vd(F)>nM(k), hence integrality gives mu_vd(F)>=nM(k)+1.",
+      "Because every clause has size at most 3, the sum of all variable degrees equals the total number of literal occurrences and is at most 3m=3(n+k). Therefore n*(nM(k)+1)<=3(n+k).",
+      "If k>=2, the non-Mersenne sequence satisfies nM(k)>=k+2. Hence n*(k+3)<=3(n+k), so nk<=3k and therefore n<=3. These cases are solved constructively by testing at most 2^3=8 Boolean assignments and scanning the clauses.",
+      "If k=1, F is matching-lean and delta(F)=1. For matching-lean clause-sets, maximal deficiency delta*(F)=delta(F), hence delta*(F)=1.",
+      "MLCR is a subclass of SAT by Kullmann-Zhao Lemma 10.6. By the matching-deficiency result of Kullmann (Corollary 4.9/4.10 in the cited clausal-form development), every satisfiable F with delta*(F)=1 has a partial assignment phi using at most one variable such that phi*F is matching satisfiable.",
+      "Enumerate the empty partial assignment and the 2n one-variable Boolean assignments. For each phi, simplify F and test matching satisfiability by maximum bipartite matching. When a positive case occurs, compute a matching-satisfying assignment psi for phi*F and output phi composed with psi. Existence is guaranteed by the preceding theorem; all operations are polynomial."
+    ],
+    "complexity": {
+      "k_ge_2": "O(8*|F|) after computing the MLCR parameters; n<=3.",
+      "k_eq_1": "At most 2n+1 matching-satisfiability tests plus simplification; polynomial in the encoded size of F.",
+      "uniformity": "The case distinction uses k=delta(F), directly computable from m-n for MLCR inputs."
+    }
+  },
+  "extension_to_conjecture_10_3_width3": {
+    "statement": "Kullmann-Zhao Conjecture 10.3 holds for Boolean clause-sets of maximum clause size at most 3.",
+    "proof": [
+      "Given F with sigma(F)>=1 and mu_vd(F)>nM(sigma(F)), compute in polynomial time a minimal nonempty V with delta(F[V])=sigma(F) as in Lemma 10.8.",
+      "Theorem 10.9 gives F[V] in MLCR. Since F[V] is a sub-clause-set of F, maximum clause size remains at most 3.",
+      "Apply WIDTH3_MLCR_MODEL_IS_POLYTIME_CONSTRUCTIBLE to obtain a satisfying assignment on F[V].",
+      "By the autarky correspondence used in Lemma 10.1/Theorem 10.2, this assignment is a nontrivial autarky for F.",
+      "Thus the witness autarky required by Conjecture 10.3 is constructible in polynomial time on width-at-most-3 Boolean clause-sets."
+    ]
+  },
+  "TRUMP_primitive": {
+    "name": "WIDTH3_SURPLUS_DEGREE_PROOF_CARRYING_AUTARKY_STEP",
+    "input_condition": "sigma(F)>=1 and mu_vd(F)>nM(sigma(F)) on a Boolean CNF of maximum width <=3",
+    "output": "A concrete nontrivial autarky phi and the satisfiability-equivalent residual phi*F.",
+    "exactness": "Autarky reduction preserves satisfiability.",
+    "charged_work": "Polynomial.",
+    "strict_progress": "The autarky is nontrivial and removes at least one touched variable/at least one clause; the reduction loop can be charged by a decreasing variable/clause count.",
+    "scope": "Conditional progress primitive only. It does not apply once the surplus/min-degree violation disappears and is not a universal 3SAT decider."
+  },
+  "legend_ledger": {
+    "E1_EXACTNESS": "PASS_FOR_THIS_CONDITIONAL_TRANSITION",
+    "E2_POLYTIME_TRANSITION": "PASS_FOR_WIDTH_AT_MOST_3",
+    "E3_POLYNOMIAL_LIVE_STATE": "PASS_FOR_CLAUSE_REDUCTION_PLUS_MATCHING_WORKSPACE",
+    "E4_UNIVERSAL_STRICT_DESCENT": "NOT_PROVED_GLOBALLY__ONLY_WHEN_THE_SURPLUS_DEGREE_TRIGGER_HOLDS",
+    "E5_POLYNOMIAL_RANK_HEIGHT": "PASS_FOR_REPEATED_TRIGGERED_STEPS_USING_VARIABLE_OR_CLAUSE_COUNT",
+    "E6_EXACT_TERMINALITY": "NOT_PROVED_FOR_ARBITRARY_RESIDUAL_3CNF"
+  },
+  "sources": [
+    "Oliver Kullmann and Xishun Zhao, Bounds for variables with few occurrences in conjunctive normal forms, Theorem 10.2, Conjecture 10.3, Lemma 10.6, Lemma 10.8, Theorem 10.9",
+    "Oliver Kullmann, Constraint Satisfaction Problems in Clausal Form I: Autarkies and Deficiency, matching satisfiability and bounded maximal-deficiency construction, especially Corollaries 4.9, 4.10, 4.21"
+  ],
+  "hard_firewalls": [
+    "WIDTH3_MLCR_WITNESS_THEOREM != P_EQUALS_NP",
+    "CONDITIONAL_POLYTIME_AUTARKY_STEP != UNIVERSAL_3SAT_DESCENT",
+    "MLCR_IS_SAT_THEOREM != SAT_ORACLE",
+    "BOUNDED_MAXIMAL_DEFICIENCY_CONSTRUCTION != GENERAL_SAT_ALGORITHM",
+    "TRUMP_finished=false",
+    "SAT_IN_P=NOT_PROVED",
+    "P_VS_NP=OPEN"
+  ],
+  "next_admissible_math": {
+    "question": "After exhausting matching-autarky, BCE and the now proof-carrying width-3 surplus/degree autarky step, can every nonterminal residual 3CNF be forced into another exact polynomial descent condition, or can an explicit infinite residual family be proved to survive the combined closure?",
+    "allowed_outcomes": [
+      "PROVE_NEXT_EXACT_POLYNOMIAL_DESCENT_LEMMA",
+      "PROVE_INFINITE_COMBINED_FIXED_POINT_OBSTRUCTION"
+    ]
+  },
+  "TRUMP_finished": false,
+  "SAT_IN_P": "NOT_PROVED",
+  "P_EQUALS_NP": "NOT_PROVED",
+  "P_VS_NP": "OPEN"
+}
