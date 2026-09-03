@@ -4,6 +4,7 @@ on:
   pull_request:
     paths:
       - 'research/JANUS_TRUMP_R44X_SIGNED_PAIR_INTERACTION_COUNTEREXAMPLE_2026-09-03.json'
+      - 'research/JANUS_TRUMP_R44X_SIGNED_PAIR_INTERACTION_COUNTEREXAMPLE_SEAL_2026-09-03.json'
       - 'research/janus_trump_r44x_verify_signed_pair_interaction_counterexample.py'
       - 'research/TRUMP_LEGEND_SEAL_UNIVERSAL_PROOF_CARRYING_DECOMPOSITION_CONTRACT_2026-09-03.json'
       - '.github/workflows/janus-trump-r44x-signed-pair-interaction-counterexample.yml'
@@ -23,13 +24,14 @@ jobs:
           python-version: '3.12'
       - name: Replay exact signed-pair collision
         run: python research/janus_trump_r44x_verify_signed_pair_interaction_counterexample.py > /tmp/r44x.json
-      - name: Enforce theorem boundary and Legend target
+      - name: Enforce theorem boundary, Legend target, and sealed first-pass receipt
         run: |
           python - <<'PY'
           import json
           from pathlib import Path
           r=json.loads(Path('/tmp/r44x.json').read_text())
           legend=json.loads(Path('research/TRUMP_LEGEND_SEAL_UNIVERSAL_PROOF_CARRYING_DECOMPOSITION_CONTRACT_2026-09-03.json').read_text())
+          seal=json.loads(Path('research/JANUS_TRUMP_R44X_SIGNED_PAIR_INTERACTION_COUNTEREXAMPLE_SEAL_2026-09-03.json').read_text())
           assert r['status']=='EXPLICIT_SIGNED_PAIR_COLLISION_VERIFIED'
           assert r['shared_n']==4 and r['shared_m']==10
           assert r['sat_status']=='SAT'
@@ -42,7 +44,14 @@ jobs:
           assert len(legend['required_obligations'])==6
           assert legend['TRUMP_finished'] is False
           assert legend['P_VS_NP']=='OPEN'
-          print('R44X SIGNED-PAIR COUNTEREXAMPLE + LEGEND TARGET PASS')
+          assert seal['status']=='SEALED_FROM_SUCCESSFUL_GITHUB_ACTIONS_REPLAY'
+          assert seal['workflow_run']==33701703939
+          assert seal['workflow_conclusion']=='success'
+          assert seal['artifact_id']==9873742901
+          assert seal['artifact_zip_sha256']=='4eb9a8fb7d4e55a34353224499ea0c47a679040e46dbe4bd08bcbb15fe7c0cd6'
+          assert seal['verified_verdict']==r['status']
+          assert seal['P_VS_NP']=='OPEN'
+          print('R44X SEALED FRESH-REPLAY PASS')
           PY
       - name: Upload replay receipt
         uses: actions/upload-artifact@v4
