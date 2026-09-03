@@ -1,0 +1,67 @@
+name: JANUS TRUMP R47A6 Unit Gap Near Obstruction Closure
+
+on:
+  push:
+    branches:
+      - research/r47a6-unit-gap-near-obstruction-closure-2026-09-03
+  pull_request:
+    branches:
+      - research/r47a5-post-subsumption-descent-structural-theorem-or-counterexample-2026-09-03
+
+jobs:
+  r47a6-unit-gap:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Verify frozen preregistration
+        run: |
+          python - <<'PY'
+          import json, subprocess
+          parent='f6a6799c27c9221375d25e943dd93db7e63ddda4'
+          subprocess.run(['git','merge-base','--is-ancestor',parent,'HEAD'], check=True)
+          p='research/JANUS_TRUMP_R47A6_UNIT_GAP_NEAR_OBSTRUCTION_CLOSURE_PREREGISTRATION_2026-09-03.json'
+          d=json.load(open(p))
+          assert d['status']=='FROZEN_BEFORE_EXECUTION'
+          assert d['parent']['commit']==parent
+          assert d['epistemic_firewall']['DIRECT_POST_SUBSUMPTION_DP_UNIVERSAL']=='NOT_PROVED'
+          assert d['epistemic_firewall']['R47A_UNIVERSAL_COVERAGE']=='OPEN'
+          assert d['epistemic_firewall']['SAT_IN_P']=='NOT_PROVED'
+          assert d['epistemic_firewall']['P_VS_NP']=='OPEN'
+          assert d['epistemic_firewall']['TRUMP_finished'] is False
+          PY
+      - name: Compile
+        run: python -m py_compile experiments/janus_trump_r47a6_unit_gap_near_obstruction_closure.py
+      - name: Execute deterministic two-hop closure
+        run: |
+          PYTHONPATH=experiments python experiments/janus_trump_r47a6_unit_gap_near_obstruction_closure.py | tee /tmp/r47a6.json
+          python - <<'PY'
+          import json
+          d=json.load(open('/tmp/r47a6.json'))
+          assert d['gate']=='JANUS_TRUMP_R47A6_UNIT_GAP_NEAR_OBSTRUCTION_CLOSURE'
+          assert d['seed']['score'][0] == 1
+          assert d['verdict'] in {
+              'EXPLICIT_DIRECT_DP_COUNTEREXAMPLE_FOUND',
+              'UNIT_GAP_SURVIVES_DETERMINISTIC_TWO_HOP_CLOSURE__UNIVERSAL_OPEN',
+          }
+          assert d['interpretation']['deterministic_bounded_neighborhood_only'] is True
+          assert d['interpretation']['universal_theorem_elevation_allowed'] is False
+          assert d['firewall']['DIRECT_POST_SUBSUMPTION_DP_UNIVERSAL']=='NOT_PROVED'
+          assert d['firewall']['R47A_UNIVERSAL_COVERAGE']=='OPEN'
+          assert d['firewall']['SAT_IN_P']=='NOT_PROVED'
+          assert d['firewall']['P_VS_NP']=='OPEN'
+          if d['verdict']=='EXPLICIT_DIRECT_DP_COUNTEREXAMPLE_FOUND':
+              assert d['counterexample'] is not None
+              assert all(r['g_v'] <= 0 for r in d['counterexample']['rows'])
+              assert d['counterexample']['RUP_independent_replay_pass'] is True
+          print('R47A6_GATE=PASS')
+          print('R47A6_VERDICT=', d['verdict'])
+          print('BEST_SCORE=', d['best']['score'])
+          print('BEST_GAIN_VECTOR=', d['best']['gain_vector'])
+          print('STATS=', json.dumps(d['stats'], sort_keys=True))
+          PY
