@@ -1,0 +1,60 @@
+{
+  "id": "JANUS_TRUMP_R44CA_JOINT_BINARY_BLOCK_RECOVERY_GLOBAL_TRANSPORT_2026-09-03",
+  "status": "NEW_EXACT_POLYTIME_GLOBAL_TRANSPORT_DISCOVERY_PRIMITIVE",
+  "parent": "R44BZ_GRID_ORBIT_COUPLED_UNBOUNDED_TREEWIDTH",
+  "target": "HIGH_TREEWIDTH_CONGRUENCE_RIGID_GLOBAL_GENERATOR_RECOVERY",
+  "joint_invariant": {
+    "name": "JOINT_BINARY_BLOCK_GRAPH",
+    "definition": "Graph on sibling variables with an edge {u,v} whenever u,v occur together in a binary clause of either sibling A or B.",
+    "base_block": "For R44AS siblings, A contributes edges 3-4 and 1-4; B contributes 5-6 and 3-6. Their union is the connected path 1-4-3-6-5.",
+    "connector_effect": "R44BZ connector clauses all have width 3, so they contribute no joint-binary edges.",
+    "consequence": "Connected components of the raw joint-binary graph are exactly the five-variable R44AS blocks. The hidden block partition is recovered in polynomial time."
+  },
+  "local_transport_theorem": {
+    "candidate_space_per_block": "5! * 2^5 = 3840 signed permutations",
+    "valid_B_to_A_local_transports": 2,
+    "discovery": "Enumerate the constant candidate space independently in each recovered block and retain only exact clause-subsumption transports."
+  },
+  "synchronization_theorem": {
+    "edge_gadget": "The 12-clause pi-orbit connector between adjacent recovered blocks.",
+    "finite_relation": "Among the 2 x 2 pairs of locally valid B->A transports, exactly one pair preserves the connector clause set under the transport check: (pi,pi), where pi={1:-3,3:-5,4:6,5:-1,6:-4} in local coordinates.",
+    "global_effect": "Because the recovered block graph is connected, edge consistency propagates pi to every block. No bounded-support enumeration is required."
+  },
+  "algorithm": [
+    "BUILD_JOINT_BINARY_GRAPH_FROM_A_AND_B",
+    "TAKE_CONNECTED_COMPONENTS_AS_BLOCKS",
+    "ENUMERATE_CONSTANT_SIGNED_TRANSPORT_DOMAIN_PER_BLOCK",
+    "BUILD_EDGE_COMPATIBILITY_RELATIONS_FROM_CROSS_BLOCK_CLAUSES",
+    "PROPAGATE_THE_UNIQUE_COMPATIBLE_LOCAL_MAP_OVER_CONNECTED_BLOCK_GRAPH",
+    "VERIFY_GLOBAL_TRANSPORT_ON_ALL_CLAUSES",
+    "SAFE_DELETE_SOURCE_SIBLING_AND_RETAIN_TARGET_CHILD"
+  ],
+  "complexity": {
+    "block_recovery": "O(S) to polynomial in encoded sibling size using binary-clause hashing/graph components",
+    "local_domains": "3840 candidates per five-variable block, hence O(number_of_blocks * poly(S)) with constant factor",
+    "edge_checks": "constant 2x2 local-domain relation per block edge after local filtering; polynomial overall",
+    "global_verification": "polynomial",
+    "end_to_end": "polynomial in the raw R44BZ sibling encoding"
+  },
+  "rank_and_replay": {
+    "parent_rank": "27r^2-24r-1",
+    "retained_child_rank": "25r^2-24r",
+    "strict_drop": "2r^2-1",
+    "model_lift": "The discovered global signed transport directly maps a deleted-sibling model into a retained-sibling model; retained model lifts to parent by setting the shared pivot to the retained branch value."
+  },
+  "new_laws": [
+    "INDIVIDUAL_CONGRUENCE_RIGID != JOINT_SIBLING_STRUCTURE_RIGID",
+    "UNBOUNDED_RAW_SUPPORT != EXPONENTIAL_DISCOVERY",
+    "HIGH_TREEWIDTH != TRANSPORT_DISCOVERY_HARDNESS",
+    "GLOBAL_GENERATOR_CAN_BE_RECOVERED_BY_LOCAL_DOMAIN_SYNCHRONIZATION"
+  ],
+  "scope_firewalls": [
+    "R44CA_SOLVES_R44BZ_FAMILY != UNIVERSAL_CRITICAL_SIBLING_COVERAGE",
+    "CONSTANT_LOCAL_DOMAIN_SYNCHRONIZATION != GENERAL_GRAPH_ISOMORPHISM_SOLVER",
+    "POLYTIME_GLOBAL_TRANSPORT_ON_THIS_FAMILY != P_EQUALS_NP",
+    "TRUMP_finished=false",
+    "SAT_IN_P=NOT_PROVED",
+    "P_VS_NP=OPEN"
+  ],
+  "next_exact_question": "Construct a growing maxdef-critical both-nonterminal family in which individual siblings are congruence-rigid and the JOINT binary block graph no longer exposes a constant-size block decomposition with a uniquely synchronizing transport domain, or prove a broader polynomial joint-structure recovery theorem."
+}
