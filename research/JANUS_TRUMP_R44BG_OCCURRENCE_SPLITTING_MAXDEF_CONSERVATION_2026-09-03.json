@@ -1,0 +1,50 @@
+{
+  "id": "JANUS_TRUMP_R44BG_OCCURRENCE_SPLITTING_MAXDEF_CONSERVATION_2026-09-03",
+  "status": "EXACT_MAXDEF_CONSERVATION_BARRIER_FOR_OCCURRENCE_SPLITTING__SCOPE_REPAIRED",
+  "parent": "R44BF_PRIVATE_FORCED_AUX_MAXDEF_CONSERVATION",
+  "transform": {
+    "name": "POLARITY_AWARE_LITERAL_OCCURRENCE_SPLITTING",
+    "definition": [
+      "For every literal occurrence e of variable x in a main clause, introduce a private occurrence variable y_e and replace that literal occurrence by y_e with the same polarity.",
+      "If the original occurrence is positive x, add link clause (not y_e OR x), i.e. y_e -> x.",
+      "If the original occurrence is negative not-x, add link clause (not x OR y_e), i.e. x -> y_e."
+    ],
+    "semantic_status": "After existentially quantifying all occurrence variables y_e, the transformed CNF is exactly equivalent to the original CNF as a Boolean function of the master variables.",
+    "degree_scope": "Each occurrence variable y_e has degree 2 and main clauses no longer directly reuse the master variable across occurrences. However a master variable of original degree d appears in exactly d link clauses, so the standard total/master occurrence degree and formula maximum variable degree are NOT reduced in general."
+  },
+  "semantic_proof": [
+    "Fix any assignment alpha to master variables.",
+    "If an original positive literal x is false, link y_e->x forces y_e=0, so the replacement literal is false; if x is true, y_e may be chosen true when needed.",
+    "If an original negative literal not-x is false, then x=1 and link x->y_e forces y_e=1, so replacement not-y_e is false; if not-x is true, y_e may be chosen false when needed.",
+    "Therefore an original clause is satisfiable under alpha exactly when its occurrence-split main clause has an extension to its occurrence variables satisfying all corresponding links.",
+    "Hence exists_y T_split(F)(alpha,y) iff F(alpha)."
+  ],
+  "maxdef_theorem": {
+    "statement": "delta*(T_split(F)) = delta*(F) for every normalized CNF F.",
+    "proof": [
+      "For an arbitrary selected sub-clause-set Q of T_split(F), let A be the selected transformed main clauses and L the selected occurrence-link clauses.",
+      "Let U be all occurrence indices belonging to selected main clauses A. Selected occurrence variables are exactly U union L. Selected master variables are exactly Var(L), the original variables having at least one selected link.",
+      "Thus deficiency(Q)=|A|+|L|-|U union L|-|Var(L)| = |A|-|U minus L|-|Var(L)|.",
+      "For every original variable appearing in A, either at least one of its A-occurrences has a selected link, putting that variable in Var(L), or none does, in which case at least one distinct occurrence is counted in U minus L. Therefore |Var(L)|+|U minus L| >= |Var(A)|.",
+      "Hence deficiency(Q) <= |A|-|Var(A)| <= delta*(F).",
+      "For the reverse inequality choose an original sub-clause-set A0 attaining delta*(F), select its transformed main clauses and all links for all occurrences in A0. Then U is contained in L, Var(L)=Var(A0), and deficiency equals |A0|-|Var(A0)|=delta*(F)."
+    ]
+  },
+  "R44BD_effect": {
+    "meaning": "Literal-occurrence splitting separates main-clause occurrences into private degree-2 variables while preserving exact semantics, but it does not lower maximum deficiency.",
+    "selector_application": "Applying occurrence splitting to a selector-guarded OR merge leaves the R44BE additive maximum-deficiency debt unchanged.",
+    "anti_loophole": "Shared masters plus private occurrence copies do not provide free maxdef descent."
+  },
+  "review_repair": "Codex P2 accepted: removed the misleading claim that the transform lowers standard/master occurrence degree; only private occurrence variables and direct main-clause reuse are lowered/separated.",
+  "seals": [
+    "PRIVATE_OCCURRENCE_DEGREE_TWO != LOWER_STANDARD_MAX_VARIABLE_DEGREE",
+    "OCCURRENCE_COPIES != FREE_MATCHING_CREDIT",
+    "EXACT_POLARITY_LINKS_CONSERVE_MAXDEF",
+    "R44BG_BARRIER != BARRIER_FOR_ALL_SHARED_AUXILIARY_GADGETS",
+    "P_VS_NP=OPEN"
+  ],
+  "TRUMP_finished": false,
+  "SAT_IN_P": "NOT_PROVED",
+  "P_EQUALS_NP": "NOT_PROVED",
+  "P_VS_NP": "OPEN"
+}
