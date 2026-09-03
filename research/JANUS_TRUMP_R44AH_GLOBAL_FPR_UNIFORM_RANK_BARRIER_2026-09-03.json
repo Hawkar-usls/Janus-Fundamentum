@@ -2,15 +2,13 @@
   "id": "JANUS_TRUMP_R44AH_GLOBAL_FPR_UNIFORM_RANK_BARRIER_2026-09-03",
   "status": "MATHEMATICAL_ROUTE_BARRIER",
   "parent": "R44AG_GLOBAL_FPC_AFFINE_EXPRESSIVENESS_BARRIER",
-  "target_obligations": [
-    "L1_UNIVERSAL_EXIT",
-    "L2_EXACT_SEMANTICS"
-  ],
+  "target_obligations": ["L1_UNIVERSAL_EXIT"],
+  "exact_semantics_role": "L2 exactness is not independently refuted. Original FPR can remain sound by declining to decide properties outside its expressiveness; the barrier is to universal totality L1 under preserved L2 soundness.",
   "fixed_global_transition_model": {
     "name": "ORIGINAL_FIXED_POINT_LOGIC_WITH_RANK",
     "abbrev": "FPR",
-    "semantics": "Fixed-point logic extended by distinct rank operators rk_p for each prime field F_p, as in the original rank-logic proposal. Every finite formula/program can mention only finitely many such fixed-prime rank operators; no uniform prime-as-input rank operator is available.",
-    "relation_to_R44AG": "FPR strictly strengthens FPC and can express solvability of linear systems over fixed finite fields, so it repairs the specific affine/GF(2) expressiveness gap used in R44AG."
+    "semantics": "Fixed-point logic with distinct rank operators rk_p for each fixed prime field. Every finite formula can mention only finitely many such operators; no input-parametrized uniform-prime rank operator is available.",
+    "relation_to_R44AG": "FPR repairs the fixed-field affine/GF(2) expressiveness gap of FPC."
   },
   "published_theorem": {
     "authors": ["Erich Gradel", "Wied Pakusa"],
@@ -18,59 +16,50 @@
     "journal": "The Journal of Symbolic Logic",
     "published_online": "2019-03-14",
     "earlier_version": "CSL 2015 / arXiv:1503.05423",
-    "statement_used": "Extensions of FPC by rank operators over different prime fields are incomparable. Consequently original FPR, with a separate fixed rank operator for every prime field, fails to capture PTIME. In particular, the uniform rank problem—computing/deciding matrix rank when the finite-field prime is part of the input—is not expressible in original FPR, while it is polynomial-time computable.",
-    "successor_language": "FPR* adds a uniform rank operator taking the prime/field information uniformly and is strictly more expressive than original FPR."
+    "statement_used": "Rank logics over different prime fields are incomparable; original FPR fails to capture PTIME. In particular, the uniform rank problem with the field prime as part of the input is PTIME but not expressible in original FPR.",
+    "successor_language": "FPR* adds a uniform rank operator and is strictly more expressive than original FPR."
   },
   "derived_TRUMP_barrier": {
     "admissible_outcome": "GLOBAL_RANK_EXPRESSIVENESS_BARRIER",
-    "claim": "A universal TRUMP implicit decision/progress semantics exhausted by original FPR cannot discharge L1/L2, even though it restores fixed-field affine solvability absent from FPC.",
+    "claim": "Original FPR cannot discharge universal L1 while preserving exact L2 semantics, despite restoring fixed-field affine solvability.",
     "reason": [
-      "Original FPR can use rank over any prime field named in the finite formula, so it is genuinely stronger than R44AG's FPC model.",
-      "The cited theorem nevertheless separates original FPR from PTIME by the uniform rank problem.",
-      "Therefore fixed-prime rank access is not a universal global invariant language: field-uniform algebraic information remains outside the model.",
-      "A purported universal TRUMP language cannot discard a polynomial-time algebraic operation merely because its field parameter varies with the input."
+      "Original FPR is stronger than FPC and handles fixed-field linear algebra.",
+      "The uniform rank problem is nevertheless outside original FPR while remaining polynomial-time computable.",
+      "A sound original-FPR observer can return OPEN on such inputs, but then it is not universally total.",
+      "Thus fixed-prime rank access is insufficient as a universal global decision language."
     ]
   },
   "dead_zone_mapping": {
     "typed_state": "FIELD_PARAMETER_NOT_UNIFORMLY_EXPRESSIBLE",
     "law": "MANY_FIXED_FIELD_OPERATORS != ONE_UNIFORM_FIELD_PARAMETERIZED_OPERATOR",
-    "meaning": "Having arbitrarily many operators available in the language schema does not mean one finite program can uniformly select unbounded input-dependent field characteristics."
+    "meaning": "Failure to express the input-dependent field parameter must produce OPEN, not an incorrect decision."
   },
   "hard_firewalls": [
+    "L1_BARRIER_UNDER_L2 != L2_SOUNDNESS_FAILURE",
     "FPR_STRONGER_THAN_FPC != FPR_CAPTURES_PTIME",
     "FIXED_PRIME_RANK_ACCESS != UNIFORM_RANK_ACCESS",
     "INFINITE_LANGUAGE_SIGNATURE != INFINITE_OPERATORS_IN_ONE_FINITE_FORMULA",
-    "FPR_BARRIER != FPR_STAR_BARRIER",
+    "FPR_BARRIER != AUTOMATIC_FPR_STAR_BARRIER",
     "FPR_BARRIER != BARRIER_FOR_ARBITRARY_POLYNOMIAL_ALGORITHMS",
     "UNIFORM_RANK_INEXPRESSIBILITY != 3SAT_HARDNESS_RESULT",
     "FPR_BARRIER != P_NE_NP",
     "P_VS_NP=OPEN"
   ],
-  "open_successor_boundary": {
+  "successor_boundary": {
     "model": "FPR_STAR_UNIFORM_RANK",
-    "status": "OPEN_FOR_THIS_TRUMP_AUDIT",
-    "rule": "Do not inherit the original-FPR barrier. FPR* must be evaluated by its own current theorems. Absence of a known barrier in this artifact is not evidence that FPR* captures PTIME or solves 3SAT.",
-    "seal": "FPR_BLOCKED != FPR_STAR_BLOCKED"
+    "historical_status_at_R44AH": "REQUIRED_SEPARATE_AUDIT",
+    "superseded_by": "R44AI_ALL_FIELDS_LINEAR_ALGEBRAIC_LOGIC_BARRIER",
+    "note": "R44AH itself does not transfer its theorem to FPR*. R44AI later supplies an independent broader all-fields linear-algebraic barrier."
   },
   "what_is_not_proved": [
-    "No inexpressibility result for FPR* is claimed here.",
-    "No lower bound is claimed for algorithms with ordinary uniform finite-field linear algebra.",
-    "No claim is made that rank operators are insufficient ingredients for a future stronger language.",
+    "L2 exact semantics is not refuted for partial original-FPR outputs.",
+    "No arbitrary-algorithm runtime lower bound is claimed.",
+    "No direct 3SAT hardness theorem follows.",
     "This does not prove P!=NP."
   ],
   "next_admissible_math": {
-    "question": "What is the strongest currently proved boundary for FPR* or another precisely fixed uniform-rank global model, and does that boundary yield a theorem-level obstacle to L1/L2/L3? If no such theorem is known, record OPEN rather than inventing a barrier.",
-    "allowed_outcomes": [
-      "PROVE_OR_IMPORT_FPR_STAR_BARRIER",
-      "PROVE_RELEVANT_POLYNOMIAL_EXACT_CAPABILITY",
-      "OPEN_NO_KNOWN_THEOREM"
-    ],
-    "forbidden": [
-      "transferring FPR lower bounds to FPR* without proof",
-      "treating open expressiveness as success",
-      "heuristic tests",
-      "benchmark authority"
-    ]
+    "status": "SUPERSEDED_BY_R44AI",
+    "rule": "Use the independently proved broader all-finite-fields linear-algebraic barrier rather than extrapolating from original FPR."
   },
   "theorem_authority_source": "PUBLISHED_UNCONDITIONAL_INEXPRESSIBILITY_THEOREM_NOT_BENCHMARK_NOT_CI",
   "TRUMP_finished": false,
