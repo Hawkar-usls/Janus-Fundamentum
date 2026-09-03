@@ -1,0 +1,82 @@
+name: JANUS TRUMP R47N R47M Joint Stack Closure One Swap Falsifier
+
+on:
+  push:
+    branches:
+      - research/r47n-r47m-joint-stack-closure-one-swap-falsifier-2026-09-03
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  r47n-falsifier:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 180
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Verify frozen preregistration and parent
+        run: |
+          python - <<'PY'
+          import json, subprocess
+          parent='21dca51ba53de98b3e77f53c8a7fd9ecc4c07c02'
+          subprocess.run(['git','merge-base','--is-ancestor',parent,'HEAD'], check=True)
+          d=json.load(open('research/JANUS_TRUMP_R47N_R47M_JOINT_STACK_CLOSURE_ONE_SWAP_FALSIFIER_PREREGISTRATION_2026-09-03.json'))
+          assert d['status']=='FROZEN_BEFORE_EXECUTION'
+          assert d['parent']['commit']==parent
+          assert d['sealed_start_witness']['R47K_residual_hash']=='9a84c02f1570e752ac0c017037b8a4a40c2599b53faf51bcd6d957f40aa81dde'
+          assert d['sealed_start_witness']['R47M_accepted_pivots']==[20]
+          assert d['target_grammar']['new_inference_rule'] is False
+          assert d['target_grammar']['new_proof_authority'] is False
+          assert d['epistemic_firewall']['O4_UNIVERSAL_COVERAGE_FOR_R47M']=='OPEN'
+          assert d['epistemic_firewall']['SAT_IN_P']=='NOT_PROVED'
+          assert d['epistemic_firewall']['P_VS_NP']=='OPEN'
+          assert d['epistemic_firewall']['TRUMP_finished'] is False
+          PY
+      - name: Compile
+        run: python -m py_compile experiments/janus_trump_r47n_r47m_joint_stack_closure_one_swap_falsifier.py
+      - name: Execute frozen reachable falsifier
+        run: |
+          mkdir -p artifacts
+          PYTHONPATH=experiments python experiments/janus_trump_r47n_r47m_joint_stack_closure_one_swap_falsifier.py \
+            --output artifacts/JANUS_TRUMP_R47N_R47M_JOINT_STACK_CLOSURE_ONE_SWAP_FALSIFIER_RESULT_2026-09-03.json \
+            | tee /tmp/r47n-summary.json
+          python - <<'PY'
+          import json
+          d=json.load(open('artifacts/JANUS_TRUMP_R47N_R47M_JOINT_STACK_CLOSURE_ONE_SWAP_FALSIFIER_RESULT_2026-09-03.json'))
+          assert d['gate']=='JANUS_TRUMP_R47N_R47M_JOINT_STACK_CLOSURE_ONE_SWAP_FALSIFIER'
+          assert d['regression']['R47J_accepted_pivots']==[]
+          assert d['regression']['R47M_first_accepted_pivot']==20
+          assert d['regression']['R47M_first_accepted_final_CLV']==[76,209,20]
+          assert d['verdict'] in {
+              'EXPLICIT_REACHABLE_COUNTEREXAMPLE_TO_R47M_JOINT_EXISTING_STACK_CLOSURE_FOUND',
+              'NO_COUNTEREXAMPLE_IN_FROZEN_R47K_CENTERED_ONE_SWAP_FRONTIER__R47M_O4_STILL_OPEN',
+          }
+          assert d['interpretation']['no_counterexample_does_not_prove_O4'] is True
+          assert d['interpretation']['depth3_or_unbounded_DP_authorized'] is False
+          assert d['firewall']['O4_UNIVERSAL_COVERAGE_FOR_R47M']=='OPEN'
+          assert d['firewall']['SAT_IN_P']=='NOT_PROVED'
+          assert d['firewall']['P_VS_NP']=='OPEN'
+          if d['first_counterexample'] is not None:
+              assert d['metrics']['R47M_macro_dead_fixpoints'] >= 1
+              assert all(not row.get('accepted',False) for row in d['first_counterexample']['all_R47M_macro_rows'])
+          print('R47N_GATE=PASS')
+          print('R47N_VERDICT=', d['verdict'])
+          print('R47N_METRICS=', json.dumps(d['metrics'], sort_keys=True))
+          if d['first_counterexample'] is not None:
+              c=d['first_counterexample']
+              print('R47N_COUNTEREXAMPLE=', json.dumps({k:c[k] for k in ('frontier_ordinal','phase','source_clause','replacement_clause','mutated_original_hash','fixpoint_hash','fixpoint_CLV')}, sort_keys=True))
+          PY
+      - name: Upload full frozen result
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: JANUS_TRUMP_R47N_R47M_JOINT_STACK_CLOSURE_ONE_SWAP_FALSIFIER_RESULT
+          path: artifacts/JANUS_TRUMP_R47N_R47M_JOINT_STACK_CLOSURE_ONE_SWAP_FALSIFIER_RESULT_2026-09-03.json
+          if-no-files-found: error
+          retention-days: 90
