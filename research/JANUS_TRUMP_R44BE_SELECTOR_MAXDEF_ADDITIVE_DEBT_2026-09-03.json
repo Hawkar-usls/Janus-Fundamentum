@@ -1,0 +1,53 @@
+{
+  "id": "JANUS_TRUMP_R44BE_SELECTOR_MAXDEF_ADDITIVE_DEBT_2026-09-03",
+  "status": "EXACT_MAXDEF_BARRIER_FOR_DISJOINT_SELECTOR_OR_MERGE__OVERLAP_NOTATION_REPAIRED",
+  "parent": "R44BD_MAXDEF_DESCENT_PRESERVING_OR_MERGE_INTERFACE",
+  "candidate": {
+    "name": "DISJOINT_COPY_SELECTOR_OR_MERGE",
+    "definition": "Rename the variables of A and B to disjoint copies A# and B#. Introduce a fresh selector s and output {s OR C : C in A#} union {not s OR D : D in B#}.",
+    "exact_sat_semantics": "SAT(M)=SAT(A) OR SAT(B). Disjoint renaming is valid because SAT-OR does not require the two branches to share an assignment."
+  },
+  "theorem": {
+    "statement": "If delta*(A)=a>=1 and delta*(B)=b>=1, then delta*(M)=a+b-1.",
+    "proof": [
+      "Take any nonempty clause subset Q of M and split it into guarded A-part QA and guarded B-part QB.",
+      "If only QA is nonempty, every clause contains selector s, so deficiency(Q)=deficiency(QA_un_guarded)-1 <= a-1; symmetrically for B.",
+      "If both parts are nonempty, the renamed branch variable sets are disjoint and s is the only shared variable. Hence deficiency(Q)=deficiency(QA_un_guarded)+deficiency(QB_un_guarded)-1 <= a+b-1.",
+      "Because a,b>=1, there are nonempty sub-clause-sets A0,B0 attaining maximum deficiencies a,b. Taking both guarded copies gives deficiency exactly a+b-1.",
+      "Therefore maximum deficiency is exactly a+b-1."
+    ]
+  },
+  "R44BD_effect": {
+    "children": "If both normalized children have maximum deficiency exactly k-1>=1, the selector merge has maximum deficiency 2k-3.",
+    "rank_comparison": "For k>=3, 2k-3 > k-1, so the merge fails R44BD obligation M2 delta*(M)<=k-1.",
+    "best_case_note": "Renaming branch variables apart removes the additional semantic-variable overlap term. Thus this barrier already holds in the selector construction's maxdef-friendliest disjoint-copy form.",
+    "k2_boundary": "For k=2 and a=b=1 the formula gives delta*(M)=1, so this theorem does not block that special layer."
+  },
+  "overlap_extension": {
+    "notation": "Let A' and B' denote the UNGUARDED branch sub-clause-sets selected by a mixed guarded subset Q.",
+    "identity": "Without disjoint renaming, deficiency(Q)=delta(A')+delta(B')-1+|Var(A') intersect Var(B')|.",
+    "equivalent_guarded_warning": "Do not write the same -1 formula using delta(QA),delta(QB) for the already-guarded parts: each guarded deficiency already counts selector s.",
+    "meaning": "Shared semantic variables can only increase mixed-subset deficiency relative to the disjoint-copy baseline."
+  },
+  "review_repair": "Codex P2 fixed: overlap identity now explicitly uses unguarded subsets and no longer double-counts selector adjustment.",
+  "seals": [
+    "EXACT_SELECTOR_OR != MAXDEF_DESCENT",
+    "DISJOINT_BRANCH_COPIES_REMOVE_OVERLAP_BUT_NOT_ADDITIVE_DEFICIENCY_DEBT",
+    "BRANCH_RANKS_ADD_UNDER_SELECTOR_GUARDING",
+    "R44BE_BARRIER != BARRIER_FOR_ALL_OR_MERGES",
+    "K_EQUALS_2_SPECIAL_CASE_NOT_REFUTED_BY_THIS_THEOREM",
+    "P_VS_NP=OPEN"
+  ],
+  "legend_ledger": {
+    "M1_EXACT_SAT_OR": "PASS_FOR_SELECTOR_MERGE",
+    "M2_MAXDEF_DESCENT": "FAIL_FOR_EQUAL_CHILD_RANK_k_MINUS_1_WHEN_k_GE_3",
+    "M3_POLY_CONSTRUCTION": "PASS",
+    "M4_POLY_STATE": "PASS_FOR_ONE_MERGE",
+    "M5_CERTIFICATE_LIFTING": "NOT_NEEDED_AFTER_M2_FAILURE",
+    "M6_CLOSURE": "NOT_NEEDED_AFTER_M2_FAILURE"
+  },
+  "TRUMP_finished": false,
+  "SAT_IN_P": "NOT_PROVED",
+  "P_EQUALS_NP": "NOT_PROVED",
+  "P_VS_NP": "OPEN"
+}
