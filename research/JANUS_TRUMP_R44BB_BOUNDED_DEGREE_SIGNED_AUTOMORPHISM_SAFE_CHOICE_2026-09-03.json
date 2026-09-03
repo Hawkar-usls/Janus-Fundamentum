@@ -1,0 +1,86 @@
+{
+  "id": "JANUS_TRUMP_R44BB_BOUNDED_DEGREE_SIGNED_AUTOMORPHISM_SAFE_CHOICE_2026-09-03",
+  "status": "NEW_EXACT_POLYTIME_SAFE_CHOICE_PRIMITIVE_ON_BOUNDED_DEGREE_RIGID_CORE__NOT_UNIVERSAL",
+  "parent": "R44BA_LOW_SURPLUS_EXACT_STEP_COVERAGE",
+  "candidate_invariant": {
+    "name": "POLARITY_REVERSING_VARIABLE_STABILIZER_IN_SIGNED_AUTOMORPHISM_GROUP",
+    "trigger": "There exists a formula automorphism g that fixes some variable x as an identity but swaps the two literals x and not-x; g may nontrivially permute and/or sign-transform other variables.",
+    "strict_extension_over_R44AW": "R44AW only allowed pure GF(2)^n sign translations fixing every variable identity. R44BB permits a signed permutation of the other variable identities."
+  },
+  "general_exact_theorem": {
+    "statement": "If such an automorphism exists for variable x, then SAT(F) iff SAT(F[x=0]).",
+    "proof": [
+      "The reverse implication is immediate because every model of F[x=0] extends to a model of F.",
+      "If F is SAT and a model alpha already has alpha(x)=0, it witnesses F[x=0].",
+      "If alpha(x)=1, apply g to alpha. Formula automorphisms map models to models. Since g fixes variable x but reverses its polarity, the transformed model beta has beta(x)=0.",
+      "Therefore every satisfiable F has a model in the x=0 slice and the restriction is satisfiability-equivalent."
+    ],
+    "progress": "At least variable x is assigned and removed by simplification; no branch is retained."
+  },
+  "polynomial_detection_for_bounded_occurrence": {
+    "assumption": "Maximum variable occurrence degree Delta is bounded by a fixed constant D; clause width is at most 3.",
+    "encoding": "Build a colored graph with a variable-center vertex for every variable, two paired literal vertices per variable, and one clause vertex per clause. Connect each center to its two literal vertices and each clause to the literal vertices it contains. Colors distinguish centers, literals, and clauses.",
+    "degree_bound": "The graph has maximum degree at most max(D+1,3).",
+    "algorithm": "For each variable x, individualize its center. Test bounded-degree colored-graph isomorphism between two copies in which the colors distinguishing x and not-x are swapped. A successful isomorphism is exactly a signed formula automorphism fixing the variable identity and reversing its polarity.",
+    "published_basis": "Eugene M. Luks, Isomorphism of Graphs of Bounded Valence can be Tested in Polynomial Time, JCSS 25(1):42-65, 1982, DOI 10.1016/0022-0000(82)90009-5.",
+    "complexity": "Polynomial in the formula size for every fixed D."
+  },
+  "exact_finite_witness": {
+    "n": 15,
+    "m": 34,
+    "maximum_clause_width": 3,
+    "clauses": [
+      [-1,-2,3],[-1,-4,5],[-1,6,-7],[1,-8,-9],[1,-10,11],[1,12,-13],[-1,14,15],
+      [2,4,6],[2,5,-7],[2,-8,-10],[2,9,11],[2,-12,14],[-2,13,-15],
+      [3,4,-7],[-3,-5,-6],[-3,-8,-11],[-3,9,-10],[3,-12,-15],
+      [-4,8,-12],[4,9,13],[4,10,-14],[4,11,15],[5,8,-13],[-5,-9,12],[-5,-10,15],[-5,11,14],
+      [6,-8,14],[6,9,15],[6,-10,12],[-6,-11,13],[-7,8,15],[7,9,-14],[7,10,-13],[-7,11,-12]
+    ],
+    "support_structure": "The supports are the 35 lines of the Steiner triple system PG(3,2) on the 15 nonzero vectors of GF(2)^4, with support {3,13,14} omitted. Hence every two clauses share at most one variable.",
+    "polarity_profiles_pos_neg": {
+      "1":[3,4],"2":[5,2],"3":[3,3],"4":[5,2],"5":[3,4],"6":[5,2],"7":[2,5],"8":[3,4],"9":[5,2],"10":[2,5],"11":[5,2],"12":[3,4],"13":[3,3],"14":[4,2],"15":[5,2]
+    },
+    "nonexpanding_DP_check": "For every variable p*q>p+q, so R44AT has no legal nonexpanding elimination.",
+    "surplus": 5,
+    "R44BA_check": "sigma=5, so the witness lies outside the low-surplus R44BA hypothesis.",
+    "R44AO_trigger_check": "mu_vd=6 and nM(5)=8, so the surplus/min-degree critical-autarky trigger mu_vd>nM(sigma) does not fire.",
+    "R44AW_check": "Every support contains exactly one signed clause and every variable occurs, so any nonzero pure sign-flip changes the unique clause on at least one unchanged support. Therefore H(F)={0}.",
+    "R44AX_check": "All clauses have width exactly 3, so the explicit binary subformula is empty.",
+    "R44AY_check": "Every 3-variable support occurs once. A single 3-clause has seven satisfying assignments with full affine hull GF(2)^3, so no nontrivial local affine equation is extracted.",
+    "R44AZ_check": "The formula is linear. After fixing any one variable, all generated binary clauses originate from clauses sharing that variable and their remaining variable pairs are disjoint; the binary subformula is therefore satisfiable.",
+    "BCE_check": "No clause is blocked on any literal; deterministic verifier checks all resolvents.",
+    "model_count": 126,
+    "model_count_with_x3_0": 63,
+    "signed_automorphism": {
+      "variable_permutation": {"1":5,"2":6,"3":3,"4":9,"5":12,"6":15,"7":10,"8":1,"9":4,"10":7,"11":2,"12":8,"13":13,"14":14,"15":11},
+      "polarity_reversal_variables": [3],
+      "property": "Applying this signed permutation maps the 34-clause set exactly to itself, fixes variable 3 as an identity, and swaps literals 3 and -3."
+    },
+    "safe_transition": "F -> F[x3=0] is exact and removes one semantic variable without branching."
+  },
+  "scope_boundary": {
+    "not_universal_reason": "Bounded-degree formulas with no polarity-reversing variable stabilizer exist; the rule returns OPEN on them. For example, any all-positive asymmetric 3CNF has no automorphism mapping a positive literal of a fixed variable to its absent negative literal.",
+    "important": "The theorem is a conditional safe-choice primitive, not a universal branch chooser and not a graph-isomorphism solution of SAT."
+  },
+  "legend_ledger": {
+    "E1_EXACTNESS": "PASS_ON_TRIGGER",
+    "E2_POLYTIME_TRANSITION": "PASS_FOR_FIXED_OCCURRENCE_BOUND_D",
+    "E3_POLYNOMIAL_LIVE_STATE": "PASS",
+    "E4_UNIVERSAL_STRICT_DESCENT": "FAIL__TRIGGER_NOT_UNIVERSAL",
+    "E5_POLYNOMIAL_RANK_HEIGHT": "PASS_FOR_EACH_TRIGGERED_VARIABLE_ASSIGNMENT",
+    "E6_EXACT_TERMINALITY": "NOT_ESTABLISHED"
+  },
+  "seals": [
+    "SIGNED_PERMUTATION_SYMMETRY != PURE_SIGN_TRANSLATION",
+    "POLARITY_REVERSING_STABILIZER => EXACT_SAFE_CHOICE",
+    "BOUNDED_DEGREE_GRAPH_AUTOMORPHISM != SAT_ORACLE",
+    "SYMMETRY_ABSENCE != SAT",
+    "SYMMETRY_ABSENCE != UNSAT",
+    "PARTIAL_EXACT_DESCENT != UNIVERSAL_DESCENT",
+    "P_VS_NP=OPEN"
+  ],
+  "TRUMP_finished": false,
+  "SAT_IN_P": "NOT_PROVED",
+  "P_EQUALS_NP": "NOT_PROVED",
+  "P_VS_NP": "OPEN"
+}
