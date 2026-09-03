@@ -1,0 +1,69 @@
+name: JANUS TRUMP R47P2 R47N Depth2 Joint Stack Composition
+
+on:
+  push:
+    branches:
+      - research/r47p2-r47n-depth2-joint-stack-composition-2026-09-03
+  pull_request:
+    branches:
+      - research/r47n-r47m-joint-stack-closure-one-swap-falsifier-2026-09-03
+
+permissions:
+  contents: read
+
+jobs:
+  r47p2-depth2-joint:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Verify frozen preregistration
+        run: |
+          python - <<'PY'
+          import json
+          d=json.load(open('research/JANUS_TRUMP_R47P2_R47N_DEPTH2_JOINT_STACK_COMPOSITION_PREREGISTRATION_2026-09-03.json'))
+          assert d['status']=='FROZEN_BEFORE_EXECUTION'
+          assert d['grammar']['depth']==2
+          assert d['resource']['polynomial'] is True
+          assert d['epistemic_firewall']['UNIVERSAL_CONSTANT_K_EXISTS']=='NOT_PROVED'
+          assert d['epistemic_firewall']['O4_UNIVERSAL_COVERAGE']=='OPEN'
+          assert d['epistemic_firewall']['SAT_IN_P']=='NOT_PROVED'
+          assert d['epistemic_firewall']['P_VS_NP']=='OPEN'
+          PY
+      - name: Compile
+        run: python -m py_compile experiments/janus_trump_r47p2_r47n_depth2_joint_stack_composition.py
+      - name: Execute frozen depth2 joint-stack test
+        run: |
+          mkdir -p artifacts
+          PYTHONPATH=experiments python experiments/janus_trump_r47p2_r47n_depth2_joint_stack_composition.py --output artifacts/JANUS_TRUMP_R47P2_R47N_DEPTH2_JOINT_STACK_COMPOSITION_RESULT_2026-09-03.json | tee /tmp/r47p2-summary.json
+          python - <<'PY'
+          import json
+          d=json.load(open('artifacts/JANUS_TRUMP_R47P2_R47N_DEPTH2_JOINT_STACK_COMPOSITION_RESULT_2026-09-03.json'))
+          assert d['gate']=='JANUS_TRUMP_R47P2_R47N_DEPTH2_JOINT_STACK_COMPOSITION'
+          assert d['verdict'] in {'R47N_RESCUED_BY_CERTIFIED_DEPTH2_JOINT_EXISTING_STACK_COMPOSITION','R47N_SURVIVES_ALL_CERTIFIED_DEPTH2_JOINT_EXISTING_STACK_COMPOSITIONS__JOINT_D_F_GT_2'}
+          assert d['R47N']['fixpoint_hash']=='eb653802ae710e5770e21878b5b38b2871cf0db16451b04cfc5451ca2c2e7502'
+          assert d['R47N']['fixpoint_CLV']==[76,203,22]
+          assert d['R47N']['joint_depth1_accepted_pivots']==[]
+          assert d['resource_envelope']['fixed_depth']==2 and d['resource_envelope']['polynomial'] is True
+          assert d['epistemic_firewall']['O4_UNIVERSAL_COVERAGE']=='OPEN'
+          assert d['epistemic_firewall']['SAT_IN_P']=='NOT_PROVED'
+          assert d['epistemic_firewall']['P_VS_NP']=='OPEN'
+          print('R47P2_GATE=PASS')
+          print('R47P2_VERDICT=',d['verdict'])
+          print('R47P2_TESTED_PAIRS=',d['tested_ordered_pairs_until_stop'])
+          print('R47P2_DEPTH=',d['certified_depth_statement'])
+          print('R47P2_FIRST=',json.dumps(d['first_accepted_pair'],sort_keys=True))
+          print('R47P2_BEST_FAIL=',json.dumps(d['best_failure_if_none'],sort_keys=True))
+          PY
+      - name: Upload full frozen result
+        uses: actions/upload-artifact@v4
+        with:
+          name: JANUS_TRUMP_R47P2_R47N_DEPTH2_JOINT_STACK_COMPOSITION_RESULT
+          path: artifacts/JANUS_TRUMP_R47P2_R47N_DEPTH2_JOINT_STACK_COMPOSITION_RESULT_2026-09-03.json
+          if-no-files-found: error
+          retention-days: 90
