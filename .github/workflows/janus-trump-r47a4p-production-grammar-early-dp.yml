@@ -1,0 +1,39 @@
+name: JANUS TRUMP R47A4P Production Grammar Early DP
+
+on:
+  push:
+    branches:
+      - research/r47a4p-production-grammar-early-dp-2026-09-03
+  workflow_dispatch:
+
+jobs:
+  r47a4p:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Compile
+        run: python -m py_compile experiments/janus_trump_r47a4p_production_grammar_early_dp.py
+      - name: Verify early DP bypass
+        run: |
+          PYTHONPATH=experiments python experiments/janus_trump_r47a4p_production_grammar_early_dp.py | tee /tmp/r47a4p.json
+          python - <<'PY'
+          import json
+          d=json.load(open('/tmp/r47a4p.json'))
+          r=d['result']
+          assert r['route']=='POST_SUBSUMPTION_FIRST_DP_DESCENT'
+          assert r['heavy_R45A_called'] is False
+          assert r['gain'] > 0
+          assert d['firewall']['FIRST_CERTIFIED_DESCENT_UNIVERSAL']=='NOT_PROVED'
+          assert d['firewall']['R47A_UNIVERSAL_COVERAGE']=='OPEN'
+          assert d['firewall']['SAT_IN_P']=='NOT_PROVED'
+          assert d['firewall']['P_VS_NP']=='OPEN'
+          print('R47A4P_GATE=PASS')
+          print('EARLY_ROUTE=', r['route'])
+          print('VARIABLES_CHECKED=', r['variables_checked'])
+          print('HEAVY_R45A_CALLED=', r['heavy_R45A_called'])
+          PY
