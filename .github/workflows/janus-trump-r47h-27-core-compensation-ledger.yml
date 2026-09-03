@@ -1,0 +1,88 @@
+name: JANUS TRUMP R47H 27 Core Compensation Ledger
+
+on:
+  push:
+    branches:
+      - research/r47h-ascent-debt-compensation-ledger-2026-09-03
+  pull_request:
+    branches:
+      - research/r47g-reachable-fixpoint-onset-ladder-2026-09-03
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  r47h-ledger:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 180
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Verify frozen preregistration and firewall
+        run: |
+          python - <<'PY'
+          import json
+          p='research/JANUS_TRUMP_R47H_27_CORE_COMPENSATION_LEDGER_PREREGISTRATION_2026-09-03.json'
+          d=json.load(open(p))
+          assert d['status']=='FROZEN_BEFORE_EXECUTION'
+          assert d['corpus']['required_core_count']==27
+          assert d['corpus']['R47G_onset_witness']['required_fixpoint_hash']=='3130377ee52a6d6abf01f44fdc5f1a96cf83d701e30f70debea26cd347b7a495'
+          assert d['epistemic_firewall']['FINITE_27_CORE_COVERAGE_IMPLIES_O4'] is False
+          assert d['epistemic_firewall']['O4_UNIVERSAL_COVERAGE']=='OPEN'
+          assert d['epistemic_firewall']['SAT_IN_P']=='NOT_PROVED'
+          assert d['epistemic_firewall']['P_EQ_NP']=='NOT_PROVED'
+          assert d['epistemic_firewall']['P_NE_NP']=='NOT_PROVED'
+          assert d['epistemic_firewall']['P_VS_NP']=='OPEN'
+          assert d['epistemic_firewall']['TRUMP_finished'] is False
+          PY
+
+      - name: Compile and self-test
+        run: |
+          python -m py_compile experiments/janus_trump_r47h_27_core_compensation_ledger.py
+          PYTHONPATH=experiments python experiments/janus_trump_r47h_27_core_compensation_ledger.py --self-test
+
+      - name: Execute frozen 27-core compensation ledger
+        run: |
+          mkdir -p artifacts
+          PYTHONPATH=experiments python experiments/janus_trump_r47h_27_core_compensation_ledger.py \
+            --output artifacts/JANUS_TRUMP_R47H_27_CORE_COMPENSATION_LEDGER_RESULT_2026-09-03.json \
+            | tee /tmp/r47h-summary.json
+          python - <<'PY'
+          import json
+          d=json.load(open('artifacts/JANUS_TRUMP_R47H_27_CORE_COMPENSATION_LEDGER_RESULT_2026-09-03.json'))
+          assert d['gate']=='JANUS_TRUMP_R47H_27_CORE_COMPENSATION_LEDGER'
+          assert d['metrics']['core_count']==27
+          assert d['metrics']['invalid_debt_core_count']==0
+          assert d['metrics']['invalid_acceptance_lane_core_count']==0
+          assert d['metrics']['replay_failure_core_count']==0
+          assert d['metrics']['R47G_boundary_var7_pass'] is True
+          assert d['verdict'] in {
+              'ALL_27_REACHABLE_FIXPOINTS_HAVE_CERTIFIED_DEBT_REPAYMENT_OR_TERMINAL_ESCAPE__FINITE_ONLY',
+              'EXPLICIT_REACHABLE_COMPENSATION_DEAD_FIXPOINT_FOUND',
+          }
+          assert d['interpretation']['universal_theorem_elevation_allowed'] is False
+          assert d['firewall']['O4_UNIVERSAL_COVERAGE']=='OPEN'
+          assert d['firewall']['SAT_IN_P']=='NOT_PROVED'
+          assert d['firewall']['P_VS_NP']=='OPEN'
+          print('R47H_GATE=PASS')
+          print('R47H_VERDICT=', d['verdict'])
+          print('R47H_METRICS=', json.dumps(d['metrics'], sort_keys=True))
+          if d['first_uncovered_reachable_fixpoint'] is not None:
+              print('R47H_COUNTEREXAMPLE=', json.dumps(d['first_uncovered_reachable_fixpoint'], sort_keys=True))
+          PY
+
+      - name: Upload full per-pivot ledger
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: JANUS_TRUMP_R47H_27_CORE_COMPENSATION_LEDGER_RESULT
+          path: artifacts/JANUS_TRUMP_R47H_27_CORE_COMPENSATION_LEDGER_RESULT_2026-09-03.json
+          if-no-files-found: error
+          retention-days: 90
