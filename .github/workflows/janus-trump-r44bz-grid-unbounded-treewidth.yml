@@ -1,0 +1,29 @@
+name: JANUS TRUMP R44BZ Grid Orbit Unbounded Treewidth
+
+on:
+  pull_request:
+    branches:
+      - research/r44bx-orbit-coupled-congruence-rigid-unbounded-support-2026-09-03
+    paths:
+      - 'research/JANUS_TRUMP_R44BZ_GRID_ORBIT_COUPLED_UNBOUNDED_TREEWIDTH_2026-09-03.json'
+      - 'research/JANUS_TRUMP_R44BZ_GRID_ORBIT_COUPLED_UNBOUNDED_TREEWIDTH_PROOF_2026-09-03.md'
+      - 'research/janus_trump_r44bz_verify_grid_orbit_family.py'
+      - '.github/workflows/janus-trump-r44bz-grid-unbounded-treewidth.yml'
+  workflow_dispatch:
+
+jobs:
+  exact-grid-family-replay:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout exact head
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Replay exact grid-family premises
+        run: python research/janus_trump_r44bz_verify_grid_orbit_family.py
+      - name: Enforce theorem boundary
+        run: |
+          grep -q 'UNBOUNDED_TREEWIDTH != NP_HARDNESS' research/JANUS_TRUMP_R44BZ_GRID_ORBIT_COUPLED_UNBOUNDED_TREEWIDTH_2026-09-03.json
+          grep -q 'P_VS_NP=OPEN' research/JANUS_TRUMP_R44BZ_GRID_ORBIT_COUPLED_UNBOUNDED_TREEWIDTH_2026-09-03.json
