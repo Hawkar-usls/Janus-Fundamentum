@@ -52,31 +52,34 @@ def cube(k):
     vs = tuple(range(1,k+1))
     return [list(clause_forbid_assignment(vs,b)) for b in itertools.product([False,True],repeat=k)]
 
-# Consume the exact R44C witness, and also verify that the rule is a family rather than a one-off 3-variable patch.
-consumed=[]
-for k in (1,2,3,4):
-    cnf=cube(k)
-    route,res,ledger=dispatch_r44d(cnf)
-    assert res["decision"] == "UNSAT"
-    assert res["verified"] is True
-    consumed.append({"k":k,"clauses":len(cnf),"route":route,"decision":res["decision"],"ledger":ledger})
 
-# Fresh residual: a small mixed-sign 3-CNF chosen outside the explicit complete cube. It is only a search seed;
-# its role is to prove the enlarged finite switchboard still has an OPEN frontier, not to make a complexity claim.
-fresh = [
-    [1,2,3], [1,-2,-3], [-1,2,-3], [-1,-2,3],
-    [1,2,-4], [-1,3,4], [2,-3,4], [-2,3,-4],
-    [1,-3,4], [-1,-2,-4]
-]
-route,res,ledger=dispatch_r44d(fresh)
+def replay():
+    # Consume the exact R44C witness, and verify the rule is a family rather than a one-off patch.
+    consumed=[]
+    for k in (1,2,3,4):
+        cnf=cube(k)
+        route,res,ledger=dispatch_r44d(cnf)
+        assert res["decision"] == "UNSAT"
+        assert res["verified"] is True
+        consumed.append({"k":k,"clauses":len(cnf),"route":route,"decision":res["decision"],"ledger":ledger})
 
-print(json.dumps({
-    "gate_id":"R44D_OBSTRUCTION_CONSUMPTION_AND_FRESH_RESIDUAL_SEARCH",
-    "consumed_family":consumed,
-    "r44c_obstruction_consumed": any(x["k"]==3 and x["decision"]=="UNSAT" for x in consumed),
-    "fresh_probe":{"cnf":fresh,"route":route,"status":"CERTIFIED_ROUTE" if route else "OPEN_OUTSIDE_SWITCHBOARD","ledger":ledger},
-    "universal_totality_proved":False,
-    "U1":"OPEN",
-    "P_VS_NP":"OPEN",
-    "next_gate":"R44E_FRESH_RESIDUAL_MINIMIZATION_AND_MACHINE_INVARIANT_MINING"
-}, sort_keys=True))
+    fresh = [
+        [1,2,3], [1,-2,-3], [-1,2,-3], [-1,-2,3],
+        [1,2,-4], [-1,3,4], [2,-3,4], [-2,3,-4],
+        [1,-3,4], [-1,-2,-4]
+    ]
+    route,res,ledger=dispatch_r44d(fresh)
+    return {
+        "gate_id":"R44D_OBSTRUCTION_CONSUMPTION_AND_FRESH_RESIDUAL_SEARCH",
+        "consumed_family":consumed,
+        "r44c_obstruction_consumed": any(x["k"]==3 and x["decision"]=="UNSAT" for x in consumed),
+        "fresh_probe":{"cnf":fresh,"route":route,"status":"CERTIFIED_ROUTE" if route else "OPEN_OUTSIDE_SWITCHBOARD","ledger":ledger},
+        "universal_totality_proved":False,
+        "U1":"OPEN",
+        "P_VS_NP":"OPEN",
+        "next_gate":"R44E_FRESH_RESIDUAL_MINIMIZATION_AND_MACHINE_INVARIANT_MINING"
+    }
+
+
+if __name__ == "__main__":
+    print(json.dumps(replay(), sort_keys=True))
