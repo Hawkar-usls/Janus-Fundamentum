@@ -1,0 +1,74 @@
+name: JANUS TRUMP R46A Watched RUP Dropin Semantic Equivalence
+
+on:
+  push:
+    branches:
+      - research/r46a-watched-rup-dropin-semantic-equivalence-2026-09-03
+  pull_request:
+    branches:
+      - research/janus-trump-r45b-frozen-26-stall-quotient-macro-coverage-2026-09-02
+  workflow_dispatch:
+
+jobs:
+  r46a-watched-rup:
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Verify frozen parent and preregistration
+        run: |
+          python - <<'PY'
+          import json, subprocess
+          parent='08f879bd2e20fbd98aae85f0da27314a877373d9'
+          subprocess.run(['git','merge-base','--is-ancestor',parent,'HEAD'], check=True)
+          p='research/JANUS_TRUMP_R46A_WATCHED_RUP_DROPIN_SEMANTIC_EQUIVALENCE_PREREGISTRATION_2026-09-03.json'
+          d=json.load(open(p))
+          assert d['status']=='FROZEN_BEFORE_EXECUTION'
+          assert d['parent']['commit']==parent
+          assert d['firewall']['FIRST_CERTIFIED_DESCENT_PROVEN'] is False
+          assert d['firewall']['JANUS_RANKER_AUTHORITY'] is False
+          assert d['firewall']['INCREMENTAL_GLOBAL_CACHE_PROVEN'] is False
+          assert d['firewall']['SAT_IN_P']=='NOT_PROVED'
+          assert d['firewall']['P_VS_NP']=='OPEN'
+          assert d['firewall']['TRUMP_finished'] is False
+          PY
+      - name: Static authority firewall
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p=Path('experiments/janus_trump_r46a_watched_rup_dropin_semantic_equivalence.py').read_text()
+          assert 'r35b.independent_certificate_replay(formula, watched)' in p
+          assert 'watched_unit_propagation_trace' in p
+          assert 'FIRST_CERTIFIED_DESCENT_PROVEN' in p
+          assert 'JANUS_RANKER_AUTHORITY' in p
+          PY
+      - name: Compile and unit tests
+        run: |
+          python -m py_compile experiments/janus_trump_r46a_watched_rup_dropin_semantic_equivalence.py
+          python tests/test_janus_trump_r46a_watched_rup_dropin_semantic_equivalence.py
+      - name: Execute frozen 26-stall differential audit
+        run: |
+          PYTHONPATH=experiments python experiments/janus_trump_r46a_watched_rup_dropin_semantic_equivalence.py --max-workers 4 --compact | tee /tmp/r46a.json
+          python - <<'PY'
+          import json
+          d=json.load(open('/tmp/r46a.json'))
+          s=d['status']
+          assert d['frozen_stall_count']==26
+          assert d['semantic_mismatch_count']==0
+          assert d['independent_replay_failure_count']==0
+          assert s['R46A_WATCHED_RUP_DROPIN_SEMANTIC_EQUIVALENCE'] is True
+          assert s['FAST_PRODUCER_SIMPLE_INDEPENDENT_VERIFIER'] is True
+          assert s['FIRST_CERTIFIED_DESCENT_PROVEN'] is False
+          assert s['JANUS_RANKER_AUTHORITY'] is False
+          assert s['SAT_IN_P']=='NOT_PROVED'
+          assert s['P_VS_NP']=='OPEN'
+          assert s['TRUMP_finished'] is False
+          print('R46A_GATE=PASS')
+          print('RUP_ELIGIBLE=', d['generated_RUP_eligible_candidate_formula_count'])
+          print('RESOURCE_LEDGER=', json.dumps(d['resource_ledger'], sort_keys=True))
+          PY
