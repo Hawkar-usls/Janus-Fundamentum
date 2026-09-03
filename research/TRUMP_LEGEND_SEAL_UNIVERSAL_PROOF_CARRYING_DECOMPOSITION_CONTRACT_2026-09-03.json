@@ -10,11 +10,14 @@
   ],
   "target_lemma": "TRUMP_UNIVERSAL_PROOF_CARRYING_DECOMPOSITION_LEMMA",
   "formal_target": {
-    "statement": "There exist fixed constants c,d and one deterministic answer-blind polynomial-time constructor D such that, for every 3-CNF input F of encoded size N and every state S reachable from F under D, D(S) emits either an exact certified terminal decision or an exact proof-carrying decomposition/transition whose complete encoded state and verification cost are at most N^c, while a well-founded rank Phi bounded by N^d strictly decreases on every nonterminal macrostep; the final SAT witness or UNSAT certificate is independently replayable against F in polynomial time.",
+    "statement": "There exist fixed constants c,d and one deterministic answer-blind constructor D such that, for every 3-CNF input F of encoded size N and every state S reachable from F under D, D(S) emits either an exact certified terminal decision or an exact proof-carrying decomposition/transition; the complete live encoded state, discovery/compilation/local work, proof generation, and verification are each bounded by N^c in the original input size N; every nonterminal macrostep strictly decreases an integer-valued rank Phi_F(S) in {0,...,ceil(N^d)}; and the final SAT witness or UNSAT certificate is independently replayable against F in polynomial time.",
     "quantifiers": "EXISTS fixed D,c,d FORALL 3CNF F FORALL D-reachable S",
     "original_input_accounting": true,
     "answer_blind": true,
-    "deterministic": true
+    "deterministic": true,
+    "rank_codomain": "NONNEGATIVE_INTEGERS_0_TO_CEIL_N_POW_D",
+    "rank_minimum_decrement_per_nonterminal_macrostep": 1,
+    "constructor_polynomiality_is_an_obligation_not_an_assumption": true
   },
   "required_obligations": [
     {
@@ -32,19 +35,19 @@
     {
       "id": "L3_POLYNOMIAL_DISCOVERY_AND_LOCAL_WORK",
       "maps_to": "R44B/U3",
-      "requirement": "Discovery, representation switching, compilation, local solving, proof generation and verification are each bounded by N^c including bit complexity and serialized evidence.",
+      "requirement": "Discovery, representation switching, compilation, local solving, proof generation and verification are each bounded by N^c in the original input size N, including bit complexity and serialized evidence.",
       "status": "OPEN"
     },
     {
       "id": "L4_POLYNOMIAL_STATE_ENVELOPE",
       "maps_to": "R44B/U4",
-      "requirement": "The total live encoded state, decomposition frontier, deferred debt and proof material never exceed N^c.",
+      "requirement": "The total live encoded state, decomposition frontier, deferred debt and proof material never exceed N^c in the original input size N.",
       "status": "OPEN"
     },
     {
       "id": "L5_POLYNOMIAL_TERMINATION",
       "maps_to": "R44B/U5",
-      "requirement": "A fixed rank Phi <= N^d strictly decreases per admitted macrostep, bounding the total number of steps polynomially.",
+      "requirement": "For every original input F of size N, there is one fixed constructor-defined integer rank Phi_F on reachable states with 0 <= Phi_F(S) <= ceil(N^d), and every admitted nonterminal macrostep decreases Phi_F by at least 1. Therefore every run has at most ceil(N^d) nonterminal macrosteps.",
       "status": "OPEN"
     },
     {
@@ -73,6 +76,7 @@
     "NEW_WORDS != NEW_MACHINE",
     "FINITE_SURVIVAL != UNIVERSAL_EXIT",
     "COMPACT_SIGNATURE != POLYNOMIAL_COMPILATION",
+    "STRICT_DECREASE_WITHOUT_POLYNOMIAL_HEIGHT != POLYNOMIAL_TERMINATION",
     "EXTERNAL_REVIEW != INTERNAL_PASS"
   ],
   "current_verdict": "LEGEND_SEAL_TARGET_FROZEN__THEOREM_NOT_DISCHARGED",
