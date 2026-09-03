@@ -1,0 +1,70 @@
+{
+  "id": "JANUS_TRUMP_R44BE_SELECTOR_MERGE_MAXDEF_ADDITIVITY_BARRIER_2026-09-03",
+  "status": "EXACT_BARRIER_FOR_ONE_FIXED_R44BD_MERGE_CLASS",
+  "parent": "R44BD_MAXDEF_DESCENT_PRESERVING_OR_MERGE_INTERFACE_V2",
+  "fixed_operator_class": {
+    "name": "FRESH_SELECTOR_DISJOINT_BRANCH_GUARD_MERGE",
+    "definition": "For CNFs A and B on disjoint variable sets and a fresh selector s, Sel(A,B;s) = { {s} union C : C in A } union { {not s} union D : D in B }. If branch variables initially overlap, this fixed operator class first renames the two branch copies disjointly.",
+    "exact_OR_semantics": "SAT(Sel(A,B;s)) iff SAT(A) or SAT(B)."
+  },
+  "maxdef_additivity_theorem": {
+    "statement": "If a=delta*(A)>=1 and b=delta*(B)>=1, with disjoint branch variables, then delta*(Sel(A,B;s)) = a+b-1.",
+    "proof_partition": [
+      "Every subformula H of Sel corresponds to A' subseteq A and B' subseteq B.",
+      "If only A' is nonempty, delta(H)=delta(A')-1<=a-1 because the fresh selector is an additional variable; symmetrically for B'.",
+      "If both are nonempty, disjoint branch variables give delta(H)=delta(A')+delta(B')-1<=a+b-1.",
+      "Choose nonempty witnesses A*,B* attaining a,b. Their guarded union attains deficiency a+b-1.",
+      "Since a,b>=1, a+b-1 dominates the one-sided and empty-subformula cases."
+    ],
+    "meaning": "The raw selector merge is exact and succinct, but maximum deficiency adds across the two guarded branch debts instead of preserving the branchwise descent."
+  },
+  "reachable_critical_family": {
+    "base": {
+      "name": "C2(x,y)",
+      "clauses": [[1,2],[1,-2],[-1,2],[-1,-2]],
+      "facts": [
+        "C2 is minimally UNSAT with delta*(C2)=2.",
+        "Assigning either variable either truth value yields two contradictory unit clauses on the other variable, of maximum deficiency 1.",
+        "Hence C2 is delta*-critical of rank 2."
+      ]
+    },
+    "recurrence": "F_2=C2. For r>=2, let F_{r+1}=Sel(F_r, C2; s_r) using fresh selector and a fresh variable-disjoint copy of C2.",
+    "inductive_rank": "delta*(F_r)=r for every r>=2 by the additivity theorem.",
+    "inductive_criticality": [
+      "Assigning the top selector of F_{r+1} leaves F_r (rank r) or C2 (rank 2), both <=r=(r+1)-1.",
+      "Assigning a variable inside F_r lowers that child's rank to <=r-1 by induction; re-guarding with C2 gives rank <=(r-1)+2-1=r.",
+      "Assigning a variable inside the C2 copy lowers its rank to 1; re-guarding with F_r gives rank <=r+1-1=r.",
+      "Thus F_{r+1} is delta*-critical."
+    ],
+    "R44BD_reachable_split": "At the top selector of critical parent F_{r+1}, both nonterminal children have ranks r and 2, hence each <=k-1=r where k=r+1.",
+    "merge_failure": "Applying the same fresh-selector disjoint-guard merge to those children gives rank r+2-1=r+1=k, exactly reconstructing the discharged parent rank instead of satisfying R44BD M2 <=k-1."
+  },
+  "R44BD_effect": {
+    "M1_EXACT_OR_SEMANTICS": "PASS_FOR_THIS_OPERATOR_CLASS",
+    "M2_RANK_PRESERVATION": "REFUTED_ON_AN_INFINITE_REACHABLE_DELTA_STAR_CRITICAL_FAMILY",
+    "verdict": "FRESH_SELECTOR_DISJOINT_BRANCH_GUARD_MERGE_CANNOT_BE_THE_R44BD_OPERATOR"
+  },
+  "scope_ceiling": {
+    "not_refuted": [
+      "all possible OR-merges",
+      "selector constructions followed by a separately proved nontrivial rank-reducing exact normalization",
+      "non-CNF merge representations",
+      "operators exploiting special semantic relations between the two sibling branches beyond raw guarding"
+    ]
+  },
+  "firewalls": [
+    "EXACT_OR_SEMANTICS != MAXDEF_DESCENT",
+    "DISJOINT_BRANCH_COPIES != DEBT_COMPRESSION",
+    "SELECTOR_SUCCINCTNESS != RANK_COMPRESSION",
+    "INFINITE_CRITICAL_FAMILY_BARRIER_FOR_ONE_OPERATOR != P_NE_NP",
+    "R44BD_TARGET_REMAINS_OPEN",
+    "P_VS_NP=OPEN"
+  ],
+  "next_admissible_math": {
+    "question": "Fix one genuinely different R44BD merge that uses sibling relations or a non-selector summary, and prove M1-M6 or an exact barrier. Do not vary selector syntax and count it as a new machine."
+  },
+  "TRUMP_finished": false,
+  "SAT_IN_P": "NOT_PROVED",
+  "P_EQUALS_NP": "NOT_PROVED",
+  "P_VS_NP": "OPEN"
+}
