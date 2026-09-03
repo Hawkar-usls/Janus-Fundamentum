@@ -1,0 +1,43 @@
+name: JANUS TRUMP R44BB signed-automorphism witness
+
+on:
+  pull_request:
+    paths:
+      - 'research/JANUS_TRUMP_R44BB_BOUNDED_DEGREE_SIGNED_AUTOMORPHISM_SAFE_CHOICE_2026-09-03.json'
+      - 'research/JANUS_TRUMP_R44BB_BOUNDED_DEGREE_SIGNED_AUTOMORPHISM_SAFE_CHOICE_PROOF_NOTE_2026-09-03.md'
+      - 'research/janus_trump_r44bb_verify_signed_automorphism_witness.py'
+      - '.github/workflows/janus-trump-r44bb-signed-automorphism-witness.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify-finite-witness:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout exact PR head
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Verify exact finite witness
+        run: python research/janus_trump_r44bb_verify_signed_automorphism_witness.py
+
+      - name: Enforce theorem-authority firewall
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          p = Path('research/JANUS_TRUMP_R44BB_BOUNDED_DEGREE_SIGNED_AUTOMORPHISM_SAFE_CHOICE_2026-09-03.json')
+          d = json.loads(p.read_text())
+          assert d['TRUMP_finished'] is False
+          assert d['SAT_IN_P'] == 'NOT_PROVED'
+          assert d['P_VS_NP'] == 'OPEN'
+          assert 'PARTIAL_EXACT_DESCENT != UNIVERSAL_DESCENT' in d['seals']
+          print('CI verifies finite witness and firewalls only; theorem authority remains mathematical.')
+          PY
