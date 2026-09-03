@@ -1,0 +1,75 @@
+name: JANUS TRUMP R44CF Blackbox Polynomial Lift Or Generic 3Color Solver
+
+on:
+  push:
+    branches:
+      - research/r44cf-blackbox-polynomial-lift-or-generic-3color-solver-2026-09-03
+  pull_request:
+    branches:
+      - research/r44ce-arbitrary-graph-image-no-hidden-promise-seal-2026-09-03
+  workflow_dispatch:
+
+jobs:
+  r44cf-blackbox-lift:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Verify frozen parent and preregistration
+        run: |
+          set -euo pipefail
+          PARENT=ec20bfda9521f5c5cc7c7b60eaa48033abc075c2
+          git merge-base --is-ancestor "$PARENT" "$GITHUB_SHA"
+          python - <<'PY'
+          import json
+          p='research/JANUS_TRUMP_R44CF_BLACKBOX_POLYNOMIAL_LIFT_OR_GENERIC_3COLOR_SOLVER_PREREGISTRATION_2026-09-03.json'
+          d=json.load(open(p))
+          assert d['status']=='FROZEN_BEFORE_EXECUTION'
+          assert d['parent_commit']=='ec20bfda9521f5c5cc7c7b60eaa48033abc075c2'
+          assert d['firewall']['polynomial_transport_solver_exists']=='NOT_PROVED'
+          assert d['firewall']['generic_polynomial_3color_solver_exists']=='NOT_PROVED'
+          assert d['firewall']['P_VS_NP']=='OPEN'
+          PY
+
+      - name: Static black-box and anti-overclaim firewall
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          from pathlib import Path
+          p=Path('experiments/janus_trump_r44cf_blackbox_polynomial_lift_or_generic_3color_solver.py').read_text()
+          assert 'transport_decider(A, B)' in p
+          assert 'finite_audit_is_not_claimed_as_transport_algorithm' in p
+          assert "'polynomial_transport_solver_exists': 'NOT_PROVED'" in p
+          assert "'P_VS_NP': 'OPEN'" in p
+          PY
+
+      - name: Compile and unit tests
+        run: |
+          python -m py_compile experiments/janus_trump_r44cf_blackbox_polynomial_lift_or_generic_3color_solver.py
+          python -m unittest -q tests.test_janus_trump_r44cf_blackbox_polynomial_lift_or_generic_3color_solver
+
+      - name: Execute exact finite black-box lift audit
+        run: |
+          set -euo pipefail
+          python experiments/janus_trump_r44cf_blackbox_polynomial_lift_or_generic_3color_solver.py | tee /tmp/r44cf.json
+          python - <<'PY'
+          import json
+          d=json.load(open('/tmp/r44cf.json'))
+          assert d['gate']=='R44CF_BLACKBOX_POLYNOMIAL_LIFT_OR_GENERIC_3COLOR_SOLVER'
+          assert d['graphs_checked']==1099
+          assert d['construction_linear'] is True
+          assert d['blackbox_solver_receives_only_CNF_pair'] is True
+          assert d['universal_statement']=='IF_R44CC_IMAGE_GLOBAL_TRANSPORT_IN_P_THEN_GRAPH_3COLOR_IN_P'
+          assert d['polynomial_transport_solver_exists']=='NOT_PROVED'
+          assert d['generic_polynomial_3color_solver_exists']=='NOT_PROVED'
+          assert d['additional_polynomial_invariant_ruled_out'] is False
+          assert d['TRUMP_finished'] is False
+          assert d['SAT_IN_P']=='NOT_PROVED'
+          assert d['P_VS_NP']=='OPEN'
+          PY
