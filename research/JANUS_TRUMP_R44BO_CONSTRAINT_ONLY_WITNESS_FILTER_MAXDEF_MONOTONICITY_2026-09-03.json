@@ -1,0 +1,51 @@
+{
+  "id": "JANUS_TRUMP_R44BO_CONSTRAINT_ONLY_WITNESS_FILTER_MAXDEF_MONOTONICITY_2026-09-03",
+  "status": "GENERAL_ARCHITECTURE_BARRIER_FOR_CONSTRAINT_ONLY_WITNESS_FILTERING",
+  "parent": "R44BN_CRITICAL_SIBLING_AUXFREE_CNF_CLAUSE_LOWER_BOUND",
+  "operator_class": {
+    "name": "CONSTRAINT_ONLY_WITNESS_FILTER",
+    "definition": "Start from a CNF sibling merge Q and form M=Q union K, where K is any additional CNF filter, possibly using arbitrary fresh auxiliary variables, while every clause of Q is retained unchanged.",
+    "intent": "K may try to retain only a convenient polynomially liftable subset of Q's models."
+  },
+  "theorem": {
+    "statement": "For every pair of CNFs Q,K, delta*(Q union K) >= delta*(Q).",
+    "proof": [
+      "By definition delta*(Q) is attained by some clause subset W subseteq Q.",
+      "Since Q subseteq Q union K, the same W is a valid clause subset of Q union K.",
+      "W contains no clause of K, so any fresh variables occurring only in K are absent from Var(W).",
+      "Therefore deficiency(W) is unchanged inside the enlarged formula, and delta*(Q union K) is at least deficiency(W)=delta*(Q)."
+    ],
+    "fresh_variable_robustness": "Adding arbitrarily many fresh variables inside K does not help because the inherited maxdef witness can ignore all K clauses and hence all K-only variables."
+  },
+  "R44BD_effect": {
+    "if_base_rank_is_k": "A constraint-only filter cannot turn rank k into rank <=k-1.",
+    "R44BM_application": "Starting from the compact sibling split merge of rank exactly k, conjoining any witness filter while retaining its clauses leaves maximum deficiency at least k.",
+    "R44BN_application": "Starting from any projection-faithful auxiliary-free representation of the fixed R44AS projection with rank >=3, conjoining constraints cannot repair the rank lower bound.",
+    "architectural_conclusion": "A successful SAT-only/witness-transforming sibling compression must perform an exact destructive operation: safe restriction, quotient/substitution, clause replacement/deletion with proof, or a different representation. Mere conjunction is insufficient."
+  },
+  "scope_boundary": {
+    "not_blocked": [
+      "filters followed by independently proved exact deletion or substitution that removes the inherited maxdef witness",
+      "safe assignments or safe quotient relations",
+      "operators that replace rather than retain the old clause set",
+      "non-CNF states",
+      "different rank functions"
+    ]
+  },
+  "firewalls": [
+    "ADDING_CONSTRAINTS_CANNOT_ERASE_AN_OLD_MAXDEF_WITNESS",
+    "FRESH_AUX_VARIABLES_IN_NEW_CLAUSES != FREE_RANK_CREDIT",
+    "FILTER_ONLY != RANK_DESCENT",
+    "R44BO_BARRIER != BARRIER_FOR_SAFE_RESTRICTION_OR_QUOTIENT",
+    "P_VS_NP=OPEN"
+  ],
+  "next_admissible_math": {
+    "frontier": "SAFE_RESTRICTION_OR_QUOTIENT_WITH_DESTRUCTIVE_EXACT_NORMALIZATION",
+    "question": "Can sibling structure yield a polynomially checkable certificate permitting an exact assignment, quotient, or replacement that deletes enough inherited clause debt to force delta* descent while preserving polynomial witness/certificate replay?",
+    "anti_drift": "A new filter that only conjoins clauses without deleting/replacing inherited debt is already blocked by R44BO."
+  },
+  "TRUMP_finished": false,
+  "SAT_IN_P": "NOT_PROVED",
+  "P_EQUALS_NP": "NOT_PROVED",
+  "P_VS_NP": "OPEN"
+}
