@@ -1,0 +1,29 @@
+name: JANUS TRUMP R44CA Joint Binary Block Recovery
+
+on:
+  pull_request:
+    branches:
+      - research/r44bz-grid-orbit-coupled-unbounded-treewidth-2026-09-03
+    paths:
+      - 'research/JANUS_TRUMP_R44CA_JOINT_BINARY_BLOCK_RECOVERY_GLOBAL_TRANSPORT_2026-09-03.json'
+      - 'research/JANUS_TRUMP_R44CA_JOINT_BINARY_BLOCK_RECOVERY_GLOBAL_TRANSPORT_PROOF_2026-09-03.md'
+      - 'research/janus_trump_r44ca_verify_joint_block_recovery.py'
+      - '.github/workflows/janus-trump-r44ca-joint-block-recovery.yml'
+  workflow_dispatch:
+
+jobs:
+  exact-joint-block-recovery:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout exact head
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Replay raw-sibling recovery algorithm
+        run: python research/janus_trump_r44ca_verify_joint_block_recovery.py
+      - name: Enforce theorem boundary
+        run: |
+          grep -q 'INDIVIDUAL_CONGRUENCE_RIGID != JOINT_SIBLING_STRUCTURE_RIGID' research/JANUS_TRUMP_R44CA_JOINT_BINARY_BLOCK_RECOVERY_GLOBAL_TRANSPORT_2026-09-03.json
+          grep -q 'P_VS_NP=OPEN' research/JANUS_TRUMP_R44CA_JOINT_BINARY_BLOCK_RECOVERY_GLOBAL_TRANSPORT_2026-09-03.json
