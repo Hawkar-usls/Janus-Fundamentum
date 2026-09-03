@@ -1,0 +1,29 @@
+name: JANUS TRUMP R44BX Orbit Coupled Congruence Rigid
+
+on:
+  pull_request:
+    branches:
+      - research/r44bw-congruence-quotient-collapses-unbounded-transport-support-2026-09-03
+    paths:
+      - 'research/JANUS_TRUMP_R44BX_ORBIT_COUPLED_CONGRUENCE_RIGID_UNBOUNDED_SUPPORT_2026-09-03.json'
+      - 'research/JANUS_TRUMP_R44BX_ORBIT_COUPLED_CONGRUENCE_RIGID_UNBOUNDED_SUPPORT_PROOF_2026-09-03.md'
+      - 'research/janus_trump_r44bx_verify_orbit_coupled_congruence_rigid.py'
+      - '.github/workflows/janus-trump-r44bx-orbit-coupled-congruence-rigid.yml'
+  workflow_dispatch:
+
+jobs:
+  exact-orbit-coupled-replay:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout exact head
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Replay exact orbit-coupled theorem premises
+        run: python research/janus_trump_r44bx_verify_orbit_coupled_congruence_rigid.py
+      - name: Enforce theorem boundary
+        run: |
+          grep -q 'CONGRUENCE_RIGID != STRUCTURELESS' research/JANUS_TRUMP_R44BX_ORBIT_COUPLED_CONGRUENCE_RIGID_UNBOUNDED_SUPPORT_2026-09-03.json
+          grep -q 'P_VS_NP=OPEN' research/JANUS_TRUMP_R44BX_ORBIT_COUPLED_CONGRUENCE_RIGID_UNBOUNDED_SUPPORT_2026-09-03.json
