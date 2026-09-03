@@ -1,0 +1,68 @@
+{
+  "id": "JANUS_TRUMP_R44AK_BCE_EXACT_INVARIANT_OBSTRUCTION_2026-09-03",
+  "status": "EXACT_INVARIANT_REFUTED_AS_UNIVERSAL_PROGRESS",
+  "parent": "R44AJ_EXACT_INVARIANT_DESCENT_CHARACTERIZATION",
+  "target": "CONCRETE_EXACT_POLYNOMIAL_INVARIANT",
+  "candidate": {
+    "name": "BLOCKED_CLAUSE_ELIMINATION_FIXED_POINT",
+    "abbrev": "I_BCE",
+    "definition": "Repeatedly remove blocked clauses until the unique BCE fixed point is reached.",
+    "known_properties": [
+      "removal of a blocked clause preserves satisfiability",
+      "BCE is confluent, so the fixed point is canonical",
+      "blockedness checks and complete BCE reduction are polynomial-time"
+    ],
+    "source": "Heule/Jarvisalo/Biere and prior BCE work; Blocked Clause Elimination / Clause Elimination Procedures for CNF Formulas"
+  },
+  "sat_obstruction_family": {
+    "name": "EQUIVALENCE_CYCLE_E_n",
+    "range": "n>=3",
+    "formula": "E_n = AND_i[(not x_i OR x_{i+1}) AND (x_i OR not x_{i+1})], indices modulo n",
+    "sat_witnesses": ["all x_i=false", "all x_i=true"],
+    "bce_fixed_point_proof": [
+      "For A_i=(not x_i OR x_{i+1}), resolving on not x_i with A_{i-1} yields (not x_{i-1} OR x_{i+1}), non-tautological; resolving on x_{i+1} with A_{i+1} yields (not x_i OR x_{i+2}), non-tautological.",
+      "For B_i=(x_i OR not x_{i+1}), resolving on x_i with B_{i-1} yields (x_{i-1} OR not x_{i+1}), non-tautological; resolving on not x_{i+1} with B_{i+1} yields (x_i OR not x_{i+2}), non-tautological.",
+      "Thus no clause has a blocking literal and I_BCE(E_n)=E_n for every n>=3."
+    ]
+  },
+  "unsat_obstruction_family": {
+    "name": "IMPLICATION_CHAIN_U_n",
+    "range": "n>=2",
+    "formula": "U_n={x_1,(not x_1 OR x_2),...,(not x_{n-1} OR x_n),not x_n}",
+    "unsat_proof": "x_1 forces x_2,...,x_n while the last unit requires not x_n.",
+    "bce_fixed_point_proof": [
+      "The first unit x_1 resolves with (not x_1 OR x_2) to unit x_2, not a tautology.",
+      "The last unit not x_n resolves with (not x_{n-1} OR x_n) to unit not x_{n-1}, not a tautology.",
+      "Every internal implication clause has a non-tautological resolvent with its predecessor on its negative literal and with its successor on its positive literal.",
+      "Hence no clause is blocked and I_BCE(U_n)=U_n for every n>=2."
+    ]
+  },
+  "composition_with_R44AI": {
+    "machine": "I_BCE o I_ML",
+    "claim": "The same families can be chosen to survive both matching-lean reduction and BCE, so composing two canonical exact polynomial preprocessors still does not yield universal descent.",
+    "sat_family_matching_lean_argument": "For E_n the full deficiency is n. For any proper subformula retaining all n variables, deficiency <= n-1. If it uses v<n variables, the induced proper subset of cycle vertices contains at most v-1 cycle edges and hence at most 2(v-1) clauses, giving deficiency <= v-2 < n. Therefore E_n is matching-lean.",
+    "unsat_family_matching_lean_argument": "U_n is minimally unsatisfiable, hence lean and therefore matching-lean.",
+    "conclusion": "I_BCE(I_ML(E_n))=E_n and I_BCE(I_ML(U_n))=U_n for arbitrarily large SAT and UNSAT inputs."
+  },
+  "admissible_outcome": "EXACT_POLYTIME_CANONICAL_REDUCTION_WITH_INFINITE_SAT_AND_UNSAT_FIXED_POINTS",
+  "seals": [
+    "BCE_EXACTNESS != UNIVERSAL_PROGRESS",
+    "CONFLUENT_FIXED_POINT != TERMINAL_DECISION",
+    "POLYTIME_PREPROCESSING != POLYTIME_SAT",
+    "COMPOSITION_OF_EXACT_POLYTIME_REDUCTIONS != UNIVERSAL_DESCENT",
+    "WEAK_PLUS_WEAK != MAGIC_WITHOUT_PROOF",
+    "P_VS_NP=OPEN"
+  ],
+  "legend_ledger": {
+    "E1_EXACTNESS": "PASS_FOR_BCE_REDUCTION",
+    "E2_POLYTIME_TRANSITION": "PASS_FOR_BCE_REDUCTION",
+    "E3_POLYNOMIAL_LIVE_STATE": "PASS_FOR_CLAUSE_DELETION_BCE",
+    "E4_UNIVERSAL_STRICT_DESCENT": "REFUTED_BY_E_n_AND_U_n",
+    "E5_POLYNOMIAL_RANK_HEIGHT": "NOT_RELEVANT_AFTER_E4_FAILURE",
+    "E6_EXACT_TERMINALITY": "NOT_ESTABLISHED"
+  },
+  "TRUMP_finished": false,
+  "SAT_IN_P": "NOT_PROVED",
+  "P_EQUALS_NP": "NOT_PROVED",
+  "P_VS_NP": "OPEN"
+}
