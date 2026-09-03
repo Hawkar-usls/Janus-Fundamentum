@@ -1,0 +1,55 @@
+name: JANUS TRUMP R47T Depth2 Pivot Unlocking Forensics
+
+on:
+  push:
+    branches:
+      - research/r47t-depth2-pivot-unlocking-forensics-2026-09-03
+
+jobs:
+  r47t-unlocking:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Verify frozen preregistration
+        run: |
+          python - <<'PY'
+          import json, subprocess
+          parent='9df9cdd1f3f2fe32614d8f9bd5112c00bcc4d240'
+          subprocess.run(['git','merge-base','--is-ancestor',parent,'HEAD'], check=True)
+          d=json.load(open('research/JANUS_TRUMP_R47T_DEPTH2_PIVOT_UNLOCKING_FORENSICS_PREREGISTRATION_2026-09-03.json'))
+          assert d['status']=='FROZEN_BEFORE_EXECUTION'
+          assert d['parent']['commit']==parent
+          assert d['sealed_witness']['residual_hash']=='9a84c02f1570e752ac0c017037b8a4a40c2599b53faf51bcd6d957f40aa81dde'
+          assert d['sealed_witness']['depth2_pair']==[11,20]
+          assert d['no_new_selector_or_rule_authorized'] is True
+          assert d['epistemic_firewall']['O4_UNIVERSAL_COVERAGE']=='OPEN'
+          assert d['epistemic_firewall']['P_VS_NP']=='OPEN'
+          PY
+      - name: Compile
+        run: python -m py_compile experiments/janus_trump_r47t_depth2_pivot_unlocking_forensics.py
+      - name: Execute frozen unlocking forensics
+        run: |
+          PYTHONPATH=experiments python experiments/janus_trump_r47t_depth2_pivot_unlocking_forensics.py | tee /tmp/r47t.json
+          python - <<'PY'
+          import json
+          d=json.load(open('/tmp/r47t.json'))
+          assert d['gate']=='JANUS_TRUMP_R47T_DEPTH2_PIVOT_UNLOCKING_FORENSICS'
+          assert d['v20_before_v11']['accepted'] is False
+          assert d['v20_after_v11']['accepted'] is True
+          assert d['v20_before_v11']['independent_replay_pass'] is True
+          assert d['v20_after_v11']['independent_replay_pass'] is True
+          assert d['interpretation']['selector_promoted'] is False
+          assert d['firewall']['O4_UNIVERSAL_COVERAGE']=='OPEN'
+          assert d['firewall']['P_VS_NP']=='OPEN'
+          print('R47T_GATE=PASS')
+          print('R47T_VERDICT=',d['verdict'])
+          print('R47T_DELTA=',json.dumps(d['delta'],sort_keys=True))
+          print('R47T_EXPLANATIONS=',json.dumps(d['candidate_explanations'],sort_keys=True))
+          print('R47T_CLAUSE_DROPS=',json.dumps(d['successful_clause_drop_events'],sort_keys=True))
+          PY
