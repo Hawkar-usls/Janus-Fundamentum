@@ -1,0 +1,70 @@
+{
+  "schema": "JANUS_TRUMP_R47_UNIVERSAL_POLYNOMIAL_COVERAGE_CHARTER",
+  "version": "1.0",
+  "date": "2026-09-03",
+  "status": "FROZEN_RESEARCH_CHARTER_NOT_A_PROOF",
+  "base_commit": "08f879bd2e20fbd98aae85f0da27314a877373d9",
+  "goal": "Establish a deterministic polynomial-time algorithm for 3-SAT/SAT with proof-carrying correctness and universal coverage. Only after all obligations are proved may SAT_IN_P be elevated.",
+  "captain_obviousness_law": "CORRECT + FOR_ALL + ALWAYS_TERMINATES + POLYNOMIAL_WORK = SAT_IN_P; SAT_IN_P for an NP-complete SAT formulation implies P=NP.",
+  "theorem_target": {
+    "input_domain": "every valid 3-CNF formula F of encoding length n",
+    "required_statement": "TRUMP(F) returns the correct SAT/UNSAT answer and halts within n^O(1) deterministic operations",
+    "quantifier": "FOR_ALL_INPUTS",
+    "finite_audits_are_not_universal_proof": true
+  },
+  "proof_obligations": {
+    "O1_CORRECTNESS": {
+      "required": true,
+      "statement": "Every nonterminal transition is semantics-preserving/equisatisfiable under its declared reconstruction contract, and every terminal result has an independently checkable certificate.",
+      "proof_authority": "independent verifier, not heuristic/learned ranker"
+    },
+    "O2_PROGRESS_AND_TERMINATION": {
+      "required": true,
+      "statement": "There exists a well-founded progress measure Phi such that every accepted nonterminal transition strictly decreases Phi, and the number of accepted transitions from any input of size n is polynomially bounded in n.",
+      "forbidden_gap": "strict descent alone is insufficient if Phi has superpolynomial height or encoding blow-up"
+    },
+    "O3_POLYNOMIAL_WORK_PER_TRANSITION": {
+      "required": true,
+      "statement": "Candidate discovery, construction, intermediate representation, certificate generation, independent verification, and state update are all polynomially bounded in the original/current encoding size with no hidden oracle/advice or exponential parameter.",
+      "forbidden_debt": [
+        "unbounded 2^k interface enumeration",
+        "factorial signed-map search without a polynomial bound",
+        "exponential candidate enumeration",
+        "superpolynomial intermediate formula/certificate size",
+        "verification that recomputes an exponential search"
+      ]
+    },
+    "O4_UNIVERSAL_COVERAGE": {
+      "required": true,
+      "statement": "For every reachable nonterminal state F, at least one polynomially discoverable certified transition exists, or a polynomially verifiable terminal certificate exists.",
+      "canonical_form": "NONTERMINAL(F) => EXISTS v: DISCOVER_POLY(v,F) AND CERT(F->F_v)=PASS AND (TERMINAL(F_v) OR Phi(F_v)<Phi(F))"
+    },
+    "O5_GLOBAL_COMPLEXITY_COMPOSITION": {
+      "required": true,
+      "statement": "The polynomial bound on number of transitions composed with polynomial per-transition work yields one explicit polynomial bound T(n) <= n^k (or equivalent polynomial p(n)) for the full algorithm, including representation growth and reconstruction."
+    }
+  },
+  "r46_role": {
+    "R46A_WATCHED_RUP": "performance/producer replacement; must not be counted as universal coverage proof",
+    "R46B_FIRST_CERTIFIED_DESCENT": "remove global-best requirement if correctness/progress/resource envelope are local to an accepted transition",
+    "R46C_JANUS_RANKER": "candidate ordering only; LEARNED_GUIDANCE != PROOF_AUTHORITY; exhaustive certified fallback retained",
+    "R46D_INCREMENTAL_STATE": "reuse/update state rather than recompute; must preserve exact semantics and certificate verification"
+  },
+  "next_universal_gate_after_r46": {
+    "name": "R47A_UNIVERSAL_CERTIFIED_DESCENT_OR_EXPLICIT_COUNTEREXAMPLE",
+    "question": "Does every reachable nonterminal TRUMP state admit a polynomially discoverable certified terminal/descent transition under the frozen macro grammar?",
+    "pass_condition": "a symbolic universal proof with explicit polynomial discovery and representation bounds",
+    "fail_or_open_condition": "an explicit reachable counterexample/stall, an unbounded parameter, or an unresolved universal proof obligation",
+    "finite_sampling_role": "counterexample hunting and regression only; never theorem elevation"
+  },
+  "epistemic_firewalls": {
+    "P_VS_NP": "OPEN",
+    "P_EQ_NP": "NOT_PROVED",
+    "P_NE_NP": "NOT_PROVED",
+    "SAT_IN_P": "NOT_PROVED",
+    "TRUMP_finished": false,
+    "R45B_26_STALLS": "FINITE_EVIDENCE_ONLY",
+    "R46_SPEEDUPS": "PERFORMANCE_DOES_NOT_IMPLY_UNIVERSALITY",
+    "NO_FALSE_ELEVATION": true
+  }
+}
