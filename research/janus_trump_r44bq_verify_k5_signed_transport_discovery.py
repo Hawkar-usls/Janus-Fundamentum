@@ -12,6 +12,7 @@ BASE = [
     [-1, 4, 5],
 ]
 BASE_VARS = [1, 3, 4, 5, 6]
+BASE_ALL_VARS = [1, 2, 3, 4, 5, 6]
 PIVOT = 2
 EXPECTED_PI = {1: -3, 3: -5, 4: 6, 5: -1, 6: -4}
 K = 5
@@ -100,10 +101,12 @@ def disjoint_union_copies(k, stride=10):
 
 
 def lift_pi_to_k(pi_local, k, stride=10):
+    # Include every variable of every untouched copy, including each copy's
+    # pivot variable. Only the distinguished first copy has x2 simplified away.
     variables = set()
     for i in range(k):
         off = i * stride
-        variables.update(v + off for v in BASE_VARS)
+        variables.update(v + off for v in BASE_ALL_VARS)
     pi = {v: v for v in variables}
     for v, image in pi_local.items():
         pi[v] = image
