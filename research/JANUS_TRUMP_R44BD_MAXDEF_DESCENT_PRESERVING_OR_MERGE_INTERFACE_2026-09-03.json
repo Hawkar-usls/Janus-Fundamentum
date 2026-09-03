@@ -1,0 +1,87 @@
+{
+  "id": "JANUS_TRUMP_R44BD_MAXDEF_DESCENT_PRESERVING_OR_MERGE_INTERFACE_2026-09-03",
+  "status": "FROZEN_THEOREM_TARGET_V2__NOT_PROVED",
+  "parent": "R44BC_LOG_MAXDEF_UNIFORM_TERMINAL",
+  "domain": "CNF-state branch-compression interface",
+  "published_rejoin": {
+    "basis": "Szeider maximum-deficiency FPT SAT structure",
+    "corrected_fact": "After polynomial criticalization, assigning a remaining variable either truth value yields either an immediately terminal cofactor or a nonterminal cofactor whose maximum deficiency is at most one below the parent critical rank.",
+    "terminal_exception": "Maximum-deficiency descent is asserted only for nonterminal children. A child containing an empty clause, or otherwise closed by an exact terminal test, is handled before merge and need not carry delta*<=k-1.",
+    "meaning": "The unresolved cost is preserving the SAT disjunction only when both descended children remain nonterminal."
+  },
+  "global_accounting_constants": {
+    "statement": "There must exist fixed constants a,b independent of the input and of k.",
+    "state_envelope": "Every normalized nonterminal CNF state plus all live replay/merge metadata has encoded size at most N^a, where N is the original input size.",
+    "work_envelope": "Criticalization, child handling, merge, normalization, and replay bookkeeping per macrostep cost at most N^b."
+  },
+  "critical_state": {
+    "input": "delta*-critical nonterminal CNF G within the N^a state envelope",
+    "k": "delta*(G)>0",
+    "choose": "one fixed deterministic remaining variable x",
+    "children": [
+      "G0 = simplify(G[x=0])",
+      "G1 = simplify(G[x=1])"
+    ],
+    "corrected_branchwise_rule": "For each epsilon: either G_epsilon is closed terminally, or it is nonterminal and delta*(G_epsilon)<=k-1."
+  },
+  "terminal_child_dispatch": {
+    "SAT_child": "If either child is terminal SAT, the parent is terminal SAT; lift that child's witness with x=epsilon. No OR-merge is needed.",
+    "one_UNSAT_one_nonterminal": "If exactly one child is terminal UNSAT and the other is nonterminal, the parent SAT status equals the nonterminal child's SAT status; continue with that single child. No OR-merge is needed.",
+    "both_UNSAT": "If both children are terminal UNSAT, the parent is terminal UNSAT after replayable composition of the two branch certificates.",
+    "merge_case": "Invoke M only when both children are nonterminal and both satisfy delta*<=k-1."
+  },
+  "target_operator": {
+    "name": "MAXDEF_DESCENT_PRESERVING_OR_MERGE",
+    "notation": "M(G0,G1)",
+    "precondition": "G0 and G1 are both nonterminal CNF children of one critical parent G and each has delta*<=k-1.",
+    "obligations": {
+      "M1_EXACT_OR_SEMANTICS": "SAT(M(G0,G1)) iff SAT(G0) or SAT(G1)",
+      "M2_RANK_PRESERVATION": "M returns a CNF state Q with delta*(Q)<=k-1, or an exact terminal marker.",
+      "M3_POLYNOMIAL_CONSTRUCTION": "Merge construction and its proof metadata cost at most N^b for fixed b independent of k.",
+      "M4_POLYNOMIAL_LIVE_STATE": "Q plus all merge/replay metadata fits within the fixed N^a live-state envelope.",
+      "M5_REPLAY": "Any downstream SAT witness or UNSAT certificate lifts through M and the x-branch split to the parent G in N^O(1) total charged work under the fixed replay envelope.",
+      "M6_RANK_MONOTONE_CLOSURE": "A fixed exact polynomial normalization Norm applied to nonterminal Q returns either a terminal or the next critical CNF G' with delta*(G')<=delta*(Q)<=k-1, while preserving the N^a state envelope and N^b per-step work envelope."
+    }
+  },
+  "consequence_if_proved": {
+    "argument": [
+      "A fixed polynomial criticalization maps the original CNF to a terminal or a critical CNF state within the N^a envelope; hence initial rank k0<=number_of_clauses<=N^a.",
+      "At each critical state, dispatch terminal children before any merge.",
+      "If exactly one nonterminal child survives, continue with it; its rank is at most k-1.",
+      "If both children remain nonterminal, apply M and then rank-monotone Norm; the next critical rank is at most k-1.",
+      "Thus every nonterminal macrostep decreases the nonnegative integer rank by at least one.",
+      "There are at most N^a nonterminal macrosteps, not necessarily at most N.",
+      "With fixed N^b charged work per macrostep, fixed N^a live state, and polynomial replay, total computation is polynomial in N."
+    ],
+    "result": "A universal fixed M and Norm satisfying the corrected obligations would give a deterministic polynomial SAT decider and therefore P=NP."
+  },
+  "known_failed_natural_merges": {
+    "selector_merge": "Exact OR semantics but reifies the binary choice and does not establish maxdef descent.",
+    "ordinary_CNF_DP_projection": "Exact projection, but R44AS-RANK gives an explicit maxdef rebound example.",
+    "auxiliary_free_CNF_projection": "Parity projection can require exponentially many clauses.",
+    "quantifier_hiding": "Keeps small syntax/rank but defers SAT to terminal evaluation."
+  },
+  "review_repairs": [
+    "TERMINAL_CHILDREN_ARE_DISPATCHED_BEFORE_RANKED_MERGE",
+    "NORMALIZATION_MUST_NOT_INCREASE_MAXIMUM_DEFICIENCY",
+    "STEP_BOUND_IS_N^a_FROM_THE_FIXED_STATE_ENVELOPE__NOT_N_BY_DEFAULT"
+  ],
+  "firewalls": [
+    "TERMINAL_CHILD != NONTERMINAL_RANKED_CHILD",
+    "BRANCHWISE_DELTA_STAR_DESCENT != SINGLE_STATE_DELTA_STAR_DESCENT",
+    "EXACT_OR_MERGE != DESCENT_PRESERVING_OR_MERGE",
+    "NORMALIZATION != FREE_RANK_RESET",
+    "POLYNOMIAL_STATE_ENVELOPE => POLYNOMIAL_RANK_HEIGHT__NOT_LINEAR_RANK_HEIGHT",
+    "SELECTOR != COMPRESSED_BRANCH",
+    "TARGET_INTERFACE_FROZEN != TARGET_PROVED",
+    "P_VS_NP=OPEN"
+  ],
+  "allowed_next_outcomes": [
+    "PROVE_M1_THROUGH_M6_FOR_ONE_FIXED_OPERATOR_AND_NORMALIZATION",
+    "PROVE_A_BARRIER_FOR_ONE_PRECISELY_SPECIFIED_OPERATOR_CLASS"
+  ],
+  "TRUMP_finished": false,
+  "SAT_IN_P": "NOT_PROVED",
+  "P_EQUALS_NP": "NOT_PROVED",
+  "P_VS_NP": "OPEN"
+}
