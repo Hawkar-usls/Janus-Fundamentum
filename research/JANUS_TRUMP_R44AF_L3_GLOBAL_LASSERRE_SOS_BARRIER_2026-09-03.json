@@ -5,37 +5,52 @@
   "target_obligations": [
     "L1_UNIVERSAL_EXIT",
     "L3_POLYNOMIAL_DISCOVERY_AND_LOCAL_WORK",
+    "L4_POLYNOMIAL_STATE_ENVELOPE",
     "L5_POLYNOMIAL_TERMINATION"
   ],
   "fixed_global_transition_model": {
-    "name": "STANDARD_LASSERRE_SUM_OF_SQUARES_LEVEL_ESCALATION",
-    "semantics": "Encode the 3-CNF/k-CSP as the standard 0-1 polynomial/SDP relaxation and obtain exact negative authority only when a Lasserre/Sum-of-Squares level refutes feasibility; levels are increased within the standard hierarchy.",
-    "globality": "The state uses global moment/consistency constraints and is not merely bounded-local clause propagation.",
-    "standard_level_cost": "For a k-CSP with poly(n) constraints, level r can be optimized in time n^{O(r)} in the formulation used by the cited paper."
+    "name": "EXPLICIT_STANDARD_LASSERRE_SUM_OF_SQUARES_LEVEL_ESCALATION",
+    "semantics": "Encode the 3-CNF/k-CSP in the standard explicit Lasserre/SoS hierarchy and obtain exact negative authority only when a hierarchy level refutes feasibility; levels are increased within that explicit hierarchy.",
+    "globality": "The state uses global moment/consistency data and is not merely bounded-local clause propagation.",
+    "standard_upper_bound_not_used_as_lower_bound": "The cited paper states that level r can be optimized in time n^{O(r)} for poly(n)-constraint k-CSPs. This is an upper bound only and is not used as a runtime lower bound.",
+    "explicit_state_indexing": "In the standard level-r formulation described by the cited paper, vectors are explicitly defined for AND functions on subsets of up to r variables. Hence the materialized state contains at least one indexed object for every subset I with |I| <= r."
   },
   "published_theorem": {
     "author": "Grant Schoenebeck",
     "title": "Linear Level Lasserre Lower Bounds for Certain k-CSPs",
     "venue": "FOCS 2008, 593-602",
     "doi": "10.1109/FOCS.2008.74",
-    "statement_used": "For every k >= 3, even Omega(n) levels of the Lasserre hierarchy cannot disprove random k-CSP instances over predicate types implied by k-XOR, including k-SAT and k-XOR. In particular, random 3-SAT instances in the covered regime survive a linear number of hierarchy levels despite being globally unsatisfiable with high probability.",
-    "cost_statement_used": "The paper states that level r of Lasserre for a k-CSP with poly(n) constraints can be optimized in time n^{O(r)}."
+    "statement_used": "For every k >= 3, even Omega(n) levels of the Lasserre hierarchy cannot disprove random k-CSP instances over predicate types implied by k-XOR, including k-SAT and k-XOR. Thus there is a constant alpha>0 such that, in the covered random regime, globally unsatisfiable 3-SAT instances survive through alpha*n hierarchy levels with high probability.",
+    "explicit_formulation_fact_used": "The paper's level-r formulation can be represented by defining vectors for AND functions of up to r variables; this explicitly indexes at least all variable subsets of size at most r.",
+    "cost_statement_firewall": "The n^{O(r)} optimization statement is recorded only as an upper bound and is never reversed into a lower bound."
+  },
+  "elementary_state_lower_bound": {
+    "statement": "If r >= alpha*n for any fixed alpha>0, the explicit standard level-r state contains at least binomial(n, min(r, floor(n/2))) indexed subset objects, which is 2^{Omega(n)}.",
+    "proof": [
+      "The explicit formulation contains at least one object for each subset I of variables with |I| <= r.",
+      "If 0 < alpha <= 1/2 and r >= alpha*n, it contains at least binomial(n, floor(alpha*n)) objects; by the standard entropy/Stirling bound this is 2^{Omega(n)}.",
+      "If alpha > 1/2, level r contains all floor(n/2)-subsets, at least binomial(n, floor(n/2)) = 2^{Omega(n)}/poly(n).",
+      "Therefore materializing the standard explicit hierarchy at any linear level has exponential state size."
+    ]
   },
   "derived_TRUMP_barrier": {
-    "admissible_outcome": "GLOBAL_RELAXATION_RUNTIME_BARRIER",
-    "claim": "The standard Lasserre/SoS level-escalation route cannot serve as a universal polynomial-time exact TRUMP transition law for arbitrary 3-CNF.",
+    "admissible_outcome": "GLOBAL_RELAXATION_EXPLICIT_STATE_BARRIER",
+    "claim": "The explicit standard Lasserre/SoS level-escalation route cannot serve as a universal polynomial-state/polynomial-work exact TRUMP transition law for arbitrary 3-CNF.",
     "reason": [
-      "There are unsatisfiable random 3-SAT instances for which every hierarchy level below a linear threshold fails to refute satisfiability.",
-      "Therefore any exact use of this standard route must, on those instances, escalate to linear-order level before obtaining negative authority.",
-      "The standard generic optimization cost n^{O(r)} becomes n^{Omega(n)} at linear r, violating L3 charged polynomial work and hence the Legend polynomial-runtime target.",
-      "The failure is not local blindness: the hierarchy is global, but the proof/relaxation degree required for exactness grows too far."
+      "Schoenebeck supplies unsatisfiable random 3-SAT instances that survive a linear number alpha*n of Lasserre levels.",
+      "Thus this exact route cannot obtain negative authority before reaching beyond that linear-order level on those instances.",
+      "But the explicit standard level-alpha*n formulation already contains 2^{Omega(n)} indexed subset/vector objects.",
+      "Therefore this materialized route violates L4 polynomial live-state and consequently cannot satisfy L3 polynomial charged work when the full standard level is explicitly constructed/processed.",
+      "The failure is not bounded-local blindness: the hierarchy is global, but exactness requires a globally indexed state of exponential size in this fixed implementation model."
     ]
   },
   "hard_firewalls": [
     "GLOBAL_RELAXATION != GLOBAL_EXACT_DECISION",
     "LOW_LEVEL_SOS_FEASIBLE != SAT",
     "NO_SOS_REFUTATION_AT_LEVEL_R != SAT",
-    "LINEAR_LEVEL_REQUIREMENT_PLUS_STANDARD_N_TO_O_R_COST != POLYNOMIAL_RUNTIME",
+    "N_TO_O_R_IS_AN_UPPER_BOUND_NOT_A_LOWER_BOUND",
+    "LINEAR_LEVEL_EXPLICIT_SUBSET_INDEXING => EXPONENTIAL_MATERIALIZED_STATE",
+    "EXPLICIT_LASSERRE_BARRIER != BARRIER_FOR_IMPLICIT_OR_NONSTANDARD_SOS_ALGORITHMS",
     "SOS_BARRIER != BARRIER_FOR_ALL_GLOBAL_ALGORITHMS",
     "SOS_BARRIER != P_NE_NP",
     "RANDOM_INSTANCE_LOWER_BOUND != EVERY_INSTANCE_LOWER_BOUND",
@@ -47,26 +62,29 @@
     "meaning": "A globally informed relaxation can still contain a semantic dead zone: pseudo-distributions/moment data remain feasible even when no Boolean assignment exists."
   },
   "what_is_not_proved": [
-    "No lower bound is claimed for arbitrary semidefinite algorithms outside the fixed standard Lasserre/SoS hierarchy route.",
+    "No runtime lower bound is inferred from the paper's n^{O(r)} upper bound.",
+    "No lower bound is claimed for implicit implementations that do not materialize the standard level-r subset/vector state.",
+    "No lower bound is claimed for arbitrary semidefinite/global algorithms outside the fixed explicit standard Lasserre/SoS hierarchy route.",
     "No lower bound is claimed for every individual 3-CNF instance.",
-    "The result does not prove that global information is insufficient in principle; it blocks this precise global relaxation architecture as an easier universal route.",
+    "The result does not prove that global information is insufficient in principle; it blocks this precise explicit global relaxation architecture as an easier universal route.",
     "This does not prove P!=NP."
   ],
   "next_admissible_math": {
-    "question": "After proof-search, bounded-local propagation, full-function compilation, and standard global SoS/Lasserre escalation are blocked as easier universal routes, can TRUMP specify a global exact transition whose semantics are not merely proof search or relaxation feasibility and prove total polynomial charged work directly?",
+    "question": "Can TRUMP specify a genuinely global exact transition whose state is represented implicitly or by a non-relaxation invariant of polynomial size, and prove that each update and total trajectory are polynomial without reducing to generic proof search, bounded-local propagation, full-function compilation, or explicit linear-level Lasserre/SoS?",
     "allowed_outcomes": [
       "PROVE_TOTAL_POLYNOMIAL_GLOBAL_EXACT_TRANSITION",
-      "PROVE_BARRIER_FOR_ONE_PRECISELY_FIXED_NONRELAXATION_GLOBAL_MODEL"
+      "PROVE_BARRIER_FOR_ONE_PRECISELY_FIXED_IMPLICIT_OR_NONRELAXATION_GLOBAL_MODEL"
     ],
     "forbidden": [
       "heuristic scores",
       "benchmark success",
       "treating relaxation feasibility as SAT",
-      "unbounded level escalation hidden inside one macrostep",
+      "reversing algorithmic upper bounds into lower bounds",
+      "materializing exponential hierarchy state while calling the macrostep polynomial",
       "renaming known proof/relaxation machines without changing their mathematical semantics"
     ]
   },
-  "theorem_authority_source": "PUBLISHED_UNCONDITIONAL_LASSERRE_LOWER_BOUND_PLUS_STANDARD_LEVEL_COST_NOT_BENCHMARK_NOT_CI",
+  "theorem_authority_source": "PUBLISHED_UNCONDITIONAL_LASSERRE_LEVEL_LOWER_BOUND_PLUS_ELEMENTARY_EXPLICIT_STATE_COUNT_NOT_BENCHMARK_NOT_CI",
   "TRUMP_finished": false,
   "SAT_IN_P": "NOT_PROVED",
   "P_EQUALS_NP": "NOT_PROVED",
