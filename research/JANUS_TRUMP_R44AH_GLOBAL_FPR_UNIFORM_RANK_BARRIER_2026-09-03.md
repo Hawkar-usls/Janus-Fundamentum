@@ -1,42 +1,32 @@
 # JANUS TRUMP R44AH — original FPR uniform-rank barrier
 
-## Stronger implicit global language
-
-R44AH strengthens R44AG rather than renaming it.
-
-The fixed model is original fixed-point logic with rank, `FPR`, with a distinct operator `rk_p` for each prime field. This model can express fixed-field linear algebra and therefore repairs the affine/GF(2) gap that defeated plain FPC.
+R44AH strengthens R44AG to original fixed-point logic with rank (`FPR`), with a distinct operator `rk_p` for each fixed prime field. This repairs the fixed-field affine/GF(2) gap of plain FPC.
 
 ## Published theorem
 
-Erich Grädel and Wied Pakusa, *Rank Logic is Dead, Long Live Rank Logic!*, Journal of Symbolic Logic, published online 14 March 2019; earlier CSL 2015 / arXiv:1503.05423.
+Erich Grädel and Wied Pakusa, *Rank Logic is Dead, Long Live Rank Logic!*, Journal of Symbolic Logic, 2019; earlier CSL 2015 / arXiv:1503.05423.
 
-Their main result shows that FPC extensions by rank operators over different prime fields are incomparable. Consequently, original FPR does not capture PTIME. In particular, the uniform rank problem—where the finite field characteristic is itself part of the input—is polynomial-time computable but not expressible in original FPR.
+Original FPR does not capture PTIME. In particular, the uniform rank problem with the field characteristic supplied as input is polynomial-time computable but not expressible in original FPR.
 
-## TRUMP consequence
+## Correct Legend classification
 
-`FPR_STRONGER_THAN_FPC != FPR_CAPTURES_PTIME`.
+This is a barrier to `L1_UNIVERSAL_EXIT` **under preserved `L2_EXACT_SEMANTICS`**, not a failure of L2 soundness itself.
+
+A sound original-FPR observer can return OPEN on a property it cannot express; doing so preserves L2 but forfeits L1 totality.
+
+`L1_BARRIER_UNDER_L2 != L2_SOUNDNESS_FAILURE`.
 
 `FIXED_PRIME_RANK_ACCESS != UNIFORM_RANK_ACCESS`.
 
-A finite FPR formula can mention finitely many fixed-prime operators. The availability of one operator symbol for every prime in the language schema does not give one finite formula an input-dependent uniform rank operator.
-
-So original FPR cannot be the universal L1/L2 semantic language for TRUMP.
-
-## Dead-Zone law
-
 `MANY_FIXED_FIELD_OPERATORS != ONE_UNIFORM_FIELD_PARAMETERIZED_OPERATOR`.
-
-The missing information here is not rank itself; it is the ability to make the field parameter part of one uniform computation.
 
 ## Successor boundary
 
-Grädel–Pakusa define a stronger language `FPR*` with a uniform rank operator and show it is more expressive than original FPR.
+Grädel–Pakusa's `FPR*` uniform-rank language is not blocked merely by the original-FPR theorem.
 
-R44AH does **not** transfer the FPR barrier to FPR*.
+R44AH therefore does not transfer its barrier to FPR*.
 
-`FPR_BLOCKED != FPR_STAR_BLOCKED`.
-
-The next correct operation is to check the strongest current theorem about FPR*. If its PTIME-capturing status remains open for the relevant model, TRUMP must record `OPEN`, not manufacture a barrier or call the language sufficient.
+However, the later R44AI artifact independently imports the stronger Dawar–Grädel–Lichter theorem for fixed-point logic with all finite-field linear-algebraic operators. Thus the historical “audit FPR* separately” instruction here is superseded by R44AI, not by extrapolation from R44AH.
 
 `TRUMP_finished=false`.
 
