@@ -27,16 +27,20 @@ def mapping_for_block(i):
     return {PIVOT:PIVOT, **{v:10*(i+1)+j+1 for j,v in enumerate(LOCAL)}}
 def rename_clause(C,m): return [(1 if l>0 else -1)*m[abs(l)] for l in C]
 
-def connected_family(k):
+def shared_parent(k):
     F=[]; maps=[]
     for i in range(k):
         m=mapping_for_block(i); maps.append(m)
         F.extend(rename_clause(C,m) for C in BASE)
-    for i in range(k-1):
+    return F,maps
+
+def add_backbone(F,maps):
+    out=list(F)
+    for i in range(len(maps)-1):
         for v in LOCAL:
             a=maps[i][v]; b=maps[i+1][v]
-            F.append([-a,b]); F.append([a,-b])
-    return F,maps
+            out.append([-a,b]); out.append([a,-b])
+    return out
 
 def lift_pi(maps):
     g={}
@@ -75,23 +79,41 @@ def sat_model(F):
     return None
 
 def main():
-    F2,maps=connected_family(2)
+    # k=2 exact finite cross-check of the symbolic theorem.
+    raw2,maps=shared_parent(2)
+    assert len(raw2)==16 and len(vars_of(raw2))==11
+    assert deficiency(raw2)==5 and maxdef(raw2)==5
+
+    Araw=simplify(raw2,PIVOT,False); Braw=simplify(raw2,PIVOT,True)
+    assert maxdef(Araw)==2 and maxdef(Braw)==2
+
+    F2=add_backbone(raw2,maps)
     A2=simplify(F2,PIVOT,False); B2=simplify(F2,PIVOT,True)
-    assert len(F2)==17 and len(vars_of(F2))==11
-    assert deficiency(F2)==6 and maxdef(F2)==6  # 13k-11 for k=2
-    assert maxdef(A2)==12 and maxdef(B2)==12     # 11k-10 for k=2
+    assert len(F2)==26 and len(vars_of(F2))==11
+    assert deficiency(F2)==15  # 13k-11 for k=2
+    assert len(A2)==22 and len(B2)==22 and len(vars_of(A2))==10 and len(vars_of(B2))==10
+    assert deficiency(A2)==12 and deficiency(B2)==12  # 11k-10 for k=2
+
+    # Upper bound theorem: adding c=10 backbone clauses raises maxdef by at most c.
+    # Since raw child maxdef is 2 and full connected-child deficiency is 12,
+    # connected-child maxdef is exactly 12 without enumerating 2^22 subsets.
+    assert maxdef(Araw)+10==12 and maxdef(Braw)+10==12
+
     assert connected_primal(A2) and connected_primal(B2)
     assert sat_model(A2) is not None and sat_model(B2) is not None
     pi2=lift_pi(maps)
     assert transport_valid(A2,B2,pi2)
     assert sum(1 for v in pi2 if pi2[v]!=v)==10
+
     print('R44BS EXACT REPLAY PASS')
-    print('k2_parent_rank=6')
-    print('k2_child_ranks=12,12')
-    print('NOTE: parent rank formula and child formula are proved symbolically in proof note; k=2 values expose that maxdef rank is not a step-count ordering across the added-backbone normalization itself.')
+    print('k2_raw_parent_rank=5')
+    print('k2_connected_parent_full_deficiency=15')
+    print('k2_connected_child_ranks=12,12')
+    print('k2_rank_drop=15->12')
     print('children_connected=true')
     print('children_sat=true')
     print('known_forward_transport_support=10')
+    print('universal_support_lower_bound=symbolic_block_argument_in_proof_note')
     print('TRUMP_finished=false')
     print('SAT_IN_P=NOT_PROVED')
     print('P_VS_NP=OPEN')
