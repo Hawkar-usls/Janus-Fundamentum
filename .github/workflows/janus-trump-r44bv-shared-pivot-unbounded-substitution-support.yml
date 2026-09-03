@@ -1,0 +1,31 @@
+name: JANUS TRUMP R44BV Shared-Pivot Unbounded Substitution Support
+
+on:
+  pull_request:
+    branches:
+      - research/r44bu-k4-polynomial-substitution-discovery-2026-09-03
+    paths:
+      - 'research/JANUS_TRUMP_R44BV_SHARED_PIVOT_UNBOUNDED_SUBSTITUTION_DEVIATION_SUPPORT_2026-09-03.json'
+      - 'research/JANUS_TRUMP_R44BV_SHARED_PIVOT_UNBOUNDED_SUBSTITUTION_DEVIATION_SUPPORT_PROOF_2026-09-03.md'
+      - 'research/janus_trump_r44bv_verify_shared_pivot_unbounded_substitution_support.py'
+      - '.github/workflows/janus-trump-r44bv-shared-pivot-unbounded-substitution-support.yml'
+
+jobs:
+  exact-replay:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout exact head
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Replay exact theorem ingredients
+        run: python research/janus_trump_r44bv_verify_shared_pivot_unbounded_substitution_support.py
+      - name: Enforce theorem boundary
+        run: |
+          grep -q 'UNBOUNDED_SUBSTITUTION_SUPPORT != NP_HARD_CRITICAL_SUBSTITUTION_DISCOVERY' research/JANUS_TRUMP_R44BV_SHARED_PIVOT_UNBOUNDED_SUBSTITUTION_DEVIATION_SUPPORT_2026-09-03.json
+          grep -q 'TRUMP_finished=false' research/JANUS_TRUMP_R44BV_SHARED_PIVOT_UNBOUNDED_SUBSTITUTION_DEVIATION_SUPPORT_PROOF_2026-09-03.md
+          grep -q 'P_VS_NP=OPEN' research/JANUS_TRUMP_R44BV_SHARED_PIVOT_UNBOUNDED_SUBSTITUTION_DEVIATION_SUPPORT_PROOF_2026-09-03.md
