@@ -1,0 +1,69 @@
+{
+  "id": "JANUS_TRUMP_R44BC_LOG_MAXDEF_UNIFORM_TERMINAL_2026-09-03",
+  "status": "EXACT_UNIFORM_POLYTIME_LOCAL_TERMINAL_ON_LOG_MAXDEF_CNF_STATE",
+  "parent": "R44BB_FIXED_SURPLUS_EXACT_STEP_META_THEOREM",
+  "domain": "CNF states only",
+  "parameter": {
+    "name": "maximum deficiency",
+    "notation": "delta*(F)",
+    "definition": "max_{F' subseteq F} (c(F')-n(F'))",
+    "computability": "polynomial-time by bipartite matching"
+  },
+  "published_basis": {
+    "author": "Stefan Szeider",
+    "result": "SAT for CNF with maximum deficiency k is decidable in O(2^k n^3), producing either a satisfying assignment or a regular-resolution refutation for that CNF state.",
+    "source": "ECCC TR03-002 / JCSS 69(4), 2004"
+  },
+  "uniform_terminal_rule": {
+    "current_state_size": "S = encoded size of the current CNF state, S>=2",
+    "trigger": "delta*(F) <= floor(log2 S)",
+    "action": "run the exact Szeider maximum-deficiency SAT algorithm on the current CNF state",
+    "runtime_bound_current_state": "O(2^delta* n^3) <= O(S*S^3)=O(S^4)",
+    "original_input_accounting": "If an inherited/proved L4 envelope gives S<=N^c for original input size N, then this terminal costs O(N^(4c)). R44BC itself does not prove that envelope.",
+    "output": [
+      "SAT with satisfying assignment for the current CNF state",
+      "UNSAT with regular-resolution refutation for the current CNF state"
+    ]
+  },
+  "legend_effect": {
+    "L1": "LOCAL_TERMINAL_EXIT_ON_TRIGGER_FOR_CNF_STATE",
+    "L2": "EXACT_FOR_CURRENT_CNF_STATE",
+    "L3": "UNIFORM_POLYNOMIAL_IN_CURRENT_STATE_SIZE; ORIGINAL-N_BOUND_CONDITIONAL_ON_INHERITED_L4_ENVELOPE",
+    "L4": "NOT_PROVED_BY_R44BC; CURRENT_STATE_ALGORITHM_USES_POLYNOMIAL_SPACE_RELATIVE_TO_ITS_INPUT",
+    "L5": "LOCAL_TERMINAL_ONE_STEP_ON_TRIGGER",
+    "L6": "LOCAL_CERTIFICATE_ONLY__END_TO_END_REPLAY_TO_ORIGINAL_CNF_REQUIRES_PREDECESSOR_RECONSTRUCTION_DERIVATION_METADATA"
+  },
+  "scope": {
+    "strength": "Works for arbitrary CNF clause width, so it can consume some wider CNF successors created by previous exact transitions.",
+    "representation_boundary": "Does not apply directly to non-CNF states (GF(2), circuit, DNNF, selector/quantified representations, etc.) unless a separate exact polynomial conversion to a CNF state is supplied with its own accounting/replay proof.",
+    "ceiling": "If delta*(F)>floor(log2 S), the rule returns NO_PROGRESS and no SAT/UNSAT claim.",
+    "not_claimed": [
+      "The full FPT algorithm is polynomial on unbounded maximum deficiency.",
+      "Every representation-switchboard state is covered.",
+      "A local Szeider certificate automatically replays against the original CNF after arbitrary predecessor transitions."
+    ]
+  },
+  "firewalls": [
+    "CNF_MAXDEF_TERMINAL != TERMINAL_FOR_NON_CNF_REPRESENTATIONS",
+    "CURRENT_STATE_POLYNOMIAL != ORIGINAL_N_POLYNOMIAL_WITHOUT_STATE_ENVELOPE",
+    "LOCAL_CERTIFICATE != END_TO_END_REPLAY",
+    "FPT != ORDINARY_POLYNOMIAL_FOR_UNBOUNDED_PARAMETER",
+    "2^k_S^3_WITH_k_LE_LOG_S => POLYNOMIAL_IN_S",
+    "k_GT_LOG_S != HARDNESS_CERTIFICATE",
+    "NO_PROGRESS != UNSAT",
+    "REGULAR_RESOLUTION_CERTIFICATE_ON_TRIGGER != RESOLUTION_AUTOMATIZATION_FOR_ALL_CNF",
+    "P_VS_NP=OPEN"
+  ],
+  "combined_frontier_after_R44BC": {
+    "cnf_terminal_region": "Any current CNF state with delta*(F)<=floor(log2 S) has an exact O(S^4) local terminal decision.",
+    "residual_cnf_region": "CNF states with delta*(F)>floor(log2 S) and no earlier exact rule applicable.",
+    "non_cnf_region": "Outside R44BC scope unless independently converted exactly back to CNF with polynomial accounting and replay."
+  },
+  "next_admissible_math": {
+    "question": "On high-delta* CNF critical cores, prove a uniform exact branch-compression/safe-choice transition or prove a barrier for one fixed candidate operator; separately do not assume non-CNF states inherit this terminal."
+  },
+  "TRUMP_finished": false,
+  "SAT_IN_P": "NOT_PROVED",
+  "P_EQUALS_NP": "NOT_PROVED",
+  "P_VS_NP": "OPEN"
+}
