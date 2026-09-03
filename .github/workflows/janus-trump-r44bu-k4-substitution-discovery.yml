@@ -1,0 +1,32 @@
+name: JANUS TRUMP R44BU K4 Polynomial Substitution Discovery
+
+on:
+  pull_request:
+    paths:
+      - 'research/JANUS_TRUMP_R44BU_K4_POLYNOMIAL_SUBSTITUTION_DISCOVERY_2026-09-03.json'
+      - 'research/janus_trump_r44bu_verify_k4_substitution_discovery.py'
+      - '.github/workflows/janus-trump-r44bu-k4-substitution-discovery.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  exact-k4-discovery-replay:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout exact head
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Replay deterministic K4 substitution discovery
+        run: python research/janus_trump_r44bu_verify_k4_substitution_discovery.py
+      - name: Enforce theorem boundary
+        run: |
+          grep -q '"TRUMP_finished": false' research/JANUS_TRUMP_R44BU_K4_POLYNOMIAL_SUBSTITUTION_DISCOVERY_2026-09-03.json
+          grep -q '"SAT_IN_P": "NOT_PROVED"' research/JANUS_TRUMP_R44BU_K4_POLYNOMIAL_SUBSTITUTION_DISCOVERY_2026-09-03.json
+          grep -q '"P_VS_NP": "OPEN"' research/JANUS_TRUMP_R44BU_K4_POLYNOMIAL_SUBSTITUTION_DISCOVERY_2026-09-03.json
