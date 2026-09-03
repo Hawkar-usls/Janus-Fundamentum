@@ -1,0 +1,25 @@
+name: JANUS TRUMP R44W Bipolar 2Core Counterexample
+on:
+  pull_request:
+  workflow_dispatch:
+jobs:
+  twin-signature:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Verify opposite-status twin signatures
+        run: |
+          python research/janus_trump_r44w_verify_bipolar_2core_signature_counterexample.py > /tmp/r44w.json
+          python - <<'PY'
+          import json
+          r=json.load(open('/tmp/r44w.json'))
+          assert r['unsat_status']=='UNSAT'
+          assert r['sat_status']=='SAT'
+          assert r['coarse_signature_exact_decision_sufficient'] is False
+          assert r['stronger_polynomial_compression_ruled_out'] is False
+          assert r['P_VS_NP']=='OPEN'
+          print('R44W TWIN SIGNATURE COUNTEREXAMPLE PASS')
+          PY
