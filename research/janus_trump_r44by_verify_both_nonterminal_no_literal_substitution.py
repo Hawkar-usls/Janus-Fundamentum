@@ -131,13 +131,14 @@ def main():
     assert valid_ab == cert["A_to_B_valid_many_to_one_substitutions"] == 0
     assert tested_ba + tested_ab == cert["total_exact_maps_checked"] == 200000
 
-    print("R44BY EXACT BOTH-NONTERMINAL COUNTEREXAMPLE REPLAY PASS")
+    print("R44BY EXACT POSITIVE-RANK COUNTEREXAMPLE REPLAY PASS")
     print("parent_maxdef=2 critical=true")
     print("siblings_maxdef=1,1")
     print("siblings_sat_models=9,7")
     print("candidate_substitutions_each_direction=100000")
     print("valid_substitutions_B_to_A=0")
     print("valid_substitutions_A_to_B=0")
+    print("active_R44BD_nonterminal_obstruction=NO_R44BC_TERMINAL_APPLIES")
     print("TRUMP_finished=false")
     print("SAT_IN_P=NOT_PROVED")
     print("P_VS_NP=OPEN")
