@@ -1,0 +1,70 @@
+name: JANUS TRUMP R44CE Arbitrary Graph Image No Hidden Promise Seal
+
+on:
+  push:
+    branches:
+      - research/r44ce-arbitrary-graph-image-no-hidden-promise-seal-2026-09-03
+  pull_request:
+    branches:
+      - research/r44cd-global-transport-3color-reduction-seal-2026-09-03
+  workflow_dispatch:
+
+jobs:
+  r44ce-no-hidden-promise:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Verify frozen parent and preregistration
+        run: |
+          set -euo pipefail
+          PARENT=f6dd7b3bc3d8e6ba396fff8ed575296a913b36b4
+          git merge-base --is-ancestor "$PARENT" "$GITHUB_SHA"
+          python - <<'PY'
+          import json
+          p='research/JANUS_TRUMP_R44CE_ARBITRARY_GRAPH_IMAGE_NO_HIDDEN_PROMISE_SEAL_PREREGISTRATION_2026-09-03.json'
+          d=json.load(open(p))
+          assert d['status']=='FROZEN_BEFORE_EXECUTION'
+          assert d['parent_commit']=='f6dd7b3bc3d8e6ba396fff8ed575296a913b36b4'
+          assert d['claim_ceiling']['TRUMP_finished'] is False
+          assert d['claim_ceiling']['SAT_IN_P']=='NOT_PROVED'
+          assert d['claim_ceiling']['P_VS_NP']=='OPEN'
+          PY
+      - name: Static decoder firewall
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          from pathlib import Path
+          p=Path('experiments/janus_trump_r44ce_arbitrary_graph_image_no_hidden_promise_seal.py').read_text()
+          assert 'def decode_graph(A, B):' in p
+          assert 'decode_graph(A, B,' not in p
+          assert "'original graph G'" not in p
+          PY
+      - name: Compile and unit tests
+        run: |
+          python -m py_compile experiments/janus_trump_r44ce_arbitrary_graph_image_no_hidden_promise_seal.py
+          python -m unittest -q tests.test_janus_trump_r44ce_arbitrary_graph_image_no_hidden_promise_seal
+      - name: Execute exact image audit
+        run: |
+          set -euo pipefail
+          python experiments/janus_trump_r44ce_arbitrary_graph_image_no_hidden_promise_seal.py | tee /tmp/r44ce.json
+          python - <<'PY'
+          import json
+          d=json.load(open('/tmp/r44ce.json'))
+          assert d['gate']=='R44CE_ARBITRARY_GRAPH_IMAGE_NO_HIDDEN_PROMISE_SEAL'
+          assert d['graphs_checked']==1099
+          assert d['formula_only_decoder'] is True
+          assert d['decode_encode_left_inverse_on_enumerated_universe'] is True
+          assert d['image_contains_all_finite_simple_graphs_via_direct_encoder'] is True
+          assert d['no_hidden_graph_promise_in_image_family'] is True
+          assert d['polynomial_algorithm_for_r44cc_family_found'] is False
+          assert d['additional_algebraic_or_semantic_invariant_ruled_out'] is False
+          assert d['P_NE_NP']=='NOT_PROVED'
+          assert d['SAT_IN_P']=='NOT_PROVED'
+          assert d['TRUMP_finished'] is False
+          assert d['P_VS_NP']=='OPEN'
+          PY
