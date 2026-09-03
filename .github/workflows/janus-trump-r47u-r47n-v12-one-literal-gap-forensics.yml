@@ -1,0 +1,70 @@
+name: JANUS TRUMP R47U R47N v12 One Literal Gap Forensics
+
+on:
+  push:
+    branches:
+      - research/r47u-r47n-v12-one-literal-gap-forensics-2026-09-03
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  r47u-forensics:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Verify frozen preregistration
+        run: |
+          python - <<'PY'
+          import json
+          d=json.load(open('research/JANUS_TRUMP_R47U_R47N_V12_ONE_LITERAL_GAP_FORENSICS_PREREGISTRATION_2026-09-03.json'))
+          assert d['status']=='FROZEN_BEFORE_EXECUTION'
+          assert d['sealed_witness']['R47N_fixpoint_hash']=='eb653802ae710e5770e21878b5b38b2871cf0db16451b04cfc5451ca2c2e7502'
+          assert d['sealed_witness']['pivot']==12
+          assert d['sealed_witness']['R47M_final_CLV']==[76,204,20]
+          assert d['forensics_only'] is True
+          assert d['no_new_inference_rule_authorized'] is True
+          assert d['firewall']['O4_UNIVERSAL_COVERAGE']=='OPEN'
+          assert d['firewall']['SAT_IN_P']=='NOT_PROVED'
+          assert d['firewall']['P_VS_NP']=='OPEN'
+          PY
+      - name: Compile
+        run: python -m py_compile experiments/janus_trump_r47u_r47n_v12_one_literal_gap_forensics.py
+      - name: Execute frozen forensics
+        run: |
+          mkdir -p artifacts
+          PYTHONPATH=experiments python experiments/janus_trump_r47u_r47n_v12_one_literal_gap_forensics.py \
+            --output artifacts/JANUS_TRUMP_R47U_R47N_V12_ONE_LITERAL_GAP_FORENSICS_RESULT_2026-09-03.json \
+            | tee /tmp/r47u.json
+          python - <<'PY'
+          import json
+          d=json.load(open('artifacts/JANUS_TRUMP_R47U_R47N_V12_ONE_LITERAL_GAP_FORENSICS_RESULT_2026-09-03.json'))
+          assert d['verdict']=='R47U_V12_ONE_LITERAL_GAP_EXACTLY_DECOMPOSED__FORENSICS_ONLY'
+          assert d['R47N_root']['fixpoint_hash']=='eb653802ae710e5770e21878b5b38b2871cf0db16451b04cfc5451ca2c2e7502'
+          assert d['v12_path']['forced_DP_CLV']==[78,216,21]
+          assert d['v12_path']['final_CLV']==[76,204,20]
+          assert d['v12_path']['net_delta_CLV']==[0,1,-2]
+          assert d['v12_path']['final_joint_fixpoint_integrity']['pass'] is True
+          assert d['root_to_final_clause_diff']['net_clause_delta']==0
+          assert d['root_to_final_clause_diff']['net_literal_delta']==1
+          assert d['root_to_final_clause_diff']['net_variable_delta']==-2
+          assert d['firewall']['NEW_REDUCTION_RULE_AUTHORIZED'] is False
+          assert d['firewall']['O4_UNIVERSAL_COVERAGE']=='OPEN'
+          print('R47U_GATE=PASS')
+          print('R47U_SECOND_DP_ROOT_DESCENTS=', json.dumps(d['second_DP_rows_that_would_descend_relative_to_R47N_root'], sort_keys=True))
+          PY
+      - name: Upload full forensics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: JANUS_TRUMP_R47U_R47N_V12_ONE_LITERAL_GAP_FORENSICS_RESULT
+          path: artifacts/JANUS_TRUMP_R47U_R47N_V12_ONE_LITERAL_GAP_FORENSICS_RESULT_2026-09-03.json
+          if-no-files-found: error
+          retention-days: 90
