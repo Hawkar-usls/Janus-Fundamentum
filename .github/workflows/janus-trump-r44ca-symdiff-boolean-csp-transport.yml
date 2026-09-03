@@ -1,0 +1,32 @@
+name: JANUS TRUMP R44CA SymDiff Boolean-CSP Transport Recovery
+
+on:
+  pull_request:
+    branches:
+      - research/r44bz-grid-orbit-coupled-unbounded-treewidth-2026-09-03
+    paths:
+      - 'research/JANUS_TRUMP_R44CA_SYMDIFF_BLOCK_BOOLEAN_CSP_TRANSPORT_RECOVERY_2026-09-03.json'
+      - 'research/JANUS_TRUMP_R44CA_SYMDIFF_BLOCK_BOOLEAN_CSP_TRANSPORT_RECOVERY_PROOF_2026-09-03.md'
+      - 'research/janus_trump_r44ca_verify_symdiff_boolean_csp_transport.py'
+      - '.github/workflows/janus-trump-r44ca-symdiff-boolean-csp-transport.yml'
+
+jobs:
+  exact-recovery-replay:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout exact head
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Replay Boolean-CSP transport recovery
+        run: python research/janus_trump_r44ca_verify_symdiff_boolean_csp_transport.py
+      - name: Enforce theorem boundary
+        run: |
+          grep -q 'UNBOUNDED_INTERACTION_TREEWIDTH != HARD_TRANSPORT_DISCOVERY' research/JANUS_TRUMP_R44CA_SYMDIFF_BLOCK_BOOLEAN_CSP_TRANSPORT_RECOVERY_2026-09-03.json
+          grep -q 'DOMAIN_SIZE_2_IS_A_REAL_RESTRICTION' research/JANUS_TRUMP_R44CA_SYMDIFF_BLOCK_BOOLEAN_CSP_TRANSPORT_RECOVERY_PROOF_2026-09-03.md
+          grep -q 'TRUMP_finished=false' research/JANUS_TRUMP_R44CA_SYMDIFF_BLOCK_BOOLEAN_CSP_TRANSPORT_RECOVERY_PROOF_2026-09-03.md
+          grep -q 'P_VS_NP=OPEN' research/JANUS_TRUMP_R44CA_SYMDIFF_BLOCK_BOOLEAN_CSP_TRANSPORT_RECOVERY_PROOF_2026-09-03.md
