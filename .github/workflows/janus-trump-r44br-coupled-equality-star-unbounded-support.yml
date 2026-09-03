@@ -1,0 +1,31 @@
+name: JANUS TRUMP R44BR Coupled Equality-Star Unbounded Transport Support
+
+on:
+  pull_request:
+    branches:
+      - research/r44bq-k5-polynomial-signed-transport-discovery-2026-09-03
+    paths:
+      - 'research/JANUS_TRUMP_R44BR_COUPLED_EQUALITY_STAR_UNBOUNDED_TRANSPORT_SUPPORT_2026-09-03.json'
+      - 'research/JANUS_TRUMP_R44BR_COUPLED_EQUALITY_STAR_UNBOUNDED_TRANSPORT_SUPPORT_PROOF_2026-09-03.md'
+      - 'research/janus_trump_r44br_verify_coupled_equality_star_unbounded_support.py'
+      - '.github/workflows/janus-trump-r44br-coupled-equality-star-unbounded-support.yml'
+
+jobs:
+  exact-construction-replay:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout exact head
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Replay coupled-family theorem ingredients
+        run: python research/janus_trump_r44br_verify_coupled_equality_star_unbounded_support.py
+      - name: Enforce theorem boundary
+        run: |
+          grep -q 'UNBOUNDED_SIGNED_PERMUTATION_SUPPORT != NO_POLYNOMIAL_SAFE_DELETE_RULE' research/JANUS_TRUMP_R44BR_COUPLED_EQUALITY_STAR_UNBOUNDED_TRANSPORT_SUPPORT_2026-09-03.json
+          grep -q 'TRUMP_finished=false' research/JANUS_TRUMP_R44BR_COUPLED_EQUALITY_STAR_UNBOUNDED_TRANSPORT_SUPPORT_PROOF_2026-09-03.md
+          grep -q 'P_VS_NP=OPEN' research/JANUS_TRUMP_R44BR_COUPLED_EQUALITY_STAR_UNBOUNDED_TRANSPORT_SUPPORT_PROOF_2026-09-03.md
