@@ -1,0 +1,40 @@
+name: JANUS TRUMP R44BP Signed Model Transport Safe Deletion
+
+on:
+  pull_request:
+    paths:
+      - 'research/JANUS_TRUMP_R44BP_SIGNED_MODEL_TRANSPORT_SAFE_SIBLING_DELETION_2026-09-03.json'
+      - 'research/janus_trump_r44bp_verify_signed_model_transport.py'
+      - '.github/workflows/janus-trump-r44bp-signed-model-transport.yml'
+  workflow_dispatch:
+
+jobs:
+  exact-signed-transport-replay:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout exact head
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Replay exact signed transport theorem
+        run: python research/janus_trump_r44bp_verify_signed_model_transport.py
+
+      - name: Enforce theorem boundary
+        run: |
+          python - <<'PY'
+          import json
+          p='research/JANUS_TRUMP_R44BP_SIGNED_MODEL_TRANSPORT_SAFE_SIBLING_DELETION_2026-09-03.json'
+          d=json.load(open(p, encoding='utf-8'))
+          assert d['TRUMP_finished'] is False
+          assert d['SAT_IN_P'] == 'NOT_PROVED'
+          assert d['P_VS_NP'] == 'OPEN'
+          assert d['r44bd_effect']['universal_polynomial_certificate_discovery'] == 'OPEN'
+          assert d['r44bd_effect']['universal_coverage'] == 'OPEN'
+          print('theorem boundary PASS')
+          PY
