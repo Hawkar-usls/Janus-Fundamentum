@@ -1,0 +1,56 @@
+{
+  "id": "JANUS_TRUMP_R44BL_MIXED_SHARED_OR_PROXY_MAXDEF_NONDECREASE_2026-09-03",
+  "status": "EXACT_MAXDEF_NONDECREASE_BARRIER_FOR_STANDARD_SHARED_OR_TSEITIN_PROXY",
+  "parent": "R44BK_EXCLUSIVE_SHARED_OR_PROXY_MAXDEF_GROWTH",
+  "fixed_transform_class": {
+    "name": "MIXED_INPUT_COMMON_DISJUNCTION_TSEITIN_PROXY",
+    "definition": [
+      "Choose r>=2 literals l1,...,lr on distinct original variables that occur as one repeated common disjunction L=l1 OR ... OR lr in a nonempty block of original clauses (L OR R_i).",
+      "The input variables may also occur arbitrarily outside this compressed block.",
+      "Replace L by fresh shared proxy y in every chosen block clause, obtaining (y OR R_i).",
+      "Add the standard exact CNF definition D(y<->L): for each i, (not l_i OR y), and one clause (l1 OR ... OR lr OR not y)."
+    ],
+    "exactness": "The r+1 definition clauses force y to equal the OR of the input literals, so existentially forgetting y recovers exactly the original formula."
+  },
+  "maxdef_theorem": {
+    "statement": "For every normalized CNF F, delta*(T_OR(F))>=delta*(F). Moreover, if some maximum-deficiency witness A contains at least one compressed block clause, then delta*(T_OR(F))>=delta*(F)+r.",
+    "proof": [
+      "Let A attain delta*(F). If A avoids the compressed block, its clauses are unchanged and remain a subformula of T_OR(F), so delta*(T_OR(F))>=delta*(F).",
+      "Otherwise A contains a compressed block clause, hence all r input variables occur in A.",
+      "Let A' be the transformed copies of A's original clauses and let q be the number of those r input variables that still occur in A' through uncompressed occurrences elsewhere in A.",
+      "The transformed copy A' removes r input-variable incidences from the compressed block but retains q of those variables elsewhere, and introduces y. Therefore |Var(A')|=|Var(A)|-r+q+1 and delta(A')=delta(A)+r-q-1.",
+      "Now add all r+1 definition clauses D. Since y is already present in A', D adds exactly the r-q missing input variables and no other variables.",
+      "Thus adding D increases deficiency by (r+1)-(r-q)=q+1.",
+      "Therefore delta(A' union D)=delta(A)+r-q-1+q+1=delta(A)+r=delta*(F)+r.",
+      "A' union D is a valid subformula of the transformed CNF, proving the lower bound."
+    ]
+  },
+  "R44BD_effect": {
+    "meaning": "Standard shared OR Tseitin compression cannot provide maximum-deficiency descent even when gate inputs remain elsewhere and the proxy exploits genuine common-subexpression sharing.",
+    "strict_growth_condition": "If any maxdef witness touches the compressed block, the transformed formula has a witnessed maxdef increase of at least r.",
+    "R44BK_relation": "R44BK's exclusive-input +r-1 lower bound is superseded for the standard exact OR-definition class: after charging the definition clauses, the mixed theorem gives +r regardless of how many inputs remain elsewhere."
+  },
+  "scope_ceiling": {
+    "not_covered": [
+      "nonstandard OR encodings with additional semantic simplification/deletion",
+      "functions other than OR",
+      "multi-output shared circuits",
+      "non-CNF merge representations",
+      "operators that exploit the special sibling relationship without representing a repeated OR subexpression"
+    ]
+  },
+  "firewalls": [
+    "MIXED_INPUT_SHARING != MAXDEF_COMPRESSION_FOR_STANDARD_OR_TSEITIN",
+    "COMMON_SUBEXPRESSION_COMPRESSION != R44BD_RANK_DESCENT",
+    "DEFINITION_CLAUSE_DEBT_MUST_BE_CHARGED",
+    "R44BL_BARRIER != BARRIER_FOR_ALL_FUNCTIONAL_AUXILIARY_CIRCUITS",
+    "P_VS_NP=OPEN"
+  ],
+  "next_admissible_math": {
+    "question": "Fix a genuinely different functional merge, not a standard shared OR proxy: either another Boolean gate/circuit family with exact CNF accounting or an operator using sibling-specific semantics, and prove R44BD descent or a barrier."
+  },
+  "TRUMP_finished": false,
+  "SAT_IN_P": "NOT_PROVED",
+  "P_EQUALS_NP": "NOT_PROVED",
+  "P_VS_NP": "OPEN"
+}
