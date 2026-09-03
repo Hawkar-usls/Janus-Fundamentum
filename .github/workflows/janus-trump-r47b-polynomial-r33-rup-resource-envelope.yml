@@ -1,0 +1,56 @@
+name: JANUS TRUMP R47B Polynomial R33 RUP Resource Envelope
+
+on:
+  push:
+    branches:
+      - research/r47b-polynomial-r33-rup-resource-envelope-2026-09-03
+
+jobs:
+  r47b-resource-envelope:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Verify frozen preregistration
+        run: |
+          python - <<'PY'
+          import json, subprocess
+          parent='ca87a70f65cfb038ce1422cba3bad9c3e4205010'
+          subprocess.run(['git','merge-base','--is-ancestor',parent,'HEAD'], check=True)
+          p='research/JANUS_TRUMP_R47B_POLYNOMIAL_R33_RUP_RESOURCE_ENVELOPE_PREREGISTRATION_2026-09-03.json'
+          d=json.load(open(p))
+          assert d['status']=='FROZEN_BEFORE_EXECUTION'
+          assert d['parent']['commit']==parent
+          assert d['epistemic_firewall']['O4_UNIVERSAL_COVERAGE']=='OPEN'
+          assert d['epistemic_firewall']['SAT_IN_P']=='NOT_PROVED'
+          assert d['epistemic_firewall']['P_VS_NP']=='OPEN'
+          assert d['epistemic_firewall']['TRUMP_finished'] is False
+          PY
+      - name: Compile
+        run: python -m py_compile experiments/janus_trump_r47b_polynomial_r33_rup_resource_envelope.py
+      - name: Execute resource-envelope regression
+        run: |
+          PYTHONPATH=experiments python experiments/janus_trump_r47b_polynomial_r33_rup_resource_envelope.py | tee /tmp/r47b.json
+          python - <<'PY'
+          import json
+          d=json.load(open('/tmp/r47b.json'))
+          assert d['gate']=='JANUS_TRUMP_R47B_POLYNOMIAL_R33_RUP_RESOURCE_ENVELOPE'
+          assert d['verdict']=='POLYNOMIAL_R33_CAP_AND_RUP_ENVELOPE_SEALED__UNIVERSAL_COVERAGE_OPEN'
+          assert all(r['identical_to_default'] for r in d['R33_rows'])
+          assert all(r['cap_slack'] >= 1 for r in d['R33_rows'])
+          assert all(r['pass'] for r in d['RUP_rows'])
+          assert d['symbolic_status']['O3_POLYNOMIAL_WORK_PER_TRANSITION']=='SYMBOLICALLY_CLOSED_FOR_FROZEN_GRAMMAR_WITH_POLYCAP_R33'
+          assert d['symbolic_status']['O4_UNIVERSAL_COVERAGE']=='OPEN'
+          assert d['firewall']['SAT_IN_P']=='NOT_PROVED'
+          assert d['firewall']['P_VS_NP']=='OPEN'
+          print('R47B_GATE=PASS')
+          print('R47B_VERDICT=', d['verdict'])
+          print('R33_CASES=', len(d['R33_rows']))
+          print('RUP_CASES=', len(d['RUP_rows']))
+          print('O3=', d['symbolic_status']['O3_POLYNOMIAL_WORK_PER_TRANSITION'])
+          PY
