@@ -1,0 +1,68 @@
+name: JANUS TRUMP R47G Reachable Fixpoint Onset Ladder
+
+on:
+  push:
+    branches:
+      - research/r47g-reachable-fixpoint-onset-ladder-2026-09-03
+
+jobs:
+  r47g-onset:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Verify frozen preregistration
+        run: |
+          python - <<'PY'
+          import json, subprocess
+          parent='3b8d99ac247e7806f28d4b4e39369c937d37ad26'
+          subprocess.run(['git','merge-base','--is-ancestor',parent,'HEAD'], check=True)
+          p='research/JANUS_TRUMP_R47G_REACHABLE_FIXPOINT_ONSET_LADDER_PREREGISTRATION_2026-09-03.json'
+          d=json.load(open(p))
+          assert d['status']=='FROZEN_BEFORE_EXECUTION'
+          assert d['parent']['commit']==parent
+          assert d['epistemic_firewall']['O4_UNIVERSAL_COVERAGE']=='OPEN'
+          assert d['epistemic_firewall']['SAT_IN_P']=='NOT_PROVED'
+          assert d['epistemic_firewall']['P_VS_NP']=='OPEN'
+          assert d['epistemic_firewall']['TRUMP_finished'] is False
+          PY
+      - name: Compile
+        run: python -m py_compile experiments/janus_trump_r47g_reachable_fixpoint_onset_ladder.py
+      - name: Execute frozen onset ladder
+        run: |
+          PYTHONPATH=experiments python experiments/janus_trump_r47g_reachable_fixpoint_onset_ladder.py | tee /tmp/r47g.json
+          python - <<'PY'
+          import json
+          d=json.load(open('/tmp/r47g.json'))
+          assert d['gate']=='JANUS_TRUMP_R47G_REACHABLE_FIXPOINT_ONSET_LADDER'
+          assert d['verdict'] in {
+              'EARLIEST_FROZEN_LADDER_FIXPOINT_FOUND_AND_MACRO_COVERED',
+              'EARLIEST_FROZEN_LADDER_FIXPOINT_FOUND_AND_MACRO_DEAD',
+              'NO_FIXPOINT_THROUGH_N48_INCLUDING_HISTORICAL_ANCHOR_INTEGRITY_FAILURE',
+          }
+          assert d['interpretation']['ladder_minimum_is_not_global_minimum'] is True
+          assert d['interpretation']['finite_macro_coverage_is_not_O4'] is True
+          assert d['firewall']['O4_UNIVERSAL_COVERAGE']=='OPEN'
+          assert d['firewall']['SAT_IN_P']=='NOT_PROVED'
+          assert d['firewall']['P_VS_NP']=='OPEN'
+          if d['witness'] is not None:
+              assert d['all_smaller_ladder_sizes_exhausted'] is True
+              if d['verdict'].endswith('MACRO_DEAD'):
+                  assert d['witness']['macro_selection'] is None
+              else:
+                  assert d['witness']['macro_selection'] is not None
+                  assert d['witness']['macro_selection']['replay_pass'] is True
+          print('R47G_GATE=PASS')
+          print('R47G_VERDICT=', d['verdict'])
+          print('FIRST_N=', d['first_fixpoint_n'])
+          print('TESTED_BY_N=', json.dumps(d['tested_by_n'], sort_keys=True))
+          if d['witness'] is not None:
+              print('WITNESS_SOURCE=', json.dumps(d['witness']['source'], sort_keys=True))
+              print('FIXPOINT_CLV=', d['witness']['fixpoint_CLV'])
+              print('MACRO_SELECTION=', json.dumps(d['witness']['macro_selection'], sort_keys=True))
+          PY
