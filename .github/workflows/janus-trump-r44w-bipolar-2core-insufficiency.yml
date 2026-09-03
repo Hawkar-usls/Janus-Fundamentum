@@ -1,0 +1,24 @@
+name: JANUS TRUMP R44W Bipolar 2Core Insufficiency
+on:
+  pull_request:
+  workflow_dispatch:
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Verify satisfiability-preserving bipolar padding witness
+        run: |
+          python research/janus_trump_r44w_verify_bipolar_2core_insufficiency.py > /tmp/r44w.json
+          python - <<'PY'
+          import json
+          r=json.load(open('/tmp/r44w.json'))
+          assert r['verdict']=='BIPOLAR_2CORE_ALONE_IS_INSUFFICIENT_FOR_U1'
+          assert r['hardness_claim'] is False
+          assert r['P_VS_NP']=='OPEN'
+          assert all(x['extension_preserves_each_assignment_truth'] for x in r['checks'])
+          print('R44W BIPOLAR 2CORE INSUFFICIENCY PASS')
+          PY

@@ -1,0 +1,30 @@
+name: JANUS TRUMP R44T First Survivor Candidate
+on:
+  pull_request:
+  workflow_dispatch:
+jobs:
+  survivor:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Build candidate and freeze minimal open vector
+        run: |
+          python research/janus_trump_r44t_first_survivor_candidate.py > /tmp/r44t.json
+          python - <<'PY'
+          import json
+          r=json.load(open('/tmp/r44t.json'))
+          assert r['survivor_candidate_promoted'] is False
+          assert r['first_blocker']=='U1_UNIVERSAL_TOTALITY'
+          assert r['P_VS_NP']=='OPEN'
+          assert r['minimal_open_vector']==[
+            'U1_UNIVERSAL_TOTALITY',
+            'U3_POLYNOMIAL_LOCAL_COST',
+            'U4_POLYNOMIAL_STATE_ENVELOPE',
+            'U5_POLYNOMIAL_TERMINATION',
+            'U6_END_TO_END_VERIFICATION'
+          ]
+          print('R44T SURVIVOR CANDIDATE OPEN VECTOR PASS')
+          PY

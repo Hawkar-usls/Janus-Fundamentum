@@ -1,0 +1,35 @@
+name: JANUS TRUMP R44G Component Factor Compression
+
+on:
+  push:
+    branches:
+      - research/r44-exact-representation-switchboard-coverage-counterexample-2026-09-03
+  pull_request:
+    paths:
+      - 'research/janus_trump_r44f_scalable_backdoor_obstruction.py'
+      - 'research/janus_trump_r44g_component_factor_compression.py'
+      - 'research/JANUS_TRUMP_R44G_COMPONENT_FACTOR_COMPRESSION_2026-09-03.json'
+      - '.github/workflows/janus-trump-r44g-component-factor-compression.yml'
+  workflow_dispatch:
+
+jobs:
+  factorize:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Replay exact component factorization
+        run: |
+          python research/janus_trump_r44g_component_factor_compression.py > /tmp/r44g.json
+          python - <<'PY'
+          import json
+          r=json.load(open('/tmp/r44g.json'))
+          assert r['r44f_family_consumed_without_global_branch_product'] is True
+          assert r['general_connected_3sat_solved'] is False
+          assert r['U1']=='OPEN'
+          assert r['P_VS_NP']=='OPEN'
+          print('R44G COMPONENT FACTOR COMPRESSION PASS')
+          PY

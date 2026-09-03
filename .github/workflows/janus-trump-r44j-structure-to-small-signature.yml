@@ -1,0 +1,40 @@
+name: JANUS TRUMP R44J Structure To Small Signature
+
+on:
+  push:
+    branches:
+      - research/r44-exact-representation-switchboard-coverage-counterexample-2026-09-03
+  pull_request:
+    paths:
+      - 'research/JANUS_TRUMP_R44J_STRUCTURE_TO_SMALL_SIGNATURE_2026-09-03.json'
+      - 'research/janus_trump_r44j_structure_to_small_signature.py'
+      - '.github/workflows/janus-trump-r44j-structure-to-small-signature.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  affine-signature:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Replay exact affine boundary signature compression
+        run: |
+          python research/janus_trump_r44j_structure_to_small_signature.py > /tmp/r44j.json
+          python - <<'PY'
+          import json
+          r=json.load(open('/tmp/r44j.json'))
+          assert r['gate_id']=='R44J_STRUCTURE_TO_SMALL_SIGNATURE'
+          assert r['result']=='STRUCTURED_BOUNDARY_RELATION_COMPRESSED_EXACTLY'
+          assert r['r44i_universal_quotient_barrier_refuted'] is False
+          assert r['U1']=='OPEN'
+          assert r['P_EQUALS_NP']=='NOT_PROVED'
+          assert r['P_VS_NP']=='OPEN'
+          assert all(x['exact_relation_preserved'] for x in r['checks'])
+          print('R44J STRUCTURE TO SMALL SIGNATURE PASS')
+          PY

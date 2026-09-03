@@ -1,0 +1,38 @@
+name: JANUS TRUMP R44L Outside Signature Family
+
+on:
+  push:
+    branches:
+      - research/r44-exact-representation-switchboard-coverage-counterexample-2026-09-03
+  pull_request:
+    paths:
+      - 'research/JANUS_TRUMP_R44L_OUTSIDE_COMPACT_SIGNATURE_FAMILY_2026-09-03.json'
+      - 'research/janus_trump_r44l_verify_outside_signature_family.py'
+      - '.github/workflows/janus-trump-r44l-outside-signature-family.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Verify R44L outside-family witness
+        run: |
+          python research/janus_trump_r44l_verify_outside_signature_family.py > /tmp/r44l.json
+          python - <<'PY'
+          import json
+          r=json.load(open('/tmp/r44l.json'))
+          assert r['outside_current_R44K_portfolio'] is True
+          assert r['hardness_claimed'] is False
+          assert r['P_EQUALS_NP']=='NOT_PROVED'
+          assert r['P_NE_NP']=='NOT_PROVED'
+          assert r['P_VS_NP']=='OPEN'
+          print('R44L OUTSIDE SIGNATURE FAMILY PASS')
+          PY

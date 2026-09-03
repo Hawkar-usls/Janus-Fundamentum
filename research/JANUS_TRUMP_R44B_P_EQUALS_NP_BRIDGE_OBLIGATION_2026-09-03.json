@@ -1,0 +1,80 @@
+{
+  "schema": "janus.trump.r44b.p_equals_np_bridge_obligation.v1",
+  "date": "2026-09-03",
+  "status": "CONDITIONAL_BRIDGE_FORMALIZED__UNIVERSAL_PREMISES_OPEN",
+  "parent_stage": "R44_EXACT_REPRESENTATION_SWITCHBOARD_COVERAGE_OR_COUNTEREXAMPLE",
+  "target_theorem": "P_EQUALS_NP",
+  "bridge_statement": "If one deterministic algorithm decides every 3-CNF instance in polynomial time by exact answer-blind dispatch, exact representation-preserving transitions, polynomially bounded charged work, and polynomially bounded termination, then 3SAT is in P; by NP-completeness of 3SAT, P=NP.",
+  "algorithm_contract": {
+    "input": "arbitrary 3-CNF F of encoded size N",
+    "deterministic": true,
+    "answer_blind": true,
+    "allowed_step": "either certified polynomial terminal decision or exact certified transition F -> F'",
+    "forbidden": [
+      "hidden SAT oracle",
+      "unbounded brute-force fallback with decision authority",
+      "post-hoc route selection using ground truth",
+      "unverified semantic approximation",
+      "dropping constraints",
+      "uncharged exponential compilation"
+    ]
+  },
+  "premises": [
+    {
+      "id": "U1_UNIVERSAL_TOTALITY",
+      "statement": "For every 3-CNF F, the dispatcher either returns a certified terminal decision or an admissible exact successor; it never remains permanently OPEN.",
+      "status": "OPEN"
+    },
+    {
+      "id": "U2_EXACT_SEMANTICS",
+      "statement": "Every admitted transition preserves satisfiability exactly: SAT(F) iff SAT(F'). Every terminal decision carries an independently checkable certificate or exact tractable decision proof.",
+      "status": "PARTIALLY_ESTABLISHED_IN_FROZEN_ROUTES"
+    },
+    {
+      "id": "U3_POLYNOMIAL_LOCAL_COST",
+      "statement": "There exists a fixed constant c such that discovery, compilation, verification, and terminal work for each step are bounded by N^c in the original input size N, including bit complexity and serialized proof material.",
+      "status": "OPEN_GLOBALLY"
+    },
+    {
+      "id": "U4_POLYNOMIAL_STATE_ENVELOPE",
+      "statement": "Every reachable representation/state has encoded size at most N^c for one fixed c independent of the input instance and trajectory.",
+      "status": "OPEN"
+    },
+    {
+      "id": "U5_POLYNOMIAL_TERMINATION",
+      "statement": "There exists a polynomially bounded well-founded rank Phi such that every nonterminal admitted transition strictly decreases Phi, hence the number of transitions is polynomial in N.",
+      "status": "OPEN"
+    },
+    {
+      "id": "U6_END_TO_END_VERIFIER",
+      "statement": "The complete returned SAT witness or UNSAT derivation can be independently replayed against the original input in polynomial time.",
+      "status": "OPEN_GLOBALLY"
+    }
+  ],
+  "derivation": [
+    "U1 gives total coverage of arbitrary 3-CNF.",
+    "U2 prevents semantic corruption across representation switches.",
+    "U3 and U4 bound each charged stage by a polynomial in original input size.",
+    "U5 bounds the number of stages by a polynomial in original input size.",
+    "Therefore the composed deterministic algorithm decides 3SAT in polynomial time.",
+    "3SAT is NP-complete under polynomial-time many-one reductions.",
+    "Hence every language in NP reduces in polynomial time to 3SAT and is decidable in polynomial time.",
+    "Thus NP subseteq P; since P subseteq NP, P = NP."
+  ],
+  "promotion_rule": {
+    "P_EQUALS_NP_may_be_set_true_only_if": [
+      "U1_PROVED",
+      "U2_PROVED",
+      "U3_PROVED",
+      "U4_PROVED",
+      "U5_PROVED",
+      "U6_PROVED"
+    ],
+    "finite_test_success_is_insufficient": true,
+    "portfolio_coverage_on_benchmarks_is_insufficient": true,
+    "single_counterexample_to_current_switchboard_does_not_imply_P_NE_NP": true
+  },
+  "current_verdict": "BRIDGE_VALID_CONDITIONALLY__P_EQUALS_NP_NOT_PROVED",
+  "next_attack": "R44C_UNIVERSAL_TOTALITY_OR_EXPLICIT_OBSTRUCTION",
+  "P_VS_NP": "OPEN"
+}

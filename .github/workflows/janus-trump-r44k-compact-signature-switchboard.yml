@@ -1,0 +1,38 @@
+name: JANUS TRUMP R44K Compact Signature Switchboard
+
+on:
+  push:
+    branches:
+      - research/r44-exact-representation-switchboard-coverage-counterexample-2026-09-03
+  pull_request:
+    paths:
+      - 'research/JANUS_TRUMP_R44K_COMPACT_SIGNATURE_SWITCHBOARD_2026-09-03.json'
+      - 'research/janus_trump_r44k_compact_signature_switchboard.py'
+      - '.github/workflows/janus-trump-r44k-compact-signature-switchboard.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Verify R44K compact signature switchboard
+        run: |
+          python research/janus_trump_r44k_compact_signature_switchboard.py > /tmp/r44k.json
+          python - <<'PY'
+          import json
+          r=json.load(open('/tmp/r44k.json'))
+          assert r['compact_composition_demonstrated'] is True
+          assert r['arbitrary_boundary_truth_table_enumerated'] is False
+          assert r['universal_compiler_from_arbitrary_3cnf']=='OPEN'
+          assert r['P_EQUALS_NP']=='NOT_PROVED'
+          assert r['P_VS_NP']=='OPEN'
+          print('R44K COMPACT SIGNATURE SWITCHBOARD PASS')
+          PY

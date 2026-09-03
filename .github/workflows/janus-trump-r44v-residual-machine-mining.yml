@@ -1,0 +1,24 @@
+name: JANUS TRUMP R44V Residual Machine Mining
+on:
+  pull_request:
+  workflow_dispatch:
+jobs:
+  mine:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Mine common residual machine
+        run: |
+          python research/janus_trump_r44v_mine_residual_machine.py > /tmp/r44v.json
+          python - <<'PY'
+          import json
+          r=json.load(open('/tmp/r44v.json'))
+          assert r['all_frozen_residuals_match_candidate_machine'] is True
+          assert r['universal_invariant_proved'] is False
+          assert r['U1']=='OPEN'
+          assert r['P_VS_NP']=='OPEN'
+          print('R44V RESIDUAL MACHINE MINING PASS')
+          PY

@@ -1,0 +1,29 @@
+name: JANUS TRUMP R44U SCC 2SAT and Universal Totality
+on:
+  pull_request:
+  workflow_dispatch:
+jobs:
+  r44u:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Verify SCC 2-SAT cleanup and frozen U1 status
+        run: |
+          python research/janus_trump_r44_exact_representation_switchboard.py > /tmp/r44u-switchboard.json
+          python - <<'PY'
+          import json
+          r=json.load(open('/tmp/r44u-switchboard.json'))
+          assert r['two_sat_algorithm']=='SCC_2SAT_V1'
+          assert r['two_sat_asymptotic_cost']=='O(V+E)'
+          assert r['universal_coverage_proved'] is False
+          assert r['P_VS_NP']=='OPEN'
+          tests={x['id']:x for x in r['tests']}
+          assert tests['TWO_SAT_SAT']['route']=='TWO_SAT_SCC_V1'
+          assert tests['TWO_SAT_UNSAT']['route']=='TWO_SAT_SCC_V1'
+          assert tests['TWO_SAT_SAT']['decision']=='SAT'
+          assert tests['TWO_SAT_UNSAT']['decision']=='UNSAT'
+          print('R44U SCC 2SAT CLEANUP PASS; U1 REMAINS OPEN')
+          PY

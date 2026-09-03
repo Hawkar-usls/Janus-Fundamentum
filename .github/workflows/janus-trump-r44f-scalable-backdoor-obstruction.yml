@@ -1,0 +1,47 @@
+name: JANUS TRUMP R44F Scalable Backdoor Obstruction
+
+on:
+  push:
+    branches:
+      - research/r44-exact-representation-switchboard-coverage-counterexample-2026-09-03
+  pull_request:
+    paths:
+      - 'research/janus_trump_r44_exact_representation_switchboard.py'
+      - 'research/janus_trump_r44d_obstruction_consumption.py'
+      - 'research/janus_trump_r44f_scalable_backdoor_obstruction.py'
+      - 'research/JANUS_TRUMP_R44F_SCALABLE_BACKDOOR_OBSTRUCTION_2026-09-03.json'
+      - '.github/workflows/janus-trump-r44f-scalable-backdoor-obstruction.yml'
+  workflow_dispatch:
+
+jobs:
+  prove-fixed-radius-obstruction:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Replay R44F
+        run: |
+          cd research
+          python janus_trump_r44f_scalable_backdoor_obstruction.py | tail -n 1 > /tmp/r44f.json
+      - name: Verify theorem firewall
+        run: |
+          python - <<'PY'
+          import json
+          r=json.load(open('/tmp/r44f.json'))
+          assert r['fixed_k_route_universal'] is False
+          assert r['U1']=='OPEN'
+          assert r['P_NE_NP']=='NOT_PROVED'
+          assert r['P_EQUALS_NP']=='NOT_PROVED'
+          assert r['P_VS_NP']=='OPEN'
+          for x in r['fixture_checks']:
+              assert x['proved_lower_bound']==x['constructive_upper_bound']==x['minimum_backdoor_size']==x['t']
+          print('R44F SCALABLE FIXED-RADIUS OBSTRUCTION PASS')
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: janus-trump-r44f-scalable-backdoor-obstruction
+          path: /tmp/r44f.json
+          if-no-files-found: error

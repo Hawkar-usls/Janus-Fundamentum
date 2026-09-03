@@ -1,0 +1,32 @@
+name: JANUS TRUMP R44O Inherited Obstruction Novelty
+
+on:
+  pull_request:
+    paths:
+      - 'research/JANUS_TRUMP_R44O_INHERITED_OBSTRUCTION_REPLAY_AND_NOVELTY_TEST_2026-09-03.json'
+      - 'research/janus_trump_r44o_verify_inherited_obstruction_novelty.py'
+      - '.github/workflows/janus-trump-r44o-inherited-obstruction-novelty.yml'
+  workflow_dispatch:
+
+jobs:
+  verify-r44o:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Run R44O verifier
+        run: python research/janus_trump_r44o_verify_inherited_obstruction_novelty.py > /tmp/r44o.json
+      - name: Assert fail-closed novelty semantics
+        run: |
+          python - <<'PY'
+          import json
+          with open('/tmp/r44o.json', 'r', encoding='utf-8') as f:
+              d=json.load(f)
+          assert d['verdict']=='INHERITED_OBSTRUCTION_REPLAY_AND_CONSERVATIVE_NOVELTY_TEST_PASS'
+          assert d['unknown_candidate']['verdict']=='NOVELTY_OPEN'
+          assert d['theorem_authority_delta']==0
+          assert d['P_VS_NP']=='OPEN'
+          print(json.dumps(d, sort_keys=True))
+          PY

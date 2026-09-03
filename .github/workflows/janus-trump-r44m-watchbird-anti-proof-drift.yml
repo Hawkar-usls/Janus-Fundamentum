@@ -1,0 +1,37 @@
+name: JANUS TRUMP R44M Watchbird Anti Proof Drift
+
+on:
+  push:
+    branches:
+      - research/r44-exact-representation-switchboard-coverage-counterexample-2026-09-03
+    paths:
+      - 'research/JANUS_TRUMP_R44M_WATCHBIRD_ANTI_PROOF_DRIFT_CONTRACT_2026-09-03.json'
+      - 'research/janus_trump_r44m_verify_watchbird_anti_proof_drift.py'
+      - '.github/workflows/janus-trump-r44m-watchbird-anti-proof-drift.yml'
+  pull_request:
+    paths:
+      - 'research/JANUS_TRUMP_R44M_WATCHBIRD_ANTI_PROOF_DRIFT_CONTRACT_2026-09-03.json'
+      - 'research/janus_trump_r44m_verify_watchbird_anti_proof_drift.py'
+      - '.github/workflows/janus-trump-r44m-watchbird-anti-proof-drift.yml'
+  workflow_dispatch:
+
+jobs:
+  anti-proof-drift:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Verify Watchbird anti-proof-drift contract
+        run: |
+          python research/janus_trump_r44m_verify_watchbird_anti_proof_drift.py | tail -n 1 > /tmp/r44m-watchbird.json
+          python - <<'PY'
+          import json
+          r=json.load(open('/tmp/r44m-watchbird.json'))
+          assert r['verdict']=='PASS'
+          assert r['theorem_authority_delta']==0
+          assert r['P_VS_NP']=='OPEN'
+          assert r['adversarial_cases_blocked'] >= 6
+          print('R44M WATCHBIRD ANTI PROOF DRIFT PASS')
+          PY
