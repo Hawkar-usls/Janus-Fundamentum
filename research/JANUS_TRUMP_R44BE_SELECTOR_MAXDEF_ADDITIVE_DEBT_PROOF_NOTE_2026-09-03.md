@@ -10,23 +10,23 @@ The construction is exact for SAT-OR:
 
 Write `a=delta*(A)>=1`, `b=delta*(B)>=1`.
 
-For any nonempty sub-clause-set `Q⊆M`, split it as `Q=QA∪QB`.
+For any nonempty sub-clause-set `Q⊆M`, let `A'` and `B'` denote the corresponding **unguarded** selected subsets from the two branches.
 
-If `QB=empty`, the selector occurs in every clause of `QA`, so
+If `B'=empty`, the fresh selector occurs in every selected guarded A-clause, so
 
-`delta(Q)=delta(QA_un_guarded)-1 <= a-1`.
+`delta(Q)=delta(A')-1 <= a-1`.
 
-The symmetric bound is `b-1` when `QA=empty`.
+The symmetric bound is `b-1` when `A'=empty`.
 
-If both parts are nonempty, the branch-variable copies are disjoint and the selector is their only common variable. Therefore
+If both parts are nonempty, the disjoint branch-variable copies plus the single selector give
 
-`delta(Q)=|QA|+|QB|-|Var(QA_un_guarded)|-|Var(QB_un_guarded)|-1`
+`delta(Q)=|A'|+|B'|-|Var(A')|-|Var(B')|-1`
 
-`=delta(QA_un_guarded)+delta(QB_un_guarded)-1`
+`=delta(A')+delta(B')-1`
 
 `<=a+b-1`.
 
-Because `a,b>=1`, maximum deficiency on each branch is attained by a nonempty sub-clause-set. Taking guarded copies of maximizers `A0,B0` yields a mixed subset of deficiency exactly `a+b-1`. Hence
+Because `a,b>=1`, maximum deficiency on each branch is attained by a nonempty sub-clause-set. Taking guarded copies of maximizers `A0,B0` yields deficiency exactly `a+b-1`. Hence
 
 `boxed(delta*(M)=a+b-1)`.
 
@@ -40,13 +40,15 @@ For `k>=3`,
 
 so even the maxdef-friendliest disjoint-copy selector merge fails the required rank descent.
 
-If the children share their original semantic variables instead, a mixed subset has the more general identity
+If the original branch formulas are not renamed apart, use the unguarded selected subsets `A'`,`B'`. The mixed-subset identity is then
 
-`delta(Q)=delta(QA)+delta(QB)-1+|Var(QA) intersect Var(QB)|`,
+`delta(Q)=delta(A')+delta(B')-1+|Var(A')∩Var(B')|`.
 
-so overlap can only make the maximum-deficiency problem worse.
+Thus semantic-variable overlap can only increase the mixed deficiency relative to the disjoint-copy baseline.
 
-This theorem does not block every possible OR merge. It blocks the entire selector-guarded family in the precise rank used by R44BD. The special layer `k=2`, where two rank-one children merge to rank one, is not refuted by this calculation.
+Important notation warning: if `QA,QB` denote the already-guarded subsets, their individual deficiencies already count selector `s`; the displayed `-1` identity must therefore be written in terms of the **unguarded** branch subsets as above.
+
+This theorem does not block every possible OR merge. It blocks the selector-guarded class in the precise rank used by R44BD. The special layer `k=2`, where two rank-one children merge to rank one, is not refuted by this calculation.
 
 `TRUMP_finished=false`.
 
