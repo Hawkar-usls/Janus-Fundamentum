@@ -1,0 +1,77 @@
+name: JANUS TRUMP R47I2 Reachable Macro Dead Counterexample Minimization
+
+on:
+  push:
+    branches:
+      - research/r47i2-reachable-macro-dead-counterexample-minimization-2026-09-03
+  pull_request:
+    branches:
+      - research/r47i-reachable-compensation-dead-core-hillclimb-2026-09-03
+
+permissions:
+  contents: read
+
+jobs:
+  r47i2-minimize:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 180
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Verify frozen preregistration
+        run: |
+          python - <<'PY'
+          import json
+          d=json.load(open('research/JANUS_TRUMP_R47I2_REACHABLE_MACRO_DEAD_COUNTEREXAMPLE_MINIMIZATION_PREREGISTRATION_2026-09-03.json'))
+          assert d['status']=='FROZEN_BEFORE_EXECUTION'
+          assert d['minimization_algorithm']['block_sizes']==[16,8,4,2,1]
+          assert d['minimization_algorithm']['maximum_property_evaluations']==1200
+          assert d['epistemic_firewall']['CURRENT_FROZEN_R45A_O4']=='REFUTED_BY_PARENT_REACHABLE_COUNTEREXAMPLE'
+          assert d['epistemic_firewall']['FUTURE_EXTENDED_GRAMMAR_O4']=='OPEN'
+          assert d['epistemic_firewall']['SAT_IN_P']=='NOT_PROVED'
+          assert d['epistemic_firewall']['P_VS_NP']=='OPEN'
+          PY
+      - name: Compile and self-test
+        run: |
+          python -m py_compile experiments/janus_trump_r47i2_reachable_macro_dead_counterexample_minimization.py
+          PYTHONPATH=experiments python experiments/janus_trump_r47i2_reachable_macro_dead_counterexample_minimization.py --self-test
+      - name: Execute frozen minimization
+        run: |
+          PYTHONPATH=experiments python experiments/janus_trump_r47i2_reachable_macro_dead_counterexample_minimization.py --output /tmp/r47i2-full.json | tee /tmp/r47i2-summary.json
+          python - <<'PY'
+          import json
+          d=json.load(open('/tmp/r47i2-full.json'))
+          assert d['gate']=='JANUS_TRUMP_R47I2_REACHABLE_MACRO_DEAD_COUNTEREXAMPLE_MINIMIZATION'
+          assert d['verdict'] in {
+              'REACHABLE_MACRO_DEAD_COUNTEREXAMPLE_MINIMIZED_AND_SINGLE_CLAUSE_1MINIMAL',
+              'REACHABLE_MACRO_DEAD_COUNTEREXAMPLE_REDUCED_BUT_NOT_1MINIMAL_WITHIN_RESOURCE_BUDGET',
+              'MINIMIZATION_RESOURCE_LIMIT__PARENT_COUNTEREXAMPLE_REMAINS_SEALED',
+          }
+          assert d['parent']['source_hash']=='b39e9f1e479f17f3efb24fe0eb44a7c1a93f0db8eab606b936734f74eafb9e34'
+          assert d['parent']['core_hash']=='485fbea627110fc5ff0876072245f66661dfe8d306fc25735657038b8e62eeea'
+          assert d['minimized']['full_counterexample_receipts']
+          assert all(not r['accepted'] for r in d['minimized']['full_counterexample_receipts'])
+          assert all(r['DP_independent_replay_pass'] for r in d['minimized']['full_counterexample_receipts'])
+          assert all(r['macro_independent_replay_pass'] for r in d['minimized']['full_counterexample_receipts'])
+          assert d['epistemic_firewall']['CURRENT_FROZEN_R45A_O4']=='REFUTED_BY_REACHABLE_COUNTEREXAMPLE'
+          assert d['epistemic_firewall']['FUTURE_EXTENDED_GRAMMAR_O4']=='OPEN'
+          assert d['epistemic_firewall']['SAT_IN_P']=='NOT_PROVED'
+          assert d['epistemic_firewall']['P_VS_NP']=='OPEN'
+          print('R47I2_GATE=PASS')
+          print('R47I2_VERDICT=',d['verdict'])
+          print('R47I2_RESOURCE=',json.dumps(d['resource'],sort_keys=True))
+          print('R47I2_PARENT=',json.dumps(d['parent'],sort_keys=True))
+          print('R47I2_MINIMIZED=',json.dumps({k:d['minimized'][k] for k in ('source_hash','source_CLV','core_hash','core_CLV','candidate_count','single_clause_1minimal')},sort_keys=True))
+          print('R47I2_ACCEPTED_DELETIONS=',len(d['accepted_deletions']))
+          PY
+      - name: Upload full minimized witness
+        uses: actions/upload-artifact@v4
+        with:
+          name: r47i2-reachable-macro-dead-counterexample-minimized-result
+          path: /tmp/r47i2-full.json
+          if-no-files-found: error
+          retention-days: 30
