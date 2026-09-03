@@ -1,0 +1,29 @@
+name: JANUS TRUMP R44BR Shared Pivot Unbounded Transport Support
+
+on:
+  pull_request:
+    branches:
+      - research/r44bq-k5-polynomial-signed-transport-discovery-2026-09-03
+    paths:
+      - 'research/JANUS_TRUMP_R44BR_SHARED_PIVOT_UNBOUNDED_SIGNED_TRANSPORT_SUPPORT_2026-09-03.json'
+      - 'research/JANUS_TRUMP_R44BR_SHARED_PIVOT_UNBOUNDED_SIGNED_TRANSPORT_SUPPORT_PROOF_2026-09-03.md'
+      - 'research/janus_trump_r44br_verify_shared_pivot_unbounded_support.py'
+      - '.github/workflows/janus-trump-r44br-shared-pivot-unbounded-support.yml'
+  workflow_dispatch:
+
+jobs:
+  exact-shared-pivot-replay:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout exact head
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Replay exact shared-pivot premises
+        run: python research/janus_trump_r44br_verify_shared_pivot_unbounded_support.py
+      - name: Enforce theorem boundary
+        run: |
+          grep -q 'UNBOUNDED_SIGNED_PERMUTATION_SUPPORT != NO_POLYNOMIAL_TRANSPORT_ALGORITHM' research/JANUS_TRUMP_R44BR_SHARED_PIVOT_UNBOUNDED_SIGNED_TRANSPORT_SUPPORT_2026-09-03.json
+          grep -q 'P_VS_NP=OPEN' research/JANUS_TRUMP_R44BR_SHARED_PIVOT_UNBOUNDED_SIGNED_TRANSPORT_SUPPORT_2026-09-03.json
