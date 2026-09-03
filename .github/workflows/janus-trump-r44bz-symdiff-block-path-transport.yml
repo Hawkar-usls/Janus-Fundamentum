@@ -1,0 +1,32 @@
+name: JANUS TRUMP R44BZ SymDiff Block Path Transport Recovery
+
+on:
+  pull_request:
+    branches:
+      - research/r44bx-orbit-coupled-congruence-rigid-unbounded-support-2026-09-03
+    paths:
+      - 'research/JANUS_TRUMP_R44BZ_SYMDIFF_BLOCK_PATH_TRANSPORT_RECOVERY_2026-09-03.json'
+      - 'research/JANUS_TRUMP_R44BZ_SYMDIFF_BLOCK_PATH_TRANSPORT_RECOVERY_PROOF_2026-09-03.md'
+      - 'research/janus_trump_r44bz_verify_symdiff_block_path_transport.py'
+      - '.github/workflows/janus-trump-r44bz-symdiff-block-path-transport.yml'
+
+jobs:
+  exact-recovery-replay:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout exact head
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Replay polynomial block/path recovery
+        run: python research/janus_trump_r44bz_verify_symdiff_block_path_transport.py
+      - name: Enforce theorem boundary
+        run: |
+          grep -q 'UNBOUNDED_RAW_TRANSPORT_SUPPORT != UNBOUNDED_TRANSPORT_DISCOVERY' research/JANUS_TRUMP_R44BZ_SYMDIFF_BLOCK_PATH_TRANSPORT_RECOVERY_2026-09-03.json
+          grep -q 'R44BZ_POLYTIME_ON_BLOCK_PATH_CLASS != UNIVERSAL_CRITICAL_SIBLING_COVERAGE' research/JANUS_TRUMP_R44BZ_SYMDIFF_BLOCK_PATH_TRANSPORT_RECOVERY_PROOF_2026-09-03.md
+          grep -q 'TRUMP_finished=false' research/JANUS_TRUMP_R44BZ_SYMDIFF_BLOCK_PATH_TRANSPORT_RECOVERY_PROOF_2026-09-03.md
+          grep -q 'P_VS_NP=OPEN' research/JANUS_TRUMP_R44BZ_SYMDIFF_BLOCK_PATH_TRANSPORT_RECOVERY_PROOF_2026-09-03.md
