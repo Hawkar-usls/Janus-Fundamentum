@@ -1,0 +1,53 @@
+name: JANUS TRUMP R47P R33 Input Dependent Polynomial Cap
+
+on:
+  push:
+    branches:
+      - research/r47p-r33-input-dependent-polynomial-cap-hardening-2026-09-03
+
+jobs:
+  r47p-cap-audit:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Verify frozen preregistration
+        run: |
+          python - <<'PY'
+          import json, subprocess
+          parent='d35af7abd27bfcef6f88cd96fb3fbc46ef8f8ba9'
+          subprocess.run(['git','merge-base','--is-ancestor',parent,'HEAD'], check=True)
+          d=json.load(open('research/JANUS_TRUMP_R47P_R33_INPUT_DEPENDENT_POLYNOMIAL_CAP_PREREGISTRATION_2026-09-03.json'))
+          assert d['status']=='FROZEN_BEFORE_EXECUTION'
+          assert d['parent']['commit']==parent
+          assert d['theorem_safe_cap']['cap']=='H+1'
+          assert d['epistemic_firewall']['O4_UNIVERSAL_COVERAGE_FOR_EXTENDED_GRAMMAR']=='OPEN'
+          assert d['epistemic_firewall']['SAT_IN_P']=='NOT_PROVED'
+          assert d['epistemic_firewall']['P_VS_NP']=='OPEN'
+          PY
+      - name: Compile
+        run: python -m py_compile experiments/janus_trump_r47p_r33_input_dependent_polynomial_cap.py
+      - name: Execute theorem-safe cap audit
+        run: |
+          PYTHONPATH=experiments python experiments/janus_trump_r47p_r33_input_dependent_polynomial_cap.py | tee /tmp/r47p.json
+          python - <<'PY'
+          import json
+          d=json.load(open('/tmp/r47p.json'))
+          assert d['gate']=='JANUS_TRUMP_R47P_R33_INPUT_DEPENDENT_POLYNOMIAL_CAP'
+          assert d['all_byte_equivalent_selected_fields'] is True
+          assert d['any_candidate_step_limit'] is False
+          assert d['case_count'] >= 16
+          assert any(r['name']=='R47G_EARLIEST_FROZEN_LADDER_RESIDUAL' for r in d['rows'])
+          assert any(r['name']=='R47I_EXPLICIT_RESIDUAL' for r in d['rows'])
+          assert d['firewall']['O4_UNIVERSAL_COVERAGE_FOR_EXTENDED_GRAMMAR']=='OPEN'
+          assert d['firewall']['SAT_IN_P']=='NOT_PROVED'
+          assert d['firewall']['P_VS_NP']=='OPEN'
+          print('R47P_GATE=PASS')
+          print('R47P_VERDICT=',d['verdict'])
+          print('R47P_ROWS=',json.dumps(d['rows'],sort_keys=True))
+          PY
