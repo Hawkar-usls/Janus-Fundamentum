@@ -1,0 +1,79 @@
+name: JANUS TRUMP R47I Reachable Compensation Dead Core Hillclimb
+
+on:
+  push:
+    branches:
+      - research/r47i-reachable-compensation-dead-core-hillclimb-2026-09-03
+  pull_request:
+    branches:
+      - research/r47h-ascent-debt-compensation-ledger-2026-09-03
+
+permissions:
+  contents: read
+
+jobs:
+  r47i-hillclimb:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 180
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Verify frozen preregistration
+        run: |
+          python - <<'PY'
+          import json
+          p='research/JANUS_TRUMP_R47I_REACHABLE_COMPENSATION_DEAD_CORE_HILLCLIMB_PREREGISTRATION_2026-09-03.json'
+          d=json.load(open(p))
+          assert d['status']=='FROZEN_BEFORE_EXECUTION'
+          assert d['mutation_grammar']['round_1_slots']==128
+          assert d['mutation_grammar']['round_2_slots']==128
+          assert d['epistemic_firewall']['O4_UNIVERSAL_COVERAGE']=='OPEN'
+          assert d['epistemic_firewall']['SAT_IN_P']=='NOT_PROVED'
+          assert d['epistemic_firewall']['P_EQ_NP']=='NOT_PROVED'
+          assert d['epistemic_firewall']['P_NE_NP']=='NOT_PROVED'
+          assert d['epistemic_firewall']['P_VS_NP']=='OPEN'
+          assert d['epistemic_firewall']['TRUMP_finished'] is False
+          PY
+      - name: Compile and self-test
+        run: |
+          python -m py_compile experiments/janus_trump_r47i_reachable_compensation_dead_core_hillclimb.py
+          PYTHONPATH=experiments python experiments/janus_trump_r47i_reachable_compensation_dead_core_hillclimb.py --self-test
+      - name: Execute frozen reachable hillclimb
+        run: |
+          PYTHONPATH=experiments python experiments/janus_trump_r47i_reachable_compensation_dead_core_hillclimb.py --output /tmp/r47i-full.json | tee /tmp/r47i-summary.json
+          python - <<'PY'
+          import json
+          d=json.load(open('/tmp/r47i-full.json'))
+          assert d['gate']=='JANUS_TRUMP_R47I_REACHABLE_COMPENSATION_DEAD_CORE_HILLCLIMB'
+          assert d['verdict'] in {
+              'EXPLICIT_REACHABLE_CURRENT_MACRO_COVERAGE_COUNTEREXAMPLE_FOUND',
+              'NO_MACRO_DEAD_CORE_IN_FROZEN_LOCAL_SEARCH__BEST_REACHABLE_SURVIVOR_PRESERVED__O4_OPEN',
+          }
+          assert d['baseline']['fixpoint_hash']=='3130377ee52a6d6abf01f44fdc5f1a96cf83d701e30f70debea26cd347b7a495'
+          assert d['baseline']['first_accepted_pivot']==7
+          assert d['interpretation']['finite_search_only'] is True
+          assert d['interpretation']['universal_theorem_elevation_allowed'] is False
+          assert d['epistemic_firewall']['O4_UNIVERSAL_COVERAGE']=='OPEN'
+          assert d['epistemic_firewall']['SAT_IN_P']=='NOT_PROVED'
+          assert d['epistemic_firewall']['P_VS_NP']=='OPEN'
+          if d['counterexample'] is not None:
+              assert d['counters']['total_macro_dead'] >= 1
+              assert d['counterexample']['full_counterexample_receipts']
+              assert all(not r['accepted'] for r in d['counterexample']['full_counterexample_receipts'])
+              assert all(r['macro_independent_replay_pass'] for r in d['counterexample']['full_counterexample_receipts'])
+          print('R47I_GATE=PASS')
+          print('R47I_VERDICT=', d['verdict'])
+          print('R47I_COUNTERS=', json.dumps(d['counters'], sort_keys=True))
+          print('R47I_BEST=', json.dumps(d['best_overall'], sort_keys=True))
+          PY
+      - name: Upload full frozen result
+        uses: actions/upload-artifact@v4
+        with:
+          name: r47i-reachable-compensation-dead-core-hillclimb-result
+          path: /tmp/r47i-full.json
+          if-no-files-found: error
+          retention-days: 30
