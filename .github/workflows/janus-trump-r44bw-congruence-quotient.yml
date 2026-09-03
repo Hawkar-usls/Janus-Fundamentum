@@ -1,0 +1,29 @@
+name: JANUS TRUMP R44BW Congruence Quotient Transport
+
+on:
+  pull_request:
+    branches:
+      - research/r44bs-connected-backbone-unbounded-signed-transport-support-2026-09-03
+    paths:
+      - 'research/JANUS_TRUMP_R44BW_CONGRUENCE_QUOTIENT_COLLAPSES_UNBOUNDED_TRANSPORT_SUPPORT_2026-09-03.json'
+      - 'research/JANUS_TRUMP_R44BW_CONGRUENCE_QUOTIENT_COLLAPSES_UNBOUNDED_TRANSPORT_SUPPORT_PROOF_2026-09-03.md'
+      - 'research/janus_trump_r44bw_verify_congruence_quotient.py'
+      - '.github/workflows/janus-trump-r44bw-congruence-quotient.yml'
+  workflow_dispatch:
+
+jobs:
+  exact-congruence-quotient-replay:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout exact head
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Replay exact congruence quotient
+        run: python research/janus_trump_r44bw_verify_congruence_quotient.py
+      - name: Enforce theorem boundary
+        run: |
+          grep -q 'UNBOUNDED_RAW_SUPPORT != UNBOUNDED_QUOTIENT_SUPPORT' research/JANUS_TRUMP_R44BW_CONGRUENCE_QUOTIENT_COLLAPSES_UNBOUNDED_TRANSPORT_SUPPORT_2026-09-03.json
+          grep -q 'P_VS_NP=OPEN' research/JANUS_TRUMP_R44BW_CONGRUENCE_QUOTIENT_COLLAPSES_UNBOUNDED_TRANSPORT_SUPPORT_2026-09-03.json
