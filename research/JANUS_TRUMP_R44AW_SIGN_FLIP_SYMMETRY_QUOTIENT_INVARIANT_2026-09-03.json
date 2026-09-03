@@ -1,0 +1,63 @@
+{
+  "id": "JANUS_TRUMP_R44AW_SIGN_FLIP_SYMMETRY_QUOTIENT_INVARIANT_2026-09-03",
+  "status": "NEW_EXACT_POLYTIME_SAFE_DESCENT_PRIMITIVE__NOT_UNIVERSAL",
+  "parent": "R44AV_SAFE_BRANCH_CHOICE_CHARACTERIZATION",
+  "candidate_invariant": {
+    "name": "SIGN_FLIP_TRANSLATION_SYMMETRY_GROUP",
+    "notation": "H(F)",
+    "definition": "H(F) is the subgroup of GF(2)^n consisting of variable-bit flip masks h such that complementing the sign of every occurrence of each variable with h_i=1 maps the clause multiset F to itself.",
+    "rank": "r(F)=dim_GF2 H(F)"
+  },
+  "polynomial_computation": {
+    "support_partition": "Group clauses by their underlying variable support S. For width<=3, each support has at most 2^3=8 possible literal-sign patterns.",
+    "local_stabilizer": "For each support S, enumerate the at most 8 masks a in GF(2)^S and keep exactly those translating the sign-pattern multiset on S to itself. This stabilizer is a subgroup/linear subspace of GF(2)^S.",
+    "global_group": "Translate each local subspace condition into linear equations over GF(2) and solve their intersection by Gaussian elimination. Hence a basis of H(F) and r(F) are computable in deterministic polynomial time."
+  },
+  "exact_safe_descent_theorem": {
+    "statement": "If r(F)>0, then r(F) independent pivot variables can be fixed to 0 simultaneously while preserving satisfiability exactly.",
+    "proof": [
+      "Row-reduce a basis of H(F) so the r pivot coordinates form an identity matrix.",
+      "If alpha satisfies F and has pivot-bit vector b, xor alpha with the unique basis combination h whose pivot coordinates equal b.",
+      "Because h is a formula sign-flip symmetry, alpha xor h is also a model of F.",
+      "Its pivot bits are all 0. Therefore F is SAT iff the simplified restriction F[pivots=0] is SAT."
+    ],
+    "transition_cost": "Polynomial: compute H(F), row-reduce, assign pivots, simplify clauses.",
+    "strict_progress": "When r(F)>0 at least one variable is removed without branching and without SAT-oracle use."
+  },
+  "exact_width3_obstruction": {
+    "statement": "The invariant is not universal even on exact-width-3 CNF: arbitrarily large SAT and UNSAT formulas can have H(F)={0}.",
+    "positive_unit_gadget": "For distinct variables x_i,y,z, let Uplus(x_i;y,z) contain all four exact 3-clauses (x_i OR l_y OR l_z) over the four sign choices of l_y,l_z. The conjunction is logically equivalent to the unit x_i. On that fixed support its sign-pattern translation stabilizer allows flips of y,z but forbids flipping x_i.",
+    "SAT_family": "For n>=4 with indices modulo n, let F_n be the union over i of Uplus(x_i;x_{i+1},x_{i+2}). Every clause has exactly three distinct literals. F_n is equivalent to AND_i x_i, hence has the unique all-1 model. Therefore any nonzero h in H(F_n) would map that model to a distinct model, impossible; thus H(F_n)={0}. Equivalently, each support stabilizer directly forces its leading h_i=0.",
+    "UNSAT_family": "For n>=6 start from F_n and add Uminus(x_1;x_3,x_5), the four clauses obtained by replacing x_1 with not x_1 on the new nonconsecutive support {x_1,x_3,x_5}. This added gadget is equivalent to not x_1, so the formula is UNSAT because F_n forces x_1=1. The original consecutive supports remain unchanged and still force every h_i=0; hence H={0}.",
+    "verdict": "POLYTIME_EXACT_SAFE_DESCENT_WHEN_SYMMETRY_EXISTS__NO_UNIVERSAL_PROGRESS_EVEN_ON_EXACT_3CNF"
+  },
+  "legend_ledger": {
+    "E1_EXACTNESS": "PASS_ON_TRIGGER_r_GT_0",
+    "E2_POLYTIME_TRANSITION": "PASS",
+    "E3_POLYNOMIAL_LIVE_STATE": "PASS",
+    "E4_UNIVERSAL_STRICT_DESCENT": "FAIL__EXACT_WIDTH3_TRIVIAL_SYMMETRY_FIXED_POINTS_EXIST_ON_BOTH_SAT_AND_UNSAT",
+    "E5_POLYNOMIAL_RANK_HEIGHT": "PASS_FOR_THIS_LOCAL_QUOTIENT_DIMENSION",
+    "E6_EXACT_TERMINALITY": "NOT_A_TERMINAL_DECIDER"
+  },
+  "seals": [
+    "SYMMETRY_QUOTIENT != HEURISTIC_BRANCHING",
+    "FORMULA_AUTOMORPHISM != SAT_ORACLE",
+    "NONTRIVIAL_SYMMETRY => CERTIFIED_SAFE_ASSIGNMENT",
+    "TRIVIAL_SYMMETRY != SAT",
+    "TRIVIAL_SYMMETRY != UNSAT",
+    "EXACT_WIDTH3_DOES_NOT_RESCUE_UNIVERSALITY",
+    "PARTIAL_EXACT_DESCENT != UNIVERSAL_DESCENT",
+    "P_VS_NP=OPEN"
+  ],
+  "next_admissible_math": {
+    "question": "Can another polynomially computable exact quotient/descent invariant act on the symmetry-rigid exact-3CNF core H(F)={0}, without reverting to DP/proof-search/hidden terminal SAT?",
+    "allowed_outcomes": [
+      "PROVE_ANOTHER_EXACT_POLYTIME_SAFE_DESCENT_PRIMITIVE_ON_THE_RIGID_CORE",
+      "PROVE_A_BARRIER_FOR_ONE_FIXED_RIGID_CORE_INVARIANT"
+    ]
+  },
+  "TRUMP_finished": false,
+  "SAT_IN_P": "NOT_PROVED",
+  "P_EQUALS_NP": "NOT_PROVED",
+  "P_VS_NP": "OPEN"
+}
