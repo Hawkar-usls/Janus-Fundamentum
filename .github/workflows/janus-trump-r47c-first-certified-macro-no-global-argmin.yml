@@ -1,0 +1,57 @@
+name: JANUS TRUMP R47C First Certified Macro No Global Argmin
+
+on:
+  push:
+    branches:
+      - research/r47c-first-certified-macro-no-global-argmin-2026-09-03
+
+jobs:
+  r47c-first-certified:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Verify frozen preregistration
+        run: |
+          python - <<'PY'
+          import json, subprocess
+          parent='839465b3bab9fcd8289365487bcd182768532818'
+          subprocess.run(['git','merge-base','--is-ancestor',parent,'HEAD'], check=True)
+          p='research/JANUS_TRUMP_R47C_FIRST_CERTIFIED_MACRO_NO_GLOBAL_ARGMIN_PREREGISTRATION_2026-09-03.json'
+          d=json.load(open(p))
+          assert d['status']=='FROZEN_BEFORE_EXECUTION'
+          assert d['parent']['commit']==parent
+          assert d['epistemic_firewall']['GLOBAL_ARGMIN_REQUIRED_FOR_LOCAL_CORRECTNESS'] is False
+          assert d['epistemic_firewall']['FIRST_POLICY_UNIVERSAL_COVERAGE']=='NOT_PROVED'
+          assert d['epistemic_firewall']['R47A_UNIVERSAL_COVERAGE']=='OPEN'
+          assert d['epistemic_firewall']['SAT_IN_P']=='NOT_PROVED'
+          assert d['epistemic_firewall']['P_VS_NP']=='OPEN'
+          PY
+      - name: Compile
+        run: python -m py_compile experiments/janus_trump_r47c_first_certified_macro_no_global_argmin.py
+      - name: Execute frozen first-certified audit
+        run: |
+          PYTHONPATH=experiments python experiments/janus_trump_r47c_first_certified_macro_no_global_argmin.py | tee /tmp/r47c.json
+          python - <<'PY'
+          import json
+          d=json.load(open('/tmp/r47c.json'))
+          assert d['gate']=='JANUS_TRUMP_R47C_FIRST_CERTIFIED_MACRO_NO_GLOBAL_ARGMIN'
+          assert d['metrics']['case_count']==26
+          assert d['verdict']=='FIRST_CERTIFIED_MACRO_POLICY_VALID_ON_26_FROZEN_STALLS__O4_OPEN'
+          assert d['metrics']['failure_count']==0
+          assert all(r['covered'] and r['selected_replay_pass'] for r in d['rows'])
+          assert d['symbolic_local_theorem']['global_argmin_required_for_local_correctness'] is False
+          assert d['symbolic_local_theorem']['coverage_must_be_reproved_for_first_policy'] is True
+          assert d['firewall']['FIRST_POLICY_UNIVERSAL_COVERAGE']=='NOT_PROVED'
+          assert d['firewall']['R47A_UNIVERSAL_COVERAGE']=='OPEN'
+          assert d['firewall']['SAT_IN_P']=='NOT_PROVED'
+          assert d['firewall']['P_VS_NP']=='OPEN'
+          print('R47C_GATE=PASS')
+          print('R47C_VERDICT=', d['verdict'])
+          print('METRICS=', json.dumps(d['metrics'], sort_keys=True))
+          PY
