@@ -1,0 +1,67 @@
+{
+  "id": "JANUS_TRUMP_R44BT_SUBSTITUTION_TRANSPORT_DISCOVERY_NP_COMPLETE_2026-09-03",
+  "status": "THEOREM_BARRIER__GENERIC_SIGNED_LITERAL_SUBSTITUTION_DISCOVERY_IS_NP_COMPLETE",
+  "parent_frontier": "R44BS_MANY_TO_ONE_SUBSTITUTION_MODEL_TRANSPORT",
+  "target": "POLYNOMIAL_DISCOVERY_OF_GENERAL_R44BS_STYLE_SUBSTITUTION_CERTIFICATES",
+  "problem": {
+    "name": "SIGNED_LITERAL_SUBSTITUTION_TRANSPORT_DISCOVERY",
+    "input": "A target CNF A and source CNF B.",
+    "question": "Does there exist a map phi from variables of A to signed literals over variables of B, repetitions allowed, such that every target clause image is either tautological or contains some source clause as a subset?",
+    "verification": "A supplied phi and clause witnesses are checkable in polynomial time."
+  },
+  "theorem": {
+    "claim": "SIGNED_LITERAL_SUBSTITUTION_TRANSPORT_DISCOVERY is NP-complete, already when A and B are monotone 2CNFs and B is the fixed 3-clause encoding of K3.",
+    "reduction_from": "GRAPH_3_COLORING",
+    "construction": [
+      "Given a graph G=(V,E), build G_triangle by adding for every original vertex v two private vertices a_v,b_v and the private triangle edges {v,a_v},{a_v,b_v},{b_v,v}, while retaining every original edge of G.",
+      "Let target A_G be the monotone 2CNF with one clause (x_u OR x_v) for every edge of G_triangle.",
+      "Let source B_K3 be the monotone 2CNF on y1,y2,y3 with clauses (y1 OR y2),(y1 OR y3),(y2 OR y3)."
+    ],
+    "signed_edge_relation": {
+      "description": "For a monotone target edge clause, a valid signed substitution image either contains one of the three positive K3 edge clauses, or is tautological because the two endpoints map to opposite signs of the same source variable.",
+      "induced_six_literal_graph": "The allowed adjacency graph on signed literals {+y1,+y2,+y3,-y1,-y2,-y3} consists of the positive triangle plus one negative leaf -yi adjacent only to +yi for each i.",
+      "key_fact": "The only triangle in this six-literal graph is the positive triangle {+y1,+y2,+y3}."
+    },
+    "forward_direction": [
+      "If G has a proper 3-coloring, map every original vertex v to the corresponding positive yi.",
+      "For each private triangle, map its two private vertices to the other two positive colors.",
+      "Every target edge then maps to one of the three B_K3 clauses, so a valid substitution certificate exists."
+    ],
+    "reverse_direction": [
+      "Suppose a valid signed substitution exists.",
+      "Each private triangle in G_triangle must map to a triangle in the induced six-literal allowed-adjacency graph.",
+      "The only such triangle is the positive K3, so every original vertex v is mapped to one of +y1,+y2,+y3.",
+      "For every original edge {u,v}, its image must then contain a positive K3 edge, which forces distinct positive colors for u and v.",
+      "Thus the images of original vertices define a proper 3-coloring of G."
+    ],
+    "membership_in_NP": "The substitution map has linear size and each clause image/witness can be checked in polynomial time.",
+    "conclusion": "The discovery problem is NP-complete."
+  },
+  "sibling_lift": {
+    "fresh_pivot": "z",
+    "parent_3cnf": "P_G = { z OR C : C in A_G } union { NOT z OR D : D in B_K3 }.",
+    "cofactors": "P_G[z=0]=A_G and P_G[z=1]=B_K3 after simplification.",
+    "effect": "The discovery hardness already holds for genuine sibling formulas of one width-3 CNF parent."
+  },
+  "effect_on_R44BS": {
+    "certificate_verification": "POLYNOMIAL",
+    "generic_certificate_discovery": "NP_COMPLETE",
+    "meaning": "R44BS is an exact constructive safe-deletion relation, but unrestricted discovery of such substitutions cannot itself supply the universal polynomial L3 mechanism unless P=NP.",
+    "remaining_escape": "This theorem does not force the parent to be maximum-deficiency-critical and does not rule out polynomial discovery for a structurally restricted critical subclass."
+  },
+  "scope_firewalls": [
+    "NP_COMPLETE_GENERIC_SUBSTITUTION_DISCOVERY != NP_HARD_CRITICAL_SUBSTITUTION_DISCOVERY",
+    "NP_COMPLETE_DISCOVERY != P_NE_NP",
+    "POLYNOMIAL_SUBSTITUTION_VERIFICATION != POLYNOMIAL_SUBSTITUTION_DISCOVERY",
+    "R44BS_FIXED_INSTANCE_SUCCESS != UNIVERSAL_CRITICAL_COVERAGE",
+    "SUBSTITUTION_DISCOVERY_BARRIER != BARRIER_FOR_OTHER_SAFE_DELETION_RELATIONS",
+    "TRUMP_finished=false",
+    "SAT_IN_P=NOT_PROVED",
+    "P_VS_NP=OPEN"
+  ],
+  "next_exact_question": "Is there a fixed-parameter/fixed-support substitution class that is polynomially discoverable and strictly contains the R44BS witness, and can exact critical families refute universal coverage of that class?",
+  "TRUMP_finished": false,
+  "SAT_IN_P": "NOT_PROVED",
+  "P_EQUALS_NP": "NOT_PROVED",
+  "P_VS_NP": "OPEN"
+}
