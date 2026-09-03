@@ -2,50 +2,43 @@
 
 ## Fixed global implicit model
 
-R44AG tests a route that is genuinely global but implicit rather than explicitly materializing a large relaxation:
-
-`UNORDERED_FIXED_POINT_LOGIC_WITH_COUNTING_GLOBAL_DECISION`.
-
-The model allows fixed points and counting on an unordered relational encoding, but no externally supplied linear order and no rank/linear-algebra operator.
+R44AG tests `UNORDERED_FIXED_POINT_LOGIC_WITH_COUNTING_GLOBAL_DECISION`: fixed points and counting over an unordered relational encoding, without external order or rank operators.
 
 ## Published theorem
 
 Albert Atserias, Andrei A. Bulatov, Anuj Dawar, *Affine systems of equations and counting infinitary logic*, Theoretical Computer Science 410(18):1666–1683, 2009, DOI `10.1016/j.tcs.2008.12.049`.
 
-They prove that solvability of systems of equations over a fixed finite Abelian group is not definable in infinitary finite-variable logic with counting, and hence is not definable in least fixed-point logic or fixed-point logic with counting on the unordered encodings considered.
+They prove that solvability of systems of equations over a fixed finite Abelian group is not definable in the relevant counting infinitary/fixed-point language. Yet this affine CSP is tractable; GF(2) is solved exactly in polynomial time by Gaussian elimination.
 
-This is deliberately striking because affine solvability is tractable. In particular, the GF(2) specialization is exactly solvable in polynomial time by Gaussian elimination.
+## Correct Legend classification
 
-## TRUMP consequence
+This is **not** a standalone failure of `L2_EXACT_SEMANTICS`.
 
-`GLOBAL_FIXED_POINT_ACCESS != COMPLETE_ALGEBRAIC_ACCESS`.
+A partial FPC mechanism may stay perfectly sound by returning no decision on instances it cannot express.
 
-An unordered FPC-only universal transition language would already lose an exact tractable subclass that TRUMP knows how to recognize through its CNF -> GF(2) route.
+The theorem blocks:
 
-Therefore:
+`L1 UNIVERSAL EXIT` **while L2 exactness is preserved**.
 
-`TRACTABLE != FPC_DEFINABLE`.
+So the correct seals are:
 
-and
+`L1_BARRIER_UNDER_L2 != L2_SOUNDNESS_FAILURE`.
 
-`IMPLICIT_COMPRESSION != EXACTNESS_IF_THE_LANGUAGE_LOSES_AFFINE_SOLVABILITY`.
+`PARTIAL_SOUNDNESS != UNIVERSAL_TOTALITY`.
 
-The barrier is about expressiveness, not runtime hardness. It blocks this fixed implicit semantic language from discharging L1/L2 universal exactness.
+`INEXPRESSIBLE != FALSE`.
 
-## Critical scope
+An FPC-only universal transition language cannot be both total and exact on the affine/GF(2) subclass already handled by TRUMP's algebraic route.
 
-The encoding is unordered. R44AG does **not** transfer this theorem to ordered structures, algorithms allowed to exploit an external order, fixed-point logics extended by rank operators, or arbitrary polynomial-time algorithms.
+## Scope
 
-Seal:
+The encoding is unordered. No transfer is made to ordered structures, algorithms exploiting concrete input order, rank-extended fixed-point logics, or arbitrary polynomial-time algorithms.
 
 `UNORDERED_FPC_BARRIER != ORDERED_FIXED_POINT_OR_ARBITRARY_ALGORITHM_BARRIER`.
 
 ## Next mathematical question
 
-A successor implicit global language must at least regain the affine/rank power that FPC lacks. The next admissible object is therefore a precisely fixed rank/linear-algebra-extended global model, and it must receive either:
-
-- a direct exact polynomial totality theorem for arbitrary 3CNF, or
-- an expressiveness/complexity barrier for that stronger fixed model.
+A successor global implicit language must regain affine/rank power. It then receives either a direct exact polynomial totality theorem or a theorem-level barrier for that precisely stronger model.
 
 `TRUMP_finished=false`.
 
