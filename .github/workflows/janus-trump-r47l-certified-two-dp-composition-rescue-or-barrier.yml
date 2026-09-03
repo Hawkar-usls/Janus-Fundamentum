@@ -1,0 +1,67 @@
+name: JANUS TRUMP R47L Certified Two DP Composition Rescue Or Barrier
+
+on:
+  push:
+    branches:
+      - research/r47l-certified-two-dp-composition-rescue-or-barrier-2026-09-03
+
+jobs:
+  r47l-depth2:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Verify frozen preregistration
+        run: |
+          python - <<'PY'
+          import json, subprocess
+          parent='6395882f3d2b59b554fc6282c271ba04ae2a4c14'
+          subprocess.run(['git','merge-base','--is-ancestor',parent,'HEAD'], check=True)
+          d=json.load(open('research/JANUS_TRUMP_R47L_CERTIFIED_TWO_DP_COMPOSITION_RESCUE_OR_BARRIER_PREREGISTRATION_2026-09-03.json'))
+          assert d['status']=='FROZEN_BEFORE_EXECUTION'
+          assert d['parent']['commit']==parent
+          assert d['sealed_counterexample']['fixpoint_hash']=='9a84c02f1570e752ac0c017037b8a4a40c2599b53faf51bcd6d957f40aa81dde'
+          assert d['single_new_mechanism']['depth']==2
+          assert d['single_new_mechanism']['new_inference_rule_added'] is False
+          assert d['single_new_mechanism']['new_proof_authority_added'] is False
+          assert d['epistemic_firewall']['O4_UNIVERSAL_COVERAGE_FOR_DEPTH2_GRAMMAR']=='OPEN'
+          assert d['epistemic_firewall']['SAT_IN_P']=='NOT_PROVED'
+          assert d['epistemic_firewall']['P_VS_NP']=='OPEN'
+          PY
+      - name: Compile
+        run: python -m py_compile experiments/janus_trump_r47l_certified_two_dp_composition_rescue_or_barrier.py
+      - name: Execute frozen depth-2 attack
+        run: |
+          PYTHONPATH=experiments python experiments/janus_trump_r47l_certified_two_dp_composition_rescue_or_barrier.py | tee /tmp/r47l.json
+          python - <<'PY'
+          import json
+          d=json.load(open('/tmp/r47l.json'))
+          assert d['gate']=='JANUS_TRUMP_R47L_CERTIFIED_TWO_DP_COMPOSITION_RESCUE_OR_BARRIER'
+          assert d['verdict'] in {
+              'R47K_COUNTEREXAMPLE_RESCUED_BY_CERTIFIED_DEPTH2_DP_COMPOSITION',
+              'R47K_COUNTEREXAMPLE_SURVIVES_ALL_CERTIFIED_DEPTH2_DP_COMPOSITIONS',
+          }
+          assert d['sealed_counterexample']['depth1_accepted_pivots']==[]
+          assert d['resource_envelope']['polynomial'] is True
+          assert d['interpretation']['new_inference_rule_added'] is False
+          assert d['interpretation']['new_proof_authority_added'] is False
+          assert d['firewall']['O4_UNIVERSAL_COVERAGE_FOR_DEPTH2_GRAMMAR']=='OPEN'
+          assert d['firewall']['SAT_IN_P']=='NOT_PROVED'
+          assert d['firewall']['P_VS_NP']=='OPEN'
+          if d['first_accepted_pair'] is not None:
+              p=d['first_accepted_pair']
+              assert p['accepted'] is True
+              assert p['first_replay_pass'] is True
+              assert p['second_replay_pass'] is True
+              assert p['SAT_reconstruction_pass'] is True
+          print('R47L_GATE=PASS')
+          print('R47L_VERDICT=',d['verdict'])
+          print('R47L_TESTED_PAIRS=',d['tested_ordered_pairs_until_stop'])
+          print('R47L_ACCEPTED_PAIR=',json.dumps(d['first_accepted_pair'],sort_keys=True))
+          print('R47L_BEST_FAILURE=',json.dumps(d['best_failure_if_none'],sort_keys=True))
+          PY
