@@ -1,0 +1,76 @@
+{
+  "id": "JANUS_TRUMP_R44AR_AUXILIARY_FREE_CNF_PROJECTION_PARITY_BARRIER_2026-09-03",
+  "status": "UNCONDITIONAL_EXACT_PROJECTION_REPRESENTATION_BARRIER",
+  "parent": "R44AQ_SELECTOR_OR_MERGE_NO_DESCENT_BOUNDARY",
+  "target": "POLYNOMIAL_EXACT_SELECTOR_FREE_EXISTENTIAL_PROJECTION",
+  "fixed_candidate": {
+    "name": "AUXILIARY_FREE_CNF_EXISTENTIAL_PROJECTION",
+    "contract": "Given a polynomial-size width<=3 CNF F(X,Y), output a CNF G(X) with no fresh variables such that G(X) is logically equivalent to exists Y F(X,Y).",
+    "authority": "FULL_PROJECTION_EQUIVALENCE_NOT_MERE_EQUISATISFIABILITY"
+  },
+  "polynomial_3cnf_source_family": {
+    "name": "PARITY_CHAIN_3CNF",
+    "semantic_variables": "x_1,...,x_n",
+    "auxiliary_variables": "z_2,...,z_n plus final unit-enforcement auxiliaries p,q",
+    "xor_gate": {
+      "relation": "z = a XOR b",
+      "clauses": [
+        "(a OR b OR not z)",
+        "(a OR not b OR z)",
+        "(not a OR b OR z)",
+        "(not a OR not b OR not z)"
+      ]
+    },
+    "chain": "z_2=x_1 XOR x_2; z_i=z_{i-1} XOR x_i for i=3,...,n",
+    "even_parity_enforcement": [
+      "(not z_n OR p OR q)",
+      "(not z_n OR p OR not q)",
+      "(not z_n OR not p OR q)",
+      "(not z_n OR not p OR not q)"
+    ],
+    "size": "O(n) clauses and variables, all clauses of width 3.",
+    "projection_semantics": "Existentially quantifying all auxiliary variables yields the even-parity Boolean function on X."
+  },
+  "parity_cnf_lower_bound": {
+    "theorem": "Every auxiliary-free CNF over x_1,...,x_n equivalent to even parity requires at least 2^(n-1) non-tautological clauses.",
+    "proof": [
+      "Let C be any non-tautological clause implied by even parity.",
+      "If C omits at least one variable, assign its mentioned variables so that every literal of C is false. At least one variable remains free; choose the free variables so that the full assignment has even parity. This is an even-parity assignment falsifying C, contradiction.",
+      "Hence every non-tautological implied clause must mention all n variables.",
+      "A full-width non-tautological clause is falsified by exactly one total assignment.",
+      "An exact CNF for even parity must reject every one of the 2^(n-1) odd-parity assignments, so at least 2^(n-1) full-width clauses are required."
+    ]
+  },
+  "derived_TRUMP_barrier": {
+    "claim": "A universal selector-free projection architecture that insists on an equivalent auxiliary-free CNF over the surviving semantic variables cannot maintain polynomial live state.",
+    "reason": "The O(n)-size 3CNF parity-chain family projects to even parity, whose auxiliary-free CNF representation is exponential.",
+    "admissible_outcome": "EXPONENTIAL_PROJECTION_STATE_BARRIER_FOR_AUXILIARY_FREE_CNF"
+  },
+  "scope_firewalls": [
+    "AUXILIARY_FREE_CNF_BARRIER != BARRIER_FOR_ALL_PROJECTION_REPRESENTATIONS",
+    "FULL_FUNCTION_PROJECTION != SAT_ONLY_SUMMARY",
+    "PARITY_CNF_LOWER_BOUND != P_NE_NP",
+    "ALLOWING_AUXILIARIES_CAN_RESTORE_SMALL_ENCODING_BUT_MAY_REINTRODUCE_HIDDEN_CHOICE",
+    "EQUISATISFIABLE_COMPRESSION != LOGICALLY_EQUIVALENT_PROJECTION",
+    "P_VS_NP=OPEN"
+  ],
+  "legend_ledger": {
+    "E1_EXACTNESS": "ACHIEVABLE_SEMANTICALLY",
+    "E2_POLYTIME_TRANSITION": "REFUTED_TOGETHER_WITH_E3_FOR_EXPLICIT_OUTPUT_ON_THIS_FAMILY",
+    "E3_POLYNOMIAL_LIVE_STATE": "REFUTED_FOR_AUXILIARY_FREE_CNF_EQUIVALENT_OUTPUT",
+    "E4_UNIVERSAL_STRICT_DESCENT": "NOT_REACHED",
+    "E5_POLYNOMIAL_RANK_HEIGHT": "NOT_REACHED",
+    "E6_EXACT_TERMINALITY": "NOT_REACHED"
+  },
+  "next_admissible_math": {
+    "question": "Can one use a richer but polynomial-size state with auxiliary variables while proving that the auxiliaries encode genuinely compressed projected semantics rather than merely reifying eliminated branch choices, and still preserve strict global descent?",
+    "allowed_outcomes": [
+      "PROVE_DESCENT_PRESERVING_AUXILIARY_COMPRESSION",
+      "PROVE_BARRIER_FOR_ONE_FIXED_AUXILIARY_PROJECTION_INVARIANT"
+    ]
+  },
+  "TRUMP_finished": false,
+  "SAT_IN_P": "NOT_PROVED",
+  "P_EQUALS_NP": "NOT_PROVED",
+  "P_VS_NP": "OPEN"
+}
