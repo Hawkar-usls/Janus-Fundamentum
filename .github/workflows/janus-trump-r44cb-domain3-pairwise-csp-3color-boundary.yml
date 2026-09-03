@@ -1,0 +1,55 @@
+name: JANUS TRUMP R44CB Domain3 Pairwise CSP 3Color Boundary
+
+on:
+  push:
+    branches:
+      - research/r44cb-domain3-pairwise-csp-3color-boundary-2026-09-03
+  pull_request:
+    branches:
+      - research/r44ca-symdiff-block-boolean-csp-transport-recovery-2026-09-03
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  r44cb-boundary:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Verify frozen parent and preregistration
+        run: |
+          set -euo pipefail
+          git merge-base --is-ancestor c01ccbcc5b41c770d1f83e9207776659aa1bad05 "$GITHUB_SHA"
+          python - <<'PY'
+          import json
+          p=json.load(open('research/JANUS_TRUMP_R44CB_DOMAIN3_PAIRWISE_CSP_3COLOR_BOUNDARY_PREREGISTRATION_2026-09-03.json'))
+          assert p['status']=='FROZEN_BEFORE_EXECUTION'
+          assert p['parent']['commit']=='c01ccbcc5b41c770d1f83e9207776659aa1bad05'
+          assert p['interpretation']['P_VS_NP']=='OPEN'
+          print('R44CB_PREREG=PASS')
+          PY
+      - name: Compile and unit tests
+        run: |
+          python -m py_compile experiments/janus_trump_r44cb_domain3_pairwise_csp_3color_boundary.py
+          python -m unittest -v tests/test_janus_trump_r44cb_domain3_pairwise_csp_3color_boundary.py
+      - name: Execute exact finite boundary audit
+        run: |
+          python experiments/janus_trump_r44cb_domain3_pairwise_csp_3color_boundary.py | tee r44cb-result.json
+          python - <<'PY'
+          import json
+          d=json.load(open('r44cb-result.json'))
+          assert d['triangle_assignment_count']==6
+          assert d['k4_assignment_count']==0
+          assert d['exact_bijection_verified_on_enumerated_universe'] is True
+          assert d['R44CA_boolean_2sat_extension_universal'] is False
+          assert d['full_transport_polynomiality_proven'] is False
+          assert d['P_VS_NP']=='OPEN'
+          print('R44CB_SCIENTIFIC_GATE=PASS')
+          PY
