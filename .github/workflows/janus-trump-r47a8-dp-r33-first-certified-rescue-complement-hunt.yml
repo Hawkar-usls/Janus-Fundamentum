@@ -1,0 +1,73 @@
+name: JANUS TRUMP R47A8 DP R33 First Certified Rescue Complement Hunt
+
+on:
+  push:
+    branches:
+      - research/r47a8-dp-r33-first-certified-rescue-complement-hunt-2026-09-03
+  pull_request:
+    branches:
+      - research/r47a7-full-clv-direct-dp-rescue-or-obstruction-2026-09-03
+
+jobs:
+  r47a8-dp-r33:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Verify frozen preregistration
+        run: |
+          python - <<'PY'
+          import json, subprocess
+          parent='d707ad070bc97f74cced47f63aadad2b456a2e9b'
+          subprocess.run(['git','merge-base','--is-ancestor',parent,'HEAD'], check=True)
+          p='research/JANUS_TRUMP_R47A8_DP_R33_FIRST_CERTIFIED_RESCUE_COMPLEMENT_HUNT_PREREGISTRATION_2026-09-03.json'
+          d=json.load(open(p))
+          assert d['status']=='FROZEN_BEFORE_EXECUTION'
+          assert d['parent']['commit']==parent
+          assert d['epistemic_firewall']['DP_R33_RESCUE_UNIVERSAL']=='NOT_PROVED'
+          assert d['epistemic_firewall']['R47A_UNIVERSAL_COVERAGE']=='OPEN'
+          assert d['epistemic_firewall']['SAT_IN_P']=='NOT_PROVED'
+          assert d['epistemic_firewall']['P_VS_NP']=='OPEN'
+          assert d['epistemic_firewall']['TRUMP_finished'] is False
+          PY
+      - name: Compile
+        run: python -m py_compile experiments/janus_trump_r47a8_dp_r33_first_certified_rescue_complement_hunt.py
+      - name: Execute producer regression and frozen complement hunt
+        run: |
+          PYTHONPATH=experiments python experiments/janus_trump_r47a8_dp_r33_first_certified_rescue_complement_hunt.py | tee /tmp/r47a8.json
+          python - <<'PY'
+          import json
+          d=json.load(open('/tmp/r47a8.json'))
+          assert d['gate']=='JANUS_TRUMP_R47A8_DP_R33_FIRST_CERTIFIED_RESCUE_COMPLEMENT_HUNT'
+          reg=d['regression']
+          assert reg['old_clause_only_selected_var'] is None
+          assert reg['new_DP_R33']['selected_var'] is not None
+          assert reg['new_DP_R33']['authority_accepted'] is True
+          assert reg['new_DP_R33']['authority_replay_pass'] is True
+          assert d['verdict'] in {
+              'DP_R33_PRODUCER_REGRESSION_PASS__COMPLEMENT_COUNTEREXAMPLE_FOUND',
+              'DP_R33_PRODUCER_REGRESSION_PASS__NO_COMPLEMENT_COUNTEREXAMPLE_IN_FROZEN_NEIGHBORHOOD',
+          }
+          assert d['firewall']['DP_R33_RESCUE_UNIVERSAL']=='NOT_PROVED'
+          assert d['firewall']['R47A_UNIVERSAL_COVERAGE']=='OPEN'
+          assert d['firewall']['SAT_IN_P']=='NOT_PROVED'
+          assert d['firewall']['P_VS_NP']=='OPEN'
+          if d['complement_counterexample'] is not None:
+              c=d['complement_counterexample']
+              assert all(not r['rescue'] for r in c['DP_R33_rows'])
+              assert c['RUP_independent_replay_pass'] is True
+          print('R47A8_GATE=PASS')
+          print('R47A8_VERDICT=', d['verdict'])
+          print('NEW_SELECTED=', reg['new_DP_R33']['selected_var'], reg['new_DP_R33']['probe']['rescue_kind'])
+          print('STATS=', json.dumps(d['stats'], sort_keys=True))
+          if d['complement_counterexample'] is not None:
+              c=d['complement_counterexample']
+              print('COMPLEMENT_CLV=', c['input_CLV'])
+              print('COMPLEMENT_RUP=', c['RUP_status'], c['RUP_final_CLV'])
+              print('COMPLEMENT_R45A=', c['R45A_has_selection'], c['R45A_selected_var'], c['R45A_selected_final_CLV'])
+          PY
