@@ -1,6 +1,6 @@
 {
   "id": "JANUS_TRUMP_R44AG_GLOBAL_IMPLICIT_FPC_BARRIER_2026-09-03",
-  "status": "MATHEMATICAL_ROUTE_BARRIER",
+  "status": "MATHEMATICAL_ROUTE_BARRIER_SCOPE_CORRECTED",
   "parent": "R44AF_EXPLICIT_GLOBAL_LASSERRE_SOS_BARRIER",
   "target_obligations": [
     "L1_UNIVERSAL_EXIT",
@@ -10,7 +10,7 @@
     "name": "FIXED_POINT_LOGIC_WITH_COUNTING_GLOBAL_IMPLICIT_MODEL",
     "abbrev": "FPC",
     "input_model": "unordered finite relational encoding of 3-CNF/CSP instances",
-    "semantics": "One fixed FPC interpretation/sentence, with inflationary/least fixed-point recursion and counting, supplies the global invariant/decision update without an externally supplied total order or arbitrary symmetry-breaking choice.",
+    "semantics": "One fixed FPC interpretation/sentence, with fixed-point recursion and counting, supplies the global invariant/decision on an unordered relational structure without using an externally presented syntactic order.",
     "why_distinct_from_prior_routes": [
       "not bounded-local Datalog only: FPC has fixed-point recursion plus counting",
       "not Cook-Reckhow proof search",
@@ -39,15 +39,23 @@
     "reason": [
       "FPC computations are global fixed-point/counting computations rather than bounded-local clause propagation.",
       "Nevertheless 3-SAT is not definable in FPC in the standard unordered relational setting.",
-      "Therefore globality, recursion and counting still do not by themselves supply a universal exact transition law within this fixed model."
+      "Therefore globality, recursion and counting still do not by themselves supply a universal exact transition law within this fixed unordered model."
     ],
-    "scope": "This is an unconditional inexpressibility result for FPC, not a lower bound for all deterministic polynomial-time algorithms."
+    "scope": "This is an unconditional inexpressibility result for FPC on unordered relational structures, not a lower bound for all deterministic polynomial-time algorithms."
+  },
+  "ordered_input_scope_correction": {
+    "law": "INPUT_ORDER != CANONICAL_ORDER",
+    "statement": "A standard Turing/RAM algorithm receives an ordered string encoding and may legitimately use the presented variable/clause order internally. Correctness need only make the final SAT/UNSAT answer representation-invariant; the internal trajectory need not be invariant under renaming/reordering.",
+    "consequence": "Escaping the unordered FPC model by using the existing syntactic input order does not require first computing a canonical order. The FPC lower bound therefore does not transfer automatically to ordinary ordered computation.",
+    "canonization_requirement_scope": "Polynomial canonization is required only if a successor explicitly claims canonical/permutation-invariant ordering as part of its theorem, not merely because it uses the input sequence supplied by the encoding."
   },
   "hard_firewalls": [
     "FPC_GLOBAL != UNIVERSAL_3SAT_DECIDER",
     "FPC_INEXPRESSIBILITY != P_NE_NP",
     "FPC != ALL_POLYNOMIAL_TIME_ALGORITHMS",
     "UNORDERED_SYMMETRY_RESPECTING_MODEL != ORDERED_RAM_TURING_MODEL",
+    "INPUT_ORDER != CANONICAL_ORDER",
+    "USING_PRESENTED_INPUT_ORDER != SOLVING_CANONIZATION",
     "FAILURE_OF_ONE_LOGICAL_MODEL != FAILURE_OF_GLOBAL_INFORMATION_IN_PRINCIPLE",
     "NO_HEURISTIC_AUTHORITY",
     "P_VS_NP=OPEN"
@@ -58,22 +66,22 @@
   },
   "what_is_not_proved": [
     "No claim is made that every polynomial-time algorithm is expressible in FPC.",
-    "No claim is made that adding an external canonical order or stronger choice mechanism preserves this barrier without separate proof.",
+    "No claim is made that the FPC barrier applies to ordinary ordered string/Turing-machine computation.",
+    "No claim is made that use of the presented input order requires canonization.",
     "No claim is made that FPC inexpressibility implies P!=NP.",
     "No claim is made that every individual 3-CNF pair is indistinguishable in FPC."
   ],
   "next_admissible_math": {
-    "question": "Can a successor global exact route escape FPC by a precisely specified extra resource (for example canonical ordering/choice, algebraic operator, or another implicit invariant) and still prove total polynomial construction and update cost for arbitrary 3CNF?",
+    "question": "Can TRUMP give one exact deterministic transition law in the ordinary ordered-input model and prove total polynomial charged work for arbitrary 3CNF, while avoiding generic proof search, bounded-local propagation, full-function compilation, and explicit linear-level SoS state?",
     "allowed_outcomes": [
-      "PROVE_TOTAL_POLYNOMIAL_EXACT_GLOBAL_TRANSITION",
-      "PROVE_BARRIER_FOR_ONE_PRECISELY_FIXED_STRONGER_GLOBAL_MODEL"
+      "PROVE_TOTAL_POLYNOMIAL_EXACT_ORDERED_TRANSITION",
+      "PROVE_BARRIER_FOR_ONE_PRECISELY_FIXED_ORDERED_GLOBAL_MODEL"
     ],
     "forbidden": [
-      "calling symmetry-breaking free",
-      "assuming a canonical order without proving polynomial construction",
       "benchmark-only evidence",
       "renaming FPC/Datalog/SoS/proof-search semantics",
-      "treating model indistinguishability as SAT equivalence"
+      "treating FPC indistinguishability as SAT equivalence",
+      "claiming canonization is necessary when merely using the supplied input order"
     ]
   },
   "theorem_authority_source": "PUBLISHED_UNCONDITIONAL_DEFINABILITY_LOWER_BOUND_PLUS_SCOPE_RESTRICTED_DEDUCTION_NOT_BENCHMARK_NOT_CI",
