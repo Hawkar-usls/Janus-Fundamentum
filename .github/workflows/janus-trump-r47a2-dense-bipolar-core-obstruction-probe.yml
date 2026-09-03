@@ -1,0 +1,51 @@
+name: JANUS TRUMP R47A2 Dense Bipolar Core Obstruction Probe
+
+on:
+  push:
+    branches:
+      - research/r47a-dense-bipolar-core-obstruction-probe-2026-09-03
+  workflow_dispatch:
+
+jobs:
+  r47a2-probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Verify frozen preregistration
+        run: |
+          python - <<'PY'
+          import json
+          p='research/JANUS_TRUMP_R47A2_DENSE_BIPOLAR_CORE_OBSTRUCTION_PROBE_PREREGISTRATION_2026-09-03.json'
+          d=json.load(open(p))
+          assert d['status']=='FROZEN_BEFORE_EXECUTION'
+          assert d['firewall']['R47A_UNIVERSAL_COVERAGE']=='OPEN'
+          assert d['firewall']['SAT_IN_P']=='NOT_PROVED'
+          assert d['firewall']['P_VS_NP']=='OPEN'
+          PY
+      - name: Compile
+        run: python -m py_compile experiments/janus_trump_r47a2_dense_bipolar_core_obstruction_probe.py
+      - name: Execute canonical obstruction probe
+        run: |
+          PYTHONPATH=experiments python experiments/janus_trump_r47a2_dense_bipolar_core_obstruction_probe.py | tee /tmp/r47a2.json
+          python - <<'PY'
+          import json
+          d=json.load(open('/tmp/r47a2.json'))
+          assert d['R33']['terminal']=='STALLED_STACK_LEAN_CORE'
+          assert d['R33']['total_rule_applications']==0
+          assert d['R33']['final_formula_equal_input'] is True
+          assert d['all_variables_strict_unique_expansion_vs_removed'] is True
+          assert d['any_direct_DP_descent'] is False
+          assert d['RUP']['independent_replay_pass'] is True
+          assert d['firewall']['R47A_UNIVERSAL_COVERAGE']=='OPEN'
+          assert d['firewall']['SAT_IN_P']=='NOT_PROVED'
+          assert d['firewall']['P_VS_NP']=='OPEN'
+          print('R47A2_PROBE=PASS')
+          print('RUP_STATUS=', d['RUP']['status'])
+          print('R45A=', json.dumps(d['R45A'], sort_keys=True))
+          PY
