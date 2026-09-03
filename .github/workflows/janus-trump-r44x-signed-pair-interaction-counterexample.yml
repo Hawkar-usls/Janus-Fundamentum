@@ -22,16 +22,19 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      - name: Replay exact signed-pair collision
+      - name: Replay exact signed-pair collision from canonical evidence
         run: python research/janus_trump_r44x_verify_signed_pair_interaction_counterexample.py > /tmp/r44x.json
-      - name: Enforce theorem boundary, Legend target, and sealed first-pass receipt
+      - name: Enforce evidence binding, theorem boundary, Legend target, and sealed first-pass receipt
         run: |
           python - <<'PY'
+          import hashlib
           import json
           from pathlib import Path
           r=json.loads(Path('/tmp/r44x.json').read_text())
+          evidence_path=Path('research/JANUS_TRUMP_R44X_SIGNED_PAIR_INTERACTION_COUNTEREXAMPLE_2026-09-03.json')
           legend=json.loads(Path('research/TRUMP_LEGEND_SEAL_UNIVERSAL_PROOF_CARRYING_DECOMPOSITION_CONTRACT_2026-09-03.json').read_text())
           seal=json.loads(Path('research/JANUS_TRUMP_R44X_SIGNED_PAIR_INTERACTION_COUNTEREXAMPLE_SEAL_2026-09-03.json').read_text())
+          assert r['canonical_evidence_sha256']==hashlib.sha256(evidence_path.read_bytes()).hexdigest()
           assert r['status']=='EXPLICIT_SIGNED_PAIR_COLLISION_VERIFIED'
           assert r['shared_n']==4 and r['shared_m']==10
           assert r['sat_status']=='SAT'
@@ -42,6 +45,11 @@ jobs:
           assert legend['status']=='FINAL_THEOREM_TARGET_FROZEN__NOT_PROVED'
           assert legend['target_lemma']=='TRUMP_UNIVERSAL_PROOF_CARRYING_DECOMPOSITION_LEMMA'
           assert len(legend['required_obligations'])==6
+          assert legend['formal_target']['rank_codomain']=='NONNEGATIVE_INTEGERS_0_TO_CEIL_N_POW_D'
+          assert legend['formal_target']['rank_minimum_decrement_per_nonterminal_macrostep']==1
+          assert legend['formal_target']['constructor_polynomiality_is_an_obligation_not_an_assumption'] is True
+          l5={x['id']:x for x in legend['required_obligations']}['L5_POLYNOMIAL_TERMINATION']
+          assert 'at most ceil(N^d) nonterminal macrosteps' in l5['requirement']
           assert legend['TRUMP_finished'] is False
           assert legend['P_VS_NP']=='OPEN'
           assert seal['status']=='SEALED_FROM_SUCCESSFUL_GITHUB_ACTIONS_REPLAY'
@@ -51,7 +59,7 @@ jobs:
           assert seal['artifact_zip_sha256']=='4eb9a8fb7d4e55a34353224499ea0c47a679040e46dbe4bd08bcbb15fe7c0cd6'
           assert seal['verified_verdict']==r['status']
           assert seal['P_VS_NP']=='OPEN'
-          print('R44X SEALED FRESH-REPLAY PASS')
+          print('R44X CANONICAL-EVIDENCE BINDING + LEGEND RANK PASS')
           PY
       - name: Upload replay receipt
         uses: actions/upload-artifact@v4
