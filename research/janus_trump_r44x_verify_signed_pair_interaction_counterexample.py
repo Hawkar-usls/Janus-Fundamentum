@@ -1,20 +1,15 @@
 #!/usr/bin/env python3
 from __future__ import annotations
 
+import hashlib
 import itertools
 import json
 from collections import Counter
+from pathlib import Path
 
-SAT_FORMULA = [
-    [-1,-3,4],[-1,-2,-3],[-1,2,3],[-1,2,4],[-1,3,-4],
-    [1,-3,-4],[1,-2,3],[1,2,-3],[1,3,4],[2,3,4],
-]
-UNSAT_FORMULA = [
-    [-1,-3,-4],[-1,-3,4],[-1,-2,3],[-1,2,3],[-1,2,4],
-    [1,-2,-3],[1,2,-3],[1,3,-4],[1,3,4],[2,3,4],
-]
-EXPECTED_DEGREES = ((4,5),(4,2),(5,4),(4,2))
-EXPECTED_SAT_WITNESS = (False, False, False, True)
+EVIDENCE_PATH = Path(__file__).with_name(
+    "JANUS_TRUMP_R44X_SIGNED_PAIR_INTERACTION_COUNTEREXAMPLE_2026-09-03.json"
+)
 
 
 def variables(cnf):
@@ -50,6 +45,13 @@ def exact_decision(cnf):
     return "UNSAT", None, rejected
 
 
+def witness_satisfies(cnf, witness):
+    return all(
+        any(bool(witness[str(abs(lit))]) == (lit > 0) for lit in clause)
+        for clause in cnf
+    )
+
+
 def connected_incidence(cnf):
     vs = variables(cnf)
     graph = {("v", v): set() for v in vs}
@@ -81,45 +83,84 @@ def is_bipolar_2core(cnf):
     return True
 
 
+def encode_signature(sig):
+    return [[[a, b], count] for (a, b), count in sig]
+
+
 def main():
-    assert SAT_FORMULA != UNSAT_FORMULA
-    assert len(SAT_FORMULA) == len(UNSAT_FORMULA) == 10
-    assert variables(SAT_FORMULA) == variables(UNSAT_FORMULA) == [1,2,3,4]
-    assert all(len(c) == 3 and len({abs(x) for x in c}) == 3 for c in SAT_FORMULA + UNSAT_FORMULA)
+    raw = EVIDENCE_PATH.read_bytes()
+    evidence = json.loads(raw)
 
-    sat_deg = polarity_degrees(SAT_FORMULA)
-    unsat_deg = polarity_degrees(UNSAT_FORMULA)
-    assert sat_deg == unsat_deg == EXPECTED_DEGREES
+    assert evidence["id"] == "JANUS_TRUMP_R44X_SIGNED_PAIR_INTERACTION_COUNTEREXAMPLE_2026-09-03"
+    assert evidence["status"] == "EXPLICIT_FINITE_COUNTEREXAMPLE_DISCOVERED_EXPLORATORILY"
+    assert evidence["discovery_protocol"]["preregistered_before_discovery"] is False
+    assert evidence["discovery_protocol"]["authority"] == "EXACT_COUNTEREXAMPLE_ONLY"
 
-    sat_pairs = signed_pair_signature(SAT_FORMULA)
-    unsat_pairs = signed_pair_signature(UNSAT_FORMULA)
+    sat_formula = evidence["sat_formula"]
+    unsat_formula = evidence["unsat_formula"]
+
+    assert sat_formula != unsat_formula
+    assert len(sat_formula) == len(unsat_formula) == evidence["shared_m"] == 10
+    assert variables(sat_formula) == variables(unsat_formula) == [1, 2, 3, 4]
+    assert evidence["shared_n"] == 4
+    assert all(
+        len(c) == 3 and len({abs(x) for x in c}) == 3
+        for c in sat_formula + unsat_formula
+    )
+
+    sat_deg = polarity_degrees(sat_formula)
+    unsat_deg = polarity_degrees(unsat_formula)
+    claimed_deg = tuple(tuple(x) for x in evidence["shared_polarity_degrees"])
+    assert sat_deg == unsat_deg == claimed_deg
+
+    sat_pairs = signed_pair_signature(sat_formula)
+    unsat_pairs = signed_pair_signature(unsat_formula)
     assert sat_pairs == unsat_pairs
+    assert encode_signature(sat_pairs) == evidence["shared_signed_pair_signature"]
 
-    assert connected_incidence(SAT_FORMULA)
-    assert connected_incidence(UNSAT_FORMULA)
-    assert is_bipolar_2core(SAT_FORMULA)
-    assert is_bipolar_2core(UNSAT_FORMULA)
+    sat_connected = connected_incidence(sat_formula)
+    unsat_connected = connected_incidence(unsat_formula)
+    sat_bipolar = is_bipolar_2core(sat_formula)
+    unsat_bipolar = is_bipolar_2core(unsat_formula)
+    assert sat_connected and unsat_connected
+    assert sat_bipolar and unsat_bipolar
 
-    sat_status, sat_witness, sat_rejected = exact_decision(SAT_FORMULA)
-    unsat_status, unsat_witness, unsat_rejected = exact_decision(UNSAT_FORMULA)
+    structural = evidence["verified_structural_properties"]
+    assert structural["both_connected_incidence_graphs"] is True
+    assert structural["both_bipolar"] is True
+    assert structural["every_variable_degree_at_least_2"] is True
+    assert structural["no_unit_clause"] is True
+    assert structural["all_clauses_width_3"] is True
+
+    sat_status, first_sat_witness, sat_rejected = exact_decision(sat_formula)
+    unsat_status, unsat_witness, unsat_rejected = exact_decision(unsat_formula)
     assert sat_status == "SAT"
-    assert sat_witness == EXPECTED_SAT_WITNESS
-    assert sat_rejected == 1
+    assert first_sat_witness is not None
+    assert witness_satisfies(sat_formula, evidence["sat_witness"])
     assert unsat_status == "UNSAT"
     assert unsat_witness is None
-    assert unsat_rejected == 16
+    assert unsat_rejected == evidence["unsat_assignments_rejected"] == 16
+
+    assert evidence["formal_conclusion"] == (
+        "UNARY_AND_SIGNED_PAIRWISE_MARGINALS_ARE_NOT_AN_EXACT_UNIVERSAL_3CNF_DECISION_SIGNATURE"
+    )
+    assert evidence["P_EQUALS_NP"] == "NOT_PROVED"
+    assert evidence["P_NE_NP"] == "NOT_PROVED"
+    assert evidence["P_VS_NP"] == "OPEN"
 
     out = {
         "gate_id": "R44X_SIGNED_PAIR_INTERACTION_COUNTEREXAMPLE",
         "status": "EXPLICIT_SIGNED_PAIR_COLLISION_VERIFIED",
-        "shared_n": 4,
-        "shared_m": 10,
+        "canonical_evidence_sha256": hashlib.sha256(raw).hexdigest(),
+        "shared_n": evidence["shared_n"],
+        "shared_m": evidence["shared_m"],
         "shared_polarity_degrees": [list(x) for x in sat_deg],
-        "shared_signed_pair_signature": [[[a,b], count] for (a,b), count in sat_pairs],
-        "connected_incidence_both": True,
-        "bipolar_2core_both": True,
+        "shared_signed_pair_signature": encode_signature(sat_pairs),
+        "connected_incidence_both": sat_connected and unsat_connected,
+        "bipolar_2core_both": sat_bipolar and unsat_bipolar,
         "sat_status": sat_status,
-        "sat_witness": {str(i+1): bit for i, bit in enumerate(sat_witness)},
+        "sat_witness": evidence["sat_witness"],
+        "sat_assignments_rejected_before_first_witness": sat_rejected,
         "unsat_status": unsat_status,
         "unsat_assignments_rejected": unsat_rejected,
         "order_le_2_local_marginals_sufficient": False,
