@@ -18,21 +18,102 @@ def verify_assignment(cnf, a):
     return all(eval_clause(c, a) for c in cnf)
 
 
-def brute_witness(cnf):
-    vs = vars_of(cnf)
-    for bits in itertools.product([False, True], repeat=len(vs)):
-        a = dict(zip(vs, bits))
-        if verify_assignment(cnf, a):
-            return a
-    return None
+def lit_index(lit, idx):
+    base = 2 * idx[abs(lit)]
+    return base if lit > 0 else base + 1
+
+
+def neg_index(node):
+    return node ^ 1
 
 
 def two_sat(cnf):
     if not all(len(c) <= 2 for c in cnf):
         return None
-    # Exact finite certificate for frozen fixtures; route recognition itself is purely syntactic.
-    w = brute_witness(cnf)
-    return {"decision": "SAT" if w is not None else "UNSAT", "witness": w, "verified": w is None or verify_assignment(cnf, w)}
+    vs = vars_of(cnf)
+    idx = {v:i for i,v in enumerate(vs)}
+    n = 2 * len(vs)
+    g = [[] for _ in range(n)]
+    rg = [[] for _ in range(n)]
+
+    def add_edge(u, v):
+        g[u].append(v)
+        rg[v].append(u)
+
+    for c in cnf:
+        if len(c) == 0:
+            return {"decision":"UNSAT","certificate":{"kind":"EMPTY_CLAUSE"},"verified":True,"algorithm":"SCC_2SAT_V1"}
+        if len(c) == 1:
+            a = lit_index(c[0], idx)
+            add_edge(neg_index(a), a)
+        elif len(c) == 2:
+            a = lit_index(c[0], idx)
+            b = lit_index(c[1], idx)
+            add_edge(neg_index(a), b)
+            add_edge(neg_index(b), a)
+
+    seen = [False] * n
+    order = []
+    for s in range(n):
+        if seen[s]:
+            continue
+        stack = [(s, 0)]
+        seen[s] = True
+        while stack:
+            u, i = stack[-1]
+            if i < len(g[u]):
+                v = g[u][i]
+                stack[-1] = (u, i + 1)
+                if not seen[v]:
+                    seen[v] = True
+                    stack.append((v, 0))
+            else:
+                order.append(u)
+                stack.pop()
+
+    comp = [-1] * n
+    cid = 0
+    for s in reversed(order):
+        if comp[s] != -1:
+            continue
+        stack = [s]
+        comp[s] = cid
+        while stack:
+            u = stack.pop()
+            for v in rg[u]:
+                if comp[v] == -1:
+                    comp[v] = cid
+                    stack.append(v)
+        cid += 1
+
+    conflicts = []
+    for v in vs:
+        p = lit_index(v, idx)
+        q = neg_index(p)
+        if comp[p] == comp[q]:
+            conflicts.append(v)
+    if conflicts:
+        return {
+            "decision":"UNSAT",
+            "certificate":{"kind":"SCC_CONTRADICTION","variables":conflicts},
+            "verified":True,
+            "algorithm":"SCC_2SAT_V1",
+            "complexity":"O(V+E) implication graph"
+        }
+
+    a = {}
+    for v in vs:
+        p = lit_index(v, idx)
+        q = neg_index(p)
+        a[v] = comp[p] > comp[q]
+    assert verify_assignment(cnf, a)
+    return {
+        "decision":"SAT",
+        "witness":a,
+        "verified":True,
+        "algorithm":"SCC_2SAT_V1",
+        "complexity":"O(V+E) implication graph"
+    }
 
 
 def is_horn(cnf):
@@ -146,7 +227,7 @@ def dispatch(cnf):
     ledger={"route_checks":0,"literal_visits":sum(map(len,cnf)),"xor_bundle_checks":0,"certificate_checks":0}
     ledger["route_checks"]+=1
     r=two_sat(cnf)
-    if r is not None: return "TWO_SAT",r,ledger
+    if r is not None: return "TWO_SAT_SCC_V1",r,ledger
     ledger["route_checks"]+=1
     r=horn_solve(cnf)
     if r is not None: return "HORN",r,ledger
@@ -172,47 +253,55 @@ def dispatch(cnf):
 
 
 def xor_bundle(triple,rhs):
-    # Keep clauses falsified by assignments of the opposite parity.
     return [list(clause_forbid_assignment(triple,b)) for b in itertools.product([False,True],repeat=3) if sum(b)%2 != rhs]
 
 fixtures={
  "TWO_SAT_SAT": [[1,2],[-1,2]],
+ "TWO_SAT_UNSAT": [[1],[-1]],
  "HORN_UNSAT": [[1],[2],[-1,-2,3],[-3]],
  "DUAL_HORN_SAT": [[1,2,-3]],
  "XOR3_SAT": xor_bundle((1,2,3),0),
  "ADVERSARIAL_OPEN_3CNF": [list(clause_forbid_assignment((1,2,3),b)) for b in itertools.product([False,True],repeat=3)]
 }
 expected={
- "TWO_SAT_SAT":("TWO_SAT","CERTIFIED_ROUTE"),
+ "TWO_SAT_SAT":("TWO_SAT_SCC_V1","CERTIFIED_ROUTE"),
+ "TWO_SAT_UNSAT":("TWO_SAT_SCC_V1","CERTIFIED_ROUTE"),
  "HORN_UNSAT":("HORN","CERTIFIED_ROUTE"),
  "DUAL_HORN_SAT":("DUAL_HORN","CERTIFIED_ROUTE"),
  "XOR3_SAT":("EXACT_WIDTH3_XOR_BUNDLE_TO_GF2_V1","CERTIFIED_ROUTE"),
  "ADVERSARIAL_OPEN_3CNF":(None,"OPEN_OUTSIDE_SWITCHBOARD")
 }
 
-out=[]
-for tid,cnf in fixtures.items():
-    route,res,ledger=dispatch(norm(cnf))
-    status="CERTIFIED_ROUTE" if route is not None else "OPEN_OUTSIDE_SWITCHBOARD"
-    er,es=expected[tid]
-    assert route==er,(tid,route,er)
-    assert status==es,(tid,status,es)
-    if route is not None:
-        assert res.get("verified") is True
-        authority = route != "RENAMABLE_HORN_EXACT_BRUTE_FORCE_OVER_POLARITY_VECTOR_FOR_SMALL_FIXTURES_ONLY"
-    else:
-        authority=False
-    out.append({"id":tid,"route":route,"status":status,"decision":res.get("decision"),"decision_authority":authority,"ledger":ledger})
 
-print(json.dumps({
- "gate_id":"R44_EXACT_REPRESENTATION_SWITCHBOARD_COVERAGE_OR_COUNTEREXAMPLE",
- "status":"FROZEN_EXPECTATIONS_REPRODUCED",
- "tests":out,
- "counterexample_to_frozen_switchboard":"ADVERSARIAL_OPEN_3CNF",
- "universal_coverage_proved":False,
- "proof_authority_delta":0,
- "TRUMP_finished":False,
- "SAT_IN_P":"NOT_PROVED",
- "P_VS_NP":"OPEN",
- "next_question":"What exact invariant shared by OPEN residuals enables a new polynomial representation switch without hidden exponential compilation?"
-},sort_keys=True))
+def replay():
+    out=[]
+    for tid,cnf in fixtures.items():
+        route,res,ledger=dispatch(norm(cnf))
+        status="CERTIFIED_ROUTE" if route is not None else "OPEN_OUTSIDE_SWITCHBOARD"
+        er,es=expected[tid]
+        assert route==er,(tid,route,er)
+        assert status==es,(tid,status,es)
+        if route is not None:
+            assert res.get("verified") is True
+            authority = route != "RENAMABLE_HORN_EXACT_BRUTE_FORCE_OVER_POLARITY_VECTOR_FOR_SMALL_FIXTURES_ONLY"
+        else:
+            authority=False
+        out.append({"id":tid,"route":route,"status":status,"decision":res.get("decision"),"decision_authority":authority,"ledger":ledger})
+    return {
+      "gate_id":"R44_EXACT_REPRESENTATION_SWITCHBOARD_COVERAGE_OR_COUNTEREXAMPLE",
+      "status":"FROZEN_EXPECTATIONS_REPRODUCED_WITH_SCC_2SAT",
+      "tests":out,
+      "two_sat_algorithm":"SCC_2SAT_V1",
+      "two_sat_asymptotic_cost":"O(V+E)",
+      "counterexample_to_frozen_switchboard":"ADVERSARIAL_OPEN_3CNF",
+      "universal_coverage_proved":False,
+      "proof_authority_delta":0,
+      "TRUMP_finished":False,
+      "SAT_IN_P":"NOT_PROVED",
+      "P_VS_NP":"OPEN",
+      "next_question":"What exact invariant shared by OPEN residuals enables a new polynomial representation switch without hidden exponential compilation?"
+    }
+
+
+if __name__ == "__main__":
+    print(json.dumps(replay(),sort_keys=True))
