@@ -1,0 +1,69 @@
+name: JANUS TRUMP R47R Compact Scientific Receipt
+
+on:
+  push:
+    branches:
+      - research/r47r-compact-scientific-receipt-2026-09-04
+
+jobs:
+  compact-r47r-receipt:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Verify scientific parent and compile
+        run: |
+          python - <<'PY'
+          import subprocess
+          parent='fa73512161bb6686192154e65f3d0c4f4d93b880'
+          subprocess.run(['git','merge-base','--is-ancestor',parent,'HEAD'], check=True)
+          PY
+          python -m py_compile experiments/janus_trump_r47r_compact_scientific_receipt.py
+      - name: Re-execute frozen R47R and emit compact scientific receipt
+        run: |
+          PYTHONPATH=experiments python experiments/janus_trump_r47r_compact_scientific_receipt.py | tee /tmp/r47r-compact.json
+          python - <<'PY'
+          import json
+          d=json.load(open('/tmp/r47r-compact.json'))
+          assert d['source_science']=='BYTE_FOR_BYTE_FROZEN_R47R_RUN'
+          assert d['verdict'] in {
+              'EXPLICIT_REACHABLE_TARGETED_TWO_SWAP_DEPTH2_COUNTEREXAMPLE_FOUND',
+              'NO_DEPTH2_COUNTEREXAMPLE_IN_FROZEN_RESCUE_DISRUPTION_FRONTIER__O4_OPEN',
+          }
+          assert d['counterexample_found'] == (d['counterexample'] is not None)
+          assert d['firewall']['O4_UNIVERSAL_COVERAGE_FOR_FIXED_DEPTH2_GRAMMAR']=='OPEN'
+          assert d['firewall']['SAT_IN_P']=='NOT_PROVED'
+          assert d['firewall']['P_VS_NP']=='OPEN'
+          if d['counterexample_found']:
+              c=d['counterexample']
+              assert c['all_depth2_failed'] is True
+              assert c['certified_lower_bound']=='d(F)>2_WITHIN_FROZEN_GRAMMAR'
+              assert c['depth2_tested_pairs']>0
+          print('R47R_COMPACT_GATE=PASS')
+          print('R47R_COMPACT_VERDICT='+d['verdict'])
+          print('R47R_COMPACT_COUNTEREXAMPLE_FOUND='+str(d['counterexample_found']))
+          print('R47R_COMPACT_METRICS='+json.dumps(d['metrics'],sort_keys=True))
+          if d['counterexample'] is not None:
+              c=d['counterexample']
+              print('R47R_COMPACT_WITNESS='+json.dumps({
+                  'source_clause':c['source_clause'],
+                  'replacement_clause':c['replacement_clause'],
+                  'mutated_original_hash':c['mutated_original_hash'],
+                  'mutated_original_CLV':c['mutated_original_CLV'],
+                  'residual_hash':c['residual_hash'],
+                  'residual_CLV':c['residual_CLV'],
+                  'depth1_row_count':c['depth1_row_count'],
+                  'depth2_tested_pairs':c['depth2_tested_pairs'],
+                  'depth1_rows_sha256':c['depth1_rows_sha256'],
+                  'all_depth2_failed_pairs_sha256':c['all_depth2_failed_pairs_sha256'],
+                  'best_depth2_failure':c['best_depth2_failure'],
+                  'certified_lower_bound':c['certified_lower_bound'],
+              },sort_keys=True))
+          else:
+              print('R47R_COMPACT_HARDEST='+json.dumps(d['hardest_depth2_rescue_if_none'],sort_keys=True))
+          PY
