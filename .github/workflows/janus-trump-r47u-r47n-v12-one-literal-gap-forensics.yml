@@ -35,7 +35,19 @@ jobs:
           assert d['firewall']['SAT_IN_P']=='NOT_PROVED'
           assert d['firewall']['P_VS_NP']=='OPEN'
           PY
-      - name: Compile
+      - name: Recover unavailable pair-check instrumentation only
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p=Path('experiments/janus_trump_r47u_r47n_v12_one_literal_gap_forensics.py')
+          s=p.read_text()
+          old='"pair_checks":int(dp["pair_checks"]),'
+          new='"pair_checks":len(pos) * len(neg),'
+          assert old in s
+          p.write_text(s.replace(old,new,1))
+          print('R47U_HARNESS_ONLY_PATCH=pair_checks=len(pos)*len(neg)')
+          PY
+      - name: Compile patched harness
         run: python -m py_compile experiments/janus_trump_r47u_r47n_v12_one_literal_gap_forensics.py
       - name: Execute frozen forensics
         run: |
