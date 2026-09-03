@@ -1,0 +1,43 @@
+name: JANUS TRUMP R44BN auxiliary-free projection clause lower bound
+
+on:
+  pull_request:
+    paths:
+      - 'research/JANUS_TRUMP_R44BN_CRITICAL_SIBLING_AUXFREE_CNF_CLAUSE_LOWER_BOUND_2026-09-03.json'
+      - 'research/JANUS_TRUMP_R44BN_CRITICAL_SIBLING_AUXFREE_CNF_CLAUSE_LOWER_BOUND_PROOF_NOTE_2026-09-03.md'
+      - 'research/janus_trump_r44bn_verify_auxfree_projection_clause_lower_bound.py'
+      - '.github/workflows/janus-trump-r44bn-auxfree-projection-clause-lower-bound.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  exact-finite-replay:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout exact head
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Replay exact finite lower bound
+        run: python research/janus_trump_r44bn_verify_auxfree_projection_clause_lower_bound.py
+
+      - name: Enforce theorem boundary
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          p = Path('research/JANUS_TRUMP_R44BN_CRITICAL_SIBLING_AUXFREE_CNF_CLAUSE_LOWER_BOUND_2026-09-03.json')
+          d = json.loads(p.read_text())
+          assert d['TRUMP_finished'] is False
+          assert d['SAT_IN_P'] == 'NOT_PROVED'
+          assert d['P_VS_NP'] == 'OPEN'
+          assert 'FUNCTION_PRESERVING_PROJECTION_LOWER_BOUND != BARRIER_FOR_ALL_SAT_EQUIVALENT_MERGES' == d['scope_boundary']['critical_firewall']
+          print('R44BN boundary PASS: finite projection-faithful lower bound only.')
+          PY
