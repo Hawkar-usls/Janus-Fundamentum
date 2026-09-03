@@ -1,0 +1,52 @@
+{
+  "id": "JANUS_TRUMP_R44BK_EXCLUSIVE_SHARED_OR_PROXY_MAXDEF_GROWTH_2026-09-03",
+  "status": "EXACT_MAXDEF_GROWTH_BARRIER_FOR_EXCLUSIVE_SHARED_OR_PROXY_COMPRESSION",
+  "parent": "R44BD_MAXDEF_DESCENT_PRESERVING_OR_MERGE_INTERFACE_V2",
+  "fixed_transform_class": {
+    "name": "EXCLUSIVE_COMMON_DISJUNCTION_TSEITIN_PROXY",
+    "definition": [
+      "Choose r>=2 original input literals l1,...,lr on distinct variables whose variables occur only inside one repeated common-disjunction block of clauses (l1 OR ... OR lr OR R_i).",
+      "Replace that common r-literal disjunction in every block clause by a fresh shared proxy y, giving (y OR R_i).",
+      "Add any exact CNF definition enforcing y iff (l1 OR ... OR lr); for r=2 the standard definition is (not l1 OR y), (not l2 OR y), (l1 OR l2 OR not y), after normalizing literal signs by renaming/complementing inputs."
+    ],
+    "exactness": "The definitional CNF makes the proxy an exact representation of the common disjunction; existentially forgetting y recovers the original formula."
+  },
+  "maxdef_growth_theorem": {
+    "statement": "Let A be a maximum-deficiency sub-clause-set of F that contains at least one compressed block clause, and assume the r input variables are exclusive to the compressed block throughout F. Then the transformed copies of A's original clauses, even before selecting any definition clauses, have deficiency delta(A)+(r-1). Consequently delta*(T(F))>=delta*(F)+(r-1).",
+    "proof": [
+      "Because A contains a block clause and the r input variables are exclusive to the block, all r input variables occur in A.",
+      "In the transformed copy A', every occurrence of those r variables inside the block is replaced by one fresh proxy y, and the r input variables do not occur in any untransformed clause of A by exclusivity.",
+      "Thus A' has exactly the same number of clauses as A and exactly r-1 fewer variables: r input variables disappear and one y appears.",
+      "Therefore deficiency(A')=|A|- (|Var(A)|-(r-1)) = delta(A)+(r-1).",
+      "A' is itself a valid sub-clause-set of the full Tseitin-extended CNF, so maximum deficiency of the transformed formula is at least this value. Definition clauses are not needed for the lower bound."
+    ]
+  },
+  "R44BD_effect": {
+    "meaning": "Compressing an exclusive repeated multi-literal disjunction into one shared functional proxy can reduce syntactic repetition while increasing maximum deficiency because it removes variable-side matching capacity from the witness.",
+    "r2_case": "For a shared pair proxy y iff (a OR b), any maxdef witness touching the exclusive compressed block yields at least +1 maximum-deficiency debt.",
+    "general_case": "For r exclusive inputs, the witnessed increase is r-1."
+  },
+  "scope_ceiling": {
+    "not_covered": [
+      "input variables that also occur outside the compressed block",
+      "mixed witnesses where the maximum-deficiency witness avoids the compressed block",
+      "semantic simplification deleting other clauses after proxy introduction",
+      "arbitrary multi-input functional gadgets not based on exclusive common-subexpression replacement",
+      "non-CNF representations"
+    ]
+  },
+  "firewalls": [
+    "BYTE_COMPRESSION != MAXDEF_COMPRESSION",
+    "COMMON_SUBEXPRESSION_SHARING != MATCHING_CREDIT",
+    "REPLACING_r_VARIABLES_BY_ONE_PROXY_CAN_INCREASE_DEFICIENCY_BY_r_MINUS_1",
+    "R44BK_BARRIER != BARRIER_FOR_ALL_MULTI_INPUT_FUNCTIONAL_AUXILIARIES",
+    "P_VS_NP=OPEN"
+  ],
+  "next_admissible_math": {
+    "question": "Attack the genuinely mixed case where functional auxiliary inputs remain elsewhere in the formula and the proxy may exploit cross-branch semantic sharing; prove maxdef descent or an exact barrier for one fixed mixed-input gadget."
+  },
+  "TRUMP_finished": false,
+  "SAT_IN_P": "NOT_PROVED",
+  "P_EQUALS_NP": "NOT_PROVED",
+  "P_VS_NP": "OPEN"
+}
