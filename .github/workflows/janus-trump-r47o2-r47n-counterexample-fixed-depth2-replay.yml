@@ -1,0 +1,83 @@
+name: JANUS TRUMP R47O2 R47N Counterexample Fixed Depth2 Replay
+
+on:
+  push:
+    branches:
+      - research/r47o2-r47n-counterexample-fixed-depth2-replay-2026-09-03
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  r47o2-depth2:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Verify frozen preregistration
+        run: |
+          python - <<'PY'
+          import json
+          d=json.load(open('research/JANUS_TRUMP_R47O2_R47N_COUNTEREXAMPLE_FIXED_DEPTH2_REPLAY_PREREGISTRATION_2026-09-03.json'))
+          assert d['status']=='FROZEN_BEFORE_EXECUTION'
+          assert d['parent']['required_R47N_fixpoint_hash']=='eb653802ae710e5770e21878b5b38b2871cf0db16451b04cfc5451ca2c2e7502'
+          assert d['parent']['required_R47N_fixpoint_CLV']==[76,203,22]
+          assert d['target_grammar']['depth']==2
+          assert d['target_grammar']['new_inference_rule_added'] is False
+          assert d['target_grammar']['new_proof_authority_added'] is False
+          assert d['epistemic_firewall']['UNIVERSAL_K_EXISTS']=='NOT_PROVED'
+          assert d['epistemic_firewall']['K_EQ_2_UNIVERSAL']=='NOT_PROVED'
+          assert d['epistemic_firewall']['O4_UNIVERSAL_COVERAGE']=='OPEN'
+          assert d['epistemic_firewall']['SAT_IN_P']=='NOT_PROVED'
+          assert d['epistemic_firewall']['P_VS_NP']=='OPEN'
+          PY
+      - name: Compile
+        run: python -m py_compile experiments/janus_trump_r47o2_r47n_counterexample_fixed_depth2_replay.py
+      - name: Execute frozen fixed-depth2 replay
+        run: |
+          mkdir -p artifacts
+          PYTHONPATH=experiments python experiments/janus_trump_r47o2_r47n_counterexample_fixed_depth2_replay.py \
+            --output artifacts/JANUS_TRUMP_R47O2_R47N_COUNTEREXAMPLE_FIXED_DEPTH2_REPLAY_RESULT_2026-09-03.json \
+            | tee /tmp/r47o2.json
+          python - <<'PY'
+          import json
+          d=json.load(open('artifacts/JANUS_TRUMP_R47O2_R47N_COUNTEREXAMPLE_FIXED_DEPTH2_REPLAY_RESULT_2026-09-03.json'))
+          assert d['gate']=='JANUS_TRUMP_R47O2_R47N_COUNTEREXAMPLE_FIXED_DEPTH2_REPLAY'
+          assert d['sealed_R47N']['fixpoint_hash']=='eb653802ae710e5770e21878b5b38b2871cf0db16451b04cfc5451ca2c2e7502'
+          assert d['sealed_R47N']['fixpoint_CLV']==[76,203,22]
+          assert d['sealed_R47N']['depth1_R47J_accepted_pivots']==[]
+          assert d['verdict'] in {
+              'R47N_COUNTEREXAMPLE_RESCUED_BY_FROZEN_FIXED_DEPTH2_R47L_GRAMMAR',
+              'R47N_COUNTEREXAMPLE_SURVIVES_ALL_FROZEN_FIXED_DEPTH2_R47L_COMPOSITIONS',
+          }
+          assert d['resource_envelope']['polynomial'] is True
+          assert d['interpretation']['unbounded_depth_not_authorized'] is True
+          assert d['interpretation']['depth3_not_authorized_by_failure'] is True
+          assert d['firewall']['UNIVERSAL_K_EXISTS']=='NOT_PROVED'
+          assert d['firewall']['K_EQ_2_UNIVERSAL']=='NOT_PROVED'
+          assert d['firewall']['O4_UNIVERSAL_COVERAGE']=='OPEN'
+          assert d['firewall']['SAT_IN_P']=='NOT_PROVED'
+          assert d['firewall']['P_VS_NP']=='OPEN'
+          if d['first_accepted_pair'] is not None:
+              assert d['first_accepted_pair']['accepted'] is True
+              assert d['first_accepted_pair']['SAT_reconstruction_pass'] is True
+          print('R47O2_GATE=PASS')
+          print('R47O2_VERDICT=', d['verdict'])
+          print('R47O2_TESTED_PAIRS=', d['tested_ordered_pairs_until_stop'])
+          print('R47O2_FIRST_ACCEPT=', json.dumps(d['first_accepted_pair'], sort_keys=True))
+          print('R47O2_BEST_FAILURE=', json.dumps(d['best_failure_if_none'], sort_keys=True))
+          PY
+      - name: Upload full result
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: JANUS_TRUMP_R47O2_R47N_COUNTEREXAMPLE_FIXED_DEPTH2_REPLAY_RESULT
+          path: artifacts/JANUS_TRUMP_R47O2_R47N_COUNTEREXAMPLE_FIXED_DEPTH2_REPLAY_RESULT_2026-09-03.json
+          if-no-files-found: error
+          retention-days: 90
