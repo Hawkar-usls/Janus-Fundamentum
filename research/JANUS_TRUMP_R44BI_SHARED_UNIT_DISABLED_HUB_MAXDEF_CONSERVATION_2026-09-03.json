@@ -1,0 +1,55 @@
+{
+  "id": "JANUS_TRUMP_R44BI_SHARED_UNIT_DISABLED_HUB_MAXDEF_CONSERVATION_2026-09-03",
+  "status": "EXACT_MAXDEF_CONSERVATION_BARRIER_FOR_SHARED_UNIT_DISABLED_HUBS",
+  "parent": "R44BD_MAXDEF_DESCENT_PRESERVING_OR_MERGE_INTERFACE_V2",
+  "fixed_transform_class": {
+    "name": "ARBITRARY_SHARED_UNIT_DISABLED_AUXILIARY_PADDING",
+    "definition": [
+      "Start with CNF F={C_i} over original variables X.",
+      "Introduce any finite fresh auxiliary set Y.",
+      "For each original clause C_i choose an arbitrary subset Y_i of auxiliary literals, with each auxiliary y used only in one fixed polarity across padded clauses.",
+      "Replace C_i by P_i=C_i union Y_i.",
+      "For every auxiliary y that occurs in any padded clause, add one unit clause forcing y to the value that makes its padded literal false."
+    ],
+    "nonlocality": "The same auxiliary may appear in arbitrarily many padded clauses, so this includes global shared hubs and is strictly more nonlocal than private-per-clause padding.",
+    "exactness": "The forcing units make every added hub literal false; therefore the transformed CNF is logically equivalent to the original CNF after forgetting the fixed auxiliaries."
+  },
+  "maxdef_conservation_theorem": {
+    "statement": "For every normalized CNF F, delta*(T_hub(F))=delta*(F).",
+    "proof": [
+      "Take any selected transformed subformula Q. Let A be the selected padded original clauses and U the selected forcing-unit auxiliaries.",
+      "Let Y(A) be the set of fresh auxiliaries occurring in the selected padded clauses. Original and fresh variable sets are disjoint.",
+      "Then deficiency(Q)=|A|+|U|-|Var_F(A)|-|Y(A) union U|.",
+      "Thus deficiency(Q)=delta_F(A)+|U|-|Y(A) union U| <= delta_F(A) <= delta*(F), because |Y(A) union U|>=|U|.",
+      "For the reverse inequality choose an original sub-clause-set A0 attaining delta*(F), take its padded copies, and select exactly the forcing units for all auxiliaries in Y(A0). Then |U|=|Y(A0)| and Y(A0) union U=Y(A0), so deficiency equals delta_F(A0)=delta*(F)."
+    ]
+  },
+  "R44BD_effect": {
+    "meaning": "Even a fresh auxiliary shared across arbitrarily many branches/clauses provides no maximum-deficiency credit when exactness is enforced merely by unit-fixing it to the disabling value.",
+    "selector_application": "Adding shared unit-disabled hub literals to a raw selector merge cannot reduce the selector's additive maximum-deficiency debt.",
+    "strict_extension": "R44BF private forced padding is the special case where each hub occurs in only one padded original clause. R44BI permits arbitrary sharing."
+  },
+  "scope_ceiling": {
+    "not_covered": [
+      "auxiliaries constrained by non-unit shared functional relations",
+      "gadgets where auxiliary truth values depend nontrivially on original variables",
+      "rank-reducing semantic normalization after padding",
+      "non-CNF merge representations"
+    ]
+  },
+  "firewalls": [
+    "SHARED_HUB != FREE_MAXDEF_CREDIT_WHEN_UNIT_DISABLED",
+    "NONLOCAL_OCCURRENCE_ALONE != RANK_COMPRESSION",
+    "EXACT_FORCED_PADDING != SEMANTIC_SHARED_AUXILIARY_COMPUTATION",
+    "R44BI_BARRIER != BARRIER_FOR_ALL_NONLOCAL_GADGETS",
+    "P_VS_NP=OPEN"
+  ],
+  "next_admissible_math": {
+    "question": "Fix one shared auxiliary gadget with genuinely nontrivial functional constraints rather than unit disabling, then prove maxdef descent or an exact conservation/lower-bound theorem.",
+    "forbidden": "Do not count another pattern of unit-forced shared padding as a new machine."
+  },
+  "TRUMP_finished": false,
+  "SAT_IN_P": "NOT_PROVED",
+  "P_EQUALS_NP": "NOT_PROVED",
+  "P_VS_NP": "OPEN"
+}
