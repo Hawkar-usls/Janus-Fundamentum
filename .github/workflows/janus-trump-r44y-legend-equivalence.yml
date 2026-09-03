@@ -1,0 +1,41 @@
+name: JANUS TRUMP R44Y Legend Equivalence
+
+on:
+  pull_request:
+    paths:
+      - 'research/JANUS_TRUMP_R44Y_LEGEND_EQUIVALENCE_AND_COOK_RECKHOW_SPLIT_2026-09-03.json'
+      - 'research/JANUS_TRUMP_R44Y_LEGEND_EQUIVALENCE_PROOF_2026-09-03.md'
+      - 'research/janus_trump_r44y_verify_characterization_contract.py'
+      - '.github/workflows/janus-trump-r44y-legend-equivalence.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  structural-firewall:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Verify characterization contract without self-certifying mathematics
+        run: python research/janus_trump_r44y_verify_characterization_contract.py > /tmp/r44y.json
+      - name: Enforce epistemic boundary
+        run: |
+          python - <<'PY'
+          import json
+          r=json.load(open('/tmp/r44y.json'))
+          assert r['contract_consistency']=='PASS'
+          assert r['theorem_authority_source']=='MATHEMATICAL_ARGUMENT_NOT_CI'
+          assert r['CI_role']=='STRUCTURAL_FIREWALL_ONLY'
+          assert r['P_VS_NP']=='OPEN'
+          print('R44Y STRUCTURAL FIREWALL PASS — CI DOES NOT CERTIFY THE THEOREM')
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: janus-trump-r44y-characterization-contract
+          path: /tmp/r44y.json
+          if-no-files-found: error
