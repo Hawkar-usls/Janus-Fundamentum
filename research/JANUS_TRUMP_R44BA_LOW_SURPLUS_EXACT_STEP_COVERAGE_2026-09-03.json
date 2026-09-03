@@ -1,0 +1,72 @@
+{
+  "id": "JANUS_TRUMP_R44BA_LOW_SURPLUS_EXACT_STEP_COVERAGE_2026-09-03",
+  "status": "PROVED_EXACT_POLYTIME_ONE_STEP_COVERAGE_FOR_WIDTH3_SURPLUS_LE_2",
+  "parent": "R44AZ_FAILED_2SAT_COFACTOR_SAFE_CHOICE",
+  "theorem": {
+    "statement": "For every nonempty Boolean CNF F of maximum clause width at most 3 with surplus sigma(F)<=2, there is a deterministic polynomial-time satisfiability-preserving transition that strictly decreases the syntactic measure n(F)+c(F).",
+    "scope": "ONE STEP FROM A WIDTH<=3 STATE. The theorem does not claim that a Davis-Putnam successor remains width<=3, and therefore does not claim an iterated polynomial decider for all formulas initially having sigma<=2."
+  },
+  "cases": [
+    {
+      "condition": "sigma(F)<=0",
+      "transition": "compute a nontrivial matching autarky and remove the clauses it satisfies",
+      "basis": "A nonempty clause-set is matching-lean iff sigma>=1; matching-autarky reduction / the matching-lean kernel is polynomial-time computable.",
+      "progress": "at least one clause is deleted, so n+c strictly decreases after simplification"
+    },
+    {
+      "condition": "sigma(F) in {1,2} and mu_vd(F)>nM(sigma(F))",
+      "transition": "apply the constructive width<=3 MLCR/autarky theorem proved in R44AO",
+      "basis": "R44AO constructively proves the Kullmann-Zhao critical-autarky witness step for Boolean clause-sets of maximum width <=3.",
+      "progress": "a nontrivial autarky deletes at least one clause; simplification cannot increase n, hence n+c strictly decreases"
+    },
+    {
+      "condition": "sigma(F)=1 and mu_vd(F)<=nM(1)=2",
+      "transition": "choose a fixed-tiebreak minimum-degree variable v and eliminate v exactly by Davis-Putnam",
+      "bound": "p+q<=2 implies p*q<=p+q",
+      "progress": "v disappears and clause count does not increase, so n+c decreases by at least one"
+    },
+    {
+      "condition": "sigma(F)=2 and mu_vd(F)<=nM(2)=4",
+      "transition": "choose a fixed-tiebreak minimum-degree variable v and eliminate v exactly by Davis-Putnam",
+      "bound": "for nonnegative p,q with p+q<=4, p*q<=4<=p+q when p+q=4, and directly p*q<=p+q for smaller sums",
+      "progress": "v disappears and clause count does not increase, so n+c decreases by at least one"
+    }
+  ],
+  "non_mersenne_values": {
+    "definition": "nM(k) is the k-th positive integer that is not a Mersenne number 2^r-1",
+    "initial_values": [2,4,5,6,8,9],
+    "used": {"nM(1)":2,"nM(2)":4}
+  },
+  "algorithmic_accounting": {
+    "surplus_computation": "polynomial-time by the cited autarky/deficiency framework",
+    "autarky_branch": "polynomial by matching-autarky machinery for sigma<=0, or by R44AO for width<=3 when the surplus/min-degree trigger fires",
+    "DP_branch": "one exact elimination with at most p*q resolvents; under the selected degree bounds the clause count is nonincreasing",
+    "state": "polynomial for the single transition",
+    "determinism": "fix lexicographic tie-breaking for all variable/set choices"
+  },
+  "frontier_effect": {
+    "proved": "No nonempty width<=3 state with sigma<=2 can be a fixed point of the union of these exact transition rules.",
+    "not_proved": "The successor of a DP step can contain width-4 clauses; R44BA therefore does not prove that repeated application stays in the R44BA hypothesis or decides all initial low-surplus 3CNFs in polynomial time.",
+    "next_structural_layer": "A width<=3 state that is simultaneously irreducible under the R44BA rules must have sigma>=3. At sigma=3, nM(3)=5 and the first nonexpanding-DP-unsafe minimum-degree profile is (3,2)/(2,3)."
+  },
+  "seals": [
+    "LOW_SURPLUS_ONE_STEP_COVERAGE != LOW_SURPLUS_POLYNOMIAL_DECIDER",
+    "STRICT_ONE_STEP_DESCENT != INVARIANT_CLOSED_TRAJECTORY",
+    "DP_SUCCESSOR_WIDTH_MAY_EXCEED_3",
+    "AUTARKY_DELETION != SAT_OR_UNSAT_TERMINAL",
+    "NO_WIDTH3_FIXED_POINT_AT_SIGMA_LE_2_UNDER_THE_COMBINED_RULES",
+    "P_VS_NP=OPEN"
+  ],
+  "legend_ledger": {
+    "E1_EXACTNESS": "PASS_FOR_THIS_CONDITIONAL_TRANSITION",
+    "E2_POLYTIME_TRANSITION": "PASS",
+    "E3_POLYNOMIAL_LIVE_STATE": "PASS_FOR_ONE_STEP",
+    "E4_UNIVERSAL_STRICT_DESCENT": "PARTIAL__TOTAL_ONLY_ON_WIDTH3_STATES_WITH_SIGMA_LE_2",
+    "E5_POLYNOMIAL_RANK_HEIGHT": "n+c IS POLYNOMIAL ON THE INPUT STATE BUT NO CLOSED GLOBAL TRAJECTORY IS CLAIMED",
+    "E6_EXACT_TERMINALITY": "NOT_ESTABLISHED"
+  },
+  "TRUMP_finished": false,
+  "SAT_IN_P": "NOT_PROVED",
+  "P_EQUALS_NP": "NOT_PROVED",
+  "P_VS_NP": "OPEN"
+}
