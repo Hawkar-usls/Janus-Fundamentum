@@ -1,0 +1,73 @@
+name: JANUS TRUMP R48Z Pivot10 Survivor SA BVE Causal Forensics
+
+on:
+  push:
+    branches:
+      - research/r48z-pivot10-survivor-sa-bve-causal-forensics-2026-09-04
+  workflow_dispatch:
+
+jobs:
+  r48z-survivor-forensics:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Verify frozen preregistration lineage
+        run: |
+          python - <<'PY'
+          import json,subprocess
+          parent='ac11c50aeec4c86a78f8f50a762e7abc8136a9c0'
+          prereg='5aeb41561516d9f7e989f8bbba5b816fc3589a04'
+          executor='c8d14447f74f7b9ca0b0922d791ec0b5930eecea'
+          for c in (parent,prereg,executor): subprocess.run(['git','merge-base','--is-ancestor',c,'HEAD'],check=True)
+          d=json.load(open('research/JANUS_TRUMP_R48Z_PIVOT10_SURVIVOR_SA_BVE_CAUSAL_FORENSICS_PREREGISTRATION_2026-09-04.json'))
+          assert d['status']=='FROZEN_BEFORE_EXECUTION'
+          assert d['parent']['commit']==parent
+          assert d['sealed_target']['prefix']==[2,4,5,7,9]
+          assert d['sealed_target']['pivot']==10
+          assert d['sealed_target']['R47J_irreducible_width5_survivor']==[15,-20,-24,27,28]
+          assert d['sealed_target']['R47M_SA_BVE_application_count']==8
+          assert d['frozen_replay']['no_wide_first_inference_used_in_causal_trace'] is True
+          assert d['interpretation_ceiling']['classification_proves_universal_SA_BVE_reset'] is False
+          assert d['firewall']['P_VS_NP']=='OPEN'
+          PY
+      - name: Compile
+        run: python -m py_compile experiments/janus_trump_r48z_pivot10_survivor_sa_bve_causal_forensics.py
+      - name: Execute frozen causal trace
+        run: |
+          mkdir -p artifacts
+          PYTHONPATH=experiments python experiments/janus_trump_r48z_pivot10_survivor_sa_bve_causal_forensics.py \
+            --output artifacts/JANUS_TRUMP_R48Z_PIVOT10_SURVIVOR_SA_BVE_CAUSAL_FORENSICS_RESULT_2026-09-04.json \
+            | tee /tmp/r48z.json
+          python - <<'PY'
+          import json
+          d=json.load(open('artifacts/JANUS_TRUMP_R48Z_PIVOT10_SURVIVOR_SA_BVE_CAUSAL_FORENSICS_RESULT_2026-09-04.json'))
+          allowed={'DIRECT_SURVIVOR_VARIABLE_SA_BVE_REMOVAL','SA_BVE_THEN_R47J_INDIRECT_SURVIVOR_DISCHARGE','EXTERNAL_CONTEXT_SA_BVE_UNLOCKS_SURVIVOR_DISCHARGE','SURVIVOR_PERSISTS_UNTIL_TERMINAL_COLLAPSE','MIXED_SURVIVOR_DISCHARGE_MECHANISM'}
+          assert d['gate']=='JANUS_TRUMP_R48Z_PIVOT10_SURVIVOR_SA_BVE_CAUSAL_FORENSICS'
+          assert d['classification'] in allowed
+          assert d['survivor']==[15,-20,-24,27,28]
+          assert d['SA_BVE_application_count']==8
+          assert d['terminal']=='DIRECT_EMPTY_CNF'
+          assert d['exact_match_to_frozen_R47M'] is True
+          assert d['interpretation']['universal_SA_BVE_reset_proved'] is False
+          assert d['firewall']['UNIVERSAL_WIDTH_4_COVERAGE']=='NOT_PROVED'
+          assert d['firewall']['SAT_IN_P']=='NOT_PROVED'
+          assert d['firewall']['P_VS_NP']=='OPEN'
+          print('R48Z_GATE=PASS')
+          print('R48Z_CLASSIFICATION='+d['classification'])
+          print('R48Z_REMOVAL='+json.dumps(d['removal_event'],sort_keys=True))
+          print('R48Z_BVE_SEQUENCE='+json.dumps(d['SA_BVE_sequence']))
+          print('R48Z_TRACE='+json.dumps([{'outer':x['outer'],'before_survivor':x['before_R47J']['exact_survivor_present'],'after_r47j_survivor':x['after_R47J']['exact_survivor_present'],'r47j_terminal':x['R47J_terminal'],'bve_var':x.get('SA_BVE_var'),'bve_in_support':x.get('SA_BVE_var_in_survivor_support'),'after_bve_survivor':None if 'after_SA_BVE' not in x else x['after_SA_BVE']['exact_survivor_present'],'max_width_after_r47j':x['after_R47J']['max_width']} for x in d['trace']],sort_keys=True))
+          PY
+      - name: Upload full result
+        uses: actions/upload-artifact@v4
+        with:
+          name: JANUS_TRUMP_R48Z_PIVOT10_SURVIVOR_SA_BVE_CAUSAL_FORENSICS_RESULT
+          path: artifacts/JANUS_TRUMP_R48Z_PIVOT10_SURVIVOR_SA_BVE_CAUSAL_FORENSICS_RESULT_2026-09-04.json
+          if-no-files-found: error
+          retention-days: 90
