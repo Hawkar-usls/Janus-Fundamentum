@@ -1,0 +1,105 @@
+name: JANUS TRUMP R48R Standard PHP Width4 Falsifier
+
+on:
+  push:
+    branches:
+      - research/r48r-standard-php-width4-falsifier-2026-09-04
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  r48r-standard-php-width4:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 240
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Verify frozen preregistration
+        run: |
+          python - <<'PY'
+          import json, subprocess
+          parent='e0be53e0cf25ae92549cf0d4f93f0bcafb78b071'
+          prereg='4ea568c034890e91ff5adbad74cbf6b262098d4c'
+          executor='25a4d127800c259ab30f8060214ada4437d0f1d1'
+          for c in (parent,prereg,executor):
+              subprocess.run(['git','merge-base','--is-ancestor',c,'HEAD'],check=True)
+          d=json.load(open('research/JANUS_TRUMP_R48R_STANDARD_PHP_WIDTH4_FALSIFIER_PREREGISTRATION_2026-09-04.json'))
+          assert d['status']=='FROZEN_BEFORE_EXECUTION'
+          assert d['parent']['commit']==parent
+          assert d['sealed_structured_lineage']['R47AD_PHP4_residual_hash']=='1553aa063ac6c771e7ac781fb69e5adafb056a1c20a8b157250565b03ed0ca64'
+          assert d['sealed_structured_lineage']['R47AE_PHP4_minimum_delta']==0
+          assert d['frozen_family']['holes_n']==[4,5,6,7]
+          assert d['width_policy']['W']==4
+          assert d['width_policy']['blind_depth_enumeration'] is False
+          assert d['epistemic_firewall']['O4_UNIVERSAL_COVERAGE']=='OPEN'
+          assert d['epistemic_firewall']['SAT_IN_P']=='NOT_PROVED'
+          assert d['epistemic_firewall']['P_VS_NP']=='OPEN'
+          PY
+      - name: Compile
+        run: python -m py_compile experiments/janus_trump_r48r_standard_php_width4_falsifier.py
+      - name: Execute structured PHP width4 falsifier
+        run: |
+          mkdir -p artifacts
+          PYTHONPATH=experiments python experiments/janus_trump_r48r_standard_php_width4_falsifier.py \
+            --output artifacts/JANUS_TRUMP_R48R_STANDARD_PHP_WIDTH4_FALSIFIER_RESULT_2026-09-04.json \
+            | tee /tmp/r48r.json
+          python - <<'PY'
+          import json
+          d=json.load(open('artifacts/JANUS_TRUMP_R48R_STANDARD_PHP_WIDTH4_FALSIFIER_RESULT_2026-09-04.json'))
+          assert d['gate']=='JANUS_TRUMP_R48R_STANDARD_PHP_WIDTH4_FALSIFIER'
+          assert d['W']==4
+          assert d['frozen_n']==[4,5,6,7]
+          assert d['verdict'] in {
+              'EXPLICIT_STANDARD_PHP_WIDTH4_OBSTRUCTION_FOUND',
+              'FROZEN_PHP_4_TO_7_ALL_COVERED_BY_WIDTH4_OR_PRETERMINAL__FINITE_ONLY',
+          }
+          assert d['rows'][0]['n_holes']==4
+          assert d['rows'][0]['residual_hash']=='1553aa063ac6c771e7ac781fb69e5adafb056a1c20a8b157250565b03ed0ca64'
+          assert d['rows'][0]['residual_CLV']==[40,120,15]
+          for r in d['rows']:
+              assert r['source_max_width']<=3
+              assert r['normalization_semantic_sat'] is not True
+              if r['width4'] is not None and r['width4']['terminal'] is not None:
+                  assert r['width4']['terminal']['semantic_sat'] is not True
+          if d['first_obstruction'] is None:
+              assert d['verdict']=='FROZEN_PHP_4_TO_7_ALL_COVERED_BY_WIDTH4_OR_PRETERMINAL__FINITE_ONLY'
+              assert d['metrics']['members_evaluated']==4
+          else:
+              assert d['verdict']=='EXPLICIT_STANDARD_PHP_WIDTH4_OBSTRUCTION_FOUND'
+              assert d['first_obstruction']['obstruction']['kind'] in {
+                  'ROOT_ALREADY_EXCEEDS_WIDTH_CAP',
+                  'NO_WIDTH4_SAFE_CERTIFIED_SUCCESSOR',
+                  'NO_VARIABLE_DECREASING_CANDIDATE',
+              }
+          assert d['interpretation']['full_frozen_success_proves_universal_W4'] is False
+          assert d['interpretation']['one_W4_obstruction_refutes_every_polynomial_envelope'] is False
+          assert d['firewall']['O4_UNIVERSAL_COVERAGE']=='OPEN'
+          assert d['firewall']['SAT_IN_P']=='NOT_PROVED'
+          assert d['firewall']['P_VS_NP']=='OPEN'
+          assert d['firewall']['TRUMP_finished'] is False
+          print('R48R_GATE=PASS')
+          print('R48R_VERDICT='+d['verdict'])
+          print('R48R_METRICS='+json.dumps(d['metrics'],sort_keys=True))
+          print('R48R_ROWS='+json.dumps([{
+              'n':r['n_holes'],'source_CLV':r['source_CLV'],'residual_CLV':r['residual_CLV'],
+              'residual_width':r['residual_max_width'],'classification':r['classification'],
+              'pivots':None if r['width4'] is None else r['width4']['selected_pivots'],
+              'max_width':None if r['width4'] is None else r['width4']['max_persisted_width'],
+          } for r in d['rows']],sort_keys=True))
+          if d['first_obstruction'] is not None:
+              print('R48R_OBSTRUCTION='+json.dumps(d['first_obstruction'],sort_keys=True))
+          PY
+      - name: Upload full scientific result
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: JANUS_TRUMP_R48R_STANDARD_PHP_WIDTH4_FALSIFIER_RESULT
+          path: artifacts/JANUS_TRUMP_R48R_STANDARD_PHP_WIDTH4_FALSIFIER_RESULT_2026-09-04.json
+          if-no-files-found: error
+          retention-days: 90
