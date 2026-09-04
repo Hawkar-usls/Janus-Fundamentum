@@ -1,0 +1,57 @@
+name: JANUS TRUMP R48T Width4 Representation Reset Forensics
+
+on:
+  push:
+    branches:
+      - research/r48t-width4-representation-reset-forensics-2026-09-04
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  r48t-width-reset:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Verify frozen preregistration
+        run: |
+          python - <<'PY'
+          import json,subprocess
+          parent='93e1ba28748610b5ed4917d378698c5a94176ed3'; prereg='f950e02f6d360e989c42a49fe95f7b3726dde8ce'; executor='0027c00784bb5a48a1d9906ce881d2a11fe23462'
+          for c in (parent,prereg,executor): subprocess.run(['git','merge-base','--is-ancestor',c,'HEAD'],check=True)
+          d=json.load(open('research/JANUS_TRUMP_R48T_WIDTH4_REPRESENTATION_RESET_FORENSICS_PREREGISTRATION_2026-09-04.json'))
+          assert d['status']=='FROZEN_BEFORE_EXECUTION'; assert d['parent']['commit']==parent; assert d['sealed_R48O']['selected_pivots']==[2,4,5,7,9,10]; assert d['interpretation_ceiling']['finite_path_proves_universal_width_reset'] is False
+          PY
+      - name: Compile
+        run: python -m py_compile experiments/janus_trump_r48t_width4_representation_reset_forensics.py
+      - name: Execute frozen forensics
+        run: |
+          mkdir -p artifacts
+          PYTHONPATH=experiments python experiments/janus_trump_r48t_width4_representation_reset_forensics.py --output artifacts/JANUS_TRUMP_R48T_WIDTH4_REPRESENTATION_RESET_FORENSICS_RESULT_2026-09-04.json | tee /tmp/r48t.json
+          python - <<'PY'
+          import json
+          d=json.load(open('artifacts/JANUS_TRUMP_R48T_WIDTH4_REPRESENTATION_RESET_FORENSICS_RESULT_2026-09-04.json'))
+          assert d['gate']=='JANUS_TRUMP_R48T_WIDTH4_REPRESENTATION_RESET_FORENSICS'
+          assert d['selected_pivots']==[2,4,5,7,9,10]
+          for x in d['rows']:
+              assert x['full_independent_replay_pass'] is True
+              assert x['full_R47M_final_width']<=4
+          assert d['interpretation']['finite_path_only'] is True
+          assert d['firewall']['O4_UNIVERSAL_COVERAGE']=='OPEN'
+          print('R48T_GATE=PASS'); print('R48T_VERDICT=',d['verdict']); print('R48T_SUMMARY=',json.dumps(d['summary'],sort_keys=True)); print('R48T_ROWS=',json.dumps([{'step':x['step'],'var':x['var'],'current_width':x['current_width'],'forced_DP_width':x['forced_DP_width'],'R47J_only_final_width':x['R47J_only_final_width'],'full_R47M_final_width':x['full_R47M_final_width'],'SA_BVE_application_count':x['SA_BVE_application_count'],'terminal':x['full_terminal'],'classification':x['classification']} for x in d['rows']],sort_keys=True))
+          PY
+      - name: Upload full result
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: JANUS_TRUMP_R48T_WIDTH4_REPRESENTATION_RESET_FORENSICS_RESULT
+          path: artifacts/JANUS_TRUMP_R48T_WIDTH4_REPRESENTATION_RESET_FORENSICS_RESULT_2026-09-04.json
+          if-no-files-found: error
+          retention-days: 90
