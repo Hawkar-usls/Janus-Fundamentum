@@ -1,0 +1,138 @@
+name: JANUS TRUMP R50C Top2 Min-Taut Prospective Falsifier
+
+on:
+  push:
+    branches:
+      - research/r50c-top2-min-taut-prospective-falsifier-2026-09-04
+  pull_request:
+    branches:
+      - research/r50b-minimal-deadcore-structural-classification-2026-09-04
+
+permissions:
+  contents: read
+
+jobs:
+  guard-and-tests:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Freeze prospective split and epistemic firewall
+        run: |
+          python - <<'PY'
+          import json
+          p='research/JANUS_TRUMP_R50C_TOP2_MIN_TAUTO_PROSPECTIVE_FALSIFIER_PREREGISTRATION_2026-09-04.json'
+          d=json.load(open(p))
+          assert d['status']=='FROZEN_BEFORE_EXECUTION'
+          assert d['parent']['commit']=='cb63d9db25a06780d897d5bd8107efeab4c1e026'
+          s=d['frozen_selector']
+          assert s['name']=='TOP2_MIN_TAUTOLOGICAL_CROSS_PAIR_COUNT_THEN_VARIABLE_ID'
+          assert s['k']==2
+          assert s['truth_blind'] is True
+          assert s['R47J_outcome_used_for_ranking'] is False
+          c=d['prospective_corpus']
+          assert c['discovery_frontier_ordinals']=='CENTER_PLUS_1_THROUGH_64'
+          assert c['prospective_frontier_ordinals']=='65_THROUGH_256'
+          assert c['exclude_all_R49I_52_discovery_root_hashes'] is True
+          assert c['target_unique_roots']==52
+          fw=d['firewall']
+          assert fw['DISCOVERY_CORPUS_REUSE_FOR_ACCEPTANCE'] is False
+          assert fw['HEURISTIC_AUTHORITY'] is False
+          assert fw['ML_AUTHORITY'] is False
+          assert fw['RANDOM_AUTHORITY'] is False
+          assert fw['TOP2_MIN_TAUTO_UNIVERSAL_COVERAGE']=='OPEN'
+          assert fw['UNIVERSAL_R50A_PROGRESS']=='OPEN'
+          assert fw['SAT_IN_P']=='NOT_PROVED'
+          assert fw['P_VS_NP']=='OPEN'
+          assert fw['TRUMP_finished'] is False
+          PY
+
+      - name: Static truth-blind selector audit
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p=Path('experiments/janus_trump_r50c_top2_min_taut_prospective_falsifier.py').read_text()
+          forbidden=[
+              'import random', 'from random', 'import numpy', 'from numpy',
+              'import torch', 'from torch', 'import sklearn', 'from sklearn',
+              'model.predict', 'softmax(', 'temperature=',
+          ]
+          for marker in forbidden:
+              assert marker not in p, marker
+          required=[
+              'PROSPECTIVE_START_ORDINAL = 65',
+              'PROSPECTIVE_END_ORDINAL = 256',
+              'TARGET_PROSPECTIVE_ROOTS = 52',
+              'rank_top2_geometry_rows',
+              'tautological_cross_pair_count',
+              'selector_is_truth_blind',
+              'exact_r47j_row',
+              'independent_replay_pass',
+              'TOP2_MIN_TAUTO_UNIVERSAL_COVERAGE',
+          ]
+          for marker in required:
+              assert marker in p, marker
+          PY
+
+      - name: Compile and unit tests
+        run: |
+          python -m py_compile experiments/janus_trump_r50c_top2_min_taut_prospective_falsifier.py
+          PYTHONPATH=experiments python tests/test_janus_trump_r50c_top2_min_taut_prospective_falsifier.py
+
+  prospective:
+    needs: guard-and-tests
+    runs-on: ubuntu-24.04
+    timeout-minutes: 70
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [0, 1, 2, 3]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Execute frozen prospective selector falsifier shard
+        run: |
+          PYTHONPATH=experiments python experiments/janus_trump_r50c_top2_min_taut_prospective_falsifier.py --shard-index ${{ matrix.shard }} --shard-count 4
+
+      - name: Validate prospective finite/open contract
+        run: |
+          python - <<'PY'
+          import json, os
+          shard=os.environ['SHARD']
+          p=f'artifacts/JANUS_TRUMP_R50C_TOP2_MIN_TAUTO_PROSPECTIVE_FALSIFIER_SHARD_{shard}_OF_4.json'
+          d=json.load(open(p))
+          assert d['verdict'] in {
+              'EXPLICIT_PROSPECTIVE_COUNTEREXAMPLE_TO_TOP2_MIN_TAUTO_SELECTOR_FOUND',
+              'FINITE_PROSPECTIVE_TOP2_MIN_TAUTO_COVERAGE__THEOREM_OPEN',
+          }
+          assert d['prospective_corpus']['actual_unique_roots']==52
+          assert d['prospective_corpus']['disjoint_from_R49I_52_DISCOVERY_ROOT_HASHES'] is True
+          assert d['selector']['truth_blind'] is True
+          assert d['selector']['uses_R47J_outcome_for_ranking'] is False
+          fw=d['firewall']
+          assert fw['UNIVERSAL_R50A_PROGRESS']=='OPEN'
+          assert fw['UNIVERSAL_W4_COVERAGE']=='OPEN'
+          assert fw['SAT_IN_P']=='NOT_PROVED'
+          assert fw['P_VS_NP']=='OPEN'
+          assert fw['TRUMP_finished'] is False
+          print('R50C_SHARD=', shard)
+          print('R50C_VERDICT=', d['verdict'])
+          print('R50C_METRICS=', json.dumps(d['metrics'], sort_keys=True))
+          if d['first_counterexample'] is not None:
+              print('R50C_COUNTEREXAMPLE_HASH=', d['first_counterexample']['state_hash'])
+          PY
+        env:
+          SHARD: ${{ matrix.shard }}
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: janus-trump-r50c-prospective-shard-${{ matrix.shard }}
+          path: artifacts/JANUS_TRUMP_R50C_TOP2_MIN_TAUTO_PROSPECTIVE_FALSIFIER_SHARD_${{ matrix.shard }}_OF_4.json
+          if-no-files-found: error
