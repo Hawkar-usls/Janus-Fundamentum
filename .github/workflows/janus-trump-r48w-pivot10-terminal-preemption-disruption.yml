@@ -1,0 +1,94 @@
+name: JANUS TRUMP R48W Pivot10 Terminal Preemption Disruption
+
+on:
+  push:
+    branches:
+      - research/r48w-pivot10-terminal-preemption-disruption-2026-09-04
+  workflow_dispatch:
+
+jobs:
+  r48w-terminal-preemption:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 180
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Verify frozen preregistration lineage
+        run: |
+          python - <<'PY'
+          import json, subprocess
+          parent='55ac064814b456fa484a24f751afef7fcbe7b103'
+          prereg='8c8c31409dce4cc398c8e40e6f311ac61f82551d'
+          executor='1dbf96e48065f16d93e3d95369a916d711c450a4'
+          for c in (parent,prereg,executor):
+              subprocess.run(['git','merge-base','--is-ancestor',c,'HEAD'],check=True)
+          d=json.load(open('research/JANUS_TRUMP_R48W_PIVOT10_TERMINAL_PREEMPTION_DISRUPTION_PREREGISTRATION_2026-09-04.json'))
+          assert d['status']=='FROZEN_BEFORE_EXECUTION'
+          assert d['parent']['commit']==parent
+          assert d['sealed_baseline']['certified_prefix']==[2,4,5,7,9]
+          assert d['sealed_baseline']['near_miss_pivot']==10
+          assert d['frozen_mutation_rule']['maximum_unique_mutated_originals']==48
+          assert d['interpretation_ceiling']['per_candidate_reset_counterexample_alone_refutes_existential_W4_coverage'] is False
+          assert d['firewall']['O4_UNIVERSAL_COVERAGE']=='OPEN'
+          assert d['firewall']['SAT_IN_P']=='NOT_PROVED'
+          assert d['firewall']['P_VS_NP']=='OPEN'
+          PY
+      - name: Compile
+        run: python -m py_compile experiments/janus_trump_r48w_pivot10_terminal_preemption_disruption.py
+      - name: Execute frozen targeted disruption attack
+        run: |
+          mkdir -p artifacts
+          PYTHONPATH=experiments python experiments/janus_trump_r48w_pivot10_terminal_preemption_disruption.py \
+            --output artifacts/JANUS_TRUMP_R48W_PIVOT10_TERMINAL_PREEMPTION_DISRUPTION_RESULT_2026-09-04.json \
+            | tee /tmp/r48w.json
+          python - <<'PY'
+          import json
+          d=json.load(open('artifacts/JANUS_TRUMP_R48W_PIVOT10_TERMINAL_PREEMPTION_DISRUPTION_RESULT_2026-09-04.json'))
+          allowed={
+            'EXPLICIT_REACHABLE_EXISTENTIAL_WIDTH4_COVERAGE_OBSTRUCTION_FOUND',
+            'EXPLICIT_REACHABLE_PERCANDIDATE_WIDTH_RESET_COUNTEREXAMPLE_BUT_SAFE_ALTERNATIVE_EXISTS',
+            'R47J_WIDTH5_SURVIVOR_FOUND_BUT_FULL_CLOSURE_RESETS_OR_TERMINATES__FINITE_ONLY',
+            'PIVOT10_NEAR_MISS_NOT_REPRODUCED_IN_TARGETED_THIRD_SWAP_PANEL__FINITE_ONLY',
+            'NO_PREFIX_PRESERVING_REACHABLE_ROOTS_IN_TARGETED_PANEL__FINITE_ONLY',
+          }
+          assert d['gate']=='JANUS_TRUMP_R48W_PIVOT10_TERMINAL_PREEMPTION_DISRUPTION'
+          assert d['verdict'] in allowed
+          assert d['baseline']['root_hash']=='3f05812b68eec1a2c16b099d5542dcc53fce66a0cb47679a1594134a0a553750'
+          assert d['baseline']['certified_prefix']==[2,4,5,7,9]
+          assert d['baseline']['pivot']==10
+          assert d['baseline']['predecessor_max_width']==4
+          assert len(d['baseline']['surviving_width5_clause'])==5
+          assert d['baseline']['full_terminal']=='DIRECT_EMPTY_CNF'
+          assert d['baseline']['SA_BVE_application_count']==8
+          assert d['metrics']['mutated_originals_generated']<=48
+          if d['verdict']=='EXPLICIT_REACHABLE_EXISTENTIAL_WIDTH4_COVERAGE_OBSTRUCTION_FOUND':
+              w=d['first_witness']; e=w['existential_width4_scan']
+              assert w['target']['dangerous'] is True
+              assert e['has_existential_width4_successor'] is False
+              assert d['firewall']['UNIVERSAL_WIDTH_4_COVERAGE']=='REFUTED_FOR_FROZEN_GRAMMAR'
+          elif d['verdict']=='EXPLICIT_REACHABLE_PERCANDIDATE_WIDTH_RESET_COUNTEREXAMPLE_BUT_SAFE_ALTERNATIVE_EXISTS':
+              w=d['first_witness']; e=w['existential_width4_scan']
+              assert w['target']['dangerous'] is True
+              assert e['has_existential_width4_successor'] is True
+              assert d['firewall']['UNIVERSAL_WIDTH_4_COVERAGE']=='NOT_PROVED'
+          assert d['firewall']['O4_UNIVERSAL_COVERAGE']=='OPEN'
+          assert d['firewall']['SAT_IN_P']=='NOT_PROVED'
+          assert d['firewall']['P_VS_NP']=='OPEN'
+          print('R48W_GATE=PASS')
+          print('R48W_VERDICT='+d['verdict'])
+          print('R48W_METRICS='+json.dumps(d['metrics'],sort_keys=True))
+          print('R48W_BASELINE='+json.dumps(d['baseline'],sort_keys=True))
+          if d['first_witness'] is not None:
+              print('R48W_WITNESS='+json.dumps(d['first_witness'],sort_keys=True))
+          PY
+      - name: Upload full scientific result
+        uses: actions/upload-artifact@v4
+        with:
+          name: JANUS_TRUMP_R48W_PIVOT10_TERMINAL_PREEMPTION_DISRUPTION_RESULT
+          path: artifacts/JANUS_TRUMP_R48W_PIVOT10_TERMINAL_PREEMPTION_DISRUPTION_RESULT_2026-09-04.json
+          if-no-files-found: error
+          retention-days: 90
