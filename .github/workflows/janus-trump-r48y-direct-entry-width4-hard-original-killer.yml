@@ -1,0 +1,50 @@
+name: JANUS TRUMP R48Y Direct Entry Width4 Hard Original Killer
+
+on:
+  push:
+    branches:
+      - research/r48y-direct-entry-width4-hard-original-killer-2026-09-04
+  workflow_dispatch:
+
+jobs:
+  r48y:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Verify frozen preregistration lineage
+        shell: bash
+        run: |
+          set -euo pipefail
+          git merge-base --is-ancestor b6c94caf2883b49e52a887b2c0bd13590afc96e8 HEAD
+          git merge-base --is-ancestor 4ee0ab8537374f6425ee8e568a740db519c33b2f HEAD
+          python - <<'PY'
+          import json
+          d=json.load(open('research/JANUS_TRUMP_R48Y_DIRECT_ENTRY_WIDTH4_HARD_ORIGINAL_KILLER_PREREGISTRATION_2026-09-04.json'))
+          assert d['status']=='FROZEN_BEFORE_EXECUTION'
+          assert d['target']['hash']=='eb13be26c29c106cf172db0be435aaf852d1e1248fced151c5356791f70024da'
+          assert d['target']['CLV']==[114,342,30]
+          assert d['target']['expected_max_width']==3
+          assert d['frozen_action']['mandatory_preprocessing_before_controller'] is False
+          PY
+      - name: Compile
+        run: python -m py_compile experiments/janus_trump_r48y_direct_entry_width4_hard_original_killer.py
+      - name: Execute direct-entry killer
+        env:
+          PYTHONPATH: experiments
+        run: |
+          mkdir -p artifacts
+          python experiments/janus_trump_r48y_direct_entry_width4_hard_original_killer.py \
+            --output artifacts/JANUS_TRUMP_R48Y_DIRECT_ENTRY_WIDTH4_HARD_ORIGINAL_KILLER_RESULT.json
+      - name: Upload scientific result
+        uses: actions/upload-artifact@v4
+        with:
+          name: JANUS_TRUMP_R48Y_DIRECT_ENTRY_WIDTH4_HARD_ORIGINAL_KILLER_RESULT
+          path: artifacts/JANUS_TRUMP_R48Y_DIRECT_ENTRY_WIDTH4_HARD_ORIGINAL_KILLER_RESULT.json
+          if-no-files-found: error
+          retention-days: 90
