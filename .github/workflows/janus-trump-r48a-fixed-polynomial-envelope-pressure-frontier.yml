@@ -1,0 +1,133 @@
+name: JANUS TRUMP R48A Fixed Polynomial Envelope Pressure Frontier
+
+on:
+  push:
+    branches:
+      - research/r48a-fixed-polynomial-envelope-pressure-frontier-2026-09-04
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  r48a-envelope-frontier:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 180
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Verify frozen preregistration and R47Z parent seal
+        run: |
+          python - <<'PY'
+          import json, subprocess
+          parent='01fb5e705967a00a4cc1444d9d33ac469a9b263a'
+          prereg='993eadcd9d07e9a3c7c606981b66d472a508d7c8'
+          for c in (parent,prereg):
+              subprocess.run(['git','merge-base','--is-ancestor',c,'HEAD'], check=True)
+          d=json.load(open('research/JANUS_TRUMP_R48A_FIXED_POLYNOMIAL_ENVELOPE_PRESSURE_FRONTIER_PREREGISTRATION_2026-09-04.json'))
+          assert d['status']=='FROZEN_BEFORE_EXECUTION'
+          assert d['parent']['R47Z_result_commit']==parent
+          assert d['parent']['R47Z_minimum_delta_on_sealed_counterexample']==4
+          assert d['per_root_policy']['candidate_polynomial_envelope_test']=='B_STAR_EQUALS_C0_PLUS_V0'
+          assert d['per_root_policy']['sequence_enumeration'] is False
+          assert d['mandatory_regression']['expected_minimum_delta']==4
+          assert d['mandatory_regression']['expected_minimum_B']==79
+          assert d['mandatory_regression']['expected_rescue_pivots']==[2,7,9,5]
+          assert d['interpretation_ceiling']['all_frontier_roots_covered_proves_universal_B_C0_plus_V0'] is False
+          assert d['epistemic_firewall']['B_C0_PLUS_V0_UNIVERSAL_COVERAGE']=='OPEN'
+          assert d['epistemic_firewall']['O4_UNIVERSAL_COVERAGE']=='OPEN'
+          assert d['epistemic_firewall']['SAT_IN_P']=='NOT_PROVED'
+          assert d['epistemic_firewall']['P_VS_NP']=='OPEN'
+          assert d['epistemic_firewall']['TRUMP_finished'] is False
+          PY
+
+      - name: Compile frozen frontier executor
+        run: python -m py_compile experiments/janus_trump_r48a_fixed_polynomial_envelope_pressure_frontier.py
+
+      - name: Execute frozen envelope-pressure frontier
+        run: |
+          mkdir -p artifacts
+          PYTHONPATH=experiments python experiments/janus_trump_r48a_fixed_polynomial_envelope_pressure_frontier.py \
+            --output artifacts/JANUS_TRUMP_R48A_FIXED_POLYNOMIAL_ENVELOPE_PRESSURE_FRONTIER_RESULT_2026-09-04.json \
+            | tee /tmp/r48a.json
+          python - <<'PY'
+          import json
+          d=json.load(open('artifacts/JANUS_TRUMP_R48A_FIXED_POLYNOMIAL_ENVELOPE_PRESSURE_FRONTIER_RESULT_2026-09-04.json'))
+          assert d['gate']=='JANUS_TRUMP_R48A_FIXED_POLYNOMIAL_ENVELOPE_PRESSURE_FRONTIER'
+          assert d['verdict'] in {
+              'ALL_FROZEN_FRONTIER_ROOTS_COVERED_BY_B_C0_PLUS_V0__FINITE_ONLY',
+              'EXPLICIT_FRONTIER_ROOT_NOT_COVERED_BY_B_C0_PLUS_V0',
+          }
+          m=d['frontier_metrics']
+          assert m['unique_roots_including_center'] >= 2
+          assert m['roots_with_minimum_delta_le_V0'] + m['roots_without_rescue_delta_le_V0'] == m['unique_roots_including_center']
+          reg=d['mandatory_R47Z_regression']
+          assert reg['root_hash']=='ed330049538dc3fb487019c71bb49bde65494dc88453e50bed73b49d4ee17ca6'
+          assert reg['minimum_delta']==4
+          assert reg['minimum_B']==79
+          assert reg['selected_pivots']==[2,7,9,5]
+          for r in d['roots']:
+              assert r['B_star']==r['C0']+r['V0']
+              assert r['B_star_chain']['B']==r['B_star']
+              assert r['B_star_chain']['candidate_probe_count'] <= r['V0']**2
+              assert r['B_star_chain']['selected_step_count'] <= r['V0']
+              if r['minimum_delta'] is not None:
+                  assert 0 <= r['minimum_delta'] <= r['V0']
+                  assert r['minimum_B']==r['C0']+r['minimum_delta']
+                  assert r['minimum_chain']['covered'] is True
+                  assert r['minimum_chain']['candidate_probe_count'] <= r['V0']**2
+                  assert r['minimum_chain']['selected_step_count'] <= r['V0']
+                  for prior in r['delta_ladder'][:-1]:
+                      assert prior['covered'] is False
+                  assert r['delta_ladder'][-1]['delta']==r['minimum_delta']
+                  assert r['delta_ladder'][-1]['covered'] is True
+              else:
+                  assert len(r['delta_ladder'])==r['V0']+1
+                  assert all(not x['covered'] for x in r['delta_ladder'])
+          if d['verdict']=='ALL_FROZEN_FRONTIER_ROOTS_COVERED_BY_B_C0_PLUS_V0__FINITE_ONLY':
+              assert m['B_star_failures']==0
+              assert d['B_star_failure_summaries']==[]
+          else:
+              assert m['B_star_failures'] >= 1
+              assert len(d['B_star_failure_summaries'])==m['B_star_failures']
+          assert d['interpretation']['finite_frontier_only'] is True
+          assert d['interpretation']['all_roots_covered_proves_universal_B_C0_plus_V0'] is False
+          assert d['interpretation']['sequence_enumeration_used'] is False
+          assert d['firewall']['B_C0_PLUS_V0_UNIVERSAL_COVERAGE']=='OPEN'
+          assert d['firewall']['UNIVERSAL_POLYNOMIAL_ENVELOPE_COVERAGE']=='OPEN'
+          assert d['firewall']['O4_UNIVERSAL_COVERAGE']=='OPEN'
+          assert d['firewall']['SAT_IN_P']=='NOT_PROVED'
+          assert d['firewall']['P_EQ_NP']=='NOT_PROVED'
+          assert d['firewall']['P_NE_NP']=='NOT_PROVED'
+          assert d['firewall']['P_VS_NP']=='OPEN'
+          assert d['firewall']['TRUMP_finished'] is False
+          print('R48A_GATE=PASS')
+          print('R48A_VERDICT=', d['verdict'])
+          print('R48A_METRICS=', json.dumps(m, sort_keys=True))
+          print('R48A_HARDEST=', json.dumps(d['hardest_finite_root'], sort_keys=True))
+          print('R48A_BSTAR_FAILURES=', json.dumps(d['B_star_failure_summaries'], sort_keys=True))
+          print('R48A_ROOT_PRESSURES=', json.dumps([{
+              'root_hash':r['root_hash'],
+              'root_CLV':r['root_CLV'],
+              'frontier_ordinal':r['frontier_ordinal'],
+              'minimum_delta':r['minimum_delta'],
+              'minimum_delta_over_V0':r['minimum_delta_over_V0'],
+              'B_star':r['B_star'],
+              'B_star_covered':r['B_star_chain']['covered'],
+              'minimum_pivots':None if r['minimum_chain'] is None else r['minimum_chain']['selected_pivots'],
+          } for r in d['roots']], sort_keys=True))
+          PY
+
+      - name: Upload full scientific result
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: JANUS_TRUMP_R48A_FIXED_POLYNOMIAL_ENVELOPE_PRESSURE_FRONTIER_RESULT
+          path: artifacts/JANUS_TRUMP_R48A_FIXED_POLYNOMIAL_ENVELOPE_PRESSURE_FRONTIER_RESULT_2026-09-04.json
+          if-no-files-found: error
+          retention-days: 90
