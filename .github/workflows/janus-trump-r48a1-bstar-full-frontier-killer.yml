@@ -1,0 +1,115 @@
+name: JANUS TRUMP R48A1 B Star Full Frontier Killer
+
+on:
+  push:
+    branches:
+      - research/r48a1-bstar-full-frontier-killer-2026-09-04
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  r48a1-bstar-killer:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 180
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Verify frozen R48A1 preregistration
+        run: |
+          python - <<'PY'
+          import json, subprocess
+          parent='3f8cd3b3a2973c97c615e59a7ceaf4aec07f87f6'
+          prereg='4f373b7a2c56a5466e40f56900eff20342f3583e'
+          for c in (parent,prereg):
+              subprocess.run(['git','merge-base','--is-ancestor',c,'HEAD'], check=True)
+          d=json.load(open('research/JANUS_TRUMP_R48A1_BSTAR_FULL_FRONTIER_KILLER_PREREGISTRATION_2026-09-04.json'))
+          assert d['status']=='FROZEN_BEFORE_EXECUTION'
+          assert d['parent']['R48A_scientific_head']==parent
+          assert d['frontier']['must_match_R48A'] is True
+          assert d['frontier']['full_scan'] is True
+          assert d['fixed_policy']['B_star']=='C0_PLUS_V0'
+          assert d['fixed_policy']['sequence_enumeration'] is False
+          assert d['mandatory_regression']['R47Z_root_hash']=='ed330049538dc3fb487019c71bb49bde65494dc88453e50bed73b49d4ee17ca6'
+          assert d['mandatory_regression']['B_star']==97
+          assert d['interpretation_ceiling']['finite_all_covered_is_not_universal_theorem'] is True
+          assert d['firewall']['B_C0_PLUS_V0_UNIVERSAL_COVERAGE']=='OPEN'
+          assert d['firewall']['O4_UNIVERSAL_COVERAGE']=='OPEN'
+          assert d['firewall']['SAT_IN_P']=='NOT_PROVED'
+          assert d['firewall']['P_VS_NP']=='OPEN'
+          assert d['firewall']['TRUMP_finished'] is False
+          PY
+
+      - name: Compile frozen killer executor
+        run: python -m py_compile experiments/janus_trump_r48a1_bstar_full_frontier_killer.py
+
+      - name: Execute frozen B-star full-frontier killer
+        run: |
+          mkdir -p artifacts
+          PYTHONPATH=experiments python experiments/janus_trump_r48a1_bstar_full_frontier_killer.py \
+            --output artifacts/JANUS_TRUMP_R48A1_BSTAR_FULL_FRONTIER_KILLER_RESULT_2026-09-04.json \
+            | tee /tmp/r48a1.json
+          python - <<'PY'
+          import json
+          d=json.load(open('artifacts/JANUS_TRUMP_R48A1_BSTAR_FULL_FRONTIER_KILLER_RESULT_2026-09-04.json'))
+          assert d['gate']=='JANUS_TRUMP_R48A1_BSTAR_FULL_FRONTIER_KILLER'
+          assert d['verdict'] in {
+              'ALL_FROZEN_FRONTIER_ROOTS_COVERED_BY_B_STAR__FINITE_ONLY',
+              'EXPLICIT_FROZEN_FRONTIER_B_STAR_COUNTEREXAMPLE_FOUND',
+          }
+          m=d['frontier_metrics']
+          assert m['unique_roots_including_center'] == m['B_star_covered_roots'] + m['B_star_failed_roots']
+          reg=d['mandatory_regression']
+          assert reg['root_hash']=='ed330049538dc3fb487019c71bb49bde65494dc88453e50bed73b49d4ee17ca6'
+          assert reg['root_CLV']==[75,199,22]
+          assert reg['B_star']==97
+          assert reg['covered'] is True
+          for r in d['roots']:
+              assert r['B_star']==r['C0']+r['V0']
+              assert r['chain']['B']==r['B_star']
+              assert r['chain']['candidate_probe_count'] <= r['V0']**2
+              assert r['chain']['selected_step_count'] <= r['V0']
+          if d['verdict']=='ALL_FROZEN_FRONTIER_ROOTS_COVERED_BY_B_STAR__FINITE_ONLY':
+              assert m['B_star_failed_roots']==0
+              assert d['failure_summaries']==[]
+              assert d['full_failures']==[]
+          else:
+              assert m['B_star_failed_roots'] >= 1
+              assert len(d['failure_summaries'])==m['B_star_failed_roots']
+              assert len(d['full_failures'])==m['B_star_failed_roots']
+              for f in d['full_failures']:
+                  assert f['chain']['covered'] is False
+                  assert f['chain']['obstruction'] is not None
+          assert d['interpretation']['finite_frontier_only'] is True
+          assert d['interpretation']['all_covered_proves_universal_B_star'] is False
+          assert d['interpretation']['sequence_enumeration_used'] is False
+          assert d['interpretation']['R48A_minimum_delta_sweep_replaced'] is False
+          assert d['firewall']['B_C0_PLUS_V0_UNIVERSAL_COVERAGE']=='OPEN'
+          assert d['firewall']['UNIVERSAL_POLYNOMIAL_ENVELOPE_COVERAGE']=='OPEN'
+          assert d['firewall']['O4_UNIVERSAL_COVERAGE']=='OPEN'
+          assert d['firewall']['SAT_IN_P']=='NOT_PROVED'
+          assert d['firewall']['P_EQ_NP']=='NOT_PROVED'
+          assert d['firewall']['P_NE_NP']=='NOT_PROVED'
+          assert d['firewall']['P_VS_NP']=='OPEN'
+          assert d['firewall']['TRUMP_finished'] is False
+          print('R48A1_GATE=PASS')
+          print('R48A1_VERDICT=', d['verdict'])
+          print('R48A1_METRICS=', json.dumps(m, sort_keys=True))
+          print('R48A1_HARDEST=', json.dumps(d['hardest_B_star_root'], sort_keys=True))
+          print('R48A1_FAILURES=', json.dumps(d['failure_summaries'], sort_keys=True))
+          PY
+
+      - name: Upload full scientific result
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: JANUS_TRUMP_R48A1_BSTAR_FULL_FRONTIER_KILLER_RESULT
+          path: artifacts/JANUS_TRUMP_R48A1_BSTAR_FULL_FRONTIER_KILLER_RESULT_2026-09-04.json
+          if-no-files-found: error
+          retention-days: 90
