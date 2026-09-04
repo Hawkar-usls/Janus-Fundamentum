@@ -1,0 +1,90 @@
+name: JANUS TRUMP R50G9 Explicit Local Wide Fixpoint Counterexample
+
+on:
+  pull_request:
+    branches:
+      - research/r50g8-wide-survivor-impossibility-from-pre-bve-cleanliness-2026-09-05
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  exact-constructive-witness:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Freeze R50G9 counterexample contract
+        run: |
+          python - <<'PY'
+          import json
+          p='research/JANUS_TRUMP_R50G9_EXPLICIT_LOCAL_WIDE_FIXPOINT_COUNTEREXAMPLE_PREREGISTRATION_2026-09-05.json'
+          d=json.load(open(p))
+          assert d['status']=='FROZEN_BEFORE_EXECUTION'
+          assert d['frozen_witness_recipe']['fresh_pivot']==1
+          assert d['frozen_witness_recipe']['positive_parent']==[1,-101,-102,-103]
+          assert d['frozen_witness_recipe']['negative_parent']==[-1,-104,-107]
+          assert d['frozen_witness_recipe']['expected_width5_resolvent']==[-101,-102,-103,-104,-107]
+          assert d['firewall']['REACHABILITY_OF_WITNESS']=='NOT_ESTABLISHED'
+          PY
+
+      - name: Static no-heuristic authority audit
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p=Path('experiments/janus_trump_r50g9_explicit_local_wide_fixpoint_counterexample.py').read_text()
+          forbidden=['random.choice(', 'random.shuffle(', 'random.random(', 'sklearn', 'torch', 'tensorflow', 'heuristic_score', 'learned_selector']
+          for x in forbidden:
+              assert x not in p, x
+          assert 'EVEN_CHARGE_3_REGULAR_PRISM_TSEITIN_12' in p
+          assert 'REACHABILITY_OF_WITNESS' in p
+          PY
+
+      - name: Install test runner
+        run: python -m pip install --disable-pip-version-check -q pytest
+
+      - name: Compile and unit tests
+        run: |
+          python -m py_compile experiments/janus_trump_r50g9_explicit_local_wide_fixpoint_counterexample.py
+          PYTHONPATH=.:experiments pytest -q tests/test_janus_trump_r50g9_explicit_local_wide_fixpoint_counterexample.py
+
+      - name: Execute exact deterministic witness
+        run: |
+          mkdir -p artifacts
+          PYTHONPATH=experiments python experiments/janus_trump_r50g9_explicit_local_wide_fixpoint_counterexample.py \
+            --output artifacts/JANUS_TRUMP_R50G9_RESULT.json
+
+      - name: Validate theorem boundary and status change
+        run: |
+          python - <<'PY'
+          import json
+          d=json.load(open('artifacts/JANUS_TRUMP_R50G9_RESULT.json'))
+          w=d['witness']; fw=d['firewall']
+          assert w['source_max_width']==4
+          assert w['source_pre_bve_clean'] is True
+          assert w['pivot']==1
+          assert w['post_DP_width']>4
+          assert w['final_width']>4
+          assert w['terminal'] is None
+          assert w['same_pivot_machine_safe'] is False
+          assert w['independent_replay_pass'] is True
+          assert w['ancestry_kind']=='DIRECT_DP_WIDE_SURVIVOR_TO_FIXPOINT'
+          assert fw['LOCAL_WIDE_ANCESTRY_IMPOSSIBILITY_THEOREM']=='REFUTED'
+          assert fw['LOCAL_SAME_PIVOT_W4_SAFETY']=='REFUTED'
+          assert fw['REACHABILITY_OF_WITNESS']=='NOT_ESTABLISHED'
+          assert fw['REACHABLE_SAME_PIVOT_W4_SAFETY']=='OPEN'
+          assert fw['IMMEDIATE_BVE_CASE_ELIMINATED'] is False
+          assert fw['SAT_IN_P']=='NOT_PROVED'
+          assert fw['P_VS_NP']=='OPEN'
+          assert fw['TRUMP_finished'] is False
+          PY
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: janus-trump-r50g9-result
+          path: artifacts/JANUS_TRUMP_R50G9_RESULT.json
+          if-no-files-found: error
