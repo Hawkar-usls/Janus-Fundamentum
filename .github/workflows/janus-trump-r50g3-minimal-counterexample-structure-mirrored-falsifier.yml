@@ -1,0 +1,134 @@
+name: JANUS TRUMP R50G3 Minimal Counterexample Structure
+
+on:
+  push:
+    branches:
+      - research/r50g3-minimal-counterexample-structure-mirrored-falsifier-2026-09-05
+  pull_request:
+    branches:
+      - research/r50g2-guarded-full-smallest-first-deadcore-2026-09-05
+
+permissions:
+  contents: read
+
+jobs:
+  guard-and-tests:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Freeze minimal-counterexample contract
+        run: |
+          python - <<'PY'
+          import json
+          p='research/JANUS_TRUMP_R50G3_MINIMAL_COUNTEREXAMPLE_STRUCTURE_MIRRORED_FALSIFIER_PREREGISTRATION_2026-09-05.json'
+          d=json.load(open(p))
+          assert d['status']=='FROZEN_BEFORE_R50G3_EXECUTION'
+          assert d['critical_blocked_proof_step']['id']=='PREFIX_CLOSURE_OR_ESCAPE_ELIMINATION'
+          fw=d['firewall']
+          assert fw['R50G3_STRUCTURAL_LEMMAS_IMPLY_U'] is False
+          assert fw['SAFE_PREFIX_EXISTS_IMPLIES_CURRENT_U'] is False
+          assert fw['ARBITRARY_SUBFORMULA_MINIMALITY_ALLOWED_ON_REACHABLE_U'] is False
+          assert fw['SAT_IN_P']=='NOT_PROVED'
+          assert fw['P_VS_NP']=='OPEN'
+          PY
+      - name: Static proof-authority audit
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p=Path('experiments/janus_trump_r50g3_minimal_counterexample_structure_mirrored_falsifier.py')
+          s=p.read_text()
+          assert 'import random' not in s
+          assert 'learned' not in s.lower()
+          assert 'P_EQ_NP": "PROVED' not in s
+          assert 'SAT_IN_P": "PROVED' not in s
+          PY
+      - name: Install test runner
+        run: python -m pip install -q pytest
+      - name: Compile and unit tests
+        run: |
+          python -m py_compile experiments/janus_trump_r50g3_minimal_counterexample_structure_mirrored_falsifier.py
+          PYTHONPATH=experiments pytest -q tests/test_janus_trump_r50g3_minimal_counterexample_structure_mirrored_falsifier.py
+
+  mirror:
+    needs: guard-and-tests
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        worker: [0, 1, 2, 3, 4]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Run frozen structural mirror worker
+        run: |
+          mkdir -p artifacts
+          PYTHONPATH=experiments python experiments/janus_trump_r50g3_minimal_counterexample_structure_mirrored_falsifier.py \
+            --worker ${{ matrix.worker }} \
+            --roots-per-worker 80 \
+            --mirror-candidates-per-worker 240 \
+            --output artifacts/JANUS_TRUMP_R50G3_WORKER_${{ matrix.worker }}.json
+      - name: Validate worker firewall
+        run: |
+          python - <<'PY'
+          import glob,json
+          p=glob.glob('artifacts/JANUS_TRUMP_R50G3_WORKER_*.json')[0]
+          d=json.load(open(p))
+          assert d['gate']=='JANUS_TRUMP_R50G3_MINIMAL_COUNTEREXAMPLE_STRUCTURE_AND_MIRRORED_FALSIFIER'
+          assert d['mode']=='WORKER'
+          assert 'L4_GUARDED_OPEN_REQUIRES_AT_LEAST_6_VARIABLES' in d['kernel']['proved_source_lemmas']
+          fw=d['firewall']
+          assert fw['R50G3_STRUCTURAL_LEMMAS_IMPLY_U'] is False
+          assert fw['NO_MIRROR_FALSIFIER_FOUND_IMPLIES_U'] is False
+          assert fw['SAT_IN_P']=='NOT_PROVED'
+          assert fw['P_VS_NP']=='OPEN'
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: janus-trump-r50g3-worker-${{ matrix.worker }}
+          path: artifacts/JANUS_TRUMP_R50G3_WORKER_${{ matrix.worker }}.json
+          if-no-files-found: error
+
+  synthesize:
+    needs: mirror
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: janus-trump-r50g3-worker-*
+          path: artifacts/r50g3-workers
+          merge-multiple: true
+      - name: Synthesize structural verdict
+        run: |
+          PYTHONPATH=experiments python experiments/janus_trump_r50g3_minimal_counterexample_structure_mirrored_falsifier.py \
+            --synthesize-dir artifacts/r50g3-workers \
+            --output artifacts/JANUS_TRUMP_R50G3_SYNTHESIS.json
+      - name: Validate synthesis firewall
+        run: |
+          python - <<'PY'
+          import json
+          d=json.load(open('artifacts/JANUS_TRUMP_R50G3_SYNTHESIS.json'))
+          assert d['workers']==5
+          assert d['n_values']==[6,7,8,9,10]
+          assert d['critical_blocked_proof_step']=='PREFIX_CLOSURE_OR_ESCAPE_ELIMINATION'
+          assert 'L4_GUARDED_OPEN_REQUIRES_AT_LEAST_6_VARIABLES' in d['proved_for_frozen_rule_definitions']
+          fw=d['firewall']
+          assert fw['R50G3_STRUCTURAL_LEMMAS_IMPLY_U'] is False
+          assert fw['SAFE_PREFIX_EXISTS_IMPLIES_CURRENT_U'] is False
+          assert fw['GUARDED_U']=='OPEN'
+          assert fw['SAT_IN_P']=='NOT_PROVED'
+          assert fw['P_VS_NP']=='OPEN'
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: janus-trump-r50g3-synthesis
+          path: artifacts/JANUS_TRUMP_R50G3_SYNTHESIS.json
+          if-no-files-found: error
