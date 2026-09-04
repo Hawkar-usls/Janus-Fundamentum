@@ -1,0 +1,123 @@
+name: JANUS TRUMP R48D Minimum Local Amortized Pressure Controller
+
+on:
+  push:
+    branches:
+      - research/r48d-minimum-local-amortized-pressure-controller-2026-09-04
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  r48d-local-pressure:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Verify frozen theorem parent and preregistration
+        run: |
+          python - <<'PY'
+          import json, subprocess
+          theorem='dc24b141805fea7aba2242c5c0eae6f2d9c61084'
+          prereg='fc6e47d417ca08b1056e3866ee95cc62900c0f95'
+          executor='4395b289e1ca8f8ced31d18d8ac44ab2dc2f3464'
+          for c in (theorem,prereg,executor):
+              subprocess.run(['git','merge-base','--is-ancestor',c,'HEAD'], check=True)
+          d=json.load(open('research/JANUS_TRUMP_R48D_MINIMUM_LOCAL_AMORTIZED_PRESSURE_CONTROLLER_PREREGISTRATION_2026-09-04.json'))
+          assert d['status']=='FROZEN_BEFORE_EXECUTION'
+          assert d['symbolic_parent']['R48B_commit']==theorem
+          assert d['sealed_target']['root_hash']=='ed330049538dc3fb487019c71bb49bde65494dc88453e50bed73b49d4ee17ca6'
+          assert d['sealed_target']['root_CLV']==[75,199,22]
+          assert d['frozen_controller']['sequence_enumeration'] is False
+          assert d['frozen_controller']['predeclared_persistent_clause_cap'] is False
+          assert d['frozen_controller']['max_selected_nonterminal_steps']==22
+          assert d['frozen_controller']['max_candidate_probes']==484
+          assert d['posthoc_certificate']['A_run']=='MAXIMUM_SELECTED_NONTERMINAL_a_req'
+          assert d['interpretation_ceiling']['finite_A_run_is_not_universal_polynomial_bound'] is True
+          assert d['firewall']['UNIVERSAL_POLYNOMIAL_a_EXISTS']=='NOT_PROVED'
+          assert d['firewall']['O4_UNIVERSAL_COVERAGE']=='OPEN'
+          assert d['firewall']['SAT_IN_P']=='NOT_PROVED'
+          assert d['firewall']['P_VS_NP']=='OPEN'
+          assert d['firewall']['TRUMP_finished'] is False
+          PY
+
+      - name: Compile frozen executor
+        run: python -m py_compile experiments/janus_trump_r48d_minimum_local_amortized_pressure_controller.py
+
+      - name: Execute frozen minimum-pressure controller
+        run: |
+          mkdir -p artifacts
+          PYTHONPATH=experiments python experiments/janus_trump_r48d_minimum_local_amortized_pressure_controller.py \
+            --output artifacts/JANUS_TRUMP_R48D_MINIMUM_LOCAL_AMORTIZED_PRESSURE_CONTROLLER_RESULT_2026-09-04.json \
+            | tee /tmp/r48d.json
+          python - <<'PY'
+          import json
+          d=json.load(open('artifacts/JANUS_TRUMP_R48D_MINIMUM_LOCAL_AMORTIZED_PRESSURE_CONTROLLER_RESULT_2026-09-04.json'))
+          assert d['gate']=='JANUS_TRUMP_R48D_MINIMUM_LOCAL_AMORTIZED_PRESSURE_CONTROLLER'
+          assert d['verdict'] in {
+              'R47X_WITNESS_REACHES_CERTIFIED_TERMINAL_UNDER_MINIMUM_LOCAL_PRESSURE__FINITE_ONLY',
+              'MINIMUM_LOCAL_PRESSURE_CONTROLLER_REACHES_NONTERMINAL_WITH_NO_CERTIFIED_VARIABLE_DECREASING_CANDIDATE',
+          }
+          assert d['sealed_target']['root_hash']=='ed330049538dc3fb487019c71bb49bde65494dc88453e50bed73b49b5ec532d2' if False else True
+          assert d['sealed_target']['root_hash']=='ed330049538dc3fb487019c71bb49bde65494dc88453e50bed73b49d4ee17ca6'
+          assert d['sealed_target']['root_CLV']==[75,199,22]
+          assert d['controller']['sequence_enumeration'] is False
+          assert d['controller']['predeclared_persistent_clause_cap'] is False
+          r=d['run']
+          assert r['candidate_probe_count'] <= 484
+          assert len(r['selected_steps']) <= 22
+          for s in r['selected_steps']:
+              assert s['DP_independent_replay_pass'] is True
+              assert s['polynomial_intermediate_envelope_pass'] is True
+              assert s['full_R47M_independent_replay_pass'] is True
+              if s['terminal'] is None:
+                  assert s['delta_V_eliminated'] > 0
+                  assert s['a_req'] >= 0
+                  assert s['no_fresh_variables'] is True
+                  assert s['selected_pivot_absent_after'] is True
+          a=d['posthoc_amortization']
+          assert a['A_run'] >= 0
+          assert a['all_weighted_step_identities_pass'] is True
+          assert a['observed_clause_bound_pass'] is True
+          assert all(x['pass'] for x in a['weighted_step_identities'])
+          if r['covered']:
+              assert d['verdict']=='R47X_WITNESS_REACHES_CERTIFIED_TERMINAL_UNDER_MINIMUM_LOCAL_PRESSURE__FINITE_ONLY'
+              assert r['terminal'] is not None
+              if r['terminal']['semantic_sat'] is True:
+                  assert r['SAT_root_reconstruction']['pass'] is True
+          else:
+              assert d['verdict']=='MINIMUM_LOCAL_PRESSURE_CONTROLLER_REACHES_NONTERMINAL_WITH_NO_CERTIFIED_VARIABLE_DECREASING_CANDIDATE'
+              assert r['obstruction'] is not None
+          assert d['interpretation']['finite_A_run_is_not_universal_polynomial_bound'] is True
+          assert d['interpretation']['finite_success_does_not_prove_O4'] is True
+          assert d['firewall']['UNIVERSAL_POLYNOMIAL_a_EXISTS']=='NOT_PROVED'
+          assert d['firewall']['UNIVERSAL_POLYNOMIAL_ENVELOPE_COVERAGE']=='OPEN'
+          assert d['firewall']['O4_UNIVERSAL_COVERAGE']=='OPEN'
+          assert d['firewall']['SAT_IN_P']=='NOT_PROVED'
+          assert d['firewall']['P_EQ_NP']=='NOT_PROVED'
+          assert d['firewall']['P_NE_NP']=='NOT_PROVED'
+          assert d['firewall']['P_VS_NP']=='OPEN'
+          assert d['firewall']['TRUMP_finished'] is False
+          print('R48D_GATE=PASS')
+          print('R48D_VERDICT=',d['verdict'])
+          print('R48D_SELECTED=',json.dumps([{'step':s['step'],'var':s['var'],'input_CLV':s['input_CLV'],'final_CLV':s['final_CLV'],'a_req':s['a_req'],'terminal':s['terminal']} for s in r['selected_steps']],sort_keys=True))
+          print('R48D_A=',json.dumps(a,sort_keys=True))
+          print('R48D_TERMINAL=',json.dumps(r.get('terminal'),sort_keys=True))
+          print('R48D_OBSTRUCTION=',json.dumps(r.get('obstruction'),sort_keys=True))
+          PY
+
+      - name: Upload full scientific result
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: JANUS_TRUMP_R48D_MINIMUM_LOCAL_AMORTIZED_PRESSURE_CONTROLLER_RESULT
+          path: artifacts/JANUS_TRUMP_R48D_MINIMUM_LOCAL_AMORTIZED_PRESSURE_CONTROLLER_RESULT_2026-09-04.json
+          if-no-files-found: error
+          retention-days: 90
