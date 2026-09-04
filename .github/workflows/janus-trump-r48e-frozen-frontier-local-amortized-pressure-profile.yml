@@ -1,0 +1,137 @@
+name: JANUS TRUMP R48E Frozen Frontier Local Amortized Pressure Profile
+
+on:
+  push:
+    branches:
+      - research/r48e-frozen-frontier-local-amortized-pressure-profile-2026-09-04
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  r48e-frontier-pressure:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 180
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Verify frozen ancestry and preregistration
+        run: |
+          python - <<'PY'
+          import json, subprocess
+          parent='152c77f4b7386db2818c0dfe0bab08020306afba'
+          prereg='ace0587a48360dcedea893233809e6c7bd26c67c'
+          executor='b5f85db8a6dc6b57319fcd3346e462b451f59104'
+          for c in (parent,prereg,executor):
+              subprocess.run(['git','merge-base','--is-ancestor',c,'HEAD'], check=True)
+          d=json.load(open('research/JANUS_TRUMP_R48E_FROZEN_FRONTIER_LOCAL_AMORTIZED_PRESSURE_PROFILE_PREREGISTRATION_2026-09-04.json'))
+          assert d['status']=='FROZEN_BEFORE_EXECUTION'
+          assert d['parent']['commit']==parent
+          assert d['parent']['R47X_A_run']==1
+          assert d['parent']['R47X_max_state_a_star']==1
+          assert d['symbolic_parent']['R48B_commit']=='dc24b141805fea7aba2242c5c0eae6f2d9c61084'
+          assert d['frozen_frontier']['ordinal_window']==[1,64]
+          assert d['frozen_frontier']['include_center_fixpoint_as_control'] is True
+          assert d['frozen_frontier']['do_not_stop_at_first_high_pressure'] is True
+          assert d['frozen_controller']['selection']=='TERMINAL_FIRST_THEN_MINIMUM_a_req_THEN_FINAL_CLV_THEN_PIVOT'
+          assert d['frozen_controller']['sequence_enumeration'] is False
+          assert d['frozen_controller']['predeclared_persistent_clause_cap'] is False
+          assert d['regressions']['required_A_run']==1
+          assert d['regressions']['required_max_state_a_star']==1
+          assert d['regressions']['required_selected_pivots']==[7,2,15,5]
+          assert d['interpretation_ceiling']['finite_max_A_run_proves_universal_polynomial_a'] is False
+          assert d['interpretation_ceiling']['finite_full_frontier_coverage_proves_O4'] is False
+          assert d['epistemic_firewall']['UNIVERSAL_POLYNOMIAL_a_EXISTS']=='NOT_PROVED'
+          assert d['epistemic_firewall']['O4_UNIVERSAL_COVERAGE']=='OPEN'
+          assert d['epistemic_firewall']['SAT_IN_P']=='NOT_PROVED'
+          assert d['epistemic_firewall']['P_VS_NP']=='OPEN'
+          assert d['epistemic_firewall']['TRUMP_finished'] is False
+          PY
+
+      - name: Compile frozen executor
+        run: python -m py_compile experiments/janus_trump_r48e_frozen_frontier_local_amortized_pressure_profile.py
+
+      - name: Execute frozen frontier pressure profile
+        run: |
+          mkdir -p artifacts
+          PYTHONPATH=experiments python experiments/janus_trump_r48e_frozen_frontier_local_amortized_pressure_profile.py \
+            --output artifacts/JANUS_TRUMP_R48E_FROZEN_FRONTIER_LOCAL_AMORTIZED_PRESSURE_PROFILE_RESULT_2026-09-04.json \
+            | tee /tmp/r48e.json
+          python - <<'PY'
+          import json
+          d=json.load(open('artifacts/JANUS_TRUMP_R48E_FROZEN_FRONTIER_LOCAL_AMORTIZED_PRESSURE_PROFILE_RESULT_2026-09-04.json'))
+          assert d['gate']=='JANUS_TRUMP_R48E_FROZEN_FRONTIER_LOCAL_AMORTIZED_PRESSURE_PROFILE'
+          assert d['verdict'] in {
+              'FULL_FROZEN_FRONTIER_PROFILED_UNDER_LOCAL_AMORTIZED_PRESSURE__FINITE_ONLY',
+              'EXPLICIT_REACHABLE_STATE_WITH_NO_CERTIFIED_VARIABLE_DECREASING_R47M_CANDIDATE_FOUND',
+          }
+          assert d['frozen_frontier']['ordinal_window']==[1,64]
+          assert d['R47X_regression']['pass'] is True
+          assert d['R47X_regression']['A_run']==1
+          assert d['R47X_regression']['max_state_a_star']==1
+          assert d['R47X_regression']['selected_pivots']==[7,2,15,5]
+          m=d['metrics']
+          assert m['unique_reachable_fixpoints_profiled']==len(d['roots'])
+          assert m['covered_roots']+m['controller_obstruction_roots']==len(d['roots'])
+          assert m['total_candidate_probes']==sum(r['candidate_probe_count'] for r in d['roots'])
+          assert m['total_selected_steps']==sum(r['selected_step_count'] for r in d['roots'])
+          for r in d['roots']:
+              if r['covered']:
+                  assert r['weighted_identities_pass'] is True
+                  assert r['observed_clause_bound_pass'] is True
+                  assert r['A_run'] >= 0
+                  assert r['max_state_a_star'] >= 0
+                  assert r['terminal'] is not None
+                  for s in r['selected_steps']:
+                      assert s['DP_independent_replay_pass'] is True
+                      assert s['polynomial_intermediate_envelope_pass'] is True
+                      assert s['full_R47M_independent_replay_pass'] is True
+                  if r['terminal']['semantic_sat'] is True:
+                      assert r['SAT_root_reconstruction_pass'] is True
+              else:
+                  assert r['obstruction'] is not None
+          if d['first_controller_obstruction'] is None:
+              assert d['verdict']=='FULL_FROZEN_FRONTIER_PROFILED_UNDER_LOCAL_AMORTIZED_PRESSURE__FINITE_ONLY'
+              assert m['controller_obstruction_roots']==0
+              assert m['covered_roots']==len(d['roots'])
+          else:
+              assert d['verdict']=='EXPLICIT_REACHABLE_STATE_WITH_NO_CERTIFIED_VARIABLE_DECREASING_R47M_CANDIDATE_FOUND'
+              assert m['controller_obstruction_roots']>=1
+          assert d['interpretation']['finite_max_A_run_proves_universal_polynomial_a'] is False
+          assert d['interpretation']['finite_full_frontier_coverage_proves_O4'] is False
+          assert d['interpretation']['no_sequence_enumeration'] is True
+          assert d['interpretation']['no_predeclared_persistent_clause_cap'] is True
+          assert d['firewall']['UNIVERSAL_POLYNOMIAL_a_EXISTS']=='NOT_PROVED'
+          assert d['firewall']['UNIVERSAL_POLYNOMIAL_ENVELOPE_COVERAGE']=='OPEN'
+          assert d['firewall']['O4_UNIVERSAL_COVERAGE']=='OPEN'
+          assert d['firewall']['SAT_IN_P']=='NOT_PROVED'
+          assert d['firewall']['P_EQ_NP']=='NOT_PROVED'
+          assert d['firewall']['P_NE_NP']=='NOT_PROVED'
+          assert d['firewall']['P_VS_NP']=='OPEN'
+          assert d['firewall']['TRUMP_finished'] is False
+          print('R48E_GATE=PASS')
+          print('R48E_VERDICT=',d['verdict'])
+          print('R48E_METRICS=',json.dumps(m,sort_keys=True))
+          print('R48E_PROFILE=',json.dumps(d['profile_summary'],sort_keys=True))
+          h=d['hardest_covered_root']
+          if h is not None:
+              print('R48E_HARDEST=',json.dumps({'root_hash':h['root_hash'],'root_CLV':h['root_CLV'],'A_run':h['A_run'],'max_state_a_star':h['max_state_a_star'],'candidate_probe_count':h['candidate_probe_count'],'selected_pivots':h['selected_pivots'],'provenance':h['provenance']},sort_keys=True))
+          o=d['first_controller_obstruction']
+          if o is not None:
+              print('R48E_OBSTRUCTION=',json.dumps({'root_hash':o['root_hash'],'root_CLV':o['root_CLV'],'provenance':o['provenance'],'obstruction':o['obstruction']},sort_keys=True))
+          PY
+
+      - name: Upload full scientific result
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: JANUS_TRUMP_R48E_FROZEN_FRONTIER_LOCAL_AMORTIZED_PRESSURE_PROFILE_RESULT
+          path: artifacts/JANUS_TRUMP_R48E_FROZEN_FRONTIER_LOCAL_AMORTIZED_PRESSURE_PROFILE_RESULT_2026-09-04.json
+          if-no-files-found: error
+          retention-days: 90
