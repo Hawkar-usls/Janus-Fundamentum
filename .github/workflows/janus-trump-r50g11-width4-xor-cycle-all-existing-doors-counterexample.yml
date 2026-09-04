@@ -1,0 +1,88 @@
+name: JANUS TRUMP R50G11 Width4 XOR Cycle All Existing Doors
+
+on:
+  pull_request:
+    branches:
+      - research/r50g10-one-step-reachability-lift-and-all-doors-audit-2026-09-05
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  exact-local-all-doors:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Freeze R50G11 theorem-or-counterexample contract
+        run: |
+          python - <<'PY'
+          import json
+          p='research/JANUS_TRUMP_R50G11_WIDTH4_XOR_CYCLE_ALL_EXISTING_DOORS_COUNTEREXAMPLE_PREREGISTRATION_2026-09-05.json'
+          d=json.load(open(p))
+          assert d['status']=='FROZEN_BEFORE_EXECUTION'
+          c=d['frozen_construction']
+          assert c['equation_variable_sets']==[[101,102,103,104],[103,104,105,106],[105,106,107,108],[107,108,101,102]]
+          assert c['dangerous_pivot']==1
+          assert c['positive_parent']==[1,-101,-103,-105]
+          assert c['negative_parent']==[-1,-107,-108]
+          assert c['expected_width5_resolvent']==[-101,-103,-105,-107,-108]
+          assert d['reachability_claim']=='NONE_IN_R50G11'
+          PY
+
+      - name: Static no-heuristic authority audit
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p=Path('experiments/janus_trump_r50g11_width4_xor_cycle_all_existing_doors_counterexample.py').read_text()
+          forbidden=['random.choice(', 'random.shuffle(', 'random.random(', 'sklearn', 'torch', 'tensorflow', 'heuristic_score', 'learned_selector']
+          for x in forbidden:
+              assert x not in p, x
+          assert 'exhaustive_existing_door_audit' in p
+          assert 'REACHABILITY_OF_R50G11_WITNESS' in p
+          PY
+
+      - name: Install test runner
+        run: python -m pip install --disable-pip-version-check -q pytest
+
+      - name: Compile and unit tests
+        run: |
+          python -m py_compile experiments/janus_trump_r50g11_width4_xor_cycle_all_existing_doors_counterexample.py
+          PYTHONPATH=.:experiments pytest -q tests/test_janus_trump_r50g11_width4_xor_cycle_all_existing_doors_counterexample.py
+
+      - name: Execute exact local theorem attack
+        run: |
+          mkdir -p artifacts
+          PYTHONPATH=experiments python experiments/janus_trump_r50g11_width4_xor_cycle_all_existing_doors_counterexample.py \
+            --output artifacts/JANUS_TRUMP_R50G11_RESULT.json
+
+      - name: Validate epistemic boundary
+        run: |
+          python - <<'PY'
+          import json
+          d=json.load(open('artifacts/JANUS_TRUMP_R50G11_RESULT.json'))
+          fw=d['firewall']
+          assert fw['REACHABILITY_OF_R50G11_WITNESS']=='NOT_ESTABLISHED'
+          assert fw['U_MU']=='OPEN'
+          assert fw['SAT_IN_P']=='NOT_PROVED'
+          assert fw['P_VS_NP']=='OPEN'
+          assert fw['TRUMP_finished'] is False
+          if d['construction']['construction_valid_for_target']:
+              doors=d['all_existing_doors_audit']
+              assert len(doors['variables_checked'])==doors['variable_count']
+              assert d['refined_U_mu_step']['kind']=='OPEN_OBSTRUCTION' if doors['all_existing_doors_blocked'] else d['refined_U_mu_step']['kind']!='OPEN_OBSTRUCTION'
+              if doors['all_existing_doors_blocked']:
+                  assert fw['LOCAL_EXISTING_DOOR_THEOREM']=='REFUTED_BY_EXPLICIT_W4_SAT_OPEN'
+              else:
+                  assert fw['LOCAL_EXISTING_DOOR_THEOREM']=='OPEN'
+          PY
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: janus-trump-r50g11-result
+          path: artifacts/JANUS_TRUMP_R50G11_RESULT.json
+          if-no-files-found: error
