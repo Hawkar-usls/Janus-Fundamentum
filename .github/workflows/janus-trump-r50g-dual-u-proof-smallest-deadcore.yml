@@ -1,0 +1,142 @@
+name: JANUS TRUMP R50G Dual U Proof and Smallest Deadcore
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - research/r50g-dual-u-proof-smallest-deadcore-2026-09-05
+  pull_request:
+    branches:
+      - research/r50f-wide-clause-survival-certificate-and-clearance-repair-2026-09-04
+
+permissions:
+  contents: read
+
+jobs:
+  guard-and-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Freeze R50G dual gate and theorem firewall
+        run: |
+          python - <<'PY'
+          import json
+          p='research/JANUS_TRUMP_R50G_DUAL_U_PROOF_SMALLEST_DEADCORE_PREREGISTRATION_2026-09-05.json'
+          d=json.load(open(p))
+          assert d['status']=='FROZEN_BEFORE_R50G_EXECUTION'
+          assert d['parent_commit']=='362a6fd3dc01d78a900681caf30bf722c49e068c'
+          assert d['falsifier_lane']['minimum_variable_start']==6
+          assert d['falsifier_lane']['fixed_exact4_only'] is False
+          assert d['falsifier_lane']['min_polarity_side_filter'] is None
+          assert d['falsifier_lane']['global_minimality_claim_from_generated_pool'] is False
+          fw=d['firewall']
+          assert fw['UNIVERSAL_W4_COVERAGE']=='OPEN'
+          assert fw['SAT_IN_P']=='NOT_PROVED'
+          assert fw['P_VS_NP']=='OPEN'
+          assert fw['TRUMP_finished'] is False
+          PY
+      - name: Static no-heuristic and no-premature-closure audit
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p=Path('experiments/janus_trump_r50g_smallest_first_exact_deadcore_falsifier.py').read_text()
+          assert 'cheap_score' not in p
+          assert 'min_polarity_side' not in p
+          assert 'NO_DEADCORE_FOUND_IMPLIES_U' in p
+          assert 'GENERATED_POOL_SMALLEST_IS_GLOBAL_MINIMUM' in p
+          assert 'P_EQ_NP": "NOT_PROVED"' in p
+          note=Path('research/JANUS_TRUMP_R50G_SYMBOLIC_U_REDUCTION_AND_WIDTH4_PARENT_LEMMAS_2026-09-05.md').read_text()
+          assert 'U = OPEN' in note
+          assert 'V_{deadcore}\\ge6' in note
+          PY
+      - name: Compile and unit tests
+        run: |
+          python -m py_compile experiments/janus_trump_r50g_smallest_first_exact_deadcore_falsifier.py
+          PYTHONPATH=experiments pytest -q tests/test_janus_trump_r50g_smallest_first_exact_deadcore_falsifier.py
+
+  falsifier:
+    needs: guard-and-tests
+    strategy:
+      fail-fast: false
+      matrix:
+        worker: [0, 1, 2, 3, 4]
+    runs-on: ubuntu-latest
+    timeout-minutes: 70
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Run frozen smallest-first generated falsifier shell
+        run: |
+          mkdir -p artifacts
+          PYTHONPATH=experiments python experiments/janus_trump_r50g_smallest_first_exact_deadcore_falsifier.py \
+            --worker ${{ matrix.worker }} \
+            --roots-per-worker 80 \
+            --w4-candidates-per-worker 240 \
+            --output artifacts/JANUS_TRUMP_R50G_WORKER_${{ matrix.worker }}.json
+      - name: Validate worker firewall
+        run: |
+          python - <<'PY'
+          import json, glob
+          p=glob.glob('artifacts/JANUS_TRUMP_R50G_WORKER_*.json')[0]
+          d=json.load(open(p))
+          assert d['gate']=='JANUS_TRUMP_R50G_DUAL_UNIVERSAL_W4_STEP_PROOF_AND_SMALLEST_FIRST_EXACT_DEADCORE_FALSIFIER'
+          fw=d['firewall']
+          assert fw['NO_DEADCORE_FOUND_IMPLIES_U'] is False
+          assert fw['GENERATED_POOL_SMALLEST_IS_GLOBAL_MINIMUM'] is False
+          assert fw['SAT_IN_P']=='NOT_PROVED'
+          assert fw['P_VS_NP']=='OPEN'
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: janus-trump-r50g-worker-${{ matrix.worker }}
+          path: artifacts/JANUS_TRUMP_R50G_WORKER_${{ matrix.worker }}.json
+          if-no-files-found: error
+
+  synthesize:
+    needs: falsifier
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: janus-trump-r50g-worker-*
+          path: artifacts/r50g-workers
+          merge-multiple: true
+      - name: Synthesize exact falsifier verdict
+        run: |
+          PYTHONPATH=experiments python experiments/janus_trump_r50g_smallest_first_exact_deadcore_falsifier.py \
+            --synthesize-dir artifacts/r50g-workers \
+            --output artifacts/JANUS_TRUMP_R50G_DUAL_SYNTHESIS.json
+      - name: Validate synthesis firewall
+        run: |
+          python - <<'PY'
+          import json
+          p='artifacts/JANUS_TRUMP_R50G_DUAL_SYNTHESIS.json'
+          d=json.load(open(p))
+          assert d['workers']==5
+          assert d['n_values']==[6,7,8,9,10]
+          fw=d['firewall']
+          assert fw['NO_DEADCORE_FOUND_IMPLIES_U'] is False
+          assert fw['GENERATED_POOL_SMALLEST_IS_GLOBAL_MINIMUM'] is False
+          assert fw['SAT_IN_P']=='NOT_PROVED'
+          assert fw['P_VS_NP']=='OPEN'
+          assert fw['TRUMP_finished'] is False
+          print('R50G_VERDICT=', d['verdict'])
+          print('R50G_REACHABLE_DEADCORES=', d['reachable_deadcore_count'])
+          print('R50G_ALL_W4_DEADCORES=', d['all_w4_deadcore_count_reachability_open'])
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: janus-trump-r50g-synthesis
+          path: artifacts/JANUS_TRUMP_R50G_DUAL_SYNTHESIS.json
+          if-no-files-found: error
