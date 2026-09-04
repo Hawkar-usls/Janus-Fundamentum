@@ -46,10 +46,19 @@ class R50AExactControllerTests(unittest.TestCase):
         if step["kind"] == "NONTERMINAL":
             self.assertLessEqual(step["successor_max_width"], 4)
 
+    def test_direct_carrier_executes_only_after_recompute_and_replay(self):
+        token = r50a.operational_token(self.formula, 1)
+        step = r50a._direct_dp_transition(self.formula, token)
+        self.assertEqual(step["lane"], "BLUEFIELD_EXACT_TOKEN__R49H_DIRECT_DP")
+        self.assertTrue(step["token_verification"]["pass"])
+        self.assertTrue(step["transition_certificate"]["DP_independent_replay"]["pass"])
+        self.assertTrue(step["transition_certificate"]["polynomial_intermediate_envelope"]["pass"])
+        self.assertLessEqual(step["successor_max_width"], 4)
+        self.assertTrue(step["strict_variable_descent"])
+
     def test_tranception_reverse_returns_valid_predecessor_model(self):
-        step = r50a.exact_step(self.formula)
-        if step["kind"] != "NONTERMINAL":
-            self.skipTest("control reached certified terminal before a nonterminal transition")
+        token = r50a.operational_token(self.formula, 1)
+        step = r50a._direct_dp_transition(self.formula, token)
         model = self.first_model(step["successor"])
         self.assertIsNotNone(model)
         replay = r50a.reverse_sat_witness(self.formula, step, model)
