@@ -1,0 +1,43 @@
+name: JANUS TRUMP R49I Bipolar NonTauto Cross-Union Width5 Core Hunt
+
+on:
+  push:
+    branches:
+      - research/r49i-bipolar-nontauto-cross-union-width5-core-hunt-2026-09-04
+  workflow_dispatch:
+
+jobs:
+  r49i-hunt:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Verify R49H frozen premise
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -f research/JANUS_TRUMP_R49H_WIDTH4_CROSS_UNION_SAFE_EXACT_DP_PIVOT_LEMMA_2026-09-04.json
+          python - <<'PY'
+          import json
+          p='research/JANUS_TRUMP_R49H_WIDTH4_CROSS_UNION_SAFE_EXACT_DP_PIVOT_LEMMA_2026-09-04.json'
+          d=json.load(open(p))
+          assert d['version']=='1.2'
+          assert d['firewall']['UNIVERSAL_EASY_LANE_EXISTENCE']=='NOT_PROVED'
+          assert d['next_falsifier']['name']=='R49I_BIPOLAR_NONT_AUTO_CROSS_UNION_WIDTH5_CORE_HUNT'
+          PY
+      - name: Compile hunter
+        run: python -m py_compile experiments/janus_trump_r49i_bipolar_nontauto_cross_union_width5_core_hunt.py
+      - name: Execute R49I finite falsifier
+        env:
+          PYTHONPATH: experiments
+        run: python experiments/janus_trump_r49i_bipolar_nontauto_cross_union_width5_core_hunt.py
+      - name: Upload scientific result
+        uses: actions/upload-artifact@v4
+        with:
+          name: JANUS_TRUMP_R49I_BIPOLAR_NONTAUTO_CROSS_UNION_WIDTH5_CORE_HUNT_RESULT
+          path: artifacts/JANUS_TRUMP_R49I_BIPOLAR_NONTAUTO_CROSS_UNION_WIDTH5_CORE_HUNT_RESULT.json
+          if-no-files-found: error
+          retention-days: 90
