@@ -1,0 +1,121 @@
+name: JANUS TRUMP R47Z R47X Minimum Additive Envelope Slack Rescue
+
+on:
+  push:
+    branches:
+      - research/r47z-polynomial-envelope-slack-rescue-2026-09-04
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  r47z-envelope-ladder:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 180
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Verify frozen theorem and preregistration
+        run: |
+          python - <<'PY'
+          import json, subprocess
+          parent='8c375dc2cd4f8c9f289b50c03bbcb2e694ff149c'
+          theorem='79c3b8c5d5e0321d8a357204c5ac4f3de71c49e9'
+          prereg='b655fa0b2ea2d123df6588a0ff1d34be36d758ca'
+          for c in (parent,theorem,prereg):
+              subprocess.run(['git','merge-base','--is-ancestor',c,'HEAD'], check=True)
+          d=json.load(open('research/JANUS_TRUMP_R47Z_R47X_MINIMUM_ADDITIVE_ENVELOPE_SLACK_RESCUE_PREREGISTRATION_2026-09-04.json'))
+          assert d['status']=='FROZEN_BEFORE_EXECUTION'
+          assert d['parent_result']['commit']==parent
+          assert d['symbolic_basis']['theorem_commit']==theorem
+          assert d['sealed_target']['reachable_fixpoint_hash']=='ed330049538dc3fb487019c71bb49bde65494dc88453e50bed73b49d4ee17ca6'
+          assert d['sealed_target']['reachable_fixpoint_CLV']==[75,199,22]
+          assert d['sealed_target']['R47X_zero_slack_obstruction_after_first_pivot']['state_hash']=='a4f361a15ba24f9be4db6bf9ab31c0718f776981646d84938359b49b5ec532d2'
+          assert d['frozen_delta_ladder']['delta_values']=='0_THROUGH_22_INCLUSIVE'
+          assert d['frozen_delta_ladder']['sequence_enumeration'] is False
+          assert d['interpretation_ceiling']['finite_delta_result_proves_universal_polynomial_envelope_coverage'] is False
+          assert d['epistemic_firewall']['UNIVERSAL_POLYNOMIAL_ENVELOPE_COVERAGE']=='OPEN'
+          assert d['epistemic_firewall']['O4_UNIVERSAL_COVERAGE']=='OPEN'
+          assert d['epistemic_firewall']['SAT_IN_P']=='NOT_PROVED'
+          assert d['epistemic_firewall']['P_VS_NP']=='OPEN'
+          assert d['epistemic_firewall']['TRUMP_finished'] is False
+          PY
+
+      - name: Compile frozen executor
+        run: python -m py_compile experiments/janus_trump_r47z_r47x_minimum_additive_envelope_slack_rescue.py
+
+      - name: Execute frozen additive envelope ladder
+        run: |
+          mkdir -p artifacts
+          PYTHONPATH=experiments python experiments/janus_trump_r47z_r47x_minimum_additive_envelope_slack_rescue.py \
+            --output artifacts/JANUS_TRUMP_R47Z_R47X_MINIMUM_ADDITIVE_ENVELOPE_SLACK_RESCUE_RESULT_2026-09-04.json \
+            | tee /tmp/r47z.json
+          python - <<'PY'
+          import json
+          d=json.load(open('artifacts/JANUS_TRUMP_R47Z_R47X_MINIMUM_ADDITIVE_ENVELOPE_SLACK_RESCUE_RESULT_2026-09-04.json'))
+          assert d['gate']=='JANUS_TRUMP_R47Z_R47X_MINIMUM_ADDITIVE_ENVELOPE_SLACK_RESCUE'
+          assert d['verdict'] in {
+              'MINIMUM_ADDITIVE_ENVELOPE_SLACK_RESCUE_FOUND',
+              'NO_RESCUE_FOR_DELTA_LE_V0__FINITE_LOWER_BOUND_ONLY',
+          }
+          assert d['sealed_target']['root_hash']=='ed330049538dc3fb487019c71bb49bde65494dc88453e50bed73b49d4ee17ca6'
+          assert d['sealed_target']['root_CLV']==[75,199,22]
+          assert d['delta_ladder'][0]['delta']==0
+          assert d['delta_ladder'][0]['covered'] is False
+          assert d['delta_ladder'][0]['selected_pivots']==[7]
+          assert d['delta_ladder'][0]['obstruction']['state_hash']=='a4f361a15ba24f9be4db6bf9ab31c0718f776981646d84938359b49b5ec532d2'
+          if d['minimum_delta'] is not None:
+              assert d['verdict']=='MINIMUM_ADDITIVE_ENVELOPE_SLACK_RESCUE_FOUND'
+              assert d['minimum_delta'] >= 1
+              assert d['minimum_delta'] <= 22
+              assert d['minimum_envelope_B']==75+d['minimum_delta']
+              assert d['minimum_rescue_full']['covered'] is True
+              assert d['minimum_rescue_full']['obstruction'] is None
+              assert d['minimum_rescue_full']['candidate_probe_count'] <= 484
+              assert len(d['minimum_rescue_full']['selected_steps']) <= 22
+              if d['minimum_rescue_full']['terminal']['semantic_sat'] is True:
+                  assert d['minimum_rescue_full']['SAT_root_reconstruction']['pass'] is True
+              for row in d['delta_ladder'][:-1]:
+                  assert row['covered'] is False
+              assert d['delta_ladder'][-1]['delta']==d['minimum_delta']
+              assert d['delta_ladder'][-1]['covered'] is True
+          else:
+              assert d['verdict']=='NO_RESCUE_FOR_DELTA_LE_V0__FINITE_LOWER_BOUND_ONLY'
+              assert len(d['delta_ladder'])==23
+              assert all(not row['covered'] for row in d['delta_ladder'])
+          assert d['interpretation']['finite_minimum_delta_proves_universal_polynomial_envelope'] is False
+          assert d['interpretation']['sequence_enumeration_used'] is False
+          assert d['firewall']['UNIVERSAL_POLYNOMIAL_ENVELOPE_COVERAGE']=='OPEN'
+          assert d['firewall']['O4_UNIVERSAL_COVERAGE']=='OPEN'
+          assert d['firewall']['SAT_IN_P']=='NOT_PROVED'
+          assert d['firewall']['P_EQ_NP']=='NOT_PROVED'
+          assert d['firewall']['P_NE_NP']=='NOT_PROVED'
+          assert d['firewall']['P_VS_NP']=='OPEN'
+          assert d['firewall']['TRUMP_finished'] is False
+          print('R47Z_GATE=PASS')
+          print('R47Z_VERDICT=', d['verdict'])
+          print('R47Z_MINIMUM_DELTA=', d['minimum_delta'])
+          print('R47Z_MINIMUM_B=', d['minimum_envelope_B'])
+          print('R47Z_LADDER=', json.dumps(d['delta_ladder'], sort_keys=True))
+          if d['minimum_rescue_full'] is not None:
+              print('R47Z_RESCUE_SELECTED=', json.dumps([
+                  {'step':r['step'],'var':r['var'],'input_CLV':r['input_CLV'],'envelope_B':r['envelope_B'],'envelope_slack_before':r['envelope_slack_before'],'forced_DP_CLV':r['forced_DP_CLV'],'final_CLV':r['final_CLV'],'final_clause_overflow':r['final_clause_overflow'],'exact_DP_clause_gain_g':r['exact_DP_clause_gain_g'],'R47Y_slack_safe_pretest':r['R47Y_slack_safe_pretest'],'terminal':r['terminal'],'rejected_before_selection':r['rejected_before_selection']}
+                  for r in d['minimum_rescue_full']['selected_steps']
+              ], sort_keys=True))
+          PY
+
+      - name: Upload full scientific result
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: JANUS_TRUMP_R47Z_R47X_MINIMUM_ADDITIVE_ENVELOPE_SLACK_RESCUE_RESULT
+          path: artifacts/JANUS_TRUMP_R47Z_R47X_MINIMUM_ADDITIVE_ENVELOPE_SLACK_RESCUE_RESULT_2026-09-04.json
+          if-no-files-found: error
+          retention-days: 90
