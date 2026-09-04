@@ -1,0 +1,42 @@
+name: JANUS TRUMP R49K Safe-Only Width4 Chain 52 Roots
+
+on:
+  push:
+    branches:
+      - research/r49k-safe-only-width4-chain-52roots-2026-09-04
+  workflow_dispatch:
+
+jobs:
+  r49k-chain:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Verify premise and compile
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -f research/JANUS_TRUMP_R49H_WIDTH4_CROSS_UNION_SAFE_EXACT_DP_PIVOT_LEMMA_2026-09-04.json
+          python - <<'PY'
+          import json
+          d=json.load(open('research/JANUS_TRUMP_R49H_WIDTH4_CROSS_UNION_SAFE_EXACT_DP_PIVOT_LEMMA_2026-09-04.json'))
+          assert d['firewall']['CROSS_UNION_SAFE_BIPOLAR_EXACT_DP_LANE_SOUNDNESS']=='PROVED'
+          assert d['firewall']['P_VS_NP']=='OPEN'
+          PY
+          python -m py_compile experiments/janus_trump_r49k_safe_only_width4_chain_52roots.py
+      - name: Execute deterministic safe-only chain
+        env:
+          PYTHONPATH: experiments
+        run: |
+          mkdir -p artifacts
+          python experiments/janus_trump_r49k_safe_only_width4_chain_52roots.py
+      - name: Upload scientific result
+        uses: actions/upload-artifact@v4
+        with:
+          name: JANUS_TRUMP_R49K_SAFE_ONLY_WIDTH4_CHAIN_52ROOTS_RESULT
+          path: artifacts/JANUS_TRUMP_R49K_SAFE_ONLY_WIDTH4_CHAIN_52ROOTS_RESULT.json
+          if-no-files-found: error
+          retention-days: 90
