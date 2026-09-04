@@ -1,0 +1,125 @@
+name: JANUS TRUMP R50B Minimal Deadcore Structural Classification
+
+on:
+  push:
+    branches:
+      - research/r50b-minimal-deadcore-structural-classification-2026-09-04
+  pull_request:
+    branches:
+      - research/r50a-exact-operational-token-tranception-controller-2026-09-04
+
+permissions:
+  contents: read
+
+jobs:
+  guard-and-tests:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Freeze parent and epistemic firewall
+        run: |
+          python - <<'PY'
+          import json
+          p='research/JANUS_TRUMP_R50B_MINIMAL_DEADCORE_STRUCTURAL_CLASSIFICATION_PREREGISTRATION_2026-09-04.json'
+          d=json.load(open(p))
+          assert d['status']=='FROZEN_BEFORE_EXECUTION'
+          assert d['parent']['commit']=='8c46d99415bc68291bb3253ca36b10a3c4202b17'
+          fw=d['firewall']
+          assert fw['HEURISTIC_AUTHORITY'] is False
+          assert fw['ML_AUTHORITY'] is False
+          assert fw['RANDOM_AUTHORITY'] is False
+          assert fw['FINITE_GREEN_IS_UNIVERSAL_COVERAGE'] is False
+          assert fw['UNIVERSAL_R50A_PROGRESS']=='OPEN'
+          assert fw['UNIVERSAL_W4_COVERAGE']=='OPEN'
+          assert fw['SAT_IN_P']=='NOT_PROVED'
+          assert fw['P_VS_NP']=='OPEN'
+          assert fw['TRUMP_finished'] is False
+          PY
+
+      - name: Static no-heuristics authority audit
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p=Path('experiments/janus_trump_r50b_minimal_deadcore_structural_classification.py').read_text()
+          forbidden=[
+              'import random', 'from random', 'import numpy', 'from numpy',
+              'import torch', 'from torch', 'import sklearn', 'from sklearn',
+              'cheap_signature', 'model.predict', 'softmax(', 'temperature=',
+          ]
+          for marker in forbidden:
+              assert marker not in p, marker
+          required=[
+              'cross_pair_profile', 'r33_status', 'exact_r47j_row',
+              'independent_fixpoint_macro_replay', 'r47j_scanned_all_current_variables',
+              'deadcore_under_current_R50A_machine', 'FINITE_GREEN_IS_UNIVERSAL_COVERAGE',
+          ]
+          for marker in required:
+              assert marker in p, marker
+          PY
+
+      - name: Compile and unit tests
+        run: |
+          python -m py_compile experiments/janus_trump_r50b_minimal_deadcore_structural_classification.py
+          PYTHONPATH=experiments python tests/test_janus_trump_r50b_minimal_deadcore_structural_classification.py
+
+  classify:
+    needs: guard-and-tests
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [0, 1, 2, 3]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Execute exact structural classification shard
+        run: |
+          PYTHONPATH=experiments python experiments/janus_trump_r50b_minimal_deadcore_structural_classification.py --shard-index ${{ matrix.shard }} --shard-count 4
+
+      - name: Validate finite/open result contract
+        run: |
+          python - <<'PY'
+          import json
+          import os
+          shard=os.environ['SHARD']
+          p=f'artifacts/JANUS_TRUMP_R50B_MINIMAL_DEADCORE_STRUCTURAL_CLASSIFICATION_SHARD_{shard}_OF_4.json'
+          d=json.load(open(p))
+          assert d['verdict'] in {
+              'REPLAYABLE_R50A_DEADCORE_FOUND',
+              'FINITE_ASSIGNED_CORPUS_COVERED__STRUCTURAL_THEOREM_OPEN',
+          }
+          assert d['metrics']['unique_states_classified'] >= 1
+          fw=d['firewall']
+          assert fw['HEURISTIC_AUTHORITY'] is False
+          assert fw['ML_AUTHORITY'] is False
+          assert fw['RANDOM_AUTHORITY'] is False
+          assert fw['FINITE_GREEN_IS_UNIVERSAL_COVERAGE'] is False
+          assert fw['UNIVERSAL_R50A_PROGRESS']=='OPEN'
+          assert fw['UNIVERSAL_W4_COVERAGE']=='OPEN'
+          assert fw['SAT_IN_P']=='NOT_PROVED'
+          assert fw['P_VS_NP']=='OPEN'
+          assert fw['TRUMP_finished'] is False
+          print('R50B_SHARD=', shard)
+          print('R50B_VERDICT=', d['verdict'])
+          print('R50B_METRICS=', json.dumps(d['metrics'], sort_keys=True))
+          print('R50B_CONJECTURE_SEED=', json.dumps(d['finite_conjecture_seed'], sort_keys=True))
+          if d['first_deadcore'] is not None:
+              print('R50B_DEADCORE_HASH=', d['first_deadcore']['state_hash'])
+          PY
+        env:
+          SHARD: ${{ matrix.shard }}
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: janus-trump-r50b-structural-shard-${{ matrix.shard }}
+          path: artifacts/JANUS_TRUMP_R50B_MINIMAL_DEADCORE_STRUCTURAL_CLASSIFICATION_SHARD_${{ matrix.shard }}_OF_4.json
+          if-no-files-found: error
