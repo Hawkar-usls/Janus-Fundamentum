@@ -12,6 +12,7 @@ GATE = "JANUS_TRUMP_R48X_WIDE_FIRST_RUP_WIDTH_DISCHARGE_CONTROLLER"
 PATH = [2, 4, 5, 7, 9, 10]
 DEEP_STEPS = {3, 4, 6}
 EXPECTED_GENERAL_HISTORIES = {3: 28, 4: 2, 6: 68}
+EXPECTED_R33_APPS = {3: 0, 4: 0, 6: 1}
 WIDTH_CAP = 4
 
 
@@ -156,17 +157,27 @@ def run():
         if step in DEEP_STEPS:
             if maxw(forced) != 5:
                 raise AssertionError(("R48X_EXPECTED_FORCED_WIDTH5_DRIFT", step, maxw(forced)))
-            general = r35b.run_candidate(forced)
-            general_replay = r35b.independent_certificate_replay(forced, general)
+
+            # Harness-alignment addendum: R47J always applies R33 before its RUP call.
+            r33_stage = r33.simplify(forced)
+            post_r33 = canon(r33_stage["final_formula"])
+            r33_apps = int(r33_stage["total_rule_applications"])
+            if r33_apps != EXPECTED_R33_APPS[step]:
+                raise AssertionError(("R48X_R33_STAGE_DRIFT", step, r33_apps, EXPECTED_R33_APPS[step]))
+
+            general = r35b.run_candidate(post_r33)
+            general_replay = r35b.independent_certificate_replay(post_r33, general)
             if not general_replay["pass"]:
                 raise AssertionError(("R48X_GENERAL_RUP_REPLAY_FAIL", step, general_replay))
             if int(general["successful_strengthenings"]) != EXPECTED_GENERAL_HISTORIES[step]:
                 raise AssertionError(("R48X_GENERAL_HISTORY_DRIFT", step, general["successful_strengthenings"]))
-            wide = run_wide_first(forced, WIDTH_CAP)
+
+            wide = run_wide_first(post_r33, WIDTH_CAP)
             if not wide["resource_bound_pass"] or not wide["literal_mass_never_increases"]:
                 raise AssertionError(("R48X_WIDE_RESOURCE_INVARIANT_FAIL", step, wide))
             if any(not h["independent_up_conflict_pass"] for h in wide["history"]):
                 raise AssertionError(("R48X_WIDE_CERTIFICATE_FAIL", step))
+
             rows.append({
                 "step": int(step),
                 "pivot": int(var),
@@ -174,6 +185,13 @@ def run():
                 "forced_CLV": list(clv(forced)),
                 "forced_max_width": maxw(forced),
                 "forced_E4": excess_width(forced),
+                "R33_stage": {
+                    "application_count": r33_apps,
+                    "post_R33_hash": fhash(post_r33),
+                    "post_R33_CLV": list(clv(post_r33)),
+                    "post_R33_max_width": maxw(post_r33),
+                    "post_R33_E4": excess_width(post_r33),
+                },
                 "general_RUP": {
                     "status": general["status"],
                     "successful_strengthenings": int(general["successful_strengthenings"]),
@@ -204,6 +222,7 @@ def run():
         "gate": GATE,
         "classification": classification,
         "width_cap": WIDTH_CAP,
+        "harness_alignment_addendum_applied": True,
         "rows": rows,
         "resource_theorem": {
             "potential": "E4(F)=sum_C max(0,|C|-4)",
@@ -213,6 +232,8 @@ def run():
             "equivalence_argument": "each accepted subclause is RUP-implied by the current formula and itself implies the replaced parent clause, so replacement is equivalence-preserving; every implication witness is independently replayed",
         },
         "summary": {
+            "R33_application_counts": {str(r["step"]): r["R33_stage"]["application_count"] for r in rows},
+            "post_R33_E4": {str(r["step"]): r["R33_stage"]["post_R33_E4"] for r in rows},
             "general_successful_strengthenings": {str(r["step"]): r["general_RUP"]["successful_strengthenings"] for r in rows},
             "wide_successful_strengthenings": {str(r["step"]): r["wide_first"]["successful_strengthenings"] for r in rows},
             "general_rup_checks": {str(r["step"]): r["general_RUP"]["rup_checks"] for r in rows},
@@ -222,6 +243,7 @@ def run():
         },
         "interpretation": {
             "finite_R48V_calibration_only": True,
+            "first_run_33865461712_was_harness_input_mismatch": True,
             "universal_width4_reset_proved": False,
             "wide_first_can_be_used_as_certified_fast_producer_when_it_succeeds": True,
             "general_RUP_remains_valid_fallback": True,
@@ -256,6 +278,8 @@ def main():
             "step": r["step"],
             "pivot": r["pivot"],
             "forced_E4": r["forced_E4"],
+            "r33_apps": r["R33_stage"]["application_count"],
+            "post_R33_E4": r["R33_stage"]["post_R33_E4"],
             "general_successes": r["general_RUP"]["successful_strengthenings"],
             "general_checks": r["general_RUP"]["rup_checks"],
             "wide_status": r["wide_first"]["status"],
