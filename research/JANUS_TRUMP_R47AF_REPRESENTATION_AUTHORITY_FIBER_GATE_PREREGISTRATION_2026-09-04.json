@@ -1,0 +1,61 @@
+{
+  "gate": "R47AF_REPRESENTATION_AUTHORITY_FIBER_GATE",
+  "version": "1.0",
+  "date": "2026-09-04",
+  "status": "FROZEN_BEFORE_EXECUTION",
+  "parent_gate": "R47AE_PHP4_PERSISTED_ENVELOPE_PROFILE",
+  "parent_commit": "4170b49160eb4f4bed82196b185368cab87be3c8",
+  "question": "For any representation C proposed for TRUMP, do equal representation fibers preserve the target predicate, and if so is there also a polynomial decision procedure on the representation?",
+  "central_implication": "C(x)=C(y) => SAT(x)=SAT(y)",
+  "counterexample_form": "exists x,y: C(x)=C(y) AND SAT(x)!=SAT(y)",
+  "authority_lattice": {
+    "representation_identity": "equality under candidate encoder C",
+    "semantic_authority": "all fibers are monochromatic for the target predicate",
+    "algorithmic_authority": "semantic authority plus polynomial encoder, polynomial representation size, and a polynomial decider operating on the representation",
+    "warning": "a polynomial decoder or witness verifier alone does not imply a polynomial SAT decision procedure"
+  },
+  "admission_contract": {
+    "SEMANTIC_AUTHORITY_GRANTED_requires": [
+      "predicate_sufficiency_theorem",
+      "proof_carrying_or_independently_replayable_justification"
+    ],
+    "ALGORITHMIC_AUTHORITY_GRANTED_requires": [
+      "SEMANTIC_AUTHORITY_GRANTED",
+      "encoder_polynomial",
+      "representation_size_polynomial",
+      "representation_decider_polynomial"
+    ],
+    "QUARANTINED_INSUFFICIENT_REPRESENTATION_if": [
+      "one exact fiber collision with opposite SAT truth values is found"
+    ]
+  },
+  "controls": {
+    "positive": {
+      "name": "EXACT_CANONICAL_CNF_IDENTITY",
+      "purpose": "gate sanity control; injective representation, not a claimed SAT compression",
+      "expected": "SEMANTIC_AUTHORITY_GRANTED_BY_INJECTIVITY; ALGORITHMIC_AUTHORITY_NOT_GRANTED"
+    },
+    "negative": {
+      "name": "CLV_RESOURCE_PROFILE",
+      "signature": "(clause_count,literal_count,variable_count)",
+      "purpose": "prove that a useful resource profile must not be silently promoted to semantic decision authority",
+      "expected": "EXPLICIT_SAT_UNSAT_FIBER_COLLISION_FOUND_AND_QUARANTINED"
+    }
+  },
+  "proof_lane": "For a candidate C, prove universally that every C-fiber is SAT-monochromatic. Finite collision absence is calibration only and never a universal proof.",
+  "counterexample_lane": "Search exact finite domains for x,y in the same C-fiber with opposite SAT truth values; one verified collision refutes predicate sufficiency for that C.",
+  "firewall": {
+    "finite_no_collision_implies_universal_sufficiency": false,
+    "small_representation_implies_predicate_sufficiency": false,
+    "polynomial_decoder_implies_polynomial_decider": false,
+    "CLV_has_semantic_authority": "NOT_ASSUMED",
+    "UNIVERSAL_POLYNOMIAL_ENVELOPE_COVERAGE": "OPEN",
+    "O4_UNIVERSAL_COVERAGE": "OPEN",
+    "SAT_IN_P": "NOT_PROVED",
+    "P_EQ_NP": "NOT_PROVED",
+    "P_NE_NP": "NOT_PROVED",
+    "P_VS_NP": "OPEN",
+    "TRUMP_finished": false
+  },
+  "success_condition": "The executable gate must grant semantic authority only to theorem-backed positive controls, must find and verify a SAT/UNSAT collision for the lossy CLV control, must quarantine that representation, and must preserve every P-vs-NP firewall."
+}
