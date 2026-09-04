@@ -1,0 +1,94 @@
+name: JANUS TRUMP R47X2 Commuting Unlock Set Atlas
+
+on:
+  push:
+    branches:
+      - research/r47x2-commuting-unlock-set-rank-or-causal-diameter-collapse-2026-09-04
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  r47x2-unlock-atlas:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 180
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Verify preregistration lineage
+        run: |
+          python - <<'PY'
+          import json, subprocess
+          parent='3779026bc213e1fcee1f6727a3c89b1c24a330f0'
+          prereg='9a91f327f8e76f7d70d04fa854a401f1270dbd85'
+          rule='daf9745f12a2ca72dcec482cc88a37e2bf99133b'
+          executor='6085949a29ab3b1cd62f04c7596eb1aa4598c770'
+          for c in (parent,prereg,rule,executor):
+              subprocess.run(['git','merge-base','--is-ancestor',c,'HEAD'],check=True)
+          p=json.load(open('research/JANUS_TRUMP_R47X2_COMMUTING_UNLOCK_SET_ATLAS_PREREGISTRATION_2026-09-04.json'))
+          r=json.load(open('research/JANUS_TRUMP_R47X2_COMMUTING_UNLOCK_SET_ATLAS_DECISION_RULE_2026-09-04.json'))
+          assert p['status']=='FROZEN_BEFORE_EXECUTION'
+          assert r['status']=='FROZEN_BEFORE_EXECUTION'
+          assert p['parent']['commit']==parent
+          assert p['sealed_input']['known_commuting_unlock']=={'keys':[11,12],'target':15}
+          assert r['known_edge_requirement']['both_orders_accepted'] is True
+          assert r['known_edge_requirement']['prefixes_converge'] is True
+          assert p['firewall']['O4_UNIVERSAL_COVERAGE']=='OPEN'
+          assert p['firewall']['SAT_IN_P']=='NOT_PROVED'
+          assert p['firewall']['P_VS_NP']=='OPEN'
+          PY
+      - name: Compile
+        run: python -m py_compile experiments/janus_trump_r47x2_commuting_unlock_set_atlas.py
+      - name: Execute complete two-key unlock atlas
+        run: |
+          mkdir -p artifacts
+          PYTHONPATH=experiments python experiments/janus_trump_r47x2_commuting_unlock_set_atlas.py \
+            --output artifacts/JANUS_TRUMP_R47X2_COMMUTING_UNLOCK_SET_ATLAS_RESULT_2026-09-04.json \
+            | tee /tmp/r47x2-summary.json
+          python - <<'PY'
+          import json
+          d=json.load(open('artifacts/JANUS_TRUMP_R47X2_COMMUTING_UNLOCK_SET_ATLAS_RESULT_2026-09-04.json'))
+          allowed={
+            'RIGID_ORDER_SENSITIVE_SERIAL_SIGNAL',
+            'COMMUTING_UNLOCK_HYPERGRAPH_WITH_NONTRIVIAL_CAUSAL_DEPTH',
+            'COMMUTING_UNLOCK_HYPERGRAPH_RAPIDLY_COLLAPSES',
+            'MIXED_ORDER_SENSITIVE_AND_COMMUTING_UNLOCK_STRUCTURE',
+            'NO_ADDITIONAL_MINIMAL_TWO_KEY_UNLOCKS_BEYOND_SEALED_EDGE',
+          }
+          assert d['gate']=='JANUS_TRUMP_R47X2_COMMUTING_UNLOCK_SET_ATLAS'
+          assert d['depth1_reconfirmed_dead'] is True
+          assert d['depth2_reconfirmed_dead'] is True
+          assert d['depth2_failed_pair_count']==462
+          assert d['complete_depth3_scan'] is True
+          assert d['classification'] in allowed
+          known=[e for e in d['minimal_two_key_unlock_hyperedges'] if e['keys']==[11,12] and e['target']==15]
+          assert len(known)==1
+          assert known[0]['both_orders_accepted'] is True
+          assert known[0]['prefixes_converge'] is True
+          assert d['interpretation']['unbounded_unlock_rank_proved'] is False
+          assert d['firewall']['O4_UNIVERSAL_COVERAGE']=='OPEN'
+          assert d['firewall']['SAT_IN_P']=='NOT_PROVED'
+          assert d['firewall']['P_VS_NP']=='OPEN'
+          print('R47X2_GATE=PASS')
+          print('R47X2_CLASSIFICATION='+d['classification'])
+          print('R47X2_COUNTS='+json.dumps({
+            'tested':d['depth3_tested_candidate_count'],
+            'accepted_sequences':d['accepted_depth3_sequence_count'],
+            'hyperedges':d['minimal_two_key_unlock_hyperedge_count'],
+            **d['order_statistics'],
+          },sort_keys=True))
+          print('R47X2_CAUSAL='+json.dumps(d['causal_incidence'],sort_keys=True))
+          PY
+      - name: Upload full scientific atlas
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: JANUS_TRUMP_R47X2_COMMUTING_UNLOCK_SET_ATLAS_RESULT
+          path: artifacts/JANUS_TRUMP_R47X2_COMMUTING_UNLOCK_SET_ATLAS_RESULT_2026-09-04.json
+          if-no-files-found: error
+          retention-days: 90

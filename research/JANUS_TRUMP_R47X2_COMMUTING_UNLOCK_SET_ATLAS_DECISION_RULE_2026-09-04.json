@@ -1,0 +1,37 @@
+{
+  "schema": "JANUS_TRUMP_R47X2_COMMUTING_UNLOCK_SET_ATLAS_DECISION_RULE",
+  "version": "1.0",
+  "date": "2026-09-04",
+  "status": "FROZEN_BEFORE_EXECUTION",
+  "parent_prereg_commit": "9a91f327f8e76f7d70d04fa854a401f1270dbd85",
+  "definitions": {
+    "order_sensitive_hyperedge": "Exactly one of a->b->c and b->a->c is accepted.",
+    "order_insensitive_hyperedge": "Both a->b->c and b->a->c are accepted.",
+    "convergent_commuting_hyperedge": "Both orders are accepted and the two pre-target prefix residual hashes are identical.",
+    "incidence_graph": "For every unlock hyperedge {a,b}->c add directed edges a->c and b->c.",
+    "condensation_depth": "Maximum number of SCC nodes on a directed path in the SCC condensation DAG; isolated involved SCC counts as depth 1."
+  },
+  "decision_order": [
+    "If the complete hyperedge set contains only the already sealed {11,12}->15 edge, classify NO_ADDITIONAL_MINIMAL_TWO_KEY_UNLOCKS_BEYOND_SEALED_EDGE.",
+    "Else if order_sensitive_hyperedge_count>0 and order_insensitive_hyperedge_count==0, classify RIGID_ORDER_SENSITIVE_SERIAL_SIGNAL.",
+    "Else if order_sensitive_hyperedge_count>0 and order_insensitive_hyperedge_count>0, classify MIXED_ORDER_SENSITIVE_AND_COMMUTING_UNLOCK_STRUCTURE.",
+    "Else all hyperedges are order-insensitive. If condensation_depth<=2 OR largest_SCC_size==involved_node_count, classify COMMUTING_UNLOCK_HYPERGRAPH_RAPIDLY_COLLAPSES.",
+    "Else classify COMMUTING_UNLOCK_HYPERGRAPH_WITH_NONTRIVIAL_CAUSAL_DEPTH."
+  ],
+  "convergence_is_diagnostic_not_decisive": true,
+  "known_edge_requirement": {
+    "keys": [11,12],
+    "target": 15,
+    "both_orders_accepted": true,
+    "prefixes_converge": true
+  },
+  "firewall": {
+    "FINITE_CLASSIFICATION_ONLY": true,
+    "UNBOUNDED_UNLOCK_SET_RANK": "NOT_PROVED",
+    "UNBOUNDED_DEPTH_FAMILY_EXISTS": "NOT_PROVED",
+    "UNIVERSAL_CONSTANT_K_EXISTS": "NOT_PROVED",
+    "O4_UNIVERSAL_COVERAGE": "OPEN",
+    "SAT_IN_P": "NOT_PROVED",
+    "P_VS_NP": "OPEN"
+  }
+}
