@@ -1,0 +1,172 @@
+# JANUS TRUMP R47AC — Polynomial Persisted-Envelope Composition Theorem
+
+Date: 2026-09-04
+
+Status: **CONDITIONAL SYMBOLIC THEOREM; UNIVERSAL ENVELOPE-PRESERVING SUCCESSOR EXISTENCE REMAINS OPEN**
+
+## Motivation
+
+R47V showed on one sealed reachable residual that a strict root clause cap can carry a multi-projection chain even when individual selected projections do not decrease CLV. R47X then refuted the universal root-cap version of that grammar. R47Z showed on the R47X counterexample that a fixed additive persisted-state envelope `B=C0+4` is enough for a certified chain, while a terminal-producing one-step exact-DP probe may transiently exceed `B` and still remain polynomially bounded.
+
+The theorem-critical question is therefore not whether a universal constant additive slack exists. A polynomial persisted-state envelope is sufficient.
+
+## Setup
+
+Let `F0` be a valid canonical 3-CNF root with encoding length `N`, root clause count `C0`, and root variable count `V0`.
+
+Let `q(N)` be a fixed nonnegative integer-valued polynomial computable from `N`, and define
+
+`B(N) = C0 + q(N)`.
+
+A nonterminal transition `Ft -> Ft+1` is **B-envelope-preserving** if:
+
+1. one existing variable is eliminated by exact Davis-Putnam projection;
+2. the exact-DP record passes independent replay;
+3. the frozen certified normalization stack is run to its joint fixpoint or a verified semantic terminal;
+4. every internal certificate/replay passes;
+5. no fresh variable is introduced;
+6. either a verified semantic terminal is reached, or the persisted normalized successor satisfies
+   - `C(Ft+1) <= B(N)`, and
+   - `V(Ft+1) < V(Ft)`.
+
+The transient exact-DP representation is not required to satisfy `C <= B`. It is required only to satisfy the already-frozen polynomial one-step intermediate envelope.
+
+## Lemma 1 — variable count gives a global polynomial-height rank
+
+Exact DP removes its pivot. The frozen normalizers used by R47M introduce no fresh variables.
+
+Therefore every selected nonterminal B-envelope-preserving transition satisfies
+
+`V(Ft+1) < V(Ft)`.
+
+Hence every chain has at most `V0` selected nonterminal projection steps.
+
+Since `V0 <= N`, chain height is `O(N)`.
+
+## Lemma 2 — every persisted state has polynomial encoding size
+
+By the envelope rule,
+
+`C(Ft) <= B(N)`.
+
+No fresh variables are introduced, so
+
+`V(Ft) <= V0 <= N`.
+
+Every canonical tautology-free clause contains at most one literal per remaining variable. Therefore
+
+`L(Ft) <= C(Ft) V(Ft) <= B(N) V0`.
+
+Because `B(N)=C0+q(N)` and both `C0<=N` and `q(N)=N^{O(1)}`, every persisted state has polynomial encoding length.
+
+## Lemma 3 — one exact-DP probe from a persisted state is polynomial
+
+At a persisted state with at most `B=B(N)` clauses, let a pivot occur positively in `p` clauses and negatively in `n` clauses.
+
+Exact DP examines at most
+
+`p n <= B^2/4`
+
+parent pairs and therefore produces at most `O(B^2)` raw non-tautological resolvents before deduplication/subsumption.
+
+Each resolvent has at most `V0-1` literals. Thus the raw forced-DP representation has
+
+- `O(B^2)` clauses,
+- `O(B^2 V0)` literal mass.
+
+Since `B` and `V0` are polynomial in `N`, the forced representation is polynomial in `N`.
+
+The frozen R47M R33/affine/RUP/SA-BVE joint normalization and its independent verifiers have polynomial work in the size of this one-step forced representation under the existing R47B/R47P/R47Q resource contracts.
+
+Therefore one candidate probe is polynomial in `N`.
+
+## Lemma 4 — discovery scans pivots, not projection sequences
+
+At a current persisted state, scan the current variables in deterministic canonical order. Construct and verify one exact-DP-plus-normalization candidate for each variable until the first B-envelope-preserving candidate or semantic terminal is found.
+
+There are at most `V0` candidates per persisted state and at most `V0` persisted nonterminal states.
+
+Hence the whole run performs at most
+
+`V0^2 <= N^2`
+
+candidate probes.
+
+No depth-k sequence enumeration is required.
+
+## Lemma 5 — transient polynomial debt does not compound across chain depth
+
+A candidate probe may transiently grow to `O(B^2)` clauses. But only a certified normalized successor with at most `B` persisted clauses is allowed to become the next chain state.
+
+Thus the forbidden uncapped recurrence
+
+`C -> C^2 -> C^4 -> C^8 -> ...`
+
+does not compose across selected projection steps.
+
+The recurrence is reset after every accepted nonterminal transition:
+
+`persisted C <= B -> transient O(B^2) -> persisted C <= B`.
+
+Because `B=N^{O(1)}`, every transient remains polynomial and the exponent does not double with chain depth.
+
+## Theorem — polynomial-time composition conditional on universal polynomial-envelope coverage
+
+Assume there exists a fixed computable polynomial `q(N)` such that for every valid 3-CNF root `F0` and every reachable persisted normalized nonterminal state `Ft` generated by the deterministic first-certified B-envelope grammar with
+
+`B(N)=C0+q(N)`,
+
+there exists a polynomially discoverable certified pivot whose exact-DP-plus-frozen-normalization result is either
+
+1. a verified semantic terminal, or
+2. a nonterminal successor satisfying `C <= B(N)` and strict variable-count decrease.
+
+Then the deterministic first-certified B-envelope projection algorithm decides 3-SAT in polynomial time.
+
+### Proof
+
+- Semantic correctness/equisatisfiability composes through exact DP and the certified normalizers.
+- By Lemma 1, there are at most `V0<=N` selected nonterminal steps.
+- By Lemma 2, every persisted state has polynomial size.
+- By Lemma 3, every candidate probe and verification has polynomial work.
+- By Lemma 4, at most `V0^2<=N^2` probes are needed over the whole run.
+- By Lemma 5, transient exact-DP growth does not compound across chain depth.
+- When no variables remain, canonical simplification yields a direct SAT/UNSAT terminal; SAT reconstruction is composed backward through the certified projection/reducer chain.
+
+Therefore total work is `N^{O(1)}`.
+
+## Corollary — a universal constant additive slack is unnecessary
+
+The theorem does **not** require
+
+`exists constant Delta: B=C0+Delta`.
+
+It is enough to prove any fixed polynomial envelope, for example
+
+`B(N)=C0+N^a`
+
+for a fixed constant exponent `a`, together with universal certified successor coverage inside that envelope.
+
+Consequently, finite observations such as R47Z's `Delta*=4` are calibration data, not the theorem target.
+
+## New theorem-critical wall
+
+The O4 obligation can now be stated as:
+
+`POLYNOMIAL-ENVELOPE COVERAGE`:
+
+> Does there exist a fixed computable polynomial `q(N)` such that every reachable persisted normalized nonterminal state under `B(N)=C0+q(N)` has a certified terminal or B-envelope-preserving pivot?
+
+A family requiring superpolynomial persisted envelope, or a reachable state with no certified pivot even under every polynomially bounded envelope candidate allowed by a frozen theorem contract, would refute that proposed route.
+
+A finite frontier with bounded measured `Delta*` does not prove the universal statement.
+
+## Firewalls
+
+- `UNIVERSAL_POLYNOMIAL_ENVELOPE_COVERAGE = OPEN`.
+- `O4_UNIVERSAL_COVERAGE = OPEN`.
+- `SAT_IN_P = NOT_PROVED`.
+- `P_EQ_NP = NOT_PROVED`.
+- `P_NE_NP = NOT_PROVED`.
+- `P_VS_NP = OPEN`.
+- `TRUMP_finished = false`.
