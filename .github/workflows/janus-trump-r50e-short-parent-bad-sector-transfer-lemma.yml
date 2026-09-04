@@ -1,0 +1,164 @@
+name: JANUS TRUMP R50E Short Parent Bad Sector Transfer Lemma
+
+on:
+  push:
+    branches:
+      - research/r50e-short-parent-bad-sector-transfer-lemma-2026-09-04
+  pull_request:
+    branches:
+      - research/r50d-top1-fail-top2-rescue-structural-lemma-hunt-2026-09-04
+
+permissions:
+  contents: read
+
+jobs:
+  guard-and-tests:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Freeze R50E theorem and epistemic firewall
+        run: |
+          python - <<'PY'
+          import json
+          p='research/JANUS_TRUMP_R50E_SHORT_PARENT_BAD_SECTOR_TRANSFER_LEMMA_PREREGISTRATION_2026-09-04.json'
+          d=json.load(open(p))
+          assert d['status']=='FROZEN_BEFORE_R50E_EXECUTION'
+          assert d['parent']['commit']=='1a016d27824056bd00548010115307aa6ae6c288'
+          assert d['known_before_R50E']['rank1_fail_rank2_rescue']==12
+          assert d['known_before_R50E']['long_long_sector_metrics_inspected_before_freeze'] is False
+          assert d['symbolic_theorem_target']['name']=='SHORT_PARENT_BAD_SECTOR_CONTAINMENT'
+          assert len(d['frozen_transfer_candidates'])==6
+          fw=d['firewall']
+          assert fw['HEURISTIC_AUTHORITY'] is False
+          assert fw['ML_AUTHORITY'] is False
+          assert fw['RANDOM_AUTHORITY'] is False
+          assert fw['SHORT_PARENT_BAD_SECTOR_CONTAINMENT_IMPLIES_TOP2_TRANSFER'] is False
+          assert fw['R50E_FINITE_12_PROVES_TRANSFER_LEMMA'] is False
+          assert fw['SAT_IN_P']=='NOT_PROVED'
+          assert fw['P_VS_NP']=='OPEN'
+          assert fw['TRUMP_finished'] is False
+          PY
+
+      - name: Static no-heuristic authority audit
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p=Path('experiments/janus_trump_r50e_short_parent_bad_sector_transfer_lemma.py').read_text()
+          forbidden=[
+              'import random', 'from random', 'import numpy', 'from numpy',
+              'import torch', 'from torch', 'import sklearn', 'from sklearn',
+              'model.predict', 'softmax(', 'temperature=', 'cheap_signature',
+          ]
+          for marker in forbidden:
+              assert marker not in p, marker
+          required=[
+              'SHORT_PARENT_BAD_SECTOR_CONTAINMENT',
+              'short_parent_theorem_kernel',
+              'R50E_SHORT_PARENT_BAD_PAIR',
+              'R50E_WIDE_DP_CLAUSE_NOT_FROM_BAD_LONG_LONG',
+              'R50E_FINITE_12_PROVES_TRANSFER_LEMMA',
+          ]
+          for marker in required:
+              assert marker in p, marker
+          PY
+
+      - name: Compile and unit tests
+        run: |
+          python -m py_compile experiments/janus_trump_r50e_short_parent_bad_sector_transfer_lemma.py
+          PYTHONPATH=experiments python tests/test_janus_trump_r50e_short_parent_bad_sector_transfer_lemma.py
+
+  audit:
+    needs: guard-and-tests
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [0, 1, 2, 3]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Replay W4 hard states and audit short-parent theorem
+        run: |
+          PYTHONPATH=experiments python experiments/janus_trump_r50e_short_parent_bad_sector_transfer_lemma.py --shard-index ${{ matrix.shard }} --shard-count 4
+
+      - name: Validate shard firewall
+        env:
+          SHARD: ${{ matrix.shard }}
+        run: |
+          python - <<'PY'
+          import json, os
+          s=os.environ['SHARD']
+          p=f'artifacts/JANUS_TRUMP_R50E_SHORT_PARENT_BAD_SECTOR_TRANSFER_LEMMA_SHARD_{s}_OF_4.json'
+          d=json.load(open(p))
+          assert d['mode']=='SHARD'
+          assert d['kernel']['short_parent_bad_sector_containment']=='PROVED_BY_SIZE_BOUND_AND_AUDITED'
+          assert d['metrics']['hard_states'] >= 1
+          fw=d['firewall']
+          assert fw['R50E_FINITE_12_PROVES_TRANSFER_LEMMA'] is False
+          assert fw['SAT_IN_P']=='NOT_PROVED'
+          assert fw['P_VS_NP']=='OPEN'
+          PY
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: janus-trump-r50e-shard-${{ matrix.shard }}
+          path: artifacts/JANUS_TRUMP_R50E_SHORT_PARENT_BAD_SECTOR_TRANSFER_LEMMA_SHARD_${{ matrix.shard }}_OF_4.json
+          if-no-files-found: error
+
+  synthesize:
+    needs: audit
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: janus-trump-r50e-shard-*
+          path: artifacts/r50e-shards
+          merge-multiple: true
+
+      - name: Synthesize theorem audit and frozen transfer candidates
+        run: |
+          PYTHONPATH=experiments python experiments/janus_trump_r50e_short_parent_bad_sector_transfer_lemma.py --synthesize-dir artifacts/r50e-shards
+
+      - name: Validate theorem scope and firewall
+        run: |
+          python - <<'PY'
+          import json
+          p='artifacts/JANUS_TRUMP_R50E_SHORT_PARENT_BAD_SECTOR_TRANSFER_LEMMA_SYNTHESIS.json'
+          d=json.load(open(p))
+          m=d['metrics']
+          assert m['roots']==52
+          assert m['hard_states']==441
+          assert m['rank2_rescues']==12
+          assert d['theorem']['status']=='PROVED'
+          assert d['theorem']['scope']=='MAX_PARENT_WIDTH_LE_4'
+          assert d['theorem']['universal_top2_transfer_implied'] is False
+          fw=d['firewall']
+          assert fw['SHORT_PARENT_BAD_SECTOR_CONTAINMENT_IMPLIES_TOP2_TRANSFER'] is False
+          assert fw['R50E_FINITE_12_PROVES_TRANSFER_LEMMA'] is False
+          assert fw['TOP2_UNIVERSAL_COVERAGE']=='OPEN'
+          assert fw['SAT_IN_P']=='NOT_PROVED'
+          assert fw['P_VS_NP']=='OPEN'
+          print('R50E_VERDICT=', d['verdict'])
+          print('R50E_METRICS=', json.dumps(m, sort_keys=True))
+          print('R50E_CANDIDATES=', json.dumps(d['frozen_transfer_candidates'], sort_keys=True))
+          PY
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: janus-trump-r50e-synthesis
+          path: artifacts/JANUS_TRUMP_R50E_SHORT_PARENT_BAD_SECTOR_TRANSFER_LEMMA_SYNTHESIS.json
+          if-no-files-found: error
