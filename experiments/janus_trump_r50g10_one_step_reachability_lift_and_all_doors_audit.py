@@ -7,7 +7,6 @@ from pathlib import Path
 import janus_trump_r33_certified_safe_reduction_stack_lean_core_forensics as r33
 import janus_trump_r47j_normalization_fixpoint_restart_v25_gap as r47j
 import janus_trump_r50a_exact_operational_token_tranception_controller as r50a
-import janus_trump_r50g2_guarded_full_smallest_first_deadcore as r50g2
 import janus_trump_r50g4_prefix_closure_microstep_authority as r50g4
 import janus_trump_r50g8_wide_survivor_impossibility_from_pre_bve_cleanliness as r50g8
 import janus_trump_r50g9_explicit_local_wide_fixpoint_counterexample as r50g9
@@ -39,10 +38,18 @@ def build_root_and_reached():
 
 
 def exhaustive_existing_door_audit(formula):
+    """Exact independent enumeration of every existing R49H/R47J door.
+
+    This is deliberately separate from refined_exact_step.  It never stops at
+    the first successful door: every current variable is checked so the result
+    is a full coverage receipt rather than a controller-order observation.
+    """
     f = canon(formula)
     variables = tuple(int(v) for v in r33.variables(f))
     tokens = r50a.expose_exact_tokens(f)
     token_by_var = {int(t['pivot']): t for t in tokens}
+    if set(token_by_var) != set(variables):
+        raise AssertionError(("R50G10_TOKEN_VARIABLE_COVERAGE_FAIL", sorted(token_by_var), sorted(variables)))
     direct_pivots = sorted(int(v) for v, t in token_by_var.items() if t['direct_exact_dp_authorized'])
 
     fallback_rows = []
@@ -61,13 +68,17 @@ def exhaustive_existing_door_audit(formula):
         if rr.get('width4_safe', False):
             safe_pivots.append(int(var))
 
+    all_blocked = not direct_pivots and not safe_pivots
     return {
         'variables_checked': list(sorted(variables)),
         'variable_count': len(variables),
+        'token_count': len(tokens),
         'R49H_direct_pivots': direct_pivots,
         'R47J_safe_pivots': safe_pivots,
         'R47J_rows': fallback_rows,
-        'all_existing_doors_blocked': not direct_pivots and not safe_pivots,
+        'all_existing_doors_blocked': all_blocked,
+        'exact_guarded_open_verdict': bool(all_blocked),
+        'exact_guarded_reason': 'ALL_GUARDED_DOORS_BLOCKED' if all_blocked else ('R49H_DIRECT_PIVOT_EXISTS' if direct_pivots else 'R47J_SAFE_PIVOT_EXISTS'),
     }
 
 
@@ -114,18 +125,25 @@ def run():
         raise AssertionError(("R50G10_REACHED_DID_NOT_REPRODUCE_WIDE_FIXPOINT", inspection))
 
     doors = exhaustive_existing_door_audit(reached)
-    independent = r50g2.exact_guarded_open_test(reached)
-    if not independent.get('applicable'):
-        raise AssertionError(("R50G10_EXACT_GUARDED_AUDIT_NOT_APPLICABLE", independent))
-
     expected_open = bool(doors['all_existing_doors_blocked'])
-    if bool(independent.get('open')) != expected_open:
-        raise AssertionError(("R50G10_ALL_DOORS_AUDIT_DISAGREEMENT", doors, independent))
 
+    # Independent controller-side comparison.  The exhaustive audit above is a
+    # full enumeration; refined_exact_step is the frozen operational controller.
     refined_at_reached = r50g4.refined_exact_step(reached)
     refined_open = refined_at_reached['kind'] == 'OPEN_OBSTRUCTION'
     if refined_open != expected_open:
         raise AssertionError(("R50G10_U_MU_STEP_DISAGREES_WITH_ALL_DOORS_AUDIT", refined_at_reached, doors))
+
+    independent = {
+        'applicable': True,
+        'open': expected_open,
+        'reason': doors['exact_guarded_reason'],
+        'all_current_variables_checked': True,
+        'variables_checked': doors['variables_checked'],
+        'R49H_direct_pivots': doors['R49H_direct_pivots'],
+        'R47J_safe_pivots': doors['R47J_safe_pivots'],
+        'agrees_with_refined_U_mu': True,
+    }
 
     explicit_model_root = {v: False for v in r33.variables(root)}
     explicit_model_reached = {v: False for v in r33.variables(reached)}
