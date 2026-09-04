@@ -1,0 +1,66 @@
+name: JANUS TRUMP R47AH Singleton Slice Compress Or Decide
+
+on:
+  push:
+    branches:
+      - research/r47ah-singleton-slice-compress-or-decide-2026-09-04
+  workflow_dispatch:
+
+jobs:
+  r47ah-singleton-slice-gate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Verify preregistration and sealed parent ancestry
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          p = json.loads(Path('research/JANUS_TRUMP_R47AH_SINGLETON_SLICE_COMPRESS_OR_DECIDE_PREREGISTRATION_2026-09-04.json').read_text())
+          assert p['status'] == 'PREREGISTERED_BEFORE_EXECUTION'
+          assert p['parent']['commit'] == 'd76bf034732c953ef35d0a9db16bd05e1d183d95'
+          assert p['firewall']['SAT_IN_P'] == 'NOT_PROVED'
+          assert p['firewall']['P_VS_NP'] == 'OPEN'
+          assert p['firewall']['TRUMP_finished'] is False
+          print('R47AH PREREGISTRATION PASS')
+          PY
+          git merge-base --is-ancestor d76bf034732c953ef35d0a9db16bd05e1d183d95 HEAD
+      - name: Install test runner
+        run: python -m pip install --disable-pip-version-check -q pytest
+      - name: Compile and unit-test singleton-slice machine
+        run: |
+          python -m py_compile experiments/janus_trump_r47ah_singleton_slice_compress_or_decide.py
+          python -m pytest -q tests/test_janus_trump_r47ah_singleton_slice_compress_or_decide.py
+      - name: Execute exact-3CNF singleton structural audit
+        run: python experiments/janus_trump_r47ah_singleton_slice_compress_or_decide.py > r47ah.json
+      - name: Enforce theorem boundary and open decider gate
+        run: |
+          python - <<'PY'
+          import json
+          r = json.load(open('r47ah.json'))
+          a = r['finite_structural_audit']
+          assert a['total_formulas_checked'] == 5745
+          assert a['non_singleton_failures'] == 0
+          assert a['quotient_not_dense_rename_failures'] == 0
+          assert a['size_change_beyond_rename_failures'] == 0
+          assert a['result'] == 'PASS'
+          assert r['reduction_consequence']['status'] == 'CONDITIONAL_THEOREM_NOT_A_DECIDER'
+          assert r['compression_lane'].startswith('OPEN_')
+          assert r['direct_decider_lane'].startswith('OPEN_')
+          assert r['SAT_IN_P'] == 'NOT_PROVED'
+          assert r['P_EQ_NP'] == 'NOT_PROVED'
+          assert r['P_NE_NP'] == 'NOT_PROVED'
+          assert r['P_VS_NP'] == 'OPEN'
+          assert r['TRUMP_finished'] is False
+          print('R47AH SINGLETON-SLICE REDUCTION GATE PASS')
+          PY
+      - name: Upload R47AH receipt
+        uses: actions/upload-artifact@v4
+        with:
+          name: r47ah-singleton-slice-compress-or-decide
+          path: r47ah.json
+          if-no-files-found: error
