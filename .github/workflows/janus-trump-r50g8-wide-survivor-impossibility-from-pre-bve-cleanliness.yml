@@ -1,0 +1,97 @@
+name: JANUS TRUMP R50G8 Wide Survivor Impossibility
+
+on:
+  pull_request:
+    branches:
+      - research/r50g7-immediate-bve-same-pivot-w4-safety-2026-09-05
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  symbolic-reduction:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Freeze R50G8 theorem contract
+        run: |
+          python - <<'PY'
+          import json
+          p='research/JANUS_TRUMP_R50G8_WIDE_SURVIVOR_IMPOSSIBILITY_FROM_PRE_BVE_CLEANLINESS_PREREGISTRATION_2026-09-05.json'
+          d=json.load(open(p))
+          assert d['status']=='FROZEN_BEFORE_EXECUTION'
+          assert d['no_new_corpus'] is True
+          assert d['no_heuristic_authority'] is True
+          assert d['critical_unproved_step'].startswith('NO_PRE_BVE_CLEAN_W4_SOURCE')
+          assert d['firewall']['IMMEDIATE_BVE_CASE_ELIMINATED'] is False
+          PY
+
+      - name: Static frozen-rule width provenance audit
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          r33=Path('experiments/janus_trump_r33_certified_safe_reduction_stack_lean_core_forensics.py').read_text()
+          rup=Path('experiments/janus_trump_r35b_single_literal_rup_vivification.py').read_text()
+          required_r33=[
+              'nf.append(tuple(x for x in c if x != -l))',
+              'active = tuple(c for c in active if l not in c)',
+              'active = tuple(c for k, c in enumerate(active) if k != j)',
+              'active = tuple(c for j, c in enumerate(active) if j != i)',
+              'resolvents.append(canonical_clause(r))',
+          ]
+          for token in required_r33:
+              assert token in r33, token
+          assert 'strengthened = tuple(l for l in clause if l != removed_literal)' in rup
+          PY
+
+      - name: Static no-heuristic authority audit
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p=Path('experiments/janus_trump_r50g8_wide_survivor_impossibility_from_pre_bve_cleanliness.py').read_text()
+          forbidden=['random.choice(', 'random.shuffle(', 'random.random(', 'sklearn', 'torch', 'tensorflow', 'heuristic_score', 'learned_selector']
+          for x in forbidden:
+              assert x not in p, x
+          PY
+
+      - name: Install test runner
+        run: python -m pip install --disable-pip-version-check -q pytest
+
+      - name: Compile and unit tests
+        run: |
+          python -m py_compile experiments/janus_trump_r50g8_wide_survivor_impossibility_from_pre_bve_cleanliness.py
+          PYTHONPATH=.:experiments pytest -q tests/test_janus_trump_r50g8_wide_survivor_impossibility_from_pre_bve_cleanliness.py
+
+      - name: Execute symbolic reduction and frozen replay checker
+        run: |
+          mkdir -p artifacts
+          PYTHONPATH=experiments python experiments/janus_trump_r50g8_wide_survivor_impossibility_from_pre_bve_cleanliness.py \
+            --output artifacts/JANUS_TRUMP_R50G8_RESULT.json
+
+      - name: Validate epistemic boundary
+        run: |
+          python - <<'PY'
+          import json
+          d=json.load(open('artifacts/JANUS_TRUMP_R50G8_RESULT.json'))
+          fw=d['firewall']
+          assert fw['HEURISTIC_AUTHORITY'] is False
+          assert fw['NO_NEW_CORPUS'] is True
+          assert fw['FINITE_NO_FIND_IMPLIES_THEOREM'] is False
+          assert fw['SAT_IN_P']=='NOT_PROVED'
+          assert fw['P_VS_NP']=='OPEN'
+          assert fw['TRUMP_finished'] is False
+          if d['reachable_replay']['final_nonterminal_wide_states']==0:
+              assert fw['WIDE_ANCESTRY_IMPOSSIBILITY_THEOREM']=='OPEN'
+              assert fw['IMMEDIATE_BVE_CASE_ELIMINATED'] is False
+          PY
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: janus-trump-r50g8-result
+          path: artifacts/JANUS_TRUMP_R50G8_RESULT.json
+          if-no-files-found: error
