@@ -1,0 +1,103 @@
+name: JANUS TRUMP R49B Support First SA BVE Wide Survivor Controller
+
+on:
+  push:
+    branches:
+      - research/r49b-support-first-sa-bve-wide-survivor-controller-2026-09-04
+  workflow_dispatch:
+
+jobs:
+  r49b-support-first:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Verify frozen preregistration lineage
+        run: |
+          python - <<'PY'
+          import json, subprocess
+          parent='76b2b412aef464c2fa8b7a009b087ec282d5daca'
+          prereg='2e89612a46113c8c22bc9a81cc75a426330e10c7'
+          executor='7f49c019b6d1dbf5f3a644f2dc7240061aef973e'
+          for c in (parent, prereg, executor):
+              subprocess.run(['git','merge-base','--is-ancestor',c,'HEAD'],check=True)
+          d=json.load(open('research/JANUS_TRUMP_R49B_SUPPORT_FIRST_SA_BVE_WIDE_SURVIVOR_CONTROLLER_PREREGISTRATION_2026-09-04.json'))
+          assert d['status']=='FROZEN_BEFORE_EXECUTION'
+          assert d['parent']['commit']==parent
+          assert d['sealed_R49A']['earliest_outer_with_any_support_eligible']==2
+          assert d['sealed_R49A']['support_vars_at_first_eligibility']==[20]
+          assert d['sealed_R49A']['actual_survivor_removal_outer']==6
+          assert d['frozen_controller']['no_new_inference_rule'] is True
+          assert d['frozen_controller']['no_post_result_tuning'] is True
+          assert d['interpretation_ceiling']['green_single_witness_proves_universal_width4_coverage'] is False
+          assert d['firewall']['P_VS_NP']=='OPEN'
+          PY
+      - name: Compile
+        run: python -m py_compile experiments/janus_trump_r49b_support_first_sa_bve_wide_survivor_controller.py
+      - name: Execute frozen support-first controller
+        run: |
+          mkdir -p artifacts
+          PYTHONPATH=experiments python experiments/janus_trump_r49b_support_first_sa_bve_wide_survivor_controller.py \
+            --output artifacts/JANUS_TRUMP_R49B_SUPPORT_FIRST_SA_BVE_WIDE_SURVIVOR_CONTROLLER_RESULT_2026-09-04.json \
+            | tee /tmp/r49b.json
+          python - <<'PY'
+          import json
+          d=json.load(open('artifacts/JANUS_TRUMP_R49B_SUPPORT_FIRST_SA_BVE_WIDE_SURVIVOR_CONTROLLER_RESULT_2026-09-04.json'))
+          allowed={
+            'SUPPORT_FIRST_REMOVES_WIDE_SURVIVOR_EARLIER_AND_REACHES_SAME_TERMINAL',
+            'SUPPORT_FIRST_REMOVES_SURVIVOR_EARLIER_BUT_REACHES_DIFFERENT_CERTIFIED_SAME_POLARITY_TERMINAL',
+            'SUPPORT_FIRST_REMOVES_SURVIVOR_BUT_LATER_STALLS_NONTERMINAL',
+            'SUPPORT_FIRST_DOES_NOT_REMOVE_SURVIVOR_EARLIER',
+            'SUPPORT_FIRST_TERMINAL_POLARITY_MISMATCH',
+          }
+          assert d['gate']=='JANUS_TRUMP_R49B_SUPPORT_FIRST_SA_BVE_WIDE_SURVIVOR_CONTROLLER'
+          assert d['verdict'] in allowed
+          assert d['legacy']['terminal']=='DIRECT_EMPTY_CNF'
+          assert d['legacy']['polarity']=='SAT'
+          assert d['legacy']['SA_BVE_application_count']==8
+          s=d['support_first']
+          assert s['first_support_outer']==2
+          assert s['first_support_var']==20
+          assert s['exact_independent_replay_pass'] is True
+          assert all(seg.get('SA_BVE_replay_pass',True) for seg in s['segments'])
+          if s['semantic_sat'] is True:
+              assert s['SAT_predecessor_reconstruction']['pass'] is True
+          if d['verdict'] in {
+            'SUPPORT_FIRST_REMOVES_WIDE_SURVIVOR_EARLIER_AND_REACHES_SAME_TERMINAL',
+            'SUPPORT_FIRST_REMOVES_SURVIVOR_EARLIER_BUT_REACHES_DIFFERENT_CERTIFIED_SAME_POLARITY_TERMINAL',
+          }:
+              assert d['comparison']['survivor_removed_earlier'] is True
+              assert d['comparison']['same_terminal_polarity'] is True
+          assert d['interpretation']['new_inference_rule_added'] is False
+          assert d['interpretation']['proof_authority_changed'] is False
+          assert d['interpretation']['universal_support_first_safety_proved'] is False
+          assert d['firewall']['UNIVERSAL_WIDTH_4_COVERAGE']=='NOT_PROVED'
+          assert d['firewall']['SAT_IN_P']=='NOT_PROVED'
+          assert d['firewall']['P_VS_NP']=='OPEN'
+          print('R49B_GATE=PASS')
+          print('R49B_VERDICT='+d['verdict'])
+          print('R49B_LEGACY='+json.dumps(d['legacy'],sort_keys=True))
+          print('R49B_SUPPORT_FIRST='+json.dumps({
+            'terminal':s['terminal'],'semantic_sat':s['semantic_sat'],'polarity':s['polarity'],
+            'final_hash':s['final_formula_hash'],'final_CLV':s['final_CLV'],
+            'first_support_outer':s['first_support_outer'],'first_support_var':s['first_support_var'],
+            'survivor_removal_outer':s['survivor_removal_outer'],'survivor_removal_var':s['survivor_removal_var'],
+            'SA_BVE_application_count':s['SA_BVE_application_count'],'SA_BVE_sequence':s['SA_BVE_sequence'],
+            'max_segment_width':s['max_segment_width'],'ledger':s['ledger'],
+            'SAT_predecessor_reconstruction_pass':s['SAT_predecessor_reconstruction']['pass'],
+          },sort_keys=True))
+          print('R49B_COMPARISON='+json.dumps(d['comparison'],sort_keys=True))
+          print('R49B_SEGMENTS='+json.dumps(s['segments'],sort_keys=True))
+          PY
+      - name: Upload full scientific result
+        uses: actions/upload-artifact@v4
+        with:
+          name: JANUS_TRUMP_R49B_SUPPORT_FIRST_SA_BVE_WIDE_SURVIVOR_CONTROLLER_RESULT
+          path: artifacts/JANUS_TRUMP_R49B_SUPPORT_FIRST_SA_BVE_WIDE_SURVIVOR_CONTROLLER_RESULT_2026-09-04.json
+          if-no-files-found: error
+          retention-days: 90
