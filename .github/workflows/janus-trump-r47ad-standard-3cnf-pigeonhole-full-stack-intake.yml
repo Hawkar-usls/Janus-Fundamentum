@@ -1,0 +1,114 @@
+name: JANUS TRUMP R47AD Standard 3CNF Pigeonhole Full Stack Intake
+
+on:
+  push:
+    branches:
+      - research/r47ad-standard-3cnf-pigeonhole-full-stack-intake-2026-09-04
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  r47ad-php-intake:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Verify frozen parent and preregistration
+        run: |
+          python - <<'PY'
+          import json, subprocess
+          parent='38cef6597c69253710b6a9c2f6cf0fd8262e84da'
+          prereg='8b1da942d090557c2f6b4b44ed00990f7f6b6c73'
+          executor='70f7b3476a3a8b5ca76f31275952d6c576af779a'
+          for c in (parent, prereg, executor):
+              subprocess.run(['git','merge-base','--is-ancestor',c,'HEAD'], check=True)
+          d=json.load(open('research/JANUS_TRUMP_R47AD_STANDARD_3CNF_PIGEONHOLE_FULL_STACK_INTAKE_PREREGISTRATION_2026-09-04.json'))
+          assert d['status']=='FROZEN_BEFORE_EXECUTION'
+          assert d['parent']['commit']==parent
+          assert d['frozen_php_family']['holes_n']==[2,3,4,5,6,7]
+          assert d['negative_control']['n_vertices']==[8,12,16]
+          assert d['no_new_mechanism'] is True
+          assert d['interpretation_ceiling']['bare_resolution_lower_bounds_transfer_automatically_to_TRUMP'] is False
+          assert d['epistemic_firewall']['UNIVERSAL_POLYNOMIAL_ENVELOPE_COVERAGE']=='OPEN'
+          assert d['epistemic_firewall']['O4_UNIVERSAL_COVERAGE']=='OPEN'
+          assert d['epistemic_firewall']['SAT_IN_P']=='NOT_PROVED'
+          assert d['epistemic_firewall']['P_VS_NP']=='OPEN'
+          assert d['epistemic_firewall']['TRUMP_finished'] is False
+          PY
+
+      - name: Compile frozen executor
+        run: python -m py_compile experiments/janus_trump_r47ad_standard_3cnf_pigeonhole_full_stack_intake.py
+
+      - name: Execute frozen structured-family intake
+        run: |
+          mkdir -p artifacts
+          PYTHONPATH=experiments python experiments/janus_trump_r47ad_standard_3cnf_pigeonhole_full_stack_intake.py \
+            --output artifacts/JANUS_TRUMP_R47AD_STANDARD_3CNF_PIGEONHOLE_FULL_STACK_INTAKE_RESULT_2026-09-04.json \
+            | tee /tmp/r47ad.json
+          python - <<'PY'
+          import json
+          d=json.load(open('artifacts/JANUS_TRUMP_R47AD_STANDARD_3CNF_PIGEONHOLE_FULL_STACK_INTAKE_RESULT_2026-09-04.json'))
+          assert d['gate']=='JANUS_TRUMP_R47AD_STANDARD_3CNF_PIGEONHOLE_FULL_STACK_INTAKE'
+          assert d['verdict'] in {
+              'FIRST_STANDARD_3CNF_PHP_NONAFFINE_JOINT_FIXPOINT_FOUND',
+              'ALL_FROZEN_STANDARD_3CNF_PHP_TERMINALIZED_BY_EXISTING_STACK__FINITE_ONLY',
+          }
+          assert d['literature_family']['bare_resolution_lower_bound_transfer_to_TRUMP'] is False
+          assert d['negative_control']['all_affine_unsat_certified'] is True
+          assert len(d['negative_control']['rows'])==3
+          for r in d['negative_control']['rows']:
+              assert r['terminal']=='AFFINE_XOR_UNSAT'
+              assert r['recognized'] is True
+              assert r['solution_sat'] is False
+              assert r['certificate_pass'] is True
+          assert 1 <= len(d['php_rows']) <= 6
+          for r in d['php_rows']:
+              assert r['n_pigeons']==r['n_holes']+1
+              assert max(len(c) for c in (r.get('residual_formula') or [[1]])) <= 1000000
+              if r['terminal'] is not None:
+                  assert r['semantic_sat'] is False
+                  assert r['classification']=='CERTIFIED_UNSAT_TERMINAL_BY_EXISTING_STACK'
+              else:
+                  assert r['classification']=='CERTIFIED_NONAFFINE_JOINT_FIXPOINT'
+                  assert r['joint_fixpoint_integrity']['pass'] is True
+                  assert r['joint_fixpoint_integrity']['affine_recognized'] is False
+                  assert r['joint_fixpoint_integrity']['RUP_independent_replay_pass'] is True
+                  assert r['joint_fixpoint_integrity']['SA_BVE_candidate_present'] is False
+          if d['first_nonterminal_fixpoint'] is None:
+              assert d['verdict']=='ALL_FROZEN_STANDARD_3CNF_PHP_TERMINALIZED_BY_EXISTING_STACK__FINITE_ONLY'
+              assert len(d['php_rows'])==6
+          else:
+              assert d['verdict']=='FIRST_STANDARD_3CNF_PHP_NONAFFINE_JOINT_FIXPOINT_FOUND'
+              assert d['php_rows'][-1]['final_hash']==d['first_nonterminal_fixpoint']['final_hash']
+          assert d['interpretation']['no_new_inference_rule'] is True
+          assert d['firewall']['UNIVERSAL_POLYNOMIAL_ENVELOPE_COVERAGE']=='OPEN'
+          assert d['firewall']['O4_UNIVERSAL_COVERAGE']=='OPEN'
+          assert d['firewall']['SAT_IN_P']=='NOT_PROVED'
+          assert d['firewall']['P_EQ_NP']=='NOT_PROVED'
+          assert d['firewall']['P_NE_NP']=='NOT_PROVED'
+          assert d['firewall']['P_VS_NP']=='OPEN'
+          assert d['firewall']['TRUMP_finished'] is False
+          print('R47AD_GATE=PASS')
+          print('R47AD_VERDICT=',d['verdict'])
+          print('R47AD_PHP_ROWS=',json.dumps([{'n':r['n_holes'],'input_CLV':r['input_CLV'],'terminal':r['terminal'],'final_CLV':r['final_CLV'],'classification':r['classification'],'final_hash':r['final_hash']} for r in d['php_rows']],sort_keys=True))
+          if d['first_nonterminal_fixpoint'] is not None:
+              r=d['first_nonterminal_fixpoint']
+              print('R47AD_FIXPOINT=',json.dumps({'n':r['n_holes'],'hash':r['final_hash'],'CLV':r['final_CLV'],'integrity':r['joint_fixpoint_integrity']},sort_keys=True))
+          PY
+
+      - name: Upload full scientific result
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: JANUS_TRUMP_R47AD_STANDARD_3CNF_PIGEONHOLE_FULL_STACK_INTAKE_RESULT
+          path: artifacts/JANUS_TRUMP_R47AD_STANDARD_3CNF_PIGEONHOLE_FULL_STACK_INTAKE_RESULT_2026-09-04.json
+          if-no-files-found: error
+          retention-days: 90
