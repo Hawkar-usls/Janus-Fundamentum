@@ -1,71 +1,86 @@
 {
   "schema": "JANUS_TRUMP_R49H_WIDTH4_CROSS_UNION_SAFE_EXACT_DP_PIVOT_LEMMA",
-  "version": "1.0",
+  "version": "1.1",
   "date": "2026-09-04",
-  "status": "PROVED_LOCAL_SUFFICIENT_CONDITION",
+  "status": "PROVED_LOCAL_SUFFICIENT_CONDITION__PURE_POLARITY_CODE_CONTRACT_CORRECTED",
   "definitions": {
     "domain": "CANONICAL_CNF_F_WITH_MAX_CLAUSE_WIDTH_LE_4",
+    "bipolar_pivot": "P_v_NONEMPTY_AND_N_v_NONEMPTY",
     "positive_parent_family": "P_v={C in F : v in C}",
     "negative_parent_family": "N_v={C in F : -v in C}",
     "positive_remainder": "A=C\\{v}",
     "negative_remainder": "B=D\\{-v}",
-    "cross_union_width": "chi_F(v)=max |A union B| over C in P_v,D in N_v; define chi_F(v)=0 if P_v or N_v is empty"
+    "cross_union_width_for_bipolar_v": "chi_F(v)=max |A union B| over C in P_v,D in N_v"
   },
-  "lemma": {
-    "statement": "If chi_F(v)<=4, then the canonical exact Davis-Putnam post-formula eliminating v has maximum clause width <=4, contains no fresh variables, removes v, and is an exact existentially equivalent successor with proof-carrying model reconstruction.",
+  "bipolar_exact_dp_lemma": {
+    "statement": "For a bipolar pivot v, if chi_F(v)<=4, then the canonical exact Davis-Putnam post-formula eliminating v has maximum clause width <=4, contains no fresh variables, removes v, and is an exact existentially equivalent successor with proof-carrying model reconstruction.",
     "proof": [
       "Every untouched clause avoids v and -v and already has width <=4.",
       "Every non-tautological exact-DP resolvent is exactly A union B for one positive and one negative parent remainder.",
       "The hypothesis chi_F(v)<=4 bounds every such resolvent by width 4.",
       "Tautological resolvent deletion, canonical duplicate collapse and subsumption/minimization cannot increase width.",
       "Exact DP eliminates v and introduces no variables, so variable rank strictly decreases by at least one and no fresh variable appears.",
-      "The existing exact-DP record plus independent replay certifies the projected formula and reconstructs a predecessor assignment from any successor assignment.",
-      "If either polarity family is empty, exact DP creates no cross-polarity resolvents and the conclusion is immediate."
+      "For bipolar v, existing r45a.exact_dp_record plus independent_dp_replay certifies the projected formula and r42.reconstruct_sa_bve reconstructs a predecessor assignment."
     ]
   },
+  "pure_polarity_lane": {
+    "mathematical_fact": "If a variable occurs in only one polarity, existential projection can delete all clauses containing its pure literal by assigning that literal true.",
+    "existing_code_authority": "R33_PURE_LITERAL_AUTARKY",
+    "existing_reconstruction": "R33_RECONSTRUCT_MODEL_SETS_THE_PURE_LITERAL_TO_ITS_SATISFYING_VALUE",
+    "r45a_exact_dp_record_supports_pure_polarity": false,
+    "epistemic_correction": "VERSION_1_0_TOO_STRONGLY_SAID_EXISTING_EXACT_DP_RECORD_COVERED_THE_PURE_CASE__IT_DOES_NOT; PURE_CASE_IS_COVERED_BY_THE_EXISTING_R33_RULE_INSTEAD",
+    "width_effect": "CLAUSE_DELETION_ONLY__CANNOT_INCREASE_MAX_WIDTH",
+    "progress": "STRICT_CLAUSE_AND_VARIABLE_PROGRESS_WHEN_THE_PURE_VARIABLE_OCCURS"
+  },
   "algorithmic_corollary": {
-    "safe_pivot_test": "COMPUTE_chi_F(v)_FOR_EACH_CURRENT_VARIABLE_AND_ACCEPT_ANY_v_WITH_chi_F(v)<=4",
-    "discovery_cost": "POLYNOMIAL_IN_EXPLICIT_FORMULA_SIZE__AT_MOST_ALL_CROSS_POLARITY_PARENT_PAIRS",
-    "normalization_required_before_persist": false,
-    "R47J_required_for_this_lane": false,
-    "SA_BVE_required_for_this_lane": false,
-    "selected_successor": "CANONICAL_EXACT_DP_POST_FORMULA",
+    "lane_1": "IF_A_CERTIFIED_PURE_LITERAL_EXISTS_USE_EXISTING_R33_PURE_LITERAL_AUTARKY",
+    "lane_2": "OTHERWISE_COMPUTE_chi_F(v)_FOR_BIPOLAR_VARIABLES_AND_ACCEPT_ANY_v_WITH_chi_F(v)<=4",
+    "bipolar_discovery_cost": "POLYNOMIAL_IN_EXPLICIT_FORMULA_SIZE__AT_MOST_ALL_CROSS_POLARITY_PARENT_PAIRS",
+    "normalization_required_before_persist_for_bipolar_lane": false,
+    "R47J_required_for_bipolar_lane": false,
+    "SA_BVE_required_for_bipolar_lane": false,
+    "selected_bipolar_successor": "CANONICAL_EXACT_DP_POST_FORMULA",
     "progress_measure": "STRICT_VARIABLE_RANK_DECREASE"
   },
   "hard_complement_class": {
-    "name": "CROSS_UNION_WIDTH5_CORE",
-    "condition": "FOR_EVERY_REMAINING_VARIABLE_v__chi_F(v)>=5",
+    "name": "BIPOLAR_CROSS_UNION_WIDTH5_CORE",
+    "condition": "EVERY_REMAINING_VARIABLE_IS_BIPOLAR_AND_FOR_EVERY_v__chi_F(v)>=5",
     "necessary_properties": [
+      "NO_PURE_LITERAL_EXISTS",
       "EVERY_VARIABLE_OCCURS_IN_BOTH_POLARITIES",
       "FOR_EVERY_VARIABLE_THERE_EXISTS_AT_LEAST_ONE_OPPOSITE_POLARITY_PARENT_PAIR_WHOSE_REMAINDER_UNION_HAS_SIZE_AT_LEAST_5"
     ],
     "meaning": "Only this complement class needs R47J/RUP/SA_BVE width-discharge or a stronger invariant for W4 STEP coverage."
   },
   "controller_consequence": {
-    "new_first_lane": "FIRST_CROSS_UNION_SAFE_EXACT_DP_PIVOT",
+    "new_first_lanes": [
+      "CERTIFIED_PURE_LITERAL_AUTARKY",
+      "FIRST_CROSS_UNION_SAFE_BIPOLAR_EXACT_DP_PIVOT"
+    ],
     "fallback_if_none": "EXISTING_CERTIFIED_R47J_OR_FULL_CLOSURE_WIDTH_DISCHARGE",
-    "correctness_authority": "EXACT_DP_CERTIFICATE_AND_INDEPENDENT_REPLAY__NOT_HEURISTIC_RANKING"
+    "correctness_authority": "EXISTING_R33_PURE_CERTIFICATE_OR_EXISTING_EXACT_DP_CERTIFICATE_AND_INDEPENDENT_REPLAY__NOT_HEURISTIC_RANKING"
   },
   "relationship_to_R49F": {
     "R49F_resource_polynomiality": "COMPATIBLE",
-    "this_lane_is_strictly_simpler_than_R49E_candidate": true,
-    "universal_cross_union_safe_pivot_existence_is_not_claimed": true
+    "bipolar_exact_DP_lane_is_strictly_simpler_than_R49E_candidate": true,
+    "universal_easy_lane_existence_is_not_claimed": true
   },
   "next_falsifier": {
-    "name": "R49I_CROSS_UNION_WIDTH5_CORE_HUNT",
-    "question": "DO_REACHABLE_PERSISTED_W4_STATES_EXIST_WITH_chi_F(v)>=5_FOR_ALL_v",
+    "name": "R49I_BIPOLAR_CROSS_UNION_WIDTH5_CORE_HUNT",
+    "question": "DO_REACHABLE_PERSISTED_W4_STATES_EXIST_WITH_NO_PURE_LITERAL_AND_chi_F(v)>=5_FOR_ALL_v",
     "if_found": "PROFILE_R47J_RUP_WIDTH_DISCHARGE_ON_THE_EXPLICIT_COMPLEMENT_CORE",
     "if_not_found_in_finite_CORPUS": "FINITE_EVIDENCE_ONLY__DO_NOT_PROMOTE_TO_UNIVERSAL_THEOREM"
   },
   "important_nonclaims": [
-    "This lemma does not prove that every W4 state has a cross-union-safe pivot.",
+    "This lemma does not prove that every W4 state has an easy pure or cross-union-safe bipolar pivot.",
     "This lemma does not prove universal W4 STEP coverage.",
     "This lemma does not prove O4 or SAT_IN_P.",
     "This lemma does not prove P=NP or P!=NP."
   ],
   "firewall": {
-    "CROSS_UNION_SAFE_EXACT_DP_LANE_SOUNDNESS": "PROVED",
-    "UNIVERSAL_CROSS_UNION_SAFE_PIVOT_EXISTENCE": "NOT_PROVED",
+    "PURE_LITERAL_LANE_SOUNDNESS": "EXISTING_R33_PROOF_CARRYING_RULE",
+    "CROSS_UNION_SAFE_BIPOLAR_EXACT_DP_LANE_SOUNDNESS": "PROVED",
+    "UNIVERSAL_EASY_LANE_EXISTENCE": "NOT_PROVED",
     "PARTIAL_R47J_DIRECT_W4_STEP_COVERAGE": "OPEN",
     "DIRECT_W4_STEP_COVERAGE": "OPEN",
     "O4_UNIVERSAL_COVERAGE": "OPEN",
