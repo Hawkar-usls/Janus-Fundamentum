@@ -1,0 +1,104 @@
+name: JANUS TRUMP R48X Wide First RUP Width Discharge Controller
+
+on:
+  push:
+    branches:
+      - research/r48x-wide-first-rup-width-discharge-controller-2026-09-04
+  workflow_dispatch:
+
+jobs:
+  r48x-wide-rup:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Verify frozen preregistration lineage
+        run: |
+          python - <<'PY'
+          import json, subprocess
+          parent='55ac064814b456fa484a24f751afef7fcbe7b103'
+          prereg='19f474567ef5df333a22a2bb88801c2126b552c2'
+          addendum='4b217afc12a9fea38d62106b632cb2f39765a45f'
+          executor='8af328cbf90cbdb8a44b187ff858acd7b585d2ca'
+          for c in (parent,prereg,addendum,executor):
+              subprocess.run(['git','merge-base','--is-ancestor',c,'HEAD'],check=True)
+          d=json.load(open('research/JANUS_TRUMP_R48X_WIDE_FIRST_RUP_WIDTH_DISCHARGE_CONTROLLER_PREREGISTRATION_2026-09-04.json'))
+          a=json.load(open('research/JANUS_TRUMP_R48X_HARNESS_ALIGNMENT_ADDENDUM_2026-09-04.json'))
+          assert d['status']=='FROZEN_BEFORE_EXECUTION'
+          assert d['parent']['commit']==parent
+          assert d['motivation']['general_RUP_history_counts']==[28,2,68]
+          assert d['frozen_controller']['width_cap']==4
+          assert d['frozen_controller']['no_narrow_clause_vivification_before_width_reset_or_stall'] is True
+          assert d['resource_claim_to_verify']['each_success_strictly_decreases_E4'] is True
+          assert d['interpretation_ceiling']['successful_calibration_proves_universal_width4_reset'] is False
+          assert a['status']=='FROZEN_BEFORE_RETRY'
+          assert a['failed_run']==33865461712
+          assert a['observed_failure']['kind']=='HARNESS_INPUT_MISMATCH'
+          assert a['observed_failure']['scientific_result_file_created'] is False
+          assert a['frozen_correction']['expected_general_RUP_successful_strengthenings']==[28,2,68]
+          assert a['frozen_correction']['no_change_to_wide_first_selection_rule'] is True
+          assert d['firewall']['P_VS_NP']=='OPEN'
+          PY
+      - name: Compile
+        run: python -m py_compile experiments/janus_trump_r48x_wide_first_rup_width_discharge_controller.py
+      - name: Execute frozen calibration
+        run: |
+          mkdir -p artifacts
+          PYTHONPATH=experiments python experiments/janus_trump_r48x_wide_first_rup_width_discharge_controller.py \
+            --output artifacts/JANUS_TRUMP_R48X_WIDE_FIRST_RUP_WIDTH_DISCHARGE_CONTROLLER_RESULT_2026-09-04.json \
+            | tee /tmp/r48x.json
+          python - <<'PY'
+          import json
+          d=json.load(open('artifacts/JANUS_TRUMP_R48X_WIDE_FIRST_RUP_WIDTH_DISCHARGE_CONTROLLER_RESULT_2026-09-04.json'))
+          allowed={
+            'WIDE_FIRST_REPRODUCES_BOTH_NONTERMINAL_RESETS_AND_ISOLATES_STEP6_SURVIVOR',
+            'WIDE_FIRST_RESETS_ALL_THREE_DEEP_STEPS',
+            'WIDE_FIRST_PARTIAL_RESET_ONLY',
+            'WIDE_FIRST_FAILS_TO_REPRODUCE_SEALED_NONTERMINAL_RESETS',
+          }
+          assert d['gate']=='JANUS_TRUMP_R48X_WIDE_FIRST_RUP_WIDTH_DISCHARGE_CONTROLLER'
+          assert d['classification'] in allowed
+          assert d['harness_alignment_addendum_applied'] is True
+          assert [r['step'] for r in d['rows']]==[3,4,6]
+          assert [r['R33_stage']['application_count'] for r in d['rows']]==[0,0,1]
+          assert [r['general_RUP']['successful_strengthenings'] for r in d['rows']]==[28,2,68]
+          for r in d['rows']:
+              w=r['wide_first']
+              assert w['resource_bound_pass'] is True
+              assert w['literal_mass_never_increases'] is True
+              assert w['successful_strengthenings']<=w['initial_E4']
+              assert all(h['independent_up_conflict_pass'] for h in w['history'])
+          assert d['resource_theorem']['every_success_strictly_decreases_E4'] is True
+          assert d['interpretation']['first_run_33865461712_was_harness_input_mismatch'] is True
+          assert d['interpretation']['universal_width4_reset_proved'] is False
+          assert d['firewall']['UNIVERSAL_WIDTH_4_COVERAGE']=='NOT_PROVED'
+          assert d['firewall']['SAT_IN_P']=='NOT_PROVED'
+          assert d['firewall']['P_VS_NP']=='OPEN'
+          print('R48X_GATE=PASS')
+          print('R48X_CLASSIFICATION='+d['classification'])
+          print('R48X_SUMMARY='+json.dumps(d['summary'],sort_keys=True))
+          for r in d['rows']:
+              print('R48X_ROW='+json.dumps({
+                'step':r['step'],'pivot':r['pivot'],'forced_E4':r['forced_E4'],
+                'r33_apps':r['R33_stage']['application_count'],'post_R33_E4':r['R33_stage']['post_R33_E4'],
+                'general_successes':r['general_RUP']['successful_strengthenings'],
+                'general_checks':r['general_RUP']['rup_checks'],
+                'wide_status':r['wide_first']['status'],
+                'wide_successes':r['wide_first']['successful_strengthenings'],
+                'wide_checks':r['wide_first']['ledger']['rup_checks'],
+                'wide_final_width':r['wide_first']['final_max_width'],
+                'wide_survivors':r['wide_first']['surviving_wide_clauses'],
+              },sort_keys=True))
+          PY
+      - name: Upload full scientific result
+        uses: actions/upload-artifact@v4
+        with:
+          name: JANUS_TRUMP_R48X_WIDE_FIRST_RUP_WIDTH_DISCHARGE_CONTROLLER_RESULT
+          path: artifacts/JANUS_TRUMP_R48X_WIDE_FIRST_RUP_WIDTH_DISCHARGE_CONTROLLER_RESULT_2026-09-04.json
+          if-no-files-found: error
+          retention-days: 90
