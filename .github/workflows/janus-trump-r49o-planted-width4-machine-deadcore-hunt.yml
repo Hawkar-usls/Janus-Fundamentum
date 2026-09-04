@@ -1,0 +1,42 @@
+name: JANUS TRUMP R49O Planted Width4 Machine Deadcore Hunt
+
+on:
+  push:
+    branches:
+      - research/r49o-planted-width4-machine-deadcore-hunt-2026-09-04
+  workflow_dispatch:
+
+jobs:
+  worker:
+    name: r49o-worker-${{ matrix.worker }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 180
+    strategy:
+      fail-fast: false
+      max-parallel: 8
+      matrix:
+        worker: [1,2,3,4,5,6,7,8]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Compile
+        run: python -m py_compile experiments/janus_trump_r49o_planted_width4_machine_deadcore_hunt.py
+      - name: Hunt current-machine deadcore
+        env:
+          PYTHONPATH: experiments
+        run: |
+          mkdir -p artifacts
+          python experiments/janus_trump_r49o_planted_width4_machine_deadcore_hunt.py \
+            --worker ${{ matrix.worker }} \
+            --candidate-count 300 \
+            --exact-finalists 3 \
+            --output artifacts/JANUS_TRUMP_R49O_WORKER_${{ matrix.worker }}_RESULT.json
+      - name: Upload result
+        uses: actions/upload-artifact@v4
+        with:
+          name: JANUS_TRUMP_R49O_WORKER_${{ matrix.worker }}_RESULT
+          path: artifacts/JANUS_TRUMP_R49O_WORKER_${{ matrix.worker }}_RESULT.json
+          if-no-files-found: error
+          retention-days: 90
