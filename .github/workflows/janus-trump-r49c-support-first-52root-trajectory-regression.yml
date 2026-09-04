@@ -1,0 +1,97 @@
+name: JANUS TRUMP R49C Support First 52 Root Trajectory Regression
+
+on:
+  push:
+    branches:
+      - research/r49c-support-first-52root-trajectory-regression-2026-09-04
+  workflow_dispatch:
+
+jobs:
+  r49c-52root-regression:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 360
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Verify frozen preregistration lineage
+        run: |
+          python - <<'PY'
+          import json, subprocess
+          parent='bbd11ec91bee2c9357888a9ba2da02ed14d98f0f'
+          prereg='4b4389d6a5544b1f993827373e8f69ff70ba163a'
+          executor='65389d05296f992b86d01f339b2b39a720205161'
+          for c in (parent, prereg, executor):
+              subprocess.run(['git','merge-base','--is-ancestor',c,'HEAD'],check=True)
+          d=json.load(open('research/JANUS_TRUMP_R49C_SUPPORT_FIRST_52ROOT_TRAJECTORY_REGRESSION_PREREGISTRATION_2026-09-04.json'))
+          assert d['status']=='FROZEN_BEFORE_EXECUTION'
+          assert d['parent']['commit']==parent
+          assert d['sealed_R49B']['same_final_hash'] is True
+          assert d['sealed_R48Q_frontier_contract']['expected_unique_reachable_roots']==52
+          assert d['sealed_R48Q_frontier_contract']['expected_legacy_total_candidate_probes']==3463
+          assert d['sealed_R48Q_frontier_contract']['expected_legacy_total_selected_steps']==177
+          assert d['frozen_regression']['no_controller_retuning_per_root'] is True
+          assert d['proof_authority']['new_inference_rule_added'] is False
+          assert d['interpretation_ceiling']['finite_52root_success_proves_universal_support_first_safety'] is False
+          assert d['firewall']['P_VS_NP']=='OPEN'
+          PY
+      - name: Compile
+        run: python -m py_compile experiments/janus_trump_r49c_support_first_52root_trajectory_regression.py
+      - name: Execute frozen 52-root regression
+        run: |
+          mkdir -p artifacts
+          PYTHONPATH=experiments python experiments/janus_trump_r49c_support_first_52root_trajectory_regression.py \
+            --output artifacts/JANUS_TRUMP_R49C_SUPPORT_FIRST_52ROOT_TRAJECTORY_REGRESSION_RESULT_2026-09-04.json \
+            | tee /tmp/r49c.json
+          python - <<'PY'
+          import json
+          d=json.load(open('artifacts/JANUS_TRUMP_R49C_SUPPORT_FIRST_52ROOT_TRAJECTORY_REGRESSION_RESULT_2026-09-04.json'))
+          allowed={
+            'SUPPORT_FIRST_PRESERVES_ALL_52_LEGACY_WIDTH4_TRAJECTORIES_EXACTLY__FINITE_ONLY',
+            'SUPPORT_FIRST_52ROOT_REGRESSION_HAS_ONLY_CERTIFIED_SAFE_DIVERGENCES__FINITE_ONLY',
+            'SUPPORT_FIRST_52ROOT_HARD_REGRESSION_FOUND',
+          }
+          assert d['gate']=='JANUS_TRUMP_R49C_SUPPORT_FIRST_52ROOT_TRAJECTORY_REGRESSION'
+          assert d['verdict'] in allowed
+          m=d['metrics']
+          if d['verdict']!='SUPPORT_FIRST_52ROOT_HARD_REGRESSION_FOUND':
+              assert m['roots_evaluated']==52
+              assert m['legacy_candidate_probes']==3463
+              assert m['legacy_selected_steps']==177
+              assert m['hard_regression_roots']==0
+              assert m['terminal_polarity_mismatches']==0
+          if d['verdict']=='SUPPORT_FIRST_PRESERVES_ALL_52_LEGACY_WIDTH4_TRAJECTORIES_EXACTLY__FINITE_ONLY':
+              assert m['exact_trajectory_roots']==52
+              assert m['safe_divergence_roots']==0
+              assert m['support_first_selected_pivot_replays']==177
+              assert m['exact_step_final_hash_matches']==177
+          if d['verdict']=='SUPPORT_FIRST_52ROOT_REGRESSION_HAS_ONLY_CERTIFIED_SAFE_DIVERGENCES__FINITE_ONLY':
+              assert m['safe_divergence_roots']>0
+              assert d['first_safe_divergence'] is not None
+          if d['verdict']=='SUPPORT_FIRST_52ROOT_HARD_REGRESSION_FOUND':
+              assert m['hard_regression_roots']>0
+              assert d['first_hard_regression'] is not None
+          assert d['interpretation']['new_inference_rule_added'] is False
+          assert d['interpretation']['universal_support_first_safety_proved'] is False
+          assert d['firewall']['UNIVERSAL_WIDTH_4_COVERAGE']=='NOT_PROVED'
+          assert d['firewall']['SAT_IN_P']=='NOT_PROVED'
+          assert d['firewall']['P_VS_NP']=='OPEN'
+          print('R49C_GATE=PASS')
+          print('R49C_VERDICT='+d['verdict'])
+          print('R49C_METRICS='+json.dumps(m,sort_keys=True))
+          if d['first_safe_divergence'] is not None:
+              print('R49C_FIRST_SAFE_DIVERGENCE='+json.dumps(d['first_safe_divergence'],sort_keys=True))
+          if d['first_hard_regression'] is not None:
+              x=d['first_hard_regression']
+              print('R49C_FIRST_HARD='+json.dumps({'root_hash':x['root_hash'],'provenance':x['provenance'],'status':x['replay']['status'],'replay':x['replay']},sort_keys=True))
+          PY
+      - name: Upload full scientific result
+        uses: actions/upload-artifact@v4
+        with:
+          name: JANUS_TRUMP_R49C_SUPPORT_FIRST_52ROOT_TRAJECTORY_REGRESSION_RESULT
+          path: artifacts/JANUS_TRUMP_R49C_SUPPORT_FIRST_52ROOT_TRAJECTORY_REGRESSION_RESULT_2026-09-04.json
+          if-no-files-found: error
+          retention-days: 90
