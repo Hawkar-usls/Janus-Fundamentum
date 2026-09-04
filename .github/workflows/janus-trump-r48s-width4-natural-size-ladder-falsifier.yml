@@ -1,0 +1,80 @@
+name: JANUS TRUMP R48S Width4 Natural Size Ladder Falsifier
+
+on:
+  push:
+    branches:
+      - research/r48s-width4-natural-size-ladder-falsifier-2026-09-04
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  r48s-width4-ladder:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 240
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Verify frozen preregistration
+        run: |
+          python - <<'PY'
+          import json,subprocess
+          parent='93e1ba28748610b5ed4917d378698c5a94176ed3'
+          prereg='ae1066bc19ee300490972d02d2714a5e7fe17b03'
+          executor='595769ae8a8516be7efcb3539389bcb32cfff3bc'
+          for c in (parent,prereg,executor): subprocess.run(['git','merge-base','--is-ancestor',c,'HEAD'],check=True)
+          d=json.load(open('research/JANUS_TRUMP_R48S_WIDTH4_NATURAL_SIZE_LADDER_FALSIFIER_PREREGISTRATION_2026-09-04.json'))
+          assert d['status']=='FROZEN_BEFORE_EXECUTION'
+          assert d['parent']['commit']==parent
+          assert len(d['frozen_cases'])==10
+          assert d['width_policy']['W']==4
+          assert d['interpretation_ceiling']['finite_ladder_success_proves_universal_W4'] is False
+          assert d['epistemic_firewall']['O4_UNIVERSAL_COVERAGE']=='OPEN'
+          assert d['epistemic_firewall']['P_VS_NP']=='OPEN'
+          PY
+      - name: Compile
+        run: python -m py_compile experiments/janus_trump_r48s_width4_natural_size_ladder_falsifier.py
+      - name: Execute frozen natural size ladder
+        run: |
+          mkdir -p artifacts
+          PYTHONPATH=experiments python experiments/janus_trump_r48s_width4_natural_size_ladder_falsifier.py \
+            --output artifacts/JANUS_TRUMP_R48S_WIDTH4_NATURAL_SIZE_LADDER_FALSIFIER_RESULT_2026-09-04.json \
+            | tee /tmp/r48s.json
+          python - <<'PY'
+          import json
+          d=json.load(open('artifacts/JANUS_TRUMP_R48S_WIDTH4_NATURAL_SIZE_LADDER_FALSIFIER_RESULT_2026-09-04.json'))
+          assert d['gate']=='JANUS_TRUMP_R48S_WIDTH4_NATURAL_SIZE_LADDER_FALSIFIER'
+          assert d['verdict'] in {'EXPLICIT_NATURAL_REACHABLE_WIDTH4_OBSTRUCTION_FOUND','STRONGER_NO_VARIABLE_DECREASING_CANDIDATE_FOUND','ALL_GENUINE_RESIDUALS_IN_FROZEN_SIZE_LADDER_COVERED_BY_WIDTH4__FINITE_ONLY','NO_GENUINE_RESIDUALS_IN_FROZEN_SIZE_LADDER__FINITE_ONLY'}
+          rr=d['R48O_regression']; assert rr['root_hash']=='3f05812b68eec1a2c16b099d5542dcc53fce66a0cb47679a1594134a0a553750'; assert rr['selected_pivots']==[2,4,5,7,9,10]; assert rr['max_persisted_width']==4; assert rr['SAT_root_reconstruction_pass'] is True
+          for x in d['records']:
+              if x.get('covered') is not True: continue
+              for s in x['selected_path']:
+                  assert s['full_R47M_independent_replay_pass'] is True
+                  if s['terminal'] is None: assert s['final_max_width']<=4
+              if x['terminal'] is not None and x['terminal']['semantic_sat'] is True: assert x['terminal']['SAT_root_reconstruction_pass'] is True
+          if d['first_obstruction'] is not None:
+              o=d['first_obstruction']['obstruction']
+              if o['candidate_rows'] is not None:
+                  for r in o['candidate_rows']:
+                      if r.get('candidate',True): assert r['full_R47M_independent_replay_pass'] is True
+                  eligible=[r for r in o['candidate_rows'] if r.get('eligible',False)]
+                  assert not any(r.get('terminal') is not None for r in eligible)
+                  assert not any(r.get('final_max_width',999)<=4 for r in eligible)
+          assert d['interpretation']['finite_ladder_only'] is True
+          assert d['firewall']['O4_UNIVERSAL_COVERAGE']=='OPEN'
+          assert d['firewall']['P_VS_NP']=='OPEN'
+          print('R48S_GATE=PASS'); print('R48S_VERDICT=',d['verdict']); print('R48S_METRICS=',json.dumps(d['metrics'],sort_keys=True)); print('R48S_MAX_WIDTH=',d['maximum_observed_persisted_width'])
+          PY
+      - name: Upload full result
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: JANUS_TRUMP_R48S_WIDTH4_NATURAL_SIZE_LADDER_FALSIFIER_RESULT
+          path: artifacts/JANUS_TRUMP_R48S_WIDTH4_NATURAL_SIZE_LADDER_FALSIFIER_RESULT_2026-09-04.json
+          if-no-files-found: error
+          retention-days: 90
