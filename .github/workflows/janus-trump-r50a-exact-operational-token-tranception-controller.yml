@@ -38,18 +38,43 @@ jobs:
           assert fw['TRUMP_finished'] is False
           PY
 
+      - name: Validate Style=Time post-execution addendum
+        run: |
+          python - <<'PY'
+          import json
+          p='research/JANUS_TRUMP_R50A_STYLE_TIME_PROOF_ALIGNED_TEMPORAL_CONDUCT_ADDENDUM_2026-09-04.json'
+          d=json.load(open(p))
+          assert d['status']=='POST_EXECUTION_GOVERNANCE_ADDENDUM__DOES_NOT_MUTATE_FROZEN_PREREGISTRATION'
+          assert d['source_contract']['commit']=='9a16c48a126ee742d03955996b0e3b7b5b0d5797'
+          assert d['frozen_preregistration_boundary']['retroactive_rewrite'] is False
+          assert d['canonical_law']['primary']=='JANUS_STYLE = TIME'
+          assert d['logical_time_contract']['wall_clock_is_authority'] is False
+          assert d['logical_time_contract']['logical_proof_state_is_authority'] is True
+          assert d['wait_semantics']['does_not_skip_other_exact_doors'] is True
+          assert d['implementation']['new_proof_rule_added'] is False
+          assert d['implementation']['new_solver_heuristic_added'] is False
+          assert d['firewall']['P_VS_NP']=='OPEN'
+          assert d['firewall']['TRUMP_finished'] is False
+          PY
+
       - name: Static no-heuristics authority audit
         run: |
           python - <<'PY'
           from pathlib import Path
-          p=Path('experiments/janus_trump_r50a_exact_operational_token_tranception_controller.py').read_text()
+          paths=[
+              'experiments/janus_trump_r50a_exact_operational_token_tranception_controller.py',
+              'experiments/janus_trump_r50a_proof_time_temporal_conduct.py',
+          ]
           forbidden=[
               'import random', 'from random', 'import numpy', 'from numpy',
               'import torch', 'from torch', 'import sklearn', 'from sklearn',
               'cheap_signature', 'model.predict', 'temperature=', 'softmax(',
           ]
-          for marker in forbidden:
-              assert marker not in p, marker
+          for path in paths:
+              text=Path(path).read_text()
+              for marker in forbidden:
+                  assert marker not in text, (path, marker)
+          p=Path(paths[0]).read_text()
           assert 'heuristic_ranking_used": False' in p
           assert 'ASCENDING_VARIABLE_ID_ONLY__NO_SCORE__NO_RANKER' in p
           assert 'all_current_variables_checked' in p
@@ -57,12 +82,19 @@ jobs:
           assert 'independent_dp_replay' in p
           assert 'independent_fixpoint_macro_replay' in p
           assert 'reverse_sat_witness' in p
+          t=Path(paths[1]).read_text()
+          assert 'WAIT_FOR_AUTHORITY' in t
+          assert 'wall_clock_used' in t
+          assert 'audit_temporal_step' in t
+          assert 'audit_reverse_return' in t
           PY
 
       - name: Compile and unit tests
         run: |
           python -m py_compile experiments/janus_trump_r50a_exact_operational_token_tranception_controller.py
+          python -m py_compile experiments/janus_trump_r50a_proof_time_temporal_conduct.py
           PYTHONPATH=experiments python tests/test_janus_trump_r50a_exact_operational_token_tranception_controller.py
+          PYTHONPATH=experiments python tests/test_janus_trump_r50a_proof_time_temporal_conduct.py
 
       - name: Execute deterministic control
         run: |
