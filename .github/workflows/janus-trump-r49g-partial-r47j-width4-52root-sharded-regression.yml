@@ -1,0 +1,64 @@
+name: JANUS TRUMP R49G Partial R47J Width4 52-Root Sharded Regression
+
+on:
+  push:
+    branches:
+      - research/r49g-partial-r47j-width4-52root-sharded-regression-2026-09-04
+  workflow_dispatch:
+
+jobs:
+  shard:
+    name: r49g-roots-${{ matrix.start }}-${{ matrix.end }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 120
+    strategy:
+      fail-fast: false
+      max-parallel: 4
+      matrix:
+        include:
+          - { id: 1, start: 1,  end: 13 }
+          - { id: 2, start: 14, end: 26 }
+          - { id: 3, start: 27, end: 39 }
+          - { id: 4, start: 40, end: 52 }
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Verify frozen preregistration lineage
+        shell: bash
+        run: |
+          set -euo pipefail
+          git merge-base --is-ancestor 4979fe54ab6e9e52bea6d5ca88480c62d57ded10 HEAD
+          git merge-base --is-ancestor 587f78790df1968218bc7cf21f3c39ca36c1f0e4 HEAD
+          test -f research/JANUS_TRUMP_R49E_PARTIAL_R47J_WIDTH4_DIRECT_CONTROLLER_RESULT_2026-09-04.json
+          test -f research/JANUS_TRUMP_R49G_PARTIAL_R47J_WIDTH4_52ROOT_SHARDED_REGRESSION_PREREGISTRATION_2026-09-04.json
+          python - <<'PY'
+          import json
+          d=json.load(open('research/JANUS_TRUMP_R49G_PARTIAL_R47J_WIDTH4_52ROOT_SHARDED_REGRESSION_PREREGISTRATION_2026-09-04.json'))
+          assert d['status']=='FROZEN_BEFORE_EXECUTION'
+          assert d['parent']['R49E_result_seal']=='4979fe54ab6e9e52bea6d5ca88480c62d57ded10'
+          assert d['frozen_root_corpus']['expected_unique_root_count']==52
+          assert len(d['frozen_shards'])==4
+          assert d['controller']['SA_BVE_inside_candidate'] is False
+          PY
+      - name: Compile
+        run: python -m py_compile experiments/janus_trump_r49g_partial_r47j_width4_52root_sharded_regression.py
+      - name: Execute frozen root shard
+        env:
+          PYTHONPATH: experiments
+        run: |
+          mkdir -p artifacts
+          python experiments/janus_trump_r49g_partial_r47j_width4_52root_sharded_regression.py \
+            --start ${{ matrix.start }} \
+            --end ${{ matrix.end }} \
+            --output artifacts/JANUS_TRUMP_R49G_ROOTS_${{ matrix.start }}_${{ matrix.end }}_RESULT.json
+      - name: Upload shard scientific result
+        uses: actions/upload-artifact@v4
+        with:
+          name: JANUS_TRUMP_R49G_ROOTS_${{ matrix.start }}_${{ matrix.end }}_RESULT
+          path: artifacts/JANUS_TRUMP_R49G_ROOTS_${{ matrix.start }}_${{ matrix.end }}_RESULT.json
+          if-no-files-found: error
+          retention-days: 90
