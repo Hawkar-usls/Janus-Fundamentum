@@ -1,0 +1,108 @@
+name: JANUS TRUMP R48I Cyclic Bipolar RxR Pressure Scaling Law
+
+on:
+  push:
+    branches:
+      - research/r48i-cyclic-bipolar-rxr-pressure-scaling-law-2026-09-04
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  r48i-pressure-scaling:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 180
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Verify frozen lineage and preregistration
+        run: |
+          python - <<'PY'
+          import json, subprocess
+          parent='86da4e1c120f7ef4d0b9149629324bc9666364ef'
+          prereg='40db23b2539c6cfeb5728f6ce65981ce575b53bf'
+          theorem='326e1994974c5f6756603d01fb9a8a69868d96f4'
+          executor='000b0a141107566a7fd8068d6147df355ac38a77'
+          for c in (parent,prereg,theorem,executor):
+              subprocess.run(['git','merge-base','--is-ancestor',c,'HEAD'], check=True)
+          d=json.load(open('research/JANUS_TRUMP_R48I_CYCLIC_BIPOLAR_RXR_PRESSURE_SCALING_LAW_PREREGISTRATION_2026-09-04.json'))
+          assert d['status']=='FROZEN_BEFORE_EXECUTION'
+          assert d['parent']['commit']==parent
+          assert d['frozen_family']['r_values']==[3,6,9]
+          assert d['frozen_family']['n_rule']=='n = 8*r + 1'
+          assert d['interpretation_ceiling']['finite_r_ladder_proves_unbounded_a_star'] is False
+          assert d['epistemic_firewall']['UNIVERSAL_POLYNOMIAL_a_EXISTS']=='NOT_PROVED'
+          assert d['epistemic_firewall']['O4_UNIVERSAL_COVERAGE']=='OPEN'
+          assert d['epistemic_firewall']['SAT_IN_P']=='NOT_PROVED'
+          assert d['epistemic_firewall']['P_VS_NP']=='OPEN'
+          assert d['epistemic_firewall']['TRUMP_finished'] is False
+          PY
+
+      - name: Compile frozen executor
+        run: python -m py_compile experiments/janus_trump_r48i_cyclic_bipolar_rxr_pressure_scaling_law.py
+
+      - name: Execute frozen scaling gate
+        run: |
+          mkdir -p artifacts
+          PYTHONPATH=experiments python experiments/janus_trump_r48i_cyclic_bipolar_rxr_pressure_scaling_law.py \
+            --output artifacts/JANUS_TRUMP_R48I_CYCLIC_BIPOLAR_RXR_PRESSURE_SCALING_LAW_RESULT_2026-09-04.json \
+            | tee /tmp/r48i.json
+          python - <<'PY'
+          import json
+          d=json.load(open('artifacts/JANUS_TRUMP_R48I_CYCLIC_BIPOLAR_RXR_PRESSURE_SCALING_LAW_RESULT_2026-09-04.json'))
+          assert d['gate']=='JANUS_TRUMP_R48I_CYCLIC_BIPOLAR_RXR_PRESSURE_SCALING_LAW'
+          assert d['verdict'] in {
+              'RAW_RXR_PRESSURE_LAW_CONFIRMED_WITH_NORMALIZED_PRESSURE_GROWTH_SIGNAL',
+              'RAW_RXR_PRESSURE_LAW_CONFIRMED_BUT_FULL_NORMALIZATION_COLLAPSES_PRESSURE',
+              'RAW_RXR_CONSTRUCTION_GEOMETRY_FAILS_AT_FROZEN_PARAMETER',
+              'STRONGER_NO_VARIABLE_DECREASING_CANDIDATE_FOUND',
+          }
+          assert d['r_values_frozen']==[3,6,9]
+          for row in d['rows']:
+              if row['classification']=='CONSTRUCTION_GEOMETRY_FAIL':
+                  continue
+              r=row['r']
+              s=row['structural_profile']
+              assert s['all_pivots_raw_pressure_law_pass'] is True
+              assert s['raw_delta_C_expected']==r*(r-2)
+              assert s['raw_delta_L_expected']==4*r*r-6*r
+              p=row.get('pressure')
+              if p is not None:
+                  for c in p['candidate_rows']:
+                      if c.get('candidate',True):
+                          assert c.get('full_R47M_independent_replay_pass') is True
+          assert d['interpretation']['finite_r_ladder_proves_unbounded_a_star'] is False
+          assert d['interpretation']['finite_r_ladder_proves_polynomial_a_star'] is False
+          assert d['firewall']['UNIVERSAL_POLYNOMIAL_a_EXISTS']=='NOT_PROVED'
+          assert d['firewall']['O4_UNIVERSAL_COVERAGE']=='OPEN'
+          assert d['firewall']['SAT_IN_P']=='NOT_PROVED'
+          assert d['firewall']['P_VS_NP']=='OPEN'
+          assert d['firewall']['TRUMP_finished'] is False
+          print('R48I_GATE=PASS')
+          print('R48I_VERDICT=',d['verdict'])
+          print('R48I_SUMMARY=',json.dumps(d['summary'],sort_keys=True))
+          print('R48I_ROWS=',json.dumps([{
+              'r':x['r'], 'n':x['n'], 'classification':x['classification'],
+              'raw_CLV':x.get('raw_CLV'),
+              'raw_delta_C':x.get('structural_profile',{}).get('raw_delta_C_expected'),
+              'final_CLV':x.get('preprojection_normalization',{}).get('final_CLV'),
+              'terminal':x.get('preprojection_normalization',{}).get('terminal'),
+              'a_star':None if x.get('pressure') is None else x['pressure'].get('a_star'),
+              'min_normalized_delta_C':None if x.get('pressure') is None else x['pressure'].get('minimum_normalized_delta_C'),
+          } for x in d['rows']],sort_keys=True))
+          PY
+
+      - name: Upload full scientific result
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: JANUS_TRUMP_R48I_CYCLIC_BIPOLAR_RXR_PRESSURE_SCALING_LAW_RESULT
+          path: artifacts/JANUS_TRUMP_R48I_CYCLIC_BIPOLAR_RXR_PRESSURE_SCALING_LAW_RESULT_2026-09-04.json
+          if-no-files-found: error
+          retention-days: 90
