@@ -1,0 +1,153 @@
+name: JANUS TRUMP R50G2 Guarded Full Smallest First Deadcore
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - research/r50g2-guarded-full-smallest-first-deadcore-2026-09-05
+  pull_request:
+    branches:
+      - research/r50g1-r33-w4-domain-escape-guarded-replay-2026-09-05
+
+permissions:
+  contents: read
+
+jobs:
+  guard-and-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Freeze R50G2 guarded controller contract
+        run: |
+          python - <<'PY'
+          import json
+          p='research/JANUS_TRUMP_R50G2_GUARDED_FULL_SMALLEST_FIRST_DEADCORE_PREREGISTRATION_2026-09-05.json'
+          d=json.load(open(p))
+          assert d['status']=='FROZEN_BEFORE_R50G2_EXECUTION'
+          assert d['parent_commit']=='f8862c3d141cebf426dba4c777b73a489941057d'
+          assert d['architectural_law']=='PRODUCER_MAY_PROPOSE__INVARIANT_DECIDES_AUTHORITY'
+          c=d['controller_contract']
+          assert c['R33_nonterminal_authority']=='authorized only if successor max width <=4'
+          assert c['new_semantic_inference_rule_added'] is False
+          assert c['heuristic_or_learned_ranking_added'] is False
+          corp=d['falsifier_corpus']
+          assert corp['n_values']==[6,7,8,9,10]
+          assert corp['all_W4_lane']['exact4_only'] is False
+          assert corp['all_W4_lane']['min_polarity_side_filter'] is None
+          assert corp['all_W4_lane']['hostile_score_ranking'] is False
+          fw=d['scientific_firewall']
+          assert fw['GUARDED_U']=='OPEN'
+          assert fw['SAT_IN_P']=='NOT_PROVED'
+          assert fw['P_VS_NP']=='OPEN'
+          assert fw['TRUMP_finished'] is False
+          PY
+      - name: Static no-premature-authority audit
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p=Path('experiments/janus_trump_r50g2_guarded_full_smallest_first_deadcore.py').read_text()
+          assert 'PRODUCER_MAY_PROPOSE__INVARIANT_DECIDES_AUTHORITY' in p
+          assert 'REJECTED_W4_DOMAIN_ESCAPE' in p
+          assert 'NO_DEADCORE_FOUND_IMPLIES_U' in p
+          assert 'GENERATED_POOL_SMALLEST_IS_GLOBAL_MINIMUM' in p
+          assert 'P_EQ_NP": "NOT_PROVED"' in p
+          assert 'cheap_score' not in p
+          PY
+      - name: Install test runner
+        run: python -m pip install -q pytest
+      - name: Compile and unit tests
+        run: |
+          python -m py_compile experiments/janus_trump_r50g2_guarded_full_smallest_first_deadcore.py
+          PYTHONPATH=experiments pytest -q tests/test_janus_trump_r50g2_guarded_full_smallest_first_deadcore.py
+
+  falsifier:
+    needs: guard-and-tests
+    strategy:
+      fail-fast: false
+      matrix:
+        worker: [0, 1, 2, 3, 4]
+    runs-on: ubuntu-latest
+    timeout-minutes: 70
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Run frozen guarded smallest-first worker
+        run: |
+          mkdir -p artifacts
+          PYTHONPATH=experiments python experiments/janus_trump_r50g2_guarded_full_smallest_first_deadcore.py \
+            --worker ${{ matrix.worker }} \
+            --roots-per-worker 80 \
+            --w4-candidates-per-worker 240 \
+            --output artifacts/JANUS_TRUMP_R50G2_WORKER_${{ matrix.worker }}.json
+      - name: Validate worker firewall
+        run: |
+          python - <<'PY'
+          import json, glob
+          p=glob.glob('artifacts/JANUS_TRUMP_R50G2_WORKER_*.json')[0]
+          d=json.load(open(p))
+          assert d['gate']=='JANUS_TRUMP_R50G2_GUARDED_FULL_SMALLEST_FIRST_EXACT_DEADCORE_FALSIFIER'
+          assert 6 <= d['n'] <= 10
+          fw=d['firewall']
+          assert fw['ARCHITECTURAL_LAW']=='PRODUCER_MAY_PROPOSE__INVARIANT_DECIDES_AUTHORITY'
+          assert fw['NO_DEADCORE_FOUND_IMPLIES_U'] is False
+          assert fw['GENERATED_POOL_SMALLEST_IS_GLOBAL_MINIMUM'] is False
+          assert fw['SAT_IN_P']=='NOT_PROVED'
+          assert fw['P_VS_NP']=='OPEN'
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: janus-trump-r50g2-worker-${{ matrix.worker }}
+          path: artifacts/JANUS_TRUMP_R50G2_WORKER_${{ matrix.worker }}.json
+          if-no-files-found: error
+
+  synthesize:
+    needs: falsifier
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: janus-trump-r50g2-worker-*
+          path: artifacts/r50g2-workers
+          merge-multiple: true
+      - name: Synthesize guarded verdict
+        run: |
+          PYTHONPATH=experiments python experiments/janus_trump_r50g2_guarded_full_smallest_first_deadcore.py \
+            --synthesize-dir artifacts/r50g2-workers \
+            --output artifacts/JANUS_TRUMP_R50G2_SYNTHESIS.json
+      - name: Validate synthesis firewall
+        run: |
+          python - <<'PY'
+          import json
+          p='artifacts/JANUS_TRUMP_R50G2_SYNTHESIS.json'
+          d=json.load(open(p))
+          assert d['workers']==5
+          assert d['n_values']==[6,7,8,9,10]
+          fw=d['firewall']
+          assert fw['NO_DEADCORE_FOUND_IMPLIES_U'] is False
+          assert fw['GENERATED_POOL_SMALLEST_IS_GLOBAL_MINIMUM'] is False
+          assert fw['SAT_IN_P']=='NOT_PROVED'
+          assert fw['P_VS_NP']=='OPEN'
+          assert fw['TRUMP_finished'] is False
+          print('R50G2_VERDICT=', d['verdict'])
+          print('R50G2_ROOTS=', d['reachable_roots_executed'])
+          print('R50G2_TERMINALS=', d['terminal_roots'])
+          print('R50G2_R33_ESCAPES=', d['R33_domain_escape_events'])
+          print('R50G2_REACHABLE_DEADCORES=', d['reachable_deadcore_count'])
+          print('R50G2_ALL_W4_DEADCORES=', d['all_w4_deadcore_count_reachability_open'])
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: janus-trump-r50g2-synthesis
+          path: artifacts/JANUS_TRUMP_R50G2_SYNTHESIS.json
+          if-no-files-found: error
