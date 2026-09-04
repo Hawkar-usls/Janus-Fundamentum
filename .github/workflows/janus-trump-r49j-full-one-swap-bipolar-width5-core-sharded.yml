@@ -1,0 +1,60 @@
+name: JANUS TRUMP R49J Full One-Swap Bipolar Width5 Core Sharded
+
+on:
+  push:
+    branches:
+      - research/r49i-bipolar-nontauto-cross-union-width5-core-hunt-2026-09-04
+  workflow_dispatch:
+
+jobs:
+  shard:
+    name: r49j-${{ matrix.start }}-${{ matrix.end }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 120
+    strategy:
+      fail-fast: false
+      max-parallel: 8
+      matrix:
+        include:
+          - { start: 1,   end: 100 }
+          - { start: 101, end: 200 }
+          - { start: 201, end: 300 }
+          - { start: 301, end: 400 }
+          - { start: 401, end: 500 }
+          - { start: 501, end: 600 }
+          - { start: 601, end: 700 }
+          - { start: 701, end: 798 }
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Verify scientific premise and compile
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -f research/JANUS_TRUMP_R49H_WIDTH4_CROSS_UNION_SAFE_EXACT_DP_PIVOT_LEMMA_2026-09-04.json
+          python - <<'PY'
+          import json
+          d=json.load(open('research/JANUS_TRUMP_R49H_WIDTH4_CROSS_UNION_SAFE_EXACT_DP_PIVOT_LEMMA_2026-09-04.json'))
+          assert d['firewall']['CROSS_UNION_SAFE_BIPOLAR_EXACT_DP_LANE_SOUNDNESS']=='PROVED'
+          assert d['firewall']['UNIVERSAL_EASY_LANE_EXISTENCE']=='NOT_PROVED'
+          assert d['firewall']['P_VS_NP']=='OPEN'
+          PY
+          python -m py_compile experiments/janus_trump_r49j_full_one_swap_bipolar_width5_core_shard.py
+      - name: Search shard until first explicit core
+        env:
+          PYTHONPATH: experiments
+        run: |
+          mkdir -p artifacts
+          python experiments/janus_trump_r49j_full_one_swap_bipolar_width5_core_shard.py \
+            --start ${{ matrix.start }} \
+            --end ${{ matrix.end }} \
+            --output artifacts/JANUS_TRUMP_R49J_${{ matrix.start }}_${{ matrix.end }}_RESULT.json
+      - name: Upload scientific result
+        uses: actions/upload-artifact@v4
+        with:
+          name: JANUS_TRUMP_R49J_${{ matrix.start }}_${{ matrix.end }}_RESULT
+          path: artifacts/JANUS_TRUMP_R49J_${{ matrix.start }}_${{ matrix.end }}_RESULT.json
+          if-no-files-found: error
+          retention-days: 90
