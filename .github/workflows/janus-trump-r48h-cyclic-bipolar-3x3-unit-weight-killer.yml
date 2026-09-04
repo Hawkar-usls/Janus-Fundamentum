@@ -1,0 +1,140 @@
+name: JANUS TRUMP R48H Cyclic Bipolar 3x3 Unit Weight Killer
+
+on:
+  push:
+    branches:
+      - research/r48h-cyclic-bipolar-3x3-unit-weight-killer-2026-09-04
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  r48h-cyclic-killer:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Verify frozen ancestry and preregistration
+        run: |
+          python - <<'PY'
+          import json, subprocess
+          charter='02f64c52e35255a9085a1f743ab3ab903137c376'
+          prereg='7c410617fdc219a6c0592f20ed7c801e385ea5fd'
+          executor='08a43d578a77e593822918c40605443b43cbe32c'
+          for c in (charter,prereg,executor):
+              subprocess.run(['git','merge-base','--is-ancestor',c,'HEAD'], check=True)
+          d=json.load(open('research/JANUS_TRUMP_R48H_CYCLIC_BIPOLAR_3X3_UNIT_WEIGHT_KILLER_PREREGISTRATION_2026-09-04.json'))
+          assert d['status']=='FROZEN_BEFORE_EXECUTION'
+          assert d['parent']['commit']==charter
+          assert d['explicit_family']['n_values']==[13,17,19,23]
+          assert d['explicit_family']['expected_occurrences_per_variable']=={'positive':3,'negative':3}
+          assert d['structural_precheck']['no_claim_before_measurement'] is True
+          assert d['frozen_unit_weight_attack']['explicit_counterexample']=='no terminal candidate and a_star>=2'
+          assert d['frozen_unit_weight_attack']['counterexample_full_replay']=='independently replay every produced candidate before sealing'
+          assert d['frozen_unit_weight_attack']['sequence_enumeration'] is False
+          assert d['frozen_unit_weight_attack']['predeclared_persistent_clause_cap'] is False
+          assert d['interpretation_ceiling']['clean_raw_3x3_pressure_alone_is_not_a_counterexample'] is True
+          assert d['interpretation_ceiling']['full_R47M_normalized_successor_authority_remains_decisive'] is True
+          assert d['epistemic_firewall']['UNIVERSAL_UNIT_WEIGHT_COVERAGE']=='NOT_PROVED'
+          assert d['epistemic_firewall']['UNIVERSAL_POLYNOMIAL_a_EXISTS']=='NOT_PROVED'
+          assert d['epistemic_firewall']['O4_UNIVERSAL_COVERAGE']=='OPEN'
+          assert d['epistemic_firewall']['SAT_IN_P']=='NOT_PROVED'
+          assert d['epistemic_firewall']['P_VS_NP']=='OPEN'
+          assert d['epistemic_firewall']['TRUMP_finished'] is False
+          PY
+
+      - name: Compile frozen executor
+        run: python -m py_compile experiments/janus_trump_r48h_cyclic_bipolar_3x3_unit_weight_killer.py
+
+      - name: Execute frozen explicit cyclic killer
+        run: |
+          mkdir -p artifacts
+          PYTHONPATH=experiments python experiments/janus_trump_r48h_cyclic_bipolar_3x3_unit_weight_killer.py \
+            --output artifacts/JANUS_TRUMP_R48H_CYCLIC_BIPOLAR_3X3_UNIT_WEIGHT_KILLER_RESULT_2026-09-04.json \
+            | tee /tmp/r48h.json
+          python - <<'PY'
+          import json
+          d=json.load(open('artifacts/JANUS_TRUMP_R48H_CYCLIC_BIPOLAR_3X3_UNIT_WEIGHT_KILLER_RESULT_2026-09-04.json'))
+          assert d['gate']=='JANUS_TRUMP_R48H_CYCLIC_BIPOLAR_3X3_UNIT_WEIGHT_KILLER'
+          assert d['verdict'] in {
+              'EXPLICIT_CYCLIC_BIPOLAR_UNIT_WEIGHT_COUNTEREXAMPLE_a_star_GE_2_FOUND',
+              'STRONGER_CYCLIC_BIPOLAR_NO_VARIABLE_DECREASING_R47M_CANDIDATE_FOUND',
+              'ALL_FROZEN_CYCLIC_BIPOLAR_INSTANCES_HAVE_a_star_LE_1_OR_TERMINAL__FINITE_ONLY',
+          }
+          assert d['n_values_frozen']==[13,17,19,23]
+          assert 1 <= len(d['rows']) <= 4
+          for r in d['rows']:
+              n=r['n']
+              assert r['raw_CLV']==[2*n,6*n,n]
+              s=r['structural_precheck']
+              assert s['all_variables_p3_n3'] is True
+              assert s['all_pair_checks_9'] is True
+              assert len(s['pivot_rows'])==n
+              for p in s['pivot_rows']:
+                  assert p['positive_parent_count']==3
+                  assert p['negative_parent_count']==3
+                  assert p['pair_checks']==9
+              norm=r['preprojection_normalization']
+              if norm['terminal'] is None:
+                  p=r['pressure_attack']
+                  assert p is not None
+                  assert p['joint_fixpoint_integrity']['pass'] is True
+                  assert p['joint_fixpoint_integrity']['affine_recognized'] is False
+                  assert p['joint_fixpoint_integrity']['RUP_independent_replay_pass'] is True
+                  assert p['joint_fixpoint_integrity']['SA_BVE_candidate_present'] is False
+              else:
+                  assert r['pressure_attack'] is None
+          c=d['sealed_counterexample']
+          if c is None:
+              assert d['verdict']=='ALL_FROZEN_CYCLIC_BIPOLAR_INSTANCES_HAVE_a_star_LE_1_OR_TERMINAL__FINITE_ONLY'
+              assert len(d['rows'])==4
+          else:
+              rows=[r for r in c['candidate_rows'] if r.get('candidate',True)]
+              assert rows
+              assert all(r.get('full_R47M_independent_replay_pass') is True for r in rows)
+              assert not any(r.get('terminal') is not None for r in rows if r.get('eligible',False))
+              if c['a_star'] is None:
+                  assert d['verdict']=='STRONGER_CYCLIC_BIPOLAR_NO_VARIABLE_DECREASING_R47M_CANDIDATE_FOUND'
+                  assert not any(r.get('eligible',False) for r in rows)
+              else:
+                  assert d['verdict']=='EXPLICIT_CYCLIC_BIPOLAR_UNIT_WEIGHT_COUNTEREXAMPLE_a_star_GE_2_FOUND'
+                  eligible=[r for r in rows if r.get('eligible',False) and r.get('terminal') is None]
+                  assert eligible
+                  assert c['a_star']>=2
+                  assert min(int(r['a_req']) for r in eligible)==c['a_star']
+                  assert all(int(r['a_req'])>=2 for r in eligible)
+          assert d['interpretation']['clean_raw_3x3_pressure_alone_is_not_counterexample'] is True
+          assert d['interpretation']['full_R47M_normalized_successor_authority_decisive'] is True
+          assert d['interpretation']['finite_no_counterexample_proves_unit_weight_coverage'] is False
+          assert d['interpretation']['explicit_a_star_ge_2_refutes_general_polynomial_a_route'] is False
+          assert d['firewall']['UNIVERSAL_UNIT_WEIGHT_COVERAGE']=='NOT_PROVED'
+          assert d['firewall']['UNIVERSAL_POLYNOMIAL_a_EXISTS']=='NOT_PROVED'
+          assert d['firewall']['UNIVERSAL_POLYNOMIAL_ENVELOPE_COVERAGE']=='OPEN'
+          assert d['firewall']['O4_UNIVERSAL_COVERAGE']=='OPEN'
+          assert d['firewall']['SAT_IN_P']=='NOT_PROVED'
+          assert d['firewall']['P_EQ_NP']=='NOT_PROVED'
+          assert d['firewall']['P_NE_NP']=='NOT_PROVED'
+          assert d['firewall']['P_VS_NP']=='OPEN'
+          assert d['firewall']['TRUMP_finished'] is False
+          print('R48H_GATE=PASS')
+          print('R48H_VERDICT=',d['verdict'])
+          print('R48H_ROWS=',json.dumps([{'n':r['n'],'raw_CLV':r['raw_CLV'],'clean':r['structural_precheck']['all_clean_3x3_geometry'],'overlap_free':r['structural_precheck']['all_cross_polarity_overlap_free'],'taut_zero':r['structural_precheck']['all_tautological_pair_count_zero'],'res9':r['structural_precheck']['all_distinct_resolvents_9'],'raw_plus3':r['structural_precheck']['all_raw_delta_C_plus_3'],'preterminal':r['preprojection_normalization']['terminal'],'final_CLV':r['preprojection_normalization']['final_CLV'],'pressure':None if r['pressure_attack'] is None else {'residual_hash':r['pressure_attack']['residual_hash'],'residual_CLV':r['pressure_attack']['residual_CLV'],'terminal_candidates':r['pressure_attack']['terminal_candidate_count'],'eligible':r['pressure_attack']['eligible_count'],'a_star':r['pressure_attack']['a_star']}} for r in d['rows']],sort_keys=True))
+          if c is not None:
+              print('R48H_COUNTEREXAMPLE=',json.dumps({'kind':c['kind'],'n':c['n'],'raw_hash':c['raw_hash'],'raw_CLV':c['raw_CLV'],'residual_hash':c['residual_hash'],'residual_CLV':c['residual_CLV'],'a_star':c['a_star'],'candidate_rows':c['candidate_rows']},sort_keys=True))
+          PY
+
+      - name: Upload full scientific result
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: JANUS_TRUMP_R48H_CYCLIC_BIPOLAR_3X3_UNIT_WEIGHT_KILLER_RESULT
+          path: artifacts/JANUS_TRUMP_R48H_CYCLIC_BIPOLAR_3X3_UNIT_WEIGHT_KILLER_RESULT_2026-09-04.json
+          if-no-files-found: error
+          retention-days: 90
