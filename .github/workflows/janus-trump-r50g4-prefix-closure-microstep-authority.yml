@@ -1,0 +1,136 @@
+name: JANUS TRUMP R50G4 Prefix Closure Microstep Authority
+
+on:
+  pull_request:
+    branches:
+      - research/r50g3-minimal-counterexample-structure-mirrored-falsifier-2026-09-05
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  guard-and-tests:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Freeze R50G4 theorem contract
+        run: |
+          python - <<'PY'
+          import json
+          p='research/JANUS_TRUMP_R50G4_PREFIX_CLOSURE_MICROSTEP_AUTHORITY_PREREGISTRATION_2026-09-05.json'
+          d=json.load(open(p))
+          assert d['status']=='FROZEN_BEFORE_R50G4_EXECUTION'
+          assert d['architectural_law']=='PRODUCER_MAY_PROPOSE__INVARIANT_DECIDES_AUTHORITY'
+          assert d['r33_microstep_controller']['no_heuristic_choice'] is True
+          assert d['next_obligation_if_green']=='IMMEDIATE_BVE_ESCAPE_ELIMINATION_OR_EXISTING_CERTIFIED_DOOR'
+          assert d['firewall']['SAT_IN_P']=='NOT_PROVED'
+          assert d['firewall']['P_VS_NP']=='OPEN'
+          PY
+      - name: Static no-heuristic authority audit
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          src=Path('experiments/janus_trump_r50g4_prefix_closure_microstep_authority.py').read_text()
+          forbidden=['learned_ranker','probabilistic_selector','semantic_score','random.choice','numpy.random']
+          for x in forbidden:
+              assert x not in src, x
+          assert 'first_r33_micro_candidate' in src
+          assert 'AUTHORIZED_R33_MICROSTEP' in src
+          assert 'IMMEDIATE_BVE_W4_ESCAPE' in src
+          proof=Path('research/JANUS_TRUMP_R50G4_PREFIX_CLOSURE_MICROSTEP_AUTHORITY_PROOF_2026-09-05.md').read_text()
+          for phrase in ['Theorem 6 — prefix closure','Corollary 7 — shape of a minimal OPEN state','IMMEDIATE_BVE_ESCAPE_ELIMINATION_OR_EXISTING_CERTIFIED_DOOR']:
+              assert phrase in proof
+          PY
+      - name: Install test runner
+        run: python -m pip install --disable-pip-version-check pytest
+      - name: Compile and unit tests
+        run: |
+          python -m py_compile experiments/janus_trump_r50g4_prefix_closure_microstep_authority.py
+          pytest -q tests/test_janus_trump_r50g4_prefix_closure_microstep_authority.py
+
+  mirror:
+    needs: guard-and-tests
+    strategy:
+      fail-fast: false
+      matrix:
+        worker: [0, 1, 2, 3, 4]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Run exact microstep mirror worker
+        run: |
+          mkdir -p artifacts
+          PYTHONPATH=experiments python experiments/janus_trump_r50g4_prefix_closure_microstep_authority.py \
+            --worker ${{ matrix.worker }} \
+            --roots 80 \
+            --mirror-candidates 240 \
+            --output artifacts/JANUS_TRUMP_R50G4_WORKER_${{ matrix.worker }}.json
+      - name: Validate worker firewall
+        run: |
+          python - <<'PY'
+          import json,glob
+          p=glob.glob('artifacts/JANUS_TRUMP_R50G4_WORKER_*.json')[0]
+          d=json.load(open(p))
+          fw=d['firewall']
+          assert fw['HEURISTIC_AUTHORITY'] is False
+          assert fw['LEARNED_SELECTOR'] is False
+          assert fw['PROBABILISTIC_AUTHORITY'] is False
+          assert fw['SAT_IN_P']=='NOT_PROVED'
+          assert fw['P_VS_NP']=='OPEN'
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: janus-trump-r50g4-worker-${{ matrix.worker }}
+          path: artifacts/JANUS_TRUMP_R50G4_WORKER_${{ matrix.worker }}.json
+          if-no-files-found: error
+
+  synthesize:
+    needs: mirror
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: janus-trump-r50g4-worker-*
+          path: artifacts/r50g4-workers
+          merge-multiple: true
+      - name: Synthesize theorem and replay verdict
+        run: |
+          PYTHONPATH=experiments python experiments/janus_trump_r50g4_prefix_closure_microstep_authority.py \
+            --synthesize-dir artifacts/r50g4-workers \
+            --output artifacts/JANUS_TRUMP_R50G4_SYNTHESIS.json
+      - name: Validate synthesis firewall
+        run: |
+          python - <<'PY'
+          import json
+          d=json.load(open('artifacts/JANUS_TRUMP_R50G4_SYNTHESIS.json'))
+          assert d['workers']==5
+          assert d['n_values']==[6,7,8,9,10]
+          assert d['critical_remaining_obligation']=='IMMEDIATE_BVE_ESCAPE_ELIMINATION_OR_EXISTING_CERTIFIED_DOOR'
+          assert d['metrics']['mirror_nonempty_safe_prefix_escapes']==d['metrics']['mirror_nonempty_prefixes_exactly_factorized']
+          assert d['metrics']['mirror_R33_escape_states']==d['metrics']['mirror_escape_prefixes_end_at_immediate_BVE_escape']
+          fw=d['firewall']
+          assert fw['PREFIX_CLOSURE_PROVES_U_MU'] is False
+          assert fw['OLD_GUARDED_U_PROVED'] is False
+          assert fw['SAT_IN_P']=='NOT_PROVED'
+          assert fw['P_VS_NP']=='OPEN'
+          assert fw['TRUMP_finished'] is False
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: janus-trump-r50g4-synthesis
+          path: artifacts/JANUS_TRUMP_R50G4_SYNTHESIS.json
+          if-no-files-found: error
