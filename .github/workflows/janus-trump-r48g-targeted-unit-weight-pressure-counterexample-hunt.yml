@@ -1,0 +1,135 @@
+name: JANUS TRUMP R48G Targeted Unit Weight Pressure Counterexample Hunt
+
+on:
+  push:
+    branches:
+      - research/r48g-targeted-unit-weight-pressure-counterexample-hunt-2026-09-04
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  r48g-targeted-pressure:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 180
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Verify frozen ancestry and preregistration
+        run: |
+          python - <<'PY'
+          import json, subprocess
+          charter='02f64c52e35255a9085a1f743ab3ab903137c376'
+          prereg='c10f1c8bd38c43e238c6254812616778f6bfcd4e'
+          executor='7feecd51cf9bcd547426f34163552a9ee14f9feb'
+          for c in (charter,prereg,executor):
+              subprocess.run(['git','merge-base','--is-ancestor',c,'HEAD'], check=True)
+          d=json.load(open('research/JANUS_TRUMP_R48G_TARGETED_UNIT_WEIGHT_PRESSURE_COUNTEREXAMPLE_HUNT_PREREGISTRATION_2026-09-04.json'))
+          assert d['status']=='FROZEN_BEFORE_EXECUTION'
+          assert d['parent']['commit']==charter
+          assert d['falsification_target']['explicit_counterexample']=='reachable normalized nonterminal state with no terminal candidate and a_star(F)>=2'
+          assert d['sealed_first_mutation']['frontier_ordinal']==22
+          assert d['sealed_first_mutation']['reachable_root_hash']=='ed330049538dc3fb487019c71bb49bde65494dc88453e50bed73b49d4ee17ca6'
+          assert d['sealed_first_mutation']['known_R48D_max_state_a_star']==1
+          assert d['sealed_first_mutation']['known_R48D_selected_pivots']==[7,2,15,5]
+          assert d['frozen_second_mutation_frontier']['maximum_unique_second_mutated_originals']==64
+          assert d['frozen_second_mutation_frontier']['priority_phase_1_variables']==[2,7,15,5]
+          assert d['frozen_second_mutation_frontier']['priority_phase_2_variables']==[11,20]
+          assert d['frozen_trajectory_policy']['counterexample_test_before_selection'] is True
+          assert d['frozen_trajectory_policy']['counterexample_full_replay']=='if a_star>=2 or no variable-decreasing candidate, independently replay every produced candidate before sealing'
+          assert d['frozen_trajectory_policy']['sequence_enumeration'] is False
+          assert d['frozen_trajectory_policy']['predeclared_persistent_clause_cap'] is False
+          assert d['interpretation_ceiling']['no_counterexample_within_budget_proves_unit_weight_coverage'] is False
+          assert d['interpretation_ceiling']['explicit_a_star_ge_2_does_not_refute_general_polynomial_a_route'] is True
+          assert d['epistemic_firewall']['UNIVERSAL_UNIT_WEIGHT_COVERAGE']=='NOT_PROVED'
+          assert d['epistemic_firewall']['UNIVERSAL_POLYNOMIAL_a_EXISTS']=='NOT_PROVED'
+          assert d['epistemic_firewall']['O4_UNIVERSAL_COVERAGE']=='OPEN'
+          assert d['epistemic_firewall']['SAT_IN_P']=='NOT_PROVED'
+          assert d['epistemic_firewall']['P_VS_NP']=='OPEN'
+          assert d['epistemic_firewall']['TRUMP_finished'] is False
+          PY
+
+      - name: Compile frozen executor
+        run: python -m py_compile experiments/janus_trump_r48g_targeted_unit_weight_pressure_counterexample_hunt.py
+
+      - name: Execute frozen targeted pressure falsifier
+        run: |
+          mkdir -p artifacts
+          PYTHONPATH=experiments python experiments/janus_trump_r48g_targeted_unit_weight_pressure_counterexample_hunt.py \
+            --output artifacts/JANUS_TRUMP_R48G_TARGETED_UNIT_WEIGHT_PRESSURE_COUNTEREXAMPLE_HUNT_RESULT_2026-09-04.json \
+            | tee /tmp/r48g.json
+          python - <<'PY'
+          import json
+          d=json.load(open('artifacts/JANUS_TRUMP_R48G_TARGETED_UNIT_WEIGHT_PRESSURE_COUNTEREXAMPLE_HUNT_RESULT_2026-09-04.json'))
+          assert d['gate']=='JANUS_TRUMP_R48G_TARGETED_UNIT_WEIGHT_PRESSURE_COUNTEREXAMPLE_HUNT'
+          assert d['verdict'] in {
+              'EXPLICIT_REACHABLE_UNIT_WEIGHT_COUNTEREXAMPLE_a_star_GE_2_FOUND',
+              'STRONGER_EXPLICIT_REACHABLE_NO_VARIABLE_DECREASING_R47M_CANDIDATE_FOUND',
+              'NO_UNIT_WEIGHT_COUNTEREXAMPLE_WITHIN_FROZEN_TARGETED_BUDGET__FINITE_ONLY',
+          }
+          assert d['sealed_first_mutation']['frontier_ordinal']==22
+          assert d['sealed_first_mutation']['reachable_root_hash']=='ed330049538dc3fb487019c71bb49bde65494dc88453e50bed73b49d4ee17ca6'
+          assert d['sealed_first_mutation']['reachable_root_CLV']==[75,199,22]
+          assert d['baseline_R48D_regression']['pass'] is True
+          assert d['baseline_R48D_regression']['max_a_star']==1
+          assert d['baseline_R48D_regression']['selected_pivots']==[7,2,15,5]
+          m=d['metrics']
+          assert 0 <= m['second_mutated_originals_generated'] <= 64
+          assert m['unique_reachable_fixpoints_evaluated'] <= m['reachable_fixpoints']
+          assert m['total_candidate_probes'] > 0
+          c=d['sealed_counterexample']
+          if c is None:
+              assert d['verdict']=='NO_UNIT_WEIGHT_COUNTEREXAMPLE_WITHIN_FROZEN_TARGETED_BUDGET__FINITE_ONLY'
+              assert d['best_finite_pressure_if_no_counterexample']['max_a_star'] <= 1
+          else:
+              ce=c['counterexample']
+              rows=[r for r in ce['candidate_rows'] if r.get('candidate',True)]
+              assert rows
+              assert all(r.get('full_R47M_independent_replay_pass') is True for r in rows)
+              assert not any(r.get('terminal') is not None for r in rows if r.get('eligible',False))
+              if ce['a_star'] is None:
+                  assert d['verdict']=='STRONGER_EXPLICIT_REACHABLE_NO_VARIABLE_DECREASING_R47M_CANDIDATE_FOUND'
+                  assert not any(r.get('eligible',False) for r in rows)
+              else:
+                  assert d['verdict']=='EXPLICIT_REACHABLE_UNIT_WEIGHT_COUNTEREXAMPLE_a_star_GE_2_FOUND'
+                  eligible=[r for r in rows if r.get('eligible',False) and r.get('terminal') is None]
+                  assert eligible
+                  assert ce['a_star'] >= 2
+                  assert min(int(r['a_req']) for r in eligible)==ce['a_star']
+                  assert all(int(r['a_req'])>=2 for r in eligible)
+          assert d['interpretation']['no_counterexample_within_budget_proves_unit_weight_coverage'] is False
+          assert d['interpretation']['explicit_a_star_ge_2_refutes_only_unit_weight_special_case'] is True
+          assert d['interpretation']['explicit_a_star_ge_2_does_not_refute_general_polynomial_a_route'] is True
+          assert d['interpretation']['no_sequence_enumeration'] is True
+          assert d['interpretation']['no_predeclared_persistent_clause_cap'] is True
+          assert d['firewall']['UNIVERSAL_UNIT_WEIGHT_COVERAGE']=='NOT_PROVED'
+          assert d['firewall']['UNIVERSAL_POLYNOMIAL_a_EXISTS']=='NOT_PROVED'
+          assert d['firewall']['UNIVERSAL_POLYNOMIAL_ENVELOPE_COVERAGE']=='OPEN'
+          assert d['firewall']['O4_UNIVERSAL_COVERAGE']=='OPEN'
+          assert d['firewall']['SAT_IN_P']=='NOT_PROVED'
+          assert d['firewall']['P_EQ_NP']=='NOT_PROVED'
+          assert d['firewall']['P_NE_NP']=='NOT_PROVED'
+          assert d['firewall']['P_VS_NP']=='OPEN'
+          assert d['firewall']['TRUMP_finished'] is False
+          print('R48G_GATE=PASS')
+          print('R48G_VERDICT=',d['verdict'])
+          print('R48G_METRICS=',json.dumps(m,sort_keys=True))
+          print('R48G_BEST=',json.dumps(d['best_finite_pressure_if_no_counterexample'],sort_keys=True))
+          if c is not None:
+              print('R48G_COUNTEREXAMPLE=',json.dumps({'mutation':c['mutation'],'reachable_root':{'hash':c['reachable_root']['hash'],'CLV':c['reachable_root']['CLV']},'trajectory_before_counterexample':c['trajectory_before_counterexample'],'counterexample':c['counterexample'],'candidate_probe_count':c['candidate_probe_count']},sort_keys=True))
+          PY
+
+      - name: Upload full scientific result
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: JANUS_TRUMP_R48G_TARGETED_UNIT_WEIGHT_PRESSURE_COUNTEREXAMPLE_HUNT_RESULT
+          path: artifacts/JANUS_TRUMP_R48G_TARGETED_UNIT_WEIGHT_PRESSURE_COUNTEREXAMPLE_HUNT_RESULT_2026-09-04.json
+          if-no-files-found: error
+          retention-days: 90
