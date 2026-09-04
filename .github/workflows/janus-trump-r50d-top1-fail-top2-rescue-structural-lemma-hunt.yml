@@ -1,0 +1,164 @@
+name: JANUS TRUMP R50D Top1 Fail Top2 Rescue Structural Lemma Hunt
+
+on:
+  push:
+    branches:
+      - research/r50d-top1-fail-top2-rescue-structural-lemma-hunt-2026-09-04
+  pull_request:
+    branches:
+      - research/r50c-top2-min-taut-prospective-falsifier-2026-09-04
+
+permissions:
+  contents: read
+
+jobs:
+  guard-and-tests:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Freeze R50D structural audit and epistemic firewall
+        run: |
+          python - <<'PY'
+          import json
+          p='research/JANUS_TRUMP_R50D_TOP1_FAIL_TOP2_RESCUE_STRUCTURAL_LEMMA_HUNT_PREREGISTRATION_2026-09-04.json'
+          d=json.load(open(p))
+          assert d['status']=='FROZEN_BEFORE_R50D_DETAILED_EXTRACTION__R50C_AGGREGATE_RESULTS_ALREADY_KNOWN'
+          assert d['parent']['commit']=='f1de3386985960ed104efe3c8b6d3d6798686766'
+          assert d['known_before_R50D']['rank1_fail_rank2_safe']==12
+          assert d['known_before_R50D']['detailed_12_pair_feature_relation_inspected_before_freeze'] is False
+          assert d['frozen_named_candidate']['name']=='MINORITY_POLARITY_SUPPORT_NONDECREASE'
+          fw=d['firewall']
+          assert fw['HEURISTIC_AUTHORITY'] is False
+          assert fw['ML_AUTHORITY'] is False
+          assert fw['RANDOM_AUTHORITY'] is False
+          assert fw['R50D_FINITE_12_IS_TRANSFER_LEMMA'] is False
+          assert fw['TOP2_UNIVERSAL_COVERAGE']=='OPEN'
+          assert fw['SAT_IN_P']=='NOT_PROVED'
+          assert fw['P_VS_NP']=='OPEN'
+          assert fw['TRUMP_finished'] is False
+          PY
+
+      - name: Static no-heuristic and outcome-blind candidate audit
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p=Path('experiments/janus_trump_r50d_top1_fail_top2_rescue_structural_lemma_hunt.py').read_text()
+          forbidden=[
+              'import random', 'from random', 'import numpy', 'from numpy',
+              'import torch', 'from torch', 'import sklearn', 'from sklearn',
+              'model.predict', 'softmax(', 'temperature=', 'cheap_signature',
+          ]
+          for marker in forbidden:
+              assert marker not in p, marker
+          required=[
+              'MINORITY_POLARITY_SUPPORT_NONDECREASE',
+              'candidate_predicates',
+              'SELECTOR_DERIVED_FEATURES',
+              'outcome_descriptor',
+              'independent_replay_pass',
+              'R50D_FINITE_12_IS_TRANSFER_LEMMA',
+          ]
+          for marker in required:
+              assert marker in p, marker
+          PY
+
+      - name: Compile and unit tests
+        run: |
+          python -m py_compile experiments/janus_trump_r50d_top1_fail_top2_rescue_structural_lemma_hunt.py
+          PYTHONPATH=experiments python tests/test_janus_trump_r50d_top1_fail_top2_rescue_structural_lemma_hunt.py
+
+  extract:
+    needs: guard-and-tests
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [0, 1, 2, 3]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Extract exact rank1/rank2 structural pairs
+        run: |
+          PYTHONPATH=experiments python experiments/janus_trump_r50d_top1_fail_top2_rescue_structural_lemma_hunt.py --shard-index ${{ matrix.shard }} --shard-count 4
+
+      - name: Validate shard firewall
+        run: |
+          python - <<'PY'
+          import json, os
+          s=os.environ['SHARD']
+          p=f'artifacts/JANUS_TRUMP_R50D_TOP1_FAIL_TOP2_RESCUE_STRUCTURAL_LEMMA_HUNT_SHARD_{s}_OF_4.json'
+          d=json.load(open(p))
+          assert d['mode']=='SHARD_EXTRACTION'
+          assert d['metrics']['hard_states'] >= 1
+          fw=d['firewall']
+          assert fw['R50D_FINITE_12_IS_TRANSFER_LEMMA'] is False
+          assert fw['SAT_IN_P']=='NOT_PROVED'
+          assert fw['P_VS_NP']=='OPEN'
+          PY
+        env:
+          SHARD: ${{ matrix.shard }}
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: janus-trump-r50d-pairs-shard-${{ matrix.shard }}
+          path: artifacts/JANUS_TRUMP_R50D_TOP1_FAIL_TOP2_RESCUE_STRUCTURAL_LEMMA_HUNT_SHARD_${{ matrix.shard }}_OF_4.json
+          if-no-files-found: error
+
+  synthesize:
+    needs: extract
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: janus-trump-r50d-pairs-shard-*
+          path: artifacts/r50d-shards
+          merge-multiple: true
+
+      - name: Synthesize the 12 rescue pairs
+        run: |
+          PYTHONPATH=experiments python experiments/janus_trump_r50d_top1_fail_top2_rescue_structural_lemma_hunt.py --synthesize-dir artifacts/r50d-shards
+
+      - name: Validate exact R50C reproduction and theorem firewall
+        run: |
+          python - <<'PY'
+          import json
+          p='artifacts/JANUS_TRUMP_R50D_TOP1_FAIL_TOP2_RESCUE_STRUCTURAL_LEMMA_HUNT_SYNTHESIS.json'
+          d=json.load(open(p))
+          m=d['metrics']
+          assert m['roots']==52
+          assert m['hard_states']==441
+          assert m['rank1_safe_controls']==429
+          assert m['rank1_fail_rank2_rescues']==12
+          assert d['frozen_named_candidate']['rescue_total']==12
+          assert d['frozen_named_candidate']['theorem_status']=='OPEN'
+          fw=d['firewall']
+          assert fw['R50D_FINITE_12_IS_TRANSFER_LEMMA'] is False
+          assert fw['TOP2_UNIVERSAL_COVERAGE']=='OPEN'
+          assert fw['SAT_IN_P']=='NOT_PROVED'
+          assert fw['P_VS_NP']=='OPEN'
+          assert fw['TRUMP_finished'] is False
+          print('R50D_VERDICT=', d['verdict'])
+          print('R50D_METRICS=', json.dumps(m, sort_keys=True))
+          print('R50D_NAMED_CANDIDATE=', json.dumps(d['frozen_named_candidate'], sort_keys=True))
+          print('R50D_TOP_INPUT_PREDICATES=', json.dumps(d['top_nonselector_input_predicates'][:5], sort_keys=True))
+          PY
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: janus-trump-r50d-synthesis
+          path: artifacts/JANUS_TRUMP_R50D_TOP1_FAIL_TOP2_RESCUE_STRUCTURAL_LEMMA_HUNT_SYNTHESIS.json
+          if-no-files-found: error
