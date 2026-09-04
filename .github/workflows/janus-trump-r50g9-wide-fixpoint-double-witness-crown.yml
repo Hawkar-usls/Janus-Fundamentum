@@ -1,0 +1,95 @@
+name: JANUS TRUMP R50G9 Wide Fixpoint Double Witness Crown
+
+on:
+  pull_request:
+    branches:
+      - research/r50g8-wide-survivor-impossibility-from-pre-bve-cleanliness-2026-09-05
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  symbolic-crown:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Freeze R50G9 theorem contract
+        run: |
+          python - <<'PY'
+          import json
+          p='research/JANUS_TRUMP_R50G9_WIDE_FIXPOINT_DOUBLE_WITNESS_CROWN_PREREGISTRATION_2026-09-05.json'
+          d=json.load(open(p))
+          assert d['status']=='FROZEN_BEFORE_EXECUTION'
+          assert d['no_new_corpus'] is True
+          assert d['no_heuristic_authority'] is True
+          assert d['firewall']['IMMEDIATE_BVE_CASE_ELIMINATED'] is False
+          PY
+
+      - name: Static frozen BVE measure audit
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p=Path('experiments/janus_trump_r33_certified_safe_reduction_stack_lean_core_forensics.py').read_text()
+          assert 'if len(resolvents) <= len(removed) and measure(transformed) < current:' in p
+          assert 'return x, tuple(pos), tuple(neg), tuple(resolvents), transformed' in p
+          PY
+
+      - name: Static frozen RUP single-literal deletion audit
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p=Path('experiments/janus_trump_r35b_single_literal_rup_vivification.py').read_text()
+          assert 'strengthened = tuple(l for l in clause if l != removed_literal)' in p
+          assert 'assumptions = tuple(-l for l in sorted(strengthened, key=lit_key))' in p
+          PY
+
+      - name: Static no-heuristic authority audit
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p=Path('experiments/janus_trump_r50g9_wide_fixpoint_double_witness_crown.py').read_text()
+          forbidden=['random.choice(', 'random.shuffle(', 'random.random(', 'sklearn', 'torch', 'tensorflow', 'heuristic_score', 'learned_selector']
+          for x in forbidden:
+              assert x not in p, x
+          PY
+
+      - name: Install test runner
+        run: python -m pip install --disable-pip-version-check -q pytest
+
+      - name: Compile and unit tests
+        run: |
+          python -m py_compile experiments/janus_trump_r50g9_wide_fixpoint_double_witness_crown.py
+          PYTHONPATH=.:experiments pytest -q tests/test_janus_trump_r50g9_wide_fixpoint_double_witness_crown.py
+
+      - name: Execute symbolic crown gate and frozen replay
+        run: |
+          mkdir -p artifacts
+          PYTHONPATH=experiments python experiments/janus_trump_r50g9_wide_fixpoint_double_witness_crown.py \
+            --output artifacts/JANUS_TRUMP_R50G9_RESULT.json
+
+      - name: Validate epistemic boundary
+        run: |
+          python - <<'PY'
+          import json
+          d=json.load(open('artifacts/JANUS_TRUMP_R50G9_RESULT.json'))
+          fw=d['firewall']
+          assert fw['HEURISTIC_AUTHORITY'] is False
+          assert fw['NO_NEW_CORPUS'] is True
+          assert fw['FINITE_NO_FIND_IMPLIES_THEOREM'] is False
+          assert fw['IMMEDIATE_BVE_CASE_ELIMINATED'] is False
+          assert fw['SAT_IN_P']=='NOT_PROVED'
+          assert fw['P_VS_NP']=='OPEN'
+          assert fw['TRUMP_finished'] is False
+          assert d['frozen_fixed_core_regression']['all_variables_have_2x2_polarity_degree'] is True
+          PY
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: janus-trump-r50g9-result
+          path: artifacts/JANUS_TRUMP_R50G9_RESULT.json
+          if-no-files-found: error
