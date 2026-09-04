@@ -1,0 +1,71 @@
+name: JANUS TRUMP R47AF Representation Authority Fiber Gate
+
+on:
+  push:
+    branches:
+      - research/r47af-representation-authority-fiber-gate-2026-09-04
+  workflow_dispatch:
+
+jobs:
+  r47af-fiber-authority:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Verify preregistration and parent
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json
+          p='research/JANUS_TRUMP_R47AF_REPRESENTATION_AUTHORITY_FIBER_GATE_PREREGISTRATION_2026-09-04.json'
+          d=json.load(open(p))
+          assert d['status']=='FROZEN_BEFORE_EXECUTION'
+          assert d['parent_commit']=='4170b49160eb4f4bed82196b185368cab87be3c8'
+          assert d['central_implication']=='C(x)=C(y) => SAT(x)=SAT(y)'
+          assert d['firewall']['finite_no_collision_implies_universal_sufficiency'] is False
+          assert d['firewall']['polynomial_decoder_implies_polynomial_decider'] is False
+          assert d['firewall']['SAT_IN_P']=='NOT_PROVED'
+          assert d['firewall']['P_VS_NP']=='OPEN'
+          PY
+
+      - name: Compile and unit tests
+        run: |
+          python -m py_compile experiments/janus_trump_r47af_representation_authority_fiber_gate.py
+          python -m unittest -q tests.test_janus_trump_r47af_representation_authority_fiber_gate
+
+      - name: Execute exact fiber collision audit
+        run: |
+          set -euo pipefail
+          python experiments/janus_trump_r47af_representation_authority_fiber_gate.py | tee /tmp/r47af.json
+          python - <<'PY'
+          import json
+          d=json.load(open('/tmp/r47af.json'))
+          assert d['gate']=='R47AF_REPRESENTATION_AUTHORITY_FIBER_GATE'
+          assert d['positive_control']['finite_collision_found'] is False
+          assert d['positive_control']['SEMANTIC_AUTHORITY']=='GRANTED_FOR_IDENTITY_CONTROL'
+          assert d['positive_control']['ALGORITHMIC_AUTHORITY'].startswith('NOT_GRANTED')
+          assert d['negative_control']['fiber_signature']==[3,4,2]
+          assert d['negative_control']['sat_a'] != d['negative_control']['sat_b']
+          assert d['negative_control']['independent_exact_replay_pass'] is True
+          assert d['negative_control']['SEMANTIC_AUTHORITY']=='DENIED'
+          assert d['negative_control']['ALGORITHMIC_AUTHORITY']=='DENIED'
+          assert d['negative_control']['verdict']=='QUARANTINED_INSUFFICIENT_REPRESENTATION'
+          assert d['laws']['polynomial_size_does_not_imply_predicate_sufficiency'] is True
+          assert d['laws']['polynomial_decoder_or_verifier_does_not_imply_polynomial_decider'] is True
+          assert d['UNIVERSAL_POLYNOMIAL_ENVELOPE_COVERAGE']=='OPEN'
+          assert d['O4_UNIVERSAL_COVERAGE']=='OPEN'
+          assert d['SAT_IN_P']=='NOT_PROVED'
+          assert d['P_VS_NP']=='OPEN'
+          assert d['TRUMP_finished'] is False
+          PY
+
+      - name: Preserve machine-readable receipt
+        uses: actions/upload-artifact@v4
+        with:
+          name: r47af-representation-authority-fiber-gate
+          path: /tmp/r47af.json
+          retention-days: 30
