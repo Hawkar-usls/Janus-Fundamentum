@@ -1,0 +1,87 @@
+name: JANUS TRUMP R47Y R47X All Pivot Surplus Over Slack Profile
+
+on:
+  push:
+    branches:
+      - research/r47y-cap-slack-survivor-pressure-lemma-2026-09-04
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  r47y-profile:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Verify frozen lemma and preregistration
+        run: |
+          python - <<'PY'
+          import json, subprocess
+          lemma='872c19be1dc29754ec6bdcdd3ff7f18760241409'
+          prereg='f3615d3952dd7860e6a8de5a848ff8a6b50e787f'
+          for c in (lemma,prereg):
+              subprocess.run(['git','merge-base','--is-ancestor',c,'HEAD'], check=True)
+          d=json.load(open('research/JANUS_TRUMP_R47Y_R47X_ALL_PIVOT_SURPLUS_OVER_SLACK_PROFILE_PREREGISTRATION_2026-09-04.json'))
+          assert d['status']=='FROZEN_BEFORE_EXECUTION'
+          assert d['lemma_commit']==lemma
+          assert d['sealed_target']['obstruction_hash']=='a4f361a15ba24f9be4db6bf9ab31c0718f776981646d84938359b49b5ec532d2'
+          assert d['sealed_target']['obstruction_CLV']==[75,202,21]
+          assert d['sealed_target']['obstruction_slack_sigma']==0
+          assert d['frozen_measurement']['expected_from_R47Y_if_target_is_true_zero_slack_cap_obstruction']=='EVERY_g_v_LE_MINUS_1'
+          assert d['interpretation_ceiling']['profile_proves_universal_obstruction'] is False
+          assert d['firewall']['O4_UNIVERSAL_COVERAGE']=='OPEN'
+          assert d['firewall']['SAT_IN_P']=='NOT_PROVED'
+          assert d['firewall']['P_VS_NP']=='OPEN'
+          assert d['firewall']['TRUMP_finished'] is False
+          PY
+      - name: Compile frozen profile
+        run: python -m py_compile experiments/janus_trump_r47y_r47x_all_pivot_surplus_over_slack_profile.py
+      - name: Execute frozen profile
+        run: |
+          mkdir -p artifacts
+          PYTHONPATH=experiments python experiments/janus_trump_r47y_r47x_all_pivot_surplus_over_slack_profile.py \
+            --output artifacts/JANUS_TRUMP_R47Y_R47X_ALL_PIVOT_SURPLUS_OVER_SLACK_PROFILE_RESULT_2026-09-04.json \
+            | tee /tmp/r47y.json
+          python - <<'PY'
+          import json
+          d=json.load(open('artifacts/JANUS_TRUMP_R47Y_R47X_ALL_PIVOT_SURPLUS_OVER_SLACK_PROFILE_RESULT_2026-09-04.json'))
+          assert d['gate']=='JANUS_TRUMP_R47Y_R47X_ALL_PIVOT_SURPLUS_OVER_SLACK_PROFILE'
+          assert d['verdict']=='ALL_PIVOT_STRICT_POST_SUBSUMPTION_EXPANSION_CONFIRMED'
+          assert d['pivot_count']==21
+          assert d['obstruction']['hash']=='a4f361a15ba24f9be4db6bf9ab31c0718f776981646d84938359b49b5ec532d2'
+          assert d['obstruction']['CLV']==[75,202,21]
+          assert d['obstruction']['sigma']==0
+          assert d['all_pivots_strict_post_subsumption_expansion'] is True
+          assert d['all_pivots_fail_R47Y_slack_safe_test'] is True
+          assert all(r['g_clause_gain'] <= -1 for r in d['rows'])
+          assert all(r['surplus_s_minus_d'] >= 1 for r in d['rows'])
+          assert all(r['g_clause_gain']==r['d_removed_parent_pressure']-r['s_survivor_pressure'] for r in d['rows'])
+          assert d['interpretation']['finite_profile_only'] is True
+          assert d['firewall']['UNIVERSAL_SLACK_SAFE_PIVOT_EXISTENCE']=='NOT_PROVED'
+          assert d['firewall']['UNIVERSAL_POLYNOMIAL_ENVELOPE_COVERAGE']=='OPEN'
+          assert d['firewall']['O4_UNIVERSAL_COVERAGE']=='OPEN'
+          assert d['firewall']['SAT_IN_P']=='NOT_PROVED'
+          assert d['firewall']['P_VS_NP']=='OPEN'
+          assert d['firewall']['TRUMP_finished'] is False
+          print('R47Y_GATE=PASS')
+          print('R47Y_VERDICT=', d['verdict'])
+          print('R47Y_MIN_PRE_NORMALIZATION_SLACK=', d['minimum_required_pre_normalization_additive_slack'])
+          print('R47Y_BEST=', json.dumps(d['best_pivot_by_gain'], sort_keys=True))
+          print('R47Y_WORST=', json.dumps(d['worst_pivot_by_gain'], sort_keys=True))
+          print('R47Y_HISTOGRAM=', json.dumps(d['surplus_histogram'], sort_keys=True))
+          PY
+      - name: Upload full profile
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: JANUS_TRUMP_R47Y_R47X_ALL_PIVOT_SURPLUS_OVER_SLACK_PROFILE_RESULT
+          path: artifacts/JANUS_TRUMP_R47Y_R47X_ALL_PIVOT_SURPLUS_OVER_SLACK_PROFILE_RESULT_2026-09-04.json
+          if-no-files-found: error
+          retention-days: 90
