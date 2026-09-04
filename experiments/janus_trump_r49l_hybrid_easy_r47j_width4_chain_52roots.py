@@ -5,7 +5,7 @@ from pathlib import Path
 
 import janus_trump_r33_certified_safe_reduction_stack_lean_core_forensics as r33
 import janus_trump_r45a_byte_pinned_ascent_descent_macro as r45a
-import janus_trump_r49e_partial_r47j_width4_direct_controller as r49e
+import janus_trump_r47j_normalization_fixpoint_restart_v25_gap as r47j
 import janus_trump_r49i_bipolar_nontauto_cross_union_width5_core_hunt as r49i
 import janus_trump_r49k_safe_only_width4_chain_52roots as r49k
 
@@ -28,6 +28,59 @@ def terminal_kind(f):
     if len(f) == 0:
         return "SAT_EMPTY_FORMULA"
     return None
+
+
+def candidate_row(current, candidate, replay_pass=None):
+    final = canon(candidate["normalization"]["final_formula"])
+    before_vars = set(r33.variables(current))
+    after_vars = set(r33.variables(final))
+    terminal = candidate["normalization"]["terminal"]
+    delta_v = len(before_vars) - len(after_vars)
+    no_fresh = after_vars <= before_vars
+    w = max_width(final)
+    eligible = bool(terminal is not None or (delta_v >= 1 and no_fresh))
+    safe = bool(terminal is not None or (eligible and w <= WIDTH_CAP))
+    return {
+        "var": int(candidate["var"]),
+        "input_CLV": list(r49i.clv(current)),
+        "forced_DP_CLV": list(candidate["DP"]["measure_after_forced_DP"]),
+        "final_CLV": list(r49i.clv(final)),
+        "terminal": terminal,
+        "semantic_sat": candidate["normalization"]["semantic_sat"],
+        "delta_V_eliminated": int(delta_v),
+        "no_fresh_variables": bool(no_fresh),
+        "eligible": bool(eligible),
+        "final_max_width": int(w),
+        "width4_safe": bool(safe),
+        "R47J_legacy_CLV_accepted_flag": bool(candidate["accepted"]),
+        "DP_independent_replay_pass": bool(candidate["DP_independent_replay_pass"]),
+        "polynomial_intermediate_envelope_pass": bool(candidate["polynomial_intermediate_envelope_pass"]),
+        "R47J_independent_replay_pass": replay_pass,
+        "R47J_round_count": int(candidate["normalization"]["round_count"]),
+        "R47J_restart_count": int(candidate["normalization"]["restart_count"]),
+        "R47J_RUP_checks": int(candidate["normalization"]["ledger"]["RUP_checks"]),
+    }
+
+
+def scan(current, replay_all=False):
+    rows = []
+    candidates = {}
+    for v in r33.variables(current):
+        c = r47j.macro_candidate_fixpoint(current, int(v))
+        if c is None:
+            rows.append({"var": int(v), "candidate": False, "eligible": False, "width4_safe": False})
+            continue
+        if not c["DP_independent_replay_pass"] or not c["polynomial_intermediate_envelope_pass"]:
+            raise AssertionError(("R49L_CANDIDATE_INTEGRITY_FAIL", v))
+        replay_pass = None
+        if replay_all:
+            replay = r47j.independent_fixpoint_macro_replay(current, c)
+            if not replay["pass"]:
+                raise AssertionError(("R49L_REPLAY_FAIL", v, replay))
+            replay_pass = True
+        rows.append(candidate_row(current, c, replay_pass))
+        candidates[int(v)] = c
+    return rows, candidates
 
 
 def run_root(root, provenance, root_index):
@@ -93,11 +146,11 @@ def run_root(root, provenance, root_index):
             current = final
             continue
 
-        rows, candidates = r49e.scan(current, replay_all=False)
+        rows, candidates = scan(current, replay_all=False)
         total_candidate_probes += len(rows)
         safe = [x for x in rows if x.get("width4_safe", False)]
         if not safe:
-            replay_rows, replay_candidates = r49e.scan(current, replay_all=True)
+            replay_rows, _ = scan(current, replay_all=True)
             replay_safe = [x for x in replay_rows if x.get("width4_safe", False)]
             total_candidate_probes += len(replay_rows)
             if replay_safe:
@@ -130,10 +183,10 @@ def run_root(root, provenance, root_index):
         chosen_row = min(safe, key=lambda x: int(x["var"]))
         var = int(chosen_row["var"])
         chosen = candidates[var]
-        replay = r49e.r47j.independent_fixpoint_macro_replay(current, chosen)
+        replay = r47j.independent_fixpoint_macro_replay(current, chosen)
         if not replay["pass"]:
             raise AssertionError(("R49L_R47J_REPLAY_FAIL", root_index, var, replay))
-        row = r49e.candidate_row(current, chosen, True)
+        row = candidate_row(current, chosen, True)
         final = canon(chosen["normalization"]["final_formula"])
         if row["terminal"] is None:
             if int(row["final_max_width"]) > WIDTH_CAP or int(row["delta_V_eliminated"]) < 1 or not row["no_fresh_variables"]:
