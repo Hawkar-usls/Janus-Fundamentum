@@ -1,0 +1,69 @@
+{
+  "schema": "JANUS_TRUMP_R47AA_FRONTIER_MINIMUM_ADDITIVE_ENVELOPE_SLACK_PROFILE_PREREGISTRATION",
+  "version": "1.0",
+  "date": "2026-09-04",
+  "status": "FROZEN_BEFORE_EXECUTION",
+  "parent": {
+    "branch": "research/r47z-polynomial-envelope-slack-rescue-2026-09-04",
+    "commit": "01fb5e705967a00a4cc1444d9d33ac469a9b263a",
+    "result": "MINIMUM_ADDITIVE_ENVELOPE_SLACK_RESCUE_FOUND",
+    "R47X_target_minimum_delta": 4
+  },
+  "question": "Across a frozen deterministic reachable one-swap frontier, what minimum additive persisted-state clause slack Delta*(F) is required by the first-certified R47M projection chain, and do we observe witnesses requiring more slack than the sealed R47X value 4?",
+  "definition": {
+    "C0": "root reachable-fixpoint clause count",
+    "B": "C0 + delta",
+    "Delta_star": "least delta in [0,V0] for which FIRST_ENVELOPE_PRESERVING_CERTIFIED_PIVOT reaches a verified terminal; null means no rescue for delta<=V0",
+    "persisted_state_rule": "C(F_t)<=B and V strictly decreases on every selected nonterminal projection",
+    "transient_probe_rule": "exact-DP transient may exceed B but must pass the existing polynomial intermediate envelope and full independent replay"
+  },
+  "frozen_frontier": {
+    "generator": "R47X centered one-swap signed-same-support frontier",
+    "center_original_hash": "eb13be26c29c106cf172db0be435aaf852d1e1248fced151c5356791f70024da",
+    "ordinal_window": "1_THROUGH_64_INCLUSIVE",
+    "deduplicate_by_reachable_fixpoint_hash": true,
+    "include_center_fixpoint_as_control": true,
+    "do_not_stop_at_first_obstruction": true
+  },
+  "frozen_search": {
+    "for_each_unique_reachable_fixpoint": [
+      "run delta=0 first",
+      "if covered set Delta*=0 and do not test larger delta",
+      "if obstructed test delta=1..V0 in increasing order until first certified terminal",
+      "if no terminal for delta<=V0 record finite lower bound Delta*>V0 only"
+    ],
+    "selection": "FIRST_ENVELOPE_PRESERVING_CERTIFIED_PIVOT_IN_CANONICAL_VARIABLE_ORDER",
+    "sequence_enumeration": false,
+    "max_delta_per_root": "V0",
+    "proof_authority": "existing R47M exact-DP + joint R33/affine/RUP/SA-BVE closure with DP replay, polynomial envelope, selected full independent replay, and SAT backward reconstruction"
+  },
+  "metrics": [
+    "frontier positions seen",
+    "unique reachable fixpoints",
+    "Delta* histogram",
+    "maximum observed Delta*",
+    "hardest rescued root",
+    "roots with no rescue for delta<=V0",
+    "candidate probes and selected steps",
+    "root C0,V0 and normalized size"
+  ],
+  "scientific_outcomes": [
+    "FRONTIER_MAXIMUM_MINIMUM_SLACK_MEASURED__FINITE_ONLY",
+    "EXPLICIT_ROOT_WITH_NO_RESCUE_FOR_DELTA_LE_V0_FOUND"
+  ],
+  "interpretation_ceiling": {
+    "finite_frontier_bounded_slack_proves_universal_polynomial_envelope": false,
+    "finite_maximum_delta_is_not_asymptotic_bound": true,
+    "no_rescue_for_delta_le_V0_is_only_a_lower_bound_against_this_frozen_envelope_grammar": true,
+    "next_if_finite_profile": "R47AB input-size ladder for Delta*(F) growth or a symbolic polynomial bound"
+  },
+  "epistemic_firewall": {
+    "UNIVERSAL_POLYNOMIAL_ENVELOPE_COVERAGE": "OPEN",
+    "O4_UNIVERSAL_COVERAGE": "OPEN",
+    "SAT_IN_P": "NOT_PROVED",
+    "P_EQ_NP": "NOT_PROVED",
+    "P_NE_NP": "NOT_PROVED",
+    "P_VS_NP": "OPEN",
+    "TRUMP_finished": false
+  }
+}
