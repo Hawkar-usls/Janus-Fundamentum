@@ -1,0 +1,46 @@
+name: JANUS TRUMP R49L Hybrid Easy + R47J Width4 Chain 52 Roots
+
+on:
+  push:
+    branches:
+      - research/r49l-hybrid-easy-r47j-width4-chain-2026-09-04
+  workflow_dispatch:
+
+jobs:
+  r49l-chain:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Verify premise and compile
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -f experiments/janus_trump_r49k_safe_only_width4_chain_52roots.py
+          test -f research/JANUS_TRUMP_R49H_WIDTH4_CROSS_UNION_SAFE_EXACT_DP_PIVOT_LEMMA_2026-09-04.json
+          test -f research/JANUS_TRUMP_R49F_WIDTHW_EXACT_DP_AND_PARTIAL_W4_RESOURCE_THEOREM_2026-09-04.json
+          python - <<'PY'
+          import json
+          h=json.load(open('research/JANUS_TRUMP_R49H_WIDTH4_CROSS_UNION_SAFE_EXACT_DP_PIVOT_LEMMA_2026-09-04.json'))
+          f=json.load(open('research/JANUS_TRUMP_R49F_WIDTHW_EXACT_DP_AND_PARTIAL_W4_RESOURCE_THEOREM_2026-09-04.json'))
+          assert h['firewall']['CROSS_UNION_SAFE_BIPOLAR_EXACT_DP_LANE_SOUNDNESS']=='PROVED'
+          assert f['firewall']['PARTIAL_R47J_CANDIDATE_RESOURCE_POLYNOMIALITY']=='PROVED_IN_SCOPE'
+          assert h['firewall']['P_VS_NP']=='OPEN'
+          PY
+          python -m py_compile experiments/janus_trump_r49l_hybrid_easy_r47j_width4_chain_52roots.py
+      - name: Execute hybrid chain
+        env:
+          PYTHONPATH: experiments
+        run: |
+          mkdir -p artifacts
+          python experiments/janus_trump_r49l_hybrid_easy_r47j_width4_chain_52roots.py
+      - name: Upload scientific result
+        uses: actions/upload-artifact@v4
+        with:
+          name: JANUS_TRUMP_R49L_HYBRID_EASY_R47J_WIDTH4_CHAIN_52ROOTS_RESULT
+          path: artifacts/JANUS_TRUMP_R49L_HYBRID_EASY_R47J_WIDTH4_CHAIN_52ROOTS_RESULT.json
+          if-no-files-found: error
+          retention-days: 90
