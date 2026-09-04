@@ -1,0 +1,78 @@
+name: JANUS TRUMP R50G6 Immediate BVE Same-Pivot Terminality
+
+on:
+  pull_request:
+    branches:
+      - research/r50g5-immediate-bve-exact-descent-algebraic-reduction-2026-09-05
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  theorem-or-counterexample:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Freeze R50G6 theorem-or-counterexample contract
+        run: |
+          python - <<'PY'
+          import json
+          p='research/JANUS_TRUMP_R50G6_IMMEDIATE_BVE_SAME_PIVOT_TERMINALITY_THEOREM_PREREGISTRATION_2026-09-05.json'
+          d=json.load(open(p))
+          assert d['status']=='FROZEN_BEFORE_EXECUTION'
+          assert d['candidate_reachable_theorem'].startswith('FOR_EVERY_REACHABLE_W4_STATE')
+          assert d['firewall']['IMMEDIATE_BVE_CASE_ELIMINATED'] is False
+          PY
+
+      - name: Static no-heuristic authority audit
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p=Path('experiments/janus_trump_r50g6_immediate_bve_same_pivot_terminality_theorem.py').read_text()
+          forbidden=['random.choice(', 'random.shuffle(', 'sklearn', 'torch', 'tensorflow', 'heuristic_score', 'learned_selector']
+          for x in forbidden:
+              assert x not in p, x
+          PY
+
+      - name: Install test runner
+        run: python -m pip install --disable-pip-version-check -q pytest
+
+      - name: Compile and unit tests
+        run: |
+          python -m py_compile experiments/janus_trump_r50g6_immediate_bve_same_pivot_terminality_theorem.py
+          PYTHONPATH=.:experiments pytest -q tests/test_janus_trump_r50g6_immediate_bve_same_pivot_terminality_theorem.py
+
+      - name: Execute exact theorem-or-counterexample gate
+        run: |
+          mkdir -p artifacts
+          PYTHONPATH=experiments python experiments/janus_trump_r50g6_immediate_bve_same_pivot_terminality_theorem.py \
+            --output artifacts/JANUS_TRUMP_R50G6_RESULT.json
+
+      - name: Validate epistemic boundary
+        run: |
+          python - <<'PY'
+          import json
+          d=json.load(open('artifacts/JANUS_TRUMP_R50G6_RESULT.json'))
+          fw=d['firewall']
+          assert fw['HEURISTIC_AUTHORITY'] is False
+          assert fw['FINITE_REPLAY_IMPLIES_UNIVERSAL_THEOREM'] is False
+          assert fw['SAT_IN_P']=='NOT_PROVED'
+          assert fw['P_VS_NP']=='OPEN'
+          assert fw['TRUMP_finished'] is False
+          comp=d['composition']
+          assert comp['reachability_of_composite']=='NOT_ESTABLISHED'
+          if comp.get('local_terminality_refuted'):
+              assert fw['STRONG_LOCAL_TERMINALITY_THEOREM']=='REFUTED'
+              assert fw['REACHABLE_TERMINALITY_THEOREM'] in {'OPEN','REFUTED'}
+          PY
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: janus-trump-r50g6-result
+          path: artifacts/JANUS_TRUMP_R50G6_RESULT.json
+          if-no-files-found: error
