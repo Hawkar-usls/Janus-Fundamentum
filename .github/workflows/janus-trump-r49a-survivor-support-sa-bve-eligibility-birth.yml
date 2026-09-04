@@ -1,0 +1,82 @@
+name: JANUS TRUMP R49A Survivor Support SA BVE Eligibility Birth
+
+on:
+  push:
+    branches:
+      - research/r49a-survivor-support-sa-bve-eligibility-birth-2026-09-04
+  workflow_dispatch:
+
+jobs:
+  r49a-eligibility-birth:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Verify frozen preregistration lineage
+        run: |
+          python - <<'PY'
+          import json, subprocess
+          parent='24a361135a5d8082f17257a5b617ab9fb9de60f0'
+          prereg='a3b19f0046be3d018aa0575f2a0f5a8612e10b83'
+          executor='96f329e4d2c75cd17c87bcd1b86357f4e9c643db'
+          for c in (parent,prereg,executor):
+              subprocess.run(['git','merge-base','--is-ancestor',c,'HEAD'],check=True)
+          d=json.load(open('research/JANUS_TRUMP_R49A_SURVIVOR_SUPPORT_SA_BVE_ELIGIBILITY_BIRTH_PREREGISTRATION_2026-09-04.json'))
+          assert d['status']=='FROZEN_BEFORE_EXECUTION'
+          assert d['parent']['commit']==parent
+          assert d['sealed_R48Z']['survivor']==[15,-20,-24,27,28]
+          assert d['sealed_R48Z']['legacy_SA_BVE_sequence']==[26,12,14,30,23,29,27,18]
+          assert d['sealed_R48Z']['survivor_removed_at_outer']==6
+          assert d['frozen_replay']['candidate_rule'].startswith('exact r42')
+          assert d['interpretation_ceiling']['finite_single_path_profile_proves_universal_support_availability'] is False
+          assert d['firewall']['P_VS_NP']=='OPEN'
+          PY
+      - name: Compile
+        run: python -m py_compile experiments/janus_trump_r49a_survivor_support_sa_bve_eligibility_birth.py
+      - name: Execute frozen eligibility profile
+        run: |
+          mkdir -p artifacts
+          PYTHONPATH=experiments python experiments/janus_trump_r49a_survivor_support_sa_bve_eligibility_birth.py \
+            --output artifacts/JANUS_TRUMP_R49A_SURVIVOR_SUPPORT_SA_BVE_ELIGIBILITY_BIRTH_RESULT_2026-09-04.json \
+            | tee /tmp/r49a.json
+          python - <<'PY'
+          import json
+          d=json.load(open('artifacts/JANUS_TRUMP_R49A_SURVIVOR_SUPPORT_SA_BVE_ELIGIBILITY_BIRTH_RESULT_2026-09-04.json'))
+          allowed={
+            'SUPPORT_SA_BVE_AVAILABLE_IMMEDIATELY__LEGACY_RANKING_DELAY',
+            'SUPPORT_SA_BVE_BECOMES_AVAILABLE_AFTER_EXTERNAL_PREREQUISITES',
+            'SUPPORT_SA_BVE_ELIGIBILITY_FLAPS_BEFORE_REMOVAL',
+            'VAR27_AVAILABLE_EARLIER_BUT_OTHER_SUPPORT_PIVOT_BIRTH_DIFFERS',
+            'UNEXPECTED_PROFILE_REGRESSION',
+          }
+          assert d['gate']=='JANUS_TRUMP_R49A_SURVIVOR_SUPPORT_SA_BVE_ELIGIBILITY_BIRTH'
+          assert d['classification'] in allowed
+          assert d['survivor']==[15,-20,-24,27,28]
+          assert d['support']==[15,20,24,27,28]
+          assert d['legacy_SA_BVE_sequence']==[26,12,14,30,23,29,27,18]
+          assert d['summary']['actual_survivor_removal_outer']==6
+          assert d['summary']['actual_survivor_removal_var']==27
+          assert len(d['var27_timeline'])==7
+          assert d['rows'][-1]['terminal']=='DIRECT_EMPTY_CNF'
+          assert d['interpretation']['universal_support_availability_proved'] is False
+          assert d['firewall']['UNIVERSAL_WIDTH_4_COVERAGE']=='NOT_PROVED'
+          assert d['firewall']['SAT_IN_P']=='NOT_PROVED'
+          assert d['firewall']['P_VS_NP']=='OPEN'
+          print('R49A_GATE=PASS')
+          print('R49A_CLASSIFICATION='+d['classification'])
+          print('R49A_SUMMARY='+json.dumps(d['summary'],sort_keys=True))
+          print('R49A_VAR27='+json.dumps(d['var27_timeline'],sort_keys=True))
+          print('R49A_ROWS='+json.dumps([{'outer':r['outer'],'CLV':r['state_CLV_after_R47J'],'survivor':r['survivor_present'],'chosen':r['legacy_chosen_var'],'eligible_count':r['all_eligible_candidate_count'],'eligible_order':r.get('eligible_candidate_order'),'support':r['support_profiles']} for r in d['rows'] if r['terminal'] is None],sort_keys=True))
+          PY
+      - name: Upload full result
+        uses: actions/upload-artifact@v4
+        with:
+          name: JANUS_TRUMP_R49A_SURVIVOR_SUPPORT_SA_BVE_ELIGIBILITY_BIRTH_RESULT
+          path: artifacts/JANUS_TRUMP_R49A_SURVIVOR_SUPPORT_SA_BVE_ELIGIBILITY_BIRTH_RESULT_2026-09-04.json
+          if-no-files-found: error
+          retention-days: 90
