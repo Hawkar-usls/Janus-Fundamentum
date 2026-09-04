@@ -1,0 +1,70 @@
+name: JANUS TRUMP R47X R47W Depth3 Causal Serial Unlock Microscope
+
+on:
+  push:
+    branches:
+      - research/r47x-r47w-depth3-causal-serial-unlock-microscope-2026-09-04
+
+jobs:
+  causal-microscope:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Verify frozen preregistration and compile
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          p=Path('research/JANUS_TRUMP_R47X_R47W_DEPTH3_CAUSAL_SERIAL_UNLOCK_MICROSCOPE_PREREGISTRATION_2026-09-04.json')
+          d=json.loads(p.read_text())
+          assert d['status']=='FROZEN_BEFORE_EXECUTION'
+          assert d['parent']['commit']=='5163b3e0e1080a423a5dd6b96c0ab5e80760aa81'
+          assert d['theorem_context']['R47U_commit']=='b7d056cbe67903fa35014232aff8bb4feea8b931'
+          assert d['sealed_witness']['residual_hash']=='eb653802ae710e5770e21878b5b38b2871cf0db16451b04cfc5451ca2c2e7502'
+          assert d['sealed_witness']['depth2_failed_pair_count']==462
+          assert d['sealed_witness']['first_certified_depth3_sequence']==[11,12,15]
+          assert d['firewall']['O4_UNIVERSAL_COVERAGE']=='OPEN'
+          assert d['firewall']['SAT_IN_P']=='NOT_PROVED'
+          assert d['firewall']['P_VS_NP']=='OPEN'
+          PY
+          python -m py_compile experiments/janus_trump_r47x_r47w_depth3_causal_serial_unlock_microscope.py
+      - name: Execute causal microscope
+        run: |
+          PYTHONPATH=experiments python experiments/janus_trump_r47x_r47w_depth3_causal_serial_unlock_microscope.py | tee /tmp/r47x.json
+          python - <<'PY'
+          import json
+          d=json.load(open('/tmp/r47x.json'))
+          allowed={
+            'CONTEXT_ONLY_ORDER_SENSITIVE_SERIAL_UNLOCK',
+            'CONTEXT_ONLY_ORDER_INSENSITIVE_DEPTH3_UNLOCK',
+            'LOCAL_SKELETON_MEDIATED_ORDER_SENSITIVE_SERIAL_UNLOCK',
+            'LOCAL_SKELETON_MEDIATED_ORDER_INSENSITIVE_DEPTH3_UNLOCK',
+            'MIXED_CONTEXT_AND_SKELETON_SERIAL_UNLOCK',
+            'STRUCTURAL_SHORTCUT_OR_CAUSAL_MODEL_MISMATCH',
+          }
+          assert d['gate']=='JANUS_TRUMP_R47X_R47W_DEPTH3_CAUSAL_SERIAL_UNLOCK_MICROSCOPE'
+          assert d['sealed_depth_statement']=='d(F)=3_FOR_THIS_FINITE_REACHABLE_WITNESS'
+          assert d['depth1_reconfirmed_dead'] is True
+          assert d['depth2_reconfirmed_dead'] is True
+          assert d['depth2_failed_pair_count']==462
+          assert d['causal_key']['pivot15_alone_accepted'] is False
+          assert d['causal_key']['11_then_15_accepted'] is False
+          assert d['causal_key']['12_then_15_accepted'] is False
+          assert d['causal_key']['11_then_12_then_15_accepted'] is True
+          assert d['causal_key']['target_requires_two_layer_prefix_against_single_key_controls'] is True
+          assert d['classification'] in allowed
+          assert d['firewall']['O4_UNIVERSAL_COVERAGE']=='OPEN'
+          assert d['firewall']['SAT_IN_P']=='NOT_PROVED'
+          assert d['firewall']['P_VS_NP']=='OPEN'
+          print('R47X_GATE=PASS')
+          print('R47X_CLASSIFICATION='+d['classification'])
+          print('R47X_CAUSAL_KEY='+json.dumps(d['causal_key'],sort_keys=True))
+          print('R47X_STAGE12_DELTA='+json.dumps(d['pivot12_stage_delta_after_11'],sort_keys=True))
+          print('R47X_TARGET_DELTA='+json.dumps(d['pivot15_deltas']['F0_to_after_11_12'],sort_keys=True))
+          PY
