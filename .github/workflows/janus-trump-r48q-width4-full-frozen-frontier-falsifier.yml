@@ -1,0 +1,114 @@
+name: JANUS TRUMP R48Q Width4 Full Frozen Frontier Falsifier
+
+on:
+  push:
+    branches:
+      - research/r48q-width4-full-frozen-frontier-falsifier-2026-09-04
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  r48q-width4-frontier:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 240
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Verify frozen preregistration
+        run: |
+          python - <<'PY'
+          import json,subprocess
+          parent='93e1ba28748610b5ed4917d378698c5a94176ed3'
+          prereg='41db2eff2e9fab45c2fe5fe60082740861c6f8c1'
+          executor='11cdb46634e5363f9fb493793ac6300c035086ef'
+          for c in (parent,prereg,executor):
+              subprocess.run(['git','merge-base','--is-ancestor',c,'HEAD'],check=True)
+          d=json.load(open('research/JANUS_TRUMP_R48Q_WIDTH4_FULL_FROZEN_FRONTIER_FALSIFIER_PREREGISTRATION_2026-09-04.json'))
+          assert d['status']=='FROZEN_BEFORE_EXECUTION'
+          assert d['parent']['commit']==parent
+          assert d['frozen_frontier']['one_swap_ordinal_window']==[1,64]
+          assert d['frozen_frontier']['expected_unique_reachable_roots_if_lineage_unchanged']==52
+          assert d['width_policy']['W']==4
+          assert d['interpretation_ceiling']['full_frozen_frontier_success_proves_universal_W4'] is False
+          assert d['epistemic_firewall']['O4_UNIVERSAL_COVERAGE']=='OPEN'
+          assert d['epistemic_firewall']['SAT_IN_P']=='NOT_PROVED'
+          assert d['epistemic_firewall']['P_VS_NP']=='OPEN'
+          PY
+      - name: Compile
+        run: python -m py_compile experiments/janus_trump_r48q_width4_full_frozen_frontier_falsifier.py
+      - name: Execute frozen width4 frontier
+        run: |
+          mkdir -p artifacts
+          PYTHONPATH=experiments python experiments/janus_trump_r48q_width4_full_frozen_frontier_falsifier.py \
+            --output artifacts/JANUS_TRUMP_R48Q_WIDTH4_FULL_FROZEN_FRONTIER_FALSIFIER_RESULT_2026-09-04.json \
+            | tee /tmp/r48q.json
+          python - <<'PY'
+          import json
+          d=json.load(open('artifacts/JANUS_TRUMP_R48Q_WIDTH4_FULL_FROZEN_FRONTIER_FALSIFIER_RESULT_2026-09-04.json'))
+          assert d['gate']=='JANUS_TRUMP_R48Q_WIDTH4_FULL_FROZEN_FRONTIER_FALSIFIER'
+          assert d['verdict'] in {
+              'EXPLICIT_REACHABLE_WIDTH4_FRONTIER_OBSTRUCTION_FOUND',
+              'STRONGER_NO_VARIABLE_DECREASING_CANDIDATE_FOUND',
+              'FULL_FROZEN_52_ROOT_FRONTIER_COVERED_BY_WIDTH4_CHAIN__FINITE_ONLY',
+          }
+          rr=d['R48O_regression']
+          assert rr['root_hash']=='3f05812b68eec1a2c16b099d5542dcc53fce66a0cb47679a1594134a0a553750'
+          assert rr['selected_pivots']==[2,4,5,7,9,10]
+          assert rr['max_persisted_width']==4
+          assert rr['SAT_root_reconstruction_pass'] is True
+          if d['first_obstruction'] is None:
+              assert d['metrics']['unique_reachable_roots_evaluated']==52
+              assert d['metrics']['covered_roots']==52
+              assert d['metrics']['width4_obstruction_roots']==0
+              assert d['maximum_observed_persisted_width']<=4
+          else:
+              o=d['first_obstruction']['obstruction']
+              if o['kind']!='ROOT_ALREADY_EXCEEDS_WIDTH_CAP':
+                  for r in o['candidate_rows']:
+                      if r.get('candidate',True):
+                          assert r['full_R47M_independent_replay_pass'] is True
+                  eligible=[r for r in o['candidate_rows'] if r.get('eligible',False)]
+                  assert not any(r.get('terminal') is not None for r in eligible)
+                  assert not any(r.get('final_max_width',999)<=4 for r in eligible)
+          for root in d['roots']:
+              if not root['covered']:
+                  continue
+              for step in root['selected_path']:
+                  assert step['full_R47M_independent_replay_pass'] is True
+                  if step['terminal'] is None:
+                      assert step['final_max_width']<=4
+              if root['terminal'] is not None and root['terminal']['semantic_sat'] is True:
+                  assert root['terminal']['SAT_root_reconstruction_pass'] is True
+          assert d['interpretation']['finite_frontier_only'] is True
+          assert d['firewall']['O4_UNIVERSAL_COVERAGE']=='OPEN'
+          assert d['firewall']['SAT_IN_P']=='NOT_PROVED'
+          assert d['firewall']['P_VS_NP']=='OPEN'
+          assert d['firewall']['TRUMP_finished'] is False
+          print('R48Q_GATE=PASS')
+          print('R48Q_VERDICT=',d['verdict'])
+          print('R48Q_METRICS=',json.dumps(d['metrics'],sort_keys=True))
+          print('R48Q_MAX_WIDTH=',d['maximum_observed_persisted_width'])
+          print('R48Q_HARDEST=',json.dumps(d['hardest_covered_root'],sort_keys=True))
+          if d['first_obstruction'] is not None:
+              o=d['first_obstruction']
+              print('R48Q_OBSTRUCTION=',json.dumps({
+                  'root_hash':o['root_hash'],'root_CLV':o['root_CLV'],'provenance':o['provenance'],
+                  'selected_pivots':[x['var'] for x in o['selected_path']],
+                  'kind':o['obstruction']['kind'],'state_hash':o['obstruction']['state_hash'],
+                  'state_CLV':o['obstruction']['state_CLV'],'state_max_width':o['obstruction']['state_max_width'],
+              },sort_keys=True))
+          PY
+      - name: Upload full scientific result
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: JANUS_TRUMP_R48Q_WIDTH4_FULL_FROZEN_FRONTIER_FALSIFIER_RESULT
+          path: artifacts/JANUS_TRUMP_R48Q_WIDTH4_FULL_FROZEN_FRONTIER_FALSIFIER_RESULT_2026-09-04.json
+          if-no-files-found: error
+          retention-days: 90
