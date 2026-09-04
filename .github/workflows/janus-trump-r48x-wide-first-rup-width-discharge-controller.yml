@@ -23,10 +23,12 @@ jobs:
           import json, subprocess
           parent='55ac064814b456fa484a24f751afef7fcbe7b103'
           prereg='19f474567ef5df333a22a2bb88801c2126b552c2'
-          executor='09216f43915de37e700a27ded2675468cbc626c3'
-          for c in (parent,prereg,executor):
+          addendum='4b217afc12a9fea38d62106b632cb2f39765a45f'
+          executor='8af328cbf90cbdb8a44b187ff858acd7b585d2ca'
+          for c in (parent,prereg,addendum,executor):
               subprocess.run(['git','merge-base','--is-ancestor',c,'HEAD'],check=True)
           d=json.load(open('research/JANUS_TRUMP_R48X_WIDE_FIRST_RUP_WIDTH_DISCHARGE_CONTROLLER_PREREGISTRATION_2026-09-04.json'))
+          a=json.load(open('research/JANUS_TRUMP_R48X_HARNESS_ALIGNMENT_ADDENDUM_2026-09-04.json'))
           assert d['status']=='FROZEN_BEFORE_EXECUTION'
           assert d['parent']['commit']==parent
           assert d['motivation']['general_RUP_history_counts']==[28,2,68]
@@ -34,6 +36,12 @@ jobs:
           assert d['frozen_controller']['no_narrow_clause_vivification_before_width_reset_or_stall'] is True
           assert d['resource_claim_to_verify']['each_success_strictly_decreases_E4'] is True
           assert d['interpretation_ceiling']['successful_calibration_proves_universal_width4_reset'] is False
+          assert a['status']=='FROZEN_BEFORE_RETRY'
+          assert a['failed_run']==33865461712
+          assert a['observed_failure']['kind']=='HARNESS_INPUT_MISMATCH'
+          assert a['observed_failure']['scientific_result_file_created'] is False
+          assert a['frozen_correction']['expected_general_RUP_successful_strengthenings']==[28,2,68]
+          assert a['frozen_correction']['no_change_to_wide_first_selection_rule'] is True
           assert d['firewall']['P_VS_NP']=='OPEN'
           PY
       - name: Compile
@@ -55,7 +63,9 @@ jobs:
           }
           assert d['gate']=='JANUS_TRUMP_R48X_WIDE_FIRST_RUP_WIDTH_DISCHARGE_CONTROLLER'
           assert d['classification'] in allowed
+          assert d['harness_alignment_addendum_applied'] is True
           assert [r['step'] for r in d['rows']]==[3,4,6]
+          assert [r['R33_stage']['application_count'] for r in d['rows']]==[0,0,1]
           assert [r['general_RUP']['successful_strengthenings'] for r in d['rows']]==[28,2,68]
           for r in d['rows']:
               w=r['wide_first']
@@ -64,6 +74,7 @@ jobs:
               assert w['successful_strengthenings']<=w['initial_E4']
               assert all(h['independent_up_conflict_pass'] for h in w['history'])
           assert d['resource_theorem']['every_success_strictly_decreases_E4'] is True
+          assert d['interpretation']['first_run_33865461712_was_harness_input_mismatch'] is True
           assert d['interpretation']['universal_width4_reset_proved'] is False
           assert d['firewall']['UNIVERSAL_WIDTH_4_COVERAGE']=='NOT_PROVED'
           assert d['firewall']['SAT_IN_P']=='NOT_PROVED'
@@ -74,6 +85,7 @@ jobs:
           for r in d['rows']:
               print('R48X_ROW='+json.dumps({
                 'step':r['step'],'pivot':r['pivot'],'forced_E4':r['forced_E4'],
+                'r33_apps':r['R33_stage']['application_count'],'post_R33_E4':r['R33_stage']['post_R33_E4'],
                 'general_successes':r['general_RUP']['successful_strengthenings'],
                 'general_checks':r['general_RUP']['rup_checks'],
                 'wide_status':r['wide_first']['status'],
