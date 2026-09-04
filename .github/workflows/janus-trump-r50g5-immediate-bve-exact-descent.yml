@@ -1,0 +1,127 @@
+name: JANUS TRUMP R50G5 Immediate BVE Exact Descent
+
+on:
+  pull_request:
+    paths:
+      - 'research/JANUS_TRUMP_R50G5_IMMEDIATE_BVE_EXACT_DESCENT_THEOREM_CONTRACT_2026-09-05.json'
+      - 'research/JANUS_TRUMP_R50G5_IMMEDIATE_BVE_EXACT_DESCENT_PROOF_NOTE_2026-09-05.md'
+      - 'experiments/janus_trump_r50g5_immediate_bve_exact_descent_algebraic_reduction.py'
+      - 'tests/test_janus_trump_r50g5_immediate_bve_exact_descent.py'
+      - '.github/workflows/janus-trump-r50g5-immediate-bve-exact-descent.yml'
+  workflow_dispatch:
+
+jobs:
+  guard-and-tests:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Freeze R50G5 theorem contract
+        run: |
+          python - <<'PY'
+          import json
+          p='research/JANUS_TRUMP_R50G5_IMMEDIATE_BVE_EXACT_DESCENT_THEOREM_CONTRACT_2026-09-05.json'
+          d=json.load(open(p))
+          assert d['gate']=='JANUS_TRUMP_R50G5_IMMEDIATE_BVE_EXACT_DESCENT_ALGEBRAIC_REDUCTION'
+          assert d['no_heuristics'] is True
+          assert len(d['theorem_obligations'])==10
+          assert d['firewall']['FINITE_REPLAY_IMPLIES_UNIVERSAL_THEOREM'] is False
+          assert d['firewall']['U_MU']=='OPEN'
+          PY
+      - name: Static no-heuristic authority audit
+        run: |
+          python - <<'PY'
+          import ast, pathlib
+          p=pathlib.Path('experiments/janus_trump_r50g5_immediate_bve_exact_descent_algebraic_reduction.py')
+          tree=ast.parse(p.read_text())
+          funcs={n.name for n in ast.walk(tree) if isinstance(n,(ast.FunctionDef,ast.AsyncFunctionDef))}
+          required={'prove_immediate_bve_same_pivot','trace_root','run_worker','synthesize'}
+          assert required <= funcs
+          text=p.read_text()
+          assert 'HEURISTIC_AUTHORITY": False' in text
+          assert 'LEARNED_SELECTOR": False' in text
+          assert 'PROBABILISTIC_AUTHORITY": False' in text
+          PY
+      - name: Install test runner
+        run: python -m pip install pytest
+      - name: Compile and unit tests
+        run: |
+          python -m py_compile experiments/janus_trump_r50g5_immediate_bve_exact_descent_algebraic_reduction.py
+          pytest -q tests/test_janus_trump_r50g5_immediate_bve_exact_descent.py
+
+  audit:
+    needs: guard-and-tests
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        worker: [0, 1, 2, 3, 4]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Run frozen exact algebraic audit worker
+        run: |
+          mkdir -p artifacts
+          PYTHONPATH=experiments python experiments/janus_trump_r50g5_immediate_bve_exact_descent_algebraic_reduction.py \
+            --worker ${{ matrix.worker }} \
+            --roots-per-worker 80 \
+            --output artifacts/JANUS_TRUMP_R50G5_WORKER_${{ matrix.worker }}.json
+      - name: Validate worker theorem firewall
+        run: |
+          python - <<'PY'
+          import json, glob
+          p=glob.glob('artifacts/JANUS_TRUMP_R50G5_WORKER_*.json')[0]
+          d=json.load(open(p))
+          fw=d['firewall']
+          assert fw['HEURISTIC_AUTHORITY'] is False
+          assert fw['FINITE_REPLAY_IMPLIES_UNIVERSAL_THEOREM'] is False
+          assert fw['U_MU']=='OPEN'
+          assert fw['SAT_IN_P']=='NOT_PROVED'
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: janus-trump-r50g5-worker-${{ matrix.worker }}
+          path: artifacts/JANUS_TRUMP_R50G5_WORKER_${{ matrix.worker }}.json
+          if-no-files-found: error
+
+  synthesize:
+    needs: audit
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: janus-trump-r50g5-worker-*
+          path: artifacts/r50g5-workers
+          merge-multiple: true
+      - name: Synthesize algebraic verdict
+        run: |
+          PYTHONPATH=experiments python experiments/janus_trump_r50g5_immediate_bve_exact_descent_algebraic_reduction.py \
+            --synthesize-dir artifacts/r50g5-workers \
+            --output artifacts/JANUS_TRUMP_R50G5_SYNTHESIS.json
+      - name: Validate synthesis boundary
+        run: |
+          python - <<'PY'
+          import json
+          d=json.load(open('artifacts/JANUS_TRUMP_R50G5_SYNTHESIS.json'))
+          assert d['workers']==5
+          assert d['n_values']==[6,7,8,9,10]
+          assert 'SAME_PIVOT_R47J_SAFE_IFF_TERMINAL_OR_FINAL_WIDTH_LE_4' in d['proved_from_frozen_source_definitions']
+          assert d['critical_remaining_obligation']=='UNIVERSAL_WIDE_SURVIVOR_IMPOSSIBILITY_OR_ALTERNATE_CERTIFIED_DOOR_FOR_REACHABLE_IMMEDIATE_BVE_STATES'
+          fw=d['firewall']
+          assert fw['FINITE_REPLAY_IMPLIES_UNIVERSAL_THEOREM'] is False
+          assert fw['U_MU']=='OPEN'
+          assert fw['SAT_IN_P']=='NOT_PROVED'
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: janus-trump-r50g5-synthesis
+          path: artifacts/JANUS_TRUMP_R50G5_SYNTHESIS.json
+          if-no-files-found: error
