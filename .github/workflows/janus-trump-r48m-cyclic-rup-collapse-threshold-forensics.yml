@@ -1,0 +1,83 @@
+name: JANUS TRUMP R48M Cyclic RUP Collapse Threshold Forensics
+
+on:
+  push:
+    branches:
+      - research/r48m-cyclic-rup-collapse-threshold-forensics-2026-09-04
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  r48m-rup-collapse:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 180
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Verify frozen lineage and preregistration
+        run: |
+          python - <<'PY'
+          import json, subprocess
+          parent='805b7e5e6eb39a4a67937704763ea56683529895'
+          prereg='d65d2da1cce336bf4e181479b583741e88fef9b6'
+          executor='6cf1313289c85b34e56bc781cd7f65ebf5a35124'
+          for c in (parent,prereg,executor):
+              subprocess.run(['git','merge-base','--is-ancestor',c,'HEAD'],check=True)
+          d=json.load(open('research/JANUS_TRUMP_R48M_CYCLIC_RUP_COLLAPSE_THRESHOLD_FORENSICS_PREREGISTRATION_2026-09-04.json'))
+          assert d['status']=='FROZEN_BEFORE_EXECUTION'
+          assert d['parent']['commit']==parent
+          assert d['sealed_R48I_observation']['r6']['terminal_count']==49
+          assert d['sealed_R48I_observation']['r9']['terminal_count']==73
+          assert d['interpretation_ceiling']['finite_r_values_prove_universal_collapse_threshold'] is False
+          assert d['epistemic_firewall']['O4_UNIVERSAL_COVERAGE']=='OPEN'
+          assert d['epistemic_firewall']['P_VS_NP']=='OPEN'
+          PY
+      - name: Compile
+        run: python -m py_compile experiments/janus_trump_r48m_cyclic_rup_collapse_threshold_forensics.py
+      - name: Execute frozen forensics
+        run: |
+          mkdir -p artifacts
+          PYTHONPATH=experiments python experiments/janus_trump_r48m_cyclic_rup_collapse_threshold_forensics.py \
+            --output artifacts/JANUS_TRUMP_R48M_CYCLIC_RUP_COLLAPSE_THRESHOLD_FORENSICS_RESULT_2026-09-04.json \
+            | tee /tmp/r48m.json
+          python - <<'PY'
+          import json
+          d=json.load(open('artifacts/JANUS_TRUMP_R48M_CYCLIC_RUP_COLLAPSE_THRESHOLD_FORENSICS_RESULT_2026-09-04.json'))
+          assert d['gate']=='JANUS_TRUMP_R48M_CYCLIC_RUP_COLLAPSE_THRESHOLD_FORENSICS'
+          assert d['verdict'] in {
+              'ALL_PIVOT_RUP_COLLAPSE_IS_DIRECT_AFTER_DP_WITH_ZERO_R33_APPS',
+              'ALL_PIVOT_RUP_COLLAPSE_REQUIRES_R33_MEDIATION',
+              'MIXED_COLLAPSE_MECHANISMS_ACROSS_PIVOTS_OR_R_VALUES',
+              'SEALED_R48I_TERMINAL_PATTERN_FAILS_REPLAY',
+          }
+          rows={x['r']:x for x in d['rows']}
+          assert rows[3]['terminal_count']==0
+          assert rows[6]['RUP_UNSAT_terminal_count']==49
+          assert rows[9]['RUP_UNSAT_terminal_count']==73
+          for r in (6,9):
+              for x in rows[r]['pivot_rows']:
+                  assert x['DP_independent_replay_pass'] is True
+                  assert x['polynomial_intermediate_envelope_pass'] is True
+                  assert x['RUP_terminal_replay_pass'] is True
+          assert d['interpretation']['finite_r_values_prove_universal_threshold'] is False
+          assert d['firewall']['O4_UNIVERSAL_COVERAGE']=='OPEN'
+          assert d['firewall']['SAT_IN_P']=='NOT_PROVED'
+          assert d['firewall']['P_VS_NP']=='OPEN'
+          print('R48M_GATE=PASS')
+          print('R48M_VERDICT=',d['verdict'])
+          print('R48M_SUMMARY=',json.dumps(d['summary'],sort_keys=True))
+          PY
+      - name: Upload full result
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: JANUS_TRUMP_R48M_CYCLIC_RUP_COLLAPSE_THRESHOLD_FORENSICS_RESULT
+          path: artifacts/JANUS_TRUMP_R48M_CYCLIC_RUP_COLLAPSE_THRESHOLD_FORENSICS_RESULT_2026-09-04.json
+          if-no-files-found: error
+          retention-days: 90
