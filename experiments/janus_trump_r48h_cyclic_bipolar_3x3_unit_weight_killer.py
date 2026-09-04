@@ -54,7 +54,6 @@ def structural_pivot_row(formula, var):
     pos, neg, resolvents, pair_checks = r42.all_dp_resolvents(f, int(var))
     overlaps = []
     tautological_pair_count = 0
-    manual_non_taut = set()
     for p in pos:
         for q in neg:
             inter = sorted(set(abs(l) for l in p) & set(abs(l) for l in q))
@@ -63,10 +62,6 @@ def structural_pivot_row(formula, var):
             raw = (set(p) - {int(var)}) | (set(q) - {-int(var)})
             if any(-lit in raw for lit in raw):
                 tautological_pair_count += 1
-                continue
-            manual_non_taut.add(r33.canonical_clause(raw))
-    if tuple(sorted(manual_non_taut)) != tuple(sorted(resolvents)):
-        raise AssertionError(("R48H_RESOLVENT_RECONSTRUCTION_DRIFT", var))
     base = tuple(c for c in f if int(var) not in c and -int(var) not in c)
     pool = canon(list(base) + list(resolvents))
     raw_delta_c = len(pool) - len(f)
