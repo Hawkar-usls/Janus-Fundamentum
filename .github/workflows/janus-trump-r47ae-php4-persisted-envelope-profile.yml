@@ -1,0 +1,122 @@
+name: JANUS TRUMP R47AE PHP4 Persisted Envelope Profile
+
+on:
+  push:
+    branches:
+      - research/r47ae-php4-persisted-envelope-profile-2026-09-04
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  r47ae-php4-envelope:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Verify frozen parent and preregistration
+        run: |
+          python - <<'PY'
+          import json, subprocess
+          parent='9293cfcede4e2c47264314f214dbdf270d98373f'
+          prereg='aa99a65bdd0d56b53f55f1d0d06b6ff8455df4bb'
+          executor='22168a37b32ca99d9030af599b7e29a384f26b76'
+          for c in (parent, prereg, executor):
+              subprocess.run(['git','merge-base','--is-ancestor',c,'HEAD'], check=True)
+          d=json.load(open('research/JANUS_TRUMP_R47AE_PHP4_PERSISTED_ENVELOPE_PROFILE_PREREGISTRATION_2026-09-04.json'))
+          assert d['status']=='FROZEN_BEFORE_EXECUTION'
+          assert d['parent']['commit']==parent
+          assert d['sealed_target']['residual_hash']=='1553aa063ac6c771e7ac781fb69e5adafb056a1c20a8b157250565b03ed0ca64'
+          assert d['sealed_target']['residual_CLV']==[40,120,15]
+          assert d['sealed_target']['C0']==40
+          assert d['sealed_target']['V0']==15
+          assert d['sealed_target']['expected_semantics']=='UNSAT'
+          assert d['frozen_search']['sequence_enumeration'] is False
+          assert d['interpretation_ceiling']['finite_minimum_delta_proves_universal_polynomial_envelope'] is False
+          assert d['interpretation_ceiling']['no_rescue_delta_le_V0_refutes_all_polynomial_envelopes'] is False
+          assert d['epistemic_firewall']['UNIVERSAL_POLYNOMIAL_ENVELOPE_COVERAGE']=='OPEN'
+          assert d['epistemic_firewall']['O4_UNIVERSAL_COVERAGE']=='OPEN'
+          assert d['epistemic_firewall']['SAT_IN_P']=='NOT_PROVED'
+          assert d['epistemic_firewall']['P_VS_NP']=='OPEN'
+          assert d['epistemic_firewall']['TRUMP_finished'] is False
+          PY
+
+      - name: Compile frozen executor
+        run: python -m py_compile experiments/janus_trump_r47ae_php4_persisted_envelope_profile.py
+
+      - name: Execute frozen PHP4 envelope profile
+        run: |
+          mkdir -p artifacts
+          PYTHONPATH=experiments python experiments/janus_trump_r47ae_php4_persisted_envelope_profile.py \
+            --output artifacts/JANUS_TRUMP_R47AE_PHP4_PERSISTED_ENVELOPE_PROFILE_RESULT_2026-09-04.json \
+            | tee /tmp/r47ae.json
+          python - <<'PY'
+          import json
+          d=json.load(open('artifacts/JANUS_TRUMP_R47AE_PHP4_PERSISTED_ENVELOPE_PROFILE_RESULT_2026-09-04.json'))
+          assert d['gate']=='JANUS_TRUMP_R47AE_PHP4_PERSISTED_ENVELOPE_PROFILE'
+          assert d['verdict'] in {
+              'PHP4_MINIMUM_ADDITIVE_PERSISTED_ENVELOPE_SLACK_FOUND',
+              'PHP4_NO_RESCUE_FOR_DELTA_LE_V0__FINITE_LOWER_BOUND_ONLY',
+          }
+          t=d['sealed_target']
+          assert t['family']=='EPH_4^5'
+          assert t['residual_hash']=='1553aa063ac6c771e7ac781fb69e5adafb056a1c20a8b157250565b03ed0ca64'
+          assert t['residual_CLV']==[40,120,15]
+          assert t['joint_fixpoint_integrity']['pass'] is True
+          assert t['joint_fixpoint_integrity']['affine_recognized'] is False
+          assert t['joint_fixpoint_integrity']['RUP_independent_replay_pass'] is True
+          assert t['joint_fixpoint_integrity']['SA_BVE_candidate_present'] is False
+          assert 1 <= len(d['delta_ladder']) <= 16
+          assert d['delta_ladder'][0]['delta']==0
+          for i,x in enumerate(d['delta_ladder']):
+              assert x['delta']==i
+              assert x['B']==40+i
+              if i < len(d['delta_ladder'])-1:
+                  assert x['covered'] is False
+          if d['minimum_delta'] is None:
+              assert d['verdict']=='PHP4_NO_RESCUE_FOR_DELTA_LE_V0__FINITE_LOWER_BOUND_ONLY'
+              assert len(d['delta_ladder'])==16
+              assert all(not x['covered'] for x in d['delta_ladder'])
+              assert d['minimum_envelope_B'] is None
+              assert d['minimum_rescue'] is None
+          else:
+              assert d['verdict']=='PHP4_MINIMUM_ADDITIVE_PERSISTED_ENVELOPE_SLACK_FOUND'
+              assert 0 <= d['minimum_delta'] <= 15
+              assert d['minimum_envelope_B']==40+d['minimum_delta']
+              assert d['delta_ladder'][-1]['covered'] is True
+              assert all(not x['covered'] for x in d['delta_ladder'][:-1])
+              assert d['minimum_rescue']['terminal']['semantic_sat'] is False
+          assert d['interpretation']['structured_family_calibration'] is True
+          assert d['interpretation']['finite_minimum_delta_proves_universal_polynomial_envelope'] is False
+          assert d['interpretation']['no_rescue_delta_le_V0_refutes_all_polynomial_envelopes'] is False
+          assert d['interpretation']['sequence_enumeration_used'] is False
+          assert d['firewall']['UNIVERSAL_POLYNOMIAL_ENVELOPE_COVERAGE']=='OPEN'
+          assert d['firewall']['O4_UNIVERSAL_COVERAGE']=='OPEN'
+          assert d['firewall']['SAT_IN_P']=='NOT_PROVED'
+          assert d['firewall']['P_EQ_NP']=='NOT_PROVED'
+          assert d['firewall']['P_NE_NP']=='NOT_PROVED'
+          assert d['firewall']['P_VS_NP']=='OPEN'
+          assert d['firewall']['TRUMP_finished'] is False
+          print('R47AE_GATE=PASS')
+          print('R47AE_VERDICT=',d['verdict'])
+          print('R47AE_MIN_DELTA=',d['minimum_delta'])
+          print('R47AE_MIN_B=',d['minimum_envelope_B'])
+          print('R47AE_LADDER=',json.dumps([{'delta':x['delta'],'B':x['B'],'covered':x['covered'],'selected_pivots':x['selected_pivots'],'candidate_probe_count':x['candidate_probe_count'],'obstruction':x.get('obstruction'),'terminal':x.get('terminal')} for x in d['delta_ladder']],sort_keys=True))
+          print('R47AE_RESCUE=',json.dumps(d['minimum_rescue'],sort_keys=True))
+          PY
+
+      - name: Upload full scientific result
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: JANUS_TRUMP_R47AE_PHP4_PERSISTED_ENVELOPE_PROFILE_RESULT
+          path: artifacts/JANUS_TRUMP_R47AE_PHP4_PERSISTED_ENVELOPE_PROFILE_RESULT_2026-09-04.json
+          if-no-files-found: error
+          retention-days: 90
