@@ -1,0 +1,89 @@
+name: JANUS TRUMP R48O Width4 First Certified Chain Falsifier
+
+on:
+  push:
+    branches:
+      - research/r48o-width4-first-certified-chain-falsifier-2026-09-04
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  r48o-width4:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 180
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Verify frozen preregistration
+        run: |
+          python - <<'PY'
+          import json,subprocess
+          parent='ac7378313a91912f81ddae4340f9e0082587236e'
+          prereg='512dd802d6530de435059bd79a2825e84cb33a85'
+          executor='1930e18f762f161a1d92695357050fd59f83d10f'
+          for c in (parent,prereg,executor):
+              subprocess.run(['git','merge-base','--is-ancestor',c,'HEAD'],check=True)
+          d=json.load(open('research/JANUS_TRUMP_R48O_WIDTH4_FIRST_CERTIFIED_CHAIN_FALSIFIER_PREREGISTRATION_2026-09-04.json'))
+          assert d['status']=='FROZEN_BEFORE_EXECUTION'
+          assert d['parent']['commit']==parent
+          assert d['width_cap']==4
+          assert d['sealed_root']['root_hash']=='3f05812b68eec1a2c16b099d5542dcc53fce66a0cb47679a1594134a0a553750'
+          assert d['interpretation_ceiling']['success_on_one_root_proves_universal_W4'] is False
+          assert d['epistemic_firewall']['O4_UNIVERSAL_COVERAGE']=='OPEN'
+          PY
+      - name: Compile
+        run: python -m py_compile experiments/janus_trump_r48o_width4_first_certified_chain_falsifier.py
+      - name: Execute frozen width4 chain
+        run: |
+          mkdir -p artifacts
+          PYTHONPATH=experiments python experiments/janus_trump_r48o_width4_first_certified_chain_falsifier.py \
+            --output artifacts/JANUS_TRUMP_R48O_WIDTH4_FIRST_CERTIFIED_CHAIN_FALSIFIER_RESULT_2026-09-04.json \
+            | tee /tmp/r48o.json
+          python - <<'PY'
+          import json
+          d=json.load(open('artifacts/JANUS_TRUMP_R48O_WIDTH4_FIRST_CERTIFIED_CHAIN_FALSIFIER_RESULT_2026-09-04.json'))
+          assert d['gate']=='JANUS_TRUMP_R48O_WIDTH4_FIRST_CERTIFIED_CHAIN_FALSIFIER'
+          assert d['verdict'] in {
+              'R48G_ROOT_REACHES_CERTIFIED_TERMINAL_UNDER_WIDTH4_CHAIN__FINITE_ONLY',
+              'EXPLICIT_REACHABLE_WIDTH4_CHAIN_OBSTRUCTION_FOUND',
+              'STRONGER_NO_VARIABLE_DECREASING_CANDIDATE_FOUND',
+          }
+          assert d['root']['max_width']<=4
+          for x in d['selected_path']:
+              assert x['full_R47M_independent_replay_pass'] is True
+              if x['terminal'] is None:
+                  assert x['eligible'] is True
+                  assert x['delta_V_eliminated']>=1
+                  assert x['no_fresh_variables'] is True
+                  assert x['final_max_width']<=4
+          if d['obstruction'] is not None:
+              for r in d['obstruction']['candidate_rows']:
+                  if r.get('candidate',True):
+                      assert r['full_R47M_independent_replay_pass'] is True
+              eligible=[r for r in d['obstruction']['candidate_rows'] if r.get('eligible',False)]
+              assert not any(r.get('terminal') is not None for r in eligible)
+              assert not any(r.get('final_max_width',999)<=4 for r in eligible)
+          if d['terminal'] is not None and d['terminal']['semantic_sat'] is True:
+              assert d['terminal']['SAT_root_reconstruction']['applicable'] is True
+              assert d['terminal']['SAT_root_reconstruction']['pass'] is True
+          assert d['firewall']['O4_UNIVERSAL_COVERAGE']=='OPEN'
+          assert d['firewall']['P_VS_NP']=='OPEN'
+          print('R48O_GATE=PASS')
+          print('R48O_VERDICT=',d['verdict'])
+          print('R48O_PATH=',[x['var'] for x in d['selected_path']])
+          print('R48O_MAX_WIDTH=',d['max_persisted_width'])
+          PY
+      - name: Upload full result
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: JANUS_TRUMP_R48O_WIDTH4_FIRST_CERTIFIED_CHAIN_FALSIFIER_RESULT
+          path: artifacts/JANUS_TRUMP_R48O_WIDTH4_FIRST_CERTIFIED_CHAIN_FALSIFIER_RESULT_2026-09-04.json
+          if-no-files-found: error
+          retention-days: 90
