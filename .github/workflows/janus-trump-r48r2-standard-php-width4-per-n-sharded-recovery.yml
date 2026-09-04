@@ -1,0 +1,66 @@
+name: JANUS TRUMP R48R2 Standard PHP Width4 Per-N Sharded Recovery
+
+on:
+  push:
+    branches:
+      - research/r48r2-standard-php-width4-per-n-sharded-recovery-2026-09-04
+  workflow_dispatch:
+
+jobs:
+  php:
+    name: r48r2-php-${{ matrix.n }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 220
+    strategy:
+      fail-fast: false
+      max-parallel: 3
+      matrix:
+        n: [5, 6, 7]
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Verify frozen preregistration lineage
+        shell: bash
+        run: |
+          set -euo pipefail
+          git merge-base --is-ancestor 5f325b2785c017bb7d9c7d1882725e3434cd162c HEAD
+          git merge-base --is-ancestor 983b81e8f505a1ea95d9436216e4e0b5c3200d0b HEAD
+          test -f research/JANUS_TRUMP_R48R_STANDARD_PHP_WIDTH4_FALSIFIER_RESULT_2026-09-04.json
+          test -f research/JANUS_TRUMP_R48R2_STANDARD_PHP_WIDTH4_PER_N_SHARDED_RECOVERY_PREREGISTRATION_2026-09-04.json
+          python - <<'PY'
+          import json
+          d=json.load(open('research/JANUS_TRUMP_R48R2_STANDARD_PHP_WIDTH4_PER_N_SHARDED_RECOVERY_PREREGISTRATION_2026-09-04.json'))
+          assert d['status']=='FROZEN_BEFORE_EXECUTION'
+          assert d['parent']['UNKNOWN_RESOURCE_LIMIT_seal_commit']=='5f325b2785c017bb7d9c7d1882725e3434cd162c'
+          assert d['frozen_family']['sharded_n']==[5,6,7]
+          assert d['frozen_algorithm']['width_cap']==4
+          PY
+
+      - name: Compile
+        run: python -m py_compile experiments/janus_trump_r48r2_standard_php_width4_per_n_sharded_recovery.py
+
+      - name: Execute checkpointed PHP member
+        env:
+          PYTHONPATH: experiments
+          PYTHONUNBUFFERED: '1'
+        run: |
+          mkdir -p artifacts
+          python experiments/janus_trump_r48r2_standard_php_width4_per_n_sharded_recovery.py \
+            --n ${{ matrix.n }} \
+            --output artifacts/JANUS_TRUMP_R48R2_PHP_${{ matrix.n }}_CHECKPOINT_RESULT.json
+
+      - name: Upload latest scientific checkpoint/result
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: JANUS_TRUMP_R48R2_PHP_${{ matrix.n }}_CHECKPOINT_RESULT
+          path: artifacts/JANUS_TRUMP_R48R2_PHP_${{ matrix.n }}_CHECKPOINT_RESULT.json
+          if-no-files-found: error
+          retention-days: 90
