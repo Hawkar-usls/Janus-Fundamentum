@@ -144,19 +144,31 @@ def expand_with_certified_equalities(base, mode):
     if not vs:
         return base
     n = max(vs)
-    work = list(base)
+
+    # Keep payload mutation separate from the equality certificates.  The
+    # adversarial generator is not allowed to rewrite its own proof clauses.
+    payload = list(base)
+    equality_certificates = []
     for v in vs:
         c1 = n + v
-        work.extend(equality_pair(v, c1))
-        work = replace_var(work, v, c1, lambda ci, li, m=mode: ((ci + li + m) % 2 == 0))
+        payload = replace_var(
+            payload, v, c1,
+            lambda ci, li, m=mode: ((ci + li + m) % 2 == 0),
+        )
+        equality_certificates.extend(equality_pair(v, c1))
         if mode >= 2:
             c2 = 2 * n + v
-            work.extend(equality_pair(c1, c2))
-            work = replace_var(work, c1, c2, lambda ci, li, m=mode: ((2 * ci + li + m) % 3 == 0))
+            payload = replace_var(
+                payload, c1, c2,
+                lambda ci, li, m=mode: ((2 * ci + li + m) % 3 == 0),
+            )
+            equality_certificates.extend(equality_pair(c1, c2))
+
+    work = payload + equality_certificates
     if mode >= 2:
-        work.extend(list(base))  # duplicate semantic material; quotient dedup must absorb it.
+        work.extend(list(base))  # semantically redundant under the equalities.
         v0 = vs[0]
-        work.append((v0, -v0))  # tautology; quotient simplification must be inert.
+        work.append((v0, -v0))  # tautology; simplification must be inert.
     return canonical_formula(work)
 
 
@@ -194,8 +206,8 @@ def adversarial_corpus():
         out.append(renamed(expand_with_certified_equalities(base, 2), 20 + 11 * i))
         if i % 9 == 0 and variables(base):
             out.append(equality_antiequality_contradiction(base))
-    # Preserve distinct origins even when source bytes/formulas coincide in a
-    # generated lane; fiber grouping below is by representation, not origin id.
+    # Preserve distinct origins even when formulas coincide in a generated
+    # lane; fiber grouping below is by decision representation, not origin id.
     return out
 
 
