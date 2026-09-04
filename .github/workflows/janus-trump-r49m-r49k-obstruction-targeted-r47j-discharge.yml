@@ -1,0 +1,32 @@
+name: JANUS TRUMP R49M R49K Obstruction Targeted R47J Discharge
+
+on:
+  push:
+    branches:
+      - research/r49m-r49k-obstruction-targeted-r47j-discharge-2026-09-04
+  workflow_dispatch:
+
+jobs:
+  r49m-discharge:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Compile
+        run: python -m py_compile experiments/janus_trump_r49m_r49k_obstruction_targeted_r47j_discharge.py
+      - name: Execute targeted discharge
+        env:
+          PYTHONPATH: experiments
+        run: |
+          mkdir -p artifacts
+          python experiments/janus_trump_r49m_r49k_obstruction_targeted_r47j_discharge.py
+      - name: Upload scientific result
+        uses: actions/upload-artifact@v4
+        with:
+          name: JANUS_TRUMP_R49M_R49K_OBSTRUCTION_TARGETED_R47J_DISCHARGE_RESULT
+          path: artifacts/JANUS_TRUMP_R49M_R49K_OBSTRUCTION_TARGETED_R47J_DISCHARGE_RESULT.json
+          if-no-files-found: error
+          retention-days: 90
