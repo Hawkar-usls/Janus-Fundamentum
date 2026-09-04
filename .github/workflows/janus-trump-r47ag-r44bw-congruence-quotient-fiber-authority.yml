@@ -1,0 +1,78 @@
+name: JANUS TRUMP R47AG R44BW Congruence Quotient Fiber Authority
+
+on:
+  push:
+    branches:
+      - research/r47ag-r44bw-congruence-quotient-fiber-authority-2026-09-04
+  workflow_dispatch:
+
+jobs:
+  r47ag-quotient-fiber-authority:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Verify frozen parent and preregistration
+        run: |
+          set -euo pipefail
+          PARENT=faad6f465a0f5acca6e42bb3bf7ecafad8581bfe
+          git merge-base --is-ancestor "$PARENT" "$GITHUB_SHA"
+          python - <<'PY'
+          import json
+          p='research/JANUS_TRUMP_R47AG_R44BW_CONGRUENCE_QUOTIENT_FIBER_AUTHORITY_PREREGISTRATION_2026-09-04.json'
+          d=json.load(open(p))
+          assert d['status']=='FROZEN_BEFORE_EXECUTION'
+          assert d['parent_commit']=='faad6f465a0f5acca6e42bb3bf7ecafad8581bfe'
+          assert d['candidate']['source_commit']=='0b21ed1a7985b26ead8f1554a6692d0df5b022ff'
+          assert d['firewall']['SAT_IN_P']=='NOT_PROVED'
+          assert d['firewall']['P_VS_NP']=='OPEN'
+          assert d['firewall']['TRUMP_finished'] is False
+          PY
+
+      - name: Compile and unit tests
+        run: |
+          python -m py_compile experiments/janus_trump_r47ag_r44bw_congruence_quotient_fiber_authority.py
+          python -m unittest -q tests.test_janus_trump_r47ag_r44bw_congruence_quotient_fiber_authority
+
+      - name: Execute exact quotient fiber audit
+        run: |
+          set -euo pipefail
+          python experiments/janus_trump_r47ag_r44bw_congruence_quotient_fiber_authority.py | tee /tmp/r47ag.json
+          python - <<'PY'
+          import json
+          d=json.load(open('/tmp/r47ag.json'))
+          assert d['gate']=='R47AG_R44BW_CONGRUENCE_QUOTIENT_FIBER_AUTHORITY'
+          assert d['candidate']=='R44BW_EXPLICIT_BINARY_EQUALITY_CONGRUENCE_QUOTIENT'
+          assert d['base_formulas']==93
+          assert d['origins_checked']>=372
+          assert d['nontrivial_fibers']>0
+          assert d['max_fiber_size']>=4
+          assert d['semantic_preservation_mismatches']==0
+          assert d['mixed_sat_unsat_fibers']==0
+          assert d['finite_falsifier_result']=='NO_COUNTEREXAMPLE_FOUND'
+          assert d['universal_basis']=='TWO_DIRECTION_MODEL_PROJECTION_AND_LIFT_PROOF'
+          assert d['SAT_semantic_authority']=='THEOREM_AUTHORITY_GRANTED_FOR_EXACT_QUOTIENT'
+          assert d['generic_SAT_algorithmic_authority']=='NOT_GRANTED_NO_POLYNOMIAL_DECIDER_ON_ARBITRARY_QUOTIENT'
+          assert d['R44BW_scoped_transport_authority']=='UNCHANGED_EXISTING_FAMILY_SCOPE_ONLY'
+          assert d['decision_representation_is_not_lifting_provenance'] is True
+          assert d['UNIVERSAL_POLYNOMIAL_ENVELOPE_COVERAGE']=='OPEN'
+          assert d['O4_UNIVERSAL_COVERAGE']=='OPEN'
+          assert d['SAT_IN_P']=='NOT_PROVED'
+          assert d['P_EQ_NP']=='NOT_PROVED'
+          assert d['P_NE_NP']=='NOT_PROVED'
+          assert d['P_VS_NP']=='OPEN'
+          assert d['TRUMP_finished'] is False
+          PY
+
+      - name: Preserve machine-readable receipt
+        uses: actions/upload-artifact@v4
+        with:
+          name: r47ag-r44bw-congruence-quotient-fiber-authority
+          path: /tmp/r47ag.json
+          if-no-files-found: error
