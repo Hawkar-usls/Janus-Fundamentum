@@ -1,0 +1,82 @@
+name: JANUS TRUMP R48W Full 798 Sign-Swap Width4 Sharded Falsifier
+
+on:
+  push:
+    branches:
+      - research/r48w-full-798-sign-swap-width4-sharded-falsifier-2026-09-04
+  workflow_dispatch:
+
+jobs:
+  shard:
+    name: r48w-shard-${{ matrix.id }}-${{ matrix.start }}-${{ matrix.end }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 100
+    strategy:
+      fail-fast: false
+      max-parallel: 6
+      matrix:
+        include:
+          - { id: 1, start: 65, end: 126 }
+          - { id: 2, start: 127, end: 188 }
+          - { id: 3, start: 189, end: 250 }
+          - { id: 4, start: 251, end: 312 }
+          - { id: 5, start: 313, end: 374 }
+          - { id: 6, start: 375, end: 436 }
+          - { id: 7, start: 437, end: 498 }
+          - { id: 8, start: 499, end: 560 }
+          - { id: 9, start: 561, end: 622 }
+          - { id: 10, start: 623, end: 684 }
+          - { id: 11, start: 685, end: 746 }
+          - { id: 12, start: 747, end: 798 }
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Verify frozen preregistration lineage
+        shell: bash
+        run: |
+          set -euo pipefail
+          git merge-base --is-ancestor b6c94caf2883b49e52a887b2c0bd13590afc96e8 HEAD
+          git merge-base --is-ancestor 9363974c502b8daa7167c0766883afe66b86988f HEAD
+          test -f research/JANUS_TRUMP_R48Q_WIDTH4_FULL_FROZEN_FRONTIER_FALSIFIER_RESULT_2026-09-04.json
+          test -f research/JANUS_TRUMP_R48W_FULL_798_SIGN_SWAP_WIDTH4_SHARDED_FALSIFIER_PREREGISTRATION_2026-09-04.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          p=Path('research/JANUS_TRUMP_R48W_FULL_798_SIGN_SWAP_WIDTH4_SHARDED_FALSIFIER_PREREGISTRATION_2026-09-04.json')
+          d=json.loads(p.read_text())
+          assert d['status']=='FROZEN_BEFORE_EXECUTION'
+          assert d['parent']['seal_commit']=='b6c94caf2883b49e52a887b2c0bd13590afc96e8'
+          assert d['frozen_source']['expected_total_frontier_positions']==798
+          assert d['frozen_source']['attack_start_ordinal']==65
+          assert d['frozen_source']['attack_end_ordinal']==798
+          assert len(d['frozen_shards'])==12
+          PY
+
+      - name: Compile
+        run: |
+          python -m py_compile experiments/janus_trump_r48w_full_798_sign_swap_width4_sharded_falsifier.py
+
+      - name: Execute frozen shard
+        env:
+          PYTHONPATH: experiments
+        run: |
+          mkdir -p artifacts
+          python experiments/janus_trump_r48w_full_798_sign_swap_width4_sharded_falsifier.py \
+            --start ${{ matrix.start }} \
+            --end ${{ matrix.end }} \
+            --output artifacts/JANUS_TRUMP_R48W_SHARD_${{ matrix.id }}_${{ matrix.start }}_${{ matrix.end }}_RESULT.json
+
+      - name: Upload shard scientific result
+        uses: actions/upload-artifact@v4
+        with:
+          name: JANUS_TRUMP_R48W_SHARD_${{ matrix.id }}_${{ matrix.start }}_${{ matrix.end }}_RESULT
+          path: artifacts/JANUS_TRUMP_R48W_SHARD_${{ matrix.id }}_${{ matrix.start }}_${{ matrix.end }}_RESULT.json
+          if-no-files-found: error
+          retention-days: 90
