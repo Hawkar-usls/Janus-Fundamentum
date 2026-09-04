@@ -1,0 +1,52 @@
+name: JANUS TRUMP R49E Partial R47J Width4 Direct Controller
+
+on:
+  push:
+    branches:
+      - research/r49e-partial-r47j-width4-direct-controller-2026-09-04
+  workflow_dispatch:
+
+jobs:
+  r49e:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Verify frozen preregistration lineage
+        shell: bash
+        run: |
+          set -euo pipefail
+          git merge-base --is-ancestor e69c0f0a71cca5f97c614b43b2b15987e4363729 HEAD
+          git merge-base --is-ancestor 08ddabd42367d3cb199b88681ced7a78a0f46268 HEAD
+          test -f research/JANUS_TRUMP_R48Y_DIRECT_ENTRY_WIDTH4_HARD_ORIGINAL_KILLER_RESULT_2026-09-04.json
+          test -f research/JANUS_TRUMP_R49E_PARTIAL_R47J_WIDTH4_DIRECT_CONTROLLER_PREREGISTRATION_2026-09-04.json
+          python - <<'PY'
+          import json
+          d=json.load(open('research/JANUS_TRUMP_R49E_PARTIAL_R47J_WIDTH4_DIRECT_CONTROLLER_PREREGISTRATION_2026-09-04.json'))
+          assert d['status']=='FROZEN_BEFORE_EXECUTION'
+          assert d['parent']['R48Y_direct_entry_result_seal']=='e69c0f0a71cca5f97c614b43b2b15987e4363729'
+          assert d['frozen_controller']['width_cap']==4
+          assert d['frozen_controller']['SA_BVE_inside_candidate'] is False
+          assert d['target']['hash']=='eb13be26c29c106cf172db0be435aaf852d1e1248fced151c5356791f70024da'
+          PY
+      - name: Compile
+        run: python -m py_compile experiments/janus_trump_r49e_partial_r47j_width4_direct_controller.py
+      - name: Execute partial R47J direct controller
+        env:
+          PYTHONPATH: experiments
+        run: |
+          mkdir -p artifacts
+          python experiments/janus_trump_r49e_partial_r47j_width4_direct_controller.py \
+            --output artifacts/JANUS_TRUMP_R49E_PARTIAL_R47J_WIDTH4_DIRECT_CONTROLLER_RESULT.json
+      - name: Upload scientific result
+        uses: actions/upload-artifact@v4
+        with:
+          name: JANUS_TRUMP_R49E_PARTIAL_R47J_WIDTH4_DIRECT_CONTROLLER_RESULT
+          path: artifacts/JANUS_TRUMP_R49E_PARTIAL_R47J_WIDTH4_DIRECT_CONTROLLER_RESULT.json
+          if-no-files-found: error
+          retention-days: 90
