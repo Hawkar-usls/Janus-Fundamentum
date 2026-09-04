@@ -1,0 +1,166 @@
+name: JANUS TRUMP R50F Wide Clause Survival Certificate and Clearance Repair
+
+on:
+  push:
+    branches:
+      - research/r50f-wide-clause-survival-certificate-and-clearance-repair-2026-09-04
+  pull_request:
+    branches:
+      - research/r50e-short-parent-bad-sector-transfer-lemma-2026-09-04
+
+permissions:
+  contents: read
+
+jobs:
+  guard-and-tests:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Freeze R50F survival-certificate gate and firewall
+        run: |
+          python - <<'PY'
+          import json
+          p='research/JANUS_TRUMP_R50F_WIDE_CLAUSE_SURVIVAL_CERTIFICATE_AND_CLEARANCE_REPAIR_PREREGISTRATION_2026-09-04.json'
+          d=json.load(open(p))
+          assert d['status']=='FROZEN_BEFORE_R50F_DETAILED_KILLER_EXTRACTION'
+          assert d['parent']['commit']=='64c800d8538b03323024b5fdf4f85a5d5b5e0dc8'
+          assert d['known_before_R50F']['rank2_rescues']==12
+          assert d['known_before_R50F']['detailed_rule_level_killer_histogram_inspected_before_freeze'] is False
+          c=d['clearance_certificate_contract']
+          assert c['authority']=='EXACT_REPLAY_ONLY'
+          assert c['new_semantic_proof_rule_added'] is False
+          assert c['new_candidate_score_added'] is False
+          assert c['new_heuristic_added'] is False
+          fw=d['firewall']
+          assert fw['R50F_FINITE_12_PROVES_TOP2_TRANSFER'] is False
+          assert fw['TOP2_UNIVERSAL_COVERAGE']=='OPEN'
+          assert fw['SAT_IN_P']=='NOT_PROVED'
+          assert fw['P_VS_NP']=='OPEN'
+          assert fw['TRUMP_finished'] is False
+          PY
+
+      - name: Static no-heuristic authority audit
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p=Path('experiments/janus_trump_r50f_wide_clause_survival_certificate_and_clearance_repair.py').read_text()
+          forbidden=[
+              'import random', 'from random', 'import numpy', 'from numpy',
+              'import torch', 'from torch', 'import sklearn', 'from sklearn',
+              'model.predict', 'softmax(', 'temperature=', 'cheap_signature',
+          ]
+          for marker in forbidden:
+              assert marker not in p, marker
+          required=[
+              'dp_subsumption_certificate',
+              'replay_r33_history',
+              'replay_rup_history',
+              'instrument_normalization',
+              'wide_clearance_certificate',
+              'R50F_FINITE_12_PROVES_TOP2_TRANSFER',
+          ]
+          for marker in required:
+              assert marker in p, marker
+          PY
+
+      - name: Compile and unit tests
+        run: |
+          python -m py_compile experiments/janus_trump_r50f_wide_clause_survival_certificate_and_clearance_repair.py
+          PYTHONPATH=experiments python tests/test_janus_trump_r50f_wide_clause_survival_certificate_and_clearance_repair.py
+
+  audit:
+    needs: guard-and-tests
+    runs-on: ubuntu-24.04
+    timeout-minutes: 75
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [0, 1, 2, 3]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Extract replayable wide-clause survival certificates
+        run: |
+          PYTHONPATH=experiments python experiments/janus_trump_r50f_wide_clause_survival_certificate_and_clearance_repair.py --shard-index ${{ matrix.shard }} --shard-count 4
+
+      - name: Validate shard firewall
+        run: |
+          python - <<'PY'
+          import json, os
+          s=os.environ['SHARD']
+          p=f'artifacts/JANUS_TRUMP_R50F_WIDE_CLAUSE_SURVIVAL_CERTIFICATE_AND_CLEARANCE_REPAIR_SHARD_{s}_OF_4.json'
+          d=json.load(open(p))
+          assert d['mode']=='SHARD'
+          assert d['metrics']['hard_states'] >= 1
+          fw=d['firewall']
+          assert fw['WIDE_CLEARANCE_CERTIFICATE_IS_PREDICTOR'] is False
+          assert fw['R50F_ADDS_NEW_SAT_PROOF_RULE'] is False
+          assert fw['SAT_IN_P']=='NOT_PROVED'
+          assert fw['P_VS_NP']=='OPEN'
+          PY
+        env:
+          SHARD: ${{ matrix.shard }}
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: janus-trump-r50f-shard-${{ matrix.shard }}
+          path: artifacts/JANUS_TRUMP_R50F_WIDE_CLAUSE_SURVIVAL_CERTIFICATE_AND_CLEARANCE_REPAIR_SHARD_${{ matrix.shard }}_OF_4.json
+          if-no-files-found: error
+
+  synthesize:
+    needs: audit
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: janus-trump-r50f-shard-*
+          path: artifacts/r50f-shards
+          merge-multiple: true
+
+      - name: Synthesize exact killer and survivor causes
+        run: |
+          PYTHONPATH=experiments python experiments/janus_trump_r50f_wide_clause_survival_certificate_and_clearance_repair.py --synthesize-dir artifacts/r50f-shards
+
+      - name: Validate repair contract and theorem firewall
+        run: |
+          python - <<'PY'
+          import json
+          p='artifacts/JANUS_TRUMP_R50F_WIDE_CLAUSE_SURVIVAL_CERTIFICATE_AND_CLEARANCE_REPAIR_SYNTHESIS.json'
+          d=json.load(open(p))
+          m=d['metrics']
+          assert m['roots']==52
+          assert m['hard_states']==441
+          assert m['rank2_rescues']==12
+          assert m['rank1_survival_certificates']==12
+          assert m['rank2_clearance_certificates']==12
+          assert m['rank2_controller_authorizations']==12
+          assert d['repair']['status']=='IMPLEMENTED_AND_REPLAYED_ON_R50C_RESCUES'
+          assert d['repair']['new_semantic_proof_rule_added'] is False
+          assert d['repair']['predictive_selector_added'] is False
+          fw=d['firewall']
+          assert fw['TOP2_UNIVERSAL_COVERAGE']=='OPEN'
+          assert fw['SAT_IN_P']=='NOT_PROVED'
+          assert fw['P_VS_NP']=='OPEN'
+          assert fw['TRUMP_finished'] is False
+          print('R50F_VERDICT=', d['verdict'])
+          print('R50F_METRICS=', json.dumps(m, sort_keys=True))
+          PY
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: janus-trump-r50f-synthesis
+          path: artifacts/JANUS_TRUMP_R50F_WIDE_CLAUSE_SURVIVAL_CERTIFICATE_AND_CLEARANCE_REPAIR_SYNTHESIS.json
+          if-no-files-found: error
