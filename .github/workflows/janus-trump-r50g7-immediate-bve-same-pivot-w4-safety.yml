@@ -1,0 +1,81 @@
+name: JANUS TRUMP R50G7 Immediate BVE Same-Pivot W4 Safety
+
+on:
+  pull_request:
+    branches:
+      - research/r50g6-immediate-bve-same-pivot-terminality-theorem-2026-09-05
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  theorem-falsifier:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Freeze R50G7 theorem contract
+        run: |
+          python - <<'PY'
+          import json
+          p='research/JANUS_TRUMP_R50G7_IMMEDIATE_BVE_SAME_PIVOT_W4_SAFETY_PREREGISTRATION_2026-09-05.json'
+          d=json.load(open(p))
+          assert d['status']=='FROZEN_BEFORE_EXECUTION'
+          assert d['algebraic_counterexample_family']['heuristic_ordering'] is False
+          assert d['algebraic_counterexample_family']['max_exact_family_candidates']==2000
+          assert d['firewall']['LOCAL_SAME_PIVOT_W4_SAFETY']=='OPEN'
+          PY
+
+      - name: Static no-heuristic authority audit
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p=Path('experiments/janus_trump_r50g7_immediate_bve_same_pivot_w4_safety.py').read_text()
+          forbidden=['random.choice(', 'random.shuffle(', 'random.random(', 'sklearn', 'torch', 'tensorflow', 'heuristic_score', 'learned_selector']
+          for x in forbidden:
+              assert x not in p, x
+          PY
+
+      - name: Install test runner
+        run: python -m pip install --disable-pip-version-check -q pytest
+
+      - name: Compile and unit tests
+        run: |
+          python -m py_compile experiments/janus_trump_r50g7_immediate_bve_same_pivot_w4_safety.py
+          PYTHONPATH=.:experiments pytest -q tests/test_janus_trump_r50g7_immediate_bve_same_pivot_w4_safety.py
+
+      - name: Execute exact algebraic theorem falsifier
+        run: |
+          mkdir -p artifacts
+          PYTHONPATH=experiments python experiments/janus_trump_r50g7_immediate_bve_same_pivot_w4_safety.py \
+            --limit 2000 \
+            --output artifacts/JANUS_TRUMP_R50G7_RESULT.json
+
+      - name: Validate epistemic boundary
+        run: |
+          python - <<'PY'
+          import json
+          d=json.load(open('artifacts/JANUS_TRUMP_R50G7_RESULT.json'))
+          fw=d['firewall']
+          assert fw['HEURISTIC_AUTHORITY'] is False
+          assert fw['FINITE_NO_FIND_IMPLIES_THEOREM'] is False
+          assert fw['SAT_IN_P']=='NOT_PROVED'
+          assert fw['TRUMP_finished'] is False
+          fam=d['algebraic_family']
+          if fam['local_counterexample_found']:
+              assert fw['LOCAL_SAME_PIVOT_W4_SAFETY']=='REFUTED'
+              assert fam['first_local_wide_survivor']['terminal'] is None
+              assert fam['first_local_wide_survivor']['final_width'] > 4
+          if d['reachable_replay']['same_pivot_unsafe']==0:
+              assert fw['REACHABLE_SAME_PIVOT_W4_SAFETY']=='OPEN'
+          PY
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: janus-trump-r50g7-result
+          path: artifacts/JANUS_TRUMP_R50G7_RESULT.json
+          if-no-files-found: error
