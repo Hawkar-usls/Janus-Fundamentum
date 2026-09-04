@@ -1,0 +1,128 @@
+name: JANUS TRUMP R48L A Star 4 Continuation Or Targeted Escalation
+
+on:
+  push:
+    branches:
+      - research/r48l-a-star-4-continuation-or-targeted-escalation-2026-09-04
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  r48l-a-star-4:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 180
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Verify frozen lineage and proof-carrying v2 executor
+        run: |
+          python - <<'PY'
+          import json, subprocess
+          parent='a1976c427df73a7acb8cfa956b50d0c8446957f1'
+          prereg='4df27a4624236366b538db3e9b99b81827286c35'
+          executor='263cb3b89fb1769f5df05df1746ddb02da462895'
+          for c in (parent, prereg, executor):
+              subprocess.run(['git','merge-base','--is-ancestor',c,'HEAD'], check=True)
+          d=json.load(open('research/JANUS_TRUMP_R48L_A_STAR_4_CONTINUATION_OR_TARGETED_ESCALATION_PREREGISTRATION_2026-09-04.json'))
+          assert d['status']=='FROZEN_BEFORE_EXECUTION'
+          assert d['parent']['commit']==parent
+          assert d['sealed_R48G_witness']['prefix_pivots_before_a_star_3']==[7,2,26]
+          assert d['sealed_R48G_witness']['a_star_3_state_hash']=='9c06bfcfecbff7b79342a0c4113c77bba310e976ad1ac1b52120c887782d96ac'
+          assert d['phase_B_only_if_phase_A_terminal_below_4']['max_unique_third_mutated_originals']==96
+          assert d['interpretation_ceiling']['a_star_ge_4_proves_unbounded_pressure'] is False
+          assert d['epistemic_firewall']['O4_UNIVERSAL_COVERAGE']=='OPEN'
+          assert d['epistemic_firewall']['SAT_IN_P']=='NOT_PROVED'
+          assert d['epistemic_firewall']['P_VS_NP']=='OPEN'
+          assert d['epistemic_firewall']['TRUMP_finished'] is False
+          PY
+
+      - name: Compile proof-carrying v2 executor
+        run: python -m py_compile experiments/janus_trump_r48l_a_star_4_continuation_or_targeted_escalation_v2.py
+
+      - name: Execute frozen a-star 4 attack
+        run: |
+          mkdir -p artifacts
+          PYTHONPATH=experiments python experiments/janus_trump_r48l_a_star_4_continuation_or_targeted_escalation_v2.py \
+            --output artifacts/JANUS_TRUMP_R48L_A_STAR_4_CONTINUATION_OR_TARGETED_ESCALATION_RESULT_2026-09-04.json \
+            | tee /tmp/r48l.json
+          python - <<'PY'
+          import json
+          d=json.load(open('artifacts/JANUS_TRUMP_R48L_A_STAR_4_CONTINUATION_OR_TARGETED_ESCALATION_RESULT_2026-09-04.json'))
+          assert d['gate']=='JANUS_TRUMP_R48L_A_STAR_4_CONTINUATION_OR_TARGETED_ESCALATION'
+          assert d['verdict'] in {
+              'R48G_ROOT_CONTINUATION_REACHES_A_STAR_GE_4',
+              'TARGETED_THIRD_MUTATION_REACHES_A_STAR_GE_4',
+              'STRONGER_NO_VARIABLE_DECREASING_CANDIDATE_FOUND',
+              'NO_A_STAR_GE_4_WITHIN_FROZEN_SCOPE__FINITE_ONLY',
+          }
+          b=d['baseline_continuation']
+          assert [x['var'] for x in b['selected_path'][:3]]==[7,2,26]
+          assert b['saw_R48G_a_star_3_state'] is True
+          assert d['firewall']['O4_UNIVERSAL_COVERAGE']=='OPEN'
+          assert d['firewall']['SAT_IN_P']=='NOT_PROVED'
+          assert d['firewall']['P_VS_NP']=='OPEN'
+          assert d['firewall']['TRUMP_finished'] is False
+
+          def verify_counterexample(c, threshold):
+              assert c is not None
+              assert c['a_star'] is None or c['a_star'] >= threshold
+              rows=c['candidate_rows']
+              if c['a_star'] is None:
+                  assert not any(r.get('eligible',False) for r in rows)
+              else:
+                  eligible=[r for r in rows if r.get('eligible',False)]
+                  assert eligible
+                  assert not any(r.get('terminal') is not None for r in eligible)
+                  assert min(int(r['a_req']) for r in eligible if r.get('a_req') is not None) >= threshold
+                  for r in rows:
+                      if r.get('candidate',True):
+                          assert r.get('full_R47M_independent_replay_pass') is True
+
+          if d['verdict']=='R48G_ROOT_CONTINUATION_REACHES_A_STAR_GE_4':
+              verify_counterexample(b['counterexample'],4)
+          if d['verdict']=='TARGETED_THIRD_MUTATION_REACHES_A_STAR_GE_4':
+              p=d['first_targeted_positive']
+              assert p is not None and p['outcome']=='A_STAR_GE_4'
+              verify_counterexample(p['counterexample'],4)
+          if d['verdict']=='STRONGER_NO_VARIABLE_DECREASING_CANDIDATE_FOUND':
+              c=b.get('counterexample') if b['outcome']=='NO_VARIABLE_DECREASING_CANDIDATE' else d['first_targeted_positive']['counterexample']
+              verify_counterexample(c,4)
+          if b['outcome']=='TERMINAL_BEFORE_A_STAR_4':
+              t=b['terminal']
+              if t['semantic_sat'] is True:
+                  assert t['SAT_root_reconstruction']['applicable'] is True
+                  assert t['SAT_root_reconstruction']['pass'] is True
+          print('R48L_GATE=PASS')
+          print('R48L_VERDICT=',d['verdict'])
+          print('R48L_BASELINE=',json.dumps({
+              'outcome':b['outcome'],
+              'max_a_star':b['max_a_star'],
+              'selected_pivots':[x['var'] for x in b['selected_path']],
+              'counterexample':None if b.get('counterexample') is None else {
+                  'state_hash':b['counterexample']['state_hash'],
+                  'state_CLV':b['counterexample']['state_CLV'],
+                  'a_star':b['counterexample']['a_star'],
+              },
+          },sort_keys=True))
+          print('R48L_TARGETED_METRICS=',json.dumps(d.get('targeted_metrics'),sort_keys=True))
+          print('R48L_TARGETED_POSITIVE=',json.dumps(None if d.get('first_targeted_positive') is None else {
+              k:d['first_targeted_positive'].get(k)
+              for k in ('targeted_ordinal','phase','source_clause','replacement_clause','mutated_original_hash','root_hash','root_CLV','outcome','max_a_star')
+          },sort_keys=True))
+          PY
+
+      - name: Upload full scientific result
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: JANUS_TRUMP_R48L_A_STAR_4_CONTINUATION_OR_TARGETED_ESCALATION_RESULT
+          path: artifacts/JANUS_TRUMP_R48L_A_STAR_4_CONTINUATION_OR_TARGETED_ESCALATION_RESULT_2026-09-04.json
+          if-no-files-found: error
+          retention-days: 90
