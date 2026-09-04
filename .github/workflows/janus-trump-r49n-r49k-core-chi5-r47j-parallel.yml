@@ -1,0 +1,40 @@
+name: JANUS TRUMP R49N R49K Core Chi5 R47J Parallel
+
+on:
+  push:
+    branches:
+      - research/r49n-r49k-core-chi5-r47j-parallel-2026-09-04
+  workflow_dispatch:
+
+jobs:
+  pivot:
+    name: r49n-v${{ matrix.var }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 120
+    strategy:
+      fail-fast: false
+      max-parallel: 8
+      matrix:
+        var: [8, 10, 12, 13, 18, 20, 26, 30]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Compile
+        run: python -m py_compile experiments/janus_trump_r49n_r49k_core_single_r47j_pivot.py
+      - name: Probe pivot
+        env:
+          PYTHONPATH: experiments
+        run: |
+          mkdir -p artifacts
+          python experiments/janus_trump_r49n_r49k_core_single_r47j_pivot.py \
+            --var ${{ matrix.var }} \
+            --output artifacts/JANUS_TRUMP_R49N_V${{ matrix.var }}_RESULT.json
+      - name: Upload result
+        uses: actions/upload-artifact@v4
+        with:
+          name: JANUS_TRUMP_R49N_V${{ matrix.var }}_RESULT
+          path: artifacts/JANUS_TRUMP_R49N_V${{ matrix.var }}_RESULT.json
+          if-no-files-found: error
+          retention-days: 90
