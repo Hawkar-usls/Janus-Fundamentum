@@ -1,0 +1,108 @@
+{
+  "gate": "JANUS_TRUMP_R50G3_MINIMAL_COUNTEREXAMPLE_STRUCTURE_AND_MIRRORED_FALSIFIER",
+  "status": "FROZEN_BEFORE_R50G3_EXECUTION",
+  "date": "2026-09-05",
+  "parent": {
+    "branch": "research/r50g2-guarded-full-smallest-first-deadcore-2026-09-05",
+    "commit": "1e5bfef0a54ee73bf9431426bbb33ef8b9a1ab1a",
+    "run": 33923979076,
+    "R50G2_finite_result": {
+      "reachable_roots": 400,
+      "terminal_roots": 400,
+      "R33_domain_escape_events": 1,
+      "reachable_deadcores": 0,
+      "all_W4_deadcores": 0,
+      "authority": "FINITE_ONLY__U_REMAINS_OPEN"
+    }
+  },
+  "architectural_law": "PRODUCER_MAY_PROPOSE__INVARIANT_DECIDES_AUTHORITY",
+  "U_guarded": "For every persisted reachable canonical W<=4 state of the frozen guarded machine, either R33 has an authorised terminal/W4 reduction, or an R49H direct exact-DP pivot exists, or at least one R47J candidate is terminal or no-fresh strict-variable-descent with final W<=4.",
+  "minimal_counterexample_definition": {
+    "assumption": "Assume guarded U is false.",
+    "object": "F_star is a lexicographically minimum guarded-OPEN reachable W<=4 state under mu=(V,C,L), where V=#variables, C=#clauses, L=#literals.",
+    "warning": "Minimality is only over the frozen reachable-state domain. Arbitrary clause deletion, literal deletion, relabelling, or subformula replacement is NOT automatically reachability-preserving and therefore cannot be used as a minimal-counterexample step without a separate closure lemma."
+  },
+  "symbolic_source_lemmas_frozen_before_execution": [
+    {
+      "id": "L1_R33_NON_BVE_WIDTH_MONOTONICITY",
+      "statement": "Within R33, TAUTOLOGY_DELETION, UNIT_PROPAGATION_WITH_RECONSTRUCTION_TRACE, PURE_LITERAL_AUTARKY, SUBSUMPTION, and BLOCKED_CLAUSE_ELIMINATION cannot increase maximum clause width. BOUNDED_VARIABLE_ELIMINATION is the only R33 rule capable of creating a wider clause.",
+      "authority_target": "ELEMENTARY_SOURCE_THEOREM"
+    },
+    {
+      "id": "L2_FIRST_R33_W4_ESCAPE_IS_BVE",
+      "statement": "Starting from W<=4, if an R33 history first leaves W4, the first width-breaking history record must be BOUNDED_VARIABLE_ELIMINATION.",
+      "depends_on": ["L1_R33_NON_BVE_WIDTH_MONOTONICITY"],
+      "authority_target": "ELEMENTARY_SOURCE_THEOREM"
+    },
+    {
+      "id": "L3_SAFE_PREFIX_BEFORE_ESCAPE",
+      "statement": "Every R33 history prefix strictly before the first W4-breaking BVE remains W<=4 and consists entirely of existing exact proof-carrying R33 rules. If the breaking BVE is not the first record, a nonempty exact W4-safe progress prefix exists, even though the current guarded controller rejects the full escaped R33 proposal as one batch.",
+      "depends_on": ["L2_FIRST_R33_W4_ESCAPE_IS_BVE"],
+      "authority_target": "ELEMENTARY_SOURCE_THEOREM_PLUS_REPLAY"
+    },
+    {
+      "id": "L4_GUARDED_OPEN_REQUIRES_AT_LEAST_6_VARIABLES",
+      "statement": "No canonical W<=4 guarded-OPEN state can have V<=5. For V<=5 an R33 W4-domain escape is impossible because any BVE resolvent after eliminating a pivot uses at most V-1<=4 remaining variables; and if R33 is at a fixed point then every present variable is bipolar, while every non-tautological cross-polarity resolvent has width<=V-1<=4, so an R49H direct pivot exists.",
+      "authority_target": "ELEMENTARY_COMBINATORIAL_THEOREM"
+    },
+    {
+      "id": "L5_NO_R49H_BIPOLAR_PIVOT_HAS_WIDTH4_PARENT_WITNESS",
+      "statement": "For a bipolar pivot v in canonical W<=4, if R49H is unavailable then chi_star(v)>=5; every retained non-tautological width>4 parent pair witnessing this has at least one width-4 parent clause. In an R33 FIXED_POINT guarded-OPEN state this applies to every variable because pure literals are absent.",
+      "authority_target": "ELEMENTARY_COMBINATORIAL_THEOREM"
+    },
+    {
+      "id": "L6_V6_BAD_PAIR_GEOMETRY",
+      "statement": "At V=6, every retained non-tautological width>4 pivot resolvent has width exactly 5 and covers all five nonpivot variables. Its parent-width pattern is only 4x3, 3x4, or 4x4. In 4x3/3x4 the residual variable sets are disjoint; in 4x4 they intersect in exactly one compatible residual literal.",
+      "authority_target": "ELEMENTARY_COMBINATORIAL_THEOREM"
+    }
+  ],
+  "minimal_counterexample_case_split": {
+    "common_obligations": [
+      "V(F_star)>=6",
+      "R33 has neither terminal authority nor an authorised full W4 reduction",
+      "no R49H direct pivot exists",
+      "every R47J pivot is nonterminal and not a no-fresh strict-variable-descent final-W4 successor"
+    ],
+    "R33_FIXED_POINT_CASE": [
+      "no tautology/unit/pure/subsumption/BCE/BVE rule is applicable under the frozen R33 order",
+      "every variable is bipolar",
+      "every variable has chi_star>=5",
+      "every variable has at least one bad parent pair containing a width-4 parent clause"
+    ],
+    "R33_DOMAIN_ESCAPE_CASE": [
+      "the first width-breaking R33 rule is BVE",
+      "all preceding R33 records remain W4-safe",
+      "a nonempty safe prefix may exist but CURRENT guarded semantics does not commit it separately"
+    ]
+  },
+  "critical_blocked_proof_step": {
+    "id": "PREFIX_CLOSURE_OR_ESCAPE_ELIMINATION",
+    "statement": "A classic minimal-counterexample descent cannot discard the R33_DOMAIN_ESCAPE case merely because a smaller W4-safe prefix exists: the current frozen reachable-state relation does not yet grant that prefix independent transition authority. To close this route one must either prove a reachability/authority closure lemma for certified W4-safe R33 prefixes, or prove by another symbolic argument that a minimal guarded counterexample cannot lie in the domain-escape case.",
+    "must_not_be_assumed": true
+  },
+  "mirrored_falsifier": {
+    "purpose": "Try to falsify the frozen structural lemmas and classify candidate-hard states; it has zero authority to prove U by no-find.",
+    "corpus": "Replay the deterministic R50G2 reachable planted-3CNF roots for V=6..10 and a deterministic mixed-width W4 mirror pool; inspect every R33 escape and every state with no R33 authority/no R49H.",
+    "required_checks": [
+      "independently replay every R33 history record and verify final formula/measure",
+      "assert any first W4 break is BVE",
+      "record safe-prefix length before each escape",
+      "for FIXED_POINT/no-R49H states verify bipolarity, chi_star>=5, and width4-parent witness for every variable",
+      "for V=6 verify the exact bad-pair geometry",
+      "preserve explicit counterexample if any frozen structural lemma fails"
+    ]
+  },
+  "firewall": {
+    "R50G3_STRUCTURAL_LEMMAS_IMPLY_U": false,
+    "SAFE_PREFIX_EXISTS_IMPLIES_CURRENT_U": false,
+    "NO_MIRROR_FALSIFIER_FOUND_IMPLIES_U": false,
+    "ARBITRARY_SUBFORMULA_MINIMALITY_ALLOWED_ON_REACHABLE_U": false,
+    "GUARDED_U": "OPEN",
+    "UNIVERSAL_R50A_PROGRESS": "OPEN",
+    "SAT_IN_P": "NOT_PROVED",
+    "P_EQ_NP": "NOT_PROVED",
+    "P_NE_NP": "NOT_PROVED",
+    "P_VS_NP": "OPEN",
+    "TRUMP_finished": false
+  }
+}
