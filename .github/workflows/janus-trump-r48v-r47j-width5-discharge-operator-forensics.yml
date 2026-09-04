@@ -1,0 +1,107 @@
+name: JANUS TRUMP R48V R47J Width5 Discharge Operator Forensics
+
+on:
+  push:
+    branches:
+      - research/r48v-r47j-width5-discharge-operator-forensics-2026-09-04
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  r48v-width5-discharge:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Verify frozen preregistration lineage
+        run: |
+          python - <<'PY'
+          import json,subprocess
+          parent='34d13b4e62b1756a4c5e4c37071b4ef882990d07'
+          prereg='1dc62f98721e96bc0c4766e0f292636c0e05c029'
+          executor='5f7d1e0ae9a97880df0ca490ac8191209cc59bb6'
+          for c in (parent,prereg,executor):
+              subprocess.run(['git','merge-base','--is-ancestor',c,'HEAD'],check=True)
+          d=json.load(open('research/JANUS_TRUMP_R48V_R47J_WIDTH5_DISCHARGE_OPERATOR_FORENSICS_PREREGISTRATION_2026-09-04.json'))
+          assert d['status']=='FROZEN_BEFORE_EXECUTION'
+          assert d['parent']['commit']==parent
+          assert d['sealed_R48T']['transient_width_growth_steps']==[3,4,6]
+          assert d['sealed_R48T']['R47J_reset_steps']==[3,4]
+          assert d['frozen_scope']['trace_replays_exact_existing_R47J_order']=='R33 -> affine recognition -> RUP -> restart'
+          assert d['firewall']['UNIVERSAL_WIDTH_RESET_LEMMA']=='NOT_PROVED'
+          assert d['firewall']['O4_UNIVERSAL_COVERAGE']=='OPEN'
+          assert d['firewall']['SAT_IN_P']=='NOT_PROVED'
+          assert d['firewall']['P_VS_NP']=='OPEN'
+          PY
+      - name: Compile
+        run: python -m py_compile experiments/janus_trump_r48v_r47j_width5_discharge_operator_forensics.py
+      - name: Execute exact discharge trace
+        run: |
+          mkdir -p artifacts
+          PYTHONPATH=experiments python experiments/janus_trump_r48v_r47j_width5_discharge_operator_forensics.py \
+            --output artifacts/JANUS_TRUMP_R48V_R47J_WIDTH5_DISCHARGE_OPERATOR_FORENSICS_RESULT_2026-09-04.json \
+            | tee /tmp/r48v.json
+          python - <<'PY'
+          import json
+          d=json.load(open('artifacts/JANUS_TRUMP_R48V_R47J_WIDTH5_DISCHARGE_OPERATOR_FORENSICS_RESULT_2026-09-04.json'))
+          assert d['gate']=='JANUS_TRUMP_R48V_R47J_WIDTH5_DISCHARGE_OPERATOR_FORENSICS'
+          assert d['classification'] in {
+              'R33_DOMINANT_WIDTH5_DISCHARGE',
+              'RUP_DOMINANT_WIDTH5_DISCHARGE',
+              'MIXED_R33_RUP_WIDTH5_DISCHARGE',
+          }
+          assert d['nonterminal_reset_steps']==[3,4]
+          assert len(d['reset_operators'])==2
+          for r in d['rows']:
+              assert r['R47J_trace']['forced']['max_width']==5
+              assert all(r['R47J_trace']['exact_match_to_frozen_R47J'].values())
+              assert r['full_independent_replay_pass'] is True
+          for r in [x for x in d['rows'] if x['step'] in (3,4)]:
+              assert r['R47J_trace']['terminal'] is None
+              assert r['R47J_trace']['final']['max_width']<=4
+              assert r['R47J_trace']['first_width_discharge'] is not None
+          step6=next(x for x in d['rows'] if x['step']==6)
+          assert step6['R47J_trace']['final']['max_width']==5
+          assert step6['full_terminal']=='DIRECT_EMPTY_CNF'
+          assert d['interpretation']['universal_width_reset_lemma_proved'] is False
+          assert d['firewall']['O4_UNIVERSAL_COVERAGE']=='OPEN'
+          assert d['firewall']['SAT_IN_P']=='NOT_PROVED'
+          assert d['firewall']['P_VS_NP']=='OPEN'
+          print('R48V_GATE=PASS')
+          print('R48V_CLASSIFICATION='+d['classification'])
+          print('R48V_RESET_OPERATORS='+json.dumps(d['reset_operators'],sort_keys=True))
+          for r in d['rows']:
+              print('R48V_STEP='+json.dumps({
+                  'step':r['step'],'pivot':r['pivot'],
+                  'first_discharge':r['R47J_trace']['first_width_discharge'],
+                  'rounds':[{
+                      'round':x['round'],
+                      'before_w':x['before']['max_width'],
+                      'before_w5':x['before']['width5_clause_count'],
+                      'r33_w':x['R33']['max_width'],
+                      'r33_w5':x['R33']['width5_clause_count'],
+                      'r33_apps':x['R33']['application_count'],
+                      'rup_w':None if 'RUP' not in x else x['RUP']['max_width'],
+                      'rup_w5':None if 'RUP' not in x else x['RUP']['width5_clause_count'],
+                      'rup_hist':None if 'RUP' not in x else x['RUP']['history_count'],
+                      'stop':x.get('stop'),'restart':x.get('restart',False),
+                  } for x in r['R47J_trace']['rounds']],
+                  'R47J_final_width':r['R47J_trace']['final']['max_width'],
+                  'full_terminal':r['full_terminal'],'SA_BVE':r['SA_BVE_application_count'],
+              },sort_keys=True))
+          PY
+      - name: Upload full result
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: JANUS_TRUMP_R48V_R47J_WIDTH5_DISCHARGE_OPERATOR_FORENSICS_RESULT
+          path: artifacts/JANUS_TRUMP_R48V_R47J_WIDTH5_DISCHARGE_OPERATOR_FORENSICS_RESULT_2026-09-04.json
+          if-no-files-found: error
+          retention-days: 90
