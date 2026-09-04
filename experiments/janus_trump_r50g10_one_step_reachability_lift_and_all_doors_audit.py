@@ -42,7 +42,7 @@ def exhaustive_existing_door_audit(formula):
     f = canon(formula)
     variables = tuple(int(v) for v in r33.variables(f))
     tokens = r50a.expose_exact_tokens(f)
-    token_by_var = {int(t['var']): t for t in tokens}
+    token_by_var = {int(t['pivot']): t for t in tokens}
     direct_pivots = sorted(int(v) for v, t in token_by_var.items() if t['direct_exact_dp_authorized'])
 
     fallback_rows = []
