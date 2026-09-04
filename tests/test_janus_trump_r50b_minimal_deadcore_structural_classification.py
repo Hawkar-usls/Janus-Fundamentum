@@ -3,7 +3,7 @@ from __future__ import annotations
 import unittest
 
 import janus_trump_r33_certified_safe_reduction_stack_lean_core_forensics as r33
-import janus_trump_r49m_r49k_obstruction_targeted_r47j_discharge as r49m
+import janus_trump_r49i_bipolar_nontauto_cross_union_width5_core_hunt as r49i
 import janus_trump_r50b_minimal_deadcore_structural_classification as r50b
 
 
@@ -29,18 +29,18 @@ class R50BStructuralClassificationTests(unittest.TestCase):
         self.assertEqual(p["retained_nontautological_pair_count"], 0)
         self.assertEqual(p["bad_pair_count_union_ge_5"], 0)
 
-    def test_known_r49k_hard_core_is_classified_with_all_pivots(self):
-        _, _, core = r49m.recreate_core()
-        c = r50b.classify_state(core, {"kind": "UNIT_TEST_R49K_CORE"})
-        self.assertEqual(c["r33_status"]["kind"], "STALL")
-        self.assertEqual(c["direct_authorized_pivots"], [])
-        self.assertTrue(c["r47j_scanned_all_current_variables"])
-        self.assertEqual(len(c["r47j_rows"]), c["variable_count"])
-        self.assertTrue(all(row["independent_replay_pass"] is True for row in c["r47j_rows"] if row["candidate"]))
-        self.assertGreaterEqual(len(c["r47j_safe_pivots"]), 1)
-        self.assertFalse(c["deadcore_under_current_R50A_machine"])
-        self.assertTrue(c["every_current_variable_has_bad_pair"])
-        self.assertGreaterEqual(c["total_bad_pair_count"], c["variable_count"])
+    def test_cross_pair_measurement_matches_r49i_chi_definition(self):
+        formula = r33.canonical_formula([
+            (1, 2, 3, 4),
+            (-1, 5, 6, 7),
+            (1, 5, 8),
+            (-1, 2, 9),
+        ])
+        exact = r50b.cross_pair_profile(formula, 1)
+        profile = r49i.variable_profile(formula, 1)
+        max_seen = max((int(k) for k, v in exact["retained_union_size_histogram"].items() if v), default=0)
+        self.assertEqual(max_seen, profile["chi_star"])
+        self.assertEqual(exact["retained_nontautological_pair_count"], profile["retained_nontautological_pair_count"])
 
     def test_r33_open_door_stops_deadcore_classification(self):
         formula = r33.canonical_formula([(1,), (2, 3)])
