@@ -1,0 +1,88 @@
+name: JANUS TRUMP R48Y Wide First Prepass R48O Production Regression
+
+on:
+  push:
+    branches:
+      - research/r48y-wide-first-prepass-r48o-production-regression-2026-09-04
+  workflow_dispatch:
+
+jobs:
+  r48y-production-regression:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 180
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Verify frozen preregistration lineage
+        run: |
+          python - <<'PY'
+          import json, subprocess
+          parent='ac11c50aeec4c86a78f8f50a762e7abc8136a9c0'
+          prereg='a348a89056b75e93f14bbdeb15d7152de82bc68d'
+          executor='0a8216db18d43a38691c3c2e05046079c7aef542'
+          for c in (parent,prereg,executor):
+              subprocess.run(['git','merge-base','--is-ancestor',c,'HEAD'],check=True)
+          d=json.load(open('research/JANUS_TRUMP_R48Y_WIDE_FIRST_PREPASS_R48O_PRODUCTION_REGRESSION_PREREGISTRATION_2026-09-04.json'))
+          assert d['status']=='FROZEN_BEFORE_EXECUTION'
+          assert d['parent']['commit']==parent
+          assert d['sealed_R48X']['run_id']==33865703140
+          assert d['sealed_R48X']['survivor']==[15,-20,-24,27,28]
+          assert d['frozen_regression_scope']['legacy_path']==[2,4,5,7,9,10]
+          assert d['semantic_contract']['byte_identical_final_formula_required'] is False
+          assert d['proof_authority']['wide_first_rule_is_new_inference_rule'] is False
+          assert d['interpretation_ceiling']['green_gate_proves_universal_width4'] is False
+          assert d['firewall']['P_VS_NP']=='OPEN'
+          PY
+      - name: Compile
+        run: python -m py_compile experiments/janus_trump_r48y_wide_first_prepass_r48o_production_regression.py
+      - name: Execute frozen production regression
+        run: |
+          mkdir -p artifacts
+          PYTHONPATH=experiments python experiments/janus_trump_r48y_wide_first_prepass_r48o_production_regression.py \
+            --output artifacts/JANUS_TRUMP_R48Y_WIDE_FIRST_PREPASS_R48O_PRODUCTION_REGRESSION_RESULT_2026-09-04.json \
+            | tee /tmp/r48y.json
+          python - <<'PY'
+          import json
+          d=json.load(open('artifacts/JANUS_TRUMP_R48Y_WIDE_FIRST_PREPASS_R48O_PRODUCTION_REGRESSION_RESULT_2026-09-04.json'))
+          allowed={
+            'OPTIMIZED_WIDE_FIRST_R47M_PRESERVES_R48O_WIDTH4_CHAIN_AND_TERMINAL__FINITE_ONLY',
+            'OPTIMIZED_CHAIN_DIFFERS_BUT_REMAINS_CERTIFIED_WIDTH4_AND_TERMINAL__FINITE_ONLY',
+            'OPTIMIZED_LEGACY_SELECTED_PIVOT_REGRESSION_FAILURE',
+            'OPTIMIZED_WIDTH4_CHAIN_OBSTRUCTION_FOUND',
+          }
+          assert d['gate']=='JANUS_TRUMP_R48Y_WIDE_FIRST_PREPASS_R48O_PRODUCTION_REGRESSION'
+          assert d['verdict'] in allowed
+          assert d['root']['hash']=='3f05812b68eec1a2c16b099d5542dcc53fce66a0cb47679a1594134a0a553750'
+          assert d['legacy_sealed']['selected_pivots']==[2,4,5,7,9,10]
+          if d['verdict'] in {
+            'OPTIMIZED_WIDE_FIRST_R47M_PRESERVES_R48O_WIDTH4_CHAIN_AND_TERMINAL__FINITE_ONLY',
+            'OPTIMIZED_CHAIN_DIFFERS_BUT_REMAINS_CERTIFIED_WIDTH4_AND_TERMINAL__FINITE_ONLY',
+          }:
+              assert d['legacy_selected_pivot_regression']['pass'] is True
+              assert d['optimized_chain']['terminal'] is not None
+              assert d['optimized_chain']['obstruction'] is None
+              assert d['optimized_chain']['max_persisted_width']<=4
+              assert d['optimized_chain']['terminal']['SAT_root_reconstruction_pass'] is True
+          assert d['interpretation']['new_inference_rule_added'] is False
+          assert d['interpretation']['proof_authority_changed'] is False
+          assert d['interpretation']['universal_width4_proved'] is False
+          assert d['firewall']['UNIVERSAL_WIDTH_4_COVERAGE']=='NOT_PROVED'
+          assert d['firewall']['SAT_IN_P']=='NOT_PROVED'
+          assert d['firewall']['P_VS_NP']=='OPEN'
+          print('R48Y_GATE=PASS')
+          print('R48Y_VERDICT='+d['verdict'])
+          print('R48Y_REGRESSION='+json.dumps(d['legacy_selected_pivot_regression'],sort_keys=True))
+          print('R48Y_OPT_CHAIN='+json.dumps(d['optimized_chain'],sort_keys=True))
+          print('R48Y_PERFORMANCE='+json.dumps(d['performance'],sort_keys=True))
+          PY
+      - name: Upload full scientific result
+        uses: actions/upload-artifact@v4
+        with:
+          name: JANUS_TRUMP_R48Y_WIDE_FIRST_PREPASS_R48O_PRODUCTION_REGRESSION_RESULT
+          path: artifacts/JANUS_TRUMP_R48Y_WIDE_FIRST_PREPASS_R48O_PRODUCTION_REGRESSION_RESULT_2026-09-04.json
+          if-no-files-found: error
+          retention-days: 90
