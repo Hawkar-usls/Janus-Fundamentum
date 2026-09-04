@@ -1,0 +1,93 @@
+name: JANUS TRUMP R50G10 One-Step Reachability Lift and All Doors
+
+on:
+  pull_request:
+    branches:
+      - research/r50g9-explicit-local-wide-fixpoint-counterexample-and-reachability-pivot-2026-09-05
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  reachability-and-all-doors:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Freeze R50G10 reachability contract
+        run: |
+          python - <<'PY'
+          import json
+          p='research/JANUS_TRUMP_R50G10_ONE_STEP_REACHABILITY_LIFT_AND_ALL_DOORS_AUDIT_PREREGISTRATION_2026-09-05.json'
+          d=json.load(open(p))
+          assert d['status']=='FROZEN_BEFORE_EXECUTION'
+          c=d['frozen_construction']
+          assert c['predecessor_pivot_y']==1
+          assert c['dangerous_pivot_x']==2
+          assert c['root_parent_y_positive']==[1,2,-101]
+          assert c['root_parent_y_negative']==[-1,-102,-103]
+          assert c['persistent_x_negative_parent']==[-2,-104,-107]
+          assert c['expected_y_resolvent_in_reached_state']==[2,-101,-102,-103]
+          assert c['expected_x_width5_resolvent']==[-101,-102,-103,-104,-107]
+          PY
+
+      - name: Static no-heuristic authority audit
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p=Path('experiments/janus_trump_r50g10_one_step_reachability_lift_and_all_doors_audit.py').read_text()
+          forbidden=['random.choice(', 'random.shuffle(', 'random.random(', 'sklearn', 'torch', 'tensorflow', 'heuristic_score', 'learned_selector']
+          for x in forbidden:
+              assert x not in p, x
+          assert 'exhaustive_existing_door_audit' in p
+          assert 'PROVED_BY_EXPLICIT_ONE_STEP_U_MU_TRACE' in p
+          PY
+
+      - name: Install test runner
+        run: python -m pip install --disable-pip-version-check -q pytest
+
+      - name: Compile and unit tests
+        run: |
+          python -m py_compile experiments/janus_trump_r50g10_one_step_reachability_lift_and_all_doors_audit.py
+          PYTHONPATH=.:experiments pytest -q tests/test_janus_trump_r50g10_one_step_reachability_lift_and_all_doors_audit.py
+
+      - name: Execute exact reachability and all-doors gate
+        run: |
+          mkdir -p artifacts
+          PYTHONPATH=experiments python experiments/janus_trump_r50g10_one_step_reachability_lift_and_all_doors_audit.py \
+            --output artifacts/JANUS_TRUMP_R50G10_RESULT.json
+
+      - name: Validate exact dichotomy
+        run: |
+          python - <<'PY'
+          import json
+          d=json.load(open('artifacts/JANUS_TRUMP_R50G10_RESULT.json'))
+          r=d['reachability_certificate']; s=d['reached_state']; doors=d['all_existing_doors_audit']; fw=d['firewall']
+          assert r['root_width']<=3
+          assert r['one_step_U_mu_reachability_proved'] is True
+          assert r['authorized_successor_width']==4
+          assert s['immediate_BVE_escape'] is True
+          assert s['same_pivot_R47J_safe'] is False
+          assert s['same_pivot_final_width']>4
+          assert fw['REACHABILITY_OF_R50G9_ISOMORPH']=='PROVED_BY_EXPLICIT_ONE_STEP_U_MU_TRACE'
+          assert fw['REACHABLE_SAME_PIVOT_W4_SAFETY']=='REFUTED'
+          if doors['all_existing_doors_blocked']:
+              assert fw['U_MU']=='REFUTED_BY_EXPLICIT_ONE_STEP_REACHABLE_SAT_OPEN'
+              assert d['refined_U_mu_step']['kind']=='OPEN_OBSTRUCTION'
+          else:
+              assert fw['U_MU']=='OPEN'
+              assert d['refined_U_mu_step']['kind']!='OPEN_OBSTRUCTION'
+          assert fw['SAT_IN_P']=='NOT_PROVED'
+          assert fw['P_VS_NP']=='OPEN'
+          assert fw['TRUMP_finished'] is False
+          PY
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: janus-trump-r50g10-result
+          path: artifacts/JANUS_TRUMP_R50G10_RESULT.json
+          if-no-files-found: error
