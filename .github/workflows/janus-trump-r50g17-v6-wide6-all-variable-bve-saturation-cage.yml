@@ -1,0 +1,82 @@
+name: JANUS TRUMP R50G17 V6 Wide6 All-Variable BVE Saturation Cage
+
+on:
+  pull_request:
+    paths:
+      - 'research/JANUS_TRUMP_R50G17_V6_WIDE6_ALL_VARIABLE_BVE_SATURATION_CAGE_PREREGISTRATION_2026-09-05.json'
+      - 'research/JANUS_TRUMP_R50G17_V6_WIDE6_ALL_VARIABLE_BVE_SATURATION_CAGE_PROOF_NOTE_2026-09-05.md'
+      - 'experiments/janus_trump_r50g17_v6_wide6_all_variable_bve_saturation_cage.py'
+      - 'tests/test_janus_trump_r50g17_v6_wide6_all_variable_bve_saturation_cage.py'
+      - '.github/workflows/janus-trump-r50g17-v6-wide6-all-variable-bve-saturation-cage.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  theorem-or-counterexample:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Freeze R50G17 contract
+        run: |
+          python - <<'PY'
+          import json
+          p='research/JANUS_TRUMP_R50G17_V6_WIDE6_ALL_VARIABLE_BVE_SATURATION_CAGE_PREREGISTRATION_2026-09-05.json'
+          d=json.load(open(p))
+          assert d['status']=='FROZEN_BEFORE_EXECUTION'
+          assert d['proof_or_counterexample'] is True
+          assert d['execution']['source_definition_proof'] is True
+          assert d['firewall']['SIXFOLD_SATURATION_IMPLIES_V7_IMPOSSIBILITY'] is False
+          PY
+
+      - name: Static no-heuristic authority audit
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p=Path('experiments/janus_trump_r50g17_v6_wide6_all_variable_bve_saturation_cage.py').read_text()
+          for x in ['random.choice(', 'random.shuffle(', 'random.random(', 'sklearn', 'torch', 'tensorflow', 'heuristic_score', 'learned_selector']:
+              assert x not in p, x
+          PY
+
+      - name: Install test runner
+        run: python -m pip install --disable-pip-version-check -q pytest
+
+      - name: Compile and unit tests
+        run: |
+          python -m py_compile experiments/janus_trump_r50g17_v6_wide6_all_variable_bve_saturation_cage.py
+          PYTHONPATH=.:experiments pytest -q tests/test_janus_trump_r50g17_v6_wide6_all_variable_bve_saturation_cage.py
+
+      - name: Execute source theorem and R50G16 regression forensics
+        run: |
+          mkdir -p artifacts
+          PYTHONPATH=experiments python experiments/janus_trump_r50g17_v6_wide6_all_variable_bve_saturation_cage.py \
+            --output artifacts/JANUS_TRUMP_R50G17_RESULT.json
+
+      - name: Validate epistemic boundary
+        run: |
+          python - <<'PY'
+          import json
+          d=json.load(open('artifacts/JANUS_TRUMP_R50G17_RESULT.json'))
+          fw=d['firewall']
+          assert d['integer_boundary']['minimum_oriented_pair'] == {'p':3,'n':2}
+          assert fw['SIXFOLD_SATURATION_IMPLIES_V7_IMPOSSIBILITY'] is False
+          assert fw['RUP_BEARING_V7_HUB_CYCLE_ELIMINATED'] is False
+          assert fw['V7_IMMEDIATE_BVE_CASE_ELIMINATED'] is False
+          assert fw['IMMEDIATE_BVE_CASE_ELIMINATED'] is False
+          assert fw['U_MU']=='OPEN'
+          assert fw['SAT_IN_P']=='NOT_PROVED'
+          assert fw['P_VS_NP']=='OPEN'
+          assert fw['TRUMP_finished'] is False
+          PY
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: janus-trump-r50g17-result
+          path: artifacts/JANUS_TRUMP_R50G17_RESULT.json
+          if-no-files-found: error
