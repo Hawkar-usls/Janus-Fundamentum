@@ -15,8 +15,10 @@ def test_opposite_full_twin_dual_support_forces_child_rup():
     out = r50g21.abstract_twin_dual_support_control()
     assert out["UP_conflict"] is True
     assert out["independent_UP_replay"] is True
-    assert abs(out["R_side_witness"][1]) == 1
-    assert abs(out["twin_side_witness"][1]) == 1
+    # Canonical clause ordering is not a semantic position contract.  Check the
+    # exact hub polarities by membership instead of by list index.
+    assert 1 in out["R_side_witness"]
+    assert -1 in out["twin_side_witness"]
 
 
 def test_source_dichotomy_is_exhaustive_and_ancestry_reduces_to_direct5():
