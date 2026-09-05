@@ -1,0 +1,99 @@
+name: JANUS TRUMP R50G9 Wide Fixpoint Support Graph Obstruction
+
+on:
+  pull_request:
+    branches:
+      - research/r50g8-wide-survivor-impossibility-from-pre-bve-cleanliness-2026-09-05
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  support-graph-reduction:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Freeze R50G9 theorem contract
+        run: |
+          python - <<'PY'
+          import json
+          p='research/JANUS_TRUMP_R50G9_WIDE_FIXPOINT_SUPPORT_GRAPH_OBSTRUCTION_PREREGISTRATION_2026-09-05.json'
+          d=json.load(open(p))
+          assert d['status']=='FROZEN_BEFORE_EXECUTION'
+          assert d['no_new_corpus'] is True
+          assert d['no_heuristic_authority'] is True
+          assert d['no_new_semantic_rule'] is True
+          assert d['firewall']['IMMEDIATE_BVE_CASE_ELIMINATED'] is False
+          PY
+
+      - name: Static frozen BVE definition audit
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p=Path('experiments/janus_trump_r33_certified_safe_reduction_stack_lean_core_forensics.py').read_text()
+          required=[
+              'def measure(formula: Formula) -> Tuple[int, int, int]:',
+              'return (len(formula), sum(len(c) for c in formula), len(variables(formula)))',
+              'if len(resolvents) <= len(removed) and measure(transformed) < current:',
+              'return x, tuple(pos), tuple(neg), tuple(resolvents), transformed',
+          ]
+          for token in required:
+              assert token in p, token
+          PY
+
+      - name: Static no-heuristic authority audit
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p=Path('experiments/janus_trump_r50g9_wide_fixpoint_support_graph_obstruction.py').read_text()
+          forbidden=['random.choice(', 'random.shuffle(', 'random.random(', 'sklearn', 'torch', 'tensorflow', 'heuristic_score', 'learned_selector']
+          for x in forbidden:
+              assert x not in p, x
+          PY
+
+      - name: Install test runner
+        run: python -m pip install --disable-pip-version-check -q pytest
+
+      - name: Compile and unit tests
+        run: |
+          python -m py_compile experiments/janus_trump_r50g9_wide_fixpoint_support_graph_obstruction.py
+          PYTHONPATH=.:experiments pytest -q tests/test_janus_trump_r50g9_wide_fixpoint_support_graph_obstruction.py
+
+      - name: Execute support-pressure reduction and frozen replay
+        run: |
+          mkdir -p artifacts
+          PYTHONPATH=experiments python experiments/janus_trump_r50g9_wide_fixpoint_support_graph_obstruction.py \
+            --output artifacts/JANUS_TRUMP_R50G9_RESULT.json
+
+      - name: Validate theorem boundary
+        run: |
+          python - <<'PY'
+          import json
+          d=json.load(open('artifacts/JANUS_TRUMP_R50G9_RESULT.json'))
+          fw=d['firewall']
+          assert fw['HEURISTIC_AUTHORITY'] is False
+          assert fw['NEW_SEMANTIC_INFERENCE_RULE'] is False
+          assert fw['NO_NEW_CORPUS'] is True
+          assert fw['FINITE_NO_FIND_IMPLIES_THEOREM'] is False
+          assert fw['SUPPORT_GRAPH_PRESSURE_LEMMAS']=='PROVED_FROM_FROZEN_SOURCE_DEFINITIONS'
+          assert fw['IMMEDIATE_BVE_CASE_ELIMINATED'] is False
+          assert fw['SAT_IN_P']=='NOT_PROVED'
+          assert fw['P_VS_NP']=='OPEN'
+          assert fw['TRUMP_finished'] is False
+          assert len(d['proved_from_frozen_source_definitions']) == 6
+          control=d['narrow_fixpoint_control']
+          assert control['all_bipolar']
+          assert control['all_q_ge_p_plus_n']
+          assert control['all_p_n_ge_2']
+          PY
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: janus-trump-r50g9-result
+          path: artifacts/JANUS_TRUMP_R50G9_RESULT.json
+          if-no-files-found: error
