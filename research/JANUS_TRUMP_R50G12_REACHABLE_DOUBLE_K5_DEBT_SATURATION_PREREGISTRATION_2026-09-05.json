@@ -1,0 +1,105 @@
+{
+  "schema": "janus.trump.preregistration.v1",
+  "gate": "JANUS_TRUMP_R50G12_REACHABLE_DOUBLE_K5_DEBT_SATURATION",
+  "date": "2026-09-05",
+  "status": "FROZEN_BEFORE_EXECUTION",
+  "proof_or_counterexample": true,
+  "no_new_corpus": true,
+  "no_heuristic_authority": true,
+  "source_repository": "Hawkar-usls/Janus-Fundamentum",
+  "base_branch": "research/r50g11-support-frontier-hitting-or-all-doors-closed-2026-09-05",
+  "base_head": "494787b42bf8bd56a06e57dfd3742325f4965786",
+  "audited_prerequisites": {
+    "R50G11": {
+      "run": 33933520774,
+      "result": "ALL_DOORS_CLOSED_IMPLIES_TWO_MIN_OUTDEGREE_GE_4_DEBT_DIGRAPHS_AND_V_GE_6"
+    },
+    "reachable_same_pivot_control": {
+      "source_pr": 417,
+      "source_run": 33930214473,
+      "status": "EXACTLY_AUDITED",
+      "fact": "REACHABLE_SAME_PIVOT_W4_SAFETY_REFUTED_BY_EXPLICIT_ONE_STEP_U_MU_TRACE",
+      "u_mu_status": "OPEN_BECAUSE_EXISTING_R49H_RESCUE_EXISTS"
+    },
+    "R49H_only_control": {
+      "source_pr": 418,
+      "source_run": 33930434855,
+      "fact": "ALL_R49H_CAN_BE_CLOSED_WHILE_R47J_SAFE_DOORS_REMAIN"
+    },
+    "multiwide_control": {
+      "source_pr": 419,
+      "source_run": 33930589045,
+      "fact": "THREE_WIDE_RESOLVENT_POISON_DID_NOT_CLOSE_R47J_SAFE_DOORS"
+    }
+  },
+  "target_domain": {
+    "formula": "canonical persisted W<=4 CNF",
+    "precondition": "pre-BVE clean under frozen R33 priority",
+    "dangerous_step": "first frozen R33 microstep is immediate BVE W4 escape on x",
+    "same_pivot_failure": "R47J_x final is nonterminal and width>4",
+    "all_alternate_doors_closed": "for every y!=x, R49H(F,y) is unauthorized and R47J_SAFE(F,y) is false",
+    "minimal_variable_boundary": 6
+  },
+  "frozen_V6_theorem": {
+    "name": "DOUBLE_K5_DEBT_SATURATION",
+    "statement": "If an all-alternate-doors-closed immediate-BVE obstruction exists with exactly six total variables {x}+A, |A|=5, then for every alternate y in A: chi_star(F,y)=5 and every chi witness contains all five variables other than y; independently replayed R47J_y ends nonterminal at width exactly 5 and every widest final clause contains all five variables other than y. Therefore after excluding x, both the CHI_DEBT graph and R47J_DEBT graph on A equal the complete directed graph K5 without self-loops.",
+    "proof_basis": [
+      "R50G11: closed R49H implies chi_star in {5,6}",
+      "with V=6, any non-tautological resolvent excluding y contains at most the five other variables, hence chi_star<=5",
+      "therefore closed R49H forces chi_star=5",
+      "a non-tautological width-5 union on only five available variables uses all five",
+      "R50G5/R50G10: R47J_y removes y, introduces no fresh variables, and closed R47J means nonterminal final width>4",
+      "with only five original variables other than y available, final width is exactly 5 and a widest clause uses all five",
+      "excluding distinguished x leaves all four other alternates adjacent from y in each debt graph"
+    ],
+    "not_claimed": [
+      "double-K5 saturation is impossible",
+      "V6 all-doors-closed obstruction is impossible",
+      "all-doors-closed obstruction is impossible for V>=7",
+      "immediate-BVE case is eliminated",
+      "U_mu is proved",
+      "SAT is in P",
+      "P equals NP"
+    ]
+  },
+  "conditional_first_BVE_order_debt": {
+    "statement": "For each present alternate y<x in numeric variable order, pre-BVE cleanliness makes y bipolar, yet frozen r33.bve_candidate scans y before x. If x is the first accepted BVE pivot, y must have an explicit frozen BVE rejection: either unique non-taut resolvent count exceeds removed parent count, or the frozen R33 measure (C,L,V) does not strictly decrease after its exact BVE transform.",
+    "authority": "SOURCE_DEFINITION_CONSEQUENCE",
+    "not_a_contradiction_by_itself": true
+  },
+  "execution_plan": [
+    "mechanically implement and test the conditional V6 double-K5 certificate",
+    "recreate independently on the current branch the exact one-step U_mu reachable same-pivot-wide control from audited PR417",
+    "verify that the reachable control is rescued by an existing alternate certified door and therefore does not refute U_mu",
+    "reuse only the frozen 400-root reachable replay; do not enlarge a corpus",
+    "emit exact BVE-order rejection ledgers when applicable",
+    "fail closed on any exact V6 all-doors-closed witness and preserve its full formula/debt ledgers/reachability receipt"
+  ],
+  "forbidden": [
+    "random search ordering",
+    "heuristic or learned selector",
+    "probabilistic proof authority",
+    "post-hoc theorem mutation",
+    "new semantic SAT inference rule",
+    "claiming theorem from finite no-find",
+    "claiming double-K5 cyclicity itself is contradictory"
+  ],
+  "decision_rule": {
+    "if_exact_reachable_V6_all_closed_found": "REACHABLE_ALTERNATE_DOOR_THEOREM_REFUTED_FOR_CURRENT_U_MU; preserve explicit OPEN obstruction and do not promote SAT_IN_P",
+    "if_V6_double_K5_saturation_verified_but_no_impossibility": "V6_DOUBLE_K5_SATURATION_THEOREM_CLOSED__V6_REALIZABILITY_OR_EXCLUSION_OPEN",
+    "if_symbolic_incompatibility_proved": "V6_ALL_DOORS_CLOSED_EXCLUDED; only then raise minimal all-doors-closed variable bound to >=7"
+  },
+  "firewall": {
+    "REACHABLE_SAME_PIVOT_W4_SAFETY": "REFUTED",
+    "V6_DOUBLE_K5_SATURATION": "OPEN_UNTIL_SOURCE_PROOF_AND_EXECUTABLE_AUDIT_PASS",
+    "V6_DOUBLE_K5_IMPOSSIBILITY": "OPEN",
+    "REACHABLE_ALTERNATE_DOOR_THEOREM": "OPEN",
+    "IMMEDIATE_BVE_CASE_ELIMINATED": false,
+    "U_MU": "OPEN",
+    "SAT_IN_P": "NOT_PROVED",
+    "P_EQ_NP": "NOT_PROVED",
+    "P_NE_NP": "NOT_PROVED",
+    "P_VS_NP": "OPEN",
+    "TRUMP_finished": false
+  }
+}
