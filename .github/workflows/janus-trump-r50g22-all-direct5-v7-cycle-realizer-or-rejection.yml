@@ -1,0 +1,95 @@
+name: JANUS TRUMP R50G22 ALL DIRECT5 V7 Cycle Realizer or Rejection
+
+on:
+  pull_request:
+    paths:
+      - 'experiments/janus_trump_r50g22_all_direct5_v7_cycle_realizer_or_rejection.py'
+      - 'tests/test_janus_trump_r50g22_all_direct5_v7_cycle_realizer_or_rejection.py'
+      - 'research/JANUS_TRUMP_R50G22_ALL_DIRECT5_V7_CYCLE_REALIZER_OR_REJECTION_PREREGISTRATION_2026-09-05.json'
+      - 'research/JANUS_TRUMP_R50G22_ALL_DIRECT5_V7_CYCLE_PARENT_OMISSION_REDUCTION_2026-09-05.md'
+      - '.github/workflows/janus-trump-r50g22-all-direct5-v7-cycle-realizer-or-rejection.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  theorem-or-counterexample:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Freeze R50G22 contract
+        run: |
+          python - <<'PY'
+          import json
+          p='research/JANUS_TRUMP_R50G22_ALL_DIRECT5_V7_CYCLE_REALIZER_OR_REJECTION_PREREGISTRATION_2026-09-05.json'
+          d=json.load(open(p))
+          assert d['status']=='FROZEN_BEFORE_EXECUTION'
+          assert d['proof_or_counterexample'] is True
+          assert d['frozen_family']['declared_family_size']==11520
+          assert d['frozen_family']['no_randomness'] is True
+          assert d['execution']['finite_no_find_is_not_universal_proof'] is True
+          assert d['firewall']['ALL_DIRECT5_V7_HUB_CYCLE_ELIMINATED'] is False
+          assert d['firewall']['V7_IMMEDIATE_BVE_CASE_ELIMINATED'] is False
+          PY
+
+      - name: Static no-heuristic authority audit
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p=Path('experiments/janus_trump_r50g22_all_direct5_v7_cycle_realizer_or_rejection.py').read_text()
+          for x in ['random.choice(', 'random.shuffle(', 'random.random(', 'sklearn', 'torch', 'tensorflow', 'heuristic_score', 'learned_selector']:
+              assert x not in p, x
+          PY
+
+      - name: Install test runner
+        run: python -m pip install --disable-pip-version-check -q pytest
+
+      - name: Compile and unit tests
+        run: |
+          python -m py_compile experiments/janus_trump_r50g22_all_direct5_v7_cycle_realizer_or_rejection.py
+          PYTHONPATH=.:experiments pytest -q tests/test_janus_trump_r50g22_all_direct5_v7_cycle_realizer_or_rejection.py
+
+      - name: Execute frozen DIRECT5 family and exact door audits
+        run: |
+          mkdir -p artifacts
+          PYTHONPATH=experiments python experiments/janus_trump_r50g22_all_direct5_v7_cycle_realizer_or_rejection.py \
+            --output artifacts/JANUS_TRUMP_R50G22_RESULT.json
+
+      - name: Validate epistemic boundary
+        run: |
+          python - <<'PY'
+          import json
+          d=json.load(open('artifacts/JANUS_TRUMP_R50G22_RESULT.json'))
+          fw=d['firewall']
+          family=d['frozen_family']
+          assert family['full_family_size']==11520
+          if not family['stopped_early_on_counterexample']:
+              assert family['tested']==11520
+              assert family['local_all_doors_closed_counterexample'] is None
+              assert fw['LOCAL_ALL_DIRECT5_IMPOSSIBILITY']=='OPEN'
+          else:
+              assert family['local_all_doors_closed_counterexample'] is not None
+              assert family['local_all_doors_closed_counterexample']['reachability']=='NOT_ESTABLISHED'
+              assert fw['LOCAL_ALL_DIRECT5_IMPOSSIBILITY']=='REFUTED_LOCAL'
+          assert fw['FINITE_NO_FIND_IMPLIES_ALL_DIRECT5_IMPOSSIBLE'] is False
+          assert fw['LOCAL_COUNTEREXAMPLE_IMPLIES_REACHABLE_COUNTEREXAMPLE'] is False
+          assert fw['ALL_DIRECT5_V7_HUB_CYCLE_ELIMINATED'] is False
+          assert fw['V7_IMMEDIATE_BVE_CASE_ELIMINATED'] is False
+          assert fw['IMMEDIATE_BVE_CASE_ELIMINATED'] is False
+          assert fw['U_MU']=='OPEN'
+          assert fw['SAT_IN_P']=='NOT_PROVED'
+          assert fw['P_VS_NP']=='OPEN'
+          assert fw['TRUMP_finished'] is False
+          PY
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: janus-trump-r50g22-result
+          path: artifacts/JANUS_TRUMP_R50G22_RESULT.json
+          if-no-files-found: error
