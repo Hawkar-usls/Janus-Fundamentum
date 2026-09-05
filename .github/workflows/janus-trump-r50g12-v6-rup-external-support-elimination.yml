@@ -1,0 +1,85 @@
+name: JANUS TRUMP R50G12 V6 RUP External Support Elimination
+
+on:
+  pull_request:
+    branches:
+      - research/r50g11-support-frontier-hitting-or-all-doors-closed-2026-09-05
+    paths:
+      - 'research/JANUS_TRUMP_R50G12_V6_RUP_EXTERNAL_SUPPORT_ELIMINATION_PREREGISTRATION_2026-09-05.json'
+      - 'research/JANUS_TRUMP_R50G12_RUP_EXTERNAL_SUPPORT_THEOREM_2026-09-05.md'
+      - 'experiments/janus_trump_r50g12_v6_rup_external_support_elimination.py'
+      - 'tests/test_janus_trump_r50g12_v6_rup_external_support_elimination.py'
+      - '.github/workflows/janus-trump-r50g12-v6-rup-external-support-elimination.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  theorem-or-counterexample:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Freeze R50G12 contract
+        run: |
+          python - <<'PY'
+          import json
+          p='research/JANUS_TRUMP_R50G12_V6_RUP_EXTERNAL_SUPPORT_ELIMINATION_PREREGISTRATION_2026-09-05.json'
+          d=json.load(open(p))
+          assert d['status']=='FROZEN_BEFORE_EXECUTION'
+          assert d['proof_or_counterexample'] is True
+          assert d['frozen_replay']['new_corpus'] is False
+          assert d['firewall']['V6_IMMEDIATE_BVE_CASE_ELIMINATED'] is False
+          PY
+
+      - name: Static no-heuristic authority audit
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p=Path('experiments/janus_trump_r50g12_v6_rup_external_support_elimination.py').read_text()
+          for x in ['random.choice(', 'random.shuffle(', 'random.random(', 'sklearn', 'torch', 'tensorflow', 'heuristic_score', 'learned_selector']:
+              assert x not in p, x
+          PY
+
+      - name: Install test runner
+        run: python -m pip install --disable-pip-version-check -q pytest
+
+      - name: Compile and unit tests
+        run: |
+          python -m py_compile experiments/janus_trump_r50g12_v6_rup_external_support_elimination.py
+          PYTHONPATH=.:experiments pytest -q tests/test_janus_trump_r50g12_v6_rup_external_support_elimination.py
+
+      - name: Execute source theorem audit and frozen replay
+        run: |
+          mkdir -p artifacts
+          PYTHONPATH=experiments python experiments/janus_trump_r50g12_v6_rup_external_support_elimination.py \
+            --output artifacts/JANUS_TRUMP_R50G12_RESULT.json
+
+      - name: Validate epistemic boundary
+        run: |
+          python - <<'PY'
+          import json
+          d=json.load(open('artifacts/JANUS_TRUMP_R50G12_RESULT.json'))
+          fw=d['firewall']
+          assert fw['HEURISTIC_AUTHORITY'] is False
+          assert fw['FINITE_SUCCESS_IMPLIES_THEOREM'] is False
+          assert fw['V6_IMMEDIATE_BVE_CASE_ELIMINATED'] is True
+          assert fw['V7_IMMEDIATE_BVE_CASE_ELIMINATED'] is False
+          assert fw['IMMEDIATE_BVE_CASE_ELIMINATED'] is False
+          assert fw['U_MU']=='OPEN'
+          assert fw['SAT_IN_P']=='NOT_PROVED'
+          assert fw['P_VS_NP']=='OPEN'
+          assert fw['TRUMP_finished'] is False
+          assert d['frozen_replay']['first_v_le_6_same_pivot_wide_survivor'] is None
+          PY
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: janus-trump-r50g12-result
+          path: artifacts/JANUS_TRUMP_R50G12_RESULT.json
+          if-no-files-found: error
