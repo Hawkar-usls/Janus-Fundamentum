@@ -1,0 +1,81 @@
+name: JANUS TRUMP R50G11 Support Frontier Double Debt
+
+on:
+  pull_request:
+    branches:
+      - research/r50g10-wide-fixpoint-forces-alternate-certified-door-2026-09-05
+    paths:
+      - 'research/JANUS_TRUMP_R50G11_*'
+      - 'experiments/janus_trump_r50g11_*'
+      - 'tests/test_janus_trump_r50g11_*'
+      - '.github/workflows/janus-trump-r50g11-support-frontier-double-debt.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  theorem-or-counterexample:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Freeze R50G11 contract
+        run: |
+          python - <<'PY'
+          import json
+          p='research/JANUS_TRUMP_R50G11_SUPPORT_FRONTIER_HITTING_PREREGISTRATION_2026-09-05.json'
+          d=json.load(open(p))
+          assert d['status']=='FROZEN_BEFORE_EXECUTION'
+          assert d['proof_or_counterexample'] is True
+          assert d['no_new_corpus'] is True
+          assert d['no_heuristic_authority'] is True
+          assert d['firewall']['IMMEDIATE_BVE_CASE_ELIMINATED'] is False
+          PY
+
+      - name: Static no-heuristic authority audit
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p=Path('experiments/janus_trump_r50g11_support_frontier_double_debt_core.py').read_text()
+          for x in ['random.choice(', 'random.shuffle(', 'random.random(', 'sklearn', 'torch', 'tensorflow', 'heuristic_score', 'learned_selector']:
+              assert x not in p, x
+          PY
+
+      - name: Install test runner
+        run: python -m pip install --disable-pip-version-check -q pytest
+
+      - name: Compile and unit tests
+        run: |
+          python -m py_compile experiments/janus_trump_r50g11_support_frontier_double_debt_core.py
+          PYTHONPATH=.:experiments pytest -q tests/test_janus_trump_r50g11_support_frontier_double_debt_core.py
+
+      - name: Execute exact double-debt reduction and frozen replay
+        run: |
+          mkdir -p artifacts
+          PYTHONPATH=experiments python experiments/janus_trump_r50g11_support_frontier_double_debt_core.py \
+            --output artifacts/JANUS_TRUMP_R50G11_RESULT.json
+
+      - name: Validate epistemic boundary
+        run: |
+          python - <<'PY'
+          import json
+          d=json.load(open('artifacts/JANUS_TRUMP_R50G11_RESULT.json'))
+          fw=d['firewall']
+          assert fw['HEURISTIC_AUTHORITY'] is False
+          assert fw['FINITE_SUCCESS_IMPLIES_THEOREM'] is False
+          assert fw['IMMEDIATE_BVE_CASE_ELIMINATED'] is False
+          assert fw['SAT_IN_P']=='NOT_PROVED'
+          assert fw['P_VS_NP']=='OPEN'
+          assert fw['TRUMP_finished'] is False
+          assert d['r50g9_support_frontier']['none'] == 0
+          PY
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: janus-trump-r50g11-result
+          path: artifacts/JANUS_TRUMP_R50G11_RESULT.json
+          if-no-files-found: error
