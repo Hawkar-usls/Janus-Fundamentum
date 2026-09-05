@@ -1,0 +1,84 @@
+name: JANUS TRUMP R50G16 V7 RUP6 3x2 Ancestry Pullback
+
+on:
+  pull_request:
+    paths:
+      - 'research/JANUS_TRUMP_R50G16_V7_RUP6_3X2_ANCESTRY_PULLBACK_PREREGISTRATION_2026-09-05.json'
+      - 'research/JANUS_TRUMP_R50G16_V7_RUP6_3X2_ANCESTRY_PULLBACK_NOTE_2026-09-05.md'
+      - 'experiments/janus_trump_r50g16_v7_rup6_3x2_ancestry_pullback_door_audit.py'
+      - 'tests/test_janus_trump_r50g16_v7_rup6_3x2_ancestry_pullback_door_audit.py'
+      - '.github/workflows/janus-trump-r50g16-v7-rup6-3x2-ancestry-pullback.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  theorem-or-counterexample:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Freeze R50G16 contract
+        run: |
+          python - <<'PY'
+          import json
+          p='research/JANUS_TRUMP_R50G16_V7_RUP6_3X2_ANCESTRY_PULLBACK_PREREGISTRATION_2026-09-05.json'
+          d=json.load(open(p))
+          assert d['status']=='FROZEN_BEFORE_EXECUTION'
+          assert d['proof_or_counterexample'] is True
+          assert d['execution']['deterministic_lexicographic_finite_family'] is True
+          assert d['execution']['finite_family_no_find_is_not_a_universal_proof'] is True
+          assert d['firewall']['V7_IMMEDIATE_BVE_CASE_ELIMINATED'] is False
+          PY
+
+      - name: Static no-heuristic authority audit
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p=Path('experiments/janus_trump_r50g16_v7_rup6_3x2_ancestry_pullback_door_audit.py').read_text()
+          for x in ['random.choice(', 'random.shuffle(', 'random.random(', 'sklearn', 'torch', 'tensorflow', 'heuristic_score', 'learned_selector']:
+              assert x not in p, x
+          PY
+
+      - name: Install test runner
+        run: python -m pip install --disable-pip-version-check -q pytest
+
+      - name: Compile and unit tests
+        run: |
+          python -m py_compile experiments/janus_trump_r50g16_v7_rup6_3x2_ancestry_pullback_door_audit.py
+          PYTHONPATH=.:experiments pytest -q tests/test_janus_trump_r50g16_v7_rup6_3x2_ancestry_pullback_door_audit.py
+
+      - name: Execute frozen ancestry pullback and door audit
+        run: |
+          mkdir -p artifacts
+          PYTHONPATH=experiments python experiments/janus_trump_r50g16_v7_rup6_3x2_ancestry_pullback_door_audit.py \
+            --output artifacts/JANUS_TRUMP_R50G16_RESULT.json
+
+      - name: Validate epistemic boundary
+        run: |
+          python - <<'PY'
+          import json
+          d=json.load(open('artifacts/JANUS_TRUMP_R50G16_RESULT.json'))
+          fw=d['firewall']
+          assert fw['FINITE_FAMILY_NO_FIND_IMPLIES_UNIVERSAL_IMPOSSIBILITY'] is False
+          assert fw['FINITE_REALIZER_WITH_OPEN_DOOR_IMPLIES_UNIVERSAL_ALTERNATE_DOOR'] is False
+          assert fw['RUP_BEARING_V7_HUB_CYCLE_ELIMINATED'] is False
+          assert fw['V7_IMMEDIATE_BVE_CASE_ELIMINATED'] is False
+          assert fw['IMMEDIATE_BVE_CASE_ELIMINATED'] is False
+          assert fw['U_MU']=='OPEN'
+          assert fw['SAT_IN_P']=='NOT_PROVED'
+          assert fw['P_VS_NP']=='OPEN'
+          assert fw['TRUMP_finished'] is False
+          assert d['frozen_family_search']['full_family_size'] == 3024
+          PY
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: janus-trump-r50g16-result
+          path: artifacts/JANUS_TRUMP_R50G16_RESULT.json
+          if-no-files-found: error
