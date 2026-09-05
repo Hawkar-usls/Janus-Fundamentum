@@ -1,0 +1,89 @@
+name: JANUS TRUMP R50G12 Reachable Double K5 Debt Saturation
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  theorem-or-counterexample:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Freeze R50G12 contract
+        run: |
+          python - <<'PY'
+          import json
+          p='research/JANUS_TRUMP_R50G12_REACHABLE_DOUBLE_K5_DEBT_SATURATION_PREREGISTRATION_2026-09-05.json'
+          d=json.load(open(p))
+          assert d['status']=='FROZEN_BEFORE_EXECUTION'
+          assert d['proof_or_counterexample'] is True
+          assert d['no_new_corpus'] is True
+          assert d['no_heuristic_authority'] is True
+          assert d['target_domain']['minimal_variable_boundary']==6
+          assert d['firewall']['REACHABLE_SAME_PIVOT_W4_SAFETY']=='REFUTED'
+          assert d['firewall']['IMMEDIATE_BVE_CASE_ELIMINATED'] is False
+          PY
+
+      - name: Static no-heuristic authority audit
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p=Path('experiments/janus_trump_r50g12_reachable_double_k5_debt_saturation.py').read_text()
+          forbidden=[
+              'random.choice(', 'random.shuffle(', 'random.random(',
+              'sklearn', 'torch', 'tensorflow', 'heuristic_score', 'learned_selector'
+          ]
+          for x in forbidden:
+              assert x not in p, x
+          assert 'v6_double_k5_certificate' in p
+          assert 'verify_reachable_same_pivot_wide_control' in p
+          assert 'earlier_bve_order_debt' in p
+          PY
+
+      - name: Install test runner
+        run: python -m pip install --disable-pip-version-check -q pytest
+
+      - name: Compile and unit tests
+        run: |
+          python -m py_compile experiments/janus_trump_r50g12_reachable_double_k5_debt_saturation.py
+          PYTHONPATH=.:experiments pytest -q tests/test_janus_trump_r50g12_reachable_double_k5_debt_saturation.py
+
+      - name: Execute exact V6 saturation and reachable control gate
+        run: |
+          mkdir -p artifacts
+          PYTHONPATH=experiments python experiments/janus_trump_r50g12_reachable_double_k5_debt_saturation.py \
+            --output artifacts/JANUS_TRUMP_R50G12_RESULT.json
+
+      - name: Validate epistemic boundary
+        run: |
+          python - <<'PY'
+          import json
+          d=json.load(open('artifacts/JANUS_TRUMP_R50G12_RESULT.json'))
+          fw=d['firewall']
+          assert d['V6_double_K5_theorem']['status']=='PROVED_CONDITIONALLY_FROM_FROZEN_DEFINITIONS_AND_EXECUTABLE_CERTIFIER'
+          assert d['V6_double_K5_theorem']['impossibility_claimed'] is False
+          assert d['reachable_same_pivot_W4_safety']=='REFUTED_RESEALED_ON_CURRENT_BRANCH'
+          assert d['reachable_same_pivot_wide_control']['same_pivot_final_width']>4
+          assert d['reachable_same_pivot_wide_control']['all_alternate_doors_closed'] is False
+          assert fw['V6_DOUBLE_K5_SATURATION']=='PROVED'
+          assert fw['V6_DOUBLE_K5_IMPOSSIBILITY']=='OPEN'
+          assert fw['REACHABLE_ALTERNATE_DOOR_THEOREM']=='OPEN'
+          assert fw['IMMEDIATE_BVE_CASE_ELIMINATED'] is False
+          assert fw['U_MU']=='OPEN'
+          assert fw['SAT_IN_P']=='NOT_PROVED'
+          assert fw['P_VS_NP']=='OPEN'
+          assert fw['TRUMP_finished'] is False
+          PY
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: janus-trump-r50g12-result
+          path: artifacts/JANUS_TRUMP_R50G12_RESULT.json
+          if-no-files-found: error
