@@ -1,0 +1,77 @@
+name: JANUS TRUMP R50G9 Explicit Wide Fixpoint Ancestry Counterexample
+
+on:
+  pull_request:
+    branches:
+      - research/r50g8-wide-survivor-impossibility-from-pre-bve-cleanliness-2026-09-05
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  exact-witness:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Freeze R50G9 contract
+        run: |
+          python - <<'PY'
+          import json
+          p='research/JANUS_TRUMP_R50G9_PREREGISTRATION_2026-09-05.json'
+          d=json.load(open(p))
+          assert d['status']=='FROZEN_BEFORE_EXECUTION'
+          assert d['fresh_pivot']==1
+          assert d['predicted_resolvent']==[-2,-5,-9,24,-30]
+          assert d['claims']['witness_reachable'] is False
+          assert d['no_heuristic_authority'] is True
+          PY
+
+      - name: Static no-heuristic authority audit
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p=Path('experiments/janus_trump_r50g9_explicit_wide_fixpoint_ancestry_counterexample.py').read_text()
+          for x in ['random.choice(', 'random.shuffle(', 'random.random(', 'sklearn', 'torch', 'tensorflow', 'heuristic_score', 'learned_selector']:
+              assert x not in p, x
+          PY
+
+      - name: Install test runner
+        run: python -m pip install --disable-pip-version-check -q pytest
+
+      - name: Compile and unit tests
+        run: |
+          python -m py_compile experiments/janus_trump_r50g9_explicit_wide_fixpoint_ancestry_counterexample.py
+          PYTHONPATH=.:experiments pytest -q tests/test_janus_trump_r50g9_explicit_wide_fixpoint_ancestry_counterexample.py
+
+      - name: Execute exact witness gate
+        run: |
+          mkdir -p artifacts
+          PYTHONPATH=experiments python experiments/janus_trump_r50g9_explicit_wide_fixpoint_ancestry_counterexample.py \
+            --output artifacts/JANUS_TRUMP_R50G9_RESULT.json
+
+      - name: Validate epistemic boundary
+        run: |
+          python - <<'PY'
+          import json
+          d=json.load(open('artifacts/JANUS_TRUMP_R50G9_RESULT.json'))
+          assert d['firewall']['HEURISTIC_AUTHORITY'] is False
+          assert d['firewall']['FINITE_SEARCH_IMPLIES_REACHABILITY'] is False
+          assert d['interpretation']['witness_reachability_under_U_mu']=='NOT_ESTABLISHED'
+          assert d['firewall']['SAT_IN_P']=='NOT_PROVED'
+          assert d['firewall']['P_VS_NP']=='OPEN'
+          if d['final']['local_wide_fixpoint_witness']:
+              assert d['interpretation']['local_wide_ancestry_impossibility']=='REFUTED'
+              assert d['interpretation']['immediate_BVE_case_eliminated'] is False
+              assert d['final']['fixed_checks']['support_witness_count']==5
+          PY
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: janus-trump-r50g9-result
+          path: artifacts/JANUS_TRUMP_R50G9_RESULT.json
+          if-no-files-found: error
