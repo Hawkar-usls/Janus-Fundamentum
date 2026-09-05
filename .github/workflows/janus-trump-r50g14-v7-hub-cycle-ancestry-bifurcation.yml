@@ -1,0 +1,81 @@
+name: JANUS TRUMP R50G14 V7 Hub Cycle Ancestry Bifurcation
+
+on:
+  pull_request:
+    paths:
+      - 'research/JANUS_TRUMP_R50G14_V7_HUB_CYCLE_ANCESTRY_BIFURCATION_PREREGISTRATION_2026-09-05.json'
+      - 'research/JANUS_TRUMP_R50G14_V7_HUB_CYCLE_ANCESTRY_BIFURCATION_PROOF_NOTE_2026-09-05.md'
+      - 'experiments/janus_trump_r50g14_v7_hub_cycle_ancestry_bifurcation.py'
+      - 'tests/test_janus_trump_r50g14_v7_hub_cycle_ancestry_bifurcation.py'
+      - '.github/workflows/janus-trump-r50g14-v7-hub-cycle-ancestry-bifurcation.yml'
+
+jobs:
+  theorem-or-counterexample:
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Freeze R50G14 contract
+        run: |
+          python - <<'PY'
+          import json
+          p='research/JANUS_TRUMP_R50G14_V7_HUB_CYCLE_ANCESTRY_BIFURCATION_PREREGISTRATION_2026-09-05.json'
+          d=json.load(open(p))
+          assert d['status']=='FROZEN_BEFORE_EXECUTION'
+          assert d['proof_or_counterexample'] is True
+          assert d['execution']['no_new_corpus'] is True
+          assert d['execution']['no_heuristic_authority'] is True
+          assert d['firewall']['V6_IMMEDIATE_BVE_CASE_ELIMINATED'] is True
+          assert d['firewall']['V7_IMMEDIATE_BVE_CASE_ELIMINATED'] is False
+          PY
+
+      - name: Static no-heuristic authority audit
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p=Path('experiments/janus_trump_r50g14_v7_hub_cycle_ancestry_bifurcation.py').read_text()
+          for x in ['random.choice(', 'random.shuffle(', 'random.random(', 'sklearn', 'torch', 'tensorflow', 'heuristic_score', 'learned_selector']:
+              assert x not in p, x
+          PY
+
+      - name: Install test runner
+        run: python -m pip install --disable-pip-version-check -q pytest
+
+      - name: Compile and unit tests
+        run: |
+          python -m py_compile experiments/janus_trump_r50g14_v7_hub_cycle_ancestry_bifurcation.py
+          PYTHONPATH=.:experiments pytest -q tests/test_janus_trump_r50g14_v7_hub_cycle_ancestry_bifurcation.py
+
+      - name: Execute exact ancestry reduction and frozen replay
+        run: |
+          mkdir -p artifacts
+          PYTHONPATH=experiments python experiments/janus_trump_r50g14_v7_hub_cycle_ancestry_bifurcation.py \
+            --output artifacts/JANUS_TRUMP_R50G14_RESULT.json
+
+      - name: Validate epistemic boundary
+        run: |
+          python - <<'PY'
+          import json
+          d=json.load(open('artifacts/JANUS_TRUMP_R50G14_RESULT.json'))
+          fw=d['firewall']
+          assert fw['FINITE_SUCCESS_IMPLIES_V7_ELIMINATION'] is False
+          assert fw['HEURISTIC_AUTHORITY'] is False
+          assert fw['V6_IMMEDIATE_BVE_CASE_ELIMINATED'] is True
+          assert fw['V7_IMMEDIATE_BVE_CASE_ELIMINATED'] is False
+          assert fw['IMMEDIATE_BVE_CASE_ELIMINATED'] is False
+          assert fw['U_MU']=='OPEN'
+          assert fw['SAT_IN_P']=='NOT_PROVED'
+          assert fw['P_VS_NP']=='OPEN'
+          assert fw['TRUMP_finished'] is False
+          PY
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: janus-trump-r50g14-result
+          path: artifacts/JANUS_TRUMP_R50G14_RESULT.json
+          if-no-files-found: error
