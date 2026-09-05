@@ -1,0 +1,89 @@
+name: JANUS TRUMP R50G20 RUP6 Phase Collapse to V6 W5 Core
+
+on:
+  pull_request:
+    paths:
+      - 'experiments/janus_trump_r50g20_rup6_phase_collapse_to_v6_w5_core.py'
+      - 'tests/test_janus_trump_r50g20_rup6_phase_collapse_to_v6_w5_core.py'
+      - 'research/JANUS_TRUMP_R50G20_RUP6_PHASE_COLLAPSE_TO_V6_W5_CORE_PREREGISTRATION_2026-09-05.json'
+      - 'research/JANUS_TRUMP_R50G20_RUP6_PHASE_COLLAPSE_TO_V6_W5_CORE_PROOF_NOTE_2026-09-05.md'
+      - '.github/workflows/janus-trump-r50g20-rup6-phase-collapse-to-v6-w5-core.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  theorem-or-counterexample:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Freeze R50G20 contract
+        run: |
+          python - <<'PY'
+          import json
+          p='research/JANUS_TRUMP_R50G20_RUP6_PHASE_COLLAPSE_TO_V6_W5_CORE_PREREGISTRATION_2026-09-05.json'
+          d=json.load(open(p))
+          assert d['status']=='FROZEN_BEFORE_EXECUTION'
+          assert d['proof_or_counterexample'] is True
+          assert d['execution']['source_definition_proof'] is True
+          assert d['execution']['finite_controls_are_not_the_universal_proof'] is True
+          assert d['firewall']['RUP6_WIDTH_COLLAPSE_PROVED_BEFORE_EXECUTION'] is False
+          assert d['firewall']['V7_IMMEDIATE_BVE_CASE_ELIMINATED'] is False
+          PY
+
+      - name: Static no-heuristic authority audit
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p=Path('experiments/janus_trump_r50g20_rup6_phase_collapse_to_v6_w5_core.py').read_text()
+          for x in ['random.choice(', 'random.shuffle(', 'random.random(', 'sklearn', 'torch', 'tensorflow', 'heuristic_score', 'learned_selector']:
+              assert x not in p, x
+          PY
+
+      - name: Install test runner
+        run: python -m pip install --disable-pip-version-check -q pytest
+
+      - name: Compile and unit tests
+        run: |
+          python -m py_compile experiments/janus_trump_r50g20_rup6_phase_collapse_to_v6_w5_core.py
+          PYTHONPATH=.:experiments pytest -q tests/test_janus_trump_r50g20_rup6_phase_collapse_to_v6_w5_core.py
+
+      - name: Execute source theorem controls and exact replay
+        run: |
+          mkdir -p artifacts
+          PYTHONPATH=experiments python experiments/janus_trump_r50g20_rup6_phase_collapse_to_v6_w5_core.py \
+            --output artifacts/JANUS_TRUMP_R50G20_RESULT.json
+
+      - name: Validate epistemic boundary
+        run: |
+          python - <<'PY'
+          import json
+          d=json.load(open('artifacts/JANUS_TRUMP_R50G20_RESULT.json'))
+          fw=d['firewall']
+          assert fw['FINITE_CONTROLS_ARE_THE_UNIVERSAL_PROOF'] is False
+          assert fw['RUP6_PHASE_ENTRY_WIDTH_COLLAPSE']=='PROVED_FROM_FROZEN_SOURCE_DEFINITIONS'
+          assert fw['RUP6_AS_TERMINAL_WIDTH6_V7_OBSTRUCTION_ELIMINATED'] is True
+          assert fw['V7_UNSAFE_DESCENDANT_AFTER_RUP6']=='V6_W5_OR_SAFE'
+          assert fw['RUP6_DESCENDED_W5_EQUALS_HISTORICAL_DIRECT5'] is False
+          assert fw['RUP_BEARING_V7_HUB_CYCLE_ELIMINATED'] is False
+          assert fw['V7_IMMEDIATE_BVE_CASE_ELIMINATED'] is False
+          assert fw['IMMEDIATE_BVE_CASE_ELIMINATED'] is False
+          assert fw['U_MU']=='OPEN'
+          assert fw['SAT_IN_P']=='NOT_PROVED'
+          assert fw['P_VS_NP']=='OPEN'
+          assert fw['TRUMP_finished'] is False
+          assert d['r50g18_scope_correction_and_selector_control']['internal_Ht_literal2_profile']['p']==2
+          assert d['r50g18_scope_correction_and_selector_control']['internal_Ht_literal2_profile']['n']==1
+          assert d['r50g18_scope_correction_and_selector_control']['internal_Ht_BVE_already_open'] is True
+          PY
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: janus-trump-r50g20-result
+          path: artifacts/JANUS_TRUMP_R50G20_RESULT.json
+          if-no-files-found: error
