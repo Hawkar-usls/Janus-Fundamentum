@@ -1,0 +1,84 @@
+name: JANUS TRUMP R50G13 V7 Seven Pivot Hub Cycle
+
+on:
+  pull_request:
+    paths:
+      - 'research/JANUS_TRUMP_R50G13_V7_SEVEN_PIVOT_HUB_CYCLE_PREREGISTRATION_2026-09-05.json'
+      - 'research/JANUS_TRUMP_R50G13_V7_SEVEN_PIVOT_HUB_CYCLE_PROOF_NOTE_2026-09-05.md'
+      - 'experiments/janus_trump_r50g13_v7_seven_pivot_hub_cycle_normal_form.py'
+      - 'tests/test_janus_trump_r50g13_v7_seven_pivot_hub_cycle_normal_form.py'
+      - '.github/workflows/janus-trump-r50g13-v7-seven-pivot-hub-cycle.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  theorem-or-counterexample:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Freeze R50G13 contract
+        run: |
+          python - <<'PY'
+          import json
+          p='research/JANUS_TRUMP_R50G13_V7_SEVEN_PIVOT_HUB_CYCLE_PREREGISTRATION_2026-09-05.json'
+          d=json.load(open(p))
+          assert d['status']=='FROZEN_BEFORE_EXECUTION'
+          assert d['proof_or_counterexample'] is True
+          assert d['executable_lane']['new_corpus'] is False
+          assert d['firewall']['V6_IMMEDIATE_BVE_CASE_ELIMINATED'] is True
+          assert d['firewall']['V7_IMMEDIATE_BVE_CASE_ELIMINATED'] is False
+          PY
+
+      - name: Static no-heuristic authority audit
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p=Path('experiments/janus_trump_r50g13_v7_seven_pivot_hub_cycle_normal_form.py').read_text()
+          for x in ['random.choice(', 'random.shuffle(', 'random.random(', 'sklearn', 'torch', 'tensorflow', 'heuristic_score', 'learned_selector']:
+              assert x not in p, x
+          PY
+
+      - name: Install test runner
+        run: python -m pip install --disable-pip-version-check -q pytest
+
+      - name: Compile and unit tests
+        run: |
+          python -m py_compile experiments/janus_trump_r50g13_v7_seven_pivot_hub_cycle_normal_form.py
+          PYTHONPATH=.:experiments pytest -q tests/test_janus_trump_r50g13_v7_seven_pivot_hub_cycle_normal_form.py
+
+      - name: Execute exact V7 hub-cycle reduction and frozen replay
+        run: |
+          mkdir -p artifacts
+          PYTHONPATH=experiments python experiments/janus_trump_r50g13_v7_seven_pivot_hub_cycle_normal_form.py \
+            --output artifacts/JANUS_TRUMP_R50G13_RESULT.json
+
+      - name: Validate epistemic boundary
+        run: |
+          python - <<'PY'
+          import json
+          d=json.load(open('artifacts/JANUS_TRUMP_R50G13_RESULT.json'))
+          fw=d['firewall']
+          assert fw['HEURISTIC_AUTHORITY'] is False
+          assert fw['FINITE_SUCCESS_IMPLIES_THEOREM'] is False
+          assert fw['V6_IMMEDIATE_BVE_CASE_ELIMINATED'] is True
+          assert fw['V7_HUB_CYCLE_NORMAL_FORM']=='CLOSED'
+          assert fw['V7_IMMEDIATE_BVE_CASE_ELIMINATED'] is False
+          assert fw['IMMEDIATE_BVE_CASE_ELIMINATED'] is False
+          assert fw['U_MU']=='OPEN'
+          assert fw['SAT_IN_P']=='NOT_PROVED'
+          assert fw['P_VS_NP']=='OPEN'
+          assert fw['TRUMP_finished'] is False
+          PY
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: janus-trump-r50g13-result
+          path: artifacts/JANUS_TRUMP_R50G13_RESULT.json
+          if-no-files-found: error
