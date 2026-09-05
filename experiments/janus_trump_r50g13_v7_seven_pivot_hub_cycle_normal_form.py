@@ -58,15 +58,10 @@ def widest_clause(final):
 
 
 def dp_ancestor_certificate(source, y: int, final_clause):
-    """Find a width-5/6 exact-DP resolvent that contains the final W5 clause.
-
-    Under the V7 closed-door normal form no variable can be removed after DP_y,
-    so later normalization cannot use BVE. Other frozen rules only delete clauses
-    or literals. Hence a final W5 clause must be contained in a wide DP resolvent.
-    """
+    """Find a width-5/6 exact-DP resolvent that contains the final W5 clause."""
     f = canon(source)
     c = r33.canonical_clause(final_clause)
-    row, cand = r50a._fallback_candidate(f, int(y))
+    _row, cand = r50a._fallback_candidate(f, int(y))
     if cand is None:
         raise AssertionError(("R50G13_R47J_CANDIDATE_MISSING", y))
     dp = cand["DP"]
@@ -133,7 +128,6 @@ def closed_pivot_v7_normal_form(source, y: int):
     if row["terminal"] is not None or int(row["final_max_width"]) <= WIDTH_CAP:
         raise AssertionError(("R50G13_CLOSED_R47J_NOT_WIDE_NONTERMINAL", y, row))
 
-    # R50G12: final_V >= final_W+1. R47J gives final_V <= 6.
     if len(final_vars) != 6 or max_width(final) != 5:
         raise AssertionError(("R50G13_V7_CLOSED_FINAL_NOT_EXACT_V6_W5", y, len(final_vars), max_width(final)))
     if final_vars != expected_vars:
@@ -180,8 +174,14 @@ def all_closed_v7_normal_form(source, x: int):
     if len(r33.variables(f)) != SOURCE_V:
         raise AssertionError(("R50G13_SOURCE_V_NOT7", len(r33.variables(f))))
     micro = r50g4.micro_r33_status(f)
-    if micro["status"] != "IMMEDIATE_BVE_W4_ESCAPE" or int(micro["pivot"]) != int(x):
-        raise AssertionError(("R50G13_NOT_IMMEDIATE_BVE_X", x, micro))
+    direct = r50g4.first_r33_micro_candidate(f)
+    if (
+        micro["status"] != "IMMEDIATE_BVE_W4_ESCAPE"
+        or direct["kind"] != "PROPOSAL"
+        or direct["rule"] != "BOUNDED_VARIABLE_ELIMINATION"
+        or int(direct["var"]) != int(x)
+    ):
+        raise AssertionError(("R50G13_NOT_IMMEDIATE_BVE_X", x, micro, direct))
 
     same = r50g5.prove_immediate_bve_same_pivot(f)
     if not same["applicable"] or not same["same_pivot_wide_survivor"]:
@@ -204,7 +204,7 @@ def all_closed_v7_normal_form(source, x: int):
     if any(k == v for k, v in mapping.items()):
         raise AssertionError(("R50G13_HUB_MAP_FIXED_POINT", mapping))
     cycle = first_cycle(mapping)
-    if cycle is None or len(cycle) < 3:  # repeated start closes the cycle; min 2-cycle => len 3
+    if cycle is None or len(cycle) < 3:
         raise AssertionError(("R50G13_FIXED_POINT_FREE_MAP_WITHOUT_NONTRIVIAL_CYCLE", mapping, cycle))
     if len(cycle) - 1 not in range(2, 8):
         raise AssertionError(("R50G13_CYCLE_LENGTH_OUT_OF_RANGE", cycle))
