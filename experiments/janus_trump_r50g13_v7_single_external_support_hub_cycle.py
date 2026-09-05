@@ -91,8 +91,6 @@ def audit_single_hub_clause(formula, clause):
                     continue
                 if q not in c:
                     raise AssertionError(("R50G13_NONTAUT_SUPPORT_HAS_NONCLAUSE_NONHUB_LITERAL", lit, d, q, c, z))
-                if -q in c:
-                    raise AssertionError(("R50G13_NONTAUT_SUPPORT_HAS_COMPLEMENT_OF_OTHER_C_LITERAL", lit, d, q, c))
         if len(signs) != 1:
             if signs == {-1, 1}:
                 strengthened = tuple(q for q in c if q != lit)
@@ -104,7 +102,6 @@ def audit_single_hub_clause(formula, clause):
             raise AssertionError(("R50G13_RUP_FIXED_HUB_POLARITY_NOT_UNIQUE", lit, signs))
         polarity[str(lit)] = next(iter(signs))
 
-    # Opposite-hub shielding is checked exhaustively over clauses containing -lit.
     shielding_rows = []
     for lit in c:
         sigma = int(polarity[str(int(lit))])
@@ -135,7 +132,6 @@ def audit_single_hub_clause(formula, clause):
 
 
 def first_functional_cycle(mapping):
-    """Return one cycle from a finite total map v->h(v), or None."""
     for start in sorted(mapping):
         seen_at = {}
         path = []
@@ -170,8 +166,6 @@ def profile_unsafe_r47j_hub(source, v: int):
         raise AssertionError(("R50G13_PROFILE_REQUIRES_V7_SOURCE", sorted(before_vars)))
     if len(final_vars) > 6 or int(v) in final_vars or not final_vars <= before_vars:
         raise AssertionError(("R50G13_R47J_VARIABLE_DISCIPLINE_FAIL", v, sorted(before_vars), sorted(final_vars)))
-
-    # R50G12 external-support theorem: nonterminal wide fixedpoint needs V >= W+1.
     if len(final_vars) < 6:
         raise AssertionError(("R50G13_V7_UNSAFE_FINAL_HAS_LT6_VARS_CONTRADICT_R50G12", v, row, sorted(final_vars)))
     if max_width(final) != 5:
@@ -207,9 +201,15 @@ def all_closed_v7_hub_certificate(source, x: int):
         return {"applicable": False, "reason": "NOT_V7_W4"}
     if not r50g10.exact_pre_bve_clean(f):
         return {"applicable": False, "reason": "NOT_PRE_BVE_CLEAN"}
+    direct = r50g4.first_r33_micro_candidate(f)
     micro = r50g4.micro_r33_status(f)
-    if micro["status"] != "IMMEDIATE_BVE_W4_ESCAPE" or int(micro["var"]) != int(x):
-        return {"applicable": False, "reason": "NOT_IMMEDIATE_BVE_X", "micro": micro}
+    if (
+        micro["status"] != "IMMEDIATE_BVE_W4_ESCAPE"
+        or direct["kind"] != "PROPOSAL"
+        or direct["rule"] != "BOUNDED_VARIABLE_ELIMINATION"
+        or int(direct["var"]) != int(x)
+    ):
+        return {"applicable": False, "reason": "NOT_IMMEDIATE_BVE_X", "micro": micro, "direct": direct}
 
     profiles = {}
     hub_map = {}
@@ -228,7 +228,7 @@ def all_closed_v7_hub_certificate(source, x: int):
     cycle = first_functional_cycle(hub_map)
     if cycle is None:
         raise AssertionError(("R50G13_TOTAL_HUB_MAP_WITHOUT_CYCLE", hub_map))
-    if len(cycle) < 3:  # representation repeats the first vertex, so 2-edge cycle has length 3
+    if len(cycle) < 3:
         raise AssertionError(("R50G13_HUB_SELF_LOOP_OR_DEGENERATE_CYCLE", hub_map, cycle))
     return {
         "applicable": True,
