@@ -1,0 +1,71 @@
+name: JANUS TRUMP R50G15 RUP6 Hub BVE Blockade Saturation
+
+on:
+  pull_request:
+    branches:
+      - research/r50g14-v7-hub-cycle-ancestry-bifurcation-2026-09-05
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  theorem-or-counterexample:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Freeze R50G15 contract
+        run: |
+          python - <<'PY'
+          import json
+          p='research/JANUS_TRUMP_R50G15_RUP6_HUB_BVE_BLOCKADE_SATURATION_PREREGISTRATION_2026-09-05.json'
+          d=json.load(open(p))
+          assert d['status']=='FROZEN_BEFORE_EXECUTION'
+          assert d['proof_or_counterexample'] is True
+          assert d['execution']['no_new_corpus'] is True
+          assert d['execution']['no_heuristic_authority'] is True
+          assert d['firewall']['RUP_BEARING_V7_HUB_CYCLE_ELIMINATED'] is False
+          PY
+      - name: Static no-heuristic authority audit
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p=Path('experiments/janus_trump_r50g15_rup6_hub_bve_blockade_saturation.py').read_text()
+          for x in ['random.choice(', 'random.shuffle(', 'random.random(', 'sklearn', 'torch', 'tensorflow', 'heuristic_score', 'learned_selector']:
+              assert x not in p, x
+          PY
+      - name: Install test runner
+        run: python -m pip install --disable-pip-version-check -q pytest
+      - name: Compile and unit tests
+        run: |
+          python -m py_compile experiments/janus_trump_r50g15_rup6_hub_bve_blockade_saturation.py
+          PYTHONPATH=.:experiments pytest -q tests/test_janus_trump_r50g15_rup6_hub_bve_blockade_saturation.py
+      - name: Execute exact saturation theorem and frozen replay
+        run: |
+          mkdir -p artifacts
+          PYTHONPATH=experiments python experiments/janus_trump_r50g15_rup6_hub_bve_blockade_saturation.py \
+            --output artifacts/JANUS_TRUMP_R50G15_RESULT.json
+      - name: Validate epistemic boundary
+        run: |
+          python - <<'PY'
+          import json
+          d=json.load(open('artifacts/JANUS_TRUMP_R50G15_RESULT.json'))
+          fw=d['firewall']
+          assert d['integer_saturation_boundary']['minimum_total_hub_occurrences'] == 5
+          assert d['integer_saturation_boundary']['unique_minimal_integer_pair']['p'] == 3
+          assert d['integer_saturation_boundary']['unique_minimal_integer_pair']['n'] == 2
+          assert fw['RUP_BEARING_V7_HUB_CYCLE_ELIMINATED'] is False
+          assert fw['V7_IMMEDIATE_BVE_CASE_ELIMINATED'] is False
+          assert fw['U_MU']=='OPEN'
+          assert fw['SAT_IN_P']=='NOT_PROVED'
+          assert fw['P_VS_NP']=='OPEN'
+          assert fw['TRUMP_finished'] is False
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: janus-trump-r50g15-result
+          path: artifacts/JANUS_TRUMP_R50G15_RESULT.json
+          if-no-files-found: error
