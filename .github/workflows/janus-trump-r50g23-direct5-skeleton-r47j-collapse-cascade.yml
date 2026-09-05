@@ -1,0 +1,90 @@
+name: JANUS TRUMP R50G23 DIRECT5 Skeleton R47J Collapse Cascade
+
+on:
+  pull_request:
+    branches:
+      - research/r50g22-all-direct5-v7-cycle-realizer-or-rejection-2026-09-05
+    paths:
+      - 'research/JANUS_TRUMP_R50G23_DIRECT5_SKELETON_R47J_COLLAPSE_CASCADE_PREREGISTRATION_2026-09-05.json'
+      - 'research/JANUS_TRUMP_R50G23_DIRECT5_SKELETON_COLLAPSE_AND_ANTI_COLLAPSE_DEBT_NOTE_2026-09-05.md'
+      - 'experiments/janus_trump_r50g23_direct5_skeleton_r47j_collapse_cascade_anti_collapse_debt.py'
+      - 'tests/test_janus_trump_r50g23_direct5_skeleton_r47j_collapse_cascade_anti_collapse_debt.py'
+      - '.github/workflows/janus-trump-r50g23-direct5-skeleton-r47j-collapse-cascade.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  theorem-or-counterexample:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Freeze R50G23 contract
+        run: |
+          python - <<'PY'
+          import json
+          p='research/JANUS_TRUMP_R50G23_DIRECT5_SKELETON_R47J_COLLAPSE_CASCADE_PREREGISTRATION_2026-09-05.json'
+          d=json.load(open(p))
+          assert d['status']=='FROZEN_BEFORE_EXECUTION'
+          assert d['proof_or_counterexample'] is True
+          assert d['scope']['expected_source_count']==30
+          assert d['scope']['expand_source_family'] is False
+          assert d['execution']['finite_results_are_not_universal_proof'] is True
+          assert d['firewall']['R50G23_RESULT_KNOWN_BEFORE_EXECUTION'] is False
+          assert d['firewall']['ALL_DIRECT5_V7_HUB_CYCLE_ELIMINATED'] is False
+          PY
+
+      - name: Static no-heuristic authority audit
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p=Path('experiments/janus_trump_r50g23_direct5_skeleton_r47j_collapse_cascade_anti_collapse_debt.py').read_text()
+          for x in ['random.choice(', 'random.shuffle(', 'random.random(', 'sklearn', 'torch', 'tensorflow', 'heuristic_score', 'learned_selector']:
+              assert x not in p, x
+          PY
+
+      - name: Install test runner
+        run: python -m pip install --disable-pip-version-check -q pytest
+
+      - name: Compile and unit tests
+        run: |
+          python -m py_compile experiments/janus_trump_r50g23_direct5_skeleton_r47j_collapse_cascade_anti_collapse_debt.py
+          PYTHONPATH=.:experiments pytest -q tests/test_janus_trump_r50g23_direct5_skeleton_r47j_collapse_cascade_anti_collapse_debt.py
+
+      - name: Execute exact 30-skeleton collapse audit
+        run: |
+          mkdir -p artifacts
+          PYTHONPATH=experiments python experiments/janus_trump_r50g23_direct5_skeleton_r47j_collapse_cascade_anti_collapse_debt.py \
+            --output artifacts/JANUS_TRUMP_R50G23_RESULT.json
+
+      - name: Validate epistemic boundary
+        run: |
+          python - <<'PY'
+          import json
+          d=json.load(open('artifacts/JANUS_TRUMP_R50G23_RESULT.json'))
+          fw=d['firewall']
+          assert d['selected_source_count']==30
+          assert d['no_source_family_expansion'] is True
+          assert d['all_same_pivot_R47J_terminal_direct_empty'] is True
+          assert d['all_independent_R47J_replays_pass'] is True
+          assert sum(d['first_transition_histogram'].values())==30
+          assert fw['FINITE_30_COMMON_CASCADE_IMPLIES_UNIVERSAL_ALL_DIRECT5'] is False
+          assert fw['NECESSARY_DIRECT_BLOCKING_DEBT_IS_SUFFICIENT_ANTI_COLLAPSE'] is False
+          assert fw['ALL_DIRECT5_V7_HUB_CYCLE_ELIMINATED'] is False
+          assert fw['V7_IMMEDIATE_BVE_CASE_ELIMINATED'] is False
+          assert fw['U_MU']=='OPEN'
+          assert fw['SAT_IN_P']=='NOT_PROVED'
+          assert fw['P_VS_NP']=='OPEN'
+          assert fw['TRUMP_finished'] is False
+          PY
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: janus-trump-r50g23-result
+          path: artifacts/JANUS_TRUMP_R50G23_RESULT.json
+          if-no-files-found: error
