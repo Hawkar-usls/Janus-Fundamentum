@@ -1,0 +1,69 @@
+name: JANUS TRUMP R50G25S structured lean-core falsifier suite
+
+on:
+  push:
+    branches:
+      - research/r50g25s-structured-lean-core-falsifier-suite-2026-09-06
+    paths:
+      - experiments/janus_trump_r50g25s_structured_lean_core_falsifier_suite.py
+      - .github/workflows/janus-trump-r50g25s-structured-lean-core-falsifier.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  r50g25s:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Run structured lean-core falsifier suite
+        env:
+          PYTHONPATH: experiments
+        run: |
+          mkdir -p artifacts
+          python experiments/janus_trump_r50g25s_structured_lean_core_falsifier_suite.py \
+            --out artifacts/JANUS_TRUMP_R50G25S_STRUCTURED_LEAN_CORE_FALSIFIER.json
+      - name: Verify scientific result contract fail-closed
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          out = json.loads(Path('artifacts/JANUS_TRUMP_R50G25S_STRUCTURED_LEAN_CORE_FALSIFIER.json').read_text())
+          assert out['parent_R_run'] == 34039991475
+          assert out['preregistration_commit'] == 'd638447b873a08a1eef5c32ad1e46c49ab16ae83'
+          assert out['suite_contract']['formula_count'] == 9
+          assert out['suite_contract']['entire_suite_executed'] is True
+          assert out['suite_contract']['all_cases_exact_truth_validated'] is True
+          frozen = {
+              'CERTIFICATE_FAILURE','RECONSTRUCTION_FAILURE','PROGRESS_FAILURE',
+              'RESIDUAL_FIXPOINT','POLYNOMIAL_LEDGER_FAILURE','SEMANTIC_MISMATCH'
+          }
+          assert set(out['frozen_Q_falsifier_classes']) == frozen
+          assert set(out['falsifier_class_histogram']).issubset(frozen)
+          assert out['falsifier_case_count'] == len(out['all_falsifiers'])
+          if out['falsifier_case_count']:
+              assert out['primary_falsifier'] is not None
+              assert out['verdict'].startswith('OUTER_Q_FALSIFIER_FOUND__')
+          else:
+              assert out['primary_falsifier'] is None
+              assert out['verdict'] == 'NO_Q_FALSIFIER_FOUND_IN_STRUCTURED_LEAN_CORE_SUITE'
+          assert out['firewall']['P_VS_NP'] == 'OPEN'
+          assert out['firewall']['SAT_IN_P'] == 'NOT_PROVED'
+          assert out['firewall']['TRUMP_finished'] is False
+          print('VERDICT', out['verdict'])
+          print('FALSIFIER_COUNT', out['falsifier_case_count'])
+          print('FALSIFIER_HIST', out['falsifier_class_histogram'])
+          print('TERMINALS', out['terminal_partition'])
+          print('PRIMARY', out['primary_falsifier'])
+          print('NEXT_GATE', out['next_gate'])
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: janus-trump-r50g25s-structured-lean-core-falsifier
+          path: artifacts/JANUS_TRUMP_R50G25S_STRUCTURED_LEAN_CORE_FALSIFIER.json
+          if-no-files-found: error
+          retention-days: 30
