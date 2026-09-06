@@ -6,6 +6,7 @@ on:
       - research/r50g25h-micro-rup-restart-broader-1212-polynomial-ledger-audit-2026-09-06
     paths:
       - experiments/janus_trump_r50g25h_micro_rup_restart_broader_1212_polynomial_ledger_audit.py
+      - experiments/janus_trump_r50g25h_sealed_result.py
       - .github/workflows/janus-trump-r50g25h-micro-rup-broader-polynomial-audit.yml
   workflow_dispatch:
 
@@ -21,12 +22,12 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      - name: Run R50G25H broader coverage and ledger audit
+      - name: Run sealed R50G25H broader coverage and ledger audit
         env:
           PYTHONPATH: experiments
         run: |
           mkdir -p artifacts
-          python experiments/janus_trump_r50g25h_micro_rup_restart_broader_1212_polynomial_ledger_audit.py \
+          python experiments/janus_trump_r50g25h_sealed_result.py \
             --out artifacts/JANUS_TRUMP_R50G25H_BROADER_1212_POLYNOMIAL_LEDGER_AUDIT.json
       - name: Verify fail-closed scientific partition
         run: |
@@ -44,6 +45,7 @@ jobs:
           assert cov['all_pair_weighted_occurrences'] == 1673
           assert out['evaluated_unique_state_count'] + out['source_lift_replay_failure_unique_count'] == 1212
           assert sum(out['minimum_static_binary_incidence_cover_unique_histogram'].values()) == 1212
+          assert out['seal']['authoritative_RUP_successful_strengthenings_total'] == out['aggregate_micro_ledger']['RUP_successful_strengthenings']
           assert out['firewall']['P_VS_NP'] == 'OPEN'
           assert out['firewall']['SAT_IN_P'] == 'NOT_PROVED'
           assert out['firewall']['TRUMP_finished'] is False
@@ -69,6 +71,7 @@ jobs:
           })
           print('POLY_ENVELOPE_VIOLATIONS', out['polynomial_meter_envelope_violation_unique_count'])
           print('MICRO_RUP_HIST', out['micro_RUP_successful_strengthenings_unique_histogram'])
+          print('AUTHORITATIVE_RUP_TOTAL', out['seal']['authoritative_RUP_successful_strengthenings_total'])
           print('MICRO_RESTART_HIST', out['micro_restart_count_unique_histogram'])
           print('NEXT_GATE', out['next_gate'])
           PY
