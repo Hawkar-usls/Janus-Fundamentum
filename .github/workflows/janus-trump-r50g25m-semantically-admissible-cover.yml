@@ -1,0 +1,57 @@
+name: JANUS TRUMP R50G25M semantically admissible cover
+
+on:
+  push:
+    branches:
+      - research/r50g25m-semantically-admissible-cover-or-explicit-no-go-2026-09-06
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  r50g25m:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Run semantic cover existence audit
+        env:
+          PYTHONPATH: experiments
+        run: |
+          mkdir -p artifacts
+          python experiments/janus_trump_r50g25m_semantically_admissible_cover_or_no_go.py \
+            --out artifacts/JANUS_TRUMP_R50G25M_SEMANTICALLY_ADMISSIBLE_COVER_OR_NO_GO.json
+      - name: Verify fail-closed result
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          out = json.loads(Path('artifacts/JANUS_TRUMP_R50G25M_SEMANTICALLY_ADMISSIBLE_COVER_OR_NO_GO.json').read_text())
+          assert out['coverage_contract']['frozen_target_count'] == 1212
+          assert out['coverage_contract']['new_source_skeletons_added'] == 0
+          assert out['verdict'] in {
+              'EXPLICIT_NO_GO_FOR_SEMANTICS_PRESERVING_EXISTING_VARIABLE_BINARY_COVER',
+              'SEMANTIC_BINARY_COVER_EXISTS_BUT_SCHEDULER_RESIDUAL',
+              'SEMANTICALLY_ADMISSIBLE_BINARY_COVER_1212_TERMINAL',
+              'IMPLEMENTATION_OR_ORACLE_FAILURE',
+          }
+          assert out['semantics_preserving_binary_cover_exists_count'] + out['explicit_binary_cover_no_go_target_count'] == 1212
+          assert out['firewall']['P_VS_NP'] == 'OPEN'
+          assert out['firewall']['SAT_IN_P'] == 'NOT_PROVED'
+          print('VERDICT', out['verdict'])
+          print('SEMANTIC_COVER_EXISTS', out['semantics_preserving_binary_cover_exists_count'])
+          print('NO_GO', out['explicit_binary_cover_no_go_target_count'])
+          print('NO_GO_KIND', out['first_unsupported_requirement_kind_histogram'])
+          print('TERMINALS', out['semantic_cover_terminal_partition'])
+          print('NEXT_GATE', out['next_gate'])
+          PY
+      - name: Upload proof-carrying M result
+        uses: actions/upload-artifact@v4
+        with:
+          name: janus-trump-r50g25m-semantically-admissible-cover
+          path: artifacts/JANUS_TRUMP_R50G25M_SEMANTICALLY_ADMISSIBLE_COVER_OR_NO_GO.json
+          if-no-files-found: error
+          retention-days: 30
