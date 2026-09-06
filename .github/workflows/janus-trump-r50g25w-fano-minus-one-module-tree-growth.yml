@@ -1,0 +1,73 @@
+name: JANUS TRUMP R50G25W Fano-minus-one modular tree growth
+
+on:
+  push:
+    branches:
+      - research/r50g25w-fano-minus-one-module-tree-growth-2026-09-06
+    paths:
+      - experiments/janus_trump_r50g25w_fano_minus_one_module_tree_growth.py
+      - .github/workflows/janus-trump-r50g25w-fano-minus-one-module-tree-growth.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  r50g25w:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Run modular branching growth audit
+        env:
+          PYTHONPATH: experiments
+        run: |
+          mkdir -p artifacts
+          python experiments/janus_trump_r50g25w_fano_minus_one_module_tree_growth.py \
+            --out artifacts/JANUS_TRUMP_R50G25W_FANO_MINUS_ONE_MODULE_TREE_GROWTH.json
+      - name: Verify W result fail-closed
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          out = json.loads(Path('artifacts/JANUS_TRUMP_R50G25W_FANO_MINUS_ONE_MODULE_TREE_GROWTH.json').read_text())
+          assert out['parent_V_corrected_journal_commit'] == '9608f1493d3734666161d4a8b95d1e6ef8f83327'
+          assert out['parent_V_corrected_result_commit'] == 'cb16fa347bd7bcf4a0b337c9d45d8f218ad2a29e'
+          assert out['preregistration_commit'] == '0d4279b2ce1263695a4a9f61ae95ee56a56ed5d1'
+          assert out['module']['CLV'] == [13,39,7]
+          assert out['module']['exact_model_count_validation_only'] == 5
+          assert out['module']['known_model_pass'] is True
+          if out['verdict'].startswith('MODULE_NOT_RESIDUAL'):
+              assert out['sat_chain_cases'] == []
+              assert out['unsat_tail_cases'] == []
+              assert out['findings'] == ['MODULE_NOT_RESIDUAL']
+          else:
+              assert len(out['sat_chain_cases']) == 6
+              assert len(out['unsat_tail_cases']) == 5
+              assert all(c['known_model_pass'] for c in out['sat_chain_cases'])
+              assert all(c['tree_solver']['status'] != 'UNSAT' for c in out['sat_chain_cases'])
+              assert all(c['tree_solver']['status'] != 'SAT' for c in out['unsat_tail_cases'])
+              assert out['unsat_tail_cases'][0]['full_binary_reference']['expected_depth'] == 1
+              assert out['unsat_tail_cases'][0]['full_binary_reference']['expected_nodes'] == 3
+              assert out['unsat_tail_cases'][0]['full_binary_reference']['expected_leaves'] == 2
+          assert out['firewall']['P_VS_NP'] == 'OPEN'
+          assert out['firewall']['SAT_IN_P'] == 'NOT_PROVED'
+          assert out['firewall']['TRUMP_finished'] is False
+          print('VERDICT', out['verdict'])
+          print('MODULE', out['module'])
+          print('SAT_DEPTHS', out.get('sat_chain_depth_vector'))
+          print('UNSAT_DEPTHS', out.get('unsat_tail_depth_vector'))
+          print('UNSAT_NODES', out.get('unsat_tail_node_vector'))
+          print('UNSAT_LEAVES', out.get('unsat_tail_leaf_vector'))
+          print('FINDINGS', out['findings'])
+          print('NEXT_GATE', out['next_gate'])
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: janus-trump-r50g25w-fano-minus-one-module-tree-growth
+          path: artifacts/JANUS_TRUMP_R50G25W_FANO_MINUS_ONE_MODULE_TREE_GROWTH.json
+          if-no-files-found: error
+          retention-days: 30
