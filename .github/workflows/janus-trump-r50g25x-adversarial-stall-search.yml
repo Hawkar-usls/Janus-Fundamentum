@@ -1,0 +1,69 @@
+name: JANUS TRUMP R50G25X adversarial stall search
+
+on:
+  push:
+    branches:
+      - research/r50g25x-universal-door-obligation-adversarial-stall-search-2026-09-06
+    paths:
+      - 'experiments/janus_trump_r50g25x_adversarial_stall_search.py'
+      - '.github/workflows/janus-trump-r50g25x-adversarial-stall-search.yml'
+      - 'research/R50G25X_UNIVERSAL_COMPLETENESS_OBLIGATION_PREREGISTRATION.json'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  r50g25x:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Run preregistered X adversarial falsification search
+        env:
+          PYTHONPATH: experiments
+        run: |
+          mkdir -p artifacts
+          python experiments/janus_trump_r50g25x_adversarial_stall_search.py \
+            --out artifacts/JANUS_TRUMP_R50G25X_ADVERSARIAL_STALL_SEARCH.json
+      - name: Verify fail-closed X result
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          out=json.loads(Path('artifacts/JANUS_TRUMP_R50G25X_ADVERSARIAL_STALL_SEARCH.json').read_text())
+          assert out['parent_W_run']==34044471849
+          assert out['parent_W_journal_commit']=='83d4a1f306a059ad40a6b6543f2277bb36292b64'
+          assert out['X_preregistration_commit']=='558a528863e33ff5bf3cef28af03257158fe753f'
+          assert out['generation_contract']['truth_used_for_generation_or_selection'] is False
+          assert out['generation_contract']['exact_truth_authority'] is False
+          assert out['generation_contract']['total_unique_count'] >= 35
+          assert out['universal_obligation_status']=='OPEN_CONJECTURE_NOT_PROVED'
+          assert out['verdict'] in {'W_POLICY_COUNTEREXAMPLE_FOUND','NO_W_POLICY_COUNTEREXAMPLE_IN_PREREGISTERED_X_DOMAIN'}
+          if out['residual_fixpoint_count']:
+              for r in out['residuals']:
+                  assert r['residual_formula']
+                  assert r['RUP_scan_ledger'] is not None
+                  assert r['SA_BVE_scan_ledger'] is not None
+          assert out['firewall']['P_VS_NP']=='OPEN'
+          assert out['firewall']['SAT_IN_P']=='NOT_PROVED'
+          assert out['firewall']['TRUMP_finished'] is False
+          print('VERDICT',out['verdict'])
+          print('COUNT',out['generation_contract'])
+          print('FAMILIES',out['family_partition'])
+          print('TERMINALS',out['terminal_partition'])
+          print('ASSERTIONS',out['assertion_failure_count'])
+          print('RECONSTRUCTION_FAILURES',out['reconstruction_failure_count'])
+          print('RESIDUALS',out['residual_fixpoint_count'],out['residuals'])
+          print('MAX_ROUTE',out['max_route_case'])
+          print('NEXT_GATE',out['next_gate'])
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: janus-trump-r50g25x-adversarial-stall-search
+          path: artifacts/JANUS_TRUMP_R50G25X_ADVERSARIAL_STALL_SEARCH.json
+          if-no-files-found: error
+          retention-days: 30
