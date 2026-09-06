@@ -1,0 +1,66 @@
+{
+  "gate": "JANUS_TRUMP_R50G25V_SPLIT_DEPTH_AND_TREE_SIZE_AUDIT_BEYOND_FANO",
+  "parent_U_result_commit": "3e8d62c17a90af308453e8939f52f9cecc781ea7",
+  "scientific_role": "STRESS_GENERIC_BRANCHING_TREE_GROWTH_AFTER_FANO_LOCAL_REPAIR",
+  "solver_contract": {
+    "at_each_node": "run existing proof-carrying micro stack first",
+    "if_decisive_terminal": "return SAT or UNSAT receipt",
+    "if_residual_and_depth_budget_remains": "split on smallest unassigned root variable",
+    "SAT_parent_rule": "one certified SAT child suffices",
+    "UNSAT_parent_rule": "both certified UNSAT children required",
+    "residual_at_budget": "return UNKNOWN_DEPTH_BUDGET rather than guess"
+  },
+  "branching_contract": {
+    "maximum_split_depth": 4,
+    "maximum_full_binary_leaf_bound_per_root": 16,
+    "pivot_rule": "smallest root variable not already assigned",
+    "branch_order": [false, true],
+    "generic_branching_tree_can_be_exponential": true,
+    "depth4_budget_is_not_algorithmic_completeness": true
+  },
+  "outer_suite": {
+    "family": "DETERMINISTIC_RANDOM_3UNIFORM_NAE",
+    "NAE_encoding": "for every hyperedge {a,b,c}, add (a,b,c) and (-a,-b,-c)",
+    "parameters": [
+      {"n":7,"edge_counts":[7,10,14],"seeds":[7001,7002,7003]},
+      {"n":8,"edge_counts":[8,12,16],"seeds":[8001,8002,8003]},
+      {"n":9,"edge_counts":[9,14,18],"seeds":[9001,9002,9003]},
+      {"n":10,"edge_counts":[10,15,20],"seeds":[10001,10002,10003]}
+    ],
+    "formula_count": 36,
+    "edge_sampling": "sample without replacement from lexicographically ordered all 3-subsets using Python random.Random(seed)",
+    "duplicate_formulas_are_retained_as_separately_preregistered_parameter_cases_but_hash-collisions_are_reported": true
+  },
+  "controls": {
+    "include_Fano_NAE_reference": true,
+    "Fano_expected_depth1_success": true,
+    "all_roots_have_variable_count_lte_10": true,
+    "exact_truth_table_required_for_every_root_as_validation_only": true
+  },
+  "metrics": [
+    "root_micro_terminal",
+    "final_solver_status",
+    "max_split_depth_used",
+    "tree_node_count",
+    "leaf_count",
+    "split_count",
+    "residual_budget_leaf_count",
+    "terminal_leaf_partition",
+    "sum_micro_ledgers",
+    "exact_truth_semantic_agreement"
+  ],
+  "predeclared_findings": {
+    "TREE_GROWTH_WITNESS": "any case requiring split depth >=2",
+    "DEPTH4_RESIDUAL": "any case still UNKNOWN at depth budget 4",
+    "SEMANTIC_MISMATCH": "tree solver status disagrees with exact root truth validation",
+    "FINITE_DEPTH4_ALL_DECIDED": "all 36 roots decided within budget but no universal claim"
+  },
+  "firewall": {
+    "P_VS_NP": "OPEN",
+    "SAT_IN_P": "NOT_PROVED",
+    "TRUMP_finished": false,
+    "FINITE_DEPTH4_SUCCESS_NEQ_POLYNOMIAL_BOUND": true,
+    "OBSERVED_SMALL_TREE_NEQ_ASYMPTOTIC_SMALL_TREE": true,
+    "TRUTH_TABLE_VALIDATION_NEQ_ALGORITHM_CORE": true
+  }
+}
