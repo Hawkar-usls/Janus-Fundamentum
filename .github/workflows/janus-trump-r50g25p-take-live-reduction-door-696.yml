@@ -1,0 +1,65 @@
+name: JANUS TRUMP R50G25P take live reduction door 696
+
+on:
+  push:
+    branches:
+      - research/r50g25p-take-live-reduction-door-696-no-go-replay-2026-09-06
+    paths:
+      - 'experiments/janus_trump_r50g25p_take_live_reduction_door_696_no_go_replay.py'
+      - '.github/workflows/janus-trump-r50g25p-take-live-reduction-door-696.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  r50g25p:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Run 696 live-reduction-door replay
+        env:
+          PYTHONPATH: experiments
+        run: |
+          mkdir -p artifacts
+          python experiments/janus_trump_r50g25p_take_live_reduction_door_696_no_go_replay.py \
+            --out artifacts/JANUS_TRUMP_R50G25P_TAKE_LIVE_REDUCTION_DOOR_696.json
+      - name: Verify fail-closed P result
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          out = json.loads(Path('artifacts/JANUS_TRUMP_R50G25P_TAKE_LIVE_REDUCTION_DOOR_696.json').read_text())
+          assert out['parent_M_run'] == 34036862384
+          assert out['parent_O_run'] == 34037730521
+          assert out['coverage_contract']['exact_additive_no_go_subset_count'] == 696
+          assert out['evaluated_additive_no_go_target_count'] == 696
+          assert out['verdict'] in {
+              'ALL_696_ADDITIVE_NO_GO_TARGETS_HAVE_CERTIFIED_LIVE_BCE_OR_BVE_REDUCTION_DOOR_AND_TERMINATE',
+              'LIVE_REDUCTION_DOOR_CERTIFICATE_FAILURE',
+              'LIVE_REDUCTION_DOOR_RECONSTRUCTION_FAILURE',
+              'LIVE_REDUCTION_DOOR_PROGRESS_FAILURE',
+              'LIVE_REDUCTION_DOOR_696_HAS_RESIDUAL',
+          }
+          assert out['firewall']['P_VS_NP'] == 'OPEN'
+          assert out['firewall']['SAT_IN_P'] == 'NOT_PROVED'
+          assert out['firewall']['TRUMP_finished'] is False
+          print('VERDICT', out['verdict'])
+          print('FIRST_DOORS', out['first_live_reduction_door_partition'])
+          print('CERT_FAIL', out['first_door_certificate_failure_count'])
+          print('RECON_FAIL', out['one_step_semantic_reconstruction_failure_count'])
+          print('DESCENT_FAIL', out['strict_measure_descent_failure_count'])
+          print('R33_TERMINALS', out['full_R33_terminal_partition'])
+          print('MICRO_TERMINALS', out['micro_terminal_partition'])
+          print('RUP_HIST', out['micro_RUP_strengthening_histogram'])
+          print('NEXT_GATE', out['next_gate'])
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: janus-trump-r50g25p-take-live-reduction-door-696
+          path: artifacts/JANUS_TRUMP_R50G25P_TAKE_LIVE_REDUCTION_DOOR_696.json
+          if-no-files-found: error
+          retention-days: 30
