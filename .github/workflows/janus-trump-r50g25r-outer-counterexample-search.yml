@@ -1,0 +1,69 @@
+name: JANUS TRUMP R50G25R preregistered outer counterexample search
+
+on:
+  push:
+    branches:
+      - research/r50g25r-preregistered-outer-counterexample-search-2026-09-06
+    paths:
+      - experiments/janus_trump_r50g25r_preregistered_outer_counterexample_search.py
+      - .github/workflows/janus-trump-r50g25r-outer-counterexample-search.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  r50g25r:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Run preregistered outer falsifier suite
+        env:
+          PYTHONPATH: experiments
+        run: |
+          mkdir -p artifacts
+          python experiments/janus_trump_r50g25r_preregistered_outer_counterexample_search.py \
+            --out artifacts/JANUS_TRUMP_R50G25R_OUTER_COUNTEREXAMPLE_SEARCH.json
+      - name: Verify scientific result contract fail-closed
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          out = json.loads(Path('artifacts/JANUS_TRUMP_R50G25R_OUTER_COUNTEREXAMPLE_SEARCH.json').read_text())
+          assert out['parent_Q_commit'] == '600ee156f0fc45bec538ee13c9a1dbe7046955bb'
+          assert out['preregistration_commit'] == 'a50a2712a9671b464e7d1391c4c1e6bbb7a6d395'
+          assert out['suite_contract']['formula_count'] == 44
+          assert out['suite_contract']['entire_frozen_suite_executed'] is True
+          assert out['suite_contract']['stop_at_first_falsifier'] is False
+          frozen = {
+              'CERTIFICATE_FAILURE','RECONSTRUCTION_FAILURE','PROGRESS_FAILURE',
+              'RESIDUAL_FIXPOINT','POLYNOMIAL_LEDGER_FAILURE','SEMANTIC_MISMATCH'
+          }
+          assert set(out['frozen_Q_falsifier_classes']) == frozen
+          assert set(out['falsifier_class_histogram']).issubset(frozen)
+          assert out['falsifier_case_count'] == len(out['all_falsifiers'])
+          if out['falsifier_case_count']:
+              assert out['primary_falsifier'] is not None
+              assert out['verdict'].startswith('OUTER_Q_FALSIFIER_FOUND__')
+          else:
+              assert out['primary_falsifier'] is None
+              assert out['verdict'] == 'NO_Q_FALSIFIER_FOUND_IN_PREREGISTERED_FINITE_OUTER_SUITE'
+          assert out['firewall']['P_VS_NP'] == 'OPEN'
+          assert out['firewall']['SAT_IN_P'] == 'NOT_PROVED'
+          assert out['firewall']['TRUMP_finished'] is False
+          print('VERDICT', out['verdict'])
+          print('FALSIFIER_COUNT', out['falsifier_case_count'])
+          print('FALSIFIER_HIST', out['falsifier_class_histogram'])
+          print('TERMINALS', out['terminal_partition'])
+          print('PRIMARY', out['primary_falsifier'])
+          print('NEXT_GATE', out['next_gate'])
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: janus-trump-r50g25r-outer-counterexample-search
+          path: artifacts/JANUS_TRUMP_R50G25R_OUTER_COUNTEREXAMPLE_SEARCH.json
+          if-no-files-found: error
+          retention-days: 30
