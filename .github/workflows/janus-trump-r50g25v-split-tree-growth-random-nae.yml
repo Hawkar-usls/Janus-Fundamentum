@@ -1,0 +1,69 @@
+name: JANUS TRUMP R50G25V split tree growth random NAE
+
+on:
+  push:
+    branches:
+      - research/r50g25v-split-tree-growth-random-nae-audit-2026-09-06
+    paths:
+      - experiments/janus_trump_r50g25v_split_tree_growth_random_nae_audit.py
+      - .github/workflows/janus-trump-r50g25v-split-tree-growth-random-nae.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  r50g25v:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Run bounded split-tree growth audit
+        env:
+          PYTHONPATH: experiments
+        run: |
+          mkdir -p artifacts
+          python experiments/janus_trump_r50g25v_split_tree_growth_random_nae_audit.py \
+            --out artifacts/JANUS_TRUMP_R50G25V_SPLIT_TREE_GROWTH_RANDOM_NAE.json
+      - name: Verify V result fail-closed
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          out = json.loads(Path('artifacts/JANUS_TRUMP_R50G25V_SPLIT_TREE_GROWTH_RANDOM_NAE.json').read_text())
+          assert out['parent_U_result_commit'] == '3e8d62c17a90af308453e8939f52f9cecc781ea7'
+          assert out['preregistration_commit'] == '1c74a2978bd2b0e525b04a8dac2217fddf4b0fa1'
+          assert out['depth_budget'] == 4
+          assert out['outer_case_count'] == 36
+          assert out['Fano_control']['tree_solver']['status'] == 'UNSAT'
+          assert out['Fano_control']['tree_solver']['max_split_depth_used'] == 1
+          assert all(c['semantic_agreement'] for c in out['all_cases'])
+          assert sum(out['tree_solver_status_partition'].values()) == 36
+          assert out['firewall']['P_VS_NP'] == 'OPEN'
+          assert out['firewall']['SAT_IN_P'] == 'NOT_PROVED'
+          assert out['firewall']['TRUMP_finished'] is False
+          assert out['verdict'] in {
+              'DEPTH4_RESIDUAL_FOUND_IN_RANDOM_NAE_OUTER_SUITE',
+              'TREE_GROWTH_WITNESS_FOUND__ALL_CASES_DECIDED_WITHIN_DEPTH4',
+              'FINITE_DEPTH4_ALL_DECIDED_WITHOUT_DEPTH2_GROWTH_WITNESS'
+          }
+          print('VERDICT', out['verdict'])
+          print('ROOT_TERMINALS', out['root_micro_terminal_partition'])
+          print('TREE_STATUS', out['tree_solver_status_partition'])
+          print('DEPTH_HIST', out['max_depth_histogram'])
+          print('GROWTH_GE2', out['tree_growth_witness_count_depth_ge_2'])
+          print('DEPTH4_RESIDUALS', out['depth4_residual_count'])
+          print('MAX_DEPTH', out['max_observed_split_depth'])
+          print('MAX_NODES', out['max_observed_tree_node_count'])
+          print('MAX_LEAVES', out['max_observed_leaf_count'])
+          print('HARDEST', out['hardest_cases'])
+          print('NEXT_GATE', out['next_gate'])
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: janus-trump-r50g25v-split-tree-growth-random-nae
+          path: artifacts/JANUS_TRUMP_R50G25V_SPLIT_TREE_GROWTH_RANDOM_NAE.json
+          if-no-files-found: error
+          retention-days: 30
