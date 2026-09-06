@@ -1,0 +1,75 @@
+name: JANUS TRUMP R50G25G micro RUP restart frozen-family replay
+
+on:
+  push:
+    branches:
+      - research/r50g25g-micro-rup-restart-replay-source-lift-family-2026-09-06
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  r50g25g:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Run R50G25G frozen-family replay
+        env:
+          PYTHONPATH: experiments
+        run: |
+          mkdir -p artifacts
+          python experiments/janus_trump_r50g25g_micro_rup_restart_replay_source_lift_family.py \
+            --out artifacts/JANUS_TRUMP_R50G25G_MICRO_RUP_RESTART_SOURCE_LIFT_FAMILY.json
+
+      - name: Verify fail-closed family partition
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          p = Path('artifacts/JANUS_TRUMP_R50G25G_MICRO_RUP_RESTART_SOURCE_LIFT_FAMILY.json')
+          out = json.loads(p.read_text())
+          assert out['family_unique_state_count'] == 991
+          assert out['family_weighted_occurrence_count'] == 1317
+          assert out['frozen_source_skeleton_count'] == 30
+          assert out['source_lift_replay_failure_unique_count'] == 0
+          assert out['micro_terminal_unique_count'] + out['micro_residual_fixpoint_unique_count'] == 991
+          assert out['exact_sealed_semantic_mismatch_count'] == 0
+          assert out['exact_micro_semantic_mismatch_count'] == 0
+          assert out['micro_SAT_reconstruction_failure_count'] == 0
+          assert out['firewall']['P_VS_NP'] == 'OPEN'
+          assert out['firewall']['SAT_IN_P'] == 'NOT_PROVED'
+          assert out['next_gate'] in {
+              'R50G25H_MICRO_RUP_RESTART_BROADER_COVERAGE_AND_POLYNOMIAL_LEDGER_AUDIT',
+              'R50G25H_MICRO_RUP_RESTART_RESIDUAL_FIXPOINT_FORENSICS',
+          }
+          print('EXACT_TRUTH', out['exact_truth_unique_partition'])
+          print('SEALED_TERMINALS', out['sealed_terminal_unique_partition'])
+          print('MICRO_TERMINALS', out['micro_terminal_unique_partition'])
+          print('TERMINAL_PAIRS', out['sealed_to_micro_terminal_pair_unique_partition'])
+          print('MICRO_TERMINAL_COUNT', out['micro_terminal_unique_count'])
+          print('MICRO_RESIDUAL_COUNT', out['micro_residual_fixpoint_unique_count'])
+          print('ALL_991_MICRO_TERMINAL', out['all_991_micro_schedule_terminal'])
+          print('SEMANTIC_AGREEMENT', out['solved_semantic_agreement_with_sealed_unique_count'])
+          print('SEALED_LEDGER', out['aggregate_sealed_ledger'])
+          print('MICRO_LEDGER', out['aggregate_micro_ledger'])
+          print('MICRO_RUP_STRENGTH_HIST', out['micro_RUP_successful_strengthenings_unique_histogram'])
+          print('NEXT_GATE', out['next_gate'])
+          PY
+
+      - name: Upload proof-carrying result
+        uses: actions/upload-artifact@v4
+        with:
+          name: janus-trump-r50g25g-micro-rup-restart-family-replay
+          path: artifacts/JANUS_TRUMP_R50G25G_MICRO_RUP_RESTART_SOURCE_LIFT_FAMILY.json
+          if-no-files-found: error
+          retention-days: 30
