@@ -1,0 +1,83 @@
+{
+  "gate": "R50G25AC_SYMBOLIC_MIN_UB_EXISTENCE_INEQUALITY_OR_COUNTEREXAMPLE",
+  "status": "PREREGISTERED_BEFORE_IMPLEMENTATION",
+  "branch": "research/r50g25ac-symbolic-min-ub-safe-envelope-2026-09-06",
+  "base_AB_receipt_commit": "e2c1c81e22255a11128c3df51e2b887e283c9215",
+  "parent_AB_run": 34051293910,
+  "parent_AB_artifact": {
+    "id": 9994874097,
+    "name": "janus-trump-r50g25ab-analytic-ub-pivot-selector",
+    "zip_sha256": "f0aeb85b3853f9337913d31a9da3f5ee71d3505d7a5de232b7a12c2b3956d1e6"
+  },
+  "research_question": "Can the existence of at least one within-B analytic exact-DP fallback be certified from local residual scalars, without enumerating exact-DP states, and what universal obligation remains after such a certificate?",
+  "implemented_analytic_bound_identity": {
+    "notation": {
+      "S": "C+L",
+      "p_x": "number of clauses containing +x",
+      "q_x": "number of clauses containing -x",
+      "SP_x": "sum of clause lengths over +x parents",
+      "SN_x": "sum of clause lengths over -x parents",
+      "d_x": "p_x+q_x"
+    },
+    "identity": "UB_S(x)=S-d_x-(SP_x+SN_x)+q_x*SP_x+p_x*SN_x-p_x*q_x",
+    "source": "algebraic expansion of the frozen AB formulas UB_C and UB_L"
+  },
+  "preregistered_local_lemma": {
+    "hypotheses": [
+      "F is a canonical W-policy residual",
+      "V>=1",
+      "every remaining variable occurs in both polarities because otherwise the frozen PURE door would be live",
+      "every canonical clause has width at most V"
+    ],
+    "claim": "There exists a variable x with UB_S(x) <= G(S,V), where G(S,V)=S+(2V-1)*S^2/(4*V^2).",
+    "paper_proof_skeleton": [
+      "Choose x of minimum occurrence degree d_x. Since sum_x d_x=L, d_x<=L/V<=S/V.",
+      "Because every parent clause has width <=V, SP_x<=p_x*V and SN_x<=q_x*V.",
+      "Using the exact UB identity and dropping negative terms except the net -p_x*q_x gives UB_S(x)<=S+(2V-1)*p_x*q_x.",
+      "AM-GM gives p_x*q_x<=d_x^2/4.",
+      "Hence UB_S(x)<=S+(2V-1)*d_x^2/4<=S+(2V-1)*S^2/(4V^2)=G(S,V)."
+    ],
+    "mechanization_status_if_passed": "PAPER_PROOF_FROM_IMPLEMENTED_DEFINITIONS_PLUS_EXECUTABLE_ARTIFACT_AUDIT_NOT_PROOF_ASSISTANT_FORMALIZED"
+  },
+  "safe_envelope": {
+    "condition": "G(S,V)<=B",
+    "consequence": "at least one analytic pivot has UB_S<=B and therefore its exact canonical DP result has scalar size <=B, subject to the already-audited soundness of UB_S",
+    "positive_root_form": "S <= 2*V^2/(2V-1) * (sqrt(1+(2V-1)*B/V^2)-1)",
+    "does_not_claim": [
+      "that every residual satisfies the safe envelope",
+      "that W-policy restarts preserve the safe envelope",
+      "that state-size boundedness alone proves polynomial runtime",
+      "that Galil's Davis-Putnam lower bound is bypassed universally"
+    ]
+  },
+  "artifact_audit": {
+    "consume_parent_AB_artifact_directly": true,
+    "rerun_AB_solver": false,
+    "expected_residual_event_count": 239,
+    "checks": [
+      "G(S,V)<=B for every recorded AB residual event",
+      "chosen_UB_S<=G(S,V) for every recorded AB residual event",
+      "report maximum G/B and minimum B-G safety slack",
+      "retain the already-sealed Phi4/Phi3 counterexamples unchanged"
+    ]
+  },
+  "predeclared_verdicts": [
+    "LOCAL_MIN_UB_SAFE_ENVELOPE_LEMMA_AND_239_OF_239_AUDIT_PASS",
+    "LOCAL_LEMMA_IMPLEMENTATION_IDENTITY_FAILURE",
+    "AB_RECORDED_EVENT_VIOLATES_SAFE_ENVELOPE",
+    "AB_CHOSEN_UB_EXCEEDS_PROVED_G_BOUND",
+    "PARENT_ARTIFACT_IDENTITY_FAILURE",
+    "IMPLEMENTATION_FAILURE"
+  ],
+  "universal_obligation_after_success": "Prove or falsify that every root-reachable W residual under the hybrid scheduler remains inside G(S,V)<=B before controlled DP fallback. The invariant S<=B alone is not asserted to imply this stronger safe envelope.",
+  "next_if_success": "R50G25AD_RESIDUAL_SAFE_ENVELOPE_INVARIANT_OR_BOUNDED_DEGREE_PHP_COUNTEREXAMPLE",
+  "next_if_failure": "R50G25AD_MINIMIZE_SAFE_ENVELOPE_OR_G_BOUND_COUNTEREXAMPLE",
+  "firewall": {
+    "P_VS_NP": "OPEN",
+    "SAT_IN_P": "NOT_PROVED",
+    "TRUMP_finished": false,
+    "finite_239_of_239_is_not_universal_coverage": true,
+    "local_door_lemma_is_conditional_on_safe_envelope": true,
+    "polynomial_state_bound_is_not_polynomial_runtime_until_global_reachability_and_operation_bounds_are_closed": true
+  }
+}
