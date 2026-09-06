@@ -1,0 +1,43 @@
+name: JANUS TRUMP R50G25 journal v2.1 X/Y seal
+
+on:
+  push:
+    branches:
+      - research/r50g25z-controlled-growth-dp-door-polynomial-budget-2026-09-06
+    paths:
+      - 'experiments/janus_trump_r50g25_journal_seal_v21_xy.py'
+      - '.github/workflows/janus-trump-r50g25-journal-v21-xy-seal.yml'
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  seal-journal:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Append sealed X and Y receipts
+        run: python experiments/janus_trump_r50g25_journal_seal_v21_xy.py
+      - name: Verify journal v2.1
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          x=json.loads(Path('research/JANUS_TRUMP_R50G25_CHAIN_JOURNAL.json').read_text())
+          assert x['version']=='2.1'
+          assert [e['gate'] for e in x['entries'][-2:]]==['R50G25X','R50G25Y']
+          assert x['entries'][-2]['residual_fixpoint_count']==15
+          assert x['entries'][-1]['exact_DP_relation_histogram']=={'GROWTH':13}
+          assert x['policy']['P_VS_NP']=='OPEN' and x['policy']['SAT_IN_P']=='NOT_PROVED' and x['policy']['TRUMP_finished'] is False
+          print('JOURNAL_V21_VERIFIED')
+          PY
+      - name: Commit central journal only
+        run: |
+          git config user.name 'JANUS proof journal'
+          git config user.email 'actions@users.noreply.github.com'
+          git add research/JANUS_TRUMP_R50G25_CHAIN_JOURNAL.json
+          git diff --cached --quiet && exit 0
+          git commit -m 'R50G25 journal v2.1: seal X and Y receipts'
+          git push
