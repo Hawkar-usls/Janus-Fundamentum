@@ -1,0 +1,65 @@
+name: JANUS TRUMP R50G25R outer counterexample search
+
+on:
+  push:
+    branches:
+      - research/r50g25r-outer-counterexample-search-2026-09-06
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  r50g25r:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Run preregistered outer falsifier batch
+        env:
+          PYTHONPATH: experiments
+        run: |
+          mkdir -p artifacts
+          python experiments/janus_trump_r50g25r_outer_counterexample_search.py \
+            --out artifacts/JANUS_TRUMP_R50G25R_OUTER_COUNTEREXAMPLE_SEARCH.json
+      - name: Verify fail-closed R result
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          out = json.loads(Path('artifacts/JANUS_TRUMP_R50G25R_OUTER_COUNTEREXAMPLE_SEARCH.json').read_text())
+          assert out['parent_Q_preregistration_commit'] == 'f2f5005bd68420dc04e5a4bf7e76f6a482d41384'
+          assert out['parent_Q_journal_commit'] == '600ee156f0fc45bec538ee13c9a1dbe7046955bb'
+          assert out['outer_expansion_authorized_by_user'] is True
+          assert out['generation_contract']['truth_used_for_generation_or_selection'] is False
+          assert out['evaluated_outer_candidate_count'] >= 200
+          assert out['exact_validation_count'] == out['evaluated_outer_candidate_count']
+          assert out['frozen_Q_falsifier_classes'] == [
+              'CERTIFICATE_FAILURE',
+              'RECONSTRUCTION_FAILURE',
+              'PROGRESS_FAILURE',
+              'RESIDUAL_FIXPOINT',
+              'POLYNOMIAL_LEDGER_FAILURE',
+              'SEMANTIC_MISMATCH',
+          ]
+          assert out['verdict'].startswith(('OUTER_COUNTEREXAMPLE_FOUND__', 'NO_Q_FALSIFIER_'))
+          assert out['firewall']['P_VS_NP'] == 'OPEN'
+          assert out['firewall']['SAT_IN_P'] == 'NOT_PROVED'
+          assert out['firewall']['TRUMP_finished'] is False
+          print('VERDICT', out['verdict'])
+          print('OUTER', out['evaluated_outer_candidate_count'])
+          print('FAMILIES', out['family_partition'])
+          print('EXACT', out['exact_validation_partition'])
+          print('TERMINALS', out['micro_terminal_partition'])
+          print('FALSIFIERS', out['falsifier_partition'])
+          print('NEXT_GATE', out['next_gate'])
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: janus-trump-r50g25r-outer-counterexample-search
+          path: artifacts/JANUS_TRUMP_R50G25R_OUTER_COUNTEREXAMPLE_SEARCH.json
+          if-no-files-found: error
+          retention-days: 30
