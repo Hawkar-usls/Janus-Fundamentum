@@ -1,0 +1,68 @@
+name: JANUS TRUMP R50G25U depth1 certified split Fano
+
+on:
+  push:
+    branches:
+      - research/r50g25u-depth1-certified-split-fano-residual-2026-09-06
+    paths:
+      - experiments/janus_trump_r50g25u_depth1_certified_split_fano.py
+      - .github/workflows/janus-trump-r50g25u-depth1-certified-split-fano.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  r50g25u:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Run depth-1 certified split gate
+        env:
+          PYTHONPATH: experiments
+        run: |
+          mkdir -p artifacts
+          python experiments/janus_trump_r50g25u_depth1_certified_split_fano.py \
+            --out artifacts/JANUS_TRUMP_R50G25U_DEPTH1_CERTIFIED_SPLIT_FANO.json
+      - name: Verify U result fail-closed
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          out = json.loads(Path('artifacts/JANUS_TRUMP_R50G25U_DEPTH1_CERTIFIED_SPLIT_FANO.json').read_text())
+          assert out['parent_T_run'] == 34040530524
+          assert out['preregistration_commit'] == 'bc4444527d4203c6e5571e6d141f6a6d5cb595f3'
+          assert out['target']['formula_hash'] == '466163011411ccd10520539fb80f0bec7a9de934400961cfa6a25f1c58c38a00'
+          assert out['target']['CLV'] == [14,42,7]
+          assert out['new_door']['split_variable'] == 1
+          assert out['new_door']['branch_depth'] == 1
+          assert out['new_door']['leaf_count'] == 2
+          assert sorted(c['assumption_literal'] for c in out['children']) == [-1,1]
+          assert out['split_certificate']['children_present'] is True
+          assert out['exact_truth_validation']['parent_model_count'] == 0
+          assert all(c['model_count'] == 0 for c in out['exact_truth_validation']['child_checks'])
+          assert out['firewall']['P_VS_NP'] == 'OPEN'
+          assert out['firewall']['SAT_IN_P'] == 'NOT_PROVED'
+          assert out['firewall']['TRUMP_finished'] is False
+          if out['verdict'] == 'FANO_RESIDUAL_CROSSED_BY_DEPTH1_CERTIFIED_SPLIT':
+              assert out['split_certificate']['parent_UNSAT_derived'] is True
+              assert all(out['split_certificate']['child_UNSAT_receipts'])
+          elif out['verdict'] == 'DEPTH1_SPLIT_INSUFFICIENT_FOR_FANO_RESIDUAL':
+              assert out['split_certificate']['parent_UNSAT_derived'] is False
+          else:
+              assert out['verdict'] == 'SPLIT_CHILD_NONRESIDUAL_BUT_NOT_BOTH_CERTIFIED_UNSAT'
+          print('VERDICT', out['verdict'])
+          print('CHILDREN', out['children'])
+          print('SPLIT_CERTIFICATE', out['split_certificate'])
+          print('AGGREGATE_LEDGER', out['aggregate_child_ledger'])
+          print('NEXT_GATE', out['next_gate'])
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: janus-trump-r50g25u-depth1-certified-split-fano
+          path: artifacts/JANUS_TRUMP_R50G25U_DEPTH1_CERTIFIED_SPLIT_FANO.json
+          if-no-files-found: error
+          retention-days: 30
