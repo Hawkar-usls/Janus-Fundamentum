@@ -1,0 +1,60 @@
+name: JANUS TRUMP R50G25D Pi unique stalled lean-core witness
+
+on:
+  push:
+    branches:
+      - research/r50g25d-pi-unique-stalled-lean-core-witness-2026-09-06
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  r50g25d-pi-witness:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Run unique witness probe
+        env:
+          PYTHONPATH: experiments
+        run: |
+          mkdir -p artifacts
+          python experiments/janus_trump_r50g25d_pi_unique_stalled_lean_core_witness.py \
+            --out artifacts/JANUS_TRUMP_R50G25D_PI_UNIQUE_STALLED_LEAN_CORE_WITNESS.json
+      - name: Verify unique Platypus witness
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          p = Path('artifacts/JANUS_TRUMP_R50G25D_PI_UNIQUE_STALLED_LEAN_CORE_WITNESS.json')
+          out = json.loads(p.read_text())
+          assert out['unique_stalled_lean_core_witness_count'] == 1
+          w = out['witness']
+          assert w['post_DP_BCE_candidate_count'] == 0
+          assert w['post_DP_BVE_candidate_count'] == 0
+          assert w['first_R33_label'] == 'R33_TERMINAL:STALLED_STACK_LEAN_CORE'
+          assert w['macro_replay_pass'] is True
+          print('SPEC', w['spec'])
+          print('SOURCE_HASH', w['source_hash'])
+          print('TARGET_HASH', w['target_state_hash'])
+          print('POST_DP_HASH', w['post_DP_hash'])
+          print('INITIAL_COVER', w['minimum_cover_clauses'])
+          print('POST_DP_CLV', w['post_DP_CLV'])
+          print('R47J_TERMINAL', w['full_R47J_terminal'])
+          print('ROUNDS', w['full_R47J_round_count'])
+          print('RESTARTS', w['full_R47J_restart_count'])
+          print('NEXT_GATE', out['next_gate'])
+          PY
+      - name: Upload witness
+        uses: actions/upload-artifact@v4
+        with:
+          name: janus-trump-r50g25d-pi-unique-stalled-witness
+          path: artifacts/JANUS_TRUMP_R50G25D_PI_UNIQUE_STALLED_LEAN_CORE_WITNESS.json
+          if-no-files-found: error
+          retention-days: 30
