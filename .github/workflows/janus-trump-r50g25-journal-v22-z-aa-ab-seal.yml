@@ -1,0 +1,48 @@
+name: JANUS TRUMP R50G25 journal v2.2 Z-AA-AB seal
+
+on:
+  push:
+    branches:
+      - research/r50g25ab-analytic-ub-pivot-selector-amortized-potential-2026-09-06
+    paths:
+      - 'research/R50G25AB_RESULT_RECEIPT.json'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  seal:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Append Z AA AB receipts to central journal
+        run: python experiments/janus_trump_r50g25_journal_v22_sync.py
+      - name: Verify journal firewall
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          j=json.loads(Path('research/JANUS_TRUMP_R50G25_CHAIN_JOURNAL.json').read_text())
+          assert j['version']=='2.2'
+          gates={e.get('gate') for e in j['entries']}
+          assert {'R50G25Z','R50G25AA','R50G25AB'} <= gates
+          assert j['policy']['P_VS_NP']=='OPEN'
+          assert j['policy']['SAT_IN_P']=='NOT_PROVED'
+          assert j['policy']['TRUMP_finished'] is False
+          print('JOURNAL_V22_OK',len(j['entries']))
+          PY
+      - name: Commit journal seal to research branch
+        run: |
+          if git diff --quiet -- research/JANUS_TRUMP_R50G25_CHAIN_JOURNAL.json; then
+            echo 'Journal already synchronized'
+            exit 0
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add research/JANUS_TRUMP_R50G25_CHAIN_JOURNAL.json
+          git commit -m 'R50G25 seal central journal v2.2 through AB'
+          git push
