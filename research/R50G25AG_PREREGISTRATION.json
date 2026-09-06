@@ -1,0 +1,44 @@
+{
+  "gate": "R50G25AG_STRONGER_EXACT_DP_TRANSITION_BOUND_OR_REACHABLE_COUNTEREXAMPLE",
+  "status": "PREREGISTERED",
+  "parent_AF_receipt_commit": "22fca8d3d6249892b3169533fdcd18461c366c29",
+  "parent_AF_journal_addendum_commit": "85d7150aec0d9f20963dac959200c0c106ea6fac",
+  "objective": "Replace the coarse p*q maximum-length DP bound with a polynomial structure-aware raw-resolvent upper bound and test whether the frozen reachability invariant closes on actually reachable residuals.",
+  "frozen_transition_bound": {
+    "name": "EXACT_NONTAUTOLOGICAL_RAW_RESOLVENT_BOUND",
+    "definition": "For a pivot x, keep every pivot-free base clause exactly. For every positive-parent/negative-parent pair, form the exact merged resolvent after removing x and -x; discard the pair if the merged resolvent is tautological; otherwise count exactly one raw resolvent with its exact deduplicated literal length. Do not use clause deduplication or subsumption in this bound. Let RAW_C and RAW_L be base plus these raw resolvents and RAW_S=RAW_C+RAW_L.",
+    "soundness_claim_to_test": "Canonical exact-DP NF (deduplication + strict subsumption) can only remove clauses/literals from the raw non-tautological resolvent collection, therefore S_exact_after <= RAW_S.",
+    "complexity_contract": "Computing RAW_S scans parent pairs and merged literals only; it is polynomial in the explicit current formula size and the explicit parent-pair count.",
+    "no_coefficient_retrofit": true
+  },
+  "frozen_invariant": {
+    "conditions": ["2*S <= B", "S*S <= B*V"],
+    "post_transition_test": ["2*RAW_S <= B", "RAW_S*RAW_S <= B*(V-1)"],
+    "interpretation": "If the raw bound satisfies both post-transition inequalities, then the canonical exact-DP result also satisfies them because S_exact_after <= RAW_S."
+  },
+  "domain": {
+    "reachable_sources": [
+      "AF completed rung h24/CYCLIC_MIX",
+      "AF completed rung h24/SEEDED_BALANCED",
+      "AF completed rung h28/CYCLIC_MIX"
+    ],
+    "selection": "Use the same analytic scheduler and reachable residual events as AF; pivot choice remains truth-blind.",
+    "truth_authority": false
+  },
+  "falsifiers": [
+    "RAW_BOUND_UNSOUND",
+    "REACHABLE_POST_INVARIANT_COUNTEREXAMPLE",
+    "EXACT_DP_REPLAY_FAILURE",
+    "SELECTOR_HAS_NO_RAW_BOUND_PIVOT",
+    "SEMANTIC_MISMATCH_ON_KNOWN_GPHP_UNSAT"
+  ],
+  "success_condition": "All checked reachable residual transitions satisfy S_exact_after <= RAW_S and at least one truth-blind selectable pivot per residual satisfies the frozen post-invariant conditions, with independent exact-DP replay and no semantic mismatch.",
+  "firewall": {
+    "P_VS_NP": "OPEN",
+    "SAT_IN_P": "NOT_PROVED",
+    "TRUMP_finished": false,
+    "finite_reachable_pass_is_not_universal_proof": true,
+    "raw_bound_soundness_is_not_global_reachability": true,
+    "state_envelope_is_not_runtime_bound": true
+  }
+}
