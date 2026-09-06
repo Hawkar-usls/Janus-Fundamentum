@@ -1,0 +1,70 @@
+name: JANUS TRUMP R50G25Z controlled-growth DP polynomial budget
+
+on:
+  push:
+    branches:
+      - research/r50g25z-controlled-growth-dp-door-polynomial-budget-2026-09-06
+    paths:
+      - 'experiments/janus_trump_r50g25z_controlled_growth_dp_polynomial_budget.py'
+      - '.github/workflows/janus-trump-r50g25z-controlled-growth-dp-polynomial-budget.yml'
+      - 'research/R50G25Z_CONTROLLED_GROWTH_DP_POLYNOMIAL_BUDGET_PREREGISTRATION.json'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  r50g25z:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 55
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Run preregistered Z controlled-growth DP scheduler
+        env:
+          PYTHONPATH: experiments
+        run: |
+          mkdir -p artifacts
+          python experiments/janus_trump_r50g25z_controlled_growth_dp_polynomial_budget.py \
+            --out artifacts/JANUS_TRUMP_R50G25Z_CONTROLLED_GROWTH_DP_POLYNOMIAL_BUDGET.json
+      - name: Verify fail-closed Z result
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          x=json.loads(Path('artifacts/JANUS_TRUMP_R50G25Z_CONTROLLED_GROWTH_DP_POLYNOMIAL_BUDGET.json').read_text())
+          assert x['Z_preregistration_commit']=='b8196dc3bd32415b962ea586d009d99fd05fd81b'
+          assert x['parent_Y_receipt_commit']=='3398edec2c648cc59f366b179a61a895829eacb2'
+          assert x['domain']['X_residual_occurrences']==15
+          assert x['domain']['total']==16
+          assert x['domain']['truth_used_for_door_selection'] is False
+          assert x['domain']['exact_truth_authority'] is False
+          assert x['Y_reproduction']['core_CLV']==[23,60,13]
+          for r in x['rows']:
+              if r['status']=='TERMINAL':
+                  assert r['max_controlled_state_size'] <= r['budget']
+                  assert r['fallback_DP_count'] <= r['initial_CLV'][2]
+                  assert all(t['replay_pass'] for t in r['fallback_trace'])
+                  assert all(t['after_CLV'][2] < t['before_CLV'][2] for t in r['fallback_trace'])
+          assert x['verdict'] in {
+            'CONTROLLED_GROWTH_POLICY_TERMINATES_ON_PREREGISTERED_DOMAIN_WITHIN_POLYNOMIAL_STATE_BUDGET',
+            'CONTROLLED_GROWTH_DP_OBSTRUCTION_FOUND'
+          }
+          assert x['firewall']['P_VS_NP']=='OPEN'
+          assert x['firewall']['SAT_IN_P']=='NOT_PROVED'
+          assert x['firewall']['TRUMP_finished'] is False
+          print('VERDICT',x['verdict'])
+          print('OBSTRUCTIONS',x['obstruction_count'],x['obstruction_histogram'])
+          print('TERMINALS',x['terminal_histogram'])
+          print('MAX_FALLBACK',x['max_fallback_case'])
+          print('MAX_BUDGET_RATIO',x['max_budget_ratio_case'])
+          print('NEXT_GATE',x['next_gate'])
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: janus-trump-r50g25z-controlled-growth-dp-polynomial-budget
+          path: artifacts/JANUS_TRUMP_R50G25Z_CONTROLLED_GROWTH_DP_POLYNOMIAL_BUDGET.json
+          if-no-files-found: error
+          retention-days: 30
