@@ -1,4 +1,4 @@
-# R50G25AA implemented residual exact-DP growth lemma
+# R50G25AA implemented residual exact-DP CLV-growth lemma
 
 ## Statement
 
@@ -8,6 +8,8 @@ For every formula `F` returned as `RESIDUAL` by the frozen W/Y policy implementa
 2. exact DP removes `x`, so the post-DP variable count is strictly smaller;
 3. no exact-DP pivot has lexicographically strict CLV descent under `(C,L,V)`;
 4. therefore every exact-DP pivot on a W residual is classified `GROWTH` by the implemented Y relation.
+
+`GROWTH` here is specifically **lexicographic CLV growth**. It does not imply that the scalar representation size `C+L` grows on every pivot: a pivot could increase `C` while decreasing `L` enough that `C+L` falls. Z/AA bound the scalar state size `C+L`, so these two notions must remain separate.
 
 This is a statement about the current implemented definitions, not a theorem about arbitrary SAT preprocessors or all possible TRUMP successors.
 
@@ -35,11 +37,13 @@ Combined with B, every exact-DP pivot must satisfy `CLV_after > CLV_before` lexi
 
 ## Consequence
 
-The controlled-DP fallback is not merely occasionally allowed to grow. **Growth is structurally mandatory at every W residual under the current policy.** The live completeness/complexity obligation is therefore not to find a descending exact-DP pivot; none exists by construction. It is to prove that after a bounded amount of mandatory fill-in, the restarted hybrid stack opens a reducing/terminal door before the inherited polynomial root budget is exhausted.
+The controlled-DP fallback is not merely occasionally allowed to be lexicographically non-descending. **Lexicographic CLV growth is structurally mandatory at every W residual under the current policy.** The live completeness/complexity obligation is therefore not to find a descending exact-DP pivot; none exists by construction.
+
+The remaining obligation is about the scalar representation budget and amortized hybrid progress: prove that repeated fallback/restart cycles keep `C+L` within the inherited polynomial root budget and open reducing/terminal R33/RUP/SA-BVE/affine doors before that budget can be exhausted.
 
 This sharpens the next universal target to an amortized/hybrid escape invariant, for example a potential of the form
 
-`Phi = remaining_variables + certified_fill_in_debt + hybrid_escape_credit`
+`Phi = remaining_variables + certified_scalar_fill_in_debt + hybrid_escape_credit`
 
 or an equivalent structural bound linking residual parent incidence (`p*q`, `SP`, `SN`) to guaranteed subsequent R33/RUP/SA-BVE/affine progress.
 
@@ -49,4 +53,5 @@ or an equivalent structural bound linking residual parent incidence (`p*q`, `SP`
 - `SAT_IN_P = NOT_PROVED`
 - `TRUMP_finished = false`
 - implemented-definition lemma != universal polynomial SAT theorem
-- mandatory local DP growth makes the Galil-style fill-in guard more, not less, relevant
+- lexicographic CLV growth != scalar `C+L` growth
+- the Galil-style fill-in guard remains relevant because exact DP can still generate exponentially many clauses even while eliminating variables
