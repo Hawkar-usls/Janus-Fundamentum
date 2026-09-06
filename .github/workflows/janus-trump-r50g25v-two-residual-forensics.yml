@@ -1,0 +1,73 @@
+name: JANUS TRUMP R50G25V two residual fixpoint forensics
+
+on:
+  push:
+    branches:
+      - research/r50g25v-two-residual-fixpoint-forensics-alternate-door-2026-09-06
+    paths:
+      - 'experiments/janus_trump_r50g25v_two_residual_forensics.py'
+      - 'experiments/janus_trump_r50g25v_runner.py'
+      - '.github/workflows/janus-trump-r50g25v-two-residual-forensics.yml'
+      - 'research/R50G25V_RESIDUAL_FIXPOINT_FORENSICS_PREREGISTRATION.json'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  r50g25v:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Run preregistered V residual forensics
+        env:
+          PYTHONPATH: experiments
+        run: |
+          mkdir -p artifacts
+          python experiments/janus_trump_r50g25v_runner.py \
+            --out artifacts/JANUS_TRUMP_R50G25V_TWO_RESIDUAL_FORENSICS.json
+      - name: Verify fail-closed V result
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          out = json.loads(Path('artifacts/JANUS_TRUMP_R50G25V_TWO_RESIDUAL_FORENSICS.json').read_text())
+          assert out['parent_U_run'] == 34043807456
+          assert out['parent_U_journal_commit'] == 'd56a5e78f693ce7e4a15158a4d32f52e8486710e'
+          assert out['V_preregistration_commit'] == '695719e3937f89279cb077598707a9a569a0dc79'
+          assert out['reproduced_residual_fixpoint_count'] == 2
+          assert len(out['results']) == 2
+          for r in out['results']:
+              assert r['single_literal_RUP_exhaustive']['no_single_literal_RUP'] is True
+              assert r['minimization']['truth_used'] is False
+              for row in r['unrestricted_DP_forensics']['rows']:
+                  if row.get('record') is not None:
+                      assert row['replay_pass'] is True
+          assert out['verdict'] in {
+              'RESIDUAL_ELIMINATED_BY_CERTIFIED_MULTI_LITERAL_RUP',
+              'RESIDUAL_HAS_DESCENDING_EXACT_DP_DOOR_OUTSIDE_CURRENT_R33_POLICY',
+              'RESIDUAL_REQUIRES_NON_DESCENDING_DP_OR_NEW_DOOR',
+          }
+          assert out['firewall']['P_VS_NP'] == 'OPEN'
+          assert out['firewall']['SAT_IN_P'] == 'NOT_PROVED'
+          assert out['firewall']['TRUMP_finished'] is False
+          print('VERDICT', out['verdict'])
+          print('RESIDUAL_COUNT', out['reproduced_residual_fixpoint_count'])
+          for i, r in enumerate(out['results']):
+              print('R', i, 'SOURCE', r['source'])
+              print('R', i, 'MIN', r['minimization']['minimized_hash'], r['minimization']['minimized_CLV'], 'CORE', r['minimization']['residual_core_hash'], r['minimization']['residual_core_CLV'])
+              print('R', i, 'WIDER', r['multi_literal_RUP']['checked_candidate_count'], r['multi_literal_RUP']['certified_candidate_count'])
+              print('R', i, 'BEST_DP', r['unrestricted_DP_forensics']['best_by_clause_then_literal_growth'])
+              print('R', i, 'BEST_DP_DOWNSTREAM', r['unrestricted_DP_forensics']['best_downstream'])
+          print('NEXT_GATE', out['next_gate'])
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: janus-trump-r50g25v-two-residual-forensics
+          path: artifacts/JANUS_TRUMP_R50G25V_TWO_RESIDUAL_FORENSICS.json
+          if-no-files-found: error
+          retention-days: 30
