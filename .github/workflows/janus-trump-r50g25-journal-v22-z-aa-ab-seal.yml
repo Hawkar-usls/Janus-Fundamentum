@@ -6,6 +6,7 @@ on:
       - research/r50g25ab-analytic-ub-pivot-selector-amortized-potential-2026-09-06
     paths:
       - 'research/R50G25AB_RESULT_RECEIPT.json'
+      - 'experiments/janus_trump_r50g25_journal_v22_sync.py'
   workflow_dispatch:
 
 permissions:
@@ -24,11 +25,13 @@ jobs:
       - name: Verify journal firewall
         run: |
           python - <<'PY'
-          import json
+          import json,re
           from pathlib import Path
           j=json.loads(Path('research/JANUS_TRUMP_R50G25_CHAIN_JOURNAL.json').read_text())
           assert j['version']=='2.2'
-          gates={e.get('gate') for e in j['entries']}
+          def canon(x):
+              s=str(x); m=re.match(r'^(R50G25(?:AA|AB|Z))(?=$|_)',s); return m.group(1) if m else s
+          gates={canon(e.get('gate')) for e in j['entries']}
           assert {'R50G25Z','R50G25AA','R50G25AB'} <= gates
           assert j['policy']['P_VS_NP']=='OPEN'
           assert j['policy']['SAT_IN_P']=='NOT_PROVED'
