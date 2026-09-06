@@ -1,0 +1,48 @@
+name: JANUS TRUMP R50G25 journal v2 seal
+
+on:
+  push:
+    branches:
+      - research/r50g25w-r42-sa-bve-policy-lift-outer-replay-2026-09-06
+    paths:
+      - 'experiments/janus_trump_r50g25_journal_seal_v2.py'
+      - '.github/workflows/janus-trump-r50g25-journal-v2-seal.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  seal-journal:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Deterministically append V and W to central journal
+        run: python experiments/janus_trump_r50g25_journal_seal_v2.py
+      - name: Verify journal v2
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          p=Path('research/JANUS_TRUMP_R50G25_CHAIN_JOURNAL.json')
+          x=json.loads(p.read_text())
+          assert x['version']=='2.0'
+          assert [e['gate'] for e in x['entries'][-2:]]==['R50G25V','R50G25W']
+          assert x['entries'][-1]['run_id']==34044471849
+          assert x['entries'][-1]['new_residual_count']==0
+          assert x['policy']['P_VS_NP']=='OPEN'
+          assert x['policy']['SAT_IN_P']=='NOT_PROVED'
+          assert x['policy']['TRUMP_finished'] is False
+          print('JOURNAL_V2_OK', len(x['entries']))
+          PY
+      - name: Commit central journal only
+        run: |
+          git config user.name 'JANUS proof journal'
+          git config user.email 'actions@users.noreply.github.com'
+          git add research/JANUS_TRUMP_R50G25_CHAIN_JOURNAL.json
+          git diff --cached --quiet && exit 0
+          git commit -m 'R50G25 journal v2: seal V and W receipts'
+          git push
