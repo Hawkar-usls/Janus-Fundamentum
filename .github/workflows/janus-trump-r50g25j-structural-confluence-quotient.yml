@@ -1,0 +1,75 @@
+name: JANUS TRUMP R50G25J structural DP confluence quotient
+
+on:
+  push:
+    branches:
+      - research/r50g25j-structural-dp-pivot-free-confluence-quotient-2026-09-06
+    paths:
+      - experiments/janus_trump_r50g25j_structural_dp_pivot_free_confluence_quotient.py
+      - research/JANUS_TRUMP_R50G25J_STRUCTURAL_DP_PIVOT_FREE_CONFLUENCE_QUOTIENT_NOTE_2026-09-06.md
+      - .github/workflows/janus-trump-r50g25j-structural-confluence-quotient.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  r50g25j:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Run structural confluence and quotient audit
+        env:
+          PYTHONPATH: experiments
+        run: |
+          mkdir -p artifacts
+          python experiments/janus_trump_r50g25j_structural_dp_pivot_free_confluence_quotient.py \
+            --out artifacts/JANUS_TRUMP_R50G25J_STRUCTURAL_CONFLUENCE_QUOTIENT.json
+      - name: Verify fail-closed structural result
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          p = Path('artifacts/JANUS_TRUMP_R50G25J_STRUCTURAL_CONFLUENCE_QUOTIENT.json')
+          out = json.loads(p.read_text())
+          assert out['symbolic_lemma']['status'] == 'STRUCTURAL_LEMMA_PROVED_FROM_IMPLEMENTED_DEFINITIONS'
+          assert out['coverage_contract']['frozen_source_skeleton_count'] == 30
+          assert out['coverage_contract']['new_source_skeletons_added'] == 0
+          assert out['coverage_contract']['unique_target_state_count'] == 1212
+          audit = out['application_side_condition_audit']
+          assert audit['pivot_free_cover_violation_count'] == 0
+          assert audit['NF_antichain_violation_count'] == 0
+          assert audit['NF_absorption_instance_violation_count'] == 0
+          assert audit['all_frozen_target_side_conditions_pass'] is True
+          q = out['quotient_audit']
+          assert q['target_count'] == 1212
+          assert q['canonical_quotient_state_count'] == 1074
+          assert q['compression_count'] == 138
+          assert out['firewall']['P_VS_NP'] == 'OPEN'
+          assert out['firewall']['SAT_IN_P'] == 'NOT_PROVED'
+          assert out['firewall']['TRUMP_finished'] is False
+          assert out['next_gate'] in {
+              'R50G25K_STRUCTURAL_CONFLUENCE_SIDE_CONDITION_OR_QUOTIENT_DRIFT_FORENSICS',
+              'R50G25K_OUTER_COVERAGE_PREREGISTRATION_NO_FAMILY_EXPANSION',
+          }
+          print('LEMMA', out['symbolic_lemma']['status'])
+          print('SIDE_CONDITIONS', audit)
+          print('QUOTIENT', {
+              'pre_nf_unique': q['pre_NF_union_unique_count'],
+              'post_nf_unique': q['canonical_quotient_state_count'],
+              'compression': q['compression_count'],
+              'fibers': q['fiber_size_histogram'],
+          })
+          print('NEXT_GATE', out['next_gate'])
+          PY
+      - name: Upload proof-carrying J result
+        uses: actions/upload-artifact@v4
+        with:
+          name: janus-trump-r50g25j-structural-confluence-quotient
+          path: artifacts/JANUS_TRUMP_R50G25J_STRUCTURAL_CONFLUENCE_QUOTIENT.json
+          if-no-files-found: error
+          retention-days: 30
