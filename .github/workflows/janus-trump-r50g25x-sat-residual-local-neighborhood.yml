@@ -1,0 +1,79 @@
+name: JANUS TRUMP R50G25X SAT residual local neighborhood
+
+on:
+  push:
+    branches:
+      - research/r50g25x-sat-residual-local-neighborhood-search-2026-09-06
+    paths:
+      - experiments/janus_trump_r50g25x_sat_residual_local_neighborhood_search.py
+      - .github/workflows/janus-trump-r50g25x-sat-residual-local-neighborhood.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  r50g25x:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Run frozen local SAT residual search
+        env:
+          PYTHONPATH: experiments
+        run: |
+          mkdir -p artifacts
+          python experiments/janus_trump_r50g25x_sat_residual_local_neighborhood_search.py \
+            --out artifacts/JANUS_TRUMP_R50G25X_SAT_RESIDUAL_LOCAL_NEIGHBORHOOD.json
+      - name: Verify X result fail-closed
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          out = json.loads(Path('artifacts/JANUS_TRUMP_R50G25X_SAT_RESIDUAL_LOCAL_NEIGHBORHOOD.json').read_text())
+          assert out['parent_W_result_commit'] == 'bb20fa204cc63c3544cbfd795e854be531cfb822'
+          assert out['preregistration_commit'] == '22d07ee1a193024e144de79a2c72d7930f58062a'
+          c = out['candidate_contract']
+          assert c['A_parameter_cases'] == 14
+          assert c['B_parameter_cases'] == 42
+          assert c['C_raw_clause_universe'] == 378
+          assert c['total_executed_parameter_cases'] == 56 + c['C_entailed_addition_candidate_count']
+          assert len(out['all_cases']) == c['total_executed_parameter_cases']
+          assert out['SAT_residual_count'] == len(out['all_SAT_residuals'])
+          assert all(x['SAT_residual'] for x in out['all_SAT_residuals'])
+          assert all(x['exact_truth_validation']['sat'] for x in out['all_SAT_residuals'])
+          assert all(x['micro_terminal'] == 'RESIDUAL_FIXPOINT' for x in out['all_SAT_residuals'])
+          assert out['verdict'] in {
+              'SAT_RESIDUAL_FOUND_SINGLE_DELETION',
+              'SAT_RESIDUAL_FOUND_SINGLE_LITERAL_FLIP',
+              'SAT_RESIDUAL_FOUND_ENTAILED_ADDITION',
+              'NO_SAT_RESIDUAL_IN_FROZEN_LOCAL_NEIGHBORHOOD'
+          }
+          if out['SAT_residual_count']:
+              assert out['primary_SAT_residual'] is not None
+              assert out['next_gate'] == 'R50G25Y_BUILD_MODULAR_BRANCHING_GROWTH_FROM_VERIFIED_SAT_RESIDUAL'
+          else:
+              assert out['primary_SAT_residual'] is None
+              assert out['next_gate'] == 'R50G25Y_PAIR_ADDITIONS_EXTENSION_GADGET_OR_CONNECTED_SAT_RESIDUAL_SEARCH'
+          assert out['firewall']['P_VS_NP'] == 'OPEN'
+          assert out['firewall']['SAT_IN_P'] == 'NOT_PROVED'
+          assert out['firewall']['TRUMP_finished'] is False
+          print('VERDICT', out['verdict'])
+          print('CANDIDATES', c)
+          print('EXACT_STATUS', out['exact_status_partition'])
+          print('MICRO_TERMINALS', out['micro_terminal_partition'])
+          print('SAT_RESIDUAL_COUNT', out['SAT_residual_count'])
+          print('CONNECTED_RESIDUAL_COUNT', out['connected_SAT_residual_count'])
+          print('RESIDUAL_FAMILY', out['SAT_residual_family_partition'])
+          print('PRIMARY', out['primary_SAT_residual'])
+          print('NEXT_GATE', out['next_gate'])
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: janus-trump-r50g25x-sat-residual-local-neighborhood
+          path: artifacts/JANUS_TRUMP_R50G25X_SAT_RESIDUAL_LOCAL_NEIGHBORHOOD.json
+          if-no-files-found: error
+          retention-days: 30
