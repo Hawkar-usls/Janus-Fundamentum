@@ -1,0 +1,74 @@
+name: JANUS TRUMP R50G25AE scaled GPHP reachability invariant
+
+on:
+  push:
+    branches:
+      - research/r50g25ae-scale-bounded-degree-gphp-reachability-invariant-2026-09-06
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  r50g25ae:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Run preregistered AE scaled GPHP reachability invariant audit
+        env:
+          PYTHONPATH: experiments
+        run: |
+          mkdir -p artifacts
+          python experiments/janus_trump_r50g25ae_scaled_gphp_reachability_invariant.py \
+            --out artifacts/JANUS_TRUMP_R50G25AE_SCALED_GPHP_REACHABILITY_INVARIANT.json
+      - name: Verify fail-closed AE result
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          out=json.loads(Path('artifacts/JANUS_TRUMP_R50G25AE_SCALED_GPHP_REACHABILITY_INVARIANT.json').read_text())
+          assert out['AE_preregistration_commit']=='d086333294ee92efe6bd968fce6402010d7266c8'
+          assert out['parent_AD_receipt_commit']=='0c9cca17c8b36639479870c817d0192061930c03'
+          assert out['domain']['case_count']==8
+          assert out['domain']['hole_sizes']==[24,28,32,40]
+          assert out['domain']['modes']==['CYCLIC_MIX','SEEDED_BALANCED']
+          assert out['domain']['all_left_degree']==3
+          assert out['domain']['truth_used_for_generation_or_pivot_selection'] is False
+          assert out['candidate_invariant']['conditions']==['2*S <= B','S*S <= B*V']
+          allowed={
+            'SAFE_ENVELOPE_REACHABILITY_COUNTEREXAMPLE',
+            'SIMPLE_REACHABILITY_INVARIANT_COUNTEREXAMPLE',
+            'ANALYTIC_SELECTOR_BUDGET_GAP',
+            'SEMANTIC_MISMATCH_ON_KNOWN_GPHP_UNSAT',
+            'REPLAY_OR_BOUND_SOUNDNESS_FAILURE',
+            'RESIDUAL_AFTER_AT_MOST_V0_FALLBACKS',
+            'SIMPLE_SUFFICIENT_REACHABILITY_INVARIANT_SURVIVES_SCALED_GPHP',
+          }
+          assert out['verdict'] in allowed
+          if out['safe_envelope_counterexample_count']:
+              assert out['verdict']=='SAFE_ENVELOPE_REACHABILITY_COUNTEREXAMPLE'
+          elif out['simple_invariant_counterexample_count']:
+              assert out['verdict']=='SIMPLE_REACHABILITY_INVARIANT_COUNTEREXAMPLE'
+          assert out['firewall']['P_VS_NP']=='OPEN'
+          assert out['firewall']['SAT_IN_P']=='NOT_PROVED'
+          assert out['firewall']['TRUMP_finished'] is False
+          print('VERDICT',out['verdict'])
+          print('DOMAIN',out['domain'])
+          print('STATUS',out['status_partition'])
+          print('TERMINALS',out['terminal_partition'])
+          print('RESIDUAL_EVENTS',out['residual_event_count'])
+          print('SAFE_COUNTEREXAMPLES',out['safe_envelope_counterexample_count'])
+          print('SIMPLE_COUNTEREXAMPLES',out['simple_invariant_counterexample_count'])
+          print('SELECTOR_GAPS',out['selector_gap_count'])
+          print('NEXT_GATE',out['next_gate'])
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: janus-trump-r50g25ae-scaled-gphp-reachability-invariant
+          path: artifacts/JANUS_TRUMP_R50G25AE_SCALED_GPHP_REACHABILITY_INVARIANT.json
+          if-no-files-found: error
+          retention-days: 30
