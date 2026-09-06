@@ -1,0 +1,59 @@
+name: JANUS TRUMP R50G25N derived clause or nonadditive door
+
+on:
+  push:
+    branches:
+      - research/r50g25n-alternate-nonadditive-or-derived-clause-collapse-door-2026-09-06
+    paths:
+      - 'experiments/janus_trump_r50g25n_derived_clause_or_nonadditive_door.py'
+      - '.github/workflows/janus-trump-r50g25n-derived-clause-or-nonadditive-door.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  r50g25n:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Run derived-clause versus additive no-go audit
+        env:
+          PYTHONPATH: experiments
+        run: |
+          mkdir -p artifacts
+          python experiments/janus_trump_r50g25n_derived_clause_or_nonadditive_door.py \
+            --out artifacts/JANUS_TRUMP_R50G25N_DERIVED_CLAUSE_OR_NONADDITIVE_DOOR.json
+      - name: Verify fail-closed N result
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          out = json.loads(Path('artifacts/JANUS_TRUMP_R50G25N_DERIVED_CLAUSE_OR_NONADDITIVE_DOOR.json').read_text())
+          assert out['parent_M_run'] == 34036862384
+          assert out['target']['state_hash'] == '6cf77b7f1acf5a0ca16edf24adb9ec936557a0418a00368ac2b494946c8fdd1e'
+          assert out['target']['CLV'] == [9,25,6]
+          assert out['target']['exact_model_count'] == 14
+          assert out['verdict'] in {
+              'ONE_STEP_CERTIFIED_DERIVED_CLAUSE_NEUTRALIZES_MINIMAL_BCE_NO_GO',
+              'ENTAILED_EXISTING_VARIABLE_SUPPORT_EXISTS_BUT_NOT_ONE_STEP_RUP_OR_RESOLUTION_DERIVED',
+              'EXACT_NO_GO_FOR_ANY_ADDITIVE_EXISTING_VARIABLE_ENTAILED_CLAUSE_ON_MINIMAL_WITNESS',
+          }
+          assert out['firewall']['P_VS_NP'] == 'OPEN'
+          assert out['firewall']['SAT_IN_P'] == 'NOT_PROVED'
+          assert out['firewall']['TRUMP_finished'] is False
+          print('VERDICT', out['verdict'])
+          print('ORACLE_SUPPORT', out['oracle_only_existing_variable_clause_support'])
+          print('CERTIFIED_NEUTRALIZERS', out['one_step_certified_neutralizer_count'])
+          print('BEST', out['best_one_step_certified_neutralizer'])
+          print('NEXT_GATE', out['next_gate'])
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: janus-trump-r50g25n-derived-clause-or-nonadditive-door
+          path: artifacts/JANUS_TRUMP_R50G25N_DERIVED_CLAUSE_OR_NONADDITIVE_DOOR.json
+          if-no-files-found: error
+          retention-days: 30
