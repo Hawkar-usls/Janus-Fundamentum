@@ -1,0 +1,91 @@
+{
+  "gate": "R50G25AA_UNIVERSAL_CONTROLLED_DP_DOOR_EXISTENCE_OR_SYMBOLIC_COUNTEREXAMPLE",
+  "status": "PREREGISTERED_BEFORE_IMPLEMENTATION",
+  "branch": "research/r50g25aa-universal-controlled-dp-door-or-symbolic-counterexample-2026-09-06",
+  "base_Z_sealed_result_commit": "fd66cbc880a2d15617fb3432a31d2d355d281088",
+  "parent_Z_run_id": 34045971286,
+  "parent_Z_artifact_id": 9993361591,
+  "research_question": "At every hybrid-policy residual reached from a 3CNF root, is there necessarily an exact-DP pivot whose transformed canonical state remains within the frozen root budget B=(C0+L0)*(V0+1)^2, or can a truth-blind adversarial search produce an explicit residual where every exact-DP pivot exceeds B?",
+  "known_theory_guard": {
+    "pure_Davis_Putnam_universal_polynomial_promotion_forbidden": true,
+    "reason": "Zvi Galil, Theoretical Computer Science 4(1), 1977, DOI 10.1016/0304-3975(77)90054-8: infinitely many contradictory CNFs require 2^(c n) distinct clauses under the Davis-Putnam procedure for any variable-elimination order.",
+    "implication_for_TRUMP": "Variable-count descent plus exact DP alone cannot justify a universal polynomial theorem. Any universal rescue must prove that the hybrid R33/RUP/SA-BVE/affine stack excludes or collapses the classical hard fill-in regime before polynomial state bounds fail.",
+    "external_result_is_context_not_TRUMP_proof": true
+  },
+  "frozen_budget": {
+    "B": "(C0+L0)*(V0+1)^2",
+    "no_post_result_budget_expansion": true,
+    "root_budget_inherited_across_all_fallback_rounds": true
+  },
+  "analytic_pivot_upper_bound": {
+    "purpose": "Polynomial-time sufficient certificate that an exact-DP pivot fits B without relying on post-hoc exact transformed size.",
+    "definitions": {
+      "p": "number of clauses containing +x",
+      "q": "number of clauses containing -x",
+      "SP": "sum of lengths of +x parent clauses",
+      "SN": "sum of lengths of -x parent clauses",
+      "C": "current clause count",
+      "L": "current literal count"
+    },
+    "UB_C": "C - p - q + p*q",
+    "UB_L": "L - SP - SN + q*(SP-p) + p*(SN-q)",
+    "UB_S": "UB_C + UB_L",
+    "validity_reason": "Every raw non-tautological resolvent is generated from one positive/negative parent pair and has length at most (|P|-1)+(|N|-1); tautology deletion, duplicate elimination and strict-subsumption normalization can only decrease the exact canonical size relative to this bound.",
+    "certificate": "UB_S <= B implies exact canonical DP state size <= B"
+  },
+  "frozen_AA_domain": {
+    "Z_replay": "all 15 X residual roots plus Y minimized core, preserving their inherited root budgets",
+    "new_truth_blind_random_threshold_roots": {
+      "n": [64, 72, 80],
+      "densities": [4.20, 4.26, 4.32],
+      "seeds_per_cell": 2
+    },
+    "new_R33_stall_target_roots": {
+      "n": [64, 72, 80],
+      "density": 4.26,
+      "first_stall_found_within_seed_scan": 800
+    },
+    "behavior_guided_mutations": {
+      "parent_selection": "solver-structure-only; rank residuals by smallest best analytic budget slack, never by SAT truth",
+      "parents": 4,
+      "one_clause_mutations_per_parent": 5
+    },
+    "structured_controls": [
+      "existing XOR/Tseitin controls remain controls because affine recognition may pre-empt DP",
+      "no exact truth is used for generation, ranking, pivot selection or verdict"
+    ]
+  },
+  "deterministic_policy_under_test": {
+    "first": "run frozen W hybrid policy until terminal/affine/residual",
+    "on_residual": "enumerate every exact-DP pivot with independent replay",
+    "admissible": "variable count strictly decreases and exact canonical C+L <= inherited B",
+    "chosen": "lexicographically minimize (C_after, L_after, var) exactly as Z",
+    "restart": "run frozen W hybrid policy again",
+    "maximum_fallbacks": "V0",
+    "truth_blind": true
+  },
+  "predeclared_verdicts": [
+    "EXACT_CONTROLLED_DP_DOOR_OBSTRUCTION_FOUND",
+    "ANALYTIC_CERTIFICATE_GAP_BUT_EXACT_DOOR_EXISTS",
+    "ANALYTIC_DOOR_CERTIFICATE_COVERS_ALL_AA_RESIDUALS",
+    "NO_EXACT_OBSTRUCTION_IN_AA_DOMAIN_BUT_UNIVERSAL_DOOR_EXISTENCE_REMAINS_OPEN",
+    "IMPLEMENTATION_OR_REPLAY_FAILURE"
+  ],
+  "counterexample_classes": {
+    "NO_EXACT_DP_PIVOT_AT_RESIDUAL": "residual has no variable occurring in both polarities / no exact-DP record",
+    "ALL_EXACT_DP_PIVOTS_EXCEED_ROOT_BUDGET": "every independently replayed exact-DP transformed canonical state has C+L > inherited B",
+    "RESIDUAL_AFTER_AT_MOST_V0_FALLBACKS": "hybrid+DP scheduler still residual after V0 variable-decreasing fallback steps",
+    "DP_REPLAY_FAILURE": "independent exact-DP reconstruction disagrees",
+    "STATE_BUDGET_VIOLATION": "current state already exceeds inherited B"
+  },
+  "firewall": {
+    "P_VS_NP": "OPEN",
+    "SAT_IN_P": "NOT_PROVED",
+    "TRUMP_finished": false,
+    "finite_success_is_not_universal_coverage": true,
+    "polynomial_state_budget_is_not_polynomial_runtime_without_universal_door_and_operation_bounds": true,
+    "known_pure_DP_lower_bound_must_not_be_ignored": true
+  },
+  "next_if_obstruction": "R50G25AB_MINIMIZE_CONTROLLED_DP_BUDGET_OBSTRUCTION_AND_CLASSIFY_FILL_IN_CAUSE",
+  "next_if_no_obstruction": "R50G25AB_HYBRID_EXCLUSION_INVARIANT_VS_GALIL_STYLE_DP_LOWER_BOUND"
+}
