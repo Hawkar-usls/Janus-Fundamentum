@@ -1,0 +1,82 @@
+name: JANUS TRUMP R50G25AB analytic UB pivot selector
+
+on:
+  push:
+    branches:
+      - research/r50g25ab-analytic-ub-pivot-selector-amortized-potential-2026-09-06
+    paths:
+      - 'experiments/janus_trump_r50g25ab_analytic_ub_pivot_selector_amortized_potential.py'
+      - '.github/workflows/janus-trump-r50g25ab-analytic-ub-pivot-selector.yml'
+      - 'research/R50G25AB_ANALYTIC_UB_PIVOT_SELECTOR_AMORTIZED_POTENTIAL_PREREGISTRATION.json'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  r50g25ab:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Run preregistered AB analytic single-pivot scheduler
+        env:
+          PYTHONPATH: experiments
+        run: |
+          mkdir -p artifacts
+          python experiments/janus_trump_r50g25ab_analytic_ub_pivot_selector_amortized_potential.py \
+            --out artifacts/JANUS_TRUMP_R50G25AB_ANALYTIC_UB_PIVOT_SELECTOR.json
+      - name: Verify fail-closed AB result
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          out=json.loads(Path('artifacts/JANUS_TRUMP_R50G25AB_ANALYTIC_UB_PIVOT_SELECTOR.json').read_text())
+          assert out['AB_preregistration_commit']=='af0ae06061797ec8149f42da9529e9ffab620fc1'
+          assert out['parent_AA_resource_limit_receipt_commit']=='71557e8cb433a9494da2e064118becff8ffec998'
+          assert out['domain']['root_reachable_case_count']==16
+          assert 0 <= out['domain']['local_structural_stress_case_count'] <= 12
+          assert out['domain']['total_case_count']==out['domain']['root_reachable_case_count']+out['domain']['local_structural_stress_case_count']
+          assert out['domain']['truth_used_for_generation_ranking_or_selection'] is False
+          assert out['domain']['exact_truth_authority'] is False
+          assert out['selector_contract']['chosen_by']=='min(UB_S,var)'
+          assert out['selector_contract']['exact_DP_materializations_per_fallback']==1
+          assert out['selector_contract']['no_post_result_budget_change'] is True
+          allowed={
+            'ANALYTIC_SELECTOR_TERMINATES_ON_PREREGISTERED_DOMAIN',
+            'ANALYTIC_SELECTOR_BUDGET_GAP_FOUND',
+            'ANALYTIC_BOUND_UNSOUND_OR_DP_REPLAY_FAILURE',
+            'RESIDUAL_AFTER_AT_MOST_V0_ANALYTIC_FALLBACKS',
+            'PHI4_CANDIDATE_FALSIFIED_WITHOUT_SELECTOR_FAILURE',
+            'IMPLEMENTATION_FAILURE',
+          }
+          assert out['verdict'] in allowed
+          assert out['total_exact_DP_materializations'] <= out['total_selector_bound_checks']
+          if out['selector_gap_count']:
+              assert out['verdict']=='ANALYTIC_SELECTOR_BUDGET_GAP_FOUND'
+          if out['Phi4_exact_failure_count'] and not out['selector_gap_count'] and not out['implementation_failure_count'] and not out['residual_limit_count']:
+              assert out['verdict']=='PHI4_CANDIDATE_FALSIFIED_WITHOUT_SELECTOR_FAILURE'
+          assert out['firewall']['P_VS_NP']=='OPEN'
+          assert out['firewall']['SAT_IN_P']=='NOT_PROVED'
+          assert out['firewall']['TRUMP_finished'] is False
+          print('VERDICT',out['verdict'])
+          print('DOMAIN',out['domain'])
+          print('STATUS',out['status_partition'])
+          print('TERMINALS',out['terminal_partition'])
+          print('SELECTOR_GAPS',out['selector_gap_count'])
+          print('PHI4_FAILURES',out['Phi4_exact_failure_count'])
+          print('PHI3_FULL_CYCLE_FAILURES',out['Phi3_full_cycle_failure_count'])
+          print('BOUND_CHECKS',out['total_selector_bound_checks'])
+          print('EXACT_MATERIALIZATIONS',out['total_exact_DP_materializations'])
+          print('TIGHTEST_SLACK',out['tightest_analytic_slack'])
+          print('NEXT_GATE',out['next_gate'])
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: janus-trump-r50g25ab-analytic-ub-pivot-selector
+          path: artifacts/JANUS_TRUMP_R50G25AB_ANALYTIC_UB_PIVOT_SELECTOR.json
+          if-no-files-found: error
+          retention-days: 30
