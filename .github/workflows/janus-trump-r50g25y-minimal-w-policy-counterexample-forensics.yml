@@ -1,0 +1,66 @@
+name: JANUS TRUMP R50G25Y minimal W-policy counterexample forensics
+
+on:
+  push:
+    branches:
+      - research/r50g25y-minimal-w-policy-counterexample-forensics-2026-09-06
+    paths:
+      - 'experiments/janus_trump_r50g25y_minimal_w_policy_counterexample_forensics.py'
+      - '.github/workflows/janus-trump-r50g25y-minimal-w-policy-counterexample-forensics.yml'
+      - 'research/R50G25Y_MINIMAL_W_POLICY_COUNTEREXAMPLE_FORENSICS_PREREGISTRATION.json'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  r50g25y:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 50
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Run preregistered Y counterexample minimization and exact-DP forensics
+        env:
+          PYTHONPATH: experiments
+        run: |
+          mkdir -p artifacts
+          python experiments/janus_trump_r50g25y_minimal_w_policy_counterexample_forensics.py \
+            --out artifacts/JANUS_TRUMP_R50G25Y_MINIMAL_W_POLICY_COUNTEREXAMPLE_FORENSICS.json
+      - name: Verify fail-closed Y result
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          p=Path('artifacts/JANUS_TRUMP_R50G25Y_MINIMAL_W_POLICY_COUNTEREXAMPLE_FORENSICS.json')
+          x=json.loads(p.read_text())
+          assert x['Y_preregistration_commit']=='92b93a34cd582800fc925e961196607ff8d27ee0'
+          assert x['parent_X_receipt_commit']=='30cbe3f2fd3b07fbffb1210bcd5d00c232a2945c'
+          assert x['target']['hash']=='c379fb11374c4259a736545f6652a417b6d98d016e9dcaed62d44d3740b71adb'
+          assert x['minimization_contract']['truth_blind'] is True
+          assert x['minimization_contract']['SAT_truth_used_for_selection'] is False
+          assert x['minimization']['minimized_CLV'] <= x['minimization']['source_CLV']
+          assert all(pv['replay_pass'] for pv in x['pivots'])
+          assert x['verdict'] in {
+            'MINIMAL_STALL_HAS_NO_EXACT_DP_PIVOT',
+            'MINIMAL_STALL_HAS_ONLY_NONDESCENDING_DP_DOORS',
+            'MINIMAL_STALL_HAS_DESCENDING_DP_DOOR_W_POLICY_MISSED'
+          }
+          assert x['firewall']['P_VS_NP']=='OPEN'
+          assert x['firewall']['SAT_IN_P']=='NOT_PROVED'
+          assert x['firewall']['TRUMP_finished'] is False
+          print('VERDICT',x['verdict'])
+          print('MINIMIZATION',x['minimization'])
+          print('DP_HIST',x['exact_DP_relation_histogram'])
+          print('NONRESIDUAL_DP',x['downstream_nonresidual_pivot_count'])
+          print('BEST_DOOR',x['minimum_nonresidual_DP_door'])
+          print('NEXT_GATE',x['next_gate'])
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: janus-trump-r50g25y-minimal-w-policy-counterexample-forensics
+          path: artifacts/JANUS_TRUMP_R50G25Y_MINIMAL_W_POLICY_COUNTEREXAMPLE_FORENSICS.json
+          if-no-files-found: error
+          retention-days: 30
