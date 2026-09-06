@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import re
 from pathlib import Path
 
 JOURNAL = Path('research/JANUS_TRUMP_R50G25_CHAIN_JOURNAL.json')
@@ -11,29 +12,39 @@ RECEIPTS = [
 ]
 
 
+def canonical_gate(value):
+    text = str(value)
+    m = re.match(r'^(R50G25(?:AA|AB|Z))(?=$|_)', text)
+    return m.group(1) if m else text
+
+
 def main():
     journal = json.loads(JOURNAL.read_text())
     entries = list(journal.get('entries', []))
-    by_gate = {str(e.get('gate')): e for e in entries}
+    by_gate = {canonical_gate(e.get('gate')): e for e in entries}
 
     appended = []
     for path in RECEIPTS:
         receipt = json.loads(path.read_text())
-        gate = str(receipt['gate'])
+        raw_gate = str(receipt['gate'])
+        gate = canonical_gate(raw_gate)
         if gate in by_gate:
-            # Existing gate may only be accepted if the scientific identity agrees.
             old = by_gate[gate]
             for key in ('run_id', 'verdict', 'status'):
                 if key in receipt and key in old and receipt[key] != old[key]:
                     raise AssertionError(('JOURNAL_GATE_DRIFT', gate, key, old[key], receipt[key]))
             continue
+        if raw_gate != gate:
+            receipt = dict(receipt)
+            receipt['gate_full'] = raw_gate
+            receipt['gate'] = gate
         entries.append(receipt)
         by_gate[gate] = receipt
         appended.append(gate)
 
     for gate in ('R50G25Z', 'R50G25AA', 'R50G25AB'):
         if gate not in by_gate:
-            raise AssertionError(('MISSING_GATE_AFTER_SYNC', gate))
+            raise AssertionError(('MISSING_GATE_AFTER_SYNC', gate, sorted(by_gate)))
 
     policy = journal.setdefault('policy', {})
     assert policy.get('P_VS_NP') == 'OPEN'
@@ -48,6 +59,7 @@ def main():
         'appended_gates': appended,
         'source_receipts': [str(p) for p in RECEIPTS],
         'append_only_gate_identity_check': True,
+        'canonical_gate_normalization': 'R50G25AA_* receipt names normalize to R50G25AA while preserving gate_full',
     }
     JOURNAL.write_text(json.dumps(journal, indent=2, sort_keys=False) + '\n')
     print(json.dumps({'version': journal['version'], 'appended': appended, 'entry_count': len(entries)}, sort_keys=True))
