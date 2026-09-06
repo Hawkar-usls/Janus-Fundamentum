@@ -1,0 +1,79 @@
+name: JANUS TRUMP R50G25AA universal controlled-DP door
+
+on:
+  push:
+    branches:
+      - research/r50g25aa-universal-controlled-dp-door-or-symbolic-counterexample-2026-09-06
+    paths:
+      - 'experiments/janus_trump_r50g25aa_universal_controlled_dp_door_or_symbolic_counterexample.py'
+      - '.github/workflows/janus-trump-r50g25aa-universal-controlled-dp-door.yml'
+      - 'research/R50G25AA_UNIVERSAL_CONTROLLED_DP_DOOR_OR_SYMBOLIC_COUNTEREXAMPLE_PREREGISTRATION.json'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  r50g25aa:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Run preregistered AA universal controlled-DP door falsifier
+        env:
+          PYTHONPATH: experiments
+        run: |
+          mkdir -p artifacts
+          python experiments/janus_trump_r50g25aa_universal_controlled_dp_door_or_symbolic_counterexample.py \
+            --out artifacts/JANUS_TRUMP_R50G25AA_UNIVERSAL_CONTROLLED_DP_DOOR.json
+      - name: Verify fail-closed AA result
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          out=json.loads(Path('artifacts/JANUS_TRUMP_R50G25AA_UNIVERSAL_CONTROLLED_DP_DOOR.json').read_text())
+          assert out['AA_preregistration_commit']=='6176a1827a5bdc467007187eb37a6f19fa5513a5'
+          assert out['parent_Z_sealed_result_commit']=='fd66cbc880a2d15617fb3432a31d2d355d281088'
+          assert out['known_theory_guard']['Galil_1977_pure_DP_exponential_clause_lower_bound_any_elimination_order'] is True
+          assert out['analytic_bound_contract']['exact_size_must_be_le_UB_S'] is True
+          assert out['firewall']['P_VS_NP']=='OPEN'
+          assert out['firewall']['SAT_IN_P']=='NOT_PROVED'
+          assert out['firewall']['TRUMP_finished'] is False
+          allowed={
+            'EXACT_CONTROLLED_DP_DOOR_OBSTRUCTION_FOUND',
+            'ANALYTIC_CERTIFICATE_GAP_BUT_EXACT_DOOR_EXISTS',
+            'ANALYTIC_DOOR_CERTIFICATE_COVERS_ALL_AA_RESIDUALS',
+            'NO_EXACT_OBSTRUCTION_IN_AA_DOMAIN_BUT_UNIVERSAL_DOOR_EXISTENCE_REMAINS_OPEN',
+            'IMPLEMENTATION_OR_REPLAY_FAILURE',
+          }
+          assert out['verdict'] in allowed
+          if out['verdict']!='IMPLEMENTATION_OR_REPLAY_FAILURE':
+              assert out['generation_contract']['truth_used_for_generation_ranking_or_pivot_selection'] is False
+              assert out['generation_contract']['exact_truth_authority'] is False
+              assert out['generation_contract']['total_unique_case_count'] >= 40
+              assert out['analytic_bound_checks'] >= out['exact_dp_records_checked']
+              assert out['analytic_certified_event_count'] + out['analytic_gap_event_count'] <= out['residual_event_count']
+          if out['exact_controlled_door_obstruction_count']:
+              assert out['verdict']=='EXACT_CONTROLLED_DP_DOOR_OBSTRUCTION_FOUND'
+              assert out['obstructions']
+          print('VERDICT',out['verdict'])
+          print('GENERATION',out.get('generation_contract'))
+          print('FAMILIES',out.get('family_partition'))
+          print('STATUS',out.get('status_partition'))
+          print('RESIDUAL_EVENTS',out.get('residual_event_count'))
+          print('ANALYTIC_CERTIFIED',out.get('analytic_certified_event_count'))
+          print('ANALYTIC_GAPS',out.get('analytic_gap_event_count'))
+          print('EXACT_OBSTRUCTIONS',out.get('exact_controlled_door_obstruction_count'))
+          print('HARDEST',out.get('hardest_analytic_slack_case'))
+          print('MAX_FALLBACK',out.get('max_fallback_case'))
+          print('NEXT_GATE',out.get('next_gate'))
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: janus-trump-r50g25aa-universal-controlled-dp-door
+          path: artifacts/JANUS_TRUMP_R50G25AA_UNIVERSAL_CONTROLLED_DP_DOOR.json
+          if-no-files-found: error
+          retention-days: 30
