@@ -1,0 +1,56 @@
+name: JANUS TRUMP R50G25O nonadditive BCE take the door
+
+on:
+  push:
+    branches:
+      - research/r50g25o-nonadditive-bce-take-the-door-witness-2026-09-06
+    paths:
+      - 'experiments/janus_trump_r50g25o_nonadditive_bce_take_the_door_witness.py'
+      - '.github/workflows/janus-trump-r50g25o-nonadditive-bce-take-the-door.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  r50g25o:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Run nonadditive BCE take-the-door witness audit
+        env:
+          PYTHONPATH: experiments
+        run: |
+          mkdir -p artifacts
+          python experiments/janus_trump_r50g25o_nonadditive_bce_take_the_door_witness.py \
+            --out artifacts/JANUS_TRUMP_R50G25O_NONADDITIVE_BCE_TAKE_THE_DOOR.json
+      - name: Verify fail-closed O result
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          out = json.loads(Path('artifacts/JANUS_TRUMP_R50G25O_NONADDITIVE_BCE_TAKE_THE_DOOR.json').read_text())
+          assert out['parent_N_run'] == 34037524016
+          assert out['target']['state_hash'] == '6cf77b7f1acf5a0ca16edf24adb9ec936557a0418a00368ac2b494946c8fdd1e'
+          assert out['BCE_certificate']['pass'] is True
+          assert out['semantic_contract']['equisatisfiable_with_reconstruction'] is True
+          assert out['semantic_contract']['reduced_model_reconstruction_failure_count'] == 0
+          assert out['verdict'] == 'CERTIFIED_NONADDITIVE_BCE_DOOR_REPLACES_IMPOSSIBLE_ADDITIVE_NEUTRALIZATION_ON_WITNESS'
+          assert out['firewall']['P_VS_NP'] == 'OPEN'
+          assert out['firewall']['SAT_IN_P'] == 'NOT_PROVED'
+          assert out['firewall']['TRUMP_finished'] is False
+          print('VERDICT', out['verdict'])
+          print('BCE_CERTIFICATE', out['BCE_certificate'])
+          print('SEMANTIC_CONTRACT', out['semantic_contract'])
+          print('DOWNSTREAM', out['downstream'])
+          print('NEXT_GATE', out['next_gate'])
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: janus-trump-r50g25o-nonadditive-bce-take-the-door
+          path: artifacts/JANUS_TRUMP_R50G25O_NONADDITIVE_BCE_TAKE_THE_DOOR.json
+          if-no-files-found: error
+          retention-days: 30
