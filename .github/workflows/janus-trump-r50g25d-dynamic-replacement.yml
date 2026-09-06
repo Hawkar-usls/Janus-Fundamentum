@@ -1,0 +1,65 @@
+name: JANUS TRUMP R50G25D dynamic replacement after normalized joint debt
+
+on:
+  push:
+    branches:
+      - research/r50g25d-dynamic-replacement-after-source-normalized-minimum-joint-debt-2026-09-06
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  r50g25d:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Run R50G25D
+        env:
+          PYTHONPATH: experiments
+        run: |
+          mkdir -p artifacts
+          python experiments/janus_trump_r50g25d_dynamic_replacement_after_source_normalized_minimum_joint_debt.py \
+            --out artifacts/JANUS_TRUMP_R50G25D_DYNAMIC_REPLACEMENT_RESULT.json
+
+      - name: Verify fail-closed totals
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          p = Path('artifacts/JANUS_TRUMP_R50G25D_DYNAMIC_REPLACEMENT_RESULT.json')
+          out = json.loads(p.read_text())
+          assert out['ge3_unique_state_count'] == 991
+          assert out['ge3_weighted_occurrence_count'] == 1317
+          assert out['source_lift_replay_failure_unique_count'] == 0
+          assert out['dynamic_BCE_BVE_debt_unique_count'] + out['no_BCE_BVE_debt_after_lift_unique_count'] == 991
+          assert sum(out['replacement_class_unique_partition'].values()) == 991
+          assert out['next_gate'] in {
+              'R50G25E_SOURCE_REALIZABILITY_OF_DYNAMIC_REPLACEMENT_DEBT',
+              'R50G25E_POST_DEBT_ESCAPE_DOOR_AUDIT',
+          }
+          print('REPLACEMENT_CLASS', out['replacement_class_unique_partition'])
+          print('DYNAMIC_DEBT_UNIQUE', out['dynamic_BCE_BVE_debt_unique_count'])
+          print('NO_DEBT_UNIQUE', out['no_BCE_BVE_debt_after_lift_unique_count'])
+          print('ORIGINAL_RESOLVED_BUT_REPLACED', out['all_original_resolved_but_replacement_debt_unique_count'])
+          print('DYNAMIC_MINIMUM', out['dynamic_minimum_binary_incidence_cover_unique_histogram'])
+          print('FIRST_RULE', out['actual_first_R33_rule_unique_partition'])
+          print('TERMINAL', out['full_R47J_terminal_unique_partition'])
+          print('NEXT_GATE', out['next_gate'])
+          PY
+
+      - name: Upload result
+        uses: actions/upload-artifact@v4
+        with:
+          name: janus-trump-r50g25d-dynamic-replacement-result
+          path: artifacts/JANUS_TRUMP_R50G25D_DYNAMIC_REPLACEMENT_RESULT.json
+          if-no-files-found: error
+          retention-days: 30
