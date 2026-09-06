@@ -1,0 +1,76 @@
+name: JANUS TRUMP R50G25AD safe-envelope reachability GPHP
+
+on:
+  push:
+    branches:
+      - research/r50g25ad-safe-envelope-reachability-bounded-degree-gphp-2026-09-06
+    paths:
+      - 'experiments/janus_trump_r50g25ad_safe_envelope_reachability_gphp.py'
+      - '.github/workflows/janus-trump-r50g25ad-safe-envelope-gphp.yml'
+      - 'research/R50G25AD_SAFE_ENVELOPE_REACHABILITY_BOUNDED_DEGREE_GPHP_PREREGISTRATION.json'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  r50g25ad:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Run preregistered AD safe-envelope GPHP attack
+        env:
+          PYTHONPATH: experiments
+        run: |
+          mkdir -p artifacts
+          python experiments/janus_trump_r50g25ad_safe_envelope_reachability_gphp.py \
+            --out artifacts/JANUS_TRUMP_R50G25AD_SAFE_ENVELOPE_GPHP.json
+      - name: Verify fail-closed AD result
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          out=json.loads(Path('artifacts/JANUS_TRUMP_R50G25AD_SAFE_ENVELOPE_GPHP.json').read_text())
+          assert out['AD_preregistration_commit']=='d5e620ec7339d24181685471e6e7d1bf0006da6b'
+          assert out['parent_AC_receipt_commit']=='841a2e9ea4f1d470ef7be1c66a96c9cdd34a3ed2'
+          assert out['domain']['case_count']==12
+          assert out['domain']['hole_sizes']==[6,8,10,12,16,20]
+          assert out['domain']['all_left_degree']==3
+          assert out['domain']['all_clause_widths_subset_2_3'] is True
+          assert out['domain']['truth_used_for_generation_or_pivot_selection'] is False
+          allowed={
+            'SAFE_ENVELOPE_REACHABILITY_COUNTEREXAMPLE_FOUND',
+            'ANALYTIC_SELECTOR_BUDGET_GAP_WITHOUT_G_COUNTEREXAMPLE',
+            'SEMANTIC_MISMATCH_ON_GPHP_UNSAT',
+            'REPLAY_OR_BOUND_SOUNDNESS_FAILURE',
+            'RESIDUAL_AFTER_AT_MOST_V0_FALLBACKS',
+            'NO_SAFE_ENVELOPE_COUNTEREXAMPLE_IN_PREREGISTERED_DEGREE3_GPHP_FAMILY',
+            'IMPLEMENTATION_FAILURE',
+          }
+          assert out['verdict'] in allowed
+          if out['safe_envelope_counterexample_count']:
+              assert out['verdict']=='SAFE_ENVELOPE_REACHABILITY_COUNTEREXAMPLE_FOUND'
+          assert out['firewall']['P_VS_NP']=='OPEN'
+          assert out['firewall']['SAT_IN_P']=='NOT_PROVED'
+          assert out['firewall']['TRUMP_finished'] is False
+          print('VERDICT',out['verdict'])
+          print('DOMAIN',out['domain'])
+          print('STATUS',out['status_partition'])
+          print('TERMINALS',out['terminal_partition'])
+          print('RESIDUAL_EVENTS',out['total_root_reachable_residual_event_count'])
+          print('SAFE_COUNTEREXAMPLES',out['safe_envelope_counterexample_count'])
+          print('SELECTOR_GAPS',out['selector_gap_case_count'])
+          print('SEMANTIC_MISMATCHES',out['semantic_mismatch_count'])
+          print('MAX_G_OVER_B',out['max_G_over_B_case'])
+          print('NEXT_GATE',out['next_gate'])
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: janus-trump-r50g25ad-safe-envelope-gphp
+          path: artifacts/JANUS_TRUMP_R50G25AD_SAFE_ENVELOPE_GPHP.json
+          if-no-files-found: error
+          retention-days: 30
