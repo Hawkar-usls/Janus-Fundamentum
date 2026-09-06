@@ -1,0 +1,64 @@
+name: JANUS TRUMP R50G25C Pi source-normal-form vs genuine-noncommutation
+
+on:
+  push:
+    branches:
+      - research/r50g25c-pi-source-normal-form-vs-genuine-noncommutation-2026-09-06
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  r50g25c-pi-gate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout frozen branch
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Run frozen R50G25C classifier
+        env:
+          PYTHONPATH: experiments
+        run: |
+          mkdir -p artifacts
+          python experiments/janus_trump_r50g25c_source_preimage_obstruction_forensics.py \
+            --out artifacts/JANUS_TRUMP_R50G25C_PI_SOURCE_NORMAL_FORM_VS_GENUINE_NONCOMMUTATION_RESULT.json
+
+      - name: Verify fail-closed Pi partition
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          p = Path('artifacts/JANUS_TRUMP_R50G25C_PI_SOURCE_NORMAL_FORM_VS_GENUINE_NONCOMMUTATION_RESULT.json')
+          out = json.loads(p.read_text())
+
+          sub = int(out['subsumption_only_normal_form_preimage_unique_count'])
+          gen = int(out['genuine_DP_noncommutation_unique_count'])
+          rep = int(out['R47J_replay_failure_unique_count'])
+          assert sub + gen + rep == 679, (sub, gen, rep)
+          assert int(out['exact_state_mismatch_unique_count']) == 679
+          assert int(out['exact_state_mismatch_weighted_count']) == 892
+          assert out['next_gate'] in {
+              'R50G25D_DYNAMIC_REPLACEMENT_AFTER_SOURCE_NORMALIZED_MINIMUM_JOINT_DEBT',
+              'R50G25D_NONCOMMUTING_DP_PREIMAGE_OBSTRUCTION',
+          }
+          print('PI_PARTITION', {'subsumption_only': sub, 'genuine_noncommutation': gen, 'replay_failure': rep})
+          print('ALL_679_SUBSUMPTION_ONLY', out['all_679_mismatches_explained_by_subsumption_normal_form'])
+          print('NEXT_GATE', out['next_gate'])
+          print('ANOMALIES', len(out.get('anomalies', [])))
+          PY
+
+      - name: Upload proof-carrying result
+        uses: actions/upload-artifact@v4
+        with:
+          name: janus-trump-r50g25c-pi-result
+          path: artifacts/JANUS_TRUMP_R50G25C_PI_SOURCE_NORMAL_FORM_VS_GENUINE_NONCOMMUTATION_RESULT.json
+          if-no-files-found: error
+          retention-days: 30
