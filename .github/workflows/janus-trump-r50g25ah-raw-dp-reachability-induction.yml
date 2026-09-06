@@ -1,0 +1,69 @@
+name: JANUS TRUMP R50G25AH raw-DP reachability induction
+
+on:
+  push:
+    branches:
+      - research/r50g25ah-raw-dp-reachability-induction-2026-09-07
+    paths:
+      - 'experiments/janus_trump_r50g25ah_raw_dp_reachability_induction.py'
+      - '.github/workflows/janus-trump-r50g25ah-raw-dp-reachability-induction.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Run AH average raw-mass induction audit
+        run: |
+          mkdir -p artifacts
+          PYTHONPATH=experiments python experiments/janus_trump_r50g25ah_raw_dp_reachability_induction.py --out artifacts/JANUS_TRUMP_R50G25AH_RESULT.json
+      - name: Verify fail-closed result
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          p=Path('artifacts/JANUS_TRUMP_R50G25AH_RESULT.json')
+          assert p.exists()
+          x=json.loads(p.read_text())
+          assert x['AH_preregistration_commit']=='b8a40ed136228d0ad5cae04454e79b6bfc93eb9d'
+          allowed={
+            'AVERAGE_RAW_MASS_CERTIFICATE_CLOSES_REACHABLE_DOMAIN',
+            'AVERAGE_CERTIFICATE_GAP_BUT_ADMISSIBLE_RAW_PIVOT_EXISTS',
+            'REACHABLE_NO_ADMISSIBLE_RAW_DP_PIVOT',
+            'RAW_IDENTITY_OR_SOUNDNESS_FAILURE',
+            'EXACT_DP_REPLAY_FAILURE',
+            'SEMANTIC_MISMATCH_ON_KNOWN_GPHP_UNSAT',
+            'RESOURCE_LIMIT',
+          }
+          assert x['verdict'] in allowed
+          assert x['firewall']['P_VS_NP']=='OPEN'
+          assert x['firewall']['SAT_IN_P']=='NOT_PROVED'
+          assert x['firewall']['TRUMP_finished'] is False
+          if x['verdict']=='AVERAGE_RAW_MASS_CERTIFICATE_CLOSES_REACHABLE_DOMAIN':
+              assert x['average_certificate_gap_count']==0
+              assert x['reachable_no_admissible_raw_pivot_count']==0
+              assert x['raw_identity_or_soundness_failure_count']==0
+              assert x['exact_DP_replay_failure_count']==0
+              assert x['semantic_mismatch_count']==0
+              assert x['minimum_admissible_raw_pivots_per_residual']>=1
+          if x['verdict']=='AVERAGE_CERTIFICATE_GAP_BUT_ADMISSIBLE_RAW_PIVOT_EXISTS':
+              assert x['average_certificate_gap_count']>0
+              assert x['reachable_no_admissible_raw_pivot_count']==0
+          if x['verdict']=='REACHABLE_NO_ADMISSIBLE_RAW_DP_PIVOT':
+              assert x['reachable_no_admissible_raw_pivot_count']>0
+          print(x['verdict'])
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: janus-trump-r50g25ah-result
+          path: artifacts/JANUS_TRUMP_R50G25AH_RESULT.json
+          if-no-files-found: error
+          retention-days: 30
