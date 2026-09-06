@@ -1,0 +1,89 @@
+name: JANUS TRUMP R50G25F Pi micro RUP restart schedule lift
+
+on:
+  push:
+    branches:
+      - research/r50g25f-pi-rup-threshold-causal-support-schedule-lift-2026-09-06
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  r50g25f-pi:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Run R50G25F Pi schedule lift
+        env:
+          PYTHONPATH: experiments
+        run: |
+          mkdir -p artifacts
+          python experiments/janus_trump_r50g25f_pi_rup_threshold_causal_support_schedule_lift.py \
+            --out artifacts/JANUS_TRUMP_R50G25F_PI_RUP_THRESHOLD_CAUSAL_SUPPORT_SCHEDULE_LIFT.json
+
+      - name: Verify fail-closed schedule lift
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          p = Path('artifacts/JANUS_TRUMP_R50G25F_PI_RUP_THRESHOLD_CAUSAL_SUPPORT_SCHEDULE_LIFT.json')
+          out = json.loads(p.read_text())
+          event = out['threshold_event']
+          sem = out['exact_fixed_witness_semantic_control']
+          micro = out['micro_RUP_restart_schedule']
+          ledger = out['sealed_vs_micro_witness_ledger']
+          automaton = out['causal_collapse_automaton_candidate']
+
+          assert event['source_clause'] == [-3, -4, -6]
+          assert event['removed_literal'] == -3
+          assert event['strengthened_clause'] == [-4, -6]
+          assert event['assumptions'] == [4, 6]
+          assert event['independent_RUP_conflict_replay_pass'] is True
+
+          assert sem['variable_count'] == 6
+          assert sem['assignment_space_checked'] == 64
+          assert sem['model_sets_equal'] is True
+
+          assert micro['terminal'] == 'DIRECT_EMPTY_CNF'
+          assert micro['final_CLV'] == [0, 0, 0]
+          assert micro['reconstructed_assignment_satisfies_initial_post_DP'] is True
+          assert micro['ledger']['RUP_successful_strengthenings'] == 1
+          assert micro['ledger']['micro_restart_count'] == 1
+
+          assert ledger['sealed_RUP_successful_strengthenings'] == 21
+          assert ledger['micro_RUP_successful_strengthenings'] == 1
+          assert ledger['same_empty_CNF_outcome_on_this_witness'] is True
+
+          assert automaton['threshold_event_count_before_a_certified_R33_escape_exists'] == 1
+          assert automaton['unit_door_first_becomes_available_at_prefix'] == 2
+          assert out['next_gate'] == 'R50G25G_MICRO_RUP_RESTART_REPLAY_ACROSS_SOURCE_LIFT_STATE_FAMILY'
+          assert out['firewall']['P_VS_NP'] == 'OPEN'
+          assert out['firewall']['SAT_IN_P'] == 'NOT_PROVED'
+
+          print('THRESHOLD_EVENT', {k: event[k] for k in ('source_clause','removed_literal','strengthened_clause','assumptions')})
+          print('SEMANTIC_CONTROL', sem)
+          print('MICRO_TERMINAL', micro['terminal'])
+          print('MICRO_ROUNDS', micro['round_count'])
+          print('MICRO_LEDGER', micro['ledger'])
+          print('SEALED_VS_MICRO', ledger)
+          print('AUTOMATON', automaton)
+          print('NEXT_GATE', out['next_gate'])
+          PY
+
+      - name: Upload proof-carrying result
+        uses: actions/upload-artifact@v4
+        with:
+          name: janus-trump-r50g25f-pi-rup-threshold-schedule-lift
+          path: artifacts/JANUS_TRUMP_R50G25F_PI_RUP_THRESHOLD_CAUSAL_SUPPORT_SCHEDULE_LIFT.json
+          if-no-files-found: error
+          retention-days: 30
