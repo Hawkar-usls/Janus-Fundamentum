@@ -1,0 +1,75 @@
+name: JANUS TRUMP R50G25E Pi RUP restart alternate-door forensics
+
+on:
+  push:
+    branches:
+      - research/r50g25e-pi-stalled-lean-core-alternate-door-forensics-2026-09-06
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  r50g25e-pi:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Run R50G25E Pi forensics
+        env:
+          PYTHONPATH: experiments
+        run: |
+          mkdir -p artifacts
+          python experiments/janus_trump_r50g25e_pi_stalled_lean_core_alternate_door_forensics.py \
+            --out artifacts/JANUS_TRUMP_R50G25E_PI_STALLED_LEAN_CORE_ALTERNATE_DOOR_FORENSICS.json
+
+      - name: Verify fail-closed causal transcript
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          p = Path('artifacts/JANUS_TRUMP_R50G25E_PI_STALLED_LEAN_CORE_ALTERNATE_DOOR_FORENSICS.json')
+          out = json.loads(p.read_text())
+          sealed = out['sealed_RUP_run']
+          probe = out['counterfactual_prefix_restart_probe']
+          decisive = out['decisive_threshold_event']
+          final = out['sealed_final_restart_effect']
+          assert sealed['history_count'] == 21
+          assert sealed['independent_certificate_replay_pass'] is True
+          assert sealed['initial_R33_CLV'] == [13, 36, 6]
+          assert sealed['final_R33_CLV'] == [6, 6, 6]
+          assert probe['shortest_actual_history_prefix_whose_immediate_R33_restart_reaches_EMPTY_CNF'] is not None
+          assert 1 <= decisive['history_index'] <= 21
+          assert decisive['forward_greedy_inclusion_minimal_clause_support']['inclusion_minimal'] is True
+          assert decisive['reverse_greedy_inclusion_minimal_clause_support']['inclusion_minimal'] is True
+          assert final['UNIT_cascade'] == [2, 3, 4, -5, -6, 7]
+          assert final['terminal'] == 'EMPTY_CNF_SAT'
+          assert out['firewall']['P_VS_NP'] == 'OPEN'
+          print('RUP_HISTORY', sealed['history_count'])
+          print('FIRST_PROGRESS_PREFIX', probe['first_prefix_with_any_R33_progress'])
+          print('FIRST_UNIT_PRESENT_PREFIX', probe['first_prefix_with_unit_clause_present'])
+          print('FIRST_UNIT_FIRST_RULE_PREFIX', probe['first_prefix_with_UNIT_as_first_R33_rule'])
+          print('FIRST_EMPTY_CNF_PREFIX', probe['shortest_actual_history_prefix_whose_immediate_R33_restart_reaches_EMPTY_CNF'])
+          print('DECISIVE_EVENT', decisive['event'])
+          print('DECISIVE_DELTA', decisive['formula_clause_delta'])
+          print('FORWARD_SUPPORT', decisive['forward_greedy_inclusion_minimal_clause_support'])
+          print('REVERSE_SUPPORT', decisive['reverse_greedy_inclusion_minimal_clause_support'])
+          print('SUPPORT_IDENTICAL', decisive['support_sets_identical'])
+          print('FINAL_UNIT_CASCADE', final['UNIT_cascade'])
+          print('NEXT_GATE', out['next_gate'])
+          PY
+
+      - name: Upload proof-carrying result
+        uses: actions/upload-artifact@v4
+        with:
+          name: janus-trump-r50g25e-pi-rup-restart-forensics
+          path: artifacts/JANUS_TRUMP_R50G25E_PI_STALLED_LEAN_CORE_ALTERNATE_DOOR_FORENSICS.json
+          if-no-files-found: error
+          retention-days: 30
