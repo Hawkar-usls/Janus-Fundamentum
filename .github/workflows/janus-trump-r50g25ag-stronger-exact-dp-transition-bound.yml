@@ -1,0 +1,61 @@
+name: JANUS TRUMP R50G25AG stronger exact-DP transition bound
+
+on:
+  push:
+    branches:
+      - research/r50g25ag-stronger-exact-dp-transition-bound-2026-09-06
+    paths:
+      - 'experiments/janus_trump_r50g25ag_stronger_exact_dp_transition_bound.py'
+      - '.github/workflows/janus-trump-r50g25ag-stronger-exact-dp-transition-bound.yml'
+  workflow_dispatch:
+
+jobs:
+  audit:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Run AG structure-aware bound audit
+        run: |
+          mkdir -p artifacts
+          PYTHONPATH=experiments python experiments/janus_trump_r50g25ag_stronger_exact_dp_transition_bound.py --out artifacts/JANUS_TRUMP_R50G25AG_RESULT.json
+      - name: Verify fail-closed result
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          p=Path('artifacts/JANUS_TRUMP_R50G25AG_RESULT.json')
+          assert p.exists()
+          x=json.loads(p.read_text())
+          assert x['AG_preregistration_commit']=='f21d2f1ac2eeb808a44d6bddf38609410c64b174'
+          allowed={
+            'STRUCTURE_AWARE_RAW_DP_BOUND_CLOSES_FROZEN_INVARIANT_ON_AF_REACHABLE_PREFIX',
+            'RAW_BOUND_UNSOUND',
+            'REACHABLE_POST_INVARIANT_COUNTEREXAMPLE',
+            'EXACT_DP_REPLAY_FAILURE',
+            'SELECTOR_HAS_NO_RAW_BOUND_PIVOT',
+            'SEMANTIC_MISMATCH_ON_KNOWN_GPHP_UNSAT',
+            'IMPLEMENTATION_OR_RESIDUAL_LIMIT',
+          }
+          assert x['verdict'] in allowed
+          assert x['firewall']['P_VS_NP']=='OPEN'
+          assert x['firewall']['SAT_IN_P']=='NOT_PROVED'
+          assert x['firewall']['TRUMP_finished'] is False
+          if x['verdict'].startswith('STRUCTURE_AWARE'):
+              assert x['raw_bound_soundness_failure_count']==0
+              assert x['reachable_post_invariant_counterexample_count']==0
+              assert x['exact_DP_replay_failure_count']==0
+              assert x['selector_failure_count']==0
+              assert x['semantic_mismatch_count']==0
+              assert x['minimum_admissible_raw_pivots_per_residual']>=1
+          print(x['verdict'])
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: janus-trump-r50g25ag-result
+          path: artifacts/JANUS_TRUMP_R50G25AG_RESULT.json
+          if-no-files-found: error
+          retention-days: 30
