@@ -1,0 +1,72 @@
+name: JANUS TRUMP R50G25W SA-BVE policy lift
+
+on:
+  push:
+    branches:
+      - research/r50g25w-r42-sa-bve-policy-lift-outer-replay-2026-09-06
+    paths:
+      - 'experiments/janus_trump_r50g25w_sa_bve_policy_lift_outer_replay.py'
+      - '.github/workflows/janus-trump-r50g25w-sa-bve-policy-lift.yml'
+      - 'research/R50G25W_SA_BVE_POLICY_LIFT_PREREGISTRATION.json'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  r50g25w:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Run preregistered W SA-BVE policy lift
+        env:
+          PYTHONPATH: experiments
+        run: |
+          mkdir -p artifacts
+          python experiments/janus_trump_r50g25w_sa_bve_policy_lift_outer_replay.py \
+            --out artifacts/JANUS_TRUMP_R50G25W_SA_BVE_POLICY_LIFT.json
+      - name: Verify fail-closed W result
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          out = json.loads(Path('artifacts/JANUS_TRUMP_R50G25W_SA_BVE_POLICY_LIFT.json').read_text())
+          assert out['parent_V_run'] == 34044114670
+          assert out['parent_V_result_receipt_commit'] == '0bd1a4b1d3aba9b4f5dd6f55dd831438dfa8e31b'
+          assert out['W_preregistration_commit'] == 'b10247ac6b86480de67ffac8194dfab416988d91'
+          assert len(out['V_residual_repair_checks']) == 2
+          for r in out['V_residual_repair_checks']:
+              assert r['source_old_residual'] is True
+              assert r['actual_core_first_SA_BVE_var'] == r['expected_core_SA_BVE_var']
+              for e in r['core_SA_BVE_events']:
+                  assert e['replay_pass'] is True
+                  assert tuple(e['measure_after']) < tuple(e['measure_before'])
+          assert out['combined_deduplicated_plus_V_core_count'] >= 100
+          assert out['verdict'] in {
+              'SA_BVE_POLICY_LIFT_REPAIRS_V_RESIDUALS_AND_COMBINED_OUTER_REPLAY',
+              'SA_BVE_POLICY_LIFT_COUNTEREXAMPLE_OR_REGRESSION_FOUND',
+          }
+          assert out['firewall']['P_VS_NP'] == 'OPEN'
+          assert out['firewall']['SAT_IN_P'] == 'NOT_PROVED'
+          assert out['firewall']['TRUMP_finished'] is False
+          print('VERDICT', out['verdict'])
+          print('COUNT', out['combined_deduplicated_plus_V_core_count'])
+          print('V_REPAIR', out['V_residual_repair_checks'])
+          print('OLD', out['old_terminal_partition'], 'OLD_RESIDUAL', out['old_residual_count'])
+          print('NEW', out['new_terminal_partition'], 'NEW_RESIDUAL', out['new_residual_count'])
+          print('SEMANTIC_DISAGREEMENT', out['semantic_disagreement_on_previously_decided_count'])
+          print('RECONSTRUCTION_FAILURE', out['SAT_reconstruction_failure_count'])
+          print('SA_BVE_HIST', out['SA_BVE_application_histogram'], 'TOTAL', out['SA_BVE_total_applications'])
+          print('MAX_SA_BVE', out['max_SA_BVE_usage_case'])
+          print('NEXT_GATE', out['next_gate'])
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: janus-trump-r50g25w-sa-bve-policy-lift
+          path: artifacts/JANUS_TRUMP_R50G25W_SA_BVE_POLICY_LIFT.json
+          if-no-files-found: error
+          retention-days: 30
