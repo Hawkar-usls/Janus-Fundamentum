@@ -1,0 +1,69 @@
+name: JANUS TRUMP R50G25T resource growth ladder
+
+on:
+  push:
+    branches:
+      - research/r50g25t-resource-growth-ladder-hard-family-escalation-2026-09-06
+    paths:
+      - 'experiments/janus_trump_r50g25t_resource_growth_ladder.py'
+      - '.github/workflows/janus-trump-r50g25t-resource-growth-ladder.yml'
+      - 'research/R50G25T_RESOURCE_GROWTH_LADDER_PREREGISTRATION.json'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  r50g25t:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Run preregistered T resource-growth ladder
+        env:
+          PYTHONPATH: experiments
+        run: |
+          mkdir -p artifacts
+          python experiments/janus_trump_r50g25t_resource_growth_ladder.py \
+            --out artifacts/JANUS_TRUMP_R50G25T_RESOURCE_GROWTH_LADDER.json
+      - name: Verify fail-closed T result
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          out = json.loads(Path('artifacts/JANUS_TRUMP_R50G25T_RESOURCE_GROWTH_LADDER.json').read_text())
+          assert out['parent_S_run'] == 34043229217
+          assert out['parent_S_journal_commit'] == '72906aef6cd7983f9c9bc4da2dc245e27908d9ba'
+          assert out['T_preregistration_commit'] == '170714a1c724b94af83520a1c44af2cb56c14f3c'
+          assert out['generation_contract']['truth_used_for_generation_or_selection'] is False
+          assert out['evaluated_candidate_count'] >= 80
+          assert out['frozen_Q_falsifier_classes'] == [
+              'CERTIFICATE_FAILURE', 'RECONSTRUCTION_FAILURE', 'PROGRESS_FAILURE',
+              'RESIDUAL_FIXPOINT', 'POLYNOMIAL_LEDGER_FAILURE', 'SEMANTIC_MISMATCH'
+          ]
+          assert out['verdict'] in {
+              'PASS_NO_RESOURCE_OBSTRUCTION',
+              'RESOURCE_OBSTRUCTION_FOUND',
+              'SUPERPOLYNOMIAL_GROWTH_CANDIDATE',
+          }
+          assert out['firewall']['P_VS_NP'] == 'OPEN'
+          assert out['firewall']['SAT_IN_P'] == 'NOT_PROVED'
+          assert out['firewall']['TRUMP_finished'] is False
+          print('VERDICT', out['verdict'])
+          print('COUNT', out['evaluated_candidate_count'])
+          print('TERMINALS', out['terminal_partition'])
+          print('EXACT', out['exact_validation_partition'], 'NOT_RUN', out['exact_validation_not_run_size_limit'])
+          print('FALSIFIERS', out['falsifier_partition'], 'UNCLASSIFIED', out['unclassified_assertion_count'])
+          print('GROWTH', out['superpolynomial_growth_candidates'])
+          print('TOP', out['top_12_route_costs'])
+          print('NEXT_GATE', out['next_gate'])
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: janus-trump-r50g25t-resource-growth-ladder
+          path: artifacts/JANUS_TRUMP_R50G25T_RESOURCE_GROWTH_LADDER.json
+          if-no-files-found: error
+          retention-days: 30
