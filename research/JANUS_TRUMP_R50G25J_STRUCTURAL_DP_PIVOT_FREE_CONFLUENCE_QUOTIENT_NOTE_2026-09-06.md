@@ -1,8 +1,22 @@
 # JANUS TRUMP R50G25J — structural DP pivot-free confluence and quotient
 
-## Scope
+## Sealed result
 
-This gate does **not** add any new source skeleton. It replaces repeated source-preimage replay by a structural lemma about the exact DP implementation already used by TRUMP.
+GitHub Actions run `34035151508` on head `162c61ecf8dd52a4df4a230a081dac2e58c316df` completed **SUCCESS**.
+
+The gate adds **zero** new source skeletons. All 1212 frozen target states satisfy the application side conditions:
+
+- pivot-free cover violations: `0`;
+- NF antichain violations: `0`;
+- NF absorption instance violations: `0`.
+
+The structural lemma status is:
+
+`STRUCTURAL_LEMMA_PROVED_FROM_IMPLEMENTED_DEFINITIONS`
+
+with explicit firewall that this is a paper/set-theoretic proof over the implemented finite operators plus executable side-condition audit, **not** a proof-assistant formalization and **not** a proof of SAT in P or P=NP.
+
+## Structural confluence lemma
 
 Let `NF` be strict-subsumption minimization and let
 
@@ -20,23 +34,55 @@ Therefore
 
 `DP_p(F ∪ K) = NF(DP_p(F) ∪ K)`.
 
-This is the source-preimage confluence mechanism. It is a paper/set-theoretic proof over the implemented finite operators plus executable side-condition audit; it is **not** presented as a proof-assistant formalization.
+This removes source-preimage identity from the exact-DP extension step whenever the added extension is pivot-free.
 
 ## Why the R50G25 covers satisfy the lemma
 
-The minimum incidence cover `K(T)` is generated from variables of the already post-DP target `T`. Pivot `1` is absent from `T`, so every generated cover clause is pivot-free by construction. R50G25J audits that side condition on all 1212 frozen target states.
+The minimum incidence cover `K(T)` is generated from variables of the already post-DP target `T`. Pivot `1` is absent from `T`, so every generated cover clause is pivot-free by construction. R50G25J audited this side condition on all 1212 frozen target states and found zero violations.
 
-## Quotient operator
+## Quotient operator and two-stage compression
 
 Define
 
 `Q(T) = NF(T ∪ K(T))`.
 
-R50G25I observed 1212 target states but only 1074 actual post-DP states after source lifts. R50G25J treats this as a quotient induced by deterministic cover augmentation plus strict-subsumption normal form:
+The sealed quotient counts are:
 
-`T1 ~ T2  iff  Q(T1) = Q(T2)`.
+- target states: `1212`;
+- distinct pre-NF cover-augmented unions `T ∪ K(T)`: `1188`;
+- distinct canonical quotient states `Q(T)`: `1074`;
+- total compression: `138` states (`11.386%`).
 
-The gate reports the quotient fiber histogram and whether the 1212→1074 compression appears only after NF or already before NF.
+Therefore the compression is **two-stage**:
+
+1. `1212 -> 1188`: `24` collisions already occur before strict-subsumption NF because distinct targets can produce the same deterministic cover-augmented union;
+2. `1188 -> 1074`: a further `114` collisions are introduced by strict-subsumption normal form.
+
+The quotient fiber histogram is:
+
+- size 1: `950` fibers;
+- size 2: `113` fibers;
+- size 3: `8` fibers;
+- size 4: `3` fibers.
+
+So there are `124` non-singleton quotient fibers. The largest observed fibers have size `4`.
+
+The structural equivalence relation is
+
+`T1 ~ T2  iff  NF(T1 ∪ K(T1)) = NF(T2 ∪ K(T2))`.
+
+Source-preimage identity is absent from `Q` by the structural exact-DP pivot-free extension lemma.
+
+## Next gate
+
+`R50G25K_OUTER_COVERAGE_PREREGISTRATION_NO_FAMILY_EXPANSION`
+
+Before any family expansion, K should preregister the exact outer-coverage claim, admissible counterexample condition, polynomial accounting, and the distinction between:
+
+- structural exact-DP confluence (now proved for pivot-free extensions),
+- existence/constructibility of a useful `K(T)`,
+- termination of the micro scheduler,
+- universal DIRECT5 / arbitrary 3CNF coverage.
 
 ## Firewall
 
@@ -46,5 +92,3 @@ The gate reports the quotient fiber histogram and whether the 1212→1074 compre
 - `SAT_IN_P = NOT_PROVED`.
 - `P_VS_NP = OPEN`.
 - `TRUMP_finished = false`.
-
-If the lemma side conditions and quotient audit pass, the next gate is preregistration of outer coverage without expanding the family in this gate.
