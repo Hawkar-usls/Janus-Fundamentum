@@ -1,0 +1,75 @@
+name: JANUS TRUMP R50G25I all 1673 source-occurrence witness independence
+
+on:
+  push:
+    branches:
+      - research/r50g25i-all-1673-source-occurrence-witness-independence-2026-09-06
+    paths:
+      - experiments/janus_trump_r50g25i_all_1673_source_occurrence_witness_independence.py
+      - .github/workflows/janus-trump-r50g25i-all-1673-witness-independence.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  r50g25i:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Run all 1673 source-occurrence replays
+        env:
+          PYTHONPATH: experiments
+        run: |
+          mkdir -p artifacts
+          python experiments/janus_trump_r50g25i_all_1673_source_occurrence_witness_independence.py \
+            --out artifacts/JANUS_TRUMP_R50G25I_ALL_1673_SOURCE_OCCURRENCE_WITNESS_INDEPENDENCE.json
+      - name: Verify fail-closed occurrence partition
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          p = Path('artifacts/JANUS_TRUMP_R50G25I_ALL_1673_SOURCE_OCCURRENCE_WITNESS_INDEPENDENCE.json')
+          out = json.loads(p.read_text())
+          cov = out['coverage_contract']
+          assert cov['frozen_source_skeleton_count'] == 30
+          assert cov['new_source_skeletons_added'] == 0
+          assert cov['all_pair_source_occurrence_count'] == 1673
+          assert cov['unique_target_state_count'] == 1212
+          assert cov['deduplication_removed_occurrences'] == 461
+          assert cov['evaluated_source_occurrence_count'] + out['source_occurrence_replay_failure_count'] == 1673
+          assert sum(out['target_group_witness_independence_partition'].values()) == 1212
+          assert out['firewall']['P_VS_NP'] == 'OPEN'
+          assert out['firewall']['SAT_IN_P'] == 'NOT_PROVED'
+          assert out['firewall']['TRUMP_finished'] is False
+          assert out['next_gate'] in {
+              'R50G25J_SOURCE_OCCURRENCE_REPLAY_FAILURE_FORENSICS',
+              'R50G25J_GENUINE_SOURCE_PREIMAGE_NONCOMMUTATION_MINIMAL_PLATYPUS',
+              'R50G25J_SOURCE_PREIMAGE_SEMANTIC_DIVERGENCE_MINIMAL_PLATYPUS',
+              'R50G25J_SOURCE_PREIMAGE_QUOTIENT_CONFLUENCE_FORENSICS',
+              'R50G25J_FROZEN_PAIR_STATE_SOURCE_PREIMAGE_CONFLUENCE_LEMMA_AND_OUTER_COVERAGE_GATE',
+          }
+          print('OCCURRENCE_NORMAL_FORM', out['occurrence_source_normal_form_partition'])
+          print('MICRO_TERMINALS', out['occurrence_micro_terminal_partition'])
+          print('RUP_HIST', out['occurrence_micro_RUP_strengthening_histogram'])
+          print('RESTART_HIST', out['occurrence_micro_restart_histogram'])
+          print('ACTUAL_STATE_COUNT', out['unique_actual_post_DP_state_count_after_all_source_lifts'])
+          print('GROUP_PARTITION', out['target_group_witness_independence_partition'])
+          print('GENUINE_NONCOMMUTATION', out['genuine_source_preimage_noncommutation_occurrence_count'])
+          print('SEMANTIC_DIVERGENCE_GROUPS', out['semantic_divergence_target_group_count'])
+          print('ROUTE_DIVERGENCE_GROUPS', out['route_divergence_target_group_count'])
+          print('RESIDUAL_OCCURRENCES', out['micro_residual_occurrence_count'])
+          print('NEXT_GATE', out['next_gate'])
+          PY
+      - name: Upload proof-carrying I result
+        uses: actions/upload-artifact@v4
+        with:
+          name: janus-trump-r50g25i-all-1673-witness-independence
+          path: artifacts/JANUS_TRUMP_R50G25I_ALL_1673_SOURCE_OCCURRENCE_WITNESS_INDEPENDENCE.json
+          if-no-files-found: error
+          retention-days: 30
