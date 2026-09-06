@@ -1,0 +1,76 @@
+name: JANUS TRUMP R50G25W minimize depth4 and scale NAE
+
+on:
+  push:
+    branches:
+      - research/r50g25w-minimize-depth4-and-scale-nae-2026-09-06
+    paths:
+      - experiments/janus_trump_r50g25w_minimize_depth4_and_scale_nae.py
+      - .github/workflows/janus-trump-r50g25w-minimize-depth4-scale-nae.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  r50g25w:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Run deterministic depth4 minimization and n11 n12 scale suite
+        env:
+          PYTHONPATH: experiments
+        run: |
+          mkdir -p artifacts
+          python experiments/janus_trump_r50g25w_minimize_depth4_and_scale_nae.py \
+            --out artifacts/JANUS_TRUMP_R50G25W_MINIMIZE_DEPTH4_AND_SCALE_NAE.json
+      - name: Verify W result fail-closed
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          out = json.loads(Path('artifacts/JANUS_TRUMP_R50G25W_MINIMIZE_DEPTH4_AND_SCALE_NAE.json').read_text())
+          assert out['parent_V_journal_commit'] == '2060aab00eb6366c29c387945b87ac5a8b7facb4'
+          assert out['parent_V_result_commit'] == 'd99383cbdff399eb812429d77f414054d645b81d'
+          assert out['preregistration_commit'] == '144bd548516c3c1a26548c91f1076c07c0b412db'
+          m = out['minimization']
+          assert m['initial']['formula_hash'] == 'b26a37dd5b43f5d5293726f42130ebe6b01a78a637ecc0ee279624808bf89fa8'
+          assert m['initial']['tree_solver']['max_split_depth_used'] == 4
+          assert m['initial']['exact_truth_validation']['status'] == 'SAT'
+          assert m['single_edge_deletion_irreducible_for_depth_ge_4_and_SAT'] is True
+          assert m['global_minimum_edge_count_claimed'] is False
+          assert out['scale_suite']['case_count'] == 12
+          assert sum(out['scale_suite']['status_partition'].values()) == 12
+          assert all(c['semantic_agreement'] for c in out['scale_suite']['all_cases'])
+          assert out['scale_finding'] in {'DEPTH6_RESIDUAL','DEPTH_GROWTH_CONTINUES','NO_FURTHER_DEPTH_GROWTH_FINITE'}
+          assert out['tree_size_finding'] in {'TREE_SIZE_GROWTH_WITNESS','NO_TREE_SIZE_GROWTH_OVER_V_MAXIMA_IN_FINITE_SCALE_SUITE'}
+          assert out['firewall']['P_VS_NP'] == 'OPEN'
+          assert out['firewall']['SAT_IN_P'] == 'NOT_PROVED'
+          assert out['firewall']['TRUMP_finished'] is False
+          print('VERDICT', out['verdict'])
+          print('MIN_FINAL_EDGES', m['final_edges'])
+          print('MIN_FINAL_COUNT', m['final_edge_count'])
+          print('MIN_REMOVED', m['removed_edge_count'])
+          print('MIN_FINAL_DEPTH', m['final']['tree_solver']['max_split_depth_used'])
+          print('PIVOT_SENSITIVITY', m['first_pivot_sensitivity'])
+          print('SCALE_STATUS', out['scale_suite']['status_partition'])
+          print('SCALE_DEPTH_HIST', out['scale_suite']['depth_histogram'])
+          print('SCALE_MAX_DEPTH', out['scale_suite']['max_observed_depth'])
+          print('SCALE_MAX_NODES', out['scale_suite']['max_observed_nodes'])
+          print('SCALE_MAX_LEAVES', out['scale_suite']['max_observed_leaves'])
+          print('DEPTH_GE5', out['scale_suite']['depth_ge_5_count'])
+          print('DEPTH6_RESIDUAL', out['scale_suite']['depth6_residual_count'])
+          print('TREE_SIZE_GROWTH_COUNT', out['scale_suite']['tree_size_growth_count_over_V_maxima'])
+          print('HARDEST', out['scale_suite']['hardest_cases'])
+          print('NEXT_GATE', out['next_gate'])
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: janus-trump-r50g25w-minimize-depth4-scale-nae
+          path: artifacts/JANUS_TRUMP_R50G25W_MINIMIZE_DEPTH4_AND_SCALE_NAE.json
+          if-no-files-found: error
+          retention-days: 30
