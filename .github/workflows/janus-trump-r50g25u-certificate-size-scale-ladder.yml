@@ -1,0 +1,67 @@
+name: JANUS TRUMP R50G25U certificate size theorem and scale ladder
+
+on:
+  push:
+    branches:
+      - research/r50g25u-certificate-size-theorem-scale-ladder-2026-09-06
+    paths:
+      - 'experiments/janus_trump_r50g25u_certificate_size_theorem_scale_ladder.py'
+      - '.github/workflows/janus-trump-r50g25u-certificate-size-scale-ladder.yml'
+      - 'research/R50G25U_CERTIFICATE_SIZE_THEOREM_PREREGISTRATION.json'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  r50g25u:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Run preregistered U certificate theorem audit
+        env:
+          PYTHONPATH: experiments
+        run: |
+          mkdir -p artifacts
+          python experiments/janus_trump_r50g25u_certificate_size_theorem_scale_ladder.py \
+            --out artifacts/JANUS_TRUMP_R50G25U_CERTIFICATE_SIZE_THEOREM_SCALE_LADDER.json
+      - name: Verify fail-closed U result
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          out = json.loads(Path('artifacts/JANUS_TRUMP_R50G25U_CERTIFICATE_SIZE_THEOREM_SCALE_LADDER.json').read_text())
+          assert out['parent_T_run'] == 34043535597
+          assert out['parent_T_journal_commit'] == 'c89d0712bd959943a22603b4ba7d1eca9d9b48c0'
+          assert out['U_preregistration_commit'] == 'fa75b44eec3f3c4c987c4ba5c8cd3f2282de34e2'
+          assert out['generation_contract']['truth_used_for_generation_or_selection'] is False
+          assert out['generation_contract']['exact_truth_authority'] is False
+          assert out['evaluated_candidate_count'] >= 30
+          assert out['verdict'] in {
+              'CERTIFICATE_SIZE_OR_Q_OBSTRUCTION_FOUND',
+              'IMPLEMENTATION_LEVEL_CERTIFICATE_SIZE_BOUND_ESTABLISHED_AND_SCALE_LADDER_CLEAN',
+          }
+          assert out['firewall']['P_VS_NP'] == 'OPEN'
+          assert out['firewall']['SAT_IN_P'] == 'NOT_PROVED'
+          assert out['firewall']['TRUMP_finished'] is False
+          print('VERDICT', out['verdict'])
+          print('SCHEMA', out['schema_source_audit'])
+          print('COUNT', out['evaluated_candidate_count'])
+          print('TERMINALS', out['terminal_partition'])
+          print('Q', out['Q_falsifier_partition_without_exact_truth_authority'])
+          print('UNCLASSIFIED', out['unclassified_assertion_count'])
+          print('CERT_VIOL', out['certificate_bound_violation_count'])
+          print('MAX_REPORTED', out['max_reported_certificate_case'])
+          print('MAX_FULL', out['max_full_serialized_history_case'])
+          print('NEXT_GATE', out['next_gate'])
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: janus-trump-r50g25u-certificate-size-theorem-scale-ladder
+          path: artifacts/JANUS_TRUMP_R50G25U_CERTIFICATE_SIZE_THEOREM_SCALE_LADDER.json
+          if-no-files-found: error
+          retention-days: 30
