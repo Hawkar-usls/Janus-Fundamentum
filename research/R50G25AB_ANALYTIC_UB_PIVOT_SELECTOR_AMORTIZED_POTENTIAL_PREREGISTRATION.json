@@ -1,0 +1,95 @@
+{
+  "gate": "R50G25AB_ANALYTIC_UB_PIVOT_SELECTOR_AND_AMORTIZED_POTENTIAL_FALSIFICATION",
+  "status": "PREREGISTERED_BEFORE_IMPLEMENTATION",
+  "branch": "research/r50g25ab-analytic-ub-pivot-selector-amortized-potential-2026-09-06",
+  "base_AA_resource_limit_receipt_commit": "71557e8cb433a9494da2e064118becff8ffec998",
+  "parent_Z_run_id": 34045971286,
+  "parent_Z_artifact_id": 9993361591,
+  "research_question": "Can a polynomial-time analytic upper-bound selector choose a single exact-DP fallback at every encountered W residual, keeping the original quadratic root budget without enumerating/materializing every exact-DP pivot; and do the finite Phi3/Phi4 potential candidates survive this cheaper scheduler?",
+  "motivation": {
+    "AA_full_exact_all_pivot_audit_status": "UNKNOWN_RESOURCE_LIMIT",
+    "AA_run_id": 34047522162,
+    "AA_timeout_minutes": 60,
+    "AA_artifact": null,
+    "resource_limit_is_not_negative_evidence": true,
+    "Galil_1977_guard": "pure Davis-Putnam can require exponentially many distinct clauses for any elimination order on an infinite CNF family, so one-variable descent alone is not a polynomial proof"
+  },
+  "frozen_root_budget": {
+    "B": "(C0+L0)*(V0+1)^2",
+    "no_post_result_budget_change": true,
+    "Phi3_or_Phi4_do_not_replace_B": true
+  },
+  "analytic_bound": {
+    "for_each_remaining_variable_x": true,
+    "p": "number of +x parents",
+    "q": "number of -x parents",
+    "SP": "total literals in +x parents",
+    "SN": "total literals in -x parents",
+    "UB_C": "C-p-q+p*q",
+    "UB_L": "L-SP-SN+q*(SP-p)+p*(SN-q)",
+    "UB_S": "UB_C+UB_L",
+    "soundness_obligation": "exact canonical DP size <= UB_S",
+    "computation_must_not_materialize_resolvents": true
+  },
+  "deterministic_selector": {
+    "on_W_residual": "compute UB_S for every remaining variable and choose lexicographically minimum (UB_S,var)",
+    "admissible_only_if": "chosen UB_S <= inherited root B",
+    "exact_DP_materializations_per_fallback": 1,
+    "independent_exact_DP_replay_required": true,
+    "restart": "run frozen W policy after the chosen exact-DP fallback",
+    "fallback_limit": "V0",
+    "truth_blind": true
+  },
+  "potential_candidates_diagnostic_only": {
+    "S": "C+L",
+    "Phi3_full_cycle": "S*(V+1)^3",
+    "Phi4_immediate_DP": "S*(V+1)^4",
+    "analytic_sufficient_Phi4_certificate": "UB_S * V^4 < S * (V+1)^4, because exact DP leaves at most V-1 variables",
+    "finite_Z_observation": {
+      "Phi3_full_cycle_strict_descent": "222/222",
+      "Phi4_immediate_DP_strict_descent": "238/238",
+      "Phi3_immediate_DP_non_descent": "18/238"
+    },
+    "no_universal_claim_from_finite_survival": true
+  },
+  "preregistered_domain": {
+    "root_reachable_cases": "exactly the 15 X residual occurrences plus the independently reconstructed Y minimized residual core",
+    "local_structural_stress": {
+      "source": "truth-blind one-clause mutations of the Y core and selected X residual cores",
+      "mutation_count_cap": 12,
+      "accept_only_if_frozen_W_policy_still_returns_RESIDUAL": true,
+      "local_stress_is_not_claimed_root_reachable": true
+    },
+    "no_new_large_random_root_scan": true,
+    "reason": "AA's n=64..80 all-pivot/root scan exhausted the 60-minute resource cap; AB isolates selector complexity before any renewed scale expansion"
+  },
+  "predeclared_verdicts": [
+    "ANALYTIC_SELECTOR_TERMINATES_ON_PREREGISTERED_DOMAIN",
+    "ANALYTIC_SELECTOR_BUDGET_GAP_FOUND",
+    "ANALYTIC_BOUND_UNSOUND_OR_DP_REPLAY_FAILURE",
+    "RESIDUAL_AFTER_AT_MOST_V0_ANALYTIC_FALLBACKS",
+    "PHI4_CANDIDATE_FALSIFIED_WITHOUT_SELECTOR_FAILURE",
+    "IMPLEMENTATION_FAILURE"
+  ],
+  "counterexample_semantics": {
+    "ANALYTIC_SELECTOR_BUDGET_GAP_FOUND": "min_x UB_S(x)>B at a W residual. This refutes this analytic certificate/selector under the frozen B; it does NOT prove that every exact DP pivot exceeds B.",
+    "PHI4_CANDIDATE_FALSIFIED_WITHOUT_SELECTOR_FAILURE": "selected within-B pivot exists and is sound, but immediate Phi4 fails on an exact chosen step. This refutes Phi4 as a universal potential candidate, not the quadratic budget policy.",
+    "RESIDUAL_AFTER_AT_MOST_V0_ANALYTIC_FALLBACKS": "scheduler remains residual despite each fallback removing at least one variable within the preregistered fallback horizon"
+  },
+  "complexity_accounting": {
+    "selector_scan_must_be_polynomial_in_current_C_L_V": true,
+    "only_one_exact_DP_state_may_be_materialized_per_fallback": true,
+    "materialized_state_size_must_be_certified_le_B_before_materialization_by_UB_S": true,
+    "exact_truth_authority": false
+  },
+  "firewall": {
+    "P_VS_NP": "OPEN",
+    "SAT_IN_P": "NOT_PROVED",
+    "TRUMP_finished": false,
+    "finite_success_is_not_universal_coverage": true,
+    "analytic_certificate_gap_is_not_exact_DP_impossibility": true,
+    "polynomial_state_bound_is_not_polynomial_runtime_until_operation_counts_and_universal_selector_existence_are_proved": true
+  },
+  "next_if_selector_gap": "R50G25AC_MINIMIZE_ANALYTIC_SELECTOR_GAP_AND_COMPARE_WITH_EXACT_PIVOTS",
+  "next_if_no_gap": "R50G25AC_SYMBOLIC_MIN_UB_EXISTENCE_INEQUALITY_OR_COUNTEREXAMPLE"
+}
