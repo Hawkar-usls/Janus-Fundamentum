@@ -1,0 +1,125 @@
+name: JANUS TRUMP R50G25AF resource-safe prefix ladder
+
+on:
+  push:
+    branches:
+      - research/r50g25af-resource-safe-prefix-ladder-symbolic-reachability-2026-09-06
+    paths:
+      - 'experiments/janus_trump_r50g25af_*'
+      - 'research/R50G25AF_PREREGISTRATION.json'
+      - '.github/workflows/janus-trump-r50g25af-resource-safe-prefix-ladder.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  symbolic:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 2
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Run frozen symbolic induction audit
+        run: |
+          mkdir -p artifacts
+          PYTHONPATH=experiments python experiments/janus_trump_r50g25af_symbolic_reachability.py --out artifacts/JANUS_TRUMP_R50G25AF_SYMBOLIC.json
+      - name: Verify fail-closed symbolic result
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          x=json.loads(Path('artifacts/JANUS_TRUMP_R50G25AF_SYMBOLIC.json').read_text())
+          assert x['AF_preregistration_commit']=='03e59d28d169b5e12b05bdf80b4b0c43c3be6edb'
+          assert x['symbolic_result']=='COARSE_TRANSITION_BOUND_NONINDUCTIVE_FOR_FROZEN_CANDIDATE'
+          assert x['induction_gap_witness']['checks']['post_square'] is False
+          assert x['firewall']['P_VS_NP']=='OPEN'
+          assert x['firewall']['SAT_IN_P']=='NOT_PROVED'
+          assert x['firewall']['TRUMP_finished'] is False
+          print('SYMBOLIC', x['symbolic_result'])
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: janus-trump-r50g25af-symbolic
+          path: artifacts/JANUS_TRUMP_R50G25AF_SYMBOLIC.json
+          if-no-files-found: error
+          retention-days: 30
+
+  rung:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 6
+    strategy:
+      fail-fast: false
+      max-parallel: 8
+      matrix:
+        include:
+          - holes: 24
+            mode: CYCLIC_MIX
+            label: h24-cyclic
+          - holes: 24
+            mode: SEEDED_BALANCED
+            label: h24-balanced
+          - holes: 28
+            mode: CYCLIC_MIX
+            label: h28-cyclic
+          - holes: 28
+            mode: SEEDED_BALANCED
+            label: h28-balanced
+          - holes: 32
+            mode: CYCLIC_MIX
+            label: h32-cyclic
+          - holes: 32
+            mode: SEEDED_BALANCED
+            label: h32-balanced
+          - holes: 40
+            mode: CYCLIC_MIX
+            label: h40-cyclic
+          - holes: 40
+            mode: SEEDED_BALANCED
+            label: h40-balanced
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Run independent frozen rung
+        run: |
+          mkdir -p artifacts
+          PYTHONPATH=experiments python experiments/janus_trump_r50g25af_resource_safe_rung.py \
+            --holes ${{ matrix.holes }} \
+            --mode ${{ matrix.mode }} \
+            --out artifacts/JANUS_TRUMP_R50G25AF_${{ matrix.label }}.json
+      - name: Verify fail-closed rung result
+        run: |
+          python - <<'PY'
+          import json, glob
+          from pathlib import Path
+          fs=glob.glob('artifacts/JANUS_TRUMP_R50G25AF_*.json')
+          assert len(fs)==1, fs
+          x=json.loads(Path(fs[0]).read_text())
+          assert x['AF_preregistration_commit']=='03e59d28d169b5e12b05bdf80b4b0c43c3be6edb'
+          allowed={
+            'RUNG_PASS_NO_FROZEN_FALSIFIER',
+            'SAFE_ENVELOPE_REACHABILITY_COUNTEREXAMPLE',
+            'SIMPLE_REACHABILITY_INVARIANT_COUNTEREXAMPLE',
+            'ANALYTIC_SELECTOR_BUDGET_GAP',
+            'SEMANTIC_MISMATCH_ON_KNOWN_GPHP_UNSAT',
+            'REPLAY_OR_BOUND_SOUNDNESS_FAILURE',
+            'RESIDUAL_AFTER_AT_MOST_V0_FALLBACKS'
+          }
+          assert x['verdict'] in allowed
+          assert x['rung']['holes'] in [24,28,32,40]
+          assert x['rung']['mode'] in ['CYCLIC_MIX','SEEDED_BALANCED']
+          assert x['firewall']['P_VS_NP']=='OPEN'
+          assert x['firewall']['SAT_IN_P']=='NOT_PROVED'
+          assert x['firewall']['TRUMP_finished'] is False
+          print('RUNG', x['rung'], x['verdict'])
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: janus-trump-r50g25af-${{ matrix.label }}
+          path: artifacts/JANUS_TRUMP_R50G25AF_${{ matrix.label }}.json
+          if-no-files-found: error
+          retention-days: 30
