@@ -1,0 +1,81 @@
+name: JANUS TRUMP R50G25H broader 1212 micro-RUP polynomial ledger audit
+
+on:
+  push:
+    branches:
+      - research/r50g25h-micro-rup-restart-broader-1212-polynomial-ledger-audit-2026-09-06
+    paths:
+      - experiments/janus_trump_r50g25h_micro_rup_restart_broader_1212_polynomial_ledger_audit.py
+      - .github/workflows/janus-trump-r50g25h-micro-rup-broader-polynomial-audit.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  r50g25h:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Run R50G25H broader coverage and ledger audit
+        env:
+          PYTHONPATH: experiments
+        run: |
+          mkdir -p artifacts
+          python experiments/janus_trump_r50g25h_micro_rup_restart_broader_1212_polynomial_ledger_audit.py \
+            --out artifacts/JANUS_TRUMP_R50G25H_BROADER_1212_POLYNOMIAL_LEDGER_AUDIT.json
+      - name: Verify fail-closed scientific partition
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          p = Path('artifacts/JANUS_TRUMP_R50G25H_BROADER_1212_POLYNOMIAL_LEDGER_AUDIT.json')
+          out = json.loads(p.read_text())
+          cov = out['coverage_contract']
+          assert cov['frozen_source_skeleton_count'] == 30
+          assert cov['new_source_skeletons_added'] == 0
+          assert cov['broader_all_pair_post_DP_unique_states'] == 1212
+          assert cov['newly_covered_unique_states_beyond_G'] == 221
+          assert cov['all_pair_weighted_occurrences'] == 1673
+          assert out['evaluated_unique_state_count'] + out['source_lift_replay_failure_unique_count'] == 1212
+          assert sum(out['minimum_static_binary_incidence_cover_unique_histogram'].values()) == 1212
+          assert out['firewall']['P_VS_NP'] == 'OPEN'
+          assert out['firewall']['SAT_IN_P'] == 'NOT_PROVED'
+          assert out['firewall']['TRUMP_finished'] is False
+          assert out['next_gate'] in {
+              'R50G25I_SOURCE_LIFT_REPLAY_FAILURE_FORENSICS',
+              'R50G25I_MICRO_RUP_RESTART_RESIDUAL_FIXPOINT_FORENSICS',
+              'R50G25I_POLYNOMIAL_METER_ENVELOPE_VIOLATION_FORENSICS',
+              'R50G25I_SEMANTIC_OR_RECONSTRUCTION_MISMATCH_FORENSICS',
+              'R50G25I_EXACT_VALIDATION_DOMAIN_EXTENSION',
+              'R50G25I_ALL_1673_SOURCE_OCCURRENCE_REPLAY_AND_WITNESS_INDEPENDENCE_AUDIT',
+          }
+          print('MINIMUM_HIST', out['minimum_static_binary_incidence_cover_unique_histogram'])
+          print('SOURCE_NORMAL_FORM', out['source_normal_form_unique_partition'])
+          print('EXACT_TRUTH', out['exact_truth_unique_partition'])
+          print('SEALED_TERMINALS', out['sealed_terminal_unique_partition'])
+          print('MICRO_TERMINALS', out['micro_terminal_unique_partition'])
+          print('MICRO_RESIDUALS', out['micro_residual_fixpoint_unique_count'])
+          print('SEMANTIC_MISMATCHES', {
+              'sealed_exact': out['exact_sealed_semantic_mismatch_count'],
+              'micro_exact': out['exact_micro_semantic_mismatch_count'],
+              'sealed_micro': out['sealed_micro_semantic_disagreement_count'],
+              'reconstruction': out['micro_SAT_reconstruction_failure_count'],
+          })
+          print('POLY_ENVELOPE_VIOLATIONS', out['polynomial_meter_envelope_violation_unique_count'])
+          print('MICRO_RUP_HIST', out['micro_RUP_successful_strengthenings_unique_histogram'])
+          print('MICRO_RESTART_HIST', out['micro_restart_count_unique_histogram'])
+          print('NEXT_GATE', out['next_gate'])
+          PY
+      - name: Upload proof-carrying H result
+        uses: actions/upload-artifact@v4
+        with:
+          name: janus-trump-r50g25h-broader-1212-polynomial-ledger-audit
+          path: artifacts/JANUS_TRUMP_R50G25H_BROADER_1212_POLYNOMIAL_LEDGER_AUDIT.json
+          if-no-files-found: error
+          retention-days: 30
