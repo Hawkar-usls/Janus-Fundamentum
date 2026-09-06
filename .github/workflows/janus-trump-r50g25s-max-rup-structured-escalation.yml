@@ -1,0 +1,67 @@
+name: JANUS TRUMP R50G25S max-RUP minimization and structured escalation
+
+on:
+  push:
+    branches:
+      - research/r50g25s-max-rup-witness-minimization-structured-escalation-2026-09-06
+    paths:
+      - 'experiments/janus_trump_r50g25s_max_rup_minimization_structured_escalation.py'
+      - 'experiments/janus_trump_r50g25s_runner.py'
+      - '.github/workflows/janus-trump-r50g25s-max-rup-structured-escalation.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  r50g25s:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Run preregistered S gate
+        env:
+          PYTHONPATH: experiments
+        run: |
+          mkdir -p artifacts
+          python experiments/janus_trump_r50g25s_runner.py \
+            --out artifacts/JANUS_TRUMP_R50G25S_MAX_RUP_MINIMIZATION_STRUCTURED_ESCALATION.json
+      - name: Verify fail-closed S result
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          p = Path('artifacts/JANUS_TRUMP_R50G25S_MAX_RUP_MINIMIZATION_STRUCTURED_ESCALATION.json')
+          out = json.loads(p.read_text())
+          assert out['parent_R_run'] == 34042681532
+          assert out['parent_R_journal_commit'] == 'd77c1b7a0316d4bfd914e79ced8d5a1da5ce04c0'
+          assert out['S_preregistration_commit'] == 'd1185d2d348d616f9fe42f6ddabd231ee8dfc2b2'
+          assert out['max_R_witness_recovery']['micro_cost_RUP_restart_rounds'][0] == 21
+          assert out['truth_blind_minimization']['target_RUP'] == 21
+          assert out['structured_generation_contract']['truth_used_for_generation_or_selection'] is False
+          assert out['frozen_Q_falsifier_classes'] == [
+              'CERTIFICATE_FAILURE', 'RECONSTRUCTION_FAILURE', 'PROGRESS_FAILURE',
+              'RESIDUAL_FIXPOINT', 'POLYNOMIAL_LEDGER_FAILURE', 'SEMANTIC_MISMATCH'
+          ]
+          assert out['firewall']['P_VS_NP'] == 'OPEN'
+          assert out['firewall']['SAT_IN_P'] == 'NOT_PROVED'
+          assert out['firewall']['TRUMP_finished'] is False
+          assert out['verdict'].startswith(('STRUCTURED_OUTER_COUNTEREXAMPLE_FOUND__', 'NO_Q_FALSIFIER_'))
+          print('VERDICT', out['verdict'])
+          print('MIN', out['truth_blind_minimization'])
+          print('FAMILIES', out['family_partition'])
+          print('EXACT', out['exact_validation_partition'])
+          print('TERMINALS', out['micro_terminal_partition'])
+          print('FALSIFIERS', out['falsifier_partition'])
+          print('TOP', out['top_10_route_costs'])
+          print('NEXT_GATE', out['next_gate'])
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: janus-trump-r50g25s-max-rup-structured-escalation
+          path: artifacts/JANUS_TRUMP_R50G25S_MAX_RUP_MINIMIZATION_STRUCTURED_ESCALATION.json
+          if-no-files-found: error
+          retention-days: 30
