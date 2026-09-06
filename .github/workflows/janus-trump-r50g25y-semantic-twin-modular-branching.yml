@@ -1,0 +1,73 @@
+name: JANUS TRUMP R50G25Y semantic twin modular branching
+
+on:
+  push:
+    branches:
+      - research/r50g25y-semantic-twin-modular-branching-growth-2026-09-06
+    paths:
+      - experiments/janus_trump_r50g25y_semantic_twin_modular_branching_growth.py
+      - .github/workflows/janus-trump-r50g25y-semantic-twin-modular-branching.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  r50g25y:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Run semantic-twin and modular branching growth audit
+        env:
+          PYTHONPATH: experiments
+        run: |
+          mkdir -p artifacts
+          python experiments/janus_trump_r50g25y_semantic_twin_modular_branching_growth.py \
+            --out artifacts/JANUS_TRUMP_R50G25Y_SEMANTIC_TWIN_MODULAR_BRANCHING.json
+      - name: Verify Y result fail-closed
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          out = json.loads(Path('artifacts/JANUS_TRUMP_R50G25Y_SEMANTIC_TWIN_MODULAR_BRANCHING.json').read_text())
+          assert out['parent_X_result_commit'] == '174a98aee942380a00e3c36b211ee15d09874887'
+          assert out['preregistration_commit'] == '015c8bded478115b5bf997d850f8f546e53c657c'
+          a = out['semantic_twin_audit']
+          assert a['pair_count'] == 42
+          assert a['all_42_exact_model_sets_equal'] is True
+          assert a['all_42_deletion_twins_decisive_SAT'] is True
+          assert a['all_42_flip_twins_residual'] is True
+          m = out['balanced_module']
+          assert m['formula_hash'] == '1eaac3a32b285469a2446be3888f8c48437fa19a220203a854d3ce938dc9ad62'
+          assert m['deletion_twin_hash'] == 'e9c1be318387e98bbc136b7586d9cc361dd08c7573997f52304feb268fc8e04e'
+          assert m['model_count'] == 5
+          assert m['x1_model_partition'] == {'false':1,'true':4}
+          assert len(out['SAT_chain_cases']) == 6
+          assert len(out['UNSAT_tail_cases']) == 5
+          assert all(c['tree_solver']['status'] != 'UNSAT' for c in out['SAT_chain_cases'])
+          assert all(c['tree_solver']['status'] != 'SAT' for c in out['UNSAT_tail_cases'])
+          assert out['firewall']['P_VS_NP'] == 'OPEN'
+          assert out['firewall']['SAT_IN_P'] == 'NOT_PROVED'
+          assert out['firewall']['TRUMP_finished'] is False
+          print('VERDICT', out['verdict'])
+          print('TWIN_AUDIT', {k:v for k,v in a.items() if k != 'pairs'})
+          print('BALANCED', m)
+          print('SAT_DEPTHS', out['SAT_chain_depth_vector'])
+          print('SAT_NODES', out['SAT_chain_node_vector'])
+          print('UNSAT_DEPTHS', out['UNSAT_tail_depth_vector'])
+          print('UNSAT_NODES', out['UNSAT_tail_node_vector'])
+          print('UNSAT_LEAVES', out['UNSAT_tail_leaf_vector'])
+          print('COMPONENT_NODES', out['UNSAT_tail_componentwise_node_vector'])
+          print('FINDINGS', out['findings'])
+          print('NEXT_GATE', out['next_gate'])
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: janus-trump-r50g25y-semantic-twin-modular-branching
+          path: artifacts/JANUS_TRUMP_R50G25Y_SEMANTIC_TWIN_MODULAR_BRANCHING.json
+          if-no-files-found: error
+          retention-days: 30
