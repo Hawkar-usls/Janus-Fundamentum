@@ -60,6 +60,7 @@ def main():
         'source_receipts': [str(p) for p in RECEIPTS],
         'append_only_gate_identity_check': True,
         'canonical_gate_normalization': 'R50G25AA_* receipt names normalize to R50G25AA while preserving gate_full',
+        'retrigger_marker': '2026-09-06T18:45Z',
     }
     JOURNAL.write_text(json.dumps(journal, indent=2, sort_keys=False) + '\n')
     print(json.dumps({'version': journal['version'], 'appended': appended, 'entry_count': len(entries)}, sort_keys=True))
