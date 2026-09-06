@@ -1,0 +1,61 @@
+name: JANUS TRUMP R50G25L polynomial support cover finder
+
+on:
+  push:
+    branches:
+      - research/r50g25l-polynomial-support-cover-finder-or-explicit-obstruction-2026-09-06
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  r50g25l:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Run polynomial support cover finder
+        env:
+          PYTHONPATH: experiments
+        run: |
+          mkdir -p artifacts
+          python experiments/janus_trump_r50g25l_polynomial_support_cover_finder.py \
+            --out artifacts/JANUS_TRUMP_R50G25L_POLYNOMIAL_SUPPORT_COVER_FINDER.json
+      - name: Verify fail-closed preregistered outcome
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          out = json.loads(Path('artifacts/JANUS_TRUMP_R50G25L_POLYNOMIAL_SUPPORT_COVER_FINDER.json').read_text())
+          assert out['parent_preregistration_commit'] == '9ecbf412e4241d65e2d7f6a7f030a4de42439987'
+          assert out['coverage_contract']['frozen_target_count'] == 1212
+          assert out['coverage_contract']['new_source_skeletons_added'] == 0
+          assert out['coverage_contract']['exact_minimum_cover_called_by_candidate_core'] is False
+          assert out['verdict'] in {
+              'POLYNOMIAL_SUPPORT_COVER_1212_TERMINAL',
+              'POLYNOMIAL_SUPPORT_COVER_EXPLICIT_REQUIREMENT_OBSTRUCTION',
+              'POLYNOMIAL_SUPPORT_COVER_SCHEDULER_COUNTEREXAMPLE',
+              'POLYNOMIAL_ACCOUNTING_VIOLATION',
+              'IMPLEMENTATION_OR_REPLAY_FAILURE',
+          }
+          assert out['firewall']['P_VS_NP'] == 'OPEN'
+          assert out['firewall']['SAT_IN_P'] == 'NOT_PROVED'
+          assert out['firewall']['TRUMP_finished'] is False
+          print('VERDICT', out['verdict'])
+          print('COVER_HIST', out['cover_size_histogram'])
+          print('TERMINALS', out['micro_terminal_partition'])
+          print('RUP_HIST', out['micro_RUP_strengthening_histogram'])
+          print('TRUTH_CHANGE', out['target_to_augmented_truth_change_count'])
+          print('SAT_STATUS_CHANGE', out['target_to_augmented_sat_status_change_count'])
+          print('NEXT_GATE', out['next_gate'])
+          PY
+      - name: Upload proof-carrying L result
+        uses: actions/upload-artifact@v4
+        with:
+          name: janus-trump-r50g25l-polynomial-support-cover-finder
+          path: artifacts/JANUS_TRUMP_R50G25L_POLYNOMIAL_SUPPORT_COVER_FINDER.json
+          if-no-files-found: error
+          retention-days: 30
