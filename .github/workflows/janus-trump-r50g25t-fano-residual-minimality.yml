@@ -1,0 +1,68 @@
+name: JANUS TRUMP R50G25T Fano residual minimality and replay
+
+on:
+  push:
+    branches:
+      - research/r50g25t-minimize-independent-replay-fano-residual-falsifier-2026-09-06
+    paths:
+      - experiments/janus_trump_r50g25t_fano_residual_minimization_independent_replay.py
+      - .github/workflows/janus-trump-r50g25t-fano-residual-minimality.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  r50g25t:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Run independent Fano residual replay and minimality audit
+        env:
+          PYTHONPATH: experiments
+        run: |
+          mkdir -p artifacts
+          python experiments/janus_trump_r50g25t_fano_residual_minimization_independent_replay.py \
+            --out artifacts/JANUS_TRUMP_R50G25T_FANO_RESIDUAL_MINIMALITY.json
+      - name: Verify T result fail-closed
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          out = json.loads(Path('artifacts/JANUS_TRUMP_R50G25T_FANO_RESIDUAL_MINIMALITY.json').read_text())
+          assert out['parent_S_run'] == 34040310784
+          assert out['preregistration_commit'] == '84f2a841bef4899a1a1177325f68a78df6c55d3c'
+          assert out['target']['formula_hash'] == '466163011411ccd10520539fb80f0bec7a9de934400961cfa6a25f1c58c38a00'
+          assert out['target']['CLV'] == [14,42,7]
+          assert out['independent_R33_applicability_audit']['pass_no_R33_reduction_rule_applies'] is True
+          assert out['affine_recognizer']['recognized'] is False
+          assert out['independent_single_literal_RUP_audit']['candidate_count'] == 42
+          assert out['independent_single_literal_RUP_audit']['conflict_count'] == 0
+          assert out['frozen_RUP_comparison']['proposal_is_none'] is True
+          assert out['exact_truth_validation']['sat'] is False
+          assert out['exact_truth_validation']['model_count'] == 0
+          assert out['clause_deletion_minimality']['all_14_single_clause_deletions_sat'] is True
+          assert out['clause_deletion_minimality']['single_deletion_count'] == 14
+          assert out['clause_deletion_minimality']['proper_subformula_sat_conclusion_by_monotonicity'] is True
+          assert out['micro_replay']['terminal'] == 'RESIDUAL_FIXPOINT'
+          assert out['micro_replay']['restart_count'] == 0
+          assert out['micro_replay']['ledger']['RUP_successful_strengthenings'] == 0
+          assert out['firewall']['P_VS_NP'] == 'OPEN'
+          assert out['firewall']['SAT_IN_P'] == 'NOT_PROVED'
+          assert out['firewall']['TRUMP_finished'] is False
+          print('VERDICT', out['verdict'])
+          print('R33', out['independent_R33_applicability_audit'])
+          print('RUP', {k:v for k,v in out['independent_single_literal_RUP_audit'].items() if k != 'candidates'})
+          print('MINIMALITY', out['clause_deletion_minimality'])
+          print('MICRO', out['micro_replay'])
+          print('NEXT_GATE', out['next_gate'])
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: janus-trump-r50g25t-fano-residual-minimality
+          path: artifacts/JANUS_TRUMP_R50G25T_FANO_RESIDUAL_MINIMALITY.json
+          if-no-files-found: error
+          retention-days: 30
