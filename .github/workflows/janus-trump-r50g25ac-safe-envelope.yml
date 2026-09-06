@@ -1,0 +1,91 @@
+name: JANUS TRUMP R50G25AC symbolic min-UB safe envelope
+
+on:
+  push:
+    branches:
+      - research/r50g25ac-symbolic-min-ub-safe-envelope-2026-09-06
+    paths:
+      - 'experiments/janus_trump_r50g25ac_symbolic_min_ub_safe_envelope.py'
+      - '.github/workflows/janus-trump-r50g25ac-safe-envelope.yml'
+      - 'research/R50G25AC_SYMBOLIC_MIN_UB_SAFE_ENVELOPE_PREREGISTRATION.json'
+      - 'research/R50G25AC_LOCAL_MIN_UB_SAFE_ENVELOPE_LEMMA_2026-09-06.md'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  r50g25ac:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Download sealed parent AB artifact by exact run
+        uses: actions/download-artifact@v4
+        with:
+          name: janus-trump-r50g25ab-analytic-ub-pivot-selector
+          path: parent_ab
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: ${{ github.repository }}
+          run-id: 34051293910
+      - name: Verify downloaded parent artifact identity
+        run: |
+          test -f parent_ab/JANUS_TRUMP_R50G25AB_ANALYTIC_UB_PIVOT_SELECTOR.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          p=Path('parent_ab/JANUS_TRUMP_R50G25AB_ANALYTIC_UB_PIVOT_SELECTOR.json')
+          d=json.loads(p.read_text())
+          assert d['AB_preregistration_commit']=='af0ae06061797ec8149f42da9529e9ffab620fc1'
+          assert d['verdict']=='PHI4_CANDIDATE_FALSIFIED_WITHOUT_SELECTOR_FAILURE'
+          assert d['total_exact_DP_materializations']==239
+          print('PARENT_AB_IDENTITY_OK')
+          PY
+      - name: Run AC symbolic safe-envelope artifact audit
+        run: |
+          mkdir -p artifacts
+          python experiments/janus_trump_r50g25ac_symbolic_min_ub_safe_envelope.py \
+            --artifact-json parent_ab/JANUS_TRUMP_R50G25AB_ANALYTIC_UB_PIVOT_SELECTOR.json \
+            --out artifacts/JANUS_TRUMP_R50G25AC_SAFE_ENVELOPE.json
+      - name: Verify fail-closed AC result
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          out=json.loads(Path('artifacts/JANUS_TRUMP_R50G25AC_SAFE_ENVELOPE.json').read_text())
+          assert out['AC_preregistration_commit']=='ba2a085daccdd4ba0f1cb96a52f5448b22620345'
+          assert out['parent_AB']['run_id']==34051293910
+          assert out['parent_AB']['artifact_id']==9994874097
+          assert out['artifact_audit']['event_count']==239
+          allowed={
+            'LOCAL_MIN_UB_SAFE_ENVELOPE_LEMMA_AND_239_OF_239_AUDIT_PASS',
+            'LOCAL_LEMMA_IMPLEMENTATION_IDENTITY_FAILURE',
+            'AB_RECORDED_EVENT_VIOLATES_SAFE_ENVELOPE',
+            'AB_CHOSEN_UB_EXCEEDS_PROVED_G_BOUND',
+            'PARENT_ARTIFACT_IDENTITY_FAILURE',
+            'IMPLEMENTATION_FAILURE',
+          }
+          assert out['verdict'] in allowed
+          if out['verdict']=='LOCAL_MIN_UB_SAFE_ENVELOPE_LEMMA_AND_239_OF_239_AUDIT_PASS':
+              assert out['artifact_audit']['safe_envelope_pass_count']==239
+              assert out['artifact_audit']['chosen_UB_le_G_pass_count']==239
+          assert out['universal_obligation']['status']=='OPEN'
+          assert out['firewall']['P_VS_NP']=='OPEN'
+          assert out['firewall']['SAT_IN_P']=='NOT_PROVED'
+          assert out['firewall']['TRUMP_finished'] is False
+          print('VERDICT',out['verdict'])
+          print('AUDIT',out['artifact_audit']['event_count'],out['artifact_audit']['safe_envelope_pass_count'],out['artifact_audit']['chosen_UB_le_G_pass_count'])
+          print('MAX_G_OVER_B',out['artifact_audit']['max_G_over_B_case'])
+          print('MIN_B_MINUS_G',out['artifact_audit']['minimum_B_minus_G_case'])
+          print('NEXT_GATE',out['next_gate'])
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: janus-trump-r50g25ac-safe-envelope
+          path: artifacts/JANUS_TRUMP_R50G25AC_SAFE_ENVELOPE.json
+          if-no-files-found: error
+          retention-days: 30
