@@ -1,0 +1,74 @@
+name: JANUS TRUMP R50G25AL tighter child signed-incidence bound
+
+on:
+  push:
+    branches:
+      - research/r50g25al-tighter-child-signed-incidence-bound-2026-09-07
+    paths:
+      - 'experiments/janus_trump_r50g25al_tighter_child_signed_incidence_bound.py'
+      - '.github/workflows/janus-trump-r50g25al-tighter-child-signed-incidence-bound.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Run AL tighter child signed-incidence audit
+        run: |
+          mkdir -p artifacts
+          PYTHONPATH=experiments python experiments/janus_trump_r50g25al_tighter_child_signed_incidence_bound.py --out artifacts/JANUS_TRUMP_R50G25AL_RESULT.json
+      - name: Verify fail-closed result
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          p=Path('artifacts/JANUS_TRUMP_R50G25AL_RESULT.json')
+          assert p.exists()
+          x=json.loads(p.read_text())
+          assert x['gate']=='JANUS_TRUMP_R50G25AL_DERIVE_TIGHTER_CHILD_SIGNED_INCIDENCE_BOUND'
+          assert x['AL_preregistration_commit']=='5def09c9bb8f5fda3751a6b555beb941723e4cd8'
+          assert x['parent_AK_receipt_commit']=='9536aa9e0d4bebe02d18450c9942ad7b8046d480'
+          allowed={
+            'PAIRWISE_COMPATIBLE_RAW_CHILD_BOUND_COVERS_FROZEN_DOMAIN',
+            'PARENT_OUTSIDE_AI_CLASS',
+            'NO_ENVELOPE_ADMISSIBLE_PIVOT',
+            'PAIRWISE_RAW_CHILD_BOUND_UNSOUND',
+            'CHILD_VARIABLE_DROP_ASSUMPTION_FAILURE',
+            'TIGHT_CHILD_SYMBOLIC_CERTIFICATE_GAP_BUT_ACTUAL_DOOR_EXISTS',
+            'NO_ACTUAL_SELF_PRESERVING_PIVOT',
+            'EXACT_DP_REPLAY_FAILURE',
+            'SEMANTIC_MISMATCH',
+            'POLYNOMIAL_LEDGER_FAILURE',
+            'RESOURCE_LIMIT',
+            'IMPLEMENTATION_FAILURE',
+          }
+          assert x['verdict'] in allowed, x['verdict']
+          assert x['firewall']['P_VS_NP']=='OPEN'
+          assert x['firewall']['SAT_IN_P']=='NOT_PROVED'
+          assert x['firewall']['TRUMP_finished'] is False
+          if x['verdict']=='PAIRWISE_COMPATIBLE_RAW_CHILD_BOUND_COVERS_FROZEN_DOMAIN':
+              assert x['root_count_completed_or_attempted']==15
+              assert x['semantic_mismatch_count']==0
+              assert x['symbolically_certified_residual_event_count']>0
+          if x['verdict']=='TIGHT_CHILD_SYMBOLIC_CERTIFICATE_GAP_BUT_ACTUAL_DOOR_EXISTS':
+              r=x['first_nonterminal_result']
+              assert r['class']=='TIGHT_CHILD_SYMBOLIC_CERTIFICATE_GAP_BUT_ACTUAL_DOOR_EXISTS'
+              assert r['first_actual_self_preserving']['self_preserving'] is True
+          if x['verdict']=='PAIRWISE_RAW_CHILD_BOUND_UNSOUND':
+              assert x['first_nonterminal_result']['class']=='PAIRWISE_RAW_CHILD_BOUND_UNSOUND'
+          print(x['verdict'])
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: janus-trump-r50g25al-result
+          path: artifacts/JANUS_TRUMP_R50G25AL_RESULT.json
+          if-no-files-found: error
+          retention-days: 30
