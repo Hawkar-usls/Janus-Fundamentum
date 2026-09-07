@@ -1,0 +1,40 @@
+{
+  "gate": "R50G25AI_LIFT_AVERAGE_RAW_MASS_CERTIFICATE_TO_SYMBOLIC_RESIDUAL_CLASS",
+  "status": "PREREGISTERED",
+  "parent_AH_receipt_commit": "2ea19315b1ec4a3bc96d3e1bb043bd9adae5de62",
+  "parent_journal_commit": "383c226602d4a9afe2feeeb0d34eaee181020adc",
+  "objective": "Lift AH's all-pair average raw-mass certificate to a symbolic residual class computable from signed incidence statistics without enumerating positive/negative parent pairs.",
+  "frozen_symbolic_bound": {
+    "per_variable": "For pivot x let a_x=#positive parents, b_x=#negative parents, A_x=sum widths of positive parents, B_x=sum widths of negative parents. Every non-tautological raw resolvent pair has mass at most |p|+|n|-1, hence pair_mass_x <= b_x*A_x + a_x*B_x - a_x*b_x.",
+    "aggregate": "Let P_hat=sum_x(b_x*A_x+a_x*B_x-a_x*b_x). Then sum_x RAW_S(x) <= V*S - L - Q2 + P_hat, where Q2=sum_clause |clause|^2.",
+    "threshold": "T=min(floor(B/2), floor(sqrt(B*(V-1))))",
+    "symbolic_class": "Canonical tautology-free bipolar residual CNFs satisfying V*S - L - Q2 + P_hat <= V*T.",
+    "existence_consequence": "Any formula in the symbolic class has at least one pivot with RAW_S(x)<=T by min<=average, so the frozen post-transition invariant is preserved before NF; exact DP NF can only decrease raw mass.",
+    "complexity_contract": "a_x,b_x,A_x,B_x,Q2 are computable by a linear scan of explicit clause-literal incidences; no parent-pair enumeration and no SAT truth are used.",
+    "no_retrofit": true
+  },
+  "secondary_corollary": {
+    "name": "WIDTH_DEGREE_COARSE_BOUND",
+    "statement": "If W=max clause width and Delta=max variable occurrence degree, then P_hat <= floor((2*W-1)*Delta*L/4).",
+    "role": "Diagnostic only; failure of this coarser corollary does not invalidate the primary signed-incidence certificate."
+  },
+  "domain": {
+    "legacy_reachable_roots": "Reuse AH's 15 frozen roots and legacy reachability route exactly.",
+    "truth_used_for_generation_or_pivot_selection": false
+  },
+  "falsifiers": [
+    "SIGNED_INCIDENCE_BOUND_UNSOUND",
+    "SYMBOLIC_CLASS_COVERAGE_GAP_ON_REACHABLE_RESIDUAL",
+    "REACHABLE_NO_ADMISSIBLE_RAW_DP_PIVOT",
+    "EXACT_DP_REPLAY_FAILURE",
+    "SEMANTIC_MISMATCH_ON_KNOWN_GPHP_UNSAT"
+  ],
+  "success_condition": "The signed-incidence aggregate upper bound is sound and every frozen reachable residual satisfies the symbolic-class inequality with at least one independently replayable admissible raw-DP pivot and no semantic mismatch.",
+  "firewall": {
+    "P_VS_NP": "OPEN",
+    "SAT_IN_P": "NOT_PROVED",
+    "TRUMP_finished": false,
+    "symbolic_class_coverage_on_finite_roots_is_not_global_reachability": true,
+    "state_envelope_is_not_runtime_bound": true
+  }
+}
