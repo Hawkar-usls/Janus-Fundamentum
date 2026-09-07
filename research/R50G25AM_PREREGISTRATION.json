@@ -1,0 +1,77 @@
+{
+  "schema_version": "1.0",
+  "gate": "R50G25AM_POST_DP_CHEAP_CONTRACTION_CERTIFICATE_OR_REACHABLE_COUNTEREXAMPLE",
+  "status": "PREREGISTERED_BEFORE_IMPLEMENTATION",
+  "parent_AL_receipt_commit": "eead993fec81fe471cb8496bf67747cf180ce041",
+  "parent_AL_journal_addendum_commit": "08dc51f95aeb02444d67612b06bc192d9862688d",
+  "parent_AL_meta_sync_commit": "7428494a95cae99724383d4da1317160916510c2",
+  "objective": "Test the mechanism exposed by AL without changing solver semantics: determine whether exact DP followed by the already frozen proof-carrying R33 simplifier is sufficient to return every reachable transition in the frozen 15-root domain to terminal/affine status or the AI signed-incidence class. Preserve the first explicit witness if RUP/SA-BVE or another later cheap layer is genuinely required.",
+  "frozen_domain": "Exactly the inherited AH/AI/AJ/AK/AL 15-root graph-PHP domain and deterministic generation. No family, seed, budget, selector order, success threshold, or reduction rule may be added or changed after outcomes.",
+  "transition": {
+    "candidate_order": "Variables sorted by AJ local RAW_S_UB then variable id; no SAT truth or model information.",
+    "stage_1": "Materialize the existing exact-DP transition for candidate x and require the independent exact-DP replay already used by Y/AL.",
+    "stage_2": "Apply exactly one complete call to the frozen r33.simplify fixpoint on the exact-DP child. Do not invoke RUP or SA-BVE while deciding whether this candidate supplies the AM certificate.",
+    "success_for_candidate": "The post-R33 state is a declared R33 terminal, recognized affine terminal under the already inherited affine recognizer, or a stalled residual that satisfies the frozen AI signed-incidence class under the original root budget.",
+    "selection": "Choose the first candidate in frozen order satisfying the post-R33 certificate. Only after selection may the inherited full cheap policy be replayed as an external consistency check."
+  },
+  "certificate": {
+    "proof_objects": "Exact-DP replay record plus full R33 history records, rule counts, certificate bytes, strict-progress flag, and post-R33 AI-class record when nonterminal.",
+    "independent_verifier": "Recompute exact DP and r33.simplify from the parent state independently and require identical transformed formula, identical R33 final formula, identical terminal label, strict-progress validity, and equality of canonical hashes. For a nonterminal certificate require post-R33 AI class membership.",
+    "allowed_R33_rules": [
+      "TAUTOLOGY_DELETION",
+      "UNIT_PROPAGATION_WITH_RECONSTRUCTION_TRACE",
+      "PURE_LITERAL_AUTARKY",
+      "SUBSUMPTION",
+      "BLOCKED_CLAUSE_ELIMINATION",
+      "BOUNDED_VARIABLE_ELIMINATION"
+    ],
+    "forbidden_during_candidate_certificate": ["RUP", "SA_BVE"]
+  },
+  "AL_gap_diagnostic_control": {
+    "family": {"holes": 24, "mode": "SEEDED_BALANCED"},
+    "outer_round": 25,
+    "residual_hash": "a28b56a47bf70487dfde4616b120d8ed68c4719546ff3d2756d12cf9b77d51cc",
+    "CLV": [157, 708, 21],
+    "known_AL_pivot": 9,
+    "known_exact_DP_child_CLV": [182, 962, 20],
+    "known_full_cheap_policy_post_CLV": [177, 852, 20],
+    "known_full_cheap_policy_AI_slack": 23002,
+    "diagnostic_rule": "Do not assume R33 is the source of this recovery. AM must explicitly report the R33 history/rule counts on this control. If R33 alone does not recover the AI class, seal that fact rather than widening the certificate."
+  },
+  "polynomial_ledger": {
+    "record": [
+      "variables_scanned",
+      "exact_DP_pair_checks",
+      "R33_check_operation_upper_ledger",
+      "R33_rule_applications",
+      "R33_certificate_bytes",
+      "candidates_tested",
+      "maximum_intermediate_CLV"
+    ],
+    "scope": "Ledger polynomiality is evaluated only in the current representation and frozen finite domain. It is not a proof of global polynomial SAT runtime."
+  },
+  "falsifiers": [
+    "PARENT_OUTSIDE_AI_CLASS",
+    "NO_ENVELOPE_ADMISSIBLE_PIVOT",
+    "NO_POST_DP_R33_SELF_PRESERVING_DOOR",
+    "AL_GAP_REQUIRES_LATER_CHEAP_LAYER",
+    "EXACT_DP_REPLAY_FAILURE",
+    "R33_REPLAY_FAILURE",
+    "R33_CERTIFICATE_FAILURE",
+    "SEMANTIC_MISMATCH",
+    "POLYNOMIAL_LEDGER_FAILURE",
+    "RESOURCE_LIMIT",
+    "IMPLEMENTATION_FAILURE"
+  ],
+  "pass_condition": "All 15 frozen roots complete with zero semantic mismatch; every reachable nonterminal residual has at least one candidate for which exact DP followed only by frozen R33 yields terminal/affine or an AI-class residual; all exact-DP/R33 replay and ledger checks pass.",
+  "result_policy": "Do not add RUP/SA-BVE to AM after seeing an R33-only failure. Such a failure becomes the next mechanistic gate. A finite AM pass is evidence only on the frozen reachable domain and is not universal closure or a polynomial SAT theorem.",
+  "firewall": {
+    "P_VS_NP": "OPEN",
+    "SAT_IN_P": "NOT_PROVED",
+    "TRUMP_finished": false,
+    "finite_pass_is_not_universal_closure": true,
+    "proof_carrying_local_transition_is_not_global_runtime_bound": true,
+    "AI_class_membership_is_sufficient_not_necessary": true,
+    "state_envelope_is_not_runtime_bound": true
+  }
+}
