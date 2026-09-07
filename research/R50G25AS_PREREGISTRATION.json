@@ -1,0 +1,94 @@
+{
+  "gate": "R50G25AS_UNIVERSAL_ENVELOPE_ADMISSIBLE_PIVOT_EXISTENCE_OR_REACHABLE_COUNTEREXAMPLE",
+  "status": "FROZEN_PREREGISTRATION",
+  "date": "2026-09-07",
+  "parent_AR": {
+    "branch": "research/r50g25ar-global-phase-root-state-size-envelope-2026-09-07",
+    "sealed_head": "5254dd6100e79e25850c3406c0822ea4d5ccecd8",
+    "receipt_commit": "a841fcc073b559a8bff7f72fbc80288e1f064f9d",
+    "receipt_blob_sha": "628baae89ba53670e8979ae7066b0ffef0a83722",
+    "verdict": "GLOBAL_PHASE_ROOT_STATE_SIZE_ENVELOPE_DERIVED_FOR_FROZEN_NORMATIVE_MACHINE"
+  },
+  "question": "For every relevant arbitrary-CNF residual of the frozen normative machine, must there exist at least one GLOBAL_ROOT_BUDGET envelope-admissible exact-DP pivot?",
+  "definitions": {
+    "canonical_root": "canonical tautology-free explicit CNF before cheap-policy saturation",
+    "root_budget": "B0=(C0+L0)*(V0+1)^2, frozen once at the canonical root",
+    "relevant_residual": "the deterministic frozen cheap-policy replay R33 -> terminal/affine -> RUP -> SA_BVE -> restart reaches kind=RESIDUAL from the root without any exact-DP step",
+    "local_certificate": "For bipolar pivot x, RAW_S_UB(x)=S-M_x+(b_x*A_x+a_x*B_x-a_x*b_x), as frozen in AJ/AR",
+    "threshold": "T=min(floor(B0/2), floor(sqrt(B0*(V-1)))) at the residual",
+    "certificate_admissible_DP_door": "bipolar x with RAW_S_UB(x)<=T",
+    "exact_size_admissible_DP_door": "independently materialized exact canonical DP child has C'+L'<=T and removes x"
+  },
+  "primary_attack_family": {
+    "name": "PUNCTURED_EXTENDED_HAMMING_WEIGHT4_XOR_CNF",
+    "construction": [
+      "Use n=2^m Boolean variables indexed by GF(2)^m points 0..n-1.",
+      "Enumerate every distinct 4-set {a,b,c,d} with a xor b xor c xor d = 0.",
+      "For each 4-set encode homogeneous XOR x_a xor x_b xor x_c xor x_d = 0 by its 8 canonical width-4 CNF clauses.",
+      "Add one full-width positive clause (x_0 OR ... OR x_{n-1}) excluding the all-zero codeword, which is a model of the homogeneous XOR system. This deliberately breaks affine closure before outcome observation.",
+      "Also retain the unpunctured affine formula as a diagnostic control only, never as a falsifier."
+    ],
+    "frozen_sizes": [8, 16],
+    "reason_for_attack": "The weight-4 code supplies dense balanced bipolar incidence while the puncture prevents a legitimate AFFINE terminal. The family is specified before replay and is not selected using SAT truth or observed outcome."
+  },
+  "secondary_frozen_attack_families": [
+    {
+      "name": "SEEDED_BALANCED_UNIQUE_3CNF",
+      "n_values": [8, 10, 12],
+      "seeds": [65001, 65002, 65003],
+      "target_clause_rule": "min(8*C(n,3), ceil(scale*n^(7/3)))",
+      "scales": [1.0, 1.5],
+      "duplicates": "canonicalized away"
+    },
+    {
+      "name": "COMPLEMENT_PAIR_3_HYPERGRAPH",
+      "n_values": [8, 10, 12],
+      "rule": "for lexicographic 3-subsets include (+++) and (---) until the frozen target count ceil(1.5*n^(7/3)) or exhaustion"
+    }
+  ],
+  "search_order": [
+    "PUNCTURED_EXTENDED_HAMMING n=8",
+    "PUNCTURED_EXTENDED_HAMMING n=16",
+    "all secondary candidates in the literal preregistered order"
+  ],
+  "audit_protocol": [
+    "Compute B0 from each canonical root before any cheap reduction.",
+    "Run the frozen cheap policy without exact DP.",
+    "If the result is TERMINAL or AFFINE, record it as non-falsifying and continue.",
+    "If the result is RESIDUAL, enumerate every bipolar residual variable and compute the frozen AJ/AR parent-only RAW_S_UB certificate with the original B0.",
+    "If at least one certificate-admissible pivot exists, record the minimum (RAW_S_UB,var) and continue.",
+    "If no certificate-admissible pivot exists, independently materialize exact canonical DP for every bipolar variable and test exact child S'<=T.",
+    "Seal the first relevant residual with zero certificate-admissible pivots. Do not mutate the family or selector after observing it.",
+    "Classify that witness as CERTIFICATE_ONLY_ROUTE_OBSTRUCTION when some exact-size-admissible pivot exists, or ACTUAL_DP_SIZE_ROUTE_OBSTRUCTION when none exists.",
+    "If no frozen candidate falsifies, report finite-search survival only; universal existence remains OPEN."
+  ],
+  "falsifier_classes": [
+    "RELEVANT_RESIDUAL_WITH_NO_CERTIFICATE_ADMISSIBLE_PIVOT",
+    "ACTUAL_DP_SIZE_ROUTE_OBSTRUCTION",
+    "LOCAL_BOUND_UNSOUND",
+    "EXACT_DP_REPLAY_FAILURE",
+    "ROOT_BUDGET_DRIFT",
+    "POLICY_CONTRACT_DRIFT",
+    "RESOURCE_LIMIT"
+  ],
+  "success_or_obstruction_verdicts": [
+    "REACHABLE_CERTIFICATE_ONLY_DP_DOOR_OBSTRUCTION_FOUND",
+    "REACHABLE_ACTUAL_DP_SIZE_OBSTRUCTION_FOUND",
+    "NO_FROZEN_COUNTEREXAMPLE_FOUND__UNIVERSAL_EXISTENCE_REMAINS_OPEN",
+    "IMPLEMENTATION_OR_CONTRACT_FAILURE",
+    "RESOURCE_LIMIT"
+  ],
+  "epistemic_rules": {
+    "SAT_truth_used_for_generation": false,
+    "SAT_truth_used_for_selector": false,
+    "family_mutation_after_outcome": false,
+    "finite_search_can_prove_universal_existence": false,
+    "certificate_failure_is_not_exact_DP_failure": true,
+    "route_obstruction_is_not_P_vs_NP_result": true
+  },
+  "firewall": {
+    "P_VS_NP": "OPEN",
+    "SAT_IN_P": "NOT_PROVED",
+    "TRUMP_finished": false
+  }
+}
