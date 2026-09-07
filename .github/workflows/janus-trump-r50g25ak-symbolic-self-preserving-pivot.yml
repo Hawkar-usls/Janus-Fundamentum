@@ -1,0 +1,71 @@
+name: JANUS TRUMP R50G25AK symbolic self-preserving pivot
+
+on:
+  push:
+    branches:
+      - research/r50g25ak-symbolic-self-preserving-pivot-2026-09-07
+    paths:
+      - 'experiments/janus_trump_r50g25ak_symbolic_self_preserving_pivot.py'
+      - '.github/workflows/janus-trump-r50g25ak-symbolic-self-preserving-pivot.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Run AK symbolic self-preservation audit
+        run: |
+          mkdir -p artifacts
+          PYTHONPATH=experiments python experiments/janus_trump_r50g25ak_symbolic_self_preserving_pivot.py --out artifacts/JANUS_TRUMP_R50G25AK_RESULT.json
+      - name: Verify fail-closed result
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          p=Path('artifacts/JANUS_TRUMP_R50G25AK_RESULT.json')
+          assert p.exists()
+          x=json.loads(p.read_text())
+          assert x['AK_preregistration_commit']=='21a180bb250e2b7d6c9ed999b1466f40af050fbe'
+          allowed={
+            'PARENT_ONLY_SYMBOLIC_SELF_PRESERVATION_CERTIFICATE_COVERS_FROZEN_DOMAIN',
+            'SYMBOLIC_SELF_PRESERVATION_CERTIFICATE_GAP_BUT_ACTUAL_DOOR_EXISTS',
+            'PARENT_ONLY_CHILD_BOUND_UNSOUND',
+            'NO_ACTUAL_SELF_PRESERVING_PIVOT',
+            'PARENT_OUTSIDE_AI_CLASS',
+            'NO_ENVELOPE_ADMISSIBLE_PIVOT',
+            'EXACT_DP_REPLAY_FAILURE',
+            'SEMANTIC_MISMATCH',
+            'POLYNOMIAL_LEDGER_FAILURE',
+            'RESOURCE_LIMIT',
+            'IMPLEMENTATION_FAILURE',
+          }
+          assert x['verdict'] in allowed
+          assert x['firewall']['P_VS_NP']=='OPEN'
+          assert x['firewall']['SAT_IN_P']=='NOT_PROVED'
+          assert x['firewall']['TRUMP_finished'] is False
+          if x['verdict']=='PARENT_ONLY_SYMBOLIC_SELF_PRESERVATION_CERTIFICATE_COVERS_FROZEN_DOMAIN':
+              assert x['root_count_completed_or_attempted']==15
+              assert x['semantic_mismatch_count']==0
+              assert x['symbolically_certified_residual_event_count']>0
+          if x['verdict']=='SYMBOLIC_SELF_PRESERVATION_CERTIFICATE_GAP_BUT_ACTUAL_DOOR_EXISTS':
+              r=x['first_nonterminal_result']
+              assert r['class']=='SYMBOLIC_SELF_PRESERVATION_CERTIFICATE_GAP_BUT_ACTUAL_DOOR_EXISTS'
+              assert r['first_actual_self_preserving']['self_preserving'] is True
+          if x['verdict']=='NO_ACTUAL_SELF_PRESERVING_PIVOT':
+              assert x['first_nonterminal_result']['class']=='NO_ACTUAL_SELF_PRESERVING_PIVOT'
+          print(x['verdict'])
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: janus-trump-r50g25ak-result
+          path: artifacts/JANUS_TRUMP_R50G25AK_RESULT.json
+          if-no-files-found: error
+          retention-days: 30
