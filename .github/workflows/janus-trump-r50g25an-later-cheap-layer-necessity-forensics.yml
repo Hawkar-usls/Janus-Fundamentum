@@ -1,0 +1,76 @@
+name: JANUS TRUMP R50G25AN later cheap-layer necessity forensics
+
+on:
+  push:
+    branches:
+      - research/r50g25an-later-cheap-layer-necessity-forensics-2026-09-07
+    paths:
+      - 'experiments/janus_trump_r50g25an_later_cheap_layer_necessity_forensics.py'
+      - '.github/workflows/janus-trump-r50g25an-later-cheap-layer-necessity-forensics.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  forensic:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Run AN later cheap-layer necessity forensics
+        run: |
+          mkdir -p artifacts
+          PYTHONPATH=experiments python experiments/janus_trump_r50g25an_later_cheap_layer_necessity_forensics.py --out artifacts/JANUS_TRUMP_R50G25AN_RESULT.json
+      - name: Verify fail-closed result
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          p=Path('artifacts/JANUS_TRUMP_R50G25AN_RESULT.json')
+          assert p.exists()
+          x=json.loads(p.read_text())
+          assert x['gate']=='JANUS_TRUMP_R50G25AN_LATER_CHEAP_LAYER_NECESSITY_FORENSICS'
+          assert x['AN_preregistration_commit']=='0c3c92896de54b77ff23ddd84a85706dd37af0de'
+          assert x['parent_AM_receipt_commit']=='324528f23524c647071e9b823e15fe7d7ea24e9b'
+          allowed={
+            'RUP_DIRECT_REENTRY',
+            'RUP_UNLOCKS_R33_REENTRY',
+            'MULTI_RUP_RESTART_CHAIN',
+            'MULTI_RUP_DIRECT_REENTRY',
+            'SA_BVE_DIRECT_REENTRY',
+            'SA_BVE_THEN_R33_REENTRY',
+            'TERMINAL_BEFORE_AI_REENTRY',
+            'AFFINE_BEFORE_AI_REENTRY',
+            'R33_REENTRY_WITHOUT_LATER_DOOR',
+            'FROZEN_PARENT_WITNESS_DRIFT',
+            'EXACT_DP_REPLAY_FAILURE',
+            'RAW_CHILD_HASH_OR_CLV_DRIFT',
+            'AM_R33_INERTNESS_NOT_REPRODUCED',
+            'RUP_REPLAY_FAILURE',
+            'R33_RESTART_REPLAY_FAILURE',
+            'SA_BVE_REPLAY_FAILURE',
+            'FULL_POLICY_RECOVERY_NOT_REPRODUCED',
+            'RESOURCE_LIMIT',
+            'IMPLEMENTATION_FAILURE',
+          }
+          assert x['verdict'] in allowed, x['verdict']
+          assert x['firewall']['P_VS_NP']=='OPEN'
+          assert x['firewall']['SAT_IN_P']=='NOT_PROVED'
+          assert x['firewall']['TRUMP_finished'] is False
+          if x['verdict'] in {'RUP_DIRECT_REENTRY','RUP_UNLOCKS_R33_REENTRY','MULTI_RUP_RESTART_CHAIN','MULTI_RUP_DIRECT_REENTRY','SA_BVE_DIRECT_REENTRY','SA_BVE_THEN_R33_REENTRY'}:
+              assert x['full_policy_consistency']['recovery_pass'] is True
+              assert x['exact_DP']['raw_child']['hash']=='978512434c9464304b5294048778cbbacc789e854c207449dde57aa1a0ed3e21'
+              assert x['initial_R33']['rule_applications']==0
+              assert x['initial_R33']['replay_pass'] is True
+          print(x['verdict'])
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: janus-trump-r50g25an-result
+          path: artifacts/JANUS_TRUMP_R50G25AN_RESULT.json
+          if-no-files-found: error
+          retention-days: 30
