@@ -1,0 +1,77 @@
+name: JANUS TRUMP R50G25AT affine-core plus bounded-defect polynomial door
+
+on:
+  push:
+    branches:
+      - research/r50g25at-affine-core-plus-defect-polynomial-door-2026-09-07
+    paths:
+      - 'experiments/janus_trump_r50g25at_affine_core_plus_defect_polynomial_door.py'
+      - '.github/workflows/janus-trump-r50g25at-affine-core-plus-defect-polynomial-door.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Run AT affine-core plus bounded-defect door
+        run: |
+          mkdir -p artifacts
+          PYTHONPATH=experiments python experiments/janus_trump_r50g25at_affine_core_plus_defect_polynomial_door.py --out artifacts/JANUS_TRUMP_R50G25AT_RESULT.json
+      - name: Verify fail-closed scientific result
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          p=Path('artifacts/JANUS_TRUMP_R50G25AT_RESULT.json')
+          assert p.exists()
+          x=json.loads(p.read_text())
+          PASS='AFFINE_CORE_PLUS_BOUNDED_DEFECT_POLYNOMIAL_DOOR_PASS'
+          assert x['gate']=='JANUS_TRUMP_R50G25AT_AFFINE_CORE_PLUS_DEFECT_POLYNOMIAL_DOOR_OR_COUNTEREXAMPLE'
+          assert x['preregistration_commit']=='3ac282d8594920cb37cfae08e79b2a0f526165fb'
+          assert x['parent_AS_receipt']=='4ca2803aae8503e05dfc7ed46266ebe89add67b9'
+          assert x['parent_AS_sealed_head']=='7c8a2f2ba6b6de2591d6f1be1e5da59900bfdb63'
+          assert x['verdict']==PASS, x['verdict']
+          assert x['falsifier_count']==0, x['falsifiers']
+          assert x['D_MAX']==4
+          assert x['candidate_count_audited']==4
+          rows={r['name']:r for r in x['rows']}
+          assert rows['AS_WITNESS_D1_SAT']['result']['status']=='SAT'
+          assert rows['AS_WITNESS_D1_SAT']['result']['formula_hash']=='0d46b6d6120f9a123ae75faf92ac6cfafbb57641bbc77c2c4512a8b642af3de7'
+          assert rows['AS_WITNESS_D1_SAT']['result']['extraction']['defect_clause_count']==1
+          assert rows['SIMPLE_D1_UNSAT']['result']['status']=='UNSAT'
+          assert rows['SIMPLE_D2_SAT']['result']['status']=='SAT'
+          assert rows['SIMPLE_D4_UNSAT']['result']['status']=='UNSAT'
+          for row in x['rows']:
+            r=row['result']
+            assert r['extraction']['partition_pass'] is True
+            assert r['extraction']['replay_failure_count']==0
+            assert r['extraction']['defect_clause_count']<=4
+            assert not r['failures']
+            if r['status']=='UNSAT':
+              assert r['all_unsat_certificates_pass'] is True
+              assert r['branches_executed']==r['branch_count_bound_exact']
+            if r['status']=='SAT':
+              assert r['winning_branch'] is not None
+              assert r['winning_branch']['model_pass'] is True
+          assert x['scientific_scope']['unbounded_defect_count']=='OPEN'
+          assert x['scientific_scope']['arbitrary_CNF_coverage']=='OPEN'
+          assert x['scientific_scope']['AS_universal_DP_route']=='REMAINS_FALSIFIED'
+          assert x['firewall']['P_VS_NP']=='OPEN'
+          assert x['firewall']['SAT_IN_P']=='NOT_PROVED'
+          assert x['firewall']['TRUMP_finished'] is False
+          print(x['verdict'])
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: janus-trump-r50g25at-result
+          path: artifacts/JANUS_TRUMP_R50G25AT_RESULT.json
+          if-no-files-found: error
+          retention-days: 30
