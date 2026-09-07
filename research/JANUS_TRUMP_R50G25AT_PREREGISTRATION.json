@@ -1,0 +1,83 @@
+{
+  "gate": "R50G25AT_AFFINE_CORE_PLUS_DEFECT_POLYNOMIAL_DOOR_OR_COUNTEREXAMPLE",
+  "status": "FROZEN_PREREGISTRATION_BEFORE_IMPLEMENTATION",
+  "date": "2026-09-07",
+  "parent_gate": "R50G25AS_UNIVERSAL_ENVELOPE_ADMISSIBLE_PIVOT_EXISTENCE_OR_REACHABLE_COUNTEREXAMPLE",
+  "parent_sealed_head": "7c8a2f2ba6b6de2591d6f1be1e5da59900bfdb63",
+  "parent_receipt_commit": "4ca2803aae8503e05dfc7ed46266ebe89add67b9",
+  "frozen_AS_witness": {
+    "family": "PUNCTURED_EXTENDED_HAMMING_WEIGHT4_XOR_CNF",
+    "n": 16,
+    "residual_hash": "0d46b6d6120f9a123ae75faf92ac6cfafbb57641bbc77c2c4512a8b642af3de7",
+    "residual_CLV": [1121, 4485, 16],
+    "structure": "1120 width-4 XOR clauses plus one width-5 non-affine defect clause",
+    "explicit_model_for_posthoc_validation_only": "ALL_ONES",
+    "AR_DP_door": "OBSTRUCTED_0_OF_16_EXACT_SIZE_ADMISSIBLE"
+  },
+  "frozen_hypothesis": "CNF formulas that decompose into an exactly recognized affine/XOR core A plus at most D_MAX non-affine defect clauses admit a proof-carrying polynomial decision door by enumerating one satisfied literal per defect clause and solving the resulting affine systems over GF(2).",
+  "D_MAX": 4,
+  "normative_algorithm": {
+    "affine_extraction": [
+      "Canonicalize clauses and group by unsigned variable support.",
+      "A support-group of width k is an affine parity block iff it contains exactly 2^(k-1) distinct clauses and all clause sign-bit vectors have the same parity; no truth oracle may be used.",
+      "Each recognized group contributes one GF(2) parity equation; every unrecognized clause is a defect clause.",
+      "Extraction must replay every recognized parity block back to exactly the source clause set before the block may be removed from the defect set."
+    ],
+    "bounded_defect_door": [
+      "Require defect_count <= D_MAX; otherwise return DEFECT_BOUND_EXCEEDED, not a scientific counterexample to SAT in P.",
+      "For d defect clauses D1..Dd enumerate the Cartesian product D1 x ... x Dd, choosing one literal per defect clause to assert true.",
+      "For each tuple, add the selected literal assignments as GF(2) unit equations to affine core A and run deterministic Gaussian elimination over GF(2).",
+      "If any branch is consistent, reconstruct a full variable assignment, verify it against the original CNF independently, and return SAT with certificate.",
+      "If every branch is inconsistent, retain per-branch row-reduction contradiction certificates and return UNSAT for the bounded-defect formula."
+    ],
+    "complexity_ledger": {
+      "branch_count": "product_j width(Dj) <= L^D_MAX",
+      "GF2_solve_per_branch": "polynomial in explicit affine matrix dimensions",
+      "frozen_claim": "POLYNOMIAL_FOR_FIXED_D_MAX_ONLY",
+      "no_claim_for_unbounded_defect_count": true
+    }
+  },
+  "frozen_controls": [
+    {
+      "name": "AS_WITNESS_D1_SAT",
+      "source": "exact AS residual reconstructed independently from frozen generator/receipt",
+      "expected": "SAT_AND_MODEL_RECONSTRUCTION_PASS"
+    },
+    {
+      "name": "SIMPLE_D1_UNSAT",
+      "formula_description": "affine core x1=0,x2=0 plus non-affine defect (x1 OR x2)",
+      "expected": "UNSAT_WITH_ALL_LITERAL_BRANCHES_INCONSISTENT"
+    },
+    {
+      "name": "SIMPLE_D2_SAT",
+      "formula_description": "affine core x1=0,x2=0 plus defects (x1 OR x3) and (x2 OR x3)",
+      "expected": "SAT_WITH_x3=1"
+    },
+    {
+      "name": "SIMPLE_D4_UNSAT",
+      "formula_description": "affine core x1=0,x2=0,x3=0,x4=0 plus defects (x1 OR x5),(x2 OR x5),(x3 OR NOT x5),(x4 OR NOT x5)",
+      "expected": "UNSAT"
+    }
+  ],
+  "falsifiers": [
+    "AFFINE_EXTRACTION_FAILURE",
+    "AFFINE_REPLAY_MISMATCH",
+    "GAUSSIAN_CERTIFICATE_FAILURE",
+    "RECONSTRUCTION_FAILURE",
+    "AS_WITNESS_NOT_SOLVED_BY_FROZEN_DOOR",
+    "BOUNDED_DEFECT_CONTROL_FAILURE",
+    "NO_POLYNOMIAL_DOOR_ON_BOUNDED_DEFECT",
+    "RESOURCE_LIMIT"
+  ],
+  "non_falsifying_boundary": "DEFECT_BOUND_EXCEEDED means AT scope exhausted; it is not a solver counterexample and not a P-vs-NP result.",
+  "truth_oracle_policy": "No SAT truth oracle may choose extraction, branches, literals, equations, or candidates. Independent full-CNF validation is allowed only after the algorithm has produced a candidate model; tiny synthetic controls may have preregistered expected labels.",
+  "success_condition": "Exact AS residual and all frozen bounded-defect controls pass extraction/replay, deterministic GF(2) branch solving, certificate verification, and independent reconstruction validation with no falsifier.",
+  "scientific_scope_if_success": "A polynomial alternative door is established only for exactly recognized affine-core plus <=4 defect-clause formulas. Universal arbitrary-CNF coverage remains OPEN.",
+  "firewall": {
+    "P_VS_NP": "OPEN",
+    "SAT_IN_P": "NOT_PROVED",
+    "TRUMP_finished": false,
+    "AT_success_does_not_repair_AS_universal_DP_claim": true,
+    "AT_success_is_not_universal_arbitrary_CNF_coverage": true
+  }
+}
