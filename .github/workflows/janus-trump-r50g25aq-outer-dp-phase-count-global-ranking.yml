@@ -1,0 +1,77 @@
+name: JANUS TRUMP R50G25AQ outer DP phase count and global ranking
+
+on:
+  push:
+    branches:
+      - research/r50g25aq-outer-dp-phase-count-global-ranking-2026-09-07
+    paths:
+      - 'experiments/janus_trump_r50g25aq_outer_dp_phase_count_global_ranking.py'
+      - '.github/workflows/janus-trump-r50g25aq-outer-dp-phase-count-global-ranking.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Run AQ outer DP phase-count audit
+        run: |
+          mkdir -p artifacts
+          PYTHONPATH=experiments python experiments/janus_trump_r50g25aq_outer_dp_phase_count_global_ranking.py --out artifacts/JANUS_TRUMP_R50G25AQ_RESULT.json
+      - name: Verify fail-closed scientific result
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          p=Path('artifacts/JANUS_TRUMP_R50G25AQ_RESULT.json')
+          assert p.exists()
+          x=json.loads(p.read_text())
+          S1='OUTER_DP_PHASE_COUNT_STRUCTURALLY_BOUNDED_BY_V0__GLOBAL_SCALAR_COUNTEREXAMPLE_FOUND'
+          S2='OUTER_DP_PHASE_COUNT_STRUCTURALLY_BOUNDED_BY_V0__GLOBAL_SCALAR_SURVIVES_FROZEN_AUDIT'
+          C='OUTER_DP_PHASE_COUNT_OR_OPERATOR_CONTRACT_COUNTEREXAMPLE_FOUND'
+          assert x['gate']=='JANUS_TRUMP_R50G25AQ_OUTER_DP_PHASE_COUNT_OR_GLOBAL_AMORTIZED_POTENTIAL_COUNTEREXAMPLE'
+          assert x['preregistration_commit']=='a57380d38b78fe013d131f3d26e54c3e9620dd18'
+          assert x['parent_AP_sync_head']=='ce0a7684dae0991caec78a976fc1805f347b4af5'
+          assert x['verdict'] in {S1,S2,C}, x['verdict']
+          chains=x['finite_exact_DP_chain_audit']
+          for fr in chains['formula_rows']:
+            assert fr['DP_phase_count'] <= fr['initial_V']
+          for row in chains['transition_rows']:
+            assert row['replay_pass'] is True
+            assert row['after_CLV'][2] <= row['before_CLV'][2]-1
+            assert row['pivot'] not in row['after_vars']
+            assert set(row['after_vars']) <= (set(row['before_vars'])-{row['pivot']})
+          phase=x['historical_AN_phase_ranking_replay']
+          assert phase['technical_failure'] is None
+          assert phase['RUP_steps']==26
+          assert phase['minimum_observed_Phi_drop'] is not None and phase['minimum_observed_Phi_drop']>0
+          if x['verdict']==S1:
+            assert x['falsifier_count']==0
+            g=x['frozen_global_scalar_attack']
+            assert g['strict_global_scalar_descent'] is False
+            assert g['Gamma_after'] >= g['Gamma_before']
+          elif x['verdict']==S2:
+            assert x['falsifier_count']==0
+            assert x['frozen_global_scalar_attack']['strict_global_scalar_descent'] is True
+          else:
+            assert x['falsifier_count']>0
+          assert x['scientific_scope']['global_phase_root_size_bound']=='OPEN'
+          assert x['scientific_scope']['end_to_end_polynomial_runtime']=='OPEN'
+          assert x['firewalls']['P_VS_NP']=='OPEN'
+          assert x['firewalls']['SAT_IN_P']=='NOT_PROVED'
+          assert x['firewalls']['TRUMP_finished'] is False
+          print(x['verdict'])
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: janus-trump-r50g25aq-result
+          path: artifacts/JANUS_TRUMP_R50G25AQ_RESULT.json
+          if-no-files-found: error
+          retention-days: 30
