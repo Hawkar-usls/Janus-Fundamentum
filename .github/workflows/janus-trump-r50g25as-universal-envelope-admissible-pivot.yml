@@ -1,0 +1,75 @@
+name: JANUS TRUMP R50G25AS universal envelope-admissible pivot attack
+
+on:
+  push:
+    branches:
+      - research/r50g25as-universal-envelope-admissible-pivot-2026-09-07
+    paths:
+      - 'experiments/janus_trump_r50g25as_universal_envelope_admissible_pivot.py'
+      - '.github/workflows/janus-trump-r50g25as-universal-envelope-admissible-pivot.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Run AS universal admissible-pivot attack
+        run: |
+          mkdir -p artifacts
+          PYTHONPATH=experiments python experiments/janus_trump_r50g25as_universal_envelope_admissible_pivot.py --out artifacts/JANUS_TRUMP_R50G25AS_RESULT.json
+      - name: Verify fail-closed scientific result
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          p=Path('artifacts/JANUS_TRUMP_R50G25AS_RESULT.json')
+          assert p.exists()
+          x=json.loads(p.read_text())
+          C='REACHABLE_CERTIFICATE_ONLY_DP_DOOR_OBSTRUCTION_FOUND'
+          A='REACHABLE_ACTUAL_DP_SIZE_OBSTRUCTION_FOUND'
+          S='NO_FROZEN_COUNTEREXAMPLE_FOUND__UNIVERSAL_EXISTENCE_REMAINS_OPEN'
+          F='IMPLEMENTATION_OR_CONTRACT_FAILURE'
+          assert x['gate']=='JANUS_TRUMP_R50G25AS_UNIVERSAL_ENVELOPE_ADMISSIBLE_PIVOT_EXISTENCE_OR_REACHABLE_COUNTEREXAMPLE'
+          assert x['preregistration_commit']=='65870dc5f7942fb3876bc3760eaa3cfaa70f44ee'
+          assert x['parent_AR_receipt_commit']=='a841fcc073b559a8bff7f72fbc80288e1f064f9d'
+          assert x['verdict'] in {C,A,S,F}, x['verdict']
+          assert x['firewalls']['P_VS_NP']=='OPEN'
+          assert x['firewalls']['SAT_IN_P']=='NOT_PROVED'
+          assert x['firewalls']['TRUMP_finished'] is False
+          if x['verdict'] in {C,A}:
+            assert x['falsifier_count']==0
+            w=x['first_reachable_obstruction']
+            assert w is not None
+            assert w['certificate_admissible_pivot_count']==0
+            assert w['bipolar_pivot_count']>0
+            assert w['policy_route_summary']['route_length']>=0
+            for e in w['exact_pivots']:
+              assert e['exact_S_after'] <= e['RAW_S_UB']
+            if x['verdict']==C:
+              assert w['obstruction_class']=='CERTIFICATE_ONLY_ROUTE_OBSTRUCTION'
+              assert w['exact_size_admissible_pivot_count']>0
+            else:
+              assert w['obstruction_class']=='ACTUAL_DP_SIZE_ROUTE_OBSTRUCTION'
+              assert w['exact_size_admissible_pivot_count']==0
+          elif x['verdict']==S:
+            assert x['falsifier_count']==0
+            assert x['first_reachable_obstruction'] is None
+            assert x['scientific_scope']['universal_envelope_admissible_pivot_existence']=='OPEN'
+          else:
+            assert x['falsifier_count']>0
+          print(x['verdict'])
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: janus-trump-r50g25as-result
+          path: artifacts/JANUS_TRUMP_R50G25AS_RESULT.json
+          if-no-files-found: error
+          retention-days: 30
