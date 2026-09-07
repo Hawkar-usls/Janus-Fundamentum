@@ -75,6 +75,42 @@ jobs:
           assert x['firewall']['TRUMP_finished'] is False
           print(x['verdict'])
           PY
+      - name: Emit immutable AU result digest and scientific identity
+        run: |
+          python - <<'PY'
+          import hashlib, json
+          from pathlib import Path
+          p = Path('artifacts/JANUS_TRUMP_R50G25AU_RESULT.json')
+          b = p.read_bytes()
+          x = json.loads(b)
+          residuals = [r for r in x['rows'] if r.get('policy_kind') == 'RESIDUAL']
+          compact = {
+              'result_json_sha256': hashlib.sha256(b).hexdigest(),
+              'result_json_size_bytes': len(b),
+              'verdict': x['verdict'],
+              'candidate_count_audited': x['candidate_count_audited'],
+              'residual_count_audited': x['residual_count_audited'],
+              'max_defect_count_observed': x['max_defect_count_observed'],
+              'max_B_defect_observed': x['max_B_defect_observed'],
+              'minimum_budget_slack_observed': x['minimum_budget_slack_observed'],
+              'first_falsifier_class': None if x['first_falsifier'] is None else x['first_falsifier']['class'],
+              'residual_identities': [
+                  {
+                      'meta': r['meta'],
+                      'residual_hash': r['residual_hash'],
+                      'residual_CLV': r['residual_CLV_before_tautology_drop'],
+                      'defect_count': r['ledger']['defect_count'],
+                      'defect_widths': r['ledger']['defect_widths'],
+                      'L': r['ledger']['L'],
+                      'B_defect': r['ledger']['B_defect'],
+                      'L4_budget': r['ledger']['L4_budget'],
+                      'budget_slack': r['ledger']['budget_slack'],
+                  }
+                  for r in residuals
+              ],
+          }
+          print('AU_PROVENANCE_IDENTITY=' + json.dumps(compact, sort_keys=True, separators=(',', ':')))
+          PY
       - uses: actions/upload-artifact@v4
         with:
           name: janus-trump-r50g25au-result
