@@ -1,0 +1,153 @@
+name: JANUS TRUMP R50G25AV parallel frozen replay
+
+on:
+  push:
+    branches:
+      - research/r50g25av-reachable-multi-defect-growth-witness-2026-09-08
+    paths:
+      - 'experiments/janus_trump_r50g25av_parallel_candidate.py'
+      - 'experiments/janus_trump_r50g25av_parallel_aggregate.py'
+      - '.github/workflows/janus-trump-r50g25av-parallel-frozen-replay.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  candidate:
+    strategy:
+      fail-fast: false
+      matrix:
+        index: [0, 1, 2, 3, 4, 5, 6, 7, 8]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Replay one frozen AV candidate
+        run: |
+          mkdir -p candidate-artifacts
+          PYTHONPATH=experiments python experiments/janus_trump_r50g25av_parallel_candidate.py \
+            --index ${{ matrix.index }} \
+            --out candidate-artifacts/candidate-${{ matrix.index }}.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: av-candidate-${{ matrix.index }}
+          path: candidate-artifacts/candidate-${{ matrix.index }}.json
+          if-no-files-found: error
+          retention-days: 30
+
+  aggregate:
+    needs: candidate
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: av-candidate-*
+          path: candidate-artifacts
+          merge-multiple: true
+      - name: Aggregate in frozen preregistered order
+        run: |
+          mkdir -p artifacts
+          PYTHONPATH=experiments python experiments/janus_trump_r50g25av_parallel_aggregate.py \
+            --input-dir candidate-artifacts \
+            --out artifacts/JANUS_TRUMP_R50G25AV_RESULT.json
+      - name: Verify fail-closed AV aggregate
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          p = Path('artifacts/JANUS_TRUMP_R50G25AV_RESULT.json')
+          assert p.exists()
+          x = json.loads(p.read_text())
+          OBS = 'REACHABLE_DEFECT_BRANCH_PRODUCT_EXCEEDS_L4'
+          MULTI = 'REACHABLE_D_GT_4_WITHIN_L4_ON_FROZEN_ATTACKS__UNIVERSAL_GROWTH_OPEN'
+          NO_MULTI = 'NO_D_GT_4_ON_FROZEN_ATTACKS__UNIVERSAL_GROWTH_OPEN'
+          assert x['preregistration_commit'] == 'ab413eb9c5300934e6e4b4feaee008cd3a366339'
+          assert x['parent_AU_sealed_head'] == 'e68a5034434ef36d6130685dd92ce12c456cdbf3'
+          assert x['Y_target_hash'] == 'c379fb11374c4259a736545f6652a417b6d98d016e9dcaed62d44d3740b71adb'
+          assert x['candidate_count_frozen'] == 9
+          assert x['candidate_count_physically_computed'] == 9
+          assert x['frozen_attack_contract']['local_k'] == [2,5,8,16,24,32]
+          assert x['frozen_attack_contract']['Y_copy_counts'] == [1,2,3]
+          assert x['execution_topology']['scientific_candidate_set_changed'] is False
+          assert x['execution_topology']['scientific_candidate_order_changed'] is False
+          assert x['execution_topology']['stopping_rule_changed'] is False
+          assert x['verdict'] in {OBS, MULTI, NO_MULTI}, x['verdict']
+          assert x['failure_count'] == 0, x['failures']
+          for row in x['rows']:
+              if row.get('policy_kind') != 'RESIDUAL':
+                  continue
+              e = row['extraction']
+              l = row['ledger']
+              assert e['partition_pass'] is True
+              assert e['replay_failure_count'] == 0
+              assert e['explicit_tautology_policy'] == 'DETECT_AND_DROP_AS_ALWAYS_TRUE_BEFORE_AFFINE_GROUPING'
+              assert l['product_recompute_match'] is True
+              assert l['L_matches_effective_CLV'] is True
+              assert l['L4_budget'] == l['L'] ** 4
+              prod = 1
+              for w in l['defect_widths']:
+                  prod *= w
+              assert prod == l['B_defect'] == l['B_defect_recomputed']
+          if x['first_reachable_d_gt_4'] is not None:
+              assert x['first_reachable_d_gt_4']['defect_count'] > 4
+          if x['verdict'] == OBS:
+              w = x['first_L4_obstruction']
+              assert w is not None
+              assert w['class'] == 'DEFECT_BRANCH_PRODUCT_EXCEEDS_L4'
+              assert w['B_defect'] > w['L4_budget']
+              assert w['budget_slack'] < 0
+              assert x['scientific_scope']['simple_defect_enumeration_if_obstruction'] == 'FALSIFIED_ON_REACHABLE_WITNESS'
+              assert x['scientific_scope']['second_structural_door_if_obstruction'] == 'MUST_BE_SEPARATELY_PREREGISTERED'
+          elif x['verdict'] == MULTI:
+              assert x['first_reachable_d_gt_4'] is not None
+              assert x['first_L4_obstruction'] is None
+          else:
+              assert x['first_reachable_d_gt_4'] is None
+              assert x['first_L4_obstruction'] is None
+          assert x['truth_oracle']['used_for_generation'] is False
+          assert x['truth_oracle']['used_for_selection'] is False
+          assert x['truth_oracle']['used_for_verdict'] is False
+          assert x['firewall']['P_VS_NP'] == 'OPEN'
+          assert x['firewall']['SAT_IN_P'] == 'NOT_PROVED'
+          assert x['firewall']['TRUMP_finished'] is False
+          print(x['verdict'])
+          PY
+      - name: Emit immutable AV aggregate digest and scientific identity
+        run: |
+          python - <<'PY'
+          import hashlib, json
+          from pathlib import Path
+          p = Path('artifacts/JANUS_TRUMP_R50G25AV_RESULT.json')
+          b = p.read_bytes()
+          x = json.loads(b)
+          compact = {
+              'result_json_sha256': hashlib.sha256(b).hexdigest(),
+              'result_json_size_bytes': len(b),
+              'verdict': x['verdict'],
+              'candidate_count_audited': x['candidate_count_audited'],
+              'residual_count_audited': x['residual_count_audited'],
+              'max_defect_count_observed': x['max_defect_count_observed'],
+              'max_B_defect_observed': x['max_B_defect_observed'],
+              'minimum_budget_slack_observed': x['minimum_budget_slack_observed'],
+              'first_multi': x['first_reachable_d_gt_4'],
+              'first_L4_obstruction': None if x['first_L4_obstruction'] is None else {k:v for k,v in x['first_L4_obstruction'].items() if k != 'residual_formula'},
+              'absorption': x['cheap_policy_absorption'],
+              'execution_topology': x['execution_topology'],
+          }
+          print('AV_PARALLEL_PROVENANCE_IDENTITY=' + json.dumps(compact, sort_keys=True, separators=(',', ':')))
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: janus-trump-r50g25av-parallel-result
+          path: artifacts/JANUS_TRUMP_R50G25AV_RESULT.json
+          if-no-files-found: error
+          retention-days: 30
