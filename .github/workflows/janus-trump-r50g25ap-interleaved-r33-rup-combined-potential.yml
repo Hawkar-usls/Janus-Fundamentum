@@ -1,0 +1,81 @@
+name: JANUS TRUMP R50G25AP interleaved R33 RUP combined potential
+
+on:
+  push:
+    branches:
+      - research/r50g25ap-interleaved-r33-rup-combined-potential-2026-09-07
+    paths:
+      - 'experiments/janus_trump_r50g25ap_interleaved_r33_rup_combined_potential.py'
+      - '.github/workflows/janus-trump-r50g25ap-interleaved-r33-rup-combined-potential.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Run AP combined R33-RUP potential audit
+        run: |
+          mkdir -p artifacts
+          PYTHONPATH=experiments python experiments/janus_trump_r50g25ap_interleaved_r33_rup_combined_potential.py --out artifacts/JANUS_TRUMP_R50G25AP_RESULT.json
+      - name: Verify fail-closed scientific result
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          p=Path('artifacts/JANUS_TRUMP_R50G25AP_RESULT.json')
+          assert p.exists()
+          x=json.loads(p.read_text())
+          SUCCESS='COMBINED_R33_RUP_ROOT_FROZEN_PHI_STRICT_DESCENT_AND_FROZEN_LEDGER_AUDIT_PASS'
+          COUNTER='COMBINED_R33_RUP_PHI_OR_LEDGER_COUNTEREXAMPLE_FOUND'
+          allowed_falsifiers={
+            'R33_CLAUSE_COUNT_INCREASE','R33_VARIABLE_INCREASE','RUP_CLAUSE_OR_VARIABLE_INCREASE',
+            'RUP_LITERAL_DESCENT_FAILURE','NON_BVE_R33_LITERAL_DESCENT_FAILURE',
+            'BVE_VARIABLE_DESCENT_FAILURE','BVE_ROOT_BOUND_FAILURE','COMBINED_PHI_NONDECREASE',
+            'R33_WORK_LEDGER_BOUND_FAILURE','RUP_WORK_LEDGER_BOUND_FAILURE',
+            'AN_WITNESS_REPRODUCTION_FAILURE','REPLAY_OR_IMPLEMENTATION_FAILURE'
+          }
+          assert x['gate']=='JANUS_TRUMP_R50G25AP_INTERLEAVED_R33_RUP_COMBINED_PROGRESS_POTENTIAL_OR_COUNTEREXAMPLE'
+          assert x['preregistration_commit']=='1c195e38fcd8233ffcc0019ea735e4ac16d07581'
+          assert x['parent_AO_sync_head']=='e649c76a6592fbf080405bf69c37495c5539a6ac'
+          assert x['verdict'] in {SUCCESS,COUNTER}, x['verdict']
+          assert 'technical_failure' not in x, x.get('technical_failure')
+          a=x['AN_interleaving']
+          assert a['root_hash']=='978512434c9464304b5294048778cbbacc789e854c207449dde57aa1a0ed3e21'
+          assert a['root_CLV']==[182,962,20]
+          assert a['RUP_steps']==26
+          assert a['successful_combined_steps'] <= a['root_constants']['Phi0']
+          assert a['R33_check_ops'] <= a['R33_check_ops_bound']
+          assert all(a['RUP_ledger'][k] <= a['RUP_ledger_bounds'][k] for k in a['RUP_ledger'])
+          assert a['minimum_observed_Phi_drop'] is not None and a['minimum_observed_Phi_drop'] > 0
+          if x['verdict']==SUCCESS:
+            assert x['falsifier_count']==0
+            assert not x['falsifiers']
+            for row in a['rows']:
+              assert row['Phi_drop'] > 0
+            for audit in x['control_corpus']['audits']:
+              for row in audit['rows']:
+                assert row['Phi_drop'] > 0
+          else:
+            assert x['falsifier_count']>0
+            assert x['falsifiers']
+            assert all(f['kind'] in allowed_falsifiers for f in x['falsifiers'])
+          assert x['firewalls']['P_VS_NP']=='OPEN'
+          assert x['firewalls']['SAT_IN_P']=='NOT_PROVED'
+          assert x['firewalls']['TRUMP_finished'] is False
+          assert x['firewalls']['outer_exact_DP_phase_count_remains_open'] is True
+          print(x['verdict'])
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: janus-trump-r50g25ap-result
+          path: artifacts/JANUS_TRUMP_R50G25AP_RESULT.json
+          if-no-files-found: error
+          retention-days: 30
