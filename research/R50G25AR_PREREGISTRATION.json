@@ -1,0 +1,108 @@
+{
+  "gate": "R50G25AR_GLOBAL_PHASE_ROOT_STATE_SIZE_ENVELOPE_OR_EXPLICIT_DP_BLOWUP_OBSTRUCTION",
+  "date": "2026-09-07",
+  "status": "PREREGISTERED_BEFORE_IMPLEMENTATION",
+  "parent": {
+    "branch": "research/r50g25aq-outer-dp-phase-count-global-ranking-2026-09-07",
+    "sealed_head_observed": "670ffd66e42fdb040d331131573c5a79d21beea0",
+    "receipt_commit": "c69f113dea481280c3acba87cae3bc4059c5921d",
+    "receipt_path": "research/R50G25AQ_RESULT_RECEIPT.json",
+    "journal_addendum": "research/JANUS_TRUMP_R50G25_CHAIN_JOURNAL_V33_ADDENDUM.json",
+    "journal_blob_sha": "b03e0a701b18705a0dd7172e1f38b6b5ef9e6725",
+    "scientific_verdict": "OUTER_DP_PHASE_COUNT_STRUCTURALLY_BOUNDED_BY_V0__GLOBAL_SCALAR_COUNTEREXAMPLE_FOUND"
+  },
+  "question": "Can every explicit state reached by the frozen normative machine be bounded by a polynomial state-size envelope in the original canonical input size, conditional only on exact-DP moves being selected from the already-defined root-budget envelope-admissible pivot set, or is there an explicit operator/selector transition that violates that envelope?",
+  "frozen_machine_contract": {
+    "canonical_state_measure": "CLV=(clause_count,total_literal_count,appearing_variable_count)",
+    "cheap_policy_order": [
+      "R33_SIMPLIFY",
+      "DECLARED_TERMINAL_CHECK",
+      "AFFINE_RECOGNITION",
+      "RUP_PROPER_SUBCLAUSE_STRENGTHENING_IF_AVAILABLE",
+      "SA_BVE_IF_NO_RUP",
+      "RESTART_OR_RESIDUAL"
+    ],
+    "R33_rules": [
+      "TAUTOLOGY_DELETION",
+      "UNIT_PROPAGATION_WITH_RECONSTRUCTION_TRACE",
+      "PURE_LITERAL_AUTARKY",
+      "SUBSUMPTION",
+      "BLOCKED_CLAUSE_ELIMINATION",
+      "BOUNDED_VARIABLE_ELIMINATION"
+    ],
+    "operator_contracts": {
+      "R33_non_BVE": "No new variables; no clause-count increase; literal count strictly descends on each accepted non-BVE R33 transition.",
+      "R33_BVE": "Exact non-tautological resolvents from existing parent literals only; accepts only when unique resolvent count <= removed parent count and canonical CLV strictly decreases. Hence no new variables, pivot removed, clause count does not increase; L may locally increase only while C decreases and canonical L<=C*V remains valid.",
+      "RUP": "Replace one existing clause by a proper subclause; C and V do not increase and L strictly decreases; no new variables.",
+      "SA_BVE": "Exact non-tautological resolvent pool followed by subsumption minimization; accepts only if canonical CLV_after < CLV_before; independent replay requires pivot removal. No new variables; L may locally increase only under lexicographic CLV descent and canonical L<=C*V.",
+      "EXACT_DP": "Only frozen operator permitted to increase explicit C or L. Resolvents use existing parent literals after pivot removal, so no new variables and V strictly decreases by at least one on every accepted bipolar pivot."
+    }
+  },
+  "root_frozen_budget": {
+    "definitions": {
+      "N0": "C0+L0",
+      "B0": "N0*(V0+1)^2",
+      "T_B0_V": "min(floor(B0/2), floor(sqrt(B0*(V-1))))"
+    },
+    "scope": "B0 is computed exactly once from the original canonical root and is never recomputed from later phase roots.",
+    "normative_exact_DP_selector": {
+      "name": "GLOBAL_ROOT_BUDGET_ENVELOPE_ADMISSIBLE_SELECTOR",
+      "local_bound": "RAW_S_UB(x)=S-(a+b+A+B)+(b*A+a*B-a*b)",
+      "admissible_iff": "RAW_S_UB(x) <= T_B0_V",
+      "candidate_order": "ascending (RAW_S_UB,var)",
+      "truth_used": false,
+      "required_child_contract": "Exact canonical DP child must satisfy C'+L' <= RAW_S_UB(x) <= T_B0_V <= B0/2 and V'<V."
+    },
+    "explicit_scope_exclusion": "AQ min(bipolar_vars) was a diagnostic selector used only for the outer phase-count audit. It is NOT a normative AR selector and any such unscoped exact-DP transition is an AR falsifier."
+  },
+  "theorem_target": {
+    "conditional_statement": "For every execution of the frozen normative machine from canonical root F0, conditional on each exact-DP transition using the frozen global-root envelope-admissible selector, every reached explicit state Fi satisfies the root-polynomial envelope below.",
+    "state_envelope": {
+      "V_i": "V_i <= V0",
+      "C_i": "C_i <= max(C0,B0/2)",
+      "L_i": "L_i <= max(L0,(B0/2)*V0)",
+      "S_i": "C_i+L_i <= max(N0,B0*(V0+1)/2)"
+    },
+    "nonterminal_simplification": "For V0>=1, N0<=B0/2, so after the root and all admitted DP/cheap transitions one may use C_i<=B0/2, L_i<=B0*V0/2, S_i<=B0*(V0+1)/2 except for degenerate terminal-root bookkeeping.",
+    "input_size_corollary": "Because V0<=L0<=N0 for an explicit canonical nonempty CNF, B0<=N0*(N0+1)^2=O(N0^3), C_i=O(N0^3), L_i=O(N0^4), S_i=O(N0^4)."
+  },
+  "audit_plan": {
+    "symbolic_checks": [
+      "derive root inclusion",
+      "derive admissible exact-DP child bound",
+      "derive cheap-operator preservation from operator contracts plus canonical L<=C*V",
+      "derive input-size polynomial corollary"
+    ],
+    "finite_replay_controls": [
+      "guaranteed controls for every R33 rule including BVE",
+      "RUP proper-subclause transition control",
+      "SA-BVE exact replay control",
+      "normative selector replay over inherited AH/AJ/AM frozen root domain with one global B0 per root",
+      "check every recorded exact-DP child and every recorded cheap-policy intermediate state against the root envelope"
+    ],
+    "truth_blind_selection": true
+  },
+  "falsifiers": [
+    "ROOT_ENVELOPE_FAILURE",
+    "CHEAP_OPERATOR_CONTRACT_FAILURE",
+    "NORMATIVE_SELECTOR_SCOPE_FAILURE",
+    "UNSCOPED_DP_TRANSITION_DETECTED",
+    "ADMISSIBLE_DP_SIZE_BOUND_FAILURE",
+    "VARIABLE_BOUND_FAILURE",
+    "CANONICAL_WIDTH_BOUND_FAILURE",
+    "STATE_ENVELOPE_FAILURE",
+    "POLYNOMIAL_COROLLARY_FAILURE",
+    "REPLAY_OR_IMPLEMENTATION_FAILURE",
+    "RESOURCE_LIMIT"
+  ],
+  "success_label": "GLOBAL_PHASE_ROOT_STATE_SIZE_ENVELOPE_DERIVED_FOR_FROZEN_NORMATIVE_MACHINE",
+  "interpretation_if_success": "Success closes the explicit state-size composition debt for the frozen normative selector/operator machine. It does not establish that every arbitrary-CNF residual has an envelope-admissible pivot, does not establish route completeness, and does not by itself establish end-to-end polynomial SAT runtime.",
+  "firewall": {
+    "P_VS_NP": "OPEN",
+    "SAT_IN_P": "NOT_PROVED",
+    "TRUMP_finished": false,
+    "conditional_state_envelope_is_not_universal_pivot_existence": true,
+    "state_envelope_is_not_runtime_theorem": true,
+    "finite_replay_is_not_universal_proof": true
+  }
+}
