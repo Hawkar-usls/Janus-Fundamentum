@@ -1,0 +1,72 @@
+name: JANUS TRUMP R50G25AM post-DP R33 contraction certificate
+
+on:
+  push:
+    branches:
+      - research/r50g25am-post-dp-r33-contraction-certificate-2026-09-07
+    paths:
+      - 'experiments/janus_trump_r50g25am_post_dp_r33_contraction_certificate.py'
+      - '.github/workflows/janus-trump-r50g25am-post-dp-r33-contraction-certificate.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Run AM post-DP R33 contraction audit
+        run: |
+          mkdir -p artifacts
+          PYTHONPATH=experiments python experiments/janus_trump_r50g25am_post_dp_r33_contraction_certificate.py --out artifacts/JANUS_TRUMP_R50G25AM_RESULT.json
+      - name: Verify fail-closed result
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          p=Path('artifacts/JANUS_TRUMP_R50G25AM_RESULT.json')
+          assert p.exists()
+          x=json.loads(p.read_text())
+          assert x['gate']=='JANUS_TRUMP_R50G25AM_POST_DP_CHEAP_CONTRACTION_CERTIFICATE_OR_REACHABLE_COUNTEREXAMPLE'
+          assert x['AM_preregistration_commit']=='fa96bbede4d0e01f363f1bb146c8aef1642444cc'
+          assert x['parent_AL_receipt_commit']=='eead993fec81fe471cb8496bf67747cf180ce041'
+          allowed={
+            'POST_DP_R33_CERTIFICATE_COVERS_FROZEN_DOMAIN',
+            'PARENT_OUTSIDE_AI_CLASS',
+            'NO_ENVELOPE_ADMISSIBLE_PIVOT',
+            'NO_POST_DP_R33_SELF_PRESERVING_DOOR',
+            'AL_GAP_REQUIRES_LATER_CHEAP_LAYER',
+            'EXACT_DP_REPLAY_FAILURE',
+            'R33_REPLAY_FAILURE',
+            'R33_CERTIFICATE_FAILURE',
+            'SEMANTIC_MISMATCH',
+            'POLYNOMIAL_LEDGER_FAILURE',
+            'RESOURCE_LIMIT',
+            'IMPLEMENTATION_FAILURE',
+          }
+          assert x['verdict'] in allowed, x['verdict']
+          assert x['firewall']['P_VS_NP']=='OPEN'
+          assert x['firewall']['SAT_IN_P']=='NOT_PROVED'
+          assert x['firewall']['TRUMP_finished'] is False
+          if x['verdict']=='POST_DP_R33_CERTIFICATE_COVERS_FROZEN_DOMAIN':
+              assert x['root_count_completed_or_attempted']==15
+              assert x['semantic_mismatch_count']==0
+              assert x['certified_residual_event_count']>0
+          if x['verdict']=='AL_GAP_REQUIRES_LATER_CHEAP_LAYER':
+              r=x['first_nonterminal_result']
+              assert r['residual_hash']=='a28b56a47bf70487dfde4616b120d8ed68c4719546ff3d2756d12cf9b77d51cc'
+              assert r['later_cheap_layer_door'] is not None
+          print(x['verdict'])
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: janus-trump-r50g25am-result
+          path: artifacts/JANUS_TRUMP_R50G25AM_RESULT.json
+          if-no-files-found: error
+          retention-days: 30
