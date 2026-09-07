@@ -1,0 +1,65 @@
+name: JANUS TRUMP R50G25AJ signed-incidence reachability closure
+
+on:
+  push:
+    branches:
+      - research/r50g25aj-signed-incidence-reachability-closure-2026-09-07
+    paths:
+      - 'experiments/janus_trump_r50g25aj_signed_incidence_reachability_closure.py'
+      - '.github/workflows/janus-trump-r50g25aj-signed-incidence-reachability-closure.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Run AJ signed-incidence reachability closure audit
+        run: |
+          mkdir -p artifacts
+          PYTHONPATH=experiments python experiments/janus_trump_r50g25aj_signed_incidence_reachability_closure.py --out artifacts/JANUS_TRUMP_R50G25AJ_RESULT.json
+      - name: Verify fail-closed result
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          p=Path('artifacts/JANUS_TRUMP_R50G25AJ_RESULT.json')
+          assert p.exists()
+          x=json.loads(p.read_text())
+          assert x['AJ_preregistration_commit']=='6bfd79052f91c0b08348f9f4bc5f1e359c651389'
+          allowed={
+            'SELF_PRESERVING_SIGNED_INCIDENCE_PIVOT_EXISTS_ON_FROZEN_REACHABLE_DOMAIN',
+            'PARENT_RESIDUAL_OUTSIDE_SIGNED_INCIDENCE_CLASS',
+            'NO_ENVELOPE_ADMISSIBLE_SIGNED_INCIDENCE_PIVOT',
+            'NO_SELF_PRESERVING_SIGNED_INCIDENCE_PIVOT',
+            'EXACT_DP_REPLAY_FAILURE',
+            'SEMANTIC_MISMATCH',
+            'POLYNOMIAL_LEDGER_FAILURE',
+            'IMPLEMENTATION_OR_RESOURCE_FAILURE',
+          }
+          assert x['verdict'] in allowed
+          assert x['firewall']['P_VS_NP']=='OPEN'
+          assert x['firewall']['SAT_IN_P']=='NOT_PROVED'
+          assert x['firewall']['TRUMP_finished'] is False
+          if x['verdict']=='SELF_PRESERVING_SIGNED_INCIDENCE_PIVOT_EXISTS_ON_FROZEN_REACHABLE_DOMAIN':
+              assert x['failure_count']==0
+              assert x['semantic_mismatch_count']==0
+              assert x['minimum_envelope_admissible_pivots_per_residual']>=1
+              assert x['maximum_candidates_tested_before_self_preserving']>=1
+          if x['verdict']=='NO_SELF_PRESERVING_SIGNED_INCIDENCE_PIVOT':
+              assert x['failure_classes'].get('NO_SELF_PRESERVING_SIGNED_INCIDENCE_PIVOT',0)>0
+          print(x['verdict'])
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: janus-trump-r50g25aj-result
+          path: artifacts/JANUS_TRUMP_R50G25AJ_RESULT.json
+          if-no-files-found: error
+          retention-days: 30
