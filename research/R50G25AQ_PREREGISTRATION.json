@@ -1,0 +1,64 @@
+{
+  "gate": "R50G25AQ_OUTER_DP_PHASE_COUNT_OR_GLOBAL_AMORTIZED_POTENTIAL_COUNTEREXAMPLE",
+  "status": "PREREGISTERED_FROZEN",
+  "parent_gate": "R50G25AP_INTERLEAVED_R33_RUP_COMBINED_PROGRESS_POTENTIAL_OR_COUNTEREXAMPLE",
+  "parent_source_sync_commit": "ce0a7684dae0991caec78a976fc1805f347b4af5",
+  "primary_structural_obligation": {
+    "statement": "For every accepted exact-DP transition on pivot x, Vars(F_after) is a subset of Vars(F_before) minus {x}; therefore V_after <= V_before-1. R33 and RUP introduce no new variables. Hence the number of outer exact-DP transitions along any route composed only of these operators is at most V_initial, and the number of R33/RUP phase segments is at most V_initial+1.",
+    "selection_truth_blind": true,
+    "SAT_truth_used": false
+  },
+  "hierarchical_ranking_candidate": {
+    "form": "Psi = (V, Phi_phase) with lexicographic/phase-reset semantics",
+    "phase_local_potential": "Phi_phase = L + (C_root*V_root+1)*V",
+    "contract": "Inside a fixed phase, AP requires strict Phi_phase descent on every successful R33/RUP transition. An outer exact-DP transition is allowed to reset Phi_phase but must strictly decrease the first coordinate V.",
+    "claim_scope": "well-founded phase-count/progress ranking, not yet an end-to-end polynomial runtime theorem"
+  },
+  "frozen_global_scalar_attack": {
+    "candidate": "Gamma = L + (C_initial*V_initial+1)*V, with the weight frozen at the original formula root and applied across exact-DP transitions",
+    "purpose": "Determine whether the AP scalar itself can be extended globally without phase resets.",
+    "dp_explosion_gadget": {
+      "pivot": 1,
+      "k_parent_markers_per_polarity": 8,
+      "shared_literals_per_polarity": 8,
+      "construction": "8 positive pivot clauses share an 8-literal positive block and each has one unique positive marker; 8 negative pivot clauses share a disjoint 8-literal positive block and each has one unique positive marker. No SAT truth is used.",
+      "expected_behavior_is_not_frozen_as_result": true
+    },
+    "no_parameter_change_after_run": true
+  },
+  "finite_audit_domain": {
+    "exact_dp_contract": [
+      "frozen DP-explosion gadget",
+      "deterministic random 3-CNF seeds 52000..52015 with n in {8,10} and fixed ratios in {2.5,3.0,3.5}",
+      "prism Tseitin controls n in {8,12}"
+    ],
+    "sequential_dp_chain_rule": "At each audit state choose the smallest bipolar variable and apply exact DP until no bipolar variable remains or V reaches zero. No truth is used.",
+    "historical_hard_phase": "AN raw child route with the AP R33/RUP phase audit, used only as a finite executable witness for the phase-local second coordinate."
+  },
+  "preregistered_falsifiers": [
+    "EXACT_DP_PIVOT_REINTRODUCTION",
+    "EXACT_DP_NEW_VARIABLE_INTRODUCTION",
+    "EXACT_DP_VARIABLE_DESCENT_FAILURE",
+    "NON_DP_VARIABLE_INTRODUCTION",
+    "OUTER_DP_PHASE_COUNT_BOUND_FAILURE",
+    "AP_PHASE_RANKING_REPLAY_FAILURE",
+    "REPLAY_OR_IMPLEMENTATION_FAILURE"
+  ],
+  "allowed_scientific_outcomes": [
+    "OUTER_DP_PHASE_COUNT_STRUCTURALLY_BOUNDED_BY_V0__GLOBAL_SCALAR_COUNTEREXAMPLE_FOUND",
+    "OUTER_DP_PHASE_COUNT_STRUCTURALLY_BOUNDED_BY_V0__GLOBAL_SCALAR_SURVIVES_FROZEN_AUDIT",
+    "OUTER_DP_PHASE_COUNT_OR_OPERATOR_CONTRACT_COUNTEREXAMPLE_FOUND"
+  ],
+  "runtime_firewall": {
+    "phase_count_bound_is_not_state_size_bound": true,
+    "per_phase_AP_polynomial_progress_is_not_end_to_end_polynomial_runtime_without_phase_root_size_bound": true,
+    "exact_DP_is_polynomial_in_current_explicit_state_but_current_state_may_grow": true,
+    "global_phase_root_size_bound": "OPEN"
+  },
+  "firewall": {
+    "P_VS_NP": "OPEN",
+    "SAT_IN_P": "NOT_PROVED",
+    "TRUMP_finished": false,
+    "finite_replay_is_not_universal_proof": true
+  }
+}
