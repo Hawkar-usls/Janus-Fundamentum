@@ -1,0 +1,95 @@
+{
+  "gate": "R50G25AV_REACHABLE_MULTI_DEFECT_RESIDUAL_OR_GROWTH_WITNESS",
+  "status": "FROZEN_BEFORE_IMPLEMENTATION_AND_TEST",
+  "date": "2026-09-08",
+  "parent": {
+    "gate": "R50G25AU_DEFECT_COUNT_GROWTH_OR_SECOND_STRUCTURAL_DOOR",
+    "sealed_source_head": "e68a5034434ef36d6130685dd92ce12c456cdbf3",
+    "receipt_commit": "0d33f95c348fd5d2209692d5f4cc467b80ef3699",
+    "final_meta_snapshot_commit": "f94312fdb4957f2c1b71ce924e090da8b24c42c6"
+  },
+  "question": "Can a deterministic oracle-free attack produce a reachable cheap-policy residual with more than four non-affine defect clauses, and if so does the unchanged AT defect-branch product remain within L^4?",
+  "frozen_representation": {
+    "extractor": "AT hardened affine extraction with explicit tautology removal",
+    "tautology_policy": "DETECT_AND_DROP_AS_ALWAYS_TRUE_BEFORE_AFFINE_GROUPING",
+    "defect_count": "d = number of non-affine defect clauses returned by hardened AT extraction",
+    "B_defect": "product_i |D_i|; empty product = 1",
+    "L": "literal count of the current canonical residual after explicit tautology removal",
+    "budget": "L^4",
+    "exponent": 4,
+    "posthoc_tuning_forbidden": true
+  },
+  "frozen_route": {
+    "policy": "exact inherited AS/AU deterministic cheap-policy replay via y.policy_replay(root, r50g25g._chain())",
+    "truth_oracle_for_generation": false,
+    "truth_oracle_for_selection": false,
+    "truth_oracle_for_verdict": false,
+    "only_policy_kind_RESIDUAL_is_extracted": true,
+    "TERMINAL_or_AFFINE_exit": "non-falsifying absorption observation"
+  },
+  "frozen_attack_families_in_literal_order": [
+    {
+      "family": "HAMMING16_LEX_POSITIVE_WIDTH5_DEFECT_INJECTION",
+      "base": "asmod.hamming_xor_formula(16, punctured=True)",
+      "injection_pool": "all positive width-5 clauses over variables 1..16 in itertools.combinations lexicographic order",
+      "k_values": [2, 5, 8, 16, 24, 32],
+      "root": "canonical(base clauses + first k injection clauses)",
+      "purpose": "local same-variable defect-growth attack"
+    },
+    {
+      "family": "HAMMING16_PLUS_SHIFTED_SEALED_Y_RESIDUAL_COPIES",
+      "base": "asmod.hamming_xor_formula(16, punctured=True)",
+      "sealed_Y_target_loader": "r47j.load_counterexample() target canonicalized",
+      "required_Y_target_hash": "c379fb11374c4259a736545f6652a417b6d98d016e9dcaed62d44d3740b71adb",
+      "Y_preregistration_commit": "92b93a34cd582800fc925e961196607ff8d27ee0",
+      "copy_counts": [1, 2, 3],
+      "shift_rule": "let m=max(abs(lit)) of sealed Y target; copy j in 0-based order shifts every variable by 16 + j*m, preserving literal sign",
+      "root": "canonical(base clauses + all shifted clauses of the first g copies)",
+      "purpose": "composition attack using a previously sealed truth-blind non-affine residual gadget; no newly searched gadget"
+    }
+  ],
+  "frozen_candidate_order": "all local-injection k values in listed order, then all Y-copy counts in listed order",
+  "frozen_stopping_rule": "continue through candidates until the first B_defect > L^4 obstruction; otherwise exhaust the frozen list",
+  "primary_observables": [
+    "first reachable residual with d > 4",
+    "maximum reachable d observed before stopping",
+    "defect widths",
+    "B_defect",
+    "L",
+    "L^4",
+    "budget slack L^4-B_defect",
+    "cheap-policy route length and terminal/affine absorption counts"
+  ],
+  "scientific_verdicts": {
+    "obstruction": "REACHABLE_DEFECT_BRANCH_PRODUCT_EXCEEDS_L4",
+    "multi_defect_survival": "REACHABLE_D_GT_4_WITHIN_L4_ON_FROZEN_ATTACKS__UNIVERSAL_GROWTH_OPEN",
+    "no_multi_defect": "NO_D_GT_4_ON_FROZEN_ATTACKS__UNIVERSAL_GROWTH_OPEN",
+    "implementation_failure": "IMPLEMENTATION_OR_CONTRACT_FAILURE",
+    "resource_limit": "UNKNOWN_RESOURCE_LIMIT"
+  },
+  "falsifiers_and_failures": [
+    "Y_TARGET_HASH_DRIFT",
+    "POLICY_CONTRACT_DRIFT",
+    "TAUTOLOGY_POLICY_DRIFT",
+    "AFFINE_EXTRACTION_OR_REPLAY_FAILURE",
+    "INDEPENDENT_LEDGER_MISMATCH",
+    "ROOT_GENERATOR_DRIFT"
+  ],
+  "interpretation_rules": {
+    "d_gt_4_on_frozen_family_is_not_universal_growth_proof": true,
+    "B_defect_within_L4_on_frozen_family_is_not_universal_polynomial_bound": true,
+    "B_defect_exceeds_L4_is_counterexample_to_this_simple_enumeration_budget_not_to_the_solver": true,
+    "second_structural_door_after_obstruction_requires_new_preregistration": true,
+    "finite_attack_failure_is_not_proof_of_universal_defect_suppression": true
+  },
+  "meta_registry_scope": {
+    "AU_parent_snapshot": "data/JANUS-TRUMP-R50G25-DEVELOPMENT-MIRROR-2026-09-08-v1.6-AU2.json",
+    "AR_AS_meta_backfill_pending": true,
+    "no_contiguous_meta_claim_beyond_AQ": true
+  },
+  "firewall": {
+    "P_VS_NP": "OPEN",
+    "SAT_IN_P": "NOT_PROVED",
+    "TRUMP_finished": false
+  }
+}
