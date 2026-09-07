@@ -1,0 +1,97 @@
+{
+  "gate": "R50G25AU_DEFECT_COUNT_GROWTH_OR_SECOND_STRUCTURAL_DOOR",
+  "status": "FROZEN_PREREGISTRATION_BEFORE_IMPLEMENTATION",
+  "date": "2026-09-07",
+  "parent_AT": {
+    "branch": "research/r50g25at-affine-core-plus-defect-polynomial-door-2026-09-07",
+    "sealed_head": "5b12981017a323aae9d6f1ba07fc2ae5b811af97",
+    "preregistration_commit": "3ac282d8594920cb37cfae08e79b2a0f526165fb",
+    "scientific_receipt_commit": "a8aba0be6367170175c07f443e8f115b3c4a2b40",
+    "verdict": "AFFINE_CORE_PLUS_BOUNDED_DEFECT_POLYNOMIAL_DOOR_PASS",
+    "scope_boundary": "unbounded_defect_count remains OPEN"
+  },
+  "inherited_frozen_corpus": {
+    "source_gate": "R50G25AS_UNIVERSAL_ENVELOPE_ADMISSIBLE_PIVOT_EXISTENCE_OR_REACHABLE_COUNTEREXAMPLE",
+    "source_preregistration_commit": "65870dc5f7942fb3876bc3760eaa3cfaa70f44ee",
+    "reason": "AT itself froze only the AS witness plus three synthetic bounded-defect controls; AU therefore inherits the already-preregistered AS attack set rather than inventing a post-AT growth corpus.",
+    "primary_family": {
+      "name": "PUNCTURED_EXTENDED_HAMMING_WEIGHT4_XOR_CNF",
+      "frozen_sizes": [8, 16]
+    },
+    "secondary_families": [
+      {
+        "name": "SEEDED_BALANCED_UNIQUE_3CNF",
+        "n_values": [8, 10, 12],
+        "seeds": [65001, 65002, 65003],
+        "scales": [1.0, 1.5],
+        "target_clause_rule": "min(8*C(n,3), ceil(scale*n^(7/3)))",
+        "duplicates": "canonicalized away"
+      },
+      {
+        "name": "COMPLEMENT_PAIR_3_HYPERGRAPH",
+        "n_values": [8, 10, 12],
+        "target_clause_rule": "ceil(1.5*n^(7/3)) or exhaustion",
+        "sign_rule": "include (+++) and (---) for lexicographic 3-subsets"
+      }
+    ],
+    "literal_search_order": [
+      "PUNCTURED_EXTENDED_HAMMING n=8",
+      "PUNCTURED_EXTENDED_HAMMING n=16",
+      "all SEEDED_BALANCED_UNIQUE_3CNF candidates in the literal AS-preregistered nested order",
+      "all COMPLEMENT_PAIR_3_HYPERGRAPH candidates in the literal AS-preregistered order"
+    ]
+  },
+  "frozen_question": "On every RESIDUAL reached from the inherited frozen AS corpus by the exact frozen cheap-policy replay without exact DP, does the AT affine/non-affine decomposition have defect branch product B_defect=product_i |D_i| bounded by L^4, where L is the literal count of that current canonical residual after explicit tautology removal?",
+  "definitions": {
+    "reachable_residual": "Run the inherited deterministic frozen cheap-policy replay R33 -> terminal/affine -> RUP -> SA_BVE -> restart from each inherited AS canonical root, with no exact-DP step. Audit only outputs with kind=RESIDUAL; TERMINAL/AFFINE outputs are recorded as non-falsifying diagnostics.",
+    "canonical_residual": "Canonical explicit CNF with duplicate literals/clauses normalized and tautological clauses explicitly detected and dropped as always true before affine grouping, matching hardened AT extraction policy.",
+    "affine_core": "Exactly recognized parity blocks under the hardened AT support-group/replay definition; every unrecognized surviving clause is a non-affine defect clause.",
+    "defects": "The ordered canonical defect clauses D1..Dd returned by independent hardened AT extraction/replay.",
+    "defect_count": "d = number of non-affine defect clauses.",
+    "L": "Exact total literal-occurrence count of the current canonical residual after explicit tautology removal and before affine blocks are removed.",
+    "B_defect": "Exact arbitrary-precision integer product_i |D_i|; define B_defect=1 when d=0.",
+    "frozen_polynomial_budget": "L^4 using exact integer arithmetic.",
+    "budget_slack": "L^4 - B_defect. Negative slack is the AU structural falsifier."
+  },
+  "frozen_hypothesis": "The actual literal-choice branch product induced by all non-affine defect clauses remains within the inherited fixed-degree AT budget L^4 on the frozen reachable corpus even when defect_count exceeds AT's former D_MAX=4 boundary.",
+  "audit_protocol": [
+    "Generate only the inherited AS-preregistered roots in their frozen order; no new family, seed, size, scale, or target count may be added after outcome observation.",
+    "Replay the exact inherited frozen cheap policy without exact DP and fail closed on policy-contract or root-generation drift.",
+    "For every reached RESIDUAL, run hardened AT affine extraction with explicit tautology handling and exact replay/partition verification.",
+    "Independently recompute canonical residual L, defect_count, each defect width, exact B_defect, L^4, and budget_slack.",
+    "Record all audited residual rows, including canonical hash/CLV, family parameters, defect widths, maximum defect_count, maximum B_defect, and minimum budget_slack.",
+    "Seal the first residual in frozen order with B_defect > L^4 as DEFECT_BRANCH_PRODUCT_EXCEEDS_L4 and stop scientific search at that first falsifier.",
+    "If no violation occurs, report finite reachable survival only; do not infer a universal bound for arbitrary CNF.",
+    "If a violation occurs, do not invent or tune a second structural door inside AU. Seal the witness; any second door must be separately preregistered in a successor gate."
+  ],
+  "falsifier_classes": [
+    "DEFECT_BRANCH_PRODUCT_EXCEEDS_L4",
+    "AFFINE_EXTRACTION_OR_REPLAY_FAILURE",
+    "TAUTOLOGY_POLICY_DRIFT",
+    "POLICY_CONTRACT_DRIFT",
+    "ROOT_GENERATOR_DRIFT",
+    "INDEPENDENT_LEDGER_MISMATCH",
+    "RESOURCE_LIMIT"
+  ],
+  "verdicts": {
+    "finite_survival": "FROZEN_REACHABLE_DEFECT_BRANCH_PRODUCT_WITHIN_L4__UNIVERSAL_GROWTH_REMAINS_OPEN",
+    "structural_counterexample": "REACHABLE_DEFECT_BRANCH_PRODUCT_L4_OBSTRUCTION_FOUND",
+    "implementation_failure": "IMPLEMENTATION_OR_CONTRACT_FAILURE",
+    "resource_limit": "UNKNOWN_RESOURCE_LIMIT"
+  },
+  "truth_oracle_policy": "No SAT truth oracle may generate/select roots, residuals, affine blocks, defect clauses, or branches. AU is a structural accounting gate and requires no SAT oracle for its verdict.",
+  "scientific_scope": {
+    "what_success_means": "AT's branch-product polynomial door survives the inherited frozen AS reachable corpus under the fixed exponent 4 even beyond a raw defect-count threshold when encountered.",
+    "what_success_does_not_mean": "No universal theorem that B_defect<=L^4 for arbitrary reachable CNF; no proof of polynomial-time SAT.",
+    "what_failure_means": "A concrete reachable residual defeats the frozen L^4 defect-enumeration budget and becomes the preregistered target for a separately frozen second structural door.",
+    "second_structural_door_inside_AU": "FORBIDDEN_POSTHOC"
+  },
+  "firewall": {
+    "P_VS_NP": "OPEN",
+    "SAT_IN_P": "NOT_PROVED",
+    "TRUMP_finished": false,
+    "finite_search_is_not_universal_proof": true,
+    "AU_failure_is_not_P_vs_NP_result": true,
+    "AR_AS_meta_backfill_pending": true
+  }
+}
