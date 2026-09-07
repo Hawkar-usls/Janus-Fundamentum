@@ -1,0 +1,63 @@
+{
+  "schema_version": "1.0",
+  "gate": "R50G25AO_RUP_LADDER_PROGRESS_BOUND_OR_COUNTEREXAMPLE",
+  "status": "PREREGISTERED_FROZEN_BEFORE_IMPLEMENTATION",
+  "date": "2026-09-07",
+  "parent_gate": "R50G25AN_LATER_CHEAP_LAYER_NECESSITY_FORENSICS",
+  "parent_head_commit": "dc3b137179d4ab448986abd45c6ae8ac6d390690",
+  "goal": "Prove from the implemented single-literal RUP semantics a polynomial per-ladder progress bound, then independently replay the frozen AN witness and falsify the bound if any accepted RUP or interleaved R33 step violates its stated premises.",
+  "frozen_structural_lemma_candidate": {
+    "literal_potential": "L(F)=sum_{c in F}|c|",
+    "rup_local_descent": "Every accepted first_rup_strengthening removes exactly one literal from one existing source clause before canonicalization; canonical_formula only deduplicates literals/clauses, so L(F_after_RUP) <= L(F_before_RUP)-1, C_after<=C_before, V_after<=V_before.",
+    "candidate_count_per_search": "At most L current one-literal deletion candidates are inspected.",
+    "up_full_scan_bound_per_candidate": "At most V+1 full formula scans because every changed scan assigns at least one previously unassigned variable and one final scan detects fixpoint/conflict.",
+    "up_clause_scan_bound_per_candidate": "C*(V+1)",
+    "up_literal_inspection_bound_per_candidate": "L*(V+1)",
+    "successful_rup_count_bound_under_nonincreasing_interleaving": "If all operators interleaved between accepted RUP steps do not increase L, then successful_RUP_count <= L_start.",
+    "total_rup_check_bound_including_one_final_no_proposal_scan": "L_start*(L_start+1)",
+    "total_up_clause_scan_bound_including_one_final_no_proposal_scan": "L_start*(L_start+1)*C_start*(V_start+1)",
+    "total_up_literal_inspection_bound_including_one_final_no_proposal_scan": "L_start*L_start*(L_start+1)*(V_start+1)",
+    "complexity_scope": "Polynomial bound for one RUP ladder satisfying the nonincreasing-interleaving premise; NOT a universal end-to-end SAT runtime theorem."
+  },
+  "frozen_positive_control": {
+    "family": "GRAPH_PHP_24_SEEDED_BALANCED_AN_WITNESS",
+    "parent_hash": "a28b56a47bf70487dfde4616b120d8ed68c4719546ff3d2756d12cf9b77d51cc",
+    "pivot": 9,
+    "raw_child_hash": "978512434c9464304b5294048778cbbacc789e854c207449dde57aa1a0ed3e21",
+    "raw_child_CLV": [182, 962, 20],
+    "expected_AN_reentry_RUP_count": 26,
+    "expected_AN_classification": "MULTI_RUP_DIRECT_REENTRY"
+  },
+  "required_audits": [
+    "independent_RUP_UP_replay_for_every_accepted_strengthening",
+    "source_clause_contains_strengthened_clause_as_proper_subclause",
+    "exact_one_literal_removed_before_canonicalization",
+    "strict_literal_potential_descent_after_canonicalization",
+    "R33_literal_monotonicity_between_RUP_steps_on_frozen_AN_pre_reentry_trace",
+    "actual_scan_ledgers_within_frozen_symbolic_bounds",
+    "AI_slack_delta_accounting_as_diagnostic_only",
+    "frozen_AN_hash_CLV_and_26_RUP_reentry_reproduction"
+  ],
+  "preregistered_falsifiers": [
+    "RUP_PROPER_SUBCLAUSE_FAILURE",
+    "RUP_STRICT_LITERAL_DESCENT_FAILURE",
+    "INTERLEAVED_R33_LITERAL_MONOTONICITY_FAILURE",
+    "RUP_SUCCESS_COUNT_BOUND_FAILURE",
+    "RUP_CHECK_BOUND_FAILURE",
+    "RUP_UP_CLAUSE_SCAN_BOUND_FAILURE",
+    "RUP_UP_LITERAL_INSPECTION_BOUND_FAILURE",
+    "RUP_REPLAY_FAILURE",
+    "AN_WITNESS_REPRODUCTION_FAILURE",
+    "LEDGER_OR_IMPLEMENTATION_FAILURE"
+  ],
+  "non_blocking_diagnostic": "AI_slack need not increase on every individual RUP step; a local slack decrease does not falsify the literal-potential lemma.",
+  "no_post_result_retrofit": true,
+  "firewalls": {
+    "P_VS_NP": "OPEN",
+    "SAT_IN_P": "NOT_PROVED",
+    "TRUMP_finished": false,
+    "finite_replay_is_not_universal_proof": true,
+    "per_ladder_polynomial_bound_is_not_end_to_end_polynomial_solver_bound": true
+  },
+  "next_gate_policy": "Do not launch R50G25AP in this gate. Seal AO first in Fundamentum journal/receipt and janus-meta-registry dual ledger."
+}
