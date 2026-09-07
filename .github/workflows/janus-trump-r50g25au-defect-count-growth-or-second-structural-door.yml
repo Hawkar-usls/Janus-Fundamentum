@@ -1,0 +1,83 @@
+name: JANUS TRUMP R50G25AU defect-count growth or second structural door
+
+on:
+  push:
+    branches:
+      - research/r50g25au-defect-count-growth-or-second-structural-door-2026-09-07
+    paths:
+      - 'experiments/janus_trump_r50g25au_defect_count_growth_or_second_structural_door.py'
+      - '.github/workflows/janus-trump-r50g25au-defect-count-growth-or-second-structural-door.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Run frozen AU growth audit
+        run: |
+          mkdir -p artifacts
+          PYTHONPATH=experiments python experiments/janus_trump_r50g25au_defect_count_growth_or_second_structural_door.py --out artifacts/JANUS_TRUMP_R50G25AU_RESULT.json
+      - name: Verify fail-closed AU artifact
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          p = Path('artifacts/JANUS_TRUMP_R50G25AU_RESULT.json')
+          assert p.exists()
+          x = json.loads(p.read_text())
+          PASS = 'FROZEN_REACHABLE_DEFECT_BRANCH_PRODUCT_WITHIN_L4__UNIVERSAL_GROWTH_REMAINS_OPEN'
+          OBS = 'REACHABLE_DEFECT_BRANCH_PRODUCT_L4_OBSTRUCTION_FOUND'
+          assert x['preregistration_commit'] == 'a06a9ad62c7ccf0fbbbcf053840a98e9b6c36841'
+          assert x['parent_AT_sealed_head'] == '5b12981017a323aae9d6f1ba07fc2ae5b811af97'
+          assert x['inherited_AS_preregistration'] == '65870dc5f7942fb3876bc3760eaa3cfaa70f44ee'
+          assert x['verdict'] in {PASS, OBS}, x['verdict']
+          assert x['failure_count'] == 0, x['failures']
+          assert x['residual_count_audited'] >= 1
+          assert x['frozen_bound']['exponent'] == 4
+          assert x['frozen_bound']['posthoc_tuning_forbidden'] is True
+          for row in x['rows']:
+              if row.get('policy_kind') != 'RESIDUAL':
+                  continue
+              e = row['extraction']
+              l = row['ledger']
+              assert e['partition_pass'] is True
+              assert e['replay_failure_count'] == 0
+              assert e['explicit_tautology_policy'] == 'DETECT_AND_DROP_AS_ALWAYS_TRUE_BEFORE_AFFINE_GROUPING'
+              assert l['product_recompute_match'] is True
+              assert l['L_matches_effective_CLV'] is True
+              assert l['L4_budget'] == l['L'] ** 4
+              prod = 1
+              for w in l['defect_widths']:
+                  prod *= w
+              assert prod == l['B_defect'] == l['B_defect_recomputed']
+          if x['verdict'] == OBS:
+              w = x['first_falsifier']
+              assert w is not None
+              assert w['class'] == 'DEFECT_BRANCH_PRODUCT_EXCEEDS_L4'
+              assert w['B_defect'] > w['L4_budget']
+              assert w['budget_slack'] < 0
+              assert x['scientific_scope']['second_structural_door_if_obstruction'] == 'MUST_BE_SEPARATELY_PREREGISTERED'
+          else:
+              assert x['first_falsifier'] is None
+              assert x['minimum_budget_slack_observed'] >= 0
+          assert x['scientific_scope']['universal_defect_growth_bound'] == 'OPEN'
+          assert x['scientific_scope']['arbitrary_CNF_coverage'] == 'OPEN'
+          assert x['firewall']['P_VS_NP'] == 'OPEN'
+          assert x['firewall']['SAT_IN_P'] == 'NOT_PROVED'
+          assert x['firewall']['TRUMP_finished'] is False
+          print(x['verdict'])
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: janus-trump-r50g25au-result
+          path: artifacts/JANUS_TRUMP_R50G25AU_RESULT.json
+          if-no-files-found: error
+          retention-days: 30
