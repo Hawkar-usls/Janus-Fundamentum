@@ -1,0 +1,63 @@
+name: JANUS TRUMP R50G25AO RUP ladder progress bound
+
+on:
+  push:
+    branches:
+      - research/r50g25ao-rup-ladder-progress-bound-2026-09-07
+    paths:
+      - 'experiments/janus_trump_r50g25ao_rup_ladder_progress_bound.py'
+      - '.github/workflows/janus-trump-r50g25ao-rup-ladder-progress-bound.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Run AO RUP ladder progress-bound audit
+        run: |
+          mkdir -p artifacts
+          PYTHONPATH=experiments python experiments/janus_trump_r50g25ao_rup_ladder_progress_bound.py --out artifacts/JANUS_TRUMP_R50G25AO_RESULT.json
+      - name: Verify fail-closed result
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          p=Path('artifacts/JANUS_TRUMP_R50G25AO_RESULT.json')
+          assert p.exists()
+          x=json.loads(p.read_text())
+          assert x['gate']=='JANUS_TRUMP_R50G25AO_RUP_LADDER_PROGRESS_BOUND_OR_COUNTEREXAMPLE'
+          assert x['preregistration_commit']=='b3a7dda65813d1180d10e735fd0903856f9b51c7'
+          assert x['parent_AN_sync_head']=='dc3b137179d4ab448986abd45c6ae8ac6d390690'
+          assert x['verdict']=='RUP_LOCAL_LITERAL_DESCENT_PROVED_FROM_IMPLEMENTATION_AND_AN_LADDER_BOUND_AUDIT_PASS', x['verdict']
+          assert x['frozen_AN_control']['raw_child_hash']=='978512434c9464304b5294048778cbbacc789e854c207449dde57aa1a0ed3e21'
+          assert x['frozen_AN_control']['raw_child_CLV']==[182,962,20]
+          assert x['frozen_AN_control']['RUP_count_to_AI_reentry']==26
+          assert x['frozen_AN_control']['expected_RUP_count']==26
+          assert x['frozen_AN_control']['minimum_RUP_literal_drop']>=1
+          assert all(int(v)==0 for v in x['falsifier_counts'].values()), x['falsifier_counts']
+          b=x['frozen_symbolic_total_bounds']; a=x['observed_total_RUP_ledger']
+          assert x['frozen_AN_control']['RUP_count_to_AI_reentry'] <= b['successful_RUP_count']
+          assert a['rup_checks'] <= b['rup_checks_including_one_final_no_proposal_scan']
+          assert a['up_clause_scans'] <= b['up_clause_scans_including_one_final_no_proposal_scan']
+          assert a['up_literal_inspections'] <= b['up_literal_inspections_including_one_final_no_proposal_scan']
+          assert all(row['R33_literal_nonincrease'] for row in x['rows'])
+          assert all(row['RUP_literal_drop']>=1 for row in x['rows'])
+          assert x['firewalls']['P_VS_NP']=='OPEN'
+          assert x['firewalls']['SAT_IN_P']=='NOT_PROVED'
+          assert x['firewalls']['TRUMP_finished'] is False
+          print(x['verdict'])
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: janus-trump-r50g25ao-result
+          path: artifacts/JANUS_TRUMP_R50G25AO_RESULT.json
+          if-no-files-found: error
+          retention-days: 30
