@@ -1,0 +1,51 @@
+{
+  "schema_version": "1.0",
+  "gate": "R50G25AL_DERIVE_TIGHTER_CHILD_SIGNED_INCIDENCE_BOUND",
+  "status": "PREREGISTERED_BEFORE_IMPLEMENTATION",
+  "parent_AK_receipt_commit": "9536aa9e0d4bebe02d18450c9942ad7b8046d480",
+  "parent_AK_journal_addendum_commit": "100858e56fa7229935b464648b5e3567b9748205",
+  "parent_AK_meta_sync_commit": "65a168565fb3b7b9956626e9c927933743041b4a",
+  "objective": "Repair the specific AK proof-tightness gap without changing the solver policy: replace AK's coarse co-incidence child upper bound by a parent-computable pairwise-compatible raw-child signed-incidence envelope, then independently replay exact DP. Either close the frozen 15-root reachable domain or preserve the first explicit certificate gap/counterexample.",
+  "frozen_domain": "Exactly the inherited AH/AI/AJ/AK 15-root domain and truth-blind generation. No family, seed, selector order, budget, or success threshold may be added or changed after outcomes.",
+  "selector": "Variables only, sorted by AJ local RAW_S_UB then variable id. For each candidate, evaluate the preregistered tighter certificate. No SAT truth, no model labels, no downstream exact child, and no subset search may influence pivot selection.",
+  "tighter_child_bound": {
+    "name": "PAIRWISE_COMPATIBLE_RAW_CHILD_INCIDENCE_ENVELOPE",
+    "construction": "For candidate pivot x, partition the canonical parent into H (pivot-free), P (contains x), and N (contains -x). Enumerate each P x N pair only to construct the parent-determined resolvent candidate R=(C+\\{x}) union (C-\\{-x}); discard tautological R; canonicalize and deduplicate identical R; union with H and deduplicate. This parent-computable raw set F_tilde_x is formed before subsumption minimization and before any cheap downstream policy.",
+    "soundness_relation": "The exact normalized DP child is obtained from F_tilde_x only by canonical duplicate removal/subsumption deletion, so S_child <= S_tilde. The AI signed-incidence pair mass P_hat is monotone non-increasing under clause deletion, hence P_hat_child <= P_hat_tilde. The certificate therefore upper-bounds AI child LHS by (V-1)*S_tilde + P_hat_tilde, conservatively dropping the negative -L_child-Q2_child terms.",
+    "certificate": "Let Vc=V-1 and Tc=min(B/2,floor_sqrt(B*(Vc-1))). Candidate x is symbolically self-preserving iff Vc*S_tilde(x)+P_hat_tilde(x) <= Vc*Tc, subject to the independently checked one-variable-drop assumption.",
+    "independent_verifier": "Only after symbolic selection materialize the existing exact-DP implementation. Require exact replay PASS, exactly one eliminated variable for the stated certificate, component soundness S_exact<=S_tilde and P_hat_exact<=P_hat_tilde, actual raw-child AI class membership, and terminal-or-AI-class membership after the inherited cheap policy.",
+    "polynomial_ledger": "Record |P|*|N| pair attempts, tautology skips, unique resolvents, raw-set clause/literal size, pair literal work, and certificate incidence scan work. The construction is finite polynomial work in the current representation; this ledger is not a proof of global polynomial SAT runtime."
+  },
+  "frozen_positive_control": {
+    "AK_first_gap_residual_hash": "04c6f85371b1ef841196d4230a7fcade3484f1d433fb2a851cfe904469e40241",
+    "AK_first_gap_CLV": [122, 532, 21],
+    "AK_best_pivot": 18,
+    "AK_coarse_symbolic_slack": -9107,
+    "AK_actual_child_symbolic_slack": 54987,
+    "rule": "The witness is a positive control for improved proof tightness only; its known outcome must not alter the bound after preregistration."
+  },
+  "falsifiers": [
+    "PARENT_OUTSIDE_AI_CLASS",
+    "NO_ENVELOPE_ADMISSIBLE_PIVOT",
+    "PAIRWISE_RAW_CHILD_BOUND_UNSOUND",
+    "CHILD_VARIABLE_DROP_ASSUMPTION_FAILURE",
+    "TIGHT_CHILD_SYMBOLIC_CERTIFICATE_GAP_BUT_ACTUAL_DOOR_EXISTS",
+    "NO_ACTUAL_SELF_PRESERVING_PIVOT",
+    "EXACT_DP_REPLAY_FAILURE",
+    "SEMANTIC_MISMATCH",
+    "POLYNOMIAL_LEDGER_FAILURE",
+    "RESOURCE_LIMIT",
+    "IMPLEMENTATION_FAILURE"
+  ],
+  "pass_condition": "All 15 frozen roots complete without semantic mismatch; every reachable nonterminal residual has a symbolically certified pivot under the frozen tighter bound; all independent soundness and exact-DP replay checks pass.",
+  "result_policy": "Do not widen, weaken, or add correction terms after seeing outcomes. If the tighter certificate fails while an actual self-preserving door exists, seal that proof gap and route it to forensics. If no actual door exists, preserve it as a solver/policy obstruction candidate. A finite pass is not a universal theorem.",
+  "firewall": {
+    "P_VS_NP": "OPEN",
+    "SAT_IN_P": "NOT_PROVED",
+    "TRUMP_finished": false,
+    "finite_pass_is_not_universal_symbolic_proof": true,
+    "symbolic_certificate_gap_is_not_solver_counterexample": true,
+    "pairwise_raw_child_envelope_is_not_global_runtime_bound": true,
+    "state_envelope_is_not_runtime_bound": true
+  }
+}
