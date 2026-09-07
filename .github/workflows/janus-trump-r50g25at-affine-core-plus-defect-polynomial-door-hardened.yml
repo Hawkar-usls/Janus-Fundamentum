@@ -1,0 +1,76 @@
+name: JANUS TRUMP R50G25AT hardened affine-core plus bounded-defect door
+
+on:
+  push:
+    branches:
+      - research/r50g25at-affine-core-plus-defect-polynomial-door-2026-09-07
+    paths:
+      - 'experiments/janus_trump_r50g25at_tautology_hardened_runner.py'
+      - '.github/workflows/janus-trump-r50g25at-affine-core-plus-defect-polynomial-door-hardened.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Run hardened AT door
+        run: |
+          mkdir -p artifacts
+          PYTHONPATH=experiments python experiments/janus_trump_r50g25at_tautology_hardened_runner.py --out artifacts/JANUS_TRUMP_R50G25AT_RESULT.json
+      - name: Verify hardened fail-closed result
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          p=Path('artifacts/JANUS_TRUMP_R50G25AT_RESULT.json')
+          assert p.exists()
+          x=json.loads(p.read_text())
+          PASS='AFFINE_CORE_PLUS_BOUNDED_DEFECT_POLYNOMIAL_DOOR_PASS'
+          assert x['verdict']==PASS, x['verdict']
+          assert x['falsifier_count']==0, x['falsifiers']
+          assert x['preregistration_commit']=='3ac282d8594920cb37cfae08e79b2a0f526165fb'
+          assert x['parent_AS_receipt']=='4ca2803aae8503e05dfc7ed46266ebe89add67b9'
+          h=x['hardening']
+          assert h['status']=='PASS', h
+          assert h['explicit_tautology_handling'] is True
+          assert h['AS_exact_defect_expected']==[8,12,14,15,16]
+          assert h['AS_exact_defect_observed']==[[8,12,14,15,16]]
+          assert h['AS_exact_defect_match'] is True
+          assert h['tautology_counts_by_candidate']==[0,0,0,0]
+          rows={r['name']:r for r in x['rows']}
+          a=rows['AS_WITNESS_D1_SAT']['result']
+          assert a['formula_hash']=='0d46b6d6120f9a123ae75faf92ac6cfafbb57641bbc77c2c4512a8b642af3de7'
+          assert a['extraction']['affine_clause_count']==1120
+          assert a['extraction']['recognized_equation_count']==140
+          assert a['extraction']['defect_clause_count']==1
+          assert a['winning_branch']['selected_literals']==[8]
+          assert a['winning_branch']['model_pass'] is True
+          for row in x['rows']:
+            e=row['result']['extraction']
+            assert e['tautology_check_pass'] is True
+            assert e['explicit_tautology_policy']=='DETECT_AND_DROP_AS_ALWAYS_TRUE_BEFORE_AFFINE_GROUPING'
+            assert e['partition_pass'] is True
+            assert e['replay_failure_count']==0
+          assert rows['SIMPLE_D1_UNSAT']['result']['all_unsat_certificates_pass'] is True
+          assert rows['SIMPLE_D4_UNSAT']['result']['all_unsat_certificates_pass'] is True
+          assert x['scientific_scope']['unbounded_defect_count']=='OPEN'
+          assert x['scientific_scope']['arbitrary_CNF_coverage']=='OPEN'
+          assert x['firewall']['P_VS_NP']=='OPEN'
+          assert x['firewall']['SAT_IN_P']=='NOT_PROVED'
+          assert x['firewall']['TRUMP_finished'] is False
+          print(x['verdict'])
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: janus-trump-r50g25at-hardened-result
+          path: artifacts/JANUS_TRUMP_R50G25AT_RESULT.json
+          if-no-files-found: error
+          retention-days: 30
