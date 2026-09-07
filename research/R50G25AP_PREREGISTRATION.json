@@ -1,0 +1,83 @@
+{
+  "gate": "JANUS_TRUMP_R50G25AP_INTERLEAVED_R33_RUP_COMBINED_PROGRESS_POTENTIAL_OR_COUNTEREXAMPLE",
+  "date": "2026-09-07",
+  "status": "FROZEN_BEFORE_EXECUTION",
+  "source_branch": "research/r50g25ap-interleaved-r33-rup-combined-potential-2026-09-07",
+  "parent_gate": "R50G25AO_RUP_LADDER_PROGRESS_BOUND_OR_COUNTEREXAMPLE",
+  "parent_source_sync_head": "e649c76a6592fbf080405bf69c37495c5539a6ac",
+  "objective": "Remove AO's conditional assumption that interleaved R33 operators do not increase literal count L. Prove from the implemented R33+RUP transition semantics that one root-frozen scalar potential strictly decreases on every successful transition, or emit a concrete transition counterexample.",
+  "frozen_transition_system": {
+    "phase_start": "A canonical nonterminal CNF F0 at the start of one R33<->RUP phase. Let (C0,L0,V0)=measure(F0).",
+    "allowed_successful_transitions": [
+      "one actual R33 history transition emitted by r33.simplify",
+      "one accepted one-literal RUP strengthening emitted by r35b.first_rup_strengthening and applied by replace_clause_with_subclause followed by canonical_formula"
+    ],
+    "excluded_from_this_gate": [
+      "outer exact-DP transitions",
+      "proof of a polynomial bound on the number of outer phases",
+      "end-to-end SAT solver runtime theorem"
+    ]
+  },
+  "frozen_candidate": {
+    "root_constants": {
+      "M": "C0*V0+1",
+      "Lmax": "C0*V0"
+    },
+    "potential": "Phi(F)=L(F)+M*V(F)",
+    "claimed_structural_invariants": [
+      "canonical clauses contain no duplicate literals, hence every clause width is at most V",
+      "all implemented R33 transitions are variable-nonincreasing",
+      "all implemented R33 transitions are clause-count-nonincreasing; for BVE this follows from len(resolvents)<=len(removed) plus canonicalization",
+      "accepted RUP is clause-count-nonincreasing, variable-nonincreasing, and decreases L by at least one"
+    ],
+    "claimed_transition_descent": {
+      "RUP": "L'<=L-1 and V'<=V, therefore Phi'<=Phi-1",
+      "R33_NON_BVE": "the implemented rule deletes at least one literal occurrence and never introduces variables, therefore Phi'<=Phi-1",
+      "R33_BVE": "V'<=V-1 and C'<=C<=C0. Since L'<=C'*V'<=C0*(V0-1), Phi'-Phi <= C0*(V0-1)-M = -C0-1 < 0. This intentionally uses a conservative root-frozen bound rather than assuming L monotonicity."
+    },
+    "successful_transition_count_bound": "Phi0=L0+(C0*V0+1)*V0",
+    "interpretation": "If the frozen claims survive code audit and replay, one R33<->RUP phase has a polynomial bound on the number of successful R33/RUP transformations even when BVE raises L. This is not a bound on the number of outer exact-DP phases."
+  },
+  "frozen_work_ledger_candidate": {
+    "Lmax": "C0*V0",
+    "per_R33_search_iteration_check_ops_upper": "K=2*Lmax+C0+C0^2+Lmax*C0+max(1,V0)*max(1,C0^2)",
+    "R33_search_iterations_including_stall_scans_upper": "2*Phi0+1 for the explicit AP interleaving loop",
+    "R33_total_check_ops_upper": "(2*Phi0+1)*K",
+    "RUP_search_calls_upper": "Phi0+1",
+    "per_RUP_search_rup_checks_upper": "Lmax",
+    "per_RUP_search_clause_scans_upper": "Lmax*C0*(V0+1)",
+    "per_RUP_search_literal_inspections_upper": "Lmax^2*(V0+1)",
+    "note": "These are deliberately coarse implementation-ledger bounds. Failure falsifies the frozen AP ledger candidate but does not by itself falsify the structural potential unless Phi also fails."
+  },
+  "frozen_audit_domain": {
+    "AN_hard_witness": "Replay the frozen AN raw post-DP child through its 26-RUP path to first AI-class reentry, recording every internal R33 history transition and every accepted RUP transition.",
+    "R33_rule_controls": "Audit the built-in R33 semantic controls and deterministic prism/random controls so every observed R33 rule transition is checked against Phi.",
+    "BVE_literal_growth_attack": "Deterministically search a frozen small-formula corpus for an actual BVE history transition with L_after>L_before. If found, it is a positive stress witness and Phi must still strictly decrease. Absence of such a witness is not a PASS condition and does not weaken or strengthen the structural proof claim.",
+    "truth_use": "No SAT truth value may be used to select a transition, a formula, a pivot, or a RUP candidate."
+  },
+  "preregistered_falsifiers": [
+    "R33_CLAUSE_COUNT_INCREASE",
+    "R33_VARIABLE_INCREASE",
+    "RUP_CLAUSE_OR_VARIABLE_INCREASE",
+    "RUP_LITERAL_DESCENT_FAILURE",
+    "NON_BVE_R33_LITERAL_DESCENT_FAILURE",
+    "BVE_VARIABLE_DESCENT_FAILURE",
+    "BVE_ROOT_BOUND_FAILURE",
+    "COMBINED_PHI_NONDECREASE",
+    "R33_WORK_LEDGER_BOUND_FAILURE",
+    "RUP_WORK_LEDGER_BOUND_FAILURE",
+    "AN_WITNESS_REPRODUCTION_FAILURE",
+    "REPLAY_OR_IMPLEMENTATION_FAILURE"
+  ],
+  "success_verdict": "COMBINED_R33_RUP_ROOT_FROZEN_PHI_STRICT_DESCENT_AND_FROZEN_LEDGER_AUDIT_PASS",
+  "counterexample_verdict": "COMBINED_R33_RUP_PHI_OR_LEDGER_COUNTEREXAMPLE_FOUND",
+  "firewall": {
+    "P_VS_NP": "OPEN",
+    "SAT_IN_P": "NOT_PROVED",
+    "TRUMP_finished": false,
+    "single_phase_polynomial_progress_is_not_end_to_end_polynomial_solver_runtime": true,
+    "outer_exact_DP_phase_count_remains_open": true,
+    "finite_replay_is_not_universal_proof": true,
+    "structural_claim_must_be_derived_from_implemented_transition_definitions_not_only_from_examples": true
+  }
+}
