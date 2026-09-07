@@ -1,0 +1,126 @@
+name: JANUS TRUMP R50G25AW aggregate plumbing fix
+
+on:
+  push:
+    branches:
+      - research/r50g25aw-defect-component-decomposition-2026-09-08
+    paths:
+      - 'experiments/janus_trump_r50g25aw_aggregate_plumbing_fix.py'
+      - '.github/workflows/janus-trump-r50g25aw-aggregate-fix.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  aggregate-fixed:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Download exact frozen candidate artifacts from original AW run
+        uses: actions/download-artifact@v4
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: Hawkar-usls/Janus-Fundamentum
+          run-id: 34168346865
+          pattern: aw-candidate-*
+          path: candidate-artifacts
+          merge-multiple: true
+      - name: Aggregate with asserted single-token Python boolean fix
+        run: |
+          mkdir -p artifacts
+          PYTHONPATH=experiments python experiments/janus_trump_r50g25aw_aggregate_plumbing_fix.py \
+            --input-dir candidate-artifacts \
+            --out artifacts/JANUS_TRUMP_R50G25AW_RESULT.json
+      - name: Verify fail-closed AW result
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          p = Path('artifacts/JANUS_TRUMP_R50G25AW_RESULT.json')
+          x = json.loads(p.read_text())
+          PASS = 'DEFECT_COMPONENT_FACTORIZATION_WITHIN_L4_ON_FROZEN_REACHABLE_DOMAIN__UNIVERSAL_COVERAGE_OPEN'
+          OBS = 'REACHABLE_DEFECT_COMPONENT_COST_EXCEEDS_L4'
+          assert x['preregistration_commit'] == '0ae90542aea7198149c88cc1455e5553d473ea60'
+          assert x['parent_AV_sealed_head'] == 'a69980c1076a8b6d1f81365a0ca74078e536cc1f'
+          assert x['candidate_count_frozen'] == 9
+          assert x['candidate_count_physically_computed'] == 9
+          assert x['AV_first_multi_control_seen'] is True
+          assert x['AV_obstruction_control_seen'] is True
+          assert x['failure_count'] == 0, x['failures']
+          assert x['verdict'] in {PASS, OBS}, x['verdict']
+          fix = x['technical_plumbing_fix']
+          assert fix['kind'] == 'SINGLE_TOKEN_PYTHON_BOOLEAN_FIX'
+          assert fix['bad_token'] == 'false'
+          assert fix['replacement_token'] == 'False'
+          assert fix['replacement_count'] == 1
+          assert fix['scientific_contract_changed'] is False
+          assert fix['candidate_artifacts_recomputed'] is False
+          assert x['frozen_contract']['graph'] == 'undirected bipartite constraint-variable factor graph over affine equations plus defect clauses'
+          assert x['frozen_contract']['component_cost'] == 'B_component=sum_j product_i |D_i| within component j'
+          assert x['frozen_contract']['budget'] == 'L^4'
+          assert x['frozen_contract']['recursive_separator_or_treewidth_rescue_inside_AW'] is False
+          for row in x['rows']:
+              if row.get('policy_kind') != 'RESIDUAL':
+                  continue
+              e = row['extraction']; f = row['factorization']; l = row['ledger']
+              assert e['partition_pass'] is True
+              assert e['replay_failure_count'] == 0
+              assert e['explicit_tautology_policy'] == 'DETECT_AND_DROP_AS_ALWAYS_TRUE_BEFORE_AFFINE_GROUPING'
+              assert f['factorization_partition_pass'] is True
+              assert f['semantic_independence_pass'] is True
+              assert f['cross_component_variable_intersection_count'] == 0
+              assert l['L4_budget'] == l['L'] ** 4
+              assert sum(c['P_j'] for c in f['components'] if c['defect_count'] > 0) == l['B_component']
+              assert l['budget_slack'] == l['L4_budget'] - l['B_component']
+          if x['verdict'] == OBS:
+              w = x['first_component_obstruction']
+              assert w is not None
+              assert w['class'] == 'DEFECT_COMPONENT_COST_EXCEEDS_L4'
+              assert w['ledger']['B_component'] > w['ledger']['L4_budget']
+              assert w['ledger']['budget_slack'] < 0
+              assert x['scientific_scope']['component_factorization_on_frozen_domain'] == 'FALSIFIED'
+              assert x['scientific_scope']['recursive_separator_or_treewidth_compression'] == 'NOT_TESTED_REQUIRES_NEW_PREREGISTRATION'
+          else:
+              assert x['first_component_obstruction'] is None
+              assert x['minimum_budget_slack_observed'] >= 0
+          assert x['truth_oracle']['used_for_generation'] is False
+          assert x['truth_oracle']['used_for_selection'] is False
+          assert x['truth_oracle']['used_for_verdict'] is False
+          assert x['firewall']['P_VS_NP'] == 'OPEN'
+          assert x['firewall']['SAT_IN_P'] == 'NOT_PROVED'
+          assert x['firewall']['TRUMP_finished'] is False
+          print(x['verdict'])
+          PY
+      - name: Emit immutable AW digest and scientific identity
+        run: |
+          python - <<'PY'
+          import hashlib, json
+          from pathlib import Path
+          p = Path('artifacts/JANUS_TRUMP_R50G25AW_RESULT.json')
+          b = p.read_bytes(); x = json.loads(b)
+          compact = {
+              'result_json_sha256': hashlib.sha256(b).hexdigest(),
+              'result_json_size_bytes': len(b),
+              'verdict': x['verdict'],
+              'candidate_count_audited': x['candidate_count_scientifically_audited_to_stop'],
+              'residual_count_audited': x['residual_count_audited_to_stop'],
+              'maximum_B_component_observed': x['maximum_B_component_observed'],
+              'maximum_component_P_j_observed': x['maximum_component_P_j_observed'],
+              'minimum_budget_slack_observed': x['minimum_budget_slack_observed'],
+              'first_component_obstruction': x['first_component_obstruction'],
+              'technical_plumbing_fix': x['technical_plumbing_fix'],
+          }
+          print('AW_PROVENANCE_IDENTITY=' + json.dumps(compact, sort_keys=True, separators=(',', ':')))
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: janus-trump-r50g25aw-result
+          path: artifacts/JANUS_TRUMP_R50G25AW_RESULT.json
+          if-no-files-found: error
+          retention-days: 30
