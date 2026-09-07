@@ -1,0 +1,42 @@
+name: TRUMP Proof State Machine v1 self-test
+
+on:
+  push:
+    branches:
+      - governance/trump-proof-state-machine-v1-0-2026-09-08
+  workflow_dispatch:
+
+jobs:
+  governance-self-test:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Run fail-closed governance self-test
+        run: |
+          mkdir -p artifacts
+          python governance/trump_proof_state_machine_validator_v1.py \
+            --policy governance/TRUMP_PROOF_STATE_MACHINE_v1.0.json \
+            --self-test \
+            --out artifacts/TRUMP_PROOF_STATE_MACHINE_v1.0_SELFTEST.json
+      - name: Verify self-test receipt
+        run: |
+          python - <<'PY'
+          import hashlib, json
+          from pathlib import Path
+          p = Path('artifacts/TRUMP_PROOF_STATE_MACHINE_v1.0_SELFTEST.json')
+          x = json.loads(p.read_text())
+          assert x['status'] == 'PASS', x
+          assert x['failure_count'] == 0, x
+          assert len(x['cases']) == 4, x
+          print('GOVERNANCE_SELFTEST_SHA256=' + hashlib.sha256(p.read_bytes()).hexdigest())
+          print(json.dumps(x, sort_keys=True))
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: trump-proof-state-machine-v1-selftest
+          path: artifacts/TRUMP_PROOF_STATE_MACHINE_v1.0_SELFTEST.json
+          if-no-files-found: error
+          retention-days: 30
