@@ -1,0 +1,72 @@
+name: JANUS TRUMP R50G25AR global phase-root state-size envelope
+
+on:
+  push:
+    branches:
+      - research/r50g25ar-global-phase-root-state-size-envelope-2026-09-07
+    paths:
+      - 'experiments/janus_trump_r50g25ar_global_phase_root_state_size_envelope.py'
+      - '.github/workflows/janus-trump-r50g25ar-global-phase-root-state-size-envelope.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Run AR global explicit state-size envelope audit
+        run: |
+          mkdir -p artifacts
+          PYTHONPATH=experiments python experiments/janus_trump_r50g25ar_global_phase_root_state_size_envelope.py --out artifacts/JANUS_TRUMP_R50G25AR_RESULT.json
+      - name: Verify fail-closed scientific result
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          p=Path('artifacts/JANUS_TRUMP_R50G25AR_RESULT.json')
+          assert p.exists()
+          x=json.loads(p.read_text())
+          S='GLOBAL_PHASE_ROOT_STATE_SIZE_ENVELOPE_DERIVED_FOR_FROZEN_NORMATIVE_MACHINE'
+          O='EXPLICIT_STATE_ENVELOPE_OR_SELECTOR_CONTRACT_OBSTRUCTION_FOUND'
+          assert x['gate']=='JANUS_TRUMP_R50G25AR_GLOBAL_PHASE_ROOT_STATE_SIZE_ENVELOPE_OR_EXPLICIT_DP_BLOWUP_OBSTRUCTION'
+          assert x['preregistration_commit']=='9acedbc48b00a99b48d553fb2d61a08f1dd6e148'
+          assert x['parent_AQ_receipt_commit']=='c69f113dea481280c3acba87cae3bc4059c5921d'
+          assert x['verdict'] in {S,O}, x['verdict']
+          assert x['normative_scope']['AQ_min_bipolar_selector']=='DIAGNOSTIC_ONLY_NOT_NORMATIVE'
+          assert x['normative_scope']['SAT_truth_used_for_selector'] is False
+          assert x['firewalls']['P_VS_NP']=='OPEN'
+          assert x['firewalls']['SAT_IN_P']=='NOT_PROVED'
+          assert x['firewalls']['TRUMP_finished'] is False
+          if x['verdict']==S:
+            assert x['falsifier_count']==0
+            routes=x['normative_route_audit']
+            assert routes['root_count_audited']==routes['planned_root_count']==15
+            assert routes['total_exact_DP_transitions']>0
+            for rr in routes['rows']:
+              assert rr['failure_count']==0
+              B0=rr['root']['B0']
+              V0=rr['root']['V0']
+              for e in rr['events']:
+                C,L,V=e['exact_child_CLV']
+                assert C+L <= e['chosen_RAW_S_UB'] <= e['chosen_T'] <= B0//2
+                assert V < e['parent_CLV'][2]
+                assert V <= V0
+            assert x['scientific_scope']['universal_envelope_admissible_pivot_existence']=='OPEN'
+            assert x['scientific_scope']['end_to_end_polynomial_runtime']=='OPEN'
+          else:
+            assert x['falsifier_count']>0
+          print(x['verdict'])
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: janus-trump-r50g25ar-result
+          path: artifacts/JANUS_TRUMP_R50G25AR_RESULT.json
+          if-no-files-found: error
+          retention-days: 30
