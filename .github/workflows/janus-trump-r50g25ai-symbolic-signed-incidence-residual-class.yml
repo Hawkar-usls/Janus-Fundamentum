@@ -1,0 +1,67 @@
+name: JANUS TRUMP R50G25AI symbolic signed-incidence residual class
+
+on:
+  push:
+    branches:
+      - research/r50g25ai-symbolic-signed-incidence-residual-class-2026-09-07
+    paths:
+      - 'experiments/janus_trump_r50g25ai_symbolic_signed_incidence_residual_class.py'
+      - '.github/workflows/janus-trump-r50g25ai-symbolic-signed-incidence-residual-class.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Run AI signed-incidence symbolic class audit
+        run: |
+          mkdir -p artifacts
+          PYTHONPATH=experiments python experiments/janus_trump_r50g25ai_symbolic_signed_incidence_residual_class.py --out artifacts/JANUS_TRUMP_R50G25AI_RESULT.json
+      - name: Verify fail-closed result
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          p=Path('artifacts/JANUS_TRUMP_R50G25AI_RESULT.json')
+          assert p.exists()
+          x=json.loads(p.read_text())
+          assert x['AI_preregistration_commit']=='cc230a79e9e2106d638f1ef9b3bcb2b55540eb11'
+          allowed={
+            'SIGNED_INCIDENCE_SYMBOLIC_CLASS_COVERS_AH_REACHABLE_DOMAIN',
+            'SIGNED_INCIDENCE_BOUND_UNSOUND',
+            'SYMBOLIC_CLASS_COVERAGE_GAP_ON_REACHABLE_RESIDUAL',
+            'REACHABLE_NO_ADMISSIBLE_RAW_DP_PIVOT',
+            'EXACT_DP_REPLAY_FAILURE',
+            'SEMANTIC_MISMATCH_ON_KNOWN_GPHP_UNSAT',
+            'PARENT_AH_REPLAY_FAILURE',
+          }
+          assert x['verdict'] in allowed
+          assert x['firewall']['P_VS_NP']=='OPEN'
+          assert x['firewall']['SAT_IN_P']=='NOT_PROVED'
+          assert x['firewall']['TRUMP_finished'] is False
+          if x['verdict']=='SIGNED_INCIDENCE_SYMBOLIC_CLASS_COVERS_AH_REACHABLE_DOMAIN':
+              assert x['signed_incidence_bound_soundness_failure_count']==0
+              assert x['symbolic_class_coverage_gap_count']==0
+              assert x['reachable_no_admissible_raw_pivot_count']==0
+              assert x['exact_DP_replay_failure_count']==0
+              assert x['semantic_mismatch_count']==0
+          if x['verdict']=='SIGNED_INCIDENCE_BOUND_UNSOUND':
+              assert x['signed_incidence_bound_soundness_failure_count']>0
+          if x['verdict']=='SYMBOLIC_CLASS_COVERAGE_GAP_ON_REACHABLE_RESIDUAL':
+              assert x['symbolic_class_coverage_gap_count']>0
+          print(x['verdict'])
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: janus-trump-r50g25ai-result
+          path: artifacts/JANUS_TRUMP_R50G25AI_RESULT.json
+          if-no-files-found: error
+          retention-days: 30
