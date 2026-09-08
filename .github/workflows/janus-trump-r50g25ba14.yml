@@ -1,0 +1,118 @@
+name: JANUS TRUMP R50G25BA14 parameterized generation3 final fanout cascade
+
+on:
+  push:
+    branches:
+      - research/r50g25ba14-parameterized-generation3-final-fanout-cascade-2026-09-08
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  scientific:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Verify preregistration precedes implementation
+        run: |
+          git merge-base --is-ancestor 3bd91d3c22158375704adb25421da66ea38330b0 8d480ef2fb0a2b2cb5fa12bcd096cb922986d952
+          git merge-base --is-ancestor 3bd91d3c22158375704adb25421da66ea38330b0 fd0a46fa375ab86ff27d3f181c17ea6af4d14de5
+          git merge-base --is-ancestor 3bd91d3c22158375704adb25421da66ea38330b0 eece11e1452439762985b71d420e3f5f3fa031c3
+          test "$(git show --format=%s --no-patch 3bd91d3c22158375704adb25421da66ea38330b0)" = "freeze R50G25BA14 parameterized generation3 final fanout preregistration"
+
+      - name: Build exact BA14 result from frozen source
+        env:
+          PYTHONPATH: experiments
+        run: |
+          mkdir -p artifacts
+          python experiments/janus_trump_r50g25ba14_parameterized_generation3_final_fanout_cascade.py \
+            --out artifacts/JANUS_TRUMP_R50G25BA14_RESULT.json
+
+      - name: Independent mathematical replay
+        env:
+          PYTHONPATH: experiments
+        run: |
+          python experiments/verify_janus_trump_r50g25ba14_parameterized_generation3_final_fanout_cascade.py \
+            --result artifacts/JANUS_TRUMP_R50G25BA14_RESULT.json \
+            --out artifacts/JANUS_TRUMP_R50G25BA14_VERIFY.json
+
+      - name: Complete all 35 preregistered obligations
+        env:
+          PYTHONPATH: experiments
+        run: |
+          python experiments/complete_janus_trump_r50g25ba14_preseal_obligations.py \
+            --result artifacts/JANUS_TRUMP_R50G25BA14_RESULT.json \
+            --verify artifacts/JANUS_TRUMP_R50G25BA14_VERIFY.json \
+            --out artifacts/JANUS_TRUMP_R50G25BA14_PRESEAL_COMPLETION.json
+
+      - name: Enforce strict BA14 promotion guard
+        run: |
+          python - <<'PY'
+          import hashlib,json
+          from pathlib import Path
+          rp=Path('artifacts/JANUS_TRUMP_R50G25BA14_RESULT.json')
+          vp=Path('artifacts/JANUS_TRUMP_R50G25BA14_VERIFY.json')
+          cp=Path('artifacts/JANUS_TRUMP_R50G25BA14_PRESEAL_COMPLETION.json')
+          r=json.loads(rp.read_text()); v=json.loads(vp.read_text()); c=json.loads(cp.read_text())
+          assert r['preregistration_commit']=='3bd91d3c22158375704adb25421da66ea38330b0'
+          assert r['parent_BA13_final_meta_commit']=='40367ee9983bf5abb25ce423bbc6b1f764a2d618'
+          assert r['parent_BA13_source_commit']=='8a85f09fb1e48c7b7c62281774e3e0f0d0a85ea4'
+          assert r['failure_count']==0 and r['falsifiers']==[]
+          assert r['base_required_count']==33 and r['base_pass_count']==33
+          assert r['outcome']=='BA14-A_PARAMETERIZED_GENERATION3_FINAL_FANOUT_CASCADE_CERTIFIED'
+          assert r['symbolic']['generation_counts']=={'GEN1':'p','GEN2':'p','GEN3':'p*r','pattern':'p->p->p*r','stage3_expansion_factor':'r','repeated_multiplication':False}
+          assert r['symbolic']['model_counts']['source']=='2^r+2^p+2'
+          assert r['symbolic']['model_counts']['stage1']=='2^r+2^p+1'
+          assert r['symbolic']['model_counts']['stage2']=='2^r+2^p'
+          assert r['symbolic']['model_counts']['final']=='2^r+2^p-1'
+          assert r['graph_symbolic']['E_peak']=='max(2p+r+2,p+r+p*r)'
+          assert r['graph_symbolic']['quotient_tw_peak']=='min(p,r)+1'
+          assert r['graph_symbolic']['full_width']['upper']=='max(13,min(p,r)+1)'
+          assert r['graph_symbolic']['full_width']['lower']=='min(p,r)+1'
+          assert r['source_size']['formula']=={'d':'p+r','C':'67g(d+3)-d-4','L':'163g(d+3)-2d-8','V':'20g(d+3)','n_struct':'250g(d+3)-3d-12'}
+          assert r['BA13_recovery']['pass'] is True
+          assert r['historical_controls']['final']['GEN4_NEW_FILL_under_canonical_residual_leaf_continuation']==0
+          assert r['source_transport']['local_targets_pass'] is True
+          assert r['source_transport']['generic_per_transition']['raw_pairs']=='2320p+2001(r+2)'
+          assert r['source_transport']['generic_per_transition']['R_peak']=='17(p+r+2)'
+          assert r['source_transport']['generic_per_transition']['B_peak']=='9(p+r+2)'
+          assert r['source_transport']['generic_per_transition']['E_peak']=='p+r+2'
+          assert r['source_transport']['generic_per_transition']['W_peak']==13
+          assert all(b['ledgers']['B_ACTUAL_X_ELIMINATION']['raw_pairs']==b['p'] for b in r['actual_boundary_work'])
+          assert all(b['ledgers']['C_ACTUAL_Y_ELIMINATION']['raw_pairs']==b['p'] for b in r['actual_boundary_work'])
+          assert all(b['ledgers']['D_ACTUAL_Z_ELIMINATION']['raw_pairs']==b['p']*b['r'] for b in r['actual_boundary_work'])
+          assert r['complexity']['S']=='g(p+r)+p*r'
+          assert r['complexity']['explicit_output_lower_bound']=='Omega(p*r)'
+          assert r['complexity']['structural_certificate']=='Theta(S)'
+          assert r['complexity']['encoded_certificate']=='O(S log S)'
+          assert r['complexity']['T_total']=='O(S log S)'
+          assert v['status']=='PASS' and v['P_BA14_independent']==1 and v['required_count']==33 and v['pass_count']==33
+          assert v['imports_BA14_implementation'] is False
+          assert c['status']=='PASS' and c['P_BA14_FINAL']==1 and c['required_pass_count']==35 and c['all_required_passes'] is True
+          assert len(c['required_passes'])==35 and all(x==1 for x in c['required_passes'].values())
+          assert c['required_passes']['INDEPENDENT_REPLAY_PASS']==1
+          assert c['required_passes']['PRESEAL_COMPLETENESS_PASS']==1
+          assert r['repeated_multiplication_started'] is False and r['next_gate_started'] is False and r['BA15_started'] is False
+          assert r['P_VS_NP']=='OPEN' and r['SAT_IN_P']=='NOT_PROVED' and r['TRUMP_finished'] is False
+          print('RESULT_SHA256='+hashlib.sha256(rp.read_bytes()).hexdigest())
+          print('VERIFY_SHA256='+hashlib.sha256(vp.read_bytes()).hexdigest())
+          print('COMPLETION_SHA256='+hashlib.sha256(cp.read_bytes()).hexdigest())
+          print('P_BA14_FINAL=1')
+          PY
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: janus-trump-r50g25ba14-result
+          path: |
+            artifacts/JANUS_TRUMP_R50G25BA14_RESULT.json
+            artifacts/JANUS_TRUMP_R50G25BA14_VERIFY.json
+            artifacts/JANUS_TRUMP_R50G25BA14_PRESEAL_COMPLETION.json
+          if-no-files-found: error
