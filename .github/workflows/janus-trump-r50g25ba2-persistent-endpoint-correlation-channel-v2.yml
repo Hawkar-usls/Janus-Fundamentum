@@ -1,0 +1,71 @@
+name: JANUS TRUMP R50G25BA2 persistent endpoint correlation channel v2
+
+on:
+  push:
+    branches:
+      - research/r50g25ba2-persistent-endpoint-correlation-channel-2026-09-08
+    paths:
+      - 'experiments/janus_trump_r50g25ba2_json_safe_runner.py'
+      - '.github/workflows/janus-trump-r50g25ba2-persistent-endpoint-correlation-channel-v2.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  ba2-audit-v2:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Run BA2 audit through serialization-only wrapper
+        run: |
+          mkdir -p artifacts
+          PYTHONPATH=experiments python experiments/janus_trump_r50g25ba2_json_safe_runner.py \
+            --out artifacts/JANUS_TRUMP_R50G25BA2_RESULT.json
+      - name: Independent fail-closed BA2 verification
+        run: |
+          PYTHONPATH=experiments python experiments/janus_trump_r50g25ba2_independent_verify.py \
+            --result artifacts/JANUS_TRUMP_R50G25BA2_RESULT.json \
+            --out artifacts/JANUS_TRUMP_R50G25BA2_VERIFY.json
+      - name: Verify BA2 result scope and firewalls
+        run: |
+          python - <<'PY'
+          import hashlib,json
+          from pathlib import Path
+          rp=Path('artifacts/JANUS_TRUMP_R50G25BA2_RESULT.json'); vp=Path('artifacts/JANUS_TRUMP_R50G25BA2_VERIFY.json')
+          r=json.loads(rp.read_text()); v=json.loads(vp.read_text())
+          assert r['preregistration_commit']=='a4737c4f934c480658645943554fb6d2d62d9014'
+          assert r['crossfeed_guard_commit']=='82df84cb22606e9cd7a358e79c226f87b7dbeb60'
+          assert v['status']=='PASS' and v['failure_count']==0,v
+          assert r['outcome'] in {'BA2-A_PERSISTENT_ONE_POLARITY_CHANNEL_CERTIFIED','BA2_RESTRICTED_OR_FALSIFIED'}
+          if r['outcome']=='BA2-A_PERSISTENT_ONE_POLARITY_CHANNEL_CERTIFIED':
+              assert all(r['source_preimage_realizability_gate'].values()),r['source_preimage_realizability_gate']
+              assert r['falsifiers']==[],r['falsifiers']
+              assert r['BA2_2_persistence']['idempotent'] is True
+              assert r['BA2_3_equality_control']['expected_local_copy_then_reset'] is True
+              assert r['BA2_6_xor_control']['same_transport_semantics'] is True
+              assert r['minimality_pass'] is True
+              assert r['information_accounting']['persistent_directional_bits']==1.0
+              assert r['information_accounting']['two_polarity_channel_claimed'] is False
+          else:
+              assert r['falsifiers'] or r['failure_count']>0
+          assert r['interpretation']['arbitrary_CNF_coverage_started'] is False
+          assert r['interpretation']['BA3_started'] is False
+          assert v['finite_g_ladder_replayed'] is False
+          assert r['firewall']=={'P_VS_NP':'OPEN','SAT_IN_P':'NOT_PROVED','TRUMP_finished':False}
+          print('BA2_RESULT_SHA256='+hashlib.sha256(rp.read_bytes()).hexdigest())
+          print('BA2_VERIFY_SHA256='+hashlib.sha256(vp.read_bytes()).hexdigest())
+          print(json.dumps({'outcome':r['outcome'],'guards':r['source_preimage_realizability_gate'],'falsifiers':r['falsifiers'],'width':r['BA2_10_complexity']['width_upper_bound']},sort_keys=True))
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: janus-trump-r50g25ba2-result-v2
+          path: |
+            artifacts/JANUS_TRUMP_R50G25BA2_RESULT.json
+            artifacts/JANUS_TRUMP_R50G25BA2_VERIFY.json
+          if-no-files-found: error
