@@ -1,0 +1,91 @@
+name: JANUS TRUMP R50G25BA12 parameterized two-stage bipartite fill cascade
+
+on:
+  push:
+    branches:
+      - research/r50g25ba12-parameterized-two-stage-bipartite-fill-cascade-2026-09-08
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  scientific:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Verify preregistration precedes implementation
+        run: |
+          git merge-base --is-ancestor cab377664282e24b1ac8d68aff587daad715e722 fdada305667f5c7e8c16571210852ec8c61a9711
+          test "$(git show --format=%s --no-patch cab377664282e24b1ac8d68aff587daad715e722)" = "preregister R50G25BA12 parameterized two-stage bipartite fill cascade"
+      - name: Build exact BA12 result from frozen source
+        env:
+          PYTHONPATH: experiments
+        run: |
+          mkdir -p artifacts
+          python experiments/janus_trump_r50g25ba12_parameterized_two_stage_bipartite_fill_cascade.py --out artifacts/JANUS_TRUMP_R50G25BA12_RESULT.json
+      - name: Independent mathematical replay
+        env:
+          PYTHONPATH: experiments
+        run: |
+          python experiments/verify_janus_trump_r50g25ba12_parameterized_two_stage_bipartite_fill_cascade.py --result artifacts/JANUS_TRUMP_R50G25BA12_RESULT.json --out artifacts/JANUS_TRUMP_R50G25BA12_VERIFY.json
+      - name: Complete all 27 preregistered obligations
+        run: |
+          python experiments/complete_janus_trump_r50g25ba12_preseal_obligations.py --result artifacts/JANUS_TRUMP_R50G25BA12_RESULT.json --verify artifacts/JANUS_TRUMP_R50G25BA12_VERIFY.json --out artifacts/JANUS_TRUMP_R50G25BA12_PRESEAL_COMPLETION.json
+      - name: Enforce strict BA12 promotion guard
+        run: |
+          python - <<'PY'
+          import hashlib,json
+          from pathlib import Path
+          rp=Path('artifacts/JANUS_TRUMP_R50G25BA12_RESULT.json'); vp=Path('artifacts/JANUS_TRUMP_R50G25BA12_VERIFY.json'); cp=Path('artifacts/JANUS_TRUMP_R50G25BA12_PRESEAL_COMPLETION.json')
+          r=json.loads(rp.read_text()); v=json.loads(vp.read_text()); c=json.loads(cp.read_text())
+          assert r['preregistration_commit']=='cab377664282e24b1ac8d68aff587daad715e722'
+          assert r['parent_BA11_final_meta_commit']=='857f21746227176e7342781a2ff48579632009fb'
+          assert r['parent_BA11_source_commit']=='b54805f5405b57eb42de7cb9ffee5b6ad6afd429'
+          assert r['status_first']['pass'] is True
+          assert r['failure_count']==0 and r['falsifiers']==[]
+          assert r['outcome']=='BA12-A_PARAMETERIZED_TWO_STAGE_BIPARTITE_FILL_CASCADE_CERTIFIED'
+          assert r['symbolic']['stage1_productivity']['productive']=='p'
+          assert r['symbolic']['stage2_productivity']['productive']=='p*n'
+          assert r['symbolic']['cascade_law']['exponential_claimed'] is False
+          assert r['model_counts']['source']=='2^n+2^p+1'
+          assert r['model_counts']['stage1']=='2^n+2^p'
+          assert r['model_counts']['final']=='2^n+2^p-1'
+          assert r['graph']['E_peak']=='max(2p+n+1,p+n+p*n)'
+          assert r['width']['quotient_tw_peak']=='min(p,n)+1'
+          assert r['full_width']['upper']=='max(13,min(p,n)+1)'
+          assert r['size']['C']=='67g(d+2)-d-3'
+          assert r['historical_controls']['BA7_p1n1']['pass']
+          assert r['historical_controls']['BA11_p1n2']['pass']
+          assert r['historical_controls']['BA9_stage1_applicability']['pass']
+          assert r['historical_controls']['BA10_termination']['GEN3_NEW_FILL']==0
+          assert r['complexity']['lower_bound']=='Omega(p*n)'
+          assert r['complexity']['S']=='g(p+n)+p*n'
+          assert len(r['holdouts'])==5 and all(h['pass'] for h in r['holdouts'])
+          assert v['status']=='PASS' and v['error_count']==0 and v['v_independent_verifier']==1
+          assert c['status']=='PASS' and c['P_BA12_FINAL']==1
+          assert c['required_pass_count']==27 and c['all_required_passes'] is True
+          assert c['required_passes']['INDEPENDENT_REPLAY_PASS']==1
+          for z in c['actual_carrier_work'].values():
+              for k in ('raw_pairs','tautological_pairs','non_tautological_pairs','duplicates','retained','live_clause_peak','R_peak','B_peak','E_peak','W_peak'): assert k in z
+          assert r['generic_depth3_started'] is False and r['repeated_multiplication_started'] is False
+          assert r['next_gate_started'] is False and r['BA13_started'] is False
+          assert r['P_VS_NP']=='OPEN' and r['SAT_IN_P']=='NOT_PROVED' and r['TRUMP_finished'] is False
+          print('RESULT_SHA256='+hashlib.sha256(rp.read_bytes()).hexdigest())
+          print('VERIFY_SHA256='+hashlib.sha256(vp.read_bytes()).hexdigest())
+          print('COMPLETION_SHA256='+hashlib.sha256(cp.read_bytes()).hexdigest())
+          print('P_BA12_FINAL=1')
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: janus-trump-r50g25ba12-result
+          path: |
+            artifacts/JANUS_TRUMP_R50G25BA12_RESULT.json
+            artifacts/JANUS_TRUMP_R50G25BA12_VERIFY.json
+            artifacts/JANUS_TRUMP_R50G25BA12_PRESEAL_COMPLETION.json
+          if-no-files-found: error
