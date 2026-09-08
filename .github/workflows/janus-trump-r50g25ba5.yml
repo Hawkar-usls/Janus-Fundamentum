@@ -1,0 +1,69 @@
+name: JANUS TRUMP R50G25BA5 strict coupling transport
+
+on:
+  push:
+    branches:
+      - research/r50g25ba5-minimal-nonfactorizing-coupling-transport-2026-09-08
+    paths:
+      - 'experiments/janus_trump_r50g25ba5_minimal_nonfactorizing_coupling_transport.py'
+      - 'experiments/verify_janus_trump_r50g25ba5_minimal_nonfactorizing_coupling_transport.py'
+      - '.github/workflows/janus-trump-r50g25ba5.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  scientific:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Build exact BA5 result from frozen source
+        env:
+          PYTHONPATH: experiments
+        run: |
+          mkdir -p artifacts
+          python experiments/janus_trump_r50g25ba5_minimal_nonfactorizing_coupling_transport.py \
+            --out artifacts/JANUS_TRUMP_R50G25BA5_RESULT.json
+      - name: Independent mathematical replay
+        env:
+          PYTHONPATH: experiments
+        run: |
+          python experiments/verify_janus_trump_r50g25ba5_minimal_nonfactorizing_coupling_transport.py \
+            --result artifacts/JANUS_TRUMP_R50G25BA5_RESULT.json \
+            --out artifacts/JANUS_TRUMP_R50G25BA5_VERIFY.json
+      - name: Enforce strict obligation-product promotion guard
+        run: |
+          python - <<'PY'
+          import hashlib,json
+          from pathlib import Path
+          rp=Path('artifacts/JANUS_TRUMP_R50G25BA5_RESULT.json')
+          vp=Path('artifacts/JANUS_TRUMP_R50G25BA5_VERIFY.json')
+          r=json.loads(rp.read_text()); v=json.loads(vp.read_text())
+          assert r['failure_count']==0 and r['falsifiers']==[]
+          assert r['outcome']=='BA5-A_SINGLE_NONFACTORIZING_BINARY_COUPLING_TRANSPORT_CERTIFIED'
+          pre=r['strict_promotion_guard_pre_independent_verify']
+          assert pre['all_closed_pre_independent_verify'] is True
+          assert pre['x_no_unclassified_exception']==1
+          assert pre['v_independent_verifier']==0 and pre['P_BA5']==0
+          assert v['status']=='PASS' and v['error_count']==0
+          assert v['x_no_unclassified_exception']==1 and v['v_independent_verifier']==1
+          assert len(v['obligations'])==11 and all(x==1 for x in v['obligations'].values())
+          assert v['P_BA5']==1
+          assert v['message_state']=='VERIFIED'
+          assert r['arbitrary_CNF_coverage_started'] is False and r['next_gate_started'] is False
+          print('RESULT_SHA256='+hashlib.sha256(rp.read_bytes()).hexdigest())
+          print('VERIFY_SHA256='+hashlib.sha256(vp.read_bytes()).hexdigest())
+          print('P_BA5=1')
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: janus-trump-r50g25ba5-result
+          path: |
+            artifacts/JANUS_TRUMP_R50G25BA5_RESULT.json
+            artifacts/JANUS_TRUMP_R50G25BA5_VERIFY.json
+          if-no-files-found: error
