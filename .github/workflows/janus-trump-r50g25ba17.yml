@@ -25,7 +25,8 @@ jobs:
           git merge-base --is-ancestor 0a5f24c51f97b3b34e23aaec15e63726c2ae0665 7bac2897badb5bca2e55801b60fe3a19db6e9c28
           git merge-base --is-ancestor 688594a8a450b567603a2abbead7b3b885eff0c0 7bac2897badb5bca2e55801b60fe3a19db6e9c28
           git merge-base --is-ancestor 688594a8a450b567603a2abbead7b3b885eff0c0 6bfa82457a0b2d28196fd32c9244befcf7c59e9f
-          git merge-base --is-ancestor 688594a8a450b567603a2abbead7b3b885eff0c0 de8dc9645c5fffde5939755f24f125341c3cfb46
+          git merge-base --is-ancestor de8dc9645c5fffde5939755f24f125341c3cfb46 086933a0545ee631971ff6d5ff6eb9c9d0fa17f3
+          git merge-base --is-ancestor 688594a8a450b567603a2abbead7b3b885eff0c0 086933a0545ee631971ff6d5ff6eb9c9d0fa17f3
           test "$(git show --format=%s --no-patch 688594a8a450b567603a2abbead7b3b885eff0c0)" = "preregister R50G25BA17 corrected BA16 quotient width stratification"
       - name: Build exact BA17 width theorem result corrected v2
         env:
@@ -38,11 +39,11 @@ jobs:
           PYTHONPATH: experiments
         run: |
           python experiments/verify_janus_trump_r50g25ba17_corrected_ba16_quotient_width_stratification.py --result artifacts/JANUS_TRUMP_R50G25BA17_RESULT.json --out artifacts/JANUS_TRUMP_R50G25BA17_VERIFY.json
-      - name: Complete exact 26-name preseal
+      - name: Complete exact 26-name preseal hardened v2
         env:
           PYTHONPATH: experiments
         run: |
-          python experiments/complete_janus_trump_r50g25ba17_preseal_obligations.py --prereg research/JANUS_TRUMP_R50G25BA17_PREREGISTRATION.json --result artifacts/JANUS_TRUMP_R50G25BA17_RESULT.json --verify artifacts/JANUS_TRUMP_R50G25BA17_VERIFY.json --out artifacts/JANUS_TRUMP_R50G25BA17_PRESEAL_COMPLETION.json
+          python experiments/complete_janus_trump_r50g25ba17_preseal_obligations_v2.py --prereg research/JANUS_TRUMP_R50G25BA17_PREREGISTRATION.json --result artifacts/JANUS_TRUMP_R50G25BA17_RESULT.json --verify artifacts/JANUS_TRUMP_R50G25BA17_VERIFY.json --out artifacts/JANUS_TRUMP_R50G25BA17_PRESEAL_COMPLETION.json
       - name: Enforce strict BA17 promotion guard
         run: |
           python - <<'PY'
@@ -63,9 +64,13 @@ jobs:
           assert r['semantic_status_preserved']['SELF_SUSTAINING_DISTINCT_MULTIPLICATION']=='NOT_CERTIFIED'
           assert r['complexity']['generic_exhaustive_treewidth_search_used'] is False
           assert v['status']=='PASS' and v['error_count']==0 and v['P_BA17']==1 and v['implementation_imported'] is False
+          assert c['kind']=='EXACT_PREREG_NAME_SET_AND_FROZEN_ORDER_AUDIT'
           assert c['status']=='PASS' and c['P_BA17_FINAL']==1 and c['required_pass_count']==26 and c['all_required_passes'] is True
           assert len(c['required_pass_names'])==26 and len(set(c['required_pass_names']))==26
           assert all(x==1 for x in c['required_passes'].values())
+          assert c['report_contract']['frozen_prereg_order_is_authority'] is True
+          assert c['report_contract']['serialized_mapping_order_is_not_authority'] is True
+          assert c['gap_predecessor']['run_id']==34286386953
           assert c['BA16_F14_preserved'] is True and c['P_BA16_A']==0 and c['P_BA16_MIXED']==1
           assert r['next_gate_started'] is False and r['BA18_started'] is False
           assert r['P_VS_NP']=='OPEN' and r['SAT_IN_P']=='NOT_PROVED' and r['TRUMP_finished'] is False
