@@ -1,0 +1,95 @@
+name: JANUS TRUMP R50G25BA1 governance pre-seal
+
+on:
+  push:
+    branches:
+      - research/r50g25ba1-minimal-unary-payload-transport-2026-09-08
+    paths:
+      - 'governance/R50G25BA1_PROMOTION_MANIFEST.json'
+      - '.github/workflows/janus-trump-r50g25ba1-governance-preseal.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  governance-pre-seal:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Materialize exact immutable governance authority
+        run: |
+          mkdir -p governance-authority artifacts ba1-artifact
+          git fetch --no-tags origin b0d4ed74afa98e49f3738244c4ede490ebfa95da ba7d5d927b1fd0bb4517123168c295f8d5e7c061
+          git show b0d4ed74afa98e49f3738244c4ede490ebfa95da:governance/TRUMP_PROOF_STATE_MACHINE_v1.0.json > governance-authority/TRUMP_PROOF_STATE_MACHINE_v1.0.json
+          git show ba7d5d927b1fd0bb4517123168c295f8d5e7c061:governance/trump_proof_state_machine_validator_v1.py > governance-authority/trump_proof_state_machine_validator_v1.py
+          python - <<'PY'
+          import hashlib
+          from pathlib import Path
+          p=Path('governance-authority/TRUMP_PROOF_STATE_MACHINE_v1.0.json')
+          got=hashlib.sha256(p.read_bytes()).hexdigest()
+          exp='ece56525f6affb8860fbb4628d96630478a854bfbf2f62f39fa017112badbb25'
+          assert got==exp,(got,exp)
+          print('POLICY_SHA256='+got)
+          PY
+      - name: Download exact BA1 scientific artifact
+        uses: actions/download-artifact@v4
+        with:
+          github-token: ${{ github.token }}
+          repository: Hawkar-usls/Janus-Fundamentum
+          run-id: 34189105418
+          name: janus-trump-r50g25ba1-result
+          path: ba1-artifact
+      - name: Verify exact BA1 evidence identity and scope
+        run: |
+          python - <<'PY'
+          import hashlib,json
+          from pathlib import Path
+          rp=list(Path('ba1-artifact').rglob('JANUS_TRUMP_R50G25BA1_RESULT.json'))
+          vp=list(Path('ba1-artifact').rglob('JANUS_TRUMP_R50G25BA1_VERIFY.json'))
+          assert len(rp)==1,rp; assert len(vp)==1,vp
+          rb=rp[0].read_bytes(); vb=vp[0].read_bytes()
+          assert hashlib.sha256(rb).hexdigest()=='b5218756a71083edfafee5204d9b63501e696b8e2675d0cf7fbf8554069649c6'
+          assert hashlib.sha256(vb).hexdigest()=='c52e94930c38511992ad8980e0c56f33e3d0d9a37a5d4559cdb8e702a6ae5e4f'
+          r=json.loads(rb); v=json.loads(vb)
+          assert r['outcome']=='BA1-D_UNARY_PAYLOAD_TOO_WEAK'
+          assert r['failure_count']==0
+          assert r['BA1_1_distinguishability']['N_local_injected_boundary']==4
+          assert r['BA1_2_four_state_algebra']['closed_in_Sigma_1'] is True
+          assert r['BA1_3_generalized_pi']['status']=='FAIL_DIRECTIONAL_RESIDUAL_ERASURE'
+          assert r['smallest_falsifier']['outputs']=={'FORCE_0':'TOP','FORCE_1':'TOP'}
+          assert r['BA1_8_information_accounting']['directional_constraint_bits_transported']==0.0
+          assert r['finite_g_ladder_replayed'] is False
+          assert r['arbitrary_CNF_coverage_started'] is False
+          assert v['status']=='PASS' and v['failure_count']==0
+          print('BA1_EVIDENCE_IDENTITY=PASS')
+          PY
+      - name: Validate BA1 no-promotion manifest fail-closed
+        run: |
+          python governance-authority/trump_proof_state_machine_validator_v1.py \
+            --policy governance-authority/TRUMP_PROOF_STATE_MACHINE_v1.0.json \
+            --manifest governance/R50G25BA1_PROMOTION_MANIFEST.json \
+            --out artifacts/JANUS_TRUMP_R50G25BA1_GOVERNANCE_RECEIPT.json
+      - name: Verify no claim promotion occurred
+        run: |
+          python - <<'PY'
+          import hashlib,json
+          from pathlib import Path
+          p=Path('artifacts/JANUS_TRUMP_R50G25BA1_GOVERNANCE_RECEIPT.json')
+          x=json.loads(p.read_text())
+          assert x['status']=='PASS',x
+          assert x['violation_count']==0,x
+          assert x['promotion_count_requested']==0,x
+          assert x['promotion_count_passed']==0,x
+          print('BA1_GOVERNANCE_RECEIPT_SHA256='+hashlib.sha256(p.read_bytes()).hexdigest())
+          print(json.dumps(x,sort_keys=True))
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: janus-trump-r50g25ba1-governance-receipt
+          path: artifacts/JANUS_TRUMP_R50G25BA1_GOVERNANCE_RECEIPT.json
+          if-no-files-found: error
