@@ -1,0 +1,112 @@
+name: JANUS TRUMP R50G25BA13 minimal generation3 resolution fanout cascade
+
+on:
+  push:
+    branches:
+      - research/r50g25ba13-minimal-generation3-resolution-fanout-cascade-2026-09-08
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  scientific:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Verify preregistration precedes implementation
+        run: |
+          git merge-base --is-ancestor f1c2a7dc0c7924c96132fa9d14d8f42ac8ec2c5a 4420068dec9014da3ee8f26a8b9c6228c55e4d12
+          git merge-base --is-ancestor f1c2a7dc0c7924c96132fa9d14d8f42ac8ec2c5a 935780db3e84c5fda628ea1417defd268e5c1b5c
+          git merge-base --is-ancestor f1c2a7dc0c7924c96132fa9d14d8f42ac8ec2c5a 23b9929e5295ae9908741e58b8a282cb2ad9f4a9
+          test "$(git show --format=%s --no-patch f1c2a7dc0c7924c96132fa9d14d8f42ac8ec2c5a)" = "preregister R50G25BA13 minimal generation3 resolution fanout cascade"
+
+      - name: Build exact BA13 result from frozen source
+        env:
+          PYTHONPATH: experiments
+        run: |
+          mkdir -p artifacts
+          python experiments/janus_trump_r50g25ba13_minimal_generation3_resolution_fanout_cascade.py \
+            --out artifacts/JANUS_TRUMP_R50G25BA13_RESULT.json
+
+      - name: Independent mathematical replay
+        env:
+          PYTHONPATH: experiments
+        run: |
+          python experiments/verify_janus_trump_r50g25ba13_minimal_generation3_resolution_fanout_cascade.py \
+            --result artifacts/JANUS_TRUMP_R50G25BA13_RESULT.json \
+            --out artifacts/JANUS_TRUMP_R50G25BA13_VERIFY.json
+
+      - name: Complete all 30 preregistered obligations
+        env:
+          PYTHONPATH: experiments
+        run: |
+          python experiments/complete_janus_trump_r50g25ba13_preseal_obligations.py \
+            --result artifacts/JANUS_TRUMP_R50G25BA13_RESULT.json \
+            --verify artifacts/JANUS_TRUMP_R50G25BA13_VERIFY.json \
+            --out artifacts/JANUS_TRUMP_R50G25BA13_PRESEAL_COMPLETION.json
+
+      - name: Enforce strict BA13 promotion guard
+        run: |
+          python - <<'PY'
+          import hashlib,json
+          from pathlib import Path
+          rp=Path('artifacts/JANUS_TRUMP_R50G25BA13_RESULT.json')
+          vp=Path('artifacts/JANUS_TRUMP_R50G25BA13_VERIFY.json')
+          cp=Path('artifacts/JANUS_TRUMP_R50G25BA13_PRESEAL_COMPLETION.json')
+          r=json.loads(rp.read_text()); v=json.loads(vp.read_text()); c=json.loads(cp.read_text())
+          assert r['preregistration_commit']=='f1c2a7dc0c7924c96132fa9d14d8f42ac8ec2c5a'
+          assert r['parent_BA12_final_meta_commit']=='152e390f03cbfab0ac1c4eb5dee9344ef6df64aa'
+          assert r['parent_BA12_source_commit']=='b8c34beb91f2559376110bdc8f5328abac062c88'
+          assert r['failure_count']==0 and r['falsifiers']==[]
+          assert r['outcome']=='BA13-A_MINIMAL_GENERATION3_RESOLUTION_FANOUT_CASCADE_CERTIFIED'
+          assert r['semantic']['generation_counts']=={'GEN1_NEW_FILL':1,'GEN2_NEW_FILL':1,'GEN3_NEW_FILL':2,'GENERATION_DEPTH':3}
+          assert r['semantic']['stage3']['positive_parent_generation']==2
+          assert r['cascade_DAG']['nodes']['E']['generation']==2
+          assert r['cascade_DAG']['nodes']['H_1']['generation']==3 and r['cascade_DAG']['nodes']['H_2']['generation']==3
+          assert r['finite_audits']['source']['count']==8 and r['finite_audits']['source']['rows']==64
+          assert r['finite_audits']['stage1']['count']==7 and r['finite_audits']['stage1']['rows']==32
+          assert r['finite_audits']['stage2']['count']==6 and r['finite_audits']['stage2']['rows']==16
+          assert r['finite_audits']['final']['count']==5 and r['finite_audits']['final']['rows']==8
+          assert r['graph_width']['edge_sequence']==[5,6,4,5,3,5,2]
+          assert r['graph_width']['quotient_tw_sequence']==[1,2,1,2,1,2,1]
+          assert r['graph_width']['E_peak']==6 and r['graph_width']['quotient_tw_peak']==2
+          assert r['graph_width']['full_width']['upper']==13
+          assert r['source_size']['formula']=={'C':'402g-7','L':'978g-14','V':'120g','n_struct':'1500g-21'}
+          A=r['actual_carrier_work']['A_SOURCE_CARRIER_TRANSPORT']
+          B=r['actual_carrier_work']['B_ACTUAL_X_ELIMINATION']
+          C=r['actual_carrier_work']['C_ACTUAL_Y_ELIMINATION']
+          D=r['actual_carrier_work']['D_ACTUAL_Z_ELIMINATION']
+          assert (A['raw_pairs'],A['tautological_pairs'],A['non_tautological_pairs'],A['duplicates'],A['retained'])==(10324,3414,6910,306,1946)
+          assert (A['R_peak'],A['B_peak'],A['E_peak'],A['W_peak'])==(85,45,5,13)
+          assert (B['raw_pairs'],C['raw_pairs'],D['raw_pairs'])==(1,1,2)
+          assert (B['retained'],C['retained'],D['retained'])==(1,1,2)
+          assert v['status']=='PASS' and v['error_count']==0 and v['v_independent_verifier']==1 and v['P_BA13']==1
+          assert c['status']=='PASS' and c['P_BA13_FINAL']==1 and c['required_pass_count']==30 and c['all_required_passes'] is True
+          assert len(c['required_passes'])==30 and all(x==1 for x in c['required_passes'].values())
+          assert c['required_passes']['INDEPENDENT_REPLAY_PASS']==1
+          assert c['required_passes']['PRESEAL_COMPLETENESS_PASS']==1
+          assert r['generic_depth4_started'] is False and r['parameterized_depth3_started'] is False
+          assert r['repeated_multiplication_started'] is False and r['next_gate_started'] is False and r['BA14_started'] is False
+          assert r['P_VS_NP']=='OPEN' and r['SAT_IN_P']=='NOT_PROVED' and r['TRUMP_finished'] is False
+          print('RESULT_SHA256='+hashlib.sha256(rp.read_bytes()).hexdigest())
+          print('VERIFY_SHA256='+hashlib.sha256(vp.read_bytes()).hexdigest())
+          print('COMPLETION_SHA256='+hashlib.sha256(cp.read_bytes()).hexdigest())
+          print('P_BA13_FINAL=1')
+          PY
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: janus-trump-r50g25ba13-result
+          path: |
+            artifacts/JANUS_TRUMP_R50G25BA13_RESULT.json
+            artifacts/JANUS_TRUMP_R50G25BA13_VERIFY.json
+            artifacts/JANUS_TRUMP_R50G25BA13_PRESEAL_COMPLETION.json
+          if-no-files-found: error
