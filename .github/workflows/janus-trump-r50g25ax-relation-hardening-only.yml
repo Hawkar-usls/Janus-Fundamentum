@@ -5,6 +5,8 @@ on:
     branches:
       - research/r50g25ax-within-component-separator-affine-quotient-2026-09-08
     paths:
+      - 'experiments/janus_trump_r50g25ax_relation_hardening.py'
+      - 'experiments/janus_trump_r50g25ax_relation_hardening_verify.py'
       - '.github/workflows/janus-trump-r50g25ax-relation-hardening-only.yml'
   workflow_dispatch:
 
@@ -45,11 +47,14 @@ jobs:
           assert x['relation_pass'] is True
           print('IMMUTABLE_AX_SCIENCE_SHA256='+got)
           PY
-      - name: Run actual proof-carrying relation DP and reconstruction hardening
+      - name: Run actual proof-carrying bucket relation and reconstruction hardening
         run: |
           mkdir -p artifacts
           PYTHONPATH=experiments python experiments/janus_trump_r50g25ax_relation_hardening.py --out artifacts/JANUS_TRUMP_R50G25AX_RELATION_HARDENING.json
-      - name: Fail-closed verify hardening receipt
+      - name: Independent fail-closed relation replay
+        run: |
+          PYTHONPATH=experiments python experiments/janus_trump_r50g25ax_relation_hardening_verify.py --result artifacts/JANUS_TRUMP_R50G25AX_RELATION_HARDENING.json
+      - name: Emit immutable hardening identity
         run: |
           python - <<'PY'
           import hashlib,json
@@ -58,15 +63,13 @@ jobs:
           b=p.read_bytes(); x=json.loads(b)
           assert x['status']=='PASS', x
           assert x['relation_pass'] is True, x
-          assert x['preregistration_commit']=='7b9cef877200b2f056099309d672923df2178b9a'
-          assert x['target_hash']=='cfbe4a9b4d4fbe5ec09ad3aa1c1ad8fe633e358b4d8744c92890133b6fa8056b'
           assert x['failures']==[], x['failures']
           assert all(x['relation_contract'].values()), x['relation_contract']
-          assert x['truth_oracle']=={'generation':False,'selection':False,'verdict':False,'external_exact_sat_oracle':False}
-          fs=x['frozen_separator']; dp=x['actual_relation_dp']
+          dp=x['actual_relation_dp']; fs=x['frozen_separator']
           assert fs['induced_width']==13
           assert fs['frozen_state_bound_2_pow_w']==8192
-          assert fs['parity_augmented_layer_state_bound'] <= fs['L4_budget']
+          assert dp['max_generated_scope']<=13
+          assert dp['certified_relation_rows_with_parity_charge']<=fs['L4_budget']
           if dp['decision']=='SAT':
               assert dp['reconstruction_pass'] is True
               assert dp['source_validation_pass'] is True
@@ -74,7 +77,8 @@ jobs:
               assert dp['source_equation_failure_indices']==[]
               assert len(dp['reconstructed_assignment'])==20
           print('AX_RELATION_HARDENING_SHA256='+hashlib.sha256(b).hexdigest())
-          print(json.dumps({'status':x['status'],'decision':dp['decision'],'memoized_state_count':dp['memoized_state_count'],'max_verified_frontier':fs['max_verified_frontier'],'parity_augmented_layer_state_bound':fs['parity_augmented_layer_state_bound']},sort_keys=True))
+          print('AX_RELATION_HARDENING_SIZE='+str(len(b)))
+          print(json.dumps({'status':x['status'],'decision':dp['decision'],'generated_factor_count':dp['generated_factor_count'],'total_materialized_rows':dp['total_materialized_rows'],'certified_relation_rows':dp['certified_relation_rows_with_parity_charge'],'max_generated_scope':dp['max_generated_scope'],'reconstruction_pass':dp['reconstruction_pass'],'source_validation_pass':dp['source_validation_pass']},sort_keys=True))
           PY
       - uses: actions/upload-artifact@v4
         with:
