@@ -1,0 +1,153 @@
+{
+  "gate": "R50G25BA11_MINIMAL_SECOND_GENERATION_RESOLUTION_FANOUT_CASCADE",
+  "status": "FROZEN_BEFORE_IMPLEMENTATION_OR_TESTING",
+  "date": "2026-09-08",
+  "parent": {
+    "meta_file": "data/JANUS-TRUMP-R50G25-DEVELOPMENT-MIRROR-2026-09-08-v3.3-BA10-2.json",
+    "meta_commit": "66eb10d8850079b4648863d43d7271563699616a",
+    "source_commit": "c5346d1db264d1eac04a2cceb0aa98e81c3cdb85"
+  },
+  "methodology_firewall_commit": "b52b4ab0a8ba21f6b41a9a0c5c7c2774d95e5e72",
+  "frontier_hardening": {
+    "historical_fact": "BA7 already certified a 1->1 mixed-polarity second-pivot chain in which a derived path clause met an opposite-polarity source clause and produced the next derived path clause.",
+    "forbidden_novelty_claim": "MIXED_POLARITY_SECOND_PIVOT_IS_FIRST_SEEN_IN_BA11",
+    "BA11_exact_novel_target": "GENERATION1_NEW_FILL=1 -> SECOND_STAGE_MIXED_PIVOT -> GENERATION2_NEW_FILL=2",
+    "BA7_history_rewritten": false,
+    "BA10_history_rewritten": false
+  },
+  "frozen_family": {
+    "carrier_lanes": ["a","x","y","b_1","b_2"],
+    "lane_count": 5,
+    "all_variables_distinct": true,
+    "source_clauses": ["S_1=(a OR x)","S_2=((NOT x) OR y)","S_3=((NOT y) OR b_1)","S_4=((NOT y) OR b_2)"],
+    "source_cross_clause_count": 4,
+    "forbidden_source_edges": [["a","b_1"],["a","b_2"]],
+    "manual_derived_insertion": 0,
+    "elimination_order": ["x","y"]
+  },
+  "generation_contract": {
+    "generation_0": ["S_1","S_2","S_3","S_4"],
+    "generation_1": {"D":"(a OR y)","dependency":"RESOLVE_x(S_1,S_2)"},
+    "generation_2": {
+      "H_1":{"clause":"(a OR b_1)","dependency":"RESOLVE_y(D,S_3)"},
+      "H_2":{"clause":"(a OR b_2)","dependency":"RESOLVE_y(D,S_4)"}
+    },
+    "flat_final_clause_list_sufficient": false
+  },
+  "symbolic_targets": {
+    "stage1": "EXISTS x F_0 IFF G_1=(a OR y) AND ((NOT y) OR b_1) AND ((NOT y) OR b_2)",
+    "stage2_polarity": "|P_y|=1 derived D; |N_y|=2 source S_3,S_4",
+    "stage2": "EXISTS y G_1 IFF (a OR b_1) AND (a OR b_2)",
+    "gen1_new_fill": 1,
+    "gen2_new_fill": 2,
+    "second_generation_fanout": 2,
+    "direct_projection": "EXISTS x EXISTS y F_0 IFF (a OR b_1) AND (a OR b_2)"
+  },
+  "finite_kernel_audit": {
+    "variable_order_source": ["a","x","y","b_1","b_2"],
+    "source_satisfying_set": ["01111","10000","10001","10010","10011","10111","11111"],
+    "source_model_count": 7,
+    "stage1_order": ["a","y","b_1","b_2"],
+    "stage1_satisfying_set": ["0111","1000","1001","1010","1011","1111"],
+    "stage1_model_count": 6,
+    "final_order": ["a","b_1","b_2"],
+    "final_satisfying_set": ["011","100","101","110","111"],
+    "final_model_count": 5,
+    "authority": "CONSTANT_KERNEL_VERIFICATION_ONLY"
+  },
+  "reconstruction": {
+    "final_to_stage1": "y := NOT a",
+    "stage1_to_source": "x := NOT a",
+    "composed": "x=y=NOT a",
+    "required": ["RECONSTRUCTION_PASS","FULL_ORIGINAL_CNF_VALIDATION_PASS"]
+  },
+  "graph_targets": {
+    "E0": 4,
+    "stage1_transient_E": 5,
+    "E1": 3,
+    "stage2_transient_E": 5,
+    "E2": 2,
+    "E_peak": 5,
+    "tw_source": 1,
+    "tw_stage1_transient": 2,
+    "tw_stage1_residual": 1,
+    "tw_stage2_transient": 2,
+    "tw_final": 1,
+    "tw_peak": 2,
+    "full_BA4_width_upper_target": 13
+  },
+  "source_size_targets": {
+    "C(g)": "335g-6",
+    "L(g)": "815g-12",
+    "V(g)": "100g",
+    "n_struct(g)": "1250g-18"
+  },
+  "generic_transport_contract": {
+    "arbitrary_g": true,
+    "source_clauses_must_transport_without_manual_future_boundary_insertion": true,
+    "at_any_certified_boundary": "eliminate x_k -> D_k; eliminate y_k -> H_1,k,H_2,k",
+    "generation_provenance_visible": true,
+    "generic_boundary_state_enumeration": false
+  },
+  "actual_work_contract": {
+    "separate_ledgers": ["SOURCE_CLAUSE_CARRIER_TRANSPORT","ACTUAL_X_ELIMINATION","ACTUAL_Y_ELIMINATION"],
+    "metrics_each": ["raw_pairs","tautological_pairs","non_tautological_pairs","duplicates","retained","live_clause_peak","R_peak","B_peak","E_peak","W_peak"],
+    "after_x_exact_cross_payload": ["D","S_3","S_4"],
+    "after_y_exact_cross_payload": ["H_1","H_2"],
+    "abstract_counts_not_equated_with_actual_work": true
+  },
+  "factorized_transport_consistency_targets": {
+    "raw_pairs": "8323(g-1)",
+    "tautological": "2756(g-1)",
+    "non_tautological": "5567(g-1)",
+    "duplicates": "249(g-1)",
+    "retained": "1563(g-1)",
+    "authority_before_independent_replay": "TARGET_ONLY",
+    "stage1_stage2_pivot_work_included": false
+  },
+  "minimality_target": {
+    "claim": "smallest distinct-variable binary-clause two-stage construction in which one genuine generation-1 derived clause feeds a second pivot and that pivot creates at least TWO distinct generation-2 NEW fill edges",
+    "minimum_source_clauses": 4,
+    "minimum_distinct_variables": 5,
+    "controls": {
+      "BA7":"generation pattern 1->1; fails fanout>=2",
+      "BA8":"two clauses in one elimination; generation depth 1",
+      "BA11":"generation pattern 1->2; generation depth 2"
+    }
+  },
+  "complexity_targets": {
+    "source_structural_size": "Theta(g)",
+    "structural_certificate": "Theta(g)",
+    "encoded_certificate": "O(g log g)",
+    "n_struct_relation": "Theta(g)",
+    "T_total": "O(n log n)",
+    "actual_x_y_work_must_be_included": true,
+    "empirical_timing_authority": "ZERO"
+  },
+  "required_passes": ["FRONTIER_HARDENING_PASS","STAGE1_ALGEBRA_PASS","STAGE1_EXACT_PROJECTION_PASS","GEN1_PROVENANCE_PASS","STAGE2_MIXED_POLARITY_PASS","STAGE2_TWO_RESOLVENT_PASS","GEN2_PROVENANCE_PASS","DIRECT_TWO_VARIABLE_PROJECTION_PASS","EXHAUSTIVE_5BIT_SOURCE_PASS","STAGE1_FINITE_AUDIT_PASS","FINAL_FINITE_AUDIT_PASS","CNF_REALIZATION_PASS","GENERIC_TRANSPORT_PASS","NO_MANUAL_INSERTION_PASS","RECONSTRUCTION_PASS","FULL_ORIGINAL_CNF_VALIDATION_PASS","GRAPH_GENERATION_ACCOUNTING_PASS","WIDTH_PASS","ACTUAL_CARRIER_WORK_PASS","CASCADE_DAG_PASS","COMPLEXITY_PASS","INDEPENDENT_REPLAY_PASS"],
+  "falsifiers": {
+    "F1":"D not exact x-elimination residual",
+    "F2":"D manually inserted",
+    "F3":"y not mixed-polarity after stage1",
+    "F4":"stage2 produces fewer than two required distinct clauses",
+    "F5":"H_1 or H_2 already existed in source",
+    "F6":"unexpected semantic residual survives",
+    "F7":"direct two-variable projection disagrees with staged elimination",
+    "F8":"x=y=NOT a reconstruction fails",
+    "F9":"actual BA4 carrier disagrees with abstract two-stage algebra",
+    "F10":"generation tags cannot be independently replayed",
+    "F11":"novelty collapses to BA7 1->1 behavior",
+    "F12":"smaller construction satisfies exact depth2+fanout>=2 target",
+    "F13":"peak width/accounting exceeds proved bounds",
+    "F14":"generic g depends only on holdouts",
+    "F15":"independent replay fails"
+  },
+  "success_label": "BA11-A_MINIMAL_SECOND_GENERATION_RESOLUTION_FANOUT_CASCADE_CERTIFIED",
+  "explicit_nonclaims": ["GENERIC_TWO_STAGE_P_BY_N_CASCADE_CERTIFIED","REPEATED_CASCADE_DEPTH_CONTROLLED","EXPONENTIAL_FILL_AVOIDED","ARBITRARY_BRANCHING_GRAPHS_EASY","ARBITRARY_CNF_COVERAGE_PROVED","SAT_IN_P_PROVED","P_EQ_NP_PROVED","TRUMP_FINISHED"],
+  "after_BA11": {
+    "action": "STOP",
+    "BA12_started": false,
+    "next_candidate_only": "parameterized two-stage cascade: p first-stage derived clauses feeding y with n opposite-polarity y clauses -> candidate p*n generation-2 clauses",
+    "P_VS_NP": "OPEN"
+  }
+}
