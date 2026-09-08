@@ -148,7 +148,7 @@ def run():
       "PROVENANCE":{"pass":True,"preregistration_commit":PREREG,"parent_head":PARENT,"residual_hash":TARGET_HASH},
       "COUNTEREXAMPLE_TRACE":{"pass":True,"separator_failures":sep_fail}
     }
-    relation_pass=all(bool(v.get("pass")) for v in relation.values())
+    relation_pass=all(bool(v.get("pass")) for k,v in relation.items() if k != "relation_id")
 
     quotient=None
     if sep_states>budget:
