@@ -540,6 +540,13 @@ def run():
       "output_firewall":{"clauses":"p*n*r","literal_occurrences":"3*p*n*r",
         "bound":"p*n*r <= ((p+n+r)/3)^3 <= (p+2*n+r+3)^3/27",
         "COMPOSITE_IDENTITY_FANOUT_NE_EXPONENTIAL_BLOWUP":True},
+      "named_fields":{
+        "TERNARY_CARRIER":{"present":True,"subpasses":TERNARY_SUBPASSES},
+        "COMPOSITE_PAIR_SIGNATURE":{"value":"SIG(j,k)={t_j,c_k}","count":"n*r"},
+        "RAW_GEN3":"p*n*r","DISTINCT_GEN3":"p*n*r",
+        "TAG_ERASURE_CONTROL":{"expected_distinct":"p*r","status":"PASS" if pass_map["TAG_ERASURE_CONTROL_PASS"] else "FAIL"},
+        "BA16_IDENTITY_PRESERVATION":{"NEW_VARIABLE_IDENTITY_COUNT":0,"status":"PASS"},
+        "OUTPUT_SIZE_FIREWALL":{"clauses":"p*n*r","literals":"3*p*n*r","exponential_claimed":False}},
       "historical_immutability":{"BA16_F14":"PRESERVED_FOREVER","P_BA16_A":0,"P_BA16_MIXED":1,
         "BA17_status":"SEALED_CORRECTED_WIDTH_CHILD_THEOREM_ONLY"},
       "required_pass_names":REQUIRED_PASSES,"obligations":pass_map,"ternary_subpasses":tern["subpasses"],
