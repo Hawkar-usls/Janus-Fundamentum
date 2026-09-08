@@ -23,21 +23,22 @@ jobs:
         run: |
           git merge-base --is-ancestor 1670788c9e6c10d77c1ed7bf4f0ccf2a32471285 18d77ba78c66dfbb7c6c5e445f792126ca5fe0ca
           git merge-base --is-ancestor 18d77ba78c66dfbb7c6c5e445f792126ca5fe0ca e61029ca51de9ff15d8f30fed4f741367abbd416
-          git merge-base --is-ancestor 1670788c9e6c10d77c1ed7bf4f0ccf2a32471285 5f83e44a020f0e554a4ba41afc8e4cb350cce420
+          git merge-base --is-ancestor 1670788c9e6c10d77c1ed7bf4f0ccf2a32471285 40a75a4f301fdde21eab0e40fa550ddfd0735a21
+          git merge-base --is-ancestor 1670788c9e6c10d77c1ed7bf4f0ccf2a32471285 8f9de97fd04ed2d3d2c33af56ace585f084343e6
           git merge-base --is-ancestor 1670788c9e6c10d77c1ed7bf4f0ccf2a32471285 8e673552e2c1d7e35ad18bf0a50fd0f4458fec43
-          git merge-base --is-ancestor 1670788c9e6c10d77c1ed7bf4f0ccf2a32471285 43b21122ea091ecc268e4eec159ef8828be22d03
+          git merge-base --is-ancestor 1670788c9e6c10d77c1ed7bf4f0ccf2a32471285 94b5ae9974888603787c6e62ad250cb55d70af67
           test "$(git show --format=%s --no-patch 1670788c9e6c10d77c1ed7bf4f0ccf2a32471285)" = "preregister R50G25BA18 composite pair signature derived support fanout"
-      - name: Build exact BA18 result with failure diagnostics
+      - name: Build exact BA18 result v2
         env:
           PYTHONPATH: experiments
         run: |
           mkdir -p artifacts
-          python experiments/diagnose_janus_trump_r50g25ba18_builder.py --out artifacts/JANUS_TRUMP_R50G25BA18_RESULT.json
-      - name: Independent BA18 replay
+          python experiments/janus_trump_r50g25ba18_composite_pair_signature_derived_support_fanout_v2.py --out artifacts/JANUS_TRUMP_R50G25BA18_RESULT.json
+      - name: Independent BA18 replay v2
         env:
           PYTHONPATH: experiments
         run: |
-          python experiments/verify_janus_trump_r50g25ba18_composite_pair_signature_derived_support_fanout.py --result artifacts/JANUS_TRUMP_R50G25BA18_RESULT.json --out artifacts/JANUS_TRUMP_R50G25BA18_VERIFY.json
+          python experiments/verify_janus_trump_r50g25ba18_composite_pair_signature_derived_support_fanout_v2.py --result artifacts/JANUS_TRUMP_R50G25BA18_RESULT.json --out artifacts/JANUS_TRUMP_R50G25BA18_VERIFY.json
       - name: Complete exact BA18 preseal
         env:
           PYTHONPATH: experiments
@@ -54,11 +55,15 @@ jobs:
           assert r['parent_BA17_meta_commit']=='bd003cb6004d587e7d970b9b580c1e90fc6ad458'
           assert r['historical_immutability']['BA16_F14']=='PRESERVED_FOREVER'
           assert r['historical_immutability']['P_BA16_A']==0 and r['historical_immutability']['P_BA16_MIXED']==1
+          assert r['implementation_version']=='BA18_V2_GENERIC_TERNARY_TRANSPORT_WITHOUT_FALSE_LINEAR_WORK_RECURRENCE'
+          assert r['ternary_carrier']['rejected_postimplementation_conjecture']['scientific_authority'] is False
+          assert r['complexity']['ternary_carrier_certification_work']=='O(g*n^2)'
           assert r['named_fields']['RAW_GEN3']=='p*n*r' and r['named_fields']['DISTINCT_GEN3']=='p*n*r'
           assert r['named_fields']['BA16_IDENTITY_PRESERVATION']['NEW_VARIABLE_IDENTITY_COUNT']==0
           assert r['named_fields']['OUTPUT_SIZE_FIREWALL']['exponential_claimed'] is False
           assert all(r['ternary_subpasses'].values())
           assert v['status']=='PASS' and v['P_BA18']==1 and v['implementation_imported'] is False
+          assert v['generic_transport_theorem']=='PASS' and v['ternary_certification_work_bound']=='O(g*n^2)'
           assert c['status']=='PASS' and c['P_BA18_FINAL']==1 and c['required_pass_count']==46 and c['all_required_passes'] is True
           assert len(c['required_pass_names'])==46 and len(set(c['required_pass_names']))==46
           assert all(x==1 for x in c['required_passes'].values())
