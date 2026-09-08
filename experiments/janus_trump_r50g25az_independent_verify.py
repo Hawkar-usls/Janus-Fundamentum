@@ -62,6 +62,40 @@ def eliminate(factors,order):
     return {"source":total_source,"generated":gen,"total":total_source+gen,"attempts":attempts,
             "maxscope":maxscope,"maxrows":maxrows,"maxinputs":maxinputs,"boundary_scope":list(fs[0][0]),"boundary_rows":[list(x) for x in sorted(fs[0][1])]}
 
+def build_general(g):
+    unit=av.canonical(av.load_sealed_y_target())
+    if av.formula_hash(unit)!=Y_HASH:raise AssertionError("Y hash drift")
+    copies=[]
+    for j in range(g):copies.extend(av.shift_formula(unit,30*j))
+    bridges=[(30+30*j,32+30*j) for j in range(g-1)]
+    return av.canonical(list(copies)+bridges)
+
+def holdout_replay(g):
+    root=build_general(g)
+    replay=av.asmod.y.policy_replay(root,av.asmod.r50g25g._chain())
+    if replay.get("kind")!="RESIDUAL":return {"g":g,"failure":"POLICY_NOT_RESIDUAL","kind":replay.get("kind")}
+    residual=av.canonical(replay["state"])
+    if av.formula_hash(residual)!=av.formula_hash(root):return {"g":g,"failure":"POLICY_NOT_IDENTITY"}
+    ex=ath.hardened_extract(residual)
+    if not ex.get("partition_pass") or ex.get("replay_failures"):return {"g":g,"failure":"EXTRACTION"}
+    defects=[tuple(map(int,c)) for c in ex["defects"]]
+    equations=[{"vars":list(map(int,e["vars"])),"rhs":int(e["rhs"])} for e in ex["equations"]]
+    variables=tuple(sorted(map(int,av.r33.variables(root))))
+    order=tuple(v+30*j for j in range(g) for v in ORDER)
+    scopes=[tuple(sorted({abs(l) for l in c})) for c in defects]+[tuple(sorted(e["vars"])) for e in equations]
+    w,rem=width(graph(scopes,variables),order)
+    if rem:return {"g":g,"failure":"ORDER_DID_NOT_ELIMINATE_ALL","remaining":sorted(rem)}
+    rel=ay.bucket_relation(variables,defects,equations,order,w)
+    reconstruction=not rel["reconstruction_failures"] and set(rel["assignment"])==set(variables) if rel["decision"]=="SAT" else True
+    clause_fail=[];eq_fail=[]
+    if rel["decision"]=="SAT" and reconstruction:clause_fail,eq_fail=ay.validate_source(rel["assignment"],defects,equations)
+    source_validation=(not clause_fail and not eq_fail) if rel["decision"]=="SAT" else True
+    L=sum(len(c) for c in root)
+    return {"g":g,"C":len(root),"L":L,"V":len(variables),"D":len(defects),"E":len(equations),"w":w,
+            "rows":rel["total_materialized_rows"],"attempts":rel["evaluation_attempts"],"maxscope":rel["maximum_generated_scope"],
+            "maxrows":rel["maximum_generated_table_rows"],"decision":rel["decision"],"reconstruction":reconstruction,
+            "source_validation":source_validation,"clause_fail":clause_fail,"eq_fail":eq_fail}
+
 def main():
     ap=argparse.ArgumentParser();ap.add_argument("--theorem",type=Path,required=True);ap.add_argument("--out",type=Path,required=True);args=ap.parse_args()
     theorem=json.loads(args.theorem.read_text()); failures=[]
@@ -90,23 +124,18 @@ def main():
     if not (155**4>4577):failures.append("ALGEBRA_BASE")
     holdouts=[]
     for g in HOLDOUTS:
-        r=ay.run_rung(g)
-        row={"g":g,"classification":r.get("classification"),"relevant":r.get("relevant"),"L":r.get("L"),
-             "V":r.get("target_component",{}).get("variable_count"),"D":r.get("target_component",{}).get("defect_count"),
-             "E":r.get("target_component",{}).get("affine_equation_count"),"w":r.get("separator",{}).get("induced_width"),
-             "rows":r.get("relation",{}).get("total_materialized_rows"),"attempts":r.get("relation",{}).get("evaluation_attempts"),
-             "reconstruction":r.get("reconstruction_pass"),"source_validation":r.get("source_validation_pass")}
-        holdouts.append(row); exp={"L":157*g-2,"V":20*g,"D":62*g-1,"E":g,"w":13,"rows":4577*g-4,"attempts":49242*g-2}
-        if not row["relevant"] or row["classification"]!="WIDTH_AND_RELATION_LEDGER_WITHIN_L4":failures.append({"HOLDOUT_CLASS":row})
+        row=holdout_replay(g);holdouts.append(row)
+        if row.get("failure"):failures.append({"HOLDOUT_FAILURE":row});continue
+        exp={"C":64*g-1,"L":157*g-2,"V":20*g,"D":62*g-1,"E":g,"w":13,"rows":4577*g-4,"attempts":49242*g-2,"maxscope":13,"maxrows":1460}
         for k,v in exp.items():
             if row[k]!=v:failures.append({"HOLDOUT_MISMATCH":g,"field":k,"got":row[k],"expected":v})
-        if row["reconstruction"] is not True or row["source_validation"] is not True:failures.append({"HOLDOUT_RELATION":row})
+        if row["decision"]!="SAT" or row["reconstruction"] is not True or row["source_validation"] is not True:failures.append({"HOLDOUT_RELATION":row})
     if theorem.get("verdict")!=PASS:failures.append({"THEOREM_VERDICT":theorem.get("verdict")})
     out={"status":"PASS" if not failures else "FAIL","failure_count":len(failures),"failures":failures,
          "independent_LAST":last,"independent_MID":mid,"widths":{"LAST":lw,"MID":mw},"derived_formulas":derived,
          "algebra_for_all_integer_g_ge_1":True,"holdouts":holdouts,"theorem_json_sha256":hashlib.sha256(args.theorem.read_bytes()).hexdigest(),
          "firewall":{"P_VS_NP":"OPEN","SAT_IN_P":"NOT_PROVED","TRUMP_finished":False}}
     args.out.parent.mkdir(parents=True,exist_ok=True);args.out.write_text(json.dumps(out,indent=2,sort_keys=True)+"\n")
-    print(json.dumps({"status":out["status"],"failures":out["failure_count"],"holdouts":[(x["g"],x["w"],x["rows"]) for x in holdouts]},sort_keys=True))
+    print(json.dumps({"status":out["status"],"failures":out["failure_count"],"holdouts":[(x["g"],x.get("w"),x.get("rows")) for x in holdouts]},sort_keys=True))
     if failures: raise SystemExit(1)
 if __name__=="__main__":main()
