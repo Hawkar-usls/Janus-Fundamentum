@@ -1,0 +1,80 @@
+{
+  "gate": "R50G25BA10_CANONICAL_KPN_PURE_POLARITY_NO_FILL_CASCADE",
+  "date": "2026-09-08",
+  "status": "FROZEN_BEFORE_IMPLEMENTATION",
+  "parent_BA9_final_meta_file": "data/JANUS-TRUMP-R50G25-DEVELOPMENT-MIRROR-2026-09-08-v3.2-BA9-2.json",
+  "parent_BA9_final_meta_commit": "c60e691917466c268e863153c66a0ce3d92b180b",
+  "parent_source_head": "2527ff8fe0c3695a6dd2d8228c4e653dc5867d9a",
+  "methodology_firewall_commit": "b52b4ab0a8ba21f6b41a9a0c5c7c2774d95e5e72",
+  "parameter_domain": "p>=1,n>=1,g>=1",
+  "canonical_residual": "R_{p,n}=AND_{i=1}^p AND_{j=1}^n (a_i OR b_j)",
+  "scientific_question": "Does the exact BA9-derived K_{p,n} generate new fill when one of its own residual leaf variables is existentially eliminated next?",
+  "frozen_candidate_answer": "NO: every canonical residual variable has pure positive polarity, so |P_v|*|N_v|=0 and elimination is vertex deletion only.",
+  "representation_contract": {
+    "abstract_residual": "explicit all-positive binary K_{p,n} CNF",
+    "source_size": "Theta(p*n) explicit clauses for the residual",
+    "elimination_certificate": "vertex-deletion trace plus removed incident clauses, no manually inserted resolvents",
+    "complexity_target": "polynomial in explicit residual representation; do not hide BA9 Omega(p*n) output lower bound",
+    "actual_BA9_linkage": "must use the exact proof-carrying BA9 residual/transport identity, not an unrelated manufactured K_{p,n}"
+  },
+  "frozen_targets": {
+    "pure_polarity": "for each a_i: pos=n,neg=0; for each b_j: pos=p,neg=0",
+    "abstract_productivity": 0,
+    "one_step_A": "EXISTS a_1 R_{p,n} IFF R_{p-1,n}, with p=1 boundary TOP",
+    "one_step_B": "EXISTS b_1 R_{p,n} IFF R_{p,n-1}, with n=1 boundary TOP",
+    "generic_recurrence": "K_{p_t,n_t} -> K_{p_t-1,n_t} or K_{p_t,n_t-1}; TOP when either side empty",
+    "new_fill_per_residual_step": 0,
+    "E_peak": "p*n",
+    "width": "tw_t=min(p_t,n_t), monotonically nonincreasing",
+    "reconstruction": "every eliminated residual variable := 1",
+    "composed_reconstruction": "BA10 residual reconstruction composed explicitly with sealed BA9 star reconstruction",
+    "success_label": "BA10-A_CANONICAL_KPN_PURE_POLARITY_NO_FILL_CASCADE_CERTIFIED"
+  },
+  "structural_firewalls": [
+    "GRAPH_DENSITY != RESOLUTION_PRODUCTIVITY",
+    "TREEWIDTH != SAT_HARDNESS_BY_ITSELF",
+    "PURE_POLARITY_MECHANISM_IS_ESSENTIAL",
+    "INTERNAL_CARRIER_RESOLVENT != SEMANTIC_NEW_QUOTIENT_FILL",
+    "FINITE_HOLDOUT_SUCCESS != GENERIC_THEOREM"
+  ],
+  "required_passes": [
+    "PURE_POLARITY_PASS",
+    "ZERO_ABSTRACT_RESOLUTION_PRODUCTIVITY_PASS",
+    "ONE_STEP_A_ELIMINATION_PASS",
+    "ONE_STEP_B_ELIMINATION_PASS",
+    "GENERIC_VERTEX_DELETION_RECURRENCE_PASS",
+    "ZERO_NEW_FILL_PASS",
+    "WIDTH_MONOTONICITY_PASS",
+    "ACTUAL_BA9_RESIDUAL_REALIZATION_PASS",
+    "RESIDUAL_RECONSTRUCTION_PASS",
+    "COMPOSED_BA9_SOURCE_RECONSTRUCTION_PASS",
+    "FULL_SOURCE_VALIDATION_PASS",
+    "COMPLEXITY_PASS",
+    "INDEPENDENT_REPLAY_PASS"
+  ],
+  "falsifiers": {
+    "F1": "Any canonical residual variable has both polarities.",
+    "F2": "A second-stage elimination creates a genuine new quotient coupling.",
+    "F3": "The exact residual is not K_{p-1,n} or K_{p,n-1}.",
+    "F4": "A valid residual assignment is lost.",
+    "F5": "An invalid assignment is introduced.",
+    "F6": "Reconstruction by setting eliminated variable=1 fails.",
+    "F7": "Actual BA9 residual differs from symbolic K_{p,n}.",
+    "F8": "Internal carrier resolvents are promoted as semantic new fill.",
+    "F9": "Width increases under canonical leaf elimination.",
+    "F10": "Generic argument depends only on tested p,n.",
+    "F11": "Independent replay fails."
+  },
+  "nonclaims": [
+    "FILL_CASCADES_IMPOSSIBLE_IN_GENERAL",
+    "MIXED_POLARITY_DERIVED_RESIDUALS_CANNOT_CASCADE",
+    "ARBITRARY_BRANCHING_EASY",
+    "ARBITRARY_ELIMINATION_ORDERS_EASY",
+    "ARBITRARY_CNF_COVERED",
+    "SAT_IN_P",
+    "P_EQ_NP"
+  ],
+  "after_success": "STOP; do not open BA11 automatically. Next candidate only: smallest two-stage construction where first-generation derived clauses make a second pivot appear in both polarities.",
+  "P_VS_NP": "OPEN",
+  "SAT_IN_P": "NOT_PROVED"
+}
