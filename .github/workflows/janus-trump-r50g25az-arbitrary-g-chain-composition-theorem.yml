@@ -8,6 +8,8 @@ on:
       - 'TRUMP/SAT/R50/TRUMP_R50G25AZ_ARBITRARY_G_CHAIN_COMPOSITION_THEOREM_PREREG_v1_0.md'
       - 'experiments/janus_trump_r50g25az_arbitrary_g_chain_composition_theorem.py'
       - 'experiments/janus_trump_r50g25az_independent_verify.py'
+      - 'experiments/janus_trump_r50g25az_generic_obligation_hardening.py'
+      - 'experiments/janus_trump_r50g25az_generic_obligation_independent_verify.py'
       - '.github/workflows/janus-trump-r50g25az-arbitrary-g-chain-composition-theorem.yml'
   workflow_dispatch:
 
@@ -34,6 +36,17 @@ jobs:
           PYTHONPATH=experiments python experiments/janus_trump_r50g25az_independent_verify.py \
             --theorem artifacts/JANUS_TRUMP_R50G25AZ_THEOREM.json \
             --out artifacts/JANUS_TRUMP_R50G25AZ_VERIFY.json
+      - name: Build prereg-required generic COMP policy-identity and return-map hardening
+        run: |
+          PYTHONPATH=experiments python experiments/janus_trump_r50g25az_generic_obligation_hardening.py \
+            --theorem artifacts/JANUS_TRUMP_R50G25AZ_THEOREM.json \
+            --out artifacts/JANUS_TRUMP_R50G25AZ_GENERIC_HARDENING.json
+      - name: Independent generic-obligation verification
+        run: |
+          PYTHONPATH=experiments python experiments/janus_trump_r50g25az_generic_obligation_independent_verify.py \
+            --theorem artifacts/JANUS_TRUMP_R50G25AZ_THEOREM.json \
+            --hardening artifacts/JANUS_TRUMP_R50G25AZ_GENERIC_HARDENING.json \
+            --out artifacts/JANUS_TRUMP_R50G25AZ_GENERIC_VERIFY.json
       - name: Verify exact frozen theorem scope and emit identities
         run: |
           python - <<'PY'
@@ -41,33 +54,44 @@ jobs:
           from pathlib import Path
           p=Path('artifacts/JANUS_TRUMP_R50G25AZ_THEOREM.json')
           v=Path('artifacts/JANUS_TRUMP_R50G25AZ_VERIFY.json')
-          x=json.loads(p.read_text()); y=json.loads(v.read_text())
+          h=Path('artifacts/JANUS_TRUMP_R50G25AZ_GENERIC_HARDENING.json')
+          z=Path('artifacts/JANUS_TRUMP_R50G25AZ_GENERIC_VERIFY.json')
+          x=json.loads(p.read_text()); y=json.loads(v.read_text()); a=json.loads(h.read_text()); b=json.loads(z.read_text())
           assert x['verdict']=='AZ_RESTRICTED_CHAIN_FAMILY_POLYNOMIAL_RELATION_THEOREM_PROVED',x
           assert x['failure_count']==0,x
           assert y['status']=='PASS' and y['failure_count']==0,y
+          assert a['status']=='AZ_GENERIC_OBLIGATION_HARDENING_PASS' and a['failure_count']==0,a
+          assert b['status']=='PASS' and b['failure_count']==0,b
+          assert a['generic_policy_identity']['result'] is True
+          assert a['lemma_status']=={'AZ_1':'PASS','AZ_2':'PASS','AZ_3':'PASS','AZ_4':'PASS','AZ_5':'PASS'}
+          assert a['COMP']['certificate_composition']['formula']=='C_(g+1)=COMPOSE_CERT(C_g,C_bridge,C_1)'
           assert x['formal_induction_object']['formulas']['total_rows']=='4577*g-4'
           assert x['formal_induction_object']['formulas']['evaluation_attempts']=='49242*g-2'
           assert x['theorem_claim']['restricted_family_only'] is True
           assert x['theorem_claim']['all_g_ge_1'] is True
           assert x['firewall']=={'P_VS_NP':'OPEN','SAT_IN_P':'NOT_PROVED','TRUMP_finished':False}
-          assert [h['g'] for h in y['holdouts']]==[5,7,9,16]
-          print('AZ_THEOREM_SHA256='+hashlib.sha256(p.read_bytes()).hexdigest())
-          print('AZ_THEOREM_SIZE='+str(len(p.read_bytes())))
-          print('AZ_VERIFY_SHA256='+hashlib.sha256(v.read_bytes()).hexdigest())
-          print('AZ_VERIFY_SIZE='+str(len(v.read_bytes())))
+          assert [q['g'] for q in y['holdouts']]==[5,7,9,16]
+          for label,path in [('AZ_THEOREM',p),('AZ_VERIFY',v),('AZ_GENERIC_HARDENING',h),('AZ_GENERIC_VERIFY',z)]:
+              print(label+'_SHA256='+hashlib.sha256(path.read_bytes()).hexdigest())
+              print(label+'_SIZE='+str(len(path.read_bytes())))
           print(json.dumps({
             'verdict':x['verdict'],
             'LAST_total_rows':x['LAST_template']['total_rows'],
             'MID_total_rows':x['MID_template']['total_rows'],
             'LAST_width':x['LAST_width_certificate']['width'],
             'MID_width':x['MID_width_certificate']['width'],
-            'holdouts':[(h['g'],h['w'],h['rows']) for h in y['holdouts']],
+            'policy_identity_all_g':a['generic_policy_identity']['result'],
+            'lemma_status':a['lemma_status'],
+            'classification':b['classification'],
+            'holdouts':[(q['g'],q['w'],q['rows']) for q in y['holdouts']],
           },sort_keys=True))
           PY
       - uses: actions/upload-artifact@v4
         with:
-          name: janus-trump-r50g25az-theorem
+          name: janus-trump-r50g25az-theorem-hardened
           path: |
             artifacts/JANUS_TRUMP_R50G25AZ_THEOREM.json
             artifacts/JANUS_TRUMP_R50G25AZ_VERIFY.json
+            artifacts/JANUS_TRUMP_R50G25AZ_GENERIC_HARDENING.json
+            artifacts/JANUS_TRUMP_R50G25AZ_GENERIC_VERIFY.json
           if-no-files-found: error
