@@ -1,0 +1,92 @@
+name: JANUS TRUMP R50G25BA16 compact derived support identity collapse
+
+on:
+  push:
+    branches:
+      - research/r50g25ba16-compact-derived-support-intermediate-identity-collapse-2026-09-09
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  scientific:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Verify frozen preregistration ancestry
+        run: |
+          git merge-base --is-ancestor 5eb4b97caf606d5a8ebe965dc72765a1627066dd 198e4626f15640b9cd503fd2a9fd1229bb52481f
+          git merge-base --is-ancestor 5eb4b97caf606d5a8ebe965dc72765a1627066dd a91c26454336076399d7c1506684f07fe4c148ca
+          git merge-base --is-ancestor 5eb4b97caf606d5a8ebe965dc72765a1627066dd 00c4960f92d7213721ecf7c41f42f1f333a9d815
+          test "$(git show --format=%s --no-patch 5eb4b97caf606d5a8ebe965dc72765a1627066dd)" = "freeze R50G25BA16 compact derived support preregistration"
+      - name: Build BA16 mixed scientific result
+        env:
+          PYTHONPATH: experiments
+        run: |
+          mkdir -p artifacts
+          python experiments/janus_trump_r50g25ba16_compact_derived_support_intermediate_identity_collapse.py --out artifacts/JANUS_TRUMP_R50G25BA16_RESULT.json
+      - name: Independent mathematical replay
+        env:
+          PYTHONPATH: experiments
+        run: |
+          python experiments/verify_janus_trump_r50g25ba16_compact_derived_support_intermediate_identity_collapse.py --result artifacts/JANUS_TRUMP_R50G25BA16_RESULT.json --out artifacts/JANUS_TRUMP_R50G25BA16_VERIFY.json
+      - name: Complete exact 39-name mixed preseal
+        env:
+          PYTHONPATH: experiments
+        run: |
+          python experiments/complete_janus_trump_r50g25ba16_preseal_obligations.py --result artifacts/JANUS_TRUMP_R50G25BA16_RESULT.json --verify artifacts/JANUS_TRUMP_R50G25BA16_VERIFY.json --out artifacts/JANUS_TRUMP_R50G25BA16_PRESEAL_COMPLETION.json
+      - name: Enforce strict BA16 mixed-result guard
+        run: |
+          python - <<'PY'
+          import hashlib,json
+          from pathlib import Path
+          rp=Path('artifacts/JANUS_TRUMP_R50G25BA16_RESULT.json')
+          vp=Path('artifacts/JANUS_TRUMP_R50G25BA16_VERIFY.json')
+          cp=Path('artifacts/JANUS_TRUMP_R50G25BA16_PRESEAL_COMPLETION.json')
+          r=json.loads(rp.read_text());v=json.loads(vp.read_text());c=json.loads(cp.read_text())
+          assert r['preregistration_commit']=='5eb4b97caf606d5a8ebe965dc72765a1627066dd'
+          assert r['parent_BA15_final_meta_commit']=='d0f4db95da3d5ec8ba94ecf2781de86af0fd8804'
+          assert r['parent_BA15_source_commit']=='d8fc7848d3f9de924257ed6f4bdd70a0c7d8af80'
+          assert r['scientific_mixed_result_pre_replay'] is True
+          assert r['failed_frozen_obligations']==['QUOTIENT_WIDTH_PASS']
+          assert r['obligations']['QUOTIENT_WIDTH_PASS']==0
+          assert r['P_BA16_A']==0 and r['success_label_BA16_A_permitted'] is False
+          assert r['positive_scoped_results']['raw_b_paths']=='p*n*r'
+          assert r['positive_scoped_results']['distinct_final']=='p*r'
+          assert r['negative_scoped_results']['SELF_SUSTAINING_DISTINCT_MULTIPLICATION']=='NOT_CERTIFIED'
+          assert r['graph_symbolic']['frozen_candidate']['status']=='FALSIFIED'
+          assert r['graph_symbolic']['frozen_candidate']['counterexample']=={'p':1,'n':2,'r':1,'candidate_first_b_width':2,'actual_T_y_width':3}
+          assert r['graph_symbolic']['corrected_width_observation']['global']=='max(min(n+1,p+r+1), p+n+r-max(p,n,r))'
+          assert r['certificate_modes']['MODE_B_generic_pnr_path_records']==0
+          assert r['certificate_modes']['MODE_B_algorithmic_speedup_claimed'] is False
+          assert v['status']=='PASS' and v['error_count']==0 and v['implementation_imported'] is False
+          assert v['width_counterexample']['falsifies'] is True
+          assert v['generic_quotient_proof']['triple_enumeration_used_for_generic_proof']==0
+          assert c['status']=='PASS_MIXED_F14_WIDTH_FALSIFIER_PRESERVED'
+          assert c['required_pass_count']==39 and c['reported_pass_count']==39
+          assert c['scientific_pass_count']==38 and c['scientific_failed_count']==1
+          assert c['scientific_failed_obligations']==['QUOTIENT_WIDTH_PASS']
+          assert c['all_required_names_reported'] is True and c['all_required_passes'] is False
+          assert c['preseal_completeness_pass'] is True and c['independent_replay_pass'] is True
+          assert c['P_BA16_A']==0 and c['P_BA16_MIXED']==1
+          assert c['BA17_started'] is False
+          assert r['P_VS_NP']=='OPEN' and r['SAT_IN_P']=='NOT_PROVED' and r['TRUMP_finished'] is False
+          print('RESULT_SHA256='+hashlib.sha256(rp.read_bytes()).hexdigest())
+          print('VERIFY_SHA256='+hashlib.sha256(vp.read_bytes()).hexdigest())
+          print('COMPLETION_SHA256='+hashlib.sha256(cp.read_bytes()).hexdigest())
+          print('P_BA16_MIXED=1')
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: janus-trump-r50g25ba16-mixed-result
+          path: |
+            artifacts/JANUS_TRUMP_R50G25BA16_RESULT.json
+            artifacts/JANUS_TRUMP_R50G25BA16_VERIFY.json
+            artifacts/JANUS_TRUMP_R50G25BA16_PRESEAL_COMPLETION.json
+          if-no-files-found: error
