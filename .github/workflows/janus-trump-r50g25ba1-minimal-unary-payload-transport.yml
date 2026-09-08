@@ -1,0 +1,94 @@
+name: JANUS TRUMP R50G25BA1 minimal unary payload transport
+
+on:
+  push:
+    branches:
+      - research/r50g25ba1-minimal-unary-payload-transport-2026-09-08
+    paths:
+      - 'research/JANUS_TRUMP_R50G25BA1_MINIMAL_UNARY_PAYLOAD_TRANSPORT_PREREGISTRATION_2026-09-08.json'
+      - 'experiments/janus_trump_r50g25ba1_minimal_unary_payload_transport.py'
+      - 'experiments/janus_trump_r50g25ba1_independent_verify.py'
+      - '.github/workflows/janus-trump-r50g25ba1-minimal-unary-payload-transport.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  ba1-audit:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Run BA1 unary payload transport audit
+        run: |
+          mkdir -p artifacts
+          PYTHONPATH=experiments python experiments/janus_trump_r50g25ba1_minimal_unary_payload_transport.py \
+            --out artifacts/JANUS_TRUMP_R50G25BA1_RESULT.json
+      - name: Independent fail-closed BA1 verification
+        run: |
+          PYTHONPATH=experiments python experiments/janus_trump_r50g25ba1_independent_verify.py \
+            --result artifacts/JANUS_TRUMP_R50G25BA1_RESULT.json \
+            --out artifacts/JANUS_TRUMP_R50G25BA1_VERIFY.json
+      - name: Verify exact BA1 outcome and firewalls
+        run: |
+          python - <<'PY'
+          import hashlib,json
+          from pathlib import Path
+          rp=Path('artifacts/JANUS_TRUMP_R50G25BA1_RESULT.json')
+          vp=Path('artifacts/JANUS_TRUMP_R50G25BA1_VERIFY.json')
+          r=json.loads(rp.read_text()); v=json.loads(vp.read_text())
+          assert r['preregistration_commit']=='47ac7f28dfdb3b057a1a21d7c8492f37d73e57f6'
+          assert r['outcome']=='BA1-D_UNARY_PAYLOAD_TOO_WEAK',r
+          assert r['failure_count']==0,r
+          assert r['endpoint_relation']['unit_model_count']==60
+          assert r['endpoint_relation']['is_full_boolean_relation'] is True
+          assert r['BA1_1_distinguishability']['N_local_injected_boundary']==4
+          assert r['BA1_1_distinguishability']['local_information_bits']==2.0
+          assert r['BA1_2_four_state_algebra']['closed_in_Sigma_1'] is True
+          assert r['BA1_2_four_state_algebra']['closure_failures']==[]
+          assert r['BA1_3_generalized_pi']['status']=='FAIL_DIRECTIONAL_RESIDUAL_ERASURE'
+          assert r['BA1_4_generic_composition']['directional_information_preserved'] is False
+          assert r['BA1_5_constructive_return']['constructive_return_for_all_no_BOTTOM_payload_vectors'] is True
+          assert r['BA1_5_constructive_return']['reconstruction_respects_FORCE_0'] is True
+          assert r['BA1_5_constructive_return']['reconstruction_respects_FORCE_1'] is True
+          assert r['BA1_6_unsat_capability']['trivial_BOTTOM']['exists'] is True
+          assert r['BA1_6_unsat_capability']['nontrivial_propagated_contradiction']['exists_under_valid_single_payload_per_cut_syntax'] is False
+          assert r['BA1_7_size_time']['polynomiality_for_fixed_unary_alphabet'] is True
+          assert r['BA1_8_information_accounting']['local_injected_N']==4
+          assert r['BA1_8_information_accounting']['directional_constraint_classes_among_TOP_FORCE0_FORCE1']==1
+          assert r['BA1_8_information_accounting']['directional_constraint_bits_transported']==0.0
+          assert 'F3_DIRECTIONAL_RESIDUAL_REQUIREMENT_ERASED_BY_ONE_FULL_COMPOSITION' in r['falsifiers']
+          assert 'F8_NO_NONTRIVIAL_PROPAGATED_CONTRADICTION__BOTTOM_ONLY_UNSAT_CLASS' in r['falsifiers']
+          assert r['smallest_falsifier']['outputs']=={'FORCE_0':'TOP','FORCE_1':'TOP'}
+          assert r['finite_g_ladder_replayed'] is False
+          assert r['arbitrary_CNF_coverage_started'] is False
+          assert r['BA2_started'] is False
+          assert r['AZ_modified'] is False and r['BA0_modified'] is False
+          assert v['status']=='PASS' and v['failure_count']==0,v
+          assert v['independent_directional_class_count']==1
+          assert v['finite_g_ladder_replayed'] is False
+          assert r['firewall']=={'P_VS_NP':'OPEN','SAT_IN_P':'NOT_PROVED','TRUMP_finished':False}
+          print('BA1_RESULT_SHA256='+hashlib.sha256(rp.read_bytes()).hexdigest())
+          print('BA1_RESULT_SIZE='+str(len(rp.read_bytes())))
+          print('BA1_VERIFY_SHA256='+hashlib.sha256(vp.read_bytes()).hexdigest())
+          print('BA1_VERIFY_SIZE='+str(len(vp.read_bytes())))
+          print(json.dumps({
+            'outcome':r['outcome'],
+            'local_N':r['BA1_8_information_accounting']['local_injected_N'],
+            'transported_N':r['BA1_8_information_accounting']['transported_transition_N'],
+            'directional_bits':r['BA1_8_information_accounting']['directional_constraint_bits_transported'],
+            'falsifiers':r['falsifiers'],
+          },sort_keys=True))
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: janus-trump-r50g25ba1-result
+          path: |
+            artifacts/JANUS_TRUMP_R50G25BA1_RESULT.json
+            artifacts/JANUS_TRUMP_R50G25BA1_VERIFY.json
+          if-no-files-found: error
