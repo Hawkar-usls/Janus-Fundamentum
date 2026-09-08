@@ -1,0 +1,93 @@
+name: JANUS TRUMP R50G25BA8 minimal degree-3 branch fan-out
+
+on:
+  push:
+    branches:
+      - research/r50g25ba8-minimal-degree3-branch-resolution-fanout-2026-09-08
+    paths:
+      - 'experiments/janus_trump_r50g25ba8_minimal_degree3_branch_resolution_fanout.py'
+      - 'experiments/verify_janus_trump_r50g25ba8_minimal_degree3_branch_resolution_fanout.py'
+      - '.github/workflows/janus-trump-r50g25ba8.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  scientific:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Build exact BA8 result from frozen source
+        env:
+          PYTHONPATH: experiments
+        run: |
+          mkdir -p artifacts
+          python experiments/janus_trump_r50g25ba8_minimal_degree3_branch_resolution_fanout.py \
+            --out artifacts/JANUS_TRUMP_R50G25BA8_RESULT.json
+      - name: Independent mathematical replay
+        env:
+          PYTHONPATH: experiments
+        run: |
+          python experiments/verify_janus_trump_r50g25ba8_minimal_degree3_branch_resolution_fanout.py \
+            --result artifacts/JANUS_TRUMP_R50G25BA8_RESULT.json \
+            --out artifacts/JANUS_TRUMP_R50G25BA8_VERIFY.json
+      - name: Enforce strict BA8 obligation-product promotion guard
+        run: |
+          python - <<'PY'
+          import hashlib, json
+          from pathlib import Path
+          rp=Path('artifacts/JANUS_TRUMP_R50G25BA8_RESULT.json')
+          vp=Path('artifacts/JANUS_TRUMP_R50G25BA8_VERIFY.json')
+          r=json.loads(rp.read_text()); v=json.loads(vp.read_text())
+          assert r['preregistration_commit']=='4fbfcaf4fe8bfd60e233f966acc5ba9d6d1a4ed1'
+          assert r['methodology_firewall_commit']=='b52b4ab0a8ba21f6b41a9a0c5c7c2774d95e5e72'
+          assert r['parent_BA7_final_meta_commit']=='a45137a1fe66d38ef62cb36d59a185099830dc48'
+          assert r['parent_BA7_authoritative_artifact_zip_sha256']=='a947f5bc1a778e7445a0f7da907cd982aafca9ff955526a6f30997d5adf228da'
+          assert r['failure_count']==0 and r['falsifiers']==[]
+          assert r['outcome']=='BA8-A_MINIMAL_DEGREE3_BRANCH_RESOLUTION_FANOUT_CERTIFIED'
+          assert r['BA8_2_exact_source_relation']['satisfying_set']==['0111','1000','1001','1010','1011','1111']
+          assert r['BA8_3_exact_elimination_algebra']['projected_set']==['011','100','101','110','111']
+          assert r['BA8_5_constructive_return']['map']=='x := NOT q_0'
+          assert r['BA8_6_first_true_fill_fanout']['productive_abstract_raw_pairs']==2
+          assert r['BA8_7_transient_graph_accounting']['derived_fill_edge_count']==2
+          assert r['BA8_7_transient_graph_accounting']['E_peak']==5
+          assert r['BA8_8_width']['W_peak']==13
+          assert r['BA8_9_exact_source_size']['all_holdouts_pass'] is True
+          assert r['BA8_10_generic_chain_transport']['A_B_C_next_present'] is True
+          assert r['BA8_10_generic_chain_transport']['D1_D2_next_present'] is True
+          assert r['BA8_10_generic_chain_transport']['manual_next_boundary_insertion']==0
+          assert r['BA8_12_complete_polarity_audit']['partition_counts']=={
+            'CONTRADICTION':0,'TOP_TAUTOLOGICAL_PROJECTION':16,
+            'TWO_BINARY_DERIVED_COUPLING_CONJUNCTION':48,'UNARY':0}
+          assert r['BA8_13_minimality']['strictly_smaller_success_topology_exists'] is False
+          assert r['BA8_14_certificate_and_complexity']['T_total_n']=='O(n log n)'
+          assert r['BA8_no_hidden_state_enumeration']['generic_g_boundary_state_table_rows']==0
+          pre=r['strict_promotion_guard_pre_independent_verify']
+          assert pre['all_closed_pre_independent_verify'] is True
+          assert pre['x_no_unclassified_exception']==1
+          assert pre['v_independent_verifier']==0 and pre['P_BA8']==0
+          assert v['status']=='PASS' and v['error_count']==0
+          assert v['v_independent_verifier']==1 and v['P_BA8']==1
+          assert len(v['obligations'])==15 and all(z==1 for z in v['obligations'].values())
+          assert v['message_state']=='VERIFIED'
+          assert r['arbitrary_CNF_coverage_started'] is False
+          assert r['generic_star_family_started'] is False
+          assert r['cycle_gate_started'] is False
+          assert r['next_gate_started'] is False
+          assert r['P_VS_NP']=='OPEN' and r['SAT_IN_P']=='NOT_PROVED' and r['TRUMP_finished'] is False
+          print('RESULT_SHA256='+hashlib.sha256(rp.read_bytes()).hexdigest())
+          print('VERIFY_SHA256='+hashlib.sha256(vp.read_bytes()).hexdigest())
+          print('P_BA8=1')
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: janus-trump-r50g25ba8-result
+          path: |
+            artifacts/JANUS_TRUMP_R50G25BA8_RESULT.json
+            artifacts/JANUS_TRUMP_R50G25BA8_VERIFY.json
+          if-no-files-found: error
