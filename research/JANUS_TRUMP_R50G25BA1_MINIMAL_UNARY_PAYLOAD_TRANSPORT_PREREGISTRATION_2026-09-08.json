@@ -1,0 +1,95 @@
+{
+  "gate": "R50G25BA1_MINIMAL_NONTRIVIAL_SEMANTIC_PAYLOAD_TRANSPORT",
+  "status": "PREREGISTERED_BEFORE_IMPLEMENTATION_OR_TESTING",
+  "date": "2026-09-08",
+  "parent_BA0_source_head": "0fbc2bf9e2ddb08e03569f8e8dcafb1d29ed83f9",
+  "parent_BA0_receipt": "ddbdfbd4e16415baaeb47266a98f889e8ecd7e46",
+  "parent_BA0_meta_final": "af8d7725414c746c5b362150a09eed1662998d5e",
+  "parent_AZ_state": "AZ_RESTRICTED_FAMILY_69_GENERIC_RELATION_CERTIFIED",
+  "scope": "MINIMAL_UNARY_PAYLOAD_ONLY__NO_ARBITRARY_CNF_COVERAGE",
+  "question": "Can the sealed proof-carrying chain machine transport at least one genuine bit of boundary constraint information under a fixed four-state unary payload alphabet, while preserving composition, constructive return, source validation and polynomial size/time?",
+  "frozen_exact_syntax": {
+    "base_family": "F_g = canonical_union(shift(U,30*j), bridges (30+30*j,32+30*j))",
+    "boundary_variables": "q_j = 2 + 30*j for inter-block cut j=1..g-1; q_j is exactly the variable surviving the preceding sealed MID projection",
+    "payload_vector": "sigma=(sigma_1,...,sigma_(g-1)), sigma_j in Sigma_1; for g=1 the vector is empty",
+    "Sigma_1": ["TOP","FORCE_0","FORCE_1","BOTTOM"],
+    "payload_CNF": {
+      "TOP": "no clause",
+      "FORCE_0": "(-q_j)",
+      "FORCE_1": "(q_j)",
+      "BOTTOM": "empty clause ()"
+    },
+    "generalized_instance": "F_{g,sigma}=canonical(F_g union payload_CNF(sigma_j,q_j) for all inter-block boundaries j)",
+    "neutral_embedding": "F_{g,TOP,...,TOP}=F_g exactly",
+    "proof_metadata_is_target_semantics": false,
+    "no_other_free_parameters": true
+  },
+  "frozen_residual_state_semantics": {
+    "state_as_allowed_values": {
+      "TOP": [0,1],
+      "FORCE_0": [0],
+      "FORCE_1": [1],
+      "BOTTOM": []
+    },
+    "equivalence": "a ~ b iff for every allowed unary continuation K on the same cut, SAT(a AND K)=SAT(b AND K)",
+    "distinguishability_requirement": "FORCE_0 and FORCE_1 must be separated by explicit K_0,K_1 witnesses; labels do not count",
+    "information_capacity": "N_boundary is the number of residual-behaviour equivalence classes actually realized by the generalized MID relation"
+  },
+  "frozen_local_composition_definition": {
+    "incoming_state": "rho_j in Sigma_1 summarizes the already-eliminated prefix as a unary residual on q_j",
+    "local_payload": "sigma_j in Sigma_1 is conjoined on q_j",
+    "unit_relation": "R_U(q_j,p_j) is the exact existential endpoint relation of sealed U between x2 and x30",
+    "bridge": "B_j(p_j,q_(j+1)) = p_j OR q_(j+1)",
+    "next_payload": "tau in Sigma_1 is conjoined on q_(j+1)",
+    "COMPOSE_SIGMA": "the unique unary residual on q_(j+1) obtained by existentially eliminating q_j,p_j from rho_j(q_j) AND payload(sigma_j,q_j) AND R_U(q_j,p_j) AND B_j(p_j,q_(j+1)) and then conjoining payload(tau,q_(j+1)); classify the resulting unary truth table into Sigma_1, or emit CLOSURE_FALSIFIER if it is outside Sigma_1",
+    "uniformity": "same operator for every j and every g; no tested-g lookup, no future-answer choice"
+  },
+  "frozen_pi": "SAT_DECISION_PRESERVATION + BOUNDARY_RESIDUAL_SEMANTICS_PRESERVATION + CONSTRUCTIVE_RETURN",
+  "required_checks": {
+    "BA1_1": "prove FORCE_0 != FORCE_1 by explicit continuations",
+    "BA1_2": "compute full four-state COMPOSE_SIGMA closure table from exact endpoint relation and bridge semantics",
+    "BA1_3": "verify whether an informative incoming residual remains semantically distinguishable after generic composition; SAT-only preservation is insufficient",
+    "BA1_4": "construct uniform REL_{g,sigma}+REL_bridge+REL_{1,tau}->REL_{g+1,sigma_prime} if possible",
+    "BA1_5": "for every SAT generalized instance reconstructed model must satisfy original F_{g,sigma} and every FORCE payload",
+    "BA1_6": "separate trivial BOTTOM UNSAT from nontrivial propagated contradiction",
+    "BA1_7": "derive n,s,t recurrences and reject duplicated exponential history",
+    "BA1_8": "compute exact N_boundary and log2 capacity from semantic equivalence classes"
+  },
+  "frozen_size_time_accounting": {
+    "n": "literal count of target CNF including payload clauses; empty BOTTOM clause contributes zero literals but one clause and is tracked separately",
+    "s": "proof-carrying relation/certificate rows plus explicit payload-state records; DAG references count once but referenced content must remain independently verifiable",
+    "t": "construction + relation verification + decision + reconstruction + direct source validation",
+    "required_goal_if_success": "s=poly(n+g), t=poly(n+g) for fixed Sigma_1",
+    "history_duplication_firewall": "CACHED_HASH_REFERENCE != PROOF_CONTENT; recursive certificate byte duplication is forbidden"
+  },
+  "falsifiers": {
+    "F1": "FORCE_0 and FORCE_1 collapse semantically",
+    "F2": "four-state residual algebra is not closed",
+    "F3": "SAT is preserved but incoming residual requirement is erased by generic composition",
+    "F4": "reconstruction violates a payload constraint",
+    "F5": "composition needs future-answer-dependent choice",
+    "F6": "certificate/history growth is super-polynomial",
+    "F7": "independent verifier cannot reconstruct payload semantics",
+    "F8": "only UNSAT capability is direct insertion of BOTTOM and no nontrivial propagated contradiction exists",
+    "F9": "generic rule depends on a finite tested-g table",
+    "F10": "neutral TOP case is not exactly sealed F_g"
+  },
+  "outcomes": [
+    "BA1-A_UNARY_PAYLOAD_TRANSPORT_CERTIFIED",
+    "BA1-B_UNARY_PAYLOAD_COMPOSITION_NOT_CLOSED",
+    "BA1-C_PAYLOAD_TRANSPORT_BREAKS_POLYNOMIALITY",
+    "BA1-D_UNARY_PAYLOAD_TOO_WEAK",
+    "BA1-E_OPEN"
+  ],
+  "promotion_rule": "BA1-A requires N_boundary>=2 and generic preservation of the informative residual state across composition, not merely local distinguishability at an externally injected cut",
+  "forbidden": [
+    "ARBITRARY_CNF_COVERAGE",
+    "ARBITRARY_SAT_REDUCTION",
+    "SAT_IN_P_PROVED",
+    "P_EQ_NP_PROVED",
+    "TRUMP_FINISHED",
+    "POST_HOC_PAYLOAD_SEMANTICS",
+    "FINITE_G_PASS_AS_GENERIC_PROOF"
+  ],
+  "firewall": {"P_VS_NP":"OPEN","SAT_IN_P":"NOT_PROVED","TRUMP_finished":false}
+}
