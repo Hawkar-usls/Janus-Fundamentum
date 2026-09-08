@@ -26,6 +26,8 @@ jobs:
           git merge-base --is-ancestor 9ea92a60bbe1e0925f56abb3a8c3655b672d646c 51c85a484f787b773c99607a62bdbad7c9f383f4
           git merge-base --is-ancestor f39af29741c62b6e04d4a665eb6697ef4c461d68 805ab5d09cab5e032e0864fced0205122fd5aaba
           git merge-base --is-ancestor f39af29741c62b6e04d4a665eb6697ef4c461d68 490d75f62ad5dd0e5383b71a1c6ea6e17862bd9c
+          git merge-base --is-ancestor f39af29741c62b6e04d4a665eb6697ef4c461d68 02ed464b645dbc1c95043115863ec57d35986339
+          git merge-base --is-ancestor f39af29741c62b6e04d4a665eb6697ef4c461d68 1d881642f66ef385b74143f893b793e8a4868fb8
           test "$(git show --format=%s --no-patch f39af29741c62b6e04d4a665eb6697ef4c461d68)" = "preregister R50G25BA15 parameterized two consecutive generation fill multiplication"
       - name: Build exact BA15 result from frozen source
         env:
@@ -38,11 +40,11 @@ jobs:
           PYTHONPATH: experiments
         run: |
           python experiments/verify_janus_trump_r50g25ba15_parameterized_two_consecutive_generation_fill_multiplication.py --result artifacts/JANUS_TRUMP_R50G25BA15_RESULT.json --out artifacts/JANUS_TRUMP_R50G25BA15_VERIFY.json
-      - name: Complete all 40 preregistered obligations
+      - name: Complete all 40 preregistered obligations hardened v2
         env:
           PYTHONPATH: experiments
         run: |
-          python experiments/complete_janus_trump_r50g25ba15_preseal_obligations.py --result artifacts/JANUS_TRUMP_R50G25BA15_RESULT.json --verify artifacts/JANUS_TRUMP_R50G25BA15_VERIFY.json --out artifacts/JANUS_TRUMP_R50G25BA15_PRESEAL_COMPLETION.json
+          python experiments/complete_janus_trump_r50g25ba15_preseal_obligations_v2.py --result artifacts/JANUS_TRUMP_R50G25BA15_RESULT.json --verify artifacts/JANUS_TRUMP_R50G25BA15_VERIFY.json --out artifacts/JANUS_TRUMP_R50G25BA15_PRESEAL_COMPLETION.json
       - name: Enforce strict BA15 promotion guard
         run: |
           python - <<'PY'
@@ -74,8 +76,13 @@ jobs:
               assert sum(x['retained'] for x in b['b_ledgers'])==p*n*rr
           assert v['status']=='PASS' and v['error_count']==0 and v['v_independent_verifier']==1 and v['P_BA15']==1
           assert v['implementation_imported'] is False
+          assert c['kind']=='PRESEAL_OBLIGATION_COMPLETION_HARDENED_V2'
+          assert c['gap_predecessor']['run_id']==34279236625
           assert c['status']=='PASS' and c['P_BA15_FINAL']==1 and c['required_pass_count']==40 and c['all_required_passes'] is True
+          assert len(c['required_pass_names'])==40 and len(set(c['required_pass_names']))==40
           assert len(c['required_passes'])==40 and all(x==1 for x in c['required_passes'].values())
+          assert c['report_contract']['builder_and_verifier_exact_name_sets'] is True
+          assert c['report_contract']['serialized_mapping_order_is_not_authority'] is True
           assert r['self_sustaining_support_certified'] is False and r['derived_future_support_certified'] is False
           assert r['repeated_multiplication_started'] is False and r['next_gate_started'] is False and r['BA16_started'] is False
           assert r['P_VS_NP']=='OPEN' and r['SAT_IN_P']=='NOT_PROVED' and r['TRUMP_finished'] is False
