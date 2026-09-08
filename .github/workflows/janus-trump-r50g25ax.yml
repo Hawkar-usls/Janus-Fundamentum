@@ -1,0 +1,46 @@
+name: JANUS TRUMP R50G25AX
+
+on:
+  push:
+    branches:
+      - research/r50g25ax-within-component-separator-affine-quotient-2026-09-08
+    paths:
+      - 'research/JANUS_TRUMP_R50G25AX_PREREGISTRATION.json'
+      - 'experiments/janus_trump_r50g25ax_within_component_separator_affine_quotient.py'
+      - 'experiments/janus_trump_r50g25ax_verify.py'
+      - '.github/workflows/janus-trump-r50g25ax.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  ax:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Run frozen AX scientific gate
+        run: |
+          mkdir -p artifacts
+          PYTHONPATH=experiments python experiments/janus_trump_r50g25ax_within_component_separator_affine_quotient.py --out artifacts/JANUS_TRUMP_R50G25AX_RESULT.json
+      - name: Independent fail-closed verifier
+        run: |
+          PYTHONPATH=experiments python experiments/janus_trump_r50g25ax_verify.py --result artifacts/JANUS_TRUMP_R50G25AX_RESULT.json
+      - name: Emit immutable scientific identity
+        run: |
+          python - <<'PY'
+          import hashlib,json
+          from pathlib import Path
+          p=Path('artifacts/JANUS_TRUMP_R50G25AX_RESULT.json'); b=p.read_bytes(); x=json.loads(b)
+          print('AX_RESULT_SHA256='+hashlib.sha256(b).hexdigest())
+          print('AX_RESULT_SIZE='+str(len(b)))
+          print(json.dumps({'verdict':x['verdict'],'separator':x['separator'],'relation_pass':x['relation_pass'],'scope':x['scope']},sort_keys=True))
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: janus-trump-r50g25ax-result
+          path: artifacts/JANUS_TRUMP_R50G25AX_RESULT.json
+          if-no-files-found: error
