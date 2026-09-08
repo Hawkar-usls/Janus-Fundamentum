@@ -1,0 +1,85 @@
+name: JANUS TRUMP R50G25AX relation hardening only
+
+on:
+  push:
+    branches:
+      - research/r50g25ax-within-component-separator-affine-quotient-2026-09-08
+    paths:
+      - '.github/workflows/janus-trump-r50g25ax-relation-hardening-only.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  relation-hardening:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Download immutable independently-verified AX scientific artifact
+        uses: actions/download-artifact@v4
+        with:
+          github-token: ${{ github.token }}
+          repository: Hawkar-usls/Janus-Fundamentum
+          run-id: 34172896347
+          name: janus-trump-r50g25ax-result
+          path: scientific-artifact
+      - name: Verify scientific artifact identity without recomputation
+        run: |
+          python - <<'PY'
+          import hashlib,json
+          from pathlib import Path
+          p=Path('scientific-artifact/JANUS_TRUMP_R50G25AX_RESULT.json')
+          b=p.read_bytes(); x=json.loads(b)
+          got=hashlib.sha256(b).hexdigest()
+          exp='14625269ad9730164ad9739a91d3c8562a4d6270e06624bbaba7354ffdad4bf8'
+          assert got == exp, (got,exp)
+          assert x['preregistration_commit']=='7b9cef877200b2f056099309d672923df2178b9a'
+          assert x['verdict']=='AX_SEPARATOR_RELATION_WITHIN_L4_ON_AW_OBSTRUCTION'
+          assert x['separator']['induced_width']==13
+          assert x['separator']['state_bound_2_pow_w']==8192
+          assert x['relation_pass'] is True
+          print('IMMUTABLE_AX_SCIENCE_SHA256='+got)
+          PY
+      - name: Run actual proof-carrying relation DP and reconstruction hardening
+        run: |
+          mkdir -p artifacts
+          PYTHONPATH=experiments python experiments/janus_trump_r50g25ax_relation_hardening.py --out artifacts/JANUS_TRUMP_R50G25AX_RELATION_HARDENING.json
+      - name: Fail-closed verify hardening receipt
+        run: |
+          python - <<'PY'
+          import hashlib,json
+          from pathlib import Path
+          p=Path('artifacts/JANUS_TRUMP_R50G25AX_RELATION_HARDENING.json')
+          b=p.read_bytes(); x=json.loads(b)
+          assert x['status']=='PASS', x
+          assert x['relation_pass'] is True, x
+          assert x['preregistration_commit']=='7b9cef877200b2f056099309d672923df2178b9a'
+          assert x['target_hash']=='cfbe4a9b4d4fbe5ec09ad3aa1c1ad8fe633e358b4d8744c92890133b6fa8056b'
+          assert x['failures']==[], x['failures']
+          assert all(x['relation_contract'].values()), x['relation_contract']
+          assert x['truth_oracle']=={'generation':False,'selection':False,'verdict':False,'external_exact_sat_oracle':False}
+          fs=x['frozen_separator']; dp=x['actual_relation_dp']
+          assert fs['induced_width']==13
+          assert fs['frozen_state_bound_2_pow_w']==8192
+          assert fs['parity_augmented_layer_state_bound'] <= fs['L4_budget']
+          if dp['decision']=='SAT':
+              assert dp['reconstruction_pass'] is True
+              assert dp['source_validation_pass'] is True
+              assert dp['source_clause_failure_indices']==[]
+              assert dp['source_equation_failure_indices']==[]
+              assert len(dp['reconstructed_assignment'])==20
+          print('AX_RELATION_HARDENING_SHA256='+hashlib.sha256(b).hexdigest())
+          print(json.dumps({'status':x['status'],'decision':dp['decision'],'memoized_state_count':dp['memoized_state_count'],'max_verified_frontier':fs['max_verified_frontier'],'parity_augmented_layer_state_bound':fs['parity_augmented_layer_state_bound']},sort_keys=True))
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: janus-trump-r50g25ax-relation-hardened
+          path: |
+            scientific-artifact/JANUS_TRUMP_R50G25AX_RESULT.json
+            artifacts/JANUS_TRUMP_R50G25AX_RELATION_HARDENING.json
+          if-no-files-found: error
