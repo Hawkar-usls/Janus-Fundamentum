@@ -31,6 +31,14 @@ jobs:
           python experiments/verify_janus_trump_r50g25ba11_minimal_second_generation_resolution_fanout_cascade.py \
             --result artifacts/JANUS_TRUMP_R50G25BA11_RESULT.json \
             --out artifacts/JANUS_TRUMP_R50G25BA11_VERIFY.json
+      - name: Complete preregistered A-B-C work ledger and explicit 22-pass vector
+        env:
+          PYTHONPATH: experiments
+        run: |
+          python experiments/complete_janus_trump_r50g25ba11_preseal_obligations.py \
+            --result artifacts/JANUS_TRUMP_R50G25BA11_RESULT.json \
+            --verify artifacts/JANUS_TRUMP_R50G25BA11_VERIFY.json \
+            --out artifacts/JANUS_TRUMP_R50G25BA11_PRESEAL_COMPLETION.json
       - name: Enforce strict BA11 obligation-product promotion guard
         run: |
           python - <<'PY'
@@ -38,7 +46,8 @@ jobs:
           from pathlib import Path
           rp=Path('artifacts/JANUS_TRUMP_R50G25BA11_RESULT.json')
           vp=Path('artifacts/JANUS_TRUMP_R50G25BA11_VERIFY.json')
-          r=json.loads(rp.read_text()); v=json.loads(vp.read_text())
+          cp=Path('artifacts/JANUS_TRUMP_R50G25BA11_PRESEAL_COMPLETION.json')
+          r=json.loads(rp.read_text()); v=json.loads(vp.read_text()); c=json.loads(cp.read_text())
           assert r['preregistration_commit']=='b9cfe692b9d7b1f7aa5d903f533991aa92673238'
           assert r['methodology_firewall_commit']=='b52b4ab0a8ba21f6b41a9a0c5c7c2774d95e5e72'
           assert r['parent_BA10_final_meta_commit']=='66eb10d8850079b4648863d43d7271563699616a'
@@ -73,13 +82,27 @@ jobs:
           assert v['v_independent_verifier']==1 and v['P_BA11']==1
           assert len(v['obligations'])==21 and all(z==1 for z in v['obligations'].values())
           assert v['message_state']=='VERIFIED'
+          assert c['status']=='PASS' and c['P_BA11_FINAL']==1
+          assert c['required_pass_count']==22 and c['all_required_passes'] is True
+          assert c['required_passes']['INDEPENDENT_REPLAY_PASS']==1
+          A=c['actual_carrier_work']['A_SOURCE_CLAUSE_CARRIER_TRANSPORT']
+          B=c['actual_carrier_work']['B_ACTUAL_X_ELIMINATION']
+          C=c['actual_carrier_work']['C_ACTUAL_Y_ELIMINATION']
+          for z in (A,B,C):
+            for key in ('raw_pairs','tautological_pairs','non_tautological_pairs','duplicates','retained','live_clause_peak','R_peak','B_peak','E_peak','W_peak'):
+              assert key in z
+          assert A['raw_pairs']==8323 and A['tautological_pairs']==2756 and A['non_tautological_pairs']==5567
+          assert A['duplicates']==249 and A['retained']==1563 and A['W_peak']==13
+          assert B['raw_pairs']==1 and B['retained']==1 and B['E_peak']==5 and B['W_peak']==2
+          assert C['raw_pairs']==2 and C['retained']==2 and C['E_peak']==5 and C['W_peak']==2
           assert r['generic_two_stage_p_by_n_started'] is False
           assert r['repeated_cascade_depth_started'] is False
           assert r['arbitrary_CNF_coverage_started'] is False and r['next_gate_started'] is False
           assert r['P_VS_NP']=='OPEN' and r['SAT_IN_P']=='NOT_PROVED' and r['TRUMP_finished'] is False
           print('RESULT_SHA256='+hashlib.sha256(rp.read_bytes()).hexdigest())
           print('VERIFY_SHA256='+hashlib.sha256(vp.read_bytes()).hexdigest())
-          print('P_BA11=1')
+          print('COMPLETION_SHA256='+hashlib.sha256(cp.read_bytes()).hexdigest())
+          print('P_BA11_FINAL=1')
           PY
       - uses: actions/upload-artifact@v4
         with:
@@ -87,4 +110,5 @@ jobs:
           path: |
             artifacts/JANUS_TRUMP_R50G25BA11_RESULT.json
             artifacts/JANUS_TRUMP_R50G25BA11_VERIFY.json
+            artifacts/JANUS_TRUMP_R50G25BA11_PRESEAL_COMPLETION.json
           if-no-files-found: error
