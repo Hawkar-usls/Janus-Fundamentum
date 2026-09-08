@@ -1,0 +1,178 @@
+{
+  "gate": "R50G25BA4_FACTORIZED_K_BIT_PERSISTENT_IDENTITY_CHANNEL",
+  "date": "2026-09-08",
+  "status": "FROZEN_PREREGISTRATION_BEFORE_IMPLEMENTATION_OR_TESTING",
+  "parent": {
+    "sealed_gate": "BA3-A_PERSISTENT_TWO_POLARITY_BOOLEAN_CHANNEL_CERTIFIED",
+    "source_repository": "Hawkar-usls/Janus-Fundamentum",
+    "source_head_commit": "c1d8776697c4e97453f54c0ef9053759d2f545ea",
+    "ba3_result_receipt_commit": "59ea9e537d1bcd3f412b5b58cb46a8392c1b910f",
+    "ba3_journal_V47_commit": "21f97bdfea44a298725c29b3a58ef0c0d27c0659",
+    "ba3_final_meta_mirror_commit": "7ad134c645c87643b5df7997f9cc1356d4f6fd76"
+  },
+  "scope": {
+    "question": "Does the exact sealed BA3 identity channel tensorize to k independent disjoint lanes with a factorized polynomial-size proof-carrying representation?",
+    "authorized": "DISJOINT_K_LANE_BA3_PRODUCT_ONLY",
+    "arbitrary_source_coupling": false,
+    "cross_lane_clauses": false,
+    "arbitrary_CNF_coverage": false,
+    "BA5_started": false
+  },
+  "frozen_single_lane_authority": {
+    "Q": 2,
+    "P": 30,
+    "block_stride": 30,
+    "block_clauses": [[-2,-30],[2,30]],
+    "bridge_clauses_logical": ["(p_j OR q_{j+1})","(NOT p_j OR NOT q_{j+1})"],
+    "single_lane_transport": [[1,0],[0,1]],
+    "single_lane_complexity": {
+      "clauses": "67*g-2",
+      "literals": "163*g-4",
+      "variables": "20*g",
+      "width_upper_bound": 13
+    }
+  },
+  "lane_namespace": {
+    "conceptual_lane_index": "i in {1,...,k}",
+    "block_index": "j in {0,...,g-1}",
+    "lane_offset_formula": "LANE_OFF(i,g)=30*g*(i-1)",
+    "block_offset_formula": "BLOCK_OFF(j)=30*j",
+    "variable_map": "V(i,j,v)=v+LANE_OFF(i,g)+BLOCK_OFF(j) for every frozen-U block variable v",
+    "q_formula": "q_{i,j}=2+LANE_OFF(i,g)+30*j",
+    "p_formula": "p_{i,j}=30+LANE_OFF(i,g)+30*j",
+    "next_q_formula": "q_{i,j+1}=2+LANE_OFF(i,g)+30*(j+1)",
+    "disjointness_requirement": "For i!=h, variable sets of lanes i and h must be disjoint; no internal variable or endpoint variable is shared.",
+    "metadata_variables": "NONE: proof metadata is not a CNF variable and may not create primal-graph edges."
+  },
+  "construction": {
+    "per_block_per_lane": [
+      "one shifted exact frozen-U copy",
+      "(NOT q_{i,j} OR NOT p_{i,j})",
+      "(q_{i,j} OR p_{i,j})"
+    ],
+    "per_bridge_per_lane": [
+      "(p_{i,j} OR q_{i,j+1})",
+      "(NOT p_{i,j} OR NOT q_{i,j+1})"
+    ],
+    "cross_lane_clause_count": 0,
+    "shared_internal_variable_count": 0,
+    "uniformity": "Construction is a closed formula in g,k,i,j and frozen BA3 offsets only; it may not depend on the transported vector b or holdout results."
+  },
+  "expected_product_theorem": {
+    "lane_relation": "T_i=I_2 for every lane i",
+    "full_relation": "T^(k)=T_1 x ... x T_k",
+    "expected_identity": "T^(k)=I_2^{tensor k}=I_{2^k}",
+    "proof_method": "componentwise Cartesian-product/disjoint-conjunction proof; explicit enumeration of 2^k boundary states is forbidden",
+    "semantic_statement": "For every b=(b_1,...,b_k) in {0,1}^k, output vector equals input vector componentwise."
+  },
+  "information_accounting": {
+    "N_direction_definition": "number of pairwise distinguishable persistent boundary vectors",
+    "expected_N_direction": "2^k",
+    "expected_I_direction_bits": "log2(N_direction(k))=k",
+    "required_seal_sentence": "EXPONENTIAL NUMBER OF SEMANTIC STATES != EXPONENTIAL REPRESENTATION SIZE WHEN THE RELATION FACTORIZES.",
+    "firewall": "STATE_COUNT != CONSTRAINT_EXPRESSIVITY"
+  },
+  "certificate_contract": {
+    "representation": "factorized lane certificate / product DAG",
+    "allowed": [
+      "one BA3 lane schema plus k lane descriptors",
+      "per-lane hardening receipts",
+      "product/disjointness proof object",
+      "lane-wise reconstruction witness references"
+    ],
+    "forbidden": [
+      "2^k-row relation table",
+      "enumeration of all boundary vectors",
+      "certificate records indexed by every b in {0,1}^k"
+    ],
+    "verification_strategy": "verify lanes independently, verify namespace disjointness and absence of cross-lane clauses, then apply product theorem"
+  },
+  "source_preimage_and_reconstruction": {
+    "required_per_lane_gates": [
+      "ALGEBRA_PASS",
+      "CNF_REALIZATION_PASS",
+      "SOURCE_PREIMAGE_PASS",
+      "DP_INTERACTION_PASS",
+      "PERSISTENCE_PASS",
+      "RECONSTRUCTION_PASS"
+    ],
+    "frozen_witness_rule": "For bit b_i choose a real sealed frozen-U witness with endpoint (q_i,p_i)=(b_i,1-b_i).",
+    "union_rule": "Because lane variable sets and clauses are disjoint, the union of independently chosen lane witnesses must satisfy the full k-lane CNF.",
+    "constructive_return": "Reconstruct every lane independently from a SAT model and then independently VERIFY the full original materialized k-lane generalized CNF.",
+    "vector_identity_requirement": "q_{i,0}=q_{i,g-1} for every lane i; neither component may be replaced by TOP."
+  },
+  "complexity_preregistration": {
+    "exact_expected_clauses": "c(g,k)=k*(67*g-2)",
+    "exact_expected_literals": "l(g,k)=k*(163*g-4)",
+    "exact_expected_variables": "v(g,k)=20*g*k",
+    "canonical_structural_input_measure": "n(g,k)=c(g,k)+l(g,k)+v(g,k)=k*(250*g-6)",
+    "encoded_input_note": "If integer variable identifiers are serialized, encoded bit size additionally carries logarithmic identifier overhead; report it separately and do not conflate it with structural n.",
+    "certificate_target": "factorized s(g,k)=poly(g,k), with no factor 2^k; exact record count must be measured from the implemented certificate",
+    "construction_target": "poly(g,k)",
+    "verification_target": "poly(g,k)",
+    "reconstruction_target": "poly(g,k)",
+    "required_final_reexpression": "Express s and total work t as polynomial bounds in total input size n, not only in separate g,k parameters."
+  },
+  "width_preregistration": {
+    "candidate_theorem": "For a true disjoint union of k lane primal graphs, width(full)=max_i width(lane_i).",
+    "candidate_bound": "w<=13 independent of k",
+    "promotion_rule": "Candidate only until the actual shifted k-lane primal graph and explicit decomposition/elimination verifier are replayed.",
+    "required_checks": [
+      "connected components equal k lane components",
+      "no cross-lane primal edge",
+      "actual explicit width <=13 on holdouts",
+      "generic disjoint-union width proof from lane decomposition"
+    ]
+  },
+  "holdout_plan": {
+    "pairs": [[3,2],[5,3],[7,4],[16,8]],
+    "vector_patterns": [
+      "all-zero",
+      "all-one",
+      "alternating",
+      "single-one",
+      "single-zero",
+      "deterministic-pseudorandom"
+    ],
+    "rule": "Finite vectors are debugging/holdout evidence only. Generic product proof establishes all 2^k vectors. Do not enumerate all 2^k states for proof or certificate."
+  },
+  "neutral_and_single_lane_recovery": {
+    "k_equals_1": "must recover exact sealed BA3 construction and semantics",
+    "remove_lane_copies_except_one": "must recover one exact BA3 lane",
+    "ancestor_modification": {
+      "AZ": false,
+      "BA0": false,
+      "BA1": false,
+      "BA2": false,
+      "BA3": false
+    }
+  },
+  "falsifiers": {
+    "F1": "Two lanes unexpectedly interact.",
+    "F2": "Full relation is not the Cartesian product of lane relations.",
+    "F3": "Some vector components merge after composition.",
+    "F4": "Source-preimage witnesses conflict across lanes.",
+    "F5": "Reconstruction cannot be performed independently.",
+    "F6": "Certificate requires explicit enumeration of 2^k states.",
+    "F7": "Verification runtime becomes exponential in k.",
+    "F8": "Actual width grows super-polynomially or violates the preregistered constant-width candidate without an accounted cause.",
+    "F9": "Uniform construction depends on the transported vector or holdout-specific choices.",
+    "F10": "k=1 or single-lane restriction fails to recover exact sealed BA3."
+  },
+  "success_label_maximum": "BA4-A_FACTORIZED_K_BIT_PERSISTENT_IDENTITY_CHANNEL_CERTIFIED",
+  "success_meaning_only": "For arbitrary k and g, k independent Boolean boundary bits are transported exactly through arbitrary chain length using a proof-carrying factorized representation of polynomial size.",
+  "explicit_nonclaims": [
+    "CROSS_LANE_COUPLING_CERTIFIED",
+    "ARBITRARY_CONSTRAINTS_ON_K_BITS_PROCESSED",
+    "ARBITRARY_CNF_COVERAGE_PROVED",
+    "SAT_IN_P_PROVED",
+    "P_EQ_NP_PROVED",
+    "TRUMP_FINISHED"
+  ],
+  "after_success": "STOP. BA5 coupling experiment is not authorized by this handoff.",
+  "firewall": {
+    "P_VS_NP": "OPEN",
+    "SAT_IN_P": "NOT_PROVED",
+    "TRUMP_finished": false
+  }
+}
