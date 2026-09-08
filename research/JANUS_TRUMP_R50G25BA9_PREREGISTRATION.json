@@ -1,0 +1,99 @@
+{
+  "gate": "R50G25BA9_PARAMETERIZED_SINGLE_PIVOT_BIPARTITE_FILL_MULTIPLICATION",
+  "status": "FROZEN_BEFORE_IMPLEMENTATION_OR_TESTING",
+  "date": "2026-09-08",
+  "parent": {
+    "gate": "R50G25BA8_MINIMAL_DEGREE3_BRANCH_RESOLUTION_FANOUT",
+    "final_meta_file": "data/JANUS-TRUMP-R50G25-DEVELOPMENT-MIRROR-2026-09-08-v3.1-BA8-2.json",
+    "final_meta_commit": "1592e07d966df0dd2e57960792ccaf14e4422c51",
+    "source_sync_head": "ebd89f4252ec1d974931c3b5c5c7dd93578cb441",
+    "must_not_rerun": true
+  },
+  "scope": {
+    "parameters": "p>=1,n>=1,g>=1; d=p+n",
+    "lanes": "exactly d+1 sealed BA4 carrier lanes for x,a_1..a_p,b_1..b_n",
+    "source_clauses": "exactly d clauses: P_i=(a_i OR x), N_j=((NOT x) OR b_j)",
+    "leaf_variables_pairwise_distinct": true,
+    "positive_and_negative_leaf_sets_disjoint": true,
+    "no_leaf_is_x": true,
+    "no_leaf_leaf_source_clause": true,
+    "no_manual_resolvent_insertion": true,
+    "cycles_started": false,
+    "repeated_branching_elimination_started": false,
+    "arbitrary_CNF_coverage_started": false
+  },
+  "frozen_claims_to_test": {
+    "BA9_1": "EXISTS x F_{p,n} IFF (AND_i a_i) OR (AND_j b_j) IFF AND_{i,j}(a_i OR b_j), symbolically in p,n",
+    "BA9_2": "under canonical distinct-leaf conditions exactly p*n non-tautological distinct NEW binary resolvents R_ij=(a_i OR b_j)",
+    "BA9_3": "source quotient K_{1,d}; residual quotient K_{p,n}; E_source=p+n; E_residual=p*n; add-before-delete E_peak=p+n+p*n",
+    "BA9_4": "for d=p+n, p*n<=floor(d^2/4), equality at the most balanced split",
+    "BA9_5": "symbolic polarity multiplicity for r positive pivot occurrences is 2^d*C(d,r), TOP total 2^(d+1), and sum over r is 2^(2d)",
+    "BA9_6": "#SAT source=2^n+2^p; #projected=2^n+2^p-1",
+    "BA9_7": "deterministic reconstruction x:=NOT(AND_i a_i)",
+    "BA9_8": "C=67g(d+1)-d-2; L=163g(d+1)-2d-4; V=20g(d+1); n_struct=250g(d+1)-3d-6; p=1,n=2 reduces exactly to BA8",
+    "BA9_9": "tw_source=1; tw(K_{p,n})=min(p,n); transient cone width=min(p,n)+1",
+    "BA9_10_target": "full transient BA4 primal width W_peak<=max(13,min(p,n)+1), with lower bound W_peak>=min(p,n)+1 from the boundary quotient subgraph; equality may be promoted only if both directions close",
+    "BA9_11_output_firewall": "explicit residual has p*n clauses and 2pn literals, hence explicit-output certificate has Omega(p*n) structural lower bound",
+    "BA9_12": "actual carrier raw work must be separated from abstract p*n and receive a symbolic polynomial upper bound in the frozen parameters",
+    "BA9_13": "all d source star couplings transport through arbitrary sealed chain length g with no future manual insertion; at any certified boundary k pivot elimination yields exactly the p*n residual CNF",
+    "BA9_14": "p*n equality only under the exact distinct/disjoint/no-preexisting-edge/binary-clause conditions"
+  },
+  "representation_contract_frozen_before_implementation": {
+    "source_representation": "FACTORIZED_D_PLUS_ONE_BA4_LANE_DAG_PLUS_D_SOURCE_COUPLING_RECORDS",
+    "transport_representation": "O(g*d) proof-carrying lane/edge transport records; no 2^d boundary-state table",
+    "single_boundary_residual_representation": "explicit p*n derived-clause records at the certified elimination boundary",
+    "structural_certificate_target": "O(g*d+p*n)",
+    "encoded_certificate_target": "O((g*d+p*n)*log n_total)",
+    "explicit_output_lower_bound": "Omega(p*n)",
+    "if_residual_is_materialized_at_every_boundary": "must account Omega(g*p*n) and use that larger bound",
+    "generic_boundary_state_table_rows": 0,
+    "finite_holdouts_authority": "DIAGNOSTIC_ONLY",
+    "empirical_fit_promotion_authority": "ZERO",
+    "actual_carrier_raw_audit": "record raw_pairs, tautological_pairs, non_tautological_pairs, duplicates, retained, live_clause_peak, R_peak, B_peak, E_peak, W_peak on preregistered small holdouts; promotion requires an independent symbolic upper bound, not fitting"
+  },
+  "width_proof_obligations": {
+    "residual_upper": "construct decomposition of K_{p,n} of width min(p,n)",
+    "residual_lower": "prove vertex connectivity of K_{p,n} is min(p,n) and use the independently replayable lemma treewidth>=vertex-connectivity",
+    "transient_upper": "add universal pivot x to every bag of a residual decomposition",
+    "transient_lower": "prove transient cone vertex connectivity min(p,n)+1 and use treewidth>=vertex-connectivity",
+    "full_composition": "attach each sealed BA4 lane decomposition through its single boundary variable to a quotient bag containing that variable; prove running intersection and max bag size",
+    "full_lower": "boundary transient quotient is a subgraph of the actual transient primal graph"
+  },
+  "actual_carrier_complexity_contract": {
+    "promotion_algorithm": "factorized actual BA4 identity-channel transport of the d binary source couplings through g boundaries, followed by one explicit single-pivot p-by-n resolution product at the selected certified boundary",
+    "naive_simultaneous_whole_formula_DP": "diagnostic control only unless separately bounded and shown equivalent; it has zero authority to replace the frozen promotion algorithm",
+    "required_symbolic_target": "polynomial in g,p,n with output-sensitive p*n term; exact exponent/constant must be derived by implementation and independent verifier",
+    "abstract_productive_count_not_actual_raw_count": true
+  },
+  "diagnostic_holdouts_frozen": {
+    "small_parameter_tuples": [[1,1,1],[1,2,1],[2,1,2],[2,2,1],[2,3,2],[3,2,2]],
+    "generic_truth_table_enumeration_forbidden": true,
+    "small_truth_tables_may_only_check_local_or_holdout_instances": true
+  },
+  "required_passes": [
+    "SYMBOLIC_ELIMINATION_PASS","DISTRIBUTIVE_CNF_PASS","PN_BIJECTION_PASS","EXACT_FILL_GRAPH_PASS","QUADRATIC_MAXIMUM_PASS","SYMBOLIC_POLARITY_PARTITION_PASS","MODEL_COUNT_PASS","CNF_REALIZATION_PASS","SOURCE_PREIMAGE_PASS","GENERIC_TRANSPORT_PASS","RECONSTRUCTION_PASS","FULL_ORIGINAL_CNF_VALIDATION_PASS","QUOTIENT_WIDTH_PASS","FULL_WIDTH_COMPOSITION_PASS","OUTPUT_SIZE_ACCOUNTING_PASS","ACTUAL_CARRIER_COMPLEXITY_PASS","INDEPENDENT_REPLAY_PASS"
+  ],
+  "falsifiers": {
+    "F1": "projection not exactly the p*n CNF",
+    "F2": "supposedly distinct R_ij duplicates another",
+    "F3": "supposedly productive R_ij is tautological",
+    "F4": "derived edge already existed but counted as new",
+    "F5": "actual carrier CNF loses a required resolvent",
+    "F6": "actual carrier CNF creates an unexplained non-tautological residual",
+    "F7": "generic reconstruction fails",
+    "F8": "symbolic polarity counts do not sum to 2^(2d)",
+    "F9": "tw(K_pn) proof fails",
+    "F10": "transient width differs from min(p,n)+1",
+    "F11": "full-CNF width bound is false",
+    "F12": "output-size lower bound hidden by compressed accounting",
+    "F13": "actual raw carrier work has no polynomial symbolic bound in frozen parameters",
+    "F14": "proof depends on finite tested p,n or g",
+    "F15": "independent replay fails"
+  },
+  "strongest_permitted_success": "BA9-A_PARAMETERIZED_SINGLE_PIVOT_BIPARTITE_FILL_MULTIPLICATION_CERTIFIED",
+  "explicit_nonclaims": [
+    "REPEATED_HIGH_DEGREE_ELIMINATIONS_POLYNOMIAL","FILL_CASCADE_CONTROLLED","CYCLES_CERTIFIED","ARBITRARY_BRANCHING_GRAPHS_CERTIFIED","ARBITRARY_ELIMINATION_ORDERS_CERTIFIED","ARBITRARY_CNF_COVERAGE_PROVED","SAT_IN_P_PROVED","P_EQ_NP_PROVED","TRUMP_FINISHED"
+  ],
+  "after_success": "STOP; no BA10. The next frontier, if separately authorized, is fill cascade when a derived K_{p,n} becomes input to a subsequent elimination.",
+  "firewall": {"P_VS_NP":"OPEN","SAT_IN_P":"NOT_PROVED","TRUMP_finished":false}
+}
