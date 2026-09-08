@@ -8,6 +8,7 @@ on:
       - 'research/JANUS_TRUMP_R50G25AX_PREREGISTRATION.json'
       - 'experiments/janus_trump_r50g25ax_within_component_separator_affine_quotient.py'
       - 'experiments/janus_trump_r50g25ax_verify.py'
+      - 'experiments/janus_trump_r50g25ax_relation_hardening.py'
       - '.github/workflows/janus-trump-r50g25ax.yml'
   workflow_dispatch:
 
@@ -29,18 +30,28 @@ jobs:
       - name: Independent fail-closed verifier
         run: |
           PYTHONPATH=experiments python experiments/janus_trump_r50g25ax_verify.py --result artifacts/JANUS_TRUMP_R50G25AX_RESULT.json
+      - name: Fifth-element relation hardening with actual DP reconstruction
+        run: |
+          PYTHONPATH=experiments python experiments/janus_trump_r50g25ax_relation_hardening.py --out artifacts/JANUS_TRUMP_R50G25AX_RELATION_HARDENING.json
       - name: Emit immutable scientific identity
         run: |
           python - <<'PY'
           import hashlib,json
           from pathlib import Path
           p=Path('artifacts/JANUS_TRUMP_R50G25AX_RESULT.json'); b=p.read_bytes(); x=json.loads(b)
+          h=Path('artifacts/JANUS_TRUMP_R50G25AX_RELATION_HARDENING.json'); hb=h.read_bytes(); hx=json.loads(hb)
+          assert hx['status']=='PASS', hx
+          assert hx['relation_pass'] is True, hx
           print('AX_RESULT_SHA256='+hashlib.sha256(b).hexdigest())
           print('AX_RESULT_SIZE='+str(len(b)))
-          print(json.dumps({'verdict':x['verdict'],'separator':x['separator'],'relation_pass':x['relation_pass'],'scope':x['scope']},sort_keys=True))
+          print('AX_RELATION_HARDENING_SHA256='+hashlib.sha256(hb).hexdigest())
+          print('AX_RELATION_HARDENING_SIZE='+str(len(hb)))
+          print(json.dumps({'verdict':x['verdict'],'separator':x['separator'],'relation_pass':x['relation_pass'],'scope':x['scope'],'hardening_status':hx['status'],'actual_relation_dp':hx['actual_relation_dp'],'frozen_separator_hardening':hx['frozen_separator']},sort_keys=True))
           PY
       - uses: actions/upload-artifact@v4
         with:
           name: janus-trump-r50g25ax-result
-          path: artifacts/JANUS_TRUMP_R50G25AX_RESULT.json
+          path: |
+            artifacts/JANUS_TRUMP_R50G25AX_RESULT.json
+            artifacts/JANUS_TRUMP_R50G25AX_RELATION_HARDENING.json
           if-no-files-found: error
