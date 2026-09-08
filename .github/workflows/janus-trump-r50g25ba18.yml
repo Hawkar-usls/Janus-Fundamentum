@@ -1,0 +1,78 @@
+name: JANUS TRUMP R50G25BA18 composite pair signature derived support fanout
+
+on:
+  push:
+    branches:
+      - research/r50g25ba18-composite-pair-signature-derived-support-fanout-2026-09-09
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  scientific:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Verify frozen preregistration ancestry
+        run: |
+          git merge-base --is-ancestor 1670788c9e6c10d77c1ed7bf4f0ccf2a32471285 18d77ba78c66dfbb7c6c5e445f792126ca5fe0ca
+          git merge-base --is-ancestor 18d77ba78c66dfbb7c6c5e445f792126ca5fe0ca e61029ca51de9ff15d8f30fed4f741367abbd416
+          git merge-base --is-ancestor 1670788c9e6c10d77c1ed7bf4f0ccf2a32471285 5f83e44a020f0e554a4ba41afc8e4cb350cce420
+          git merge-base --is-ancestor 1670788c9e6c10d77c1ed7bf4f0ccf2a32471285 8e673552e2c1d7e35ad18bf0a50fd0f4458fec43
+          test "$(git show --format=%s --no-patch 1670788c9e6c10d77c1ed7bf4f0ccf2a32471285)" = "preregister R50G25BA18 composite pair signature derived support fanout"
+      - name: Build exact BA18 result
+        env:
+          PYTHONPATH: experiments
+        run: |
+          mkdir -p artifacts
+          python experiments/janus_trump_r50g25ba18_composite_pair_signature_derived_support_fanout.py --out artifacts/JANUS_TRUMP_R50G25BA18_RESULT.json
+      - name: Independent BA18 replay
+        env:
+          PYTHONPATH: experiments
+        run: |
+          python experiments/verify_janus_trump_r50g25ba18_composite_pair_signature_derived_support_fanout.py --result artifacts/JANUS_TRUMP_R50G25BA18_RESULT.json --out artifacts/JANUS_TRUMP_R50G25BA18_VERIFY.json
+      - name: Complete exact BA18 preseal
+        env:
+          PYTHONPATH: experiments
+        run: |
+          python experiments/complete_janus_trump_r50g25ba18_preseal_obligations.py --prereg research/JANUS_TRUMP_R50G25BA18_PREREGISTRATION.json --result artifacts/JANUS_TRUMP_R50G25BA18_RESULT.json --verify artifacts/JANUS_TRUMP_R50G25BA18_VERIFY.json --out artifacts/JANUS_TRUMP_R50G25BA18_PRESEAL_COMPLETION.json
+      - name: Enforce strict BA18 promotion guard
+        run: |
+          python - <<'PY'
+          import hashlib,json
+          from pathlib import Path
+          rp=Path('artifacts/JANUS_TRUMP_R50G25BA18_RESULT.json');vp=Path('artifacts/JANUS_TRUMP_R50G25BA18_VERIFY.json');cp=Path('artifacts/JANUS_TRUMP_R50G25BA18_PRESEAL_COMPLETION.json')
+          r=json.loads(rp.read_text());v=json.loads(vp.read_text());c=json.loads(cp.read_text())
+          assert r['preregistration_commit']=='1670788c9e6c10d77c1ed7bf4f0ccf2a32471285'
+          assert r['parent_BA17_meta_commit']=='bd003cb6004d587e7d970b9b580c1e90fc6ad458'
+          assert r['historical_immutability']['BA16_F14']=='PRESERVED_FOREVER'
+          assert r['historical_immutability']['P_BA16_A']==0 and r['historical_immutability']['P_BA16_MIXED']==1
+          assert r['named_fields']['RAW_GEN3']=='p*n*r' and r['named_fields']['DISTINCT_GEN3']=='p*n*r'
+          assert r['named_fields']['BA16_IDENTITY_PRESERVATION']['NEW_VARIABLE_IDENTITY_COUNT']==0
+          assert r['named_fields']['OUTPUT_SIZE_FIREWALL']['exponential_claimed'] is False
+          assert all(r['ternary_subpasses'].values())
+          assert v['status']=='PASS' and v['P_BA18']==1 and v['implementation_imported'] is False
+          assert c['status']=='PASS' and c['P_BA18_FINAL']==1 and c['required_pass_count']==46 and c['all_required_passes'] is True
+          assert len(c['required_pass_names'])==46 and len(set(c['required_pass_names']))==46
+          assert all(x==1 for x in c['required_passes'].values())
+          assert r['next_gate_started'] is False and r['BA19_started'] is False
+          assert r['P_VS_NP']=='OPEN' and r['SAT_IN_P']=='NOT_PROVED' and r['TRUMP_finished'] is False
+          print('RESULT_SHA256='+hashlib.sha256(rp.read_bytes()).hexdigest())
+          print('VERIFY_SHA256='+hashlib.sha256(vp.read_bytes()).hexdigest())
+          print('COMPLETION_SHA256='+hashlib.sha256(cp.read_bytes()).hexdigest())
+          print('P_BA18_FINAL=1')
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: janus-trump-r50g25ba18-result
+          path: |
+            artifacts/JANUS_TRUMP_R50G25BA18_RESULT.json
+            artifacts/JANUS_TRUMP_R50G25BA18_VERIFY.json
+            artifacts/JANUS_TRUMP_R50G25BA18_PRESEAL_COMPLETION.json
+          if-no-files-found: error
