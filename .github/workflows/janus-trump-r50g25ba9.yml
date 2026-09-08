@@ -1,0 +1,91 @@
+name: JANUS TRUMP R50G25BA9 parameterized single-pivot bipartite fill multiplication
+
+on:
+  push:
+    branches:
+      - research/r50g25ba9-parameterized-single-pivot-bipartite-fill-multiplication-2026-09-08
+    paths:
+      - 'experiments/janus_trump_r50g25ba9_parameterized_single_pivot_bipartite_fill_multiplication.py'
+      - 'experiments/verify_janus_trump_r50g25ba9_parameterized_single_pivot_bipartite_fill_multiplication.py'
+      - '.github/workflows/janus-trump-r50g25ba9.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  scientific:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Build exact BA9 result from frozen source
+        env:
+          PYTHONPATH: experiments
+        run: |
+          mkdir -p artifacts
+          python experiments/janus_trump_r50g25ba9_parameterized_single_pivot_bipartite_fill_multiplication.py \
+            --out artifacts/JANUS_TRUMP_R50G25BA9_RESULT.json
+      - name: Independent mathematical replay
+        env:
+          PYTHONPATH: experiments
+        run: |
+          python experiments/verify_janus_trump_r50g25ba9_parameterized_single_pivot_bipartite_fill_multiplication.py \
+            --result artifacts/JANUS_TRUMP_R50G25BA9_RESULT.json \
+            --out artifacts/JANUS_TRUMP_R50G25BA9_VERIFY.json
+      - name: Enforce strict BA9 obligation-product promotion guard
+        run: |
+          python - <<'PY'
+          import hashlib,json
+          from pathlib import Path
+          rp=Path('artifacts/JANUS_TRUMP_R50G25BA9_RESULT.json'); vp=Path('artifacts/JANUS_TRUMP_R50G25BA9_VERIFY.json')
+          r=json.loads(rp.read_text()); v=json.loads(vp.read_text())
+          assert r['preregistration_commit']=='6629acf7fa320be5bdd55f6b3239603e331e3500'
+          assert r['methodology_firewall_commit']=='b52b4ab0a8ba21f6b41a9a0c5c7c2774d95e5e72'
+          assert r['parent_BA8_final_meta_commit']=='1592e07d966df0dd2e57960792ccaf14e4422c51'
+          assert r['failure_count']==0 and r['falsifiers']==[]
+          assert r['outcome']=='BA9-A_PARAMETERIZED_SINGLE_PIVOT_BIPARTITE_FILL_MULTIPLICATION_CERTIFIED'
+          assert r['BA9_1_symbolic_elimination_theorem']['existential']=='EXISTS x F = A OR B'
+          assert r['BA9_2_productive_resolvent_count']['generic_formula']=='p*n'
+          assert r['BA9_3_exact_residual_graph']['E_peak']=='p+n+p*n'
+          assert r['BA9_4_quadratic_maximum']['integer_bound']=='pn<=floor(d^2/4)'
+          assert r['BA9_5_BA8_d3_diagnostic']['counts']=={'TOP':16,'TWO':48}
+          assert r['BA9_6_exact_model_counts']['source_model_count']=='2^n+2^p'
+          assert r['BA9_6_exact_model_counts']['projected_model_count']=='2^n+2^p-1'
+          assert r['BA9_7_constructive_return']['map']=='x := NOT A, A=AND_i a_i'
+          assert r['BA9_9_width_theorem']['residual_exact']=='tw(K_{p,n})=min(p,n)'
+          assert r['BA9_9_width_theorem']['transient_exact']=='tw_transient=min(p,n)+1'
+          assert r['BA9_10_full_BA4_width_composition']['upper']=='max(13,min(p,n)+1)'
+          assert r['BA9_10_full_BA4_width_composition']['equality_claimed'] is False
+          assert r['BA9_11_output_size_firewall']['explicit_output_lower_bound']=='Omega(p*n)'
+          assert r['BA9_11_output_size_firewall']['structural_certificate']=='Theta(g*d+p*n)'
+          assert r['BA9_12_actual_carrier_raw_work']['polynomial_bound']=='O(g*d)'
+          assert r['BA9_12_actual_carrier_raw_work']['naive_whole_star_DP_promotion_authority']=='ZERO'
+          assert r['BA9_complexity']['T_total']=='O((g*d+p*n)*log(g*d+p*n))'
+          assert r['BA9_no_hidden_state_enumeration']['generic_truth_table_rows']==0
+          assert r['BA9_no_hidden_state_enumeration']['generic_boundary_state_table_rows']==0
+          pre=r['strict_promotion_guard_pre_independent_verify']
+          assert pre['all_closed_pre_independent_verify'] is True
+          assert pre['x_no_unclassified_exception']==1
+          assert pre['v_independent_verifier']==0 and pre['P_BA9']==0
+          assert v['status']=='PASS' and v['error_count']==0
+          assert v['v_independent_verifier']==1 and v['P_BA9']==1
+          assert len(v['obligations'])==17 and all(z==1 for z in v['obligations'].values())
+          assert v['message_state']=='VERIFIED'
+          assert r['cycles_started'] is False and r['repeated_branching_elimination_started'] is False
+          assert r['arbitrary_CNF_coverage_started'] is False and r['next_gate_started'] is False
+          assert r['P_VS_NP']=='OPEN' and r['SAT_IN_P']=='NOT_PROVED' and r['TRUMP_finished'] is False
+          print('RESULT_SHA256='+hashlib.sha256(rp.read_bytes()).hexdigest())
+          print('VERIFY_SHA256='+hashlib.sha256(vp.read_bytes()).hexdigest())
+          print('P_BA9=1')
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: janus-trump-r50g25ba9-result
+          path: |
+            artifacts/JANUS_TRUMP_R50G25BA9_RESULT.json
+            artifacts/JANUS_TRUMP_R50G25BA9_VERIFY.json
+          if-no-files-found: error
