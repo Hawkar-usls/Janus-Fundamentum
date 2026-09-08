@@ -1,0 +1,96 @@
+{
+  "gate": "R50G25BA5_MINIMAL_NONFACTORIZING_COUPLING_TRANSPORT",
+  "date": "2026-09-08",
+  "status": "FROZEN_BEFORE_IMPLEMENTATION_OR_TESTING",
+  "parent": {
+    "source_branch_head": "806bac504ad5ba647b5eb35fa1ac01542453ddf9",
+    "BA4_outcome": "BA4-A_FACTORIZED_K_BIT_PERSISTENT_IDENTITY_CHANNEL_CERTIFIED_AND_BIDIRECTIONALLY_LINKED"
+  },
+  "scope": {
+    "lanes": 2,
+    "source_coupling_count": 1,
+    "source_coupling": "K_0 := (q_{1,0} OR q_{2,0})",
+    "arbitrary_CNF": false,
+    "additional_cross_lane_source_constraints": 0,
+    "manual_future_coupling_insertion": false
+  },
+  "source_relation": {
+    "K_allowed": ["01","10","11"],
+    "K_forbidden": ["00"],
+    "nonfactorizing_claim": "proj_1(K)={0,1} and proj_2(K)={0,1} but proj_1(K)xproj_2(K)!={01,10,11}"
+  },
+  "transport_contract": {
+    "sealed_two_lane_transport": "I_4",
+    "semantic_expectation": "POST_I4(K)=K and PRE_I4(K)=K",
+    "actual_source_CNF": "F_BA5(g)=BA4(g,k=2) AND (q_{1,0} OR q_{2,0})",
+    "required_one_rung_residual": "Allowed(q_{1,1},q_{2,1})={01,10,11}",
+    "preferred_compact_residual": "(q_{1,1} OR q_{2,1})",
+    "generic_target": "K_j -> K_{j+1} for all j without manually inserting K_j"
+  },
+  "representation_contract": {
+    "preferred_invariant": "ONE_INPUT_COUPLING_CLAUSE -> ONE_RESIDUAL_COUPLING_CLAUSE",
+    "explicit_allowed_state_table_forbidden": true,
+    "state_table_row_enumeration_forbidden": true,
+    "must_audit": ["resolvent_count","certificate_history","DP_projection_rows","reconstruction_branches","residual_states","verifier_recursion"]
+  },
+  "fifth_element_requirements": [
+    "ALGEBRA_PASS",
+    "CNF_REALIZATION_PASS",
+    "SOURCE_PREIMAGE_PASS",
+    "DP_INTERACTION_PASS",
+    "PERSISTENCE_PASS",
+    "RECONSTRUCTION_PASS"
+  ],
+  "source_preimage": {
+    "allowed_pairs": ["01","10","11"],
+    "forbidden_pair": "00",
+    "required": "construct real full internal two-lane BA4 witnesses for each allowed pair and independently verify the original BA5 CNF"
+  },
+  "reconstruction": {
+    "required": "residual/model -> lane1 reconstruction + lane2 reconstruction + original K_0 -> VERIFY_ORIGINAL=PASS",
+    "must_preserve": "q_1 OR q_2 = TRUE",
+    "forbid_return_00": true
+  },
+  "width": {
+    "source_primal_new_edge": "q_1--q_2",
+    "candidate": "joining two width<=13 components by one edge may preserve width<=13",
+    "must_independently_verify_source_width": true,
+    "must_measure_temporary_width_separately": true
+  },
+  "complexity": {
+    "BA4_g_2_source_delta": {"clauses": 1, "literals": 2},
+    "derive_exact": ["C(g)","L(g)","V(g)","certificate_size","construction_time","verification_time","reconstruction_time"],
+    "final_bounds_in_total_source_size_n": true
+  },
+  "minimality": {
+    "zero_cross_lane_clauses_factorize": true,
+    "unary_clauses_affect_one_lane_only": true,
+    "one_binary_cross_lane_clause_can_be_noncartesian": true,
+    "declared_grammar_minimum_coupling_cost": 1,
+    "witness": "(q_1 OR q_2)"
+  },
+  "falsifiers": {
+    "F1": "K unexpectedly factorizes",
+    "F2": "identity transport does not preserve K in actual CNF semantics",
+    "F3": "00 becomes allowed after any rung",
+    "F4": "one of 01/10/11 becomes forbidden",
+    "F5": "residual representation grows exponentially",
+    "F6": "DP produces unbounded new cross-lane constraints",
+    "F7": "source-preimage witnesses conflict",
+    "F8": "reconstruction returns a source assignment violating K",
+    "F9": "width or required computation becomes super-polynomial",
+    "F10": "generic proof requires manually inserting future K_j clauses",
+    "F11": "certificate success depends on enumeration of all boundary vectors"
+  },
+  "strongest_permitted_success": "BA5-A_SINGLE_NONFACTORIZING_BINARY_COUPLING_TRANSPORT_CERTIFIED",
+  "critical_firewalls": [
+    "SEMANTIC_FIXED_POINT != COMPACT_PROOF_CARRYING_CNF_TRANSPORT",
+    "TRANSPORT_COMPLEXITY != DECISION_COMPLEXITY",
+    "ONE_COUPLING_TRANSPORTED != ARBITRARY_INTERACTION_GRAPH",
+    "K_INDEPENDENT_BITS != ARBITRARY_CNF",
+    "P_VS_NP=OPEN",
+    "SAT_IN_P=NOT_PROVED",
+    "TRUMP_finished=false"
+  ],
+  "after_success": "STOP; do not launch the next interaction-between-couplings experiment"
+}
