@@ -1,0 +1,87 @@
+name: JANUS TRUMP R50G25BA0 target-family expressivity interface-capacity audit
+
+on:
+  push:
+    branches:
+      - research/r50g25ba0-target-family-expressivity-interface-capacity-2026-09-08
+    paths:
+      - 'TRUMP/SAT/R50/TRUMP_R50G25BA0_TARGET_FAMILY_EXPRESSIVITY_INTERFACE_CAPACITY_AUDIT_PREREG_v1_0.md'
+      - 'experiments/janus_trump_r50g25ba0_target_family_expressivity_interface_capacity.py'
+      - 'experiments/janus_trump_r50g25ba0_independent_verify.py'
+      - '.github/workflows/janus-trump-r50g25ba0-target-family-expressivity-interface-capacity.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  ba0-audit:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Run BA0 target-family expressivity audit
+        run: |
+          mkdir -p artifacts
+          PYTHONPATH=experiments python experiments/janus_trump_r50g25ba0_target_family_expressivity_interface_capacity.py \
+            --out artifacts/JANUS_TRUMP_R50G25BA0_RESULT.json
+      - name: Independent fail-closed BA0 verification
+        run: |
+          PYTHONPATH=experiments python experiments/janus_trump_r50g25ba0_independent_verify.py \
+            --result artifacts/JANUS_TRUMP_R50G25BA0_RESULT.json \
+            --out artifacts/JANUS_TRUMP_R50G25BA0_VERIFY.json
+      - name: Verify exact BA0 outcome and firewalls
+        run: |
+          python - <<'PY'
+          import hashlib,json
+          from pathlib import Path
+          rp=Path('artifacts/JANUS_TRUMP_R50G25BA0_RESULT.json')
+          vp=Path('artifacts/JANUS_TRUMP_R50G25BA0_VERIFY.json')
+          r=json.loads(rp.read_text()); v=json.loads(vp.read_text())
+          assert r['preregistration_commit']=='d096066e88d2f90240892ff37546c5876732f313'
+          assert r['outcome']=='BA0-B_EXACT_F_g_EXPRESSIVITY_BLOCKED',r
+          assert r['failure_count']==0,r
+          assert r['Q1_exact_target']['parameter_list']==['g: integer >= 1']
+          assert r['Q1_exact_target']['additional_free_parameters']==[]
+          assert r['Q2_generic_SAT']['generic_conclusion']=='FOR_ALL_INTEGER_g_GE_1_SAT(F_g)'
+          assert r['Q2_generic_SAT']['uses_finite_g_ladder'] is False
+          assert r['Q2_smallest_decision_obstruction']['smallest_preferred_source']['sat'] is False
+          assert r['Q4_exact_MID_interface']['internal_induced_width']==13
+          assert r['Q4_exact_MID_interface']['surviving_boundary_scope']==[32]
+          assert r['Q4_exact_MID_interface']['surviving_boundary_assignments']==[[0],[1]]
+          assert r['Q4_exact_MID_interface']['surviving_relation_boolean_function']=='TRUE'
+          assert r['Q4_exact_MID_interface']['N_boundary_actual_pairwise_distinguishable_prefix_behaviours']==1
+          assert r['Q4_source_cut_obstruction']['required_pairwise_distinct_behaviours']==2
+          assert r['Q5_constant_width_classification']['class']=='B_INSUFFICIENT_UNDER_CURRENT_REPRESENTATION_CONTRACT'
+          assert r['interpretation']['AZ_preserved'] is True
+          assert r['interpretation']['BA1_started'] is False
+          assert v['status']=='PASS' and v['failure_count']==0,v
+          assert v['finite_ladder_replayed'] is False
+          assert v['BA1_started'] is False
+          assert r['firewall']=={'P_VS_NP':'OPEN','SAT_IN_P':'NOT_PROVED','TRUMP_finished':False}
+          print('BA0_RESULT_SHA256='+hashlib.sha256(rp.read_bytes()).hexdigest())
+          print('BA0_RESULT_SIZE='+str(len(rp.read_bytes())))
+          print('BA0_VERIFY_SHA256='+hashlib.sha256(vp.read_bytes()).hexdigest())
+          print('BA0_VERIFY_SIZE='+str(len(vp.read_bytes())))
+          print(json.dumps({
+            'outcome':r['outcome'],
+            'unit_models':r['Q2_unit_model_facts']['model_count'],
+            'endpoint_pairs':r['Q2_unit_model_facts']['endpoint_pair_counts'],
+            'generic_SAT':r['Q2_generic_SAT']['generic_conclusion'],
+            'MID_width':r['Q4_exact_MID_interface']['internal_induced_width'],
+            'MID_function':r['Q4_exact_MID_interface']['surviving_relation_boolean_function'],
+            'N_boundary':r['Q4_exact_MID_interface']['N_boundary_actual_pairwise_distinguishable_prefix_behaviours'],
+            'source_required_behaviours':r['Q4_source_cut_obstruction']['required_pairwise_distinct_behaviours'],
+          },sort_keys=True))
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: janus-trump-r50g25ba0-result
+          path: |
+            artifacts/JANUS_TRUMP_R50G25BA0_RESULT.json
+            artifacts/JANUS_TRUMP_R50G25BA0_VERIFY.json
+          if-no-files-found: error
