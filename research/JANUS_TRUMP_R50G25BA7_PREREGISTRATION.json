@@ -1,0 +1,146 @@
+{
+  "gate": "R50G25BA7_GENERIC_TOUCHING_COUPLING_PATH_FILL_RECURRENCE",
+  "date": "2026-09-08",
+  "status": "FROZEN_BEFORE_IMPLEMENTATION_OR_TESTING",
+  "parent": {
+    "source_branch_head": "1bccd883a06c7c4f9aebcd2e7bf6834fd48282de",
+    "BA6_outcome": "BA6_A_MINIMAL_SHARED_VARIABLE_RESOLUTION_INTERACTION_CERTIFIED_AND_BIDIRECTIONALLY_LINKED"
+  },
+  "methodology_firewall": {
+    "repository": "Hawkar-usls/janus-meta-registry",
+    "path": "data/JANUS-TRUMP-DISCOVERY-FORMALIZATION-PROOF-FIREWALL-2026-09-08-v1.0.json",
+    "commit": "b52b4ab0a8ba21f6b41a9a0c5c7c2774d95e5e72",
+    "law": "DISCOVERY_PROVENANCE != PROOF_DEPENDENCY"
+  },
+  "scope": {
+    "parameter": "m>=2",
+    "sealed_BA4_carrier_lanes": "m+1",
+    "source_cross_lane_clause_count": "m",
+    "topology": "PATH_ONLY",
+    "cycle": false,
+    "branching_graph": false,
+    "arbitrary_CNF": false,
+    "additional_cross_lane_source_clauses": 0,
+    "manual_future_clause_insertion": false
+  },
+  "source_family": {
+    "boundary_variables": "q_0,...,q_m",
+    "C_1": "(q_0 OR q_1)",
+    "C_i_plus_1_for_1_le_i_lt_m": "((NOT q_i) OR q_{i+1})",
+    "F_0": "(q_0 OR q_1) AND AND_{i=1}^{m-1} ((NOT q_i) OR q_{i+1})",
+    "frozen_elimination_order": "q_1,q_2,...,q_{m-1}"
+  },
+  "BA7_1_generic_residual_invariant": {
+    "definition": "F_j := (q_0 OR q_{j+1}) AND AND_{i=j+1}^{m-1} ((NOT q_i) OR q_{i+1}), for 0<=j<=m-1",
+    "target_step": "EXISTS q_{j+1} F_j IFF F_{j+1}",
+    "local_lemma": "EXISTS x [(a OR x) AND ((NOT x) OR b)] IFF (a OR b)",
+    "required_proof": "SYMBOLIC_INDUCTION_ON_j_NOT_FINITE_m_INFERENCE"
+  },
+  "BA7_2_terminal_projection": {
+    "target": "EXISTS q_1...q_{m-1} F_0 IFF (q_0 OR q_m)",
+    "exact_endpoint_relation": ["01","10","11"],
+    "forbidden": ["00"],
+    "no_weakening": true,
+    "no_strengthening": true
+  },
+  "BA7_3_generic_reconstruction": {
+    "frozen_candidate": "q_i := NOT q_0 for every 1<=i<m",
+    "required": "for every endpoint satisfying q_0 OR q_m, reconstructed internal path satisfies ORIGINAL coupling path",
+    "extend_through_actual_BA4_witnesses": true,
+    "VERIFY_ORIGINAL_required": "PASS"
+  },
+  "BA7_4_actual_CNF_realization": {
+    "materialize": "m+1 real sealed BA4 lanes plus exactly m source coupling clauses",
+    "derived_clause_rule": "every (q_0 OR q_{j+1}) must arise from certified elimination, never manual insertion",
+    "required_gates": [
+      "ALGEBRA_PASS",
+      "CNF_REALIZATION_PASS",
+      "SOURCE_PREIMAGE_PASS",
+      "DP_INTERACTION_PASS",
+      "GENERIC_RECURRENCE_PASS",
+      "RECONSTRUCTION_PASS",
+      "SOURCE_VALIDATION_PASS"
+    ]
+  },
+  "BA7_5_exact_source_size": {
+    "C_gm": "67*g*(m+1)-m-2",
+    "L_gm": "163*g*(m+1)-2*m-4",
+    "V_gm": "20*g*(m+1)",
+    "n_struct_gm": "250*g*(m+1)-3*m-6",
+    "required_derivation": "symbolic from sealed BA4 lane formulas plus exactly m binary source couplings"
+  },
+  "BA7_6_fill_graph_recurrence": {
+    "E_j": "{(0,j+1),(j+1,j+2),...,(m-1,m)}",
+    "edge_count": "|E_j|=m-j",
+    "step_fill_edge": "at elimination step j+1 derive exactly (0,j+2)",
+    "other_fill_edges_permitted": 0,
+    "required_proof": "STRUCTURAL_GENERIC"
+  },
+  "BA7_7_transient_edge_peak": {
+    "accounting_convention": "ADD_NEW_RESOLVENT_EDGE_BEFORE_DELETING_TWO_PIVOT_EDGES",
+    "transient_step_count": "|E_j|+1=m-j+1",
+    "candidate_E_peak": "m+1",
+    "required_bound": "E_peak=O(m)",
+    "final_edge_count_not_peak": true
+  },
+  "BA7_8_local_resolution_productivity": {
+    "abstract_path_claim": "each eliminated internal variable occurs in exactly one positive incident coupling clause and one negative incident coupling clause",
+    "productive_binary_resolvents_per_abstract_step": 1,
+    "actual_carrier_CNF_raw_resolvents": "MUST_BE_DERIVED_NOT_INHERITED_FROM_BA6",
+    "BA6_raw_resolvents_per_rung_assumption_forbidden": true
+  },
+  "BA7_9_width": {
+    "abstract_source_path_treewidth": 1,
+    "add_before_delete_local_triangle_treewidth": 2,
+    "candidate_full_CNF_W_peak_upper_bound": 13,
+    "required_proof": "GENERIC_TREE_DECOMPOSITION_COMPOSITION_OR_EQUIVALENT_REPLAYABLE_WIDTH_CERTIFICATE",
+    "finite_holdouts_authority": "DIAGNOSTIC_ONLY"
+  },
+  "BA7_10_certificate_recurrence": {
+    "derive": ["certificate_records","encoded_certificate_bits","live_residual_records","reconstruction_records","verifier_work"],
+    "candidate_structural": "O(g*m)",
+    "source_size_relation": "n=Theta(g*m) for g>=1,m>=2",
+    "candidate_structural_in_n": "O(n)",
+    "candidate_encoded": "O(n log n)",
+    "promotion_requires_explicit_recurrences": true
+  },
+  "BA7_11_total_time": {
+    "account_separately": ["construction","elimination","certificate_construction","independent_verification","reconstruction","source_validation"],
+    "candidate_T_total": "O(n log n)",
+    "required_bound": "SYMBOLIC_IN_g_AND_m",
+    "empirical_timing_closes_obligation": false
+  },
+  "BA7_12_no_hidden_state_enumeration": {
+    "forbidden": "enumerating 2^(m+1) boundary assignments",
+    "allowed": "constant-size local 3-variable kernel truth table",
+    "generic_m_proof": "INDUCTION_AND_RECURRENCE_ONLY"
+  },
+  "falsifiers": {
+    "F1": "Residual invariant F_j is false",
+    "F2": "A step produces more than the claimed derived interaction structure",
+    "F3": "Terminal projection differs from (q_0 OR q_m)",
+    "F4": "Generic reconstruction fails",
+    "F5": "Actual BA4 CNF differs from abstract path algebra",
+    "F6": "Derived clauses require manual insertion",
+    "F7": "E_peak grows faster than proved",
+    "F8": "Raw actual-CNF resolvent generation is not polynomially bounded",
+    "F9": "Width bound fails",
+    "F10": "Certificate recurrence is super-polynomial",
+    "F11": "Verifier uses hidden 2^m enumeration",
+    "F12": "Generic proof depends on tested m only"
+  },
+  "strongest_permitted_success": "BA7-A_GENERIC_TOUCHING_COUPLING_PATH_FILL_RECURRENCE_CERTIFIED",
+  "success_scope": "exact frozen path family and frozen left-to-right elimination order only",
+  "explicit_nonclaims": [
+    "ARBITRARY_ELIMINATION_ORDERS_EASY",
+    "CYCLES_EASY",
+    "BRANCHING_INTERACTION_GRAPHS_EASY",
+    "UNBOUNDED_TREEWIDTH_CNF_EASY",
+    "ARBITRARY_CNF_COVERAGE_PROVED",
+    "SAT_IN_P_PROVED",
+    "P_EQ_NP_PROVED",
+    "TRUMP_FINISHED"
+  ],
+  "after_success": "STOP; do not automatically open BA8 or any new topology gate",
+  "firewall": {"P_VS_NP":"OPEN","SAT_IN_P":"NOT_PROVED","TRUMP_finished":false}
+}
