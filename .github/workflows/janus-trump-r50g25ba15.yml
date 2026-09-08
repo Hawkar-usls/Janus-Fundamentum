@@ -1,0 +1,94 @@
+name: JANUS TRUMP R50G25BA15 two consecutive generation multiplication
+
+on:
+  push:
+    branches:
+      - research/r50g25ba15-parameterized-two-consecutive-generation-fill-multiplication-2026-09-09
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  scientific:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Verify preregistration precedes implementation
+        run: |
+          git merge-base --is-ancestor f39af29741c62b6e04d4a665eb6697ef4c461d68 9ea92a60bbe1e0925f56abb3a8c3655b672d646c
+          git merge-base --is-ancestor f39af29741c62b6e04d4a665eb6697ef4c461d68 51c85a484f787b773c99607a62bdbad7c9f383f4
+          git merge-base --is-ancestor 9ea92a60bbe1e0925f56abb3a8c3655b672d646c 51c85a484f787b773c99607a62bdbad7c9f383f4
+          git merge-base --is-ancestor f39af29741c62b6e04d4a665eb6697ef4c461d68 805ab5d09cab5e032e0864fced0205122fd5aaba
+          git merge-base --is-ancestor f39af29741c62b6e04d4a665eb6697ef4c461d68 490d75f62ad5dd0e5383b71a1c6ea6e17862bd9c
+          test "$(git show --format=%s --no-patch f39af29741c62b6e04d4a665eb6697ef4c461d68)" = "preregister R50G25BA15 parameterized two consecutive generation fill multiplication"
+      - name: Build exact BA15 result from frozen source
+        env:
+          PYTHONPATH: experiments
+        run: |
+          mkdir -p artifacts
+          python experiments/janus_trump_r50g25ba15_parameterized_two_consecutive_generation_fill_multiplication_v2.py --out artifacts/JANUS_TRUMP_R50G25BA15_RESULT.json
+      - name: Independent mathematical replay
+        env:
+          PYTHONPATH: experiments
+        run: |
+          python experiments/verify_janus_trump_r50g25ba15_parameterized_two_consecutive_generation_fill_multiplication.py --result artifacts/JANUS_TRUMP_R50G25BA15_RESULT.json --out artifacts/JANUS_TRUMP_R50G25BA15_VERIFY.json
+      - name: Complete all 40 preregistered obligations
+        env:
+          PYTHONPATH: experiments
+        run: |
+          python experiments/complete_janus_trump_r50g25ba15_preseal_obligations.py --result artifacts/JANUS_TRUMP_R50G25BA15_RESULT.json --verify artifacts/JANUS_TRUMP_R50G25BA15_VERIFY.json --out artifacts/JANUS_TRUMP_R50G25BA15_PRESEAL_COMPLETION.json
+      - name: Enforce strict BA15 promotion guard
+        run: |
+          python - <<'PY'
+          import hashlib,json
+          from pathlib import Path
+          rp=Path('artifacts/JANUS_TRUMP_R50G25BA15_RESULT.json');vp=Path('artifacts/JANUS_TRUMP_R50G25BA15_VERIFY.json');cp=Path('artifacts/JANUS_TRUMP_R50G25BA15_PRESEAL_COMPLETION.json')
+          r=json.loads(rp.read_text());v=json.loads(vp.read_text());c=json.loads(cp.read_text())
+          assert r['preregistration_commit']=='f39af29741c62b6e04d4a665eb6697ef4c461d68'
+          assert r['parent_BA14_final_meta_commit']=='c1d99c4f5bf0b4cc4f64bad714222309f92c9beb'
+          assert r['parent_BA14_source_commit']=='cba26d32d7d3aed1cdba10642f2f03355e9cda0a'
+          assert r['failure_count']==0 and r['falsifiers']==[]
+          assert r['outcome']=='BA15-A_PARAMETERIZED_TWO_CONSECUTIVE_GENERATION_MULTIPLICATION_CERTIFIED'
+          assert r['symbolic']['generation_counts']['GEN1']=='p'
+          assert r['symbolic']['generation_counts']['GEN2']=='p*n'
+          assert r['symbolic']['generation_counts']['GEN3']=='p*n*r'
+          assert r['symbolic']['generation_counts']['two_consecutive_multiplications'] is True
+          assert r['source_scaffold_firewall']['law']=='SUCCESSIVE_MULTIPLICATION != EXPONENTIAL_BLOWUP'
+          assert r['source_scaffold_firewall']['self_sustaining_cascade_certified'] is False
+          assert r['graph_symbolic']['DELTA_E']=='p*r-p-r'
+          assert r['graph_symbolic']['width']['quotient_tw_peak']=='min(p,n*r)+1'
+          assert r['BA14_recovery']['pass'] is True
+          assert r['metrics_complete']['pass'] is True
+          for b in r['actual_boundary_work']:
+              p,n,rr=b['p'],b['n'],b['r']
+              assert b['ledgers']['B_ACTUAL_X_ELIMINATION']['raw_pairs']==p
+              assert b['ledgers']['C_ACTUAL_Y_ELIMINATION']['raw_pairs']==p*n
+              assert b['ledgers']['C_ACTUAL_Y_ELIMINATION']['W_peak']==min(p,n)+1
+              assert len(b['b_ledgers'])==n
+              assert sum(x['retained'] for x in b['b_ledgers'])==p*n*rr
+          assert v['status']=='PASS' and v['error_count']==0 and v['v_independent_verifier']==1 and v['P_BA15']==1
+          assert v['implementation_imported'] is False
+          assert c['status']=='PASS' and c['P_BA15_FINAL']==1 and c['required_pass_count']==40 and c['all_required_passes'] is True
+          assert len(c['required_passes'])==40 and all(x==1 for x in c['required_passes'].values())
+          assert r['self_sustaining_support_certified'] is False and r['derived_future_support_certified'] is False
+          assert r['repeated_multiplication_started'] is False and r['next_gate_started'] is False and r['BA16_started'] is False
+          assert r['P_VS_NP']=='OPEN' and r['SAT_IN_P']=='NOT_PROVED' and r['TRUMP_finished'] is False
+          print('RESULT_SHA256='+hashlib.sha256(rp.read_bytes()).hexdigest())
+          print('VERIFY_SHA256='+hashlib.sha256(vp.read_bytes()).hexdigest())
+          print('COMPLETION_SHA256='+hashlib.sha256(cp.read_bytes()).hexdigest())
+          print('P_BA15_FINAL=1')
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: janus-trump-r50g25ba15-result
+          path: |
+            artifacts/JANUS_TRUMP_R50G25BA15_RESULT.json
+            artifacts/JANUS_TRUMP_R50G25BA15_VERIFY.json
+            artifacts/JANUS_TRUMP_R50G25BA15_PRESEAL_COMPLETION.json
+          if-no-files-found: error
