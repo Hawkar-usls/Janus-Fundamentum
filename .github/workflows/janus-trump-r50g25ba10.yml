@@ -1,0 +1,90 @@
+name: JANUS TRUMP R50G25BA10 canonical Kpn pure-polarity no-fill cascade
+
+on:
+  push:
+    branches:
+      - research/r50g25ba10-canonical-kpn-pure-polarity-no-fill-cascade-2026-09-08
+    paths:
+      - 'experiments/janus_trump_r50g25ba10_canonical_kpn_pure_polarity_no_fill_cascade.py'
+      - 'experiments/verify_janus_trump_r50g25ba10_canonical_kpn_pure_polarity_no_fill_cascade.py'
+      - '.github/workflows/janus-trump-r50g25ba10.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  scientific:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Build exact BA10 result from frozen source
+        env:
+          PYTHONPATH: experiments
+        run: |
+          mkdir -p artifacts
+          python experiments/janus_trump_r50g25ba10_canonical_kpn_pure_polarity_no_fill_cascade.py \
+            --out artifacts/JANUS_TRUMP_R50G25BA10_RESULT.json
+      - name: Independent mathematical replay
+        env:
+          PYTHONPATH: experiments
+        run: |
+          python experiments/verify_janus_trump_r50g25ba10_canonical_kpn_pure_polarity_no_fill_cascade.py \
+            --result artifacts/JANUS_TRUMP_R50G25BA10_RESULT.json \
+            --out artifacts/JANUS_TRUMP_R50G25BA10_VERIFY.json
+      - name: Enforce strict BA10 obligation-product promotion guard
+        run: |
+          python - <<'PY'
+          import hashlib,json
+          from pathlib import Path
+          rp=Path('artifacts/JANUS_TRUMP_R50G25BA10_RESULT.json'); vp=Path('artifacts/JANUS_TRUMP_R50G25BA10_VERIFY.json')
+          r=json.loads(rp.read_text()); v=json.loads(vp.read_text())
+          assert r['preregistration_commit']=='013dc9dd4a32c6673bcf46976af74ccb3ed2aacb'
+          assert r['prereg_hardening_commit']=='343cc0a4ffb46509ae4593bf6a05812c60cbdd7e'
+          assert r['methodology_firewall_commit']=='b52b4ab0a8ba21f6b41a9a0c5c7c2774d95e5e72'
+          assert r['parent_BA9_final_meta_commit']=='c60e691917466c268e863153c66a0ce3d92b180b'
+          assert r['parent_BA9_source_commit']=='2527ff8fe0c3695a6dd2d8228c4e653dc5867d9a'
+          assert r['failure_count']==0 and r['falsifiers']==[]
+          assert r['outcome']=='BA10-A_CANONICAL_KPN_PURE_POLARITY_NO_FILL_CASCADE_CERTIFIED'
+          assert r['BA10_1_pure_polarity_law']['a_i_occurrences']=={'positive':'n','negative':0}
+          assert r['BA10_1_pure_polarity_law']['b_j_occurrences']=={'positive':'p','negative':0}
+          assert r['BA10_4_zero_second_generation_fill']['new_fill_edges_per_step']==0
+          assert r['BA10_4_zero_second_generation_fill']['E_peak']=='p*n'
+          assert r['BA10_5_width_monotonicity']['width_increases'] is False
+          assert r['BA10_7_actual_BA9_residual']['preregistered_actual_pivot']=='a_1'
+          assert r['BA10_7_actual_BA9_residual']['all_holdouts_pass'] is True
+          assert all(h['pivot_meta']['raw_resolution_pairs']==0 for h in r['BA10_7_actual_BA9_residual']['holdouts'])
+          assert all(h['NO_NEW_CROSS_BOUNDARY_FILL']=='PASS' for h in r['BA10_7_actual_BA9_residual']['holdouts'])
+          assert r['BA10_8_cascade_blocker_theorem']['CANONICAL_BA9_FILL_DOES_NOT_SELF_CASCADE'] is True
+          assert r['BA10_9_structural_firewall']['GRAPH_DENSITY_NE_RESOLUTION_PRODUCTIVITY'] is True
+          assert r['BA10_9_structural_firewall']['TREEWIDTH_NE_SAT_HARDNESS_BY_ITSELF'] is True
+          assert r['BA10_10_complexity']['BA9_output_lower_bound_preserved']=='Omega(p*n)'
+          assert r['BA10_no_hidden_enumeration']['generic_truth_table_rows']==0
+          assert r['BA10_no_hidden_enumeration']['generic_boundary_state_table_rows']==0
+          pre=r['strict_promotion_guard_pre_independent_verify']
+          assert pre['all_closed_pre_independent_verify'] is True
+          assert pre['x_no_unclassified_exception']==1
+          assert pre['v_independent_verifier']==0 and pre['P_BA10']==0
+          assert v['status']=='PASS' and v['error_count']==0
+          assert v['v_independent_verifier']==1 and v['P_BA10']==1
+          assert len(v['obligations'])==13 and all(z==1 for z in v['obligations'].values())
+          assert v['message_state']=='VERIFIED'
+          assert r['fill_cascade_general_started'] is False
+          assert r['mixed_polarity_cascade_started'] is False
+          assert r['cycles_started'] is False and r['arbitrary_CNF_coverage_started'] is False and r['next_gate_started'] is False
+          assert r['P_VS_NP']=='OPEN' and r['SAT_IN_P']=='NOT_PROVED' and r['TRUMP_finished'] is False
+          print('RESULT_SHA256='+hashlib.sha256(rp.read_bytes()).hexdigest())
+          print('VERIFY_SHA256='+hashlib.sha256(vp.read_bytes()).hexdigest())
+          print('P_BA10=1')
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: janus-trump-r50g25ba10-result
+          path: |
+            artifacts/JANUS_TRUMP_R50G25BA10_RESULT.json
+            artifacts/JANUS_TRUMP_R50G25BA10_VERIFY.json
+          if-no-files-found: error
