@@ -1,0 +1,354 @@
+{
+  "gate": "R50G25BA16_COMPACT_DERIVED_SUPPORT_AND_INTERMEDIATE_IDENTITY_COLLAPSE",
+  "kind": "FROZEN_PREREGISTRATION",
+  "date": "2026-09-09",
+  "state": "FROZEN_BEFORE_IMPLEMENTATION",
+  "status_first": {
+    "BA16_branch_found_before_creation": false,
+    "BA16_commit_found_before_creation": false,
+    "BA16_prereg_found_before_creation": false,
+    "BA16_run_found_before_creation": false,
+    "BA16_receipt_found_before_creation": false,
+    "BA16_meta_mirror_found_before_creation": false,
+    "pass": true
+  },
+  "parent": {
+    "meta_file": "data/JANUS-TRUMP-R50G25-DEVELOPMENT-MIRROR-2026-09-09-v3.8-BA15-2.json",
+    "meta_commit": "d0f4db95da3d5ec8ba94ecf2781de86af0fd8804",
+    "source_sync_head": "d8fc7848d3f9de924257ed6f4bdd70a0c7d8af80",
+    "parent_status": "BA15_A_PARAMETERIZED_TWO_CONSECUTIVE_GENERATION_MULTIPLICATION_CERTIFIED_AND_BIDIRECTIONALLY_LINKED"
+  },
+  "methodology_firewall": {
+    "commit": "b52b4ab0a8ba21f6b41a9a0c5c7c2774d95e5e72",
+    "law": "DISCOVERY_PROVENANCE != PROOF_DEPENDENCY",
+    "CI_GREEN": "!= SCIENTIFIC_SEAL"
+  },
+  "parameters": {
+    "p": "integer >=1",
+    "n": "integer >=1",
+    "r": "integer >=1",
+    "g": "integer >=1"
+  },
+  "source_family": {
+    "lane_count": "p+n+r+3",
+    "variables": "a_1..a_p,x,y,b_1..b_n,z,c_1..c_r all pairwise distinct",
+    "main": [
+      "P_i=(a_i OR x)",
+      "Q=((NOT x) OR y)",
+      "N_j=((NOT y) OR b_j)"
+    ],
+    "support_seed": [
+      "U_j=((NOT b_j) OR z)",
+      "V_k=((NOT z) OR c_k)"
+    ],
+    "forbidden": [
+      "(a_i OR y)",
+      "(a_i OR b_j)",
+      "((NOT b_j) OR c_k)",
+      "(a_i OR c_k)"
+    ],
+    "M_jk_source_forbidden": true,
+    "manual_derived_insertion": false,
+    "elimination_order": [
+      "z",
+      "x",
+      "y",
+      "b_1",
+      "b_2",
+      "...",
+      "b_n"
+    ]
+  },
+  "scientific_questions": [
+    "Can n*r future opposite-polarity M_jk support clauses be derived from only n+r explicit support-seed clauses?",
+    "If yes, do n independent b witnesses preserve n semantic fanout identities or collapse to duplicate final clauses?"
+  ],
+  "support_seed": {
+    "identity": "EXISTS z [AND_j((-b_j) OR z) AND AND_k((-z) OR c_k)] IFF AND_j AND_k((-b_j) OR c_k)",
+    "M_jk": "((NOT b_j) OR c_k)",
+    "parentage": "M_jk <- RESOLVE_z(U_j,V_k)",
+    "generation": 1,
+    "count": "n*r",
+    "bijection": "(j,k) <-> M_jk",
+    "support_source_count": "n+r",
+    "compression_law": "n+r -> n*r DERIVED SUPPORT CLAUSES"
+  },
+  "main_gen1": {
+    "D_i": "(a_i OR y)",
+    "parentage": "D_i <- RESOLVE_x(P_i,Q)",
+    "generation": 1,
+    "count": "p",
+    "ledger": "MAIN_GEN1 separate from SUPPORT_GEN1"
+  },
+  "main_gen2": {
+    "H_ij": "(a_i OR b_j)",
+    "parentage": "H_ij <- RESOLVE_y(D_i,N_j)",
+    "generation": 2,
+    "count": "p*n",
+    "residual": "AND_i,j(a_i OR b_j) AND AND_j,k((NOT b_j) OR c_k)"
+  },
+  "mixed_b": {
+    "positive": "H_ij all generation 2",
+    "negative": "M_jk all DERIVED generation 1 support",
+    "per_b_counts": {
+      "positive": "p",
+      "negative": "r"
+    },
+    "all_negative_support_must_be_derived": true
+  },
+  "gen3": {
+    "candidate": "G_ijk=RESOLVE_{b_j}(H_ij,M_jk)=(a_i OR c_k)",
+    "raw_paths": "p*n*r",
+    "distinct_clauses": "p*r",
+    "fiber_map": "(i,j,k)->(i,k)->G_ik",
+    "fiber_size": "n",
+    "duplicate_count": "p*r*(n-1)",
+    "first_b": {
+      "raw": "p*r",
+      "new_distinct": "p*r",
+      "duplicates": 0
+    },
+    "later_each_b": {
+      "raw": "p*r",
+      "new_distinct": 0,
+      "duplicates": "p*r"
+    }
+  },
+  "direct_composition": {
+    "per_j": "EXISTS b_j [AND_i(a_i OR b_j) AND AND_k((-b_j) OR c_k)] IFF K_{p,r}",
+    "idempotence": "AND_j K_{p,r}=K_{p,r}",
+    "full_projection": "EXISTS z,x,y,b_1..b_n F_source IFF AND_i,k(a_i OR c_k)",
+    "final": "K_{p,r}",
+    "not_final": "K_{p,n*r}"
+  },
+  "core_firewalls": [
+    "DERIVATION_PATH_COUNT != DISTINCT_RESIDUAL_COUNT",
+    "INTERMEDIATE_WITNESS_MULTIPLICITY != SEMANTIC_OUTPUT_MULTIPLICITY",
+    "DERIVED SUPPORT != FREE IDENTITY CREATION",
+    "SMALL DISTINCT OUTPUT != SMALL ACTUAL TRANSIENT WORK"
+  ],
+  "relational_composition": {
+    "statement": "K_{p,n} COMPOSE_B K_{n,r} -> K_{p,r} for exact polarity-compatible binary clause family",
+    "analogy_authority": "ZERO; must be proved by resolution and existential semantics"
+  },
+  "source_scaffold_comparison": {
+    "BA15": "n*r source M_jk clauses",
+    "BA16": "n+r source U_j,V_k clauses derive n*r M_jk",
+    "derived_future_support_may_certify": true,
+    "self_sustaining_distinct_multiplication_may_fail": true
+  },
+  "identity_lower_bound": {
+    "scope": "explicit binary-CNF distinct-variable canonical outputs only",
+    "target_outputs": "(a_i OR c_jk) with n*r pairwise-distinct right-side c_jk identities",
+    "variable_preservation": "resolvent cannot introduce a variable absent from both parents; recursively no new variable identity absent from source provenance",
+    "conclusion": "right-side SOURCE_VARIABLE_IDENTITIES >= n*r and explicit source identity representation Omega(n*r)",
+    "global_information_theoretic_claim_forbidden": true
+  },
+  "reconstruction": {
+    "A": "AND_i a_i",
+    "rule": "z=x=y=b_j=NOT A for all j",
+    "case_A1": "all a_i=1; set internal variables 0; arbitrary c_k",
+    "case_A0": "K_{p,r} forces all c_k=1; set internal variables 1",
+    "full_BA4_validation_required": true
+  },
+  "graph": {
+    "E_source": "p+2n+r+1",
+    "T_z": "p+2n+r+1+n*r",
+    "E_z": "p+n+1+n*r",
+    "T_x": "2p+n+1+n*r",
+    "E_x": "p+n+n*r",
+    "T_y": "p+n+n*r+p*n",
+    "E_y": "n(p+r)",
+    "T_b": "n(p+r)+p*r",
+    "E_after1": "(n-1)(p+r)+p*r",
+    "later_b": "distinct graph edges decrease by p+r per pivot",
+    "E_peak": "max(T_z,T_x,T_y,T_b)"
+  },
+  "width": {
+    "pre_b_graph": "K_{n,p+r}",
+    "first_b_transient": "K_{p,r,n}",
+    "candidate_tw_peak": "p+r+n-max(p,r,n)",
+    "final_tw": "min(p,r)",
+    "constructive_upper_and_independent_lower_required": true,
+    "earlier_transient_domination_check_required": true,
+    "full_BA4_bound_must_be_separate": true
+  },
+  "source_size": {
+    "D": "p+n+r+3",
+    "source_cross_clause_count": "p+2n+r+1",
+    "C": "67gD-p-r-5",
+    "L": "163gD-2p-2r-10",
+    "V": "20gD",
+    "n_struct": "250gD-3p-3r-15"
+  },
+  "source_carrier_transport_targets": {
+    "positive_style_count": "p",
+    "negative_style_count": "1+2n+r",
+    "per_transition": {
+      "raw_pairs": "2320p+2001(1+2n+r)",
+      "tautological_pairs": "782p+658(1+2n+r)",
+      "non_tautological_pairs": "1538p+1343(1+2n+r)",
+      "duplicates": "78p+57(1+2n+r)",
+      "retained": "414p+383(1+2n+r)"
+    },
+    "generic_chain_multiplier": "g-1",
+    "authority": "CONSISTENCY_TARGETS_ONLY_UNTIL_INDEPENDENT_REPLAY"
+  },
+  "actual_ledgers": {
+    "A": "SOURCE_CARRIER_TRANSPORT",
+    "B": "z SUPPORT_SEED ELIMINATION",
+    "C": "x MAIN ELIMINATION",
+    "D": "y MAIN MULTIPLICATION",
+    "E_j": "each b_j COMPOSITION ELIMINATION",
+    "raw_productivity": {
+      "z": "n*r",
+      "x": "p",
+      "y": "p*n",
+      "each_b": "p*r",
+      "whole_b": "p*n*r"
+    },
+    "distinct_b_layer": "p*r",
+    "required_metrics": [
+      "raw_pairs",
+      "tautological",
+      "non_tautological",
+      "duplicates",
+      "retained",
+      "NEW_DISTINCT",
+      "live_clause_peak",
+      "R_peak",
+      "B_peak",
+      "E_peak",
+      "W_peak"
+    ]
+  },
+  "certificate_modes": {
+    "MODE_A": {
+      "explicit_records": "Omega(p*n*r)",
+      "records": [
+        "n*r M_jk",
+        "p D_i",
+        "p*n H_ij",
+        "p*n*r b-resolution paths"
+      ]
+    },
+    "MODE_B": {
+      "target_size": "O(g(p+n+r)+n*r+p*n+p*r)",
+      "records": [
+        "all n*r support",
+        "all p*n H",
+        "p*r representative G",
+        "generic n-element j-fiber theorem"
+      ],
+      "promotion_condition": "independent verifier replays generic quotient proof without enumerating p*n*r paths"
+    }
+  },
+  "complexity_firewall": {
+    "explicit_pairwise_b_resolution_work": "Theta(p*n*r)",
+    "distinct_output": "p*r",
+    "symbolic_duplicate_avoidance_requires_separate_algorithmic_proof": true
+  },
+  "holdouts": {
+    "authority": "DIAGNOSTIC_ONLY_ZERO_GENERIC_THEOREM_AUTHORITY",
+    "frozen": [
+      [1,1,1],
+      [1,2,1],
+      [1,2,2],
+      [2,2,2],
+      [2,3,2],
+      [3,2,3]
+    ]
+  },
+  "required_pass_count": 39,
+  "required_passes": [
+    "STATUS_FIRST_PASS",
+    "PREREGISTRATION_BEFORE_IMPLEMENTATION_PASS",
+    "SUPPORT_SEED_SYMBOLIC_PASS",
+    "DERIVED_NR_SUPPORT_PASS",
+    "DERIVED_SUPPORT_PROVENANCE_PASS",
+    "MAIN_GEN1_PASS",
+    "MAIN_GEN1_PROVENANCE_PASS",
+    "MAIN_GEN2_PN_PASS",
+    "MAIN_GEN2_PROVENANCE_PASS",
+    "ALL_B_NEGATIVE_SUPPORT_DERIVED_PASS",
+    "RAW_GEN3_PNR_PATH_PASS",
+    "GEN3_FIBER_MAP_PASS",
+    "DISTINCT_GEN3_PR_PASS",
+    "DUPLICATE_COUNT_PASS",
+    "DIRECT_COMPOSITION_PASS",
+    "DIRECT_FINAL_PROJECTION_PASS",
+    "DERIVATION_NE_DISTINCT_FILL_PASS",
+    "WITNESS_MULTIPLICITY_COLLAPSE_PASS",
+    "SOURCE_SCAFFOLD_COMPARISON_PASS",
+    "VARIABLE_PRESERVATION_PASS",
+    "IDENTITY_LOWER_BOUND_PASS",
+    "DERIVED_SUPPORT_NE_FREE_IDENTITY_PASS",
+    "RECONSTRUCTION_PASS",
+    "FULL_ORIGINAL_CNF_VALIDATION_PASS",
+    "GRAPH_ACCOUNTING_PASS",
+    "QUOTIENT_WIDTH_PASS",
+    "FULL_WIDTH_COMPOSITION_PASS",
+    "EXACT_SOURCE_SIZE_PASS",
+    "SOURCE_CARRIER_TRANSPORT_PASS",
+    "ACTUAL_Z_WORK_PASS",
+    "ACTUAL_X_WORK_PASS",
+    "ACTUAL_Y_WORK_PASS",
+    "ACTUAL_B_LAYER_WORK_PASS",
+    "CERTIFICATE_MODE_ACCOUNTING_PASS",
+    "COMPLEXITY_PASS",
+    "GENERIC_GPNR_PASS",
+    "NO_MANUAL_INSERTION_PASS",
+    "INDEPENDENT_REPLAY_PASS",
+    "PRESEAL_COMPLETENESS_PASS"
+  ],
+  "falsifiers": {
+    "F1": "z elimination does not derive exactly n*r M_jk",
+    "F2": "Any M_jk is manually inserted",
+    "F3": "A b_j negative support parent is source rather than derived",
+    "F4": "Raw b-layer resolution paths != p*n*r",
+    "F5": "Distinct final clauses unexpectedly remain p*n*r despite shared c_k identities",
+    "F6": "Distinct final clauses != p*r",
+    "F7": "Two routes with different j do not collapse to the same G_ik",
+    "F8": "Direct final projection differs from K_{p,r}",
+    "F9": "The symbolic fiber size is not exactly n",
+    "F10": "Reconstruction fails",
+    "F11": "Actual BA4 CNF disagrees with abstract composition",
+    "F12": "Unexplained semantic residual survives",
+    "F13": "Identity lower bound is stated outside frozen binary distinct-variable scope",
+    "F14": "Width theorem fails",
+    "F15": "Raw p*n*r work is hidden behind p*r output size",
+    "F16": "Symbolic certificate mode silently enumerates p*n*r paths",
+    "F17": "Generic proof depends only on holdouts",
+    "F18": "Independent replay fails",
+    "F19": "Green CI omits any named prereg obligation"
+  },
+  "success_label": "BA16-A_COMPACT_DERIVED_SUPPORT_WITH_INTERMEDIATE_IDENTITY_COLLAPSE_CERTIFIED",
+  "success_meaning": {
+    "derived_future_support": "n+r explicit support seed -> n*r genuine derived M_jk",
+    "raw_b_paths": "p*n*r",
+    "distinct_final": "p*r",
+    "collapse": "middle j witness multiplicity collapses under existential composition",
+    "identity_scope": "p*n*r distinct canonical outputs would require n*r pair-specific right-side identities in explicit distinct-variable binary grammar"
+  },
+  "explicit_nonclaims": [
+    "SELF_SUSTAINING_MULTIPLICATION_EXISTS",
+    "ARBITRARY_ENCODINGS_REQUIRE_OMEGA_NR",
+    "ARBITRARY_PROOF_SYSTEMS_OBEY_IDENTITY_BOUND",
+    "EXPONENTIAL_FILL_EXISTS",
+    "EXPONENTIAL_FILL_AVOIDED",
+    "ARBITRARY_CNF_COVERED",
+    "SAT_IN_P_PROVED",
+    "P_EQ_NP_PROVED",
+    "TRUMP_FINISHED"
+  ],
+  "after_BA16": {
+    "stop": true,
+    "BA17_started": false,
+    "next_frontier_only": "Can the cascade derive both future support and new pair-specific identity without paying full identity cost in explicit source?"
+  },
+  "firewall": {
+    "P_VS_NP": "OPEN",
+    "SAT_IN_P": "NOT_PROVED",
+    "TRUMP_finished": false
+  }
+}
