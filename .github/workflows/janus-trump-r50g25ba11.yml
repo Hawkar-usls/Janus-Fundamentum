@@ -1,0 +1,90 @@
+name: JANUS TRUMP R50G25BA11 minimal second-generation resolution fan-out cascade
+
+on:
+  push:
+    branches:
+      - research/r50g25ba11-minimal-second-generation-resolution-fanout-cascade-2026-09-08
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  scientific:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Build exact BA11 result from frozen source
+        env:
+          PYTHONPATH: experiments
+        run: |
+          mkdir -p artifacts
+          python experiments/janus_trump_r50g25ba11_minimal_second_generation_resolution_fanout_cascade.py \
+            --out artifacts/JANUS_TRUMP_R50G25BA11_RESULT.json
+      - name: Independent mathematical replay
+        env:
+          PYTHONPATH: experiments
+        run: |
+          python experiments/verify_janus_trump_r50g25ba11_minimal_second_generation_resolution_fanout_cascade.py \
+            --result artifacts/JANUS_TRUMP_R50G25BA11_RESULT.json \
+            --out artifacts/JANUS_TRUMP_R50G25BA11_VERIFY.json
+      - name: Enforce strict BA11 obligation-product promotion guard
+        run: |
+          python - <<'PY'
+          import hashlib,json
+          from pathlib import Path
+          rp=Path('artifacts/JANUS_TRUMP_R50G25BA11_RESULT.json')
+          vp=Path('artifacts/JANUS_TRUMP_R50G25BA11_VERIFY.json')
+          r=json.loads(rp.read_text()); v=json.loads(vp.read_text())
+          assert r['preregistration_commit']=='b9cfe692b9d7b1f7aa5d903f533991aa92673238'
+          assert r['methodology_firewall_commit']=='b52b4ab0a8ba21f6b41a9a0c5c7c2774d95e5e72'
+          assert r['parent_BA10_final_meta_commit']=='66eb10d8850079b4648863d43d7271563699616a'
+          assert r['parent_BA10_source_commit']=='c5346d1db264d1eac04a2cceb0aa98e81c3cdb85'
+          assert r['failure_count']==0 and r['falsifiers']==[]
+          assert r['outcome']=='BA11-A_MINIMAL_SECOND_GENERATION_RESOLUTION_FANOUT_CASCADE_CERTIFIED'
+          assert r['BA11_frontier_hardening']['BA7_already_certified_mixed_second_pivot_1_to_1'] is True
+          assert r['BA11_frontier_hardening']['generation_pattern']=='1->2'
+          assert r['BA11_12_actual_boundary_cascade']['GEN1_NEW_FILL']==1
+          assert r['BA11_12_actual_boundary_cascade']['GEN2_NEW_FILL']==2
+          assert r['BA11_12_actual_boundary_cascade']['SECOND_GENERATION_FANOUT']==2
+          assert r['BA11_12_actual_boundary_cascade']['stage1_work']['raw_pairs']==1
+          assert r['BA11_12_actual_boundary_cascade']['stage2_work']['raw_pairs']==2
+          assert r['BA11_12_actual_boundary_cascade']['graph']['E_peak']==5
+          assert r['BA11_9_width']['quotient_tw_peak']==2 and r['BA11_9_width']['W_full_upper']==13
+          assert r['BA11_10_exact_source_size']['C']=='5(67g-2)+4=335g-6'
+          assert r['BA11_11_13_source_transport']['aggregate']=={'raw_pairs_per_transition':8323,'tautological_pairs_per_transition':2756,'non_tautological_pairs_per_transition':5567,'duplicates_per_transition':249,'retained_per_transition':1563}
+          assert r['BA11_11_13_source_transport']['manual_future_boundary_source_insertion']==0
+          assert r['BA11_12_actual_boundary_cascade']['manual_derived_insertion']==0
+          assert r['BA11_6_finite_audits']['source']['count']==7
+          assert r['BA11_6_finite_audits']['stage1']['count']==6
+          assert r['BA11_6_finite_audits']['final']['count']==5
+          assert r['BA11_6_finite_audits']['direct_vs_staged_pass'] is True
+          assert r['BA11_actual_full_CNF_realization']['all_holdouts_pass'] is True
+          assert r['BA11_14_minimality']['minimum_source_clauses']==4
+          assert r['BA11_14_minimality']['minimum_distinct_variables']==5
+          pre=r['strict_promotion_guard_pre_independent_verify']
+          assert pre['all_closed_pre_independent_verify'] is True
+          assert pre['x_no_unclassified_exception']==1
+          assert pre['v_independent_verifier']==0 and pre['P_BA11']==0
+          assert v['status']=='PASS' and v['error_count']==0
+          assert v['v_independent_verifier']==1 and v['P_BA11']==1
+          assert len(v['obligations'])==21 and all(z==1 for z in v['obligations'].values())
+          assert v['message_state']=='VERIFIED'
+          assert r['generic_two_stage_p_by_n_started'] is False
+          assert r['repeated_cascade_depth_started'] is False
+          assert r['arbitrary_CNF_coverage_started'] is False and r['next_gate_started'] is False
+          assert r['P_VS_NP']=='OPEN' and r['SAT_IN_P']=='NOT_PROVED' and r['TRUMP_finished'] is False
+          print('RESULT_SHA256='+hashlib.sha256(rp.read_bytes()).hexdigest())
+          print('VERIFY_SHA256='+hashlib.sha256(vp.read_bytes()).hexdigest())
+          print('P_BA11=1')
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: janus-trump-r50g25ba11-result
+          path: |
+            artifacts/JANUS_TRUMP_R50G25BA11_RESULT.json
+            artifacts/JANUS_TRUMP_R50G25BA11_VERIFY.json
+          if-no-files-found: error
