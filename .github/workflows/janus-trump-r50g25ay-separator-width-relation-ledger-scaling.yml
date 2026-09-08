@@ -1,0 +1,116 @@
+name: JANUS TRUMP R50G25AY separator width and relation ledger scaling
+
+on:
+  push:
+    branches:
+      - research/r50g25ay-separator-width-relation-ledger-scaling-2026-09-08
+    paths:
+      - 'TRUMP/SAT/R50/TRUMP_R50G25AY_SEPARATOR_WIDTH_RELATION_LEDGER_SCALING_PREREG_v1_0.md'
+      - 'experiments/janus_trump_r50g25ay_separator_width_relation_ledger_scaling.py'
+      - 'experiments/janus_trump_r50g25ay_independent_verify.py'
+      - 'experiments/janus_trump_r50g25ay_aggregate.py'
+      - 'experiments/janus_trump_r50g25ay_aggregate_verify.py'
+      - '.github/workflows/janus-trump-r50g25ay-separator-width-relation-ledger-scaling.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  rung:
+    strategy:
+      fail-fast: false
+      matrix:
+        g: [1, 2, 3, 4, 6, 8]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Run frozen AY rung
+        run: |
+          mkdir -p artifacts
+          PYTHONPATH=experiments python experiments/janus_trump_r50g25ay_separator_width_relation_ledger_scaling.py \
+            --g ${{ matrix.g }} \
+            --out artifacts/AY_RUNG_${{ matrix.g }}.json
+      - name: Independent fail-closed rung replay
+        run: |
+          PYTHONPATH=experiments python experiments/janus_trump_r50g25ay_independent_verify.py \
+            --result artifacts/AY_RUNG_${{ matrix.g }}.json \
+            --out artifacts/AY_VERIFY_${{ matrix.g }}.json
+      - name: Emit rung identities
+        run: |
+          python - <<'PY'
+          import hashlib,json,os
+          from pathlib import Path
+          g=os.environ['G']
+          r=Path(f'artifacts/AY_RUNG_{g}.json')
+          v=Path(f'artifacts/AY_VERIFY_{g}.json')
+          x=json.loads(r.read_text()); y=json.loads(v.read_text())
+          assert y['status']=='PASS' and y['failures']==[], y
+          print('AY_RUNG_SHA256='+hashlib.sha256(r.read_bytes()).hexdigest())
+          print('AY_VERIFY_SHA256='+hashlib.sha256(v.read_bytes()).hexdigest())
+          print(json.dumps({'g':int(g),'classification':x['classification'],'relevant':x['relevant'],'L':x.get('L'),'w':(x.get('separator') or {}).get('induced_width'),'rows':(x.get('relation') or {}).get('total_materialized_rows')},sort_keys=True))
+          PY
+        env:
+          G: ${{ matrix.g }}
+      - uses: actions/upload-artifact@v4
+        with:
+          name: janus-trump-r50g25ay-rung-${{ matrix.g }}
+          path: |
+            artifacts/AY_RUNG_${{ matrix.g }}.json
+            artifacts/AY_VERIFY_${{ matrix.g }}.json
+          if-no-files-found: error
+
+  aggregate:
+    needs: rung
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: janus-trump-r50g25ay-rung-*
+          path: collected
+          merge-multiple: true
+      - name: Aggregate frozen ladder
+        run: |
+          mkdir -p artifacts
+          PYTHONPATH=experiments python experiments/janus_trump_r50g25ay_aggregate.py \
+            --root collected \
+            --out artifacts/JANUS_TRUMP_R50G25AY_RESULT.json
+      - name: Independent fail-closed aggregate replay
+        run: |
+          PYTHONPATH=experiments python experiments/janus_trump_r50g25ay_aggregate_verify.py \
+            --root collected \
+            --aggregate artifacts/JANUS_TRUMP_R50G25AY_RESULT.json \
+            --out artifacts/JANUS_TRUMP_R50G25AY_AGGREGATE_VERIFY.json
+      - name: Emit immutable aggregate identity
+        run: |
+          python - <<'PY'
+          import hashlib,json
+          from pathlib import Path
+          p=Path('artifacts/JANUS_TRUMP_R50G25AY_RESULT.json')
+          v=Path('artifacts/JANUS_TRUMP_R50G25AY_AGGREGATE_VERIFY.json')
+          x=json.loads(p.read_text()); y=json.loads(v.read_text())
+          assert y['status']=='PASS' and y['failures']==[], y
+          print('AY_RESULT_SHA256='+hashlib.sha256(p.read_bytes()).hexdigest())
+          print('AY_RESULT_SIZE='+str(len(p.read_bytes())))
+          print('AY_AGGREGATE_VERIFY_SHA256='+hashlib.sha256(v.read_bytes()).hexdigest())
+          print(json.dumps({'verdict':x['verdict'],'relevant_rung_count':x['relevant_rung_count'],**x['summary']},sort_keys=True))
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: janus-trump-r50g25ay-result
+          path: |
+            artifacts/JANUS_TRUMP_R50G25AY_RESULT.json
+            artifacts/JANUS_TRUMP_R50G25AY_AGGREGATE_VERIFY.json
+            collected/AY_RUNG_*.json
+            collected/AY_VERIFY_*.json
+          if-no-files-found: error
