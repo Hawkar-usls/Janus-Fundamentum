@@ -1,0 +1,140 @@
+{
+  "gate": "R50G25BA23_EXPONENTIAL_ITERATED_DGDBO_RESIDUAL_STATE_GROWTH",
+  "date": "2026-09-09",
+  "state": "FROZEN_BEFORE_IMPLEMENTATION",
+  "logical_parent": {
+    "meta_file": "data/JANUS-TRUMP-R50G25-DEVELOPMENT-MIRROR-2026-09-09-v4.5-BA22-2.json",
+    "meta_commit": "922c7bd03977419b90238de33555d5b0969d7029",
+    "source_sync_commit": "33397c4d4f427f6dfbc55aa835eff168d33f7cf6",
+    "parent_status": "BA22_A_SINGLE_FOREIGN_CLAUSE_DECISION_GUARDED_DBO_CLOSURE_CERTIFIED_AND_BIDIRECTIONALLY_LINKED"
+  },
+  "status_first": {
+    "branch_search": "ABSENT_BEFORE_BRANCH_CREATION",
+    "code_search": "ABSENT",
+    "commit_search": "ABSENT",
+    "meta_search": "ABSENT",
+    "workflow_run_search": "0",
+    "result": "BA23_NOT_STARTED"
+  },
+  "scientific_target": "Test the exact iterated BA22 first-true/restriction compilation route on the pair-block killer family and determine the number of reachable pairwise semantically distinct exact residual DBO states after t foreign clauses.",
+  "scope": {
+    "m": "integer >= 1",
+    "parent_DBO": "Phi_m = DBO({a_1,b_1},...,{a_m,b_m}) = OR_i(a_i AND b_i)",
+    "foreign_CNF": "Gamma_m = AND_i C_i with C_i=(a_i OR b_i)",
+    "foreign_clause_order": "C_1,C_2,...,C_m",
+    "literal_order_in_C_i": "a_i then b_i",
+    "variables_pairwise_distinct": true,
+    "input_structural_scale": "Theta(m): 2m DBO variable references + m binary clauses + 2m foreign literal occurrences"
+  },
+  "frozen_route": {
+    "KEEP_i": "a_i=TRUE, b_i unassigned; block {a_i,b_i} restricts to singleton {b_i}",
+    "KILL_i": "a_i=FALSE, b_i=TRUE; block {a_i,b_i} is killed",
+    "all_false_clause_path": "IMPOSSIBLE"
+  },
+  "candidate_theorems": {
+    "state_invariant": "R_{t,S}=DBO({b_i} for i in S, {a_i,b_i} for i=t+1..m), with S subseteq [t]",
+    "exact_state_set": "Q_t={R_{t,S}: S subseteq [t]}",
+    "active_state_count": "|Q_t|=2^t",
+    "final_state_count": "|Q_m|=2^m",
+    "false_final_states": "exactly one, S=empty",
+    "satisfiable_final_states": "2^m-1",
+    "direct_model_count": "#SAT(Phi_m AND Gamma_m)=3^m-2^m",
+    "state_sum_model_count": "SUM_{S subseteq [m]}(2^{|S|}-1)=3^m-2^m",
+    "cumulative_level_state_count": "SUM_{t=0}^m 2^t = 2^(m+1)-1",
+    "strategy_barrier": "Repeated exact BA22 residual-state compilation is not a general polynomial-state route for this frozen family if all distinct residual states are materialized/memoized explicitly."
+  },
+  "reachability_certificate": "For each S subseteq [t], accumulated guard sets a_i=TRUE for i in S and a_i=FALSE,b_i=TRUE for i in [t]\\S; this satisfies all processed clauses and leaves exactly R_{t,S}.",
+  "semantic_distinctness_certificate": "For S!=T choose j in symmetric difference. Assign the singleton b_j TRUE on the side where j survives, all other processed singleton variables FALSE, and every untouched block false (e.g. a_i=FALSE,b_i=FALSE). Exactly one residual evaluates TRUE.",
+  "order_robustness_candidate": {
+    "promoted_if_proved": true,
+    "statement": "For any permutation of pair clauses, and either literal order inside each C_i, every processed independent pair contributes one binary residual-state coordinate (singleton of the untested mate versus killed block), hence 2^t states after any t processed clauses.",
+    "authority": "SYMBOLIC_PROOF_REQUIRED"
+  },
+  "no_materialization_theorem_proof": {
+    "generic_proof_must_not_enumerate_2_pow_m": true,
+    "finite_diagnostics": "m=1..12 allowed; m=64 symbolic expected-count diagnostic only",
+    "generic_authority": "induction + explicit guard construction + semantic separator witness"
+  },
+  "representation_firewalls": [
+    "EXPONENTIAL_DGDBO_RESIDUAL_STATES != EXPONENTIAL_SEMANTIC_DESCRIPTION_SIZE",
+    "NO_EXACT_RESIDUAL_MERGE != NO_OTHER_SYMBOLIC_COMPRESSION_EXISTS",
+    "ITERATED_COMPILATION_EXPLOSION != SAT_HARDNESS",
+    "BA23_DOES_NOT_LOWER_BOUND_ALL_BDDS_SDDs_dDNNFs_CIRCUITS",
+    "SINGLE_CLAUSE_POLYNOMIAL_CLOSURE != GLOBAL_POLYNOMIAL_CLOSURE"
+  ],
+  "large_diagnostics": {
+    "enumerated_m_max": 12,
+    "m64_expected_active_final_states": "2^64",
+    "m64_expected_cumulative_level_states": "2^65-1",
+    "m64_must_not_allocate_state_set": true
+  },
+  "witness_and_reconstruction": {
+    "selected_reachable_states": "construct projected assignments satisfying processed C_i and residual DBO",
+    "parent_Phi_validation": true,
+    "optional_sealed_source_embedding": "selected controls may be embedded into sealed BA21/BA20 source reconstruction; exponential-state theorem itself has no BA4 brute-force dependency"
+  },
+  "required_passes": [
+    "STATUS_FIRST_PASS",
+    "PREREGISTRATION_BEFORE_IMPLEMENTATION_PASS",
+    "BA22_IMMUTABILITY_PASS",
+    "KILLER_FAMILY_SCHEMA_PASS",
+    "SEQUENTIAL_ROUTE_PASS",
+    "STATE_INVARIANT_PASS",
+    "STATE_REACHABILITY_PASS",
+    "PAIRWISE_SEMANTIC_DISTINCTNESS_PASS",
+    "EXACT_2_POW_T_STATE_COUNT_PASS",
+    "FINAL_2_POW_M_STATE_COUNT_PASS",
+    "SATISFIABLE_STATE_COUNT_PASS",
+    "DIRECT_MODEL_COUNT_PASS",
+    "STATE_SUM_MODEL_COUNT_PASS",
+    "LINEAR_INPUT_SIZE_PASS",
+    "EXPONENTIAL_STATE_SEPARATION_PASS",
+    "ACTIVE_VS_CUMULATIVE_ACCOUNTING_PASS",
+    "NO_EXACT_RESIDUAL_MERGE_PASS",
+    "ORDER_ROBUSTNESS_PASS",
+    "NO_MATERIALIZATION_THEOREM_PROOF_PASS",
+    "STRATEGY_BARRIER_PASS",
+    "REPRESENTATION_SCOPE_FIREWALL_PASS",
+    "SAT_COMPLEXITY_NONCLAIM_PASS",
+    "INDEPENDENT_REPLAY_PASS",
+    "PRESEAL_COMPLETENESS_PASS"
+  ],
+  "required_pass_count": 24,
+  "falsifiers": {
+    "F1": "Some subset state S is unreachable.",
+    "F2": "Two different subsets yield semantically identical residuals.",
+    "F3": "State count after t is not 2^t.",
+    "F4": "Final exact state count is not 2^m.",
+    "F5": "More than one final state is FALSE.",
+    "F6": "Direct model count differs from 3^m-2^m.",
+    "F7": "State-sum model count disagrees.",
+    "F8": "Input size is not Theta(m).",
+    "F9": "Canonical exact residual memoization merges distinct subset states.",
+    "F10": "Generic theorem relies on enumerating all 2^m states.",
+    "F11": "Order robustness is promoted without proof.",
+    "F12": "State explosion is misreported as a lower bound for every knowledge-compilation language.",
+    "F13": "State explosion is misreported as SAT decision hardness.",
+    "F14": "Independent replay fails."
+  },
+  "strongest_permitted_label": "BA23-A_EXPONENTIAL_ITERATED_DGDBO_RESIDUAL_STATE_GROWTH_CERTIFIED",
+  "nonclaims": [
+    "Boolean function lacks another compact representation",
+    "all BDDs/SDDs/d-DNNFs/circuits need exponential size",
+    "arbitrary CNF requires exponential decision time",
+    "SAT is in P",
+    "SAT is not in P",
+    "P=NP",
+    "P!=NP"
+  ],
+  "after_gate": {
+    "STOP": true,
+    "BA24_started": false,
+    "future_frontier_only": "hybrid compact semantic factor + uncompiled foreign CNF, parameterized by interaction structure"
+  },
+  "firewall": {
+    "SAT_IN_P": "NOT_PROVED",
+    "P_VS_NP": "OPEN",
+    "P_equals_NP_proved": false,
+    "P_not_equals_NP_proved": false
+  }
+}
