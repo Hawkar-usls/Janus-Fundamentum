@@ -1,0 +1,111 @@
+name: JANUS TRUMP R50G25BA24 hardened hybrid interface DP
+
+on:
+  push:
+    branches:
+      - research/r50g25ba24-hybrid-dbo-foreign-cnf-interface-dp-2026-09-09
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  scientific-hardened:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Verify immutable BA24 chain and hardened successor ancestry
+        shell: bash
+        run: |
+          set -euo pipefail
+          PREREG=1b26099f02b8c9204c4ca7ef1eb5eb210658b1cd
+          IMPL=5af8f2f0ea5a2a4b4e837dae5ad23dec50d53414
+          VER1=9a489afeaa5d2780eb9751ba870ee5a4fa352f35
+          PRE1=d4707d7cfa43d14a9b393aad18e1d67f05d1a176
+          WF1=abb69ca061b238bbc2980c927a74e95d21fa6b3e
+          GAP=a87ee5d03c88e39c3c3e529abbb9d774c5b0901f
+          VER2=1dcc5f6aa0b1b13b5eadbd086bddfa90c0afcab0
+          PRE2=469a601048d88e6ad293b07bdf8e967b348ac5b5
+          git merge-base --is-ancestor "$PREREG" "$IMPL"
+          git merge-base --is-ancestor "$IMPL" "$VER1"
+          git merge-base --is-ancestor "$VER1" "$PRE1"
+          git merge-base --is-ancestor "$PRE1" "$WF1"
+          git merge-base --is-ancestor "$WF1" "$GAP"
+          git merge-base --is-ancestor "$GAP" "$VER2"
+          git merge-base --is-ancestor "$VER2" "$PRE2"
+          git merge-base --is-ancestor "$PRE2" HEAD
+          python - <<'PY'
+          import json
+          p=json.load(open('research/JANUS_TRUMP_R50G25BA24_PREREGISTRATION.json'))
+          gap=json.load(open('research/JANUS_TRUMP_R50G25BA24_RUN1_UNSEALED_VERIFIER_HARNESS_GAP.json'))
+          assert p['state']=='FROZEN_BEFORE_IMPLEMENTATION'
+          assert len(p['required_passes'])==len(set(p['required_passes']))==38
+          assert p['required_passes'][-2:]==['INDEPENDENT_REPLAY_PASS','PRESEAL_COMPLETENESS_PASS']
+          assert p['after']['BA25_started'] is False
+          assert p['scope']['tree_decomposition']=='GIVEN_AND_CERTIFICATE_VERIFIED'
+          assert p['firewalls']['P_VS_NP']=='OPEN'
+          assert gap['state']=='UNSEALED_VERIFIER_HARNESS_GAP'
+          assert gap['run_id']==34403575937 and gap['promotion']==0
+          assert gap['scientific_falsifier_observed'] is False
+          print('BA24 hardened ancestry PASS')
+          PY
+
+      - name: Build exact BA24 hybrid interface-DP result
+        env:
+          PYTHONPATH: experiments
+        run: |
+          python experiments/janus_trump_r50g25ba24_hybrid_dbo_foreign_cnf_interface_dp.py --out ba24_result.json
+
+      - name: Independent BA24 replay v2
+        env:
+          PYTHONPATH: experiments
+        run: |
+          python experiments/verify_janus_trump_r50g25ba24_hybrid_dbo_foreign_cnf_interface_dp_v2.py --prereg research/JANUS_TRUMP_R50G25BA24_PREREGISTRATION.json --result ba24_result.json --implementation experiments/janus_trump_r50g25ba24_hybrid_dbo_foreign_cnf_interface_dp.py --out ba24_verify_v2.json
+
+      - name: Complete exact BA24 preseal v2
+        run: |
+          python experiments/complete_janus_trump_r50g25ba24_preseal_v2.py --prereg research/JANUS_TRUMP_R50G25BA24_PREREGISTRATION.json --result ba24_result.json --verify ba24_verify_v2.json --out ba24_completion_v2.json
+
+      - name: Enforce strict hardened BA24 promotion guard
+        run: |
+          python - <<'PY'
+          import json
+          r=json.load(open('ba24_result.json'))
+          v=json.load(open('ba24_verify_v2.json'))
+          c=json.load(open('ba24_completion_v2.json'))
+          assert v['status']=='PASS' and v['implementation_imported'] is False
+          assert v['hardened_after_run1_harness_gap'] is True
+          assert c['status']=='PASS' and c['P_BA24_FINAL']==1
+          assert c['hardened_after_run1_harness_gap'] is True
+          assert c['required_passes']=='38/38'
+          assert c['required_names'][-2:]==['INDEPENDENT_REPLAY_PASS','PRESEAL_COMPLETENESS_PASS']
+          assert all(c['pass_map'][x]==1 for x in c['required_names'])
+          assert r['materialization_counters']=={'BA23_subset_residual_states':0,'DGDBO_objects':0,'prime_implicate_records':0}
+          large=r['diagnostics']['ba23']['large']
+          assert large['kappa']==3 and large['max_table_states']<=16
+          assert large['subset_states_materialized']==0
+          assert large['dp_count']==large['expected']
+          assert r['diagnostics']['source']['pass'] and r['diagnostics']['source']['cases']==18
+          assert v['source_reconstruction']['pass'] and v['source_reconstruction']['cases']==12
+          assert r['firewall']['UNBOUNDED_KAPPA_POLYNOMIAL_TIME']=='NOT_CLAIMED'
+          assert r['firewall']['P_VS_NP']=='OPEN'
+          assert r['BA25_started'] is False
+          print('BA24 hardened strict promotion guard PASS')
+          PY
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: janus-trump-r50g25ba24-hardened-result
+          path: |
+            ba24_result.json
+            ba24_verify_v2.json
+            ba24_completion_v2.json
+          if-no-files-found: error
