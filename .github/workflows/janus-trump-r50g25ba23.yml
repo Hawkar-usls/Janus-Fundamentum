@@ -1,0 +1,93 @@
+name: JANUS TRUMP R50G25BA23 exponential iterated DGDBO residual states
+
+on:
+  push:
+    branches:
+      - research/r50g25ba23-exponential-iterated-dgdbo-residual-state-growth-2026-09-09
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  scientific:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Verify frozen BA23 preregistration ancestry
+        shell: bash
+        run: |
+          set -euo pipefail
+          PREREG=592a24b603c10213ab110d5d27b1308b0fc69656
+          IMPL=c392db4372ba7aa72c87af00cc279aba60ead01d
+          VER=710feabea9d536daef1acba8663de2a8879e05ae
+          PRE=0a3a178e5bc89d7bbb4ac153dd00e0e9632d55ca
+          git merge-base --is-ancestor "$PREREG" "$IMPL"
+          git merge-base --is-ancestor "$IMPL" "$VER"
+          git merge-base --is-ancestor "$VER" "$PRE"
+          git merge-base --is-ancestor "$PRE" HEAD
+          python - <<'PY'
+          import json
+          p=json.load(open('research/JANUS_TRUMP_R50G25BA23_PREREGISTRATION.json'))
+          assert p['state']=='FROZEN_BEFORE_IMPLEMENTATION'
+          assert p['required_pass_count']==24
+          assert len(p['required_passes'])==len(set(p['required_passes']))==24
+          assert p['after_gate']['BA24_started'] is False
+          assert p['firewall']['P_VS_NP']=='OPEN'
+          print('PREREGISTRATION_BEFORE_IMPLEMENTATION_PASS')
+          PY
+
+      - name: Build exact BA23 residual-state theorem result
+        env:
+          PYTHONPATH: experiments
+        run: |
+          python experiments/janus_trump_r50g25ba23_exponential_iterated_dgdbo_residual_state_growth.py --out ba23_result.json
+
+      - name: Independent BA23 replay
+        env:
+          PYTHONPATH: experiments
+        run: |
+          python experiments/verify_janus_trump_r50g25ba23_exponential_iterated_dgdbo_residual_state_growth.py --result ba23_result.json --out ba23_verify.json
+
+      - name: Complete exact BA23 preseal
+        run: |
+          python experiments/complete_janus_trump_r50g25ba23_preseal_obligations.py --prereg research/JANUS_TRUMP_R50G25BA23_PREREGISTRATION.json --result ba23_result.json --verify ba23_verify.json --out ba23_completion.json
+
+      - name: Enforce strict BA23 promotion guard
+        run: |
+          python - <<'PY'
+          import json
+          r=json.load(open('ba23_result.json'))
+          v=json.load(open('ba23_verify.json'))
+          c=json.load(open('ba23_completion.json'))
+          assert v['status']=='PASS' and v['implementation_imported'] is False
+          assert c['status']=='PASS' and c['P_BA23_FINAL']==1
+          assert c['pass_count']==c['required_pass_count']==24
+          assert all(c['pass_map'][x]==1 for x in c['required_passes'])
+          assert r['large_symbolic_diagnostic']['states_materialized']==0
+          assert r['large_symbolic_diagnostic']['generic_proof_uses_enumeration'] is False
+          assert r['no_materialization']['generic_2_pow_m_state_enumeration']==0
+          assert c['scientific_summary']['active_state_law']=='2^t'
+          assert c['scientific_summary']['final_state_law']=='2^m'
+          assert c['scientific_summary']['other_symbolic_compression']=='OPEN_NOT_RULED_OUT'
+          assert c['BA24_started'] is False
+          assert c['firewall']['P_VS_NP']=='OPEN'
+          print('BA23 strict promotion guard PASS')
+          PY
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: janus-trump-r50g25ba23-result
+          path: |
+            ba23_result.json
+            ba23_verify.json
+            ba23_completion.json
+          if-no-files-found: error
