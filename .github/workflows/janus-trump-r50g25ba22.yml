@@ -1,0 +1,57 @@
+name: JANUS TRUMP R50G25BA22 single foreign clause DGDBO closure
+
+on:
+  push:
+    branches:
+      - research/r50g25ba22-single-foreign-clause-decision-guarded-dbo-closure-2026-09-09
+  workflow_dispatch:
+
+jobs:
+  scientific:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Verify frozen BA22 preregistration ancestry
+        run: |
+          git merge-base --is-ancestor 214ad418951a2dfa51ece4f27f4965e2b088522a HEAD
+      - name: Build exact BA22 DGDBO theorem result
+        env:
+          PYTHONPATH: experiments
+        run: |
+          python experiments/janus_trump_r50g25ba22_single_foreign_clause_decision_guarded_dbo_closure.py --out JANUS_TRUMP_R50G25BA22_RESULT.json
+      - name: Independent BA22 replay
+        env:
+          PYTHONPATH: experiments
+        run: |
+          python experiments/verify_janus_trump_r50g25ba22_single_foreign_clause_decision_guarded_dbo_closure.py --result JANUS_TRUMP_R50G25BA22_RESULT.json --out JANUS_TRUMP_R50G25BA22_VERIFY.json
+      - name: Complete exact BA22 preseal
+        run: |
+          python experiments/complete_janus_trump_r50g25ba22_preseal_obligations.py --prereg research/JANUS_TRUMP_R50G25BA22_PREREGISTRATION.json --result JANUS_TRUMP_R50G25BA22_RESULT.json --verify JANUS_TRUMP_R50G25BA22_VERIFY.json --out JANUS_TRUMP_R50G25BA22_PRESEAL_COMPLETION.json
+      - name: Enforce strict BA22 promotion guard
+        run: |
+          python - <<'PY'
+          import json
+          r=json.load(open('JANUS_TRUMP_R50G25BA22_RESULT.json'))
+          v=json.load(open('JANUS_TRUMP_R50G25BA22_VERIFY.json'))
+          c=json.load(open('JANUS_TRUMP_R50G25BA22_PRESEAL_COMPLETION.json'))
+          assert c['status']=='PASS' and c['P_BA22_FINAL']==1 and c['all_required_passes']
+          assert len(c['required_pass_names'])==27 and all(c['required_passes'][k]==1 for k in c['required_pass_names'])
+          assert v['status']=='PASS' and v['implementation_imported'] is False
+          assert r['xor_control']['bare_DBO_closed'] is False and r['xor_control']['DGDBO_exact'] is True
+          assert r['no_materialization']['PRIME_IMPLICATE_RECORDS']==0
+          assert r['no_materialization']['CARTESIAN_BA20_TUPLES']==0
+          assert r['no_materialization']['EXPAND_BA20_CNF'] is False
+          assert r['firewall']['single_clause_closure_ne_arbitrary_CNF_closure'] is True
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: janus-trump-r50g25ba22-result
+          path: |
+            JANUS_TRUMP_R50G25BA22_RESULT.json
+            JANUS_TRUMP_R50G25BA22_VERIFY.json
+            JANUS_TRUMP_R50G25BA22_PRESEAL_COMPLETION.json
