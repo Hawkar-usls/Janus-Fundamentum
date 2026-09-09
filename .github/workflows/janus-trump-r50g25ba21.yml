@@ -1,0 +1,81 @@
+name: JANUS TRUMP R50G25BA21 proof-carrying DBO compressed projection
+
+on:
+  push:
+    branches:
+      - research/r50g25ba21-generic-proof-carrying-disjoint-block-or-compressed-projection-2026-09-09
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  scientific:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Verify frozen BA21 preregistration ancestry
+        run: |
+          git merge-base --is-ancestor 26f582d9050369719d92be22d498f649c0a932c9 bd49ba59b12ab344ed3800b285d3009364064257
+          git merge-base --is-ancestor 26f582d9050369719d92be22d498f649c0a932c9 8da4e0560bdbbc31d94e7e4ab65a098222e5f5c1
+          git merge-base --is-ancestor 26f582d9050369719d92be22d498f649c0a932c9 5e29095b6b733d2c649a2ad4b3e5f451761c89d6
+          git merge-base --is-ancestor 26f582d9050369719d92be22d498f649c0a932c9 7795a6e288c057c82cee7c44b8c59cd59077105a
+          test "$(git show --format=%s --no-patch 26f582d9050369719d92be22d498f649c0a932c9)" = "preregister R50G25BA21 generic proof-carrying DBO compressed projection"
+      - name: Build exact BA21 compressed theorem result
+        env:
+          PYTHONPATH: experiments
+        run: |
+          mkdir -p artifacts
+          python experiments/janus_trump_r50g25ba21_generic_proof_carrying_dbo_compressed_projection.py --out artifacts/JANUS_TRUMP_R50G25BA21_RESULT.json
+      - name: Independent BA21 replay
+        env:
+          PYTHONPATH: experiments
+        run: |
+          python experiments/verify_janus_trump_r50g25ba21_generic_proof_carrying_dbo_compressed_projection.py --result artifacts/JANUS_TRUMP_R50G25BA21_RESULT.json --out artifacts/JANUS_TRUMP_R50G25BA21_VERIFY.json
+      - name: Complete exact BA21 preseal
+        env:
+          PYTHONPATH: experiments
+        run: |
+          python experiments/complete_janus_trump_r50g25ba21_preseal_obligations.py --prereg research/JANUS_TRUMP_R50G25BA21_PREREGISTRATION.json --result artifacts/JANUS_TRUMP_R50G25BA21_RESULT.json --verify artifacts/JANUS_TRUMP_R50G25BA21_VERIFY.json --out artifacts/JANUS_TRUMP_R50G25BA21_PRESEAL_COMPLETION.json
+      - name: Enforce strict BA21 promotion guard
+        run: |
+          python - <<'PY'
+          import hashlib,json
+          from pathlib import Path
+          rp=Path('artifacts/JANUS_TRUMP_R50G25BA21_RESULT.json');vp=Path('artifacts/JANUS_TRUMP_R50G25BA21_VERIFY.json');cp=Path('artifacts/JANUS_TRUMP_R50G25BA21_PRESEAL_COMPLETION.json')
+          r=json.loads(rp.read_text());v=json.loads(vp.read_text());c=json.loads(cp.read_text())
+          assert r['preregistration_commit']=='26f582d9050369719d92be22d498f649c0a932c9'
+          assert r['preimplementation_hardening_commit']=='bd49ba59b12ab344ed3800b285d3009364064257'
+          assert r['parent_BA20_meta_commit']=='fa0b503233cb873282c0d8317adf89e48223402b'
+          assert r['implementation_version']=='BA21_V1_DBO_NO_MATERIALIZATION'
+          nm=r['no_materialization']
+          assert nm['EXPLICIT_PRIME_IMPLICATE_RECORDS']==0
+          assert nm['EXPLICIT_CARTESIAN_OUTPUT_TUPLES']==0
+          assert nm['EXPLICIT_SUPPORT_PRODUCT_RECORDS']==0
+          assert nm['expand_then_compress'] is False
+          assert r['large_depth_diagnostic']['DBO_blocks']==65
+          assert r['large_depth_diagnostic']['variable_references']==129
+          assert r['falsifiers']==[] and r['failed_builder_obligations']==[]
+          assert v['status']=='PASS' and v['P_BA21']==1 and v['implementation_imported'] is False
+          assert v['BA20_lower_bound_preserved'] is True
+          assert c['status']=='PASS' and c['P_BA21_FINAL']==1 and c['required_pass_count']==29
+          assert c['all_required_passes'] is True and c['BA22_started'] is False
+          assert r['P_VS_NP']=='OPEN' and r['SAT_IN_P']=='NOT_PROVED'
+          print('RESULT_SHA256='+hashlib.sha256(rp.read_bytes()).hexdigest())
+          print('VERIFY_SHA256='+hashlib.sha256(vp.read_bytes()).hexdigest())
+          print('COMPLETION_SHA256='+hashlib.sha256(cp.read_bytes()).hexdigest())
+          print('P_BA21_FINAL=1')
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: janus-trump-r50g25ba21-result
+          path: |
+            artifacts/JANUS_TRUMP_R50G25BA21_RESULT.json
+            artifacts/JANUS_TRUMP_R50G25BA21_VERIFY.json
+            artifacts/JANUS_TRUMP_R50G25BA21_PRESEAL_COMPLETION.json
+          if-no-files-found: error
