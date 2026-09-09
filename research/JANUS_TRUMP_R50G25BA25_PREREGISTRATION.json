@@ -1,0 +1,286 @@
+{
+  "gate": "R50G25BA25_VARIABLE_LOCALIZED_HYBRID_FACTOR_GRAPH_FPT_AND_ARBITRARY_CNF_INCIDENCE_WIDTH_CALIBRATION",
+  "date": "2026-09-10",
+  "state": "FROZEN_BEFORE_IMPLEMENTATION",
+  "scientific_parent": {
+    "meta_file": "data/JANUS-TRUMP-R50G25-DEVELOPMENT-MIRROR-2026-09-09-v4.7-BA24-2.json",
+    "meta_commit": "e4b495ad5a4d0800558a6f67de283ba92cf83614",
+    "meta_blob": "87f0eb6f1e8f52bbd0af82f86010b6e9bde0a7c6",
+    "status": "BA24_A_PROOF_CARRYING_HYBRID_DBO_FOREIGN_CNF_BLOCK_INCIDENCE_FPT_PROCESSING_CERTIFIED_AND_BIDIRECTIONALLY_LINKED",
+    "BA24_started_successor": false,
+    "source_parent_commit": "187c985d67cdfd896ae58d335635bc73ae02c5ae"
+  },
+  "status_first": {
+    "BA25_source_branches_found": 0,
+    "BA25_meta_branches_found": 0,
+    "R50G25BA25_code_hits_default_branches": 0,
+    "R50G25BA25_commit_hits": 0,
+    "verdict": "BA25_NOT_STARTED_BEFORE_THIS_PREREGISTRATION"
+  },
+  "purpose": "Test whether BA24's global block-interface parameter kappa is unnecessarily coarse by exposing individual surviving variables as factor-graph vertices and carrying only separator-local variable values rather than whole block-interface assignments.",
+  "novelty_firewall": {
+    "do_not_claim": [
+      "bounded-treewidth SAT dynamic programming is a new general mathematical discovery",
+      "BA24 kappa was wrong",
+      "arbitrary CNF has bounded tau",
+      "general SAT is polynomial-time",
+      "SAT_IN_P",
+      "P_equals_NP",
+      "arbitrary foreign CNF BA4 carrier transport"
+    ],
+    "project_level_target": "JANUS/TRUMP's sealed compressed DBO route can be refined from global block-domain interfaces to variable-local factor separators, eliminating unnecessary lambda dependence on some families while retaining proof-carrying exact SAT/#SAT/witness and source return.",
+    "calibration_role": "The arbitrary-CNF embedding is a semantic and incidence-width calibration, not a P-vs-NP claim."
+  },
+  "input_grammar": {
+    "Phi": "DBO(B_1,...,B_r)=OR_i AND_{v in B_i} v",
+    "blocks": "pairwise-disjoint nonempty blocks partition all surviving variables",
+    "Gamma": "arbitrary canonical mixed-polarity foreign CNF over surviving variables",
+    "canonical_literal_edge_label": "for each variable-clause adjacency store the exact nonempty sign-set subset of {POS,NEG}; ordinary non-tautological incidence has one sign, while a clause containing both v and NOT v may carry both signs so arbitrary CNF semantics are preserved without silently dropping tautologies",
+    "duplicate_literal_policy": "duplicate identical literal occurrences are canonicalized to one signed occurrence with an explicit semantics-preservation receipt",
+    "empty_clause_policy": "empty clauses are preserved as clause vertices with no variable edges and must fail at FORGET_CLAUSE"
+  },
+  "expanded_factor_graph": {
+    "name": "G_star",
+    "vertices": {
+      "variables": "one node v per surviving variable",
+      "blocks": "one node B_i per DBO conjunction block",
+      "clauses": "one node C_c per foreign CNF clause"
+    },
+    "edges": {
+      "block": "v--B_i iff v in B_i",
+      "clause": "v--C_c iff v occurs positively and/or negatively in C_c; edge label is exact canonical sign-set"
+    },
+    "block_partition_degree_law": "every variable has exactly one BLOCK neighbor"
+  },
+  "decomposition": {
+    "input": "supplied tree decomposition (T,beta) of the underlying unsigned G_star",
+    "tau": "max_t |beta(t)| - 1",
+    "verifier_obligations": [
+      "vertex coverage",
+      "edge coverage",
+      "running intersection",
+      "exact claimed tau"
+    ],
+    "optimal_treewidth_search": "NOT_PART_OF_THE_THEOREM"
+  },
+  "nice_decomposition": {
+    "format": "PC_HYBRID_FACTOR_TD_V1",
+    "node_types": [
+      "LEAF",
+      "INTRODUCE_VARIABLE",
+      "INTRODUCE_BLOCK",
+      "INTRODUCE_CLAUSE",
+      "INTRODUCE_BLOCK_EDGE",
+      "INTRODUCE_CLAUSE_EDGE",
+      "FORGET_VARIABLE",
+      "FORGET_BLOCK",
+      "FORGET_CLAUSE",
+      "JOIN"
+    ],
+    "edge_rule": "every graph edge is introduced exactly once before either endpoint is forgotten",
+    "join_rule": "children have the same bag; processed non-bag vertex sets of the two child subtrees must be disjoint"
+  },
+  "dp_state": {
+    "active_variable": "value(v) in {0,1}",
+    "active_clause": "clause_sat(C) in {0,1}, meaning at least one already processed incident signed literal is true",
+    "active_block": "block_alive(B) in {0,1}, meaning every already processed incident variable of B is true",
+    "global": "witness_seen in {0,1}, meaning some already forgotten complete DBO block was all true",
+    "forbidden_materializations": [
+      "full block-interface assignment objects",
+      "DGDBO residual objects",
+      "BA23 subset residual states",
+      "prime-implicate materialization"
+    ]
+  },
+  "state_bound": {
+    "per_active_graph_node_bits": 1,
+    "extra_global_bits": 1,
+    "bag_bound": "STATES(t) <= 2^(|beta(t)|+1) <= 2^(tau+2)",
+    "central_parameter_theorem": true
+  },
+  "transitions": {
+    "INTRODUCE_VARIABLE": "branch value(v)=0 or 1; bag-variable assignments carry unit weight until forgotten",
+    "INTRODUCE_BLOCK": "initialize block_alive(B)=1",
+    "INTRODUCE_CLAUSE": "initialize clause_sat(C)=0",
+    "INTRODUCE_BLOCK_EDGE": "block_alive(B) := block_alive(B) AND value(v)",
+    "INTRODUCE_CLAUSE_EDGE": "clause_sat(C) := clause_sat(C) OR evaluation_of_exact_sign_set_label(value(v)); POS evaluates v, NEG evaluates NOT v, {POS,NEG} evaluates true",
+    "FORGET_CLAUSE": "allowed only after all incident clause edges were introduced; discard state if clause_sat(C)=0, otherwise remove C",
+    "FORGET_BLOCK": "allowed only after all incident block edges were introduced; witness_seen := witness_seen OR block_alive(B), then remove B",
+    "FORGET_VARIABLE": "allowed only after all incident graph edges were introduced; decision projects value(v); #SAT sums the two value branches; no weight is assigned elsewhere",
+    "JOIN": "active variable values must agree; clause_sat is OR; block_alive is AND; witness_seen is OR; exact counts multiply across child-private forgotten variables and sum over compatible child records",
+    "ROOT": "empty root accepts iff witness_seen=1; every foreign clause must already have survived FORGET_CLAUSE"
+  },
+  "exact_counting_invariant": "For each table state, the integer count equals the number of assignments to variables already forgotten in that subtree that realize exactly the recorded active-node summary. Active bag variables are unweighted. Each full surviving-variable assignment contributes exactly once at the root.",
+  "witness": {
+    "proof_carrying_backpointers": true,
+    "recover": [
+      "complete surviving-variable assignment",
+      "one all-TRUE DBO block",
+      "one satisfied literal witness for every foreign clause"
+    ],
+    "direct_verification": ["Phi=TRUE", "Gamma=TRUE"],
+    "source_return": "invoke sealed BA20/BA21 reconstruction where the control instance belongs to that sealed route; no new BA4 carrier coverage theorem"
+  },
+  "complexity": {
+    "states_per_bag": "<=2^(tau+2)",
+    "naive_join_pair_work": "<=4^(tau+2)",
+    "runtime": "O(|T_nice| * 4^(tau+2) * poly(N)) = poly(N,|T|)*2^O(tau)",
+    "tasks": ["SAT", "exact #SAT", "witness", "proof replay"],
+    "fixed_tau": "polynomial explicit-input time",
+    "unbounded_tau": "NO_POLYNOMIAL_CLAIM"
+  },
+  "BA24_preservation": {
+    "law": "COARSE_BLOCK_INTERFACE_DP != VARIABLE_LOCALIZED_FACTOR_DP",
+    "BA24_kappa": "a sufficient parameter for BA24's coarser block-domain DP",
+    "BA25_tau": "separator width of a different variable-localized representation",
+    "BA24_remains_fully_valid": true
+  },
+  "large_block_star_control": {
+    "block": "B={x_1,...,x_lambda}",
+    "foreign_clauses": "C_j=(x_j) for j=1..lambda",
+    "BA24_graph": "star B--C_j",
+    "BA24_w": 1,
+    "BA24_interface": "I_B={x_1,...,x_lambda}",
+    "BA24_kappa": "lambda+1 on bag {B,C_j}",
+    "BA25_graph": "tree with arms B--x_j--C_j",
+    "BA25_tau_target": 1,
+    "required_exact_certificate": true,
+    "parameter_separation_target": "kappa=Theta(lambda) while tau=1"
+  },
+  "BA23_killer_control": {
+    "family": "Phi_m=OR_i(a_i AND b_i), Gamma_m=AND_i(a_i OR b_i)",
+    "component": "4-cycle B_i-a_i-C_i-b_i-B_i",
+    "graph": "disjoint union of 4-cycles",
+    "tau_target": 2,
+    "state_bound_per_bag": 16,
+    "exact_count": "3^m-2^m",
+    "required_zero_materialization": ["BA23 subset residual states", "DGDBO objects"]
+  },
+  "BA24_crosscheck": "Run frozen low-kappa BA24 semantic controls through the independent BA25 formulation; SAT/#SAT/witness must agree, while state-table sizes may differ.",
+  "mixed_polarity_controls": [
+    "x OR y",
+    "x OR NOT y",
+    "NOT x OR y",
+    "NOT x OR NOT y",
+    "long mixed clauses",
+    "tautological sign-set edge control"
+  ],
+  "arbitrary_cnf_embedding": {
+    "input": "any CNF F over x_1,...,x_n, represented canonically with exact sign-set incidence semantics",
+    "fresh_variable": "z",
+    "singleton_DBO_blocks": ["{z}", "{x_1}", "...", "{x_n}"],
+    "Phi": "z OR x_1 OR ... OR x_n",
+    "Gamma": "F AND (z)",
+    "equivalence_target": "Phi AND Gamma iff F AND z",
+    "SAT_target": "SAT(Phi AND Gamma) iff SAT(F)",
+    "count_target": "#SAT(Phi AND Gamma)=#SAT(F), with unique extension z=TRUE"
+  },
+  "incidence_treewidth_calibration": {
+    "H_F": "ordinary variable-clause incidence graph of F, ignoring signed labels",
+    "embedding_graph_relation": "G_star contains H_F as an induced subgraph on original x_i and F-clause vertices; each singleton block {x_i} is one leaf on x_i; the fresh z component is the path {z}-z-(z)",
+    "candidate_exact_relation_to_verify": "tau_embedding = max(1, tw(H_F))",
+    "proof_plan": "lower bound from H_F subgraph plus the fresh z edge; upper bound by adding each singleton block leaf to a bag containing x_i and using an independent width-1 decomposition for the fresh z path",
+    "promotion_rule": "promote equality only if verifier confirms all frozen edge cases; otherwise promote only the tight verified upper/lower relation and mark the equality candidate failed without rewriting preregistration"
+  },
+  "scientific_calibration_firewall": {
+    "semantic_input_grammar_coverage_if_passed": "arbitrary CNF embeds SAT/#SAT-preservingly into the hybrid grammar",
+    "parameterized_conclusion_if_passed": "bounded expanded/incidence treewidth gives FPT processing",
+    "forbidden_inferences": [
+      "arbitrary CNF has bounded tau",
+      "arbitrary CNF has bounded incidence treewidth",
+      "general SAT is polynomial",
+      "P=NP"
+    ],
+    "semantic_embedding_ne_carrier_transport": "ARBITRARY_FOREIGN_CNF_SEMANTIC_EMBEDDING != ARBITRARY_FOREIGN_CNF_BA4_CARRIER_TRANSPORT"
+  },
+  "proof_carrying_format": {
+    "name": "PC_HYBRID_FACTOR_TD_V1",
+    "must_contain": [
+      "canonical variables",
+      "DBO block partition",
+      "canonical foreign CNF",
+      "signed/sign-set factor graph G_star",
+      "supplied tree decomposition",
+      "nice-decomposition receipt",
+      "per-bag table hashes",
+      "transition receipts",
+      "exact count",
+      "witness backpointers",
+      "parent BA24/BA21 seals",
+      "source reconstruction receipt"
+    ],
+    "independent_verifier_imports_implementation": false
+  },
+  "required_passes": [
+    "STATUS_FIRST_PASS",
+    "PREREGISTRATION_BEFORE_IMPLEMENTATION_PASS",
+    "BA24_IMMUTABILITY_PASS",
+    "BA23_IMMUTABILITY_PASS",
+    "EXPANDED_FACTOR_GRAPH_PASS",
+    "SIGNED_EDGE_PASS",
+    "TREE_DECOMPOSITION_VALIDATION_PASS",
+    "NICE_DECOMPOSITION_PASS",
+    "DP_STATE_SCHEMA_PASS",
+    "STATE_2_POW_TAU_PLUS_2_PASS",
+    "INTRODUCE_VARIABLE_PASS",
+    "BLOCK_EDGE_PASS",
+    "CLAUSE_EDGE_PASS",
+    "FORGET_VARIABLE_PASS",
+    "FORGET_BLOCK_PASS",
+    "FORGET_CLAUSE_PASS",
+    "JOIN_PASS",
+    "ROOT_EQUIVALENCE_PASS",
+    "EXACT_MODEL_COUNT_PASS",
+    "PROJECTED_SAT_PASS",
+    "PROJECTED_WITNESS_PASS",
+    "SOURCE_RECONSTRUCTION_PASS",
+    "FPT_TAU_COMPLEXITY_PASS",
+    "BA24_PARAMETER_PRESERVATION_PASS",
+    "LARGE_BLOCK_STAR_SEPARATION_PASS",
+    "BA23_KILLER_RECOVERY_PASS",
+    "BA24_CROSSCHECK_PASS",
+    "MIXED_POLARITY_PASS",
+    "ARBITRARY_CNF_SEMANTIC_EMBEDDING_PASS",
+    "INCIDENCE_TREEWIDTH_CALIBRATION_PASS",
+    "BA4_CARRIER_NONCLAIM_PASS",
+    "NOVELTY_SCOPE_PASS",
+    "INDEPENDENT_REPLAY_PASS",
+    "PRESEAL_COMPLETENESS_PASS"
+  ],
+  "required_pass_count": 34,
+  "falsifiers": {
+    "F1": "Variable-local factor graph loses DBO or clause semantics.",
+    "F2": "State needs more than one bit per active graph node under frozen schema.",
+    "F3": "JOIN block_alive algebra is wrong.",
+    "F4": "Clause satisfaction double-counts or loses an incident literal.",
+    "F5": "Exact #SAT differs from brute-force controls.",
+    "F6": "Witness fails Phi.",
+    "F7": "Witness fails Gamma.",
+    "F8": "BA23 killer requires exponential states.",
+    "F9": "Large-block star does not have tau=1.",
+    "F10": "BA24 kappa/lambda dependence is incorrectly called universally necessary.",
+    "F11": "Arbitrary-CNF embedding changes SAT.",
+    "F12": "Arbitrary-CNF embedding changes #SAT.",
+    "F13": "Incidence-width relation is false.",
+    "F14": "Semantic embedding is confused with BA4 carrier coverage.",
+    "F15": "Bounded tau is promoted to unparameterized polynomial SAT.",
+    "F16": "Independent replay fails."
+  },
+  "success_label": "BA25_A_VARIABLE_LOCALIZED_HYBRID_FACTOR_GRAPH_FPT_AND_ARBITRARY_CNF_INCIDENCE_WIDTH_CALIBRATION_CERTIFIED",
+  "success_meaning": "For the exact hybrid DBO + foreign-CNF grammar, given a verified tree decomposition of G_star of width tau, SAT, exact #SAT, witness and proof replay are computable in poly(N,|T|)*2^O(tau), with at most 2^(tau+2) states per bag under the frozen schema; this improves BA24 parameterization on the certified large-block-star family and calibrates the grammar against arbitrary-CNF incidence width without proving unrestricted polynomial SAT.",
+  "after_BA25": {
+    "STOP": true,
+    "BA26_started": false,
+    "next_theorem_gate_started": false,
+    "required_before_any_future_theorem_gate": "EXTERNAL_LITERATURE_NOVELTY_EQUIVALENCE_AUDIT",
+    "audit_topics": [
+      "incidence-treewidth SAT algorithms",
+      "factor-graph dynamic programming",
+      "#SAT on bounded-width decompositions",
+      "knowledge compilation and separator methods",
+      "extended formulations and existential projection"
+    ],
+    "P_VS_NP": "OPEN",
+    "SAT_IN_P": "NOT_PROVED"
+  }
+}
