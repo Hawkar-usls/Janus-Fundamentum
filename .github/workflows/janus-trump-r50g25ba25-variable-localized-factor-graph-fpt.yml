@@ -1,0 +1,96 @@
+name: JANUS TRUMP R50G25BA25 variable localized factor graph FPT
+
+on:
+  push:
+    branches:
+      - research/r50g25ba25-variable-localized-hybrid-factor-graph-fpt-2026-09-10
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  scientific-ba25:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Verify frozen BA25 ancestry and BA24 parent
+        shell: bash
+        run: |
+          set -euo pipefail
+          PARENT=187c985d67cdfd896ae58d335635bc73ae02c5ae
+          PREREG=466e839107f224cdf6ea7ec5294eef8bd9003cd6
+          IMPL=1b7f9be5dd94f346a6ba4102ab6900f541b5c14e
+          VERIFY=a7caa09fabab4cbfc1dcb9a7bdb5e260010cc2f5
+          PRESEAL=d208790d54b897d79cc12de50a5ac91da9441cbf
+          git merge-base --is-ancestor "$PARENT" "$PREREG"
+          git merge-base --is-ancestor "$PREREG" "$IMPL"
+          git merge-base --is-ancestor "$IMPL" "$VERIFY"
+          git merge-base --is-ancestor "$VERIFY" "$PRESEAL"
+          git merge-base --is-ancestor "$PRESEAL" HEAD
+          test "$(git show ${PREREG}:research/JANUS_TRUMP_R50G25BA25_PREREGISTRATION.json | python -c 'import json,sys; print(json.load(sys.stdin)["state"])')" = "FROZEN_BEFORE_IMPLEMENTATION"
+          test "$(git show ${PREREG}:research/JANUS_TRUMP_R50G25BA25_PREREGISTRATION.json | python -c 'import json,sys; print(len(json.load(sys.stdin)["required_passes"]))')" = "34"
+          test "$(python -c 'import json; x=json.load(open("research/JANUS_TRUMP_R50G25BA24_RESULT_RECEIPT.json")); print(x["authoritative_evidence"]["P_BA24_FINAL"])')" = "1"
+
+      - name: Build exact BA25 proof-carrying result
+        run: python research/janus_trump_r50g25ba25.py > ba25_result.json
+
+      - name: Independent BA25 replay
+        run: python research/verify_janus_trump_r50g25ba25.py
+
+      - name: Complete exact BA25 preseal
+        run: python research/preseal_janus_trump_r50g25ba25.py
+
+      - name: Enforce strict BA25 promotion guard
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json
+          p=json.load(open('research/JANUS_TRUMP_R50G25BA25_PREREGISTRATION.json'))
+          r=json.load(open('ba25_result.json'))
+          v=json.load(open('ba25_verify.json'))
+          c=json.load(open('ba25_completion.json'))
+          names=p['required_passes']
+          assert len(names)==34 and len(set(names))==34
+          assert r['passes']==32 and r['required']==34 and r['P_BA25_FINAL']==0 and r['falsifiers']==[]
+          assert v['status']=='PASS' and v['implementation_imported'] is False and v['falsifiers']==[]
+          assert c['passes']==34 and c['required']==34 and c['P_BA25_FINAL']==1 and c['falsifiers']==[]
+          assert set(c['pass_map'])==set(names) and all(c['pass_map'].values())
+          assert c['status']=='BA25_A_VARIABLE_LOCALIZED_HYBRID_FACTOR_GRAPH_FPT_AND_ARBITRARY_CNF_INCIDENCE_WIDTH_CALIBRATION_CERTIFIED'
+          assert v['assertions']['proof_transcript_replay']
+          assert v['assertions']['star'] and v['assertions']['killer'] and v['assertions']['ba24_crosscheck']
+          assert v['assertions']['embedding_builder'] and v['assertions']['embedding_independent']
+          assert v['assertions']['tw_calibration']
+          assert r['materialization']['BA23_subset_residual_states']==0
+          assert r['materialization']['DGDBO_objects']==0
+          assert c['theorem']['SAT_IN_P']=='NOT_PROVED' and c['theorem']['P_VS_NP']=='OPEN'
+          assert c['STOP']['BA26_started'] is False and c['STOP']['next_theorem_gate_started'] is False
+          assert c['STOP']['external_literature_novelty_equivalence_audit_required'] is True
+          print('P_BA25_FINAL=1')
+          PY
+
+      - name: Hash BA25 evidence
+        shell: bash
+        run: |
+          set -euo pipefail
+          sha256sum ba25_result.json ba25_verify.json ba25_completion.json > ba25_sha256.txt
+          cat ba25_sha256.txt
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: janus-trump-r50g25ba25-result
+          path: |
+            ba25_result.json
+            ba25_verify.json
+            ba25_completion.json
+            ba25_sha256.txt
+          if-no-files-found: error
