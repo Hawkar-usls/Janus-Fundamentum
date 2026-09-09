@@ -1,0 +1,94 @@
+name: JANUS TRUMP R50G25BA24 hybrid DBO foreign-CNF interface DP
+
+on:
+  push:
+    branches:
+      - research/r50g25ba24-hybrid-dbo-foreign-cnf-interface-dp-2026-09-09
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  scientific:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Verify frozen BA24 preregistration ancestry
+        shell: bash
+        run: |
+          set -euo pipefail
+          PREREG=1b26099f02b8c9204c4ca7ef1eb5eb210658b1cd
+          IMPL=5af8f2f0ea5a2a4b4e837dae5ad23dec50d53414
+          VER=9a489afeaa5d2780eb9751ba870ee5a4fa352f35
+          PRE=d4707d7cfa43d14a9b393aad18e1d67f05d1a176
+          git merge-base --is-ancestor "$PREREG" "$IMPL"
+          git merge-base --is-ancestor "$IMPL" "$VER"
+          git merge-base --is-ancestor "$VER" "$PRE"
+          git merge-base --is-ancestor "$PRE" HEAD
+          python - <<'PY'
+          import json
+          p=json.load(open('research/JANUS_TRUMP_R50G25BA24_PREREGISTRATION.json'))
+          assert p['state']=='FROZEN_BEFORE_IMPLEMENTATION'
+          assert len(p['required_passes'])==len(set(p['required_passes']))==38
+          assert p['after']['BA25_started'] is False
+          assert p['firewalls']['P_VS_NP']=='OPEN'
+          assert p['scope']['tree_decomposition']=='GIVEN_AND_CERTIFICATE_VERIFIED'
+          print('PREREGISTRATION_BEFORE_IMPLEMENTATION_PASS')
+          PY
+
+      - name: Build exact BA24 hybrid interface-DP result
+        env:
+          PYTHONPATH: experiments
+        run: |
+          python experiments/janus_trump_r50g25ba24_hybrid_dbo_foreign_cnf_interface_dp.py --out ba24_result.json
+
+      - name: Independent BA24 replay
+        env:
+          PYTHONPATH: experiments
+        run: |
+          python experiments/verify_janus_trump_r50g25ba24_hybrid_dbo_foreign_cnf_interface_dp.py --result ba24_result.json --implementation experiments/janus_trump_r50g25ba24_hybrid_dbo_foreign_cnf_interface_dp.py --out ba24_verify.json
+
+      - name: Complete exact BA24 preseal
+        run: |
+          python experiments/complete_janus_trump_r50g25ba24_preseal.py --prereg research/JANUS_TRUMP_R50G25BA24_PREREGISTRATION.json --result ba24_result.json --verify ba24_verify.json --out ba24_completion.json
+
+      - name: Enforce strict BA24 promotion guard
+        run: |
+          python - <<'PY'
+          import json
+          r=json.load(open('ba24_result.json'))
+          v=json.load(open('ba24_verify.json'))
+          c=json.load(open('ba24_completion.json'))
+          assert v['status']=='PASS' and v['implementation_imported'] is False
+          assert c['status']=='PASS' and c['P_BA24_FINAL']==1
+          assert c['required_passes']=='38/38'
+          assert all(c['pass_map'][x]==1 for x in c['required_names'])
+          assert r['materialization_counters']=={'BA23_subset_residual_states':0,'DGDBO_objects':0,'prime_implicate_records':0}
+          assert r['diagnostics']['ba23']['large']['kappa']==3
+          assert r['diagnostics']['ba23']['large']['max_table_states']<=16
+          assert r['diagnostics']['ba23']['large']['subset_states_materialized']==0
+          assert r['diagnostics']['ba23']['large']['dp_count']==r['diagnostics']['ba23']['large']['expected']
+          assert r['diagnostics']['source']['pass'] and v['source_reconstruction']['pass']
+          assert r['firewall']['UNBOUNDED_KAPPA_POLYNOMIAL_TIME']=='NOT_CLAIMED'
+          assert r['firewall']['P_VS_NP']=='OPEN'
+          assert r['BA25_started'] is False
+          print('BA24 strict promotion guard PASS')
+          PY
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: janus-trump-r50g25ba24-result
+          path: |
+            ba24_result.json
+            ba24_verify.json
+            ba24_completion.json
+          if-no-files-found: error
