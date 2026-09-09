@@ -1,0 +1,153 @@
+{
+  "gate": "R50G25BA24_HYBRID_DBO_FOREIGN_CNF_INTERFACE_DP",
+  "date": "2026-09-09",
+  "state": "FROZEN_BEFORE_IMPLEMENTATION",
+  "parent": {
+    "meta_file": "data/JANUS-TRUMP-R50G25-DEVELOPMENT-MIRROR-2026-09-09-v4.6-BA23-2.json",
+    "meta_commit": "dac4e99f3a841a5d82b8a54e19e0c20f9e4f6244",
+    "source_sync_commit": "6b347471c9dfa478e9f3edea0b7f2ee005ed0e74",
+    "status": "BA23_A_EXPONENTIAL_ITERATED_DGDBO_RESIDUAL_STATE_GROWTH_CERTIFIED_AND_BIDIRECTIONALLY_LINKED"
+  },
+  "scientific_target": "For Phi=DBO(B_1,...,B_r) and arbitrary mixed-polarity foreign CNF Gamma over surviving variables, keep Phi and Gamma factorized and certify exact decision/model-count/witness processing over a supplied independently verified labeled block-clause incidence tree decomposition in poly(N)*2^{O(kappa)} time, without compiling Gamma into DGDBO residual states.",
+  "scope": {
+    "bare_object": "Phi AND Gamma",
+    "DBO_semantics": "OR_i AND_{v in B_i} v",
+    "blocks_pairwise_variable_disjoint": true,
+    "foreign_CNF": "arbitrary canonical clauses over surviving DBO variables; mixed polarity allowed",
+    "carrier_transport_of_foreign_CNF": "NOT_PART_OF_BA24",
+    "tree_decomposition": "GIVEN_AND_CERTIFICATE_VERIFIED",
+    "minimum_treewidth_computation": "NOT_CLAIMED"
+  },
+  "labeled_incidence": {
+    "vertices": "DBO block vertices B_i plus foreign clause vertices C_c",
+    "edge": "B_i--C_c iff C_c contains at least one literal whose variable lies in B_i",
+    "edge_label": "the exact canonical signed literal set of C_c contributed by variables in B_i",
+    "requirement": "unlabeled incidence alone is insufficient"
+  },
+  "interfaces": {
+    "I_i": "B_i intersection Var(Gamma)",
+    "U_i": "B_i minus I_i",
+    "lambda": "max_i |I_i|",
+    "bag_kappa": "kappa(t)=SUM_{B_i in bag(t)} |I_i| + number_of_foreign_clause_vertices_in_bag(t)",
+    "global_kappa": "max_t kappa(t)",
+    "treewidth_relation": "for decomposition width w, kappa <= max(1,lambda)*(w+1)"
+  },
+  "dp_state": {
+    "interface_assignment": "one truth value for every variable in I_i for every active block B_i in the bag",
+    "clause_satisfied_bits": "one bit for every active foreign clause vertex",
+    "dbo_witness_seen": "one global bit recording whether a forgotten block has already been made entirely TRUE",
+    "state_count_bound": "at bag t, at most 2^(kappa(t)+1) states"
+  },
+  "nice_decomposition_transitions": {
+    "introduce_block": "enumerate assignment to all I_i bits; do not assign U_i yet",
+    "introduce_clause": "initialize its satisfied bit to 0 unless canonical clause is already TRUE and therefore removed before graph construction",
+    "introduce_edge": "evaluate the exact signed edge-label literals under the active block interface assignment and OR the result into that clause satisfied bit",
+    "forget_clause": "retain only states with satisfied bit 1",
+    "forget_block_decision": "if all interface bits of B_i are TRUE, existentially choose U_i all TRUE and set witness_seen=1; otherwise witness_seen cannot be newly created",
+    "forget_block_count": "if sigma_i is not all TRUE, multiply by 2^|U_i| without creating a witness; if sigma_i is all TRUE, exactly 1 U_i assignment creates the block witness and 2^|U_i|-1 assignments do not; if witness_seen was already 1, all 2^|U_i| assignments remain witness_seen=1",
+    "join": "interface assignments must agree; clause-satisfied bits combine by OR; witness_seen combines by OR; counts multiply over disjoint forgotten subinstances and sum over compatible child state pairs",
+    "root": "empty-root normalization; accept decision iff witness_seen=1 after all clauses have been forgotten satisfied; model count is the count of root witness_seen=1"
+  },
+  "correctness_targets": {
+    "decision": "root acceptance iff Phi AND Gamma is satisfiable",
+    "model_count": "exact #SAT over all surviving variables, including foreign-invisible U_i multiplicities",
+    "witness": "proof-carrying backtracking returns a satisfying projected assignment and then sealed BA20/BA21 reconstruction returns original source variables",
+    "runtime": "poly(N,|T|)*2^{O(kappa)}",
+    "certificate": "source hashes + canonical blocks/clauses + labeled incidence hash + verified tree-decomposition certificate + nice-decomposition normalization + transition-table hashes + root result + witness/count receipts"
+  },
+  "ba23_positive_control": {
+    "Phi_m": "DBO({a_1,b_1},...,{a_m,b_m})",
+    "Gamma_m": "AND_i(a_i OR b_i)",
+    "labeled_incidence": "matching",
+    "treewidth_w": 1,
+    "lambda": 2,
+    "exact_kappa": 3,
+    "state_bound_per_matching_bag": 16,
+    "required_model_count": "3^m-2^m",
+    "required_materialized_BA23_subset_states": 0,
+    "interpretation": "2^m semantically distinct compiled residual functions do not imply 2^m separator states are required for decision/count on the factorized hybrid object"
+  },
+  "firewalls": {
+    "SEMANTIC_RESIDUAL_FUNCTION_COUNT_NE_SEPARATOR_STATE_COUNT": true,
+    "FPT_IN_KAPPA_NE_POLYNOMIAL_FOR_UNBOUNDED_KAPPA": true,
+    "GIVEN_DECOMPOSITION_ALGORITHM_NE_OPTIMAL_DECOMPOSITION_ALGORITHM": true,
+    "HYBRID_FACTOR_PROCESSING_NE_DGDBO_CLOSURE": true,
+    "BA23_REMAINS_TRUE": true,
+    "SAT_IN_P": "NOT_PROVED",
+    "P_VS_NP": "OPEN",
+    "P_equals_NP_proved": false,
+    "P_not_equals_NP_proved": false
+  },
+  "required_passes": [
+    "STATUS_FIRST_PASS",
+    "PREREGISTRATION_BEFORE_IMPLEMENTATION_PASS",
+    "BA23_IMMUTABILITY_PASS",
+    "HYBRID_FACTOR_SCOPE_PASS",
+    "FOREIGN_CNF_CANONICALIZATION_PASS",
+    "LABELED_BLOCK_CLAUSE_INCIDENCE_PASS",
+    "INTERFACE_DEFINITION_PASS",
+    "KAPPA_DEFINITION_PASS",
+    "TREE_DECOMPOSITION_CERTIFICATE_PASS",
+    "NICE_DECOMPOSITION_NORMALIZATION_PASS",
+    "STATE_SCHEMA_PASS",
+    "STATE_COUNT_BOUND_PASS",
+    "INTRODUCE_BLOCK_PASS",
+    "INTRODUCE_CLAUSE_PASS",
+    "INTRODUCE_EDGE_PASS",
+    "FORGET_BLOCK_DECISION_PASS",
+    "FORGET_BLOCK_MODEL_COUNT_PASS",
+    "FOREIGN_INVISIBLE_VARIABLE_ACCOUNTING_PASS",
+    "FORGET_CLAUSE_PASS",
+    "JOIN_PASS",
+    "ROOT_DECISION_PASS",
+    "ROOT_MODEL_COUNT_PASS",
+    "WITNESS_BACKTRACK_PASS",
+    "SOURCE_RECONSTRUCTION_PASS",
+    "FULL_ORIGINAL_BA4_VALIDATION_PASS",
+    "BA23_KILLER_REPLAY_PASS",
+    "BA23_ZERO_SUBSET_MATERIALIZATION_PASS",
+    "KAPPA3_CONTROL_PASS",
+    "LAMBDA_TREEWIDTH_BOUND_PASS",
+    "FPT_RUNTIME_PASS",
+    "PROOF_CARRYING_CERTIFICATE_PASS",
+    "GIVEN_DECOMPOSITION_SCOPE_PASS",
+    "ARBITRARY_MIXED_POLARITY_CLAUSE_PASS",
+    "NO_DGDBO_EXPANSION_PASS",
+    "REPRESENTATION_SCOPE_FIREWALL_PASS",
+    "SAT_COMPLEXITY_NONCLAIM_PASS",
+    "INDEPENDENT_REPLAY_PASS",
+    "PRESEAL_COMPLETENESS_PASS"
+  ],
+  "falsifiers": {
+    "F1": "The labeled block-clause incidence reduction loses literal polarity or literal identity.",
+    "F2": "A valid foreign clause can depend on information not represented by active interface assignments plus its satisfaction bit.",
+    "F3": "A valid DBO block requires more than interface assignment plus the global witness bit after block forget.",
+    "F4": "The stated forget-block #SAT split for U_i is incorrect.",
+    "F5": "Join requires remembering an exponential object not bounded by 2^{O(kappa)}.",
+    "F6": "The exact DP state count exceeds 2^(kappa(t)+1) for a certified bag.",
+    "F7": "Root decision or model count disagrees with direct semantics on any independently checked instance.",
+    "F8": "Mixed-polarity foreign clauses invalidate the transition algebra.",
+    "F9": "The relation kappa <= max(1,lambda)*(w+1) is false for the certified decomposition definition.",
+    "F10": "BA23 killer replay requires materializing any of its 2^m residual subset functions.",
+    "F11": "BA23 killer model count differs from 3^m-2^m.",
+    "F12": "Projected witness cannot be reconstructed to the original sealed BA4 source.",
+    "F13": "The claimed FPT bound silently assumes computing an optimal decomposition for free.",
+    "F14": "The theorem is promoted to polynomial time when kappa is unbounded.",
+    "F15": "Independent replay fails."
+  },
+  "success_label": "BA24_A_PROOF_CARRYING_HYBRID_DBO_FOREIGN_CNF_BLOCK_INCIDENCE_FPT_PROCESSING_CERTIFIED",
+  "nonclaims": [
+    "arbitrary CNF is polynomial-time solvable",
+    "kappa is always small",
+    "minimum kappa/treewidth decomposition is found in polynomial time",
+    "foreign CNF carrier transport through BA4 is certified",
+    "SAT is in P",
+    "P=NP",
+    "P!=NP"
+  ],
+  "after": {
+    "STOP": true,
+    "BA25_started": false,
+    "next_gate_started": false
+  }
+}
