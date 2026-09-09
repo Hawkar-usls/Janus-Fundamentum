@@ -1,0 +1,89 @@
+name: JANUS TRUMP R50G25BA20 generic finite-depth composite identity recurrence
+
+on:
+  push:
+    branches:
+      - research/r50g25ba20-generic-finite-depth-composite-identity-recurrence-2026-09-09
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  scientific:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Verify frozen BA20 preregistration ancestry
+        run: |
+          git merge-base --is-ancestor d6888d607b1f053312dadc481134f25f2b1accd7 28365c6f42f2fd2a5f1eb281cae7c2b85b0239bd
+          git merge-base --is-ancestor d6888d607b1f053312dadc481134f25f2b1accd7 ff94c204051d173ca4fabb51ad33e3260d13d7c0
+          git merge-base --is-ancestor d6888d607b1f053312dadc481134f25f2b1accd7 5f1b5db1aa519beeefd694330963ba622288f08c
+          git merge-base --is-ancestor d6888d607b1f053312dadc481134f25f2b1accd7 4fc3fa84a8db7e58587b74d6c212bad917fc5136
+          test "$(git show --format=%s --no-patch d6888d607b1f053312dadc481134f25f2b1accd7)" = "preregister R50G25BA20 generic finite-depth composite identity recurrence"
+      - name: Build exact BA20 generic theorem result
+        env:
+          PYTHONPATH: experiments
+        run: |
+          mkdir -p artifacts
+          python experiments/janus_trump_r50g25ba20_generic_finite_depth_composite_identity_recurrence_v2.py --out artifacts/JANUS_TRUMP_R50G25BA20_RESULT.json
+      - name: Independent BA20 replay
+        env:
+          PYTHONPATH: experiments
+        run: |
+          python experiments/verify_janus_trump_r50g25ba20_generic_finite_depth_composite_identity_recurrence.py --result artifacts/JANUS_TRUMP_R50G25BA20_RESULT.json --out artifacts/JANUS_TRUMP_R50G25BA20_VERIFY.json
+      - name: Complete exact BA20 preseal
+        env:
+          PYTHONPATH: experiments
+        run: |
+          python experiments/complete_janus_trump_r50g25ba20_preseal_obligations_v2.py --prereg research/JANUS_TRUMP_R50G25BA20_PREREGISTRATION.json --result artifacts/JANUS_TRUMP_R50G25BA20_RESULT.json --verify artifacts/JANUS_TRUMP_R50G25BA20_VERIFY.json --out artifacts/JANUS_TRUMP_R50G25BA20_PRESEAL_COMPLETION.json
+      - name: Enforce strict BA20 promotion guard
+        run: |
+          python - <<'PY'
+          import hashlib,json
+          from pathlib import Path
+          rp=Path('artifacts/JANUS_TRUMP_R50G25BA20_RESULT.json');vp=Path('artifacts/JANUS_TRUMP_R50G25BA20_VERIFY.json');cp=Path('artifacts/JANUS_TRUMP_R50G25BA20_PRESEAL_COMPLETION.json')
+          r=json.loads(rp.read_text());v=json.loads(vp.read_text());c=json.loads(cp.read_text())
+          assert r['preregistration_commit']=='d6888d607b1f053312dadc481134f25f2b1accd7'
+          assert r['preimplementation_hardening_commit']=='28365c6f42f2fd2a5f1eb281cae7c2b85b0239bd'
+          assert r['implementation_version']=='BA20_V2_PRE_RUN_AFFINE_TRANSCRIPTION_CORRECTED'
+          assert r['parent_BA19_meta_commit']=='b6c9811fb943ca25fb09e7e2a6da08e24db3e253'
+          assert r['symbolic']['indexing']['width']=='h+1'
+          assert r['symbolic']['induction']['N_h']=='p*PRODUCT n_q'
+          assert r['symbolic']['prime']['count']=='p*PRODUCT n_q'
+          assert r['symbolic']['prime']['width']=='h+1'
+          assert r['all2_exponential_witness']['D']==[5,0]
+          assert r['all2_exponential_witness']['C']==[329,0]
+          assert r['all2_exponential_witness']['L']==[805,-2]
+          assert r['all2_exponential_witness']['V']==[100,0]
+          assert r['all2_exponential_witness']['n_struct']==[1234,-2]
+          assert r['projection_blowup']['projected_prime_clauses']=='2^h'
+          assert r['projection_blowup']['SAT_TIME_LOWER_BOUND_CLAIMED'] is False
+          assert r['carrier']['generic']['bound'] if 'bound' in r['carrier']['generic'] else r['carrier']['generic']['total']
+          assert r['falsifiers']==[] and r['failed_builder_obligations']==[]
+          assert v['status']=='PASS' and v['P_BA20']==1 and v['implementation_imported'] is False
+          assert v['prime_theorem']=='PASS' and v['auxiliary_free_lower_bound']=='PASS'
+          assert v['variable_depth_exponential_corollary']=='PASS'
+          assert v['generic_transport_theorem']=='PASS' and v['generic_induction']['pass'] is True
+          assert c['status']=='PASS' and c['P_BA20_FINAL']==1 and c['required_pass_count']==39
+          assert c['all_required_passes'] is True and len(c['required_pass_names'])==39
+          assert c['BA21_started'] is False
+          assert r['P_VS_NP']=='OPEN' and r['SAT_IN_P']=='NOT_PROVED' and r['TRUMP_finished'] is False
+          print('RESULT_SHA256='+hashlib.sha256(rp.read_bytes()).hexdigest())
+          print('VERIFY_SHA256='+hashlib.sha256(vp.read_bytes()).hexdigest())
+          print('COMPLETION_SHA256='+hashlib.sha256(cp.read_bytes()).hexdigest())
+          print('P_BA20_FINAL=1')
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: janus-trump-r50g25ba20-result
+          path: |
+            artifacts/JANUS_TRUMP_R50G25BA20_RESULT.json
+            artifacts/JANUS_TRUMP_R50G25BA20_VERIFY.json
+            artifacts/JANUS_TRUMP_R50G25BA20_PRESEAL_COMPLETION.json
+          if-no-files-found: error
