@@ -1,0 +1,99 @@
+name: TRUMP USF R0 truth-oracle pinning completion
+
+on:
+  push:
+    branches:
+      - research/trump-universal-structural-funnel-adversarial-family-preregistration-2026-09-10
+    paths:
+      - .github/workflows/trump-usf-r0-truth-oracle-pinning-completion.yml
+
+permissions:
+  contents: read
+
+jobs:
+  pin-exact-binaries:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - name: Fetch exact frozen Debian packages and verify envelopes
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/usf-pin"
+          cd "$RUNNER_TEMP/usf-pin"
+
+          CAD_DEB='cadical_1.7.4-1+b1_amd64.deb'
+          DRAT_DEB='drat-trim_0.0~git20240428.effa1dc-2_amd64.deb'
+          CAD_URL='https://ftp.debian.org/debian/pool/main/c/cadical/cadical_1.7.4-1+b1_amd64.deb'
+          DRAT_URL='https://ftp.debian.org/debian/pool/main/d/drat-trim/drat-trim_0.0~git20240428.effa1dc-2_amd64.deb'
+          CAD_SHA='d25649a8bb30bede6af5b5d81cc9fce4017197640940863283df722eff88f88d'
+          DRAT_SHA='a2613ed11f3b2ee1a183ed64ba265a7d88b9b892cef1a40a9097132ccabcc31f'
+          CAD_SIZE='396096'
+          DRAT_SIZE='28940'
+
+          curl -fL --retry 3 --retry-delay 2 -o "$CAD_DEB" "$CAD_URL"
+          curl -fL --retry 3 --retry-delay 2 -o "$DRAT_DEB" "$DRAT_URL"
+
+          test "$(stat -c '%s' "$CAD_DEB")" = "$CAD_SIZE"
+          test "$(stat -c '%s' "$DRAT_DEB")" = "$DRAT_SIZE"
+          echo "$CAD_SHA  $CAD_DEB" | sha256sum -c -
+          echo "$DRAT_SHA  $DRAT_DEB" | sha256sum -c -
+
+          echo "CADICAL_PACKAGE_SHA256=$(sha256sum "$CAD_DEB" | awk '{print $1}')"
+          echo "CADICAL_PACKAGE_SIZE=$(stat -c '%s' "$CAD_DEB")"
+          echo "DRAT_TRIM_PACKAGE_SHA256=$(sha256sum "$DRAT_DEB" | awk '{print $1}')"
+          echo "DRAT_TRIM_PACKAGE_SIZE=$(stat -c '%s' "$DRAT_DEB")"
+
+      - name: Extract exact package bytes and hash executable bytes
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd "$RUNNER_TEMP/usf-pin"
+          mkdir cad-root drat-root
+          dpkg-deb -x cadical_1.7.4-1+b1_amd64.deb cad-root
+          dpkg-deb -x 'drat-trim_0.0~git20240428.effa1dc-2_amd64.deb' drat-root
+
+          CAD_BIN="$RUNNER_TEMP/usf-pin/cad-root/usr/bin/cadical"
+          LRAT_BIN="$RUNNER_TEMP/usf-pin/drat-root/usr/bin/lrat-check"
+          test -x "$CAD_BIN"
+          test -x "$LRAT_BIN"
+
+          echo "CADICAL_EXECUTABLE_PATH=/usr/bin/cadical"
+          echo "CADICAL_EXECUTABLE_SHA256=$(sha256sum "$CAD_BIN" | awk '{print $1}')"
+          echo "CADICAL_EXECUTABLE_SIZE=$(stat -c '%s' "$CAD_BIN")"
+          echo "LRAT_CHECK_EXECUTABLE_PATH=/usr/bin/lrat-check"
+          echo "LRAT_CHECK_EXECUTABLE_SHA256=$(sha256sum "$LRAT_BIN" | awk '{print $1}')"
+          echo "LRAT_CHECK_EXECUTABLE_SIZE=$(stat -c '%s' "$LRAT_BIN")"
+
+          echo "CADICAL_PACKAGE_VERSION=$(dpkg-deb -f cadical_1.7.4-1+b1_amd64.deb Version)"
+          echo "CADICAL_PACKAGE_ARCH=$(dpkg-deb -f cadical_1.7.4-1+b1_amd64.deb Architecture)"
+          echo "DRAT_TRIM_PACKAGE_VERSION=$(dpkg-deb -f 'drat-trim_0.0~git20240428.effa1dc-2_amd64.deb' Version)"
+          echo "DRAT_TRIM_PACKAGE_ARCH=$(dpkg-deb -f 'drat-trim_0.0~git20240428.effa1dc-2_amd64.deb' Architecture)"
+
+          echo "CADICAL_VERSION_BEGIN"
+          "$CAD_BIN" --version || true
+          echo "CADICAL_VERSION_END"
+          echo "LRAT_CHECK_RUNTIME_BEGIN"
+          "$LRAT_BIN" 2>&1 | head -n 5 || true
+          echo "LRAT_CHECK_RUNTIME_END"
+          echo "RUNNER_UNAME=$(uname -a)"
+          echo "RUNNER_OS_RELEASE_BEGIN"
+          cat /etc/os-release
+          echo "RUNNER_OS_RELEASE_END"
+          echo "PYTHON_VERSION=$(python3 --version 2>&1)"
+
+      - name: Freeze self-test plumbing source only
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat <<'EOF' > "$RUNNER_TEMP/usf-pin/SELF_TEST_PLUMBING.txt"
+          REQUIRED_BEFORE_FIRST_REAL_FAMILY_INSTANCE:
+          1 KNOWN_SAT_CNF -> SAT_WITNESS_VERIFIED
+          2 CORRUPTED_SAT_WITNESS -> REJECTED_AS_WITNESS_VALIDATION_FAILURE
+          3 KNOWN_UNSAT_CNF -> LRAT accepted -> UNSAT_PROOF_VERIFIED
+          4 CORRUPTED_UNSAT_PROOF -> REJECTED_AS_PROOF_CHECKER_FAILURE
+          5 MALFORMED_PROOF -> REJECTED_AS_PROOF_CHECKER_FAILURE
+          6 SIMULATED_TIMEOUT -> UNKNOWN_RESOURCE_LIMIT
+          THESE CONTROLS ARE INFRASTRUCTURE ONLY AND ARE NOT USF SCIENTIFIC EVIDENCE.
+          EOF
+          sha256sum "$RUNNER_TEMP/usf-pin/SELF_TEST_PLUMBING.txt"
