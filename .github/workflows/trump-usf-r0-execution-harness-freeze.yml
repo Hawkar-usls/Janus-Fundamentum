@@ -1,0 +1,93 @@
+name: TRUMP USF R0 execution harness freeze verification
+
+on:
+  push:
+    branches:
+      - research/trump-universal-structural-funnel-adversarial-family-preregistration-2026-09-10
+    paths:
+      - research/trump_usf_r0_frozen_generators.py
+      - research/trump_usf_r0_execution_harness.py
+      - research/trump_usf_r0_execution_harness_frozen_entrypoint.py
+      - research/verify_trump_usf_r0_execution_harness_freeze.py
+      - .github/workflows/trump-usf-r0-execution-harness-freeze.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  execution-harness-freeze-verification:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout exact branch bytes
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+
+      - name: Assert freeze verifier identity and forbidden execution boundary
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git hash-object research/verify_trump_usf_r0_execution_harness_freeze.py)" = "78a175aafb6a3094d26dd9e8a9f035c21f94f15d"
+          ! grep -Eq 'run_scheduled_instance\(|--run-scheduled[^"[:space:]]*[^)]' .github/workflows/trump-usf-r0-execution-harness-freeze.yml
+          printf '%s\n' \
+            'generated_real_USF_instances=0' \
+            'generated_lane_A_instances=0' \
+            'generated_lane_B_instances=0' \
+            'generated_lane_C_instances=0' \
+            'USF_DISCOVERY_EXECUTION_STARTED=false' \
+            'HOLDOUT_EXECUTION_STARTED=false'
+
+      - name: Run independent synthetic freeze verifier only
+        shell: bash
+        run: |
+          set -euo pipefail
+          OUT="$RUNNER_TEMP/TRUMP_USF_R0_EXECUTION_HARNESS_FREEZE_VERIFICATION.json"
+          python3 research/verify_trump_usf_r0_execution_harness_freeze.py --output "$OUT"
+          python3 - "$OUT" <<'PY'
+          import hashlib
+          import json
+          import pathlib
+          import sys
+
+          path = pathlib.Path(sys.argv[1])
+          data = json.loads(path.read_text(encoding='utf-8'))
+          assert data['status'] == 'EXECUTION_HARNESS_FREEZE_SYNTHETIC_VERIFICATION_PASS'
+          assert data['generated_real_USF_instances'] == 0
+          assert data['generated_lane_A_instances'] == 0
+          assert data['generated_lane_B_instances'] == 0
+          assert data['generated_lane_C_instances'] == 0
+          assert data['discovery_execution_started'] is False
+          assert data['holdout_execution_started'] is False
+          assert data['truth_oracle_invoked_by_freeze_verifier'] is False
+          assert data['finite_experiment_is_asymptotic_authority'] is False
+          assert data['H1'] == 'OPEN'
+          assert data['H2'] == 'OPEN'
+          assert data['H3'] == 'OPEN'
+          assert data['SAT_IN_P'] == 'NOT_PROVED'
+          assert data['P_VS_NP'] == 'OPEN'
+          assert data['BA26_STARTED'] is False
+          raw = path.read_bytes()
+          print('EXECUTION_HARNESS_FREEZE_VERIFICATION_SHA256=' + hashlib.sha256(raw).hexdigest())
+          print('DISCOVERY_SCHEDULE_COUNT=' + str(data['discovery_schedule_count']))
+          print('HOLDOUT_SCHEDULE_COUNT_FROZEN_BUT_UNOPENED=' + str(data['holdout_schedule_count_frozen_but_unopened']))
+          print('EMPTY_GRAPH_WIDTH_BINDING_VERIFIED=' + str(data['implementation_binding_empty_graph_width_minus_one_verified']).lower())
+          print('A5_HISTORICAL_REPLAY_BINDING_AST_VERIFIED=' + str(data['A5_historical_replay_binding_ast_verified']).lower())
+          print('EXECUTION_HARNESS_FREEZE_SYNTHETIC_VERIFICATION_PASS=true')
+          PY
+
+      - name: Reassert scientific firewall and STOP boundary
+        shell: bash
+        run: |
+          set -euo pipefail
+          printf '%s\n' \
+            'TRUTH_ORACLE_READY_FOR_FAMILY_EXECUTION=true' \
+            'USF_DISCOVERY_EXECUTION_STARTED=false' \
+            'generated_real_USF_instances=0' \
+            'H1=OPEN' \
+            'H2=OPEN' \
+            'H3=OPEN' \
+            'SAT_IN_P=NOT_PROVED' \
+            'P_VS_NP=OPEN' \
+            'BA26_STARTED=false' \
+            'STOP_AFTER_EXECUTION_HARNESS_FREEZE_BEFORE_FIRST_REAL_USF_INSTANCE=true'
