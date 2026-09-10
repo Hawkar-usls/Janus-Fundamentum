@@ -1,0 +1,413 @@
+name: TRUMP USF R0 mandatory infrastructure self-test
+
+on:
+  push:
+    branches:
+      - research/trump-universal-structural-funnel-adversarial-family-preregistration-2026-09-10
+    paths:
+      - .github/workflows/trump-usf-r0-mandatory-infrastructure-self-test.yml
+
+permissions:
+  contents: read
+
+jobs:
+  mandatory-infrastructure-self-test:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Assert zero family and lane generation before execution
+        shell: bash
+        run: |
+          set -euo pipefail
+          generated_family_instances=0
+          generated_lane_A_instances=0
+          generated_lane_B_instances=0
+          generated_lane_C_instances=0
+          test "$generated_family_instances" -eq 0
+          test "$generated_lane_A_instances" -eq 0
+          test "$generated_lane_B_instances" -eq 0
+          test "$generated_lane_C_instances" -eq 0
+          printf '%s\n' \
+            "generated_family_instances=0" \
+            "generated_lane_A_instances=0" \
+            "generated_lane_B_instances=0" \
+            "generated_lane_C_instances=0"
+          # Deliberately no actions/checkout and no import/call to any USF family generator.
+
+      - name: Run frozen synthetic infrastructure controls
+        shell: bash
+        env:
+          EXPECTED_CADICAL_PACKAGE_SHA256: d25649a8bb30bede6af5b5d81cc9fce4017197640940863283df722eff88f88d
+          EXPECTED_CADICAL_EXECUTABLE_SHA256: d258dc72e4ec52d434a29f3b2c44dcfd800c10f898cce783f2bf6755b711fb39
+          EXPECTED_LRAT_PACKAGE_SHA256: a2613ed11f3b2ee1a183ed64ba265a7d88b9b892cef1a40a9097132ccabcc31f
+          EXPECTED_LRAT_EXECUTABLE_SHA256: 35caa09cb09bc24178ccbddafaedac1f5774190e3ac3d8c9f03cf11e133dee8c
+        run: |
+          set -euo pipefail
+          ROOT="$RUNNER_TEMP/trump-usf-r0-self-test"
+          EVIDENCE="$ROOT/evidence"
+          export ROOT EVIDENCE
+          rm -rf "$ROOT"
+          mkdir -p "$EVIDENCE/fixtures" "$EVIDENCE/unsat" "$EVIDENCE/negative"
+
+          cat > "$EVIDENCE/fixtures/KNOWN_SAT.cnf" <<'EOF'
+          p cnf 2 2
+          1 0
+          -1 2 0
+          EOF
+
+          cat > "$EVIDENCE/fixtures/KNOWN_SAT.good.witness" <<'EOF'
+          v 1 2 0
+          EOF
+
+          cat > "$EVIDENCE/fixtures/KNOWN_SAT.corrupted.witness" <<'EOF'
+          v 1 -2 0
+          EOF
+
+          cat > "$EVIDENCE/unsat/INSTANCE.cnf" <<'EOF'
+          p cnf 1 2
+          1 0
+          -1 0
+          EOF
+
+          python3 - <<'PY'
+          import hashlib
+          import json
+          import os
+          import pathlib
+          import shutil
+          import subprocess
+          import urllib.request
+
+          ROOT = pathlib.Path(os.environ["ROOT"])
+          EVIDENCE = pathlib.Path(os.environ["EVIDENCE"])
+          FIX = EVIDENCE / "fixtures"
+          UNSAT = EVIDENCE / "unsat"
+          NEG = EVIDENCE / "negative"
+
+          CAD_DEB = ROOT / "cadical_1.7.4-1+b1_amd64.deb"
+          LRAT_DEB = ROOT / "drat-trim_0.0~git20240428.effa1dc-2_amd64.deb"
+          CAD_URL = "https://ftp.debian.org/debian/pool/main/c/cadical/cadical_1.7.4-1+b1_amd64.deb"
+          LRAT_URL = "https://ftp.debian.org/debian/pool/main/d/drat-trim/drat-trim_0.0~git20240428.effa1dc-2_amd64.deb"
+          CAD_PACKAGE_SHA = os.environ["EXPECTED_CADICAL_PACKAGE_SHA256"]
+          LRAT_PACKAGE_SHA = os.environ["EXPECTED_LRAT_PACKAGE_SHA256"]
+          CAD_EXEC_SHA = os.environ["EXPECTED_CADICAL_EXECUTABLE_SHA256"]
+          LRAT_EXEC_SHA = os.environ["EXPECTED_LRAT_EXECUTABLE_SHA256"]
+
+          counters = {
+              "generated_family_instances": 0,
+              "generated_lane_A_instances": 0,
+              "generated_lane_B_instances": 0,
+              "generated_lane_C_instances": 0,
+          }
+          expected = {
+              "KNOWN_SAT_CNF": "SAT_WITNESS_VERIFIED",
+              "CORRUPTED_SAT_WITNESS": "WITNESS_VALIDATION_FAILURE",
+              "KNOWN_UNSAT_CNF": "UNSAT_PROOF_VERIFIED",
+              "CORRUPTED_UNSAT_PROOF": "PROOF_CHECKER_FAILURE",
+              "MALFORMED_PROOF": "PROOF_CHECKER_FAILURE",
+              "SIMULATED_TIMEOUT": "UNKNOWN_RESOURCE_LIMIT",
+          }
+          verdicts = {k: "NOT_RUN" for k in expected}
+          falsifiers = []
+          details = {"no_repository_checkout": True, "lane_generator_import_or_call": False}
+          hashes = {}
+
+          if any(counters.values()):
+              raise SystemExit("FAMILY_GENERATION_COUNTER_NONZERO")
+
+          def sha256(path):
+              h = hashlib.sha256()
+              with open(path, "rb") as f:
+                  for chunk in iter(lambda: f.read(1024 * 1024), b""):
+                      h.update(chunk)
+              return h.hexdigest()
+
+          def download(url, path):
+              req = urllib.request.Request(url, headers={"User-Agent": "JANUS-TRUMP-USF-R0-self-test/1.0"})
+              with urllib.request.urlopen(req, timeout=60) as src, open(path, "wb") as dst:
+                  shutil.copyfileobj(src, dst)
+
+          def run_capture(argv, cwd, stdout_name, stderr_name):
+              with open(pathlib.Path(cwd) / stdout_name, "wb") as so, open(pathlib.Path(cwd) / stderr_name, "wb") as se:
+                  cp = subprocess.run(argv, cwd=cwd, stdout=so, stderr=se, check=False)
+              return cp.returncode
+
+          def parse_solver_assignment(lines, nvars):
+              values = {}
+              for raw in lines:
+                  line = raw.strip()
+                  if not line or line.startswith('c') or line.startswith('s'):
+                      continue
+                  if line.startswith('v'):
+                      tokens = line[1:].strip().split()
+                  else:
+                      continue
+                  for tok in tokens:
+                      lit = int(tok)
+                      if lit == 0:
+                          continue
+                      v = abs(lit)
+                      if v < 1 or v > nvars:
+                          raise ValueError('ASSIGNMENT_LITERAL_OUT_OF_RANGE')
+                      val = lit > 0
+                      if v in values and values[v] != val:
+                          raise ValueError('ASSIGNMENT_CONTRADICTION')
+                      values[v] = val
+              if set(values) != set(range(1, nvars + 1)):
+                  raise ValueError('ASSIGNMENT_NOT_COMPLETE')
+              return values
+
+          def validate_original_cnf(clauses, assignment):
+              bad = []
+              for i, clause in enumerate(clauses, 1):
+                  sat = False
+                  for lit in clause:
+                      v = abs(lit)
+                      val = assignment[v]
+                      if (lit > 0 and val) or (lit < 0 and not val):
+                          sat = True
+                          break
+                  if not sat:
+                      bad.append(i)
+              return {'pass': not bad, 'bad_clause_indices_1_based': bad}
+
+          def bad_proof_verdict(rc):
+              if rc in (124, 137, 143):
+                  return "UNKNOWN_RESOURCE_LIMIT"
+              return "PROOF_CHECKER_FAILURE" if rc != 0 else "UNEXPECTED_PROOF_ACCEPTANCE"
+
+          def write_result():
+              passed = verdicts == expected and not falsifiers
+              result = {
+                  "schema": "TRUMP_USF_R0_MANDATORY_INFRASTRUCTURE_SELF_TEST_RESULT",
+                  "version": "1.0",
+                  "scientific_role": "INFRASTRUCTURE_ONLY_NOT_USF_FAMILY_EVIDENCE_NOT_BA26",
+                  "source_branch": os.environ.get("GITHUB_REF_NAME"),
+                  "workflow_commit": os.environ.get("GITHUB_SHA"),
+                  "run_id": int(os.environ["GITHUB_RUN_ID"]),
+                  "job_name": os.environ.get("GITHUB_JOB"),
+                  "generated_counts": counters,
+                  "frozen_contract": {
+                      "producer_command_template": "timeout --signal=TERM --kill-after=30s 900s /usr/bin/cadical --lrat --binary=false --quiet INSTANCE.cnf INSTANCE.lrat > SOLVER.stdout 2> SOLVER.stderr",
+                      "checker_command_template": "timeout --signal=TERM --kill-after=30s 900s /usr/bin/lrat-check INSTANCE.cnf INSTANCE.lrat > CHECKER.stdout 2> CHECKER.stderr",
+                      "proof_format": "LRAT_ASCII_DIRECT",
+                      "converter": "NONE",
+                      "package_version": "1.7.4-1+b1",
+                      "cadical_runtime_version_frozen_observation": "1.7.3",
+                      "runtime_version_mismatch_classification": "PRESERVED_RUNTIME_VERSION_STRING_MISMATCH_NOT_A_PACKAGE_HASH_FAILURE"
+                  },
+                  "hashes": hashes,
+                  "expected_verdicts": expected,
+                  "control_verdicts": verdicts,
+                  "details": details,
+                  "falsifiers": falsifiers,
+                  "MANDATORY_INFRASTRUCTURE_SELF_TEST_PASSED": passed,
+                  "TRUTH_ORACLE_READY_FOR_FAMILY_EXECUTION": passed,
+                  "scientific_state": {
+                      "BA25": "SEALED_AND_BIDIRECTIONALLY_LINKED",
+                      "PRIMARY_BLOCKER": "UNIVERSAL_RESIDUAL_STRUCTURAL_FUNNEL_THEOREM",
+                      "H1": "OPEN",
+                      "H2": "OPEN",
+                      "H3": "OPEN",
+                      "SAT_IN_P": "NOT_PROVED",
+                      "P_VS_NP": "OPEN",
+                      "BA26_STARTED": False
+                  },
+                  "stop": "STOP_AFTER_MANDATORY_INFRASTRUCTURE_SELF_TEST_NO_LANE_A_B_C_GENERATOR_OR_EXECUTION_NO_BA26"
+              }
+              (EVIDENCE / "SELF_TEST_RESULT.json").write_text(json.dumps(result, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+              return result
+
+          class StopGate(Exception):
+              pass
+
+          try:
+              download(CAD_URL, CAD_DEB)
+              download(LRAT_URL, LRAT_DEB)
+              hashes["cadical_package_expected_sha256"] = CAD_PACKAGE_SHA
+              hashes["cadical_package_observed_sha256"] = sha256(CAD_DEB)
+              hashes["lrat_package_expected_sha256"] = LRAT_PACKAGE_SHA
+              hashes["lrat_package_observed_sha256"] = sha256(LRAT_DEB)
+              hashes["cadical_package_sha_match"] = hashes["cadical_package_observed_sha256"] == CAD_PACKAGE_SHA
+              hashes["lrat_package_sha_match"] = hashes["lrat_package_observed_sha256"] == LRAT_PACKAGE_SHA
+              details["cadical_package_size_bytes"] = CAD_DEB.stat().st_size
+              details["lrat_package_size_bytes"] = LRAT_DEB.stat().st_size
+              details["cadical_package_size_match"] = CAD_DEB.stat().st_size == 396096
+              details["lrat_package_size_match"] = LRAT_DEB.stat().st_size == 28940
+              if not (hashes["cadical_package_sha_match"] and hashes["lrat_package_sha_match"] and details["cadical_package_size_match"] and details["lrat_package_size_match"]):
+                  falsifiers.append("EXACT_FROZEN_DEBIAN_PACKAGE_IDENTITY_MISMATCH")
+                  raise StopGate
+
+              cad_root = ROOT / "cad-root"
+              lrat_root = ROOT / "lrat-root"
+              cad_root.mkdir()
+              lrat_root.mkdir()
+              subprocess.run(["dpkg-deb", "-x", str(CAD_DEB), str(cad_root)], check=True)
+              subprocess.run(["dpkg-deb", "-x", str(LRAT_DEB), str(lrat_root)], check=True)
+              cad_bin = cad_root / "usr/bin/cadical"
+              lrat_bin = lrat_root / "usr/bin/lrat-check"
+              hashes["cadical_extracted_executable_observed_sha256"] = sha256(cad_bin)
+              hashes["lrat_extracted_executable_observed_sha256"] = sha256(lrat_bin)
+              hashes["cadical_executable_expected_sha256"] = CAD_EXEC_SHA
+              hashes["lrat_executable_expected_sha256"] = LRAT_EXEC_SHA
+              hashes["cadical_executable_sha_match"] = hashes["cadical_extracted_executable_observed_sha256"] == CAD_EXEC_SHA
+              hashes["lrat_executable_sha_match"] = hashes["lrat_extracted_executable_observed_sha256"] == LRAT_EXEC_SHA
+              details["cadical_executable_size_bytes"] = cad_bin.stat().st_size
+              details["lrat_executable_size_bytes"] = lrat_bin.stat().st_size
+              details["cadical_executable_size_match"] = cad_bin.stat().st_size == 869768
+              details["lrat_executable_size_match"] = lrat_bin.stat().st_size == 18672
+              if not (hashes["cadical_executable_sha_match"] and hashes["lrat_executable_sha_match"] and details["cadical_executable_size_match"] and details["lrat_executable_size_match"]):
+                  falsifiers.append("EXTRACTED_EXECUTABLE_IDENTITY_MISMATCH")
+                  raise StopGate
+
+              subprocess.run(["sudo", "install", "-m", "0755", str(cad_bin), "/usr/bin/cadical"], check=True)
+              subprocess.run(["sudo", "install", "-m", "0755", str(lrat_bin), "/usr/bin/lrat-check"], check=True)
+              hashes["cadical_command_path_sha256"] = sha256("/usr/bin/cadical")
+              hashes["lrat_command_path_sha256"] = sha256("/usr/bin/lrat-check")
+              hashes["cadical_command_path_sha_match"] = hashes["cadical_command_path_sha256"] == CAD_EXEC_SHA
+              hashes["lrat_command_path_sha_match"] = hashes["lrat_command_path_sha256"] == LRAT_EXEC_SHA
+              if not (hashes["cadical_command_path_sha_match"] and hashes["lrat_command_path_sha_match"]):
+                  falsifiers.append("FROZEN_COMMAND_PATH_COPY_HASH_MISMATCH")
+                  raise StopGate
+
+              ver = subprocess.run(["/usr/bin/cadical", "--version"], text=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=False)
+              details["cadical_runtime_version_stdout"] = ver.stdout.strip()
+              details["cadical_runtime_version_stderr"] = ver.stderr.strip()
+              details["cadical_package_version"] = subprocess.check_output(["dpkg-deb", "-f", str(CAD_DEB), "Version"], text=True).strip()
+              details["runtime_version_string_matches_debian_package_version"] = details["cadical_runtime_version_stdout"] == details["cadical_package_version"]
+              details["runtime_version_observation_classification"] = "PRESERVED_RUNTIME_VERSION_STRING_MISMATCH_NOT_A_PACKAGE_HASH_FAILURE"
+
+              clauses = [[1], [-1, 2]]
+              good = parse_solver_assignment((FIX / "KNOWN_SAT.good.witness").read_text().splitlines(), 2)
+              good_eval = validate_original_cnf(clauses, good)
+              details["known_sat_direct_validation"] = good_eval
+              verdicts["KNOWN_SAT_CNF"] = "SAT_WITNESS_VERIFIED" if good_eval["pass"] else "WITNESS_VALIDATION_FAILURE"
+
+              bad = parse_solver_assignment((FIX / "KNOWN_SAT.corrupted.witness").read_text().splitlines(), 2)
+              bad_eval = validate_original_cnf(clauses, bad)
+              details["corrupted_sat_direct_validation"] = bad_eval
+              verdicts["CORRUPTED_SAT_WITNESS"] = "WITNESS_VALIDATION_FAILURE" if not bad_eval["pass"] else "UNEXPECTED_WITNESS_ACCEPTANCE"
+
+              producer_argv = ["timeout", "--signal=TERM", "--kill-after=30s", "900s", "/usr/bin/cadical", "--lrat", "--binary=false", "--quiet", "INSTANCE.cnf", "INSTANCE.lrat"]
+              producer_rc = run_capture(producer_argv, UNSAT, "SOLVER.stdout", "SOLVER.stderr")
+              proof = UNSAT / "INSTANCE.lrat"
+              details["known_unsat_producer_argv"] = producer_argv
+              details["known_unsat_producer_exit_code"] = producer_rc
+              details["known_unsat_proof_exists"] = proof.is_file()
+              details["known_unsat_proof_size_bytes"] = proof.stat().st_size if proof.is_file() else 0
+              if producer_rc in (124, 137, 143):
+                  verdicts["KNOWN_UNSAT_CNF"] = "UNKNOWN_RESOURCE_LIMIT"
+                  falsifiers.append("PINNED_CADICAL_FROZEN_DIRECT_ASCII_LRAT_INVOCATION_RESOURCE_FAILURE")
+                  raise StopGate
+              if producer_rc != 20 or not proof.is_file() or proof.stat().st_size == 0:
+                  verdicts["KNOWN_UNSAT_CNF"] = "PROOF_PRODUCER_FAILURE"
+                  falsifiers.append("PINNED_CADICAL_FROZEN_DIRECT_ASCII_LRAT_INVOCATION_UNSUPPORTED_OR_FAILED")
+                  raise StopGate
+
+              checker_argv = ["timeout", "--signal=TERM", "--kill-after=30s", "900s", "/usr/bin/lrat-check", "INSTANCE.cnf", "INSTANCE.lrat"]
+              checker_rc = run_capture(checker_argv, UNSAT, "CHECKER.stdout", "CHECKER.stderr")
+              details["known_unsat_checker_argv"] = checker_argv
+              details["known_unsat_checker_exit_code"] = checker_rc
+              hashes["known_unsat_lrat_sha256"] = sha256(proof)
+              if checker_rc in (124, 137, 143):
+                  verdicts["KNOWN_UNSAT_CNF"] = "UNKNOWN_RESOURCE_LIMIT"
+                  falsifiers.append("PINNED_LRAT_CHECK_RESOURCE_FAILURE")
+                  raise StopGate
+              if checker_rc != 0:
+                  verdicts["KNOWN_UNSAT_CNF"] = "PROOF_CHECKER_FAILURE"
+                  falsifiers.append("PINNED_LRAT_CHECK_INCOMPATIBLE_WITH_PINNED_CADICAL_DIRECT_LRAT_OUTPUT")
+                  raise StopGate
+              verdicts["KNOWN_UNSAT_CNF"] = "UNSAT_PROOF_VERIFIED"
+
+              shutil.copy2(UNSAT / "INSTANCE.cnf", NEG / "INSTANCE.cnf")
+              corrupted = NEG / "CORRUPTED.lrat"
+              corrupted.write_bytes(b"999999 0 999998 0\n" + proof.read_bytes())
+              corrupt_rc = run_capture(["timeout", "--signal=TERM", "--kill-after=30s", "900s", "/usr/bin/lrat-check", "INSTANCE.cnf", "CORRUPTED.lrat"], NEG, "CORRUPTED_CHECKER.stdout", "CORRUPTED_CHECKER.stderr")
+              details["corrupted_unsat_checker_exit_code"] = corrupt_rc
+              details["corrupted_unsat_proof_size_bytes"] = corrupted.stat().st_size
+              hashes["corrupted_unsat_lrat_sha256"] = sha256(corrupted)
+              verdicts["CORRUPTED_UNSAT_PROOF"] = bad_proof_verdict(corrupt_rc)
+
+              malformed = NEG / "MALFORMED.lrat"
+              malformed.write_bytes(b"THIS_IS_NOT_LRAT\n" + proof.read_bytes())
+              malformed_rc = run_capture(["timeout", "--signal=TERM", "--kill-after=30s", "900s", "/usr/bin/lrat-check", "INSTANCE.cnf", "MALFORMED.lrat"], NEG, "MALFORMED_CHECKER.stdout", "MALFORMED_CHECKER.stderr")
+              details["malformed_proof_checker_exit_code"] = malformed_rc
+              details["malformed_proof_size_bytes"] = malformed.stat().st_size
+              hashes["malformed_lrat_sha256"] = sha256(malformed)
+              verdicts["MALFORMED_PROOF"] = bad_proof_verdict(malformed_rc)
+
+              timeout_argv = ["timeout", "--signal=TERM", "--kill-after=1s", "0.05s", "/bin/sleep", "2"]
+              timeout_cp = subprocess.run(timeout_argv, stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=False)
+              details["simulated_timeout_argv"] = timeout_argv
+              details["simulated_timeout_exit_code"] = timeout_cp.returncode
+              details["simulated_timeout_solver_invoked"] = False
+              verdicts["SIMULATED_TIMEOUT"] = "UNKNOWN_RESOURCE_LIMIT" if timeout_cp.returncode in (124, 137, 143) else "TIMEOUT_CLASSIFIER_FAILURE"
+
+              if verdicts["CORRUPTED_UNSAT_PROOF"] != expected["CORRUPTED_UNSAT_PROOF"]:
+                  falsifiers.append("BAD_LRAT_EVIDENCE_NOT_REJECTED_BY_PINNED_CHECKER")
+              if verdicts["MALFORMED_PROOF"] != expected["MALFORMED_PROOF"]:
+                  falsifiers.append("MALFORMED_LRAT_EVIDENCE_NOT_REJECTED_BY_PINNED_CHECKER")
+              if verdicts["SIMULATED_TIMEOUT"] != expected["SIMULATED_TIMEOUT"]:
+                  falsifiers.append("TIMEOUT_CLASSIFIER_DID_NOT_FAIL_CLOSED")
+
+          except StopGate:
+              pass
+          except Exception as exc:
+              falsifiers.append("SELF_TEST_HARNESS_INFRASTRUCTURE_EXCEPTION")
+              details["harness_exception_type"] = type(exc).__name__
+              details["harness_exception"] = str(exc)
+
+          write_result()
+          manifest_lines = []
+          for p in sorted(EVIDENCE.rglob("*")):
+              if p.is_file() and p.name != "MANIFEST.sha256":
+                  manifest_lines.append(f"{sha256(p)}  {p.relative_to(EVIDENCE)}")
+          (EVIDENCE / "MANIFEST.sha256").write_text("\n".join(manifest_lines) + "\n", encoding="utf-8")
+          PY
+
+          test -s "$EVIDENCE/SELF_TEST_RESULT.json"
+          sha256sum "$EVIDENCE/SELF_TEST_RESULT.json"
+          cat "$EVIDENCE/SELF_TEST_RESULT.json"
+
+      - name: Upload immutable self-test evidence
+        id: upload
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: trump-usf-r0-mandatory-infrastructure-self-test-${{ github.run_id }}
+          path: ${{ runner.temp }}/trump-usf-r0-self-test/evidence
+          if-no-files-found: error
+          compression-level: 0
+
+      - name: Enforce six-control promotion gate
+        if: always()
+        shell: bash
+        run: |
+          set -euo pipefail
+          RESULT="$RUNNER_TEMP/trump-usf-r0-self-test/evidence/SELF_TEST_RESULT.json"
+          test -s "$RESULT"
+          python3 - "$RESULT" <<'PY'
+          import json
+          import sys
+          r = json.load(open(sys.argv[1], encoding="utf-8"))
+          expected = {
+              "KNOWN_SAT_CNF": "SAT_WITNESS_VERIFIED",
+              "CORRUPTED_SAT_WITNESS": "WITNESS_VALIDATION_FAILURE",
+              "KNOWN_UNSAT_CNF": "UNSAT_PROOF_VERIFIED",
+              "CORRUPTED_UNSAT_PROOF": "PROOF_CHECKER_FAILURE",
+              "MALFORMED_PROOF": "PROOF_CHECKER_FAILURE",
+              "SIMULATED_TIMEOUT": "UNKNOWN_RESOURCE_LIMIT",
+          }
+          ok = (
+              r.get("control_verdicts") == expected
+              and r.get("falsifiers") == []
+              and r.get("MANDATORY_INFRASTRUCTURE_SELF_TEST_PASSED") is True
+              and r.get("TRUTH_ORACLE_READY_FOR_FAMILY_EXECUTION") is True
+              and all(v == 0 for v in r.get("generated_counts", {}).values())
+          )
+          if not ok:
+              print("MANDATORY_INFRASTRUCTURE_SELF_TEST_PASSED=false")
+              print("TRUTH_ORACLE_READY_FOR_FAMILY_EXECUTION=false")
+              sys.exit(1)
+          print("MANDATORY_INFRASTRUCTURE_SELF_TEST_PASSED=true")
+          print("TRUTH_ORACLE_READY_FOR_FAMILY_EXECUTION=true")
+          PY
