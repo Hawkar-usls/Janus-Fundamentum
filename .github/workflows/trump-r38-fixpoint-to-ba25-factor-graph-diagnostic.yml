@@ -1,0 +1,139 @@
+name: TRUMP R38 fixpoint to BA25 factor graph diagnostic
+
+on:
+  push:
+    branches:
+      - research/trump-r38-fixpoint-to-ba25-factor-graph-diagnostic-2026-09-10
+    paths:
+      - .github/workflows/trump-r38-fixpoint-to-ba25-factor-graph-diagnostic.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  r38-ba25-diagnostic:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Verify sealed lineage and exact diagnostic bytes
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD^)" = "4b50c66bdcc5cf10168e90322e3b9a36f809354b"
+          test "$(git hash-object experiments/trump_r38_fixpoint_to_ba25_factor_graph_diagnostic.py)" = "ea36a6b69f8c6034aa00ae4c4217bbd4d7735750"
+          test "$(git hash-object experiments/janus_trump_r38_portfolio_fixpoint_freeze_structure_intake.py)" = "816b53c390d78af415e580eaf358acf191796205"
+          test "$(git hash-object experiments/janus_trump_r33_certified_safe_reduction_stack_lean_core_forensics.py)" = "c9234a1ef639a009cc6cb4c8a6098fd09bf9affe"
+          test "$(git hash-object research/janus_trump_r50g25ba25.py)" = "cad9c5f837d9d3c4e1c4bd4abef40976f2bb36ff"
+          test "$(git hash-object research/JANUS_TRUMP_R50G25BA25_RESULT_RECEIPT.json)" = "68c09aac4e69b75e4d32218257ffe9d564580852"
+          test "$(git hash-object research/JANUS_TRUMP_R50G25BA25_META_REGISTRY_SYNC_RECEIPT.json)" = "f80f2de08d7348d32dc54dbb83b8087db91f10dd"
+          test "$(git hash-object research/TRUMP_EXTERNAL_LITERATURE_NOVELTY_EQUIVALENCE_AUDIT_2026-09-10.json)" = "b356540eab2850743d1592385e77566b5ff8d8b9"
+          test "$(git hash-object research/TRUMP_GENERAL_SAT_GAP_MAP_2026-09-10.json)" = "e98745b3772ab4120d321747ac4fcd347f2fe454"
+          git merge-base --is-ancestor a5ddd0bc7aa637df08f9cd6e3f480c8aabd85896 HEAD
+          git merge-base --is-ancestor 0b941a484143aa130bad9f7bdf9ca94fbbff79cb HEAD
+          git merge-base --is-ancestor e8f506dbaf8da0be11d602f34bb675ac3a73ce36 HEAD
+          python - <<'PY'
+          import json
+          r=json.load(open('research/JANUS_TRUMP_R50G25BA25_RESULT_RECEIPT.json'))
+          a=json.load(open('research/TRUMP_EXTERNAL_LITERATURE_NOVELTY_EQUIVALENCE_AUDIT_2026-09-10.json'))
+          g=json.load(open('research/TRUMP_GENERAL_SAT_GAP_MAP_2026-09-10.json'))
+          assert r['authoritative_evidence']['P_BA25_FINAL']==1
+          assert r['scope_firewalls']['BA26_STARTED'] is False
+          assert r['scope_firewalls']['SAT_IN_P']=='NOT_PROVED'
+          assert r['scope_firewalls']['P_VS_NP']=='OPEN'
+          assert a['state']=='COMPLETED_POST_BA25_SEAL'
+          assert g['state']=='COMPLETED_PRIMARY_BLOCKER_IDENTIFIED'
+          assert g['primary_blocker']['id']=='UNIVERSAL_RESIDUAL_STRUCTURAL_FUNNEL_THEOREM'
+          assert g['BA26_STARTED'] is False
+          print('SEALED_LINEAGE_AND_POSTSEAL_PARENTS_OK')
+          PY
+
+      - name: Compile diagnostic
+        run: |
+          python -m py_compile experiments/trump_r38_fixpoint_to_ba25_factor_graph_diagnostic.py
+
+      - name: Execute R38 to BA25 diagnostic
+        run: |
+          mkdir -p artifacts
+          PYTHONPATH=experiments:research:. python experiments/trump_r38_fixpoint_to_ba25_factor_graph_diagnostic.py \
+            --output artifacts/TRUMP_R38_FIXPOINT_TO_BA25_FACTOR_GRAPH_DIAGNOSTIC_2026-09-10.json
+
+      - name: Scientific integrity gate
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json
+          p='artifacts/TRUMP_R38_FIXPOINT_TO_BA25_FACTOR_GRAPH_DIAGNOSTIC_2026-09-10.json'
+          d=json.load(open(p))
+          assert d['status']=='PASS'
+          assert d['scientific_parent']['R37B_sealed_commit']=='a5ddd0bc7aa637df08f9cd6e3f480c8aabd85896'
+          assert d['scientific_parent']['R38_sealed_commit']=='0b941a484143aa130bad9f7bdf9ca94fbbff79cb'
+          assert d['scientific_parent']['R38_residual_sha256']=='3361190b3fe683457061662dd9244cd37ca79283828139666d35b01b11d2fe95'
+          assert d['scientific_parent']['BA25_final_meta_commit']=='ea0a5ae518da97ebab0695a6c427706b452d02d2'
+          assert d['R37B_reduction_receipt']['initial_CLV']==[118,354,28]
+          assert d['R37B_reduction_receipt']['terminal_CLV']==[45,105,13]
+          assert d['R37B_reduction_receipt']['successful_transformations']==184
+          assert d['R37B_reduction_receipt']['restarts']==2
+          b=d['structural_width']['before_exact_reductions']
+          a=d['structural_width']['after_exact_reductions']
+          for x in (b,a):
+              assert x['td_validation']['tree'] is True
+              assert x['td_validation']['vertex_coverage'] is True
+              assert x['td_validation']['edge_coverage'] is True
+              assert x['td_validation']['running_intersection'] is True
+              assert x['verified_td_upper_bound']>=x['treewidth_lower_bound']
+              assert x['candidate_order_is_exact_treewidth_authority'] is False
+              if x['exact_treewidth_certified']:
+                  assert x['exact_treewidth']==x['verified_td_upper_bound']==x['treewidth_lower_bound']
+              else:
+                  assert x['exact_treewidth'] is None
+          f=d['BA25_factor_graph']
+          assert f['supplied_td_validation']['tau']==f['tau_used_by_BA25']
+          assert f['peak_table_states']<=f['state_bound']
+          e=d['exact_semantics']
+          assert e['SAT'] is True
+          assert e['BA25_equals_bruteforce'] is True
+          assert e['BA25_witness_receipt_direct_verify'] is True
+          assert e['direct_original_R38_clause_replay_count']==45
+          assert e['direct_original_R38_clause_replay_failures']==[]
+          assert len(e['direct_original_R38_clause_replay'])==45
+          assert all(row['pass'] is True for row in e['direct_original_R38_clause_replay'])
+          assert d['firewalls']['heuristic_min_fill_promoted_to_exact_treewidth'] is False
+          assert d['firewalls']['single_R38_instance_promoted_to_universal_H1'] is False
+          assert d['firewalls']['BA26_STARTED'] is False
+          assert d['firewalls']['SAT_IN_P']=='NOT_PROVED'
+          assert d['firewalls']['P_VS_NP']=='OPEN'
+          print(json.dumps({
+              'before_interval':b['treewidth_interval'],
+              'after_interval':a['treewidth_interval'],
+              'tau_used':f['tau_used_by_BA25'],
+              'peak_states':f['peak_table_states'],
+              'exact_model_count':e['exact_model_count'],
+              'replay_count':e['direct_original_R38_clause_replay_count'],
+              'replay_failures':e['direct_original_R38_clause_replay_failures'],
+          },sort_keys=True))
+          PY
+
+      - name: Hash evidence
+        shell: bash
+        run: |
+          set -euo pipefail
+          sha256sum artifacts/TRUMP_R38_FIXPOINT_TO_BA25_FACTOR_GRAPH_DIAGNOSTIC_2026-09-10.json > artifacts/TRUMP_R38_FIXPOINT_TO_BA25_FACTOR_GRAPH_DIAGNOSTIC_2026-09-10.sha256
+          cat artifacts/TRUMP_R38_FIXPOINT_TO_BA25_FACTOR_GRAPH_DIAGNOSTIC_2026-09-10.sha256
+          echo "workflow_head=$GITHUB_SHA" >> artifacts/TRUMP_R38_FIXPOINT_TO_BA25_FACTOR_GRAPH_DIAGNOSTIC_2026-09-10.sha256
+          echo "workflow_blob=$(git rev-parse HEAD:.github/workflows/trump-r38-fixpoint-to-ba25-factor-graph-diagnostic.yml)" >> artifacts/TRUMP_R38_FIXPOINT_TO_BA25_FACTOR_GRAPH_DIAGNOSTIC_2026-09-10.sha256
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: trump-r38-fixpoint-to-ba25-factor-graph-diagnostic
+          path: artifacts/TRUMP_R38_FIXPOINT_TO_BA25_FACTOR_GRAPH_DIAGNOSTIC_2026-09-10.*
+          if-no-files-found: error
