@@ -1,0 +1,52 @@
+name: TRUMP USF R0 Hash-Free Reduction-Stability Lemma Certification
+
+on:
+  push:
+    branches:
+      - proof/trump-usf-r0-hash-free-reduction-stability-lemma-certification-2026-09-11
+
+permissions:
+  contents: read
+
+jobs:
+  independent-static-certification:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - name: Checkout exact proof commit
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+
+      - name: Independent static replay of L0-L7 and S1-S6
+        run: |
+          set -euo pipefail
+          python research/trump_usf_r0_hash_free_reduction_stability_lemma_independent_verifier.py \
+            --root . \
+            --manifest research/TRUMP_USF_R0_HASH_FREE_REDUCTION_STABILITY_LEMMA_OBLIGATION_MANIFEST_2026-09-11.json \
+            --certificate research/TRUMP_USF_R0_HASH_FREE_REDUCTION_STABILITY_LEMMA_PROOF_CERTIFICATE_2026-09-11.json \
+            --output /tmp/hash_free_lemma_independent_replay_receipt.json
+
+      - name: Fail-closed receipt gate
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json
+          p='/tmp/hash_free_lemma_independent_replay_receipt.json'
+          d=json.load(open(p))
+          assert d['pass'] is True
+          assert d['main_passed']==8 and d['main_total']==8
+          assert d['linear_passed']==6 and d['linear_total']==6
+          assert d['empirical_instances_used']==0
+          assert d['reducer_invoked'] is False
+          assert d['sat_solver_invoked'] is False
+          assert d['truth_oracle_invoked'] is False
+          print('HASH_FREE_LEMMA_CERTIFICATION_GATE_PASS')
+          PY
+
+      - name: Upload independent replay receipt
+        uses: actions/upload-artifact@v4
+        with:
+          name: trump-usf-r0-hash-free-reduction-stability-lemma-certification-${{ github.run_id }}
+          path: /tmp/hash_free_lemma_independent_replay_receipt.json
+          if-no-files-found: error
