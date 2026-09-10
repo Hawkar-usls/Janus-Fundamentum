@@ -1,0 +1,56 @@
+{
+  "schema": "TRUMP_USF_R0_HASH_FREE_REDUCTION_STABILITY_LEMMA_OBLIGATION_MANIFEST",
+  "version": "1.0",
+  "date": "2026-09-11",
+  "claim_id": "HASH_FREE_ONE_CYCLE_FROZEN_REDUCER_FIXPOINT_LEMMA",
+  "claim_text": "For every canonical nonempty exact simple 3-CNF F, if G3_NO_BLOCKED_CLAUSE(F), G4_EXACT_NO_BVE_CANDIDATE(F), NOT_HORN(F), G_AFF_NOT_COMPLETE_AFFINE_BUNDLE(F), and G5_SINGLE_LITERAL_RUP_IRREDUCIBLE(F), then the exact frozen USF R0 reducer performs zero transformations, returns F literally unchanged, executes exactly one controller cycle, performs no restart, and terminates STALLED_PORTFOLIO_FIXPOINT.",
+  "domain": [
+    "CANONICAL_F",
+    "NONEMPTY_F",
+    "EXACT_WIDTH_3_EVERY_CLAUSE",
+    "DISTINCT_VARIABLE_IDENTITIES_WITHIN_EACH_CLAUSE"
+  ],
+  "assumptions": [
+    "G3_NO_BLOCKED_CLAUSE",
+    "G4_EXACT_NO_BVE_CANDIDATE",
+    "NOT_HORN",
+    "G_AFF_NOT_COMPLETE_AFFINE_BUNDLE",
+    "G5_SINGLE_LITERAL_RUP_IRREDUCIBLE"
+  ],
+  "source_bindings": {
+    "EXTRACTION_ARTIFACT": "1162d600b69133ab9dab6363d07d3f6750839e41",
+    "R33": "c9234a1ef639a009cc6cb4c8a6098fd09bf9affe",
+    "R34": "7f9bec920fa47af066570d874fe9127dc4b9b968",
+    "R35": "ad237e341d9659d33da0568f134815776c1f95d8",
+    "R35B": "259d2e38947d09b0c058963ad825a57f2e734203",
+    "R37B": "f37da1c2e1696e35695096a2c748a222af7920cc",
+    "USF_R0_CORE_HARNESS": "ed4203bac76349ab377bb97f67bf1054d837bc96"
+  },
+  "source_semantics_reviewed": {
+    "R33_order": ["EMPTY_CLAUSE", "EMPTY_CNF", "TAUTOLOGY", "UNIT", "PURE_LITERAL", "SUBSUMPTION", "BCE", "BVE", "2CNF", "HORN", "STALLED_STACK_LEAN_CORE"],
+    "R33_BCE": "a clause/literal is blocked iff every clause containing the opposite literal gives a tautological resolvent; the universal is vacuously true when no opposite-polarity clause exists",
+    "R33_BVE": "fires on x iff both distinct_non_tautological_resolvent_count <= removed_parent_clause_count and measure(transformed) < measure(current)",
+    "R34": "on simple width-3 CNF, recognition requires every variable-triple group to be exactly a four-clause one-parity falsifying-assignment class",
+    "R35B": "proposal exists iff some single-literal strengthening has a UP-conflict receipt; proposal=None triggers a final unassumed UP check",
+    "CONTROLLER": "R33 stalled -> R34 not recognized -> R35B; if R35B is not UNSAT and after_rup hash equals after_r33 hash, controller returns STALLED_PORTFOLIO_FIXPOINT without restart"
+  },
+  "obligations": [
+    {"id":"L0","rule":"SIMPLE3_CANONICAL_EXCLUSIONS","target":"simple canonical nonempty exact 3-CNF has no empty clause, no unit, no tautology, no distinct-clause subsumption, is not 2CNF, and exact duplicates are absent"},
+    {"id":"L1","rule":"G3_IMPLIES_BIPOLAR","target":"G3 implies every used variable occurs in both polarities"},
+    {"id":"L2","rule":"NEGATE_FROZEN_BCE_EXISTENTIAL","target":"G3 is equivalent to first_blocked_clause(F)=None on the stated domain"},
+    {"id":"L3","rule":"NEGATE_FROZEN_BVE_ACCEPTANCE","target":"G4_EXACT_NO_BVE_CANDIDATE excludes every BVE candidate under the exact frozen two-conjunct predicate"},
+    {"id":"L4","rule":"R33_FALLTHROUGH_TERMINAL","target":"with all R33 transformations excluded, NOT_HORN and not-2CNF force unchanged STALLED_STACK_LEAN_CORE"},
+    {"id":"L5","rule":"R34_EXACT_NEGATION","target":"G_AFF is exactly R34 nonrecognition on simple exact 3-CNF"},
+    {"id":"L6","rule":"R35B_NO_PROPOSAL_AND_EMPTY_UP","target":"G5 yields no proposal; initial and final unassumed UP cannot conflict on unchanged exact 3-CNF; R35B returns unchanged STALLED_RUP_CORE with zero strengthenings"},
+    {"id":"L7","rule":"CONTROLLER_UNCHANGED_BRANCH","target":"L0-L6 compose to zero transformations, residual F unchanged, one cycle, no restart, STALLED_PORTFOLIO_FIXPOINT"}
+  ],
+  "linear_subclass_obligations": [
+    {"id":"S1","rule":"LINEAR_BIPOLAR_NO_BCE","target":"linearity plus bipolarity implies G3_NO_BLOCKED_CLAUSE"},
+    {"id":"S2","rule":"LINEAR_15_7_8_BVE_56","target":"linearity and {7,8} polarity counts give exactly 56 distinct non-tautological resolvents per variable; 56>15 blocks BVE"},
+    {"id":"S3","rule":"LINEAR_R34_INCOMPLETE","target":"linearity implies at most one clause per variable triple, so no complete four-clause affine bundle"},
+    {"id":"S4","rule":"LINEAR_R35B_NO_CASCADE","target":"under an R35B two-literal assumption on a source clause, only that source clause can become unit; after its third variable is assigned, every other clause still has at least two unassigned variables, so no conflict/cascade"},
+    {"id":"S5","rule":"COUNTING_NOT_HORN","target":"15-regular exact 3-CNF has 5n clauses; {7,8} gives at least 7n positive occurrences, contradicting Horn's at-most-5n positive occurrences"},
+    {"id":"S6","rule":"LINEAR_SUBCLASS_COROLLARY","target":"the linear 15-regular {7,8}-signed subclass satisfies the main lemma premises, conditional on existence of such a formula"}
+  ],
+  "forbidden_inputs": ["SHA_PSEUDORANDOMNESS", "EMPIRICAL_CNF_INSTANCE", "SAT_TRUTH_VALUE", "TREEWIDTH", "EXPANSION", "LANE_C", "HOLDOUT", "BA26", "ENIGMA"]
+}
