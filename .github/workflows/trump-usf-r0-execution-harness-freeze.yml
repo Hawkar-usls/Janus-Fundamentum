@@ -75,6 +75,59 @@ jobs:
           print('EXECUTION_HARNESS_FREEZE_SYNTHETIC_VERIFICATION_PASS=true')
           PY
 
+      - name: Run pinned truth-oracle harness integration on synthetic micro-fixtures
+        shell: bash
+        env:
+          CADICAL_PACKAGE_SHA256: d25649a8bb30bede6af5b5d81cc9fce4017197640940863283df722eff88f88d
+          LRAT_PACKAGE_SHA256: a2613ed11f3b2ee1a183ed64ba265a7d88b9b892cef1a40a9097132ccabcc31f
+        run: |
+          set -euo pipefail
+          ROOT="$RUNNER_TEMP/trump-usf-r0-harness-truth-synthetic"
+          mkdir -p "$ROOT/cad" "$ROOT/lrat"
+          curl -fsSL 'https://ftp.debian.org/debian/pool/main/c/cadical/cadical_1.7.4-1+b1_amd64.deb' -o "$ROOT/cadical.deb"
+          curl -fsSL 'https://ftp.debian.org/debian/pool/main/d/drat-trim/drat-trim_0.0~git20240428.effa1dc-2_amd64.deb' -o "$ROOT/lrat.deb"
+          printf '%s  %s\n' "$CADICAL_PACKAGE_SHA256" "$ROOT/cadical.deb" | sha256sum -c -
+          printf '%s  %s\n' "$LRAT_PACKAGE_SHA256" "$ROOT/lrat.deb" | sha256sum -c -
+          dpkg-deb -x "$ROOT/cadical.deb" "$ROOT/cad"
+          dpkg-deb -x "$ROOT/lrat.deb" "$ROOT/lrat"
+          test "$(sha256sum "$ROOT/cad/usr/bin/cadical" | cut -d' ' -f1)" = 'd258dc72e4ec52d434a29f3b2c44dcfd800c10f898cce783f2bf6755b711fb39'
+          test "$(sha256sum "$ROOT/lrat/usr/bin/lrat-check" | cut -d' ' -f1)" = '35caa09cb09bc24178ccbddafaedac1f5774190e3ac3d8c9f03cf11e133dee8c'
+          sudo install -m 0755 "$ROOT/cad/usr/bin/cadical" /usr/bin/cadical
+          sudo install -m 0755 "$ROOT/lrat/usr/bin/lrat-check" /usr/bin/lrat-check
+          printf 'CADICAL_RUNTIME_VERSION=%s\n' "$(/usr/bin/cadical --version)"
+          python3 - <<'PY'
+          import hashlib
+          import json
+          import pathlib
+          import sys
+
+          root = pathlib.Path('.').resolve()
+          sys.path.insert(0, str(root / 'research'))
+          import trump_usf_r0_execution_harness as core
+          assert core.git_blob_sha1(root / 'research/trump_usf_r0_execution_harness.py') == 'ed4203bac76349ab377bb97f67bf1054d837bc96'
+          _assertions, gen, *_ = core.load_modules(root)
+          sat = core.truth_oracle(gen, ((1,), (-1, 2)))
+          unsat = core.truth_oracle(gen, ((1,), (-1,)))
+          assert sat['truth_state'] == 'SAT_WITNESS_VERIFIED', sat
+          assert sat['direct_original_cnf_validation']['pass'] is True
+          assert unsat['truth_state'] == 'UNSAT_PROOF_VERIFIED', unsat
+          assert unsat['checker_exit_code'] == 0
+          result = {
+              'schema': 'TRUMP_USF_R0_HARNESS_TRUTH_ORACLE_SYNTHETIC_INTEGRATION',
+              'scientific_role': 'INFRASTRUCTURE_ONLY_NOT_LANE_A_B_C_EVIDENCE',
+              'SAT_fixture_truth_state': sat['truth_state'],
+              'SAT_direct_original_validation': sat['direct_original_cnf_validation']['pass'],
+              'UNSAT_fixture_truth_state': unsat['truth_state'],
+              'UNSAT_checker_exit_code': unsat['checker_exit_code'],
+              'generated_real_USF_instances': 0,
+              'discovery_execution_started': False,
+              'finite_experiment_is_asymptotic_authority': False,
+          }
+          raw = (json.dumps(result, sort_keys=True, separators=(',', ':')) + '\n').encode()
+          print('HARNESS_TRUTH_SYNTHETIC_RESULT=' + raw.decode().strip())
+          print('HARNESS_TRUTH_SYNTHETIC_RESULT_SHA256=' + hashlib.sha256(raw).hexdigest())
+          PY
+
       - name: Reassert scientific firewall and STOP boundary
         shell: bash
         run: |
