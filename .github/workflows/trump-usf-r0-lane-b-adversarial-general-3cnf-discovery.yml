@@ -1,0 +1,173 @@
+name: TRUMP USF R0 Lane B adversarial general 3CNF discovery only
+
+on:
+  push:
+    branches:
+      - research/trump-universal-structural-funnel-adversarial-family-preregistration-2026-09-10
+    paths:
+      - .github/workflows/trump-usf-r0-lane-b-adversarial-general-3cnf-discovery.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  OUT: /tmp/TRUMP_USF_R0_LANE_B_ADVERSARIAL_GENERAL_3CNF_DISCOVERY
+  CADICAL_PACKAGE_SHA256: d25649a8bb30bede6af5b5d81cc9fce4017197640940863283df722eff88f88d
+  LRAT_PACKAGE_SHA256: a2613ed11f3b2ee1a183ed64ba265a7d88b9b892cef1a40a9097132ccabcc31f
+  CADICAL_EXECUTABLE_SHA256: d258dc72e4ec52d434a29f3b2c44dcfd800c10f898cce783f2bf6755b711fb39
+  LRAT_EXECUTABLE_SHA256: 35caa09cb09bc24178ccbddafaedac1f5774190e3ac3d8c9f03cf11e133dee8c
+
+jobs:
+  lane-b-adversarial-general-3cnf-discovery:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 330
+    steps:
+      - name: Checkout exact Lane B execution commit
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+
+      - name: Assert sealed parent executor and frozen scientific identities
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git hash-object research/TRUMP_USF_R0_LANE_A_PHASE_AND_WIDTH_SEPARATED_CALIBRATION_V3_COMPLETION_2026-09-10.json)" = "9a998aac58c415d5b6d94e9bc1992c4d33b5065a"
+          test "$(git hash-object research/TRUMP_USF_R0_INCIDENCE_WIDTH_VS_BA25_FACTOR_TD_WIDTH_BINDING_METHODOLOGICAL_SUCCESSOR_2026-09-10.json)" = "9b412cbbef47738ff80fa28355eed42bcd5694c6"
+          test "$(git hash-object research/trump_usf_r0_lane_b_adversarial_general_3cnf_discovery.py)" = "d59f53074892f1427ea43da1d00b843740d20f7a"
+          test "$(git hash-object research/trump_usf_r0_frozen_generators.py)" = "fe33883dc08e7e1eacadf287093aa0bb1f16c19a"
+          test "$(git hash-object research/trump_usf_r0_execution_harness_frozen_entrypoint.py)" = "50e8eedd461b87de37385cc9f3d30ea6224909fb"
+          test "$(git hash-object research/trump_usf_r0_execution_harness.py)" = "ed4203bac76349ab377bb97f67bf1054d837bc96"
+          test "$(git hash-object experiments/janus_trump_r37b_fixed_certified_portfolio_restart_cycle.py)" = "f37da1c2e1696e35695096a2c748a222af7920cc"
+          test "$(git hash-object experiments/janus_trump_r33_certified_safe_reduction_stack_lean_core_forensics.py)" = "c9234a1ef639a009cc6cb4c8a6098fd09bf9affe"
+          test "$(git hash-object experiments/janus_trump_r34_affine_xor_terminal_against_tseitin_core.py)" = "7f9bec920fa47af066570d874fe9127dc4b9b968"
+          test "$(git hash-object experiments/janus_trump_r35_nonaffine_core_freeze_structure_intake.py)" = "ad237e341d9659d33da0568f134815776c1f95d8"
+          test "$(git hash-object experiments/janus_trump_r35b_single_literal_rup_vivification.py)" = "259d2e38947d09b0c058963ad825a57f2e734203"
+          test "$(git hash-object experiments/janus_trump_r38_portfolio_fixpoint_freeze_structure_intake.py)" = "816b53c390d78af415e580eaf358acf191796205"
+          test "$(git hash-object experiments/trump_r38_fixpoint_to_ba25_factor_graph_diagnostic.py)" = "ea36a6b69f8c6034aa00ae4c4217bbd4d7735750"
+          test "$(git hash-object research/janus_trump_r50g25ba25.py)" = "cad9c5f837d9d3c4e1c4bd4abef40976f2bb36ff"
+          printf '%s\n' 'LANE_B_ALL_FROZEN_BLOB_ASSERTIONS_PASS=true'
+
+      - name: Inert Lane B contract and schedule verification
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf "$OUT"
+          mkdir -p "$OUT"
+          python3 research/trump_usf_r0_lane_b_adversarial_general_3cnf_discovery.py --verify-contract-only > "$OUT/LANE_B_INERT_CONTRACT.json"
+          python3 - "$OUT/LANE_B_INERT_CONTRACT.json" <<'PY'
+          import json,sys
+          d=json.load(open(sys.argv[1]))
+          assert d['status']=='PASS'
+          assert d['lane_b_discovery_count']==14
+          assert d['holdout_lane_b_count_frozen_unopened']==6
+          assert d['holdout_instance_executed'] is False
+          assert d['lane_c_instance_executed'] is False
+          assert d['BA26_started'] is False
+          assert d['real_lane_b_instance_executed'] is False
+          assert d['width_domains_separate'] is True
+          assert d['claimed_tau_binding']=='BA25_FACTOR_TD_VERIFIED_WIDTH'
+          ids=d['lane_b_discovery_order']
+          sizes=(48,72,96,144,192,288,384)
+          exp=[]
+          for n in sizes:
+              for cohort in ('B1_BALANCED_BLIND','B2_HASH_PLANTED_SAT'):
+                  exp.append(f'USF-R0|DISCOVERY|B|B_HASHED_REGULAR_3CNF_D15|{cohort}|n={n}')
+          assert ids==exp
+          assert d['H1']==d['H2']==d['H3']=='OPEN'
+          assert d['SAT_IN_P']=='NOT_PROVED' and d['P_VS_NP']=='OPEN'
+          print('LANE_B_INERT_CONTRACT_PASS=true')
+          PY
+
+      - name: Install exact pinned truth binaries
+        shell: bash
+        run: |
+          set -euo pipefail
+          ROOT="$RUNNER_TEMP/usf-r0-lane-b-tools"
+          mkdir -p "$ROOT/cad" "$ROOT/lrat"
+          curl -fsSL 'https://ftp.debian.org/debian/pool/main/c/cadical/cadical_1.7.4-1+b1_amd64.deb' -o "$ROOT/cadical.deb"
+          curl -fsSL 'https://ftp.debian.org/debian/pool/main/d/drat-trim/drat-trim_0.0~git20240428.effa1dc-2_amd64.deb' -o "$ROOT/lrat.deb"
+          printf '%s  %s\n' "$CADICAL_PACKAGE_SHA256" "$ROOT/cadical.deb" | sha256sum -c -
+          printf '%s  %s\n' "$LRAT_PACKAGE_SHA256" "$ROOT/lrat.deb" | sha256sum -c -
+          dpkg-deb -x "$ROOT/cadical.deb" "$ROOT/cad"
+          dpkg-deb -x "$ROOT/lrat.deb" "$ROOT/lrat"
+          test "$(sha256sum "$ROOT/cad/usr/bin/cadical" | cut -d' ' -f1)" = "$CADICAL_EXECUTABLE_SHA256"
+          test "$(sha256sum "$ROOT/lrat/usr/bin/lrat-check" | cut -d' ' -f1)" = "$LRAT_EXECUTABLE_SHA256"
+          sudo install -m 0755 "$ROOT/cad/usr/bin/cadical" /usr/bin/cadical
+          sudo install -m 0755 "$ROOT/lrat/usr/bin/lrat-check" /usr/bin/lrat-check
+          test "$(sha256sum /usr/bin/cadical | cut -d' ' -f1)" = "$CADICAL_EXECUTABLE_SHA256"
+          test "$(sha256sum /usr/bin/lrat-check | cut -d' ' -f1)" = "$LRAT_EXECUTABLE_SHA256"
+          printf 'CADICAL_RUNTIME_VERSION=%s\n' "$(/usr/bin/cadical --version)"
+          printf '%s\n' 'CADICAL_RUNTIME_VERSION_MISMATCH_CLASSIFICATION=PRESERVED_RUNTIME_VERSION_STRING_MISMATCH_NOT_A_PACKAGE_HASH_FAILURE'
+
+      - name: Execute frozen Lane B adversarial general 3CNF discovery only
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 research/trump_usf_r0_lane_b_adversarial_general_3cnf_discovery.py --execute-lane-b-discovery --output-dir "$OUT" 2>&1 | tee "$OUT/LANE_B_EXECUTION.log"
+
+      - name: Upload complete Lane B raw evidence even on pipeline failure
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: trump-usf-r0-lane-b-adversarial-general-3cnf-discovery-${{ github.run_id }}
+          path: /tmp/TRUMP_USF_R0_LANE_B_ADVERSARIAL_GENERAL_3CNF_DISCOVERY
+          if-no-files-found: error
+          compression-level: 9
+          overwrite: false
+
+      - name: Final fail-closed Lane B raw-evidence acceptance gate
+        if: always()
+        shell: bash
+        run: |
+          set -euo pipefail
+          RESULT="$OUT/LANE_B_ADVERSARIAL_GENERAL_3CNF_DISCOVERY_RESULT.json"
+          MANIFEST="$OUT/LANE_B_ADVERSARIAL_GENERAL_3CNF_DISCOVERY_MANIFEST.json"
+          CONTRACT="$OUT/LANE_B_INERT_CONTRACT.json"
+          test -f "$RESULT" && test -f "$MANIFEST" && test -f "$CONTRACT"
+          python3 - "$RESULT" "$MANIFEST" "$OUT" <<'PY'
+          import hashlib,json,math,pathlib,sys
+          rp=pathlib.Path(sys.argv[1]); mp=pathlib.Path(sys.argv[2]); out=pathlib.Path(sys.argv[3])
+          d=json.load(open(rp)); m=json.load(open(mp))
+          assert d['LANE_B_DISCOVERY_COMPLETE'] is True, d['pipeline_failures']
+          assert d['completed_lane_b_records']==14 and d['generated_real_USF_instances_this_gate']==14
+          assert len(d['instances'])==14 and len(m['records'])==14 and not d['pipeline_failures']
+          sizes=(48,72,96,144,192,288,384); expected=[]
+          for n in sizes:
+              for cohort in ('B1_BALANCED_BLIND','B2_HASH_PLANTED_SAT'):
+                  expected.append((n,cohort))
+          assert [(x['n'],x['cohort']) for x in d['instances']]==expected
+          allowed_terminal={'EMPTY_CNF_SAT','EMPTY_CLAUSE_UNSAT','2CNF','HORN','AFFINE_XOR_COMPLETE_CNF_BUNDLE','RENAMABLE_HORN','DUAL_HORN','BETA_ACYCLIC'}
+          for i,row in enumerate(d['instances']):
+              assert row['status']=='PASS'
+              assert row['original_CLV']==[5*row['n'],15*row['n'],row['n']]
+              assert row['BA25_FACTOR_TD_VALIDATION_PASS'] is True
+              assert row['BA25_FACTOR_TD_VERIFIED_WIDTH']==max(row['INCIDENCE_TD_VERIFIED_UB'],1)
+              assert row['BA25_status'] in {'BA25_DIAGNOSTIC_COMPLETE','NOT_RUN_RESOURCE_GUARD'}
+              term=row['terminal_outcome']
+              assert (term['classification']=='OPEN_CORE' and term['terminal'] is None) or (term['classification']=='TERMINAL_MEMBER' and term['terminal'] in allowed_terminal)
+              ts=row['truth_state']
+              assert ts in {'SAT_WITNESS_VERIFIED','UNSAT_PROOF_VERIFIED','UNKNOWN_RESOURCE_LIMIT'}
+              if row['cohort']=='B2_HASH_PLANTED_SAT':
+                  assert ts != 'UNSAT_PROOF_VERIFIED'
+                  if ts=='SAT_WITNESS_VERIFIED': assert row['truth_contract']['B2_independent_SAT_witness_verified'] is True
+              assert row['INCIDENCE_TW_INTERVAL']==row['width_interval_after']
+              assert row['strict_width_drop']==(row['width_interval_before'][0] > row['width_interval_after'][1])
+              if row['r_n'] is not None:
+                  assert abs(row['r_n'] - row['INCIDENCE_TD_VERIFIED_UB']/math.log2(row['n'])) < 1e-12
+              raw=out/'instances'/f'{i:03d}.json'; b=raw.read_bytes(); assert hashlib.sha256(b).hexdigest()==row['record_sha256']
+              mr=m['records'][i]
+              assert mr['scheduled_instance_id']==row['scheduled_instance_id'] and mr['record_sha256']==row['record_sha256']
+              assert mr['original_sha256']==row['original_sha256'] and mr['residual_sha256']==row['residual_sha256']
+          assert d['OPEN_CORE_is_scientific_data_not_failure'] is True
+          assert d['UNKNOWN_RESOURCE_LIMIT_is_scientific_data_not_failure'] is True
+          assert d['NOT_RUN_RESOURCE_GUARD_is_scientific_data_not_failure'] is True
+          assert d['finite_records_prove_H1'] is False and d['finite_records_prove_H3'] is False
+          assert d['LANE_C_EXECUTION_STARTED'] is False and d['HOLDOUT_EXECUTION_STARTED'] is False
+          assert d['H1']==d['H2']==d['H3']=='OPEN'
+          assert d['SAT_IN_P']=='NOT_PROVED' and d['P_VS_NP']=='OPEN' and d['BA26_STARTED'] is False
+          print('LANE_B_ADVERSARIAL_GENERAL_3CNF_DISCOVERY_COMPLETE=true')
+          print('STOP_BEFORE_INTERPRETATION=true')
+          PY
+          printf 'RESULT_SHA256=%s\n' "$(sha256sum "$RESULT" | cut -d' ' -f1)"
+          printf 'MANIFEST_SHA256=%s\n' "$(sha256sum "$MANIFEST" | cut -d' ' -f1)"
