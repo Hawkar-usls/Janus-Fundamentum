@@ -1,0 +1,253 @@
+name: JANUS TRUMP R50G25BA25 authoritative polarity hardened V3
+
+on:
+  push:
+    branches:
+      - research/r50g25ba25-variable-localized-hybrid-factor-graph-fpt-2026-09-10
+    paths:
+      - .github/workflows/janus-trump-r50g25ba25-authoritative-v3.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  scientific-ba25-authoritative-v3:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Verify exact append-only BA25 V3 ancestry and immutable history
+        shell: bash
+        run: |
+          set -euo pipefail
+          PARENT=187c985d67cdfd896ae58d335635bc73ae02c5ae
+          PREREG=466e839107f224cdf6ea7ec5294eef8bd9003cd6
+          IMPL_V1=1b7f9be5dd94f346a6ba4102ab6900f541b5c14e
+          VERIFY_V1=a7caa09fabab4cbfc1dcb9a7bdb5e260010cc2f5
+          PRESEAL_V1=d208790d54b897d79cc12de50a5ac91da9441cbf
+          WORKFLOW_V1=2060789ebd89dd0aa75f3901802d4c30a0d61a30
+          GAP=a9eb4a65d0fa9c57fc70603ba63037f57ed479cf
+          HARD=1ca79fa8078e0428cae669d47df72354e59f06c2
+          VERIFY_V2=57649038bd8b35e74464c878c0c15f81f3ff8ad1
+          PRESEAL_V2=bf5a2de761caf664a3eca8ba3059e382b1d011ba
+          WORKFLOW_V2=dceda2c5d7302730da6133aeab5380833ca5c9a9
+          FAILURE_RECEIPT=0a35e4e8b9f6b76bd071ca13e27c3e68b856b1fe
+          VERIFY_V3=2b5bbc47e75b8499ea684c96d1425af2121bb3b3
+          PRESEAL_V3=7d59e42477afd2a41d32e855864ee08fc4c42008
+          WF=.github/workflows/janus-trump-r50g25ba25-authoritative-v3.yml
+
+          test "$GITHUB_SHA" = "$(git rev-parse HEAD)"
+          test "$(git rev-parse HEAD^)" = "$PRESEAL_V3"
+
+          for pair in \
+            "$PARENT $PREREG" \
+            "$PREREG $IMPL_V1" \
+            "$IMPL_V1 $VERIFY_V1" \
+            "$VERIFY_V1 $PRESEAL_V1" \
+            "$PRESEAL_V1 $WORKFLOW_V1" \
+            "$WORKFLOW_V1 $GAP" \
+            "$GAP $HARD" \
+            "$HARD $VERIFY_V2" \
+            "$VERIFY_V2 $PRESEAL_V2" \
+            "$PRESEAL_V2 $WORKFLOW_V2" \
+            "$WORKFLOW_V2 $FAILURE_RECEIPT" \
+            "$FAILURE_RECEIPT $VERIFY_V3" \
+            "$VERIFY_V3 $PRESEAL_V3" \
+            "$PRESEAL_V3 HEAD"
+          do
+            set -- $pair
+            git merge-base --is-ancestor "$1" "$2"
+          done
+
+          test "$(git rev-parse ${PREREG}:research/JANUS_TRUMP_R50G25BA25_PREREGISTRATION.json)" = "1328b5629404bda8cd57009e8aaa69522540a871"
+          test "$(git rev-parse ${IMPL_V1}:research/janus_trump_r50g25ba25.py)" = "cad9c5f837d9d3c4e1c4bd4abef40976f2bb36ff"
+          test "$(git rev-parse ${VERIFY_V1}:research/verify_janus_trump_r50g25ba25.py)" = "05459223ead544c968b81cdf004863e1e6b5927f"
+          test "$(git rev-parse ${PRESEAL_V1}:research/preseal_janus_trump_r50g25ba25.py)" = "d78e4e49378331fe0eb011d89ce5f4113e72a366"
+          test "$(git rev-parse ${WORKFLOW_V1}:.github/workflows/janus-trump-r50g25ba25-variable-localized-factor-graph-fpt.yml)" = "9d99fadc273344ceb787c37e0e7a7abe3475c153"
+          test "$(git rev-parse ${GAP}:research/JANUS_TRUMP_R50G25BA25_SOURCE_RECONSTRUCTION_EVIDENCE_GAP_RECEIPT.json)" = "8596960a0df33f7361303b94042468d7086ea16e"
+          test "$(git rev-parse ${HARD}:research/JANUS_TRUMP_R50G25BA25_RECONSTRUCTION_HARDENING.json)" = "f3f4f8da6240ca061c3085726d9ada1bfe6823df"
+          test "$(git rev-parse ${VERIFY_V2}:research/verify_janus_trump_r50g25ba25_v2.py)" = "a54c2d8a141ff386650793e34104ace1c34409a2"
+          test "$(git rev-parse ${PRESEAL_V2}:research/preseal_janus_trump_r50g25ba25_v2.py)" = "9bf212bf71aee5e868c866f111a825b85baa0064"
+          test "$(git rev-parse ${WORKFLOW_V2}:.github/workflows/janus-trump-r50g25ba25-authoritative-v2.yml)" = "ea3869e88241630529b3dc37345324282fb4cb88"
+          test "$(git rev-parse ${FAILURE_RECEIPT}:research/JANUS_TRUMP_R50G25BA25_AUTHORITATIVE_V2_RUN1_FAILURE_RECEIPT.json)" = "3bec4cc4ac40929d5664f606330c286732ca59af"
+          test "$(git rev-parse ${VERIFY_V3}:research/verify_janus_trump_r50g25ba25_v3.py)" = "113e0c57a3137cbe3450984a0beb80f25d1ea3e6"
+          test "$(git rev-parse ${PRESEAL_V3}:research/preseal_janus_trump_r50g25ba25_v3.py)" = "9003a51d2a73e2cf4665a0e1637b30dcb23454e0"
+
+          test "$(git show ${PREREG}:research/JANUS_TRUMP_R50G25BA25_PREREGISTRATION.json | python -c 'import json,sys; x=json.load(sys.stdin); print(x["state"])')" = "FROZEN_BEFORE_IMPLEMENTATION"
+          test "$(git show ${PREREG}:research/JANUS_TRUMP_R50G25BA25_PREREGISTRATION.json | python -c 'import json,sys; x=json.load(sys.stdin); print(len(x["required_passes"]))')" = "34"
+
+          python - <<'PY'
+          import json, subprocess
+          f=json.load(open('research/JANUS_TRUMP_R50G25BA25_AUTHORITATIVE_V2_RUN1_FAILURE_RECEIPT.json'))
+          assert f['authoritative_attempt']['run_id'] == 34424706518
+          assert f['authoritative_attempt']['job_id'] == 102707349222
+          assert f['authoritative_attempt']['workflow_head'] == 'dceda2c5d7302730da6133aeab5380833ca5c9a9'
+          assert f['authoritative_attempt']['workflow_blob'] == 'ea3869e88241630529b3dc37345324282fb4cb88'
+          assert f['classification'] == 'VERIFIER_V2_BOOLEAN_FIREWALL_POLARITY_HARNESS_GAP'
+          assert f['state'] == 'UNSEALED_AUTHORITATIVE_V2_RUN_FAILED'
+          assert f['scientific_authority'] is False
+          assert f['scientific_result'] == 'NOT_PROMOTED'
+          assert f['scientific_falsifier_observed'] is False
+          changed=subprocess.check_output(['git','diff','--name-only','7d59e42477afd2a41d32e855864ee08fc4c42008..HEAD'], text=True).splitlines()
+          assert changed == ['.github/workflows/janus-trump-r50g25ba25-authoritative-v3.yml'], changed
+          PY
+
+          echo "WORKFLOW_V3_HEAD=$(git rev-parse HEAD)"
+          echo "WORKFLOW_V3_BLOB=$(git rev-parse HEAD:${WF})"
+
+      - name: Build exact BA25 proof-carrying result
+        run: python research/janus_trump_r50g25ba25.py > ba25_result.json
+
+      - name: Independent BA25 theorem verifier V1
+        run: python research/verify_janus_trump_r50g25ba25.py
+
+      - name: Independent BA25 reconstruction verifier V3
+        run: python research/verify_janus_trump_r50g25ba25_v3.py
+
+      - name: Complete BA25 preseal V3
+        run: python research/preseal_janus_trump_r50g25ba25_v3.py
+
+      - name: Enforce authoritative BA25 V3 promotion guard
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import hashlib, json, os, subprocess
+
+          OLD_FAILED_RUN=34424706518
+          p=json.load(open('research/JANUS_TRUMP_R50G25BA25_PREREGISTRATION.json'))
+          r=json.load(open('ba25_result.json'))
+          v1=json.load(open('ba25_verify.json'))
+          v3=json.load(open('ba25_verify_v3.json'))
+          c=json.load(open('ba25_completion_v3.json'))
+          failure=json.load(open('research/JANUS_TRUMP_R50G25BA25_AUTHORITATIVE_V2_RUN1_FAILURE_RECEIPT.json'))
+          names=p['required_passes']
+
+          assert p['state']=='FROZEN_BEFORE_IMPLEMENTATION'
+          assert len(names)==34 and len(set(names))==34
+          assert set(c['pass_map'])==set(names)
+          assert c['passes']==34 and c['required']==34 and all(c['pass_map'][n] is True for n in names)
+          assert c['P_BA25_FINAL']==1
+          assert c['P_BA25_FINAL_authority']=='CANDIDATE_ONLY_UNTIL_NEW_AUTHORITATIVE_WORKFLOW_V3_RUN'
+          assert c['scientific_authority'] is False
+          assert c['falsifiers']==[]
+
+          assert r['required']==34 and r['P_BA25_FINAL']==0 and r['falsifiers']==[]
+          assert v1['status']=='PASS' and v1['implementation_imported'] is False and v1['falsifiers']==[]
+          assert v3['status']=='PASS' and v3['falsifiers']==[]
+          assert v3['polarity_self_test']['pass'] is True
+          assert v3['failed_positive_obligations']==[]
+          assert v3['violated_negative_firewalls']==[]
+          assert v3['positive_obligations'] and all(x is True for x in v3['positive_obligations'].values())
+          assert v3['negative_firewalls'] and all(x is False for x in v3['negative_firewalls'].values())
+          assert v3['negative_firewalls']['implementation_imported'] is False
+          assert v3['negative_firewalls']['arbitrary_foreign_CNF_BA4_carrier_coverage_claimed'] is False
+          assert v3['negative_firewalls']['BA26_STARTED'] is False
+          assert v3['implementation_imported'] is False
+          assert v3['sealed_parent_reconstruction_replay'] is True
+          assert v3['SOURCE_RECONSTRUCTION_PASS'] is True
+          assert int(v3['number_of_replayed_cases']) > 0
+          assert int(v3['original_CNF_validation_failures']) == 0
+          assert int(v3['parent_reconstruction_formula_mismatches']) == 0
+          assert int(v3['abstract_source_validation_failures']) == 0
+
+          expected={
+            'BA20_final_meta': {'commit':'fa0b503233cb873282c0d8317adf89e48223402b','blob':'a09eae8aa44b68530a5d24e542056c13a24ab865'},
+            'BA20_result_receipt': {'commit':'ef963eba447b1d88ef13eddc9b888138be4f4565','blob':'ed11ffc951eec1bf1a1c01d60699876f8a408018'},
+            'BA20_base_reconstruction': {'commit':'6e895880f2cebeddd0ee72d6b90704d62434bc67','blob':'c3112e59a213bf297d1bd757e251905f64d5900b'},
+            'BA20_authoritative_v2_wrapper': {'commit':'ff94c204051d173ca4fabb51ad33e3260d13d7c0','blob':'6c2271f18677cebc9c37eab42c42b8228b41967b'},
+            'BA4_carrier_schema': {'blob':'c85eab7d0bb1557bc0c472bbc8c2086b08625a4c'},
+            'BA21_final_meta': {'commit':'085bcdec8cd7613ad99e8766894010e6dd3d8fe4','blob':'e5f66732279c1b26b4f9a1fd991d4055eac9209e'},
+            'BA21_result_receipt': {'commit':'dd3cd439bffd67dd33790be83e719625310c0726','blob':'d94b91c7ed4b8bb3cce7efb52d02813bb222916a'},
+            'BA21_compressed_projection_impl': {'commit':'8da4e0560bdbbc31d94e7e4ab65a098222e5f5c1','blob':'22b891038e34dedcb53b75a74563cbe535c55e21'},
+            'reconstruction_hardening': {'commit':'1ca79fa8078e0428cae669d47df72354e59f06c2','blob':'f3f4f8da6240ca061c3085726d9ada1bfe6823df'},
+            'verifier_v2_parent': {'commit':'57649038bd8b35e74464c878c0c15f81f3ff8ad1','blob':'a54c2d8a141ff386650793e34104ace1c34409a2'},
+            'authoritative_v2_run1_failure_receipt': {'commit':'0a35e4e8b9f6b76bd071ca13e27c3e68b856b1fe','blob':'3bec4cc4ac40929d5664f606330c286732ca59af'},
+          }
+          expected_with_hash=dict(expected)
+          expected_with_hash['schema_sha256']=hashlib.sha256(json.dumps(expected,sort_keys=True,separators=(',',':')).encode()).hexdigest()
+          assert v3['reconstruction_schema_hash_provenance']==expected_with_hash
+          assert c['reconstruction_schema_hash_provenance']==expected_with_hash
+
+          assert failure['authoritative_attempt']['run_id']==OLD_FAILED_RUN
+          assert failure['scientific_authority'] is False
+          assert failure['scientific_result']=='NOT_PROMOTED'
+          assert int(os.environ['GITHUB_RUN_ID']) != OLD_FAILED_RUN
+
+          assert v3['nonclaims']['SAT_IN_P']=='NOT_PROVED'
+          assert v3['nonclaims']['P_VS_NP']=='OPEN'
+          assert c['nonclaims']['SAT_IN_P']=='NOT_PROVED'
+          assert c['nonclaims']['P_VS_NP']=='OPEN'
+          assert c['STOP']['BA26_started'] is False
+
+          wf='.github/workflows/janus-trump-r50g25ba25-authoritative-v3.yml'
+          workflow_blob=subprocess.check_output(['git','rev-parse',f'HEAD:{wf}'],text=True).strip()
+          runtime={
+            'gate': p['gate'],
+            'entry_type': 'BA25_AUTHORITATIVE_WORKFLOW_V3_RUNTIME_PROMOTION',
+            'status': 'PASS',
+            'scientific_authority': True,
+            'P_BA25_FINAL': 1,
+            'passes': 34,
+            'required': 34,
+            'run_id': int(os.environ['GITHUB_RUN_ID']),
+            'workflow_head': os.environ['GITHUB_SHA'],
+            'workflow_blob': workflow_blob,
+            'legacy_theorem_verifier_v1': 'PASS',
+            'reconstruction_verifier_v3': 'PASS',
+            'polarity_self_test': 'PASS',
+            'sealed_parent_reconstruction_replay': True,
+            'number_of_replayed_cases': int(v3['number_of_replayed_cases']),
+            'original_CNF_validation_failures': 0,
+            'parent_reconstruction_formula_mismatches': 0,
+            'abstract_source_validation_failures': 0,
+            'failed_positive_obligations': [],
+            'violated_negative_firewalls': [],
+            'falsifiers': [],
+            'historical_failed_v2_run': {
+              'run_id': OLD_FAILED_RUN,
+              'state': 'PERMANENTLY_FAILED_UNSEALED_NOT_PROMOTED',
+              'scientific_authority': False,
+            },
+            'SAT_IN_P': 'NOT_PROVED',
+            'P_VS_NP': 'OPEN',
+            'BA26_STARTED': False,
+          }
+          open('ba25_authoritative_v3_runtime.json','w').write(json.dumps(runtime,indent=2,sort_keys=True)+'\n')
+          print('P_BA25_FINAL=1 AUTHORITATIVE_WORKFLOW_V3_RUNTIME_PASS')
+          PY
+
+      - name: Hash authoritative BA25 V3 evidence
+        shell: bash
+        run: |
+          set -euo pipefail
+          sha256sum \
+            ba25_result.json \
+            ba25_verify.json \
+            ba25_verify_v3.json \
+            ba25_completion_v3.json \
+            ba25_authoritative_v3_runtime.json \
+            > ba25_sha256_v3.txt
+          cat ba25_sha256_v3.txt
+          echo "workflow_head=$GITHUB_SHA" >> ba25_sha256_v3.txt
+          echo "workflow_blob=$(git rev-parse HEAD:.github/workflows/janus-trump-r50g25ba25-authoritative-v3.yml)" >> ba25_sha256_v3.txt
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: janus-trump-r50g25ba25-authoritative-v3
+          path: |
+            ba25_result.json
+            ba25_verify.json
+            ba25_verify_v3.json
+            ba25_completion_v3.json
+            ba25_authoritative_v3_runtime.json
+            ba25_sha256_v3.txt
+          if-no-files-found: error
