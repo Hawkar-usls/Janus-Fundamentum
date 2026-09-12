@@ -62,10 +62,10 @@ def check(cert_dir: Path, measurement_path: Path):
     first_max_cut = 0
     for cut in range(n):
         live += starts[cut]
+        live -= ends[cut]
         if live > width:
             width = live
             first_max_cut = cut
-        live -= ends[cut]
 
     root_supports = {
         name: deps[node_id].bit_count()
