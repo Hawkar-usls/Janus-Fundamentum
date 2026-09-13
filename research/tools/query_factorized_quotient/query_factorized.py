@@ -122,7 +122,7 @@ def two_sat_satisfiable(component):
     return not any(comp_id.get(v) == comp_id.get(-v) for v in vars_)
 
 from research.tools.structural_residual_canon.structural_canon import (
-    coarse_key, try_verified_renaming
+    coarse_key, routing_signature, try_verified_renaming
 )
 
 def factor_reduce(state, remaining_boundary):
@@ -159,7 +159,7 @@ def merge_query_states(states, pinned):
         if state == UNSAT_STATE:
             out[state] = out.get(state, 0) + mass
             continue
-        key = coarse_key(_wrap(state), set(pinned))
+        key = (coarse_key(_wrap(state), set(pinned)), routing_signature(_wrap(state), set(pinned)))
         merged = False
         for rep in buckets[key]:
             stats["iso_attempts"] += 1
