@@ -211,58 +211,72 @@ def verify_transform(source,horn,affine,n):
         if source_eval(source,bits)!=image_eval(horn,affine,bits,n): return False
     return True
 
+
+from research.tools.reduction_image_depth.fast_source_depth import (
+    exact_depth as fast_exact_depth, replay as fast_replay,
+    restrict_source as fast_restrict, terminal_status as fast_terminal,
+)
+
+
+def generic_fastpath_audit(source,n):
+    horn,affine=encode_nand3_neq(source,n); checked=0
+    for vals in itertools.product((-1,0,1),repeat=n):
+        residual=source; pair={}
+        for i,val in enumerate(vals,start=1):
+            if val==-1: continue
+            residual=fast_restrict(residual,i,val)
+            pair[i]=bool(val); pair[n+i]=not bool(val)
+        f=fast_terminal(residual); g=analyze(horn,affine,pair)
+        if g['terminal'] != (f is not None):
+            return {'pass':False,'vals':vals,'fast':f,'generic_terminal':g['terminal'],'generic_classes':g['classes'],'checked':checked}
+        if f is not None and bool(g['sat']) != bool(f):
+            return {'pass':False,'vals':vals,'fast':f,'generic_sat':g['sat'],'checked':checked}
+        checked+=1
+    return {'pass':True,'checked':checked}
+
+
 def main():
-    t0=time.perf_counter(); rows=[]; failures=[]
-    for family,n,source in build_corpus():
+    t0=time.perf_counter(); rows=[]; failures=[]; generic_checked=0
+    corpus=build_corpus()
+    for idx,(family,n,source) in enumerate(corpus,start=1):
         horn,affine=encode_nand3_neq(source,n)
         transform_ok=verify_transform(source,horn,affine,n) if n<=8 else True
         if not transform_ok: failures.append({'family':family,'n':n,'kind':'transform'})
-        analysis_cache={}
-        d1,m1,c1,s1=exact_depth(horn,affine,n,False,analysis_cache)
-        d2,m2,c2,s2=exact_depth(horn,affine,n,True,analysis_cache)
+        d1,m1,c1,s1=fast_exact_depth(source,False)
+        d2,m2,c2,s2=fast_exact_depth(source,True)
         if d1!=d2: failures.append({'family':family,'n':n,'kind':'depth_order','a':d1,'b':d2})
-        root=(tuple(horn),tuple(affine)); first=[]
-        if c1[root][0]=='S': first=list(c1[root][1][1])
         replay_ok=True; replay_max=0
         if n<=8:
             for bits in itertools.product((0,1),repeat=n):
-                used=replay_strategy(horn,affine,n,bits,c1,analysis_cache); replay_max=max(replay_max,used)
+                used=fast_replay(source,bits,c1); replay_max=max(replay_max,used)
                 if used>d1: replay_ok=False; break
         if not replay_ok: failures.append({'family':family,'n':n,'kind':'replay'})
+        audit=None
+        if n<=4:
+            audit=generic_fastpath_audit(source,n); generic_checked += audit.get('checked',0)
+            if not audit['pass']: failures.append({'family':family,'n':n,'kind':'fastpath_equivalence','detail':audit})
+        root=tuple(sorted(set(source),key=lambda c:(len(c),c))); first=[]
+        if c1[root][0]=='S': first=list(c1[root][1][1])
         rows.append({'family':family,'n':n,'clauses':len(source),'connected':connected_source(source,n),
                      'sat':sat_label(source,n),'depth':d1,'depth_ratio':round(d1/n,4),'optimal_first_vars':first,
                      'memo_states':len(m1),'terminal_states':s1['terminal'],'parallel_states':s1['parallel'],
                      'independent_order_depth':d2,'transform_replay':transform_ok,'strategy_replay':replay_ok,
-                     'strategy_replay_max_depth':replay_max if n<=8 else None})
-        print(f'PROGRESS {len(rows)}/{len(build_corpus())} {family} n={n} depth={d1} states={len(m1)} cache={len(analysis_cache)}', file=sys.stderr, flush=True)
+                     'strategy_replay_max_depth':replay_max if n<=8 else None,'generic_fastpath_audit':audit})
+        print(f'PROGRESS {idx}/{len(corpus)} {family} n={n} depth={d1} states={len(m1)}',file=sys.stderr,flush=True)
     elapsed=round(1000*(time.perf_counter()-t0),3)
-    profiles={}
-    for fam in ('MONOTONE_PATH','ALTERNATING_PATH','XOR3_CHAIN','DENSE_POSITIVE_TRIPLES'):
-        profiles[fam]=[{'n':r['n'],'depth':r['depth'],'ratio':r['depth_ratio']} for r in rows if r['family']==fam]
+    profiles={fam:[{'n':r['n'],'depth':r['depth'],'ratio':r['depth_ratio']} for r in rows if r['family']==fam]
+              for fam in ('MONOTONE_PATH','ALTERNATING_PATH','XOR3_CHAIN','DENSE_POSITIVE_TRIPLES')}
     random_rows=[r for r in rows if r['family'].startswith('RANDOM_CONNECTED')]
     max_rows=sorted(rows,key=lambda r:(-r['depth_ratio'],-r['depth'],r['family']))[:12]
     verdict='FALSIFIED_REDUCTION_OR_DEPTH_REPLAY' if failures else 'PASS_FINITE_CORPUS_DEPTH_CENSUS__NO_ASYMPTOTIC_CLAIM'
-    out={
-      'schema':'JANUS_TRUMP_EXACT_REACHABLE_BACKDOOR_DEPTH_REDUCTION_IMAGES_GATE_V1',
-      'verdict':verdict,
-      'runtime_ms':elapsed,
-      'corpus_instances':len(rows),
-      'failures':failures,
-      'family_profiles':profiles,
-      'random_summary':{
-        'instances':len(random_rows),
-        'max_depth':max((r['depth'] for r in random_rows),default=0),
-        'max_ratio':max((r['depth_ratio'] for r in random_rows),default=0),
-        'sat_count':sum(int(r['sat']) for r in random_rows),
-        'unsat_count':sum(int(not r['sat']) for r in random_rows)
-      },
-      'highest_depth_ratio_instances':max_rows,
-      'rows':rows,
-      'captain_obvious':'finite exact depth is a property of this frozen corpus; only a separately proved family theorem can support asymptotic claims',
-      'next_if_depth_grows':'TYPED_HYPERORDER_MESSAGE_WIDTH',
-      'next_if_depth_stays_small':'prove the structural reason before extrapolating',
-      'scientific_status':{'SAT_IN_P':'NOT_PROVED','P_VS_NP':'OPEN','Pi_negative_evidence_weight':0}
-    }
+    out={'schema':'JANUS_TRUMP_EXACT_REACHABLE_BACKDOOR_DEPTH_REDUCTION_IMAGES_GATE_V1','verdict':verdict,
+         'runtime_ms':elapsed,'corpus_instances':len(rows),'failures':failures,'family_profiles':profiles,
+         'generic_fastpath_lemma':{'statement':'for C023/C034 images under source-pair assignments, the Horn side is negative CNF over falsity indicators; its affine hull contains only forced-zero coordinates, which occur exactly at unit clauses; typed terminality is therefore empty clause, opposite units, or empty residual Horn formula','generic_partial_states_checked':generic_checked},
+         'random_summary':{'instances':len(random_rows),'max_depth':max((r['depth'] for r in random_rows),default=0),'max_ratio':max((r['depth_ratio'] for r in random_rows),default=0),'sat_count':sum(int(r['sat']) for r in random_rows),'unsat_count':sum(int(not r['sat']) for r in random_rows)},
+         'highest_depth_ratio_instances':max_rows,'rows':rows,
+         'captain_obvious':'finite exact depth is a property of this frozen corpus; only a separately proved family theorem can support asymptotic claims',
+         'next_if_depth_grows':'TYPED_HYPERORDER_MESSAGE_WIDTH','next_if_depth_stays_small':'prove the structural reason before extrapolating',
+         'scientific_status':{'SAT_IN_P':'NOT_PROVED','P_VS_NP':'OPEN','Pi_negative_evidence_weight':0}}
     print(json.dumps(out,sort_keys=True))
 
 if __name__=='__main__': main()
