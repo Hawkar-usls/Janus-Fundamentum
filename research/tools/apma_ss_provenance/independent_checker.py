@@ -1,3 +1,8 @@
+from pathlib import Path
+import sys
+ROOT = Path(__file__).resolve().parents[3]
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
 import inspect,itertools,json,time
 from research.tools.apma_ss_provenance.apma_ss_controller import encode_c023,run_apma_ss,direct_cardinality,checkpoint_hash
 
