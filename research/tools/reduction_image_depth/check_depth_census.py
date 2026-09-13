@@ -101,7 +101,10 @@ def replay_strategy(horn,affine,n,bits,choices):
         key=(tuple(h),tuple(a)); kind,payload=choices[key]
         if kind=='T': return 0
         if kind=='P': return max((walk(ch,ca) for ch,ca in payload),default=0)
-        v,_=payload; q=analyze(h,a,branch_assignment(v,bits[v-1],n))
+        v,_=payload
+        info=analyze(h,a,{})
+        ch,ca=info['mixed'][0]
+        q=analyze(ch,ca,branch_assignment(v,bits[v-1],n))
         return 1+walk(q['horn'],q['affine'])
     return walk(horn,affine)
 
