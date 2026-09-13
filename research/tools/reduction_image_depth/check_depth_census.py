@@ -66,13 +66,18 @@ def state_vars(horn,affine,n):
 def branch_assignment(v,val,n):
     return {v:bool(val), n+v:not bool(val)}
 
-def exact_depth(horn,affine,n,reverse=False):
+def exact_depth(horn,affine,n,reverse=False,analysis_cache=None):
     memo={}; choices={}; stats={'states':0,'terminal':0,'parallel':0}
+    if analysis_cache is None: analysis_cache={}
+    def A(h,a,assignment):
+        key=(tuple(h),tuple(a),tuple(sorted((int(k),bool(v)) for k,v in assignment.items())))
+        if key not in analysis_cache: analysis_cache[key]=analyze(h,a,assignment)
+        return analysis_cache[key]
     def rec(h,a):
         key=(tuple(h),tuple(a))
         if key in memo: return memo[key]
         stats['states']+=1
-        info=analyze(h,a,{})
+        info=A(h,a,{})
         if info['terminal']:
             stats['terminal']+=1; memo[key]=0; choices[key]=('T',None); return 0
         if len(info['mixed'])>1:
@@ -85,7 +90,7 @@ def exact_depth(horn,affine,n,reverse=False):
         for v in candidates:
             ds=[]
             for val in (0,1):
-                q=analyze(ch,ca,branch_assignment(v,val,n))
+                q=A(ch,ca,branch_assignment(v,val,n))
                 ds.append(rec(q['horn'],q['affine']))
             d=1+max(ds)
             if best is None or d<best: best=d; bestvars=[v]
@@ -96,15 +101,20 @@ def exact_depth(horn,affine,n,reverse=False):
     return depth,memo,choices,stats
 
 
-def replay_strategy(horn,affine,n,bits,choices):
+def replay_strategy(horn,affine,n,bits,choices,analysis_cache=None):
+    if analysis_cache is None: analysis_cache={}
+    def A(h,a,assignment):
+        key=(tuple(h),tuple(a),tuple(sorted((int(k),bool(v)) for k,v in assignment.items())))
+        if key not in analysis_cache: analysis_cache[key]=analyze(h,a,assignment)
+        return analysis_cache[key]
     def walk(h,a):
         key=(tuple(h),tuple(a)); kind,payload=choices[key]
         if kind=='T': return 0
         if kind=='P': return max((walk(ch,ca) for ch,ca in payload),default=0)
         v,_=payload
-        info=analyze(h,a,{})
+        info=A(h,a,{})
         ch,ca=info['mixed'][0]
-        q=analyze(ch,ca,branch_assignment(v,bits[v-1],n))
+        q=A(ch,ca,branch_assignment(v,bits[v-1],n))
         return 1+walk(q['horn'],q['affine'])
     return walk(horn,affine)
 
@@ -207,15 +217,16 @@ def main():
         horn,affine=encode_nand3_neq(source,n)
         transform_ok=verify_transform(source,horn,affine,n) if n<=8 else True
         if not transform_ok: failures.append({'family':family,'n':n,'kind':'transform'})
-        d1,m1,c1,s1=exact_depth(horn,affine,n,False)
-        d2,m2,c2,s2=exact_depth(horn,affine,n,True)
+        analysis_cache={}
+        d1,m1,c1,s1=exact_depth(horn,affine,n,False,analysis_cache)
+        d2,m2,c2,s2=exact_depth(horn,affine,n,True,analysis_cache)
         if d1!=d2: failures.append({'family':family,'n':n,'kind':'depth_order','a':d1,'b':d2})
         root=(tuple(horn),tuple(affine)); first=[]
         if c1[root][0]=='S': first=list(c1[root][1][1])
         replay_ok=True; replay_max=0
         if n<=8:
             for bits in itertools.product((0,1),repeat=n):
-                used=replay_strategy(horn,affine,n,bits,c1); replay_max=max(replay_max,used)
+                used=replay_strategy(horn,affine,n,bits,c1,analysis_cache); replay_max=max(replay_max,used)
                 if used>d1: replay_ok=False; break
         if not replay_ok: failures.append({'family':family,'n':n,'kind':'replay'})
         rows.append({'family':family,'n':n,'clauses':len(source),'connected':connected_source(source,n),
@@ -223,6 +234,7 @@ def main():
                      'memo_states':len(m1),'terminal_states':s1['terminal'],'parallel_states':s1['parallel'],
                      'independent_order_depth':d2,'transform_replay':transform_ok,'strategy_replay':replay_ok,
                      'strategy_replay_max_depth':replay_max if n<=8 else None})
+        print(f'PROGRESS {len(rows)}/{len(build_corpus())} {family} n={n} depth={d1} states={len(m1)} cache={len(analysis_cache)}', file=sys.stderr, flush=True)
     elapsed=round(1000*(time.perf_counter()-t0),3)
     profiles={}
     for fam in ('MONOTONE_PATH','ALTERNATING_PATH','XOR3_CHAIN','DENSE_POSITIVE_TRIPLES'):
