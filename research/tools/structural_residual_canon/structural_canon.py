@@ -87,12 +87,17 @@ def verify_explicit_mapping(a, b, mapping):
         return False
     return apply_mapping(a[2], mapping) == b[2]
 
+def routing_signature(state, pinned):
+    vcol, ccol = refined_colors(state, set(pinned))
+    return (tuple(sorted(Counter(vcol.values()).items())),
+            tuple(sorted(Counter(ccol.values()).items())))
+
 def merge_verified_isomorphic(states, pinned):
     buckets = defaultdict(list)
     out = {}
     attempts = verified = merges = 0
     for state, multiplicity in states.items():
-        key = coarse_key(state, pinned)
+        key = (coarse_key(state, pinned), routing_signature(state, pinned))
         merged = False
         for rep in buckets[key]:
             attempts += 1
