@@ -1,4 +1,8 @@
-﻿import itertools, json, math, random, time
+import sys
+from pathlib import Path as _P
+_ROOT=_P(__file__).resolve().parents[3]
+if str(_ROOT) not in sys.path: sys.path.insert(0,str(_ROOT))
+import itertools, json, math, random, time
 from pathlib import Path
 from research.tools.typed_conditional_backdoor.typed_backdoor import analyze, solve_forest
 
