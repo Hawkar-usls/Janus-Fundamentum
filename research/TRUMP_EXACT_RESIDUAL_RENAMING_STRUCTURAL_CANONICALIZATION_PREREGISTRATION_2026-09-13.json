@@ -1,0 +1,54 @@
+{
+  "artifact_id": "TRUMP-EXACT-RESIDUAL-RENAMING-STRUCTURAL-CANONICALIZATION-PREREGISTRATION-2026-09-13",
+  "date": "2026-09-13",
+  "parent_commit": "a6147c15029b0810d80fe8bda72f6462e1b7bb3c",
+  "gate": "EXACT_RESIDUAL_RENAMING_STRUCTURAL_CANONICALIZATION",
+  "status": "FROZEN_PREREGISTRATION_ONLY",
+  "motivation": "byte-identical residual merging is exact but misses states that differ only by internal-variable names",
+  "candidate": {
+    "state": "(sat_count, dead_count, residual_CNF, multiplicity)",
+    "boundary_schedule": "remaining boundary variables are pinned and may not be renamed",
+    "renamable_domain": "internal variables only",
+    "merge_rule": "merge only after an explicit variable bijection is constructed and verified to map residual CNF A exactly onto residual CNF B",
+    "aggregation": "multiplicities add; no representative contribution is discarded",
+    "search_policy": "color-refinement plus deterministic candidate bijection; no permutation/backtracking enumeration"
+  },
+  "captain_obvious_guard": {
+    "forbidden": [
+      "enumerate_all_boundary_assignments_before_merge",
+      "enumerate_all_variable_permutations_to_find_isomorphism",
+      "treat_same_coarse_statistics_as_equivalence"
+    ],
+    "required": "branch one scheduled boundary variable, simplify all current quotient states, then merge certified-isomorphic residuals immediately"
+  },
+  "exactness_claim_under_test": "a verified internal-variable renaming with all remaining boundary variables fixed preserves every future occupancy histogram under the frozen continuation schedule"
+,
+  "frozen_controls": [
+    "renaming_killer_family_from_previous_gate must collapse without changing the exact histogram",
+    "remaining-boundary pinning must prevent illegal swaps across scheduled boundary variables",
+    "explicit wrong bijection must be rejected by exact verifier",
+    "empty-clause contradiction state must remain preserved",
+    "64 seeded random small formulas must match independent full assignment enumeration"
+  ],
+  "adversarial_family": {
+    "name": "STAR_VS_PATH_SELECTOR",
+    "construction": "for selector x_i, gated 3-CNF leaves either an i-edge star or i-edge path on internal variables; both sides contain i clauses",
+    "input_size": "O(k^2)",
+    "reason_for_use": "component edge count identifies selector index i and star/path degree sequence identifies its bit, so residuals are pairwise non-isomorphic under variable renaming",
+    "purpose": "test whether renaming-isomorphism quotient can still have 2^k exact classes on polynomial-size inputs"
+  },
+  "allowed_verdicts": [
+    "PASS_SOUND_STRUCTURAL_RENAMING_MERGE__SYMMETRY_COLLAPSES_BUT_RENAMING_QUOTIENT_STILL_EXPONENTIAL_ON_SELECTOR_FAMILY",
+    "PASS_SOUND_STRUCTURAL_RENAMING_MERGE__NO_EXPONENTIAL_ADVERSARY_OBSERVED",
+    "FALSIFIED_STRUCTURAL_RENAMING_MERGE",
+    "OPEN_IMPLEMENTATION_OR_BINDING_ERROR"
+  ],
+  "not_claimed": [
+    "SAT_IN_P",
+    "P_EQUALS_NP",
+    "complete graph-isomorphism canonicalization",
+    "polynomial worst-case quotient size",
+    "polynomial full SAT algorithm"
+  ],
+  "scientific_status": {"SAT_IN_P": "NOT_PROVED", "P_VS_NP": "OPEN", "Pi_negative_evidence_weight": 0}
+}
