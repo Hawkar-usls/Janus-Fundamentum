@@ -113,3 +113,18 @@ Still not promoted:
 `LINEAR_BASE_WIDTH != CACHED_POLICY_LOWER_BOUND`.
 `C023R != P_NE_NP`.
 `P_VS_NP = OPEN`.
+
+## Frozen deterministic encoding / labeling contract
+
+The graph theorem alone does not determine Policy-0A, because its branch tie-break depends on variable identifiers. Freeze the following encoding before any reachability theorem.
+
+1. Encode `F4` coefficients by `0<1<a<a+1`, i.e. integer codes `0,1,2,3`.
+2. Encode `K_t=F4[x]/(g_t)` elements by their unique degree-`<d_t` coefficient vector, lexicographically by the above F4 codes.
+3. In characteristic two, the center of `SL(2,K_t)` is trivial (`lambda^2=1` has only `lambda=1`), hence `PSL(2,K_t)=SL(2,K_t)`. Encode a vertex by its 2x2 determinant-one matrix tuple `(A,B,C,D)` and rank all such tuples in lexicographic K_t order as vertex IDs `0,...,N_t-1`.
+4. Order the five generators by the frozen encoded `(gamma,delta)` list:
+   `[(0,a),(1,0),(1,a+1),(a,a),(a,a+1)]`.
+5. Generate every Cayley adjacency `h -> Gamma_i h`, convert it to the undirected pair `(min(id(h),id(Gamma_i h)), max(...))`, remove the duplicate traversal copy, and lexicographically sort the resulting edge list.
+6. Use the historical MAJ3 lifting convention: the j-th sorted edge receives gadget variables `(3j+1,3j+2,3j+3)` in that coordinate order.
+7. Freeze the odd Tseitin charge to `charge(vertex 0)=1` and `charge(v)=0` for every other vertex.
+
+This contract fixes the exact CNF bytes modulo the already frozen canonical clause ordering. No graph relabeling, generator permutation, charge relocation, or gadget-coordinate permutation is permitted after the reachability theorem is preregistered.
