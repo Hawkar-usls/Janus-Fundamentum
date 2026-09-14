@@ -1,0 +1,84 @@
+name: TRUMP Current Algorithm Diagnostic
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/trump-current-algorithm-diagnostic.yml'
+      - 'research/tools/apma_trinity_sovereign/**'
+      - 'research/tools/apma_dense_cardinality/**'
+      - 'research/tools/apma_factor_tree_hyperedge/**'
+      - 'research/tools/apma_ss_partial_mosaic/**'
+      - 'research/tools/apma_ss_portfolio/**'
+      - 'research/tools/apma_ss_provenance/**'
+      - 'research/tools/apma_typed_module_forest/**'
+      - 'experiments/trump_apma_novel_composite_transfer/**'
+      - 'experiments/trump_apma_compositional_synthesis/**'
+
+permissions:
+  contents: read
+
+jobs:
+  exact-diagnostic:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Run APMA Trinity Sovereign independent checker
+        shell: bash
+        run: |
+          set -euo pipefail
+          python research/tools/apma_trinity_sovereign/independent_checker.py | tee /tmp/trinity.json
+
+      - name: Verify Trinity verdict and firewall
+        shell: bash
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          z=json.loads(Path('/tmp/trinity.json').read_text().strip().splitlines()[-1])
+          assert z['verdict']=='PASS_APMA_TRINITY_SOVEREIGN_FIRST_RUN__KNOWN_DOORS_SELECTED__UNKNOWN_CLASSES_FAIL_CLOSED', z
+          assert z['scientific_status']['SAT_IN_P']=='NOT_PROVED', z['scientific_status']
+          assert z['scientific_status']['P_VS_NP']=='OPEN', z['scientific_status']
+          assert all(bool(v) for v in z['checks'].values()), {k:v for k,v in z['checks'].items() if not v}
+          print(json.dumps({'trinity_verdict':z['verdict'],'firewall':z['scientific_status'],'checks':len(z['checks'])},sort_keys=True))
+          PY
+
+      - name: Run Novel Composite Transfer independent checker
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd experiments/trump_apma_novel_composite_transfer
+          python independent_checker.py | tee /tmp/composite-summary.json
+
+      - name: Verify Composite verdict, seal and firewall
+        shell: bash
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          root=Path('experiments/trump_apma_novel_composite_transfer')
+          z=json.loads((root/'checker_raw.json').read_text())
+          seal=json.loads((root/'SCIENTIFIC_SEAL_2026-09-14_v1.3.json').read_text())
+          expected='PASS_SCOPED_NOVEL_COMPOSITE_SEMANTICS_TRANSFER'
+          assert z['verdict']==expected, z['verdict']
+          assert seal['verdict']==expected, seal['verdict']
+          sf=z['scientific_firewall']
+          assert sf['SAT_IN_P']=='NOT_PROVED', sf
+          assert sf['P_VS_NP']=='OPEN', sf
+          assert sf['NEW_LOCAL_INVARIANT_DISCOVERY']=='NOT_CLAIMED', sf
+          assert not z['target_exactness']['failures'], z['target_exactness']['failures']
+          assert not z['scope_controls']['failures'], z['scope_controls']['failures']
+          print(json.dumps({'composite_verdict':z['verdict'],'target_counts':z['target_exactness']['counts'],'firewall':sf},sort_keys=True))
+          PY
+
+      - name: Diagnostic authority notice
+        run: |
+          echo 'DIAGNOSTIC_REPLAY_ONLY__NO_SCIENTIFIC_PROMOTION'
+          echo 'P_VS_NP=OPEN'
