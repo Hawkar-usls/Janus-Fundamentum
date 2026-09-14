@@ -1,0 +1,69 @@
+{
+  "artifact_id": "JANUS-TRUMP-APMA-TRINITY-UNICYCLIC-TRANSFER-PREREGISTRATION-2026-09-15-v1.0",
+  "status": "FROZEN_BEFORE_CANDIDATE_IMPLEMENTATION",
+  "authority": "SUCCESSOR_DIAGNOSTIC_GATE__NO_SCIENTIFIC_PROMOTION",
+  "parent_main": "3a8485706e3611a7dead944aa155ea7321c41bf5",
+  "parent_trinity_blob": "40bfffa1d2705158b7f8b73b73bcaf3ebc616bb4",
+  "motivation_artifact": "research/TRUMP_APMA_TRINITY_OPEN_SURFACE_DIAGNOSTIC_2026-09-15.json",
+  "target": "CYCLE_COMPOSITION_EXACT_TRANSFER_PROOF_OR_FALSIFICATION",
+  "frozen_scope": {
+    "source_class": "GENERAL_3CNF_AFTER_EXACT_TYPED_MOSAIC_RECOMPOSITION",
+    "module_interaction": "CONNECTED_UNICYCLIC_SIMPLE_GRAPH",
+    "interface_hyperedges": "FORBIDDEN__EACH_SHARED_VARIABLE_IN_AT_MOST_TWO_MODULES",
+    "encoding_size": "L = 1 + n + clause_count + literal_occurrence_count",
+    "boundary_budget": "For every module, union of incident shared variables has cardinality <= floor(log2(max(2,L)))."
+  },
+  "candidate_rule": {
+    "canonical_cut": "Choose the lexicographically smallest interaction edge belonging to the unique cycle.",
+    "cut_separator": "S = shared variables on the canonical cut edge.",
+    "outer_state": "Enumerate every Boolean assignment sigma in {0,1}^S exactly.",
+    "tree_reduction": "Remove only the canonical cut edge from the interaction graph; keep sigma fixed consistently in both endpoint modules.",
+    "inner_solver": "Run exact typed-module tree dynamic programming on the resulting tree, with sigma injected into local endpoint boundary conditions.",
+    "sat_rule": "SAT iff at least one sigma produces a certified tree solution; reconstruct and replay a root witness.",
+    "unsat_rule": "UNSAT iff every sigma is independently rejected by the exact conditioned tree computation.",
+    "fail_closed": [
+      "interaction graph disconnected",
+      "cycle rank not exactly one",
+      "interface hyperedge present",
+      "module boundary exceeds frozen logarithmic budget",
+      "typed mosaic does not exactly recompose source",
+      "witness replay mismatch"
+    ]
+  },
+  "proof_obligations": [
+    "P1_CUT_EDGE_REMOVAL_YIELDS_TREE_FOR_CONNECTED_UNICYCLIC_GRAPH",
+    "P2_SIGMA_CONDITIONING_IS_SEMANTICALLY_EXHAUSTIVE_AND_NONOVERLAPPING_ENOUGH_FOR_SAT_EXISTENCE",
+    "P3_INNER_TREE_DP_REMAINS_EXACT_UNDER_FIXED_CUT_SEPARATOR_ASSIGNMENT",
+    "P4_RECONSTRUCTED_WITNESS_REPLAYS_ON_UNMODIFIED_ROOT_SOURCE",
+    "P5_ALL_SIGMA_REJECTION_CERTIFIES_ROOT_UNSAT",
+    "P6_TOTAL_DISCOVERY_SOLVE_RECONSTRUCT_VERIFY_COST_IS_POLYNOMIAL_IN_L_UNDER_FROZEN_BOUNDARY_BUDGET"
+  ],
+  "complexity_obligation": {
+    "outer_assignments": "2^|S| <= 2^floor(log2 L) <= L",
+    "inner_boundary_rows_per_module": "<= 2^floor(log2 L) <= L",
+    "native_module_solvers": "2CNF/HORN/DUAL_HORN polynomial exact solvers only",
+    "required_total_form": "O(M * L^2 * P_native(L) + polynomial reconstruction/verification)",
+    "forbidden_argument": "No empirical timing or finite trend may substitute for the symbolic bound."
+  },
+  "frozen_tests": {
+    "positive_cycle_product": "All 256 sign orientations of topology [(1,3,4),(1,2,5),(2,3)] must terminate with exact COMMIT_SAT or COMMIT_UNSAT, verified independently against exhaustive truth only as a finite checker oracle.",
+    "negative_multicycle": "Two disjoint shifted copies of a frozen OPEN cycle must fail closed; no unicyclic admission.",
+    "negative_width": "Frozen wide-center cases that exceed the logarithmic module-boundary budget must remain OPEN_INTERFACE_WIDTH.",
+    "regression": "Existing v1.0 known-door checks must remain exact and tamper/root-hash guards unchanged."
+  },
+  "forbidden": [
+    "editing frozen Trinity v1.0 bytes",
+    "root-variable brute force in candidate",
+    "randomized choice",
+    "score/best-candidate heuristic",
+    "truth labels inside candidate",
+    "scientific promotion from finite tests"
+  ],
+  "pass_condition": "All proof-obligation checks encoded by an independent checker pass, all 256 frozen cycle orientations are exact, negative controls fail closed as preregistered, symbolic polynomial ledger is satisfied, and root replay succeeds.",
+  "scientific_firewall": {
+    "claim_if_pass": "PASS_SCOPED_BOUNDED_INTERFACE_UNICYCLIC_TRANSFER_ONLY",
+    "UNIVERSAL_DISCOVERY": "NOT_CLAIMED",
+    "SAT_IN_P": "NOT_PROVED",
+    "P_VS_NP": "OPEN"
+  }
+}
