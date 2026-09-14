@@ -1,0 +1,58 @@
+name: TRUMP Connected Mixed Carrier Schaefer Barrier
+
+on:
+  push:
+    branches:
+      - research/trump-connected-mixed-carrier-schaefer-barrier-2026-09-15
+    paths:
+      - 'research/TRUMP_CONNECTED_MIXED_CARRIER_SCHAEFER_BARRIER_PREREGISTRATION_2026-09-15.json'
+      - 'research/tools/apma_mixed_carrier_barrier/**'
+      - '.github/workflows/trump-connected-mixed-carrier-schaefer-barrier.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  schaefer-barrier:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Exact finite relation classification
+        run: |
+          set -euo pipefail
+          python -m research.tools.apma_mixed_carrier_barrier.check_schaefer_barrier | tee /tmp/schaefer-barrier.json
+
+      - name: Assert barrier verdict and firewalls
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          z=json.loads(Path('/tmp/schaefer-barrier.json').read_text().strip().splitlines()[-1])
+          assert z['verdict']=='PASS_SCHAEFER_MIXED_CARRIER_BARRIER', z
+          assert all(z['checks'].values()), {k:v for k,v in z['checks'].items() if not v}
+          assert not any(z['combined_language_classification'].values()), z['combined_language_classification']
+          sf=z['scientific_firewall']
+          assert sf['P_VS_NP']=='OPEN', sf
+          assert sf['P_EQUALS_NP']=='NOT_CLAIMED', sf
+          assert sf['P_NOT_EQUAL_NP']=='NOT_CLAIMED', sf
+          assert sf['GENERAL_SAT_IN_P']=='NOT_PROVED', sf
+          print(json.dumps({'verdict':z['verdict'],'classification':z['combined_language_classification'],'firewall':sf},sort_keys=True))
+          PY
+
+      - name: Factorized feedback-interface regression
+        run: python -m research.tools.apma_factorized_feedback.independent_checker
+
+      - name: Affine wide-interface quotient regression
+        run: python -m research.tools.apma_interface_quotient.independent_checker
+
+      - name: Authority notice
+        run: |
+          echo 'CLASSIFICATION_BARRIER_ONLY__NO_P_VS_NP_RESOLUTION'
+          echo 'UNRESTRICTED_CONNECTED_MIXED_CARRIER_POLYTIME_IMPLIES_P_EQUALS_NP'
+          echo 'P_VS_NP=OPEN'
+          echo 'GENERAL_SAT_IN_P=NOT_PROVED'
