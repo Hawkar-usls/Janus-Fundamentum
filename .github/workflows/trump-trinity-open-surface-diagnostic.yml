@@ -1,0 +1,80 @@
+name: TRUMP Trinity OPEN Surface Diagnostic
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/trump-trinity-open-surface-diagnostic.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  open-surface:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Exact frozen topology diagnostics
+        shell: bash
+        run: |
+          python - <<'PY'
+          import itertools, json
+          from collections import Counter
+          from research.tools.apma_trinity_sovereign.trinity import run_trinity
+
+          # Frozen triangle-cycle incidence topology. We exhaust every sign orientation.
+          # C1 uses vars 1,3,4; C2 uses 1,2,5; C3 uses 2,3.
+          slots=((1,3,4),(1,2,5),(2,3))
+          cycle_counts=Counter(); reasons=Counter(); examples={}
+          total=0
+          for signs in itertools.product((-1,1), repeat=8):
+              p=0; clauses=[]
+              for vs in slots:
+                  c=[]
+                  for v in vs:
+                      c.append(signs[p]*v); p+=1
+                  clauses.append(tuple(c))
+              z=run_trinity(tuple(clauses),5)
+              total+=1
+              d=z['sovereign']['decision']; cycle_counts[d]+=1
+              door=z['proposal'].get('door')
+              if door is None:
+                  ev=z['proposal'].get('evidence',{})
+                  key=json.dumps(ev,sort_keys=True)
+                  reasons[key]+=1
+                  examples.setdefault(key, clauses)
+
+          # Frozen wide-center tree topology from the independent checker, across explicit k values.
+          def wide_center_tree(k):
+              clauses=[]; x=list(range(1,k+1)); y0=k+1; y=list(range(y0,y0+k+1)); nxt=y[-1]
+              for i in range(k): clauses.append((-x[i],-y[i],y[i+1]))
+              for i in range(k):
+                  a,b=nxt+1,nxt+2; nxt+=2; clauses.append((x[i],a,b))
+              return tuple(clauses),nxt
+
+          wide=[]
+          for k in (2,3,4,6,8,12,16,24):
+              src,n=wide_center_tree(k); z=run_trinity(src,n)
+              wide.append({'k':k,'n':n,'decision':z['sovereign']['decision'],'door':z['proposal'].get('door'),'evidence':z['proposal'].get('evidence')})
+
+          out={
+              'authority':'FINITE_DIAGNOSTIC_ONLY__NO_SCIENTIFIC_PROMOTION',
+              'cycle_orientation_product':{
+                  'topology':'[(1,3,4),(1,2,5),(2,3)]',
+                  'orientation_count':total,
+                  'sovereign_decisions':dict(cycle_counts),
+                  'open_reason_counts':dict(reasons),
+                  'open_examples':examples,
+              },
+              'wide_interface_controls':wide,
+              'firewall':{'P_VS_NP':'OPEN','SAT_IN_P':'NOT_PROVED'},
+          }
+          print(json.dumps(out,sort_keys=True))
+          assert total==256
+          assert out['firewall']['P_VS_NP']=='OPEN'
+          PY
