@@ -1,0 +1,30 @@
+name: C023R K4 fiber-product revealed falsifier
+
+on:
+  push:
+    branches:
+      - research/trump-c023r-reachable-coset-theorem-2026-09-15
+    paths:
+      - .github/workflows/c023r-k4-fiber-product-falsifier.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  k4-fiber-product:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout frozen diagnostic branch
+        uses: actions/checkout@v4
+        with:
+          ref: research/trump-c023r-maj3-cache-fiber-invariant-diagnostic-2026-09-14
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Run exact revealed K4 fiber product audit
+        run: |
+          python experiments/trump_c023r_cache_fiber/analyze_k4_fiber_product.py
+          echo '--- RESULT JSON ---'
+          cat experiments/trump_c023r_cache_fiber/K4_FIBER_PRODUCT_v1.0.json
