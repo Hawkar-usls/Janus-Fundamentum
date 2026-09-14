@@ -60,7 +60,9 @@ def _clause_components(edges):
 
 def _verify_windows(sequence, edges):
     expected = [frozenset(sequence[i:i + 3]) for i in range(len(sequence) - 2)]
-    return len(expected) == len(edges) and sorted(map(tuple, map(sorted, expected))) == sorted(map(tuple, map(sorted, edges)))
+    lhs = sorted(tuple(sorted(e)) for e in expected)
+    rhs = sorted(tuple(sorted(e)) for e in edges)
+    return len(expected) == len(edges) and lhs == rhs
 
 
 def _reconstruct_three_window_path(edges):
@@ -69,8 +71,7 @@ def _reconstruct_three_window_path(edges):
         return None
     m = len(edges)
     if m == 1:
-        seq = tuple(sorted(edges[0]))
-        return seq if _verify_windows(seq, edges) else None
+        return None
     if m == 2:
         a, b = edges
         shared = sorted(a & b)
@@ -129,6 +130,18 @@ def _reconstruct_three_window_path(edges):
     return seq
 
 
+def _canonical_disequality_edges(comp):
+    comp = tuple(frozenset(e) for e in comp)
+    pairs = set()
+    for i in range(len(comp)):
+        for j in range(i + 1, len(comp)):
+            shared = comp[i] & comp[j]
+            if len(shared) == 2:
+                a, b = sorted(shared)
+                pairs.add((a, b))
+    return tuple(sorted(pairs))
+
+
 def _recover_lines(cleaned):
     by_pol = {"NEG": [], "POS": []}
     for clause in cleaned:
@@ -139,10 +152,20 @@ def _recover_lines(cleaned):
     records = []
     for pol in ("NEG", "POS"):
         for comp in _clause_components(by_pol[pol]):
+            if len(comp) < 2:
+                return None, "OPEN_SHORT_LINE_UNORIENTED"
             seq = _reconstruct_three_window_path(comp)
             if seq is None:
                 return None, "OPEN_NOT_EXACT_THREE_WINDOW_PATH"
-            records.append({"polarity": pol, "sequence": seq, "clauses": len(comp)})
+            pairs = _canonical_disequality_edges(comp)
+            if len(pairs) != len(comp) - 1:
+                return None, "OPEN_NOT_EXACT_THREE_WINDOW_PATH"
+            records.append({
+                "polarity": pol,
+                "line_length": len(seq),
+                "clauses": len(comp),
+                "disequality_edges": pairs,
+            })
     return records, None
 
 
@@ -150,11 +173,11 @@ def _bipartite_coloring(lines):
     adj = defaultdict(set)
     vertices = set()
     for rec in lines:
-        seq = rec["sequence"]
-        vertices.update(seq)
-        for a, b in zip(seq, seq[1:]):
+        for a, b in rec["disequality_edges"]:
             if a == b:
                 return None
+            vertices.add(a)
+            vertices.add(b)
             adj[a].add(b)
             adj[b].add(a)
     color = {}
@@ -197,9 +220,10 @@ def compile_dense_bipartite_grid(source, n=None):
         "line_count": len(lines),
         "negative_lines": sum(1 for r in lines if r["polarity"] == "NEG"),
         "positive_lines": sum(1 for r in lines if r["polarity"] == "POS"),
-        "line_lengths": tuple(sorted(len(r["sequence"]) for r in lines)),
+        "line_lengths": tuple(sorted(r["line_length"] for r in lines)),
+        "disequality_edge_count": sum(len(r["disequality_edges"]) for r in lines),
         "certificate": {
-            "kind": "EXACT_THREE_WINDOW_PATHS_PLUS_BIPARTITE_LINE_UNION",
+            "kind": "EXACT_THREE_WINDOW_PATHS_PLUS_CANONICAL_SHARED_PAIR_BIPARTITE_COLORING",
             "color_classes": {
                 "false": tuple(sorted(v for v, b in coloring.items() if not b)),
                 "true": tuple(sorted(v for v, b in coloring.items() if b)),
