@@ -7,8 +7,10 @@ import hashlib, json, random, sys
 HERE=Path(__file__).resolve().parent
 ROOT=HERE.parent
 sys.path.insert(0,str(ROOT))
+import importlib.util
+_spec=importlib.util.spec_from_file_location('v11_make_population',ROOT/'make_population.py')
+gen=importlib.util.module_from_spec(_spec); _spec.loader.exec_module(gen)
 import transfer_core as tc
-import make_population as gen
 
 EXPECTED_HASHES={
  'transfer_core.py':'dba2dc94980081497f30870d962ffff3b536f6e8271176187b061b5fbe0e19dd',
