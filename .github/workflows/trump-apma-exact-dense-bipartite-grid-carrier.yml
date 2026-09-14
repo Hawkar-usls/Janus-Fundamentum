@@ -1,12 +1,10 @@
 name: TRUMP APMA exact dense bipartite grid carrier gate
 
 on:
-  push:
-    branches:
-      - research/trump-apma-exact-dense-bipartite-grid-carrier-2026-09-14
+  workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
   scientific-check:
@@ -14,30 +12,8 @@ jobs:
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
-        with:
-          fetch-depth: 1
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-      - name: Run corrected frozen independent checker and capture output
-        id: checker
-        shell: bash
-        run: |
-          set +e
-          python research/tools/apma_dense_bipartite_grid/independent_checker.py > research/TRUMP_APMA_EXACT_DENSE_BIPARTITE_GRID_CARRIER_RERUN1_RAW_2026-09-14.json
-          rc=$?
-          cat research/TRUMP_APMA_EXACT_DENSE_BIPARTITE_GRID_CARRIER_RERUN1_RAW_2026-09-14.json
-          echo "rc=$rc" >> "$GITHUB_OUTPUT"
-          exit 0
-      - name: Persist corrected raw result
-        shell: bash
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add research/TRUMP_APMA_EXACT_DENSE_BIPARTITE_GRID_CARRIER_RERUN1_RAW_2026-09-14.json
-          git commit -m "TRUMP_record_APMA_dense_grid_rerun1_raw_result" || true
-          git push
-      - name: Enforce corrected frozen checker exit code
-        shell: bash
-        run: |
-          exit "${{ steps.checker.outputs.rc }}"
+      - name: Run corrected frozen independent checker
+        run: python research/tools/apma_dense_bipartite_grid/independent_checker.py
