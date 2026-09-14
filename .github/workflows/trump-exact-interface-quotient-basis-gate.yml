@@ -1,0 +1,65 @@
+name: TRUMP Exact Interface Quotient Basis Gate
+
+on:
+  push:
+    branches:
+      - research/trump-wide-interface-quotient-basis-2026-09-15
+    paths:
+      - 'research/TRUMP_WIDE_FEEDBACK_INTERFACE_MECHANISM_HARVEST_2026-09-15.md'
+      - 'research/TRUMP_EXACT_INTERFACE_QUOTIENT_BASIS_PREREGISTRATION_2026-09-15.json'
+      - 'research/TRUMP_EXACT_INTERFACE_QUOTIENT_BASIS_THEOREM_CANDIDATE_2026-09-15.md'
+      - 'research/tools/apma_interface_quotient/**'
+      - '.github/workflows/trump-exact-interface-quotient-basis-gate.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  exact-quotient-gate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Run independent exact interface quotient checker
+        run: |
+          set -euo pipefail
+          python -m research.tools.apma_interface_quotient.independent_checker | tee /tmp/exact-quotient-result.json
+
+      - name: Assert scoped verdict and scientific firewalls
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          z=json.loads(Path('/tmp/exact-quotient-result.json').read_text().strip().splitlines()[-1])
+          assert z['verdict']=='PASS_U1_AND_P1_SCOPED_SEPARATION', z
+          assert all(z['checks'].values()), {k:v for k,v in z['checks'].items() if not v}
+          sf=z['scientific_firewall']
+          assert sf['P_VS_NP']=='OPEN', sf
+          assert sf['GENERAL_SAT_IN_P']=='NOT_PROVED', sf
+          assert sf['GLOBAL_APMA_FRONTIER_ADVANCE']=='NONE', sf
+          assert sf['U1_SCOPE']=='UNRESTRICTED_DOWNSTREAM_QUERY_CONTRACT_REPRESENTATION_BARRIER_ONLY', sf
+          assert sf['P1_SCOPE']=='STRICT_AFFINE_SYNDROME_INTERFACE_ONLY', sf
+          assert z['complexity']['raw_assignment_enumeration']==0, z['complexity']
+          print(json.dumps({'verdict':z['verdict'],'u1':z['u1'],'p1':z['p1'],'firewall':sf},sort_keys=True))
+          PY
+
+      - name: Baseline Trinity regression
+        run: python research/tools/apma_trinity_sovereign/independent_checker.py
+
+      - name: Sealed unicyclic regression
+        run: python research/tools/apma_trinity_unicyclic/independent_checker.py
+
+      - name: Canonical feedback-interface regression
+        run: python -m research.tools.apma_trinity_feedback.independent_checker
+
+      - name: Authority notice
+        run: |
+          echo 'SCOPED_THEOREM_AND_IMPLEMENTATION_CHECK__NO_GLOBAL_PROMOTION'
+          echo 'U1=UNRESTRICTED_QUERY_CONTRACT_BARRIER_ONLY'
+          echo 'P1=STRICT_AFFINE_SYNDROME_INTERFACE_ONLY'
+          echo 'GENERAL_SAT_IN_P=NOT_PROVED'
+          echo 'P_VS_NP=OPEN'
