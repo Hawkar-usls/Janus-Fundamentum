@@ -1,0 +1,81 @@
+{
+  "artifact_id": "JANUS-TRUMP-APMA-FEEDBACK-INTERFACE-TRANSFER-PREREGISTRATION-2026-09-15-v1.0",
+  "authority": "PREREGISTERED_SCOPED_THEOREM_OR_FALSIFICATION__NO_GLOBAL_PROMOTION",
+  "repository": "Hawkar-usls/Janus-Fundamentum",
+  "base_main": "21bd530aa016670354481670966f82b086ec6242",
+  "predecessor": "PASS_SCOPED_BOUNDED_INTERFACE_UNICYCLIC_TRANSFER",
+  "target": "FEEDBACK_INTERFACE_WIDTH_EXACT_TRANSFER_THEOREM_OR_FALSIFICATION",
+  "source_scope": {
+    "cnf": "width-1..3 CNF",
+    "mosaic": "frozen exact typed partition into 2CNF/HORN3/DUAL_HORN3 modules",
+    "interaction_graph": "connected simple module graph; variables occurring in more than two modules are rejected as interface hyperedges",
+    "cycle_rank": ">=2; forests and unicyclic instances remain predecessor authority"
+  },
+  "canonical_discovery": {
+    "root": "lexicographically minimum module id",
+    "spanning_tree": "deterministic BFS; neighbors visited in lexicographic order; first-discovery parent edge enters T",
+    "feedback_edges": "C = E \\ T, canonically sorted",
+    "edge_separator": "S_e is the exact set of variables shared by the two incident modules",
+    "feedback_interface": "B = union_{e in C} S_e",
+    "important_scope_rule": "Admission is based only on this deterministic canonical T and its discovered B. Existence of a different lower-width spanning tree is not claimed or searched."
+  },
+  "admission": {
+    "feedback_width": "|B| <= floor(log2(max(2,L)))",
+    "L": "1+n+clause_count+literal_occurrence_count",
+    "conditioned_tree_boundary": "For every module, after removing variables in B from the boundary, remaining tree-boundary width <= floor(log2(max(2,L))).",
+    "fail_closed": [
+      "OPEN_INTERFACE_HYPEREDGE",
+      "OPEN_DISCONNECTED_INTERACTION",
+      "NOT_MULTICYCLE_FEEDBACK_TARGET",
+      "OPEN_FEEDBACK_INTERFACE_WIDTH",
+      "OPEN_CONDITIONED_TREE_BOUNDARY_WIDTH"
+    ]
+  },
+  "candidate_mechanism": {
+    "step_1": "Discover canonical T, C and B exactly.",
+    "step_2": "Enumerate every sigma in {0,1}^B exactly; no sampling or heuristic pruning.",
+    "step_3": "Condition every module on sigma restricted to its variables.",
+    "step_4": "Delete feedback edges C; the remaining interaction is T.",
+    "step_5": "Run exact typed-module tree DP on T with conditioned B fixed globally.",
+    "step_6_sat": "If one sigma accepts, reconstruct a root witness and replay it against the original CNF before COMMIT_SAT.",
+    "step_6_unsat": "COMMIT_UNSAT only if every sigma is exactly rejected by the conditioned tree DP."
+  },
+  "formal_semantics": "SAT(F) iff exists sigma_B in {0,1}^B such that SAT(F conditioned on B=sigma_B).",
+  "proof_obligations": {
+    "F1": "Canonical spanning-tree, feedback-edge and B discovery is deterministic and polynomial.",
+    "F2": "Deleting C yields exactly the discovered spanning tree T.",
+    "F3": "Conditioning on all assignments to B is semantically exact for SAT.",
+    "F4": "For each fixed sigma_B, the conditioned typed-module tree DP is exact.",
+    "F5": "Accepted sigma_B reconstructs a globally consistent witness that verifies on the original CNF.",
+    "F6": "If every sigma_B is rejected, the original CNF is UNSAT.",
+    "F7": "Total construct + discover + solve + reconstruct + verify lifecycle is polynomial in L under the frozen admission bounds."
+  },
+  "symbolic_complexity_target": {
+    "outer_assignments": "2^|B| <= L",
+    "rows_per_module_per_sigma": "<= 2^w <= L for conditioned tree-boundary width w<=floor(log2 L)",
+    "module_count": "M<=L",
+    "native_carrier_solve": "polynomial exact 2SAT/Horn/Dual-Horn",
+    "target_envelope": "at most polynomial; a conservative M*L^2 native-solve-call envelope is acceptable if independently derived and checked"
+  },
+  "required_negative_controls": [
+    "canonical |B| overflow remains OPEN",
+    "conditioned tree-boundary overflow remains OPEN",
+    "interface hyperedge remains OPEN",
+    "tampered root/proposal rejected",
+    "baseline Trinity regression passes",
+    "sealed unicyclic regression passes"
+  ],
+  "required_positive_falsifiers": [
+    "at least one connected graph with cycle rank >=2 and canonical |B| within budget",
+    "SAT and UNSAT admitted instances when constructible",
+    "exact comparison with independent truth enumeration only on finite small controls"
+  ],
+  "anti_overclaim": {
+    "FINITE_RUNS_IMPLY_THEOREM": false,
+    "EXISTS_SMALLER_NONCANONICAL_FEEDBACK_SET": "NOT_CLAIMED",
+    "WIDE_INTERFACE_COMPRESSION": "NOT_CLAIMED",
+    "UNIVERSAL_DISCOVERY": "NOT_CLAIMED",
+    "GENERAL_SAT_IN_P": "NOT_PROVED",
+    "P_VS_NP": "OPEN"
+  }
+}
