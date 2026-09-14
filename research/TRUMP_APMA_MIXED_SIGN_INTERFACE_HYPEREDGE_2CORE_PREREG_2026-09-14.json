@@ -1,0 +1,37 @@
+{
+  "artifact_id": "TRUMP-APMA-MIXED-SIGN-INTERFACE-HYPEREDGE-2CORE-PREREG-2026-09-14",
+  "parent_scientific_authority": "2afa6a61c7dac0b5d316760015d5ccc62352366b",
+  "gate": "APMA_MIXED_SIGN_INTERFACE_HYPEREDGE_INTERACTION_CARRIER_OR_QUOTIENT",
+  "candidate": "CANONICAL_SOURCE_INCIDENCE_2CORE_CUTSET",
+  "frozen_mechanism": [
+    "Build the untouched source CNF bipartite incidence graph variable<->clause.",
+    "Compute its canonical graph 2-core by deterministic degree-0/1 peeling.",
+    "Let K be every variable node remaining in the 2-core; do not search for a smaller or optimal cutset.",
+    "Use budget floor(log2 L), where L = n + sum(1+clause_width) after tautology/duplicate normalization.",
+    "If |K| exceeds the budget, return OPEN_INCIDENCE_2CORE_WIDTH before any assignment enumeration.",
+    "Otherwise enumerate exactly all 2^|K| assignments. Since 2^|K| <= L, this enumeration is polynomially bounded.",
+    "For each core assignment, simplify the source. Removing all 2-core variable nodes must leave an acyclic incidence graph; solve each residual factor tree by exact message passing.",
+    "A SAT result must carry a source-valid witness. UNSAT is authorized only after all bounded core assignments are exhausted by exact residual-tree DP."
+  ],
+  "frozen_frontier_test": {
+    "corpus": "same 60 mixed random formulas used by Trinity-v3 corrected checker, seed 20260914",
+    "target_subset": "the formulas for which sealed Trinity-v3 returns OPEN_UNKNOWN_STATE_CLASS",
+    "success_measure": "number of those frozen OPENs closed exactly by this carrier; zero closure is allowed and must be reported honestly"
+  },
+  "killer_controls": [
+    "large mixed-sign incidence forest: core width 0 and exact terminal result",
+    "small cyclic core with trees attached: bounded core and exact result",
+    "large cyclic core above log budget: OPEN before enumeration",
+    "random small exact comparison against independent brute force",
+    "returned SAT witness replay on untouched source",
+    "no minimum-FVS, treewidth, backdoor search, random scoring, DPLL, general SAT oracle, or hidden assignment cube"
+  ],
+  "failure_policy": "Any malformed certificate, residual cycle after admitted cut, witness replay failure, or unbounded core enumeration is FAIL/OPEN as appropriate; never infer UNSAT from OPEN.",
+  "not_proved": [
+    "No theorem that every mixed-sign 3CNF has logarithmic incidence 2-core variable width.",
+    "No theorem that the carrier closes every Trinity-v3 OPEN.",
+    "No universal APMA selector theorem.",
+    "No SAT-in-P or P=NP claim."
+  ],
+  "scientific_status": {"SAT_IN_P": "NOT_PROVED", "P_VS_NP": "OPEN", "Pi_negative_evidence_weight": 0}
+}
