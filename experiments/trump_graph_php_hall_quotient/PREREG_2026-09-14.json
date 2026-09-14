@@ -1,0 +1,108 @@
+{
+  "artifact_id": "JANUS-TRUMP-GRAPH-PHP-CARDINALITY-HALL-MATCHING-QUOTIENT-VS-RESOLUTION-WIDTH-2026-09-14-v1.0",
+  "gate": "GRAPH_PHP_CARDINALITY_HALL_QUOTIENT_VS_RESOLUTION_WIDTH",
+  "status": "PREREGISTERED_BEFORE_IMPLEMENTATION_AND_RUN",
+  "parent_scientific_authority": "c5e49c9924c720288e38c8529afdbf69f0c1e7f6",
+  "primary_subtype": "CARDINALITY_HALL_MATCHING_QUOTIENT",
+  "quotient_carrier": "Q(F)=G_F=(L,R,E)",
+  "exact_semantics": {
+    "SAT": "F is SAT iff G_F has a matching saturating L",
+    "UNSAT": "F is UNSAT iff there exists S subseteq L with |N(S)|<|S|"
+  },
+  "counting_baseline": {
+    "name": "COUNTING_BASELINE",
+    "carrier": "(m,n,schema_certificate)",
+    "rule": "m>n => UNSAT; otherwise UNKNOWN",
+    "authority": "NEGATIVE_CONTROL_ONLY",
+    "constitutional_guard": "PROMISE_SUBCLASS_TRIVIALIZATION_FORBIDDEN"
+  },
+  "recognizer_language": {
+    "name": "STANDARD_GRAPH_PHP_CNF",
+    "requirements": [
+      "nonempty pairwise-disjoint all-positive pigeon clauses cover every variable exactly once",
+      "all remaining clauses are binary all-negative conflicts",
+      "negative-conflict connected components are cliques and contain at most one variable from each pigeon block",
+      "isolated variables are singleton right vertices"
+    ],
+    "complexity": "polynomial graph scans and clique-component verification"
+  },
+  "certificate_paths": {
+    "SAT": "maximum matching M saturating L -> reconstruct one true edge per left vertex -> original CNF replay",
+    "UNSAT": "maximum-matching alternating forest -> deficient S and exact N(S) -> independently verify neighborhood and |N(S)|<|S|"
+  },
+  "algorithm": {
+    "matching": "Hopcroft-Karp or equivalent polynomial maximum bipartite matching",
+    "forbidden_after_admission": [
+      "assignment enumeration",
+      "separator search",
+      "variable/order search",
+      "optimal BDD/ZDD ordering search",
+      "unproved combinatorial search",
+      "SAT oracle"
+    ],
+    "asymptotic_ledger": "T_recognize + T_construct + T_matching/Hall + T_reconstruct + T_verify <= poly(|F|)"
+  },
+  "hardness_baseline": {
+    "name": "HARD_UNSAT_EXPANDER",
+    "encoding": "Ben-Sasson-Wigderson G-PHP standard graph pigeonhole CNF",
+    "shape": "|L|=n+1, |R|=n, left degree at most 5",
+    "experimental_expansion_certificate": "(m,n,5,r,1)-expander with r=floor(n/4), checked exhaustively only by population generator",
+    "theorem": "Ben-Sasson and Wigderson, Short Proofs Are Narrow—Resolution Made Simple, Theorem 4.15",
+    "theorem_statement_used": "w(G-PHP |- 0) >= r*e/2 for every (m,n,d,r,e)-expander",
+    "existence_statement_used": "for m=n+1 there exist (m,n,5,n/c,1)-expanders for a constant c>1",
+    "consequence": "resolution width Omega(n) while original clause width is at most 5",
+    "literature_authority_only": true
+  },
+  "lanes": {
+    "HARD_UNSAT_EXPANDER": {
+      "n_values": [12,16,20,24],
+      "truth": "UNSAT",
+      "counting_baseline": "UNSAT",
+      "required": "exact Hall/matching UNSAT plus width-lower-bound ledger"
+    },
+    "HALL_UNSAT_CONTROL": {
+      "n_values": [12,16,20,24],
+      "shape": "m=n with a planted local Hall-deficient subset S of size 3 and |N(S)|=2",
+      "truth": "UNSAT",
+      "counting_baseline": "UNKNOWN",
+      "required": "Hall quotient must find a valid deficient-set certificate"
+    },
+    "SAT_MATCHING_CONTROL": {
+      "n_values": [12,16,20,24],
+      "shape": "m=n sparse bounded-degree graph with a planted saturating matching",
+      "truth": "SAT",
+      "counting_baseline": "UNKNOWN",
+      "required": "matching certificate, assignment reconstruction, root CNF replay"
+    }
+  },
+  "population_generation_firewall": {
+    "hard_expander_search": "deterministic seeded benchmark construction before solver run",
+    "expansion_audit": "may enumerate left subsets up to frozen r solely to certify benchmark hardness fixture",
+    "not_charged_to_solver_runtime": true,
+    "not_available_to_solver_or_checker_as_answer_oracle": true
+  },
+  "substantive_pass_requires": [
+    "one polynomially recognizable graph-PHP carrier language contains both SAT and UNSAT instances",
+    "all three lanes exact",
+    "COUNTING_BASELINE fails to decide HALL_UNSAT_CONTROL and SAT_MATCHING_CONTROL",
+    "HARD_UNSAT_EXPANDER has constant input clause width and theorem-backed resolution width Omega(n)",
+    "independent checker validates certificates against reconstructed graph and original CNF"
+  ],
+  "verdicts": [
+    "PASS_SCOPED_GRAPH_PHP_CARDINALITY_HALL_QUOTIENT_SEPARATION",
+    "FAIL_RECOGNIZER",
+    "FAIL_MATCHING_HALL_EXACTNESS",
+    "FAIL_CERTIFICATE_REPLAY",
+    "FAIL_COUNTING_BASELINE_NOT_SEPARATED",
+    "FAIL_HARDNESS_FIXTURE",
+    "FAIL_POLYNOMIAL_LEDGER"
+  ],
+  "scientific_firewall": {
+    "claim_if_pass": "separation for this polynomially recognizable graph-PHP structural subclass between growing resolution width and polynomial exact matching/Hall quotient decision",
+    "UNIVERSAL_SAT_SELECTOR": "NOT_CLAIMED",
+    "SAT_IN_P": "NOT_PROVED",
+    "P_VS_NP": "OPEN",
+    "Pi_negative_evidence_weight": 0
+  },
+  "append_only": true
+}
