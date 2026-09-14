@@ -1,0 +1,56 @@
+name: TRUMP Trinity Feedback Interface Gate
+
+on:
+  push:
+    branches:
+      - research/trump-apma-feedback-interface-transfer-2026-09-15
+    paths:
+      - 'research/TRUMP_APMA_FEEDBACK_INTERFACE_TRANSFER_PREREGISTRATION_2026-09-15.json'
+      - 'research/tools/apma_trinity_feedback/**'
+      - '.github/workflows/trump-trinity-feedback-interface-gate.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  exact-gate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Run canonical feedback-interface independent checker
+        run: |
+          set -euo pipefail
+          python research/tools/apma_trinity_feedback/independent_checker.py | tee /tmp/feedback-result.json
+
+      - name: Assert scoped verdict and firewalls
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          z=json.loads(Path('/tmp/feedback-result.json').read_text().strip().splitlines()[-1])
+          assert z['verdict']=='PASS_SCOPED_CANONICAL_LOG_FEEDBACK_INTERFACE_TRANSFER_GATE', z
+          sf=z['scientific_firewall']
+          assert sf['P_VS_NP']=='OPEN', sf
+          assert sf['GENERAL_SAT_IN_P']=='NOT_PROVED', sf
+          assert sf['WIDE_INTERFACE_COMPRESSION']=='NOT_CLAIMED', sf
+          assert sf['UNIVERSAL_DISCOVERY']=='NOT_CLAIMED', sf
+          assert all(z['checks'].values()), {k:v for k,v in z['checks'].items() if not v}
+          print(json.dumps({'verdict':z['verdict'],'positive':z['positive_controls'],'negative':z['negative_controls'],'firewall':sf},sort_keys=True))
+          PY
+
+      - name: Baseline Trinity regression
+        run: python research/tools/apma_trinity_sovereign/independent_checker.py
+
+      - name: Sealed unicyclic regression
+        run: python research/tools/apma_trinity_unicyclic/independent_checker.py
+
+      - name: Authority notice
+        run: |
+          echo 'PREREGISTERED_SCOPED_GATE_ONLY__NO_GLOBAL_PROMOTION'
+          echo 'FINITE_CONTROLS_NOT_THEOREM_EVIDENCE'
+          echo 'P_VS_NP=OPEN'
