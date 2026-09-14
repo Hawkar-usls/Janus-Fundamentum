@@ -15,6 +15,7 @@ from research.tools.apma_renamable_horn.renamable_horn import apply_renaming
 EXPECTED_DENSE_BLOB = "243ee05b8f34c1b67bc5cb14fba5ecbd990ae7f8"
 EXPECTED_DENSE_SEAL = "45140abcc163fd99d67c0b94e6fa37d9d6e023e2"
 DENSE_PATH = ROOT / "research/tools/apma_dense_bipartite_grid/dense_bipartite_grid.py"
+BRUTE_LIMIT_N = 14
 
 
 def git_blob_sha(path):
@@ -27,6 +28,8 @@ def eval_cnf(source, assignment):
 
 
 def brute(source, n):
+    if int(n) > BRUTE_LIMIT_N:
+        raise RuntimeError("CHECKER_BRUTE_LIMIT_EXCEEDED")
     for bits in itertools.product((False, True), repeat=n):
         a = {i + 1: bits[i] for i in range(n)}
         if eval_cnf(source, a):
@@ -153,6 +156,7 @@ def main():
     old_dense = run_trinity_v2(dense, dn)
     direct_dense = compile_dense_bipartite_grid(dense, dn)
     new_dense = run_trinity_v3(dense, dn)
+    dense_witness = {int(k): bool(v) for k, v in (new_dense["sovereign"].get("witness") or {}).items()}
     checks["dense_was_v2_open"] = old_dense["sovereign"]["decision"] == "OPEN_UNKNOWN_STATE_CLASS"
     checks["dense_direct_sealed_door_certifies_sat"] = (
         direct_dense.get("status") == "CERTIFIED_SAT_DENSE_BIPARTITE_GRID"
@@ -161,7 +165,7 @@ def main():
     checks["dense_v3_closes_via_new_door"] = (
         new_dense["sovereign"]["decision"] == "COMMIT_SAT"
         and new_dense["sovereign"].get("door") == DENSE
-        and exact_trinity(dense, dn, new_dense)
+        and eval_cnf(dense, dense_witness)
     )
     examples["dense_k66"] = {
         "v2": old_dense["sovereign"]["decision"],
@@ -238,6 +242,7 @@ def main():
     forbidden = ["random.", "itertools.product", "brute(", "score_candidate", "best_door", "dpll(", "assignment_cube"]
     hits = [x for x in forbidden if x in text]
     checks["captain_guard"] = not hits
+    checks["checker_bruteforce_explicitly_bounded"] = BRUTE_LIMIT_N == 14
 
     remaining_named_falsifiers = []
     if new_pure["sovereign"]["decision"] == "OPEN_UNKNOWN_STATE_CLASS":
@@ -254,12 +259,17 @@ def main():
         verdict = "FAIL_APMA_TRINITY_V3_IMPORT_OR_REGRESSION_MISMATCH"
 
     out = {
-        "schema": "JANUS_TRUMP_APMA_TRINITY_IMPORT_DENSE_GRID_RETEST_FRONTIER_GATE_V1",
+        "schema": "JANUS_TRUMP_APMA_TRINITY_IMPORT_DENSE_GRID_RETEST_FRONTIER_GATE_V1_1",
         "verdict": verdict,
         "checks": checks,
         "examples": examples,
         "remaining_named_falsifiers": remaining_named_falsifiers,
         "captain_guard_hits": hits,
+        "preserved_checker_event": {
+            "original_checker_commit": "e7e4324242bca988d79d1d77e8e93bd7320ce054",
+            "original_run_id": 34808783059,
+            "issue": "unbounded checker brute on dense n=36; no candidate conclusion authorized from that event"
+        },
         "runtime_ms": round((time.perf_counter() - t0) * 1000, 3),
         "interpretation": "Closing finite frozen falsifiers demonstrates only portfolio growth. Any remaining OPEN falsifies completeness of this finite portfolio only; absence of OPEN in this frozen hunt would still not prove a universal selector theorem.",
         "scientific_status": {
