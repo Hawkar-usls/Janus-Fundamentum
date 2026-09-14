@@ -1,0 +1,47 @@
+name: TRUMP Trinity Unicyclic Successor Gate
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - research/trump-apma-trinity-unicyclic-transfer-2026-09-15
+    paths:
+      - '.github/workflows/trump-trinity-unicyclic-gate.yml'
+      - 'research/tools/apma_trinity_unicyclic/**'
+      - 'research/TRUMP_APMA_TRINITY_UNICYCLIC_TRANSFER_PREREGISTRATION_2026-09-15.json'
+
+permissions:
+  contents: read
+
+jobs:
+  gate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Run independent successor checker
+        shell: bash
+        run: |
+          set -euo pipefail
+          python research/tools/apma_trinity_unicyclic/independent_checker.py | tee /tmp/unicyclic-result.json
+      - name: Assert scoped firewall
+        shell: bash
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          z=json.loads(Path('/tmp/unicyclic-result.json').read_text().strip().splitlines()[-1])
+          assert z['verdict']=='PASS_SCOPED_BOUNDED_INTERFACE_UNICYCLIC_TRANSFER', z
+          sf=z['scientific_firewall']
+          assert sf['P_VS_NP']=='OPEN', sf
+          assert sf['SAT_IN_P']=='NOT_PROVED', sf
+          assert sf['UNIVERSAL_DISCOVERY']=='NOT_CLAIMED', sf
+          print(json.dumps({'verdict':z['verdict'],'cycle_product':z['cycle_product'],'negative_controls':z['negative_controls'],'complexity_checks':z['complexity_checks'],'firewall':sf},sort_keys=True))
+          PY
+      - name: Authority notice
+        run: |
+          echo 'SCOPED_SUCCESSOR_GATE_ONLY'
+          echo 'P_VS_NP=OPEN'
