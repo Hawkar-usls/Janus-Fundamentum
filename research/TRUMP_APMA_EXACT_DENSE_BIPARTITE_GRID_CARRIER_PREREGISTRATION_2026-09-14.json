@@ -1,0 +1,50 @@
+{
+  "artifact_id": "TRUMP-APMA-EXACT-DENSE-BIPARTITE-GRID-CARRIER-PREREGISTRATION-2026-09-14",
+  "gate": "APMA_EXACT_DENSE_BIPARTITE_INTERACTION_CARRIER_OR_QUOTIENT",
+  "parent_scientific_authority": "b7840457183b04fffad4f50f31f90b1e66913277",
+  "technical_parent_head": "6596cd8d66a506225148f4c96ffef5c20d351851",
+  "target_falsifier": "dense_k66_nonrenamable",
+  "hypothesis": "The dense_k66 current-portfolio falsifier belongs to a broader exact class formed by disjoint all-negative and all-positive 3-window path factors whose reconstructed consecutive-adjacency union is bipartite; a 2-coloring then yields a polynomially checkable satisfying witness without assignment enumeration.",
+  "candidate_contract": [
+    "Clean CNF clauses exactly; tautologies may be removed but no non-tautological clause may be dropped.",
+    "Admit only width-3 clauses that are all-positive or all-negative; mixed-polarity or other-width input returns OPEN.",
+    "Within each polarity, partition clauses by shared-variable connectivity and require every component to be exactly a consecutive 3-window path hypergraph.",
+    "Recover one verified variable order for every admitted component using clause intersections, then independently replay that every component clause is exactly one consecutive triple of the recovered order and no extra triple is missing.",
+    "Build the union graph of consecutive-variable adjacencies from all recovered lines and run deterministic bipartite coloring.",
+    "If the union graph is bipartite, use its coloring as the source witness and independently verify the original CNF before CERTIFIED_SAT.",
+    "If any recognition, reconstruction, bipartiteness, or source-witness replay check fails, return OPEN or FAIL; never infer UNSAT."
+  ],
+  "complexity_contract": [
+    "No whole-formula assignment enumeration.",
+    "No random search, heuristic scoring, SAT oracle, DPLL, minimum separator, treewidth, backdoor, or optimal quotient search.",
+    "Recognition, reconstruction, coloring, and witness replay must be polynomial in source size."
+  ],
+  "frozen_controls": {
+    "dense_k66_nonrenamable": "must close as CERTIFIED_SAT_DENSE_BIPARTITE_GRID with original-source witness",
+    "permuted_dense_family": "random variable relabelings are checker-only and must remain recognized/exact",
+    "rectangular_generalization": "multiple row/column sizes >=3 must close when admitted",
+    "mixed_polarity_corruption": "must OPEN",
+    "missing_window_corruption": "must OPEN",
+    "extra_clause_corruption": "must OPEN unless the complete source still exactly matches another admitted path decomposition",
+    "nonbipartite_reconstructed_union": "must OPEN, never UNSAT",
+    "random_small_checker": "checker may brute-force bounded controls only; candidate may not"
+  },
+  "pass_conditions": [
+    "The original dense_k66 falsifier is certified SAT by this carrier with a witness satisfying the untouched source.",
+    "At least 64 relabeled admitted instances are exact.",
+    "All malformed/non-admitted controls fail closed.",
+    "Captain source scan finds no forbidden whole-assignment enumeration or heuristic search in candidate code.",
+    "No result is promoted beyond the admitted 3-window-path/bipartite-union class."
+  ],
+  "firewalls": [
+    "DENSE_GRID_PASS_NE_UNIVERSAL_SELECTOR_THEOREM",
+    "CONSTRUCTIVE_SAT_ON_RECOGNIZED_CLASS_NE_GENERAL_3SAT_DECISION",
+    "OPEN_NONBIPARTITE_NE_UNSAT",
+    "NO_P_EQ_NP_CLAIM_FROM_SCOPED_CARRIER"
+  ],
+  "scientific_status": {
+    "SAT_IN_P": "NOT_PROVED",
+    "P_VS_NP": "OPEN",
+    "Pi_negative_evidence_weight": 0
+  }
+}
