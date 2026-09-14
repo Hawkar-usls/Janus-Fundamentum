@@ -1,0 +1,104 @@
+name: TRUMP Trinity Unicyclic Hostile Falsifier
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - research/trump-apma-trinity-unicyclic-transfer-2026-09-15
+    paths:
+      - '.github/workflows/trump-trinity-unicyclic-hostile-falsifier.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  hostile-falsifier:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Exhaustive augmentation attack
+        shell: bash
+        run: |
+          python - <<'PY'
+          import itertools, json
+          import research.tools.apma_trinity_unicyclic.unicyclic as cand
+
+          BASE=((-1,-3,-4),(-1,2,5),(-2,-3))
+          N=5
+
+          def eval_cnf(src,a):
+              return all(any(a[abs(l)]==(l>0) for l in c) for c in src)
+          def sat(src,n=N):
+              for bits in itertools.product((False,True),repeat=n):
+                  a={i+1:bits[i] for i in range(n)}
+                  if eval_cnf(src,a): return True
+              return False
+          def canon_clause(c):
+              return tuple(sorted(c,key=lambda x:(abs(x),x)))
+          def legal_clauses(n):
+              out=[]
+              lits=[x for v in range(1,n+1) for x in (-v,v)]
+              for w in (1,2,3):
+                  for c in itertools.combinations(lits,w):
+                      if any(-x in c for x in c): continue
+                      out.append(canon_clause(c))
+              return sorted(set(out),key=lambda c:(len(c),c))
+
+          pool=[c for c in legal_clauses(N) if c not in BASE]
+          tested=0; admitted=0; exact_fail=[]; unsat_hits=[]; attached=[]; wide_sep=[]
+
+          # Exhaust all one-clause augmentations, then all two-clause augmentations until
+          # every structural witness category has at least one hit; correctness is checked
+          # for every admitted case visited, not only stored witnesses.
+          def inspect(src, tag):
+              global tested,admitted
+              tested+=1
+              z=cand.run_trinity(src,N)
+              if z['proposal'].get('door')!=cand.UNICYCLIC:
+                  return
+              admitted+=1
+              truth=sat(src)
+              d=z['sovereign']['decision']
+              ok=(d=='COMMIT_SAT' and truth) or (d=='COMMIT_UNSAT' and not truth)
+              if not ok:
+                  exact_fail.append({'tag':tag,'source':[list(c) for c in src],'truth_sat':truth,'decision':d})
+              ev=z['proposal']['evidence']; exe=z.get('demiurge') or {}
+              rec={'tag':tag,'source':[list(c) for c in src],'decision':d,'module_count':ev['module_count'],'cut_separator':ev['cut_separator'],'tested_sigma_count':exe.get('tested_sigma_count'),'rejected_sigma':exe.get('rejected_sigma')}
+              if not truth and len(unsat_hits)<5: unsat_hits.append(rec)
+              if ev['module_count']>3 and len(attached)<5: attached.append(rec)
+              if len(ev['cut_separator'])>1 and len(wide_sep)<5: wide_sep.append(rec)
+
+          for c in pool:
+              inspect(tuple(sorted(BASE+(c,))), ['one',list(c)])
+
+          # Full two-clause product is still small (< 20k here); exhaust all.
+          for i,a in enumerate(pool):
+              for b in pool[i+1:]:
+                  inspect(tuple(sorted(BASE+(a,b))), ['two',list(a),list(b)])
+
+          out={
+            'authority':'FINITE_HOSTILE_FALSIFIER_ONLY__NO_SCIENTIFIC_PROMOTION',
+            'tested_augmentations':tested,
+            'admitted_unicyclic':admitted,
+            'exact_failures':exact_fail,
+            'unsat_unicyclic_witnesses':unsat_hits,
+            'attached_tree_witnesses':attached,
+            'multi_variable_cut_witnesses':wide_sep,
+            'requirements':{
+              'no_exact_failure':len(exact_fail)==0,
+              'has_unsat_unicyclic':len(unsat_hits)>0,
+              'has_attached_tree':len(attached)>0,
+              'has_multivariable_cut':len(wide_sep)>0
+            },
+            'firewall':{'P_VS_NP':'OPEN','SAT_IN_P':'NOT_PROVED'}
+          }
+          print(json.dumps(out,sort_keys=True))
+          assert not exact_fail
+          assert unsat_hits, 'P5 not exercised: no UNSAT unicyclic augmentation found'
+          # Attached-tree / multi-variable separator are discovery objectives; absence is
+          # not a candidate failure, but must be reported for a dedicated construction.
+          PY
