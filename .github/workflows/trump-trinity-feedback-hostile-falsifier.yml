@@ -1,0 +1,97 @@
+name: TRUMP Trinity Feedback Hostile Falsifier
+
+on:
+  push:
+    branches:
+      - research/trump-apma-feedback-interface-transfer-2026-09-15
+    paths:
+      - '.github/workflows/trump-trinity-feedback-hostile-falsifier.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  hostile-falsifier:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Deterministic multicycle counterexample attack
+        run: |
+          python - <<'PY'
+          import itertools, json
+          import research.tools.apma_trinity_feedback.feedback as cand
+          from research.tools.apma_trinity_feedback.independent_checker import k23_source, truth_sat
+
+          base,n=k23_source(False)
+          tested=0; admitted=0; exact_fail=[]; decisions={}; feedback_shapes={}; unsat=[]
+
+          def inspect(src,n,tag):
+              global tested, admitted
+              tested += 1
+              z=cand.run_trinity(src,n)
+              if z['proposal'].get('door') != cand.FEEDBACK:
+                  return
+              admitted += 1
+              truth=truth_sat(src,n)
+              d=z['sovereign']['decision']
+              decisions[d]=decisions.get(d,0)+1
+              ev=z['proposal']['evidence']
+              shape=(ev['cycle_rank'],ev['feedback_interface_width'],tuple(tuple(e) for e in ev['feedback_edges']),ev['canonical_root'])
+              feedback_shapes[str(shape)]=feedback_shapes.get(str(shape),0)+1
+              ok=(truth and d=='COMMIT_SAT') or ((not truth) and d=='COMMIT_UNSAT')
+              if not ok:
+                  exact_fail.append({'tag':tag,'truth_sat':truth,'decision':d,'source':[list(c) for c in src],'evidence':ev})
+              if not truth and len(unsat)<8:
+                  unsat.append({'tag':tag,'tested_sigma_count':z['demiurge'].get('tested_sigma_count'),'B':ev['feedback_interface_width'],'rejected_sigma':z['demiurge'].get('rejected_sigma')})
+
+          # Base plus every one/two-unit augmentation on its nine variables.
+          units=[(s*v,) for v in range(1,n+1) for s in (-1,1)]
+          inspect(base,n,['base'])
+          for u in units:
+              inspect(tuple(base)+(u,),n,['unit',list(u)])
+          for i,u in enumerate(units):
+              for v in units[i+1:]:
+                  inspect(tuple(base)+(u,v),n,['two_units',list(u),list(v)])
+
+          # Canonicalization attack: 18 deterministic variable relabelings.
+          def relabel(src,m):
+              return tuple(tuple((1 if l>0 else -1)*m[abs(l)] for l in c) for c in src)
+          for shift in range(9):
+              m={i:((i-1+shift)%9)+1 for i in range(1,10)}
+              inspect(relabel(base,m),9,['rotate',shift])
+              mr={i:10-m[i] for i in range(1,10)}
+              inspect(relabel(base,mr),9,['rotate_reverse',shift])
+
+          # A rank-3 K_{2,4} typed core with small feedback interface.
+          k24=(
+              (-1,-2,-10),(-10,-3,-4),
+              (-5,-6,-11),(-11,-7,-8),
+              (1,5,-12),(2,6,-13),(3,7,-14),(4,8,-15),
+          )
+          inspect(k24,15,['k24_rank3_sat'])
+          inspect(k24+((12,),(-12,)),15,['k24_rank3_unsat'])
+
+          out={
+              'authority':'FINITE_HOSTILE_FALSIFIER_ONLY__NO_SCIENTIFIC_PROMOTION',
+              'tested':tested,
+              'admitted_feedback':admitted,
+              'decisions':decisions,
+              'distinct_feedback_shapes':len(feedback_shapes),
+              'exact_failures':exact_fail,
+              'unsat_witnesses':unsat,
+              'requirements':{
+                  'no_exact_failure':not exact_fail,
+                  'feedback_admitted':admitted>0,
+                  'sat_seen':decisions.get('COMMIT_SAT',0)>0,
+                  'unsat_seen':decisions.get('COMMIT_UNSAT',0)>0,
+                  'multiple_canonical_feedback_shapes':len(feedback_shapes)>1,
+              },
+              'firewall':{'P_VS_NP':'OPEN','SAT_IN_P':'NOT_PROVED','finite_is_not_theorem':True},
+          }
+          print(json.dumps(out,sort_keys=True))
+          assert all(out['requirements'].values()), out
+          PY
