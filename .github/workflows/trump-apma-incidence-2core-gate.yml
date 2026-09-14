@@ -1,0 +1,45 @@
+name: TRUMP APMA mixed-sign incidence 2-core carrier gate
+
+on:
+  push:
+    branches:
+      - research/trump-apma-mixed-sign-interface-hyperedge-2core-carrier-2026-09-14
+    paths:
+      - .github/workflows/trump-apma-incidence-2core-gate.yml
+
+permissions:
+  contents: write
+
+jobs:
+  scientific-check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Run frozen independent checker and capture output
+        id: checker
+        shell: bash
+        run: |
+          set +e
+          python research/tools/apma_incidence_2core/independent_checker.py > research/TRUMP_APMA_MIXED_SIGN_INTERFACE_HYPEREDGE_2CORE_RAW_2026-09-14.json
+          rc=$?
+          cat research/TRUMP_APMA_MIXED_SIGN_INTERFACE_HYPEREDGE_2CORE_RAW_2026-09-14.json
+          echo "rc=$rc" >> "$GITHUB_OUTPUT"
+          exit 0
+      - name: Persist raw frozen-checker output
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add research/TRUMP_APMA_MIXED_SIGN_INTERFACE_HYPEREDGE_2CORE_RAW_2026-09-14.json
+          git commit -m "TRUMP_record_APMA_incidence_2core_raw_result" || true
+          git push
+      - name: Enforce frozen checker exit code
+        shell: bash
+        run: |
+          exit "${{ steps.checker.outputs.rc }}"
