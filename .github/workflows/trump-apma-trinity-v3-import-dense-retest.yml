@@ -1,0 +1,45 @@
+name: TRUMP APMA Trinity v3 import dense grid and retest frontier
+
+on:
+  push:
+    branches:
+      - research/trump-apma-trinity-import-dense-bipartite-grid-retest-open-frontier-2026-09-14
+    paths:
+      - .github/workflows/trump-apma-trinity-v3-import-dense-retest.yml
+
+permissions:
+  contents: write
+
+jobs:
+  scientific-check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Run frozen independent checker and capture output
+        id: checker
+        shell: bash
+        run: |
+          set +e
+          python research/tools/apma_trinity_sovereign/independent_checker_v3.py > research/TRUMP_APMA_TRINITY_V3_IMPORT_DENSE_RETEST_RAW_2026-09-14.json
+          rc=$?
+          cat research/TRUMP_APMA_TRINITY_V3_IMPORT_DENSE_RETEST_RAW_2026-09-14.json
+          echo "rc=$rc" >> "$GITHUB_OUTPUT"
+          exit 0
+      - name: Persist raw frozen-checker output
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add research/TRUMP_APMA_TRINITY_V3_IMPORT_DENSE_RETEST_RAW_2026-09-14.json
+          git commit -m "TRUMP_record_APMA_Trinity_v3_import_dense_retest_raw_result" || true
+          git push
+      - name: Enforce frozen checker exit code
+        shell: bash
+        run: |
+          exit "${{ steps.checker.outputs.rc }}"
