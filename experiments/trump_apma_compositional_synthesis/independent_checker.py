@@ -133,7 +133,7 @@ def metrics(cnf):
     for c in real:
         w[len(c)]+=1
         for x in c:d[abs(x)]+=1;p+=x>0;n+=x<0
-    return {'n':len(d),'m':len(real),'width_hist':sorted(w.items()),'degree_multiset':sorted(d.values()),'pos':p,'neg':n}
+    return {'n':len(d),'m':len(real),'width_hist':[list(x) for x in sorted(w.items())],'degree_multiset':sorted(d.values()),'pos':p,'neg':n}
 
 def primitive_audit(sample):
     hits=[]
