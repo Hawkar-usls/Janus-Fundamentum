@@ -114,6 +114,7 @@ def make_slot0(n,seed,sat):
 def make_slot1(n,seed,sat):
     rng=random.Random(seed);vs=list(range(1,n+1));cnf=[]
     planted={v:bool(rng.getrandbits(1)) for v in vs}
+    planted[1]=True; planted[2]=True
     cnf.append([-1,2])
     while len(cnf)<2*n:
         a,b=rng.sample(vs,2);sa=1 if rng.getrandbits(1) else -1;sb=1 if rng.getrandbits(1) else -1

@@ -194,8 +194,9 @@ for t in truth:
     if es is None:
         if r.get('candidate')!='NO_CANDIDATE':outfail.append([cid,kind,r.get('candidate')])
         continue
-    counts[es][t['truth']]+=1
-    if t.get('holdout'):hold[es]+=1
+    if kind=='HIDDEN':
+        counts[es][t['truth']]+=1
+        if t.get('holdout'):hold[es]+=1
     if r.get('candidate')!=f'CANDIDATE_{es}':misroute.append([cid,es,r.get('candidate'),kind]);continue
     if r.get('decision')!=t['truth']:exact.append([cid,'decision',t['truth'],r.get('decision')]);continue
     norm=cnorm(raw);probe=(q0(norm) if es==0 else q1(norm) if es==1 else q2(norm) if es==2 else q3(norm))
