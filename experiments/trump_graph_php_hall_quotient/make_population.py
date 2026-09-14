@@ -1,11 +1,11 @@
-from __future__ import annotations
+﻿from __future__ import annotations
 from itertools import combinations
 from pathlib import Path
 from collections import Counter
 import hashlib, json, random
 
 ROOT = Path(__file__).resolve().parent
-N_VALUES = [12, 16, 20, 24]
+N_VALUES = [16, 20, 24, 32]
 SEED_BASE = 9142026
 
 
@@ -27,7 +27,7 @@ def exact_boundary_expansion(adj, right_n, r):
 def hard_expander(n):
     rng = random.Random(SEED_BASE + 1000 * n)
     m = n + 1
-    r = n // 4
+    r = n // 8
     for attempt in range(1, 20001):
         adj = [tuple(sorted(rng.sample(range(n), 5))) for _ in range(m)]
         used = {v for row in adj for v in row}
@@ -159,3 +159,4 @@ if __name__ == '__main__':
         'hard_attempts': {str(x['n']): x['search_attempt'] for x in audit['hard']},
         'hard_width_lb': {str(x['n']): x['resolution_width_lower_bound'] for x in audit['hard']}
     }, sort_keys=True))
+
