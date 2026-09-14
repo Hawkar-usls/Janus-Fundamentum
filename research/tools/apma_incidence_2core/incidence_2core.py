@@ -99,9 +99,12 @@ def _forest_parent_order(source):
     parent = {}
     order = []
     roots = []
-    for start in sorted(adj, key=str):
+    starts = sorted(adj, key=lambda u: (u[0] != "V", u[1]))
+    for start in starts:
         if start in parent:
             continue
+        if start[0] != "V":
+            return None, None, None, adj
         roots.append(start)
         parent[start] = None
         q = deque([start])
