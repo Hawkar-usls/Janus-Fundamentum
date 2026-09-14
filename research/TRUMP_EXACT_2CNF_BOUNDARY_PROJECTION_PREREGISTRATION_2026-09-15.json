@@ -1,0 +1,64 @@
+{
+  "artifact_id": "JANUS-TRUMP-EXACT-2CNF-BOUNDARY-PROJECTION-PREREGISTRATION-2026-09-15-v1.0",
+  "authority": "PREREGISTERED_SCOPED_THEOREM_OR_FALSIFICATION__NO_GLOBAL_PROMOTION",
+  "base_main": "af1798dc57d287485bb6739dde9ee4682dffbba4",
+  "target": "EXACT_2CNF_BOUNDARY_PROJECTION_ELIMINATION_RECEIPT",
+  "input_scope": {
+    "formula": "2CNF with unit/binary clauses; empty clause allowed only as explicit UNSAT result",
+    "boundary": "explicit subset B of formula variables",
+    "internal": "I = vars(F) \\ B",
+    "external_context": "arbitrary additional CNF R may share only B with eliminated internal variables; exact replacement theorem is semantic and does not assume R tractable"
+  },
+  "canonicalization": {
+    "literal_order": "(abs(lit), sign) deterministic",
+    "tautologies": "deleted",
+    "duplicate_literals": "collapsed",
+    "duplicate_clauses": "deduplicated",
+    "clause_order": "deterministic by length then canonical literal tuple",
+    "elimination_order": "ascending internal variable id"
+  },
+  "candidate_mechanism": {
+    "single_elimination": "To eliminate x, retain clauses not containing +/-x; for every C+ containing x and C- containing -x, add the non-tautological resolvent (C+\\{x}) union (C-\\{-x}); then canonicalize.",
+    "width_invariant": "For width<=2 parents, every non-tautological resolvent after removing x has width<=2.",
+    "projection": "Repeat exact elimination for every x in I. The final boundary receipt Q(B) is the canonical remaining 2CNF.",
+    "unsat_representation": "A canonical empty clause represents the identically false boundary relation.",
+    "sat_reconstruction": "Given a boundary assignment accepted by Q, reconstruct/verify an internal extension by solving the original F conditioned on B with the frozen exact 2SAT solver; no exponential reverse trace is required."
+  },
+  "semantic_targets": {
+    "pointwise_projection": "For every assignment beta to B: beta satisfies Q iff there exists assignment iota to I such that beta union iota satisfies F.",
+    "contextual_replacement": "For every external formula R sharing no internal variable from I: SAT(F(B,I) and R(B,Z)) iff SAT(Q(B) and R(B,Z))."
+  },
+  "proof_obligations": {
+    "P1": "Single-variable Davis-Putnam elimination is exactly equivalent to existential quantification of x.",
+    "P2": "Every elimination step preserves width<=2 after tautology removal.",
+    "P3": "Repeated canonical elimination yields exact Q(B)=exists I F(B,I), independent of finite tests.",
+    "P4": "Canonical receipt contains at most polynomially many distinct unit/binary clauses; an O(k^2) final boundary-size bound is sufficient.",
+    "P5": "Construction is polynomial despite pairwise resolution; a conservative polynomial upper bound from canonical clause-count limits is sufficient.",
+    "P6": "Given beta satisfying Q, internal witness reconstruction/verification via original conditioned 2SAT is polynomial and exact.",
+    "P7": "Contextual replacement with arbitrary R is semantics preserving because eliminated variables I occur nowhere in R."
+  },
+  "complexity_target": {
+    "distinct_2cnf_clauses_over_m_vars": "O(m^2)",
+    "naive_pair_generation_per_eliminated_variable": "O(m^4) worst-case from O(m^2) positive/negative-containing clause sets",
+    "elimination_steps": "<= n",
+    "acceptable_conservative_total": "O(n^5) canonical resolution work plus polynomial sorting/dedup and 2SAT reconstruction",
+    "final_receipt_size": "O(|B|^2) clauses"
+  },
+  "required_falsifiers": [
+    "independent pointwise truth comparison on exhaustive small 2CNF controls",
+    "tautological resolvent control",
+    "unit-clause and explicit-UNSAT controls",
+    "wide boundary control with |B| > floor(log2 L) showing polynomial receipt bytes/clauses without assignment-table enumeration",
+    "tamper/change-boundary receipt mismatch detection",
+    "contextual replacement controls with an external formula sharing only B"
+  ],
+  "anti_overclaim": {
+    "PURE_2CNF_ALREADY_TRACTABLE_GLOBALLY": true,
+    "scientific_value": "This target establishes an exact polynomial-size projected relation representation usable as a typed message/morph inside mixed decompositions; it is not a new proof that 2SAT is in P.",
+    "HORN_DUAL_HORN_ANALOGUE": "NOT_ASSUMED",
+    "MIXED_INTERFACE_COMPOSITION": "NOT_PROVED",
+    "WIDE_GENERAL_INTERFACE_COMPRESSION": "NOT_PROVED",
+    "GENERAL_SAT_IN_P": "NOT_PROVED",
+    "P_VS_NP": "OPEN"
+  }
+}
