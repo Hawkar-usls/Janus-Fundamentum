@@ -38,15 +38,15 @@ def _canonical_spanning_forest(adj):
         if root in parent:
             continue
         parent[root] = None
-        q = deque([root])
-        while q:
-            u = q.popleft()
-            for v in sorted(adj[u]):
+        stack = [root]
+        while stack:
+            u = stack.pop()
+            for v in sorted(adj[u], reverse=True):
                 if v in parent:
                     continue
                 parent[v] = u
                 tree_edges.add(tuple(sorted((u, v))))
-                q.append(v)
+                stack.append(v)
     return tree_edges
 
 def _cycle_cut(interaction):
