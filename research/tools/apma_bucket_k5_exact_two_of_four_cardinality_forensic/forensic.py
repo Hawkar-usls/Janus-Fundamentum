@@ -39,10 +39,79 @@ def source_guard() -> dict[str, Any]:
     return {"ok": all(checks.values()), "checks": checks}
 
 
-def factor_index(fid: str) -> int:
-    if not fid.startswith("sticky_"):
-        raise ValueError(f"UNEXPECTED_FACTOR_ID:{fid}")
-    return int(fid.split("_", 1)[1])
+def exact_two_rows(arity: int) -> set[tuple[int, ...]]:
+    return {
+        tuple(int(x) for x in bits)
+        for bits in itertools.product((0, 1), repeat=arity)
+        if sum(bits) == 2
+    }
+
+
+def factor_order_key(factor: dict[str, Any]) -> tuple[int, Any]:
+    fid = str(factor["id"])
+    if ":" in fid:
+        tail = fid.rsplit(":", 1)[1]
+        if tail.isdigit():
+            return (0, int(tail))
+    return (1, fid)
+
+
+def select_structural_k5_component(
+    factors: list[dict[str, Any]], core: list[int]
+) -> list[dict[str, Any]]:
+    scopes: list[set[int]] = []
+    rows: list[set[tuple[int, ...]]] = []
+    for factor in factors:
+        scope, rel_rows = parent.residual_relation(factor, core)
+        scopes.append(set(int(v) for v in scope))
+        rows.append({tuple(int(x) for x in row) for row in rel_rows})
+
+    seen: set[int] = set()
+    components: list[list[int]] = []
+    for start in range(len(factors)):
+        if start in seen:
+            continue
+        seen.add(start)
+        todo = [start]
+        comp: list[int] = []
+        while todo:
+            i = todo.pop(0)
+            comp.append(i)
+            for j in range(len(factors)):
+                if j not in seen and scopes[i] & scopes[j]:
+                    seen.add(j)
+                    todo.append(j)
+        components.append(sorted(comp))
+
+    eligible: list[list[int]] = []
+    for comp in components:
+        if len(comp) != 5:
+            continue
+        if any(len(scopes[i]) != 4 for i in comp):
+            continue
+        if any(rows[i] != exact_two_rows(4) for i in comp):
+            continue
+        pair_overlaps = [
+            scopes[i] & scopes[j]
+            for a, i in enumerate(comp)
+            for j in comp[a + 1 :]
+        ]
+        if len(pair_overlaps) != 10 or any(len(shared) != 1 for shared in pair_overlaps):
+            continue
+        union = set().union(*(scopes[i] for i in comp))
+        if len(union) != 10:
+            continue
+        occurrence_counts = {
+            var: sum(1 for i in comp if var in scopes[i])
+            for var in union
+        }
+        if any(count != 2 for count in occurrence_counts.values()):
+            continue
+        eligible.append(comp)
+
+    if len(eligible) != 1:
+        raise RuntimeError(f"EXPECTED_UNIQUE_STRUCTURAL_K5_COMPONENT:{len(eligible)}")
+    return sorted((factors[i] for i in eligible[0]), key=factor_order_key)
 
 
 def reconstruct_probe() -> dict[str, Any]:
@@ -51,20 +120,16 @@ def reconstruct_probe() -> dict[str, Any]:
     if prep.get("status") != "READY":
         raise RuntimeError(f"PREDECESSOR_NOT_READY:{prep.get('status')}")
     core = [int(v) for v in prep["core"]]
-    factors = sorted(
-        [f for f in prep["conditioned"] if str(f["id"]).startswith("sticky_")],
-        key=lambda f: factor_index(str(f["id"])),
-    )
-    if len(factors) != 5:
-        raise RuntimeError(f"EXPECTED_FIVE_TARGET_FACTORS:{len(factors)}")
+    factors = select_structural_k5_component(list(prep["conditioned"]), core)
 
     scopes: dict[int, list[int]] = {}
     rows: dict[int, set[tuple[int, ...]]] = {}
-    for f in factors:
-        i = factor_index(str(f["id"]))
-        scope, rel_rows = parent.residual_relation(f, core)
+    factor_ids: dict[int, str] = {}
+    for i, factor in enumerate(factors):
+        scope, rel_rows = parent.residual_relation(factor, core)
         scopes[i] = [int(v) for v in scope]
         rows[i] = {tuple(int(x) for x in row) for row in rel_rows}
+        factor_ids[i] = str(factor["id"])
 
     occurrences: dict[int, list[int]] = {}
     for i, scope in scopes.items():
@@ -80,17 +145,10 @@ def reconstruct_probe() -> dict[str, Any]:
     return {
         "raw": raw,
         "core": core,
+        "factor_ids": factor_ids,
         "scopes": scopes,
         "rows": rows,
         "edge_endpoint_map": dict(sorted(edge_endpoint_map.items())),
-    }
-
-
-def exact_two_rows(arity: int) -> set[tuple[int, ...]]:
-    return {
-        tuple(int(x) for x in bits)
-        for bits in itertools.product((0, 1), repeat=arity)
-        if sum(bits) == 2
     }
 
 
@@ -214,6 +272,7 @@ def profile() -> dict[str, Any]:
         "source_guard": guard,
         "probe": {
             "common_core": probe["core"],
+            "factor_ids": probe["factor_ids"],
             "factor_count": len(probe["scopes"]),
             "edge_variable_count": len(probe["edge_endpoint_map"]),
             "k5_edge_incidence_exact": k5_edge_incidence_exact,
