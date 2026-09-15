@@ -1,0 +1,73 @@
+name: TRUMP Sync v3.10 Context
+on:
+  push:
+    paths:
+      - '.github/workflows/trump-sync-v3-10-context.yml'
+permissions:
+  contents: write
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Patch bootstrap and manifest in place
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import json, re
+
+          p=Path('START_HERE_TRUMP_CONTEXT.md')
+          s=p.read_text()
+          old='1. Read `registry/TRUMP_CURRENT_STATE_2026-09-15_v3.8.json` **first**. This is the latest successor-state anchor and records the scoped residual single-variable separator PASS: raw-derived separator `47`, exactly two Boolean branches, reuse of only sealed residual <=2 carriers, exact SAT/UNSAT branch authority, and zero 3plus join-chain/global residual Cartesian materialization.'
+          new='1. Read `registry/TRUMP_CURRENT_STATE_2026-09-15_v3.10.json` **first**. This is the latest successor-state anchor and records the scoped unique-core residual two-variable separator PASS: raw-derived pair `[47,48]`, exactly four Boolean assignments, reuse of only sealed residual <=2 carriers, exact SAT/UNSAT branch authority, K4 no-pair OPEN control, and zero separator sets of size >=3 / 3plus join chains / global residual Cartesian materialization.\n2. Then read `registry/TRUMP_CURRENT_STATE_2026-09-15_v3.9.json` for the no-single-separator forensic that selected the pair route.\n3. Then read `registry/TRUMP_CURRENT_STATE_2026-09-15_v3.8.json` for the scoped residual single-variable separator PASS.'
+          if old not in s:
+              raise SystemExit('START_HERE expected v3.8 pointer not found')
+          s=s.replace(old,new,1)
+          # Renumber only the immediately duplicated old leading entries for readability is non-authoritative; leave later numbering untouched.
+          s=s.replace('2. Then read `registry/TRUMP_CURRENT_STATE_2026-09-15_v3.7.json`','4. Then read `registry/TRUMP_CURRENT_STATE_2026-09-15_v3.7.json`',1)
+          p.write_text(s)
+
+          mp=Path('registry/TRUMP_CONTEXT_MANIFEST.json')
+          m=json.loads(mp.read_text())
+          m['latest_successor_state']='registry/TRUMP_CURRENT_STATE_2026-09-15_v3.10.json'
+          m['current_scoped_open_surface']={
+            'name':'UNIQUE_COMMON_CORE_CONDITIONED_RESIDUAL_GT2_WITH_NO_ADMISSIBLE_TWO_VARIABLE_SEPARATOR_OR_WITH_ANY_PAIR_BRANCH_REMAINING_GT2__PLUS_MULTIPLE_COMMON_CORE_STATES',
+            'nearest_blocker':'NO_ADMISSIBLE_RAW_DERIVED_RESIDUAL_VARIABLE_PAIR_TO_LE2_OR_EXACT_UNSAT_BRANCHES',
+            'secondary_blocker':'OPEN_NONUNIQUE_COMMON_CORE_SUPPORT',
+            'next_gate_candidate':'TRUMP_BICAMERAL_BUCKET_UNIQUE_CORE_RESIDUAL_NO_PAIR_SEPARATOR_STRUCTURE_FORENSIC',
+            'next_gate_class':'DIAGNOSTIC_ONLY_BEFORE_ANY_SEPARATOR_SIZE_THREE_OR_GENERAL_GT2_CARRIER',
+            'latest_state':'registry/TRUMP_CURRENT_STATE_2026-09-15_v3.10.json'
+          }
+          m.setdefault('mechanisms',{})['BICAMERAL_UNIQUE_CORE_RESIDUAL_PAIR_SEPARATOR']={
+            'aliases':['Unique-core residual two-variable separator','TRUMP_BICAMERAL_BUCKET_UNIQUE_CORE_RESIDUAL_TWO_VARIABLE_SEPARATOR_FACTORIZED_PAYLOAD_FALSIFIER_GATE'],
+            'role':'Under a unique exact common-core state, scan unordered residual variable pairs in O(V^2), select the lexicographically first structurally admissible pair, branch on exactly four Boolean assignments, and reuse only sealed residual <=2 carriers.',
+            'classification':'SUCCESSOR_REPAIR',
+            'fundamentum_binding':{
+              'latest_state':'registry/TRUMP_CURRENT_STATE_2026-09-15_v3.10.json',
+              'preregistration_commit':'94ca81ba0e5da9c2f44097170b2d4d51c4e9200d',
+              'candidate_commit':'f849115af7602ba6f4d7c3b289a2daa75354f22d',
+              'independent_checker_commit':'af0909dcc1824ef40832958c35059a39f272bb7c',
+              'actions_run':34997650364,
+              'actions_job':104477846188,
+              'verdict':'PASS_SCOPED_BICAMERAL_BUCKET_UNIQUE_CORE_RESIDUAL_TWO_VARIABLE_SEPARATOR_FACTORIZED_PAYLOAD_V1',
+              'merge_commit':'8640a788ce5fdb916e11fc55ef079ff1fb773a3c'
+            },
+            'closed_scope':'Unique-core residual GT2 inputs having a raw-derived residual variable pair whose four exact Boolean branches reduce to sealed <=2 carriers or exact UNSAT.',
+            'known_blocker':'Frozen K4 distinct-edge-variable residual component with no admissible pair; profile diagnostically before any separator size >=3 theorem.'
+          }
+          mp.write_text(json.dumps(m,ensure_ascii=False,indent=2)+"\n")
+          PY
+      - name: Commit synchronized context and remove this workflow
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add START_HERE_TRUMP_CONTEXT.md registry/TRUMP_CONTEXT_MANIFEST.json
+          git commit -m 'TRUMP sync v3.10 bootstrap and manifest'
+          git rm .github/workflows/trump-sync-v3-10-context.yml
+          git commit -m 'TRUMP remove v3.10 context sync workflow'
+          git push origin HEAD:main
