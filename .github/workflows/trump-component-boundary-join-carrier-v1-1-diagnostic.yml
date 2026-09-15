@@ -1,0 +1,29 @@
+name: TRUMP Component Boundary Join Carrier v1.1 Diagnostic
+
+on:
+  push:
+    branches:
+      - research/trump-component-boundary-join-carrier-v1-1-diagnostic-2026-09-15
+  workflow_dispatch:
+
+jobs:
+  diagnostic:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Surface first v1 candidate exception
+        run: |
+          set +e
+          python -m research.tools.apma_component_join_carrier.diagnostic_runner_v1_1 | tee /tmp/diag.json
+          code=${PIPESTATUS[0]}
+          echo "DIAGNOSTIC_EXIT_CODE=$code"
+          cat /tmp/diag.json
+          exit 0
+      - name: Preserve diagnostic-only authority
+        run: |
+          echo 'SCIENTIFIC_EFFECT=NONE'
+          echo 'V1_CANDIDATE_UNCHANGED=89f5d591d4d553bb26489908a79f2c739f62b756'
+          echo 'P_VS_NP=OPEN'
