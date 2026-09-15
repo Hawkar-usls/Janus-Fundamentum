@@ -1,0 +1,94 @@
+{
+  "artifact_id": "JANUS-TRUMP-BICAMERAL-COMPONENT-BOUNDARY-JOIN-CARRIER-THEOREM-SEAL-2026-09-15-v1.3",
+  "status": "SEALED_SCOPED_THEOREM__NO_GLOBAL_PROMOTION",
+  "date": "2026-09-15",
+  "verdict": "PASS_SCOPED_BICAMERAL_OVERWIDTH_COMPONENT_JOIN_TREE_BOUNDARY_CARRIER_V1_3",
+  "authority_class": "SCOPED_THEOREM_AND_IMPLEMENTATION_CHECK__NO_GLOBAL_PROMOTION",
+  "frozen_lineage": {
+    "v1_preregistration_commit": "23d44e0bdd5827c7443b6cccb35c408be4d360be",
+    "v1_candidate_commit": "9393107100e5635f43a67b1c987499abd2a8cf7d",
+    "v1_checker_commit": "5f4d07096f317de6c8d0aa5f9cc910b92c380c7b",
+    "v1_first_failure_run": 34917750970,
+    "v1_first_failure_record": "b86ed45e540c02ff903a6652acf7fcc9ce89aef8",
+    "v1_1_diagnostic_run": 34917919531,
+    "v1_1_diagnostic_result": "91cd30b7498bd54732c0bf6ba45f012f90fbbdc3",
+    "v1_2_preregistration_commit": "0868eed819e25b158d4c83f97af9af79969680b4",
+    "v1_2_wrapper_commit": "0c8a5f061038cfa39f868009d94b6dd57c97038d",
+    "v1_2_failure_run": 34918051333,
+    "v1_2_failure_record": "a656eb61c7727cab9edbbb9af8b0c0a86c8f8ed4",
+    "v1_3_preregistration_commit": "d8fbbffee5d003f25c33c51f06e0ea1cbcd010cc",
+    "v1_3_wrapper_commit": "e4fd6f6e13f361846d2124418de47c1b75e92340",
+    "v1_3_checker_commit": "1498137a14c98a4a9f956ec16f84d835798fe12b",
+    "v1_3_workflow_head": "d3edb4041d1fa3d1e8886c81f06a3429d1758ed2",
+    "v1_3_actions_run": 34918226829,
+    "v1_3_actions_job": 104220378252
+  },
+  "theorem": {
+    "name": "FULL_CUT_ANCHOR_VERIFIED_JOIN_TREE_COMPONENT_BOUNDARY_CARRIER",
+    "assumptions": [
+      "B is a canonical variable-only cut discovered by the frozen polynomial min-cut parent and the parent refuses raw conditioning because 2^|B| exceeds its explicit-input budget.",
+      "Removing B separates the constraint incidence graph into at least two constraint-bearing components.",
+      "For each component C there exists an explicit input relation A_C whose scope contains all variables of B; its B-projections form the only candidate cut-state set S_C.",
+      "A deterministic relation tree for C is constructed in polynomial time and independently verified to satisfy running intersection for every variable.",
+      "All relations are explicit finite Boolean tables and no semantic relation constraint is dropped.",
+      "The downstream contract is exact SAT decision plus one exact witness."
+    ],
+    "construction": [
+      "Choose a canonical full-cut anchor relation per component by minimum input-row count with deterministic tie-break.",
+      "Project only anchor input rows onto B to form S_C; therefore |S_C| is at most the number of anchor rows and at most the explicit input size.",
+      "For each sigma in S_C, restrict each relation by the cut coordinates it contains.",
+      "On the verified running-intersection relation tree, perform exact bottom-up/top-down semijoin reduction without materializing the full natural join.",
+      "Keep sigma iff all reduced tables remain jointly reconstructible; this forms exact component boundary support P_C.",
+      "Intersect all P_C. A nonempty intersection gives a common cut state and one compatible input row per relation; an empty intersection is exact scoped UNSAT."
+    ],
+    "soundness": "For a relation tree satisfying running intersection, tree-consistent local tuples can be assembled recursively into a global component tuple because every shared variable occurs on the connected path between all relation nodes containing it. Two-pass semijoin pruning removes exactly rows without tree-compatible extensions. Thus sigma is in P_C iff the component natural join has an extension of sigma. Components share only B after the cut, so the whole instance is SAT iff intersection_C P_C is nonempty.",
+    "reconstruction": "For an accepted sigma, choose one surviving root row and recursively choose compatible child rows from reduced tables. Running intersection makes assignments path-consistent; merge component witnesses on the common B and disjoint private variables, then replay every original relation table.",
+    "complexity": {
+      "cut_discovery": "Inherited polynomial node-split max-flow parent.",
+      "anchor_discovery": "Polynomial scan of explicit relation scopes and input row counts.",
+      "candidate_cut_states": "At most explicit anchor rows per component, hence O(L); never 2^|B|.",
+      "tree_construction_and_verification": "Polynomial maximum-weight spanning-tree construction plus running-intersection graph checks.",
+      "conditional_join": "For each anchor state, two tree passes with naive pairwise explicit-row compatibility checks; polynomial in explicit relation-table size.",
+      "carrier_storage": "|P_C| <= |S_C| <= anchor input rows <= O(L); global support is a non-expanding set intersection.",
+      "full_join_materialization": 0,
+      "raw_cut_cube_enumeration": 0,
+      "tree_backtracking": 0,
+      "external_solver_calls": 0,
+      "total": "POLYNOMIAL_IN_CANONICAL_EXPLICIT_INPUT_LENGTH_FOR_THE_FROZEN_SCOPE"
+    }
+  },
+  "machine_controls": {
+    "positive_cut_size": 20,
+    "positive_terminal": "ADMIT_EXACT_COMPONENT_JOIN_TREE_BOUNDARY_CARRIER",
+    "positive_effective_support_size": 1,
+    "positive_witness_verified": true,
+    "empty_terminal": "EXACT_UNSAT_BY_EMPTY_COMPONENT_BOUNDARY_SUPPORT",
+    "no_anchor_terminal": "OPEN_NO_FULL_CUT_ANCHOR",
+    "hostile_cycle_parent": "OPEN_MINCUT_BRANCH_BUDGET",
+    "hostile_cycle_parent_branch_enumerations": 0,
+    "hostile_cycle_component_sizes": [1,3],
+    "hostile_cycle_candidate_terminal": "OPEN_NO_VERIFIED_COMPONENT_JOIN_TREE",
+    "hostile_cycle_independent_terminal": "OPEN_NO_VERIFIED_COMPONENT_JOIN_TREE",
+    "hint_terminal": "REJECT_RAW_INPUT",
+    "tamper_terminal": "REJECT_TAMPERED_PROVENANCE"
+  },
+  "claim_ceiling": {
+    "proves": "Exact polynomial boundary-carrier construction for the explicitly frozen overwidth-cut subclass with a raw full-cut anchor in every component and a verified running-intersection relation tree.",
+    "does_not_prove": [
+      "general multi-relation boundary compression",
+      "a carrier when no explicit relation exposes all cut variables",
+      "a carrier for cyclic/non-running-intersection relation hypergraphs",
+      "general connected mixed-core tractability",
+      "general SAT in P",
+      "P=NP or P!=NP"
+    ]
+  },
+  "scientific_firewall": {
+    "P_VS_NP": "OPEN",
+    "GENERAL_SAT_IN_P": "NOT_PROVED",
+    "CONNECTED_MIXED_CORE_SOLVED": "NO",
+    "ARBITRARY_UNSEEN_INVARIANT_DISCOVERY": "NOT_PROVED",
+    "GENERAL_MULTI_RELATION_BOUNDARY_COMPRESSION": "NOT_PROVED",
+    "GLOBAL_APMA_FRONTIER_ADVANCE": "NONE"
+  }
+}
