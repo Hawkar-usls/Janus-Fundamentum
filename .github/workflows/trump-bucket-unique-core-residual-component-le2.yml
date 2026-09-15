@@ -1,0 +1,62 @@
+name: TRUMP Bucket Unique-Core Residual Component LE2 Factorized Payload
+on:
+  push:
+    branches: [research/trump-bucket-unique-core-residual-le2-2026-09-15]
+    paths:
+      - 'research/TRUMP_BICAMERAL_BUCKET_UNIQUE_CORE_RESIDUAL_COMPONENT_LE2_FACTORIZED_PAYLOAD_PREREGISTRATION_2026-09-15.json'
+      - 'research/tools/apma_bucket_residual_le2/residual_le2_factorized_payload.py'
+      - 'research/tools/apma_bucket_residual_le2/independent_checker.py'
+      - '.github/workflows/trump-bucket-unique-core-residual-component-le2.yml'
+  workflow_dispatch:
+
+jobs:
+  residual-le2:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: '3.12'}
+
+      - name: Run independent residual LE2 checker
+        run: |
+          set -euo pipefail
+          python -m research.tools.apma_bucket_residual_le2.independent_checker | tee /tmp/residual-le2.json
+
+      - name: Assert scoped verdict and firewalls
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          z=json.loads(Path('/tmp/residual-le2.json').read_text().strip().splitlines()[-1])
+          assert z['verdict']=='PASS_SCOPED_BICAMERAL_BUCKET_UNIQUE_CORE_RESIDUAL_COMPONENT_LE2_FACTORIZED_PAYLOAD_V1', z
+          assert all(z['checks'].values()), {k:v for k,v in z['checks'].items() if not v}
+          assert z['scientific_firewall']['P_VS_NP']=='OPEN'
+          assert z['scientific_firewall']['GENERAL_SAT_IN_P']=='NOT_PROVED'
+          assert z['scientific_firewall']['GENERAL_PARTIAL_OVERLAP_FACTORIZATION']=='NOT_PROVED'
+          print(json.dumps({'verdict':z['verdict'],'controls':z['controls']},sort_keys=True))
+          PY
+
+      - name: v3.5 conditioned payload regression
+        run: python -m research.tools.apma_bucket_conditioned_factorized_payload.independent_checker_v1_2
+
+      - name: Two-relation one-join regression
+        run: python -m research.tools.apma_derived_boundary_factor.independent_checker_v1_1
+
+      - name: Factorized feedback regression
+        run: python -m research.tools.apma_factorized_feedback.independent_checker
+
+      - name: Guarded elimination regression
+        run: python -m research.tools.apma_guarded_elimination.independent_checker
+
+      - name: Schaefer mixed-carrier barrier regression
+        run: python -m research.tools.apma_mixed_carrier_barrier.check_schaefer_barrier
+
+      - name: Authority notice
+        run: |
+          echo 'SCOPE=UNIQUE_CORE_RESIDUAL_COMPONENT_SIZE_LE2_ONLY'
+          echo 'PAIR_JOIN=EXACTLY_ONE_PER_TWO_RELATION_COMPONENT'
+          echo 'RESIDUAL_COMPONENT_3PLUS=OPEN'
+          echo 'GLOBAL_RESIDUAL_CARTESIAN_PRODUCT=FORBIDDEN'
+          echo 'MULTIPLE_CORE_STATES=OPEN'
+          echo 'L2_BUDGET_RAISE=NO'
+          echo 'P_VS_NP=OPEN'
