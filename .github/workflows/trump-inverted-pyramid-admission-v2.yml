@@ -1,0 +1,84 @@
+name: TRUMP Inverted Pyramid Admission v2
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [research/trump-inverted-pyramid-admission-v2-2026-09-15]
+    paths:
+      - '.github/workflows/trump-inverted-pyramid-admission-v2.yml'
+      - 'research/TRUMP_INVERTED_PYRAMID_ADMISSION_V2_PREREGISTRATION_2026-09-15.json'
+      - 'research/tools/apma_inverted_pyramid/**'
+
+permissions:
+  contents: read
+
+jobs:
+  inverted-pyramid-diagnostic:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Run independent inverted-pyramid checker
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m research.tools.apma_inverted_pyramid.independent_checker | tee /tmp/inverted-pyramid.json
+
+      - name: Assert diagnostic verdict and firewalls
+        shell: bash
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          z=json.loads(Path('/tmp/inverted-pyramid.json').read_text().strip().splitlines()[-1])
+          assert z['verdict']=='PASS_INVERTED_PYRAMID_ADMISSION_BEFORE_TRANSFER_ARCHITECTURAL_DIAGNOSTIC', z
+          assert all(z['checks'].values()), {k:v for k,v in z['checks'].items() if not v}
+          sf=z['scientific_firewall']
+          assert sf['GENERAL_SAT_IN_P']=='NOT_PROVED', sf
+          assert sf['P_VS_NP']=='OPEN', sf
+          assert sf['GLOBAL_APMA_FRONTIER_ADVANCE']=='NONE', sf
+          assert sf['NEW_SAT_CLASS']=='NOT_CLAIMED', sf
+          assert sf['UNSEEN_CARRIER_DISCOVERY']=='NOT_TESTED_BY_THIS_DIAGNOSTIC', sf
+          ar=z['architectural_result']
+          assert ar['positive_sealed_doors_preserved']==5, ar
+          assert ar['unsupported_cases_stopped_before_execution']==2, ar
+          assert ar['generic_transfer_calls_on_negative_controls']==0, ar
+          print(json.dumps({'verdict':z['verdict'],'architectural_result':ar,'firewall':sf},sort_keys=True))
+          PY
+
+      - name: Legacy Trinity Sovereign regression
+        shell: bash
+        run: |
+          set -euo pipefail
+          python research/tools/apma_trinity_sovereign/independent_checker.py
+
+      - name: Affine quotient regression
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m research.tools.apma_interface_quotient.independent_checker
+
+      - name: Factorized feedback regression
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m research.tools.apma_factorized_feedback.independent_checker
+
+      - name: Log alien transfer regression
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m research.tools.apma_log_alien_transfer.independent_checker
+
+      - name: Authority notice
+        run: |
+          echo 'ARCHITECTURAL_DIAGNOSTIC_ONLY__NO_NEW_SAT_CLASS'
+          echo 'INVERSION=EXACT_ADMISSION_BEFORE_TRANSFER'
+          echo 'GLOBAL_APMA_FRONTIER_ADVANCE=NONE'
+          echo 'P_VS_NP=OPEN'
+          echo 'GENERAL_SAT_IN_P=NOT_PROVED'
