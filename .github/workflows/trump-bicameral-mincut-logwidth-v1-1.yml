@@ -1,0 +1,80 @@
+name: TRUMP Bicameral Canonical Mincut Logwidth v1.1
+
+on:
+  push:
+    branches:
+      - research/trump-bicameral-mincut-logwidth-v1-1-2026-09-15
+    paths:
+      - 'research/TRUMP_BICAMERAL_MINCUT_LOGWIDTH_V1_1_PREREGISTRATION_2026-09-15.json'
+      - 'research/tools/apma_bicameral_mincut/mincut_logwidth_v1_1.py'
+      - 'research/tools/apma_bicameral_mincut/independent_checker_v1_1.py'
+      - '.github/workflows/trump-bicameral-mincut-logwidth-v1-1.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  mincut-logwidth-v1-1:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Run v1.1 independent checker
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m research.tools.apma_bicameral_mincut.independent_checker_v1_1 | tee /tmp/mincut-v11.json
+
+      - name: Assert v1.1 scoped verdict and firewalls
+        shell: bash
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          z=json.loads(Path('/tmp/mincut-v11.json').read_text().strip().splitlines()[-1])
+          assert z['verdict']=='PASS_SCOPED_BICAMERAL_CANONICAL_MINCUT_LOGWIDTH_EXPLANATION_INDUCTION_V1_1', z
+          assert all(z['checks'].values()), {k:v for k,v in z['checks'].items() if not v}
+          sf=z['scientific_firewall']
+          assert sf['P_VS_NP']=='OPEN', sf
+          assert sf['GENERAL_SAT_IN_P']=='NOT_PROVED', sf
+          assert sf['CONNECTED_MIXED_CORE_SOLVED']=='NO', sf
+          assert sf['ARBITRARY_UNSEEN_INVARIANT_DISCOVERY']=='NOT_PROVED', sf
+          print(json.dumps({'verdict':z['verdict'],'controls':z['controls'],'complexity':z['complexity'],'firewall':sf},sort_keys=True))
+          PY
+
+      - name: Preserve frozen v1 first-run failure checker output
+        shell: bash
+        run: |
+          set +e
+          python -m research.tools.apma_bicameral_mincut.independent_checker >/tmp/v1-first-run.json
+          test $? -eq 0
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          z=json.loads(Path('/tmp/v1-first-run.json').read_text().strip().splitlines()[-1])
+          assert z['verdict']=='FAIL_BICAMERAL_CANONICAL_MINCUT_LOGWIDTH_EXPLANATION_INDUCTION', z
+          print('V1_FAILURE_PRESERVED')
+          PY
+
+      - name: Parent pair-separator regression
+        run: python -m research.tools.apma_bicameral_pair_separator.independent_checker
+
+      - name: Parent single-variable bicameral regression
+        run: python -m research.tools.apma_bicameral_explanation.independent_checker
+
+      - name: Raw compositional regression
+        run: python -m research.tools.apma_unseen_basis.compositional_independent_checker
+
+      - name: Authority notice
+        run: |
+          echo 'V1_0_FAIL_PRESERVED'
+          echo 'V1_1_CONTROL_REPAIR_ONLY'
+          echo 'MINCUT_DISCOVERY=POLYNOMIAL_MAXFLOW'
+          echo 'BRANCH_BUDGET=2^K_LE_L_BEFORE_ENUMERATION'
+          echo 'P_VS_NP=OPEN'
+          echo 'GENERAL_SAT_IN_P=NOT_PROVED'
