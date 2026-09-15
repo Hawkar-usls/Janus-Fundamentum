@@ -1,0 +1,43 @@
+name: TRUMP Bucket Unique-Core Remainder Forensic
+on:
+  push:
+    branches:
+      - research/trump-bucket-unique-core-residual-remainder-forensic-2026-09-15
+permissions:
+  contents: read
+jobs:
+  remainder-forensic:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Run independent remainder forensic checker
+        run: |
+          set -euo pipefail
+          python -m research.tools.apma_bucket_remainder_forensic.independent_checker | tee /tmp/result.json
+      - name: Assert diagnostic verdict and firewalls
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          z=json.loads(Path('/tmp/result.json').read_text().strip().splitlines()[-1])
+          assert z['verdict']=='PASS_DIAGNOSTIC_BICAMERAL_BUCKET_UNIQUE_CORE_RESIDUAL_SINGLE_THEN_PAIR_THEN_REMAINDER_STRUCTURE_FORENSIC', z
+          assert all(z['checks'].values()), {k:v for k,v in z['checks'].items() if not v}
+          assert z['scientific_firewall']['P_VS_NP']=='OPEN'
+          assert z['scientific_firewall']['GENERAL_SAT_IN_P']=='NOT_PROVED'
+          print(json.dumps({'verdict':z['verdict'],'summary':z['candidate_summary']},sort_keys=True))
+          PY
+      - name: v3.12 single-then-pair forensic regression
+        run: python -m research.tools.apma_bucket_single_then_pair_forensic.independent_checker
+      - name: Authority notice
+        run: |
+          echo 'AUTHORITY=DIAGNOSTIC_ONLY'
+          echo 'SAT_BRANCH_EXECUTION=0'
+          echo 'SOLVER_EXECUTION=0'
+          echo 'PAIR_CARRIER_EXECUTION=0'
+          echo 'UNBOUNDED_RECURSIVE_SEARCH=0'
+          echo 'THREE_PLUS_JOIN_CHAIN=0'
+          echo 'GLOBAL_RESIDUAL_CARTESIAN_PRODUCT=0'
+          echo 'P_VS_NP=OPEN'
