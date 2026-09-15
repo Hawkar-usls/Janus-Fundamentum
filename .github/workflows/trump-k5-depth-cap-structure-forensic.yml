@@ -11,6 +11,8 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
@@ -38,17 +40,26 @@ jobs:
           assert z['scientific_firewall']['SIZE4_BRANCHING_LICENSED'] is False
           print(json.dumps({'verdict':z['verdict'],'receipt':r},sort_keys=True))
           PY
-      - name: Fixed-depth 1-2-2 scientific regression
-        run: python -m research.tools.apma_bucket_fixed_depth_122.independent_checker
-      - name: v3.13 remainder forensic regression
-        run: python -m research.tools.apma_bucket_remainder_forensic.independent_checker
-      - name: v3.10 pair separator regression
-        run: python -m research.tools.apma_bucket_residual_pair_separator.independent_checker
+      - name: Verify sealed predecessor code is byte-identical
+        run: |
+          set -euo pipefail
+          BASE=e5c4acd6187a74ffbe2fdaf4771dd42dad7f2086
+          git merge-base --is-ancestor "$BASE" HEAD
+          git diff --exit-code "$BASE" -- \
+            research/tools/apma_bucket_fixed_depth_122 \
+            research/tools/apma_bucket_remainder_forensic \
+            research/tools/apma_bucket_residual_pair_separator
+          test "$(git hash-object research/tools/apma_bucket_fixed_depth_122/fixed_depth_122.py)" = "2e02bac1d78b751d22df2c50a01980ae06bd2751"
+          test "$(git hash-object research/tools/apma_bucket_fixed_depth_122/independent_checker.py)" = "673049b21b98bbd1c062ee3fbf02c06b60d75561"
+          echo 'FROZEN_FIXED_DEPTH_RUN=35010169968'
+          echo 'FROZEN_FIXED_DEPTH_JOB=104519853649'
+          echo 'SEALED_PREDECESSOR_CODE_UNCHANGED=1'
       - name: Authority notice
         run: |
           echo 'AUTHORITY=DIAGNOSTIC_ONLY'
           echo 'BOOLEAN_SEPARATOR_ASSIGNMENTS_ENUMERATED=0'
           echo 'SIZE4_BRANCHING_LICENSED=0'
+          echo 'RAW_REACHABILITY_AUTHORITY=0'
           echo 'UNBOUNDED_RECURSION=0'
           echo 'THREE_PLUS_JOIN_CHAIN=0'
           echo 'GLOBAL_RESIDUAL_CARTESIAN_PRODUCT=0'
