@@ -1,0 +1,211 @@
+name: Validate C049.1 B4.6.3 corrected Node-7 parent frontier compression
+
+on:
+  push:
+    paths:
+      - 'experiments/direct/janus_c049_1_b4_6_3_corrected_node7_parent_frontier_compression.py'
+      - 'experiments/direct/janus_c049_1_b4_6_3_corrected_node7_parent_frontier_compression_verifier.py'
+      - 'docs/C049_1_B4_6_3_CORRECTED_NODE7_PARENT_FRONTIER_COMPRESSION.md'
+      - 'registry/c049-1-b4-6-3-corrected-node7-parent-frontier-compression.json'
+      - '.github/workflows/validate-c049-1-b4-6-3-corrected-node7-parent-frontier-compression.yml'
+  pull_request:
+    paths:
+      - 'experiments/direct/janus_c049_1_b4_6_3_corrected_node7_parent_frontier_compression.py'
+      - 'experiments/direct/janus_c049_1_b4_6_3_corrected_node7_parent_frontier_compression_verifier.py'
+      - 'docs/C049_1_B4_6_3_CORRECTED_NODE7_PARENT_FRONTIER_COMPRESSION.md'
+      - 'registry/c049-1-b4-6-3-corrected-node7-parent-frontier-compression.json'
+      - '.github/workflows/validate-c049-1-b4-6-3-corrected-node7-parent-frontier-compression.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  corrected-node7-parent-frontier-compression:
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+    env:
+      PYTHONPATH: experiments/direct
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Verify admitted PR 111 ancestry and compile independent proof pair
+        run: |
+          git merge-base --is-ancestor af0556d4ae05ea6dc343d120a34f67255890ba18 HEAD
+          python -m py_compile \
+            experiments/direct/janus_c049_1_b4_6_3_corrected_node7_parent_frontier_compression.py \
+            experiments/direct/janus_c049_1_b4_6_3_corrected_node7_parent_frontier_compression_verifier.py \
+            experiments/direct/janus_c049_1_b4_6_3_replay_workflow_run_steps.py
+          if grep -E '^from .*corrected_node7_parent_frontier_compression|^import .*corrected_node7_parent_frontier_compression' \
+            experiments/direct/janus_c049_1_b4_6_3_corrected_node7_parent_frontier_compression_verifier.py; then
+            echo 'independent verifier imports producer'
+            exit 1
+          fi
+          if grep -E '^from .*janus_c049_1_b[12]_.*core|^import .*janus_c049_1_b[12]_.*core' \
+            experiments/direct/janus_c049_1_b4_6_3_corrected_node7_parent_frontier_compression_verifier.py; then
+            echo 'independent verifier imports theorem core'
+            exit 1
+          fi
+
+      - name: Replay admitted PR 111 exactly
+        run: |
+          python experiments/direct/janus_c049_1_b4_6_3_replay_workflow_run_steps.py \
+            .github/workflows/validate-c049-1-b4-6-3-corrected-node6-integration-node7-preflight.yml
+          root=/tmp/c049-corrected-node6-integration-node7-preflight
+          test "$(wc -c < "$root/manifest.json")" = "622656"
+          test "$(sha256sum "$root/manifest.json" | cut -d' ' -f1)" = \
+            "88f8a5df9161cb287af52628e11107aa13aa329dc424c6cd048a6c2d837b4c29"
+          test "$(wc -c < "$root/corrected-node6-integration-node7-preflight-summary.json")" = "6560"
+          test "$(sha256sum "$root/corrected-node6-integration-node7-preflight-summary.json" | cut -d' ' -f1)" = \
+            "8ff140f098f03bed1fc3f03675fcf89c72e13c362ef00047f1a426b6459ebebf"
+
+      - name: Generate deterministic corrected Node-7 frontier certificate
+        run: |
+          root=/tmp/c049-corrected-node6-integration-node7-preflight
+          producer=experiments/direct/janus_c049_1_b4_6_3_corrected_node7_parent_frontier_compression.py
+          python "$producer" \
+            "$root/manifest.json" \
+            "$root/corrected-node6-integration-node7-preflight-summary.json" \
+            --output /tmp/c049-corrected-node7-frontier-original.json
+          python "$producer" \
+            "$root/manifest.json" \
+            "$root/corrected-node6-integration-node7-preflight-summary.json" \
+            --output /tmp/c049-corrected-node7-frontier-reversed.json \
+            --entry-order reversed
+          python "$producer" \
+            "$root/manifest.json" \
+            "$root/corrected-node6-integration-node7-preflight-summary.json" \
+            --output /tmp/c049-corrected-node7-frontier-shuffled.json \
+            --entry-order seeded-shuffle
+          cmp /tmp/c049-corrected-node7-frontier-original.json \
+              /tmp/c049-corrected-node7-frontier-reversed.json
+          cmp /tmp/c049-corrected-node7-frontier-original.json \
+              /tmp/c049-corrected-node7-frontier-shuffled.json
+          cp /tmp/c049-corrected-node7-frontier-original.json \
+             /tmp/c049-corrected-node7-frontier-compression.json
+          test "$(wc -c < /tmp/c049-corrected-node7-frontier-compression.json)" = "26583"
+          test "$(sha256sum /tmp/c049-corrected-node7-frontier-compression.json | cut -d' ' -f1)" = \
+            "b0d8d4e51be21f21218fd9ee63a367e3236ff2a53d9d5f29980e1c93340867ca"
+
+      - name: Independent structural replay and repaired tamper rejection
+        run: |
+          root=/tmp/c049-corrected-node6-integration-node7-preflight
+          python experiments/direct/janus_c049_1_b4_6_3_corrected_node7_parent_frontier_compression_verifier.py \
+            "$root/manifest.json" \
+            "$root/corrected-node6-integration-node7-preflight-summary.json" \
+            /tmp/c049-corrected-node7-frontier-compression.json \
+            --producer-source experiments/direct/janus_c049_1_b4_6_3_corrected_node7_parent_frontier_compression.py \
+            --tamper-self-test
+
+      - name: Validate strict corrected frontier boundary and registry
+        run: |
+          python - <<'PY'
+          import hashlib, json
+
+          path='/tmp/c049-corrected-node7-frontier-compression.json'
+          artifact=json.load(open(path, encoding='utf-8'))
+          unsigned=dict(artifact)
+          claimed=unsigned.pop('semantic_digest')
+          assert claimed==hashlib.sha256(json.dumps(unsigned,sort_keys=True,separators=(',',':')).encode()).hexdigest()
+          assert claimed=='750990191184f37e321a83a66040fab490fa0db3ad3eb07e9941d3e31e7d88dd'
+
+          source=artifact['source']
+          assert source['parent_pr']==111
+          assert source['parent_exact_head']=='af0556d4ae05ea6dc343d120a34f67255890ba18'
+          assert source['summary_semantic_digest']=='16e49493f26966cad0cf4491b861d2f92a1b3e0fd289ee0dbac52426ed8dc378'
+          assert source['manifest_digest']=='eb17eebad4200cc0d43785d289976542b35c11d01e9af91f3cdf0e209dd649f9'
+          assert source['transcript_root_digest']=='5300b299d295c13d9fe6a970bb22994202db35e521785330a97b5b798875381e'
+
+          domain=artifact['corrected_path_domain']
+          assert domain['ordinary_join_steps']==[[1,0],[0,1]]
+          assert domain['ordinary_join_diagonal_allowed'] is False
+          assert domain['quotient_projection_steps']==[[1,0],[0,1]]
+          assert domain['quotient_projection_diagonal_allowed'] is False
+          assert domain['extension_preorder_diagonal_preserved'] is True
+          assert domain['legacy_delannoy_frontier_consumed'] is False
+
+          child=artifact['child_normal_forms']
+          assert child['left_entry_count']==432
+          assert child['right_entry_count']==36
+          assert child['left_skeleton_multiplicities']=={'LEFT_A':216,'LEFT_B':216}
+          assert child['right_skeleton_multiplicities']=={'RIGHT_R':36}
+
+          projection=artifact['projection_completeness']
+          assert projection['run_length_profiles']==243
+          assert projection['fine_hv_paths_replayed']==23931
+          assert projection['quotient_path_count']==3
+          assert projection['diagonal_quotient_steps']==0
+          assert projection['every_fine_path_projects_to_hv_quotient'] is True
+          assert projection['every_hv_quotient_has_fine_lift'] is True
+
+          frontier=artifact['quotient_frontier']
+          assert frontier['child_pair_count']==15552
+          assert frontier['ordinary_hv_refinement_count']==1531584
+          assert frontier['class_count']==6
+          assert len(frontier['classes'])==6
+          assert frontier['successful_generator_frontier_complete'] is True
+          assert all(
+              step in ([1,0],[0,1])
+              for item in frontier['classes']
+              for step in item['quotient_path_steps']
+          )
+
+          ledger=artifact['work_ledger']
+          assert ledger['cartesian_child_pairs_materialized']==0
+          assert ledger['actual_fine_refinements_materialized']==0
+          assert ledger['abstract_run_length_profiles_replayed']==486
+          assert ledger['abstract_fine_hv_paths_replayed']==47862
+          assert ledger['quotient_paths_enumerated']==6
+          assert ledger['local_direct_witness_assignments_tested']==7776
+          assert ledger['naive_hv_work_avoided']==1531584
+
+          assert all(value is False for value in artifact['legacy_inputs'].values())
+          assert artifact['invariant_vector']=={f'CN7F-INV-{i:02d}':'PASS' for i in range(1,15)}
+          strict=artifact['strict_boundary']
+          assert strict['pr111_corrected_node6_integration_admitted'] is True
+          assert strict['corrected_node7_parent_preflight_complete'] is True
+          assert strict['corrected_node7_parent_generator_frontier_complete'] is True
+          assert strict['corrected_node7_parent_refinement_complete'] is True
+          assert strict['corrected_node7_parent_up_k_complete'] is False
+          assert strict['corrected_bottom_up_replay_complete'] is False
+          assert strict['root_structural_compression_admitted'] is False
+          assert strict['root_full_set_computed'] is False
+          assert strict['found_layout']=='FORBIDDEN'
+          assert strict['no_layout_at_cap']=='FORBIDDEN'
+          assert strict['p_vs_np']=='OPEN'
+          assert artifact['result']=='CORRECTED_NODE7_PARENT_FRONTIER_COMPRESSED_TO_SIX_CLASSES'
+          assert artifact['next_gate']=='C049.1_B4.6.3_CORRECTED_NODE7_SIX_GENERATOR_UP_K_HARDENING'
+
+          receipt=json.load(open('registry/c049-1-b4-6-3-corrected-node7-parent-frontier-compression.json'))
+          assert receipt['status'] in {'DRAFT_EXACT_HEAD_CI_REQUIRED','IMPLEMENTED_EXACT_HEAD_CI_GREEN'}
+          admitted=receipt['status']=='IMPLEMENTED_EXACT_HEAD_CI_GREEN'
+          boundary=receipt['admission_boundary']
+          assert boundary['corrected_node7_frontier_compression_admitted'] is admitted
+          assert boundary['corrected_node7_parent_preflight_complete'] is True
+          assert boundary['corrected_node7_parent_generator_frontier_complete'] is admitted
+          assert boundary['corrected_node7_parent_refinement_complete'] is admitted
+          assert boundary['corrected_node7_parent_up_k_complete'] is False
+          assert boundary['corrected_bottom_up_replay_complete'] is False
+          assert boundary['root_structural_compression_admitted'] is False
+          assert boundary['root_full_set_computed'] is False
+          assert boundary['found_layout_enabled'] is False
+          assert boundary['no_layout_at_cap_enabled'] is False
+          assert boundary['p_vs_np']=='OPEN'
+          assert receipt['next_gate_after_green_ci']=='C049.1_B4.6.3_CORRECTED_NODE7_SIX_GENERATOR_UP_K_HARDENING'
+          PY
+
+      - name: Export corrected Node-7 frontier proof package
+        uses: actions/upload-artifact@v4
+        with:
+          name: c049-b4-6-3-corrected-node7-parent-frontier-compression
+          path: |
+            /tmp/c049-corrected-node7-frontier-compression.json
+            registry/c049-1-b4-6-3-corrected-node7-parent-frontier-compression.json
+            docs/C049_1_B4_6_3_CORRECTED_NODE7_PARENT_FRONTIER_COMPRESSION.md
+          retention-days: 1
