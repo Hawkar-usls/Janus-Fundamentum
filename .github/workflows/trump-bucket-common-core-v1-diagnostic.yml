@@ -1,0 +1,24 @@
+name: TRUMP Bucket Common-Core v1 Control Diagnostic
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'research/tools/apma_bucket_common_core/v1_control_diagnostic.py'
+      - '.github/workflows/trump-bucket-common-core-v1-diagnostic.yml'
+  workflow_dispatch:
+jobs:
+  diagnostic:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: '3.12'}
+      - name: Run v1 control diagnostic
+        run: python -m research.tools.apma_bucket_common_core.v1_control_diagnostic
+      - name: Preserve v1 candidate blob by source check
+        run: python - <<'PY'
+          import hashlib
+          from pathlib import Path
+          p=Path('research/tools/apma_bucket_common_core/common_core_semijoin_prefilter.py')
+          d=p.read_bytes(); print(hashlib.sha1(f'blob {len(d)}\0'.encode()+d).hexdigest())
+          PY
