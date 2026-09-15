@@ -12,8 +12,9 @@ No scientific action is admissible from conversational memory alone.
 
 ## Startup sequence
 
-1. Read `registry/TRUMP_CURRENT_STATE_2026-09-15_v3.7.json` **first**. This is the latest successor-state anchor and records the diagnostic-only residual-3+ forensic PASS: the first real GT2 residual component is a K3 over `orig:4/5/6`, every overlap is exactly variable `47`, relation articulations are empty, variable articulation is `[47]`, running-intersection passes, and semijoin reaches the unchanged `[4,4,4]` fixed point.
-1. Then read `registry/TRUMP_CURRENT_STATE_2026-09-15_v3.6.json` for the sealed residual-component-<=2 factorized-payload PASS.
+1. Read `registry/TRUMP_CURRENT_STATE_2026-09-15_v3.8.json` **first**. This is the latest successor-state anchor and records the scoped residual single-variable separator PASS: raw-derived separator `47`, exactly two Boolean branches, reuse of only sealed residual <=2 carriers, exact SAT/UNSAT branch authority, and zero 3plus join-chain/global residual Cartesian materialization.
+2. Then read `registry/TRUMP_CURRENT_STATE_2026-09-15_v3.7.json` for the diagnostic-only residual-3+ forensic PASS: K3 over `orig:4/5/6`, every overlap exactly variable `47`, running-intersection PASS, and unchanged semijoin fixed point `[4,4,4]`.
+3. Then read `registry/TRUMP_CURRENT_STATE_2026-09-15_v3.6.json` for the sealed residual-component-<=2 factorized-payload PASS.
 2. Read `registry/TRUMP_CURRENT_STATE_2026-09-15_v3.5.json` for the unique-common-core conditioned factorized-payload PASS, including its preserved v1/v1.1 negative-control failures and v1.2 scope-audit repair.
 3. Read `registry/TRUMP_CURRENT_STATE_2026-09-15_v3.4.json` for the common-core support-intersection / semijoin prefilter PASS and its sticky `4^20` residual-payload blocker.
 4. Read `registry/TRUMP_CURRENT_STATE_2026-09-15_v3.3.json` for Captain Obvious first-overbudget-bucket forensic evidence: raw product `557256278016`, shared 20-variable core, and exact compatibility collapse `3 -> 3 -> 1 -> 0`.
@@ -78,7 +79,7 @@ The Inverted-Pyramid rule remains:
 
 `COMPLETE_EXACT_ADMISSION_CERTIFICATE -> AUTHORIZED_SEALED_CARRIER/PORTFOLIO -> EXACT_REPLAY -> OTHERWISE OPEN`.
 
-Twelve downward scoped subproblems are now closed for explicit Boolean raw relation semantics:
+Thirteen downward scoped subproblems are now closed for explicit Boolean raw relation semantics:
 
 1. label-blind recognition of the frozen Schaefer basis library;
 2. additive variable-disjoint compositional basis portfolios without Cartesian product;
@@ -92,26 +93,27 @@ Twelve downward scoped subproblems are now closed for explicit Boolean raw relat
 10. **target-component first private overbudget bucket with an exact raw common core**: compute `C = intersection scope(F_i)` and `S = intersection pi_C(F_i)` before materialization. Empty `S` is exact UNSAT; otherwise semijoin-filter original rows by `S`, preserving every non-core coordinate, then reapply the unchanged v3.2 `L^2` guard. v1 first-failure and control-diagnostic history are preserved; v1.1 seals `PASS_SCOPED_BICAMERAL_BUCKET_COMMON_CORE_SEMIJOIN_PREFILTER_V1_1`;
 11. **unique exact common-core state with pairwise-disjoint conditioned residual scopes**: condition on the unique `s in S`, derive each factor-local boundary relation independently, retain original-row reconstruction provenance, and store the target boundary as an additive portfolio rather than the `4^20` payload Cartesian product. v1 and v1.1 raw incomplete-coverage control failures are preserved; v1.2 separates theorem scope from a unit-only forged READY-receipt fail-closed guard and seals `PASS_SCOPED_BICAMERAL_BUCKET_UNIQUE_CORE_CONDITIONED_FACTORIZED_PAYLOAD_V1_2`;
 12. **unique exact common-core state with conditioned residual overlap components of size at most two**: derive the exact residual relation-overlap graph. Singleton components remain direct projections; every two-relation component receives exactly one natural join over all shared residual variables followed by boundary projection. Store component carriers additively, never as a global residual Cartesian product. A residual component of size 3+ returns `OPEN_RESIDUAL_COMPONENT_GT2` before any join chain. Candidate union-find/nested pair loop and independent BFS/hash-index implementations seal `PASS_SCOPED_BICAMERAL_BUCKET_UNIQUE_CORE_RESIDUAL_COMPONENT_LE2_FACTORIZED_PAYLOAD_V1`.
+13. **unique exact common-core state with a raw-derived single Boolean residual articulation variable whose two exact branches reduce to residual components of size at most two (or exact branch UNSAT)**: condition exactly on `0/1`, recompute residual components independently in each branch, reuse only the sealed v3.6 singleton/one-pair carriers, and require full original-row witness replay for SAT. Exact UNSAT requires both branch certificates. No articulation or any branch remaining GT2 returns OPEN before any 3plus join. Candidate union-find and independent BFS separator discovery seal `PASS_SCOPED_BICAMERAL_BUCKET_UNIQUE_CORE_RESIDUAL_SINGLE_VARIABLE_SEPARATOR_FACTORIZED_PAYLOAD_V1`.
 
 The attempted all-affine 3+ mincut-boundary gate is **not** a frontier result. v3.1 classifies it as `SUPERSEDED_ROUTE`: all-affine input is already admitted by the earlier raw/compositional basis layer before canonical mincut discovery. Do not repair or reintroduce it as a current frontier gate.
 
-Do **not** repeat the twelve closed mechanisms as the current blocker. Do not return to fixed-k ladders, raw overwidth cube enumeration, singleton-support rediscovery, full-cut-anchor join-tree rediscovery, two-relation one-join rediscovery, all-affine 3+ rediscovery, unguarded R27-style bucket materialization, common-core rediscovery, unique-core pairwise-disjoint rediscovery, or residual pair-component rediscovery.
+Do **not** repeat the thirteen closed mechanisms as the current blocker. Do not return to fixed-k ladders, raw overwidth cube enumeration, singleton-support rediscovery, full-cut-anchor join-tree rediscovery, two-relation one-join rediscovery, all-affine 3+ rediscovery, unguarded R27-style bucket materialization, common-core rediscovery, unique-core pairwise-disjoint rediscovery, or residual pair-component rediscovery.
 
 Current scoped open surface:
 
-`UNIQUE_COMMON_CORE_CONDITIONED_RESIDUAL_GT2_WITH_RAW_DERIVED_SINGLE_VARIABLE_ARTICULATION_OR_NO_SUCH_SEPARATOR__PLUS_MULTIPLE_COMMON_CORE_STATES`.
+`UNIQUE_COMMON_CORE_CONDITIONED_RESIDUAL_GT2_WITH_NO_ADMISSIBLE_SINGLE_BOOLEAN_SEPARATOR_OR_WITH_ANY_SINGLE_SEPARATOR_BRANCH_REMAINING_GT2__PLUS_MULTIPLE_COMMON_CORE_STATES`.
 
-The v3.7 forensic is diagnostic only, not a theorem promotion. It establishes for the first frozen GT2 control that factors `orig:4/5/6` form K3, every pair overlaps only on residual variable `47`, there is no relation articulation, `47` is the unique variable articulation, running-intersection passes, each pair has 8 compatible of 16 row pairs, and pairwise semijoin does not shrink `[4,4,4]`. No 3+ join chain was materialized.
+The v3.8 scoped theorem closes only the case where a raw-derived single Boolean residual articulation variable exists and both exact `0/1` branches reduce to sealed residual <=2 carriers (or exact branch UNSAT). It does not prove general residual separator tractability.
 
-Captain's nearest blocker is therefore no longer generic `RESIDUAL_COMPONENT_GT2`; it is **exact conditioning on a raw-derived single Boolean residual articulation variable, followed by reuse of sealed residual <=2 carriers**. `OPEN_NONUNIQUE_COMMON_CORE_SUPPORT` remains a separate secondary blocker.
+Captain's nearest blocker is now **the structure of the frozen OPEN controls where no admissible single-variable separator exists or a candidate branch remains GT2**. `OPEN_NONUNIQUE_COMMON_CORE_SUPPORT` remains a separate secondary blocker.
 
-The next preferred gate is:
+The next preferred action is diagnostic only:
 
-`TRUMP_BICAMERAL_BUCKET_UNIQUE_CORE_RESIDUAL_SINGLE_VARIABLE_SEPARATOR_FACTORIZED_PAYLOAD_FALSIFIER_GATE`.
+`TRUMP_BICAMERAL_BUCKET_UNIQUE_CORE_RESIDUAL_NO_SINGLE_SEPARATOR_STRUCTURE_FORENSIC`.
 
-Captain Obvious' directive: **do not generalize to a 3-factor join**. Discover the separator from the raw residual overlap graph, branch exactly on `0/1`, recompute each branch dependency graph, and admit only if every branch reduces to sealed <=2 component carriers. If there is no single-variable articulation or a branch remains GT2, return OPEN.
+Captain Obvious' directive: **do not jump directly to pair/multi-variable branching or a general join-tree theorem**. Profile the frozen no-articulation and branch-still-GT2 controls first: exact residual scopes/overlap graph, minimum raw variable-cut size under a small preregistered diagnostic cap, running-intersection status, and branch-specific structural changes after one conditioning. Only then choose a pair separator, verified join-tree, bounded-width DP, finite congruence, or OPEN.
 
-Forbidden shortcuts include trusted separator labels, 3+ join chains, global residual Cartesian products, budget raises, alternative-order search, treating multiple common-core states as solved, or generalizing this diagnostic K3 pattern to arbitrary partial-overlap components.
+Forbidden shortcuts include unpreregistered enumeration of separator sets, 3+ join chains, global residual Cartesian products, budget raises, exponentially many separator/order trials, treating multiple common-core states as solved, or treating OPEN as negative evidence.
 
 ## Context sources
 
