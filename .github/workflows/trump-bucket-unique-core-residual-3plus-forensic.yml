@@ -1,0 +1,41 @@
+name: TRUMP Bucket Unique-Core Residual 3plus Forensic
+on:
+  push:
+    branches: [research/trump-bucket-unique-core-residual-3plus-forensic-2026-09-15]
+    paths:
+      - 'research/TRUMP_BICAMERAL_BUCKET_UNIQUE_CORE_RESIDUAL_3PLUS_STRUCTURE_FORENSIC_PREREGISTRATION_2026-09-15.json'
+      - 'research/tools/apma_bucket_residual_3plus_forensic/**'
+      - '.github/workflows/trump-bucket-unique-core-residual-3plus-forensic.yml'
+  workflow_dispatch:
+
+jobs:
+  residual-3plus-forensic:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: '3.12'}
+      - name: Run independent forensic checker
+        run: |
+          set -euo pipefail
+          python -m research.tools.apma_bucket_residual_3plus_forensic.independent_checker | tee /tmp/forensic.json
+      - name: Assert diagnostic verdict and firewalls
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          z=json.loads(Path('/tmp/forensic.json').read_text().strip().splitlines()[-1])
+          assert z['verdict']=='PASS_DIAGNOSTIC_BICAMERAL_BUCKET_UNIQUE_CORE_RESIDUAL_3PLUS_STRUCTURE_FORENSIC', z
+          assert all(z['checks'].values()), {k:v for k,v in z['checks'].items() if not v}
+          assert z['scientific_firewall']['P_VS_NP']=='OPEN'
+          assert z['scientific_firewall']['GENERAL_SAT_IN_P']=='NOT_PROVED'
+          print(json.dumps({'verdict':z['verdict'],'factors':z['target_factor_ids'],'edges':z['edges'],'running_intersection':z['running_intersection'],'relation_articulations':z['relation_articulation_vertices'],'variable_articulations':z['variable_articulation_points'],'semijoin':z['semijoin_closure']},sort_keys=True))
+          PY
+      - name: v3.6 regression
+        run: python -m research.tools.apma_bucket_residual_le2.independent_checker
+      - name: Authority notice
+        run: |
+          echo 'DIAGNOSTIC_ONLY=YES'
+          echo 'THREE_PLUS_JOIN_CHAIN=FORBIDDEN'
+          echo 'GLOBAL_RESIDUAL_CARTESIAN_PRODUCT=0'
+          echo 'P_VS_NP=OPEN'
