@@ -1,0 +1,53 @@
+name: TRUMP Bucket Unique-Core Residual No-Single-Separator Forensic
+on:
+  push:
+    branches: [research/trump-bucket-unique-core-residual-no-single-separator-forensic-2026-09-15]
+    paths:
+      - 'research/TRUMP_BICAMERAL_BUCKET_UNIQUE_CORE_RESIDUAL_NO_SINGLE_SEPARATOR_STRUCTURE_FORENSIC_PREREGISTRATION_2026-09-15.json'
+      - 'research/tools/apma_bucket_residual_no_single_forensic/**'
+      - '.github/workflows/trump-bucket-unique-core-residual-no-single-separator-forensic.yml'
+  workflow_dispatch:
+
+jobs:
+  no-single-separator-forensic:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: '3.12'}
+
+      - name: Run independent diagnostic checker
+        run: |
+          set -euo pipefail
+          python -m research.tools.apma_bucket_residual_no_single_forensic.independent_checker | tee /tmp/forensic.json
+
+      - name: Assert diagnostic verdict and firewalls
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          z=json.loads(Path('/tmp/forensic.json').read_text().strip().splitlines()[-1])
+          assert z['verdict']=='PASS_DIAGNOSTIC_BICAMERAL_BUCKET_UNIQUE_CORE_RESIDUAL_NO_SINGLE_SEPARATOR_STRUCTURE_FORENSIC', z
+          assert all(z['checks'].values()), {k:v for k,v in z['checks'].items() if not v}
+          assert z['scientific_firewall']['P_VS_NP']=='OPEN'
+          assert z['scientific_firewall']['GENERAL_SAT_IN_P']=='NOT_PROVED'
+          print(json.dumps({
+            'verdict':z['verdict'],
+            'no_single_cut':z['candidate']['controls']['no_single_articulation']['minimum_raw_variable_cut_up_to_two'],
+            'branch_gt2_cut':z['candidate']['controls']['branch_still_gt2']['minimum_raw_variable_cut_up_to_two'],
+            'no_single_ri':z['candidate']['controls']['no_single_articulation']['running_intersection'],
+            'branch_gt2_ri':z['candidate']['controls']['branch_still_gt2']['running_intersection']
+          },sort_keys=True))
+          PY
+
+      - name: v3.8 single-separator regression
+        run: python -m research.tools.apma_bucket_residual_single_separator.independent_checker
+
+      - name: Authority notice
+        run: |
+          echo 'DIAGNOSTIC_ONLY=YES'
+          echo 'CUT_SEARCH_CAP=2'
+          echo 'THREE_PLUS_JOIN_CHAIN=0'
+          echo 'GLOBAL_RESIDUAL_CARTESIAN_PRODUCT=0'
+          echo 'SOLVER_CALLS=0'
+          echo 'P_VS_NP=OPEN'
