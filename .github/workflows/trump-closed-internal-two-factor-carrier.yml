@@ -1,0 +1,180 @@
+name: TRUMP Closed Internal Two-Factor Carrier
+
+on:
+  push:
+    branches:
+      - research/trump-closed-internal-two-factor-carrier-2026-09-15
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  closed-internal-two-factor-carrier:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Run repaired v1.1 candidate carrier
+        run: |
+          set -euo pipefail
+          python -m research.tools.apma_bucket_closed_two_factor.closed_two_factor_carrier_v1_1 | tee /tmp/candidate.json
+
+      - name: Run independent v1.1 checker
+        run: |
+          set -euo pipefail
+          python -m research.tools.apma_bucket_closed_two_factor.independent_checker_v1_1 --candidate-json /tmp/candidate.json | tee /tmp/independent.json
+
+      - name: Assert frozen carrier verdict, controls, certificates, and firewalls
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          c = json.loads(Path('/tmp/candidate.json').read_text().strip().splitlines()[-1])
+          i = json.loads(Path('/tmp/independent.json').read_text().strip().splitlines()[-1])
+          V = 'PASS_SCOPED_BICAMERAL_BUCKET_UNIQUE_CORE_RESIDUAL_CLOSED_INTERNAL_TWO_FACTOR_F_FACTOR_CARRIER_V1'
+
+          assert c['source_guard']['ok'] is True, c['source_guard']
+          assert i['source_guard']['ok'] is True, i['source_guard']
+          assert i['verdict'] == V, i
+          assert all(i['comparisons'].values()), i['comparisons']
+
+          p = c['positive_k5']
+          assert p['status'] == 'ADMIT_EXACT_UNIQUE_CORE_RESIDUAL_CLOSED_INTERNAL_TWO_FACTOR_FACTORIZED_PAYLOAD_PORTFOLIO', p
+          assert p['carrier']['witness_verified'] is True
+          assert p['carrier']['receipt']['two_factor_component_count'] >= 1
+          assert p['carrier']['receipt']['original_witness_verified'] is True
+          assert p['carrier']['receipt']['size4_boolean_separator_assignments_enumerated'] == 0
+          assert p['carrier']['receipt']['global_residual_cartesian_products_materialized'] == 0
+          assert p['carrier']['receipt']['uniform_complexity_envelope'] == 'O(L^4)'
+
+          u = c['unsat_cubic_three_bridge']
+          assert u['status'] == 'EXACT_UNSAT_BY_VERIFIED_CLOSED_INTERNAL_TWO_FACTOR_TUTTE_OBSTRUCTION', u
+          assert u['carrier']['static_verification']['ok'] is True
+          assert u['carrier']['witness'] is None
+          assert u['carrier']['witness_verified'] is True
+
+          assert c['malformed_relation']['status'] == 'OPEN_UNADMITTED_RESIDUAL_GT2_COMPONENT_BEFORE_SOLVER_EXECUTION', c['malformed_relation']
+          assert c['invalid_incidence']['status'] == 'OPEN_UNADMITTED_RESIDUAL_GT2_COMPONENT_BEFORE_SOLVER_EXECUTION', c['invalid_incidence']
+          assert c['boundary_bearing_unit']['status'] == 'OPEN_TWO_FACTOR_BOUNDARY_INTERFACE_NOT_SEALED', c['boundary_bearing_unit']
+          assert c['multiple_common_core']['status'] == 'OPEN_NONUNIQUE_COMMON_CORE_SUPPORT', c['multiple_common_core']
+          assert c['tampered_proposal']['status'] == 'REJECT_TAMPERED_PROVENANCE', c['tampered_proposal']
+          assert c['tampered_sat_certificate']['ok'] is False, c['tampered_sat_certificate']
+          assert c['tampered_unsat_certificate']['ok'] is False, c['tampered_unsat_certificate']
+
+          assert i['positive']['solution_count'] == 12
+          assert i['positive']['static_matching']['ok'] is True
+          assert i['positive']['original_raw_replay'] is True
+          assert i['unsat_cubic']['three_regular'] is True
+          assert i['unsat_cubic']['independent_perfect_matching_exists'] is False
+          assert i['unsat_cubic']['independent_two_factor_exists'] is False
+          assert i['unsat_cubic']['static_tutte']['ok'] is True
+          assert all(i['controls'].values()), i['controls']
+
+          assert c['scientific_firewall']['P_VS_NP'] == 'OPEN'
+          assert c['scientific_firewall']['GENERAL_SAT_IN_P'] == 'NOT_PROVED'
+          assert c['scientific_firewall']['SIZE4_BRANCHING_LICENSED'] is False
+          assert c['scientific_firewall']['BOUNDARY_BEARING_TWO_FACTOR_COMPONENTS'] == 'OPEN'
+          assert c['repair_receipt']['preregistration_changed'] is False
+          print(json.dumps({
+              'verdict': V,
+              'positive_k5_solution_count': i['positive']['solution_count'],
+              'unsat_tutte_deficiency': i['unsat_cubic']['static_tutte']['deficiency_lower_bound'],
+              'size4_branching_licensed': False,
+              'uniform_complexity_envelope': p['carrier']['receipt']['uniform_complexity_envelope'],
+          }, sort_keys=True))
+          PY
+
+      - name: Frozen small-graph blossom and Tutte fuzz against brute force
+        run: |
+          python - <<'PY'
+          from functools import lru_cache
+          import itertools
+          import json
+          import random
+
+          from research.tools.apma_bucket_closed_two_factor import matching_core as dut
+
+          def brute_maximum_matching(n, edges):
+              adj = [0] * n
+              for a, b in edges:
+                  adj[a] |= 1 << b
+                  adj[b] |= 1 << a
+
+              @lru_cache(None)
+              def rec(mask):
+                  if mask == 0:
+                      return 0
+                  v = (mask & -mask).bit_length() - 1
+                  best = rec(mask & ~(1 << v))
+                  choices = adj[v] & mask & ~(1 << v)
+                  while choices:
+                      bit = choices & -choices
+                      w = bit.bit_length() - 1
+                      best = max(best, 1 + rec(mask & ~(1 << v) & ~(1 << w)))
+                      choices -= bit
+                  return best
+
+              return rec((1 << n) - 1)
+
+          rng = random.Random(260915)
+          checked = 0
+          nonperfect_checked = 0
+          for n in range(1, 9):
+              all_edges = list(itertools.combinations(range(n), 2))
+              cases = [set(), set(all_edges)]
+              for _ in range(40):
+                  p = rng.choice([0.15, 0.3, 0.5, 0.7, 0.85])
+                  cases.append({e for e in all_edges if rng.random() < p})
+              for edges in cases:
+                  edges = sorted(edges)
+                  truth = brute_maximum_matching(n, tuple(edges))
+                  got = dut.maximum_matching(list(range(n)), edges)
+                  assert got['cardinality'] == truth, (n, edges, truth, got)
+                  assert got['perfect'] == (2 * truth == n), (n, edges, truth, got)
+                  checked += 1
+                  if not got['perfect']:
+                      obstruction = dut.derive_tutte_obstruction(list(range(n)), edges)
+                      assert obstruction['status'] == 'VERIFIED_TUTTE_OBSTRUCTION', (n, edges, obstruction)
+                      direct = dut.verify_tutte_obstruction(list(range(n)), edges, obstruction['U'])
+                      assert direct['ok'] is True, (n, edges, obstruction, direct)
+                      nonperfect_checked += 1
+          print(json.dumps({
+              'frozen_random_seed': 260915,
+              'small_graph_cases_checked': checked,
+              'nonperfect_tutte_certificates_checked': nonperfect_checked,
+              'maximum_n': 8,
+          }, sort_keys=True))
+          PY
+
+      - name: v3.17 exact-two-of-four semantic regression
+        run: |
+          set -euo pipefail
+          python -m research.tools.apma_bucket_k5_exact_two_of_four_cardinality_forensic.forensic > /tmp/v317_candidate.json
+          python -m research.tools.apma_bucket_k5_exact_two_of_four_cardinality_forensic.independent_checker --candidate-json /tmp/v317_candidate.json
+
+      - name: v3.16 raw semantic forensic regression
+        run: python -m research.tools.apma_bucket_k5_raw_semantic_forensic.independent_checker
+
+      - name: v3.14 fixed-depth 1-2-2 regression
+        run: python -m research.tools.apma_bucket_fixed_depth_122.independent_checker
+
+      - name: Authority notice
+        run: |
+          echo 'AUTHORITY=SCOPED_CANDIDATE_PENDING_SUCCESSFUL_FALSIFIER'
+          echo 'PREREGISTRATION_CHANGED=false'
+          echo 'BOUNDARY_BEARING_TWO_FACTOR_COMPONENTS=OPEN'
+          echo 'SIZE4_BOOLEAN_BRANCHING=0'
+          echo 'SEPARATOR_SETS_SIZE_GE3_BOOLEAN_BRANCHING=0'
+          echo 'UNBOUNDED_RECURSION=0'
+          echo 'THREE_PLUS_JOIN_CHAIN=0'
+          echo 'GLOBAL_RESIDUAL_CARTESIAN_PRODUCT=0'
+          echo 'BUDGET_RAISE=false'
+          echo 'UNIFORM_COMPLEXITY_ENVELOPE=O(L^4)'
+          echo 'P_VS_NP=OPEN'
+          echo 'GENERAL_SAT_IN_P=NOT_PROVED'
