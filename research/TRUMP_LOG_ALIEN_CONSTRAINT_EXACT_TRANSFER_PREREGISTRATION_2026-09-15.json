@@ -1,0 +1,76 @@
+{
+  "artifact_id": "JANUS-TRUMP-LOG-ALIEN-CONSTRAINT-EXACT-TRANSFER-PREREGISTRATION-2026-09-15-v1.0",
+  "date": "2026-09-15",
+  "status": "FROZEN_BEFORE_CANDIDATE_IMPLEMENTATION",
+  "authority_class": "SCOPED_THEOREM_OR_FALSIFICATION_PREREG__NO_GLOBAL_PROMOTION",
+  "branch": "research/trump-log-alien-constraint-exact-transfer-2026-09-15",
+  "parent_barrier_journal": "85b7e1534e3d1068d85a37169d3105b3e45d9e3c",
+  "external_context": {
+    "paper": "Jonsson, Lagerkvist, Osipov, CSPs with Few Alien Constraints, CP 2024",
+    "doi": "10.4230/LIPIcs.CP.2024.15",
+    "relevant_result": "For Boolean Schaefer base language A, CSP with finitely parameterized alien constraints from B is FPT in the number of alien constraints.",
+    "use_in_this_gate": "MOTIVATION_AND_CROSSCHECK_ONLY__THE_POLYNOMIAL_BOUND_BELOW_IS_PROVED_DIRECTLY"
+  },
+  "scientific_firewall": {
+    "P_VS_NP": "OPEN",
+    "GENERAL_SAT_IN_P": "NOT_PROVED",
+    "UNRESTRICTED_CONNECTED_MIXED_CARRIER": "SCHAEFER_NP_COMPLETE_BARRIER_REMAINS",
+    "NO_HEURISTICS": true,
+    "NO_FINITE_EXTRAPOLATION": true,
+    "NO_HIDDEN_FPT_TO_POLY_CONVERSION": true,
+    "NO_GLOBAL_ASSIGNMENT_ENUMERATION": true,
+    "GLOBAL_APMA_FRONTIER_ADVANCE": "NONE"
+  },
+  "scope": {
+    "case_A": {
+      "base_language": "OR2_BIJUNCTIVE",
+      "alien_relation": "EVEN_XOR3",
+      "alien_tuple_count": 4,
+      "admission": "4^k <= L"
+    },
+    "case_B": {
+      "base_language": "EVEN_XOR3_AFFINE",
+      "alien_relation": "OR2",
+      "alien_tuple_count": 3,
+      "admission": "3^k <= L"
+    },
+    "L": "original encoded input length proxy carried explicitly by the frozen instance contract",
+    "k": "number of alien constraints in the chosen orientation"
+  },
+  "formal_theorem_target": {
+    "statement": "For a fixed base relation language with an exact polynomial native solver closed under variable pinning, and a fixed alien relation R with q satisfying tuples, an instance with k alien constraints is exactly solvable by enumerating the q^k alien tuple selections, rejecting inconsistent overlaps, pinning the induced variable values into the base instance, and invoking the native base solver. If q^k <= L, the complete lifecycle is polynomial in L.",
+    "exactness": "F = Base AND R_1 AND ... AND R_k is satisfiable iff there exists one satisfying tuple t_i of every R_i such that overlapping tuple choices are consistent and the pinned Base instance is satisfiable.",
+    "sat_reconstruction": "A consistent alien tuple selection plus the exact native base witness gives a full original witness; original relations are replayed independently.",
+    "unsat_rule": "UNSAT may be returned only after every one of the q^k tuple selections is either overlap-inconsistent or has an independently replayable native-base UNSAT result.",
+    "complexity": "At most q^k <= L branches. Each branch performs polynomial overlap consistency, base-instance pinning, native solve, reconstruction/replay. Therefore T_total <= L * poly(L) and serialized branch receipts <= L * poly(L)."
+  },
+  "mandatory_gates": {
+    "G1_CANONICAL_ALIEN_ORDER": "Alien constraints and their satisfying tuples use deterministic frozen ordering; no result-dependent ordering changes admission or semantics.",
+    "G2_COMPLETE_TUPLE_ENUMERATION": "For admitted instances, every satisfying tuple of every alien relation participates in the exact Cartesian product over alien constraints; no tuple is pruned except by explicit overlap inconsistency.",
+    "G3_NO_GLOBAL_VARIABLE_CUBE": "Candidate may enumerate alien tuple choices only; it may not enumerate all assignments to all instance variables or to a larger interface cube.",
+    "G4_OVERLAP_CONSISTENCY": "Shared variables among alien constraints must carry identical values in a surviving tuple selection.",
+    "G5_NATIVE_PINNED_SOLVER": "After alien tuple selection, only the sealed native base carrier plus explicit variable pins may be used.",
+    "G6_ORIGINAL_REPLAY": "SAT witness must replay every original base and alien constraint.",
+    "G7_COMPLETE_UNSAT_ACCOUNTING": "Every admitted tuple-selection branch must have a deterministic rejection reason or native exact UNSAT result before global UNSAT.",
+    "G8_POLYNOMIAL_ADMISSION": "Reject OPEN_ALIEN_TUPLE_BUDGET when q^k > L; no exponential fallback is allowed.",
+    "G9_CONNECTED_CONTROL": "At least one positive control must have a connected variable-constraint incidence graph with multiple cycles, proving the scope is not merely disconnected factorization or a tree gate.",
+    "G10_REGRESSION": "Schaefer mixed-carrier barrier, factorized-feedback portfolio, and affine quotient regressions remain green."
+  },
+  "controls": {
+    "P1_CONNECTED_OR2_BASE_XOR_ALIENS_SAT": "Connected cyclic OR2 backbone with overlapping EVEN_XOR3 alien constraints, admitted by 4^k <= L, exact SAT witness replay.",
+    "P2_CONNECTED_OR2_BASE_XOR_ALIENS_UNSAT": "Admitted connected instance where every alien tuple selection is overlap-inconsistent or makes pinned OR2 base unsatisfiable; require complete branch accounting.",
+    "P3_CONNECTED_AFFINE_BASE_OR2_ALIENS": "Reverse orientation using affine native base and OR2 aliens under 3^k <= L.",
+    "N1_OVER_BUDGET": "Instance with q^k > L must return OPEN_ALIEN_TUPLE_BUDGET before tuple-product solving.",
+    "N2_OVERLAP_CONFLICT": "Two alien tuple selections disagreeing on a shared variable are rejected before native solve.",
+    "N3_REPLAY_TAMPER": "Tampered SAT witness must be rejected by original-relation replay.",
+    "N4_NO_GLOBAL_ENUMERATOR": "Static/source audit rejects global full-variable assignment enumeration."
+  },
+  "allowed_outcomes": [
+    "PASS_SCOPED_LOG_ALIEN_CONSTRAINT_EXACT_TRANSFER",
+    "FAIL_EXACTNESS_COUNTEREXAMPLE",
+    "FAIL_COMPLEXITY_ACCOUNTING",
+    "OPEN_ALIEN_TUPLE_BUDGET",
+    "FAIL_INFRASTRUCTURE"
+  ],
+  "next_step_after_freeze": "Implement minimal exact tuple-selection router with native OR2 and affine solvers, an independently written checker, and a GitHub Actions gate."
+}

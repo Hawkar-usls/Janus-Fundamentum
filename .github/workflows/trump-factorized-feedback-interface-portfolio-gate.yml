@@ -1,0 +1,65 @@
+name: TRUMP Factorized Feedback Interface Portfolio Gate
+
+on:
+  push:
+    branches:
+      - research/trump-factorized-feedback-interface-portfolio-2026-09-15
+    paths:
+      - 'research/TRUMP_FACTORIZED_FEEDBACK_INTERFACE_PORTFOLIO_PREREGISTRATION_2026-09-15.json'
+      - 'research/tools/apma_factorized_feedback/**'
+      - '.github/workflows/trump-factorized-feedback-interface-portfolio-gate.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  factorized-feedback-gate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Run independent factorized feedback-interface checker
+        run: |
+          set -euo pipefail
+          python -m research.tools.apma_factorized_feedback.independent_checker | tee /tmp/factorized-feedback-result.json
+
+      - name: Assert scoped verdict and firewalls
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          z=json.loads(Path('/tmp/factorized-feedback-result.json').read_text().strip().splitlines()[-1])
+          assert z['verdict']=='PASS_SCOPED_FACTORIZED_FEEDBACK_INTERFACE_PORTFOLIO', z
+          assert all(z['checks'].values()), {k:v for k,v in z['checks'].items() if not v}
+          assert z['complexity']['global_cartesian_products_materialized']==0, z['complexity']
+          sf=z['scientific_firewall']
+          assert sf['P_VS_NP']=='OPEN', sf
+          assert sf['GENERAL_SAT_IN_P']=='NOT_PROVED', sf
+          assert sf['GLOBAL_APMA_FRONTIER_ADVANCE']=='NONE', sf
+          assert sf['SCOPE']=='EXACTLY_DISCONNECTED_FEEDBACK_DEPENDENCY_WITH_SEALED_LOCAL_CARRIERS_ONLY', sf
+          print(json.dumps({'verdict':z['verdict'],'scope':sf['SCOPE'],'complexity':z['complexity']},sort_keys=True))
+          PY
+
+      - name: Baseline Trinity regression
+        run: python research/tools/apma_trinity_sovereign/independent_checker.py
+
+      - name: Sealed unicyclic regression
+        run: python research/tools/apma_trinity_unicyclic/independent_checker.py
+
+      - name: Canonical feedback-interface regression
+        run: python -m research.tools.apma_trinity_feedback.independent_checker
+
+      - name: Affine wide-interface quotient regression
+        run: python -m research.tools.apma_interface_quotient.independent_checker
+
+      - name: Authority notice
+        run: |
+          echo 'SCOPED_THEOREM_AND_IMPLEMENTATION_CHECK__NO_GLOBAL_PROMOTION'
+          echo 'SCOPE=EXACTLY_DISCONNECTED_FEEDBACK_DEPENDENCY_WITH_SEALED_LOCAL_CARRIERS_ONLY'
+          echo 'CARTESIAN_PRODUCT_MATERIALIZATION=0'
+          echo 'GENERAL_SAT_IN_P=NOT_PROVED'
+          echo 'P_VS_NP=OPEN'
