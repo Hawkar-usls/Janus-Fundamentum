@@ -12,14 +12,15 @@ No scientific action is admissible from conversational memory alone.
 
 ## Startup sequence
 
-1. Read `registry/TRUMP_CURRENT_STATE.json`.
-2. Read `docs/TRUMP_DEVELOPMENT_JOURNAL.md` plus the journal entries referenced by `TRUMP_CURRENT_STATE.json` for the active lineage.
-3. Read `registry/TRUMP_CONTEXT_MANIFEST.json` and resolve every mechanism alias relevant to the requested work.
-4. Verify the latest frozen scientific authority/seal and distinguish historical FAIL, diagnostic PASS, scoped PASS, and current frontier.
-5. Search repository history/default-branch code for the mechanism and its aliases before treating an idea as new.
-6. If the mechanism is indexed as living outside this repository, recover it from the named persistent source (for example ChatGPT Library) before reasoning from it.
-7. Build a short `CONTEXT_RECOVERY_RECEIPT` containing: recovered frontier, active lineage, frozen verdicts, known predecessor mechanisms, unresolved blockers, and the exact next allowed action.
-8. Only after that receipt may Captain Obvious/Akinator/JUXTAPOSE/TRUMP select or execute a new proof/falsification gate.
+1. Read `registry/TRUMP_CURRENT_STATE_2026-09-15.json` **first**. This is the latest successor-state anchor.
+2. Read its parent `registry/TRUMP_CURRENT_STATE.json` for the full historical C022/C023R/v1.1/v1.3 continuity. The parent is historical and must not be silently shortened or overwritten.
+3. Read `docs/TRUMP_DEVELOPMENT_JOURNAL.md` plus the journal entries referenced by both state files for the active lineage.
+4. Read `registry/TRUMP_CONTEXT_MANIFEST.json` and resolve every mechanism alias relevant to the requested work.
+5. Verify the latest frozen scientific authority/seal and distinguish historical FAIL, diagnostic PASS, scoped PASS, classification barrier, and current global frontier.
+6. Search repository history/default-branch code for the mechanism and its aliases before treating an idea as new.
+7. If the mechanism is indexed as living outside this repository, recover it from the named persistent source before reasoning from it.
+8. Build a short `CONTEXT_RECOVERY_RECEIPT` containing: recovered global frontier, current scoped open surface, active lineage, frozen verdicts, known predecessor mechanisms, unresolved blockers, and the exact next allowed action.
+9. Only after that receipt may Captain Obvious/Akinator/JUXTAPOSE/TRUMP select or execute a new proof/falsification gate.
 
 ## Anti-loop test
 
@@ -48,9 +49,11 @@ If classification cannot be made from recovered provenance, status is `CONTEXT_I
 
 `representation change admissible iff semantics is preserved exactly`
 
-`T_construct + T_discover + T_solve + T_reconstruct + T_verify <= poly(|F|)`
+`T_construct + T_discover + T_solve + T_reconstruct + T_verify + certificate_bytes <= poly(|F|)`
 
 Finite calibration/revealed/holdout success is not theorem evidence unless the preregistered claim explicitly concerns that finite domain.
+
+A parameterized/FPT theorem is not automatically a polynomial-in-original-input theorem: an explicit input-relative polynomial envelope is required.
 
 ## Context sources
 
@@ -62,7 +65,7 @@ Conversation memory is advisory only; repository and source-bound artifacts outr
 
 ## Write-back rule
 
-After every material development, update the journal/current-state lineage and, if a new durable mechanism or alias was introduced, update `registry/TRUMP_CONTEXT_MANIFEST.json` in the same development cycle.
+After every material development, update the journal and `registry/TRUMP_CURRENT_STATE_2026-09-15.json`; preserve `registry/TRUMP_CURRENT_STATE.json` as the parent historical state. If a new durable mechanism or alias was introduced, update `registry/TRUMP_CONTEXT_MANIFEST.json` in the same development cycle.
 
 ## Failure mode this protocol closes
 
