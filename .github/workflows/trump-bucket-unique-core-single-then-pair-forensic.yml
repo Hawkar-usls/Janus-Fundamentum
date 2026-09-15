@@ -1,0 +1,42 @@
+name: TRUMP Bucket Unique-Core Single-Then-Pair Forensic
+on:
+  push:
+    branches:
+      - research/trump-bucket-unique-core-residual-single-then-pair-forensic-2026-09-15
+permissions:
+  contents: read
+jobs:
+  single-then-pair-forensic:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Run independent single-condition then pair-admissibility checker
+        run: |
+          set -euo pipefail
+          python -m research.tools.apma_bucket_single_then_pair_forensic.independent_checker | tee /tmp/result.json
+      - name: Assert diagnostic verdict and firewalls
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          z=json.loads(Path('/tmp/result.json').read_text().strip().splitlines()[-1])
+          assert z['verdict']=='PASS_DIAGNOSTIC_BICAMERAL_BUCKET_UNIQUE_CORE_RESIDUAL_SINGLE_CONDITION_THEN_PAIR_ADMISSIBILITY_FORENSIC', z
+          assert all(z['checks'].values()), {k:v for k,v in z['checks'].items() if not v}
+          assert z['scientific_firewall']['P_VS_NP']=='OPEN'
+          assert z['scientific_firewall']['GENERAL_SAT_IN_P']=='NOT_PROVED'
+          print(json.dumps({'verdict':z['verdict'],'candidate_compact':z['candidate_compact'],'conditions_with_admissible_pair':z['conditions_with_admissible_pair'],'conditions_without_admissible_pair':z['conditions_without_admissible_pair']},sort_keys=True))
+          PY
+      - name: v3.11 no-pair forensic regression
+        run: python -m research.tools.apma_bucket_residual_no_pair_forensic.independent_checker
+      - name: Authority notice
+        run: |
+          echo 'AUTHORITY=DIAGNOSTIC_ONLY'
+          echo 'PAIR_CARRIER_EXECUTIONS=0'
+          echo 'SOLVER_EXECUTIONS=0'
+          echo 'SEPARATOR_SIZE_GE3_EXECUTED_FOR_SAT=0'
+          echo 'THREE_PLUS_JOIN_CHAIN=0'
+          echo 'GLOBAL_RESIDUAL_CARTESIAN_PRODUCT=0'
+          echo 'P_VS_NP=OPEN'
