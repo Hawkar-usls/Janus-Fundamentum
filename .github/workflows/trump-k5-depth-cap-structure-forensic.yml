@@ -1,0 +1,67 @@
+name: TRUMP K5 Depth-Cap Structure Forensic
+on:
+  push:
+    branches:
+      - research/trump-k5-depth-cap-structure-forensic-2026-09-15
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  k5-depth-cap-forensic:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Run independent K5 depth-cap forensic checker
+        run: |
+          set -euo pipefail
+          python -m research.tools.apma_bucket_k5_depth_cap_forensic.independent_checker | tee /tmp/k5_forensic.json
+      - name: Assert diagnostic verdict and firewalls
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          z=json.loads(Path('/tmp/k5_forensic.json').read_text().strip().splitlines()[-1])
+          assert z['verdict']=='PASS_DIAGNOSTIC_BICAMERAL_BUCKET_UNIQUE_CORE_RESIDUAL_FIXED_DEPTH_1_2_2_NO_SKELETON_STRUCTURE_FORENSIC', z
+          assert all(z['checks'].values()), {k:v for k,v in z['checks'].items() if not v}
+          r=z['receipt']
+          assert r['minimum_disconnect_cut_size']==4
+          assert len(r['minimum_cuts'])==5
+          assert r['three_edge_removal_case_count']==120
+          assert r['all_three_edge_removals_connected'] is True
+          assert all(d['component_sizes']==[1,4] for d in r['minimum_cut_details'])
+          assert all(d['residual_is_k4'] is True for d in r['minimum_cut_details'])
+          assert z['scientific_firewall']['P_VS_NP']=='OPEN'
+          assert z['scientific_firewall']['GENERAL_SAT_IN_P']=='NOT_PROVED'
+          assert z['scientific_firewall']['SIZE4_BRANCHING_LICENSED'] is False
+          print(json.dumps({'verdict':z['verdict'],'receipt':r},sort_keys=True))
+          PY
+      - name: Verify sealed predecessor code is byte-identical
+        run: |
+          set -euo pipefail
+          BASE=e5c4acd6187a74ffbe2fdaf4771dd42dad7f2086
+          git merge-base --is-ancestor "$BASE" HEAD
+          git diff --exit-code "$BASE" -- \
+            research/tools/apma_bucket_fixed_depth_122 \
+            research/tools/apma_bucket_remainder_forensic \
+            research/tools/apma_bucket_residual_pair_separator
+          test "$(git hash-object research/tools/apma_bucket_fixed_depth_122/fixed_depth_122.py)" = "2e02bac1d78b751d22df2c50a01980ae06bd2751"
+          test "$(git hash-object research/tools/apma_bucket_fixed_depth_122/independent_checker.py)" = "673049b21b98bbd1c062ee3fbf02c06b60d75561"
+          echo 'FROZEN_FIXED_DEPTH_RUN=35010169968'
+          echo 'FROZEN_FIXED_DEPTH_JOB=104519853649'
+          echo 'SEALED_PREDECESSOR_CODE_UNCHANGED=1'
+      - name: Authority notice
+        run: |
+          echo 'AUTHORITY=DIAGNOSTIC_ONLY'
+          echo 'BOOLEAN_SEPARATOR_ASSIGNMENTS_ENUMERATED=0'
+          echo 'SIZE4_BRANCHING_LICENSED=0'
+          echo 'RAW_REACHABILITY_AUTHORITY=0'
+          echo 'UNBOUNDED_RECURSION=0'
+          echo 'THREE_PLUS_JOIN_CHAIN=0'
+          echo 'GLOBAL_RESIDUAL_CARTESIAN_PRODUCT=0'
+          echo 'P_VS_NP=OPEN'
+          echo 'GENERAL_SAT_IN_P=NOT_PROVED'
