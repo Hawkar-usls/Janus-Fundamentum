@@ -12,16 +12,17 @@ No scientific action is admissible from conversational memory alone.
 
 ## Startup sequence
 
-1. Read `registry/TRUMP_CURRENT_STATE_2026-09-15_v2.2.json` **first**. This is the latest successor-state anchor and includes the Inverted-Pyramid / admission-before-transfer diagnostic.
-2. Read its parent `registry/TRUMP_CURRENT_STATE_2026-09-15.json` for the wide-interface, Schaefer-barrier, factorized-feedback and log-alien scoped line.
-3. Read the historical parent `registry/TRUMP_CURRENT_STATE.json` for the full C022/C023R/v1.1/v1.3 continuity. Parent states are historical and must not be silently shortened or overwritten.
-4. Read `docs/TRUMP_DEVELOPMENT_JOURNAL.md` plus the journal entries referenced by all active state files for the relevant lineage.
-5. Read `registry/TRUMP_CONTEXT_MANIFEST.json` and resolve every mechanism alias relevant to the requested work.
-6. Verify the latest frozen scientific authority/seal and distinguish historical FAIL, diagnostic PASS, scoped PASS, classification barrier, and current global frontier.
-7. Search repository history/default-branch code for the mechanism and its aliases before treating an idea as new.
-8. If the mechanism is indexed as living outside this repository, recover it from the named persistent source before reasoning from it.
-9. Build a short `CONTEXT_RECOVERY_RECEIPT` containing: recovered global frontier, current scoped open surface, active lineage, frozen verdicts, known predecessor mechanisms, unresolved blockers, and the exact next allowed action.
-10. Only after that receipt may Captain Obvious/Akinator/JUXTAPOSE/TRUMP select or execute a new proof/falsification gate.
+1. Read `registry/TRUMP_CURRENT_STATE_2026-09-15_v2.3.json` **first**. This is the latest successor-state anchor and includes the scoped label-blind raw-relation basis-induction PASS.
+2. Read its parent `registry/TRUMP_CURRENT_STATE_2026-09-15_v2.2.json` for the Inverted-Pyramid / admission-before-transfer diagnostic.
+3. Read `registry/TRUMP_CURRENT_STATE_2026-09-15.json` for the wide-interface, Schaefer-barrier, factorized-feedback and log-alien scoped line.
+4. Read the historical parent `registry/TRUMP_CURRENT_STATE.json` for the full C022/C023R/v1.1/v1.3 continuity. Parent states are historical and must not be silently shortened or overwritten.
+5. Read `docs/TRUMP_DEVELOPMENT_JOURNAL.md` plus the journal entries referenced by all active state files for the relevant lineage.
+6. Read `registry/TRUMP_CONTEXT_MANIFEST.json` and resolve every mechanism alias relevant to the requested work.
+7. Verify the latest frozen scientific authority/seal and distinguish historical FAIL, diagnostic PASS, scoped PASS, classification barrier, and current global frontier.
+8. Search repository history/default-branch code for the mechanism and its aliases before treating an idea as new.
+9. If the mechanism is indexed as living outside this repository, recover it from the named persistent source before reasoning from it.
+10. Build a short `CONTEXT_RECOVERY_RECEIPT` containing: recovered global frontier, current scoped open surface, active lineage, frozen verdicts, known predecessor mechanisms, unresolved blockers, and the exact next allowed action.
+11. Only after that receipt may Captain Obvious/Akinator/JUXTAPOSE/TRUMP select or execute a new proof/falsification gate.
 
 ## Anti-loop test
 
@@ -58,11 +59,17 @@ A parameterized/FPT theorem is not automatically a polynomial-in-original-input 
 
 ## Current architectural rule
 
-The 2026-09-15 Inverted-Pyramid diagnostic established only the architectural successor rule:
+The 2026-09-15 Inverted-Pyramid diagnostic established the architectural successor rule:
 
 `COMPLETE_EXACT_ADMISSION_CERTIFICATE -> ONE_AUTHORIZED_SEALED_CARRIER -> EXACT_REPLAY -> OTHERWISE OPEN`.
 
-This is a `SUCCESSOR_REPAIR` of Trinity, not a new SAT-solving theorem. The current newly isolated blocker is exact basis discovery/admission from raw unseen structure; do not confuse successful routing of known sealed doors with unseen-carrier discovery.
+The subsequent raw-relation gate established, only for complete explicit Boolean relation tables and the frozen six Schaefer basis predicates, that exact basis **recognition** can be induced label-blind from tuple semantics in polynomial time. This does not establish arbitrary unseen-carrier synthesis.
+
+Current scoped open surface:
+
+`RAW_STRUCTURE_TO_COMPOSITIONAL_OR_NOVEL_EXACT_BASIS_EXPLANATION`.
+
+Do not repeat fixed-library relation-class recognition as if it were the unsolved problem. The next allowed step is compositional basis induction from exact raw structure; a connected mixed block outside the frozen library must remain OPEN unless another separately sealed exact mechanism applies.
 
 ## Context sources
 
