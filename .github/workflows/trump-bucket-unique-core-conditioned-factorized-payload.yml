@@ -1,0 +1,58 @@
+name: TRUMP Bucket Unique-Core Conditioned Factorized Payload
+on:
+  push:
+    branches: [research/trump-bucket-conditioned-factorized-payload-2026-09-15]
+    paths:
+      - 'research/TRUMP_BICAMERAL_BUCKET_UNIQUE_CORE_CONDITIONED_FACTORIZED_PAYLOAD_PREREGISTRATION_2026-09-15.json'
+      - 'research/tools/apma_bucket_conditioned_factorized_payload/conditioned_factorized_payload.py'
+      - 'research/tools/apma_bucket_conditioned_factorized_payload/independent_checker.py'
+      - '.github/workflows/trump-bucket-unique-core-conditioned-factorized-payload.yml'
+  workflow_dispatch:
+
+jobs:
+  conditioned-factorized-payload:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: '3.12'}
+
+      - name: Run independent conditioned factorized payload checker
+        run: |
+          set -euo pipefail
+          python -m research.tools.apma_bucket_conditioned_factorized_payload.independent_checker | tee /tmp/conditioned-factorized.json
+
+      - name: Assert scoped verdict and firewalls
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          z=json.loads(Path('/tmp/conditioned-factorized.json').read_text().strip().splitlines()[-1])
+          assert z['verdict']=='PASS_SCOPED_BICAMERAL_BUCKET_UNIQUE_CORE_CONDITIONED_FACTORIZED_PAYLOAD_V1', z
+          assert all(z['checks'].values()), {k:v for k,v in z['checks'].items() if not v}
+          assert z['scientific_firewall']['P_VS_NP']=='OPEN'
+          assert z['scientific_firewall']['GENERAL_SAT_IN_P']=='NOT_PROVED'
+          assert z['scientific_firewall']['GENERAL_CONDITIONED_FACTORIZATION']=='NOT_PROVED'
+          print(json.dumps({'verdict':z['verdict'],'controls':z['controls']},sort_keys=True))
+          PY
+
+      - name: Common-core v1.1 regression
+        run: python -m research.tools.apma_bucket_common_core.independent_checker_v1_1
+
+      - name: Factorized feedback regression
+        run: python -m research.tools.apma_factorized_feedback.independent_checker
+
+      - name: Guarded elimination regression
+        run: python -m research.tools.apma_guarded_elimination.independent_checker
+
+      - name: Schaefer mixed-carrier barrier regression
+        run: python -m research.tools.apma_mixed_carrier_barrier.check_schaefer_barrier
+
+      - name: Authority notice
+        run: |
+          echo 'ANTI_LOOP=CONDITIONALIZATION_OF_EXISTING_FACTORIZED_FEEDBACK'
+          echo 'COMMON_CORE_SUPPORT_REQUIRED=UNIQUE'
+          echo 'RESIDUAL_CROSS_COUPLING=OPEN'
+          echo 'FILTERED_BUCKET_CARTESIAN_PRODUCT=FORBIDDEN'
+          echo 'L2_BUDGET_RAISE=NO'
+          echo 'P_VS_NP=OPEN'
