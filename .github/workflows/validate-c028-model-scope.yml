@@ -1,0 +1,33 @@
+name: Validate C028 Model Scope
+
+on:
+  push:
+    paths:
+      - "experiments/direct/janus_c028_model_scope_audit.py"
+      - "registry/C028-JANUS-MODEL-SCOPE-DIRECT-SUM-AUDIT.json"
+      - "docs/C028_MODEL_SCOPE_AND_DIRECT_SUM.md"
+      - ".github/workflows/validate-c028-model-scope.yml"
+  pull_request:
+    paths:
+      - "experiments/direct/janus_c028_model_scope_audit.py"
+      - "registry/C028-JANUS-MODEL-SCOPE-DIRECT-SUM-AUDIT.json"
+      - "docs/C028_MODEL_SCOPE_AND_DIRECT_SUM.md"
+      - ".github/workflows/validate-c028-model-scope.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  verify-c028:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Run C028 proof-gate self-test
+        run: python experiments/direct/janus_c028_model_scope_audit.py --self-test
