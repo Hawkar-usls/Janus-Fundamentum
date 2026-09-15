@@ -18,7 +18,7 @@ PREREG_BLOB = "11198e102ab32d12c8d49c215f2d196a624e4e50"
 PARENT_STATE = Path("registry/TRUMP_CURRENT_STATE_2026-09-15_v3.16.json")
 PARENT_STATE_BLOB = "32408b17271ae7f23b78b01756c47b5fc6e8d8ef"
 CANDIDATE = Path("research/tools/apma_bucket_k5_exact_two_of_four_cardinality_forensic/forensic.py")
-CANDIDATE_BLOB = "603457ed11867ebbc6132aa937b882bfd4257b79"
+CANDIDATE_BLOB = "2980ff274e6217dcc0faa6374bc33ab7ab5ed283"
 COMMON_CORE = Path("research/tools/apma_bucket_common_core/common_core_semijoin_prefilter.py")
 COMMON_CORE_BLOB = "f103bf9b14e3b208200f429b75d0858c4963fa7c"
 V38 = Path("research/tools/apma_bucket_residual_single_separator/residual_single_separator_factorized_payload.py")
@@ -94,6 +94,47 @@ def residual_relation(factor: dict[str, Any], core: list[int]) -> tuple[list[int
     return residual, rows
 
 
+def select_factors_by_independent_incidence(
+    conditioned: list[dict[str, Any]],
+    core: list[int],
+    pair_to_var: dict[tuple[int, int], int],
+) -> tuple[list[dict[str, Any]], dict[int, list[int]], dict[int, set[tuple[int, ...]]]]:
+    prepared: list[tuple[dict[str, Any], list[int], set[tuple[int, ...]]]] = []
+    for factor in conditioned:
+        scope, rows = residual_relation(factor, core)
+        prepared.append((factor, scope, rows))
+
+    factors: list[dict[str, Any]] = []
+    scopes: dict[int, list[int]] = {}
+    rows_by_vertex: dict[int, set[tuple[int, ...]]] = {}
+    used_ids: set[str] = set()
+    expected_rows = set(exact_two_patterns())
+
+    for vertex in range(5):
+        expected_scope = {
+            pair_to_var[tuple(sorted((vertex, other)))]
+            for other in range(5)
+            if other != vertex
+        }
+        matches = [
+            (factor, scope, rows)
+            for factor, scope, rows in prepared
+            if set(scope) == expected_scope and len(scope) == 4 and rows == expected_rows
+        ]
+        if len(matches) != 1:
+            raise RuntimeError(f"EXPECTED_UNIQUE_FACTOR_FOR_VERTEX:{vertex}:{len(matches)}")
+        factor, scope, rows = matches[0]
+        fid = str(factor["id"])
+        if fid in used_ids:
+            raise RuntimeError(f"DUPLICATE_FACTOR_MATCH:{fid}")
+        used_ids.add(fid)
+        factors.append(factor)
+        scopes[vertex] = [int(v) for v in scope]
+        rows_by_vertex[vertex] = rows
+
+    return factors, scopes, rows_by_vertex
+
+
 def cycle_traversal(selected_pairs: set[tuple[int, int]]) -> dict[str, Any]:
     adj = {v: [] for v in range(5)}
     for a, b in selected_pairs:
@@ -128,19 +169,11 @@ def check(candidate: dict[str, Any]) -> dict[str, Any]:
     if prep.get("status") != "READY":
         raise RuntimeError(f"PREDECESSOR_NOT_READY:{prep.get('status')}")
     core = [int(v) for v in prep["core"]]
-    factors = sorted(
-        [f for f in prep["conditioned"] if str(f["id"]).startswith("sticky_")],
-        key=lambda f: int(str(f["id"]).split("_", 1)[1]),
+    factors, scopes, rows = select_factors_by_independent_incidence(
+        list(prep["conditioned"]), core, pair_to_var
     )
     if len(factors) != 5:
         raise RuntimeError(f"EXPECTED_FIVE_TARGET_FACTORS:{len(factors)}")
-
-    scopes: dict[int, list[int]] = {}
-    rows: dict[int, set[tuple[int, ...]]] = {}
-    for i, factor in enumerate(factors):
-        scope, rel_rows = residual_relation(factor, core)
-        scopes[i] = scope
-        rows[i] = rel_rows
 
     expected_local_rows = set(exact_two_patterns())
     local_exact = {
@@ -219,9 +252,10 @@ def check(candidate: dict[str, Any]) -> dict[str, Any]:
     return {
         "verdict": VERDICT if pass_ok else "FAIL_INDEPENDENT_K5_EXACT_TWO_OF_FOUR_CARDINALITY_CHECK",
         "source_guard": guard,
-        "method": "INDEPENDENT_RAW_RECONSTRUCTION_PLUS_FIXED_CARDINALITY_EDGE_SUBSET_ENUMERATION_PLUS_CYCLE_TRAVERSAL",
+        "method": "INDEPENDENT_RAW_RECONSTRUCTION_PLUS_INCIDENT_EDGE_SCOPE_MATCHING_PLUS_FIXED_CARDINALITY_SUBSET_ENUMERATION_PLUS_CYCLE_TRAVERSAL",
         "candidate_helpers_imported": False,
         "raw_prepare_status": prep.get("status"),
+        "selected_factor_ids": [str(f["id"]) for f in factors],
         "edge_endpoint_map": independent_edge_map,
         "incidence_matches_residual_scopes": incidence_matches_scopes,
         "local_relation_exact_degree_two": local_exact,
