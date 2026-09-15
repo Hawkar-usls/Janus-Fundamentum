@@ -1,0 +1,44 @@
+name: TRUMP Uniform Affine Boundary Scope Diagnostic v1.1
+
+on:
+  push:
+    branches:
+      - research/trump-uniform-affine-boundary-diagnostic-v1-1-2026-09-15
+    paths:
+      - 'research/TRUMP_BICAMERAL_UNIFORM_RAW_DERIVED_AFFINE_BOUNDARY_DIAGNOSTIC_V1_1_PREREGISTRATION_2026-09-15.json'
+      - 'research/tools/apma_uniform_affine_boundary/scope_diagnostic_v1_1.py'
+      - '.github/workflows/trump-uniform-affine-boundary-scope-diagnostic-v1-1.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  scope-diagnostic:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Run frozen scope diagnostic
+        run: |
+          set -euo pipefail
+          python -m research.tools.apma_uniform_affine_boundary.scope_diagnostic_v1_1 | tee /tmp/uniform-affine-scope.json
+      - name: Assert diagnostic authority only
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          z=json.loads(Path('/tmp/uniform-affine-scope.json').read_text().strip().splitlines()[-1])
+          assert all(z['checks'].values()), z
+          assert z['authority']=='DIAGNOSTIC_ONLY__NO_THEOREM_PROMOTION'
+          assert z['scientific_firewall']['P_VS_NP']=='OPEN'
+          assert z['scientific_firewall']['GENERAL_SAT_IN_P']=='NOT_PROVED'
+          print(json.dumps({'classification':z['classification'],'positive':z['positive'],'firewall':z['scientific_firewall']},sort_keys=True))
+          PY
+      - name: Authority notice
+        run: |
+          echo 'DIAGNOSTIC_ONLY__DO_NOT_REPAIR_UNTIL_CLASSIFIED'
+          echo 'P_VS_NP=OPEN'
+          echo 'GENERAL_SAT_IN_P=NOT_PROVED'
