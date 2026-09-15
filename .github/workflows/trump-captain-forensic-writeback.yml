@@ -1,0 +1,71 @@
+name: TRUMP Captain Forensic Result Writeback
+
+permissions:
+  contents: write
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/trump-captain-forensic-writeback.yml'
+  workflow_dispatch:
+
+jobs:
+  writeback:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Generate frozen diagnostic result and journal
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          from research.tools.apma_bucket_forensic.first_overbudget_bucket_forensic import run as profile_run
+          from research.tools.apma_bucket_forensic.independent_checker import run as check_run
+
+          p=profile_run()
+          c=check_run()
+          assert p['status']=='DIAGNOSTIC_COMPLETE', p
+          assert c['verdict']=='PASS_DIAGNOSTIC_FIRST_OVERBUDGET_BUCKET_FORENSIC', c
+          assert all(c['checks'].values()), {k:v for k,v in c['checks'].items() if not v}
+
+          result={
+            'artifact_id':'JANUS-TRUMP-CAPTAIN-FIRST-OVERBUDGET-BUCKET-FORENSIC-RESULT-2026-09-15-v1.0',
+            'authority':'DIAGNOSTIC_ONLY__NO_THEOREM_PROMOTION',
+            'status':'PASS_DIAGNOSTIC_FIRST_OVERBUDGET_BUCKET_FORENSIC',
+            'actions_run':34971139844,
+            'actions_job':104387463346,
+            'profile':p,
+            'independent_check':c,
+            'interpretation_ceiling':'FINITE_FROZEN_CONTROL_MECHANISM_DISCOVERY_EVIDENCE_ONLY__NOT_ASYMPTOTIC_THEOREM',
+            'scientific_firewall':p['scientific_firewall'],
+          }
+          rp=Path('research/TRUMP_CAPTAIN_FIRST_OVERBUDGET_BUCKET_FORENSIC_RESULT_2026-09-15.json')
+          rp.write_text(json.dumps(result,indent=2,sort_keys=True)+'\n',encoding='utf-8')
+
+          counts=[s['progressive_rows'] for s in p['progressive_compatibility']['steps']]
+          raw=p['raw_product']['exact']
+          l2=p['target']['L2']
+          ratio=p['raw_product']['ratio_to_L2']
+          final=p['progressive_compatibility']['final_compatible_rows']
+          common=p['factor_graph']['common_shared_core']
+          md=f'''# TRUMP Captain Obvious — first overbudget bucket forensic diagnostic\n\nAuthority: `DIAGNOSTIC_ONLY__NO_THEOREM_PROMOTION`\n\nVerdict: `PASS_DIAGNOSTIC_FIRST_OVERBUDGET_BUCKET_FORENSIC`\n\nFrozen Actions: run `34971139844`, job `104387463346`.\n\n## Target\n\nFirst guarded-elimination overbudget bucket, variable `{p['target']['first_failed_variable']}`, factor count `{p['target']['factor_count']}`. Parent remains `{p['target']['parent_terminal']}` with failed-bucket enumeration `{p['target']['failed_bucket_combinations_enumerated']}`.\n\n## Forensic receipt\n\n- row counts: `{p['target']['factor_row_counts']}`\n- exact raw Cartesian product: `{raw}`\n- frozen `L^2` guard: `{l2}`\n- raw-product / `L^2` ratio: `{ratio:.12g}`\n- progressive exact compatible-row counts in frozen factor order: `{counts}`\n- final compatible rows: `{final}`\n- common shared core: `{common}`\n- common shared core size: `{p['factor_graph']['common_shared_core_size']}`\n- factor graph nodes/edges: `{p['factor_graph']['node_count']}/{p['factor_graph']['edge_count']}`\n- factor graph connected: `{p['factor_graph']['connected']}`\n\nIndependent checker recomputed raw product, progressive counts, pairwise compatibility and common shared core using a separate nested-loop assignment merge and passed all obligations.\n\n## Captain interpretation\n\nThis result is evidence about one frozen hostile bucket only. A gap between raw product and compatible-space is a mechanism-discovery clue, not a polynomial theorem. No budget was raised, no solver changed, no alternate elimination order was searched, and no global frontier was advanced.\n\nFirewalls remain: `P_VS_NP=OPEN`, `GENERAL_SAT_IN_P=NOT_PROVED`, `CONNECTED_MIXED_CORE_SOLVED=NO`, `GENERAL_EFFECTIVE_BUCKET_COMPRESSION=NOT_PROVED`.\n'''
+          jp=Path('docs/TRUMP_DEVELOPMENT_JOURNAL_ENTRIES/2026-09-15_CAPTAIN_FIRST_OVERBUDGET_BUCKET_FORENSIC.md')
+          jp.parent.mkdir(parents=True,exist_ok=True)
+          jp.write_text(md,encoding='utf-8')
+          PY
+      - name: Commit immutable diagnostic writeback and remove one-shot workflow
+        run: |
+          set -euo pipefail
+          git config user.name 'Hawkar-usls'
+          git config user.email 'hawkarlol@gmail.com'
+          git rm .github/workflows/trump-captain-forensic-writeback.yml
+          git add research/TRUMP_CAPTAIN_FIRST_OVERBUDGET_BUCKET_FORENSIC_RESULT_2026-09-15.json docs/TRUMP_DEVELOPMENT_JOURNAL_ENTRIES/2026-09-15_CAPTAIN_FIRST_OVERBUDGET_BUCKET_FORENSIC.md
+          git commit -m 'TRUMP record Captain first-overbudget bucket forensic result'
+          git push origin HEAD:main
