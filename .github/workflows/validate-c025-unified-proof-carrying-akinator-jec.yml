@@ -1,0 +1,100 @@
+name: Validate C025 Unified Proof-Carrying Akinator JEC
+
+on:
+  push:
+    branches:
+      - research/c025-unified-proof-carrying-akinator-jec
+  pull_request:
+    paths:
+      - 'experiments/direct/janus_unified_proof_carrying_akinator_jec.py'
+      - 'experiments/direct/janus_unified_family_probe.py'
+      - 'experiments/direct/janus_unified_jec_ablation.py'
+      - 'experiments/direct/janus_unified_macro_restore_v2.py'
+      - 'experiments/direct/janus_unified_macro_restore_v3.py'
+      - 'experiments/direct/janus_php54_macro_restore_attack.py'
+      - 'experiments/direct/janus_php54_barrier_diagnostic.py'
+      - 'experiments/direct/janus_php54_extension_tail_v3_attack.py'
+      - 'experiments/direct/janus_php54_tail_plan_spectrum.py'
+      - 'experiments/direct/janus_php54_interleaved_tail_bridge.py'
+      - 'experiments/direct/janus_php54_macro_debt_cleanup.py'
+      - 'experiments/direct/janus_php54_block_orbit_selector_gate.py'
+      - 'experiments/direct/janus_php54_direct_block_coordinate_gate.py'
+      - 'experiments/direct/janus_php54_augmented_orbit_compressor_gate.py'
+      - 'experiments/direct/janus_php54_machine_synthesized_quotient_gate.py'
+      - 'experiments/direct/janus_php54_machine_synthesized_quotient_gate_v2.py'
+      - 'experiments/direct/janus_php54_auto_block_discovery_quotient_gate.py'
+      - 'experiments/direct/janus_b_to_a_finite_affine_synthesizer.py'
+      - 'experiments/direct/janus_tseitin_b_to_a_training_gate.py'
+      - 'experiments/direct/janus_tseitin_b_to_a_petersen_holdout.py'
+      - 'experiments/direct/janus_jec_extension_progress_proof.py'
+      - 'experiments/direct/janus_jec_extension_progress_proof_gate.py'
+      - 'experiments/direct/janus_jec_extension_progress_tamper_gate.py'
+      - 'experiments/direct/janus_open3_stage4_bounded_coverage_probe.py'
+      - 'experiments/direct/janus_universal_instance_specific_b_gate.py'
+      - 'research/C025_TSEITIN_**'
+      - 'research/C025_STAGE4_JEC_**'
+      - 'tests/test_c025_unified_proof_carrying_akinator_jec.py'
+      - 'research/C025_UNIFIED_PROOF_CARRYING_AKINATOR_JEC.md'
+      - '.github/workflows/validate-c025-unified-proof-carrying-akinator-jec.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  selftest:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Run fail-closed unified selftest
+        run: python experiments/direct/janus_unified_proof_carrying_akinator_jec.py
+      - name: Compile check
+        run: python -m py_compile experiments/direct/janus_unified_proof_carrying_akinator_jec.py experiments/direct/janus_unified_family_probe.py experiments/direct/janus_unified_jec_ablation.py experiments/direct/janus_unified_macro_restore_v2.py experiments/direct/janus_unified_macro_restore_v3.py experiments/direct/janus_php54_macro_restore_attack.py experiments/direct/janus_php54_barrier_diagnostic.py experiments/direct/janus_php54_extension_tail_v3_attack.py experiments/direct/janus_php54_tail_plan_spectrum.py experiments/direct/janus_php54_interleaved_tail_bridge.py experiments/direct/janus_php54_macro_debt_cleanup.py experiments/direct/janus_php54_block_orbit_selector_gate.py experiments/direct/janus_php54_direct_block_coordinate_gate.py experiments/direct/janus_php54_augmented_orbit_compressor_gate.py experiments/direct/janus_php54_machine_synthesized_quotient_gate.py experiments/direct/janus_php54_machine_synthesized_quotient_gate_v2.py experiments/direct/janus_php54_auto_block_discovery_quotient_gate.py experiments/direct/janus_b_to_a_finite_affine_synthesizer.py experiments/direct/janus_tseitin_b_to_a_training_gate.py experiments/direct/janus_tseitin_b_to_a_petersen_holdout.py experiments/direct/janus_jec_extension_progress_proof.py experiments/direct/janus_jec_extension_progress_proof_gate.py experiments/direct/janus_jec_extension_progress_tamper_gate.py experiments/direct/janus_open3_stage4_bounded_coverage_probe.py experiments/direct/janus_universal_instance_specific_b_gate.py tests/test_c025_unified_proof_carrying_akinator_jec.py
+      - name: Run adversarial exactness tests
+        run: python tests/test_c025_unified_proof_carrying_akinator_jec.py
+      - name: Run combined adversarial family probe
+        run: python experiments/direct/janus_unified_family_probe.py
+      - name: Run JEC causal ablation control
+        run: python experiments/direct/janus_unified_jec_ablation.py
+      - name: Run heuristic-free MACRO_RESTORE_CAP v2 selftest
+        run: python experiments/direct/janus_unified_macro_restore_v2.py
+      - name: Attack frozen PHP_5_4_C1 with exhaustive OR-pair JEC
+        run: python experiments/direct/janus_php54_macro_restore_attack.py
+      - name: Diagnose exact final PHP_5_4_C1 OPEN residual
+        run: python experiments/direct/janus_php54_barrier_diagnostic.py
+      - name: Run fixed-depth extension-tail v3 selftest
+        run: python experiments/direct/janus_unified_macro_restore_v3.py
+      - name: Attack frozen PHP_5_4_C1 extension tail with v3
+        run: python experiments/direct/janus_php54_extension_tail_v3_attack.py
+      - name: Measure exact extension-tail plan spectrum
+        run: python experiments/direct/janus_php54_tail_plan_spectrum.py
+      - name: Test interleaved M-E-M-E-E tail bridge
+        run: python experiments/direct/janus_php54_interleaved_tail_bridge.py
+      - name: Test exact retirement of interleaved macro debt
+        run: python experiments/direct/janus_php54_macro_debt_cleanup.py
+      - name: Test debt-free block/orbit selector macro
+        run: python experiments/direct/janus_php54_block_orbit_selector_gate.py
+      - name: Test direct debt-free block coordinate rewrite
+        run: python experiments/direct/janus_php54_direct_block_coordinate_gate.py
+      - name: Test exact augmented S4 orbit compressor
+        run: python experiments/direct/janus_php54_augmented_orbit_compressor_gate.py
+      - name: Test machine-synthesized exact symmetry quotient
+        run: python experiments/direct/janus_php54_machine_synthesized_quotient_gate_v2.py
+      - name: Auto-discover block system from raw residual and replay quotient
+        run: python experiments/direct/janus_php54_auto_block_discovery_quotient_gate.py
+      - name: Discover finite-affine algebra from raw local twins
+        run: python experiments/direct/janus_tseitin_b_to_a_training_gate.py --radii 0,1
+      - name: Run frozen Petersen topology-arity holdout
+        run: python experiments/direct/janus_tseitin_b_to_a_petersen_holdout.py
+      - name: Build and independently verify standalone stage-4 JEC progress proof
+        run: python experiments/direct/janus_jec_extension_progress_proof.py
+      - name: Reject adversarial stage-4 proof tampering
+        run: python experiments/direct/janus_jec_extension_progress_tamper_gate.py
+      - name: Replay frozen PHP54 extension-tail barrier through standalone proof object
+        run: python experiments/direct/janus_jec_extension_progress_proof_gate.py
+      - name: Probe bounded OPEN3 coverage of current stage-4 grammar
+        run: python experiments/direct/janus_open3_stage4_bounded_coverage_probe.py
+      - name: Enforce universal stage-4 promotion firewall
+        run: python experiments/direct/janus_universal_instance_specific_b_gate.py

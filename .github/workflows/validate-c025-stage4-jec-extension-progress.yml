@@ -1,0 +1,45 @@
+name: Validate C025 Stage4 JEC Extension Progress
+
+on:
+  push:
+    branches:
+      - research/c025-unified-proof-carrying-akinator-jec
+    paths:
+      - 'experiments/direct/janus_jec_extension_progress_proof.py'
+      - 'experiments/direct/janus_jec_extension_progress_proof_gate.py'
+      - 'experiments/direct/janus_jec_extension_progress_tamper_gate.py'
+      - 'experiments/direct/janus_open3_stage4_bounded_coverage_probe.py'
+      - 'experiments/direct/janus_universal_instance_specific_b_gate.py'
+      - 'research/C025_STAGE4_JEC_**'
+      - '.github/workflows/validate-c025-stage4-jec-extension-progress.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  exact-stage4:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Compile stage-4 proof modules
+        run: |
+          python -m py_compile experiments/direct/janus_jec_extension_progress_proof.py
+          python -m py_compile experiments/direct/janus_jec_extension_progress_proof_gate.py
+          python -m py_compile experiments/direct/janus_jec_extension_progress_tamper_gate.py
+          python -m py_compile experiments/direct/janus_open3_stage4_bounded_coverage_probe.py
+          python -m py_compile experiments/direct/janus_universal_instance_specific_b_gate.py
+      - name: Run standalone initial-context proof selftest
+        run: python experiments/direct/janus_jec_extension_progress_proof.py
+      - name: Reject adversarial proof-object tampering
+        run: python experiments/direct/janus_jec_extension_progress_tamper_gate.py
+      - name: Replay frozen PHP54 extension-tail barrier and verify proof object
+        run: python experiments/direct/janus_jec_extension_progress_proof_gate.py
+      - name: Probe bounded OPEN3 coverage for current stage-4 grammar
+        run: python experiments/direct/janus_open3_stage4_bounded_coverage_probe.py
+      - name: Run universal gate with stage-4 progress firewall
+        run: python experiments/direct/janus_universal_instance_specific_b_gate.py

@@ -1,0 +1,36 @@
+name: Validate C025 Instance-Specific Algebraic Escape
+
+on:
+  push:
+    branches:
+      - research/c025-unified-proof-carrying-akinator-jec
+    paths:
+      - 'experiments/direct/janus_instance_specific_algebraic_escape.py'
+      - 'experiments/direct/janus_instance_specific_mixed_algebra_gate.py'
+      - 'experiments/direct/janus_one_variable_separator_escape.py'
+      - 'experiments/direct/janus_connected_one_variable_separator_gate.py'
+      - '.github/workflows/validate-c025-instance-specific-escape.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  exact-escape:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Compile instance-specific escape modules
+        run: |
+          python -m py_compile experiments/direct/janus_instance_specific_algebraic_escape.py
+          python -m py_compile experiments/direct/janus_instance_specific_mixed_algebra_gate.py
+          python -m py_compile experiments/direct/janus_one_variable_separator_escape.py
+          python -m py_compile experiments/direct/janus_connected_one_variable_separator_gate.py
+      - name: Run mixed-algebra component direct-sum gate
+        run: python experiments/direct/janus_instance_specific_mixed_algebra_gate.py
+      - name: Run connected one-variable separator escape gate
+        run: python experiments/direct/janus_connected_one_variable_separator_gate.py
