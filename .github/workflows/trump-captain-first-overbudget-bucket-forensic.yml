@@ -1,0 +1,51 @@
+name: TRUMP Captain First Overbudget Bucket Forensic
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'research/TRUMP_CAPTAIN_FIRST_OVERBUDGET_BUCKET_FORENSIC_PREREGISTRATION_2026-09-15.json'
+      - 'research/tools/apma_bucket_forensic/**'
+      - '.github/workflows/trump-captain-first-overbudget-bucket-forensic.yml'
+  workflow_dispatch:
+
+jobs:
+  forensic:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Run forensic profiler
+        run: |
+          set -euo pipefail
+          python -m research.tools.apma_bucket_forensic.first_overbudget_bucket_forensic | tee /tmp/forensic-profile.json
+      - name: Run independent forensic checker
+        run: |
+          set -euo pipefail
+          python -m research.tools.apma_bucket_forensic.independent_checker | tee /tmp/forensic-check.json
+      - name: Assert diagnostic verdict and firewalls
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          p=json.loads(Path('/tmp/forensic-profile.json').read_text().strip().splitlines()[-1])
+          c=json.loads(Path('/tmp/forensic-check.json').read_text().strip().splitlines()[-1])
+          assert p['status']=='DIAGNOSTIC_COMPLETE', p
+          assert c['verdict']=='PASS_DIAGNOSTIC_FIRST_OVERBUDGET_BUCKET_FORENSIC', c
+          assert all(c['checks'].values()), {k:v for k,v in c['checks'].items() if not v}
+          assert p['scientific_firewall']['P_VS_NP']=='OPEN'
+          assert p['scientific_firewall']['GENERAL_SAT_IN_P']=='NOT_PROVED'
+          assert p['scientific_firewall']['GENERAL_EFFECTIVE_BUCKET_COMPRESSION']=='NOT_PROVED'
+          print(json.dumps({'profile':p,'checker':c},sort_keys=True))
+          PY
+      - name: Guarded elimination authority regression
+        run: python -m research.tools.apma_guarded_elimination.independent_checker
+      - name: Authority notice
+        run: |
+          echo 'DIAGNOSTIC_ONLY__NO_THEOREM_PROMOTION'
+          echo 'NO_BUDGET_CHANGE'
+          echo 'NO_ALTERNATIVE_ORDER_SEARCH'
+          echo 'P_VS_NP=OPEN'
+          echo 'GENERAL_SAT_IN_P=NOT_PROVED'
