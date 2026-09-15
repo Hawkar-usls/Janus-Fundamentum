@@ -269,7 +269,8 @@ def derive_tutte_obstruction(
     calls = 1
     for v in verts:
         reduced_vertices = [x for x in verts if x != v]
-        reduced = maximum_matching(reduced_vertices, canon_edges)
+        reduced_edges = [(a, b) for a, b in canon_edges if a != v and b != v]
+        reduced = maximum_matching(reduced_vertices, reduced_edges)
         calls += 1
         if int(reduced["cardinality"]) == nu:
             d_set.add(v)
