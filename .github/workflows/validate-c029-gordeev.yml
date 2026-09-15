@@ -1,0 +1,40 @@
+name: Validate C029 Gordeev v10 Counterexample
+
+on:
+  push:
+    paths:
+      - "experiments/direct/janus_c029_gordeev_sparse_blindspot.py"
+      - "docs/C029_GORDEEV_V10_SPARSE_BLINDSPOT.md"
+      - "registry/claim-audit-c029.json"
+      - "registry/references-c029.json"
+      - ".github/workflows/validate-c029-gordeev.yml"
+  pull_request:
+    paths:
+      - "experiments/direct/janus_c029_gordeev_sparse_blindspot.py"
+      - "docs/C029_GORDEEV_V10_SPARSE_BLINDSPOT.md"
+      - "registry/claim-audit-c029.json"
+      - "registry/references-c029.json"
+      - ".github/workflows/validate-c029-gordeev.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  verify-counterexample:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Reproduce sparse-domain counterexample
+        run: python experiments/direct/janus_c029_gordeev_sparse_blindspot.py --self-test
+
+      - name: Validate JSON registry syntax
+        run: |
+          python -m json.tool registry/claim-audit-c029.json >/dev/null
+          python -m json.tool registry/references-c029.json >/dev/null
