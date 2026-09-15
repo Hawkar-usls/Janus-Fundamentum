@@ -12,39 +12,40 @@ No scientific action is admissible from conversational memory alone.
 
 ## Startup sequence
 
-1. Read `registry/TRUMP_CURRENT_STATE_2026-09-15_v3.16.json` **first**. This is the latest continuity anchor. It records the raw-reachability/semantic forensic PASS: the universal full-cube K5 disappears under exact universal-relation normalization, while a reproducibly generated raw predecessor-shaped exact-2-of-4 K5 is nonuniversal, survives normalization, and remains `OPEN_FIXED_DEPTH_1_2_2_SKELETON_NOT_FOUND`. This is diagnostic probe evidence only, not natural-frequency, hardness, or size-4 branching authority. The next obligation is exact-2-of-4 cardinality/incidence structure forensic before any wider separator mechanism.
-2. Read `registry/TRUMP_CURRENT_STATE_2026-09-15_v3.15.json` **first**. This is the latest continuity anchor. It records the diagnostic K5 depth-cap forensic: structural minimum cut exactly 4, five four-edge star cuts, every minimum cut leaving `[1,4]` relation components with a K4 remainder, and all 120 distinct three-edge removals remaining connected. It also records the critical authority limits: the K5 control is `unit_test_only`, has `raw_reachability_authority=false`, uses full-Boolean-cube relations, and `SIZE4_BRANCHING_LICENSED=false`. The next obligation is raw-reachability plus semantic-nontriviality forensic, not a wider/deeper separator theorem.
-3. Then read `registry/TRUMP_CURRENT_STATE_2026-09-15_v3.14.json` for the scoped fixed-depth `1->2->2` separator-portfolio PASS, PR #466 / merge `52356413943888805eeb17b76a4b1901ee1d7c1f`, the exact 32-leaf cap, and the frozen K5 depth-cap control `OPEN_FIXED_DEPTH_1_2_2_SKELETON_NOT_FOUND`. It explicitly does **not** license general recursion, separator sets of size >=3, 3+ join chains, global residual Cartesian products, or a budget raise.
-4. Then read `registry/TRUMP_CURRENT_STATE_2026-09-15_v3.13.json` for the diagnostic fixed-depth licensing evidence: one exact single condition -> one raw pair cut -> one GT2 remainder that itself has one v3.10-admissible pair, with maximum 32 Boolean leaves and no dynamic recursion.
-5. Then read `registry/TRUMP_CURRENT_STATE_2026-09-15_v3.12.json` for the diagnostic fact that all 12 exact single conditions reveal raw pair cuts but zero direct v3.10-admissible pairs.
-6. Then read `registry/TRUMP_CURRENT_STATE_2026-09-15_v3.11.json` for the K4 no-pair structural forensic: minimum raw variable cut size 3 under the preregistered cap, failed running intersection, and the fact that every exact single condition reduces the minimum cut to 2.
-7. Then read `registry/TRUMP_CURRENT_STATE_2026-09-15_v3.10.json` for the scoped unique-core residual two-variable separator PASS: raw-derived pair `[47,48]`, exactly four Boolean assignments, reuse of only sealed residual <=2 carriers, exact SAT/UNSAT branch authority, K4 no-pair OPEN control, and zero separator sets of size >=3 / 3plus join chains / global residual Cartesian materialization.
-8. Then read `registry/TRUMP_CURRENT_STATE_2026-09-15_v3.9.json` for the no-single-separator forensic that selected the pair route.
-9. Then read `registry/TRUMP_CURRENT_STATE_2026-09-15_v3.8.json` for the scoped residual single-variable separator PASS.
-10. Then read `registry/TRUMP_CURRENT_STATE_2026-09-15_v3.7.json` for the diagnostic-only residual-3+ forensic PASS: K3 over `orig:4/5/6`, every overlap exactly variable `47`, running-intersection PASS, and unchanged semijoin fixed point `[4,4,4]`.
-11. Read `registry/TRUMP_CURRENT_STATE_2026-09-15_v3.6.json` for the sealed residual-component-<=2 factorized-payload PASS.
-12. Read `registry/TRUMP_CURRENT_STATE_2026-09-15_v3.5.json` for the unique-common-core conditioned factorized-payload PASS, including its preserved v1/v1.1 negative-control failures and v1.2 scope-audit repair.
-13. Read `registry/TRUMP_CURRENT_STATE_2026-09-15_v3.4.json` for the common-core support-intersection / semijoin prefilter PASS and its sticky `4^20` residual-payload blocker.
-14. Read `registry/TRUMP_CURRENT_STATE_2026-09-15_v3.3.json` for Captain Obvious first-overbudget-bucket forensic evidence: raw product `557256278016`, shared 20-variable core, and exact compatibility collapse `3 -> 3 -> 1 -> 0`.
-15. Read `registry/TRUMP_CURRENT_STATE_2026-09-15_v3.2.json` for the scoped guarded bounded-output elimination PASS and frozen `L^2` pre-expansion resource envelope.
-16. Read `registry/TRUMP_CURRENT_STATE_2026-09-15_v3.1.json` for the immutable all-affine diagnostic and `SUPERSEDED_ROUTE` conclusion.
-17. Read `registry/TRUMP_CURRENT_STATE_2026-09-15_v3.0.json` for the two-relation no-full-cut-anchor derived boundary-factor PASS.
-18. Read `registry/TRUMP_CURRENT_STATE_2026-09-15_v2.9.json` for the full-cut-anchor multi-relation join-tree PASS.
-19. Read `registry/TRUMP_CURRENT_STATE_2026-09-15_v2.8.json` for the overwidth cut-support intersection carrier PASS.
-20. Read `registry/TRUMP_CURRENT_STATE_2026-09-15_v2.7.json` for canonical min-variable-cut log-width PASS and its immutable first failure.
-21. Read `registry/TRUMP_CURRENT_STATE_2026-09-15_v2.6.json` for the fixed-size two-variable separator PASS.
-22. Read `registry/TRUMP_CURRENT_STATE_2026-09-15_v2.5.json` for the single-variable Hrain/iNaiHR bicameral explanation PASS.
-23. Read `registry/TRUMP_CURRENT_STATE_2026-09-15_v2.4.json` for scoped raw compositional basis induction.
-24. Read `registry/TRUMP_CURRENT_STATE_2026-09-15_v2.3.json` for label-blind fixed-library raw relation basis induction.
-25. Read `registry/TRUMP_CURRENT_STATE_2026-09-15_v2.2.json` for the Inverted-Pyramid / admission-before-transfer diagnostic.
-26. Read `registry/TRUMP_CURRENT_STATE_2026-09-15.json` for the wide-interface, Schaefer-barrier, factorized-feedback and log-alien scoped line.
-27. Read historical parent `registry/TRUMP_CURRENT_STATE.json`; never rewrite it.
-28. Read `docs/TRUMP_DEVELOPMENT_JOURNAL.md` and journal entries referenced by active states.
-29. Read `registry/TRUMP_CONTEXT_MANIFEST.json` and resolve mechanism aliases.
-30. Search repository history/default-branch code before treating any mechanism as new.
-31. Recover indexed external sources when named.
-32. Build a `CONTEXT_RECOVERY_RECEIPT` with authority, frontier, closed obligations, blockers and next allowed action.
-33. Only then may Captain/Akinator/JUXTAPOSE/TRUMP select or execute a new gate.
+1. Read `registry/TRUMP_CURRENT_STATE_2026-09-15_v3.17.json` **first**. This is the latest continuity anchor. It records the exact-two-of-four K5 cardinality forensic PASS: relation truth equals selected degree two exactly; candidate and independent checker agree on exactly 12 K5 solutions, each one five-cycle; the exact semantic object is an undirected 2-factor / f(v)=2 incidence system. This is semantic classification only: no general 2-factor/f-factor carrier is sealed yet and `SIZE4_BRANCHING_LICENSED=false`. The next allowed successor is a separately preregistered proof-carrying two-factor/f-factor carrier attempt with exact semantics and total polynomial resource accounting.
+2. Read `registry/TRUMP_CURRENT_STATE_2026-09-15_v3.16.json` **first**. This is the latest continuity anchor. It records the raw-reachability/semantic forensic PASS: the universal full-cube K5 disappears under exact universal-relation normalization, while a reproducibly generated raw predecessor-shaped exact-2-of-4 K5 is nonuniversal, survives normalization, and remains `OPEN_FIXED_DEPTH_1_2_2_SKELETON_NOT_FOUND`. This is diagnostic probe evidence only, not natural-frequency, hardness, or size-4 branching authority. The next obligation is exact-2-of-4 cardinality/incidence structure forensic before any wider separator mechanism.
+3. Read `registry/TRUMP_CURRENT_STATE_2026-09-15_v3.15.json` **first**. This is the latest continuity anchor. It records the diagnostic K5 depth-cap forensic: structural minimum cut exactly 4, five four-edge star cuts, every minimum cut leaving `[1,4]` relation components with a K4 remainder, and all 120 distinct three-edge removals remaining connected. It also records the critical authority limits: the K5 control is `unit_test_only`, has `raw_reachability_authority=false`, uses full-Boolean-cube relations, and `SIZE4_BRANCHING_LICENSED=false`. The next obligation is raw-reachability plus semantic-nontriviality forensic, not a wider/deeper separator theorem.
+4. Then read `registry/TRUMP_CURRENT_STATE_2026-09-15_v3.14.json` for the scoped fixed-depth `1->2->2` separator-portfolio PASS, PR #466 / merge `52356413943888805eeb17b76a4b1901ee1d7c1f`, the exact 32-leaf cap, and the frozen K5 depth-cap control `OPEN_FIXED_DEPTH_1_2_2_SKELETON_NOT_FOUND`. It explicitly does **not** license general recursion, separator sets of size >=3, 3+ join chains, global residual Cartesian products, or a budget raise.
+5. Then read `registry/TRUMP_CURRENT_STATE_2026-09-15_v3.13.json` for the diagnostic fixed-depth licensing evidence: one exact single condition -> one raw pair cut -> one GT2 remainder that itself has one v3.10-admissible pair, with maximum 32 Boolean leaves and no dynamic recursion.
+6. Then read `registry/TRUMP_CURRENT_STATE_2026-09-15_v3.12.json` for the diagnostic fact that all 12 exact single conditions reveal raw pair cuts but zero direct v3.10-admissible pairs.
+7. Then read `registry/TRUMP_CURRENT_STATE_2026-09-15_v3.11.json` for the K4 no-pair structural forensic: minimum raw variable cut size 3 under the preregistered cap, failed running intersection, and the fact that every exact single condition reduces the minimum cut to 2.
+8. Then read `registry/TRUMP_CURRENT_STATE_2026-09-15_v3.10.json` for the scoped unique-core residual two-variable separator PASS: raw-derived pair `[47,48]`, exactly four Boolean assignments, reuse of only sealed residual <=2 carriers, exact SAT/UNSAT branch authority, K4 no-pair OPEN control, and zero separator sets of size >=3 / 3plus join chains / global residual Cartesian materialization.
+9. Then read `registry/TRUMP_CURRENT_STATE_2026-09-15_v3.9.json` for the no-single-separator forensic that selected the pair route.
+10. Then read `registry/TRUMP_CURRENT_STATE_2026-09-15_v3.8.json` for the scoped residual single-variable separator PASS.
+11. Then read `registry/TRUMP_CURRENT_STATE_2026-09-15_v3.7.json` for the diagnostic-only residual-3+ forensic PASS: K3 over `orig:4/5/6`, every overlap exactly variable `47`, running-intersection PASS, and unchanged semijoin fixed point `[4,4,4]`.
+12. Read `registry/TRUMP_CURRENT_STATE_2026-09-15_v3.6.json` for the sealed residual-component-<=2 factorized-payload PASS.
+13. Read `registry/TRUMP_CURRENT_STATE_2026-09-15_v3.5.json` for the unique-common-core conditioned factorized-payload PASS, including its preserved v1/v1.1 negative-control failures and v1.2 scope-audit repair.
+14. Read `registry/TRUMP_CURRENT_STATE_2026-09-15_v3.4.json` for the common-core support-intersection / semijoin prefilter PASS and its sticky `4^20` residual-payload blocker.
+15. Read `registry/TRUMP_CURRENT_STATE_2026-09-15_v3.3.json` for Captain Obvious first-overbudget-bucket forensic evidence: raw product `557256278016`, shared 20-variable core, and exact compatibility collapse `3 -> 3 -> 1 -> 0`.
+16. Read `registry/TRUMP_CURRENT_STATE_2026-09-15_v3.2.json` for the scoped guarded bounded-output elimination PASS and frozen `L^2` pre-expansion resource envelope.
+17. Read `registry/TRUMP_CURRENT_STATE_2026-09-15_v3.1.json` for the immutable all-affine diagnostic and `SUPERSEDED_ROUTE` conclusion.
+18. Read `registry/TRUMP_CURRENT_STATE_2026-09-15_v3.0.json` for the two-relation no-full-cut-anchor derived boundary-factor PASS.
+19. Read `registry/TRUMP_CURRENT_STATE_2026-09-15_v2.9.json` for the full-cut-anchor multi-relation join-tree PASS.
+20. Read `registry/TRUMP_CURRENT_STATE_2026-09-15_v2.8.json` for the overwidth cut-support intersection carrier PASS.
+21. Read `registry/TRUMP_CURRENT_STATE_2026-09-15_v2.7.json` for canonical min-variable-cut log-width PASS and its immutable first failure.
+22. Read `registry/TRUMP_CURRENT_STATE_2026-09-15_v2.6.json` for the fixed-size two-variable separator PASS.
+23. Read `registry/TRUMP_CURRENT_STATE_2026-09-15_v2.5.json` for the single-variable Hrain/iNaiHR bicameral explanation PASS.
+24. Read `registry/TRUMP_CURRENT_STATE_2026-09-15_v2.4.json` for scoped raw compositional basis induction.
+25. Read `registry/TRUMP_CURRENT_STATE_2026-09-15_v2.3.json` for label-blind fixed-library raw relation basis induction.
+26. Read `registry/TRUMP_CURRENT_STATE_2026-09-15_v2.2.json` for the Inverted-Pyramid / admission-before-transfer diagnostic.
+27. Read `registry/TRUMP_CURRENT_STATE_2026-09-15.json` for the wide-interface, Schaefer-barrier, factorized-feedback and log-alien scoped line.
+28. Read historical parent `registry/TRUMP_CURRENT_STATE.json`; never rewrite it.
+29. Read `docs/TRUMP_DEVELOPMENT_JOURNAL.md` and journal entries referenced by active states.
+30. Read `registry/TRUMP_CONTEXT_MANIFEST.json` and resolve mechanism aliases.
+31. Search repository history/default-branch code before treating any mechanism as new.
+32. Recover indexed external sources when named.
+33. Build a `CONTEXT_RECOVERY_RECEIPT` with authority, frontier, closed obligations, blockers and next allowed action.
+34. Only then may Captain/Akinator/JUXTAPOSE/TRUMP select or execute a new gate.
 
 ## Anti-loop test
 
@@ -103,7 +104,7 @@ Fifteen downward scoped subproblems are now closed for explicit Boolean raw rela
 12. **unique exact common-core state with conditioned residual overlap components of size at most two**: derive the exact residual relation-overlap graph. Singleton components remain direct projections; every two-relation component receives exactly one natural join over all shared residual variables followed by boundary projection. Store component carriers additively, never as a global residual Cartesian product. A residual component of size 3+ returns `OPEN_RESIDUAL_COMPONENT_GT2` before any join chain. Candidate union-find/nested pair loop and independent BFS/hash-index implementations seal `PASS_SCOPED_BICAMERAL_BUCKET_UNIQUE_CORE_RESIDUAL_COMPONENT_LE2_FACTORIZED_PAYLOAD_V1`;
 13. **unique exact common-core state with a raw-derived single Boolean residual articulation variable whose two exact branches reduce to residual components of size at most two (or exact branch UNSAT)**: condition exactly on `0/1`, recompute residual components independently in each branch, reuse only the sealed v3.6 singleton/one-pair carriers, and require full original-row witness replay for SAT. Exact UNSAT requires both branch certificates. No articulation or any branch remaining GT2 returns OPEN before any 3plus join. Candidate union-find and independent BFS separator discovery seal `PASS_SCOPED_BICAMERAL_BUCKET_UNIQUE_CORE_RESIDUAL_SINGLE_VARIABLE_SEPARATOR_FACTORIZED_PAYLOAD_V1`;
 14. **unique exact common-core state with one raw-derived residual variable pair whose four exact assignments reduce to sealed residual <=2 carriers or exact UNSAT**: pair discovery is polynomial over unordered residual-variable pairs, only four Boolean assignments are branched, and full witness replay is mandatory. The K4 distinct-edge-variable control remains `OPEN_NO_ADMISSIBLE_RESIDUAL_TWO_VARIABLE_SEPARATOR`. Candidate and independent checker seal `PASS_SCOPED_BICAMERAL_BUCKET_UNIQUE_CORE_RESIDUAL_TWO_VARIABLE_SEPARATOR_FACTORIZED_PAYLOAD_V1`;
-15. **the preregistered fixed-depth `1->2->2` residual separator portfolio**: one raw residual Boolean variable, then one raw pair cut, then at most one GT2 three-relation remainder with one sealed-v3.10-admissible pair, followed only by sealed <=2 carriers. The canonical plan is `92 -> [93,94] -> [95,96]` with exactly 32 logical leaves and independent-plan agreement plus original-witness replay. This seals `PASS_SCOPED_BICAMERAL_BUCKET_UNIQUE_CORE_RESIDUAL_FIXED_DEPTH_1_2_2_SEPARATOR_PORTFOLIO_V1` only. The synthetic full-cube K5 is structurally diagnosed by v3.15 and semantically normalized away by v3.16; the surviving exact-2-of-4 K5 probe is diagnostic only and still licenses no size-4 branching or deeper recursion.
+15. **the preregistered fixed-depth `1->2->2` residual separator portfolio**: one raw residual Boolean variable, then one raw pair cut, then at most one GT2 three-relation remainder with one sealed-v3.10-admissible pair, followed only by sealed <=2 carriers. The canonical plan is `92 -> [93,94] -> [95,96]` with exactly 32 logical leaves and independent-plan agreement plus original-witness replay. This seals `PASS_SCOPED_BICAMERAL_BUCKET_UNIQUE_CORE_RESIDUAL_FIXED_DEPTH_1_2_2_SEPARATOR_PORTFOLIO_V1` only. The synthetic full-cube K5 is structurally diagnosed by v3.15 and normalized away by v3.16; v3.17 identifies the surviving exact-2-of-4 K5 exactly as a two-factor/f(v)=2 incidence system, but no general two-factor carrier or size-4 branching is licensed yet.
 
 The attempted all-affine 3+ mincut-boundary gate is **not** a frontier result. v3.1 classifies it as `SUPERSEDED_ROUTE`: all-affine input is already admitted by the earlier raw/compositional basis layer before canonical mincut discovery. Do not repair or reintroduce it as a current frontier gate.
 
@@ -113,21 +114,23 @@ Current scoped open surface:
 
 `UNIQUE_COMMON_CORE_CONDITIONED_RESIDUAL_GT2_BEYOND_THE_SEALED_FIXED_DEPTH_1_2_2_PORTFOLIO__PLUS_MULTIPLE_COMMON_CORE_STATES`.
 
-The v3.16 diagnostic resolves the immediate raw-reachability/semantic question narrowly. A full-cube K5 probe is removed completely by exact universal-relation normalization, so that synthetic control is too weak to drive successor design. A second reproducibly generated raw predecessor-shaped K5 probe, with each relation enforcing exactly two `1` values among its four incident edge variables, is nonuniversal, survives the same exact normalization, and remains `OPEN_FIXED_DEPTH_1_2_2_SKELETON_NOT_FOUND`. This establishes a semantically nontrivial probe family only; it does not establish natural frequency, necessity, hardness, or a lower bound.
+The v3.17 diagnostic closes the semantic-classification obligation for the surviving exact-two-of-four K5 probe. Across all 1024 finite K5 edge assignments, raw relation truth is exactly equivalent to selected degree two at every vertex. Candidate and an independent 252-subset checker agree on exactly 12 satisfying edge sets; every solution is a spanning 2-regular graph and, on K5, exactly one five-cycle. The representation is identity on edge variables, so the exact semantic object is an undirected 2-factor, equivalently the f-factor specialization `f(v)=2`.
+
+This does **not** yet seal a TRUMP 2-factor/f-factor carrier. Classical polynomial f-factor/matching theory is only an algorithmic door until it is bound to exact admission recognition, semantics-preserving construction, proof-carrying SAT/UNSAT authority, raw witness reconstruction, original-relation verification, and a total polynomial resource/certificate envelope in the original explicit input size.
 
 Captain's nearest blocker is now:
 
-`EXACT_TWO_OF_FOUR_K5_CARDINALITY_AND_INCIDENCE_STRUCTURE_CLASSIFICATION_BEFORE_ANY_WIDER_SEPARATOR_BRANCHING`.
+`EXACT_PROOF_CARRYING_TWO_FACTOR_F_FACTOR_CARRIER_WITH_RECOGNITION_CONSTRUCTION_RECONSTRUCTION_VERIFICATION_AND_POLYNOMIAL_TOTAL_RESOURCE_ACCOUNTING`.
 
 `OPEN_NONUNIQUE_COMMON_CORE_SUPPORT` remains a separate secondary blocker.
 
-The next preferred action is diagnostic only:
+The next preferred successor is:
 
-`TRUMP_BICAMERAL_BUCKET_UNIQUE_CORE_RESIDUAL_K5_EXACT_TWO_OF_FOUR_CARDINALITY_STRUCTURE_FORENSIC`.
+`TRUMP_BICAMERAL_BUCKET_UNIQUE_CORE_RESIDUAL_EXACT_TWO_FACTOR_F_FACTOR_CARRIER_FALSIFIER_GATE`.
 
-Captain Obvious' directive: **classify the exact-2-of-4 incidence/degree semantics and test for a cheaper exact carrier or normal form before any size-4 separator branching**. The K5 minimum cut of four is still not a branching license, and no extra recursion level is authorized.
+Captain Obvious' directive: **attempt the cheaper exact two-factor/f-factor carrier before any size-4 separator branching, but do not import f-factor as an unchecked black box**. The carrier must be separately preregistered and independently checked.
 
-Forbidden shortcuts include size-4 Boolean branching, automatic extra recursion depth, unpreregistered separator-size >=3 branching, arbitrary-depth recursion, 3+ join chains, global residual Cartesian products, budget raises, treating the reproducibly generated probe as natural-frequency evidence, treating multiple common-core states as solved, or treating OPEN as negative evidence.
+Forbidden shortcuts include size-4 Boolean branching, automatic extra recursion depth, importing a black-box f-factor solver without exact semantic/certificate binding, treating finite K5 enumeration as the general algorithm, 3+ join chains, global residual Cartesian products, budget raises, treating multiple common-core states as solved, or promoting this scoped structure to general SAT.
 
 ## Context sources
 
