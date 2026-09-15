@@ -1,0 +1,55 @@
+{
+  "artifact_id": "JANUS-TRUMP-RAW-COMPOSITIONAL-BASIS-INDUCTION-PREREGISTRATION-2026-09-15-v1.0",
+  "status": "FROZEN_BEFORE_CANDIDATE_IMPLEMENTATION",
+  "classification": "SUCCESSOR_EXTENSION_OF_SCOPED_RAW_RELATION_BASIS_INDUCTION",
+  "parent_main": "41bf0077e4f1784fb0d011b81783761ecfc034bd",
+  "parent_result": "PASS_SCOPED_RAW_RELATION_SCHAEFER_BASIS_INDUCTION",
+  "target": "From one raw unlabeled Boolean constraint object, derive the exact variable-sharing connected-component decomposition and independently induce a frozen exact basis for every component. Store an additive basis portfolio; do not require one global basis and do not materialize a Cartesian product.",
+  "structural_rule": {
+    "graph": "bipartite variable-constraint incidence graph induced only by raw constraint scopes",
+    "component_equivalence": "two constraints are in the same block iff connected by a path of shared variables",
+    "exactness": "different blocks have disjoint variable sets, so the conjunction is exactly a conjunction of variable-disjoint subinstances",
+    "forbidden": "heuristic clustering, semantic similarity clustering, or splitting constraints that share any variable"
+  },
+  "local_basis_rule": "For each exact incidence component, invoke the already sealed label-blind raw relation basis induction over the complete distinct relation surface of that block. A component is admitted only if one frozen Schaefer basis is certified; otherwise that component and therefore the global portfolio remain OPEN.",
+  "proof_obligations": {
+    "P1_source_guard": "Bind this preregistration and the sealed raw-relation basis candidate by Git blob SHA before implementation.",
+    "P2_exact_component_discovery": "Canonical incidence components must equal the transitive closure of variable-sharing constraints; component variable sets must be pairwise disjoint.",
+    "P3_local_label_blind_admission": "Every component basis certificate must be produced by the sealed raw-relation basis inducer from allowed tuples only.",
+    "P4_compositional_exactness": "The raw formula semantics equals the conjunction of component semantics because there is no shared variable across components. SAT witnesses, if later produced by authorized local solvers, can therefore be unioned without cross-component conflict; one local UNSAT would imply global UNSAT.",
+    "P5_additive_representation": "Store one certificate record per component. Cartesian products of local basis states are forbidden and must remain zero.",
+    "P6_fail_closed_on_connected_mixed": "If OR2 and EVEN_XOR3 are connected by a shared variable, they must be one component and the fixed-library basis inducer must return OPEN_NO_SCHAEFER_BASIS. No fake split is permitted.",
+    "P7_invariance": "Constraint ID renaming, constraint order and allowed-tuple order must not change the canonical semantic component portfolio, apart from non-semantic IDs.",
+    "P8_polynomial_lifecycle": "Incidence union/find is polynomial in explicit scope incidence; local induction is O(sum_R s_R^3 a_R). Portfolio size is additive in component certificates. No full variable cube or Cartesian product is enumerated.",
+    "P9_claim_ceiling": "A PASS establishes only exact compositional basis induction over truly variable-disjoint raw blocks using the frozen six local Schaefer bases. It does not solve connected mixed cores or synthesize a new local carrier."
+  },
+  "frozen_controls": {
+    "C1_disconnected_mixed_language": "One raw OR2 block and one disjoint raw EVEN_XOR3 block; global one-basis classifier has no common basis, but compositional result must admit two blocks [BIJUNCTIVE, AFFINE].",
+    "C2_connected_mixed_language": "OR2 and EVEN_XOR3 share one variable; must form one block and return OPEN.",
+    "C3_bridge_merges": "Start with two admitted blocks and add any raw constraint whose scope touches variables from both; canonical decomposition must merge them before local admission.",
+    "C4_many_components": "Multiple alternating OR2/AFFINE independent blocks; stored portfolio grows additively and cartesian_products_materialized remains zero.",
+    "C5_partition_tamper": "Independent checker must reject a certificate that splits two constraints sharing a variable.",
+    "C6_surface_permutation": "Permuting IDs/order/tuple order preserves canonical semantic portfolio."
+  },
+  "sealed_parent": {
+    "path": "research/tools/apma_unseen_basis/raw_relation_basis.py",
+    "git_blob_sha1": "63490c05ef3e91a4f682f75da26ff2af811839a6",
+    "parent_result_commit": "fd67b458a7373de179cb1fda26b9d2ee92cb19ec"
+  },
+  "acceptance": {
+    "all_P1_through_P9": true,
+    "disconnected_mixed_admitted_compositionally": true,
+    "connected_mixed_open": true,
+    "bridge_forces_merge": true,
+    "cartesian_products_materialized": 0,
+    "partition_tamper_rejected": true,
+    "full_variable_cube_enumeration": 0
+  },
+  "scientific_firewall": {
+    "P_VS_NP": "OPEN",
+    "GENERAL_SAT_IN_P": "NOT_PROVED",
+    "CONNECTED_MIXED_CORE_SOLVED": "NO",
+    "ARBITRARY_UNSEEN_INVARIANT_DISCOVERY": "NOT_PROVED",
+    "GLOBAL_APMA_FRONTIER_ADVANCE": "NONE_PENDING_HQ_REVIEW"
+  }
+}
