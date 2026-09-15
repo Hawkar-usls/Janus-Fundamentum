@@ -12,19 +12,20 @@ No scientific action is admissible from conversational memory alone.
 
 ## Startup sequence
 
-1. Read `registry/TRUMP_CURRENT_STATE_2026-09-15_v2.5.json` **first**. This is the latest successor-state anchor and includes the scoped bicameral connected-core explanation PASS imported from Hrain/iNaiHR architecture under TRUMP exact authority.
-2. Read its parent `registry/TRUMP_CURRENT_STATE_2026-09-15_v2.4.json` for scoped raw compositional basis induction.
-3. Read `registry/TRUMP_CURRENT_STATE_2026-09-15_v2.3.json` for label-blind fixed-library raw relation basis induction.
-4. Read `registry/TRUMP_CURRENT_STATE_2026-09-15_v2.2.json` for the Inverted-Pyramid / admission-before-transfer diagnostic.
-5. Read `registry/TRUMP_CURRENT_STATE_2026-09-15.json` for the wide-interface, Schaefer-barrier, factorized-feedback and log-alien scoped line.
-6. Read the historical parent `registry/TRUMP_CURRENT_STATE.json` for the full C022/C023R/v1.1/v1.3 continuity. Parent states are historical and must not be silently shortened or overwritten.
-7. Read `docs/TRUMP_DEVELOPMENT_JOURNAL.md` plus the journal entries referenced by all active state files for the relevant lineage.
-8. Read `registry/TRUMP_CONTEXT_MANIFEST.json` and resolve every mechanism alias relevant to the requested work.
-9. Verify the latest frozen scientific authority/seal and distinguish historical FAIL, diagnostic PASS, scoped PASS, classification barrier, and current global frontier.
-10. Search repository history/default-branch code for the mechanism and its aliases before treating an idea as new.
-11. If the mechanism is indexed as living outside this repository, recover it from the named persistent source before reasoning from it.
-12. Build a short `CONTEXT_RECOVERY_RECEIPT` containing: recovered global frontier, current scoped open surface, active lineage, frozen verdicts, known predecessor mechanisms, unresolved blockers, and the exact next allowed action.
-13. Only after that receipt may Captain Obvious/Akinator/JUXTAPOSE/TRUMP select or execute a new proof/falsification gate.
+1. Read `registry/TRUMP_CURRENT_STATE_2026-09-15_v2.6.json` **first**. This is the latest successor-state anchor and includes the scoped bicameral two-variable separator explanation PASS.
+2. Read its parent `registry/TRUMP_CURRENT_STATE_2026-09-15_v2.5.json` for the single-variable bicameral connected-core explanation imported from Hrain/iNaiHR architecture under TRUMP exact authority.
+3. Read `registry/TRUMP_CURRENT_STATE_2026-09-15_v2.4.json` for scoped raw compositional basis induction.
+4. Read `registry/TRUMP_CURRENT_STATE_2026-09-15_v2.3.json` for label-blind fixed-library raw relation basis induction.
+5. Read `registry/TRUMP_CURRENT_STATE_2026-09-15_v2.2.json` for the Inverted-Pyramid / admission-before-transfer diagnostic.
+6. Read `registry/TRUMP_CURRENT_STATE_2026-09-15.json` for the wide-interface, Schaefer-barrier, factorized-feedback and log-alien scoped line.
+7. Read the historical parent `registry/TRUMP_CURRENT_STATE.json` for the full C022/C023R/v1.1/v1.3 continuity. Parent states are historical and must not be silently shortened or overwritten.
+8. Read `docs/TRUMP_DEVELOPMENT_JOURNAL.md` plus the journal entries referenced by all active state files for the relevant lineage.
+9. Read `registry/TRUMP_CONTEXT_MANIFEST.json` and resolve every mechanism alias relevant to the requested work.
+10. Verify the latest frozen scientific authority/seal and distinguish historical FAIL, diagnostic PASS, scoped PASS, classification barrier, and current global frontier.
+11. Search repository history/default-branch code for the mechanism and its aliases before treating an idea as new.
+12. If the mechanism is indexed as living outside this repository, recover it from the named persistent source before reasoning from it.
+13. Build a short `CONTEXT_RECOVERY_RECEIPT` containing: recovered global frontier, current scoped open surface, active lineage, frozen verdicts, known predecessor mechanisms, unresolved blockers, and the exact next allowed action.
+14. Only after that receipt may Captain Obvious/Akinator/JUXTAPOSE/TRUMP select or execute a new proof/falsification gate.
 
 ## Anti-loop test
 
@@ -67,19 +68,24 @@ The 2026-09-15 Inverted-Pyramid diagnostic established:
 
 `COMPLETE_EXACT_ADMISSION_CERTIFICATE -> AUTHORIZED_SEALED_CARRIER/PORTFOLIO -> EXACT REPLAY -> OTHERWISE OPEN`.
 
-Three downward scoped subproblems are now closed for explicit Boolean raw relation semantics:
+Four downward scoped subproblems are now closed for explicit Boolean raw relation semantics:
 
 1. fixed-library Schaefer basis recognition is label-blind and polynomial in the explicit relation-table size;
 2. truly variable-disjoint incidence components can be assembled into an additive portfolio of independently admitted local bases, with no Cartesian product;
-3. for a connected mixed raw core with a single-variable incidence articulation, Hrain-style deterministic structural observation plus iNaiHR-style candidate-only proposal can discover a content-bound conditioning explanation from raw incidence alone, and TRUMP can independently replay both Boolean branches through the sealed compositional-basis inducer in polynomial explicit-table lifecycle cost.
+3. a connected mixed raw core with a single-variable incidence articulation can be given a content-bound exact conditioning explanation discovered from raw incidence and replayed through sealed carriers;
+4. a connected mixed raw core with no admissible single-variable explanation but with a two-variable incidence separator can be discovered by exhaustive unordered-pair search in `O(V^2)`, conditioned on exactly four assignments, and independently replayed with polynomial explicit-table lifecycle cost.
 
 Do **not** repeat any of these as the current blocker.
 
 Current scoped open surface:
 
-`CONNECTED_MIXED_RAW_CORE_WITHOUT_SINGLE_VARIABLE_ARTICULATION_EXPLANATION`.
+`CONNECTED_MIXED_RAW_CORE_WITHOUT_ADMISSIBLE_SIZE_1_OR_SIZE_2_SEPARATOR_EXPLANATION`.
 
-The next allowed work must target a connected mixed component for which no one frozen Schaefer basis applies and no admissible single-variable articulation explanation exists. Candidate proposal machinery may search for bounded multi-variable separators, exact quotient/rank explanations, provenance-preserving reverse morphs, bounded alien interaction, backdoors, or another preregistered carrier, but proposal/ranking has zero scientific authority. Every accepted explanation must be discovered from bound raw structure/semantics, independently exact-replayed, and carry an explicit original-input polynomial full-lifecycle bound. Otherwise remain OPEN.
+The next preferred work should avoid the useless fixed-k ladder. Target a **polynomially discoverable growing separator** or an exact quotient/rank explanation. The currently preferred candidate is `TRUMP_BICAMERAL_CANONICAL_MIN_VARIABLE_CUT_LOG_WIDTH_EXPLANATION_FALSIFIER_GATE`: construct the variable–constraint incidence graph, discover a canonical minimum variable-only vertex cut by a polynomial node-splitting/max-flow procedure rather than subset enumeration, and authorize raw conditioning only when the discovered cut `S` satisfies `2^|S| <= L`. The cut certificate, all exact restrictions, all branch replays and the complete original-input resource ledger must be independently verified before any execution.
+
+Naive enumeration of all subsets up to `O(log L)` is forbidden as a shortcut because its discovery cost is not polynomial in general.
+
+Alternative admissible explanations remain exact downstream quotient/rank, provenance-preserving reverse morph, bounded alien interaction, or another preregistered carrier with a complete polynomial lifecycle. Hrain/iNaiHR candidate generation has zero proof authority; TRUMP replay remains authority. Otherwise remain OPEN.
 
 ## Context sources
 
