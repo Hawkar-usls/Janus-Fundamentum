@@ -12,18 +12,19 @@ No scientific action is admissible from conversational memory alone.
 
 ## Startup sequence
 
-1. Read `registry/TRUMP_CURRENT_STATE_2026-09-15_v2.4.json` **first**. This is the latest successor-state anchor and includes the scoped raw compositional basis-induction PASS.
-2. Read its parent `registry/TRUMP_CURRENT_STATE_2026-09-15_v2.3.json` for label-blind fixed-library raw relation basis induction.
-3. Read `registry/TRUMP_CURRENT_STATE_2026-09-15_v2.2.json` for the Inverted-Pyramid / admission-before-transfer diagnostic.
-4. Read `registry/TRUMP_CURRENT_STATE_2026-09-15.json` for the wide-interface, Schaefer-barrier, factorized-feedback and log-alien scoped line.
-5. Read the historical parent `registry/TRUMP_CURRENT_STATE.json` for the full C022/C023R/v1.1/v1.3 continuity. Parent states are historical and must not be silently shortened or overwritten.
-6. Read `docs/TRUMP_DEVELOPMENT_JOURNAL.md` plus the journal entries referenced by all active state files for the relevant lineage.
-7. Read `registry/TRUMP_CONTEXT_MANIFEST.json` and resolve every mechanism alias relevant to the requested work.
-8. Verify the latest frozen scientific authority/seal and distinguish historical FAIL, diagnostic PASS, scoped PASS, classification barrier, and current global frontier.
-9. Search repository history/default-branch code for the mechanism and its aliases before treating an idea as new.
-10. If the mechanism is indexed as living outside this repository, recover it from the named persistent source before reasoning from it.
-11. Build a short `CONTEXT_RECOVERY_RECEIPT` containing: recovered global frontier, current scoped open surface, active lineage, frozen verdicts, known predecessor mechanisms, unresolved blockers, and the exact next allowed action.
-12. Only after that receipt may Captain Obvious/Akinator/JUXTAPOSE/TRUMP select or execute a new proof/falsification gate.
+1. Read `registry/TRUMP_CURRENT_STATE_2026-09-15_v2.5.json` **first**. This is the latest successor-state anchor and includes the scoped bicameral connected-core explanation PASS imported from Hrain/iNaiHR architecture under TRUMP exact authority.
+2. Read its parent `registry/TRUMP_CURRENT_STATE_2026-09-15_v2.4.json` for scoped raw compositional basis induction.
+3. Read `registry/TRUMP_CURRENT_STATE_2026-09-15_v2.3.json` for label-blind fixed-library raw relation basis induction.
+4. Read `registry/TRUMP_CURRENT_STATE_2026-09-15_v2.2.json` for the Inverted-Pyramid / admission-before-transfer diagnostic.
+5. Read `registry/TRUMP_CURRENT_STATE_2026-09-15.json` for the wide-interface, Schaefer-barrier, factorized-feedback and log-alien scoped line.
+6. Read the historical parent `registry/TRUMP_CURRENT_STATE.json` for the full C022/C023R/v1.1/v1.3 continuity. Parent states are historical and must not be silently shortened or overwritten.
+7. Read `docs/TRUMP_DEVELOPMENT_JOURNAL.md` plus the journal entries referenced by all active state files for the relevant lineage.
+8. Read `registry/TRUMP_CONTEXT_MANIFEST.json` and resolve every mechanism alias relevant to the requested work.
+9. Verify the latest frozen scientific authority/seal and distinguish historical FAIL, diagnostic PASS, scoped PASS, classification barrier, and current global frontier.
+10. Search repository history/default-branch code for the mechanism and its aliases before treating an idea as new.
+11. If the mechanism is indexed as living outside this repository, recover it from the named persistent source before reasoning from it.
+12. Build a short `CONTEXT_RECOVERY_RECEIPT` containing: recovered global frontier, current scoped open surface, active lineage, frozen verdicts, known predecessor mechanisms, unresolved blockers, and the exact next allowed action.
+13. Only after that receipt may Captain Obvious/Akinator/JUXTAPOSE/TRUMP select or execute a new proof/falsification gate.
 
 ## Anti-loop test
 
@@ -42,7 +43,9 @@ If classification cannot be made from recovered provenance, status is `CONTEXT_I
 - `AKINATOR`: asks discriminating exact questions / narrows candidate space; it does not certify truth.
 - `CAPTAIN_OBVIOUS`: finds the nearest missing obligation, detects circular work and unnecessary redesign; it does not promote scientific claims.
 - `JUXTAPOSE`: may prioritize which exact-backed candidate/search path to test first; search priority is never authority.
-- `JANUS_DEMIURGE`: constructs exact candidates/transitions/certificates.
+- `HRAIN`: deterministic structural-context observation/projection only when used inside TRUMP; graph edges, semantic neighbours and attention are not mechanism/evidence by themselves.
+- `INAIHR / JANUS_SYNTH`: candidate-only explanation synthesis/proposal with provenance; synthesis, model output and candidate ranking are not truth or proof.
+- `JANUS_DEMIURGE`: constructs exact candidates/transitions/certificates; construction is distinct from governance and scientific promotion.
 - `TRUMP`: enforces exact semantics, proof obligations, falsification, replay and total complexity accounting.
 - `JANUS_SOVEREIGN`: governance only; may COMMIT/ROLLBACK/OPEN/HALT based on admissible evidence, but cannot manufacture scientific PASS.
 
@@ -64,22 +67,25 @@ The 2026-09-15 Inverted-Pyramid diagnostic established:
 
 `COMPLETE_EXACT_ADMISSION_CERTIFICATE -> AUTHORIZED_SEALED_CARRIER/PORTFOLIO -> EXACT REPLAY -> OTHERWISE OPEN`.
 
-Two downward scoped subproblems are now closed for explicit Boolean raw relation semantics:
+Three downward scoped subproblems are now closed for explicit Boolean raw relation semantics:
 
 1. fixed-library Schaefer basis recognition is label-blind and polynomial in the explicit relation-table size;
-2. truly variable-disjoint incidence components can be assembled into an additive portfolio of independently admitted local bases, with no Cartesian product.
+2. truly variable-disjoint incidence components can be assembled into an additive portfolio of independently admitted local bases, with no Cartesian product;
+3. for a connected mixed raw core with a single-variable incidence articulation, Hrain-style deterministic structural observation plus iNaiHR-style candidate-only proposal can discover a content-bound conditioning explanation from raw incidence alone, and TRUMP can independently replay both Boolean branches through the sealed compositional-basis inducer in polynomial explicit-table lifecycle cost.
 
-Do **not** repeat either as the current blocker.
+Do **not** repeat any of these as the current blocker.
 
 Current scoped open surface:
 
-`CONNECTED_MIXED_RAW_CORE_TO_EXACT_STRUCTURAL_OR_NOVEL_BASIS_EXPLANATION`.
+`CONNECTED_MIXED_RAW_CORE_WITHOUT_SINGLE_VARIABLE_ARTICULATION_EXPLANATION`.
 
-The next allowed work must target a single connected mixed component for which no one frozen Schaefer basis applies. Any proposed separator, quotient, provenance morph, alien-interaction explanation, backdoor, or other carrier must be discovered from the bound raw structure/semantics, preregistered, independently replayable, and have an explicit polynomial full-lifecycle bound. Otherwise remain OPEN.
+The next allowed work must target a connected mixed component for which no one frozen Schaefer basis applies and no admissible single-variable articulation explanation exists. Candidate proposal machinery may search for bounded multi-variable separators, exact quotient/rank explanations, provenance-preserving reverse morphs, bounded alien interaction, backdoors, or another preregistered carrier, but proposal/ranking has zero scientific authority. Every accepted explanation must be discovered from bound raw structure/semantics, independently exact-replayed, and carry an explicit original-input polynomial full-lifecycle bound. Otherwise remain OPEN.
 
 ## Context sources
 
 Primary scientific authority: `Hawkar-usls/Janus-Fundamentum`.
+
+External architectural sources relevant to the current bicameral proposal layer: `Hawkar-usls/Hrain` and `Hawkar-usls/iNaiHR`, read-only and candidate-only respectively; neither has proof authority inside TRUMP.
 
 Historical/semantic archive: `Hawkar-usls/janus-meta-registry` plus persistent ChatGPT Library artifacts listed in `registry/TRUMP_CONTEXT_MANIFEST.json`.
 
