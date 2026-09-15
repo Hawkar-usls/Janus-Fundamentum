@@ -1,0 +1,97 @@
+name: TRUMP K5 Exact-Two-of-Four Cardinality Forensic
+
+on:
+  push:
+    branches:
+      - research/trump-k5-exact-two-of-four-cardinality-forensic-2026-09-15
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  k5-exact-two-of-four-cardinality-forensic:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Run candidate cardinality profiler
+        run: |
+          set -euo pipefail
+          python -m research.tools.apma_bucket_k5_exact_two_of_four_cardinality_forensic.forensic | tee /tmp/candidate.json
+
+      - name: Run independent cardinality checker
+        run: |
+          set -euo pipefail
+          python -m research.tools.apma_bucket_k5_exact_two_of_four_cardinality_forensic.independent_checker --candidate-json /tmp/candidate.json | tee /tmp/independent.json
+
+      - name: Assert preregistered diagnostic facts
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          c = json.loads(Path('/tmp/candidate.json').read_text().strip().splitlines()[-1])
+          i = json.loads(Path('/tmp/independent.json').read_text().strip().splitlines()[-1])
+          V = 'PASS_DIAGNOSTIC_BICAMERAL_BUCKET_UNIQUE_CORE_RESIDUAL_K5_EXACT_TWO_OF_FOUR_CARDINALITY_STRUCTURE_FORENSIC'
+          assert c['verdict'] == V, c
+          assert i['verdict'] == V, i
+          assert c['source_guard']['ok'] is True
+          assert i['source_guard']['ok'] is True
+          r = c['finite_k5_receipt']
+          assert r['assignment_count_checked'] == 1024
+          assert r['semantic_mismatch_count'] == 0
+          assert r['relation_sat_equals_degree_two_on_all_assignments'] is True
+          assert r['satisfying_edge_set_count'] == 12
+          assert r['every_solution_two_regular'] is True
+          assert r['every_solution_single_five_cycle'] is True
+          assert r['every_solution_selects_five_edges'] is True
+          assert i['fixed_cardinality_subsets_checked'] == 252
+          assert i['relation_degree_disagreement_count'] == 0
+          assert i['satisfying_edge_set_count'] == 12
+          assert i['every_solution_single_five_cycle'] is True
+          assert all(i['comparisons'].values()), i['comparisons']
+          assert c['general_semantic_classification']['object'] == 'UNDIRECTED_TWO_FACTOR'
+          assert c['general_semantic_classification']['f_factor_specialization'] == 'F_FACTOR_WITH_F_V_EQUALS_TWO_FOR_EVERY_CONSTRAINED_VERTEX'
+          assert c['general_semantic_classification']['carrier_sealed_here'] is False
+          assert c['captain_obvious']['SIZE4_BRANCHING_LICENSED'] is False
+          assert c['resource_receipt']['size4_boolean_separator_assignments_enumerated'] == 0
+          assert c['resource_receipt']['solver_calls'] == 0
+          assert i['scientific_firewall']['SIZE4_BRANCHING_LICENSED'] is False
+          assert c['scientific_firewall']['P_VS_NP'] == 'OPEN'
+          assert c['scientific_firewall']['GENERAL_SAT_IN_P'] == 'NOT_PROVED'
+          print(json.dumps({
+            'verdict': V,
+            'solution_count': r['satisfying_edge_set_count'],
+            'global_object': c['general_semantic_classification']['object'],
+            'f_factor_specialization': c['general_semantic_classification']['f_factor_specialization'],
+            'size4_branching_licensed': False,
+          }, sort_keys=True))
+          PY
+
+      - name: v3.16 raw semantic forensic regression
+        run: python -m research.tools.apma_bucket_k5_raw_semantic_forensic.independent_checker
+
+      - name: v3.15 K5 structure forensic regression
+        run: python -m research.tools.apma_bucket_k5_depth_cap_forensic.independent_checker
+
+      - name: v3.14 fixed-depth 1-2-2 regression
+        run: python -m research.tools.apma_bucket_fixed_depth_122.independent_checker
+
+      - name: Authority notice
+        run: |
+          echo 'AUTHORITY=DIAGNOSTIC_ONLY'
+          echo 'FINITE_K5_ASSIGNMENTS_CHECKED=1024'
+          echo 'INDEPENDENT_FIXED_CARDINALITY_SUBSETS_CHECKED=252'
+          echo 'SIZE4_BOOLEAN_BRANCHING=0'
+          echo 'SEPARATOR_SETS_SIZE_GE3_BOOLEAN_BRANCHING=0'
+          echo 'SOLVER_CALLS=0'
+          echo 'CARRIER_CALLS=0'
+          echo 'UNBOUNDED_RECURSION=0'
+          echo 'THREE_PLUS_JOIN_CHAIN=0'
+          echo 'GLOBAL_RESIDUAL_CARTESIAN_PRODUCT=0'
+          echo 'P_VS_NP=OPEN'
