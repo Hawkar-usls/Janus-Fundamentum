@@ -5,7 +5,7 @@ from research.tools.apma_bucket_residual_single_separator import residual_single
 
 ARTIFACT_ID="JANUS-TRUMP-BICAMERAL-BUCKET-UNIQUE-CORE-RESIDUAL-NO-SINGLE-SEPARATOR-STRUCTURE-FORENSIC-2026-09-15-v1.0"
 PREREG=Path("research/TRUMP_BICAMERAL_BUCKET_UNIQUE_CORE_RESIDUAL_NO_SINGLE_SEPARATOR_STRUCTURE_FORENSIC_PREREGISTRATION_2026-09-15.json")
-PREREG_BLOB="a4db92ce218cd7ec40fbc89cb30e3ba32061bbc8"
+PREREG_BLOB="bd1fb0590456e9909f4f436e24a9884a75c90d0f"
 V38=Path("research/tools/apma_bucket_residual_single_separator/residual_single_separator_factorized_payload.py")
 V38_BLOB="cd17292b7451b03b966dbcf62d1b6e4c767f7ac0"
 
