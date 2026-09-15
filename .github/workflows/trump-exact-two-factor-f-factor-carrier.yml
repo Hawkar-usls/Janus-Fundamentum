@@ -1,0 +1,97 @@
+name: TRUMP Exact Two-Factor F-Factor Carrier Gate
+
+on:
+  push:
+    branches:
+      - research/trump-exact-two-factor-f-factor-carrier-2026-09-16
+  pull_request:
+    paths:
+      - 'research/TRUMP_BICAMERAL_BUCKET_UNIQUE_CORE_RESIDUAL_EXACT_TWO_FACTOR_F_FACTOR_CARRIER_FALSIFIER_GATE_PREREGISTRATION_2026-09-16.json'
+      - 'research/tools/apma_bucket_exact_two_factor_f_factor_carrier/**'
+      - '.github/workflows/trump-exact-two-factor-f-factor-carrier.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  exact-two-factor-carrier:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Pin matching backend
+        run: |
+          set -euo pipefail
+          python -m pip install --disable-pip-version-check 'networkx==3.6.1'
+          python - <<'PY'
+          import networkx as nx
+          assert nx.__version__ == '3.6.1', nx.__version__
+          print('NETWORKX_VERSION=' + nx.__version__)
+          PY
+      - name: Run proof-carrying two-factor carrier candidate
+        run: |
+          set -euo pipefail
+          python -m research.tools.apma_bucket_exact_two_factor_f_factor_carrier.carrier | tee /tmp/two_factor_candidate.json
+      - name: Run independent two-factor carrier checker
+        run: |
+          set -euo pipefail
+          python -m research.tools.apma_bucket_exact_two_factor_f_factor_carrier.independent_checker --candidate-json /tmp/two_factor_candidate.json | tee /tmp/two_factor_independent.json
+      - name: Assert preregistered carrier facts
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          c=json.loads(Path('/tmp/two_factor_candidate.json').read_text().strip().splitlines()[-1])
+          i=json.loads(Path('/tmp/two_factor_independent.json').read_text().strip().splitlines()[-1])
+          V='PASS_SCOPED_BICAMERAL_BUCKET_UNIQUE_CORE_RESIDUAL_EXACT_TWO_FACTOR_PROOF_CARRYING_F_FACTOR_CARRIER_V1'
+          assert c['verdict']==V, c['verdict']
+          assert i['verdict']==V, i['verdict']
+          assert all(c['checks'].values()), {k:v for k,v in c['checks'].items() if not v}
+          assert all(i['checks'].values()), {k:v for k,v in i['checks'].items() if not v}
+          assert c['parent_raw_k5']['solve']['status']=='EXACT_SAT_TWO_FACTOR'
+          assert c['parent_raw_k5']['original_relation_replay']['ok'] is True
+          assert c['controls']['BOWTIE']['status']=='EXACT_UNSAT_TUTTE_BARRIER'
+          assert c['controls']['BOWTIE']['certificate_verified'] is True
+          assert c['exhaustive_small_graph_census']['graph_count']==1096
+          assert c['exhaustive_small_graph_census']['mismatch_count']==0
+          assert c['exhaustive_small_graph_census']['unknown_count']==0
+          assert c['exhaustive_small_graph_census']['status_vector_sha256']==i['exhaustive_small_graph_truth']['status_vector_sha256']
+          assert c['scientific_firewall']['P_VS_NP']=='OPEN'
+          assert c['scientific_firewall']['GENERAL_SAT_IN_P']=='NOT_PROVED'
+          assert c['scientific_firewall']['SIZE4_BRANCHING_LICENSED'] is False
+          assert c['scientific_firewall']['EXTRA_RECURSION_AUTHORIZED'] is False
+          print(json.dumps({
+            'verdict':V,
+            'small_graphs':c['exhaustive_small_graph_census']['graph_count'],
+            'small_graph_hash':c['exhaustive_small_graph_census']['status_vector_sha256'],
+            'parent_selected_edges':c['parent_raw_k5']['solve']['selected_edge_ids'],
+            'bowtie_barrier':c['controls']['BOWTIE']['certificate']['barrier'],
+          },sort_keys=True))
+          PY
+      - name: v3.17 exact-two-of-four semantic classification regression
+        run: |
+          set -euo pipefail
+          python -m research.tools.apma_bucket_k5_exact_two_of_four_cardinality_forensic.forensic | tee /tmp/v317_candidate.json
+          python -m research.tools.apma_bucket_k5_exact_two_of_four_cardinality_forensic.independent_checker --candidate-json /tmp/v317_candidate.json
+      - name: v3.16 raw semantic forensic regression
+        run: |
+          set -euo pipefail
+          python -m research.tools.apma_bucket_k5_raw_semantic_forensic.independent_checker
+      - name: v3.14 fixed-depth 1-2-2 regression
+        run: |
+          set -euo pipefail
+          python -m research.tools.apma_bucket_fixed_depth_122.independent_checker
+      - name: Authority notice
+        run: |
+          echo 'AUTHORITY=SCOPED_CARRIER_CANDIDATE_PENDING_HQ_REVIEW'
+          echo 'SIZE4_BOOLEAN_BRANCHING=0'
+          echo 'SEPARATOR_GE3_BOOLEAN_BRANCHING=0'
+          echo 'UNBOUNDED_RECURSION=0'
+          echo 'THREE_PLUS_JOIN_CHAIN=0'
+          echo 'GLOBAL_RESIDUAL_CARTESIAN_PRODUCT=0'
+          echo 'P_VS_NP=OPEN'
+          echo 'GENERAL_SAT_IN_P=NOT_PROVED'
