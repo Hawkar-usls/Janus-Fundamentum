@@ -12,8 +12,10 @@ No scientific action is admissible from conversational memory alone.
 
 ## Startup sequence
 
-1. Read `registry/TRUMP_CURRENT_STATE_2026-09-15_v3.8.json` **first**. This is the latest successor-state anchor and records the scoped residual single-variable separator PASS: raw-derived separator `47`, exactly two Boolean branches, reuse of only sealed residual <=2 carriers, exact SAT/UNSAT branch authority, and zero 3plus join-chain/global residual Cartesian materialization.
-2. Then read `registry/TRUMP_CURRENT_STATE_2026-09-15_v3.7.json` for the diagnostic-only residual-3+ forensic PASS: K3 over `orig:4/5/6`, every overlap exactly variable `47`, running-intersection PASS, and unchanged semijoin fixed point `[4,4,4]`.
+1. Read `registry/TRUMP_CURRENT_STATE_2026-09-15_v3.10.json` **first**. This is the latest successor-state anchor and records the scoped unique-core residual two-variable separator PASS: raw-derived pair `[47,48]`, exactly four Boolean assignments, reuse of only sealed residual <=2 carriers, exact SAT/UNSAT branch authority, K4 no-pair OPEN control, and zero separator sets of size >=3 / 3plus join chains / global residual Cartesian materialization.
+2. Then read `registry/TRUMP_CURRENT_STATE_2026-09-15_v3.9.json` for the no-single-separator forensic that selected the pair route.
+3. Then read `registry/TRUMP_CURRENT_STATE_2026-09-15_v3.8.json` for the scoped residual single-variable separator PASS.
+4. Then read `registry/TRUMP_CURRENT_STATE_2026-09-15_v3.7.json` for the diagnostic-only residual-3+ forensic PASS: K3 over `orig:4/5/6`, every overlap exactly variable `47`, running-intersection PASS, and unchanged semijoin fixed point `[4,4,4]`.
 3. Then read `registry/TRUMP_CURRENT_STATE_2026-09-15_v3.6.json` for the sealed residual-component-<=2 factorized-payload PASS.
 2. Read `registry/TRUMP_CURRENT_STATE_2026-09-15_v3.5.json` for the unique-common-core conditioned factorized-payload PASS, including its preserved v1/v1.1 negative-control failures and v1.2 scope-audit repair.
 3. Read `registry/TRUMP_CURRENT_STATE_2026-09-15_v3.4.json` for the common-core support-intersection / semijoin prefilter PASS and its sticky `4^20` residual-payload blocker.
