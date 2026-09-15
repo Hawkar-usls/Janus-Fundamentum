@@ -1,0 +1,43 @@
+name: Validate C024 GT Witness Damage
+
+on:
+  push:
+    paths:
+      - "experiments/direct/janus_tear_gt_critical_order_damage.py"
+      - "experiments/direct/janus_tear_gt_residual_critical_damage.py"
+      - "experiments/direct/janus_tear_gt_novel_branch_audit.py"
+      - "experiments/direct/janus_tear_gt_novel_branch_audit_v2.py"
+      - "proof_attempts/C024/GT_CRITICAL_ORDER_INVARIANT.md"
+      - ".github/workflows/validate-c024-gt-witness.yml"
+  pull_request:
+    paths:
+      - "experiments/direct/janus_tear_gt_critical_order_damage.py"
+      - "experiments/direct/janus_tear_gt_residual_critical_damage.py"
+      - "experiments/direct/janus_tear_gt_novel_branch_audit.py"
+      - "experiments/direct/janus_tear_gt_novel_branch_audit_v2.py"
+      - "proof_attempts/C024/GT_CRITICAL_ORDER_INVARIANT.md"
+      - ".github/workflows/validate-c024-gt-witness.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  verify-critical-order-damage:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Audit root local-resolvent witness damage
+        run: python experiments/direct/janus_tear_gt_critical_order_damage.py
+
+      - name: Audit every residual-state witness set
+        run: python experiments/direct/janus_tear_gt_residual_critical_damage.py
+
+      - name: Overlay historical novelty with explicit conflict states
+        run: python experiments/direct/janus_tear_gt_novel_branch_audit_v2.py

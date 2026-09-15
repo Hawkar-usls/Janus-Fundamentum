@@ -1,0 +1,42 @@
+name: Validate C024 Novel V2
+
+on:
+  push:
+    paths:
+      - "experiments/direct/janus_tear_gt_novel_branch_audit_v2.py"
+      - "experiments/direct/janus_tear_gt_novel_branch_report.py"
+      - ".github/workflows/validate-c024-novel-v2.yml"
+  pull_request:
+    paths:
+      - "experiments/direct/janus_tear_gt_novel_branch_audit_v2.py"
+      - "experiments/direct/janus_tear_gt_novel_branch_report.py"
+      - ".github/workflows/validate-c024-novel-v2.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  novel-v2:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: research/c024-gt-local-resolution-robustness
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Run failure-tolerant novelty overlay
+        run: python experiments/direct/janus_tear_gt_novel_branch_audit_v2.py
+      - name: Write structured novelty report
+        run: python experiments/direct/janus_tear_gt_novel_branch_report.py
+      - name: Commit structured novelty report
+        run: |
+          git config user.name "janus-c024-bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add diagnostics/C024_NOVEL_BRANCH_REPORT.json
+          if git diff --cached --quiet; then
+            echo "Novelty report unchanged"
+          else
+            git commit -m "C024: record failure-tolerant novelty report"
+            git push origin HEAD:research/c024-gt-local-resolution-robustness
+          fi
