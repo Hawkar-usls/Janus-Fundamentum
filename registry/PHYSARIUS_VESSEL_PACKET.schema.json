@@ -1,0 +1,53 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "janus.physarius.vessel_packet.schema.v1",
+  "title": "JANUS Physarius Vessel Packet v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "vessel_id",
+    "source_repo",
+    "source_ref",
+    "source_path_or_object_id",
+    "destination_repo",
+    "destination_endpoint",
+    "packet_kind",
+    "payload_sha256",
+    "authority_ceiling",
+    "parent_receipt_hash",
+    "created_at"
+  ],
+  "properties": {
+    "schema": {"const": "janus.physarius.vessel_packet.v1"},
+    "vessel_id": {"type": "string", "minLength": 1},
+    "source_repo": {"type": "string", "pattern": "^[^/]+/[^/]+$"},
+    "source_ref": {"type": "string", "minLength": 1},
+    "source_path_or_object_id": {"type": "string", "minLength": 1},
+    "destination_repo": {"type": "string", "pattern": "^[^/]+/[^/]+$"},
+    "destination_endpoint": {"type": "string", "minLength": 1},
+    "packet_kind": {
+      "enum": [
+        "DISCOVERY_PROJECTION",
+        "BOUND_CONTENT_PULL",
+        "CANDIDATE_HANDOFF",
+        "EXECUTION_GRANT",
+        "EXECUTION_RESULT",
+        "ACK",
+        "PROVENANCE_RECEIPT"
+      ]
+    },
+    "payload_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "authority_ceiling": {"type": "string", "minLength": 1},
+    "parent_receipt_hash": {
+      "anyOf": [
+        {"type": "null"},
+        {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+      ]
+    },
+    "grant_id": {"type": ["string", "null"]},
+    "execution_claim_key": {"type": ["string", "null"]},
+    "created_at": {"type": ["string", "number"]},
+    "metadata": {"type": "object"}
+  }
+}

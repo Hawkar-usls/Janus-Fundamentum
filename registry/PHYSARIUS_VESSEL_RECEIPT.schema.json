@@ -1,0 +1,49 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "janus.physarius.vessel_receipt.schema.v1",
+  "title": "JANUS Physarius Vessel Receipt v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "vessel_id",
+    "request_sha256",
+    "source_binding_verified",
+    "destination_binding_verified",
+    "payload_sha256",
+    "bytes_or_object_count",
+    "transport_terminal",
+    "authority_consumed",
+    "execution_observed",
+    "receipt_sha256"
+  ],
+  "properties": {
+    "schema": {"const": "janus.physarius.vessel_receipt.v1"},
+    "vessel_id": {"type": "string", "minLength": 1},
+    "request_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "source_binding_verified": {"const": true},
+    "destination_binding_verified": {"const": true},
+    "payload_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "bytes_or_object_count": {"type": "integer", "minimum": 0},
+    "transport_terminal": {
+      "enum": [
+        "DELIVERED",
+        "TRANSPORT_BLOCKED_NO_CREDENTIAL",
+        "TRANSPORT_BLOCKED_POLICY",
+        "TRANSPORT_FAILED",
+        "DUPLICATE_DELIVERY_DEDUPED"
+      ]
+    },
+    "authority_consumed": {"const": false},
+    "execution_observed": {"type": "boolean"},
+    "grant_id": {"type": ["string", "null"]},
+    "execution_claim_key": {"type": ["string", "null"]},
+    "parent_receipt_hash": {
+      "anyOf": [
+        {"type": "null"},
+        {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+      ]
+    },
+    "receipt_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+  }
+}
