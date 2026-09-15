@@ -1,0 +1,29 @@
+name: Validate C025 C2G Fork Charge Repair
+
+on:
+  push:
+    paths:
+      - "experiments/direct/janus_tear_policy0b_c2g_fork_charge_repair.py"
+      - "proof_attempts/C025/C025_C2G_V1_1_FORK_CHARGE_REPAIR.md"
+      - ".github/workflows/validate-c025-c2g-fork-charge-repair.yml"
+  pull_request:
+    paths:
+      - "experiments/direct/janus_tear_policy0b_c2g_fork_charge_repair.py"
+      - "proof_attempts/C025/C025_C2G_V1_1_FORK_CHARGE_REPAIR.md"
+      - ".github/workflows/validate-c025-c2g-fork-charge-repair.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  verify-c2g-fork-repair:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Compile fork-charge replay
+        run: python -m py_compile experiments/direct/janus_tear_policy0b_c2g_fork_charge_repair.py
+      - name: Replay v1 failure and v1.1 repair mechanics
+        run: python experiments/direct/janus_tear_policy0b_c2g_fork_charge_repair.py
