@@ -1,0 +1,70 @@
+name: TRUMP K5 Raw Reachability Semantic Forensic
+on:
+  push:
+    branches:
+      - research/trump-k5-raw-reachability-semantic-forensic-2026-09-15
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  k5-raw-semantic-forensic:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Run candidate forensic profiler
+        run: |
+          set -euo pipefail
+          python -m research.tools.apma_bucket_k5_raw_semantic_forensic.forensic | tee /tmp/candidate.json
+      - name: Run independent forensic checker
+        run: |
+          set -euo pipefail
+          python -m research.tools.apma_bucket_k5_raw_semantic_forensic.independent_checker | tee /tmp/independent.json
+      - name: Assert frozen diagnostic invariants and independent raw reconstruction
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          c=json.loads(Path('/tmp/candidate.json').read_text().strip().splitlines()[-1])
+          i=json.loads(Path('/tmp/independent.json').read_text().strip().splitlines()[-1])
+          V='PASS_DIAGNOSTIC_BICAMERAL_BUCKET_UNIQUE_CORE_RESIDUAL_K5_RAW_REACHABILITY_AND_SEMANTIC_NONTRIVIALITY_FORENSIC'
+          assert c['verdict']==V, c
+          assert i['verdict']==V, i
+          assert all(c['checks'].values()), {k:v for k,v in c['checks'].items() if not v}
+          assert all(i['checks'].values()), {k:v for k,v in i['checks'].items() if not v}
+          assert c['raw_k5_full_cube']['raw_sha256']==i['raw_k5_full_cube']['raw_sha256']
+          assert c['raw_k5_exact_two_of_four']['raw_sha256']==i['raw_k5_exact_two_of_four']['raw_sha256']
+          assert c['raw_k5_exact_two_of_four']['fixed_depth_before']['status']=='OPEN_FIXED_DEPTH_1_2_2_SKELETON_NOT_FOUND'
+          assert c['raw_k5_exact_two_of_four']['normalization']['fixed_depth_after']['status']=='OPEN_FIXED_DEPTH_1_2_2_SKELETON_NOT_FOUND'
+          assert c['scientific_firewall']['P_VS_NP']=='OPEN'
+          assert c['scientific_firewall']['GENERAL_SAT_IN_P']=='NOT_PROVED'
+          assert c['scientific_firewall']['SIZE4_BRANCHING_LICENSED'] is False
+          assert i['scientific_firewall']['SIZE4_BRANCHING_LICENSED'] is False
+          print(json.dumps({
+            'verdict':V,
+            'full_cube_raw_sha256':c['raw_k5_full_cube']['raw_sha256'],
+            'exact_two_raw_sha256':c['raw_k5_exact_two_of_four']['raw_sha256'],
+            'exact_two_open_after_normalization':c['raw_k5_exact_two_of_four']['normalization']['fixed_depth_after']['status'],
+          },sort_keys=True))
+          PY
+      - name: v3.15 K5 depth-cap forensic regression
+        run: python -m research.tools.apma_bucket_k5_depth_cap_forensic.independent_checker
+      - name: v3.14 fixed-depth 1-2-2 regression
+        run: python -m research.tools.apma_bucket_fixed_depth_122.independent_checker
+      - name: v3.10 pair separator regression
+        run: python -m research.tools.apma_bucket_residual_pair_separator.independent_checker
+      - name: Authority notice
+        run: |
+          echo 'AUTHORITY=DIAGNOSTIC_ONLY'
+          echo 'RAW_PROBE_FAMILY_COUNT=2'
+          echo 'SIZE4_BOOLEAN_BRANCHING=0'
+          echo 'SEPARATOR_SETS_SIZE_GE3_BOOLEAN_BRANCHING=0'
+          echo 'SOLVER_CALLS=0'
+          echo 'CARRIER_CALLS=0'
+          echo 'UNBOUNDED_RECURSION=0'
+          echo 'THREE_PLUS_JOIN_CHAIN=0'
+          echo 'GLOBAL_RESIDUAL_CARTESIAN_PRODUCT=0'
+          echo 'NATURAL_BENCHMARK_FREQUENCY_EVIDENCE=0'
+          echo 'P_VS_NP=OPEN'
