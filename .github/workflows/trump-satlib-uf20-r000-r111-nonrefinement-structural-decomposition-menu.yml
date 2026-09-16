@@ -1,0 +1,91 @@
+name: TRUMP SATLIB UF20 Nonrefinement Structural Decomposition Menu
+
+on:
+  push:
+    branches:
+      - research/trump-external-satlib-uf20-01-source-acquisition-2026-09-16
+    paths:
+      - 'research/TRUMP_SATLIB_UF20_R000_R111_NONREFINEMENT_STRUCTURAL_DECOMPOSITION_MENU_PREREGISTRATION_2026-09-17.json'
+      - 'research/TRUMP_SATLIB_UF20_R000_R111_NONREFINEMENT_STRUCTURAL_DECOMPOSITION_MENU_PREREGISTRATION_REVIEW_2026-09-17.json'
+      - 'research/tools/apma_satlib_uf20_r000_r111_nonrefinement_structural_decomposition_menu/**'
+      - '.github/workflows/trump-satlib-uf20-r000-r111-nonrefinement-structural-decomposition-menu.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  structural-decomposition-menu:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Assert frozen structural menu bindings
+        run: |
+          set -euo pipefail
+          test "$(git hash-object research/TRUMP_SATLIB_UF20_R000_R111_NONREFINEMENT_STRUCTURAL_DECOMPOSITION_MENU_PREREGISTRATION_2026-09-17.json)" = "cb82240f1b7183f6875cf20a658eca3270baad52"
+          test "$(git hash-object research/TRUMP_SATLIB_UF20_R000_R111_NONREFINEMENT_STRUCTURAL_DECOMPOSITION_MENU_PREREGISTRATION_REVIEW_2026-09-17.json)" = "38e8d7fb6a91f3aa66d36a742ef210ed47483b02"
+          test "$(git hash-object research/TRUMP_SATLIB_UF20_R000_R111_SUCCESSOR_CLOSURE_LEVERAGE_REQUIREMENTS_SYNTHESIS_RESULT_2026-09-17.json)" = "c5e2e7b6e7612cea498045611d6173d8aa14ffe4"
+          test "$(git hash-object research/TRUMP_SATLIB_UF20_SUCCESSOR_LOCAL_INVARIANT_FRESH_BLIND_SOURCE_ACQUISITION_RESULT_2026-09-17.json)" = "3ee5a11808ea04326ec5141b0138bbba4ec56092"
+          test "$(git hash-object research/tools/apma_satlib_uf20_r000_r111_projected_core_replay/projection_identity.py)" = "2ef48e73974a5f43d3f4fb4809ebd0c09c0f5be4"
+          test "$(git hash-object research/source_data/SATLIB_UF20_02_2026-09-16.cnf)" = "f924caaef0d868bf62b1658e83e030ad8daee865"
+          test "$(git hash-object research/source_data/SATLIB_UF20_03_2026-09-16.cnf)" = "8f3d15154515457281f49201b843f2a7134dfa9f"
+          test "$(git hash-object research/source_data/SATLIB_UF20_04_2026-09-16.cnf)" = "34ced5c169f967b2dc44ef5e42f2ee2c924813e1"
+          test "$(git hash-object research/source_data/SATLIB_UF20_05_2026-09-16.cnf)" = "3b04eff26ee37bdd0bc21b1066486974f92a2c9b"
+          test "$(git hash-object research/tools/apma_satlib_uf20_r000_r111_nonrefinement_structural_decomposition_menu/candidate.py)" = "1eedfc1fb381171411b200d5dbfaa661c4523a27"
+          test "$(git hash-object research/tools/apma_satlib_uf20_r000_r111_nonrefinement_structural_decomposition_menu/independent_checker.py)" = "3f52af2ee6de8cdea26f0a50d34424ccef746fdb"
+      - name: Execute frozen D1 D2 D3 structural diagnostics once
+        run: |
+          set -euo pipefail
+          python -m research.tools.apma_satlib_uf20_r000_r111_nonrefinement_structural_decomposition_menu.candidate > /tmp/nonrefinement-structural-menu.json
+      - name: Independently rebuild and verify complete profiles
+        run: |
+          set -euo pipefail
+          python -m research.tools.apma_satlib_uf20_r000_r111_nonrefinement_structural_decomposition_menu.independent_checker --candidate-json /tmp/nonrefinement-structural-menu.json > /tmp/nonrefinement-structural-menu-independent.json
+      - name: Assert frozen outcome space and firewalls
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          c=json.loads(Path('/tmp/nonrefinement-structural-menu.json').read_text().strip().splitlines()[-1])
+          i=json.loads(Path('/tmp/nonrefinement-structural-menu-independent.json').read_text().strip().splitlines()[-1])
+          allowed={'COMMON_FOUR_SOURCE_STRUCTURAL_LEVERAGE_PRESENT','PARTIAL_STRUCTURAL_LEVERAGE_ONLY','NO_TESTED_STRUCTURAL_DECOMPOSITION_LEVERAGE'}
+          assert c['verdict'] in allowed,c
+          assert c['source_guard']['ok'] is True,c['source_guard']
+          assert i['verified'] is True and i['candidate_imported'] is False,i
+          assert i['verdict']==c['verdict'],(i,c)
+          assert len(c['rows'])==4 and all(r['source'] in {'UF20_02','UF20_03','UF20_04','UF20_05'} for r in c['rows']),c['rows']
+          assert len(c['diagnostic_summary'])==3,c['diagnostic_summary']
+          assert all(v['outcome'] in {'COMMON_FOUR_SOURCE_STRUCTURAL_DIAGNOSTIC','PARTIAL_STRUCTURAL_DIAGNOSTIC','NO_STRUCTURAL_DIAGNOSTIC'} for v in c['diagnostic_summary'].values()),c['diagnostic_summary']
+          rr=c['resource_receipt']
+          assert rr['target_sources']==4 and rr['diagnostics']==3 and rr['fresh_holdout_values_read']==0,rr
+          assert rr['solver_invocations']==0 and rr['portfolio_replays']==0 and rr['boundary_relation_enumerations']==0 and rr['component_solution_attempts']==0,rr
+          assert rr['action_tests']==0 and rr['automorphism_tests']==0 and rr['group_searches']==0 and rr['group_closure_computation']==0,rr
+          assert rr['new_solver_mechanisms']==0 and rr['new_carrier_mechanisms']==0 and rr['new_adapters']==0 and rr['new_quotients']==0 and rr['budget_raise'] is False,rr
+          sf=c['scientific_firewall']
+          assert sf['P_VS_NP']=='OPEN' and sf['GENERAL_SAT_IN_P']=='NOT_PROVED' and sf['CONNECTED_MIXED_CORE_SOLVED']=='NO',sf
+          assert sf['STRUCTURAL_SEPARATOR_IMPLIES_TRACTABILITY'] is False and sf['STRUCTURAL_SEPARATOR_IMPLIES_CLOSURE'] is False,sf
+          print(json.dumps({'verdict':c['verdict'],'diagnostic_summary':c['diagnostic_summary'],'rows':c['rows'],'independent_verified':i['verified']},sort_keys=True))
+          PY
+      - name: Upload structural diagnostic receipt
+        uses: actions/upload-artifact@v4
+        with:
+          name: satlib-uf20-r000-r111-nonrefinement-structural-decomposition-menu-receipt
+          path: |
+            /tmp/nonrefinement-structural-menu.json
+            /tmp/nonrefinement-structural-menu-independent.json
+          if-no-files-found: error
+      - name: Authority notice
+        run: |
+          echo 'AUTHORITY=DIAGNOSTIC_SOURCE_AGNOSTIC_POLYNOMIAL_STRUCTURAL_DECOMPOSITION_FALSIFIER_ONLY'
+          echo 'TARGET_SOURCES=4'
+          echo 'DIAGNOSTICS=3'
+          echo 'FRESH_HOLDOUT_VALUES_READ=0'
+          echo 'BOUNDARY_RELATION_ENUMERATIONS=0'
+          echo 'COMPONENT_SOLUTION_ATTEMPTS=0'
+          echo 'SOLVER_INVOCATIONS=0'
+          echo 'P_VS_NP=OPEN'
+          echo 'GENERAL_SAT_IN_P=NOT_PROVED'
