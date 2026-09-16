@@ -1,0 +1,99 @@
+name: TRUMP SATLIB UF20 Family Sealed Portfolio Replication
+
+on:
+  push:
+    branches:
+      - research/trump-external-satlib-uf20-01-source-acquisition-2026-09-16
+    paths:
+      - 'research/TRUMP_SATLIB_UF20_FAMILY_SEALED_PORTFOLIO_REPLICATION_PREREGISTRATION_2026-09-16.json'
+      - 'research/tools/apma_satlib_uf20_family_sealed_portfolio_replication/**'
+      - '.github/workflows/trump-satlib-uf20-family-sealed-portfolio-replication.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  family-replay:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Pin sealed matching backend
+        run: python -m pip install --disable-pip-version-check 'networkx==3.6.1'
+
+      - name: Assert prereg source and sealed portfolio bindings
+        run: |
+          set -euo pipefail
+          test "$(git hash-object research/TRUMP_SATLIB_UF20_FAMILY_SEALED_PORTFOLIO_REPLICATION_PREREGISTRATION_2026-09-16.json)" = "b72861af2453178dbad30ae72311f277369bd6f6"
+          test "$(git hash-object research/source_data/SATLIB_UF20_02_2026-09-16.cnf)" = "f924caaef0d868bf62b1658e83e030ad8daee865"
+          test "$(git hash-object research/source_data/SATLIB_UF20_03_2026-09-16.cnf)" = "8f3d15154515457281f49201b843f2a7134dfa9f"
+          test "$(git hash-object research/source_data/SATLIB_UF20_04_2026-09-16.cnf)" = "34ced5c169f967b2dc44ef5e42f2ee2c924813e1"
+          test "$(git hash-object research/source_data/SATLIB_UF20_05_2026-09-16.cnf)" = "3b04eff26ee37bdd0bc21b1066486974f92a2c9b"
+          test "$(git hash-object research/tools/apma_external_satlib_uf20_01_replay/replay.py)" = "67ae8bd40c58c6bb1f22f7651111d33ba6be1d0b"
+          test "$(git hash-object research/tools/apma_unseen_basis/raw_relation_basis.py)" = "63490c05ef3e91a4f682f75da26ff2af811839a6"
+          test "$(git hash-object research/tools/apma_connected_mixed_post_orbit_obstruction_census/census.py)" = "f5aa39804983d49149c976e8367a96397bad888e"
+          test "$(git hash-object research/tools/apma_unseen_basis/compositional_basis.py)" = "fdc83a3368a4ad362f00d3ee8aad958f06f8d264"
+          test "$(git hash-object research/tools/apma_log_alien_transfer/log_alien_transfer.py)" = "d20cd94fa2e0324e301f55211152c2d410099425"
+          test "$(git hash-object research/tools/apma_unseen_local_invariant_orbit_count/candidate.py)" = "a076cfc56d68aad0348415e313705da1f6b9cdcd"
+          test "$(git hash-object research/tools/apma_satlib_uf20_family_sealed_portfolio_replication/replay.py)" = "4e4439c2e4a588cc0dd31480607bd2cab3b906bc"
+          test "$(git hash-object research/tools/apma_satlib_uf20_family_sealed_portfolio_replication/independent_checker.py)" = "0f4f74e4ab90cf1eb49d9efbd1b7c87c0d61656e"
+
+      - name: Replay current sealed portfolio on UF20-02 through UF20-05
+        run: |
+          set -euo pipefail
+          python -m research.tools.apma_satlib_uf20_family_sealed_portfolio_replication.replay | tee /tmp/family-replay.json
+
+      - name: Independent family replay check
+        run: |
+          set -euo pipefail
+          python -m research.tools.apma_satlib_uf20_family_sealed_portfolio_replication.independent_checker --candidate-json /tmp/family-replay.json | tee /tmp/family-independent.json
+
+      - name: Assert frozen family replay scope and firewalls
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          c=json.loads(Path('/tmp/family-replay.json').read_text().strip().splitlines()[-1])
+          i=json.loads(Path('/tmp/family-independent.json').read_text().strip().splitlines()[-1])
+          assert c['verdict']=='PASS_DIAGNOSTIC_FAMILY_SEALED_PORTFOLIO_REPLICATION',c
+          assert c['source_guard']['ok'] is True,c['source_guard']
+          assert len(c['rows'])==4,c['rows']
+          expected_raw={
+            'UF20_02':'e44b98343881d9f7657aa6c40fc6854559ca2cdd12e59edc7dddc22246d19d4f',
+            'UF20_03':'7c9e05d9fa369935a0bf7d571b8c3b9a4a20244e3dfa75710987db2661553ac2',
+            'UF20_04':'722b2479ea25355374d07b4d3c859c51af864b9158fda203270f1edda8e7086c',
+            'UF20_05':'184f0f830dd2c2d1dd5fccd2b5b29304f27f15518b2b1e1315a4e9d5b5a30eb7'}
+          allowed={'CLOSED_BY_SEALED_LOG_ALIEN_TRANSFER','CLOSED_BY_SEALED_ORBIT_COUNT_V1','UNADMITTED_AFTER_CURRENT_SEALED_PORTFOLIO'}
+          assert {r['source'] for r in c['rows']}==set(expected_raw),c['rows']
+          assert all(r['raw_sha256']==expected_raw[r['source']] for r in c['rows']),c['rows']
+          assert all(r['status'] in allowed for r in c['rows']),c['rows']
+          assert i['verified'] is True and i['candidate_imported'] is False,i
+          rr=c['resource_receipt']
+          assert rr['new_adapters']==0 and rr['new_solver_mechanisms']==0 and rr['new_carrier_mechanisms']==0 and rr['new_symmetry_mechanisms']==0 and rr['new_separator_branching']==0 and rr['full_variable_cube_enumerations']==0 and rr['budget_raise'] is False,rr
+          sf=c['scientific_firewall']
+          assert sf['P_VS_NP']=='OPEN' and sf['GENERAL_SAT_IN_P']=='NOT_PROVED' and sf['CONNECTED_MIXED_CORE_SOLVED']=='NO',sf
+          print(json.dumps({'verdict':c['verdict'],'outcome_counts':c['outcome_counts'],'rows':[{'source':r['source'],'status':r['status'],'raw_sha256':r['raw_sha256'],'compositional_status':r['compositional']['status'],'log_alien_closed':r['log_alien'].get('closed'),'orbit_status':r['orbit'].get('status'),'orbit_solver_authority':r['orbit'].get('solver_authority')} for r in c['rows']],'independent_verified':i['verified']},sort_keys=True))
+          PY
+
+      - name: Upload family replay receipt
+        uses: actions/upload-artifact@v4
+        with:
+          name: satlib-uf20-family-sealed-portfolio-replication-receipt
+          path: |
+            /tmp/family-replay.json
+            /tmp/family-independent.json
+          if-no-files-found: error
+
+      - name: Authority notice
+        run: |
+          echo 'AUTHORITY=DIAGNOSTIC_ONLY__SOURCE_BOUND_FAMILY_REPLAY_OF_EXISTING_SEALED_PORTFOLIO'
+          echo 'NEW_ADAPTERS=0'
+          echo 'NEW_SOLVER_MECHANISMS=0'
+          echo 'NEW_CARRIER_MECHANISMS=0'
+          echo 'P_VS_NP=OPEN'
+          echo 'GENERAL_SAT_IN_P=NOT_PROVED'
