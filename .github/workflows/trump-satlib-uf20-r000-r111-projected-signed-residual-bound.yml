@@ -1,0 +1,75 @@
+name: TRUMP SATLIB UF20 R000 R111 Projected Signed Residual Bound
+
+on:
+  push:
+    branches:
+      - research/trump-external-satlib-uf20-01-source-acquisition-2026-09-16
+    paths:
+      - 'research/TRUMP_SATLIB_UF20_R000_R111_PROJECTED_CORE_SIGNED_RESIDUAL_BOUND_PREREGISTRATION_2026-09-16.json'
+      - 'research/tools/apma_satlib_uf20_r000_r111_projected_signed_residual_bound/**'
+      - '.github/workflows/trump-satlib-uf20-r000-r111-projected-signed-residual-bound.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  residual-bound:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Assert frozen projected signed-bound bindings
+        run: |
+          set -euo pipefail
+          test "$(git hash-object research/TRUMP_SATLIB_UF20_R000_R111_PROJECTED_CORE_SIGNED_RESIDUAL_BOUND_PREREGISTRATION_2026-09-16.json)" = "ed877e119178bd4794e84ac2975fcda0f73268e1"
+          test "$(git hash-object research/TRUMP_SATLIB_UF20_R000_R111_PROJECTED_CORE_EXISTING_SIGNED_ACTION_COMPATIBILITY_AUDIT_2026-09-16.json)" = "182f68377db4034c037f425849b9b8211246fbf7"
+          test "$(git hash-object research/TRUMP_SATLIB_UF20_SIGNED_AUTOMORPHISM_ADMISSIBILITY_DIRECT_PROOF_2026-09-16.md)" = "e1515e047e53535882913d3764425814290f3334"
+          test "$(git hash-object research/TRUMP_SATLIB_UF20_SIGNED_EPSILON_DETERMINATION_DIRECT_PROOF_2026-09-16.md)" = "adfa4b1dd935109e5593fba7509d37ba5fe0400b"
+          test "$(git hash-object research/tools/apma_satlib_uf20_r000_r111_projected_core_replay/projection_identity.py)" = "2ef48e73974a5f43d3f4fb4809ebd0c09c0f5be4"
+          test "$(git hash-object research/tools/apma_satlib_uf20_r000_r111_projected_signed_residual_bound/certificate.py)" = "614d638b4b85b2758e17dd6766ea18a777409fd3"
+          test "$(git hash-object research/tools/apma_satlib_uf20_r000_r111_projected_signed_residual_bound/independent_checker.py)" = "679276487f9a29aef68289f985a10cd2f1bcc5c8"
+      - name: Compute projected signed residual candidate bounds only
+        run: |
+          set -euo pipefail
+          python -m research.tools.apma_satlib_uf20_r000_r111_projected_signed_residual_bound.certificate | tee /tmp/projected-signed-bound.json
+      - name: Independently verify projected residual bounds from source clauses
+        run: |
+          set -euo pipefail
+          python -m research.tools.apma_satlib_uf20_r000_r111_projected_signed_residual_bound.independent_checker --candidate-json /tmp/projected-signed-bound.json | tee /tmp/projected-signed-bound-independent.json
+      - name: Assert counting-only outcome and firewalls
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          c=json.loads(Path('/tmp/projected-signed-bound.json').read_text().strip().splitlines()[-1])
+          i=json.loads(Path('/tmp/projected-signed-bound-independent.json').read_text().strip().splitlines()[-1])
+          assert c['verdict']=='PASS_PROJECTED_SIGNED_RESIDUAL_BOUND_COMPUTED',c
+          assert c['source_guard']['ok'] is True,c['source_guard']
+          assert i['verified'] is True and i['candidate_imported'] is False,i
+          assert len(c['rows'])==5,c
+          for r in c['rows']:
+            assert r['all_same_unsigned_pairs_equal_or_reversed'] is True,r
+            assert r['residual_signed_action_candidates']==r['unsigned_respecting_permutation_candidates']*r['epsilon_multiplicity_per_permutation'],r
+          rr=c['resource_receipt']
+          assert rr['global_signed_actions_tested']==0 and rr['permutation_candidates_enumerated']==0 and rr['epsilon_vectors_enumerated']==0,rr
+          assert rr['solver_invocations']==0 and rr['new_signature_features']==0 and rr['new_invariants']==0 and rr['new_group_search_mechanisms']==0,rr
+          assert rr['new_solver_mechanisms']==0 and rr['new_carrier_mechanisms']==0 and rr['new_adapters']==0 and rr['new_quotients']==0 and rr['budget_raise'] is False,rr
+          sf=c['scientific_firewall'];assert sf['P_VS_NP']=='OPEN' and sf['GENERAL_SAT_IN_P']=='NOT_PROVED' and sf['NEW_INVARIANT_LICENSED'] is False,sf
+          print(json.dumps({'verdict':c['verdict'],'total':c['total_residual_signed_action_candidates_across_five_sources'],'rows':[{'source':r['source'],'variables':len(r['variables']),'constraints':r['constraint_count'],'unsigned_classes':r['unsigned_classes'],'balanced':r['balanced_variables'],'permutations':r['unsigned_respecting_permutation_candidates'],'epsilon_mult':r['epsilon_multiplicity_per_permutation'],'residual':r['residual_signed_action_candidates']} for r in c['rows']],'independent_verified':i['verified']},sort_keys=True))
+          PY
+      - name: Upload projected signed residual-bound receipt
+        uses: actions/upload-artifact@v4
+        with:
+          name: satlib-uf20-r000-r111-projected-signed-residual-bound-receipt
+          path: |
+            /tmp/projected-signed-bound.json
+            /tmp/projected-signed-bound-independent.json
+          if-no-files-found: error
+      - name: Authority notice
+        run: |
+          echo 'AUTHORITY=DIAGNOSTIC_REPLAY_OF_ALREADY_PROVED_SIGNED_EPSILON_COUNTING_RULE_ONLY'
+          echo 'GLOBAL_SIGNED_ACTIONS_TESTED=0'
+          echo 'P_VS_NP=OPEN'
+          echo 'GENERAL_SAT_IN_P=NOT_PROVED'
