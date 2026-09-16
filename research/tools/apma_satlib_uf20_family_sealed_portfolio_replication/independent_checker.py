@@ -79,7 +79,7 @@ def projected_candidate_row(row: dict[str, Any]) -> dict[str, Any]:
         "raw_sha256":row.get("raw_sha256"),
         "eligibility_class":(row.get("eligibility") or {}).get("eligibility_class"),
         "compositional":row.get("compositional"),
-        "log_closed":(row.get("log_alien") or {}).get("closed"),
+        "log_closed":bool((row.get("log_alien") or {}).get("closed", False)),
         "orbit_executed":(row.get("orbit") or {}).get("executed"),
         "orbit_status":(row.get("orbit") or {}).get("status"),
         "orbit_solver_authority":(row.get("orbit") or {}).get("solver_authority"),
@@ -100,7 +100,7 @@ def main(candidate: dict[str, Any]) -> dict[str, Any]:
     checks["resources"]=rr.get("new_adapters")==0 and rr.get("new_solver_mechanisms")==0 and rr.get("new_carrier_mechanisms")==0 and rr.get("new_symmetry_mechanisms")==0 and rr.get("new_separator_branching")==0 and rr.get("full_variable_cube_enumerations")==0 and rr.get("budget_raise") is False
     sf=candidate.get("scientific_firewall",{})
     checks["firewall"]=sf.get("P_VS_NP")=="OPEN" and sf.get("GENERAL_SAT_IN_P")=="NOT_PROVED" and sf.get("CONNECTED_MIXED_CORE_SOLVED")=="NO"
-    return {"artifact_id":"JANUS-TRUMP-SATLIB-UF20-FAMILY-SEALED-PORTFOLIO-REPLICATION-INDEPENDENT-CHECK-2026-09-16-v1.0","verified":all(checks.values()),"candidate_imported":False,"checks":checks,"independent_rows":independent,"independent_outcome_counts":counts}
+    return {"artifact_id":"JANUS-TRUMP-SATLIB-UF20-FAMILY-SEALED-PORTFOLIO-REPLICATION-INDEPENDENT-CHECK-2026-09-16-v1.1","verified":all(checks.values()),"candidate_imported":False,"checks":checks,"independent_rows":independent,"independent_outcome_counts":counts}
 
 
 if __name__=="__main__":
