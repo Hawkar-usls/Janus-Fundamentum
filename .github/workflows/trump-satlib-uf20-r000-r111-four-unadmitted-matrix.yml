@@ -1,0 +1,71 @@
+name: TRUMP SATLIB UF20 R000 R111 Four Unadmitted Residual Matrix
+
+on:
+  push:
+    branches:
+      - research/trump-external-satlib-uf20-01-source-acquisition-2026-09-16
+    paths:
+      - 'research/TRUMP_SATLIB_UF20_R000_R111_FOUR_UNADMITTED_EXISTING_EVIDENCE_RESIDUAL_MATRIX_PREREGISTRATION_2026-09-16.json'
+      - 'research/tools/apma_satlib_uf20_r000_r111_four_unadmitted_matrix/**'
+      - '.github/workflows/trump-satlib-uf20-r000-r111-four-unadmitted-matrix.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  residual-matrix:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Assert frozen matrix bindings
+        run: |
+          set -euo pipefail
+          test "$(git hash-object research/TRUMP_SATLIB_UF20_R000_R111_FOUR_UNADMITTED_EXISTING_EVIDENCE_RESIDUAL_MATRIX_PREREGISTRATION_2026-09-16.json)" = "537d8d9a0955426f6263dd36ae6d28772dc67275"
+          test "$(git hash-object research/TRUMP_SATLIB_UF20_R000_R111_SOURCE_BOUND_CORE_PROJECTION_RESULT_2026-09-16.json)" = "3a1e13a72183490a33e879d3f0c033f7c805b7e5"
+          test "$(git hash-object research/TRUMP_SATLIB_UF20_R000_R111_PROJECTED_CORE_SEALED_PORTFOLIO_REPLAY_RESULT_2026-09-16.json)" = "89958034e76e1f0f97ea28b972df2acf90786bd5"
+          test "$(git hash-object research/TRUMP_SATLIB_UF20_R000_R111_PROJECTED_CORE_EXISTING_SIGNATURE_ABLATION_REPLAY_RESULT_2026-09-16.json)" = "b7ba5bd772c3092e0436dde8bd717dc28985983c"
+          test "$(git hash-object research/TRUMP_SATLIB_UF20_R000_R111_PROJECTED_SIGNED_VS_SEALED_ORBIT_ALIGNMENT_RESULT_2026-09-16.json)" = "d20150284fef9926d828f9903a6b9f5c56c10b01"
+          test "$(git hash-object research/tools/apma_satlib_uf20_r000_r111_four_unadmitted_matrix/analyzer.py)" = "3c739494bd7e605f7c4edc9225b5e91170c0efee"
+          test "$(git hash-object research/tools/apma_satlib_uf20_r000_r111_four_unadmitted_matrix/independent_checker.py)" = "4cf41513321f5688faf0c2d8ed925976224c47fe"
+      - name: Compile frozen existing-evidence residual matrix
+        run: |
+          python -m research.tools.apma_satlib_uf20_r000_r111_four_unadmitted_matrix.analyzer > /tmp/residual-matrix.json
+      - name: Independently recompute matrix
+        run: |
+          python -m research.tools.apma_satlib_uf20_r000_r111_four_unadmitted_matrix.independent_checker --candidate-json /tmp/residual-matrix.json > /tmp/residual-matrix-independent.json
+      - name: Assert scoped matrix and firewalls
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          c=json.loads(Path('/tmp/residual-matrix.json').read_text().strip().splitlines()[-1])
+          i=json.loads(Path('/tmp/residual-matrix-independent.json').read_text().strip().splitlines()[-1])
+          assert c['verdict']=='PASS_FOUR_UNADMITTED_EXISTING_EVIDENCE_RESIDUAL_MATRIX_COMPILED',c
+          assert i['verified'] is True and i['candidate_imported'] is False,i
+          expected=['COMPOSITIONAL_OPEN_NO_SCHAEFER_BASIS','CONNECTED_R000_R111_CORE','LOG_ALIEN_INAPPLICABLE','ORBIT_NO_NONTRIVIAL_EXCHANGEABILITY','SIGNED_IDENTITY_ONLY']
+          assert c['common_label_intersection']==expected,(c['common_label_intersection'],expected)
+          rr=c['resource_receipt']
+          assert all(rr[k]==0 for k in ['new_action_tests','portfolio_replays','solver_invocations','new_invariants','new_solver_mechanisms','new_carrier_mechanisms','new_adapters','new_quotients']),rr
+          assert rr['budget_raise'] is False,rr
+          print(json.dumps({'verdict':c['verdict'],'common_label_intersection':c['common_label_intersection'],'independent_verified':i['verified']},sort_keys=True))
+          PY
+      - name: Upload residual matrix receipt
+        uses: actions/upload-artifact@v4
+        with:
+          name: satlib-uf20-r000-r111-four-unadmitted-residual-matrix-receipt
+          path: |
+            /tmp/residual-matrix.json
+            /tmp/residual-matrix-independent.json
+          if-no-files-found: error
+      - name: Authority notice
+        run: |
+          echo 'AUTHORITY=DIAGNOSTIC_CROSS_RESULT_RESIDUAL_OBLIGATION_MATRIX_ONLY'
+          echo 'NEW_INVARIANTS=0'
+          echo 'NEW_ACTION_TESTS=0'
+          echo 'SOLVER_INVOCATIONS=0'
+          echo 'P_VS_NP=OPEN'
