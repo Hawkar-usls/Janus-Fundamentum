@@ -1,0 +1,97 @@
+name: TRUMP SATLIB UF20 R000 R111 S3 L3 Frozen Partition Meet Alignment
+
+on:
+  push:
+    branches:
+      - research/trump-external-satlib-uf20-01-source-acquisition-2026-09-16
+    paths:
+      - 'research/TRUMP_SATLIB_UF20_R000_R111_S3_L3_FROZEN_PARTITION_MEET_ALIGNMENT_PREREGISTRATION_2026-09-17.json'
+      - 'research/TRUMP_SATLIB_UF20_R000_R111_S3_L3_FROZEN_PARTITION_MEET_ALIGNMENT_PREREGISTRATION_REVIEW_2026-09-17.json'
+      - 'research/tools/apma_satlib_uf20_r000_r111_s3_l3_frozen_partition_meet_alignment/**'
+      - '.github/workflows/trump-satlib-uf20-r000-r111-s3-l3-frozen-partition-meet-alignment.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  meet-alignment:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Assert frozen authority and implementation bindings
+        run: |
+          set -euo pipefail
+          test "$(git hash-object research/TRUMP_SATLIB_UF20_R000_R111_S3_L3_FROZEN_PARTITION_MEET_ALIGNMENT_PREREGISTRATION_2026-09-17.json)" = "01b7a1f2da7956c5bab2734c39cda2f9703fac07"
+          test "$(git hash-object research/TRUMP_SATLIB_UF20_R000_R111_S3_L3_FROZEN_PARTITION_MEET_ALIGNMENT_PREREGISTRATION_REVIEW_2026-09-17.json)" = "9980a3da4f5634d681f2394b032ac840ef13aac9"
+          test "$(git hash-object research/TRUMP_SATLIB_UF20_R000_R111_L3_WL3_EXISTING_SIGNATURE_EQUIVALENCE_AUDIT_RESULT_2026-09-17.json)" = "971d7d98a86471e88bf33336da215171b2f8cdfe"
+          test "$(git hash-object research/TRUMP_SATLIB_UF20_R000_R111_PROJECTED_CORE_EXISTING_SIGNATURE_ABLATION_REPLAY_RESULT_2026-09-16.json)" = "b7ba5bd772c3092e0436dde8bd717dc28985983c"
+          test "$(git hash-object research/TRUMP_SATLIB_UF20_R000_R111_RESIDUAL_LOCAL_INVARIANT_FALSIFIER_RESULT_2026-09-16.json)" = "954893935bee1d46a77c5f635086e0e278b05fac"
+          test "$(git hash-object research/tools/apma_satlib_uf20_r000_r111_projected_signature_ablation/replay.py)" = "2edad57e6017cb34bf797313e4451c1ce014900b"
+          test "$(git hash-object research/tools/apma_satlib_uf20_r000_r111_residual_local_invariant_falsifier/candidate.py)" = "4ec02d6d42e6cad7d91f16b1acfdcbe51dbd65df"
+          test "$(git hash-object research/tools/apma_satlib_uf20_r000_r111_s3_l3_frozen_partition_meet_alignment/candidate.py)" = "bfbe61888df60dcccdbb4addd16d38c881e32b4e"
+          test "$(git hash-object research/tools/apma_satlib_uf20_r000_r111_s3_l3_frozen_partition_meet_alignment/independent_checker.py)" = "b77681520098fecccbcb63f2ceca3e06d466bc57"
+          test "$(git hash-object research/source_data/SATLIB_UF20_01_2026-09-16.cnf)" = "8330041b292e0501f8d74c1b1d32ca96c4498864"
+          test "$(git hash-object research/source_data/SATLIB_UF20_02_2026-09-16.cnf)" = "f924caaef0d868bf62b1658e83e030ad8daee865"
+          test "$(git hash-object research/source_data/SATLIB_UF20_03_2026-09-16.cnf)" = "8f3d15154515457281f49201b843f2a7134dfa9f"
+          test "$(git hash-object research/source_data/SATLIB_UF20_04_2026-09-16.cnf)" = "34ced5c169f967b2dc44ef5e42f2ee2c924813e1"
+          test "$(git hash-object research/source_data/SATLIB_UF20_05_2026-09-16.cnf)" = "3b04eff26ee37bdd0bc21b1066486974f92a2c9b"
+      - name: Execute frozen S3-L3 partition meet alignment
+        run: |
+          set -euo pipefail
+          python -m research.tools.apma_satlib_uf20_r000_r111_s3_l3_frozen_partition_meet_alignment.candidate > /tmp/s3-l3-meet.json
+      - name: Independently recompute frozen partitions and meet
+        run: |
+          set -euo pipefail
+          python -m research.tools.apma_satlib_uf20_r000_r111_s3_l3_frozen_partition_meet_alignment.independent_checker --candidate-json /tmp/s3-l3-meet.json > /tmp/s3-l3-meet-independent.json
+      - name: Assert frozen alignment outcome and firewalls
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          c=json.loads(Path('/tmp/s3-l3-meet.json').read_text().strip().splitlines()[-1])
+          i=json.loads(Path('/tmp/s3-l3-meet-independent.json').read_text().strip().splitlines()[-1])
+          allowed={
+            'PASS_SCOPED_FROZEN_S3_L3_MEET_IS_[7,10]_ONLY_ON_CONTROL_AND_SINGLETON_ON_ALL_FOUR_PANEL_SOURCES',
+            'FAIL_SCOPED_FROZEN_S3_L3_MEET_ALIGNMENT'}
+          assert c['verdict'] in allowed,c
+          assert c['source_guard']['ok'] is True,c['source_guard']
+          assert c['frozen_partition_receipts_verified'] is True,c
+          assert i['verified'] is True and i['candidate_imported'] is False,i
+          assert i['verdict']==c['verdict'],(i,c)
+          assert i['partition_meets_verified']==5,i
+          rr=c['resource_receipt']
+          assert rr['source_count']==5 and rr['partition_meets']==5,rr
+          assert rr['full_assignment_cube_enumerations']==0 and rr['solver_invocations']==0 and rr['group_searches']==0,rr
+          assert rr['new_feature_definitions']==0 and rr['new_graph_statistics']==0,rr
+          assert rr['new_solver_mechanisms']==0 and rr['new_carrier_mechanisms']==0 and rr['new_adapters']==0 and rr['new_quotients']==0 and rr['budget_raise'] is False,rr
+          sf=c['scientific_firewall']
+          assert sf['P_VS_NP']=='OPEN' and sf['GENERAL_SAT_IN_P']=='NOT_PROVED' and sf['CONNECTED_MIXED_CORE_SOLVED']=='NO',sf
+          print(json.dumps({
+            'verdict':c['verdict'],
+            'control_meet_non_singleton_classes':i['control_meet_non_singleton_classes'],
+            'panel_all_singleton':i['panel_all_singleton'],
+            'independent_verified':i['verified']
+          },sort_keys=True))
+          PY
+      - name: Upload partition-meet receipt
+        uses: actions/upload-artifact@v4
+        with:
+          name: satlib-uf20-r000-r111-s3-l3-frozen-partition-meet-alignment-receipt
+          path: |
+            /tmp/s3-l3-meet.json
+            /tmp/s3-l3-meet-independent.json
+          if-no-files-found: error
+      - name: Authority notice
+        run: |
+          echo 'AUTHORITY=DIAGNOSTIC_EXISTING_PARTITION_MEET_ONLY'
+          echo 'NEW_FEATURE_DEFINITIONS=0'
+          echo 'NEW_GRAPH_STATISTICS=0'
+          echo 'SOLVER_INVOCATIONS=0'
+          echo 'GROUP_SEARCHES=0'
+          echo 'P_VS_NP=OPEN'
+          echo 'GENERAL_SAT_IN_P=NOT_PROVED'
