@@ -1,0 +1,147 @@
+name: TRUMP Pendant Boundary v1.1 Provenance Freezer
+
+on:
+  push:
+    branches:
+      - research/trump-external-satlib-uf20-01-source-acquisition-2026-09-16
+    paths:
+      - '.github/workflows/trump-satlib-uf20-r000-r111-pendant-singleton-boundary-v1-1-freeze.yml'
+  workflow_dispatch:
+
+permissions:
+  actions: read
+  contents: write
+
+concurrency:
+  group: trump-pendant-boundary-v1-1-provenance-freeze
+  cancel-in-progress: false
+
+jobs:
+  freeze-provenance:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    env:
+      GH_TOKEN: ${{ github.token }}
+      BRANCH: research/trump-external-satlib-uf20-01-source-acquisition-2026-09-16
+      SCI_WORKFLOW: trump-satlib-uf20-r000-r111-pendant-singleton-existential-boundary-projection-v1-1.yml
+      ARTIFACT_NAME: satlib-uf20-r000-r111-pendant-singleton-existential-boundary-projection-v1-1-receipt
+      RESULT_PATH: research/TRUMP_SATLIB_UF20_R000_R111_PENDANT_SINGLETON_EXISTENTIAL_BOUNDARY_PROJECTION_RESULT_2026-09-17_v1.1.json
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ env.BRANCH }}
+          fetch-depth: 0
+      - name: Wait for exactly the latest repaired scientific run and require success
+        id: resolve
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY' > /tmp/resolved.env
+          import json, os, time, urllib.parse, urllib.request
+          repo=os.environ['GITHUB_REPOSITORY']; branch=os.environ['BRANCH']; wf=os.environ['SCI_WORKFLOW']; token=os.environ['GH_TOKEN']
+          def get(url):
+              req=urllib.request.Request(url,headers={'Authorization':f'Bearer {token}','Accept':'application/vnd.github+json','X-GitHub-Api-Version':'2022-11-28','User-Agent':'Janus-Fundamentum-provenance-freezer/1.0'})
+              with urllib.request.urlopen(req,timeout=30) as r:return json.loads(r.read().decode())
+          base=f'https://api.github.com/repos/{repo}/actions/workflows/{wf}/runs?branch={urllib.parse.quote(branch,safe="")}&per_page=10'
+          chosen=None
+          for _ in range(48):
+              data=get(base); runs=data.get('workflow_runs',[])
+              if not runs: time.sleep(5); continue
+              chosen=runs[0]
+              if chosen.get('status')=='completed': break
+              time.sleep(5)
+          if not chosen or chosen.get('status')!='completed': raise SystemExit('NO_COMPLETED_REPAIRED_RUN_WITHIN_POLL_WINDOW')
+          if chosen.get('conclusion')!='success': raise SystemExit(f'REPAIRED_SCIENTIFIC_RUN_NOT_SUCCESS:{chosen.get("id")}:{chosen.get("conclusion")}')
+          jobs=get(f'https://api.github.com/repos/{repo}/actions/runs/{chosen["id"]}/jobs?per_page=100').get('jobs',[])
+          target=[j for j in jobs if j.get('name')=='boundary-projection-v1-1']
+          if len(target)!=1: raise SystemExit(f'EXPECTED_ONE_BOUNDARY_JOB_GOT_{len(target)}')
+          arts=get(f'https://api.github.com/repos/{repo}/actions/runs/{chosen["id"]}/artifacts?per_page=100').get('artifacts',[])
+          aa=[a for a in arts if a.get('name')==os.environ['ARTIFACT_NAME'] and not a.get('expired')]
+          if len(aa)!=1: raise SystemExit(f'EXPECTED_ONE_RECEIPT_ARTIFACT_GOT_{len(aa)}')
+          print(f'RUN_ID={chosen["id"]}')
+          print(f'JOB_ID={target[0]["id"]}')
+          print(f'HEAD_SHA={chosen["head_sha"]}')
+          print(f'ARTIFACT_ID={aa[0]["id"]}')
+          print(f'ARTIFACT_DIGEST={aa[0].get("digest","")}')
+          PY
+          cat /tmp/resolved.env
+          cat /tmp/resolved.env >> "$GITHUB_ENV"
+      - name: Download only the verified repaired-run artifact
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/receipt
+          gh run download "$RUN_ID" --repo "$GITHUB_REPOSITORY" --name "$ARTIFACT_NAME" --dir /tmp/receipt
+          find /tmp/receipt -maxdepth 3 -type f -print
+      - name: Validate receipt without recomputing scientific values and build frozen result
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json, os, subprocess
+          from pathlib import Path
+          def find_one(name):
+              xs=list(Path('/tmp/receipt').rglob(name))
+              if len(xs)!=1: raise SystemExit(f'EXPECTED_ONE_{name}_GOT_{len(xs)}')
+              return xs[0]
+          cp=find_one('pendant-boundary-v1-1.json'); ip=find_one('pendant-boundary-v1-1-independent.json')
+          c=json.loads(cp.read_text().strip().splitlines()[-1]); i=json.loads(ip.read_text().strip().splitlines()[-1])
+          allowed={'ALL_ELEVEN_UNIVERSAL','MIXED_OR_PROPER','AT_LEAST_ONE_EMPTY'}
+          assert c['verdict'] in allowed,c
+          assert i['verified'] is True and i['candidate_imported'] is False,i
+          assert i['verdict']==c['verdict'],(i,c)
+          assert len(c['rows'])==4 and sum(len(r['attachments']) for r in c['rows'])==11
+          rr=c['resource_receipt']; assert rr['attachments']==11 and rr['boundary_assignments']==44 and rr['table_membership_tests']==88 and rr['maximum_table_membership_tests']==88
+          assert rr['attachment_deletions']==0 and rr['projected_raw_modifications']==0 and rr['fresh_holdout_values_read']==0 and rr['global_solver_invocations']==0 and rr['component_solution_attempts']==0
+          assert rr['action_tests']==0 and rr['automorphism_tests']==0 and rr['group_searches']==0 and rr['group_closure_computation']==0
+          assert c['local_semantics_theorem']['deletion_applied'] is False
+          if c['verdict']=='ALL_ELEVEN_UNIVERSAL':
+              assert c['outcome_counts']=={'UNIVERSAL_BOUNDARY_RELATION_4_OF_4':11,'PROPER_NONEMPTY_BOUNDARY_RELATION':0,'EMPTY_BOUNDARY_RELATION':0}
+              assert c['local_semantics_theorem']['all_leaf_unique_occurrence_premises_verified'] is True
+              assert c['local_semantics_theorem']['all_boundary_relations_universal_verified'] is True
+              assert c['local_semantics_theorem']['symbolic_projection_equivalence_verified'] is True
+              assert i['local_semantics_theorem_verified'] is True
+          def ghash(path):return subprocess.check_output(['git','hash-object',path],text=True).strip()
+          candidate_path='research/tools/apma_satlib_uf20_r000_r111_pendant_singleton_existential_boundary_projection/candidate_v1_1.py'
+          checker_path='research/tools/apma_satlib_uf20_r000_r111_pendant_singleton_existential_boundary_projection/independent_checker.py'
+          repair_path='research/TRUMP_SATLIB_UF20_R000_R111_PENDANT_SINGLETON_EXISTENTIAL_BOUNDARY_PROJECTION_EXECUTION_REPAIR_PREREGISTRATION_2026-09-17_v1.1.json'
+          failure_path='research/TRUMP_SATLIB_UF20_R000_R111_PENDANT_SINGLETON_EXISTENTIAL_BOUNDARY_PROJECTION_EXECUTION_FAILURE_RECEIPT_2026-09-17_v1.0.json'
+          sci_wf='.github/workflows/trump-satlib-uf20-r000-r111-pendant-singleton-existential-boundary-projection-v1-1.yml'
+          verdict=c['verdict']
+          if verdict=='ALL_ELEVEN_UNIVERSAL':
+              licensed='ALL_ELEVEN_FROZEN_PENDANT_SINGLETON_ATTACHMENTS_HAVE_UNIVERSAL_TWO_VARIABLE_EXISTENTIAL_BOUNDARY_RELATIONS_AND_EACH_LEAF_OCCURS_IN_EXACTLY_ONE_PROJECTED_CONSTRAINT;THEREFORE_FOR_EACH_ATTACHMENT_SEPARATELY_EXISTENTIALLY_ELIMINATING_THE_LEAF_AND_ITS_ONLY_CONSTRAINT_PRESERVES_THE_ASSIGNMENT_SET_ON_ALL_REMAINING_VARIABLES_AND_A_CANONICAL_LEAF_VALUE_CAN_BE_RECONSTRUCTED_FROM_ITS_GATEWAY_VALUES'
+              current='ALL_ELEVEN_PENDANT_SINGLETON_ATTACHMENTS_ARE_LOCALLY_EXISTENTIALLY_TRANSPARENT_WITH_CANONICAL_RECONSTRUCTION_WITNESSES;NO_DELETION_HAS_YET_BEEN_APPLIED'
+              missing='BEFORE_APPLYING_ANY_SIMULTANEOUS_OR_SEQUENTIAL_DELETION_AUDIT_DEPENDENCIES_AMONG_THE_ELEVEN_FROZEN_LEAF_TO_GATEWAY_MAPPINGS:DETERMINE_WHETHER_ANY_GATEWAY_VARIABLE_IS_ITSELF_ONE_OF_THE_ELEVEN_TARGET_LEAVES_AND_WETHER_THE_DEPENDENCY_GRAPH_IS_ACYCLIC_OR_CONTAINS_CYCLES;THIS_IS_REQUIRED_FOR_A_VALID_MULTI_ATTACHMENT_RECONSTRUCTION_ORDER'
+              next_gate='TRUMP_SATLIB_UF20_R000_R111_PENDANT_SINGLETON_DELETION_DEPENDENCY_AUDIT_GATE'
+              directive='PIN_THIS_BOUNDARY_RESULT_AND_THE_ELEVEN_FROZEN_LEAF_GATEWAY_MAPPINGS;BUILD_ONLY_THE_DIRECTED_DEPENDENCY_GRAPH_LEAF_x_TO_TARGET_LEAF_y_WHEN_y_APPEARS_IN_x_GATEWAY_PAIR;RECORD_IN_OUT_DEGREES_CONNECTED_COMPONENTS_TOPOLOGICAL_ORDER_IF_ACYCLIC_AND_ANY_DIRECTED_CYCLES;DO_NOT_DELETE_ANYTHING;DO_NOT_RECOMPUTE_BOUNDARY_RELATIONS;DO_NOT_TOUCH_UF20_011_TO_UF20_015;RETURN_TO_CAPTAIN'
+          else:
+              licensed='THE_ELEVEN_FROZEN_PENDANT_SINGLETON_ATTACHMENTS_HAVE_BEEN_EXACTLY_AUDITED_UNDER_THE_FROZEN_LOCAL_EXISTENTIAL_BOUNDARY_RELATION_DEFINITION;ONLY_THE_RECORDED_PER_ATTACHMENT_BOUNDARY_RELATIONS_AND_WITNESSES_ARE_LICENSED'
+              current='PENDANT_SINGLETON_BOUNDARY_AUDIT_COMPLETED_WITH_A_NONUNIVERSAL_OVERALL_OUTCOME;NO_DELETION_IS_LICENSED'
+              missing='LOCALIZE_THE_NONUNIVERSAL_ATTACHMENTS_AND_THEIR_EXACT_FROZEN_BOUNDARY_RELATION_CLASSES_WITHOUT_CHANGING_THE_BOUNDARY_DEFINITION_OR_APPLYING_ANY_REDUCTION'
+              next_gate='TRUMP_SATLIB_UF20_R000_R111_PENDANT_SINGLETON_NONUNIVERSAL_BOUNDARY_LOCALIZATION_GATE'
+              directive='PIN_THIS_BOUNDARY_RESULT;SYNTHESIZE_ONLY_THE_ALREADY_FROZEN_NONUNIVERSAL_ATTACHMENT_RECEIPTS;NO_DELETION_OR_GLOBAL_SOLVER;DO_NOT_TOUCH_UF20_011_TO_UF20_015;RETURN_TO_CAPTAIN'
+          result={
+            'artifact_id':'JANUS-TRUMP-SATLIB-UF20-R000-R111-PENDANT-SINGLETON-EXISTENTIAL-BOUNDARY-PROJECTION-RESULT-2026-09-17-v1.1',
+            'date':'2026-09-17','status':'FROZEN_REPAIRED_EXECUTION_SCIENTIFIC_RESULT','authority':'DIAGNOSTIC_EXACT_LOCAL_EXISTENTIAL_BOUNDARY_RELATION_AUDIT_ONLY__NO_DELETION_GLOBAL_SOLVER_COMPONENT_SOLVING_ACTION_AUTOMORPHISM_GROUP_SEARCH_CARRIER_ADAPTER_OR_QUOTIENT',
+            'scientific_preregistration':{'commit':'9c486fc1ed7a6f7238d5e8e2febdb0ea99b13a9e','blob':'1b1e2959bc238f18fa8f951876072f9f4c8f917f'},
+            'scientific_review':{'commit':'cf87fe1c0f76475418f36d56f95db6090bba5b25','blob':'f44771b6f32c0837aea18bc4f03d2f74cf703c4b'},
+            'failed_v1_0_execution':{'run_id':35160196542,'job_id':105008948460,'classification':'TECHNICAL_EXECUTION_FAILURE__NO_SCIENTIFIC_VERDICT','failure_receipt_blob':ghash(failure_path)},
+            'repair_preregistration':{'blob':ghash(repair_path),'scientific_contract_changed':False,'failed_run_values_used_for_tuning':False},
+            'implementation':{'candidate_v1_1_blob':ghash(candidate_path),'independent_checker_blob':ghash(checker_path),'workflow_head_commit':os.environ['HEAD_SHA'],'workflow_blob':ghash(sci_wf)},
+            'execution':{'run_id':int(os.environ['RUN_ID']),'job_id':int(os.environ['JOB_ID']),'conclusion':'success','artifact_id':int(os.environ['ARTIFACT_ID']),'artifact_name':os.environ['ARTIFACT_NAME'],'artifact_digest':os.environ.get('ARTIFACT_DIGEST',''),'independent_verified':True,'candidate_imported_by_independent_checker':False},
+            'verdict':verdict,'outcome_counts':c['outcome_counts'],'source_receipts':c['rows'],'local_semantics_theorem':c['local_semantics_theorem'],'licensed_fact':{'statement':licensed,'scope':'ELEVEN_FROZEN_PENDANT_ATTACHMENTS_ON_UF20_02_TO_UF20_05_ONLY'},
+            'not_licensed':['APPLY_OR_ITERATE_ANY_DELETION','ASSUME_SIMULTANEOUS_RECONSTRUCTION_IS_VALID_WITHOUT_DEPENDENCY_AUDIT','ANY_GLOBAL_SOLVER_OR_COMPONENT_SOLVER','GENERALIZE_TO_UF20_011_TO_UF20_015','STRUCTURAL_OR_LOCAL_TRANSPARENCY_IMPLIES_TRACTABILITY','STRUCTURAL_OR_LOCAL_TRANSPARENCY_IMPLIES_HARDNESS','ANY_SOLVER_CARRIER_ADAPTER_QUOTIENT_OR_GROUP_SEARCH','GENERAL_SAT_IN_P','GENERAL_SAT_NOT_IN_P','P_EQUALS_NP','P_NOT_EQUALS_NP'],
+            'resource_receipt':rr,
+            'scientific_firewall':c['scientific_firewall'],
+            'captain_obvious_readout':{'current_source_line_status':current,'nearest_missing_obligation':missing,'next_gate':next_gate,'next_gate_class':'DIAGNOSTIC_FROZEN_ATTACHMENT_DEPENDENCY_OR_NONUNIVERSAL_LOCALIZATION_ONLY__NO_DELETION_SOLVER_ACTION_AUTOMORPHISM_GROUP_SEARCH_CARRIER_ADAPTER_OR_QUOTIENT','next_gate_status':'AUTHORIZED_TO_PREREGISTER_ONLY','directive':directive}
+          }
+          out=Path(os.environ['RESULT_PATH']); out.write_text(json.dumps(result,indent=2,sort_keys=False)+'\n')
+          print(json.dumps({'verdict':verdict,'result_path':str(out),'run_id':int(os.environ['RUN_ID']),'artifact_id':int(os.environ['ARTIFACT_ID']),'candidate_v1_1_blob':result['implementation']['candidate_v1_1_blob'],'repair_prereg_blob':result['repair_preregistration']['blob']},sort_keys=True))
+          PY
+      - name: Commit frozen scientific result only after verified repaired run
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add "$RESULT_PATH"
+          git diff --cached --quiet && { echo 'NO_RESULT_CHANGE'; exit 0; }
+          git commit -m 'TRUMP freeze repaired pendant singleton existential boundary projection result v1.1'
+          git push origin "HEAD:$BRANCH"
