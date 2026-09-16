@@ -1,0 +1,73 @@
+name: TRUMP SATLIB UF20 R000 R111 Signed vs Sealed Orbit Alignment
+
+on:
+  push:
+    branches:
+      - research/trump-external-satlib-uf20-01-source-acquisition-2026-09-16
+    paths:
+      - 'research/TRUMP_SATLIB_UF20_R000_R111_PROJECTED_SIGNED_VS_SEALED_ORBIT_ALIGNMENT_PREREGISTRATION_2026-09-16.json'
+      - 'research/tools/apma_satlib_uf20_r000_r111_signed_orbit_alignment/**'
+      - '.github/workflows/trump-satlib-uf20-r000-r111-signed-orbit-alignment.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  alignment:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Assert frozen cross-certificate bindings
+        run: |
+          set -euo pipefail
+          test "$(git hash-object research/TRUMP_SATLIB_UF20_R000_R111_PROJECTED_SIGNED_VS_SEALED_ORBIT_ALIGNMENT_PREREGISTRATION_2026-09-16.json)" = "afd8092be86bc19b7f65359357fdb3b8e509add8"
+          test "$(git hash-object research/TRUMP_SATLIB_UF20_R000_R111_PROJECTED_CORE_SIGNED_RESIDUAL_EXACT_CERTIFICATE_RESULT_2026-09-16_v1.1.json)" = "1c2b7d35f970038616fa9f1decb20d67c88965f5"
+          test "$(git hash-object research/TRUMP_SATLIB_UF20_R000_R111_PROJECTED_CORE_SEALED_PORTFOLIO_REPLAY_RESULT_2026-09-16.json)" = "89958034e76e1f0f97ea28b972df2acf90786bd5"
+          test "$(git hash-object research/TRUMP_SATLIB_UF20_R000_R111_PROJECTED_CORE_EXACT_TRANSPOSITION_WITNESS_LOCALIZATION_RESULT_2026-09-16.json)" = "ad05793643bca011d9ce9cd87fff9ae2a3e06181"
+          test "$(git hash-object research/tools/apma_satlib_uf20_r000_r111_signed_orbit_alignment/analyzer.py)" = "1d6f20ea0dd6df99fbdb65c42a67876dbe525b54"
+          test "$(git hash-object research/tools/apma_satlib_uf20_r000_r111_signed_orbit_alignment/independent_checker.py)" = "30be97e92c7a30d7242b5f9b02b08fef621eb612"
+      - name: Align frozen signed and sealed orbit certificates
+        run: |
+          set -euo pipefail
+          python -m research.tools.apma_satlib_uf20_r000_r111_signed_orbit_alignment.analyzer > /tmp/alignment.json
+      - name: Independently recompute alignment
+        run: |
+          set -euo pipefail
+          python -m research.tools.apma_satlib_uf20_r000_r111_signed_orbit_alignment.independent_checker --candidate-json /tmp/alignment.json > /tmp/alignment-independent.json
+      - name: Assert scoped alignment and firewalls
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          c=json.loads(Path('/tmp/alignment.json').read_text().strip().splitlines()[-1])
+          i=json.loads(Path('/tmp/alignment-independent.json').read_text().strip().splitlines()[-1])
+          assert c['verdict']=='PASS_SIGNED_EXACT_WITNESS_ALIGNS_WITH_EXISTING_SEALED_ORBIT_CELL_AND_ADDS_NO_NEW_CLOSURES',c
+          assert i['verified'] is True and i['candidate_imported'] is False,i
+          assert c['aligned_witness']=={'source':'UF20_01','pair':[7,10],'epsilon_flips':[],'sealed_orbit_cell':[7,10]},c
+          rr=c['resource_receipt']
+          assert all(rr[k]==0 for k in ['new_action_tests','portfolio_replays','solver_invocations','group_closure_computation','quotient_states_enumerated','new_invariants','new_solver_mechanisms','new_carrier_mechanisms','new_adapters','new_quotients']),rr
+          assert rr['budget_raise'] is False,rr
+          sf=c['scientific_firewall']
+          assert sf['P_VS_NP']=='OPEN' and sf['GENERAL_SAT_IN_P']=='NOT_PROVED',sf
+          print(json.dumps({'verdict':c['verdict'],'aligned_witness':c['aligned_witness'],'independent_verified':i['verified']},sort_keys=True))
+          PY
+      - name: Upload alignment receipt
+        uses: actions/upload-artifact@v4
+        with:
+          name: satlib-uf20-r000-r111-signed-orbit-alignment-receipt
+          path: |
+            /tmp/alignment.json
+            /tmp/alignment-independent.json
+          if-no-files-found: error
+      - name: Authority notice
+        run: |
+          echo 'AUTHORITY=DIAGNOSTIC_CROSS_CERTIFICATE_ALIGNMENT_ONLY'
+          echo 'NEW_ACTION_TESTS=0'
+          echo 'PORTFOLIO_REPLAYS=0'
+          echo 'SOLVER_INVOCATIONS=0'
+          echo 'P_VS_NP=OPEN'
