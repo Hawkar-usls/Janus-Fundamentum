@@ -1,0 +1,87 @@
+name: TRUMP SATLIB UF20 L3 Ten Source Transfer Synthesis
+
+on:
+  push:
+    branches:
+      - research/trump-external-satlib-uf20-01-source-acquisition-2026-09-16
+    paths:
+      - 'research/TRUMP_SATLIB_UF20_R000_R111_L3_PARTITION_NOVELTY_TEN_SOURCE_TRANSFER_SYNTHESIS_PREREGISTRATION_2026-09-17.json'
+      - 'research/TRUMP_SATLIB_UF20_R000_R111_L3_PARTITION_NOVELTY_TEN_SOURCE_TRANSFER_SYNTHESIS_PREREGISTRATION_REVIEW_2026-09-17.json'
+      - 'research/tools/apma_satlib_uf20_r000_r111_l3_partition_novelty_ten_source_transfer_synthesis/**'
+      - '.github/workflows/trump-satlib-uf20-r000-r111-l3-partition-novelty-ten-source-transfer-synthesis.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  transfer-synthesis:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Assert frozen synthesis bindings
+        run: |
+          set -euo pipefail
+          test "$(git hash-object research/TRUMP_SATLIB_UF20_R000_R111_L3_PARTITION_NOVELTY_TEN_SOURCE_TRANSFER_SYNTHESIS_PREREGISTRATION_2026-09-17.json)" = "b14aafe45b9140305601aaca327e890a90b5cf68"
+          test "$(git hash-object research/TRUMP_SATLIB_UF20_R000_R111_L3_PARTITION_NOVELTY_TEN_SOURCE_TRANSFER_SYNTHESIS_PREREGISTRATION_REVIEW_2026-09-17.json)" = "ffda46d2443f41bba400b2b2ac7966b08a72e512"
+          test "$(git hash-object research/TRUMP_SATLIB_UF20_R000_R111_L3_WL3_EXISTING_SIGNATURE_EQUIVALENCE_AUDIT_RESULT_2026-09-17.json)" = "971d7d98a86471e88bf33336da215171b2f8cdfe"
+          test "$(git hash-object research/TRUMP_SATLIB_UF20_R000_R111_UNSEEN_FIVE_SOURCE_L3_VS_S0_S3_PARTITION_RELATION_MATRIX_RESULT_2026-09-17.json)" = "24da02d77596a640fcb782f8aa12f088319c757b"
+          test "$(git hash-object research/tools/apma_satlib_uf20_r000_r111_l3_partition_novelty_ten_source_transfer_synthesis/candidate.py)" = "f86cd74f95827076c2c07abac259ef6d0545fdde"
+          test "$(git hash-object research/tools/apma_satlib_uf20_r000_r111_l3_partition_novelty_ten_source_transfer_synthesis/independent_checker.py)" = "924c4da273d8abef6c6973cf8a1905b281b5daec"
+      - name: Synthesize frozen ten-source transfer ledger once
+        run: |
+          set -euo pipefail
+          python -m research.tools.apma_satlib_uf20_r000_r111_l3_partition_novelty_ten_source_transfer_synthesis.candidate > /tmp/l3-ten-source-transfer.json
+      - name: Independently verify frozen labels and counts
+        run: |
+          set -euo pipefail
+          python -m research.tools.apma_satlib_uf20_r000_r111_l3_partition_novelty_ten_source_transfer_synthesis.independent_checker --candidate-json /tmp/l3-ten-source-transfer.json > /tmp/l3-ten-source-transfer-independent.json
+      - name: Assert synthesis scope and firewalls
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          c=json.loads(Path('/tmp/l3-ten-source-transfer.json').read_text().strip().splitlines()[-1])
+          i=json.loads(Path('/tmp/l3-ten-source-transfer-independent.json').read_text().strip().splitlines()[-1])
+          allowed={
+            'VERDICT_NO_FIRST_BLIND_HOLDOUT_TRANSFER_EVIDENCE__L3_NON_GENERALIZED_UNDER_CURRENT_EVIDENCE',
+            'VERDICT_FIRST_BLIND_HOLDOUT_TRANSFER_EVIDENCE_PRESENT__STILL_SCOPED_NO_GENERALIZATION'}
+          assert c['verdict'] in allowed,c
+          assert c['source_guard']['ok'] is True,c['source_guard']
+          assert i['verified'] is True and i['candidate_imported'] is False,i
+          assert i['verdict']==c['verdict'],(i,c)
+          assert i['sources_verified']==10 and i['partition_recomputations']==0,i
+          assert sum(c['original_panel_counts'].values())==5,c['original_panel_counts']
+          assert sum(c['blind_holdout_counts'].values())==5,c['blind_holdout_counts']
+          assert sum(c['combined_ten_source_counts'].values())==10,c['combined_ten_source_counts']
+          assert c['original_uf20_03_scoped_fact_preserved'] is True,c
+          rr=c['resource_receipt']
+          assert rr['frozen_input_results']==2 and rr['sources']==10 and rr['relation_labels_read']==10 and rr['partition_recomputations']==0,rr
+          assert rr['solver_invocations']==0 and rr['portfolio_replays']==0 and rr['action_tests']==0 and rr['automorphism_tests']==0 and rr['group_searches']==0 and rr['group_closure_computation']==0,rr
+          assert rr['new_feature_definitions']==0 and rr['new_graph_statistics']==0 and rr['new_solver_mechanisms']==0 and rr['new_carrier_mechanisms']==0 and rr['new_adapters']==0 and rr['new_quotients']==0,rr
+          sf=c['scientific_firewall']
+          assert sf['P_VS_NP']=='OPEN' and sf['GENERAL_SAT_IN_P']=='NOT_PROVED' and sf['CONNECTED_MIXED_CORE_SOLVED']=='NO' and sf['L3_GENERALIZES']=='NOT_PROVED',sf
+          print(json.dumps({'verdict':c['verdict'],'original_panel_counts':c['original_panel_counts'],'blind_holdout_counts':c['blind_holdout_counts'],'combined_ten_source_counts':c['combined_ten_source_counts'],'blind_additional_discrimination_count':c['blind_additional_discrimination_count'],'first_blind_holdout_transfer_evidence':c['first_blind_holdout_transfer_evidence'],'independent_verified':i['verified']},sort_keys=True))
+          PY
+      - name: Upload transfer synthesis receipt
+        uses: actions/upload-artifact@v4
+        with:
+          name: satlib-uf20-r000-r111-l3-ten-source-transfer-synthesis-receipt
+          path: |
+            /tmp/l3-ten-source-transfer.json
+            /tmp/l3-ten-source-transfer-independent.json
+          if-no-files-found: error
+      - name: Authority notice
+        run: |
+          echo 'AUTHORITY=DIAGNOSTIC_CROSS_RESULT_TRANSFER_SYNTHESIS_ONLY'
+          echo 'PARTITION_RECOMPUTATIONS=0'
+          echo 'NEW_FEATURE_DEFINITIONS=0'
+          echo 'AUTOMORPHISM_TESTS=0'
+          echo 'ACTION_TESTS=0'
+          echo 'SOLVER_INVOCATIONS=0'
+          echo 'P_VS_NP=OPEN'
+          echo 'GENERAL_SAT_IN_P=NOT_PROVED'
