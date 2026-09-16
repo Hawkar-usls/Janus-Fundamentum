@@ -1,0 +1,89 @@
+name: TRUMP SATLIB UF20 Successor Closure Leverage Requirements Synthesis
+
+on:
+  push:
+    branches:
+      - research/trump-external-satlib-uf20-01-source-acquisition-2026-09-16
+    paths:
+      - 'research/TRUMP_SATLIB_UF20_R000_R111_SUCCESSOR_CLOSURE_LEVERAGE_REQUIREMENTS_SYNTHESIS_PREREGISTRATION_2026-09-17.json'
+      - 'research/TRUMP_SATLIB_UF20_R000_R111_SUCCESSOR_CLOSURE_LEVERAGE_REQUIREMENTS_SYNTHESIS_PREREGISTRATION_REVIEW_2026-09-17.json'
+      - 'research/tools/apma_satlib_uf20_r000_r111_successor_closure_leverage_requirements_synthesis/**'
+      - '.github/workflows/trump-satlib-uf20-r000-r111-successor-closure-leverage-requirements-synthesis.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  requirements-synthesis:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Assert frozen route synthesis bindings
+        run: |
+          set -euo pipefail
+          test "$(git hash-object research/TRUMP_SATLIB_UF20_R000_R111_SUCCESSOR_CLOSURE_LEVERAGE_REQUIREMENTS_SYNTHESIS_PREREGISTRATION_2026-09-17.json)" = "40fb96cc8fb54988881cb3a2186fc61f2bf45361"
+          test "$(git hash-object research/TRUMP_SATLIB_UF20_R000_R111_SUCCESSOR_CLOSURE_LEVERAGE_REQUIREMENTS_SYNTHESIS_PREREGISTRATION_REVIEW_2026-09-17.json)" = "aa71d90280a83f1c278f94e6d7e40a9db04f63c4"
+          test "$(git hash-object research/TRUMP_SATLIB_UF20_R000_R111_SUCCESSOR_VARIABLE_PARTITION_REFINEMENT_UTILITY_BARRIER_RESULT_2026-09-17.json)" = "ef78b34e32a27941aa9a11a351ebffbafe05e043"
+          test "$(git hash-object research/TRUMP_SATLIB_UF20_R000_R111_FOUR_UNADMITTED_EXISTING_EVIDENCE_RESIDUAL_MATRIX_RESULT_2026-09-16.json)" = "f6209a9b97c8f270ff915ba5c813922b5a8e3bb3"
+          test "$(git hash-object research/TRUMP_SATLIB_UF20_R000_R111_PROJECTED_CORE_SEALED_PORTFOLIO_REPLAY_RESULT_2026-09-16.json)" = "89958034e76e1f0f97ea28b972df2acf90786bd5"
+          test "$(git hash-object research/TRUMP_SATLIB_UF20_R000_R111_PROJECTED_CORE_SIGNED_RESIDUAL_EXACT_CERTIFICATE_RESULT_2026-09-16_v1.1.json)" = "1c2b7d35f970038616fa9f1decb20d67c88965f5"
+          test "$(git hash-object research/TRUMP_SATLIB_UF20_SUCCESSOR_LOCAL_INVARIANT_FRESH_BLIND_SOURCE_ACQUISITION_RESULT_2026-09-17.json)" = "3ee5a11808ea04326ec5141b0138bbba4ec56092"
+          test "$(git hash-object research/tools/apma_satlib_uf20_r000_r111_successor_closure_leverage_requirements_synthesis/candidate.py)" = "bdcf77f68c1fc73f988d08f118c359feae4a0b60"
+          test "$(git hash-object research/tools/apma_satlib_uf20_r000_r111_successor_closure_leverage_requirements_synthesis/independent_checker.py)" = "aa1f8dea3aadd41f3d23c0473e444054168eac20"
+      - name: Synthesize frozen route statuses once
+        run: |
+          set -euo pipefail
+          python -m research.tools.apma_satlib_uf20_r000_r111_successor_closure_leverage_requirements_synthesis.candidate > /tmp/closure-route-synthesis.json
+      - name: Independently verify frozen route classifications
+        run: |
+          set -euo pipefail
+          python -m research.tools.apma_satlib_uf20_r000_r111_successor_closure_leverage_requirements_synthesis.independent_checker --candidate-json /tmp/closure-route-synthesis.json > /tmp/closure-route-synthesis-independent.json
+      - name: Assert synthesis scope and firewalls
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          c=json.loads(Path('/tmp/closure-route-synthesis.json').read_text().strip().splitlines()[-1])
+          i=json.loads(Path('/tmp/closure-route-synthesis-independent.json').read_text().strip().splitlines()[-1])
+          allowed={'PASS_EXISTING_ROUTE_ELIMINATION_SYNTHESIS__UNTESTED_ROUTE_CLASS_IDENTIFIED','PASS_EXISTING_ROUTE_ELIMINATION_SYNTHESIS__NO_PREDECLARED_UNTESTED_ROUTE_REMAINS'}
+          assert c['verdict'] in allowed,c
+          assert c['source_guard']['ok'] is True,c['source_guard']
+          assert i['verified'] is True and i['candidate_imported'] is False,i
+          assert i['verdict']==c['verdict'],(i,c)
+          assert len(c['route_statuses'])==9,c['route_statuses']
+          assert c['interpretation']['first_untested_route_is_only_future_preregistration_target'] is True,c['interpretation']
+          assert c['interpretation']['first_untested_route_success_claim'] is False,c['interpretation']
+          assert c['interpretation']['fresh_holdout_values_used'] is False,c['interpretation']
+          rr=c['resource_receipt']
+          assert rr['frozen_status_authorities_read']==4 and rr['target_sources']==4 and rr['route_classes']==9 and rr['new_source_values']==0 and rr['partition_recomputations']==0 and rr['fresh_holdout_values_read']==0,rr
+          assert rr['new_feature_definitions']==0 and rr['new_graph_statistics']==0 and rr['new_action_semantics']==0,rr
+          assert rr['solver_invocations']==0 and rr['portfolio_replays']==0 and rr['action_tests']==0 and rr['automorphism_tests']==0 and rr['group_searches']==0 and rr['group_closure_computation']==0,rr
+          assert rr['new_solver_mechanisms']==0 and rr['new_carrier_mechanisms']==0 and rr['new_adapters']==0 and rr['new_quotients']==0,rr
+          sf=c['scientific_firewall']
+          assert sf['P_VS_NP']=='OPEN' and sf['GENERAL_SAT_IN_P']=='NOT_PROVED' and sf['CONNECTED_MIXED_CORE_SOLVED']=='NO' and sf['UNTESTED_ROUTE_IMPLIES_PROMISE'] is False,sf
+          print(json.dumps({'verdict':c['verdict'],'route_statuses':c['route_statuses'],'closed_or_inapplicable_routes':c['closed_or_inapplicable_routes'],'untested_routes_in_predeclared_priority_order':c['untested_routes_in_predeclared_priority_order'],'first_untested_route_by_predeclared_priority':c['first_untested_route_by_predeclared_priority'],'independent_verified':i['verified']},sort_keys=True))
+          PY
+      - name: Upload synthesis receipt
+        uses: actions/upload-artifact@v4
+        with:
+          name: satlib-uf20-r000-r111-successor-closure-leverage-requirements-synthesis-receipt
+          path: |
+            /tmp/closure-route-synthesis.json
+            /tmp/closure-route-synthesis-independent.json
+          if-no-files-found: error
+      - name: Authority notice
+        run: |
+          echo 'AUTHORITY=DIAGNOSTIC_EXISTING_EVIDENCE_ROUTE_ELIMINATION_AND_REQUIREMENTS_SYNTHESIS_ONLY'
+          echo 'ROUTE_CLASSES=9'
+          echo 'FRESH_HOLDOUT_VALUES_READ=0'
+          echo 'NEW_FEATURE_DEFINITIONS=0'
+          echo 'NEW_GRAPH_STATISTICS=0'
+          echo 'NEW_ACTION_SEMANTICS=0'
+          echo 'SOLVER_INVOCATIONS=0'
+          echo 'P_VS_NP=OPEN'
+          echo 'GENERAL_SAT_IN_P=NOT_PROVED'
