@@ -1,0 +1,98 @@
+name: TRUMP SATLIB UF20 Minimal Relation Language Obstruction Core
+
+on:
+  push:
+    branches:
+      - research/trump-external-satlib-uf20-01-source-acquisition-2026-09-16
+    paths:
+      - 'research/TRUMP_SATLIB_UF20_MINIMAL_RELATION_LANGUAGE_OBSTRUCTION_CORE_PREREGISTRATION_2026-09-16.json'
+      - 'research/tools/apma_satlib_uf20_minimal_relation_language_obstruction_core/**'
+      - '.github/workflows/trump-satlib-uf20-minimal-relation-language-obstruction-core.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  minimal-language-core:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Assert frozen prereg parent fingerprint and source bindings
+        run: |
+          set -euo pipefail
+          test "$(git hash-object research/TRUMP_SATLIB_UF20_MINIMAL_RELATION_LANGUAGE_OBSTRUCTION_CORE_PREREGISTRATION_2026-09-16.json)" = "b75582fe0e0cb53e5b55dcf37a84944477505f92"
+          test "$(git hash-object research/TRUMP_SATLIB_UF20_FAMILY_SEALED_PORTFOLIO_REPLICATION_RESULT_2026-09-16.json)" = "277214289387abf6cf7e2d97bdf7dcf1f1727e07"
+          test "$(git hash-object research/tools/apma_unseen_basis/raw_relation_basis.py)" = "63490c05ef3e91a4f682f75da26ff2af811839a6"
+          test "$(git hash-object research/tools/apma_mixed_carrier_barrier/check_schaefer_barrier.py)" = "11fcacd5f0c550543f96648a7965734308509d22"
+          test "$(git hash-object research/source_data/SATLIB_UF20_01_2026-09-16.cnf)" = "8330041b292e0501f8d74c1b1d32ca96c4498864"
+          test "$(git hash-object research/source_data/SATLIB_UF20_02_2026-09-16.cnf)" = "f924caaef0d868bf62b1658e83e030ad8daee865"
+          test "$(git hash-object research/source_data/SATLIB_UF20_03_2026-09-16.cnf)" = "8f3d15154515457281f49201b843f2a7134dfa9f"
+          test "$(git hash-object research/source_data/SATLIB_UF20_04_2026-09-16.cnf)" = "34ced5c169f967b2dc44ef5e42f2ee2c924813e1"
+          test "$(git hash-object research/source_data/SATLIB_UF20_05_2026-09-16.cnf)" = "3b04eff26ee37bdd0bc21b1066486974f92a2c9b"
+          test "$(git hash-object research/tools/apma_satlib_uf20_minimal_relation_language_obstruction_core/census.py)" = "971a3987b2ac438dfce3eb2cd265aeae8edf7a54"
+          test "$(git hash-object research/tools/apma_satlib_uf20_minimal_relation_language_obstruction_core/independent_checker.py)" = "833ccb0bf404db5f64e587e5ecc0a364a4906944"
+
+      - name: Enumerate frozen 256 relation languages
+        run: |
+          set -euo pipefail
+          python -m research.tools.apma_satlib_uf20_minimal_relation_language_obstruction_core.census | tee /tmp/minimal-core.json
+
+      - name: Independent minimal-core check
+        run: |
+          set -euo pipefail
+          python -m research.tools.apma_satlib_uf20_minimal_relation_language_obstruction_core.independent_checker --candidate-json /tmp/minimal-core.json | tee /tmp/minimal-core-independent.json
+
+      - name: Assert preregistered scope and firewalls
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          c=json.loads(Path('/tmp/minimal-core.json').read_text().strip().splitlines()[-1])
+          i=json.loads(Path('/tmp/minimal-core-independent.json').read_text().strip().splitlines()[-1])
+          assert c['verdict'] in {'PASS_MINIMAL_RELATION_LANGUAGE_OBSTRUCTION_CORES_ENUMERATED','NO_RELATION_LANGUAGE_OBSTRUCTION_FOUND'},c
+          assert c['source_guard']['ok'] is True,c['source_guard']
+          assert len(c['language_rows'])==256,c['language_rows']
+          assert [r['mask'] for r in c['language_rows']]==list(range(256)),[r['mask'] for r in c['language_rows']]
+          assert len(c['frozen_relation_types'])==8,c['frozen_relation_types']
+          assert len(c['source_presence_map'])==5,c['source_presence_map']
+          assert all(r['surface_is_exact_frozen_eight'] is True for r in c['source_presence_map']),c['source_presence_map']
+          assert i['verified'] is True and i['candidate_imported'] is False,i
+          rr=c['resource_receipt']
+          assert rr['relation_languages_enumerated']==256 and rr['formula_subsets_enumerated']==0 and rr['variable_assignment_cubes_enumerated']==0,rr
+          assert rr['solver_invocations']==0 and rr['new_solver_mechanisms']==0 and rr['new_carrier_mechanisms']==0 and rr['new_adapters']==0 and rr['new_quotients']==0 and rr['budget_raise'] is False,rr
+          sf=c['scientific_firewall']
+          assert sf['P_VS_NP']=='OPEN' and sf['GENERAL_SAT_IN_P']=='NOT_PROVED' and sf['MINIMAL_LANGUAGE_CORE_IMPLIES_HARDNESS'] is False,sf
+          print(json.dumps({
+            'verdict':c['verdict'],
+            'obstruction_subset_count':c['obstruction_subset_count'],
+            'minimal_core_count':c['minimal_core_count'],
+            'minimal_cores':[{'mask':r['mask'],'relation_types':r['relation_types'],'size':r['size'],'present_in_sources':r['present_in_sources']} for r in c['minimal_cores']],
+            'source_surfaces':[{'source':r['source'],'surface':r['relation_surface'],'core_masks_present':r['minimal_core_masks_present']} for r in c['source_presence_map']],
+            'independent_verified':i['verified']
+          },sort_keys=True))
+          PY
+
+      - name: Upload minimal relation-language core receipt
+        uses: actions/upload-artifact@v4
+        with:
+          name: satlib-uf20-minimal-relation-language-obstruction-core-receipt
+          path: |
+            /tmp/minimal-core.json
+            /tmp/minimal-core-independent.json
+          if-no-files-found: error
+
+      - name: Authority notice
+        run: |
+          echo 'AUTHORITY=DIAGNOSTIC_FINITE_RELATION_LANGUAGE_ANALYSIS_ONLY__NO_FORMULA_SOLVER_OR_MECHANISM'
+          echo 'RELATION_LANGUAGES_ENUMERATED=256'
+          echo 'FORMULA_SUBSETS_ENUMERATED=0'
+          echo 'VARIABLE_ASSIGNMENT_CUBES_ENUMERATED=0'
+          echo 'P_VS_NP=OPEN'
+          echo 'GENERAL_SAT_IN_P=NOT_PROVED'
