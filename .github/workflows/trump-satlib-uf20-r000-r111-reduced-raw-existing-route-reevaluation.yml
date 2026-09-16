@@ -1,0 +1,140 @@
+name: TRUMP SATLIB UF20 Reduced Raw Existing Route Reevaluation
+
+on:
+  push:
+    branches:
+      - research/trump-external-satlib-uf20-01-source-acquisition-2026-09-16
+    paths:
+      - 'research/TRUMP_SATLIB_UF20_R000_R111_PENDANT_ONE_ROUND_REDUCED_RAW_EXISTING_ROUTE_REEVALUATION_PREREGISTRATION_2026-09-17.json'
+      - 'research/TRUMP_SATLIB_UF20_R000_R111_PENDANT_ONE_ROUND_REDUCED_RAW_EXISTING_ROUTE_REEVALUATION_PREREGISTRATION_REVIEW_2026-09-17.json'
+      - 'research/tools/apma_satlib_uf20_r000_r111_reduced_raw_existing_route_reevaluation/**'
+      - '.github/workflows/trump-satlib-uf20-r000-r111-reduced-raw-existing-route-reevaluation.yml'
+  workflow_dispatch:
+
+permissions:
+  actions: read
+  contents: write
+
+jobs:
+  route-reevaluation:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    env:
+      GH_TOKEN: ${{ github.token }}
+      BRANCH: research/trump-external-satlib-uf20-01-source-acquisition-2026-09-16
+      ARTIFACT_NAME: satlib-uf20-r000-r111-reduced-raw-existing-route-reevaluation-receipt
+      RESULT_PATH: research/TRUMP_SATLIB_UF20_R000_R111_PENDANT_ONE_ROUND_REDUCED_RAW_EXISTING_ROUTE_REEVALUATION_RESULT_2026-09-17.json
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Assert frozen reevaluation authority
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          pre=json.loads(Path('research/TRUMP_SATLIB_UF20_R000_R111_PENDANT_ONE_ROUND_REDUCED_RAW_EXISTING_ROUTE_REEVALUATION_PREREGISTRATION_2026-09-17.json').read_text())
+          review=json.loads(Path('research/TRUMP_SATLIB_UF20_R000_R111_PENDANT_ONE_ROUND_REDUCED_RAW_EXISTING_ROUTE_REEVALUATION_PREREGISTRATION_REVIEW_2026-09-17.json').read_text())
+          red=json.loads(Path('research/TRUMP_SATLIB_UF20_R000_R111_PENDANT_SINGLETON_EXACT_SIMULTANEOUS_ONE_ROUND_REDUCTION_RESULT_2026-09-17.json').read_text())
+          assert pre['status']=='FROZEN_BEFORE_ANY_REDUCED_ROUTE_REEVALUATION_VALUE_COMPUTATION',pre
+          assert review['verdict']=='PASS_PREREGISTRATION_CLEAN__AUTHORIZED_TO_IMPLEMENT_AND_EXECUTE_ONCE',review
+          assert red['verdict']=='PASS_EXACT_SIMULTANEOUS_ONE_ROUND_PENDANT_REDUCTION_CERTIFIED',red
+          assert red['resource_receipt']['reduction_rounds']==1 and red['resource_receipt']['fixed_point_iterations']==0,red
+          assert len(red['reduced_source_receipts'])==4,red
+          PY
+      - name: Execute frozen existing-route reevaluation once
+        run: |
+          set -euo pipefail
+          python -m research.tools.apma_satlib_uf20_r000_r111_reduced_raw_existing_route_reevaluation.candidate > /tmp/reduced-route-reevaluation.json
+      - name: Independently verify reduced route profiles
+        run: |
+          set -euo pipefail
+          python -m research.tools.apma_satlib_uf20_r000_r111_reduced_raw_existing_route_reevaluation.independent_checker --candidate-json /tmp/reduced-route-reevaluation.json > /tmp/reduced-route-reevaluation-independent.json
+      - name: Assert outcome space and firewalls
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          c=json.loads(Path('/tmp/reduced-route-reevaluation.json').read_text().strip().splitlines()[-1]);i=json.loads(Path('/tmp/reduced-route-reevaluation-independent.json').read_text().strip().splitlines()[-1])
+          allowed={'EXISTING_ROUTE_APPLICABILITY_CHANGED_ON_AT_LEAST_ONE_SOURCE','NO_EXISTING_BASIS_OR_COMPONENT_ROUTE_CHANGE__STRUCTURAL_STATUS_CHANGED','NO_TESTED_ROUTE_STATUS_CHANGE_AFTER_ONE_ROUND_REDUCTION'}
+          assert c['verdict'] in allowed,c
+          assert i['verified'] is True and i['candidate_imported'] is False and i['verdict']==c['verdict'],i
+          assert len(c['rows'])==4 and len(c['reduced_structural_presence_counts'])==3,c
+          assert all(r['connected_component_status']['label'] in {'STILL_CONNECTED','BECAME_DISCONNECTED'} for r in c['rows']),c['rows']
+          assert all(r['explicit_relation_language']['label'] in {'OPEN_NO_SCHAEFER_BASIS','ADMIT_AT_LEAST_ONE_FROZEN_SCHAEFER_BASIS'} for r in c['rows']),c['rows']
+          rr=c['resource_receipt'];assert rr['reduced_sources']==4 and rr['fresh_holdout_values_read']==0 and rr['solver_invocations']==0 and rr['portfolio_replays']==0 and rr['additional_reduction_rounds']==0 and rr['fixed_point_iterations']==0 and rr['new_feature_definitions']==0 and rr['new_graph_statistics']==0 and rr['action_tests']==0 and rr['automorphism_tests']==0 and rr['group_searches']==0,rr
+          sf=c['scientific_firewall'];assert sf['P_VS_NP']=='OPEN' and sf['GENERAL_SAT_IN_P']=='NOT_PROVED' and sf['CONNECTED_MIXED_CORE_SOLVED']=='NO' and sf['ROUTE_STATUS_CHANGE_IMPLIES_TRACTABILITY'] is False,sf
+          print(json.dumps({'verdict':c['verdict'],'reduced_structural_presence_counts':c['reduced_structural_presence_counts'],'rows':c['rows'],'independent_verified':i['verified']},sort_keys=True))
+          PY
+      - name: Upload reevaluation receipt
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.ARTIFACT_NAME }}
+          path: |
+            /tmp/reduced-route-reevaluation.json
+            /tmp/reduced-route-reevaluation-independent.json
+          if-no-files-found: error
+      - name: Freeze verified reevaluation result
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json,os,subprocess,time,urllib.request
+          from pathlib import Path
+          c=json.loads(Path('/tmp/reduced-route-reevaluation.json').read_text().strip().splitlines()[-1]);i=json.loads(Path('/tmp/reduced-route-reevaluation-independent.json').read_text().strip().splitlines()[-1])
+          repo=os.environ['GITHUB_REPOSITORY'];run_id=int(os.environ['GITHUB_RUN_ID']);token=os.environ['GH_TOKEN']
+          def get(url):
+            req=urllib.request.Request(url,headers={'Authorization':f'Bearer {token}','Accept':'application/vnd.github+json','X-GitHub-Api-Version':'2022-11-28','User-Agent':'Janus-Fundamentum-route-reeval-freeze/1.0'})
+            with urllib.request.urlopen(req,timeout=30) as r:return json.loads(r.read().decode())
+          jobs=get(f'https://api.github.com/repos/{repo}/actions/runs/{run_id}/jobs?per_page=100').get('jobs',[]);jj=[j for j in jobs if j.get('name')=='route-reevaluation'];assert len(jj)==1,jobs
+          art=None
+          for _ in range(20):
+            aa=get(f'https://api.github.com/repos/{repo}/actions/runs/{run_id}/artifacts?per_page=100').get('artifacts',[]);xs=[a for a in aa if a.get('name')==os.environ['ARTIFACT_NAME']]
+            if len(xs)==1:art=xs[0];break
+            time.sleep(2)
+          assert art is not None
+          def h(p):return subprocess.check_output(['git','hash-object',p],text=True).strip()
+          verdict=c['verdict'];presence=c['reduced_structural_presence_counts']
+          if verdict=='EXISTING_ROUTE_APPLICABILITY_CHANGED_ON_AT_LEAST_ONE_SOURCE':
+            current='THE_EXACT_ONE_ROUND_REDUCTION_CHANGED_AT_LEAST_ONE_PREEXISTING_ROUTE_APPLICABILITY_STATUS_ON_THE_REDUCED_RAWS'
+            missing='LOCALIZE_EXACTLY_WHICH_REDUCED_SOURCES_NOW_BECOME_DISCONNECTED_OR_ADMIT_A_FROZEN_SCHAEFER_BASIS_AND_BIND_ONLY_THE_CORRESPONDING_ALREADY_EXISTING_ROUTE_IMPLEMENTATION_BEFORE_ANY_EXECUTION'
+            next_gate='TRUMP_SATLIB_UF20_R000_R111_REDUCED_RAW_CHANGED_EXISTING_ROUTE_ADMISSIBILITY_AUDIT_GATE'
+            directive='PIN_THIS_REEVALUATION_RESULT_AND_REDUCED_RAW_BLOBS;READ_ONLY_LOCALIZE_CHANGED_CONNECTED_COMPONENT_OR_SCHAEFER_ROUTE_STATUS;DO_NOT_RUN_SOLVER_OR_PORTFOLIO_YET;DO_NOT_APPLY_ANOTHER_REDUCTION;DO_NOT_TOUCH_UF20_011_TO_UF20_015;RETURN_TO_CAPTAIN'
+          elif verdict=='NO_EXISTING_BASIS_OR_COMPONENT_ROUTE_CHANGE__STRUCTURAL_STATUS_CHANGED' and (presence['D2_INCIDENCE_ARTICULATION_BLOCK_PROFILE']>0 or presence['D3_PRIMAL_MINIMAL_TWO_VERTEX_SEPARATOR_PROFILE']>0):
+            current='THE_EXACT_ONE_ROUND_REDUCTION_DID_NOT_OPEN_THE_EXISTING_CONNECTED_COMPONENT_OR_SCHAEFER_BASIS_ROUTES_BUT_CHANGED_THE_ALREADY_DEFINED_STRUCTURAL_PROFILE_AND_RESIDUAL_D2_OR_D3_WITNESSES_REMAIN'
+            missing='BEFORE_ANY_SECOND_REDUCTION_ROUND_AUDIT_THE_REDUCED_D2_D3_WITNESSES_WITH_THE_ALREADY_FROZEN_SINGLETON_ATTACHMENT_ALIGNMENT_DEFINITION_AND_THEN_RECOMPUTE_LOCAL_BOUNDARY_TRANSPARENCY_ONLY_IF_ALIGNMENT_SURVIVES'
+            next_gate='TRUMP_SATLIB_UF20_R000_R111_REDUCED_RAW_RESIDUAL_D2_D3_SINGLETON_ATTACHMENT_ALIGNMENT_GATE'
+            directive='PIN_THIS_REEVALUATION_RESULT_AND_REDUCED_RAW_BLOBS;PREREGISTER_ONLY_EXISTING_D2_D3_SCOPE_ALIGNMENT_ON_RESIDUAL_WITNESSES;NO_SECOND_DELETION_NO_BOUNDARY_RECOMPUTATION_YET_NO_SOLVER_NO_FRESH_HOLDOUT_VALUES;RETURN_TO_CAPTAIN'
+          elif verdict=='NO_EXISTING_BASIS_OR_COMPONENT_ROUTE_CHANGE__STRUCTURAL_STATUS_CHANGED':
+            current='THE_EXACT_ONE_ROUND_REDUCTION_CHANGED_THE_STRUCTURAL_PROFILE_BUT_NO_RESIDUAL_D2_OR_D3_PENDANT_WITNESS_REMAINS_AND_NO_CONNECTED_COMPONENT_OR_SCHAEFER_ROUTE_OPENED'
+            missing='RESYNTHESIZE_THE_ALREADY_PREDECLARED_ROUTE_CLASSES_ON_THE_REDUCED_RAWS_BEFORE_DESIGNING_ANY_NEW_MECHANISM'
+            next_gate='TRUMP_SATLIB_UF20_R000_R111_REDUCED_RAW_EXISTING_ROUTE_RESYNTHESIS_GATE'
+            directive='PIN_THIS_RESULT_AND_REDUCED_RAWS;READ_ONLY_RESYNTHESIZE_EXISTING_ROUTE_STATUS;NO_SOLVER_NO_NEW_FEATURE_NO_FRESH_HOLDOUT_VALUES;RETURN_TO_CAPTAIN'
+          else:
+            current='THE_EXACT_ONE_ROUND_REDUCTION_CHANGED_NONE_OF_THE_TESTED_CONNECTED_COMPONENT_SCHAEFER_OR_D1_D2_D3_ROUTE_STATUSES'
+            missing='RETURN_TO_THE_PREDECLARED_UNTESTED_ROUTE_CLASS_LEDGER_WITH_THE_REDUCED_RAWS_AS_THE_NEW_EXACT_REPRESENTATION_AUTHORITY_WITHOUT_INVENTING_A_POST_HOC_FEATURE'
+            next_gate='TRUMP_SATLIB_UF20_R000_R111_REDUCED_RAW_ROUTE_STALL_RESYNTHESIS_GATE'
+            directive='PIN_THIS_RESULT_AND_REDUCED_RAWS;SYNTHESIZE_ONLY_EXISTING_ROUTE_LEDGER;NO_SOLVER_NO_NEW_FEATURE_NO_FRESH_HOLDOUT_VALUES;RETURN_TO_CAPTAIN'
+          result={'artifact_id':'JANUS-TRUMP-SATLIB-UF20-R000-R111-PENDANT-ONE-ROUND-REDUCED-RAW-EXISTING-ROUTE-REEVALUATION-RESULT-2026-09-17-v1.0','date':'2026-09-17','status':'FROZEN_REDUCED_RAW_EXISTING_ROUTE_REEVALUATION_RESULT','authority':'DIAGNOSTIC_EXISTING_ROUTE_REEVALUATION_ON_EXACT_REDUCED_RAWS_ONLY__NO_SOLVER_PORTFOLIO_REPLAY_NEW_FEATURE_ACTION_AUTOMORPHISM_GROUP_SEARCH_CARRIER_ADAPTER_OR_QUOTIENT','preregistration':{'blob':h('research/TRUMP_SATLIB_UF20_R000_R111_PENDANT_ONE_ROUND_REDUCED_RAW_EXISTING_ROUTE_REEVALUATION_PREREGISTRATION_2026-09-17.json')},'preregistration_review':{'blob':h('research/TRUMP_SATLIB_UF20_R000_R111_PENDANT_ONE_ROUND_REDUCED_RAW_EXISTING_ROUTE_REEVALUATION_PREREGISTRATION_REVIEW_2026-09-17.json')},'parent_reduction_result':{'blob':h('research/TRUMP_SATLIB_UF20_R000_R111_PENDANT_SINGLETON_EXACT_SIMULTANEOUS_ONE_ROUND_REDUCTION_RESULT_2026-09-17.json'),'verdict':'PASS_EXACT_SIMULTANEOUS_ONE_ROUND_PENDANT_REDUCTION_CERTIFIED'},'implementation':{'candidate_blob':h('research/tools/apma_satlib_uf20_r000_r111_reduced_raw_existing_route_reevaluation/candidate.py'),'independent_checker_blob':h('research/tools/apma_satlib_uf20_r000_r111_reduced_raw_existing_route_reevaluation/independent_checker.py'),'workflow_head_commit':os.environ['GITHUB_SHA'],'workflow_blob':h('.github/workflows/trump-satlib-uf20-r000-r111-reduced-raw-existing-route-reevaluation.yml')},'execution':{'run_id':run_id,'job_id':int(jj[0]['id']),'conclusion':'success','artifact_id':int(art['id']),'artifact_name':art['name'],'artifact_digest':art.get('digest',''),'independent_verified':True,'candidate_imported_by_independent_checker':False},'verdict':verdict,'source_receipts':c['rows'],'reduced_structural_presence_counts':presence,'route_applicability_changed':c['route_applicability_changed'],'structural_status_changed':c['structural_status_changed'],'licensed_fact':{'statement':'THE_FOUR_EXACT_ONE_ROUND_REDUCED_RAWS_HAVE_BEEN_REEVALUATED_ONLY_UNDER_THE_ALREADY_FROZEN_CONNECTED_COMPONENT_SIX_SCHAEFER_AND_D1_D2_D3_DIAGNOSTIC_DEFINITIONS;ONLY_THE_RECORDED_ROUTE_AND_STRUCTURAL_STATUS_CHANGES_ARE_LICENSED','scope':'FOUR_EXACT_REDUCED_RAWS_ONLY'},'not_licensed':['RUN_ANY_SOLVER_OR_PORTFOLIO','APPLY_A_SECOND_REDUCTION_ROUND','GENERALIZE_TO_UF20_011_TO_UF20_015','ROUTE_STATUS_CHANGE_IMPLIES_TRACTABILITY','ANY_GENERAL_SAT_OR_P_VS_NP_CLAIM'],'resource_receipt':c['resource_receipt'],'scientific_firewall':c['scientific_firewall'],'captain_obvious_readout':{'current_source_line_status':current,'nearest_missing_obligation':missing,'next_gate':next_gate,'next_gate_class':'DIAGNOSTIC_POST_REDUCTION_EXISTING_ROUTE_OR_RESIDUAL_STRUCTURE_FOLLOWUP_ONLY__NO_SOLVER_SECOND_REDUCTION_NEW_FEATURE_ACTION_AUTOMORPHISM_GROUP_SEARCH_CARRIER_ADAPTER_OR_QUOTIENT','next_gate_status':'AUTHORIZED_TO_PREREGISTER_ONLY','directive':directive}}
+          Path(os.environ['RESULT_PATH']).write_text(json.dumps(result,indent=2)+'\n')
+          print(json.dumps({'verdict':verdict,'presence':presence,'result_path':os.environ['RESULT_PATH'],'artifact_id':art['id'],'artifact_digest':art.get('digest','')},sort_keys=True))
+          PY
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add "$RESULT_PATH"
+          git commit -m 'TRUMP freeze reduced-raw existing-route reevaluation result'
+          git push origin "HEAD:$BRANCH"
+      - name: Authority notice
+        run: |
+          echo 'AUTHORITY=DIAGNOSTIC_EXISTING_ROUTE_REEVALUATION_ON_EXACT_REDUCED_RAWS_ONLY'
+          echo 'REDUCED_SOURCES=4'
+          echo 'SOLVER_INVOCATIONS=0'
+          echo 'PORTFOLIO_REPLAYS=0'
+          echo 'ADDITIONAL_REDUCTION_ROUNDS=0'
+          echo 'FIXED_POINT_ITERATIONS=0'
+          echo 'FRESH_HOLDOUT_VALUES_READ=0'
+          echo 'P_VS_NP=OPEN'
+          echo 'GENERAL_SAT_IN_P=NOT_PROVED'
