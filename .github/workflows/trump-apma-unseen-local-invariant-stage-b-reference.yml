@@ -1,0 +1,134 @@
+name: TRUMP APMA Unseen Local Invariant Stage B Reference
+
+on:
+  push:
+    branches:
+      - research/trump-apma-unseen-local-invariant-induction-falsifier-2026-09-16
+    paths:
+      - 'research/TRUMP_APMA_UNSEEN_LOCAL_INVARIANT_INDUCTION_FALSIFIER_GATE_PREREGISTRATION_2026-09-16.json'
+      - 'research/TRUMP_APMA_UNSEEN_LOCAL_INVARIANT_STAGE_A_DESIGN_2026-09-16.json'
+      - 'research/TRUMP_APMA_UNSEEN_LOCAL_INVARIANT_STAGE_A_FREEZE_2026-09-16.json'
+      - 'research/TRUMP_APMA_UNSEEN_LOCAL_INVARIANT_STAGE_B_BLIND_AUTHORITY_DESIGN_2026-09-16.json'
+      - 'research/tools/apma_unseen_local_invariant_orbit_count/blind_authority.py'
+      - '.github/workflows/trump-apma-unseen-local-invariant-stage-b-reference.yml'
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'research/TRUMP_APMA_UNSEEN_LOCAL_INVARIANT_INDUCTION_FALSIFIER_GATE_PREREGISTRATION_2026-09-16.json'
+      - 'research/TRUMP_APMA_UNSEEN_LOCAL_INVARIANT_STAGE_A_DESIGN_2026-09-16.json'
+      - 'research/TRUMP_APMA_UNSEEN_LOCAL_INVARIANT_STAGE_A_FREEZE_2026-09-16.json'
+      - 'research/TRUMP_APMA_UNSEEN_LOCAL_INVARIANT_STAGE_B_BLIND_AUTHORITY_DESIGN_2026-09-16.json'
+      - 'research/tools/apma_unseen_local_invariant_orbit_count/blind_authority.py'
+      - '.github/workflows/trump-apma-unseen-local-invariant-stage-b-reference.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  stage-b-blind-authority-reference-only:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - name: Run actions/checkout@v4
+        uses: actions/checkout@v4
+
+      - name: Run actions/setup-python@v5
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Assert immutable Stage A and Stage B source bindings
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git hash-object research/TRUMP_APMA_UNSEEN_LOCAL_INVARIANT_INDUCTION_FALSIFIER_GATE_PREREGISTRATION_2026-09-16.json)" = "5f02f06a920d838bca37f88c27c5053d7a606271"
+          test "$(git hash-object research/TRUMP_APMA_UNSEEN_LOCAL_INVARIANT_STAGE_A_DESIGN_2026-09-16.json)" = "bc6fedb8d8d7da8f17ccc53d30c8356745068ccd"
+          test "$(git hash-object research/tools/apma_unseen_local_invariant_orbit_count/candidate.py)" = "a076cfc56d68aad0348415e313705da1f6b9cdcd"
+          test "$(git hash-object research/tools/apma_unseen_local_invariant_orbit_count/independent_checker.py)" = "0e12304d843ef0bcce6b6c032fd2af2c68abcd14"
+          test "$(git hash-object .github/workflows/trump-apma-unseen-local-invariant-stage-a.yml)" = "f9dcf2f55ecbacbb493d23308e122e0480ce7705"
+          test "$(git hash-object research/TRUMP_APMA_UNSEEN_LOCAL_INVARIANT_STAGE_A_FREEZE_2026-09-16.json)" = "57df060a6bcde5efef0ca4a2d2521c62e7208831"
+          test "$(git hash-object research/TRUMP_APMA_UNSEEN_LOCAL_INVARIANT_STAGE_B_BLIND_AUTHORITY_DESIGN_2026-09-16.json)" = "14dd451aabe8f95ddbe0baab8847df0a77819ccb"
+          test "$(git hash-object research/tools/apma_unseen_local_invariant_orbit_count/blind_authority.py)" = "7a1c91e01543591564ff3986f53a9faf2acd322f"
+          echo 'STAGE_B_REFERENCE_SOURCE_BINDINGS=PASS'
+
+      - name: Assert this workflow cannot execute frozen candidate or checker
+        shell: bash
+        run: |
+          set -euo pipefail
+          p='.github/workflows/trump-apma-unseen-local-invariant-stage-b-reference.yml'
+          if grep -E 'python[[:space:]]+-m[[:space:]]+research\.tools\.apma_unseen_local_invariant_orbit_count\.(candidate|independent_checker)' "$p"; then
+            echo 'FAIL_STAGE_B_REFERENCE_WORKFLOW_EXECUTES_FROZEN_STAGE_A_CODE'
+            exit 1
+          fi
+          if grep -E 'from[[:space:]]+research\.tools\.apma_unseen_local_invariant_orbit_count[[:space:]]+import[[:space:]].*(candidate|independent_checker)|import[[:space:]]+research\.tools\.apma_unseen_local_invariant_orbit_count\.(candidate|independent_checker)' "$p"; then
+            echo 'FAIL_STAGE_B_REFERENCE_WORKFLOW_IMPORTS_FROZEN_STAGE_A_CODE'
+            exit 1
+          fi
+          echo 'STAGE_B_REFERENCE_ONLY_NO_CANDIDATE_CHECKER_EXECUTION=PASS'
+
+      - name: Build and verify blind authority reference receipt only
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m research.tools.apma_unseen_local_invariant_orbit_count.blind_authority --reference-receipt | tee /tmp/stage-b-reference.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          z=json.loads(Path('/tmp/stage-b-reference.json').read_text().strip().splitlines()[-1])
+          assert z['stage']=='B_BLIND_AUTHORITY_REFERENCE_ONLY', z
+          assert z['authority']=='BLIND_AUTHORITY_FREEZE_PREPARATION__NO_CANDIDATE_EXECUTION', z
+          assert all(z['checks'].values()), {k:v for k,v in z['checks'].items() if not v}
+          rr=z['resource_receipt']
+          assert rr['candidate_executions']==0, rr
+          assert rr['checker_executions']==0, rr
+          assert rr['full_variable_cube_states_enumerated']==0, rr
+          sf=z['scientific_firewall']
+          assert sf['GLOBAL_APMA_FRONTIER_ADVANCE']=='NONE__STAGE_B_REFERENCE_ONLY', sf
+          assert sf['ARBITRARY_UNSEEN_INVARIANT_DISCOVERY']=='NOT_PROVED', sf
+          assert sf['GENERAL_SAT_IN_P']=='NOT_PROVED', sf
+          assert sf['P_VS_NP']=='OPEN', sf
+          print(json.dumps({'stage':z['stage'],'raw_authorities':z['raw_authorities'],'checks':z['checks'],'resource_receipt':rr,'scientific_firewall':sf},sort_keys=True))
+          PY
+
+      - name: Emit raw blind authorities without candidate execution
+        shell: bash
+        run: |
+          set -euo pipefail
+          mod='research.tools.apma_unseen_local_invariant_orbit_count.blind_authority'
+          python -m "$mod" --emit positive > /tmp/blind-positive.raw.json
+          python -m "$mod" --emit negative > /tmp/blind-negative.raw.json
+          python - <<'PY'
+          import hashlib,json
+          from pathlib import Path
+
+          ref=json.loads(Path('/tmp/stage-b-reference.json').read_text().strip().splitlines()[-1])
+          out={}
+          for label in ('positive','negative'):
+            raw=json.loads(Path(f'/tmp/blind-{label}.raw.json').read_text().strip().splitlines()[-1])
+            assert set(raw)=={'variables','constraints'}, (label,raw.keys())
+            for c in raw['constraints']:
+              assert set(c).issubset({'id','scope','allowed'}), (label,c)
+              assert 'scope' in c and 'allowed' in c, (label,c)
+            out[label]={'variables':len(raw['variables']),'constraints':len(raw['constraints'])}
+          assert out['positive']['variables']==15, out
+          assert out['positive']['constraints']==120, out
+          assert out['negative']['variables']==8, out
+          assert out['negative']['constraints']==9, out
+          print(json.dumps({'raw_contracts_clean':True,'sizes':out,'reference_ids':{k:v['reference_identifier'] for k,v in ref['raw_authorities'].items()}},sort_keys=True))
+          PY
+
+      - name: Authority notice
+        shell: bash
+        run: |
+          echo 'AUTHORITY=STAGE_B_BLIND_AUTHORITY_REFERENCE_ONLY'
+          echo 'BLIND_AUTHORITY_INSTANTIATED=REFERENCE_ONLY'
+          echo 'BLIND_POSITIVE_EXECUTED_BY_CANDIDATE=FALSE'
+          echo 'BLIND_NEGATIVE_EXECUTED_BY_CANDIDATE=FALSE'
+          echo 'FROZEN_CANDIDATE_CHANGED=FALSE'
+          echo 'FROZEN_CHECKER_CHANGED=FALSE'
+          echo 'GLOBAL_APMA_FRONTIER_ADVANCE=NONE'
+          echo 'ARBITRARY_UNSEEN_INVARIANT_DISCOVERY=NOT_PROVED'
+          echo 'GENERAL_SAT_IN_P=NOT_PROVED'
+          echo 'P_VS_NP=OPEN'
