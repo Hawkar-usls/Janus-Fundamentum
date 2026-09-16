@@ -1,0 +1,143 @@
+name: TRUMP Source-Authorized Connected-Mixed Post-Orbit Census
+
+on:
+  push:
+    branches:
+      - research/trump-source-authorized-connected-mixed-post-orbit-census-2026-09-16
+    paths:
+      - 'research/TRUMP_SOURCE_AUTHORIZED_CONNECTED_MIXED_RAW_POST_ORBIT_PORTFOLIO_OBSTRUCTION_CENSUS_PREREGISTRATION_2026-09-16.json'
+      - 'research/TRUMP_SOURCE_AUTHORIZED_CONNECTED_MIXED_RAW_POST_ORBIT_PORTFOLIO_OBSTRUCTION_CENSUS_PREREGISTRATION_CLARIFICATION_2026-09-16.json'
+      - 'research/tools/apma_connected_mixed_post_orbit_census/**'
+      - '.github/workflows/trump-source-authorized-connected-mixed-post-orbit-census.yml'
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'research/TRUMP_SOURCE_AUTHORIZED_CONNECTED_MIXED_RAW_POST_ORBIT_PORTFOLIO_OBSTRUCTION_CENSUS_PREREGISTRATION_2026-09-16.json'
+      - 'research/TRUMP_SOURCE_AUTHORIZED_CONNECTED_MIXED_RAW_POST_ORBIT_PORTFOLIO_OBSTRUCTION_CENSUS_PREREGISTRATION_CLARIFICATION_2026-09-16.json'
+      - 'research/tools/apma_connected_mixed_post_orbit_census/**'
+      - '.github/workflows/trump-source-authorized-connected-mixed-post-orbit-census.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  source-authorized-connected-mixed-post-orbit-census:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - name: Run actions/checkout@v4
+        uses: actions/checkout@v4
+
+      - name: Run actions/setup-python@v5
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Assert frozen source bindings
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git hash-object research/TRUMP_SOURCE_AUTHORIZED_CONNECTED_MIXED_RAW_POST_ORBIT_PORTFOLIO_OBSTRUCTION_CENSUS_PREREGISTRATION_2026-09-16.json)" = "d06e91e29455b333f2264e745b179c9fb61bbc3c"
+          test "$(git hash-object research/TRUMP_SOURCE_AUTHORIZED_CONNECTED_MIXED_RAW_POST_ORBIT_PORTFOLIO_OBSTRUCTION_CENSUS_PREREGISTRATION_CLARIFICATION_2026-09-16.json)" = "9af2b16a112b83817a9cb15d0e20301c0fc20a61"
+          test "$(git hash-object research/tools/apma_connected_mixed_post_orbit_census/census.py)" = "e8557cc316903f58d59c28c2c75f68f4e0d40473"
+          test "$(git hash-object research/tools/apma_connected_mixed_post_orbit_census/independent_checker.py)" = "786db65a4b1e24529b09abb9af11d760bafdae0e"
+          test "$(git hash-object research/tools/apma_connected_mixed_post_orbit_census/independent_checker_v1_1.py)" = "7ad3039734ff26c895ec5177c05b35a1bd8a3e35"
+          test "$(git hash-object research/tools/apma_unseen_local_invariant_orbit_count/candidate.py)" = "a076cfc56d68aad0348415e313705da1f6b9cdcd"
+          test "$(git hash-object research/tools/apma_unseen_local_invariant_orbit_count/independent_checker.py)" = "0e12304d843ef0bcce6b6c032fd2af2c68abcd14"
+          echo 'POST_ORBIT_CENSUS_SOURCE_BINDINGS=PASS'
+
+      - name: Run candidate census
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m research.tools.apma_connected_mixed_post_orbit_census.census | tee /tmp/post-orbit-candidate.json
+
+      - name: Run independent census checker v1.1
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m research.tools.apma_connected_mixed_post_orbit_census.independent_checker_v1_1 --candidate-json /tmp/post-orbit-candidate.json | tee /tmp/post-orbit-checker.json
+
+      - name: Assert preregistered census invariants
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          c=json.loads(Path('/tmp/post-orbit-candidate.json').read_text().strip().splitlines()[-1])
+          k=json.loads(Path('/tmp/post-orbit-checker.json').read_text().strip().splitlines()[-1])
+          allowed={
+            'PASS_DIAGNOSTIC_NO_SOURCE_AUTHORIZED_CONNECTED_MIXED_RAW_POST_ORBIT_OBSTRUCTION_FOUND',
+            'PASS_DIAGNOSTIC_SOURCE_AUTHORIZED_CONNECTED_MIXED_RAW_POST_ORBIT_OBSTRUCTION_FOUND_AND_FROZEN',
+          }
+          assert c['verdict'] in allowed, c['verdict']
+          assert c['source_guard']['ok'] is True, c['source_guard']
+          assert c['source_entry_count']==8, c['source_entry_count']
+          assert 1 <= c['unique_raw_count'] <= 8, c['unique_raw_count']
+          assert 0 <= c['eligible_connected_mixed_unique_raw_count'] <= c['unique_raw_count']
+          assert 0 <= c['open_post_orbit_obstruction_count'] <= c['eligible_connected_mixed_unique_raw_count']
+          assert (c['first_open_obstruction'] is None) == (c['open_post_orbit_obstruction_count']==0)
+          assert k['verified'] is True, k
+          assert k['candidate_helpers_imported'] is False, k
+          assert all(k['checks'].values()), {x:y for x,y in k['checks'].items() if not y}
+          rr=c['resource_receipt']
+          zero_fields=[
+            'new_solver_mechanisms','new_carrier_semantics','separator_ge3_boolean_branches',
+            'size4_boolean_separator_assignments','new_unbounded_recursion','new_three_plus_join_chains',
+            'global_residual_cartesian_products_materialized','full_global_variable_cube_fallback'
+          ]
+          assert all(rr[x]==0 for x in zero_fields), rr
+          assert rr['budget_raise'] is False, rr
+          sf=c['scientific_firewall']
+          assert sf['P_VS_NP']=='OPEN', sf
+          assert sf['GENERAL_SAT_IN_P']=='NOT_PROVED', sf
+          assert sf['CONNECTED_MIXED_CORE_SOLVED']=='NO', sf
+          print(json.dumps({
+            'verdict':c['verdict'],
+            'source_entry_count':c['source_entry_count'],
+            'unique_raw_count':c['unique_raw_count'],
+            'eligible_connected_mixed_unique_raw_count':c['eligible_connected_mixed_unique_raw_count'],
+            'open_post_orbit_obstruction_count':c['open_post_orbit_obstruction_count'],
+            'classification_counts':c['classification_counts'],
+            'first_open_sha':None if c['first_open_obstruction'] is None else c['first_open_obstruction']['raw_semantic_sha256'],
+            'independent_verified':k['verified'],
+          },sort_keys=True))
+          PY
+
+      - name: Static independent-checker import firewall
+        shell: bash
+        run: |
+          set -euo pipefail
+          if grep -Eq '(^|[[:space:]])(from|import)[[:space:]].*apma_connected_mixed_post_orbit_census\.census' research/tools/apma_connected_mixed_post_orbit_census/independent_checker.py research/tools/apma_connected_mixed_post_orbit_census/independent_checker_v1_1.py; then
+            echo 'independent checker imported census candidate' >&2
+            exit 1
+          fi
+          echo 'CANDIDATE_HELPERS_IMPORTED=FALSE'
+
+      - name: Regression - raw relation basis
+        run: python -m research.tools.apma_unseen_basis.independent_checker
+
+      - name: Regression - compositional basis
+        run: python -m research.tools.apma_unseen_basis.compositional_independent_checker
+
+      - name: Regression - log alien transfer
+        run: python -m research.tools.apma_log_alien_transfer.independent_checker
+
+      - name: Regression - inverted pyramid
+        run: python -m research.tools.apma_inverted_pyramid.independent_checker
+
+      - name: Regression - orbit count revealed calibration
+        run: python -m research.tools.apma_unseen_local_invariant_orbit_count.candidate --revealed-calibration
+
+      - name: Authority notice
+        shell: bash
+        run: |
+          echo 'AUTHORITY=DIAGNOSTIC_ONLY__SOURCE_AUTHORIZED_CONNECTED_MIXED_POST_ORBIT_CENSUS'
+          echo 'NEW_SOLVER_MECHANISMS=0'
+          echo 'NEW_CARRIER_SEMANTICS=0'
+          echo 'GENERAL_CONNECTED_MIXED_TRACTABILITY=NOT_PROVED'
+          echo 'GENERAL_SAT_IN_P=NOT_PROVED'
+          echo 'P_VS_NP=OPEN'
