@@ -1,0 +1,91 @@
+name: TRUMP SATLIB UF20 R000 R111 L3 WL3 Unseen Partition Relation
+
+on:
+  push:
+    branches:
+      - research/trump-external-satlib-uf20-01-source-acquisition-2026-09-16
+    paths:
+      - 'research/TRUMP_SATLIB_UF20_R000_R111_L3_WL3_UNSEEN_PARTITION_RELATION_EXECUTION_PREREGISTRATION_2026-09-17.json'
+      - 'research/TRUMP_SATLIB_UF20_R000_R111_L3_WL3_UNSEEN_PARTITION_RELATION_EXECUTION_PREREGISTRATION_REVIEW_2026-09-17.json'
+      - 'research/tools/apma_satlib_uf20_r000_r111_l3_wl3_unseen_partition_relation/**'
+      - '.github/workflows/trump-satlib-uf20-r000-r111-l3-wl3-unseen-partition-relation.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  unseen-partition-relation:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Assert frozen blind holdout bindings before values
+        run: |
+          set -euo pipefail
+          test "$(git hash-object research/TRUMP_SATLIB_UF20_R000_R111_L3_WL3_UNSEEN_PARTITION_RELATION_EXECUTION_PREREGISTRATION_2026-09-17.json)" = "3a7078d1787126df42faa183784e751cf00d2aa5"
+          test "$(git hash-object research/TRUMP_SATLIB_UF20_R000_R111_L3_WL3_UNSEEN_PARTITION_RELATION_EXECUTION_PREREGISTRATION_REVIEW_2026-09-17.json)" = "c63ea31d65b4d26449fb6591077df620eef0151b"
+          test "$(git hash-object research/TRUMP_SATLIB_UF20_R000_R111_UNSEEN_SOURCE_ACQUISITION_FREEZE_RESULT_2026-09-17.json)" = "ae26cc59e754f73476bfb903331f1c4c1d946bdc"
+          test "$(git hash-object research/TRUMP_SATLIB_UF20_R000_R111_L3_WL3_UNSEEN_SOURCE_EXTENSION_SELECTION_PREREGISTRATION_2026-09-17.json)" = "9679bed3017df016002a10aa45ba249df198baa4"
+          test "$(git hash-object research/tools/apma_satlib_uf20_r000_r111_projected_signature_ablation/replay.py)" = "2edad57e6017cb34bf797313e4451c1ce014900b"
+          test "$(git hash-object research/tools/apma_satlib_uf20_r000_r111_residual_local_invariant_falsifier/candidate.py)" = "4ec02d6d42e6cad7d91f16b1acfdcbe51dbd65df"
+          test "$(git hash-object research/tools/apma_satlib_uf20_r000_r111_l3_wl3_unseen_partition_relation/candidate.py)" = "58d8cd1d07bdc2a3205adae03e202646108bd48e"
+          test "$(git hash-object research/tools/apma_satlib_uf20_r000_r111_l3_wl3_unseen_partition_relation/independent_checker.py)" = "ed2e8afb740d5b8009320ed3a197dea6c9d3c596"
+          test "$(git hash-object research/source_data/SATLIB_UF20_06_2026-09-17.cnf)" = "42d6feffa98dc1a213e019f28cf6bc7ddf94c0bf"
+          test "$(git hash-object research/source_data/SATLIB_UF20_07_2026-09-17.cnf)" = "9d7c4412e43bfd0e573ce8deab39c9d6e14d10b6"
+          test "$(git hash-object research/source_data/SATLIB_UF20_08_2026-09-17.cnf)" = "461108f1c8f2eddeab2d8a902b1bc1d2c9b03e3e"
+          test "$(git hash-object research/source_data/SATLIB_UF20_09_2026-09-17.cnf)" = "0dc336cbc82430deb22f64fdfb8c051c7493e5a0"
+          test "$(git hash-object research/source_data/SATLIB_UF20_010_2026-09-17.cnf)" = "afe1163b633a9f1844e20010f77e8f2d94bd52c5"
+      - name: Execute one-shot frozen L3 versus S3 unseen audit
+        run: |
+          set -euo pipefail
+          python -m research.tools.apma_satlib_uf20_r000_r111_l3_wl3_unseen_partition_relation.candidate > /tmp/unseen-l3-vs-s3.json
+      - name: Independently rebuild projection and recompute partitions
+        run: |
+          set -euo pipefail
+          python -m research.tools.apma_satlib_uf20_r000_r111_l3_wl3_unseen_partition_relation.independent_checker --candidate-json /tmp/unseen-l3-vs-s3.json > /tmp/unseen-l3-vs-s3-independent.json
+      - name: Assert frozen outcome space and firewalls
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          c=json.loads(Path('/tmp/unseen-l3-vs-s3.json').read_text().strip().splitlines()[-1])
+          i=json.loads(Path('/tmp/unseen-l3-vs-s3-independent.json').read_text().strip().splitlines()[-1])
+          allowed={
+            'PASS_SCOPED_UNSEEN_REPEAT_EVIDENCE_L3_VS_S3_PARTITION_DIFFERENCE',
+            'PASS_UNSEEN_HOLDOUT_ALL_L3_S3_PARTITIONS_EQUAL__NO_REPEAT_EVIDENCE_ON_THIS_HOLDOUT'}
+          assert c['verdict'] in allowed,c
+          assert c['source_guard']['ok'] is True,c['source_guard']
+          assert i['verified'] is True and i['candidate_imported'] is False,i
+          assert i['verdict']==c['verdict'],(i,c)
+          assert i['sources_verified']==5,i
+          assert len(c['rows'])==5 and all(r['status']=='AUDITED' for r in c['rows']),c['rows']
+          assert all(r['relation'] in {'EQUAL','L3_STRICTLY_FINER_THAN_S3','S3_STRICTLY_FINER_THAN_L3','INCOMPARABLE'} for r in c['rows']),c['rows']
+          rr=c['resource_receipt']
+          assert rr['sources']==5 and rr['partition_comparisons']==5,rr
+          assert rr['solver_invocations']==0 and rr['portfolio_replays']==0 and rr['action_tests']==0 and rr['group_searches']==0 and rr['group_closure_computation']==0,rr
+          assert rr['new_feature_definitions']==0 and rr['new_graph_statistics']==0 and rr['new_solver_mechanisms']==0 and rr['new_carrier_mechanisms']==0 and rr['new_adapters']==0 and rr['new_quotients']==0 and rr['budget_raise'] is False,rr
+          sf=c['scientific_firewall']
+          assert sf['P_VS_NP']=='OPEN' and sf['GENERAL_SAT_IN_P']=='NOT_PROVED' and sf['CONNECTED_MIXED_CORE_SOLVED']=='NO' and sf['L3_GENERALIZES']=='NOT_PROVED',sf
+          print(json.dumps({'verdict':c['verdict'],'non_equal_sources':c['non_equal_sources'],'scoped_repeat_evidence':c['scoped_repeat_evidence'],'rows':c['rows'],'independent_verified':i['verified']},sort_keys=True))
+          PY
+      - name: Upload unseen partition relation receipt
+        uses: actions/upload-artifact@v4
+        with:
+          name: satlib-uf20-r000-r111-l3-wl3-unseen-partition-relation-receipt
+          path: |
+            /tmp/unseen-l3-vs-s3.json
+            /tmp/unseen-l3-vs-s3-independent.json
+          if-no-files-found: error
+      - name: Authority notice
+        run: |
+          echo 'AUTHORITY=DIAGNOSTIC_ONE_SHOT_UNSEEN_PARTITION_RELATION_FALSIFIER_ONLY'
+          echo 'SOLVER_INVOCATIONS=0'
+          echo 'ACTION_TESTS=0'
+          echo 'GROUP_SEARCHES=0'
+          echo 'NEW_FEATURE_DEFINITIONS=0'
+          echo 'P_VS_NP=OPEN'
+          echo 'GENERAL_SAT_IN_P=NOT_PROVED'
