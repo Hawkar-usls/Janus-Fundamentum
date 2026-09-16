@@ -3,6 +3,7 @@ from __future__ import annotations
 import hashlib
 import itertools
 import json
+from collections import Counter
 from pathlib import Path
 from typing import Any
 
@@ -195,5 +196,4 @@ def main() -> dict[str, Any]:
 
 
 if __name__ == "__main__":
-    from collections import Counter
     print(json.dumps(main(), sort_keys=True, separators=(",", ":")))
