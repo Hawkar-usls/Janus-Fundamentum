@@ -1,0 +1,72 @@
+name: TRUMP SATLIB UF20 R000 R111 Transposition Break Provenance
+
+on:
+  push:
+    branches:
+      - research/trump-external-satlib-uf20-01-source-acquisition-2026-09-16
+    paths:
+      - 'research/TRUMP_SATLIB_UF20_R000_R111_PROJECTED_CORE_TRANSPOSITION_BREAK_SOURCE_PROVENANCE_PREREGISTRATION_2026-09-16.json'
+      - 'research/tools/apma_satlib_uf20_r000_r111_transposition_break_provenance/**'
+      - '.github/workflows/trump-satlib-uf20-r000-r111-transposition-break-provenance.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  provenance:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Assert frozen provenance bindings
+        run: |
+          set -euo pipefail
+          test "$(git hash-object research/TRUMP_SATLIB_UF20_R000_R111_PROJECTED_CORE_TRANSPOSITION_BREAK_SOURCE_PROVENANCE_PREREGISTRATION_2026-09-16.json)" = "34e4f4cc8bc1a177c40d643759435a4d2e96bbce"
+          test "$(git hash-object research/TRUMP_SATLIB_UF20_R000_R111_PROJECTED_CORE_EXACT_TRANSPOSITION_WITNESS_LOCALIZATION_RESULT_2026-09-16.json)" = "ad05793643bca011d9ce9cd87fff9ae2a3e06181"
+          test "$(git hash-object research/source_data/SATLIB_UF20_03_2026-09-16.cnf)" = "8f3d15154515457281f49201b843f2a7134dfa9f"
+          test "$(git hash-object research/tools/apma_satlib_uf20_r000_r111_transposition_break_provenance/mapper.py)" = "050b0b60068913306547bee7db5bd723ffbde642"
+          test "$(git hash-object research/tools/apma_satlib_uf20_r000_r111_transposition_break_provenance/independent_checker.py)" = "e476084b5cdbb856d8b86bbe61fd1c4ab0aa2fe0"
+      - name: Map pinned witness scopes to original SATLIB provenance
+        run: |
+          set -euo pipefail
+          python -m research.tools.apma_satlib_uf20_r000_r111_transposition_break_provenance.mapper | tee /tmp/provenance.json
+      - name: Independently verify provenance map
+        run: |
+          set -euo pipefail
+          python -m research.tools.apma_satlib_uf20_r000_r111_transposition_break_provenance.independent_checker --candidate-json /tmp/provenance.json | tee /tmp/provenance-independent.json
+      - name: Assert scoped outcome and firewalls
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          c=json.loads(Path('/tmp/provenance.json').read_text().strip().splitlines()[-1])
+          i=json.loads(Path('/tmp/provenance-independent.json').read_text().strip().splitlines()[-1])
+          allowed={'PASS_SOURCE_PROVENANCE_LOCALIZED','LEFT_ONLY_WITNESS_NOT_FOUND_AS_R111_SOURCE_CLAUSE','SWAP_IMAGE_R111_EXISTS_IN_SOURCE'}
+          assert c['verdict'] in allowed,c
+          assert c['source_guard']['ok'] is True,c['source_guard']
+          assert c['source_clause_count']==91 and c['pinned_pair']==[4,20],c
+          assert len(c['rows'])==4,c
+          assert i['verified'] is True and i['candidate_imported'] is False,i
+          rr=c['resource_receipt']
+          assert rr['source_clauses_scanned']==91 and rr['pinned_scopes']==4 and rr['other_pairs_tested']==0,rr
+          assert rr['solver_invocations']==0 and rr['assignment_cube_enumerations']==0 and rr['new_signature_features']==0 and rr['new_invariants']==0,rr
+          assert rr['new_solver_mechanisms']==0 and rr['new_carrier_mechanisms']==0 and rr['new_adapters']==0 and rr['new_quotients']==0 and rr['budget_raise'] is False,rr
+          sf=c['scientific_firewall'];assert sf['P_VS_NP']=='OPEN' and sf['GENERAL_SAT_IN_P']=='NOT_PROVED' and sf['NEW_INVARIANT_LICENSED'] is False,sf
+          print(json.dumps({'verdict':c['verdict'],'rows':c['rows'],'independent_verified':i['verified']},sort_keys=True))
+          PY
+      - name: Upload provenance receipt
+        uses: actions/upload-artifact@v4
+        with:
+          name: satlib-uf20-r000-r111-transposition-break-provenance-receipt
+          path: |
+            /tmp/provenance.json
+            /tmp/provenance-independent.json
+          if-no-files-found: error
+      - name: Authority notice
+        run: |
+          echo 'AUTHORITY=DIAGNOSTIC_SOURCE_PROVENANCE_MAPPING_ONLY'
+          echo 'NEW_INVARIANT_LICENSED=false'
+          echo 'P_VS_NP=OPEN'
+          echo 'GENERAL_SAT_IN_P=NOT_PROVED'
