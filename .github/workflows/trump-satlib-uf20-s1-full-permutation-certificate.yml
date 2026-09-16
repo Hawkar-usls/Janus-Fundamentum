@@ -1,0 +1,87 @@
+name: TRUMP SATLIB UF20 S1 Full Permutation Certificate
+
+on:
+  push:
+    branches:
+      - research/trump-external-satlib-uf20-01-source-acquisition-2026-09-16
+    paths:
+      - 'research/TRUMP_SATLIB_UF20_S1_FULL_PERMUTATION_AUTOMORPHISM_CERTIFICATE_PREREGISTRATION_2026-09-16.json'
+      - 'research/TRUMP_SATLIB_UF20_S1_FULL_PERMUTATION_AUTOMORPHISM_DIRECT_PROOF_2026-09-16.md'
+      - 'research/tools/apma_satlib_uf20_s1_full_permutation_certificate/**'
+      - '.github/workflows/trump-satlib-uf20-s1-full-permutation-certificate.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  s1-full-permutation-certificate:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Assert frozen proof source and primitive bindings
+        run: |
+          set -euo pipefail
+          test "$(git hash-object research/TRUMP_SATLIB_UF20_S1_FULL_PERMUTATION_AUTOMORPHISM_CERTIFICATE_PREREGISTRATION_2026-09-16.json)" = "dfef6eb9d56135c9372c2fb02aabbf4326404484"
+          test "$(git hash-object research/TRUMP_SATLIB_UF20_S1_FULL_PERMUTATION_AUTOMORPHISM_DIRECT_PROOF_2026-09-16.md)" = "7c4a5e7a51fec500b66bcf8f6dc215ca2f5f71e8"
+          test "$(git hash-object research/TRUMP_SATLIB_UF20_SIGNATURE_ABLATION_REPLICATION_RESULT_2026-09-16.json)" = "bca1542226c7fe29f8d803b7473c4aa4c19d1e78"
+          test "$(git hash-object research/source_data/SATLIB_UF20_01_2026-09-16.cnf)" = "8330041b292e0501f8d74c1b1d32ca96c4498864"
+          test "$(git hash-object research/source_data/SATLIB_UF20_02_2026-09-16.cnf)" = "f924caaef0d868bf62b1658e83e030ad8daee865"
+          test "$(git hash-object research/source_data/SATLIB_UF20_03_2026-09-16.cnf)" = "8f3d15154515457281f49201b843f2a7134dfa9f"
+          test "$(git hash-object research/source_data/SATLIB_UF20_04_2026-09-16.cnf)" = "34ced5c169f967b2dc44ef5e42f2ee2c924813e1"
+          test "$(git hash-object research/source_data/SATLIB_UF20_05_2026-09-16.cnf)" = "3b04eff26ee37bdd0bc21b1066486974f92a2c9b"
+          test "$(git hash-object research/tools/apma_satlib_uf20_s1_full_permutation_certificate/certificate.py)" = "8daaf5d79033e3a8aa54cc7583975ec4b9113dcd"
+          test "$(git hash-object research/tools/apma_satlib_uf20_s1_full_permutation_certificate/independent_checker.py)" = "5cfa93d15ca92cd933b777a24bb6a78dca252f0a"
+          test "$(git hash-object research/tools/apma_unseen_local_invariant_orbit_count/candidate.py)" = "a076cfc56d68aad0348415e313705da1f6b9cdcd"
+          test "$(git hash-object research/tools/apma_unseen_basis/raw_relation_basis.py)" = "63490c05ef3e91a4f682f75da26ff2af811839a6"
+      - name: Run scoped S1 certificate
+        run: |
+          set -euo pipefail
+          python -m research.tools.apma_satlib_uf20_s1_full_permutation_certificate.certificate | tee /tmp/s1-certificate.json
+      - name: Run independent S1 certificate checker
+        run: |
+          set -euo pipefail
+          python -m research.tools.apma_satlib_uf20_s1_full_permutation_certificate.independent_checker --candidate-json /tmp/s1-certificate.json | tee /tmp/s1-independent.json
+      - name: Assert scoped theorem and firewalls
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          c=json.loads(Path('/tmp/s1-certificate.json').read_text().strip().splitlines()[-1])
+          i=json.loads(Path('/tmp/s1-independent.json').read_text().strip().splitlines()[-1])
+          assert c['verdict']=='PASS_SCOPED_S1_INVARIANCE_AND_TRIVIAL_FULL_VARIABLE_PERMUTATION_GROUP_ON_ALL_FIVE', c
+          assert c['source_guard']['ok'] is True, c['source_guard']
+          assert c['direct_proof']['local_coordinate_transport_sanity'] is True, c['direct_proof']
+          assert len(c['rows'])==5 and all(r['full_pure_variable_permutation_automorphism_group_trivial'] is True for r in c['rows']), c['rows']
+          assert all(r['semantic_S1_equals_DIMACS_S1'] is True for r in c['rows']), c['rows']
+          swaps=[s for r in c['rows'] for s in r['sealed_swap_checks']]
+          assert len(swaps)==2 and all(s['exact_transposition_automorphism'] is False for s in swaps), swaps
+          assert i['verified'] is True and i['certificate_imported'] is False, i
+          rr=c['resource_receipt']
+          assert rr['full_permutation_enumeration']==0 and rr['sealed_nonidentity_swap_checks']==2, rr
+          assert rr['solver_invocations']==0 and rr['new_solver_mechanisms']==0 and rr['new_carrier_mechanisms']==0 and rr['new_automorphism_search_mechanisms']==0 and rr['budget_raise'] is False, rr
+          sf=c['scientific_firewall']
+          assert sf['P_VS_NP']=='OPEN' and sf['GENERAL_SAT_IN_P']=='NOT_PROVED', sf
+          print(json.dumps({'verdict':c['verdict'],'rows':[{'source':r['source'],'S1_classes':r['S1_classes'],'swap_checks':r['sealed_swap_checks'],'group_trivial':r['full_pure_variable_permutation_automorphism_group_trivial']} for r in c['rows']],'independent_verified':i['verified'],'resource_receipt':rr},sort_keys=True))
+          PY
+      - name: Upload scoped S1 certificate receipt
+        uses: actions/upload-artifact@v4
+        with:
+          name: satlib-uf20-s1-full-permutation-certificate-receipt
+          path: |
+            /tmp/s1-certificate.json
+            /tmp/s1-independent.json
+          if-no-files-found: error
+      - name: Authority notice
+        run: |
+          echo 'AUTHORITY=DIAGNOSTIC_PROOF_CERTIFICATE_ONLY__NO_SOLVER_OR_CARRIER_DESIGN'
+          echo 'SCOPE=PURE_VARIABLE_PERMUTATIONS_ON_FIVE_FROZEN_UF20_SOURCES_ONLY'
+          echo 'P_VS_NP=OPEN'
+          echo 'GENERAL_SAT_IN_P=NOT_PROVED'
+          echo 'NEW_SOLVER_MECHANISMS=0'
+          echo 'NEW_CARRIER_MECHANISMS=0'
