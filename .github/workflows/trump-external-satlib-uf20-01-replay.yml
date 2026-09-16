@@ -1,0 +1,247 @@
+name: TRUMP External SATLIB UF20-01 Frozen Portfolio Replay
+
+on:
+  push:
+    branches:
+      - research/trump-external-satlib-uf20-01-source-acquisition-2026-09-16
+    paths:
+      - 'research/source_data/SATLIB_UF20_01_2026-09-16.cnf'
+      - 'research/source_data/SATLIB_UF20_01_RAW_2026-09-16.json'
+      - 'research/TRUMP_SOURCE_AUTHORIZED_CONNECTED_MIXED_RAW_NEW_EVIDENCE_SOURCE_FREEZE_SATLIB_UF20_01_2026-09-16.json'
+      - 'research/TRUMP_SOURCE_AUTHORIZED_CONNECTED_MIXED_RAW_POST_ORBIT_NEW_EVIDENCE_REPLAY_PREREGISTRATION_SATLIB_UF20_01_2026-09-16.json'
+      - 'research/tools/apma_external_satlib_uf20_01_replay/**'
+      - '.github/workflows/trump-external-satlib-uf20-01-replay.yml'
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'research/source_data/SATLIB_UF20_01_2026-09-16.cnf'
+      - 'research/source_data/SATLIB_UF20_01_RAW_2026-09-16.json'
+      - 'research/TRUMP_SOURCE_AUTHORIZED_CONNECTED_MIXED_RAW_NEW_EVIDENCE_SOURCE_FREEZE_SATLIB_UF20_01_2026-09-16.json'
+      - 'research/TRUMP_SOURCE_AUTHORIZED_CONNECTED_MIXED_RAW_POST_ORBIT_NEW_EVIDENCE_REPLAY_PREREGISTRATION_SATLIB_UF20_01_2026-09-16.json'
+      - 'research/tools/apma_external_satlib_uf20_01_replay/**'
+      - '.github/workflows/trump-external-satlib-uf20-01-replay.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  frozen-satlib-uf20-01-replay:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - name: Checkout frozen research branch
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Pin sealed matching backend
+        run: |
+          set -euo pipefail
+          python -m pip install --disable-pip-version-check 'networkx==3.6.1'
+
+      - name: Assert source freeze prereg and sealed portfolio bindings
+        run: |
+          set -euo pipefail
+          test "$(git hash-object research/source_data/SATLIB_UF20_01_2026-09-16.cnf)" = "8330041b292e0501f8d74c1b1d32ca96c4498864"
+          test "$(git hash-object research/source_data/SATLIB_UF20_01_RAW_2026-09-16.json)" = "8b69a8f533ffaec44f196eea8791b0678f3f579c"
+          test "$(git hash-object research/TRUMP_SOURCE_AUTHORIZED_CONNECTED_MIXED_RAW_NEW_EVIDENCE_SOURCE_FREEZE_SATLIB_UF20_01_2026-09-16.json)" = "e21a59d5f4a248dfa2b25f643e9220c96affb1cf"
+          test "$(git hash-object research/TRUMP_SOURCE_AUTHORIZED_CONNECTED_MIXED_RAW_POST_ORBIT_NEW_EVIDENCE_REPLAY_PREREGISTRATION_SATLIB_UF20_01_2026-09-16.json)" = "76a88842bbf0403f0838e3d7811b5205dced0eaf"
+          test "$(git hash-object research/tools/apma_external_satlib_uf20_01_replay/replay.py)" = "67ae8bd40c58c6bb1f22f7651111d33ba6be1d0b"
+          test "$(git hash-object research/tools/apma_external_satlib_uf20_01_replay/independent_checker.py)" = "ad0b7ff56c5b6254a58191af1091878a7191371d"
+          test "$(git hash-object registry/TRUMP_CURRENT_STATE_2026-09-16_v3.23.json)" = "70e8b78fedd05bedb2e2324846d83c6fceea434d"
+          test "$(git hash-object research/tools/apma_connected_mixed_post_orbit_obstruction_census/census.py)" = "f5aa39804983d49149c976e8367a96397bad888e"
+          test "$(git hash-object research/tools/apma_unseen_basis/raw_relation_basis.py)" = "63490c05ef3e91a4f682f75da26ff2af811839a6"
+          test "$(git hash-object research/tools/apma_unseen_basis/compositional_basis.py)" = "fdc83a3368a4ad362f00d3ee8aad958f06f8d264"
+          test "$(git hash-object research/tools/apma_unseen_basis/compositional_independent_checker.py)" = "92cec97069aec5871385257bd57f87324d8da0a3"
+          test "$(git hash-object research/tools/apma_factorized_feedback/independent_checker.py)" = "3758427d476b64ea4afc36538772c90903e9266f"
+          test "$(git hash-object research/tools/apma_log_alien_transfer/log_alien_transfer.py)" = "d20cd94fa2e0324e301f55211152c2d410099425"
+          test "$(git hash-object research/tools/apma_log_alien_transfer/independent_checker.py)" = "add29458f0485870c1a0312c79d9e219c1d129c3"
+          test "$(git hash-object research/tools/apma_unseen_local_invariant_orbit_count/candidate.py)" = "a076cfc56d68aad0348415e313705da1f6b9cdcd"
+          test "$(git hash-object research/tools/apma_unseen_local_invariant_orbit_count/independent_checker.py)" = "0e12304d843ef0bcce6b6c032fd2af2c68abcd14"
+          test "$(git hash-object research/tools/apma_unseen_local_invariant_orbit_count/blind_authority.py)" = "7a1c91e01543591564ff3986f53a9faf2acd322f"
+          test "$(git hash-object research/tools/apma_bucket_gt2_unadmitted_raw_obstruction_census/census.py)" = "0134c7e654b3bf41b7a43da648b1dbb485495cf4"
+          test "$(git hash-object research/tools/apma_bucket_gt2_unadmitted_raw_obstruction_census/independent_checker.py)" = "7cd7acbf59154e7f572460ab595284f6d42ccace"
+          echo 'SATLIB_UF20_01_SOURCE_BINDINGS=PASS'
+
+      - name: Execute preregistered sealed portfolio replay once
+        run: |
+          set -euo pipefail
+          python -m research.tools.apma_external_satlib_uf20_01_replay.replay | tee /tmp/satlib-replay.json
+
+      - name: Independent source and structural replay check
+        run: |
+          set -euo pipefail
+          python -m research.tools.apma_external_satlib_uf20_01_replay.independent_checker \
+            --candidate-json /tmp/satlib-replay.json | tee /tmp/satlib-independent.json
+
+      - name: Independent sealed orbit replay
+        run: |
+          set -euo pipefail
+          python -m research.tools.apma_unseen_local_invariant_orbit_count.candidate \
+            --input-json research/source_data/SATLIB_UF20_01_RAW_2026-09-16.json | tee /tmp/satlib-orbit.json
+          python -m research.tools.apma_unseen_local_invariant_orbit_count.independent_checker \
+            --input-json research/source_data/SATLIB_UF20_01_RAW_2026-09-16.json \
+            --candidate-json /tmp/satlib-orbit.json | tee /tmp/satlib-orbit-independent.json
+
+      - name: Assert preregistered SATLIB replay invariants
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          r=json.loads(Path('/tmp/satlib-replay.json').read_text().strip().splitlines()[-1])
+          i=json.loads(Path('/tmp/satlib-independent.json').read_text().strip().splitlines()[-1])
+          o=json.loads(Path('/tmp/satlib-orbit.json').read_text().strip().splitlines()[-1])
+          oi=json.loads(Path('/tmp/satlib-orbit-independent.json').read_text().strip().splitlines()[-1])
+          allowed={
+            'PASS_DIAGNOSTIC_NEW_SOURCE_CLOSED_BY_SEALED_ORBIT_COUNT_V1',
+            'PASS_DIAGNOSTIC_FIRST_REAL_NEW_POST_PORTFOLIO_OBSTRUCTION_IDENTIFIED',
+          }
+          assert r['verdict'] in allowed, r['verdict']
+          assert r['source_guard']['ok'] is True, r['source_guard']
+          assert i['verified'] is True, {k:v for k,v in i['checks'].items() if not v}
+          assert i['source_guard']['replay_imported'] is False, i['source_guard']
+          assert all(i['checks'].values()), {k:v for k,v in i['checks'].items() if not v}
+          assert r['E0']['raw_sha256']=='a99bb4047dee6969bd3339ba99ba9df434ecc808a4a161139462e1993fc3b874', r['E0']
+          assert r['E0']['raw_nonalias_frozen_23'] is True, r['E0']
+          assert r['E0']['full_variable_assignments_enumerated']==0, r['E0']
+          assert r['E1']['eligible'] is True, r['E1']
+          assert r['E1']['eligibility_class']=='ELIGIBLE_CONNECTED_MIXED', r['E1']
+          assert r['E3_log_alien_replay']['applicable'] is False, r['E3_log_alien_replay']
+          assert r['E4_orbit_replay']['executed'] is True, r['E4_orbit_replay']
+          assert r['E4_orbit_replay']['status']==o['status'], (r['E4_orbit_replay'],o)
+          assert r['E4_orbit_replay']['solver_authority']==o['solver_authority'], (r['E4_orbit_replay'],o)
+          assert oi['verified'] is True, oi
+          if o['status'] in {'ADMIT_ORBIT_COUNT_QUOTIENT_SAT','ADMIT_ORBIT_COUNT_QUOTIENT_UNSAT'} and o['solver_authority'] is True:
+              assert r['verdict']=='PASS_DIAGNOSTIC_NEW_SOURCE_CLOSED_BY_SEALED_ORBIT_COUNT_V1', r
+              assert r['first_real_post_portfolio_obstruction'] is None, r
+          else:
+              assert r['verdict']=='PASS_DIAGNOSTIC_FIRST_REAL_NEW_POST_PORTFOLIO_OBSTRUCTION_IDENTIFIED', r
+              assert r['first_real_post_portfolio_obstruction']['raw_sha256']=='a99bb4047dee6969bd3339ba99ba9df434ecc808a4a161139462e1993fc3b874', r
+          rr=r['resource_receipt']
+          assert rr['new_solver_mechanisms']==0 and rr['new_carrier_mechanisms']==0, rr
+          assert rr['new_representation_adapters_to_force_old_carriers']==0, rr
+          assert rr['full_variable_cube_enumerations']==0, rr
+          assert rr['separator_ge3_boolean_branches']==0, rr
+          assert rr['size4_boolean_separator_assignments']==0, rr
+          assert rr['new_unbounded_recursion']==0, rr
+          assert rr['new_three_plus_join_chains']==0, rr
+          assert rr['global_residual_cartesian_products_materialized']==0, rr
+          assert rr['budget_raise'] is False, rr
+          assert r['scientific_firewall']['P_VS_NP']=='OPEN', r['scientific_firewall']
+          assert r['scientific_firewall']['GENERAL_SAT_IN_P']=='NOT_PROVED', r['scientific_firewall']
+          print(json.dumps({
+            'verdict':r['verdict'],
+            'raw_sha256':r['E0']['raw_sha256'],
+            'orbit_status':o['status'],
+            'orbit_solver_authority':o['solver_authority'],
+            'independent_replay_verified':i['verified'],
+            'independent_orbit_verified':oi['verified'],
+          },sort_keys=True))
+          PY
+
+      - name: Sealed compositional-basis regression
+        run: |
+          set -euo pipefail
+          python -m research.tools.apma_unseen_basis.compositional_independent_checker | tee /tmp/compositional-regression.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          x=json.loads(Path('/tmp/compositional-regression.json').read_text().strip().splitlines()[-1])
+          assert x['verdict']=='PASS_SCOPED_RAW_COMPOSITIONAL_BASIS_INDUCTION', x
+          assert all(x['checks'].values()), {k:v for k,v in x['checks'].items() if not v}
+          PY
+
+      - name: Sealed factorized-feedback portfolio regression
+        run: |
+          set -euo pipefail
+          python -m research.tools.apma_factorized_feedback.independent_checker | tee /tmp/factorized-regression.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          x=json.loads(Path('/tmp/factorized-regression.json').read_text().strip().splitlines()[-1])
+          assert x['verdict']=='PASS_SCOPED_FACTORIZED_FEEDBACK_INTERFACE_PORTFOLIO', x
+          assert all(x['checks'].values()), {k:v for k,v in x['checks'].items() if not v}
+          PY
+
+      - name: Sealed log-alien exact-transfer regression
+        run: |
+          set -euo pipefail
+          python -m research.tools.apma_log_alien_transfer.independent_checker | tee /tmp/log-alien-regression.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          x=json.loads(Path('/tmp/log-alien-regression.json').read_text().strip().splitlines()[-1])
+          assert x['verdict']=='PASS_SCOPED_LOG_ALIEN_CONSTRAINT_EXACT_TRANSFER', x
+          assert all(x['checks'].values()), {k:v for k,v in x['checks'].items() if not v}
+          PY
+
+      - name: v3.19 frozen raw-GT2 census regression
+        run: |
+          set -euo pipefail
+          python -m research.tools.apma_bucket_gt2_unadmitted_raw_obstruction_census.census | tee /tmp/v319-gt2.json
+          python -m research.tools.apma_bucket_gt2_unadmitted_raw_obstruction_census.independent_checker \
+            --candidate-json /tmp/v319-gt2.json | tee /tmp/v319-gt2-independent.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          c=json.loads(Path('/tmp/v319-gt2.json').read_text().strip().splitlines()[-1])
+          i=json.loads(Path('/tmp/v319-gt2-independent.json').read_text().strip().splitlines()[-1])
+          assert c['verdict']=='PASS_DIAGNOSTIC_NO_FROZEN_RAW_UNADMITTED_GT2_OBSTRUCTION_FOUND', c
+          assert i['verdict']==c['verdict'], i
+          assert all(c['checks'].values()), {k:v for k,v in c['checks'].items() if not v}
+          assert all(i['checks'].values()), {k:v for k,v in i['checks'].items() if not v}
+          PY
+
+      - name: Global APMA V1 frozen blind-pass regression
+        run: |
+          set -euo pipefail
+          mod='research.tools.apma_unseen_local_invariant_orbit_count.blind_authority'
+          python -m "$mod" --emit positive > /tmp/v1-positive.raw.json
+          python -m "$mod" --emit negative > /tmp/v1-negative.raw.json
+          python -m research.tools.apma_unseen_local_invariant_orbit_count.candidate --input-json /tmp/v1-positive.raw.json > /tmp/v1-positive.candidate.json
+          python -m research.tools.apma_unseen_local_invariant_orbit_count.independent_checker --input-json /tmp/v1-positive.raw.json --candidate-json /tmp/v1-positive.candidate.json > /tmp/v1-positive.check.json
+          python -m research.tools.apma_unseen_local_invariant_orbit_count.candidate --input-json /tmp/v1-negative.raw.json > /tmp/v1-negative.candidate.json
+          python -m research.tools.apma_unseen_local_invariant_orbit_count.independent_checker --input-json /tmp/v1-negative.raw.json --candidate-json /tmp/v1-negative.candidate.json > /tmp/v1-negative.check.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          p=json.loads(Path('/tmp/v1-positive.candidate.json').read_text().strip().splitlines()[-1])
+          pk=json.loads(Path('/tmp/v1-positive.check.json').read_text().strip().splitlines()[-1])
+          n=json.loads(Path('/tmp/v1-negative.candidate.json').read_text().strip().splitlines()[-1])
+          nk=json.loads(Path('/tmp/v1-negative.check.json').read_text().strip().splitlines()[-1])
+          assert p['status']=='ADMIT_ORBIT_COUNT_QUOTIENT_SAT' and p['solver_authority'] is True, p
+          assert p['quotient_states_Q']==210, p
+          assert pk['verified'] is True, pk
+          assert n['status']=='OPEN_NO_NONTRIVIAL_EXCHANGEABILITY' and n['solver_authority'] is False, n
+          assert nk['verified'] is True, nk
+          PY
+
+      - name: Upload replay machine receipt
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: satlib-uf20-01-frozen-replay-receipt
+          path: |
+            /tmp/satlib-replay.json
+            /tmp/satlib-independent.json
+            /tmp/satlib-orbit.json
+            /tmp/satlib-orbit-independent.json
+          if-no-files-found: error
+
+      - name: Authority notice
+        run: |
+          echo 'AUTHORITY=DIAGNOSTIC_ONLY__FROZEN_NEW_SOURCE_SEALED_PORTFOLIO_REPLAY'
+          echo 'SOURCE=SATLIB_UF20_01'
+          echo 'RAW_SHA256=a99bb4047dee6969bd3339ba99ba9df434ecc808a4a161139462e1993fc3b874'
+          echo 'NEW_SOLVER_MECHANISMS=0'
+          echo 'NEW_CARRIER_MECHANISMS=0'
+          echo 'NEW_REPRESENTATION_ADAPTERS_TO_FORCE_OLD_CARRIERS=0'
+          echo 'FULL_VARIABLE_CUBE_ENUMERATION=0'
+          echo 'P_VS_NP=OPEN'
+          echo 'GENERAL_SAT_IN_P=NOT_PROVED'
