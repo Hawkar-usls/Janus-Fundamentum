@@ -6,198 +6,178 @@ Purpose: prevent context-loss loops across chats, models, tools and long-lived d
 
 ## Hard rule
 
-Before proposing, repairing, promoting, rerunning, or naming any TRUMP/APMA/JANUS gate, the active worker/HQ chat MUST reconstruct context from repository and source-bound continuity artifacts.
-
-No scientific action is admissible from conversational memory alone.
+Before proposing, repairing, promoting, rerunning, or naming any TRUMP/APMA/JANUS gate, reconstruct current authority from repository artifacts. No scientific action is admissible from conversational memory alone.
 
 ## Current mandatory startup sequence
 
-0. Read `registry/TRUMP_CURRENT_STATE_2026-09-16_v3.22.json` **first**. It is the latest continuity anchor.
-1. Read `registry/TRUMP_APMA_UNSEEN_LOCAL_INVARIANT_STAGE_C_AUTHORITY_AUDIT_2026-09-16.json`.
-2. Read `research/TRUMP_APMA_UNSEEN_LOCAL_INVARIANT_STAGE_C_BLIND_EXECUTION_RESULT_2026-09-16.json` and `docs/TRUMP_DEVELOPMENT_JOURNAL_ENTRIES/2026-09-16_APMA_UNSEEN_LOCAL_INVARIANT_STAGE_C_BLIND_EXECUTION.md`.
-3. Then read `registry/TRUMP_CURRENT_STATE_2026-09-16_v3.21.json`, v3.20 and v3.19 before following older predecessor states as needed.
-4. Read base mechanism/history index `registry/TRUMP_CONTEXT_MANIFEST.json`.
-5. Immediately apply successor overlay `registry/TRUMP_CONTEXT_MANIFEST_2026-09-16_v3.22.json`. The overlay supersedes only current-pointer/current-frontier/new-mechanism fields; all historical mechanism aliases and bindings from the base manifest and earlier overlays remain in force.
-6. Read historical parent `registry/TRUMP_CURRENT_STATE.json`; never rewrite it.
-7. Search repository history/default-branch code before treating any mechanism as new.
-8. Recover indexed external sources when named.
-9. Build a `CONTEXT_RECOVERY_RECEIPT` with authority, global frontier result, sealed portfolio, scoped blockers and next allowed action.
-10. Only then may Captain/Akinator/JUXTAPOSE/TRUMP select or execute a new gate.
+0. Read `registry/TRUMP_CURRENT_STATE_2026-09-16_v3.23.json` **first**.
+1. Read `research/TRUMP_SOURCE_AUTHORIZED_CONNECTED_MIXED_RAW_POST_ORBIT_PORTFOLIO_OBSTRUCTION_CENSUS_RESULT_2026-09-16.json` and `docs/TRUMP_DEVELOPMENT_JOURNAL_ENTRIES/2026-09-16_SOURCE_AUTHORIZED_CONNECTED_MIXED_RAW_POST_ORBIT_OBSTRUCTION_CENSUS.md`.
+2. Read parent `registry/TRUMP_CURRENT_STATE_2026-09-16_v3.22.json` and `registry/TRUMP_APMA_UNSEEN_LOCAL_INVARIANT_STAGE_C_AUTHORITY_AUDIT_2026-09-16.json` for the sealed global blind-pass authority.
+3. Then recover v3.21, v3.20 and v3.19 as needed for predecessor provenance.
+4. Read base `registry/TRUMP_CONTEXT_MANIFEST.json` and apply successor overlay `registry/TRUMP_CONTEXT_MANIFEST_2026-09-16_v3.23.json`.
+5. The v3.23 overlay supersedes only current-pointer/current-diagnostic/next-action fields. Historical bindings and the v3.22 sealed orbit-count mechanism remain in force.
+6. Search repository history/default-branch code before treating any mechanism as new.
+7. Build a `CONTEXT_RECOVERY_RECEIPT` with current authority, sealed portfolio, dormant surfaces, remaining open surfaces and next allowed action.
+8. Only then may Captain/Akinator/JUXTAPOSE/TRUMP select or execute another gate.
 
-## Current global-frontier result
+## Current authority anchor
 
-The historical global gate:
+Latest state:
+
+`registry/TRUMP_CURRENT_STATE_2026-09-16_v3.23.json`
+
+State blob:
+
+`70e8b78fedd05bedb2e2324846d83c6fceea434d`
+
+Latest overlay:
+
+`registry/TRUMP_CONTEXT_MANIFEST_2026-09-16_v3.23.json`
+
+Overlay blob:
+
+`72af54233ebb2427894192c9904e179ece6f2708`
+
+## Global APMA blind-pass authority remains unchanged
+
+Historical global gate:
 
 `APMA_UNSEEN_LOCAL_INVARIANT_INDUCTION_FALSIFIER_GATE`
 
-has now been executed under its own frozen staged-blind protocol.
-
-Canonical HQ verdict:
+Canonical verdict:
 
 `PASS_GLOBAL_APMA_UNSEEN_LOCAL_INVARIANT_INDUCTION_FALSIFIER_GATE_V1`
 
-Scientific PR:
-
-`#483`
-
-Scientific merge:
-
-`3fc4dd10085530c013ad446f6a62c2d7ded5b169`
-
-The machine Stage C receipt remains preserved exactly as emitted:
-
-`PASS_GLOBAL_FRONTIER_MECHANISM_ON_FROZEN_BLIND_POSITIVE_WITH_PREREGISTERED_FAIL_CLOSED_NEGATIVE_CONTROL`
-
-Scope remains:
-
-`MECHANISM_CAPABILITY_ON_THIS_FROZEN_BLIND_PROTOCOL_ONLY`
-
-The HQ authority audit maps that receipt to the preregistered canonical PASS only because all frozen `P1..P12` obligations and staged freeze conditions are supported by source-bound receipts.
-
-## Frozen execution receipts
-
-Push Stage C:
-
-- run `35088383404`
-- job `104768554613`
-- `SUCCESS`
-
-PR-triggered unchanged-lineage replays:
-
-- Stage A: `35088850044 / 104770073161` — `SUCCESS`
-- Stage B: `35088850623 / 104770074878` — `SUCCESS`
-- Stage C: `35088849912 / 104770072814` — `SUCCESS`
-
-Blind positive machine facts:
-
-- semantic SHA-256: `754019dfae09c51640011d614ae5b215377afc6d3f8902f558c38e9a1c35e7b4`;
-- 15 variables, 120 explicit constraints;
-- discovered exact exchangeability/orbit cells of sizes `4`, `5`, `6`;
-- exact quotient `Q=210`;
-- only `7` count states enumerated;
-- status `ADMIT_ORBIT_COUNT_QUOTIENT_SAT`;
-- canonical Boolean reconstruction replayed all 120 original relations;
-- independent checker verified the admission and reconstruction without importing candidate.
-
-Blind negative machine facts:
-
-- semantic SHA-256: `1aed4c6c360060c0262b616dc6552b5b33b446724308a2ac793e9019c6202b8d`;
-- 8 variables, 9 constraints;
-- all orbit cells singleton;
-- status `OPEN_NO_NONTRIVIAL_EXCHANGEABILITY`;
-- `solver_authority=false`;
-- zero count states enumerated;
-- independent checker verified the fail-closed result.
-
-Stage A PR replay also reports `renaming_order_tuple_permutation_invariant_profile=true` on the frozen candidate.
-
-## Newly sealed exact admission carrier
-
-Mechanism:
+Sealed mechanism:
 
 `EXACT_TRANSPOSITION_ORBIT_COUNT_QUOTIENT`
 
-Authority class:
+This is a clean blind capability PASS for the frozen generic exact mechanism under its preregistered protocol. It is not arbitrary unseen-invariant discovery and is not general connected-mixed, GT2, CSP or SAT tractability.
 
-`EXACT_ADMISSION_CARRIER__FAIL_CLOSED_OUTSIDE_CERTIFIED_DOMAIN`
+## v3.23 diagnostic result
 
-Core admission contract:
-
-1. start from complete explicit raw Boolean relation semantics;
-2. verify exact variable-transposition automorphisms against the complete canonical semantic object;
-3. build generator-graph orbit cells;
-4. require at least one nontrivial cell;
-5. compute `Q = product_C (|C|+1)` with saturation before enumeration;
-6. require `Q <= L^2` and strict compression `Q < 2^n`;
-7. only then enumerate quotient count vectors;
-8. reconstruct/replay an exact SAT assignment or provide complete quotient UNSAT coverage;
-9. independent checker replays admission and certificate.
-
-Frozen symbolic envelope:
-
-- total candidate/checker time: `O(L^4 log L)`;
-- certificate/storage: `O(L^3)`.
-
-Resource firewalls remain zero for full-variable-cube enumeration, global residual Cartesian products, separator>=3 Boolean branching, size-4 branching, new unbounded recursion and budget raise.
-
-This is one new generic exact carrier. It is **not** a universal selector and does not admit objects lacking its exact certificate.
-
-## What the global PASS does not establish
-
-The following remain canonical:
-
-- `ARBITRARY_UNSEEN_INVARIANT_DISCOVERY = NOT_PROVED`
-- `CONNECTED_MIXED_CORE_SOLVED = NO`
-- `GENERAL_GT2_TRACTABILITY = NOT_PROVED`
-- `NONUNIQUE_COMMON_CORE_SOLVED = false`
-- `GENERAL_RESIDUAL_SEPARATOR_TRACTABILITY = NOT_PROVED`
-- `GENERAL_SAT_IN_P = NOT_PROVED`
-- `P_VS_NP = OPEN`
-- `SIZE4_BRANCHING_LICENSED = false`
-- `EXTRA_RECURSION_AUTHORIZED = false`
-
-A finite blind PASS is capability/falsifier evidence for the frozen mechanism under the frozen protocol. It is not an asymptotic theorem about arbitrary SAT.
-
-## Previous scoped acquisition line
-
-The v3.21 raw-predecessor nonunique-common-core acquisition line remains:
-
-`DORMANT_PENDING_NEW_SOURCE_BOUND_RAW_EVIDENCE`
-
-Its bounded conclusion is unchanged: the recovered preregistered source-bound predecessor corpus contained zero real READY objects with exact common support size greater than one.
-
-v3.22 does not reopen that line. It may be reopened only if new source-authorized raw predecessor provenance appears.
-
-## Current next allowed action
-
-Do **not** immediately design another solver/carrier.
-
-First run a source-bound obstruction census against the expanded sealed portfolio:
+Gate:
 
 `TRUMP_SOURCE_AUTHORIZED_CONNECTED_MIXED_RAW_POST_ORBIT_PORTFOLIO_OBSTRUCTION_CENSUS`
 
+Canonical diagnostic verdict:
+
+`PASS_DIAGNOSTIC_NO_CURRENT_SOURCE_AUTHORIZED_CONNECTED_MIXED_RAW_POST_ORBIT_OBSTRUCTION_FOUND`
+
+Scientific PR: `#486`
+
+Scientific merge:
+
+`a6065d6391f313d872b49bffb667407e7b42c83d`
+
+Initial scientific run:
+
+`35091538869 / 104778770515` — `SUCCESS`
+
+Final PR-triggered replay on exact final scientific head `92f4fe908afc8cb4445e35ff5089827f962b1890`:
+
+`35097702112 / 104799061240` — `SUCCESS`
+
+Frozen result blob:
+
+`3704a2bfd4edac8885cf78fc345bb20912cf21a5`
+
+## Exact bounded machine facts
+
+The preregistered recovered source inventory contained:
+
+- 26 constructor entries;
+- 23 unique canonical raw objects;
+- 6 objects satisfying the frozen connected-mixed eligibility definition;
+- 1 eligible object closed by the already sealed logarithmic alien-constraint transfer;
+- 5 eligible objects closed by the already sealed `EXACT_TRANSPOSITION_ORBIT_COUNT_QUOTIENT` V1 mechanism;
+- `first_real_post_orbit_obstruction = null`.
+
+The independent checker rebuilt the source corpus without importing the new profiler and matched eligibility/classification by canonical raw SHA. All sealed regressions passed.
+
+No new solver, carrier, representation adapter, full variable-cube enumeration, separator>=3 Boolean branching, size-4 Boolean branching, unbounded recursion, 3+ join chain, global residual Cartesian product or budget raise was introduced by this diagnostic.
+
+## Correct interpretation
+
+The licensed conclusion is only:
+
+`THE_CURRENT_FROZEN_RECOVERED_SOURCE_AUTHORIZED_CONNECTED_MIXED_CORPUS_CONTAINS_NO_POST_ORBIT_OBSTRUCTION_AFTER_THE_CURRENT_SEALED_PORTFOLIO`
+
+This does **not** establish:
+
+- general connected-mixed tractability;
+- `CONNECTED_MIXED_CORE_SOLVED`;
+- arbitrary unseen-invariant discovery;
+- general GT2 tractability;
+- general residual separator tractability;
+- `GENERAL_SAT_IN_P`;
+- any resolution of P versus NP;
+- any general lower bound.
+
+Absence of an obstruction in this finite recovered corpus is not proof that no such obstruction exists outside it.
+
+## Current next allowed action
+
+Do **not** design another connected-mixed solver/carrier from this negative census.
+
+The next authority surface is:
+
+`TRUMP_SOURCE_AUTHORIZED_CONNECTED_MIXED_RAW_POST_ORBIT_NEW_EVIDENCE_ACQUISITION_GATE`
+
 Class:
 
-`DIAGNOSTIC_ONLY__PREREGISTER_BEFORE_EXECUTION`
+`DIAGNOSTIC_ONLY__SOURCE_PROVENANCE_ACQUISITION_BEFORE_ANY_NEW_MECHANISM_DESIGN`
 
 Status:
 
-`ELIGIBLE__NOT_RUN`
+`DORMANT_UNTIL_NEW_SOURCE_BOUND_RAW_PROVENANCE_APPEARS`
 
-Purpose: inventory existing source-authorized connected-mixed raw fixtures, replay the current sealed exact portfolio including `EXACT_TRANSPOSITION_ORBIT_COUNT_QUOTIENT`, and identify the first real object that remains unadmitted.
+This is intentionally not an executable solver gate right now.
 
-Required outcomes are fail-closed:
+Entry requires genuinely new committed deterministic source-bound raw provenance outside the exhausted v3.23 26-constructor / 23-unique corpus. When such provenance appears:
 
-- if a real unadmitted object exists, freeze the first obstruction before mechanism design;
-- if none exists in the current frozen source corpus, report only `NO_CURRENT_SOURCE_AUTHORIZED_OBSTRUCTION_FOUND` for that corpus and acquire new evidence;
-- absence in a finite/recovered corpus is not general connected-mixed tractability.
+1. freeze the new source list, provenance and classification rules **before** inspecting post-portfolio outcomes;
+2. canonicalize/deduplicate raw objects;
+3. replay the current sealed exact portfolio first;
+4. only if a real source-authorized object remains OPEN may it be frozen as a new mechanism target;
+5. mechanism design requires a separate preregistration after that obstruction is frozen.
 
-The census itself may not invent a new solver or carrier.
+If no new source-bound raw provenance exists, remain dormant. Do not rerun the same corpus as “new evidence” and do not promote a synthetic calibration or target-aware fixture.
 
-## Anti-loop classification
+## Other dormant evidence-acquisition surface
 
-Every proposed mechanism or experiment must be classified before work begins as exactly one of:
+The earlier nonunique-common-core line remains:
 
-- `NEW_MECHANISM`
-- `REDISCOVERY_OF_EXISTING_MECHANISM`
-- `SUCCESSOR_REPAIR`
-- `DIAGNOSTIC_ONLY`
-- `SUPERSEDED_ROUTE`
+`FUTURE_SOURCE_AUTHORIZED_RAW_NONUNIQUE_COMMON_CORE_REACHABILITY_IF_NEW_PROVENANCE_APPEARS`
 
-If classification cannot be made from recovered provenance, status is `CONTEXT_INCOMPLETE__DO_NOT_ADVANCE_GATE`.
+Status:
 
-## Required role separation
+`DORMANT_PENDING_NEW_SOURCE_BOUND_RAW_EVIDENCE`
 
-- `AKINATOR`: discriminating exact questions / candidate narrowing only.
-- `CAPTAIN_OBVIOUS`: nearest missing obligation, loop detection and reducer stability only.
-- `JUXTAPOSE`: search prioritization only; priority is never proof.
-- `HRAIN`: deterministic structural-context observation only; graph/semantic similarity is not mechanism or evidence.
-- `INAIHR / JANUS_SYNTH`: candidate-only explanation proposal with provenance; synthesis/ranking is not truth or proof.
-- `JANUS_DEMIURGE`: exact candidate/transition/certificate construction.
-- `TRUMP`: exact semantics, falsification, replay and total complexity accounting authority.
-- `JANUS_SOVEREIGN`: governance COMMIT/ROLLBACK/OPEN/HALT only after admissible evidence; no theorem-manufacturing authority.
+No multi-state carrier is licensed without a real source-authorized raw fixture.
+
+## Remaining open surfaces
+
+- `CONNECTED_MIXED_CORE_GENERAL_CASE`
+- `ARBITRARY_UNSEEN_INVARIANT_DISCOVERY`
+- `NONUNIQUE_COMMON_CORE_SUPPORT_FOR_A_FUTURE_REAL_SOURCE_AUTHORIZED_RAW_PREDECESSOR_IF_ONE_IS_REACHED`
+- `POSSIBLE_NEW_RAW_UNIQUE_CORE_GT2_OBSTRUCTIONS_OUTSIDE_THE_CURRENT_FROZEN_EVIDENCE_SET`
+- `GENERAL_RESIDUAL_SEPARATOR_TRACTABILITY`
+- `GENERAL_SAT`
 
 ## Permanent scientific firewalls
+
+- `P_VS_NP = OPEN`
+- `GENERAL_SAT_IN_P = NOT_PROVED`
+- `GENERAL_GT2_TRACTABILITY = NOT_PROVED`
+- `CONNECTED_MIXED_CORE_SOLVED = NO`
+- `GENERAL_RESIDUAL_SEPARATOR_TRACTABILITY = NOT_PROVED`
+- `ARBITRARY_UNSEEN_INVARIANT_DISCOVERY = NOT_PROVED`
+- `SIZE4_BRANCHING_LICENSED = false`
+- `EXTRA_RECURSION_AUTHORIZED = false`
+- `NEW_MECHANISM_LICENSED_BY_V3_23 = false`
+
+Also preserve:
 
 `proof-system lower bound != problem lower bound != general SAT lower bound`
 
@@ -205,48 +185,66 @@ If classification cannot be made from recovered provenance, status is `CONTEXT_I
 
 `T_construct + T_discover + T_solve + T_reconstruct + T_verify + certificate_bytes <= poly(|F|)`
 
-Finite controls are implementation/falsifier evidence, not asymptotic theorem evidence unless the frozen claim is itself finite.
+Finite controls and finite recovered corpora are implementation/falsifier/evidence-localization authority only unless the frozen claim is itself finite.
 
-Parameterized/FPT does not automatically imply polynomial in original input; an explicit original-input envelope is required.
+## Anti-loop rule
 
-## Current architectural rule
+Before work begins, classify every proposal as one of:
 
-The Inverted-Pyramid rule remains:
+- `NEW_MECHANISM`
+- `REDISCOVERY_OF_EXISTING_MECHANISM`
+- `SUCCESSOR_REPAIR`
+- `DIAGNOSTIC_ONLY`
+- `SUPERSEDED_ROUTE`
 
-`COMPLETE_EXACT_ADMISSION_CERTIFICATE -> AUTHORIZED_SEALED_CARRIER/PORTFOLIO -> EXACT_REPLAY -> OTHERWISE OPEN`.
+If provenance is incomplete, use `CONTEXT_INCOMPLETE__DO_NOT_ADVANCE_GATE`.
 
-The sixteen previously sealed downward scoped mechanisms through the v3.18 exact two-factor / f-factor carrier remain unchanged. v3.19, v3.20 and v3.21 were diagnostic/continuity advances and added no carrier. v3.22 additionally seals the generic exact `EXACT_TRANSPOSITION_ORBIT_COUNT_QUOTIENT` carrier after the global staged-blind PASS.
+At v3.23 specifically, rerunning the exhausted connected-mixed corpus is a `SUPERSEDED_ROUTE` unless genuinely new source provenance has been added and frozen under a new preregistration.
 
-## Forbidden shortcuts at v3.22
+## Required role separation
+
+- `AKINATOR`: discriminating questions / candidate narrowing only.
+- `CAPTAIN_OBVIOUS`: nearest missing obligation, loop detection and reducer stability only.
+- `JUXTAPOSE`: search prioritization only; priority is never proof.
+- `HRAIN`: deterministic structural-context observation only.
+- `INAIHR / JANUS_SYNTH`: candidate-only explanation proposal with provenance.
+- `JANUS_DEMIURGE`: exact candidate/transition/certificate construction.
+- `TRUMP`: exact semantics, falsification, replay and total complexity accounting authority.
+- `JANUS_SOVEREIGN`: governance COMMIT/ROLLBACK/OPEN/HALT only after admissible evidence.
+
+## Architectural rule
+
+`COMPLETE_EXACT_ADMISSION_CERTIFICATE -> AUTHORIZED_SEALED_CARRIER/PORTFOLIO -> EXACT_REPLAY -> OTHERWISE OPEN`
+
+The previously sealed scoped mechanisms remain unchanged. v3.22 added the exact orbit-count carrier after its blind protocol. v3.23 adds **no mechanism**; it only closes the current evidence-localization obligation for the recovered connected-mixed corpus and places the line into source-provenance acquisition mode.
+
+## Forbidden shortcuts at v3.23
 
 Do not:
 
-- promote this blind PASS to arbitrary unseen-invariant discovery;
-- promote this blind PASS to general connected-mixed or GT2 tractability;
-- call one exact carrier a universal selector;
-- invent another mechanism before localizing a real remaining source-authorized obstruction;
+- promote “no obstruction found in current corpus” to general connected-mixed tractability;
+- rerun the exhausted corpus and call it new evidence;
+- invent or promote a synthetic blocker;
+- invent a new connected-mixed mechanism without a real source-authorized post-portfolio obstruction;
+- promote the global blind PASS to arbitrary unseen-invariant discovery;
 - promote synthetic calibration to raw reachability authority;
-- declare nonunique common-core support solved;
-- enumerate `2^|C|` assignments outside actual explicit support;
-- introduce separator sets of size >=3 as Boolean branching;
-- license size-4 Boolean branching;
+- enumerate a full variable cube outside an already sealed admissible mechanism;
+- introduce separator>=3 Boolean branching or license size-4 Boolean branching;
 - add unbounded recursion or a new 3+ join chain;
 - materialize a global residual Cartesian product;
 - raise the frozen resource budget;
-- infer general SAT in P, P=NP, P!=NP, or a general lower bound from this result.
+- infer general SAT in P, a P-vs-NP resolution, or a general lower bound.
 
 ## Context sources
 
 Primary scientific authority: `Hawkar-usls/Janus-Fundamentum`.
 
-External bicameral proposal-layer sources: `Hawkar-usls/Hrain` and `Hawkar-usls/iNaiHR`; neither has proof authority inside TRUMP.
-
-Historical/semantic archive: `Hawkar-usls/janus-meta-registry` plus persistent Library artifacts indexed by the base context manifest.
+External proposal/context sources such as Hrain and iNaiHR have no proof authority inside TRUMP unless exact source-bound contracts say otherwise.
 
 Conversation memory is advisory only; repository and source-bound artifacts outrank it.
 
 ## Write-back rule
 
-After every material development, create/update the latest successor-state and continuity overlay while preserving all parent-state history. If a durable mechanism or alias is introduced, index it in continuity sources in the same development cycle.
+After every material development, create/update the latest successor state and successor overlay while preserving parent-state history. Durable new mechanisms require explicit continuity indexing in the same development cycle. Diagnostic-only evidence acquisition must not be rewritten as theorem or mechanism authority.
 
 Status: `ACTIVE_MANDATORY_BOOTSTRAP`.
