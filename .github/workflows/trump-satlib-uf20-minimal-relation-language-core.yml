@@ -1,0 +1,81 @@
+name: TRUMP SATLIB UF20 Minimal Relation-Language Core
+
+on:
+  push:
+    branches:
+      - research/trump-external-satlib-uf20-01-source-acquisition-2026-09-16
+    paths:
+      - 'research/TRUMP_SATLIB_UF20_MINIMAL_RELATION_LANGUAGE_OBSTRUCTION_CORE_PREREGISTRATION_2026-09-16.json'
+      - 'research/tools/apma_satlib_uf20_minimal_relation_language_core/**'
+      - '.github/workflows/trump-satlib-uf20-minimal-relation-language-core.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  minimal-language-core:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Assert frozen relation-language analysis bindings
+        run: |
+          set -euo pipefail
+          test "$(git hash-object research/TRUMP_SATLIB_UF20_MINIMAL_RELATION_LANGUAGE_OBSTRUCTION_CORE_PREREGISTRATION_2026-09-16.json)" = "b75582fe0e0cb53e5b55dcf37a84944477505f92"
+          test "$(git hash-object research/TRUMP_SATLIB_UF20_FAMILY_SEALED_PORTFOLIO_REPLICATION_RESULT_2026-09-16.json)" = "277214289387abf6cf7e2d97bdf7dcf1f1727e07"
+          test "$(git hash-object research/tools/apma_satlib_uf20_minimal_relation_language_core/analyzer.py)" = "d212093f10d97c2307a44b596121acdd4779ed17"
+          test "$(git hash-object research/tools/apma_satlib_uf20_minimal_relation_language_core/independent_checker.py)" = "7118ccda2256e14abea2ea698ac46a7abbb13c91"
+          test "$(git hash-object research/source_data/SATLIB_UF20_01_2026-09-16.cnf)" = "8330041b292e0501f8d74c1b1d32ca96c4498864"
+          test "$(git hash-object research/source_data/SATLIB_UF20_02_2026-09-16.cnf)" = "f924caaef0d868bf62b1658e83e030ad8daee865"
+          test "$(git hash-object research/source_data/SATLIB_UF20_03_2026-09-16.cnf)" = "8f3d15154515457281f49201b843f2a7134dfa9f"
+          test "$(git hash-object research/source_data/SATLIB_UF20_04_2026-09-16.cnf)" = "34ced5c169f967b2dc44ef5e42f2ee2c924813e1"
+          test "$(git hash-object research/source_data/SATLIB_UF20_05_2026-09-16.cnf)" = "3b04eff26ee37bdd0bc21b1066486974f92a2c9b"
+      - name: Enumerate frozen 256 relation languages
+        run: |
+          set -euo pipefail
+          python -m research.tools.apma_satlib_uf20_minimal_relation_language_core.analyzer | tee /tmp/minimal-core.json
+      - name: Run independent minimal-core checker
+        run: |
+          set -euo pipefail
+          python -m research.tools.apma_satlib_uf20_minimal_relation_language_core.independent_checker --candidate-json /tmp/minimal-core.json | tee /tmp/minimal-core-independent.json
+      - name: Assert scoped result and firewalls
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          c=json.loads(Path('/tmp/minimal-core.json').read_text().strip().splitlines()[-1])
+          i=json.loads(Path('/tmp/minimal-core-independent.json').read_text().strip().splitlines()[-1])
+          assert c['verdict']=='PASS_MINIMAL_RELATION_LANGUAGE_OBSTRUCTION_CORES_ENUMERATED',c
+          assert c['language_count']==256,c
+          assert c['obstruction_language_count']==64,c
+          assert c['inclusion_minimal_obstruction_cores']==[['000','111']],c
+          assert c['minimal_core_count']==1,c
+          assert i['verified'] is True and i['candidate_imported'] is False,i
+          assert all(r['all_eight_relation_types_present'] for r in c['source_presence']),c['source_presence']
+          assert all(r['minimal_core_presence']==[{'core':['000','111'],'present':True}] for r in c['source_presence']),c['source_presence']
+          rr=c['resource_receipt']
+          assert rr['relation_languages_enumerated']==256 and rr['formula_subsets_enumerated']==0 and rr['variable_assignment_cubes_enumerated']==0,rr
+          assert rr['solver_invocations']==0 and rr['new_solver_mechanisms']==0 and rr['new_carrier_mechanisms']==0 and rr['new_adapters']==0 and rr['new_quotients']==0 and rr['budget_raise'] is False,rr
+          sf=c['scientific_firewall']
+          assert sf['P_VS_NP']=='OPEN' and sf['GENERAL_SAT_IN_P']=='NOT_PROVED' and sf['MINIMAL_LANGUAGE_CORE_IMPLIES_HARDNESS'] is False,sf
+          print(json.dumps({'verdict':c['verdict'],'obstruction_language_count':c['obstruction_language_count'],'minimal_cores':c['inclusion_minimal_obstruction_cores'],'sources':[{r['source']:r['minimal_core_presence']} for r in c['source_presence']],'independent_verified':i['verified']},sort_keys=True))
+          PY
+      - name: Upload minimal-core receipt
+        uses: actions/upload-artifact@v4
+        with:
+          name: satlib-uf20-minimal-relation-language-core-receipt
+          path: |
+            /tmp/minimal-core.json
+            /tmp/minimal-core-independent.json
+          if-no-files-found: error
+      - name: Authority notice
+        run: |
+          echo 'AUTHORITY=DIAGNOSTIC_FINITE_RELATION_LANGUAGE_ANALYSIS_ONLY__NO_FORMULA_SOLVER_OR_MECHANISM'
+          echo 'P_VS_NP=OPEN'
+          echo 'GENERAL_SAT_IN_P=NOT_PROVED'
+          echo 'MINIMAL_LANGUAGE_CORE_IMPLIES_HARDNESS=false'
