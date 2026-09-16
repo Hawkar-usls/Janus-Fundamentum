@@ -1,0 +1,196 @@
+name: TRUMP APMA Unseen Local Invariant Stage A
+
+on:
+  push:
+    branches:
+      - research/trump-apma-unseen-local-invariant-induction-falsifier-2026-09-16
+    paths:
+      - 'research/TRUMP_APMA_UNSEEN_LOCAL_INVARIANT_INDUCTION_FALSIFIER_GATE_PREREGISTRATION_2026-09-16.json'
+      - 'research/TRUMP_APMA_UNSEEN_LOCAL_INVARIANT_STAGE_A_DESIGN_2026-09-16.json'
+      - 'research/tools/apma_unseen_local_invariant_orbit_count/**'
+      - '.github/workflows/trump-apma-unseen-local-invariant-stage-a.yml'
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'research/TRUMP_APMA_UNSEEN_LOCAL_INVARIANT_INDUCTION_FALSIFIER_GATE_PREREGISTRATION_2026-09-16.json'
+      - 'research/TRUMP_APMA_UNSEEN_LOCAL_INVARIANT_STAGE_A_DESIGN_2026-09-16.json'
+      - 'research/tools/apma_unseen_local_invariant_orbit_count/**'
+      - '.github/workflows/trump-apma-unseen-local-invariant-stage-a.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  stage-a-revealed-calibration:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - name: Run actions/checkout@v4
+        uses: actions/checkout@v4
+
+      - name: Run actions/setup-python@v5
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Assert frozen Stage A source bindings
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git hash-object research/TRUMP_APMA_UNSEEN_LOCAL_INVARIANT_INDUCTION_FALSIFIER_GATE_PREREGISTRATION_2026-09-16.json)" = "5f02f06a920d838bca37f88c27c5053d7a606271"
+          test "$(git hash-object research/TRUMP_APMA_UNSEEN_LOCAL_INVARIANT_STAGE_A_DESIGN_2026-09-16.json)" = "bc6fedb8d8d7da8f17ccc53d30c8356745068ccd"
+          test "$(git hash-object research/tools/apma_unseen_local_invariant_orbit_count/candidate.py)" = "a076cfc56d68aad0348415e313705da1f6b9cdcd"
+          test "$(git hash-object research/tools/apma_unseen_local_invariant_orbit_count/independent_checker.py)" = "0e12304d843ef0bcce6b6c032fd2af2c68abcd14"
+          echo 'STAGE_A_SOURCE_BINDINGS=PASS'
+
+      - name: Run candidate revealed-only self calibration
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m research.tools.apma_unseen_local_invariant_orbit_count.candidate --revealed-calibration | tee /tmp/stage-a-self.json
+
+      - name: Assert revealed-only self-calibration firewalls
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          z=json.loads(Path('/tmp/stage-a-self.json').read_text().strip().splitlines()[-1])
+          assert z['stage']=='A_REVEALED_CALIBRATION_ONLY', z
+          assert z['mechanism']=='EXACT_TRANSPOSITION_ORBIT_COUNT_QUOTIENT', z
+          assert z['blind_authority_instantiated'] is False, z
+          assert all(z['checks'].values()), {k:v for k,v in z['checks'].items() if not v}
+          assert z['receipts']['SAT']['status']=='ADMIT_ORBIT_COUNT_QUOTIENT_SAT', z
+          assert z['receipts']['UNSAT']['status']=='ADMIT_ORBIT_COUNT_QUOTIENT_UNSAT', z
+          assert z['receipts']['OPEN']['status']=='OPEN_NO_NONTRIVIAL_EXCHANGEABILITY', z
+          sf=z['scientific_firewall']
+          assert sf['GLOBAL_FRONTIER_ADVANCE']=='NONE__REVEALED_CALIBRATION_ONLY', sf
+          assert sf['P_VS_NP']=='OPEN', sf
+          assert sf['GENERAL_SAT_IN_P']=='NOT_PROVED', sf
+          print(json.dumps({'stage':z['stage'],'mechanism':z['mechanism'],'checks':z['checks'],'receipts':z['receipts'],'firewall':sf},sort_keys=True))
+          PY
+
+      - name: Independently emit and replay revealed controls
+        shell: bash
+        run: |
+          set -euo pipefail
+          mod='research.tools.apma_unseen_local_invariant_orbit_count'
+          for name in equality odd-neq asymmetric trusted-label; do
+            python -m "$mod.independent_checker" --emit-fixture "$name" > "/tmp/${name}.raw.json"
+            python -m "$mod.candidate" --input-json "/tmp/${name}.raw.json" > "/tmp/${name}.candidate.json"
+            python -m "$mod.independent_checker" --input-json "/tmp/${name}.raw.json" --candidate-json "/tmp/${name}.candidate.json" | tee "/tmp/${name}.check.json"
+          done
+
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          expected={
+            'equality':'ADMIT_ORBIT_COUNT_QUOTIENT_SAT',
+            'odd-neq':'ADMIT_ORBIT_COUNT_QUOTIENT_UNSAT',
+            'asymmetric':'OPEN_NO_NONTRIVIAL_EXCHANGEABILITY',
+            'trusted-label':'REJECT_INPUT_CONTRACT',
+          }
+          receipt={}
+          for name,status in expected.items():
+            c=json.loads(Path(f'/tmp/{name}.candidate.json').read_text().strip().splitlines()[-1])
+            k=json.loads(Path(f'/tmp/{name}.check.json').read_text().strip().splitlines()[-1])
+            assert c['status']==status, (name,c)
+            assert k['verified'] is True, (name,k)
+            assert k['status']==status, (name,k)
+            if 'resource_receipt' in c:
+              rr=c['resource_receipt']
+              assert rr['full_variable_cube_states_enumerated']==0, (name,rr)
+              assert rr['global_residual_cartesian_products_materialized']==0, (name,rr)
+              assert rr['separator_ge3_boolean_branches']==0, (name,rr)
+              assert rr['size4_boolean_separator_assignments']==0, (name,rr)
+              assert rr['new_unbounded_recursion']==0, (name,rr)
+              assert rr['budget_raise'] is False, (name,rr)
+            receipt[name]={'candidate_status':c['status'],'checker_verified':k['verified']}
+            if c.get('quotient_states_Q') is not None:
+              receipt[name]['Q']=c['quotient_states_Q']
+            if c.get('cells') is not None:
+              receipt[name]['cells']=c['cells']
+          print(json.dumps({'revealed_independent_replay':receipt},sort_keys=True))
+          PY
+
+      - name: Tamper falsifier - SAT assignment must be rejected
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          p=Path('/tmp/equality.candidate.json')
+          z=json.loads(p.read_text().strip().splitlines()[-1])
+          z['certificate']['assignment'][0][1] ^= 1
+          Path('/tmp/equality.tampered.json').write_text(json.dumps(z,sort_keys=True,separators=(',',':'))+'\n')
+          PY
+          if python -m research.tools.apma_unseen_local_invariant_orbit_count.independent_checker --input-json /tmp/equality.raw.json --candidate-json /tmp/equality.tampered.json; then
+            echo 'FAIL_TAMPERED_SAT_CERTIFICATE_ACCEPTED'
+            exit 1
+          fi
+          echo 'TAMPERED_SAT_CERTIFICATE_REJECTED=PASS'
+
+      - name: Tamper falsifier - incomplete UNSAT coverage must be rejected
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          p=Path('/tmp/odd-neq.candidate.json')
+          z=json.loads(p.read_text().strip().splitlines()[-1])
+          z['certificate']['coverage_rows'].pop()
+          z['certificate']['coverage_count']=len(z['certificate']['coverage_rows'])
+          Path('/tmp/odd-neq.tampered.json').write_text(json.dumps(z,sort_keys=True,separators=(',',':'))+'\n')
+          PY
+          if python -m research.tools.apma_unseen_local_invariant_orbit_count.independent_checker --input-json /tmp/odd-neq.raw.json --candidate-json /tmp/odd-neq.tampered.json; then
+            echo 'FAIL_INCOMPLETE_UNSAT_CERTIFICATE_ACCEPTED'
+            exit 1
+          fi
+          echo 'INCOMPLETE_UNSAT_CERTIFICATE_REJECTED=PASS'
+
+      - name: Fixed-six raw relation basis predecessor regression
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m research.tools.apma_unseen_basis.independent_checker | tee /tmp/raw-basis-regression.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          z=json.loads(Path('/tmp/raw-basis-regression.json').read_text().strip().splitlines()[-1])
+          assert z['verdict']=='PASS_SCOPED_RAW_RELATION_SCHAEFER_BASIS_INDUCTION', z
+          assert all(z['checks'].values()), z
+          assert z['scientific_firewall']['ARBITRARY_UNSEEN_INVARIANT_DISCOVERY']=='NOT_PROVED', z
+          PY
+
+      - name: Variable-disjoint compositional basis predecessor regression
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m research.tools.apma_unseen_basis.compositional_independent_checker | tee /tmp/compositional-regression.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          z=json.loads(Path('/tmp/compositional-regression.json').read_text().strip().splitlines()[-1])
+          assert z['verdict']=='PASS_SCOPED_RAW_COMPOSITIONAL_BASIS_INDUCTION', z
+          assert all(z['checks'].values()), z
+          sf=z['scientific_firewall']
+          assert sf['CONNECTED_MIXED_CORE_SOLVED']=='NO', sf
+          assert sf['ARBITRARY_UNSEEN_INVARIANT_DISCOVERY']=='NOT_PROVED', sf
+          PY
+
+      - name: Authority notice
+        shell: bash
+        run: |
+          echo 'AUTHORITY=STAGE_A_REVEALED_CALIBRATION_ONLY'
+          echo 'BLIND_AUTHORITY_INSTANTIATED=FALSE'
+          echo 'BLIND_POSITIVE_EXECUTED=FALSE'
+          echo 'BLIND_NEGATIVE_EXECUTED=FALSE'
+          echo 'GLOBAL_APMA_FRONTIER_ADVANCE=NONE'
+          echo 'ARBITRARY_UNSEEN_INVARIANT_DISCOVERY=NOT_PROVED'
+          echo 'GENERAL_SAT_IN_P=NOT_PROVED'
+          echo 'P_VS_NP=OPEN'
