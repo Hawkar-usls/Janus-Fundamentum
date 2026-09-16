@@ -1,0 +1,96 @@
+name: TRUMP SATLIB UF20 Pendant Singleton Existential Boundary Projection
+
+on:
+  push:
+    branches:
+      - research/trump-external-satlib-uf20-01-source-acquisition-2026-09-16
+    paths:
+      - 'research/TRUMP_SATLIB_UF20_R000_R111_PENDANT_SINGLETON_EXISTENTIAL_BOUNDARY_PROJECTION_PREREGISTRATION_2026-09-17.json'
+      - 'research/TRUMP_SATLIB_UF20_R000_R111_PENDANT_SINGLETON_EXISTENTIAL_BOUNDARY_PROJECTION_PREREGISTRATION_REVIEW_2026-09-17.json'
+      - 'research/tools/apma_satlib_uf20_r000_r111_pendant_singleton_existential_boundary_projection/**'
+      - '.github/workflows/trump-satlib-uf20-r000-r111-pendant-singleton-existential-boundary-projection.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  boundary-projection:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Assert frozen boundary projection bindings
+        run: |
+          set -euo pipefail
+          test "$(git hash-object research/TRUMP_SATLIB_UF20_R000_R111_PENDANT_SINGLETON_EXISTENTIAL_BOUNDARY_PROJECTION_PREREGISTRATION_2026-09-17.json)" = "1b1e2959bc238f18fa8f951876072f9f4c8f917f"
+          test "$(git hash-object research/TRUMP_SATLIB_UF20_R000_R111_PENDANT_SINGLETON_EXISTENTIAL_BOUNDARY_PROJECTION_PREREGISTRATION_REVIEW_2026-09-17.json)" = "f44771b6f32c0837aea18bc4f03d2f74cf703c4b"
+          test "$(git hash-object research/TRUMP_SATLIB_UF20_R000_R111_D2_D3_SINGLETON_ATTACHMENT_SCOPE_ALIGNMENT_RESULT_2026-09-17.json)" = "9442fca30db3e623c56a33d8fda6c3a1e3c1f624"
+          test "$(git hash-object research/TRUMP_SATLIB_UF20_SUCCESSOR_LOCAL_INVARIANT_FRESH_BLIND_SOURCE_ACQUISITION_RESULT_2026-09-17.json)" = "3ee5a11808ea04326ec5141b0138bbba4ec56092"
+          test "$(git hash-object research/tools/apma_satlib_uf20_r000_r111_projected_core_replay/projection_identity.py)" = "2ef48e73974a5f43d3f4fb4809ebd0c09c0f5be4"
+          test "$(git hash-object research/source_data/SATLIB_UF20_02_2026-09-16.cnf)" = "f924caaef0d868bf62b1658e83e030ad8daee865"
+          test "$(git hash-object research/source_data/SATLIB_UF20_03_2026-09-16.cnf)" = "8f3d15154515457281f49201b843f2a7134dfa9f"
+          test "$(git hash-object research/source_data/SATLIB_UF20_04_2026-09-16.cnf)" = "34ced5c169f967b2dc44ef5e42f2ee2c924813e1"
+          test "$(git hash-object research/source_data/SATLIB_UF20_05_2026-09-16.cnf)" = "3b04eff26ee37bdd0bc21b1066486974f92a2c9b"
+          test "$(git hash-object research/tools/apma_satlib_uf20_r000_r111_pendant_singleton_existential_boundary_projection/candidate.py)" = "bb28f06fe856ddd9fb8733d461adec38475ccb5a"
+          test "$(git hash-object research/tools/apma_satlib_uf20_r000_r111_pendant_singleton_existential_boundary_projection/independent_checker.py)" = "ffe98f6732fe14f585fc1c1b1179d313c5658669"
+      - name: Execute frozen local existential boundary audit once
+        run: |
+          set -euo pipefail
+          python -m research.tools.apma_satlib_uf20_r000_r111_pendant_singleton_existential_boundary_projection.candidate > /tmp/pendant-boundary.json
+      - name: Independently rebuild and verify all eleven boundary relations
+        run: |
+          set -euo pipefail
+          python -m research.tools.apma_satlib_uf20_r000_r111_pendant_singleton_existential_boundary_projection.independent_checker --candidate-json /tmp/pendant-boundary.json > /tmp/pendant-boundary-independent.json
+      - name: Assert outcome space local theorem and firewalls
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          c=json.loads(Path('/tmp/pendant-boundary.json').read_text().strip().splitlines()[-1])
+          i=json.loads(Path('/tmp/pendant-boundary-independent.json').read_text().strip().splitlines()[-1])
+          assert c['verdict'] in {'ALL_ELEVEN_UNIVERSAL','MIXED_OR_PROPER','AT_LEAST_ONE_EMPTY'},c
+          assert c['source_guard']['ok'] is True,c['source_guard']
+          assert i['verified'] is True and i['candidate_imported'] is False,i
+          assert i['verdict']==c['verdict'],(i,c)
+          assert sum(c['outcome_counts'].values())==11,c['outcome_counts']
+          assert len(c['rows'])==4 and sum(len(r['attachments']) for r in c['rows'])==11,c['rows']
+          assert all(a['membership_tests']==8 for r in c['rows'] for a in r['attachments']),c['rows']
+          rr=c['resource_receipt']
+          assert rr['attachments']==11 and rr['boundary_assignments']==44 and rr['table_membership_tests']==88 and rr['maximum_table_membership_tests']==88,rr
+          assert rr['attachment_deletions']==0 and rr['projected_raw_modifications']==0 and rr['fresh_holdout_values_read']==0,rr
+          assert rr['global_solver_invocations']==0 and rr['portfolio_replays']==0 and rr['component_solution_attempts']==0,rr
+          assert rr['action_tests']==0 and rr['automorphism_tests']==0 and rr['group_searches']==0 and rr['group_closure_computation']==0,rr
+          assert rr['new_solver_mechanisms']==0 and rr['new_carrier_mechanisms']==0 and rr['new_adapters']==0 and rr['new_quotients']==0,rr
+          assert c['local_semantics_theorem']['deletion_applied'] is False,c['local_semantics_theorem']
+          if c['verdict']=='ALL_ELEVEN_UNIVERSAL':
+            assert c['local_semantics_theorem']['symbolic_projection_equivalence_verified'] is True,c['local_semantics_theorem']
+            assert i['local_semantics_theorem_verified'] is True,i
+          sf=c['scientific_firewall']
+          assert sf['P_VS_NP']=='OPEN' and sf['GENERAL_SAT_IN_P']=='NOT_PROVED' and sf['CONNECTED_MIXED_CORE_SOLVED']=='NO',sf
+          assert sf['LOCAL_BOUNDARY_TRANSPARENCY_IMPLIES_GLOBAL_TRACTABILITY'] is False and sf['LOCAL_BOUNDARY_TRANSPARENCY_IMPLIES_GLOBAL_CLOSURE'] is False,sf
+          print(json.dumps({'verdict':c['verdict'],'outcome_counts':c['outcome_counts'],'local_semantics_theorem':c['local_semantics_theorem'],'rows':c['rows'],'independent_verified':i['verified']},sort_keys=True))
+          PY
+      - name: Upload boundary projection receipt
+        uses: actions/upload-artifact@v4
+        with:
+          name: satlib-uf20-r000-r111-pendant-singleton-existential-boundary-projection-receipt
+          path: |
+            /tmp/pendant-boundary.json
+            /tmp/pendant-boundary-independent.json
+          if-no-files-found: error
+      - name: Authority notice
+        run: |
+          echo 'AUTHORITY=DIAGNOSTIC_EXACT_LOCAL_EXISTENTIAL_BOUNDARY_RELATION_AUDIT_ONLY'
+          echo 'ATTACHMENTS=11'
+          echo 'BOUNDARY_ASSIGNMENTS=44'
+          echo 'MAX_TABLE_MEMBERSHIP_TESTS=88'
+          echo 'ATTACHMENT_DELETIONS=0'
+          echo 'PROJECTED_RAW_MODIFICATIONS=0'
+          echo 'FRESH_HOLDOUT_VALUES_READ=0'
+          echo 'GLOBAL_SOLVER_INVOCATIONS=0'
+          echo 'P_VS_NP=OPEN'
+          echo 'GENERAL_SAT_IN_P=NOT_PROVED'
