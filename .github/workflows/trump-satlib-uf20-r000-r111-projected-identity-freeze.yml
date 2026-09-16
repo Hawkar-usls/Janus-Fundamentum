@@ -1,0 +1,57 @@
+name: TRUMP SATLIB UF20 R000 R111 Projected Identity Freeze
+
+on:
+  push:
+    branches:
+      - research/trump-external-satlib-uf20-01-source-acquisition-2026-09-16
+    paths:
+      - 'research/tools/apma_satlib_uf20_r000_r111_projected_core_replay/projection_identity.py'
+      - 'research/tools/apma_satlib_uf20_r000_r111_projected_core_replay/projection_identity_checker.py'
+      - '.github/workflows/trump-satlib-uf20-r000-r111-projected-identity-freeze.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  identity-freeze:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Assert frozen identity materialization bindings
+        run: |
+          set -euo pipefail
+          test "$(git hash-object research/TRUMP_SATLIB_UF20_R000_R111_SOURCE_BOUND_CORE_PROJECTION_RESULT_2026-09-16.json)" = "3a1e13a72183490a33e879d3f0c033f7c805b7e5"
+          test "$(git hash-object research/tools/apma_unseen_basis/raw_relation_basis.py)" = "63490c05ef3e91a4f682f75da26ff2af811839a6"
+          test "$(git hash-object research/tools/apma_satlib_uf20_r000_r111_projected_core_replay/projection_identity.py)" = "2ef48e73974a5f43d3f4fb4809ebd0c09c0f5be4"
+          test "$(git hash-object research/tools/apma_satlib_uf20_r000_r111_projected_core_replay/projection_identity_checker.py)" = "54be0d08a3060ff495d843639a00558b08e49796"
+      - name: Materialize projected raw identities only
+        run: |
+          set -euo pipefail
+          python -m research.tools.apma_satlib_uf20_r000_r111_projected_core_replay.projection_identity | tee /tmp/projected-identities.json
+      - name: Independently verify projected identities
+        run: |
+          set -euo pipefail
+          python -m research.tools.apma_satlib_uf20_r000_r111_projected_core_replay.projection_identity_checker --candidate-json /tmp/projected-identities.json | tee /tmp/projected-identities-independent.json
+      - name: Assert no replay occurred
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          c=json.loads(Path('/tmp/projected-identities.json').read_text().strip().splitlines()[-1]);i=json.loads(Path('/tmp/projected-identities-independent.json').read_text().strip().splitlines()[-1])
+          assert c['verdict']=='PASS_PROJECTED_RAW_IDENTITIES_MATERIALIZED',c
+          assert i['verified'] is True and i['candidate_imported'] is False,i
+          assert c['resource_receipt']['portfolio_invocations']==0 and c['resource_receipt']['solver_invocations']==0,c
+          assert len(c['rows'])==5 and len({r['projected_raw_sha256'] for r in c['rows']})==5,c
+          print(json.dumps({'rows':c['rows'],'independent_verified':i['verified']},sort_keys=True))
+          PY
+      - name: Upload identity freeze receipt
+        uses: actions/upload-artifact@v4
+        with:
+          name: satlib-uf20-r000-r111-projected-raw-identity-freeze
+          path: |
+            /tmp/projected-identities.json
+            /tmp/projected-identities-independent.json
+          if-no-files-found: error
