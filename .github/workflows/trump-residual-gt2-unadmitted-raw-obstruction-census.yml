@@ -1,0 +1,98 @@
+name: TRUMP Residual GT2 Unadmitted Raw Obstruction Census
+
+on:
+  push:
+    branches:
+      - research/trump-residual-gt2-unadmitted-raw-obstruction-census-2026-09-16
+  pull_request:
+    paths:
+      - 'research/TRUMP_BICAMERAL_BUCKET_UNIQUE_CORE_RESIDUAL_GT2_UNADMITTED_RAW_OBSTRUCTION_CENSUS_PREREGISTRATION_2026-09-16.json'
+      - 'research/TRUMP_BICAMERAL_BUCKET_UNIQUE_CORE_RESIDUAL_GT2_UNADMITTED_RAW_OBSTRUCTION_CENSUS_PREREGISTRATION_CLARIFICATION_2026-09-16.json'
+      - 'research/tools/apma_bucket_gt2_unadmitted_raw_obstruction_census/**'
+      - '.github/workflows/trump-residual-gt2-unadmitted-raw-obstruction-census.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  gt2-unadmitted-raw-obstruction-census:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Pin sealed v3.18 matching backend
+        run: |
+          set -euo pipefail
+          python -m pip install --disable-pip-version-check 'networkx==3.6.1'
+      - name: Run candidate frozen raw census
+        run: |
+          set -euo pipefail
+          python -m research.tools.apma_bucket_gt2_unadmitted_raw_obstruction_census.census | tee /tmp/census.json
+      - name: Run independent frozen raw census checker
+        run: |
+          set -euo pipefail
+          python -m research.tools.apma_bucket_gt2_unadmitted_raw_obstruction_census.independent_checker --candidate-json /tmp/census.json | tee /tmp/independent.json
+      - name: Assert preregistered census invariants
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          c=json.loads(Path('/tmp/census.json').read_text().strip().splitlines()[-1])
+          i=json.loads(Path('/tmp/independent.json').read_text().strip().splitlines()[-1])
+          allowed={
+            'PASS_DIAGNOSTIC_GT2_CENSUS_WITH_FIRST_UNADMITTED_RAW_OBSTRUCTION',
+            'PASS_DIAGNOSTIC_NO_FROZEN_RAW_UNADMITTED_GT2_OBSTRUCTION_FOUND',
+          }
+          assert c['verdict'] in allowed, c['verdict']
+          assert i['verdict']==c['verdict'], (c['verdict'],i['verdict'])
+          assert all(c['checks'].values()), {k:v for k,v in c['checks'].items() if not v}
+          assert all(i['checks'].values()), {k:v for k,v in i['checks'].items() if not v}
+          assert c['unit_only_calibration']['eligible_for_first_real_obstruction'] is False
+          assert c['unit_only_calibration']['raw_reachability_authority'] is False
+          assert c['scientific_firewall']['P_VS_NP']=='OPEN'
+          assert c['scientific_firewall']['GENERAL_SAT_IN_P']=='NOT_PROVED'
+          assert c['scientific_firewall']['GENERAL_GT2_TRACTABILITY']=='NOT_PROVED'
+          assert c['scientific_firewall']['SIZE4_BRANCHING_LICENSED'] is False
+          assert c['scientific_firewall']['EXTRA_RECURSION_AUTHORIZED'] is False
+          print(json.dumps({
+            'verdict':c['verdict'],
+            'unique_raw_count':c['unique_raw_count'],
+            'classification_counts':c['classification_counts'],
+            'unadmitted_raw_obstruction_count':c['unadmitted_raw_obstruction_count'],
+            'first_real_raw_obstruction':None if c['first_real_raw_obstruction'] is None else c['first_real_raw_obstruction']['raw_sha256'],
+          },sort_keys=True))
+          PY
+      - name: v3.18 exact two-factor carrier regression
+        run: |
+          set -euo pipefail
+          python -m research.tools.apma_bucket_exact_two_factor_f_factor_carrier.carrier | tee /tmp/v318.json
+          python -m research.tools.apma_bucket_exact_two_factor_f_factor_carrier.independent_checker --candidate-json /tmp/v318.json
+      - name: v3.17 semantic classification regression
+        run: |
+          set -euo pipefail
+          python -m research.tools.apma_bucket_k5_exact_two_of_four_cardinality_forensic.forensic | tee /tmp/v317.json
+          python -m research.tools.apma_bucket_k5_exact_two_of_four_cardinality_forensic.independent_checker --candidate-json /tmp/v317.json
+      - name: v3.16 raw semantic forensic regression
+        run: |
+          set -euo pipefail
+          python -m research.tools.apma_bucket_k5_raw_semantic_forensic.independent_checker
+      - name: v3.14 fixed-depth regression
+        run: |
+          set -euo pipefail
+          python -m research.tools.apma_bucket_fixed_depth_122.independent_checker
+      - name: Authority notice
+        run: |
+          echo 'AUTHORITY=DIAGNOSTIC_ONLY'
+          echo 'NEW_SOLVER_MECHANISMS=0'
+          echo 'SIZE4_BOOLEAN_BRANCHING=0'
+          echo 'SEPARATOR_GE3_BOOLEAN_BRANCHING=0'
+          echo 'EXTRA_RECURSION=0'
+          echo 'NEW_JOIN_CHAINS=0'
+          echo 'GLOBAL_RESIDUAL_CARTESIAN_PRODUCT=0'
+          echo 'P_VS_NP=OPEN'
+          echo 'GENERAL_SAT_IN_P=NOT_PROVED'
+          echo 'GENERAL_GT2_TRACTABILITY=NOT_PROVED'
