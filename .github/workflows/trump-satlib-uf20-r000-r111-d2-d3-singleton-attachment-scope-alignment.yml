@@ -1,0 +1,91 @@
+name: TRUMP SATLIB UF20 D2 D3 Singleton Attachment Scope Alignment
+
+on:
+  push:
+    branches:
+      - research/trump-external-satlib-uf20-01-source-acquisition-2026-09-16
+    paths:
+      - 'research/TRUMP_SATLIB_UF20_R000_R111_D2_D3_SINGLETON_ATTACHMENT_SCOPE_ALIGNMENT_PREREGISTRATION_2026-09-17.json'
+      - 'research/TRUMP_SATLIB_UF20_R000_R111_D2_D3_SINGLETON_ATTACHMENT_SCOPE_ALIGNMENT_PREREGISTRATION_REVIEW_2026-09-17.json'
+      - 'research/tools/apma_satlib_uf20_r000_r111_d2_d3_singleton_attachment_scope_alignment/**'
+      - '.github/workflows/trump-satlib-uf20-r000-r111-d2-d3-singleton-attachment-scope-alignment.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  alignment:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Assert frozen alignment bindings
+        run: |
+          set -euo pipefail
+          test "$(git hash-object research/TRUMP_SATLIB_UF20_R000_R111_D2_D3_SINGLETON_ATTACHMENT_SCOPE_ALIGNMENT_PREREGISTRATION_2026-09-17.json)" = "a06a3d8e2e3de7e936f1d3a2292e6245da61ac42"
+          test "$(git hash-object research/TRUMP_SATLIB_UF20_R000_R111_D2_D3_SINGLETON_ATTACHMENT_SCOPE_ALIGNMENT_PREREGISTRATION_REVIEW_2026-09-17.json)" = "c662eae27a57d08e5029f021c6e1905dc71a5fb2"
+          test "$(git hash-object research/TRUMP_SATLIB_UF20_R000_R111_NONREFINEMENT_STRUCTURAL_DECOMPOSITION_MENU_RESULT_2026-09-17.json)" = "0ec3e3aec564bb08e247ec9ef1ac75d22d97e915"
+          test "$(git hash-object research/TRUMP_SATLIB_UF20_SUCCESSOR_LOCAL_INVARIANT_FRESH_BLIND_SOURCE_ACQUISITION_RESULT_2026-09-17.json)" = "3ee5a11808ea04326ec5141b0138bbba4ec56092"
+          test "$(git hash-object research/tools/apma_satlib_uf20_r000_r111_projected_core_replay/projection_identity.py)" = "2ef48e73974a5f43d3f4fb4809ebd0c09c0f5be4"
+          test "$(git hash-object research/source_data/SATLIB_UF20_02_2026-09-16.cnf)" = "f924caaef0d868bf62b1658e83e030ad8daee865"
+          test "$(git hash-object research/source_data/SATLIB_UF20_03_2026-09-16.cnf)" = "8f3d15154515457281f49201b843f2a7134dfa9f"
+          test "$(git hash-object research/source_data/SATLIB_UF20_04_2026-09-16.cnf)" = "34ced5c169f967b2dc44ef5e42f2ee2c924813e1"
+          test "$(git hash-object research/source_data/SATLIB_UF20_05_2026-09-16.cnf)" = "3b04eff26ee37bdd0bc21b1066486974f92a2c9b"
+          test "$(git hash-object research/tools/apma_satlib_uf20_r000_r111_d2_d3_singleton_attachment_scope_alignment/candidate.py)" = "ee831ccfa483b12f623b984a503e74f33feca86c"
+          test "$(git hash-object research/tools/apma_satlib_uf20_r000_r111_d2_d3_singleton_attachment_scope_alignment/independent_checker.py)" = "b3bb5104e807bac2499c4cbc66a05eb8bb736bc2"
+      - name: Execute frozen bidirectional D2 D3 alignment once
+        run: |
+          set -euo pipefail
+          python -m research.tools.apma_satlib_uf20_r000_r111_d2_d3_singleton_attachment_scope_alignment.candidate > /tmp/d2-d3-alignment.json
+      - name: Independently rebuild and verify alignment
+        run: |
+          set -euo pipefail
+          python -m research.tools.apma_satlib_uf20_r000_r111_d2_d3_singleton_attachment_scope_alignment.independent_checker --candidate-json /tmp/d2-d3-alignment.json > /tmp/d2-d3-alignment-independent.json
+      - name: Assert alignment scope and firewalls
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          c=json.loads(Path('/tmp/d2-d3-alignment.json').read_text().strip().splitlines()[-1])
+          i=json.loads(Path('/tmp/d2-d3-alignment-independent.json').read_text().strip().splitlines()[-1])
+          allowed={'COMMON_FOUR_EXACT_D2_D3_ALIGNMENT','PARTIAL_CROSS_SOURCE_D2_D3_ALIGNMENT','NO_CROSS_SOURCE_D2_D3_ALIGNMENT'}
+          assert c['verdict'] in allowed,c
+          assert c['source_guard']['ok'] is True,c['source_guard']
+          assert i['verified'] is True and i['candidate_imported'] is False,i
+          assert i['verdict']==c['verdict'],(i,c)
+          assert len(c['rows'])==4 and all(r['status']=='AUDITED' for r in c['rows']),c['rows']
+          assert all(r['per_source_alignment'] in {'EXACT_D2_D3_SINGLETON_ATTACHMENT_BIJECTION','PARTIAL_D2_D3_SINGLETON_ATTACHMENT_ALIGNMENT','NO_D2_D3_SINGLETON_ATTACHMENT_ALIGNMENT'} for r in c['rows']),c['rows']
+          rr=c['resource_receipt']
+          assert rr['target_sources']==4 and rr['fresh_holdout_values_read']==0 and rr['new_feature_definitions']==0 and rr['new_graph_statistics']==0,rr
+          assert rr['relation_table_feature_reads']==0 and rr['boundary_relation_enumerations']==0 and rr['boundary_assignment_enumerations']==0 and rr['component_solution_attempts']==0,rr
+          assert rr['solver_invocations']==0 and rr['portfolio_replays']==0 and rr['action_tests']==0 and rr['automorphism_tests']==0 and rr['group_searches']==0 and rr['group_closure_computation']==0,rr
+          assert rr['new_solver_mechanisms']==0 and rr['new_carrier_mechanisms']==0 and rr['new_adapters']==0 and rr['new_quotients']==0,rr
+          sf=c['scientific_firewall']
+          assert sf['P_VS_NP']=='OPEN' and sf['GENERAL_SAT_IN_P']=='NOT_PROVED' and sf['CONNECTED_MIXED_CORE_SOLVED']=='NO',sf
+          assert sf['GEOMETRIC_ALIGNMENT_IMPLIES_TRACTABILITY'] is False and sf['GEOMETRIC_ALIGNMENT_IMPLIES_CLOSURE'] is False,sf
+          print(json.dumps({'verdict':c['verdict'],'rows':c['rows'],'independent_verified':i['verified']},sort_keys=True))
+          PY
+      - name: Upload alignment receipt
+        uses: actions/upload-artifact@v4
+        with:
+          name: satlib-uf20-r000-r111-d2-d3-singleton-attachment-scope-alignment-receipt
+          path: |
+            /tmp/d2-d3-alignment.json
+            /tmp/d2-d3-alignment-independent.json
+          if-no-files-found: error
+      - name: Authority notice
+        run: |
+          echo 'AUTHORITY=DIAGNOSTIC_FROZEN_STRUCTURAL_PROFILE_AND_SCOPE_ALIGNMENT_ONLY'
+          echo 'TARGET_SOURCES=4'
+          echo 'RELATION_TABLE_FEATURE_READS=0'
+          echo 'BOUNDARY_RELATION_ENUMERATIONS=0'
+          echo 'BOUNDARY_ASSIGNMENT_ENUMERATIONS=0'
+          echo 'COMPONENT_SOLUTION_ATTEMPTS=0'
+          echo 'FRESH_HOLDOUT_VALUES_READ=0'
+          echo 'SOLVER_INVOCATIONS=0'
+          echo 'P_VS_NP=OPEN'
+          echo 'GENERAL_SAT_IN_P=NOT_PROVED'
