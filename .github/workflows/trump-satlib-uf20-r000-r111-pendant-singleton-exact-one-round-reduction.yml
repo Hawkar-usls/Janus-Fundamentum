@@ -1,0 +1,131 @@
+name: TRUMP SATLIB UF20 Exact Simultaneous One Round Pendant Reduction
+
+on:
+  push:
+    branches:
+      - research/trump-external-satlib-uf20-01-source-acquisition-2026-09-16
+    paths:
+      - 'research/TRUMP_SATLIB_UF20_R000_R111_PENDANT_SINGLETON_EXACT_SIMULTANEOUS_ONE_ROUND_REDUCTION_PREREGISTRATION_2026-09-17.json'
+      - 'research/TRUMP_SATLIB_UF20_R000_R111_PENDANT_SINGLETON_EXACT_SIMULTANEOUS_ONE_ROUND_REDUCTION_PREREGISTRATION_REVIEW_2026-09-17.json'
+      - 'research/tools/apma_satlib_uf20_r000_r111_pendant_singleton_exact_one_round_reduction/**'
+      - '.github/workflows/trump-satlib-uf20-r000-r111-pendant-singleton-exact-one-round-reduction.yml'
+  workflow_dispatch:
+
+permissions:
+  actions: read
+  contents: write
+
+jobs:
+  exact-one-round-reduction:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    env:
+      GH_TOKEN: ${{ github.token }}
+      BRANCH: research/trump-external-satlib-uf20-01-source-acquisition-2026-09-16
+      ARTIFACT_NAME: satlib-uf20-r000-r111-pendant-singleton-exact-one-round-reduction-receipt
+      RESULT_PATH: research/TRUMP_SATLIB_UF20_R000_R111_PENDANT_SINGLETON_EXACT_SIMULTANEOUS_ONE_ROUND_REDUCTION_RESULT_2026-09-17.json
+      CERT_PATH: research/TRUMP_SATLIB_UF20_R000_R111_PENDANT_SINGLETON_ONE_ROUND_RECONSTRUCTION_CERTIFICATE_2026-09-17.json
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Assert frozen reduction authority
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          pre=json.loads(Path('research/TRUMP_SATLIB_UF20_R000_R111_PENDANT_SINGLETON_EXACT_SIMULTANEOUS_ONE_ROUND_REDUCTION_PREREGISTRATION_2026-09-17.json').read_text())
+          review=json.loads(Path('research/TRUMP_SATLIB_UF20_R000_R111_PENDANT_SINGLETON_EXACT_SIMULTANEOUS_ONE_ROUND_REDUCTION_PREREGISTRATION_REVIEW_2026-09-17.json').read_text())
+          dep=json.loads(Path('research/TRUMP_SATLIB_UF20_R000_R111_PENDANT_SINGLETON_DELETION_DEPENDENCY_AUDIT_RESULT_2026-09-17.json').read_text())
+          bound=json.loads(Path('research/TRUMP_SATLIB_UF20_R000_R111_PENDANT_SINGLETON_EXISTENTIAL_BOUNDARY_PROJECTION_RESULT_2026-09-17_v1.1.json').read_text())
+          assert pre['status']=='FROZEN_BEFORE_ANY_REDUCED_RAW_VALUE_OR_HASH_COMPUTATION',pre
+          assert review['verdict']=='PASS_PREREGISTRATION_CLEAN__AUTHORIZED_TO_IMPLEMENT_AND_EXECUTE_ONCE',review
+          assert dep['verdict']=='NO_INTER_ATTACHMENT_DEPENDENCIES' and dep['edge_count']==0,dep
+          assert dep['composition_theorem']['composition_argument_verified'] is True,dep
+          assert bound['verdict']=='ALL_ELEVEN_UNIVERSAL' and bound['local_semantics_theorem']['symbolic_projection_equivalence_verified'] is True,bound
+          assert sum(len(r['attachments']) for r in bound['source_receipts'])==11,bound
+          PY
+      - name: Execute exact simultaneous one-round reduction once
+        run: |
+          set -euo pipefail
+          python -m research.tools.apma_satlib_uf20_r000_r111_pendant_singleton_exact_one_round_reduction.candidate > /tmp/one-round-reduction.json
+      - name: Independently rebuild and verify reduction
+        run: |
+          set -euo pipefail
+          python -m research.tools.apma_satlib_uf20_r000_r111_pendant_singleton_exact_one_round_reduction.independent_checker --candidate-json /tmp/one-round-reduction.json > /tmp/one-round-reduction-independent.json
+      - name: Assert exact equivalence scope and firewalls
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          c=json.loads(Path('/tmp/one-round-reduction.json').read_text().strip().splitlines()[-1]);i=json.loads(Path('/tmp/one-round-reduction-independent.json').read_text().strip().splitlines()[-1])
+          assert c['verdict']=='PASS_EXACT_SIMULTANEOUS_ONE_ROUND_PENDANT_REDUCTION_CERTIFIED',c
+          assert i['verified'] is True and i['candidate_imported'] is False and i['verdict']==c['verdict'],i
+          assert len(c['rows'])==4 and sum(r['removed_attachment_count'] for r in c['rows'])==11,c['rows']
+          assert all(r['unique_occurrence_verified'] and r['gateway_survival_verified'] and r['target_scope_binding_verified'] and r['no_deleted_leaf_in_retained_constraint_verified'] and r['retained_constraints_exact_object_equality_verified'] for r in c['rows']),c['rows']
+          cert=c['reconstruction_certificate'];assert cert['reduction_rounds']==1 and cert['fixed_point_iterations']==0 and cert['zero_dependency_required_and_verified'] is True and cert['symbolic_equivalence_verified'] is True,cert
+          rr=c['resource_receipt'];assert rr['target_sources']==4 and rr['target_attachments']==11 and rr['reduction_rounds']==1 and rr['fixed_point_iterations']==0 and rr['fresh_holdout_values_read']==0,rr
+          assert rr['global_solver_invocations']==0 and rr['component_solver_invocations']==0 and rr['portfolio_replays']==0 and rr['full_assignment_cube_enumerations']==0 and rr['action_tests']==0 and rr['automorphism_tests']==0 and rr['group_searches']==0,rr
+          sf=c['scientific_firewall'];assert sf['P_VS_NP']=='OPEN' and sf['GENERAL_SAT_IN_P']=='NOT_PROVED' and sf['CONNECTED_MIXED_CORE_SOLVED']=='NO' and sf['EXACT_FINITE_REDUCTION_IMPLIES_TRACTABILITY'] is False,sf
+          print(json.dumps({'verdict':c['verdict'],'reduced_receipts':[{'source':r['source'],'removed_leaves':r['removed_leaves'],'removed_constraint_ids':r['removed_constraint_ids'],'reduced_variable_count':r['reduced_variable_count'],'reduced_constraint_count':r['reduced_constraint_count'],'reduced_raw_sha256':r['reduced_raw_sha256']} for r in c['rows']],'independent_verified':i['verified']},sort_keys=True))
+          PY
+      - name: Upload one-round reduction receipt
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.ARTIFACT_NAME }}
+          path: |
+            /tmp/one-round-reduction.json
+            /tmp/one-round-reduction-independent.json
+          if-no-files-found: error
+      - name: Materialize verified reduced raws certificate and result
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json,os,subprocess,time,urllib.request
+          from pathlib import Path
+          c=json.loads(Path('/tmp/one-round-reduction.json').read_text().strip().splitlines()[-1]);i=json.loads(Path('/tmp/one-round-reduction-independent.json').read_text().strip().splitlines()[-1])
+          assert c['verdict']=='PASS_EXACT_SIMULTANEOUS_ONE_ROUND_PENDANT_REDUCTION_CERTIFIED' and i['verified'] is True
+          outdir=Path('research/reduced_data');outdir.mkdir(parents=True,exist_ok=True)
+          reduced_paths={}
+          for row in c['rows']:
+            src=row['source'];p=outdir/f'TRUMP_SATLIB_{src}_R000_R111_PENDANT_ONE_ROUND_REDUCED_2026-09-17.json';p.write_text(json.dumps(row['reduced_raw'],indent=2)+'\n');reduced_paths[src]=str(p)
+          Path(os.environ['CERT_PATH']).write_text(json.dumps(c['reconstruction_certificate'],indent=2)+'\n')
+          repo=os.environ['GITHUB_REPOSITORY'];run_id=int(os.environ['GITHUB_RUN_ID']);token=os.environ['GH_TOKEN']
+          def get(url):
+            req=urllib.request.Request(url,headers={'Authorization':f'Bearer {token}','Accept':'application/vnd.github+json','X-GitHub-Api-Version':'2022-11-28','User-Agent':'Janus-Fundamentum-reduction-freeze/1.0'})
+            with urllib.request.urlopen(req,timeout=30) as r:return json.loads(r.read().decode())
+          jobs=get(f'https://api.github.com/repos/{repo}/actions/runs/{run_id}/jobs?per_page=100').get('jobs',[]);jj=[j for j in jobs if j.get('name')=='exact-one-round-reduction'];assert len(jj)==1,jobs
+          art=None
+          for _ in range(20):
+            aa=get(f'https://api.github.com/repos/{repo}/actions/runs/{run_id}/artifacts?per_page=100').get('artifacts',[]);xs=[a for a in aa if a.get('name')==os.environ['ARTIFACT_NAME']]
+            if len(xs)==1:art=xs[0];break
+            time.sleep(2)
+          assert art is not None
+          def h(path):return subprocess.check_output(['git','hash-object',path],text=True).strip()
+          reduced_receipts=[]
+          for row in c['rows']:
+            src=row['source'];reduced_receipts.append({'source':src,'original_projected_raw_sha256':row['original_projected_raw_sha256'],'removed_leaves':row['removed_leaves'],'removed_constraint_ids':row['removed_constraint_ids'],'removed_attachment_count':row['removed_attachment_count'],'original_variable_count':row['original_variable_count'],'original_constraint_count':row['original_constraint_count'],'reduced_variable_count':row['reduced_variable_count'],'reduced_constraint_count':row['reduced_constraint_count'],'reduced_raw_sha256':row['reduced_raw_sha256'],'reduced_raw_path':reduced_paths[src],'reduced_raw_git_blob':h(reduced_paths[src]),'unique_occurrence_verified':row['unique_occurrence_verified'],'gateway_survival_verified':row['gateway_survival_verified'],'retained_constraints_exact_object_equality_verified':row['retained_constraints_exact_object_equality_verified']})
+          result={'artifact_id':'JANUS-TRUMP-SATLIB-UF20-R000-R111-PENDANT-SINGLETON-EXACT-SIMULTANEOUS-ONE-ROUND-REDUCTION-RESULT-2026-09-17-v1.0','date':'2026-09-17','status':'FROZEN_EXACT_SIMULTANEOUS_ONE_ROUND_PENDANT_REDUCTION_RESULT','authority':'EXACT_SEMANTICS_PRESERVING_FINITE_ONE_ROUND_REPRESENTATION_REDUCTION_ONLY__NO_SOLVER_FIXED_POINT_ACTION_AUTOMORPHISM_GROUP_SEARCH_CARRIER_OR_QUOTIENT','preregistration':{'blob':h('research/TRUMP_SATLIB_UF20_R000_R111_PENDANT_SINGLETON_EXACT_SIMULTANEOUS_ONE_ROUND_REDUCTION_PREREGISTRATION_2026-09-17.json')},'preregistration_review':{'blob':h('research/TRUMP_SATLIB_UF20_R000_R111_PENDANT_SINGLETON_EXACT_SIMULTANEOUS_ONE_ROUND_REDUCTION_PREREGISTRATION_REVIEW_2026-09-17.json')},'parent_dependency_result':{'blob':h('research/TRUMP_SATLIB_UF20_R000_R111_PENDANT_SINGLETON_DELETION_DEPENDENCY_AUDIT_RESULT_2026-09-17.json'),'verdict':'NO_INTER_ATTACHMENT_DEPENDENCIES'},'parent_boundary_result':{'blob':h('research/TRUMP_SATLIB_UF20_R000_R111_PENDANT_SINGLETON_EXISTENTIAL_BOUNDARY_PROJECTION_RESULT_2026-09-17_v1.1.json'),'verdict':'ALL_ELEVEN_UNIVERSAL'},'implementation':{'candidate_blob':h('research/tools/apma_satlib_uf20_r000_r111_pendant_singleton_exact_one_round_reduction/candidate.py'),'independent_checker_blob':h('research/tools/apma_satlib_uf20_r000_r111_pendant_singleton_exact_one_round_reduction/independent_checker.py'),'workflow_head_commit':os.environ['GITHUB_SHA'],'workflow_blob':h('.github/workflows/trump-satlib-uf20-r000-r111-pendant-singleton-exact-one-round-reduction.yml')},'execution':{'run_id':run_id,'job_id':int(jj[0]['id']),'conclusion':'success','artifact_id':int(art['id']),'artifact_name':art['name'],'artifact_digest':art.get('digest',''),'independent_verified':True,'candidate_imported_by_independent_checker':False},'verdict':c['verdict'],'reduced_source_receipts':reduced_receipts,'reconstruction_certificate':{'path':os.environ['CERT_PATH'],'git_blob':h(os.environ['CERT_PATH']),'symbolic_equivalence_verified':True,'reduction_rounds':1,'fixed_point_iterations':0},'licensed_fact':{'statement':'ON_THE_FOUR_FROZEN_R000_R111_PROJECTED_CORES_UF20_02_TO_UF20_05_EXACTLY_ONE_SIMULTANEOUS_ROUND_REMOVING_THE_11_FROZEN_ZERO_DEPENDENCY_EXISTENTIALLY_TRANSPARENT_PENDANT_LEAVES_AND_THEIR_11_ONLY_CONSTRAINTS_IS_CERTIFIED_TO_PRESERVE_EXACTLY_THE_EXISTENTIAL_PROJECTION_OF_THE_ORIGINAL_ASSIGNMENT_SET_ON_ALL_REMAINING_VARIABLES;EVERY_REDUCED_SAT_ASSIGNMENT_HAS_A_CANONICAL_RECONSTRUCTION_TO_THE_ORIGINAL_PROJECTED_CORE_USING_ONLY_THE_FROZEN_GATEWAY_WITNESS_TABLES','scope':'FOUR_FROZEN_SOURCE_BOUND_PROJECTED_CORES__ONE_ROUND_ONLY'},'not_licensed':['ITERATE_REDUCTION_TO_FIXED_POINT','REMOVE_ANY_NEWLY_EXPOSED_STRUCTURE','RUN_ANY_SOLVER_OR_COMPONENT_SOLVER','CLAIM_REDUCED_RAWS_ARE_TRACTABLE','GENERALIZE_TO_UF20_011_TO_UF20_015','GENERAL_SAT_IN_P','GENERAL_SAT_NOT_IN_P','P_EQUALS_NP','P_NOT_EQUALS_NP'],'resource_receipt':c['resource_receipt'],'scientific_firewall':c['scientific_firewall'],'captain_obvious_readout':{'current_source_line_status':'AN_EXACT_SEMANTICS_PRESERVING_ONE_ROUND_REPRESENTATION_REDUCTION_IS_NOW_CERTIFIED_AND_MATERIALIZED_FOR_UF20_02_TO_UF20_05;ELEVEN_PENDANT_LEAVES_AND_THEIR_ONLY_CONSTRAINTS_ARE_REMOVED_WITH_CANONICAL_RECONSTRUCTION_AND_NO_SOLVER_OR_FIXED_POINT_ITERATION','nearest_missing_obligation':'BEFORE_REPLAYING_ANY_SOLVER_OR_PORTFOLIO_DETERMINE_FROM_THE_FROZEN_REDUCED_RAWS_WHICH_EXISTING_ROUTE_BLOCKERS_OR_APPLICABILITY_LABELS_CHANGED_AFTER_THE_EXACT_REDUCTION—AT_MINIMUM_CONNECTED_COMPONENT_COUNT_EXPLICIT_SCHAEFER_BASIS_STATUS_AND_SCOPE_ONLY_STRUCTURAL_PENDANT_SEPARATOR_STATUS—WITHOUT_DEFINING_A_NEW_MECHANISM','next_gate':'TRUMP_SATLIB_UF20_R000_R111_PENDANT_ONE_ROUND_REDUCED_RAW_EXISTING_ROUTE_REEVALUATION_GATE','next_gate_class':'DIAGNOSTIC_EXISTING_ROUTE_REEVALUATION_ON_EXACT_REDUCED_RAWS_ONLY__NO_SOLVER_PORTFOLIO_REPLAY_NEW_FEATURE_ACTION_AUTOMORPHISM_GROUP_SEARCH_CARRIER_ADAPTER_OR_QUOTIENT','next_gate_status':'AUTHORIZED_TO_PREREGISTER_ONLY','directive':'PIN_THIS_REDUCTION_RESULT_AND_THE_FOUR_REDUCED_RAW_BLOBS;PREREGISTER_READ_ONLY_REEVALUATION_OF_EXISTING_CONNECTED_COMPONENT_EXPLICIT_SCHAEFER_BASIS_AND_ALREADY_DEFINED_D1_D2_D3_STRUCTURAL_STATUS_ON_THE_REDUCED_RAWS;NO_NEW_FEATURE_OR_DIAGNOSTIC;NO_SOLVER_OR_PORTFOLIO_REPLAY;DO_NOT_ITERATE_REDUCTION;DO_NOT_TOUCH_UF20_011_TO_UF20_015;RETURN_TO_CAPTAIN'}}
+          Path(os.environ['RESULT_PATH']).write_text(json.dumps(result,indent=2)+'\n')
+          print(json.dumps({'verdict':result['verdict'],'reduced_receipts':reduced_receipts,'result_path':os.environ['RESULT_PATH'],'artifact_id':art['id'],'artifact_digest':art.get('digest','')},sort_keys=True))
+          PY
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add "$RESULT_PATH" "$CERT_PATH" research/reduced_data/TRUMP_SATLIB_UF20_*_R000_R111_PENDANT_ONE_ROUND_REDUCED_2026-09-17.json
+          git commit -m 'TRUMP freeze exact simultaneous one-round pendant reduction result'
+          git push origin "HEAD:$BRANCH"
+      - name: Authority notice
+        run: |
+          echo 'AUTHORITY=EXACT_SEMANTICS_PRESERVING_FINITE_ONE_ROUND_REPRESENTATION_REDUCTION_ONLY'
+          echo 'TARGET_ATTACHMENTS=11'
+          echo 'REDUCTION_ROUNDS=1'
+          echo 'FIXED_POINT_ITERATIONS=0'
+          echo 'FRESH_HOLDOUT_VALUES_READ=0'
+          echo 'GLOBAL_SOLVER_INVOCATIONS=0'
+          echo 'PORTFOLIO_REPLAYS=0'
+          echo 'P_VS_NP=OPEN'
+          echo 'GENERAL_SAT_IN_P=NOT_PROVED'
