@@ -12,11 +12,11 @@ No scientific action is admissible from conversational memory alone.
 
 ## Current mandatory startup sequence
 
-0. Read `registry/TRUMP_CURRENT_STATE_2026-09-16_v3.20.json` **first**. It is the latest scoped continuity anchor.
-1. Then read `registry/TRUMP_CURRENT_STATE_2026-09-16_v3.19.json` and `registry/TRUMP_CURRENT_STATE_2026-09-16_v3.18.json` before following older predecessor states as needed.
-2. Read `research/TRUMP_BICAMERAL_BUCKET_NONUNIQUE_COMMON_CORE_SUPPORT_STATE_SPACE_FORENSIC_RESULT_2026-09-16.json` and its journal entry `docs/TRUMP_DEVELOPMENT_JOURNAL_ENTRIES/2026-09-16_NONUNIQUE_COMMON_CORE_STATE_SPACE_FORENSIC.md`.
+0. Read `registry/TRUMP_CURRENT_STATE_2026-09-16_v3.21.json` **first**. It is the latest scoped continuity anchor.
+1. Then read `registry/TRUMP_CURRENT_STATE_2026-09-16_v3.20.json` and `registry/TRUMP_CURRENT_STATE_2026-09-16_v3.19.json` before following older predecessor states as needed.
+2. Read `research/TRUMP_BICAMERAL_BUCKET_RAW_PREDECESSOR_NONUNIQUE_COMMON_CORE_REACHABILITY_ACQUISITION_CENSUS_RESULT_2026-09-16.json` and its journal entry `docs/TRUMP_DEVELOPMENT_JOURNAL_ENTRIES/2026-09-16_BUCKET_RAW_PREDECESSOR_NONUNIQUE_COMMON_CORE_REACHABILITY_ACQUISITION_CENSUS.md`.
 3. Read base mechanism/history index `registry/TRUMP_CONTEXT_MANIFEST.json`.
-4. Immediately apply successor overlay `registry/TRUMP_CONTEXT_MANIFEST_2026-09-16_v3.20.json`. The overlay supersedes only current-pointer/current-scoped-surface fields; all historical mechanism aliases and bindings from the base manifest remain in force.
+4. Immediately apply successor overlay `registry/TRUMP_CONTEXT_MANIFEST_2026-09-16_v3.21.json`. The overlay supersedes only current-pointer/current-scoped-surface fields; all historical mechanism aliases and bindings from the base manifest remain in force.
 5. Read historical parent `registry/TRUMP_CURRENT_STATE.json`; never rewrite it.
 6. Search repository history/default-branch code before treating any mechanism as new.
 7. Recover indexed external sources when named.
@@ -27,51 +27,66 @@ No scientific action is admissible from conversational memory alone.
 
 The latest diagnostic gate is:
 
-`TRUMP_BICAMERAL_BUCKET_NONUNIQUE_COMMON_CORE_SUPPORT_STATE_SPACE_FORENSIC`
+`TRUMP_BICAMERAL_BUCKET_RAW_PREDECESSOR_NONUNIQUE_COMMON_CORE_REACHABILITY_ACQUISITION_CENSUS`
 
 Canonical verdict:
 
-`PASS_DIAGNOSTIC_NO_AUTHORITATIVE_RAW_NONUNIQUE_COMMON_CORE_FIXTURE_FOUND`
+`PASS_DIAGNOSTIC_NO_SOURCE_AUTHORIZED_RAW_NONUNIQUE_COMMON_CORE_FIXTURE_FOUND_IN_RECOVERED_PREDECESSOR_LINEAGE`
 
-The repaired push run and the PR-triggered run both passed all substantive checks and regressions. The immutable first implementation failure is preserved separately: its candidate and independent computation agreed scientifically, while the checker self-failed because a correct negative fact (`candidate_helpers_imported=false`) was incorrectly fed directly into `all(checks.values())`. The v1.1 checker repaired only that Boolean polarity and did not change preregistration, candidate fixtures, source census, or scientific outcome.
+The original scientific push run `35046488575 / 104637309881` passed candidate, independent checker, preregistered invariants, v3.20/v3.19/v3.18/v3.16/v3.14 regressions and the authority notice on exact scientific head `74241d6c22ac46d6e12d78eaeb399191550a64bf`.
+
+Because the connected log wrapper did not expose the completed raw job log, a separate observability-only replay from the same scientific source head produced artifact `10428160996` with digest `sha256:6c5284508358788848c6d4fd086c68e928840f731d5afdc4fb7f9c8161746aed`. Candidate/checker/preregistration/scientific source files were unchanged. This replay was not a new scientific gate.
+
+The PR-triggered run `35049029689 / 104645163476` then passed all substantive steps on final PR head `95dde0ed5895dc62d161a5d8f55f5cacfe90d7e8`, and PR #481 merged as `e6cebd5d6361fc9fb72c5420befc877c02eecee6`.
 
 Machine receipt:
 
-- 8 unique source-authorized frozen/reproducibly generated raw predecessor fixtures were inspected;
-- 0 authoritative raw fixtures reached exact common-core support size greater than one;
-- the first real nonunique raw fixture is `null`;
-- all READY authoritative fixtures had exact support size 1;
-- candidate and independent SHA-indexed censuses agree;
-- the v3.5 multiple-common-core control has exact support size 2 but is `SYNTHETIC_CALIBRATION_ONLY__NOT_RAW_REACHABILITY_AUTHORITY`;
-- Phase-B per-state replay was therefore not activated on a real raw nonunique fixture.
+- preregistered constructor entries: `26`;
+- unique canonical raw objects after SHA-256 deduplication: `23`;
+- unique raw objects reaching frozen common-core preparation `READY`: `9`;
+- real source-authorized READY objects with exact common support `|S| > 1`: `0`;
+- first real nonunique fixture: `null`;
+- among READY objects, one had exact support size `0`, eight had exact support size `1`, and none had support size greater than one;
+- candidate and independent checker agree on verdict and counts;
+- all candidate and independent checks are true.
 
-For explicit relation tables, the exact common-core support obeys the verified representation-level bound:
+This exhausts only the preregistered recovered source-bound predecessor lineage. It does **not** prove that nonunique common-core support is impossible in general, does not solve nonunique common-core support, and does not license a multi-state carrier.
 
-`|S| <= min_i |pi_C(F_i)| <= min_i |F_i| <= L_EXPLICIT_ROWS`.
+The v3.5 multiple-common-core object remains `SYNTHETIC_CALIBRATION_ONLY__NOT_RAW_REACHABILITY_AUTHORITY`.
 
-Therefore enumerating all `2^|C|` Boolean assignments is not required merely to list the *actually supported* common-core states. This observation is not a general multi-state carrier, not a general conditioned-factorization theorem, and not a SAT result.
+## Current scoped status
 
-## Current scoped next gate
+The recovered nonunique-common-core acquisition line is now:
 
-The nearest missing obligation is evidence acquisition, not solver invention:
+`DORMANT_PENDING_NEW_SOURCE_BOUND_RAW_EVIDENCE`
 
-`ACQUIRE_OR_IDENTIFY_A_SOURCE_AUTHORIZED_RAW_PREDECESSOR_THAT_ACTUALLY_REACHES_EXACT_COMMON_CORE_SUPPORT_SIZE_GREATER_THAN_ONE_BEFORE_ANY_MULTI_STATE_MECHANISM_DESIGN`.
+It may be reopened only if new source-authorized raw predecessor provenance appears. A synthetic control is not sufficient authority to reopen or promote the line.
 
-The next preferred scoped diagnostic is:
+No multi-state solver or compression carrier may be invented merely because the recovered corpus contains no real `|S|>1` fixture.
 
-`TRUMP_BICAMERAL_BUCKET_RAW_PREDECESSOR_NONUNIQUE_COMMON_CORE_REACHABILITY_ACQUISITION_CENSUS`
+## Current next allowed action
+
+The next allowed action returns to the already-existing global APMA frontier:
+
+`APMA_UNSEEN_LOCAL_INVARIANT_INDUCTION_FALSIFIER_GATE`
 
 Class:
 
-`DIAGNOSTIC_ONLY__EVIDENCE_ACQUISITION_BEFORE_MECHANISM_DESIGN`
+`GLOBAL_FRONTIER__PREREGISTER_BEFORE_EXECUTION`
 
-Directive: search only source-bound raw predecessor outputs and reproducible predecessor-generation lineage; canonicalize and SHA-deduplicate raw explicit relation objects; compute exact common-core support from stored rows; freeze the first deterministic real fixture with `|S|>1` if one exists. If none exists, report that honestly and reassess the next real predecessor-open surface or return to the global APMA frontier. Do **not** use the synthetic v3.5 control as reachability authority.
+Status:
+
+`ELIGIBLE_AFTER_SCOPED_PASSES_BUT_NOT_RUN`
+
+This gate was **not created, run, passed, or advanced by v3.21**. Before any execution, recover its existing repository contract and freeze a separate preregistration. v3.21 only returns next-action control to this existing frontier after the current scoped evidence-acquisition line was exhausted.
 
 ## Global frontier remains separate
 
 `GLOBAL_APMA_FRONTIER = APMA_UNSEEN_LOCAL_INVARIANT_INDUCTION_FALSIFIER_GATE`
 
-Status: eligible after scoped passes but **not run**. Scoped bicameral diagnostics must not silently replace global APMA frontier authority.
+`GLOBAL_APMA_FRONTIER_ADVANCE = NONE`
+
+Scoped bicameral diagnostics do not silently replace global APMA frontier authority.
 
 ## Anti-loop classification
 
@@ -125,20 +140,23 @@ The Inverted-Pyramid rule remains:
 
 `COMPLETE_EXACT_ADMISSION_CERTIFICATE -> AUTHORIZED_SEALED_CARRIER/PORTFOLIO -> EXACT_REPLAY -> OTHERWISE OPEN`.
 
-The sixteen previously sealed downward scoped mechanisms through the v3.18 exact two-factor / f-factor carrier remain unchanged. v3.19 and v3.20 are diagnostic continuity advances only; they add no new solver carrier.
+The sixteen previously sealed downward scoped mechanisms through the v3.18 exact two-factor / f-factor carrier remain unchanged. v3.19, v3.20 and v3.21 are diagnostic/continuity advances only; they add no new solver carrier.
 
-## Forbidden shortcuts at v3.20
+## Forbidden shortcuts at v3.21
 
 Do not:
 
 - promote synthetic calibration to raw reachability authority;
-- invent a multi-state solver before a real source-authorized nonunique raw fixture exists;
+- claim the recovered acquisition census proves nonunique support impossible;
+- declare nonunique common-core support solved;
+- invent a multi-state solver without a real source-authorized raw fixture;
 - enumerate `2^|C|` assignments outside actual explicit support;
 - introduce separator sets of size >=3 as Boolean branching;
 - license size-4 Boolean branching;
 - add unbounded recursion or a new 3+ join chain;
 - materialize a global residual Cartesian product;
 - raise the frozen resource budget;
+- call the global APMA frontier passed or advanced before a separate admissible run;
 - infer arbitrary GT2 tractability, general SAT in P, or P=NP from scoped diagnostics.
 
 ## Context sources
