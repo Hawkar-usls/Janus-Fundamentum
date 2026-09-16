@@ -1,0 +1,90 @@
+name: TRUMP SATLIB UF20_06 L3 Collision Existing Component Localization
+
+on:
+  push:
+    branches:
+      - research/trump-external-satlib-uf20-01-source-acquisition-2026-09-16
+    paths:
+      - 'research/TRUMP_SATLIB_UF20_06_L3_COLLISION_EXISTING_S0_S3_COMPONENT_LOCALIZATION_PREREGISTRATION_2026-09-17.json'
+      - 'research/TRUMP_SATLIB_UF20_06_L3_COLLISION_EXISTING_S0_S3_COMPONENT_LOCALIZATION_PREREGISTRATION_REVIEW_2026-09-17.json'
+      - 'research/tools/apma_satlib_uf20_06_l3_collision_existing_component_localization/**'
+      - '.github/workflows/trump-satlib-uf20-06-l3-collision-existing-component-localization.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  localization:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Assert frozen localization bindings
+        run: |
+          set -euo pipefail
+          test "$(git hash-object research/TRUMP_SATLIB_UF20_06_L3_COLLISION_EXISTING_S0_S3_COMPONENT_LOCALIZATION_PREREGISTRATION_2026-09-17.json)" = "21d3f7ceb52caff3ba0b5a3378942c811ddd9c86"
+          test "$(git hash-object research/TRUMP_SATLIB_UF20_06_L3_COLLISION_EXISTING_S0_S3_COMPONENT_LOCALIZATION_PREREGISTRATION_REVIEW_2026-09-17.json)" = "0e1a98ff1a469f1b62b99b2caf9e35b9e936279d"
+          test "$(git hash-object research/TRUMP_SATLIB_UF20_R000_R111_L3_WL3_UNSEEN_PARTITION_RELATION_RESULT_2026-09-17.json)" = "222d227e491df0a4ff03257d3f52a6e8be3cb6d9"
+          test "$(git hash-object research/source_data/SATLIB_UF20_06_2026-09-17.cnf)" = "42d6feffa98dc1a213e019f28cf6bc7ddf94c0bf"
+          test "$(git hash-object research/tools/apma_satlib_uf20_r000_r111_projected_signature_ablation/replay.py)" = "2edad57e6017cb34bf797313e4451c1ce014900b"
+          test "$(git hash-object research/tools/apma_satlib_uf20_r000_r111_residual_local_invariant_falsifier/candidate.py)" = "4ec02d6d42e6cad7d91f16b1acfdcbe51dbd65df"
+          test "$(git hash-object research/tools/apma_satlib_uf20_06_l3_collision_existing_component_localization/candidate.py)" = "6bd1929f754ea06f3c6e75f7de7dfedf78671dcf"
+          test "$(git hash-object research/tools/apma_satlib_uf20_06_l3_collision_existing_component_localization/independent_checker.py)" = "64836a769e8c5a9f9be23da39257591e8dd9ee2f"
+      - name: Execute existing-component localization once
+        run: |
+          set -euo pipefail
+          python -m research.tools.apma_satlib_uf20_06_l3_collision_existing_component_localization.candidate > /tmp/uf20-06-component-localization.json
+      - name: Independently recompute frozen S0-S3 and L3 guard
+        run: |
+          set -euo pipefail
+          python -m research.tools.apma_satlib_uf20_06_l3_collision_existing_component_localization.independent_checker --candidate-json /tmp/uf20-06-component-localization.json > /tmp/uf20-06-component-localization-independent.json
+      - name: Assert frozen outcome space and firewalls
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          c=json.loads(Path('/tmp/uf20-06-component-localization.json').read_text().strip().splitlines()[-1])
+          i=json.loads(Path('/tmp/uf20-06-component-localization-independent.json').read_text().strip().splitlines()[-1])
+          allowed={
+            'FIRST_SPLIT_AT_S0_EXISTING_DEGREE_COMPONENT',
+            'FIRST_SPLIT_AT_S1_EXISTING_SIGN_COUNT_COMPONENTS',
+            'FIRST_SPLIT_AT_S2_EXISTING_RELATION_INCIDENCE_COMPONENT',
+            'FIRST_SPLIT_AT_S3_EXISTING_NEIGHBOR_DEGREE_COMPONENT'}
+          assert c['verdict'] in allowed,c
+          assert c['source_guard']['ok'] is True,c['source_guard']
+          assert c['target_variables']==[12,16] and c['frozen_L3_class_verified']==[12,16],c
+          assert i['verified'] is True and i['candidate_imported'] is False,i
+          assert i['verdict']==c['verdict'],(i,c)
+          assert i['first_split_stage']==c['first_split_stage'],(i,c)
+          assert i['first_split_differing_existing_components']==c['first_split_differing_existing_components'],(i,c)
+          rr=c['resource_receipt']
+          assert rr['sources']==1 and rr['target_variables']==2 and rr['existing_signature_stages']==4,rr
+          assert rr['solver_invocations']==0 and rr['portfolio_replays']==0 and rr['action_tests']==0 and rr['automorphism_tests']==0 and rr['group_searches']==0 and rr['group_closure_computation']==0,rr
+          assert rr['new_feature_definitions']==0 and rr['new_graph_statistics']==0 and rr['new_solver_mechanisms']==0 and rr['new_carrier_mechanisms']==0 and rr['new_adapters']==0 and rr['new_quotients']==0 and rr['budget_raise'] is False,rr
+          sf=c['scientific_firewall']
+          assert sf['P_VS_NP']=='OPEN' and sf['GENERAL_SAT_IN_P']=='NOT_PROVED' and sf['CONNECTED_MIXED_CORE_SOLVED']=='NO',sf
+          assert sf['PAIR_12_16_AUTOMORPHISM_STATUS']=='NOT_TESTED_AND_NOT_AUTHORIZED_HERE',sf
+          print(json.dumps({'verdict':c['verdict'],'first_split_stage':c['first_split_stage'],'first_split_differing_existing_components':c['first_split_differing_existing_components'],'signature_values':c['signature_values'],'component_values':c['component_values'],'component_equalities':c['component_equalities'],'independent_verified':i['verified']},sort_keys=True))
+          PY
+      - name: Upload localization receipt
+        uses: actions/upload-artifact@v4
+        with:
+          name: satlib-uf20-06-l3-collision-existing-component-localization-receipt
+          path: |
+            /tmp/uf20-06-component-localization.json
+            /tmp/uf20-06-component-localization-independent.json
+          if-no-files-found: error
+      - name: Authority notice
+        run: |
+          echo 'AUTHORITY=DIAGNOSTIC_EXISTING_SIGNATURE_COMPONENT_LOCALIZATION_ONLY'
+          echo 'NEW_FEATURE_DEFINITIONS=0'
+          echo 'NEW_GRAPH_STATISTICS=0'
+          echo 'AUTOMORPHISM_TESTS=0'
+          echo 'ACTION_TESTS=0'
+          echo 'SOLVER_INVOCATIONS=0'
+          echo 'P_VS_NP=OPEN'
+          echo 'GENERAL_SAT_IN_P=NOT_PROVED'
