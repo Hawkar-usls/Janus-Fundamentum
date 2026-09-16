@@ -1,0 +1,89 @@
+name: TRUMP SATLIB UF20 R000 R111 Unseen Source Acquisition Freeze
+
+on:
+  push:
+    branches:
+      - research/trump-external-satlib-uf20-01-source-acquisition-2026-09-16
+    paths:
+      - 'research/TRUMP_SATLIB_UF20_R000_R111_L3_WL3_UNSEEN_SOURCE_EXTENSION_SELECTION_PREREGISTRATION_2026-09-17.json'
+      - 'research/source_data/SATLIB_UF20_06_2026-09-17.cnf'
+      - 'research/source_data/SATLIB_UF20_07_2026-09-17.cnf'
+      - 'research/source_data/SATLIB_UF20_08_2026-09-17.cnf'
+      - 'research/source_data/SATLIB_UF20_09_2026-09-17.cnf'
+      - 'research/source_data/SATLIB_UF20_010_2026-09-17.cnf'
+      - 'research/tools/apma_satlib_uf20_r000_r111_unseen_source_acquisition_freeze/**'
+      - '.github/workflows/trump-satlib-uf20-r000-r111-unseen-source-acquisition-freeze.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  source-freeze:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Assert blind selection and committed source bindings
+        run: |
+          set -euo pipefail
+          test "$(git hash-object research/TRUMP_SATLIB_UF20_R000_R111_L3_WL3_UNSEEN_SOURCE_EXTENSION_SELECTION_PREREGISTRATION_2026-09-17.json)" = "9679bed3017df016002a10aa45ba249df198baa4"
+          test "$(git hash-object research/source_data/SATLIB_UF20_06_2026-09-17.cnf)" = "42d6feffa98dc1a213e019f28cf6bc7ddf94c0bf"
+          test "$(git hash-object research/source_data/SATLIB_UF20_07_2026-09-17.cnf)" = "9d7c4412e43bfd0e573ce8deab39c9d6e14d10b6"
+          test "$(git hash-object research/source_data/SATLIB_UF20_08_2026-09-17.cnf)" = "461108f1c8f2eddeab2d8a902b1bc1d2c9b03e3e"
+          test "$(git hash-object research/source_data/SATLIB_UF20_09_2026-09-17.cnf)" = "0dc336cbc82430deb22f64fdfb8c051c7493e5a0"
+          test "$(git hash-object research/source_data/SATLIB_UF20_010_2026-09-17.cnf)" = "afe1163b633a9f1844e20010f77e8f2d94bd52c5"
+          test "$(git hash-object research/tools/apma_satlib_uf20_r000_r111_unseen_source_acquisition_freeze/candidate.py)" = "2e40cb26723a1cf74f0396183eb9fc1f9778f396"
+          test "$(git hash-object research/tools/apma_satlib_uf20_r000_r111_unseen_source_acquisition_freeze/independent_checker.py)" = "7af034e850c7b4eb01f541b8b3eaf597e281c361"
+      - name: Fetch exact public blobs and freeze source hashes only
+        run: |
+          set -euo pipefail
+          python -m research.tools.apma_satlib_uf20_r000_r111_unseen_source_acquisition_freeze.candidate > /tmp/unseen-source-freeze.json
+      - name: Independently re-fetch and verify source formulas only
+        run: |
+          set -euo pipefail
+          python -m research.tools.apma_satlib_uf20_r000_r111_unseen_source_acquisition_freeze.independent_checker --candidate-json /tmp/unseen-source-freeze.json > /tmp/unseen-source-freeze-independent.json
+      - name: Assert source-only authority and blind barrier
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          c=json.loads(Path('/tmp/unseen-source-freeze.json').read_text().strip().splitlines()[-1])
+          i=json.loads(Path('/tmp/unseen-source-freeze-independent.json').read_text().strip().splitlines()[-1])
+          assert c['verdict']=='PASS_UNSEEN_SOURCE_ACQUISITION_AND_DUAL_MIRROR_FORMULA_FREEZE',c
+          assert c['guard']['ok'] is True,c['guard']
+          assert i['verified'] is True and i['candidate_imported'] is False,i
+          assert i['verdict']==c['verdict'],(i,c)
+          assert i['sources_verified']==5,i
+          assert all(r['variables']==20 and r['clauses']==91 and r['clause_arity']==3 for r in c['rows']),c['rows']
+          assert all(r['ordered_clause_sequence_equal_across_primary_verification_and_committed_copy'] for r in c['rows']),c['rows']
+          assert all(r['canonical_formula_sha256_equal_across_all_three'] for r in c['rows']),c['rows']
+          rr=c['resource_receipt']
+          assert rr['L3_values_computed']==0 and rr['S3_values_computed']==0 and rr['projected_partition_relations_computed']==0,rr
+          assert rr['solver_invocations']==0 and rr['portfolio_replays']==0 and rr['action_tests']==0 and rr['group_searches']==0 and rr['group_closure_computation']==0,rr
+          assert rr['new_feature_definitions']==0 and rr['new_graph_statistics']==0,rr
+          sf=c['scientific_firewall']
+          assert sf['P_VS_NP']=='OPEN' and sf['GENERAL_SAT_IN_P']=='NOT_PROVED' and sf['CONNECTED_MIXED_CORE_SOLVED']=='NO',sf
+          print(json.dumps({'verdict':c['verdict'],'rows':c['rows'],'independent_verified':i['verified']},sort_keys=True))
+          PY
+      - name: Upload source-freeze receipt
+        uses: actions/upload-artifact@v4
+        with:
+          name: satlib-uf20-r000-r111-unseen-source-acquisition-freeze-receipt
+          path: |
+            /tmp/unseen-source-freeze.json
+            /tmp/unseen-source-freeze-independent.json
+          if-no-files-found: error
+      - name: Authority notice
+        run: |
+          echo 'AUTHORITY=SOURCE_ACQUISITION_AND_HASH_FREEZE_ONLY'
+          echo 'L3_VALUES_COMPUTED=0'
+          echo 'S3_VALUES_COMPUTED=0'
+          echo 'PROJECTED_PARTITION_RELATIONS_COMPUTED=0'
+          echo 'SOLVER_INVOCATIONS=0'
+          echo 'ACTION_TESTS=0'
+          echo 'P_VS_NP=OPEN'
+          echo 'GENERAL_SAT_IN_P=NOT_PROVED'
