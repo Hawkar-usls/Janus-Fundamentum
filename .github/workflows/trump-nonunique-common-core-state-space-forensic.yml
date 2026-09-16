@@ -39,10 +39,10 @@ jobs:
           set -euo pipefail
           python -m research.tools.apma_bucket_nonunique_common_core_state_space_forensic.forensic | tee /tmp/candidate.json
 
-      - name: Run independent nonunique common-core checker
+      - name: Run independent nonunique common-core checker v1.1 repair
         run: |
           set -euo pipefail
-          python -m research.tools.apma_bucket_nonunique_common_core_state_space_forensic.independent_checker --candidate-json /tmp/candidate.json | tee /tmp/independent.json
+          python -m research.tools.apma_bucket_nonunique_common_core_state_space_forensic.independent_checker_v1_1 --candidate-json /tmp/candidate.json | tee /tmp/independent.json
 
       - name: Assert preregistered forensic invariants
         run: |
@@ -61,6 +61,12 @@ jobs:
           assert i['verdict']==c['verdict'], (c['verdict'],i['verdict'])
           assert all(c['checks'].values()), {k:v for k,v in c['checks'].items() if not v}
           assert all(i['checks'].values()), {k:v for k,v in i['checks'].items() if not v}
+          assert i['repair']['immutable_first_failure_run']==35042004343
+          assert i['repair']['immutable_first_failure_job']==104623675436
+          assert i['repair']['candidate_changed'] is False
+          assert i['repair']['preregistration_changed'] is False
+          assert i['repair']['fixture_census_changed'] is False
+          assert i['repair']['scientific_outcome_changed'] is False
           assert c['support_bound_lemma']['all_ready_authoritative_rows_verify'] is True
           assert c['synthetic_calibration']['eligible_for_first_real_fixture'] is False
           assert c['synthetic_calibration']['ok'] is True
@@ -83,6 +89,7 @@ jobs:
             'first_real_nonunique_fixture':c['first_real_nonunique_fixture'],
             'support_bound_verified':c['support_bound_lemma']['all_ready_authoritative_rows_verify'],
             'synthetic_support_size':c['synthetic_calibration']['profile'].get('exact_common_support_size'),
+            'immutable_first_failure_run':i['repair']['immutable_first_failure_run'],
           },sort_keys=True))
           PY
 
@@ -106,6 +113,8 @@ jobs:
       - name: Authority notice
         run: |
           echo 'AUTHORITY=DIAGNOSTIC_ONLY'
+          echo 'IMMUTABLE_FIRST_FAILURE_RUN=35042004343'
+          echo 'IMMUTABLE_FIRST_FAILURE_JOB=104623675436'
           echo 'NEW_MULTI_STATE_SOLVER=0'
           echo 'CORE_ASSIGNMENTS_OUTSIDE_EXPLICIT_SUPPORT=0'
           echo 'SIZE4_BOOLEAN_BRANCHING=0'
