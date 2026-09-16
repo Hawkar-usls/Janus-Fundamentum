@@ -1,0 +1,99 @@
+name: TRUMP SATLIB UF20 Signature Ablation Replication
+
+on:
+  push:
+    branches:
+      - research/trump-external-satlib-uf20-01-source-acquisition-2026-09-16
+    paths:
+      - 'research/TRUMP_SATLIB_UF20_SIGNATURE_ABLATION_REPLICATION_PREREGISTRATION_2026-09-16.json'
+      - 'research/tools/apma_satlib_uf20_signature_ablation_replication/**'
+      - '.github/workflows/trump-satlib-uf20-signature-ablation-replication.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  signature-ablation:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Assert immutable sources prereg and sealed primitive bindings
+        run: |
+          set -euo pipefail
+          test "$(git hash-object research/source_data/SATLIB_UF20_01_2026-09-16.cnf)" = "8330041b292e0501f8d74c1b1d32ca96c4498864"
+          test "$(git hash-object research/source_data/SATLIB_UF20_02_2026-09-16.cnf)" = "f924caaef0d868bf62b1658e83e030ad8daee865"
+          test "$(git hash-object research/source_data/SATLIB_UF20_03_2026-09-16.cnf)" = "8f3d15154515457281f49201b843f2a7134dfa9f"
+          test "$(git hash-object research/source_data/SATLIB_UF20_04_2026-09-16.cnf)" = "34ced5c169f967b2dc44ef5e42f2ee2c924813e1"
+          test "$(git hash-object research/source_data/SATLIB_UF20_05_2026-09-16.cnf)" = "3b04eff26ee37bdd0bc21b1066486974f92a2c9b"
+          test "$(git hash-object research/TRUMP_SATLIB_UF20_SIGNATURE_ABLATION_REPLICATION_PREREGISTRATION_2026-09-16.json)" = "ec7c43258ecb76426f114dde9b75f528ad12e480"
+          test "$(git hash-object research/TRUMP_SATLIB_UF20_FAMILY_ASYMMETRY_REPLICATION_RESULT_2026-09-16.json)" = "878a7417b1b631c405e80476751fd8a620bb992b"
+          test "$(git hash-object research/tools/apma_satlib_uf20_signature_ablation_replication/ablation.py)" = "dbc4c52da24f2d4d0137dc4fb4534646ebf356f3"
+          test "$(git hash-object research/tools/apma_satlib_uf20_signature_ablation_replication/independent_checker.py)" = "6d28e8c647d46a7beba1d3505fef42163cd55374"
+          test "$(git hash-object research/tools/apma_unseen_local_invariant_orbit_count/candidate.py)" = "a076cfc56d68aad0348415e313705da1f6b9cdcd"
+          test "$(git hash-object research/tools/apma_unseen_local_invariant_orbit_count/independent_checker.py)" = "0e12304d843ef0bcce6b6c032fd2af2c68abcd14"
+          test "$(git hash-object research/tools/apma_unseen_basis/raw_relation_basis.py)" = "63490c05ef3e91a4f682f75da26ff2af811839a6"
+      - name: Run preregistered signature ablation
+        run: |
+          set -euo pipefail
+          python -m research.tools.apma_satlib_uf20_signature_ablation_replication.ablation | tee /tmp/ablation.json
+      - name: Run independent signature ablation checker
+        run: |
+          set -euo pipefail
+          python -m research.tools.apma_satlib_uf20_signature_ablation_replication.independent_checker --candidate-json /tmp/ablation.json | tee /tmp/ablation-independent.json
+      - name: Assert preregistered outcome and firewalls
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          c=json.loads(Path('/tmp/ablation.json').read_text().strip().splitlines()[-1])
+          i=json.loads(Path('/tmp/ablation-independent.json').read_text().strip().splitlines()[-1])
+          allowed={
+            'COARSE_CLASSES_EXIST_BUT_ALL_EXACT_TRANSPOSITIONS_FAIL',
+            'EXACT_TRANSPOSITION_SYMMETRY_REAPPEARS_WITHIN_COARSE_CLASS',
+            'SIGNATURE_LEVEL_ALREADY_ALL_SINGLETON',
+            'MIXED_LEVEL_OUTCOMES',
+          }
+          assert c['verdict'] in allowed, c
+          assert c['source_guard']['ok'] is True, c['source_guard']
+          assert len(c['rows'])==5, len(c['rows'])
+          assert all(r['status']=='PROFILED' for r in c['rows']), c['rows']
+          assert i['verified'] is True, {k:v for k,v in i['checks'].items() if not v}
+          assert i['ablation_imported'] is False, i
+          rr=c['resource_receipt']
+          assert rr['pairs_outside_same_coarse_class_tested']==0, rr
+          assert rr['quotient_states_enumerated']==0, rr
+          assert rr['solver_invocations']==0, rr
+          assert rr['full_variable_cube_states_enumerated']==0, rr
+          assert rr['new_solver_mechanisms']==0 and rr['new_carrier_mechanisms']==0, rr
+          assert rr['new_representation_adapters']==0 and rr['separator_branching']==0, rr
+          assert rr['budget_raise'] is False, rr
+          sf=c['scientific_firewall']
+          assert sf['P_VS_NP']=='OPEN' and sf['GENERAL_SAT_IN_P']=='NOT_PROVED', sf
+          print(json.dumps({
+            'verdict':c['verdict'],
+            'totals':rr,
+            'sources':[{ 'source':r['source'], 'first_all_singleton_level':r['first_all_singleton_level'], 'first_zero_exact_with_coarse_classes':r['first_zero_exact_with_coarse_classes'], 'levels':{k:{'sizes':v['class_size_multiset'],'non_singleton_classes':v['non_singleton_class_count'],'pairs':v['candidate_transposition_pairs_tested'],'exact':v['exact_semantic_transposition_count'],'outcome':v['outcome']} for k,v in r['levels'].items()} } for r in c['rows']],
+            'independent_verified':i['verified'],
+          },sort_keys=True))
+          PY
+      - name: Upload signature ablation receipt
+        uses: actions/upload-artifact@v4
+        with:
+          name: satlib-uf20-signature-ablation-replication-receipt
+          path: |
+            /tmp/ablation.json
+            /tmp/ablation-independent.json
+          if-no-files-found: error
+      - name: Authority notice
+        run: |
+          echo 'AUTHORITY=DIAGNOSTIC_ONLY__FROZEN_FEATURE_ABLATION_AND_EXISTING_ORBIT_REPLAY__NO_NEW_MECHANISM'
+          echo 'NEW_SOLVER_MECHANISMS=0'
+          echo 'NEW_CARRIER_MECHANISMS=0'
+          echo 'P_VS_NP=OPEN'
+          echo 'GENERAL_SAT_IN_P=NOT_PROVED'
