@@ -1,0 +1,82 @@
+name: TRUMP SATLIB UF20 Family Asymmetry Replication
+
+on:
+  push:
+    branches:
+      - research/trump-external-satlib-uf20-01-source-acquisition-2026-09-16
+    paths:
+      - 'research/TRUMP_SATLIB_UF20_FAMILY_ASYMMETRY_REPLICATION_PREREGISTRATION_2026-09-16.json'
+      - 'research/source_data/SATLIB_UF20_0[2-5]_2026-09-16.cnf'
+      - 'research/tools/apma_satlib_uf20_family_asymmetry_replication/**'
+      - '.github/workflows/trump-satlib-uf20-family-asymmetry-replication.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  family-replication:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Assert frozen family sources prereg profiler and checker
+        run: |
+          set -euo pipefail
+          test "$(git hash-object research/source_data/SATLIB_UF20_02_2026-09-16.cnf)" = "f924caaef0d868bf62b1658e83e030ad8daee865"
+          test "$(git hash-object research/source_data/SATLIB_UF20_03_2026-09-16.cnf)" = "8f3d15154515457281f49201b843f2a7134dfa9f"
+          test "$(git hash-object research/source_data/SATLIB_UF20_04_2026-09-16.cnf)" = "34ced5c169f967b2dc44ef5e42f2ee2c924813e1"
+          test "$(git hash-object research/source_data/SATLIB_UF20_05_2026-09-16.cnf)" = "3b04eff26ee37bdd0bc21b1066486974f92a2c9b"
+          test "$(git hash-object research/TRUMP_SATLIB_UF20_FAMILY_ASYMMETRY_REPLICATION_PREREGISTRATION_2026-09-16.json)" = "68d87c64ebee9c33b4c791db768ef0460f960cd8"
+          test "$(git hash-object research/tools/apma_satlib_uf20_family_asymmetry_replication/profile.py)" = "bae6995578b7ea4132820817bf74e1244ae468ee"
+          test "$(git hash-object research/tools/apma_satlib_uf20_family_asymmetry_replication/independent_checker.py)" = "7d97a6067478f13b6aaf3587a3b5ad70f75dd7cc"
+      - name: Run preregistered family profile
+        run: |
+          set -euo pipefail
+          python -m research.tools.apma_satlib_uf20_family_asymmetry_replication.profile | tee /tmp/family-profile.json
+      - name: Run independent family checker
+        run: |
+          set -euo pipefail
+          python -m research.tools.apma_satlib_uf20_family_asymmetry_replication.independent_checker --profile-json /tmp/family-profile.json | tee /tmp/family-independent.json
+      - name: Assert family replication firewalls
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          p=json.loads(Path('/tmp/family-profile.json').read_text().strip().splitlines()[-1])
+          i=json.loads(Path('/tmp/family-independent.json').read_text().strip().splitlines()[-1])
+          allowed={
+            'REPLICATION_ALL_FOUR_MATCH_DENSE_LOW_CUT_ALL_SINGLETON_PROFILE',
+            'PARTIAL_REPLICATION_SIGNATURE_CLASSES_EMERGE',
+            'PARTIAL_REPLICATION_LOW_ORDER_SEPARATOR_EMERGES',
+            'PARTIAL_REPLICATION_OTHER_PROFILE_DIVERGENCE',
+          }
+          assert p['verdict'] in allowed, p
+          assert all(p['source_guard'].values()), p['source_guard']
+          assert len(p['rows']) == 4, len(p['rows'])
+          assert i['verified'] is True, {k:v for k,v in i['checks'].items() if not v}
+          assert i['profile_imported'] is False, i
+          sf=p['scientific_firewall']
+          assert sf['P_VS_NP']=='OPEN' and sf['GENERAL_SAT_IN_P']=='NOT_PROVED', sf
+          assert sf['NEW_SOLVER_MECHANISMS']==0 and sf['NEW_CARRIER_MECHANISMS']==0, sf
+          print(json.dumps({'verdict':p['verdict'],'rows':[{'source':r['source'],'raw_sha256':r['raw_sha256'],'P1':r['P1_primal'],'P3':r['P3_overlap'],'P5':r['P5_variable_signature'],'P6':r['P6_core']} for r in p['rows']]},sort_keys=True))
+          PY
+      - name: Upload family replication receipt
+        uses: actions/upload-artifact@v4
+        with:
+          name: satlib-uf20-family-asymmetry-replication-receipt
+          path: |
+            /tmp/family-profile.json
+            /tmp/family-independent.json
+          if-no-files-found: error
+      - name: Authority notice
+        run: |
+          echo 'AUTHORITY=DIAGNOSTIC_ONLY__SOURCE_BOUND_FAMILY_REPLICATION_BEFORE_MECHANISM_DESIGN'
+          echo 'NEW_SOLVER_MECHANISMS=0'
+          echo 'NEW_CARRIER_MECHANISMS=0'
+          echo 'P_VS_NP=OPEN'
+          echo 'GENERAL_SAT_IN_P=NOT_PROVED'
