@@ -1,0 +1,118 @@
+name: TRUMP Nonunique Common Core State Space Forensic
+
+on:
+  push:
+    branches:
+      - research/trump-nonunique-common-core-state-space-forensic-2026-09-16
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'research/TRUMP_BICAMERAL_BUCKET_NONUNIQUE_COMMON_CORE_SUPPORT_STATE_SPACE_FORENSIC_PREREGISTRATION_2026-09-16.json'
+      - 'research/TRUMP_BICAMERAL_BUCKET_NONUNIQUE_COMMON_CORE_SUPPORT_STATE_SPACE_FORENSIC_PREREGISTRATION_CLARIFICATION_2026-09-16.json'
+      - 'research/tools/apma_bucket_nonunique_common_core_state_space_forensic/**'
+      - '.github/workflows/trump-nonunique-common-core-state-space-forensic.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  nonunique-common-core-state-space-forensic:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - name: Run actions/checkout@v4
+        uses: actions/checkout@v4
+
+      - name: Run actions/setup-python@v5
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Pin sealed v3.18 matching backend
+        run: |
+          set -euo pipefail
+          python -m pip install --disable-pip-version-check 'networkx==3.6.1'
+
+      - name: Run candidate nonunique common-core forensic
+        run: |
+          set -euo pipefail
+          python -m research.tools.apma_bucket_nonunique_common_core_state_space_forensic.forensic | tee /tmp/candidate.json
+
+      - name: Run independent nonunique common-core checker
+        run: |
+          set -euo pipefail
+          python -m research.tools.apma_bucket_nonunique_common_core_state_space_forensic.independent_checker --candidate-json /tmp/candidate.json | tee /tmp/independent.json
+
+      - name: Assert preregistered forensic invariants
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          c=json.loads(Path('/tmp/candidate.json').read_text().strip().splitlines()[-1])
+          i=json.loads(Path('/tmp/independent.json').read_text().strip().splitlines()[-1])
+          allowed={
+            'PASS_DIAGNOSTIC_NO_AUTHORITATIVE_RAW_NONUNIQUE_COMMON_CORE_FIXTURE_FOUND',
+            'PASS_DIAGNOSTIC_RAW_NONUNIQUE_COMMON_CORE_FOUND_ALL_STATES_CLOSED_BY_SEALED_PORTFOLIO',
+            'PASS_DIAGNOSTIC_RAW_NONUNIQUE_COMMON_CORE_FOUND_WITH_FIRST_OPEN_STATE',
+          }
+          assert c['verdict'] in allowed, c['verdict']
+          assert i['verdict']==c['verdict'], (c['verdict'],i['verdict'])
+          assert all(c['checks'].values()), {k:v for k,v in c['checks'].items() if not v}
+          assert all(i['checks'].values()), {k:v for k,v in i['checks'].items() if not v}
+          assert c['support_bound_lemma']['all_ready_authoritative_rows_verify'] is True
+          assert c['synthetic_calibration']['eligible_for_first_real_fixture'] is False
+          assert c['synthetic_calibration']['ok'] is True
+          assert c['resource_receipt']['new_solver_mechanisms']==0
+          assert c['resource_receipt']['new_boolean_branching_mechanisms']==0
+          assert c['resource_receipt']['separator_ge3_boolean_branches']==0
+          assert c['resource_receipt']['size4_boolean_separator_assignments']==0
+          assert c['resource_receipt']['new_unbounded_recursion']==0
+          assert c['resource_receipt']['new_three_plus_join_chains']==0
+          assert c['resource_receipt']['global_residual_cartesian_products_materialized']==0
+          assert c['resource_receipt']['core_assignments_enumerated_outside_explicit_support']==0
+          assert c['resource_receipt']['budget_raise'] is False
+          assert c['scientific_firewall']['P_VS_NP']=='OPEN'
+          assert c['scientific_firewall']['GENERAL_SAT_IN_P']=='NOT_PROVED'
+          assert c['scientific_firewall']['NONUNIQUE_COMMON_CORE_SOLVED'] is False
+          print(json.dumps({
+            'verdict':c['verdict'],
+            'unique_authoritative_raw_count':c['unique_authoritative_raw_count'],
+            'real_nonunique_fixture_count':c['real_nonunique_fixture_count'],
+            'first_real_nonunique_fixture':c['first_real_nonunique_fixture'],
+            'support_bound_verified':c['support_bound_lemma']['all_ready_authoritative_rows_verify'],
+            'synthetic_support_size':c['synthetic_calibration']['profile'].get('exact_common_support_size'),
+          },sort_keys=True))
+          PY
+
+      - name: v3.19 raw GT2 census regression
+        run: |
+          set -euo pipefail
+          python -m research.tools.apma_bucket_gt2_unadmitted_raw_obstruction_census.census | tee /tmp/v319parent.json
+          python -m research.tools.apma_bucket_gt2_unadmitted_raw_obstruction_census.independent_checker --candidate-json /tmp/v319parent.json
+
+      - name: v3.18 exact two-factor carrier regression
+        run: |
+          set -euo pipefail
+          python -m research.tools.apma_bucket_exact_two_factor_f_factor_carrier.carrier | tee /tmp/v318.json
+          python -m research.tools.apma_bucket_exact_two_factor_f_factor_carrier.independent_checker --candidate-json /tmp/v318.json
+
+      - name: v3.5 unique-core predecessor regression
+        run: |
+          set -euo pipefail
+          python -m research.tools.apma_bucket_conditioned_factorized_payload.conditioned_factorized_payload
+
+      - name: Authority notice
+        run: |
+          echo 'AUTHORITY=DIAGNOSTIC_ONLY'
+          echo 'NEW_MULTI_STATE_SOLVER=0'
+          echo 'CORE_ASSIGNMENTS_OUTSIDE_EXPLICIT_SUPPORT=0'
+          echo 'SIZE4_BOOLEAN_BRANCHING=0'
+          echo 'SEPARATOR_GE3_BOOLEAN_BRANCHING=0'
+          echo 'EXTRA_RECURSION=0'
+          echo 'NEW_JOIN_CHAINS=0'
+          echo 'GLOBAL_RESIDUAL_CARTESIAN_PRODUCT=0'
+          echo 'P_VS_NP=OPEN'
+          echo 'GENERAL_SAT_IN_P=NOT_PROVED'
+          echo 'NONUNIQUE_COMMON_CORE_SOLVED=FALSE'
