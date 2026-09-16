@@ -1,0 +1,92 @@
+name: TRUMP SATLIB UF20 Unseen Five Source L3 vs S0-S3 Matrix
+
+on:
+  push:
+    branches:
+      - research/trump-external-satlib-uf20-01-source-acquisition-2026-09-16
+    paths:
+      - 'research/TRUMP_SATLIB_UF20_R000_R111_UNSEEN_FIVE_SOURCE_L3_VS_S0_S3_PARTITION_RELATION_MATRIX_PREREGISTRATION_2026-09-17.json'
+      - 'research/TRUMP_SATLIB_UF20_R000_R111_UNSEEN_FIVE_SOURCE_L3_VS_S0_S3_PARTITION_RELATION_MATRIX_PREREGISTRATION_REVIEW_2026-09-17.json'
+      - 'research/tools/apma_satlib_uf20_r000_r111_unseen_five_source_l3_vs_s0_s3_partition_relation_matrix/**'
+      - '.github/workflows/trump-satlib-uf20-r000-r111-unseen-five-source-l3-vs-s0-s3-partition-relation-matrix.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  relation-matrix:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Assert frozen matrix bindings
+        run: |
+          set -euo pipefail
+          test "$(git hash-object research/TRUMP_SATLIB_UF20_R000_R111_UNSEEN_FIVE_SOURCE_L3_VS_S0_S3_PARTITION_RELATION_MATRIX_PREREGISTRATION_2026-09-17.json)" = "49183b8530f34e1eb84483f797e4760e5a9f85cd"
+          test "$(git hash-object research/TRUMP_SATLIB_UF20_R000_R111_UNSEEN_FIVE_SOURCE_L3_VS_S0_S3_PARTITION_RELATION_MATRIX_PREREGISTRATION_REVIEW_2026-09-17.json)" = "d3fe6839f430011ea5db96e3fdc9617aefd78891"
+          test "$(git hash-object research/TRUMP_SATLIB_UF20_06_L3_COLLISION_EXISTING_S0_S3_COMPONENT_LOCALIZATION_RESULT_2026-09-17.json)" = "2189b85416a1495d090e90768a55e1fcb1746a25"
+          test "$(git hash-object research/TRUMP_SATLIB_UF20_R000_R111_L3_WL3_UNSEEN_PARTITION_RELATION_RESULT_2026-09-17.json)" = "222d227e491df0a4ff03257d3f52a6e8be3cb6d9"
+          test "$(git hash-object research/tools/apma_satlib_uf20_r000_r111_projected_signature_ablation/replay.py)" = "2edad57e6017cb34bf797313e4451c1ce014900b"
+          test "$(git hash-object research/tools/apma_satlib_uf20_r000_r111_residual_local_invariant_falsifier/candidate.py)" = "4ec02d6d42e6cad7d91f16b1acfdcbe51dbd65df"
+          test "$(git hash-object research/tools/apma_satlib_uf20_r000_r111_unseen_five_source_l3_vs_s0_s3_partition_relation_matrix/candidate.py)" = "1d28e11322693503f5ab8c2e2b2739c61827df07"
+          test "$(git hash-object research/tools/apma_satlib_uf20_r000_r111_unseen_five_source_l3_vs_s0_s3_partition_relation_matrix/independent_checker.py)" = "2cb966fee68950b37e34a702d56b8c3b548ea133"
+          test "$(git hash-object research/source_data/SATLIB_UF20_06_2026-09-17.cnf)" = "42d6feffa98dc1a213e019f28cf6bc7ddf94c0bf"
+          test "$(git hash-object research/source_data/SATLIB_UF20_07_2026-09-17.cnf)" = "9d7c4412e43bfd0e573ce8deab39c9d6e14d10b6"
+          test "$(git hash-object research/source_data/SATLIB_UF20_08_2026-09-17.cnf)" = "461108f1c8f2eddeab2d8a902b1bc1d2c9b03e3e"
+          test "$(git hash-object research/source_data/SATLIB_UF20_09_2026-09-17.cnf)" = "0dc336cbc82430deb22f64fdfb8c051c7493e5a0"
+          test "$(git hash-object research/source_data/SATLIB_UF20_010_2026-09-17.cnf)" = "afe1163b633a9f1844e20010f77e8f2d94bd52c5"
+      - name: Execute frozen 5x4 partition relation matrix once
+        run: |
+          set -euo pipefail
+          python -m research.tools.apma_satlib_uf20_r000_r111_unseen_five_source_l3_vs_s0_s3_partition_relation_matrix.candidate > /tmp/unseen-five-source-l3-vs-s0-s3-matrix.json
+      - name: Independently rebuild and verify all 20 relations
+        run: |
+          set -euo pipefail
+          python -m research.tools.apma_satlib_uf20_r000_r111_unseen_five_source_l3_vs_s0_s3_partition_relation_matrix.independent_checker --candidate-json /tmp/unseen-five-source-l3-vs-s0-s3-matrix.json > /tmp/unseen-five-source-l3-vs-s0-s3-matrix-independent.json
+      - name: Assert frozen outcome space and firewalls
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          c=json.loads(Path('/tmp/unseen-five-source-l3-vs-s0-s3-matrix.json').read_text().strip().splitlines()[-1])
+          i=json.loads(Path('/tmp/unseen-five-source-l3-vs-s0-s3-matrix-independent.json').read_text().strip().splitlines()[-1])
+          allowed={'PASS_SCOPED_UNSEEN_L3_ADDITIONAL_DISCRIMINATION_BEYOND_S3_PRESENT','PASS_UNSEEN_HOLDOUT_NO_L3_ADDITIONAL_DISCRIMINATION_BEYOND_S3'}
+          assert c['verdict'] in allowed,c
+          assert c['source_guard']['ok'] is True,c['source_guard']
+          assert i['verified'] is True and i['candidate_imported'] is False,i
+          assert i['verdict']==c['verdict'],(i,c)
+          assert i['partition_comparisons_verified']==20,i
+          assert len(c['rows'])==5 and all(r['status']=='AUDITED' for r in c['rows']),c['rows']
+          assert all(len(r['relations'])==4 for r in c['rows']),c['rows']
+          assert all(x['relation'] in {'EQUAL','L3_STRICTLY_FINER_THAN_Sk','Sk_STRICTLY_FINER_THAN_L3','INCOMPARABLE'} for r in c['rows'] for x in r['relations'].values()),c['rows']
+          rr=c['resource_receipt']
+          assert rr['sources']==5 and rr['existing_stages']==4 and rr['partition_comparisons']==20,rr
+          assert rr['solver_invocations']==0 and rr['portfolio_replays']==0 and rr['action_tests']==0 and rr['automorphism_tests']==0 and rr['group_searches']==0 and rr['group_closure_computation']==0,rr
+          assert rr['new_feature_definitions']==0 and rr['new_graph_statistics']==0 and rr['new_solver_mechanisms']==0 and rr['new_carrier_mechanisms']==0 and rr['new_adapters']==0 and rr['new_quotients']==0 and rr['budget_raise'] is False,rr
+          sf=c['scientific_firewall']
+          assert sf['P_VS_NP']=='OPEN' and sf['GENERAL_SAT_IN_P']=='NOT_PROVED' and sf['CONNECTED_MIXED_CORE_SOLVED']=='NO' and sf['L3_GENERALIZES']=='NOT_PROVED',sf
+          print(json.dumps({'verdict':c['verdict'],'s3_additional_discrimination_sources':c['s3_additional_discrimination_sources'],'rows':c['rows'],'independent_verified':i['verified']},sort_keys=True))
+          PY
+      - name: Upload matrix receipt
+        uses: actions/upload-artifact@v4
+        with:
+          name: satlib-uf20-unseen-five-source-l3-vs-s0-s3-partition-relation-matrix-receipt
+          path: |
+            /tmp/unseen-five-source-l3-vs-s0-s3-matrix.json
+            /tmp/unseen-five-source-l3-vs-s0-s3-matrix-independent.json
+          if-no-files-found: error
+      - name: Authority notice
+        run: |
+          echo 'AUTHORITY=DIAGNOSTIC_EXISTING_PARTITION_RELATION_MATRIX_ONLY'
+          echo 'PARTITION_COMPARISONS=20'
+          echo 'NEW_FEATURE_DEFINITIONS=0'
+          echo 'NEW_GRAPH_STATISTICS=0'
+          echo 'AUTOMORPHISM_TESTS=0'
+          echo 'ACTION_TESTS=0'
+          echo 'SOLVER_INVOCATIONS=0'
+          echo 'P_VS_NP=OPEN'
+          echo 'GENERAL_SAT_IN_P=NOT_PROVED'
