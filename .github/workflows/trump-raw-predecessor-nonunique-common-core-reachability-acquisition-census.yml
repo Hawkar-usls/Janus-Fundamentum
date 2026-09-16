@@ -1,0 +1,142 @@
+name: TRUMP Raw Predecessor Nonunique Common Core Reachability Acquisition Census
+
+on:
+  push:
+    branches:
+      - research/trump-raw-predecessor-nonunique-common-core-reachability-acquisition-census-2026-09-16
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'research/TRUMP_BICAMERAL_BUCKET_RAW_PREDECESSOR_NONUNIQUE_COMMON_CORE_REACHABILITY_ACQUISITION_CENSUS_PREREGISTRATION_2026-09-16.json'
+      - 'research/TRUMP_BICAMERAL_BUCKET_RAW_PREDECESSOR_NONUNIQUE_COMMON_CORE_REACHABILITY_ACQUISITION_CENSUS_PREREGISTRATION_CLARIFICATION_2026-09-16.json'
+      - 'research/tools/apma_bucket_raw_predecessor_nonunique_reachability_acquisition_census/**'
+      - '.github/workflows/trump-raw-predecessor-nonunique-common-core-reachability-acquisition-census.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  acquisition-census:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    steps:
+      - name: Run actions/checkout@v4
+        uses: actions/checkout@v4
+
+      - name: Run actions/setup-python@v5
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Pin sealed matching backend
+        run: |
+          set -euo pipefail
+          python -m pip install --disable-pip-version-check 'networkx==3.6.1'
+
+      - name: Run candidate raw predecessor acquisition census
+        run: |
+          set -euo pipefail
+          python -m research.tools.apma_bucket_raw_predecessor_nonunique_reachability_acquisition_census.census | tee /tmp/candidate.json
+
+      - name: Run independent raw predecessor acquisition census checker
+        run: |
+          set -euo pipefail
+          python -m research.tools.apma_bucket_raw_predecessor_nonunique_reachability_acquisition_census.independent_checker --candidate-json /tmp/candidate.json | tee /tmp/independent.json
+
+      - name: Assert preregistered acquisition census invariants
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          c=json.loads(Path('/tmp/candidate.json').read_text().strip().splitlines()[-1])
+          i=json.loads(Path('/tmp/independent.json').read_text().strip().splitlines()[-1])
+          allowed={
+            'PASS_DIAGNOSTIC_FIRST_SOURCE_AUTHORIZED_RAW_NONUNIQUE_COMMON_CORE_FIXTURE_FROZEN',
+            'PASS_DIAGNOSTIC_NO_SOURCE_AUTHORIZED_RAW_NONUNIQUE_COMMON_CORE_FIXTURE_FOUND_IN_RECOVERED_PREDECESSOR_LINEAGE',
+          }
+          assert c['verdict'] in allowed, c['verdict']
+          assert i['verdict']==c['verdict'], (c['verdict'],i['verdict'])
+          assert c['constructor_count']==26, c['constructor_count']
+          assert i['independent_constructor_count']==26, i['independent_constructor_count']
+          assert all(c['checks'].values()), {k:v for k,v in c['checks'].items() if not v}
+          assert all(i['checks'].values()), {k:v for k,v in i['checks'].items() if not v}
+          assert c['unique_raw_count']==i['independent_unique_raw_count']
+          assert c['ready_unique_raw_count']==i['independent_ready_unique_raw_count']
+          assert c['real_nonunique_unique_raw_count']==i['independent_real_nonunique_unique_raw_count']
+          assert c['first_real_nonunique_fixture']==i['independent_first_real_nonunique_fixture'] or (
+            c['first_real_nonunique_fixture'] is not None and i['independent_first_real_nonunique_fixture'] is not None
+            and {k:c['first_real_nonunique_fixture'][k] for k in ['ordinal','name','raw_sha256','aliases','common_core','exact_common_support_size','exact_common_support_tuples']}
+            == i['independent_first_real_nonunique_fixture']
+          )
+          for row in c['unique_raw_census']:
+            if row.get('prepare_status')=='READY':
+              assert row['support_bound_holds'] is True, row['raw_sha256']
+              assert row['exact_common_support_size'] <= row['input_metrics']['explicit_relation_row_count']
+          rr=c['resource_receipt']
+          assert rr['new_solver_mechanisms']==0
+          assert rr['new_compression_carriers']==0
+          assert rr['core_assignments_enumerated_outside_explicit_support']==0
+          assert rr['two_to_core_width_enumerations']==0
+          assert rr['separator_ge3_boolean_branches']==0
+          assert rr['size4_boolean_separator_assignments']==0
+          assert rr['new_unbounded_recursion']==0
+          assert rr['new_three_plus_join_chains']==0
+          assert rr['global_residual_cartesian_products_materialized']==0
+          assert rr['budget_raise'] is False
+          assert c['scientific_firewall']['P_VS_NP']=='OPEN'
+          assert c['scientific_firewall']['GENERAL_SAT_IN_P']=='NOT_PROVED'
+          assert c['scientific_firewall']['NONUNIQUE_COMMON_CORE_SOLVED'] is False
+          print(json.dumps({
+            'verdict':c['verdict'],
+            'constructor_count':c['constructor_count'],
+            'unique_raw_count':c['unique_raw_count'],
+            'ready_unique_raw_count':c['ready_unique_raw_count'],
+            'real_nonunique_unique_raw_count':c['real_nonunique_unique_raw_count'],
+            'first_real_nonunique_fixture':c['first_real_nonunique_fixture'],
+          },sort_keys=True))
+          PY
+
+      - name: v3.20 nonunique common-core state-space forensic regression
+        run: |
+          set -euo pipefail
+          python -m research.tools.apma_bucket_nonunique_common_core_state_space_forensic.forensic | tee /tmp/v320.json
+          python -m research.tools.apma_bucket_nonunique_common_core_state_space_forensic.independent_checker_v1_1 --candidate-json /tmp/v320.json
+
+      - name: v3.19 raw GT2 census regression
+        run: |
+          set -euo pipefail
+          python -m research.tools.apma_bucket_gt2_unadmitted_raw_obstruction_census.census | tee /tmp/v319.json
+          python -m research.tools.apma_bucket_gt2_unadmitted_raw_obstruction_census.independent_checker --candidate-json /tmp/v319.json
+
+      - name: v3.18 exact two-factor carrier regression
+        run: |
+          set -euo pipefail
+          python -m research.tools.apma_bucket_exact_two_factor_f_factor_carrier.carrier | tee /tmp/v318.json
+          python -m research.tools.apma_bucket_exact_two_factor_f_factor_carrier.independent_checker --candidate-json /tmp/v318.json
+
+      - name: v3.16 raw semantic forensic regression
+        run: |
+          set -euo pipefail
+          python -m research.tools.apma_bucket_k5_raw_semantic_forensic.forensic
+
+      - name: v3.14 fixed-depth regression
+        run: |
+          set -euo pipefail
+          python -m research.tools.apma_bucket_fixed_depth_122.fixed_depth_122
+
+      - name: Authority notice
+        run: |
+          echo 'AUTHORITY=DIAGNOSTIC_ONLY__EVIDENCE_ACQUISITION'
+          echo 'NEW_MULTI_STATE_SOLVER=0'
+          echo 'NEW_COMPRESSION_CARRIER=0'
+          echo 'CORE_ASSIGNMENTS_OUTSIDE_EXPLICIT_SUPPORT=0'
+          echo 'SIZE4_BOOLEAN_BRANCHING=0'
+          echo 'SEPARATOR_GE3_BOOLEAN_BRANCHING=0'
+          echo 'EXTRA_RECURSION=0'
+          echo 'NEW_JOIN_CHAINS=0'
+          echo 'GLOBAL_RESIDUAL_CARTESIAN_PRODUCT=0'
+          echo 'P_VS_NP=OPEN'
+          echo 'GENERAL_SAT_IN_P=NOT_PROVED'
+          echo 'NONUNIQUE_COMMON_CORE_SOLVED=FALSE'
