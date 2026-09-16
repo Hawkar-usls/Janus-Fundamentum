@@ -11,11 +11,11 @@ from typing import Any
 from research.tools.apma_satlib_uf20_r000_r111_projected_core_replay import projection_identity
 
 ROOT = Path(__file__).resolve().parents[3]
-PREREG = ROOT / 'research/TRUMP_SATLIB_UF20_R000_R111_PROJECTED_CORE_SIGNED_RESIDUAL_EXACT_CERTIFICATE_PREREGISTRATION_2026-09-16.json'
+PREREG = ROOT / 'research/TRUMP_SATLIB_UF20_R000_R111_PROJECTED_CORE_SIGNED_RESIDUAL_EXACT_CERTIFICATE_PREREGISTRATION_2026-09-16_v1.1.json'
 V11 = ROOT / 'research/TRUMP_SATLIB_UF20_R000_R111_PROJECTED_CORE_SIGNED_RESIDUAL_BOUND_RESULT_2026-09-16_v1.1.json'
 EXPECTED = {
-    PREREG: 'ef131c9d2b5370def2c6dc8649375deb8f458f2a',
-    V11: '4ca743ff4f1e09cff1bd2d9c132b79c705b932b4',
+    PREREG: 'd801cf79f6dfbaa25b284967867a7e0b59b67ed4',
+    V11: '4ca743fffe93deb597aed0d78fec94fb77220a4d',
     ROOT / 'research/TRUMP_SATLIB_UF20_SIGNED_AUTOMORPHISM_ADMISSIBILITY_DIRECT_PROOF_2026-09-16.md': 'e1515e047e53535882913d3764425814290f3334',
     ROOT / 'research/TRUMP_SATLIB_UF20_SIGNED_EPSILON_DETERMINATION_DIRECT_PROOF_2026-09-16.md': 'adfa4b1dd935109e5593fba7509d37ba5fe0400b',
     ROOT / 'research/tools/apma_satlib_uf20_signed_residual_exact_certificate/certificate.py': 'cae7f3b1713e36c5fda7744e5defb0b9e73db181',
@@ -167,7 +167,8 @@ def main() -> dict[str, Any]:
     if not all(bindings.values()) or not all(source_bindings.values()):
         return {'verdict':'PROJECTED_RAW_OR_BINDING_GUARD_FAILURE','source_guard':{'ok':False,'bindings':bindings,'source_bindings':source_bindings}}
     pre = json.loads(PREREG.read_text())
-    frozen = {r['source']:r for r in pre['frozen_projected_residual_authority']}
+    v10 = json.loads((ROOT / 'research/TRUMP_SATLIB_UF20_R000_R111_PROJECTED_CORE_SIGNED_RESIDUAL_EXACT_CERTIFICATE_PREREGISTRATION_2026-09-16.json').read_text())
+    frozen = {r['source']:r for r in v10['frozen_projected_residual_authority']}
     rows = []
     total_tested = 0
     try:
@@ -213,7 +214,7 @@ def main() -> dict[str, Any]:
     else:
         verdict = 'PASS_PROJECTED_SIGNED_GROUP_TRIVIAL_ON_ALL_FIVE'
     return {
-        'artifact_id':'JANUS-TRUMP-SATLIB-UF20-R000-R111-PROJECTED-CORE-SIGNED-RESIDUAL-EXACT-CERTIFICATE-2026-09-16-v1.0',
+        'artifact_id':'JANUS-TRUMP-SATLIB-UF20-R000-R111-PROJECTED-CORE-SIGNED-RESIDUAL-EXACT-CERTIFICATE-2026-09-16-v1.1',
         'authority':'DIAGNOSTIC_FINITE_EXACT_REPLAY_OF_ALREADY_PROVED_SIGNED_ACTION_SEMANTICS_ONLY__NO_SIGNED_QUOTIENT_NEW_GROUP_SEARCH_SOLVER_OR_CARRIER',
         'verdict':verdict,
         'source_guard':{'ok':True,'bindings':bindings,'source_bindings':source_bindings},
