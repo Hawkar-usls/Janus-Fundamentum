@@ -1,0 +1,86 @@
+name: TRUMP Raw Predecessor Nonunique Receipt Replay
+
+on:
+  push:
+    branches:
+      - diagnostic/trump-raw-predecessor-nonunique-receipt-replay-2026-09-16
+
+permissions:
+  contents: read
+
+jobs:
+  receipt-replay:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - name: Run actions/checkout@v4
+        uses: actions/checkout@v4
+
+      - name: Run actions/setup-python@v5
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Pin sealed matching backend
+        run: |
+          set -euo pipefail
+          python -m pip install --disable-pip-version-check 'networkx==3.6.1'
+
+      - name: Replay unchanged candidate
+        run: |
+          set -euo pipefail
+          python -m research.tools.apma_bucket_raw_predecessor_nonunique_reachability_acquisition_census.census | tee /tmp/candidate.json
+
+      - name: Replay unchanged independent checker
+        run: |
+          set -euo pipefail
+          python -m research.tools.apma_bucket_raw_predecessor_nonunique_reachability_acquisition_census.independent_checker --candidate-json /tmp/candidate.json | tee /tmp/independent.json
+
+      - name: Freeze compact receipt
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          c=json.loads(Path('/tmp/candidate.json').read_text().strip().splitlines()[-1])
+          i=json.loads(Path('/tmp/independent.json').read_text().strip().splitlines()[-1])
+          receipt={
+            'scientific_source_head':'74241d6c22ac46d6e12d78eaeb399191550a64bf',
+            'receipt_replay_only':True,
+            'candidate_verdict':c['verdict'],
+            'independent_verdict':i['verdict'],
+            'constructor_count':c['constructor_count'],
+            'independent_constructor_count':i['independent_constructor_count'],
+            'unique_raw_count':c['unique_raw_count'],
+            'independent_unique_raw_count':i['independent_unique_raw_count'],
+            'ready_unique_raw_count':c['ready_unique_raw_count'],
+            'independent_ready_unique_raw_count':i['independent_ready_unique_raw_count'],
+            'real_nonunique_unique_raw_count':c['real_nonunique_unique_raw_count'],
+            'independent_real_nonunique_unique_raw_count':i['independent_real_nonunique_unique_raw_count'],
+            'first_real_nonunique_fixture':c['first_real_nonunique_fixture'],
+            'independent_first_real_nonunique_fixture':i['independent_first_real_nonunique_fixture'],
+            'candidate_checks_all':all(c['checks'].values()),
+            'independent_checks_all':all(i['checks'].values()),
+            'candidate_independent_verdict_match':c['verdict']==i['verdict'],
+            'candidate_independent_counts_match':(
+              c['unique_raw_count']==i['independent_unique_raw_count'] and
+              c['ready_unique_raw_count']==i['independent_ready_unique_raw_count'] and
+              c['real_nonunique_unique_raw_count']==i['independent_real_nonunique_unique_raw_count']
+            ),
+            'scientific_firewall':c['scientific_firewall'],
+            'resource_receipt':c['resource_receipt'],
+          }
+          Path('/tmp/receipt.json').write_text(json.dumps(receipt,sort_keys=True,indent=2)+'\n')
+          print(json.dumps(receipt,sort_keys=True))
+          PY
+
+      - name: Upload machine receipt
+        uses: actions/upload-artifact@v4
+        with:
+          name: acquisition-census-machine-receipt
+          path: |
+            /tmp/receipt.json
+            /tmp/candidate.json
+            /tmp/independent.json
+          if-no-files-found: error
+          retention-days: 7
