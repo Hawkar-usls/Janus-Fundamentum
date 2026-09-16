@@ -1,0 +1,91 @@
+name: TRUMP SATLIB UF20 R000 R111 S3 L3 Meet vs Exact Transposition Alignment
+
+on:
+  push:
+    branches:
+      - research/trump-external-satlib-uf20-01-source-acquisition-2026-09-16
+    paths:
+      - 'research/TRUMP_SATLIB_UF20_R000_R111_S3_L3_MEET_VS_EXACT_TRANSPOSITION_ALIGNMENT_PREREGISTRATION_2026-09-17.json'
+      - 'research/TRUMP_SATLIB_UF20_R000_R111_S3_L3_MEET_VS_EXACT_TRANSPOSITION_ALIGNMENT_PREREGISTRATION_REVIEW_2026-09-17.json'
+      - 'research/tools/apma_satlib_uf20_r000_r111_s3_l3_meet_vs_exact_transposition_alignment/**'
+      - '.github/workflows/trump-satlib-uf20-r000-r111-s3-l3-meet-vs-exact-transposition-alignment.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  alignment:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Assert frozen cross-certificate bindings
+        run: |
+          set -euo pipefail
+          test "$(git hash-object research/TRUMP_SATLIB_UF20_R000_R111_S3_L3_MEET_VS_EXACT_TRANSPOSITION_ALIGNMENT_PREREGISTRATION_2026-09-17.json)" = "4841a454d7804dc433e84dd2b2f96a486ea160f6"
+          test "$(git hash-object research/TRUMP_SATLIB_UF20_R000_R111_S3_L3_MEET_VS_EXACT_TRANSPOSITION_ALIGNMENT_PREREGISTRATION_REVIEW_2026-09-17.json)" = "f16879aba17c282b08f00cd8cee0c2a353d83eaa"
+          test "$(git hash-object research/TRUMP_SATLIB_UF20_R000_R111_S3_L3_FROZEN_PARTITION_MEET_ALIGNMENT_RESULT_2026-09-17.json)" = "294525ee3a162c05100644245eff9afd0664431e"
+          test "$(git hash-object research/TRUMP_SATLIB_UF20_R000_R111_PROJECTED_CORE_SIGNED_RESIDUAL_EXACT_CERTIFICATE_RESULT_2026-09-16_v1.1.json)" = "1c2b7d35f970038616fa9f1decb20d67c88965f5"
+          test "$(git hash-object research/TRUMP_SATLIB_UF20_R000_R111_PROJECTED_SIGNED_VS_SEALED_ORBIT_ALIGNMENT_RESULT_2026-09-16.json)" = "d20150284fef9926d828f9903a6b9f5c56c10b01"
+          test "$(git hash-object research/tools/apma_satlib_uf20_r000_r111_s3_l3_meet_vs_exact_transposition_alignment/candidate.py)" = "ed1ea7102f99da8077220991f7e4dde12381a2c4"
+          test "$(git hash-object research/tools/apma_satlib_uf20_r000_r111_s3_l3_meet_vs_exact_transposition_alignment/independent_checker.py)" = "82b00f151c2ee136f62c86f069f78d49e2f783dd"
+      - name: Compare only already frozen meet and exact witness identities
+        run: |
+          set -euo pipefail
+          python -m research.tools.apma_satlib_uf20_r000_r111_s3_l3_meet_vs_exact_transposition_alignment.candidate > /tmp/meet-vs-exact.json
+      - name: Independently verify frozen categorical alignment
+        run: |
+          set -euo pipefail
+          python -m research.tools.apma_satlib_uf20_r000_r111_s3_l3_meet_vs_exact_transposition_alignment.independent_checker --candidate-json /tmp/meet-vs-exact.json > /tmp/meet-vs-exact-independent.json
+      - name: Assert outcome space and zero-new-mechanism receipt
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          c=json.loads(Path('/tmp/meet-vs-exact.json').read_text().strip().splitlines()[-1])
+          i=json.loads(Path('/tmp/meet-vs-exact-independent.json').read_text().strip().splitlines()[-1])
+          allowed={
+            'PASS_MEET_FULLY_ALIGNS_WITH_ALREADY_EXISTING_EXACT_TRANSPOSITION_AND_SEALED_ORBIT_EVIDENCE__NO_NEW_EXPLANATORY_WITNESS',
+            'FAIL_MEET_VS_EXISTING_EXACT_WITNESS_ALIGNMENT_MISMATCH'}
+          assert c['verdict'] in allowed,c
+          assert c['source_guard']['ok'] is True,c['source_guard']
+          assert i['verified'] is True and i['candidate_imported'] is False,i
+          assert i['verdict']==c['verdict'],(i,c)
+          assert i['sources_verified']==5,i
+          rr=c['resource_receipt']
+          assert rr['sources_compared']==5,rr
+          assert rr['new_action_tests']==0 and rr['new_partition_computations']==0,rr
+          assert rr['solver_invocations']==0 and rr['portfolio_replays']==0 and rr['group_closure_computation']==0 and rr['group_searches']==0,rr
+          assert rr['new_feature_definitions']==0 and rr['new_graph_statistics']==0,rr
+          assert rr['new_solver_mechanisms']==0 and rr['new_carrier_mechanisms']==0 and rr['new_adapters']==0 and rr['new_quotients']==0 and rr['budget_raise'] is False,rr
+          sf=c['scientific_firewall']
+          assert sf['P_VS_NP']=='OPEN' and sf['GENERAL_SAT_IN_P']=='NOT_PROVED' and sf['CONNECTED_MIXED_CORE_SOLVED']=='NO',sf
+          print(json.dumps({
+            'verdict':c['verdict'],
+            'all_aligned':c['all_aligned'],
+            'no_new_explanatory_witness':c['no_new_explanatory_witness'],
+            'rows':c['rows'],
+            'independent_verified':i['verified']
+          },sort_keys=True))
+          PY
+      - name: Upload alignment receipt
+        uses: actions/upload-artifact@v4
+        with:
+          name: satlib-uf20-r000-r111-s3-l3-meet-vs-exact-transposition-alignment-receipt
+          path: |
+            /tmp/meet-vs-exact.json
+            /tmp/meet-vs-exact-independent.json
+          if-no-files-found: error
+      - name: Authority notice
+        run: |
+          echo 'AUTHORITY=DIAGNOSTIC_EXISTING_PARTITION_VS_EXISTING_EXACT_WITNESS_ALIGNMENT_ONLY'
+          echo 'NEW_ACTION_TESTS=0'
+          echo 'NEW_PARTITION_COMPUTATIONS=0'
+          echo 'GROUP_CLOSURE=0'
+          echo 'SOLVER_INVOCATIONS=0'
+          echo 'P_VS_NP=OPEN'
+          echo 'GENERAL_SAT_IN_P=NOT_PROVED'
