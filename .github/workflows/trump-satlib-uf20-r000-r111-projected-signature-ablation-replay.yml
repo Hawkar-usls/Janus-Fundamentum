@@ -1,0 +1,77 @@
+name: TRUMP SATLIB UF20 R000 R111 Projected Signature Ablation Replay
+
+on:
+  push:
+    branches:
+      - research/trump-external-satlib-uf20-01-source-acquisition-2026-09-16
+    paths:
+      - 'research/TRUMP_SATLIB_UF20_R000_R111_PROJECTED_CORE_EXISTING_SIGNATURE_ABLATION_REPLAY_PREREGISTRATION_2026-09-16.json'
+      - 'research/tools/apma_satlib_uf20_r000_r111_projected_signature_ablation/**'
+      - '.github/workflows/trump-satlib-uf20-r000-r111-projected-signature-ablation-replay.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  ablation-replay:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Assert frozen historical and projected bindings
+        run: |
+          set -euo pipefail
+          test "$(git hash-object research/TRUMP_SATLIB_UF20_R000_R111_PROJECTED_CORE_EXISTING_SIGNATURE_ABLATION_REPLAY_PREREGISTRATION_2026-09-16.json)" = "ce1f188d18d3bbedbebc356aeca86f7aed0e9417"
+          test "$(git hash-object research/TRUMP_SATLIB_UF20_R000_R111_PROJECTED_CORE_SEALED_PORTFOLIO_REPLAY_RESULT_2026-09-16.json)" = "89958034e76e1f0f97ea28b972df2acf90786bd5"
+          test "$(git hash-object research/TRUMP_SATLIB_UF20_SIGNATURE_ABLATION_REPLICATION_PREREGISTRATION_2026-09-16.json)" = "ec7c43258ecb76426f114dde9b75f528ad12e480"
+          test "$(git hash-object research/TRUMP_SATLIB_UF20_SIGNATURE_ABLATION_REPLICATION_RESULT_2026-09-16.json)" = "bca1542226c7fe29f8d803b7473c4aa4c19d1e78"
+          test "$(git hash-object research/tools/apma_satlib_uf20_signature_ablation/ablation.py)" = "dbc4c52da24f2d4d0137dc4fb4534646ebf356f3"
+          test "$(git hash-object research/tools/apma_satlib_uf20_signature_ablation/independent_checker.py)" = "6d28e8c647d46a7beba1d3505fef42163cd55374"
+          test "$(git hash-object research/tools/apma_unseen_local_invariant_orbit_count/candidate.py)" = "a076cfc56d68aad0348415e313705da1f6b9cdcd"
+          test "$(git hash-object research/tools/apma_unseen_local_invariant_orbit_count/independent_checker.py)" = "0e12304d843ef0bcce6b6c032fd2af2c68abcd14"
+          test "$(git hash-object research/tools/apma_satlib_uf20_r000_r111_projected_core_replay/projection_identity.py)" = "2ef48e73974a5f43d3f4fb4809ebd0c09c0f5be4"
+          test "$(git hash-object research/tools/apma_satlib_uf20_r000_r111_projected_signature_ablation/replay.py)" = "2edad57e6017cb34bf797313e4451c1ce014900b"
+          test "$(git hash-object research/tools/apma_satlib_uf20_r000_r111_projected_signature_ablation/independent_checker.py)" = "a154e448430896add02cf90fc268a9371017ac00"
+      - name: Replay frozen S0 to S3 signatures on projected cores
+        run: |
+          set -euo pipefail
+          python -m research.tools.apma_satlib_uf20_r000_r111_projected_signature_ablation.replay | tee /tmp/projected-ablation.json
+      - name: Independently verify projected signature ablation
+        run: |
+          set -euo pipefail
+          python -m research.tools.apma_satlib_uf20_r000_r111_projected_signature_ablation.independent_checker --candidate-json /tmp/projected-ablation.json | tee /tmp/projected-ablation-independent.json
+      - name: Assert scoped outcome and firewalls
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          c=json.loads(Path('/tmp/projected-ablation.json').read_text().strip().splitlines()[-1])
+          i=json.loads(Path('/tmp/projected-ablation-independent.json').read_text().strip().splitlines()[-1])
+          allowed={'PROJECTED_ABLATION_REPLAY_LOCALIZES_CLOSED_CONTROL_EDGE','PROJECTED_ABLATION_REPLAY_NO_EXACT_TRANSPOSITIONS_ANY_SOURCE','PROJECTED_ABLATION_REPLAY_MULTIPLE_SOURCES_HAVE_EXACT_TRANSPOSITIONS'}
+          assert c['verdict'] in allowed,c
+          assert c['source_guard']['ok'] is True,c['source_guard']
+          assert c['eight_relation_surface_order']==['111','110','101','100','011','010','001','000'],c
+          assert i['verified'] is True and i['candidate_imported'] is False,i
+          assert len(c['rows'])==5 and all(r['status']=='PROFILED' for r in c['rows']),c
+          rr=c['resource_receipt']
+          assert rr['pairs_outside_same_coarse_class_tested']==0 and rr['solver_invocations']==0 and rr['quotient_states_enumerated']==0 and rr['full_variable_cube_states_enumerated']==0,rr
+          assert rr['new_signature_features']==0 and rr['new_group_search_mechanisms']==0 and rr['new_solver_mechanisms']==0 and rr['new_carrier_mechanisms']==0 and rr['new_adapters']==0 and rr['new_quotients']==0 and rr['budget_raise'] is False,rr
+          sf=c['scientific_firewall'];assert sf['P_VS_NP']=='OPEN' and sf['GENERAL_SAT_IN_P']=='NOT_PROVED' and sf['ASYMMETRY_IMPLIES_HARDNESS'] is False and sf['SYMMETRY_IMPLIES_TRACTABILITY'] is False,sf
+          print(json.dumps({'verdict':c['verdict'],'rows':[{'source':r['source'],'first_all_singleton_level':r['first_all_singleton_level'],'first_level_with_exact_transposition':r['first_level_with_exact_transposition'],'all_exact_transposition_edges':r['all_exact_transposition_edges'],'levels':{L:{'class_count':r['levels'][L]['class_count'],'non_singleton_classes':r['levels'][L]['non_singleton_classes'],'candidate_pairs':r['levels'][L]['candidate_pairs_tested'],'exact_edges':r['levels'][L]['exact_transposition_edges']} for L in ('S0','S1','S2','S3')}} for r in c['rows']],'independent_sources_with_exact_edges':i['independent_sources_with_exact_edges']},sort_keys=True))
+          PY
+      - name: Upload projected signature ablation receipt
+        uses: actions/upload-artifact@v4
+        with:
+          name: satlib-uf20-r000-r111-projected-signature-ablation-replay-receipt
+          path: |
+            /tmp/projected-ablation.json
+            /tmp/projected-ablation-independent.json
+          if-no-files-found: error
+      - name: Authority notice
+        run: |
+          echo 'AUTHORITY=DIAGNOSTIC_REPLAY_OF_ALREADY_FROZEN_SIGNATURES_AND_EXACT_TRANSPOSITION_ONLY__NO_NEW_INVARIANT_GROUP_SEARCH_SOLVER_OR_CARRIER'
+          echo 'NEW_SIGNATURE_FEATURES=0'
+          echo 'P_VS_NP=OPEN'
+          echo 'GENERAL_SAT_IN_P=NOT_PROVED'
