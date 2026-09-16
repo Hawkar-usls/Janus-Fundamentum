@@ -1,0 +1,74 @@
+name: TRUMP SATLIB UF20-01 Missing Invariant Profile
+
+on:
+  push:
+    branches:
+      - research/trump-external-satlib-uf20-01-source-acquisition-2026-09-16
+    paths:
+      - 'research/TRUMP_SATLIB_UF20_01_MISSING_INVARIANT_PROFILE_GATE_PREREGISTRATION_2026-09-16.json'
+      - 'research/tools/apma_satlib_uf20_01_missing_invariant_profile/**'
+      - '.github/workflows/trump-satlib-uf20-01-missing-invariant-profile.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  missing-invariant-profile:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Assert immutable source final-seal prereg and profile bindings
+        run: |
+          set -euo pipefail
+          test "$(git hash-object research/source_data/SATLIB_UF20_01_2026-09-16.cnf)" = "8330041b292e0501f8d74c1b1d32ca96c4498864"
+          test "$(git hash-object research/source_data/SATLIB_UF20_01_RAW_2026-09-16.json)" = "8b69a8f533ffaec44f196eea8791b0678f3f579c"
+          test "$(git hash-object research/TRUMP_SOURCE_AUTHORIZED_CONNECTED_MIXED_RAW_POST_ORBIT_NEW_EVIDENCE_OBSTRUCTION_FINAL_SEAL_SATLIB_UF20_01_2026-09-16.json)" = "40dfc73b95b6f7af56d933276dbc3144f61bb841"
+          test "$(git hash-object research/TRUMP_SATLIB_UF20_01_MISSING_INVARIANT_PROFILE_GATE_PREREGISTRATION_2026-09-16.json)" = "ea90275e9c28236e89871b9ad48e17079450f701"
+          test "$(git hash-object research/tools/apma_satlib_uf20_01_missing_invariant_profile/profile.py)" = "0a87b50eea9260af4b6ab90e6484477023b9ea1e"
+          test "$(git hash-object research/tools/apma_satlib_uf20_01_missing_invariant_profile/independent_checker.py)" = "1527e957c0ea0f7d76a787f75ff38c7622c8341d"
+      - name: Run preregistered structural profile
+        run: |
+          set -euo pipefail
+          python -m research.tools.apma_satlib_uf20_01_missing_invariant_profile.profile | tee /tmp/profile.json
+      - name: Run independent structural checker
+        run: |
+          set -euo pipefail
+          python -m research.tools.apma_satlib_uf20_01_missing_invariant_profile.independent_checker --profile-json /tmp/profile.json | tee /tmp/profile-independent.json
+      - name: Assert profile firewalls
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          p=json.loads(Path('/tmp/profile.json').read_text().strip().splitlines()[-1])
+          i=json.loads(Path('/tmp/profile-independent.json').read_text().strip().splitlines()[-1])
+          assert p['verdict']=='PASS_DIAGNOSTIC_PROFILE_FROZEN_OBSTRUCTION', p
+          assert p['source_guard']['ok'] is True, p['source_guard']
+          assert i['verified'] is True, {k:v for k,v in i['checks'].items() if not v}
+          assert i['profile_imported'] is False, i
+          assert p['raw_sha256']=='a99bb4047dee6969bd3339ba99ba9df434ecc808a4a161139462e1993fc3b874', p
+          sf=p['scientific_firewall']
+          assert sf['P_VS_NP']=='OPEN' and sf['GENERAL_SAT_IN_P']=='NOT_PROVED', sf
+          assert sf['NEW_SOLVER_MECHANISMS']==0 and sf['NEW_CARRIER_MECHANISMS']==0, sf
+          print(json.dumps({'verdict':p['verdict'],'P1':p['P1_primal'],'P3':p['P3_overlap'],'P5':p['P5_variable_signature'],'P6':p['P6_core'],'independent':i['independent_receipt']},sort_keys=True))
+          PY
+      - name: Upload profile receipt
+        uses: actions/upload-artifact@v4
+        with:
+          name: satlib-uf20-01-missing-invariant-profile-receipt
+          path: |
+            /tmp/profile.json
+            /tmp/profile-independent.json
+          if-no-files-found: error
+      - name: Authority notice
+        run: |
+          echo 'AUTHORITY=DIAGNOSTIC_ONLY__SOURCE_BOUND_OBSTRUCTION_PROFILING_BEFORE_MECHANISM_DESIGN'
+          echo 'NEW_SOLVER_MECHANISMS=0'
+          echo 'NEW_CARRIER_MECHANISMS=0'
+          echo 'P_VS_NP=OPEN'
+          echo 'GENERAL_SAT_IN_P=NOT_PROVED'
