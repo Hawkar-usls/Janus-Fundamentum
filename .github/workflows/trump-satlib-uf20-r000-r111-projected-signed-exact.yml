@@ -1,0 +1,105 @@
+name: TRUMP SATLIB UF20 R000 R111 Projected Signed Exact Residual
+
+on:
+  push:
+    branches:
+      - research/trump-external-satlib-uf20-01-source-acquisition-2026-09-16
+    paths:
+      - 'research/TRUMP_SATLIB_UF20_R000_R111_PROJECTED_CORE_SIGNED_RESIDUAL_EXACT_CERTIFICATE_PREREGISTRATION_2026-09-16.json'
+      - 'research/tools/apma_satlib_uf20_r000_r111_projected_signed_exact/**'
+      - '.github/workflows/trump-satlib-uf20-r000-r111-projected-signed-exact.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  exact-signed-residual:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Assert frozen scientific authority bindings
+        run: |
+          set -euo pipefail
+          test "$(git hash-object research/TRUMP_SATLIB_UF20_R000_R111_PROJECTED_CORE_SIGNED_RESIDUAL_EXACT_CERTIFICATE_PREREGISTRATION_2026-09-16.json)" = "ef131c9d2b5370def2c6dc8649375deb8f458f2a"
+          test "$(git hash-object research/TRUMP_SATLIB_UF20_R000_R111_PROJECTED_CORE_SIGNED_RESIDUAL_BOUND_RESULT_2026-09-16_v1.1.json)" = "4ca743ff4f1e09cff1bd2d9c132b79c705b932b4"
+          test "$(git hash-object research/TRUMP_SATLIB_UF20_SIGNED_AUTOMORPHISM_ADMISSIBILITY_DIRECT_PROOF_2026-09-16.md)" = "e1515e047e53535882913d3764425814290f3334"
+          test "$(git hash-object research/TRUMP_SATLIB_UF20_SIGNED_EPSILON_DETERMINATION_DIRECT_PROOF_2026-09-16.md)" = "adfa4b1dd935109e5593fba7509d37ba5fe0400b"
+          test "$(git hash-object research/tools/apma_satlib_uf20_signed_residual_exact_certificate/certificate.py)" = "cae7f3b1713e36c5fda7744e5defb0b9e73db181"
+          test "$(git hash-object research/tools/apma_satlib_uf20_signed_residual_exact_certificate/independent_checker.py)" = "ebf796ea3c8170e093a3c76590b39564fd5cc2a3"
+          test "$(git hash-object research/tools/apma_satlib_uf20_r000_r111_projected_core_replay/projection_identity.py)" = "2ef48e73974a5f43d3f4fb4809ebd0c09c0f5be4"
+          test "$(git hash-object research/source_data/SATLIB_UF20_01_2026-09-16.cnf)" = "8330041b292e0501f8d74c1b1d32ca96c4498864"
+          test "$(git hash-object research/source_data/SATLIB_UF20_02_2026-09-16.cnf)" = "f924caaef0d868bf62b1658e83e030ad8daee865"
+          test "$(git hash-object research/source_data/SATLIB_UF20_03_2026-09-16.cnf)" = "8f3d15154515457281f49201b843f2a7134dfa9f"
+          test "$(git hash-object research/source_data/SATLIB_UF20_04_2026-09-16.cnf)" = "34ced5c169f967b2dc44ef5e42f2ee2c924813e1"
+          test "$(git hash-object research/source_data/SATLIB_UF20_05_2026-09-16.cnf)" = "3b04eff26ee37bdd0bc21b1066486974f92a2c9b"
+          echo "PROJECTED_CERTIFICATE_BLOB=$(git hash-object research/tools/apma_satlib_uf20_r000_r111_projected_signed_exact/certificate.py)"
+          echo "PROJECTED_INDEPENDENT_CHECKER_BLOB=$(git hash-object research/tools/apma_satlib_uf20_r000_r111_projected_signed_exact/independent_checker.py)"
+          echo "EXECUTION_HEAD=$(git rev-parse HEAD)"
+      - name: Run every and only frozen residual signed action
+        run: |
+          set -euo pipefail
+          python -m research.tools.apma_satlib_uf20_r000_r111_projected_signed_exact.certificate > /tmp/projected-signed-exact.json
+      - name: Independently recheck with unique forbidden tuple transport
+        run: |
+          set -euo pipefail
+          python -m research.tools.apma_satlib_uf20_r000_r111_projected_signed_exact.independent_checker --candidate-json /tmp/projected-signed-exact.json > /tmp/projected-signed-exact-independent.json
+      - name: Assert finite exact replay and firewalls
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          c=json.loads(Path('/tmp/projected-signed-exact.json').read_text().strip().splitlines()[-1])
+          i=json.loads(Path('/tmp/projected-signed-exact-independent.json').read_text().strip().splitlines()[-1])
+          allowed={'PASS_PROJECTED_SIGNED_GROUP_TRIVIAL_ON_ALL_FIVE','NONIDENTITY_PROJECTED_SIGNED_AUTOMORPHISM_WITNESS_FOUND'}
+          assert c['verdict'] in allowed,c
+          assert c['source_guard']['ok'] is True,c['source_guard']
+          assert c['total_exact_actions_tested']==15808,c
+          assert i['verified'] is True and i['candidate_imported'] is False,i
+          expected={'UF20_01':1536,'UF20_02':1536,'UF20_03':9216,'UF20_04':64,'UF20_05':3456}
+          got={r['source']:r['generated_action_count'] for r in c['rows']}
+          assert got==expected,(got,expected)
+          assert all(r['generated_action_count']==r['exact_actions_tested'] for r in c['rows']),c['rows']
+          assert all(r['identity_positive_count']==1 for r in c['rows']),c['rows']
+          rr=c['resource_receipt']
+          assert rr['exact_action_tests']==15808 and rr['actions_outside_frozen_residual_set_tested']==0,rr
+          assert rr['group_closure_computation']==0 and rr['quotient_states_enumerated']==0 and rr['solver_invocations']==0,rr
+          assert rr['new_signature_features']==0 and rr['new_invariants']==0 and rr['new_group_search_mechanisms']==0,rr
+          assert rr['new_solver_mechanisms']==0 and rr['new_carrier_mechanisms']==0 and rr['new_adapters']==0 and rr['new_quotients']==0 and rr['budget_raise'] is False,rr
+          sf=c['scientific_firewall']
+          assert sf['P_VS_NP']=='OPEN' and sf['GENERAL_SAT_IN_P']=='NOT_PROVED' and sf['NEW_INVARIANT_LICENSED'] is False,sf
+          print(json.dumps({
+            'verdict':c['verdict'],
+            'total_exact_actions_tested':c['total_exact_actions_tested'],
+            'total_nonidentity_exact_signed_automorphisms':c['total_nonidentity_exact_signed_automorphisms'],
+            'rows':[{
+              'source':r['source'],
+              'tested':r['exact_actions_tested'],
+              'identity_positive_count':r['identity_positive_count'],
+              'exact_signed_automorphism_count':r['exact_signed_automorphism_count'],
+              'nonidentity_count':r['nonidentity_exact_signed_automorphism_count'],
+              'first_nonidentity_witness':(r['nonidentity_exact_signed_automorphisms'][0] if r['nonidentity_exact_signed_automorphisms'] else None)
+            } for r in c['rows']],
+            'independent_verified':i['verified'],
+            'independent_total_nonidentity':i['independent_total_nonidentity_exact_signed_automorphisms']
+          },sort_keys=True))
+          PY
+      - name: Upload exact signed certificate receipt
+        uses: actions/upload-artifact@v4
+        with:
+          name: satlib-uf20-r000-r111-projected-signed-exact-certificate-receipt
+          path: |
+            /tmp/projected-signed-exact.json
+            /tmp/projected-signed-exact-independent.json
+          if-no-files-found: error
+      - name: Authority notice
+        run: |
+          echo 'AUTHORITY=DIAGNOSTIC_FINITE_EXACT_REPLAY_OF_ALREADY_PROVED_SIGNED_ACTION_SEMANTICS_ONLY'
+          echo 'SIGNED_QUOTIENT_BUILT=false'
+          echo 'GROUP_CLOSURE_COMPUTED=false'
+          echo 'P_VS_NP=OPEN'
+          echo 'GENERAL_SAT_IN_P=NOT_PROVED'
