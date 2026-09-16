@@ -1,0 +1,91 @@
+name: TRUMP SATLIB UF20 Successor Fresh Blind Source Acquisition
+
+on:
+  push:
+    branches:
+      - research/trump-external-satlib-uf20-01-source-acquisition-2026-09-16
+    paths:
+      - 'research/TRUMP_SATLIB_UF20_SUCCESSOR_LOCAL_INVARIANT_FRESH_BLIND_RESERVATION_PREREGISTRATION_2026-09-17.json'
+      - 'research/TRUMP_SATLIB_UF20_SUCCESSOR_LOCAL_INVARIANT_FRESH_BLIND_RESERVATION_PREREGISTRATION_REVIEW_2026-09-17.json'
+      - 'research/source_data/SATLIB_UF20_011_2026-09-17.cnf'
+      - 'research/source_data/SATLIB_UF20_012_2026-09-17.cnf'
+      - 'research/source_data/SATLIB_UF20_013_2026-09-17.cnf'
+      - 'research/source_data/SATLIB_UF20_014_2026-09-17.cnf'
+      - 'research/source_data/SATLIB_UF20_015_2026-09-17.cnf'
+      - 'research/tools/apma_satlib_uf20_successor_fresh_blind_source_acquisition/**'
+      - '.github/workflows/trump-satlib-uf20-successor-fresh-blind-source-acquisition.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  source-freeze:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Assert reserved source and authority bindings
+        run: |
+          set -euo pipefail
+          test "$(git hash-object research/TRUMP_SATLIB_UF20_SUCCESSOR_LOCAL_INVARIANT_FRESH_BLIND_RESERVATION_PREREGISTRATION_2026-09-17.json)" = "7d4f61a66b4b90b95873597cd5e91ece11460f8c"
+          test "$(git hash-object research/TRUMP_SATLIB_UF20_SUCCESSOR_LOCAL_INVARIANT_FRESH_BLIND_RESERVATION_PREREGISTRATION_REVIEW_2026-09-17.json)" = "61c64e6a7f33cbed5e998c50eff187462f2e4af0"
+          test "$(git hash-object research/TRUMP_SATLIB_UF20_R000_R111_L3_PARTITION_NOVELTY_TEN_SOURCE_TRANSFER_SYNTHESIS_RESULT_2026-09-17.json)" = "82d11ac4b8920f276b1966186abd2066a75c8171"
+          test "$(git hash-object research/source_data/SATLIB_UF20_011_2026-09-17.cnf)" = "d693e2c019a1ceb7abe1bf1c29ffd57d25cde01b"
+          test "$(git hash-object research/source_data/SATLIB_UF20_012_2026-09-17.cnf)" = "745e26942701ca6bcb3f9708e9306d7e6385ecdc"
+          test "$(git hash-object research/source_data/SATLIB_UF20_013_2026-09-17.cnf)" = "62349f4152b5ce1576e380242e7d62bbe2099907"
+          test "$(git hash-object research/source_data/SATLIB_UF20_014_2026-09-17.cnf)" = "9d2c03f1bd246ebcf0892722b522b82bbe07452f"
+          test "$(git hash-object research/source_data/SATLIB_UF20_015_2026-09-17.cnf)" = "09e4581c3281d62390731e553c2eab48c421166c"
+          test "$(git hash-object research/tools/apma_satlib_uf20_successor_fresh_blind_source_acquisition/candidate.py)" = "b6b92bcee0149fac526d0d42867b21cdd98e41c7"
+          test "$(git hash-object research/tools/apma_satlib_uf20_successor_fresh_blind_source_acquisition/independent_checker.py)" = "7eeddf577a5361653c4965cace0c3ccf2d253294"
+      - name: Fetch exact dual-mirror blobs and freeze hashes only
+        run: |
+          set -euo pipefail
+          python -m research.tools.apma_satlib_uf20_successor_fresh_blind_source_acquisition.candidate > /tmp/fresh-blind-source-freeze.json
+      - name: Independently refetch and verify source formulas only
+        run: |
+          set -euo pipefail
+          python -m research.tools.apma_satlib_uf20_successor_fresh_blind_source_acquisition.independent_checker --candidate-json /tmp/fresh-blind-source-freeze.json > /tmp/fresh-blind-source-freeze-independent.json
+      - name: Assert source-only authority and blind barrier
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          c=json.loads(Path('/tmp/fresh-blind-source-freeze.json').read_text().strip().splitlines()[-1])
+          i=json.loads(Path('/tmp/fresh-blind-source-freeze-independent.json').read_text().strip().splitlines()[-1])
+          assert c['verdict']=='PASS_FRESH_BLIND_SOURCE_ACQUISITION_AND_DUAL_MIRROR_FORMULA_FREEZE',c
+          assert c['source_guard']['ok'] is True,c['source_guard']
+          assert i['verified'] is True and i['candidate_imported'] is False,i
+          assert i['verdict']==c['verdict'],(i,c)
+          assert i['sources_verified']==5 and i['successor_candidate_values']==0 and i['projected_partition_values']==0,i
+          assert len(c['rows'])==5 and all(r['status']=='SOURCE_FROZEN' for r in c['rows']),c['rows']
+          assert all(r['variables']==20 and r['clauses']==91 and r['clause_arity']==3 for r in c['rows']),c['rows']
+          assert all(r['ordered_clause_sequence_equal_across_primary_verification_and_committed_copy'] and r['canonical_formula_sha256_equal_across_all_three'] for r in c['rows']),c['rows']
+          rr=c['resource_receipt']
+          assert rr['sources']==5 and rr['remote_blob_fetches']==10 and rr['successor_feature_definitions']==0 and rr['successor_graph_statistics']==0 and rr['successor_candidate_values']==0 and rr['projected_partition_values']==0,rr
+          assert rr['solver_invocations']==0 and rr['portfolio_replays']==0 and rr['action_tests']==0 and rr['automorphism_tests']==0 and rr['group_searches']==0 and rr['group_closure_computation']==0,rr
+          assert rr['new_solver_mechanisms']==0 and rr['new_carrier_mechanisms']==0 and rr['new_adapters']==0 and rr['new_quotients']==0,rr
+          sf=c['scientific_firewall']
+          assert sf['P_VS_NP']=='OPEN' and sf['GENERAL_SAT_IN_P']=='NOT_PROVED' and sf['CONNECTED_MIXED_CORE_SOLVED']=='NO' and sf['SUCCESSOR_INVARIANT_EXISTS']=='NOT_ESTABLISHED',sf
+          print(json.dumps({'verdict':c['verdict'],'rows':c['rows'],'independent_verified':i['verified']},sort_keys=True))
+          PY
+      - name: Upload fresh blind source-freeze receipt
+        uses: actions/upload-artifact@v4
+        with:
+          name: satlib-uf20-successor-fresh-blind-source-acquisition-receipt
+          path: |
+            /tmp/fresh-blind-source-freeze.json
+            /tmp/fresh-blind-source-freeze-independent.json
+          if-no-files-found: error
+      - name: Authority notice
+        run: |
+          echo 'AUTHORITY=SOURCE_ACQUISITION_AND_DUAL_MIRROR_HASH_FREEZE_ONLY'
+          echo 'SUCCESSOR_FEATURE_DEFINITIONS=0'
+          echo 'SUCCESSOR_CANDIDATE_VALUES=0'
+          echo 'PROJECTED_PARTITION_VALUES=0'
+          echo 'SOLVER_INVOCATIONS=0'
+          echo 'P_VS_NP=OPEN'
+          echo 'GENERAL_SAT_IN_P=NOT_PROVED'
