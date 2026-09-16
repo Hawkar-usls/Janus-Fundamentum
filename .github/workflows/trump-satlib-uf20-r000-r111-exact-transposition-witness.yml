@@ -1,0 +1,72 @@
+name: TRUMP SATLIB UF20 R000 R111 Exact Transposition Witness
+
+on:
+  push:
+    branches:
+      - research/trump-external-satlib-uf20-01-source-acquisition-2026-09-16
+    paths:
+      - 'research/TRUMP_SATLIB_UF20_R000_R111_PROJECTED_CORE_EXACT_TRANSPOSITION_WITNESS_LOCALIZATION_PREREGISTRATION_2026-09-16.json'
+      - 'research/tools/apma_satlib_uf20_r000_r111_exact_transposition_witness/**'
+      - '.github/workflows/trump-satlib-uf20-r000-r111-exact-transposition-witness.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  witness:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Assert frozen witness bindings
+        run: |
+          set -euo pipefail
+          test "$(git hash-object research/TRUMP_SATLIB_UF20_R000_R111_PROJECTED_CORE_EXACT_TRANSPOSITION_WITNESS_LOCALIZATION_PREREGISTRATION_2026-09-16.json)" = "b279a8f1134727e155e9abb0a73ec5e9f89a5093"
+          test "$(git hash-object research/TRUMP_SATLIB_UF20_R000_R111_PROJECTED_CORE_EXISTING_SIGNATURE_ABLATION_REPLAY_RESULT_2026-09-16.json)" = "b7ba5bd772c3092e0436dde8bd717dc28985983c"
+          test "$(git hash-object research/tools/apma_unseen_local_invariant_orbit_count/candidate.py)" = "a076cfc56d68aad0348415e313705da1f6b9cdcd"
+          test "$(git hash-object research/tools/apma_satlib_uf20_r000_r111_projected_core_replay/projection_identity.py)" = "2ef48e73974a5f43d3f4fb4809ebd0c09c0f5be4"
+          test "$(git hash-object research/tools/apma_satlib_uf20_r000_r111_exact_transposition_witness/extractor.py)" = "216446cd4d2185f3749569606559036d9bbdfc2a"
+          test "$(git hash-object research/tools/apma_satlib_uf20_r000_r111_exact_transposition_witness/independent_checker.py)" = "e9c7dd195b9ed4f8f7d63b07d1b7f9a5b124362c"
+      - name: Extract the two pinned predicate witnesses
+        run: |
+          set -euo pipefail
+          python -m research.tools.apma_satlib_uf20_r000_r111_exact_transposition_witness.extractor | tee /tmp/witness.json
+      - name: Independently verify witness extraction
+        run: |
+          set -euo pipefail
+          python -m research.tools.apma_satlib_uf20_r000_r111_exact_transposition_witness.independent_checker --candidate-json /tmp/witness.json | tee /tmp/witness-independent.json
+      - name: Assert scoped witness outcome and firewalls
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          c=json.loads(Path('/tmp/witness.json').read_text().strip().splitlines()[-1]);i=json.loads(Path('/tmp/witness-independent.json').read_text().strip().splitlines()[-1])
+          assert c['verdict']=='PASS_TRUE_PAIR_EQUALITY_AND_FALSE_PAIR_CANONICAL_MISMATCH_LOCALIZED',c
+          assert c['source_guard']['ok'] is True,c['source_guard']
+          assert i['verified'] is True and i['candidate_imported'] is False,i
+          rows={r['source']:r for r in c['rows']};a=rows['UF20_01'];b=rows['UF20_03']
+          assert a['pair']==[7,10] and a['predicate_result'] is True and a['base_key_equals_swapped_key'] is True,a
+          assert a['left_only_total_multiplicity']==0 and a['right_only_total_multiplicity']==0,a
+          assert b['pair']==[4,20] and b['predicate_result'] is False and b['base_key_equals_swapped_key'] is False,b
+          assert b['left_only_total_multiplicity']>0 and b['right_only_total_multiplicity']>0,b
+          rr=c['resource_receipt'];assert rr['pinned_pairs_tested']==2 and rr['other_pairs_tested']==0 and rr['solver_invocations']==0 and rr['assignment_cube_enumerations']==0,rr
+          assert rr['new_signature_features']==0 and rr['new_group_search_mechanisms']==0 and rr['new_solver_mechanisms']==0 and rr['new_carrier_mechanisms']==0 and rr['new_adapters']==0 and rr['new_quotients']==0 and rr['budget_raise'] is False,rr
+          sf=c['scientific_firewall'];assert sf['P_VS_NP']=='OPEN' and sf['GENERAL_SAT_IN_P']=='NOT_PROVED' and sf['NEW_INVARIANT_LICENSED'] is False,sf
+          print(json.dumps({'verdict':c['verdict'],'pass_pair':{'source':'UF20_01','pair':[7,10],'base_key_sha256':a['base_key_sha256'],'swapped_key_sha256':a['swapped_key_sha256'],'left_only':a['left_only_total_multiplicity'],'right_only':a['right_only_total_multiplicity']},'fail_pair':{'source':'UF20_03','pair':[4,20],'base_key_sha256':b['base_key_sha256'],'swapped_key_sha256':b['swapped_key_sha256'],'left_only_total':b['left_only_total_multiplicity'],'right_only_total':b['right_only_total_multiplicity'],'left_only_distinct':b['left_only_distinct_count'],'right_only_distinct':b['right_only_distinct_count'],'first_left':b['first_canonical_left_only'],'first_right':b['first_canonical_right_only']},'independent_verified':i['verified']},sort_keys=True))
+          PY
+      - name: Upload witness receipt
+        uses: actions/upload-artifact@v4
+        with:
+          name: satlib-uf20-r000-r111-exact-transposition-witness-receipt
+          path: |
+            /tmp/witness.json
+            /tmp/witness-independent.json
+          if-no-files-found: error
+      - name: Authority notice
+        run: |
+          echo 'AUTHORITY=DIAGNOSTIC_EXISTING_PREDICATE_WITNESS_EXTRACTION_ONLY'
+          echo 'NEW_INVARIANT_LICENSED=false'
+          echo 'P_VS_NP=OPEN'
+          echo 'GENERAL_SAT_IN_P=NOT_PROVED'
