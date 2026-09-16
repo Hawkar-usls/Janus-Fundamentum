@@ -1,0 +1,73 @@
+name: TRUMP SATLIB UF20 R000 R111 Pinned Pair Source Orbits
+
+on:
+  push:
+    branches:
+      - research/trump-external-satlib-uf20-01-source-acquisition-2026-09-16
+    paths:
+      - 'research/TRUMP_SATLIB_UF20_R000_R111_PINNED_PAIR_SOURCE_CLAUSE_ORBIT_CLOSURE_PROVENANCE_PREREGISTRATION_2026-09-16.json'
+      - 'research/tools/apma_satlib_uf20_r000_r111_pinned_pair_source_orbits/**'
+      - '.github/workflows/trump-satlib-uf20-r000-r111-pinned-pair-source-orbits.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  source-orbits:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Assert frozen source-orbit bindings
+        run: |
+          set -euo pipefail
+          test "$(git hash-object research/TRUMP_SATLIB_UF20_R000_R111_PINNED_PAIR_SOURCE_CLAUSE_ORBIT_CLOSURE_PROVENANCE_PREREGISTRATION_2026-09-16.json)" = "5f03f82ca902d0d4871fedca71d40698318d0636"
+          test "$(git hash-object research/TRUMP_SATLIB_UF20_R000_R111_PROJECTED_CORE_TRANSPOSITION_BREAK_SOURCE_PROVENANCE_RESULT_2026-09-16.json)" = "d94b4a8b84ad9127fb00fd2d52ec2335acd2405a"
+          test "$(git hash-object research/source_data/SATLIB_UF20_01_2026-09-16.cnf)" = "8330041b292e0501f8d74c1b1d32ca96c4498864"
+          test "$(git hash-object research/source_data/SATLIB_UF20_03_2026-09-16.cnf)" = "8f3d15154515457281f49201b843f2a7134dfa9f"
+          test "$(git hash-object research/tools/apma_satlib_uf20_r000_r111_pinned_pair_source_orbits/mapper.py)" = "15fe3ae950f6618569432cfd073a450bd55e7d05"
+          test "$(git hash-object research/tools/apma_satlib_uf20_r000_r111_pinned_pair_source_orbits/independent_checker.py)" = "5adb2616e430ba86b104631bc9db5dfeff8ce2fe"
+      - name: Map pinned source-clause swap orbits
+        run: |
+          set -euo pipefail
+          python -m research.tools.apma_satlib_uf20_r000_r111_pinned_pair_source_orbits.mapper | tee /tmp/source-orbits.json
+      - name: Independently verify source-clause orbit provenance
+        run: |
+          set -euo pipefail
+          python -m research.tools.apma_satlib_uf20_r000_r111_pinned_pair_source_orbits.independent_checker --candidate-json /tmp/source-orbits.json | tee /tmp/source-orbits-independent.json
+      - name: Assert scoped outcome and firewalls
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          c=json.loads(Path('/tmp/source-orbits.json').read_text().strip().splitlines()[-1])
+          i=json.loads(Path('/tmp/source-orbits-independent.json').read_text().strip().splitlines()[-1])
+          allowed={'PASS_CONTROL_CLOSED_AND_FALSE_PAIR_HAS_SOURCE_ORBIT_DEFICIT','CONTROL_SOURCE_ORBIT_NOT_CLOSED','FALSE_PAIR_SOURCE_ORBIT_FULLY_CLOSED_UNEXPECTED'}
+          assert c['verdict'] in allowed,c
+          assert c['source_guard']['ok'] is True,c['source_guard']
+          assert i['verified'] is True and i['candidate_imported'] is False,i
+          by={r['source']:r for r in c['rows']}
+          assert set(by)=={'UF20_01','UF20_03'},by
+          for r in c['rows']:
+            assert sum(r['classification_counts'].values())==r['incident_selected_clause_count'],r
+          rr=c['resource_receipt'];assert rr['pinned_pairs']==2 and rr['other_pairs_tested']==0 and rr['solver_invocations']==0 and rr['assignment_cube_enumerations']==0,rr
+          assert rr['new_signature_features']==0 and rr['new_invariants']==0 and rr['new_group_search_mechanisms']==0 and rr['new_solver_mechanisms']==0 and rr['new_carrier_mechanisms']==0 and rr['new_adapters']==0 and rr['new_quotients']==0 and rr['budget_raise'] is False,rr
+          sf=c['scientific_firewall'];assert sf['P_VS_NP']=='OPEN' and sf['GENERAL_SAT_IN_P']=='NOT_PROVED' and sf['NEW_INVARIANT_LICENSED'] is False,sf
+          print(json.dumps({'verdict':c['verdict'],'rows':[{'source':r['source'],'pair':r['pair'],'incident_selected_clause_count':r['incident_selected_clause_count'],'classification_counts':r['classification_counts'],'unmatched_source_ordinals':r['unmatched_source_ordinals'],'unmatched_image_scopes':r['unmatched_image_scopes'],'incident_clauses':r['incident_clauses']} for r in c['rows']],'independent_verified':i['verified']},sort_keys=True))
+          PY
+      - name: Upload source-orbit receipt
+        uses: actions/upload-artifact@v4
+        with:
+          name: satlib-uf20-r000-r111-pinned-pair-source-orbit-receipt
+          path: |
+            /tmp/source-orbits.json
+            /tmp/source-orbits-independent.json
+          if-no-files-found: error
+      - name: Authority notice
+        run: |
+          echo 'AUTHORITY=DIAGNOSTIC_EXISTING_SWAP_SOURCE_ORBIT_PROVENANCE_ONLY'
+          echo 'NEW_INVARIANT_LICENSED=false'
+          echo 'P_VS_NP=OPEN'
+          echo 'GENERAL_SAT_IN_P=NOT_PROVED'
