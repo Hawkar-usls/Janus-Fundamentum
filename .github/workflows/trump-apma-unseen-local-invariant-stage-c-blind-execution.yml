@@ -1,0 +1,183 @@
+name: TRUMP APMA Unseen Local Invariant Stage C Blind Execution
+
+on:
+  push:
+    branches:
+      - research/trump-apma-unseen-local-invariant-induction-falsifier-2026-09-16
+    paths:
+      - 'research/TRUMP_APMA_UNSEEN_LOCAL_INVARIANT_STAGE_B_FREEZE_2026-09-16.json'
+      - '.github/workflows/trump-apma-unseen-local-invariant-stage-c-blind-execution.yml'
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'research/TRUMP_APMA_UNSEEN_LOCAL_INVARIANT_STAGE_B_FREEZE_2026-09-16.json'
+      - '.github/workflows/trump-apma-unseen-local-invariant-stage-c-blind-execution.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  stage-c-frozen-blind-execution:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - name: Run actions/checkout@v4
+        uses: actions/checkout@v4
+
+      - name: Run actions/setup-python@v5
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Assert all frozen source bindings before blind execution
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git hash-object research/TRUMP_APMA_UNSEEN_LOCAL_INVARIANT_INDUCTION_FALSIFIER_GATE_PREREGISTRATION_2026-09-16.json)" = "5f02f06a920d838bca37f88c27c5053d7a606271"
+          test "$(git hash-object research/TRUMP_APMA_UNSEEN_LOCAL_INVARIANT_STAGE_A_DESIGN_2026-09-16.json)" = "bc6fedb8d8d7da8f17ccc53d30c8356745068ccd"
+          test "$(git hash-object research/tools/apma_unseen_local_invariant_orbit_count/candidate.py)" = "a076cfc56d68aad0348415e313705da1f6b9cdcd"
+          test "$(git hash-object research/tools/apma_unseen_local_invariant_orbit_count/independent_checker.py)" = "0e12304d843ef0bcce6b6c032fd2af2c68abcd14"
+          test "$(git hash-object .github/workflows/trump-apma-unseen-local-invariant-stage-a.yml)" = "f9dcf2f55ecbacbb493d23308e122e0480ce7705"
+          test "$(git hash-object research/TRUMP_APMA_UNSEEN_LOCAL_INVARIANT_STAGE_A_FREEZE_2026-09-16.json)" = "57df060a6bcde5efef0ca4a2d2521c62e7208831"
+          test "$(git hash-object research/TRUMP_APMA_UNSEEN_LOCAL_INVARIANT_STAGE_B_BLIND_AUTHORITY_DESIGN_2026-09-16.json)" = "14dd451aabe8f95ddbe0baab8847df0a77819ccb"
+          test "$(git hash-object research/tools/apma_unseen_local_invariant_orbit_count/blind_authority.py)" = "7a1c91e01543591564ff3986f53a9faf2acd322f"
+          test "$(git hash-object .github/workflows/trump-apma-unseen-local-invariant-stage-b-reference.yml)" = "213237a08f16d1c6a4545020baebc721cc578b65"
+          test "$(git hash-object research/TRUMP_APMA_UNSEEN_LOCAL_INVARIANT_STAGE_B_FREEZE_2026-09-16.json)" = "d0e8af61b19062f069c40897477e716b883a211b"
+          echo 'STAGE_C_ALL_FROZEN_SOURCE_BINDINGS=PASS'
+
+      - name: Materialize frozen blind raw authorities
+        shell: bash
+        run: |
+          set -euo pipefail
+          mod='research.tools.apma_unseen_local_invariant_orbit_count.blind_authority'
+          python -m "$mod" --emit positive > /tmp/blind-positive.raw.json
+          python -m "$mod" --emit negative > /tmp/blind-negative.raw.json
+          python - <<'PY'
+          import hashlib,json
+          from pathlib import Path
+
+          def canon(raw):
+            variables=sorted(int(v) for v in raw['variables'])
+            keys=[]
+            for c in raw['constraints']:
+              scope=list(c['scope'])
+              order=sorted(range(len(scope)),key=lambda i:scope[i])
+              s=tuple(scope[i] for i in order)
+              rows={tuple(tuple(r)[i] for i in order) for r in c['allowed']}
+              keys.append((s,tuple(sorted(rows))))
+            keys.sort()
+            serial={'variables':variables,'constraints':[{'scope':list(s),'allowed':[list(r) for r in rows]} for s,rows in keys]}
+            return hashlib.sha256(json.dumps(serial,sort_keys=True,separators=(',',':')).encode()).hexdigest()
+
+          expected={
+            'positive':'754019dfae09c51640011d614ae5b215377afc6d3f8902f558c38e9a1c35e7b4',
+            'negative':'1aed4c6c360060c0262b616dc6552b5b33b446724308a2ac793e9019c6202b8d',
+          }
+          for label,sha in expected.items():
+            raw=json.loads(Path(f'/tmp/blind-{label}.raw.json').read_text().strip().splitlines()[-1])
+            assert set(raw)=={'variables','constraints'}, (label,raw.keys())
+            assert canon(raw)==sha, (label,canon(raw),sha)
+          print(json.dumps({'blind_raw_semantic_sha256':expected,'raw_contracts_clean':True},sort_keys=True))
+          PY
+
+      - name: Blind positive - run frozen candidate
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m research.tools.apma_unseen_local_invariant_orbit_count.candidate --input-json /tmp/blind-positive.raw.json | tee /tmp/blind-positive.candidate.json
+
+      - name: Blind positive - independent replay
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m research.tools.apma_unseen_local_invariant_orbit_count.independent_checker --input-json /tmp/blind-positive.raw.json --candidate-json /tmp/blind-positive.candidate.json | tee /tmp/blind-positive.check.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          c=json.loads(Path('/tmp/blind-positive.candidate.json').read_text().strip().splitlines()[-1])
+          k=json.loads(Path('/tmp/blind-positive.check.json').read_text().strip().splitlines()[-1])
+          assert c['raw_semantic_sha256']=='754019dfae09c51640011d614ae5b215377afc6d3f8902f558c38e9a1c35e7b4', c
+          assert c['status']=='ADMIT_ORBIT_COUNT_QUOTIENT_SAT', c
+          assert c['solver_authority'] is True, c
+          assert sorted(map(len,c['cells']))==[4,5,6], c
+          assert c['quotient_states_Q']==210, c
+          assert c['strict_compression'] is True, c
+          assert k['verified'] is True, k
+          assert k['status']==c['status'], (c,k)
+          assert k['raw_semantic_sha256']==c['raw_semantic_sha256'], (c,k)
+          assert k['Q']==210, k
+          assert all(k['checks'].values()), {x:y for x,y in k['checks'].items() if not y}
+          rr=c['resource_receipt']
+          assert rr['full_variable_cube_states_enumerated']==0, rr
+          assert rr['global_residual_cartesian_products_materialized']==0, rr
+          assert rr['separator_ge3_boolean_branches']==0, rr
+          assert rr['size4_boolean_separator_assignments']==0, rr
+          assert rr['new_unbounded_recursion']==0, rr
+          assert rr['budget_raise'] is False, rr
+          print(json.dumps({'blind_positive_status':c['status'],'cells':c['cells'],'Q':c['quotient_states_Q'],'count_states_enumerated':rr['count_states_enumerated'],'certificate_type':c['certificate']['type'],'checker_verified':k['verified'],'checks':k['checks']},sort_keys=True))
+          PY
+
+      - name: Blind negative - run frozen candidate
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m research.tools.apma_unseen_local_invariant_orbit_count.candidate --input-json /tmp/blind-negative.raw.json | tee /tmp/blind-negative.candidate.json
+
+      - name: Blind negative - independent fail-closed replay
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m research.tools.apma_unseen_local_invariant_orbit_count.independent_checker --input-json /tmp/blind-negative.raw.json --candidate-json /tmp/blind-negative.candidate.json | tee /tmp/blind-negative.check.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          c=json.loads(Path('/tmp/blind-negative.candidate.json').read_text().strip().splitlines()[-1])
+          k=json.loads(Path('/tmp/blind-negative.check.json').read_text().strip().splitlines()[-1])
+          assert c['raw_semantic_sha256']=='1aed4c6c360060c0262b616dc6552b5b33b446724308a2ac793e9019c6202b8d', c
+          assert c['status']=='OPEN_NO_NONTRIVIAL_EXCHANGEABILITY', c
+          assert c['solver_authority'] is False, c
+          assert c['quotient_states_Q'] is None, c
+          assert all(len(cell)==1 for cell in c['cells']), c
+          assert k['verified'] is True, k
+          assert k['status']==c['status'], (c,k)
+          rr=c['resource_receipt']
+          assert rr['count_states_enumerated']==0, rr
+          assert rr['full_variable_cube_states_enumerated']==0, rr
+          assert rr['global_residual_cartesian_products_materialized']==0, rr
+          assert rr['separator_ge3_boolean_branches']==0, rr
+          assert rr['size4_boolean_separator_assignments']==0, rr
+          assert rr['new_unbounded_recursion']==0, rr
+          assert rr['budget_raise'] is False, rr
+          print(json.dumps({'blind_negative_status':c['status'],'cells':c['cells'],'solver_authority':c['solver_authority'],'count_states_enumerated':rr['count_states_enumerated'],'checker_verified':k['verified']},sort_keys=True))
+          PY
+
+      - name: Stage C preregistered verdict gate
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          p=json.loads(Path('/tmp/blind-positive.candidate.json').read_text().strip().splitlines()[-1])
+          n=json.loads(Path('/tmp/blind-negative.candidate.json').read_text().strip().splitlines()[-1])
+          pk=json.loads(Path('/tmp/blind-positive.check.json').read_text().strip().splitlines()[-1])
+          nk=json.loads(Path('/tmp/blind-negative.check.json').read_text().strip().splitlines()[-1])
+          positive_pass=(p['status']=='ADMIT_ORBIT_COUNT_QUOTIENT_SAT' and pk['verified'] is True)
+          negative_pass=(n['status']=='OPEN_NO_NONTRIVIAL_EXCHANGEABILITY' and n['solver_authority'] is False and nk['verified'] is True)
+          assert positive_pass, (p,pk)
+          assert negative_pass, (n,nk)
+          verdict='PASS_GLOBAL_FRONTIER_MECHANISM_ON_FROZEN_BLIND_POSITIVE_WITH_PREREGISTERED_FAIL_CLOSED_NEGATIVE_CONTROL'
+          print(json.dumps({'verdict':verdict,'positive_pass':positive_pass,'negative_control_pass':negative_pass,'global_scope':'MECHANISM_CAPABILITY_ON_THIS_FROZEN_BLIND_PROTOCOL_ONLY','arbitrary_unseen_invariant_discovery':'NOT_PROVED','general_sat_in_p':'NOT_PROVED','p_vs_np':'OPEN'},sort_keys=True))
+          PY
+
+      - name: Authority notice
+        shell: bash
+        run: |
+          echo 'AUTHORITY=STAGE_C_FROZEN_BLIND_EXECUTION'
+          echo 'FROZEN_CANDIDATE_CHANGED=FALSE'
+          echo 'FROZEN_CHECKER_CHANGED=FALSE'
+          echo 'FROZEN_BLIND_AUTHORITY_CHANGED=FALSE'
+          echo 'GENERAL_SAT_IN_P=NOT_PROVED'
+          echo 'P_VS_NP=OPEN'

@@ -1,0 +1,141 @@
+{
+  "artifact_id": "JANUS-TRUMP-APMA-UNSEEN-LOCAL-INVARIANT-STAGE-A-DESIGN-2026-09-16-v1.0",
+  "date": "2026-09-16",
+  "status": "FROZEN_BEFORE_CANDIDATE_IMPLEMENTATION",
+  "classification": "STAGE_A_GENERIC_CANDIDATE_DESIGN__REVEALED_ONLY__NO_BLIND_AUTHORITY_YET",
+  "parent_preregistration": {
+    "path": "research/TRUMP_APMA_UNSEEN_LOCAL_INVARIANT_INDUCTION_FALSIFIER_GATE_PREREGISTRATION_2026-09-16.json",
+    "commit": "116cfdc4024622d15a7c13f8d08e618a0fbc69b7",
+    "blob": "5f02f06a920d838bca37f88c27c5053d7a606271"
+  },
+  "mechanism": "EXACT_TRANSPOSITION_ORBIT_COUNT_QUOTIENT",
+  "mechanism_classification": "NEW_MECHANISM_RELATIVE_TO_CANONICAL_TRUMP_MANIFEST__GENERIC_EXACT_INSTANCE_SYMMETRY_QUOTIENT",
+  "anti_loop_receipt": {
+    "canonical_manifest": "registry/TRUMP_CONTEXT_MANIFEST.json",
+    "manifest_blob": "9518da68969f00e39450dc50d6d6b4a0252652a0",
+    "manifest_term_orbit_matches": 0,
+    "manifest_term_symmetry_matches": 0,
+    "cardinality_matches_are_k5_forensic_two_factor_context_only": true,
+    "not_claimed": "MATHEMATICAL_NOVELTY_OUTSIDE_THE_REPOSITORY_OR_LITERATURE"
+  },
+  "scientific_idea": "Discover exact exchangeability directly from the raw formula by verifying variable-transposition automorphisms. Connected components of verified transposition generators induce full symmetric-group actions on variable cells. Formula truth is therefore constant on assignments having the same Hamming count in every cell. Enumerate only the resulting count quotient when its state count is polynomially bounded before enumeration.",
+  "input_contract": {
+    "variables": "finite Boolean variable identifiers",
+    "constraints": "objects with id, scope and complete explicit allowed 0/1 tuples",
+    "constraint_ids_semantic": false,
+    "constraint_order_semantic": false,
+    "tuple_order_semantic": false,
+    "trusted_carrier_or_family_labels": "REJECT_IF_PRESENT",
+    "canonical_binding": "Hash a deterministic semantic serialization of variables plus the multiset of canonicalized scope/relation pairs before discovery."
+  },
+  "exact_semantic_canonicalization": {
+    "constraint_key": "Sort scope variables by their raw identifier order and permute tuple coordinates to the same order; sort/deduplicate allowed tuples; ignore constraint id.",
+    "formula_key": "Sorted multiset of canonical constraint keys plus sorted variable identifiers.",
+    "transposition_test": "For variables u,v, apply the exact variable swap to every scope and tuple coordinate, recanonicalize the complete formula key, and compare byte-for-byte with the original formula key.",
+    "no_graph_isomorphism_or_heuristic_matching": true
+  },
+  "orbit_induction": {
+    "generator_graph": "Undirected graph on variables; edge {u,v} exists iff the exact transposition (u v) is a verified automorphism of the complete formula semantics.",
+    "cells": "Connected components of the generator graph.",
+    "proof": "Every generator edge is an exact automorphism. Edge transpositions of a connected graph generate the full symmetric group on that component, so every permutation within each cell is an automorphism. Products across disjoint cells are also automorphisms.",
+    "assignment_invariant": "For each induced cell C, w_C = sum_{x in C} assignment[x].",
+    "orbit_exactness": "Two Boolean assignments have the same vector (w_C)_C iff a product of within-cell permutations maps one assignment to the other. Because those permutations are formula automorphisms, formula truth is constant on each count vector.",
+    "nontriviality_requirement": "At least one cell must have size >=2. If every cell is singleton, return OPEN before count-state enumeration."
+  },
+  "quotient_admission": {
+    "input_size": "L = byte length of the frozen canonical semantic serialization.",
+    "state_count": "Q = product_C (|C|+1)",
+    "pre_enumeration_cap": "Q <= L^2",
+    "saturating_product": "Compute Q with early stop at L^2+1; never construct count tuples before the cap passes.",
+    "full_assignment_cube_forbidden": true,
+    "strict_orbit_compression_required": "Q < 2^n, implied by at least one nontrivial cell but checked explicitly for small n without constructing 2^n assignments.",
+    "open_verdicts": [
+      "OPEN_NO_NONTRIVIAL_EXCHANGEABILITY",
+      "OPEN_ORBIT_COUNT_QUOTIENT_OVER_BUDGET"
+    ]
+  },
+  "solve_and_certificate": {
+    "enumeration_order": "Lexicographic product of integer counts 0..|C| for cells ordered by minimum variable id.",
+    "canonical_representative": "For a cell with sorted variables [x1,...,xs] and count w, assign x1..xw=1 and the rest 0.",
+    "evaluation": "Replay every original explicit relation against the representative assignment.",
+    "SAT_certificate": [
+      "raw_semantic_hash",
+      "cell_partition",
+      "verified_generator_spanning_tree_edges_per_nontrivial_cell",
+      "Q_and_L",
+      "satisfying_count_vector",
+      "canonical_reconstructed_assignment",
+      "original_relation_replay"
+    ],
+    "UNSAT_certificate": [
+      "raw_semantic_hash",
+      "cell_partition",
+      "verified_generator_spanning_tree_edges_per_nontrivial_cell",
+      "Q_and_L",
+      "complete_lexicographic_count_vector_coverage",
+      "for_each_count_vector_one_violated_canonical_constraint_fingerprint"
+    ],
+    "UNSAT_authority": "Only complete quotient coverage under the proven orbit theorem is an UNSAT certificate."
+  },
+  "independent_checker_contract": {
+    "must_not_import_candidate_module": true,
+    "reconstruct_formula_key_from_raw_input": true,
+    "recompute_and_verify_every_reported_generator_transposition": true,
+    "verify_reported_cells_are_generated_by_verified_edges": true,
+    "verify_Q_and_pre_enumeration_cap": true,
+    "verify_nontriviality_and_strict_compression": true,
+    "SAT": "Reconstruct canonical assignment from counts and replay every original relation independently.",
+    "UNSAT": "Reconstruct the complete count-vector product independently, require one and only one certificate row per vector, rebuild each canonical representative, and verify the cited violated relation.",
+    "tamper_controls": [
+      "false_transposition_edge",
+      "missing_UNSAT_count_vector",
+      "wrong_violated_constraint",
+      "wrong_SAT_assignment",
+      "trusted_label_injection"
+    ]
+  },
+  "resource_envelope": {
+    "n_le_L": true,
+    "canonicalization": "O(L log L) under comparison sorting; byte hashing is O(L)",
+    "transposition_discovery": "At most n(n-1)/2 exact formula transformations, each O(L log L), hence O(L^3 log L) conservatively because n<=L.",
+    "cell_construction": "O(n^2) edges plus union/find or DFS, bounded by O(L^2).",
+    "quotient_enumeration_after_admission": "Q<=L^2 representatives, each original-relation replay O(L), hence O(L^3).",
+    "UNSAT_certificate_bytes": "At most Q rows, each containing O(n) counts plus one constraint fingerprint; conservatively O(L^3) bytes.",
+    "checker": "Same polynomial transposition and quotient replay envelope, conservatively O(L^4 log L).",
+    "total_claimed_envelope": "O(L^4 log L) time and O(L^3) certificate/storage under the explicit-table input model.",
+    "full_variable_cube_enumeration": 0,
+    "global_residual_cartesian_products_materialized": 0,
+    "separator_ge3_boolean_branches": 0,
+    "size4_boolean_separator_assignments": 0,
+    "new_unbounded_recursion": 0,
+    "budget_raise": false
+  },
+  "revealed_calibration_only": {
+    "positive_SAT": "A small fully exchangeable equality-clique formula; known tractable language is allowed because calibration is not scientific blind evidence.",
+    "positive_UNSAT": "A small fully exchangeable odd inequality clique/triangle; exact orbit quotient must certify UNSAT.",
+    "asymmetric_OPEN": "A connected explicit-table control with no nontrivial verified transposition must return OPEN before quotient enumeration.",
+    "known_predecessor_controls": "Fixed-six Schaefer and variable-disjoint compositional regressions remain controls only.",
+    "C023R": "May be inspected or replayed only as revealed calibration; it is never a scientific holdout."
+  },
+  "blindness_firewall": {
+    "blind_positive_path_or_family_exists_at_design_freeze": false,
+    "blind_negative_path_or_family_exists_at_design_freeze": false,
+    "blind_fixture_names_known_to_candidate": false,
+    "candidate_may_be_changed_after_blind_authority_freeze": false,
+    "holdout_must_be_outside_predecessor_admission_language": true
+  },
+  "claim_ceiling": {
+    "PASS_stage_A_revealed_calibration": "Only validates implementation/design consistency. It cannot advance the global frontier.",
+    "future_blind_PASS": "Would establish only that this frozen generic orbit-count inducer can discover and certify an exact unseen instance-specific symmetry invariant/carrier on the separately frozen blind authority under the preregistered resource envelope.",
+    "not_claimed": [
+      "ARBITRARY_UNSEEN_INVARIANT_DISCOVERY",
+      "GENERAL_CONNECTED_MIXED_TRACTABILITY",
+      "GENERAL_GT2_TRACTABILITY",
+      "GENERAL_SAT_IN_P",
+      "P_EQUALS_NP",
+      "P_NOT_EQUAL_NP",
+      "GENERAL_LOWER_BOUND"
+    ]
+  },
+  "next_action": "IMPLEMENT_CANDIDATE_FROM_THIS_FROZEN_DESIGN_USING_REVEALED_CONTROLS_ONLY;DO_NOT_CREATE_OR_SELECT_BLIND_HOLDOUT_AUTHORITY"
+}
