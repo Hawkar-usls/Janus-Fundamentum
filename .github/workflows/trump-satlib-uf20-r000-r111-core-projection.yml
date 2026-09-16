@@ -1,0 +1,87 @@
+name: TRUMP SATLIB UF20 R000 R111 Core Projection
+
+on:
+  push:
+    branches:
+      - research/trump-external-satlib-uf20-01-source-acquisition-2026-09-16
+    paths:
+      - 'research/TRUMP_SATLIB_UF20_R000_R111_SOURCE_BOUND_CORE_PROJECTION_PREREGISTRATION_2026-09-16.json'
+      - 'research/tools/apma_satlib_uf20_r000_r111_core_projection/**'
+      - '.github/workflows/trump-satlib-uf20-r000-r111-core-projection.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  source-projection:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Assert frozen source-projection bindings
+        run: |
+          set -euo pipefail
+          test "$(git hash-object research/TRUMP_SATLIB_UF20_R000_R111_SOURCE_BOUND_CORE_PROJECTION_PREREGISTRATION_2026-09-16.json)" = "bfcbf90b47d2188b56131e954886097b0f0e42a7"
+          test "$(git hash-object research/TRUMP_SATLIB_UF20_MINIMAL_RELATION_LANGUAGE_OBSTRUCTION_CORE_RESULT_2026-09-16.json)" = "a46c22fa2134b251f9d19ebc40cb25a2d418a13d"
+          test "$(git hash-object research/tools/apma_satlib_uf20_r000_r111_core_projection/analyzer.py)" = "892e6336e916344bd055d16f679d0baca1f1e950"
+          test "$(git hash-object research/tools/apma_satlib_uf20_r000_r111_core_projection/independent_checker.py)" = "1af9347cdf972be0ffeb6d34a7c5aea9d822ca8c"
+          test "$(git hash-object research/source_data/SATLIB_UF20_01_2026-09-16.cnf)" = "8330041b292e0501f8d74c1b1d32ca96c4498864"
+          test "$(git hash-object research/source_data/SATLIB_UF20_02_2026-09-16.cnf)" = "f924caaef0d868bf62b1658e83e030ad8daee865"
+          test "$(git hash-object research/source_data/SATLIB_UF20_03_2026-09-16.cnf)" = "8f3d15154515457281f49201b843f2a7134dfa9f"
+          test "$(git hash-object research/source_data/SATLIB_UF20_04_2026-09-16.cnf)" = "34ced5c169f967b2dc44ef5e42f2ee2c924813e1"
+          test "$(git hash-object research/source_data/SATLIB_UF20_05_2026-09-16.cnf)" = "3b04eff26ee37bdd0bc21b1066486974f92a2c9b"
+      - name: Run frozen source-bound core projection
+        run: |
+          set -euo pipefail
+          python -m research.tools.apma_satlib_uf20_r000_r111_core_projection.analyzer | tee /tmp/core-projection.json
+      - name: Run independent core-projection checker
+        run: |
+          set -euo pipefail
+          python -m research.tools.apma_satlib_uf20_r000_r111_core_projection.independent_checker --candidate-json /tmp/core-projection.json | tee /tmp/core-projection-independent.json
+      - name: Assert diagnostic outcome and firewalls
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          c=json.loads(Path('/tmp/core-projection.json').read_text().strip().splitlines()[-1])
+          i=json.loads(Path('/tmp/core-projection-independent.json').read_text().strip().splitlines()[-1])
+          allowed={
+            'PASS_SOURCE_BOUND_R000_R111_MIXED_CORE_CONNECTED_IN_ALL_FIVE',
+            'PARTIAL_SOURCE_BOUND_R000_R111_MIXED_CORE_CONNECTIVITY',
+            'NO_SOURCE_HAS_CONNECTED_R000_R111_MIXED_CORE'
+          }
+          assert c['verdict'] in allowed,c
+          assert c['source_guard']['ok'] is True,c['source_guard']
+          assert i['verified'] is True and i['candidate_imported'] is False,i
+          assert i['independent_sources_with_connected_mixed_core']==c['sources_with_connected_mixed_core'],(i,c)
+          assert 0 <= c['sources_with_connected_mixed_core'] <= 5,c
+          for r in c['rows']:
+            assert r['selected_clause_count']==r['selected_clause_count_by_relation_type']['000']+r['selected_clause_count_by_relation_type']['111'],r
+            assert 0 <= r['selected_variable_count'] <= 20,r
+            assert 0.0 <= r['mixed_core_clause_coverage_fraction'] <= 1.0,r
+          rr=c['resource_receipt']
+          assert rr['solver_invocations']==0 and rr['assignment_cube_enumerations']==0 and rr['formula_subset_enumerations']==0,rr
+          assert rr['new_solver_mechanisms']==0 and rr['new_carrier_mechanisms']==0 and rr['new_adapters']==0 and rr['new_quotients']==0 and rr['budget_raise'] is False,rr
+          sf=c['scientific_firewall']
+          assert sf['P_VS_NP']=='OPEN' and sf['GENERAL_SAT_IN_P']=='NOT_PROVED' and sf['R000_R111_CONNECTED_COMPONENT_IMPLIES_HARDNESS'] is False,sf
+          print(json.dumps({'verdict':c['verdict'],'sources_with_connected_mixed_core':c['sources_with_connected_mixed_core'],'rows':[{'source':r['source'],'selected':r['selected_clause_count'],'variables':r['selected_variable_count'],'primal_components':r['primal_component_count'],'incidence_components':r['incidence_component_count'],'mixed_components':r['mixed_core_component_count'],'mixed_clause_coverage':r['mixed_core_clause_coverage_fraction']} for r in c['rows']],'independent_verified':i['verified']},sort_keys=True))
+          PY
+      - name: Upload source-projection receipt
+        uses: actions/upload-artifact@v4
+        with:
+          name: satlib-uf20-r000-r111-source-bound-core-projection-receipt
+          path: |
+            /tmp/core-projection.json
+            /tmp/core-projection-independent.json
+          if-no-files-found: error
+      - name: Authority notice
+        run: |
+          echo 'AUTHORITY=DIAGNOSTIC_SOURCE_PROJECTION_AND_STRUCTURE_ONLY__NO_SAT_SOLVING_OR_NEW_MECHANISM'
+          echo 'P_VS_NP=OPEN'
+          echo 'GENERAL_SAT_IN_P=NOT_PROVED'
+          echo 'R000_R111_CONNECTED_COMPONENT_IMPLIES_HARDNESS=false'
