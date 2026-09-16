@@ -1,0 +1,88 @@
+name: TRUMP SATLIB UF20 Successor Variable Partition Refinement Utility Barrier
+
+on:
+  push:
+    branches:
+      - research/trump-external-satlib-uf20-01-source-acquisition-2026-09-16
+    paths:
+      - 'research/TRUMP_SATLIB_UF20_R000_R111_SUCCESSOR_VARIABLE_PARTITION_REFINEMENT_UTILITY_BARRIER_PREREGISTRATION_2026-09-17.json'
+      - 'research/TRUMP_SATLIB_UF20_R000_R111_SUCCESSOR_VARIABLE_PARTITION_REFINEMENT_UTILITY_BARRIER_PREREGISTRATION_REVIEW_2026-09-17.json'
+      - 'research/tools/apma_satlib_uf20_r000_r111_successor_variable_partition_refinement_utility_barrier/**'
+      - '.github/workflows/trump-satlib-uf20-r000-r111-successor-variable-partition-refinement-utility-barrier.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  refinement-utility-barrier:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Assert frozen barrier bindings
+        run: |
+          set -euo pipefail
+          test "$(git hash-object research/TRUMP_SATLIB_UF20_R000_R111_SUCCESSOR_VARIABLE_PARTITION_REFINEMENT_UTILITY_BARRIER_PREREGISTRATION_2026-09-17.json)" = "ecb5cafcb3fc59d7d938cee3927819d459c5d3e3"
+          test "$(git hash-object research/TRUMP_SATLIB_UF20_R000_R111_SUCCESSOR_VARIABLE_PARTITION_REFINEMENT_UTILITY_BARRIER_PREREGISTRATION_REVIEW_2026-09-17.json)" = "8d10b0ed12628db792c37f942ef206c210b2e0e4"
+          test "$(git hash-object research/TRUMP_SATLIB_UF20_SUCCESSOR_LOCAL_INVARIANT_FRESH_BLIND_SOURCE_ACQUISITION_RESULT_2026-09-17.json)" = "3ee5a11808ea04326ec5141b0138bbba4ec56092"
+          test "$(git hash-object research/TRUMP_SATLIB_UF20_R000_R111_L3_WL3_EXISTING_SIGNATURE_EQUIVALENCE_AUDIT_RESULT_2026-09-17.json)" = "971d7d98a86471e88bf33336da215171b2f8cdfe"
+          test "$(git hash-object research/TRUMP_SATLIB_UF20_R000_R111_PROJECTED_CORE_SEALED_PORTFOLIO_REPLAY_RESULT_2026-09-16.json)" = "89958034e76e1f0f97ea28b972df2acf90786bd5"
+          test "$(git hash-object research/TRUMP_SATLIB_UF20_R000_R111_PROJECTED_CORE_SIGNED_RESIDUAL_EXACT_CERTIFICATE_RESULT_2026-09-16_v1.1.json)" = "1c2b7d35f970038616fa9f1decb20d67c88965f5"
+          test "$(git hash-object research/tools/apma_satlib_uf20_r000_r111_successor_variable_partition_refinement_utility_barrier/candidate.py)" = "b3f7446d66f9ac3acf15d1ef9af7d48f843be21a"
+          test "$(git hash-object research/tools/apma_satlib_uf20_r000_r111_successor_variable_partition_refinement_utility_barrier/independent_checker.py)" = "1354a34533a6397a54428801857a6dd349ef4e91"
+      - name: Synthesize frozen refinement utility barrier once
+        run: |
+          set -euo pipefail
+          python -m research.tools.apma_satlib_uf20_r000_r111_successor_variable_partition_refinement_utility_barrier.candidate > /tmp/refinement-utility-barrier.json
+      - name: Independently verify frozen receipts and partition fact
+        run: |
+          set -euo pipefail
+          python -m research.tools.apma_satlib_uf20_r000_r111_successor_variable_partition_refinement_utility_barrier.independent_checker --candidate-json /tmp/refinement-utility-barrier.json > /tmp/refinement-utility-barrier-independent.json
+      - name: Assert barrier scope and firewalls
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          c=json.loads(Path('/tmp/refinement-utility-barrier.json').read_text().strip().splitlines()[-1])
+          i=json.loads(Path('/tmp/refinement-utility-barrier-independent.json').read_text().strip().splitlines()[-1])
+          allowed={'PASS_CURRENT_FOUR_SOURCE_REFINEMENT_ONLY_VARIABLE_PARTITION_UTILITY_BARRIER__NO_NON_SINGLETON_CLASS_LEVERAGE','FAIL_BARRIER_AT_LEAST_ONE_CURRENTLY_UNADMITTED_SOURCE_LACKS_A_FROZEN_DISCRETE_PARTITION_WITNESS'}
+          assert c['verdict'] in allowed,c
+          assert c['source_guard']['ok'] is True,c['source_guard']
+          assert i['verified'] is True and i['candidate_imported'] is False,i
+          assert i['verdict']==c['verdict'],(i,c)
+          assert len(c['rows'])==4,c['rows']
+          assert all(r['source'] in {'UF20_02','UF20_03','UF20_04','UF20_05'} for r in c['rows']),c['rows']
+          assert c['finite_partition_fact_receipt']['claim_verified_by_direct_set_argument'] is True,c['finite_partition_fact_receipt']
+          assert c['barrier_interpretation']['no_possible_useful_invariant_or_mechanism_claim'] is False,c['barrier_interpretation']
+          assert c['barrier_interpretation']['fresh_holdout_011_to_015_values_used'] is False,c['barrier_interpretation']
+          rr=c['resource_receipt']
+          assert rr['target_sources']==4 and rr['frozen_scientific_inputs_read']==3 and rr['partition_recomputations']==0 and rr['fresh_holdout_formula_values_read']==0 and rr['fresh_holdout_partition_values_read']==0,rr
+          assert rr['solver_invocations']==0 and rr['portfolio_replays']==0 and rr['action_tests']==0 and rr['automorphism_tests']==0 and rr['group_searches']==0 and rr['group_closure_computation']==0,rr
+          assert rr['new_feature_definitions']==0 and rr['new_graph_statistics']==0 and rr['new_solver_mechanisms']==0 and rr['new_carrier_mechanisms']==0 and rr['new_adapters']==0 and rr['new_quotients']==0,rr
+          sf=c['scientific_firewall']
+          assert sf['P_VS_NP']=='OPEN' and sf['GENERAL_SAT_IN_P']=='NOT_PROVED' and sf['CONNECTED_MIXED_CORE_SOLVED']=='NO' and sf['REFINEMENT_BARRIER_IMPLIES_NO_USEFUL_INVARIANT'] is False,sf
+          print(json.dumps({'verdict':c['verdict'],'rows':c['rows'],'finite_partition_fact_receipt':c['finite_partition_fact_receipt'],'independent_verified':i['verified']},sort_keys=True))
+          PY
+      - name: Upload barrier receipt
+        uses: actions/upload-artifact@v4
+        with:
+          name: satlib-uf20-r000-r111-successor-variable-partition-refinement-utility-barrier-receipt
+          path: |
+            /tmp/refinement-utility-barrier.json
+            /tmp/refinement-utility-barrier-independent.json
+          if-no-files-found: error
+      - name: Authority notice
+        run: |
+          echo 'AUTHORITY=DIAGNOSTIC_PARTITION_MONOTONICITY_AND_CURRENT_CLOSURE_RELEVANCE_AUDIT_ONLY'
+          echo 'PARTITION_RECOMPUTATIONS=0'
+          echo 'FRESH_HOLDOUT_VALUES_READ=0'
+          echo 'NEW_FEATURE_DEFINITIONS=0'
+          echo 'AUTOMORPHISM_TESTS=0'
+          echo 'ACTION_TESTS=0'
+          echo 'SOLVER_INVOCATIONS=0'
+          echo 'P_VS_NP=OPEN'
+          echo 'GENERAL_SAT_IN_P=NOT_PROVED'
