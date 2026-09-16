@@ -1,0 +1,74 @@
+name: TRUMP SATLIB UF20 R000 R111 Projected Core Portfolio Replay
+
+on:
+  push:
+    branches:
+      - research/trump-external-satlib-uf20-01-source-acquisition-2026-09-16
+    paths:
+      - 'research/TRUMP_SATLIB_UF20_R000_R111_PROJECTED_CORE_SEALED_PORTFOLIO_REPLAY_PREREGISTRATION_2026-09-16.json'
+      - 'research/tools/apma_satlib_uf20_r000_r111_projected_core_replay/replay.py'
+      - 'research/tools/apma_satlib_uf20_r000_r111_projected_core_replay/independent_checker.py'
+      - '.github/workflows/trump-satlib-uf20-r000-r111-projected-core-portfolio-replay.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  projected-core-replay:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Assert frozen prereg and sealed portfolio bindings
+        run: |
+          set -euo pipefail
+          test "$(git hash-object research/TRUMP_SATLIB_UF20_R000_R111_PROJECTED_CORE_SEALED_PORTFOLIO_REPLAY_PREREGISTRATION_2026-09-16.json)" = "f06b2572b18088acfba081e6d5d2a52025f36dc3"
+          test "$(git hash-object research/tools/apma_satlib_uf20_r000_r111_projected_core_replay/replay.py)" = "ae5d44dd2aaac6d5fe308edcfde723a153889675"
+          test "$(git hash-object research/tools/apma_satlib_uf20_r000_r111_projected_core_replay/independent_checker.py)" = "2ce2fd271d871f5c5f93bf1173a88bcea51520d7"
+          test "$(git hash-object research/tools/apma_satlib_uf20_family_sealed_portfolio_replication/replay.py)" = "4e4439c2e4a588cc0dd31480607bd2cab3b906bc"
+          test "$(git hash-object research/tools/apma_external_satlib_uf20_01_replay/replay.py)" = "67ae8bd40c58c6bb1f22f7651111d33ba6be1d0b"
+          test "$(git hash-object research/tools/apma_unseen_basis/raw_relation_basis.py)" = "63490c05ef3e91a4f682f75da26ff2af811839a6"
+          test "$(git hash-object research/tools/apma_connected_mixed_post_orbit_obstruction_census/census.py)" = "f5aa39804983d49149c976e8367a96397bad888e"
+          test "$(git hash-object research/tools/apma_unseen_basis/compositional_basis.py)" = "fdc83a3368a4ad362f00d3ee8aad958f06f8d264"
+          test "$(git hash-object research/tools/apma_log_alien_transfer/log_alien_transfer.py)" = "d20cd94fa2e0324e301f55211152c2d410099425"
+          test "$(git hash-object research/tools/apma_unseen_local_invariant_orbit_count/candidate.py)" = "a076cfc56d68aad0348415e313705da1f6b9cdcd"
+          test "$(git hash-object research/tools/apma_satlib_uf20_r000_r111_projected_core_replay/projection_identity.py)" = "2ef48e73974a5f43d3f4fb4809ebd0c09c0f5be4"
+      - name: Replay existing sealed portfolio on frozen projected cores
+        run: |
+          set -euo pipefail
+          python -m research.tools.apma_satlib_uf20_r000_r111_projected_core_replay.replay | tee /tmp/projected-core-replay.json
+      - name: Run independent projected-core replay checker
+        run: |
+          set -euo pipefail
+          python -m research.tools.apma_satlib_uf20_r000_r111_projected_core_replay.independent_checker --candidate-json /tmp/projected-core-replay.json | tee /tmp/projected-core-replay-independent.json
+      - name: Assert scoped replay and firewalls
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          c=json.loads(Path('/tmp/projected-core-replay.json').read_text().strip().splitlines()[-1]);i=json.loads(Path('/tmp/projected-core-replay-independent.json').read_text().strip().splitlines()[-1])
+          assert c['verdict']=='PASS_DIAGNOSTIC_PROJECTED_CORE_SEALED_PORTFOLIO_REPLAY',c
+          assert i['verified'] is True and i['candidate_imported'] is False,i
+          allowed={'CLOSED_BY_SEALED_LOG_ALIEN_TRANSFER','CLOSED_BY_SEALED_ORBIT_COUNT_V1','UNADMITTED_AFTER_CURRENT_SEALED_PORTFOLIO'}
+          assert len(c['rows'])==5 and all(r['status'] in allowed for r in c['rows']),c
+          assert sum(c['outcome_counts'].values())==5,c
+          rr=c['resource_receipt'];assert rr['new_adapters']==0 and rr['new_solver_mechanisms']==0 and rr['new_carrier_mechanisms']==0 and rr['new_symmetry_mechanisms']==0 and rr['new_separator_branching']==0 and rr['full_variable_cube_enumerations']==0 and rr['budget_raise'] is False,rr
+          sf=c['scientific_firewall'];assert sf['P_VS_NP']=='OPEN' and sf['GENERAL_SAT_IN_P']=='NOT_PROVED' and sf['PROJECTED_CORE_REPLAY_IMPLIES_HARDNESS'] is False,sf
+          print(json.dumps({'outcome_counts':c['outcome_counts'],'rows':[{'source':r['source'],'status':r['status'],'compositional':r.get('compositional'),'log_alien_closed':r.get('log_alien',{}).get('closed'),'orbit_status':r.get('orbit',{}).get('status'),'orbit_nontrivial_cells':r.get('orbit',{}).get('nontrivial_cells'),'Q':r.get('orbit',{}).get('quotient_states_Q')} for r in c['rows']],'independent_verified':i['verified']},sort_keys=True))
+          PY
+      - name: Upload projected-core replay receipt
+        uses: actions/upload-artifact@v4
+        with:
+          name: satlib-uf20-r000-r111-projected-core-portfolio-replay-receipt
+          path: |
+            /tmp/projected-core-replay.json
+            /tmp/projected-core-replay-independent.json
+          if-no-files-found: error
+      - name: Authority notice
+        run: |
+          echo 'AUTHORITY=DIAGNOSTIC_EXISTING_PORTFOLIO_REPLAY_ON_SOURCE_BOUND_PROJECTIONS_ONLY__NO_NEW_SOLVER_OR_MECHANISM'
+          echo 'PROJECTION_EQUIVALENCE_TO_ORIGINAL=NOT_CLAIMED'
+          echo 'P_VS_NP=OPEN'
+          echo 'GENERAL_SAT_IN_P=NOT_PROVED'
