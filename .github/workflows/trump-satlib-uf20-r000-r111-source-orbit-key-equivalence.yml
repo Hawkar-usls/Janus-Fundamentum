@@ -1,0 +1,68 @@
+name: TRUMP SATLIB UF20 R000 R111 Source Orbit Canonical Key Equivalence
+
+on:
+  push:
+    branches:
+      - research/trump-external-satlib-uf20-01-source-acquisition-2026-09-16
+    paths:
+      - 'research/TRUMP_SATLIB_UF20_R000_R111_SOURCE_ORBIT_CANONICAL_KEY_EQUIVALENCE_PROOF_PREREGISTRATION_2026-09-16.json'
+      - 'research/TRUMP_SATLIB_UF20_R000_R111_SOURCE_ORBIT_CANONICAL_KEY_EQUIVALENCE_DIRECT_PROOF_2026-09-16.md'
+      - 'research/tools/apma_satlib_uf20_r000_r111_source_orbit_equivalence/**'
+      - '.github/workflows/trump-satlib-uf20-r000-r111-source-orbit-key-equivalence.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  equivalence-proof:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Assert frozen proof bindings
+        run: |
+          set -euo pipefail
+          test "$(git hash-object research/TRUMP_SATLIB_UF20_R000_R111_SOURCE_ORBIT_CANONICAL_KEY_EQUIVALENCE_PROOF_PREREGISTRATION_2026-09-16.json)" = "8bbf52bfd5dff47287e9ff22f1565739ce4756a5"
+          test "$(git hash-object research/TRUMP_SATLIB_UF20_R000_R111_SOURCE_ORBIT_CANONICAL_KEY_EQUIVALENCE_DIRECT_PROOF_2026-09-16.md)" = "d27e6d0919bd4e43ef4b395afc92bb5ae3cfdc6e"
+          test "$(git hash-object research/TRUMP_SATLIB_UF20_R000_R111_PINNED_PAIR_SOURCE_CLAUSE_ORBIT_CLOSURE_PROVENANCE_RESULT_2026-09-16.json)" = "88a12c53127e6185bf8236a827574931ac5b9f37"
+          test "$(git hash-object research/tools/apma_unseen_local_invariant_orbit_count/candidate.py)" = "a076cfc56d68aad0348415e313705da1f6b9cdcd"
+          test "$(git hash-object research/tools/apma_satlib_uf20_r000_r111_source_orbit_equivalence/sanity.py)" = "8ab3860c17598998464e5e6c8400cf0c7d1cba2e"
+          test "$(git hash-object research/tools/apma_satlib_uf20_r000_r111_source_orbit_equivalence/independent_checker.py)" = "d1008ce51233b0f438c57529254b2f696d7349cb"
+      - name: Run finite sanity controls for the direct proof
+        run: |
+          set -euo pipefail
+          python -m research.tools.apma_satlib_uf20_r000_r111_source_orbit_equivalence.sanity | tee /tmp/equivalence-sanity.json
+      - name: Independently verify finite sanity controls
+        run: |
+          set -euo pipefail
+          python -m research.tools.apma_satlib_uf20_r000_r111_source_orbit_equivalence.independent_checker --candidate-json /tmp/equivalence-sanity.json | tee /tmp/equivalence-independent.json
+      - name: Assert proof-sanity outcome and firewalls
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          c=json.loads(Path('/tmp/equivalence-sanity.json').read_text().strip().splitlines()[-1]);i=json.loads(Path('/tmp/equivalence-independent.json').read_text().strip().splitlines()[-1])
+          assert c['verdict']=='PASS_SOURCE_ORBIT_CANONICAL_KEY_EQUIVALENCE_PROVED',c
+          assert i['verified'] is True and i['candidate_imported'] is False,i
+          assert len(c['rows'])==2 and all(r['three_way_agreement'] and r['matches_expected'] for r in c['rows']),c
+          rr=c['resource_receipt'];assert rr['new_pairs_tested']==0 and rr['solver_invocations']==0 and rr['new_signature_features']==0 and rr['new_invariants']==0,rr
+          assert rr['new_group_search_mechanisms']==0 and rr['new_solver_mechanisms']==0 and rr['new_carrier_mechanisms']==0 and rr['new_adapters']==0 and rr['new_quotients']==0 and rr['budget_raise'] is False,rr
+          sf=c['scientific_firewall'];assert sf['P_VS_NP']=='OPEN' and sf['GENERAL_SAT_IN_P']=='NOT_PROVED' and sf['NEW_INVARIANT_LICENSED'] is False,sf
+          print(json.dumps({'verdict':c['verdict'],'rows':c['rows'],'independent_verified':i['verified']},sort_keys=True))
+          PY
+      - name: Upload equivalence proof sanity receipt
+        uses: actions/upload-artifact@v4
+        with:
+          name: satlib-uf20-r000-r111-source-orbit-key-equivalence-receipt
+          path: |
+            /tmp/equivalence-sanity.json
+            /tmp/equivalence-independent.json
+          if-no-files-found: error
+      - name: Authority notice
+        run: |
+          echo 'AUTHORITY=DIAGNOSTIC_DEFINITION_EQUIVALENCE_PROOF_ONLY'
+          echo 'SOURCE_ORBIT_VIEW_IS_NEW_INVARIANT=false'
+          echo 'P_VS_NP=OPEN'
+          echo 'GENERAL_SAT_IN_P=NOT_PROVED'
