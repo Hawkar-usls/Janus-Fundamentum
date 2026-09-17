@@ -1,0 +1,169 @@
+name: TRUMP WL unique-pair budgeted E3 scope theorem
+
+on:
+  push:
+    branches:
+      - research/trump-wl-e3-unique-pair-budgeted-scope-theorem-2026-09-17
+    paths:
+      - .github/workflows/trump-wl-e3-unique-pair-budgeted-scope-theorem.yml
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: trump-wl-e3-unique-pair-budgeted-scope-theorem-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  theorem:
+    runs-on: ubuntu-latest
+    env:
+      PYTHONPATH: ${{ github.workspace }}
+    steps:
+      - name: Checkout exact workflow head
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Verify frozen theorem authorities
+        run: |
+          set -euo pipefail
+          test "$(git hash-object research/TRUMP_WL_E3_UNIQUE_PAIR_BUDGETED_SCOPE_THEOREM_PREREGISTRATION_2026-09-17_v1.0.json)" = "62f65ccf0c08bdb36c9b668cb461ee6f63888cb3"
+          test "$(git hash-object research/TRUMP_WL_E3_UNIQUE_PAIR_BUDGETED_SCOPE_THEOREM_REVIEW_2026-09-17_v1.0.json)" = "aadf0caba4f9f54a29218863f5ea863551629bf2"
+          test "$(git hash-object research/TRUMP_WL_E3_AUTOMORPHISM_NECESSITY_BRIDGE_RESULT_2026-09-17_v1.0.json)" = "4d8e749156ba94f85ec28765591b7006960c7ab2"
+          test "$(git hash-object research/TRUMP_UF20_176_275_THIRD_PROSPECTIVE_WL_ORBIT_BRIDGE_REPLICATION_RESULT_2026-09-17_v1.0.json)" = "d5c2880e7cb718e66c8250426ec5c1abda2ed4fb"
+          test "$(git hash-object research/tools/apma_unseen_local_invariant_orbit_count/candidate.py)" = "a076cfc56d68aad0348415e313705da1f6b9cdcd"
+          test "$(git hash-object research/tools/apma_uf20_wl_historical_closed_control_falsifier/candidate.py)" = "6b697fd8b3de4c83f8226b06399b6bad99953d4e"
+          test "$(git hash-object research/tools/apma_wl_e3_unique_pair_budgeted_scope_theorem/candidate.py)" = "e7a41ea050822d246f8e3810269fe98c808a836c"
+          test "$(git hash-object research/tools/apma_wl_e3_unique_pair_budgeted_scope_theorem/independent_check.py)" = "08cec80710818a6d0cb113b0e7aad5c042571e29"
+
+      - name: Execute frozen theorem candidate
+        run: |
+          set -euo pipefail
+          python -m research.tools.apma_wl_e3_unique_pair_budgeted_scope_theorem.candidate > /tmp/theorem_candidate.json
+          python -m json.tool /tmp/theorem_candidate.json >/dev/null
+          python - <<'PY'
+          import json
+          c=json.load(open('/tmp/theorem_candidate.json'))
+          allowed={
+            'PASS_WL_E3_UNIQUE_PAIR_BUDGETED_SCOPE_THEOREM',
+            'FAIL_WL_E3_UNIQUE_PAIR_STRUCTURAL_OBLIGATION',
+            'FAIL_WL_E3_UNIQUE_PAIR_EMPIRICAL_SANITY',
+          }
+          print('candidate theorem outcome:',c.get('verdict'))
+          assert c.get('verdict') in allowed,c
+          PY
+
+      - name: Independent theorem verification without candidate import
+        run: |
+          set -euo pipefail
+          python -m research.tools.apma_wl_e3_unique_pair_budgeted_scope_theorem.independent_check --candidate /tmp/theorem_candidate.json > /tmp/theorem_independent.json
+          python -m json.tool /tmp/theorem_independent.json >/dev/null
+          python - <<'PY'
+          import json
+          k=json.load(open('/tmp/theorem_independent.json'))
+          print('independent verification:',k.get('verdict'))
+          print('independent scientific outcome:',k.get('scientific_outcome'))
+          assert k.get('verdict')=='PASS_INDEPENDENT_WL_E3_UNIQUE_PAIR_BUDGETED_SCOPE_THEOREM_VERIFICATION',k
+          assert k.get('candidate_imported') is False
+          assert all(k.get('comparison_checks',{}).values())
+          PY
+
+      - name: Build frozen theorem result
+        env:
+          RUN_ID: ${{ github.run_id }}
+          RUN_NUMBER: ${{ github.run_number }}
+          RUN_ATTEMPT: ${{ github.run_attempt }}
+          WORKFLOW_HEAD: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import hashlib,json,os
+          from pathlib import Path
+          def blob(path):
+              d=Path(path).read_bytes()
+              return hashlib.sha1(f'blob {len(d)}\0'.encode()+d).hexdigest()
+          c=json.load(open('/tmp/theorem_candidate.json'));k=json.load(open('/tmp/theorem_independent.json'))
+          assert k['verdict']=='PASS_INDEPENDENT_WL_E3_UNIQUE_PAIR_BUDGETED_SCOPE_THEOREM_VERIFICATION'
+          outcome=k['scientific_outcome']
+          if outcome=='PASS_WL_E3_UNIQUE_PAIR_BUDGETED_SCOPE_THEOREM':
+              captain={
+                'current_status':'SOURCE_AGNOSTIC_CONDITIONAL_SCOPE_THEOREM_PASSED_FOR_THE_EXPLICIT_WL_UNIQUE_PAIR_DIRECT_EXACT_BUDGETED_E3_CLASS',
+                'licensed_fact':'ON_THIS_DEFINED_CLASS_THE_COMPLETE_FROZEN_E3_TRANSPOSITION_GENERATOR_SET_IS_EXACTLY_THE_SINGLE_WL_DERIVED_PAIR_Q_EQUALS_3_TIMES_2_POWER_N_MINUS_2_AND_THE_FROZEN_E3_RETURNS_AUTHORITATIVE_SAT_OR_UNSAT_WITH_Q_AT_MOST_L_SQUARED',
+                'nearest_missing_obligation':'PREREGISTER_A_NO_FULL_TRANSPOSITION_SEARCH_SHORT_CIRCUIT_EQUIVALENCE_AUDIT_THAT_RECONSTRUCTS_THE_SAME_CELLS_Q_AND_AUTHORITATIVE_SAT_OR_UNSAT_RESULT_AS_THE_UNMODIFIED_FROZEN_E3_ON_THE_DEFINED_CLASS_BEFORE_LICENSING_ANY_EXECUTABLE_REPLACEMENT',
+                'directive':'DO_NOT_GENERALIZE_OUTSIDE_THE_DEFINED_CLASS;KEEP_THE_DIRECT_EXACT_CHECK_AND_BUDGET_GATE;P_VS_NP_REMAINS_OPEN'
+              }
+          else:
+              captain={
+                'current_status':'THE_PREDECLARED_WL_UNIQUE_PAIR_BUDGETED_SCOPE_THEOREM_DID_NOT_PASS',
+                'nearest_missing_obligation':'FREEZE_THE_FAILED_OBLIGATION_AND_RETURN_TO_THE_LAST_FROZEN_EMPIRICAL_AND_NECESSITY_AUTHORITIES_WITHOUT_PATCHING_THE_THEOREM_POSTHOC',
+                'directive':'NO_THEOREM_RESCUE_BY_CHANGING_THE_DEFINED_CLASS_AFTER_EXECUTION'
+              }
+          result={
+            'artifact_id':'JANUS-TRUMP-WL-E3-UNIQUE-PAIR-BUDGETED-SCOPE-THEOREM-RESULT-2026-09-17-v1.0',
+            'date':'2026-09-17',
+            'status':'FROZEN_INDEPENDENTLY_VERIFIED_SCOPE_THEOREM_RESULT',
+            'gate':'TRUMP_WL_E3_UNIQUE_PAIR_BUDGETED_SCOPE_THEOREM_GATE',
+            'verdict':outcome,
+            'authorities':{
+              'preregistration_commit':'cd81515332da76348fc7adc7fee33c01db9ddd6c',
+              'review_commit':'2af642c4e775daf190348c406533e4c5e40a4000',
+              'candidate_commit':'945bacc794f964870913d97c30333ffe964a6730',
+              'candidate_blob':blob('research/tools/apma_wl_e3_unique_pair_budgeted_scope_theorem/candidate.py'),
+              'independent_checker_commit':'1639891149993ead3ead33dbfed7f27cde984c04',
+              'independent_checker_blob':blob('research/tools/apma_wl_e3_unique_pair_budgeted_scope_theorem/independent_check.py'),
+              'wl_e3_necessity_bridge_commit':'d80e33a775b81317c09b0fc77fcaf90cadea406a',
+              'frozen_e3_blob':'a076cfc56d68aad0348415e313705da1f6b9cdcd',
+              'workflow_head':os.environ['WORKFLOW_HEAD']
+            },
+            'execution':{
+              'run_id':int(os.environ['RUN_ID']),
+              'run_number':int(os.environ['RUN_NUMBER']),
+              'run_attempt':int(os.environ['RUN_ATTEMPT']),
+              'candidate_imported_by_independent_checker':False,
+              'independent_verdict':k['verdict']
+            },
+            'defined_class':c.get('defined_class'),
+            'structural_certificate':c.get('structural_certificate'),
+            'independent_proof':k.get('independent_proof'),
+            'candidate_arithmetic_sanity':c.get('abstract_arithmetic_sanity'),
+            'candidate_empirical_sanity':c.get('empirical_sanity'),
+            'independent_empirical_sanity':k.get('empirical_sanity'),
+            'licensed_fact':c.get('licensed_fact') if outcome.startswith('PASS_') else None,
+            'restricted_complexity_statement':c.get('restricted_complexity_statement') if outcome.startswith('PASS_') else None,
+            'not_licensed':c.get('not_licensed',[]),
+            'resource_receipt':c.get('resource_receipt',{}),
+            'claim_ceiling':'CONDITIONAL_POLYNOMIAL_CLOSURE_THEOREM_FOR_THE_EXPLICITLY_DEFINED_WL_UNIQUE_PAIR_DIRECT_EXACT_BUDGETED_E3_CLASS_ONLY',
+            'scientific_firewall':c.get('scientific_firewall',k.get('scientific_firewall')),
+            'captain_obvious_readout':captain
+          }
+          Path('research/TRUMP_WL_E3_UNIQUE_PAIR_BUDGETED_SCOPE_THEOREM_RESULT_2026-09-17_v1.0.json').write_text(json.dumps(result,indent=2,sort_keys=True)+'\n')
+          PY
+
+      - name: Upload theorem receipts
+        uses: actions/upload-artifact@v4
+        with:
+          name: wl-e3-unique-pair-budgeted-scope-theorem-receipt
+          path: |
+            /tmp/theorem_candidate.json
+            /tmp/theorem_independent.json
+            research/TRUMP_WL_E3_UNIQUE_PAIR_BUDGETED_SCOPE_THEOREM_RESULT_2026-09-17_v1.0.json
+
+      - name: Freeze theorem result with safe fast-forward push
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add research/TRUMP_WL_E3_UNIQUE_PAIR_BUDGETED_SCOPE_THEOREM_RESULT_2026-09-17_v1.0.json
+          git diff --cached --check
+          test "$(git diff --cached --name-only | wc -l)" -eq 1
+          git commit -m 'TRUMP freeze WL unique-pair budgeted E3 scope theorem result'
+          git fetch origin "${GITHUB_REF_NAME}"
+          git rebase "origin/${GITHUB_REF_NAME}"
+          git push origin HEAD:"${GITHUB_REF_NAME}"
