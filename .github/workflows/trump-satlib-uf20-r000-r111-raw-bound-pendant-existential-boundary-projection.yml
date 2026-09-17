@@ -1,0 +1,73 @@
+name: TRUMP SATLIB UF20 Raw Bound Pendant Existential Boundary Projection
+
+on:
+  push:
+    branches:
+      - research/trump-external-satlib-uf20-01-source-acquisition-2026-09-16
+    paths:
+      - 'research/TRUMP_SATLIB_UF20_R000_R111_RAW_BOUND_PENDANT_EXISTENTIAL_BOUNDARY_PROJECTION_PREREGISTRATION_2026-09-17.json'
+      - 'research/TRUMP_SATLIB_UF20_R000_R111_RAW_BOUND_PENDANT_EXISTENTIAL_BOUNDARY_PROJECTION_PREREGISTRATION_REVIEW_2026-09-17.json'
+      - 'research/tools/apma_satlib_uf20_r000_r111_raw_bound_pendant_existential_boundary_projection/**'
+      - '.github/workflows/trump-satlib-uf20-r000-r111-raw-bound-pendant-existential-boundary-projection.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  boundary-projection:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Assert frozen corrected boundary bindings
+        run: |
+          set -euo pipefail
+          test "$(git hash-object research/TRUMP_SATLIB_UF20_R000_R111_RAW_BOUND_PENDANT_EXISTENTIAL_BOUNDARY_PROJECTION_PREREGISTRATION_2026-09-17.json)" = "49ae9b34872eae3fdfd31a49f85defb7df7d9fa8"
+          test "$(git hash-object research/TRUMP_SATLIB_UF20_R000_R111_RAW_BOUND_PENDANT_EXISTENTIAL_BOUNDARY_PROJECTION_PREREGISTRATION_REVIEW_2026-09-17.json)" = "ecbe8a188f62c434b4436035fde30043c8c474c7"
+          test "$(git hash-object research/TRUMP_SATLIB_UF20_R000_R111_RAW_BOUND_D2_D3_WITNESS_RECONSTRUCTION_RESULT_2026-09-17.json)" = "d91e82fa2e558bb2926cc42b5f4368af51ae9c10"
+          test "$(git hash-object research/tools/apma_satlib_uf20_r000_r111_raw_bound_pendant_existential_boundary_projection/candidate.py)" = "5292ea959db36f9a51638faae5e8434567fa3406"
+          test "$(git hash-object research/tools/apma_satlib_uf20_r000_r111_raw_bound_pendant_existential_boundary_projection/independent_checker.py)" = "ac07eb40ea206f82071266ade12361d456cd87f9"
+      - name: Execute corrected local existential boundary audit once
+        run: |
+          set -euo pipefail
+          python -m research.tools.apma_satlib_uf20_r000_r111_raw_bound_pendant_existential_boundary_projection.candidate > /tmp/raw-bound-boundary.json
+      - name: Independently rebuild and verify all corrected boundary relations
+        run: |
+          set -euo pipefail
+          python -m research.tools.apma_satlib_uf20_r000_r111_raw_bound_pendant_existential_boundary_projection.independent_checker --candidate-json /tmp/raw-bound-boundary.json > /tmp/raw-bound-boundary-independent.json
+      - name: Assert outcome and firewalls
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          c=json.loads(Path('/tmp/raw-bound-boundary.json').read_text().strip().splitlines()[-1])
+          i=json.loads(Path('/tmp/raw-bound-boundary-independent.json').read_text().strip().splitlines()[-1])
+          assert c['verdict'] in {'ALL_ELEVEN_UNIVERSAL','MIXED_OR_PROPER','AT_LEAST_ONE_EMPTY'},c
+          assert i['verified'] is True and i['candidate_imported'] is False and i['verdict']==c['verdict'],i
+          rr=c['resource_receipt']
+          assert rr['attachments']==11 and rr['boundary_assignments']==44 and rr['table_membership_tests']==88
+          assert rr['superseded_old_alignment_rows_read']==0 and rr['attachment_deletions']==0
+          assert rr['solver_invocations']==0 and rr['fresh_holdout_values_read']==0
+          sf=c['scientific_firewall'];assert sf['P_VS_NP']=='OPEN' and sf['GENERAL_SAT_IN_P']=='NOT_PROVED' and sf['CONNECTED_MIXED_CORE_SOLVED']=='NO'
+          compact=[{'source':r['source'],'attachments':[{'id':a['constraint_id'],'scope':a['actual_scope'],'leaf':a['leaf_variable'],'gateway':a['gateway_pair'],'cardinality':a['boundary_relation_cardinality'],'relation':a['boundary_relation'],'witnesses':a['canonical_reconstruction_witnesses'],'occurrence':a['leaf_projected_constraint_occurrence_count']} for a in r['attachments']]} for r in c['rows']]
+          print(json.dumps({'verdict':c['verdict'],'outcome_counts':c['outcome_counts'],'local_theorem':c['local_semantics_theorem'],'compact':compact,'independent_verified':True},sort_keys=True))
+          PY
+      - name: Upload corrected boundary receipt
+        uses: actions/upload-artifact@v4
+        with:
+          name: satlib-uf20-r000-r111-raw-bound-pendant-boundary-receipt
+          path: |
+            /tmp/raw-bound-boundary.json
+            /tmp/raw-bound-boundary-independent.json
+          if-no-files-found: error
+      - name: Authority notice
+        run: |
+          echo 'AUTHORITY=DIAGNOSTIC_EXACT_LOCAL_EXISTENTIAL_BOUNDARY_RELATION_AUDIT_ONLY_CORRECTED_RAW_BOUND_LINEAGE'
+          echo 'ATTACHMENT_DELETIONS=0'
+          echo 'SOLVER_INVOCATIONS=0'
+          echo 'FRESH_HOLDOUT_VALUES_READ=0'
+          echo 'P_VS_NP=OPEN'
