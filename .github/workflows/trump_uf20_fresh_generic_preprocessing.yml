@@ -1,0 +1,85 @@
+name: TRUMP UF20 fresh generic preprocessing
+
+on:
+  push:
+    branches:
+      - research/trump-uf20-wl-fresh-holdout-replication-2026-09-17
+    paths:
+      - '.github/workflows/trump_uf20_fresh_generic_preprocessing.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  generic-preprocessing:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout frozen execution head
+        uses: actions/checkout@v4
+
+      - name: Run preregistered candidate
+        run: |
+          python -m research.tools.trump_uf20_fresh_generic_preprocessing.candidate > candidate_result.json
+
+      - name: Run independent checker
+        run: |
+          python -m research.tools.trump_uf20_fresh_generic_preprocessing.independent_check candidate_result.json > independent_check.json
+
+      - name: Enforce preregistered acceptance and forbidden-resource zeros
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          c=json.loads(Path('candidate_result.json').read_text())
+          k=json.loads(Path('independent_check.json').read_text())
+          allowed={
+              'PASS_GENERIC_SOURCE_INDEPENDENT_ONE_ROUND_PREPROCESSING',
+              'PASS_GENERIC_PREPROCESSING_NO_ELIGIBLE_PENDANTS',
+          }
+          assert c.get('verdict') in allowed, c
+          assert k.get('verdict') == 'PASS_INDEPENDENT_GENERIC_PREPROCESSING_VERIFICATION', k
+          r=c.get('resource_receipt',{})
+          for key in (
+              'WL_values_computed','portfolio_replays','solver_invocations',
+              'route_labels_computed','automorphism_tests','group_searches',
+              'new_carrier_mechanisms','new_adapter_mechanisms','new_quotient_mechanisms',
+          ):
+              assert r.get(key)==0,(key,r.get(key))
+          print(json.dumps({
+              'candidate_verdict':c['verdict'],
+              'independent_verdict':k['verdict'],
+              'sources':c['totals']['sources'],
+              'eligible_attachments':c['totals']['eligible_attachments'],
+              'reduction_rounds':c['totals']['reduction_rounds'],
+              'WL_values_computed':r['WL_values_computed'],
+              'portfolio_replays':r['portfolio_replays'],
+              'solver_invocations':r['solver_invocations'],
+              'route_labels_computed':r['route_labels_computed'],
+          },sort_keys=True))
+          PY
+
+      - name: Display source-scoped preprocessing receipt
+        if: always()
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          for name in ('candidate_result.json','independent_check.json'):
+              p=Path(name)
+              if p.exists():
+                  obj=json.loads(p.read_text())
+                  print(name)
+                  print(json.dumps(obj,sort_keys=True,indent=2))
+          PY
+
+      - name: Upload frozen execution outputs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: trump-uf20-fresh-generic-preprocessing
+          path: |
+            candidate_result.json
+            independent_check.json
+          if-no-files-found: error
