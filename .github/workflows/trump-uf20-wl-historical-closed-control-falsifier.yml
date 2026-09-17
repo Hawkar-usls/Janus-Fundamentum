@@ -1,0 +1,139 @@
+name: TRUMP UF20 WL historical closed-control falsifier
+
+on:
+  push:
+    branches:
+      - research/trump-uf20-wl-historical-falsifier-2026-09-17
+    paths:
+      - .github/workflows/trump-uf20-wl-historical-closed-control-falsifier.yml
+
+permissions:
+  contents: write
+
+concurrency:
+  group: trump-uf20-wl-historical-falsifier-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  historical-falsifier:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout exact workflow head
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Run blind historical falsifier candidate
+        run: |
+          python -m research.tools.apma_uf20_wl_historical_closed_control_falsifier.candidate > /tmp/wl_hist_candidate.json
+          python -m json.tool /tmp/wl_hist_candidate.json >/dev/null
+
+      - name: Run independent historical falsifier checker
+        run: |
+          python -m research.tools.apma_uf20_wl_historical_closed_control_falsifier.independent_check \
+            --candidate /tmp/wl_hist_candidate.json > /tmp/wl_hist_check.json
+          python -m json.tool /tmp/wl_hist_check.json >/dev/null
+
+      - name: Enforce frozen falsification contract and build result
+        env:
+          WORKFLOW_HEAD: ${{ github.sha }}
+          RUN_ID: ${{ github.run_id }}
+          RUN_NUMBER: ${{ github.run_number }}
+        run: |
+          python - <<'PY'
+          import json, os
+          from pathlib import Path
+
+          c=json.loads(Path('/tmp/wl_hist_candidate.json').read_text())
+          k=json.loads(Path('/tmp/wl_hist_check.json').read_text())
+          allowed={
+              'ALL_WL_CANDIDATES_FALSIFIED_BY_HISTORICAL_CLOSED_CONTROLS',
+              'WL_CANDIDATE_SURVIVOR_SET_FOUND__INDEPENDENT_REPLICATION_REQUIRED',
+          }
+          assert c['verdict'] in allowed
+          assert k['verdict']=='PASS_INDEPENDENT_HISTORICAL_FALSIFIER_VERIFICATION'
+          assert c['source_registry_guard_ok'] is True
+          assert c['frozen_control_count']==6
+          assert c['frozen_candidate_count']==4
+          assert c['test_matrix_size']==24
+          assert c['blindness_receipt']['fresh_holdout_values_read_or_computed']==0
+          assert c['blindness_receipt']['controls_dropped_after_unblinding']==0
+          assert c['blindness_receipt']['candidate_features_modified_after_unblinding']==0
+          assert c['blindness_receipt']['candidate_blocker_values_modified_after_unblinding']==0
+          assert c['blindness_receipt']['thresholds_conjunctions_or_disjunctions_tested']==0
+          assert all(v==0 for v in c['resource_receipt'].values())
+          assert c['scientific_firewall']['P_VS_NP']=='OPEN'
+          assert c['scientific_firewall']['GENERAL_SAT_IN_P']=='NOT_PROVED'
+
+          if c['verdict']=='ALL_WL_CANDIDATES_FALSIFIED_BY_HISTORICAL_CLOSED_CONTROLS':
+              captain={
+                  'current_status':'FROZEN_WL_DISCOVERY_SPLIT_FALSIFIED_AS_A_GENERAL_CLOSED_VS_RESIDUAL_SEPARATOR_BY_PREEXISTING_SOURCE_BOUND_CLOSED_CONTROLS',
+                  'nearest_missing_obligation':'DO_NOT_USE_WL_DISCRETENESS_OR_MAX_CLASS_ONE_AS_A_REDUCTIVE_LICENSE;RETURN_TO_SOURCE_BOUND_EVIDENCE_AND_REQUIRE_MULTIPLE_INDEPENDENT_REAL_RESIDUAL_CONTROLS_BEFORE_ANY_FURTHER_INVARIANT-TO-MECHANISM PROMOTION',
+                  'directive':'KEEP_THE_NEGATIVE_FALSIFIER_IMMUTABLE;DO_NOT_RESCUE_THE_HYPOTHESIS_WITH_THRESHOLDS_CONJUNCTIONS_SOURCE_LABELS_OR_CONTROL_DROPS;NO_NEW_REDUCTION_SOLVER_ACTION_OR_CARRIER_IS_LICENSED',
+              }
+          else:
+              captain={
+                  'current_status':'FROZEN_WL_CANDIDATE_SURVIVOR_SET_PASSED_PREEXISTING_HISTORICAL_CLOSED_CONTROLS',
+                  'nearest_missing_obligation':'PREREGISTER_AN_INDEPENDENT_SOURCE_BOUND_REPLICATION_OR_FRESH_HOLDOUT_GATE_BEFORE_ANY_REDUCTIVE_INTERPRETATION',
+                  'directive':'DO_NOT_RANK_MODIFY_OR_COMBINE_SURVIVORS;DO_NOT_DESIGN_A_REDUCTION_OR_SOLVER;REPLICATE_ON_NEW_SOURCE_BOUND_EVIDENCE_FIRST',
+              }
+
+          result={
+              'artifact_id':'JANUS-TRUMP-UF20-WL-POLYTIME-HISTORICAL-CLOSED-CONTROL-FALSIFIER-RESULT-2026-09-17-v1.0',
+              'date':'2026-09-17',
+              'status':'FROZEN_BLIND_HISTORICAL_FALSIFIER_RESULT',
+              'gate':'TRUMP_UF20_WL_POLYTIME_HISTORICAL_CLOSED_CONTROL_FALSIFIER_GATE',
+              'verdict':c['verdict'],
+              'implementation':{
+                  'preregistration_commit':'835a5f3bc38c73a995e36c85345b73842e418aae',
+                  'review_commit':'7dce25fd0c76ceaf0f541201de3051ba8da728f9',
+                  'candidate_commit':'c336be6617e01ac6ffaea6003141bda706907de2',
+                  'independent_checker_commit':'5b3a06689f9316b9fc567487122ac3ab6dc09f5b',
+                  'workflow_head':os.environ['WORKFLOW_HEAD'],
+              },
+              'execution':{
+                  'run_id':int(os.environ['RUN_ID']),
+                  'run_number':int(os.environ['RUN_NUMBER']),
+                  'independent_verified':True,
+                  'candidate_imported_by_independent_checker':False,
+              },
+              'source_entry_count':c['source_entry_count'],
+              'unique_raw_count':c['unique_raw_count'],
+              'frozen_control_count':c['frozen_control_count'],
+              'frozen_candidate_count':c['frozen_candidate_count'],
+              'test_matrix_size':c['test_matrix_size'],
+              'candidate_blocker_values':c['candidate_blocker_values'],
+              'control_rows':c['control_rows'],
+              'falsifier_witnesses_by_feature':c['falsifier_witnesses_by_feature'],
+              'falsified_candidate_features':c['falsified_candidate_features'],
+              'surviving_candidate_features':c['surviving_candidate_features'],
+              'blindness_receipt':c['blindness_receipt'],
+              'resource_receipt':c['resource_receipt'],
+              'independent_check':{
+                  'verdict':k['verdict'],
+                  'checks':k['checks'],
+                  'independent_falsified_candidate_features':k['independent_falsified_candidate_features'],
+                  'independent_surviving_candidate_features':k['independent_surviving_candidate_features'],
+              },
+              'claim_ceiling':'HISTORICAL_NEGATIVE_CONTROL_FALSIFICATION_OR_SURVIVAL_ONLY__NO_TRACTABILITY_THEOREM',
+              'not_licensed':['NEW_SOLVER_RULE','NEW_ACTION_RULE','NEW_CARRIER_MECHANISM','NEW_REDUCTION_MECHANISM','POSTHOC_WL_HYPOTHESIS_RESCUE','GENERAL_SAT_IN_P','P_EQUALS_NP'],
+              'scientific_firewall':{
+                  'P_VS_NP':'OPEN','GENERAL_SAT_IN_P':'NOT_PROVED','CONNECTED_MIXED_CORE_SOLVED':'NO','GENERAL_RESIDUAL_SEPARATOR_TRACTABILITY':'NOT_PROVED'},
+              'captain_obvious_readout':captain,
+          }
+          Path('research/TRUMP_UF20_WL_POLYTIME_HISTORICAL_CLOSED_CONTROL_FALSIFIER_RESULT_2026-09-17_v1.0.json').write_text(json.dumps(result,indent=2,sort_keys=True)+'\n')
+          PY
+
+      - name: Freeze blind falsifier result on research branch
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add research/TRUMP_UF20_WL_POLYTIME_HISTORICAL_CLOSED_CONTROL_FALSIFIER_RESULT_2026-09-17_v1.0.json
+          git diff --cached --quiet && exit 0
+          git commit -m "TRUMP freeze blind WL historical closed-control falsifier result"
+          git push origin HEAD:research/trump-uf20-wl-historical-falsifier-2026-09-17
