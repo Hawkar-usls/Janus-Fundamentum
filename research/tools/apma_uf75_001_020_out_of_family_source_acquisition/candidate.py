@@ -22,7 +22,7 @@ VERIFY_COMMIT = 'cb9dfa7a0862c44882850d465d045d2a9bf86950'
 
 
 def blob_bytes(data: bytes) -> str:
-    return hashlib.sha1(f'blob {len(data)}\\0'.encode('ascii') + data).hexdigest()
+    return hashlib.sha1(f'blob {len(data)}\0'.encode('ascii') + data).hexdigest()
 
 
 def blob(path: Path) -> str:
