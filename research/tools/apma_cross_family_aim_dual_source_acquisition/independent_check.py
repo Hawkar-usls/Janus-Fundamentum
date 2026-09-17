@@ -104,12 +104,13 @@ def main(candidate_path: Path) -> dict[str, Any]:
 
     candidate_rows = candidate.get('rows', [])
     comparable_rows = []
+    runtime_only = {'local_copy_exists', 'local_copy_byte_equal_source_A', 'local_copy_git_blob_equal_source_A'}
     for own in own_rows:
         c = next((row for row in candidate_rows if row.get('basename') == own['basename']), None)
         if c is None:
             comparable_rows.append({'basename': own['basename'], 'match': False, 'reason': 'MISSING_CANDIDATE_ROW'})
             continue
-        core = {k:v for k,v in own.items() if not k.startswith('local_copy_')}
+        core = {k:v for k,v in own.items() if k not in runtime_only}
         comparable_rows.append({'basename': own['basename'], 'match': c == core, 'local_copy_exists': own['local_copy_exists'], 'local_copy_byte_equal_source_A': own['local_copy_byte_equal_source_A'], 'local_copy_git_blob_equal_source_A': own['local_copy_git_blob_equal_source_A']})
 
     receipt = candidate.get('resource_receipt', {})
