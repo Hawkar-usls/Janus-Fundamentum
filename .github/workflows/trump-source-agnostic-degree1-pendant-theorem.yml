@@ -1,0 +1,119 @@
+name: TRUMP source-agnostic degree-1 pendant theorem
+
+on:
+  push:
+    branches:
+      - research/trump-source-agnostic-pendant-theorem-2026-09-17
+    paths:
+      - .github/workflows/trump-source-agnostic-degree1-pendant-theorem.yml
+
+permissions:
+  contents: write
+
+concurrency:
+  group: trump-source-agnostic-degree1-pendant-theorem-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  theorem-audit:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout exact workflow head
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Run source-agnostic theorem candidate
+        run: |
+          python -m research.tools.apma_source_agnostic_degree1_pendant_theorem.candidate > /tmp/theorem_candidate.json
+          python -m json.tool /tmp/theorem_candidate.json >/dev/null
+
+      - name: Run independent theorem checker
+        run: |
+          python -m research.tools.apma_source_agnostic_degree1_pendant_theorem.independent_check \
+            --candidate /tmp/theorem_candidate.json > /tmp/theorem_check.json
+          python -m json.tool /tmp/theorem_check.json >/dev/null
+
+      - name: Enforce theorem contract and build frozen result
+        env:
+          WORKFLOW_HEAD: ${{ github.sha }}
+          RUN_ID: ${{ github.run_id }}
+          RUN_NUMBER: ${{ github.run_number }}
+        run: |
+          python - <<'PY'
+          import json, os
+          from pathlib import Path
+          c=json.loads(Path('/tmp/theorem_candidate.json').read_text())
+          k=json.loads(Path('/tmp/theorem_check.json').read_text())
+          allowed={
+            'PASS_SOURCE_AGNOSTIC_ONE_ROUND_DEGREE1_PENDANT_THEOREM',
+            'FAIL_LOCAL_SURJECTIVITY_COUNTEREXAMPLE',
+            'FAIL_STRUCTURAL_PROOF_OBLIGATION'
+          }
+          assert c['verdict'] in allowed
+          assert k['verdict']=='PASS_INDEPENDENT_SOURCE_AGNOSTIC_THEOREM_VERIFICATION'
+          assert c['local_surjectivity_receipt']['cases_checked']==96
+          assert c['fresh_holdout_receipt']['formula_content_reads']==0
+          assert c['fresh_holdout_receipt']['derived_value_computations']==0
+          assert c['resource_receipt']['sat_solver_invocations']==0
+          assert c['resource_receipt']['automorphism_or_group_searches']==0
+          assert c['resource_receipt']['iterated_peeling_rounds']==0
+          assert c['scientific_firewall']['P_VS_NP']=='OPEN'
+          assert c['scientific_firewall']['GENERAL_SAT_IN_P']=='NOT_PROVED'
+          if c['verdict']=='PASS_SOURCE_AGNOSTIC_ONE_ROUND_DEGREE1_PENDANT_THEOREM':
+            captain={
+              'current_status':'SOURCE_AGNOSTIC_EXACT_ONE_ROUND_DEGREE1_PENDANT_ELIMINATION_THEOREM_VERIFIED_FOR_THE_FROZEN_3CNF_CLAUSE_RAW_CLASS',
+              'licensed_fact':'TARGET_SELECTION_NO_LONGER_REQUIRES_SOURCE_SPECIFIC_UF20_LISTS:DEGREE_ONE_PRIVATE_LEAVES_AND_THEIR_INCIDENT_CLAUSES_CAN_BE_IDENTIFIED_FROM_THE_INPUT_RAW_AND_REMOVED_IN_ONE_EXACT_SEMANTICS_PRESERVING_POLYNOMIAL_ROUND_WITH_DETERMINISTIC_RECONSTRUCTION',
+              'nearest_missing_obligation':'PREREGISTER_A_FRESH_UF20_011_TO_UF20_015_REPLICATION_GATE_THAT_APPLIES_EXACTLY_THIS_GENERIC_ONE_ROUND_TRANSFORM_THEN_EVALUATES_THE_ALREADY_FROZEN_WL_FEATURES_AND_THE_ALREADY_SEALED_EXISTING_ROUTE_PORTFOLIO_WITHOUT_ANY_RETUNING_OR_NEW_MECHANISM',
+              'directive':'DO_NOT_ITERATE_PENDANT_PEELING;DO_NOT_CHANGE_WL_FEATURES;DO_NOT_ADD_A_SOLVER_OR_ROUTE;FREEZE_FRESH_REPLICATION_SPEC_BEFORE_FIRST_HOLDOUT_CONTENT_READ_IN_THIS_LINEAGE'
+            }
+          else:
+            captain={
+              'current_status':'SOURCE_AGNOSTIC_PENDANT_THEOREM_AS_PREREGISTERED_FAILED',
+              'nearest_missing_obligation':'KEEP_COUNTEREXAMPLE_OR_FAILED_OBLIGATION_IMMUTABLE_AND_DO_NOT_UNBLIND_FRESH_HOLDOUT_FOR_THIS_THEOREM_LINE',
+              'directive':'NO_HYPOTHESIS_RESCUE_NO_HOLDOUT_INSPECTION_NO_NEW_MECHANISM'
+            }
+          result={
+            'artifact_id':'JANUS-TRUMP-SOURCE-AGNOSTIC-3CNF-DEGREE1-PENDANT-ONE-ROUND-THEOREM-RESULT-2026-09-17-v1.0',
+            'date':'2026-09-17',
+            'status':'FROZEN_SOURCE_AGNOSTIC_THEOREM_RESULT',
+            'gate':'TRUMP_SOURCE_AGNOSTIC_3CNF_DEGREE1_PENDANT_ONE_ROUND_THEOREM_GATE',
+            'verdict':c['verdict'],
+            'implementation':{
+              'preregistration_commit':'0815ff5476c20a132f412cc8b47fe4ee7bc7d0ac',
+              'review_commit':'09beb27ae21cbac6e87a12f79daf981b8fd83c74',
+              'candidate_commit':'de76e81c6b3d2238e5fa0683c21ec474458e18b5',
+              'independent_checker_commit':'d69253945d36a7a8db47f53ba1d5cbbca7baa7b2',
+              'workflow_head':os.environ['WORKFLOW_HEAD']
+            },
+            'execution':{'run_id':int(os.environ['RUN_ID']),'run_number':int(os.environ['RUN_NUMBER']),'independent_verified':True,'candidate_imported_by_independent_checker':False},
+            'input_class':c['input_class'],
+            'transform':c['transform'],
+            'local_surjectivity_receipt':c['local_surjectivity_receipt'],
+            'structural_proof_certificate':c['structural_proof_certificate'],
+            'licensed_theorem':c['licensed_theorem'],
+            'fresh_holdout_status':'STILL_UNREAD_AND_UNCOMPUTED_IN_THIS_THEOREM_LINEAGE',
+            'fresh_holdout_receipt':c['fresh_holdout_receipt'],
+            'resource_receipt':c['resource_receipt'],
+            'independent_check':{'verdict':k['verdict'],'checks':k['checks'],'independent_local_case_count':k['independent_local_case_count'],'independent_local_failures':k['independent_local_failures'],'repository_source_data_files_opened':k['repository_source_data_files_opened']},
+            'claim_ceiling':c['claim_ceiling'],
+            'not_licensed':['ITERATED_OR_FIXED_POINT_PEELING','RESIDUAL_CORE_TRACTABILITY','NEW_SOLVER_RULE','NEW_ACTION_RULE','NEW_CARRIER_MECHANISM','GENERAL_SAT_IN_P','P_EQUALS_NP'],
+            'scientific_firewall':c['scientific_firewall'],
+            'captain_obvious_readout':captain
+          }
+          Path('research/TRUMP_SOURCE_AGNOSTIC_3CNF_DEGREE1_PENDANT_ONE_ROUND_THEOREM_RESULT_2026-09-17_v1.0.json').write_text(json.dumps(result,indent=2,sort_keys=True)+'\n')
+          PY
+
+      - name: Freeze theorem result
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add research/TRUMP_SOURCE_AGNOSTIC_3CNF_DEGREE1_PENDANT_ONE_ROUND_THEOREM_RESULT_2026-09-17_v1.0.json
+          git diff --cached --quiet && exit 0
+          git commit -m "TRUMP freeze source-agnostic degree-1 pendant theorem result"
+          git push origin HEAD:research/trump-source-agnostic-pendant-theorem-2026-09-17
