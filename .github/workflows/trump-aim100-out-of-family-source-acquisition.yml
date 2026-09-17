@@ -31,14 +31,15 @@ jobs:
         with:
           python-version: '3.12'
 
-      - name: Verify frozen acquisition authorities
+      - name: Verify frozen acquisition authorities and transport erratum
         run: |
           set -euo pipefail
           test "$(git hash-object research/TRUMP_AIM100_OUT_OF_FAMILY_WL_E3_FALSIFIER_PANEL_RESERVATION_2026-09-18_v1.0.json)" = "e509b0c2bf392b547d505b5648895c8d2b9cedaa"
           test "$(git hash-object research/TRUMP_AIM100_OUT_OF_FAMILY_SOURCE_ACQUISITION_PREREGISTRATION_2026-09-18_v1.0.json)" = "3dc0cffa67de19453991e86c7a31224c01e84ef6"
           test "$(git hash-object research/TRUMP_AIM100_OUT_OF_FAMILY_SOURCE_ACQUISITION_REVIEW_2026-09-18_v1.0.json)" = "47708e421e2d984ab8078f5131c86a6aa598fd15"
-          test "$(git hash-object research/tools/apma_aim100_out_of_family_source_acquisition/candidate.py)" = "9dfc5825f1c5da6f448321d3251bf54677cdfc78"
-          test "$(git hash-object research/tools/apma_aim100_out_of_family_source_acquisition/independent_check.py)" = "735e4c25447dc816887679548b39a3f8b76e9675"
+          test "$(git hash-object research/TRUMP_AIM100_SOURCE_ACQUISITION_TRANSPORT_ERRATUM_2026-09-18_v1.1.json)" = "fc33da20ce65000dc569e8de7f87668b8c931fbf"
+          test "$(git hash-object research/tools/apma_aim100_out_of_family_source_acquisition/candidate.py)" = "89674e663eb19e3336e75c214ec6b3c589ce20b9"
+          test "$(git hash-object research/tools/apma_aim100_out_of_family_source_acquisition/independent_check.py)" = "3ebbc4f4ec2dc0dc88956931ee08b368d3f35dbb"
 
       - name: Acquire and stage all sixteen reserved AIM100 sources
         run: |
@@ -55,7 +56,7 @@ jobs:
           assert x['source_receipts'][0]['source']=='aim-100-1_6-no-1.cnf'
           assert x['source_receipts'][-1]['source']=='aim-100-2_0-yes1-4.cnf'
           r=x['resource_receipt']
-          assert r['remote_source_fetches']==32 and r['sources_staged']==16
+          assert r['mirror_git_fetches']==2 and r['mirror_file_reads']==32 and r['sources_staged']==16
           for key in ('projected_raw_computations','pendant_target_computations','wl_computations','direct_transposition_checks','portfolio_replays','e3_witness_computations','solver_invocations','truth_label_feature_reads'):
               assert r[key]==0,(key,r[key])
           PY
@@ -74,7 +75,7 @@ jobs:
           assert x.get('sources_verified')==16
           assert all(x.get('comparison_checks',{}).values())
           r=x['resource_receipt']
-          assert r['remote_source_fetches']==32
+          assert r['mirror_git_fetches']==2 and r['mirror_file_reads']==32
           for key in ('projected_raw_computations','pendant_target_computations','wl_computations','direct_transposition_checks','portfolio_replays','e3_witness_computations','solver_invocations','truth_label_feature_reads'):
               assert r[key]==0,(key,r[key])
           PY
@@ -119,9 +120,11 @@ jobs:
               'acquisition_prereg_blob':'3dc0cffa67de19453991e86c7a31224c01e84ef6',
               'acquisition_review_commit':'f8d850bc4b10c7244b684a8e722851008cb2982c',
               'acquisition_review_blob':'47708e421e2d984ab8078f5131c86a6aa598fd15',
-              'candidate_commit':'fc4cd1304d5a40ff843aafeff74f7531858dfa39',
+              'transport_erratum_v1_1_commit':'a19670db2684ab62f0c220eba0d11003250e7d4f',
+              'transport_erratum_v1_1_blob':'fc33da20ce65000dc569e8de7f87668b8c931fbf',
+              'candidate_commit':'94c829721806223d1eabf3f342d8e6a2bead9851',
               'candidate_blob':blob('research/tools/apma_aim100_out_of_family_source_acquisition/candidate.py'),
-              'independent_checker_commit':'32e6be096a2550e2a8ab35d39eb1c741bde3637b',
+              'independent_checker_commit':'a9cc2d9b2fde73c6bad659d07160b8e075defc7a',
               'independent_checker_blob':blob('research/tools/apma_aim100_out_of_family_source_acquisition/independent_check.py'),
               'workflow_head':os.environ['WORKFLOW_HEAD']
             },
@@ -129,6 +132,8 @@ jobs:
               'run_id':int(os.environ['RUN_ID']),
               'run_number':int(os.environ['RUN_NUMBER']),
               'run_attempt':int(os.environ['RUN_ATTEMPT']),
+              'failed_prior_run_id':35277170407,
+              'failed_prior_run_class':'RAW_GITHUBUSERCONTENT_TRANSPORT_404_BEFORE_FIRST_SOURCE_STAGE',
               'independent_verdict':k['verdict'],
               'sources_verified':k['sources_verified'],
               'candidate_imported_by_independent_checker':False
@@ -142,7 +147,8 @@ jobs:
               'portfolio_replays':0,
               'e3_witness_computations':0,
               'solver_invocations':0,
-              'truth_label_feature_reads':0
+              'truth_label_feature_reads':0,
+              'posthalt_retuning':0
             },
             'claim_ceiling':'SOURCE_PROVENANCE_DUAL_MIRROR_FORMAT_AND_FORMULA_FREEZE_ONLY',
             'next_step':'PREREGISTER_OUT_OF_FAMILY_AIM100_WL_FIRST_THEN_UNCHANGED_EXISTING_E1_E2_E3_GROUND_TRUTH_EVALUATION_ON_ALL_16_FROZEN_SOURCES',
