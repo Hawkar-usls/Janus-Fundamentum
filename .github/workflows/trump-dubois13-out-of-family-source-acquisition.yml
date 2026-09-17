@@ -57,12 +57,11 @@ jobs:
           if [ "$verdict" = "PASS_DUBOIS13_DUAL_MIRROR_SOURCE_ACQUISITION_AND_FORMULA_FREEZE" ]; then
             python research/tools/apma_dubois13_out_of_family_source_acquisition/independent_check.py --candidate /tmp/dubois_candidate.json > /tmp/dubois_independent.json
           else
-            python - <<'PY'
+            python - <<'PY' > /tmp/dubois_independent.json
           import json
           c=json.load(open('/tmp/dubois_candidate.json'))
           print(json.dumps({'verdict':'SKIPPED_INDEPENDENT_BECAUSE_CANDIDATE_HALTED','candidate_verdict':c.get('verdict')},sort_keys=True,separators=(',',':')))
           PY
-            > /tmp/dubois_independent.json
           fi
           python -m json.tool /tmp/dubois_independent.json
           echo "candidate_verdict=$verdict" >> "$GITHUB_OUTPUT"
