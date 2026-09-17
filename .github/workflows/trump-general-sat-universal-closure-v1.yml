@@ -27,6 +27,8 @@ jobs:
         run: python research/tools/general_sat_universal/selftest.py
       - name: Run U-PAIR-1E wide-OR projection regression
         run: python research/tools/general_sat_universal/u_pair_1e_wide_or_projection_checker.py
+      - name: Run U-PAIR-1F majority projection regression
+        run: python research/tools/general_sat_universal/u_pair_1f_majority_projection_checker.py
       - name: Preserve claim ceiling
         run: |
           python - <<'PY'
@@ -36,9 +38,11 @@ jobs:
           assert d['current_status']=='NOT_PROVED'
           assert d['ultimate_implication_if_fully_proved']=='P_EQUALS_NP'
           assert d['promotion_rule']=='NO_SCIENTIFIC_PROMOTION_FROM_THIS_PREREGISTRATION_ALONE'
-          r=json.load(open('research/TRUMP_U_PAIR_1E_FACTORIZED_AFFINE_OR_ELIMINATION_RESULT_2026-09-17.json',encoding='utf-8'))
-          assert r['firewall']['GENERAL_SAT_IN_P']=='NOT_PROVED'
-          assert r['firewall']['P_VS_NP']=='OPEN'
-          assert r['firewall']['P_EQ_NP']=='NOT_PROVED'
+          e=json.load(open('research/TRUMP_U_PAIR_1E_FACTORIZED_AFFINE_OR_ELIMINATION_RESULT_2026-09-17.json',encoding='utf-8'))
+          f=json.load(open('research/TRUMP_U_PAIR_1F_MAJORITY_PROJECTION_AND_PROGRESS_EQUIVALENCE_RESULT_2026-09-17.json',encoding='utf-8'))
+          for r in (e,f):
+            assert r['firewall']['GENERAL_SAT_IN_P']=='NOT_PROVED'
+            assert r['firewall']['P_VS_NP']=='OPEN'
+            assert r['firewall']['P_EQ_NP']=='NOT_PROVED'
           print('CLAIM_CEILING_OK')
           PY
