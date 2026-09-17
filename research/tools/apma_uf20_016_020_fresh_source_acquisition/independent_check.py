@@ -39,6 +39,8 @@ def parse_dimacs(data: bytes) -> dict[str, Any]:
     tokens: list[int] = []
     for raw_line in text.splitlines():
         line = raw_line.strip()
+        if line.startswith("%"):
+            break
         if not line or line.startswith("c"):
             continue
         if line.startswith("p"):
