@@ -1,0 +1,103 @@
+name: TRUMP SATLIB UF20_03 Reduced Orbit SAT Witness Projected Reconstruction
+
+on:
+  push:
+    branches:
+      - research/trump-external-satlib-uf20-01-source-acquisition-2026-09-16
+    paths:
+      - 'research/TRUMP_SATLIB_UF20_03_CORRECTED_REDUCED_ORBIT_SAT_WITNESS_PROJECTED_RECONSTRUCTION_PREREGISTRATION_2026-09-17_v1.0.json'
+      - 'research/TRUMP_SATLIB_UF20_03_CORRECTED_REDUCED_ORBIT_SAT_WITNESS_PROJECTED_RECONSTRUCTION_PREREGISTRATION_REVIEW_2026-09-17_v1.0.json'
+      - 'research/tools/apma_satlib_uf20_03_reduced_orbit_sat_witness_projected_reconstruction/**'
+      - '.github/workflows/trump-satlib-uf20-03-reduced-orbit-sat-witness-projected-reconstruction.yml'
+  workflow_dispatch:
+
+permissions:
+  actions: read
+  contents: write
+
+jobs:
+  witness-reconstruction:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    env:
+      BRANCH: research/trump-external-satlib-uf20-01-source-acquisition-2026-09-16
+      ARTIFACT_NAME: satlib-uf20-03-reduced-orbit-sat-witness-projected-reconstruction-receipt
+      RESULT_PATH: research/TRUMP_SATLIB_UF20_03_CORRECTED_REDUCED_ORBIT_SAT_WITNESS_PROJECTED_RECONSTRUCTION_RESULT_2026-09-17_v1.0.json
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v4
+        with: {fetch-depth: 0}
+      - uses: actions/setup-python@v5
+        with: {python-version: '3.12'}
+      - name: Assert frozen witness authority chain
+        run: |
+          python - <<'PY'
+          import hashlib,json
+          from pathlib import Path
+          def b(p):
+            d=Path(p).read_bytes();return hashlib.sha1(f'blob {len(d)}\0'.encode()+d).hexdigest()
+          files={
+            'research/TRUMP_SATLIB_UF20_03_CORRECTED_REDUCED_ORBIT_SAT_WITNESS_PROJECTED_RECONSTRUCTION_PREREGISTRATION_2026-09-17_v1.0.json':'9e05bd1e2a573e42a946ec37b0ec1558afca6d05',
+            'research/TRUMP_SATLIB_UF20_03_CORRECTED_REDUCED_ORBIT_SAT_WITNESS_PROJECTED_RECONSTRUCTION_PREREGISTRATION_REVIEW_2026-09-17_v1.0.json':'3ed599ea6350114c776164570929e7d9e6c6085c',
+            'research/tools/apma_satlib_uf20_03_reduced_orbit_sat_witness_projected_reconstruction/candidate.py':'05c3684f66f7c02d55c7b4367e210c5bfe122f63',
+            'research/tools/apma_satlib_uf20_03_reduced_orbit_sat_witness_projected_reconstruction/independent_checker.py':'a336158fa0c9053e521a26cc2e49d6ee76d3f7d9'}
+          assert all(b(p)==h for p,h in files.items()),{p:(b(p),h) for p,h in files.items()}
+          r=json.loads(Path(next(p for p in files if 'REVIEW' in p)).read_text());assert r['verdict']=='PASS_PREREGISTRATION_CLEAN__AUTHORIZED_TO_IMPLEMENT_AND_EXECUTE_ONCE'
+          PY
+      - name: Materialize frozen existing-route SAT certificate and projected reconstruction
+        run: python -m research.tools.apma_satlib_uf20_03_reduced_orbit_sat_witness_projected_reconstruction.candidate > /tmp/candidate.json
+      - name: Independently verify certificate and reconstruction
+        run: python -m research.tools.apma_satlib_uf20_03_reduced_orbit_sat_witness_projected_reconstruction.independent_checker --candidate-json /tmp/candidate.json > /tmp/independent.json
+      - name: Assert certificate result and firewalls
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          c=json.loads(Path('/tmp/candidate.json').read_text().strip().splitlines()[-1]);i=json.loads(Path('/tmp/independent.json').read_text().strip().splitlines()[-1])
+          assert c['verdict']=='PASS_REDUCED_SAT_WITNESS_AND_PROJECTED_EXTENSION_REPLAY',c
+          assert i['verified'] is True and i['candidate_imported'] is False and i['verdict']==c['verdict'],i
+          assert c['reduced_replay']['all_true'] and c['projected_replay']['all_true']
+          assert len(c['reduced_sat_assignment'])==15 and len(c['projected_sat_assignment'])==18 and len(c['extension_receipts'])==3
+          rr=c['resource_receipt'];assert rr['reduction_rounds']==0 and rr['new_solver_mechanisms']==0 and rr['new_action_families']==0 and rr['new_group_searches']==0 and rr['fresh_holdout_values_read']==0 and rr['full_cnf_equivalence_tests']==0 and rr['budget_raise'] is False
+          sf=c['scientific_firewall'];assert sf['P_VS_NP']=='OPEN' and sf['GENERAL_SAT_IN_P']=='NOT_PROVED' and sf['UF20_03_FULL_CNF_SOLVED']=='NOT_CLAIMED'
+          print(json.dumps({'verdict':c['verdict'],'reduced_sat_assignment':c['reduced_sat_assignment'],'extension_receipts':c['extension_receipts'],'projected_sat_assignment':c['projected_sat_assignment']},sort_keys=True))
+          PY
+      - name: Upload witness receipt
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.ARTIFACT_NAME }}
+          path: |
+            /tmp/candidate.json
+            /tmp/independent.json
+          if-no-files-found: error
+      - name: Freeze verified witness reconstruction result
+        run: |
+          python - <<'PY'
+          import json,os,subprocess,time,urllib.request
+          from pathlib import Path
+          c=json.loads(Path('/tmp/candidate.json').read_text().strip().splitlines()[-1]);i=json.loads(Path('/tmp/independent.json').read_text().strip().splitlines()[-1]);assert i['verified'] is True
+          repo=os.environ['GITHUB_REPOSITORY'];rid=int(os.environ['GITHUB_RUN_ID']);token=os.environ['GH_TOKEN']
+          def get(u):
+            q=urllib.request.Request(u,headers={'Authorization':f'Bearer {token}','Accept':'application/vnd.github+json','User-Agent':'Janus-witness-reconstruction/1.0'});return json.loads(urllib.request.urlopen(q,timeout=30).read().decode())
+          jobs=get(f'https://api.github.com/repos/{repo}/actions/runs/{rid}/jobs?per_page=100')['jobs'];job=[x for x in jobs if x['name']=='witness-reconstruction'][0];art=None
+          for _ in range(20):
+            xs=[x for x in get(f'https://api.github.com/repos/{repo}/actions/runs/{rid}/artifacts?per_page=100')['artifacts'] if x['name']==os.environ['ARTIFACT_NAME']]
+            if xs:art=xs[0];break
+            time.sleep(2)
+          assert art
+          def h(p):return subprocess.check_output(['git','hash-object',p],text=True).strip()
+          out={'artifact_id':'JANUS-TRUMP-SATLIB-UF20-03-CORRECTED-REDUCED-ORBIT-SAT-WITNESS-PROJECTED-RECONSTRUCTION-RESULT-2026-09-17-v1.0','date':'2026-09-17','status':'FROZEN_VERIFIED_REDUCED_SAT_WITNESS_AND_PROJECTED_RECONSTRUCTION','authority':c['authority'],'execution':{'run_id':rid,'job_id':int(job['id']),'conclusion':'success','artifact_id':int(art['id']),'artifact_name':art['name'],'artifact_digest':art.get('digest',''),'independent_verified':True,'candidate_imported_by_independent_checker':False},'implementation':{'candidate_blob':h('research/tools/apma_satlib_uf20_03_reduced_orbit_sat_witness_projected_reconstruction/candidate.py'),'independent_checker_blob':h('research/tools/apma_satlib_uf20_03_reduced_orbit_sat_witness_projected_reconstruction/independent_checker.py'),'workflow_head_commit':os.environ['GITHUB_SHA'],'workflow_blob':h('.github/workflows/trump-satlib-uf20-03-reduced-orbit-sat-witness-projected-reconstruction.yml')},'verdict':c['verdict'],'source':'UF20_03','original_projected_raw_sha256':c['original_projected_raw_sha256'],'reduced_raw_sha256':c['reduced_raw_sha256'],'orbit_receipt':c['orbit_receipt'],'reduced_sat_assignment':c['reduced_sat_assignment'],'reduced_replay':c['reduced_replay'],'extension_receipts':c['extension_receipts'],'projected_sat_assignment':c['projected_sat_assignment'],'projected_replay':c['projected_replay'],'licensed_fact':c['licensed_fact'],'not_licensed':['UF20_03_FULL_ORIGINAL_CNF_SAT_FROM_THIS_RESULT','ANY_EQUIVALENCE_BETWEEN_PROJECTED_RAW_AND_FULL_CNF','GENERALIZE_TO_OTHER_SOURCES','NEW_SOLVER_OR_MECHANISM','GENERAL_SAT_IN_P','GENERAL_SAT_NOT_IN_P','P_EQUALS_NP','P_NOT_EQUALS_NP'],'resource_receipt':c['resource_receipt'],'scientific_firewall':c['scientific_firewall'],'captain_obvious_readout':{'current_source_line_status':'UF20_03_CORRECTED_REDUCED_RAW_SAT_CERTIFICATE_IS_MATERIALIZED_AND_INDEPENDENTLY_REPLAYED_AND_THE_FROZEN_ONE_ROUND_RECONSTRUCTION_EXTENDS_IT_TO_A_SATISFYING_ASSIGNMENT_OF_THE_FROZEN_ORIGINAL_R000_R111_PROJECTED_RAW','nearest_missing_obligation':'KEEP_THIS_UF20_03_PROJECTED_CERTIFICATE_SEALED_AND_RETURN_TO_THE_THREE_STILL_OPEN_REDUCED_SOURCE_RESIDUAL_BLOCKERS_WITHOUT_TREATING_PROJECTED_RAW_SAT_AS_FULL_CNF_SAT','next_gate':'TRUMP_SATLIB_UF20_R000_R111_THREE_OPEN_CORRECTED_REDUCED_RESIDUAL_CAPTAIN_REVIEW_GATE','next_gate_status':'CAPTAIN_REVIEW_REQUIRED','directive':'PIN_THIS_CERTIFICATE;DO_NOT_TEST_FULL_CNF_EQUIVALENCE;DO_NOT_ITERATE_REDUCTION;DO_NOT_TOUCH_FRESH_HOLDOUTS;RETURN_TO_CAPTAIN_WITH_UF20_02_UF20_04_UF20_05_AS_THE_ONLY_REMAINING_CORRECTED_REDUCED_RESIDUAL_BLOCKERS'}}
+          Path(os.environ['RESULT_PATH']).write_text(json.dumps(out,indent=2)+'\n')
+          PY
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add "$RESULT_PATH"
+          git commit -m 'TRUMP freeze UF20_03 SAT witness projected reconstruction result'
+          git push origin "HEAD:$BRANCH"
+      - name: Authority notice
+        run: |
+          echo 'SCOPE=UF20_03_FROZEN_PROJECTED_RAW_ONLY'
+          echo 'FULL_CNF_EQUIVALENCE_TESTS=0'
+          echo 'NEW_MECHANISMS=0'
+          echo 'P_VS_NP=OPEN'
+          echo 'GENERAL_SAT_IN_P=NOT_PROVED'
