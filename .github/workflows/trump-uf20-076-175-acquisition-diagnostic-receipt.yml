@@ -1,0 +1,95 @@
+name: TRUMP UF20 076-175 acquisition diagnostic receipt
+
+on:
+  push:
+    branches:
+      - research/trump-uf20-076-175-prospective-wl-orbit-bridge-2026-09-17
+    paths:
+      - .github/workflows/trump-uf20-076-175-acquisition-diagnostic-receipt.yml
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  receipt:
+    runs-on: ubuntu-latest
+    env:
+      PYTHONPATH: ${{ github.workspace }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Verify immutable acquisition authorities
+        run: |
+          set -euo pipefail
+          test "$(git hash-object research/TRUMP_UF20_076_175_SECOND_PROSPECTIVE_WL_ORBIT_BRIDGE_PANEL_RESERVATION_PREREGISTRATION_2026-09-17_v1.0.json)" = "a242cb6b60b0f9531a0b942706145417f349aca8"
+          test "$(git hash-object research/TRUMP_UF20_076_175_SECOND_PROSPECTIVE_WL_ORBIT_BRIDGE_SOURCE_ACQUISITION_PREREGISTRATION_2026-09-17_v1.0.json)" = "67f4ddc9704d38816ab126000b503f3302fafa10"
+          test "$(git hash-object research/TRUMP_UF20_076_175_SECOND_PROSPECTIVE_WL_ORBIT_BRIDGE_SOURCE_ACQUISITION_REVIEW_2026-09-17_v1.0.json)" = "e94025710ccd23691ecddbfe03ef70ccf4a0fbf6"
+          test "$(git hash-object research/tools/apma_uf20_076_175_second_prospective_source_acquisition/candidate.py)" = "927b902715302a89eb09b895665846447f0872c4"
+
+      - name: Re-execute immutable acquisition candidate for diagnostic receipt only
+        run: |
+          set -euo pipefail
+          python research/tools/apma_uf20_076_175_second_prospective_source_acquisition/candidate.py > /tmp/acquire-diagnostic.json
+          python -m json.tool /tmp/acquire-diagnostic.json >/dev/null
+
+      - name: Build receipt without committing any source files
+        env:
+          RUN_ID: ${{ github.run_id }}
+          RUN_ATTEMPT: ${{ github.run_attempt }}
+          WORKFLOW_HEAD: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json,os
+          from pathlib import Path
+          x=json.load(open('/tmp/acquire-diagnostic.json'))
+          rows=x.get('rows',x.get('source_receipts',[]))
+          receipt={
+            'artifact_id':'JANUS-TRUMP-UF20-076-175-ACQUISITION-DIAGNOSTIC-RECEIPT-2026-09-17-v1.0',
+            'date':'2026-09-17',
+            'status':'FROZEN_DIAGNOSTIC_REEXECUTION_RECEIPT_ONLY__NO_SOURCE_FILES_COMMITTED_BY_THIS_WORKFLOW',
+            'parent_failed_run':{'run_id':35268385810,'attempts_failed_before_diagnostic':2},
+            'diagnostic_execution':{'run_id':int(os.environ['RUN_ID']),'run_attempt':int(os.environ['RUN_ATTEMPT']),'workflow_head':os.environ['WORKFLOW_HEAD']},
+            'candidate_blob':'927b902715302a89eb09b895665846447f0872c4',
+            'candidate_verdict':x.get('verdict'),
+            'error':x.get('error'),
+            'failed_source':x.get('source'),
+            'rows_completed_before_outcome':len(rows),
+            'last_completed_source':rows[-1].get('source') if rows else None,
+            'resource_receipt':x.get('resource_receipt',{}),
+            'guard':x.get('guard'),
+            'source_files_committed_by_this_diagnostic':0,
+            'structural_computation_barrier':{
+              'projected_raw_computations':0,
+              'pendant_target_computations':0,
+              'wl_computations':0,
+              'direct_transposition_checks':0,
+              'portfolio_replays':0,
+              'e3_witness_computations':0,
+              'solver_invocations':0
+            },
+            'scientific_firewall':{'P_VS_NP':'OPEN','GENERAL_SAT_IN_P':'NOT_PROVED','GENERAL_RESIDUAL_SEPARATOR_TRACTABILITY':'NOT_PROVED'}
+          }
+          Path('research/TRUMP_UF20_076_175_ACQUISITION_DIAGNOSTIC_RECEIPT_2026-09-17_v1.0.json').write_text(json.dumps(receipt,indent=2,sort_keys=True)+'\n')
+          PY
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: uf20-076-175-acquisition-diagnostic-receipt
+          path: |
+            /tmp/acquire-diagnostic.json
+            research/TRUMP_UF20_076_175_ACQUISITION_DIAGNOSTIC_RECEIPT_2026-09-17_v1.0.json
+
+      - name: Commit only diagnostic receipt
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add research/TRUMP_UF20_076_175_ACQUISITION_DIAGNOSTIC_RECEIPT_2026-09-17_v1.0.json
+          git diff --cached --check
+          test "$(git diff --cached --name-only | wc -l)" -eq 1
+          git commit -m 'TRUMP freeze UF20 076-175 acquisition diagnostic receipt'
+          git push origin HEAD:${GITHUB_REF_NAME}
