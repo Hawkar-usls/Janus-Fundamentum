@@ -131,7 +131,7 @@ def guard() -> dict[str, Any]:
         "prereg_blind": prereg.get("status") == "FROZEN_AFTER_SOURCE_FREEZE__BEFORE_FIRST_UF75_PROJECTION_PENDANT_WL_DIRECT_SWAP_OR_E3_VALUE",
         "review_authorized": review.get("review_verdict") == "PASS_CLEAN_UF75_OUT_OF_FAMILY_WL_ORBIT_FALSIFIER_SPEC__AUTHORIZED_TO_IMPLEMENT_AND_EXECUTE_ONCE",
         "source_freeze_pass": source_freeze.get("verdict") == "PASS_UF75_001_020_DUAL_MIRROR_SOURCE_ACQUISITION_AND_FORMULA_FREEZE",
-        "source_freeze_independent": source_freeze.get("execution", {}).get("independent_verdict") == "PASS_INDEPENDENT_UF75_001_020_SOURCE_FREEZE_VERIFICATION_V2",
+        "source_freeze_independent": source_freeze.get("execution", {}).get("independent_verdict") == "PASS_INDEPENDENT_UF75_001_020_SOURCE_FREEZE_VERIFICATION",
         "source_count": len(receipts) == 20,
         "source_order": tuple(row.get("source") for row in receipts) == ORDER,
         "sources_frozen": all(row.get("independent_verified") is True and row.get("status") == "SOURCE_FROZEN" for row in receipts),
