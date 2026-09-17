@@ -1,0 +1,234 @@
+name: TRUMP UF250 001-020 out-of-family source acquisition
+
+on:
+  push:
+    branches:
+      - research/trump-uf250-001-020-out-of-family-wl-orbit-falsifier-2026-09-18
+    paths:
+      - .github/workflows/trump-uf250-001-020-out-of-family-source-acquisition.yml
+
+permissions:
+  contents: write
+
+jobs:
+  acquire:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout exact workflow head
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Verify frozen authorities
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import hashlib
+          from pathlib import Path
+          expected={
+            'research/TRUMP_UF250_001_020_OUT_OF_FAMILY_WL_ORBIT_FALSIFIER_PANEL_RESERVATION_2026-09-18_v1.0.json':'3d2c274d6c532243edb8ced6cdbf8fd7a3044ea0',
+            'research/TRUMP_UF250_001_020_OUT_OF_FAMILY_SOURCE_ACQUISITION_PREREGISTRATION_2026-09-18_v1.0.json':'0ba8414e8139513f5e71778a71e6c3aac5cc8839',
+            'research/TRUMP_UF250_001_020_OUT_OF_FAMILY_SOURCE_ACQUISITION_REVIEW_2026-09-18_v1.0.json':'370a093a25884842ac348cbbe63566fe2b867a67',
+            'research/tools/apma_uf250_001_020_out_of_family_source_acquisition/candidate.py':'08993c766a200d9ed386085394b54871be75cf72',
+            'research/tools/apma_uf250_001_020_out_of_family_source_acquisition/independent_check.py':'8fef63e253f8691ff669bd121d56ce5b15651278',
+          }
+          def blob(path):
+              d=Path(path).read_bytes()
+              return hashlib.sha1(f'blob {len(d)}\0'.encode()+d).hexdigest()
+          bad={p:(h,blob(p)) for p,h in expected.items() if blob(p)!=h}
+          if bad: raise SystemExit(f'AUTHORITY_BINDING_FAILURE {bad}')
+          print('UF250_SOURCE_ACQUISITION_AUTHORITY_BINDINGS_PASS')
+          PY
+
+      - name: Execute blind UF250 acquisition candidate
+        shell: bash
+        run: |
+          set -euo pipefail
+          python research/tools/apma_uf250_001_020_out_of_family_source_acquisition/candidate.py > /tmp/uf250_candidate.json
+          python - <<'PY'
+          import json
+          x=json.load(open('/tmp/uf250_candidate.json'))
+          print(json.dumps({
+            'verdict':x.get('verdict'),
+            'source':x.get('source'),
+            'error':x.get('error'),
+            'receipts':len(x.get('source_receipts',[])),
+            'resource_receipt':x.get('resource_receipt')
+          },indent=2))
+          allowed={
+            'PASS_UF250_001_020_DUAL_MIRROR_SOURCE_ACQUISITION_AND_FORMULA_FREEZE',
+            'HALT_UF250_RESERVED_SOURCE_MISSING_OR_FETCH_FAILURE',
+            'HALT_UF250_DIMACS_OR_EXACT_3CNF_FORMAT_FAILURE',
+            'HALT_UF250_HEADER_ORDERED_CLAUSE_OR_CANONICAL_FORMULA_MISMATCH',
+            'HALT_UF250_AUTHORITY_OR_RESERVATION_BINDING_FAILURE',
+            'HALT_UF250_COMMITTED_COPY_BINDING_FAILURE',
+          }
+          if x.get('verdict') not in allowed: raise SystemExit(1)
+          PY
+
+      - name: Independent dual-mirror verification
+        shell: bash
+        run: |
+          set -euo pipefail
+          verdict="$(python - <<'PY'
+          import json
+          print(json.load(open('/tmp/uf250_candidate.json'))['verdict'])
+          PY
+          )"
+          if [ "$verdict" = "PASS_UF250_001_020_DUAL_MIRROR_SOURCE_ACQUISITION_AND_FORMULA_FREEZE" ]; then
+            python research/tools/apma_uf250_001_020_out_of_family_source_acquisition/independent_check.py --candidate /tmp/uf250_candidate.json > /tmp/uf250_independent.json
+          else
+            python - <<'PY' > /tmp/uf250_independent.json
+          import json
+          c=json.load(open('/tmp/uf250_candidate.json'))
+          print(json.dumps({
+            'verdict':'SKIPPED_INDEPENDENT_BECAUSE_CANDIDATE_HALTED',
+            'candidate_verdict':c.get('verdict')
+          },sort_keys=True,separators=(',',':')))
+          PY
+          fi
+          python -m json.tool /tmp/uf250_independent.json
+
+      - name: Build frozen acquisition result and immutable authority
+        shell: bash
+        env:
+          WORKFLOW_HEAD: ${{ github.sha }}
+          RUN_ID: ${{ github.run_id }}
+          RUN_ATTEMPT: ${{ github.run_attempt }}
+          RUN_NUMBER: ${{ github.run_number }}
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json,os
+          from pathlib import Path
+
+          c=json.load(open('/tmp/uf250_candidate.json'))
+          i=json.load(open('/tmp/uf250_independent.json'))
+          passed=(
+              c.get('verdict')=='PASS_UF250_001_020_DUAL_MIRROR_SOURCE_ACQUISITION_AND_FORMULA_FREEZE'
+              and i.get('verdict')=='PASS_INDEPENDENT_UF250_001_020_SOURCE_FREEZE_VERIFICATION'
+              and i.get('sources_verified')==20
+          )
+
+          if passed:
+              verified={r['filename']:r for r in i['verified_rows']}
+              receipts=[]
+              for row in c['source_receipts']:
+                  rr=dict(row)
+                  vr=verified[row['filename']]
+                  rr['independent_verified']=True
+                  rr['committed_git_blob']=vr['committed_git_blob']
+                  rr['status']='SOURCE_FROZEN'
+                  receipts.append(rr)
+              verdict='PASS_UF250_001_020_DUAL_MIRROR_SOURCE_ACQUISITION_AND_FORMULA_FREEZE'
+              status='FROZEN_UF250_SOURCE_PANEL'
+              next_step='SEPARATELY_PREREGISTER_UF250_001_020_WL_FIRST_OUT_OF_FAMILY_EVALUATION_WITH_THE_EXISTING_FROZEN_SELECTOR_AND_E1_E2_E3_GROUND_TRUTH'
+          else:
+              for p in Path('research/source_data').glob('SATLIB_UF250_*_2026-09-18.cnf'):
+                  p.unlink()
+              receipts=c.get('source_receipts',[])
+              if c.get('verdict')!='PASS_UF250_001_020_DUAL_MIRROR_SOURCE_ACQUISITION_AND_FORMULA_FREEZE':
+                  verdict=c.get('verdict')
+              else:
+                  verdict='HALT_UF250_COMMITTED_COPY_BINDING_FAILURE'
+              status='FROZEN_UF250_ACQUISITION_HALT'
+              next_step='DO_NOT_RUN_UF250_WL_OR_E3__RESOLVE_ONLY_THE_PREDECLARED_SOURCE_OR_BINDING_FAILURE_WITHOUT_SUBSTITUTION_OR_RETUNING'
+
+          result={
+            'artifact_id':'JANUS-TRUMP-UF250-001-020-OUT-OF-FAMILY-SOURCE-ACQUISITION-RESULT-2026-09-18-v1.0',
+            'date':'2026-09-18',
+            'status':status,
+            'verdict':verdict,
+            'gate':'TRUMP_UF250_001_020_OUT_OF_FAMILY_SOURCE_ACQUISITION_GATE',
+            'authorities':{
+              'reservation_commit':'fbeb7628d8254f2462d3869c594ea4b0b3afeecf',
+              'reservation_blob':'3d2c274d6c532243edb8ced6cdbf8fd7a3044ea0',
+              'acquisition_prereg_commit':'f7aeca2c1f613b159b9c497c46974cd6a71246e2',
+              'acquisition_prereg_blob':'0ba8414e8139513f5e71778a71e6c3aac5cc8839',
+              'acquisition_review_commit':'e1c67224d8e4b1c7962ea6be9cd5a420509430ca',
+              'acquisition_review_blob':'370a093a25884842ac348cbbe63566fe2b867a67',
+              'candidate_commit':'da68f1b1f83272f14b5c1db515d3aa8b17b3b4cd',
+              'candidate_blob':'08993c766a200d9ed386085394b54871be75cf72',
+              'independent_checker_commit':'652eb81242233efa714fd7f00178fe0faf5dc7e9',
+              'independent_checker_blob':'8fef63e253f8691ff669bd121d56ce5b15651278',
+              'workflow_head':os.environ['WORKFLOW_HEAD'],
+            },
+            'independence_receipt':{
+              'panel_reserved_before_UF150_scientific_outcome':True,
+              'UF150_run_id_at_reservation':35282426716,
+              'UF250_selection_used_UF150_structural_values':False,
+              'UF250_selection_used_UF150_scientific_outcome':False,
+            },
+            'execution':{
+              'run_id':int(os.environ['RUN_ID']),
+              'run_attempt':int(os.environ['RUN_ATTEMPT']),
+              'run_number':int(os.environ['RUN_NUMBER']),
+              'candidate_verdict':c.get('verdict'),
+              'independent_verdict':i.get('verdict'),
+              'candidate_imported_by_independent_checker':False,
+              'sources_verified':i.get('sources_verified',0),
+            },
+            'source_receipts':receipts,
+            'blind_barrier_receipt':{
+              'projected_raw_computations':0,
+              'pendant_target_computations':0,
+              'wl_computations':0,
+              'direct_transposition_checks':0,
+              'portfolio_replays':0,
+              'e3_witness_computations':0,
+              'solver_invocations':0,
+              'known_sat_label_feature_reads':0,
+            },
+            'next_step':next_step,
+            'claim_ceiling':'SOURCE_PROVENANCE_DUAL_MIRROR_FORMAT_AND_FORMULA_FREEZE_ONLY',
+            'scientific_firewall':{
+              'WL_SUFFICIENCY_WITHOUT_DIRECT_EXACT_CHECK':'NOT_PROVED',
+              'ARBITRARY_RESIDUAL_SEPARATOR_TRACTABILITY':'NOT_PROVED',
+              'GENERAL_SAT_IN_P':'NOT_PROVED',
+              'P_VS_NP':'OPEN',
+            },
+          }
+          out=Path('research/TRUMP_UF250_001_020_OUT_OF_FAMILY_SOURCE_ACQUISITION_RESULT_2026-09-18_v1.0.json')
+          auth=Path('research/TRUMP_UF250_001_020_OUT_OF_FAMILY_SOURCE_FREEZE_AUTHORITY_2026-09-18_v1.0.json')
+          payload=json.dumps(result,indent=2,sort_keys=True)+'\n'
+          out.write_text(payload)
+          auth.write_text(payload)
+          print(json.dumps({'verdict':verdict,'sources_verified':result['execution']['sources_verified'],'receipts':len(receipts)},indent=2))
+          PY
+
+      - name: Upload immutable acquisition receipts
+        uses: actions/upload-artifact@v4
+        with:
+          name: uf250-source-acquisition-${{ github.run_id }}
+          path: |
+            /tmp/uf250_candidate.json
+            /tmp/uf250_independent.json
+            research/TRUMP_UF250_001_020_OUT_OF_FAMILY_SOURCE_ACQUISITION_RESULT_2026-09-18_v1.0.json
+            research/TRUMP_UF250_001_020_OUT_OF_FAMILY_SOURCE_FREEZE_AUTHORITY_2026-09-18_v1.0.json
+
+      - name: Freeze result and source panel with safe fast-forward push
+        shell: bash
+        env:
+          BRANCH: research/trump-uf250-001-020-out-of-family-wl-orbit-falsifier-2026-09-18
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add research/TRUMP_UF250_001_020_OUT_OF_FAMILY_SOURCE_ACQUISITION_RESULT_2026-09-18_v1.0.json
+          git add research/TRUMP_UF250_001_020_OUT_OF_FAMILY_SOURCE_FREEZE_AUTHORITY_2026-09-18_v1.0.json
+          if [ -n "$(find research/source_data -maxdepth 1 -type f -name 'SATLIB_UF250_*_2026-09-18.cnf' -print -quit 2>/dev/null)" ]; then
+            git add research/source_data/SATLIB_UF250_*_2026-09-18.cnf
+          fi
+          git commit -m "TRUMP freeze UF250 001-020 dual-mirror source acquisition result"
+          git fetch origin "$BRANCH"
+          if [ "$(git rev-parse HEAD^)" != "$(git rev-parse origin/$BRANCH)" ]; then
+            git rebase "origin/$BRANCH"
+          fi
+          git push origin "HEAD:$BRANCH"
