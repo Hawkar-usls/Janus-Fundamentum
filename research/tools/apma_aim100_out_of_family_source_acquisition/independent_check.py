@@ -3,8 +3,9 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import shutil
+import subprocess
 import sys
-import urllib.request
 from pathlib import Path
 from typing import Any
 
@@ -13,11 +14,13 @@ CANDIDATE_FILE = ROOT / 'research/tools/apma_aim100_out_of_family_source_acquisi
 RESERVATION = ROOT / 'research/TRUMP_AIM100_OUT_OF_FAMILY_WL_E3_FALSIFIER_PANEL_RESERVATION_2026-09-18_v1.0.json'
 PREREG = ROOT / 'research/TRUMP_AIM100_OUT_OF_FAMILY_SOURCE_ACQUISITION_PREREGISTRATION_2026-09-18_v1.0.json'
 REVIEW = ROOT / 'research/TRUMP_AIM100_OUT_OF_FAMILY_SOURCE_ACQUISITION_REVIEW_2026-09-18_v1.0.json'
+ERRATUM = ROOT / 'research/TRUMP_AIM100_SOURCE_ACQUISITION_TRANSPORT_ERRATUM_2026-09-18_v1.1.json'
 EXPECTED = {
-    CANDIDATE_FILE: '9dfc5825f1c5da6f448321d3251bf54677cdfc78',
+    CANDIDATE_FILE: '89674e663eb19e3336e75c214ec6b3c589ce20b9',
     RESERVATION: 'e509b0c2bf392b547d505b5648895c8d2b9cedaa',
     PREREG: '3dc0cffa67de19453991e86c7a31224c01e84ef6',
     REVIEW: '47708e421e2d984ab8078f5131c86a6aa598fd15',
+    ERRATUM: 'fc33da20ce65000dc569e8de7f87668b8c931fbf',
 }
 PRIMARY_REPO = 'dmeoli/NeuroSAT'
 PRIMARY_COMMIT = '568b022fc0c56e7e24fe08c012753ef29c60938e'
@@ -38,13 +41,25 @@ def sha256(data: bytes) -> str:
     return hashlib.sha256(data).hexdigest()
 
 
-def fetch(repo: str, commit: str, path: str) -> bytes:
-    request = urllib.request.Request(
-        f'https://raw.githubusercontent.com/{repo}/{commit}/{path}',
-        headers={'User-Agent': 'Janus-Fundamentum-AIM100-source-independent-check/1.0'},
-    )
-    with urllib.request.urlopen(request, timeout=30) as response:
-        return response.read()
+def run_git(*args: str) -> None:
+    subprocess.run(['git', *args], check=True, stdout=subprocess.DEVNULL, stderr=subprocess.PIPE, text=True)
+
+
+def prepare_mirror(repo: str, commit: str, sparse_path: str, temp_name: str) -> Path:
+    target = Path('/tmp') / temp_name
+    if target.exists():
+        shutil.rmtree(target)
+    target.mkdir(parents=True)
+    run_git('-C', str(target), 'init', '-q')
+    run_git('-C', str(target), 'remote', 'add', 'origin', f'https://github.com/{repo}.git')
+    run_git('-C', str(target), 'fetch', '-q', '--depth=1', '--filter=blob:none', 'origin', commit)
+    run_git('-C', str(target), 'sparse-checkout', 'init', '--cone')
+    run_git('-C', str(target), 'sparse-checkout', 'set', sparse_path)
+    run_git('-C', str(target), 'checkout', '-q', '--detach', 'FETCH_HEAD')
+    observed = subprocess.check_output(['git', '-C', str(target), 'rev-parse', 'HEAD'], text=True).strip()
+    if observed != commit:
+        raise RuntimeError(f'commit_binding_mismatch:{observed}!={commit}')
+    return target
 
 
 def parse_dimacs_exact_3cnf(data: bytes) -> tuple[int, int, list[tuple[int, int, int]], str]:
@@ -76,7 +91,6 @@ def parse_dimacs_exact_3cnf(data: bytes) -> tuple[int, int, list[tuple[int, int,
         tokens.extend(int(x) for x in line.split())
     if nvars is None or nclauses is None:
         raise ValueError('missing_header')
-
     clauses: list[tuple[int, int, int]] = []
     current: list[int] = []
     for value in tokens:
@@ -107,26 +121,28 @@ def recompute() -> dict[str, Any]:
         return {'verdict': 'HALT_INDEPENDENT_AIM100_AUTHORITY_BINDING_FAILURE', 'bindings': bindings}
     if CANDIDATE_MODULE in sys.modules:
         return {'verdict': 'HALT_INDEPENDENT_AIM100_CANDIDATE_IMPORT_VIOLATION'}
-
     reservation = json.loads(RESERVATION.read_text())
     names = reservation.get('reserved_filenames', [])
     if len(names) != 16:
         return {'verdict': 'HALT_INDEPENDENT_AIM100_PANEL_BINDING_FAILURE'}
-
+    try:
+        primary_root = prepare_mirror(PRIMARY_REPO, PRIMARY_COMMIT, 'data/aim', 'janus_aim100_independent_primary')
+        verification_root = prepare_mirror(VERIFY_REPO, VERIFY_COMMIT, 'problems/aim', 'janus_aim100_independent_verification')
+    except Exception as exc:
+        return {'verdict': 'HALT_INDEPENDENT_AIM100_MIRROR_FETCH_FAILURE', 'error': f'{type(exc).__name__}:{exc}'}
     rows = []
     for filename in names:
         pp = f'data/aim/{filename}'
         vp = f'problems/aim/{filename}'
         try:
-            primary = fetch(PRIMARY_REPO, PRIMARY_COMMIT, pp)
-            verification = fetch(VERIFY_REPO, VERIFY_COMMIT, vp)
+            primary = (primary_root / pp).read_bytes()
+            verification = (verification_root / vp).read_bytes()
             pn, pm, pc, ph = parse_dimacs_exact_3cnf(primary)
             vn, vm, vc, vh = parse_dimacs_exact_3cnf(verification)
         except Exception as exc:
             return {'verdict': 'HALT_INDEPENDENT_AIM100_FETCH_OR_FORMAT_FAILURE', 'source': filename, 'error': f'{type(exc).__name__}:{exc}'}
         if (pn, pm, pc, ph) != (vn, vm, vc, vh):
             return {'verdict': 'HALT_INDEPENDENT_AIM100_MIRROR_MISMATCH', 'source': filename}
-
         stem = filename[:-4] if filename.endswith('.cnf') else filename
         staged = ROOT / f'research/source_data/AIM100_{stem}_2026-09-18.cnf'
         if not staged.exists() or staged.read_bytes() != primary:
@@ -153,7 +169,8 @@ def recompute() -> dict[str, Any]:
         'sources_verified': len(rows),
         'rows': rows,
         'resource_receipt': {
-            'remote_source_fetches': 32,
+            'mirror_git_fetches': 2,
+            'mirror_file_reads': 32,
             'projected_raw_computations': 0,
             'pendant_target_computations': 0,
             'wl_computations': 0,
@@ -174,7 +191,6 @@ def main() -> dict[str, Any]:
     independent = recompute()
     if independent.get('verdict') != 'PASS_INDEPENDENT_AIM100_16_SOURCE_FREEZE_VERIFICATION':
         return independent
-
     candidate_rows = candidate.get('source_receipts', [])
     independent_rows = independent['rows']
     by_candidate = {row.get('source'): row for row in candidate_rows}
@@ -197,20 +213,15 @@ def main() -> dict[str, Any]:
         'candidate_source_count_16': len(candidate_rows) == 16,
         'independent_source_count_16': independent['sources_verified'] == 16,
         'all_row_fields_match': all(all(v is True for k, v in row.items() if k != 'source') for row in comparisons),
-        'candidate_blind_barrier_zero': all(candidate.get('resource_receipt', {}).get(key) == 0 for key in (
-            'projected_raw_computations', 'pendant_target_computations', 'wl_computations',
-            'direct_transposition_checks', 'portfolio_replays', 'e3_witness_computations',
-            'solver_invocations', 'truth_label_feature_reads')),
-        'independent_blind_barrier_zero': all(independent.get('resource_receipt', {}).get(key) == 0 for key in (
-            'projected_raw_computations', 'pendant_target_computations', 'wl_computations',
-            'direct_transposition_checks', 'portfolio_replays', 'e3_witness_computations',
-            'solver_invocations', 'truth_label_feature_reads')),
+        'candidate_blind_barrier_zero': all(candidate.get('resource_receipt', {}).get(key) == 0 for key in ('projected_raw_computations','pendant_target_computations','wl_computations','direct_transposition_checks','portfolio_replays','e3_witness_computations','solver_invocations','truth_label_feature_reads')),
+        'independent_blind_barrier_zero': all(independent.get('resource_receipt', {}).get(key) == 0 for key in ('projected_raw_computations','pendant_target_computations','wl_computations','direct_transposition_checks','portfolio_replays','e3_witness_computations','solver_invocations','truth_label_feature_reads')),
     }
     return {
         **independent,
         'candidate_verdict': candidate.get('verdict'),
         'comparison_checks': checks,
         'row_comparisons': comparisons,
+        'failed_prior_run_id': 35277170407,
         'verdict': 'PASS_INDEPENDENT_AIM100_SOURCE_ACQUISITION_VERIFICATION' if all(checks.values()) else 'FAIL_INDEPENDENT_AIM100_SOURCE_ACQUISITION_MISMATCH',
     }
 
