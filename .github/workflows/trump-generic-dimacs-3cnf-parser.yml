@@ -1,0 +1,126 @@
+name: TRUMP generic DIMACS 3CNF parser gate
+
+on:
+  push:
+    branches:
+      - research/trump-cross-family-wl-replication-2026-09-17
+    paths:
+      - .github/workflows/trump-generic-dimacs-3cnf-parser.yml
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  parser-gate:
+    runs-on: ubuntu-latest
+    env:
+      PYTHONPATH: ${{ github.workspace }}
+    steps:
+      - name: Checkout exact branch head
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Verify frozen authorities
+        run: |
+          set -euo pipefail
+          test "$(git hash-object research/TRUMP_GENERIC_DIMACS_3CNF_PARSER_PREREGISTRATION_2026-09-17_v1.0.json)" = "9f59895d989d47b9a1d5e485a9658bced424283c"
+          test "$(git hash-object research/TRUMP_GENERIC_DIMACS_3CNF_PARSER_PREREGISTRATION_REVIEW_2026-09-17_v1.0.json)" = "6f869c063d243df8da2b2e1889f2d7ccd44ded3f"
+          test "$(git hash-object research/tools/apma_generic_dimacs_3cnf_parser/candidate.py)" = "8937b4f9314c73be1718bfe7058b9263cf98fad7"
+          test "$(git hash-object research/tools/apma_generic_dimacs_3cnf_parser/independent_check.py)" = "a05d9c44dca2f70ab0ad3700dedef6a5dd4e6020"
+
+      - name: Run candidate on synthetic controls only
+        run: |
+          set -euo pipefail
+          python research/tools/apma_generic_dimacs_3cnf_parser/candidate.py > /tmp/parser-candidate.json
+          python - <<'PY'
+          import json
+          x=json.load(open('/tmp/parser-candidate.json'))
+          print(x['verdict'])
+          assert x['verdict']=='PASS_GENERIC_DIMACS_3CNF_PARSER_SYNTHETIC_CONTROLS',x
+          assert len(x['rows'])==14
+          assert x['resource_receipt']['reserved_aim_formula_reads']==0
+          PY
+
+      - name: Independently recompute synthetic controls
+        run: |
+          set -euo pipefail
+          python research/tools/apma_generic_dimacs_3cnf_parser/independent_check.py --candidate /tmp/parser-candidate.json > /tmp/parser-independent.json
+          python - <<'PY'
+          import json
+          x=json.load(open('/tmp/parser-independent.json'))
+          print(x['verdict'])
+          assert x['candidate_imported'] is False
+          assert x['verdict']=='PASS_INDEPENDENT_GENERIC_DIMACS_3CNF_PARSER_VERIFICATION',x
+          assert x['resource_receipt']['reserved_aim_formula_reads']==0
+          PY
+
+      - name: Build frozen parser result
+        env:
+          RUN_ID: ${{ github.run_id }}
+          RUN_ATTEMPT: ${{ github.run_attempt }}
+          WORKFLOW_HEAD: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json,os,subprocess
+          from pathlib import Path
+          c=json.load(open('/tmp/parser-candidate.json'))
+          k=json.load(open('/tmp/parser-independent.json'))
+          def blob(path):
+              return subprocess.check_output(['git','hash-object',path],text=True).strip()
+          result={
+            'artifact_id':'JANUS-TRUMP-GENERIC-DIMACS-3CNF-PARSER-RESULT-2026-09-17-v1.0',
+            'date':'2026-09-17',
+            'status':'FROZEN_INDEPENDENTLY_VERIFIED_GENERIC_PARSER_RESULT',
+            'repository_authority':'Hawkar-usls/Janus-Fundamentum',
+            'verdict':'PASS_GENERIC_DIMACS_3CNF_PARSER_INDEPENDENTLY_VERIFIED',
+            'input_contract':{
+              'arbitrary_positive_n':True,
+              'arbitrary_positive_m':True,
+              'clause_arity_exactly_3':True,
+              'distinct_absolute_variables_per_clause':True,
+              'literal_range_1_to_n':True,
+              'ordered_clause_and_literal_sequence_preserved':True,
+              'canonical_formula_sha256':True
+            },
+            'candidate_rows':c['rows'],
+            'independent_checks':k['checks'],
+            'implementation':{
+              'candidate_commit':'2805723a263796b24c2e363688833610032c55c6',
+              'candidate_blob':'8937b4f9314c73be1718bfe7058b9263cf98fad7',
+              'independent_checker_commit':'0e5e15c9911fa1b482f904c8b6833824c40f47ff',
+              'independent_checker_blob':'a05d9c44dca2f70ab0ad3700dedef6a5dd4e6020',
+              'workflow_head':os.environ['WORKFLOW_HEAD'],
+              'workflow_blob':blob('.github/workflows/trump-generic-dimacs-3cnf-parser.yml')
+            },
+            'execution':{'run_id':int(os.environ['RUN_ID']),'run_attempt':int(os.environ['RUN_ATTEMPT']),'candidate_verdict':c['verdict'],'independent_verdict':k['verdict'],'candidate_imported_by_independent_checker':False},
+            'blindness_receipt':{'reserved_aim_formula_reads':0,'reserved_aim_clause_reads':0,'reserved_aim_canonical_hashes':0,'projected_raw_computations':0,'pendant_computations':0,'wl_computations':0,'portfolio_replays':0,'solver_invocations':0},
+            'licensed_fact':'THE_FROZEN_GENERIC_PARSER_CAN_VALIDATE_AND_CANONICALLY_HASH_ARBITRARY_FINITE_DIMACS_3CNF_INPUTS_WITHOUT_N20_M91_ASSUMPTIONS',
+            'post_pass_license':'USE_ONLY_FOR_DUAL_SOURCE_ACQUISITION_AND_FORMULA_IDENTITY_FREEZE_OF_THE_ALREADY_RESERVED_AIM_PANEL_UNTIL_A_SEPARATE_STRUCTURAL_EVALUATION_PREREGISTRATION_EXISTS',
+            'not_licensed':['AIM_STRUCTURAL_EVALUATION','R000_R111_ON_AIM','PENDANT_ON_AIM','WL_ON_AIM','PORTFOLIO_ON_AIM','GENERAL_SAT_IN_P','P_EQUALS_NP'],
+            'scientific_firewall':{'P_VS_NP':'OPEN','GENERAL_SAT_IN_P':'NOT_PROVED','GENERAL_RESIDUAL_SEPARATOR_TRACTABILITY':'NOT_PROVED'}
+          }
+          Path('research/TRUMP_GENERIC_DIMACS_3CNF_PARSER_RESULT_2026-09-17_v1.0.json').write_text(json.dumps(result,indent=2,sort_keys=True)+'\n')
+          PY
+
+      - name: Upload parser receipts
+        uses: actions/upload-artifact@v4
+        with:
+          name: generic-dimacs-3cnf-parser-receipt
+          path: |
+            /tmp/parser-candidate.json
+            /tmp/parser-independent.json
+            research/TRUMP_GENERIC_DIMACS_3CNF_PARSER_RESULT_2026-09-17_v1.0.json
+
+      - name: Commit frozen parser result
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add research/TRUMP_GENERIC_DIMACS_3CNF_PARSER_RESULT_2026-09-17_v1.0.json
+          git diff --cached --check
+          test "$(git diff --cached --name-only | wc -l)" -eq 1
+          git commit -m 'TRUMP freeze generic DIMACS 3CNF parser result'
+          git push origin HEAD:${GITHUB_REF_NAME}
