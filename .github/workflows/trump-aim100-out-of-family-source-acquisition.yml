@@ -31,15 +31,16 @@ jobs:
         with:
           python-version: '3.12'
 
-      - name: Verify frozen acquisition authorities and transport erratum
+      - name: Verify frozen acquisition authorities transport and path manifest
         run: |
           set -euo pipefail
           test "$(git hash-object research/TRUMP_AIM100_OUT_OF_FAMILY_WL_E3_FALSIFIER_PANEL_RESERVATION_2026-09-18_v1.0.json)" = "e509b0c2bf392b547d505b5648895c8d2b9cedaa"
           test "$(git hash-object research/TRUMP_AIM100_OUT_OF_FAMILY_SOURCE_ACQUISITION_PREREGISTRATION_2026-09-18_v1.0.json)" = "3dc0cffa67de19453991e86c7a31224c01e84ef6"
           test "$(git hash-object research/TRUMP_AIM100_OUT_OF_FAMILY_SOURCE_ACQUISITION_REVIEW_2026-09-18_v1.0.json)" = "47708e421e2d984ab8078f5131c86a6aa598fd15"
           test "$(git hash-object research/TRUMP_AIM100_SOURCE_ACQUISITION_TRANSPORT_ERRATUM_2026-09-18_v1.1.json)" = "fc33da20ce65000dc569e8de7f87668b8c931fbf"
-          test "$(git hash-object research/tools/apma_aim100_out_of_family_source_acquisition/candidate.py)" = "89674e663eb19e3336e75c214ec6b3c589ce20b9"
-          test "$(git hash-object research/tools/apma_aim100_out_of_family_source_acquisition/independent_check.py)" = "3ebbc4f4ec2dc0dc88956931ee08b368d3f35dbb"
+          test "$(git hash-object research/TRUMP_AIM100_VERIFICATION_PATH_BINDING_ERRATUM_2026-09-18_v1.2.json)" = "0e19c2e40cd7fa6eb37d3971b325d3d1b058b6c8"
+          test "$(git hash-object research/tools/apma_aim100_out_of_family_source_acquisition/candidate.py)" = "1d53e9d6420d503d8056b7fcac7b518edc6b5941"
+          test "$(git hash-object research/tools/apma_aim100_out_of_family_source_acquisition/independent_check.py)" = "24a13332ecb88af11b970f13aba7097f60de69bc"
 
       - name: Acquire and stage all sixteen reserved AIM100 sources
         run: |
@@ -102,6 +103,7 @@ jobs:
               v=verified[row['source']]
               assert v['independent_verified'] is True
               assert row['computed_committed_git_blob']==v['computed_committed_git_blob']
+              assert row['verification_path']==v['verification_path']
               out=dict(row)
               out['independent_verified']=True
               out['status']='SOURCE_FROZEN'
@@ -122,9 +124,11 @@ jobs:
               'acquisition_review_blob':'47708e421e2d984ab8078f5131c86a6aa598fd15',
               'transport_erratum_v1_1_commit':'a19670db2684ab62f0c220eba0d11003250e7d4f',
               'transport_erratum_v1_1_blob':'fc33da20ce65000dc569e8de7f87668b8c931fbf',
-              'candidate_commit':'94c829721806223d1eabf3f342d8e6a2bead9851',
+              'verification_path_erratum_v1_2_commit':'303a4904a5800614f4c87213c944ac04dcda898d',
+              'verification_path_erratum_v1_2_blob':'0e19c2e40cd7fa6eb37d3971b325d3d1b058b6c8',
+              'candidate_commit':'3f4c35728c20a44ead149ff67ab503437bd79c80',
               'candidate_blob':blob('research/tools/apma_aim100_out_of_family_source_acquisition/candidate.py'),
-              'independent_checker_commit':'a9cc2d9b2fde73c6bad659d07160b8e075defc7a',
+              'independent_checker_commit':'6cbb142db7df2d4335004bd5f8c8df39277d808c',
               'independent_checker_blob':blob('research/tools/apma_aim100_out_of_family_source_acquisition/independent_check.py'),
               'workflow_head':os.environ['WORKFLOW_HEAD']
             },
@@ -132,8 +136,10 @@ jobs:
               'run_id':int(os.environ['RUN_ID']),
               'run_number':int(os.environ['RUN_NUMBER']),
               'run_attempt':int(os.environ['RUN_ATTEMPT']),
-              'failed_prior_run_id':35277170407,
-              'failed_prior_run_class':'RAW_GITHUBUSERCONTENT_TRANSPORT_404_BEFORE_FIRST_SOURCE_STAGE',
+              'failed_prior_runs':[
+                {'run_id':35277170407,'class':'RAW_HOST_TRANSPORT_404_BEFORE_FIRST_SOURCE_STAGE','sources_staged':0},
+                {'run_id':35277553768,'class':'VERIFICATION_PATH_TEMPLATE_MISMATCH_BEFORE_FIRST_SOURCE_STAGE','sources_staged':0}
+              ],
               'independent_verdict':k['verdict'],
               'sources_verified':k['sources_verified'],
               'candidate_imported_by_independent_checker':False
