@@ -1,0 +1,164 @@
+name: TRUMP UF20 016-025 one-shot class coverage WL replication
+
+on:
+  push:
+    branches:
+      - research/trump-uf20-016-025-independent-class-coverage-2026-09-17
+    paths:
+      - .github/workflows/trump-uf20-016-025-one-shot-class-coverage-wl-replication.yml
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  one-shot-evaluation:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout exact branch head
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Verify frozen implementation blobs before execution
+        run: |
+          set -euo pipefail
+          test "$(git hash-object research/tools/apma_uf20_016_025_one_shot_class_coverage_wl_replication/candidate.py)" = "7a3f84fb078ef7c932435edd6abbd5299b9949b1"
+          test "$(git hash-object research/tools/apma_uf20_016_025_one_shot_class_coverage_wl_replication/independent_check.py)" = "1cf52629db147b92253df85129e7ee8e718d9244"
+          test "$(git hash-object research/TRUMP_UF20_016_025_ONE_SHOT_CLASS_COVERAGE_WL_REPLICATION_PREREGISTRATION_2026-09-17_v1.0.json)" = "f077b541689d8e2a8e7027f17d7627a78ebb9820"
+          test "$(git hash-object research/TRUMP_UF20_016_025_ONE_SHOT_CLASS_COVERAGE_WL_REPLICATION_REVIEW_2026-09-17_v1.0.json)" = "679391417b68acd2705027da2500a8c905c1902c"
+          test "$(git hash-object research/TRUMP_UF20_016_025_INDEPENDENT_CLASS_COVERAGE_SOURCE_ACQUISITION_RESULT_2026-09-17_v1.0.json)" = "32175d14369230ea4395c234a53a1207c2e8d10d"
+
+      - name: Execute frozen thin-wrapper candidate once
+        run: |
+          set -euo pipefail
+          python research/tools/apma_uf20_016_025_one_shot_class_coverage_wl_replication/candidate.py > /tmp/candidate.json
+          python - <<'PY'
+          import json
+          x=json.load(open('/tmp/candidate.json'))
+          print('candidate verdict:',x['verdict'])
+          if x['verdict']=='HALT_PREUNBLINDING_TRAINING_REGRESSION_FAILURE':
+              raise SystemExit('training regression halted before new panel evaluation')
+          assert x['verdict']=='PASS_ONE_SHOT_CLASS_COVERAGE_WL_REPLICATION_EVALUATION',x
+          assert x['resource_receipt']['holdout_sources_read']==10
+          assert x['resource_receipt']['generic_reduction_rounds_per_source']==1
+          assert x['resource_receipt']['iterated_peeling_rounds']==0
+          assert x['resource_receipt']['signed_route_invocations']==0
+          assert x['resource_receipt']['posthoc_thresholds_or_combinations']==0
+          print('route coverage:',x['route_class_coverage'])
+          print('route outcome:',x['route_coverage_outcome'])
+          print('WL outcome:',x['wl_replication_outcome'])
+          print('survivors:',x['surviving_features'])
+          PY
+
+      - name: Independently recompute and compare full result
+        run: |
+          set -euo pipefail
+          python research/tools/apma_uf20_016_025_one_shot_class_coverage_wl_replication/independent_check.py --candidate /tmp/candidate.json > /tmp/independent.json
+          python - <<'PY'
+          import json
+          x=json.load(open('/tmp/independent.json'))
+          print('independent verdict:',x['verdict'])
+          assert x['candidate_imported'] is False
+          assert x['verdict']=='PASS_INDEPENDENT_UF20_016_025_CLASS_COVERAGE_WL_REPLICATION_VERIFICATION',x
+          assert x['new_panel_formula_reads']==10
+          print('independent route coverage:',x['route_class_coverage'])
+          print('independent WL outcome:',x['wl_replication_outcome'])
+          PY
+
+      - name: Build frozen scientific result
+        env:
+          RUN_ID: ${{ github.run_id }}
+          RUN_ATTEMPT: ${{ github.run_attempt }}
+          WORKFLOW_HEAD: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json,os,subprocess
+          from pathlib import Path
+          c=json.load(open('/tmp/candidate.json'))
+          k=json.load(open('/tmp/independent.json'))
+          assert c['route_class_coverage']==k['route_class_coverage']
+          assert c['route_coverage_outcome']==k['route_coverage_outcome']
+          assert c['wl_replication_outcome']==k['wl_replication_outcome']
+          assert c['surviving_features']==k['independent_surviving_features']
+          def tree_blob(path):
+              return subprocess.check_output(['git','rev-parse',f'HEAD:{path}'],text=True).strip()
+          route=c['route_coverage_outcome']
+          wl=c['wl_replication_outcome']
+          if route=='PANEL_CONTAINS_BOTH_PORTFOLIO_OPEN_AND_PORTFOLIO_CLOSED':
+              coverage_status='BOTH_ROUTE_CLASSES_OBSERVED'
+          elif route=='PANEL_CONTAINS_ONLY_PORTFOLIO_OPEN':
+              coverage_status='OPEN_ONLY__CLASS_COVERAGE_STILL_LIMITED'
+          elif route=='PANEL_CONTAINS_ONLY_PORTFOLIO_CLOSED':
+              coverage_status='CLOSED_ONLY__CLASS_COVERAGE_STILL_LIMITED'
+          else:
+              raise AssertionError(route)
+          result={
+            'artifact_id':'JANUS-TRUMP-UF20-016-025-ONE-SHOT-CLASS-COVERAGE-WL-REPLICATION-RESULT-2026-09-17-v1.0',
+            'date':'2026-09-17',
+            'status':'FROZEN_ONE_SHOT_INDEPENDENTLY_VERIFIED_RESULT',
+            'repository_authority':'Hawkar-usls/Janus-Fundamentum',
+            'execution_verdict':'PASS_INDEPENDENT_ONE_SHOT_EXECUTION_AND_EXACT_RECOMPUTATION',
+            'scientific_outcome':{
+              'route_class_coverage':c['route_class_coverage'],
+              'route_coverage_outcome':route,
+              'coverage_status':coverage_status,
+              'wl_replication_outcome':wl,
+              'surviving_features':c['surviving_features'],
+              'falsified_features':c['falsified_features'],
+              'feature_scores':c['per_feature_scores']
+            },
+            'holdout_rows':c['holdout_rows'],
+            'training_regression':c['training_regression'],
+            'authorities':{
+              'panel_reservation_commit':'1ec7ae94f785fe82fb7ddc037f0e773933b237ad',
+              'source_freeze_commit':'d7e8ac9df1efefb2790d51ad9a66e466ddd970ce',
+              'class_preregistration_commit':'7bdf72a76ad053cbf8805b25140be5375a017332',
+              'class_review_commit':'ead5bc071eff76c1a40c92df8d27e5667e9da869',
+              'candidate_commit':'b330bb8ba5fa3baf045c6f1f8e746b04a018791d',
+              'candidate_blob':'7a3f84fb078ef7c932435edd6abbd5299b9949b1',
+              'independent_checker_commit':'10c9e01cd4a5fa8c78e059d898bc02c91dedbff4',
+              'independent_checker_blob':'1cf52629db147b92253df85129e7ee8e718d9244',
+              'previous_fresh_executable_candidate_commit':'ad7e4416f6136f1a02e7be2f55cc49b6f79eaac4',
+              'previous_fresh_executable_candidate_blob':'9ec365ae27a6caa7b936cd33040e542f183ded99',
+              'previous_fresh_independent_checker_commit':'ecbfd763f5c9ad7683db600c862beb39ab409f10',
+              'previous_fresh_independent_checker_blob':'d47a89a377cb655c01d0470328635211792c63c4',
+              'workflow_head':os.environ['WORKFLOW_HEAD'],
+              'workflow_blob':tree_blob('.github/workflows/trump-uf20-016-025-one-shot-class-coverage-wl-replication.yml')
+            },
+            'execution':{
+              'run_id':int(os.environ['RUN_ID']),
+              'run_attempt':int(os.environ['RUN_ATTEMPT']),
+              'candidate_verdict':c['verdict'],
+              'independent_verdict':k['verdict'],
+              'candidate_imported_by_independent_checker':False,
+              'sources_evaluated':10
+            },
+            'resource_receipt':c['resource_receipt'],
+            'licensed_conclusion':'THIS_IS_A_FINITE_PRE_REGISTERED_REPLICATION_AND_CLASS_COVERAGE_RESULT_FOR_THE_FROZEN_UF20_016_TO_UF20_025_PANEL_ONLY',
+            'not_licensed':['SEPARATOR_THEOREM','GENERAL_RESIDUAL_TRACTABILITY','GENERAL_SAT_IN_P','P_EQUALS_NP','NEW_SOLVER_ROUTE','POSTHOC_RETUNING'],
+            'scientific_firewall':{'P_VS_NP':'OPEN','GENERAL_SAT_IN_P':'NOT_PROVED','GENERAL_RESIDUAL_SEPARATOR_TRACTABILITY':'NOT_PROVED'}
+          }
+          Path('research/TRUMP_UF20_016_025_ONE_SHOT_CLASS_COVERAGE_WL_REPLICATION_RESULT_2026-09-17_v1.0.json').write_text(json.dumps(result,indent=2,sort_keys=True)+'\n')
+          PY
+
+      - name: Upload execution receipts
+        uses: actions/upload-artifact@v4
+        with:
+          name: uf20-016-025-one-shot-class-coverage-wl-replication-receipt
+          path: |
+            /tmp/candidate.json
+            /tmp/independent.json
+            research/TRUMP_UF20_016_025_ONE_SHOT_CLASS_COVERAGE_WL_REPLICATION_RESULT_2026-09-17_v1.0.json
+
+      - name: Commit frozen one-shot result
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add research/TRUMP_UF20_016_025_ONE_SHOT_CLASS_COVERAGE_WL_REPLICATION_RESULT_2026-09-17_v1.0.json
+          git diff --cached --check
+          test "$(git diff --cached --name-only | wc -l)" -eq 1
+          git commit -m 'TRUMP freeze UF20 016-025 one-shot class coverage WL replication result'
+          git push origin HEAD:${GITHUB_REF_NAME}
