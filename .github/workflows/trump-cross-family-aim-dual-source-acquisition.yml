@@ -1,0 +1,144 @@
+name: TRUMP cross-family AIM dual-source acquisition
+
+on:
+  push:
+    branches:
+      - research/trump-cross-family-wl-replication-2026-09-17
+    paths:
+      - .github/workflows/trump-cross-family-aim-dual-source-acquisition.yml
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  acquire-freeze:
+    runs-on: ubuntu-latest
+    env:
+      PYTHONPATH: ${{ github.workspace }}
+    steps:
+      - name: Checkout exact branch head
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Verify frozen authorities before first formula fetch
+        run: |
+          set -euo pipefail
+          test "$(git hash-object research/TRUMP_CROSS_FAMILY_AIM_DUAL_SOURCE_ACQUISITION_PREREGISTRATION_2026-09-17_v1.0.json)" = "210e2b16259ce726477c74652fb8d8868a0a8ba4"
+          test "$(git hash-object research/TRUMP_CROSS_FAMILY_AIM_DUAL_SOURCE_ACQUISITION_PREREGISTRATION_REVIEW_2026-09-17_v1.0.json)" = "e9634d317c713acfb4c0f0dc52560b97fca0b8c5"
+          test "$(git hash-object research/TRUMP_CROSS_FAMILY_AIM_PANEL_RESERVATION_PREREGISTRATION_2026-09-17_v1.0.json)" = "737ce2def5953e1a727a8d50e772e59fcfc438be"
+          test "$(git hash-object research/TRUMP_CROSS_FAMILY_AIM_SECOND_SOURCE_DISCOVERY_RESULT_2026-09-17_v1.0.json)" = "9b4698175d187a9c549d17fe8fc22d9cc71de20b"
+          test "$(git hash-object research/TRUMP_GENERIC_DIMACS_3CNF_PARSER_RESULT_2026-09-17_v1.0.json)" = "81b406dcdd5c4c47cd00d8e8d8fd34a8000c6554"
+          test "$(git hash-object research/tools/apma_generic_dimacs_3cnf_parser/candidate.py)" = "8937b4f9314c73be1718bfe7058b9263cf98fad7"
+          test "$(git hash-object research/tools/apma_generic_dimacs_3cnf_parser/independent_check.py)" = "a05d9c44dca2f70ab0ad3700dedef6a5dd4e6020"
+          test "$(git hash-object research/tools/apma_cross_family_aim_dual_source_acquisition/candidate.py)" = "49ba5d210b73d3a2e1f89dbd73d32fe2924d2591"
+          test "$(git hash-object research/tools/apma_cross_family_aim_dual_source_acquisition/independent_check.py)" = "6f470baaa4fd6b39167411342d4176ecc317de1a"
+
+      - name: Fetch and compare all eight reserved AIM formulas
+        run: |
+          set -euo pipefail
+          python research/tools/apma_cross_family_aim_dual_source_acquisition/candidate.py > /tmp/aim-acquisition-candidate.json
+          python - <<'PY'
+          import json
+          x=json.load(open('/tmp/aim-acquisition-candidate.json'))
+          print('candidate verdict:',x['verdict'])
+          assert x['verdict']=='PASS_AIM_DUAL_SOURCE_ACQUISITION_CANDIDATE',x
+          assert len(x['rows'])==8
+          assert all(r['status']=='SOURCE_READY_TO_FREEZE' for r in x['rows'])
+          assert all(r['ordered_clause_sequence_equal'] and r['n_m_equal'] and r['canonical_formula_sha256_equal'] for r in x['rows'])
+          assert x['resource_receipt']['formula_body_fetches']==16
+          assert all(x['resource_receipt'][k]==0 for k in ('projected_raw_computations','pendant_computations','wl_computations','portfolio_replays','route_labels','solver_invocations'))
+          print('shapes:',[(r['basename'],r['nvars'],r['nclauses']) for r in x['rows']])
+          PY
+
+      - name: Independently refetch reparse and verify local copies
+        run: |
+          set -euo pipefail
+          python research/tools/apma_cross_family_aim_dual_source_acquisition/independent_check.py --candidate /tmp/aim-acquisition-candidate.json > /tmp/aim-acquisition-independent.json
+          python - <<'PY'
+          import json
+          x=json.load(open('/tmp/aim-acquisition-independent.json'))
+          print('independent verdict:',x['verdict'])
+          assert x['candidate_imported'] is False
+          assert x['verdict']=='PASS_INDEPENDENT_AIM_DUAL_SOURCE_ACQUISITION_VERIFICATION',x
+          assert all(x['checks'].values()),x['checks']
+          PY
+
+      - name: Build frozen source acquisition result
+        env:
+          RUN_ID: ${{ github.run_id }}
+          RUN_ATTEMPT: ${{ github.run_attempt }}
+          WORKFLOW_HEAD: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json,os,subprocess
+          from pathlib import Path
+          c=json.load(open('/tmp/aim-acquisition-candidate.json'))
+          k=json.load(open('/tmp/aim-acquisition-independent.json'))
+          assert k['verdict']=='PASS_INDEPENDENT_AIM_DUAL_SOURCE_ACQUISITION_VERIFICATION'
+          assert all(r['status']=='SOURCE_READY_TO_FREEZE' for r in c['rows'])
+          rows=[]
+          for row in c['rows']:
+              q=dict(row)
+              q['status']='SOURCE_FROZEN'
+              q['independent_verified']=True
+              rows.append(q)
+          workflow_blob=subprocess.check_output(['git','hash-object','.github/workflows/trump-cross-family-aim-dual-source-acquisition.yml'],text=True).strip()
+          result={
+            'artifact_id':'JANUS-TRUMP-CROSS-FAMILY-AIM-DUAL-SOURCE-ACQUISITION-RESULT-2026-09-17-v1.0',
+            'date':'2026-09-17',
+            'status':'FROZEN_DUAL_SOURCE_AIM_FORMULA_IDENTITY_RESULT',
+            'repository_authority':'Hawkar-usls/Janus-Fundamentum',
+            'verdict':'PASS_AIM_DUAL_SOURCE_ACQUISITION_AND_EXACT_FORMULA_FREEZE',
+            'authorities':{
+              'panel_reservation_commit':'929bf56ff07b43c5b9d610acda292067b4202666',
+              'second_source_discovery_commit':'1d008a380a105a587a5bd239bf3900418c75dc77',
+              'parser_result_commit':'176d104a805deca3774517bae85df4e7859be2b1',
+              'acquisition_preregistration_commit':'8403401610aa835a3e66d5ac4b546133984a0cd9',
+              'acquisition_review_commit':'a37c986a22e4afae1dfadb865f4fcf4e2ad7808f',
+              'candidate_commit':'9da0e93f0f79b1aa970062d507412363ea72c9db',
+              'candidate_blob':'49ba5d210b73d3a2e1f89dbd73d32fe2924d2591',
+              'independent_checker_commit':'ab08a19b64800ab603f513e2b572601e4e0a0a1d',
+              'independent_checker_blob':'6f470baaa4fd6b39167411342d4176ecc317de1a',
+              'workflow_head':os.environ['WORKFLOW_HEAD'],
+              'workflow_blob':workflow_blob
+            },
+            'sources':{
+              'A':{'repo':'dncarley/MolecularSimulation','commit':'d23a1d1775a939af0a6032ec459e5055919843a7','directory':'data/aim'},
+              'B':{'repo':'dmeoli/NeuroSAT','commit':'568b022fc0c56e7e24fe08c012753ef29c60938e','directory':'data/aim'}
+            },
+            'source_receipts':rows,
+            'execution':{'run_id':int(os.environ['RUN_ID']),'run_attempt':int(os.environ['RUN_ATTEMPT']),'candidate_verdict':c['verdict'],'independent_verdict':k['verdict'],'candidate_imported_by_independent_checker':False,'sources_verified':8},
+            'metadata_firewall':c['metadata_firewall'],
+            'blind_barrier_receipt':{'projected_raw_computations':0,'pendant_computations':0,'wl_computations':0,'portfolio_replays':0,'route_labels':0,'solver_invocations':0},
+            'licensed_fact':'THE_EIGHT_PRE_RESERVED_AIM_FORMULAS_ARE_EXACTLY_IDENTICAL_AS_ORDERED_3CNF_FORMULAS_ACROSS_TWO_PINNED_PUBLIC_REPOSITORIES_AND_ARE_SOURCE_FROZEN_LOCALLY',
+            'next_gate':'PREREGISTER_CROSS_FAMILY_AIM_ONE_SHOT_STRUCTURAL_WL_REPLICATION_WITH_UNCHANGED_R000_R111_ONE_ROUND_PENDANT_FOUR_WL_FEATURES_AND_E1_E2_E3_PORTFOLIO',
+            'next_gate_status':'AUTHORIZED_TO_PREREGISTER_ONLY',
+            'not_licensed':['AIM_STRUCTURAL_EVALUATION_BEFORE_NEXT_PREREGISTRATION','PANEL_CHANGE','WL_RETUNING','NEW_ROUTE','SIGNED_SOURCE_BOUND_ROUTE','GENERAL_SAT_IN_P','P_EQUALS_NP'],
+            'scientific_firewall':{'P_VS_NP':'OPEN','GENERAL_SAT_IN_P':'NOT_PROVED','GENERAL_RESIDUAL_SEPARATOR_TRACTABILITY':'NOT_PROVED'}
+          }
+          Path('research/TRUMP_CROSS_FAMILY_AIM_DUAL_SOURCE_ACQUISITION_RESULT_2026-09-17_v1.0.json').write_text(json.dumps(result,indent=2,sort_keys=True)+'\n')
+          PY
+
+      - name: Upload immutable acquisition receipts
+        uses: actions/upload-artifact@v4
+        with:
+          name: cross-family-aim-dual-source-acquisition-receipt
+          path: |
+            /tmp/aim-acquisition-candidate.json
+            /tmp/aim-acquisition-independent.json
+            research/TRUMP_CROSS_FAMILY_AIM_DUAL_SOURCE_ACQUISITION_RESULT_2026-09-17_v1.0.json
+
+      - name: Commit eight frozen AIM sources and result
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add research/source_data/SATLIB_AIM_AIM_100_1_6_*_2026-09-17.cnf
+          git add research/TRUMP_CROSS_FAMILY_AIM_DUAL_SOURCE_ACQUISITION_RESULT_2026-09-17_v1.0.json
+          git diff --cached --check
+          test "$(git diff --cached --name-only | wc -l)" -eq 9
+          git commit -m 'TRUMP freeze eight AIM formulas from dual public sources'
+          git push origin HEAD:${GITHUB_REF_NAME}
