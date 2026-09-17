@@ -1,0 +1,191 @@
+name: TRUMP DUBOIS13 out-of-family source acquisition
+
+on:
+  push:
+    branches:
+      - research/trump-dubois13-out-of-family-wl-e3-falsifier-2026-09-18
+    paths-ignore:
+      - 'research/source_data/DUBOIS13_*'
+      - 'research/TRUMP_DUBOIS13_OUT_OF_FAMILY_SOURCE_ACQUISITION_RESULT_2026-09-18_v1.0.json'
+
+permissions:
+  contents: write
+
+jobs:
+  acquire:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout exact workflow head
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Verify frozen authorities
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git hash-object research/tools/apma_dubois13_out_of_family_source_acquisition/candidate.py)" = "e94e22ddd55901baeed80d1b9a330b5d61e441b2"
+          test "$(git hash-object research/tools/apma_dubois13_out_of_family_source_acquisition/independent_check.py)" = "ca183ad7fb9be56563d8abf0d8de9114bd569b41"
+          test "$(git hash-object research/TRUMP_DUBOIS13_OUT_OF_FAMILY_WL_E3_FALSIFIER_PANEL_RESERVATION_2026-09-18_v1.0.json)" = "46d1ec596d98735ba27794e81b0e3a091a4c1ec4"
+          test "$(git hash-object research/TRUMP_DUBOIS13_OUT_OF_FAMILY_SOURCE_ACQUISITION_PREREGISTRATION_2026-09-18_v1.0.json)" = "ff33e88180774a15107acdf1975070c554ff8e42"
+          test "$(git hash-object research/TRUMP_DUBOIS13_OUT_OF_FAMILY_SOURCE_ACQUISITION_REVIEW_2026-09-18_v1.0.json)" = "defabfddeadbfecc226a0100509514d55f1bf240"
+
+      - name: Execute blind DUBOIS13 acquisition candidate
+        shell: bash
+        run: |
+          set -euo pipefail
+          python research/tools/apma_dubois13_out_of_family_source_acquisition/candidate.py > /tmp/dubois_candidate.json
+          python -m json.tool /tmp/dubois_candidate.json > /tmp/dubois_candidate.pretty.json
+          cat /tmp/dubois_candidate.pretty.json
+
+      - name: Independent dual-mirror verification
+        id: independent
+        shell: bash
+        run: |
+          set -euo pipefail
+          verdict="$(python - <<'PY'
+          import json
+          print(json.load(open('/tmp/dubois_candidate.json'))['verdict'])
+          PY
+          )"
+          if [ "$verdict" = "PASS_DUBOIS13_DUAL_MIRROR_SOURCE_ACQUISITION_AND_FORMULA_FREEZE" ]; then
+            python research/tools/apma_dubois13_out_of_family_source_acquisition/independent_check.py --candidate /tmp/dubois_candidate.json > /tmp/dubois_independent.json
+          else
+            python - <<'PY'
+          import json
+          c=json.load(open('/tmp/dubois_candidate.json'))
+          print(json.dumps({'verdict':'SKIPPED_INDEPENDENT_BECAUSE_CANDIDATE_HALTED','candidate_verdict':c.get('verdict')},sort_keys=True,separators=(',',':')))
+          PY
+            > /tmp/dubois_independent.json
+          fi
+          python -m json.tool /tmp/dubois_independent.json
+          echo "candidate_verdict=$verdict" >> "$GITHUB_OUTPUT"
+
+      - name: Build frozen acquisition result
+        shell: bash
+        env:
+          WORKFLOW_HEAD: ${{ github.sha }}
+          RUN_ID: ${{ github.run_id }}
+          RUN_ATTEMPT: ${{ github.run_attempt }}
+          RUN_NUMBER: ${{ github.run_number }}
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import hashlib, json, os
+          from pathlib import Path
+
+          root=Path('.')
+          c=json.load(open('/tmp/dubois_candidate.json'))
+          k=json.load(open('/tmp/dubois_independent.json'))
+          passed=(c.get('verdict')=='PASS_DUBOIS13_DUAL_MIRROR_SOURCE_ACQUISITION_AND_FORMULA_FREEZE' and
+                  k.get('verdict')=='PASS_INDEPENDENT_DUBOIS13_SOURCE_FREEZE_VERIFICATION' and
+                  k.get('sources_verified')==13)
+
+          if passed:
+              verified={r['source']:r for r in k['verified_rows']}
+              receipts=[]
+              for row in c['source_receipts']:
+                  rr=dict(row)
+                  vr=verified[row['source']]
+                  rr['independent_verified']=True
+                  rr['committed_git_blob']=vr['committed_git_blob']
+                  rr['status']='SOURCE_FROZEN'
+                  receipts.append(rr)
+              verdict='PASS_DUBOIS13_DUAL_MIRROR_SOURCE_ACQUISITION_AND_FORMULA_FREEZE'
+              status='FROZEN_DUBOIS13_SOURCE_PANEL'
+              next_step='PREREGISTER_DUBOIS13_WL_FIRST_OUT_OF_FAMILY_EVALUATION_WITH_THE_EXISTING_FROZEN_SELECTOR_AND_E1_E2_E3_GROUND_TRUTH'
+          else:
+              for p in root.glob('research/source_data/DUBOIS13_*_2026-09-18.cnf'):
+                  p.unlink()
+              receipts=c.get('source_receipts',[])
+              cv=c.get('verdict')
+              if cv!='PASS_DUBOIS13_DUAL_MIRROR_SOURCE_ACQUISITION_AND_FORMULA_FREEZE':
+                  verdict=cv
+              else:
+                  verdict='HALT_DUBOIS13_COMMITTED_COPY_BINDING_FAILURE'
+              status='FROZEN_DUBOIS13_ACQUISITION_HALT'
+              next_step='DO_NOT_RUN_DUBOIS13_WL_OR_E3;RESOLVE_ONLY_THE_PREDECLARED_SOURCE_OR_BINDING_FAILURE_WITHOUT_SUBSTITUTION_OR_RETUNING'
+
+          result={
+            'artifact_id':'JANUS-TRUMP-DUBOIS13-OUT-OF-FAMILY-SOURCE-ACQUISITION-RESULT-2026-09-18-v1.0',
+            'date':'2026-09-18',
+            'status':status,
+            'verdict':verdict,
+            'gate':'TRUMP_DUBOIS13_OUT_OF_FAMILY_SOURCE_ACQUISITION_GATE',
+            'authorities':{
+              'reservation_commit':'7a3771a575b2bb74d9a271a2f6e85ba95a3836af',
+              'reservation_blob':'46d1ec596d98735ba27794e81b0e3a091a4c1ec4',
+              'acquisition_prereg_commit':'385df70e0639aae0d4d49ca24144e6ce0bfa12ef',
+              'acquisition_prereg_blob':'ff33e88180774a15107acdf1975070c554ff8e42',
+              'acquisition_review_blob':'defabfddeadbfecc226a0100509514d55f1bf240',
+              'candidate_commit':'321e8c4d2c5ec425160514adb0034dc82ea41ee1',
+              'candidate_blob':'e94e22ddd55901baeed80d1b9a330b5d61e441b2',
+              'independent_checker_commit':'18f387bae5d15a12099e8f49f2cf4502b9a080e2',
+              'independent_checker_blob':'ca183ad7fb9be56563d8abf0d8de9114bd569b41',
+              'workflow_head':os.environ['WORKFLOW_HEAD'],
+            },
+            'execution':{
+              'run_id':int(os.environ['RUN_ID']),
+              'run_attempt':int(os.environ['RUN_ATTEMPT']),
+              'run_number':int(os.environ['RUN_NUMBER']),
+              'candidate_verdict':c.get('verdict'),
+              'independent_verdict':k.get('verdict'),
+              'candidate_imported_by_independent_checker':False,
+              'sources_verified':k.get('sources_verified',0),
+            },
+            'source_receipts':receipts,
+            'blind_barrier_receipt':{
+              'projected_raw_computations':0,
+              'pendant_target_computations':0,
+              'wl_computations':0,
+              'direct_transposition_checks':0,
+              'portfolio_replays':0,
+              'e3_witness_computations':0,
+              'solver_invocations':0,
+              'known_unsat_label_feature_reads':0,
+            },
+            'next_step':next_step,
+            'claim_ceiling':'SOURCE_PROVENANCE_DUAL_MIRROR_FORMAT_AND_FORMULA_FREEZE_ONLY',
+            'scientific_firewall':{
+              'WL_SUFFICIENCY_WITHOUT_DIRECT_EXACT_CHECK':'NOT_PROVED',
+              'GENERAL_SAT_IN_P':'NOT_PROVED',
+              'P_VS_NP':'OPEN',
+            },
+          }
+          Path('research/TRUMP_DUBOIS13_OUT_OF_FAMILY_SOURCE_ACQUISITION_RESULT_2026-09-18_v1.0.json').write_text(json.dumps(result,indent=2,sort_keys=True)+'\n')
+          print(json.dumps({'verdict':verdict,'sources_verified':result['execution']['sources_verified'],'source_receipts':len(receipts)},indent=2))
+          PY
+
+      - name: Upload immutable execution receipts
+        uses: actions/upload-artifact@v4
+        with:
+          name: dubois13-source-acquisition-${{ github.run_id }}
+          path: |
+            /tmp/dubois_candidate.json
+            /tmp/dubois_independent.json
+            research/TRUMP_DUBOIS13_OUT_OF_FAMILY_SOURCE_ACQUISITION_RESULT_2026-09-18_v1.0.json
+
+      - name: Freeze result and sources with safe fast-forward push
+        shell: bash
+        env:
+          BRANCH: research/trump-dubois13-out-of-family-wl-e3-falsifier-2026-09-18
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add research/TRUMP_DUBOIS13_OUT_OF_FAMILY_SOURCE_ACQUISITION_RESULT_2026-09-18_v1.0.json
+          if [ -n "$(find research/source_data -maxdepth 1 -type f -name 'DUBOIS13_*_2026-09-18.cnf' -print -quit 2>/dev/null)" ]; then
+            git add research/source_data/DUBOIS13_*_2026-09-18.cnf
+          fi
+          git commit -m "TRUMP freeze DUBOIS13 dual-mirror source acquisition result"
+          git fetch origin "$BRANCH"
+          if [ "$(git rev-parse HEAD^)" != "$(git rev-parse origin/$BRANCH)" ]; then
+            git rebase "origin/$BRANCH"
+          fi
+          git push origin "HEAD:$BRANCH"
