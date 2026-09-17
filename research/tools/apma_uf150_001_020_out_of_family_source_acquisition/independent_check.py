@@ -7,7 +7,7 @@ import urllib.request
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[3]
-CANDIDATE = ROOT / 'research/tools/apma_uf150_001_020_out_of_family_source_acquisition/candidate_v2.py'
+CANDIDATE = ROOT / 'research/tools/apma_uf150_001_020_out_of_family_source_acquisition/candidate.py'
 RESERVATION = ROOT / 'research/TRUMP_UF150_001_020_OUT_OF_FAMILY_WL_ORBIT_FALSIFIER_PANEL_RESERVATION_2026-09-18_v1.0.json'
 PREREG = ROOT / 'research/TRUMP_UF150_001_020_OUT_OF_FAMILY_SOURCE_ACQUISITION_PREREGISTRATION_2026-09-18_v1.0.json'
 REVIEW = ROOT / 'research/TRUMP_UF150_001_020_OUT_OF_FAMILY_SOURCE_ACQUISITION_REVIEW_2026-09-18_v1.0.json'
