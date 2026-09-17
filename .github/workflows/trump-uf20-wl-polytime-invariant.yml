@@ -1,0 +1,65 @@
+name: TRUMP UF20 WL polytime structural invariant
+
+on:
+  push:
+    branches:
+      - research/trump-uf20-wl-polytime-invariant-2026-09-17
+    paths:
+      - .github/workflows/trump-uf20-wl-polytime-invariant.yml
+
+permissions:
+  contents: write
+
+concurrency:
+  group: trump-uf20-wl-polytime-invariant-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  wl-invariant:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout exact workflow head
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Run preregistered WL candidate
+        run: |
+          python -m research.tools.apma_satlib_uf20_wl_polytime_structural_invariant.candidate > /tmp/wl_candidate.json
+          python -m json.tool /tmp/wl_candidate.json >/dev/null
+      - name: Run independent WL checker
+        run: |
+          python -m research.tools.apma_satlib_uf20_wl_polytime_structural_invariant.independent_check --candidate /tmp/wl_candidate.json > /tmp/wl_check.json
+          python -m json.tool /tmp/wl_check.json >/dev/null
+      - name: Freeze verified diagnostic result
+        env:
+          WORKFLOW_HEAD: ${{ github.sha }}
+          RUN_ID: ${{ github.run_id }}
+          RUN_NUMBER: ${{ github.run_number }}
+        run: |
+          python - <<'PY'
+          import json,os
+          from pathlib import Path
+          c=json.loads(Path('/tmp/wl_candidate.json').read_text());k=json.loads(Path('/tmp/wl_check.json').read_text())
+          allowed={'WL_POLYTIME_COMMON_INVARIANT_CANDIDATE_SET_FOUND__BLIND_FALSIFIER_REQUIRED','NO_WL_COMMON_INVARIANT_FOUND_ON_FROZEN_FIXED_DIMENSION_BASIS'}
+          assert c['verdict'] in allowed
+          assert k['verdict']=='PASS_INDEPENDENT_WL_VERIFICATION'
+          assert c['blindness_receipt']['historical_control_wl_values_read_or_computed']==0
+          assert c['blindness_receipt']['fresh_holdout_wl_values_read_or_computed']==0
+          assert c['scientific_firewall']['P_VS_NP']=='OPEN' and c['scientific_firewall']['GENERAL_SAT_IN_P']=='NOT_PROVED'
+          candidates=c['candidate_invariant_set']
+          captain=({'current_status':'FROZEN_PROVENANCE_FREE_POLYTIME_WL_CANDIDATE_SET_FOUND_ON_DISCOVERY_PANEL','nearest_missing_obligation':'PREREGISTER_BLIND_FALSIFIER_ON_PREEXISTING_SOURCE_BOUND_CONTROLS_BEFORE_ANY_REDUCTIVE_INTERPRETATION','directive':'FREEZE_ALL_CANDIDATES_AS_IS;DO_NOT_RANK_OR_MODIFY;OPEN_HISTORICAL_CONTROLS_ONLY_UNDER_A_NEW_BLIND_GATE'} if candidates else {'current_status':'FIXED_DIMENSION_WL_BASIS_EXHAUSTED_WITHOUT_A_COMMON_BLOCKER_INVARIANT','nearest_missing_obligation':'RETURN_TO_CAPTAIN_WITHOUT_POSTHOC_WL_MODIFICATION','directive':'NO_NEW_SOLVER_OR_REDUCTION_IS_LICENSED'})
+          result={'artifact_id':'JANUS-TRUMP-UF20-02-04-05-WL-POLYTIME-STRUCTURAL-INVARIANT-RESULT-2026-09-17-v1.0','date':'2026-09-17','status':'FROZEN_DIAGNOSTIC_RESULT','gate':'TRUMP_SATLIB_UF20_02_04_05_WL_POLYTIME_STRUCTURAL_INVARIANT_GATE','verdict':c['verdict'],'implementation':{'preregistration_commit':'ccb59cf543b226eef15fd7e0dbee7bbdb9ab37e6','review_commit':'4dee8467ef8700d9c59cf361ed54fdfb430d844e','candidate_commit':'32f0782bab617dd3e4fe595a25e9ff43c8cf64b9','independent_checker_commit':'63dfe2da380b816f89a8cabfe2fb4e757ca51809','workflow_head':os.environ['WORKFLOW_HEAD']},'execution':{'run_id':int(os.environ['RUN_ID']),'run_number':int(os.environ['RUN_NUMBER']),'independent_verified':True,'candidate_imported_by_independent_checker':False},'frozen_obstruction_set':['UF20_02','UF20_04','UF20_05'],'closed_control':'UF20_03','identity_guards':c['identity_guards'],'feature_rows':c['feature_rows'],'candidate_invariant_set':candidates,'frozen_feature_names':c['frozen_feature_names'],'blindness_receipt':c['blindness_receipt'],'resource_receipt':c['resource_receipt'],'complexity_receipt':c['complexity_receipt'],'independent_check':{'verdict':k['verdict'],'checks':k['checks'],'independent_candidate_invariant_set':k['independent_candidate_invariant_set']},'claim_ceiling':'POLYTIME_STRUCTURAL_DIFFERENTIAL_EVIDENCE_ONLY__NOT_A_REDUCTION_OR_TRACTABILITY_RESULT','not_licensed':['NEW_SOLVER_RULE','NEW_ACTION_RULE','NEW_CARRIER_MECHANISM','NEW_REDUCTION_MECHANISM','GENERAL_SAT_IN_P','P_EQUALS_NP'],'scientific_firewall':{'P_VS_NP':'OPEN','GENERAL_SAT_IN_P':'NOT_PROVED','CONNECTED_MIXED_CORE_SOLVED':'NO','GENERAL_RESIDUAL_SEPARATOR_TRACTABILITY':'NOT_PROVED'},'captain_obvious_readout':captain}
+          Path('research/TRUMP_UF20_02_04_05_WL_POLYTIME_STRUCTURAL_INVARIANT_RESULT_2026-09-17_v1.0.json').write_text(json.dumps(result,indent=2,sort_keys=True)+'\n')
+          PY
+      - name: Commit frozen result
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add research/TRUMP_UF20_02_04_05_WL_POLYTIME_STRUCTURAL_INVARIANT_RESULT_2026-09-17_v1.0.json
+          git diff --cached --quiet && exit 0
+          git commit -m "TRUMP freeze UF20 WL polytime structural invariant result"
+          git push origin HEAD:research/trump-uf20-wl-polytime-invariant-2026-09-17
