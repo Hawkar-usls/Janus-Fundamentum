@@ -1,0 +1,181 @@
+name: TRUMP AIM100 out-of-family blind source acquisition
+
+on:
+  push:
+    branches:
+      - research/trump-aim100-out-of-family-wl-e3-falsifier-2026-09-18
+    paths:
+      - .github/workflows/trump-aim100-out-of-family-source-acquisition.yml
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: trump-aim100-out-of-family-source-acquisition-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  acquire:
+    runs-on: ubuntu-latest
+    env:
+      PYTHONPATH: ${{ github.workspace }}
+    steps:
+      - name: Checkout exact workflow head
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Verify frozen acquisition authorities
+        run: |
+          set -euo pipefail
+          test "$(git hash-object research/TRUMP_AIM100_OUT_OF_FAMILY_WL_E3_FALSIFIER_PANEL_RESERVATION_2026-09-18_v1.0.json)" = "e509b0c2bf392b547d505b5648895c8d2b9cedaa"
+          test "$(git hash-object research/TRUMP_AIM100_OUT_OF_FAMILY_SOURCE_ACQUISITION_PREREGISTRATION_2026-09-18_v1.0.json)" = "3dc0cffa67de19453991e86c7a31224c01e84ef6"
+          test "$(git hash-object research/TRUMP_AIM100_OUT_OF_FAMILY_SOURCE_ACQUISITION_REVIEW_2026-09-18_v1.0.json)" = "47708e421e2d984ab8078f5131c86a6aa598fd15"
+          test "$(git hash-object research/tools/apma_aim100_out_of_family_source_acquisition/candidate.py)" = "9dfc5825f1c5da6f448321d3251bf54677cdfc78"
+          test "$(git hash-object research/tools/apma_aim100_out_of_family_source_acquisition/independent_check.py)" = "735e4c25447dc816887679548b39a3f8b76e9675"
+
+      - name: Acquire and stage all sixteen reserved AIM100 sources
+        run: |
+          set -euo pipefail
+          python -m research.tools.apma_aim100_out_of_family_source_acquisition.candidate > /tmp/acquire.json
+          python -m json.tool /tmp/acquire.json >/dev/null
+          python - <<'PY'
+          import json
+          x=json.load(open('/tmp/acquire.json'))
+          print('candidate verdict:',x.get('verdict'))
+          print('sources staged:',len(x.get('source_receipts',[])))
+          assert x.get('verdict')=='PASS_AIM100_16_DUAL_MIRROR_SOURCE_ACQUISITION_AND_FORMULA_FREEZE',x
+          assert len(x['source_receipts'])==16
+          assert x['source_receipts'][0]['source']=='aim-100-1_6-no-1.cnf'
+          assert x['source_receipts'][-1]['source']=='aim-100-2_0-yes1-4.cnf'
+          r=x['resource_receipt']
+          assert r['remote_source_fetches']==32 and r['sources_staged']==16
+          for key in ('projected_raw_computations','pendant_target_computations','wl_computations','direct_transposition_checks','portfolio_replays','e3_witness_computations','solver_invocations','truth_label_feature_reads'):
+              assert r[key]==0,(key,r[key])
+          PY
+
+      - name: Independent full dual-mirror verification without candidate import
+        run: |
+          set -euo pipefail
+          python -m research.tools.apma_aim100_out_of_family_source_acquisition.independent_check --candidate /tmp/acquire.json > /tmp/independent.json
+          python -m json.tool /tmp/independent.json >/dev/null
+          python - <<'PY'
+          import json
+          x=json.load(open('/tmp/independent.json'))
+          print('independent verdict:',x.get('verdict'),'verified:',x.get('sources_verified'))
+          assert x.get('verdict')=='PASS_INDEPENDENT_AIM100_SOURCE_ACQUISITION_VERIFICATION',x
+          assert x.get('candidate_imported') is False
+          assert x.get('sources_verified')==16
+          assert all(x.get('comparison_checks',{}).values())
+          r=x['resource_receipt']
+          assert r['remote_source_fetches']==32
+          for key in ('projected_raw_computations','pendant_target_computations','wl_computations','direct_transposition_checks','portfolio_replays','e3_witness_computations','solver_invocations','truth_label_feature_reads'):
+              assert r[key]==0,(key,r[key])
+          PY
+
+      - name: Build frozen AIM100 source acquisition result
+        env:
+          RUN_ID: ${{ github.run_id }}
+          RUN_NUMBER: ${{ github.run_number }}
+          RUN_ATTEMPT: ${{ github.run_attempt }}
+          WORKFLOW_HEAD: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import hashlib,json,os
+          from pathlib import Path
+          def blob(path):
+              d=Path(path).read_bytes()
+              return hashlib.sha1(f'blob {len(d)}\0'.encode()+d).hexdigest()
+          c=json.load(open('/tmp/acquire.json'))
+          k=json.load(open('/tmp/independent.json'))
+          verified={r['source']:r for r in k['rows']}
+          rows=[]
+          for row in c['source_receipts']:
+              v=verified[row['source']]
+              assert v['independent_verified'] is True
+              assert row['computed_committed_git_blob']==v['computed_committed_git_blob']
+              out=dict(row)
+              out['independent_verified']=True
+              out['status']='SOURCE_FROZEN'
+              out['committed_git_blob']=v['computed_committed_git_blob']
+              rows.append(out)
+          result={
+            'artifact_id':'JANUS-TRUMP-AIM100-OUT-OF-FAMILY-SOURCE-ACQUISITION-RESULT-2026-09-18-v1.0',
+            'date':'2026-09-18',
+            'status':'FROZEN_AIM100_OUT_OF_FAMILY_BLIND_SOURCE_ACQUISITION_RESULT',
+            'verdict':'PASS_AIM100_16_DUAL_MIRROR_SOURCE_ACQUISITION_AND_FORMULA_FREEZE',
+            'gate':'TRUMP_AIM100_OUT_OF_FAMILY_SOURCE_ACQUISITION_GATE',
+            'authorities':{
+              'reservation_commit':'6e20760b791643964577b0ba75db470e5955cc1d',
+              'reservation_blob':'e509b0c2bf392b547d505b5648895c8d2b9cedaa',
+              'acquisition_prereg_commit':'aff01bdcb0133c74c36136eda151e47dd0805d5d',
+              'acquisition_prereg_blob':'3dc0cffa67de19453991e86c7a31224c01e84ef6',
+              'acquisition_review_commit':'f8d850bc4b10c7244b684a8e722851008cb2982c',
+              'acquisition_review_blob':'47708e421e2d984ab8078f5131c86a6aa598fd15',
+              'candidate_commit':'fc4cd1304d5a40ff843aafeff74f7531858dfa39',
+              'candidate_blob':blob('research/tools/apma_aim100_out_of_family_source_acquisition/candidate.py'),
+              'independent_checker_commit':'32e6be096a2550e2a8ab35d39eb1c741bde3637b',
+              'independent_checker_blob':blob('research/tools/apma_aim100_out_of_family_source_acquisition/independent_check.py'),
+              'workflow_head':os.environ['WORKFLOW_HEAD']
+            },
+            'execution':{
+              'run_id':int(os.environ['RUN_ID']),
+              'run_number':int(os.environ['RUN_NUMBER']),
+              'run_attempt':int(os.environ['RUN_ATTEMPT']),
+              'independent_verdict':k['verdict'],
+              'sources_verified':k['sources_verified'],
+              'candidate_imported_by_independent_checker':False
+            },
+            'source_receipts':rows,
+            'blind_barrier_receipt':{
+              'projected_raw_computations':0,
+              'pendant_target_computations':0,
+              'wl_computations':0,
+              'direct_transposition_checks':0,
+              'portfolio_replays':0,
+              'e3_witness_computations':0,
+              'solver_invocations':0,
+              'truth_label_feature_reads':0
+            },
+            'claim_ceiling':'SOURCE_PROVENANCE_DUAL_MIRROR_FORMAT_AND_FORMULA_FREEZE_ONLY',
+            'next_step':'PREREGISTER_OUT_OF_FAMILY_AIM100_WL_FIRST_THEN_UNCHANGED_EXISTING_E1_E2_E3_GROUND_TRUTH_EVALUATION_ON_ALL_16_FROZEN_SOURCES',
+            'scientific_firewall':{
+              'WL_SUFFICIENCY_WITHOUT_DIRECT_EXACT_CHECK':'NOT_PROVED',
+              'GENERAL_SAT_IN_P':'NOT_PROVED',
+              'P_VS_NP':'OPEN'
+            }
+          }
+          Path('research/TRUMP_AIM100_OUT_OF_FAMILY_SOURCE_ACQUISITION_RESULT_2026-09-18_v1.0.json').write_text(json.dumps(result,indent=2,sort_keys=True)+'\n')
+          PY
+
+      - name: Upload immutable AIM100 acquisition receipts
+        uses: actions/upload-artifact@v4
+        with:
+          name: aim100-out-of-family-source-acquisition-receipt
+          path: |
+            /tmp/acquire.json
+            /tmp/independent.json
+            research/TRUMP_AIM100_OUT_OF_FAMILY_SOURCE_ACQUISITION_RESULT_2026-09-18_v1.0.json
+
+      - name: Freeze all sixteen sources and result with safe fast-forward push
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add research/source_data/AIM100_aim-100-*_2026-09-18.cnf
+          git add research/TRUMP_AIM100_OUT_OF_FAMILY_SOURCE_ACQUISITION_RESULT_2026-09-18_v1.0.json
+          git diff --cached --check
+          count=$(git diff --cached --name-only | wc -l)
+          echo "staged file count: $count"
+          test "$count" -eq 17
+          git commit -m 'TRUMP freeze AIM100 out-of-family dual-mirror source panel'
+          git fetch origin "${GITHUB_REF_NAME}"
+          git rebase "origin/${GITHUB_REF_NAME}"
+          git push origin HEAD:"${GITHUB_REF_NAME}"
