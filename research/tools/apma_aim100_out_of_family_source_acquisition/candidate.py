@@ -11,12 +11,14 @@ ROOT = Path(__file__).resolve().parents[3]
 RESERVATION = ROOT / 'research/TRUMP_AIM100_OUT_OF_FAMILY_WL_E3_FALSIFIER_PANEL_RESERVATION_2026-09-18_v1.0.json'
 PREREG = ROOT / 'research/TRUMP_AIM100_OUT_OF_FAMILY_SOURCE_ACQUISITION_PREREGISTRATION_2026-09-18_v1.0.json'
 REVIEW = ROOT / 'research/TRUMP_AIM100_OUT_OF_FAMILY_SOURCE_ACQUISITION_REVIEW_2026-09-18_v1.0.json'
-ERRATUM = ROOT / 'research/TRUMP_AIM100_SOURCE_ACQUISITION_TRANSPORT_ERRATUM_2026-09-18_v1.1.json'
+TRANSPORT_ERRATUM = ROOT / 'research/TRUMP_AIM100_SOURCE_ACQUISITION_TRANSPORT_ERRATUM_2026-09-18_v1.1.json'
+PATH_ERRATUM = ROOT / 'research/TRUMP_AIM100_VERIFICATION_PATH_BINDING_ERRATUM_2026-09-18_v1.2.json'
 EXPECTED = {
     RESERVATION: 'e509b0c2bf392b547d505b5648895c8d2b9cedaa',
     PREREG: '3dc0cffa67de19453991e86c7a31224c01e84ef6',
     REVIEW: '47708e421e2d984ab8078f5131c86a6aa598fd15',
-    ERRATUM: 'fc33da20ce65000dc569e8de7f87668b8c931fbf',
+    TRANSPORT_ERRATUM: 'fc33da20ce65000dc569e8de7f87668b8c931fbf',
+    PATH_ERRATUM: '0e19c2e40cd7fa6eb37d3971b325d3d1b058b6c8',
 }
 PRIMARY_REPO = 'dmeoli/NeuroSAT'
 PRIMARY_COMMIT = '568b022fc0c56e7e24fe08c012753ef29c60938e'
@@ -133,21 +135,28 @@ def guard() -> dict[str, Any]:
     reservation = json.loads(RESERVATION.read_text())
     prereg = json.loads(PREREG.read_text())
     review = json.loads(REVIEW.read_text())
-    erratum = json.loads(ERRATUM.read_text())
+    transport = json.loads(TRANSPORT_ERRATUM.read_text())
+    path_erratum = json.loads(PATH_ERRATUM.read_text())
     names = tuple(reservation.get('reserved_filenames', []))
     expected_names = tuple(f'aim-100-{density}-{label}-{index}.cnf' for density in ('1_6', '2_0') for label in ('no', 'yes1') for index in range(1, 5))
+    manifest = path_erratum.get('verification_exact_path_manifest', {})
+    primary_binding = reservation.get('source_mirrors', {}).get('primary', {})
+    verification_binding = reservation.get('source_mirrors', {}).get('verification', {})
     checks = {
         'authority_bindings': all(bindings.values()),
         'reservation_status': reservation.get('status') == 'FROZEN_BEFORE_ANY_PROJECTION_PENDANT_WL_DIRECT_EXACT_PORTFOLIO_OR_E3_COMPUTATION_ON_THE_RESERVED_PANEL',
         'selection_exact': names == expected_names,
         'panel_size_exact': reservation.get('panel_size') == 16 and len(names) == 16,
-        'primary_binding': reservation.get('source_mirrors', {}).get('primary') == {'repository': PRIMARY_REPO, 'commit': PRIMARY_COMMIT, 'path_template': 'data/aim/{filename}'},
-        'verification_binding': reservation.get('source_mirrors', {}).get('verification') == {'repository': VERIFY_REPO, 'commit': VERIFY_COMMIT, 'path_template': 'problems/aim/{filename}'},
+        'primary_repo_commit_binding': primary_binding.get('repository') == PRIMARY_REPO and primary_binding.get('commit') == PRIMARY_COMMIT,
+        'verification_repo_commit_binding': verification_binding.get('repository') == VERIFY_REPO and verification_binding.get('commit') == VERIFY_COMMIT,
+        'manifest_exact_domain': set(manifest) == set(names) and len(manifest) == 16,
+        'manifest_all_under_pinned_repo_tree': all(isinstance(path, str) and path.startswith('problems/') and path.endswith('/' + name) for name, path in manifest.items()),
         'prereg_status': prereg.get('status') == 'FROZEN_BEFORE_FIRST_DUAL_MIRROR_BODY_ACQUISITION_AND_BEFORE_ANY_STRUCTURAL_COMPUTATION_ON_THE_RESERVED_AIM100_PANEL',
         'review_authorized': review.get('review_verdict') == 'PASS_CLEAN_AIM100_OUT_OF_FAMILY_SOURCE_ACQUISITION_SPEC__AUTHORIZED_TO_FETCH_FREEZE_AND_VERIFY_EXACTLY_THE_16_RESERVED_FILES_ONCE',
-        'transport_erratum': erratum.get('transport_correction', {}).get('candidate', '').startswith('SPARSE_GIT_FETCH_EXACT_PINNED_COMMIT'),
+        'transport_erratum': transport.get('transport_correction', {}).get('candidate', '').startswith('SPARSE_GIT_FETCH_EXACT_PINNED_COMMIT'),
+        'path_erratum_status': path_erratum.get('status') == 'FROZEN_BINDING_ONLY_ERRATUM_AFTER_TWO_ZERO_SOURCE_HALTS_AND_BEFORE_SUCCESSFUL_ACQUISITION',
     }
-    return {'ok': all(checks.values()), 'checks': checks, 'bindings': bindings, 'order': list(names)}
+    return {'ok': all(checks.values()), 'checks': checks, 'bindings': bindings, 'order': list(names), 'verification_manifest': manifest}
 
 
 def main() -> dict[str, Any]:
@@ -156,19 +165,20 @@ def main() -> dict[str, Any]:
         return {'verdict': 'HALT_AIM100_AUTHORITY_OR_RESERVATION_BINDING_FAILURE', 'authority_guard': authority, 'resource_receipt': resource_receipt(0, 0, 0)}
     try:
         primary_root = prepare_mirror(PRIMARY_REPO, PRIMARY_COMMIT, 'data/aim', 'janus_aim100_candidate_primary')
-        verification_root = prepare_mirror(VERIFY_REPO, VERIFY_COMMIT, 'problems/aim', 'janus_aim100_candidate_verification')
+        verification_root = prepare_mirror(VERIFY_REPO, VERIFY_COMMIT, 'problems', 'janus_aim100_candidate_verification')
     except Exception as exc:
         return {'verdict': 'HALT_AIM100_RESERVED_SOURCE_MISSING_OR_FETCH_FAILURE', 'source': 'MIRROR_FETCH', 'error': f'{type(exc).__name__}:{exc}', 'source_receipts': [], 'resource_receipt': resource_receipt(2, 0, 0)}
 
     rows: list[dict[str, Any]] = []
+    manifest = authority['verification_manifest']
     for filename in authority['order']:
         primary_path = f'data/aim/{filename}'
-        verification_path = f'problems/aim/{filename}'
+        verification_path = manifest[filename]
         try:
             primary = (primary_root / primary_path).read_bytes()
             verification = (verification_root / verification_path).read_bytes()
         except Exception as exc:
-            return {'verdict': 'HALT_AIM100_RESERVED_SOURCE_MISSING_OR_FETCH_FAILURE', 'source': filename, 'error': f'{type(exc).__name__}:{exc}', 'source_receipts': rows, 'resource_receipt': resource_receipt(2, len(rows) * 2, len(rows))}
+            return {'verdict': 'HALT_AIM100_RESERVED_SOURCE_MISSING_OR_FETCH_FAILURE', 'source': filename, 'verification_path': verification_path, 'error': f'{type(exc).__name__}:{exc}', 'source_receipts': rows, 'resource_receipt': resource_receipt(2, len(rows) * 2, len(rows))}
         try:
             pn, pm, pclauses, phash = parse_dimacs_exact_3cnf(primary)
             vn, vm, vclauses, vhash = parse_dimacs_exact_3cnf(verification)
@@ -206,13 +216,13 @@ def main() -> dict[str, Any]:
             'status': 'SOURCE_STAGED_FOR_INDEPENDENT_VERIFICATION',
         })
     return {
-        'artifact_id': 'JANUS-TRUMP-AIM100-OUT-OF-FAMILY-SOURCE-ACQUISITION-CANDIDATE-2026-09-18-v1.1',
+        'artifact_id': 'JANUS-TRUMP-AIM100-OUT-OF-FAMILY-SOURCE-ACQUISITION-CANDIDATE-2026-09-18-v1.2',
         'gate': 'TRUMP_AIM100_OUT_OF_FAMILY_SOURCE_ACQUISITION_GATE',
         'verdict': 'PASS_AIM100_16_DUAL_MIRROR_SOURCE_ACQUISITION_AND_FORMULA_FREEZE',
         'authority_guard': authority,
         'source_receipts': rows,
         'resource_receipt': resource_receipt(2, 32, 16),
-        'failed_prior_run_id': 35277170407,
+        'failed_prior_run_ids': [35277170407, 35277553768],
         'scientific_firewall': {'WL_SUFFICIENCY_WITHOUT_DIRECT_EXACT_CHECK': 'NOT_PROVED', 'GENERAL_SAT_IN_P': 'NOT_PROVED', 'P_VS_NP': 'OPEN'},
     }
 
