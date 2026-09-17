@@ -1,0 +1,163 @@
+name: TRUMP UF20_024 WL-to-orbit causal bridge diagnostic
+
+on:
+  push:
+    branches:
+      - research/trump-uf20-024-wl-orbit-causal-bridge-2026-09-17
+    paths:
+      - .github/workflows/trump-uf20-024-wl-orbit-causal-bridge-diagnostic.yml
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  diagnostic:
+    runs-on: ubuntu-latest
+    env:
+      PYTHONPATH: ${{ github.workspace }}
+    steps:
+      - name: Checkout exact branch head
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Verify frozen diagnostic authority blobs
+        run: |
+          set -euo pipefail
+          test "$(git hash-object research/TRUMP_UF20_024_WL_TO_ORBIT_CAUSAL_BRIDGE_DIAGNOSTIC_PREREGISTRATION_2026-09-17_v1.0.json)" = "d4e9bdf9b56deac4a279107296004f89ad778473"
+          test "$(git hash-object research/TRUMP_UF20_024_WL_TO_ORBIT_CAUSAL_BRIDGE_DIAGNOSTIC_REVIEW_2026-09-17_v1.0.json)" = "be207fa8dd42be23badc52adc78393d22808efce"
+          test "$(git hash-object research/TRUMP_UF20_016_025_ONE_SHOT_CLASS_COVERAGE_WL_REPLICATION_RESULT_2026-09-17_v1.0.json)" = "15aa1bbb6b8bcd1f9820b46dcda2c92f1eb96fd4"
+          test "$(git hash-object research/tools/apma_uf20_024_wl_orbit_causal_bridge/candidate.py)" = "0b60ce32c06b0302c12f0eb120943ae33e1bcfb9"
+          test "$(git hash-object research/tools/apma_uf20_024_wl_orbit_causal_bridge/independent_check.py)" = "5a1beba6cd39dceef4cab098c640c764e8295891"
+
+      - name: Execute frozen diagnostic candidate once
+        run: |
+          set -euo pipefail
+          python research/tools/apma_uf20_024_wl_orbit_causal_bridge/candidate.py > /tmp/candidate.json
+          python - <<'PY'
+          import json
+          x=json.load(open('/tmp/candidate.json'))
+          allowed={
+            'PASS_WL_DERIVES_SEALED_E3_TRANSPOSITION_AND_DIRECT_EXACT_SWAP_VERIFIES',
+            'FALSIFIED_WL1_NONTRIVIAL_CLASS_NOT_UNIQUE_SIZE_TWO',
+            'FALSIFIED_WL2_DIAGONAL_NONTRIVIAL_CLASS_NOT_UNIQUE_SIZE_TWO',
+            'FALSIFIED_WL1_WL2_DERIVED_PAIRS_DISAGREE',
+            'FALSIFIED_WL_DERIVED_PAIR_DIFFERS_FROM_SEALED_E3_EDGE',
+            'FALSIFIED_WL_DERIVED_PAIR_IS_NOT_AN_EXACT_TRANSPOSITION_AUTOMORPHISM',
+          }
+          print('candidate scientific outcome:',x['verdict'])
+          assert x['verdict'] in allowed,x
+          r=x['resource_receipt']
+          assert r['full_transposition_searches']==0
+          assert r['automorphism_or_group_searches']==0
+          assert r['direct_exact_transposition_checks']<=1
+          assert r['sat_solver_invocations']==0
+          assert r['orbit_quotient_state_enumerations']==0
+          PY
+
+      - name: Independently recompute diagnostic
+        run: |
+          set -euo pipefail
+          python research/tools/apma_uf20_024_wl_orbit_causal_bridge/independent_check.py --candidate /tmp/candidate.json > /tmp/independent.json
+          python - <<'PY'
+          import json
+          x=json.load(open('/tmp/independent.json'))
+          print('independent verdict:',x['verdict'])
+          print('scientific outcome:',x['scientific_outcome'])
+          assert x['candidate_imported'] is False
+          assert x['verdict']=='PASS_INDEPENDENT_WL_ORBIT_CAUSAL_DIAGNOSTIC_VERIFICATION',x
+          assert all(x['comparison_checks'].values()),x
+          assert x['resource_receipt']['full_transposition_searches']==0
+          assert x['resource_receipt']['direct_exact_transposition_checks']<=1
+          PY
+
+      - name: Build frozen diagnostic result
+        env:
+          RUN_ID: ${{ github.run_id }}
+          WORKFLOW_HEAD: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json,os,subprocess
+          from pathlib import Path
+          c=json.load(open('/tmp/candidate.json'))
+          k=json.load(open('/tmp/independent.json'))
+          assert c['verdict']==k['scientific_outcome']
+          def tree_blob(path):
+              return subprocess.check_output(['git','rev-parse',f'HEAD:{path}'],text=True).strip()
+          outcome=c['verdict']
+          passed=outcome=='PASS_WL_DERIVES_SEALED_E3_TRANSPOSITION_AND_DIRECT_EXACT_SWAP_VERIFIES'
+          result={
+            'artifact_id':'JANUS-TRUMP-UF20-024-WL-TO-ORBIT-CAUSAL-BRIDGE-DIAGNOSTIC-RESULT-2026-09-17-v1.0',
+            'date':'2026-09-17',
+            'status':'FROZEN_POST_REPLICATION_SINGLE_INSTANCE_CAUSAL_DIAGNOSTIC_RESULT',
+            'gate':'TRUMP_UF20_024_WL_TO_ORBIT_CAUSAL_BRIDGE_DIAGNOSTIC_GATE',
+            'execution_verdict':'PASS_INDEPENDENT_DIAGNOSTIC_RECOMPUTATION',
+            'scientific_outcome':outcome,
+            'bridge_observed_on_this_instance':passed,
+            'source':'UF20_024',
+            'reduced_raw_sha256':c['reduced_raw_sha256'],
+            'wl1_nontrivial_variable_classes':c['wl1_nontrivial_variable_classes'],
+            'wl2_nontrivial_diagonal_variable_classes':c['wl2_nontrivial_diagonal_variable_classes'],
+            'wl_derived_pair':c.get('wl_derived_pair'),
+            'sealed_e3_generator_edge':c['sealed_e3_generator_edge'],
+            'matches_sealed_e3_pair':c.get('matches_sealed_e3_pair',False),
+            'direct_exact_transposition_automorphism':c.get('direct_exact_transposition_automorphism'),
+            'resource_receipt':c['resource_receipt'],
+            'independent_check':{
+              'verdict':k['verdict'],
+              'candidate_imported':k['candidate_imported'],
+              'comparison_checks':k['comparison_checks'],
+              'derived_pair':k['derived_pair'],
+              'direct_exact_transposition_automorphism':k['direct_exact_transposition_automorphism'],
+              'resource_receipt':k['resource_receipt']
+            },
+            'authorities':{
+              'parent_result_commit':'98d5a5835fe8a1eb798fbdfcaa5ba6cc94eed28d',
+              'preregistration_commit':'a4d93d4fe1cf2f22da093bf8ad89cde997932f7f',
+              'review_commit':'953a50f53328592cf95a78917a870aadadd8c13b',
+              'candidate_commit':'ae0bfed74a9f755fbf66bfe813e66f5f74c21b89',
+              'candidate_blob':'0b60ce32c06b0302c12f0eb120943ae33e1bcfb9',
+              'independent_checker_commit':'4929dadbd8a39cb7ca530cf676aa6036020570de',
+              'independent_checker_blob':'5a1beba6cd39dceef4cab098c640c764e8295891',
+              'workflow_head':os.environ['WORKFLOW_HEAD'],
+              'workflow_blob':tree_blob('.github/workflows/trump-uf20-024-wl-orbit-causal-bridge-diagnostic.yml')
+            },
+            'licensed_conclusion':(
+              'ON_UF20_024_ONLY_THE_FROZEN_WL_PARTITION_SUPPLIES_THE_SAME_EXACT_TRANSPOSITION_WITNESS_PREVIOUSLY_FOUND_BY_E3_WITHOUT_A_FULL_TRANSPOSITION_SEARCH'
+              if passed else
+              'THE_POST_REPLICATION_CAUSAL_BRIDGE_HYPOTHESIS_WAS_FALSIFIED_ON_UF20_024;WL_REMAINS_PREDICTIVE_ONLY'
+            ),
+            'nearest_missing_obligation':(
+              'FREEZE_A_PROSPECTIVE_MULTI_CLOSED_CASE_PANEL_AND_TEST_THE_WL_DERIVED_PAIR_RULE_BEFORE_READING_E3_WITNESSES_OR_WL_CLASS_MEMBERSHIPS'
+              if passed else
+              'DO_NOT_RESCUE_OR_RETUNE_THIS_BRIDGE;KEEP_THE_FROZEN_WL_RESULT_AS_PREDICTIVE_EVIDENCE_ONLY'
+            ),
+            'not_licensed':['WL_SUFFICIENCY_THEOREM','SEPARATOR_THEOREM','GENERAL_RESIDUAL_TRACTABILITY','GENERAL_SAT_IN_P','P_EQUALS_NP','NEW_SOLVER_ROUTE'],
+            'claim_ceiling':'POST_REPLICATION_SINGLE_INSTANCE_CONSTRUCTIVE_WITNESS_DIAGNOSTIC_ONLY',
+            'scientific_firewall':{'P_VS_NP':'OPEN','GENERAL_SAT_IN_P':'NOT_PROVED','GENERAL_RESIDUAL_SEPARATOR_TRACTABILITY':'NOT_PROVED','WL_SUFFICIENCY_FOR_ORBIT_CLOSURE':'NOT_PROVED'},
+            'execution':{'run_id':int(os.environ['RUN_ID'])}
+          }
+          Path('research/TRUMP_UF20_024_WL_TO_ORBIT_CAUSAL_BRIDGE_DIAGNOSTIC_RESULT_2026-09-17_v1.0.json').write_text(json.dumps(result,indent=2,sort_keys=True)+'\n')
+          PY
+
+      - name: Upload diagnostic receipts
+        uses: actions/upload-artifact@v4
+        with:
+          name: uf20-024-wl-orbit-causal-bridge-diagnostic-receipt
+          path: |
+            /tmp/candidate.json
+            /tmp/independent.json
+            research/TRUMP_UF20_024_WL_TO_ORBIT_CAUSAL_BRIDGE_DIAGNOSTIC_RESULT_2026-09-17_v1.0.json
+
+      - name: Commit frozen diagnostic result
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add research/TRUMP_UF20_024_WL_TO_ORBIT_CAUSAL_BRIDGE_DIAGNOSTIC_RESULT_2026-09-17_v1.0.json
+          git diff --cached --check
+          test "$(git diff --cached --name-only | wc -l)" -eq 1
+          git commit -m 'TRUMP freeze UF20_024 WL-to-orbit causal bridge diagnostic result'
+          git push origin HEAD:${GITHUB_REF_NAME}
