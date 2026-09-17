@@ -16,17 +16,17 @@ ROOT = Path(__file__).resolve().parents[3]
 CANDIDATE = ROOT / "research/tools/trump_uf150_001_020_out_of_family_wl_orbit_falsifier/candidate.py"
 PREREG = ROOT / "research/TRUMP_UF150_001_020_OUT_OF_FAMILY_WL_ORBIT_FALSIFIER_EVALUATION_PREREGISTRATION_2026-09-18_v1.0.json"
 REVIEW = ROOT / "research/TRUMP_UF150_001_020_OUT_OF_FAMILY_WL_ORBIT_FALSIFIER_EVALUATION_REVIEW_2026-09-18_v1.0.json"
-SOURCE_FREEZE = ROOT / "research/TRUMP_UF150_001_020_OUT_OF_FAMILY_SOURCE_ACQUISITION_RESULT_2026-09-18_v1.0.json"
+SOURCE_FREEZE = ROOT / "research/TRUMP_UF150_001_020_OUT_OF_FAMILY_SOURCE_FREEZE_AUTHORITY_2026-09-18_v1.0.json"\nRECONCILIATION = ROOT / "research/TRUMP_UF150_001_020_SOURCE_FREEZE_REENTRY_RECONCILIATION_2026-09-18_v1.0.json"
 SCOPE_THEOREM = ROOT / "research/TRUMP_WL_DIRECT_EXACT_E3_SCOPE_BOUND_THEOREM_RESULT_2026-09-18_v1.0.json"
 FRESH = ROOT / "research/tools/apma_uf20_011_015_fresh_generic_pendant_wl_replication/candidate.py"
 PROJECTION = ROOT / "research/tools/apma_satlib_uf20_r000_r111_projected_core_replay/projection_identity.py"
 WL = ROOT / "research/tools/apma_uf20_wl_historical_closed_control_falsifier/candidate.py"
 ORBIT = ROOT / "research/tools/apma_unseen_local_invariant_orbit_count/candidate.py"
 EXPECTED = {
-    CANDIDATE: "b6967eff6fc79129236387585f257ada73cb47c5",
+    CANDIDATE: "4c73cded8002582145b3a1a9930b97ca30508c79",
     PREREG: "6d0a05eaeaf443f17450068cefe68bef99b93433",
     REVIEW: "0e0a17d60a2b0f6b5d880d682d741308a56b3dc9",
-    SOURCE_FREEZE: "b9084a54414a930945e67d81e83698100d4ac417",
+    SOURCE_FREEZE: "b9084a54414a930945e67d81e83698100d4ac417",\n    RECONCILIATION: "b01f9d9c2a5e78201b5d5d046837411f8d753610",
     SCOPE_THEOREM: "3cbf05cb0b0249ddf365bc43d176a06ddb7f72af",
     FRESH: "9ec365ae27a6caa7b936cd33040e542f183ded99",
     PROJECTION: "2ef48e73974a5f43d3f4fb4809ebd0c09c0f5be4",
@@ -140,13 +140,13 @@ def recompute():
 
     review = json.loads(REVIEW.read_text())
     source_freeze = json.loads(SOURCE_FREEZE.read_text())
-    theorem = json.loads(SCOPE_THEOREM.read_text())
+    theorem = json.loads(SCOPE_THEOREM.read_text())\n    reconciliation = json.loads(RECONCILIATION.read_text())
     guard_checks = {
         "review_authorized": review.get("review_verdict") == "PASS_CLEAN_UF150_OUT_OF_FAMILY_WL_ORBIT_FALSIFIER_SPEC__AUTHORIZED_TO_IMPLEMENT_AND_EXECUTE_ONCE",
         "source_freeze_independent": source_freeze.get("execution", {}).get("independent_verdict") == "PASS_INDEPENDENT_UF150_001_020_SOURCE_FREEZE_VERIFICATION",
         "source_order": tuple(r.get("source") for r in source_freeze.get("source_receipts", [])) == ORDER,
         "source_count": len(source_freeze.get("source_receipts", [])) == 20,
-        "theorem_pass": theorem.get("scientific_outcome") == "PASS_SCOPE_BOUND_DIRECT_EXACT_TRANSPOSITION_WITNESS_SUFFICIENCY_FOR_FROZEN_E3",
+        "source_freeze_reconciled": reconciliation.get("authority_rule") == "FIRST_SUCCESSFUL_IMMUTABLE_FREEZE_dc503550_IS_THE_ONLY_UF150_SOURCE_FREEZE_AUTHORITY_FOR_SCIENTIFIC_EVALUATION;LATER_REENTRY_HALTS_ARE_DIAGNOSTIC_ONLY",\n        "theorem_pass": theorem.get("scientific_outcome") == "PASS_SCOPE_BOUND_DIRECT_EXACT_TRANSPOSITION_WITNESS_SUFFICIENCY_FOR_FROZEN_E3",
     }
     if not all(guard_checks.values()):
         return {"verdict": "HALT_INDEPENDENT_GUARD_FAILURE", "guard_checks": guard_checks}
