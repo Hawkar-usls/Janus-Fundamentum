@@ -16,14 +16,14 @@ ROOT = Path(__file__).resolve().parents[3]
 CANDIDATE = ROOT / "research/tools/trump_uf75_001_020_out_of_family_wl_orbit_falsifier/candidate.py"
 PREREG = ROOT / "research/TRUMP_UF75_001_020_OUT_OF_FAMILY_WL_ORBIT_FALSIFIER_EVALUATION_PREREGISTRATION_2026-09-18_v1.0.json"
 REVIEW = ROOT / "research/TRUMP_UF75_001_020_OUT_OF_FAMILY_WL_ORBIT_FALSIFIER_EVALUATION_REVIEW_2026-09-18_v1.0.json"
-SOURCE_FREEZE = ROOT / "research/TRUMP_UF75_001_020_OUT_OF_FAMILY_SOURCE_ACQUISITION_RESULT_2026-09-18_v1.0.json"
+SOURCE_FREEZE = ROOT / "research/TRUMP_UF75_001_020_OUT_OF_FAMILY_SOURCE_FREEZE_AUTHORITY_2026-09-18_v1.0.json"
 SCOPE_THEOREM = ROOT / "research/TRUMP_WL_DIRECT_EXACT_E3_SCOPE_BOUND_THEOREM_RESULT_2026-09-18_v1.0.json"
 FRESH = ROOT / "research/tools/apma_uf20_011_015_fresh_generic_pendant_wl_replication/candidate.py"
 PROJECTION = ROOT / "research/tools/apma_satlib_uf20_r000_r111_projected_core_replay/projection_identity.py"
 WL = ROOT / "research/tools/apma_uf20_wl_historical_closed_control_falsifier/candidate.py"
 ORBIT = ROOT / "research/tools/apma_unseen_local_invariant_orbit_count/candidate.py"
 EXPECTED = {
-    CANDIDATE: "04269f56481f43e82b8738709316a7758a0e0ef7",
+    CANDIDATE: "6fa9a5ccc97dfea2594550afd52dd0a4cb047864",
     PREREG: "84787b2f4fce9a3b79dfc9ba92c7fd0b61f412c9",
     REVIEW: "884c5ae73cd31b9161165be155fce4640390f7ab",
     SOURCE_FREEZE: "102dedd7602f7f7f3044f0904591da282dc25eb2",
