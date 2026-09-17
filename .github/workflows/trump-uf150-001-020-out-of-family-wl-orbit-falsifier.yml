@@ -1,0 +1,182 @@
+name: TRUMP UF150 001-020 out-of-family WL-orbit falsifier
+
+on:
+  push:
+    branches:
+      - research/trump-uf150-001-020-out-of-family-wl-orbit-falsifier-2026-09-18
+    paths:
+      - .github/workflows/trump-uf150-001-020-out-of-family-wl-orbit-falsifier.yml
+
+permissions:
+  contents: write
+
+jobs:
+  evaluate:
+    runs-on: ubuntu-latest
+    env:
+      PYTHONPATH: ${{ github.workspace }}
+    steps:
+      - name: Checkout exact workflow head
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Verify frozen authorities
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import hashlib
+          from pathlib import Path
+          expected={
+            'research/TRUMP_UF150_001_020_OUT_OF_FAMILY_WL_ORBIT_FALSIFIER_EVALUATION_PREREGISTRATION_2026-09-18_v1.0.json':'6d0a05eaeaf443f17450068cefe68bef99b93433',
+            'research/TRUMP_UF150_001_020_OUT_OF_FAMILY_WL_ORBIT_FALSIFIER_EVALUATION_REVIEW_2026-09-18_v1.0.json':'0e0a17d60a2b0f6b5d880d682d741308a56b3dc9',
+            'research/TRUMP_UF150_001_020_OUT_OF_FAMILY_SOURCE_FREEZE_AUTHORITY_2026-09-18_v1.0.json':'b9084a54414a930945e67d81e83698100d4ac417',
+            'research/TRUMP_UF150_001_020_SOURCE_FREEZE_REENTRY_RECONCILIATION_2026-09-18_v1.0.json':'b01f9d9c2a5e78201b5d5d046837411f8d753610',
+            'research/TRUMP_WL_DIRECT_EXACT_E3_SCOPE_BOUND_THEOREM_RESULT_2026-09-18_v1.0.json':'3cbf05cb0b0249ddf365bc43d176a06ddb7f72af',
+            'research/tools/trump_uf150_001_020_out_of_family_wl_orbit_falsifier/candidate.py':'ccb70d860940ea5cc069255c8ae1959fd98da210',
+            'research/tools/trump_uf150_001_020_out_of_family_wl_orbit_falsifier/independent_check.py':'c668ad6b2ba594c032f040c24199572de51d1243',
+          }
+          def blob(path):
+              d=Path(path).read_bytes()
+              return hashlib.sha1(f'blob {len(d)}\0'.encode()+d).hexdigest()
+          bad={p:(h,blob(p)) for p,h in expected.items() if blob(p)!=h}
+          if bad: raise SystemExit(f'AUTHORITY_BINDING_FAILURE {bad}')
+          print('UF150_FALSIFIER_AUTHORITY_BINDINGS_PASS')
+          PY
+
+      - name: Execute frozen UF150 out-of-family candidate
+        shell: bash
+        run: |
+          set -euo pipefail
+          python research/tools/trump_uf150_001_020_out_of_family_wl_orbit_falsifier/candidate.py > /tmp/uf150_falsifier_candidate.json
+          python - <<'PY'
+          import json
+          x=json.load(open('/tmp/uf150_falsifier_candidate.json'))
+          print(json.dumps({'verdict':x.get('verdict'),'reason':x.get('reason'),'summary':x.get('summary'),'resource_receipt':x.get('resource_receipt'),'new_panel_structural_reads':x.get('new_panel_structural_reads')},indent=2))
+          allowed={
+            'FALSIFIED_SCOPE_THEOREM_AT_LEAST_ONE_IN_SCOPE_POSITIVE_NOT_E3_ADMITTED',
+            'FALSIFIED_OUT_OF_FAMILY_SELECTOR_AT_LEAST_ONE_E3_POSITIVE_NOT_RECOVERED',
+            'FALSIFIED_OUT_OF_FAMILY_AT_LEAST_ONE_IN_SCOPE_PORTFOLIO_OPEN_FALSE_POSITIVE',
+            'SURVIVED_OUT_OF_FAMILY_WITH_AT_LEAST_ONE_E3_POSITIVE_AND_ZERO_PREDECLARED_ERRORS',
+            'SURVIVED_WITH_RESOURCE_SCOPE_EXITS_AND_ZERO_PREDECLARED_ERRORS',
+            'SURVIVED_OUT_OF_FAMILY_ZERO_E3_POSITIVE_COVERAGE',
+          }
+          if x.get('verdict') not in allowed: raise SystemExit(1)
+          PY
+
+      - name: Upload candidate receipt before independent check
+        uses: actions/upload-artifact@v4
+        with:
+          name: trump-uf150-001-020-falsifier-candidate-${{ github.run_id }}
+          path: /tmp/uf150_falsifier_candidate.json
+
+      - name: Independent recomputation without candidate import
+        shell: bash
+        run: |
+          set -euo pipefail
+          python research/tools/trump_uf150_001_020_out_of_family_wl_orbit_falsifier/independent_check.py --candidate /tmp/uf150_falsifier_candidate.json > /tmp/uf150_falsifier_independent.json
+          python - <<'PY'
+          import json
+          x=json.load(open('/tmp/uf150_falsifier_independent.json'))
+          print(json.dumps({'verdict':x.get('verdict'),'scientific_outcome':x.get('scientific_outcome'),'summary':x.get('summary'),'comparison_checks':x.get('comparison_checks')},indent=2))
+          if x.get('verdict')!='PASS_INDEPENDENT_UF150_OUT_OF_FAMILY_WL_ORBIT_FALSIFIER_VERIFICATION': raise SystemExit(1)
+          PY
+
+      - name: Build frozen falsifier result
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import hashlib,json,os
+          from pathlib import Path
+          c=json.load(open('/tmp/uf150_falsifier_candidate.json'))
+          i=json.load(open('/tmp/uf150_falsifier_independent.json'))
+          outcome=c['verdict']
+          if outcome.startswith('FALSIFIED_SCOPE_THEOREM'):
+              readout={'current_status':'OUT_OF_FAMILY_PANEL_FALSIFIED_THE_SCOPE_THEOREM_INSIDE_ITS_PREDECLARED_BOUND','directive':'FREEZE_THE_COUNTEREXAMPLE_AND_AUDIT_THE_THEOREM_PROOF_CHAIN_BEFORE_ANY_SELECTOR_RETUNING','nearest_missing_obligation':'ISOLATE_THE_FIRST_IN_SCOPE_DIRECT_EXACT_POSITIVE_NOT_ADMITTED_BY_FROZEN_E3'}
+          elif outcome.startswith('FALSIFIED_OUT_OF_FAMILY_SELECTOR'):
+              readout={'current_status':'OUT_OF_FAMILY_PANEL_FALSIFIED_THE_FROZEN_WL_PAIR_SELECTOR_BY_AT_LEAST_ONE_E3_POSITIVE_MISS','directive':'DO_NOT_RETUNE_ON_THIS_PANEL;FREEZE_THE_MISSED_E3_WITNESS_AS_A_SELECTOR_COUNTEREXAMPLE','nearest_missing_obligation':'CHARACTERIZE_THE_WL_PARTITION_PATTERN_BLOCKING_THE_MISSED_E3_EDGE'}
+          elif outcome.startswith('FALSIFIED_OUT_OF_FAMILY_AT_LEAST_ONE_IN_SCOPE_PORTFOLIO_OPEN_FALSE_POSITIVE'):
+              readout={'current_status':'OUT_OF_FAMILY_PANEL_PRODUCED_AN_IN_SCOPE_WL_DIRECT_EXACT_POSITIVE_LABELLED_PORTFOLIO_OPEN','directive':'AUDIT_ROUTE_LABEL_AND_SCOPE_THEOREM_CONSISTENCY_BEFORE_ANY_RETUNING','nearest_missing_obligation':'REPLAY_THE_FIRST_IN_SCOPE_OPEN_FALSE_POSITIVE_E3_CERTIFICATE_PATH'}
+          elif outcome=='SURVIVED_WITH_RESOURCE_SCOPE_EXITS_AND_ZERO_PREDECLARED_ERRORS':
+              readout={'current_status':'FROZEN_SELECTOR_SURVIVED_UF150_WITH_ZERO_PREDECLARED_ERRORS_BUT_AT_LEAST_ONE_POSITIVE_WAS_OUTSIDE_FORMAL_RESOURCE_SCOPE','directive':'DO_NOT_COUNT_SCOPE_EXITS_AS_THEOREM_CONFIRMATIONS_OR_FALSE_POSITIVES','nearest_missing_obligation':'CHARACTERIZE_RESOURCE_SCOPE_BOUNDARY_OR_TEST_ANOTHER_PREDECLARED_FAMILY'}
+          elif outcome=='SURVIVED_OUT_OF_FAMILY_WITH_AT_LEAST_ONE_E3_POSITIVE_AND_ZERO_PREDECLARED_ERRORS':
+              readout={'current_status':'FROZEN_SELECTOR_SURVIVED_A_PREDECLARED_OUT_OF_FAMILY_UF150_PANEL_WITH_POSITIVE_E3_COVERAGE_AND_ZERO_PREDECLARED_ERRORS','directive':'DO_NOT_PROMOTE_FINITE_PORTABILITY_TO_WL_ALONE_SUFFICIENCY','nearest_missing_obligation':'TEST_A_SECOND_POSITIVE_COVERAGE_OUT_OF_FAMILY_FAMILY_OR_FORMALIZE_A_STRONGER_STATEMENT_WITHOUT_RETUNING'}
+          else:
+              readout={'current_status':'UF150_PANEL_DID_NOT_FALSIFY_THE_RULE_BUT_CONTAINED_ZERO_E3_POSITIVE_GROUND_TRUTH_CASES','directive':'DO_NOT_INTERPRET_ZERO_POSITIVE_COVERAGE_AS_PORTABILITY_CONFIRMATION','nearest_missing_obligation':'PREDECLARE_ANOTHER_OUT_OF_FAMILY_PANEL_WITHOUT_USING_UF150_STRUCTURAL_RESULTS_FOR_SELECTION'}
+          wf=Path('.github/workflows/trump-uf150-001-020-out-of-family-wl-orbit-falsifier.yml')
+          d=wf.read_bytes(); wf_blob=hashlib.sha1(f'blob {len(d)}\0'.encode()+d).hexdigest()
+          result={
+            'artifact_id':'JANUS-TRUMP-UF150-001-020-OUT-OF-FAMILY-WL-ORBIT-FALSIFIER-RESULT-2026-09-18-v1.0',
+            'date':'2026-09-18',
+            'status':'FROZEN_OUT_OF_FAMILY_UF150_FALSIFIER_RESULT',
+            'gate':c['gate'],
+            'scientific_outcome':outcome,
+            'execution_verdict':'PASS_INDEPENDENT_UF150_OUT_OF_FAMILY_RECOMPUTATION',
+            'authorities':{
+              'source_freeze_commit':'dc503550294353eef4c4a71993925e7a644b0906',
+              'source_freeze_authority_copy_commit':'77f92b5280bf6e168abfa01563c254229bb785c5',
+              'source_freeze_blob':'b9084a54414a930945e67d81e83698100d4ac417',
+              'source_freeze_reconciliation_commit':'46f769e8b681375750a3a64081183ce6427a1536',
+              'source_freeze_reconciliation_blob':'b01f9d9c2a5e78201b5d5d046837411f8d753610',
+              'evaluation_prereg_blob':'6d0a05eaeaf443f17450068cefe68bef99b93433',
+              'evaluation_review_blob':'0e0a17d60a2b0f6b5d880d682d741308a56b3dc9',
+              'scope_theorem_commit':'bced6f34a33b063edb47a17adffa1d0ca5d5ca9a',
+              'scope_theorem_blob':'3cbf05cb0b0249ddf365bc43d176a06ddb7f72af',
+              'candidate_blob':'ccb70d860940ea5cc069255c8ae1959fd98da210',
+              'independent_checker_blob':'c668ad6b2ba594c032f040c24199572de51d1243',
+              'workflow_head':os.environ['GITHUB_SHA'],
+              'workflow_blob':wf_blob,
+            },
+            'execution':{
+              'run_id':int(os.environ['GITHUB_RUN_ID']),
+              'run_number':int(os.environ['GITHUB_RUN_NUMBER']),
+              'run_attempt':int(os.environ['GITHUB_RUN_ATTEMPT']),
+              'candidate_imported_by_independent_checker':False,
+              'independent_verdict':i['verdict'],
+            },
+            'prediction_stage_completed_before_ground_truth':c['prediction_stage_completed_before_ground_truth'],
+            'prediction_stage_count':c['prediction_stage_count'],
+            'prediction_stage_sha256':c['prediction_stage_sha256'],
+            'prediction_rows':c['prediction_rows'],
+            'ground_truth_rows':c['ground_truth_rows'],
+            'summary':c['summary'],
+            'resource_receipt':c['resource_receipt'],
+            'captain_obvious_readout':readout,
+            'claim_ceiling':c['claim_ceiling'],
+            'scientific_firewall':c['scientific_firewall'],
+          }
+          Path('/tmp/uf150_falsifier_result.json').write_text(json.dumps(result,indent=2,sort_keys=True)+'\n')
+          print(json.dumps({'scientific_outcome':outcome,'summary':c['summary'],'captain_obvious_readout':readout},indent=2))
+          PY
+
+      - name: Upload immutable evaluation receipts
+        uses: actions/upload-artifact@v4
+        with:
+          name: trump-uf150-001-020-out-of-family-falsifier-${{ github.run_id }}
+          path: |
+            /tmp/uf150_falsifier_candidate.json
+            /tmp/uf150_falsifier_independent.json
+            /tmp/uf150_falsifier_result.json
+
+      - name: Freeze result with safe fast-forward push
+        shell: bash
+        env:
+          BRANCH: research/trump-uf150-001-020-out-of-family-wl-orbit-falsifier-2026-09-18
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git fetch origin "$BRANCH"
+          git rebase "origin/$BRANCH"
+          cp /tmp/uf150_falsifier_result.json research/TRUMP_UF150_001_020_OUT_OF_FAMILY_WL_ORBIT_FALSIFIER_RESULT_2026-09-18_v1.0.json
+          git add research/TRUMP_UF150_001_020_OUT_OF_FAMILY_WL_ORBIT_FALSIFIER_RESULT_2026-09-18_v1.0.json
+          git commit -m 'TRUMP freeze UF150 001-020 out-of-family WL-orbit falsifier result'
+          git push origin HEAD:"$BRANCH"
