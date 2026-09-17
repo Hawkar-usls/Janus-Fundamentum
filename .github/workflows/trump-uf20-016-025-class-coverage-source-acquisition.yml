@@ -1,0 +1,132 @@
+name: TRUMP UF20 016-025 class coverage source acquisition
+
+on:
+  push:
+    branches:
+      - research/trump-uf20-016-025-independent-class-coverage-2026-09-17
+    paths:
+      - .github/workflows/trump-uf20-016-025-class-coverage-source-acquisition.yml
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  acquire-freeze:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout exact branch head
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Run frozen acquisition candidate
+        run: |
+          set -euo pipefail
+          python research/tools/apma_uf20_016_025_class_coverage_source_acquisition/candidate.py > /tmp/candidate.json
+          python - <<'PY'
+          import json
+          x=json.load(open('/tmp/candidate.json'))
+          print(x['verdict'])
+          assert x['verdict']=='PASS_UF20_016_025_DUAL_MIRROR_SOURCE_ACQUISITION_CANDIDATE',x
+          assert len(x['rows'])==10
+          PY
+
+      - name: Run independent checker without importing candidate
+        run: |
+          set -euo pipefail
+          python research/tools/apma_uf20_016_025_class_coverage_source_acquisition/independent_check.py /tmp/candidate.json > /tmp/independent.json
+          python - <<'PY'
+          import json
+          x=json.load(open('/tmp/independent.json'))
+          print(x['verdict'],x['sources_verified'])
+          assert x['candidate_imported'] is False
+          assert x['verdict']=='PASS_INDEPENDENT_UF20_016_025_SOURCE_ACQUISITION_VERIFICATION',x
+          assert x['sources_verified']==10
+          PY
+
+      - name: Build frozen source acquisition result
+        env:
+          RUN_ID: ${{ github.run_id }}
+          RUN_ATTEMPT: ${{ github.run_attempt }}
+          WORKFLOW_HEAD: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json,os,subprocess
+          from pathlib import Path
+          c=json.load(open('/tmp/candidate.json'))
+          k=json.load(open('/tmp/independent.json'))
+          out=Path('research/TRUMP_UF20_016_025_INDEPENDENT_CLASS_COVERAGE_SOURCE_ACQUISITION_RESULT_2026-09-17_v1.0.json')
+          def tree_blob(path):
+              return subprocess.check_output(['git','rev-parse',f'HEAD:{path}'],text=True).strip()
+          rows=[]
+          checks={r['source']:r for r in k['rows']}
+          for row in c['rows']:
+              q=dict(row)
+              q['status']='SOURCE_FROZEN'
+              q['independent_verified']=checks[row['source']]['ok']
+              rows.append(q)
+          result={
+            'artifact_id':'JANUS-TRUMP-UF20-016-025-INDEPENDENT-CLASS-COVERAGE-SOURCE-ACQUISITION-RESULT-2026-09-17-v1.0',
+            'date':'2026-09-17',
+            'status':'FROZEN_SOURCE_ACQUISITION_RESULT',
+            'authority':'SOURCE_PROVENANCE_AND_DUAL_MIRROR_FORMULA_FREEZE_ONLY__NO_PROJECTED_PENDANT_WL_ROUTE_OR_SOLVER_EVALUATION',
+            'repository_authority':'Hawkar-usls/Janus-Fundamentum',
+            'reservation':{'commit':'1ec7ae94f785fe82fb7ddc037f0e773933b237ad','blob':'459ce52dc66a92e8940749d4107dbff9f5f425b1'},
+            'acquisition_preregistration':{'commit':'4277d0b400586fdd2ec017eb3966d09d038906fa','blob':'cf28308070b070e4ce41b37af8d9fdcc32b1359f'},
+            'acquisition_review':{'commit':'c197fa1936878e72a96feb40eb853f91d88f2e08','blob':'8c6aaadadfae8d4f4fb402ca3e2f111f32aac561'},
+            'implementation':{
+              'candidate_commit':'1a287e3050677be15d32f4c6af253e90c5f7f1f5',
+              'candidate_blob':tree_blob('research/tools/apma_uf20_016_025_class_coverage_source_acquisition/candidate.py'),
+              'independent_checker_commit':'b902308d0d9ff19f13390bc21f7efa1b4773eec5',
+              'independent_checker_blob':tree_blob('research/tools/apma_uf20_016_025_class_coverage_source_acquisition/independent_check.py'),
+              'workflow_head':os.environ['WORKFLOW_HEAD'],
+              'workflow_blob':tree_blob('.github/workflows/trump-uf20-016-025-class-coverage-source-acquisition.yml')
+            },
+            'execution':{'run_id':int(os.environ['RUN_ID']),'run_attempt':int(os.environ['RUN_ATTEMPT']),'candidate_verdict':c['verdict'],'independent_verdict':k['verdict'],'independent_verified':True,'sources_verified':k['sources_verified']},
+            'verdict':'PASS_UF20_016_025_DUAL_MIRROR_SOURCE_ACQUISITION_AND_FORMULA_FREEZE',
+            'source_receipts':rows,
+            'blind_barrier_receipt':{
+              'projected_raw_computations':0,
+              'pendant_target_computations':0,
+              'wl_feature_computations':0,
+              'portfolio_replays':0,
+              'route_class_labels':0,
+              'solver_invocations':0,
+              'iterated_pendant_rounds':0,
+              'new_solver_rules':0,
+              'new_reduction_rules':0
+            },
+            'licensed_fact':{
+              'statement':'THE_PRE_RESERVED_UF20_016_TO_UF20_025_PANEL_IS_DUAL_MIRROR_VERIFIED_AND_SOURCE_FROZEN_WITH_ORDERED_CLAUSE_AND_CANONICAL_FORMULA_EQUALITY_BEFORE_ANY_PROJECTED_PENDANT_WL_ROUTE_OR_SOLVER_EVALUATION',
+              'scope':'SOURCE_PROVENANCE_AND_FUTURE_CLASS_COVERAGE_PANEL_FREEZE_ONLY'
+            },
+            'next_gate':'PREREGISTER_ONE_SHOT_CLASS_COVERAGE_EVALUATION_USING_UNCHANGED_R000_R111_GENERIC_ONE_ROUND_DEGREE1_PENDANT_FOUR_FROZEN_WL_FEATURES_AND_FROZEN_E1_E2_E3_PORTFOLIO',
+            'next_gate_status':'AUTHORIZED_TO_PREREGISTER_ONLY',
+            'forbidden':['COMPUTE_OR_REPORT_ROUTE_CLASS_BEFORE_NEXT_PREREGISTRATION','DROP_REPLACE_OR_RESIZE_PANEL','RETUNE_WL_FEATURES_OR_THRESHOLDS','CHANGE_PROJECTION','ITERATE_PENDANT_PEELING','USE_SOURCE_BOUND_SIGNED_ROUTE_ON_NEW_IDENTITIES','GENERAL_SAT_IN_P','P_EQUALS_NP'],
+            'scientific_firewall':{'P_VS_NP':'OPEN','GENERAL_SAT_IN_P':'NOT_PROVED','GENERAL_RESIDUAL_SEPARATOR_TRACTABILITY':'NOT_PROVED'}
+          }
+          out.write_text(json.dumps(result,indent=2,sort_keys=True)+'\n')
+          PY
+
+      - name: Upload immutable execution receipts
+        uses: actions/upload-artifact@v4
+        with:
+          name: uf20-016-025-class-coverage-source-acquisition-receipt
+          path: |
+            /tmp/candidate.json
+            /tmp/independent.json
+            research/TRUMP_UF20_016_025_INDEPENDENT_CLASS_COVERAGE_SOURCE_ACQUISITION_RESULT_2026-09-17_v1.0.json
+
+      - name: Commit frozen sources and result
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add research/source_data/SATLIB_UF20_0{16,17,18,19,20,21,22,23,24,25}_2026-09-17.cnf
+          git add research/TRUMP_UF20_016_025_INDEPENDENT_CLASS_COVERAGE_SOURCE_ACQUISITION_RESULT_2026-09-17_v1.0.json
+          git diff --cached --check
+          test "$(git diff --cached --name-only | wc -l)" -eq 11
+          git commit -m 'TRUMP freeze UF20 016-025 dual-mirror source acquisition result'
+          git push origin HEAD:${GITHUB_REF_NAME}
