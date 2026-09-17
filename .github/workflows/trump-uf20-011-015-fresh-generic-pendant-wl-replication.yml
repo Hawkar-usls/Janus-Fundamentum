@@ -1,0 +1,78 @@
+name: TRUMP UF20 011-015 fresh generic-pendant WL replication
+
+on:
+  push:
+    branches:
+      - research/trump-uf20-011-015-fresh-pendant-wl-replication-2026-09-17
+    paths:
+      - .github/workflows/trump-uf20-011-015-fresh-generic-pendant-wl-replication.yml
+
+permissions:
+  contents: write
+
+concurrency:
+  group: trump-uf20-011-015-fresh-generic-pendant-wl-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  fresh-replication:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout exact workflow head
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Execute frozen fresh candidate
+        run: |
+          python -m research.tools.apma_uf20_011_015_fresh_generic_pendant_wl_replication.candidate > /tmp/fresh_candidate.json
+          python -m json.tool /tmp/fresh_candidate.json >/dev/null
+          python - <<'PY'
+          import json
+          c=json.load(open('/tmp/fresh_candidate.json'))
+          assert c['verdict'] != 'HALT_SOURCE_OR_AUTHORITY_BINDING_FAILURE', c
+          PY
+      - name: Independent fresh reconstruction and replay
+        run: |
+          python -m research.tools.apma_uf20_011_015_fresh_generic_pendant_wl_replication.independent_check --candidate /tmp/fresh_candidate.json > /tmp/fresh_check.json
+          python -m json.tool /tmp/fresh_check.json >/dev/null
+      - name: Enforce frozen contract and build result
+        env:
+          WORKFLOW_HEAD: ${{ github.sha }}
+          RUN_ID: ${{ github.run_id }}
+          RUN_NUMBER: ${{ github.run_number }}
+        run: |
+          python - <<'PY'
+          import json,os
+          from pathlib import Path
+          c=json.load(open('/tmp/fresh_candidate.json'));k=json.load(open('/tmp/fresh_check.json'))
+          allowed={'FRESH_REPLICATION_ALL_FOUR_SURVIVE_WITH_BOTH_ROUTE_CLASSES','FRESH_REPLICATION_ALL_FOUR_SURVIVE_ONE_ROUTE_CLASS_ONLY__LIMITED','FRESH_REPLICATION_PARTIAL_FEATURE_SURVIVOR_SET','FRESH_REPLICATION_ALL_FOUR_FALSIFIED','HALT_PREUNBLINDING_TRAINING_REGRESSION_FAILURE'}
+          assert c['verdict'] in allowed
+          if c['verdict']=='HALT_PREUNBLINDING_TRAINING_REGRESSION_FAILURE':
+            assert k['verdict']=='PASS_INDEPENDENT_PREUNBLINDING_HALT';holdout_rows=[];scores={};survivors=[];falsified=[];coverage=[];fresh_reads=0
+            captain={'current_status':'GENERIC_TRANSFORM_FAILED_TO_REPRODUCE_THE_FROZEN_TRAINING_REDUCED_IDENTITIES_BEFORE_HOLDOUT_UNBLINDING','nearest_missing_obligation':'KEEP_HOLDOUT_UNREAD_AND_RECONCILE_THE_GENERIC_THEOREM_TRANSFORM_WITH_THE_HISTORICAL_CORRECTED_REDUCTION_USING_TRAINING_DATA_ONLY','directive':'DO_NOT_READ_HOLDOUTS_DO_NOT_RETUNE_WL_OR_ROUTES'}
+          else:
+            assert k['verdict']=='PASS_INDEPENDENT_FRESH_REPLICATION_VERIFICATION'
+            holdout_rows=c['holdout_rows'];scores=c['per_feature_scores'];survivors=c['surviving_features'];falsified=c['falsified_features'];coverage=c['route_class_coverage'];fresh_reads=5
+            if c['verdict']=='FRESH_REPLICATION_ALL_FOUR_SURVIVE_WITH_BOTH_ROUTE_CLASSES':
+              captain={'current_status':'FRESH_SOURCE_BOUND_REPLICATION_PASSED_ALL_FOUR_FROZEN_WL_PREDICTORS_WITH_BOTH_OPEN_AND_CLOSED_EXISTING_PORTFOLIO_CLASSES','nearest_missing_obligation':'SEPARATE_PREDICTIVE_CLASSIFICATION_FROM_CAUSAL_REDUCTION:FORMALIZE_WHETHER_THE_NONTRIVIAL_WL_CLASS_ITSELF_SUPPLIES_OR_CERTIFIES_THE_EXISTING_ORBIT_ACTION_WITHOUT_SEARCH_OR_ELSE_TREAT_WL_ONLY_AS_A_PREDICTOR','directive':'NO_NEW_SOLVER_OR_ROUTE;DO_NOT_CLAIM_TRACTABILITY;NEXT_GATE_MUST_TEST_A_PREDECLARED_CAUSAL_LINK_OR_FALSIFY_IT'}
+            elif c['verdict']=='FRESH_REPLICATION_ALL_FOUR_SURVIVE_ONE_ROUTE_CLASS_ONLY__LIMITED':
+              captain={'current_status':'FRESH_REPLICATION_MATCHED_ALL_FOUR_FEATURES_BUT_THE_FIVE_HOLDOUTS_CONTAIN_ONLY_ONE_EXISTING_PORTFOLIO_CLASS','nearest_missing_obligation':'ACQUIRE_AN_INDEPENDENT_SOURCE_BOUND_PANEL_CONTAINING_THE_MISSING_ROUTE_CLASS_BEFORE_CAUSAL_INTERPRETATION','directive':'DO_NOT_PROMOTE_ONE_CLASS_REPLICATION_TO_A_SEPARATOR_THEOREM'}
+            elif c['verdict']=='FRESH_REPLICATION_PARTIAL_FEATURE_SURVIVOR_SET':
+              captain={'current_status':'FRESH_REPLICATION_FALSIFIED_PART_OF_THE_FROZEN_WL_CANDIDATE_SET','nearest_missing_obligation':'FREEZE_ONLY_PREDECLARED_SURVIVORS_WITHOUT_RETUNING_AND_REQUIRE_ANOTHER_INDEPENDENT_SOURCE_BOUND_REPLICATION_BEFORE_CAUSAL_INTERPRETATION','directive':'DO_NOT_COMBINE_SURVIVORS_POSTHOC_OR_ADD_THRESHOLDS'}
+            else:
+              captain={'current_status':'FRESH_REPLICATION_FALSIFIED_ALL_FOUR_FROZEN_WL_PREDICTORS','nearest_missing_obligation':'ABANDON_THIS_WL_SEPARATOR_HYPOTHESIS_AND_RETURN_TO_SOURCE_BOUND_RESIDUAL_STRUCTURE_WITHOUT_POSTHOC_RESCUE','directive':'NO_THRESHOLD_RESCUE_NO_FEATURE_COMBINATION_NO_NEW_SOLVER_FROM_THIS_NEGATIVE_RESULT'}
+          result={'artifact_id':'JANUS-TRUMP-UF20-011-015-FRESH-GENERIC-PENDANT-WL-EXISTING-PORTFOLIO-REPLICATION-RESULT-2026-09-17-v1.0','date':'2026-09-17','status':'FROZEN_FRESH_REPLICATION_RESULT','gate':'TRUMP_UF20_011_015_FRESH_GENERIC_PENDANT_WL_EXISTING_PORTFOLIO_REPLICATION_GATE','verdict':c['verdict'],'implementation':{'preregistration_commit':'a21bc33e904767210b6669925ec8cc5e84057bb7','review_commit':'f8bfd1e13caca49d20004d24d04325cda004691a','candidate_commit':'ad7e4416f6136f1a02e7be2f55cc49b6f79eaac4','independent_checker_commit':'ecbfd763f5c9ad7683db600c862beb39ab409f10','workflow_head':os.environ['WORKFLOW_HEAD']},'execution':{'run_id':int(os.environ['RUN_ID']),'run_number':int(os.environ['RUN_NUMBER']),'independent_verdict':k['verdict'],'candidate_imported_by_independent_checker':False},'training_regression':c['training_regression'],'holdout_rows':holdout_rows,'per_feature_scores':scores,'surviving_features':survivors,'falsified_features':falsified,'route_class_coverage':coverage,'fresh_holdout_formula_reads':fresh_reads,'resource_receipt':c.get('resource_receipt',{}),'claim_ceiling':'FRESH_SOURCE_BOUND_REPLICATION_OF_A_FROZEN_STRUCTURAL_PREDICTOR_AGAINST_A_FROZEN_EXISTING_ROUTE_PORTFOLIO_ONLY','not_licensed':['ITERATED_PENDANT_PEELING','NEW_SOLVER_OR_ROUTE','WL_IMPLIES_TRACTABILITY','GENERAL_SAT_IN_P','P_EQUALS_NP'],'scientific_firewall':{'P_VS_NP':'OPEN','GENERAL_SAT_IN_P':'NOT_PROVED','GENERAL_RESIDUAL_SEPARATOR_TRACTABILITY':'NOT_PROVED'},'captain_obvious_readout':captain}
+          Path('research/TRUMP_UF20_011_015_FRESH_GENERIC_PENDANT_WL_EXISTING_PORTFOLIO_REPLICATION_RESULT_2026-09-17_v1.0.json').write_text(json.dumps(result,indent=2,sort_keys=True)+'\n')
+          PY
+      - name: Freeze fresh replication result
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add research/TRUMP_UF20_011_015_FRESH_GENERIC_PENDANT_WL_EXISTING_PORTFOLIO_REPLICATION_RESULT_2026-09-17_v1.0.json
+          git diff --cached --quiet && exit 0
+          git commit -m "TRUMP freeze UF20 011-015 fresh generic-pendant WL replication result"
+          git push origin HEAD:research/trump-uf20-011-015-fresh-pendant-wl-replication-2026-09-17
