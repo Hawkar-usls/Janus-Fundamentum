@@ -1,0 +1,182 @@
+name: TRUMP WL singleton-constraint exact-swap theorem
+
+on:
+  push:
+    branches:
+      - research/trump-wl-singleton-constraint-exact-swap-theorem-2026-09-18
+    paths-ignore:
+      - 'research/TRUMP_WL_SINGLETON_CONSTRAINT_EXACT_SWAP_THEOREM_RESULT_2026-09-18_v1.0.json'
+
+permissions:
+  contents: write
+
+jobs:
+  prove:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout exact workflow head
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Verify frozen authorities
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import hashlib
+          from pathlib import Path
+          expected={
+            'research/TRUMP_WL_SINGLETON_CONSTRAINT_EXACT_SWAP_THEOREM_PREREGISTRATION_2026-09-18_v1.0.json':'5f3a4087a9399411f51e4abd90f77dd786497189',
+            'research/TRUMP_WL_SINGLETON_CONSTRAINT_EXACT_SWAP_THEOREM_REVIEW_2026-09-18_v1.0.json':'5b693b091533eec19f8e96bb8d78a0e77663c950',
+            'research/tools/trump_wl_singleton_constraint_exact_swap_theorem/candidate.py':'04850c06ed0d5af05be16371ba63d1b45b20a39f',
+            'research/tools/trump_wl_singleton_constraint_exact_swap_theorem/independent_check.py':'e2b737a18273024e5476c12aa6e8af6a32fb7d9e',
+            'research/tools/apma_satlib_uf20_r000_r111_projected_core_replay/projection_identity.py':'2ef48e73974a5f43d3f4fb4809ebd0c09c0f5be4',
+            'research/tools/apma_uf20_wl_historical_closed_control_falsifier/candidate.py':'6b697fd8b3de4c83f8226b06399b6bad99953d4e',
+            'research/tools/apma_unseen_local_invariant_orbit_count/candidate.py':'a076cfc56d68aad0348415e313705da1f6b9cdcd',
+            'research/TRUMP_WL_DIRECT_EXACT_E3_SCOPE_BOUND_THEOREM_RESULT_2026-09-18_v1.0.json':'3cbf05cb0b0249ddf365bc43d176a06ddb7f72af',
+          }
+          def blob(p):
+              d=Path(p).read_bytes()
+              return hashlib.sha1(f'blob {len(d)}\0'.encode()+d).hexdigest()
+          bad={p:(h,blob(p)) for p,h in expected.items() if blob(p)!=h}
+          if bad: raise SystemExit(f'AUTHORITY_BINDING_FAILURE {bad}')
+          print('SINGLETON_CONSTRAINT_THEOREM_AUTHORITY_PASS')
+          PY
+
+      - name: Execute theorem candidate
+        shell: bash
+        run: |
+          set -euo pipefail
+          python research/tools/trump_wl_singleton_constraint_exact_swap_theorem/candidate.py > /tmp/theorem_candidate.json
+          python - <<'PY'
+          import json
+          x=json.load(open('/tmp/theorem_candidate.json'))
+          print(json.dumps({
+            'verdict':x.get('verdict'),
+            'symbolic_claims':x.get('symbolic_claims'),
+            'synthetic_sanity':x.get('synthetic_sanity'),
+          },indent=2))
+          PY
+
+      - name: Independent theorem recomputation
+        shell: bash
+        run: |
+          set -euo pipefail
+          python research/tools/trump_wl_singleton_constraint_exact_swap_theorem/independent_check.py --candidate /tmp/theorem_candidate.json > /tmp/theorem_independent.json
+          python -m json.tool /tmp/theorem_independent.json
+
+      - name: Build frozen theorem result
+        shell: bash
+        env:
+          WORKFLOW_HEAD: ${{ github.sha }}
+          RUN_ID: ${{ github.run_id }}
+          RUN_ATTEMPT: ${{ github.run_attempt }}
+          RUN_NUMBER: ${{ github.run_number }}
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json,os
+          from pathlib import Path
+          c=json.load(open('/tmp/theorem_candidate.json'))
+          k=json.load(open('/tmp/theorem_independent.json'))
+          passed=(
+            c.get('verdict')=='PASS_SINGLETON_CONSTRAINT_WL_COLOR_IMPLIES_EXACT_SWAP_ON_R000_R111_RESIDUALS'
+            and k.get('verdict')=='PASS_INDEPENDENT_SINGLETON_CONSTRAINT_EXACT_SWAP_THEOREM_VERIFICATION'
+          )
+          result={
+            'artifact_id':'JANUS-TRUMP-WL-SINGLETON-CONSTRAINT-EXACT-SWAP-THEOREM-RESULT-2026-09-18-v1.0',
+            'date':'2026-09-18',
+            'status':'FROZEN_SINGLETON_CONSTRAINT_EXACT_SWAP_THEOREM_RESULT',
+            'scientific_outcome':(
+              'PASS_SINGLETON_CONSTRAINT_WL_COLOR_IMPLIES_EXACT_SWAP_ON_R000_R111_RESIDUALS'
+              if passed else
+              'FAIL_SINGLETON_CONSTRAINT_EXACT_SWAP_THEOREM'
+            ),
+            'theorem':'R000_R111_RESIDUAL_AND_STABLE_WL1_SAME_COLOR_PAIR_AND_ALL_CONSTRAINT_COLORS_SINGLETON_IMPLIES_EXACT_TRANSPOSITION',
+            'e3_corollary':'ADD_3_TIMES_2_POW_N_MINUS_2_LE_L_SQUARED_TO_IMPLY_FROZEN_E3_ADMISSION_WITHOUT_A_DIRECT_EXACT_SELECTOR_CALL',
+            'claim_ceiling':'DIRECT_EXACT_CHECK_ELIMINATION_ONLY_FOR_THE_EXPLICIT_SINGLETON_CONSTRAINT_STABLE_WL_SUBCLASS_OF_R000_R111_RESIDUALS',
+            'authorities':{
+              'preregistration_commit':'ad30685ac901490eb996613c5c5d652ec214964e',
+              'preregistration_blob':'5f3a4087a9399411f51e4abd90f77dd786497189',
+              'review_commit':'eaf336f7e39140122c4deab961e0c0c2d939e907',
+              'review_blob':'5b693b091533eec19f8e96bb8d78a0e77663c950',
+              'candidate_commit':'7b892516a6aad43200b78a63a8620fe6b30cc933',
+              'candidate_blob':'04850c06ed0d5af05be16371ba63d1b45b20a39f',
+              'independent_checker_commit':'a90b6eae51b997783f75cfda36d0a4b9e4a91720',
+              'independent_checker_blob':'e2b737a18273024e5476c12aa6e8af6a32fb7d9e',
+              'scope_theorem_commit':'bced6f34a33b063edb47a17adffa1d0ca5d5ca9a',
+              'scope_theorem_blob':'3cbf05cb0b0249ddf365bc43d176a06ddb7f72af',
+              'workflow_head':os.environ['WORKFLOW_HEAD'],
+            },
+            'execution':{
+              'run_id':int(os.environ['RUN_ID']),
+              'run_attempt':int(os.environ['RUN_ATTEMPT']),
+              'run_number':int(os.environ['RUN_NUMBER']),
+              'candidate_verdict':c.get('verdict'),
+              'independent_verdict':k.get('verdict'),
+              'candidate_imported_by_independent_checker':False,
+            },
+            'proof_summary':{
+              'symbolic_claims':c.get('symbolic_claims'),
+              'candidate_synthetic_sanity':c.get('synthetic_sanity'),
+              'independent_checks':k.get('checks'),
+              'independent_sanity':k.get('independent_sanity'),
+            },
+            'captain_obvious_readout':{
+              'current_status':(
+                'DIRECT_EXACT_SELECTOR_CALL_IS_FORMALLY_REDUNDANT_INSIDE_THE_EXPLICIT_SINGLETON_CONSTRAINT_R000_R111_SUBCLASS'
+                if passed else
+                'THE_STRONGER_SELECTOR_THEOREM_FAILED_OR_WAS_NOT_INDEPENDENTLY_REPRODUCED'
+              ),
+              'directive':'DO_NOT_REMOVE_DIRECT_EXACT_CHECK_OUTSIDE_THE_EXPLICIT_SUBCLASS',
+              'nearest_missing_obligation':(
+                'MEASURE_THE_PREDECLARED_SOURCE_BOUND_COROLLARY_ON_THE_SIX_ALREADY_FROZEN_PROSPECTIVE_UF20_POSITIVES_WITHOUT_RETUNING_THE_THEOREM'
+                if passed else
+                'INSPECT_THE_FROZEN_COUNTEREXAMPLE_OR_MISMATCH_WITHOUT_WEAKENING_THE_PREDECLARED_THEOREM_POST_HOC'
+              ),
+            },
+            'scientific_firewall':{
+              'WL_SUFFICIENCY_WITHOUT_DIRECT_EXACT_CHECK':(
+                'PROVED_ONLY_FOR_EXPLICIT_SINGLETON_CONSTRAINT_R000_R111_SUBCLASS'
+                if passed else 'NOT_PROVED'
+              ),
+              'ARBITRARY_RESIDUAL_SEPARATOR_TRACTABILITY':'NOT_PROVED',
+              'GENERAL_SAT_IN_P':'NOT_PROVED',
+              'P_VS_NP':'OPEN',
+            },
+          }
+          Path('research/TRUMP_WL_SINGLETON_CONSTRAINT_EXACT_SWAP_THEOREM_RESULT_2026-09-18_v1.0.json').write_text(json.dumps(result,indent=2,sort_keys=True)+'\n')
+          print(json.dumps({'scientific_outcome':result['scientific_outcome'],'execution':result['execution'],'captain':result['captain_obvious_readout']},indent=2))
+          PY
+
+      - name: Upload immutable theorem receipts
+        uses: actions/upload-artifact@v4
+        with:
+          name: singleton-constraint-exact-swap-theorem-${{ github.run_id }}
+          path: |
+            /tmp/theorem_candidate.json
+            /tmp/theorem_independent.json
+            research/TRUMP_WL_SINGLETON_CONSTRAINT_EXACT_SWAP_THEOREM_RESULT_2026-09-18_v1.0.json
+
+      - name: Freeze theorem result with safe fast-forward push
+        shell: bash
+        env:
+          BRANCH: research/trump-wl-singleton-constraint-exact-swap-theorem-2026-09-18
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add research/TRUMP_WL_SINGLETON_CONSTRAINT_EXACT_SWAP_THEOREM_RESULT_2026-09-18_v1.0.json
+          git commit -m "TRUMP freeze singleton-constraint WL exact-swap theorem result"
+          git fetch origin "$BRANCH"
+          if [ "$(git rev-parse HEAD^)" != "$(git rev-parse origin/$BRANCH)" ]; then
+            git rebase "origin/$BRANCH"
+          fi
+          git push origin "HEAD:$BRANCH"
