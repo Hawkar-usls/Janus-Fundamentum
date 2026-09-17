@@ -7,7 +7,10 @@ on:
   pull_request:
     paths:
       - 'research/TRUMP_GENERAL_SAT_UNIVERSAL_CLOSURE_*'
+      - 'research/TRUMP_U_PAIR_*'
+      - 'research/U_PAIR_*'
       - 'proof_attempts/GENERAL_SAT_SIGNED_CNF_VARIABLE_SWITCHING_NORMAL_FORM_2026-09-17.md'
+      - 'proof_attempts/U_PAIR_*'
       - 'research/tools/general_sat_universal/**'
       - '.github/workflows/trump-general-sat-universal-closure-v1.yml'
 
@@ -22,6 +25,8 @@ jobs:
           python-version: '3.12'
       - name: Run exact switching normal-form controls
         run: python research/tools/general_sat_universal/selftest.py
+      - name: Run U-PAIR-1E wide-OR projection regression
+        run: python research/tools/general_sat_universal/u_pair_1e_wide_or_projection_checker.py
       - name: Preserve claim ceiling
         run: |
           python - <<'PY'
@@ -31,5 +36,9 @@ jobs:
           assert d['current_status']=='NOT_PROVED'
           assert d['ultimate_implication_if_fully_proved']=='P_EQUALS_NP'
           assert d['promotion_rule']=='NO_SCIENTIFIC_PROMOTION_FROM_THIS_PREREGISTRATION_ALONE'
+          r=json.load(open('research/TRUMP_U_PAIR_1E_FACTORIZED_AFFINE_OR_ELIMINATION_RESULT_2026-09-17.json',encoding='utf-8'))
+          assert r['firewall']['GENERAL_SAT_IN_P']=='NOT_PROVED'
+          assert r['firewall']['P_VS_NP']=='OPEN'
+          assert r['firewall']['P_EQ_NP']=='NOT_PROVED'
           print('CLAIM_CEILING_OK')
           PY
