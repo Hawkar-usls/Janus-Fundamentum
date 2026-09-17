@@ -2,27 +2,33 @@
 
 Status: PREREGISTERED DRAFT — DIAGNOSTIC ONLY — NO SOLVER/CARRIER AUTHORITY
 
-This development entry records a classical experimental-design analogue of the quantum observer-effect intuition: if a discovery process can infer the intended answer from provenance, labels, filenames, historical verdicts, or target-aware metadata, the result is treated as contaminated for blind-discovery purposes.
+This entry records a classical experimental-design analogue of the observer-effect intuition: a discovery result is contaminated for blind-authority purposes if target-aware provenance leaks into candidate execution, or if observer/telemetry instrumentation can perturb the exact state consumed by discovery.
 
-The protocol is intentionally non-authoritative at v3.23. The currently recovered connected-mixed corpus is exhausted for post-orbit obstruction localization. Any execution on that corpus is calibration only and cannot be promoted as new evidence.
+## Context recovery / anti-rediscovery finding
 
-Core discipline:
+The v3.22 Stage C authority already established a strong blind-execution lineage for `EXACT_TRANSPOSITION_ORBIT_COUNT_QUOTIENT`. Its authority audit includes P3 blindness and P11 renaming/order/tuple-permutation invariance. Therefore those ideas are **not** a new mechanism here and must not be re-promoted.
 
-1. Freeze the raw semantic object and transform seeds before discovery.
-2. Generate semantics-preserving disguised views.
-3. Hide provenance and target-aware metadata.
-4. Run candidate discovery independently per view.
-5. Inverse-map candidates to canonical coordinates.
-6. Freeze candidate hashes before provenance reveal.
-7. Measure representation coherence and metadata-leak dependence.
-8. Run an independent exact checker after the candidate freeze.
+The actual successor diagnostic surface is narrower:
 
-Interpretation ceiling:
+`OBSERVER_TELEMETRY_NONINTERFERENCE + TARGET_METADATA_CANARY + DELAYED_REVEAL_FREEZE`
 
-- no P-vs-NP conclusion;
-- no general SAT-in-P conclusion;
-- no connected-mixed generality conclusion;
-- no new carrier/solver authority;
-- no replacement for the v3.23 new-source-bound-raw-provenance requirement.
+The question is not whether the existing candidate is invariant under another renaming test. The question is whether attaching an observer can alter candidate-visible bytes or expose information that the candidate was not licensed to see.
 
-The immediate implementation target is a calibration harness over previously sealed blind fixtures, solely to test that the masking/randomization machinery itself works. A future admissible use requires genuinely new source-bound raw provenance frozen under the then-current authority.
+## v3.23 ceiling
+
+The currently recovered connected-mixed corpus is exhausted for post-orbit obstruction localization. Any execution here is calibration only and cannot be called new source evidence. No new connected-mixed mechanism is licensed until genuinely new source-bound raw provenance appears and is frozen under the then-current authority.
+
+## Calibration protocol
+
+1. Build and hash immutable blind payload bytes.
+2. Keep a target-aware canary only in a separate metadata envelope.
+3. Run `NO_OBSERVER`, `READ_ONLY_OBSERVER`, and `HOSTILE_COPY_OBSERVER` from independent decodes of the same payload.
+4. The hostile observer deliberately mutates its private copy.
+5. Discovery receives a fresh decode of the original committed bytes, never the observer object.
+6. Require identical candidate-input SHA and candidate output across observer modes.
+7. Retest semantics-preserving representation coherence only as an existing-P11 regression.
+8. Freeze candidate hashes before revealing provenance/labels.
+9. Reveal metadata after freeze and require the freeze hash to remain unchanged.
+10. Run an intentionally unsafe shared-mutable-object negative control and require the harness to detect contamination.
+
+A calibration PASS means only that this orchestration harness resisted the tested leakage/perturbation paths. It does not establish universality, general connected-mixed tractability, general SAT in P, or a P-vs-NP result.
