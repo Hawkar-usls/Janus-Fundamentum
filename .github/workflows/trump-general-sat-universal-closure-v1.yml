@@ -1,0 +1,35 @@
+name: TRUMP general SAT universal closure v1
+
+on:
+  push:
+    branches:
+      - research/general-sat-universal-closure-v1
+  pull_request:
+    paths:
+      - 'research/TRUMP_GENERAL_SAT_UNIVERSAL_CLOSURE_*'
+      - 'proof_attempts/GENERAL_SAT_SIGNED_CNF_VARIABLE_SWITCHING_NORMAL_FORM_2026-09-17.md'
+      - 'research/tools/general_sat_universal/**'
+      - '.github/workflows/trump-general-sat-universal-closure-v1.yml'
+
+jobs:
+  switching-normal-form:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Run exact switching normal-form controls
+        run: python research/tools/general_sat_universal/selftest.py
+      - name: Preserve claim ceiling
+        run: |
+          python - <<'PY'
+          import json
+          p='research/TRUMP_GENERAL_SAT_UNIVERSAL_CLOSURE_PREREGISTRATION_2026-09-17.json'
+          d=json.load(open(p,encoding='utf-8'))
+          assert d['current_status']=='NOT_PROVED'
+          assert d['ultimate_implication_if_fully_proved']=='P_EQUALS_NP'
+          assert d['promotion_rule']=='NO_SCIENTIFIC_PROMOTION_FROM_THIS_PREREGISTRATION_ALONE'
+          print('CLAIM_CEILING_OK')
+          PY
