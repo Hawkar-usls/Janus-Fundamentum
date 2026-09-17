@@ -1,0 +1,84 @@
+name: TRUMP SATLIB UF20 Raw Bound Pendant Exact Simultaneous One Round Reduction
+
+on:
+  push:
+    branches:
+      - research/trump-external-satlib-uf20-01-source-acquisition-2026-09-16
+    paths:
+      - 'research/TRUMP_SATLIB_UF20_R000_R111_RAW_BOUND_PENDANT_EXACT_SIMULTANEOUS_ONE_ROUND_REDUCTION_PREREGISTRATION_2026-09-17.json'
+      - 'research/TRUMP_SATLIB_UF20_R000_R111_RAW_BOUND_PENDANT_EXACT_SIMULTANEOUS_ONE_ROUND_REDUCTION_PREREGISTRATION_REVIEW_2026-09-17.json'
+      - 'research/tools/apma_satlib_uf20_r000_r111_raw_bound_pendant_exact_simultaneous_one_round_reduction/**'
+      - '.github/workflows/trump-satlib-uf20-r000-r111-raw-bound-pendant-exact-simultaneous-one-round-reduction.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  reduction:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Assert frozen reduction bindings
+        run: |
+          set -euo pipefail
+          test "$(git hash-object research/TRUMP_SATLIB_UF20_R000_R111_RAW_BOUND_PENDANT_EXACT_SIMULTANEOUS_ONE_ROUND_REDUCTION_PREREGISTRATION_2026-09-17.json)" = "308fef7f6f4d0038416e5242268988160d2eb4e0"
+          test "$(git hash-object research/TRUMP_SATLIB_UF20_R000_R111_RAW_BOUND_PENDANT_EXACT_SIMULTANEOUS_ONE_ROUND_REDUCTION_PREREGISTRATION_REVIEW_2026-09-17.json)" = "6a568bec946136440979e676b1d82ac7d0c86af7"
+          test "$(git hash-object research/TRUMP_SATLIB_UF20_R000_R111_RAW_BOUND_PENDANT_SIMULTANEOUS_DEPENDENCY_AUDIT_RESULT_2026-09-17.json)" = "4d9fb36af246dc8d922afe47deb6780a3c1b9244"
+          test "$(git hash-object research/TRUMP_SATLIB_UF20_R000_R111_RAW_BOUND_PENDANT_EXISTENTIAL_BOUNDARY_PROJECTION_RESULT_2026-09-17.json)" = "3a9d46cb888489e769bab1e7d292e4eff459f786"
+          test "$(git hash-object research/TRUMP_SATLIB_UF20_R000_R111_RAW_BOUND_D2_D3_WITNESS_RECONSTRUCTION_RESULT_2026-09-17.json)" = "d91e82fa2e558bb2926cc42b5f4368af51ae9c10"
+          test "$(git hash-object research/tools/apma_satlib_uf20_r000_r111_projected_core_replay/projection_identity.py)" = "2ef48e73974a5f43d3f4fb4809ebd0c09c0f5be4"
+          test "$(git hash-object research/tools/apma_satlib_uf20_r000_r111_raw_bound_pendant_exact_simultaneous_one_round_reduction/candidate.py)" = "e9b2dfcfaf75ae306ea3441a944edea942328b3e"
+          test "$(git hash-object research/tools/apma_satlib_uf20_r000_r111_raw_bound_pendant_exact_simultaneous_one_round_reduction/independent_checker.py)" = "32bcca300e015e3dd4d6e3098f5c4d1441949088"
+          test "$(git hash-object research/source_data/SATLIB_UF20_02_2026-09-16.cnf)" = "f924caaef0d868bf62b1658e83e030ad8daee865"
+          test "$(git hash-object research/source_data/SATLIB_UF20_03_2026-09-16.cnf)" = "8f3d15154515457281f49201b843f2a7134dfa9f"
+          test "$(git hash-object research/source_data/SATLIB_UF20_04_2026-09-16.cnf)" = "34ced5c169f967b2dc44ef5e42f2ee2c924813e1"
+          test "$(git hash-object research/source_data/SATLIB_UF20_05_2026-09-16.cnf)" = "3b04eff26ee37bdd0bc21b1066486974f92a2c9b"
+      - name: Execute exact simultaneous one-round reduction once
+        run: |
+          set -euo pipefail
+          python -m research.tools.apma_satlib_uf20_r000_r111_raw_bound_pendant_exact_simultaneous_one_round_reduction.candidate > /tmp/reduction.json
+      - name: Independently rebuild and verify reduced raws and semantics certificate
+        run: |
+          set -euo pipefail
+          python -m research.tools.apma_satlib_uf20_r000_r111_raw_bound_pendant_exact_simultaneous_one_round_reduction.independent_checker --candidate-json /tmp/reduction.json > /tmp/reduction-independent.json
+      - name: Assert reduction outcome and firewalls
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          c=json.loads(Path('/tmp/reduction.json').read_text().strip().splitlines()[-1])
+          i=json.loads(Path('/tmp/reduction-independent.json').read_text().strip().splitlines()[-1])
+          assert c['verdict'] in {'PASS_EXACT_SIMULTANEOUS_ONE_ROUND_REDUCTION','FAIL_BINDING_OR_STRUCTURAL_PRECONDITION','FAIL_SEMANTICS_CERTIFICATE'},c
+          assert i['verified'] is True and i['candidate_imported'] is False and i['verdict']==c['verdict'],i
+          assert len(c['rows'])==4
+          rr=c['resource_receipt']
+          assert rr['reduction_rounds']==1 and rr['target_constraints']==11 and rr['target_leaves']==11
+          assert rr['post_round_target_discoveries']==0 and rr['new_relations_added']==0
+          assert rr['solver_invocations']==0 and rr['portfolio_replays']==0 and rr['global_assignment_enumerations']==0
+          assert rr['fresh_holdout_values_read']==0
+          sf=c['scientific_firewall'];assert sf['P_VS_NP']=='OPEN' and sf['GENERAL_SAT_IN_P']=='NOT_PROVED' and sf['CONNECTED_MIXED_CORE_SOLVED']=='NO'
+          compact=[{'source':r['source'],'original_vars':r['original_variable_count'],'original_constraints':r['original_constraint_count'],'removed_leaves':r['removed_leaves'],'removed_constraints':r['removed_constraint_ids'],'reduced_vars':r['reduced_variable_count'],'reduced_constraints':r['reduced_constraint_count'],'reduced_sha256':r['reduced_raw_sha256'],'source_pass':r['source_pass']} for r in c['rows']]
+          print(json.dumps({'verdict':c['verdict'],'compact':compact,'independent_verified':True},sort_keys=True))
+          PY
+      - name: Upload exact one-round reduction receipt
+        uses: actions/upload-artifact@v4
+        with:
+          name: satlib-uf20-r000-r111-raw-bound-pendant-exact-one-round-reduction-receipt
+          path: |
+            /tmp/reduction.json
+            /tmp/reduction-independent.json
+          if-no-files-found: error
+      - name: Authority notice
+        run: |
+          echo 'AUTHORITY=SEMANTICS_PRESERVING_EXACT_ONE_ROUND_REPRESENTATION_REDUCTION_ONLY'
+          echo 'REDUCTION_ROUNDS=1'
+          echo 'POST_ROUND_TARGET_DISCOVERIES=0'
+          echo 'SOLVER_INVOCATIONS=0'
+          echo 'GLOBAL_ASSIGNMENT_ENUMERATIONS=0'
+          echo 'FRESH_HOLDOUT_VALUES_READ=0'
+          echo 'P_VS_NP=OPEN'
