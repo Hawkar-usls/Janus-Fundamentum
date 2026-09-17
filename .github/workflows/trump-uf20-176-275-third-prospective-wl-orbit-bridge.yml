@@ -1,0 +1,210 @@
+name: TRUMP UF20 176-275 third prospective WL-orbit bridge
+
+on:
+  push:
+    branches:
+      - research/trump-uf20-176-275-third-prospective-wl-orbit-bridge-2026-09-17
+    paths:
+      - .github/workflows/trump-uf20-176-275-third-prospective-wl-orbit-bridge.yml
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: trump-uf20-176-275-third-prospective-wl-orbit-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  evaluate:
+    runs-on: ubuntu-latest
+    env:
+      PYTHONPATH: ${{ github.workspace }}
+    steps:
+      - name: Checkout exact workflow head
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Verify frozen authorities
+        run: |
+          set -euo pipefail
+          test "$(git hash-object research/TRUMP_UF20_176_275_THIRD_PROSPECTIVE_WL_ORBIT_BRIDGE_PANEL_RESERVATION_PREREGISTRATION_2026-09-17_v1.0.json)" = "9b4696da9a12c227024bd2343e6ae4db19fb2f03"
+          test "$(git hash-object research/TRUMP_UF20_176_275_THIRD_PROSPECTIVE_WL_ORBIT_BRIDGE_SOURCE_ACQUISITION_RESULT_2026-09-17_v1.0.json)" = "98b059f4116407bf99fb2933b1e58cf1d09eb321"
+          test "$(git hash-object research/TRUMP_UF20_176_275_THIRD_PROSPECTIVE_WL_ORBIT_BRIDGE_EVALUATION_PREREGISTRATION_2026-09-17_v1.0.json)" = "2fe7eceb55cfe7ee731107536ebb571bebe0546c"
+          test "$(git hash-object research/TRUMP_UF20_176_275_THIRD_PROSPECTIVE_WL_ORBIT_BRIDGE_EVALUATION_REVIEW_2026-09-17_v1.0.json)" = "46db2e6678c260bc7c8fc27ada6ab1e875e53449"
+          test "$(git hash-object research/tools/apma_uf20_176_275_third_prospective_wl_orbit_bridge/candidate.py)" = "f7f3f0481f31a8ea85163edc1eb973fba0d1085c"
+          test "$(git hash-object research/tools/apma_uf20_176_275_third_prospective_wl_orbit_bridge/independent_check.py)" = "6bb1168d3f846c0fcad2e7a7c1368de9a2a83bf7"
+          test "$(git hash-object research/tools/apma_uf20_011_015_fresh_generic_pendant_wl_replication/candidate.py)" = "9ec365ae27a6caa7b936cd33040e542f183ded99"
+          test "$(git hash-object research/tools/apma_uf20_wl_historical_closed_control_falsifier/candidate.py)" = "6b697fd8b3de4c83f8226b06399b6bad99953d4e"
+          test "$(git hash-object research/tools/apma_unseen_local_invariant_orbit_count/candidate.py)" = "a076cfc56d68aad0348415e313705da1f6b9cdcd"
+
+      - name: Execute frozen third prospective candidate
+        run: |
+          set -euo pipefail
+          python -m research.tools.apma_uf20_176_275_third_prospective_wl_orbit_bridge.candidate > /tmp/candidate.json
+          python -m json.tool /tmp/candidate.json >/dev/null
+          python - <<'PY'
+          import json
+          c=json.load(open('/tmp/candidate.json'))
+          allowed={
+            'PASS_THIRD_PROSPECTIVE_MULTI_CLOSED_WL_TO_E3_WITNESS_REPLICATION',
+            'PARTIAL_THIRD_PANEL_FEWER_THAN_TWO_E3_CLOSED_CASES',
+            'FALSIFIED_THIRD_PANEL_AT_LEAST_ONE_E3_CLOSED_CASE_NOT_RECOVERED',
+            'FALSIFIED_THIRD_PANEL_AT_LEAST_ONE_PORTFOLIO_OPEN_WL_DIRECT_EXACT_FALSE_POSITIVE',
+          }
+          print('scientific outcome:',c.get('verdict'))
+          print('prediction rows:',c.get('prediction_stage_count'))
+          print('prediction positives:',c.get('summary',{}).get('wl_prediction_positive_sources'))
+          print('e3 closed:',c.get('summary',{}).get('e3_closed_sources'))
+          print('misses:',c.get('summary',{}).get('e3_closed_misses'))
+          print('open false positives:',c.get('summary',{}).get('open_false_positives'))
+          assert c.get('verdict') in allowed,c
+          assert c.get('prediction_stage_completed_before_ground_truth') is True
+          assert c.get('prediction_stage_count')==100
+          r=c.get('resource_receipt',{})
+          assert r.get('prediction_full_transposition_searches')==0
+          assert r.get('signed_route_invocations')==0
+          assert r.get('prior_partial_closed_cases_counted_toward_third_panel_threshold')==0
+          assert all(r.get(k)==0 for k in ('new_solver_mechanisms','new_reduction_rules','new_action_rules','new_carrier_mechanisms','new_adapters','new_quotients','posthoc_thresholds_or_pair_rules'))
+          PY
+
+      - name: Independent recomputation without candidate import
+        run: |
+          set -euo pipefail
+          python -m research.tools.apma_uf20_176_275_third_prospective_wl_orbit_bridge.independent_check --candidate /tmp/candidate.json > /tmp/independent.json
+          python -m json.tool /tmp/independent.json >/dev/null
+          python - <<'PY'
+          import json
+          k=json.load(open('/tmp/independent.json'))
+          print('independent verdict:',k.get('verdict'))
+          print('independent scientific outcome:',k.get('scientific_outcome'))
+          print('prediction positives:',k.get('prediction_positive_sources'))
+          print('e3 closed:',k.get('e3_closed_sources'))
+          print('misses:',k.get('e3_closed_misses'))
+          print('open false positives:',k.get('open_false_positives'))
+          assert k.get('verdict')=='PASS_INDEPENDENT_THIRD_PROSPECTIVE_WL_ORBIT_BRIDGE_VERIFICATION',k
+          assert k.get('candidate_imported') is False
+          assert k.get('prediction_stage_count')==100
+          assert k.get('prior_partial_closed_cases_counted_toward_third_panel_threshold')==0
+          assert all(k.get('comparison_checks',{}).values())
+          PY
+
+      - name: Build frozen third prospective result
+        env:
+          RUN_ID: ${{ github.run_id }}
+          RUN_NUMBER: ${{ github.run_number }}
+          RUN_ATTEMPT: ${{ github.run_attempt }}
+          WORKFLOW_HEAD: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import hashlib,json,os
+          from pathlib import Path
+          def blob(path):
+              d=Path(path).read_bytes()
+              return hashlib.sha1(f'blob {len(d)}\0'.encode()+d).hexdigest()
+          c=json.load(open('/tmp/candidate.json'));k=json.load(open('/tmp/independent.json'))
+          assert k['verdict']=='PASS_INDEPENDENT_THIRD_PROSPECTIVE_WL_ORBIT_BRIDGE_VERIFICATION'
+          outcome=c['verdict'];summary=c['summary']
+          if outcome=='PASS_THIRD_PROSPECTIVE_MULTI_CLOSED_WL_TO_E3_WITNESS_REPLICATION':
+              captain={
+                'current_status':'THIRD_PROSPECTIVE_ONE_HUNDRED_SOURCE_PANEL_PASSED_THE_FROZEN_WL_TO_DIRECT_EXACT_TRANSPOSITION_WITNESS_RULE_WITH_AT_LEAST_TWO_E3_CLOSED_CASES_AND_ZERO_PREDECLARED_ERRORS',
+                'nearest_missing_obligation':'DO_NOT_EXTEND_BY_MORE_SAME_FAMILY_SAMPLING_AS_THE_PRIMARY_NEXT_MOVE;FORMALIZE_THE_SCOPE_BOUND_AND_TEST_WHETHER_THE_WL_DERIVED_PAIR_RULE_CAN_BE_PROVED_SUFFICIENT_FOR_THE_DEFINED_SOURCE_BOUND_RESIDUAL_CLASS_OR_FIND_A_PREDECLARED_OUT_OF_FAMILY_FALSIFIER',
+                'directive':'DO_NOT_PROMOTE_FINITE_REPLICATION_TO_WL_SUFFICIENCY_GENERAL_SAT_IN_P_OR_P_EQUALS_NP'
+              }
+          elif outcome=='PARTIAL_THIRD_PANEL_FEWER_THAN_TWO_E3_CLOSED_CASES':
+              captain={
+                'current_status':'THIRD_PROSPECTIVE_PANEL_DID_NOT_FALSIFY_THE_RULE_BUT_STILL_CONTAINS_FEWER_THAN_TWO_E3_CLOSED_CASES',
+                'nearest_missing_obligation':'RESERVE_ANOTHER_INDEPENDENT_SOURCE_BOUND_PANEL_BEFORE_ANY_NEW_VALUES_ARE_READ;KEEP_THE_RULE_PANEL_SIZE_THRESHOLD_AND_TOLERANCES_FROZEN',
+                'directive':'DO_NOT_POOL_PRIOR_PARTIAL_PANELS_POSTHOC_AND_DO_NOT_TREAT_INSUFFICIENT_POSITIVE_COVERAGE_AS_FULL_PASS'
+              }
+          elif outcome=='FALSIFIED_THIRD_PANEL_AT_LEAST_ONE_E3_CLOSED_CASE_NOT_RECOVERED':
+              captain={
+                'current_status':'FROZEN_WL_PAIR_RULE_WAS_FALSIFIED_BY_AT_LEAST_ONE_E3_CLOSED_MISS_ON_THE_THIRD_PROSPECTIVE_PANEL',
+                'nearest_missing_obligation':'FREEZE_THE_COUNTEREXAMPLE_AND_RETURN_TO_DISCOVERY_ONLY_IN_A_NEW_LINEAGE',
+                'directive':'NO_THRESHOLD_RESCUE_NO_PAIR_RULE_REWRITE_NO_SUCCESS_FILTERING'
+              }
+          else:
+              captain={
+                'current_status':'FROZEN_WL_PAIR_RULE_WAS_FALSIFIED_BY_AT_LEAST_ONE_PORTFOLIO_OPEN_DIRECT_EXACT_FALSE_POSITIVE_ON_THE_THIRD_PROSPECTIVE_PANEL',
+                'nearest_missing_obligation':'FREEZE_THE_COUNTEREXAMPLE_AND_RETURN_TO_DISCOVERY_ONLY_IN_A_NEW_LINEAGE',
+                'directive':'NO_THRESHOLD_RESCUE_NO_PAIR_RULE_REWRITE_NO_SUCCESS_FILTERING'
+              }
+          result={
+            'artifact_id':'JANUS-TRUMP-UF20-176-275-THIRD-PROSPECTIVE-WL-ORBIT-BRIDGE-REPLICATION-RESULT-2026-09-17-v1.0',
+            'date':'2026-09-17',
+            'status':'FROZEN_THIRD_PROSPECTIVE_ONE_HUNDRED_SOURCE_RESULT',
+            'gate':'TRUMP_UF20_176_275_THIRD_PROSPECTIVE_WL_ORBIT_BRIDGE_EVALUATION_GATE',
+            'scientific_outcome':outcome,
+            'execution_verdict':'PASS_INDEPENDENT_THIRD_PROSPECTIVE_RECOMPUTATION',
+            'authorities':{
+              'panel_reservation_commit':'c0c19d5ce74abd25e2249e93f4b474db2052fba1',
+              'source_freeze_commit':'db67b541c7af495f5a716a0b16318794405036b3',
+              'evaluation_prereg_commit':'5230f1cd79d5e88a3e6eb916c3550861700571b5',
+              'evaluation_review_commit':'ffe93c1d937d5a93475553727c5188e2492b1d7e',
+              'candidate_commit':'2bfa2b9b5c379de134333266f1ee3c7dc1bc3d32',
+              'candidate_blob':blob('research/tools/apma_uf20_176_275_third_prospective_wl_orbit_bridge/candidate.py'),
+              'independent_checker_commit':'10648ffa8155093c286606c368e26a3b7b6764a4',
+              'independent_checker_blob':blob('research/tools/apma_uf20_176_275_third_prospective_wl_orbit_bridge/independent_check.py'),
+              'workflow_head':os.environ['WORKFLOW_HEAD']
+            },
+            'execution':{
+              'run_id':int(os.environ['RUN_ID']),
+              'run_number':int(os.environ['RUN_NUMBER']),
+              'run_attempt':int(os.environ['RUN_ATTEMPT']),
+              'candidate_imported_by_independent_checker':False,
+              'independent_verdict':k['verdict']
+            },
+            'prediction_stage_completed_before_ground_truth':c['prediction_stage_completed_before_ground_truth'],
+            'prediction_stage_count':c['prediction_stage_count'],
+            'prediction_stage_sha256':c['prediction_stage_sha256'],
+            'prediction_rows':c['prediction_rows'],
+            'ground_truth_rows':c['ground_truth_rows'],
+            'summary':summary,
+            'independent_summary':{
+              'prediction_stage_sha256':k['prediction_stage_sha256'],
+              'prediction_positive_sources':k['prediction_positive_sources'],
+              'e3_closed_sources':k['e3_closed_sources'],
+              'e3_closed_misses':k['e3_closed_misses'],
+              'portfolio_open_sources':k['portfolio_open_sources'],
+              'portfolio_closed_sources':k['portfolio_closed_sources'],
+              'open_false_positives':k['open_false_positives'],
+              'direct_exact_checks':k['direct_exact_checks'],
+              'prior_partial_closed_cases_counted_toward_third_panel_threshold':k['prior_partial_closed_cases_counted_toward_third_panel_threshold'],
+              'comparison_checks':k['comparison_checks']
+            },
+            'resource_receipt':c['resource_receipt'],
+            'claim_ceiling':'THIRD_PROSPECTIVE_FINITE_ONE_HUNDRED_SOURCE_REPLICATION_OF_THE_FROZEN_WL_TO_EXACT_TRANSPOSITION_WITNESS_RULE_AGAINST_THE_EXISTING_E3_GROUND_TRUTH_ONLY',
+            'scientific_firewall':c['scientific_firewall'],
+            'captain_obvious_readout':captain
+          }
+          Path('research/TRUMP_UF20_176_275_THIRD_PROSPECTIVE_WL_ORBIT_BRIDGE_REPLICATION_RESULT_2026-09-17_v1.0.json').write_text(json.dumps(result,indent=2,sort_keys=True)+'\n')
+          PY
+
+      - name: Upload immutable execution receipts
+        uses: actions/upload-artifact@v4
+        with:
+          name: uf20-176-275-third-prospective-wl-orbit-bridge-receipt
+          path: |
+            /tmp/candidate.json
+            /tmp/independent.json
+            research/TRUMP_UF20_176_275_THIRD_PROSPECTIVE_WL_ORBIT_BRIDGE_REPLICATION_RESULT_2026-09-17_v1.0.json
+
+      - name: Freeze result with safe fast-forward push
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add research/TRUMP_UF20_176_275_THIRD_PROSPECTIVE_WL_ORBIT_BRIDGE_REPLICATION_RESULT_2026-09-17_v1.0.json
+          git diff --cached --check
+          test "$(git diff --cached --name-only | wc -l)" -eq 1
+          git commit -m 'TRUMP freeze third prospective UF20 176-275 WL-orbit bridge result'
+          git fetch origin "${GITHUB_REF_NAME}"
+          git rebase "origin/${GITHUB_REF_NAME}"
+          git push origin HEAD:"${GITHUB_REF_NAME}"
