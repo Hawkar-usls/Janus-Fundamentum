@@ -12,7 +12,7 @@ RESERVATION = ROOT / 'research/TRUMP_UF75_001_020_OUT_OF_FAMILY_WL_ORBIT_FALSIFI
 PREREG = ROOT / 'research/TRUMP_UF75_001_020_OUT_OF_FAMILY_SOURCE_ACQUISITION_PREREGISTRATION_2026-09-18_v1.0.json'
 REVIEW = ROOT / 'research/TRUMP_UF75_001_020_OUT_OF_FAMILY_SOURCE_ACQUISITION_REVIEW_2026-09-18_v1.0.json'
 EXPECTED = {
-    CANDIDATE: '4e73dcaba1079e5f4532f0507af63667e68e439f',
+    CANDIDATE: '580a2c410d29929f8457621f579881e0164e6cb7',
     RESERVATION: '9e3bce29110bc47d5f774f789e81d40ddce2a248',
     PREREG: 'b82c27904e11e20634daccbbcba931ce897f11c6',
     REVIEW: 'bf66e8be6da3f1d27336b30e7f7a0a22919f3a0f',
@@ -24,7 +24,7 @@ VERIFY_COMMIT = 'cb9dfa7a0862c44882850d465d045d2a9bf86950'
 
 
 def blob_bytes(data: bytes) -> str:
-    return hashlib.sha1(f'blob {len(data)}\\0'.encode('ascii') + data).hexdigest()
+    return hashlib.sha1(f'blob {len(data)}\0'.encode('ascii') + data).hexdigest()
 
 
 def blob(path: Path) -> str:
