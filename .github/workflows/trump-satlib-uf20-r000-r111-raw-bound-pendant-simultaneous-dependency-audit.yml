@@ -1,0 +1,82 @@
+name: TRUMP SATLIB UF20 Raw Bound Pendant Simultaneous Dependency Audit
+
+on:
+  push:
+    branches:
+      - research/trump-external-satlib-uf20-01-source-acquisition-2026-09-16
+    paths:
+      - 'research/TRUMP_SATLIB_UF20_R000_R111_RAW_BOUND_PENDANT_SIMULTANEOUS_DEPENDENCY_AUDIT_PREREGISTRATION_2026-09-17.json'
+      - 'research/TRUMP_SATLIB_UF20_R000_R111_RAW_BOUND_PENDANT_SIMULTANEOUS_DEPENDENCY_AUDIT_PREREGISTRATION_REVIEW_2026-09-17.json'
+      - 'research/tools/apma_satlib_uf20_r000_r111_raw_bound_pendant_simultaneous_dependency_audit/**'
+      - '.github/workflows/trump-satlib-uf20-r000-r111-raw-bound-pendant-simultaneous-dependency-audit.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  dependency-audit:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Assert frozen dependency bindings
+        run: |
+          set -euo pipefail
+          test "$(git hash-object research/TRUMP_SATLIB_UF20_R000_R111_RAW_BOUND_PENDANT_SIMULTANEOUS_DEPENDENCY_AUDIT_PREREGISTRATION_2026-09-17.json)" = "81c985cd3be76cee1286eff4fa91728e55a8adb9"
+          test "$(git hash-object research/TRUMP_SATLIB_UF20_R000_R111_RAW_BOUND_PENDANT_SIMULTANEOUS_DEPENDENCY_AUDIT_PREREGISTRATION_REVIEW_2026-09-17.json)" = "f40af28892a6e8762d9dc98a9438f710515e4348"
+          test "$(git hash-object research/TRUMP_SATLIB_UF20_R000_R111_RAW_BOUND_PENDANT_EXISTENTIAL_BOUNDARY_PROJECTION_RESULT_2026-09-17.json)" = "3a9d46cb888489e769bab1e7d292e4eff459f786"
+          test "$(git hash-object research/TRUMP_SATLIB_UF20_R000_R111_RAW_BOUND_D2_D3_WITNESS_RECONSTRUCTION_RESULT_2026-09-17.json)" = "d91e82fa2e558bb2926cc42b5f4368af51ae9c10"
+          test "$(git hash-object research/tools/apma_satlib_uf20_r000_r111_raw_bound_pendant_simultaneous_dependency_audit/candidate.py)" = "3e673705d6abc24501693bbb1d77d19c80e5bb9e"
+          test "$(git hash-object research/tools/apma_satlib_uf20_r000_r111_raw_bound_pendant_simultaneous_dependency_audit/independent_checker.py)" = "439ed39c58161ee3c98656aab77640109c78fb10"
+          test "$(git hash-object research/source_data/SATLIB_UF20_02_2026-09-16.cnf)" = "f924caaef0d868bf62b1658e83e030ad8daee865"
+          test "$(git hash-object research/source_data/SATLIB_UF20_03_2026-09-16.cnf)" = "8f3d15154515457281f49201b843f2a7134dfa9f"
+          test "$(git hash-object research/source_data/SATLIB_UF20_04_2026-09-16.cnf)" = "34ced5c169f967b2dc44ef5e42f2ee2c924813e1"
+          test "$(git hash-object research/source_data/SATLIB_UF20_05_2026-09-16.cnf)" = "3b04eff26ee37bdd0bc21b1066486974f92a2c9b"
+      - name: Execute frozen dependency synthesis once
+        run: |
+          set -euo pipefail
+          python -m research.tools.apma_satlib_uf20_r000_r111_raw_bound_pendant_simultaneous_dependency_audit.candidate > /tmp/dependency-audit.json
+      - name: Independently rebuild and verify dependency synthesis
+        run: |
+          set -euo pipefail
+          python -m research.tools.apma_satlib_uf20_r000_r111_raw_bound_pendant_simultaneous_dependency_audit.independent_checker --candidate-json /tmp/dependency-audit.json > /tmp/dependency-audit-independent.json
+      - name: Assert dependency outcome and firewalls
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          c=json.loads(Path('/tmp/dependency-audit.json').read_text().strip().splitlines()[-1])
+          i=json.loads(Path('/tmp/dependency-audit-independent.json').read_text().strip().splitlines()[-1])
+          assert c['verdict'] in {'ZERO_CROSS_ATTACHMENT_DEPENDENCY','ACYCLIC_NONZERO_DEPENDENCY','CYCLIC_DEPENDENCY'},c
+          assert i['verified'] is True and i['candidate_imported'] is False and i['verdict']==c['verdict'],i
+          assert len(c['rows'])==4
+          assert all(r['per_source_outcome'] in {'ZERO_CROSS_ATTACHMENT_DEPENDENCY','ACYCLIC_NONZERO_DEPENDENCY','CYCLIC_DEPENDENCY'} for r in c['rows'])
+          rr=c['resource_receipt']
+          assert rr['relation_table_value_reads']==0 and rr['boundary_relation_enumerations']==0
+          assert rr['attachment_deletions']==0 and rr['projected_raw_modifications']==0
+          assert rr['solver_invocations']==0 and rr['fresh_holdout_values_read']==0
+          sf=c['scientific_firewall'];assert sf['P_VS_NP']=='OPEN' and sf['GENERAL_SAT_IN_P']=='NOT_PROVED' and sf['CONNECTED_MIXED_CORE_SOLVED']=='NO'
+          compact=[{'source':r['source'],'edges':r['dependency_edges'],'edge_count':r['dependency_edge_count'],'cycle':r['directed_cycle_present'],'clean_occurrences':r['all_leaf_occurrence_and_nonown_checks_clean'],'leaves':r['target_leaves'],'outcome':r['per_source_outcome']} for r in c['rows']]
+          print(json.dumps({'verdict':c['verdict'],'compact':compact,'independent_verified':True},sort_keys=True))
+          PY
+      - name: Upload dependency receipt
+        uses: actions/upload-artifact@v4
+        with:
+          name: satlib-uf20-r000-r111-raw-bound-pendant-simultaneous-dependency-audit-receipt
+          path: |
+            /tmp/dependency-audit.json
+            /tmp/dependency-audit-independent.json
+          if-no-files-found: error
+      - name: Authority notice
+        run: |
+          echo 'AUTHORITY=READ_ONLY_CROSS_ATTACHMENT_DEPENDENCY_SYNTHESIS_FROM_FROZEN_RECEIPTS'
+          echo 'RELATION_TABLE_VALUE_READS=0'
+          echo 'BOUNDARY_RELATION_ENUMERATIONS=0'
+          echo 'ATTACHMENT_DELETIONS=0'
+          echo 'SOLVER_INVOCATIONS=0'
+          echo 'FRESH_HOLDOUT_VALUES_READ=0'
+          echo 'P_VS_NP=OPEN'
