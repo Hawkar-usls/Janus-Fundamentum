@@ -1,0 +1,165 @@
+name: TRUMP UF50 001-020 out-of-family source acquisition
+
+on:
+  push:
+    branches:
+      - research/trump-uf50-001-020-out-of-family-wl-orbit-falsifier-2026-09-18
+    paths:
+      - .github/workflows/trump-uf50-001-020-out-of-family-source-acquisition.yml
+
+permissions:
+  contents: write
+
+jobs:
+  acquire:
+    runs-on: ubuntu-latest
+    env:
+      PYTHONPATH: ${{ github.workspace }}
+    steps:
+      - name: Checkout exact workflow head
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Verify frozen authorities
+        shell: bash
+        run: |
+          python - <<'PY'
+          import hashlib
+          from pathlib import Path
+          expected={
+            'research/TRUMP_UF50_001_020_OUT_OF_FAMILY_WL_ORBIT_FALSIFIER_PANEL_RESERVATION_PREREGISTRATION_2026-09-18_v1.0.json':'cb21ee36a96368ea7f7b8b1e2fdf17788cda8a65',
+            'research/TRUMP_UF50_001_020_OUT_OF_FAMILY_SOURCE_ACQUISITION_PREREGISTRATION_2026-09-18_v1.0.json':'19e15c35aef3b1e89fc40fe17daf160923332d2f',
+            'research/TRUMP_UF50_001_020_OUT_OF_FAMILY_SOURCE_ACQUISITION_REVIEW_2026-09-18_v1.0.json':'fa67d3aa9e511f9938ec69150523f1f26780fef3',
+            'research/tools/trump_uf50_001_020_out_of_family_source_acquisition/candidate.py':'be1591ecb6b8fa7e7045fc5ddef6d1b4117e31ca',
+            'research/tools/trump_uf50_001_020_out_of_family_source_acquisition/independent_check.py':'010f89185f915f70ad5326eb9d84250fd617143a',
+          }
+          def blob(p):
+              d=Path(p).read_bytes(); return hashlib.sha1(f'blob {len(d)}\0'.encode()+d).hexdigest()
+          bad={p:(h,blob(p)) for p,h in expected.items() if blob(p)!=h}
+          if bad: raise SystemExit(f'AUTHORITY_BINDING_FAILURE {bad}')
+          print('AUTHORITY_BINDINGS_PASS')
+          PY
+
+      - name: Execute blind dual-mirror acquisition
+        run: |
+          python research/tools/trump_uf50_001_020_out_of_family_source_acquisition/candidate.py > /tmp/uf50_acquisition_candidate.json
+          python - <<'PY'
+          import json
+          x=json.load(open('/tmp/uf50_acquisition_candidate.json'))
+          print(x['verdict'])
+          if x['verdict']!='PASS_UF50_001_020_DUAL_MIRROR_SOURCE_ACQUISITION_AND_FORMULA_FREEZE':
+              print(json.dumps(x,indent=2))
+              raise SystemExit(1)
+          PY
+
+      - name: Independent refetch and verification
+        run: |
+          python research/tools/trump_uf50_001_020_out_of_family_source_acquisition/independent_check.py --candidate /tmp/uf50_acquisition_candidate.json > /tmp/uf50_acquisition_independent.json
+          python - <<'PY'
+          import json
+          x=json.load(open('/tmp/uf50_acquisition_independent.json'))
+          print(x['verdict'],x.get('sources_verified'))
+          if x['verdict']!='PASS_INDEPENDENT_UF50_001_020_SOURCE_FREEZE_VERIFICATION':
+              print(json.dumps(x,indent=2))
+              raise SystemExit(1)
+          PY
+
+      - name: Build frozen acquisition result
+        shell: bash
+        run: |
+          python - <<'PY'
+          import hashlib,json,os
+          from pathlib import Path
+          cand=json.load(open('/tmp/uf50_acquisition_candidate.json'))
+          ind=json.load(open('/tmp/uf50_acquisition_independent.json'))
+          verified={r['source']:r for r in ind['verification_rows']}
+          rows=[]
+          for row in cand['source_receipts']:
+              v=verified[row['source']]
+              r=dict(row)
+              r['committed_git_blob']=v['committed_git_blob']
+              r['computed_committed_git_blob']=v['committed_git_blob']
+              r['independent_verified']=v['pass'] is True
+              r['status']='SOURCE_FROZEN'
+              rows.append(r)
+          result={
+            'artifact_id':'JANUS-TRUMP-UF50-001-020-OUT-OF-FAMILY-SOURCE-ACQUISITION-RESULT-2026-09-18-v1.0',
+            'date':'2026-09-18',
+            'status':'FROZEN_OUT_OF_FAMILY_UF50_SOURCE_PANEL',
+            'gate':'TRUMP_UF50_001_020_OUT_OF_FAMILY_DUAL_MIRROR_SOURCE_ACQUISITION_GATE',
+            'verdict':'PASS_UF50_001_020_DUAL_MIRROR_SOURCE_ACQUISITION_AND_FORMULA_FREEZE',
+            'authorities':{
+              'reservation_commit':'02776f7258699390969827a43e259af118a0b540',
+              'reservation_blob':'cb21ee36a96368ea7f7b8b1e2fdf17788cda8a65',
+              'acquisition_prereg_commit':'c58772d8da942ae8d5b123fd9cebf81a07842683',
+              'acquisition_prereg_blob':'19e15c35aef3b1e89fc40fe17daf160923332d2f',
+              'acquisition_review_commit':'c58471f5022b2e0fdb8ec3949811b7f597902ded',
+              'acquisition_review_blob':'fa67d3aa9e511f9938ec69150523f1f26780fef3',
+              'candidate_commit':'87211291b993f339452cd85dc87ea617b4650aa1',
+              'candidate_blob':'be1591ecb6b8fa7e7045fc5ddef6d1b4117e31ca',
+              'independent_checker_commit':'1e886191cd2145cd3287e310d1703e8629b961ac',
+              'independent_checker_blob':'010f89185f915f70ad5326eb9d84250fd617143a',
+              'workflow_head':os.environ['GITHUB_SHA'],
+            },
+            'execution':{
+              'run_id':int(os.environ['GITHUB_RUN_ID']),
+              'run_number':int(os.environ['GITHUB_RUN_NUMBER']),
+              'run_attempt':int(os.environ['GITHUB_RUN_ATTEMPT']),
+              'sources_verified':ind['sources_verified'],
+              'candidate_imported_by_independent_checker':False,
+              'independent_verdict':ind['verdict'],
+            },
+            'source_receipts':rows,
+            'blind_barrier_receipt':{
+              'projected_raw_computations':0,
+              'pendant_target_computations':0,
+              'wl_computations':0,
+              'direct_transposition_checks':0,
+              'full_transposition_searches':0,
+              'portfolio_replays':0,
+              'e3_witness_computations':0,
+              'solver_invocations':0,
+              'external_truth_or_metrics_reads':0,
+            },
+            'claim_ceiling':'SOURCE_PROVENANCE_AND_DUAL_MIRROR_FORMULA_FREEZE_ONLY',
+            'next_step':'PREREGISTER_OUT_OF_FAMILY_UF50_WL_FIRST_THEN_FROZEN_E1_E2_E3_GROUND_TRUTH_FALSIFIER_EVALUATION_ON_ALL_TWENTY_WITH_THE_SELECTOR_RULE_UNCHANGED',
+            'scientific_firewall':{
+              'STRUCTURAL_VALUES_COMPUTED':0,
+              'WL_SUFFICIENCY_WITHOUT_DIRECT_EXACT_CHECK':'NOT_PROVED',
+              'GENERAL_SAT_IN_P':'NOT_PROVED',
+              'P_VS_NP':'OPEN',
+            },
+          }
+          Path('/tmp/uf50_acquisition_result.json').write_text(json.dumps(result,indent=2,sort_keys=True)+'\n')
+          print(json.dumps({'verdict':result['verdict'],'sources_verified':ind['sources_verified']}))
+          PY
+
+      - name: Upload immutable acquisition receipts
+        uses: actions/upload-artifact@v4
+        with:
+          name: trump-uf50-001-020-source-acquisition-${{ github.run_id }}
+          path: |
+            /tmp/uf50_acquisition_candidate.json
+            /tmp/uf50_acquisition_independent.json
+            /tmp/uf50_acquisition_result.json
+
+      - name: Freeze source panel with safe fast-forward push
+        shell: bash
+        env:
+          BRANCH: research/trump-uf50-001-020-out-of-family-wl-orbit-falsifier-2026-09-18
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git fetch origin "$BRANCH"
+          git rebase "origin/$BRANCH"
+          cp /tmp/uf50_acquisition_result.json research/TRUMP_UF50_001_020_OUT_OF_FAMILY_SOURCE_ACQUISITION_RESULT_2026-09-18_v1.0.json
+          git add research/TRUMP_UF50_001_020_OUT_OF_FAMILY_SOURCE_ACQUISITION_RESULT_2026-09-18_v1.0.json research/source_data/SATLIB_UF50_*_2026-09-18.cnf
+          git commit -m 'TRUMP freeze UF50 001-020 out-of-family dual-mirror source panel'
+          git push origin HEAD:"$BRANCH"
