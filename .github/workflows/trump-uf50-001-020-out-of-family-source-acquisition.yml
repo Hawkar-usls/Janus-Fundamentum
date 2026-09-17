@@ -47,15 +47,24 @@ jobs:
           print('AUTHORITY_BINDINGS_PASS')
           PY
 
-      - name: Execute blind dual-mirror acquisition
+      - name: Execute blind dual-mirror acquisition candidate
         run: |
           python research/tools/trump_uf50_001_020_out_of_family_source_acquisition/candidate.py > /tmp/uf50_acquisition_candidate.json
+          cat /tmp/uf50_acquisition_candidate.json
+
+      - name: Upload candidate diagnostic receipt before verdict gate
+        uses: actions/upload-artifact@v4
+        with:
+          name: trump-uf50-001-020-acquisition-candidate-${{ github.run_id }}
+          path: /tmp/uf50_acquisition_candidate.json
+
+      - name: Gate candidate verdict
+        run: |
           python - <<'PY'
           import json
           x=json.load(open('/tmp/uf50_acquisition_candidate.json'))
           print(x['verdict'])
           if x['verdict']!='PASS_UF50_001_020_DUAL_MIRROR_SOURCE_ACQUISITION_AND_FORMULA_FREEZE':
-              print(json.dumps(x,indent=2))
               raise SystemExit(1)
           PY
 
@@ -75,7 +84,7 @@ jobs:
         shell: bash
         run: |
           python - <<'PY'
-          import hashlib,json,os
+          import json,os
           from pathlib import Path
           cand=json.load(open('/tmp/uf50_acquisition_candidate.json'))
           ind=json.load(open('/tmp/uf50_acquisition_independent.json'))
@@ -115,6 +124,7 @@ jobs:
               'sources_verified':ind['sources_verified'],
               'candidate_imported_by_independent_checker':False,
               'independent_verdict':ind['verdict'],
+              'failed_prior_run_id':35275751737,
             },
             'source_receipts':rows,
             'blind_barrier_receipt':{
