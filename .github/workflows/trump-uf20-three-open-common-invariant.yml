@@ -1,0 +1,134 @@
+name: TRUMP UF20 three-open common-invariant differential profiling
+
+on:
+  push:
+    branches:
+      - research/trump-uf20-three-open-common-invariant-2026-09-17
+    paths:
+      - .github/workflows/trump-uf20-three-open-common-invariant.yml
+
+permissions:
+  contents: write
+
+concurrency:
+  group: trump-uf20-three-open-common-invariant-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  differential-profile:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout exact workflow head
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Run preregistered four-object profiler
+        run: |
+          python research/tools/apma_satlib_uf20_02_04_05_common_invariant_differential_profiling/profiler.py > /tmp/uf20_common_invariant_candidate.json
+          python -m json.tool /tmp/uf20_common_invariant_candidate.json >/dev/null
+
+      - name: Run independent checker
+        run: |
+          python research/tools/apma_satlib_uf20_02_04_05_common_invariant_differential_profiling/independent_check.py \
+            --candidate /tmp/uf20_common_invariant_candidate.json \
+            > /tmp/uf20_common_invariant_independent_check.json
+          python -m json.tool /tmp/uf20_common_invariant_independent_check.json >/dev/null
+
+      - name: Enforce scientific firewalls and build frozen result
+        env:
+          WORKFLOW_HEAD: ${{ github.sha }}
+          RUN_ID: ${{ github.run_id }}
+          RUN_NUMBER: ${{ github.run_number }}
+        run: |
+          python - <<'PY'
+          import json, os
+          from pathlib import Path
+
+          candidate=json.loads(Path('/tmp/uf20_common_invariant_candidate.json').read_text())
+          checker=json.loads(Path('/tmp/uf20_common_invariant_independent_check.json').read_text())
+          allowed={
+              'COMMON_PRIMITIVE_INVARIANT_CANDIDATE_SET_FOUND__BLIND_FALSIFIER_REQUIRED',
+              'NO_COMMON_INVARIANT_FOUND_ON_FROZEN_PRIMITIVE_FEATURE_BASIS',
+          }
+          assert candidate['verdict'] in allowed
+          assert checker['verdict']=='PASS_INDEPENDENT_DIFFERENTIAL_PROFILE_VERIFICATION'
+          assert candidate['scientific_firewall']['P_VS_NP']=='OPEN'
+          assert candidate['scientific_firewall']['GENERAL_SAT_IN_P']=='NOT_PROVED'
+          assert candidate['blindness_receipt']['historical_control_feature_values_read']==0
+          assert candidate['blindness_receipt']['fresh_holdout_values_read']==0
+          assert all(v==0 for v in candidate['resource_receipt'].values())
+          candidates=candidate['candidate_invariant_set']
+          if candidates:
+              captain={
+                  'current_status':'FROZEN_COMMON_PRIMITIVE_INVARIANT_CANDIDATE_SET_FOUND_ON_FOUR_OBJECT_DISCOVERY_PANEL',
+                  'nearest_missing_obligation':'PREREGISTER_A_SEPARATE_BLIND_FALSIFIER_GATE_AND_ONLY_THEN_OPEN_THE_FROZEN_HISTORICAL_CONTROL_FEATURE_VALUES',
+                  'directive':'DO_NOT_MODIFY_OR_RANK_THE_FROZEN_CANDIDATE_SET;DO_NOT_DESIGN_A_REDUCTION_OR_SOLVER;TEST_ALL_FROZEN_CANDIDATES_BLINDLY_ON_HISTORICAL_SOURCE_BOUND_CONTROLS_FIRST',
+              }
+          else:
+              captain={
+                  'current_status':'FROZEN_PRIMITIVE_FEATURE_BASIS_EXHAUSTED_WITHOUT_A_COMMON_02_04_05_VS_03_INVARIANT',
+                  'nearest_missing_obligation':'DO_NOT_INVENT_A_MECHANISM;EITHER_ACQUIRE_NEW_SOURCE_BOUND_RESIDUAL_CONTROLS_OR_PREREGISTER_A_BROADER_PROVENANCE_FREE_POLYTIME_STRUCTURAL_FEATURE_BASIS_BEFORE_INSPECTION',
+                  'directive':'NO_POSTHOC_COMBINATIONS_THRESHOLDS_OR_FEATURE_TRANSFORMS_ARE_LICENSED_BY_THIS_NEGATIVE_RESULT',
+              }
+          result={
+              'artifact_id':'JANUS-TRUMP-UF20-02-04-05-COMMON-INVARIANT-DIFFERENTIAL-PROFILING-RESULT-2026-09-17-v1.0',
+              'date':'2026-09-17',
+              'status':'FROZEN_DIAGNOSTIC_RESULT',
+              'gate':'TRUMP_SATLIB_UF20_02_04_05_COMMON_INVARIANT_DIFFERENTIAL_PROFILING_GATE',
+              'verdict':candidate['verdict'],
+              'implementation':{
+                  'preregistration_commit':'c945737081b13f240e70197c89d77ca67b379638',
+                  'review_commit':'e079f2a43fcec124bcd772e1cc41c1a722d6c62d',
+                  'profiler_commit':'91ca43aa036678dfc13dc6d04ef82a55ed6d6432',
+                  'independent_checker_commit':'fe758e9741339e2a1585432f8fa631e645a9e7e6',
+                  'workflow_head':os.environ['WORKFLOW_HEAD'],
+              },
+              'execution':{
+                  'run_id':int(os.environ['RUN_ID']),
+                  'run_number':int(os.environ['RUN_NUMBER']),
+                  'independent_verified':True,
+                  'candidate_imported_by_independent_checker':False,
+              },
+              'frozen_obstruction_set':['UF20_02','UF20_04','UF20_05'],
+              'frozen_positive_control':'UF20_03',
+              'identity_guards':candidate['identity_guards'],
+              'feature_rows':candidate['feature_rows'],
+              'candidate_invariant_set':candidates,
+              'eligible_feature_names':candidate['eligible_feature_names'],
+              'excluded_features':candidate['excluded_features'],
+              'blindness_receipt':candidate['blindness_receipt'],
+              'resource_receipt':candidate['resource_receipt'],
+              'independent_check':{
+                  'verdict':checker['verdict'],
+                  'checks':checker['checks'],
+                  'independent_candidate_invariant_set':checker['independent_candidate_invariant_set'],
+              },
+              'claim_ceiling':'DIFFERENTIAL_STRUCTURAL_EVIDENCE_ONLY__NO_TRACTABILITY_THEOREM',
+              'not_licensed':[
+                  'NEW_SOLVER_RULE','NEW_ACTION_RULE','NEW_CARRIER_MECHANISM','NEW_REDUCTION_MECHANISM',
+                  'POSTHOC_FEATURE_COMBINATION','GENERAL_SAT_IN_P','P_EQUALS_NP'
+              ],
+              'scientific_firewall':{
+                  'P_VS_NP':'OPEN','GENERAL_SAT_IN_P':'NOT_PROVED','CONNECTED_MIXED_CORE_SOLVED':'NO',
+                  'GENERAL_RESIDUAL_SEPARATOR_TRACTABILITY':'NOT_PROVED'
+              },
+              'captain_obvious_readout':captain,
+          }
+          out=Path('research/TRUMP_UF20_02_04_05_COMMON_INVARIANT_DIFFERENTIAL_PROFILING_RESULT_2026-09-17_v1.0.json')
+          out.write_text(json.dumps(result,indent=2,sort_keys=True)+'\n')
+          PY
+
+      - name: Freeze result on the research branch
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add research/TRUMP_UF20_02_04_05_COMMON_INVARIANT_DIFFERENTIAL_PROFILING_RESULT_2026-09-17_v1.0.json
+          git diff --cached --quiet && exit 0
+          git commit -m "TRUMP freeze UF20 three-open common-invariant differential profiling result"
+          git push origin HEAD:research/trump-uf20-three-open-common-invariant-2026-09-17
