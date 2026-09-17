@@ -38,6 +38,45 @@ jobs:
           assert len(x['source_receipts'])==100
           r=x['resource_receipt'];assert r['projected_raw_computations']==r['wl_computations']==r['portfolio_replays']==r['e3_witness_computations']==0
           PY
+      - name: Capture immutable candidate outcome receipt
+        if: always()
+        env:
+          RUN_ID: ${{ github.run_id }}
+          RUN_ATTEMPT: ${{ github.run_attempt }}
+          WORKFLOW_HEAD: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          test -s /tmp/acquire.json
+          python - <<'PY'
+          import json,os
+          from pathlib import Path
+          x=json.load(open('/tmp/acquire.json'))
+          rows=x.get('rows',x.get('source_receipts',[]))
+          receipt={
+            'artifact_id':'JANUS-TRUMP-UF20-076-175-ACQUISITION-OUTCOME-RECEIPT-2026-09-17-v1.0',
+            'date':'2026-09-17',
+            'status':'FROZEN_HARNESS_RECEIPT_ONLY__IMMUTABLE_CANDIDATE_REEXECUTION__NO_STRUCTURAL_COMPUTATION',
+            'candidate_blob':'927b902715302a89eb09b895665846447f0872c4',
+            'candidate_verdict':x.get('verdict'),
+            'error':x.get('error'),
+            'failed_source':x.get('source'),
+            'rows_completed_before_outcome':len(rows),
+            'last_completed_source':rows[-1].get('source') if rows else None,
+            'resource_receipt':x.get('resource_receipt',{}),
+            'guard':x.get('guard'),
+            'execution':{'run_id':int(os.environ['RUN_ID']),'run_attempt':int(os.environ['RUN_ATTEMPT']),'workflow_head':os.environ['WORKFLOW_HEAD']},
+            'source_files_committed_by_this_receipt_step':0,
+            'scientific_firewall':{'P_VS_NP':'OPEN','GENERAL_SAT_IN_P':'NOT_PROVED','GENERAL_RESIDUAL_SEPARATOR_TRACTABILITY':'NOT_PROVED'}
+          }
+          Path('research/TRUMP_UF20_076_175_ACQUISITION_OUTCOME_RECEIPT_2026-09-17_v1.0.json').write_text(json.dumps(receipt,indent=2,sort_keys=True)+'\n')
+          PY
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add research/TRUMP_UF20_076_175_ACQUISITION_OUTCOME_RECEIPT_2026-09-17_v1.0.json
+          git diff --cached --check
+          test "$(git diff --cached --name-only | wc -l)" -eq 1
+          git commit -m 'TRUMP freeze UF20 076-175 acquisition outcome receipt'
+          git push origin HEAD:${GITHUB_REF_NAME}
       - name: Independent dual-mirror verification
         run: |
           set -euo pipefail
