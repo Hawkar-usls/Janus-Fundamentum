@@ -1,0 +1,76 @@
+name: TRUMP SATLIB UF20 Raw Bound Pendant Exact One Round Reduction v1.1
+
+on:
+  push:
+    branches:
+      - research/trump-external-satlib-uf20-01-source-acquisition-2026-09-16
+    paths:
+      - 'research/TRUMP_SATLIB_UF20_R000_R111_RAW_BOUND_PENDANT_EXACT_SIMULTANEOUS_ONE_ROUND_REDUCTION_CHECKER_REPAIR_PREREGISTRATION_2026-09-17_v1.1.json'
+      - 'research/tools/apma_satlib_uf20_r000_r111_raw_bound_pendant_exact_simultaneous_one_round_reduction/independent_checker_v1_1.py'
+      - '.github/workflows/trump-satlib-uf20-r000-r111-raw-bound-pendant-exact-simultaneous-one-round-reduction-v1-1.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  reduction-v1-1:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Assert frozen science and checker-only repair bindings
+        run: |
+          set -euo pipefail
+          test "$(git hash-object research/TRUMP_SATLIB_UF20_R000_R111_RAW_BOUND_PENDANT_EXACT_SIMULTANEOUS_ONE_ROUND_REDUCTION_PREREGISTRATION_2026-09-17.json)" = "308fef7f6f4d0038416e5242268988160d2eb4e0"
+          test "$(git hash-object research/TRUMP_SATLIB_UF20_R000_R111_RAW_BOUND_PENDANT_EXACT_SIMULTANEOUS_ONE_ROUND_REDUCTION_PREREGISTRATION_REVIEW_2026-09-17.json)" = "6a568bec946136440979e676b1d82ac7d0c86af7"
+          test "$(git hash-object research/TRUMP_SATLIB_UF20_R000_R111_RAW_BOUND_PENDANT_EXACT_SIMULTANEOUS_ONE_ROUND_REDUCTION_EXECUTION_FAILURE_RECEIPT_2026-09-17_v1.0.json)" = "f9117e9e2a493632f4341ec6b25470b41ad56334"
+          test "$(git hash-object research/TRUMP_SATLIB_UF20_R000_R111_RAW_BOUND_PENDANT_EXACT_SIMULTANEOUS_ONE_ROUND_REDUCTION_CHECKER_REPAIR_PREREGISTRATION_2026-09-17_v1.1.json)" = "fe3e1b96efde27a7cfb76b4a07f8a59085430ac2"
+          test "$(git hash-object research/TRUMP_SATLIB_UF20_R000_R111_RAW_BOUND_PENDANT_SIMULTANEOUS_DEPENDENCY_AUDIT_RESULT_2026-09-17.json)" = "4d9fb36af246dc8d922afe47deb6780a3c1b9244"
+          test "$(git hash-object research/TRUMP_SATLIB_UF20_R000_R111_RAW_BOUND_PENDANT_EXISTENTIAL_BOUNDARY_PROJECTION_RESULT_2026-09-17.json)" = "3a9d46cb888489e769bab1e7d292e4eff459f786"
+          test "$(git hash-object research/tools/apma_satlib_uf20_r000_r111_raw_bound_pendant_exact_simultaneous_one_round_reduction/candidate.py)" = "e9b2dfcfaf75ae306ea3441a944edea942328b3e"
+          test "$(git hash-object research/tools/apma_satlib_uf20_r000_r111_raw_bound_pendant_exact_simultaneous_one_round_reduction/independent_checker_v1_1.py)" = "79f3a077a0ad69dc7c2a7efe3e35c1059ad8f2c8"
+      - name: Re-execute unchanged frozen candidate
+        run: |
+          set -euo pipefail
+          python -m research.tools.apma_satlib_uf20_r000_r111_raw_bound_pendant_exact_simultaneous_one_round_reduction.candidate > /tmp/reduction-v1-1.json
+      - name: Verify with checker-only representation repair
+        run: |
+          set -euo pipefail
+          python -m research.tools.apma_satlib_uf20_r000_r111_raw_bound_pendant_exact_simultaneous_one_round_reduction.independent_checker_v1_1 --candidate-json /tmp/reduction-v1-1.json > /tmp/reduction-v1-1-independent.json
+      - name: Assert exact pass and firewalls
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          c=json.loads(Path('/tmp/reduction-v1-1.json').read_text().strip().splitlines()[-1])
+          i=json.loads(Path('/tmp/reduction-v1-1-independent.json').read_text().strip().splitlines()[-1])
+          assert c['verdict']=='PASS_EXACT_SIMULTANEOUS_ONE_ROUND_REDUCTION',c
+          assert i['verified'] is True and i['candidate_imported'] is False and i['verdict']==c['verdict'],i
+          assert i['checker_repair']=='JSON_OBJECT_KEY_CANONICALIZATION_ONLY'
+          assert len(c['rows'])==4 and all(r['source_pass'] for r in c['rows'])
+          rr=c['resource_receipt'];assert rr['reduction_rounds']==1 and rr['post_round_target_discoveries']==0 and rr['new_relations_added']==0
+          assert rr['solver_invocations']==0 and rr['portfolio_replays']==0 and rr['global_assignment_enumerations']==0 and rr['fresh_holdout_values_read']==0
+          compact=[{'source':r['source'],'original':[r['original_variable_count'],r['original_constraint_count']],'reduced':[r['reduced_variable_count'],r['reduced_constraint_count']],'reduced_sha256':r['reduced_raw_sha256'],'removed_leaves':r['removed_leaves'],'removed_constraints':r['removed_constraint_ids']} for r in c['rows']]
+          print(json.dumps({'verdict':c['verdict'],'compact':compact,'independent_verified':True,'checker_repair':i['checker_repair']},sort_keys=True))
+          PY
+      - name: Upload verified reduction receipt
+        uses: actions/upload-artifact@v4
+        with:
+          name: satlib-uf20-r000-r111-raw-bound-pendant-exact-one-round-reduction-v1-1-receipt
+          path: |
+            /tmp/reduction-v1-1.json
+            /tmp/reduction-v1-1-independent.json
+          if-no-files-found: error
+      - name: Authority notice
+        run: |
+          echo 'AUTHORITY=SEMANTICS_PRESERVING_EXACT_ONE_ROUND_REPRESENTATION_REDUCTION_ONLY'
+          echo 'CANDIDATE_CHANGED_AFTER_FAILED_CHECKER=NO'
+          echo 'CHECKER_REPAIR=JSON_OBJECT_KEY_CANONICALIZATION_ONLY'
+          echo 'SOLVER_INVOCATIONS=0'
+          echo 'GLOBAL_ASSIGNMENT_ENUMERATIONS=0'
+          echo 'FRESH_HOLDOUT_VALUES_READ=0'
+          echo 'P_VS_NP=OPEN'
