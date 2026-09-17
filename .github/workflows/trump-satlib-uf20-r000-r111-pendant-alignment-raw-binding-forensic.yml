@@ -1,0 +1,70 @@
+name: TRUMP SATLIB UF20 Pendant Alignment Raw Binding Forensic
+
+on:
+  push:
+    branches:
+      - research/trump-external-satlib-uf20-01-source-acquisition-2026-09-16
+    paths:
+      - 'research/TRUMP_SATLIB_UF20_R000_R111_PENDANT_ALIGNMENT_RAW_BINDING_FORENSIC_PREREGISTRATION_2026-09-17.json'
+      - 'research/tools/apma_satlib_uf20_r000_r111_pendant_alignment_raw_binding_forensic/**'
+      - '.github/workflows/trump-satlib-uf20-r000-r111-pendant-alignment-raw-binding-forensic.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  binding-forensic:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Assert frozen forensic bindings
+        run: |
+          set -euo pipefail
+          test "$(git hash-object research/TRUMP_SATLIB_UF20_R000_R111_PENDANT_ALIGNMENT_RAW_BINDING_FORENSIC_PREREGISTRATION_2026-09-17.json)" = "c0937e2b6115b3050250eebcd3f9505c9969884f"
+          test "$(git hash-object research/TRUMP_SATLIB_UF20_R000_R111_D2_D3_SINGLETON_ATTACHMENT_SCOPE_ALIGNMENT_RESULT_2026-09-17.json)" = "9442fca30db3e623c56a33d8fda6c3a1e3c1f624"
+          test "$(git hash-object research/tools/apma_satlib_uf20_r000_r111_pendant_alignment_raw_binding_forensic/candidate.py)" = "960e61553c83a784473c5786bf3758d1852d3080"
+          test "$(git hash-object research/tools/apma_satlib_uf20_r000_r111_pendant_alignment_raw_binding_forensic/independent_checker.py)" = "2ee504b6248b9471dbf46bf23ce0f9f165cefea3"
+      - name: Execute frozen raw binding forensic once
+        run: |
+          set -euo pipefail
+          python -m research.tools.apma_satlib_uf20_r000_r111_pendant_alignment_raw_binding_forensic.candidate > /tmp/binding-forensic.json
+      - name: Independently verify forensic rows
+        run: |
+          set -euo pipefail
+          python -m research.tools.apma_satlib_uf20_r000_r111_pendant_alignment_raw_binding_forensic.independent_checker --candidate-json /tmp/binding-forensic.json > /tmp/binding-forensic-independent.json
+      - name: Assert forensic firewall
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          c=json.loads(Path('/tmp/binding-forensic.json').read_text().strip().splitlines()[-1])
+          i=json.loads(Path('/tmp/binding-forensic-independent.json').read_text().strip().splitlines()[-1])
+          assert c['verdict'] in {'ALL_11_BINDINGS_EXACT','ID_ONLY_MISMATCH_WITH_UNIQUE_SCOPE_RECOVERY','STRUCTURAL_BINDING_MISMATCH_NOT_RECOVERABLE_BY_SCOPE_ONLY'}
+          assert i['verified'] is True and i['candidate_imported'] is False and i['verdict']==c['verdict']
+          assert len(c['rows'])==11
+          rr=c['resource_receipt']
+          assert rr['boundary_relation_enumerations']==0 and rr['boundary_assignment_enumerations']==0 and rr['allowed_table_value_reads']==0
+          assert rr['solver_invocations']==0 and rr['fresh_holdout_values_read']==0
+          sf=c['scientific_firewall']; assert sf['P_VS_NP']=='OPEN' and sf['GENERAL_SAT_IN_P']=='NOT_PROVED'
+          print(json.dumps({'verdict':c['verdict'],'summary':c['summary'],'rows':c['rows'],'independent_verified':True},sort_keys=True))
+          PY
+      - name: Upload forensic receipt
+        uses: actions/upload-artifact@v4
+        with:
+          name: satlib-uf20-r000-r111-pendant-alignment-raw-binding-forensic-receipt
+          path: |
+            /tmp/binding-forensic.json
+            /tmp/binding-forensic-independent.json
+          if-no-files-found: error
+      - name: Authority notice
+        run: |
+          echo 'AUTHORITY=TECHNICAL_PROVENANCE_AND_COORDINATE_BINDING_FORENSIC_ONLY'
+          echo 'BOUNDARY_RELATION_ENUMERATIONS=0'
+          echo 'SOLVER_INVOCATIONS=0'
+          echo 'FRESH_HOLDOUT_VALUES_READ=0'
+          echo 'P_VS_NP=OPEN'
