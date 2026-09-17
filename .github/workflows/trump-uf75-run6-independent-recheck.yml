@@ -1,0 +1,196 @@
+name: TRUMP UF75 run6 independent checker-only recheck
+
+on:
+  push:
+    branches:
+      - research/trump-uf75-run6-independent-recheck-2026-09-18
+    paths:
+      - .github/workflows/trump-uf75-run6-independent-recheck.yml
+
+permissions:
+  contents: write
+  actions: read
+
+jobs:
+  recheck:
+    runs-on: ubuntu-latest
+    env:
+      PYTHONPATH: ${{ github.workspace }}
+      SOURCE_RUN_ID: "35280567661"
+      SOURCE_ARTIFACT_ID: "10522856614"
+      SOURCE_ARTIFACT_NAME: "trump-uf75-001-020-falsifier-candidate-35280567661"
+      SOURCE_ARTIFACT_DIGEST: "sha256:a8b05930d6dc61a936053ef7c7ee8592675ffbcf5901d1422beb5c8559995a6f"
+    steps:
+      - name: Checkout exact checker-repair head
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Verify checker-only authorities
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git hash-object research/tools/trump_uf75_001_020_out_of_family_wl_orbit_falsifier/candidate.py)" = "019b8f4566652deb1fe8087da9ee8e76d55e722f"
+          test "$(git hash-object research/tools/trump_uf75_001_020_out_of_family_wl_orbit_falsifier/independent_check.py)" = "ccfd8a27e316e97d020621f638735b76dbb9b50b"
+          test "$(git hash-object research/TRUMP_UF75_RUN6_INDEPENDENT_CANDIDATE_BLOB_PIN_ERRATUM_2026-09-18_v1.0.json)" = "248f74e7678e529d40672955902626a01460fe2b"
+          test "$(git hash-object research/TRUMP_UF75_RUN6_INDEPENDENT_CANDIDATE_BLOB_PIN_ERRATUM_REVIEW_2026-09-18_v1.0.json)" = "6c15d1840e11d907b8a7557fd356941416b4f3f6"
+          test "$(git hash-object research/TRUMP_UF75_001_020_OUT_OF_FAMILY_SOURCE_FREEZE_AUTHORITY_2026-09-18_v1.0.json)" = "102dedd7602f7f7f3044f0904591da282dc25eb2"
+          test "$(git hash-object research/TRUMP_UF75_001_020_OUT_OF_FAMILY_WL_ORBIT_FALSIFIER_EVALUATION_PREREGISTRATION_2026-09-18_v1.0.json)" = "84787b2f4fce9a3b79dfc9ba92c7fd0b61f412c9"
+          test "$(git hash-object research/TRUMP_UF75_001_020_OUT_OF_FAMILY_WL_ORBIT_FALSIFIER_EVALUATION_REVIEW_2026-09-18_v1.0.json)" = "884c5ae73cd31b9161165be155fce4640390f7ab"
+          test "$(git hash-object research/TRUMP_UF75_001_020_EVALUATION_CANONICAL_HASH_SERIALIZATION_PARITY_ERRATUM_2026-09-18_v1.0.json)" = "b26a22371e2cdb16ce1736a36b323398f4d3151d"
+          test "$(git hash-object research/TRUMP_UF75_001_020_EVALUATION_CANONICAL_HASH_SERIALIZATION_PARITY_ERRATUM_REVIEW_2026-09-18_v1.0.json)" = "0209d7aae6f60479002e7f1dbf686aae68b8246f"
+
+      - name: Verify and download immutable run6 candidate artifact
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/run6-candidate
+          meta="$(gh api "repos/${GITHUB_REPOSITORY}/actions/artifacts/${SOURCE_ARTIFACT_ID}")"
+          python - "$meta" <<'PY'
+          import json, os, sys
+          m=json.loads(sys.argv[1])
+          checks={
+            'id':m.get('id')==int(os.environ['SOURCE_ARTIFACT_ID']),
+            'name':m.get('name')==os.environ['SOURCE_ARTIFACT_NAME'],
+            'expired':m.get('expired') is False,
+            'digest':m.get('digest')==os.environ['SOURCE_ARTIFACT_DIGEST'],
+            'run_id':m.get('workflow_run',{}).get('id')==int(os.environ['SOURCE_RUN_ID']),
+            'head_sha':m.get('workflow_run',{}).get('head_sha')=='54e32d2c35102cb5458b0163d4b3cefb3e6260ce',
+          }
+          print(json.dumps(checks,sort_keys=True))
+          if not all(checks.values()):
+              raise SystemExit('RUN6_ARTIFACT_METADATA_BINDING_FAILURE')
+          PY
+          gh api "repos/${GITHUB_REPOSITORY}/actions/artifacts/${SOURCE_ARTIFACT_ID}/zip" > /tmp/run6-candidate.zip
+          unzip -q /tmp/run6-candidate.zip -d /tmp/run6-candidate
+          test -f /tmp/run6-candidate/uf75_falsifier_candidate.json
+          python - <<'PY'
+          import json
+          p='/tmp/run6-candidate/uf75_falsifier_candidate.json'
+          x=json.load(open(p))
+          assert x.get('verdict')=='SURVIVED_OUT_OF_FAMILY_ZERO_E3_POSITIVE_COVERAGE', x.get('verdict')
+          assert x.get('prediction_stage_completed_before_ground_truth') is True
+          assert x.get('prediction_stage_count')==20
+          assert x.get('summary',{}).get('e3_positive_count')==0
+          assert x.get('summary',{}).get('prediction_positive_count')==0
+          print(json.dumps({'candidate_verdict':x['verdict'],'prediction_stage_count':x['prediction_stage_count'],'summary':x['summary']},indent=2))
+          PY
+
+      - name: Independent recomputation against immutable run6 receipt
+        shell: bash
+        run: |
+          set -euo pipefail
+          python research/tools/trump_uf75_001_020_out_of_family_wl_orbit_falsifier/independent_check.py \
+            --candidate /tmp/run6-candidate/uf75_falsifier_candidate.json \
+            > /tmp/uf75_run6_independent.json
+          python - <<'PY'
+          import json
+          x=json.load(open('/tmp/uf75_run6_independent.json'))
+          print(json.dumps(x,indent=2))
+          if x.get('verdict')!='PASS_INDEPENDENT_UF75_OUT_OF_FAMILY_WL_ORBIT_FALSIFIER_VERIFICATION':
+              raise SystemExit('INDEPENDENT_RECHECK_NOT_PASS')
+          PY
+
+      - name: Build frozen combined result from run6 candidate plus independent recheck
+        shell: bash
+        env:
+          CHECKER_WORKFLOW_HEAD: ${{ github.sha }}
+          CHECKER_RUN_ID: ${{ github.run_id }}
+          CHECKER_RUN_ATTEMPT: ${{ github.run_attempt }}
+          CHECKER_RUN_NUMBER: ${{ github.run_number }}
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import hashlib,json,os
+          from pathlib import Path
+          c=json.load(open('/tmp/run6-candidate/uf75_falsifier_candidate.json'))
+          k=json.load(open('/tmp/uf75_run6_independent.json'))
+          if k.get('verdict')!='PASS_INDEPENDENT_UF75_OUT_OF_FAMILY_WL_ORBIT_FALSIFIER_VERIFICATION':
+              raise SystemExit('CHECKER_NOT_PASS')
+          result=dict(c)
+          result['artifact_id']='JANUS-TRUMP-UF75-001-020-OUT-OF-FAMILY-WL-ORBIT-FALSIFIER-RESULT-2026-09-18-v1.0'
+          result['status']='FROZEN_OUT_OF_FAMILY_UF75_FALSIFIER_RESULT'
+          result['scientific_outcome']=c['verdict']
+          result['authorities']={
+            'source_candidate_run_id':35280567661,
+            'source_candidate_workflow_head':'54e32d2c35102cb5458b0163d4b3cefb3e6260ce',
+            'source_candidate_artifact_id':10522856614,
+            'source_candidate_artifact_digest':'sha256:a8b05930d6dc61a936053ef7c7ee8592675ffbcf5901d1422beb5c8559995a6f',
+            'candidate_commit':'aab7dad55914b2e63ed5e452e53975c761720800',
+            'candidate_blob':'019b8f4566652deb1fe8087da9ee8e76d55e722f',
+            'independent_checker_commit':'6bdb1add0d7c87f55b87e365278d2e00c66a8933',
+            'independent_checker_blob':'ccfd8a27e316e97d020621f638735b76dbb9b50b',
+            'checker_pin_erratum_commit':'962a22f1b08646f423072afe320fffc7d6aaa687',
+            'checker_pin_erratum_blob':'248f74e7678e529d40672955902626a01460fe2b',
+            'checker_pin_review_commit':'40a83c4c2a1c0de2a1aa7d0c94d877738afa1efd',
+            'checker_pin_review_blob':'6c15d1840e11d907b8a7557fd356941416b4f3f6',
+            'evaluation_prereg_commit':'0f8f740186da66daf31c54eea538a8d25e0e91b3',
+            'evaluation_prereg_blob':'84787b2f4fce9a3b79dfc9ba92c7fd0b61f412c9',
+            'evaluation_review_commit':'6c3146dcf7dbd0418c82ad2d1a1e206d8c63e3be',
+            'evaluation_review_blob':'884c5ae73cd31b9161165be155fce4640390f7ab',
+            'source_freeze_commit':'43f414c6c8f65d84ee3c4b77710b1398d8e1b3e2',
+            'source_freeze_blob':'102dedd7602f7f7f3044f0904591da282dc25eb2',
+            'scope_theorem_commit':'bced6f34a33b063edb47a17adffa1d0ca5d5ca9a',
+            'scope_theorem_blob':'3cbf05cb0b0249ddf365bc43d176a06ddb7f72af',
+            'canonical_hash_parity_erratum_commit':'00e6e72a3c4f9db2ed066a038ad0e9d69dba58e4',
+            'canonical_hash_parity_erratum_blob':'b26a22371e2cdb16ce1736a36b323398f4d3151d',
+            'checker_workflow_head':os.environ['CHECKER_WORKFLOW_HEAD'],
+          }
+          result['execution']={
+            'candidate_run_id':35280567661,
+            'candidate_run_number':6,
+            'candidate_verdict':c['verdict'],
+            'independent_recheck_run_id':int(os.environ['CHECKER_RUN_ID']),
+            'independent_recheck_run_attempt':int(os.environ['CHECKER_RUN_ATTEMPT']),
+            'independent_recheck_run_number':int(os.environ['CHECKER_RUN_NUMBER']),
+            'independent_verdict':k['verdict'],
+            'candidate_imported_by_independent_checker':False,
+            'candidate_rerun_for_independent_recheck':False,
+          }
+          result['scientific_firewall']={
+            'WL_SUFFICIENCY_WITHOUT_DIRECT_EXACT_CHECK':'NOT_PROVED',
+            'ARBITRARY_RESIDUAL_SEPARATOR_TRACTABILITY':'NOT_PROVED',
+            'GENERAL_SAT_IN_P':'NOT_PROVED',
+            'P_VS_NP':'OPEN',
+          }
+          result['captain_obvious_readout']={
+            'current_status':'UF75_PANEL_DID_NOT_FALSIFY_THE_RULE_BUT_CONTAINED_ZERO_E3_POSITIVE_GROUND_TRUTH_CASES',
+            'directive':'DO_NOT_INTERPRET_ZERO_POSITIVE_COVERAGE_AS_PORTABILITY_CONFIRMATION',
+            'nearest_missing_obligation':'USE_A_PREDECLARED_OUT_OF_FAMILY_PANEL_WITH_AT_LEAST_ONE_E3_POSITIVE_OR_MOVE_TO_A_FORMAL_SELECTOR_THEOREM_OR_FALSIFIER_CONSTRUCTION_WITHOUT_RETUNING'
+          }
+          Path('research/TRUMP_UF75_001_020_OUT_OF_FAMILY_WL_ORBIT_FALSIFIER_RESULT_2026-09-18_v1.0.json').write_text(json.dumps(result,indent=2,sort_keys=True)+'\n')
+          print(json.dumps({'scientific_outcome':result['scientific_outcome'],'summary':result.get('summary'),'independent_verdict':k['verdict']},indent=2))
+          PY
+
+      - name: Upload immutable recheck receipts
+        uses: actions/upload-artifact@v4
+        with:
+          name: trump-uf75-run6-independent-recheck-${{ github.run_id }}
+          path: |
+            /tmp/run6-candidate/uf75_falsifier_candidate.json
+            /tmp/uf75_run6_independent.json
+            research/TRUMP_UF75_001_020_OUT_OF_FAMILY_WL_ORBIT_FALSIFIER_RESULT_2026-09-18_v1.0.json
+
+      - name: Freeze independent recheck result
+        shell: bash
+        env:
+          BRANCH: research/trump-uf75-run6-independent-recheck-2026-09-18
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add research/TRUMP_UF75_001_020_OUT_OF_FAMILY_WL_ORBIT_FALSIFIER_RESULT_2026-09-18_v1.0.json
+          git commit -m "TRUMP freeze UF75 run6 independently verified out-of-family result"
+          git fetch origin "$BRANCH"
+          if [ "$(git rev-parse HEAD^)" != "$(git rev-parse origin/$BRANCH)" ]; then
+            git rebase "origin/$BRANCH"
+          fi
+          git push origin "HEAD:$BRANCH"
