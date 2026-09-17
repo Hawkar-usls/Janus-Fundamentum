@@ -1,0 +1,202 @@
+name: TRUMP UF20 076-175 second prospective WL-orbit bridge
+
+on:
+  push:
+    branches:
+      - research/trump-uf20-076-175-prospective-wl-orbit-bridge-2026-09-17
+    paths:
+      - .github/workflows/trump-uf20-076-175-second-prospective-wl-orbit-bridge.yml
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: trump-uf20-076-175-second-prospective-wl-orbit-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  evaluate:
+    runs-on: ubuntu-latest
+    env:
+      PYTHONPATH: ${{ github.workspace }}
+    steps:
+      - name: Checkout exact workflow head
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Verify frozen authorities
+        run: |
+          set -euo pipefail
+          test "$(git hash-object research/TRUMP_UF20_076_175_SECOND_PROSPECTIVE_WL_ORBIT_BRIDGE_EVALUATION_PREREGISTRATION_2026-09-17_v1.0.json)" = "588d9d2281e19db15d30923313159a236dbad9e6"
+          test "$(git hash-object research/TRUMP_UF20_076_175_SECOND_PROSPECTIVE_WL_ORBIT_BRIDGE_EVALUATION_REVIEW_2026-09-17_v1.0.json)" = "80feb22b50c2083aa6c664dfdecf0dbbcbe27780"
+          test "$(git hash-object research/TRUMP_UF20_076_175_SECOND_PROSPECTIVE_WL_ORBIT_BRIDGE_CORRECTED_SOURCE_ACQUISITION_RESULT_2026-09-17_v1.0.json)" = "2be4d6d0dbdb8a771647d69900ced5a98fffe6b4"
+          test "$(git hash-object research/tools/apma_uf20_076_175_second_prospective_wl_orbit_bridge/candidate.py)" = "81d32fbcfd1ea3c257be92212604361302615186"
+          test "$(git hash-object research/tools/apma_uf20_076_175_second_prospective_wl_orbit_bridge/independent_check.py)" = "35a132947b82a178c46ea8bba2a364f2576d4f12"
+          test "$(git hash-object research/tools/apma_uf20_011_015_fresh_generic_pendant_wl_replication/candidate.py)" = "9ec365ae27a6caa7b936cd33040e542f183ded99"
+          test "$(git hash-object research/tools/apma_uf20_wl_historical_closed_control_falsifier/candidate.py)" = "6b697fd8b3de4c83f8226b06399b6bad99953d4e"
+          test "$(git hash-object research/tools/apma_unseen_local_invariant_orbit_count/candidate.py)" = "a076cfc56d68aad0348415e313705da1f6b9cdcd"
+
+      - name: Execute frozen second prospective candidate
+        run: |
+          set -euo pipefail
+          python -m research.tools.apma_uf20_076_175_second_prospective_wl_orbit_bridge.candidate > /tmp/candidate.json
+          python -m json.tool /tmp/candidate.json >/dev/null
+          python - <<'PY'
+          import json
+          c=json.load(open('/tmp/candidate.json'))
+          allowed={
+            'PASS_SECOND_PROSPECTIVE_MULTI_CLOSED_WL_TO_E3_WITNESS_REPLICATION',
+            'PARTIAL_SECOND_PANEL_FEWER_THAN_TWO_E3_CLOSED_CASES',
+            'FALSIFIED_SECOND_PANEL_AT_LEAST_ONE_E3_CLOSED_CASE_NOT_RECOVERED',
+            'FALSIFIED_SECOND_PANEL_AT_LEAST_ONE_PORTFOLIO_OPEN_WL_DIRECT_EXACT_FALSE_POSITIVE',
+          }
+          print('scientific outcome:',c.get('verdict'))
+          print('prediction rows:',c.get('prediction_stage_count'))
+          print('prediction positives:',c.get('summary',{}).get('wl_prediction_positive_sources'))
+          assert c.get('verdict') in allowed,c
+          assert c.get('prediction_stage_completed_before_ground_truth') is True
+          assert c.get('prediction_stage_count')==100
+          r=c.get('resource_receipt',{})
+          assert r.get('prediction_full_transposition_searches')==0
+          assert r.get('signed_route_invocations')==0
+          assert r.get('new_solver_mechanisms')==r.get('new_action_rules')==r.get('new_carrier_mechanisms')==r.get('posthoc_thresholds_or_pair_rules')==0
+          PY
+
+      - name: Independent recomputation without candidate import
+        run: |
+          set -euo pipefail
+          python -m research.tools.apma_uf20_076_175_second_prospective_wl_orbit_bridge.independent_check --candidate /tmp/candidate.json > /tmp/independent.json
+          python -m json.tool /tmp/independent.json >/dev/null
+          python - <<'PY'
+          import json
+          k=json.load(open('/tmp/independent.json'))
+          print('independent verdict:',k.get('verdict'))
+          print('independent scientific outcome:',k.get('scientific_outcome'))
+          print('e3 closed:',k.get('e3_closed_sources'))
+          print('misses:',k.get('e3_closed_misses'))
+          print('open false positives:',k.get('open_false_positives'))
+          assert k.get('verdict')=='PASS_INDEPENDENT_SECOND_PROSPECTIVE_WL_ORBIT_BRIDGE_VERIFICATION',k
+          assert k.get('candidate_imported') is False
+          assert k.get('prediction_stage_count')==100
+          assert all(k.get('comparison_checks',{}).values())
+          PY
+
+      - name: Build frozen second prospective result
+        env:
+          RUN_ID: ${{ github.run_id }}
+          RUN_NUMBER: ${{ github.run_number }}
+          RUN_ATTEMPT: ${{ github.run_attempt }}
+          WORKFLOW_HEAD: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import hashlib,json,os
+          from pathlib import Path
+          def blob(path):
+              d=Path(path).read_bytes()
+              return hashlib.sha1(f'blob {len(d)}\0'.encode()+d).hexdigest()
+          c=json.load(open('/tmp/candidate.json'));k=json.load(open('/tmp/independent.json'))
+          assert k['verdict']=='PASS_INDEPENDENT_SECOND_PROSPECTIVE_WL_ORBIT_BRIDGE_VERIFICATION'
+          outcome=c['verdict'];s=c['summary']
+          if outcome=='PASS_SECOND_PROSPECTIVE_MULTI_CLOSED_WL_TO_E3_WITNESS_REPLICATION':
+              captain={
+                'current_status':'SECOND_PROSPECTIVE_ONE_HUNDRED_SOURCE_PANEL_PASSED_THE_FROZEN_WL_TO_DIRECT_EXACT_TRANSPOSITION_WITNESS_RULE_WITH_AT_LEAST_TWO_E3_CLOSED_CASES_AND_ZERO_PREDECLARED_ERRORS',
+                'nearest_missing_obligation':'SEPARATE_FINITE_PROSPECTIVE_PREDICTIVE_REPLICATION_FROM_ANY_GENERAL_THEOREM;NEXT_WORK_MUST_TARGET_A_FORMAL_SCOPE_BOUND_OR_AN_ADDITIONAL_PREDECLARED_OUT_OF_FAMILY_FALSIFIER_WITHOUT_RETUNING_THE_RULE',
+                'directive':'DO_NOT_PROMOTE_FINITE_REPLICATION_TO_WL_SUFFICIENCY_FOR_ORBIT_CLOSURE_GENERAL_SAT_IN_P_OR_P_EQUALS_NP'
+              }
+          elif outcome=='PARTIAL_SECOND_PANEL_FEWER_THAN_TWO_E3_CLOSED_CASES':
+              captain={
+                'current_status':'SECOND_PROSPECTIVE_PANEL_DID_NOT_FALSIFY_THE_RULE_BUT_STILL_CONTAINS_FEWER_THAN_TWO_E3_CLOSED_CASES',
+                'nearest_missing_obligation':'RESERVE_ANOTHER_INDEPENDENT_SOURCE_BOUND_PANEL_BEFORE_ANY_NEW_VALUES_ARE_READ;KEEP_THE_WL_PAIR_RULE_AND_THRESHOLDS_FROZEN',
+                'directive':'DO_NOT_TREAT_INSUFFICIENT_POSITIVE_COVERAGE_AS_A_FULL_REPLICATION_PASS'
+              }
+          elif outcome=='FALSIFIED_SECOND_PANEL_AT_LEAST_ONE_E3_CLOSED_CASE_NOT_RECOVERED':
+              captain={
+                'current_status':'FROZEN_WL_PAIR_RULE_WAS_FALSIFIED_BY_AT_LEAST_ONE_E3_CLOSED_MISS_ON_THE_SECOND_PROSPECTIVE_PANEL',
+                'nearest_missing_obligation':'FREEZE_THE_COUNTEREXAMPLE_AND_RETURN_TO_DISCOVERY_ONLY_IN_A_NEW_LINEAGE;DO_NOT_POSTHOC_RETUNE_THIS_GATE',
+                'directive':'NO_THRESHOLD_RESCUE_NO_PAIR_RULE_REWRITE_NO_SUCCESS_FILTERING'
+              }
+          else:
+              captain={
+                'current_status':'FROZEN_WL_PAIR_RULE_WAS_FALSIFIED_BY_AT_LEAST_ONE_PORTFOLIO_OPEN_DIRECT_EXACT_FALSE_POSITIVE_ON_THE_SECOND_PROSPECTIVE_PANEL',
+                'nearest_missing_obligation':'FREEZE_THE_COUNTEREXAMPLE_AND_RETURN_TO_DISCOVERY_ONLY_IN_A_NEW_LINEAGE;DO_NOT_POSTHOC_RETUNE_THIS_GATE',
+                'directive':'NO_THRESHOLD_RESCUE_NO_PAIR_RULE_REWRITE_NO_SUCCESS_FILTERING'
+              }
+          result={
+            'artifact_id':'JANUS-TRUMP-UF20-076-175-SECOND-PROSPECTIVE-WL-ORBIT-BRIDGE-REPLICATION-RESULT-2026-09-17-v1.0',
+            'date':'2026-09-17',
+            'status':'FROZEN_SECOND_PROSPECTIVE_ONE_HUNDRED_SOURCE_RESULT',
+            'gate':'TRUMP_UF20_076_175_SECOND_PROSPECTIVE_WL_ORBIT_BRIDGE_EVALUATION_GATE',
+            'scientific_outcome':outcome,
+            'execution_verdict':'PASS_INDEPENDENT_SECOND_PROSPECTIVE_RECOMPUTATION',
+            'authorities':{
+              'panel_reservation_commit':'844a4907874b6630ca4a43a728e8c3ef12b378e0',
+              'source_freeze_commit':'138e41ed4aee55893ded2a2af5f894c15147d655',
+              'evaluation_prereg_commit':'684ae4a43bab008e9b95a53c9991018e27eeae2a',
+              'evaluation_review_commit':'8603e7ed902b3dc7c5a539b3b1729d1d153f003d',
+              'candidate_commit':'3ffebfc1ea9c2c58cb8bf1790dd4ef698b7c7e69',
+              'candidate_blob':blob('research/tools/apma_uf20_076_175_second_prospective_wl_orbit_bridge/candidate.py'),
+              'independent_checker_commit':'f0fff1b78c75062e7ac2c48799731e070310b9fb',
+              'independent_checker_blob':blob('research/tools/apma_uf20_076_175_second_prospective_wl_orbit_bridge/independent_check.py'),
+              'workflow_head':os.environ['WORKFLOW_HEAD']
+            },
+            'execution':{
+              'run_id':int(os.environ['RUN_ID']),
+              'run_number':int(os.environ['RUN_NUMBER']),
+              'run_attempt':int(os.environ['RUN_ATTEMPT']),
+              'candidate_imported_by_independent_checker':False,
+              'independent_verdict':k['verdict']
+            },
+            'prediction_stage_completed_before_ground_truth':c['prediction_stage_completed_before_ground_truth'],
+            'prediction_stage_count':c['prediction_stage_count'],
+            'prediction_stage_sha256':c['prediction_stage_sha256'],
+            'prediction_rows':c['prediction_rows'],
+            'ground_truth_rows':c['ground_truth_rows'],
+            'summary':s,
+            'independent_summary':{
+              'prediction_stage_sha256':k['prediction_stage_sha256'],
+              'prediction_positive_sources':k['prediction_positive_sources'],
+              'e3_closed_sources':k['e3_closed_sources'],
+              'e3_closed_misses':k['e3_closed_misses'],
+              'portfolio_open_sources':k['portfolio_open_sources'],
+              'portfolio_closed_sources':k['portfolio_closed_sources'],
+              'open_false_positives':k['open_false_positives'],
+              'direct_exact_checks':k['direct_exact_checks'],
+              'comparison_checks':k['comparison_checks']
+            },
+            'resource_receipt':c['resource_receipt'],
+            'claim_ceiling':'SECOND_PROSPECTIVE_FINITE_ONE_HUNDRED_SOURCE_REPLICATION_OF_THE_FROZEN_WL_TO_EXACT_TRANSPOSITION_WITNESS_RULE_AGAINST_THE_EXISTING_E3_GROUND_TRUTH_ONLY',
+            'scientific_firewall':c['scientific_firewall'],
+            'captain_obvious_readout':captain
+          }
+          Path('research/TRUMP_UF20_076_175_SECOND_PROSPECTIVE_WL_ORBIT_BRIDGE_REPLICATION_RESULT_2026-09-17_v1.0.json').write_text(json.dumps(result,indent=2,sort_keys=True)+'\n')
+          PY
+
+      - name: Upload immutable execution receipts
+        uses: actions/upload-artifact@v4
+        with:
+          name: uf20-076-175-second-prospective-wl-orbit-bridge-receipt
+          path: |
+            /tmp/candidate.json
+            /tmp/independent.json
+            research/TRUMP_UF20_076_175_SECOND_PROSPECTIVE_WL_ORBIT_BRIDGE_REPLICATION_RESULT_2026-09-17_v1.0.json
+
+      - name: Freeze result with safe fast-forward push
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add research/TRUMP_UF20_076_175_SECOND_PROSPECTIVE_WL_ORBIT_BRIDGE_REPLICATION_RESULT_2026-09-17_v1.0.json
+          git diff --cached --check
+          test "$(git diff --cached --name-only | wc -l)" -eq 1
+          git commit -m 'TRUMP freeze second prospective UF20 076-175 WL-orbit bridge result'
+          git fetch origin "${GITHUB_REF_NAME}"
+          git rebase "origin/${GITHUB_REF_NAME}"
+          git push origin HEAD:"${GITHUB_REF_NAME}"
