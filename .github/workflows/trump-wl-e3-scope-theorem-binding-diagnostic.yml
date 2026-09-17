@@ -1,0 +1,60 @@
+name: TRUMP WL-E3 scope theorem binding diagnostic
+
+on:
+  push:
+    branches:
+      - research/trump-wl-e3-unique-pair-budgeted-scope-theorem-2026-09-17
+    paths:
+      - .github/workflows/trump-wl-e3-scope-theorem-binding-diagnostic.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  diagnose:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout exact diagnostic head
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Inspect committed tree and working tree object identities
+        shell: bash
+        run: |
+          set -euo pipefail
+          checker='research/tools/apma_wl_e3_unique_pair_budgeted_scope_theorem/independent_check.py'
+          candidate='research/tools/apma_wl_e3_unique_pair_budgeted_scope_theorem/candidate.py'
+          echo "HEAD=$(git rev-parse HEAD)"
+          echo "ROOT_TREE=$(git rev-parse 'HEAD^{tree}')"
+          for path in "$checker" "$candidate"; do
+            echo "---PATH=$path"
+            echo "LS_TREE=$(git ls-tree HEAD -- "$path")"
+            echo "HEAD_PATH=$(git rev-parse "HEAD:$path")"
+            echo "CAT_TYPE=$(git cat-file -t "HEAD:$path")"
+            echo "CAT_SIZE=$(git cat-file -s "HEAD:$path")"
+            echo "HASH_OBJECT_DEFAULT=$(git hash-object "$path")"
+            echo "HASH_OBJECT_NO_FILTERS=$(git hash-object --no-filters "$path")"
+            echo "ATTRIBUTES_BEGIN"
+            git check-attr -a -- "$path" || true
+            echo "ATTRIBUTES_END"
+            PATH_TO_CHECK="$path" python - <<'PY'
+          import hashlib, os
+          from pathlib import Path
+          p=Path(os.environ['PATH_TO_CHECK'])
+          d=p.read_bytes()
+          print('BYTES='+str(len(d)))
+          print('PLAIN_SHA1='+hashlib.sha1(d).hexdigest())
+          print('GIT_BLOB_SHA1='+hashlib.sha1(f'blob {len(d)}\0'.encode()+d).hexdigest())
+          print('CRLF='+str(d.count(b'\r\n')))
+          print('LF='+str(d.count(b'\n')))
+          print('ENDS_LF='+str(d.endswith(b'\n')))
+          PY
+          done
+          echo '---STATUS'
+          git status --porcelain=v1
+          echo '---DIFF_CHECK'
+          git diff --check
+          echo '---COMPARE_CHECKER_TO_PIN_COMMIT'
+          git diff --no-ext-diff --exit-code 1639891149993ead3ead33dbfed7f27cde984c04 HEAD -- "$checker" || true
