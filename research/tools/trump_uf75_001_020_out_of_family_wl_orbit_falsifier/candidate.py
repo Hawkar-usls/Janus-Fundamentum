@@ -13,7 +13,7 @@ from research.tools.apma_unseen_local_invariant_orbit_count import candidate as 
 ROOT = Path(__file__).resolve().parents[3]
 PREREG = ROOT / "research/TRUMP_UF75_001_020_OUT_OF_FAMILY_WL_ORBIT_FALSIFIER_EVALUATION_PREREGISTRATION_2026-09-18_v1.0.json"
 REVIEW = ROOT / "research/TRUMP_UF75_001_020_OUT_OF_FAMILY_WL_ORBIT_FALSIFIER_EVALUATION_REVIEW_2026-09-18_v1.0.json"
-SOURCE_FREEZE = ROOT / "research/TRUMP_UF75_001_020_OUT_OF_FAMILY_SOURCE_ACQUISITION_RESULT_2026-09-18_v1.0.json"
+SOURCE_FREEZE = ROOT / "research/TRUMP_UF75_001_020_OUT_OF_FAMILY_SOURCE_FREEZE_AUTHORITY_2026-09-18_v1.0.json"
 SCOPE_THEOREM = ROOT / "research/TRUMP_WL_DIRECT_EXACT_E3_SCOPE_BOUND_THEOREM_RESULT_2026-09-18_v1.0.json"
 FRESH = ROOT / "research/tools/apma_uf20_011_015_fresh_generic_pendant_wl_replication/candidate.py"
 PROJECTION = ROOT / "research/tools/apma_satlib_uf20_r000_r111_projected_core_replay/projection_identity.py"
