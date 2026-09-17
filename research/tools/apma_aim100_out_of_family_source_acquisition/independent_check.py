@@ -14,13 +14,15 @@ CANDIDATE_FILE = ROOT / 'research/tools/apma_aim100_out_of_family_source_acquisi
 RESERVATION = ROOT / 'research/TRUMP_AIM100_OUT_OF_FAMILY_WL_E3_FALSIFIER_PANEL_RESERVATION_2026-09-18_v1.0.json'
 PREREG = ROOT / 'research/TRUMP_AIM100_OUT_OF_FAMILY_SOURCE_ACQUISITION_PREREGISTRATION_2026-09-18_v1.0.json'
 REVIEW = ROOT / 'research/TRUMP_AIM100_OUT_OF_FAMILY_SOURCE_ACQUISITION_REVIEW_2026-09-18_v1.0.json'
-ERRATUM = ROOT / 'research/TRUMP_AIM100_SOURCE_ACQUISITION_TRANSPORT_ERRATUM_2026-09-18_v1.1.json'
+TRANSPORT_ERRATUM = ROOT / 'research/TRUMP_AIM100_SOURCE_ACQUISITION_TRANSPORT_ERRATUM_2026-09-18_v1.1.json'
+PATH_ERRATUM = ROOT / 'research/TRUMP_AIM100_VERIFICATION_PATH_BINDING_ERRATUM_2026-09-18_v1.2.json'
 EXPECTED = {
-    CANDIDATE_FILE: '89674e663eb19e3336e75c214ec6b3c589ce20b9',
+    CANDIDATE_FILE: '1d53e9d6420d503d8056b7fcac7b518edc6b5941',
     RESERVATION: 'e509b0c2bf392b547d505b5648895c8d2b9cedaa',
     PREREG: '3dc0cffa67de19453991e86c7a31224c01e84ef6',
     REVIEW: '47708e421e2d984ab8078f5131c86a6aa598fd15',
-    ERRATUM: 'fc33da20ce65000dc569e8de7f87668b8c931fbf',
+    TRANSPORT_ERRATUM: 'fc33da20ce65000dc569e8de7f87668b8c931fbf',
+    PATH_ERRATUM: '0e19c2e40cd7fa6eb37d3971b325d3d1b058b6c8',
 }
 PRIMARY_REPO = 'dmeoli/NeuroSAT'
 PRIMARY_COMMIT = '568b022fc0c56e7e24fe08c012753ef29c60938e'
@@ -122,25 +124,27 @@ def recompute() -> dict[str, Any]:
     if CANDIDATE_MODULE in sys.modules:
         return {'verdict': 'HALT_INDEPENDENT_AIM100_CANDIDATE_IMPORT_VIOLATION'}
     reservation = json.loads(RESERVATION.read_text())
+    path_erratum = json.loads(PATH_ERRATUM.read_text())
     names = reservation.get('reserved_filenames', [])
-    if len(names) != 16:
+    manifest = path_erratum.get('verification_exact_path_manifest', {})
+    if len(names) != 16 or set(manifest) != set(names):
         return {'verdict': 'HALT_INDEPENDENT_AIM100_PANEL_BINDING_FAILURE'}
     try:
         primary_root = prepare_mirror(PRIMARY_REPO, PRIMARY_COMMIT, 'data/aim', 'janus_aim100_independent_primary')
-        verification_root = prepare_mirror(VERIFY_REPO, VERIFY_COMMIT, 'problems/aim', 'janus_aim100_independent_verification')
+        verification_root = prepare_mirror(VERIFY_REPO, VERIFY_COMMIT, 'problems', 'janus_aim100_independent_verification')
     except Exception as exc:
         return {'verdict': 'HALT_INDEPENDENT_AIM100_MIRROR_FETCH_FAILURE', 'error': f'{type(exc).__name__}:{exc}'}
     rows = []
     for filename in names:
         pp = f'data/aim/{filename}'
-        vp = f'problems/aim/{filename}'
+        vp = manifest[filename]
         try:
             primary = (primary_root / pp).read_bytes()
             verification = (verification_root / vp).read_bytes()
             pn, pm, pc, ph = parse_dimacs_exact_3cnf(primary)
             vn, vm, vc, vh = parse_dimacs_exact_3cnf(verification)
         except Exception as exc:
-            return {'verdict': 'HALT_INDEPENDENT_AIM100_FETCH_OR_FORMAT_FAILURE', 'source': filename, 'error': f'{type(exc).__name__}:{exc}'}
+            return {'verdict': 'HALT_INDEPENDENT_AIM100_FETCH_OR_FORMAT_FAILURE', 'source': filename, 'verification_path': vp, 'error': f'{type(exc).__name__}:{exc}'}
         if (pn, pm, pc, ph) != (vn, vm, vc, vh):
             return {'verdict': 'HALT_INDEPENDENT_AIM100_MIRROR_MISMATCH', 'source': filename}
         stem = filename[:-4] if filename.endswith('.cnf') else filename
@@ -156,6 +160,7 @@ def recompute() -> dict[str, Any]:
             'verification_git_blob': blob_bytes(verification),
             'primary_raw_sha256': sha256(primary),
             'verification_raw_sha256': sha256(verification),
+            'verification_path': vp,
             'committed_copy_path': str(staged.relative_to(ROOT)),
             'computed_committed_git_blob': blob(staged),
             'ordered_clause_sequence_equal': True,
@@ -204,6 +209,7 @@ def main() -> dict[str, Any]:
             'canonical_formula_sha256': c.get('canonical_formula_sha256') == row['canonical_formula_sha256'],
             'primary_git_blob': c.get('primary_git_blob') == row['primary_git_blob'],
             'verification_git_blob': c.get('verification_git_blob') == row['verification_git_blob'],
+            'verification_path': c.get('verification_path') == row['verification_path'],
             'committed_copy_path': c.get('committed_copy_path') == row['committed_copy_path'],
             'computed_committed_git_blob': c.get('computed_committed_git_blob') == row['computed_committed_git_blob'],
         })
@@ -221,7 +227,7 @@ def main() -> dict[str, Any]:
         'candidate_verdict': candidate.get('verdict'),
         'comparison_checks': checks,
         'row_comparisons': comparisons,
-        'failed_prior_run_id': 35277170407,
+        'failed_prior_run_ids': [35277170407, 35277553768],
         'verdict': 'PASS_INDEPENDENT_AIM100_SOURCE_ACQUISITION_VERIFICATION' if all(checks.values()) else 'FAIL_INDEPENDENT_AIM100_SOURCE_ACQUISITION_MISMATCH',
     }
 
