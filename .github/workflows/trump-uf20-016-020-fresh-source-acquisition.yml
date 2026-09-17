@@ -1,0 +1,126 @@
+name: TRUMP UF20_016-020 fresh source acquisition
+
+on:
+  push:
+    branches:
+      - research/trump-uf20-wl-fresh-holdout-replication-2026-09-17
+    paths:
+      - .github/workflows/trump-uf20-016-020-fresh-source-acquisition.yml
+
+permissions:
+  contents: write
+
+concurrency:
+  group: trump-uf20-016-020-fresh-source-acquisition-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  source-acquisition:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout exact acquisition head
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Acquire reserved five from both predeclared mirrors only
+        run: |
+          python -m research.tools.apma_uf20_016_020_fresh_source_acquisition.acquire > /tmp/acquisition.json
+          python -m json.tool /tmp/acquisition.json >/dev/null
+
+      - name: Independently verify source freeze
+        run: |
+          python -m research.tools.apma_uf20_016_020_fresh_source_acquisition.independent_check \
+            --candidate /tmp/acquisition.json > /tmp/acquisition_check.json
+          python -m json.tool /tmp/acquisition_check.json >/dev/null
+
+      - name: Enforce source-only contract and build frozen receipt
+        env:
+          WORKFLOW_HEAD: ${{ github.sha }}
+          RUN_ID: ${{ github.run_id }}
+          RUN_NUMBER: ${{ github.run_number }}
+        run: |
+          python - <<'PY'
+          import json, os
+          from pathlib import Path
+
+          c = json.loads(Path('/tmp/acquisition.json').read_text())
+          k = json.loads(Path('/tmp/acquisition_check.json').read_text())
+
+          assert c['verdict'] == 'PASS_FRESH_SOURCE_ACQUISITION_AND_DUAL_MIRROR_CANONICAL_FREEZE'
+          assert k['verdict'] == 'PASS_INDEPENDENT_FRESH_SOURCE_ACQUISITION_VERIFICATION'
+          assert c['reserved_sources'] == ['UF20_016','UF20_017','UF20_018','UF20_019','UF20_020']
+          assert len(c['source_receipts']) == 5
+          assert all(r['dimacs'] == {'variables':20,'clauses':91,'arity':3} for r in c['source_receipts'])
+          assert all(r['ordered_clause_sequence_equal_between_mirrors'] is True for r in c['source_receipts'])
+          for key in ['wl_values_computed','portfolio_replays','solver_invocations','route_labels_computed','new_solver_rules','new_action_rules','new_carrier_mechanisms','new_reduction_mechanisms']:
+              assert c['machine_receipt'][key] == 0
+          assert k['wl_values_computed'] == 0
+          assert k['portfolio_replays'] == 0
+          assert k['solver_invocations'] == 0
+          assert k['route_labels_computed'] == 0
+          assert c['scientific_firewall']['P_VS_NP'] == 'OPEN'
+          assert c['scientific_firewall']['GENERAL_SAT_IN_P'] == 'NOT_PROVED'
+
+          result = {
+              'artifact_id':'JANUS-TRUMP-UF20-016-020-FRESH-SOURCE-ACQUISITION-RESULT-2026-09-17-v1.0',
+              'date':'2026-09-17',
+              'status':'FROZEN_FRESH_SOURCE_ACQUISITION_ONLY',
+              'gate':'TRUMP_UF20_016_020_FRESH_SOURCE_ACQUISITION_AND_DUAL_MIRROR_FREEZE_GATE',
+              'verdict':c['verdict'],
+              'chronology':{
+                  'UF20_011_015_metadata_audit_commit':'c8567e4f6b07f45fbad635a7265de7eee7d1d371',
+                  'fresh_reservation_preregistration_commit':'dd2e69f5d959feded6df0ee10c6f49d83e981bc2',
+                  'fresh_reservation_review_commit':'ba3a163da19a5a8352ae4f121bdf1a3c133cdf43',
+                  'candidate_implementation_commit':'cbcb1bab28dfed7835f997ddebf4681424eff0cb',
+                  'independent_checker_commit':'6f7855f36631dce99884b6790b96f6be79963c0d',
+                  'workflow_head':os.environ['WORKFLOW_HEAD'],
+              },
+              'execution':{
+                  'run_id':int(os.environ['RUN_ID']),
+                  'run_number':int(os.environ['RUN_NUMBER']),
+                  'independent_verified':True,
+                  'candidate_imported_by_independent_checker':False,
+              },
+              'primary_resolved_commit':c['primary_resolved_commit'],
+              'verification_resolved_commit':c['verification_resolved_commit'],
+              'reserved_sources':c['reserved_sources'],
+              'source_receipts':c['source_receipts'],
+              'independent_check':{
+                  'verdict':k['verdict'],
+                  'checks':k['checks'],
+              },
+              'machine_receipt':c['machine_receipt'],
+              'next_gate':'TRUMP_UF20_016_020_WL_AND_SEALED_PORTFOLIO_REPLICATION_PREREGISTRATION_REQUIRED',
+              'next_gate_status':'DORMANT_UNTIL_SEPARATE_PREPROCESSING_AND_REPLICATION_PROTOCOL_IS_FROZEN',
+              'not_licensed':['COMPUTE_WL_BEFORE_NEW_PREREGISTRATION','RUN_SEALED_PORTFOLIO_BEFORE_NEW_PREREGISTRATION','RUN_SOLVER','COMPUTE_ROUTE_LABELS','MODIFY_RANK_OR_COMBINE_WL_FEATURES','NEW_REDUCTION_MECHANISM','GENERAL_SAT_IN_P','P_EQUALS_NP'],
+              'captain_obvious_readout':{
+                  'current_status':'FIVE_NEW_SOURCE_BOUND_UF20_INSTANCES_DUAL_MIRROR_FROZEN_WITHOUT_WL_OR_PORTFOLIO_INSPECTION',
+                  'nearest_missing_obligation':'FREEZE_THE_EXACT_GENERIC_PREPROCESSING_REDUCTION_AND_BLIND_REPLICATION_CONTRACT_BEFORE_COMPUTING_ANY_WL_OR_SEALED_PORTFOLIO_OUTCOME_ON_UF20_016_TO_UF20_020',
+                  'directive':'DO_NOT_INSPECT_HOLDOUT_STRUCTURE_MANUALLY;DO_NOT_COMPUTE_WL_OR_ROUTE_LABELS_YET;FIRST_PROVE_OR_FREEZE_THE_GENERIC_SOURCE_TO_CORRECTED_RAW_TRANSFORMATION_AND_THE_REPLICATION_VERDICT_RULE'
+              },
+              'claim_ceiling':'SOURCE_ACQUISITION_AND_PROVENANCE_FREEZE_ONLY__NO_STRUCTURAL_OR_TRACTABILITY_CLAIM',
+              'scientific_firewall':c['scientific_firewall'],
+          }
+          Path('research/TRUMP_UF20_016_020_FRESH_SOURCE_ACQUISITION_RESULT_2026-09-17_v1.0.json').write_text(json.dumps(result, indent=2, sort_keys=True) + '\n')
+          PY
+
+      - name: Freeze primary source bytes and acquisition receipt
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add \
+            research/source_data/SATLIB_UF20_016_2026-09-17.cnf \
+            research/source_data/SATLIB_UF20_017_2026-09-17.cnf \
+            research/source_data/SATLIB_UF20_018_2026-09-17.cnf \
+            research/source_data/SATLIB_UF20_019_2026-09-17.cnf \
+            research/source_data/SATLIB_UF20_020_2026-09-17.cnf \
+            research/TRUMP_UF20_016_020_FRESH_SOURCE_ACQUISITION_RESULT_2026-09-17_v1.0.json
+          git diff --cached --quiet && exit 1
+          git commit -m "TRUMP freeze UF20_016-020 fresh dual-mirror source acquisition"
+          git push origin HEAD:research/trump-uf20-wl-fresh-holdout-replication-2026-09-17
