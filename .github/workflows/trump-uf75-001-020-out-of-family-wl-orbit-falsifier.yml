@@ -1,0 +1,203 @@
+name: TRUMP UF75 001-020 out-of-family WL-orbit falsifier
+
+on:
+  push:
+    branches:
+      - research/trump-uf75-001-020-out-of-family-wl-orbit-falsifier-2026-09-18
+    paths:
+      - .github/workflows/trump-uf75-001-020-out-of-family-wl-orbit-falsifier.yml
+
+permissions:
+  contents: write
+
+jobs:
+  evaluate:
+    runs-on: ubuntu-latest
+    env:
+      PYTHONPATH: ${{ github.workspace }}
+    steps:
+      - name: Checkout exact workflow head
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Verify frozen authorities
+        shell: bash
+        run: |
+          python - <<'PY'
+          import hashlib
+          from pathlib import Path
+          expected={
+            'research/TRUMP_UF75_001_020_OUT_OF_FAMILY_WL_ORBIT_FALSIFIER_EVALUATION_PREREGISTRATION_2026-09-18_v1.0.json':'84787b2f4fce9a3b79dfc9ba92c7fd0b61f412c9',
+            'research/TRUMP_UF75_001_020_OUT_OF_FAMILY_WL_ORBIT_FALSIFIER_EVALUATION_REVIEW_2026-09-18_v1.0.json':'884c5ae73cd31b9161165be155fce4640390f7ab',
+            'research/TRUMP_UF75_001_020_OUT_OF_FAMILY_SOURCE_ACQUISITION_RESULT_2026-09-18_v1.0.json':'102dedd7602f7f7f3044f0904591da282dc25eb2',
+            'research/TRUMP_WL_DIRECT_EXACT_E3_SCOPE_BOUND_THEOREM_RESULT_2026-09-18_v1.0.json':'3cbf05cb0b0249ddf365bc43d176a06ddb7f72af',
+            'research/tools/apma_uf20_011_015_fresh_generic_pendant_wl_replication/candidate.py':'9ec365ae27a6caa7b936cd33040e542f183ded99',
+            'research/tools/apma_satlib_uf20_r000_r111_projected_core_replay/projection_identity.py':'2ef48e73974a5f43d3f4fb4809ebd0c09c0f5be4',
+            'research/tools/apma_uf20_wl_historical_closed_control_falsifier/candidate.py':'6b697fd8b3de4c83f8226b06399b6bad99953d4e',
+            'research/tools/apma_unseen_local_invariant_orbit_count/candidate.py':'a076cfc56d68aad0348415e313705da1f6b9cdcd',
+            'research/tools/trump_uf75_001_020_out_of_family_wl_orbit_falsifier/candidate.py':'04269f56481f43e82b8738709316a7758a0e0ef7',
+            'research/tools/trump_uf75_001_020_out_of_family_wl_orbit_falsifier/independent_check.py':'288448c360c6392333cd14f1019985ad72b80166',
+          }
+          def blob(path):
+              d=Path(path).read_bytes()
+              return hashlib.sha1(f'blob {len(d)}\0'.encode()+d).hexdigest()
+          bad={p:(h,blob(p)) for p,h in expected.items() if blob(p)!=h}
+          if bad: raise SystemExit(f'AUTHORITY_BINDING_FAILURE {bad}')
+          print('UF75_FALSIFIER_AUTHORITY_BINDINGS_PASS')
+          PY
+
+      - name: Execute frozen UF75 out-of-family candidate
+        run: |
+          python research/tools/trump_uf75_001_020_out_of_family_wl_orbit_falsifier/candidate.py > /tmp/uf75_falsifier_candidate.json
+          python - <<'PY'
+          import json
+          x=json.load(open('/tmp/uf75_falsifier_candidate.json'))
+          print(json.dumps({'verdict':x.get('verdict'),'summary':x.get('summary'),'resource_receipt':x.get('resource_receipt')},indent=2))
+          allowed={
+            'FALSIFIED_SCOPE_THEOREM_AT_LEAST_ONE_IN_SCOPE_POSITIVE_NOT_E3_ADMITTED',
+            'FALSIFIED_OUT_OF_FAMILY_SELECTOR_AT_LEAST_ONE_E3_POSITIVE_NOT_RECOVERED',
+            'FALSIFIED_OUT_OF_FAMILY_AT_LEAST_ONE_IN_SCOPE_PORTFOLIO_OPEN_FALSE_POSITIVE',
+            'SURVIVED_OUT_OF_FAMILY_WITH_AT_LEAST_ONE_E3_POSITIVE_AND_ZERO_PREDECLARED_ERRORS',
+            'SURVIVED_WITH_RESOURCE_SCOPE_EXITS_AND_ZERO_PREDECLARED_ERRORS',
+            'SURVIVED_OUT_OF_FAMILY_ZERO_E3_POSITIVE_COVERAGE',
+          }
+          if x.get('verdict') not in allowed: raise SystemExit(1)
+          PY
+
+      - name: Upload candidate receipt before independent check
+        uses: actions/upload-artifact@v4
+        with:
+          name: trump-uf75-001-020-falsifier-candidate-${{ github.run_id }}
+          path: /tmp/uf75_falsifier_candidate.json
+
+      - name: Independent recomputation without candidate import
+        run: |
+          python research/tools/trump_uf75_001_020_out_of_family_wl_orbit_falsifier/independent_check.py --candidate /tmp/uf75_falsifier_candidate.json > /tmp/uf75_falsifier_independent.json
+          python - <<'PY'
+          import json
+          x=json.load(open('/tmp/uf75_falsifier_independent.json'))
+          print(json.dumps({'verdict':x.get('verdict'),'scientific_outcome':x.get('scientific_outcome'),'summary':x.get('summary'),'comparison_checks':x.get('comparison_checks')},indent=2))
+          if x.get('verdict')!='PASS_INDEPENDENT_UF75_OUT_OF_FAMILY_WL_ORBIT_FALSIFIER_VERIFICATION': raise SystemExit(1)
+          PY
+
+      - name: Build frozen falsifier result
+        shell: bash
+        run: |
+          python - <<'PY'
+          import hashlib,json,os
+          from pathlib import Path
+          c=json.load(open('/tmp/uf75_falsifier_candidate.json'))
+          i=json.load(open('/tmp/uf75_falsifier_independent.json'))
+          outcome=c['verdict']
+          if outcome.startswith('FALSIFIED_SCOPE_THEOREM'):
+              readout={
+                'current_status':'OUT_OF_FAMILY_PANEL_FALSIFIED_THE_SCOPE_THEOREM_INSIDE_ITS_PREDECLARED_BOUND',
+                'directive':'FREEZE_THE_COUNTEREXAMPLE_AND_AUDIT_THE_THEOREM_PROOF_CHAIN_BEFORE_ANY_SELECTOR_RETUNING',
+                'nearest_missing_obligation':'ISOLATE_THE_FIRST_IN_SCOPE_DIRECT_EXACT_POSITIVE_NOT_ADMITTED_BY_FROZEN_E3_AND_IDENTIFY_THE_FAILED_FORMAL_STEP',
+              }
+          elif outcome.startswith('FALSIFIED_OUT_OF_FAMILY_SELECTOR'):
+              readout={
+                'current_status':'OUT_OF_FAMILY_PANEL_FALSIFIED_THE_FROZEN_WL_PAIR_SELECTOR_BY_AT_LEAST_ONE_E3_POSITIVE_MISS',
+                'directive':'DO_NOT_RETUNE_ON_THIS_PANEL;FREEZE_THE_MISSED_E3_WITNESS_AS_A_SELECTOR_COUNTEREXAMPLE',
+                'nearest_missing_obligation':'CHARACTERIZE_WHICH_FROZEN_WL_PARTITION_PATTERN_BLOCKED_RECOVERY_OF_THE_MISSED_E3_GENERATOR_EDGE',
+              }
+          elif outcome.startswith('FALSIFIED_OUT_OF_FAMILY_AT_LEAST_ONE_IN_SCOPE_PORTFOLIO_OPEN_FALSE_POSITIVE'):
+              readout={
+                'current_status':'OUT_OF_FAMILY_PANEL_PRODUCED_AN_IN_SCOPE_WL_DIRECT_EXACT_POSITIVE_LABELLED_PORTFOLIO_OPEN',
+                'directive':'AUDIT_ROUTE_LABEL_AND_SCOPE_THEOREM_CONSISTENCY_BEFORE_ANY RETUNING',
+                'nearest_missing_obligation':'ISOLATE_THE_FIRST_IN_SCOPE_OPEN_FALSE_POSITIVE_AND_REPLAY_FROZEN_E3_CERTIFICATE_PATH',
+              }
+          elif outcome=='SURVIVED_WITH_RESOURCE_SCOPE_EXITS_AND_ZERO_PREDECLARED_ERRORS':
+              readout={
+                'current_status':'FROZEN_SELECTOR_SURVIVED_THE_UF75_PANEL_WITH_ZERO_PREDECLARED_ERRORS_BUT_AT_LEAST_ONE_POSITIVE_LAY_OUTSIDE_THE_FORMAL_RESOURCE_SCOPE',
+                'directive':'DO_NOT_COUNT_SCOPE_EXITS_AS_THEOREM_CONFIRMATIONS_OR_FALSE_POSITIVES',
+                'nearest_missing_obligation':'CHARACTERIZE_THE_RESOURCE_SCOPE_BOUNDARY_OR_TEST_A_PREDECLARED_FAMILY_WHERE_POSITIVES_ARE_MORE_LIKELY_TO_REMAIN_IN_SCOPE',
+              }
+          elif outcome=='SURVIVED_OUT_OF_FAMILY_WITH_AT_LEAST_ONE_E3_POSITIVE_AND_ZERO_PREDECLARED_ERRORS':
+              readout={
+                'current_status':'FROZEN_SELECTOR_SURVIVED_A_PREDECLARED_OUT_OF_FAMILY_UF75_PANEL_WITH_POSITIVE_E3_COVERAGE_AND_ZERO_PREDECLARED_ERRORS',
+                'directive':'DO_NOT_PROMOTE_FINITE_PORTABILITY_TO_WL_ALONE_SUFFICIENCY',
+                'nearest_missing_obligation':'CHOOSE_A_SECOND_PREDECLARED_OUT_OF_FAMILY_FAMILY_OR_FORMALIZE_A_STRONGER_SELECTOR_STATEMENT_WITHOUT_RETUNING',
+              }
+          else:
+              readout={
+                'current_status':'UF75_PANEL_DID_NOT_FALSIFY_THE_RULE_BUT_CONTAINED_ZERO_E3_POSITIVE_GROUND_TRUTH_CASES',
+                'directive':'DO_NOT_INTERPRET_ZERO_POSITIVE_COVERAGE_AS_PORTABILITY_CONFIRMATION',
+                'nearest_missing_obligation':'PREDECLARE_ANOTHER_OUT_OF_FAMILY_PANEL_WITHOUT_USING_THE_UF75_STRUCTURAL_RESULTS_FOR_SELECTION',
+              }
+          wf=Path('.github/workflows/trump-uf75-001-020-out-of-family-wl-orbit-falsifier.yml')
+          d=wf.read_bytes(); wf_blob=hashlib.sha1(f'blob {len(d)}\0'.encode()+d).hexdigest()
+          result={
+            'artifact_id':'JANUS-TRUMP-UF75-001-020-OUT-OF-FAMILY-WL-ORBIT-FALSIFIER-RESULT-2026-09-18-v1.0',
+            'date':'2026-09-18',
+            'status':'FROZEN_OUT_OF_FAMILY_UF75_FALSIFIER_RESULT',
+            'gate':c['gate'],
+            'scientific_outcome':outcome,
+            'execution_verdict':'PASS_INDEPENDENT_UF75_OUT_OF_FAMILY_RECOMPUTATION',
+            'authorities':{
+              'source_freeze_commit':'43f414c6c8f65d84ee3c4b77710b1398d8e1b3e2',
+              'source_freeze_blob':'102dedd7602f7f7f3044f0904591da282dc25eb2',
+              'evaluation_prereg_commit':'0f8f740186da66daf31c54eea538a8d25e0e91b3',
+              'evaluation_prereg_blob':'84787b2f4fce9a3b79dfc9ba92c7fd0b61f412c9',
+              'evaluation_review_commit':'6c3146dcf7dbd0418c82ad2d1a1e206d8c63e3be',
+              'evaluation_review_blob':'884c5ae73cd31b9161165be155fce4640390f7ab',
+              'scope_theorem_commit':'bced6f34a33b063edb47a17adffa1d0ca5d5ca9a',
+              'scope_theorem_blob':'3cbf05cb0b0249ddf365bc43d176a06ddb7f72af',
+              'candidate_commit':'7fdb9ad03db2b4a96537f59ebf6d6633a9ce2b3e',
+              'candidate_blob':'04269f56481f43e82b8738709316a7758a0e0ef7',
+              'independent_checker_commit':'b2c8a314d82258f47730ab560867bc5f68e105f8',
+              'independent_checker_blob':'288448c360c6392333cd14f1019985ad72b80166',
+              'workflow_head':os.environ['GITHUB_SHA'],
+              'workflow_blob':wf_blob,
+            },
+            'execution':{
+              'run_id':int(os.environ['GITHUB_RUN_ID']),
+              'run_number':int(os.environ['GITHUB_RUN_NUMBER']),
+              'run_attempt':int(os.environ['GITHUB_RUN_ATTEMPT']),
+              'candidate_imported_by_independent_checker':False,
+              'independent_verdict':i['verdict'],
+            },
+            'prediction_stage_completed_before_ground_truth':c['prediction_stage_completed_before_ground_truth'],
+            'prediction_stage_count':c['prediction_stage_count'],
+            'prediction_stage_sha256':c['prediction_stage_sha256'],
+            'prediction_rows':c['prediction_rows'],
+            'ground_truth_rows':c['ground_truth_rows'],
+            'summary':c['summary'],
+            'resource_receipt':c['resource_receipt'],
+            'captain_obvious_readout':readout,
+            'claim_ceiling':c['claim_ceiling'],
+            'scientific_firewall':c['scientific_firewall'],
+          }
+          Path('/tmp/uf75_falsifier_result.json').write_text(json.dumps(result,indent=2,sort_keys=True)+'\n')
+          print(json.dumps({'scientific_outcome':outcome,'summary':c['summary'],'captain_obvious_readout':readout},indent=2))
+          PY
+
+      - name: Upload immutable evaluation receipts
+        uses: actions/upload-artifact@v4
+        with:
+          name: trump-uf75-001-020-out-of-family-falsifier-${{ github.run_id }}
+          path: |
+            /tmp/uf75_falsifier_candidate.json
+            /tmp/uf75_falsifier_independent.json
+            /tmp/uf75_falsifier_result.json
+
+      - name: Freeze result with safe fast-forward push
+        shell: bash
+        env:
+          BRANCH: research/trump-uf75-001-020-out-of-family-wl-orbit-falsifier-2026-09-18
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git fetch origin "$BRANCH"
+          git rebase "origin/$BRANCH"
+          cp /tmp/uf75_falsifier_result.json research/TRUMP_UF75_001_020_OUT_OF_FAMILY_WL_ORBIT_FALSIFIER_RESULT_2026-09-18_v1.0.json
+          git add research/TRUMP_UF75_001_020_OUT_OF_FAMILY_WL_ORBIT_FALSIFIER_RESULT_2026-09-18_v1.0.json
+          git commit -m 'TRUMP freeze UF75 001-020 out-of-family WL-orbit falsifier result'
+          git push origin HEAD:"$BRANCH"
