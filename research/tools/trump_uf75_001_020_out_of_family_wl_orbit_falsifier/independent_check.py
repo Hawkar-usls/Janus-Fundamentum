@@ -70,7 +70,7 @@ def parse_uf75(path: Path):
                 buf.append(value)
     if (nvars, nclauses) != (75, 325) or len(clauses) != 325 or buf:
         raise ValueError("UF75_CONTRACT_FAILURE")
-    canonical = "".join(" ".join(map(str, c)) + " 0\n" for c in clauses).encode("ascii")
+    canonical = "".join(" ".join(map(str, c)) + " 0\\n" for c in clauses).encode("ascii")
     return clauses, hashlib.sha256(canonical).hexdigest()
 
 
