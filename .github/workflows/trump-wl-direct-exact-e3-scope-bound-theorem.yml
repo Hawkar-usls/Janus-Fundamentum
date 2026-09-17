@@ -13,6 +13,8 @@ permissions:
 jobs:
   prove:
     runs-on: ubuntu-latest
+    env:
+      PYTHONPATH: ${{ github.workspace }}
     steps:
       - name: Checkout exact workflow head
         uses: actions/checkout@v4
@@ -49,6 +51,7 @@ jobs:
       - name: Build frozen theorem proof certificate
         run: |
           python research/tools/trump_wl_direct_exact_e3_scope_bound_theorem/proof_certificate.py > /tmp/theorem_candidate.json
+          cat /tmp/theorem_candidate.json
           python - <<'PY'
           import json
           x=json.load(open('/tmp/theorem_candidate.json'))
@@ -60,6 +63,7 @@ jobs:
       - name: Independent theorem verification
         run: |
           python research/tools/trump_wl_direct_exact_e3_scope_bound_theorem/independent_check.py --candidate /tmp/theorem_candidate.json > /tmp/theorem_independent.json
+          cat /tmp/theorem_independent.json
           python - <<'PY'
           import json
           x=json.load(open('/tmp/theorem_independent.json'))
