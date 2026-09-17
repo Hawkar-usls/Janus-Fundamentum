@@ -62,7 +62,7 @@ def parse_uf75(path: Path):
             continue
         for value in map(int, s.split()):
             if value == 0:
-                if len(buf) != 3 or len({abs(x) for x in buf}) != 3 or any(not 1 <= abs(x) <= 50 for x in buf):
+                if len(buf) != 3 or len({abs(x) for x in buf}) != 3 or any(not 1 <= abs(x) <= 75 for x in buf):
                     raise ValueError("BAD_3CNF_CLAUSE")
                 clauses.append(tuple(buf))
                 buf = []
