@@ -28,14 +28,15 @@ jobs:
         with:
           python-version: '3.12'
 
-      - name: Execute frozen bridge candidate
+      - name: Execute frozen bridge candidate with binding-only correction
         run: |
-          python -m research.tools.apma_wl_e3_automorphism_necessity_bridge.candidate > /tmp/bridge_candidate.json
+          python -m research.tools.apma_wl_e3_automorphism_necessity_bridge.candidate_v2 > /tmp/bridge_candidate.json
           python -m json.tool /tmp/bridge_candidate.json >/dev/null
           python - <<'PY'
           import json
           c=json.load(open('/tmp/bridge_candidate.json'))
           assert c['verdict']=='PASS_WL_E3_AUTOMORPHISM_NECESSITY_BRIDGE', c
+          assert c['implementation_note']=='V2_CORRECTS_ONLY_PARENT_JSON_CONTAINER_BINDING_FROM_SUMMARY_TO_SCIENTIFIC_OUTCOME__NO_SCIENTIFIC_CLAIM_OR_TEST_CHANGED'
           PY
 
       - name: Independent reconstruction and theorem sanity verification
@@ -73,11 +74,16 @@ jobs:
             'implementation':{
               'preregistration_commit':'b5858b1743a012275d5c1c21365927ad2e9b6206',
               'review_commit':'62323d52624e7c2baef92b331cd1df942383f158',
-              'candidate_commit':'f2f96162f1c15ad92227287f628b3751296235bf',
-              'candidate_blob':blob('research/tools/apma_wl_e3_automorphism_necessity_bridge/candidate.py'),
+              'candidate_v1_commit':'f2f96162f1c15ad92227287f628b3751296235bf',
+              'candidate_v1_blob':blob('research/tools/apma_wl_e3_automorphism_necessity_bridge/candidate.py'),
+              'candidate_v2_binding_correction_commit':'5c74788ac29a7a1330aebeeb7ec082742dba64b7',
+              'candidate_v2_blob':blob('research/tools/apma_wl_e3_automorphism_necessity_bridge/candidate_v2.py'),
               'independent_checker_commit':'d7438c5b1d27fe0ec98882a62a1f4a5c92aba7d8',
               'independent_checker_blob':blob('research/tools/apma_wl_e3_automorphism_necessity_bridge/independent_check.py'),
               'workflow_head':os.environ['WORKFLOW_HEAD'],
+              'attempt1_infrastructure_halt_run_id':35268281517,
+              'attempt1_halt_reason':'PARENT_JSON_CONTAINER_BINDING_USED_SUMMARY_INSTEAD_OF_SCIENTIFIC_OUTCOME',
+              'scientific_spec_changed_after_attempt1':False
             },
             'execution':{
               'run_id':int(os.environ['RUN_ID']),
