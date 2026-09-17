@@ -1,0 +1,119 @@
+name: TRUMP UF20 WL projected representation transfer
+
+on:
+  push:
+    branches:
+      - research/trump-uf20-wl-projected-transfer-2026-09-17
+    paths:
+      - .github/workflows/trump-uf20-wl-projected-representation-transfer.yml
+
+permissions:
+  contents: write
+
+concurrency:
+  group: trump-uf20-wl-projected-transfer-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  projected-transfer:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout exact workflow head
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Run projected WL transfer candidate
+        run: |
+          python -m research.tools.apma_uf20_wl_projected_transfer.candidate > /tmp/projected_transfer_candidate.json
+          python -m json.tool /tmp/projected_transfer_candidate.json >/dev/null
+
+      - name: Run independent projected WL transfer checker
+        run: |
+          python -m research.tools.apma_uf20_wl_projected_transfer.independent_check \
+            --candidate /tmp/projected_transfer_candidate.json > /tmp/projected_transfer_check.json
+          python -m json.tool /tmp/projected_transfer_check.json >/dev/null
+
+      - name: Enforce frozen transfer contract and build result
+        env:
+          WORKFLOW_HEAD: ${{ github.sha }}
+          RUN_ID: ${{ github.run_id }}
+          RUN_NUMBER: ${{ github.run_number }}
+        run: |
+          python - <<'PY'
+          import json, os
+          from pathlib import Path
+          c=json.loads(Path('/tmp/projected_transfer_candidate.json').read_text())
+          k=json.loads(Path('/tmp/projected_transfer_check.json').read_text())
+          allowed={
+            'PROJECTED_WL_TRANSFER_ALL_FOUR_SURVIVE__FRESH_HOLDOUT_PREREGISTRATION_MAY_FOLLOW',
+            'PROJECTED_WL_TRANSFER_PARTIAL_SURVIVOR_SET__FREEZE_SURVIVORS_BEFORE_ANY_HOLDOUT_GATE',
+            'PROJECTED_WL_TRANSFER_NO_SURVIVOR__DO_NOT_UNBLIND_FRESH_HOLDOUT_FOR_THIS_CANDIDATE'
+          }
+          assert c['verdict'] in allowed
+          assert k['verdict']=='PASS_INDEPENDENT_PROJECTED_TRANSFER_VERIFICATION'
+          assert c['blindness_receipt']['fresh_holdout_formula_reads']==0
+          assert c['blindness_receipt']['fresh_holdout_projected_values']==0
+          assert c['blindness_receipt']['fresh_holdout_wl_values']==0
+          assert c['blindness_receipt']['posthoc_thresholds_or_combinations']==0
+          assert c['resource_receipt']['solver_invocations']==0
+          assert c['resource_receipt']['new_reduction_mechanisms']==0
+          assert c['scientific_firewall']['P_VS_NP']=='OPEN'
+          assert c['scientific_firewall']['GENERAL_SAT_IN_P']=='NOT_PROVED'
+          if not c['surviving_features']:
+            captain={
+              'current_status':'FROZEN_REDUCED_WL_SIGNAL_DOES_NOT_TRANSFER_TO_THE_PREEXISTING_CANONICAL_PROJECTED_REPRESENTATION',
+              'nearest_missing_obligation':'DO_NOT_UNBLIND_UF20_011_TO_UF20_015_FOR_THIS_NONTRANSFERRED_CANDIDATE;IDENTIFY_WHETHER_THE_PREEXISTING_EXACT_PENDANT_REDUCTION_CAN_BE_GIVEN_A_SOURCE_AGNOSTIC_THEOREM_WITHOUT_USING_HOLDOUT_VALUES_OR_RETURN_TO_NEW_INDEPENDENT_SOURCE_BOUND_EVIDENCE',
+              'directive':'KEEP_THE_NEGATIVE_TRANSFER_RESULT;DO_NOT_RESCUE_BY_THRESHOLDS_COMBINATIONS_OR_HOLDOUT_INSPECTION;NO_NEW_REDUCTION_SOLVER_ACTION_OR_CARRIER_IS_LICENSED'
+            }
+          else:
+            captain={
+              'current_status':'FROZEN_PROJECTED_WL_TRANSFER_SURVIVOR_SET_FOUND_ON_TRAINING_PANEL',
+              'nearest_missing_obligation':'FREEZE_ONLY_THE_PREDECLARED_TRANSFER_SURVIVORS_THEN_PREREGISTER_THE_FRESH_UF20_011_TO_UF20_015_REPLICATION_GATE_BEFORE_FIRST_CONTENT_READ_IN_THIS_LINEAGE',
+              'directive':'DO_NOT_RANK_COMBINE_OR_RETUNE_SURVIVORS;NO_REDUCTION_OR_SOLVER_DESIGN;FRESH_REPLICATION_ONLY'
+            }
+          result={
+            'artifact_id':'JANUS-TRUMP-UF20-WL-PROJECTED-REPRESENTATION-TRANSFER-RESULT-2026-09-17-v1.0',
+            'date':'2026-09-17',
+            'status':'FROZEN_PROJECTED_REPRESENTATION_TRANSFER_RESULT',
+            'gate':'TRUMP_UF20_WL_PROJECTED_REPRESENTATION_TRANSFER_GATE',
+            'verdict':c['verdict'],
+            'implementation':{
+              'metadata_freeze_commit':'8c61eb2a4d3c07e5ee3b393da579091d2bc1dbe2',
+              'preregistration_commit':'2f4df785434b98a7c84a4c743a64440828560868',
+              'review_commit':'91f9c4ee17b48eec923611bfd0c95493a7a15028',
+              'candidate_commit':'5a8e76e9f02a8eca48eaf7f6170ec3a199d09505',
+              'independent_checker_commit':'69acf694579b045af08c952651f3f843f793b605',
+              'workflow_head':os.environ['WORKFLOW_HEAD']
+            },
+            'execution':{'run_id':int(os.environ['RUN_ID']),'run_number':int(os.environ['RUN_NUMBER']),'independent_verified':True,'candidate_imported_by_independent_checker':False},
+            'identity_guards':c['identity_guards'],
+            'feature_rows':c['feature_rows'],
+            'per_feature_transfer':c['per_feature_transfer'],
+            'surviving_features':c['surviving_features'],
+            'falsified_features':c['falsified_features'],
+            'blindness_receipt':c['blindness_receipt'],
+            'resource_receipt':c['resource_receipt'],
+            'independent_check':{'verdict':k['verdict'],'checks':k['checks'],'independent_surviving_features':k['independent_surviving_features']},
+            'fresh_holdout_status':'STILL_UNREAD_AND_UNCOMPUTED_IN_THIS_WL_LINEAGE',
+            'claim_ceiling':'REPRESENTATION_TRANSFER_DIAGNOSTIC_ONLY__NO_TRACTABILITY_THEOREM',
+            'not_licensed':['NEW_REDUCTION_MECHANISM','NEW_SOLVER_RULE','NEW_ACTION_RULE','NEW_CARRIER_MECHANISM','HOLDOUT_UNBLINDING_IF_NO_TRANSFER_SURVIVOR','GENERAL_SAT_IN_P','P_EQUALS_NP'],
+            'scientific_firewall':{'P_VS_NP':'OPEN','GENERAL_SAT_IN_P':'NOT_PROVED','GENERAL_RESIDUAL_SEPARATOR_TRACTABILITY':'NOT_PROVED'},
+            'captain_obvious_readout':captain
+          }
+          Path('research/TRUMP_UF20_WL_PROJECTED_REPRESENTATION_TRANSFER_RESULT_2026-09-17_v1.0.json').write_text(json.dumps(result,indent=2,sort_keys=True)+'\n')
+          PY
+
+      - name: Freeze projected WL transfer result
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add research/TRUMP_UF20_WL_PROJECTED_REPRESENTATION_TRANSFER_RESULT_2026-09-17_v1.0.json
+          git diff --cached --quiet && exit 0
+          git commit -m "TRUMP freeze projected WL representation-transfer result"
+          git push origin HEAD:research/trump-uf20-wl-projected-transfer-2026-09-17
