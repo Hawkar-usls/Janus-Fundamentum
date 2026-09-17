@@ -1,0 +1,160 @@
+name: TRUMP WL direct-exact E3 scope-bound theorem
+
+on:
+  push:
+    branches:
+      - research/trump-wl-direct-exact-e3-scope-bound-theorem-2026-09-18
+    paths:
+      - .github/workflows/trump-wl-direct-exact-e3-scope-bound-theorem.yml
+
+permissions:
+  contents: write
+
+jobs:
+  prove:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout exact workflow head
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Verify frozen authorities
+        shell: bash
+        run: |
+          python - <<'PY'
+          import hashlib
+          from pathlib import Path
+          expected = {
+            'research/TRUMP_WL_DIRECT_EXACT_E3_SCOPE_BOUND_THEOREM_PREREGISTRATION_2026-09-18_v1.0.json':'3ce13cf63ee3b752206fdd950283b457cc69bb99',
+            'research/TRUMP_WL_DIRECT_EXACT_E3_SCOPE_BOUND_THEOREM_REVIEW_2026-09-18_v1.0.json':'32071a278871f5f10e40f3e561ccbd70e5d50cf7',
+            'research/tools/trump_wl_direct_exact_e3_scope_bound_theorem/proof_certificate.py':'9b06efdd4dc6291e0af45fffbca01d20e75b988c',
+            'research/tools/trump_wl_direct_exact_e3_scope_bound_theorem/independent_check.py':'13b8b818215f1c30642b70113c420282a8bf6430',
+            'research/tools/apma_unseen_local_invariant_orbit_count/candidate.py':'a076cfc56d68aad0348415e313705da1f6b9cdcd',
+          }
+          def blob(p):
+              d=Path(p).read_bytes()
+              return hashlib.sha1(f'blob {len(d)}\0'.encode()+d).hexdigest()
+          bad={p:(h,blob(p)) for p,h in expected.items() if blob(p)!=h}
+          if bad: raise SystemExit(f'AUTHORITY_BINDING_FAILURE {bad}')
+          print('AUTHORITY_BINDINGS_PASS')
+          PY
+
+      - name: Build frozen theorem proof certificate
+        run: |
+          python research/tools/trump_wl_direct_exact_e3_scope_bound_theorem/proof_certificate.py > /tmp/theorem_candidate.json
+          python - <<'PY'
+          import json
+          x=json.load(open('/tmp/theorem_candidate.json'))
+          print(x['verdict'])
+          if x['verdict'] != 'PASS_SCOPE_BOUND_DIRECT_EXACT_TO_E3_ADMISSION_THEOREM_CERTIFICATE':
+              raise SystemExit(1)
+          PY
+
+      - name: Independent theorem verification
+        run: |
+          python research/tools/trump_wl_direct_exact_e3_scope_bound_theorem/independent_check.py --candidate /tmp/theorem_candidate.json > /tmp/theorem_independent.json
+          python - <<'PY'
+          import json
+          x=json.load(open('/tmp/theorem_independent.json'))
+          print(x['verdict'])
+          if x['verdict'] != 'PASS_INDEPENDENT_SCOPE_BOUND_E3_THEOREM_VERIFICATION':
+              raise SystemExit(1)
+          PY
+
+      - name: Build frozen theorem result
+        shell: bash
+        run: |
+          python - <<'PY'
+          import hashlib,json,os
+          from pathlib import Path
+          cand=json.load(open('/tmp/theorem_candidate.json'))
+          ind=json.load(open('/tmp/theorem_independent.json'))
+          wf=Path('.github/workflows/trump-wl-direct-exact-e3-scope-bound-theorem.yml')
+          d=wf.read_bytes(); wf_blob=hashlib.sha1(f'blob {len(d)}\0'.encode()+d).hexdigest()
+          cor=ind['uf20_source_bound_corollary']
+          result={
+            'artifact_id':'JANUS-TRUMP-WL-DIRECT-EXACT-E3-SCOPE-BOUND-THEOREM-RESULT-2026-09-18-v1.0',
+            'date':'2026-09-18',
+            'status':'FROZEN_SCOPE_BOUND_THEOREM_RESULT',
+            'theorem':'DIRECT_EXACT_TRANSPOSITION_PLUS_QUOTIENT_CAP_IMPLIES_E3_ADMISSION',
+            'scientific_outcome':'PASS_SCOPE_BOUND_DIRECT_EXACT_TRANSPOSITION_WITNESS_SUFFICIENCY_FOR_FROZEN_E3',
+            'authorities':{
+              'preregistration_commit':'dcd44eb8d6338e6b946e7474d25ee884381cd776',
+              'preregistration_blob':'3ce13cf63ee3b752206fdd950283b457cc69bb99',
+              'review_commit':'d15e18d59d9916564097fdbf74f3c754bd7bdd54',
+              'review_blob':'32071a278871f5f10e40f3e561ccbd70e5d50cf7',
+              'proof_certificate_commit':'e313b6c95f219dd2d6f203c2d941d1153078f71f',
+              'proof_certificate_blob':'9b06efdd4dc6291e0af45fffbca01d20e75b988c',
+              'independent_checker_commit':'876acd4bab2538f93041ab205a0895a601798637',
+              'independent_checker_blob':'13b8b818215f1c30642b70113c420282a8bf6430',
+              'frozen_e3_blob':'a076cfc56d68aad0348415e313705da1f6b9cdcd',
+              'workflow_head':os.environ['GITHUB_SHA'],
+              'workflow_blob':wf_blob,
+            },
+            'execution':{
+              'run_id':int(os.environ['GITHUB_RUN_ID']),
+              'run_number':int(os.environ['GITHUB_RUN_NUMBER']),
+              'run_attempt':int(os.environ['GITHUB_RUN_ATTEMPT']),
+              'independent_verdict':ind['verdict'],
+              'proof_module_imported_by_independent_checker':False,
+            },
+            'scope':{
+              'n_condition':'n>=2',
+              'witness_condition':'distinct u,v with frozen direct exact transposition predicate true',
+              'resource_condition':'3*2^(n-2)<=L^2',
+              'conclusion':'frozen E3 returns ADMIT_ORBIT_COUNT_QUOTIENT_SAT or ADMIT_ORBIT_COUNT_QUOTIENT_UNSAT with solver_authority=true',
+            },
+            'proof_summary':{
+              'symbolic_claims':cand['symbolic_claims'],
+              'partition_sanity':ind['partition_check'],
+              'connected_graph_group_sanity':ind['connected_graph_group_check'],
+              'synthetic_scope_case_count':len(ind['synthetic_e3_check']['cases']),
+              'synthetic_scope_failures':ind['synthetic_e3_check']['failures'],
+            },
+            'source_bound_corollary':{
+              'prospective_positive_count':cor['positive_count'],
+              'rows':cor['positive_rows'],
+              'failures':cor['failures'],
+              'interpretation':'ALL_SIX_PROSPECTIVE_WL_DIRECT_EXACT_POSITIVES_SATISFY_THE_EXPLICIT_RESOURCE_BOUND_AND_ARE_E3_POSITIVE__COROLLARY_ONLY',
+            },
+            'captain_obvious_readout':{
+              'current_status':'DIRECT_EXACT_WITNESS_TO_FROZEN_E3_ADMISSION_IS_NOW_FORMALLY_SCOPE_BOUND_BY_AN_EXPLICIT_RESOURCE_INEQUALITY',
+              'directive':'DO_NOT_CALL_THIS_WL_ALONE_SUFFICIENCY;WL_REMAINS_A_WITNESS_SELECTOR_AND_DIRECT_EXACT_VERIFICATION_IS_REQUIRED',
+              'nearest_missing_obligation':'TEST_AN_OUT_OF_FAMILY_SOURCE_BOUND_PANEL_WITH_THE_WL_PAIR_RULE_FROZEN_OR_FORMALIZE_A_STRONGER_SELECTOR_THEOREM_WITHOUT_THE_DIRECT_EXACT_CHECK',
+            },
+            'claim_ceiling':cand['claim_ceiling'],
+            'scientific_firewall':cand['scientific_firewall'],
+          }
+          Path('/tmp/theorem_result.json').write_text(json.dumps(result,indent=2,sort_keys=True)+'\n')
+          print(json.dumps({'scientific_outcome':result['scientific_outcome'],'corollary_positive_count':cor['positive_count']}))
+          PY
+
+      - name: Upload immutable theorem receipts
+        uses: actions/upload-artifact@v4
+        with:
+          name: trump-wl-direct-exact-e3-scope-bound-theorem-${{ github.run_id }}
+          path: |
+            /tmp/theorem_candidate.json
+            /tmp/theorem_independent.json
+            /tmp/theorem_result.json
+
+      - name: Freeze theorem result with safe fast-forward push
+        shell: bash
+        env:
+          BRANCH: research/trump-wl-direct-exact-e3-scope-bound-theorem-2026-09-18
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git fetch origin "$BRANCH"
+          git rebase "origin/$BRANCH"
+          cp /tmp/theorem_result.json research/TRUMP_WL_DIRECT_EXACT_E3_SCOPE_BOUND_THEOREM_RESULT_2026-09-18_v1.0.json
+          git add research/TRUMP_WL_DIRECT_EXACT_E3_SCOPE_BOUND_THEOREM_RESULT_2026-09-18_v1.0.json
+          git commit -m 'TRUMP freeze WL direct-exact E3 scope-bound theorem result'
+          git push origin HEAD:"$BRANCH"
