@@ -23,7 +23,7 @@ PROJECTION = ROOT / "research/tools/apma_satlib_uf20_r000_r111_projected_core_re
 WL = ROOT / "research/tools/apma_uf20_wl_historical_closed_control_falsifier/candidate.py"
 ORBIT = ROOT / "research/tools/apma_unseen_local_invariant_orbit_count/candidate.py"
 EXPECTED = {
-    CANDIDATE: "6fa9a5ccc97dfea2594550afd52dd0a4cb047864",
+    CANDIDATE: "bc44d5bd0838469036ac41b4820b995636340c84",
     PREREG: "84787b2f4fce9a3b79dfc9ba92c7fd0b61f412c9",
     REVIEW: "884c5ae73cd31b9161165be155fce4640390f7ab",
     SOURCE_FREEZE: "102dedd7602f7f7f3044f0904591da282dc25eb2",
