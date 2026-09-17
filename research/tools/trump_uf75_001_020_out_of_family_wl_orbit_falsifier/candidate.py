@@ -193,6 +193,15 @@ def main() -> dict[str, Any]:
                 "verdict": "HALT_AUTHORITY_SOURCE_OR_TRAINING_REGRESSION_FAILURE",
                 "reason": f"SOURCE_BINDING:{source}",
                 "training_regression": training,
+                "source_binding_diagnostic": {
+                    "source": source,
+                    "observed_source_git_blob": source_blob,
+                    "expected_source_git_blob": meta["committed_git_blob"],
+                    "source_blob_match": source_blob == meta["committed_git_blob"],
+                    "observed_canonical_formula_sha256": formula_hash,
+                    "expected_canonical_formula_sha256": meta["canonical_formula_sha256"],
+                    "formula_hash_match": formula_hash == meta["canonical_formula_sha256"],
+                },
                 "new_panel_structural_reads": len(prediction_rows),
             }
         projected = frozen.projection_identity.normalize_projection(source, clauses)[0]
