@@ -1,0 +1,84 @@
+name: TRUMP SATLIB UF20 Raw Bound D2 D3 Witness Reconstruction
+
+on:
+  push:
+    branches:
+      - research/trump-external-satlib-uf20-01-source-acquisition-2026-09-16
+    paths:
+      - 'research/TRUMP_SATLIB_UF20_R000_R111_RAW_BOUND_D2_D3_WITNESS_RECONSTRUCTION_PREREGISTRATION_2026-09-17.json'
+      - 'research/TRUMP_SATLIB_UF20_R000_R111_RAW_BOUND_D2_D3_WITNESS_RECONSTRUCTION_PREREGISTRATION_REVIEW_2026-09-17.json'
+      - 'research/tools/apma_satlib_uf20_r000_r111_raw_bound_d2_d3_witness_reconstruction/**'
+      - '.github/workflows/trump-satlib-uf20-r000-r111-raw-bound-d2-d3-witness-reconstruction.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  reconstruction:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Assert frozen raw-bound reconstruction bindings
+        run: |
+          set -euo pipefail
+          test "$(git hash-object research/TRUMP_SATLIB_UF20_R000_R111_RAW_BOUND_D2_D3_WITNESS_RECONSTRUCTION_PREREGISTRATION_2026-09-17.json)" = "dff3dfe077e74a8635912dfd57fdb9ba0d8b0a5e"
+          test "$(git hash-object research/TRUMP_SATLIB_UF20_R000_R111_RAW_BOUND_D2_D3_WITNESS_RECONSTRUCTION_PREREGISTRATION_REVIEW_2026-09-17.json)" = "e2cc765d7ab45862bb3d5a62d278eaf2772b6c2f"
+          test "$(git hash-object research/TRUMP_SATLIB_UF20_R000_R111_PENDANT_ALIGNMENT_RAW_BINDING_FORENSIC_RESULT_2026-09-17.json)" = "20d9fff8406bb3104563803831137812fbd89a1f"
+          test "$(git hash-object research/TRUMP_SATLIB_UF20_R000_R111_NONREFINEMENT_STRUCTURAL_DECOMPOSITION_MENU_RESULT_2026-09-17.json)" = "0ec3e3aec564bb08e247ec9ef1ac75d22d97e915"
+          test "$(git hash-object research/tools/apma_satlib_uf20_r000_r111_raw_bound_d2_d3_witness_reconstruction/candidate.py)" = "b8e859f519cc12409c9065f3f6ca6901467f9f89"
+          test "$(git hash-object research/tools/apma_satlib_uf20_r000_r111_raw_bound_d2_d3_witness_reconstruction/independent_checker.py)" = "d75217aeadf75c90b8ec5e079576405bd38cb3bc"
+          test "$(git hash-object research/source_data/SATLIB_UF20_02_2026-09-16.cnf)" = "f924caaef0d868bf62b1658e83e030ad8daee865"
+          test "$(git hash-object research/source_data/SATLIB_UF20_03_2026-09-16.cnf)" = "8f3d15154515457281f49201b843f2a7134dfa9f"
+          test "$(git hash-object research/source_data/SATLIB_UF20_04_2026-09-16.cnf)" = "34ced5c169f967b2dc44ef5e42f2ee2c924813e1"
+          test "$(git hash-object research/source_data/SATLIB_UF20_05_2026-09-16.cnf)" = "3b04eff26ee37bdd0bc21b1066486974f92a2c9b"
+      - name: Execute frozen raw-bound reconstruction once
+        run: |
+          set -euo pipefail
+          python -m research.tools.apma_satlib_uf20_r000_r111_raw_bound_d2_d3_witness_reconstruction.candidate > /tmp/raw-bound-reconstruction.json
+      - name: Independently rebuild and verify raw-bound witnesses
+        run: |
+          set -euo pipefail
+          python -m research.tools.apma_satlib_uf20_r000_r111_raw_bound_d2_d3_witness_reconstruction.independent_checker --candidate-json /tmp/raw-bound-reconstruction.json > /tmp/raw-bound-reconstruction-independent.json
+      - name: Assert outcome space and scientific firewall
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          c=json.loads(Path('/tmp/raw-bound-reconstruction.json').read_text().strip().splitlines()[-1])
+          i=json.loads(Path('/tmp/raw-bound-reconstruction-independent.json').read_text().strip().splitlines()[-1])
+          assert c['verdict'] in {'COMMON_FOUR_EXACT_RAW_BOUND_ALIGNMENT','MIXED_RAW_BOUND_ALIGNMENT','NO_RAW_BOUND_ALIGNMENT'},c
+          assert i['verified'] is True and i['candidate_imported'] is False and i['verdict']==c['verdict'],i
+          assert len(c['rows'])==4
+          allowed={'EXACT_RAW_BOUND_D2_D3_SINGLETON_ATTACHMENT_BIJECTION','PARTIAL_RAW_BOUND_D2_D3_SINGLETON_ATTACHMENT_ALIGNMENT','NO_RAW_BOUND_D2_D3_SINGLETON_ATTACHMENT_ALIGNMENT'}
+          assert all(r['alignment']['per_source_alignment'] in allowed for r in c['rows'])
+          rr=c['resource_receipt']
+          assert rr['old_alignment_mappings_read']==0 and rr['allowed_table_value_reads']==0
+          assert rr['boundary_relation_enumerations']==0 and rr['boundary_assignment_enumerations']==0
+          assert rr['solver_invocations']==0 and rr['portfolio_replays']==0 and rr['fresh_holdout_values_read']==0
+          sf=c['scientific_firewall']
+          assert sf['P_VS_NP']=='OPEN' and sf['GENERAL_SAT_IN_P']=='NOT_PROVED' and sf['CONNECTED_MIXED_CORE_SOLVED']=='NO'
+          summary=[{'source':r['source'],'D2':r['D2_articulation_count'],'D3':r['D3_separator_count'],'alignment':r['alignment']['per_source_alignment'],'mappings':r['alignment']['D2_to_D3']} for r in c['rows']]
+          print(json.dumps({'verdict':c['verdict'],'summary':summary,'independent_verified':True},sort_keys=True))
+          PY
+      - name: Upload raw-bound reconstruction receipt
+        uses: actions/upload-artifact@v4
+        with:
+          name: satlib-uf20-r000-r111-raw-bound-d2-d3-witness-reconstruction-receipt
+          path: |
+            /tmp/raw-bound-reconstruction.json
+            /tmp/raw-bound-reconstruction-independent.json
+          if-no-files-found: error
+      - name: Authority notice
+        run: |
+          echo 'AUTHORITY=DIAGNOSTIC_STRUCTURAL_RAW_BINDING_CORRECTION_ONLY'
+          echo 'OLD_ALIGNMENT_MAPPINGS_READ=0'
+          echo 'ALLOWED_TABLE_VALUE_READS=0'
+          echo 'BOUNDARY_RELATION_ENUMERATIONS=0'
+          echo 'SOLVER_INVOCATIONS=0'
+          echo 'FRESH_HOLDOUT_VALUES_READ=0'
+          echo 'P_VS_NP=OPEN'
