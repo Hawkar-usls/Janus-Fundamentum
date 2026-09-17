@@ -1,0 +1,117 @@
+name: TRUMP WL to E3 automorphism necessity bridge
+
+on:
+  push:
+    branches:
+      - research/trump-wl-e3-automorphism-necessity-bridge-2026-09-17
+    paths:
+      - .github/workflows/trump-wl-e3-automorphism-necessity-bridge.yml
+
+permissions:
+  contents: write
+
+concurrency:
+  group: trump-wl-e3-automorphism-necessity-bridge-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  bridge-audit:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout exact workflow head
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Execute frozen bridge candidate
+        run: |
+          python -m research.tools.apma_wl_e3_automorphism_necessity_bridge.candidate > /tmp/bridge_candidate.json
+          python -m json.tool /tmp/bridge_candidate.json >/dev/null
+          python - <<'PY'
+          import json
+          c=json.load(open('/tmp/bridge_candidate.json'))
+          assert c['verdict']=='PASS_WL_E3_AUTOMORPHISM_NECESSITY_BRIDGE', c
+          PY
+
+      - name: Independent reconstruction and theorem sanity verification
+        run: |
+          python -m research.tools.apma_wl_e3_automorphism_necessity_bridge.independent_check --candidate /tmp/bridge_candidate.json > /tmp/bridge_check.json
+          python -m json.tool /tmp/bridge_check.json >/dev/null
+          python - <<'PY'
+          import json
+          k=json.load(open('/tmp/bridge_check.json'))
+          assert k['verdict']=='PASS_INDEPENDENT_WL_E3_AUTOMORPHISM_NECESSITY_BRIDGE_VERIFICATION', k
+          PY
+
+      - name: Build frozen result
+        env:
+          WORKFLOW_HEAD: ${{ github.sha }}
+          RUN_ID: ${{ github.run_id }}
+          RUN_NUMBER: ${{ github.run_number }}
+        run: |
+          python - <<'PY'
+          import hashlib,json,os
+          from pathlib import Path
+          def blob(path):
+              data=Path(path).read_bytes()
+              return hashlib.sha1(f'blob {len(data)}\0'.encode()+data).hexdigest()
+          c=json.load(open('/tmp/bridge_candidate.json'))
+          k=json.load(open('/tmp/bridge_check.json'))
+          assert c['verdict']=='PASS_WL_E3_AUTOMORPHISM_NECESSITY_BRIDGE'
+          assert k['verdict']=='PASS_INDEPENDENT_WL_E3_AUTOMORPHISM_NECESSITY_BRIDGE_VERIFICATION'
+          result={
+            'artifact_id':'JANUS-TRUMP-WL-E3-AUTOMORPHISM-NECESSITY-BRIDGE-RESULT-2026-09-17-v1.0',
+            'date':'2026-09-17',
+            'status':'FROZEN_INDEPENDENTLY_VERIFIED_STRUCTURAL_BRIDGE_RESULT',
+            'gate':'TRUMP_WL_E3_AUTOMORPHISM_NECESSITY_BRIDGE_GATE',
+            'verdict':'PASS_WL_E3_AUTOMORPHISM_NECESSITY_BRIDGE',
+            'implementation':{
+              'preregistration_commit':'b5858b1743a012275d5c1c21365927ad2e9b6206',
+              'review_commit':'62323d52624e7c2baef92b331cd1df942383f158',
+              'candidate_commit':'f2f96162f1c15ad92227287f628b3751296235bf',
+              'candidate_blob':blob('research/tools/apma_wl_e3_automorphism_necessity_bridge/candidate.py'),
+              'independent_checker_commit':'d7438c5b1d27fe0ec98882a62a1f4a5c92aba7d8',
+              'independent_checker_blob':blob('research/tools/apma_wl_e3_automorphism_necessity_bridge/independent_check.py'),
+              'workflow_head':os.environ['WORKFLOW_HEAD'],
+            },
+            'execution':{
+              'run_id':int(os.environ['RUN_ID']),
+              'run_number':int(os.environ['RUN_NUMBER']),
+              'candidate_imported_by_independent_checker':False,
+              'independent_verdict':k['verdict'],
+            },
+            'structural_certificate':c['structural_certificate'],
+            'licensed_fact':c['licensed_fact'],
+            'sanity_panel':c['sanity_rows'],
+            'historical_e3_control_count':c['historical_e3_control_count'],
+            'fresh_e3_control_count':c['fresh_e3_control_count'],
+            'fresh_parent_replay_exact':c['fresh_parent_replay_exact'],
+            'independent_small_graph_equivariance':k['small_graph_equivariance'],
+            'independent_empirical_ok':k['empirical_ok'],
+            'not_licensed':c['not_licensed'],
+            'resource_receipt':c['resource_receipt'],
+            'claim_ceiling':'SOUND_NEGATIVE_CERTIFICATE_FOR_FROZEN_E3_EXACT_TRANSPOSITION_EXISTENCE_ONLY',
+            'scientific_firewall':c['scientific_firewall'],
+            'captain_obvious_readout':{
+              'current_status':'WL_DISCRETE_IS_A_SOUND_NEGATIVE_CERTIFICATE_FOR_THE_FROZEN_E3_EXACT_TRANSPOSITION_GENERATOR_SET__CONVERSE_NOT_PROVED',
+              'licensed_use':'A_DISCRETE_WL1_VARIABLE_PARTITION_OR_DISCRETE_WL2_DIAGONAL_PARTITION_MAY_SOUNDLY_SHORT_CIRCUIT_E3_GENERATOR_DISCOVERY_TO_THE_EMPTY_SET;NONDISCRETE_CASES_STILL_REQUIRE_THE_FROZEN_EXACT_E3_VERIFIER',
+              'nearest_missing_obligation':'PREREGISTER_AN_EQUIVALENCE_AND_RESOURCE_AUDIT_OF_THIS_NEGATIVE_SHORT_CIRCUIT_AGAINST_THE_UNMODIFIED_FROZEN_E3_ON_SOURCE_BOUND_PANELS_WITHOUT_CHANGING_SOLVER_AUTHORITY_OR_NONDISCRETE_EXECUTION',
+              'directive':'DO_NOT_TREAT_WL_NONDISCRETE_AS_AN_AUTOMORPHISM_CERTIFICATE;DO_NOT_SKIP_E3_ON_NONDISCRETE_CASES;DO_NOT_PROMOTE_THIS_ROUTE_PRUNING_FACT_TO_GENERAL_TRACTABILITY'
+            }
+          }
+          Path('research/TRUMP_WL_E3_AUTOMORPHISM_NECESSITY_BRIDGE_RESULT_2026-09-17_v1.0.json').write_text(json.dumps(result,indent=2,sort_keys=True)+'\n')
+          PY
+
+      - name: Freeze verified bridge result
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add research/TRUMP_WL_E3_AUTOMORPHISM_NECESSITY_BRIDGE_RESULT_2026-09-17_v1.0.json
+          git diff --cached --quiet && exit 0
+          git commit -m "TRUMP freeze WL to E3 automorphism necessity bridge result"
+          git push origin HEAD:research/trump-wl-e3-automorphism-necessity-bridge-2026-09-17
