@@ -1,0 +1,87 @@
+name: TRUMP UF20 076-175 second prospective blind source acquisition
+
+on:
+  push:
+    branches:
+      - research/trump-uf20-076-175-prospective-wl-orbit-bridge-2026-09-17
+    paths:
+      - .github/workflows/trump-uf20-076-175-second-prospective-source-acquisition.yml
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  acquire:
+    runs-on: ubuntu-latest
+    env:
+      PYTHONPATH: ${{ github.workspace }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Verify frozen acquisition blobs
+        run: |
+          set -euo pipefail
+          test "$(git hash-object research/TRUMP_UF20_076_175_SECOND_PROSPECTIVE_WL_ORBIT_BRIDGE_PANEL_RESERVATION_PREREGISTRATION_2026-09-17_v1.0.json)" = "a242cb6b60b0f9531a0b942706145417f349aca8"
+          test "$(git hash-object research/TRUMP_UF20_076_175_SECOND_PROSPECTIVE_WL_ORBIT_BRIDGE_SOURCE_ACQUISITION_PREREGISTRATION_2026-09-17_v1.0.json)" = "67f4ddc9704d38816ab126000b503f3302fafa10"
+          test "$(git hash-object research/TRUMP_UF20_076_175_SECOND_PROSPECTIVE_WL_ORBIT_BRIDGE_SOURCE_ACQUISITION_REVIEW_2026-09-17_v1.0.json)" = "e94025710ccd23691ecddbfe03ef70ccf4a0fbf6"
+          test "$(git hash-object research/tools/apma_uf20_076_175_second_prospective_source_acquisition/candidate.py)" = "927b902715302a89eb09b895665846447f0872c4"
+          test "$(git hash-object research/tools/apma_uf20_076_175_second_prospective_source_acquisition/independent_check.py)" = "152ebc435bbc086ff9b1a564482b98258bb8d2c5"
+      - name: Acquire and stage all one hundred sources
+        run: |
+          set -euo pipefail
+          python research/tools/apma_uf20_076_175_second_prospective_source_acquisition/candidate.py > /tmp/acquire.json
+          python - <<'PY'
+          import json
+          x=json.load(open('/tmp/acquire.json'))
+          print('acquisition verdict:',x['verdict'],'rows:',len(x.get('source_receipts',[])))
+          assert x['verdict']=='PASS_UF20_076_175_DUAL_MIRROR_SOURCE_ACQUISITION_AND_FORMULA_FREEZE',x
+          assert len(x['source_receipts'])==100
+          r=x['resource_receipt'];assert r['projected_raw_computations']==r['wl_computations']==r['portfolio_replays']==r['e3_witness_computations']==0
+          PY
+      - name: Independent dual-mirror verification
+        run: |
+          set -euo pipefail
+          python research/tools/apma_uf20_076_175_second_prospective_source_acquisition/independent_check.py --candidate /tmp/acquire.json > /tmp/independent.json
+          python - <<'PY'
+          import json
+          x=json.load(open('/tmp/independent.json'))
+          print('independent verdict:',x['verdict'],'verified:',x.get('sources_verified'))
+          assert x['verdict']=='PASS_INDEPENDENT_UF20_076_175_SOURCE_FREEZE_VERIFICATION',x
+          assert x['sources_verified']==100 and x['candidate_imported'] is False
+          PY
+      - name: Build frozen acquisition result
+        env:
+          RUN_ID: ${{ github.run_id }}
+          WORKFLOW_HEAD: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json,os,subprocess
+          from pathlib import Path
+          c=json.load(open('/tmp/acquire.json'));k=json.load(open('/tmp/independent.json'));verified={r['source']:r for r in k['verified_rows']};rows=[]
+          for row in c['source_receipts']:
+              v=verified[row['source']];assert v['independent_verified'];row=dict(row);row['independent_verified']=True;row['status']='SOURCE_FROZEN';row['committed_git_blob']=v['committed_git_blob'];rows.append(row)
+          def tree_blob(path):return subprocess.check_output(['git','hash-object',path],text=True).strip()
+          result={'artifact_id':'JANUS-TRUMP-UF20-076-175-SECOND-PROSPECTIVE-WL-ORBIT-BRIDGE-SOURCE-ACQUISITION-RESULT-2026-09-17-v1.0','date':'2026-09-17','status':'FROZEN_SECOND_PROSPECTIVE_BLIND_SOURCE_ACQUISITION_RESULT','verdict':'PASS_UF20_076_175_DUAL_MIRROR_SOURCE_ACQUISITION_AND_FORMULA_FREEZE','source_receipts':rows,'execution':{'run_id':int(os.environ['RUN_ID']),'independent_verdict':k['verdict'],'sources_verified':100,'candidate_imported_by_independent_checker':False},'authorities':{'reservation_commit':'844a4907874b6630ca4a43a728e8c3ef12b378e0','acquisition_prereg_commit':'98c3a18844e4e8cafd5d2738b0430ed44166c8a9','acquisition_review_commit':'caeab8a42838cff16e5d0518e1e6b4149f3e1bea','candidate_commit':'502ac57532647a386a7ea6d37b6302da132ad09f','candidate_blob':'927b902715302a89eb09b895665846447f0872c4','independent_checker_commit':'bc6903c7d435f337fac3ae6c75e625cef5945ce9','independent_checker_blob':'152ebc435bbc086ff9b1a564482b98258bb8d2c5','workflow_head':os.environ['WORKFLOW_HEAD'],'workflow_blob':tree_blob('.github/workflows/trump-uf20-076-175-second-prospective-source-acquisition.yml')},'blind_barrier_receipt':{'projected_raw_computations':0,'pendant_target_computations':0,'wl_computations':0,'direct_transposition_checks':0,'portfolio_replays':0,'e3_witness_computations':0,'solver_invocations':0},'claim_ceiling':'SOURCE_PROVENANCE_AND_DUAL_MIRROR_FORMULA_FREEZE_ONLY','next_step':'PREREGISTER_SECOND_PROSPECTIVE_WL_FIRST_THEN_EXISTING_PORTFOLIO_GROUND_TRUTH_EVALUATION_ON_THE_ENTIRE_ONE_HUNDRED_SOURCE_PANEL','scientific_firewall':{'P_VS_NP':'OPEN','GENERAL_SAT_IN_P':'NOT_PROVED','GENERAL_RESIDUAL_SEPARATOR_TRACTABILITY':'NOT_PROVED'}}
+          Path('research/TRUMP_UF20_076_175_SECOND_PROSPECTIVE_WL_ORBIT_BRIDGE_SOURCE_ACQUISITION_RESULT_2026-09-17_v1.0.json').write_text(json.dumps(result,indent=2,sort_keys=True)+'\n')
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: uf20-076-175-second-prospective-source-acquisition-receipt
+          path: |
+            /tmp/acquire.json
+            /tmp/independent.json
+            research/TRUMP_UF20_076_175_SECOND_PROSPECTIVE_WL_ORBIT_BRIDGE_SOURCE_ACQUISITION_RESULT_2026-09-17_v1.0.json
+      - name: Commit frozen sources and acquisition result
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add research/source_data/SATLIB_UF20_*_2026-09-17.cnf
+          git add research/TRUMP_UF20_076_175_SECOND_PROSPECTIVE_WL_ORBIT_BRIDGE_SOURCE_ACQUISITION_RESULT_2026-09-17_v1.0.json
+          git diff --cached --check
+          count=$(git diff --cached --name-only | wc -l)
+          echo "staged file count: $count"
+          test "$count" -eq 101
+          git commit -m 'TRUMP freeze second prospective UF20 076-175 dual-mirror source panel'
+          git push origin HEAD:${GITHUB_REF_NAME}
