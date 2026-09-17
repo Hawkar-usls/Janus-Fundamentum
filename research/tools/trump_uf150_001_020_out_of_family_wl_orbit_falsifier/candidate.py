@@ -13,7 +13,8 @@ from research.tools.apma_unseen_local_invariant_orbit_count import candidate as 
 ROOT = Path(__file__).resolve().parents[3]
 PREREG = ROOT / "research/TRUMP_UF150_001_020_OUT_OF_FAMILY_WL_ORBIT_FALSIFIER_EVALUATION_PREREGISTRATION_2026-09-18_v1.0.json"
 REVIEW = ROOT / "research/TRUMP_UF150_001_020_OUT_OF_FAMILY_WL_ORBIT_FALSIFIER_EVALUATION_REVIEW_2026-09-18_v1.0.json"
-SOURCE_FREEZE = ROOT / "research/TRUMP_UF150_001_020_OUT_OF_FAMILY_SOURCE_FREEZE_AUTHORITY_2026-09-18_v1.0.json"\nRECONCILIATION = ROOT / "research/TRUMP_UF150_001_020_SOURCE_FREEZE_REENTRY_RECONCILIATION_2026-09-18_v1.0.json"
+SOURCE_FREEZE = ROOT / "research/TRUMP_UF150_001_020_OUT_OF_FAMILY_SOURCE_FREEZE_AUTHORITY_2026-09-18_v1.0.json"
+RECONCILIATION = ROOT / "research/TRUMP_UF150_001_020_SOURCE_FREEZE_REENTRY_RECONCILIATION_2026-09-18_v1.0.json"
 SCOPE_THEOREM = ROOT / "research/TRUMP_WL_DIRECT_EXACT_E3_SCOPE_BOUND_THEOREM_RESULT_2026-09-18_v1.0.json"
 FRESH = ROOT / "research/tools/apma_uf20_011_015_fresh_generic_pendant_wl_replication/candidate.py"
 PROJECTION = ROOT / "research/tools/apma_satlib_uf20_r000_r111_projected_core_replay/projection_identity.py"
@@ -22,7 +23,8 @@ ORBIT = ROOT / "research/tools/apma_unseen_local_invariant_orbit_count/candidate
 EXPECTED = {
     PREREG: "6d0a05eaeaf443f17450068cefe68bef99b93433",
     REVIEW: "0e0a17d60a2b0f6b5d880d682d741308a56b3dc9",
-    SOURCE_FREEZE: "b9084a54414a930945e67d81e83698100d4ac417",\n    RECONCILIATION: "b01f9d9c2a5e78201b5d5d046837411f8d753610",
+    SOURCE_FREEZE: "b9084a54414a930945e67d81e83698100d4ac417",
+    RECONCILIATION: "b01f9d9c2a5e78201b5d5d046837411f8d753610",
     SCOPE_THEOREM: "3cbf05cb0b0249ddf365bc43d176a06ddb7f72af",
     FRESH: "9ec365ae27a6caa7b936cd33040e542f183ded99",
     PROJECTION: "2ef48e73974a5f43d3f4fb4809ebd0c09c0f5be4",
@@ -123,7 +125,8 @@ def guard() -> dict[str, Any]:
     prereg = json.loads(PREREG.read_text())
     review = json.loads(REVIEW.read_text())
     source_freeze = json.loads(SOURCE_FREEZE.read_text())
-    theorem = json.loads(SCOPE_THEOREM.read_text())\n    reconciliation = json.loads(RECONCILIATION.read_text())
+    theorem = json.loads(SCOPE_THEOREM.read_text())
+    reconciliation = json.loads(RECONCILIATION.read_text())
     receipts = source_freeze.get("source_receipts", [])
     blind = source_freeze.get("blind_barrier_receipt", {})
     checks = {
@@ -136,7 +139,8 @@ def guard() -> dict[str, Any]:
         "source_order": tuple(row.get("source") for row in receipts) == ORDER,
         "sources_frozen": all(row.get("independent_verified") is True and row.get("status") == "SOURCE_FROZEN" for row in receipts),
         "source_blindness_zero": all(int(value) == 0 for value in blind.values()),
-        "source_freeze_reconciled": reconciliation.get("authority_rule") == "FIRST_SUCCESSFUL_IMMUTABLE_FREEZE_dc503550_IS_THE_ONLY_UF150_SOURCE_FREEZE_AUTHORITY_FOR_SCIENTIFIC_EVALUATION;LATER_REENTRY_HALTS_ARE_DIAGNOSTIC_ONLY",\n        "scope_theorem_pass": theorem.get("scientific_outcome") == "PASS_SCOPE_BOUND_DIRECT_EXACT_TRANSPOSITION_WITNESS_SUFFICIENCY_FOR_FROZEN_E3",
+        "source_freeze_reconciled": reconciliation.get("authority_rule") == "FIRST_SUCCESSFUL_IMMUTABLE_FREEZE_dc503550_IS_THE_ONLY_UF150_SOURCE_FREEZE_AUTHORITY_FOR_SCIENTIFIC_EVALUATION;LATER_REENTRY_HALTS_ARE_DIAGNOSTIC_ONLY",
+        "scope_theorem_pass": theorem.get("scientific_outcome") == "PASS_SCOPE_BOUND_DIRECT_EXACT_TRANSPOSITION_WITNESS_SUFFICIENCY_FOR_FROZEN_E3",
         "scope_theorem_firewall": theorem.get("scientific_firewall", {}).get("P_VS_NP") == "OPEN",
     }
     return {"ok": all(checks.values()), "checks": checks, "bindings": bindings}
