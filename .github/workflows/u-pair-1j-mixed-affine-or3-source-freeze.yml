@@ -1,0 +1,85 @@
+name: U-PAIR-1J mixed affine OR3 source freeze
+
+on:
+  push:
+    branches:
+      - research/U-PAIR-1J-connected-mixed-affine-or3-expander-interleave-2026-09-18
+    paths:
+      - '.github/workflows/u-pair-1j-mixed-affine-or3-source-freeze.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  source-freeze:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: research/U-PAIR-1J-connected-mixed-affine-or3-expander-interleave-2026-09-18
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install frozen source-check dependency
+        run: python -m pip install 'numpy==2.1.1'
+
+      - name: Create hidden one-shot source seed
+        shell: bash
+        run: |
+          set -euo pipefail
+          SEED="$(openssl rand -hex 32)"
+          echo "::add-mask::$SEED"
+          echo "SOURCE_SEED_HEX=$SEED" >> "$GITHUB_ENV"
+          echo "PLANT_DIR=$RUNNER_TEMP/u_pair_1j_mixed_affine_or3_plants" >> "$GITHUB_ENV"
+
+      - name: Generate source family before constructor exists
+        shell: bash
+        run: |
+          set -euo pipefail
+          SRC="research/generated/u_pair_1j_mixed_affine_or3_source"
+          rm -rf "$SRC" "$PLANT_DIR"
+          mkdir -p "$PLANT_DIR"
+          python research/tools/u_pair_1j_mixed_affine_or3/source_generator.py "$SRC" "$PLANT_DIR"
+          test -f "$SRC/source_manifest.json"
+          test -f "$PLANT_DIR/plant_n16.json"
+          if find "$SRC" -type f -iname '*plant*' | grep -q .; then
+            echo "ephemeral plant leaked into source directory" >&2
+            exit 1
+          fi
+
+      - name: Commit exact source freeze
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add research/generated/u_pair_1j_mixed_affine_or3_source
+          git commit -m "U-PAIR-1J freeze connected mixed affine-OR3 expander source inputs"
+          git push origin HEAD:research/U-PAIR-1J-connected-mixed-affine-or3-expander-interleave-2026-09-18
+          echo "SOURCE_FREEZE_SHA=$(git rev-parse HEAD)" >> "$GITHUB_ENV"
+
+      - name: Independent source check after freeze
+        shell: bash
+        run: |
+          set -euo pipefail
+          python research/tools/u_pair_1j_mixed_affine_or3/independent_source_check.py \
+            research/generated/u_pair_1j_mixed_affine_or3_source \
+            "$PLANT_DIR" \
+            research/U_PAIR_1J_CONNECTED_MIXED_AFFINE_OR3_EXPANDER_INTERLEAVE_INDEPENDENT_SOURCE_CHECK_2026-09-18_v1.0.json \
+            "$SOURCE_FREEZE_SHA"
+          if git ls-files | grep -Ei 'u_pair_1j_mixed_affine_or3.*plant|plant.*u_pair_1j_mixed_affine_or3'; then
+            echo "plant certificate unexpectedly tracked" >&2
+            exit 1
+          fi
+
+      - name: Commit independent source-check result
+        shell: bash
+        run: |
+          set -euo pipefail
+          git add research/U_PAIR_1J_CONNECTED_MIXED_AFFINE_OR3_EXPANDER_INTERLEAVE_INDEPENDENT_SOURCE_CHECK_2026-09-18_v1.0.json
+          git commit -m "U-PAIR-1J verify frozen connected mixed affine-OR3 sources"
+          git push origin HEAD:research/U-PAIR-1J-connected-mixed-affine-or3-expander-interleave-2026-09-18
