@@ -1,0 +1,177 @@
+name: U-PAIR-1J implicit majority postfreeze reconciliation
+
+on:
+  push:
+    branches:
+      - research/U-PAIR-1J-majority-reconciliation-2026-09-18
+    paths:
+      - .github/workflows/u-pair-1j-majority-postfreeze-reconciliation.yml
+
+permissions:
+  contents: write
+
+concurrency:
+  group: u-pair-1j-majority-postfreeze-reconciliation
+  cancel-in-progress: false
+
+jobs:
+  reconcile:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      BRANCH: research/U-PAIR-1J-majority-reconciliation-2026-09-18
+      RESULT: research/U_PAIR_1J_IMPLICIT_MAJORITY_POSTFREEZE_RECONCILIATION_RESULT_2026-09-18_v1.0.json
+
+    steps:
+      - name: Checkout exact reconciliation head
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Verify reconciliation authority
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import hashlib,json
+          from pathlib import Path
+          p=Path("research/U_PAIR_1J_IMPLICIT_MAJORITY_POSTFREEZE_RECONCILIATION_AUTHORITY_2026-09-18_v1.0.json")
+          b=p.read_bytes()
+          blob=hashlib.sha1(f"blob {len(b)}\0".encode()+b).hexdigest()
+          assert blob=="947e81fe1af416719583461308b107ef9da72965",blob
+          a=json.loads(b)
+          assert a["blind_authority"]["result_blob"]=="7d43cc948847eeb5c8bcf0cc73c4ac6baf2894b2"
+          assert a["reference_authority"]["summary_blob"]=="4393ee89ff3c6a429235d575877f3af7a43470ef"
+          print("RECONCILIATION_AUTHORITY_OK")
+          PY
+
+      - name: Fetch reference summary authority only
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch --no-tags origin d016bcf33b023f80eb32fca8f74ee96fe69d8416
+          git show d016bcf33b023f80eb32fca8f74ee96fe69d8416:research/U_PAIR_1J_IMPLICIT_MAJORITY_REFERENCE_DAG_RESULT_2026-09-18_v1.0.json > /tmp/reference_summary.json
+          git show d016bcf33b023f80eb32fca8f74ee96fe69d8416:research/U_PAIR_1J_IMPLICIT_MAJORITY_REFERENCE_DAG_INDEPENDENT_CHECK_2026-09-18_v1.0.json > /tmp/reference_check.json
+          python - <<'PY'
+          import hashlib
+          for p,e in [
+            ("/tmp/reference_summary.json","4393ee89ff3c6a429235d575877f3af7a43470ef"),
+            ("/tmp/reference_check.json","9e30506de6e25d8e699be332fd7beb20222be76c")
+          ]:
+              b=open(p,"rb").read()
+              g=hashlib.sha1(f"blob {len(b)}\0".encode()+b).hexdigest()
+              assert g==e,(p,g,e)
+          print("REFERENCE_SUMMARY_ONLY_BIND_PASS")
+          PY
+
+      - name: Reconcile frozen blind synthesis with hidden size baseline
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json,os
+          from pathlib import Path
+          blind=json.load(open("research/U_PAIR_1J_IMPLICIT_MAJORITY_BLIND_SYNTHESIS_RESULT_2026-09-18_v1.0.json"))
+          ref=json.load(open("/tmp/reference_summary.json"))
+          chk=json.load(open("/tmp/reference_check.json"))
+          assert blind["execution_status"]=="PASS_BLIND_SERIES"
+          assert blind["reference_visibility"]=={
+            "reference_branch_read":False,
+            "reference_DAG_read":False,
+            "reference_size_metrics_read":False
+          }
+          assert chk["verdict"]=="PASS_INDEPENDENT_MAJORITY_REFERENCE_DAG"
+          br={r["n"]:r for r in blind["series"]}
+          rr={r["n"]:r for r in ref["series"]}
+          rows=[]
+          for n in (5,9,17,33,65):
+              b=br[n]; r=rr[n]
+              assert b["constructor_status"]=="PASS" and b["verifier_status"]=="PASS"
+              s=b["candidate_metrics"]["S_synth_DAG_nodes"]
+              sr=r["total_DAG_nodes"]
+              rows.append({
+                "n":n,
+                "S_ref_nodes":sr,
+                "S_synth_nodes":s,
+                "rho_nodes":s/sr,
+                "S_synth_bytes":b["candidate_metrics"]["S_synth_DAG_bytes"],
+                "T_synth_ns":b["candidate_metrics"]["T_synth_ns"],
+                "T_verify_ns":b["verifier_metrics"]["T_verify_ns"],
+                "constructor_state_visits":b["candidate_metrics"]["constructor_state_visits"],
+                "verifier_node_visits":b["verifier_metrics"]["verifier_node_visits"]
+              })
+          result={
+            "artifact_id":"JANUS-U-PAIR-1J-IMPLICIT-MAJORITY-POSTFREEZE-RECONCILIATION-RESULT-2026-09-18-v1.0",
+            "date":"2026-09-18",
+            "verdict":"PASS_SCOPED_HOSTILE_SYNTHESIS",
+            "input_representation":"LAYERED_BINARY_RELATION_V1",
+            "finite_series":[5,9,17,33,65],
+            "rows":rows,
+            "observations":{
+              "all_rho_nodes_equal_1":all(abs(x["rho_nodes"]-1.0)<1e-12 for x in rows),
+              "candidate_node_counts_match_reference_counts":all(x["S_synth_nodes"]==x["S_ref_nodes"] for x in rows),
+              "reference_DAG_structure_was_hidden_from_constructor":True,
+              "candidate_was_verified_without_reference_semantic_comparison":True,
+              "constructor_special_function_recognizer_used":False
+            },
+            "interpretation":{
+              "expressibility":"PASS on prior tiny distributed control",
+              "synthesis_access":"PASS on this structured opaque layered majority family",
+              "representation_baseline":"Independent O(n^2) shared reference exists",
+              "stronger_generic_extraction_question":"OPEN for compiled/Tseitin/PAIR+OR3 or otherwise de-structured representations"
+            },
+            "claim_ceiling":{
+              "EMPIRICAL_SCALING_PASS":True,
+              "POLYNOMIAL_SYNTHESIS_PROVED":False,
+              "GENERIC_CNF_EXTRACTION_TESTED":False,
+              "PAIR_OR3_COMPILED_HOSTILE_TESTED":False,
+              "GENERAL_SAT_IN_P":"NOT_PROVED",
+              "P_EQ_NP":"NOT_PROVED",
+              "P_VS_NP":"OPEN"
+            },
+            "next_preregistered_direction":"TSEITIN_OR_PAIR_OR3_COMPILED_MAJORITY_ACCESS_OR_NEXT_HOSTILE_TSEITIN_EXPANDER__SEPARATE_PREREG_REQUIRED"
+          }
+          Path(os.environ["RESULT"]).write_text(json.dumps(result,indent=2,sort_keys=True)+"\n")
+          print(json.dumps({"verdict":result["verdict"],"rows":rows},sort_keys=True))
+          PY
+
+      - name: Upload reconciliation receipt
+        uses: actions/upload-artifact@v4
+        with:
+          name: u-pair-1j-majority-reconciliation-${{ github.run_id }}
+          path: |
+            research/U_PAIR_1J_IMPLICIT_MAJORITY_POSTFREEZE_RECONCILIATION_AUTHORITY_2026-09-18_v1.0.json
+            research/U_PAIR_1J_IMPLICIT_MAJORITY_POSTFREEZE_RECONCILIATION_RESULT_2026-09-18_v1.0.json
+          if-no-files-found: error
+          retention-days: 90
+
+      - name: Freeze reconciliation result
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add "$RESULT"
+          git commit -m "U-PAIR-1J freeze implicit majority postfreeze reconciliation"
+          git push origin "HEAD:$BRANCH"
+
+      - name: Enforce scoped verdict
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json,os
+          r=json.load(open(os.environ["RESULT"]))
+          assert r["verdict"]=="PASS_SCOPED_HOSTILE_SYNTHESIS"
+          assert r["observations"]["reference_DAG_structure_was_hidden_from_constructor"] is True
+          assert r["claim_ceiling"]["EMPIRICAL_SCALING_PASS"] is True
+          assert r["claim_ceiling"]["POLYNOMIAL_SYNTHESIS_PROVED"] is False
+          assert r["claim_ceiling"]["P_VS_NP"]=="OPEN"
+          print("SCOPED_HOSTILE_SYNTHESIS_PASS")
+          PY
