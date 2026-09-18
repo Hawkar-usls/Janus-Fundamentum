@@ -1,0 +1,260 @@
+name: TRUMP WALL Mantequilla UF250-018 nontrivial correlated boundary
+
+on:
+  push:
+    branches:
+      - research/TRUMP_WALL-MANTEQUILLA-nontrivial-correlated-boundary-UF250-018-2026-09-18
+    paths:
+      - .github/workflows/trump-wall-mantequilla-nontrivial-correlated-boundary-uf250-018.yml
+
+permissions:
+  contents: write
+
+concurrency:
+  group: trump-wall-mantequilla-nontrivial-correlated-boundary-uf250-018
+  cancel-in-progress: false
+
+jobs:
+  mantequilla:
+    runs-on: ubuntu-latest
+    env:
+      BRANCH: research/TRUMP_WALL-MANTEQUILLA-nontrivial-correlated-boundary-UF250-018-2026-09-18
+      TOOL_DIR: research/tools/trump_wall_mantequilla_nontrivial_correlated_boundary_uf250_018
+      SEALED_OUT: research/sealed/TRUMP_WALL_MANTEQUILLA_UF250_018_NONTRIVIAL_CORRELATED_BOUNDARY_SEALED_BUNDLE_2026-09-18_v1.0.json
+      RESULT_OUT: research/TRUMP_WALL_MANTEQUILLA_NONTRIVIAL_CORRELATED_BOUNDARY_UF250_018_RESULT_2026-09-18_v1.0.json
+
+    steps:
+      - name: Checkout exact experiment head
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Verify frozen preregistration and implementation authorities
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import hashlib
+          from pathlib import Path
+
+          expected = {
+            "research/TRUMP_WALL_MANTEQUILLA_NONTRIVIAL_CORRELATED_BOUNDARY_UF250_018_PREREGISTRATION_2026-09-18_v1.0.json": "e1f256fd5d557108db28798903562ce1236f70b6",
+            "research/TRUMP_WALL_MANTEQUILLA_NONTRIVIAL_CORRELATED_BOUNDARY_UF250_018_REVIEW_2026-09-18_v1.0.json": "e9c3665d15fa7dd329ab7023a0a787715f0eca27",
+            "research/TRUMP_WALL_MANTEQUILLA_UF250_018_SEALER_PARSER_REPAIR_2026-09-18_v1.0.json": "5bd6818e845ed601f30d23f686a0ca806a20a650",
+            "research/tools/trump_wall_mantequilla_nontrivial_correlated_boundary_uf250_018/seal_bundle.py": "6e469a2dcf23c53b8266a84aa1892e3ef95e82dc",
+            "research/tools/trump_wall_mantequilla_nontrivial_correlated_boundary_uf250_018/candidate.py": "bd6565621a06c7bf6cc04f5e807d6dd4206e5461",
+            "research/tools/trump_wall_mantequilla_nontrivial_correlated_boundary_uf250_018/independent_check.py": "4135a15adff523fd3f6af14940f6decb5f5321dd",
+            "research/tools/apma_uf20_011_015_fresh_generic_pendant_wl_replication/candidate.py": "9ec365ae27a6caa7b936cd33040e542f183ded99",
+            "research/tools/apma_satlib_uf20_r000_r111_projected_core_replay/projection_identity.py": "2ef48e73974a5f43d3f4fb4809ebd0c09c0f5be4",
+          }
+          def blob(path):
+              data=Path(path).read_bytes()
+              return hashlib.sha1(f"blob {len(data)}\0".encode()+data).hexdigest()
+          bad={p:{"expected":h,"observed":blob(p)} for p,h in expected.items() if blob(p)!=h}
+          if bad:
+              raise SystemExit(f"MANTEQUILLA_UF250_018_AUTHORITY_BINDING_FAILURE:{bad}")
+          print("LOCAL_AUTHORITIES_OK")
+          PY
+
+          git fetch --no-tags origin 24c723e9a35c46d131f53c24c72591452fb64d16
+          AUTH_BLOB="$(git rev-parse 24c723e9a35c46d131f53c24c72591452fb64d16:research/TRUMP_UF250_001_020_OUT_OF_FAMILY_WL_ORBIT_FALSIFIER_RESULT_2026-09-18_v1.0.json)"
+          test "$AUTH_BLOB" = "72eca8b90d97ff6cbab3b8a87d73b6d494f5d18e"
+          git show 24c723e9a35c46d131f53c24c72591452fb64d16:research/TRUMP_UF250_001_020_OUT_OF_FAMILY_WL_ORBIT_FALSIFIER_RESULT_2026-09-18_v1.0.json > /tmp/uf250_frozen.json
+          python - <<'PY'
+          import json
+          x=json.load(open("/tmp/uf250_frozen.json"))
+          row=next(r for r in x["prediction_rows"] if r["source"]=="UF250_018")
+          gt=next(r for r in x["ground_truth_rows"] if r["source"]=="UF250_018")
+          assert row["wl1_nontrivial_variable_classes"] == [[61,100,173]]
+          assert row["wl2_nontrivial_diagonal_variable_classes"] == [[61,100,173]]
+          assert row["reduced_raw_sha256"] == "e0db91aaba1bb9e43af04e667165bb54bee543ec15eef7aa0bf17f8399e7ed23"
+          assert gt["e3_generator_edges"] == [[61,100],[61,173],[100,173]]
+          assert gt["E3"]["quotient_states_Q"] == 467943425
+          print("UF250_018_FROZEN_WITNESS_AUTHORITY_OK")
+          PY
+
+      - name: Seal post-detection K3 bundle
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf /tmp/mantequilla016
+          mkdir -p /tmp/mantequilla016/seal
+          python "$TOOL_DIR/seal_bundle.py" /tmp/mantequilla016/seal/sealed_bundle.json | tee /tmp/mantequilla016/seal/seal.log
+
+      - name: Execute Mantequilla in isolated input surface
+        id: candidate
+        shell: bash
+        run: |
+          set -uo pipefail
+          mkdir -p /tmp/mantequilla016/candidate
+          cp "$TOOL_DIR/candidate.py" /tmp/mantequilla016/candidate/candidate.py
+          cp /tmp/mantequilla016/seal/sealed_bundle.json /tmp/mantequilla016/candidate/sealed_bundle.json
+          set +e
+          (
+            cd /tmp/mantequilla016/candidate
+            python candidate.py sealed_bundle.json candidate.json | tee candidate.log
+          )
+          rc=${PIPESTATUS[0]}
+          set -e
+          echo "exit_code=$rc" >> "$GITHUB_OUTPUT"
+          test -f /tmp/mantequilla016/candidate/candidate.json
+
+      - name: Recompute independently from sealed bundle
+        id: checker
+        shell: bash
+        run: |
+          set -uo pipefail
+          mkdir -p /tmp/mantequilla016/checker
+          cp "$TOOL_DIR/independent_check.py" /tmp/mantequilla016/checker/independent_check.py
+          cp "$TOOL_DIR/candidate.py" /tmp/mantequilla016/checker/candidate_source.py
+          cp /tmp/mantequilla016/seal/sealed_bundle.json /tmp/mantequilla016/checker/sealed_bundle.json
+          cp /tmp/mantequilla016/candidate/candidate.json /tmp/mantequilla016/checker/candidate.json
+          set +e
+          (
+            cd /tmp/mantequilla016/checker
+            python independent_check.py sealed_bundle.json candidate.json candidate_source.py independent.json | tee independent.log
+          )
+          rc=${PIPESTATUS[0]}
+          set -e
+          echo "exit_code=$rc" >> "$GITHUB_OUTPUT"
+          test -f /tmp/mantequilla016/checker/independent.json
+
+      - name: Build frozen scientific result
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/mantequilla016/final
+          python - <<'PY'
+          import hashlib,json,pathlib,subprocess
+          bundle=json.load(open("/tmp/mantequilla016/seal/sealed_bundle.json"))
+          candidate=json.load(open("/tmp/mantequilla016/candidate/candidate.json"))
+          independent=json.load(open("/tmp/mantequilla016/checker/independent.json"))
+
+          allowed={
+            "PASS_NONTRIVIAL_CORRELATED_BRIDGE",
+            "FAIL_TRIVIAL_ESCAPE",
+            "FAIL_UNARY_FACTORIZATION",
+            "FAIL_CLOSURE_BLOWUP",
+            "FAIL_NONLOCAL_INFORMATION_REQUIRED",
+            "UNKNOWN_RESOURCE_LIMIT",
+          }
+          verified=independent.get("verdict")=="PASS_INDEPENDENT_MANTEQUILLA_NONTRIVIAL_CORRELATED_BOUNDARY_VERIFICATION"
+          agree=independent.get("scientific_verdict")==candidate.get("verdict")
+          scientific_outcome=candidate.get("verdict") if verified and agree and candidate.get("verdict") in allowed else "FAIL_INDEPENDENT_RECONCILIATION"
+
+          def csha(obj):
+              return hashlib.sha256(json.dumps(obj,sort_keys=True,separators=(",",":"),ensure_ascii=False).encode()).hexdigest()
+          def gblob(path):
+              return subprocess.check_output(["git","hash-object",path],text=True).strip()
+
+          result={
+            "artifact_id":"JANUS-TRUMP-WALL-MANTEQUILLA-NONTRIVIAL-CORRELATED-BOUNDARY-UF250-018-RESULT-2026-09-18-v1.0",
+            "date":"2026-09-18",
+            "gate":"MANTEQUILLA_NONTRIVIAL_CORRELATED_BOUNDARY_INTERFACE_GATE",
+            "status":"FROZEN_SCOPED_K3_CORRELATED_BOUNDARY_RESULT" if verified and agree else "FROZEN_INDEPENDENT_RECONCILIATION_FAILURE",
+            "scientific_outcome":scientific_outcome,
+            "execution_verdict":independent.get("verdict"),
+            "specimen_role":"UF250_018_MECHANISM_DEVELOPMENT_DISCOVERY_PANEL__NOT_INDEPENDENT_CONFIRMATION",
+            "claim_ceiling":"ONE_FROZEN_K3_EXACT_SYMMETRY_CELL__NONTRIVIAL_BOUNDARY_INTERFACE_ONLY__NO_GENERAL_K_OR_COMPOSITION_CLAIM",
+            "sealed_bundle":{
+              "payload_sha256":bundle["payload_sha256"],
+              "source":bundle["source"],
+              "preprocessing":bundle["preprocessing"],
+              "frozen_witness":bundle["frozen_witness"],
+            },
+            "candidate":candidate,
+            "independent":independent,
+            "authorities":{
+              "workflow_blob":gblob(".github/workflows/trump-wall-mantequilla-nontrivial-correlated-boundary-uf250-018.yml"),
+              "prereg_blob":"e1f256fd5d557108db28798903562ce1236f70b6",
+              "review_blob":"e9c3665d15fa7dd329ab7023a0a787715f0eca27",
+              "sealer_blob":"6e469a2dcf23c53b8266a84aa1892e3ef95e82dc",
+              "candidate_blob":"bd6565621a06c7bf6cc04f5e807d6dd4206e5461",
+              "independent_checker_blob":"4135a15adff523fd3f6af14940f6decb5f5321dd",
+              "uf250_frozen_result_commit":"24c723e9a35c46d131f53c24c72591452fb64d16",
+              "uf250_frozen_result_blob":"72eca8b90d97ff6cbab3b8a87d73b6d494f5d18e",
+            },
+            "next_by_outcome":{
+              "PASS_NONTRIVIAL_CORRELATED_BRIDGE":"PREREGISTER_FRESH_UNSEEN_DETECTION_TO_POLYNOMIAL_EXACT_CLOSURE_CERTIFICATE_GATE",
+              "FAIL_TRIVIAL_ESCAPE":"SELECT_NEXT_PREDECLARED_EXACT_SYMMETRY_SPECIMEN_WITHOUT_RETUNING_LANGUAGE",
+              "FAIL_UNARY_FACTORIZATION":"SELECT_NEXT_PREDECLARED_EXACT_SYMMETRY_SPECIMEN_WITHOUT_RETUNING_LANGUAGE",
+              "FAIL_CLOSURE_BLOWUP":"CHARACTERIZE_ROBDD_REPRESENTATION_WALL_BEFORE_LANGUAGE_CHANGE",
+              "FAIL_NONLOCAL_INFORMATION_REQUIRED":"CHARACTERIZE_INFORMATION_DEFICIT_BEFORE_LANGUAGE_CHANGE",
+              "UNKNOWN_RESOURCE_LIMIT":"FREEZE_RESOURCE_LIMIT_BEFORE_ANY_BOUND_CHANGE",
+            }.get(scientific_outcome,"STOP_ON_INDEPENDENT_RECONCILIATION_FAILURE"),
+            "scientific_firewall":{
+              "GENERAL_K_CLASS":"NOT_PROVED",
+              "MULTI_INTERFACE_COMPOSITION":"NOT_PROVED",
+              "GENERAL_SAT_IN_P":"NOT_PROVED",
+              "P_VS_NP":"OPEN",
+            }
+          }
+          result["result_semantic_digest_sha256"]=csha({
+            "scientific_outcome":scientific_outcome,
+            "claim_ceiling":result["claim_ceiling"],
+            "sealed_bundle":result["sealed_bundle"],
+            "candidate_digest":candidate.get("candidate_semantic_digest_sha256"),
+            "independent_digest":independent.get("independent_semantic_digest_sha256"),
+          })
+          pathlib.Path("/tmp/mantequilla016/final/result.json").write_text(
+              json.dumps(result,indent=2,sort_keys=True)+"\n",encoding="utf-8"
+          )
+          print(json.dumps({
+            "scientific_outcome":scientific_outcome,
+            "independent_verdict":independent.get("verdict"),
+            "candidate_verdict":candidate.get("verdict"),
+            "result_semantic_digest_sha256":result["result_semantic_digest_sha256"],
+          },sort_keys=True))
+          PY
+
+      - name: Upload Mantequilla receipts
+        uses: actions/upload-artifact@v4
+        with:
+          name: trump-wall-mantequilla-nontrivial-correlated-boundary-${{ github.run_id }}
+          path: |
+            /tmp/mantequilla016/seal/sealed_bundle.json
+            /tmp/mantequilla016/seal/seal.log
+            /tmp/mantequilla016/candidate/candidate.json
+            /tmp/mantequilla016/candidate/candidate.log
+            /tmp/mantequilla016/checker/independent.json
+            /tmp/mantequilla016/checker/independent.log
+            /tmp/mantequilla016/final/result.json
+          if-no-files-found: error
+          retention-days: 90
+
+      - name: Freeze sealed bundle and scientific result
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p research/sealed
+          cp /tmp/mantequilla016/seal/sealed_bundle.json "$SEALED_OUT"
+          cp /tmp/mantequilla016/final/result.json "$RESULT_OUT"
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add "$SEALED_OUT" "$RESULT_OUT"
+          git commit -m "TRUMP WALL freeze Mantequilla UF250-018 correlated boundary result"
+          git push origin "HEAD:$BRANCH"
+
+      - name: Enforce independent agreement
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "${{ steps.checker.outputs.exit_code }}" = "0"
+          python - <<'PY'
+          import json
+          c=json.load(open("/tmp/mantequilla016/candidate/candidate.json"))
+          i=json.load(open("/tmp/mantequilla016/checker/independent.json"))
+          r=json.load(open("/tmp/mantequilla016/final/result.json"))
+          assert i["verdict"]=="PASS_INDEPENDENT_MANTEQUILLA_NONTRIVIAL_CORRELATED_BOUNDARY_VERIFICATION"
+          assert i["scientific_verdict"]==c["verdict"]
+          assert r["scientific_outcome"]==c["verdict"]
+          assert r["scientific_outcome"]!="FAIL_INDEPENDENT_RECONCILIATION"
+          print("MANTEQUILLA_UF250_018_INDEPENDENT_AGREEMENT_PASS")
+          PY
