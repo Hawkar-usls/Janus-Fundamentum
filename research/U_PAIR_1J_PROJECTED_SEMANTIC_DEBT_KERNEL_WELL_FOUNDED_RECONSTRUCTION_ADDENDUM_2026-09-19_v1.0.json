@@ -1,0 +1,66 @@
+{
+  "artifact_id": "JANUS-U-PAIR-1J-PROJECTED-SEMANTIC-DEBT-KERNEL-WELL-FOUNDED-RECONSTRUCTION-ADDENDUM-2026-09-19-v1.0",
+  "date": "2026-09-19",
+  "authority": "FORMAL_SPEC_STRENGTHENING__NO_ALGORITHM_COMPLETENESS_OR_COMPLEXITY_PROMOTION",
+  "parent_spec_commit": "83b1d699aaeee65d921ff2fcb90f12ddf75fa3ac",
+  "purpose": "State the minimal well-foundedness and completion conditions needed for the T5 terminal reconstruction theorem. This addendum does not alter the debt accounting rules; it makes previously implicit composition obligations explicit.",
+  "strengthened_state_invariants": {
+    "WF1_GLOBAL_OBLIGATION_OWNERSHIP": {
+      "statement": "At every accepted state, including portfolio/decomposed states, every original witness obligation x in X has exactly one authoritative status LIVE, DEBT, or CERTIFIED. Child/local copies are views carrying the same obligation_id and may not create additional ownership or progress.",
+      "reason": "T1 partition conservation is otherwise ambiguous under DECOMPOSE/RECOMPOSE."
+    },
+    "WF2_RECEIPT_DEPENDENCY_DAG": {
+      "statement": "Every projection receipt delta_E has a dependency set dep(delta_E) consisting only of B and witness obligations that were still live immediately after E was projected. The directed graph E -> dep(delta_E) intersect X is acyclic.",
+      "equivalent_operational_rule": "A reconstruction rule for an earlier-projected obligation may depend only on variables that survive that projection step; later reconstruction substitutes their certified rules in reverse topological order.",
+      "reason": "Prevents circular Skolem definitions from being accepted merely because each receipt is locally typed."
+    },
+    "WF3_DISCHARGE_EXPORTS_TOTAL_COMPLETION_TERM": {
+      "statement": "Every CERTIFIED debt receipt exports a total Boolean completion term hat_f_E over its allowed dependencies. WITNESS_CERTIFIED uses its accepted witness rule. VACUITY_CERTIFIED must either (a) export a canonical completion term together with a proof that it is valid whenever the receipt premise is reachable, or (b) be globally false-domain, in which case a fixed canonical default term is recorded because the conditional witness obligation is vacuous.",
+      "reason": "Debt status alone is insufficient to construct the total composed f_X required by T5."
+    },
+    "WF4_LOCAL_EXTENSION_PROOF": {
+      "statement": "For every certified receipt delta_E with post relation R_post(Y,B), pre relation R_pre(E,Y,B), and exported completion term hat_f_E(Y,B), the checker accepts a proof of D_post(B) AND R_post(Y,B) => R_pre(hat_f_E(Y,B),Y,B), unless D_post is certified identically false, where the implication is vacuous.",
+      "reason": "Unifies witness and vacuity discharge into one semantic extension invariant used by reconstruction."
+    },
+    "WF5_EXACT_TRANSITION_DOMAIN_PRESERVATION": {
+      "statement": "REVERSIBLE_NORMALIZE preserves represented relation up to checked isomorphism; PROJECT proves R_post(Y,B) iff exists E R_pre(E,Y,B); DECOMPOSE/RECOMPOSE carry an exact recomposition theorem. Therefore each accepted semantic transition preserves the external domain D(B).",
+      "reason": "T5 must produce a Skolem map on the original exact domain D0, not merely on a terminal approximation."
+    },
+    "WF6_RECOMPOSITION_COMPATIBILITY": {
+      "statement": "When multiple child states are recomposed, shared live variables, shared debt obligations and certified completion terms must agree under the exact recomposition contract. Duplicate obligation_ids are deduplicated by provenance and may not be certified twice.",
+      "reason": "Prevents inconsistent child witnesses or double-counted debt progress."
+    },
+    "WF7_TERMINAL_CLOSURE": {
+      "statement": "An open-interface terminal is admissible only when V_live=empty, V_debt=empty, every projection receipt in Omega is certified and exports a completion term, the receipt dependency graph is acyclic, all recomposition obligations are closed, and the terminal exact domain certificate is present.",
+      "reason": "These are the exact hypotheses under which reverse composition is a well-defined total f_X(B)."
+    }
+  },
+  "clarification_of_vacuity": {
+    "unsafe_old_reading": "A statement that 'choice is irrelevant' without a completion term or false-domain proof could mark an obligation CERTIFIED while leaving no constructible f_X.",
+    "safe_reading": "Vacuity is a proof class, not absence of reconstruction data. It must still export a canonical completion term unless the relevant exact domain is identically false.",
+    "status": "STRENGTHENED"
+  },
+  "collision_certificate_boundary": {
+    "negative_role": "A found semantic collision rejects a proposed reversible normalization.",
+    "positive_role": "No collision found is not a bijection certificate; REVERSIBLE_NORMALIZE still requires an independently checkable positive isomorphism/bijection proof."
+  },
+  "effect_on_theorem_targets": {
+    "T1": "Provable under WF1 and transition typing.",
+    "T2": "Provable directly.",
+    "T3": "Provable directly for PROJECT on previously-live obligation ids.",
+    "T4": "Provable under WF3-WF4.",
+    "T5": "Provable under WF1-WF7 by reverse topological composition plus exact-domain preservation."
+  },
+  "nonclaims": [
+    "The dependency DAG or completion terms can always be found efficiently.",
+    "The transition system is complete for arbitrary Boolean functional synthesis.",
+    "The resulting proof objects are polynomial size on every instance.",
+    "The scheduler can find a terminating sequence.",
+    "P=NP or general SAT is in P."
+  ],
+  "claim_ceiling": {
+    "GENERAL_SAT_IN_P": "NOT_PROVED",
+    "P_EQ_NP": "NOT_PROVED",
+    "P_VS_NP": "OPEN"
+  }
+}
