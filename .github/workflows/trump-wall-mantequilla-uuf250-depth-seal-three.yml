@@ -1,0 +1,164 @@
+name: TRUMP WALL Mantequilla UUF250 depth seal three semantic specimens
+
+on:
+  push:
+    branches:
+      - research/TRUMP_WALL-MANTEQUILLA-UUF250-depth-three-sealed-semantics-2026-09-18
+    paths:
+      - .github/workflows/trump-wall-mantequilla-uuf250-depth-seal-three.yml
+
+permissions:
+  contents: write
+
+concurrency:
+  group: trump-wall-mantequilla-uuf250-depth-seal-three
+  cancel-in-progress: false
+
+jobs:
+  seal:
+    runs-on: ubuntu-latest
+    env:
+      BRANCH: research/TRUMP_WALL-MANTEQUILLA-UUF250-depth-three-sealed-semantics-2026-09-18
+      OUT033: research/sealed/TRUMP_WALL_MANTEQUILLA_UUF250_033_DEPTH_SEALED_BUNDLE_2026-09-18_v1.0.json
+      OUT042: research/sealed/TRUMP_WALL_MANTEQUILLA_UUF250_042_DEPTH_SEALED_BUNDLE_2026-09-18_v1.0.json
+      OUT070: research/sealed/TRUMP_WALL_MANTEQUILLA_UUF250_070_DEPTH_SEALED_BUNDLE_2026-09-18_v1.0.json
+      AUTH: research/TRUMP_WALL_MANTEQUILLA_UUF250_DEPTH_THREE_SEALED_BUNDLE_AUTHORITY_2026-09-18_v1.0.json
+
+    steps:
+      - name: Checkout exact seal head
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Verify frozen seal authorities
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import hashlib
+          from pathlib import Path
+          expected={
+            "research/TRUMP_WALL_MANTEQUILLA_UUF250_DEPTH_THREE_SEALED_SEMANTICS_PREREG_2026-09-18_v1.0.json":"612a68a962b2864755b6b0328cf65a9068f07315",
+            "research/TRUMP_WALL_MANTEQUILLA_UUF250_DEPTH_THREE_SEMANTIC_IMPLEMENTATION_REVIEW_2026-09-18_v1.0.json":"63b6858e4161c4caa714dd700308b609286d2208",
+            "research/TRUMP_WALL_MANTEQUILLA_UUF250_DEPTH_P2_021_040_STRUCTURAL_CENSUS_RESULT_2026-09-18_v1.0.json":"a6c36d08286a960e010db202cacaa01b19c10b39",
+            "research/TRUMP_WALL_MANTEQUILLA_UUF250_DEPTH_P3_041_060_STRUCTURAL_CENSUS_RESULT_2026-09-18_v1.0.json":"689baafb6579c7d9223c6217700707fb465cde87",
+            "research/TRUMP_WALL_MANTEQUILLA_UUF250_DEPTH_P4_061_080_STRUCTURAL_CENSUS_RESULT_2026-09-18_v1.0.json":"4d1cfb54a27c725f080e69e9ef307df75e14d0a0",
+            "research/tools/trump_wall_mantequilla_uuf250_033_depth/seal_bundle.py":"605e6e58a9681f10b37c7f70d6ed04a0aef02576",
+            "research/tools/trump_wall_mantequilla_uuf250_042_depth/seal_bundle.py":"1fe95a4296f5611ec1205efb1d9c52b6ed19df0e",
+            "research/tools/trump_wall_mantequilla_uuf250_070_depth/seal_bundle.py":"fee7b65ea78a42fe60af9791ac847fe5da7f2f86",
+            "research/tools/apma_satlib_uf20_r000_r111_projected_core_replay/projection_identity.py":"2ef48e73974a5f43d3f4fb4809ebd0c09c0f5be4",
+            "research/tools/apma_uf20_011_015_fresh_generic_pendant_wl_replication/candidate.py":"9ec365ae27a6caa7b936cd33040e542f183ded99",
+          }
+          def blob(path):
+              data=Path(path).read_bytes()
+              return hashlib.sha1(f"blob {len(data)}\0".encode()+data).hexdigest()
+          bad={p:{"expected":h,"observed":blob(p)} for p,h in expected.items() if blob(p)!=h}
+          if bad: raise SystemExit(f"THREE_SEAL_AUTHORITY_BIND_FAILURE:{bad}")
+          print("THREE_SEAL_AUTHORITIES_OK")
+          PY
+
+      - name: Generate all three sealed bundles only
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p research/sealed /tmp/three-seal
+          python research/tools/trump_wall_mantequilla_uuf250_033_depth/seal_bundle.py "$OUT033" | tee /tmp/three-seal/033.log
+          python research/tools/trump_wall_mantequilla_uuf250_042_depth/seal_bundle.py "$OUT042" | tee /tmp/three-seal/042.log
+          python research/tools/trump_wall_mantequilla_uuf250_070_depth/seal_bundle.py "$OUT070" | tee /tmp/three-seal/070.log
+
+      - name: Build common sealed bundle authority
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import hashlib,json,os,pathlib,subprocess
+          specs=[
+            ("UUF250_033",os.environ["OUT033"],[84,106],[48,138],"a6c36d08286a960e010db202cacaa01b19c10b39"),
+            ("UUF250_042",os.environ["OUT042"],[31,196],[102,217],"689baafb6579c7d9223c6217700707fb465cde87"),
+            ("UUF250_070",os.environ["OUT070"],[92,190],[77,206],"4d1cfb54a27c725f080e69e9ef307df75e14d0a0"),
+          ]
+          rec=[]
+          for source,path,cell,boundary,struct_blob in specs:
+              x=json.load(open(path,encoding="utf-8"))
+              assert x["frozen_witness"]["cell"]==cell
+              assert x["frozen_witness"]["expected_boundary_variables"]==boundary
+              assert x["frozen_witness"]["expected_local_constraint_count"]==2
+              assert x["firewall"]["residual_semantics_not_computed_by_sealer"] is True
+              assert x["firewall"]["candidate_may_read_only_this_bundle"] is True
+              b=pathlib.Path(path).read_bytes()
+              rec.append({
+                "source":source,
+                "cell":cell,
+                "boundary":boundary,
+                "structural_result_blob":struct_blob,
+                "sealed_path":path,
+                "sealed_git_blob":hashlib.sha1(f"blob {len(b)}\0".encode()+b).hexdigest(),
+                "sealed_file_sha256":hashlib.sha256(b).hexdigest(),
+                "payload_sha256":x["payload_sha256"],
+                "reduced_raw_sha256":x["preprocessing"]["reduced_raw_sha256"],
+              })
+          auth={
+            "artifact_id":"JANUS-TRUMP-WALL-MANTEQUILLA-UUF250-DEPTH-THREE-SEALED-BUNDLE-AUTHORITY-2026-09-18-v1.0",
+            "date":"2026-09-18",
+            "status":"ALL_THREE_SEALED_BEFORE_ANY_SEMANTIC_EXECUTION",
+            "specimens":rec,
+            "semantic_execution_count_at_seal":0,
+            "residual_semantics_read":False,
+            "candidate_executions":0,
+            "checker_executions":0,
+            "firewall":{
+              "all_three_sealed_before_open":True,
+              "no_Mantequilla_execution_in_this_workflow":True,
+              "no_ROBDD_execution_in_this_workflow":True,
+              "no_boundary_cube_enumeration_in_this_workflow":True,
+              "P_VS_NP":"OPEN"
+            }
+          }
+          pathlib.Path(os.environ["AUTH"]).write_text(json.dumps(auth,indent=2,sort_keys=True)+"\n",encoding="utf-8")
+          print(json.dumps({"status":auth["status"],"payloads":{r["source"]:r["payload_sha256"] for r in rec}},sort_keys=True))
+          PY
+
+      - name: Upload seal-only receipts
+        uses: actions/upload-artifact@v4
+        with:
+          name: trump-wall-mantequilla-uuf250-depth-three-seal-${{ github.run_id }}
+          path: |
+            research/sealed/TRUMP_WALL_MANTEQUILLA_UUF250_033_DEPTH_SEALED_BUNDLE_2026-09-18_v1.0.json
+            research/sealed/TRUMP_WALL_MANTEQUILLA_UUF250_042_DEPTH_SEALED_BUNDLE_2026-09-18_v1.0.json
+            research/sealed/TRUMP_WALL_MANTEQUILLA_UUF250_070_DEPTH_SEALED_BUNDLE_2026-09-18_v1.0.json
+            research/TRUMP_WALL_MANTEQUILLA_UUF250_DEPTH_THREE_SEALED_BUNDLE_AUTHORITY_2026-09-18_v1.0.json
+            /tmp/three-seal/*.log
+          if-no-files-found: error
+          retention-days: 90
+
+      - name: Freeze all three sealed bundles atomically
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add "$OUT033" "$OUT042" "$OUT070" "$AUTH"
+          git commit -m "TRUMP WALL freeze all three UUF250 depth semantic bundles"
+          git push origin "HEAD:$BRANCH"
+
+      - name: Enforce seal-before-open
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json,os
+          x=json.load(open(os.environ["AUTH"],encoding="utf-8"))
+          assert x["status"]=="ALL_THREE_SEALED_BEFORE_ANY_SEMANTIC_EXECUTION"
+          assert len(x["specimens"])==3
+          assert x["semantic_execution_count_at_seal"]==0
+          assert x["candidate_executions"]==0
+          assert x["checker_executions"]==0
+          assert x["firewall"]["all_three_sealed_before_open"] is True
+          print("THREE_SEAL_BEFORE_OPEN_PASS")
+          PY
