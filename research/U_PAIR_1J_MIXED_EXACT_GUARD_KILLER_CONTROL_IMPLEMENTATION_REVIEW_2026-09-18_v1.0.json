@@ -1,0 +1,87 @@
+{
+  "artifact_id": "JANUS-U-PAIR-1J-MIXED-EXACT-GUARD-KILLER-CONTROL-IMPLEMENTATION-REVIEW-2026-09-18-v1.0",
+  "date": "2026-09-18",
+  "authority": "PREEXECUTION_IMPLEMENTATION_BINDING__CONTROL_ONLY",
+  "lineage": {
+    "prereg_commit": "6097218416d0a8a244cf526d01ba8a00fc0ba1fa",
+    "hostile_source_freeze_commit": "19e385405c3eaa8736553edcd5f3e6e2b139d899",
+    "hostile_source_check_commit": "80645e7ddae908f4f547569663d856bbe520fe9f",
+    "killer_control_source_commit": "80ac994ff223b0798ca4fd32297c9df1c1edb10b",
+    "killer_control_builder_commit": "a824cfb0c7e9dba8d3bc62286918af1535d10c8d",
+    "killer_control_verifier_commit": "e92b6405e4f00c7a68a12fcec8f1a810380198db"
+  },
+  "blobs": {
+    "control_source": "a47d7a0fb2f8231fa3e198d5bb9006753f80556e",
+    "control_builder": "5e609bf21b319e3c2720af2f0e65a643d6e590c1",
+    "independent_control_verifier": "8a3d73f9a1e22e814f91459394751f9d44cd6536"
+  },
+  "frozen_semantics_binding": {
+    "basis": [
+      "SKOLEM_LOCAL_DERIVATION_V1 allows CONST, AFFINE_XOR, EXISTING_DAG_NODE, GUARDED_ITE with hash-consed sharing.",
+      "V1.1 bridge preserves these forms and states GUARDED_ITE(g, Pi_true, Pi_false) for an exact complementary split g / NOT g.",
+      "The frozen bridge text does not restrict g to a raw boundary variable; the prior tiny bridge checker used raw variables only as an implementation of that specific tiny control."
+    ],
+    "binding": "A previously locally checked Boolean derivation root may be referenced as g in a later GUARDED_ITE node. This is a reference/composition discipline inside the existing GUARDED_ITE rule form, not a new rule form.",
+    "complement_contract": "No explicit NOT rule is introduced. Complement is represented by swapping constant children under the same exact guard: NOT O := GUARDED_ITE(O,0,1).",
+    "nonlinear_xor_contract": "No XOR-of-DAG-nodes rule is introduced. A XOR O is represented as GUARDED_ITE(A, NOT O, O).",
+    "retroactive_parent_mutation": false,
+    "generic_tautology_needed": false
+  },
+  "expected_structural_path": [
+    "A,P,Q,R via AFFINE_XOR raw rows",
+    "Q_OR_R := GUARDED_ITE(Q,1,R)",
+    "O := GUARDED_ITE(P,1,Q_OR_R)",
+    "NOT_O := GUARDED_ITE(O,0,1)",
+    "G := GUARDED_ITE(A,NOT_O,O)"
+  ],
+  "negative_controls": {
+    "affine_only": {
+      "candidate": "A",
+      "targeted_counterexample": "a=b=0, c=1, all other boundary bits 0 gives A=0, O=1, G=1",
+      "must_reject": true
+    },
+    "or3_only": {
+      "candidate": "O",
+      "targeted_counterexample": "a=1,b=0,c=1, all other boundary bits 0 gives A=1, O=1, G=0",
+      "must_reject": true
+    },
+    "full_truth_table_required": false
+  },
+  "audit": {
+    "source_precomputed_or3_output": false,
+    "source_precomputed_mixed_guard": false,
+    "builder_allowed_rules_only": [
+      "CONST",
+      "AFFINE_XOR",
+      "GUARDED_ITE"
+    ],
+    "builder_adds_new_rule_form": false,
+    "verifier_imports_builder": false,
+    "verifier_checks_cycles_and_dangling_refs": true,
+    "verifier_rederives_exact_raw_affine_nodes": true,
+    "verifier_rederives_exact_OR3_structure": true,
+    "verifier_rederives_exact_NOT_O_structure": true,
+    "verifier_rederives_exact_mixed_G_structure": true,
+    "verifier_checks_two_targeted_negative_counterexamples": true,
+    "SAT_calls": 0,
+    "generic_SK0LEM_VALID_calls": 0,
+    "generic_DAG_tautology_calls": 0,
+    "truth_table_enumeration": false
+  },
+  "verdict": "PASS_KILLER_CONTROL_IMPLEMENTATION_BINDING__AUTHORIZED_TO_RUN_CONTROL_ONCE",
+  "execution_authority": {
+    "authorize_exactly_one_killer_control_run": true,
+    "hostile_constructor_still_forbidden": true,
+    "hostile_run_still_forbidden": true
+  },
+  "failure_interpretation": {
+    "control_failure": "FAIL_CALCULUS_EXPRESSIVITY",
+    "note": "If the frozen builder/verifier cannot realize the preregistered mixed guard using only the bound semantics above, stop before hostile constructor."
+  },
+  "scientific_firewall": {
+    "control_only": true,
+    "GENERAL_SAT_IN_P": "NOT_PROVED",
+    "P_EQ_NP": "NOT_PROVED",
+    "P_VS_NP": "OPEN"
+  }
+}
