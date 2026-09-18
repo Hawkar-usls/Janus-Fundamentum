@@ -1,0 +1,314 @@
+name: TRUMP WALL Mantequilla UUF175-018 dual eligible semantics
+
+on:
+  push:
+    branches:
+      - research/TRUMP_WALL-MANTEQUILLA-UUF175-018-dual-eligible-semantics-2026-09-18
+    paths:
+      - .github/workflows/trump-wall-mantequilla-uuf175-018-dual-eligible-semantics.yml
+
+permissions:
+  contents: write
+
+concurrency:
+  group: trump-wall-mantequilla-uuf175-018-dual-eligible-semantics
+  cancel-in-progress: false
+
+jobs:
+  mantequilla:
+    runs-on: ubuntu-latest
+    env:
+      BRANCH: research/TRUMP_WALL-MANTEQUILLA-UUF175-018-dual-eligible-semantics-2026-09-18
+      RESULT_OUT: research/TRUMP_WALL_MANTEQUILLA_UUF175_018_DUAL_ELIGIBLE_SEMANTIC_RESULT_2026-09-18_v1.0.json
+      SEALED_A_OUT: research/sealed/TRUMP_WALL_MANTEQUILLA_UUF175_018_A_SEALED_BUNDLE_2026-09-18_v1.0.json
+      SEALED_B_OUT: research/sealed/TRUMP_WALL_MANTEQUILLA_UUF175_018_B_SEALED_BUNDLE_2026-09-18_v1.0.json
+
+    steps:
+      - name: Checkout exact semantic head
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Verify frozen dual-semantic authorities
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import hashlib, json
+          from pathlib import Path
+
+          expected = {
+            "research/TRUMP_WALL_MANTEQUILLA_UUF175_018_DUAL_ELIGIBLE_SEMANTIC_PREREGISTRATION_2026-09-18_v1.0.json": "6695ff5655046b767c05cd4423fbd36414e515b0",
+            "research/TRUMP_WALL_MANTEQUILLA_UUF175_018_DUAL_ELIGIBLE_IMPLEMENTATION_REVIEW_2026-09-18_v1.0.json": "34114b1bc91772281647aa270d993baa1c2d0a4b",
+            "research/TRUMP_WALL_MANTEQUILLA_UUF175_001_020_STRUCTURAL_CENSUS_RESULT_2026-09-18_v1.0.json": "08a47f0a25168f52f341907711b6c9af9dcef618",
+            "research/TRUMP_WALL_MANTEQUILLA_UUF175_001_020_SOURCE_FREEZE_AUTHORITY_2026-09-18_v1.0.json": "65aefb3dd47d536b5d1dad9bea1f920e22ed8e00",
+            "research/source_data/SATLIB_UUF175_018_2026-09-18.cnf": "abbc0db2364550a23a300db374983d00268f9844",
+            "research/tools/trump_wall_mantequilla_uuf175_018_A/seal_bundle.py": "7af49c3851ab8c5f72fbf7b83b45db28900c9190",
+            "research/tools/trump_wall_mantequilla_uuf175_018_A/candidate.py": "db4f851c00ce0dd642932fb9c4fbf3d711ebcab5",
+            "research/tools/trump_wall_mantequilla_uuf175_018_A/independent_check.py": "0f0edc7ca86f26f9840d0a94dd8ae919bd9f7384",
+            "research/tools/trump_wall_mantequilla_uuf175_018_B/seal_bundle.py": "f0f43be26ceaa49dc791eb9a06b9cdbf6f123f3d",
+            "research/tools/trump_wall_mantequilla_uuf175_018_B/candidate.py": "0d8fc23e4073c1b7ad0792fef0d5f25d995abb93",
+            "research/tools/trump_wall_mantequilla_uuf175_018_B/independent_check.py": "3e280427f9e5a7f71a089de08689721193da0e57",
+            "research/tools/apma_satlib_uf20_r000_r111_projected_core_replay/projection_identity.py": "2ef48e73974a5f43d3f4fb4809ebd0c09c0f5be4",
+            "research/tools/apma_uf20_011_015_fresh_generic_pendant_wl_replication/candidate.py": "9ec365ae27a6caa7b936cd33040e542f183ded99",
+          }
+
+          def blob(path):
+              data=Path(path).read_bytes()
+              return hashlib.sha1(f"blob {len(data)}\0".encode()+data).hexdigest()
+
+          bad={p:{"expected":h,"observed":blob(p)} for p,h in expected.items() if blob(p)!=h}
+          if bad:
+              raise SystemExit(f"UUF175_DUAL_SEMANTIC_AUTHORITY_BIND_FAILURE:{bad}")
+
+          c=json.load(open("research/TRUMP_WALL_MANTEQUILLA_UUF175_001_020_STRUCTURAL_CENSUS_RESULT_2026-09-18_v1.0.json",encoding="utf-8"))
+          assert c["scientific_outcome"]=="PASS_STRUCTURAL_CENSUS_WITH_ELIGIBLE_K2_OR_K3_CELLS"
+          row=next(r for r in c["candidate"]["rows"] if r["source"]=="UUF175_018")
+          assert row["residual_semantics_read"] is False
+          got={(tuple(x["cell"]),tuple(x["boundary_variables"]),x["local_constraint_count"],x["classification"]) for x in row["detected_exact_cells"] if x["eligible_correlated_panel"]}
+          expected_cells={
+            ((2,171),(17,120),2,"ACTIVE_EXACT_SYMMETRY_ELIGIBLE"),
+            ((104,170),(96,129),2,"ACTIVE_EXACT_SYMMETRY_ELIGIBLE"),
+          }
+          assert got==expected_cells,(got,expected_cells)
+          assert c["freeze_barrier"]=={
+            "residual_constructions":0,
+            "robdd_operations":0,
+            "sat_solver_invocations":0,
+            "mantequilla_runs":0,
+            "boundary_cube_assignments_enumerated":0,
+          }
+          print("UUF175_DUAL_SEMANTIC_AUTHORITIES_OK")
+          PY
+
+      - name: Seal both eligible cells before semantic execution
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf /tmp/uuf175dual
+          mkdir -p /tmp/uuf175dual/A/seal /tmp/uuf175dual/B/seal
+          python research/tools/trump_wall_mantequilla_uuf175_018_A/seal_bundle.py /tmp/uuf175dual/A/seal/sealed_bundle.json | tee /tmp/uuf175dual/A/seal/seal.log
+          python research/tools/trump_wall_mantequilla_uuf175_018_B/seal_bundle.py /tmp/uuf175dual/B/seal/sealed_bundle.json | tee /tmp/uuf175dual/B/seal/seal.log
+
+      - name: Execute both frozen Mantequilla constructors
+        shell: bash
+        run: |
+          set -euo pipefail
+          for S in A B; do
+            mkdir -p "/tmp/uuf175dual/$S/candidate"
+            cp "research/tools/trump_wall_mantequilla_uuf175_018_$S/candidate.py" "/tmp/uuf175dual/$S/candidate/candidate.py"
+            cp "/tmp/uuf175dual/$S/seal/sealed_bundle.json" "/tmp/uuf175dual/$S/candidate/sealed_bundle.json"
+            (
+              cd "/tmp/uuf175dual/$S/candidate"
+              python candidate.py sealed_bundle.json candidate.json | tee candidate.log
+            )
+            test -f "/tmp/uuf175dual/$S/candidate/candidate.json"
+          done
+
+      - name: Independently verify both semantic results
+        shell: bash
+        run: |
+          set -euo pipefail
+          for S in A B; do
+            mkdir -p "/tmp/uuf175dual/$S/checker"
+            cp "research/tools/trump_wall_mantequilla_uuf175_018_$S/independent_check.py" "/tmp/uuf175dual/$S/checker/independent_check.py"
+            cp "research/tools/trump_wall_mantequilla_uuf175_018_$S/candidate.py" "/tmp/uuf175dual/$S/checker/candidate_source.py"
+            cp "/tmp/uuf175dual/$S/seal/sealed_bundle.json" "/tmp/uuf175dual/$S/checker/sealed_bundle.json"
+            cp "/tmp/uuf175dual/$S/candidate/candidate.json" "/tmp/uuf175dual/$S/checker/candidate.json"
+            (
+              cd "/tmp/uuf175dual/$S/checker"
+              python independent_check.py sealed_bundle.json candidate.json candidate_source.py independent.json | tee independent.log
+            )
+            test -f "/tmp/uuf175dual/$S/checker/independent.json"
+          done
+
+      - name: Build combined frozen scientific result
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/uuf175dual/final
+          python - <<'PY'
+          import hashlib,json,pathlib,subprocess
+
+          expected_ind={
+            "A":"PASS_INDEPENDENT_UUF175_018_A_MANTEQUILLA_VERIFICATION",
+            "B":"PASS_INDEPENDENT_UUF175_018_B_MANTEQUILLA_VERIFICATION",
+          }
+          rows=[]
+          all_verified=True
+          for S in ("A","B"):
+              bundle=json.load(open(f"/tmp/uuf175dual/{S}/seal/sealed_bundle.json",encoding="utf-8"))
+              cand=json.load(open(f"/tmp/uuf175dual/{S}/candidate/candidate.json",encoding="utf-8"))
+              ind=json.load(open(f"/tmp/uuf175dual/{S}/checker/independent.json",encoding="utf-8"))
+              verified=(ind["verdict"]==expected_ind[S] and all(ind["checks"].values()) and ind["scientific_verdict"]==cand["verdict"] and ind["semantic_class"]==cand["semantic_class"])
+              all_verified &= verified
+              rows.append({
+                "specimen_id":S,
+                "verified":verified,
+                "cell":cand["frozen_cell"],
+                "boundary":cand["boundary_variables"],
+                "semantic_class":cand["semantic_class"],
+                "scientific_verdict":cand["verdict"],
+                "local_exact_interface_pass":cand["verdict"]=="PASS_LOCAL_EXACT_INTERFACE_NONTRIVIAL_CORRELATED",
+                "first_genuine_correlated_wall_specimen":verified and cand["semantic_class"]=="R_C_CORRELATED",
+                "sealed_bundle_payload_sha256":bundle["payload_sha256"],
+                "candidate":cand,
+                "independent":ind,
+                "checker_truth_table":ind["checker_only_semantic_microscope"]["direct_local_existential_truth_table"],
+              })
+
+          correlated=[r for r in rows if r["first_genuine_correlated_wall_specimen"]]
+          sem_nontrivial=[r for r in rows if r["verified"] and r["semantic_class"] not in ("R_C_TRUE","R_C_FALSE")]
+          n_true=sum(r["verified"] and r["semantic_class"]=="R_C_TRUE" for r in rows)
+          n_false=sum(r["verified"] and r["semantic_class"]=="R_C_FALSE" for r in rows)
+          n_factor=sum(r["verified"] and r["semantic_class"]=="R_C_NONTRIVIAL_BUT_PRODUCT_OF_UNARY_PROJECTIONS" for r in rows)
+          n_corr=sum(r["verified"] and r["semantic_class"]=="R_C_CORRELATED" for r in rows)
+
+          if not all_verified:
+              outcome="FAIL_DUAL_INDEPENDENT_RECONCILIATION"
+          elif correlated:
+              outcome="DUAL_SEMANTIC_EVALUATION_COMPLETED__GENUINE_CORRELATED_WALL_FOUND"
+          elif sem_nontrivial:
+              outcome="DUAL_SEMANTIC_EVALUATION_COMPLETED__NONTRIVIAL_BUT_NO_CORRELATED_WALL"
+          else:
+              outcome="DUAL_SEMANTIC_EVALUATION_COMPLETED__NO_SEMANTICALLY_NONTRIVIAL_WALL"
+
+          def csha(obj):
+              return hashlib.sha256(json.dumps(obj,sort_keys=True,separators=(",",":"),ensure_ascii=False).encode()).hexdigest()
+          def gblob(path):
+              return subprocess.check_output(["git","hash-object",path],text=True).strip()
+
+          result={
+            "artifact_id":"JANUS-TRUMP-WALL-MANTEQUILLA-UUF175-018-DUAL-ELIGIBLE-SEMANTIC-RESULT-2026-09-18-v1.0",
+            "date":"2026-09-18",
+            "status":"FROZEN_DUAL_UUF175_018_SEMANTIC_RESULT" if all_verified else "FROZEN_DUAL_INDEPENDENT_RECONCILIATION_FAILURE",
+            "scientific_outcome":outcome,
+            "all_independently_verified":all_verified,
+            "specimens":rows,
+            "first_genuine_correlated_wall_specimens":[{"specimen_id":r["specimen_id"],"cell":r["cell"],"boundary":r["boundary"]} for r in correlated],
+            "post_mantequilla_denominator":{
+              "N_Mantequilla_routed_cells":2,
+              "N_semantically_trivial_true":n_true,
+              "N_semantically_trivial_false":n_false,
+              "N_semantically_nontrivial":len(sem_nontrivial),
+              "N_nontrivial_but_unary_factorized":n_factor,
+              "N_correlated":n_corr
+            },
+            "claims":{
+              "correlated_not_equal_polynomial_bridge":True,
+              "polynomial_bridge_proved":False,
+              "constructive_bridge_promoted":False,
+              "composition_started":False
+            },
+            "authorities":{
+              "parent_census_commit":"f392ffc8669dd471220be81b23344f6af37f3064",
+              "parent_census_blob":"08a47f0a25168f52f341907711b6c9af9dcef618",
+              "prereg_blob":"6695ff5655046b767c05cd4423fbd36414e515b0",
+              "implementation_review_blob":"34114b1bc91772281647aa270d993baa1c2d0a4b",
+              "A_sealer_blob":"7af49c3851ab8c5f72fbf7b83b45db28900c9190",
+              "A_candidate_blob":"db4f851c00ce0dd642932fb9c4fbf3d711ebcab5",
+              "A_checker_blob":"0f0edc7ca86f26f9840d0a94dd8ae919bd9f7384",
+              "B_sealer_blob":"f0f43be26ceaa49dc791eb9a06b9cdbf6f123f3d",
+              "B_candidate_blob":"0d8fc23e4073c1b7ad0792fef0d5f25d995abb93",
+              "B_checker_blob":"3e280427f9e5a7f71a089de08689721193da0e57",
+              "workflow_blob":gblob(".github/workflows/trump-wall-mantequilla-uuf175-018-dual-eligible-semantics.yml")
+            },
+            "next_obligation":(
+              "FREEZE_FIRST_GENUINE_CORRELATED_WALL_STATUS__THEN_SEPARATE_PREREGISTERED_QOLD_VS_ORCSP_VS_ROBDD_AB__NO_COMPOSITION"
+              if correlated else
+              "FREEZE_BOTH_SEMANTIC_OUTCOMES__ADVANCE_TO_NEXT_PREDECLARED_FAMILY_WITHOUT_RETUNING"
+            ),
+            "scientific_firewall":{
+              "POLYNOMIAL_BRIDGE":"NOT_PROVED",
+              "GENERAL_K_CLASS":"NOT_PROVED",
+              "MULTI_INTERFACE_COMPOSITION":"NOT_PROVED",
+              "GENERAL_SAT_IN_P":"NOT_PROVED",
+              "P_VS_NP":"OPEN"
+            }
+          }
+          result["result_semantic_digest_sha256"]=csha({
+            "scientific_outcome":outcome,
+            "specimens":[{
+              "specimen_id":r["specimen_id"],
+              "cell":r["cell"],
+              "boundary":r["boundary"],
+              "semantic_class":r["semantic_class"],
+              "scientific_verdict":r["scientific_verdict"],
+              "truth_table":r["checker_truth_table"],
+              "candidate_digest":r["candidate"]["candidate_semantic_digest_sha256"],
+              "independent_digest":r["independent"]["independent_semantic_digest_sha256"]
+            } for r in rows],
+            "post_mantequilla_denominator":result["post_mantequilla_denominator"]
+          })
+          pathlib.Path("/tmp/uuf175dual/final/result.json").write_text(json.dumps(result,indent=2,sort_keys=True)+"\n",encoding="utf-8")
+          print(json.dumps({
+            "scientific_outcome":outcome,
+            "all_verified":all_verified,
+            "first_genuine_correlated_wall_specimens":result["first_genuine_correlated_wall_specimens"],
+            "post_mantequilla_denominator":result["post_mantequilla_denominator"],
+            "specimens":[{"id":r["specimen_id"],"semantic_class":r["semantic_class"],"verdict":r["scientific_verdict"],"truth_table":r["checker_truth_table"]} for r in rows],
+            "result_semantic_digest_sha256":result["result_semantic_digest_sha256"]
+          },sort_keys=True))
+          PY
+
+      - name: Upload complete dual-semantic receipts
+        uses: actions/upload-artifact@v4
+        with:
+          name: trump-wall-mantequilla-uuf175-018-dual-semantics-${{ github.run_id }}
+          path: |
+            /tmp/uuf175dual/A/seal/sealed_bundle.json
+            /tmp/uuf175dual/A/seal/seal.log
+            /tmp/uuf175dual/A/candidate/candidate.json
+            /tmp/uuf175dual/A/candidate/candidate.log
+            /tmp/uuf175dual/A/checker/independent.json
+            /tmp/uuf175dual/A/checker/independent.log
+            /tmp/uuf175dual/B/seal/sealed_bundle.json
+            /tmp/uuf175dual/B/seal/seal.log
+            /tmp/uuf175dual/B/candidate/candidate.json
+            /tmp/uuf175dual/B/candidate/candidate.log
+            /tmp/uuf175dual/B/checker/independent.json
+            /tmp/uuf175dual/B/checker/independent.log
+            /tmp/uuf175dual/final/result.json
+          if-no-files-found: error
+          retention-days: 90
+
+      - name: Freeze both sealed bundles and combined result
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p research/sealed
+          cp /tmp/uuf175dual/A/seal/sealed_bundle.json "$SEALED_A_OUT"
+          cp /tmp/uuf175dual/B/seal/sealed_bundle.json "$SEALED_B_OUT"
+          cp /tmp/uuf175dual/final/result.json "$RESULT_OUT"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add "$SEALED_A_OUT" "$SEALED_B_OUT" "$RESULT_OUT"
+          git commit -m "TRUMP WALL freeze UUF175-018 dual Mantequilla semantic result"
+          git push origin "HEAD:$BRANCH"
+
+      - name: Enforce dual independent agreement and claim ceiling
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json
+          r=json.load(open("/tmp/uuf175dual/final/result.json",encoding="utf-8"))
+          assert r["all_independently_verified"] is True
+          assert len(r["specimens"])==2
+          assert all(x["verified"] for x in r["specimens"])
+          assert r["post_mantequilla_denominator"]["N_Mantequilla_routed_cells"]==2
+          assert r["claims"]["polynomial_bridge_proved"] is False
+          assert r["claims"]["constructive_bridge_promoted"] is False
+          assert r["claims"]["composition_started"] is False
+          for x in r["specimens"]:
+              assert x["candidate"]["accounting"]["constructor_boundary_cube_assignments_enumerated"]==0
+              assert x["candidate"]["accounting"]["sat_solver_invocations"]==0
+              assert x["independent"]["checker_only_semantic_microscope"]["boundary_assignments_enumerated"]==4
+          print("UUF175_DUAL_SEMANTIC_INDEPENDENT_PASS")
+          PY
