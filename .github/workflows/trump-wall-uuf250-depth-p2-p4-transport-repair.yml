@@ -1,0 +1,123 @@
+name: TRUMP WALL UUF250 depth P2-P4 transport repair
+
+on:
+  push:
+    branches:
+      - research/TRUMP_WALL-MANTEQUILLA-UUF250-depth-extension-021-100-2026-09-18
+    paths:
+      - .github/workflows/trump-wall-uuf250-depth-p2-p4-transport-repair.yml
+
+permissions:
+  contents: write
+  actions: read
+
+concurrency:
+  group: trump-wall-uuf250-depth-p2-p4-transport-repair
+  cancel-in-progress: false
+
+jobs:
+  repair:
+    runs-on: ubuntu-latest
+    env:
+      BRANCH: research/TRUMP_WALL-MANTEQUILLA-UUF250-depth-extension-021-100-2026-09-18
+      GH_TOKEN: ${{ github.token }}
+
+    steps:
+      - name: Checkout repair head
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+
+      - name: Verify repair authority
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import hashlib
+          from pathlib import Path
+          p=Path("research/TRUMP_WALL_MANTEQUILLA_UUF250_DEPTH_P2_P4_FREEZE_TRANSPORT_REPAIR_2026-09-18_v1.0.json")
+          b=p.read_bytes()
+          blob=hashlib.sha1(f"blob {len(b)}\0".encode()+b).hexdigest()
+          assert blob=="f1ea53994267654b0a7eddabf3b65ce0aa7af371", blob
+          print("TRANSPORT_REPAIR_AUTHORITY_OK")
+          PY
+
+      - name: Download immutable original artifacts
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/repair
+          gh api "/repos/$GITHUB_REPOSITORY/actions/artifacts/10556147195/zip" > /tmp/repair/p2.zip
+          gh api "/repos/$GITHUB_REPOSITORY/actions/artifacts/10555992646/zip" > /tmp/repair/p3.zip
+          gh api "/repos/$GITHUB_REPOSITORY/actions/artifacts/10556265414/zip" > /tmp/repair/p4.zip
+          echo "4ea2ad5bd6bce8d067713b6a3d9d0b25c71dc11dffdc6fd46a2e2fdee767165e  /tmp/repair/p2.zip" | sha256sum -c -
+          echo "dc732c536b28621ad085ad22088e486431cb22261f4cea52b0428038a118db00  /tmp/repair/p3.zip" | sha256sum -c -
+          echo "c9e1fad402e816fdf97b6e37059e5c0bf5cba2f1f4860d4bad2c37ff6fbe2317  /tmp/repair/p4.zip" | sha256sum -c -
+
+      - name: Recover exact frozen result bytes
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/repair/p2 /tmp/repair/p3 /tmp/repair/p4
+          unzip -q /tmp/repair/p2.zip -d /tmp/repair/p2
+          unzip -q /tmp/repair/p3.zip -d /tmp/repair/p3
+          unzip -q /tmp/repair/p4.zip -d /tmp/repair/p4
+
+          cp /tmp/repair/p2/final/result.json research/TRUMP_WALL_MANTEQUILLA_UUF250_DEPTH_P2_021_040_STRUCTURAL_CENSUS_RESULT_2026-09-18_v1.0.json
+          cp /tmp/repair/p3/final/result.json research/TRUMP_WALL_MANTEQUILLA_UUF250_DEPTH_P3_041_060_STRUCTURAL_CENSUS_RESULT_2026-09-18_v1.0.json
+          cp /tmp/repair/p4/final/result.json research/TRUMP_WALL_MANTEQUILLA_UUF250_DEPTH_P4_061_080_STRUCTURAL_CENSUS_RESULT_2026-09-18_v1.0.json
+
+          echo "2c74b81b643d801a4e60ee9f024707f28cc2439dd37eeb2e7030781521e1a32f  research/TRUMP_WALL_MANTEQUILLA_UUF250_DEPTH_P2_021_040_STRUCTURAL_CENSUS_RESULT_2026-09-18_v1.0.json" | sha256sum -c -
+          echo "adfc999c4e933de1a26934b0440a60db0e64fdb0b5b9556b233c258d2d45fa96  research/TRUMP_WALL_MANTEQUILLA_UUF250_DEPTH_P3_041_060_STRUCTURAL_CENSUS_RESULT_2026-09-18_v1.0.json" | sha256sum -c -
+          echo "56b3af1556760bfdcf91fcd8a80cc0b1b05879eae78779a600cde3ab24d37bd0  research/TRUMP_WALL_MANTEQUILLA_UUF250_DEPTH_P4_061_080_STRUCTURAL_CENSUS_RESULT_2026-09-18_v1.0.json" | sha256sum -c -
+
+      - name: Verify exact scientific results without recomputation
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import hashlib,json
+          specs=[
+            ("P2","research/TRUMP_WALL_MANTEQUILLA_UUF250_DEPTH_P2_021_040_STRUCTURAL_CENSUS_RESULT_2026-09-18_v1.0.json","a6c36d08286a960e010db202cacaa01b19c10b39","2bdcab1a4d9d634848ebe6c40c45b4e82145e014b3f0e32f90ffee4d56e2ddaf"),
+            ("P3","research/TRUMP_WALL_MANTEQUILLA_UUF250_DEPTH_P3_041_060_STRUCTURAL_CENSUS_RESULT_2026-09-18_v1.0.json","689baafb6579c7d9223c6217700707fb465cde87","6155df0e3e84ae8166307c89b8e8ce074120595008a4b0b79be6026e5633a707"),
+            ("P4","research/TRUMP_WALL_MANTEQUILLA_UUF250_DEPTH_P4_061_080_STRUCTURAL_CENSUS_RESULT_2026-09-18_v1.0.json","4d1cfb54a27c725f080e69e9ef307df75e14d0a0","cbdbf85fe4b97cd583b80a0a7106a5c55830e20fe51b5f085c7b34ee609d169e"),
+          ]
+          for panel,path,expected_blob,expected_digest in specs:
+              b=open(path,"rb").read()
+              blob=hashlib.sha1(f"blob {len(b)}\0".encode()+b).hexdigest()
+              assert blob==expected_blob,(panel,blob)
+              x=json.loads(b)
+              assert x["panel_id"]==panel
+              assert x["scientific_outcome"]=="PASS_STRUCTURAL_CENSUS_WITH_ELIGIBLE_K2_OR_K3_CELLS"
+              assert x["execution_verdict"]=="PASS_INDEPENDENT_UUF250_STRUCTURAL_ACTIVITY_CENSUS_VERIFICATION"
+              assert x["result_semantic_digest_sha256"]==expected_digest
+              assert x["census_denominators"]["N_eligible_current_mechanism_k2_or_k3"]==1
+              assert x["freeze_barrier"]=={
+                "residual_constructions":0,
+                "robdd_operations":0,
+                "sat_solver_invocations":0,
+                "mantequilla_runs":0,
+                "boundary_cube_assignments_enumerated":0,
+              }
+          print("P2_P3_P4_EXACT_ARTIFACT_RECOVERY_PASS")
+          PY
+
+      - name: Commit recovered frozen results atomically
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add             research/TRUMP_WALL_MANTEQUILLA_UUF250_DEPTH_P2_021_040_STRUCTURAL_CENSUS_RESULT_2026-09-18_v1.0.json             research/TRUMP_WALL_MANTEQUILLA_UUF250_DEPTH_P3_041_060_STRUCTURAL_CENSUS_RESULT_2026-09-18_v1.0.json             research/TRUMP_WALL_MANTEQUILLA_UUF250_DEPTH_P4_061_080_STRUCTURAL_CENSUS_RESULT_2026-09-18_v1.0.json
+          git commit -m "TRUMP WALL recover exact frozen UUF250 depth P2-P4 results"
+          git push origin "HEAD:$BRANCH"
+
+      - name: Enforce transport-only repair
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -f research/TRUMP_WALL_MANTEQUILLA_UUF250_DEPTH_P2_021_040_STRUCTURAL_CENSUS_RESULT_2026-09-18_v1.0.json
+          test -f research/TRUMP_WALL_MANTEQUILLA_UUF250_DEPTH_P3_041_060_STRUCTURAL_CENSUS_RESULT_2026-09-18_v1.0.json
+          test -f research/TRUMP_WALL_MANTEQUILLA_UUF250_DEPTH_P4_061_080_STRUCTURAL_CENSUS_RESULT_2026-09-18_v1.0.json
+          echo "TRANSPORT_ONLY_REPAIR_PASS"
