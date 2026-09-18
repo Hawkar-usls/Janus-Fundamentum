@@ -147,8 +147,24 @@ def named_controls():
     assert not any(out["TRIVIAL_FALSE"]["R_C_truth_table"].values())
     return out
 
+def jsonable(obj):
+    if isinstance(obj, dict):
+        out={}
+        for k,v in obj.items():
+            if isinstance(k, tuple):
+                key="".join("1" if bool(x) else "0" for x in k)
+            else:
+                key=str(k)
+            out[key]=jsonable(v)
+        return out
+    if isinstance(obj, tuple):
+        return [jsonable(x) for x in obj]
+    if isinstance(obj, list):
+        return [jsonable(x) for x in obj]
+    return obj
+
 def canonical_sha(obj):
-    return hashlib.sha256(json.dumps(obj,sort_keys=True,separators=(",",":"),default=list).encode()).hexdigest()
+    return hashlib.sha256(json.dumps(obj,sort_keys=True,separators=(",",":")).encode()).hexdigest()
 
 def main():
     checked,failures=exhaustive_small_model_sweep()
@@ -176,9 +192,10 @@ def main():
         "universal_branch_control_verified":controls["UNIVERSAL_BRANCH_SHIELDING"]["kappa_C"]==1
       }
     }
+    result=jsonable(result)
     result["independent_semantic_digest_sha256"]=canonical_sha(result)
     if len(sys.argv)>1:
-        Path(sys.argv[1]).write_text(json.dumps(result,indent=2,sort_keys=True,default=list)+"\n",encoding="utf-8")
+        Path(sys.argv[1]).write_text(json.dumps(result,indent=2,sort_keys=True)+"\n",encoding="utf-8")
     print(json.dumps({
       "verdict":result["verdict"],
       "formulae_checked":checked,
