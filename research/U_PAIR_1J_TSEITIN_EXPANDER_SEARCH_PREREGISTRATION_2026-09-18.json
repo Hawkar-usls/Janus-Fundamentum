@@ -1,0 +1,183 @@
+{
+  "artifact_id": "JANUS-TRUMP-U-PAIR-1J-TSEITIN-EXPANDER-SEARCH-PREREGISTRATION-2026-09-18-v1.0",
+  "date": "2026-09-18",
+  "authority": "PREREGISTERED_HOSTILE_SUCCESSOR__NO_RUN_YET",
+  "branch": "research/U-PAIR-1J-tseitin-expander-search-prereg-2026-09-18",
+  "lineage": {
+    "parent_postfreeze_reconciliation": "7ebacdb7fddd4359a3a0101c4686651aec7bed4d",
+    "blind_majority_authority": "96937b044bb6a316911443277d72357784eba5c2",
+    "bridge_control_authority": "44bf300c1b7886fe4f00de256dfd167039159c4c",
+    "bridge_prereg_authority": "81ddc1ae86ff914dd4c6ac508a943969365d3011",
+    "parent_pr_489_head": "8c2447db82f0dc93d83ac2e43c423b5ecae07a85",
+    "authority_transfer": false
+  },
+  "target": "TSEITIN_EXPANDER_SEARCH_RELATIONS",
+  "frozen_calculus": {
+    "name": "SKOLEM_LOCAL_DERIVATION_V1_1_SHIELDING_BRIDGE",
+    "no_new_rule_forms": true,
+    "allowed_rule_forms": [
+      "CONST(c)",
+      "AFFINE_XOR(c,support)",
+      "EXISTING_DAG_NODE(node_id)",
+      "GUARDED_ITE(guard, rule_true, rule_false) with hash-consed sharing",
+      "INTERNAL_COVER_WITNESS(alpha)"
+    ],
+    "new_positive_rules_added_by_this_experiment": 0,
+    "guard_surface_for_this_constructor": "BOUNDARY_LITERAL_ONLY",
+    "leaf_discharge": "INTERNAL_COVER_WITNESS(alpha) checked clausewise on the residual CNF",
+    "generic_guard_tautology_oracle": false,
+    "generic_SK0LEM_VALID": false
+  },
+  "search_relation": {
+    "graph": "simple connected 3-regular undirected graph G=(V,E)",
+    "boundary_variables": "one Boolean y_e for each edge e in E",
+    "internal_witness_variables": "selector bits s_v, one for each vertex v in V",
+    "charge_vector": "c_0=1 and c_v=0 for v>0; total charge is odd",
+    "vertex_violation": "viol_v(Y) := XOR_{e incident to v} y_e != c_v",
+    "relation": "F_G(S,Y) := (OR_v s_v) AND AND_v (s_v => viol_v(Y))",
+    "domain": "D_G(Y)=TRUE for every Y because an odd total charge makes simultaneous satisfaction of all vertex parity equations impossible",
+    "witness_semantics": "Any nonempty subset of violated vertices is admissible; the frozen constructor may synthesize one-hot witnesses only.",
+    "cnf_encoding": {
+      "at_least_one_selector_clause": 1,
+      "per_vertex_implication": "For every local incident-edge pattern whose parity equals c_v, add one clause forbidding s_v=1 together with that nonviolating pattern.",
+      "degree_3_nonviolating_patterns_per_vertex": 4,
+      "definitional_auxiliaries": 0,
+      "semantic_prefilter": false
+    }
+  },
+  "finite_graph_series": {
+    "vertex_counts": [8, 10, 12, 14, 16],
+    "all_instances_mandatory": true,
+    "optional_stopping": false,
+    "source_generation": {
+      "degree": 3,
+      "stub_ordering": "Sort the 3n labelled stubs by SHA256(SALT|n|nonce|vertex|stub_index), pair adjacent stubs, reject loops, parallel edges, wrong degree, or disconnected graphs.",
+      "nonce_rule": "Choose the least nonnegative nonce whose graph passes every frozen source gate.",
+      "salt": "U_PAIR_1J_TSEITIN_EXPANDER_SEARCH_V1",
+      "source_gates": [
+        "simple",
+        "connected",
+        "3-regular",
+        "exact finite edge expansion h(G)=min_{0<|S|<=|V|/2}|delta(S)|/|S| >= 1/2"
+      ],
+      "expansion_check": "Exact exhaustive subset check is permitted only in source-fixture generation for these finite n values. It is forbidden in blind synthesis and independent proof verification.",
+      "all_n_expander_theorem_claimed": false,
+      "finite_specimens_are_exactly_expansion_screened": true
+    }
+  },
+  "blind_surface": {
+    "constructor_receives": [
+      "normalized CNF clauses",
+      "ordered boundary-variable list",
+      "internal witness-variable list"
+    ],
+    "constructor_does_not_receive": [
+      "graph adjacency",
+      "charges",
+      "vertex labels",
+      "expansion values",
+      "source generator",
+      "Tseitin family label",
+      "hidden graph nonce"
+    ],
+    "boundary_order": "Sort boundary variables by SHA256(BOUNDARY_ORDER_SALT|input_digest|var_id); freeze in the input authority before constructor code is executed.",
+    "boundary_order_salt": "U_PAIR_1J_TSEITIN_BOUNDARY_ORDER_V1",
+    "opaque_internal_names": true
+  },
+  "frozen_constructor": {
+    "name": "GENERIC_CLAUSEWISE_SHANNON_INTERNAL_COVER_SYNTHESIS_V1",
+    "algorithm": [
+      "Canonicalize the residual CNF under the current partial boundary assignment.",
+      "Probe only the preregistered polynomial candidate set of internal assignments: all-zero plus every one-hot assignment over internal witness bits.",
+      "Accept a leaf only if INTERNAL_COVER_WITNESS(alpha) passes by clausewise residual checking; no SAT or generic validity call is allowed.",
+      "Otherwise branch on the next still-relevant variable in the frozen boundary order.",
+      "Construct exact complementary 0/1 children, memoize by (boundary-order position, canonical residual CNF), and hash-cons all witness GUARDED_ITE nodes.",
+      "For each internal witness bit, build its shared Skolem DAG from leaf constants and complementary boundary-literal GUARDED_ITE nodes."
+    ],
+    "special_function_recognizer_forbidden": true,
+    "graph_or_Tseitin_recognizer_forbidden": true,
+    "source_builder_import_forbidden": true,
+    "reference_DAG_import_forbidden": true,
+    "SAT_solver_calls": 0,
+    "generic_validity_calls": 0,
+    "truth_table_enumeration": false,
+    "semantic_reference_comparison": false,
+    "candidate_set_size_per_state": "|V|+1, hence polynomial in the frozen input",
+    "hash_consing": "required for residual states and proof nodes"
+  },
+  "independent_verifier": {
+    "constructor_import_forbidden": true,
+    "source_builder_import_forbidden": true,
+    "verification": [
+      "Recompute the root normalized CNF from the frozen input.",
+      "For every branch state, independently recompute both residual children by assigning the declared boundary literal 0 and 1.",
+      "Require the declared guard to equal the next allowed frozen boundary variable and require exact complementary coverage by construction.",
+      "For every leaf, independently run only the clausewise INTERNAL_COVER_WITNESS(alpha) checker on the residual CNF.",
+      "Recompute each witness-bit CONST/GUARDED_ITE proof node from already verified child roots and hash-consing identities.",
+      "Require the root witness vector to be attached to the root residual state."
+    ],
+    "semantic_truth_table_used": false,
+    "generic_tautology_used": false,
+    "generic_SK0LEM_VALID_used": false
+  },
+  "resource_envelope": {
+    "per_instance_timeout_seconds": 120,
+    "total_series_timeout_seconds": 600,
+    "memory_budget_mb": 2048,
+    "retry_with_more_resources": false,
+    "B": "number of boundary variables",
+    "residual_state_observation_envelope": "8*B^2",
+    "proof_DAG_node_observation_envelope": "8*B^3",
+    "envelope_role": "Preregistered finite diagnostic envelope only; crossing it is an observed constructor blowup, not a lower bound on all proof DAGs.",
+    "wallclock_or_memory_exhaustion_before_an_envelope_classification": "UNKNOWN_RESOURCE_LIMIT"
+  },
+  "required_metrics": [
+    "B",
+    "internal_witness_count",
+    "cnf_clause_count",
+    "cnf_literal_occurrences",
+    "T_synth_ns",
+    "residual_states",
+    "memo_hits",
+    "leaf_cover_probes",
+    "leaf_cover_clause_literal_inspections",
+    "proof_DAG_nodes",
+    "proof_DAG_bytes",
+    "max_live_shared_nodes",
+    "T_verify_ns",
+    "verifier_state_visits",
+    "verifier_proof_node_visits"
+  ],
+  "frozen_verdict_taxonomy": [
+    "PASS_SCOPED_HOSTILE_SYNTHESIS",
+    "FAIL_CALCULUS_EXPRESSIVITY",
+    "FAIL_SYNTHESIS_ACCESS",
+    "FAIL_PROOF_DAG_BLOWUP",
+    "FAIL_HIDDEN_GENERIC_VALIDATION",
+    "FAIL_DOMAIN_DROPPED",
+    "UNKNOWN_RESOURCE_LIMIT"
+  ],
+  "verdict_rules": {
+    "PASS_SCOPED_HOSTILE_SYNTHESIS": "Every frozen finite specimen is independently accepted with exact total domain, witness proof, clean forbidden-machinery audit, and no preregistered observation-envelope breach.",
+    "FAIL_CALCULUS_EXPRESSIVITY": "A separately frozen admissible compact certificate exists but the frozen V1.1 rule forms cannot certify it. This label requires an independently preregistered witness-injection control and may not be inferred from blind failure alone.",
+    "FAIL_SYNTHESIS_ACCESS": "After candidate freeze, a compact certificate accepted by the same frozen verifier is supplied independently, while the blind constructor failed to synthesize one without forbidden machinery.",
+    "FAIL_PROOF_DAG_BLOWUP": "The frozen constructor crosses the preregistered residual-state or proof-node observation envelope. This is only an observed constructor outcome and is not a mathematical proof that polynomial proof DAGs do not exist.",
+    "FAIL_HIDDEN_GENERIC_VALIDATION": "Audit finds SAT, generic validity, generic tautology, source/reference import, semantic truth-table use, or a special Tseitin/expander recognizer in the blind path.",
+    "FAIL_DOMAIN_DROPPED": "The candidate omits exact total-domain coverage or leaves a boundary branch uncovered.",
+    "UNKNOWN_RESOURCE_LIMIT": "Frozen wallclock or memory budget is exhausted before a stronger preregistered classification is reached."
+  },
+  "interpretation_firewall": {
+    "finite_series_pass": "EMPIRICAL_SCALING_PASS only",
+    "observed_blowup_is_lower_bound": false,
+    "expansion_screen_is_all_n_expander_theorem": false,
+    "uniform_polynomial_synthesis": "OPEN",
+    "symbolic_bounds_required_for_theorem": [
+      "T_synth(n) <= p(n)",
+      "|Pi_n| <= p(n)",
+      "T_verify(n) <= p(n)"
+    ],
+    "GENERAL_SAT_IN_P": "NOT_PROVED",
+    "P_EQ_NP": "NOT_PROVED",
+    "P_VS_NP": "OPEN"
+  }
+}
