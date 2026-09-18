@@ -1,0 +1,204 @@
+name: U-PAIR-1J mixed exact-guard hostile blind series
+
+on:
+  push:
+    branches:
+      - research/U-PAIR-1J-mixed-exact-guard-synthesis-2026-09-18
+    paths:
+      - '.github/workflows/u-pair-1j-mixed-exact-guard-hostile-series.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  hostile-series:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: research/U-PAIR-1J-mixed-exact-guard-synthesis-2026-09-18
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Verify frozen bindings
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git hash-object research/tools/u_pair_1j_mixed_exact_guard/constructor.py)" = "c090e68cd368806bfdd377786d42d7e9b4471a5e"
+          test "$(git hash-object research/tools/u_pair_1j_mixed_exact_guard/independent_verify.py)" = "5f474f822c1389ca3d95f119595edaeea0069665"
+          test "$(git hash-object research/generated/u_pair_1j_mixed_exact_guard_source/source_manifest.json)" = "18127feb1d3e1f084bcdf523871a967be4558ba7"
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          src=json.loads(Path("research/U_PAIR_1J_CONNECTED_MIXED_AFFINE_OR3_INDEPENDENT_SOURCE_CHECK_2026-09-18_v1.0.json").read_text())
+          ctl=json.loads(Path("research/U_PAIR_1J_MIXED_EXACT_GUARD_KILLER_CONTROL_RESULT_2026-09-18_v1.0.json").read_text())
+          rev=json.loads(Path("research/U_PAIR_1J_MIXED_EXACT_GUARD_HOSTILE_IMPLEMENTATION_REVIEW_2026-09-18_v1.0.json").read_text())
+          assert src["verdict"]=="PASS_SOURCE_FREEZE_INDEPENDENT_CHECK"
+          assert ctl["verdict"]=="PASS_EXACT_MIXED_GUARD_DERIVATION_UNDER_FROZEN_V1_1"
+          assert rev["verdict"]=="PASS_IMPLEMENTATION_REVIEW__AUTHORIZED_TO_RUN_ONE_BLIND_MIXED_HOSTILE_SERIES"
+          assert rev["execution_authority"]["authorize_exactly_one_blind_hostile_series_run"] is True
+          PY
+
+      - name: Run frozen mixed hostile series once
+        shell: bash
+        run: |
+          set -euo pipefail
+          OUT="research/generated/u_pair_1j_mixed_exact_guard_run"
+          rm -rf "$OUT"
+          mkdir -p "$OUT"
+          for n in 16 32 64 128 256; do
+            timeout 120s python research/tools/u_pair_1j_mixed_exact_guard/constructor.py               "research/generated/u_pair_1j_mixed_exact_guard_source/source_n${n}.json"               "$OUT/candidate_n${n}.json"
+            timeout 120s python research/tools/u_pair_1j_mixed_exact_guard/independent_verify.py               "research/generated/u_pair_1j_mixed_exact_guard_source/source_n${n}.json"               "$OUT/candidate_n${n}.json"               "$OUT/verify_n${n}.json"
+          done
+
+      - name: Aggregate result
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import hashlib, json, math
+          from pathlib import Path
+
+          series=[16,32,64,128,256]
+          out=Path("research/generated/u_pair_1j_mixed_exact_guard_run")
+          rows=[]
+          all_pass=True
+          all_clean=True
+          all_bounds=True
+
+          for n in series:
+              cpath=out/f"candidate_n{n}.json"
+              vpath=out/f"verify_n{n}.json"
+              cand=json.loads(cpath.read_text())
+              ver=json.loads(vpath.read_text())
+              d=cand["derivation"]
+              clean=(
+                  d["new_rule_form_used"] is False
+                  and d["nonlinear_xor_rule_used"] is False
+                  and d["SAT_solver_calls"]==0
+                  and d["generic_SK0LEM_VALID_calls"]==0
+                  and d["generic_DAG_tautology_calls"]==0
+                  and d["truth_table_enumeration"] is False
+                  and d["boundary_assignment_enumeration"] is False
+                  and d["precomputed_mixed_guard_used"] is False
+                  and d["precomputed_or3_output_used"] is False
+                  and d["old_connected_mixed_result_import_used"] is False
+                  and d["old_tseitin_candidate_import_used"] is False
+                  and d["spectral_metadata_used"] is False
+                  and d["calculus_mutation_used"] is False
+              )
+              passed=ver["verdict"]=="PASS_INDEPENDENT_MIXED_GUARD_DOMAIN_SELECTOR_PROOF"
+              m=cand["metrics"]
+              k=int(math.log2(n))
+              guard_bound=5*n+2
+              selector_bound=k*(n-1)
+              total_bound=guard_bound+selector_bound
+              within=(
+                  m["S_guards_nodes"]<=guard_bound
+                  and m["S_selector_exclusive_nodes"]<=selector_bound
+                  and m["S_total_union_nodes"]<=total_bound
+                  and m["S_domain_terms"]==3*n
+              )
+              all_pass &= passed
+              all_clean &= clean
+              all_bounds &= within
+              rows.append({
+                  "n":n,
+                  "S_guards_nodes":m["S_guards_nodes"],
+                  "S_guards_bytes":m["S_guards_bytes"],
+                  "S_selector_reachable_nodes":m["S_selector_reachable_nodes"],
+                  "S_selector_exclusive_nodes":m["S_selector_exclusive_nodes"],
+                  "S_shared_guard_selector_nodes":m["S_shared_guard_selector_nodes"],
+                  "S_selector_bytes":m["S_selector_bytes"],
+                  "S_domain_terms":m["S_domain_terms"],
+                  "S_domain_bytes":m["S_domain_bytes"],
+                  "S_total_union_nodes":m["S_total_union_nodes"],
+                  "S_total_union_bytes":m["S_total_union_bytes"],
+                  "max_live_shared_nodes":m["max_live_shared_nodes"],
+                  "T_guard_synth_ns":m["T_guard_synth_ns"],
+                  "T_select_synth_ns":m["T_select_synth_ns"],
+                  "T_domain_synth_ns":m["T_domain_synth_ns"],
+                  "T_guard_verify_ns":ver["T_guard_verify_ns"],
+                  "T_select_verify_ns":ver["T_select_verify_ns"],
+                  "T_domain_verify_ns":ver["T_domain_verify_ns"],
+                  "guard_constructor_visits":m["guard_constructor_visits"],
+                  "selector_constructor_visits":m["selector_constructor_visits"],
+                  "domain_constructor_visits":m["domain_constructor_visits"],
+                  "guard_verifier_visits":ver["guard_verifier_visits"],
+                  "selector_verifier_visits":ver["selector_verifier_visits"],
+                  "domain_verifier_visits":ver["domain_verifier_visits"],
+                  "guard_bound":guard_bound,
+                  "selector_exclusive_bound":selector_bound,
+                  "total_union_bound":total_bound,
+                  "within_frozen_constructor_bounds":within,
+                  "forbidden_machinery_audit_clean":clean,
+                  "independent_verifier_pass":passed,
+                  "candidate_sha256":hashlib.sha256(cpath.read_bytes()).hexdigest(),
+                  "verify_sha256":hashlib.sha256(vpath.read_bytes()).hexdigest()
+              })
+
+          verdict=(
+              "PASS_SCOPED_MIXED_GUARD_HOSTILE_SYNTHESIS"
+              if all_pass and all_clean and all_bounds
+              else "FAIL_HIDDEN_GENERIC_VALIDATION" if not all_clean
+              else "FAIL_MIXED_GUARD_REPRESENTATION_PRESSURE" if not all_bounds
+              else "FAIL_MIXED_GUARD_SYNTHESIS_ACCESS"
+          )
+
+          result={
+              "artifact_id":"JANUS-TRUMP-U-PAIR-1J-MIXED-EXACT-GUARD-HOSTILE-BLIND-SERIES-RESULT-2026-09-18-v1.0",
+              "date":"2026-09-18",
+              "prereg_commit":"6097218416d0a8a244cf526d01ba8a00fc0ba1fa",
+              "source_freeze_commit":"19e385405c3eaa8736553edcd5f3e6e2b139d899",
+              "source_check_commit":"80645e7ddae908f4f547569663d856bbe520fe9f",
+              "killer_control_result_commit":"9d794acc97c127bada6c4f092293c3256ea08472",
+              "implementation_review_commit":"5f3d63734db163efee04e55e3387cd94c88c9c4c",
+              "constructor_blob":"c090e68cd368806bfdd377786d42d7e9b4471a5e",
+              "verifier_blob":"5f474f822c1389ca3d95f119595edaeea0069665",
+              "series":series,
+              "rows":rows,
+              "aggregate":{
+                  "all_five_independent_verifier_PASS":all_pass,
+                  "all_forbidden_machinery_audits_clean":all_clean,
+                  "all_within_frozen_constructor_bounds":all_bounds,
+                  "hostile_series_executed_once":True,
+                  "retry_with_more_resources":False
+              },
+              "verdict":verdict,
+              "interpretation":{
+                  "mixed_exact_guard_synthesis_observed": all_pass,
+                  "mixed_guard_resource_failure_observed": not all_bounds,
+                  "selector_sharing_failure_observed": False if all_pass else None,
+                  "domain_proof_failure_observed": False if all_pass else None,
+                  "finite_series_only":True,
+                  "constructor_specific_bounds_only":True,
+                  "observed_failure_is_lower_bound":False
+              },
+              "promotion_firewall":{
+                  "EMPIRICAL_SCALING_PASS": verdict=="PASS_SCOPED_MIXED_GUARD_HOSTILE_SYNTHESIS",
+                  "GENERAL_SAT_IN_P":"NOT_PROVED",
+                  "P_EQ_NP":"NOT_PROVED",
+                  "P_VS_NP":"OPEN"
+              }
+          }
+          Path("research/U_PAIR_1J_MIXED_EXACT_GUARD_HOSTILE_BLIND_SERIES_RESULT_2026-09-18_v1.0.json").write_text(
+              json.dumps(result,indent=2,sort_keys=True)+"\n"
+          )
+          print(json.dumps({"verdict":verdict,"rows":rows},sort_keys=True))
+          assert verdict=="PASS_SCOPED_MIXED_GUARD_HOSTILE_SYNTHESIS"
+          PY
+
+      - name: Freeze hostile result
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add research/generated/u_pair_1j_mixed_exact_guard_run
+          git add research/U_PAIR_1J_MIXED_EXACT_GUARD_HOSTILE_BLIND_SERIES_RESULT_2026-09-18_v1.0.json
+          git commit -m "U-PAIR-1J freeze mixed exact-guard hostile blind series result"
+          git push origin HEAD:research/U-PAIR-1J-mixed-exact-guard-synthesis-2026-09-18
