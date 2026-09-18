@@ -56,7 +56,7 @@ def parse_dimacs(path: Path):
                 buf = []
             else:
                 buf.append(z)
-    if buf or (nvars, nclauses) != (125, 538) or len(clauses) != 430:
+    if buf or (nvars, nclauses) != (125, 538) or len(clauses) != 538:
         raise ValueError(f"UUF125_SHAPE_MISMATCH:{path.name}:{nvars}:{nclauses}:{len(clauses)}")
     for clause in clauses:
         if len(clause) != 3 or len({abs(x) for x in clause}) != 3:
