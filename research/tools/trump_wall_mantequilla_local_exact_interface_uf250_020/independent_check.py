@@ -10,7 +10,7 @@ from collections import Counter
 PAIR = (40, 240)
 RAW = ((0, 0), (0, 1), (1, 0), (1, 1))
 KEEP = ((0, 0), (0, 1), (1, 1))
-ALLOWED_IMPORT_ROOTS = {"ast", "hashlib", "json", "sys", "time", "collections"}
+ALLOWED_IMPORT_ROOTS = {"__future__", "ast", "hashlib", "json", "sys", "time", "collections"}
 
 
 def sha(obj):
