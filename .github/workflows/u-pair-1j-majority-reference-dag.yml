@@ -1,0 +1,107 @@
+name: U-PAIR-1J majority hidden reference DAG baseline
+
+on:
+  push:
+    branches:
+      - research/U-PAIR-1J-majority-reference-dag-2026-09-18
+    paths:
+      - .github/workflows/u-pair-1j-majority-reference-dag.yml
+
+permissions:
+  contents: write
+
+concurrency:
+  group: u-pair-1j-majority-reference-dag
+  cancel-in-progress: false
+
+jobs:
+  reference:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      BRANCH: research/U-PAIR-1J-majority-reference-dag-2026-09-18
+      OUT_DIR: research/generated/u_pair_1j_majority_reference
+      SUMMARY: research/U_PAIR_1J_IMPLICIT_MAJORITY_REFERENCE_DAG_RESULT_2026-09-18_v1.0.json
+      CHECK: research/U_PAIR_1J_IMPLICIT_MAJORITY_REFERENCE_DAG_INDEPENDENT_CHECK_2026-09-18_v1.0.json
+
+    steps:
+      - name: Checkout exact reference head
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Verify frozen reference authorities
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import hashlib
+          from pathlib import Path
+          expected={
+            "research/U_PAIR_1J_IMPLICIT_MAJORITY_REFERENCE_DAG_PREREGISTRATION_2026-09-18.json":"79656e85e94113380fa2bf79ab61f5d24a5ce3a4",
+            "research/tools/u_pair_1j_majority_reference/reference_builder.py":"7f6530f601ecd9c34996416c61cf2f041c5c91c6",
+            "research/tools/u_pair_1j_majority_reference/independent_check.py":"630492ab1b8f7cb49fac4ca26a8c549411328d32",
+          }
+          def blob(path):
+              b=Path(path).read_bytes()
+              return hashlib.sha1(f"blob {len(b)}\0".encode()+b).hexdigest()
+          bad={p:(h,blob(p)) for p,h in expected.items() if blob(p)!=h}
+          if bad: raise SystemExit(f"REFERENCE_AUTHORITY_BIND_FAILURE:{bad}")
+          print("REFERENCE_AUTHORITIES_OK")
+          PY
+
+      - name: Build canonical counting DAG references
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf "$OUT_DIR"
+          python research/tools/u_pair_1j_majority_reference/reference_builder.py "$OUT_DIR"
+          cp "$OUT_DIR/reference_summary.json" "$SUMMARY"
+
+      - name: Verify reference DAGs independently
+        shell: bash
+        run: |
+          set -euo pipefail
+          python research/tools/u_pair_1j_majority_reference/independent_check.py "$OUT_DIR" "$CHECK"
+
+      - name: Upload hidden reference receipt
+        uses: actions/upload-artifact@v4
+        with:
+          name: u-pair-1j-majority-reference-${{ github.run_id }}
+          path: |
+            research/generated/u_pair_1j_majority_reference/
+            research/U_PAIR_1J_IMPLICIT_MAJORITY_REFERENCE_DAG_RESULT_2026-09-18_v1.0.json
+            research/U_PAIR_1J_IMPLICIT_MAJORITY_REFERENCE_DAG_INDEPENDENT_CHECK_2026-09-18_v1.0.json
+          if-no-files-found: error
+          retention-days: 90
+
+      - name: Freeze hidden reference authority
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add "$OUT_DIR" "$SUMMARY" "$CHECK"
+          git commit -m "U-PAIR-1J freeze hidden majority reference DAG baseline"
+          git push origin "HEAD:$BRANCH"
+
+      - name: Enforce reference claim ceiling
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json,os
+          x=json.load(open(os.environ["CHECK"]))
+          s=json.load(open(os.environ["SUMMARY"]))
+          assert x["verdict"]=="PASS_INDEPENDENT_MAJORITY_REFERENCE_DAG"
+          assert [r["n"] for r in x["rows"]]==[5,9,17,33,65]
+          assert s["scientific_firewall"]["synthesis_not_tested"] is True
+          assert s["scientific_firewall"]["P_VS_NP"]=="OPEN"
+          print("MAJORITY_REFERENCE_BASELINE_PASS")
+          PY
