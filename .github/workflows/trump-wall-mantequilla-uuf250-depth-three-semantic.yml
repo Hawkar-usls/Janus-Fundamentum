@@ -1,0 +1,266 @@
+name: TRUMP WALL Mantequilla UUF250 depth three semantic execution
+
+on:
+  push:
+    branches:
+      - research/TRUMP_WALL-MANTEQUILLA-UUF250-depth-three-sealed-semantics-2026-09-18
+    paths:
+      - research/TRUMP_WALL_MANTEQUILLA_UUF250_DEPTH_THREE_SEMANTIC_LAUNCH_2026-09-18_v1.0.json
+
+permissions:
+  contents: write
+
+concurrency:
+  group: trump-wall-mantequilla-uuf250-depth-three-semantic
+  cancel-in-progress: false
+
+jobs:
+  semantic:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - id: "033"
+            source: "UUF250_033"
+            tool_dir: "research/tools/trump_wall_mantequilla_uuf250_033_depth"
+            sealed_path: "research/sealed/TRUMP_WALL_MANTEQUILLA_UUF250_033_DEPTH_SEALED_BUNDLE_2026-09-18_v1.0.json"
+            sealed_blob: "f423b967fe754aa8b7c763cba9a87ed4fe6f8290"
+            candidate_blob: "c021be8c829aa97007415ad4267a905790e919fc"
+            checker_blob: "3231b99c270b92058d610e907d39d8c42329b6ed"
+            independent_pass: "PASS_INDEPENDENT_UUF250_033_MANTEQUILLA_VERIFICATION"
+          - id: "042"
+            source: "UUF250_042"
+            tool_dir: "research/tools/trump_wall_mantequilla_uuf250_042_depth"
+            sealed_path: "research/sealed/TRUMP_WALL_MANTEQUILLA_UUF250_042_DEPTH_SEALED_BUNDLE_2026-09-18_v1.0.json"
+            sealed_blob: "419c3902a227ed89c26186ec1769cb50e83970a3"
+            candidate_blob: "589b01deb7800d2f50c4a89bf81d477f827b1d51"
+            checker_blob: "e707a277000d10eb1c7b14dc3505d7d58a42e5f4"
+            independent_pass: "PASS_INDEPENDENT_UUF250_042_MANTEQUILLA_VERIFICATION"
+          - id: "070"
+            source: "UUF250_070"
+            tool_dir: "research/tools/trump_wall_mantequilla_uuf250_070_depth"
+            sealed_path: "research/sealed/TRUMP_WALL_MANTEQUILLA_UUF250_070_DEPTH_SEALED_BUNDLE_2026-09-18_v1.0.json"
+            sealed_blob: "4029bf985d7c00dd2c4848c491f7698a0b0cfb79"
+            candidate_blob: "f98592f66afc496370276f145b72adf457ebbb3e"
+            checker_blob: "be3bf9a389d1a46d671e1b8122e72b587db5a268"
+            independent_pass: "PASS_INDEPENDENT_UUF250_070_MANTEQUILLA_VERIFICATION"
+    env:
+      SOURCE: ${{ matrix.source }}
+      ID: ${{ matrix.id }}
+      TOOL_DIR: ${{ matrix.tool_dir }}
+      SEALED_PATH: ${{ matrix.sealed_path }}
+      SEALED_BLOB: ${{ matrix.sealed_blob }}
+      CANDIDATE_BLOB: ${{ matrix.candidate_blob }}
+      CHECKER_BLOB: ${{ matrix.checker_blob }}
+      INDEPENDENT_PASS: ${{ matrix.independent_pass }}
+
+    steps:
+      - name: Checkout common semantic launch head
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Verify frozen semantic authorities
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import hashlib,os
+          from pathlib import Path
+          expected={
+            "research/TRUMP_WALL_MANTEQUILLA_UUF250_DEPTH_THREE_SEALED_SEMANTICS_PREREG_2026-09-18_v1.0.json":"612a68a962b2864755b6b0328cf65a9068f07315",
+            "research/TRUMP_WALL_MANTEQUILLA_UUF250_DEPTH_THREE_SEMANTIC_IMPLEMENTATION_REVIEW_2026-09-18_v1.0.json":"63b6858e4161c4caa714dd700308b609286d2208",
+            "research/TRUMP_WALL_MANTEQUILLA_UUF250_DEPTH_THREE_SEALED_BUNDLE_AUTHORITY_2026-09-18_v1.0.json":"7e707e20ab975e57041880f9ae919c4e777bc38a",
+            os.environ["SEALED_PATH"]:os.environ["SEALED_BLOB"],
+            os.path.join(os.environ["TOOL_DIR"],"candidate.py"):os.environ["CANDIDATE_BLOB"],
+            os.path.join(os.environ["TOOL_DIR"],"independent_check.py"):os.environ["CHECKER_BLOB"],
+          }
+          def blob(path):
+              data=Path(path).read_bytes()
+              return hashlib.sha1(f"blob {len(data)}\0".encode()+data).hexdigest()
+          bad={p:{"expected":h,"observed":blob(p)} for p,h in expected.items() if blob(p)!=h}
+          if bad: raise SystemExit(f"SEMANTIC_AUTHORITY_BIND_FAILURE:{bad}")
+          print("SEMANTIC_AUTHORITIES_OK",os.environ["SOURCE"])
+          PY
+
+      - name: Execute frozen Mantequilla constructor
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "/tmp/mantequilla-$ID"
+          python "$TOOL_DIR/candidate.py" "$SEALED_PATH" "/tmp/mantequilla-$ID/candidate.json" | tee "/tmp/mantequilla-$ID/candidate.log"
+
+      - name: Verify independently with checker-only semantic microscope
+        shell: bash
+        run: |
+          set -euo pipefail
+          python "$TOOL_DIR/independent_check.py" "$SEALED_PATH" "/tmp/mantequilla-$ID/candidate.json" "$TOOL_DIR/candidate.py" "/tmp/mantequilla-$ID/independent.json" | tee "/tmp/mantequilla-$ID/independent.log"
+
+      - name: Build frozen specimen result
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import hashlib,json,os,pathlib,subprocess
+          sid=os.environ["SOURCE"]; iid=os.environ["ID"]
+          cand=json.load(open(f"/tmp/mantequilla-{iid}/candidate.json",encoding="utf-8"))
+          ind=json.load(open(f"/tmp/mantequilla-{iid}/independent.json",encoding="utf-8"))
+          verified=(ind["verdict"]==os.environ["INDEPENDENT_PASS"] and all(ind["checks"].values()) and ind["scientific_verdict"]==cand["verdict"] and ind["semantic_class"]==cand["semantic_class"])
+          if not verified: outcome="FAIL_INDEPENDENT_RECONCILIATION"
+          else: outcome=cand["verdict"]
+          nontrivial=verified and cand["semantic_class"] not in ("R_C_TRUE","R_C_FALSE")
+          correlated=verified and cand["semantic_class"]=="R_C_CORRELATED"
+          result={
+            "artifact_id":f"JANUS-TRUMP-WALL-MANTEQUILLA-{sid.replace('_','-')}-DEPTH-SEMANTIC-RESULT-2026-09-18-v1.0",
+            "date":"2026-09-18",
+            "source":sid,
+            "status":"FROZEN_MANTEQUILLA_SEMANTIC_RESULT" if verified else "FROZEN_INDEPENDENT_RECONCILIATION_FAILURE",
+            "scientific_outcome":outcome,
+            "semantic_class":cand["semantic_class"],
+            "execution_verdict":ind["verdict"],
+            "first_semantically_nontrivial_boundary_specimen":nontrivial,
+            "first_genuine_correlated_wall_specimen":correlated,
+            "candidate":cand,
+            "independent":ind,
+            "semantic_microscope":ind["checker_only_semantic_microscope"],
+            "claims":{
+              "correlated_not_equal_polynomial_bridge":True,
+              "polynomial_bridge_proved":False,
+              "constructive_bridge_promoted":False,
+              "composition_started":False
+            },
+            "posthoc_diagnostics":{
+              "kappa_C_status":"DEFERRED_UNTIL_AFTER_FROZEN_SEMANTIC_VERDICT",
+              "used_for_routing":False
+            },
+            "authorities":{
+              "common_launch_head":"${{ github.sha }}",
+              "prereg_blob":"612a68a962b2864755b6b0328cf65a9068f07315",
+              "implementation_review_blob":"63b6858e4161c4caa714dd700308b609286d2208",
+              "sealed_authority_blob":"7e707e20ab975e57041880f9ae919c4e777bc38a",
+              "sealed_bundle_blob":os.environ["SEALED_BLOB"],
+              "candidate_blob":os.environ["CANDIDATE_BLOB"],
+              "checker_blob":os.environ["CHECKER_BLOB"]
+            },
+            "scientific_firewall":{
+              "POLYNOMIAL_BRIDGE":"NOT_PROVED",
+              "MULTI_INTERFACE_COMPOSITION":"NOT_PROVED",
+              "GENERAL_SAT_IN_P":"NOT_PROVED",
+              "P_VS_NP":"OPEN"
+            }
+          }
+          def csha(x): return hashlib.sha256(json.dumps(x,sort_keys=True,separators=(",",":"),ensure_ascii=False).encode()).hexdigest()
+          result["result_semantic_digest_sha256"]=csha({
+            "source":sid,"outcome":outcome,"semantic_class":result["semantic_class"],
+            "candidate_digest":cand["candidate_semantic_digest_sha256"],
+            "independent_digest":ind["independent_semantic_digest_sha256"],
+            "truth_table":ind["checker_only_semantic_microscope"]["direct_local_existential_truth_table"]
+          })
+          out=f"/tmp/mantequilla-{iid}/result_{sid}.json"
+          pathlib.Path(out).write_text(json.dumps(result,indent=2,sort_keys=True)+"\n",encoding="utf-8")
+          print(json.dumps({"source":sid,"scientific_outcome":outcome,"semantic_class":result["semantic_class"],"nontrivial":nontrivial,"correlated":correlated,"digest":result["result_semantic_digest_sha256"]},sort_keys=True))
+          PY
+
+      - name: Upload complete specimen receipt
+        uses: actions/upload-artifact@v4
+        with:
+          name: trump-wall-mantequilla-uuf250-depth-semantic-${{ matrix.id }}
+          path: |
+            /tmp/mantequilla-${{ matrix.id }}/candidate.json
+            /tmp/mantequilla-${{ matrix.id }}/candidate.log
+            /tmp/mantequilla-${{ matrix.id }}/independent.json
+            /tmp/mantequilla-${{ matrix.id }}/independent.log
+            /tmp/mantequilla-${{ matrix.id }}/result_UUF250_${{ matrix.id }}.json
+          if-no-files-found: error
+          retention-days: 90
+
+  freeze:
+    needs: semantic
+    if: always() && needs.semantic.result == 'success'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout common semantic launch head
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+
+      - name: Download all three immutable semantic receipts
+        uses: actions/download-artifact@v4
+        with:
+          pattern: trump-wall-mantequilla-uuf250-depth-semantic-*
+          path: /tmp/semantic-results
+          merge-multiple: true
+
+      - name: Verify all three results and build aggregate
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import hashlib,json,pathlib
+          sources=["UUF250_033","UUF250_042","UUF250_070"]
+          results=[]
+          for s in sources:
+              p=pathlib.Path(f"/tmp/semantic-results/result_{s}.json")
+              x=json.loads(p.read_text(encoding="utf-8"))
+              assert x["source"]==s
+              assert x["execution_verdict"]==f"PASS_INDEPENDENT_{s}_MANTEQUILLA_VERIFICATION"
+              assert all(x["independent"]["checks"].values())
+              assert x["scientific_outcome"]!="FAIL_INDEPENDENT_RECONCILIATION"
+              assert x["candidate"]["accounting"]["constructor_boundary_cube_assignments_enumerated"]==0
+              assert x["candidate"]["accounting"]["sat_solver_invocations"]==0
+              results.append(x)
+          agg={
+            "artifact_id":"JANUS-TRUMP-WALL-MANTEQUILLA-UUF250-DEPTH-THREE-SEMANTIC-AGGREGATE-2026-09-18-v1.0",
+            "date":"2026-09-18",
+            "scope":"THREE_PRESEALED_STRUCTURALLY_ELIGIBLE_UUF250_DEPTH_SPECIMENS",
+            "sources":sources,
+            "N_routed":3,
+            "N_semantically_trivial_true":sum(x["semantic_class"]=="R_C_TRUE" for x in results),
+            "N_semantically_trivial_false":sum(x["semantic_class"]=="R_C_FALSE" for x in results),
+            "N_semantically_nontrivial":sum(x["first_semantically_nontrivial_boundary_specimen"] for x in results),
+            "N_correlated":sum(x["first_genuine_correlated_wall_specimen"] for x in results),
+            "results":[{"source":x["source"],"scientific_outcome":x["scientific_outcome"],"semantic_class":x["semantic_class"],"result_semantic_digest_sha256":x["result_semantic_digest_sha256"]} for x in results],
+            "no_optional_stopping":{"all_three_executed_from_one_common_launch_head":True},
+            "scientific_firewall":{"POLYNOMIAL_BRIDGE":"NOT_PROVED","GENERAL_SAT_IN_P":"NOT_PROVED","P_VS_NP":"OPEN"}
+          }
+          agg["aggregate_semantic_digest_sha256"]=hashlib.sha256(json.dumps(agg,sort_keys=True,separators=(",",":"),ensure_ascii=False).encode()).hexdigest()
+          pathlib.Path("/tmp/semantic-results/aggregate.json").write_text(json.dumps(agg,indent=2,sort_keys=True)+"\n",encoding="utf-8")
+          print(json.dumps(agg,sort_keys=True))
+          PY
+
+      - name: Freeze all three semantic results atomically
+        shell: bash
+        run: |
+          set -euo pipefail
+          cp /tmp/semantic-results/result_UUF250_033.json research/TRUMP_WALL_MANTEQUILLA_UUF250_033_DEPTH_SEMANTIC_RESULT_2026-09-18_v1.0.json
+          cp /tmp/semantic-results/result_UUF250_042.json research/TRUMP_WALL_MANTEQUILLA_UUF250_042_DEPTH_SEMANTIC_RESULT_2026-09-18_v1.0.json
+          cp /tmp/semantic-results/result_UUF250_070.json research/TRUMP_WALL_MANTEQUILLA_UUF250_070_DEPTH_SEMANTIC_RESULT_2026-09-18_v1.0.json
+          cp /tmp/semantic-results/aggregate.json research/TRUMP_WALL_MANTEQUILLA_UUF250_DEPTH_THREE_SEMANTIC_AGGREGATE_2026-09-18_v1.0.json
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add research/TRUMP_WALL_MANTEQUILLA_UUF250_*_DEPTH_SEMANTIC_RESULT_2026-09-18_v1.0.json research/TRUMP_WALL_MANTEQUILLA_UUF250_DEPTH_THREE_SEMANTIC_AGGREGATE_2026-09-18_v1.0.json
+          git commit -m "TRUMP WALL freeze three UUF250 depth semantic results atomically"
+          git push origin "HEAD:research/TRUMP_WALL-MANTEQUILLA-UUF250-depth-three-sealed-semantics-2026-09-18"
+
+      - name: Enforce aggregate claim ceiling
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json
+          x=json.load(open("research/TRUMP_WALL_MANTEQUILLA_UUF250_DEPTH_THREE_SEMANTIC_AGGREGATE_2026-09-18_v1.0.json",encoding="utf-8"))
+          assert x["N_routed"]==3
+          assert x["scientific_firewall"]["POLYNOMIAL_BRIDGE"]=="NOT_PROVED"
+          assert x["scientific_firewall"]["GENERAL_SAT_IN_P"]=="NOT_PROVED"
+          assert x["scientific_firewall"]["P_VS_NP"]=="OPEN"
+          print("THREE_SEMANTIC_AGGREGATE_CLAIM_CEILING_PASS")
+          PY
