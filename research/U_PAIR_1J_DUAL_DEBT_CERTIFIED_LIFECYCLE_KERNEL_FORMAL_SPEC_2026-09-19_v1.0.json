@@ -1,0 +1,179 @@
+{
+  "artifact_id": "JANUS-U-PAIR-1J-DUAL-DEBT-CERTIFIED-LIFECYCLE-KERNEL-FORMAL-SPEC-2026-09-19-v1.0",
+  "date": "2026-09-19",
+  "authority": "FORMAL_SPECIFICATION_DRAFT__TWO_DEBT_CLASSES__NO_COMPLETENESS_OR_COMPLEXITY_PROMOTION",
+  "branch": "research/U-PAIR-1J-dual-debt-certified-lifecycle-kernel-2026-09-19",
+  "parents": {
+    "projected_semantic_debt_kernel_spec": "83b1d699aaeee65d921ff2fcb90f12ddf75fa3ac",
+    "well_founded_reconstruction_addendum": "5760c65947c468d490d6990230866d9e0d07c27f",
+    "t1_t5_abstract_soundness_theorem": "e6902d4284aa19a3558f968321c5bd54393bdde8",
+    "frozen_hostiles_mapping": "c596841e1623d344a738f71146512134b34b61bf",
+    "repo_wide_sweep": "d881aca0d06fe20bb6272f626946743e613b314c",
+    "historical_mk_bceg_r3_deferred_debt": "af3ac7520b0495dfcd999762205664ad85002b1a",
+    "historical_mk_bceg_r3b_capability_packages": "445dfe33a0d746b25b04cd27c101cb8ebf3b58f5",
+    "historical_mk_bceg_r3c_proof_lifecycle": "500d53d18716ff77ffdb183f633b082c9b51e72e",
+    "historical_mk_bceg_r4_passport": "a75b3b80636c36f947796c446c04abda154f5406",
+    "historical_open_core_vault": "d03b926e013110b0afed5a60be5b0dd4549695f4"
+  },
+  "name": "JANUS_DUAL_DEBT_CERTIFIED_LIFECYCLE_KERNEL",
+  "purpose": "Unify exact witness-reconstruction obligations with exact deferred-operation obligations, while preserving representation capabilities, charged work, liabilities, provenance and receipts across representation changes and semantic roundtrips.",
+  "design_boundary": {
+    "semantic_debt_question": "Which original witness obligations have been projected away but do not yet have accepted reconstruction authority?",
+    "transformation_debt_question": "Which exact requested operations have been deferred or rerouted but do not yet have an accepted execution/subsumption certificate?",
+    "orthogonal_liabilities": "Discovery work, verification work, representation materialization cost and future upper-bound liabilities are recorded, but are not themselves promoted to a third debt class in v1.0.",
+    "reason_for_two_class_v1": "Keep the first conservation theorem mathematically clean. Certification/discovery debt can be added later only if it cannot be represented as proof/liability metadata on semantic or transformation obligations."
+  },
+  "state": {
+    "notation": "S_plus=(S_sem,L,Cap,Q_issued,Q_debt,Q_cert,C_charged,Lambda,Prov,Receipts,VaultRefs)",
+    "components": {
+      "S_sem": "The strengthened Projected Semantic Debt Kernel state, including F0_id,R,Z,D,V_live,V_debt,V_cert,Omega,Pi,q,rho.",
+      "L": "Current exact representation language/carrier identifier.",
+      "Cap": "Verified capability profile for L: exact supported operations, status POLY_CERTIFIED/FINITE_CERTIFIED/UNKNOWN/UNSUPPORTED, and translation/verification contracts.",
+      "Q_issued": "Immutable set of transformation obligation identifiers that have been issued so far.",
+      "Q_debt": "Issued exact operation obligations not yet certified complete or certified superseded.",
+      "Q_cert": "Issued exact operation obligations closed by an accepted execution or exact supersession receipt.",
+      "C_charged": "Monotone accumulated charged producer/discovery/materialization/translation/verification work already paid by the lifecycle.",
+      "Lambda": "Outstanding resource/verification liabilities with explicit upper-bound status. UNKNOWN may exist but blocks polynomial promotion.",
+      "Prov": "Immutable provenance and historical identity, including every representation switch and operation attempt.",
+      "Receipts": "Content-addressed transition, execution, switch, refusal, and discharge receipts.",
+      "VaultRefs": "Capability-scoped exact OPEN-vault references. They are search memory only, never SAT/UNSAT authority."
+    }
+  },
+  "transformation_obligation": {
+    "notation": "tau=(req_id,issued_state_id,op,input_semantics,required_output_contract,dependency_contract,status,route_hint)",
+    "status_values": [
+      "DEBT",
+      "EXECUTED_CERTIFIED",
+      "SUPERSEDED_CERTIFIED"
+    ],
+    "issue_rule": "Every exact operation that becomes required by the current solver plan receives a fresh immutable req_id and is inserted into Q_issued and Q_debt unless it is executed and certified atomically at issuance.",
+    "execution_discharge": "EXECUTED_CERTIFIED requires an accepted receipt proving that the requested exact operation was carried out with the required output semantics and verifier contract.",
+    "supersession_discharge": "SUPERSEDED_CERTIFIED requires an accepted exact proof that a later certified result makes the requested operation unnecessary while preserving the original terminal contract. Scheduler preference or abandonment is not sufficient.",
+    "forbidden": [
+      "Deleting an obligation because a different representation was chosen.",
+      "Deleting an obligation because the current IR is syntactically small.",
+      "Deleting an obligation because the route is UNKNOWN or expensive.",
+      "Converting OPEN/timeout/resource failure into supersession.",
+      "Resetting obligation status after an A->B->A semantic roundtrip."
+    ]
+  },
+  "capability_passport": {
+    "canonical_shape": "Passport_t=(Meaning,Representation,Capabilities,Costs,SemanticDebt,TransformationDebt,Liabilities,Provenance,Receipts)",
+    "meaning": "Exact represented relation/domain and source binding.",
+    "representation": "Current exact carrier/language plus content identity.",
+    "capabilities": "Operation map and certified translation/execution routes.",
+    "costs": "Already charged historical work; never reset by representation identity.",
+    "semantic_debt": "Projected original witness obligations not yet reconstructed/certified.",
+    "transformation_debt": "Issued exact operations not yet executed or exactly superseded.",
+    "liabilities": "Future verified/upper-bound obligations and UNKNOWN barriers.",
+    "provenance": "Immutable historical route, including failed candidate attempts when they are charged.",
+    "receipts": "Independent evidence for every authority-bearing transition."
+  },
+  "legal_transitions": {
+    "SEMANTIC_TRANSITIONS": "All strengthened Projected Semantic Debt Kernel transitions remain legal only under their existing independent verifiers.",
+    "ISSUE_OPERATION": {
+      "effect": "Create fresh req_id; add it to Q_issued and Q_debt, or atomically to Q_issued and Q_cert if executed and certified in the same transaction.",
+      "progress": "No semantic progress. Issuing a required operation may increase transformation burden.",
+      "authority": "Operation identity and required output contract must be explicit."
+    },
+    "DEFER_OPERATION": {
+      "precondition": "Operation is issued but not currently executed under a certified route.",
+      "effect": "Keep req_id in Q_debt; optionally attach route/capability metadata and liability upper bounds.",
+      "progress": "Zero certified progress of either debt class.",
+      "law": "SMALL_DEFERRED_IR_DOES_NOT_IMPLY_SMALL_FUTURE_COMPUTATION."
+    },
+    "EXECUTE_CERTIFIED": {
+      "precondition": "Exact operation output and its verification receipt satisfy the obligation contract.",
+      "effect": "Move req_id from Q_debt to Q_cert with status EXECUTED_CERTIFIED; charge all required work and preserve receipt ancestry.",
+      "progress": "Transformation closure increases by one obligation; semantic progress changes only if a separate semantic DISCHARGE is also certified."
+    },
+    "SUPERSEDE_CERTIFIED": {
+      "precondition": "An exact proof shows that the terminal/source contract no longer requires this operation because another already-certified result subsumes its required output semantics.",
+      "effect": "Move req_id from Q_debt to Q_cert with status SUPERSEDED_CERTIFIED.",
+      "forbidden": "No supersession from scheduler choice, timeout, OPEN, lack of interest, or unverified equivalence."
+    },
+    "SWITCH_REPRESENTATION": {
+      "precondition": "Exact meaning-preserving translation/isomorphism receipt plus destination capability passport; any translation/materialization/verification work is charged.",
+      "effect": "L and Cap may change. S_sem remains semantically exact. Q_issued, Q_debt, and Q_cert retain obligation identities and statuses unless the switch is an explicitly atomic switch+execute macro with its own discharge receipt.",
+      "zero_credit_rule": "Switching representation alone gives zero semantic progress and zero transformation-debt discharge.",
+      "liability_rule": "Known/UNKNOWN future liabilities are transferred; they are not erased by the switch."
+    },
+    "ATOMIC_SWITCH_AND_EXECUTE": {
+      "precondition": "The transition includes both an exact representation switch and an accepted execution receipt for named transformation obligations.",
+      "effect": "Only the named and verified obligations move Q_debt->Q_cert. All switch cost/liability remains historically charged.",
+      "purpose": "Allow efficient escape routes without giving free credit to representation changes."
+    },
+    "ATOMIC_EXTEND_AND_DISCHARGE": {
+      "precondition": "Auxiliary definitions are introduced and immediately consumed inside one exact macro that either certifies specified semantic debt or executes specified transformation obligations. Every auxiliary definition and elimination/reconstruction step is verified.",
+      "effect": "Fresh extension variables receive zero progress credit by themselves. Only the certified discharge part changes V_cert or Q_cert.",
+      "forbidden": "Speculative extension accumulation presented as progress."
+    },
+    "OPEN_VAULT_LOOKUP": {
+      "precondition": "Exact canonical core digest, exact current capability digest, verified payloads and independent refusal replay.",
+      "effect": "May return a search-policy hint CACHED_OPEN_EXACT under this capability. It changes no semantic or transformation obligation status.",
+      "staleness": "Any capability change makes the old OPEN logically stale for the new capability while preserving history.",
+      "authority": "OPEN is portfolio/capability-scoped refusal memory, not intrinsic hardness and not SAT/UNSAT authority."
+    },
+    "ROUNDTRIP": {
+      "definition": "A sequence of accepted exact switches/transformations that returns to a semantically/canonically identical representation state.",
+      "law": "SEMANTIC_IDENTITY != HISTORICAL_IDENTITY.",
+      "effect": "Returning to an earlier semantic/representation hash does not reset Q_debt, semantic debt, C_charged, Lambda, provenance or receipts."
+    }
+  },
+  "accounting_invariants": {
+    "semantic_partition": "X = V_live dot_union V_debt dot_union V_cert, inherited from the strengthened semantic kernel.",
+    "transformation_partition": "Q_issued = Q_debt dot_union Q_cert.",
+    "semantic_progress": "P_sem(S)=|V_cert|.",
+    "transformation_closure": "P_trans(S)=|Q_cert|.",
+    "semantic_unresolved": "U_sem(S)=|V_live|+|V_debt|.",
+    "transformation_unresolved": "U_trans(S)=|Q_debt|.",
+    "charged_history": "C_charged is monotone nondecreasing; a roundtrip may add cost but cannot subtract already-paid cost.",
+    "liability_nonforgetfulness": "A liability may be discharged/reduced only by a named accepted repayment/certificate transition; representation identity alone cannot remove it."
+  },
+  "theorem_candidates": {
+    "DD1_SEMANTIC_CONSERVATION": "All accepted dual-debt transitions preserve the semantic obligation partition and the prior T1-T5 soundness hypotheses.",
+    "DD2_TRANSFORMATION_CONSERVATION": "For every accepted state, Q_issued=Q_debt dot_union Q_cert. Issued operation obligations cannot disappear.",
+    "DD3_SWITCH_ZERO_DISCHARGE": "A pure meaning-preserving representation switch leaves P_sem and P_trans unchanged and preserves all outstanding obligation identities.",
+    "DD4_NONFORGETFUL_ROUNDTRIP": "Any accepted semantic/representation roundtrip preserves unresolved debt status and cannot decrease C_charged except that separately certified liabilities may be discharged by explicit receipts during the route.",
+    "DD5_DUAL_DEBT_TERMINAL_SOUNDNESS": "If an accepted terminal satisfies semantic terminal conditions, Q_debt is empty for all terminal-required operation obligations, and all exact result/source replay conditions hold, then the terminal retains the prior conditional Skolem/source-soundness guarantee and contains no unaccounted deferred operation required by its own terminal contract."
+  },
+  "terminal_contract": {
+    "open_interface": [
+      "V_live=empty",
+      "V_debt=empty",
+      "all semantic receipts closed and well-founded",
+      "exact D and composed f_X with prior T5 proof",
+      "Q_debt contains no operation obligation declared required for producing/verifying the terminal package",
+      "all Q_cert closures have execution or exact supersession receipts",
+      "all charged work/provenance retained",
+      "UNKNOWN liabilities forbid any polynomial-complexity promotion but do not by themselves falsify semantic soundness"
+    ],
+    "closed_sat": "Prior source replay is still mandatory. Transformation closure cannot substitute for semantic replay.",
+    "closed_unsat": "Prior exact false-domain/UNSAT certificate remains mandatory. OPEN/refusal memory cannot become UNSAT authority."
+  },
+  "nearest_prior_art_boundary": {
+    "known": [
+      "Knowledge compilation maps languages by succinctness and supported operations.",
+      "SAT preprocessing and projected compilation maintain reconstruction information.",
+      "Amortized analysis accounts for deferred/future work.",
+      "Proof systems distinguish certificate size from discovery/automatability.",
+      "Caches and theorem provers version/invalidate stored results."
+    ],
+    "distinctive_candidate": "The combined proof-state contract that simultaneously enforces semantic reconstruction conservation, operation-obligation conservation, capability-scoped representation switching, nonforgetful charged history, exact OPEN refusal memory and independent proof authority.",
+    "novelty_status": "NOT_PROVED__REQUIRES_DEDICATED_EXTERNAL_REVIEW"
+  },
+  "deliberate_nonclaims": [
+    "Every transformation obligation can be discharged efficiently.",
+    "A cheap representation route always exists.",
+    "The scheduler can find the best route.",
+    "The lifecycle is polynomial on arbitrary SAT/BFS/QBF instances.",
+    "The combined architecture is historically novel or world-first."
+  ],
+  "claim_ceiling": {
+    "WORLD_FIRST": "NOT_ESTABLISHED",
+    "AHEAD_OF_ALL_RESEARCHERS": "NOT_ESTABLISHED",
+    "GENERAL_SAT_IN_P": "NOT_PROVED",
+    "P_EQ_NP": "NOT_PROVED",
+    "P_VS_NP": "OPEN"
+  }
+}
