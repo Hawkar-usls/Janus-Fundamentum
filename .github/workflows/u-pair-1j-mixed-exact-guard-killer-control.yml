@@ -1,0 +1,95 @@
+name: U-PAIR-1J mixed exact-guard killer control
+
+on:
+  push:
+    branches:
+      - research/U-PAIR-1J-mixed-exact-guard-synthesis-2026-09-18
+    paths:
+      - '.github/workflows/u-pair-1j-mixed-exact-guard-killer-control.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  killer-control:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: research/U-PAIR-1J-mixed-exact-guard-synthesis-2026-09-18
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Verify frozen control bindings
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git hash-object research/controls/u_pair_1j_mixed_exact_guard_killer_control_source.json)" = "a47d7a0fb2f8231fa3e198d5bb9006753f80556e"
+          test "$(git hash-object research/tools/u_pair_1j_mixed_exact_guard/killer_control_build.py)" = "5e609bf21b319e3c2720af2f0e65a643d6e590c1"
+          test "$(git hash-object research/tools/u_pair_1j_mixed_exact_guard/independent_killer_control_verify.py)" = "8a3d73f9a1e22e814f91459394751f9d44cd6536"
+          test ! -e research/tools/u_pair_1j_mixed_exact_guard/constructor.py
+          test ! -e research/tools/u_pair_1j_mixed_exact_guard/independent_verify.py
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          r=json.loads(Path("research/U_PAIR_1J_MIXED_EXACT_GUARD_KILLER_CONTROL_IMPLEMENTATION_REVIEW_2026-09-18_v1.0.json").read_text())
+          assert r["verdict"]=="PASS_KILLER_CONTROL_IMPLEMENTATION_BINDING__AUTHORIZED_TO_RUN_CONTROL_ONCE"
+          assert r["execution_authority"]["authorize_exactly_one_killer_control_run"] is True
+          assert r["execution_authority"]["hostile_constructor_still_forbidden"] is True
+          PY
+
+      - name: Build frozen mixed guard control candidate
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p research/generated/u_pair_1j_mixed_exact_guard_control
+          python research/tools/u_pair_1j_mixed_exact_guard/killer_control_build.py             research/controls/u_pair_1j_mixed_exact_guard_killer_control_source.json             research/generated/u_pair_1j_mixed_exact_guard_control/candidate.json
+
+      - name: Independent killer-control verification
+        shell: bash
+        run: |
+          set -euo pipefail
+          python research/tools/u_pair_1j_mixed_exact_guard/independent_killer_control_verify.py             research/controls/u_pair_1j_mixed_exact_guard_killer_control_source.json             research/generated/u_pair_1j_mixed_exact_guard_control/candidate.json             research/generated/u_pair_1j_mixed_exact_guard_control/verify.json
+
+      - name: Freeze killer-control result
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import hashlib, json
+          from pathlib import Path
+          c=Path("research/generated/u_pair_1j_mixed_exact_guard_control/candidate.json")
+          v=Path("research/generated/u_pair_1j_mixed_exact_guard_control/verify.json")
+          vr=json.loads(v.read_text())
+          assert vr["verdict"]=="PASS_EXACT_MIXED_GUARD_DERIVATION_UNDER_FROZEN_V1_1"
+          out={
+            "artifact_id":"JANUS-U-PAIR-1J-MIXED-EXACT-GUARD-KILLER-CONTROL-RESULT-2026-09-18-v1.0",
+            "date":"2026-09-18",
+            "prereg_commit":"6097218416d0a8a244cf526d01ba8a00fc0ba1fa",
+            "source_check_commit":"80645e7ddae908f4f547569663d856bbe520fe9f",
+            "implementation_review_commit":"d41ade87a55f21b87b16a8e131df0a787e6395eb",
+            "candidate_sha256":hashlib.sha256(c.read_bytes()).hexdigest(),
+            "verify_sha256":hashlib.sha256(v.read_bytes()).hexdigest(),
+            "verdict":vr["verdict"],
+            "checks":vr["checks"],
+            "proof_nodes":vr["proof_nodes"],
+            "targeted_negative_assignments_checked":vr["targeted_negative_assignments_checked"],
+            "hostile_constructor_created":False,
+            "hostile_run_started":False,
+            "scientific_firewall":vr["scientific_firewall"]
+          }
+          Path("research/U_PAIR_1J_MIXED_EXACT_GUARD_KILLER_CONTROL_RESULT_2026-09-18_v1.0.json").write_text(
+            json.dumps(out,indent=2,sort_keys=True)+"\n"
+          )
+          print(json.dumps(out,sort_keys=True))
+          PY
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add research/generated/u_pair_1j_mixed_exact_guard_control
+          git add research/U_PAIR_1J_MIXED_EXACT_GUARD_KILLER_CONTROL_RESULT_2026-09-18_v1.0.json
+          git commit -m "U-PAIR-1J freeze mixed exact-guard killer control result"
+          git push origin HEAD:research/U-PAIR-1J-mixed-exact-guard-synthesis-2026-09-18
