@@ -1,0 +1,286 @@
+name: TRUMP WALL Mantequilla checker reconciliation
+
+on:
+  push:
+    branches:
+      - research/TRUMP_WALL-MANTEQUILLA-local-interface-checker-reconciliation-2026-09-18
+    paths:
+      - .github/workflows/trump-wall-mantequilla-checker-reconciliation.yml
+
+permissions:
+  contents: write
+  actions: read
+
+concurrency:
+  group: trump-wall-mantequilla-checker-reconciliation
+  cancel-in-progress: false
+
+jobs:
+  reconcile:
+    runs-on: ubuntu-latest
+    env:
+      BRANCH: research/TRUMP_WALL-MANTEQUILLA-local-interface-checker-reconciliation-2026-09-18
+      TOOL_DIR: research/tools/trump_wall_mantequilla_local_exact_interface_uf250_020
+      SEALED_OUT: research/sealed/TRUMP_WALL_MANTEQUILLA_UF250_020_SEALED_BUNDLE_2026-09-18_v1.0.json
+      RESULT_OUT: research/TRUMP_WALL_MANTEQUILLA_LOCAL_EXACT_INTERFACE_UF250_020_RESULT_2026-09-18_v1.0.json
+      RECON_OUT: research/TRUMP_WALL_MANTEQUILLA_LOCAL_INTERFACE_CHECKER_RECONCILIATION_RESULT_2026-09-18_v1.0.json
+
+    steps:
+      - name: Checkout exact reconciliation head
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Verify checker-repair authorities
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import hashlib, pathlib
+          expected={
+            "research/TRUMP_WALL_MANTEQUILLA_LOCAL_INTERFACE_CHECKER_REPAIR_RECONCILIATION_PREREG_2026-09-18_v1.0.json":"571677d8d7cf683901133702350bc290bc02fc80",
+            "research/TRUMP_WALL_MANTEQUILLA_LOCAL_INTERFACE_CHECKER_REPAIR_REVIEW_2026-09-18_v1.0.json":"cd9322fde2e2e762bf35cdf8df6e03d35690dc1e",
+            "research/tools/trump_wall_mantequilla_local_exact_interface_uf250_020/independent_check.py":"dcfd35d6d129ff0e2c3c33b7b0f6a26a792d604e",
+            "research/tools/trump_wall_mantequilla_local_exact_interface_uf250_020/candidate.py":"b04c49343993026d29017495c08a1cb23b2dd1af",
+          }
+          def blob(path):
+              data=pathlib.Path(path).read_bytes()
+              return hashlib.sha1(f"blob {len(data)}\0".encode()+data).hexdigest()
+          bad={p:(w,blob(p)) for p,w in expected.items() if blob(p)!=w}
+          if bad: raise SystemExit(f"AUTHORITY_MISMATCH:{bad}")
+          print("CHECKER_REPAIR_AUTHORITIES_OK")
+          PY
+
+      - name: Download exact existing Mantequilla artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: trump-wall-mantequilla-local-interface-35314636729
+          path: /tmp/reconcile/original
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          run-id: 35314636729
+
+      - name: Validate exact existing artifact files
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(sha256sum /tmp/reconcile/original/seal/sealed_bundle.json | awk '{print $1}')" = "3bf4844348c2efa95bfefadbc2f3cd70ddba6893afdbe16a7c57dabb8d15f73f"
+          test "$(sha256sum /tmp/reconcile/original/candidate/candidate.json | awk '{print $1}')" = "29be60b583bdedbd309f530798996e94efbd1ad239f379923da490b6a41ec314"
+          test "$(sha256sum /tmp/reconcile/original/checker/independent.json | awk '{print $1}')" = "da3094bb1a1aa6b8dd215cee6f9ece9e3c64990e8de66baca50c1f88100d2bb4"
+          test "$(sha256sum /tmp/reconcile/original/final/result.json | awk '{print $1}')" = "8ab9f175a3d3f51e792fb293237afc29be038adde8c9dd944366d63df384d7ee"
+          python - <<'PY'
+          import json
+          c=json.load(open("/tmp/reconcile/original/candidate/candidate.json"))
+          i=json.load(open("/tmp/reconcile/original/checker/independent.json"))
+          assert c["verdict"]=="PASS_CONSTRUCTIVE_BRIDGE"
+          assert sum(bool(v) for v in i["checks"].values())==23
+          assert len(i["checks"])==24
+          assert i["checks"]["candidate_source_audit_pass"] is False
+          assert [k for k,v in i["checks"].items() if not v]==["candidate_source_audit_pass"]
+          assert i["candidate_source_audit"]["forbidden_imports"]==["__future__"]
+          print("EXISTING_ARTIFACT_VALIDATED")
+          PY
+
+      - name: Recompute independently with minimally repaired checker
+        id: repaired
+        continue-on-error: true
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/reconcile/repaired
+          cp "$TOOL_DIR/independent_check.py" /tmp/reconcile/repaired/independent_check.py
+          cp "$TOOL_DIR/candidate.py" /tmp/reconcile/repaired/candidate_source.py
+          (
+            cd /tmp/reconcile/repaired
+            env -i PATH="$PATH" HOME=/tmp PYTHONNOUSERSITE=1 PYTHONPATH="" \
+              python independent_check.py \
+                /tmp/reconcile/original/seal/sealed_bundle.json \
+                /tmp/reconcile/original/candidate/candidate.json \
+                candidate_source.py \
+                repaired_independent.json | tee repaired.log
+          )
+
+      - name: Build reconciliation and conditional canonical result
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import hashlib,json,pathlib,os
+
+          def csha(x):
+              return hashlib.sha256(json.dumps(x,sort_keys=True,separators=(",",":"),ensure_ascii=False).encode()).hexdigest()
+          def gblob(path):
+              data=pathlib.Path(path).read_bytes()
+              return hashlib.sha1(f"blob {len(data)}\0".encode()+data).hexdigest()
+
+          base="/tmp/reconcile/original"
+          bundle=json.load(open(base+"/seal/sealed_bundle.json"))
+          candidate=json.load(open(base+"/candidate/candidate.json"))
+          old_ind=json.load(open(base+"/checker/independent.json"))
+          old_result=json.load(open(base+"/final/result.json"))
+          rp=pathlib.Path("/tmp/reconcile/repaired/repaired_independent.json")
+          repaired=json.load(open(rp)) if rp.exists() else {"verdict":"UNKNOWN_RESOURCE_LIMIT","checks":{}}
+          repaired_pass=(
+              repaired.get("verdict")=="PASS_INDEPENDENT_MANTEQUILLA_LOCAL_EXACT_INTERFACE_VERIFICATION"
+              and len(repaired.get("checks",{}))==24
+              and all(repaired.get("checks",{}).values())
+          )
+
+          recon={
+            "artifact_id":"JANUS-TRUMP-WALL-MANTEQUILLA-LOCAL-INTERFACE-CHECKER-RECONCILIATION-RESULT-2026-09-18-v1.0",
+            "date":"2026-09-18",
+            "source_run_id":35314636729,
+            "source_artifact_id":10534648490,
+            "source_artifact_zip_sha256":"22f406ac5e1e9e34c0b9c70ce58d0e4525a738bb10723432caf31f4b3deac7ef",
+            "candidate_rerun":False,
+            "sealer_rerun":False,
+            "repair":"ALLOW___FUTURE___LANGUAGE_DIRECTIVE_IN_SOURCE_AUDIT_ONLY",
+            "scientific_logic_changes":0,
+            "old_independent":old_ind,
+            "repaired_independent":repaired,
+            "comparison":{
+              "old_checks_passed":sum(bool(v) for v in old_ind["checks"].values()),
+              "old_checks_total":len(old_ind["checks"]),
+              "repaired_checks_passed":sum(bool(v) for v in repaired.get("checks",{}).values()),
+              "repaired_checks_total":len(repaired.get("checks",{})),
+              "semantic_measurements_unchanged":old_ind.get("independent_measurements")==repaired.get("independent_measurements"),
+              "sealed_bundle_hash_unchanged":old_ind.get("sealed_bundle_payload_sha256")==repaired.get("sealed_bundle_payload_sha256"),
+            },
+            "reconciliation_verdict":(
+              "PASS_REPAIRED_CHECKER_CLEARS_SOURCE_AUDIT_FALSE_NEGATIVE"
+              if repaired_pass else
+              "FAIL_REPAIRED_CHECKER_RECONCILIATION"
+            ),
+            "scientific_firewall":{
+              "P_VS_NP":"OPEN",
+              "GENERAL_SAT_IN_P":"NOT_PROVED",
+              "GENERAL_KCLASS_BRIDGE":"NOT_PROVED",
+              "MULTI_INTERFACE_COMPOSITION":"NOT_PROVED"
+            }
+          }
+          pathlib.Path("/tmp/reconcile/final").mkdir(parents=True,exist_ok=True)
+          json.dump(recon,open("/tmp/reconcile/final/reconciliation.json","w"),indent=2,sort_keys=True)
+          open("/tmp/reconcile/final/reconciliation.json","a").write("\n")
+
+          if repaired_pass:
+              canonical={
+                "artifact_id":"JANUS-TRUMP-WALL-MANTEQUILLA-LOCAL-EXACT-INTERFACE-UF250-020-RESULT-2026-09-18-v1.0",
+                "date":"2026-09-18",
+                "gate":"MANTEQUILLA_LOCAL_EXACT_INTERFACE_GATE",
+                "status":"FROZEN_SCOPED_LOCAL_EXACT_INTERFACE_PASS_AFTER_CHECKER_RECONCILIATION",
+                "scientific_outcome":"PASS_CONSTRUCTIVE_BRIDGE",
+                "specimen_role":"DISCOVERY_SPECIMEN_ONLY__MECHANISM_DEVELOPMENT__NOT_CONFIRMATION_PANEL",
+                "authorities":{
+                  "workflow_head":os.environ.get("GITHUB_SHA"),
+                  "workflow_blob":gblob(".github/workflows/trump-wall-mantequilla-checker-reconciliation.yml"),
+                  "repair_prereg_blob":"571677d8d7cf683901133702350bc290bc02fc80",
+                  "repair_review_blob":"cd9322fde2e2e762bf35cdf8df6e03d35690dc1e",
+                  "repaired_checker_blob":"dcfd35d6d129ff0e2c3c33b7b0f6a26a792d604e",
+                  "candidate_blob":"b04c49343993026d29017495c08a1cb23b2dd1af",
+                  "original_run_id":35314636729,
+                  "original_artifact_id":10534648490,
+                  "original_artifact_zip_sha256":"22f406ac5e1e9e34c0b9c70ce58d0e4525a738bb10723432caf31f4b3deac7ef"
+                },
+                "sealed_bundle":{
+                  "payload_sha256":bundle["payload_sha256"],
+                  "file_sha256":"3bf4844348c2efa95bfefadbc2f3cd70ddba6893afdbe16a7c57dabb8d15f73f",
+                  "reduced_raw_sha256":bundle["preprocessing"]["reduced_raw_sha256"],
+                  "cell":bundle["frozen_witness"]["cell"]
+                },
+                "candidate":candidate,
+                "independent":repaired,
+                "reconciliation":{
+                  "candidate_rerun":False,
+                  "sealer_rerun":False,
+                  "minimal_checker_repair_only":True,
+                  "old_only_failed_check":"candidate_source_audit_pass",
+                  "old_forbidden_import_false_positive":"__future__",
+                  "repaired_all_24_checks_pass":True,
+                  "semantic_measurements_unchanged":old_ind["independent_measurements"]==repaired["independent_measurements"]
+                },
+                "claim_ceiling":"ONE_FROZEN_TWO_VARIABLE_EXACT_SYMMETRY_CELL__LOCAL_INTERFACE_ONLY__NO_COMPOSITION_OR_GENERAL_K_CLAIM",
+                "next_obligation":"MANTEQUILLA_DETECTION_TO_POLYNOMIAL_EXACT_CLOSURE_CERTIFICATE_GATE_THEN_MANTEQUILLA_COMPOSITION_WITHOUT_EXPONENTIAL_PRODUCT_GATE",
+                "scientific_firewall":{
+                  "P_VS_NP":"OPEN",
+                  "GENERAL_SAT_IN_P":"NOT_PROVED",
+                  "GENERAL_KCLASS_BRIDGE":"NOT_PROVED",
+                  "MULTI_INTERFACE_COMPOSITION":"NOT_PROVED",
+                  "UF250_IS_DISCOVERY_NOT_CONFIRMATION":True
+                }
+              }
+              canonical["result_semantic_digest_sha256"]=csha({
+                "scientific_outcome":canonical["scientific_outcome"],
+                "sealed_bundle":canonical["sealed_bundle"],
+                "candidate_digest":candidate["candidate_semantic_digest_sha256"],
+                "independent_digest":repaired["independent_semantic_digest_sha256"],
+                "claim_ceiling":canonical["claim_ceiling"]
+              })
+              json.dump(canonical,open("/tmp/reconcile/final/canonical_result.json","w"),indent=2,sort_keys=True)
+              open("/tmp/reconcile/final/canonical_result.json","a").write("\n")
+
+          print(json.dumps({
+            "reconciliation_verdict":recon["reconciliation_verdict"],
+            "repaired_checks_passed":recon["comparison"]["repaired_checks_passed"],
+            "repaired_checks_total":recon["comparison"]["repaired_checks_total"],
+            "semantic_measurements_unchanged":recon["comparison"]["semantic_measurements_unchanged"]
+          },sort_keys=True))
+          PY
+
+      - name: Upload reconciliation receipts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: trump-wall-mantequilla-checker-reconciliation-${{ github.run_id }}
+          path: |
+            /tmp/reconcile/repaired/repaired_independent.json
+            /tmp/reconcile/repaired/repaired.log
+            /tmp/reconcile/final/reconciliation.json
+            /tmp/reconcile/final/canonical_result.json
+          if-no-files-found: warn
+
+      - name: Freeze reconciliation and conditional canonical result
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -f /tmp/reconcile/final/reconciliation.json
+          mkdir -p "$(dirname "$SEALED_OUT")"
+          cp /tmp/reconcile/final/reconciliation.json "$RECON_OUT"
+
+          if [ -f /tmp/reconcile/final/canonical_result.json ]; then
+            cp /tmp/reconcile/original/seal/sealed_bundle.json "$SEALED_OUT"
+            cp /tmp/reconcile/final/canonical_result.json "$RESULT_OUT"
+          fi
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add "$RECON_OUT"
+          if [ -f "$RESULT_OUT" ]; then git add "$SEALED_OUT" "$RESULT_OUT"; fi
+          git commit -m "TRUMP WALL freeze Mantequilla checker reconciliation result"
+
+          REMOTE_HEAD="$(git ls-remote origin "refs/heads/$BRANCH" | awk '{print $1}')"
+          if [ "$REMOTE_HEAD" != "$GITHUB_SHA" ]; then
+            echo "SAFE_FAST_FORWARD_ABORT remote=$REMOTE_HEAD expected=$GITHUB_SHA"
+            exit 2
+          fi
+          git push origin "HEAD:refs/heads/$BRANCH"
+
+      - name: Enforce reconciled PASS
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -f /tmp/reconcile/final/canonical_result.json
+          python - <<'PY'
+          import json
+          r=json.load(open("/tmp/reconcile/final/reconciliation.json"))
+          c=json.load(open("/tmp/reconcile/final/canonical_result.json"))
+          assert r["reconciliation_verdict"]=="PASS_REPAIRED_CHECKER_CLEARS_SOURCE_AUDIT_FALSE_NEGATIVE"
+          assert c["scientific_outcome"]=="PASS_CONSTRUCTIVE_BRIDGE"
+          assert c["independent"]["verdict"]=="PASS_INDEPENDENT_MANTEQUILLA_LOCAL_EXACT_INTERFACE_VERIFICATION"
+          assert all(c["independent"]["checks"].values())
+          print("MANTEQUILLA_RECONCILED_LOCAL_EXACT_INTERFACE_PASS")
+          PY
