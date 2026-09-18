@@ -45,6 +45,7 @@ jobs:
           expected = {
             "research/TRUMP_WALL_MANTEQUILLA_UUF125_001_020_ACTIVE_EXACT_SYMMETRY_PANEL_RESERVATION_2026-09-18_v1.1.json": "878480712bd6cd38929fdbfc17082b72cf0ccc1b",
             "research/TRUMP_WALL_MANTEQUILLA_UUF125_001_020_SOURCE_ACQUISITION_REVIEW_2026-09-18_v1.1.json": "a69e35b674d7305251ff70700fdfbca9890452cf",
+            "research/TRUMP_WALL_MANTEQUILLA_UUF125_SOURCE_FREEZE_INDEPENDENT_DIAGNOSTIC_REPAIR_2026-09-18_v1.0.json": "0f950bbc35fb8b5b0709a05ef292c12727d431f0",
           }
           def blob(path):
               data=Path(path).read_bytes()
@@ -198,21 +199,40 @@ jobs:
           import hashlib,json,os
           from pathlib import Path
           m=json.load(open(os.environ["MANIFEST"],encoding="utf-8"))
-          assert len(m["source_receipts"])==20
-          assert m["panel"]==[f"UUF125_{i:03d}" for i in range(1,21)]
-          assert m["archive"]["sha1"]==os.environ["ARCHIVE_SHA1"]
-          seen=set()
-          for i,r in enumerate(m["source_receipts"],1):
-              assert r["source"]==f"UUF125_{i:03d}"
+          failures=[]
+          if len(m.get("source_receipts",[]))!=20:
+              failures.append({"check":"source_count","observed":len(m.get("source_receipts",[])),"expected":20})
+          expected_panel=[f"UUF125_{i:03d}" for i in range(1,21)]
+          if m.get("panel")!=expected_panel:
+              failures.append({"check":"panel","observed":m.get("panel"),"expected":expected_panel})
+          if m.get("archive",{}).get("sha1")!=os.environ["ARCHIVE_SHA1"]:
+              failures.append({"check":"archive_sha1","observed":m.get("archive",{}).get("sha1"),"expected":os.environ["ARCHIVE_SHA1"]})
+          seen={}
+          for i,r in enumerate(m.get("source_receipts",[]),1):
+              expected_source=f"UUF125_{i:03d}"
+              if r.get("source")!=expected_source:
+                  failures.append({"check":"source_id","index":i,"observed":r.get("source"),"expected":expected_source})
               p=Path(r["committed_path"])
               data=p.read_bytes()
-              assert hashlib.sha256(data).hexdigest()==r["raw_sha256"]
-              assert hashlib.sha1(f"blob {len(data)}\0".encode()+data).hexdigest()==r["git_blob"]
+              raw=hashlib.sha256(data).hexdigest()
+              blob=hashlib.sha1(f"blob {len(data)}\0".encode()+data).hexdigest()
+              if raw!=r.get("raw_sha256"):
+                  failures.append({"check":"raw_sha256","source":r.get("source"),"observed":raw,"expected":r.get("raw_sha256")})
+              if blob!=r.get("git_blob"):
+                  failures.append({"check":"git_blob","source":r.get("source"),"observed":blob,"expected":r.get("git_blob")})
               hdr=[x.strip() for x in p.read_text(encoding="ascii").splitlines() if x.strip().startswith("p ")]
-              assert hdr==["p cnf 125 538"]
-              assert r["canonical_formula_sha256"] not in seen
-              seen.add(r["canonical_formula_sha256"])
-          assert len(seen)==20
+              if hdr!=["p cnf 125 538"]:
+                  failures.append({"check":"header","source":r.get("source"),"observed":hdr,"expected":["p cnf 125 538"]})
+              h=r.get("canonical_formula_sha256")
+              if h in seen:
+                  failures.append({"check":"canonical_hash_unique","source":r.get("source"),"duplicate_of":seen[h],"hash":h})
+              else:
+                  seen[h]=r.get("source")
+          if len(seen)!=20:
+              failures.append({"check":"unique_hash_count","observed":len(seen),"expected":20})
+          if failures:
+              print(json.dumps({"verdict":"FAIL_INDEPENDENT_UUF125_SOURCE_FREEZE_VERIFICATION","failures":failures},sort_keys=True))
+              raise SystemExit(1)
           m["independent_verification"]="PASS_INDEPENDENT_UUF125_001_020_SOURCE_FREEZE_VERIFICATION"
           Path(os.environ["MANIFEST"]).write_text(json.dumps(m,indent=2,sort_keys=True)+"\n",encoding="utf-8")
           print(m["independent_verification"])
