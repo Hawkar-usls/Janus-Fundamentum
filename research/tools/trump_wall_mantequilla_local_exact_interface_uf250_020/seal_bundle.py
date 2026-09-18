@@ -28,13 +28,45 @@ def git_blob(path: Path) -> str:
     return hashlib.sha1(f"blob {len(data)}\0".encode() + data).hexdigest()
 
 
+def parse_uf250(path: Path):
+    nvars = nclauses = None
+    clauses = []
+    buf = []
+    for raw in path.read_text(encoding="utf-8").splitlines():
+        s = raw.strip()
+        if not s or s.startswith("c") or s in {"%", "0"}:
+            continue
+        if s.startswith("p "):
+            parts = s.split()
+            if len(parts) != 4 or parts[:2] != ["p", "cnf"]:
+                raise ValueError("BAD_DIMACS_HEADER")
+            nvars, nclauses = int(parts[2]), int(parts[3])
+            continue
+        for value in map(int, s.split()):
+            if value == 0:
+                if len(buf) != 3 or len({abs(x) for x in buf}) != 3:
+                    raise ValueError("NON_CANONICAL_3CNF_CLAUSE")
+                if any(abs(x) < 1 or abs(x) > 250 for x in buf):
+                    raise ValueError("VARIABLE_OUT_OF_RANGE")
+                clauses.append((buf[0], buf[1], buf[2]))
+                buf = []
+            else:
+                buf.append(value)
+    if (nvars, nclauses) != (250, 1065) or len(clauses) != 1065 or buf:
+        raise ValueError(
+            f"UF250_CONTRACT_FAILURE header={(nvars,nclauses)} parsed={len(clauses)} trailing={buf}"
+        )
+    canonical = "".join(" ".join(map(str, c)) + " 0\n" for c in clauses).encode("ascii")
+    return clauses, hashlib.sha256(canonical).hexdigest()
+
+
 def main() -> None:
     if len(sys.argv) != 2:
         raise SystemExit("usage: seal_bundle.py OUTPUT.json")
     output = Path(sys.argv[1])
 
     observed_blob = git_blob(SOURCE)
-    clauses, formula_sha = frozen.parse_and_formula_hash(SOURCE)
+    clauses, formula_sha = parse_uf250(SOURCE)
     if observed_blob != EXPECTED_SOURCE_BLOB:
         raise RuntimeError(f"SOURCE_BLOB_MISMATCH:{observed_blob}")
     if formula_sha != EXPECTED_FORMULA_SHA256:
