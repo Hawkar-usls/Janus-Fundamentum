@@ -14,6 +14,10 @@ SCHEMA_IN = "TSEITIN_EXPANDER_SEARCH_SOURCE_V1"
 SCHEMA_CAND = "PROOF_CARRYING_AFFINE_PRIORITY_SEARCH_V1"
 
 
+def canonical_bytes(obj):
+    return (json.dumps(obj, sort_keys=True, separators=(",", ":")) + "\n").encode()
+
+
 def file_sha256(path: Path) -> str:
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
@@ -163,6 +167,31 @@ def verify(source_path: Path, candidate_path: Path):
             used.add(node["guard"])
             stack.extend([node["true_child"], node["false_child"]])
     assert used == set(nodes), "candidate contains unexplained or unreachable proof nodes"
+
+    metrics = cand["metrics"]
+    actual_guard_nodes = sum(1 for p in nodes.values() if p["rule"] == "AFFINE_XOR")
+    actual_ite_nodes = sum(1 for p in nodes.values() if p["rule"] == "GUARDED_ITE")
+    selector_steps = len(source["witness_bits"]) * (n - 1)
+    expected_state_visits = n + selector_steps
+    naive_unshared = n + len(source["witness_bits"]) * (2 * n - 1)
+    expected_bytes = len(
+        canonical_bytes(
+            {
+                "domain_proof": cand["domain_proof"],
+                "witness_roots": cand["witness_roots"],
+                "proof_nodes": nodes,
+            }
+        )
+    )
+    assert metrics["S_synth_DAG_nodes"] == len(nodes)
+    assert metrics["S_synth_DAG_bytes"] == expected_bytes
+    assert metrics["max_live_shared_nodes"] == len(nodes)
+    assert metrics["constructor_state_visits"] == expected_state_visits
+    assert metrics["derived_affine_guard_count"] == actual_guard_nodes == n
+    assert metrics["guarded_ITE_node_count"] == actual_ite_nodes
+    assert metrics["naive_unshared_node_occurrences"] == naive_unshared
+    expected_ratio = naive_unshared / max(1, len(nodes))
+    assert abs(metrics["sharing_ratio_before_after_hashcons"] - expected_ratio) < 1e-12
 
     elapsed = time.perf_counter_ns() - start
     return {
