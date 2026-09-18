@@ -1,0 +1,282 @@
+name: TRUMP WALL universal branch shielding lemma verification
+
+on:
+  push:
+    branches:
+      - research/TRUMP_WALL-MANTEQUILLA-universal-branch-shielding-lemma-2026-09-18
+    paths:
+      - .github/workflows/trump-wall-universal-branch-shielding-lemma.yml
+
+permissions:
+  contents: write
+
+concurrency:
+  group: trump-wall-universal-branch-shielding-lemma
+  cancel-in-progress: false
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      BRANCH: research/TRUMP_WALL-MANTEQUILLA-universal-branch-shielding-lemma-2026-09-18
+      LEMMA: research/TRUMP_WALL_MANTEQUILLA_UNIVERSAL_BRANCH_SHIELDING_LEMMA_2026-09-18_v1.0.json
+      CHECKER: research/tools/trump_wall_mantequilla_universal_branch_shielding_lemma/independent_check.py
+      CHECK_OUT: research/TRUMP_WALL_MANTEQUILLA_UNIVERSAL_BRANCH_SHIELDING_LEMMA_INDEPENDENT_CHECK_2026-09-18_v1.0.json
+      RETRO_OUT: research/TRUMP_WALL_MANTEQUILLA_UNSEEN_ROUTED_SEVEN_UNIVERSAL_SHIELDING_RETROSPECTIVE_2026-09-18_v1.0.json
+      UUF250_OUT: research/TRUMP_WALL_MANTEQUILLA_UUF250_001_100_PHASE_SUMMARY_2026-09-18_v1.0.json
+
+    steps:
+      - name: Checkout exact theorem head
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Verify frozen lemma authorities
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import hashlib
+          from pathlib import Path
+          expected={
+            "research/TRUMP_WALL_MANTEQUILLA_UNIVERSAL_BRANCH_SHIELDING_LEMMA_2026-09-18_v1.0.json":"a33a2ff6df91cde04eb6dad87b5646f0e1503f16",
+            "research/tools/trump_wall_mantequilla_universal_branch_shielding_lemma/independent_check.py":"e29102b5706153ce48bbf8d638fe15ebaf07cca3",
+          }
+          def blob(path):
+              b=Path(path).read_bytes()
+              return hashlib.sha1(f"blob {len(b)}\0".encode()+b).hexdigest()
+          bad={p:{"expected":h,"observed":blob(p)} for p,h in expected.items() if blob(p)!=h}
+          if bad: raise SystemExit(f"LEMMA_AUTHORITY_BIND_FAILURE:{bad}")
+          print("LEMMA_AUTHORITIES_OK")
+          PY
+
+      - name: Execute independent lemma checker
+        shell: bash
+        run: |
+          set -euo pipefail
+          python "$CHECKER" "$CHECK_OUT"
+
+      - name: Fetch frozen empirical authority commits
+        shell: bash
+        run: |
+          set -euo pipefail
+          for sha in             5569cb20c7a04c48d228d2cbe7ad1817086e7674             7c6d008be910ac15da6c52111d27ec40495ccad4             a5916294abb8b48a653e915df9bfa1bbf18a4fbe             a8022efd37f3e04bd47986c17562e96615699fcc             f5b5dae18070ac260a032758265f01abdfb37abe             1798cefbf3cd9f72dfa7330f0e83752f86bbb716             bc90e796e28e097228e627aa79fb864945d32547
+          do
+            git fetch --no-tags origin "$sha"
+          done
+
+      - name: Independently verify seven routed specimens and UUF250 phase
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import hashlib,json,subprocess
+          from pathlib import Path
+
+          def show(sha,path):
+              return subprocess.check_output(["git","show",f"{sha}:{path}"])
+          def blob_bytes(b):
+              return hashlib.sha1(f"blob {len(b)}\0".encode()+b).hexdigest()
+          def load(sha,path,expected_blob=None):
+              b=show(sha,path)
+              observed=blob_bytes(b)
+              if expected_blob is not None:
+                  assert observed==expected_blob,(path,expected_blob,observed)
+              return json.loads(b),observed
+
+          specimens=[]
+
+          # UUF100_007
+          p100="research/TRUMP_WALL_MANTEQUILLA_UUF100_007_FIRST_GENUINE_WALL_RESULT_2026-09-18_v1.0.json"
+          j100,b100=load("5569cb20c7a04c48d228d2cbe7ad1817086e7674",p100,"2913d9744bd83bae279fbc3c9e41171dd3f953f9")
+          specimens.append(("UUF100_007",j100["candidate"],{"commit":"5569cb20c7a04c48d228d2cbe7ad1817086e7674","path":p100,"blob":b100}))
+
+          # UUF175_018 A/B
+          p175="research/TRUMP_WALL_MANTEQUILLA_UUF175_018_DUAL_ELIGIBLE_SEMANTIC_RESULT_2026-09-18_v1.0.json"
+          j175,b175=load("7c6d008be910ac15da6c52111d27ec40495ccad4",p175,"6abd2a89905814b66d46ecfa819a6ba2c8f0ef15")
+          for s in j175["specimens"]:
+              specimens.append((f"UUF175_018_{s['specimen_id']}",s["candidate"],{"commit":"7c6d008be910ac15da6c52111d27ec40495ccad4","path":p175,"blob":b175,"specimen_id":s["specimen_id"]}))
+
+          # UUF200_003
+          p200="research/TRUMP_WALL_MANTEQUILLA_UUF200_003_SEMANTIC_RESULT_2026-09-18_v1.0.json"
+          j200,b200=load("a5916294abb8b48a653e915df9bfa1bbf18a4fbe",p200,"39a6abcbd4843af90b054a48cba9947be7a75847")
+          specimens.append(("UUF200_003",j200["candidate"],{"commit":"a5916294abb8b48a653e915df9bfa1bbf18a4fbe","path":p200,"blob":b200}))
+
+          # UUF250 depth three
+          depth_paths=[
+            ("UUF250_033","research/TRUMP_WALL_MANTEQUILLA_UUF250_033_DEPTH_SEMANTIC_RESULT_2026-09-18_v1.0.json","5d6ffdf6a44e3e1cf293a63c10752885c6b0e79c"),
+            ("UUF250_042","research/TRUMP_WALL_MANTEQUILLA_UUF250_042_DEPTH_SEMANTIC_RESULT_2026-09-18_v1.0.json","4bc2fe4c79c97cdea9c78f30fb06276864b62aeb"),
+            ("UUF250_070","research/TRUMP_WALL_MANTEQUILLA_UUF250_070_DEPTH_SEMANTIC_RESULT_2026-09-18_v1.0.json","245e2dad257214703c19e3de8ca8901f05e5c8c7"),
+          ]
+          for name,path,blob in depth_paths:
+              j,b=load("a8022efd37f3e04bd47986c17562e96615699fcc",path,blob)
+              specimens.append((name,j["candidate"],{"commit":"a8022efd37f3e04bd47986c17562e96615699fcc","path":path,"blob":b}))
+
+          rows=[]
+          for name,cand,auth in specimens:
+              assert cand["semantic_class"]=="R_C_TRUE",name
+              assert cand["verdict"]=="FAIL_TRIVIAL_ESCAPE__R_C_TRUE",name
+              branches=cand["interface"]["ORCSP"]["branches"]
+              universal=[
+                  b["internal_assignment"] for b in branches
+                  if b["residual"].get("unsat") is False and b["residual"].get("constraints")==[]
+              ]
+              assert universal,name
+              rows.append({
+                  "specimen":name,
+                  "source":cand["source"],
+                  "cell":cand["frozen_cell"],
+                  "boundary":cand["boundary_variables"],
+                  "semantic_class":cand["semantic_class"],
+                  "universal_internal_assignments":universal,
+                  "kappa_C":1,
+                  "internal_cover_class":"SAT_WITNESSED_BY_UNIVERSAL_RESIDUAL_BRANCH",
+                  "authority":auth
+              })
+          assert len(rows)==7
+
+          retro={
+            "artifact_id":"JANUS-TRUMP-WALL-MANTEQUILLA-UNSEEN-ROUTED-SEVEN-UNIVERSAL-SHIELDING-RETROSPECTIVE-2026-09-18-v1.0",
+            "date":"2026-09-18",
+            "phase":"RETROSPECTIVE_EMPIRICAL_CLASSIFICATION_AFTER_FROZEN_RESULTS",
+            "scope":"Seven routed multi-boundary specimens from the completed frozen unseen UUF series",
+            "N_routed":7,
+            "N_R_C_TRUE":7,
+            "N_kappa_1":7,
+            "N_internal_cover_sat_witnessed":7,
+            "N_semantically_nontrivial":0,
+            "specimens":rows,
+            "interpretation":"All seven previously routed specimens contain at least one independently frozen ORCSP branch with empty residual constraints, hence each has kappa_C=1 and, by the separately proved lemma, satisfiable internal cover.",
+            "claim_ceiling":"EMPIRICAL_STATEMENT_ONLY_FOR_THE_SEVEN_FROZEN_ROUTED_SPECIMENS",
+            "scientific_firewall":{
+              "not_a_frequency_theorem_for_random_3SAT":True,
+              "FIRST_SEMANTICALLY_NONTRIVIAL_BOUNDARY_SPECIMEN":"NOT_YET_FOUND",
+              "FIRST_GENUINE_CORRELATED_WALL_SPECIMEN":"NOT_YET_FOUND",
+              "GENERAL_SAT_IN_P":"NOT_PROVED",
+              "P_VS_NP":"OPEN"
+            }
+          }
+          Path("research/TRUMP_WALL_MANTEQUILLA_UNSEEN_ROUTED_SEVEN_UNIVERSAL_SHIELDING_RETROSPECTIVE_2026-09-18_v1.0.json").write_text(json.dumps(retro,indent=2,sort_keys=True)+"\n")
+
+          # UUF250 001..100 cumulative phase.
+          pbase="research/TRUMP_WALL_MANTEQUILLA_UUF250_001_020_STRUCTURAL_CENSUS_RESULT_2026-09-18_v1.0.json"
+          base,_=load("1798cefbf3cd9f72dfa7330f0e83752f86bbb716",pbase,"f7cbfe579bc6c683fbe7522dcf0fbc6d1bd7aeba")
+          panel_paths=[
+            ("P2","research/TRUMP_WALL_MANTEQUILLA_UUF250_DEPTH_P2_021_040_STRUCTURAL_CENSUS_RESULT_2026-09-18_v1.0.json","a6c36d08286a960e010db202cacaa01b19c10b39"),
+            ("P3","research/TRUMP_WALL_MANTEQUILLA_UUF250_DEPTH_P3_041_060_STRUCTURAL_CENSUS_RESULT_2026-09-18_v1.0.json","689baafb6579c7d9223c6217700707fb465cde87"),
+            ("P4","research/TRUMP_WALL_MANTEQUILLA_UUF250_DEPTH_P4_061_080_STRUCTURAL_CENSUS_RESULT_2026-09-18_v1.0.json","4d1cfb54a27c725f080e69e9ef307df75e14d0a0"),
+            ("P5","research/TRUMP_WALL_MANTEQUILLA_UUF250_DEPTH_P5_081_100_STRUCTURAL_CENSUS_RESULT_2026-09-18_v1.0.json","bddcec4cab5a6306394abfc3b369eb259a956b08"),
+          ]
+          panel_results=[("P1",base)]
+          for pid,path,blob in panel_paths:
+              j,_=load("bc90e796e28e097228e627aa79fb864945d32547",path,blob)
+              panel_results.append((pid,j))
+
+          keys=["N_sources","N_detected_cells","N_null_cells","N_active_cells","N_boundary_ge2_cells","N_Mantequilla_routed_cells"]
+          cum={k:0 for k in keys}
+          per=[]
+          for pid,j in panel_results:
+              d=j["census_denominators"]
+              row={k:int(d[k]) for k in keys}
+              row["panel_id"]=pid
+              per.append(row)
+              for k in keys: cum[k]+=row[k]
+          assert cum=={
+            "N_sources":100,
+            "N_detected_cells":13,
+            "N_null_cells":2,
+            "N_active_cells":11,
+            "N_boundary_ge2_cells":3,
+            "N_Mantequilla_routed_cells":3
+          },cum
+
+          sem_path="research/TRUMP_WALL_MANTEQUILLA_UUF250_DEPTH_THREE_SEMANTIC_AGGREGATE_2026-09-18_v1.0.json"
+          sem,_=load("a8022efd37f3e04bd47986c17562e96615699fcc",sem_path)
+          assert sem["N_routed"]==3 and sem["N_semantically_trivial_true"]==3 and sem["N_semantically_nontrivial"]==0 and sem["N_correlated"]==0
+
+          diag_path="research/TRUMP_WALL_MANTEQUILLA_UUF250_DEPTH_THREE_POSTHOC_SHIELDING_DIAGNOSTIC_2026-09-18_v1.0.json"
+          diag,_=load("f5b5dae18070ac260a032758265f01abdfb37abe",diag_path)
+          assert diag["aggregate"]["N_diagnosed"]==3 and diag["aggregate"]["N_kappa_1"]==3
+
+          phase={
+            "artifact_id":"JANUS-TRUMP-WALL-MANTEQUILLA-UUF250-001-100-PHASE-SUMMARY-2026-09-18-v1.0",
+            "date":"2026-09-18",
+            "scope":"Canonical SATLIB UUF250.1065.100 sources 001..100 under the frozen detector, activity gate, boundary gate, and unchanged Mantequilla.",
+            "structural_per_panel":per,
+            "structural_cumulative":cum,
+            "semantic_cumulative":{
+              "N_routed":3,
+              "N_semantically_trivial_true":3,
+              "N_semantically_trivial_false":0,
+              "N_semantically_nontrivial":0,
+              "N_nontrivial_but_unary_factorized":0,
+              "N_correlated":0
+            },
+            "headline_chain":"100 -> 13 detected -> 11 active -> 3 multi-boundary -> 3 routed -> 0 semantically nontrivial",
+            "universal_branch_shielding":{
+              "N_routed_diagnosed":3,
+              "N_kappa_1":3,
+              "rate":"3/3",
+              "classification":"UNIVERSAL_BRANCH_SHIELDING"
+            },
+            "empirical_statement":"No semantically nontrivial Mantequilla boundary interface was observed in frozen UUF250_001..100 under this frozen detector/gate; all three routed UUF250 specimens exhibited universal-branch shielding.",
+            "scientific_firewall":{
+              "scope_not_generalized_beyond_this_family_and_detector":True,
+              "FIRST_SEMANTICALLY_NONTRIVIAL_BOUNDARY_SPECIMEN":"NOT_YET_FOUND",
+              "FIRST_GENUINE_CORRELATED_WALL_SPECIMEN":"NOT_YET_FOUND",
+              "POLYNOMIAL_BRIDGE":"NOT_PROVED",
+              "GENERAL_SAT_IN_P":"NOT_PROVED",
+              "P_VS_NP":"OPEN"
+            }
+          }
+          Path("research/TRUMP_WALL_MANTEQUILLA_UUF250_001_100_PHASE_SUMMARY_2026-09-18_v1.0.json").write_text(json.dumps(phase,indent=2,sort_keys=True)+"\n")
+          print(json.dumps({"N_routed_seven":7,"N_kappa1_seven":7,"uuf250_chain":phase["headline_chain"]},sort_keys=True))
+          PY
+
+      - name: Upload proof and retrospective receipts
+        uses: actions/upload-artifact@v4
+        with:
+          name: trump-wall-universal-branch-shielding-lemma-${{ github.run_id }}
+          path: |
+            research/TRUMP_WALL_MANTEQUILLA_UNIVERSAL_BRANCH_SHIELDING_LEMMA_2026-09-18_v1.0.json
+            research/TRUMP_WALL_MANTEQUILLA_UNIVERSAL_BRANCH_SHIELDING_LEMMA_INDEPENDENT_CHECK_2026-09-18_v1.0.json
+            research/TRUMP_WALL_MANTEQUILLA_UNSEEN_ROUTED_SEVEN_UNIVERSAL_SHIELDING_RETROSPECTIVE_2026-09-18_v1.0.json
+            research/TRUMP_WALL_MANTEQUILLA_UUF250_001_100_PHASE_SUMMARY_2026-09-18_v1.0.json
+          if-no-files-found: error
+          retention-days: 90
+
+      - name: Freeze verified theorem and empirical summaries
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add "$CHECK_OUT" "$RETRO_OUT" "$UUF250_OUT"
+          git commit -m "TRUMP WALL freeze universal-branch shielding lemma verification"
+          git push origin "HEAD:$BRANCH"
+
+      - name: Enforce proof and empirical claim ceilings
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json,os
+          c=json.load(open(os.environ["CHECK_OUT"]))
+          r=json.load(open(os.environ["RETRO_OUT"]))
+          u=json.load(open(os.environ["UUF250_OUT"]))
+          assert c["verdict"]=="PASS_INDEPENDENT_UNIVERSAL_BRANCH_SHIELDING_LEMMA_CHECK"
+          assert all(c["checks"].values())
+          assert r["N_routed"]==7 and r["N_kappa_1"]==7 and r["N_semantically_nontrivial"]==0
+          assert u["structural_cumulative"]["N_sources"]==100
+          assert u["semantic_cumulative"]["N_semantically_nontrivial"]==0
+          assert u["universal_branch_shielding"]["N_kappa_1"]==3
+          assert u["scientific_firewall"]["P_VS_NP"]=="OPEN"
+          print("UNIVERSAL_BRANCH_SHIELDING_LEMMA_AND_EMPIRICS_PASS")
+          PY
