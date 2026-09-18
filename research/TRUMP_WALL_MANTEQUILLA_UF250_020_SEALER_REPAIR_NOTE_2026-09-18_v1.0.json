@@ -1,0 +1,27 @@
+{
+  "artifact_id": "JANUS-TRUMP-WALL-MANTEQUILLA-UF250-020-SEALER-REPAIR-NOTE-2026-09-18-v1.0",
+  "date": "2026-09-18",
+  "failed_run_id": 35314535455,
+  "failed_job_id": 105503262231,
+  "failure_stage": "Seal post-detection input bundle",
+  "scientific_candidate_executed": false,
+  "independent_checker_executed": false,
+  "scientific_verdict_produced": false,
+  "root_cause": {
+    "type": "IMPLEMENTATION_ONLY_WRONG_PARSER_HELPER",
+    "detail": "seal_bundle.py called frozen.parse_and_formula_hash from the historical UF20 helper, which asserts header==(20,91). UF250_020 is correctly (250,1065), so sealing aborted before candidate execution.",
+    "traceback_terminal": "AssertionError at assert header==(20,91) and len(clauses)==91"
+  },
+  "authorized_repair": {
+    "sealer_only": true,
+    "replace": "UF20-specific parse_and_formula_hash call",
+    "with": "local strict UF250 parser requiring p cnf 250 1065 and exactly 1065 canonical 3-CNF clauses, computing the same canonical clause-sequence SHA-256 used by the frozen UF250 evaluator",
+    "candidate_changes": 0,
+    "independent_checker_changes": 0,
+    "interface_language_changes": 0,
+    "witness_changes": 0,
+    "thresholds_changes": 0,
+    "verdict_rule_changes": 0
+  },
+  "rerun_policy": "Update workflow only to bind the repaired sealer blob, then let the same push-triggered gate rerun. The failed run is infrastructure/implementation evidence only."
+}
