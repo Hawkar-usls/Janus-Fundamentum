@@ -1,0 +1,206 @@
+name: TRUMP WALL Mantequilla UUF250 depth P4 061-080 structural census
+
+on:
+  push:
+    branches:
+      - research/TRUMP_WALL-MANTEQUILLA-UUF250-depth-extension-021-100-2026-09-18
+    paths:
+      - research/TRUMP_WALL_MANTEQUILLA_UUF250_DEPTH_LAUNCH_2026-09-18_v1.0.json
+
+permissions:
+  contents: write
+
+concurrency:
+  group: trump-wall-mantequilla-uuf250-depth-p4-structural-census
+  cancel-in-progress: false
+
+jobs:
+  census:
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+    env:
+      BRANCH: research/TRUMP_WALL-MANTEQUILLA-UUF250-depth-extension-021-100-2026-09-18
+      TOOL_DIR: research/tools/trump_wall_mantequilla_uuf250_depth_p4_structural_census
+      RESULT_OUT: research/TRUMP_WALL_MANTEQUILLA_UUF250_DEPTH_P4_061_080_STRUCTURAL_CENSUS_RESULT_2026-09-18_v1.0.json
+      PANEL_ID: P4
+      PANEL_RANGE: 061..080
+
+    steps:
+      - name: Checkout common frozen launch head
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Verify frozen depth census authorities
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import hashlib,json
+          from pathlib import Path
+          expected={
+            "research/TRUMP_WALL_MANTEQUILLA_UUF250_DEPTH_EXTENSION_PREREG_V1_2026-09-18.json":"eb9e602eb0fc092989dbd468f64a937c600a2b48",
+            "research/TRUMP_WALL_MANTEQUILLA_UUF250_DEPTH_021_100_SOURCE_FREEZE_AUTHORITY_2026-09-18_v1.0.json":"f4a3e6e89ab78706dddce46bb5a213e9f6c23197",
+            "research/TRUMP_WALL_MANTEQUILLA_UUF250_DEPTH_P4_061_080_SOURCE_FREEZE_AUTHORITY_2026-09-18_v1.0.json":"54bb1d581bff164cf08633f66133e9e461a571e0",
+            "research/TRUMP_WALL_MANTEQUILLA_UUF250_DEPTH_STRUCTURAL_CENSUS_PREREG_V1_2026-09-18.json":"bca4d9815cd44e0b7ddddeff89f6e2a68edf35c3",
+            "research/TRUMP_WALL_MANTEQUILLA_UUF250_DEPTH_STRUCTURAL_CENSUS_REVIEW_V1_2026-09-18.json":"7754583e00ccae0dd6379f73119264af204e9fd7",
+            "research/TRUMP_WALL_MANTEQUILLA_UUF250_DEPTH_STRUCTURAL_IMPLEMENTATION_REVIEW_V1_2026-09-18.json":"b04b8b5454794d4e3c7b38b4af0a43da730756cf",
+            "research/tools/trump_wall_mantequilla_uuf250_depth_p4_structural_census/candidate.py":"4382bde5b6024a02f70f519c05e814e0425c08c3",
+            "research/tools/trump_wall_mantequilla_uuf250_depth_p4_structural_census/independent_check.py":"c45dade59acfee0795f5252cde9aeae1e704618f",
+            "research/tools/apma_satlib_uf20_r000_r111_projected_core_replay/projection_identity.py":"2ef48e73974a5f43d3f4fb4809ebd0c09c0f5be4",
+            "research/tools/apma_uf20_011_015_fresh_generic_pendant_wl_replication/candidate.py":"9ec365ae27a6caa7b936cd33040e542f183ded99",
+            "research/tools/apma_uf20_wl_historical_closed_control_falsifier/candidate.py":"6b697fd8b3de4c83f8226b06399b6bad99953d4e",
+            "research/tools/apma_unseen_local_invariant_orbit_count/candidate.py":"a076cfc56d68aad0348415e313705da1f6b9cdcd",
+          }
+          def blob(path):
+              data=Path(path).read_bytes()
+              return hashlib.sha1(f"blob {len(data)}\0".encode()+data).hexdigest()
+          bad={p:{"expected":h,"observed":blob(p)} for p,h in expected.items() if blob(p)!=h}
+          if bad: raise SystemExit(f"UUF250_DEPTH_P4_AUTHORITY_BIND_FAILURE:{bad}")
+          sf=json.load(open("research/TRUMP_WALL_MANTEQUILLA_UUF250_DEPTH_P4_061_080_SOURCE_FREEZE_AUTHORITY_2026-09-18_v1.0.json",encoding="utf-8"))
+          assert sf["verdict"]=="PASS_UUF250_DEPTH_P4_061_080_DERIVED_SOURCE_FREEZE"
+          assert sf["independent_verification"]=="PASS_INDEPENDENT_UUF250_DEPTH_P4_SOURCE_FREEZE_DERIVATION"
+          assert len(sf["source_receipts"])==20
+          for row in sf["source_receipts"]:
+              assert blob(row["committed_path"])==row["git_blob"]
+          print("UUF250_DEPTH_P4_AUTHORITIES_OK")
+          PY
+
+      - name: Execute frozen structural census candidate
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf /tmp/uuf250-depth-p4
+          mkdir -p /tmp/uuf250-depth-p4/candidate
+          python "$TOOL_DIR/candidate.py" /tmp/uuf250-depth-p4/candidate/candidate.json | tee /tmp/uuf250-depth-p4/candidate/candidate.log
+
+      - name: Recompute structural census independently
+        id: checker
+        shell: bash
+        run: |
+          set -uo pipefail
+          mkdir -p /tmp/uuf250-depth-p4/checker
+          set +e
+          python "$TOOL_DIR/independent_check.py" /tmp/uuf250-depth-p4/candidate/candidate.json "$TOOL_DIR/candidate.py" /tmp/uuf250-depth-p4/checker/independent.json | tee /tmp/uuf250-depth-p4/checker/independent.log
+          rc=${PIPESTATUS[0]}
+          set -e
+          echo "exit_code=$rc" >> "$GITHUB_OUTPUT"
+          test -f /tmp/uuf250-depth-p4/checker/independent.json
+
+      - name: Build frozen panel result
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/uuf250-depth-p4/final
+          python - <<'PY'
+          import hashlib,json,pathlib,subprocess,os
+          c=json.load(open("/tmp/uuf250-depth-p4/candidate/candidate.json",encoding="utf-8"))
+          i=json.load(open("/tmp/uuf250-depth-p4/checker/independent.json",encoding="utf-8"))
+          verified=(i.get("verdict")=="PASS_INDEPENDENT_UUF250_STRUCTURAL_ACTIVITY_CENSUS_VERIFICATION" and all(i.get("checks",{}).values()) and i.get("independent_summary")==c.get("summary"))
+          summary=c["summary"]
+          eligible=int(summary["N_eligible_current_mechanism_k2_or_k3"])
+          unsupported=int(summary["N_eligible_unsupported_k_gt3"])
+          if not verified: outcome="FAIL_INDEPENDENT_STRUCTURAL_CENSUS_RECONCILIATION"
+          elif eligible>0: outcome="PASS_STRUCTURAL_CENSUS_WITH_ELIGIBLE_K2_OR_K3_CELLS"
+          elif unsupported>0: outcome="PASS_STRUCTURAL_CENSUS_ELIGIBLE_ONLY_UNSUPPORTED_K_GT3"
+          else: outcome="PASS_STRUCTURAL_CENSUS_ZERO_ELIGIBLE_CELLS"
+          def csha(x): return hashlib.sha256(json.dumps(x,sort_keys=True,separators=(",",":"),ensure_ascii=False).encode()).hexdigest()
+          def gblob(path): return subprocess.check_output(["git","hash-object",path],text=True).strip()
+          result={
+            "artifact_id":"JANUS-TRUMP-WALL-MANTEQUILLA-UUF250-DEPTH-P4-061-080-STRUCTURAL-CENSUS-RESULT-2026-09-18-v1.0",
+            "date":"2026-09-18",
+            "panel_id":"P4",
+            "panel_range":"061..080",
+            "status":"FROZEN_UUF250_DEPTH_P4_STRUCTURAL_ACTIVITY_CENSUS" if verified else "FROZEN_INDEPENDENT_RECONCILIATION_FAILURE",
+            "scientific_outcome":outcome,
+            "execution_verdict":i.get("verdict"),
+            "phase":"STRUCTURAL_CENSUS_ONLY__MANTEQUILLA_NOT_RUN",
+            "candidate":c,
+            "independent":i,
+            "census_denominators":summary,
+            "freeze_barrier":c["freeze_barrier"],
+            "no_optional_stopping":{"remaining_panels_must_continue":True,"this_result_cannot_cancel_other_predeclared_panels":True},
+            "authorities":{
+              "depth_prereg_blob":"eb9e602eb0fc092989dbd468f64a937c600a2b48",
+              "master_source_freeze_blob":"f4a3e6e89ab78706dddce46bb5a213e9f6c23197",
+              "panel_source_freeze_blob":"54bb1d581bff164cf08633f66133e9e461a571e0",
+              "structural_prereg_blob":"bca4d9815cd44e0b7ddddeff89f6e2a68edf35c3",
+              "structural_review_blob":"7754583e00ccae0dd6379f73119264af204e9fd7",
+              "implementation_review_blob":"b04b8b5454794d4e3c7b38b4af0a43da730756cf",
+              "candidate_blob":"4382bde5b6024a02f70f519c05e814e0425c08c3",
+              "checker_blob":"c45dade59acfee0795f5252cde9aeae1e704618f",
+              "workflow_blob":gblob(".github/workflows/trump-wall-mantequilla-uuf250-depth-p4-structural-census.yml")
+            },
+            "routing_policy":{
+              "mantequilla_routed_before_census_freeze":0,
+              "eligible_current_mechanism_cells_after_freeze":eligible,
+              "eligible_unsupported_k_gt3_after_freeze":unsupported,
+              "semantic_next":("SEAL_ALL_ELIGIBLE_K2_K3_CELLS_FOR_PANEL_AND_RUN_UNCHANGED_MANTEQUILLA" if eligible>0 else ("FREEZE_UNSUPPORTED_K_GT3_WITHOUT_RETUNING" if unsupported>0 else "NO_PANEL_SEMANTIC_RUN")),
+              "depth_census_next":"CONTINUE_ALL_PREDECLARED_PANELS_REGARDLESS_OF_THIS_RESULT"
+            },
+            "scientific_firewall":{
+              "MANTEQUILLA_EXECUTED_IN_THIS_PHASE":False,
+              "RESIDUAL_SEMANTICS_READ_IN_THIS_PHASE":False,
+              "FIRST_SEMANTICALLY_NONTRIVIAL_BOUNDARY_SPECIMEN":"NOT_YET_PROMOTED_BY_STRUCTURAL_PHASE",
+              "FIRST_GENUINE_CORRELATED_WALL_SPECIMEN":"NOT_YET_PROMOTED_BY_STRUCTURAL_PHASE",
+              "GENERAL_SAT_IN_P":"NOT_PROVED","P_VS_NP":"OPEN"
+            }
+          }
+          result["result_semantic_digest_sha256"]=csha({
+            "panel_id":result["panel_id"],"outcome":outcome,
+            "candidate_digest":c["candidate_semantic_digest_sha256"],
+            "independent_digest":i["independent_semantic_digest_sha256"],
+            "denominator":summary,"freeze_barrier":result["freeze_barrier"]
+          })
+          pathlib.Path("/tmp/uuf250-depth-p4/final/result.json").write_text(json.dumps(result,indent=2,sort_keys=True)+"\n",encoding="utf-8")
+          print(json.dumps({"panel":"P4","outcome":outcome,"summary":summary,"digest":result["result_semantic_digest_sha256"]},sort_keys=True))
+          PY
+
+      - name: Upload panel receipts
+        uses: actions/upload-artifact@v4
+        with:
+          name: trump-wall-mantequilla-uuf250-depth-p4-structural-${{ github.run_id }}
+          path: |
+            /tmp/uuf250-depth-p4/candidate/candidate.json
+            /tmp/uuf250-depth-p4/candidate/candidate.log
+            /tmp/uuf250-depth-p4/checker/independent.json
+            /tmp/uuf250-depth-p4/checker/independent.log
+            /tmp/uuf250-depth-p4/final/result.json
+          if-no-files-found: error
+          retention-days: 90
+
+      - name: Freeze structural census
+        shell: bash
+        run: |
+          set -euo pipefail
+          cp /tmp/uuf250-depth-p4/final/result.json "$RESULT_OUT"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add "$RESULT_OUT"
+          git commit -m "TRUMP WALL freeze UUF250 depth P4 061-080 structural census"
+          git push origin "HEAD:$BRANCH"
+
+      - name: Enforce independent panel agreement
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "${{ steps.checker.outputs.exit_code }}" = "0"
+          python - <<'PY'
+          import json
+          c=json.load(open("/tmp/uuf250-depth-p4/candidate/candidate.json",encoding="utf-8"))
+          i=json.load(open("/tmp/uuf250-depth-p4/checker/independent.json",encoding="utf-8"))
+          r=json.load(open("/tmp/uuf250-depth-p4/final/result.json",encoding="utf-8"))
+          assert i["verdict"]=="PASS_INDEPENDENT_UUF250_STRUCTURAL_ACTIVITY_CENSUS_VERIFICATION"
+          assert all(i["checks"].values())
+          assert i["independent_summary"]==c["summary"]==r["census_denominators"]
+          assert r["freeze_barrier"]=={"residual_constructions":0,"robdd_operations":0,"sat_solver_invocations":0,"mantequilla_runs":0,"boundary_cube_assignments_enumerated":0}
+          assert r["scientific_outcome"]!="FAIL_INDEPENDENT_STRUCTURAL_CENSUS_RECONCILIATION"
+          assert r["no_optional_stopping"]["this_result_cannot_cancel_other_predeclared_panels"] is True
+          print("UUF250_DEPTH_P4_STRUCTURAL_CENSUS_INDEPENDENT_PASS")
+          PY
