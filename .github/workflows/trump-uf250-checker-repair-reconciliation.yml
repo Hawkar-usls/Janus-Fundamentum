@@ -1,0 +1,345 @@
+name: TRUMP UF250 checker repair reconciliation
+
+on:
+  push:
+    branches:
+      - research/trump-uf250-checker-repair-reconciliation-2026-09-18
+    paths:
+      - .github/workflows/trump-uf250-checker-repair-reconciliation.yml
+
+permissions:
+  contents: write
+  actions: read
+
+jobs:
+  reconcile:
+    runs-on: ubuntu-latest
+    env:
+      PYTHONPATH: ${{ github.workspace }}
+      ORIGINAL_RUN_ID: "35283781590"
+      ORIGINAL_ARTIFACT_ID: "10526176457"
+      ORIGINAL_ARTIFACT_NAME: "trump-uf250-001-020-falsifier-candidate-35283781590"
+      BRANCH: "research/trump-uf250-checker-repair-reconciliation-2026-09-18"
+    steps:
+      - name: Checkout exact repair head
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Verify frozen repair and scientific authorities
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import hashlib
+          from pathlib import Path
+
+          expected = {
+            'research/TRUMP_UF250_CHECKER_REPAIR_RECONCILIATION_PREREGISTRATION_2026-09-18_v1.0.json': '918d9af115bbb0fbd7c910dae6b87e03face23ba',
+            'research/TRUMP_UF250_CHECKER_REPAIR_RECONCILIATION_REVIEW_2026-09-18_v1.0.json': 'a5edbf4d127d18ba71ad6ec887bf6be4bc13d781',
+            'research/TRUMP_UF250_001_020_OUT_OF_FAMILY_WL_ORBIT_FALSIFIER_EVALUATION_PREREGISTRATION_2026-09-18_v1.0.json': 'd3f1bef0ca6ce91247c00c194d00cd78f8dbd147',
+            'research/TRUMP_UF250_001_020_OUT_OF_FAMILY_WL_ORBIT_FALSIFIER_EVALUATION_REVIEW_2026-09-18_v1.0.json': '41ff904020f3f2230d0a30afb2b072ad9cfa1b42',
+            'research/TRUMP_UF250_001_020_OUT_OF_FAMILY_SOURCE_FREEZE_AUTHORITY_2026-09-18_v1.0.json': 'b8b7cd5253e2324eff42b9c543abbc0f507841d7',
+            'research/TRUMP_WL_DIRECT_EXACT_E3_SCOPE_BOUND_THEOREM_RESULT_2026-09-18_v1.0.json': '3cbf05cb0b0249ddf365bc43d176a06ddb7f72af',
+            'research/tools/trump_uf250_001_020_out_of_family_wl_orbit_falsifier/candidate.py': 'fd8801a3e0572e01f63f21df8ae13a51e926e269',
+            'research/tools/trump_uf250_001_020_out_of_family_wl_orbit_falsifier/independent_check.py': '47c15c137babfa2b5fc70a2fd30cd75068e29cc3',
+          }
+
+          def blob(path):
+              d = Path(path).read_bytes()
+              return hashlib.sha1(f'blob {len(d)}\0'.encode() + d).hexdigest()
+
+          bad = {p: (h, blob(p)) for p, h in expected.items() if blob(p) != h}
+          if bad:
+              raise SystemExit(f'UF250_REPAIR_AUTHORITY_BINDING_FAILURE {bad}')
+          print('UF250_REPAIR_AUTHORITY_BINDINGS_PASS')
+          PY
+
+      - name: Download exact original candidate artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: trump-uf250-001-020-falsifier-candidate-35283781590
+          path: /tmp/original-uf250-candidate
+          github-token: ${{ github.token }}
+          repository: Hawkar-usls/Janus-Fundamentum
+          run-id: 35283781590
+
+      - name: Validate original candidate receipt
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -f /tmp/original-uf250-candidate/uf250_falsifier_candidate.json
+          python - <<'PY'
+          import hashlib, json
+          from pathlib import Path
+          p = Path('/tmp/original-uf250-candidate/uf250_falsifier_candidate.json')
+          raw = p.read_bytes()
+          x = json.loads(raw)
+          allowed = {
+            'FALSIFIED_SCOPE_THEOREM_AT_LEAST_ONE_IN_SCOPE_POSITIVE_NOT_E3_ADMITTED',
+            'FALSIFIED_OUT_OF_FAMILY_SELECTOR_AT_LEAST_ONE_E3_POSITIVE_NOT_RECOVERED',
+            'FALSIFIED_OUT_OF_FAMILY_AT_LEAST_ONE_IN_SCOPE_PORTFOLIO_OPEN_FALSE_POSITIVE',
+            'SURVIVED_OUT_OF_FAMILY_WITH_AT_LEAST_ONE_E3_POSITIVE_AND_ZERO_PREDECLARED_ERRORS',
+            'SURVIVED_WITH_RESOURCE_SCOPE_EXITS_AND_ZERO_PREDECLARED_ERRORS',
+            'SURVIVED_OUT_OF_FAMILY_ZERO_E3_POSITIVE_COVERAGE',
+          }
+          if x.get('verdict') not in allowed:
+              raise SystemExit('ORIGINAL_CANDIDATE_VERDICT_NOT_ALLOWED')
+          if x.get('prediction_stage_count') != 20:
+              raise SystemExit('ORIGINAL_CANDIDATE_COUNT_MISMATCH')
+          if x.get('prediction_stage_completed_before_ground_truth') is not True:
+              raise SystemExit('ORIGINAL_CANDIDATE_BLINDNESS_RECEIPT_MISSING')
+          print(json.dumps({
+            'candidate_sha256': hashlib.sha256(raw).hexdigest(),
+            'verdict': x.get('verdict'),
+            'prediction_stage_sha256': x.get('prediction_stage_sha256'),
+            'summary': x.get('summary'),
+          }, indent=2, sort_keys=True))
+          PY
+
+      - name: Recompute independently with repaired checker
+        id: checker
+        shell: bash
+        run: |
+          set -uo pipefail
+          set +e
+          python research/tools/trump_uf250_001_020_out_of_family_wl_orbit_falsifier/independent_check.py             --candidate /tmp/original-uf250-candidate/uf250_falsifier_candidate.json             > /tmp/uf250_repaired_independent.json
+          rc=$?
+          set -e
+          echo "exit_code=$rc" >> "$GITHUB_OUTPUT"
+          if [ "$rc" -ne 0 ]; then
+            python - "$rc" <<'PY' > /tmp/uf250_repaired_independent.json
+          import json, sys
+          print(json.dumps({
+              'verdict': 'FAIL_REPAIRED_CHECKER_PROCESS_CRASH',
+              'process_exit_code': int(sys.argv[1]),
+          }, sort_keys=True))
+          PY
+          fi
+          python - <<'PY'
+          import json
+          x=json.load(open('/tmp/uf250_repaired_independent.json'))
+          print(json.dumps({
+            'verdict': x.get('verdict'),
+            'scientific_outcome': x.get('scientific_outcome'),
+            'summary': x.get('summary'),
+            'comparison_checks': x.get('comparison_checks'),
+          }, indent=2, sort_keys=True))
+          PY
+
+      - name: Build reconciliation and conditional scientific result
+        id: build
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import hashlib, json, os
+          from pathlib import Path
+
+          candidate_path = Path('/tmp/original-uf250-candidate/uf250_falsifier_candidate.json')
+          independent_path = Path('/tmp/uf250_repaired_independent.json')
+          c = json.loads(candidate_path.read_text())
+          i = json.loads(independent_path.read_text())
+          passed = i.get('verdict') == 'PASS_INDEPENDENT_UF250_OUT_OF_FAMILY_WL_ORBIT_FALSIFIER_VERIFICATION'
+          candidate_sha256 = hashlib.sha256(candidate_path.read_bytes()).hexdigest()
+
+          rec = {
+            'artifact_id': 'JANUS-TRUMP-UF250-CHECKER-REPAIR-RECONCILIATION-RESULT-2026-09-18-v1.0',
+            'date': '2026-09-18',
+            'status': 'PASS_RECONCILED_EXISTING_UF250_CANDIDATE' if passed else 'FAIL_UF250_CHECKER_RECONCILIATION',
+            'reconciliation_verdict': 'PASS_REPAIRED_CHECKER_MATCHES_EXISTING_CANDIDATE' if passed else 'FAIL_REPAIRED_CHECKER_DID_NOT_AUTHORIZE_SCIENTIFIC_FREEZE',
+            'original_candidate': {
+              'run_id': 35283781590,
+              'workflow_head': '6ee0085c9d634a6b6ee86107fc0f0edc7568d8e5',
+              'artifact_id': 10526176457,
+              'artifact_name': 'trump-uf250-001-020-falsifier-candidate-35283781590',
+              'artifact_zip_sha256': 'fcf6819a5910fbffce6ff327703213e4d03d1bea823fd5c7a7e6dc5f65a2e243',
+              'candidate_file_sha256': candidate_sha256,
+              'candidate_blob': 'fd8801a3e0572e01f63f21df8ae13a51e926e269',
+              'scientific_outcome': c.get('verdict'),
+              'prediction_stage_sha256': c.get('prediction_stage_sha256'),
+            },
+            'repair': {
+              'prereg_commit': 'd653940d1828b237b1a83da27eee7d2817fee38d',
+              'prereg_blob': '918d9af115bbb0fbd7c910dae6b87e03face23ba',
+              'repair_commit': 'c040aa1b1b8b4a83dd13dfe61329fd0cf1919e34',
+              'old_checker_blob': 'e925b7c76c84e9ad72d9673a9cf772bb8f7c9278',
+              'repaired_checker_blob': '47c15c137babfa2b5fc70a2fd30cd75068e29cc3',
+              'review_commit': 'ac3a0c048b91b27bac003be63740a827ce6b7e75',
+              'review_blob': 'a5edbf4d127d18ba71ad6ec887bf6be4bc13d781',
+              'authorized_diff': 'parse_uf250 literal upper bound only: 150 -> 250',
+            },
+            'independent': {
+              'verdict': i.get('verdict'),
+              'scientific_outcome': i.get('scientific_outcome'),
+              'summary': i.get('summary'),
+              'comparison_checks': i.get('comparison_checks'),
+              'candidate_imported': i.get('candidate_imported'),
+              'prediction_stage_sha256': i.get('prediction_stage_sha256'),
+            },
+            'scientific_logic_changes': 0,
+            'candidate_rerun': False,
+            'scientific_firewall': {
+              'P_VS_NP': 'OPEN',
+              'GENERAL_SAT_IN_P': 'NOT_PROVED',
+              'WL_SUFFICIENCY_WITHOUT_DIRECT_EXACT_CHECK': 'NOT_PROVED',
+              'ARBITRARY_RESIDUAL_SEPARATOR_TRACTABILITY': 'NOT_PROVED',
+            },
+          }
+          Path('/tmp/uf250_reconciliation_result.json').write_text(json.dumps(rec, indent=2, sort_keys=True) + '\n')
+
+          if passed:
+              outcome = c['verdict']
+              if outcome.startswith('FALSIFIED_SCOPE_THEOREM'):
+                  readout = {
+                    'current_status': 'OUT_OF_FAMILY_PANEL_FALSIFIED_THE_SCOPE_THEOREM_INSIDE_ITS_PREDECLARED_BOUND',
+                    'directive': 'FREEZE_THE_COUNTEREXAMPLE_AND_AUDIT_THE_THEOREM_PROOF_CHAIN_BEFORE_ANY_SELECTOR_RETUNING',
+                    'nearest_missing_obligation': 'ISOLATE_THE_FIRST_IN_SCOPE_DIRECT_EXACT_POSITIVE_NOT_ADMITTED_BY_FROZEN_E3',
+                  }
+              elif outcome.startswith('FALSIFIED_OUT_OF_FAMILY_SELECTOR'):
+                  readout = {
+                    'current_status': 'OUT_OF_FAMILY_PANEL_FALSIFIED_THE_FROZEN_WL_PAIR_SELECTOR_BY_AT_LEAST_ONE_E3_POSITIVE_MISS',
+                    'directive': 'DO_NOT_RETUNE_ON_THIS_PANEL;FREEZE_THE_MISSED_E3_WITNESS_AS_A_SELECTOR_COUNTEREXAMPLE',
+                    'nearest_missing_obligation': 'CHARACTERIZE_THE_WL_PARTITION_PATTERN_BLOCKING_THE_MISSED_E3_EDGE',
+                  }
+              elif outcome.startswith('FALSIFIED_OUT_OF_FAMILY_AT_LEAST_ONE_IN_SCOPE_PORTFOLIO_OPEN_FALSE_POSITIVE'):
+                  readout = {
+                    'current_status': 'OUT_OF_FAMILY_PANEL_PRODUCED_AN_IN_SCOPE_WL_DIRECT_EXACT_POSITIVE_LABELLED_PORTFOLIO_OPEN',
+                    'directive': 'AUDIT_ROUTE_LABEL_AND_SCOPE_THEOREM_CONSISTENCY_BEFORE_ANY_RETUNING',
+                    'nearest_missing_obligation': 'REPLAY_THE_FIRST_IN_SCOPE_OPEN_FALSE_POSITIVE_E3_CERTIFICATE_PATH',
+                  }
+              elif outcome == 'SURVIVED_WITH_RESOURCE_SCOPE_EXITS_AND_ZERO_PREDECLARED_ERRORS':
+                  readout = {
+                    'current_status': 'FROZEN_SELECTOR_SURVIVED_UF250_WITH_ZERO_PREDECLARED_ERRORS_BUT_AT_LEAST_ONE_POSITIVE_WAS_OUTSIDE_FORMAL_RESOURCE_SCOPE',
+                    'directive': 'DO_NOT_COUNT_SCOPE_EXITS_AS_THEOREM_CONFIRMATIONS_OR_FALSE_POSITIVES',
+                    'nearest_missing_obligation': 'CHARACTERIZE_RESOURCE_SCOPE_BOUNDARY_OR_TEST_ANOTHER_PREDECLARED_FAMILY',
+                  }
+              elif outcome == 'SURVIVED_OUT_OF_FAMILY_WITH_AT_LEAST_ONE_E3_POSITIVE_AND_ZERO_PREDECLARED_ERRORS':
+                  readout = {
+                    'current_status': 'FROZEN_SELECTOR_SURVIVED_A_PREDECLARED_OUT_OF_FAMILY_UF250_PANEL_WITH_POSITIVE_E3_COVERAGE_AND_ZERO_PREDECLARED_ERRORS',
+                    'directive': 'DO_NOT_PROMOTE_FINITE_PORTABILITY_TO_WL_ALONE_SUFFICIENCY',
+                    'nearest_missing_obligation': 'TEST_A_SECOND_POSITIVE_COVERAGE_OUT_OF_FAMILY_FAMILY_OR_FORMALIZE_A_STRONGER_STATEMENT_WITHOUT_RETUNING',
+                  }
+              else:
+                  readout = {
+                    'current_status': 'UF250_PANEL_DID_NOT_FALSIFY_THE_RULE_BUT_CONTAINED_ZERO_E3_POSITIVE_GROUND_TRUTH_CASES',
+                    'directive': 'DO_NOT_INTERPRET_ZERO_POSITIVE_COVERAGE_AS_PORTABILITY_CONFIRMATION',
+                    'nearest_missing_obligation': 'PREDECLARE_ANOTHER_OUT_OF_FAMILY_PANEL_WITHOUT_USING_UF250_STRUCTURAL_RESULTS_FOR_SELECTION',
+                  }
+
+              wf = Path('.github/workflows/trump-uf250-checker-repair-reconciliation.yml')
+              d = wf.read_bytes()
+              wf_blob = hashlib.sha1(f'blob {len(d)}\0'.encode() + d).hexdigest()
+
+              result = {
+                'artifact_id': 'JANUS-TRUMP-UF250-001-020-OUT-OF-FAMILY-WL-ORBIT-FALSIFIER-RESULT-2026-09-18-v1.0',
+                'date': '2026-09-18',
+                'status': 'FROZEN_OUT_OF_FAMILY_UF250_FALSIFIER_RESULT_AFTER_CHECKER_REPAIR_RECONCILIATION',
+                'gate': c['gate'],
+                'scientific_outcome': outcome,
+                'execution_verdict': 'PASS_INDEPENDENT_UF250_OUT_OF_FAMILY_RECOMPUTATION_AFTER_MINIMAL_CHECKER_REPAIR',
+                'authorities': {
+                  'source_freeze_commit': '85572442433b1297bf2e429076b0092990dc8ad9',
+                  'source_freeze_blob': 'b8b7cd5253e2324eff42b9c543abbc0f507841d7',
+                  'evaluation_prereg_commit': 'df45df32d3b86ce86350c65af034ac41dead6065',
+                  'evaluation_prereg_blob': 'd3f1bef0ca6ce91247c00c194d00cd78f8dbd147',
+                  'evaluation_review_commit': 'c5bd29d1809dd67b3c6b47086cdbefe127dd55ce',
+                  'evaluation_review_blob': '41ff904020f3f2230d0a30afb2b072ad9cfa1b42',
+                  'scope_theorem_commit': 'bced6f34a33b063edb47a17adffa1d0ca5d5ca9a',
+                  'scope_theorem_blob': '3cbf05cb0b0249ddf365bc43d176a06ddb7f72af',
+                  'candidate_commit': 'e904cac78206e22a9f7cd35125531f769769e05a',
+                  'candidate_blob': 'fd8801a3e0572e01f63f21df8ae13a51e926e269',
+                  'original_checker_commit': 'a08ac516e60ea859d193d5f77f3c9229d215cb3a',
+                  'original_checker_blob': 'e925b7c76c84e9ad72d9673a9cf772bb8f7c9278',
+                  'repaired_checker_commit': 'c040aa1b1b8b4a83dd13dfe61329fd0cf1919e34',
+                  'repaired_checker_blob': '47c15c137babfa2b5fc70a2fd30cd75068e29cc3',
+                  'repair_prereg_commit': 'd653940d1828b237b1a83da27eee7d2817fee38d',
+                  'repair_prereg_blob': '918d9af115bbb0fbd7c910dae6b87e03face23ba',
+                  'repair_review_commit': 'ac3a0c048b91b27bac003be63740a827ce6b7e75',
+                  'repair_review_blob': 'a5edbf4d127d18ba71ad6ec887bf6be4bc13d781',
+                  'original_candidate_run_id': 35283781590,
+                  'original_candidate_artifact_id': 10526176457,
+                  'original_candidate_artifact_zip_sha256': 'fcf6819a5910fbffce6ff327703213e4d03d1bea823fd5c7a7e6dc5f65a2e243',
+                  'original_candidate_file_sha256': candidate_sha256,
+                  'workflow_head': os.environ['GITHUB_SHA'],
+                  'workflow_blob': wf_blob,
+                },
+                'execution': {
+                  'reconciliation_run_id': int(os.environ['GITHUB_RUN_ID']),
+                  'run_number': int(os.environ['GITHUB_RUN_NUMBER']),
+                  'run_attempt': int(os.environ['GITHUB_RUN_ATTEMPT']),
+                  'candidate_rerun': False,
+                  'candidate_imported_by_independent_checker': False,
+                  'independent_verdict': i['verdict'],
+                },
+                'prediction_stage_completed_before_ground_truth': c['prediction_stage_completed_before_ground_truth'],
+                'prediction_stage_count': c['prediction_stage_count'],
+                'prediction_stage_sha256': c['prediction_stage_sha256'],
+                'prediction_rows': c['prediction_rows'],
+                'ground_truth_rows': c['ground_truth_rows'],
+                'summary': c['summary'],
+                'resource_receipt': c['resource_receipt'],
+                'captain_obvious_readout': readout,
+                'claim_ceiling': c['claim_ceiling'],
+                'scientific_firewall': c['scientific_firewall'],
+                'reconciliation': {
+                  'original_candidate_reused_exactly': True,
+                  'minimal_checker_repair_only': True,
+                  'scientific_logic_changes': 0,
+                  'comparison_checks': i.get('comparison_checks'),
+                },
+              }
+              Path('/tmp/uf250_scientific_result.json').write_text(json.dumps(result, indent=2, sort_keys=True) + '\n')
+
+          with open(os.environ['GITHUB_OUTPUT'], 'a') as fh:
+              fh.write(f"passed={'true' if passed else 'false'}\n")
+          print(json.dumps({
+            'reconciliation_passed': passed,
+            'candidate_outcome': c.get('verdict'),
+            'independent_verdict': i.get('verdict'),
+            'candidate_summary': c.get('summary'),
+            'independent_summary': i.get('summary'),
+          }, indent=2, sort_keys=True))
+          PY
+
+      - name: Upload reconciliation receipts
+        uses: actions/upload-artifact@v4
+        with:
+          name: trump-uf250-checker-repair-reconciliation-${{ github.run_id }}
+          path: |
+            /tmp/original-uf250-candidate/uf250_falsifier_candidate.json
+            /tmp/uf250_repaired_independent.json
+            /tmp/uf250_reconciliation_result.json
+            /tmp/uf250_scientific_result.json
+          if-no-files-found: warn
+
+      - name: Freeze reconciliation result
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git fetch origin "$BRANCH"
+          git rebase "origin/$BRANCH"
+
+          cp /tmp/uf250_reconciliation_result.json             research/TRUMP_UF250_CHECKER_REPAIR_RECONCILIATION_RESULT_2026-09-18_v1.0.json
+          git add research/TRUMP_UF250_CHECKER_REPAIR_RECONCILIATION_RESULT_2026-09-18_v1.0.json
+
+          if [ "${{ steps.build.outputs.passed }}" = "true" ]; then
+            cp /tmp/uf250_scientific_result.json               research/TRUMP_UF250_001_020_OUT_OF_FAMILY_WL_ORBIT_FALSIFIER_RESULT_2026-09-18_v1.0.json
+            git add research/TRUMP_UF250_001_020_OUT_OF_FAMILY_WL_ORBIT_FALSIFIER_RESULT_2026-09-18_v1.0.json
+          fi
+
+          git commit -m 'TRUMP freeze UF250 checker repair reconciliation result'
+          git push origin HEAD:"$BRANCH"
+
+          if [ "${{ steps.build.outputs.passed }}" != "true" ]; then
+            echo 'UF250 reconciliation frozen as failure; scientific result not authorized.'
+            exit 1
+          fi
