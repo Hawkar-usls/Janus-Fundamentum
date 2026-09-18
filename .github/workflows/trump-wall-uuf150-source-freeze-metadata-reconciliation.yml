@@ -1,0 +1,137 @@
+name: TRUMP WALL UUF150 source-freeze metadata reconciliation
+
+on:
+  push:
+    branches:
+      - research/TRUMP_WALL-MANTEQUILLA-unseen-UUF150-active-eligibility-2026-09-18
+    paths:
+      - .github/workflows/trump-wall-uuf150-source-freeze-metadata-reconciliation.yml
+
+permissions:
+  contents: write
+
+jobs:
+  reconcile:
+    runs-on: ubuntu-latest
+    env:
+      BRANCH: research/TRUMP_WALL-MANTEQUILLA-unseen-UUF150-active-eligibility-2026-09-18
+      OLD: research/TRUMP_WALL_MANTEQUILLA_UUF150_001_020_SOURCE_FREEZE_AUTHORITY_2026-09-18_v1.0.json
+      CAND: research/TRUMP_WALL_MANTEQUILLA_UUF150_001_020_SOURCE_FREEZE_AUTHORITY_CANDIDATE_2026-09-18_v1.1.json
+      OUT: research/TRUMP_WALL_MANTEQUILLA_UUF150_001_020_SOURCE_FREEZE_AUTHORITY_2026-09-18_v1.1.json
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Verify repair authorities
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import hashlib
+          from pathlib import Path
+          expected={
+            "research/TRUMP_WALL_MANTEQUILLA_UUF150_SOURCE_FREEZE_RECEIPT_VARIABLE_METADATA_REPAIR_2026-09-18_v1.0.json":"38cb05dd38d72bb6207e553a76698698ef32831c",
+            "research/TRUMP_WALL_MANTEQUILLA_UUF150_001_020_SOURCE_FREEZE_AUTHORITY_CANDIDATE_2026-09-18_v1.1.json":"1e4d5952ed3962d1647c4b4b5e90e16a3e462cb1",
+            "research/TRUMP_WALL_MANTEQUILLA_UUF150_001_020_SOURCE_FREEZE_AUTHORITY_2026-09-18_v1.0.json":"e15928b62e0f90149dcb9d86a3d77d567c2d6a9e",
+          }
+          def blob(p):
+              b=Path(p).read_bytes()
+              return hashlib.sha1(f"blob {len(b)}\0".encode()+b).hexdigest()
+          bad={p:(h,blob(p)) for p,h in expected.items() if blob(p)!=h}
+          if bad: raise SystemExit(f"UUF150_METADATA_REPAIR_BIND_FAILURE:{bad}")
+          print("UUF150_METADATA_REPAIR_AUTHORITIES_OK")
+          PY
+
+      - name: Independently verify corrected receipts and raw sources
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import hashlib,json,os
+          from pathlib import Path
+          old=json.load(open(os.environ["OLD"],encoding="utf-8"))
+          cand=json.load(open(os.environ["CAND"],encoding="utf-8"))
+
+          assert len(old["source_receipts"])==len(cand["source_receipts"])==20
+          assert old["panel"]==cand["panel"]==[f"UUF150_{i:03d}" for i in range(1,21)]
+          assert old["archive"]==cand["archive"]
+          assert old["family"]==cand["family"]=="SATLIB_UUF150.645.100"
+
+          def parse(path):
+              nvars=nclauses=None; clauses=[]; buf=[]; terminated=False
+              for raw in path.read_text(encoding="ascii").splitlines():
+                  s=raw.strip()
+                  if not s or s.startswith("c"): continue
+                  if terminated: continue
+                  if s=="%": terminated=True; continue
+                  if s.startswith("p "):
+                      p=s.split(); assert p[:2]==["p","cnf"] and len(p)==4
+                      nvars,nclauses=int(p[2]),int(p[3]); continue
+                  if s=="0" and not buf and nclauses is not None and len(clauses)==nclauses:
+                      terminated=True; continue
+                  for z in map(int,s.split()):
+                      if z==0:
+                          assert buf
+                          clauses.append(tuple(buf)); buf=[]
+                      else: buf.append(z)
+              assert not buf
+              assert (nvars,nclauses)==(150,645)
+              assert len(clauses)==645
+              for c in clauses:
+                  assert len(c)==3 and len({abs(x) for x in c})==3
+                  assert all(1<=abs(x)<=150 for x in c)
+              canonical="".join(" ".join(map(str,c))+" 0\n" for c in clauses).encode("ascii")
+              return hashlib.sha256(canonical).hexdigest()
+
+          for i,(o,c) in enumerate(zip(old["source_receipts"],cand["source_receipts"]),1):
+              assert o["source"]==c["source"]==f"UUF150_{i:03d}"
+              for k,v in o.items():
+                  if k=="variables":
+                      assert v==125
+                      assert c[k]==150
+                  else:
+                      assert c[k]==v,(i,k,c[k],v)
+              p=Path(c["committed_path"]); data=p.read_bytes()
+              assert hashlib.sha256(data).hexdigest()==c["raw_sha256"]
+              assert hashlib.sha1(f"blob {len(data)}\0".encode()+data).hexdigest()==c["git_blob"]
+              assert parse(p)==c["canonical_formula_sha256"]
+              assert c["variables"]==150 and c["clauses"]==645 and c["clause_width"]==3
+
+          final=dict(cand)
+          final["artifact_id"]="JANUS-TRUMP-WALL-MANTEQUILLA-UUF150-001-020-SOURCE-FREEZE-AUTHORITY-2026-09-18-v1.1"
+          final["version"]="v1.1"
+          final["verdict"]="PASS_UUF150_001_020_SOURCE_FREEZE_METADATA_RECONCILIATION"
+          final["independent_verification"]="PASS_INDEPENDENT_UUF150_001_020_SOURCE_FREEZE_V1_1_VERIFICATION"
+          Path(os.environ["OUT"]).write_text(json.dumps(final,indent=2,sort_keys=True)+"\n",encoding="utf-8")
+          print(final["independent_verification"])
+          PY
+
+      - name: Freeze corrected source authority
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add "$OUT"
+          git commit -m "TRUMP WALL freeze corrected UUF150 source authority v1.1"
+          git push origin "HEAD:$BRANCH"
+
+      - name: Enforce corrected authority
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json,os
+          x=json.load(open(os.environ["OUT"],encoding="utf-8"))
+          assert x["independent_verification"]=="PASS_INDEPENDENT_UUF150_001_020_SOURCE_FREEZE_V1_1_VERIFICATION"
+          assert all(r["variables"]==150 for r in x["source_receipts"])
+          assert all(r["clauses"]==645 for r in x["source_receipts"])
+          print("UUF150_SOURCE_AUTHORITY_V1_1_PASS")
+          PY
