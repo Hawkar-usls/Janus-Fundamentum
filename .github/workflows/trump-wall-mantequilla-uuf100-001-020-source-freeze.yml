@@ -44,7 +44,7 @@ jobs:
           from pathlib import Path
           expected = {
             "research/TRUMP_WALL_MANTEQUILLA_UUF100_001_020_ACTIVE_EXACT_SYMMETRY_PANEL_RESERVATION_2026-09-18_v1.0.json": "5d15e1630052d53b146182c2d1af2b017f72b990",
-            "research/TRUMP_WALL_MANTEQUILLA_UUF100_001_020_SOURCE_ACQUISITION_REVIEW_2026-09-18_v1.0.json": "75e7691d9bab6a2eb062f9eb99ed9fa294bcdaf4",
+            "research/TRUMP_WALL_MANTEQUILLA_UUF100_001_020_SOURCE_ACQUISITION_REVIEW_2026-09-18_v1.0.json": "75e7691d9bab6a2eb062f9eb99ed9fa294bcdaf4",\n            "research/TRUMP_WALL_MANTEQUILLA_UUF100_SOURCE_FREEZE_VERIFIER_HEADER_REPAIR_2026-09-18_v1.0.json": "d3788ad06af150b4a8250848c8f8829e4fe26482",
           }
           def blob(path):
               data = Path(path).read_bytes()
@@ -201,10 +201,13 @@ jobs:
               assert hashlib.sha256(data).hexdigest()==r["raw_sha256"]
               assert hashlib.sha1(f"blob {len(data)}\0".encode()+data).hexdigest()==r["git_blob"]
               text=p.read_text(encoding="ascii").splitlines()
-              hdr=[x.strip() for x in text if x.strip().startswith("p ")]
-              assert hdr==["p cnf 100 430"]
-              assert r["canonical_formula_sha256"] not in seen
+              hdr=[x.strip().split() for x in text if x.strip().startswith("p ")]
+              if hdr != [["p","cnf","100","430"]]:
+                  raise AssertionError(f"BAD_HEADER_TOKENS:{r['source']}:{hdr}")
+              if r["canonical_formula_sha256"] in seen:
+                  raise AssertionError(f"DUPLICATE_CANONICAL_FORMULA:{r['source']}")
               seen.add(r["canonical_formula_sha256"])
+              print(f"VERIFIED_SOURCE:{r['source']}:{r['canonical_formula_sha256']}")
           assert len(seen)==20
           m["independent_verification"]="PASS_INDEPENDENT_UUF100_001_020_SOURCE_FREEZE_VERIFICATION"
           Path(os.environ["MANIFEST"]).write_text(json.dumps(m,indent=2,sort_keys=True)+"\n",encoding="utf-8")
