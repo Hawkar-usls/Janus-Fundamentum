@@ -1,0 +1,320 @@
+name: TRUMP WALL Mantequilla UF250-020 checker repair reconciliation
+
+on:
+  push:
+    branches:
+      - research/TRUMP_WALL-MANTEQUILLA-UF250-020-checker-repair-reconciliation-2026-09-18
+    paths:
+      - .github/workflows/trump-wall-mantequilla-uf250-020-checker-repair-reconciliation.yml
+
+permissions:
+  actions: read
+  contents: write
+
+concurrency:
+  group: trump-wall-mantequilla-uf250-020-checker-repair-reconciliation
+  cancel-in-progress: false
+
+jobs:
+  reconcile:
+    runs-on: ubuntu-latest
+    env:
+      BRANCH: research/TRUMP_WALL-MANTEQUILLA-UF250-020-checker-repair-reconciliation-2026-09-18
+      TOOL_DIR: research/tools/trump_wall_mantequilla_local_exact_interface_uf250_020
+      RECON_OUT: research/TRUMP_WALL_MANTEQUILLA_UF250_020_CHECKER_REPAIR_RECONCILIATION_RESULT_2026-09-18_v1.0.json
+      SCI_OUT: research/TRUMP_WALL_MANTEQUILLA_LOCAL_EXACT_INTERFACE_UF250_020_RESULT_2026-09-18_v1.0.json
+      SEALED_OUT: research/sealed/TRUMP_WALL_MANTEQUILLA_UF250_020_SEALED_BUNDLE_2026-09-18_v1.0.json
+    steps:
+      - name: Checkout exact repair head
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Verify frozen repair authorities
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import hashlib
+          from pathlib import Path
+
+          expected = {
+            "research/TRUMP_WALL_MANTEQUILLA_UF250_020_CHECKER_REPAIR_RECONCILIATION_PREREGISTRATION_2026-09-18_v1.0.json": "0c1f2cebeac83ce1521fff7981b06afecebded56",
+            "research/TRUMP_WALL_MANTEQUILLA_UF250_020_CHECKER_REPAIR_RECONCILIATION_REVIEW_2026-09-18_v1.0.json": "1ca5233dec10b2479a6e86fb7a857ce8730018ac",
+            "research/tools/trump_wall_mantequilla_local_exact_interface_uf250_020/candidate.py": "b04c49343993026d29017495c08a1cb23b2dd1af",
+            "research/tools/trump_wall_mantequilla_local_exact_interface_uf250_020/independent_check.py": "dcfd35d6d129ff0e2c3c33b7b0f6a26a792d604e",
+          }
+          def blob(path):
+              data = Path(path).read_bytes()
+              return hashlib.sha1(f"blob {len(data)}\0".encode() + data).hexdigest()
+          bad = {p: {"expected": h, "observed": blob(p)} for p, h in expected.items() if blob(p) != h}
+          if bad:
+              raise SystemExit(f"MANTEQUILLA_REPAIR_AUTHORITY_BINDING_FAILURE:{bad}")
+          print("MANTEQUILLA_REPAIR_LOCAL_AUTHORITIES_PASS")
+          PY
+
+          git fetch --no-tags origin 9cf29ab8c3aa40695e6504bb28482dac57921966
+          OLD_CHECKER_BLOB="$(git rev-parse 9cf29ab8c3aa40695e6504bb28482dac57921966:research/tools/trump_wall_mantequilla_local_exact_interface_uf250_020/independent_check.py)"
+          test "$OLD_CHECKER_BLOB" = "b6aa0e502bbbe07bf31c3ea403933ca2fc767d6b"
+
+          git fetch --no-tags origin 24c723e9a35c46d131f53c24c72591452fb64d16
+          UF250_BLOB="$(git rev-parse 24c723e9a35c46d131f53c24c72591452fb64d16:research/TRUMP_UF250_001_020_OUT_OF_FAMILY_WL_ORBIT_FALSIFIER_RESULT_2026-09-18_v1.0.json)"
+          test "$UF250_BLOB" = "72eca8b90d97ff6cbab3b8a87d73b6d494f5d18e"
+
+      - name: Download exact original Mantequilla artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: trump-wall-mantequilla-local-interface-35314636729
+          path: /tmp/original-mantequilla
+          github-token: ${{ github.token }}
+          repository: Hawkar-usls/Janus-Fundamentum
+          run-id: 35314636729
+
+      - name: Validate original artifact receipts
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -f /tmp/original-mantequilla/seal/sealed_bundle.json
+          test -f /tmp/original-mantequilla/candidate/candidate.json
+          test -f /tmp/original-mantequilla/checker/independent.json
+          python - <<'PY'
+          import json, hashlib
+
+          bundle=json.load(open("/tmp/original-mantequilla/seal/sealed_bundle.json"))
+          candidate=json.load(open("/tmp/original-mantequilla/candidate/candidate.json"))
+          old_ind=json.load(open("/tmp/original-mantequilla/checker/independent.json"))
+
+          assert bundle["payload_sha256"] == "795287808a8edfeadf51cf5534b586f0aa007719333ab298b54aeb0596d64c81"
+          assert candidate["candidate_semantic_digest_sha256"] == "5c18b21cecfd950548610ce8cc72a4e736498a66603e63a2e272d633ccbba5aa"
+          assert candidate["verdict"] == "PASS_CONSTRUCTIVE_BRIDGE"
+          assert candidate["frozen_cell"] == [40,240]
+          assert candidate["accounting"]["compressed_interface_symbol_count"] == 9
+          assert candidate["accounting"]["preregistered_scoped_linear_bound"] == 153
+          assert candidate["accounting"]["boundary_cube_assignments_enumerated"] == 0
+          assert candidate["accounting"]["sat_solver_invocations"] == 0
+
+          assert old_ind["verdict"] == "FAIL_INDEPENDENT_MANTEQUILLA_LOCAL_EXACT_INTERFACE_VERIFICATION"
+          failed=[k for k,v in old_ind["checks"].items() if not v]
+          assert failed == ["candidate_source_audit_pass"], failed
+          assert old_ind["candidate_source_audit"]["forbidden_imports"] == ["__future__"]
+          print(json.dumps({
+            "sealed_bundle_payload_sha256": bundle["payload_sha256"],
+            "candidate_semantic_digest_sha256": candidate["candidate_semantic_digest_sha256"],
+            "old_independent_only_failed_check": failed[0],
+          }, sort_keys=True))
+          PY
+
+      - name: Recompute independently with repaired checker
+        id: checker
+        shell: bash
+        run: |
+          set -uo pipefail
+          mkdir -p /tmp/mantequilla-repair
+          set +e
+          python "$TOOL_DIR/independent_check.py"             /tmp/original-mantequilla/seal/sealed_bundle.json             /tmp/original-mantequilla/candidate/candidate.json             "$TOOL_DIR/candidate.py"             /tmp/mantequilla-repair/repaired_independent.json             | tee /tmp/mantequilla-repair/repaired_independent.log
+          rc=${PIPESTATUS[0]}
+          set -e
+          echo "exit_code=$rc" >> "$GITHUB_OUTPUT"
+          test -f /tmp/mantequilla-repair/repaired_independent.json
+
+      - name: Build reconciliation and conditional scientific result
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/mantequilla-repair/final
+          python - <<'PY'
+          import hashlib, json, pathlib, subprocess
+
+          bundle=json.load(open("/tmp/original-mantequilla/seal/sealed_bundle.json"))
+          candidate=json.load(open("/tmp/original-mantequilla/candidate/candidate.json"))
+          old_ind=json.load(open("/tmp/original-mantequilla/checker/independent.json"))
+          repaired=json.load(open("/tmp/mantequilla-repair/repaired_independent.json"))
+
+          def csha(obj):
+              return hashlib.sha256(json.dumps(obj,sort_keys=True,separators=(",",":"),ensure_ascii=False).encode()).hexdigest()
+          def gblob(path):
+              return subprocess.check_output(["git","hash-object",path],text=True).strip()
+
+          checks=repaired.get("checks",{})
+          repaired_pass=(
+              repaired.get("verdict")=="PASS_INDEPENDENT_MANTEQUILLA_LOCAL_EXACT_INTERFACE_VERIFICATION"
+              and len(checks)==24
+              and all(checks.values())
+          )
+          candidate_pass=candidate.get("verdict")=="PASS_CONSTRUCTIVE_BRIDGE"
+          pass_all=candidate_pass and repaired_pass
+
+          reconciliation={
+            "artifact_id":"JANUS-TRUMP-WALL-MANTEQUILLA-UF250-020-CHECKER-REPAIR-RECONCILIATION-RESULT-2026-09-18-v1.0",
+            "date":"2026-09-18",
+            "status":"PASS_RECONCILED_EXISTING_MANTEQUILLA_CANDIDATE" if pass_all else "FAIL_MANTEQUILLA_RECONCILIATION",
+            "reconciliation_verdict":"PASS_REPAIRED_CHECKER_MATCHES_EXISTING_CANDIDATE" if pass_all else "FAIL_REPAIRED_CHECKER_DID_NOT_VALIDATE_EXISTING_CANDIDATE",
+            "candidate_rerun":False,
+            "sealer_rerun":False,
+            "original_artifact":{
+              "run_id":35314636729,
+              "artifact_id":10534648490,
+              "artifact_name":"trump-wall-mantequilla-local-interface-35314636729",
+              "artifact_zip_sha256":"22f406ac5e1e9e34c0b9c70ce58d0e4525a738bb10723432caf31f4b3deac7ef",
+              "sealed_bundle_payload_sha256":bundle["payload_sha256"],
+              "candidate_semantic_digest_sha256":candidate["candidate_semantic_digest_sha256"],
+            },
+            "original_independent":{
+              "verdict":old_ind["verdict"],
+              "checks_passed":sum(bool(v) for v in old_ind["checks"].values()),
+              "checks_total":len(old_ind["checks"]),
+              "only_failed_checks":[k for k,v in old_ind["checks"].items() if not v],
+              "forbidden_imports":old_ind["candidate_source_audit"]["forbidden_imports"],
+            },
+            "repair":{
+              "authorized_diff":"ALLOWED_IMPORT_ROOTS adds __future__ only",
+              "old_checker_blob":"b6aa0e502bbbe07bf31c3ea403933ca2fc767d6b",
+              "repaired_checker_blob":"dcfd35d6d129ff0e2c3c33b7b0f6a26a792d604e",
+              "prereg_blob":"0c1f2cebeac83ce1521fff7981b06afecebded56",
+              "review_blob":"1ca5233dec10b2479a6e86fb7a857ce8730018ac",
+              "scientific_logic_changes":0,
+            },
+            "repaired_independent":repaired,
+            "scientific_firewall":{
+              "claim_ceiling":"ONE_FROZEN_TWO_VARIABLE_EXACT_SYMMETRY_CELL__LOCAL_INTERFACE_ONLY",
+              "MULTI_INTERFACE_COMPOSITION":"NOT_PROVED",
+              "GENERAL_K_CLASS":"NOT_PROVED",
+              "GENERAL_SAT_IN_P":"NOT_PROVED",
+              "P_VS_NP":"OPEN",
+            }
+          }
+          reconciliation["reconciliation_semantic_digest_sha256"]=csha({
+            "reconciliation_verdict":reconciliation["reconciliation_verdict"],
+            "original_artifact":reconciliation["original_artifact"],
+            "repair":reconciliation["repair"],
+            "repaired_independent_digest":repaired.get("independent_semantic_digest_sha256"),
+          })
+          pathlib.Path("/tmp/mantequilla-repair/final/reconciliation.json").write_text(
+              json.dumps(reconciliation,indent=2,sort_keys=True)+"\n",encoding="utf-8"
+          )
+
+          if pass_all:
+              scientific={
+                "artifact_id":"JANUS-TRUMP-WALL-MANTEQUILLA-LOCAL-EXACT-INTERFACE-UF250-020-RESULT-2026-09-18-v1.0",
+                "date":"2026-09-18",
+                "gate":"MANTEQUILLA_LOCAL_EXACT_INTERFACE_GATE",
+                "status":"FROZEN_SCOPED_LOCAL_EXACT_INTERFACE_PASS_AFTER_CHECKER_REPAIR_RECONCILIATION",
+                "scientific_outcome":"PASS_CONSTRUCTIVE_BRIDGE",
+                "execution_verdict":"PASS_INDEPENDENT_MANTEQUILLA_LOCAL_EXACT_INTERFACE_VERIFICATION_AFTER_MINIMAL_CHECKER_REPAIR",
+                "claim_ceiling":"ONE_FROZEN_TWO_VARIABLE_EXACT_SYMMETRY_CELL__LOCAL_INTERFACE_ONLY__NO_COMPOSITION_OR_GENERAL_K_CLAIM",
+                "specimen_role":"UF250_020_DISCOVERY_SPECIMEN_ONLY__NOT_CONFIRMATION_PANEL",
+                "sealed_bundle":{
+                  "payload_sha256":bundle["payload_sha256"],
+                  "source":bundle["source"],
+                  "preprocessing":bundle["preprocessing"],
+                  "frozen_witness":bundle["frozen_witness"],
+                },
+                "candidate":candidate,
+                "independent":repaired,
+                "measurements":{
+                  "local_constraint_count":repaired["independent_measurements"]["local_constraint_count"],
+                  "exterior_constraint_count":repaired["independent_measurements"]["exterior_constraint_count"],
+                  "boundary_variable_count":repaired["independent_measurements"]["boundary_variable_count"],
+                  "boundary_variables":repaired["independent_measurements"]["boundary_variables"],
+                  "local_input_symbol_count":repaired["independent_measurements"]["local_input_symbol_count"],
+                  "raw_four_branch_residual_symbol_count":repaired["independent_measurements"]["raw_four_branch_residual_symbol_count"],
+                  "compressed_interface_symbol_count":repaired["independent_measurements"]["compressed_interface_symbol_count"],
+                  "scoped_linear_bound":repaired["independent_measurements"]["scoped_linear_bound"],
+                },
+                "authorities":{
+                  "workflow_blob":gblob(".github/workflows/trump-wall-mantequilla-uf250-020-checker-repair-reconciliation.yml"),
+                  "repair_prereg_blob":"0c1f2cebeac83ce1521fff7981b06afecebded56",
+                  "repair_review_blob":"1ca5233dec10b2479a6e86fb7a857ce8730018ac",
+                  "candidate_blob":"b04c49343993026d29017495c08a1cb23b2dd1af",
+                  "old_checker_blob":"b6aa0e502bbbe07bf31c3ea403933ca2fc767d6b",
+                  "repaired_checker_blob":"dcfd35d6d129ff0e2c3c33b7b0f6a26a792d604e",
+                  "uf250_frozen_result_commit":"24c723e9a35c46d131f53c24c72591452fb64d16",
+                  "uf250_frozen_result_blob":"72eca8b90d97ff6cbab3b8a87d73b6d494f5d18e",
+                  "original_mantequilla_run_id":35314636729,
+                  "original_mantequilla_artifact_id":10534648490,
+                },
+                "next_obligation":"PREREGISTER_MANTEQUILLA_DETECTION_TO_POLYNOMIAL_EXACT_CLOSURE_CERTIFICATE_GATE_THEN_COMPOSITION_WITHOUT_EXPONENTIAL_PRODUCT_GATE",
+                "scientific_firewall":{
+                  "MULTI_INTERFACE_COMPOSITION":"NOT_PROVED",
+                  "GENERAL_K_CLASS":"NOT_PROVED",
+                  "GENERAL_SAT_IN_P":"NOT_PROVED",
+                  "P_VS_NP":"OPEN",
+                }
+              }
+              scientific["result_semantic_digest_sha256"]=csha({
+                "scientific_outcome":scientific["scientific_outcome"],
+                "claim_ceiling":scientific["claim_ceiling"],
+                "sealed_bundle":scientific["sealed_bundle"],
+                "candidate_digest":candidate["candidate_semantic_digest_sha256"],
+                "independent_digest":repaired["independent_semantic_digest_sha256"],
+                "measurements":scientific["measurements"],
+              })
+              pathlib.Path("/tmp/mantequilla-repair/final/scientific.json").write_text(
+                  json.dumps(scientific,indent=2,sort_keys=True)+"\n",encoding="utf-8"
+              )
+
+          print(json.dumps({
+            "reconciliation_verdict":reconciliation["reconciliation_verdict"],
+            "repaired_independent_verdict":repaired.get("verdict"),
+            "checks_passed":sum(bool(v) for v in checks.values()),
+            "checks_total":len(checks),
+            "scientific_result_created":pathlib.Path("/tmp/mantequilla-repair/final/scientific.json").exists(),
+          },sort_keys=True))
+          PY
+
+      - name: Upload reconciliation receipts
+        uses: actions/upload-artifact@v4
+        with:
+          name: trump-wall-mantequilla-checker-repair-reconciliation-${{ github.run_id }}
+          path: |
+            /tmp/original-mantequilla/seal/sealed_bundle.json
+            /tmp/original-mantequilla/candidate/candidate.json
+            /tmp/original-mantequilla/checker/independent.json
+            /tmp/mantequilla-repair/repaired_independent.json
+            /tmp/mantequilla-repair/repaired_independent.log
+            /tmp/mantequilla-repair/final/reconciliation.json
+            /tmp/mantequilla-repair/final/scientific.json
+          if-no-files-found: ignore
+          retention-days: 90
+
+      - name: Freeze reconciliation and conditional scientific result
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p research/sealed
+          cp /tmp/mantequilla-repair/final/reconciliation.json "$RECON_OUT"
+          if [ -f /tmp/mantequilla-repair/final/scientific.json ]; then
+            cp /tmp/mantequilla-repair/final/scientific.json "$SCI_OUT"
+            cp /tmp/original-mantequilla/seal/sealed_bundle.json "$SEALED_OUT"
+          fi
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add "$RECON_OUT"
+          if [ -f /tmp/mantequilla-repair/final/scientific.json ]; then
+            git add "$SCI_OUT" "$SEALED_OUT"
+          fi
+          git commit -m "TRUMP WALL freeze Mantequilla checker repair reconciliation result"
+          git push origin "HEAD:$BRANCH"
+
+      - name: Enforce scientific PASS state
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "${{ steps.checker.outputs.exit_code }}" = "0"
+          python - <<'PY'
+          import json
+          x=json.load(open("/tmp/mantequilla-repair/final/reconciliation.json"))
+          assert x["reconciliation_verdict"]=="PASS_REPAIRED_CHECKER_MATCHES_EXISTING_CANDIDATE"
+          s=json.load(open("/tmp/mantequilla-repair/final/scientific.json"))
+          assert s["scientific_outcome"]=="PASS_CONSTRUCTIVE_BRIDGE"
+          assert s["independent"]["verdict"]=="PASS_INDEPENDENT_MANTEQUILLA_LOCAL_EXACT_INTERFACE_VERIFICATION"
+          assert all(s["independent"]["checks"].values())
+          print("MANTEQUILLA_REPAIRED_INDEPENDENT_PASS")
+          PY
