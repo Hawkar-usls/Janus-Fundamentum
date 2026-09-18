@@ -228,7 +228,7 @@ def main() -> None:
     receipts = source_freeze["source_receipts"]
     if tuple(r["source"] for r in receipts) != ORDER:
         raise RuntimeError("SOURCE_ORDER_MISMATCH")
-    if source_freeze.get("independent_verification") != "PASS_INDEPENDENT_UUF175_001_020_SOURCE_FREEZE_V1_1_VERIFICATION":
+    if source_freeze.get("independent_verification") != "PASS_INDEPENDENT_UUF175_001_020_SOURCE_FREEZE_VERIFICATION":
         raise RuntimeError("SOURCE_FREEZE_NOT_INDEPENDENTLY_VERIFIED")
 
     rows = [source_row(r["source"], r) for r in receipts]
