@@ -1,0 +1,269 @@
+name: TRUMP WALL Mantequilla UUF125 001-020 structural census
+
+on:
+  push:
+    branches:
+      - research/TRUMP_WALL-MANTEQUILLA-unseen-UUF125-active-eligibility-2026-09-18
+    paths:
+      - .github/workflows/trump-wall-mantequilla-uuf125-001-020-structural-census.yml
+
+permissions:
+  contents: write
+
+concurrency:
+  group: trump-wall-mantequilla-uuf125-001-020-structural-census
+  cancel-in-progress: false
+
+jobs:
+  census:
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+    env:
+      BRANCH: research/TRUMP_WALL-MANTEQUILLA-unseen-UUF125-active-eligibility-2026-09-18
+      TOOL_DIR: research/tools/trump_wall_mantequilla_uuf125_structural_census
+      RESULT_OUT: research/TRUMP_WALL_MANTEQUILLA_UUF125_001_020_STRUCTURAL_CENSUS_RESULT_2026-09-18_v1.0.json
+
+    steps:
+      - name: Checkout exact census head
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Verify frozen census authorities
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import hashlib
+          from pathlib import Path
+
+          expected = {
+            "research/TRUMP_WALL_MANTEQUILLA_UUF125_001_020_ACTIVE_EXACT_SYMMETRY_PANEL_RESERVATION_2026-09-18_v1.1.json": "878480712bd6cd38929fdbfc17082b72cf0ccc1b",
+            "research/TRUMP_WALL_MANTEQUILLA_UUF125_001_020_SOURCE_ACQUISITION_REVIEW_2026-09-18_v1.1.json": "a69e35b674d7305251ff70700fdfbca9890452cf",
+            "research/TRUMP_WALL_MANTEQUILLA_UUF125_001_020_SOURCE_FREEZE_AUTHORITY_2026-09-18_v1.0.json": "5b0d03169685f4c84760a5ddf8f889ffaabb000d",
+            "research/TRUMP_WALL_MANTEQUILLA_UUF125_001_020_STRUCTURAL_CENSUS_PREREGISTRATION_2026-09-18_v1.0.json": "959b1d27bd03c4af89aad15f58da12c67eed2a79",
+            "research/TRUMP_WALL_MANTEQUILLA_UUF125_001_020_STRUCTURAL_CENSUS_REVIEW_2026-09-18_v1.0.json": "67484630c4f563624f94827d524d84e5e66e6e4c",
+            "research/TRUMP_WALL_MANTEQUILLA_UUF125_001_020_STRUCTURAL_CENSUS_IMPLEMENTATION_REVIEW_2026-09-18_v1.0.json": "ca8010de02cb95bf02e30cb7785e68277f8b452c",
+            "research/tools/trump_wall_mantequilla_uuf125_structural_census/candidate.py": "04144cb5b768db7d67d3987ebeb014f633c76070",
+            "research/tools/trump_wall_mantequilla_uuf125_structural_census/independent_check.py": "c01f532d6c1c92a56028b20558c58d60c208d679",
+            "research/tools/apma_satlib_uf20_r000_r111_projected_core_replay/projection_identity.py": "2ef48e73974a5f43d3f4fb4809ebd0c09c0f5be4",
+            "research/tools/apma_uf20_011_015_fresh_generic_pendant_wl_replication/candidate.py": "9ec365ae27a6caa7b936cd33040e542f183ded99",
+            "research/tools/apma_uf20_wl_historical_closed_control_falsifier/candidate.py": "6b697fd8b3de4c83f8226b06399b6bad99953d4e",
+            "research/tools/apma_unseen_local_invariant_orbit_count/candidate.py": "a076cfc56d68aad0348415e313705da1f6b9cdcd",
+          }
+
+          def blob(path):
+              data = Path(path).read_bytes()
+              return hashlib.sha1(f"blob {len(data)}\0".encode() + data).hexdigest()
+
+          bad = {
+              p: {"expected": h, "observed": blob(p)}
+              for p, h in expected.items()
+              if blob(p) != h
+          }
+          if bad:
+              raise SystemExit(f"UUF125_CENSUS_AUTHORITY_BIND_FAILURE:{bad}")
+
+          import json
+          sf = json.load(open(
+              "research/TRUMP_WALL_MANTEQUILLA_UUF125_001_020_SOURCE_FREEZE_AUTHORITY_2026-09-18_v1.0.json",
+              encoding="utf-8"
+          ))
+          assert sf["verdict"] == "PASS_UUF125_001_020_CANONICAL_SATLIB_SOURCE_ACQUISITION"
+          assert sf["independent_verification"] == "PASS_INDEPENDENT_UUF125_001_020_SOURCE_FREEZE_VERIFICATION"
+          assert len(sf["source_receipts"]) == 20
+          for row in sf["source_receipts"]:
+              assert blob(row["committed_path"]) == row["git_blob"], (row["source"], blob(row["committed_path"]), row["git_blob"])
+          print("UUF125_CENSUS_AUTHORITIES_OK")
+          PY
+
+      - name: Execute frozen structural census candidate
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf /tmp/uuf125-census
+          mkdir -p /tmp/uuf125-census/candidate
+          python "$TOOL_DIR/candidate.py" /tmp/uuf125-census/candidate/candidate.json             | tee /tmp/uuf125-census/candidate/candidate.log
+          test -f /tmp/uuf125-census/candidate/candidate.json
+
+      - name: Recompute structural census independently
+        id: checker
+        shell: bash
+        run: |
+          set -uo pipefail
+          mkdir -p /tmp/uuf125-census/checker
+          set +e
+          python "$TOOL_DIR/independent_check.py"             /tmp/uuf125-census/candidate/candidate.json             "$TOOL_DIR/candidate.py"             /tmp/uuf125-census/checker/independent.json             | tee /tmp/uuf125-census/checker/independent.log
+          rc=${PIPESTATUS[0]}
+          set -e
+          echo "exit_code=$rc" >> "$GITHUB_OUTPUT"
+          test -f /tmp/uuf125-census/checker/independent.json
+
+      - name: Build frozen census result
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/uuf125-census/final
+          python - <<'PY'
+          import hashlib, json, pathlib, subprocess
+
+          candidate = json.load(open("/tmp/uuf125-census/candidate/candidate.json", encoding="utf-8"))
+          independent = json.load(open("/tmp/uuf125-census/checker/independent.json", encoding="utf-8"))
+
+          verified = (
+              independent.get("verdict")
+              == "PASS_INDEPENDENT_UUF125_STRUCTURAL_ACTIVITY_CENSUS_VERIFICATION"
+              and all(independent.get("checks", {}).values())
+              and independent.get("independent_summary") == candidate.get("summary")
+          )
+
+          summary = candidate["summary"]
+          eligible = int(summary["N_eligible_current_mechanism_k2_or_k3"])
+          unsupported = int(summary["N_eligible_unsupported_k_gt3"])
+
+          if not verified:
+              scientific_outcome = "FAIL_INDEPENDENT_STRUCTURAL_CENSUS_RECONCILIATION"
+          elif eligible > 0:
+              scientific_outcome = "PASS_STRUCTURAL_CENSUS_WITH_ELIGIBLE_K2_OR_K3_CELLS"
+          elif unsupported > 0:
+              scientific_outcome = "PASS_STRUCTURAL_CENSUS_ELIGIBLE_ONLY_UNSUPPORTED_K_GT3"
+          else:
+              scientific_outcome = "PASS_STRUCTURAL_CENSUS_ZERO_ELIGIBLE_CELLS"
+
+          def csha(obj):
+              return hashlib.sha256(
+                  json.dumps(obj, sort_keys=True, separators=(",", ":"), ensure_ascii=False).encode()
+              ).hexdigest()
+
+          def gblob(path):
+              return subprocess.check_output(["git", "hash-object", path], text=True).strip()
+
+          result = {
+              "artifact_id": "JANUS-TRUMP-WALL-MANTEQUILLA-UUF125-001-020-STRUCTURAL-CENSUS-RESULT-2026-09-18-v1.0",
+              "date": "2026-09-18",
+              "status": (
+                  "FROZEN_UUF125_STRUCTURAL_ACTIVITY_CENSUS"
+                  if verified else "FROZEN_INDEPENDENT_RECONCILIATION_FAILURE"
+              ),
+              "scientific_outcome": scientific_outcome,
+              "execution_verdict": independent.get("verdict"),
+              "phase": "STRUCTURAL_CENSUS_ONLY__MANTEQUILLA_NOT_RUN",
+              "claim_ceiling": "FINITE_UUF125_001_020_STRUCTURAL_ACTIVITY_CENSUS_UNDER_PREREGISTERED_DETECTOR_ONLY",
+              "candidate": candidate,
+              "independent": independent,
+              "census_denominators": summary,
+              "freeze_barrier": candidate["freeze_barrier"],
+              "authorities": {
+                  "panel_reservation_blob": "878480712bd6cd38929fdbfc17082b72cf0ccc1b",
+                  "source_freeze_commit": "0f659c39120aad07db25beeca432b5c33a4b63b7",
+                  "source_freeze_blob": "5b0d03169685f4c84760a5ddf8f889ffaabb000d",
+                  "census_prereg_blob": "959b1d27bd03c4af89aad15f58da12c67eed2a79",
+                  "census_review_blob": "67484630c4f563624f94827d524d84e5e66e6e4c",
+                  "implementation_review_blob": "ca8010de02cb95bf02e30cb7785e68277f8b452c",
+                  "candidate_blob": "04144cb5b768db7d67d3987ebeb014f633c76070",
+                  "independent_checker_blob": "c01f532d6c1c92a56028b20558c58d60c208d679",
+                  "projection_blob": "2ef48e73974a5f43d3f4fb4809ebd0c09c0f5be4",
+                  "generic_round_blob": "9ec365ae27a6caa7b936cd33040e542f183ded99",
+                  "wl_blob": "6b697fd8b3de4c83f8226b06399b6bad99953d4e",
+                  "direct_exact_blob": "a076cfc56d68aad0348415e313705da1f6b9cdcd",
+                  "workflow_blob": gblob(".github/workflows/trump-wall-mantequilla-uuf125-001-020-structural-census.yml"),
+              },
+              "routing_policy": {
+                  "mantequilla_routed_before_census_freeze": 0,
+                  "eligible_current_mechanism_cells_after_freeze": eligible,
+                  "eligible_unsupported_k_gt3_after_freeze": unsupported,
+                  "next": (
+                      "SEAL_ALL_ELIGIBLE_K2_K3_CELLS_AND_RUN_UNCHANGED_MANTEQUILLA"
+                      if eligible > 0
+                      else (
+                          "FREEZE_UNSUPPORTED_K_GT3_OBLIGATION_WITHOUT_RETUNING_ON_PANEL"
+                          if unsupported > 0
+                          else "MOVE_TO_NEXT_PREDECLARED_FAMILY_WITH_SAME_ACTIVE_ELIGIBILITY_GATE"
+                      )
+                  )
+              },
+              "scientific_firewall": {
+                  "MANTEQUILLA_EXECUTED_IN_THIS_PHASE": False,
+                  "RESIDUAL_SEMANTICS_READ_IN_THIS_PHASE": False,
+                  "DETECTOR_COMPLETENESS": "NOT_PROVED",
+                  "GENERAL_K_CLASS": "NOT_PROVED",
+                  "MULTI_INTERFACE_COMPOSITION": "NOT_PROVED",
+                  "GENERAL_SAT_IN_P": "NOT_PROVED",
+                  "P_VS_NP": "OPEN",
+              },
+          }
+          result["result_semantic_digest_sha256"] = csha({
+              "scientific_outcome": result["scientific_outcome"],
+              "claim_ceiling": result["claim_ceiling"],
+              "candidate_digest": candidate["candidate_semantic_digest_sha256"],
+              "independent_digest": independent["independent_semantic_digest_sha256"],
+              "census_denominators": summary,
+              "freeze_barrier": result["freeze_barrier"],
+              "routing_policy": result["routing_policy"],
+          })
+
+          pathlib.Path("/tmp/uuf125-census/final/result.json").write_text(
+              json.dumps(result, indent=2, sort_keys=True) + "\n",
+              encoding="utf-8",
+          )
+          print(json.dumps({
+              "scientific_outcome": result["scientific_outcome"],
+              "execution_verdict": result["execution_verdict"],
+              "census_denominators": summary,
+              "result_semantic_digest_sha256": result["result_semantic_digest_sha256"],
+          }, sort_keys=True))
+          PY
+
+      - name: Upload census receipts
+        uses: actions/upload-artifact@v4
+        with:
+          name: trump-wall-mantequilla-uuf125-structural-census-${{ github.run_id }}
+          path: |
+            /tmp/uuf125-census/candidate/candidate.json
+            /tmp/uuf125-census/candidate/candidate.log
+            /tmp/uuf125-census/checker/independent.json
+            /tmp/uuf125-census/checker/independent.log
+            /tmp/uuf125-census/final/result.json
+          if-no-files-found: error
+          retention-days: 90
+
+      - name: Freeze structural census
+        shell: bash
+        run: |
+          set -euo pipefail
+          cp /tmp/uuf125-census/final/result.json "$RESULT_OUT"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add "$RESULT_OUT"
+          git commit -m "TRUMP WALL freeze UUF125 001-020 structural activity census"
+          git push origin "HEAD:$BRANCH"
+
+      - name: Enforce independent census agreement
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "${{ steps.checker.outputs.exit_code }}" = "0"
+          python - <<'PY'
+          import json
+          c = json.load(open("/tmp/uuf125-census/candidate/candidate.json", encoding="utf-8"))
+          i = json.load(open("/tmp/uuf125-census/checker/independent.json", encoding="utf-8"))
+          r = json.load(open("/tmp/uuf125-census/final/result.json", encoding="utf-8"))
+          assert i["verdict"] == "PASS_INDEPENDENT_UUF125_STRUCTURAL_ACTIVITY_CENSUS_VERIFICATION"
+          assert all(i["checks"].values())
+          assert i["independent_summary"] == c["summary"] == r["census_denominators"]
+          assert r["freeze_barrier"] == {
+              "residual_constructions": 0,
+              "robdd_operations": 0,
+              "sat_solver_invocations": 0,
+              "mantequilla_runs": 0,
+              "boundary_cube_assignments_enumerated": 0,
+          }
+          assert r["scientific_outcome"] != "FAIL_INDEPENDENT_STRUCTURAL_CENSUS_RECONCILIATION"
+          print("UUF125_STRUCTURAL_CENSUS_INDEPENDENT_PASS")
+          PY
