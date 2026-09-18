@@ -38,6 +38,7 @@ def verify(source_path: Path, candidate_path: Path):
     assert d["boundary_assignment_enumeration"] is False
     assert d["old_tseitin_artifact_import_used"] is False
     assert d["spectral_metadata_used"] is False
+    assert d["calculus_mutation_used"] is False
 
     start = time.perf_counter_ns()
     nodes = cand["proof_nodes"]
@@ -75,9 +76,10 @@ def verify(source_path: Path, candidate_path: Path):
         edge_counts[y] += 2
 
     dp = cand["domain_proof"]
-    assert dp["rule"] == "ODD_CHARGE_XOR_CANCELLATION"
+    assert dp["proof_object_class"] == "AFFINE_XOR_SUM_CERTIFICATE"
     assert dp["conclusion"] == "DOMAIN_TRUE"
-    guards = dp["violation_guards_by_vertex"]
+    assert dp["calculus_rule_extension_used"] is False
+    guards = dp["terms_by_vertex"]
     assert set(guards) == set(vertices)
 
     used = set()
@@ -109,8 +111,7 @@ def verify(source_path: Path, candidate_path: Path):
     assert set(support_parity) == set(edge_counts)
     assert all(count == 2 for count in edge_counts.values())
     assert dp["observed_charge_xor"] == 1
-    assert dp["charge_xor_target"] == 1
-    assert dp["edge_occurrence_parity_target"] == 0
+    assert dp["normal_form_target"] == {"constant": 1, "support": []}
     assert cand["domain"] == {"class": "TRUE_BY_ODD_CHARGE_XOR_CANCELLATION"}
 
     const_pid = {}
