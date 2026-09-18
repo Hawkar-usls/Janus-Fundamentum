@@ -100,12 +100,12 @@ def synthesize(source):
         charge_xor ^= int(records[v]["charge"])
 
     domain_proof = {
-        "rule": "ODD_CHARGE_XOR_CANCELLATION",
-        "violation_guards_by_vertex": violation_guard,
-        "edge_occurrence_parity_target": 0,
-        "charge_xor_target": 1,
+        "proof_object_class": "AFFINE_XOR_SUM_CERTIFICATE",
+        "terms_by_vertex": violation_guard,
+        "normal_form_target": {"constant": 1, "support": []},
         "observed_charge_xor": charge_xor,
         "conclusion": "DOMAIN_TRUE",
+        "calculus_rule_extension_used": False,
     }
 
     elapsed = time.perf_counter_ns() - start
@@ -131,6 +131,7 @@ def synthesize(source):
             "boundary_assignment_enumeration": False,
             "old_tseitin_artifact_import_used": False,
             "spectral_metadata_used": False,
+            "calculus_mutation_used": False,
         },
         "metrics": {
             "S_synth_DAG_nodes": len(nodes),
