@@ -1,0 +1,55 @@
+name: JANUS parallel internal-cover shielding
+
+on:
+  push:
+    branches:
+      - research/janus-parallel-internal-cover-shielding-2026-09-18
+  pull_request:
+    branches:
+      - main
+    paths:
+      - "proof_attempts/JANUS_PARALLEL_INTERNAL_COVER_SHIELDING_LEMMA_2026-09-18.md"
+      - "research/JANUS_PARALLEL_INTERNAL_COVER_SHIELDING_PREREGISTRATION_2026-09-18.json"
+      - "research/tools/janus_parallel_internal_cover_shielding/**"
+      - ".github/workflows/janus-parallel-internal-cover-shielding.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  independent-check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Compile checker
+        run: python -m py_compile research/tools/janus_parallel_internal_cover_shielding/independent_check.py
+      - name: Run independent theorem regression checker
+        run: |
+          python research/tools/janus_parallel_internal_cover_shielding/independent_check.py             artifacts/janus_parallel_internal_cover_shielding_receipt.json
+      - name: Validate preregistration JSON
+        run: python -m json.tool research/JANUS_PARALLEL_INTERNAL_COVER_SHIELDING_PREREGISTRATION_2026-09-18.json >/dev/null
+      - name: Assert scientific firewalls
+        run: |
+          python - <<'PY'
+          import json
+          p="research/JANUS_PARALLEL_INTERNAL_COVER_SHIELDING_PREREGISTRATION_2026-09-18.json"
+          d=json.load(open(p,encoding="utf-8"))
+          fw=d["scientific_firewall"]
+          assert fw["GENERAL_SAT_IN_P"]=="NOT_PROVED"
+          assert fw["P_EQ_NP"]=="NOT_PROVED"
+          assert fw["P_VS_NP"]=="OPEN"
+          assert d["lineage"]["authority_transfer"] is False
+          assert d["resource_firewall"]["no_new_solver_authority"] is True
+          assert d["resource_firewall"]["no_new_carrier_authority"] is True
+          print("firewalls=PASS")
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: janus-parallel-internal-cover-shielding-receipt
+          path: artifacts/janus_parallel_internal_cover_shielding_receipt.json
+          if-no-files-found: error
