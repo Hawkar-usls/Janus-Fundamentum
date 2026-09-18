@@ -1,0 +1,158 @@
+{
+  "artifact_id": "JANUS-U-PAIR-1J-SCOPED-CARRIER-AUTHORITY-AND-SOURCE-REALIZABILITY-FORMAL-SPEC-2026-09-19-v1.0",
+  "date": "2026-09-19",
+  "authority": "FORMAL_SPECIFICATION__NO_NEW_SOLVER__NO_HOSTILE__NO_NOVELTY_PROMOTION",
+  "branch": "research/U-PAIR-1J-scoped-carrier-authority-2026-09-19",
+  "parents": {
+    "dual_debt_spec": "37121d94271953439ffdc4e1d39b983801290cb2",
+    "dual_debt_theorem": "ed203e9ebbc5699753c88f5dc8362892c720da14",
+    "repo_wide_followup": "c9080728b9528c44797acd61c43e63e88ca90c58",
+    "representation_fiber_gate": "faad6f465a0f5acca6e42bb3bf7ecafad8581bfe",
+    "formula_scoped_future_congruence": "74abbf168c7708ec00a3581a3b7c16f6c58847d9",
+    "query_specific_factorized_quotient": "06bd6144ab4f7aaf72459dd4e6ef8c7d1efa4b87",
+    "open_component_query_message": "9c43d9ba26f8d435640d8f09322bf932d6f40abc",
+    "typed_interface_basis_fixpoint": "50dcd1d2d032d2c267f5ec5436c28b4cd059646b",
+    "observer_noninterference_calibration": "9e16366f18d0aec76e0378114912e65db01f5632"
+  },
+  "name": "SCOPED_CARRIER_AUTHORITY",
+  "thesis": "A carrier may be exact only relative to a declared source image, readout/query, continuation language and capability profile. Debt conservation is orthogonal: debt says what remains unresolved; authority scope says where a representation is licensed to support an accepted proof step.",
+  "no_new_debt_class": true,
+  "token": {
+    "notation": "A_scope=(F0_id,Reach,Readout,Continuation,Capability,Proof,Expiry)",
+    "fields": {
+      "F0_id": "Cryptographic identity of the frozen original source or exact source family member to which the authority claim is bound.",
+      "Reach": {
+        "name": "ReachContract",
+        "meaning": "Defines the carrier states/transitions authorized as source-realizable, together with either replayable source-preimage receipts or a proved unreachable-state irrelevance contract.",
+        "forms": [
+          "PREIMAGE_REQUIRED: every authority-bearing carrier state used by the trace has a replayable source/predecessor lineage.",
+          "UNREACHABLE_IRRELEVANT: an exact theorem proves that carrier states without source preimages cannot influence the declared readout under the declared continuation language."
+        ]
+      },
+      "Readout": "Exact observable/query preserved by the carrier, e.g. SAT existence, projected witness relation, model count, occupancy polynomial, certified conflict.",
+      "Continuation": {
+        "name": "ContinuationLanguage",
+        "meaning": "Frozen set/grammar of future contexts or exact operations under which the carrier adequacy theorem is quantified.",
+        "requirement": "Every authority-bearing operation applied while the token is active must be admitted by this continuation contract."
+      },
+      "Capability": "Digest of the exact carrier/solver/verifier/policy/budget/protocol capability profile licensed to manipulate the carrier.",
+      "Proof": "Independent replayable adequacy certificate binding F0_id, Reach, Readout, Continuation, Capability and the carrier semantics.",
+      "Expiry": "Deterministic staleness rule. Any authority-defining field change invalidates reuse until a new token is independently validated."
+    }
+  },
+  "formal_objects": {
+    "source_states": "Sigma_F: concrete/source semantic states admitted by the frozen source semantics.",
+    "carrier_states": "C: formal states of the carrier representation.",
+    "realization_relation": "rho subseteq Sigma_F x C. rho(s,c) means carrier state c is a valid exact image of source state s under the token's construction semantics.",
+    "reachable_carrier_image": "Reach(A_scope)={c in C : exists s in Sigma_F with rho(s,c), unless a stronger replayable transition lineage definition is frozen}.",
+    "source_readout": "R_F(s,k) for k in Continuation: exact result of applying allowed continuation k to source state s and evaluating Readout.",
+    "carrier_readout": "R_C(c,k) for the corresponding carrier-side continuation semantics.",
+    "adequacy_condition": "For every rho(s,c) and every k in Continuation, R_F(s,k)=R_C(c,k).",
+    "merge_condition": "If a quotient merges c1,c2 into q, then for all source-realizable preimages s1,s2 of c1,c2 and all k in Continuation, R_F(s1,k)=R_F(s2,k); equivalently the quotient fiber is monochromatic under the declared source/readout/continuation contract.",
+    "unreachable_irrelevance_condition": "If authority is allowed to quantify over formal c not in Reach(A_scope), Proof must establish that no accepted continuation/readout computation can depend on distinctions involving those states. Otherwise such states have no authority."
+  },
+  "authority_states": [
+    "ACTIVE",
+    "STALE",
+    "INVALID"
+  ],
+  "authority_rules": {
+    "ACTIVE": "All token digests/receipts replay, current source/readout/continuation/capability exactly match, and the current carrier trace remains inside the Reach contract.",
+    "STALE": "The token was valid for a prior scope but at least one authority-defining scope field no longer matches the current requested use. Stale tokens may remain historical evidence but cannot authorize new semantic steps.",
+    "INVALID": "Adequacy/preimage/proof replay fails or the token was forged/corrupted. Invalid tokens have no authority even for historical reuse."
+  },
+  "admission_rules": {
+    "SOURCE_REALIZABILITY_GATE": {
+      "rule": "Every authority-bearing carrier state or transition used by an accepted trace must either have replayable source/predecessor realization lineage under rho or be covered by an exact UNREACHABLE_IRRELEVANT theorem.",
+      "forbidden": [
+        "Treating membership in the carrier grammar as evidence of source reachability.",
+        "Promoting a finite lack of source-preimage counterexample to a universal realizability theorem.",
+        "Using a normal-form/algebraic preimage as exact source identity unless the frozen contract explicitly proves that equivalence."
+      ]
+    },
+    "QUERY_CONTINUATION_GATE": {
+      "rule": "A carrier merge/quotient is authority-bearing only for its frozen Readout and ContinuationLanguage. Every later authority-bearing operation must remain in that language or trigger staleness/revalidation.",
+      "forbidden": [
+        "Using a SAT-existence quotient as authority for model counting without a new proof.",
+        "Using a formula-specific future quotient for arbitrary future 3-CNF contexts.",
+        "Using an exact closed-component discharge theorem on an open component without a boundary-message contract."
+      ]
+    },
+    "CAPABILITY_GATE": {
+      "rule": "The token binds the exact capability digest. A different canonicalizer, carrier implementation, verifier, policy/budget/protocol profile, or proof-language authority requires a new/revalidated token if it can affect admissible operations or proof interpretation.",
+      "scheduler_exception": "Changing only scheduler preference among already-authorized operations inside the exact same capability/scope does not invalidate semantic authority."
+    },
+    "FIBER_GATE": {
+      "rule": "For every declared readout/continuation predicate family, quotient fibers used by the trace must be proved source-scope monochromatic. Polynomial representation size or finite collision absence is insufficient."
+    }
+  },
+  "interaction_with_dual_debt": {
+    "semantic_debt": "A_scope does not discharge reconstruction debt. A projection still requires the existing proof-carrying witness discharge.",
+    "transformation_debt": "A_scope does not execute deferred operations. A requested operation outside Continuation/Capability becomes ineligible under the old token and remains transformation debt until rerouted/revalidated/executed.",
+    "switching": "A representation switch may install a new A_scope only after independent adequacy validation. The switch itself still has zero debt-discharge credit under DD3.",
+    "terminal": "DD5 remains necessary. Scoped authority adds an admission premise: every carrier-derived semantic fact used in terminal construction must have been produced under an ACTIVE token whose source/readout/continuation/capability covers that use."
+  },
+  "scope_digest": {
+    "canonical_form": "scope_digest = SHA256(domain_sep || canonical_json(F0_id,ReachContractDigest,ReadoutSpec,ContinuationLanguageSpec,CapabilityDigest,CarrierAdequacyProofDigest,ExpiryRuleVersion))",
+    "rule": "The digest is authority identity, not semantic proof by itself. Every referenced payload must independently replay and bind to its digest.",
+    "historical_identity": "Two tokens may describe extensionally equivalent authority scopes yet remain historically distinct if their proof/provenance differs. Reuse policy is exact-digest unless an explicit equivalence theorem is supplied."
+  },
+  "open_vault_successor_contract": {
+    "name": "SCOPED_OPEN_VAULT_KEY_V2",
+    "key": "(core_digest, capability_digest, authority_scope_digest)",
+    "reuse": "CACHED_OPEN_EXACT is reusable only when all three keys match and the refusal ledger independently replays.",
+    "staleness": [
+      "core change -> MISS",
+      "capability change -> STALE",
+      "authority-scope change -> STALE",
+      "proof payload corruption -> INVALID/HIT_CORRUPT"
+    ],
+    "no_authority_upgrade": "A scoped OPEN hit remains a capability/scope-specific refusal memory; it is not SAT/UNSAT/hardness authority and changes no debt ledger."
+  },
+  "blind_discovery_wrapper": {
+    "status": "GOVERNANCE_LAYER__NOT_PART_OF_SA_SOUNDNESS_PROOF",
+    "rule": "Future discovery experiments that propose a carrier or scope must freeze source-bound candidate-visible bytes and current A_scope before target-aware labels/metadata are revealed. Observer paths must be noninterfering with candidate/checker bytes.",
+    "purpose": "Protect generic discovery claims from label/provenance leakage.",
+    "historical_calibration": "9e16366f18d0aec76e0378114912e65db01f5632"
+  },
+  "factorized_computation_firewall": {
+    "law": "NUMBER_OF_SEMANTIC_RESIDUAL_FUNCTIONS != REQUIRED_COMPUTATION_STATE_COUNT",
+    "implication": "A future representation-pressure hostile is scientifically admissible only if it rules out the frozen allowed factorized computation/DP routes under the declared A_scope, not merely if the semantic function space is exponentially large.",
+    "novelty": "Known dynamic-programming/knowledge-compilation principle; included as an anti-self-deception rule."
+  },
+  "theorem_targets": {
+    "SA1_SOURCE_REALIZABILITY_SOUNDNESS": "An accepted authority-bearing carrier step cannot derive terminal authority from a source-unrealizable carrier state unless the active token's exact unreachable-state irrelevance theorem covers that use.",
+    "SA2_QUERY_CONTINUATION_ADEQUACY": "If an ACTIVE token satisfies the adequacy/merge conditions, replacing source-realizable states by their carrier/quotient representatives preserves the declared Readout for every continuation in ContinuationLanguage.",
+    "SA3_SCOPE_STALENESS": "Changing any authority-defining scope field invalidates old-token authorization for the changed use until revalidation; historical evidence remains immutable.",
+    "SA4_SCOPED_OPEN_VAULT_SAFETY": "Exact OPEN reuse under the triple key cannot alter semantic/transformation debt and cannot be interpreted as SAT/UNSAT authority; mismatched scope/capability is stale.",
+    "SA5_SCOPED_TERMINAL_COMPOSITION": "If DD5 terminal hypotheses hold and every authority-bearing carrier fact in the trace is covered by an ACTIVE source-realizable/continuation-adequate token, the terminal source-soundness theorem is preserved."
+  },
+  "prior_art_boundary": {
+    "known_primitives": [
+      "Property/query-specific abstraction and abstract interpretation.",
+      "Reachability-aware abstraction and simulation/bisimulation ideas.",
+      "Contextual equivalence/congruence parameterized by allowed contexts.",
+      "Knowledge-compilation maps of supported queries and transformations.",
+      "Certified projected knowledge compilation with Skolem assignments.",
+      "Translation validation and proof-carrying certification.",
+      "Blind/preregistered evaluation."
+    ],
+    "distinctive_composition_candidate": "Dual-Debt lifecycle + explicit source-realizability authority + readout/continuation-scoped carrier validity + capability/scope staleness + proof-carrying exact OPEN memory + blind noninterfering discovery.",
+    "novelty_status": "NOT_PROVED__DEDICATED_EXTERNAL_NOVELTY_REVIEW_REQUIRED"
+  },
+  "nonclaims": [
+    "A useful scoped carrier always exists.",
+    "Reachability/source-preimage proofs can always be found cheaply.",
+    "A continuation language broad enough for arbitrary SAT can be compactly represented.",
+    "Scope tokens make an incomplete solver complete.",
+    "Scoped authority implies polynomial runtime.",
+    "The combined architecture is historically unique or ahead of all systems."
+  ],
+  "claim_ceiling": {
+    "WORLD_FIRST": "NOT_ESTABLISHED",
+    "AHEAD_OF_ALL_RESEARCHERS": "NOT_ESTABLISHED",
+    "GENERAL_SAT_IN_P": "NOT_PROVED",
+    "P_EQ_NP": "NOT_PROVED",
+    "P_VS_NP": "OPEN"
+  }
+}
