@@ -111,6 +111,10 @@ def synthesize(source):
     elapsed = time.perf_counter_ns() - start
     guard_nodes = sum(1 for p in nodes.values() if p["rule"] == "AFFINE_XOR")
     ite_nodes = sum(1 for p in nodes.values() if p["rule"] == "GUARDED_ITE")
+    selector_steps = len(witness_bits) * (n - 1)
+    constructor_state_visits = n + selector_steps
+    naive_unshared_node_occurrences = n + len(witness_bits) * (2 * n - 1)
+    sharing_ratio = naive_unshared_node_occurrences / max(1, len(nodes))
 
     return {
         "schema": SCHEMA_OUT,
@@ -146,9 +150,11 @@ def synthesize(source):
             ),
             "T_synth_ns": elapsed,
             "max_live_shared_nodes": len(nodes),
-            "constructor_state_visits": n,
+            "constructor_state_visits": constructor_state_visits,
             "derived_affine_guard_count": guard_nodes,
             "guarded_ITE_node_count": ite_nodes,
+            "naive_unshared_node_occurrences": naive_unshared_node_occurrences,
+            "sharing_ratio_before_after_hashcons": sharing_ratio,
         },
     }
 
