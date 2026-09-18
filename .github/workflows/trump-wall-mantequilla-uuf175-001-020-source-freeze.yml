@@ -1,0 +1,274 @@
+name: TRUMP WALL Mantequilla UUF175 001-020 source freeze
+
+on:
+  push:
+    branches:
+      - research/TRUMP_WALL-MANTEQUILLA-unseen-UUF175-active-eligibility-2026-09-18
+    paths:
+      - .github/workflows/trump-wall-mantequilla-uuf175-001-020-source-freeze.yml
+
+permissions:
+  contents: write
+
+concurrency:
+  group: trump-wall-mantequilla-uuf175-001-020-source-freeze
+  cancel-in-progress: false
+
+jobs:
+  acquire:
+    runs-on: ubuntu-latest
+    env:
+      BRANCH: research/TRUMP_WALL-MANTEQUILLA-unseen-UUF175-active-eligibility-2026-09-18
+      ARCHIVE_URL: https://www.cs.ubc.ca/~hoos/SATLIB/Benchmarks/SAT/RND3SAT/uuf175-753.tar.gz
+      ARCHIVE_SHA1: fa8cefc0260581c78344dc8a2a630b80b9e71e4c
+      MANIFEST: research/TRUMP_WALL_MANTEQUILLA_UUF175_001_020_SOURCE_FREEZE_AUTHORITY_2026-09-18_v1.0.json
+
+    steps:
+      - name: Checkout exact acquisition head
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Verify acquisition authorities
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import hashlib
+          from pathlib import Path
+          expected={
+            "research/TRUMP_WALL_MANTEQUILLA_UUF175_001_020_ACTIVE_EXACT_SYMMETRY_PANEL_RESERVATION_2026-09-18_v1.0.json":"192a74adcd60d36a21b731867a2498ff28732a81",
+            "research/TRUMP_WALL_MANTEQUILLA_UUF175_001_020_SOURCE_ACQUISITION_REVIEW_2026-09-18_v1.0.json":"82fb77cf411d80c300d242f7948bac7eaf10741a",
+          }
+          def blob(path):
+              data=Path(path).read_bytes()
+              return hashlib.sha1(f"blob {len(data)}\0".encode()+data).hexdigest()
+          bad={p:{"expected":h,"observed":blob(p)} for p,h in expected.items() if blob(p)!=h}
+          if bad:
+              raise SystemExit(f"UUF175_ACQUISITION_AUTHORITY_BIND_FAILURE:{bad}")
+          print("UUF175_ACQUISITION_AUTHORITIES_OK")
+          PY
+
+      - name: Download and verify canonical SATLIB archive
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/uuf175
+          curl -L --fail --retry 3 --connect-timeout 20 "$ARCHIVE_URL" -o /tmp/uuf175/uuf175-753.tar.gz
+          OBS="$(sha1sum /tmp/uuf175/uuf175-753.tar.gz | awk '{print $1}')"
+          echo "archive_sha1=$OBS"
+          test "$OBS" = "$ARCHIVE_SHA1"
+          sha256sum /tmp/uuf175/uuf175-753.tar.gz
+          mkdir -p /tmp/uuf175/extract
+          tar -xzf /tmp/uuf175/uuf175-753.tar.gz -C /tmp/uuf175/extract
+
+      - name: Freeze exact 001-020 raw sources and manifest
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p research/source_data
+          python - <<'PY'
+          import hashlib, json, os
+          from pathlib import Path
+
+          root=Path("/tmp/uuf175/extract")
+          outdir=Path("research/source_data")
+          archive=Path("/tmp/uuf175/uuf175-753.tar.gz")
+
+          def git_blob_bytes(data: bytes) -> str:
+              return hashlib.sha1(f"blob {len(data)}\0".encode()+data).hexdigest()
+
+          def parse_dimacs(path: Path):
+              nvars=nclauses=None
+              clauses=[]
+              buf=[]
+              terminated=False
+              for raw in path.read_text(encoding="ascii").splitlines():
+                  s=raw.strip()
+                  if not s or s.startswith("c"):
+                      continue
+                  if terminated:
+                      continue
+                  if s=="%":
+                      terminated=True
+                      continue
+                  if s.startswith("p "):
+                      parts=s.split()
+                      if len(parts)!=4 or parts[0]!="p" or parts[1]!="cnf":
+                          raise ValueError(f"BAD_HEADER:{path.name}:{s}")
+                      nvars,nclauses=int(parts[2]),int(parts[3])
+                      continue
+                  if s=="0" and not buf and nclauses is not None and len(clauses)==nclauses:
+                      terminated=True
+                      continue
+                  for z in map(int,s.split()):
+                      if z==0:
+                          if not buf:
+                              raise ValueError(f"EMPTY_CLAUSE_OR_BAD_TERMINATOR:{path.name}")
+                          clauses.append(tuple(buf))
+                          buf=[]
+                      else:
+                          buf.append(z)
+              if buf:
+                  raise ValueError(f"UNTERMINATED_CLAUSE:{path.name}")
+              if (nvars,nclauses)!=(175,753):
+                  raise ValueError(f"BAD_SHAPE:{path.name}:{nvars}:{nclauses}")
+              if len(clauses)!=753:
+                  raise ValueError(f"BAD_CLAUSE_COUNT:{path.name}:{len(clauses)}")
+              for c in clauses:
+                  if len(c)!=3 or len({abs(x) for x in c})!=3:
+                      raise ValueError(f"NON_CANONICAL_3CNF:{path.name}:{c}")
+                  if any(abs(x)<1 or abs(x)>175 for x in c):
+                      raise ValueError(f"VARIABLE_RANGE:{path.name}:{c}")
+              canonical="".join(" ".join(map(str,c))+" 0\n" for c in clauses).encode("ascii")
+              return hashlib.sha256(canonical).hexdigest()
+
+          receipts=[]
+          for idx in range(1,21):
+              basename=f"uuf175-0{idx}.cnf"
+              matches=list(root.rglob(basename))
+              if len(matches)!=1:
+                  raise SystemExit(f"EXPECTED_EXACTLY_ONE_SOURCE:{basename}:FOUND={len(matches)}")
+              src=matches[0]
+              canonical_sha=parse_dimacs(src)
+              data=src.read_bytes()
+              internal=f"SATLIB_UUF175_{idx:03d}_2026-09-18.cnf"
+              dest=outdir/internal
+              dest.write_bytes(data)
+              receipts.append({
+                  "source":f"UUF175_{idx:03d}",
+                  "satlib_basename":basename,
+                  "archive_member":str(src.relative_to(root)),
+                  "committed_path":str(dest),
+                  "raw_sha256":hashlib.sha256(data).hexdigest(),
+                  "git_blob":git_blob_bytes(data),
+                  "canonical_formula_sha256":canonical_sha,
+                  "variables":175,
+                  "clauses":753,
+                  "clause_width":3,
+              })
+
+          manifest={
+              "artifact_id":"JANUS-TRUMP-WALL-MANTEQUILLA-UUF175-001-020-SOURCE-FREEZE-AUTHORITY-2026-09-18-v1.0",
+              "version":"v1.0",
+              "date":"2026-09-18",
+              "family":"SATLIB_UUF175.753.100",
+              "reservation_authority":{
+                  "commit":"705b5223fe6011f4fb1b538ba6528035bdfecf7a",
+                  "blob":"192a74adcd60d36a21b731867a2498ff28732a81"
+              },
+              "panel":[f"UUF175_{i:03d}" for i in range(1,21)],
+              "archive":{
+                  "url":os.environ["ARCHIVE_URL"],
+                  "sha1":hashlib.sha1(archive.read_bytes()).hexdigest(),
+                  "sha256":hashlib.sha256(archive.read_bytes()).hexdigest(),
+                  "expected_sha1":os.environ["ARCHIVE_SHA1"],
+              },
+              "source_receipts":receipts,
+              "acquisition_scope":{
+                  "structural_metrics_read":False,
+                  "WL_run":False,
+                  "symmetry_detection_run":False,
+                  "local_boundary_read":False,
+                  "Mantequilla_run":False,
+                  "SAT_solver_invocations":0,
+              },
+              "verdict":"PASS_UUF175_001_020_CANONICAL_SATLIB_SOURCE_ACQUISITION",
+          }
+          Path(os.environ["MANIFEST"]).write_text(json.dumps(manifest,indent=2,sort_keys=True)+"\n",encoding="utf-8")
+          print(json.dumps({
+              "verdict":manifest["verdict"],
+              "archive_sha1":manifest["archive"]["sha1"],
+              "source_count":len(receipts)
+          },sort_keys=True))
+          PY
+
+      - name: Independent source freeze verification
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import hashlib,json,os
+          from pathlib import Path
+          m=json.load(open(os.environ["MANIFEST"],encoding="utf-8"))
+          failures=[]
+          if len(m.get("source_receipts",[]))!=20:
+              failures.append({"check":"source_count","observed":len(m.get("source_receipts",[])),"expected":20})
+          expected_panel=[f"UUF175_{i:03d}" for i in range(1,21)]
+          if m.get("panel")!=expected_panel:
+              failures.append({"check":"panel","observed":m.get("panel"),"expected":expected_panel})
+          if m.get("archive",{}).get("sha1")!=os.environ["ARCHIVE_SHA1"]:
+              failures.append({"check":"archive_sha1","observed":m.get("archive",{}).get("sha1"),"expected":os.environ["ARCHIVE_SHA1"]})
+          seen={}
+          for i,r in enumerate(m.get("source_receipts",[]),1):
+              expected_source=f"UUF175_{i:03d}"
+              if r.get("source")!=expected_source:
+                  failures.append({"check":"source_id","index":i,"observed":r.get("source"),"expected":expected_source})
+              p=Path(r["committed_path"])
+              data=p.read_bytes()
+              raw=hashlib.sha256(data).hexdigest()
+              blob=hashlib.sha1(f"blob {len(data)}\0".encode()+data).hexdigest()
+              if raw!=r.get("raw_sha256"):
+                  failures.append({"check":"raw_sha256","source":r.get("source")})
+              if blob!=r.get("git_blob"):
+                  failures.append({"check":"git_blob","source":r.get("source")})
+              hdr_tokens=[x.strip().split() for x in p.read_text(encoding="ascii").splitlines() if x.strip().startswith("p ")]
+              expected_hdr=[["p","cnf","175","753"]]
+              if hdr_tokens!=expected_hdr:
+                  failures.append({"check":"header","source":r.get("source"),"observed":hdr_tokens,"expected":expected_hdr})
+              if r.get("variables")!=175 or r.get("clauses")!=753 or r.get("clause_width")!=3:
+                  failures.append({"check":"receipt_shape","source":r.get("source"),"observed":[r.get("variables"),r.get("clauses"),r.get("clause_width")]})
+              h=r.get("canonical_formula_sha256")
+              if h in seen:
+                  failures.append({"check":"canonical_hash_unique","source":r.get("source"),"duplicate_of":seen[h],"hash":h})
+              else:
+                  seen[h]=r.get("source")
+          if len(seen)!=20:
+              failures.append({"check":"unique_hash_count","observed":len(seen),"expected":20})
+          if failures:
+              print(json.dumps({"verdict":"FAIL_INDEPENDENT_UUF175_SOURCE_FREEZE_VERIFICATION","failures":failures},sort_keys=True))
+              raise SystemExit(1)
+          m["independent_verification"]="PASS_INDEPENDENT_UUF175_001_020_SOURCE_FREEZE_VERIFICATION"
+          Path(os.environ["MANIFEST"]).write_text(json.dumps(m,indent=2,sort_keys=True)+"\n",encoding="utf-8")
+          print(m["independent_verification"])
+          PY
+
+      - name: Upload acquisition receipt
+        uses: actions/upload-artifact@v4
+        with:
+          name: trump-wall-mantequilla-uuf175-source-freeze-${{ github.run_id }}
+          path: |
+            research/TRUMP_WALL_MANTEQUILLA_UUF175_001_020_SOURCE_FREEZE_AUTHORITY_2026-09-18_v1.0.json
+            research/source_data/SATLIB_UUF175_*_2026-09-18.cnf
+          if-no-files-found: error
+          retention-days: 90
+
+      - name: Freeze raw sources
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add "$MANIFEST" research/source_data/SATLIB_UUF175_*_2026-09-18.cnf
+          git commit -m "TRUMP WALL freeze UUF175 001-020 SATLIB sources"
+          git push origin "HEAD:$BRANCH"
+
+      - name: Enforce acquisition PASS
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json,os
+          x=json.load(open(os.environ["MANIFEST"],encoding="utf-8"))
+          assert x["verdict"]=="PASS_UUF175_001_020_CANONICAL_SATLIB_SOURCE_ACQUISITION"
+          assert x["independent_verification"]=="PASS_INDEPENDENT_UUF175_001_020_SOURCE_FREEZE_VERIFICATION"
+          assert len(x["source_receipts"])==20
+          assert all(r["variables"]==175 and r["clauses"]==753 for r in x["source_receipts"])
+          print("UUF175_SOURCE_FREEZE_PASS")
+          PY
