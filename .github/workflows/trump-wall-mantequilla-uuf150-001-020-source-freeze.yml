@@ -19,7 +19,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       BRANCH: research/TRUMP_WALL-MANTEQUILLA-unseen-UUF150-active-eligibility-2026-09-18
-      ARCHIVE_URL: https://www.cs.ubc.ca/~hoos/SATLIB/Benchmarks/SAT/RND3SAT/uuf150-538.tar.gz
+      ARCHIVE_URL: https://www.cs.ubc.ca/~hoos/SATLIB/Benchmarks/SAT/RND3SAT/uuf150-645.tar.gz
       ARCHIVE_SHA1: 61e0a0952a2fdd000dc33cdb4025a132cbfb6884
       MANIFEST: research/TRUMP_WALL_MANTEQUILLA_UUF150_001_020_SOURCE_FREEZE_AUTHORITY_2026-09-18_v1.0.json
 
@@ -43,8 +43,9 @@ jobs:
           import hashlib
           from pathlib import Path
           expected = {
-            "research/TRUMP_WALL_MANTEQUILLA_UUF150_001_020_ACTIVE_EXACT_SYMMETRY_PANEL_RESERVATION_2026-09-18_v1.1.json": "5d06fe65021e5ec21339331251cacfcda7bae636",
-            "research/TRUMP_WALL_MANTEQUILLA_UUF150_001_020_SOURCE_ACQUISITION_REVIEW_2026-09-18_v1.1.json": "a122b86e9b46d5fd6706e11aad5ae2928a3ee63d",
+            "research/TRUMP_WALL_MANTEQUILLA_UUF150_001_020_ACTIVE_EXACT_SYMMETRY_PANEL_RESERVATION_2026-09-18_v1.0.json": "5d06fe65021e5ec21339331251cacfcda7bae636",
+            "research/TRUMP_WALL_MANTEQUILLA_UUF150_001_020_SOURCE_ACQUISITION_REVIEW_2026-09-18_v1.0.json": "a122b86e9b46d5fd6706e11aad5ae2928a3ee63d",
+            "research/TRUMP_WALL_MANTEQUILLA_UUF150_SOURCE_FREEZE_CONSTANT_BINDING_REPAIR_2026-09-18_v1.0.json": "53917c05124eec3c7d83e484f7b7c71b462ca8c5",
           }
           def blob(path):
               data=Path(path).read_bytes()
@@ -60,13 +61,13 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p /tmp/uuf150
-          curl -L --fail --retry 3 --connect-timeout 20 "$ARCHIVE_URL" -o /tmp/uuf150/uuf150-538.tar.gz
-          OBS="$(sha1sum /tmp/uuf150/uuf150-538.tar.gz | awk '{print $1}')"
+          curl -L --fail --retry 3 --connect-timeout 20 "$ARCHIVE_URL" -o /tmp/uuf150/uuf150-645.tar.gz
+          OBS="$(sha1sum /tmp/uuf150/uuf150-645.tar.gz | awk '{print $1}')"
           echo "archive_sha1=$OBS"
           test "$OBS" = "$ARCHIVE_SHA1"
-          sha256sum /tmp/uuf150/uuf150-538.tar.gz
+          sha256sum /tmp/uuf150/uuf150-645.tar.gz
           mkdir -p /tmp/uuf150/extract
-          tar -xzf /tmp/uuf150/uuf150-538.tar.gz -C /tmp/uuf150/extract
+          tar -xzf /tmp/uuf150/uuf150-645.tar.gz -C /tmp/uuf150/extract
 
       - name: Freeze exact 001-020 raw sources and manifest
         shell: bash
@@ -79,7 +80,7 @@ jobs:
 
           root=Path("/tmp/uuf150/extract")
           outdir=Path("research/source_data")
-          archive=Path("/tmp/uuf150/uuf150-538.tar.gz")
+          archive=Path("/tmp/uuf150/uuf150-645.tar.gz")
 
           def git_blob_bytes(data: bytes) -> str:
               return hashlib.sha1(f"blob {len(data)}\0".encode()+data).hexdigest()
@@ -119,7 +120,7 @@ jobs:
                   raise ValueError(f"UNTERMINATED_CLAUSE:{path.name}")
               if (nvars,nclauses)!=(150,645):
                   raise ValueError(f"BAD_SHAPE:{path.name}:{nvars}:{nclauses}")
-              if len(clauses)!=538:
+              if len(clauses)!=645:
                   raise ValueError(f"BAD_CLAUSE_COUNT:{path.name}:{len(clauses)}")
               for c in clauses:
                   if len(c)!=3 or len({abs(x) for x in c})!=3:
@@ -150,16 +151,16 @@ jobs:
                   "git_blob":git_blob_bytes(data),
                   "canonical_formula_sha256":canonical_sha,
                   "variables":125,
-                  "clauses":538,
+                  "clauses":645,
                   "clause_width":3,
               })
 
           manifest={
               "artifact_id":"JANUS-TRUMP-WALL-MANTEQUILLA-UUF150-001-020-SOURCE-FREEZE-AUTHORITY-2026-09-18-v1.0",
               "date":"2026-09-18",
-              "family":"SATLIB_UUF150.538.100",
+              "family":"SATLIB_UUF150.645.100",
               "reservation_authority":{
-                  "version":"v1.1",
+                  "version":"v1.0",
                   "commit":"bcfe7f00ca7b7246ac23147f8bffdd7bb123d884",
                   "blob":"5d06fe65021e5ec21339331251cacfcda7bae636"
               },
