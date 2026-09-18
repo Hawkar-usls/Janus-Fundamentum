@@ -1,0 +1,199 @@
+name: TRUMP WALL Mantequilla Phase II-B wave 1 controlled wall challenge
+
+on:
+  push:
+    branches:
+      - research/TRUMP_WALL-MANTEQUILLA-PHASE-II-2026-09-18
+    paths:
+      - .github/workflows/trump-wall-mantequilla-phase-iib-wave1-controlled-challenge.yml
+
+permissions:
+  contents: write
+
+concurrency:
+  group: trump-wall-mantequilla-phase-iib-wave1-controlled-challenge
+  cancel-in-progress: false
+
+jobs:
+  controlled:
+    runs-on: ubuntu-latest
+    env:
+      BRANCH: research/TRUMP_WALL-MANTEQUILLA-PHASE-II-2026-09-18
+      TOOL_DIR: research/tools/trump_wall_mantequilla_phase_iib_wave1
+      FREEZE_DIR: research/sealed/TRUMP_WALL_MANTEQUILLA_PHASE_IIB_WAVE1_2026-09-18
+      RESULT_OUT: research/TRUMP_WALL_MANTEQUILLA_PHASE_IIB_WAVE1_CONTROLLED_WALL_CHALLENGE_RESULT_2026-09-18_v1.0.json
+
+    steps:
+      - name: Checkout exact frozen Phase II head
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Verify frozen Phase II-B authorities
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import hashlib, json
+          from pathlib import Path
+          expected={
+            "research/TRUMP_WALL_MANTEQUILLA_PHASE_I_CLOSURE_2026-09-18_v1.0.json":"09a6b7148af58b96f300228e9d3d58bfe9de2d72",
+            "research/TRUMP_WALL_MANTEQUILLA_PHASE_II_MASTER_PROTOCOL_2026-09-18_v1.0.json":"66789f459d23a5ac7f37b119b078baabf6abfe0c",
+            "research/TRUMP_WALL_MANTEQUILLA_PHASE_IIB_WAVE_1_CONTROLLED_WALL_CHALLENGE_PREREGISTRATION_2026-09-18_v1.0.json":"a7247977e8834a751522275f2592bdeb35ca2abb",
+            "research/TRUMP_WALL_MANTEQUILLA_PHASE_IIB_WAVE1_CONTROLLED_WALL_CHALLENGE_IMPLEMENTATION_REVIEW_2026-09-18_v1.0.json":"8d6a33feaec7e0a71fca24cbd7e42cab62ea2927",
+            "research/tools/trump_wall_mantequilla_phase_iib_wave1/prepare_challenges.py":"d3b44e44dee991a5e4a5d777b5d6ee81d36e81ce",
+            "research/tools/trump_wall_mantequilla_phase_iib_wave1/candidate.py":"9643e1c47f5e058def772a684a0b9b8d6a0e9648",
+            "research/tools/trump_wall_mantequilla_phase_iib_wave1/independent_check.py":"954cf81448b647402b7580182b61c057326e0429",
+            "research/tools/trump_wall_mantequilla_phase_iib_wave1/reconcile.py":"941a52188d0c1640635dcf56bbf23710f4e132c0",
+          }
+          def blob(path):
+              data=Path(path).read_bytes()
+              return hashlib.sha1(f"blob {len(data)}\0".encode()+data).hexdigest()
+          bad={p:{"expected":h,"observed":blob(p)} for p,h in expected.items() if blob(p)!=h}
+          if bad:
+              raise SystemExit(f"PHASE_IIB_WAVE1_AUTHORITY_BIND_FAILURE:{bad}")
+          master=json.load(open("research/TRUMP_WALL_MANTEQUILLA_PHASE_II_MASTER_PROTOCOL_2026-09-18_v1.0.json",encoding="utf-8"))
+          prereg=json.load(open("research/TRUMP_WALL_MANTEQUILLA_PHASE_IIB_WAVE_1_CONTROLLED_WALL_CHALLENGE_PREREGISTRATION_2026-09-18_v1.0.json",encoding="utf-8"))
+          review=json.load(open("research/TRUMP_WALL_MANTEQUILLA_PHASE_IIB_WAVE1_CONTROLLED_WALL_CHALLENGE_IMPLEMENTATION_REVIEW_2026-09-18_v1.0.json",encoding="utf-8"))
+          assert master["central_separation"]=="WALL_DISCOVERY_NEQ_WALL_HANDLING"
+          assert prereg["status"]=="PREREGISTERED_NOT_EXECUTED"
+          assert review["review_verdict"]=="PASS_PHASE_IIB_WAVE1_IMPLEMENTATION_BINDING__AUTHORIZED_TO_EXECUTE_ONCE"
+          print("PHASE_IIB_WAVE1_AUTHORITIES_OK")
+          PY
+
+      - name: Build and seal all four public challenge bundles before any candidate
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf /tmp/iibwave1
+          mkdir -p /tmp/iibwave1
+          python "$TOOL_DIR/prepare_challenges.py" /tmp/iibwave1 | tee /tmp/iibwave1/prepare.log
+          test -f /tmp/iibwave1/public/commitment.json
+          test -f /tmp/iibwave1/private/ground_truth.json
+          for S in CHAL_001 CHAL_002 CHAL_003 CHAL_004; do
+            test -f "/tmp/iibwave1/public/$S.json"
+          done
+          cp /tmp/iibwave1/public/commitment.json /tmp/iibwave1/pre_execution_commitment.json
+          sha256sum /tmp/iibwave1/public/*.json | sort > /tmp/iibwave1/pre_execution_public_sha256.txt
+          chmod -R a-w /tmp/iibwave1/public
+          echo "ALL_FOUR_PUBLIC_BUNDLES_SEALED_BEFORE_CANDIDATE"
+
+      - name: Execute frozen Mantequilla on all four isolated public bundles
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/iibwave1/runs
+          for S in CHAL_001 CHAL_002 CHAL_003 CHAL_004; do
+            mkdir -p "/tmp/iibwave1/runs/$S"
+            cp "$TOOL_DIR/candidate.py" "/tmp/iibwave1/runs/$S/candidate.py"
+            cp "/tmp/iibwave1/public/$S.json" "/tmp/iibwave1/runs/$S/sealed_bundle.json"
+            (
+              cd "/tmp/iibwave1/runs/$S"
+              python candidate.py sealed_bundle.json candidate.json | tee candidate.log
+            )
+            test -f "/tmp/iibwave1/runs/$S/candidate.json"
+          done
+
+      - name: Independently replay all four without ground truth labels
+        shell: bash
+        run: |
+          set -euo pipefail
+          for S in CHAL_001 CHAL_002 CHAL_003 CHAL_004; do
+            cp "$TOOL_DIR/independent_check.py" "/tmp/iibwave1/runs/$S/independent_check.py"
+            cp "$TOOL_DIR/candidate.py" "/tmp/iibwave1/runs/$S/candidate_source.py"
+            (
+              cd "/tmp/iibwave1/runs/$S"
+              python independent_check.py sealed_bundle.json candidate.json candidate_source.py independent.json | tee independent.log
+            )
+            test -f "/tmp/iibwave1/runs/$S/independent.json"
+          done
+
+      - name: Verify public bundles remained byte-frozen
+        shell: bash
+        run: |
+          set -euo pipefail
+          sha256sum /tmp/iibwave1/public/*.json | sort > /tmp/iibwave1/post_execution_public_sha256.txt
+          diff -u /tmp/iibwave1/pre_execution_public_sha256.txt /tmp/iibwave1/post_execution_public_sha256.txt
+          cmp /tmp/iibwave1/pre_execution_commitment.json /tmp/iibwave1/public/commitment.json
+          echo "PUBLIC_BUNDLES_UNCHANGED"
+
+      - name: Reveal sealed ground truth and reconcile only after all eight outputs exist
+        shell: bash
+        run: |
+          set -euo pipefail
+          for S in CHAL_001 CHAL_002 CHAL_003 CHAL_004; do
+            test -f "/tmp/iibwave1/runs/$S/candidate.json"
+            test -f "/tmp/iibwave1/runs/$S/independent.json"
+          done
+          python "$TOOL_DIR/reconcile.py"             /tmp/iibwave1/public             /tmp/iibwave1/private/ground_truth.json             /tmp/iibwave1/runs             /tmp/iibwave1/final_result.json | tee /tmp/iibwave1/reconcile.log
+
+      - name: Upload complete controlled challenge receipts
+        uses: actions/upload-artifact@v4
+        with:
+          name: trump-wall-mantequilla-phase-iib-wave1-${{ github.run_id }}
+          path: |
+            /tmp/iibwave1/prepare.log
+            /tmp/iibwave1/pre_execution_commitment.json
+            /tmp/iibwave1/pre_execution_public_sha256.txt
+            /tmp/iibwave1/post_execution_public_sha256.txt
+            /tmp/iibwave1/public/*.json
+            /tmp/iibwave1/private/ground_truth.json
+            /tmp/iibwave1/runs/*/candidate.json
+            /tmp/iibwave1/runs/*/candidate.log
+            /tmp/iibwave1/runs/*/independent.json
+            /tmp/iibwave1/runs/*/independent.log
+            /tmp/iibwave1/final_result.json
+            /tmp/iibwave1/reconcile.log
+          if-no-files-found: error
+          retention-days: 90
+
+      - name: Freeze controlled challenge bundles, reveal, receipts, and result
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "$FREEZE_DIR/public" "$FREEZE_DIR/runs"
+          cp /tmp/iibwave1/public/*.json "$FREEZE_DIR/public/"
+          cp /tmp/iibwave1/private/ground_truth.json "$FREEZE_DIR/ground_truth_reveal.json"
+          cp /tmp/iibwave1/pre_execution_public_sha256.txt "$FREEZE_DIR/pre_execution_public_sha256.txt"
+          cp /tmp/iibwave1/post_execution_public_sha256.txt "$FREEZE_DIR/post_execution_public_sha256.txt"
+          for S in CHAL_001 CHAL_002 CHAL_003 CHAL_004; do
+            mkdir -p "$FREEZE_DIR/runs/$S"
+            cp "/tmp/iibwave1/runs/$S/candidate.json" "$FREEZE_DIR/runs/$S/"
+            cp "/tmp/iibwave1/runs/$S/independent.json" "$FREEZE_DIR/runs/$S/"
+          done
+          cp /tmp/iibwave1/final_result.json "$RESULT_OUT"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add "$FREEZE_DIR" "$RESULT_OUT"
+          git commit -m "TRUMP WALL freeze Phase II-B wave 1 controlled challenge result"
+          git push origin "HEAD:$BRANCH"
+
+      - name: Enforce controlled claim ceiling
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json
+          r=json.load(open("/tmp/iibwave1/final_result.json",encoding="utf-8"))
+          assert r["scientific_outcome"]=="PASS_CONTROLLED_WAVE1_ALL_FOUR_EXACT"
+          assert r["all_four_mechanism_exact_handling_pass"] is True
+          assert r["summary"]["N_controlled_specimens"]==4
+          assert r["summary"]["N_factorized_nontrivial"]==2
+          assert r["summary"]["N_correlated"]==2
+          assert r["summary"]["N_exact_handling_pass"]==4
+          assert r["interpretation"]["natural_prevalence_inference_forbidden"] is True
+          assert r["scientific_firewall"]["PHASE_I_NATURAL_EVIDENCE_UNCHANGED"] is True
+          assert r["scientific_firewall"]["POLYNOMIAL_BRIDGE"]=="NOT_PROVED"
+          assert r["scientific_firewall"]["MULTI_INTERFACE_COMPOSITION"]=="NOT_PROVED"
+          assert r["scientific_firewall"]["P_VS_NP"]=="OPEN"
+          for row in r["rows"]:
+              assert row["constructor_boundary_cube_assignments_enumerated"]==0
+              assert row["sat_solver_invocations"]==0
+          print("PHASE_IIB_WAVE1_CONTROLLED_CLAIM_CEILING_PASS")
+          PY
