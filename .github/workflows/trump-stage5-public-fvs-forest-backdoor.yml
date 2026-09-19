@@ -1,0 +1,84 @@
+name: TRUMP Stage5 Public FVS Forest Backdoor
+
+on:
+  push:
+    branches:
+      - research/general-sat-universal-coverage-map-2026-09-19
+    paths:
+      - ".github/workflows/trump-stage5-public-fvs-forest-backdoor.yml"
+      - "research/tools/trump_r50g25x_public_fvs_to_forest_backdoor.py"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  public-fvs-forest-backdoor:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Fetch frozen R50G25X source
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p stage5/source
+          curl -fL             -H "Authorization: Bearer $GH_TOKEN"             -H "Accept: application/vnd.github+json"             "https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/artifacts/9992845123/zip"             -o stage5/source/r50g25x.zip
+          unzip -q stage5/source/r50g25x.zip -d stage5/source/unpacked
+          test -f stage5/source/unpacked/JANUS_TRUMP_R50G25X_ADVERSARIAL_STALL_SEARCH.json
+
+      - name: Emit S13 incidence graphs
+        shell: bash
+        run: |
+          set -euo pipefail
+          python research/tools/trump_r50g25x_public_fvs_to_forest_backdoor.py emit             stage5/source/unpacked/JANUS_TRUMP_R50G25X_ADVERSARIAL_STALL_SEARCH.json             stage5/graphs
+
+      - name: Acquire and build public exact PACE FVS solver
+        shell: bash
+        run: |
+          set -euo pipefail
+          git clone --depth=1 https://github.com/wata-orz/fvs.git stage5/fvs
+          git -C stage5/fvs rev-parse HEAD > stage5/fvs.commit
+          (cd stage5/fvs && ./build.sh)
+
+      - name: Run public exact FVS on S13
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p stage5/solutions stage5/statuses stage5/logs
+          for g in stage5/graphs/*.graph; do
+            base="$(basename "$g" .graph)"
+            set +e
+            timeout --signal=TERM --kill-after=3s 45s               stage5/fvs/run.sh               < "$g"               > "stage5/solutions/${base}.out"               2> "stage5/logs/${base}.log"
+            rc=$?
+            set -e
+            echo "$rc" > "stage5/statuses/${base}.rc"
+          done
+
+      - name: Independently verify and convert to variable-only Forest backdoors
+        shell: bash
+        run: |
+          set -euo pipefail
+          python research/tools/trump_r50g25x_public_fvs_to_forest_backdoor.py verify             stage5/source/unpacked/JANUS_TRUMP_R50G25X_ADVERSARIAL_STALL_SEARCH.json             stage5/graphs/manifest.json             stage5/solutions             stage5/statuses             stage5/TRUMP_R50G25X_PUBLIC_FVS_FOREST_BACKDOOR_RESULT.json             --solver-commit "$(cat stage5/fvs.commit)"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: trump-stage5-public-fvs-forest-backdoor
+          path: |
+            stage5/TRUMP_R50G25X_PUBLIC_FVS_FOREST_BACKDOOR_RESULT.json
+            stage5/graphs/
+            stage5/solutions/
+            stage5/statuses/
+            stage5/logs/
+            stage5/fvs.commit
+          if-no-files-found: error
+          retention-days: 30
