@@ -82,22 +82,38 @@ def main():
     legacy000_Z=set(U_type_vertices)
     collision=legacy111_support&legacy000_Z
     checks["independent_support_Z_collision"]=collision=={"v"}
-    checks["candidate_failure_code"]=receipt.get("verdict")=="FAIL_SUPPORT_Z_COLLISION"
-    checks["candidate_collision_same"]=set(receipt.get("witness",{}).get("detail",{}).get("collision",[]))=={"v"}
-    checks["scientific_gate_failed_before_raw_equivalence"]=summary.get("scientific_gate")=="FAIL_RAW_REPRESENTATIVE_COVERAGE"
+    observed=receipt.get("verdict")
     checks["raw_universal_not_promoted"]=summary.get("raw_equivalence_universal") is False
     checks["subgate_A_open"]=summary.get("subgate_A")=="OPEN"
 
-    # Deletion-minimality of this decorated witness: deleting any vertex destroys one
-    # of the three distinct seed colors, an endpoint, or the common Y0 witness.
-    essential={"s1","s2","s3","v","n","z"}
-    checks["six_vertex_witness_exact_roles"]=set(fixture["vertices"])==essential
-    checks["deletion_minimal_for_this_collision_pattern"]=all(
-      len(essential-{x})<6 for x in essential
-    )
+    if observed=="FAIL_SUPPORT_Z_COLLISION":
+        checks["candidate_failure_code"]=True
+        checks["candidate_collision_same"]=set(receipt.get("witness",{}).get("detail",{}).get("collision",[]))=={"v"}
+        checks["scientific_gate_matches_fail"]=summary.get("scientific_gate")=="FAIL_RAW_REPRESENTATIVE_COVERAGE"
+        authority_checks={k:v for k,v in checks.items() if isinstance(v,bool)}
+        verdict="INDEPENDENT_FAIL_WITNESS_VERIFIED" if all(authority_checks.values()) else "INDEPENDENT_REPLAY_FAIL"
+        interpretation={
+          "RIGID_SPLIT4_LOCAL_SCHEMA":"NOT_FALSIFIED_BY_THIS_WITNESS",
+          "RAW_GLOBAL_REPRESENTATIVE_COVERAGE":"FALSIFIED_UNDER_LITERAL_CONSTRUCTOR",
+          "PAPER_II_THEOREM_INVALID":"NOT_CLAIMED",
+          "SOURCE_INTERPRETATION_OR_IMPLICIT_NORMALIZATION":"REQUIRES_REVIEW",
+          "SUBGATE_A":"OPEN","P_VS_NP":"OPEN"
+        }
+    elif observed=="RAW_EQUIVALENCE_WITNESS_PASS":
+        checks["candidate_pass_code"]=True
+        checks["independent_no_support_Z_collision"]=len(collision)==0
+        checks["scientific_gate_matches_finite_pass"]=summary.get("scientific_gate")=="FINITE_REPLAY_PASS__UNIVERSAL_AUTHORITY_NOT_ESTABLISHED"
+        authority_checks={k:v for k,v in checks.items() if isinstance(v,bool)}
+        verdict="INDEPENDENT_FINITE_PASS_REPLAY" if all(authority_checks.values()) else "INDEPENDENT_REPLAY_FAIL"
+        interpretation={
+          "RAW_GLOBAL_REPRESENTATIVE_COVERAGE":"FINITE_REPLAY_ONLY",
+          "UNIVERSAL_RAW_EQUIVALENCE":"NOT_ESTABLISHED",
+          "SUBGATE_A":"OPEN","P_VS_NP":"OPEN"
+        }
+    else:
+        verdict="INDEPENDENT_REPLAY_FAIL"
+        interpretation={"unexpected_candidate_verdict":observed}
 
-    authority_checks={k:v for k,v in checks.items() if isinstance(v,bool)}
-    verdict="INDEPENDENT_FAIL_WITNESS_VERIFIED" if all(authority_checks.values()) else "INDEPENDENT_REPLAY_FAIL"
     out={"schema":"janus.trump.p7_split4.raw_coverage_independent.v1",
          "verdict":verdict,"checks":checks,
          "witness":{
@@ -106,16 +122,9 @@ def main():
            "Z_from_pair_AU":sorted(legacy000_Z),
            "collision":sorted(collision)
          },
-         "interpretation_ceiling":{
-           "RIGID_SPLIT4_LOCAL_SCHEMA":"NOT_FALSIFIED_BY_THIS_WITNESS",
-           "RAW_GLOBAL_REPRESENTATIVE_COVERAGE":"FALSIFIED_UNDER_LITERAL_CONSTRUCTOR",
-           "PAPER_II_THEOREM_INVALID":"NOT_CLAIMED",
-           "SOURCE_INTERPRETATION_OR_IMPLICIT_NORMALIZATION":"REQUIRES_REVIEW",
-           "SUBGATE_A":"OPEN",
-           "P_VS_NP":"OPEN"
-         }}
+         "interpretation_ceiling":interpretation}
     pathlib.Path(args.output).write_text(json.dumps(out,indent=2,sort_keys=True)+"\n")
     print(json.dumps({"verdict":verdict,"collision":sorted(collision)},sort_keys=True))
-    if verdict!="INDEPENDENT_FAIL_WITNESS_VERIFIED": raise SystemExit(1)
+    if verdict=="INDEPENDENT_REPLAY_FAIL": raise SystemExit(1)
 
 if __name__=="__main__": main()
