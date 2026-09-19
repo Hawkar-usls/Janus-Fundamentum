@@ -32,7 +32,7 @@ def main():
     outdir=Path(ns.outdir); outdir.mkdir(parents=True,exist_ok=True)
     fixture=Path(ns.fixture)
     runner=HERE/"trump_stage6b3_roundingsat_runner.py"
-    vph=HERE/"trump_stage6b3_veripb_harness.py"
+    vph=HERE/"trump_stage6b4_veripb_v2_harness.py"
     cph=HERE/"trump_stage6b3_cakepb_secondary_harness.py"
 
     failures=[]
