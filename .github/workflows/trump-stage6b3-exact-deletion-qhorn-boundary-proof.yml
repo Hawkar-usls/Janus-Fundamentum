@@ -1,0 +1,521 @@
+name: TRUMP Stage6B.3 Exact Deletion q-Horn Boundary Proof Gate
+
+on:
+  push:
+    branches:
+      - research/general-sat-universal-coverage-map-2026-09-19
+    paths:
+      - ".github/workflows/trump-stage6b3-exact-deletion-qhorn-boundary-proof.yml"
+      - "research/TRUMP_STAGE6B3_EXACT_DELETION_QHORN_BOUNDARY_PROOF_GATE_PREREGISTRATION_2026-09-19_v1.0.json"
+      - "research/TRUMP_STAGE6B3_PROOF_TOOLCHAIN_ACQUISITION_BUILD_RECEIPT_2026-09-19_v1.0.json"
+      - "research/tools/trump_stage6b3_*.py"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  exact-deletion-qhorn-boundary-proof:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Verify frozen Stage6B.3 lineage
+        shell: bash
+        run: |
+          set -euo pipefail
+          for C in \
+            04f18f88b03f1f18d181387e74dc9cbf25533428 \
+            822570bfba886952e4b195d3670982b12ad7acb4 \
+            75c50185b12f393be94926b7fdbcd7aeeae41d85 \
+            4cc618fffce32289d379ed0c45a8496f51c66118 \
+            cb22725d4f22beb8e17012bf9bdff7f52585e7f9 \
+            ec6e2646ebf601ea6e6aa49188126d28997848a4 \
+            d2cf3b4fec0f4eb445461acc5e68753e0517e93f \
+            0bd1189989e84ea34879fb22449cb2b6297beb39 \
+            967eff8e0a9c554b3313acf827e0c395c7c7f13b \
+            becc5103091ffdc94da9f6cd48886bd80b87a915
+          do
+            git merge-base --is-ancestor "$C" HEAD
+          done
+          python - <<'PY'
+          import json
+          p="research/TRUMP_STAGE6B3_EXACT_DELETION_QHORN_BOUNDARY_PROOF_GATE_PREREGISTRATION_2026-09-19_v1.0.json"
+          d=json.load(open(p,encoding="utf-8"))
+          assert d["pinned_scientific_parent"]=="e3406bd6c7295914919bcbd1d65cf24f95554c8d"
+          assert d["gate"]=="TRUMP_STAGE6B3_EXACT_DELETION_QHORN_BOUNDARY_PROOF_GATE"
+          assert d["new_janus_controller"]=="BLOCKED"
+          assert d["frozen_positive_authority"]["boundary_k"]=={
+            "1":24,"2":31,"3":25,"4":28,"5":22,"6":27,"7":22,
+            "9":31,"10":31,"11":31,"12":31,"13":31,"14":31
+          }
+          assert d["stage6C_stage6D_lock"]=="DO_NOT_EXECUTE_UNTIL_STAGE6B3_RESULT_IS_FROZEN"
+          PY
+
+      - name: Syntax-check frozen B.3 implementation
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m py_compile \
+            research/tools/trump_stage6b3_canonical_cnf_audit.py \
+            research/tools/trump_stage6b3_canonical_opb_generator.py \
+            research/tools/trump_stage6b3_independent_opb_auditor.py \
+            research/tools/trump_stage6b3_sat_model_qhorn_verifier.py \
+            research/tools/trump_stage6b3_veripb_harness.py \
+            research/tools/trump_stage6b3_cakepb_secondary_harness.py \
+            research/tools/trump_stage6b3_roundingsat_runner.py \
+            research/tools/trump_stage6b3_result_assembler.py
+
+      - name: Bind exact frozen source and closed Stage6B.2 artifacts
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p \
+            stage6b3/source/unpacked \
+            stage6b3/stage6b2/main_unpacked \
+            stage6b3/stage6b2/materialization_unpacked \
+            stage6b3/targets
+
+          fetch_artifact () {
+            local ID="$1"
+            local META="$2"
+            local ZIP="$3"
+            curl -fsSL \
+              -H "Authorization: Bearer $GH_TOKEN" \
+              -H "Accept: application/vnd.github+json" \
+              "https://api.github.com/repos/$GITHUB_REPOSITORY/actions/artifacts/$ID" \
+              -o "$META"
+            curl -fL \
+              -H "Authorization: Bearer $GH_TOKEN" \
+              -H "Accept: application/vnd.github+json" \
+              "https://api.github.com/repos/$GITHUB_REPOSITORY/actions/artifacts/$ID/zip" \
+              -o "$ZIP"
+          }
+
+          fetch_artifact 9992845123 \
+            stage6b3/source/artifact_metadata.json \
+            stage6b3/source/r50g25x.zip
+          fetch_artifact 10585029459 \
+            stage6b3/stage6b2/main_artifact_metadata.json \
+            stage6b3/stage6b2/main.zip
+          fetch_artifact 10584574967 \
+            stage6b3/stage6b2/materialization_artifact_metadata.json \
+            stage6b3/stage6b2/materialization.zip
+
+          unzip -q stage6b3/source/r50g25x.zip -d stage6b3/source/unpacked
+          unzip -q stage6b3/stage6b2/main.zip -d stage6b3/stage6b2/main_unpacked
+          unzip -q stage6b3/stage6b2/materialization.zip -d stage6b3/stage6b2/materialization_unpacked
+
+          cp \
+            research/TRUMP_STAGE6B2_QHORN_BACKDOOR_WITNESS_TRANSFER_AND_SHRINK_GATE_RESULT_2026-09-19_v1.0.json \
+            stage6b3/stage6b2/frozen_result.json
+
+          python - <<'PY'
+          import hashlib,json,pathlib
+          def sha(p):
+              h=hashlib.sha256()
+              with open(p,"rb") as f:
+                  for b in iter(lambda:f.read(1<<20),b""): h.update(b)
+              return h.hexdigest()
+          items=[
+            ("source",9992845123,"stage6b3/source/artifact_metadata.json","stage6b3/source/r50g25x.zip","32232b076165663a0f699adf34b237d0b755e6e1be06a8c0c2974f13741e1069"),
+            ("stage6b2_main",10585029459,"stage6b3/stage6b2/main_artifact_metadata.json","stage6b3/stage6b2/main.zip","6b13ecfc5a0f82838e758d2c5853dcb644d9c2aa74adc798eeec85841f272856"),
+            ("stage6b2_materialization",10584574967,"stage6b3/stage6b2/materialization_artifact_metadata.json","stage6b3/stage6b2/materialization.zip","f901c8930e06f273605da9f00d593fa5a72c9e156dad55dbc47215e624030eaa")
+          ]
+          receipt={"schema":"janus.trump.stage6b3.source_and_artifact_binding.v1","artifacts":{}}
+          for name,expected_id,meta_path,zip_path,expected_sha in items:
+              meta=json.load(open(meta_path,encoding="utf-8"))
+              actual=sha(zip_path)
+              assert meta["id"]==expected_id
+              assert meta["expired"] is False
+              assert meta.get("digest")==f"sha256:{expected_sha}"
+              assert actual==expected_sha
+              receipt["artifacts"][name]={
+                "id":expected_id,
+                "api_digest":meta.get("digest"),
+                "downloaded_zip_sha256":actual,
+                "workflow_head_sha":(meta.get("workflow_run") or {}).get("head_sha")
+              }
+
+          source="stage6b3/source/unpacked/JANUS_TRUMP_R50G25X_ADVERSARIAL_STALL_SEARCH.json"
+          assert pathlib.Path(source).exists()
+          assert sha(source)=="bbf1bfde77d293b716abfd861736ed71d569405f80261a32b274cb95cc4b0e16"
+          receipt["source_json_sha256"]=sha(source)
+          receipt["stage6b2_result_sha256"]=sha("stage6b3/stage6b2/frozen_result.json")
+          pathlib.Path("stage6b3/source_binding_receipt.json").write_text(
+              json.dumps(receipt,indent=2,sort_keys=True)+"\n",encoding="utf-8"
+          )
+          PY
+
+      - name: Audit raw/canonical CNFs for all 13 before any solving
+        shell: bash
+        run: |
+          set -euo pipefail
+          SOURCE="stage6b3/source/unpacked/JANUS_TRUMP_R50G25X_ADVERSARIAL_STALL_SEARCH.json"
+          python research/tools/trump_stage6b3_canonical_cnf_audit.py \
+            "$SOURCE" stage6b3/canonical \
+            | tee stage6b3/canonical_audit.stdout
+
+          for IDX in 1 2 3 4 5 6 7 9 10 11 12 13 14; do
+            PAD="$(printf '%02d' "$IDX")"
+            DIR="stage6b3/targets/r50g25x_$PAD"
+            mkdir -p "$DIR"
+            cp "stage6b3/canonical/r50g25x_$PAD.canonical.json" "$DIR/canonical.json"
+          done
+
+      - name: Emit and independently audit all authorized canonical boundary OPBs
+        shell: bash
+        run: |
+          set -euo pipefail
+          for IDX in 1 2 3 4 5 6 7 9 10 11 12 13 14; do
+            PAD="$(printf '%02d' "$IDX")"
+            DIR="stage6b3/targets/r50g25x_$PAD"
+            STATUS="$(python - "$DIR/canonical.json" <<'PY'
+          import json,sys
+          print(json.load(open(sys.argv[1],encoding="utf-8"))["status"])
+          PY
+            )"
+            if [ "$STATUS" != "CANONICALIZATION_AUDIT_PASS" ]; then
+              echo "index=$IDX canonicalization=$STATUS; OPB generation forbidden"
+              continue
+            fi
+
+            python research/tools/trump_stage6b3_canonical_opb_generator.py \
+              "$DIR/canonical.json" \
+              "$DIR/boundary.opb" \
+              "$DIR/opb.generation.json" \
+              | tee "$DIR/opb.generator.stdout"
+
+            python research/tools/trump_stage6b3_independent_opb_auditor.py \
+              "$DIR/canonical.json" \
+              "$DIR/boundary.opb" \
+              "$DIR/opb.generation.json" \
+              "$DIR/opb.audit.json" \
+              | tee "$DIR/opb.audit.stdout"
+          done
+
+      - name: Acquire and build exact frozen proof toolchain
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo apt-get update -y
+          sudo apt-get install -y \
+            build-essential cmake git libboost-all-dev libgmp-dev python3-dev file
+
+          mkdir -p stage6b3/tools stage6b3/toolchain_logs
+
+          RS_SRC="stage6b3/tools/roundingsat"
+          git clone https://gitlab.com/MIAOresearch/software/roundingsat.git "$RS_SRC" \
+            > stage6b3/toolchain_logs/roundingsat.clone.stdout \
+            2> stage6b3/toolchain_logs/roundingsat.clone.stderr
+          git -C "$RS_SRC" checkout 7116cbc7c228335d7a828fc9086639e4321fd5d1 \
+            > stage6b3/toolchain_logs/roundingsat.checkout.stdout \
+            2> stage6b3/toolchain_logs/roundingsat.checkout.stderr
+          git -C "$RS_SRC" submodule update --init --recursive \
+            > stage6b3/toolchain_logs/roundingsat.submodules.stdout \
+            2> stage6b3/toolchain_logs/roundingsat.submodules.stderr || true
+          cmake -S "$RS_SRC" -B "$RS_SRC/build" \
+            -DCMAKE_BUILD_TYPE=Release -Dsoplex=OFF \
+            > stage6b3/toolchain_logs/roundingsat.cmake.stdout \
+            2> stage6b3/toolchain_logs/roundingsat.cmake.stderr
+          cmake --build "$RS_SRC/build" -j2 \
+            > stage6b3/toolchain_logs/roundingsat.build.stdout \
+            2> stage6b3/toolchain_logs/roundingsat.build.stderr
+          RS_BIN="$RS_SRC/build/roundingsat"
+          test -x "$RS_BIN"
+
+          VP_SRC="stage6b3/tools/VeriPB-archive"
+          git clone https://gitlab.com/MIAOresearch/software/VeriPB-archive.git "$VP_SRC" \
+            > stage6b3/toolchain_logs/veripb.clone.stdout \
+            2> stage6b3/toolchain_logs/veripb.clone.stderr
+          git -C "$VP_SRC" checkout 9dbb658ffb8d88815c3f3d8ff7fcefd6c6fc43db \
+            > stage6b3/toolchain_logs/veripb.checkout.stdout \
+            2> stage6b3/toolchain_logs/veripb.checkout.stderr
+          python -m venv stage6b3/tools/veripb-venv
+          stage6b3/tools/veripb-venv/bin/python -m pip install --upgrade pip setuptools wheel \
+            > stage6b3/toolchain_logs/veripb.pip-bootstrap.stdout \
+            2> stage6b3/toolchain_logs/veripb.pip-bootstrap.stderr
+          stage6b3/tools/veripb-venv/bin/python -m pip install "$VP_SRC" \
+            > stage6b3/toolchain_logs/veripb.install.stdout \
+            2> stage6b3/toolchain_logs/veripb.install.stderr
+          VP_BIN="stage6b3/tools/veripb-venv/bin/veripb"
+          test -x "$VP_BIN"
+
+          CP_SRC="stage6b3/tools/cakepb"
+          CAKE_BIN=""
+          set +e
+          git clone https://gitlab.com/MIAOresearch/software/cakepb.git "$CP_SRC" \
+            > stage6b3/toolchain_logs/cakepb.clone.stdout \
+            2> stage6b3/toolchain_logs/cakepb.clone.stderr
+          CP_CLONE_RC=$?
+          if [ "$CP_CLONE_RC" -eq 0 ]; then
+            git -C "$CP_SRC" checkout b29b4e967413ee4e8c3dcb1bbc78bd0d508d6817 \
+              > stage6b3/toolchain_logs/cakepb.checkout.stdout \
+              2> stage6b3/toolchain_logs/cakepb.checkout.stderr
+            if [ -f "$CP_SRC/Makefile" ]; then
+              make -C "$CP_SRC" -j2 \
+                > stage6b3/toolchain_logs/cakepb.build.stdout \
+                2> stage6b3/toolchain_logs/cakepb.build.stderr
+            fi
+            while IFS= read -r CAND; do
+              if file "$CAND" | grep -Eq 'x86-64|script|ASCII text executable'; then
+                if [ -x "$CAND" ]; then
+                  CAKE_BIN="$CAND"
+                  break
+                fi
+              fi
+            done < <(find "$CP_SRC" -type f \( -name 'cake_pb' -o -name 'cake_pb_*' -o -name 'cakepb' \) 2>/dev/null)
+          fi
+          set -e
+
+          printf '%s\n' "$RS_BIN" > stage6b3/tools/roundingsat.path
+          printf '%s\n' "$VP_BIN" > stage6b3/tools/veripb.path
+          printf '%s\n' "$CAKE_BIN" > stage6b3/tools/cakepb.path
+
+          python - <<'PY'
+          import hashlib,json,pathlib,platform,subprocess
+          def sha(p):
+              h=hashlib.sha256()
+              with open(p,"rb") as f:
+                  for b in iter(lambda:f.read(1<<20),b""): h.update(b)
+              return h.hexdigest()
+          def rev(p):
+              return subprocess.check_output(["git","-C",p,"rev-parse","HEAD"],text=True).strip()
+          def slurp(p):
+              return pathlib.Path(p).read_text().strip()
+          rs=slurp("stage6b3/tools/roundingsat.path")
+          vp=slurp("stage6b3/tools/veripb.path")
+          cp=slurp("stage6b3/tools/cakepb.path")
+          assert rev("stage6b3/tools/roundingsat")=="7116cbc7c228335d7a828fc9086639e4321fd5d1"
+          assert rev("stage6b3/tools/VeriPB-archive")=="9dbb658ffb8d88815c3f3d8ff7fcefd6c6fc43db"
+          if pathlib.Path("stage6b3/tools/cakepb/.git").exists():
+              assert rev("stage6b3/tools/cakepb")=="b29b4e967413ee4e8c3dcb1bbc78bd0d508d6817"
+          receipt={
+            "schema":"janus.trump.stage6b3.exact_toolchain_build_receipt.v1",
+            "platform":platform.platform(),
+            "python":platform.python_version(),
+            "roundingsat":{
+              "revision":rev("stage6b3/tools/roundingsat"),
+              "binary_path":rs,
+              "binary_sha256":sha(rs)
+            },
+            "veripb":{
+              "revision":rev("stage6b3/tools/VeriPB-archive"),
+              "binary_path":vp,
+              "binary_sha256":sha(vp)
+            },
+            "cakepb":{
+              "revision":rev("stage6b3/tools/cakepb") if pathlib.Path("stage6b3/tools/cakepb/.git").exists() else None,
+              "binary_path":cp or None,
+              "binary_sha256":sha(cp) if cp else None,
+              "infrastructure_available":bool(cp)
+            },
+            "frozen_runtime_limits_seconds":{
+              "roundingsat_per_target":300,
+              "veripb_per_target":600,
+              "cakepb_per_target":600
+            }
+          }
+          pathlib.Path("stage6b3/toolchain_build_receipt.json").write_text(
+              json.dumps(receipt,indent=2,sort_keys=True)+"\n",encoding="utf-8"
+          )
+          PY
+
+      - name: Execute frozen proof-producing boundary tests and independent verification
+        shell: bash
+        run: |
+          set -euo pipefail
+          RS_BIN="$(cat stage6b3/tools/roundingsat.path)"
+          VP_BIN="$(cat stage6b3/tools/veripb.path)"
+          CAKE_BIN="$(cat stage6b3/tools/cakepb.path)"
+          B2="stage6b3/stage6b2/frozen_result.json"
+
+          for IDX in 1 2 3 4 5 6 7 9 10 11 12 13 14; do
+            PAD="$(printf '%02d' "$IDX")"
+            DIR="stage6b3/targets/r50g25x_$PAD"
+
+            STATUS="$(python - "$DIR/canonical.json" <<'PY'
+          import json,sys
+          print(json.load(open(sys.argv[1],encoding="utf-8"))["status"])
+          PY
+            )"
+            if [ "$STATUS" != "CANONICALIZATION_AUDIT_PASS" ]; then
+              echo "index=$IDX canonicalization guard => no proof production"
+              continue
+            fi
+
+            OPBSTATUS="$(python - "$DIR/opb.audit.json" <<'PY'
+          import json,sys
+          print(json.load(open(sys.argv[1],encoding="utf-8"))["status"])
+          PY
+            )"
+            if [ "$OPBSTATUS" != "OPB_SEMANTIC_AUDIT_PASS" ]; then
+              echo "index=$IDX OPB audit failed => no proof production"
+              continue
+            fi
+
+            mkdir -p "$DIR/roundingsat" "$DIR/veripb" "$DIR/cakepb"
+
+            python research/tools/trump_stage6b3_roundingsat_runner.py \
+              "$RS_BIN" "$DIR/boundary.opb" "$DIR/roundingsat" \
+              --timeout-seconds 300 \
+              | tee "$DIR/roundingsat/runner.stdout"
+
+            SOLVER_STATUS="$(python - "$DIR/roundingsat/roundingsat.receipt.json" <<'PY'
+          import json,sys
+          print(json.load(open(sys.argv[1],encoding="utf-8"))["proof_producer_status"])
+          PY
+            )"
+
+            if [ "$SOLVER_STATUS" = "SAT" ]; then
+              python research/tools/trump_stage6b3_sat_model_qhorn_verifier.py \
+                "$DIR/canonical.json" \
+                "$DIR/opb.generation.json" \
+                "$DIR/opb.audit.json" \
+                "$DIR/boundary.opb" \
+                "$DIR/roundingsat/roundingsat.stdout" \
+                "$DIR/sat_replay.json" \
+                | tee "$DIR/sat_replay.stdout"
+              continue
+            fi
+
+            if [ "$SOLVER_STATUS" = "UNSAT" ]; then
+              PROOF="$(python - "$DIR/roundingsat/roundingsat.receipt.json" <<'PY'
+          import json,sys
+          print(json.load(open(sys.argv[1],encoding="utf-8")).get("raw_proof_path") or "")
+          PY
+              )"
+              if [ -n "$PROOF" ] && [ -f "$PROOF" ]; then
+                python research/tools/trump_stage6b3_veripb_harness.py \
+                  "$VP_BIN" "$DIR/boundary.opb" "$PROOF" \
+                  "$DIR/veripb/kernel.pbp" "$DIR/veripb" \
+                  --timeout-seconds 600 \
+                  | tee "$DIR/veripb/harness.stdout"
+
+                PRIMARY="$(python - "$DIR/veripb/veripb.receipt.json" <<'PY'
+          import json,sys
+          print(json.load(open(sys.argv[1],encoding="utf-8")).get("VERIPB_PRIMARY_raw_proof_verified","NO"))
+          PY
+                )"
+                ELAB="$(python - "$DIR/veripb/veripb.receipt.json" <<'PY'
+          import json,sys
+          print(json.load(open(sys.argv[1],encoding="utf-8")).get("elaboration_succeeded","NO"))
+          PY
+                )"
+
+                if [ "$PRIMARY" = "YES" ] && [ "$ELAB" = "YES" ]; then
+                  if [ -n "$CAKE_BIN" ] && [ -x "$CAKE_BIN" ]; then
+                    python research/tools/trump_stage6b3_cakepb_secondary_harness.py \
+                      "$CAKE_BIN" "$DIR/boundary.opb" "$DIR/veripb/kernel.pbp" "$DIR/cakepb" \
+                      --timeout-seconds 600 \
+                      | tee "$DIR/cakepb/harness.stdout" || true
+                  else
+                    python - "$DIR/boundary.opb" "$DIR/veripb/kernel.pbp" "$DIR/cakepb/cakepb.receipt.json" <<'PY'
+          import hashlib,json,pathlib,sys
+          def sha(p):
+              h=hashlib.sha256(pathlib.Path(p).read_bytes()).hexdigest()
+              return h
+          opb,kernel,out=sys.argv[1:]
+          pathlib.Path(out).write_text(json.dumps({
+            "schema":"janus.trump.stage6b3.cakepb_secondary_receipt.v1",
+            "OPB_sha256":sha(opb),
+            "kernel_proof_sha256":sha(kernel),
+            "elaboration_succeeded":"YES",
+            "cakepb_verified":"NO",
+            "infrastructure_error":"YES",
+            "failure":"CAKEPB_COMPATIBLE_BINARY_NOT_AVAILABLE"
+          },indent=2,sort_keys=True)+"\n",encoding="utf-8")
+          PY
+                  fi
+                fi
+              fi
+            fi
+          done
+
+      - name: Assemble frozen Stage6B.3 scientific result
+        shell: bash
+        run: |
+          set -euo pipefail
+          python research/tools/trump_stage6b3_result_assembler.py \
+            stage6b3/stage6b2/frozen_result.json \
+            stage6b3/targets \
+            stage6b3/TRUMP_STAGE6B3_EXACT_DELETION_QHORN_BOUNDARY_PROOF_GATE_RESULT.json \
+            --prereg-commit 04f18f88b03f1f18d181387e74dc9cbf25533428 \
+            --implementation-head "$GITHUB_SHA" \
+            | tee stage6b3/result_assembler.stdout
+
+      - name: Emit immutable B.3 execution receipt
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import hashlib,json,os,pathlib
+          def sha(p):
+              h=hashlib.sha256()
+              with open(p,"rb") as f:
+                  for b in iter(lambda:f.read(1<<20),b""): h.update(b)
+              return h.hexdigest()
+          result="stage6b3/TRUMP_STAGE6B3_EXACT_DELETION_QHORN_BOUNDARY_PROOF_GATE_RESULT.json"
+          paths=[
+            "research/tools/trump_stage6b3_canonical_cnf_audit.py",
+            "research/tools/trump_stage6b3_canonical_opb_generator.py",
+            "research/tools/trump_stage6b3_independent_opb_auditor.py",
+            "research/tools/trump_stage6b3_roundingsat_runner.py",
+            "research/tools/trump_stage6b3_sat_model_qhorn_verifier.py",
+            "research/tools/trump_stage6b3_veripb_harness.py",
+            "research/tools/trump_stage6b3_cakepb_secondary_harness.py",
+            "research/tools/trump_stage6b3_result_assembler.py"
+          ]
+          receipt={
+            "prereg_commit":"04f18f88b03f1f18d181387e74dc9cbf25533428",
+            "implementation_head":os.environ["GITHUB_SHA"],
+            "result_sha256":sha(result),
+            "implementation_sha256":{p:sha(p) for p in paths},
+            "source_artifact_id":9992845123,
+            "stage6b2_main_artifact_id":10585029459,
+            "stage6b2_materialization_artifact_id":10584574967,
+            "frozen_runtime_limits_seconds":{"roundingsat":300,"veripb":600,"cakepb":600},
+            "new_janus_controller_authorized":False,
+            "stage6C_stage6D_executed":False
+          }
+          pathlib.Path("stage6b3/execution_receipt.json").write_text(
+              json.dumps(receipt,indent=2,sort_keys=True)+"\n",encoding="utf-8"
+          )
+          PY
+
+      - name: Upload Stage6B.3 proof-carrying artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: trump-stage6b3-exact-deletion-qhorn-boundary-proof
+          path: |
+            stage6b3/TRUMP_STAGE6B3_EXACT_DELETION_QHORN_BOUNDARY_PROOF_GATE_RESULT.json
+            stage6b3/execution_receipt.json
+            stage6b3/source_binding_receipt.json
+            stage6b3/toolchain_build_receipt.json
+            stage6b3/toolchain_logs/
+            stage6b3/canonical/
+            stage6b3/canonical_audit.stdout
+            stage6b3/targets/
+            stage6b3/source/artifact_metadata.json
+            stage6b3/source/r50g25x.zip
+            stage6b3/source/unpacked/JANUS_TRUMP_R50G25X_ADVERSARIAL_STALL_SEARCH.json
+            stage6b3/stage6b2/main_artifact_metadata.json
+            stage6b3/stage6b2/main.zip
+            stage6b3/stage6b2/materialization_artifact_metadata.json
+            stage6b3/stage6b2/materialization.zip
+            stage6b3/stage6b2/frozen_result.json
+            stage6b3/result_assembler.stdout
+          if-no-files-found: warn
+          retention-days: 30
