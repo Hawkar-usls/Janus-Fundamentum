@@ -221,3 +221,62 @@ jobs:
           path: stage4/dnf_execution/
           if-no-files-found: error
           retention-days: 30
+
+
+  ba25-external-td-replay:
+    needs: incidence-treewidth-public-stack
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: trump-stage4-external-incidence-treewidth
+          path: stage4/td_input
+
+      - name: Validate all external PACE decompositions inside frozen BA25 embedding
+        shell: bash
+        run: |
+          set -euo pipefail
+          python research/tools/trump_r50g25x_bind_external_td_to_ba25.py \
+            stage4/td_input/JANUS_TRUMP_R50G25X_ADVERSARIAL_STALL_SEARCH.json \
+            stage4/td_input/graphs/manifest.json \
+            stage4/td_input/td \
+            stage4/BA25_EXTERNAL_TD_BINDING.json
+
+      - name: Attempt finite BA25 solve on historical tau-12 residual
+        shell: bash
+        run: |
+          set -euo pipefail
+          set +e
+          timeout --signal=TERM --kill-after=5s 120s \
+            python research/tools/trump_r50g25x_bind_external_td_to_ba25.py \
+              stage4/td_input/JANUS_TRUMP_R50G25X_ADVERSARIAL_STALL_SEARCH.json \
+              stage4/td_input/graphs/manifest.json \
+              stage4/td_input/td \
+              stage4/BA25_INDEX0_SOLVE_ATTEMPT.json \
+              --solve-indices 0 \
+              > stage4/ba25_index0.log 2>&1
+          rc=$?
+          set -e
+          echo "$rc" > stage4/ba25_index0.rc
+          if [ "$rc" -eq 0 ]; then
+            echo PASS > stage4/ba25_index0.status
+          elif [ "$rc" -eq 124 ]; then
+            echo RESOURCE_LIMIT_TIMEOUT > stage4/ba25_index0.status
+          else
+            echo EXECUTION_ERROR > stage4/ba25_index0.status
+          fi
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: trump-stage4-ba25-external-td-replay
+          path: |
+            stage4/BA25_EXTERNAL_TD_BINDING.json
+            stage4/BA25_INDEX0_SOLVE_ATTEMPT.json
+            stage4/ba25_index0.log
+            stage4/ba25_index0.rc
+            stage4/ba25_index0.status
+          if-no-files-found: warn
+          retention-days: 30
