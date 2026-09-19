@@ -70,6 +70,8 @@ def simplify(clauses, term):
 def in_base(clauses, base):
     if base == "HORN":
         return all(sum(l > 0 for l in c) <= 1 for c in clauses)
+    if base == "DUAL_HORN":
+        return all(sum(l < 0 for l in c) <= 1 for c in clauses)
     if base == "KROM":
         return all(len(c) <= 2 for c in clauses)
     raise ValueError(base)
