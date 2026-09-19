@@ -51,8 +51,12 @@ def has_result(log_path: Path):
 
 def run_one(python: str, runner: Path, verifier: Path, cnf: Path, base: str,
             temp_dir: Path, log: Path, verify_out: Path, timeout_s: float):
-    cmd=[python,str(runner),str(cnf),"-e","1","-c","-t",str(temp_dir),*BASES[base]]
+    # runner.py executes with cwd=authors/src. External inputs/work dirs must
+    # therefore be absolute; otherwise the authors' process cannot see them.
+    cnf = cnf.resolve()
     temp_dir.mkdir(parents=True,exist_ok=True)
+    temp_dir = temp_dir.resolve()
+    cmd=[python,str(runner),str(cnf),"-e","1","-c","-t",str(temp_dir),*BASES[base]]
     started=time.monotonic()
     try:
         p=subprocess.run(
