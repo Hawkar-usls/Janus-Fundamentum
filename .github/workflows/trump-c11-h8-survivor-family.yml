@@ -1,0 +1,179 @@
+name: TRUMP C11 H8 Survivor Family Gate
+
+on:
+  pull_request:
+    branches:
+      - research/general-sat-universal-coverage-map-2026-09-19
+    paths:
+      - 'research/TRUMP_C11_H8_SURVIVOR_FAMILY_GATE_RUN_TRIGGER_2026-09-20_v1.0.json'
+      - 'research/TRUMP_C11_H8_SURVIVOR_FAMILY_GATE_EXECUTION_FREEZE_2026-09-20_v1.0.json'
+      - 'research/tools/c11_h8_survivor_family/**'
+      - '.github/workflows/trump-c11-h8-survivor-family.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  family-gate:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Bind frozen authority
+        shell: bash
+        run: |
+          set -euo pipefail
+          for sha in \
+            66273e995d9ad4293dec7e9d58feaa4329923e73 \
+            17b18d522bbddece5fa748363ec573df488a4abf \
+            e72d8496ffc4869855b504df8a3d3f306a6f49bc \
+            d7a548d7bd46df594b81b6b74cfeeb861c4c8217 \
+            4dd1386135e6569f0f2d0d67fffb7f6928ddd10b \
+            8d7a5e719f505356907dc19b46608e375fa0a1b5
+          do
+            git merge-base --is-ancestor "$sha" HEAD
+          done
+          test "$(git rev-parse 66273e995d9ad4293dec7e9d58feaa4329923e73:research/TRUMP_C11_H8_SURVIVOR_FAMILY_GATE_PREREG_2026-09-20_v1.0.json)" = "c7ff971954dcecf44bafac517836220c48611931"
+          python -m py_compile \
+            research/tools/c11_h8_survivor_family/family_gate_checker.py \
+            research/tools/c11_h8_survivor_family/independent_verifier.py
+
+      - name: Run frozen F1-F2-F3 precedence
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p familygate
+          python research/tools/c11_h8_survivor_family/family_gate_checker.py \
+            --prereg research/TRUMP_C11_H8_SURVIVOR_FAMILY_GATE_PREREG_2026-09-20_v1.0.json \
+            --zq research/TRUMP_C11_H8_Z_FIBER_EXACT_QUOTIENT_RESULT_2026-09-20_v1.0.json \
+            --h8 research/TRUMP_C11_P7_FULL_H8_KERNEL_RIGIDITY_GATE_RESULT_2026-09-20_v1.0.json \
+            --out familygate/run \
+            | tee familygate/candidate.stdout
+
+      - name: Independent replay
+        shell: bash
+        run: |
+          set -euo pipefail
+          python research/tools/c11_h8_survivor_family/independent_verifier.py \
+            --candidate familygate/run/candidate_result.json \
+            --zq research/TRUMP_C11_H8_Z_FIBER_EXACT_QUOTIENT_RESULT_2026-09-20_v1.0.json \
+            --out familygate/independent.json \
+            | tee familygate/independent.stdout
+
+      - name: Assemble scientific manifest
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import hashlib,json,pathlib,subprocess
+          root=pathlib.Path("familygate")
+          cand=json.loads((root/"run/candidate_result.json").read_text())
+          indep=json.loads((root/"independent.json").read_text())
+          def sha(p): return hashlib.sha256(pathlib.Path(p).read_bytes()).hexdigest()
+
+          assert cand["primary_outcome"]=="F3_POLYNOMIAL_EXACT_QUOTIENT"
+          assert cand["precedence_receipt"]["F1"]["status"]=="NOT_ESTABLISHED_BY_FROZEN_AUTHORITY"
+          assert cand["precedence_receipt"]["F2"]["status"]=="NOT_ESTABLISHED_BY_FROZEN_AUTHORITY"
+          assert cand["precedence_receipt"]["F1"]["negative_claim_made"] is False
+          assert cand["precedence_receipt"]["F2"]["negative_claim_made"] is False
+          assert cand["precedence_receipt"]["F3"]["status"]=="VERIFIED"
+          assert cand["precedence_receipt"]["F4"]=="NOT_REACHED"
+          assert cand["scientific_ceiling"]["PAIR_MULTIPLICITY"]=="REMAINS_OPEN"
+          assert cand["repair_attempted"] is False
+          assert cand["successor_autoactivated"] is False
+          assert cand["stop"] is True
+          assert indep["verdict"]=="INDEPENDENT_F3_Z_FIBER_QUOTIENT_BINDING_VERIFIED"
+
+          manifest={
+            "schema":"janus.trump.c11_h8_survivor_family.scientific_manifest.v1",
+            "workflow_head":subprocess.check_output(["git","rev-parse","HEAD"],text=True).strip(),
+            "frozen_preregistration":{
+              "commit":"66273e995d9ad4293dec7e9d58feaa4329923e73",
+              "content_blob":"c7ff971954dcecf44bafac517836220c48611931"
+            },
+            "supporting_theorems":{
+              "H8_rigidity":{
+                "commit":"17b18d522bbddece5fa748363ec573df488a4abf",
+                "blob":"92bf4421a6dc260daae144ee98b6efcbc1d8e672"
+              },
+              "z_fiber_exact_quotient":{
+                "commit":"e72d8496ffc4869855b504df8a3d3f306a6f49bc",
+                "blob":"d2e596d9d15717463aef13c26a7f50d2c510e5ec"
+              }
+            },
+            "execution_freeze_commit":"d7a548d7bd46df594b81b6b74cfeeb861c4c8217",
+            "implementation_commits":{
+              "candidate_checker":"4dd1386135e6569f0f2d0d67fffb7f6928ddd10b",
+              "independent_verifier":"8d7a5e719f505356907dc19b46608e375fa0a1b5"
+            },
+            "precedence_result":{
+              "F1":"NOT_ESTABLISHED_BY_FROZEN_AUTHORITY",
+              "F2":"NOT_ESTABLISHED_BY_FROZEN_AUTHORITY",
+              "F3":"VERIFIED",
+              "primary":"F3_POLYNOMIAL_EXACT_QUOTIENT",
+              "F4":"NOT_REACHED"
+            },
+            "F3_binding":cand["precedence_receipt"]["F3"],
+            "information_localization":cand["information_localization"],
+            "001_firewall":cand["001_firewall"],
+            "independent_replay":{
+              "verdict":indep["verdict"],
+              "receipt_sha256":sha(root/"independent.json")
+            },
+            "candidate_receipt_sha256":sha(root/"run/candidate_result.json"),
+            "source_digests":{
+              "candidate_checker_sha256":sha("research/tools/c11_h8_survivor_family/family_gate_checker.py"),
+              "independent_verifier_sha256":sha("research/tools/c11_h8_survivor_family/independent_verifier.py"),
+              "execution_freeze_sha256":sha("research/TRUMP_C11_H8_SURVIVOR_FAMILY_GATE_EXECUTION_FREEZE_2026-09-20_v1.0.json")
+            },
+            "scientific_ceiling":cand["scientific_ceiling"],
+            "repair_attempted":False,
+            "successor_autoactivated":False,
+            "stop":True
+          }
+          (root/"scientific_manifest.json").write_text(json.dumps(manifest,indent=2,sort_keys=True)+"\n")
+          print(json.dumps({
+            "primary":"F3_POLYNOMIAL_EXACT_QUOTIENT",
+            "F1":"NOT_ESTABLISHED",
+            "F2":"NOT_ESTABLISHED",
+            "pair_multiplicity":"REMAINS_OPEN",
+            "independent":indep["verdict"]
+          },sort_keys=True))
+          PY
+
+      - name: Assert ceiling and stop
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json
+          m=json.load(open("familygate/scientific_manifest.json"))
+          assert m["precedence_result"]["primary"]=="F3_POLYNOMIAL_EXACT_QUOTIENT"
+          assert m["scientific_ceiling"]["PAIR_MULTIPLICITY"]=="REMAINS_OPEN"
+          assert m["scientific_ceiling"]["REPAIR"]=="NOT_STARTED"
+          assert m["scientific_ceiling"]["NEW_DESCRIPTOR"]=="NOT_DEFINED"
+          assert m["scientific_ceiling"]["LEMMA11_P7_LIFT"]=="OPEN"
+          assert m["scientific_ceiling"]["P7_FREE_4_COLOR_IN_P"]=="NOT_PROVED"
+          assert m["scientific_ceiling"]["HARDNESS_LOCALIZED"]=="NOT_CLAIMED"
+          assert m["scientific_ceiling"]["P_VS_NP"]=="OPEN"
+          assert m["repair_attempted"] is False
+          assert m["successor_autoactivated"] is False
+          assert m["stop"] is True
+          print("STOP_CEILING_PASS")
+          PY
+
+      - name: Upload immutable artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: trump-c11-h8-survivor-family-gate-v1
+          path: familygate/
+          if-no-files-found: error
+          retention-days: 90
