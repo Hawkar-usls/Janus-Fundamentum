@@ -146,7 +146,7 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("cnf")
     ap.add_argument("runner_log")
-    ap.add_argument("base", choices=["HORN","KROM"])
+    ap.add_argument("base", choices=["HORN","DUAL_HORN","KROM"])
     ap.add_argument("output")
     ns = ap.parse_args()
 
