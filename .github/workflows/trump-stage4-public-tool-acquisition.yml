@@ -163,3 +163,61 @@ jobs:
             stage4/source/unpacked/JANUS_TRUMP_R50G25X_ADVERSARIAL_STALL_SEARCH.json
           if-no-files-found: error
           retention-days: 30
+
+
+  backdoor-dnf-execution:
+    needs:
+      - backdoor-dnf-acquisition
+      - incidence-treewidth-public-stack
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Download authors and frozen-source artifacts from this run
+        uses: actions/download-artifact@v4
+        with:
+          pattern: trump-stage4-*
+          path: stage4/incoming
+
+      - name: Locate inputs and install authors' declared dependencies
+        shell: bash
+        run: |
+          set -euo pipefail
+          RUNNER="$(find stage4/incoming -type f -name runner.py | head -1)"
+          SOURCE="$(find stage4/incoming -type f -name JANUS_TRUMP_R50G25X_ADVERSARIAL_STALL_SEARCH.json | head -1)"
+          test -n "$RUNNER"
+          test -n "$SOURCE"
+          SRC="$(dirname "$RUNNER")"
+          chmod +x "$SRC/bin/muser-2"
+          echo "AUTHORS_SRC=$SRC" >> "$GITHUB_ENV"
+          echo "FROZEN_SOURCE=$SOURCE" >> "$GITHUB_ENV"
+          python -m pip install -r "$SRC/requirements.txt"
+          python - <<'PY'
+          from pysat.solvers import Cadical153
+          with Cadical153() as s:
+              assert s.solve()
+          print("AUTHORS_DECLARED_PYSAT_STACK_OK")
+          PY
+
+      - name: Execute authors' detector and independent JANUS replay
+        shell: bash
+        run: |
+          set -euo pipefail
+          python research/tools/trump_r50g25x_run_authors_backdoor_dnf.py \
+            "$FROZEN_SOURCE" \
+            "$AUTHORS_SRC" \
+            research/tools/trump_verify_authors_backdoor_dnf.py \
+            stage4/dnf_execution \
+            --timeout 20
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: trump-stage4-backdoor-dnf-execution
+          path: stage4/dnf_execution/
+          if-no-files-found: error
+          retention-days: 30
