@@ -1,0 +1,94 @@
+{
+  "artifact_id": "JANUS-TRUMP-PUBLIC-FUNNEL-THEORY-DELTA-2026-09-19-v1.0",
+  "date": "2026-09-19",
+  "authority": "READ_ONLY_PUBLIC_THEORY_DELTA__NO_NEW_JANUS_MECHANISM__NO_SAT_IN_P_PROMOTION",
+  "branch": "research/general-sat-universal-coverage-map-2026-09-19",
+  "parent_commit": "64ec113e354403d00244e40674a9e2e4f50365d2",
+  "purpose": "Refine the public parameter funnel after verification of the exact q-Horn deletion dependence and add backdoor-DNF structure before any new JANUS mechanism is designed.",
+  "q_horn_deletion_update": {
+    "old_map_status": "FPT known; polynomial promotion rule intentionally left unresolved pending explicit parameter dependence.",
+    "verified_later_exact_result": {
+      "result": "Deletion q-Horn Backdoor Set Detection admits an exact FPT algorithm via 3-Skew-Symmetric Multicut.",
+      "detection_runtime": "O(12^k * k^5 * ell)",
+      "sat_runtime": "O(12^k * k^5 * ell)",
+      "parameter": "k = size of a smallest deletion q-Horn backdoor set",
+      "reference": "M. S. Ramanujan and Saket Saurabh, Linear Time Parameterized Algorithms via Skew-Symmetric Multicuts, SODA 2014, DOI 10.1137/1.9781611973402.126"
+    },
+    "polynomial_promotion": {
+      "k_O_log_n": "YES",
+      "derivation": "For k <= c log n, 12^k <= n^(c log 12), and k^5 contributes only a polylogarithmic factor.",
+      "note": "This supersedes the older STACS 2013 approximation-based SAT bound 2^O(k^2)*ell*n for purposes of the universal coverage map."
+    },
+    "important_distinction": "Strong/weak q-Horn backdoor detection is W[2]-hard in the STACS 2013 result; the tractable exact route here is deletion distance to q-Horn."
+  },
+  "backdoor_depth_update": {
+    "base_classes": ["Horn", "dual-Horn", "Krom"],
+    "verified_result": "Backdoor-depth detection admits FPT approximation for these Schaefer classes, and CNF-SAT is linear-time on bounded-depth formulas.",
+    "strictness": "Bounded ordinary backdoor size implies bounded backdoor depth, but there are formulas of constant backdoor depth and arbitrarily large ordinary backdoor size.",
+    "reference": "Jan Dreier, Sebastian Ordyniak, Stefan Szeider, SAT backdoors: Depth beats size, JCSS 142 (2024), DOI 10.1016/j.jcss.2024.103520",
+    "coverage_firewall": "Constant bounded depth is an established polynomial lane. Any growing-depth-to-polynomial promotion must use the explicit f(k) dependence of the imported detector/solver rather than assuming O(log n) automatically suffices."
+  },
+  "new_public_door": {
+    "name": "BACKDOOR_DNF",
+    "class": "PARAM_LANE__PUBLIC_THEORY__IMPORT_CANDIDATE",
+    "definition_summary": "A tautological DNF over backdoor variables where each term, viewed as a partial assignment, moves the CNF into a tractable base class.",
+    "verified_results": [
+      "Detection is fixed-parameter tractable when parameterized by the number of DNF terms for Horn, AntiHorn/dual-Horn, and 2CNF under the theorem-supported combinations.",
+      "The algorithm also supports heterogeneous Horn+2CNF and AntiHorn+2CNF cases described by the paper.",
+      "Backdoor DNFs can be strictly more compact than ordinary backdoor sets and backdoor trees."
+    ],
+    "references": [
+      "Sebastian Ordyniak, Andre Schidler, Stefan Szeider, Backdoor DNFs, JCSS 144 (2024), DOI 10.1016/j.jcss.2024.103547",
+      "Earlier IJCAI 2021 version, DOI 10.24963/ijcai.2021/194"
+    ],
+    "why_it_matters_for_R50G25X": "Large Horn/Krom deletion backdoor size does not rule out a small DNF of partial assignments routing different branches into tractable classes.",
+    "firewall": "Do not assume a logarithmic number of DNF terms is polynomial coverage until the exact imported f(t) detector/solver dependence is frozen. Constant t is sufficient for polynomial coverage."
+  },
+  "revised_killer_pass_order": [
+    {
+      "order": 1,
+      "door": "LINEAR_AUTARKY_DECOMPOSITION",
+      "reason": "Polynomial direct decomposition; cheapest new exact screen and may discharge clauses before parameter tests."
+    },
+    {
+      "order": 2,
+      "door": "CC_BALANCED_RECOGNITION",
+      "reason": "Polynomial direct P-lane; run before any FPT search."
+    },
+    {
+      "order": 3,
+      "door": "BACKDOOR_DEPTH_TO_HORN_DHORN_KROM",
+      "reason": "Ordinary backdoor size can be arbitrarily large at constant depth; therefore current large deletion sets do not screen this route."
+    },
+    {
+      "order": 4,
+      "door": "DELETION_DISTANCE_TO_Q_HORN",
+      "reason": "Exact FPT detector exists with O(12^k*k^5*ell); k=O(log n) is now a formally valid polynomial promotion condition."
+    },
+    {
+      "order": 5,
+      "door": "BACKDOOR_DNF_HORN_2CNF_HETEROGENEOUS",
+      "reason": "Can be more compact than sets/trees and may route different partial assignments to different public P classes."
+    },
+    {
+      "order": 6,
+      "door": "CERTIFIED_INCIDENCE_TREEWIDTH_TO_BA25",
+      "reason": "Strong orthogonal structural route, but decomposition search/DP is heavier than direct polynomial screens."
+    }
+  ],
+  "intersection_rule": "Only frozen residuals surviving all applicable public direct and parameterized doors become candidates for a new Universal Residual Funnel mechanism.",
+  "anti_overclaim": [
+    "FPT does not imply polynomial for a growing parameter without explicit f(k).",
+    "A finite residual surviving a bounded parameter threshold is not an asymptotic lower bound.",
+    "Failure of one backdoor representation does not imply failure of depth, DNF, heterogeneous, q-Horn, or width routes.",
+    "No finite rescreen proves hardness or P!=NP.",
+    "No public-lane success on a finite corpus proves universal SAT in P."
+  ],
+  "claim_ceiling": {
+    "GENERAL_SAT_IN_P": "NOT_PROVED",
+    "P_EQ_NP": "NOT_PROVED",
+    "P_VS_NP": "OPEN",
+    "R50G25X_FUNNEL_STATUS": "PUBLIC_DOORS_STILL_PENDING",
+    "NEW_JANUS_MECHANISM_AUTHORIZED": false
+  }
+}

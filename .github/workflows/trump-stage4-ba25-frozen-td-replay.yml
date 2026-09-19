@@ -1,0 +1,94 @@
+name: TRUMP Stage4 BA25 Frozen External-TD Replay
+
+on:
+  push:
+    branches:
+      - research/general-sat-universal-coverage-map-2026-09-19
+    paths:
+      - ".github/workflows/trump-stage4-ba25-frozen-td-replay.yml"
+      - "research/tools/trump_r50g25x_bind_external_td_to_ba25.py"
+      - "research/janus_trump_r50g25ba25.py"
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  frozen-ba25-td-replay:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Fetch frozen externally validated TD artifact
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p stage4/td_input
+          curl -fL \
+            -H "Authorization: Bearer $GH_TOKEN" \
+            -H "Accept: application/vnd.github+json" \
+            "https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/artifacts/10573815014/zip" \
+            -o stage4/td_transport.zip
+          echo "e091709f05df886c4b499192d1b2e0c5d84f001d04e4d94e8a3adca762461700  stage4/td_transport.zip" \
+            | sha256sum -c -
+          unzip -q stage4/td_transport.zip -d stage4/td_input
+
+      - name: Verify frozen BA25 implementation blob
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git hash-object research/janus_trump_r50g25ba25.py)" = "cad9c5f837d9d3c4e1c4bd4abef40976f2bb36ff"
+          echo FROZEN_BA25_BLOB_PASS
+
+      - name: Bind all 15 external TD certificates into frozen BA25
+        shell: bash
+        run: |
+          set -euo pipefail
+          python research/tools/trump_r50g25x_bind_external_td_to_ba25.py \
+            stage4/td_input/source/unpacked/JANUS_TRUMP_R50G25X_ADVERSARIAL_STALL_SEARCH.json \
+            stage4/td_input/graphs/manifest.json \
+            stage4/td_input/td \
+            stage4/BA25_EXTERNAL_TD_BINDING.json
+
+      - name: Attempt actual BA25 solve on historical tau-12 residual
+        shell: bash
+        run: |
+          set -euo pipefail
+          set +e
+          timeout --signal=TERM --kill-after=5s 120s \
+            python research/tools/trump_r50g25x_bind_external_td_to_ba25.py \
+              stage4/td_input/source/unpacked/JANUS_TRUMP_R50G25X_ADVERSARIAL_STALL_SEARCH.json \
+              stage4/td_input/graphs/manifest.json \
+              stage4/td_input/td \
+              stage4/BA25_INDEX0_SOLVE_ATTEMPT.json \
+              --solve-indices 0 \
+              > stage4/ba25_index0.log 2>&1
+          rc=$?
+          set -e
+          echo "$rc" > stage4/ba25_index0.rc
+          if [ "$rc" -eq 0 ]; then
+            echo PASS > stage4/ba25_index0.status
+          elif [ "$rc" -eq 124 ]; then
+            echo RESOURCE_LIMIT_TIMEOUT > stage4/ba25_index0.status
+          else
+            echo EXECUTION_ERROR > stage4/ba25_index0.status
+          fi
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: trump-stage4-ba25-frozen-external-td-replay
+          path: |
+            stage4/BA25_EXTERNAL_TD_BINDING.json
+            stage4/BA25_INDEX0_SOLVE_ATTEMPT.json
+            stage4/ba25_index0.log
+            stage4/ba25_index0.rc
+            stage4/ba25_index0.status
+          if-no-files-found: warn
+          retention-days: 30

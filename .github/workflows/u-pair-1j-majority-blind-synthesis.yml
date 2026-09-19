@@ -1,0 +1,219 @@
+name: U-PAIR-1J implicit majority blind synthesis series
+
+on:
+  push:
+    branches:
+      - research/U-PAIR-1J-majority-blind-synthesis-2026-09-18
+    paths:
+      - .github/workflows/u-pair-1j-majority-blind-synthesis.yml
+
+permissions:
+  contents: write
+
+concurrency:
+  group: u-pair-1j-majority-blind-synthesis
+  cancel-in-progress: false
+
+jobs:
+  blind:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      BRANCH: research/U-PAIR-1J-majority-blind-synthesis-2026-09-18
+      INPUT_DIR: research/generated/u_pair_1j_majority_blind_inputs
+      OUT_DIR: /tmp/u_pair_1j_blind
+      RESULT: research/U_PAIR_1J_IMPLICIT_MAJORITY_BLIND_SYNTHESIS_RESULT_2026-09-18_v1.0.json
+
+    steps:
+      - name: Checkout exact blind execution head
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Verify frozen blind authorities
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import hashlib,json
+          from pathlib import Path
+          expected={
+            "research/U_PAIR_1J_IMPLICIT_MAJORITY_BLIND_SYNTHESIS_PREREGISTRATION_2026-09-18.json":"49272b132238fc05a4afc11928b094a358424095",
+            "research/U_PAIR_1J_IMPLICIT_MAJORITY_BLIND_INPUT_FREEZE_AUTHORITY_2026-09-18_v1.0.json":"359d8ddb4d8579711715a216405cdc0220ca030b",
+            "research/tools/u_pair_1j_majority_blind/constructor.py":"68efb10201041257e75caf03bb038163959ec540",
+            "research/tools/u_pair_1j_majority_blind/independent_verify.py":"e4d7c61f2c3fbdc9dd0d02fab160e904f28d00e4",
+            "research/U_PAIR_1J_IMPLICIT_MAJORITY_BLIND_SYNTHESIS_IMPLEMENTATION_REVIEW_2026-09-18_v1.0.json":"17ec614f7de9f500c24e5a6c819f197a48c535dd",
+          }
+          def blob(path):
+              b=Path(path).read_bytes()
+              return hashlib.sha1(f"blob {len(b)}\0".encode()+b).hexdigest()
+          bad={p:(h,blob(p)) for p,h in expected.items() if blob(p)!=h}
+          if bad: raise SystemExit(f"BLIND_SYNTHESIS_AUTHORITY_BIND_FAILURE:{bad}")
+          auth=json.load(open("research/U_PAIR_1J_IMPLICIT_MAJORITY_BLIND_INPUT_FREEZE_AUTHORITY_2026-09-18_v1.0.json"))
+          for row in auth["input_receipts"]:
+              assert blob(row["path"])==row["git_blob"]
+          assert auth["verdict"]=="PASS_BLIND_INPUT_FREEZE"
+          print("BLIND_SYNTHESIS_AUTHORITIES_OK")
+          PY
+
+      - name: Audit constructor isolation
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          from pathlib import Path
+          s=Path("research/tools/u_pair_1j_majority_blind/constructor.py").read_text()
+          forbidden=[
+            "U-PAIR-1J-majority-reference",
+            "majority_reference",
+            "threshold",
+            "github.com",
+            "subprocess",
+            "requests",
+            "urllib",
+          ]
+          bad=[x for x in forbidden if x.lower() in s.lower()]
+          if bad: raise SystemExit(f"HIDDEN_REFERENCE_OR_SPECIAL_CASE_AUDIT_FAIL:{bad}")
+          print("CONSTRUCTOR_ISOLATION_AUDIT_PASS")
+          PY
+
+      - name: Execute all blind synthesis instances without optional stopping
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf "$OUT_DIR"
+          mkdir -p "$OUT_DIR"
+          python - <<'PY'
+          import json,os,subprocess,time
+          from pathlib import Path
+          ns=[5,9,17,33,65]
+          rows=[]
+          for n in ns:
+              inp=f"research/generated/u_pair_1j_majority_blind_inputs/hostile_n{n}.json"
+              cand=f"/tmp/u_pair_1j_blind/candidate_n{n}.json"
+              ver=f"/tmp/u_pair_1j_blind/verify_n{n}.json"
+              c0=time.perf_counter_ns()
+              try:
+                  cp=subprocess.run(
+                    ["python","research/tools/u_pair_1j_majority_blind/constructor.py",inp,cand],
+                    text=True,capture_output=True,timeout=120
+                  )
+                  cstatus=("PASS" if cp.returncode==0 else "FAIL")
+              except subprocess.TimeoutExpired:
+                  cp=None;cstatus="TIMEOUT"
+              cwall=time.perf_counter_ns()-c0
+              vstatus="NOT_RUN";vwall=None
+              if cstatus=="PASS":
+                  v0=time.perf_counter_ns()
+                  try:
+                      vp=subprocess.run(
+                        ["python","research/tools/u_pair_1j_majority_blind/independent_verify.py",inp,cand,ver],
+                        text=True,capture_output=True,timeout=120
+                      )
+                      vstatus=("PASS" if vp.returncode==0 else "FAIL")
+                  except subprocess.TimeoutExpired:
+                      vp=None;vstatus="TIMEOUT"
+                  vwall=time.perf_counter_ns()-v0
+              row={"n":n,"constructor_status":cstatus,"constructor_wall_ns":cwall,"verifier_status":vstatus,"verifier_wall_ns":vwall}
+              if Path(cand).exists():
+                  c=json.load(open(cand)); row["candidate_metrics"]=c["metrics"]; row["candidate_derivation"]=c["derivation"]
+              if Path(ver).exists():
+                  v=json.load(open(ver)); row["verifier_metrics"]=v
+              rows.append(row)
+
+          if any(r["constructor_status"]=="TIMEOUT" or r["verifier_status"]=="TIMEOUT" for r in rows):
+              status="UNKNOWN_RESOURCE_LIMIT"
+          elif any(r["constructor_status"]!="PASS" for r in rows):
+              status="BLIND_CONSTRUCTOR_FAILURE_PENDING_RECONCILIATION"
+          elif any(r["verifier_status"]!="PASS" for r in rows):
+              status="FAIL_INDEPENDENT_PROOF_VERIFICATION"
+          else:
+              status="PASS_BLIND_SERIES"
+
+          result={
+            "artifact_id":"JANUS-U-PAIR-1J-IMPLICIT-MAJORITY-BLIND-SYNTHESIS-RESULT-2026-09-18-v1.0",
+            "date":"2026-09-18",
+            "execution_status":status,
+            "series":rows,
+            "no_optional_stopping":{"all_five_attempted":len(rows)==5,"n_values":[r["n"] for r in rows]},
+            "reference_visibility":{
+              "reference_branch_read":False,
+              "reference_DAG_read":False,
+              "reference_size_metrics_read":False
+            },
+            "resource_policy":{
+              "per_instance_timeout_seconds":120,
+              "total_workflow_timeout_minutes":10,
+              "retry_with_more_resources":False
+            },
+            "scientific_firewall":{
+              "finite_empirical_series_only":True,
+              "polynomial_synthesis_proved":False,
+              "GENERAL_SAT_IN_P":"NOT_PROVED",
+              "P_EQ_NP":"NOT_PROVED",
+              "P_VS_NP":"OPEN"
+            }
+          }
+          Path(os.environ["RESULT"]).write_text(json.dumps(result,indent=2,sort_keys=True)+"\n")
+          print(json.dumps({"execution_status":status,"series":[{"n":r["n"],"constructor":r["constructor_status"],"verifier":r["verifier_status"]} for r in rows]},sort_keys=True))
+          PY
+
+      - name: Upload frozen blind receipts
+        uses: actions/upload-artifact@v4
+        with:
+          name: u-pair-1j-majority-blind-synthesis-${{ github.run_id }}
+          path: |
+            /tmp/u_pair_1j_blind/
+            research/U_PAIR_1J_IMPLICIT_MAJORITY_BLIND_SYNTHESIS_RESULT_2026-09-18_v1.0.json
+          if-no-files-found: error
+          retention-days: 90
+
+      - name: Freeze blind result before reference reconciliation
+        shell: bash
+        run: |
+          set -euo pipefail
+          cp /tmp/u_pair_1j_blind/candidate_n5.json research/U_PAIR_1J_MAJORITY_BLIND_CANDIDATE_N5_2026-09-18_v1.0.json || true
+          cp /tmp/u_pair_1j_blind/candidate_n9.json research/U_PAIR_1J_MAJORITY_BLIND_CANDIDATE_N9_2026-09-18_v1.0.json || true
+          cp /tmp/u_pair_1j_blind/candidate_n17.json research/U_PAIR_1J_MAJORITY_BLIND_CANDIDATE_N17_2026-09-18_v1.0.json || true
+          cp /tmp/u_pair_1j_blind/candidate_n33.json research/U_PAIR_1J_MAJORITY_BLIND_CANDIDATE_N33_2026-09-18_v1.0.json || true
+          cp /tmp/u_pair_1j_blind/candidate_n65.json research/U_PAIR_1J_MAJORITY_BLIND_CANDIDATE_N65_2026-09-18_v1.0.json || true
+          cp /tmp/u_pair_1j_blind/verify_n5.json research/U_PAIR_1J_MAJORITY_BLIND_VERIFY_N5_2026-09-18_v1.0.json || true
+          cp /tmp/u_pair_1j_blind/verify_n9.json research/U_PAIR_1J_MAJORITY_BLIND_VERIFY_N9_2026-09-18_v1.0.json || true
+          cp /tmp/u_pair_1j_blind/verify_n17.json research/U_PAIR_1J_MAJORITY_BLIND_VERIFY_N17_2026-09-18_v1.0.json || true
+          cp /tmp/u_pair_1j_blind/verify_n33.json research/U_PAIR_1J_MAJORITY_BLIND_VERIFY_N33_2026-09-18_v1.0.json || true
+          cp /tmp/u_pair_1j_blind/verify_n65.json research/U_PAIR_1J_MAJORITY_BLIND_VERIFY_N65_2026-09-18_v1.0.json || true
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add research/U_PAIR_1J_IMPLICIT_MAJORITY_BLIND_SYNTHESIS_RESULT_2026-09-18_v1.0.json research/U_PAIR_1J_MAJORITY_BLIND_*_2026-09-18_v1.0.json
+          git commit -m "U-PAIR-1J freeze implicit majority blind synthesis results"
+          git push origin "HEAD:$BRANCH"
+
+      - name: Enforce blind claim ceiling
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json,os
+          r=json.load(open(os.environ["RESULT"]))
+          assert r["no_optional_stopping"]["all_five_attempted"] is True
+          assert r["reference_visibility"]=={
+            "reference_branch_read":False,
+            "reference_DAG_read":False,
+            "reference_size_metrics_read":False
+          }
+          assert r["scientific_firewall"]["polynomial_synthesis_proved"] is False
+          assert r["scientific_firewall"]["P_VS_NP"]=="OPEN"
+          assert r["execution_status"] in {
+            "PASS_BLIND_SERIES",
+            "BLIND_CONSTRUCTOR_FAILURE_PENDING_RECONCILIATION",
+            "FAIL_INDEPENDENT_PROOF_VERIFICATION",
+            "UNKNOWN_RESOURCE_LIMIT"
+          }
+          print("BLIND_SERIES_CLAIM_CEILING_PASS")
+          PY
