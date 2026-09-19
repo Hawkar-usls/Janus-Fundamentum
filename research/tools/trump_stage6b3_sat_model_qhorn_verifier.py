@@ -41,8 +41,12 @@ def parse_model_text(text, expected_vars):
         toks=payload.replace(";", " ").split()
         # Binary bitstring format, exactly one token.
         if len(toks)==1 and set(toks[0])<=set("01") and len(toks[0])==len(expected_vars):
-            return {name:(bit=="1") for name,bit in zip(sorted(expected_vars,key=lambda x:int(x[1:])),toks[0])},
-                   "BINARY_V_LINE"
+            return (
+                {name:(bit=="1") for name,bit in zip(
+                    sorted(expected_vars,key=lambda x:int(x[1:])),toks[0]
+                )},
+                "BINARY_V_LINE"
+            )
 
         local={}
         ok=True
