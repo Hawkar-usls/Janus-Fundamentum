@@ -43,7 +43,11 @@ jobs:
             d2cf3b4fec0f4eb445461acc5e68753e0517e93f \
             0bd1189989e84ea34879fb22449cb2b6297beb39 \
             967eff8e0a9c554b3313acf827e0c395c7c7f13b \
-            becc5103091ffdc94da9f6cd48886bd80b87a915
+            becc5103091ffdc94da9f6cd48886bd80b87a915 \
+            3b6072b22e6a5de438606d18049baf07ceacafb7 \
+            4e6325491f1a862e7405c65dffde9d6bdd71b9d3 \
+            787f6fb4088628a06e18178deb20b948b483bdfa \
+            224a6234e3547885b9dddc0d3a1a0531877ec3d7
           do
             git merge-base --is-ancestor "$C" HEAD
           done
@@ -73,7 +77,8 @@ jobs:
             research/tools/trump_stage6b3_veripb_harness.py \
             research/tools/trump_stage6b3_cakepb_secondary_harness.py \
             research/tools/trump_stage6b3_roundingsat_runner.py \
-            research/tools/trump_stage6b3_result_assembler.py
+            research/tools/trump_stage6b3_result_assembler.py \
+            research/tools/trump_stage6b3_pb24_parser_smoke.py
 
       - name: Bind exact frozen source and closed Stage6B.2 artifacts
         env:
@@ -332,6 +337,29 @@ jobs:
           )
           PY
 
+      - name: PB24 parser smoke test — no scientific authority
+        shell: bash
+        run: |
+          set -euo pipefail
+          RS_BIN="$(cat stage6b3/tools/roundingsat.path)"
+          SMOKE_DIR="stage6b3/parser_smoke"
+          mkdir -p "$SMOKE_DIR"
+          python research/tools/trump_stage6b3_pb24_parser_smoke.py \
+            "$RS_BIN" \
+            stage6b3/targets/r50g25x_01/boundary.opb \
+            "$SMOKE_DIR" \
+            --timeout-seconds 5 \
+            | tee "$SMOKE_DIR/harness.stdout"
+
+          python - "$SMOKE_DIR/parser_smoke.receipt.json" <<'PY'
+          import json,sys
+          d=json.load(open(sys.argv[1],encoding="utf-8"))
+          assert d["scientific_authority"] is False
+          assert d["status"]=="PARSER_SMOKE_PASS"
+          assert d["parser_accepted"] is True
+          assert not d["parser_rejection_markers"]
+          PY
+
       - name: Execute frozen proof-producing boundary tests and independent verification
         shell: bash
         run: |
@@ -479,7 +507,11 @@ jobs:
           ]
           receipt={
             "prereg_commit":"04f18f88b03f1f18d181387e74dc9cbf25533428",
+            "pb24_repair_prereg_commit":"4e6325491f1a862e7405c65dffde9d6bdd71b9d3",
+            "pb24_generator_repair_commit":"787f6fb4088628a06e18178deb20b948b483bdfa",
+            "pb24_auditor_repair_commit":"224a6234e3547885b9dddc0d3a1a0531877ec3d7",
             "implementation_head":os.environ["GITHUB_SHA"],
+            "parser_smoke_receipt_sha256":sha("stage6b3/parser_smoke/parser_smoke.receipt.json"),
             "result_sha256":sha(result),
             "implementation_sha256":{p:sha(p) for p in paths},
             "source_artifact_id":9992845123,
@@ -505,6 +537,7 @@ jobs:
             stage6b3/source_binding_receipt.json
             stage6b3/toolchain_build_receipt.json
             stage6b3/toolchain_logs/
+            stage6b3/parser_smoke/
             stage6b3/canonical/
             stage6b3/canonical_audit.stdout
             stage6b3/targets/

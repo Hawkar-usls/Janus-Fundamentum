@@ -10,6 +10,14 @@ from pathlib import Path
 
 UNSAT_RE=re.compile(r"\bUNSAT(?:ISFIABLE)?\b",re.I)
 SAT_RE=re.compile(r"\bSAT(?:ISFIABLE)?\b",re.I)
+PARSER_REJECTION_PATTERNS=[
+    re.compile(r"invalid\s+opb\s+header",re.I),
+    re.compile(r"invalid\s+opb",re.I),
+    re.compile(r"opb.*parse",re.I),
+    re.compile(r"parse.*opb",re.I),
+    re.compile(r"unsupported.*opb",re.I),
+    re.compile(r"unsupported.*format",re.I),
+]
 
 
 def sha(p:Path):
@@ -53,7 +61,16 @@ def main():
     runtime=time.perf_counter()-t0
     stdoutp.write_text(out,encoding="utf-8")
     stderrp.write_text(err,encoding="utf-8")
-    status="TIMEOUT" if timed_out else classify(out+"\n"+err)
+    combined=out+"\n"+err
+    parser_markers=[p.pattern for p in PARSER_REJECTION_PATTERNS if p.search(combined)]
+    if timed_out:
+        status="TIMEOUT"
+    elif parser_markers:
+        status="PARSER_ERROR"
+    else:
+        status=classify(combined)
+        if status=="UNKNOWN" and code not in (0,None):
+            status="ERROR"
 
     proof_candidates=[
       proof_base,
@@ -82,6 +99,8 @@ def main():
       "raw_proof_bytes":proof.stat().st_size if proof else None,
       "model_source_path":str(stdoutp) if status=="SAT" else None,
       "model_source_sha256":sha(stdoutp) if status=="SAT" else None,
+      "parser_rejection_markers":parser_markers,
+      "parser_accepted":not bool(parser_markers),
       "bare_status_is_authority":False
     }
     rp=outdir/"roundingsat.receipt.json"

@@ -91,8 +91,12 @@ def classify(index,b2row,base):
         row["final_B3_verdict"]="INFRASTRUCTURE_ERROR"; row["failure"]="MISSING_SOLVER_RECEIPT"; return row
 
     status=sr.get("proof_producer_status")
-    if status in ("TIMEOUT","UNKNOWN"):
+    if status=="TIMEOUT":
         row["final_B3_verdict"]="UNKNOWN_RESOURCE_LIMIT"; return row
+    if status in ("PARSER_ERROR","ERROR","UNKNOWN"):
+        row["final_B3_verdict"]="INFRASTRUCTURE_ERROR"
+        row["failure"]=f"PROOF_PRODUCER_NON_RESOURCE_FAILURE:{status}"
+        return row
 
     if status=="SAT":
         if sat and sat.get("PB_MODEL_REPLAY_VERIFIED") is True and sat.get("QHORN_WITNESS_REPLAY_VERIFIED") is True:
