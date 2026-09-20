@@ -219,6 +219,7 @@ def main():
         raise SystemExit("CLASSIFIER_CONTROL_FAIL")
 
     counts=Counter(); admissible=0
+    current_Q2_row=None
     max_delta=-1; max_nu=-1
     first_M2=None; first_C2=None
     all_admissible_delta_le1=True; all_admissible_nu_le3=True
@@ -247,11 +248,25 @@ def main():
                     if met["nu_X"]==4:
                         all_admissible_nu_le3=False
                         if first_C2 is None: first_C2={"mask":mask,"selected_port_edge_indices":row["selected_port_edge_indices"],**met}
+            if mask==current_mask:
+                current_Q2_row=dict(row)
             line=json.dumps(row,sort_keys=True,separators=(",",":"))+"\n"
             fh.write(line); h.update(line.encode())
 
     if sum(counts.values())!=65536:
         raise SystemExit("MASK_ACCOUNTING_FAIL")
+    if not current_Q2_row or current_Q2_row.get("status")!="FRAME_ADMISSIBLE":
+        raise SystemExit("CURRENT_Q2_AUTHORITATIVE_CONTROL_NOT_ADMISSIBLE")
+    if current_Q2_row.get("Delta_X")!=1 or current_Q2_row.get("nu_X")!=3:
+        raise SystemExit("CURRENT_Q2_AUTHORITATIVE_CONTROL_METRIC_FAIL")
+    controls["current_Q2_enumeration"]={
+      "mask":current_mask,
+      "status":current_Q2_row["status"],
+      "Delta_X":current_Q2_row["Delta_X"],
+      "nu_X":current_Q2_row["nu_X"],
+      "canonical_maximum_matching_edge_indices":current_Q2_row["canonical_maximum_matching_edge_indices"],
+      "pass":True
+    }
 
     M_verdict="M1_PORT_CHANNEL_MATCHING_STRUCTURE_UNIVERSAL" if all_admissible_delta_le1 else "M2_NONMATCHING_PORT_CHANNEL_WITNESS"
     C_verdict="C1_DIRECT_CHANNEL_MATCHING_NUMBER_LE3_UNIVERSAL" if all_admissible_nu_le3 else "C2_FOURTH_INDEPENDENT_DIRECT_CHANNEL_WITNESS"
