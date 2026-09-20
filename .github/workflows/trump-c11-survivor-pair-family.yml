@@ -1,0 +1,182 @@
+name: TRUMP C11 Survivor Pair Family Gate
+
+on:
+  pull_request:
+    branches:
+      - research/general-sat-universal-coverage-map-2026-09-19
+    paths:
+      - 'research/TRUMP_C11_SURVIVOR_PAIR_FAMILY_GATE_RUN_TRIGGER_2026-09-20_v1.0.json'
+      - 'research/TRUMP_C11_SURVIVOR_PAIR_FAMILY_GATE_EXECUTION_FREEZE_2026-09-20_v1.0.json'
+      - 'research/tools/c11_survivor_pair_family/**'
+      - '.github/workflows/trump-c11-survivor-pair-family.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  pair-family-gate:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Bind frozen authority
+        shell: bash
+        run: |
+          set -euo pipefail
+          for sha in \
+            0b2a6b2447ead76d9e5711abcf2abd45e08b952a \
+            ece366af062cac03388cfc0f90b5b89281279297 \
+            224cddb467bd1846e8c60de5caa8e3f43d69e387 \
+            c7b97e0eb2a2acf278b8cc06d1155d50f5ed16bc \
+            340015e80c597c19d9c2be6d38fc142fde356770 \
+            a0d65cccc27d41e4c390085bfb002dbef6d22707
+          do
+            git merge-base --is-ancestor "$sha" HEAD
+          done
+          test "$(git rev-parse 0b2a6b2447ead76d9e5711abcf2abd45e08b952a:research/TRUMP_C11_SURVIVOR_PAIR_FAMILY_GATE_PREREG_2026-09-20_v1.0.json)" = "0a82eb1b789053f781b30d99375a77e56056c5c1"
+          python -m py_compile \
+            research/tools/c11_survivor_pair_family/pair_family_checker.py \
+            research/tools/c11_survivor_pair_family/independent_verifier.py
+
+      - name: Run frozen P3 audit
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p pairgate
+          python research/tools/c11_survivor_pair_family/pair_family_checker.py \
+            --prereg research/TRUMP_C11_SURVIVOR_PAIR_FAMILY_GATE_PREREG_2026-09-20_v1.0.json \
+            --freeze research/TRUMP_C11_SURVIVOR_PAIR_FAMILY_GATE_EXECUTION_FREEZE_2026-09-20_v1.0.json \
+            --counter research/TRUMP_C11_PAIR_MULTIPLICITY_FALSE_TWIN_BLOWUP_THEOREM_RESULT_2026-09-20_v1.0.json \
+            --relation research/TRUMP_C11_SURVIVOR_PAIR_RELATION_REPRESENTATION_RESULT_2026-09-20_v1.0.json \
+            --out pairgate/run \
+            | tee pairgate/candidate.stdout
+
+      - name: Independent replay
+        shell: bash
+        run: |
+          set -euo pipefail
+          python research/tools/c11_survivor_pair_family/independent_verifier.py \
+            --candidate pairgate/run/candidate_result.json \
+            --counter research/TRUMP_C11_PAIR_MULTIPLICITY_FALSE_TWIN_BLOWUP_THEOREM_RESULT_2026-09-20_v1.0.json \
+            --relation research/TRUMP_C11_SURVIVOR_PAIR_RELATION_REPRESENTATION_RESULT_2026-09-20_v1.0.json \
+            --out pairgate/independent.json \
+            | tee pairgate/independent.stdout
+
+      - name: Assemble scientific manifest
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import hashlib,json,pathlib,subprocess
+          root=pathlib.Path("pairgate")
+          cand=json.loads((root/"run/candidate_result.json").read_text())
+          indep=json.loads((root/"independent.json").read_text())
+          def sha(p): return hashlib.sha256(pathlib.Path(p).read_bytes()).hexdigest()
+
+          assert cand["P1"]=="FALSIFIED_BY_PARAMETRIC_P7_FREE_FAMILY"
+          assert cand["P2"]=="FALSIFIED_BY_PARAMETRIC_P7_FREE_FAMILY"
+          assert cand["baseline"]["status"]=="VERIFIED_SUPPORTING_REDUCTION"
+          assert cand["P3"]["status"]=="NOT_ESTABLISHED_BY_FROZEN_AUTHORITY"
+          assert cand["P3"]["negative_claim"] is False
+          assert cand["primary_outcome"]=="P4_PAIR_STRUCTURE_UNRESOLVED"
+          assert cand["repair_attempted"] is False
+          assert cand["successor_autoactivated"] is False
+          assert cand["stop"] is True
+          assert indep["verdict"]=="INDEPENDENT_P4_PAIR_STRUCTURE_UNRESOLVED_VERIFIED"
+
+          manifest={
+            "schema":"janus.trump.c11_survivor_pair_family.scientific_manifest.v1",
+            "workflow_head":subprocess.check_output(["git","rev-parse","HEAD"],text=True).strip(),
+            "frozen_preregistration":{
+              "commit":"0b2a6b2447ead76d9e5711abcf2abd45e08b952a",
+              "content_blob":"0a82eb1b789053f781b30d99375a77e56056c5c1"
+            },
+            "bound_theorem_authority":{
+              "P1_P2_counterfamily":{
+                "commit":"ece366af062cac03388cfc0f90b5b89281279297",
+                "blob":"38b8f9644b9eb076a3bf026c04f06777958a452c"
+              },
+              "pair_relation":{
+                "commit":"224cddb467bd1846e8c60de5caa8e3f43d69e387",
+                "blob":"f7e8ee7803ead7c177411be20a555ed6586ee0a7"
+              }
+            },
+            "execution_freeze_commit":"c7b97e0eb2a2acf278b8cc06d1155d50f5ed16bc",
+            "implementation_commits":{
+              "candidate_checker":"340015e80c597c19d9c2be6d38fc142fde356770",
+              "independent_verifier":"a0d65cccc27d41e4c390085bfb002dbef6d22707"
+            },
+            "outcomes":{
+              "P1":"FALSIFIED_BY_PARAMETRIC_P7_FREE_FAMILY",
+              "P2":"FALSIFIED_BY_PARAMETRIC_P7_FREE_FAMILY",
+              "baseline":"VERIFIED_SUPPORTING_REDUCTION",
+              "P3":"NOT_ESTABLISHED_BY_FROZEN_AUTHORITY",
+              "primary":"P4_PAIR_STRUCTURE_UNRESOLVED"
+            },
+            "baseline":cand["baseline"],
+            "P3_receipt":cand["P3"],
+            "P4":cand["P4"],
+            "independent_replay":{
+              "verdict":indep["verdict"],
+              "receipt_sha256":sha(root/"independent.json")
+            },
+            "candidate_receipt_sha256":sha(root/"run/candidate_result.json"),
+            "source_digests":{
+              "candidate_checker_sha256":sha("research/tools/c11_survivor_pair_family/pair_family_checker.py"),
+              "independent_verifier_sha256":sha("research/tools/c11_survivor_pair_family/independent_verifier.py"),
+              "execution_freeze_sha256":sha("research/TRUMP_C11_SURVIVOR_PAIR_FAMILY_GATE_EXECUTION_FREEZE_2026-09-20_v1.0.json")
+            },
+            "scientific_ceiling":cand["scientific_ceiling"],
+            "forbidden_interpretations":cand["forbidden_interpretations"],
+            "repair_attempted":False,
+            "successor_autoactivated":False,
+            "stop":True
+          }
+          (root/"scientific_manifest.json").write_text(json.dumps(manifest,indent=2,sort_keys=True)+"\n")
+          print(json.dumps({
+            "P1":"FALSIFIED",
+            "P2":"FALSIFIED",
+            "baseline":"VERIFIED",
+            "P3":"NOT_ESTABLISHED",
+            "primary":"P4_PAIR_STRUCTURE_UNRESOLVED",
+            "independent":indep["verdict"]
+          },sort_keys=True))
+          PY
+
+      - name: Assert frozen stop ceiling
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json
+          m=json.load(open("pairgate/scientific_manifest.json"))
+          assert m["outcomes"]["primary"]=="P4_PAIR_STRUCTURE_UNRESOLVED"
+          assert m["outcomes"]["P3"]=="NOT_ESTABLISHED_BY_FROZEN_AUTHORITY"
+          assert m["scientific_ceiling"]["PAIR_STRUCTURE"]=="UNRESOLVED"
+          assert m["scientific_ceiling"]["REPAIR"]=="NOT_STARTED"
+          assert m["scientific_ceiling"]["NEW_DESCRIPTOR"]=="NOT_DEFINED"
+          assert m["scientific_ceiling"]["LEMMA11_P7_LIFT"]=="OPEN"
+          assert m["scientific_ceiling"]["P7_FREE_4_COLOR_IN_P"]=="NOT_PROVED"
+          assert m["scientific_ceiling"]["HARDNESS_LOCALIZED"]=="NOT_CLAIMED"
+          assert m["scientific_ceiling"]["P_VS_NP"]=="OPEN"
+          assert m["repair_attempted"] is False
+          assert m["successor_autoactivated"] is False
+          assert m["stop"] is True
+          print("STOP_CEILING_PASS")
+          PY
+
+      - name: Upload immutable artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: trump-c11-survivor-pair-family-gate-v1
+          path: pairgate/
+          if-no-files-found: error
+          retention-days: 90
