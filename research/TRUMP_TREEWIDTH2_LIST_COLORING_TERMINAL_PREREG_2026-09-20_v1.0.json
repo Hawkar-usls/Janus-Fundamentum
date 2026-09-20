@@ -1,0 +1,49 @@
+{
+  "artifact_id": "JANUS-TRUMP-TREEWIDTH2-LIST-COLORING-TERMINAL-PREREG-2026-09-20-v1.0",
+  "version": "v1.0",
+  "date": "2026-09-20",
+  "status": "FROZEN_POLYNOMIAL_TERMINAL_PREREGISTRATION",
+  "name": "TREEWIDTH2_LIST_COLORING_POLYNOMIAL_TERMINAL",
+  "external_authority": [
+    {
+      "reference": "Klaus Jansen and Petra Scheffler, Generalized coloring for tree-like graphs, Discrete Applied Mathematics 75(2):135-155 (1997)",
+      "doi": "10.1016/S0166-218X(96)00085-6",
+      "result": "List Coloring on partial k-trees is linear-time for a fixed number of colors."
+    },
+    {
+      "reference": "Wald and Colbourn characterization, as standardly cited in treewidth literature",
+      "result": "A graph has treewidth at most 2 iff it is a partial 2-tree iff it has no K4 minor."
+    }
+  ],
+  "terminal_definition": {
+    "input": "A graph C with exact lists L(v) subseteq [4] and a verified tree decomposition of width at most 2.",
+    "bag_size_bound": 3,
+    "bag_assignment_bound": 64,
+    "dp_state": "For each bag, record exactly those proper color assignments to bag vertices that respect their current lists and extend to the processed part of the decomposition.",
+    "transitions": [
+      "Introduce vertex: extend predecessor states with an allowed color for the introduced vertex and enforce all already-present bag edges.",
+      "Forget vertex: project predecessor states to the remaining bag.",
+      "Join: intersect compatible child-state tables on the common bag.",
+      "Accept iff the root table is nonempty.",
+      "Store predecessor witnesses for polynomial reconstruction of a full list-coloring."
+    ]
+  },
+  "recognition_and_certification": {
+    "positive_certificate": "A tree decomposition whose every bag has size at most 3; verifier checks vertex coverage, edge coverage, and running-intersection property.",
+    "negative_certificate": "A K4-minor model consisting of four pairwise-disjoint connected branch sets with an inter-branch edge for every unordered pair.",
+    "characterization": "tw(C)<=2 iff C is K4-minor-free."
+  },
+  "target_claims": [
+    "With palette [4] fixed, arbitrary-list coloring on graphs of treewidth at most 2 is polynomial-time solvable; with a width-2 decomposition the DP has at most 4^3=64 raw color assignments per bag.",
+    "A width-2 decomposition is a proof-carrying positive terminal certificate.",
+    "A K4-minor model is an independently checkable certificate that treewidth is greater than 2.",
+    "The terminal does not require P7-freeness for its internal correctness.",
+    "Exact boundary restrictions must already be encoded in the lists before invoking the terminal."
+  ],
+  "forbidden": [
+    "Infer anything about K4-minor-containing residuals beyond non-applicability of the tw<=2 terminal.",
+    "Use absence of a decomposition found by a heuristic as a negative certificate.",
+    "Modify C11 state, Pi semantics, or start a repair."
+  ],
+  "stop": true
+}
