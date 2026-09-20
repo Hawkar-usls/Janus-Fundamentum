@@ -1,0 +1,45 @@
+{
+  "artifact_id": "JANUS-TRUMP-FOREST-LIST-COLORING-TERMINAL-PREREG-2026-09-20-v1.0",
+  "version": "v1.0",
+  "date": "2026-09-20",
+  "status": "FROZEN_POLYNOMIAL_TERMINAL_PREREGISTRATION",
+  "name": "FOREST_LIST_COLORING_TERMINAL",
+  "external_authority": [
+    {
+      "reference": "Jansen and Scheffler, Generalized coloring for tree-like graphs",
+      "result": "List Coloring on trees is solvable in linear time; partial k-trees polynomially."
+    },
+    {
+      "reference": "Lampis lecture notes, Exact Algorithms, Theorem 4",
+      "result": "List Coloring can be solved in polynomial time on trees; repeated singleton propagation followed by the forest >=2-list rule is correct."
+    }
+  ],
+  "terminal_definition": {
+    "input": "A forest F with arbitrary finite vertex color lists L(v).",
+    "algorithm": [
+      "Repeat exact singleton propagation: if L(v)={c}, fix v=c and remove c from every neighbor list.",
+      "If an empty list appears, return UNSAT with the empty-list certificate.",
+      "When no singleton remains, every remaining list has size at least 2.",
+      "Each remaining forest component is list-colorable: delete a leaf, color the smaller forest inductively, then choose for the leaf a list color different from its at-most-one colored neighbor.",
+      "Reconstruct propagated singleton assignments in reverse order."
+    ]
+  },
+  "alternative_DP": {
+    "root_each_tree": true,
+    "state": "F(v)={c in L(v): for every child u there exists d in F(u) with d!=c}.",
+    "criterion": "A tree is list-colorable iff F(root) is nonempty.",
+    "complexity_with_four_colors": "O(|V|+|E|) up to a constant factor depending only on the four-color palette."
+  },
+  "target_claims": [
+    "Arbitrary-list coloring on forests is polynomial-time solvable.",
+    "For a fixed four-color palette, the terminal is linear-time up to a constant factor.",
+    "The terminal needs no P7-free assumption.",
+    "Its use after fixed-boundary propagation is exact provided all boundary restrictions have been incorporated into lists."
+  ],
+  "forbidden": [
+    "Infer anything about cyclic residual components.",
+    "Modify C11 state or semantics.",
+    "Treat forest recognition alone as a coloring answer without exact lists."
+  ],
+  "stop": true
+}
