@@ -1,0 +1,83 @@
+{
+  "artifact_id": "JANUS-TRUMP-TREEWIDTH3-LIST-COLORING-TERMINAL-PREREG-2026-09-20-v1.0",
+  "version": "v1.0",
+  "date": "2026-09-20",
+  "status": "FROZEN_POLYNOMIAL_TERMINAL_PREREGISTRATION",
+  "name": "TREEWIDTH3_LIST_COLORING_POLYNOMIAL_TERMINAL",
+  "external_authority": [
+    {
+      "reference": "Klaus Jansen and Petra Scheffler, Generalized coloring for tree-like graphs, Discrete Applied Mathematics 75(2):135-155 (1997)",
+      "doi": "10.1016/S0166-218X(96)00085-6",
+      "result": "List Coloring on partial k-trees is linear-time for a fixed number of colors and polynomial-time for unbounded color sets."
+    },
+    {
+      "reference": "Hans L. Bodlaender, A Linear-Time Algorithm for Finding Tree-Decompositions of Small Treewidth, SIAM J. Comput. 25(6):1305-1317 (1996)",
+      "doi": "10.1137/S0097539793251219",
+      "result": "For every fixed k, treewidth<=k can be recognized and a width-k tree decomposition constructed in linear time."
+    },
+    {
+      "reference": "Stefan Arnborg, Andrzej Proskurowski, Derek G. Corneil, Forbidden minors characterization of partial 3-trees, Discrete Mathematics 80(1):1-19 (1990)",
+      "doi": "10.1016/0012-365X(90)90292-P",
+      "result": "Graphs of treewidth at most 3 / partial 3-trees are exactly the graphs excluding four minimal forbidden minors: K5, the octahedral graph, the Wagner graph V8, and the pentagonal prism."
+    }
+  ],
+  "terminal_definition": {
+    "input": "A residual graph C with exact lists L(v) subseteq [4].",
+    "recognition": "Run fixed-k treewidth recognition for k=3. If tw(C)<=3, produce a width-3 tree decomposition.",
+    "bag_size_bound": 4,
+    "raw_bag_assignment_bound": 256,
+    "list_DP": [
+      "At each bag, retain proper assignments of colors in [4] to bag vertices that respect each exact list and extend to the processed part of the decomposition.",
+      "Introduce/forget/join transitions are exact and local.",
+      "Accept iff some root-bag state survives.",
+      "Store predecessor witnesses to reconstruct a full list-coloring."
+    ],
+    "positive_certificate": "A width-3 tree decomposition; verifier checks vertex coverage, edge coverage, running intersection, and bag size<=4.",
+    "negative_certificate_interface": "If tw(C)>3, a proof-carrying obstruction may be given as a minor model of one of the four forbidden minors {K5, OCTAHEDRON, WAGNER_V8, PENTAGONAL_PRISM}."
+  },
+  "target_claims": [
+    "For the fixed four-color palette, arbitrary-list coloring on treewidth<=3 graphs is polynomial-time solvable; with a width-3 decomposition the raw bag state space is at most 4^4=256.",
+    "Treewidth<=3 is graph-discoverable in polynomial time (indeed linear time for fixed k=3).",
+    "The terminal does not require P7-freeness for correctness.",
+    "All fixed-boundary restrictions must be encoded in exact lists before invoking the terminal.",
+    "The four listed minor obstructions are complete for treewidth<=3."
+  ],
+  "current_W2_control": {
+    "graph": "K4",
+    "exact_lists": {
+      "a0": [
+        2,
+        4
+      ],
+      "a1": [
+        2,
+        4
+      ],
+      "b2": [
+        1,
+        3,
+        4
+      ],
+      "b3": [
+        1,
+        3,
+        4
+      ]
+    },
+    "treewidth": 3,
+    "decomposition": "single bag {a0,a1,b2,b3}",
+    "expected_coloring": {
+      "a0": 2,
+      "a1": 4,
+      "b2": 1,
+      "b3": 3
+    },
+    "conclusion": "The sealed authoritative W2 K4 residual is TW3_LIST_READY."
+  },
+  "forbidden": [
+    "Infer anything about tw>3 residuals beyond non-applicability of this terminal.",
+    "Treat failure of a heuristic decomposition search as a tw>3 certificate.",
+    "Modify C11 state, Pi semantics, or start a repair."
+  ],
+  "stop": true
+}
