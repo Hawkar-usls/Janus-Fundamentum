@@ -2,6 +2,8 @@
 import argparse,itertools,json,pathlib
 from collections import Counter
 
+COLORS={1,2,3,4}
+
 def ek(a,b): return tuple(sorted((a,b)))
 def eset(E): return {ek(a,b) for a,b in E}
 def selected(mask,n=16): return [i for i in range(n) if (mask>>i)&1]
@@ -72,6 +74,83 @@ def matching_metric(mask,ports,PA,PD):
       "canonical_maximum_matching_edge_indices":best
     }
 
+
+def seed_lists(V,E,S,f):
+    out={}
+    for v in V:
+        if v in S:continue
+        used={f[x] for x in S if adjacent(E,v,x)}
+        out[v]=sorted(COLORS-used)
+    return out
+
+def verify_axioms(V,E,S,X0,X,Y0,Y,f):
+    L=seed_lists(V,E,S,f);ch={}
+    ch["graph_connected"]=connected(V,E)
+    ch["seed_connected"]=connected(S,E)
+    ch["no_outside_complete_to_seed"]=all(not all(adjacent(E,v,x) for x in S) for v in set(V)-set(S))
+    ch["Y0_exact"]={v for v in V if v not in S and not any(adjacent(E,v,x) for x in S)}==set(Y0)
+    y0edges=[x for x in E if x[0] in Y0 and x[1] in Y0];ok=True
+    for v in set(V)-set(Y0)-set(X0):
+        for a,b in y0edges:
+            if adjacent(E,v,a)!=adjacent(E,v,b):ok=False
+    ch["no_mixed_on_Y0_edge"]=ok
+    ch["Y0_four_lists"]=all(set(L[v])==COLORS for v in Y0)
+    ch["Y_three_lists"]=all(len(L[v])==3 for v in Y)
+    parts=list(map(set,[S,X0,X,Y0,Y]))
+    ch["partition"]=set(V)==set().union(*parts) and all(not(A&B) for A,B in itertools.combinations(parts,2))
+    return ch,L
+
+def type_set(v,E,S):return sorted([x for x in S if adjacent(E,v,x)])
+def proper(E,c):return all(not(a in c and b in c and c[a]==c[b]) for a,b in E)
+
+def propagate(E,L,fixed):
+    L={v:set(x) for v,x in L.items() if v not in fixed};fixed=dict(fixed)
+    while True:
+        for a,b in E:
+            if a in fixed and b in fixed and fixed[a]==fixed[b]:return None,fixed
+        changed=False
+        for v in list(L):
+            old=set(L[v]);L[v]-={fixed[u] for u in fixed if adjacent(E,u,v)}
+            if L[v]!=old:changed=True
+            if not L[v]:return None,fixed
+        singles=[v for v,x in L.items() if len(x)==1]
+        if singles:
+            for v in sorted(singles):
+                if v not in L:continue
+                fixed[v]=next(iter(L[v]));del L[v];changed=True
+            continue
+        if not changed:break
+    return {v:sorted(x) for v,x in L.items()},fixed
+
+def independent_frame_authority(fr):
+    F=fr["frame"];V=F["vertices"];E=eset(F["base_non_port_edges"])
+    old=F["old_precoloring"];S=old["S"];f=old["f"]
+    oldchecks,_=verify_axioms(V,E,S,old["X0"],old["X"],old["Y0"],old["Y"],f)
+    q=F["stored_111"]
+    qchecks={
+      "P_singleton":q["P"]==["p"],"M_singleton":q["M"]==["m"],"N_singleton":q["N"]==["n"],
+      "p_type_T":type_set("p",E,S)==["s"],"n_type_Tprime":type_set("n",E,S)==["t"],"m_Y0":"m" in old["Y0"],
+      "pm":adjacent(E,"p","m"),"mn":adjacent(E,"m","n"),"pn_nonedge":not adjacent(E,"p","n"),
+      "Q_colors":q["f_prime"]["p"] not in (1,2) and q["f_prime"]["n"] not in (1,2)
+    }
+    post=F["post_constructor"];postf={"s":1,"t":2,**q["f_prime"]}
+    postchecks,postlists=verify_axioms(V,E,post["S_prime"],[],[],post["Y0_prime"],post["Y_prime"],postf)
+    postlistchecks={v:postlists[v]==L for v,L in post["lists_before_pair_fix"].items()}
+    y,yp=F["survivor_pair"]
+    survivor={
+      "yy_nonedge":not adjacent(E,y,yp),"common_z":adjacent(E,y,"z") and adjacent(E,yp,"z"),
+      "y_type_T":type_set(y,E,S)==["s"],"yp_type_Tprime":type_set(yp,E,S)==["t"],
+      "ym_nonedge":not adjacent(E,y,"m"),"ypm_edge":adjacent(E,yp,"m"),
+      "intersection":sorted(set(postlists[y])&set(postlists[yp]))==[3,4],"lists_unequal":postlists[y]!=postlists[yp]
+    }
+    prov=F["frozen_provenance_coloring"]
+    baseprov={"covers_all":set(prov)==set(V),"proper_on_base":proper(E,prov),"route34":prov[y]==3 and prov[yp]==4}
+    fixed=dict(postf);fixed[y]=3;fixed[yp]=4
+    current={v:postlists[v] for v in V if v not in post["S_prime"]}
+    rem,_=propagate(E,current,fixed)
+    route=rem is not None and set(rem)==set(F["expected_route34_component_vertices"]) and all(rem[v]==F["expected_route34_lists"][v] for v in rem)
+    return {"old_axioms":oldchecks,"stored_111_Q":qchecks,"post_axioms":postchecks,"post_lists":postlistchecks,"survivor_pair":survivor,"provenance_base":baseprov,"route34_base_exact":route}
+
 def main():
     ap=argparse.ArgumentParser()
     ap.add_argument("--candidate",required=True)
@@ -83,6 +162,8 @@ def main():
     V=F["vertices"];baseE=eset(F["base_non_port_edges"]);ports=[tuple(x) for x in F["port_edge_order"]]
     PA=F["left_ports"];PD=F["right_ports"];prov=F["frozen_provenance_coloring"]
     incompatible={i for i,(u,v) in enumerate(ports) if prov[u]==prov[v]}
+    frame_authority=independent_frame_authority(fr)
+    frame_authority_ok=all(all(x.values()) if isinstance(x,dict) else bool(x) for x in frame_authority.values())
     seven_info=precompute_seven_sets(V,baseE,ports)
 
     counts=Counter();maxdelta=-1;maxnu=-1;firstM2=None;firstC2=None
@@ -126,6 +207,9 @@ def main():
     M="M2_NONMATCHING_PORT_CHANNEL_WITNESS" if firstM2 is not None else "M1_PORT_CHANNEL_MATCHING_STRUCTURE_UNIVERSAL"
     C="C2_FOURTH_INDEPENDENT_DIRECT_CHANNEL_WITNESS" if firstC2 is not None else "C1_DIRECT_CHANNEL_MATCHING_NUMBER_LE3_UNIVERSAL"
     checks={
+      "independent_frame_authority":frame_authority_ok,
+      "candidate_frame_authority":all(all(x.values()) if isinstance(x,dict) else bool(x) for x in cand["frame_authority"].values()),
+      "current_Q2_authoritative_enumeration_control":cand["controls"]["current_Q2_enumeration"]["pass"] is True and cand["controls"]["current_Q2_enumeration"]["status"]=="FRAME_ADMISSIBLE",
       "table_complete_and_exact":table_ok and table_lines==65536,
       "raw_accounting":sum(counts.values())==65536,
       "candidate_raw_accounting":cand["enumeration"]["raw_masks_accounted"]==65536,
@@ -158,6 +242,7 @@ def main():
       "independent_C_verdict":C,
       "first_M2_mask":firstM2,
       "first_C2_mask":firstC2,
+      "independent_frame_authority_receipt":frame_authority,
       "scientific_ceiling":cand["scientific_ceiling"]
     }
     pathlib.Path(a.out).write_text(json.dumps(out,indent=2,sort_keys=True)+"\n")
