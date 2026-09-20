@@ -6,6 +6,19 @@ COLORS={1,2,3,4}
 
 def ek(a,b): return tuple(sorted((a,b)))
 def eset(E): return {ek(a,b) for a,b in E}
+def adjacent(E,a,b): return ek(a,b) in E
+def connected(V,E):
+    V=set(V)
+    if not V: return True
+    seen=set(); stack=[next(iter(V))]
+    while stack:
+        v=stack.pop()
+        if v in seen: continue
+        seen.add(v)
+        for a,b in E:
+            if a==v and b in V-seen: stack.append(b)
+            elif b==v and a in V-seen: stack.append(a)
+    return seen==V
 def selected(mask,n=16): return [i for i in range(n) if (mask>>i)&1]
 
 def precompute_seven_sets(V,baseE,ports):
