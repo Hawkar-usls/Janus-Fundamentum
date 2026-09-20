@@ -1,0 +1,171 @@
+name: TRUMP C11 PI Cut Vertex Composition Gate
+
+on:
+  pull_request:
+    branches:
+      - research/general-sat-universal-coverage-map-2026-09-19
+    paths:
+      - 'research/TRUMP_C11_PI_CUT_VERTEX_COMPOSITION_GATE_RUN_TRIGGER_2026-09-20_v1.0.json'
+      - 'research/TRUMP_C11_PI_CUT_VERTEX_COMPOSITION_GATE_EXECUTION_FREEZE_2026-09-20_v1.0.json'
+      - 'research/tools/c11_pi_cut_vertex_composition/**'
+      - '.github/workflows/trump-c11-pi-cut-vertex-composition.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  cut-gate:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Bind frozen authority
+        shell: bash
+        run: |
+          set -euo pipefail
+          for sha in \
+            78dea2d8070d5a1060f6f640462041cd1e7f8488 \
+            c99e509dfd0da730cd190798d59c4c73fda26ba0 \
+            a136f17905865d98f6da4f34993de3e12070dfaf \
+            3c9c25e2583620f4dfacda17e9023069cb5d2a87 \
+            733c7d62ce3b52a4e1390076f417fb7dc11cf9ee \
+            f08b379d868f0619b9a78a51c4a7e833fb31fd61 \
+            6f50101213ad04e1da7ee1e54de7b92e5be4e0dc \
+            dc850621aaeb45ac2b5cd7f0a8510ed8b7b762f6
+          do
+            git merge-base --is-ancestor "$sha" HEAD
+          done
+          test "$(git rev-parse 78dea2d8070d5a1060f6f640462041cd1e7f8488:research/TRUMP_C11_PI_CUT_VERTEX_COMPOSITION_GATE_PREREG_2026-09-20_v1.0.json)" = "4badf3caa098594550497b0ec3df01e1cf5b8889"
+          python -m py_compile \
+            research/tools/c11_pi_cut_vertex_composition/terminal_checker.py \
+            research/tools/c11_pi_cut_vertex_composition/independent_verifier.py
+
+      - name: Run frozen S2 Path-A audit
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p cutgate
+          python research/tools/c11_pi_cut_vertex_composition/terminal_checker.py \
+            --prereg research/TRUMP_C11_PI_CUT_VERTEX_COMPOSITION_GATE_PREREG_2026-09-20_v1.0.json \
+            --freeze research/TRUMP_C11_PI_CUT_VERTEX_COMPOSITION_GATE_EXECUTION_FREEZE_2026-09-20_v1.0.json \
+            --positive-control research/TRUMP_C11_STRONG_O2_ARTICULATION_TERMINAL_RESULT_2026-09-20_v1.0.json \
+            --out cutgate/run \
+            | tee cutgate/candidate.stdout
+
+      - name: Independent replay
+        shell: bash
+        run: |
+          set -euo pipefail
+          python research/tools/c11_pi_cut_vertex_composition/independent_verifier.py \
+            --candidate cutgate/run/candidate_result.json \
+            --freeze research/TRUMP_C11_PI_CUT_VERTEX_COMPOSITION_GATE_EXECUTION_FREEZE_2026-09-20_v1.0.json \
+            --out cutgate/independent.json \
+            | tee cutgate/independent.stdout
+
+      - name: Assemble scientific manifest
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import hashlib,json,pathlib,subprocess
+          root=pathlib.Path("cutgate")
+          cand=json.loads((root/"run/candidate_result.json").read_text())
+          indep=json.loads((root/"independent.json").read_text())
+          def sha(p): return hashlib.sha256(pathlib.Path(p).read_bytes()).hexdigest()
+
+          assert cand["primary_outcome"]=="S2_CUT_VERTEX_COMPOSITION_ESCAPE_PATH_A"
+          assert cand["S1"]["status"]=="FALSIFIED_BY_AUTHORITATIVE_S2_PATH_A"
+          assert cand["S2"]["status"]=="VERIFIED"
+          assert cand["S2"]["path"]=="A_CUT_C_EMPTY"
+          assert cand["cut_vertex_audit"]["Cut_C"]==[]
+          assert cand["positive_current_strong_O2_control"]["pass"] is True
+          assert cand["quantifier_controls"]["TWO_CUT_MIXED_CONTROL"]["pass"] is True
+          assert cand["quantifier_controls"]["NO_CUT_CONTROL"]["pass"] is True
+          assert indep["verdict"]=="INDEPENDENT_S2_CUT_VERTEX_FREE_AUTHORITATIVE_RESIDUAL_VERIFIED"
+          assert cand["repair_attempted"] is False
+          assert cand["successor_autoactivated"] is False
+          assert cand["stop"] is True
+
+          manifest={
+            "schema":"janus.trump.c11_pi_cut_vertex_composition.scientific_manifest.v1",
+            "workflow_head":subprocess.check_output(["git","rev-parse","HEAD"],text=True).strip(),
+            "frozen_preregistration":{
+              "commit":"78dea2d8070d5a1060f6f640462041cd1e7f8488",
+              "content_blob":"4badf3caa098594550497b0ec3df01e1cf5b8889"
+            },
+            "execution_freeze_commit":"f08b379d868f0619b9a78a51c4a7e833fb31fd61",
+            "implementation_commits":{
+              "candidate_checker":"6f50101213ad04e1da7ee1e54de7b92e5be4e0dc",
+              "independent_verifier":"dc850621aaeb45ac2b5cd7f0a8510ed8b7b762f6"
+            },
+            "outcome":"S2_CUT_VERTEX_COMPOSITION_ESCAPE_PATH_A",
+            "authority_checks":cand["authority_checks"],
+            "route34":cand["route34"],
+            "domain_checks":cand["domain_checks"],
+            "tw_gt_3_certificate":cand["tw_gt_3_certificate"],
+            "cut_vertex_audit":cand["cut_vertex_audit"],
+            "positive_current_strong_O2_control":cand["positive_current_strong_O2_control"],
+            "quantifier_controls":cand["quantifier_controls"],
+            "S1":cand["S1"],"S2":cand["S2"],"S3":cand["S3"],
+            "independent_replay":{
+              "verdict":indep["verdict"],
+              "receipt_sha256":sha(root/"independent.json")
+            },
+            "candidate_receipt_sha256":sha(root/"run/candidate_result.json"),
+            "source_digests":{
+              "candidate_checker_sha256":sha("research/tools/c11_pi_cut_vertex_composition/terminal_checker.py"),
+              "independent_verifier_sha256":sha("research/tools/c11_pi_cut_vertex_composition/independent_verifier.py"),
+              "execution_freeze_sha256":sha("research/TRUMP_C11_PI_CUT_VERTEX_COMPOSITION_GATE_EXECUTION_FREEZE_2026-09-20_v1.0.json")
+            },
+            "oracle_use":cand["oracle_use"],
+            "scientific_ceiling":cand["scientific_ceiling"],
+            "forbidden_interpretations":cand["forbidden_interpretations"],
+            "repair_attempted":False,
+            "successor_autoactivated":False,
+            "stop":True
+          }
+          (root/"scientific_manifest.json").write_text(json.dumps(manifest,indent=2,sort_keys=True)+"\n")
+          print(json.dumps({
+            "outcome":"S2_CUT_VERTEX_COMPOSITION_ESCAPE_PATH_A",
+            "Cut_C":[],
+            "independent":indep["verdict"]
+          },sort_keys=True))
+          PY
+
+      - name: Assert ceiling and stop
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json
+          m=json.load(open("cutgate/scientific_manifest.json"))
+          assert m["outcome"]=="S2_CUT_VERTEX_COMPOSITION_ESCAPE_PATH_A"
+          assert m["scientific_ceiling"]["TW4"]=="NOT_OPENED"
+          assert m["scientific_ceiling"]["SEPARATOR_SIZE_2"]=="NOT_OPENED"
+          assert m["scientific_ceiling"]["BACKDOOR_SIZE_2"]=="NOT_OPENED"
+          assert m["scientific_ceiling"]["REPAIR"]=="NOT_STARTED"
+          assert m["scientific_ceiling"]["NEW_DESCRIPTOR"]=="NOT_DEFINED"
+          assert m["scientific_ceiling"]["LEMMA11_P7_LIFT"]=="OPEN"
+          assert m["scientific_ceiling"]["P7_FREE_4_COLOR_IN_P"]=="NOT_PROVED"
+          assert m["scientific_ceiling"]["P_VS_NP"]=="OPEN"
+          assert m["repair_attempted"] is False
+          assert m["successor_autoactivated"] is False
+          assert m["stop"] is True
+          print("STOP_CEILING_PASS")
+          PY
+
+      - name: Upload immutable artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: trump-c11-pi-cut-vertex-composition-gate-v1
+          path: cutgate/
+          if-no-files-found: error
+          retention-days: 90
