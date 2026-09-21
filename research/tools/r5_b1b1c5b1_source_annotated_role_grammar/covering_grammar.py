@@ -25,7 +25,7 @@ LOCAL_PROFILE_EQUIVALENCE != GLOBAL_SOURCE_EQUIVALENCE.
 from __future__ import annotations
 from dataclasses import dataclass
 from enum import Enum
-from itertools import product
+from itertools import product, combinations
 from math import comb
 from typing import Dict, Iterable, List, Optional, Sequence, Tuple
 
@@ -335,5 +335,19 @@ def theorem_receipt(s_values=(1,2,3,4,5,6)):
         "complexity_warning":"K(s) is only a finite cover bound; no polynomial cell-count claim.",
     }
 
+def self_test():
+    assert len(PAIR_POSITIONS)==21
+    assert bell(7)==877
+    assert role_string_count()==12138
+    assert tau_to_chi_s(0b11,(1,2)) == mask({1,2})
+    assert source_list(mask({1})) == mask({2,3,4})
+    assert exact_palette(mask({1}),mask({4})) == mask({2,3})
+    # Dynamic exact-list identity redundancy includes seed colors:
+    # adding an X0 edge of color 1 changes identity but not A when seed already excludes 1.
+    before=exact_palette(mask({1}),0)
+    after=exact_palette(mask({1}),mask({1}))
+    assert before==after==mask({2,3,4})
+    return theorem_receipt()
+
 if __name__=="__main__":
-    print(theorem_receipt())
+    print(self_test())
