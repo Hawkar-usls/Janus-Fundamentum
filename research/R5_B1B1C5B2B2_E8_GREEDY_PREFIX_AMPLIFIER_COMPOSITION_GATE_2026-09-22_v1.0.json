@@ -1,0 +1,184 @@
+{
+  "artifact_id": "JANUS-R5-E8-GREEDY-PREFIX-AMPLIFIER-COMPOSITION-GATE-2026-09-22-v1.0",
+  "date": "2026-09-22",
+  "version": "1.0",
+  "authority": "SYMBOLIC_PREREG_AND_DIAGNOSTIC_GATE_ONLY",
+  "repository": "Hawkar-usls/Janus-Fundamentum",
+  "lineage": {
+    "pull_request": 510,
+    "branch": "codex/r5-e8-direct-contract-20260921-82493a57",
+    "frozen_structural_gate_commit": "b1f151602432b6a70e3f7a1449d8568fb64108d7",
+    "executor_commit": "e8d04f156c4ab0eddc951de3f859d9d612b8a020",
+    "finite_kernel_replay_commit": "1c3a64c52309d9c09bb83c6431516f479ba86b32"
+  },
+  "scientific_state": {
+    "P_VS_NP": "OPEN",
+    "D1": "NOT_ADMITTED",
+    "universal_poly_peak": "OPEN",
+    "arbitrary_n_counterfamily": "MISSING"
+  },
+  "architecture": {
+    "principle": "SEPARATE_SCHEDULER_FROM_AMPLIFIER",
+    "scheduler_role": "BIAS_FROZEN_ONE_STEP_GREEDY_AWAY_FROM_PAYLOAD_CLEANUP",
+    "amplifier_role": "TURN_A_LINEAR_SELECTOR_PREFIX_INTO_EXPONENTIALLY_MANY_STRUCTURAL_BRANCHES",
+    "recursive_self_copy_of_kernel": "NOT_REQUIRED"
+  },
+  "eq_prefix_amplifier": {
+    "name": "R5_E8_SELECTOR_PREFIX_AMPLIFICATION_LEMMA_V1",
+    "formula": "EQ_k = AND_i ((x_i OR NOT y_i) AND (NOT x_i OR y_i))",
+    "input_size": "2k_BINARY_CLAUSES__O(k log k)_BIT_ENCODING",
+    "precondition": [
+      "k >= 2",
+      "t distinct selector variables x_i are projected",
+      "none of their corresponding y_i tags is projected before those t selector steps",
+      "frozen structural executor only; no semantic merging"
+    ],
+    "status": "PROVED_SYMBOLICALLY_UNDER_FROZEN_STRUCTURAL_SEMANTICS",
+    "proof_obligations_closed": [
+      "Repeated Project creates a binary OR-of-cofactor tree over the 2^t selector assignments.",
+      "Each branch contains a distinct y-tag minterm together with untouched equivalence constraints.",
+      "Distinct tag assignments define distinct branch functions.",
+      "For k>=2 the branch roots are nonconstant and pairwise non-complementary.",
+      "Structural interning can merge only identical structural refs; the frozen complement rule can collapse only exact complements.",
+      "Therefore at least 2^t distinct branch-root refs remain reachable."
+    ],
+    "consequence": "LIVE_REACHABLE_NODES >= 2^t",
+    "standalone_scheduler_status": "POOR__PRIVATE_y_i_CLEANUP_CAN_BE_GREEDILY_SELECTED"
+  },
+  "shared_payload_amplifier": {
+    "name": "R5_E8_SHARED_PAYLOAD_SELECTOR_AMPLIFIER_V1",
+    "formula": "F_k = AND_i ((x_i OR A_i(Z)) AND (NOT x_i OR B_i(Z)))",
+    "clause_width": "<=3 when A_i,B_i are <=2-literal clauses",
+    "selector_semantics": {
+      "x_i=0": "A_i survives; the opposite selector clause is satisfied",
+      "x_i=1": "B_i survives; the opposite selector clause is satisfied"
+    },
+    "theorem_status": "CONDITIONAL_OPEN",
+    "required_branch_separation": {
+      "BRANCH_ROOT_INJECTIVITY": "for distinct selector assignments a!=b, frozen branch-root refs differ",
+      "NONCONSTANT": "every counted branch root is nonconstant",
+      "NONCOMPLEMENT": "no counted branch-root pair is an exact complemented ref",
+      "PERSISTENCE": "all counted roots remain reachable through the repeated Shannon OR tree"
+    },
+    "warning": "PAIRWISE_DISTINCT_PAYLOAD_CLAUSES_ALONE_IS_NOT_YET_PROMOTED_AS_A_SUFFICIENT_ARBITRARY_N_PROOF",
+    "consequence_if_branch_separation_proved": "t selector projections before payload cleanup imply at least 2^t live branch roots"
+  },
+  "scheduler_obligations": {
+    "S1": "Frozen exact greedy selects selector variables for t(k) relevant steps before payload cleanup destroys the branch separation invariant.",
+    "S2": "t(k) >= alpha*k for one fixed alpha>0 and all sufficiently large k.",
+    "S3": "The proof compares every competing unresolved semantic variable under the exact frozen cost/tie rule.",
+    "S4": "No SAT oracle, semantic equivalence oracle, FRAIG, BDD sweeping, or hidden existential escape."
+  },
+  "asymptotic_falsification": {
+    "assumptions": [
+      "|F_k| <= k^c * polylog(k) for one fixed c",
+      "branch amplification >= 2^t",
+      "t >= alpha*k for fixed alpha>0"
+    ],
+    "conclusion": "PEAK(F_k) >= 2^(alpha*k), which is superpolynomial in the encoded input length",
+    "good_alternative_order": "OPTIONAL_BONUS_NOT_REQUIRED"
+  },
+  "finite_kernel_role": {
+    "status": "EXECUTOR_REPLAYED_FINITE_MYOPIA_ONLY",
+    "scheduler_seed_formula": "9-variable 9-clause signed 2-CNF in the finite-myopia receipt",
+    "exact_replay": {
+      "initial": 26,
+      "greedy_order": [
+        1,
+        5,
+        4,
+        9,
+        7,
+        8,
+        3
+      ],
+      "live_sizes": [
+        26,
+        26,
+        27,
+        25,
+        21,
+        15,
+        9,
+        0
+      ],
+      "greedy_peak": 27,
+      "lower_peak_witness_order": [
+        7,
+        2,
+        9,
+        4,
+        5,
+        1,
+        8,
+        6,
+        3
+      ],
+      "lower_peak": 26
+    },
+    "compositionally_stable_lock": "NOT_PROVED"
+  },
+  "cyclic_shared_payload_seed": {
+    "formula": "AND_i ((x_i OR z_i OR NOT z_{i+1}) AND (NOT x_i OR z_{i+2} OR NOT z_{i+3})) with z indices cyclic mod m",
+    "status": "FINITE_DIAGNOSTIC_ONLY_UNDER_FROZEN_EXECUTOR",
+    "observed_examples": [
+      {
+        "m": 5,
+        "selector_prefix": 2,
+        "peak": 48
+      },
+      {
+        "m": 6,
+        "selector_prefix": 6,
+        "peak": 291
+      },
+      {
+        "m": 7,
+        "selector_prefix": 6,
+        "peak": 358
+      },
+      {
+        "m": 8,
+        "selector_prefix": 6,
+        "peak": 379
+      },
+      {
+        "m": 9,
+        "selector_prefix": 2,
+        "peak": 120
+      },
+      {
+        "m": 11,
+        "selector_prefix": 8,
+        "peak": 1405
+      },
+      {
+        "m": 14,
+        "selector_prefix": 9,
+        "peak": 2712
+      },
+      {
+        "m": 16,
+        "selector_prefix": 10,
+        "peak": 5367
+      },
+      {
+        "m": 17,
+        "selector_prefix": 2,
+        "peak": 191
+      },
+      {
+        "m": 19,
+        "selector_prefix": 12,
+        "peak": 20873
+      }
+    ],
+    "interpretation": "PROMISING_AMPLIFICATION_EXISTS_AT_FINITE_SIZES_BUT_PREFIX_IS_NOT_UNIFORM; THIS_FORMULA_IS_NOT_AN_ARBITRARY_N_COUNTERFAMILY"
+  },
+  "next_objective": {
+    "name": "GREEDY_PREFIX_THEOREM_OR_COUNTERDESIGN",
+    "target": "Construct a poly-size shared-payload family with branch separation plus a provable Omega(k) exact-greedy selector prefix.",
+    "finite_runs": "PATTERN_MINING_ONLY",
+    "promotion_requires": "ARBITRARY_N_PROOF"
+  }
+}
