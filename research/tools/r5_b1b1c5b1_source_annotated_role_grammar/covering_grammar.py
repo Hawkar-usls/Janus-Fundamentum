@@ -374,7 +374,7 @@ def role_string_count() -> int:
     return 4**7 - 3**7 - 3**7 + 2**7
 
 assert role_string_count()==12138
-assert sum(1 for _ in role_strings())==11874
+assert sum(1 for _ in role_strings())==12138
 
 def finite_cover_upper_bound(s: int) -> int:
     """Very coarse explicit finite upper bound K(s) on raw annotation cells.
