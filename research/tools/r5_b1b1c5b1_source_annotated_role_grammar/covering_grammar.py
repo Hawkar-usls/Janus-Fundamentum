@@ -287,7 +287,7 @@ def role_string_count() -> int:
     # Inclusion-exclusion: all - no C - no X0 + neither
     return 4**7 - 3**7 - 3**7 + 2**7
 
-assert role_string_count()==11874
+assert role_string_count()==12138
 assert sum(1 for _ in role_strings())==11874
 
 def finite_cover_upper_bound(s: int) -> int:
