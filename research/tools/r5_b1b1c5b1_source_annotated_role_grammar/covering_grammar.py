@@ -96,6 +96,49 @@ def bell(n: int) -> int:
 
 assert bell(7)==877
 
+def is_downward_closed(table_bits: int) -> bool:
+    """table bit F is 1 iff mu(F)=1, with F encoded as a 4-bit color mask."""
+    assert 0 <= table_bits < (1<<16)
+    for F in range(16):
+        if not ((table_bits >> F) & 1):
+            continue
+        sub=F
+        while True:
+            if not ((table_bits >> sub) & 1):
+                return False
+            if sub==0:
+                break
+            sub=(sub-1)&F
+    return True
+
+MESSAGE_TABLES=tuple(x for x in range(1<<16) if is_downward_closed(x))
+assert len(MESSAGE_TABLES)==168
+MESSAGE_ID={table:i for i,table in enumerate(MESSAGE_TABLES)}
+
+def min_bad_masks(table_bits: int) -> Tuple[int,...]:
+    """Unique antichain basis of the bad upset for a monotone-decreasing mu."""
+    out=[]
+    for F in range(16):
+        if (table_bits >> F) & 1:
+            continue
+        proper_bad=False
+        sub=(F-1)&F if F else 0
+        if F:
+            while True:
+                if not ((table_bits >> sub) & 1):
+                    proper_bad=True
+                    break
+                if sub==0:
+                    break
+                sub=(sub-1)&F
+        if not proper_bad:
+            out.append(F)
+    return tuple(out)
+
+def message_table(message_type_id: int) -> int:
+    assert 0 <= message_type_id < 168
+    return MESSAGE_TABLES[message_type_id]
+
 @dataclass(frozen=True)
 class BAnn:
     tau_bits: int
@@ -222,6 +265,8 @@ def validate_cell(cell: Cell) -> List[str]:
             err.append(f"C_base_list_mismatch@{i}")
         if not (0 <= c.message_type_id < 168):
             err.append(f"message_type_range@{i}")
+        elif len(min_bad_masks(message_table(c.message_type_id))) > 6:
+            err.append(f"min_bad_sperner_violation@{i}")
 
     # X0 fixed color/properness on selected X0-X0 edges.
     for i,x in enumerate(cell.X0):
@@ -243,15 +288,36 @@ def validate_cell(cell: Cell) -> List[str]:
     # selected representatives in the same component must have equal B adjacency.
     c_positions=[i for i,r in enumerate(cell.role_order) if r=="C"]
     b_positions=[i for i,r in enumerate(cell.role_order) if r=="B"]
+    groups: Dict[int,List[int]]={}
+    for cp in c_positions:
+        lab=cell.C[cp].component_label
+        groups.setdefault(lab,[]).append(cp)
+
     for bp in b_positions:
-        groups: Dict[int,List[int]]={}
-        for cp in c_positions:
-            lab=cell.C[cp].component_label
-            groups.setdefault(lab,[]).append(cp)
         for lab,ps in groups.items():
             vals={adjacency_bit(cell.adjacency_mask_21,bp,cp) for cp in ps}
             if len(vals)>1:
                 err.append(f"dynamic_component_mixed@B{bp}:C{lab}")
+            actual=next(iter(vals)) if vals else 0
+            declared=(cell.B[bp].component_incidence_bits >> lab) & 1
+            if actual != declared:
+                err.append(f"B_component_incidence_mismatch@B{bp}:C{lab}")
+
+    # Same component => one component-level message and one restricted D_C set.
+    for lab,ps in groups.items():
+        mids={cell.C[cp].message_type_id for cp in ps}
+        ds={cell.C[cp].D_restricted_bits for cp in ps}
+        if len(mids)>1:
+            err.append(f"same_component_message_mismatch@C{lab}")
+        if len(ds)>1:
+            err.append(f"same_component_D_mismatch@C{lab}")
+        if ds:
+            d=next(iter(ds))
+            for bp in b_positions:
+                actual=adjacency_bit(cell.adjacency_mask_21,bp,ps[0])
+                declared=(d >> bp) & 1
+                if actual != declared:
+                    err.append(f"C_D_restricted_mismatch@C{lab}:B{bp}")
 
     # Different residual components have no edge between selected representatives.
     for i,j in combinations(c_positions,2):
@@ -259,11 +325,19 @@ def validate_cell(cell: Cell) -> List[str]:
         if ci.component_label != cj.component_label and adjacency_bit(cell.adjacency_mask_21,i,j):
             err.append(f"cross_component_edge@{i},{j}")
 
-    # Same-colored X0 identities cannot be adjacent under proper fixed coloring.
+    # Properness of already fixed vertices among selected S/X0 roles.
     x_positions=[i for i,r in enumerate(cell.role_order) if r=="X0"]
+    s_positions=[i for i,r in enumerate(cell.role_order) if r=="S"]
     for i,j in combinations(x_positions,2):
         if cell.X0[i].fixed_color==cell.X0[j].fixed_color and adjacency_bit(cell.adjacency_mask_21,i,j):
             err.append(f"same_color_X0_edge@{i},{j}")
+    for i,j in combinations(s_positions,2):
+        if cell.S[i].fixed_color==cell.S[j].fixed_color and adjacency_bit(cell.adjacency_mask_21,i,j):
+            err.append(f"same_color_seed_edge@{i},{j}")
+    for i in s_positions:
+        for j in x_positions:
+            if cell.S[i].fixed_color==cell.X0[j].fixed_color and adjacency_bit(cell.adjacency_mask_21,i,j):
+                err.append(f"same_color_S_X0_edge@{i},{j}")
 
     # Local profile bits must agree with the 21 concrete adjacency bits.
     for xp in x_positions:
@@ -274,6 +348,18 @@ def validate_cell(cell: Cell) -> List[str]:
                 prof |= 1<<k
         if cell.X0[xp].local_profile_bits != prof:
             err.append(f"X0_profile_mismatch@{xp}")
+
+        # Every selected adjacency contributes this fixed color to the target's
+        # X0 color mask. Nonadjacency does not imply absence because an
+        # unselected same-color X0 identity may supply the same color.
+        cbit=1 << (cell.X0[xp].fixed_color-1)
+        for q in others:
+            if not adjacency_bit(cell.adjacency_mask_21,xp,q):
+                continue
+            if cell.role_order[q]=="B" and not (cell.B[q].chi_x0 & cbit):
+                err.append(f"selected_X0_missing_from_B_mask@X{xp}:B{q}")
+            if cell.role_order[q]=="C" and not (cell.C[q].chi_x0_rep & cbit):
+                err.append(f"selected_X0_missing_from_C_mask@X{xp}:C{q}")
 
     return err
 
@@ -339,6 +425,8 @@ def self_test():
     assert len(PAIR_POSITIONS)==21
     assert bell(7)==877
     assert role_string_count()==12138
+    assert len(MESSAGE_TABLES)==168
+    assert max(len(min_bad_masks(x)) for x in MESSAGE_TABLES) <= 6
     assert tau_to_chi_s(0b11,(1,2)) == mask({1,2})
     assert source_list(mask({1})) == mask({2,3,4})
     assert exact_palette(mask({1}),mask({4})) == mask({2,3})
