@@ -1,0 +1,120 @@
+{
+  "artifact_id": "JANUS-R5-E8-CYCLIC-POWER-OF-TWO-SELECTOR-PREFIX-GATE-2026-09-22-v1.0",
+  "date": "2026-09-22",
+  "version": "1.0",
+  "authority": "SYMBOLIC_THEOREM_GATE_AND_FINITE_DIAGNOSTIC_ONLY__NO_D1_PROMOTION",
+  "repository": "Hawkar-usls/Janus-Fundamentum",
+  "lineage": {
+    "pull_request": 510,
+    "branch": "codex/r5-e8-direct-contract-20260921-82493a57",
+    "anti_duplication_audit_commit": "629761c1084361e1de9a8dc1763b6a8a297e2dd0",
+    "frozen_executor_path": "research/tools/r5_e8_frozen_structural_aig_executor.py",
+    "parent_gate": "research/R5_B1B1C5B2B2_E8_GREEDY_PREFIX_AMPLIFIER_COMPOSITION_GATE_2026-09-22_v1.0.json"
+  },
+  "scientific_state": {
+    "P_VS_NP": "OPEN",
+    "D1": "NOT_ADMITTED",
+    "arbitrary_n_counterfamily": "MISSING",
+    "universal_poly_peak": "OPEN"
+  },
+  "family": {
+    "name": "CYCLIC_SHARED_PAYLOAD_POWER_OF_TWO_SUBFAMILY",
+    "parameter": "m_r = 2^r",
+    "formula": "AND_i ((x_i OR z_i OR NOT z_{i+1}) AND (NOT x_i OR z_{i+2} OR NOT z_{i+3})) with z indices cyclic mod m",
+    "variables": "2m",
+    "clauses": "2m signed 3-clauses",
+    "encoded_length": "O(m log m)"
+  },
+  "balanced_tree_carry_boundary_lemma": {
+    "name": "R5_E8_BALANCED_TREE_CARRY_BOUNDARY_LEMMA_V1",
+    "status": "PROVED_COMBINATORIALLY_FOR_FROZEN_BALANCED_BUILDER",
+    "builder_rule": "PAIR_ADJACENT_ITEMS_LEFT_TO_RIGHT_EACH_ROUND; CARRY_AN_UNPAIRED_FINAL_ITEM_TO_THE_NEXT_ROUND_UNCHANGED",
+    "claims": [
+      {
+        "case": "m = 2^r + 1",
+        "result": "After the selector-clause pairs form blocks G_1,...,G_m, the first 2^r blocks form a complete balanced subtree while G_m is the unique final unpaired item at every upper round until the root; G_m is therefore carried unchanged as the shallow tail."
+      },
+      {
+        "case": "m = 2^r + 2",
+        "result": "The final pair (G_{m-1},G_m) is formed at the first block-tree round; thereafter that tail-pair is the unique final unpaired item at every upper round until the root."
+      },
+      {
+        "case": "m = 2^r",
+        "result": "The block-level balanced AND tree is complete and has no carry-tail asymmetry."
+      }
+    ],
+    "proof_sketch": [
+      "At block level, m=2^r+1 gives 2^(r-1) ordinary pairs plus one carried tail.",
+      "After one round the item count is 2^(r-1)+1; induction repeats until the final root merge.",
+      "For m=2^r+2, the last two blocks first combine into one tail item, reducing to the previous recurrence with 2^(r-1)+1 items.",
+      "For m=2^r every round has an even power-of-two number of items, so no carry occurs."
+    ],
+    "scope": "TREE_SHAPE_ONLY__DOES_NOT_BY_ITSELF_PROVE_GREEDY_SELECTION"
+  },
+  "power_of_two_prefix_target": {
+    "name": "R5_E8_CYCLIC_POWER_OF_TWO_SELECTOR_PREFIX_THEOREM_V1",
+    "theorem_goal": "There exists fixed alpha>0 and r0 such that for every r>=r0, the frozen exact structural projector on F_{2^r} selects selector variables for at least alpha*2^r relevant steps before any payload elimination destroys the branch-separation invariant.",
+    "exact_selector_key": "(projected_reachable_nodes, cone_size, variable_id)",
+    "required_obligations": {
+      "P1": "Exact frozen CNF->AIG compilation for m=2^r has no carry-tail asymmetry.",
+      "P2": "For each of the first t>=alpha*m relevant steps, the minimum exact projected cost among ALL unresolved variables is attained by a selector x in X, including cone/tie comparison.",
+      "P3": "Shared-payload branch-root injectivity/nonconstant/noncomplement/persistence survive those t selector steps.",
+      "P4": "No SAT oracle, equivalence oracle, FRAIG, BDD sweeping, semantic rewrite, or hidden existential escape."
+    },
+    "consequence_if_proved": [
+      "Peak(F_m) >= 2^(alpha*m)",
+      "|F_m| = O(m log m)",
+      "Peak(F_m) >= 2^(Omega(L/log L))",
+      "R5_E8_GREEDY_PROJECTOR_PEAK_THEOREM_V1 is falsified"
+    ],
+    "status": "OPEN"
+  },
+  "finite_authoritative_diagnostics": [
+    {
+      "m": 4,
+      "selector_prefix": 4,
+      "peak_live_nodes": 51,
+      "status": "REPLAYED"
+    },
+    {
+      "m": 8,
+      "selector_prefix": 6,
+      "peak_live_nodes": 379,
+      "status": "REPLAYED"
+    },
+    {
+      "m": 16,
+      "selector_prefix": 10,
+      "peak_live_nodes": 5367,
+      "status": "REPLAYED"
+    }
+  ],
+  "non_authoritative_pattern_note": {
+    "m32": "Additional exploratory probe reported a selector prefix of at least 12, but it is not promoted here without a completed frozen-executor replay receipt.",
+    "use": "PATTERN_MINING_ONLY"
+  },
+  "anomaly_interpretation": {
+    "old_mod8_hypothesis": "REJECTED_AS_PRIMARY_EXPLANATION",
+    "stronger_candidate": "BALANCED_TREE_CARRY_BOUNDARY_AT_2^r+1_AND_2^r+2",
+    "examples": "9/10, 17/18, 33/34",
+    "theorem_status": "TREE_SHAPE_CAUSE_PROVED; GREEDY_COST_EFFECT_NOT_YET_PROVED"
+  },
+  "semantic_compactness_control": {
+    "identity": "For private selector x_i in G_i=(x_i OR A_i) AND (NOT x_i OR B_i), existential elimination gives A_i OR B_i.",
+    "cyclic_payload": "A_i and B_i are 2-clauses, so the exact semantic selector projection has a clause of width at most 4.",
+    "interpretation": "Any large frozen structural-AIG growth on the selector prefix is representational/syntactic for this grammar, not evidence that the projected Boolean function itself lacks a compact exact representation.",
+    "firewall": "THIS_DOES_NOT_IMPLY_GENERAL_AIG_QE_LOWER_BOUNDS_OR_P_NOT_EQUAL_NP"
+  },
+  "novelty_firewall": {
+    "AIG_QE": "KNOWN_PRIOR_ART",
+    "quantifier_scheduling": "KNOWN_PRIOR_ART",
+    "binary_distinction_amplification": "STANDARD_AND_INTERNAL_C023R_U1_LIKE_SKELETON",
+    "possible_new_scoped_result": "ONLY_THE_EXACT_POWER_OF_TWO_GREEDY_PREFIX_THEOREM_OR_AN_ARBITRARY_N_COUNTERFAMILY_FOR_THE_FROZEN_SELECTOR"
+  },
+  "next_work": {
+    "type": "THEOREM_NOT_MORE_INVENTORY",
+    "first_subgoal": "Derive exact first-step and inductive cost inequalities for selectors versus payload variables on m=2^r under the frozen tree shape.",
+    "second_subgoal": "Prove branch-root separation on the same power-of-two prefix.",
+    "finite_runs": "DIAGNOSTIC_ONLY"
+  }
+}
