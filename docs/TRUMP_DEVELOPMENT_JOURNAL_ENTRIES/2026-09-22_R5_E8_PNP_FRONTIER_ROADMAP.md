@@ -503,3 +503,157 @@ FOR m=2^r:
 all m/2 odd selectors beat every payload
 under the exact frozen greedy key.
 ```
+
+
+---
+
+## 13. UPDATE — net projection charge identity and arbitrary-r step 0
+
+Authority:
+
+`research/R5_B1B1C5B2B2_E8_NET_PROJECTION_CHARGE_AND_STEP0_THEOREM_2026-09-22_v1.0.json`
+
+### Exact identity
+
+For any unresolved trial variable `v` in the frozen executor:
+
+```text
+cost(v)
+=
+N + A_v - sigma_v - kappa_v
+```
+
+where:
+
+```text
+A_v
+=
+old reachable dependent AND gates
+
+sigma_v
+=
+(2A_v+1)
+-
+new reachable trial nodes
+
+kappa_v
+=
+old v-independent nodes
+that disappear from the projected result
+```
+
+Therefore within one current state:
+
+```text
+E_v
+=
+A_v - sigma_v - kappa_v
+```
+
+is the exact primary greedy charge, and the frozen key can be compared as:
+
+```text
+(E_v, A_v, variable_id).
+```
+
+### Step 0 is closed for all m=2^r
+
+For every selector:
+
+```text
+A_x     = r+5
+sigma_x = 8
+kappa_x = 0
+E_x     = r-3
+```
+
+For any payload `z`:
+
+```text
+A_z     = T_z + s_z + 8
+sigma_z = s_z + 12
+kappa_z = 0
+E_z     = T_z - 4
+```
+
+with:
+
+```text
+T_z >= r+1.
+```
+
+Hence:
+
+```text
+E_z >= r-3 = E_x.
+```
+
+If primary charge ties, then:
+
+```text
+A_z >= r+9 > r+5 = A_x.
+```
+
+Therefore every selector beats every payload at the initial state, and selector-id tie breaking chooses:
+
+```text
+x1.
+```
+
+So:
+
+```text
+R5_E8_POWER_OF_TWO_STEP0_SELECTOR_THEOREM_V1
+=
+PROVED
+```
+
+### New sole open theorem
+
+Replace the old full projected-DAG comparison by:
+
+```text
+R5_E8_ODD_PREFIX_NET_CHARGE_THEOREM_V1
+```
+
+Target:
+
+```text
+For every odd-only prefix state
+before all odd selectors are removed,
+
+there exists unresolved odd selector o
+
+such that for every payload z:
+
+(E_o,A_o,o)
+<
+(E_z,A_z,z)
+lexicographically.
+```
+
+Preferred proof route:
+
+```text
+1. prove kappa_payload = 0
+
+2. odd-selector kappa need not be zero;
+   positive kappa only helps selector
+
+3. prove for a suitable odd selector o:
+
+   A_z - A_o
+   >=
+   sigma_z - sigma_o
+
+4. on E ties prove A_o < A_z
+
+5. if E and A both tie,
+   selector id automatically wins
+```
+
+Do **not** count the full `N_t` separately unless forced.
+
+Do **not** reopen the amplifier: odd-prefix branch amplification is already closed.
+
+Do **not** open a new family or representation before this theorem resolves.
