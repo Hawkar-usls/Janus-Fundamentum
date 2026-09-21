@@ -1,7 +1,7 @@
 {
   "artifact_id": "JANUS-R5-E8-CYCLIC-POWER-OF-TWO-SELECTOR-PREFIX-GATE-2026-09-22-v1.0",
   "date": "2026-09-22",
-  "version": "1.0",
+  "version": "1.1",
   "authority": "SYMBOLIC_THEOREM_GATE_AND_FINITE_DIAGNOSTIC_ONLY__NO_D1_PROMOTION",
   "repository": "Hawkar-usls/Janus-Fundamentum",
   "lineage": {
@@ -58,7 +58,7 @@
     "required_obligations": {
       "P1": "Exact frozen CNF->AIG compilation for m=2^r has no carry-tail asymmetry.",
       "P2": "For each of the first t>=alpha*m relevant steps, the minimum exact projected cost among ALL unresolved variables is attained by a selector x in X, including cone/tie comparison.",
-      "P3": "Shared-payload branch-root injectivity/nonconstant/noncomplement/persistence survive those t selector steps.",
+      "P3": "CLOSED_FOR_ODD_SELECTOR_PREFIXES_BY_R5_E8_ODD_SELECTOR_BRANCH_INJECTIVITY_LEMMA_V1",
       "P4": "No SAT oracle, equivalence oracle, FRAIG, BDD sweeping, semantic rewrite, or hidden existential escape."
     },
     "consequence_if_proved": [
@@ -67,24 +67,59 @@
       "Peak(F_m) >= 2^(Omega(L/log L))",
       "R5_E8_GREEDY_PROJECTOR_PEAK_THEOREM_V1 is falsified"
     ],
-    "status": "OPEN"
+    "status": "OPEN",
+    "first_sharpened_scheduler_theorem": {
+      "name": "R5_E8_ODD_SELECTOR_GREEDY_PREFIX_THEOREM_V1",
+      "claim": "For every m=2^r>=4, before selecting any payload variable, the frozen exact greedy projector selects all m/2 odd selector variables.",
+      "consequence": [
+        "t >= m/2",
+        "Peak(F_m) >= 2^(m/2)",
+        "|F_m| = O(m log m)",
+        "Peak(F_m) >= 2^(Omega(L/log L))",
+        "R5_E8_GREEDY_PROJECTOR_PEAK_THEOREM_V1 falsified"
+      ],
+      "status": "OPEN"
+    }
   },
   "finite_authoritative_diagnostics": [
     {
       "m": 4,
-      "selector_prefix": 4,
+      "odd_selector_prefix": [
+        1,
+        3
+      ],
+      "odd_prefix_length": 2,
+      "total_selector_prefix": 4,
       "peak_live_nodes": 51,
       "status": "REPLAYED"
     },
     {
       "m": 8,
-      "selector_prefix": 6,
+      "odd_selector_prefix": [
+        1,
+        7,
+        3,
+        5
+      ],
+      "odd_prefix_length": 4,
+      "total_selector_prefix": 6,
       "peak_live_nodes": 379,
       "status": "REPLAYED"
     },
     {
       "m": 16,
-      "selector_prefix": 10,
+      "odd_selector_prefix": [
+        1,
+        15,
+        5,
+        9,
+        3,
+        11,
+        7,
+        13
+      ],
+      "odd_prefix_length": 8,
+      "total_selector_prefix": 10,
       "peak_live_nodes": 5367,
       "status": "REPLAYED"
     }
@@ -113,8 +148,63 @@
   },
   "next_work": {
     "type": "THEOREM_NOT_MORE_INVENTORY",
-    "first_subgoal": "Derive exact first-step and inductive cost inequalities for selectors versus payload variables on m=2^r under the frozen tree shape.",
-    "second_subgoal": "Prove branch-root separation on the same power-of-two prefix.",
+    "sole_open_core": "PROVE_OR_FALSIFY_R5_E8_ODD_SELECTOR_GREEDY_PREFIX_THEOREM_V1",
+    "suggested_route": [
+      "derive exact cost recurrence for odd selectors after an odd-selector-only history",
+      "derive lower bound / exact recurrence for every payload candidate on the same state",
+      "prove min selector key <= min payload key until all odd selectors are removed",
+      "include cone-size and variable-id tie-breaks when projected node counts tie"
+    ],
+    "branch_separation": "CLOSED",
     "finite_runs": "DIAGNOSTIC_ONLY"
+  },
+  "odd_selector_branch_injectivity": {
+    "status": "PROVED",
+    "proof_path": "research/R5_B1B1C5B2B2_E8_ODD_SELECTOR_BRANCH_INJECTIVITY_LEMMA_2026-09-22_v1.0.md",
+    "proof_commit": "4aa67baf82a45907acfaacd329c84fc81fb0c421",
+    "theorem": "For m=2^r>=4, any prefix of t distinct odd selector projections, while even selector blocks remain unresolved, preserves at least 2^t distinct nonconstant noncomplement reachable structural branch-root refs under the frozen grammar.",
+    "consequence": "AMPLIFIER_SIDE_IS_CLOSED_FOR_ODD_SELECTOR_PREFIXES"
+  },
+  "finite_diagnostic_m32": {
+    "status": "INDEPENDENT_MEMORY_BOUNDED_SEMANTICS_EQUIVALENT_REPLAY__NOT_THEOREM_EVIDENCE",
+    "odd_selector_prefix": [
+      1,
+      31,
+      9,
+      17,
+      7,
+      21,
+      15,
+      25,
+      19,
+      3,
+      11,
+      27,
+      5,
+      23,
+      13,
+      29
+    ],
+    "odd_prefix_length": 16,
+    "state_sizes_before_each_step": [
+      255,
+      257,
+      260,
+      269,
+      286,
+      321,
+      389,
+      524,
+      788,
+      1317,
+      2359,
+      4441,
+      8571,
+      16832,
+      33285,
+      66186
+    ],
+    "state_size_after_step_16": 131855,
+    "note": "Replay evaluates frozen trial keys sequentially and keeps only the winning arena; selector semantics and tie ordering are unchanged. This is diagnostic only."
   }
 }
