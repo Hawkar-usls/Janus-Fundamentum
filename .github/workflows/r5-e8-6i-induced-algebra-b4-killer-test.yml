@@ -13,6 +13,9 @@ on:
       - 'research/tools/r5_e8_6i_boolean_multisorted_fano_checker.py'
       - 'research/R5_B1B1C5B2B2_E8_6I_BOOLEAN_MULTISORTED_FANO_BLOCKER_2026-09-22_v1.0.json'
       - 'research/R5_B1B1C5B2B2_E8_6I_BOOLEAN_MULTISORTED_FANO_BLOCKER_2026-09-22_v1.0.md'
+      - 'research/tools/r5_e8_6i_a3_sbm_majority_lift_checker.py'
+      - 'research/R5_B1B1C5B2B2_E8_6I_A3_SBM_MAJORITY_LIFT_POSITIVE_CONTROL_2026-09-22_v1.0.json'
+      - 'research/R5_B1B1C5B2B2_E8_6I_A3_SBM_MAJORITY_LIFT_POSITIVE_CONTROL_2026-09-22_v1.0.md'
       - '.github/workflows/r5-e8-6i-induced-algebra-b4-killer-test.yml'
   push:
     branches:
@@ -108,4 +111,30 @@ jobs:
           assert actual['firewall']['D1']=='EMPTY'
           assert actual['firewall']['SUCCESSOR_ALGORITHM']=='LOCKED'
           print('R5_E8_6I_BOOLEAN_MULTISORTED_FANO=PASS')
+          PY
+
+      - name: Replay A3 SBM majority-lift positive control
+        run: |
+          set -euo pipefail
+          python -m py_compile research/tools/r5_e8_6i_a3_sbm_majority_lift_checker.py
+          python research/tools/r5_e8_6i_a3_sbm_majority_lift_checker.py > /tmp/a3.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          actual=json.loads(Path('/tmp/a3.json').read_text())
+          frozen=json.loads(Path('research/R5_B1B1C5B2B2_E8_6I_A3_SBM_MAJORITY_LIFT_POSITIVE_CONTROL_2026-09-22_v1.0.json').read_text())
+
+          assert actual == frozen
+          assert actual['status']=='PASS_EXACT_POLYNOMIAL_LIFT_POSITIVE_CONTROL'
+          assert actual['enumeration']['subalgebra_count']==2833
+          assert actual['enumeration']['exact_lift_decoder_triples_per_signed_clause']==108
+          assert actual['decoder_characterization']['equivalent_2SAT']=='(l1 OR l2) AND (l1 OR l3) AND (l2 OR l3)'
+          assert actual['lifecycle']['hidden_SAT_oracle'] is False
+          assert actual['strictness_control']['A3_majority_lift_coarse_solution_count']==0
+          assert actual['firewall']['UNIVERSAL_3SAT_COVERAGE'] is False
+          assert actual['firewall']['P_VS_NP']=='OPEN'
+          assert actual['firewall']['D1']=='EMPTY'
+          assert actual['firewall']['SUCCESSOR_ALGORITHM']=='LOCKED'
+          print('R5_E8_6I_A3_SBM_MAJORITY_LIFT=PASS')
           PY
