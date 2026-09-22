@@ -829,3 +829,101 @@ NO P3/amplifier work
 NO reopening related-payload cone gap
 NO full N_t counting
 ```
+
+
+## 14. 2026-09-22 frozen-greedy counterfamily closure
+
+The prior open scheduler chain is now closed for the exact frozen selector.
+
+```text
+RELATED_PAYLOAD_CONE_GAP
+original m>=4 scope
+=
+FALSIFIED BY m=4 BASE EXCEPTION
+
+repaired m>=8 scope
+=
+PROVED
+
+m=4 base
+=
+x1 -> x3
+PROVED DIRECTLY
+
+
+EVEN_SELECTOR_BARRIER
+=
+PROVED
+
+ORPHAN_PAYLOAD_BARRIER
+=
+PROVED
+
+ODD_SELECTOR_GREEDY_PREFIX_THEOREM
+=
+PROVED
+
+for every m=2^r>=4:
+
+first m/2 greedy eliminations
+=
+all odd selectors
+```
+
+Together with the already-sealed odd-selector branch-injectivity lemma:
+
+```text
+Peak(F_m)
+>=
+2^(m/2)
+
+L
+=
+Theta(m log m)
+
+therefore
+
+Peak(F_m)
+>=
+2^(Omega(L/log L)).
+```
+
+Hence:
+
+```text
+R5_E8_GREEDY_PROJECTOR_PEAK_THEOREM_V1
+=
+FALSIFIED
+
+EXACT FROZEN STRUCTURAL-GREEDY D1 CANDIDATE
+=
+REJECTED
+
+P_VS_NP
+=
+OPEN
+```
+
+Authority:
+
+- `research/R5_B1B1C5B2B2_E8_RELATED_PAYLOAD_CONE_GAP_SCOPE_REPAIR_2026-09-22_v1.0.md`
+- `research/R5_B1B1C5B2B2_E8_CELL_TREE_COMPETITOR_BARRIERS_AND_FULL_ODD_PREFIX_THEOREM_2026-09-22_v1.0.md`
+- `research/R5_B1B1C5B2B2_E8_CYCLIC_POWER_OF_TWO_COUNTERFAMILY_RESULT_2026-09-22_v1.0.json`
+
+### Next authorized work
+
+```text
+NO SUCCESSOR ALGORITHM YET.
+
+1. independent proof audit
+2. postmortem:
+   identify exact missing compaction capability
+3. anti-duplication check against:
+   DP / guarded elimination
+   factorized payload
+   ER / BVA
+   SynNNF / knowledge compilation
+4. only then decide whether a successor E8 mechanism is justified
+```
+
+Do not reinterpret this counterfamily as a SAT lower bound or as evidence for `P != NP`.
