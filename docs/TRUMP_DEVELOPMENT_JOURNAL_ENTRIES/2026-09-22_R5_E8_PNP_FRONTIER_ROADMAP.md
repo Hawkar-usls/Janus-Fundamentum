@@ -1023,3 +1023,102 @@ that simultaneously provides:
 ```
 
 Do not design a new compiler until a candidate invariant is first found and source-audited.
+
+
+## 15. Frozen greedy candidate closed by arbitrary-size counterfamily
+
+The remaining competitor classes are now all closed:
+
+```text
+RELATED PAYLOADS
+=
+CLOSED
+
+ORPHAN PAYLOADS
+=
+CLOSED
+
+EVEN SELECTORS
+=
+CLOSED
+```
+
+Therefore:
+
+```text
+R5_E8_ODD_SELECTOR_GREEDY_PREFIX_THEOREM_V1
+=
+PROVED
+
+for every m=2^r>=4.
+```
+
+The first `m/2` frozen greedy choices are the odd selector variables.
+
+Combining with the already-proved odd-selector branch-injectivity lemma:
+
+```text
+Peak(F_m)
+>=
+2^(m/2).
+```
+
+With frozen encoded input length:
+
+```text
+L = Theta(m log m),
+```
+
+the explicit family satisfies:
+
+```text
+Peak(F_m)
+>=
+2^(Omega(L/log L)).
+```
+
+Hence:
+
+```text
+R5_E8_GREEDY_PROJECTOR_PEAK_THEOREM_V1
+=
+FALSIFIED
+```
+
+by an arbitrary-size explicit family.
+
+Authority:
+
+`research/R5_B1B1C5B2B2_E8_ODD_SELECTOR_GREEDY_PREFIX_AND_PEAK_FALSIFICATION_2026-09-22_v1.0.md`
+
+Result receipt:
+
+`registry/R5_B1B1C5B2B2_E8_FROZEN_GREEDY_PEAK_FALSIFICATION_RESULT_2026-09-22_v1.0.json`
+
+### Scope firewall
+
+This result kills only the exact frozen structural-only greedy candidate.
+
+It is not a lower bound for all AIG QE, all variable orders, or SAT, and it does not imply `P!=NP`.
+
+### Next authorized work
+
+```text
+POSTMORTEM
++
+SUCCESSOR GAP ANALYSIS
+
+ONLY
+```
+
+Do not open a new selector or representation until the exact missing operation is isolated against the anti-duplication audit.
+
+```text
+P_VS_NP
+=
+OPEN
+
+D1
+=
+NOT_ADMITTED
+```
