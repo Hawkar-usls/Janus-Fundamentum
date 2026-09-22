@@ -261,6 +261,12 @@ def build_receipt():
             "coarse_prototype_count":0,
             "verdict":"STRICT_SUBCLASS_NOT_UNIVERSAL"
         },
+        "source_bound_algorithm_donor":{
+            "title":"A Simple Algorithm for Mal'tsev Constraints",
+            "authors":["Andrei Bulatov","Victor Dalmau"],
+            "doi":"10.1137/050628957",
+            "url":"https://doi.org/10.1137/050628957"
+        },
         "scientific_meaning":[
             "PURE_F2SQUARED_MALTSEV_IS_A_SECOND_COMPLETE_POLYNOMIAL_LIFT_ARCHITECTURE_CONTROL",
             "ENLARGING_THE_VISIBLE_MALTSEV_CARRIER_FROM_THE_A3_BLOCK_RESIDUAL_TO_F2SQUARED_DOES_NOT_LOWER_THE_COARSE_THRESHOLD_BELOW_TWO",
