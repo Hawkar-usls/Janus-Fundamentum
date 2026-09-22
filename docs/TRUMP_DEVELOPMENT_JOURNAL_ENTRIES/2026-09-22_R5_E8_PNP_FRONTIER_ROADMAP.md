@@ -758,3 +758,74 @@ P_VS_NP
 =
 OPEN
 ```
+
+
+## 14. Related-payload scope repair and orphan frontier
+
+The sufficient related-payload cone gap was too strong at the smallest base:
+
+```text
+m=4:
+RELATED_PAYLOAD_CONE_GAP(s_z+4)
+=
+FALSE
+```
+
+but the exact scheduler base remains:
+
+```text
+x1 -> x3
+=
+PROVED_DIRECTLY.
+```
+
+For every `m=2^r>=8` the repaired theorem is:
+
+```text
+RELATED payload z
++
+unresolved odd support o
+
+=>
+
+A_z-A_o >= s_z+4
+```
+
+and, using payload-backbone rigidity and `kappa=0`, every related payload is excluded from the frozen greedy winner set.
+
+Authority:
+
+`research/R5_B1B1C5B2B2_E8_RELATED_PAYLOAD_CONE_GAP_SCOPE_REPAIR_2026-09-22_v1.0.md`
+
+The only remaining payload class is now:
+
+```text
+ORPHAN(z)
+iff
+both odd support selectors of z
+have already been projected.
+```
+
+Current and only open scheduler target:
+
+```text
+R5_E8_ORPHAN_PAYLOAD_BARRIER_V1
+
+while some odd selector remains,
+no orphan payload can beat
+all unresolved odd selectors
+
+under
+
+(E_v,A_v,variable_id).
+```
+
+Until this resolves:
+
+```text
+NO new family
+NO new representation
+NO P3/amplifier work
+NO reopening related-payload cone gap
+NO full N_t counting
+```
