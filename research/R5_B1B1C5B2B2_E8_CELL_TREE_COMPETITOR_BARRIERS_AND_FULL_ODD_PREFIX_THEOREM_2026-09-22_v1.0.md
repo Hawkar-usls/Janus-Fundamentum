@@ -132,6 +132,14 @@ W_P(u)
 W_P(p).
 ```
 
+Moreover, after removing the leaf-cell contribution from both path weights, the corresponding internal-path inequality is non-strict:
+
+```text
+W_P^internal(u)
+<=
+W_P^internal(p).
+```
+
 In particular:
 
 ```text
@@ -378,14 +386,16 @@ Below the cell roots:
 - orphan payload `z` has
   - `c_e+1` gates from even support block `e`,
   - `c_f+1` gates from even support block `f`,
-  - one live two-literal residual gate from each of the two projected odd supports.
+  - one canonical two-literal residual gate shared by the two projected odd-support occurrences.
+
+The last count is one, not two: the two residual clauses containing `z` are the same frozen two-literal clause and structural interning merges them.
 
 Thus:
 
 ```text
 LOCAL_z
 =
-c_e+c_f+4
+c_e+c_f+3
 
 LOCAL_o
 =
@@ -395,7 +405,7 @@ LOCAL_o
 The local excess is
 
 ```text
-c_e+c_f-1.
+c_e+c_f-2.
 ```
 
 The cell-tree support union exceeds the selected odd cell path by at least 2.
@@ -407,18 +417,16 @@ Hence:
 ```text
 A_z-A_o
 >=
-(c_e+c_f-1)+2
+(c_e+c_f-2)+2
 
 =
-c_e+c_f+1.
+c_e+c_f.
 ```
 
-In particular:
+Since `c_e,c_f in {1,2}`, this also gives the strict secondary-cone separation
 
 ```text
-A_z-A_o
->
-c_e+c_f.
+A_z>A_o.
 ```
 
 ## 9. Orphan net-charge barrier
@@ -460,10 +468,22 @@ E_z-E_o
 (sigma_z-sigma_o)
 
 >=
-1.
+0.
 ```
 
-So every orphan payload is strictly worse on the primary frozen net-charge key than some unresolved odd selector.
+If the primary net-charge key ties, the cone bound gives
+
+```text
+A_z-A_o
+>=
+c_e+c_f
+>=
+2,
+```
+
+so the unresolved odd selector wins the secondary cone-size key.
+
+Thus every orphan payload is excluded from the greedy winner set.
 
 Thus:
 
