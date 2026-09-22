@@ -1,7 +1,7 @@
 {
   "artifact_id": "JANUS-R5-E8-CYCLIC-POWER-OF-TWO-SELECTOR-PREFIX-GATE-2026-09-22-v1.0",
   "date": "2026-09-22",
-  "version": "1.3",
+  "version": "1.2",
   "authority": "SYMBOLIC_THEOREM_GATE_AND_FINITE_DIAGNOSTIC_ONLY__NO_D1_PROMOTION",
   "repository": "Hawkar-usls/Janus-Fundamentum",
   "lineage": {
@@ -78,7 +78,8 @@
         "Peak(F_m) >= 2^(Omega(L/log L))",
         "R5_E8_GREEDY_PROJECTOR_PEAK_THEOREM_V1 falsified"
       ],
-      "status": "OPEN_AFTER_STEP0"
+      "status": "OPEN_AFTER_STEP0_PROVED",
+      "reduced_open_core": "R5_E8_ODD_PREFIX_NET_CHARGE_THEOREM_V1"
     },
     "step0": {
       "theorem": "R5_E8_POWER_OF_TWO_STEP0_SELECTOR_THEOREM_V1",
@@ -155,23 +156,21 @@
     "possible_new_scoped_result": "ONLY_THE_EXACT_POWER_OF_TWO_GREEDY_PREFIX_THEOREM_OR_AN_ARBITRARY_N_COUNTERFAMILY_FOR_THE_FROZEN_SELECTOR"
   },
   "next_work": {
-    "type": "THEOREM_ONLY",
-    "proved_inputs": [
-      "cost(v)=N+A_v-sigma_v-kappa_v",
-      "selector sigma_o>=8",
-      "payload kappa_z=0",
-      "payload sigma_z<=s_z+12",
-      "odd-prefix amplification closed"
+    "type": "THEOREM_ONLY_NET_CHARGE",
+    "sole_open_core": "R5_E8_ODD_PREFIX_NET_CHARGE_THEOREM_V1",
+    "obligations": [
+      "For arbitrary m=2^r odd-only prefix states, prove kappa_v=0 for relevant unresolved odd selectors and every payload comparator.",
+      "Prove there exists unresolved odd selector o such that for every payload z: A_z-A_o >= sigma_z-sigma_o.",
+      "When equality holds, prove A_o<A_z; selector IDs already beat payload IDs on tertiary tie.",
+      "Do not count full projected DAG size N_t separately; N_t is common and cancels from the exact greedy comparison."
     ],
-    "current_subgate": "R5_E8_RELATED_PAYLOAD_CONE_GAP_V1",
-    "target": "For payload z with at least one unresolved odd support selector o, prove A_z-A_o>=s_z+4; this implies o strictly beats z.",
-    "next_after_that": "R5_E8_ORPHAN_PAYLOAD_BARRIER_V1: handle payloads whose two odd support selectors are already projected.",
-    "forbidden": [
-      "new family",
-      "new representation",
-      "amplifier re-analysis",
-      "full N_t counting unless local proof route fails"
-    ]
+    "already_closed": [
+      "P3 odd-prefix branch amplification",
+      "power-of-two no-carry tree geometry",
+      "exact local selector polynomiality",
+      "STEP_0 selector win for arbitrary r"
+    ],
+    "finite_runs": "DIAGNOSTIC_ONLY"
   },
   "odd_selector_branch_injectivity": {
     "status": "PROVED",
@@ -223,12 +222,12 @@
     "note": "Replay evaluates frozen trial keys sequentially and keeps only the winning arena; selector semantics and tie ordering are unchanged. This is diagnostic only."
   },
   "net_projection_charge": {
-    "status": "PROVED",
-    "theorem_path": "research/R5_B1B1C5B2B2_E8_NET_PROJECTION_CHARGE_AND_STEP0_THEOREM_2026-09-22_v1.0.json",
-    "theorem_commit": "c080d68289ff174da8b184e5799e84fc852166b0",
-    "identity": "cost(v)=N+A_v-sigma_v-kappa_v",
-    "reduced_primary_charge": "E_v=A_v-sigma_v-kappa_v",
-    "key_equivalence": "Within a fixed state, (cost,A_v,id) is equivalent to (E_v,A_v,id)."
+    "status": "PROVED_IDENTITY",
+    "theorem_path": "research/R5_B1B1C5B2B2_E8_NET_PROJECTION_CHARGE_AND_STEP0_THEOREM_2026-09-22_v1.0.md",
+    "theorem_commit": "b681d62b9c399103af39a4a6724f277f73d1c45f",
+    "identity": "For every currently reachable trial variable v: cost(v)=N+A_v-sigma_v-kappa_v.",
+    "net_charge": "E_v=A_v-sigma_v-kappa_v",
+    "selector_equivalent_key": "(E_v,A_v,variable_id)"
   },
   "payload_backbone_rigidity": {
     "status": "PROVED",
@@ -236,5 +235,19 @@
     "commit": "ca6639faa48976a1aee159995b8e81c536be7936",
     "theorem": "On every odd-selector-only prefix state, every payload z has kappa_z=0 and sigma_z<=s_z+12.",
     "consequence": "Shannon backbone cannot give payload an unbounded nonlocal simplification discount; payload savings are bounded by the four local occurrence neighborhoods."
+  },
+  "step0_selector_theorem": {
+    "status": "PROVED_ARBITRARY_R",
+    "parameter": "m=2^r>=4",
+    "exact_results": [
+      "N0=8m-1",
+      "A_x=r+5",
+      "sigma_x=8",
+      "kappa_x=0",
+      "E_x=r-3",
+      "For every payload z: E_z>=r-3",
+      "If E_z=E_x then A_z>A_x",
+      "Therefore first greedy choice is selector x1"
+    ]
   }
 }
