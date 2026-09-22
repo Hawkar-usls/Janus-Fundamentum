@@ -239,7 +239,65 @@ FOR ODD-SELECTOR PREFIXES
 
 ## 7. CURRENT OPEN CORE — do this next
 
-### R5_E8_ODD_SELECTOR_GREEDY_PREFIX_THEOREM_V1
+### R5_E8_ODD_PREFIX_NET_CHARGE_THEOREM_V1
+
+New exact accounting authority:
+
+`research/R5_B1B1C5B2B2_E8_NET_PROJECTION_CHARGE_AND_STEP0_THEOREM_2026-09-22_v1.0.md`
+
+For every currently reachable trial variable:
+
+```text
+cost(v)
+=
+N + A_v - sigma_v - kappa_v.
+```
+
+Hence with
+
+```text
+E_v
+=
+A_v - sigma_v - kappa_v
+```
+
+the frozen greedy key is exactly
+
+```text
+(E_v, A_v, variable_id).
+```
+
+The arbitrary-`r` initial step is now closed:
+
+```text
+m=2^r >= 4
+=>
+first frozen greedy winner = x1.
+```
+
+The remaining theorem is:
+
+```text
+For every odd-only prefix state before
+all odd selectors are eliminated:
+
+I. kappa_v = 0
+   for relevant odd-selector/payload trials;
+
+II. there exists unresolved odd selector o
+    such that for every payload z:
+
+    A_z - A_o
+    >=
+    sigma_z - sigma_o;
+
+III. if equality holds,
+     A_o < A_z.
+```
+
+This is equivalent to proving the remaining odd selector beats every payload under the exact frozen key.
+
+### Consequence: R5_E8_ODD_SELECTOR_GREEDY_PREFIX_THEOREM_V1
 
 Target:
 
@@ -302,9 +360,15 @@ The `m=32` observation remains diagnostic, not theorem evidence.
 
 ## 8. Required proof program
 
-### Stage A — exact state normal form
+### Stage A — exact state normal form / kappa lemma
 
-Derive a symbolic description of the frozen live DAG after an arbitrary prefix of odd selector eliminations.
+Derive a symbolic description of the frozen live DAG after an arbitrary prefix of odd selector eliminations and prove that projection of every relevant comparator drops no old variable-independent reachable node:
+
+```text
+kappa_v = 0.
+```
+
+Do not separately derive the total projected size `N_t`; the exact charge identity cancels the common `N_t` term.
 
 Required output:
 
@@ -313,55 +377,57 @@ Required output:
 - exact structural sharing that remains possible;
 - no semantic simplification assumptions.
 
-### Stage B — odd-selector cost recurrence
+### Stage B — odd-selector local charge profile
 
-For every unresolved odd selector `x_i`, derive:
-
-```text
-projected_size(x_i)
-cone_size(x_i)
-```
-
-as a function of the odd-prefix state.
-
-Goal:
+For unresolved odd selectors derive:
 
 ```text
-upper bound on best unresolved odd-selector key.
+A_o
+sigma_o
+E_o = A_o - sigma_o
 ```
 
-### Stage C — payload lower bound
+under the `kappa_o=0` invariant.
 
-For every unresolved payload `z_j`, derive a lower bound or exact recurrence for:
+Goal: characterize the bounded local simplification saving while allowing the common Shannon backbone to grow.
+
+### Stage C — payload local charge profile
+
+For every unresolved payload `z_j`, derive:
 
 ```text
-projected_size(z_j)
-cone_size(z_j)
+A_z
+sigma_z
+E_z = A_z - sigma_z
 ```
 
-on the same state.
+under the same `kappa_z=0` invariant.
 
-Goal:
+Target comparison:
 
 ```text
-lower bound on best payload key.
+A_z - A_o
+>=
+sigma_z - sigma_o.
 ```
 
-### Stage D — compare all competitors
+### Stage D — compare all competitors by net charge
 
-Prove for every prefix length
+For every prefix length `0 <= t < m/2`, prove existence of unresolved odd selector `o` such that for every payload `z`:
 
 ```text
-0 <= t < m/2
+DeltaCone
+=
+A_z - A_o
+
+>=
+
+sigma_z - sigma_o
+=
+DeltaSaving.
 ```
 
-that:
-
-```text
-min_odd_selector_key(S_t)
-<
-min_payload_key(S_t).
-```
+Therefore `E_o <= E_z`. If equality holds, prove `A_o<A_z`; selector IDs already dominate payload IDs on the tertiary tie-break.
 
 No ignored competitors are allowed.
 
@@ -657,3 +723,38 @@ Do **not** count the full `N_t` separately unless forced.
 Do **not** reopen the amplifier: odd-prefix branch amplification is already closed.
 
 Do **not** open a new family or representation before this theorem resolves.
+
+
+## 13. 2026-09-22 net-charge checkpoint
+
+```text
+NET_PROJECTION_CHARGE_IDENTITY
+=
+PROVED
+
+POWER_OF_TWO_STEP0_SELECTOR_WIN
+=
+PROVED_ARBITRARY_R
+
+FULL_N_t_PROJECTED_DAG_COUNTING
+=
+NO_LONGER_REQUIRED
+
+CURRENT OPEN CORE
+=
+KAPPA_ZERO
++
+DELTA_CONE >= DELTA_SAVING
+
+AMPLIFIER/P3
+=
+CLOSED_AND_FROZEN
+
+NEW FAMILY / NEW REPRESENTATION HUNT
+=
+FORBIDDEN UNTIL THIS GATE RESOLVES
+
+P_VS_NP
+=
+OPEN
+```
