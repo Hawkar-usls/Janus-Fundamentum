@@ -38,7 +38,7 @@ D=(0,1,2)
 BITS=(0,1)
 SIGNS=tuple(itertools.product((1,-1),repeat=3))
 TUPLES=tuple(itertools.product(D,repeat=3))
-INDEX={t:i for i,t in enumerate(TUPLES))
+INDEX={t:i for i,t in enumerate(TUPLES)}
 
 
 def block(a:int)->int:
