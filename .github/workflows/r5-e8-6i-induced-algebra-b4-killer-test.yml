@@ -65,6 +65,24 @@ jobs:
           print('R5_E8_6I_B4_EXACT_REPLAY=PASS')
           PY
 
+      - name: Replay NAE3 local-consistency barrier
+        run: |
+          set -euo pipefail
+          python research/tools/r5_e8_6i_nae3_local_consistency_b4_barrier.py > /tmp/nae_actual.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          actual=json.loads(Path('/tmp/nae_actual.json').read_text())
+          frozen=json.loads(Path('research/R5_B1B1C5B2B2_E8_6I_NAE3_LOCAL_CONSISTENCY_B4_BARRIER_2026-09-22_v1.0.json').read_text())
+          assert actual == frozen
+          assert actual['status']=='PASS_EXACT_SCOPED_BARRIER'
+          assert actual['local_consistency']['all_partial_assignments_of_size_at_most_2_extend'] is True
+          assert actual['local_consistency']['strong_3_consistent'] is True
+          assert actual['induced_algebra']['preserving_label_triple_count']==0
+          assert actual['firewall']['P_VS_NP']=='OPEN'
+          print('R5_E8_6I_NAE3_LOCAL_CONSISTENCY_BARRIER=PASS')
+          PY
+
       - name: Replay full Boolean single-ternary tractable catalogue blocker
         run: |
           set -euo pipefail
