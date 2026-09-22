@@ -1,7 +1,7 @@
 {
   "artifact_id": "JANUS-R5-E8-NET-PROJECTION-CHARGE-AND-STEP0-THEOREM-2026-09-22-v1.0",
   "date": "2026-09-22",
-  "version": "1.0",
+  "version": "1.1",
   "authority": "SCOPED_SYMBOLIC_THEOREM__FROZEN_STRUCTURAL_AIG_ONLY__NO_D1_PROMOTION",
   "repository": "Hawkar-usls/Janus-Fundamentum",
   "lineage": {
@@ -220,7 +220,12 @@
         }
       }
     ],
-    "scope": "DIAGNOSTIC_CROSSCHECK_ONLY__THE_STEP0_PROOF_DOES_NOT_DEPEND_ON_FINITE_DATA"
+    "scope": "DIAGNOSTIC_CROSSCHECK_ONLY__THE_STEP0_PROOF_DOES_NOT_DEPEND_ON_FINITE_DATA",
+    "additional_scope_checks": {
+      "m8": "all odd-prefix permutation states checked diagnostically: no violation of related payload domination or payload kappa=0 / sigma<=s+12 bounds",
+      "m16": "random odd-prefix states checked diagnostically: no violation observed",
+      "authority": "DIAGNOSTIC_ONLY__NOT_USED_AS_PROOF"
+    }
   },
   "sharpened_open_core": {
     "name": "R5_E8_ODD_PREFIX_NET_CHARGE_THEOREM_V1",
@@ -230,7 +235,28 @@
       "Payload kappa_z=0 is sufficient; odd-selector kappa_o need not be zero because positive kappa_o only helps the selector.",
       "A sufficient local inequality when kappa_z=0 is A_z-A_o >= sigma_z-sigma_o; equality in E is then resolved by A_o<A_z or finally by selector id.",
       "The amplifier theorem remains closed and must not be reopened."
-    ]
+    ],
+    "payload_backbone_subgate": {
+      "name": "R5_E8_PAYLOAD_BACKBONE_RIGIDITY_V1",
+      "status": "OPEN",
+      "target": [
+        "prove kappa_z=0 for every payload on every odd-only prefix state",
+        "prove sigma_z<=s_z+12, where s_z is the frozen local clause-order count from the original four payload occurrences",
+        "interpretation: all extra Shannon-backbone dependent gates must rebuild without additional semantic/structural collapse; payload savings remain local"
+      ]
+    },
+    "related_cone_subgate": {
+      "name": "R5_E8_RELATED_PAYLOAD_CONE_GAP_V1",
+      "status": "OPEN",
+      "target": "If payload z still has an unresolved odd selector o in one of its four support blocks, prove A_z-A_o >= s_z+4.",
+      "consequence": "Together with sigma_o>=8 and payload rigidity, E_z-E_o >= 0; since A_z>A_o, the related odd selector strictly beats z under the frozen key."
+    },
+    "orphan_payload_subgate": {
+      "name": "R5_E8_ORPHAN_PAYLOAD_BARRIER_V1",
+      "status": "OPEN_AFTER_RELATED_DOMINATION",
+      "definition": "payload whose two odd support selectors have already been projected",
+      "target": "show no orphan payload can become the minimum payload key before all odd selectors are removed, or exhibit the first symbolic counterexample"
+    }
   },
   "claim_ceiling": {
     "ODD_PREFIX_STEP0": "CLOSED",
@@ -238,5 +264,18 @@
     "GREEDY_PROJECTOR_PEAK_THEOREM": "OPEN",
     "P_VS_NP": "OPEN",
     "D1": "NOT_ADMITTED"
+  },
+  "odd_selector_savings_floor": {
+    "theorem": "R5_E8_ODD_SELECTOR_LOCAL_SAVINGS_FLOOR_V1",
+    "status": "PROVED",
+    "claim": "In any state reached by projecting only other odd selectors, every still-unresolved odd selector o satisfies sigma_o >= 8.",
+    "proof": [
+      "The original unprojected block G_o remains an exact shared structural sub-DAG because no previous projection touched variable o.",
+      "Its two selector clauses contribute four o-dependent clause gates and G_o contributes one o-dependent block gate.",
+      "Across the two cofactors o=0 and o=1 those five local gates create at most one residual two-literal payload-clause node per cofactor, two new local nodes total.",
+      "Thus among the ten local dependent-gate opportunities across both cofactors at least eight do not contribute a new reachable node.",
+      "Any additional simplification, interning hit, unreachable fresh node, or final-OR collapse can only increase sigma_o.",
+      "Therefore sigma_o>=8 independently of the size of the global Shannon backbone."
+    ]
   }
 }
