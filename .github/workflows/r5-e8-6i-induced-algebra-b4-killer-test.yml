@@ -16,6 +16,9 @@ on:
       - 'research/tools/r5_e8_6i_a3_sbm_majority_lift_checker.py'
       - 'research/R5_B1B1C5B2B2_E8_6I_A3_SBM_MAJORITY_LIFT_POSITIVE_CONTROL_2026-09-22_v1.0.json'
       - 'research/R5_B1B1C5B2B2_E8_6I_A3_SBM_MAJORITY_LIFT_POSITIVE_CONTROL_2026-09-22_v1.0.md'
+      - 'research/tools/r5_e8_6i_boolean_occurrence_sync_barrier.py'
+      - 'research/R5_B1B1C5B2B2_E8_6I_BOOLEAN_OCCURRENCE_SYNC_BARRIER_2026-09-22_v1.0.json'
+      - 'research/R5_B1B1C5B2B2_E8_6I_BOOLEAN_OCCURRENCE_SYNCHRONIZATION_CONJUGATION_THEOREM_2026-09-22_v1.0.md'
       - '.github/workflows/r5-e8-6i-induced-algebra-b4-killer-test.yml'
   push:
     branches:
@@ -155,4 +158,22 @@ jobs:
           assert actual['firewall']['D1']=='EMPTY'
           assert actual['firewall']['SUCCESSOR_ALGORITHM']=='LOCKED'
           print('R5_E8_6I_A3_SBM_MAJORITY_LIFT=PASS')
+          PY
+
+      - name: Replay Boolean occurrence synchronization barrier
+        run: |
+          set -euo pipefail
+          python research/tools/r5_e8_6i_boolean_occurrence_sync_barrier.py > /tmp/occ_actual.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          actual=json.loads(Path('/tmp/occ_actual.json').read_text())
+          frozen=json.loads(Path('research/R5_B1B1C5B2B2_E8_6I_BOOLEAN_OCCURRENCE_SYNC_BARRIER_2026-09-22_v1.0.json').read_text())
+          assert actual == frozen
+          assert actual['status']=='PASS_EXACT_GENERAL_IDENTITY_PLUS_NAE_CONTROL'
+          assert actual['exhaustive_checks']['conjugation_equivalences_checked']==4096
+          assert actual['exhaustive_checks']['nae_split_prototype_count']==0
+          assert actual['consequence']['BOOLEAN_OCCURRENCE_SPLITTING_WITH_EQ_NEQ_AND_ID_NOT_RENAMING_CAN_RESCUE_B4'] is False
+          assert actual['firewall']['P_VS_NP']=='OPEN'
+          print('R5_E8_6I_OCCURRENCE_SYNC_BARRIER=PASS')
           PY
