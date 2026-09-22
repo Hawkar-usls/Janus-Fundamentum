@@ -83,9 +83,9 @@ Runtime draft lineages:
 ```text
 TOPA
 PR #56
-validated head a9788a1643498bb9beb22313e41a44502f8dd8f4
-TOPA PNP Corpus Fabric CI = PASS
-JANUS Secret Persistence Guard = PASS
+validated head ed038fce31805009f80277a5fda137f36bc0c4cd
+TOPA PNP Corpus Fabric CI = PASS (run 35678519212)
+JANUS Secret Persistence Guard = PASS (run 35678519198)
 
 Janus-Demiurge
 PR #196
