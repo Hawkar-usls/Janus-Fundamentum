@@ -1235,3 +1235,186 @@ NEXT ACTION
 WAIT FOR GENUINELY NEW
 SOURCE-BOUND STRUCTURAL PRINCIPLE
 ```
+
+
+---
+
+## 17. 6I — source-bound induced-algebra bridge gate
+
+The 6H unlock condition has fired **narrowly**, not globally.
+
+A known external structural principle not previously represented in the JANUS audited set has been identified:
+
+```text
+INSTANCE-SPECIFIC
+INDUCED ALGEBRA ASSIGNMENT
+
+v -> A_v in B
+```
+
+Source:
+
+Rustem Takhanov,
+*On the induced problem for fixed-template CSPs*,
+arXiv:1708.08292v3.
+
+Supporting multi-sorted / discoverability controls:
+
+- Bulatov–Jeavons, *An Algebraic Approach to Multi-sorted Constraints*;
+- Carbonnel, *The Dichotomy for Conservative Constraint Satisfaction is Polynomially Decidable*.
+
+Mandatory comparison against:
+
+```text
+FACTORIZED_FEEDBACK
+EXACT_INTERFACE_QUOTIENT
+LOG_ALIEN_TRANSFER
+AFFINE_BOUNDARY
+GUARDED_OUTPUT_ELIMINATION
+C023 / C023R
+RAW_SCHAEFER_BASIS
+```
+
+returns:
+
+```text
+REDISCOVERY
+=
+NO
+
+RAW_SCHAEFER_RELATION
+=
+ADJACENT,
+SINGLETON-B SPECIAL CASE,
+NOT THE SAME OBJECT
+```
+
+Authority:
+
+`research/R5_B1B1C5B2B2_E8_6I_INDUCED_ALGEBRA_SOURCE_ADMISSION_AUDIT_2026-09-22_v1.0.md`
+
+Checkpoint:
+
+`registry/R5_B1B1C5B2B2_E8_6I_INDUCED_ALGEBRA_ADMISSION_CHECKPOINT_2026-09-22_v1.0.json`
+
+### Frozen first negative control — B4
+
+```text
+B4
+=
+{AND3, OR3, MAJ3, XOR3}
+```
+
+Exact exhaustive preservation checking proves that the satisfiable two-clause formula
+
+```text
+(x OR y OR z)
+AND
+(NOT x OR NOT y OR NOT z)
+```
+
+admits zero variable-wise B4 algebra-label assignments preserving both clause relations.
+
+Also:
+
+```text
+Gamma_3SAT -> Gamma_3SAT^B4
+=
+NO HOMOMORPHISM
+```
+
+for the frozen B4 induced template.
+
+Therefore:
+
+```text
+B4 UNIVERSAL COVERAGE
+=
+FALSIFIED
+```
+
+without any heuristic evidence.
+
+### Frozen opposite control — B_const
+
+For the two value-coding constant algebras:
+
+```text
+B_const={A_0,A_1},
+```
+
+the induced template is exactly the original Boolean template under label renaming:
+
+```text
+Gamma^B_const
+cong
+Gamma.
+```
+
+Thus:
+
+```text
+COVERAGE
+=
+PERFECT
+
+PROTOTYPE DISCOVERY
+=
+ORIGINAL CSP
+```
+
+and no complexity progress is obtained.
+
+This is the exact hidden-semantic-choice control.
+
+### Current exact gate
+
+```text
+R5_E8_6I_INDUCED_ALGEBRA
+COVERAGE_DISCOVERY_BRIDGE_GATE_V1
+```
+
+A candidate algebra family `B` must close all of:
+
+```text
+G1 tractable algebras
+G2 poly description/construction
+G3 poly CSP(Gamma_3SAT^B) prototype discovery
+G4 complete arbitrary-3CNF coverage / sound reduction
+G5 poly prototype-to-original solve/reconstruct
+G6 total original-L polynomial lifecycle
+G7 no value-coding / hidden SAT choice
+```
+
+Current search interval:
+
+```text
+TOO RIGID:
+B4
+=> coverage fails
+
+TOO EXPRESSIVE:
+B_const
+=> discovery is SAT
+
+MISSING:
+nontrivial source-bound B
+with both coverage
+and polynomial prototype discovery
+```
+
+This is theorem analysis only.
+
+```text
+SUCCESSOR_ALGORITHM
+=
+LOCKED
+
+D1
+=
+EMPTY
+
+P_VS_NP
+=
+OPEN
+```
