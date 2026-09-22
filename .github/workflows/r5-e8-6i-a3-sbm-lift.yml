@@ -1,0 +1,59 @@
+name: R5 E8 6I A3 SBM Lift Positive Control
+
+on:
+  pull_request:
+    paths:
+      - 'research/tools/r5_e8_6i_a3_sbm_majority_lift_checker.py'
+      - 'research/R5_B1B1C5B2B2_E8_6I_A3_SBM_MAJORITY_LIFT_POSITIVE_CONTROL_2026-09-22_v1.0.json'
+      - 'research/R5_B1B1C5B2B2_E8_6I_A3_SBM_MAJORITY_LIFT_POSITIVE_CONTROL_2026-09-22_v1.0.md'
+      - '.github/workflows/r5-e8-6i-a3-sbm-lift.yml'
+  push:
+    branches:
+      - 'codex/r5-e8-direct-contract-20260921-82493a57'
+    paths:
+      - 'research/tools/r5_e8_6i_a3_sbm_majority_lift_checker.py'
+      - 'research/R5_B1B1C5B2B2_E8_6I_A3_SBM_MAJORITY_LIFT_POSITIVE_CONTROL_2026-09-22_v1.0.json'
+      - 'research/R5_B1B1C5B2B2_E8_6I_A3_SBM_MAJORITY_LIFT_POSITIVE_CONTROL_2026-09-22_v1.0.md'
+      - '.github/workflows/r5-e8-6i-a3-sbm-lift.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  exact-replay:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Compile checker
+        run: python -m py_compile research/tools/r5_e8_6i_a3_sbm_majority_lift_checker.py
+      - name: Recompute exact A3 lift classification
+        run: |
+          set -euo pipefail
+          python research/tools/r5_e8_6i_a3_sbm_majority_lift_checker.py > /tmp/a3.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          actual=json.loads(Path('/tmp/a3.json').read_text())
+          frozen=json.loads(Path('research/R5_B1B1C5B2B2_E8_6I_A3_SBM_MAJORITY_LIFT_POSITIVE_CONTROL_2026-09-22_v1.0.json').read_text())
+          assert actual == frozen
+          assert actual['status']=='PASS_EXACT_POLYNOMIAL_LIFT_POSITIVE_CONTROL'
+          assert actual['algebra']['sbm_axioms_checked'] is True
+          assert actual['enumeration']['subalgebra_count']==2833
+          assert actual['enumeration']['surjective_decoder_count']==6
+          assert actual['enumeration']['exact_lift_decoder_triples_per_signed_clause']==108
+          assert actual['decoder_characterization']['exact_condition']=='AT_LEAST_TWO_SIGNED_COARSE_BITS_SATISFY_THE_THREE_CLAUSE_LITERALS'
+          assert actual['lifecycle']['decoder_discovery']=='2SAT_POLYNOMIAL'
+          assert actual['lifecycle']['hidden_SAT_oracle'] is False
+          assert actual['strictness_control']['verdict']=='STRICT_SUBCLASS_NOT_UNIVERSAL'
+          assert actual['firewall']=={
+            'P_VS_NP':'OPEN',
+            'D1':'EMPTY',
+            'SUCCESSOR_ALGORITHM':'LOCKED',
+            'UNIVERSAL_3SAT_COVERAGE':False
+          }
+          print('R5_E8_6I_A3_SBM_LIFT_EXACT_REPLAY=PASS')
+          PY
