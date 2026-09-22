@@ -87,6 +87,8 @@ and
 
 The frozen AND unique table is injective on distinct canonical child-ref pairs, and unresolved even anchors exclude CONST / IDEMPOTENCE / COMPLEMENT collapse.
 
+Commutative canonicalization cannot create a left/right swap collision: the two dyadic child intervals contain disjoint unresolved even-selector ID sets, so a structural root from the left interval cannot equal or be the exact complement of a structural root from the right interval.
+
 Therefore the parent has exactly their Cartesian product:
 
 ```text
@@ -234,7 +236,9 @@ Its two 3-clauses and block root have the same local selector structure as at st
 
 Across `e=0` and `e=1`, the ten local dependent-gate opportunities from the two copies of the five local selector-dependent gates create exactly two residual two-literal payload-clause nodes.
 
-Therefore local saving is exactly 8.
+Those residual nodes cannot have been pre-created by an earlier odd-selector projection. In this cyclic family the duplicate residual identity has two-block shift, e.g. `A_i=B_{i-2}`; when `i` is even the duplicate source index is also even. Odd-only history therefore never projected the duplicate source block. The original 3-clause AIG also contains no payload-payload two-literal residual node.
+
+Hence both residual nodes are genuinely fresh and local saving is exactly 8.
 
 Every cell-tree / branch-tree node above `G_e` rebuilds distinctly in both cofactors:
 
