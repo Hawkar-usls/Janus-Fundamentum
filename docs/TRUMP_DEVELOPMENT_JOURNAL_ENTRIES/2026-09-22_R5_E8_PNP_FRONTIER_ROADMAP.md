@@ -1418,3 +1418,136 @@ P_VS_NP
 =
 OPEN
 ```
+
+
+---
+
+## 18. Policy correction — corpus-first mechanism synthesis
+
+Authority:
+
+- `research/R5_B1B1C5B2B2_E8_CORPUS_FIRST_MECHANISM_SYNTHESIS_DOCTRINE_2026-09-22_v1.0.md`
+- `registry/R5_B1B1C5B2B2_E8_CORPUS_FIRST_MECHANISM_SYNTHESIS_DOCTRINE_2026-09-22_v1.0.json`
+
+This section supersedes the **novelty requirement** wording of the earlier 6H stop-state.
+
+Scientific facts of 6H remain valid, but admission policy changes:
+
+```text
+NOVELTY
+=
+OPTIONAL
+
+OLD / CLASSICAL MECHANISM REUSE
+=
+AUTHORIZED
+
+REDISCOVERY
+=
+ALLOWED AS WORKING MATERIAL
+
+CORPUS-FIRST MECHANISM SYNTHESIS
+=
+AUTHORIZED
+
+NEW GATE CRITERION
+=
+CLOSE A PREVIOUSLY OPEN OBLIGATION
+WITH AN EXACT POLYNOMIAL COMPOSITION THEOREM
+```
+
+A route previously rejected as a **complete solver** may still donate a valid submechanism.
+
+Do not conflate:
+
+```text
+ROUTE STATUS
+with
+MECHANISM STATUS.
+```
+
+Examples:
+
+```text
+flat-CNF DP route
+=
+rejected as universal route
+
+but
+
+bounded exact resolvent identity
+=
+still valid local donor
+
+
+2-SAT prototype discovery
+=
+not universal for OR3
+
+but
+
+still valid exact discovery engine
+for the admitted A3 2-of-3 subclass
+```
+
+Current actual frontier:
+
+```text
+6I
+=
+INSTANCE-SPECIFIC INDUCED-ALGEBRA BRIDGE
+
+CURRENT TARGET
+=
+R5_E8_6I_LIFTED_SBM_THRESHOLD_2_TO_1_BRIDGE_GATE_V1
+```
+
+The current gap is not "find something novel".
+
+It is:
+
+```text
+compose known source-bound mechanisms
+so that:
+
+coverage
++
+certificate discovery
++
+tractable lifted solve
++
+projection/preservation
++
+reconstruction
++
+global polynomial budget
+
+all close simultaneously
+for arbitrary signed 3-CNF.
+```
+
+Permanent composition rule:
+
+```text
+POLY MECHANISM A
++
+POLY MECHANISM B
+
+!=
+
+POLY UNIVERSAL SOLVER
+
+WITHOUT A POLYNOMIAL INTERFACE THEOREM.
+```
+
+Therefore every future synthesis must explicitly prove interface compatibility and total original-input polynomial lifecycle.
+
+```text
+P_VS_NP
+=
+OPEN
+
+D1
+=
+EMPTY
+```
