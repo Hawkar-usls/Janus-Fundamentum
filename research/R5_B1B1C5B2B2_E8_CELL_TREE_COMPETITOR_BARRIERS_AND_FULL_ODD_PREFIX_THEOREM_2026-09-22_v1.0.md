@@ -182,21 +182,34 @@ W_P(u) + 2.
 
 ### Proof
 
-Remove the two leaf contributions first.
+Choose whichever one of `a,b` is projected and call it `p`.
 
-For the internal ancestor paths, the union contains the full internal path of whichever of `a,b` is projected.
-
-By Lemma 4.1 its internal weighted path is at least the minimum internal path of an unprojected cell; adding the second adjacent path cannot reduce the union.
-
-At leaf level, the two support cells contribute at least
+By Lemma 4.1, because the weights are integers:
 
 ```text
-2 + 1 = 3
+W_P(p)
+>=
+W_P(u)+1
 ```
 
-reachable cell roots because at least one is projected, while an unprojected comparison cell contributes exactly 1.
+for some unprojected cell `u`.
 
-Thus the full support union exceeds the selected unprojected path by at least 2.
+The union `U_P(a,b)` contains the entire weighted path of `p`.
+
+Because `a` and `b` are distinct cells, the second support cell contributes at least its own distinct reachable cell-root ref, which is not on the leaf-to-root path of `p`.
+
+Therefore:
+
+```text
+U_P(a,b)
+>=
+W_P(p)+1
+
+>=
+W_P(u)+2.
+```
+
+No comparison of the two internal path geometries is required.
 
 QED.
 
