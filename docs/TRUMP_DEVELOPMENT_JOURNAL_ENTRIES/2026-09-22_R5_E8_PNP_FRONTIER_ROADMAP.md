@@ -927,3 +927,99 @@ NO SUCCESSOR ALGORITHM YET.
 ```
 
 Do not reinterpret this counterfamily as a SAT lower bound or as evidence for `P != NP`.
+
+
+## 15. Dual-blowup source/history synthesis closure
+
+Authority:
+
+`research/R5_B1B1C5B2B2_E8_DUAL_BLOWUP_SURVIVOR_SOURCE_HISTORY_SYNTHESIS_2026-09-22_v1.0.md`
+
+Source-audited conclusion:
+
+```text
+KNOWN REPRESENTATION SURVIVING
+BOTH SPECIFIC E8 SIZE CONTROLS
+=
+YES
+
+EXAMPLE
+=
+ECNF
+
+PARITY COMPACTNESS
+=
+PASS
+
+CYCLIC LOCAL PROJECTION COMPACTNESS
+=
+PASS
+
+BUT
+
+ECNF CONSISTENCY
+=
+NP-COMPLETE
+```
+
+EADT is affine-aware and tractable for compiled queries, but general forgetting is not polynomial unless `P=NP`.
+
+AFF[OR] supports polynomial consistency, forgetting and bounded conjunction, but no universal polynomial arbitrary-CNF-to-polysize-AFF[OR] compiler is established in the audited source set; such a compiler would itself imply `SAT in P`.
+
+Existential closure provides the independent literature version of the hidden-existential firewall:
+
+```text
+EASY FORGETTING BY REMEMBERING EXISTS
+!=
+SEMANTIC CHOICE ELIMINATION
+WITH POLY TERMINAL CONSISTENCY
+```
+
+Internal history binding:
+
+```text
+C020 NONLINEAR AFFINE MASKING
+=
+VISIBLE XOR NOT REPRESENTATION-INVARIANT
+
+UNIFORM AFFINE BOUNDARY
+EXACT INTERFACE QUOTIENT
+FACTORIZED PAYLOAD
+GUARDED ELIMINATION
+C023/C023R
+=
+ALREADY EXISTING SCOPED ROUTES
+```
+
+### Current successor lock
+
+```text
+SUCCESSOR ALGORITHM
+=
+LOCKED
+
+NEXT AUTHORIZED OBJECT
+=
+SOURCE-BOUND TRACTABLE-INVARIANT INVENTORY ONLY
+```
+
+The only legitimate question is now:
+
+```text
+Does there exist a known,
+poly-recognizable,
+compositionally discoverable,
+projection-preserved tractable invariant
+inside an ECNF-like mixed state language
+that simultaneously provides:
+
+- uniform polynomial arbitrary-CNF entry;
+- compact affine/parity objects;
+- compact local exact projections;
+- polynomial forgetting;
+- polynomial consistency;
+- no SAT/equivalence oracle;
+- polynomial total state/history?
+```
+
+Do not design a new compiler until a candidate invariant is first found and source-audited.
