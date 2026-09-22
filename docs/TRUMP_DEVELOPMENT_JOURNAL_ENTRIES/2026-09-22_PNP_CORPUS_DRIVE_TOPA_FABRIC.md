@@ -138,3 +138,47 @@ SCIENTIFIC_AUTHORITY_DELTA
 ```
 
 This degraded operational state is not scientific evidence and cannot affect P vs NP status.
+
+
+## Driveless Meta Registry fallback
+
+The corpus fabric no longer depends on Google Drive availability for continued operation.
+
+A self-contained JSON mirror is now bound in:
+
+`Hawkar-usls/janus-meta-registry@integration/pnp-corpus-fabric-v1`
+
+under:
+
+`registry/p_vs_np/corpus/`
+
+with these machine-readable layers:
+
+```text
+P_VS_NP_CORPUS_MANIFEST_2026-09-22_v1.0.json
+P_VS_NP_MATERIALS_INDEX_META_FALLBACK.json
+P_VS_NP_AUTHORITY_AND_FRONTIER_2026-09-22_v1.0.json
+P_VS_NP_ANTI_LOOP_MAP_2026-09-22_v1.0.json
+P_VS_NP_INTERNAL_CONTROLS_2026-09-22_v1.0.json
+P_VS_NP_OPEN_ACCESS_LIBRARY_2026-09-22_v1.0.json
+P_VS_NP_AUTOMATION_CONTRACTS_2026-09-22_v1.0.json
+P_VS_NP_DRIVE_MIRROR_MAP_2026-09-22_v1.0.json
+```
+
+TOPA workflow fallback order is now:
+
+```text
+1. LIVE_PRIVATE_GOOGLE_DRIVE
+2. JANUS_META_REGISTRY_JSON_CORPUS
+3. TOPA_LOCAL_PINNED_FALLBACK
+```
+
+Therefore missing Google Drive authorization does not block P=NP research continuity. Drive remains the live mutable external-memory layer, Meta Registry is the cross-repository JSON corpus mirror, and TOPA keeps the final local fail-closed snapshot.
+
+```text
+P_VS_NP = OPEN
+D1 = EMPTY
+SUCCESSOR_ALGORITHM = LOCKED
+DRIVE_REQUIRED_FOR_CONTINUITY = FALSE
+SCIENTIFIC_AUTHORITY_DELTA = 0
+```
