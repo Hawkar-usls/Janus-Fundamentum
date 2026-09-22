@@ -118,7 +118,7 @@ If `z` is the first payload literal in the clause, `c_i=2`.
 
 If `z` is the second payload literal, `c_i=1`.
 
-For a fixed payload `z), its four support blocks are
+For a fixed payload `z`, its four support blocks are
 
 ```text
 Supp(z)
@@ -228,11 +228,11 @@ The two even support blocks are never projected on an odd-only prefix and contri
 c_e+c_f+2
 ```
 
-local `z)-only gates.
+local `z`-only gates.
 
 For the projected odd support `p`, exactly one of its two residual payload clauses `A_p,B_p` contains `z`.
 
-That live two-literal residual contributes one additional `z)-only clause gate.
+That live two-literal residual contributes one additional `z`-only clause gate.
 
 Thus before counting upper block-tree contribution:
 
@@ -252,7 +252,7 @@ To reach the target it remains to supply
 c_p+1
 ```
 
-additional upper `z)-only gates.
+additional upper `z`-only gates.
 
 ### 6.1 Parity of the odd-support occurrence profile
 
@@ -305,7 +305,7 @@ They are:
 
 Later odd-selector projections do not eliminate these refs.
 
-Hence they supply exactly the required two additional `z)-only upper gates.
+Hence they supply exactly the required two additional `z`-only upper gates.
 
 Therefore the cone gap follows for even `j`.
 
@@ -327,14 +327,14 @@ In that branch all four cyclic-consecutive support positions
 {o,p,e,f}
 ```
 
-carry `z)-dependence.
+carry `z`-dependence.
 
 For the complete dyadic block tree with `m=2^r>=8`, these four cyclic-consecutive support positions with odd endpoint cannot collapse into the path from `o` to the root.
 
 A direct dyadic-position check gives at least three live internal block-tree gates in the union of the four support root paths that:
 
-- contain a `z)-dependent support descendant;
-- do not contain block `o);
+- contain a `z`-dependent support descendant;
+- do not contain block `o`;
 - hence depend on `z` and not on `o`.
 
 One convenient finite geometry split is:
@@ -438,7 +438,7 @@ A_o < A_z.
 
 The odd selector therefore wins the frozen secondary cone-size tie-break.
 
-Consequently, for `m>=8):
+Consequently, for `m>=8`:
 
 ```text
 EVERY RELATED PAYLOAD
