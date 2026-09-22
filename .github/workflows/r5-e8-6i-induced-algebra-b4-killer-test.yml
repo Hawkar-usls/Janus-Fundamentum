@@ -7,6 +7,9 @@ on:
       - 'research/R5_B1B1C5B2B2_E8_6I_BOOLEAN_B4_INDUCED_ALGEBRA_KILLER_TEST_2026-09-22_v1.0.json'
       - 'research/R5_B1B1C5B2B2_E8_6I_INDUCED_ALGEBRA_SOURCE_ADMISSION_AUDIT_2026-09-22_v1.0.md'
       - 'research/R5_B1B1C5B2B2_E8_6I_CONSTANT_ALGEBRA_HIDDEN_CHOICE_CONTROL_2026-09-22_v1.0.md'
+      - 'research/tools/r5_e8_6i_full_boolean_single_ternary_catalogue_checker.py'
+      - 'research/R5_B1B1C5B2B2_E8_6I_FULL_BOOLEAN_SINGLE_TERNARY_CATALOGUE_BLOCKER_2026-09-22_v1.0.json'
+      - 'research/R5_B1B1C5B2B2_E8_6I_FULL_BOOLEAN_SINGLE_TERNARY_CATALOGUE_BLOCKER_2026-09-22_v1.0.md'
       - '.github/workflows/r5-e8-6i-induced-algebra-b4-killer-test.yml'
   push:
     branches:
@@ -16,6 +19,9 @@ on:
       - 'research/R5_B1B1C5B2B2_E8_6I_BOOLEAN_B4_INDUCED_ALGEBRA_KILLER_TEST_2026-09-22_v1.0.json'
       - 'research/R5_B1B1C5B2B2_E8_6I_INDUCED_ALGEBRA_SOURCE_ADMISSION_AUDIT_2026-09-22_v1.0.md'
       - 'research/R5_B1B1C5B2B2_E8_6I_CONSTANT_ALGEBRA_HIDDEN_CHOICE_CONTROL_2026-09-22_v1.0.md'
+      - 'research/tools/r5_e8_6i_full_boolean_single_ternary_catalogue_checker.py'
+      - 'research/R5_B1B1C5B2B2_E8_6I_FULL_BOOLEAN_SINGLE_TERNARY_CATALOGUE_BLOCKER_2026-09-22_v1.0.json'
+      - 'research/R5_B1B1C5B2B2_E8_6I_FULL_BOOLEAN_SINGLE_TERNARY_CATALOGUE_BLOCKER_2026-09-22_v1.0.md'
       - '.github/workflows/r5-e8-6i-induced-algebra-b4-killer-test.yml'
 
 permissions:
@@ -51,4 +57,28 @@ jobs:
           assert actual['firewall']['D1']=='EMPTY'
           assert actual['firewall']['SUCCESSOR_ALGORITHM']=='LOCKED'
           print('R5_E8_6I_B4_EXACT_REPLAY=PASS')
+          PY
+
+      - name: Replay full Boolean single-ternary tractable catalogue blocker
+        run: |
+          set -euo pipefail
+          python research/tools/r5_e8_6i_full_boolean_single_ternary_catalogue_checker.py > /tmp/full.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          actual=json.loads(Path('/tmp/full.json').read_text())
+          frozen=json.loads(Path('research/R5_B1B1C5B2B2_E8_6I_FULL_BOOLEAN_SINGLE_TERNARY_CATALOGUE_BLOCKER_2026-09-22_v1.0.json').read_text())
+
+          assert actual == frozen
+          assert actual['status']=='PASS_EXACT_FULL_CATALOGUE_BLOCKER'
+          assert actual['catalogue']['tractable_single_operation_labels']==250
+          assert actual['exhaustive_result']['surviving_ordered_label_triples']==1494
+          assert actual['exhaustive_result']['by_number_of_constant_labels']=={'0':0,'1':0,'2':1488,'3':6}
+          assert actual['exhaustive_result']['all_nonconstant_triple_exists'] is False
+          assert actual['prototype_core']['homomorphic_equivalence_to_NAE'] is True
+          assert actual['firewall']['P_VS_NP']=='OPEN'
+          assert actual['firewall']['D1']=='EMPTY'
+          assert actual['firewall']['SUCCESSOR_ALGORITHM']=='LOCKED'
+          print('R5_E8_6I_FULL_SINGLE_TERNARY_CATALOGUE=PASS')
           PY
