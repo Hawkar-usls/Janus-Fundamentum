@@ -19,6 +19,9 @@ on:
       - 'research/tools/r5_e8_6i_boolean_occurrence_sync_barrier.py'
       - 'research/R5_B1B1C5B2B2_E8_6I_BOOLEAN_OCCURRENCE_SYNC_BARRIER_2026-09-22_v1.0.json'
       - 'research/R5_B1B1C5B2B2_E8_6I_BOOLEAN_OCCURRENCE_SYNCHRONIZATION_CONJUGATION_THEOREM_2026-09-22_v1.0.md'
+      - 'research/tools/r5_e8_6i_b4_ternary_functional_gate_classifier.py'
+      - 'research/R5_B1B1C5B2B2_E8_6I_B4_TERNARY_FUNCTIONAL_GATE_CLASSIFICATION_2026-09-22_v1.0.json'
+      - 'research/R5_B1B1C5B2B2_E8_6I_ARBITRARY_ARITY_B4_FUNCTIONAL_GRAPH_CLASSIFICATION_THEOREM_2026-09-22_v1.0.md'
       - '.github/workflows/r5-e8-6i-induced-algebra-b4-killer-test.yml'
   push:
     branches:
@@ -176,4 +179,22 @@ jobs:
           assert actual['consequence']['BOOLEAN_OCCURRENCE_SPLITTING_WITH_EQ_NEQ_AND_ID_NOT_RENAMING_CAN_RESCUE_B4'] is False
           assert actual['firewall']['P_VS_NP']=='OPEN'
           print('R5_E8_6I_OCCURRENCE_SYNC_BARRIER=PASS')
+          PY
+
+      - name: Replay all 256 ternary Boolean functional gates
+        run: |
+          set -euo pipefail
+          python research/tools/r5_e8_6i_b4_ternary_functional_gate_classifier.py > /tmp/gates_actual.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          actual=json.loads(Path('/tmp/gates_actual.json').read_text())
+          frozen=json.loads(Path('research/R5_B1B1C5B2B2_E8_6I_B4_TERNARY_FUNCTIONAL_GATE_CLASSIFICATION_2026-09-22_v1.0.json').read_text())
+          assert actual == frozen
+          assert actual['status']=='PASS_EXHAUSTIVE_ALL_256_TERNARY_BOOLEAN_FUNCTIONS'
+          assert actual['compatible_tuple_count_histogram']=={'0':200,'1':18,'4':30,'64':6,'256':2}
+          assert actual['essential_arity_3_compatible_count']==18
+          assert actual['consequence']['ARITY_LE_3_BOOLEAN_FUNCTIONAL_AUXILIARIES_CREATE_NEW_B4_ALGEBRA_TYPE_ROUTER'] is False
+          assert actual['firewall']['P_VS_NP']=='OPEN'
+          print('R5_E8_6I_TERNARY_FUNCTIONAL_GATE_CLASSIFIER=PASS')
           PY
