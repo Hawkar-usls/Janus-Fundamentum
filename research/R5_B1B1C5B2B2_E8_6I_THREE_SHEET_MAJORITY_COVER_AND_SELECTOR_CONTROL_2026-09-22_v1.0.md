@@ -75,24 +75,29 @@ minimum sheet count
 3.
 ```
 
-## 3. Interpretation using the sealed A3 mechanism
+## 3. Correct interpretation relative to the sealed A3 mechanism
 
-The A3 control already gives an exact polynomial lift for every threshold-two signed majority sheet.
+The A3 control does **not** say that its decoded Boolean relation is a majority relation.
 
-Therefore ordinary OR3 can be viewed as:
+For every admitted decoder triple, A3 still gives an exact lift of the full signed OR3 clause relation.
+
+The threshold-two condition lives on the **coarse decoder/prototype bits**: a decoder triple is admissible exactly when at least two sign-adjusted coarse bits satisfy the clause.
+
+Therefore the three-sheet identity applies to the prototype/admission layer:
 
 ```text
-OR3
+OR3 on coarse prototype bits
 =
 UNION OF THREE
-A3-ADMISSIBLE EXACT SHEETS.
+threshold-two admission sheets
+after clause-local bit conjugations.
 ```
 
-This is a meaningful structural decomposition.
+This does **not** by itself provide one global A3 decoder assignment, because the clause-local conjugations may request different decoder orientations for different occurrences of the same original variable.
 
-It says that local clause semantics are no longer the missing object.
+Thus the missing object is not local clause semantics; A3 already has exact local OR3 semantics whenever a prototype is admitted.
 
-The missing object is the composition of the three sheets.
+The missing object is a global decoder/interface theorem that composes the threshold-two admission sheets while preserving one coherent lifted state per original variable.
 
 ## 4. Explicit selector representation
 
@@ -230,9 +235,9 @@ Freeze:
 R5_E8_6I_ALGEBRAIC_SHEET_ABSORPTION_GATE_V1
 ```
 
-The goal is not to choose a sheet.
+The goal is not to choose a sheet independently per clause.
 
-The goal is to construct one polynomially tractable algebraic carrier in which the three exact threshold-two sheets are absorbed into one exact OR3-compatible relation without exposing an independent semantic selector.
+The goal is to construct one polynomially tractable global decoder/lift interface in which the three threshold-two **prototype-admission** sheets are composed without exposing an independent semantic selector and without losing one-state-per-variable coherence.
 
 A candidate must satisfy all:
 
@@ -246,11 +251,11 @@ decoded lifted relation
 exact signed OR3.
 ```
 
-### S2 — sheet absorption
+### S2 — prototype-sheet absorption
 
-The three A3-admissible sheets are combined by algebraic closure / block composition.
+The three threshold-two decoder-admission sheets are combined by an algebraic/global interface theorem.
 
-No independent per-clause selector may remain as an unresolved choice variable.
+No independent per-clause selector may remain as an unresolved choice variable, and clause-local decoder conjugations may not break global variable coherence.
 
 ### S3 — source-bound tractable carrier
 
@@ -307,18 +312,22 @@ The explicit three-valued selector construction is the frozen negative control.
 We now have:
 
 ```text
-LOCAL OR3 SEMANTICS
+LOCAL OR3 LIFT SEMANTICS
 =
-COVERED BY THREE EXACT POLY SHEETS
+ALREADY EXACT INSIDE EACH ADMITTED A3 CLAUSE
 
-NAIVE SHEET CHOICE
+PROTOTYPE OR3 CONDITION
+=
+UNION OF THREE THRESHOLD-TWO ADMISSION SHEETS
+
+NAIVE CLAUSE-WISE SHEET CHOICE
 =
 NP-COMPLETE REPACKAGING
 
 MISSING OBJECT
 =
-ALGEBRAIC SHEET ABSORPTION
-WITH POLYNOMIAL GLOBAL INTERACTION
+GLOBAL PROTOTYPE-SHEET / DECODER INTERFACE
+WITH POLYNOMIAL INTERACTION
 ```
 
 This is more precise than searching for an arbitrary larger domain.
