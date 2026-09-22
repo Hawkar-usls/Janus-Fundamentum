@@ -1122,3 +1122,116 @@ D1
 =
 NOT_ADMITTED
 ```
+
+
+## 16. 6H post-inventory strategic lock
+
+Authority:
+
+- `research/R5_B1B1C5B2B2_E8_6H_POST_INVENTORY_STRATEGIC_LOCK_2026-09-22_v1.0.md`
+- `registry/R5_B1B1C5B2B2_E8_6H_POST_INVENTORY_STRATEGIC_LOCK_2026-09-22_v1.0.json`
+
+Current state:
+
+```text
+6G
+=
+DONE
+
+6H
+=
+STRATEGIC LOCK
+
+P_VS_NP
+=
+OPEN
+
+D1
+=
+EMPTY
+
+FROZEN_STRUCTURAL_GREEDY
+=
+THEOREM_LEVEL_FALSIFIED
+
+FLAT_CNF_DP
+=
+THEOREM_LEVEL_FALSIFIED
+AS UNIVERSAL POLY REPRESENTATION ROUTE
+
+FULL_D1_HIT
+=
+NONE_FOUND_IN_AUDITED_SET
+
+SUCCESSOR_ALGORITHM
+=
+LOCKED
+```
+
+Five permanent anti-loop laws:
+
+```text
+1.
+COMPACT REPRESENTATION
+!=
+TRACTABLE CONSISTENCY
+
+2.
+FORGETTING-CLOSED
+!=
+POLY-SIZE FORGETTING
+
+3.
+TRACTABLE COMPONENTS
+!=
+TRACTABLE MIXTURE
+
+4.
+GOOD ELIMINATION ORDER EXISTS
+!=
+GOOD ORDER POLY-DISCOVERABLE
+
+5.
+POLY PP DESCRIPTION / AUXILIARIES
+!=
+POLY SEMANTIC-CHOICE ELIMINATION
+```
+
+Any later candidate must first be compared against:
+
+```text
+FACTORIZED_FEEDBACK
+EXACT_INTERFACE_QUOTIENT
+LOG_ALIEN_TRANSFER
+AFFINE_BOUNDARY
+GUARDED_OUTPUT_ELIMINATION
+C023 / C023R
+RAW_SCHAEFER_BASIS
+```
+
+If reducible to one of those routes:
+
+```text
+REDISCOVERY_OF_EXISTING_MECHANISM
+```
+
+and no new E8 gate is opened.
+
+Only if a genuinely new source-bound structural principle appears may strategic review consider an instance-specific compositional invariant with polynomial construct/recognize/size/interaction/project/preserve/consistency/reconstruction/history guarantees and no SAT/equivalence oracle, hidden existential freedom, unbounded alien/backdoor enumeration, semantic sweeping, or exponential interface enumeration.
+
+Until then:
+
+```text
+NEW ALGORITHM DESIGN
+=
+NO
+
+NEW REPRESENTATION HUNT
+=
+NO
+
+NEXT ACTION
+=
+WAIT FOR GENUINELY NEW
+SOURCE-BOUND STRUCTURAL PRINCIPLE
+```
