@@ -1,0 +1,38 @@
+name: Validate JANUS pre-math gate
+
+on:
+  push:
+    paths:
+      - "research/**"
+      - "registry/**"
+      - "experiments/**"
+      - "tools/validate_premath_gate.py"
+      - ".github/workflows/validate-premath-gate.yml"
+  pull_request:
+    paths:
+      - "research/**"
+      - "registry/**"
+      - "experiments/**"
+      - "tools/validate_premath_gate.py"
+      - ".github/workflows/validate-premath-gate.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  validate-premath:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out exact head with history
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Enforce no-audit-no-new-math
+        run: python tools/validate_premath_gate.py
