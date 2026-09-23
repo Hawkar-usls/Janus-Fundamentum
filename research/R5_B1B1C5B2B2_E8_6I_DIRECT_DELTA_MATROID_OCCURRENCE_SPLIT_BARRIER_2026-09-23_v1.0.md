@@ -212,22 +212,65 @@ gadget whose own exact two-occurrence / delta-matroid contract must be proved.
 Therefore the repair is itself a new representation theorem, not an
 application of the known edge-CSP algorithm.
 
-## 6. Exact surviving delta-matroid question
+## 6. Closure upgrade — standard tractable gadgetization cannot realize EQ_d
 
-Only a genuine representation change remains admissible:
+Kazda--Kolmogorov--Rolinek Theorem 48 proves that the coverable
+delta-matroid class used by the edge-CSP algorithm is closed under:
+
+1. direct products;
+2. identifying variables;
+3. gadget constructions.
+
+Their gadget construction is precisely an edge-CSP network with some variables
+left as external/output variables.
+
+Therefore, if an exact external relation is gadget-constructed solely from
+coverable delta-matroid constraints using this source construction, the external
+relation is again a coverable delta-matroid and in particular a delta-matroid.
+
+But Section 3 proved:
 
 ```text
-Does there exist a polynomial-size exact gadgetization
-of the three-sheet + variable-coherence system
-into a two-occurrence edge-CSP
-whose constraints belong to a source-proved
-tractable delta-matroid class,
-with polynomial reconstruction and no hidden selector?
+EQ_d={0^d,1^d}
+IS NOT A DELTA-MATROID
+FOR d>=3.
+```
+
+Hence:
+
+```text
+NO STANDARD GADGET
+BUILT SOLELY FROM
+COVERABLE DELTA-MATROID CONSTRAINTS
+
+CAN REALIZE EXACT EQ_d
+FOR d>=3.
+```
+
+This closes the natural auxiliary-gadget repair inside the source-proved
+tractable class.
+
+The only remaining matching/delta-matroid escape must leave at least one of
+these assumptions: use a different external encoding of a Boolean variable,
+a different non-coverable intermediate class with an independently proved
+polynomial solver, or a representation where global coherence is not realized
+as exact EQ_d on exposed occurrence bits.
+
+## 7. Exact surviving delta-matroid question
+
+The surviving question is therefore narrower:
+
+```text
+Does there exist a polynomial-size exact representation
+that changes the exposed variable encoding itself,
+so that variable coherence is not the forbidden EQ_d relation,
+and whose resulting edge-CSP lies in a source-proved
+tractable matching/delta-matroid class?
 ```
 
 No such theorem is claimed here.
 
-## 7. Ceiling
+## 8. Ceiling
 
 ```text
 RAW SHEET RELATION
@@ -238,12 +281,18 @@ DIRECT HIGH-ARITY VARIABLE EQUALITY
 =
 NOT DELTA_MATROID FOR DEGREE >= 3
 
-DIRECT OCCURRENCE-SPLIT
-MATCHING / EVEN-DELTA-MATROID ROUTE
+STANDARD COVERABLE-DELTA-MATROID
+GADGET REALIZATION OF EQ_d
 =
-BLOCKED BY MODEL BINDING
+IMPOSSIBLE BY CLOSURE
 
-NONTRIVIAL DELTA-MATROID GADGETIZATION
+DIRECT OCCURRENCE-SPLIT
+MATCHING / DELTA-MATROID ROUTE
+=
+BLOCKED
+
+REPRESENTATION-CHANGING
+MATCHING ENCODING
 =
 OPEN
 
