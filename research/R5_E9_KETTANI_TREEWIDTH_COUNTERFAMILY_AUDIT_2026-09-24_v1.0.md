@@ -128,3 +128,29 @@ CLAIMED P=NP CONSEQUENCE = UNSUPPORTED BY THIS ROUTE
 CUBIC 3-UNIFORM GLOBAL CONTRACTION GATE = STILL OPEN
 D1 = EMPTY
 P_VS_NP = OPEN
+
+## 9. Strengthening: infinite satisfiable counterfamily
+
+The same toroidal family contains infinitely many explicit YES instances.
+
+For every k divisible by 3 and any r in {0,1,2}, set
+
+x_{i,j}=1 iff i-j is congruent to r mod 3.
+
+In clause C_{i,j}={v_{i,j},v_{i+1,j},v_{i,j+1}}, the three residues are d,d+1,d-1 mod 3, so exactly one equals r.
+
+Hence every clause has exactly one true variable.
+
+Therefore k=3,6,9,12,... are satisfiable cubic-monotone instances.
+
+The associated graphs still contain k x k square grids and thus have treewidth at least k.
+
+So the claimed width-6 theorem fails on an infinite YES-family, not merely on unsatisfiable/pathological inputs.
+
+## 10. Strengthened ceiling
+
+KETTANI TREEWIDTH <=6 THEOREM = FALSE
+INFINITE SAT CUBIC-MONOTONE COUNTERFAMILY = PASS
+UNBOUNDED TREEWIDTH EVEN IN YES SECTOR = PASS
+CLAIMED P=NP CONSEQUENCE = UNSUPPORTED BY THIS ROUTE
+CUBIC KERNEL-WORD / NONCOMMUTING GLOBAL FRONTIER = OPEN
