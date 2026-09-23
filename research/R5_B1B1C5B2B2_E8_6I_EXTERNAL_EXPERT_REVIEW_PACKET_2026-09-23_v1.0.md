@@ -8,7 +8,7 @@ This packet is for an independent researcher in universal algebra / algebraic CS
 
 For a fixed finite family K of finite similar algebras with a common k-cube/k-edge term, assuming V(K) is residually small, there is a candidate deterministic polynomial-time procedure which, from arbitrary generators of an invariant relation R over factors in HS(K), constructs a polynomial-size pp-definition of R over one fixed finite basis. The candidate output bound is O(n^max(2,k-1)).
 
-This is a scoped candidate related to Bulín–Kompatscher Question 6.3, not a claim about Question 6.3 in full generality.
+This is a scoped candidate related to Bulín–Kompatscher Question 30 (Section 6.3), not a claim about Question 30 (Section 6.3) in full generality.
 
 ## Files to review
 
