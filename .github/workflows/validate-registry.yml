@@ -5,6 +5,7 @@ on:
     paths:
       - "registry/**"
       - "tools/validate_registry.py"
+      - "tools/validate_premath_gate.py"
       - "tools/validate_lineage.py"
       - "tools/validate_inversion_matrix.py"
       - "tools/validate_cycle_pressure.py"
@@ -35,6 +36,9 @@ jobs:
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -43,6 +47,9 @@ jobs:
 
       - name: Validate machine-readable laboratory
         run: python tools/validate_registry.py
+
+      - name: Enforce pre-math no-duplication gate
+        run: python tools/validate_premath_gate.py
 
       - name: Validate hypothesis inheritance
         run: python tools/validate_lineage.py
