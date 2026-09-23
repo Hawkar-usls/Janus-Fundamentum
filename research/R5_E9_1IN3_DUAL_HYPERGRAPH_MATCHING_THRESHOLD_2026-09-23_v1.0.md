@@ -45,9 +45,9 @@ Then a set of variables is a valid 1-in-3 witness exactly when the corresponding
 
 Private dummy vertices need not be saturated.
 
-This is an ordinary polynomial matching problem: compute a maximum matching and test whether all designated clause vertices can be saturated.
+Give every clause-clause edge weight 2 and every clause-dummy edge weight 1, i.e. the number of clause endpoints it covers. A matching has total weight exactly m iff it saturates all m clause vertices. Therefore one maximum-weight matching computation decides the instance in polynomial time.
 
-Equivalently, reduce designated-vertex saturation to standard matching by the usual augmenting-path/matching machinery.
+Equivalently, this is the standard polynomial problem of finding a matching saturating a prescribed vertex set.
 
 Thus:
 
