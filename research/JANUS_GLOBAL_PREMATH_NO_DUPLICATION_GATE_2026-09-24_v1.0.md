@@ -142,6 +142,62 @@ The pre-math audit MUST be repeated when any of these change materially:
 
 An old audit cannot silently authorize mathematics about a newly recognized canonical object.
 
+## 5A. NO-LOOP semantic route guard
+
+The audit gate is also a one-way research-history guard.
+
+A new name, notation, basis, representation, or decomposition does NOT reset route history.
+
+Every authorized mathematical route must carry:
+- a stable `route_fingerprint`;
+- a canonical `semantic_route` describing the actual decision problem, input class, exact semantics, promises, and complexity target;
+- the exact `authorized_scope` from the source audit;
+- a predecessor chain;
+- an explicit `novelty_delta`;
+- an explicit progress claim;
+- `loop_check_status = PASS_NO_LOOP`.
+
+The ledger maintains permanent route tombstones for routes already classified as:
+- `SOURCE_BOUND`;
+- `SOLVED_POLY_ISLAND`;
+- `FALSIFIED`;
+- `BLOCKED_THEOREM_LEVEL`;
+- `SOURCE_BOUND_LANGUAGE_COLLISION`;
+- or another explicitly closed status.
+
+### Hard no-loop rule
+
+If a proposed route has the same semantic route as a tombstoned route, or merely renames/re-encodes that route, STOP.
+
+Re-entry is allowed only after a NEW pre-math audit explicitly:
+1. identifies the tombstone being reopened;
+2. records a concrete new source, assumption, theorem-scope change, or falsifier that invalidates the old closure;
+3. states a `reopen_basis`;
+4. lists the superseded tombstone id;
+5. receives a new scoped PASS.
+
+A previous PASS may not authorize a changed semantic route.
+
+A previous PASS may not be reused outside its exact scope.
+
+Representation cycles such as
+
+`A -> B -> A`
+
+or
+
+`A -> B -> C`
+
+where C is semantically equivalent to A are not progress. They require a fresh audit and a demonstrated strict mathematical delta.
+
+Therefore:
+
+`NEW NOTATION != NEW ROUTE`
+
+`NEW REPRESENTATION != NEW PROGRESS`
+
+`CLOSED ROUTE + NO REAUDIT = CI FAIL`
+
 ## 6. Machine-enforced ledger
 
 All post-activation changes under research/, registry/, and experiments/ must be accounted for in:
@@ -174,15 +230,17 @@ Unaccounted scientific files make CI fail.
 
 ## 8. Current application
 
-The current E9 object has been canonically recognized as a directed perfect-code / efficient-domination problem on a two-permutation Cayley/Schreier-style digraph.
+The current E9 object has been canonically recognized as PERFECT KERNEL existence on a connected 2-in/2-out two-permutation / Schreier digraph.
 
-Therefore:
+The completed source audit authorizes new mathematics only inside:
 
-`R5_E9_DIRECTED_PERFECT_CODE_KNOWN_METHOD_AUDIT_V1`
+`R5_E9_NONABELIAN_PHASE_INCONSISTENT_PERFECT_KERNEL_GATE_V1`
 
-is placed in HOLD_NEW_MATH until known-method exhaustion is complete.
+with the exact frozen promises recorded in its receipt.
 
-No further higher-representation / tiling theorem may be promoted before that audit resolves.
+The commuting/abelian perfect-kernel route, Z3-phase-consistent route, local rank-3 matching-gadget route, Kettani bounded-treewidth shortcut, and representation-only re-entry routes are recorded as closed-route tombstones.
+
+Any change of canonical semantics, promise set, representation obligation, or complexity claim triggers re-audit before mathematics continues.
 
 ## 9. Scientific ceiling
 
@@ -193,3 +251,7 @@ No further higher-representation / tiling theorem may be promoted before that au
 `PREMATH_NO_DUPLICATION_GATE = GLOBAL_MANDATORY_POST_ACTIVATION`
 
 `NO_AUDIT = NO_NEW_MATH`
+
+`NO_REAUDIT = NO_CLOSED_ROUTE_REENTRY`
+
+`NEW_NOTATION != NEW_PROGRESS`
