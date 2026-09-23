@@ -198,6 +198,56 @@ Therefore:
 
 `CLOSED ROUTE + NO REAUDIT = CI FAIL`
 
+
+## 5B. JANUS LAW II — canonical semantic identity
+
+A closed road does not become new because the road was renamed.
+
+Human-readable labels, theorem names, branch names, notation, and free-text descriptions are metadata only. They are NOT route identity.
+
+Every audited or tombstoned mathematical route uses the controlled identity schema:
+
+\`\`\`text
+problem_id
+domain_atoms[]
+semantics_id
+promise_atoms[]
+complexity_target_id
+\`\`\`
+
+Rules:
+
+- \`domain_atoms\` and \`promise_atoms\` are stored \`SORTED + UNIQUE\`;
+- all identity values must be registered controlled semantic atoms;
+- a new semantic atom must be introduced by a pre-math audit receipt via \`semantic_atom_additions\`;
+- historical tombstone-only atoms are frozen in the validator's explicit governance migration set;
+- arbitrary free-text values are rejected as route identity;
+- canonical serialization is deterministic compact JSON with sorted object keys;
+- \`semantic_route_hash = SHA256(canonical_semantic_route)\`;
+- \`route_fingerprint = semantic_route_hash\`; manually invented fingerprints are forbidden;
+- CI checks both directions: one hash maps to one canonical route, and one canonical route maps to one hash.
+
+Changing the order of promises therefore changes nothing. Replacing a canonical phrase with a synonym is impossible unless a new audited semantic atom is introduced.
+
+A changed problem id, domain atom, semantics id, promise atom, or complexity target is a semantic change and requires re-audit unless already authorized by the exact audit route.
+
+Therefore:
+
+\`\`\`text
+JANUS LAW II
+
+A CLOSED ROAD
+DOES NOT BECOME NEW
+BECAUSE WE RENAMED THE ROAD.
+
+IDENTITY
+=
+CANONICAL SEMANTICS
+NOT
+HUMAN LABEL
+\`\`\`
+
+
 ## 6. Machine-enforced ledger
 
 All post-activation changes under research/, registry/, and experiments/ must be accounted for in:
@@ -255,3 +305,7 @@ Any change of canonical semantics, promise set, representation obligation, or co
 `NO_REAUDIT = NO_CLOSED_ROUTE_REENTRY`
 
 `NEW_NOTATION != NEW_PROGRESS`
+
+`ROUTE_IDENTITY = SHA256(CANONICAL_CONTROLLED_SEMANTIC_ATOMS)`
+
+`HUMAN_LABEL != IDENTITY`
