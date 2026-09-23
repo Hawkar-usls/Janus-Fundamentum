@@ -98,16 +98,6 @@ def synthesize(y,edges,p,A):
             for b in (0,1):
                 found=None
                 for vals in product((0,1),repeat=2):
-                    ok=True
-                    assign={pv:b,others[0]:vals[0],others[1]:vals[1]}
-                    for ov in others:
-                        if assign[ov] not in msg[(ov,u)]:
-                            ok=False; break
-                    if ok and repair_valid(y,[e],[assign.get(i,0) for i in range(n)]):
-                        # repair_valid above needs full vector; use direct edge check instead
-                        pass
-                # redo direct local test
-                for vals in product((0,1),repeat=2):
                     assign={pv:b,others[0]:vals[0],others[1]:vals[1]}
                     if any(assign[ov] not in msg[(ov,u)] for ov in others):
                         continue
