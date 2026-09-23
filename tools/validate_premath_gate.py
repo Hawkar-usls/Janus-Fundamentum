@@ -49,6 +49,20 @@ NONMATH_CLASSES = {
     "EDITORIAL_OR_IMPLEMENTATION_ONLY",
 }
 
+SCOPED_PASS_DECISIONS = {
+    "PASS_SCOPED_GAP_CONFIRMED",
+    "PASS_NEW_BARRIER_SCOPE_CONFIRMED",
+}
+
+CLOSED_ROUTE_STATUSES = {
+    "SOURCE_BOUND",
+    "SOLVED_POLY_ISLAND",
+    "FALSIFIED",
+    "BLOCKED_THEOREM_LEVEL",
+    "SOURCE_BOUND_LANGUAGE_COLLISION",
+    "BLOCKED_WITHOUT_ALPHABET_LIFT",
+}
+
 
 class GateError(RuntimeError):
     pass
@@ -132,6 +146,31 @@ def require_nonempty_list(entry: dict[str, Any], field: str, minimum: int = 1) -
         raise GateError(f"{entry.get('id','<audit>')} has invalid values in {field}")
 
 
+def require_nonempty_string(entry: dict[str, Any], field: str) -> str:
+    value = entry.get(field)
+    if not isinstance(value, str) or not value.strip():
+        raise GateError(f"{entry.get('id','<audit>')} requires non-empty {field}")
+    return value
+
+
+def validate_semantic_route(owner: str, route: Any) -> None:
+    if not isinstance(route, dict):
+        raise GateError(f"{owner} requires semantic_route object")
+    for field in ("problem", "domain", "semantics", "complexity_target"):
+        value = route.get(field)
+        if not isinstance(value, str) or not value.strip():
+            raise GateError(f"{owner} semantic_route missing/invalid {field}")
+    promises = route.get("promises")
+    if not isinstance(promises, list) or any(
+        not isinstance(x, str) or not x.strip() for x in promises
+    ):
+        raise GateError(f"{owner} semantic_route promises must be a string list")
+
+
+def semantic_key(route: dict[str, Any]) -> str:
+    return json.dumps(route, sort_keys=True, separators=(",", ":"), ensure_ascii=True)
+
+
 def validate_audit_shape(entry: dict[str, Any]) -> None:
     aid = entry.get("id")
     if not isinstance(aid, str) or not aid:
@@ -180,19 +219,30 @@ def validate_audit_shape(entry: dict[str, Any]) -> None:
         require_nonempty_list(entry, "sources_checked", 2)
         require_nonempty_list(entry, "collision_status", 1)
 
+    if entry.get("new_math_authorized") is True:
+        require_nonempty_string(entry, "route_fingerprint")
+        validate_semantic_route(aid, entry.get("semantic_route"))
+        if entry.get("loop_check_status") != "PASS_NO_LOOP":
+            raise GateError(
+                f"{aid}: authorized work requires loop_check_status=PASS_NO_LOOP"
+            )
+        require_nonempty_string(entry, "authorized_scope")
+
     if change_class in NEW_MATH_CLASSES:
         if entry.get("new_math_authorized") is not True:
             raise GateError(f"{aid}: NEW_MATH requires new_math_authorized=true")
         auth = entry.get("authorizing_audit_id")
         if not isinstance(auth, str) or not auth:
             raise GateError(f"{aid}: NEW_MATH requires authorizing_audit_id")
-        if decision not in {
-            "PASS_SCOPED_GAP_CONFIRMED",
-            "PASS_NEW_BARRIER_SCOPE_CONFIRMED",
-        }:
+        if decision not in SCOPED_PASS_DECISIONS:
             raise GateError(
                 f"{aid}: NEW_MATH requires a scoped PASS decision, not {decision}"
             )
+        require_nonempty_string(entry, "scope_id")
+        require_nonempty_string(entry, "novelty_delta")
+        require_nonempty_string(entry, "progress_claim")
+        require_nonempty_list(entry, "predecessor_ids", 1)
+
 
     if change_class in NONMATH_CLASSES:
         reason = entry.get("reason")
@@ -225,6 +275,42 @@ def validate() -> tuple[int, int, str]:
     if not isinstance(audits, list):
         raise GateError("ledger audits must be a list")
 
+    no_loop = ledger.get("no_loop")
+    if not isinstance(no_loop, dict):
+        raise GateError("ledger missing no_loop policy block")
+    if no_loop.get("invariant") != "NO_CLOSED_ROUTE_REENTRY_WITHOUT_EXPLICIT_REAUDIT":
+        raise GateError("ledger no_loop invariant is missing or changed")
+    closed_routes = no_loop.get("closed_routes")
+    if not isinstance(closed_routes, list):
+        raise GateError("ledger no_loop.closed_routes must be a list")
+
+    closed_by_fingerprint: dict[str, list[str]] = {}
+    closed_by_semantics: dict[str, list[str]] = {}
+    closed_ids: set[str] = set()
+    for route in closed_routes:
+        if not isinstance(route, dict):
+            raise GateError("closed route entries must be objects")
+        rid = route.get("id")
+        fp = route.get("fingerprint")
+        status = route.get("status")
+        authority = route.get("authority")
+        if not isinstance(rid, str) or not rid:
+            raise GateError("closed route missing id")
+        if rid in closed_ids:
+            raise GateError(f"duplicate closed route id {rid}")
+        closed_ids.add(rid)
+        if not isinstance(fp, str) or not fp:
+            raise GateError(f"{rid}: closed route missing fingerprint")
+        if status not in CLOSED_ROUTE_STATUSES:
+            raise GateError(f"{rid}: unsupported closed route status {status!r}")
+        if not isinstance(authority, str) or not authority.strip():
+            raise GateError(f"{rid}: closed route missing authority")
+        validate_semantic_route(rid, route.get("semantic_route"))
+        closed_by_fingerprint.setdefault(fp, []).append(rid)
+        closed_by_semantics.setdefault(
+            semantic_key(route["semantic_route"]), []
+        ).append(rid)
+
     ids: dict[str, dict[str, Any]] = {}
     coverage: dict[str, str] = {}
 
@@ -243,7 +329,33 @@ def validate() -> tuple[int, int, str]:
                 )
             coverage[path] = aid
 
-    # A new-math entry must point to a separate completed audit.
+    # Every active authorization is bound to one exact semantic route and must not
+    # silently reopen a tombstoned route.
+    for entry in audits:
+        if entry.get("new_math_authorized") is not True:
+            continue
+        fp = entry["route_fingerprint"]
+        skey = semantic_key(entry["semantic_route"])
+        collided = set(closed_by_fingerprint.get(fp, []))
+        collided.update(closed_by_semantics.get(skey, []))
+        if collided:
+            supersedes = set(entry.get("supersedes_closed_route_ids", []))
+            reopen_basis = entry.get("reopen_basis")
+            if (
+                not collided.issubset(supersedes)
+                or not isinstance(reopen_basis, str)
+                or not reopen_basis.strip()
+            ):
+                raise GateError(
+                    f"{entry['id']}: semantic route collides with closed route(s) "
+                    f"{sorted(collided)}; explicit re-audit supersession + "
+                    "reopen_basis required"
+                )
+
+    # A new-math entry must point to a separate completed audit and remain
+    # exactly inside that audit's semantic route and scope.
+    seen_new_fp: dict[str, str] = {}
+    seen_new_semantics: dict[str, str] = {}
     for entry in audits:
         if entry["change_class"] not in NEW_MATH_CLASSES:
             continue
@@ -253,17 +365,48 @@ def validate() -> tuple[int, int, str]:
         auth = ids.get(auth_id)
         if auth is None:
             raise GateError(f"{entry['id']}: missing authorizing audit {auth_id}")
-        if auth.get("decision") not in {
-            "PASS_SCOPED_GAP_CONFIRMED",
-            "PASS_NEW_BARRIER_SCOPE_CONFIRMED",
-        }:
+        if auth.get("decision") not in SCOPED_PASS_DECISIONS:
             raise GateError(
-                f"{entry['id']}: authorizing audit {auth_id} is not a completed scoped PASS"
+                f"{entry['id']}: authorizing audit {auth_id} "
+                "is not a completed scoped PASS"
             )
         if auth.get("new_math_authorized") is not True:
             raise GateError(
-                f"{entry['id']}: authorizing audit {auth_id} does not authorize new math"
+                f"{entry['id']}: authorizing audit {auth_id} "
+                "does not authorize new math"
             )
+        if entry.get("scope_id") != auth.get("authorized_scope"):
+            raise GateError(
+                f"{entry['id']}: scope_id {entry.get('scope_id')!r} does not "
+                f"exactly match authorizing scope {auth.get('authorized_scope')!r}"
+            )
+        if entry.get("route_fingerprint") != auth.get("route_fingerprint"):
+            raise GateError(
+                f"{entry['id']}: route_fingerprint differs from "
+                f"authorizing audit {auth_id}"
+            )
+        if entry.get("semantic_route") != auth.get("semantic_route"):
+            raise GateError(
+                f"{entry['id']}: semantic_route differs from authorizing audit "
+                f"{auth_id}; changed semantics require a new pre-math audit"
+            )
+        if auth_id not in entry.get("predecessor_ids", []):
+            raise GateError(
+                f"{entry['id']}: predecessor_ids must include "
+                f"authorizing audit {auth_id}"
+            )
+
+        fp = entry["route_fingerprint"]
+        skey = semantic_key(entry["semantic_route"])
+        prior = seen_new_fp.get(fp) or seen_new_semantics.get(skey)
+        if prior is not None and entry.get("continuation_of") != prior:
+            raise GateError(
+                f"{entry['id']}: route already used by {prior}; "
+                "continuation_of must explicitly chain same-route work"
+            )
+        seen_new_fp[fp] = entry["id"]
+        seen_new_semantics[skey] = entry["id"]
+
 
     changed = changed_paths_since(baseline)
     tracked = {
@@ -306,6 +449,8 @@ def main() -> int:
     print(f"TRACKED_POST_ACTIVATION_ARTIFACTS = {tracked_count}")
     print(f"AUDIT_LEDGER_ENTRIES = {audit_count}")
     print("INVARIANT = NO_AUDIT_NO_NEW_MATH")
+    print("NO_LOOP_INVARIANT = NO_CLOSED_ROUTE_REENTRY_WITHOUT_EXPLICIT_REAUDIT")
+    print("SCOPE_BINDING = EXACT_SEMANTIC_ROUTE")
     return 0
 
 
