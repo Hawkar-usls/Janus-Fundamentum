@@ -200,7 +200,13 @@ def validate_audit_shape(entry: dict[str, Any]) -> None:
             raise GateError(f"{aid}: non-math change requires reason")
 
     if change_class == "SOURCE_AUDIT_ONLY" and entry.get("new_math_authorized") is True:
-        raise GateError(f"{aid}: SOURCE_AUDIT_ONLY cannot authorize new math by itself")
+        if decision not in {
+            "PASS_SCOPED_GAP_CONFIRMED",
+            "PASS_NEW_BARRIER_SCOPE_CONFIRMED",
+        }:
+            raise GateError(
+                f"{aid}: SOURCE_AUDIT_ONLY may authorize later new math only after a scoped PASS"
+            )
 
 
 def validate() -> tuple[int, int, str]:
