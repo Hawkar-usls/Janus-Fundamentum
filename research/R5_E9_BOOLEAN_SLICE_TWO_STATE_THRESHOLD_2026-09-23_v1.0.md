@@ -127,14 +127,20 @@ So the authoritative side-code compiler must maintain a GLOBAL common-polymorphi
 
 ## 7. Global ledger
 
-For the active side-code family Gamma maintain which of the following closure operations are certified for every relation in Gamma:
+For the active side-code family Gamma maintain the full six-way Schaefer ledger:
 
+- 0-valid: every active relation contains the all-zero tuple;
+- 1-valid: every active relation contains the all-one tuple;
 - AND       -> Horn;
 - OR        -> dual-Horn;
 - majority  -> bijunctive / 2-SAT;
 - ternary XOR/minority -> affine.
 
-If at least one operation remains globally common, use the corresponding polynomial engine.
+If the interface model does not freely add constants, a globally 0-valid language is solved by the all-zero assignment and a globally 1-valid language by the all-one assignment.
+
+If constants 0 and 1 are explicitly admitted as free relations, use the corresponding constants-version of Schaefer's theorem; in that setting the two validity lanes are not independent generic escape hatches.
+
+If at least one admissible global lane remains, use the corresponding polynomial engine.
 
 If no common operation remains, Schaefer gives no generic polynomial composition theorem; the system must be contracted before unrestricted composition.
 
