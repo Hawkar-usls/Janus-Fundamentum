@@ -6,7 +6,7 @@
 
 ## 1. Exact claim audited
 
-The candidate claim audited here is deliberately narrower than Bulín–Kompatscher Question 6.3 in full generality:
+The candidate claim audited here is deliberately narrower than Bulín–Kompatscher Question 30 (Section 6.3) in full generality:
 
 > For a fixed finite family K of finite algebras with a common cube/edge term, assuming V(K) is residually small, construct in polynomial time from arbitrary generators (or a polynomial compact representation) of an invariant relation R <= A_1 x ... x A_n, A_i in HS(K), a pp-definition over one fixed finite basis, with polynomial construction time and output length O(n^max(2,k-1)).
 
@@ -18,14 +18,14 @@ Bulín–Kompatscher, arXiv:2305.01984v3 (27 Jan 2026), Section 6.3, explicitly 
 
 Therefore the existence theorem for short pp-definitions in their residual-finite cube/edge setting is not itself prior art for an effective compiler from generators.
 
-The current v3 numbering is **Question 6.3**. Earlier internal references to “Question 30” are stale numbering and must not be used in final theorem/novelty statements.
+The current v3 location is **Section 6.3, Question 30**. Earlier Janus references to “Question 6.3” were a section/question conflation and must not be used in final theorem/novelty statements.
 
 ## 3. Closest direct overlap found: Kalampakas 2026
 
 Antonios Kalampakas, *Automatic constraints with few subpowers and graphoid recognition*, arXiv:2609.07891v1 (7 Sep 2026), is the strongest direct prior-art overlap found.
 
 The paper:
-- explicitly cites Bulín–Kompatscher Question 6.3;
+- explicitly cites Bulín–Kompatscher Question 30 (Section 6.3);
 - for one explicit family of 3-edge algebras built from a prime field plus an inactive state, gives a canonical O(k^2)-bit normal form computable from either an NFA or arbitrary generators;
 - Proposition 5.6 constructs a polynomial-time O(k^2)-size pp-definition from that normal form;
 - explicitly says the result concerns this displayed family and leaves equally small effective encodings for arbitrary 3-edge algebras open.
@@ -33,7 +33,7 @@ The paper:
 ### Consequence for novelty language
 
 The Janus candidate must **not** claim:
-- first constructive answer to Question 6.3 in any non-Boolean setting;
+- first constructive answer to Question 30 (Section 6.3) in any non-Boolean setting;
 - first generator-to-short-pp compiler for a 3-edge algebra;
 - first effective short pp-definition result beyond Mal'tsev/near-unanimity.
 
@@ -92,7 +92,7 @@ Current public pages checked:
 - current arXiv title/version for arXiv:2305.01984;
 - Vojtěch David's recent short-pp talks/work.
 
-The latest public Bulín–Kompatscher version found is v3 dated 27 Jan 2026; it still states Question 6.3 as open. The current author/project publication lists checked do not list a later paper announcing a general effective generator-to-short-pp construction.
+The latest public Bulín–Kompatscher version found is v3 dated 27 Jan 2026; it still states Question 30 (Section 6.3) as open. The current author/project publication lists checked do not list a later paper announcing a general effective generator-to-short-pp construction.
 
 This is evidence against an obvious public collision, but is not an exhaustive proof that no unpublished/submitted/obscure result exists.
 
@@ -105,7 +105,7 @@ This is evidence against an obvious public collision, but is not an exhaustive p
 | Explicit prime-field + inactive-state 3-edge family, generators -> short pp | Yes — Kalampakas 2026 | YES special family; strongest direct overlap |
 | Arbitrary fixed 3-edge algebra, generators -> short pp | No general result located; Kalampakas says open in his setting | No exact collision located |
 | Fixed finite residually-small cube-term K, arbitrary generators -> short pp uniformly | **No exact public result located** | Candidate novelty survives this audit |
-| General Question 6.3 for every language with short pp-definitions | Open in BK v3 | Janus does not claim this generality |
+| General Question 30 (Section 6.3) for every language with short pp-definitions | Open in BK v3 | Janus does not claim this generality |
 | SMP in residual-small cube-term | Yes — BMS | Dependency, not novelty |
 | Few-subpowers learnability/global tractability | Yes | Related, not the same output problem |
 | 2-nilpotent/clonoid SMP algorithms | Yes | Related, not pp synthesis |
@@ -117,14 +117,14 @@ Safe pre-seal wording:
 > We give a candidate polynomial-time construction of short pp-definitions from generators for invariant relations of a fixed finite family of algebras with a cube term generating a residually-small variety. To the best of our public-source search through 23 Sep 2026, we found no prior result covering this full uniform scope. The closest direct overlap is Kalampakas (2026), which gives an explicit generator-to-short-pp construction for a particular 3-edge family.
 
 Do **not** write:
-- “we solve Question 6.3” without qualification;
+- “we solve Question 30 (Section 6.3)” without qualification;
 - “first effective short pp-definition algorithm”;
 - “first non-Boolean positive answer”;
 - “general 3-edge compiler”;
 - “residual-finite in full generality” if the proof relies on residual-small BMS algorithms.
 
 Better:
-> “a scoped positive result candidate for Question 6.3 in the fixed finite residually-small cube-term regime.”
+> “a scoped positive result candidate for Question 30 (Section 6.3) in the fixed finite residually-small cube-term regime.”
 
 ## 11. Audit verdict
 
@@ -150,7 +150,7 @@ THEOREM_SEAL
 HOLD
 
 Remaining pre-seal work:
-1. final dependency ledger with exact source theorem numbering and corrected current-v3 Question 6.3 numbering;
+1. final dependency ledger with exact source theorem numbering and corrected current-v3 Question 30 (Section 6.3) numbering;
 2. editorial/source-binding cleanup of the standalone manuscript;
 3. preferably one external human expert review because the result addresses an explicitly open question in a substantial scoped regime.
 
