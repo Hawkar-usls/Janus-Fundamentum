@@ -150,6 +150,27 @@ def validate_audit_shape(entry: dict[str, Any]) -> None:
         raise GateError(f"{aid} must list artifact_paths")
 
     if change_class in AUDIT_CLASSES or change_class in NEW_MATH_CLASSES:
+        receipt = entry.get("receipt")
+        if not isinstance(receipt, str) or not receipt.strip():
+            raise GateError(f"{aid} missing receipt")
+        receipt_path = ROOT / receipt
+        if not receipt_path.is_file():
+            raise GateError(f"{aid} receipt does not exist: {receipt}")
+        if receipt_path.suffix == ".json":
+            receipt_payload = load_json(receipt_path)
+            receipt_decision = receipt_payload.get("decision", receipt_payload.get("status"))
+            if receipt_decision != decision:
+                raise GateError(
+                    f"{aid} ledger decision {decision!r} disagrees with receipt "
+                    f"{receipt_decision!r} in {receipt}"
+                )
+            if bool(receipt_payload.get("new_math_authorized", False)) != bool(
+                entry.get("new_math_authorized", False)
+            ):
+                raise GateError(
+                    f"{aid} new_math_authorized disagrees with receipt {receipt}"
+                )
+
         canonical = entry.get("canonical_object")
         if not isinstance(canonical, str) or not canonical.strip():
             raise GateError(f"{aid} missing canonical_object")
