@@ -31,6 +31,8 @@ acts transitively on the n coordinates.
 
 Since P and Q commute, G is abelian.
 
+Fix a coordinate with stabilizer H. Because G is abelian, H is normal; transitivity identifies the coordinate set with G/H, and the induced action of G/H is regular. Therefore the permutation representation is the regular representation of the finite abelian quotient G/H. In particular, every character of G/H occurs with multiplicity exactly one.
+
 ## 2. Simultaneous character decomposition
 
 Commuting permutation matrices are commuting normal matrices.
@@ -66,9 +68,9 @@ With the first value fixed to 1, necessarily
 
 where omega is a primitive cube root of unity.
 
-Since P,Q generate the transitive abelian action, a character is uniquely determined by its values on P and Q.
+Since P,Q generate the transitive abelian action, a character is uniquely determined by its values on P and Q. By the regular-representation multiplicity argument above, each such character occurs with multiplicity exactly one.
 
-Therefore at most two characters can satisfy the kernel equation:
+Therefore at most two one-dimensional eigenspaces can satisfy the kernel equation:
 
 (chi(P),chi(Q))=(omega,omega^2)
 
