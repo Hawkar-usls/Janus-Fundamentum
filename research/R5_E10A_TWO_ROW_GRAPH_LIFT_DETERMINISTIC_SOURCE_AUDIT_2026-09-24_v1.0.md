@@ -348,3 +348,23 @@ DETERMINISTIC POLYNOMIAL CLOSURE
 \`\`\`
 
 This is a scoped source-audit conclusion, not an absolute novelty claim.
+
+
+### S9 — top-plateau / optimal-face parity re-audit
+
+The pairwise-parity collapse exposed a new exact residual, so PA-0005 was reopened before attempting a theorem.
+
+The source-bound one-bit parity/odd-path machinery reduces the unit-positive pair-class path optimum to a minimum-weight perfect matching in a generally non-bipartite auxiliary graph. El Maalouly--Steiner--Wulf prove deterministic polynomial Correct Parity Matching (CPM) for general graphs via Lovasz' linear hull, and deterministic polynomial Bounded Correct Parity Matching (BCPM) for bipartite graphs. Their paper explicitly leaves general-graph BCPM open; Murakami--Yamaguchi retain this boundary and give FPT progress via odd-cycle-transversal.
+
+A tempting allowed-edge shortcut is source-valid only in the bipartite minimum-weight face: there the Birkhoff polytope has no blossom inequalities, so every perfect matching using only edges that occur in some optimum is again optimal. In general graphs Edmonds' odd-cut/blossom constraints remain part of the face, so deleting non-optimal edges alone is not an exact representation of the optimum family.
+
+No located source closes the narrower object:
+
+```
+parity feasibility among minimum-weight
+perfect matchings of a general graph,
+with the minimum face represented by
+tight edges + laminar positive blossoms.
+```
+
+This does not claim novelty of matching-face or blossom theory. It confirms only that the JANUS top-plateau reduction may target this narrower optimal-face parity object instead of general BCPM.
