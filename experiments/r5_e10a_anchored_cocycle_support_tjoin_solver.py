@@ -26,6 +26,9 @@ def gf2_rank(rows):
     rows = [int(x) for x in rows if x]
     rank = 0
     while rows:
+        rows = [r for r in rows if r]
+        if not rows:
+            break
         pivot = max(rows)
         bit = 1 << (pivot.bit_length() - 1)
         rank += 1
