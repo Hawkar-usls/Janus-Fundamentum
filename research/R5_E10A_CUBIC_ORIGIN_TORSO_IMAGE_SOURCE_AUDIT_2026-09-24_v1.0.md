@@ -321,3 +321,43 @@ P_VS_NP
 =
 OPEN
 ```
+
+
+## Re-audit addendum — sparse column-weight-three minor universality
+
+Pu Gao and Peter Nelson,
+*Minors of matroids represented by sparse random matrices over finite fields*
+(arXiv:2307.15685), prove that for every fixed column weight (k>=3), including
+(k=3), a sufficiently dense random sparse representation contains any fixed
+simple representable matroid (N) as a minor asymptotically almost surely.
+
+For the binary case this is a strong negative control against treating
+
+```
+COLUMN WEIGHT THREE
+```
+
+by itself as a restrictive minor-image invariant.
+
+It does **not** close PA-0006:
+
+- the target matroid (N) is fixed while the host grows;
+- the host is not required to be square;
+- row weight is not simultaneously constrained to three;
+- the distinguished all-ones element (f) is absent;
+- no polynomial growing-target embedding or JANUS interface/objective
+  preservation theorem is supplied.
+
+Classification:
+
+```
+COLUMN-WEIGHT-3 FIXED-MINOR UNIVERSALITY
+=
+STRONG ADJACENT DONOR / BARRIER
+
+NOT
+=
+GROWING-TARGET CUBIC [I+P+Q|1] IMAGE THEOREM
+```
+
+This strengthens the PA-0006 source firewall without changing its scoped PASS.
