@@ -179,10 +179,14 @@ e_tau = i_(w^0) : (w^0)^- -> (w^0)^+.
 
 Its mate is the anti-base arc `i_(w^1)`.
 
-Let `E_tau` contain the symmetric split lifts of the connector network whose
-ends lie in `V_tau`.
+Let `E_tau` contain every split internal arc and every split transfer arc
+of the connector network whose two ends lie in `V_tau`.  In particular,
+for every included non-w split vertex both polarities are incident with
+`E_tau`; the base and anti-base arcs themselves are not in `E_tau` because
+their outside endpoints were removed.  The set `E_tau` is symmetric, and
+the set of nodes incident with it is exactly `V_tau`.
 
-This is a GK bud.
+This is a GK bud in the literal sense of Section 2.2.
 
 The base tail is outside `V_tau`, the base head is inside, and the source
 prefix through the cheap route reaches the base tail without meeting
@@ -283,15 +287,36 @@ Any path using a connector pays at least `L=4m+5` on connector-internal unit
 arcs alone.  The remaining principal routes do not give a cheaper fixed
 alpha-zero regular path.
 
-Thus the transformed shortest regular-path value is also 3.  Ordinary shortest
-distance potentials for the transformed nonnegative lengths give a feasible
-GK dual with
+It remains to check the stronger condition needed for an LP certificate:
+the ordinary (not regularity-filtered) shortest `a--bar(a)` path for the
+transformed nonnegative lengths must also have value 3.
+
+Every endpoint-gadget path has one of four first/last boundary choices.
+The two regular choices project to alpha-zero `s--t` paths (or their
+complemented reverses).  Among paths avoiding the long connectors, the only
+alpha-zero principal routes are the cheap 00 route and `Q_m), and both have
+transformed length 3.  A connector-using route pays at least `L=4m+5` on
+unchanged connector-internal unit arcs.
+
+The two nonregular endpoint choices project to a cover path between opposite
+sheets of the same base endpoint, hence to a base closed path of total alpha
+one.  Avoiding connectors, such a path must combine one of the two length-two
+alpha-one control routes with an alpha-zero `s--t` route.  The latter has
+transformed length at least 3, while the control route costs 2, so these
+choices cost at least 5.  Connector-using choices are larger still.
+
+Therefore the ordinary transformed shortest-path value is exactly 3.
+Ordinary shortest-distance potentials for the transformed nonnegative
+lengths consequently satisfy the GK LP inequalities with
 
 ```
 epsilon_tau > 0
 and
-pi(bar(a)) = 3.
+pi(bar(a)) = 3 = W.
 ```
+
+The finite checker independently constructs the full split endpoint graph and
+verifies this ordinary shortest value for `m=2,3,4,5`.
 
 So the unbounded passage count occurs in a source-valid positive-fragment
 optimal certificate, not merely in an arbitrary symmetric vertex subset.
