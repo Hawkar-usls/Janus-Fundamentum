@@ -9,6 +9,8 @@ origin lift, fragment crossing count, and transformed scalar optimum.
 from __future__ import annotations
 
 from collections import defaultdict
+import heapq
+import itertools
 import json
 import math
 
@@ -156,6 +158,62 @@ def enumerate_regular_cover_paths(inst):
     return best, t0_records
 
 
+
+def transformed_split_shortest(inst, epsilon):
+    """Ordinary (not regularity-filtered) shortest a--abar path after one fragment transform."""
+    vtau = fragment_nodes(inst)
+    adj = defaultdict(list)
+
+    cover_nodes = [(name, sheet) for name in inst["nodes"] for sheet in (0, 1)]
+
+    # Split internal arcs.  The two w internal arcs are base/anti-base (+1).
+    for u in cover_nodes:
+        tail = (u, "-")
+        head = (u, "+")
+        if u in (("w", 0), ("w", 1)):
+            chi = 1
+        else:
+            chi = -1 if ((tail in vtau) != (head in vtau)) else 0
+        adj[tail].append((head, epsilon * chi))
+
+    # Every undirected base edge gives both directed cover orientations.
+    for u, v, alpha, _beta in inst["edges"]:
+        for sheet in (0, 1):
+            cu = (u, sheet)
+            cv = (v, sheet ^ alpha)
+            for x, y in ((cu, cv), (cv, cu)):
+                tail = (x, "+")
+                head = (y, "-")
+                chi = -1 if ((tail in vtau) != (head in vtau)) else 0
+                adj[tail].append((head, 1 + epsilon * chi))
+
+    a = ("endpoint_a", None)
+    abar = ("endpoint_abar", None)
+    for tail, head in (
+        (a, (("s", 0), "-")),
+        ((("s", 1), "+"), abar),
+        ((("t", 0), "+"), abar),
+        (a, (("t", 1), "-")),
+    ):
+        adj[tail].append((head, 0.0))
+
+    dist = {a: 0.0}
+    counter = itertools.count()
+    pq = [(0.0, next(counter), a)]
+    while pq:
+        d, _, u = heapq.heappop(pq)
+        if abs(d - dist[u]) > 1e-12:
+            continue
+        if u == abar:
+            return d
+        for v, w in adj[u]:
+            nd = d + w
+            if nd < dist.get(v, math.inf) - 1e-12:
+                dist[v] = nd
+                heapq.heappush(pq, (nd, next(counter), v))
+    return math.inf
+
+
 def target_path(m):
     p = [("s", 0), ("x1", 0)]
     for i in range(1, m):
@@ -181,6 +239,8 @@ def check_m(m):
     assert epsilon > 0
     transformed_min = min(r["cost"] + epsilon * r["chi"] for r in records)
     assert abs(transformed_min - 3.0) < 1e-12
+    ordinary_transformed_min = transformed_split_shortest(inst, epsilon)
+    assert abs(ordinary_transformed_min - 3.0) < 1e-12
     assert abs((2 * m) + epsilon * (-2 * m) - 3.0) < 1e-12
 
     return {
@@ -197,7 +257,8 @@ def check_m(m):
         "target_fragment_chi": chi,
         "k_tau": k_tau,
         "epsilon_tau": epsilon,
-        "transformed_scalar_optimum": transformed_min,
+        "transformed_regular_optimum": transformed_min,
+        "transformed_ordinary_optimum": ordinary_transformed_min,
         "finite_cover_paths_to_t0_checked": len(records),
     }
 
