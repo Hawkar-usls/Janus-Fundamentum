@@ -296,3 +296,55 @@ The first allowed brick is deliberately narrow:
 
 A randomized solver is useful as a control and terminal for RP-style experiments,
 but it does not satisfy JANUS's deterministic `P` contract.
+
+
+### S8 — exact-label shortest-path re-audit
+
+The zero-sum correction-cycle compression exposed a smaller primitive, so the
+source audit was reopened before any path theorem was attempted.
+
+Yamaguchi's weighted-linear-matroid-parity line gives deterministic polynomial
+algorithms for **shortest non-zero** paths for finitely generated abelian groups.
+For \`GF(2)^2\`, "non-zero" minimizes over three labels and therefore does not
+isolate one prescribed label.
+
+Kawase--Kobayashi--Yamaguchi distinguish explicitly between finding an s-t path
+of prescribed label alpha and finding a path whose label is not alpha. They
+report Huynh's polynomial-time solvability of the **feasibility** version of the
+prescribed-label problem for any fixed finite abelian group. This does not
+optimize path length.
+
+Bentert--Drange--Fomin--Golovach--Korhonen (ICALP 2024) define
+**Xor-Constrained Shortest Path** exactly as a shortest simple s-t path whose
+edge-label XOR equals a prescribed vector \`c in GF(2)^d\`. Their Theorem 2
+gives a one-sided-error randomized algorithm in
+\`2^(d+p)(n+m)^O(1)\` time. With \`d=2,p=0\`, this is exactly the path primitive
+exposed by the JANUS two-row lift. The paper itself explains that earlier
+group-labelled shortest-path work handles non-zero labels, while their
+application needs one specific group element.
+
+Yamaguchi's non-returning A-path / label-set-at-most-four theorem was also
+checked. There \`|Omega|<=4\` is the size of a terminal-state label set in a
+different non-returning A-path model; it is not the prescribed-sum shortest-path
+objective here.
+
+Therefore:
+
+\`\`\`
+DETERMINISTIC SHORTEST NON-ZERO
+= SOURCE-BOUND, ADJACENT ONLY
+
+FIXED-GROUP PRESCRIBED-LABEL FEASIBILITY
+= SOURCE-BOUND, NO LENGTH OPTIMIZATION
+
+PRESCRIBED-LABEL SHORTEST SIMPLE PATH IN GF(2)^2
+= EXACT LANGUAGE COLLISION WITH XOR-CONSTRAINED SHORTEST PATH
+
+KNOWN ALGORITHM
+= RANDOMIZED POLYNOMIAL
+
+DETERMINISTIC POLYNOMIAL CLOSURE
+= NOT LOCATED IN THIS RE-AUDIT
+\`\`\`
+
+This is a scoped source-audit conclusion, not an absolute novelty claim.
