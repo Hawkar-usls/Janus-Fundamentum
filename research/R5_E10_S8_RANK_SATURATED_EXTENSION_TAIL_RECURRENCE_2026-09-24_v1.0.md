@@ -3,7 +3,7 @@
 Date: 2026-09-24
 
 Authority:
-`JANUS_NEW_BARRIER_AFTER_AUDIT__EXACT_RECURRENCE__SCALAR_SIGNATURE_FALSIFIED_ONLY__NO_GENERAL_SIGNATURE_LOWER_BOUND`
+`JANUS_REDERIVATION__SOURCE_BOUND_TRELLIS_VITERBI_DONOR__FINITE_NEGATIVE_CONTROL__NO_NOVELTY_CLAIM`
 
 Authorizing audit:
 `PA-0003-S8-SPLITTER-INTERFACE`
@@ -13,6 +13,30 @@ Parent gate:
 
 Checker:
 `experiments/r5_e10_s8_splitter_extension_tail_recurrence.py`
+
+
+## 0. Source-collision reclassification
+
+After this control was first written, the required re-audit located the canonical
+external theory:
+
+- Kashyap, *Matroid Pathwidth and Code Trellis Complexity* (2008), identifies
+  syndrome-state trellis complexity with matroid pathwidth and shows that finding
+  optimal representable-matroid pathwidth / code trellis-width is NP-hard.
+- Sheshadri, *Trellis State Complexity as an Exact Tropical Factorization Rank*
+  (arXiv:2607.23471, 2026), proves that the full conditional coset-leader matrix
+  across a cut has min-plus and tropical rank exactly \`2^s\`, where \`s\` is the
+  minimal trellis state dimension.
+
+Accordingly, the recurrence below is retained as an **independent JANUS replay and
+finite control**, not as a new compression principle. The generic strategy
+“represent the whole conditional syndrome-distance profile by a polynomial-size
+min-plus factorization” is source-blocked when \`s\` is unbounded.
+
+The source barrier is representational, not a computational lower bound. It does
+not rule out a polynomial algorithm for the one special JANUS question
+\`shortest_f=n/3+1\` by a different mechanism.
+
 
 ## 1. Purpose
 
@@ -272,7 +296,7 @@ Strong Splitter discussion is operational rather than merely syntactic.
 This is **not** an asymptotic tail family and is not evidence of exponential state
 growth.
 
-## 8. Consequence for the universal algorithm
+## 8. Consequence for the universal algorithm after source binding
 
 The source-bound no-`S8` decomposition machinery already uses only small
 separator-conditioned shortest-circuit data across 1/2/3-sums.
@@ -280,8 +304,7 @@ separator-conditioned shortest-circuit data across 1/2/3-sums.
 A rank-saturated Splitter extension is qualitatively different: it is not a
 small-separator composition. Its exact update is a syndrome shift.
 
-Therefore the next object is now sharper than “find a polynomial boundary
-signature”:
+Therefore this artifact no longer authorizes generic full-profile signature compression. The surviving object is:
 
 ```
 R5_E10_RANK_SATURATED_EXTENSION_TAIL_SIGNATURE_COMPRESSION_GATE_V1
@@ -291,19 +314,14 @@ a rank-saturated extension tail inside the
 audited S8-containing distinguished-f route.
 
 REQUIRED:
-a polynomial-size representation of the
-restricted syndrome-distance profile needed
-by all future extension vectors,
+exploit the single lower-bound-tight target
+`shortest_f=n/3+1` without materializing the
+full generic conditional syndrome-distance table,
+OR derive another exact strict contraction.
 
-with:
-- polynomial update;
-- exact shortest-f recovery;
-- polynomial witness trace;
-- no enumeration of all syndrome shifts.
-
-MANDATORY:
-exploit the lower-bound-tight cubic origin,
-or prove another structural contraction.
+A certified bounded-trellis-width special case remains
+admissible, but generic trellis/min-plus profile compression
+with unbounded state dimension is source-bound.
 ```
 
 Only after the extension-tail interface is controlled should the project combine
@@ -314,7 +332,7 @@ it with coextension updates into a full Splitter-sequence algorithm.
 ```
 SINGLE-EXTENSION MIN-PLUS RECURRENCE
 =
-PROVED
+EXACT JANUS REDERIVATION / TRELLIS-DP CONTROL
 
 k-EXTENSION SUBSET-SHIFT FORMULA
 =
@@ -328,7 +346,11 @@ S8 RANK-4 3-CONNECTED EXTENSION TAIL
 =
 VERIFIED FINITE CONTROL
 
-POLYNOMIAL SIGNATURE
+GENERIC FULL MIN-PLUS CONDITIONAL-TABLE COMPRESSION
+=
+SOURCE-BOUND REPRESENTATIONAL BARRIER WHEN TRELLIS STATE DIMENSION IS UNBOUNDED
+
+LOWER-BOUND-TIGHT NON-TRELLIS / SPECIAL CONTRACTION
 =
 OPEN
 

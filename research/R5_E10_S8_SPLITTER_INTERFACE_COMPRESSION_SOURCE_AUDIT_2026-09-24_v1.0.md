@@ -262,6 +262,89 @@ polynomial splitter-state propagation theorem for the present residual.
 
 This is a research source audit, not a legal or absolute novelty certification.
 
+
+### S6 — Kashyap: matroid pathwidth / code trellis complexity
+
+Navin Kashyap,
+*Matroid Pathwidth and Code Trellis Complexity*,
+SIAM Journal on Discrete Mathematics 22(1), 256–272 (2008);
+arXiv:0705.1384.
+
+The source identifies minimum trellis state-complexity of a linear code with
+matroid pathwidth / trellis-width and proves that computing representable-matroid
+pathwidth, hence optimal code trellis-width, is NP-hard.
+
+JANUS consequence:
+
+\`\`\`
+SEQUENTIAL SYNDROME-STATE PROPAGATION
+=
+STANDARD TRELLIS / VITERBI LANGUAGE.
+
+FINDING AN OPTIMAL LOW-STATE ORDER
+=
+NOT A FREE POLYNOMIAL SUBROUTINE.
+\`\`\`
+
+Thus a future splitter algorithm may use a trellis when a polynomial-width layout
+is already certified, but it may not claim novelty for generic syndrome-state DP
+or hide the universal difficulty in discovering a low-width ordering.
+
+### S7 — Sheshadri 2026: exact tropical/min-plus rank of conditional decoding
+
+Karthik Sheshadri,
+*Trellis State Complexity as an Exact Tropical Factorization Rank*,
+arXiv:2607.23471 (2026).
+
+For a binary linear code and a coordinate cut, the paper defines the conditional
+decoding matrix whose entries are coset-leader weights. It proves that both the
+min-plus factorization rank (Barvinok rank) and tropical rank of this matrix are
+exactly
+
+\`\`\`
+2^s,
+\`\`\`
+
+where \`s\` is the classical state dimension of the minimal trellis at the cut.
+The lower bound is against arbitrary min-plus factorizations, not merely
+sequential trellises.
+
+The source explicitly warns that this is **representational incompressibility,
+not computational hardness**: families can have exponential conditional
+min-plus rank while their optimization problem is still polynomial by a different
+algorithmic mechanism.
+
+JANUS consequence:
+
+\`\`\`
+FULL CONDITIONAL COSET-LEADER TABLE
++
+GENERIC MIN-PLUS FACTORIZATION
++
+UNBOUNDED TRELLIS STATE DIMENSION
+=
+SOURCE-BOUND NON-COMPRESSION BARRIER.
+\`\`\`
+
+Therefore the surviving JANUS obligation is **not** to compress the entire
+conditional decoding table. It is narrower:
+
+\`\`\`
+decide the one extremal query
+
+shortest_f(M)=n/3+1
+
+on the cubic-origin residual,
+
+or derive another exact contraction,
+
+without requiring the full trellis/min-plus profile.
+\`\`\`
+
+This re-audit narrows the authorized implementation mechanism but does not change
+the exact decision problem of PA-0003.
+
+
 ## G4 — collision matrix
 
 | JANUS object | External object | Classification | Action |
@@ -277,7 +360,10 @@ This is a research source audit, not a legal or absolute novelty certification.
 | rank-saturated extension tail | explicit Strong-Splitter exception | KILLER_CONTROL | must survive/falsify |
 | (3,3)-regular LDPC minimum distance | homogeneous NP-hard control | KNOWN_BARRIER_ONLY | does not close affine target |
 | `shortest_f=n/3+1` for `[I+P+Q|1]` | lower-bound-tight affine coset problem | SCOPED_GAP_SURVIVES | audited target |
-| exact poly splitter boundary signature on surviving 3-connected S8 torso | no located closure | SCOPED_GAP_SURVIVES | new math only here |
+| generic sequential syndrome-state DP | code trellis / Viterbi dynamic programming | EXACT_LANGUAGE_COLLISION | source-bind; not novelty |
+| optimal generic trellis-width | matroid pathwidth / trellis-width | KNOWN_NP_HARD_BARRIER | do not use low-width ordering as free oracle |
+| full conditional coset-leader table under arbitrary min-plus factorization, unbounded state dimension | exact tropical/Barvinok rank 2^s | KNOWN_REPRESENTATION_BARRIER | generic polynomial min-plus table compression closed |
+| lower-bound-tight single query on surviving 3-connected S8 torso | no located closure by these sources | SCOPED_GAP_SURVIVES | new math only via non-trellis/special contraction |
 
 ## Representation and decomposition firewalls
 
@@ -352,9 +438,12 @@ shortest_f(M)=n/3+1.
 
 NEW OBLIGATION
 =
-polynomial-size exact boundary signature
-and polynomial update under a constructible
-splitter extension/coextension route.
+solve the lower-bound-tight distinguished-f query
+under the splitter route without materializing a
+full generic conditional coset-leader/min-plus table;
+allowed exits are a special compact certificate,
+a non-trellis exact algorithm, or another strict
+witness-preserving contraction.
 
 MANDATORY KILLER TEST
 =
@@ -377,6 +466,9 @@ S8 PRESENCE ONLY MARKS SURVIVAL
 BEYOND THE LOCATED no-S8 POLYNOMIAL ALGORITHM.
 ```
 
-Next mathematical work, after this audit passes CI, must first formalize the
-smallest exact splitter-interface signature and attack the rank-saturated-tail
-killer control before attempting a universal contraction theorem.
+Re-audit note (2026-09-24): after the initial PASS, trellis/pathwidth and exact
+min-plus-rank literature was located. Generic full-profile splitter-state
+compression is therefore source-bound/blocked when trellis state dimension is
+unbounded. The scoped PASS survives only for the one lower-bound-tight query or
+another non-trellis exact contraction. The rank-saturated tail remains a useful
+control, not a novelty basis.
