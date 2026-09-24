@@ -305,7 +305,8 @@ Forbidden:
 
 - reimposing literal local `I+P+Q` or local cubic degree on a torso;
 - treating triangle inequalities as a strict lineage invariant;
-- reopening generic weighted PA-0005 PIT before this image test;
+- reopening generic weighted PA-0005 PIT before this image audit;
+- performing new cubic-origin image mathematics before PA-0006 is completed;
 - using series expansion itself as evidence that the expanded instance has cubic origin.
 
 ## 9. Scientific ceiling
