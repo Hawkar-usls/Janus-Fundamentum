@@ -36,3 +36,27 @@ jobs:
 
       - name: Enforce no-audit-no-new-math
         run: python tools/validate_premath_gate.py
+
+      - name: Replay E10A origin-preserving k-tau controls
+        run: |
+          python -m py_compile experiments/r5_e10a_origin_preserving_parity_regular_preimage.py
+          python experiments/r5_e10a_origin_preserving_parity_regular_preimage.py > /tmp/e10a_origin.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          x=json.loads(Path('/tmp/e10a_origin.json').read_text())
+          assert x['status']=='PASS_FINITE_ORIGIN_PREIMAGE_CONTROLS'
+          assert x['base_class']=='UNDIRECTED_UNIT_WEIGHT_GF2_SQUARED'
+          assert x['theorem_family']=='k_tau=m_FOR_ARBITRARY_m_GE_2'
+          for row in x['controls']:
+              m=row['m']
+              assert row['exact_label_costs']=={'00':3,'01':2*m,'10':2,'11':2}
+              assert row['target']=='01'
+              assert row['target_unique_strict_maximum'] is True
+              assert row['target_fragment_chi']==-2*m
+              assert row['k_tau']==m
+              assert abs(row['transformed_regular_optimum']-3.0)<1e-12
+              assert abs(row['transformed_ordinary_optimum']-3.0)<1e-12
+          assert x['boundary']['P_VS_NP']=='OPEN'
+          print('R5_E10A_ORIGIN_PRESERVING_KTAU=PASS')
+          PY
