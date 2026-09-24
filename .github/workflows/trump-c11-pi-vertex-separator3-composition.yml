@@ -1,0 +1,183 @@
+name: TRUMP C11 PI Vertex Separator3 Composition Gate
+
+on:
+  pull_request:
+    branches:
+      - research/general-sat-universal-coverage-map-2026-09-19
+    paths:
+      - 'research/TRUMP_C11_PI_VERTEX_SEPARATOR3_COMPOSITION_GATE_RUN_TRIGGER_2026-09-20_v1.0.json'
+      - 'research/TRUMP_C11_PI_VERTEX_SEPARATOR3_COMPOSITION_GATE_EXECUTION_FREEZE_2026-09-20_v1.0.json'
+      - 'research/tools/c11_pi_vertex_separator3_composition/**'
+      - '.github/workflows/trump-c11-pi-vertex-separator3-composition.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  sep3-gate:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Bind frozen authority
+        shell: bash
+        run: |
+          set -euo pipefail
+          for sha in \
+            a5fc612a0eebbdfe624c711bf09e7843b82884be \
+            80773afb67130a9b3bc6bd386bc89b7d238396ba \
+            c6a42ed1cd315f58feb42ac69ace1f76d7febfa1 \
+            8bd04d5950e22c1b0e3f58eef8d7806f2b8606d6 \
+            b7cf014f00e33e0424a8a810a1443a762516f61f \
+            38b6ecf2f44b210b60174318ac612005d5273fb8 \
+            9989307aa971f8d612ff7a842de0cd31a882e5a6 \
+            7bb1b78fa73fe4a1287ce2bf282efe254db35380
+          do
+            git merge-base --is-ancestor "$sha" HEAD
+          done
+          test "$(git rev-parse a5fc612a0eebbdfe624c711bf09e7843b82884be:research/TRUMP_C11_PI_VERTEX_SEPARATOR3_COMPOSITION_GATE_PREREG_2026-09-20_v1.0.json)" = "356ee669b1aaaa288bc9df62e231df2188455755"
+          test "$(git rev-parse 38b6ecf2f44b210b60174318ac612005d5273fb8:research/TRUMP_C11_PI_VERTEX_SEPARATOR3_COMPOSITION_GATE_EXECUTION_FREEZE_2026-09-20_v1.0.json)" = "2d40556235bff3d209f0309cd147a3c67cd714fe"
+          python -m py_compile \
+            research/tools/c11_pi_vertex_separator3_composition/terminal_checker.py \
+            research/tools/c11_pi_vertex_separator3_composition/independent_verifier.py
+
+      - name: Run frozen Q2 Path-A audit
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p sep3gate
+          python research/tools/c11_pi_vertex_separator3_composition/terminal_checker.py \
+            --prereg research/TRUMP_C11_PI_VERTEX_SEPARATOR3_COMPOSITION_GATE_PREREG_2026-09-20_v1.0.json \
+            --freeze research/TRUMP_C11_PI_VERTEX_SEPARATOR3_COMPOSITION_GATE_EXECUTION_FREEZE_2026-09-20_v1.0.json \
+            --positive-freeze research/TRUMP_C11_PI_VERTEX_SEPARATOR2_COMPOSITION_GATE_EXECUTION_FREEZE_2026-09-20_v1.0.json \
+            --positive-result research/TRUMP_C11_R2_VERTEX_CONNECTIVITY_EXACT3_SEPARATOR3_TERMINAL_RESULT_2026-09-20_v1.0.json \
+            --out sep3gate/run \
+            | tee sep3gate/candidate.stdout
+
+      - name: Independent replay
+        shell: bash
+        run: |
+          set -euo pipefail
+          python research/tools/c11_pi_vertex_separator3_composition/independent_verifier.py \
+            --candidate sep3gate/run/candidate_result.json \
+            --freeze research/TRUMP_C11_PI_VERTEX_SEPARATOR3_COMPOSITION_GATE_EXECUTION_FREEZE_2026-09-20_v1.0.json \
+            --out sep3gate/independent.json \
+            | tee sep3gate/independent.stdout
+
+      - name: Assemble scientific manifest
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import hashlib,json,pathlib,subprocess
+          root=pathlib.Path("sep3gate")
+          cand=json.loads((root/"run/candidate_result.json").read_text())
+          indep=json.loads((root/"independent.json").read_text())
+          def sha(p): return hashlib.sha256(pathlib.Path(p).read_bytes()).hexdigest()
+
+          assert cand["primary_outcome"]=="Q2_SEPARATOR3_COMPOSITION_ESCAPE_PATH_A"
+          assert cand["Q1"]["status"]=="FALSIFIED_BY_AUTHORITATIVE_Q2_PATH_A"
+          assert cand["Q2"]["status"]=="VERIFIED"
+          assert cand["Q2"]["path"]=="A_SEP3_EMPTY"
+          assert cand["connectivity_audit"]["Cut_C"]==[]
+          assert cand["connectivity_audit"]["Sep_2_C"]==[]
+          assert cand["connectivity_audit"]["Sep_3_C"]==[]
+          assert cand["connectivity_audit"]["kappa_lower_bound"]==4
+          assert cand["connectivity_audit"]["kappa_equality_claimed"] is False
+          assert cand["connectivity_audit"]["separator4_inspected"] is False
+          assert cand["positive_current_R2_control"]["pass"] is True
+          assert cand["quantifier_controls"]["TWO_SEPARATOR3_MIXED_CONTROL"]["pass"] is True
+          assert cand["quantifier_controls"]["EMPTY_SEPARATOR3_STATE_CONTROL"]["pass"] is True
+          assert cand["quantifier_controls"]["NO_SEPARATOR3_CONTROL"]["pass"] is True
+          assert indep["verdict"]=="INDEPENDENT_Q2_KAPPA_GE4_AUTHORITATIVE_RESIDUAL_VERIFIED"
+          assert cand["repair_attempted"] is False
+          assert cand["successor_autoactivated"] is False
+          assert cand["stop"] is True
+
+          manifest={
+            "schema":"janus.trump.c11_pi_vertex_separator3_composition.scientific_manifest.v1",
+            "workflow_head":subprocess.check_output(["git","rev-parse","HEAD"],text=True).strip(),
+            "frozen_preregistration":{
+              "commit":"a5fc612a0eebbdfe624c711bf09e7843b82884be",
+              "content_blob":"356ee669b1aaaa288bc9df62e231df2188455755"
+            },
+            "execution_freeze_commit":"38b6ecf2f44b210b60174318ac612005d5273fb8",
+            "execution_freeze_blob":"2d40556235bff3d209f0309cd147a3c67cd714fe",
+            "implementation_commits":{
+              "candidate_checker":"9989307aa971f8d612ff7a842de0cd31a882e5a6",
+              "independent_verifier":"7bb1b78fa73fe4a1287ce2bf282efe254db35380"
+            },
+            "outcome":"Q2_SEPARATOR3_COMPOSITION_ESCAPE_PATH_A",
+            "authority_checks":cand["authority_checks"],
+            "route34":cand["route34"],
+            "domain_checks":cand["domain_checks"],
+            "tw_gt_3_certificate":cand["tw_gt_3_certificate"],
+            "connectivity_audit":cand["connectivity_audit"],
+            "positive_current_R2_control":cand["positive_current_R2_control"],
+            "quantifier_controls":cand["quantifier_controls"],
+            "Q1":cand["Q1"],"Q2":cand["Q2"],"Q3":cand["Q3"],
+            "independent_replay":{
+              "verdict":indep["verdict"],
+              "receipt_sha256":sha(root/"independent.json")
+            },
+            "candidate_receipt_sha256":sha(root/"run/candidate_result.json"),
+            "source_digests":{
+              "candidate_checker_sha256":sha("research/tools/c11_pi_vertex_separator3_composition/terminal_checker.py"),
+              "independent_verifier_sha256":sha("research/tools/c11_pi_vertex_separator3_composition/independent_verifier.py"),
+              "execution_freeze_sha256":sha("research/TRUMP_C11_PI_VERTEX_SEPARATOR3_COMPOSITION_GATE_EXECUTION_FREEZE_2026-09-20_v1.0.json")
+            },
+            "oracle_use":cand["oracle_use"],
+            "scientific_ceiling":cand["scientific_ceiling"],
+            "forbidden_interpretations":cand["forbidden_interpretations"],
+            "repair_attempted":False,
+            "successor_autoactivated":False,
+            "stop":True
+          }
+          (root/"scientific_manifest.json").write_text(json.dumps(manifest,indent=2,sort_keys=True)+"\n")
+          print(json.dumps({
+            "outcome":"Q2_SEPARATOR3_COMPOSITION_ESCAPE_PATH_A",
+            "Cut_C":[],
+            "Sep_2_C":[],
+            "Sep_3_C":[],
+            "kappa_lower_bound":4,
+            "independent":indep["verdict"]
+          },sort_keys=True))
+          PY
+
+      - name: Assert ceiling and stop
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json
+          m=json.load(open("sep3gate/scientific_manifest.json"))
+          assert m["outcome"]=="Q2_SEPARATOR3_COMPOSITION_ESCAPE_PATH_A"
+          assert m["scientific_ceiling"]["SEPARATOR_SIZE_4"]=="NOT_OPENED"
+          assert m["scientific_ceiling"]["BACKDOOR_SIZE_2"]=="NOT_OPENED"
+          assert m["scientific_ceiling"]["TW4"]=="NOT_OPENED"
+          assert m["scientific_ceiling"]["REPAIR"]=="NOT_STARTED"
+          assert m["scientific_ceiling"]["NEW_DESCRIPTOR"]=="NOT_DEFINED"
+          assert m["scientific_ceiling"]["LEMMA11_P7_LIFT"]=="OPEN"
+          assert m["scientific_ceiling"]["P7_FREE_4_COLOR_IN_P"]=="NOT_PROVED"
+          assert m["scientific_ceiling"]["P_VS_NP"]=="OPEN"
+          assert m["repair_attempted"] is False
+          assert m["successor_autoactivated"] is False
+          assert m["stop"] is True
+          print("STOP_CEILING_PASS")
+          PY
+
+      - name: Upload immutable artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: trump-c11-pi-vertex-separator3-composition-gate-v1
+          path: sep3gate/
+          if-no-files-found: error
+          retention-days: 90

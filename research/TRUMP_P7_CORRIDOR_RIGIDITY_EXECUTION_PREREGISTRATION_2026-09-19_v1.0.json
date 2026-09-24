@@ -1,0 +1,210 @@
+{
+  "artifact_id": "JANUS-TRUMP-P7-CORRIDOR-RIGIDITY-EXECUTION-2026-09-19-v1.0",
+  "status": "FROZEN_PREREGISTRATION_BEFORE_IMPLEMENTATION",
+  "date": "2026-09-19",
+  "parent": {
+    "path": "research/TRUMP_P7_LEMMA11_LIFT_GATE_2026-09-19_v1.1.json",
+    "commit": "5d525a328c1e97f705d82a9a87646017a6ca38a2",
+    "mode": "READ_ONLY"
+  },
+  "primary_source": {
+    "paper": "Four-Coloring P6-Free Graphs. II. Finding an Excellent Precoloring",
+    "authors": [
+      "Maria Chudnovsky",
+      "Sophie Spirkl",
+      "Mingxian Zhong"
+    ],
+    "primary_pdf": "https://web.math.princeton.edu/~mchudnov/4colpaper2.pdf",
+    "lemma4_scope": "seeded precoloring satisfying (ii),(iii)",
+    "axiom_ii": "S is connected and no vertex in V(G)\\S is complete to S",
+    "axiom_iii": "Y0 = V(G) \\ (N(S) union X0 union S)"
+  },
+  "gate": "P7_CORRIDOR_RIGIDITY",
+  "authority_separation": {
+    "python_symbolic_replay": "THEOREM_KERNEL_REPLAY_PASS",
+    "formal_proof_assistant": "FORMAL_THEOREM_PASS",
+    "instance_checker": "INSTANCE_CERTIFIED",
+    "scientific_gate": "PASS_P7_CORRIDOR_RIGIDITY_VERIFIED",
+    "prohibition": "THEOREM_KERNEL_REPLAY_PASS must never be relabeled FORMAL_THEOREM_PASS"
+  },
+  "theorem_input": {
+    "seeded_precoloring": "P=(G,S,X0,X,Y0,Y,f)",
+    "axioms": [
+      "Paper-II (ii)",
+      "Paper-II (iii)"
+    ],
+    "y_yprime_typing": "y,y' in N(Y0) intersect (V(G) \\ (S union X0))",
+    "type_definitions": [
+      "T=N_G(y) intersect S",
+      "T'=N_G(y') intersect S"
+    ],
+    "type_colors": [
+      "|f(T)|=1",
+      "|f(T')|=1",
+      "f(T)!=f(T')"
+    ],
+    "attachments": [
+      "zL,zR in Y0",
+      "zL-y in E",
+      "y'-zR in E"
+    ],
+    "required_nonedges": [
+      "y-y'",
+      "zL-zR",
+      "y-zR",
+      "y'-zL"
+    ],
+    "graph_promise": "G is P7-free, but this promise is not trusted and must be independently checked",
+    "Q": "a shortest y-to-y' path in G[S union {y,y'}]"
+  },
+  "kernel_chain": {
+    "K1": "distinct singleton f(T),f(T') imply T intersect T' is empty",
+    "K2": "T intersect T' empty implies Q has at least two internal seed vertices",
+    "K3": "shortest Q is induced",
+    "K4": "axiom (iii) implies Y0 is anticomplete to S; together with required nonedges, zL-y-Q-y'-zR is induced",
+    "K5": "if Q has at least three internal vertices, the first seven vertices of the corridor form an induced P7",
+    "K6": "P7-free implies Q has at most two internal vertices",
+    "K7": "K2+K6 imply exactly two internal seed vertices; the six-vertex corridor is an induced P6"
+  },
+  "certificate_contract": {
+    "order": [
+      "zL",
+      "y",
+      "s",
+      "s_prime",
+      "y_prime",
+      "zR"
+    ],
+    "required_edges": [
+      [
+        "zL",
+        "y"
+      ],
+      [
+        "y",
+        "s"
+      ],
+      [
+        "s",
+        "s_prime"
+      ],
+      [
+        "s_prime",
+        "y_prime"
+      ],
+      [
+        "y_prime",
+        "zR"
+      ]
+    ],
+    "required_nonedges": [
+      [
+        "zL",
+        "s"
+      ],
+      [
+        "zL",
+        "s_prime"
+      ],
+      [
+        "zL",
+        "y_prime"
+      ],
+      [
+        "zL",
+        "zR"
+      ],
+      [
+        "y",
+        "s_prime"
+      ],
+      [
+        "y",
+        "y_prime"
+      ],
+      [
+        "y",
+        "zR"
+      ],
+      [
+        "s",
+        "y_prime"
+      ],
+      [
+        "s",
+        "zR"
+      ],
+      [
+        "s_prime",
+        "zR"
+      ]
+    ],
+    "all_15_unordered_pairs_must_be_recomputed": true,
+    "p7_recognition": {
+      "method": "exhaustive_constant_size_7_vertex_induced_subgraph_search",
+      "trusted_promise": false
+    },
+    "shortest_path": {
+      "method": "BFS in induced graph G[S union {y,y'}]",
+      "trusted_claim": false
+    }
+  },
+  "preregistered_controls": [
+    {
+      "id": "POS_CANONICAL_P6_CORRIDOR",
+      "expected": "PASS_P7_CORRIDOR_RIGIDITY"
+    },
+    {
+      "id": "NEG_ADD_Y_ZR",
+      "expected": "FAIL_INPUT_AXIOM"
+    },
+    {
+      "id": "NEG_ADD_YPRIME_ZL",
+      "expected": "FAIL_INPUT_AXIOM"
+    },
+    {
+      "id": "NEG_ADD_ZL_ZR",
+      "expected": "FAIL_INPUT_AXIOM"
+    },
+    {
+      "id": "NEG_ONE_INTERNAL_SEED",
+      "expected": "FAIL_INPUT_OR_TYPE_INCONSISTENCY"
+    },
+    {
+      "id": "NEG_THREE_INTERNAL_SEED",
+      "expected": "FAIL_NOT_P7_FREE",
+      "required_witness": "ordered induced P7"
+    }
+  ],
+  "manifest_contract": {
+    "separate_fields": [
+      "theorem_authority",
+      "instance_checker",
+      "independent_replay",
+      "p7_recognition",
+      "corridor_certificate",
+      "controls",
+      "scientific_gate"
+    ],
+    "scientific_gate_pass_requires_all_mandatory_layers": true
+  },
+  "forbidden_scope": [
+    "Subgate A implementation or SPLIT repair",
+    "Break B / acceptability repair",
+    "Paper I modification",
+    "generic state-explosion experiments",
+    "automatic activation of any successor gate",
+    "complexity promotion",
+    "P versus NP inference"
+  ],
+  "claim_ceiling": {
+    "P_VS_NP": "OPEN",
+    "P_EQ_NP": "NOT_PROVED",
+    "P7_FREE_4_COLOR_IN_P": "NOT_PROVED",
+    "LEMMA11_P7_LIFT": "OPEN",
+    "SUBGATE_A": "NOT_STARTED",
+    "SUBGATE_B": "NOT_STARTED",
+    "FORMAL_THEOREM_PASS": "NOT_CLAIMED"
+  },
+  "next_allowed_action_after_verified_pass": "Open a separate preregistration for COMMON_Z_SEMANTIC_DEPENDENCY_LEDGER only; do not implement SPLIT automatically."
+}

@@ -1,0 +1,164 @@
+name: TRUMP C11 PI Forest or List3 Terminal Gate
+
+on:
+  pull_request:
+    branches:
+      - research/general-sat-universal-coverage-map-2026-09-19
+    paths:
+      - 'research/TRUMP_C11_PI_FOREST_OR_LIST3_TERMINAL_GATE_RUN_TRIGGER_2026-09-20_v1.0.json'
+      - 'research/TRUMP_C11_PI_FOREST_OR_LIST3_TERMINAL_GATE_EXECUTION_FREEZE_2026-09-20_v1.0.json'
+      - 'research/tools/c11_pi_forest_or_list3/**'
+      - '.github/workflows/trump-c11-pi-forest-or-list3.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  terminal-gate:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Bind frozen authority
+        shell: bash
+        run: |
+          set -euo pipefail
+          for sha in \
+            3dd7ad45938ee9a446a7a13b9a611ba73865a106 \
+            83d009ca9eb13261ab49eceb4d130cebfc64fb29 \
+            bdec8439613b1eaf3d20f44095137241a431689b \
+            1bdc1a7627bf624c4079b9a291237fc980e71786 \
+            10049ff2d8f261c4f16b480ab7412d9983f89955 \
+            5487ee5ef9c9f56a3e4c048db58806e36b35cd6b \
+            b03714e0267289d7c396835217bfd181bfdcacf5
+          do
+            git merge-base --is-ancestor "$sha" HEAD
+          done
+          test "$(git rev-parse 3dd7ad45938ee9a446a7a13b9a611ba73865a106:research/TRUMP_C11_PI_FOREST_OR_LIST3_TERMINAL_GATE_PREREG_2026-09-20_v1.0.json)" = "41e515511b5b3a4dd2d9a20ed787a2667947999e"
+          python -m py_compile \
+            research/tools/c11_pi_forest_or_list3/terminal_checker.py \
+            research/tools/c11_pi_forest_or_list3/independent_verifier.py
+
+      - name: Run frozen T2 audit
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p termgate
+          python research/tools/c11_pi_forest_or_list3/terminal_checker.py \
+            --prereg research/TRUMP_C11_PI_FOREST_OR_LIST3_TERMINAL_GATE_PREREG_2026-09-20_v1.0.json \
+            --freeze research/TRUMP_C11_PI_FOREST_OR_LIST3_TERMINAL_GATE_EXECUTION_FREEZE_2026-09-20_v1.0.json \
+            --forest-terminal research/TRUMP_FOREST_LIST_COLORING_TERMINAL_RESULT_2026-09-20_v1.0.json \
+            --out termgate/run \
+            | tee termgate/candidate.stdout
+
+      - name: Independent replay
+        shell: bash
+        run: |
+          set -euo pipefail
+          python research/tools/c11_pi_forest_or_list3/independent_verifier.py \
+            --candidate termgate/run/candidate_result.json \
+            --freeze research/TRUMP_C11_PI_FOREST_OR_LIST3_TERMINAL_GATE_EXECUTION_FREEZE_2026-09-20_v1.0.json \
+            --out termgate/independent.json \
+            | tee termgate/independent.stdout
+
+      - name: Assemble scientific manifest
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import hashlib,json,pathlib,subprocess
+          root=pathlib.Path("termgate")
+          cand=json.loads((root/"run/candidate_result.json").read_text())
+          indep=json.loads((root/"independent.json").read_text())
+          def sha(p): return hashlib.sha256(pathlib.Path(p).read_bytes()).hexdigest()
+
+          assert cand["primary_outcome"]=="T2_CYCLIC_FOUR_COLOR_RESIDUAL"
+          assert cand["T1"]["status"]=="FALSIFIED_BY_AUTHORITATIVE_T2_COMPONENT"
+          assert cand["T2"]["status"]=="VERIFIED"
+          assert cand["forest_positive_control"]["pass"] is True
+          assert cand["cyclic_classifier_control"]["pass"] is True
+          assert cand["minimization"]["vertex_minimal_under_induced_deletion_for_exact_decorated_C"] is True
+          assert indep["verdict"]=="INDEPENDENT_T2_CYCLIC_FULL_FOUR_COLOR_RESIDUAL_VERIFIED"
+          assert cand["repair_attempted"] is False
+          assert cand["successor_autoactivated"] is False
+          assert cand["stop"] is True
+
+          manifest={
+            "schema":"janus.trump.c11_pi_forest_or_list3.scientific_manifest.v1",
+            "workflow_head":subprocess.check_output(["git","rev-parse","HEAD"],text=True).strip(),
+            "frozen_preregistration":{
+              "commit":"3dd7ad45938ee9a446a7a13b9a611ba73865a106",
+              "content_blob":"41e515511b5b3a4dd2d9a20ed787a2667947999e"
+            },
+            "execution_freeze_commit":"10049ff2d8f261c4f16b480ab7412d9983f89955",
+            "implementation_commits":{
+              "candidate_checker":"5487ee5ef9c9f56a3e4c048db58806e36b35cd6b",
+              "independent_verifier":"b03714e0267289d7c396835217bfd181bfdcacf5"
+            },
+            "outcome":"T2_CYCLIC_FOUR_COLOR_RESIDUAL",
+            "authority_checks":cand["authority_checks"],
+            "route34":cand["route34"],
+            "forest_positive_control":cand["forest_positive_control"],
+            "cyclic_classifier_control":cand["cyclic_classifier_control"],
+            "T1":cand["T1"],"T2":cand["T2"],"T3":cand["T3"],
+            "minimization":cand["minimization"],
+            "independent_replay":{
+              "verdict":indep["verdict"],
+              "receipt_sha256":sha(root/"independent.json")
+            },
+            "candidate_receipt_sha256":sha(root/"run/candidate_result.json"),
+            "source_digests":{
+              "candidate_checker_sha256":sha("research/tools/c11_pi_forest_or_list3/terminal_checker.py"),
+              "independent_verifier_sha256":sha("research/tools/c11_pi_forest_or_list3/independent_verifier.py"),
+              "execution_freeze_sha256":sha("research/TRUMP_C11_PI_FOREST_OR_LIST3_TERMINAL_GATE_EXECUTION_FREEZE_2026-09-20_v1.0.json")
+            },
+            "oracle_use":cand["oracle_use"],
+            "scientific_ceiling":cand["scientific_ceiling"],
+            "forbidden_interpretations":cand["forbidden_interpretations"],
+            "repair_attempted":False,
+            "successor_autoactivated":False,
+            "stop":True
+          }
+          (root/"scientific_manifest.json").write_text(json.dumps(manifest,indent=2,sort_keys=True)+"\n")
+          print(json.dumps({
+            "outcome":"T2_CYCLIC_FOUR_COLOR_RESIDUAL",
+            "T1":"FALSIFIED_BY_COUNTERCOMPONENT",
+            "independent":indep["verdict"]
+          },sort_keys=True))
+          PY
+
+      - name: Assert ceiling and stop
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json
+          m=json.load(open("termgate/scientific_manifest.json"))
+          assert m["outcome"]=="T2_CYCLIC_FOUR_COLOR_RESIDUAL"
+          assert m["scientific_ceiling"]["BACKDOOR_SIZE_2"]=="NOT_OPENED"
+          assert m["scientific_ceiling"]["REPAIR"]=="NOT_STARTED"
+          assert m["scientific_ceiling"]["NEW_DESCRIPTOR"]=="NOT_DEFINED"
+          assert m["scientific_ceiling"]["LEMMA11_P7_LIFT"]=="OPEN"
+          assert m["scientific_ceiling"]["P7_FREE_4_COLOR_IN_P"]=="NOT_PROVED"
+          assert m["scientific_ceiling"]["P_VS_NP"]=="OPEN"
+          assert m["repair_attempted"] is False
+          assert m["successor_autoactivated"] is False
+          assert m["stop"] is True
+          print("STOP_CEILING_PASS")
+          PY
+
+      - name: Upload immutable artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: trump-c11-pi-forest-or-list3-terminal-gate-v1
+          path: termgate/
+          if-no-files-found: error
+          retention-days: 90

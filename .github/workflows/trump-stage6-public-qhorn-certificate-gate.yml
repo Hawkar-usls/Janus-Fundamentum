@@ -1,0 +1,193 @@
+name: TRUMP Stage6 Public q-Horn Certificate Gate
+
+on:
+  push:
+    branches:
+      - research/general-sat-universal-coverage-map-2026-09-19
+    paths:
+      - ".github/workflows/trump-stage6-public-qhorn-certificate-gate.yml"
+      - "research/tools/trump_stage6_qhorn_z3_proposer.py"
+      - "research/tools/trump_stage6_qhorn_independent_checker.py"
+      - "research/TRUMP_STAGE6_PUBLIC_QHORN_CERTIFICATE_GATE_PREREGISTRATION_2026-09-19_v1.0.json"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  public-qhorn-certificate-gate:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Verify frozen prereg lineage
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -f research/TRUMP_STAGE6_PUBLIC_QHORN_CERTIFICATE_GATE_PREREGISTRATION_2026-09-19_v1.0.json
+          git merge-base --is-ancestor d2c3eb7809e31d8f66802fd201454a4f293e5d34 HEAD
+          python - <<'PY'
+          import json
+          p="research/TRUMP_STAGE6_PUBLIC_QHORN_CERTIFICATE_GATE_PREREGISTRATION_2026-09-19_v1.0.json"
+          d=json.load(open(p,encoding="utf-8"))
+          assert d["gate"]=="TRUMP_STAGE6_PUBLIC_QHORN_CERTIFICATE_GATE"
+          assert d["pinned_parent"]=="eb5e54d146d06b2540954b5e83f0af9461d12b55"
+          assert d["new_janus_controller"]=="BLOCKED"
+          assert d["stage6B_deletion_qhorn"]["execution_lock"]=="DO_NOT_EXECUTE_BEFORE_STAGE6A_RESULTS_ARE_FROZEN"
+          assert d["stage6C_hypertree"]["execution_lock"]=="DO_NOT_EXECUTE_BEFORE_STAGE6A_RESULTS_ARE_FROZEN"
+          assert d["stage6D_branchwidth"]["execution_lock"]=="DO_NOT_EXECUTE_BEFORE_STAGE6A_RESULTS_ARE_FROZEN"
+          PY
+
+      - name: Syntax-check frozen Stage6A implementation
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m py_compile research/tools/trump_stage6_qhorn_z3_proposer.py
+          python -m py_compile research/tools/trump_stage6_qhorn_independent_checker.py
+
+      - name: Fetch and bind frozen R50G25X source
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p stage6/source/unpacked
+          curl -fsSL \
+            -H "Authorization: Bearer $GH_TOKEN" \
+            -H "Accept: application/vnd.github+json" \
+            "https://api.github.com/repos/$GITHUB_REPOSITORY/actions/artifacts/9992845123" \
+            -o stage6/source/artifact_metadata.json
+          curl -fL \
+            -H "Authorization: Bearer $GH_TOKEN" \
+            -H "Accept: application/vnd.github+json" \
+            "https://api.github.com/repos/$GITHUB_REPOSITORY/actions/artifacts/9992845123/zip" \
+            -o stage6/source/r50g25x.zip
+          sha256sum stage6/source/r50g25x.zip | tee stage6/source/r50g25x.zip.sha256
+          unzip -q stage6/source/r50g25x.zip -d stage6/source/unpacked
+          test -f stage6/source/unpacked/JANUS_TRUMP_R50G25X_ADVERSARIAL_STALL_SEARCH.json
+          python - <<'PY'
+          import json
+          m=json.load(open("stage6/source/artifact_metadata.json",encoding="utf-8"))
+          receipt={
+            "source_artifact_id":m.get("id"),
+            "source_artifact_name":m.get("name"),
+            "source_artifact_api_digest":m.get("digest"),
+            "source_artifact_workflow_head_sha":(m.get("workflow_run") or {}).get("head_sha"),
+            "expired":m.get("expired")
+          }
+          assert receipt["source_artifact_id"]==9992845123
+          assert receipt["expired"] is False
+          open("stage6/source/source_binding_receipt.json","w",encoding="utf-8").write(
+            json.dumps(receipt,indent=2,sort_keys=True)+"\n"
+          )
+          PY
+
+      - name: Install public generic SMT proposer
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p stage6
+          python -m pip install --disable-pip-version-check z3-solver \
+            > stage6/tool_install.stdout 2> stage6/tool_install.stderr
+          python - <<'PY' > stage6/proposer_tool.json
+          import importlib.metadata,json,z3
+          print(json.dumps({
+            "tool":"z3-solver",
+            "role":"EXTERNAL_GENERIC_PROPOSER_ONLY",
+            "package_version":importlib.metadata.version("z3-solver"),
+            "z3_version":z3.get_version_string()
+          },indent=2,sort_keys=True))
+          PY
+
+      - name: External proposal on frozen S7 and controls
+        shell: bash
+        run: |
+          set -euo pipefail
+          INDICES="2,9,10,11,12,13,14,1,3,4,5,6,7"
+          mkdir -p stage6/proposals
+          printf '%s\n' \
+            "python research/tools/trump_stage6_qhorn_z3_proposer.py stage6/source/unpacked/JANUS_TRUMP_R50G25X_ADVERSARIAL_STALL_SEARCH.json stage6/proposals --indices $INDICES --timeout-ms 20000" \
+            > stage6/proposer_command.txt
+          python research/tools/trump_stage6_qhorn_z3_proposer.py \
+            stage6/source/unpacked/JANUS_TRUMP_R50G25X_ADVERSARIAL_STALL_SEARCH.json \
+            stage6/proposals \
+            --indices "$INDICES" \
+            --timeout-ms 20000 \
+            > stage6/proposer.stdout \
+            2> stage6/proposer.stderr
+
+      - name: Independent q-Horn certificate and polynomial terminal replay
+        shell: bash
+        run: |
+          set -euo pipefail
+          INDICES="2,9,10,11,12,13,14,1,3,4,5,6,7"
+          python research/tools/trump_stage6_qhorn_independent_checker.py \
+            stage6/source/unpacked/JANUS_TRUMP_R50G25X_ADVERSARIAL_STALL_SEARCH.json \
+            stage6/proposals \
+            stage6/TRUMP_STAGE6_PUBLIC_QHORN_CERTIFICATE_GATE_RESULT.json \
+            --indices "$INDICES" \
+            --source-artifact-metadata stage6/source/artifact_metadata.json \
+            --source-zip-sha256-file stage6/source/r50g25x.zip.sha256 \
+            --prereg-commit d2c3eb7809e31d8f66802fd201454a4f293e5d34 \
+            --implementation-head "$GITHUB_SHA" \
+            | tee stage6/checker.stdout
+
+      - name: Emit immutable execution receipt
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import hashlib,json,os,pathlib
+          def sha(p):
+              h=hashlib.sha256()
+              with open(p,"rb") as f:
+                  for b in iter(lambda:f.read(1<<20),b""): h.update(b)
+              return h.hexdigest()
+          result="stage6/TRUMP_STAGE6_PUBLIC_QHORN_CERTIFICATE_GATE_RESULT.json"
+          receipt={
+            "prereg_commit":"d2c3eb7809e31d8f66802fd201454a4f293e5d34",
+            "implementation_head":os.environ["GITHUB_SHA"],
+            "result_sha256":sha(result),
+            "proposer_sha256":sha("research/tools/trump_stage6_qhorn_z3_proposer.py"),
+            "checker_sha256":sha("research/tools/trump_stage6_qhorn_independent_checker.py"),
+            "source_artifact_id":9992845123,
+            "source_zip_sha256":open("stage6/source/r50g25x.zip.sha256").read().split()[0],
+            "stage6B_stage6C_stage6D_executed":False,
+            "new_janus_controller_authorized":False
+          }
+          pathlib.Path("stage6/execution_receipt.json").write_text(
+            json.dumps(receipt,indent=2,sort_keys=True)+"\n",encoding="utf-8"
+          )
+          PY
+
+      - name: Upload Stage6A proof-carrying artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: trump-stage6-public-qhorn-certificate-gate
+          path: |
+            stage6/TRUMP_STAGE6_PUBLIC_QHORN_CERTIFICATE_GATE_RESULT.json
+            stage6/execution_receipt.json
+            stage6/proposer_tool.json
+            stage6/proposer_command.txt
+            stage6/proposer.stdout
+            stage6/proposer.stderr
+            stage6/checker.stdout
+            stage6/tool_install.stdout
+            stage6/tool_install.stderr
+            stage6/proposals/
+            stage6/source/artifact_metadata.json
+            stage6/source/source_binding_receipt.json
+            stage6/source/r50g25x.zip.sha256
+            stage6/source/unpacked/JANUS_TRUMP_R50G25X_ADVERSARIAL_STALL_SEARCH.json
+          if-no-files-found: warn
+          retention-days: 30

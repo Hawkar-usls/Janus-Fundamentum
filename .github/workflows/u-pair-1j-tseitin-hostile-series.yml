@@ -1,0 +1,159 @@
+name: U-PAIR-1J Tseitin expander hostile blind series
+
+on:
+  push:
+    branches:
+      - research/U-PAIR-1J-tseitin-expander-search-2026-09-18
+    paths:
+      - '.github/workflows/u-pair-1j-tseitin-hostile-series.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  hostile-series:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: research/U-PAIR-1J-tseitin-expander-search-2026-09-18
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Verify frozen source and implementation bindings
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git hash-object research/tools/u_pair_1j_tseitin_expander/constructor.py)" = "b13f3b833ebcdd78aef94423e995d974b717300d"
+          test "$(git hash-object research/tools/u_pair_1j_tseitin_expander/independent_verify.py)" = "ff871ffa34c0f4f70601f18af5a02a53b3c985b8"
+          test "$(git hash-object research/generated/u_pair_1j_tseitin_expander_source/source_manifest.json)" = "639aa6c31ba3a6427a41e592816fee5f5b9466b8"
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          r=json.loads(Path("research/U_PAIR_1J_TSEITIN_EXPANDER_SEARCH_IMPLEMENTATION_REVIEW_2026-09-18_v1.0.json").read_text())
+          assert r["verdict"]=="PASS_IMPLEMENTATION_BINDING__AUTHORIZED_TO_RUN_BLIND_SERIES_ONCE"
+          assert r["implementation_freeze"]["constructor_blob"]=="b13f3b833ebcdd78aef94423e995d974b717300d"
+          assert r["implementation_freeze"]["verifier_blob"]=="ff871ffa34c0f4f70601f18af5a02a53b3c985b8"
+          assert r["source_authority"]["source_manifest_blob"]=="639aa6c31ba3a6427a41e592816fee5f5b9466b8"
+          assert r["execution_authority"]["authorize_exactly_one_blind_series_run"] is True
+          PY
+
+      - name: Run frozen blind series once
+        shell: bash
+        run: |
+          set -euo pipefail
+          OUT="research/generated/u_pair_1j_tseitin_expander_run"
+          rm -rf "$OUT"
+          mkdir -p "$OUT"
+          for n in 16 32 64 128 256; do
+            timeout 120s python research/tools/u_pair_1j_tseitin_expander/constructor.py               "research/generated/u_pair_1j_tseitin_expander_source/source_n${n}.json"               "$OUT/candidate_n${n}.json"
+            timeout 120s python research/tools/u_pair_1j_tseitin_expander/independent_verify.py               "research/generated/u_pair_1j_tseitin_expander_source/source_n${n}.json"               "$OUT/candidate_n${n}.json"               "$OUT/verify_n${n}.json"
+          done
+
+      - name: Aggregate frozen result
+        shell: bash
+        run: |
+          python - <<'PY'
+          import json, hashlib
+          from pathlib import Path
+
+          series=[16,32,64,128,256]
+          out=Path("research/generated/u_pair_1j_tseitin_expander_run")
+          rows=[]
+          all_pass=True
+          all_clean=True
+          for n in series:
+              cand=json.loads((out/f"candidate_n{n}.json").read_text())
+              ver=json.loads((out/f"verify_n{n}.json").read_text())
+              d=cand["derivation"]
+              clean=(
+                  d["special_function_recognizer_used"] is False
+                  and d["reference_import_used"] is False
+                  and d["SAT_solver_calls"]==0
+                  and d["generic_SK0LEM_VALID_calls"]==0
+                  and d["generic_DAG_tautology_calls"]==0
+                  and d["truth_table_enumeration"] is False
+                  and d["boundary_assignment_enumeration"] is False
+                  and d["old_tseitin_artifact_import_used"] is False
+                  and d["spectral_metadata_used"] is False
+                  and d["calculus_mutation_used"] is False
+              )
+              passed=ver["verdict"]=="PASS_INDEPENDENT_AFFINE_PRIORITY_PROOF_CARRYING_WITNESS"
+              all_pass &= passed
+              all_clean &= clean
+              rows.append({
+                  "n":n,
+                  "S_synth_DAG_nodes":cand["metrics"]["S_synth_DAG_nodes"],
+                  "S_synth_DAG_bytes":cand["metrics"]["S_synth_DAG_bytes"],
+                  "T_synth_ns":cand["metrics"]["T_synth_ns"],
+                  "T_verify_ns":ver["T_verify_ns"],
+                  "max_live_shared_nodes":cand["metrics"]["max_live_shared_nodes"],
+                  "constructor_state_visits":cand["metrics"]["constructor_state_visits"],
+                  "verifier_node_visits":ver["verifier_node_visits"],
+                  "derived_affine_guard_count":cand["metrics"]["derived_affine_guard_count"],
+                  "guarded_ITE_node_count":cand["metrics"]["guarded_ITE_node_count"],
+                  "sharing_ratio_before_after_hashcons":cand["metrics"]["sharing_ratio_before_after_hashcons"],
+                  "candidate_sha256":hashlib.sha256((out/f"candidate_n{n}.json").read_bytes()).hexdigest(),
+                  "verify_sha256":hashlib.sha256((out/f"verify_n{n}.json").read_bytes()).hexdigest(),
+                  "forbidden_machinery_audit_clean":clean,
+                  "independent_verifier_pass":passed
+              })
+
+          verdict=(
+              "PASS_SCOPED_HOSTILE_SYNTHESIS"
+              if all_pass and all_clean
+              else "FAIL_HIDDEN_GENERIC_VALIDATION" if not all_clean
+              else "FAIL_SYNTHESIS_ACCESS"
+          )
+          result={
+              "artifact_id":"JANUS-TRUMP-U-PAIR-1J-TSEITIN-EXPANDER-SEARCH-BLIND-SERIES-RESULT-2026-09-18-v1.0",
+              "date":"2026-09-18",
+              "prereg_commit":"854da3147c84e32f43ffc4e9205c761766775e08",
+              "source_freeze_commit":"006c8283a87f896f4f2de8866f879021c5b3bfc4",
+              "source_check_commit":"2202f970f0e228fd4f63dbb2951776d764bf1f68",
+              "implementation_review_commit":"5847d6cf46d4559ed5a648b8022a04fe3922a331",
+              "constructor_blob":"b13f3b833ebcdd78aef94423e995d974b717300d",
+              "verifier_blob":"ff871ffa34c0f4f70601f18af5a02a53b3c985b8",
+              "series":series,
+              "rows":rows,
+              "aggregate":{
+                  "all_five_independent_verifier_PASS":all_pass,
+                  "all_forbidden_machinery_audits_clean":all_clean,
+                  "hostile_series_executed_once":True,
+                  "retry_with_more_resources":False
+              },
+              "verdict":verdict,
+              "interpretation":{
+                  "finite_series_only":True,
+                  "constructor_specific_symbolic_bound_known":"|Pi_n| <= n + 2 + (n-1)log2(n)",
+                  "observed_blowup_is_lower_bound":False,
+                  "expansion_created_observed_DAG_pressure":False if verdict=="PASS_SCOPED_HOSTILE_SYNTHESIS" else None
+              },
+              "promotion_firewall":{
+                  "EMPIRICAL_SCALING_PASS": verdict=="PASS_SCOPED_HOSTILE_SYNTHESIS",
+                  "GENERAL_SAT_IN_P":"NOT_PROVED",
+                  "P_EQ_NP":"NOT_PROVED",
+                  "P_VS_NP":"OPEN"
+              }
+          }
+          Path("research/U_PAIR_1J_TSEITIN_EXPANDER_SEARCH_BLIND_SERIES_RESULT_2026-09-18_v1.0.json").write_text(
+              json.dumps(result,indent=2,sort_keys=True)+"\n"
+          )
+          print(json.dumps({"verdict":verdict,"rows":rows},sort_keys=True))
+          assert all_pass and all_clean
+          PY
+
+      - name: Freeze candidates, verifier outputs, and result
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add research/generated/u_pair_1j_tseitin_expander_run
+          git add research/U_PAIR_1J_TSEITIN_EXPANDER_SEARCH_BLIND_SERIES_RESULT_2026-09-18_v1.0.json
+          git commit -m "U-PAIR-1J freeze Tseitin expander hostile blind series result"
+          git push origin HEAD:research/U-PAIR-1J-tseitin-expander-search-2026-09-18

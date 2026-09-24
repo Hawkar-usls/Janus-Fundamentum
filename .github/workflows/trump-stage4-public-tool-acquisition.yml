@@ -1,0 +1,357 @@
+name: TRUMP Stage4 Public Tool Acquisition
+
+on:
+  push:
+    branches:
+      - research/general-sat-universal-coverage-map-2026-09-19
+    paths:
+      - ".github/workflows/trump-stage4-public-tool-acquisition.yml"
+      - "research/tools/trump_r50g25x_external_incidence_td_harness.py"
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  backdoor-dnf-acquisition:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Acquire authors' Backdoor-DNF bytes with pinned fallback
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          PINNED_ARTIFACT_ID=10573309340
+          PINNED_INNER_SHA256=7a3c2c8cfe62af5602789d140ec812111d9faae8e8c2b0fd5a4f556dff9ec3b7
+          PINNED_INNER_BYTES=33680675
+
+          rm -rf stage4/dnf
+          mkdir -p stage4/dnf/files stage4/dnf/unpacked
+
+          # Prefer a fresh Zenodo replay, but network availability is not
+          # scientific evidence. Retry transient 5xx/timeout failures.
+          set +e
+          python - <<'PY'
+          import hashlib, json, pathlib, shutil, tarfile, time
+          import urllib.error, urllib.request, zipfile
+
+          UA={"User-Agent":"JANUS-public-artifact-replay/1.1"}
+
+          def fetch_json(url, timeout, attempts=5):
+              last=None
+              for i in range(attempts):
+                  try:
+                      req=urllib.request.Request(url,headers=UA)
+                      with urllib.request.urlopen(req,timeout=timeout) as r:
+                          return json.load(r)
+                  except Exception as e:
+                      last=e
+                      if i+1<attempts:
+                          time.sleep(min(2**i,8))
+              raise last
+
+          def fetch_file(url,dst,timeout,attempts=5):
+              last=None
+              for i in range(attempts):
+                  try:
+                      req=urllib.request.Request(url,headers=UA)
+                      with urllib.request.urlopen(req,timeout=timeout) as r, open(dst,"wb") as o:
+                          shutil.copyfileobj(r,o)
+                      return
+                  except Exception as e:
+                      last=e
+                      try: pathlib.Path(dst).unlink()
+                      except FileNotFoundError: pass
+                      if i+1<attempts:
+                          time.sleep(min(2**i,8))
+              raise last
+
+          api="https://zenodo.org/api/records/11259842"
+          record=fetch_json(api,60)
+          pathlib.Path("stage4/dnf/zenodo_record.json").write_text(
+              json.dumps(record,indent=2,sort_keys=True)+"\n",encoding="utf-8")
+
+          rows=[]
+          for f in record.get("files",[]):
+              name=f.get("key") or f.get("filename")
+              links=f.get("links",{})
+              url=links.get("self") or links.get("content")
+              if not name or not url:
+                  continue
+              dst=pathlib.Path("stage4/dnf/files")/pathlib.Path(name).name
+              fetch_file(url,dst,180)
+              raw=dst.read_bytes()
+              rows.append({
+                  "name":dst.name,
+                  "bytes":len(raw),
+                  "sha256":hashlib.sha256(raw).hexdigest(),
+                  "source_url":url,
+              })
+              if zipfile.is_zipfile(dst):
+                  target=pathlib.Path("stage4/dnf/unpacked")/dst.stem
+                  target.mkdir(parents=True,exist_ok=True)
+                  with zipfile.ZipFile(dst) as z:
+                      z.extractall(target)
+              elif tarfile.is_tarfile(dst):
+                  target=pathlib.Path("stage4/dnf/unpacked")/dst.stem
+                  target.mkdir(parents=True,exist_ok=True)
+                  with tarfile.open(dst) as t:
+                      t.extractall(target,filter="data")
+
+          out={
+              "schema":"janus.trump.backdoor_dnf_zenodo_acquisition.v1",
+              "record_id":record.get("id"),
+              "doi":record.get("doi"),
+              "title":record.get("metadata",{}).get("title"),
+              "files":rows,
+              "acquired_file_count":len(rows),
+          }
+          pathlib.Path("stage4/dnf/acquisition.json").write_text(
+              json.dumps(out,indent=2,sort_keys=True)+"\n",encoding="utf-8")
+          if not rows:
+              raise SystemExit("ZENODO_RECORD_RETURNED_NO_DOWNLOADABLE_FILES")
+          PY
+          fresh_rc=$?
+          set -e
+
+          if [ "$fresh_rc" -eq 0 ]; then
+            echo ZENODO_FRESH > stage4/dnf/acquisition_source.txt
+          else
+            echo "Fresh Zenodo acquisition failed rc=$fresh_rc; reusing pinned prior acquisition artifact." >&2
+            rm -rf stage4/dnf
+            mkdir -p stage4/dnf
+            curl --retry 4 --retry-all-errors --retry-delay 2 -fL \
+              -H "Authorization: Bearer $GH_TOKEN" \
+              -H "Accept: application/vnd.github+json" \
+              "https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/artifacts/${PINNED_ARTIFACT_ID}/zip" \
+              -o stage4/pinned-backdoor-dnf-artifact.zip
+            unzip -q stage4/pinned-backdoor-dnf-artifact.zip -d stage4/dnf
+            echo PINNED_GITHUB_ARTIFACT_${PINNED_ARTIFACT_ID} > stage4/dnf/acquisition_source.txt
+          fi
+
+          # Fail closed on provenance drift whether bytes came from Zenodo now
+          # or from the previously acquired GitHub artifact.
+          python - <<'PY'
+          import hashlib, json, pathlib
+          expected_sha="7a3c2c8cfe62af5602789d140ec812111d9faae8e8c2b0fd5a4f556dff9ec3b7"
+          expected_bytes=33680675
+          p=pathlib.Path("stage4/dnf/files/backdoor_dnf_supplementary.zip")
+          if not p.exists():
+              raise SystemExit("PINNED_BACKDOOR_DNF_FILE_MISSING")
+          raw=p.read_bytes()
+          got=hashlib.sha256(raw).hexdigest()
+          if got!=expected_sha or len(raw)!=expected_bytes:
+              raise SystemExit(f"PINNED_BACKDOOR_DNF_DRIFT sha={got} bytes={len(raw)}")
+          acq=json.loads(pathlib.Path("stage4/dnf/acquisition.json").read_text())
+          rows=[x for x in acq.get("files",[]) if x.get("name")=="backdoor_dnf_supplementary.zip"]
+          if not rows or rows[0].get("sha256")!=expected_sha or rows[0].get("bytes")!=expected_bytes:
+              raise SystemExit("ACQUISITION_RECEIPT_DRIFT")
+          print("PINNED_BACKDOOR_DNF_BYTES_VERIFIED",got,len(raw))
+          PY
+
+          find stage4/dnf -maxdepth 5 -type f -printf '%P\n' | sort > stage4/dnf/file_listing.txt
+          grep -RIlE 'usage|argparse|click|pysat|cadical|backdoor' stage4/dnf/unpacked \
+            > stage4/dnf/likely_code_or_docs.txt || true
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: trump-stage4-backdoor-dnf-authors-artifact
+          path: stage4/dnf/
+          if-no-files-found: error
+          retention-days: 30
+
+  incidence-treewidth-public-stack:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download frozen R50G25X source artifact
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p stage4/source
+          curl -fL             -H "Authorization: Bearer $GH_TOKEN"             -H "Accept: application/vnd.github+json"             "https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/artifacts/9992845123/zip"             -o stage4/source/r50g25x.zip
+          unzip -q stage4/source/r50g25x.zip -d stage4/source/unpacked
+          test -f stage4/source/unpacked/JANUS_TRUMP_R50G25X_ADVERSARIAL_STALL_SEARCH.json
+
+      - name: Emit source-bound PACE incidence graphs
+        shell: bash
+        run: |
+          set -euo pipefail
+          python research/tools/trump_r50g25x_external_incidence_td_harness.py emit             stage4/source/unpacked/JANUS_TRUMP_R50G25X_ADVERSARIAL_STALL_SEARCH.json             stage4/graphs
+
+      - name: Acquire and build public TD finder and validator
+        shell: bash
+        run: |
+          set -euo pipefail
+          git clone --depth=1 https://github.com/kit-algo/flow-cutter-pace17.git stage4/flow-cutter
+          git clone --depth=1 https://github.com/holgerdell/td-validate.git stage4/td-validate
+          git -C stage4/flow-cutter rev-parse HEAD > stage4/flowcutter.commit
+          git -C stage4/td-validate rev-parse HEAD > stage4/tdvalidate.commit
+          (cd stage4/flow-cutter && ./build.sh)
+          (cd stage4/td-validate && make)
+
+      - name: Find and independently validate decompositions
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p stage4/td stage4/validation
+          for g in stage4/graphs/*.gr; do
+            base="$(basename "$g" .gr)"
+            td="stage4/td/${base}.td"
+            set +e
+            timeout --signal=TERM --kill-after=3s 6s               stage4/flow-cutter/flow_cutter_pace17 "$g" > "$td" 2>"stage4/validation/${base}.finder.log"
+            finder_rc=$?
+            set -e
+            echo "$finder_rc" > "stage4/validation/${base}.finder_rc"
+            if stage4/td-validate/td-validate "$g" "$td"                  >"stage4/validation/${base}.log" 2>&1; then
+              echo PASS > "stage4/validation/${base}.status"
+            else
+              echo FAIL > "stage4/validation/${base}.status"
+            fi
+          done
+          FLOW_COMMIT="$(cat stage4/flowcutter.commit)"
+          VAL_COMMIT="$(cat stage4/tdvalidate.commit)"
+          python research/tools/trump_r50g25x_external_incidence_td_harness.py summarize             stage4/graphs stage4/td stage4/validation             stage4/TRUMP_R50G25X_EXTERNAL_INCIDENCE_TD_RESULTS.json             --flow-commit "$FLOW_COMMIT" --validator-commit "$VAL_COMMIT"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: trump-stage4-external-incidence-treewidth
+          path: |
+            stage4/TRUMP_R50G25X_EXTERNAL_INCIDENCE_TD_RESULTS.json
+            stage4/graphs/
+            stage4/td/
+            stage4/validation/
+            stage4/flowcutter.commit
+            stage4/tdvalidate.commit
+            stage4/source/unpacked/JANUS_TRUMP_R50G25X_ADVERSARIAL_STALL_SEARCH.json
+          if-no-files-found: error
+          retention-days: 30
+
+
+  backdoor-dnf-execution:
+    needs:
+      - backdoor-dnf-acquisition
+      - incidence-treewidth-public-stack
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Download authors and frozen-source artifacts from this run
+        uses: actions/download-artifact@v4
+        with:
+          pattern: trump-stage4-*
+          path: stage4/incoming
+
+      - name: Locate inputs and install authors' declared dependencies
+        shell: bash
+        run: |
+          set -euo pipefail
+          RUNNER="$(find stage4/incoming -type f -name runner.py | head -1)"
+          SOURCE="$(find stage4/incoming -type f -name JANUS_TRUMP_R50G25X_ADVERSARIAL_STALL_SEARCH.json | head -1)"
+          test -n "$RUNNER"
+          test -n "$SOURCE"
+          SRC="$(dirname "$RUNNER")"
+          chmod +x "$SRC/bin/muser-2"
+          echo "AUTHORS_SRC=$SRC" >> "$GITHUB_ENV"
+          echo "FROZEN_SOURCE=$SOURCE" >> "$GITHUB_ENV"
+          python -m pip install -r research/tools/backdoor_dnf_compat_requirements.txt
+          python - <<'PY'
+          from pysat.solvers import Cadical153
+          with Cadical153() as s:
+              assert s.solve()
+          print("AUTHORS_DECLARED_PYSAT_STACK_OK")
+          PY
+
+      - name: Execute authors' detector and independent JANUS replay
+        shell: bash
+        run: |
+          set -euo pipefail
+          python research/tools/trump_r50g25x_run_authors_backdoor_dnf.py \
+            "$FROZEN_SOURCE" \
+            "$AUTHORS_SRC" \
+            research/tools/trump_verify_authors_backdoor_dnf.py \
+            stage4/dnf_execution \
+            --timeout 20
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: trump-stage4-backdoor-dnf-execution
+          path: stage4/dnf_execution/
+          if-no-files-found: error
+          retention-days: 30
+
+
+  ba25-external-td-replay:
+    needs: incidence-treewidth-public-stack
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: trump-stage4-external-incidence-treewidth
+          path: stage4/td_input
+
+      - name: Validate all external PACE decompositions inside frozen BA25 embedding
+        shell: bash
+        run: |
+          set -euo pipefail
+          python research/tools/trump_r50g25x_bind_external_td_to_ba25.py \
+            stage4/td_input/source/unpacked/JANUS_TRUMP_R50G25X_ADVERSARIAL_STALL_SEARCH.json \
+            stage4/td_input/graphs/manifest.json \
+            stage4/td_input/td \
+            stage4/BA25_EXTERNAL_TD_BINDING.json
+
+      - name: Attempt finite BA25 solve on historical tau-12 residual
+        shell: bash
+        run: |
+          set -euo pipefail
+          set +e
+          timeout --signal=TERM --kill-after=5s 120s \
+            python research/tools/trump_r50g25x_bind_external_td_to_ba25.py \
+              stage4/td_input/source/unpacked/JANUS_TRUMP_R50G25X_ADVERSARIAL_STALL_SEARCH.json \
+              stage4/td_input/graphs/manifest.json \
+              stage4/td_input/td \
+              stage4/BA25_INDEX0_SOLVE_ATTEMPT.json \
+              --solve-indices 0 \
+              > stage4/ba25_index0.log 2>&1
+          rc=$?
+          set -e
+          echo "$rc" > stage4/ba25_index0.rc
+          if [ "$rc" -eq 0 ]; then
+            echo PASS > stage4/ba25_index0.status
+          elif [ "$rc" -eq 124 ]; then
+            echo RESOURCE_LIMIT_TIMEOUT > stage4/ba25_index0.status
+          else
+            echo EXECUTION_ERROR > stage4/ba25_index0.status
+          fi
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: trump-stage4-ba25-external-td-replay
+          path: |
+            stage4/BA25_EXTERNAL_TD_BINDING.json
+            stage4/BA25_INDEX0_SOLVE_ATTEMPT.json
+            stage4/ba25_index0.log
+            stage4/ba25_index0.rc
+            stage4/ba25_index0.status
+          if-no-files-found: warn
+          retention-days: 30

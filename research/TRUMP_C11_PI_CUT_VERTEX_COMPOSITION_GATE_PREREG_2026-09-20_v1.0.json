@@ -1,0 +1,223 @@
+{
+  "artifact_id": "JANUS-TRUMP-C11-PI-CUT-VERTEX-COMPOSITION-GATE-PREREG-2026-09-20-v1.0",
+  "version": "v1.0",
+  "date": "2026-09-20",
+  "status": "FROZEN_CUT_VERTEX_COMPOSITION_PREREGISTRATION__NO_REPAIR",
+  "name": "C11_PI_CUT_VERTEX_COMPOSITION_GATE_V1",
+  "parents": {
+    "strong_O2": {
+      "path": "research/TRUMP_C11_PI_OCTAHEDRON_CORE_MODULATOR_GATE_RESULT_2026-09-20_v1.0.json",
+      "commit": "c99e509dfd0da730cd190798d59c4c73fda26ba0",
+      "blob": "1b8374e80b65b876ea35551f2bc2d952b3a70c1a",
+      "status": "O2_OCTAHEDRON_ATTACHMENT_ESCAPE"
+    },
+    "cut_vertex_factorization": {
+      "path": "research/TRUMP_FIXED_PALETTE_CUT_VERTEX_LIST_FACTORIZATION_RESULT_2026-09-20_v1.0.json",
+      "commit": "a136f17905865d98f6da4f34993de3e12070dfaf",
+      "status": "PASS_FIXED_PALETTE_CUT_VERTEX_LIST_FACTORIZATION"
+    },
+    "current_articulation_control": {
+      "path": "research/TRUMP_C11_STRONG_O2_ARTICULATION_TERMINAL_RESULT_2026-09-20_v1.0.json",
+      "commit": "3c9c25e2583620f4dfacda17e9023069cb5d2a87",
+      "status": "PASS_CURRENT_STRONG_O2_ARTICULATION_TERMINAL"
+    },
+    "literal_octahedron_terminal": {
+      "path": "research/TRUMP_LITERAL_OCTAHEDRON_EXACT_LIST_TERMINAL_RESULT_2026-09-20_v1.0.json",
+      "commit": "733c7d62ce3b52a4e1390076f417fb7dc11cf9ee",
+      "status": "PASS_LITERAL_OCTAHEDRON_EXACT_LIST_POLYNOMIAL_TERMINAL"
+    },
+    "tw3_terminal": {
+      "path": "research/TRUMP_TREEWIDTH3_LIST_COLORING_TERMINAL_RESULT_2026-09-20_v1.0.json",
+      "commit": "7a6c7127b4ebe16c61000b3e49809fad85aaf33a",
+      "status": "PASS_TREEWIDTH3_LIST_COLORING_POLYNOMIAL_TERMINAL"
+    }
+  },
+  "domain": {
+    "class_name": "AUTHORITATIVE_C11_PI_RESIDUALS_OUTSIDE_BASE_TERMINAL_STACK",
+    "definition": [
+      "C is a connected authoritative C11 PI residual component after only frozen deterministic propagation/normalization.",
+      "C is noncontradictory.",
+      "C is NOT_L3_READY.",
+      "C is NOT_TW3_LIST_READY, with tw(C)>3 certified when needed by a frozen forbidden-minor model.",
+      "C is not exactly a six-vertex literal octahedron eligible for LITERAL_OCTAHEDRON_EXACT_LIST_TERMINAL."
+    ],
+    "rationale": "Residuals already solved by the base terminal library are outside this gate; the gate asks only whether remaining unresolved interaction factorizes across one cut vertex."
+  },
+  "base_terminal_stack": {
+    "CONTRADICTION": "Exact frozen contradiction certificate.",
+    "L3_READY": "Global missing color followed by the frozen P7-free List-3 terminal.",
+    "TW3_LIST_READY": "Verified width-3 decomposition followed by frozen arbitrary-list TW3 DP.",
+    "LITERAL_OCTAHEDRON_EXACT_LIST_READY": "The entire connected component is exactly a literal K_{2,2,2} on six vertices and is solved by <=4^6 exact assignments."
+  },
+  "cut_vertex_discovery": {
+    "graph_only": true,
+    "Cut_C": "Complete set of vertices r such that C-r has more connected components than C.",
+    "algorithm": "Enumerate every r in V(C), delete r, compute connected components, and retain exactly the articulation vertices.",
+    "complexity": "O(n*(n+m)) by direct audit; polynomial.",
+    "oracle_used": false
+  },
+  "good_cut_definition": {
+    "formula": "GOOD_CUT(C,r) := r in Cut(C) AND for every kappa in L(r), after fixing r=kappa and frozen propagation, every surviving connected component D is closed by the base terminal stack.",
+    "GOOD_cut_C": "exists r in Cut(C): GOOD_CUT(C,r).",
+    "exact_factorization": "For a fixed kappa, the branch is feasible iff every component of C-r with the kappa boundary restriction is feasible; frozen propagation may only simplify those independent component instances further.",
+    "empty_list_note": "A domain residual has nonempty exact lists. If fixing kappa creates an empty list, that kappa branch is simply CONTRADICTION and therefore closed."
+  },
+  "per_cut_branch_audit": {
+    "for_each_r": "Enumerate every kappa in the exact current L(r); no extension-oracle choice.",
+    "for_each_kappa": [
+      "Fix r=kappa.",
+      "Apply only frozen deterministic propagation.",
+      "Preserve exact contradiction if one occurs.",
+      "Otherwise construct every surviving connected component D.",
+      "Classify D in strict order: L3_READY, TW3_LIST_READY, LITERAL_OCTAHEDRON_EXACT_LIST_READY, otherwise ESCAPE."
+    ],
+    "branch_closed_iff": "Every surviving D is in the base terminal stack."
+  },
+  "outcomes": {
+    "S1_CUT_VERTEX_COMPOSITION_UNIVERSAL": {
+      "label": "S1_CUT_VERTEX_COMPOSITION_UNIVERSAL",
+      "formula": "For every C in AUTHORITATIVE_C11_PI_RESIDUALS_OUTSIDE_BASE_TERMINAL_STACK, GOOD_cut(C).",
+      "pass_requires": [
+        "A theorem/proof-carrying universal argument; finite corpus success is insufficient.",
+        "A polynomial graph-only rule finding at least one good articulation r(C) for each C.",
+        "For every kappa in L(r(C)), every resulting component is closed by the frozen base terminal stack.",
+        "Exact branch aggregation and reconstruction/UNSAT logic using cut-vertex factorization.",
+        "Polynomial accounting for articulation discovery, at most four colors of r, propagation, component decomposition, and all downstream terminal calls."
+      ],
+      "consequence_ceiling": "The currently unresolved authoritative residual family is polynomially resolved by one-vertex separator composition over already-frozen component terminals."
+    },
+    "LOCAL_CUT_ESCAPE": {
+      "label": "LOCAL_CUT_ESCAPE",
+      "formula": "exists C, exists r in Cut(C), exists kappa in L(r), exists surviving D outside the base terminal stack.",
+      "interpretation": "This proves only that one specific articulation r is not a good universal separator. It MUST NOT falsify S1 because another articulation r* in the same C may still be good."
+    },
+    "S2_CUT_VERTEX_COMPOSITION_ESCAPE": {
+      "label": "S2_CUT_VERTEX_COMPOSITION_ESCAPE",
+      "strong_formula": "exists authoritative C in domain such that [Cut(C)=empty] OR [for every r in Cut(C), exists kappa_r in L(r) and a certified surviving component D_{r,kappa_r} outside the base terminal stack].",
+      "interpretation": [
+        "If Cut(C)=empty and |V(C)|>=3, the authoritative residual is genuinely cut-vertex-free / 2-connected.",
+        "Otherwise every articulation candidate is defeated by at least one color branch.",
+        "Therefore GOOD_cut(C)=false."
+      ],
+      "certificate_if_no_cut": [
+        "complete authoritative C and exact lists",
+        "graph-only exhaustive Cut(C) enumeration receipt showing Cut(C)=empty",
+        "C remains outside the base terminal stack",
+        "P7-free inheritance/check and independent replay"
+      ],
+      "certificate_if_all_cuts_defeated": [
+        "complete authoritative C and exact lists",
+        "complete graph-only enumeration of Cut(C)",
+        "for every r in Cut(C), one exact defeating kappa_r",
+        "for every r, exact frozen propagation transcript",
+        "for every r, exact surviving connected D_{r,kappa_r}",
+        "D is noncontradictory and NOT_L3_READY",
+        "tw(D)>3 certified by an explicit frozen forbidden-minor model",
+        "D is not exactly a six-vertex literal octahedron terminal",
+        "independent replay of cut-set completeness and every defeating branch"
+      ],
+      "consequence_ceiling": "There exists an authoritative residual whose unresolved interaction cannot be explained by a single articulation separator feeding the current component terminal library."
+    },
+    "S3_GATE_UNRESOLVED": {
+      "label": "S3_GATE_UNRESOLVED",
+      "condition": "Neither theorem-level S1 nor complete strong-S2 certificate is established."
+    }
+  },
+  "quantifier_binding": {
+    "GOOD_cut_formula": "exists r in Cut(C) for all kappa in L(r): Closed(C,r,kappa).",
+    "exact_negation_for_one_C": "Cut(C)=empty OR for all r in Cut(C) exists kappa_r in L(r): not Closed(C,r,kappa_r).",
+    "rule": "A single LOCAL_CUT_ESCAPE cannot falsify S1."
+  },
+  "escape_certificate": {
+    "required": [
+      "exact D vertices/edges/lists",
+      "connected and noncontradictory",
+      "union of lists = [4] and NOT_L3_READY",
+      "tw(D)>3 with explicit frozen forbidden-minor model from {K5,OCTAHEDRON,WAGNER_V8,PENTAGONAL_PRISM}",
+      "D is not exactly a six-vertex literal octahedron",
+      "all fixed-boundary restrictions encoded in exact lists"
+    ]
+  },
+  "mandatory_positive_control": {
+    "source": "PASS_CURRENT_STRONG_O2_ARTICULATION_TERMINAL",
+    "residual": "The sealed 13-vertex strong-O2 residual.",
+    "expected": {
+      "cut_vertices": [
+        "z"
+      ],
+      "L_z": [
+        1,
+        2
+      ],
+      "components_of_C_minus_z": 2,
+      "both_components_literal_octahedra": true,
+      "z=1": "both exact-octahedron terminals COLORABLE",
+      "z=2": "both exact-octahedron terminals COLORABLE",
+      "GOOD_CUT_z": true,
+      "GOOD_cut_C": true
+    }
+  },
+  "mandatory_quantifier_controls": [
+    {
+      "name": "TWO_CUT_MIXED_CONTROL",
+      "authority": "CONTROL_ONLY__NON_SCIENTIFIC",
+      "structure": "Synthetic residual with two articulation candidates r1,r2.",
+      "required_behavior": [
+        "r1 has at least one escaping color branch.",
+        "r2 closes for every color branch.",
+        "record LOCAL_CUT_ESCAPE for r1.",
+        "GOOD_cut(C)=true via r2.",
+        "S2=false."
+      ]
+    },
+    {
+      "name": "NO_CUT_CONTROL",
+      "authority": "CONTROL_ONLY__NON_SCIENTIFIC",
+      "structure": "Synthetic connected graph with at least three vertices and no articulation vertex, outside the mocked base terminal labels.",
+      "required_behavior": [
+        "Cut(C)=empty.",
+        "strong-S2 no-cut path is recognized."
+      ]
+    }
+  ],
+  "anti_cheat": [
+    "Do not stop after the first bad articulation when attempting S2.",
+    "Do not choose r or kappa using extension knowledge.",
+    "Do not call a component escaped merely because a heuristic TW3 decomposition search fails; require an explicit forbidden-minor certificate.",
+    "Do not call an exact six-vertex literal octahedron an escape; it is now an authorized terminal.",
+    "Finite testing cannot establish S1.",
+    "Do not open tw4, backdoor size 2, repair, separator size 2, or new state language."
+  ],
+  "scientific_ceiling": {
+    "CURRENT_STRONG_O2_WITNESS": "POLYNOMIALLY_RESOLVED_BY_CUT_VERTEX_FACTORIZATION",
+    "UNIVERSAL_SINGLE_CUT_VERTEX_COMPOSITION": "OPEN",
+    "GENUINELY_CUT_VERTEX_FREE_OR_ALL_CUTS_DEFEATED_RESIDUAL": "NOT_YET_VERIFIED",
+    "PI_DISCOVERY": "PARTIAL",
+    "P3_EXACT_PAIR_QUOTIENT": "NOT_ESTABLISHED",
+    "TW4": "NOT_OPENED",
+    "SEPARATOR_SIZE_2": "NOT_OPENED",
+    "BACKDOOR_SIZE_2": "NOT_OPENED",
+    "REPAIR": "NOT_STARTED",
+    "NEW_DESCRIPTOR": "NOT_DEFINED",
+    "C1S_CS1_CSS": "NOT_REACHED",
+    "LEMMA11_P7_LIFT": "OPEN",
+    "P7_FREE_4_COLOR_IN_P": "NOT_PROVED",
+    "HARDNESS_LOCALIZED": "NOT_CLAIMED",
+    "P_VS_NP": "OPEN"
+  },
+  "forbidden": [
+    "tw4",
+    "separator size 2",
+    "backdoor size 2",
+    "branching repair",
+    "new descriptor/state language",
+    "general P7-free 4-coloring/list-4 oracle",
+    "extension oracle",
+    "inspect C1S/CS1/CSS",
+    "promote LOCAL_CUT_ESCAPE to S2",
+    "hardness/lower-bound/unbounded-treewidth/P-vs-NP inference"
+  ],
+  "execution_authorization": "NOT_GRANTED_BY_THIS_PREREGISTRATION",
+  "next_action": "Separate authorization required. Audit only one-vertex separator composition over the frozen base terminal stack and stop at S1/strong-S2/S3.",
+  "stop": true
+}
