@@ -260,7 +260,7 @@ def explicit_controls():
     controls = [
         ([0b111, 0b101], 3, 0),
         ([0b1111, 0b1010, 0b1100], 4, 2),
-        ([0b10111, 0b01101, 0b11010], 5, 4),
+        ([0b10111, 0b01101, 0b11001], 5, 4),
     ]
     for rows, n, p in controls:
         assert gf2_rank(rows) == len(rows)
