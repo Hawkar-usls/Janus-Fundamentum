@@ -1,0 +1,33 @@
+name: R5 E10A 3-Sum Interface Cost Cone
+
+on:
+  push:
+    paths:
+      - "experiments/r5_e10a_three_sum_interface_cost_cone.py"
+      - "research/R5_E10A_THREE_SUM_INTERFACE_COST_CONE_AND_UNIT_SERIES_PROVENANCE_2026-09-24_v1.0.md"
+      - "registry/JANUS_P_VS_NP_R5_E10A_THREE_SUM_INTERFACE_COST_CONE_2026-09-24_v1.0.json"
+      - ".github/workflows/r5-e10a-three-sum-interface-cost-cone.yml"
+  pull_request:
+    paths:
+      - "experiments/r5_e10a_three_sum_interface_cost_cone.py"
+      - "research/R5_E10A_THREE_SUM_INTERFACE_COST_CONE_AND_UNIT_SERIES_PROVENANCE_2026-09-24_v1.0.md"
+      - "registry/JANUS_P_VS_NP_R5_E10A_THREE_SUM_INTERFACE_COST_CONE_2026-09-24_v1.0.json"
+      - ".github/workflows/r5-e10a-three-sum-interface-cost-cone.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  replay:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Compile checker
+        run: python -m py_compile experiments/r5_e10a_three_sum_interface_cost_cone.py
+      - name: Replay finite controls
+        run: python experiments/r5_e10a_three_sum_interface_cost_cone.py
