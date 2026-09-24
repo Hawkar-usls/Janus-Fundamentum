@@ -281,7 +281,7 @@ LITERAL CUBIC-ORIGIN TORSO PLACEMENT
 cannot hold because `Q_4` is an explicit admissible broad-class target that
 violates a necessary placement invariant.
 
-Route B therefore passes:
+Route B supplies the certified new barrier:
 
 ```
 R5_E10A_CUBIC_ORIGIN_INTERFACE_GLOBAL_OBJECTIVE_COUPLING_GATE_V1
