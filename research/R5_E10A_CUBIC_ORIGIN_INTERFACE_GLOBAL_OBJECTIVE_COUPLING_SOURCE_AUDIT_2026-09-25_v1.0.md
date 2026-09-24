@@ -205,6 +205,28 @@ objective.
 Classification:
 `STRONG_SPECIFIED_MINOR_SEPARATOR_DONOR__NO_EXACT_PLACEMENT_COLLISION`.
 
+### S2b — rooted-minor / roundedness literature binds specified elements, not decomposition roles
+
+Costalonga--Reid--Wu (2023), in the rooted-prism-minor setting, explicitly
+use the language of a minor **rooted on / using a specified edge** and note the
+classical matroid analogue: roundedness results force certain fixed minors to use
+specified elements.
+
+This is relevant to the distinguished-`f` requirement because it confirms that
+
+```
+MINOR + SPECIFIED ELEMENT INCIDENCE
+```
+
+has a standard structural language stronger than an unrooted minor.
+
+However these results concern fixed small rooted minors and do not make the
+rooted minor a prescribed 1/2/3-sum torso, do not construct square cubic
+parents, and do not couple shortest-circuit values.
+
+Classification:
+`ROOTED_MINOR_ROUNDEDNESS_SOURCE_BOUND__NO_TORSO_OR_OBJECTIVE_COLLISION`.
+
 ### S3 — 3-separation tree theory describes a fixed M, not universal embedding
 
 Oxley--Semple--Whittle give a tree decomposition that displays, up to natural
