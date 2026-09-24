@@ -345,6 +345,81 @@ This re-audit narrows the authorized implementation mechanism but does not chang
 the exact decision problem of PA-0003.
 
 
+
+### S8 — Eulerian / maximum-weight-codeword negative control
+
+For the JANUS origin, \`H 1 = 1 = f\`. Hence in the extended representation
+\`[H|f]\` the sum of all columns is zero, so the entire ground set is a binary
+cycle and the represented matroid is Eulerian.
+
+This property alone is not a tractability mechanism.
+
+More generally, for any binary parity-check matrix \`H\`, set
+
+\`\`\`
+f = H 1.
+\`\`\`
+
+Then
+
+\`\`\`
+Hx=f
+iff
+H(x+1)=0.
+\`\`\`
+
+Writing \`y=x+1\` gives
+
+\`\`\`
+min { |x| : Hx=f }
+=
+n - max { |y| : Hy=0 }.
+\`\`\`
+
+Consequently, when \`f != 0\`,
+
+\`\`\`
+shortest_f( M([H|f]) )
+=
+n + 1 - maxwt(ker H).
+\`\`\`
+
+Also, the sum of all columns of \`[H|f]\` is zero, so this is an Eulerian binary
+matroid instance.
+
+Toshiya Itoh, *Approximating the Maximum Weight of Linear Codes is
+APX-Complete*, IEICE Transactions on Fundamentals E83-A(4), 606–613 (2000),
+establishes APX-completeness of maximum-weight linear code.
+
+The restriction \`H1 != 0\` does not rescue the general problem: when \`H1=0\`,
+the all-ones word is already in the code and the maximum weight is trivially
+\`n\`; therefore a polynomial algorithm on all nontrivial \`H1!=0\` instances
+would solve the general maximum-weight problem after this trivial case split.
+
+JANUS consequence:
+
+\`\`\`
+EULERIAN BINARY MATROID
+ALONE
+!=
+TRACTABLE SHORTEST-f CLASS.
+
+MAXIMUM-WEIGHT CODEWORD LANGUAGE
+=
+KNOWN HARDNESS CONTROL.
+\`\`\`
+
+This does **not** close the cubic-origin special target. The JANUS survivor still
+has the additional simultaneous restrictions
+
+\`\`\`
+H = I+P+Q,
+row/column weight 3,
+f=1,
+and target shortest_f=n/3+1.
+\`\`\`
+
+
 ## G4 — collision matrix
 
 | JANUS object | External object | Classification | Action |
@@ -363,6 +438,7 @@ the exact decision problem of PA-0003.
 | generic sequential syndrome-state DP | code trellis / Viterbi dynamic programming | EXACT_LANGUAGE_COLLISION | source-bind; not novelty |
 | optimal generic trellis-width | matroid pathwidth / trellis-width | KNOWN_NP_HARD_BARRIER | do not use low-width ordering as free oracle |
 | full conditional coset-leader table under arbitrary min-plus factorization, unbounded state dimension | exact tropical/Barvinok rank 2^s | KNOWN_REPRESENTATION_BARRIER | generic polynomial min-plus table compression closed |
+| Eulerian binary matroid property alone | maximum-weight codeword dual formulation | KNOWN_BARRIER_ONLY | do not use Eulerianity as generic tractability |
 | lower-bound-tight single query on surviving 3-connected S8 torso | no located closure by these sources | SCOPED_GAP_SURVIVES | new math only via non-trellis/special contraction |
 
 ## Representation and decomposition firewalls
