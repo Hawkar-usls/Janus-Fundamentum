@@ -154,6 +154,84 @@ Schlotter–Sebő further emphasize that path and T-join parity problems have
 different complexity behavior. This reinforces the firewall against replacing
 the T-join by a path without a proof.
 
+
+### S6 — 2026 bipartite Exact Matching candidate: quarantine, not authority
+
+Yuefeng Du,
+*Bipartite Exact Matching in P*,
+arXiv:2604.01571 (2026), currently a CoRR/arXiv preprint.
+
+The paper claims a deterministic \`O(n^6)\` algorithm for Exact Matching on
+bipartite graphs.
+
+This is potentially dominating for the present JANUS route because a
+witness-preserving reduction
+
+\`\`\`
+bounded-capacity exact-length circulation
+-> bipartite b-factor of exact weight
+-> bipartite exact-weight perfect matching
+-> bipartite red/blue Exact Matching
+\`\`\`
+
+would turn the existing randomized GCC lane into a deterministic lane.
+
+However, the source is **not promoted to authority in this audit**.
+
+The abstract says that the entire proof has been formally verified in Lean 4,
+but Appendix A explicitly describes the formalization as partial: the top-level
+brace certification theorem remains conditional on eight structural hypotheses,
+including graph-to-algebra bridge obligations and the imported McCuaig
+classification linkage.  Thus the machine-checking statement is materially
+weaker than a fully closed end-to-end formal proof.
+
+As of this audit, the work is an arXiv/CoRR preprint and an independent proof
+tracker lists it as a candidate not yet independently examined.
+
+JANUS classification:
+
+\`\`\`
+DU-2026 BIPARTITE EXACT MATCHING IN P
+=
+EXTERNAL_CANDIDATE_UNVERIFIED
+
+USE
+=
+CONDITIONAL DONOR / FUTURE PROMOTION TARGET
+
+NOT
+=
+SOURCE-BOUND DETERMINISTIC TERMINAL
+\`\`\`
+
+No P-vs-NP or deterministic-JANUS claim may depend on this source until the
+missing verification/acceptance layer is resolved.
+
+### S7 — standard exact-matching transfer pieces
+
+Two standard transformations were source-checked because they are needed to
+decide whether Du's claimed theorem, if later validated, would dominate this
+frontier.
+
+1. **Bipartite b-factor to bipartite perfect matching.**
+   Standard b-factor gadgets replace each original vertex/edge by copy/peripheral
+   vertices so that perfect matchings correspond exactly to b-factors.  When the
+   starting b-factor graph is bipartite, the gadget can retain a bipartition.
+
+2. **Polynomially bounded exact-weight perfect matching to red/blue Exact
+   Matching.**
+   Gurjar--Korwar--Messner--Thierauf record the standard logspace equivalence:
+   after making weights positive, an edge of weight \`w\` is replaced by an odd
+   alternating red/blue path with \`w\` red and \`w-1\` blue edges.  Polynomial
+   weights give polynomial expansion.  For a bipartite starting graph, replacing
+   an edge joining opposite sides by an odd path preserves bipartiteness.
+
+These facts do not yet provide a deterministic solver.  They authorize the next
+JANUS brick to prove/check the remaining exact bridge from the bounded-capacity
+exact-length circulation produced by GCC to an exact-weight **bipartite**
+b-factor, including cost and witness preservation.
+
+
 ## G4 — collision matrix
 
 | JANUS object | External object | Classification | Action |
@@ -165,7 +243,9 @@ the T-join by a path without a proof.
 | generic deterministic exact-matching derandomization | Exact Matching | OPEN_EXTERNAL_BARRIER | do not assume |
 | shortest non-zero group-labelled path | path donor | KNOWN_DONOR_ONLY | does not replace T-join |
 | additive rank-2 perturbed graphic | I(G)+P | DIFFERENT_REPRESENTATION | PA-0004 reserve, do not conflate |
-| deterministic two-row distinguished-f solve | no closure located | SCOPED_GAP_SURVIVES | new math only here |
+| Du-2026 bipartite Exact Matching in P | recent arXiv/CoRR claim with partial Lean formalization | EXTERNAL_CANDIDATE_UNVERIFIED | conditional donor only; no theorem promotion |
+| bounded-capacity XLC -> bipartite exact-weight matching transfer | standard b-factor / exact-weight components plus one JANUS bridge obligation | SCOPED_GAP_SURVIVES | prove exact circulation-to-b-factor bridge |
+| deterministic two-row distinguished-f solve | no authoritative closure located | SCOPED_GAP_SURVIVES | new math only here |
 
 ## Audit decision
 
@@ -209,8 +289,10 @@ The first allowed brick is deliberately narrow:
 1. prove the exact two-row distinguished-`f` to finite-group-circulation bridge
    with polynomial witness reconstruction;
 2. source-bind the resulting randomized solver;
-3. then seek a **deterministic** special algorithm or contraction for this
-   `GF(2)^2` T-join subclass, without full trellis/min-plus tables.
+3. first test the exact transfer `bounded-capacity XLC -> bipartite exact-weight matching`;
+4. treat Du-2026 only as a conditional endpoint until independently validated;
+5. continue seeking an unconditional **deterministic** special algorithm or contraction
+   for this `GF(2)^2` T-join subclass, without full trellis/min-plus tables.
 
 A randomized solver is useful as a control and terminal for RP-style experiments,
 but it does not satisfy JANUS's deterministic `P` contract.
