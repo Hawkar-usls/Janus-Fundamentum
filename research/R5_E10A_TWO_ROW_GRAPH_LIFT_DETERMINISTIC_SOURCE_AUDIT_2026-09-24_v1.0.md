@@ -368,3 +368,53 @@ tight edges + laminar positive blossoms.
 ```
 
 This does not claim novelty of matching-face or blossom theory. It confirms only that the JANUS top-plateau reduction may target this narrower optimal-face parity object instead of general BCPM.
+
+
+### S10 — optimal-face certificate / matching-minor re-audit
+
+The active optimal-face blossom-parity gate triggered one more source search before any
+new parity recursion was attempted.
+
+Cygan--Gabow--Sankowski, *Algorithmic Applications of Baur--Strassen's Theorem:
+Shortest Cycles, Diameter and Matchings* (FOCS 2012; JACM 2015), develop an LP-dual
+interpretation for minimum-weight perfect matching.  Later search-to-decision work
+explicitly records that their procedure computes a succinct description of the set of
+all minimum-weight perfect matchings in a general graph.
+
+Anari--Vazirani, *Matching Is as Easy as the Decision Problem, in the NC Model*
+(ITCS 2020), formalize the related notion of a **matching minor**: remove disallowed
+edges and contract disjoint tight odd sets of a matching-polytope face.  Every perfect
+matching of the resulting matching minor extends to a perfect matching of the original
+graph.
+
+Together with ordinary weighted-matching duality this source-binds the structural input
+required by the JANUS child gate:
+
+```
+minimum-weight face
+=
+tight/allowed edge support
++
+odd-cut equalities from a polynomially represented laminar blossom certificate.
+```
+
+For any fixed optimal dual, complementary slackness gives the exact direction needed by
+JANUS: every optimum uses only dual-tight edges and crosses each positive-dual odd set
+exactly once; conversely any perfect matching satisfying those conditions has objective
+value equal to the optimal dual value and is therefore minimum-weight.
+
+A targeted search for
+
+- parity among minimum-weight perfect matchings;
+- correct parity on a matching minor;
+- laminar blossom parity propagation;
+- parity with tight odd-cut equalities
+
+located no theorem that already performs the proposed bottom-up two-state parity
+propagation through this laminar certificate.
+
+Therefore the certificate itself is **SOURCE_BOUND / KNOWN DONOR**, while parity
+propagation over it remains inside the already authorized
+`OPTIMAL_FACE_BLOSSOM_PARITY` scoped gap.  This re-audit does not claim that the
+parity algorithm is novel in an absolute sense; it only rules out the located direct
+collision before the JANUS theorem attempt.
