@@ -72,8 +72,7 @@ A one-row lift of a graphic incidence representation has the form
 
 and is the standard even-cycle / signed-graph representation.
 
-The first not-source-closed rung tested by this audit is the singleton problem for
-a graphic perturbation of rank at most two.
+The residual tested by this audit is singleton Space Cover for an **additive** graphic perturbation of rank at most two. It is not identified with a two-signature-row lift.
 
 ## G1 — internal anti-duplication
 
@@ -87,8 +86,7 @@ Repo-wide search covered:
 - group-labelled / group-labeled;
 - lift rank.
 
-No earlier Fundamentum artifact implementing this graph-lift terminal router or the
-rank-2 singleton Space Cover frontier was located.
+No earlier Fundamentum artifact implementing this graph-like terminal router or the additive rank-2 perturbed-graphic singleton Space Cover frontier was located.
 
 The existing E10 S8, trellis/min-plus, and maximum-weight controls remain parents.
 This audit narrows them rather than opening a parallel carrier program.
@@ -375,7 +373,7 @@ R5_E10A_FIRST_NON_GRAPH_LIFT_DISTINGUISHED_F_GATE_V1
 The only new mathematics authorized by this receipt is:
 
 ```
-R5_E10A_GRAPH_LIFT_RANK2_SINGLETON_SPACE_COVER_GATE_V1
+R5_E10A_PERTURBED_GRAPHIC_RANK2_SINGLETON_SPACE_COVER_GATE_V1
 ```
 
 First obligation:
@@ -386,3 +384,56 @@ hardness reduction already reaches the singleton case.
 
 Any proposed algorithm must preserve the JANUS distinguished-f witness and may
 not use the already-tombstoned full trellis/min-plus syndrome table.
+
+
+## G7 — mandatory representation correction: lift rank is not perturbation rank
+
+A post-audit source check found a terminology/interface collision that must be
+corrected before new mathematics.
+
+Fomin–Golovach–Lokshtanov–Saurabh–Zehavi use **rank-r perturbed graphic**
+for a representation
+
+\`\`\`
+A = I(G) + P,
+rank(P) <= r,
+\`\`\`
+
+where \`P\` has the same dimensions as the graphic incidence representation.
+
+This is not identical to appending \`r\` signature rows
+
+\`\`\`
+[ B_G ]
+[  S  ],
+\`\`\`
+
+and therefore the phrase “graph-lift rank 2” must not be used as a synonym for
+“perturbation rank at most 2”.
+
+Grace–van Zwam relate low-rank perturbations to bounded sequences of elementary
+lifts/projections; in their notation
+
+\`\`\`
+pert(M,N) <= dist(M,N) <= 2 pert(M,N).
+\`\`\`
+
+This is a structural relation, not an identity of representations.
+
+Therefore this receipt is corrected as follows:
+
+\`\`\`
+PA-0004 residual
+=
+ADDITIVE RANK-2 PERTURBED-GRAPHIC
+SINGLETON SPACE COVER.
+
+It is a reserve residual.
+
+The separate “two signature rows”
+question requires its own pre-math audit.
+\`\`\`
+
+The new exact audit for that separate representation is
+\`PA-0005-TWO-ROW-GRAPH-LIFT\`.
+
