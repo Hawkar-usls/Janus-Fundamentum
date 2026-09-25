@@ -249,23 +249,119 @@ Normalize that unique hole to `p=(0,0)`. The unique defect-center set is
 
 This is a finite exhaustive certificate, not a sample over torus sizes.
 
-### Why the plane classification applies to every L>=7
+### Mersenne split: exact L=7 / lifting for L>=15
 
-Each `D_s` has diameter one in the plaquette lattice. If up to three such
-triangles form one connected deleted component, consecutive defect centers
-differ by one of the 18 certified touching offsets, each with coordinate
-magnitude at most two. Hence the entire connected deleted component has
-coordinate span strictly below `L` for every `L>=7`; it lifts to an embedded
-local cluster of the infinite triangular lattice.
+The Mersenne family does not require a uniform argument over every integer `L>=7`.
+For
 
-Different connected deleted components are disjoint local obstacles on the
-torus. The complement outside small disjoint disk neighbourhoods of those
-local obstacles is connected. Any non-principal component of `Q_L-R(S)` is
-therefore a bounded hole of one lifted local deleted component.
+```
+L = 2^k - 1,  k >= 3,
+```
 
-Since a bounded hole needs all three defects, at most one such hole exists.
+there are only two regimes:
 
-Therefore for every `L>=7` and every `|S|<=3`:
+```
+L = 7,
+or
+L >= 15.
+```
+
+#### L=7
+
+The checker exhausts every defect set of size at most three:
+
+```
+sum_{j=0}^3 C(49,j) = 19,650.
+```
+
+It obtains exactly the same conclusion as the local classification:
+
+```
+Q_7-R(S)
+=
+one principal component
+plus at most one singleton plaquette component.
+```
+
+This finite torus replay is the complete `L=7` case.
+
+#### L>=15: edge-width and toroidal lifting lemma
+
+The plaquette graph is
+
+```
+Q_L = Cay(Z_L^2; +/-e_x, +/-e_y, +/-(e_x-e_y)).
+```
+
+Iridon--Matula (2002) give the standard six-regular triangulated torus /
+triangular-lattice realization.  For the exact Cayley presentation used here,
+the needed edge-width is also elementary and is proved directly.
+
+Lift a closed walk of `Q_L` to the infinite triangular lattice.  A
+non-contractible closed walk has nonzero deck displacement
+
+```
+(aL,bL),   (a,b) in Z^2 \ {(0,0)}.
+```
+
+For the generators `+/-e_x,+/-e_y,+/-(e_x-e_y)`, triangular-lattice distance is
+
+```
+d((0,0),(x,y))
+=
+(|x|+|y|+|x+y|)/2.
+```
+
+Hence every non-contractible closed walk has length at least
+
+```
+L * (|a|+|b|+|a+b|)/2 >= L.
+```
+
+The bound is attained by an `e_x`-cycle, so
+
+```
+edge-width(Q_L) = L.
+```
+
+Now
+
+```
+|R(S)| <= 3|S| <= 9 < L.
+```
+
+Therefore no connected deleted cluster can carry a non-contractible cycle.
+Equivalently, each connected deleted cluster lifts injectively to a finite
+cluster in the universal triangular cover and is topologically inessential.
+In the hex-cell realization dual to the triangular lattice, deleting finitely
+many such inessential clusters leaves one torus-carrying exterior component;
+every other component is contained in a contractible planar region.  Thus
+every secondary component of `Q_L-R(S)` is a genuine planar bounded hole.
+
+This is the toroidal-lifting step that the earlier `all L>=7 by local disks`
+wording compressed too aggressively.
+
+#### Planar holes of size >=4 are impossible
+
+Fülep--Sieben (2010), Theorem 5.12, prove for a size-`s` polyhex
+
+```
+pi_H(s) = ceil(sqrt(12s-3)) + 3.
+```
+
+At `s=4` this is `10`, and the function is nondecreasing.  A secondary
+plaquette component has every exterior neighbour in `R(S)`, but
+
+```
+|R(S)| <= 9.
+```
+
+Therefore no planar secondary component of size at least four can occur.
+
+The only remaining sizes are `1,2,3`.  The exact local certificate above
+excludes sizes `2` and `3`; among the `99` three-defect connected forms it
+finds exactly one size-`1` hole.  Consequently, for every Mersenne
+`L=2^k-1`, `k>=3`,
 
 ```
 Q_L-R(S)
@@ -274,13 +370,9 @@ one principal component
 plus at most one singleton plaquette component.
 ```
 
-As an independent finite torus replay, the checker exhausts all
-
-```
-sum_{j=0}^3 C(49,j) = 19,650
-```
-
-defect sets on `L=7` and obtains the same conclusion.
+The proof is therefore split cleanly into an exhaustive exceptional torus
+`L=7` and a source-backed planar-perimeter plus self-contained edge-width
+lifting argument for every `L>=15`.
 
 ## 5. From plaquette components to ordinary equality components
 
