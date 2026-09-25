@@ -292,6 +292,39 @@ The commuting/abelian perfect-kernel route, Z3-phase-consistent route, local ran
 
 Any change of canonical semantics, promise set, representation obligation, or complexity claim triggers re-audit before mathematics continues.
 
+### 8A. Cross-route reconciliation after NM-0021
+
+The PA-0014 Mersenne exit is now closed by the internal chain
+`NM-0020 + NM-0021`: the Mersenne parents form an unbounded actual terminal,
+S8-containing cubic-lineage family with `q_graph=Omega(|E|)`.
+
+This falsifies a universal `q_graph=O(log n)` bound on live cubic-lineage
+leaves.  It does **not** establish computational hardness of the Exact-One
+query.  The earlier E9 kernel-word analysis already places the same commuting
+toroidal family in a polynomial exact-query island (rational nullity 0 or 2,
+with the Z3 residue witness in the divisible-by-3 case).
+
+Permanent anti-loop consequence:
+
+```
+HIGH q_graph
+!=
+HARDNESS CERTIFICATE
+
+UNIVERSAL LIVE-LEAF q_graph=O(log n)
+=
+CLOSED / FALSIFIED
+
+ACTIVE DIRECT FRONTIER
+=
+R5_E9_NONABELIAN_PHASE_INCONSISTENT_PERFECT_KERNEL_GATE_V1
+```
+
+The authoritative audit for the active frontier remains
+`PA-0001-PERFECT-KERNEL`.  Re-entering the Mersenne/high-q route as a
+standalone complexity strategy requires a fresh audit and a genuinely changed
+complexity claim.
+
 ## 9. Scientific ceiling
 
 `P_VS_NP = OPEN`
