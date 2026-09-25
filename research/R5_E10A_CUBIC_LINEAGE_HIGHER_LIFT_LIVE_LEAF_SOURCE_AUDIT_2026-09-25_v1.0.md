@@ -3,7 +3,7 @@
 Date: 2026-09-25
 
 Authority:
-`SOURCE_AUDIT_ONLY__PASS_SCOPED_GAP_CONFIRMED__v1.1_HAMMING_33_BASIS_REAUDIT__HIGHER_LIFT_LOCAL_SOLVER_AND_LIFT_RANK_GROWTH_GAP_SURVIVE`
+`SOURCE_AUDIT_ONLY__PASS_SCOPED_GAP_CONFIRMED__v1.2_HAMMING_AND_TORUS_REAUDIT__HIGHER_LIFT_LOCAL_SOLVER_AND_LIFT_RANK_GROWTH_GAP_SURVIVE`
 
 Immediate predecessor:
 `NM-0017-CUBIC-LINEAGE-QGRAPH-GE3-PARENT-LEAF-FALSIFIER`
@@ -371,6 +371,99 @@ Accordingly, do not promote the Hamming route to an asymptotic falsifier by
 silently assuming infinitely many suitable primitive trinomials or the
 all-`k` (3,3)-basis conjecture.
 
+
+
+## G6 — v1.2 re-audit: random regular rank and 2D-cyclic torus lane
+
+Two further external collisions were checked before promoting any lift-rank
+growth family.
+
+### Random doubly 3-regular matrices
+
+Coja-Oghlan and Gao, and the subsequent Random Structures & Algorithms
+version with coauthors, determine the asymptotic rank of sparse finite-field
+matrices with prescribed row and column degrees.
+
+For the square doubly 3-regular binary model,
+
+```
+D(x)=K(x)=x^3.
+```
+
+Their rank functional specializes to
+
+```
+Phi(alpha)
+=
+(1-alpha^2)^3
+-
+(1-3 alpha^2+2 alpha^3)
+=
+-alpha^3(alpha-1)^2(alpha+2)
+<=0.
+```
+
+Hence the rank ratio tends to one.
+
+This is a useful **negative control**, not a high-lift construction.  If a
+square cubic `H` is actually full rank then, because `H 1=1=f`,
+`M([H|f])` has rank `n` on `n+1` elements and its only dependency is
+the all-ground-set cycle.  It is a graphic circuit matroid.
+
+Therefore
+
+```
+RANDOM / GENERIC HIGH RANK
+ALONE
+!=
+HIGH q_graph LEVERAGE.
+```
+
+A successful growth family must simultaneously preserve a nontrivial
+low-weight exclusion in the cocycle code.
+
+### Two-dimensional cyclic-code language
+
+Imai's 1977 theory source-binds binary two-dimensional cyclic codes on odd
+tori and their common-zero description.
+
+Accordingly, using
+
+```
+H=I+P_x+P_y
+```
+
+on a finite two-dimensional torus is not a new coding-theory language.
+
+No source located in this re-audit supplies the JANUS-specific statement that
+the `L=7` torus parent is an unresolved cubic-lineage terminal leaf with
+`q_graph>=19`, nor an unconditional all-`L` internally-4-connected
+higher-lift family.
+
+The exact finite `L=7` stress test is therefore admissible inside the
+already-authorized lift-rank growth gate.  It must not be promoted to an
+asymptotic family without a separate proof of terminality/live status for
+unbounded sizes.
+
+Freeze:
+
+```
+2D-CYCLIC TORUS LANGUAGE
+=
+SOURCE-BOUND
+
+RANDOM (3,3) RANK RATE
+=
+SOURCE-BOUND NEGATIVE CONTROL
+
+TORUS L=7 LIVE-LEAF q_graph STRESS
+=
+SCOPED FINITE GAP / NEW CONTROL AUTHORIZED
+
+UNBOUNDED TORUS LIVE-LEAF FAMILY
+=
+NOT PROVED
+```
 
 ## Audit decision
 
