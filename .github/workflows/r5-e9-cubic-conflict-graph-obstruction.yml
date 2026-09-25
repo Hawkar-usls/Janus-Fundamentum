@@ -1,0 +1,44 @@
+name: R5 E9 Cubic Conflict Graph Obstruction
+
+on:
+  push:
+    paths:
+      - "experiments/r5_e9_cubic_conflict_graph_obstruction.py"
+      - "research/R5_E9_CUBIC_CONFLICT_GRAPH_PERFECT_ISLAND_AND_OBSTRUCTION_2026-09-25_v1.0.md"
+      - "registry/JANUS_P_VS_NP_R5_E9_CUBIC_CONFLICT_GRAPH_OBSTRUCTION_2026-09-25_v1.0.json"
+      - ".github/workflows/r5-e9-cubic-conflict-graph-obstruction.yml"
+  pull_request:
+    paths:
+      - "experiments/r5_e9_cubic_conflict_graph_obstruction.py"
+      - "research/R5_E9_CUBIC_CONFLICT_GRAPH_PERFECT_ISLAND_AND_OBSTRUCTION_2026-09-25_v1.0.md"
+      - "registry/JANUS_P_VS_NP_R5_E9_CUBIC_CONFLICT_GRAPH_OBSTRUCTION_2026-09-25_v1.0.json"
+      - ".github/workflows/r5-e9-cubic-conflict-graph-obstruction.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  replay:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Compile checker
+        run: python -m py_compile experiments/r5_e9_cubic_conflict_graph_obstruction.py
+      - name: Replay conflict-graph controls
+        run: |
+          python experiments/r5_e9_cubic_conflict_graph_obstruction.py > /tmp/nm0022.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          x=json.loads(Path('/tmp/nm0022.json').read_text())
+          assert x["status"]=="PASS_CUBIC_CONFLICT_GRAPH_OBSTRUCTION_CONTROLS"
+          assert x["sat_control"]["alpha"]==x["sat_control"]["target"]
+          assert x["antihole9_control"]["alpha"]<x["antihole9_control"]["target"]
+          assert x["odd_antihole_lengths_allowed_by_degree6"]==[5,7,9]
+          print("R5_E9_NM0022=PASS")
+          PY
