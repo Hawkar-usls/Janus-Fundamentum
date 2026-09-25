@@ -54,10 +54,9 @@ recursive witness reconstruction.
 
 ## G2 — source collisions
 
-### S1 — Kashyap Appendix B already transfers arbitrary linear-cost tables
+### S1 — Kashyap Appendix B already transfers arbitrary linear-cost tables for the dual Y 3-sum
 
-For an ordinary 3-sum, Kashyap Lemma B.1 computes four minima corresponding
-to the interface states
+Source correction: Definition 6.1 uses the dual/bar-3 operation, not ordinary Delta-3; the paper explicitly notes that ordinary 3-sum is absent from that definition. Accordingly Lemma B.1(b) applies to the bar-3 / Y-sum branch and computes four minima corresponding to the even-parity interface states
 
 ```
 000, 011, 101, 110.
@@ -111,9 +110,9 @@ minimum witnesses.
 Classification:
 `QUOTIENT_COSET_WEIGHT_SEMIMETRIC=SOURCE_BOUND_LANGUAGE`.
 
-### S3 — ordinary Delta3 nonnegative table lies in the three-point metric cone
+### S3 — Y3 nonnegative table lies in the three-point metric cone
 
-Write
+For a Y-sum component, `111` lies in the dual code, hence every primal codeword has even interface trace. Write
 
 ```
 a=d(011), b=d(101), c=d(110).
@@ -143,48 +142,25 @@ d(101)=w1+w3,
 d(110)=w1+w2.
 ```
 
-This is the same three-point metric-cone mechanism already isolated in the
-earlier JANUS 3-sum interface-cost artifact.
+This is exactly the nonnegative specialization of Kashyap Appendix B for the Y/even-trace branch, and the same three-point metric-cone mechanism already isolated in the earlier JANUS interface-cost artifact.
 
 Classification:
-`DELTA3_NONNEGATIVE_TABLE=KNOWN_METRIC_CONE_MECHANISM`.
+`Y3_NONNEGATIVE_TABLE=SOURCE_BOUND_HALF_SUM_METRIC_COMPILER`.
 
-### S4 — dual Y3 must be normalized through the quotient
+### S4 — ordinary Delta3 has a quotient state, not the Y even-trace state
 
-Kashyap's dual 3-sum is defined separately and ordinary 3-sum is not closed
-under duality.
-
-For a Y interface the raw three-coordinate state has the interface-only
-`111` kernel, so the correct boundary state space is
+For ordinary Delta-3, `111` is a codeword of each component and the restriction onto the three interface coordinates is all of `GF(2)^3`. Two traces differing by `111` represent the same real behavior after the interface is deleted. Thus the natural boundary state group is
 
 ```
 GF(2)^3 / <111> ~= GF(2)^2.
 ```
 
-Each class has a unique even-parity representative:
+Each class has a unique even-parity representative, but this is only a chosen section. The raw continuation component still contains both representatives. Therefore the Y half-sum coefficients cannot simply be copied to Delta: a linear cost on the three raw bits need not be constant on a quotient class.
 
-```
-[000] -> 000,
-[100] -> 011,
-[010] -> 101,
-[001] -> 110.
-```
-
-Kashyap's definition of dual 3-sum passes through the corresponding enlarged
-codes so that ordinary 3-sum is applied after the `111` quotient/coset
-identification.
-
-No source located in this audit states the full JANUS objective theorem:
-
-```
-Y3 nonnegative child table
--> normalize to the even-parity transversal
--> obtain a nonnegative three-edge realization
--> reconstruct the original-side witness recursively.
-```
+No source located in this audit states the exact nonnegative compiler for this quotient-state objective together with recursive witness reconstruction.
 
 Classification:
-`Y3_QUOTIENT_LANGUAGE_SOURCE_BOUND__EXACT_NONNEGATIVE_COMPILATION_GAP_SURVIVES`.
+`DELTA3_QUOTIENT_STATE=SOURCE_BOUND_LANGUAGE__EXACT_NONNEGATIVE_COMPILATION_GAP_SURVIVES`.
 
 ### S5 — min-plus / infimal convolution preserves subadditive boundary costs
 
