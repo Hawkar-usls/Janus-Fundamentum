@@ -1,0 +1,47 @@
+name: R5 E10A Anchored Higher Lift FPT T-Join
+
+on:
+  push:
+    paths:
+      - "experiments/r5_e10a_anchored_higher_lift_fpt_tjoin.py"
+      - "research/R5_E10A_ANCHORED_HIGHER_LIFT_FPT_TJOIN_SOLVER_2026-09-25_v1.0.md"
+      - "registry/JANUS_P_VS_NP_R5_E10A_ANCHORED_HIGHER_LIFT_FPT_TJOIN_SOLVER_2026-09-25_v1.0.json"
+      - ".github/workflows/r5-e10a-anchored-higher-lift-fpt-tjoin.yml"
+  pull_request:
+    paths:
+      - "experiments/r5_e10a_anchored_higher_lift_fpt_tjoin.py"
+      - "research/R5_E10A_ANCHORED_HIGHER_LIFT_FPT_TJOIN_SOLVER_2026-09-25_v1.0.md"
+      - "registry/JANUS_P_VS_NP_R5_E10A_ANCHORED_HIGHER_LIFT_FPT_TJOIN_SOLVER_2026-09-25_v1.0.json"
+      - ".github/workflows/r5-e10a-anchored-higher-lift-fpt-tjoin.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  replay:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Compile checker
+        run: python -m py_compile experiments/r5_e10a_anchored_higher_lift_fpt_tjoin.py
+      - name: Replay higher-lift controls
+        run: |
+          python experiments/r5_e10a_anchored_higher_lift_fpt_tjoin.py > /tmp/nm0018.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          x=json.loads(Path('/tmp/nm0018.json').read_text())
+          assert x["status"]=="PASS_FINITE_HIGHER_LIFT_ANCHORED_FPT_CONTROLS"
+          assert x["normalization"]["quotient_rank"] == 4
+          assert x["normalization"]["normalized_signature_support"] <= 13
+          assert x["solver"]["instances"] == 150
+          assert x["q_graph_diagnostic"]["q_graph_lower_bound"] == 4
+          assert x["theorem"]["signature_support_bound_formula"] == "1+3q"
+          assert x["theorem"]["P_VS_NP"] == "OPEN"
+          print("R5_E10A_NM0018=PASS")
+          PY
