@@ -29,12 +29,17 @@ jobs:
           python - <<'PY'
           import json, base64, zlib
           from pathlib import Path
+
+          def b64decode_padded(value):
+              raw=''.join(value.split())
+              raw += '=' * (-len(raw) % 4)
+              return base64.b64decode(raw)
+
           payload_path=Path('.janus_bootstrap_pa0029_nm0033_payload.txt')
-          raw=''.join(payload_path.read_text().split())
-          d=json.loads(zlib.decompress(base64.b64decode(raw)).decode())
+          d=json.loads(zlib.decompress(b64decode_padded(payload_path.read_text())).decode())
           for p,b in d['files'].items():
               q=Path(p); q.parent.mkdir(parents=True,exist_ok=True)
-              q.write_bytes(base64.b64decode(b))
+              q.write_bytes(b64decode_padded(b))
           lp=Path('registry/JANUS_P_VS_NP_PREMATH_AUDIT_LEDGER_2026-09-24_v1.0.json')
           L=json.loads(lp.read_text()); ids={x['id'] for x in L['audits']}
           for e in (d['audit_entry'],d['result_entry']):
