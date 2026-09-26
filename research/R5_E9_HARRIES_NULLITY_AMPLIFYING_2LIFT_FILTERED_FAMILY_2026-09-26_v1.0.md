@@ -156,7 +156,7 @@ No claim is made that every other known or future polynomial reduction fails.
 ## 7. Verdict
 
 ~~~text
-NM-0031
+NM-0032
 HARRIES NULLITY-AMPLIFYING 2-LIFT FILTERED FAMILY
 =
 PASS
