@@ -1,0 +1,90 @@
+{
+  "artifact_id": "JANUS-TRUMP-R5-B1B1C5B2B2-E8-DIRECT-PVNP-ALGEBRAIC-COMPRESSION-ATTACK-2026-09-26-v0.1",
+  "version": "v0.1",
+  "date_local": "2026-09-26",
+  "status": "CANDIDATE_ONLY__UNSEALED__NO_P_EQUALS_NP_CLAIM",
+  "gate": "R5_B1B1C5B2B2_E8_DIRECT_PVNP_ALGEBRAIC_COMPRESSION_ATTACK_V0_1",
+  "parent_authority": {
+    "E6_result": "research/R5_B1B1C5B2B2_E6_SIGNED_HUANG_SOURCE_RESTRICTION_OR_PVNP_CARRIER_RESULT_2026-09-21_v1.0.json",
+    "E7_result": "research/R5_B1B1C5B2B2_E7_PVNP_SCALE_SIGNED_EQUALITY_CARRIER_EQUIVALENCE_RESULT_2026-09-21_v1.0.json",
+    "E7_seal": "research/R5_B1B1C5B2B2_E7_PVNP_SCALE_SIGNED_EQUALITY_CARRIER_EQUIVALENCE_THEOREM_SEAL_2026-09-21_v1.0.json",
+    "meaning": "E6 realizes arbitrary signed 3-CNF exactly; E7 seals that a universal polynomial exact carrier for that class exists iff P=NP. This artifact attacks the DIRECT_PVNP branch only."
+  },
+  "direct_problem": {
+    "input": "arbitrary finite 3-CNF F on n Boolean variables",
+    "required_output": "SAT with a reconstructable satisfying assignment, or UNSAT",
+    "required_total_bound": "T_construct + T_solve + T_reconstruct + T_verify <= poly(|F|)",
+    "firewall": "No unit-cost exponential-bit integers, no hidden SAT oracle, no finite-corpus promotion, no bounded-width assumption, no unproved compression lemma."
+  },
+  "boolean_quotient_formulation": {
+    "algebra": "B_n = K[x_1,...,x_n]/(x_i^2-x_i for all i)",
+    "literal_values": {
+      "positive_x_i": "x_i",
+      "negative_x_i": "1-x_i"
+    },
+    "clause_indicator": "For C=(l1 OR l2 OR l3), c_C = 1-(1-l1)(1-l2)(1-l3) in B_n.",
+    "formula_indicator": "p_F = product over clauses C of c_C in B_n.",
+    "exact_equivalence": "F is satisfiable iff p_F is nonzero in B_n.",
+    "dimension": "dim_K(B_n)=2^n."
+  },
+  "proved_barrier_inside_this_artifact": {
+    "name": "EXACT_MULTIPLICATIVE_BOOLEAN_QUOTIENT_SKETCH_REQUIRES_EXPONENTIAL_DIMENSION_V0_1",
+    "statement": "Let A be a K-algebra and rho:B_n->A a K-algebra homomorphism. Suppose rho(p) != 0 for every nonzero singleton-assignment indicator p that is expressible as a 3-CNF indicator using duplicated unit literals. Then dim_K(A) >= 2^n. Consequently no polynomial-dimensional exact multiplicative algebra sketch can preserve nonzeroness even on this 3-CNF subfamily.",
+    "proof": [
+      "For each Boolean assignment a in {0,1}^n define e_a = product_i x_i when a_i=1 and (1-x_i) when a_i=0.",
+      "Each e_a is a nonzero idempotent in B_n and is exactly the indicator of the singleton assignment a.",
+      "Each e_a can be realized by a 3-CNF using clauses (x_i OR x_i OR x_i) or (NOT x_i OR NOT x_i OR NOT x_i), so the assumed nonzero-preservation applies to all e_a.",
+      "For distinct a,b, e_a e_b = 0. Therefore rho(e_a)rho(e_b)=0, while each rho(e_a) is nonzero.",
+      "The family {rho(e_a)} is linearly independent: if sum_a alpha_a rho(e_a)=0, multiply by rho(e_b); all cross terms vanish and alpha_b rho(e_b)=0, hence alpha_b=0.",
+      "There are 2^n such elements, so dim_K(A) >= 2^n."
+    ],
+    "scope": "Rules out exact polynomial-dimensional compression that is an algebra homomorphism preserving multiplication and singleton nonzeroness. It does not rule out non-homomorphic algorithms, adaptive elimination, cancellation methods, randomized algorithms, or P=NP.",
+    "scientific_status": "PROOF_WRITTEN_HERE__NOT_YET_INDEPENDENTLY_REPLAYED_OR_SEALED"
+  },
+  "consequence_for_algorithm_design": {
+    "discard": [
+      "random evaluation sketches treated as exact multiplicative carriers",
+      "commuting-matrix homomorphic sketches of polynomial matrix dimension",
+      "fixed polynomial-dimensional quotient algebras claimed to preserve exact SAT nonzeroness"
+    ],
+    "surviving_design_space": [
+      "non-homomorphic global cancellation/determinantal mechanisms",
+      "adaptive elimination whose intermediate representation is not a fixed multiplicative quotient",
+      "global proof/search mechanisms with polynomially checkable exact progress and no exponential hidden state"
+    ]
+  },
+  "next_constructive_candidate": {
+    "name": "E8_NONHOMOMORPHIC_MULTILINEARIZATION_OR_CANCELLATION_CARRIER",
+    "target": "Compute whether multilinearize(product_C c_C) is zero without materializing its 2^n coefficient/evaluation basis.",
+    "required_lemma": "There exists a representation R(F) of size poly(|F|), constructible in poly(|F|), supporting exact clause incorporation plus an exact zero/nonzero decision for the Boolean multilinearization, with polynomial-time witness reconstruction.",
+    "why_this_is_not_yet_an_algorithm": "The required lemma is currently unproved. Any implementation that expands the Boolean quotient basis, truth table, DNNF/OBDD state space, or all boundary assignments violates the polynomial bound."
+  },
+  "open_access_audit": [
+    {
+      "source": "Huang, Improved complexity results on k-coloring P_t-free graphs, European Journal of Combinatorics 51 (2016)",
+      "url": "https://doi.org/10.1016/j.ejc.2015.06.005",
+      "relevance": "4-COLORING is NP-complete on P7-free graphs; validates that the Huang source family is genuinely NP-hard rather than a hidden tractable graph subclass."
+    },
+    {
+      "source": "Jiang and Cai, A Better Analysis For PPSZ For 3-SAT, arXiv:2607.10697",
+      "url": "https://arxiv.org/abs/2607.10697",
+      "relevance": "Reports O*(1.307031578^n) randomized worst-case time for general 3-SAT; confirms that current exact-algorithm progress remains exponential rather than polynomial."
+    },
+    {
+      "source": "Tovey, A simplified NP-complete satisfiability problem, Discrete Applied Mathematics 8 (1984)",
+      "url": "https://doi.org/10.1016/0166-218X(84)90081-7",
+      "relevance": "3-SAT remains NP-complete when every variable occurs in at most four clauses; degree/sparsity alone cannot be the missing polynomial contraction."
+    },
+    {
+      "source": "Bova, Capelli, Mengel, Slivovsky, A Strongly Exponential Separation of DNNFs from CNF Formulas, arXiv:1411.1995",
+      "url": "https://arxiv.org/abs/1411.1995",
+      "relevance": "Shows unconditional exponential DNNF size for a CNF family; generic exact knowledge compilation into DNNF cannot be assumed polynomial."
+    }
+  ],
+  "current_verdict": {
+    "P_VS_NP": "OPEN",
+    "P_EQUALS_NP_ALGORITHM": "NOT_YET_CONSTRUCTED",
+    "NEW_RESULT": "A clean exact barrier eliminates fixed polynomial-dimensional multiplicative Boolean-quotient sketches from the E8 search space.",
+    "NEXT": "Attack the non-homomorphic multilinearization/cancellation carrier; immediately falsify any candidate that hides exponential basis size, exponential integer bitlength, or exponential boundary states."
+  }
+}
