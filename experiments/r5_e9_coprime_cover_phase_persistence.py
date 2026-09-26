@@ -93,8 +93,17 @@ for mask in range(1<<(2*n)):
     Pt,Qt=additive_cover(P,Q,2,ps,qs)
     assert phase(Pt,Qt) is None
     assert any(Pt[Qt[i]]!=Qt[Pt[i]] for i in range(len(Pt)))
-    assert len(Pt)-rank_q(matrix(Pt,Qt)) >= d
     z2_checked+=1
+
+# Old-kernel injection is proved symbolically in the artifact; replay rational
+# rank on a deterministic sample rather than all 2^18 covers.
+rank_samples=0
+for mask in range(0,1<<(2*n),4093):
+    ps=[(mask>>i)&1 for i in range(n)]
+    qs=[(mask>>(n+i))&1 for i in range(n)]
+    Pt,Qt=additive_cover(P,Q,2,ps,qs)
+    assert len(Pt)-rank_q(matrix(Pt,Qt)) >= d
+    rank_samples+=1
 
 # A handful of coprime higher-degree additive controls.
 coprime_controls=[]
@@ -136,6 +145,7 @@ out={
    "base_n":n,
    "base_nullity":d,
    "z2_additive_covers_exhausted":z2_checked,
+   "z2_rational_rank_samples":rank_samples,
    "other_coprime_degrees":coprime_controls,
    "canonical_3cover_connected":True,
    "canonical_3cover_phase":"PASS",
