@@ -1,0 +1,47 @@
+name: R5 E9 Harries Nullity-Amplifying 2-Lift Family
+
+on:
+  push:
+    paths:
+      - "experiments/r5_e9_harries_nullity_amplifying_2lift_family.py"
+      - "research/R5_E9_HARRIES_NULLITY_AMPLIFYING_2LIFT_FILTERED_FAMILY_2026-09-26_v1.0.md"
+      - "registry/JANUS_P_VS_NP_R5_E9_HARRIES_NULLITY_AMPLIFYING_2LIFT_FAMILY_2026-09-26_v1.0.json"
+      - ".github/workflows/r5-e9-harries-nullity-amplifying-2lift-family.yml"
+  pull_request:
+    paths:
+      - "experiments/r5_e9_harries_nullity_amplifying_2lift_family.py"
+      - "research/R5_E9_HARRIES_NULLITY_AMPLIFYING_2LIFT_FILTERED_FAMILY_2026-09-26_v1.0.md"
+      - "registry/JANUS_P_VS_NP_R5_E9_HARRIES_NULLITY_AMPLIFYING_2LIFT_FAMILY_2026-09-26_v1.0.json"
+      - ".github/workflows/r5-e9-harries-nullity-amplifying-2lift-family.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  replay:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Compile checker
+        run: python -m py_compile experiments/r5_e9_harries_nullity_amplifying_2lift_family.py
+      - name: Replay filtered family
+        run: |
+          python experiments/r5_e9_harries_nullity_amplifying_2lift_family.py > /tmp/nm0031.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          x=json.loads(Path('/tmp/nm0031.json').read_text())
+          assert x["status"]=="PASS_HARRIES_NULLITY_AMPLIFYING_FILTERED_FAMILY"
+          assert x["seed"]["signed_rank_Q"]==33
+          assert x["seed"]["signed_nullity_Q"]==2
+          assert x["recursive"]["second_step_lower_bound"]==3
+          assert x["family"]["phase"]=="FAIL"
+          assert x["family"]["noncommuting"] is True
+          assert x["boundary"]["PA0025_filtered_family"]=="CONSTRUCTED"
+          print("R5_E9_NM0031=PASS")
+          PY
