@@ -1,0 +1,46 @@
+name: R5 E9 Contextual MIS Kernel Transfer
+
+on:
+  push:
+    paths:
+      - "experiments/r5_e9_contextual_mis_kernel_transfer.py"
+      - "research/R5_E9_CONTEXTUAL_MIS_KERNEL_TRANSFER_AND_CLAW_NORMAL_FORM_2026-09-26_v1.0.md"
+      - "registry/JANUS_P_VS_NP_R5_E9_CONTEXTUAL_MIS_KERNEL_TRANSFER_2026-09-26_v1.0.json"
+      - ".github/workflows/r5-e9-contextual-mis-kernel-transfer.yml"
+  pull_request:
+    paths:
+      - "experiments/r5_e9_contextual_mis_kernel_transfer.py"
+      - "research/R5_E9_CONTEXTUAL_MIS_KERNEL_TRANSFER_AND_CLAW_NORMAL_FORM_2026-09-26_v1.0.md"
+      - "registry/JANUS_P_VS_NP_R5_E9_CONTEXTUAL_MIS_KERNEL_TRANSFER_2026-09-26_v1.0.json"
+      - ".github/workflows/r5-e9-contextual-mis-kernel-transfer.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  replay:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Compile checker
+        run: python -m py_compile experiments/r5_e9_contextual_mis_kernel_transfer.py
+      - name: Replay contextual MIS transfer controls
+        run: |
+          python experiments/r5_e9_contextual_mis_kernel_transfer.py > /tmp/nm0026.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          x=json.loads(Path('/tmp/nm0026.json').read_text())
+          assert x["status"]=="PASS_CONTEXTUAL_MIS_KERNEL_TRANSFER_CONTROLS"
+          assert x["domination_control"]["alpha_before"]==3
+          assert x["domination_control"]["alpha_after_delete"]==3
+          assert x["claw_geometry"]["one_leaf_per_center_clause"]
+          assert x["claw_free_imperfect_control"]["claw_free"]
+          assert len(x["claw_free_imperfect_control"]["induced_C5"])==5
+          print("R5_E9_NM0026=PASS")
+          PY

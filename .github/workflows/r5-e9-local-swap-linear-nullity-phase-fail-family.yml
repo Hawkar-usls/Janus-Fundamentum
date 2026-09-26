@@ -1,0 +1,45 @@
+name: R5 E9 Local-Swap Linear-Nullity Phase-Fail Family
+
+on:
+  push:
+    paths:
+      - "experiments/r5_e9_local_swap_linear_nullity_phase_fail_family.py"
+      - "research/R5_E9_LOCAL_SWAP_LINEAR_NULLITY_PHASE_FAIL_BASE_FAMILY_2026-09-26_v1.0.md"
+      - "registry/JANUS_P_VS_NP_R5_E9_LOCAL_SWAP_LINEAR_NULLITY_PHASE_FAIL_FAMILY_2026-09-26_v1.0.json"
+      - ".github/workflows/r5-e9-local-swap-linear-nullity-phase-fail-family.yml"
+  pull_request:
+    paths:
+      - "experiments/r5_e9_local_swap_linear_nullity_phase_fail_family.py"
+      - "research/R5_E9_LOCAL_SWAP_LINEAR_NULLITY_PHASE_FAIL_BASE_FAMILY_2026-09-26_v1.0.md"
+      - "registry/JANUS_P_VS_NP_R5_E9_LOCAL_SWAP_LINEAR_NULLITY_PHASE_FAIL_FAMILY_2026-09-26_v1.0.json"
+      - ".github/workflows/r5-e9-local-swap-linear-nullity-phase-fail-family.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  replay:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Compile checker
+        run: python -m py_compile experiments/r5_e9_local_swap_linear_nullity_phase_fail_family.py
+      - name: Replay family controls
+        run: |
+          python experiments/r5_e9_local_swap_linear_nullity_phase_fail_family.py > /tmp/nm0031.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          x=json.loads(Path('/tmp/nm0031.json').read_text())
+          assert x["status"]=="PASS_LOCAL_SWAP_LINEAR_NULLITY_PHASE_FAIL_FAMILY"
+          assert x["family"]["phase"]=="FAIL"
+          assert x["family"]["SAT"] is True
+          assert x["family"]["nullity_lower_bound"]=="m=n/3"
+          assert all(s["new_nullity"]>=s["m"] for s in x["samples"])
+          print("R5_E9_NM0031=PASS")
+          PY

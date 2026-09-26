@@ -1,0 +1,339 @@
+{
+  "artifact_id": "JANUS-R5-E8-CYCLIC-POWER-OF-TWO-SELECTOR-PREFIX-GATE-2026-09-22-v1.0",
+  "date": "2026-09-22",
+  "version": "2.0",
+  "authority": "SYMBOLIC_THEOREM_GATE_AND_FINITE_DIAGNOSTIC_ONLY__NO_D1_PROMOTION",
+  "repository": "Hawkar-usls/Janus-Fundamentum",
+  "lineage": {
+    "pull_request": 510,
+    "branch": "codex/r5-e8-direct-contract-20260921-82493a57",
+    "anti_duplication_audit_commit": "629761c1084361e1de9a8dc1763b6a8a297e2dd0",
+    "frozen_executor_path": "research/tools/r5_e8_frozen_structural_aig_executor.py",
+    "parent_gate": "research/R5_B1B1C5B2B2_E8_GREEDY_PREFIX_AMPLIFIER_COMPOSITION_GATE_2026-09-22_v1.0.json"
+  },
+  "scientific_state": {
+    "P_VS_NP": "OPEN",
+    "D1": "NOT_ADMITTED",
+    "arbitrary_n_counterfamily": "PROVED_SYMBOLICALLY",
+    "universal_poly_peak": "FALSIFIED_FOR_EXACT_FROZEN_SELECTOR"
+  },
+  "family": {
+    "name": "CYCLIC_SHARED_PAYLOAD_POWER_OF_TWO_SUBFAMILY",
+    "parameter": "m_r = 2^r",
+    "formula": "AND_i ((x_i OR z_i OR NOT z_{i+1}) AND (NOT x_i OR z_{i+2} OR NOT z_{i+3})) with z indices cyclic mod m",
+    "variables": "2m",
+    "clauses": "2m signed 3-clauses",
+    "encoded_length": "O(m log m)"
+  },
+  "balanced_tree_carry_boundary_lemma": {
+    "name": "R5_E8_BALANCED_TREE_CARRY_BOUNDARY_LEMMA_V1",
+    "status": "PROVED_COMBINATORIALLY_FOR_FROZEN_BALANCED_BUILDER",
+    "builder_rule": "PAIR_ADJACENT_ITEMS_LEFT_TO_RIGHT_EACH_ROUND; CARRY_AN_UNPAIRED_FINAL_ITEM_TO_THE_NEXT_ROUND_UNCHANGED",
+    "claims": [
+      {
+        "case": "m = 2^r + 1",
+        "result": "After the selector-clause pairs form blocks G_1,...,G_m, the first 2^r blocks form a complete balanced subtree while G_m is the unique final unpaired item at every upper round until the root; G_m is therefore carried unchanged as the shallow tail."
+      },
+      {
+        "case": "m = 2^r + 2",
+        "result": "The final pair (G_{m-1},G_m) is formed at the first block-tree round; thereafter that tail-pair is the unique final unpaired item at every upper round until the root."
+      },
+      {
+        "case": "m = 2^r",
+        "result": "The block-level balanced AND tree is complete and has no carry-tail asymmetry."
+      }
+    ],
+    "proof_sketch": [
+      "At block level, m=2^r+1 gives 2^(r-1) ordinary pairs plus one carried tail.",
+      "After one round the item count is 2^(r-1)+1; induction repeats until the final root merge.",
+      "For m=2^r+2, the last two blocks first combine into one tail item, reducing to the previous recurrence with 2^(r-1)+1 items.",
+      "For m=2^r every round has an even power-of-two number of items, so no carry occurs."
+    ],
+    "scope": "TREE_SHAPE_ONLY__DOES_NOT_BY_ITSELF_PROVE_GREEDY_SELECTION"
+  },
+  "power_of_two_prefix_target": {
+    "name": "R5_E8_CYCLIC_POWER_OF_TWO_SELECTOR_PREFIX_THEOREM_V1",
+    "theorem_goal": "There exists fixed alpha>0 and r0 such that for every r>=r0, the frozen exact structural projector on F_{2^r} selects selector variables for at least alpha*2^r relevant steps before any payload elimination destroys the branch-separation invariant.",
+    "exact_selector_key": "(projected_reachable_nodes, cone_size, variable_id)",
+    "required_obligations": {
+      "P1": "Exact frozen CNF->AIG compilation for m=2^r has no carry-tail asymmetry.",
+      "P2": "For each of the first t>=alpha*m relevant steps, the minimum exact projected cost among ALL unresolved variables is attained by a selector x in X, including cone/tie comparison.",
+      "P3": "CLOSED_FOR_ODD_SELECTOR_PREFIXES_BY_R5_E8_ODD_SELECTOR_BRANCH_INJECTIVITY_LEMMA_V1",
+      "P4": "No SAT oracle, equivalence oracle, FRAIG, BDD sweeping, semantic rewrite, or hidden existential escape."
+    },
+    "consequence_if_proved": [
+      "First m/2 greedy eliminations are all odd selectors for every m=2^r>=4",
+      "Odd-selector branch injectivity gives Peak(F_m)>=2^(m/2)",
+      "|F_m|=Theta(m log m)",
+      "Peak(F_m)>=2^(Omega(L/log L))",
+      "R5_E8_GREEDY_PROJECTOR_PEAK_THEOREM_V1 is falsified for the exact frozen selector"
+    ],
+    "status": "PROVED",
+    "first_sharpened_scheduler_theorem": {
+      "name": "R5_E8_ODD_SELECTOR_GREEDY_PREFIX_THEOREM_V1",
+      "claim": "For every m=2^r>=4, before selecting any payload variable, the frozen exact greedy projector selects all m/2 odd selector variables.",
+      "consequence": [
+        "t >= m/2",
+        "Peak(F_m) >= 2^(m/2)",
+        "|F_m| = O(m log m)",
+        "Peak(F_m) >= 2^(Omega(L/log L))",
+        "R5_E8_GREEDY_PROJECTOR_PEAK_THEOREM_V1 falsified"
+      ],
+      "status": "PROVED",
+      "reduced_open_core": "R5_E8_ODD_PREFIX_NET_CHARGE_THEOREM_V1",
+      "proof_path": "research/R5_B1B1C5B2B2_E8_CELL_TREE_COMPETITOR_BARRIERS_AND_FULL_ODD_PREFIX_THEOREM_2026-09-22_v1.0.md",
+      "proof_commit": "40d43aceb68992c9fd3758a294529133b772b0f4"
+    },
+    "step0": {
+      "theorem": "R5_E8_POWER_OF_TWO_STEP0_SELECTOR_THEOREM_V1",
+      "status": "PROVED",
+      "selector_profile": "A_x=r+5, sigma_x=8, kappa_x=0, E_x=r-3",
+      "payload_profile": "A_z=T_z+s_z+8, sigma_z=s_z+12, kappa_z=0, E_z=T_z-4",
+      "rooted_support_bound": "T_z>=r+1",
+      "conclusion": "Every selector beats every payload at step0; selector ties are broken by id, hence x1 is selected."
+    }
+  },
+  "finite_authoritative_diagnostics": [
+    {
+      "m": 4,
+      "odd_selector_prefix": [
+        1,
+        3
+      ],
+      "odd_prefix_length": 2,
+      "total_selector_prefix": 4,
+      "peak_live_nodes": 51,
+      "status": "REPLAYED"
+    },
+    {
+      "m": 8,
+      "odd_selector_prefix": [
+        1,
+        7,
+        3,
+        5
+      ],
+      "odd_prefix_length": 4,
+      "total_selector_prefix": 6,
+      "peak_live_nodes": 379,
+      "status": "REPLAYED"
+    },
+    {
+      "m": 16,
+      "odd_selector_prefix": [
+        1,
+        15,
+        5,
+        9,
+        3,
+        11,
+        7,
+        13
+      ],
+      "odd_prefix_length": 8,
+      "total_selector_prefix": 10,
+      "peak_live_nodes": 5367,
+      "status": "REPLAYED"
+    }
+  ],
+  "non_authoritative_pattern_note": {
+    "m32": "Additional exploratory probe reported a selector prefix of at least 12, but it is not promoted here without a completed frozen-executor replay receipt.",
+    "use": "PATTERN_MINING_ONLY"
+  },
+  "anomaly_interpretation": {
+    "old_mod8_hypothesis": "REJECTED_AS_PRIMARY_EXPLANATION",
+    "stronger_candidate": "BALANCED_TREE_CARRY_BOUNDARY_AT_2^r+1_AND_2^r+2",
+    "examples": "9/10, 17/18, 33/34",
+    "theorem_status": "TREE_SHAPE_CAUSE_PROVED; GREEDY_COST_EFFECT_NOT_YET_PROVED"
+  },
+  "semantic_compactness_control": {
+    "identity": "For private selector x_i in G_i=(x_i OR A_i) AND (NOT x_i OR B_i), existential elimination gives A_i OR B_i.",
+    "cyclic_payload": "A_i and B_i are 2-clauses, so the exact semantic selector projection has a clause of width at most 4.",
+    "interpretation": "Any large frozen structural-AIG growth on the selector prefix is representational/syntactic for this grammar, not evidence that the projected Boolean function itself lacks a compact exact representation.",
+    "firewall": "THIS_DOES_NOT_IMPLY_GENERAL_AIG_QE_LOWER_BOUNDS_OR_P_NOT_EQUAL_NP"
+  },
+  "novelty_firewall": {
+    "AIG_QE": "KNOWN_PRIOR_ART",
+    "quantifier_scheduling": "KNOWN_PRIOR_ART",
+    "binary_distinction_amplification": "STANDARD_AND_INTERNAL_C023R_U1_LIKE_SKELETON",
+    "possible_new_scoped_result": "ONLY_THE_EXACT_POWER_OF_TWO_GREEDY_PREFIX_THEOREM_OR_AN_ARBITRARY_N_COUNTERFAMILY_FOR_THE_FROZEN_SELECTOR"
+  },
+  "next_work": {
+    "type": "POSTMORTEM_AND_SUCCESSOR_GAP_ANALYSIS_ONLY",
+    "rule": "Do not open a successor algorithm until the falsified mechanism is compared against the anti-duplication audit and the exact missing operation is identified.",
+    "forbidden": [
+      "blind new selector",
+      "blind new representation",
+      "relabel prior-art FRAIG/BDD/SAT sweeping as novelty",
+      "transfer this lower bound to general AIG QE or SAT",
+      "P!=NP claim"
+    ]
+  },
+  "odd_selector_branch_injectivity": {
+    "status": "PROVED",
+    "proof_path": "research/R5_B1B1C5B2B2_E8_ODD_SELECTOR_BRANCH_INJECTIVITY_LEMMA_2026-09-22_v1.0.md",
+    "proof_commit": "4aa67baf82a45907acfaacd329c84fc81fb0c421",
+    "theorem": "For m=2^r>=4, any prefix of t distinct odd selector projections, while even selector blocks remain unresolved, preserves at least 2^t distinct nonconstant noncomplement reachable structural branch-root refs under the frozen grammar.",
+    "consequence": "AMPLIFIER_SIDE_IS_CLOSED_FOR_ODD_SELECTOR_PREFIXES"
+  },
+  "finite_diagnostic_m32": {
+    "status": "INDEPENDENT_MEMORY_BOUNDED_SEMANTICS_EQUIVALENT_REPLAY__NOT_THEOREM_EVIDENCE",
+    "odd_selector_prefix": [
+      1,
+      31,
+      9,
+      17,
+      7,
+      21,
+      15,
+      25,
+      19,
+      3,
+      11,
+      27,
+      5,
+      23,
+      13,
+      29
+    ],
+    "odd_prefix_length": 16,
+    "state_sizes_before_each_step": [
+      255,
+      257,
+      260,
+      269,
+      286,
+      321,
+      389,
+      524,
+      788,
+      1317,
+      2359,
+      4441,
+      8571,
+      16832,
+      33285,
+      66186
+    ],
+    "state_size_after_step_16": 131855,
+    "note": "Replay evaluates frozen trial keys sequentially and keeps only the winning arena; selector semantics and tie ordering are unchanged. This is diagnostic only."
+  },
+  "net_projection_charge": {
+    "status": "PROVED_IDENTITY",
+    "theorem_path": "research/R5_B1B1C5B2B2_E8_NET_PROJECTION_CHARGE_AND_STEP0_THEOREM_2026-09-22_v1.0.md",
+    "theorem_commit": "b681d62b9c399103af39a4a6724f277f73d1c45f",
+    "identity": "For every currently reachable trial variable v: cost(v)=N+A_v-sigma_v-kappa_v.",
+    "net_charge": "E_v=A_v-sigma_v-kappa_v",
+    "selector_equivalent_key": "(E_v,A_v,variable_id)"
+  },
+  "payload_backbone_rigidity": {
+    "status": "PROVED",
+    "path": "research/R5_B1B1C5B2B2_E8_PAYLOAD_BACKBONE_RIGIDITY_2026-09-22_v1.0.json",
+    "commit": "ca6639faa48976a1aee159995b8e81c536be7936",
+    "theorem": "On every odd-selector-only prefix state, every payload z has kappa_z=0 and sigma_z<=s_z+12.",
+    "consequence": "Shannon backbone cannot give payload an unbounded nonlocal simplification discount; payload savings are bounded by the four local occurrence neighborhoods."
+  },
+  "step0_selector_theorem": {
+    "status": "PROVED_ARBITRARY_R",
+    "parameter": "m=2^r>=4",
+    "exact_results": [
+      "N0=8m-1",
+      "A_x=r+5",
+      "sigma_x=8",
+      "kappa_x=0",
+      "E_x=r-3",
+      "For every payload z: E_z>=r-3",
+      "If E_z=E_x then A_z>A_x",
+      "Therefore first greedy choice is selector x1"
+    ]
+  },
+  "odd_prefix_kappa_zero": {
+    "status": "PROVED",
+    "proof_path": "research/R5_B1B1C5B2B2_E8_ODD_PREFIX_KAPPA_ZERO_LEMMA_2026-09-22_v1.0.md",
+    "proof_commit": "db1dc262fbdd9ae3e366f41ce62304defb2ec7e5",
+    "theorem": "For any m=2^r>=4 odd-only prefix state, every unresolved odd-selector and payload trial has kappa_v=0.",
+    "consequence": "Exact greedy comparison reduces to (A_v-sigma_v, A_v, variable_id)."
+  },
+  "related_payload_cone_gap_scope_repair": {
+    "status": "PROVED_WITH_SCOPE_REPAIR",
+    "proof_path": "research/R5_B1B1C5B2B2_E8_RELATED_PAYLOAD_CONE_GAP_SCOPE_REPAIR_2026-09-22_v1.0.md",
+    "proof_commit": "a5b862fefbbad0263089f7ccebdeaae95308b0e6",
+    "original_scope_m_ge_4": "FALSIFIED_BY_EXACT_m4_BASE_EXCEPTION",
+    "repaired_scope": "m=2^r>=8",
+    "repaired_theorem": "For every related payload z and unresolved odd support o, A_z-A_o>=s_z+4.",
+    "m4_base": "PROVED_DIRECTLY_x1_THEN_x3",
+    "consequence": "Every related payload is excluded from the greedy winner set for m>=8."
+  },
+  "related_payload_scope_repair": {
+    "original_scope": "m=2^r>=4",
+    "original_status": "FALSIFIED_BY_m4_BASE_EXCEPTION",
+    "repaired_scope": "m=2^r>=8",
+    "repaired_status": "PROVED_SYMBOLICALLY",
+    "proof_path": "research/R5_B1B1C5B2B2_E8_RELATED_PAYLOAD_CONE_GAP_SCOPE_REPAIR_2026-09-22_v1.0.md",
+    "proof_commit": "2de5bd569514168454f64a23aaa1d2c8ea0f1f1e",
+    "m4_base": "x1 -> x3 proved directly under frozen executor"
+  },
+  "cell_tree_competitor_closure": {
+    "status": "PROVED_SYMBOLICALLY",
+    "proof_path": "research/R5_B1B1C5B2B2_E8_CELL_TREE_COMPETITOR_BARRIERS_AND_FULL_ODD_PREFIX_THEOREM_2026-09-22_v1.0.md",
+    "corrected_proof_commit": "40d43aceb68992c9fd3758a294529133b772b0f4",
+    "components": {
+      "CELL_TREE_VARIANT_COUNT": "PROVED",
+      "PROJECTED_PATH_DOMINANCE": "PROVED",
+      "EVEN_SELECTOR_RIGIDITY": "PROVED",
+      "EVEN_SELECTOR_BARRIER": "PROVED",
+      "ORPHAN_PAYLOAD_SAVINGS_CAP": "PROVED",
+      "ORPHAN_PAYLOAD_CONE_GAP": "PROVED",
+      "ORPHAN_PAYLOAD_BARRIER": "PROVED"
+    },
+    "structural_sharing_correction": "The two projected odd-support residual clauses containing the same orphan payload are one canonical structurally interned 2-clause node; corrected cone count still suffices exactly.",
+    "proof_commit": "6247cbec493b0a894ac0d0bcb3e345380b0d6234"
+  },
+  "greedy_projector_peak_theorem": {
+    "name": "R5_E8_GREEDY_PROJECTOR_PEAK_THEOREM_V1",
+    "prior_status": "OPEN",
+    "new_status": "FALSIFIED_BY_ARBITRARY_SIZE_COUNTERFAMILY__SYMBOLIC_PROOF",
+    "counterfamily": "CYCLIC_SHARED_PAYLOAD_POWER_OF_TWO F_m, m=2^r",
+    "lower_bound": "Peak(F_m)>=2^(m/2)=2^(Omega(L/log L))",
+    "scope": "EXACT_FROZEN_STRUCTURAL_ONLY_GREEDY_SELECTOR",
+    "not_claimed": [
+      "P != NP",
+      "general SAT lower bound",
+      "general AIG quantification lower bound",
+      "lower bound for FRAIG/BDD/SAT-sweeping methods",
+      "lower bound for arbitrary future E8 mechanisms"
+    ],
+    "independent_proof_audit": "PASS_WITH_REPAIRS",
+    "audit_path": "research/R5_B1B1C5B2B2_E8_FROZEN_GREEDY_COUNTERFAMILY_SECOND_PASS_AUDIT_2026-09-22_v1.0.md",
+    "audit_commit": "ef2d6e2184ce09accd50fed0cb9f5d43752b9788"
+  },
+  "orphan_payload_savings_cap": {
+    "status": "PROVED",
+    "proof_path": "research/R5_B1B1C5B2B2_E8_ORPHAN_PAYLOAD_SAVINGS_CAP_2026-09-22_v1.0.md",
+    "proof_commit": "cb92779ec9e637c3da5bc26e22fabfa9b88b834c",
+    "theorem": "For every orphan payload z on a power-of-two odd-only prefix state, sigma_z<=12.",
+    "selector_side": "Every unresolved odd selector has sigma_o>=8 and kappa_o=0.",
+    "consequence": "ORPHAN_PAYLOAD_BARRIER reduces to proving A_z-A_o>=4 for some unresolved odd selector o against each orphan z."
+  },
+  "orphan_payload_barrier": {
+    "status": "PROVED",
+    "savings_cap_commit": "cb92779ec9e637c3da5bc26e22fabfa9b88b834c",
+    "pair_reduction_commit": "228ac9ad5f4c1043ea8bf14ffc0018c69ee8b7c6",
+    "dyadic_local_theorem_commit": "53c57ffafe48a943c7a94dbf09e01a88bed4a2ea"
+  },
+  "even_selector_barrier": {
+    "status": "PROVED",
+    "theorem_path": "research/R5_B1B1C5B2B2_E8_EVEN_SELECTOR_BARRIER_THEOREM_2026-09-22_v1.0.md",
+    "theorem_commit": "4523a22cfd417f1914aa44c7c6ee5020e2d93505"
+  },
+  "final_result": {
+    "odd_selector_greedy_prefix": "PROVED_FOR_ALL_m_EQUALS_2_POW_r_GE_4",
+    "structural_peak_lower_bound": "Peak(F_m)>=2^(m/2)",
+    "encoded_peak_lower_bound": "2^(Omega(L/log L))",
+    "greedy_peak_candidate": "FALSIFIED",
+    "D1": "NOT_ADMITTED",
+    "P_VS_NP": "OPEN",
+    "theorem_path": "research/R5_B1B1C5B2B2_E8_ODD_SELECTOR_GREEDY_PREFIX_AND_PEAK_FALSIFICATION_2026-09-22_v1.0.md",
+    "theorem_commit": "d8bc43863169b812fbd90a5d34bb442ab965b399"
+  }
+}

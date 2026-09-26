@@ -1,0 +1,74 @@
+name: Bootstrap PA-0029 NM-0033
+
+on:
+  push:
+    paths:
+      - ".github/workflows/bootstrap-pa0029-nm0033.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    if: github.event.head_commit.message == 'Bootstrap PA-0029 NM-0033 stress'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref_name }}
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Verify head
+        run: |
+          git fetch origin "$GITHUB_REF_NAME"
+          test "$(git rev-parse "origin/$GITHUB_REF_NAME")" = "$GITHUB_SHA"
+      - name: Apply audited payload
+        run: |
+          python - <<'PY'
+          import json, base64, zlib
+          from pathlib import Path
+
+          def b64decode_padded(value):
+              raw=''.join(value.split())
+              raw += '=' * (-len(raw) % 4)
+              return base64.b64decode(raw)
+
+          payload_path=Path('.janus_bootstrap_pa0029_nm0033_payload.txt')
+          d=json.loads(zlib.decompress(b64decode_padded(payload_path.read_text())).decode())
+          for p,b in d['files'].items():
+              q=Path(p); q.parent.mkdir(parents=True,exist_ok=True)
+              q.write_bytes(b64decode_padded(b))
+          lp=Path('registry/JANUS_P_VS_NP_PREMATH_AUDIT_LEDGER_2026-09-24_v1.0.json')
+          L=json.loads(lp.read_text()); ids={x['id'] for x in L['audits']}
+          for e in (d['audit_entry'],d['result_entry']):
+              assert e['id'] not in ids
+              L['audits'].append(e); ids.add(e['id'])
+          lp.write_text(json.dumps(L,indent=2)+'\n')
+          gp=Path('registry/JANUS_P_VS_NP_GLOBAL_PREMATH_NO_DUPLICATION_GATE_2026-09-24_v1.0.json')
+          G=json.loads(gp.read_text()); G['current_frontier']=d['frontier']
+          if not any(x.get('id')==d['closed']['id'] for x in G['closed_subroutes']):
+              G['closed_subroutes'].append(d['closed'])
+          gp.write_text(json.dumps(G,indent=2)+'\n')
+          payload_path.unlink()
+          Path('.github/workflows/bootstrap-pa0029-nm0033.yml').unlink()
+          PY
+      - name: Replay NM-0033
+        run: |
+          python -m py_compile experiments/r5_e9_filtered_harries_lift_root_preprocessor_lean.py
+          python experiments/r5_e9_filtered_harries_lift_root_preprocessor_lean.py >/tmp/nm0033.json
+          python - <<'PY'
+          import json
+          x=json.load(open('/tmp/nm0033.json'))
+          assert x['status']=='PASS_NM0032_ROOT_PREPROCESSOR_LEAN_STRESS'
+          assert [r['n'] for r in x['prefixes']]==[70,140,280,560,1120,2240,4480]
+          print('NM0033_LOCAL_REPLAY=PASS')
+          PY
+      - name: Commit final audited state
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "PA-0029 NM-0033 seal NM-0032 root preprocessor leanness"
+          git push origin "HEAD:$GITHUB_REF_NAME"
