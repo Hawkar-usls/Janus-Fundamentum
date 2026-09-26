@@ -1,0 +1,45 @@
+name: R5 E9 Coprime-Cover Phase Persistence
+
+on:
+  push:
+    paths:
+      - "experiments/r5_e9_coprime_cover_phase_persistence.py"
+      - "research/R5_E9_COPRIME_COVER_PHASE_PERSISTENCE_AND_SHARP_3COVER_2026-09-26_v1.0.md"
+      - "registry/JANUS_P_VS_NP_R5_E9_COPRIME_COVER_PHASE_PERSISTENCE_2026-09-26_v1.0.json"
+      - ".github/workflows/r5-e9-coprime-cover-phase-persistence.yml"
+  pull_request:
+    paths:
+      - "experiments/r5_e9_coprime_cover_phase_persistence.py"
+      - "research/R5_E9_COPRIME_COVER_PHASE_PERSISTENCE_AND_SHARP_3COVER_2026-09-26_v1.0.md"
+      - "registry/JANUS_P_VS_NP_R5_E9_COPRIME_COVER_PHASE_PERSISTENCE_2026-09-26_v1.0.json"
+      - ".github/workflows/r5-e9-coprime-cover-phase-persistence.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  replay:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Compile checker
+        run: python -m py_compile experiments/r5_e9_coprime_cover_phase_persistence.py
+      - name: Replay cover controls
+        run: |
+          python experiments/r5_e9_coprime_cover_phase_persistence.py > /tmp/nm0029.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          x=json.loads(Path('/tmp/nm0029.json').read_text())
+          assert x["status"]=="PASS_COPRIME_COVER_PHASE_PERSISTENCE"
+          assert x["theorem"]["two_group_covers"]=="PHASE_FAIL_PERSISTS"
+          assert x["sharpness"]["degree_3_can_repair_phase_fail"]
+          assert x["controls"]["canonical_3cover_connected"]
+          assert x["controls"]["canonical_3cover_phase"]=="PASS"
+          print("R5_E9_NM0029=PASS")
+          PY
