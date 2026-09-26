@@ -1,0 +1,55 @@
+{
+  "artifact_id": "JANUS-TRUMP-E8-OCCURRENCE-RANK1-FOURIER-EQUALITY-REDUCTION-2026-09-26-v1.0",
+  "version": "v1.0",
+  "date_local": "2026-09-26",
+  "status": "EXACT_REDUCTION_CANDIDATE__SYMBOLIC_DERIVATION_COMPLETE__NO_P_EQUALS_NP_CLAIM",
+  "parent": "research/R5_B1B1C5B2B2_E8_GLOBAL_WEIGHTED_RANK1_BOOLEAN_SUM_DETERMINANT_IDENTITY_2026-09-26_v0.9.json",
+  "input": "arbitrary finite 3-CNF F with n original variables, m clauses and q literal occurrences",
+  "occurrence_local_determinant": {
+    "occurrence_bits": "Create one Boolean z_o for each literal occurrence o; z_o denotes the value of the underlying original variable, independent across occurrences at this stage.",
+    "literal_false_indicator": "For a positive occurrence x_i use f_o=1-z_o; for a negative occurrence NOT x_i use f_o=z_o.",
+    "clause_gadget": "For clause occurrences o1,o2,o3 define G_C=[[1,f_o1,0],[0,1,f_o2],[-f_o3,0,1]].",
+    "clause_identity": "det(G_C)=1-f_o1 f_o2 f_o3, which is exactly the OR-clause satisfaction indicator on the occurrence values.",
+    "global_matrix": "M_F(z)=blockdiag_C G_C(z).",
+    "global_identity": "D_F(z)=det M_F(z)=product_C clause_indicator_C(z) is in {0,1} and equals 1 iff every clause is satisfied under the occurrence-local assignment z.",
+    "rank_one_property": "Each occurrence variable z_o appears in exactly one matrix entry. Therefore M_F(z)=M_0+sum_o z_o u_o v_o^T with one rank-one update per occurrence."
+  },
+  "consistency_projection": {
+    "groups": "For original variable i let O_i be its set of occurrence indices and d_i=|O_i|. A local occurrence assignment corresponds to one original assignment iff all z_o for o in O_i are equal for every i.",
+    "equality_fourier_identity": "EQ_d(z_1,...,z_d)=1[z_1=...=z_d]=2^(1-d) sum_{s in {0,1}^d: parity(s)=0} (-1)^(s dot z).",
+    "even_character_subspace": "E={s in {0,1}^q : sum_{o in O_i}s_o =0 mod 2 for every original variable i}.",
+    "fourier_transform": "Dhat_F(s)=sum_{z in {0,1}^q} (-1)^(s dot z) D_F(z).",
+    "master_identity": "#SAT(F)=2^(n-q) sum_{s in E} Dhat_F(s), ignoring variables with zero occurrences or accounting for them by the obvious factor 2."
+  },
+  "determinant_evaluation_of_each_character": {
+    "weights": "For fixed s set t_o=(-1)^(s_o) and T_s=diag(t_o).",
+    "v0_9_application": "Dhat_F(s)=det([[M_0,U],[-T_s V^T,I+T_s]]), where U=[u_o] and V=[v_o].",
+    "dimension": "The determinant dimension is 3m+q, polynomial in |F|.",
+    "bitlength": "All frozen gadget entries are in {-2,-1,0,1,2}; exact integer determinant bitlength is polynomially bounded in matrix dimension by Hadamard's bound."
+  },
+  "exact_remaining_problem": {
+    "name": "PARITY_SUBSPACE_DETERMINANT_SUM_FOR_OCCURRENCE_GADGETS",
+    "task": "Compute S_F=sum_{s in E} det([[M_0,U],[-T_s V^T,I+T_s]]) in polynomial time without enumerating E.",
+    "dimension_of_E": "q-rank(H), where H has one parity row per nonempty occurrence group; for ordinary formulas this is q-n_nonempty, so direct enumeration remains exponential in general.",
+    "decision_relation": "S_F=2^(q-n) #SAT(F), hence S_F>0 iff F is satisfiable over the integers.",
+    "scientific_meaning": "A polynomial exact algorithm for this frozen structured determinant-sum problem would give a polynomial algorithm for arbitrary 3-SAT (indeed exact #SAT after the known power-of-two scaling). This is the new direct-PVNP frontier, not an already-solved subroutine."
+  },
+  "bounded_occurrence_note": {
+    "statement": "Using standard bounded-occurrence reductions can keep each d_i constant (e.g. at most four in classical 3-SAT hardness constructions), but the number of groups is still linear, so multiplying constant-size local Fourier expansions still yields exponentially many global character combinations unless the parity-subspace sum is globally compressed.",
+    "firewall": "Constant occurrence degree is not itself a polynomial algorithm."
+  },
+  "next_target": {
+    "name": "E8_PARITY_SUBSPACE_DETERMINANT_SUM_COMPRESSION_V1_1",
+    "attack": [
+      "Exploit that every character choice only flips/scales one bottom row of the v0.9 augmented matrix.",
+      "Search for a Pfaffian/matchgate or other parity-native contraction that sums all even masks within all disjoint occurrence groups simultaneously.",
+      "Reject any construction whose auxiliary state tensor-products across groups to exponential dimension.",
+      "Test any proposed identity on exhaustive small 3-CNF before theorem promotion."
+    ]
+  },
+  "scientific_ceiling": {
+    "P_VS_NP": "OPEN",
+    "P_EQUALS_NP_ALGORITHM": "NOT_CONSTRUCTED",
+    "PROVED_IF_REPLAY_PASSES": "Exact algebraic reduction of arbitrary 3-SAT/#SAT to a parity-subspace sum of polynomial-size determinants with rank-one occurrence structure."
+  }
+}
