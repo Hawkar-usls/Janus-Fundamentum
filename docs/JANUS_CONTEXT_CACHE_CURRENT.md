@@ -5,16 +5,16 @@
 - **Repository:** `Hawkar-usls/Janus-Fundamentum`
 - **PR:** `#510`
 - **Branch:** `codex/r5-e8-direct-contract-20260921-82493a57`
-- **Live source HEAD:** `ca73ad6b8e62d93571d506eb0d806f63ae75ad9f`
-- **Source commit time:** `2026-09-27T17:48:40+03:00`
-- **Indexed changed scientific artifacts:** `650`
+- **Live source HEAD:** `cec70a4d9708405c5d5d9a899d7f86b69168ecaa`
+- **Source commit time:** `2026-09-27T17:49:43+03:00`
+- **Indexed changed scientific artifacts:** `651`
 
 ## Continuity status
 
 - Semantic cache: `.janus/P_VS_NP_STREAM_CACHE_CURRENT.json`
 - Semantic source HEAD: `65870a285b36a645d7407c16d759fb6cd5b37421`
 - Relation: **`LIVE_DESCENDS_FROM_SEMANTIC_CACHE`**
-- Commits after semantic checkpoint: `54`
+- Commits after semantic checkpoint: `55`
 
 ## Scientific firewall
 
@@ -127,6 +127,7 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `c365d05768e6` — 2026-09-27T17:39:25+03:00 — R5 E9: compact and sync semantic checkpoint after Boben state barrier
 - `245704dee837` — 2026-09-27T17:48:24+03:00 — R5 E9: add directed perfect-code normal form
 - `ca73ad6b8e62` — 2026-09-27T17:48:40+03:00 — R5 E9: add checker for directed perfect-code normal form
+- `cec70a4d9708` — 2026-09-27T17:49:43+03:00 — R5 E9: close Boben A-irreducible terminals by bounded width
 
 ## Transport / stale-bootstrap watch
 
@@ -157,6 +158,7 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 
 ## Recent non-cache commits
 
+- `cec70a4d9708` — 2026-09-27T17:49:43+03:00 — R5 E9: close Boben A-irreducible terminals by bounded width
 - `ca73ad6b8e62` — 2026-09-27T17:48:40+03:00 — R5 E9: add checker for directed perfect-code normal form
 - `245704dee837` — 2026-09-27T17:48:24+03:00 — R5 E9: add directed perfect-code normal form
 - `c365d05768e6` — 2026-09-27T17:39:25+03:00 — R5 E9: compact and sync semantic checkpoint after Boben state barrier
@@ -181,7 +183,6 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `de88fe45d8f5` — 2026-09-27T16:47:48+03:00 — R5 E9: add hostile-donor falsifier to CI
 - `bb47a3b19d2c` — 2026-09-27T16:47:30+03:00 — R5 E9: add executable hostile-donor falsifier
 - `19b4f2724528` — 2026-09-27T16:47:06+03:00 — R5 E9: reject 2025 cubic monotone P=NP donor by exact counterexamples
-- `2c5de8ee94d5` — 2026-09-27T16:40:13+03:00 — R5 E9: sync checkpoint after primitive nullity-2 falsifier
 
 ## Resume protocol
 
