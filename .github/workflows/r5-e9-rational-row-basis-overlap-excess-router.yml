@@ -1,0 +1,49 @@
+name: R5 E9 Rational Row-Basis Overlap-Excess Router
+
+on:
+  push:
+    paths:
+      - "research/R5_E9_RATIONAL_ROW_BASIS_OVERLAP_EXCESS_FPT_ROUTER_2026-09-27_v1.0.md"
+      - "experiments/r5_e9_rational_row_basis_overlap_excess_fpt_router.py"
+      - ".github/workflows/r5-e9-rational-row-basis-overlap-excess-router.yml"
+  pull_request:
+    paths:
+      - "research/R5_E9_RATIONAL_ROW_BASIS_OVERLAP_EXCESS_FPT_ROUTER_2026-09-27_v1.0.md"
+      - "experiments/r5_e9_rational_row_basis_overlap_excess_fpt_router.py"
+      - ".github/workflows/r5-e9-rational-row-basis-overlap-excess-router.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  replay:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Compile
+        run: python -m py_compile experiments/r5_e9_rational_row_basis_overlap_excess_fpt_router.py
+      - name: Replay overlap-excess router
+        run: |
+          python experiments/r5_e9_rational_row_basis_overlap_excess_fpt_router.py > /tmp/rbo.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          x=json.loads(Path('/tmp/rbo.json').read_text())
+          assert x['status']=='PASS_RATIONAL_ROW_BASIS_OVERLAP_EXCESS_FPT_ROUTER_FINITE_REPLAY'
+          assert x['theorem']=='EXACT_ONE_IN_2^delta_POLY_FOR_delta_EQ_3rankQ_minus_n_EQ_2n_minus_3nullityQ'
+          by={c['name']:c for c in x['controls']}
+          assert by['J3_MAX_NULLITY']['delta']==0
+          assert by['J3_MAX_NULLITY']['sat'] is True
+          assert by['FANO7']['sat'] is False
+          assert by['CONNECTED_LINEAR_CUBIC_UNSAT9']['sat'] is False
+          assert by['AFFINE_3X3']['sat'] is True
+          assert all(c['shared_count'] <= c['delta'] for c in x['controls'])
+          assert x['E8_D1']=='EMPTY'
+          assert x['P_VS_NP']=='OPEN'
+          print('R5_E9_RATIONAL_ROW_BASIS_OVERLAP_EXCESS_ROUTER=PASS')
+          PY
