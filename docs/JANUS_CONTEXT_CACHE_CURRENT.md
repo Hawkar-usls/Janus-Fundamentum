@@ -5,16 +5,16 @@
 - **Repository:** `Hawkar-usls/Janus-Fundamentum`
 - **PR:** `#510`
 - **Branch:** `codex/r5-e8-direct-contract-20260921-82493a57`
-- **Live source HEAD:** `cec70a4d9708405c5d5d9a899d7f86b69168ecaa`
-- **Source commit time:** `2026-09-27T17:49:43+03:00`
-- **Indexed changed scientific artifacts:** `651`
+- **Live source HEAD:** `de9c9fb16500de7718f9c5a8a4ea3f0637fddef5`
+- **Source commit time:** `2026-09-27T17:50:25+03:00`
+- **Indexed changed scientific artifacts:** `653`
 
 ## Continuity status
 
 - Semantic cache: `.janus/P_VS_NP_STREAM_CACHE_CURRENT.json`
 - Semantic source HEAD: `65870a285b36a645d7407c16d759fb6cd5b37421`
 - Relation: **`LIVE_DESCENDS_FROM_SEMANTIC_CACHE`**
-- Commits after semantic checkpoint: `55`
+- Commits after semantic checkpoint: `57`
 
 ## Scientific firewall
 
@@ -128,6 +128,8 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `245704dee837` — 2026-09-27T17:48:24+03:00 — R5 E9: add directed perfect-code normal form
 - `ca73ad6b8e62` — 2026-09-27T17:48:40+03:00 — R5 E9: add checker for directed perfect-code normal form
 - `cec70a4d9708` — 2026-09-27T17:49:43+03:00 — R5 E9: close Boben A-irreducible terminals by bounded width
+- `60351fa4c091` — 2026-09-27T17:50:14+03:00 — R5 E9: add controls for A-irreducible terminal closure
+- `de9c9fb16500` — 2026-09-27T17:50:25+03:00 — R5 E9: add CI for perfect-code and A-irreducible controls
 
 ## Transport / stale-bootstrap watch
 
@@ -158,6 +160,8 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 
 ## Recent non-cache commits
 
+- `de9c9fb16500` — 2026-09-27T17:50:25+03:00 — R5 E9: add CI for perfect-code and A-irreducible controls
+- `60351fa4c091` — 2026-09-27T17:50:14+03:00 — R5 E9: add controls for A-irreducible terminal closure
 - `cec70a4d9708` — 2026-09-27T17:49:43+03:00 — R5 E9: close Boben A-irreducible terminals by bounded width
 - `ca73ad6b8e62` — 2026-09-27T17:48:40+03:00 — R5 E9: add checker for directed perfect-code normal form
 - `245704dee837` — 2026-09-27T17:48:24+03:00 — R5 E9: add directed perfect-code normal form
@@ -181,8 +185,6 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `3b5e6fc63899` — 2026-09-27T17:13:48+03:00 — R5 E9: prove rank-1 stitched TD33 linear high-nullity family
 - `d39535eaa10d` — 2026-09-27T16:48:37+03:00 — R5 E9: sync semantic checkpoint after hostile-donor rejection
 - `de88fe45d8f5` — 2026-09-27T16:47:48+03:00 — R5 E9: add hostile-donor falsifier to CI
-- `bb47a3b19d2c` — 2026-09-27T16:47:30+03:00 — R5 E9: add executable hostile-donor falsifier
-- `19b4f2724528` — 2026-09-27T16:47:06+03:00 — R5 E9: reject 2025 cubic monotone P=NP donor by exact counterexamples
 
 ## Resume protocol
 
