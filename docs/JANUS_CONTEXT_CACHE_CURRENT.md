@@ -5,8 +5,8 @@
 - **Repository:** `Hawkar-usls/Janus-Fundamentum`
 - **PR:** `#510`
 - **Branch:** `codex/r5-e8-direct-contract-20260921-82493a57`
-- **Live source HEAD:** `b482f59a29a1e243af53eac9d8408ece15224297`
-- **Source commit time:** `2026-09-27T17:27:31+03:00`
+- **Live source HEAD:** `191797d3a3250aa2947c455a2759c1e9203adfb2`
+- **Source commit time:** `2026-09-27T17:28:43+03:00`
 - **Indexed changed scientific artifacts:** `642`
 
 ## Continuity status
@@ -14,7 +14,7 @@
 - Semantic cache: `.janus/P_VS_NP_STREAM_CACHE_CURRENT.json`
 - Semantic source HEAD: `65870a285b36a645d7407c16d759fb6cd5b37421`
 - Relation: **`LIVE_DESCENDS_FROM_SEMANTIC_CACHE`**
-- Commits after semantic checkpoint: `43`
+- Commits after semantic checkpoint: `44`
 
 ## Scientific firewall
 
@@ -116,6 +116,7 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `ba8ae11ef7e1` — 2026-09-27T17:25:04+03:00 — R5 E9: add exact commuting two-permutation terminal
 - `9f37b4757442` — 2026-09-27T17:25:34+03:00 — R5 E9: add checker for commuting two-permutation terminal
 - `b482f59a29a1` — 2026-09-27T17:27:31+03:00 — R5 E9: add CI for commuting two-permutation terminal
+- `191797d3a325` — 2026-09-27T17:28:43+03:00 — R5 E9: sync checkpoint after commuting exact terminal
 
 ## Transport / stale-bootstrap watch
 
@@ -146,6 +147,7 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 
 ## Recent non-cache commits
 
+- `191797d3a325` — 2026-09-27T17:28:43+03:00 — R5 E9: sync checkpoint after commuting exact terminal
 - `b482f59a29a1` — 2026-09-27T17:27:31+03:00 — R5 E9: add CI for commuting two-permutation terminal
 - `9f37b4757442` — 2026-09-27T17:25:34+03:00 — R5 E9: add checker for commuting two-permutation terminal
 - `ba8ae11ef7e1` — 2026-09-27T17:25:04+03:00 — R5 E9: add exact commuting two-permutation terminal
@@ -170,7 +172,6 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `0f9d44820b84` — 2026-09-27T16:19:08+03:00 — Add CI for Hoffman coclique equivalence
 - `f50771e35f76` — 2026-09-27T16:18:52+03:00 — Add Hoffman coclique equivalence regression checker
 - `a3edef10696d` — 2026-09-27T16:18:15+03:00 — R5 E9 expose cubic Exact-One as Hoffman coclique equality
-- `f9532dbd24fd` — 2026-09-27T15:45:02+03:00 — R5 E9 contract one-edge-twist 2-lifts exactly
 
 ## Resume protocol
 
