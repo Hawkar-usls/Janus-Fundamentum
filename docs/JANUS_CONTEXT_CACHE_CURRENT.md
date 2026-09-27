@@ -5,16 +5,16 @@
 - **Repository:** `Hawkar-usls/Janus-Fundamentum`
 - **PR:** `#510`
 - **Branch:** `codex/r5-e8-direct-contract-20260921-82493a57`
-- **Live source HEAD:** `774aef86193591768ef570f79f25ab2c1e0510bb`
-- **Source commit time:** `2026-09-27T22:57:11+03:00`
-- **Indexed changed scientific artifacts:** `667`
+- **Live source HEAD:** `9b45c55ee5423cd7cfb123befe6a70c20f434b26`
+- **Source commit time:** `2026-09-27T23:12:34+03:00`
+- **Indexed changed scientific artifacts:** `668`
 
 ## Continuity status
 
 - Semantic cache: `.janus/P_VS_NP_STREAM_CACHE_CURRENT.json`
 - Semantic source HEAD: `efed2c7e3fcd9ab03407b02fe9ba6b01362e1719`
 - Relation: **`LIVE_DESCENDS_FROM_SEMANTIC_CACHE`**
-- Commits after semantic checkpoint: `1`
+- Commits after semantic checkpoint: `2`
 
 ## Scientific firewall
 
@@ -78,6 +78,7 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 ## Commits newer than semantic checkpoint — MUST INGEST
 
 - `774aef861935` — 2026-09-27T22:57:11+03:00 — R5 E9: sync semantic checkpoint after nullity route closures
+- `9b45c55ee542` — 2026-09-27T23:12:34+03:00 — R5 E9: freeze EQ3 gauge-nullity UNSAT counterfamily
 
 ## Transport / stale-bootstrap watch
 
@@ -108,6 +109,7 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 
 ## Recent non-cache commits
 
+- `9b45c55ee542` — 2026-09-27T23:12:34+03:00 — R5 E9: freeze EQ3 gauge-nullity UNSAT counterfamily
 - `774aef861935` — 2026-09-27T22:57:11+03:00 — R5 E9: sync semantic checkpoint after nullity route closures
 - `efed2c7e3fcd` — 2026-09-27T22:55:37+03:00 — R5 E9: add primitive local-swap family CI
 - `94b1075a4d29` — 2026-09-27T22:55:29+03:00 — R5 E9: add primitive local-swap family regression
@@ -132,7 +134,6 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `245704dee837` — 2026-09-27T17:48:24+03:00 — R5 E9: add directed perfect-code normal form
 - `c365d05768e6` — 2026-09-27T17:39:25+03:00 — R5 E9: compact and sync semantic checkpoint after Boben state barrier
 - `12951a374240` — 2026-09-27T17:38:25+03:00 — R5 E9: add CI for Boben local state barrier
-- `53906e11c112` — 2026-09-27T17:38:15+03:00 — R5 E9: add checker for Boben local bond-dimension barrier
 
 ## Resume protocol
 
