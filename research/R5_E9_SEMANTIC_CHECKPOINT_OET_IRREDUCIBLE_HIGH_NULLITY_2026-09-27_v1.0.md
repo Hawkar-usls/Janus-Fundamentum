@@ -3,9 +3,9 @@
 Date: 2026-09-27
 
 Checkpoint status:
-`SYNCHRONIZED_AFTER_COMMUTING_TWO_PERM_EXACT_TERMINAL`
+`SYNCHRONIZED_AFTER_BOBEN_REDUCTION_SEMANTIC_AUDIT`
 
-This is the canonical compact restart surface after the latest material mathematics.
+This is the canonical compact restart surface. It records theorem-level state, forbidden shortcuts, and the next admissible gates.
 
 ## LIVE SCIENTIFIC STATE
 
@@ -14,23 +14,26 @@ P_VS_NP = OPEN
 E8_D1 = EMPTY
 UNIVERSAL POLYNOMIAL SAT / EXACT-ONE DECIDER = NOT PROVED
 
-AUTHORITATIVE RESIDUAL GATE
-= R5_E9_OET_IRREDUCIBLE_HOFFMAN_COCLIQUE_GATE_V1
+AUTHORITATIVE RESIDUAL
+= connected cubic-linear Exact-One / Hoffman / Levi / two-permutation carrier
 
-ADMITTED POLYNOMIAL SUBROUTERS / TERMINALS
+ADMITTED POLYNOMIAL TERMINALS / SUBROUTERS
 = FULL_RANK_BOOLEAN_UNSAT
 = LOG_NULLITY_EXACT_KERNEL_ROUTER
 = OET_EXACT_CONTRACTION
 = FIXED_(c,B)_LEVI_LEAF_PEEL_GENERAL_FACTOR_ROUTER
 = CONNECTED_COMMUTING_TWO_PERM_Z3_TERMINAL
 
-CURRENT HARD-CORE ATTACK
+CURRENT ALGEBRAIC HARD CORE
 = R5_E9_NONCOMMUTING_SEPARATOR_RESISTANT_HIGH_NULLITY_GATE_V1
+
+CURRENT STRUCTURAL DONOR GATE
+= R5_E9_BOBEN_SEMANTIC_LIFT_STATE_GROWTH_GATE_V1
 ```
 
 ## PROVED CORE
 
-For a connected linear cubic square incidence matrix `A` and conflict graph `G`:
+For a connected linear cubic square incidence matrix `A` and its conflict graph `G`:
 
 ```text
 A^T A = 3I + G
@@ -51,128 +54,101 @@ iff
 G has equitable quotient [[0,6],[3,3]].
 ```
 
-Polynomial terminals already admitted:
+Existing exact polynomial routes:
 
 ```text
 rank_Q(A)=n
 => BOOLEAN UNSAT.
 
 nullity_Q(A)=O(log n)
-=> exact 2^k poly(n,L) rational-kernel router is polynomial.
+=> 2^k poly(n,L) rational-kernel router is polynomial.
 
 recognized one-edge-twist 2-lift tower
-=> exact polynomial contraction to its root with witness reconstruction.
+=> exact polynomial contraction with witness reconstruction.
 
 complete fixed-(c,B) Levi leaf decomposition
-=> exact polynomial General-Factor / Exact-One decision and witness reconstruction.
+=> exact polynomial General-Factor / Exact-One decision and reconstruction.
 ```
 
-## LEVI / DUAL / TWO-PERMUTATION NORMAL FORMS
+## EXACT NORMAL FORMS
 
-For the cubic bipartite Levi graph `L(A)`:
+Levi graph `L(A)` is cubic bipartite with girth at least 6 and
 
 ```text
 Ax=1
 iff
-L(A) has General Factor with K(row)={1}, K(column)={0,3}
+L(A) has General Factor K(row)={1}, K(column)={0,3}
 iff
 selected dual 3-edges form a perfect matching / parallel class.
 ```
 
-Every cubic square carrier is polynomially decomposable into three Levi perfect matchings:
+Every cubic square carrier admits a polynomial three-perfect-matching decomposition
 
 ```text
-A=P0+P1+P2.
+A=P0+P1+P2
 ```
 
-After exact row normalization:
+and row normalization
 
 ```text
 A'=I+P+Q,
-P,Q permutation matrices,
 Ax=1 iff A'x=1,
 nullity_Q(A')=nullity_Q(A).
 ```
 
-If `p,q` are the corresponding permutations:
+If `p,q` are the normalized permutations:
 
 ```text
-L(A) connected iff <p,q> acts transitively.
+L(A) connected iff <p,q> transitive,
+z_i+z_{p(i)}+z_{q(i)}=0 for every kernel vector z.
 ```
 
-Linearity becomes the triple condition on `{i,p(i),q(i)}` and the kernel law is
+Exact-One witnesses are exactly
 
 ```text
-z_i+z_{p(i)}+z_{q(i)}=0 for every i.
+w=3x-1 in {-1,2}^n
 ```
 
-Exact-One witnesses are exactly the special kernel points
-
-```text
-w=3x-1 in {-1,2}^n,
-```
-
-with local source-row multiset `(-1,-1,2)`.
+with local row multiset `(-1,-1,2)`.
 
 ## FROZEN PRIMITIVITY FALSIFIER
 
-Explicit linear `12_3` normalized carrier:
+There is an explicit linear `12_3` normalized carrier
 
 ```text
 p=[9,4,6,1,10,8,7,2,0,5,11,3]
 q=[3,8,4,5,0,11,10,1,7,6,9,2]
-A=I+P+Q
 rank_Q(A)=10
 nullity_Q(A)=2
-<p,q> transitive and primitive
-unique Exact-One witness selects {0,1,6,11}
+<p,q> primitive
+unique Exact-One witness={0,1,6,11}.
 ```
 
-Therefore these shortcuts are false:
+Therefore none of
 
 ```text
-singular => imprimitive
-nullity_Q(A)>=2 => imprimitive
-SAT + singular => imprimitive
-{-1,2} kernel witness => imprimitive
+singular
+nullity>=2
+SAT+singular
+existence of {-1,2} kernel witness
 ```
 
-The finite example does not refute an asymptotic theorem requiring `nullity_Q(A)=omega(log n)` plus extra hypotheses.
+forces an imprimitive permutation action.
 
-## FROZEN HOSTILE-DONOR REJECTION — KETTANI 2025
+## FROZEN FALSE DONOR — KETTANI 2025
 
-Every cubic square incidence matrix satisfies `A*1=3*1`. Hence if `A` is nonsingular, the unique rational solution of `Ax=1` is `(1/3)1`, not Boolean. The cyclic Fano `7_3` instance has full rational rank and zero Boolean Exact-One witnesses.
+For every cubic square incidence matrix `A*1=3*1`; if `A` is nonsingular then the unique rational solution to `Ax=1` is `(1/3)1`, hence not Boolean. Cyclic Fano `7_3` is a full-rank explicit UNSAT control.
 
-Thus
-
-```text
-det(A)!=0 => SAT
-```
-
-is false, and the correct terminal is
-
-```text
-rank_Q(A)=n => BOOLEAN UNSAT.
-```
-
-The donor's claimed bounded-treewidth theorem is also false: the 6-regular triangular torus family
-
-```text
-T_m = Cay(Z_m^2, {±(1,0), ±(0,1), ±(1,-1)})
-```
-
-is induced-`K1,4`-free, every vertex lies in six triangles, and `tw(T_m)>=m` via its ordinary `m x m` grid subgraph.
-
-Freeze:
+The donor's bounded-treewidth claim is also false; triangular torus graphs give unbounded treewidth under its stated local hypotheses.
 
 ```text
 FORBIDDEN_DONOR_ROUTE
 = KETTANI_2025_BOUNDED_TREEWIDTH_CUBIC_MONOTONE_1IN3
 ```
 
-## RANK-1 STITCHED `TD(3,3)` THEOREM
+## RANK-1 STITCHED TD(3,3) FAMILY
 
-One `TD(3,3)` block has rational rank `7`, nullity `2`. Chaining `m` copies by the proved degree-preserving rank-one incidence 2-switch leaves a connected square cubic linear carrier `A_m` with
+A connected cubic-linear family `A_m`, obtained by rank-one incidence 2-switch stitching of `m` `TD(3,3)` modules, satisfies exactly
 
 ```text
 n=9m
@@ -180,132 +156,111 @@ rank_Q(A_m)=8m-1
 nullity_Q(A_m)=m+1=n/9+1.
 ```
 
-So `Theta(n)` rational nullity can arise from small singular modules plus rank-1 stitching, not only from OET lifts.
+Thus large nullity need not come from OET lifts. But every module boundary is a 2-edge Levi cut, so this family is not a separator-resistant obstruction.
 
-Each module boundary is a 2-edge Levi cut, so this is not a separator-resistant high-nullity obstruction.
+## EXACT LEVI CUT / LEAF-PEEL COMPOSITION
 
-## EXACT LEVI CUT COMPOSITION — PROVED
-
-For any Levi cut `V=S disjoint_union T` with crossing edge set `D=delta(S)`, an exact boundary state is
+For a Levi edge cut `D=delta(S)`, exact boundary state is simply
 
 ```text
-y in {0,1}^D,
+y in {0,1}^D.
 ```
 
-recording which cut factor edges are selected. Residual degree sets are obtained by subtracting the selected cut degree from `K(row)={1}` and `K(column)={0,3}`.
-
-Exact composition:
+With residual degree sets obtained by subtracting selected cut-degree,
 
 ```text
-L has a valid factor
+L feasible
 iff
-exists y in {0,1}^D:
-    FEAS(S,y) and FEAS(T,y).
+exists y: FEAS(S,y) and FEAS(T,y).
 ```
 
-Witness reconstruction is
+Compatible local witnesses reconstruct the global factor exactly.
+
+For fixed `(c,B)`, recursively peeling connected modules of at most `B` vertices behind cuts of at most `c` edges is polynomial. Failure to peel returns `CORE`, not UNSAT/hardness evidence.
+
+The stitched TD33 family is completely `(c=2,B=18)` peelable.
+
+## CONNECTED COMMUTING TWO-PERM TERMINAL — PROVED
+
+For a valid connected normalization
 
 ```text
-F = F_S union F_T union {e in D : y_e=1}.
+A=I+P+Q,
+PQ=QP,
 ```
 
-Thus a cut of size `c` has exactly `2^c` boundary bit states.
-
-For fixed constants `(c,B)`, recursively peeling connected modules of at most `B` Levi vertices behind cuts of size at most `c` is polynomial and exact. If the process stops on a larger root it returns `CORE`, never false UNSAT/hardness evidence.
-
-The stitched `TD(3,3)` family is completely `(c=2,B=18)` peelable. Its direct witness transfer automaton is
+`Gamma=<p,q>` is transitive abelian and therefore regular. Fourier/character diagonalization gives
 
 ```text
-X -> Y or Z
-Y -> X
-Z -> Y or Z
+lambda_chi=1+chi(p)+chi(q).
 ```
 
-with witness count `F_{m+3}`.
-
-## NEW EXACT TERMINAL — CONNECTED COMMUTING TWO-PERMUTATION BRANCH
-
-Assume a valid normalized connected carrier
+A kernel character exists only for
 
 ```text
-A=I+P+Q
+(chi(p),chi(q))=(omega,omega^2) or (omega^2,omega).
 ```
 
-has
+Because `p,q` generate `Gamma`, there are at most these two characters; rational and complex nullities agree. Therefore
 
 ```text
-PQ=QP.
+nullity_Q(I+P+Q) in {0,2}.
 ```
 
-Then `Gamma=<p,q>` is transitive abelian and therefore regular. Identify coordinates with `Gamma`. Over `C`, the regular representation has character eigenbasis and
+Exact decision:
 
 ```text
-lambda_chi = 1 + chi(p) + chi(q).
+nullity=0 => BOOLEAN UNSAT.
+nullity=2 => SAT with exactly three Exact-One witnesses.
 ```
 
-For unit complex numbers `u,v`,
+The SAT case is constructible by a `Z_3` coloring satisfying one of the two orientations
 
 ```text
-1+u+v=0
-iff
-(u,v)=(omega,omega^2) or (omega^2,omega),
-omega^3=1, omega!=1.
+c(p(i))=c(i)+1, c(q(i))=c(i)+2
+or
+c(p(i))=c(i)+2, c(q(i))=c(i)+1.
 ```
 
-Since `p,q` generate `Gamma`, a character is uniquely determined by `(chi(p),chi(q))`. Therefore at most two characters lie in the kernel, and conjugation makes the nullity even. Rank/nullity is unchanged by field extension `Q -> C`.
+Propagation is `O(n)` after normalization.
 
-Hence
+Scope: a commuting valid normalization is solved. No theorem yet says all possible three-matching normalizations can be searched for a commuting one in polynomial time.
+
+## BOBEN STRUCTURAL REDUCTION — ACCEPTED, NAIVE SEMANTIC IMPORT REJECTED
+
+Boben's reduction theorem applies exactly to the Levi graph class: every connected cubic bipartite graph of girth at least 6 can be reduced through connected graphs of the same class to the Heawood/Fano graph or the Pappus graph.
+
+However a Boben graph reduction is NOT an Exact-One-preserving single-instance reduction.
+
+For an adjacent removed point/line pair, contracting the exact local factors produces
 
 ```text
-PQ=QP and connected
-=> nullity_Q(I+P+Q) in {0,2}.
+R(a,b,c,d)
+= exists s: EQ3(a,b,s) AND EXACT1_3(c,d,s)
 ```
 
-The branch is completely decided:
+with exactly the three tuples
 
 ```text
-nullity=0
-=> BOOLEAN UNSAT.
-
-nullity=2
-=> SAT with exactly three Exact-One witnesses.
+(0,0,1,0)
+(0,0,0,1)
+(1,1,0,0).
 ```
 
-In the `nullity=2` case there is a homomorphism
+This does not factor into the two ordinary equality incidences inserted by a Boben reconnection.
+
+Two explicit legal reductions are frozen and executable:
 
 ```text
-phi: Gamma -> Z_3
-phi(p)=1, phi(q)=2
+9_3  SAT   (1 witness) -> 8_3 UNSAT (0 witnesses)
+10_3 UNSAT (0 witnesses) -> 9_3 SAT   (1 witness).
 ```
 
-or the conjugate orientation. Every source triple `{g,pg,qg}` contains the three colors `0,1,2` exactly once, so each color class is an Exact-One witness.
+Therefore Boben reduction changes Exact-One status in BOTH directions.
 
-A direct deterministic solver does not need Fourier arithmetic: try the two orientations
+The structural theorem remains potentially valuable only if lifted with exact semantic annotations whose total state growth is polynomial.
 
-```text
-+ : c(p(i))=c(i)+1, c(q(i))=c(i)+2 mod 3
-- : c(p(i))=c(i)+2, c(q(i))=c(i)+1 mod 3
-```
-
-and propagate on `p,q,p^-1,q^-1`. Connectedness makes this `O(n)` after normalization. Neither orientation consistent means UNSAT; a consistent orientation yields all three witnesses.
-
-Exact controls:
-
-```text
-Fano 7_3:
-  commuting, connected, linear
-  rank=7, nullity=0
-  Exact-One witnesses=0.
-
-TD(3,3) 9_3:
-  commuting, connected, linear
-  rank=7, nullity=2
-  Exact-One witnesses=3.
-```
-
-Scope ceiling: this closes a given valid commuting normalization. It does NOT prove that all possible three-matching normalizations can be searched/canonicalized for a commuting one in polynomial time.
-
-## UPDATED HARD RESIDUAL — THREE EQUIVALENT SURFACES
+## CURRENT HARD RESIDUAL
 
 ### Hoffman surface
 
@@ -315,8 +270,8 @@ Scope ceiling: this closes a given valid commuting normalization. It does NOT pr
 + lambda_min=-3
 + multiplicity(-3)=omega(log n)
 + no recognized OET quotient
-+ survives admitted fixed-(c,B) Levi leaf-peel routers
-+ find Hoffman coclique of size n/3 or certify none.
++ survives admitted fixed-(c,B) leaf peeling
++ find Hoffman coclique n/3 or certify none.
 ```
 
 ### Two-permutation surface
@@ -324,137 +279,123 @@ Scope ceiling: this closes a given valid commuting normalization. It does NOT pr
 For the currently chosen valid normalization:
 
 ```text
-A'=I+P+Q
+A=I+P+Q
 + <p,q> transitive
 + linear triple condition
-+ dim_Q ker(I+P+Q)=omega(log n)
++ nullity_Q(A)=omega(log n)
 + PQ != QP
 + no recognized OET quotient
-+ Levi carrier survives admitted fixed-(c,B) leaf-peel routers
-+ decide whether ker(I+P+Q) intersects {-1,2}^n.
++ separator-resistant to admitted leaf peeling
++ decide ker(A) intersect {-1,2}^n.
 ```
 
-### Levi-factor surface
+### Levi / Boben surface
 
 ```text
-connected cubic bipartite Levi graph of girth>=6
-+ square color classes
-+ high rational nullity of its biadjacency matrix
-+ no recognized OET quotient
-+ separator-resistant to admitted fixed-(c,B) leaf peeling
-+ not solved by the current commuting normalization terminal
-+ General Factor degree sets {1}/{0,3}.
+connected cubic bipartite girth>=6
++ K(row)={1}, K(column)={0,3}
++ Boben structural reduction sequence exists to Fano/Pappus
++ ordinary Boben steps are not SAT preserving
++ exact semantic-lift state algebra currently OPEN.
 ```
 
 ## FORBIDDEN / DO NOT LOOP
 
 ```text
 1. generic maximum-independent-set oracle;
-2. enumerate the -3 eigenspace when multiplicity is superlogarithmic;
+2. enumerate superlogarithmic -3 eigenspace;
 3. lambda_min=-3 => SAT;
-4. round arbitrary -3 eigenvectors to {-1,2};
-5. generic LP feasibility: x=(1/3)1 is always a fractional solution;
-6. unrestricted GF(3) kernel equations as Exact-One;
+4. round arbitrary -3 eigenvector to {-1,2};
+5. generic LP feasibility;
+6. unrestricted GF(3) kernel as Exact-One;
 7. General Factor / dual matching alone as solver;
-8. infer exact JANUS-carrier hardness from broader partial-STS hardness;
-9. reuse OET high-nullity towers as irreducible counterfamilies;
-10. singular or nullity>=2 => imprimitive;
-11. SAT or {-1,2} witness => imprimitive;
-12. OET-irreducible => primitive;
-13. det(A)!=0 => Boolean SAT;
-14. Delta<=6 + K1,4-free + >=3 triangles/vertex => bounded treewidth;
-15. import Kettani-2025 as a valid P=NP donor;
-16. high nullity => separator-resistant / globally irreducible;
-17. primitive <p,q> => Levi separator-resistant;
-18. treat the stitched TD33 family as an irreducible hard family;
-19. claim fixed-(c,B) leaf peeling exhausts all small/balanced separators;
-20. commute in one normalization => all normalizations commute;
-21. failure of current normalization to commute => carrier has no commuting normalization;
-22. claim P=NP from any special-carrier theorem without the full E8 contract.
+8. infer exact carrier hardness from broader PSTS hardness;
+9. reuse OET or stitched TD33 high-nullity families as irreducible cores;
+10. singular/nullity>=2/SAT/witness => imprimitive;
+11. OET-irreducible => primitive;
+12. det(A)!=0 => Boolean SAT;
+13. Kettani-2025 bounded-treewidth donor;
+14. high nullity => separator-resistant;
+15. primitive <p,q> => Levi separator-resistant;
+16. fixed-(c,B) leaf peeling exhausts all separators;
+17. commute in one normalization => all normalizations commute;
+18. noncommuting current normalization => no commuting normalization exists;
+19. Boben graph reduction preserves Exact-One SAT status;
+20. reducing to Fano/Pappus without semantic state solves the source instance;
+21. finite local Boben relation by itself => globally polynomial state growth;
+22. claim P=NP without the full E8 sound/complete/terminate/poly contract.
 ```
 
-## NEXT GATE
+## NEXT GATES
+
+### Gate A — algebraic hard core
 
 ```text
 R5_E9_NONCOMMUTING_SEPARATOR_RESISTANT_HIGH_NULLITY_GATE_V1
 ```
 
-Frozen question:
+Seek a nullity bound, exact quotient/decomposition, bounded nonabelian extension of the commuting theorem, or asymptotic counterfamily.
 
-Given a linear connected normalized carrier
-
-```text
-A=I+P+Q,
-Gamma=<p,q> transitive,
-PQ != QP,
-nullity_Q(A)=omega(log n),
-no recognized OET quotient,
-Levi graph survives all currently admitted fixed-(c,B) leaf-peel routers,
-```
-
-find the next exact structural cause of large nullity or a direct polynomial terminal.
-
-Admissible material outcomes:
+### Gate B — Boben semantic lift
 
 ```text
-A. prove a polynomial nullity bound for an explicitly certified noncommuting separator-resistant class;
-B. construct an asymptotic noncommuting separator-resistant family with omega(log n) nullity;
-C. prove large nullity forces another recognizable exact quotient/decomposition;
-D. generalize the commuting terminal to a rigorously bounded nonabelian/near-commuting class;
-E. extend exact separator composition to another polynomially searchable width regime;
-F. prove a direct polynomial Exact-One terminal for the remaining high-nullity core.
+R5_E9_BOBEN_SEMANTIC_LIFT_STATE_GROWTH_GATE_V1
 ```
 
-Do not assume `primitive` from OET-irreducibility, and do not use permutation-group primitivity as a proxy for Levi structural irreducibility.
+Required material outcome is one of:
+
+```text
+A. finite/polynomial-size closed signature algebra under all Boben reductions + exact reconstruction;
+B. polynomial bound on signature growth for EQ3 / EXACT1_3;
+C. explicit family falsifying a proposed bounded signature scheme;
+D. exact source-proved Holant/tensor theorem supplying the missing bounded semantic state.
+```
+
+The graph reduction theorem alone is not an algorithmic promotion.
 
 ## RESTART RECEIPT
 
 ```text
-TWO-PERM NORMAL-FORM THEOREM
+TWO-PERM NORMAL FORM THEOREM
 = 667eb0743f6440f363bbd62e3043240bc189833f
-
 NORMAL-FORM CHECKER
 = dd4d1b587d0b7d902d356c0b3abe75f137ada2d5
 
-PRIMITIVE NULLITY-2 FALSIFIER NOTE
+PRIMITIVE NULLITY-2 FALSIFIER
 = e779c827866f2947a02db9fc2c54b853df0490d4
 
-PRIMITIVE NULLITY-2 CHECKER
-= 374fc406865909e8c3b9788c104f0a34a8cd9e32
-
-KETTANI-2025 HOSTILE-DONOR AUDIT
+KETTANI HOSTILE-DONOR AUDIT
 = 19b4f2724528d24ce0da61517c96d4a66657e7a2
-
-KETTANI-2025 EXECUTABLE FALSIFIER
-= bb47a3b19d2c39974afea71fbfc786f16a28f7d8
 
 RANK1-STITCHED TD33 THEOREM
 = 3b5e6fc63899b4e852d592779a172c0890542c5a
-
 RANK1-STITCHED TD33 CHECKER
 = 300424ce867764e0afaade7ea20aa3ef43d242f0
 
-EXACT LEVI CUT / LEAF-PEEL ROUTER THEOREM
+EXACT LEVI CUT / LEAF-PEEL THEOREM
 = 83463a0eeeb96ea037126ecb8f0911c87fa04f13
-
-SEPARATOR COMPOSITION CHECKER
+SEPARATOR CHECKER
 = d506bb51324fd6e0d7cd90ca33a62b595e5e5ac7
 
-COMMUTING TWO-PERM EXACT TERMINAL THEOREM
+COMMUTING TWO-PERM EXACT TERMINAL
 = ba8ae11ef7e1bf03e13ea2c8220d28591ec588de
-
-COMMUTING TWO-PERM TERMINAL CHECKER
+COMMUTING TERMINAL CHECKER
 = 9f37b4757442630e69566e0fbddf8e4921162e15
-
-COMMUTING TWO-PERM CI
+COMMUTING TERMINAL CI
 = b482f59a29a1e243af53eac9d8408ece15224297
 
-CURRENT SCIENTIFIC FRONTIER
-= R5_E9_NONCOMMUTING_SEPARATOR_RESISTANT_HIGH_NULLITY_GATE_V1
+BOBEN SEMANTIC AUDIT
+= fcd8815782736802a82f215495352eda0880361c
+BOBEN SEMANTIC CHECKER
+= a3c10fffa3426d6cdda4f7bc4ec9259d87051b03
+BOBEN SEMANTIC CI
+= 43e3d0cd879de93585b946522f2daa754b62315c
 
-D1
+CURRENT CHECKPOINT SYNC
+= this commit
+
+E8_D1
 = EMPTY
-
 P_VS_NP
 = OPEN
 ```
