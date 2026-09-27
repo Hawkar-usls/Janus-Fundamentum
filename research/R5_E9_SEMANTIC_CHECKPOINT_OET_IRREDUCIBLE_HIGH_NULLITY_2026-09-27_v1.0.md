@@ -3,7 +3,7 @@
 Date: 2026-09-27
 
 Checkpoint status:
-`SYNCHRONIZED_AFTER_RANK1_STITCHED_HIGH_NULLITY_THEOREM`
+`SYNCHRONIZED_AFTER_EXACT_LEVI_SEPARATOR_SUBROUTER`
 
 This is the canonical compact restart surface after the latest material mathematics.
 
@@ -17,11 +17,11 @@ UNIVERSAL POLYNOMIAL SAT / EXACT-ONE DECIDER = NOT PROVED
 AUTHORITATIVE RESIDUAL GATE
 = R5_E9_OET_IRREDUCIBLE_HOFFMAN_COCLIQUE_GATE_V1
 
-CURRENT PRE-GATE
-= R5_E9_LEVI_SMALL_SEPARATOR_EXACT_COMPOSITION_GATE_V1
+NEW ADMITTED POLYNOMIAL SUBROUTER
+= FIXED_(c,B)_LEVI_LEAF_PEEL_GENERAL_FACTOR_ROUTER
 
-POST-SEPARATOR HARD-CORE ATTACK
-= R5_E9_PRIMITIVE_NULLITY_GROWTH_GATE_V1
+CURRENT HARD-CORE ATTACK
+= R5_E9_SEPARATOR_RESISTANT_PRIMITIVE_NULLITY_GROWTH_GATE_V1
 ```
 
 ## PROVED CORE
@@ -47,7 +47,7 @@ iff
 G has equitable quotient [[0,6],[3,3]].
 ```
 
-Polynomial terminals already proved:
+Existing polynomial terminals/subrouters:
 
 ```text
 rank_Q(A)=n
@@ -58,11 +58,14 @@ nullity_Q(A)=O(log n)
 
 recognized one-edge-twist 2-lift tower
 => exact polynomial contraction to its root with witness reconstruction.
+
+complete fixed-(c,B) Levi leaf decomposition
+=> exact polynomial General-Factor / Exact-One decision and witness reconstruction.
 ```
 
 ## LEVI / DUAL / TWO-PERMUTATION NORMAL FORMS
 
-Let `L(A)` be the cubic bipartite Levi graph.
+For the cubic bipartite Levi graph `L(A)`:
 
 ```text
 Ax=1
@@ -87,13 +90,13 @@ Ax=1 iff A'x=1,
 nullity_Q(A')=nullity_Q(A).
 ```
 
-If `p,q` are their permutations:
+If `p,q` are the corresponding permutations:
 
 ```text
 L(A) connected iff <p,q> acts transitively.
 ```
 
-Linearity becomes the triple condition on `{i,p(i),q(i)}` and the kernel law is
+Linearity becomes the triple condition on `{i,p(i),q(i)}` and
 
 ```text
 z_i+z_{p(i)}+z_{q(i)}=0 for every i.
@@ -115,15 +118,13 @@ Explicit linear `12_3` carrier:
 p=[9,4,6,1,10,8,7,2,0,5,11,3]
 q=[3,8,4,5,0,11,10,1,7,6,9,2]
 A=I+P+Q
-
 rank_Q(A)=10
 nullity_Q(A)=2
-<p,q> transitive
-<p,q> primitive
+<p,q> transitive and primitive
 unique Exact-One witness selects {0,1,6,11}
 ```
 
-All 693 possible nontrivial blocks containing 0 are rejected exactly. Therefore these shortcuts are false:
+Therefore the following shortcuts are false:
 
 ```text
 singular => imprimitive
@@ -132,28 +133,31 @@ SAT + singular => imprimitive
 {-1,2} kernel witness => imprimitive
 ```
 
-This finite falsifier does not refute an asymptotic theorem requiring `nullity_Q(A)=omega(log n)` plus extra structure.
+This finite falsifier does not refute an asymptotic theorem requiring `nullity_Q(A)=omega(log n)` plus additional hypotheses.
 
 ## FROZEN HOSTILE-DONOR REJECTION — KETTANI 2025
 
-The claimed cubic monotone 1-in-3 polynomial solver is rejected by two unconditional counterexamples.
+The claimed cubic monotone 1-in-3 polynomial solver is rejected.
 
-First, every cubic square incidence matrix has `A*1=3*1`; if `A` is nonsingular its unique rational solution to `Ax=1` is `(1/3)1`, not Boolean. Explicit Fano `7_3` has `|det A|=24` and zero Boolean Exact-One witnesses. Hence `det(A)!=0 => SAT` is false; the correct rule is `rank_Q(A)=n => BOOLEAN UNSAT`.
-
-Second, the claimed theorem
+Because every cubic square incidence matrix satisfies `A*1=3*1`, if `A` is nonsingular the unique rational solution of `Ax=1` is `(1/3)1`, not Boolean. The Fano `7_3` instance has `|det A|=24` and no Boolean Exact-One witness. Thus
 
 ```text
-Delta<=6 + induced-K1,4-free + every vertex in >=3 triangles
-=> treewidth<=6
+det(A)!=0 => SAT
 ```
 
-is false. The family
+is false; the correct terminal is
+
+```text
+rank_Q(A)=n => BOOLEAN UNSAT.
+```
+
+The donor's bounded-treewidth theorem is also false: the 6-regular triangular torus family
 
 ```text
 T_m = Cay(Z_m^2, {±(1,0), ±(0,1), ±(1,-1)})
 ```
 
-is 6-regular, induced-`K1,4`-free, every vertex lies in six triangles, and contains the ordinary `m x m` grid as a subgraph after deleting edges, hence `tw(T_m)>=m`.
+is induced-`K1,4`-free, every vertex lies in six triangles, yet `tw(T_m)>=m` from its `m x m` grid subgraph.
 
 Freeze:
 
@@ -162,29 +166,23 @@ FORBIDDEN_DONOR_ROUTE
 = KETTANI_2025_BOUNDED_TREEWIDTH_CUBIC_MONOTONE_1IN3
 ```
 
-## NEW THEOREM — RANK-1 STITCHED `TD(3,3)` FAMILY
+## RANK-1 STITCHED `TD(3,3)` THEOREM
 
-Let one `TD(3,3)` block have columns
-
-```text
-X={x0,x1,x2}, Y={y0,y1,y2}, Z={z0,z1,z2}
-```
-
-and rows
+One `TD(3,3)` block has columns `X,Y,Z`, rows
 
 ```text
-L_ij={x_i,y_j,z_{i+j mod 3}}.
+L_ij={x_i,y_j,z_{i+j mod 3}},
 ```
 
-Its exact rational kernel is
+and rational kernel
 
 ```text
-X=a, Y=b, Z=c, a+b+c=0,
+X=a, Y=b, Z=c, a+b+c=0.
 ```
 
-so `rank_Q=7`, `nullity_Q=2`. Deleting source row `L00`, `L01`, or both leaves rank `7`.
+Hence `rank_Q=7`, `nullity_Q=2`. Deleting source row `L00`, `L01`, or both still leaves rank `7`.
 
-Take `m` disjoint blocks and at each boundary `t|t+1` perform the degree-preserving incidence 2-switch
+For `m` disjoint blocks, stitch boundary `t|t+1` by
 
 ```text
 remove (L01^t, y1^t)
@@ -193,17 +191,10 @@ add    (L01^t, x0^(t+1))
 add    (L00^(t+1), y1^t).
 ```
 
-The perturbation is rank one:
+Each perturbation is rank one and the resulting matrix remains connected, cubic, square and linear. Boundary `t|t+1` imposes exactly
 
 ```text
--e_r1 e_c1^T-e_r2 e_c2^T+e_r1 e_c2^T+e_r2 e_c1^T
-=(e_r1-e_r2)(e_c2-e_c1)^T.
-```
-
-The resulting `A_m` remains connected, square, cubic and linear. Every block restriction in `ker_Q(A_m)` still has two parameters `(a_t,b_t)` with `c_t=-a_t-b_t`, while boundary `t|t+1` imposes exactly one independent equality
-
-```text
-b_t = a_{t+1}.
+b_t=a_{t+1}.
 ```
 
 Therefore
@@ -214,23 +205,77 @@ rank_Q(A_m)=8m-1
 nullity_Q(A_m)=m+1=n/9+1.
 ```
 
-This proves a `Theta(n)` nullity mechanism distinct from the recognized OET 2-lift tower:
+So high nullity can be generated by small singular modules plus rank-1 stitching, not only by OET lifts.
+
+## EXACT LEVI CUT COMPOSITION — PROVED
+
+For any Levi vertex cut partition `V=S disjoint_union T` with crossing edge set `D=delta(S)`, a boundary state is exactly
 
 ```text
-small singular modules + rank-1 stitching => linear nullity growth.
+y in {0,1}^D,
 ```
 
-Every module boundary is also a 2-edge cut of the Levi graph. Hence this family is not evidence that the separator-resistant OET-irreducible core itself has linear nullity.
+recording which crossing factor edges are selected.
 
-Critical interpretation:
+For `v in S`, let `b_y(v)` be the number of selected crossing edges incident with `v`. The residual internal degree set is
 
 ```text
-high nullity != global structural irreducibility
-and
-primitivity of a chosen <p,q> presentation != Levi structural irreducibility.
+K_S^y(v)
+= {d : d+b_y(v) in K(v)} intersect [0,deg_{L[S]}(v)].
 ```
 
-## OPEN RESIDUAL — THREE EQUIVALENT SURFACES
+With `K(row)={1}` and `K(column)={0,3}` this is finite and exact.
+
+The composition theorem is
+
+```text
+L has a valid factor
+iff
+exists y in {0,1}^D:
+    FEAS(S,y) and FEAS(T,y).
+```
+
+Given local witnesses, reconstruct
+
+```text
+F = F_S union F_T union {e in D:y_e=1}.
+```
+
+Thus a fixed-size cut adds only `2^|D|` exact boundary states and preserves witness reconstruction.
+
+## FIXED-(c,B) LEAF-PEEL ROUTER — PROVED
+
+Fix constants `c,B`. Repeatedly remove a connected Levi component of at most `B` vertices separated from the live graph by at most `c` edges. For fixed `c`, a candidate peel is discoverable in polynomial time by enumerating edge subsets of size at most `c` and checking components.
+
+Each removed module has at most `3B` incident edges because the Levi graph is cubic. Its exact feasibility message to the parent is a subset of `{0,1}^d`, `d<=c`, with backpointers for reconstruction. All local factor-edge choices are constant-size for fixed `B,c`.
+
+If peeling reduces the graph to a root of size at most `B`, the algorithm returns exact SAT/UNSAT and reconstructs the Exact-One witness in polynomial time. If it stops on a larger root, it returns `CORE`; `CORE` is not evidence of hardness or UNSAT.
+
+Polynomial accounting for fixed `c,B`:
+
+```text
+separator discovery = n^{O(c+1)}
+message alphabet = 2^c
+local enumeration = 2^{O(B)}
+number of modules = O(n)
+reconstruction = poly(n).
+```
+
+The stitched `TD(3,3)` family is completely `(c=2,B=18)` peelable, hence its `Theta(n)` nullity is now routed polynomially.
+
+It also has a three-state direct transfer law:
+
+```text
+X -> Y or Z
+Y -> X
+Z -> Y or Z
+```
+
+so the number of Exact-One witnesses is `F_{m+3}` (`3,5,8,13,...`).
+
+External anti-loop: the general boundary-DP principle is consistent with known General-Factor algorithms parameterized by cutwidth; JANUS does not claim novelty for that broad fact.
+
+## UPDATED HARD RESIDUAL — THREE EQUIVALENT SURFACES
 
 ### Hoffman surface
 
@@ -240,7 +285,7 @@ primitivity of a chosen <p,q> presentation != Levi structural irreducibility.
 + lambda_min=-3
 + multiplicity(-3)=omega(log n)
 + no recognized OET quotient
-+ no exact small-separator reduction remaining
++ survives all admitted fixed-(c,B) leaf-peel routers
 + find Hoffman coclique of size n/3 or certify none.
 ```
 
@@ -252,7 +297,7 @@ A'=I+P+Q
 + linear triple condition
 + dim_Q ker(I+P+Q)=omega(log n)
 + no recognized OET quotient
-+ no exact small-separator reduction remaining
++ Levi carrier survives admitted fixed-(c,B) leaf-peel routers
 + decide whether ker(I+P+Q) intersects {-1,2}^n.
 ```
 
@@ -263,7 +308,7 @@ connected cubic bipartite Levi graph of girth>=6
 + square color classes
 + high rational nullity of its biadjacency matrix
 + no recognized OET quotient
-+ separator-resistant after the exact composition pre-gate
++ separator-resistant to admitted fixed-(c,B) leaf peeling
 + General Factor degree sets {1}/{0,3}.
 ```
 
@@ -287,35 +332,42 @@ connected cubic bipartite Levi graph of girth>=6
 15. import Kettani-2025 as a valid P=NP donor;
 16. high nullity => separator-resistant / globally irreducible;
 17. primitive <p,q> => Levi separator-resistant;
-18. treat the stitched TD33 family as OET-irreducible without a proof;
-19. claim P=NP from any special-carrier theorem without the full E8 contract.
+18. treat the stitched TD33 family as an irreducible hard family;
+19. claim that fixed-(c,B) leaf peeling exhausts all small/balanced separators;
+20. claim P=NP from any special-carrier theorem without the full E8 contract.
 ```
 
-## NEXT PRE-GATE
+## NEXT GATE
 
 ```text
-R5_E9_LEVI_SMALL_SEPARATOR_EXACT_COMPOSITION_GATE_V1
+R5_E9_SEPARATOR_RESISTANT_PRIMITIVE_NULLITY_GROWTH_GATE_V1
 ```
 
-Prove an exact polynomial composition theorem for a constant-size Levi edge cut. The state must preserve the General-Factor semantics `K(row)={1}`, `K(column)={0,3}`, and support deterministic witness reconstruction. For cut size `c=O(1)`, the boundary alphabet is finite: edge in/out patterns plus partial degree states of touched vertices.
+Question:
 
-Required outcome:
+For a linear transitive normalized carrier
 
 ```text
-A. define exact boundary signatures;
-B. prove left/right compatibility iff the original carrier has an Exact-One witness;
-C. reconstruct a global witness from compatible side witnesses;
-D. prove polynomial construction/composition/reconstruction for constant c;
-E. recursively strip constant-separator modules before invoking high-nullity kernel enumeration or permutation-group structure.
+A=I+P+Q,
+Gamma=<p,q>,
+nullity_Q(A)=omega(log n),
+no recognized OET quotient,
+Levi graph survives all currently admitted fixed-(c,B) leaf-peel routers,
 ```
 
-After this pre-gate, return to:
+find the next representation-independent structural cause of large nullity.
+
+Material outcomes:
 
 ```text
-R5_E9_PRIMITIVE_NULLITY_GROWTH_GATE_V1
+A. prove a polynomial nullity bound on an explicitly certified separator-resistant primitive class;
+B. construct an asymptotic separator-resistant primitive family with omega(log n) nullity;
+C. prove large nullity forces another recognizable exact quotient/decomposition;
+D. extend the exact separator router to balanced / bounded-width decompositions and remove another whole family;
+E. prove a direct polynomial terminal for the remaining high-nullity core.
 ```
 
-but only on a representation-independent separator-resistant core.
+Do not assume `primitive` from OET-irreducibility, and do not use primitivity as a proxy for Levi irreducibility.
 
 ## RESTART RECEIPT
 
@@ -338,18 +390,20 @@ KETTANI-2025 HOSTILE-DONOR AUDIT
 KETTANI-2025 EXECUTABLE FALSIFIER
 = bb47a3b19d2c39974afea71fbfc786f16a28f7d8
 
-CI WITH PREVIOUS THREE R5-E9 CHECKERS
-= de88fe45d8f5b061cb928c6fff70cdaf25cc964a
-
 RANK1-STITCHED TD33 THEOREM
 = 3b5e6fc63899b4e852d592779a172c0890542c5a
 
 RANK1-STITCHED TD33 CHECKER
 = 300424ce867764e0afaade7ea20aa3ef43d242f0
 
+EXACT LEVI CUT / LEAF-PEEL ROUTER THEOREM
+= 83463a0eeeb96ea037126ecb8f0911c87fa04f13
+
+SEPARATOR COMPOSITION CHECKER
+= d506bb51324fd6e0d7cd90ca33a62b595e5e5ac7
+
 CURRENT SCIENTIFIC FRONTIER
-= R5_E9_LEVI_SMALL_SEPARATOR_EXACT_COMPOSITION_GATE_V1
-  -> then separator-resistant R5_E9_PRIMITIVE_NULLITY_GROWTH_GATE_V1
+= R5_E9_SEPARATOR_RESISTANT_PRIMITIVE_NULLITY_GROWTH_GATE_V1
 
 D1
 = EMPTY
