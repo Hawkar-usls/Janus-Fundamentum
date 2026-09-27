@@ -5,16 +5,16 @@
 - **Repository:** `Hawkar-usls/Janus-Fundamentum`
 - **PR:** `#510`
 - **Branch:** `codex/r5-e8-direct-contract-20260921-82493a57`
-- **Live source HEAD:** `245704dee8372849e5a09e780254f4c26e6930dd`
-- **Source commit time:** `2026-09-27T17:48:24+03:00`
-- **Indexed changed scientific artifacts:** `649`
+- **Live source HEAD:** `ca73ad6b8e62d93571d506eb0d806f63ae75ad9f`
+- **Source commit time:** `2026-09-27T17:48:40+03:00`
+- **Indexed changed scientific artifacts:** `650`
 
 ## Continuity status
 
 - Semantic cache: `.janus/P_VS_NP_STREAM_CACHE_CURRENT.json`
 - Semantic source HEAD: `65870a285b36a645d7407c16d759fb6cd5b37421`
 - Relation: **`LIVE_DESCENDS_FROM_SEMANTIC_CACHE`**
-- Commits after semantic checkpoint: `53`
+- Commits after semantic checkpoint: `54`
 
 ## Scientific firewall
 
@@ -126,6 +126,7 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `12951a374240` — 2026-09-27T17:38:25+03:00 — R5 E9: add CI for Boben local state barrier
 - `c365d05768e6` — 2026-09-27T17:39:25+03:00 — R5 E9: compact and sync semantic checkpoint after Boben state barrier
 - `245704dee837` — 2026-09-27T17:48:24+03:00 — R5 E9: add directed perfect-code normal form
+- `ca73ad6b8e62` — 2026-09-27T17:48:40+03:00 — R5 E9: add checker for directed perfect-code normal form
 
 ## Transport / stale-bootstrap watch
 
@@ -156,6 +157,7 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 
 ## Recent non-cache commits
 
+- `ca73ad6b8e62` — 2026-09-27T17:48:40+03:00 — R5 E9: add checker for directed perfect-code normal form
 - `245704dee837` — 2026-09-27T17:48:24+03:00 — R5 E9: add directed perfect-code normal form
 - `c365d05768e6` — 2026-09-27T17:39:25+03:00 — R5 E9: compact and sync semantic checkpoint after Boben state barrier
 - `12951a374240` — 2026-09-27T17:38:25+03:00 — R5 E9: add CI for Boben local state barrier
@@ -180,7 +182,6 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `bb47a3b19d2c` — 2026-09-27T16:47:30+03:00 — R5 E9: add executable hostile-donor falsifier
 - `19b4f2724528` — 2026-09-27T16:47:06+03:00 — R5 E9: reject 2025 cubic monotone P=NP donor by exact counterexamples
 - `2c5de8ee94d5` — 2026-09-27T16:40:13+03:00 — R5 E9: sync checkpoint after primitive nullity-2 falsifier
-- `e21328ab452c` — 2026-09-27T16:39:36+03:00 — R5 E9: wire Levi normal form and primitive falsifier checks
 
 ## Resume protocol
 
