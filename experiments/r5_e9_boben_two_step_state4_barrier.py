@@ -51,7 +51,6 @@ def flatten(rel,pi,split):
     return allowed,M
 
 def boolean_rank_is_four(M):
-    # Sufficient exact certificate used here: four nonzero row supports are pairwise disjoint.
     supp=[{j for j,v in enumerate(row) if v} for row in M]
     nz=[s for s in supp if s]
     return len(nz)==4 and all(nz[i].isdisjoint(nz[j]) for i in range(4) for j in range(i+1,4))
@@ -61,7 +60,6 @@ def props(rows):
     if len(cols)!=m or any(len(r)!=3 for r in rows): return False
     if any(sum(c in r for r in rows)!=3 for c in cols): return False
     if any(len(rows[i]&rows[j])>1 for i in range(m) for j in range(i+1,m)): return False
-    # connected Levi graph
     c2r={c:[] for c in cols}
     for i,r in enumerate(rows):
         for c in r:c2r[c].append(i)
@@ -98,7 +96,7 @@ def reduce_A(rows,rrem,crem,pairing):
     cmap={c:i for i,c in enumerate(cols)}
     new=[{cmap[c] for c in r} for r in new]
     if not props(new):return None
-    return new,rmap,cmap
+    return new,rmap,cmap,pairs
 
 rel=relation_two_step()
 assert rel==[
@@ -122,14 +120,20 @@ for pi in permutations(range(3)):
 
 assert props(UNSAT10)
 # Frozen legal two-step chain from the 10_3 control.
-r1=reduce_A(UNSAT10,9,9,0)
+# Step 1: remove old row 9 / old column 9; legal pairing reconnects
+# old row 4 -> old column 8 and old row 6 -> old column 5.
+r1=reduce_A(UNSAT10,9,9,1)
 assert r1 is not None
-rows1,rmap1,cmap1=r1
-# old row 8 / old col 8 survive the first step
+rows1,rmap1,cmap1,pairs1=r1
+assert pairs1 == ((4,8),(6,5))
+# old row 8 / old col 8 survive the first step.
 nr8=rmap1[8]; nc8=cmap1[8]
+# Step 2: remove their surviving images; the legal pairing reconnects
+# relabelled row 4 -> column 6 and relabelled row 7 -> column 1.
 r2=reduce_A(rows1,nr8,nc8,1)
 assert r2 is not None
-rows2,_,_=r2
+rows2,_,_,pairs2=r2
+assert pairs2 == ((4,6),(7,1))
 assert props(rows2)
 
 print({
@@ -137,8 +141,8 @@ print({
  'two_step_relation_tuples':len(rel),
  'rank_table':{str(k):v for k,v in rank_table.items()},
  'legal_sequence':[
-   'remove row9/col9, pairing row4->col8 row6->col5',
-   'remove surviving row8/col8 with opposite pairing'
+   'remove row9/col9; reconnect old row4->old col8, old row6->old col5',
+   'remove surviving row8/col8; reconnect relabelled row4->col6, row7->col1'
  ],
  'uniform_three_state_edge_lift':'FALSIFIED',
  'P_VS_NP':'OPEN'
