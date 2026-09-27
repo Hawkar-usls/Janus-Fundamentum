@@ -3,7 +3,7 @@
 Date: 2026-09-27
 
 Checkpoint status:
-`SYNCHRONIZED_AFTER_HOSTILE_DONOR_REJECTION`
+`SYNCHRONIZED_AFTER_RANK1_STITCHED_HIGH_NULLITY_THEOREM`
 
 This is the canonical compact restart surface after the latest material mathematics.
 
@@ -17,8 +17,11 @@ UNIVERSAL POLYNOMIAL SAT / EXACT-ONE DECIDER = NOT PROVED
 AUTHORITATIVE RESIDUAL GATE
 = R5_E9_OET_IRREDUCIBLE_HOFFMAN_COCLIQUE_GATE_V1
 
-CURRENT ATTACK
-= PRIMITIVE NULLITY GROWTH INSIDE THE OET-IRREDUCIBLE HIGH-NULLITY RESIDUAL
+CURRENT PRE-GATE
+= R5_E9_LEVI_SMALL_SEPARATOR_EXACT_COMPOSITION_GATE_V1
+
+POST-SEPARATOR HARD-CORE ATTACK
+= R5_E9_PRIMITIVE_NULLITY_GROWTH_GATE_V1
 ```
 
 ## PROVED CORE
@@ -48,7 +51,7 @@ Polynomial terminals already proved:
 
 ```text
 rank_Q(A)=n
-=> UNSAT.
+=> BOOLEAN UNSAT.
 
 nullity_Q(A)=O(log n)
 => exact 2^k poly(n,L) rational-kernel router is polynomial.
@@ -90,38 +93,29 @@ If `p,q` are their permutations:
 L(A) connected iff <p,q> acts transitively.
 ```
 
-Linearity becomes the triple condition on
-
-```text
-{i,p(i),q(i)}.
-```
-
-Kernel law:
+Linearity becomes the triple condition on `{i,p(i),q(i)}` and the kernel law is
 
 ```text
 z_i+z_{p(i)}+z_{q(i)}=0 for every i.
 ```
 
-Exact-One witness law:
+Exact-One witnesses are exactly the special kernel points
 
 ```text
 w=3x-1 in {-1,2}^n,
-and every row triple has local multiset (-1,-1,2).
 ```
 
-## FROZEN STRUCTURAL FALSIFIER
+with local row multiset `(-1,-1,2)`.
 
-Explicit linear `12_3` normalized carrier:
+## FROZEN PRIMITIVITY FALSIFIER
+
+Explicit linear `12_3` carrier:
 
 ```text
 p=[9,4,6,1,10,8,7,2,0,5,11,3]
 q=[3,8,4,5,0,11,10,1,7,6,9,2]
 A=I+P+Q
-```
 
-Exact checks:
-
-```text
 rank_Q(A)=10
 nullity_Q(A)=2
 <p,q> transitive
@@ -140,74 +134,26 @@ SAT + singular => imprimitive
 
 This finite falsifier does not refute an asymptotic theorem requiring `nullity_Q(A)=omega(log n)` plus extra structure.
 
-## HOSTILE DONOR AUDIT — KETTANI 2025
+## FROZEN HOSTILE-DONOR REJECTION — KETTANI 2025
 
-Audited claim:
+The claimed cubic monotone 1-in-3 polynomial solver is rejected by two unconditional counterexamples.
 
-```text
-Cubic Monotone 1-in-3 SAT is polynomial-time solvable
-=> P=NP.
-```
+First, every cubic square incidence matrix has `A*1=3*1`; if `A` is nonsingular its unique rational solution to `Ax=1` is `(1/3)1`, not Boolean. Explicit Fano `7_3` has `|det A|=24` and zero Boolean Exact-One witnesses. Hence `det(A)!=0 => SAT` is false; the correct rule is `rank_Q(A)=n => BOOLEAN UNSAT`.
 
-JANUS rejects this donor by two independent unconditional counterexamples.
-
-### Failure A — nonsingular branch
-
-Every cubic square incidence matrix satisfies
+Second, the claimed theorem
 
 ```text
-A*1 = 3*1.
+Delta<=6 + induced-K1,4-free + every vertex in >=3 triangles
+=> treewidth<=6
 ```
 
-Hence if `A` is nonsingular,
+is false. The family
 
 ```text
-A^{-1}*1 = (1/3)*1,
+T_m = Cay(Z_m^2, {±(1,0), ±(0,1), ±(1,-1)})
 ```
 
-which is not Boolean. Therefore the correct rule is
-
-```text
-rank_Q(A)=n => BOOLEAN UNSAT,
-```
-
-not SAT.
-
-Explicit Fano `7_3` instance:
-
-```text
-row i = i+{0,1,3} mod 7
-|det A|=24
-unique rational solution=(1/3)1
-Boolean Exact-One witnesses=0.
-```
-
-Thus the donor's `det(A)!=0` branch is falsified.
-
-### Failure B — claimed treewidth theorem
-
-The donor claims
-
-```text
-Delta<=6
-+ induced-K1,4-free
-+ every vertex in >=3 triangles
-=> treewidth<=6.
-```
-
-Counterfamily for every `m>=5`:
-
-```text
-T_m = Cay(Z_m^2, {±(1,0), ±(0,1), ±(1,-1)}).
-```
-
-It is 6-regular, induced-`K1,4`-free, and every vertex belongs to six triangles. It contains the ordinary `m x m` grid as a subgraph after deleting edges, so
-
-```text
-tw(T_m) >= tw(P_m square P_m) = m.
-```
-
-Treewidth is therefore unbounded. The theorem as stated is false.
+is 6-regular, induced-`K1,4`-free, every vertex lies in six triangles, and contains the ordinary `m x m` grid as a subgraph after deleting edges, hence `tw(T_m)>=m`.
 
 Freeze:
 
@@ -216,7 +162,73 @@ FORBIDDEN_DONOR_ROUTE
 = KETTANI_2025_BOUNDED_TREEWIDTH_CUBIC_MONOTONE_1IN3
 ```
 
-The audit does not change the open frontier; it prevents a false shortcut from entering E8-D1.
+## NEW THEOREM — RANK-1 STITCHED `TD(3,3)` FAMILY
+
+Let one `TD(3,3)` block have columns
+
+```text
+X={x0,x1,x2}, Y={y0,y1,y2}, Z={z0,z1,z2}
+```
+
+and rows
+
+```text
+L_ij={x_i,y_j,z_{i+j mod 3}}.
+```
+
+Its exact rational kernel is
+
+```text
+X=a, Y=b, Z=c, a+b+c=0,
+```
+
+so `rank_Q=7`, `nullity_Q=2`. Deleting source row `L00`, `L01`, or both leaves rank `7`.
+
+Take `m` disjoint blocks and at each boundary `t|t+1` perform the degree-preserving incidence 2-switch
+
+```text
+remove (L01^t, y1^t)
+remove (L00^(t+1), x0^(t+1))
+add    (L01^t, x0^(t+1))
+add    (L00^(t+1), y1^t).
+```
+
+The perturbation is rank one:
+
+```text
+-e_r1 e_c1^T-e_r2 e_c2^T+e_r1 e_c2^T+e_r2 e_c1^T
+=(e_r1-e_r2)(e_c2-e_c1)^T.
+```
+
+The resulting `A_m` remains connected, square, cubic and linear. Every block restriction in `ker_Q(A_m)` still has two parameters `(a_t,b_t)` with `c_t=-a_t-b_t`, while boundary `t|t+1` imposes exactly one independent equality
+
+```text
+b_t = a_{t+1}.
+```
+
+Therefore
+
+```text
+n=9m
+rank_Q(A_m)=8m-1
+nullity_Q(A_m)=m+1=n/9+1.
+```
+
+This proves a `Theta(n)` nullity mechanism distinct from the recognized OET 2-lift tower:
+
+```text
+small singular modules + rank-1 stitching => linear nullity growth.
+```
+
+Every module boundary is also a 2-edge cut of the Levi graph. Hence this family is not evidence that the separator-resistant OET-irreducible core itself has linear nullity.
+
+Critical interpretation:
+
+```text
+high nullity != global structural irreducibility
+and
+primitivity of a chosen <p,q> presentation != Levi structural irreducibility.
+```
 
 ## OPEN RESIDUAL — THREE EQUIVALENT SURFACES
 
@@ -228,6 +240,7 @@ The audit does not change the open frontier; it prevents a false shortcut from e
 + lambda_min=-3
 + multiplicity(-3)=omega(log n)
 + no recognized OET quotient
++ no exact small-separator reduction remaining
 + find Hoffman coclique of size n/3 or certify none.
 ```
 
@@ -239,6 +252,7 @@ A'=I+P+Q
 + linear triple condition
 + dim_Q ker(I+P+Q)=omega(log n)
 + no recognized OET quotient
++ no exact small-separator reduction remaining
 + decide whether ker(I+P+Q) intersects {-1,2}^n.
 ```
 
@@ -249,6 +263,7 @@ connected cubic bipartite Levi graph of girth>=6
 + square color classes
 + high rational nullity of its biadjacency matrix
 + no recognized OET quotient
++ separator-resistant after the exact composition pre-gate
 + General Factor degree sets {1}/{0,3}.
 ```
 
@@ -270,52 +285,45 @@ connected cubic bipartite Levi graph of girth>=6
 13. det(A)!=0 => Boolean SAT;
 14. Delta<=6 + K1,4-free + >=3 triangles/vertex => bounded treewidth;
 15. import Kettani-2025 as a valid P=NP donor;
-16. claim P=NP from any special-carrier theorem without the full E8 contract.
+16. high nullity => separator-resistant / globally irreducible;
+17. primitive <p,q> => Levi separator-resistant;
+18. treat the stitched TD33 family as OET-irreducible without a proof;
+19. claim P=NP from any special-carrier theorem without the full E8 contract.
 ```
 
-## NEXT GATE
+## NEXT PRE-GATE
+
+```text
+R5_E9_LEVI_SMALL_SEPARATOR_EXACT_COMPOSITION_GATE_V1
+```
+
+Prove an exact polynomial composition theorem for a constant-size Levi edge cut. The state must preserve the General-Factor semantics `K(row)={1}`, `K(column)={0,3}`, and support deterministic witness reconstruction. For cut size `c=O(1)`, the boundary alphabet is finite: edge in/out patterns plus partial degree states of touched vertices.
+
+Required outcome:
+
+```text
+A. define exact boundary signatures;
+B. prove left/right compatibility iff the original carrier has an Exact-One witness;
+C. reconstruct a global witness from compatible side witnesses;
+D. prove polynomial construction/composition/reconstruction for constant c;
+E. recursively strip constant-separator modules before invoking high-nullity kernel enumeration or permutation-group structure.
+```
+
+After this pre-gate, return to:
 
 ```text
 R5_E9_PRIMITIVE_NULLITY_GROWTH_GATE_V1
 ```
 
-Question:
-
-For linear transitive
-
-```text
-A=I+P+Q,
-Gamma=<p,q> primitive,
-OET quotient absent,
-```
-
-how large can
-
-```text
-nu_Q(A)=dim_Q ker(I+P+Q)
-```
-
-be as a function of `n`?
-
-Material outcomes:
-
-```text
-A. prove primitive => nullity_Q(A)=O(log n), closing primitive side by the existing kernel router;
-B. prove another polynomial nullity bound sufficient for the router after recursive decomposition;
-C. construct a primitive family with nullity_Q(A)=omega(log n), falsifying this route;
-D. show large nullity forces a different exact recognizable quotient/decomposition;
-E. prove a direct polynomial terminal for the primitive high-nullity residual.
-```
-
-No asymptotic implication is currently assumed.
+but only on a representation-independent separator-resistant core.
 
 ## RESTART RECEIPT
 
 ```text
-TWO-PERM NORMAL-FORM THEOREM COMMIT
+TWO-PERM NORMAL-FORM THEOREM
 = 667eb0743f6440f363bbd62e3043240bc189833f
 
-NORMAL-FORM CHECKER COMMIT
+NORMAL-FORM CHECKER
 = dd4d1b587d0b7d902d356c0b3abe75f137ada2d5
 
 PRIMITIVE NULLITY-2 FALSIFIER NOTE
@@ -330,11 +338,18 @@ KETTANI-2025 HOSTILE-DONOR AUDIT
 KETTANI-2025 EXECUTABLE FALSIFIER
 = bb47a3b19d2c39974afea71fbfc786f16a28f7d8
 
-CI WITH ALL THREE R5-E9 CHECKERS
+CI WITH PREVIOUS THREE R5-E9 CHECKERS
 = de88fe45d8f5b061cb928c6fff70cdaf25cc964a
 
+RANK1-STITCHED TD33 THEOREM
+= 3b5e6fc63899b4e852d592779a172c0890542c5a
+
+RANK1-STITCHED TD33 CHECKER
+= 300424ce867764e0afaade7ea20aa3ef43d242f0
+
 CURRENT SCIENTIFIC FRONTIER
-= R5_E9_PRIMITIVE_NULLITY_GROWTH_GATE_V1
+= R5_E9_LEVI_SMALL_SEPARATOR_EXACT_COMPOSITION_GATE_V1
+  -> then separator-resistant R5_E9_PRIMITIVE_NULLITY_GROWTH_GATE_V1
 
 D1
 = EMPTY
