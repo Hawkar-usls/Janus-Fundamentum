@@ -5,16 +5,16 @@
 - **Repository:** `Hawkar-usls/Janus-Fundamentum`
 - **PR:** `#510`
 - **Branch:** `codex/r5-e8-direct-contract-20260921-82493a57`
-- **Live source HEAD:** `9b45c55ee5423cd7cfb123befe6a70c20f434b26`
-- **Source commit time:** `2026-09-27T23:12:34+03:00`
-- **Indexed changed scientific artifacts:** `668`
+- **Live source HEAD:** `591e8e81e20eb0e443acf7ae8e5665b683c8f661`
+- **Source commit time:** `2026-09-27T23:13:51+03:00`
+- **Indexed changed scientific artifacts:** `667`
 
 ## Continuity status
 
 - Semantic cache: `.janus/P_VS_NP_STREAM_CACHE_CURRENT.json`
 - Semantic source HEAD: `efed2c7e3fcd9ab03407b02fe9ba6b01362e1719`
 - Relation: **`LIVE_DESCENDS_FROM_SEMANTIC_CACHE`**
-- Commits after semantic checkpoint: `2`
+- Commits after semantic checkpoint: `7`
 
 ## Scientific firewall
 
@@ -79,6 +79,11 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 
 - `774aef861935` — 2026-09-27T22:57:11+03:00 — R5 E9: sync semantic checkpoint after nullity route closures
 - `9b45c55ee542` — 2026-09-27T23:12:34+03:00 — R5 E9: freeze EQ3 gauge-nullity UNSAT counterfamily
+- `adbeee3ced22` — 2026-09-27T23:12:55+03:00 — R5 E9: add EQ3 gauge-nullity UNSAT regression
+- `a8f333bf61ec` — 2026-09-27T23:13:03+03:00 — R5 E9: add CI for EQ3 gauge-nullity UNSAT family
+- `b6192d85e5b5` — 2026-09-27T23:13:39+03:00 — R5 E9: remove duplicate gauge-nullity theorem
+- `e71898a2e208` — 2026-09-27T23:13:44+03:00 — R5 E9: remove duplicate gauge-nullity checker
+- `591e8e81e20e` — 2026-09-27T23:13:51+03:00 — R5 E9: remove duplicate gauge-nullity workflow
 
 ## Transport / stale-bootstrap watch
 
@@ -109,6 +114,11 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 
 ## Recent non-cache commits
 
+- `591e8e81e20e` — 2026-09-27T23:13:51+03:00 — R5 E9: remove duplicate gauge-nullity workflow
+- `e71898a2e208` — 2026-09-27T23:13:44+03:00 — R5 E9: remove duplicate gauge-nullity checker
+- `b6192d85e5b5` — 2026-09-27T23:13:39+03:00 — R5 E9: remove duplicate gauge-nullity theorem
+- `a8f333bf61ec` — 2026-09-27T23:13:03+03:00 — R5 E9: add CI for EQ3 gauge-nullity UNSAT family
+- `adbeee3ced22` — 2026-09-27T23:12:55+03:00 — R5 E9: add EQ3 gauge-nullity UNSAT regression
 - `9b45c55ee542` — 2026-09-27T23:12:34+03:00 — R5 E9: freeze EQ3 gauge-nullity UNSAT counterfamily
 - `774aef861935` — 2026-09-27T22:57:11+03:00 — R5 E9: sync semantic checkpoint after nullity route closures
 - `efed2c7e3fcd` — 2026-09-27T22:55:37+03:00 — R5 E9: add primitive local-swap family CI
@@ -129,11 +139,6 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `6f1ef3b1dbd9` — 2026-09-27T17:51:17+03:00 — R5 E9: sync checkpoint after perfect-code and A-only terminal closure
 - `de9c9fb16500` — 2026-09-27T17:50:25+03:00 — R5 E9: add CI for perfect-code and A-irreducible controls
 - `60351fa4c091` — 2026-09-27T17:50:14+03:00 — R5 E9: add controls for A-irreducible terminal closure
-- `cec70a4d9708` — 2026-09-27T17:49:43+03:00 — R5 E9: close Boben A-irreducible terminals by bounded width
-- `ca73ad6b8e62` — 2026-09-27T17:48:40+03:00 — R5 E9: add checker for directed perfect-code normal form
-- `245704dee837` — 2026-09-27T17:48:24+03:00 — R5 E9: add directed perfect-code normal form
-- `c365d05768e6` — 2026-09-27T17:39:25+03:00 — R5 E9: compact and sync semantic checkpoint after Boben state barrier
-- `12951a374240` — 2026-09-27T17:38:25+03:00 — R5 E9: add CI for Boben local state barrier
 
 ## Resume protocol
 
