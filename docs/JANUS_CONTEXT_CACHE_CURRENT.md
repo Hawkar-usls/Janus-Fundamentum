@@ -5,16 +5,16 @@
 - **Repository:** `Hawkar-usls/Janus-Fundamentum`
 - **PR:** `#510`
 - **Branch:** `codex/r5-e8-direct-contract-20260921-82493a57`
-- **Live source HEAD:** `a3edef10696d09c0df850aec4c7da5d91dfe65cb`
-- **Source commit time:** `2026-09-27T16:18:15+03:00`
-- **Indexed changed scientific artifacts:** `624`
+- **Live source HEAD:** `f50771e35f762b4e1831cc2a53f3942c638c1fe3`
+- **Source commit time:** `2026-09-27T16:18:52+03:00`
+- **Indexed changed scientific artifacts:** `625`
 
 ## Continuity status
 
 - Semantic cache: `.janus/P_VS_NP_STREAM_CACHE_CURRENT.json`
 - Semantic source HEAD: `65870a285b36a645d7407c16d759fb6cd5b37421`
 - Relation: **`LIVE_DESCENDS_FROM_SEMANTIC_CACHE`**
-- Commits after semantic checkpoint: `20`
+- Commits after semantic checkpoint: `21`
 
 ## Scientific firewall
 
@@ -93,6 +93,7 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `a1499fa48e41` — 2026-09-27T15:18:10+03:00 — Add one-edge-twist nullity amplifier CI
 - `f9532dbd24fd` — 2026-09-27T15:45:02+03:00 — R5 E9 contract one-edge-twist 2-lifts exactly
 - `a3edef10696d` — 2026-09-27T16:18:15+03:00 — R5 E9 expose cubic Exact-One as Hoffman coclique equality
+- `f50771e35f76` — 2026-09-27T16:18:52+03:00 — Add Hoffman coclique equivalence regression checker
 
 ## Transport / stale-bootstrap watch
 
@@ -123,6 +124,7 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 
 ## Recent non-cache commits
 
+- `f50771e35f76` — 2026-09-27T16:18:52+03:00 — Add Hoffman coclique equivalence regression checker
 - `a3edef10696d` — 2026-09-27T16:18:15+03:00 — R5 E9 expose cubic Exact-One as Hoffman coclique equality
 - `f9532dbd24fd` — 2026-09-27T15:45:02+03:00 — R5 E9 contract one-edge-twist 2-lifts exactly
 - `a1499fa48e41` — 2026-09-27T15:18:10+03:00 — Add one-edge-twist nullity amplifier CI
@@ -147,7 +149,6 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `5ec6132ad00e` — 2026-09-27T14:22:33+03:00 — R5 E9 authorize trade-free dissociated-nullity gate
 - `4793d50f760c` — 2026-09-27T14:22:05+03:00 — R5 E9 audit trade-free dissociated-nullity gate
 - `1cba0c83ea54` — 2026-09-27T14:21:44+03:00 — R5 E9 add trade-free unique-model regression
-- `7287535b0745` — 2026-09-27T14:21:23+03:00 — R5 E9 add trade-free unique-model countercontrol theorem
 
 ## Resume protocol
 
