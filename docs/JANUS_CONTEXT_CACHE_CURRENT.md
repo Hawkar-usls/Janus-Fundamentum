@@ -5,16 +5,16 @@
 - **Repository:** `Hawkar-usls/Janus-Fundamentum`
 - **PR:** `#510`
 - **Branch:** `codex/r5-e8-direct-contract-20260921-82493a57`
-- **Live source HEAD:** `f5db73a4cc3a3c9a091f1d60101f2f7483b14046`
-- **Source commit time:** `2026-09-28T02:41:26+03:00`
-- **Indexed changed scientific artifacts:** `679`
+- **Live source HEAD:** `55718cb83fec3031b24e6fc90190e75abe2c1abc`
+- **Source commit time:** `2026-09-28T02:50:27+03:00`
+- **Indexed changed scientific artifacts:** `680`
 
 ## Continuity status
 
 - Semantic cache: `.janus/P_VS_NP_STREAM_CACHE_CURRENT.json`
 - Semantic source HEAD: `f1e556b93e6e85eec5846faffb6fc3e79992a30e`
 - Relation: **`LIVE_DESCENDS_FROM_SEMANTIC_CACHE`**
-- Commits after semantic checkpoint: `1`
+- Commits after semantic checkpoint: `2`
 
 ## Scientific firewall
 
@@ -77,6 +77,7 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 ## Commits newer than semantic checkpoint — MUST INGEST
 
 - `f5db73a4cc3a` — 2026-09-28T02:41:26+03:00 — R5 E9: sync semantic checkpoint after exact 3-cut algebra
+- `55718cb83fec` — 2026-09-28T02:50:27+03:00 — R5 E9: add balanced set-partitioning Exact-One terminal
 
 ## Transport / stale-bootstrap watch
 
@@ -107,6 +108,7 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 
 ## Recent non-cache commits
 
+- `55718cb83fec` — 2026-09-28T02:50:27+03:00 — R5 E9: add balanced set-partitioning Exact-One terminal
 - `f5db73a4cc3a` — 2026-09-28T02:41:26+03:00 — R5 E9: sync semantic checkpoint after exact 3-cut algebra
 - `f1e556b93e6e` — 2026-09-28T02:40:10+03:00 — R5 E9: add CI for exact three-edge-cut algebra
 - `f1e6f9fb1d36` — 2026-09-28T02:39:58+03:00 — R5 E9: add checker for exact three-edge-cut algebra
@@ -131,7 +133,6 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `9b45c55ee542` — 2026-09-27T23:12:34+03:00 — R5 E9: freeze EQ3 gauge-nullity UNSAT counterfamily
 - `774aef861935` — 2026-09-27T22:57:11+03:00 — R5 E9: sync semantic checkpoint after nullity route closures
 - `efed2c7e3fcd` — 2026-09-27T22:55:37+03:00 — R5 E9: add primitive local-swap family CI
-- `94b1075a4d29` — 2026-09-27T22:55:29+03:00 — R5 E9: add primitive local-swap family regression
 
 ## Resume protocol
 
