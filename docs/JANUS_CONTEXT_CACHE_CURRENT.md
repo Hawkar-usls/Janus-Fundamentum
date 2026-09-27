@@ -5,16 +5,16 @@
 - **Repository:** `Hawkar-usls/Janus-Fundamentum`
 - **PR:** `#510`
 - **Branch:** `codex/r5-e8-direct-contract-20260921-82493a57`
-- **Live source HEAD:** `e779c827866f2947a02db9fc2c54b853df0490d4`
-- **Source commit time:** `2026-09-27T16:38:40+03:00`
-- **Indexed changed scientific artifacts:** `631`
+- **Live source HEAD:** `374fc406865909e8c3b9788c104f0a34a8cd9e32`
+- **Source commit time:** `2026-09-27T16:39:11+03:00`
+- **Indexed changed scientific artifacts:** `632`
 
 ## Continuity status
 
 - Semantic cache: `.janus/P_VS_NP_STREAM_CACHE_CURRENT.json`
 - Semantic source HEAD: `65870a285b36a645d7407c16d759fb6cd5b37421`
 - Relation: **`LIVE_DESCENDS_FROM_SEMANTIC_CACHE`**
-- Commits after semantic checkpoint: `27`
+- Commits after semantic checkpoint: `28`
 
 ## Scientific firewall
 
@@ -100,6 +100,7 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `dd4d1b587d0b` — 2026-09-27T16:35:04+03:00 — R5 E9: add executable checker for Levi and two-permutation normal form
 - `3bd0ed2886e4` — 2026-09-27T16:35:50+03:00 — R5 E9: sync semantic checkpoint after two-permutation normal form
 - `e779c827866f` — 2026-09-27T16:38:40+03:00 — R5 E9: add primitive nullity-2 block-system falsifier
+- `374fc4068659` — 2026-09-27T16:39:11+03:00 — R5 E9: add executable primitive nullity-2 falsifier
 
 ## Transport / stale-bootstrap watch
 
@@ -130,6 +131,7 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 
 ## Recent non-cache commits
 
+- `374fc4068659` — 2026-09-27T16:39:11+03:00 — R5 E9: add executable primitive nullity-2 falsifier
 - `e779c827866f` — 2026-09-27T16:38:40+03:00 — R5 E9: add primitive nullity-2 block-system falsifier
 - `3bd0ed2886e4` — 2026-09-27T16:35:50+03:00 — R5 E9: sync semantic checkpoint after two-permutation normal form
 - `dd4d1b587d0b` — 2026-09-27T16:35:04+03:00 — R5 E9: add executable checker for Levi and two-permutation normal form
@@ -154,7 +156,6 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `480e4ee82b54` — 2026-09-27T14:57:47+03:00 — Repair spectral replay governance validator drift
 - `d34504c67227` — 2026-09-27T14:57:34+03:00 — Repair trade-free replay governance validator drift
 - `1d5883e4edeb` — 2026-09-27T14:53:47+03:00 — Add CI validation for P-vs-NP stream resume cache
-- `450804ab69d6` — 2026-09-27T14:53:32+03:00 — Document P-vs-NP stream resume recovery protocol
 
 ## Resume protocol
 
