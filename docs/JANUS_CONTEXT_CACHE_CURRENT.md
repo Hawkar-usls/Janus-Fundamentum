@@ -5,16 +5,16 @@
 - **Repository:** `Hawkar-usls/Janus-Fundamentum`
 - **PR:** `#510`
 - **Branch:** `codex/r5-e8-direct-contract-20260921-82493a57`
-- **Live source HEAD:** `c09c01be5e90dccd79ad4eebdc6974f39384d774`
-- **Source commit time:** `2026-09-27T23:24:12+03:00`
-- **Indexed changed scientific artifacts:** `668`
+- **Live source HEAD:** `44547a4ce762dfb9e2b079c6fcdd36c64a38c17a`
+- **Source commit time:** `2026-09-27T23:24:38+03:00`
+- **Indexed changed scientific artifacts:** `669`
 
 ## Continuity status
 
 - Semantic cache: `.janus/P_VS_NP_STREAM_CACHE_CURRENT.json`
 - Semantic source HEAD: `efed2c7e3fcd9ab03407b02fe9ba6b01362e1719`
 - Relation: **`LIVE_DESCENDS_FROM_SEMANTIC_CACHE`**
-- Commits after semantic checkpoint: `8`
+- Commits after semantic checkpoint: `9`
 
 ## Scientific firewall
 
@@ -85,6 +85,7 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `e71898a2e208` — 2026-09-27T23:13:44+03:00 — R5 E9: remove duplicate gauge-nullity checker
 - `591e8e81e20e` — 2026-09-27T23:13:51+03:00 — R5 E9: remove duplicate gauge-nullity workflow
 - `c09c01be5e90` — 2026-09-27T23:24:12+03:00 — R5 E9: freeze two-step Boben state-4 barrier
+- `44547a4ce762` — 2026-09-27T23:24:38+03:00 — R5 E9: add two-step Boben state-4 replay
 
 ## Transport / stale-bootstrap watch
 
@@ -115,6 +116,7 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 
 ## Recent non-cache commits
 
+- `44547a4ce762` — 2026-09-27T23:24:38+03:00 — R5 E9: add two-step Boben state-4 replay
 - `c09c01be5e90` — 2026-09-27T23:24:12+03:00 — R5 E9: freeze two-step Boben state-4 barrier
 - `591e8e81e20e` — 2026-09-27T23:13:51+03:00 — R5 E9: remove duplicate gauge-nullity workflow
 - `e71898a2e208` — 2026-09-27T23:13:44+03:00 — R5 E9: remove duplicate gauge-nullity checker
@@ -139,7 +141,6 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `d389cb793186` — 2026-09-27T19:04:57+03:00 — R5 E9: add checker for linear cubic EQ3 regularizer
 - `fd22b609cd3b` — 2026-09-27T19:04:38+03:00 — R5 E9: prove linear cubic EQ3 regularization universality bridge
 - `6f1ef3b1dbd9` — 2026-09-27T17:51:17+03:00 — R5 E9: sync checkpoint after perfect-code and A-only terminal closure
-- `de9c9fb16500` — 2026-09-27T17:50:25+03:00 — R5 E9: add CI for perfect-code and A-irreducible controls
 
 ## Resume protocol
 
