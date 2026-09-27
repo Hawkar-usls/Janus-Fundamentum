@@ -3,9 +3,9 @@
 Date: 2026-09-27
 
 Checkpoint status:
-`SYNCHRONIZED_AFTER_MATERIAL_THEOREM`
+`SYNCHRONIZED_AFTER_MATERIAL_FALSIFIER`
 
-Purpose: this file is the compact restart surface for a new chat or a new proof-search process. It records only theorem-level state, explicit prohibitions, and the next admissible gate.
+Purpose: compact restart surface for a new chat or proof-search process. It records theorem-level state, falsified shortcuts, explicit prohibitions, and the next admissible gate.
 
 ## LIVE SCIENTIFIC STATE
 
@@ -128,9 +128,41 @@ and every normalized source triple carries exactly the local multiset
 (-1,-1,2).
 ```
 
-## OPEN RESIDUAL
+## MATERIAL FALSIFIER NOW FROZEN
 
-The remaining targeted carrier is now exactly expressible as either of the following equivalent surfaces.
+An explicit normalized linear `12_3` carrier is fixed by
+
+```text
+p = [9,4,6,1,10,8,7,2,0,5,11,3]
+q = [3,8,4,5,0,11,10,1,7,6,9,2]
+A = I + P + Q.
+```
+
+Exact checks give
+
+```text
+rank_Q(A)=10
+nullity_Q(A)=2
+<p,q> transitive
+<p,q> primitive
+Exact-One witness exists and is unique:
+  selected columns {0,1,6,11}.
+```
+
+Primitivity is certified without third-party algebra software: in degree 12, every nontrivial block containing 0 must have size in `{2,3,4,6}`; all 693 candidates are exhaustively rejected under the orbit action of `p,q,p^-1,q^-1`.
+
+Therefore the following implications are now mathematically false and must not be revisited:
+
+```text
+singular => imprimitive
+nullity_Q(A)>=2 => imprimitive
+SAT + singular => imprimitive
+{-1,2} kernel witness => imprimitive
+```
+
+This finite falsifier does NOT refute an asymptotic theorem requiring `nullity_Q(A)=omega(log n)` plus additional structure.
+
+## OPEN RESIDUAL
 
 ### Hoffman surface
 
@@ -166,11 +198,11 @@ connected cubic bipartite Levi graph of girth >= 6
 
 ## EXTERNAL ANTI-LOOP
 
-Open literature confirms that the generic representation is not a free polynomial donor:
+Open literature confirms that the generic representations are not free polynomial donors:
 
-- bipartite General Factor remains NP-hard in the singleton-list setting; the standard `{1}/{0,3}` case is a known hard General-Factor pattern;
+- bipartite General Factor remains NP-hard in the singleton-list setting; `{1}/{0,3}` is a standard hard General-Factor pattern;
 - existence of a parallel class is NP-complete for general partial Steiner triple systems;
-- these facts are hardness warnings only and are NOT imported as a proof of hardness for the stricter regular high-nullity OET-irreducible JANUS residual.
+- neither source is imported as an NP-hardness proof for the stricter regular high-nullity OET-irreducible JANUS residual.
 
 Relevant sources:
 - Gutin et al., Algorithmica 64(1), 112–125 (2012), DOI `10.1007/s00453-011-9548-8`, preprint `https://arxiv.org/abs/1106.3527`.
@@ -188,20 +220,22 @@ Relevant sources:
 7. call General Factor / dual perfect matching itself a solver;
 8. infer exact regular-carrier NP-hardness from general partial-STS hardness;
 9. reuse the OET high-nullity tower as an irreducible counterfamily;
-10. assume high nullity => imprimitive permutation group;
-11. assume OET-irreducible => primitive permutation group;
-12. claim P=NP from any special-carrier theorem without the full E8 contract.
+10. singular => imprimitive;
+11. nullity>=2 => imprimitive;
+12. SAT or {-1,2} kernel witness => imprimitive;
+13. assume OET-irreducible => primitive;
+14. claim P=NP from any special-carrier theorem without the full E8 contract.
 ```
 
 ## NEXT GATE
 
-Primary attack:
+Primary attack remains
 
 ```text
 R5_E9_HIGH_NULLITY_TWO_PERM_STRUCTURE_ATTACK_V1
 ```
 
-Question:
+but the naive block-system route has been narrowed.
 
 Given
 
@@ -213,40 +247,50 @@ nullity_Q(A')=omega(log n),
 OET quotient absent,
 ```
 
-prove or falsify a polynomial structural split based on permutation-group block systems / exact quotients.
-
-Admissible progress is one of:
+admissible next progress is now one of:
 
 ```text
-A. PROVE a recognizable nontrivial block system yields an exact dimension-dropping quotient with polynomial witness reconstruction;
-B. PROVE high nullity forces such a quotient under additional explicitly checked hypotheses;
-C. BUILD a primitive high-nullity counterfamily, thereby killing the naive block-system route;
-D. PROVE a polynomial terminal for the primitive residual;
-E. import a source-proved theorem that exactly applies to this stricter carrier.
+A. find an asymptotically scalable invariant tying large nullity to an exact quotient/decomposition;
+B. prove a block-system theorem only with additional explicit hypotheses not falsified by the 12_3 primitive example;
+C. construct a primitive family with unbounded/superlogarithmic rational nullity, killing the broader block-system route;
+D. prove an upper bound on nullity for primitive linear two-permutation carriers strong enough to force a quotient in the hard branch;
+E. prove a polynomial terminal directly for the primitive high-nullity residual;
+F. import a source-proved theorem that applies exactly to this stricter carrier.
 ```
 
-The first immediate falsification test is intentionally conservative:
+Most promising immediate mathematical target:
 
 ```text
-DO NOT try to prove high-nullity => imprimitive first.
-Search for primitive singular/high-nullity examples under the exact linearity constraints.
-A finite counterexample kills the naive implication; an asymptotic theorem requires proof.
+PRIMITIVE NULLITY GROWTH QUESTION
+
+For linear transitive A=I+P+Q with <p,q> primitive,
+how large can nullity_Q(A) be as a function of n?
 ```
+
+A theorem `primitive => nullity_Q(A)=O(log n)` would close the primitive side immediately by the existing kernel router. A primitive family with `nullity_Q(A)=omega(log n)` would falsify that route and force a different invariant. No such theorem is currently assumed.
 
 ## RESTART RECEIPT
 
 ```text
 LAST MATERIAL THEOREM
 = LEVI GENERAL-FACTOR / DUAL MATCHING / TWO-PERMUTATION NORMAL FORM
-
 THEOREM COMMIT
 = 667eb0743f6440f363bbd62e3043240bc189833f
 
-EXECUTABLE REGRESSION COMMIT
+NORMAL-FORM REGRESSION COMMIT
 = dd4d1b587d0b7d902d356c0b3abe75f137ada2d5
 
+LAST MATERIAL FALSIFIER
+= PRIMITIVE LINEAR 12_3 CARRIER WITH nullity_Q=2 AND SAT WITNESS
+FALSIFIER NOTE COMMIT
+= e779c827866f2947a02db9fc2c54b853df0490d4
+FALSIFIER CHECKER COMMIT
+= 374fc406865909e8c3b9788c104f0a34a8cd9e32
+CI WIRING COMMIT
+= e21328ab452c34d3a4f25dbd9b056cf6469963b6
+
 CURRENT SCIENTIFIC FRONTIER
-= OET-IRREDUCIBLE HIGH-NULLITY TWO-PERMUTATION / HOFFMAN RESIDUAL
+= PRIMITIVE NULLITY GROWTH INSIDE OET-IRREDUCIBLE HIGH-NULLITY RESIDUAL
 
 D1
 = EMPTY
