@@ -1,0 +1,47 @@
+name: R5 E9 Cubic Kernel Circuit Contraction
+
+on:
+  push:
+    paths:
+      - "research/R5_E9_CUBIC_KERNEL_CIRCUIT_CONNECTED_CONTRACTION_2026-09-27_v1.0.md"
+      - "experiments/r5_e9_cubic_kernel_circuit_contraction.py"
+      - ".github/workflows/r5-e9-cubic-kernel-circuit-contraction.yml"
+  pull_request:
+    paths:
+      - "research/R5_E9_CUBIC_KERNEL_CIRCUIT_CONNECTED_CONTRACTION_2026-09-27_v1.0.md"
+      - "experiments/r5_e9_cubic_kernel_circuit_contraction.py"
+      - ".github/workflows/r5-e9-cubic-kernel-circuit-contraction.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  replay:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Compile
+        run: python -m py_compile experiments/r5_e9_cubic_kernel_circuit_contraction.py
+      - name: Replay cubic kernel circuit contraction
+        run: |
+          python experiments/r5_e9_cubic_kernel_circuit_contraction.py > /tmp/kcc.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          x=json.loads(Path('/tmp/kcc.json').read_text())
+          assert x['status']=='PASS_CUBIC_KERNEL_CIRCUIT_CONTRACTION_FINITE_REPLAY'
+          assert x['negative_circuit_reduction']=='EXISTS_NEGATIVE_CIRCUIT_IFF_EXISTS_NEGATIVE_NONZERO_KERNEL_VECTOR'
+          by={c['name']:c for c in x['controls']}
+          assert by['FANO_7']['circuit_iff_connected'] is True
+          assert by['AFFINE_3X3']['circuit_iff_connected'] is True
+          assert all(c['negative_kernel_iff_negative_circuit'] is True for c in x['controls'])
+          assert x['arbitrary_input_solver']=='NOT_SUPPLIED'
+          assert x['E8_D1']=='EMPTY'
+          assert x['P_VS_NP']=='OPEN'
+          print('R5_E9_CUBIC_KERNEL_CIRCUIT_CONTRACTION=PASS')
+          PY
