@@ -5,8 +5,8 @@
 - **Repository:** `Hawkar-usls/Janus-Fundamentum`
 - **PR:** `#510`
 - **Branch:** `codex/r5-e8-direct-contract-20260921-82493a57`
-- **Live source HEAD:** `12951a37424086410f52736541601c02b3ebeb4a`
-- **Source commit time:** `2026-09-27T17:38:25+03:00`
+- **Live source HEAD:** `c365d05768e667917d4d4b2b677a26b1459d26bd`
+- **Source commit time:** `2026-09-27T17:39:25+03:00`
 - **Indexed changed scientific artifacts:** `648`
 
 ## Continuity status
@@ -14,7 +14,7 @@
 - Semantic cache: `.janus/P_VS_NP_STREAM_CACHE_CURRENT.json`
 - Semantic source HEAD: `65870a285b36a645d7407c16d759fb6cd5b37421`
 - Relation: **`LIVE_DESCENDS_FROM_SEMANTIC_CACHE`**
-- Commits after semantic checkpoint: `51`
+- Commits after semantic checkpoint: `52`
 
 ## Scientific firewall
 
@@ -124,6 +124,7 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `ec00bb9c8181` — 2026-09-27T17:37:53+03:00 — R5 E9: prove local Boben semantic bond-dimension barrier
 - `53906e11c112` — 2026-09-27T17:38:15+03:00 — R5 E9: add checker for Boben local bond-dimension barrier
 - `12951a374240` — 2026-09-27T17:38:25+03:00 — R5 E9: add CI for Boben local state barrier
+- `c365d05768e6` — 2026-09-27T17:39:25+03:00 — R5 E9: compact and sync semantic checkpoint after Boben state barrier
 
 ## Transport / stale-bootstrap watch
 
@@ -154,6 +155,7 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 
 ## Recent non-cache commits
 
+- `c365d05768e6` — 2026-09-27T17:39:25+03:00 — R5 E9: compact and sync semantic checkpoint after Boben state barrier
 - `12951a374240` — 2026-09-27T17:38:25+03:00 — R5 E9: add CI for Boben local state barrier
 - `53906e11c112` — 2026-09-27T17:38:15+03:00 — R5 E9: add checker for Boben local bond-dimension barrier
 - `ec00bb9c8181` — 2026-09-27T17:37:53+03:00 — R5 E9: prove local Boben semantic bond-dimension barrier
@@ -178,7 +180,6 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `2c5de8ee94d5` — 2026-09-27T16:40:13+03:00 — R5 E9: sync checkpoint after primitive nullity-2 falsifier
 - `e21328ab452c` — 2026-09-27T16:39:36+03:00 — R5 E9: wire Levi normal form and primitive falsifier checks
 - `374fc4068659` — 2026-09-27T16:39:11+03:00 — R5 E9: add executable primitive nullity-2 falsifier
-- `e779c827866f` — 2026-09-27T16:38:40+03:00 — R5 E9: add primitive nullity-2 block-system falsifier
 
 ## Resume protocol
 
