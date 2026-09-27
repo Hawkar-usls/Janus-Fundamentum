@@ -5,16 +5,16 @@
 - **Repository:** `Hawkar-usls/Janus-Fundamentum`
 - **PR:** `#510`
 - **Branch:** `codex/r5-e8-direct-contract-20260921-82493a57`
-- **Live source HEAD:** `f1e556b93e6e85eec5846faffb6fc3e79992a30e`
-- **Source commit time:** `2026-09-28T02:40:10+03:00`
+- **Live source HEAD:** `f5db73a4cc3a3c9a091f1d60101f2f7483b14046`
+- **Source commit time:** `2026-09-28T02:41:26+03:00`
 - **Indexed changed scientific artifacts:** `679`
 
 ## Continuity status
 
 - Semantic cache: `.janus/P_VS_NP_STREAM_CACHE_CURRENT.json`
-- Semantic source HEAD: `b47e6a2cfceb2fd7672a571b152100501937728d`
+- Semantic source HEAD: `f1e556b93e6e85eec5846faffb6fc3e79992a30e`
 - Relation: **`LIVE_DESCENDS_FROM_SEMANTIC_CACHE`**
-- Commits after semantic checkpoint: `4`
+- Commits after semantic checkpoint: `1`
 
 ## Scientific firewall
 
@@ -35,37 +35,32 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 
 ## Semantic live frontier
 
-- **Frontier:** `R5_E9_GROUPED_MATCHING_OR_AFFINE_CYCLE_SEMANTIC_COMPRESSION_GATE_V1`
-- **Carrier:** NP-complete connected/linear cubic positive Exact-One; exact forms include A=I+P+Q, affine parity intersect cycle-2factor independence, dual rank-3 perfect hypermatching, and Boben-reducible v3 Levi structure
-- Established: Exact linear cubic Positive 1-in-3 SAT is NP-complete via a constant-size linear cubic EQ3 regularization gadget.
-- Established: For cubic Exact-One, Boolean SAT is exactly affine parity Ax=1 mod 2 at Hamming weight n/3.
-- Established: Affine-coset global Hamming optimality is equivalent to absence of a negative binary-matroid circuit; greedy descent uses at most n improving circuits, but universal polynomial negative-circuit synthesis on the full NP-complete carrier is not an admitted free primitive.
-- Established: Any cubic bipartite Levi graph admits polynomial matching normalization A=I+P+Q; for a linear carrier the unmatched-pair graph is a simple cycle 2-factor, and Exact-One is exactly affine parity plus independence in that 2-factor.
-- Established: A connected linear cubic rank-14 n=15 carrier is singular over Q but Exact-One UNSAT; singularity or lambda_min=-3 is not sufficient for SAT.
-- Established: The EQ3 regularizer has local terminal-zero F2 gauge modes; recursively regularizing the connected linear-cubic UNSAT n=15 seed gives linear F2 nullity while preserving UNSAT. Raw F2 nullity is not a SAT/progress measure.
-- Established: Factoring the obvious local EQ3 gauge modes exactly returns the original cubic source semantics; this quotient alone does not decrease NP-hard semantic complexity.
-- Established: The local-swap family is SAT, connected, linear cubic, primitive for every m>=3, and has linear rational nullity; primitivity and raw nullity are not universal currencies.
-- Established: Boben adjacent/A reductions terminate structurally in a polynomial bounded-width terminal class, but exact semantic transport is open; one-step needs at least 3 hidden states and an explicit legal two-step region forces rank/state at least 4.
-- Established: A common holographic/matchgate basis for EQ3 and EXACT1 is ruled out on the current source language.
-- Established: Three-port local matching realization of the all-or-none relation {000,111} is blocked by the delta-matroid/matchgate parity barrier.
-- Established: Four-port one-toggle local matching gadgets do not become exact under additive Exact-Matching counters: alternating-path exchange converts OFF+ON to complementary mixed states while preserving the pairwise sum of every additive edge statistic (EMX-1).
-- Established: The frozen connected linear-cubic UNSAT 15_3 control admits a clause-perfect relaxed occurrence assignment with variable degree profile (a0,a1,a2,a3)=(5,5,5,0), making it a hostile replay for local toggle+counter reductions.
-- Established: The older Harries n_t=35*2^t high-nullity family is automatically Exact-One UNSAT because 3 does not divide n_t; retain it only as a structural stress family, not a SAT-side obstruction.
+- **Frontier:** `R5_E9_THREE_CUT_IRREDUCIBLE_GLOBAL_CONTRACTION_GATE_V1`
+- **Carrier:** NP-complete connected/linear cubic positive Exact-One; exact forms include A=I+P+Q, affine parity plus cycle-2factor independence, dual rank-3 perfect hypermatching, and grouped Levi interfaces
+- Established: Exact linear cubic Positive 1-in-3 SAT is NP-complete via the constant-size linear cubic EQ3 regularization gadget.
+- Established: Cubic Exact-One is exactly affine parity Ax=1 mod 2 at Hamming weight n/3; negative-kernel descent is exact but polynomial synthesis on the full carrier is not admitted.
+- Established: Matching normalization A=I+P+Q gives Exact-One = affine parity intersect independence in a simple cycle 2-factor.
+- Established: Raw rational/F2 nullity, singularity, commutativity, primitivity, local EQ3 gauge quotient, common matchgate basis, local matching gadgets, and one-toggle additive Exact-Matching counters are all closed as universal shortcuts.
+- Established: Boben A-reductions terminate structurally in bounded-width terminals, but exact semantic transport remains open; one A-step needs at least 3 states and an explicit two-step region needs at least 4.
+- Established: For every exact 3-edge interface, if r boundary edges meet internal variable/EQ vertices, q is the number of internal clause/EXACT1 vertices, and y is extendable, then |y_V|-|y_C| == -q mod 3.
+- Established: The complete 3-edge boundary algebra is constant: every nonempty projected relation is either an even delta-matroid with at most three tuples or a complementary two-state relation, i.e. twisted EQ3.
+- Established: Therefore genuine <=3-edge separator composition itself cannot cause exponential semantic state growth; complementary 3-cut states carry only one Boolean all-or-none choice.
+- Established: Trivial vertex-isolating 3-cuts are not progress when contraction merely recreates the same local EQ3/EXACT1 atom.
 
 ### Live split
 
 ```json
 {
   "primary": {
-    "goal": "Find a genuine polynomial contraction for the NP-complete linear-cubic carrier by grouping source regions before translation to a tractable carrier; first test exact boundary relations of minimal grouped blocks for even-delta-matroid/matching realizability and a provable strict decrease of rank-3 excess.",
+    "goal": "Recursively exploit genuine nontrivial <=3-edge separations using the exact constant boundary algebra, then construct a polynomial contraction or exact terminal for the residual 3-cut-irreducible rank-3 core.",
     "status": "OPEN"
   },
   "secondary": {
-    "goal": "Construct a deterministic polynomial exact solver for affine parity plus cycle-2factor independence using source-specific polynomial syndrome/semantic compression; generic high-width affine+Krom shortcuts are forbidden.",
+    "goal": "On the residual core, construct source-specific polynomial syndrome compression for affine parity plus cycle-2factor independence; generic high-width affine/Krom shortcuts are forbidden.",
     "status": "OPEN"
   },
   "reserve": {
-    "goal": "Use Boben A-reduction only if arbitrary reduction sequences admit an exact polynomial-size correlation algebra and polynomial witness reconstruction.",
+    "goal": "Use Boben A-reduction only if arbitrary sequences admit an exact polynomial-size correlation algebra and polynomial witness reconstruction.",
     "status": "OPEN"
   }
 }
@@ -73,18 +68,15 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 
 ### Next attack
 
-1. Enumerate and symbolically derive exact boundary relations for the smallest connected grouped blocks of the linear-cubic Levi graph; test delta-matroid/matching realizability and identify any repeatable contraction that strictly lowers rank-3 excess while preserving witnesses.
-2. If a grouped matching-realizable block exists, prove a polynomial coverage/decomposition theorem or construct a source-valid obstruction to coverage before invoking any Exact Matching donor.
-3. For the affine-cycle form, derive a canonical source-specific compressed syndrome representation using b_i+b_p(i)+b_q(i)=0 and prove polynomial closure or explicitly falsify it.
-4. Do not reopen local three-port matching gadgets, one-toggle additive-counter gadgets, EQ3 local gauge quotient, common EQ3/EXACT1 matchgate basis, raw-nullity, singularity, commutativity-only, or primitive/imprimitive routers.
-5. Promote E8_D1 only after one route closes SOUND, COMPLETE, TERMINATES, POLY and polynomial witness reconstruction for every instance in the NP-complete linear cubic carrier.
+1. Formalize a polynomial decomposition that contracts every genuine nontrivial <=3-edge separation and prove total signature/witness-reconstruction cost polynomial; do not count trivial atom cuts.
+2. Characterize the residual cubic-linear core after exhaustive nontrivial 3-cut composition and test whether Boben A-reduction necessarily creates a contractible 3-cut or a bounded-width terminal.
+3. In parallel, derive a canonical source-specific syndrome representation for the residual A=I+P+Q cycle-2factor form and prove polynomial closure or construct an explicit falsifier.
+4. Do not reopen local matching gadgets, additive Exact-Matching counters, local gauge quotient, raw-nullity, singularity, commutativity-only, primitive/imprimitive, or constant three-state Boben lifts.
+5. Promote E8_D1 only after SOUND, COMPLETE, TERMINATES, POLY and polynomial witness reconstruction hold for every instance in the NP-complete carrier.
 
 ## Commits newer than semantic checkpoint — MUST INGEST
 
-- `0192c134abab` — 2026-09-28T02:28:10+03:00 — R5 E9: sync semantic checkpoint after exact-matching exchange barrier
-- `acdd0edb4dd3` — 2026-09-28T02:39:27+03:00 — R5 E9: prove exact three-edge-cut boundary algebra
-- `f1e6f9fb1d36` — 2026-09-28T02:39:58+03:00 — R5 E9: add checker for exact three-edge-cut algebra
-- `f1e556b93e6e` — 2026-09-28T02:40:10+03:00 — R5 E9: add CI for exact three-edge-cut algebra
+- `f5db73a4cc3a` — 2026-09-28T02:41:26+03:00 — R5 E9: sync semantic checkpoint after exact 3-cut algebra
 
 ## Transport / stale-bootstrap watch
 
@@ -95,7 +87,7 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 
 ## Must-read authority/evidence artifacts
 
-- **OK** `.janus/P_VS_NP_STREAM_CACHE_CURRENT.json` `4ff37d96f71ad23a…`
+- **OK** `.janus/P_VS_NP_STREAM_CACHE_CURRENT.json` `95ac116808646abf…`
 - **OK** `tools/janus_stream_resume_cache.py` `adc6ab7f260d2384…`
 - **OK** `research/R5_E9_UNIVERSAL_SELECTOR_EQUIVALENCE_BARRIER_2026-09-27_v1.0.md` `a426b38d6d17eea3…`
 - **OK** `research/R5_E9_UNIVERSAL_SELECTOR_INTERNAL_ANTI_LOOP_BINDING_2026-09-27_v1.0.md` `e3ce2b82dd656b71…`
@@ -115,6 +107,7 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 
 ## Recent non-cache commits
 
+- `f5db73a4cc3a` — 2026-09-28T02:41:26+03:00 — R5 E9: sync semantic checkpoint after exact 3-cut algebra
 - `f1e556b93e6e` — 2026-09-28T02:40:10+03:00 — R5 E9: add CI for exact three-edge-cut algebra
 - `f1e6f9fb1d36` — 2026-09-28T02:39:58+03:00 — R5 E9: add checker for exact three-edge-cut algebra
 - `acdd0edb4dd3` — 2026-09-28T02:39:27+03:00 — R5 E9: prove exact three-edge-cut boundary algebra
@@ -139,7 +132,6 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `774aef861935` — 2026-09-27T22:57:11+03:00 — R5 E9: sync semantic checkpoint after nullity route closures
 - `efed2c7e3fcd` — 2026-09-27T22:55:37+03:00 — R5 E9: add primitive local-swap family CI
 - `94b1075a4d29` — 2026-09-27T22:55:29+03:00 — R5 E9: add primitive local-swap family regression
-- `afc1ed0fe575` — 2026-09-27T22:55:00+03:00 — R5 E9: prove primitive linear-nullity local-swap family
 
 ## Resume protocol
 
