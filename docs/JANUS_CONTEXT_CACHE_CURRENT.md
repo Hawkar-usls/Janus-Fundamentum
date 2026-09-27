@@ -5,16 +5,16 @@
 - **Repository:** `Hawkar-usls/Janus-Fundamentum`
 - **PR:** `#510`
 - **Branch:** `codex/r5-e8-direct-contract-20260921-82493a57`
-- **Live source HEAD:** `3091b7f0ef3b671ad56ea7bff718c8948be4b5e1`
-- **Source commit time:** `2026-09-27T21:07:40+03:00`
+- **Live source HEAD:** `db1e5f64edd670ac82705808d3b5669e7d7f9ea4`
+- **Source commit time:** `2026-09-27T21:08:57+03:00`
 - **Indexed changed scientific artifacts:** `659`
 
 ## Continuity status
 
 - Semantic cache: `.janus/P_VS_NP_STREAM_CACHE_CURRENT.json`
-- Semantic source HEAD: `65870a285b36a645d7407c16d759fb6cd5b37421`
+- Semantic source HEAD: `3091b7f0ef3b671ad56ea7bff718c8948be4b5e1`
 - Relation: **`LIVE_DESCENDS_FROM_SEMANTIC_CACHE`**
-- Commits after semantic checkpoint: `64`
+- Commits after semantic checkpoint: `1`
 
 ## Scientific firewall
 
@@ -35,29 +35,28 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 
 ## Semantic live frontier
 
-- **Frontier:** `R5_E9_DISSOCIATED_CUBIC_LINEAR_NULLITY_GATE_V1`
-- **Carrier:** connected cubic-linear 3-uniform Exact-One / affine-kernel representation
-- Established: Universal total safe branch selector is equivalent to polynomial SAT decision; existence is not construction.
-- Established: Standard Exact-One CNF is simple-linear-autarky lean.
-- Established: Cubic-linear Exact-One is matching-autarky lean.
-- Established: BIG/SCC ELS is trivial on untouched standard Exact-One; broader semantic equivalence remains non-free.
-- Established: R0/R3/R4/R7 initial WDR lanes are structurally unavailable on the cubic-linear Exact-One survivor class.
-- Established: Unrestricted semantic R1/R5 selector queries are guarded by an oracle-hardness barrier and are not admissible as hidden SAT calls.
-- Established: Rational-kernel nullity-k routing is FPT with 2^k poly(n,L) cost; k=O(log n) is polynomial.
-- Established: Signed-trade donors and polynomial boundary projection exist on trade-rich instances.
-- Established: Trade-only universal coverage is falsified by an exact connected cubic-linear 9x9 satisfiable unique-model signed-trade-free control with rank_Q=8 and nullity_Q=1.
+- **Frontier:** `R5_E9_MATCHING_NORMALIZED_AFFINE_CYCLE_SYNDROME_COMPRESSION_GATE_V1`
+- **Carrier:** NP-complete connected/linear cubic positive Exact-One; matching-normalized A=I+P+Q; affine parity intersect cycle-2factor independence
+- Established: Exact linear cubic Positive 1-in-3 SAT is NP-complete via a constant-size linear cubic EQ3 regularization gadget.
+- Established: For cubic Exact-One, Boolean SAT is exactly affine parity Ax=1 mod 2 at Hamming weight n/3.
+- Established: Affine-coset global Hamming optimality is equivalent to absence of a negative binary-matroid circuit; greedy descent uses at most n improving circuits, but universal polynomial negative-circuit synthesis on the full NP-complete carrier is not an admitted free primitive.
+- Established: Any cubic bipartite Levi graph admits polynomial matching normalization A=I+P+Q.
+- Established: For a linear carrier, the unmatched-pair graph C_M with edges {p(i),q(i)} is a simple disjoint union of cycles.
+- Established: Exact-One is exactly Ax=1 mod 2 together with supp(x) independent in C_M.
+- Established: Boben adjacent/A reductions terminate structurally in a polynomial bounded-width terminal class, but exact semantic transport through arbitrary A-reduction sequences remains open.
+- Established: Commuting P,Q is a closed polynomial terminal; high-nullity noncommuting families and separator-generated high-nullity families already exist, so neither commutativity nor raw nullity is universal.
+- Established: Distance-regular/strongly-regular Delsarte classification results do not apply to arbitrary source conflict graphs and are forbidden as a universal spectral shortcut.
 
 ### Live split
 
 ```json
 {
-  "trade_free_branch": {
-    "goal_A": "prove every connected cubic-linear signed-trade-free family has rational nullity O(log n)",
-    "goal_B": "or construct explicit connected cubic-linear signed-trade-free family with rational nullity omega(log n)",
+  "primary": {
+    "goal": "Construct a deterministic polynomial exact solver for the affine-parity plus cycle-2factor-independence form, with polynomial syndrome/state compression and witness reconstruction.",
     "status": "OPEN"
   },
-  "trade_rich_branch": {
-    "goal": "upgrade signed-trade/boundary-projection donors into a polynomially complete mixed-carrier contraction/solver",
+  "secondary": {
+    "goal": "Use Boben A-reduction semantic lift only if an exact polynomial-size signature algebra is proved; do not assume constant state from the one-step rank-3 relation.",
     "status": "OPEN"
   }
 }
@@ -65,78 +64,14 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 
 ### Next attack
 
-1. Audit all existing rational-kernel/trade files to avoid duplicate work.
-2. Attack the dissociated-nullity gate before returning to generic R1/R5/R6.
-3. If Route A fails, materialize a high-nullity trade-free counterfamily and promote only with arbitrary-n proof plus checker.
-4. If Route A holds, compose the O(log n) nullity theorem with the existing FPT router and then solve the trade-rich branch.
-5. Only after both branches have polynomial coverage may representation-change be composed back into the universal SAT contract.
+1. Derive the exact transfer/trellis state required when eliminating each cycle component while preserving Ax=1 mod 2.
+2. Prove a polynomial bound for a canonical compressed syndrome representation, or construct an explicit source-valid family falsifying that representation and abandon it.
+3. If cycle-syndrome compression fails, return to A-reduction semantic transport with a polynomial-size representation target, not to a hidden SAT/negative-circuit oracle.
+4. Promote E8_D1 only after one route closes SOUND, COMPLETE, TERMINATES, POLY and polynomial witness reconstruction for every instance in the NP-complete linear cubic carrier.
 
 ## Commits newer than semantic checkpoint — MUST INGEST
 
-- `553e94296531` — 2026-09-27T14:52:33+03:00 — Add durable P-vs-NP stream resume cache tool
-- `d405b1df3d0a` — 2026-09-27T14:53:09+03:00 — Add current P-vs-NP stream resume checkpoint
-- `450804ab69d6` — 2026-09-27T14:53:32+03:00 — Document P-vs-NP stream resume recovery protocol
-- `1d5883e4edeb` — 2026-09-27T14:53:47+03:00 — Add CI validation for P-vs-NP stream resume cache
-- `d34504c67227` — 2026-09-27T14:57:34+03:00 — Repair trade-free replay governance validator drift
-- `480e4ee82b54` — 2026-09-27T14:57:47+03:00 — Repair spectral replay governance validator drift
-- `c86148ee608d` — 2026-09-27T15:05:19+03:00 — Add JANUS persistent context cache configuration
-- `d93b0b9ff7dd` — 2026-09-27T15:06:30+03:00 — Add deterministic JANUS context cache generator
-- `260f1b5857e6` — 2026-09-27T15:06:52+03:00 — Add JANUS context cache resume entrypoint
-- `e3fb10d7f525` — 2026-09-27T15:07:17+03:00 — Automate JANUS persistent context cache refresh
-- `7cde5903181d` — 2026-09-27T15:10:12+03:00 — Bind live context index to canonical P-vs-NP stream cache
-- `2e2699485693` — 2026-09-27T15:11:44+03:00 — Integrate semantic stream resume state into live context cache
-- `aa75fdfa8417` — 2026-09-27T15:12:05+03:00 — Verify semantic resume cache before live context refresh
-- `1056934836ec` — 2026-09-27T15:16:39+03:00 — Prove one-edge-twist trade-free nullity amplifier
-- `1c812c489489` — 2026-09-27T15:17:13+03:00 — Add one-edge-twist nullity amplifier replay
-- `6ad55020957e` — 2026-09-27T15:17:31+03:00 — Audit one-edge-twist nullity amplifier sources
-- `04a578c1c177` — 2026-09-27T15:17:56+03:00 — Authorize one-edge-twist nullity amplifier candidate
-- `a1499fa48e41` — 2026-09-27T15:18:10+03:00 — Add one-edge-twist nullity amplifier CI
-- `f9532dbd24fd` — 2026-09-27T15:45:02+03:00 — R5 E9 contract one-edge-twist 2-lifts exactly
-- `a3edef10696d` — 2026-09-27T16:18:15+03:00 — R5 E9 expose cubic Exact-One as Hoffman coclique equality
-- `f50771e35f76` — 2026-09-27T16:18:52+03:00 — Add Hoffman coclique equivalence regression checker
-- `0f9d44820b84` — 2026-09-27T16:19:08+03:00 — Add CI for Hoffman coclique equivalence
-- `c3d67f7d1ca4` — 2026-09-27T16:23:28+03:00 — R5 E9 audit n3 perfect-matching hardness boundary
-- `667eb0743f64` — 2026-09-27T16:34:07+03:00 — R5 E9: add Levi general-factor and two-permutation normal form
-- `dd4d1b587d0b` — 2026-09-27T16:35:04+03:00 — R5 E9: add executable checker for Levi and two-permutation normal form
-- `3bd0ed2886e4` — 2026-09-27T16:35:50+03:00 — R5 E9: sync semantic checkpoint after two-permutation normal form
-- `e779c827866f` — 2026-09-27T16:38:40+03:00 — R5 E9: add primitive nullity-2 block-system falsifier
-- `374fc4068659` — 2026-09-27T16:39:11+03:00 — R5 E9: add executable primitive nullity-2 falsifier
-- `e21328ab452c` — 2026-09-27T16:39:36+03:00 — R5 E9: wire Levi normal form and primitive falsifier checks
-- `2c5de8ee94d5` — 2026-09-27T16:40:13+03:00 — R5 E9: sync checkpoint after primitive nullity-2 falsifier
-- `19b4f2724528` — 2026-09-27T16:47:06+03:00 — R5 E9: reject 2025 cubic monotone P=NP donor by exact counterexamples
-- `bb47a3b19d2c` — 2026-09-27T16:47:30+03:00 — R5 E9: add executable hostile-donor falsifier
-- `de88fe45d8f5` — 2026-09-27T16:47:48+03:00 — R5 E9: add hostile-donor falsifier to CI
-- `d39535eaa10d` — 2026-09-27T16:48:37+03:00 — R5 E9: sync semantic checkpoint after hostile-donor rejection
-- `3b5e6fc63899` — 2026-09-27T17:13:48+03:00 — R5 E9: prove rank-1 stitched TD33 linear high-nullity family
-- `300424ce8677` — 2026-09-27T17:14:17+03:00 — R5 E9: add checker for rank-1 stitched TD33 family
-- `95c96aed5790` — 2026-09-27T17:15:22+03:00 — R5 E9: sync checkpoint after rank-1 stitched high-nullity theorem
-- `83463a0eeeb9` — 2026-09-27T17:19:24+03:00 — R5 E9: prove exact Levi boundary composition and leaf-peeling router
-- `d506bb51324f` — 2026-09-27T17:19:58+03:00 — R5 E9: add exact boundary-composition regression checker
-- `9da2c99cc56e` — 2026-09-27T17:21:02+03:00 — R5 E9: sync checkpoint after exact separator subrouter theorem
-- `ba8ae11ef7e1` — 2026-09-27T17:25:04+03:00 — R5 E9: add exact commuting two-permutation terminal
-- `9f37b4757442` — 2026-09-27T17:25:34+03:00 — R5 E9: add checker for commuting two-permutation terminal
-- `b482f59a29a1` — 2026-09-27T17:27:31+03:00 — R5 E9: add CI for commuting two-permutation terminal
-- `191797d3a325` — 2026-09-27T17:28:43+03:00 — R5 E9: sync checkpoint after commuting exact terminal
-- `fcd881578273` — 2026-09-27T17:32:46+03:00 — R5 E9: audit Boben reductions against Exact-One semantics
-- `a3c10fffa342` — 2026-09-27T17:33:23+03:00 — R5 E9: add executable Boben semantic counterexamples
-- `43e3d0cd879d` — 2026-09-27T17:33:35+03:00 — R5 E9: add CI for Boben semantic audit
-- `9f1e093b97d7` — 2026-09-27T17:35:07+03:00 — R5 E9: sync checkpoint after Boben semantic audit
-- `ec00bb9c8181` — 2026-09-27T17:37:53+03:00 — R5 E9: prove local Boben semantic bond-dimension barrier
-- `53906e11c112` — 2026-09-27T17:38:15+03:00 — R5 E9: add checker for Boben local bond-dimension barrier
-- `12951a374240` — 2026-09-27T17:38:25+03:00 — R5 E9: add CI for Boben local state barrier
-- `c365d05768e6` — 2026-09-27T17:39:25+03:00 — R5 E9: compact and sync semantic checkpoint after Boben state barrier
-- `245704dee837` — 2026-09-27T17:48:24+03:00 — R5 E9: add directed perfect-code normal form
-- `ca73ad6b8e62` — 2026-09-27T17:48:40+03:00 — R5 E9: add checker for directed perfect-code normal form
-- `cec70a4d9708` — 2026-09-27T17:49:43+03:00 — R5 E9: close Boben A-irreducible terminals by bounded width
-- `60351fa4c091` — 2026-09-27T17:50:14+03:00 — R5 E9: add controls for A-irreducible terminal closure
-- `de9c9fb16500` — 2026-09-27T17:50:25+03:00 — R5 E9: add CI for perfect-code and A-irreducible controls
-- `6f1ef3b1dbd9` — 2026-09-27T17:51:17+03:00 — R5 E9: sync checkpoint after perfect-code and A-only terminal closure
-- `fd22b609cd3b` — 2026-09-27T19:04:38+03:00 — R5 E9: prove linear cubic EQ3 regularization universality bridge
-- `d389cb793186` — 2026-09-27T19:04:57+03:00 — R5 E9: add checker for linear cubic EQ3 regularizer
-- `e27477ca9904` — 2026-09-27T19:07:29+03:00 — R5 E9: CI for linear cubic universality bridge
-- `590c9a6e8561` — 2026-09-27T20:57:37+03:00 — R5 E9: derive matching-normalized cycle-2factor Exact-One form
-- `b11a523e9d94` — 2026-09-27T20:57:58+03:00 — R5 E9: add exact cycle-2factor normal-form regression
-- `3091b7f0ef3b` — 2026-09-27T21:07:40+03:00 — R5 E9: add cycle-2factor exact normal-form CI
+- `db1e5f64edd6` — 2026-09-27T21:08:57+03:00 — R5 E9: sync semantic checkpoint after cycle-2factor normalization
 
 ## Transport / stale-bootstrap watch
 
@@ -147,7 +82,7 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 
 ## Must-read authority/evidence artifacts
 
-- **OK** `.janus/P_VS_NP_STREAM_CACHE_CURRENT.json` `f8e166feb3ebca3b…`
+- **OK** `.janus/P_VS_NP_STREAM_CACHE_CURRENT.json` `a5caaf99c780832a…`
 - **OK** `tools/janus_stream_resume_cache.py` `adc6ab7f260d2384…`
 - **OK** `research/R5_E9_UNIVERSAL_SELECTOR_EQUIVALENCE_BARRIER_2026-09-27_v1.0.md` `a426b38d6d17eea3…`
 - **OK** `research/R5_E9_UNIVERSAL_SELECTOR_INTERNAL_ANTI_LOOP_BINDING_2026-09-27_v1.0.md` `e3ce2b82dd656b71…`
@@ -167,6 +102,7 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 
 ## Recent non-cache commits
 
+- `db1e5f64edd6` — 2026-09-27T21:08:57+03:00 — R5 E9: sync semantic checkpoint after cycle-2factor normalization
 - `3091b7f0ef3b` — 2026-09-27T21:07:40+03:00 — R5 E9: add cycle-2factor exact normal-form CI
 - `b11a523e9d94` — 2026-09-27T20:57:58+03:00 — R5 E9: add exact cycle-2factor normal-form regression
 - `590c9a6e8561` — 2026-09-27T20:57:37+03:00 — R5 E9: derive matching-normalized cycle-2factor Exact-One form
@@ -191,7 +127,6 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `b482f59a29a1` — 2026-09-27T17:27:31+03:00 — R5 E9: add CI for commuting two-permutation terminal
 - `9f37b4757442` — 2026-09-27T17:25:34+03:00 — R5 E9: add checker for commuting two-permutation terminal
 - `ba8ae11ef7e1` — 2026-09-27T17:25:04+03:00 — R5 E9: add exact commuting two-permutation terminal
-- `9da2c99cc56e` — 2026-09-27T17:21:02+03:00 — R5 E9: sync checkpoint after exact separator subrouter theorem
 
 ## Resume protocol
 
