@@ -5,16 +5,16 @@
 - **Repository:** `Hawkar-usls/Janus-Fundamentum`
 - **PR:** `#510`
 - **Branch:** `codex/r5-e8-direct-contract-20260921-82493a57`
-- **Live source HEAD:** `64f0d8af5ab75e3a31a3d67ad359709499e742b3`
-- **Source commit time:** `2026-09-27T23:35:29+03:00`
-- **Indexed changed scientific artifacts:** `670`
+- **Live source HEAD:** `820e1045b84198416ffcac967440bf6cbd97930f`
+- **Source commit time:** `2026-09-27T23:46:39+03:00`
+- **Indexed changed scientific artifacts:** `671`
 
 ## Continuity status
 
 - Semantic cache: `.janus/P_VS_NP_STREAM_CACHE_CURRENT.json`
 - Semantic source HEAD: `efed2c7e3fcd9ab03407b02fe9ba6b01362e1719`
 - Relation: **`LIVE_DESCENDS_FROM_SEMANTIC_CACHE`**
-- Commits after semantic checkpoint: `12`
+- Commits after semantic checkpoint: `13`
 
 ## Scientific firewall
 
@@ -89,6 +89,7 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `ac934d02ef73` — 2026-09-27T23:24:52+03:00 — R5 E9: add CI for two-step Boben state-4 barrier
 - `a5e7fcf80d9f` — 2026-09-27T23:35:05+03:00 — R5 E9: repair legal Boben two-step replay
 - `64f0d8af5ab7` — 2026-09-27T23:35:29+03:00 — R5 E9: correct legal Boben two-step certificate
+- `820e1045b841` — 2026-09-27T23:46:39+03:00 — R5 E9: rule out common EQ3/Exact1 matchgate basis
 
 ## Transport / stale-bootstrap watch
 
@@ -119,6 +120,7 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 
 ## Recent non-cache commits
 
+- `820e1045b841` — 2026-09-27T23:46:39+03:00 — R5 E9: rule out common EQ3/Exact1 matchgate basis
 - `64f0d8af5ab7` — 2026-09-27T23:35:29+03:00 — R5 E9: correct legal Boben two-step certificate
 - `a5e7fcf80d9f` — 2026-09-27T23:35:05+03:00 — R5 E9: repair legal Boben two-step replay
 - `ac934d02ef73` — 2026-09-27T23:24:52+03:00 — R5 E9: add CI for two-step Boben state-4 barrier
@@ -143,7 +145,6 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `3091b7f0ef3b` — 2026-09-27T21:07:40+03:00 — R5 E9: add cycle-2factor exact normal-form CI
 - `b11a523e9d94` — 2026-09-27T20:57:58+03:00 — R5 E9: add exact cycle-2factor normal-form regression
 - `590c9a6e8561` — 2026-09-27T20:57:37+03:00 — R5 E9: derive matching-normalized cycle-2factor Exact-One form
-- `e27477ca9904` — 2026-09-27T19:07:29+03:00 — R5 E9: CI for linear cubic universality bridge
 
 ## Resume protocol
 
