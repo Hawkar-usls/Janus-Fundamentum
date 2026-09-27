@@ -5,16 +5,16 @@
 - **Repository:** `Hawkar-usls/Janus-Fundamentum`
 - **PR:** `#510`
 - **Branch:** `codex/r5-e8-direct-contract-20260921-82493a57`
-- **Live source HEAD:** `0f9d44820b843a6fa265e398e0e5718e89898965`
-- **Source commit time:** `2026-09-27T16:19:08+03:00`
-- **Indexed changed scientific artifacts:** `626`
+- **Live source HEAD:** `c3d67f7d1ca43822ead2ddf5bc364eb8abc5dac2`
+- **Source commit time:** `2026-09-27T16:23:28+03:00`
+- **Indexed changed scientific artifacts:** `627`
 
 ## Continuity status
 
 - Semantic cache: `.janus/P_VS_NP_STREAM_CACHE_CURRENT.json`
 - Semantic source HEAD: `65870a285b36a645d7407c16d759fb6cd5b37421`
 - Relation: **`LIVE_DESCENDS_FROM_SEMANTIC_CACHE`**
-- Commits after semantic checkpoint: `22`
+- Commits after semantic checkpoint: `23`
 
 ## Scientific firewall
 
@@ -95,6 +95,7 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `a3edef10696d` — 2026-09-27T16:18:15+03:00 — R5 E9 expose cubic Exact-One as Hoffman coclique equality
 - `f50771e35f76` — 2026-09-27T16:18:52+03:00 — Add Hoffman coclique equivalence regression checker
 - `0f9d44820b84` — 2026-09-27T16:19:08+03:00 — Add CI for Hoffman coclique equivalence
+- `c3d67f7d1ca4` — 2026-09-27T16:23:28+03:00 — R5 E9 audit n3 perfect-matching hardness boundary
 
 ## Transport / stale-bootstrap watch
 
@@ -125,6 +126,7 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 
 ## Recent non-cache commits
 
+- `c3d67f7d1ca4` — 2026-09-27T16:23:28+03:00 — R5 E9 audit n3 perfect-matching hardness boundary
 - `0f9d44820b84` — 2026-09-27T16:19:08+03:00 — Add CI for Hoffman coclique equivalence
 - `f50771e35f76` — 2026-09-27T16:18:52+03:00 — Add Hoffman coclique equivalence regression checker
 - `a3edef10696d` — 2026-09-27T16:18:15+03:00 — R5 E9 expose cubic Exact-One as Hoffman coclique equality
@@ -149,7 +151,6 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `553e94296531` — 2026-09-27T14:52:33+03:00 — Add durable P-vs-NP stream resume cache tool
 - `65870a285b36` — 2026-09-27T14:22:46+03:00 — R5 E9 add trade-free unique-model replay workflow
 - `5ec6132ad00e` — 2026-09-27T14:22:33+03:00 — R5 E9 authorize trade-free dissociated-nullity gate
-- `4793d50f760c` — 2026-09-27T14:22:05+03:00 — R5 E9 audit trade-free dissociated-nullity gate
 
 ## Resume protocol
 
