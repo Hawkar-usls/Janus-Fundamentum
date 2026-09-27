@@ -5,16 +5,16 @@
 - **Repository:** `Hawkar-usls/Janus-Fundamentum`
 - **PR:** `#510`
 - **Branch:** `codex/r5-e8-direct-contract-20260921-82493a57`
-- **Live source HEAD:** `fd22b609cd3b5f21473764060ef05d7b56ec5420`
-- **Source commit time:** `2026-09-27T19:04:38+03:00`
-- **Indexed changed scientific artifacts:** `654`
+- **Live source HEAD:** `d389cb793186305f15eed791225c8e4b76de9854`
+- **Source commit time:** `2026-09-27T19:04:57+03:00`
+- **Indexed changed scientific artifacts:** `655`
 
 ## Continuity status
 
 - Semantic cache: `.janus/P_VS_NP_STREAM_CACHE_CURRENT.json`
 - Semantic source HEAD: `65870a285b36a645d7407c16d759fb6cd5b37421`
 - Relation: **`LIVE_DESCENDS_FROM_SEMANTIC_CACHE`**
-- Commits after semantic checkpoint: `59`
+- Commits after semantic checkpoint: `60`
 
 ## Scientific firewall
 
@@ -132,6 +132,7 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `de9c9fb16500` — 2026-09-27T17:50:25+03:00 — R5 E9: add CI for perfect-code and A-irreducible controls
 - `6f1ef3b1dbd9` — 2026-09-27T17:51:17+03:00 — R5 E9: sync checkpoint after perfect-code and A-only terminal closure
 - `fd22b609cd3b` — 2026-09-27T19:04:38+03:00 — R5 E9: prove linear cubic EQ3 regularization universality bridge
+- `d389cb793186` — 2026-09-27T19:04:57+03:00 — R5 E9: add checker for linear cubic EQ3 regularizer
 
 ## Transport / stale-bootstrap watch
 
@@ -162,6 +163,7 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 
 ## Recent non-cache commits
 
+- `d389cb793186` — 2026-09-27T19:04:57+03:00 — R5 E9: add checker for linear cubic EQ3 regularizer
 - `fd22b609cd3b` — 2026-09-27T19:04:38+03:00 — R5 E9: prove linear cubic EQ3 regularization universality bridge
 - `6f1ef3b1dbd9` — 2026-09-27T17:51:17+03:00 — R5 E9: sync checkpoint after perfect-code and A-only terminal closure
 - `de9c9fb16500` — 2026-09-27T17:50:25+03:00 — R5 E9: add CI for perfect-code and A-irreducible controls
@@ -186,7 +188,6 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `83463a0eeeb9` — 2026-09-27T17:19:24+03:00 — R5 E9: prove exact Levi boundary composition and leaf-peeling router
 - `95c96aed5790` — 2026-09-27T17:15:22+03:00 — R5 E9: sync checkpoint after rank-1 stitched high-nullity theorem
 - `300424ce8677` — 2026-09-27T17:14:17+03:00 — R5 E9: add checker for rank-1 stitched TD33 family
-- `3b5e6fc63899` — 2026-09-27T17:13:48+03:00 — R5 E9: prove rank-1 stitched TD33 linear high-nullity family
 
 ## Resume protocol
 
