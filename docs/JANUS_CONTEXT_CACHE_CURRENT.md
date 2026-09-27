@@ -5,16 +5,16 @@
 - **Repository:** `Hawkar-usls/Janus-Fundamentum`
 - **PR:** `#510`
 - **Branch:** `codex/r5-e8-direct-contract-20260921-82493a57`
-- **Live source HEAD:** `acdd0edb4dd3223673a551bd02b96e0515af7fa8`
-- **Source commit time:** `2026-09-28T02:39:27+03:00`
-- **Indexed changed scientific artifacts:** `677`
+- **Live source HEAD:** `f1e556b93e6e85eec5846faffb6fc3e79992a30e`
+- **Source commit time:** `2026-09-28T02:40:10+03:00`
+- **Indexed changed scientific artifacts:** `679`
 
 ## Continuity status
 
 - Semantic cache: `.janus/P_VS_NP_STREAM_CACHE_CURRENT.json`
 - Semantic source HEAD: `b47e6a2cfceb2fd7672a571b152100501937728d`
 - Relation: **`LIVE_DESCENDS_FROM_SEMANTIC_CACHE`**
-- Commits after semantic checkpoint: `2`
+- Commits after semantic checkpoint: `4`
 
 ## Scientific firewall
 
@@ -83,6 +83,8 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 
 - `0192c134abab` — 2026-09-28T02:28:10+03:00 — R5 E9: sync semantic checkpoint after exact-matching exchange barrier
 - `acdd0edb4dd3` — 2026-09-28T02:39:27+03:00 — R5 E9: prove exact three-edge-cut boundary algebra
+- `f1e6f9fb1d36` — 2026-09-28T02:39:58+03:00 — R5 E9: add checker for exact three-edge-cut algebra
+- `f1e556b93e6e` — 2026-09-28T02:40:10+03:00 — R5 E9: add CI for exact three-edge-cut algebra
 
 ## Transport / stale-bootstrap watch
 
@@ -113,6 +115,8 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 
 ## Recent non-cache commits
 
+- `f1e556b93e6e` — 2026-09-28T02:40:10+03:00 — R5 E9: add CI for exact three-edge-cut algebra
+- `f1e6f9fb1d36` — 2026-09-28T02:39:58+03:00 — R5 E9: add checker for exact three-edge-cut algebra
 - `acdd0edb4dd3` — 2026-09-28T02:39:27+03:00 — R5 E9: prove exact three-edge-cut boundary algebra
 - `0192c134abab` — 2026-09-28T02:28:10+03:00 — R5 E9: sync semantic checkpoint after exact-matching exchange barrier
 - `b47e6a2cfceb` — 2026-09-28T02:24:07+03:00 — R5 E9: add CI for exact-matching toggle exchange
@@ -136,8 +140,6 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `efed2c7e3fcd` — 2026-09-27T22:55:37+03:00 — R5 E9: add primitive local-swap family CI
 - `94b1075a4d29` — 2026-09-27T22:55:29+03:00 — R5 E9: add primitive local-swap family regression
 - `afc1ed0fe575` — 2026-09-27T22:55:00+03:00 — R5 E9: prove primitive linear-nullity local-swap family
-- `1312a57404e4` — 2026-09-27T22:42:30+03:00 — R5 E9: add EQ3 gauge-nullity UNSAT CI
-- `5a04104a2cb9` — 2026-09-27T22:42:17+03:00 — R5 E9: add EQ3 gauge-nullity UNSAT regression
 
 ## Resume protocol
 
