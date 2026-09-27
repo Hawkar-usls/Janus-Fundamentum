@@ -5,16 +5,16 @@
 - **Repository:** `Hawkar-usls/Janus-Fundamentum`
 - **PR:** `#510`
 - **Branch:** `codex/r5-e8-direct-contract-20260921-82493a57`
-- **Live source HEAD:** `1056934836ecf3e7a56ec4ec1ba99ca6283ee0be`
-- **Source commit time:** `2026-09-27T15:16:39+03:00`
-- **Indexed changed scientific artifacts:** `614`
+- **Live source HEAD:** `1c812c489489d36d5286606bf1ee7d0848c8ae65`
+- **Source commit time:** `2026-09-27T15:17:13+03:00`
+- **Indexed changed scientific artifacts:** `615`
 
 ## Continuity status
 
 - Semantic cache: `.janus/P_VS_NP_STREAM_CACHE_CURRENT.json`
 - Semantic source HEAD: `65870a285b36a645d7407c16d759fb6cd5b37421`
 - Relation: **`LIVE_DESCENDS_FROM_SEMANTIC_CACHE`**
-- Commits after semantic checkpoint: `14`
+- Commits after semantic checkpoint: `15`
 
 ## Scientific firewall
 
@@ -87,6 +87,7 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `2e2699485693` — 2026-09-27T15:11:44+03:00 — Integrate semantic stream resume state into live context cache
 - `aa75fdfa8417` — 2026-09-27T15:12:05+03:00 — Verify semantic resume cache before live context refresh
 - `1056934836ec` — 2026-09-27T15:16:39+03:00 — Prove one-edge-twist trade-free nullity amplifier
+- `1c812c489489` — 2026-09-27T15:17:13+03:00 — Add one-edge-twist nullity amplifier replay
 
 ## Transport / stale-bootstrap watch
 
@@ -117,6 +118,7 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 
 ## Recent non-cache commits
 
+- `1c812c489489` — 2026-09-27T15:17:13+03:00 — Add one-edge-twist nullity amplifier replay
 - `1056934836ec` — 2026-09-27T15:16:39+03:00 — Prove one-edge-twist trade-free nullity amplifier
 - `aa75fdfa8417` — 2026-09-27T15:12:05+03:00 — Verify semantic resume cache before live context refresh
 - `2e2699485693` — 2026-09-27T15:11:44+03:00 — Integrate semantic stream resume state into live context cache
@@ -141,7 +143,6 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `21d1f9d41d94` — 2026-09-27T13:46:02+03:00 — Remove accidental transport-only dummy file
 - `7e73123e8475` — 2026-09-27T13:45:34+03:00 — dummy
 - `d4476576ce48` — 2026-09-27T13:32:31+03:00 — Add signed-trade boundary projection regression
-- `15ebd07c8829` — 2026-09-27T13:31:57+03:00 — Prove signed-trade polysize boundary projection
 
 ## Resume protocol
 
