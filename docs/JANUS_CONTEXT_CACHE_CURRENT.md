@@ -5,16 +5,16 @@
 - **Repository:** `Hawkar-usls/Janus-Fundamentum`
 - **PR:** `#510`
 - **Branch:** `codex/r5-e8-direct-contract-20260921-82493a57`
-- **Live source HEAD:** `55718cb83fec3031b24e6fc90190e75abe2c1abc`
-- **Source commit time:** `2026-09-28T02:50:27+03:00`
-- **Indexed changed scientific artifacts:** `680`
+- **Live source HEAD:** `e2cc859a97f7a576f6bcb09b80e67effe42cc90e`
+- **Source commit time:** `2026-09-28T02:52:06+03:00`
+- **Indexed changed scientific artifacts:** `683`
 
 ## Continuity status
 
 - Semantic cache: `.janus/P_VS_NP_STREAM_CACHE_CURRENT.json`
 - Semantic source HEAD: `f1e556b93e6e85eec5846faffb6fc3e79992a30e`
 - Relation: **`LIVE_DESCENDS_FROM_SEMANTIC_CACHE`**
-- Commits after semantic checkpoint: `2`
+- Commits after semantic checkpoint: `5`
 
 ## Scientific firewall
 
@@ -78,6 +78,9 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 
 - `f5db73a4cc3a` — 2026-09-28T02:41:26+03:00 — R5 E9: sync semantic checkpoint after exact 3-cut algebra
 - `55718cb83fec` — 2026-09-28T02:50:27+03:00 — R5 E9: add balanced set-partitioning Exact-One terminal
+- `28e0649970fc` — 2026-09-28T02:51:50+03:00 — R5 E10: rule out edge-wise matchgate gauges for EQ3/Exact1
+- `29617c02149e` — 2026-09-28T02:52:02+03:00 — R5 E9: add checker for balanced Exact-One terminal
+- `e2cc859a97f7` — 2026-09-28T02:52:06+03:00 — R5 E10: add exact checker for edge-wise matchgate gauge barrier
 
 ## Transport / stale-bootstrap watch
 
@@ -108,6 +111,9 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 
 ## Recent non-cache commits
 
+- `e2cc859a97f7` — 2026-09-28T02:52:06+03:00 — R5 E10: add exact checker for edge-wise matchgate gauge barrier
+- `29617c02149e` — 2026-09-28T02:52:02+03:00 — R5 E9: add checker for balanced Exact-One terminal
+- `28e0649970fc` — 2026-09-28T02:51:50+03:00 — R5 E10: rule out edge-wise matchgate gauges for EQ3/Exact1
 - `55718cb83fec` — 2026-09-28T02:50:27+03:00 — R5 E9: add balanced set-partitioning Exact-One terminal
 - `f5db73a4cc3a` — 2026-09-28T02:41:26+03:00 — R5 E9: sync semantic checkpoint after exact 3-cut algebra
 - `f1e556b93e6e` — 2026-09-28T02:40:10+03:00 — R5 E9: add CI for exact three-edge-cut algebra
@@ -130,9 +136,6 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `b6192d85e5b5` — 2026-09-27T23:13:39+03:00 — R5 E9: remove duplicate gauge-nullity theorem
 - `a8f333bf61ec` — 2026-09-27T23:13:03+03:00 — R5 E9: add CI for EQ3 gauge-nullity UNSAT family
 - `adbeee3ced22` — 2026-09-27T23:12:55+03:00 — R5 E9: add EQ3 gauge-nullity UNSAT regression
-- `9b45c55ee542` — 2026-09-27T23:12:34+03:00 — R5 E9: freeze EQ3 gauge-nullity UNSAT counterfamily
-- `774aef861935` — 2026-09-27T22:57:11+03:00 — R5 E9: sync semantic checkpoint after nullity route closures
-- `efed2c7e3fcd` — 2026-09-27T22:55:37+03:00 — R5 E9: add primitive local-swap family CI
 
 ## Resume protocol
 
