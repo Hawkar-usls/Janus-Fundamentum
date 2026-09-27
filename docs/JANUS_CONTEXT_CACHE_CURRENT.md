@@ -5,8 +5,8 @@
 - **Repository:** `Hawkar-usls/Janus-Fundamentum`
 - **PR:** `#510`
 - **Branch:** `codex/r5-e8-direct-contract-20260921-82493a57`
-- **Live source HEAD:** `43e3d0cd879de93585b946522f2daa754b62315c`
-- **Source commit time:** `2026-09-27T17:33:35+03:00`
+- **Live source HEAD:** `9f1e093b97d7c956d20bc60bfc675329f0c489dd`
+- **Source commit time:** `2026-09-27T17:35:07+03:00`
 - **Indexed changed scientific artifacts:** `645`
 
 ## Continuity status
@@ -14,7 +14,7 @@
 - Semantic cache: `.janus/P_VS_NP_STREAM_CACHE_CURRENT.json`
 - Semantic source HEAD: `65870a285b36a645d7407c16d759fb6cd5b37421`
 - Relation: **`LIVE_DESCENDS_FROM_SEMANTIC_CACHE`**
-- Commits after semantic checkpoint: `47`
+- Commits after semantic checkpoint: `48`
 
 ## Scientific firewall
 
@@ -120,6 +120,7 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `fcd881578273` — 2026-09-27T17:32:46+03:00 — R5 E9: audit Boben reductions against Exact-One semantics
 - `a3c10fffa342` — 2026-09-27T17:33:23+03:00 — R5 E9: add executable Boben semantic counterexamples
 - `43e3d0cd879d` — 2026-09-27T17:33:35+03:00 — R5 E9: add CI for Boben semantic audit
+- `9f1e093b97d7` — 2026-09-27T17:35:07+03:00 — R5 E9: sync checkpoint after Boben semantic audit
 
 ## Transport / stale-bootstrap watch
 
@@ -150,6 +151,7 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 
 ## Recent non-cache commits
 
+- `9f1e093b97d7` — 2026-09-27T17:35:07+03:00 — R5 E9: sync checkpoint after Boben semantic audit
 - `43e3d0cd879d` — 2026-09-27T17:33:35+03:00 — R5 E9: add CI for Boben semantic audit
 - `a3c10fffa342` — 2026-09-27T17:33:23+03:00 — R5 E9: add executable Boben semantic counterexamples
 - `fcd881578273` — 2026-09-27T17:32:46+03:00 — R5 E9: audit Boben reductions against Exact-One semantics
@@ -174,7 +176,6 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `3bd0ed2886e4` — 2026-09-27T16:35:50+03:00 — R5 E9: sync semantic checkpoint after two-permutation normal form
 - `dd4d1b587d0b` — 2026-09-27T16:35:04+03:00 — R5 E9: add executable checker for Levi and two-permutation normal form
 - `667eb0743f64` — 2026-09-27T16:34:07+03:00 — R5 E9: add Levi general-factor and two-permutation normal form
-- `c3d67f7d1ca4` — 2026-09-27T16:23:28+03:00 — R5 E9 audit n3 perfect-matching hardness boundary
 
 ## Resume protocol
 
