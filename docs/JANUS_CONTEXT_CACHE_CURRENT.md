@@ -5,8 +5,8 @@
 - **Repository:** `Hawkar-usls/Janus-Fundamentum`
 - **PR:** `#510`
 - **Branch:** `codex/r5-e8-direct-contract-20260921-82493a57`
-- **Live source HEAD:** `bb47a3b19d2c39974afea71fbfc786f16a28f7d8`
-- **Source commit time:** `2026-09-27T16:47:30+03:00`
+- **Live source HEAD:** `de88fe45d8f5b061cb928c6fff70cdaf25cc964a`
+- **Source commit time:** `2026-09-27T16:47:48+03:00`
 - **Indexed changed scientific artifacts:** `635`
 
 ## Continuity status
@@ -14,7 +14,7 @@
 - Semantic cache: `.janus/P_VS_NP_STREAM_CACHE_CURRENT.json`
 - Semantic source HEAD: `65870a285b36a645d7407c16d759fb6cd5b37421`
 - Relation: **`LIVE_DESCENDS_FROM_SEMANTIC_CACHE`**
-- Commits after semantic checkpoint: `32`
+- Commits after semantic checkpoint: `33`
 
 ## Scientific firewall
 
@@ -105,6 +105,7 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `2c5de8ee94d5` — 2026-09-27T16:40:13+03:00 — R5 E9: sync checkpoint after primitive nullity-2 falsifier
 - `19b4f2724528` — 2026-09-27T16:47:06+03:00 — R5 E9: reject 2025 cubic monotone P=NP donor by exact counterexamples
 - `bb47a3b19d2c` — 2026-09-27T16:47:30+03:00 — R5 E9: add executable hostile-donor falsifier
+- `de88fe45d8f5` — 2026-09-27T16:47:48+03:00 — R5 E9: add hostile-donor falsifier to CI
 
 ## Transport / stale-bootstrap watch
 
@@ -135,6 +136,7 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 
 ## Recent non-cache commits
 
+- `de88fe45d8f5` — 2026-09-27T16:47:48+03:00 — R5 E9: add hostile-donor falsifier to CI
 - `bb47a3b19d2c` — 2026-09-27T16:47:30+03:00 — R5 E9: add executable hostile-donor falsifier
 - `19b4f2724528` — 2026-09-27T16:47:06+03:00 — R5 E9: reject 2025 cubic monotone P=NP donor by exact counterexamples
 - `2c5de8ee94d5` — 2026-09-27T16:40:13+03:00 — R5 E9: sync checkpoint after primitive nullity-2 falsifier
@@ -159,7 +161,6 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `7cde5903181d` — 2026-09-27T15:10:12+03:00 — Bind live context index to canonical P-vs-NP stream cache
 - `e3fb10d7f525` — 2026-09-27T15:07:17+03:00 — Automate JANUS persistent context cache refresh
 - `260f1b5857e6` — 2026-09-27T15:06:52+03:00 — Add JANUS context cache resume entrypoint
-- `d93b0b9ff7dd` — 2026-09-27T15:06:30+03:00 — Add deterministic JANUS context cache generator
 
 ## Resume protocol
 
