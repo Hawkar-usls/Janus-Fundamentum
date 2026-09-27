@@ -5,16 +5,16 @@
 - **Repository:** `Hawkar-usls/Janus-Fundamentum`
 - **PR:** `#510`
 - **Branch:** `codex/r5-e8-direct-contract-20260921-82493a57`
-- **Live source HEAD:** `e27477ca9904c1a23e806c446cd9645f81f9b740`
-- **Source commit time:** `2026-09-27T19:07:29+03:00`
-- **Indexed changed scientific artifacts:** `656`
+- **Live source HEAD:** `590c9a6e85610b0d7e8a4db00898c55e4713cc7b`
+- **Source commit time:** `2026-09-27T20:57:37+03:00`
+- **Indexed changed scientific artifacts:** `657`
 
 ## Continuity status
 
 - Semantic cache: `.janus/P_VS_NP_STREAM_CACHE_CURRENT.json`
 - Semantic source HEAD: `65870a285b36a645d7407c16d759fb6cd5b37421`
 - Relation: **`LIVE_DESCENDS_FROM_SEMANTIC_CACHE`**
-- Commits after semantic checkpoint: `61`
+- Commits after semantic checkpoint: `62`
 
 ## Scientific firewall
 
@@ -134,6 +134,7 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `fd22b609cd3b` — 2026-09-27T19:04:38+03:00 — R5 E9: prove linear cubic EQ3 regularization universality bridge
 - `d389cb793186` — 2026-09-27T19:04:57+03:00 — R5 E9: add checker for linear cubic EQ3 regularizer
 - `e27477ca9904` — 2026-09-27T19:07:29+03:00 — R5 E9: CI for linear cubic universality bridge
+- `590c9a6e8561` — 2026-09-27T20:57:37+03:00 — R5 E9: derive matching-normalized cycle-2factor Exact-One form
 
 ## Transport / stale-bootstrap watch
 
@@ -164,6 +165,7 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 
 ## Recent non-cache commits
 
+- `590c9a6e8561` — 2026-09-27T20:57:37+03:00 — R5 E9: derive matching-normalized cycle-2factor Exact-One form
 - `e27477ca9904` — 2026-09-27T19:07:29+03:00 — R5 E9: CI for linear cubic universality bridge
 - `d389cb793186` — 2026-09-27T19:04:57+03:00 — R5 E9: add checker for linear cubic EQ3 regularizer
 - `fd22b609cd3b` — 2026-09-27T19:04:38+03:00 — R5 E9: prove linear cubic EQ3 regularization universality bridge
@@ -188,7 +190,6 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `9da2c99cc56e` — 2026-09-27T17:21:02+03:00 — R5 E9: sync checkpoint after exact separator subrouter theorem
 - `d506bb51324f` — 2026-09-27T17:19:58+03:00 — R5 E9: add exact boundary-composition regression checker
 - `83463a0eeeb9` — 2026-09-27T17:19:24+03:00 — R5 E9: prove exact Levi boundary composition and leaf-peeling router
-- `95c96aed5790` — 2026-09-27T17:15:22+03:00 — R5 E9: sync checkpoint after rank-1 stitched high-nullity theorem
 
 ## Resume protocol
 
