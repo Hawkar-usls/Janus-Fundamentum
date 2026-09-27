@@ -5,16 +5,16 @@
 - **Repository:** `Hawkar-usls/Janus-Fundamentum`
 - **PR:** `#510`
 - **Branch:** `codex/r5-e8-direct-contract-20260921-82493a57`
-- **Live source HEAD:** `04a578c1c177b2aaae9a0d63cecc13c3b1d2e312`
-- **Source commit time:** `2026-09-27T15:17:56+03:00`
-- **Indexed changed scientific artifacts:** `617`
+- **Live source HEAD:** `a1499fa48e41522924517c5bfd0b14a715f85cde`
+- **Source commit time:** `2026-09-27T15:18:10+03:00`
+- **Indexed changed scientific artifacts:** `618`
 
 ## Continuity status
 
 - Semantic cache: `.janus/P_VS_NP_STREAM_CACHE_CURRENT.json`
 - Semantic source HEAD: `65870a285b36a645d7407c16d759fb6cd5b37421`
 - Relation: **`LIVE_DESCENDS_FROM_SEMANTIC_CACHE`**
-- Commits after semantic checkpoint: `17`
+- Commits after semantic checkpoint: `18`
 
 ## Scientific firewall
 
@@ -90,6 +90,7 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `1c812c489489` — 2026-09-27T15:17:13+03:00 — Add one-edge-twist nullity amplifier replay
 - `6ad55020957e` — 2026-09-27T15:17:31+03:00 — Audit one-edge-twist nullity amplifier sources
 - `04a578c1c177` — 2026-09-27T15:17:56+03:00 — Authorize one-edge-twist nullity amplifier candidate
+- `a1499fa48e41` — 2026-09-27T15:18:10+03:00 — Add one-edge-twist nullity amplifier CI
 
 ## Transport / stale-bootstrap watch
 
@@ -120,6 +121,7 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 
 ## Recent non-cache commits
 
+- `a1499fa48e41` — 2026-09-27T15:18:10+03:00 — Add one-edge-twist nullity amplifier CI
 - `04a578c1c177` — 2026-09-27T15:17:56+03:00 — Authorize one-edge-twist nullity amplifier candidate
 - `6ad55020957e` — 2026-09-27T15:17:31+03:00 — Audit one-edge-twist nullity amplifier sources
 - `1c812c489489` — 2026-09-27T15:17:13+03:00 — Add one-edge-twist nullity amplifier replay
@@ -144,7 +146,6 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `7287535b0745` — 2026-09-27T14:21:23+03:00 — R5 E9 add trade-free unique-model countercontrol theorem
 - `8e4828f8db06` — 2026-09-27T13:52:13+03:00 — Reconcile affine kernel trade pre-math coverage
 - `96a0ab19dd5b` — 2026-09-27T13:46:17+03:00 — R5 E9 derive cubic girth10 spectral nullity bound
-- `21d1f9d41d94` — 2026-09-27T13:46:02+03:00 — Remove accidental transport-only dummy file
 
 ## Resume protocol
 
