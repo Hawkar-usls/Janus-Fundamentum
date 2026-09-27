@@ -1,22 +1,22 @@
 # JANUS Context Cache — CURRENT
 
-> Canonical externalized working checkpoint. Generated from repository state; not from chat memory.
+> Canonical externalized recovery surface generated from Git, with the P-vs-NP stream-resume cache embedded as the semantic checkpoint.
 
 - **Repository:** `Hawkar-usls/Janus-Fundamentum`
 - **PR:** `#510`
 - **Branch:** `codex/r5-e8-direct-contract-20260921-82493a57`
-- **Source HEAD:** `e3fb10d7f525b7c90c45c67b3f8877ddd5d7c2c5`
-- **Source commit time:** `2026-09-27T15:07:17+03:00`
-- **Base ref:** `origin/main`
-- **Indexed changed scientific artifacts:** `612`
+- **Live source HEAD:** `2e2699485693c0d557496c38fa4806147e7c9aa3`
+- **Source commit time:** `2026-09-27T15:11:44+03:00`
+- **Indexed changed scientific artifacts:** `613`
 
-## Scope
+## Continuity status
 
-Externalize explicit scientific/project state so a new session can resume after UI or stream-cache loss without reconstructing the branch from chat history.
+- Semantic cache: `.janus/P_VS_NP_STREAM_CACHE_CURRENT.json`
+- Semantic source HEAD: `65870a285b36a645d7407c16d759fb6cd5b37421`
+- Relation: **`LIVE_DESCENDS_FROM_SEMANTIC_CACHE`**
+- Commits after semantic checkpoint: `12`
 
-This cache deliberately excludes private model chain-of-thought, hidden runtime cache, and secrets. It stores the explicit project/scientific state needed for deterministic resumption.
-
-## Immutable scientific firewall
+## Scientific firewall
 
 ```text
 P_VS_NP = OPEN
@@ -33,18 +33,58 @@ EXISTENCE != POLYNOMIAL_CONSTRUCTION
 
 Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CNF/SAT, with exact SAT equivalence and polynomial construction, solve, reconstruction, and verification costs.
 
-## Live frontier seed
+## Semantic live frontier
 
-- `R0` — CLOSED on initial cubic-linear Exact-One survivor
-- `R1_BIG_SCC_ELS` — CLOSED on untouched standard Exact-One; broader certified equivalence OPEN
-- `R2_MATCHING_AUTARKY` — CLOSED on cubic-linear Exact-One
-- `R2_SIMPLE_LINEAR_AUTARKY` — CLOSED on standard Exact-One carrier; general autarky not closed
-- `R3_BCE` — CLOSED on initial linear Exact-One with minimum degree >= 2
-- `R4_NO_GROWTH_DP` — CLOSED on initial cubic-linear Exact-One
-- `R5_STRUCTURAL_DOMINANCE` — OPEN
-- `R6_RANKED_SR_MACRO` — OPEN
-- `R7_DIRECT_HORN_DUALHORN_KROM` — CLOSED as direct terminal tests on nonempty cubic-linear Exact-One
-- `REPRESENTATION_CHANGE` — OPEN; current live direction includes affine-coset plus exact-weight formulation
+- **Frontier:** `R5_E9_DISSOCIATED_CUBIC_LINEAR_NULLITY_GATE_V1`
+- **Carrier:** connected cubic-linear 3-uniform Exact-One / affine-kernel representation
+- Established: Universal total safe branch selector is equivalent to polynomial SAT decision; existence is not construction.
+- Established: Standard Exact-One CNF is simple-linear-autarky lean.
+- Established: Cubic-linear Exact-One is matching-autarky lean.
+- Established: BIG/SCC ELS is trivial on untouched standard Exact-One; broader semantic equivalence remains non-free.
+- Established: R0/R3/R4/R7 initial WDR lanes are structurally unavailable on the cubic-linear Exact-One survivor class.
+- Established: Unrestricted semantic R1/R5 selector queries are guarded by an oracle-hardness barrier and are not admissible as hidden SAT calls.
+- Established: Rational-kernel nullity-k routing is FPT with 2^k poly(n,L) cost; k=O(log n) is polynomial.
+- Established: Signed-trade donors and polynomial boundary projection exist on trade-rich instances.
+- Established: Trade-only universal coverage is falsified by an exact connected cubic-linear 9x9 satisfiable unique-model signed-trade-free control with rank_Q=8 and nullity_Q=1.
+
+### Live split
+
+```json
+{
+  "trade_free_branch": {
+    "goal_A": "prove every connected cubic-linear signed-trade-free family has rational nullity O(log n)",
+    "goal_B": "or construct explicit connected cubic-linear signed-trade-free family with rational nullity omega(log n)",
+    "status": "OPEN"
+  },
+  "trade_rich_branch": {
+    "goal": "upgrade signed-trade/boundary-projection donors into a polynomially complete mixed-carrier contraction/solver",
+    "status": "OPEN"
+  }
+}
+```
+
+### Next attack
+
+1. Audit all existing rational-kernel/trade files to avoid duplicate work.
+2. Attack the dissociated-nullity gate before returning to generic R1/R5/R6.
+3. If Route A fails, materialize a high-nullity trade-free counterfamily and promote only with arbitrary-n proof plus checker.
+4. If Route A holds, compose the O(log n) nullity theorem with the existing FPT router and then solve the trade-rich branch.
+5. Only after both branches have polynomial coverage may representation-change be composed back into the universal SAT contract.
+
+## Commits newer than semantic checkpoint — MUST INGEST
+
+- `553e94296531` — 2026-09-27T14:52:33+03:00 — Add durable P-vs-NP stream resume cache tool
+- `d405b1df3d0a` — 2026-09-27T14:53:09+03:00 — Add current P-vs-NP stream resume checkpoint
+- `450804ab69d6` — 2026-09-27T14:53:32+03:00 — Document P-vs-NP stream resume recovery protocol
+- `1d5883e4edeb` — 2026-09-27T14:53:47+03:00 — Add CI validation for P-vs-NP stream resume cache
+- `d34504c67227` — 2026-09-27T14:57:34+03:00 — Repair trade-free replay governance validator drift
+- `480e4ee82b54` — 2026-09-27T14:57:47+03:00 — Repair spectral replay governance validator drift
+- `c86148ee608d` — 2026-09-27T15:05:19+03:00 — Add JANUS persistent context cache configuration
+- `d93b0b9ff7dd` — 2026-09-27T15:06:30+03:00 — Add deterministic JANUS context cache generator
+- `260f1b5857e6` — 2026-09-27T15:06:52+03:00 — Add JANUS context cache resume entrypoint
+- `e3fb10d7f525` — 2026-09-27T15:07:17+03:00 — Automate JANUS persistent context cache refresh
+- `7cde5903181d` — 2026-09-27T15:10:12+03:00 — Bind live context index to canonical P-vs-NP stream cache
+- `2e2699485693` — 2026-09-27T15:11:44+03:00 — Integrate semantic stream resume state into live context cache
 
 ## Transport / stale-bootstrap watch
 
@@ -55,6 +95,8 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 
 ## Must-read authority/evidence artifacts
 
+- **OK** `.janus/P_VS_NP_STREAM_CACHE_CURRENT.json` `f8e166feb3ebca3b…`
+- **OK** `tools/janus_stream_resume_cache.py` `adc6ab7f260d2384…`
 - **OK** `research/R5_E9_UNIVERSAL_SELECTOR_EQUIVALENCE_BARRIER_2026-09-27_v1.0.md` `a426b38d6d17eea3…`
 - **OK** `research/R5_E9_UNIVERSAL_SELECTOR_INTERNAL_ANTI_LOOP_BINDING_2026-09-27_v1.0.md` `e3ce2b82dd656b71…`
 - **OK** `research/R5_E9_WDR_LEAN_NORMAL_FORM_SCHEDULER_CONTRACT_2026-09-23_v1.0.md` `ee4078d86270efbe…`
@@ -64,14 +106,17 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - **OK** `research/R5_E9_EXACT_ONE_BIG_ELS_LEAN_THEOREM_2026-09-27_v1.0.md` `cf51fa1c6f1e120f…`
 - **OK** `research/R5_E9_PRESCRIBED_C10_FREIHEITSSATZ_STRENGTHENING_2026-09-27_v1.0.md` `cccefbc833dd56e2…`
 - **OK** `research/R5_E9_PRESCRIBED_C10_POLYSIZE_2GROUP_COVER_THEOREM_2026-09-27_v1.0.md` `c4938cf21866168d…`
+- **OK** `research/R5_E9_TRADE_FREE_UNIQUE_MODEL_DISSOCIATED_NULLITY_GATE_2026-09-27_v1.0.md` `0fefd86cb9a972d0…`
 - **OK** `experiments/r5_e9_universal_selector_frontier.py` `0e84ba31b55aa1d2…`
-- **MISSING** `experiments/r5_e9_cubic_linear_exact_one_affine_weight_checker.py`
+- **OK** `experiments/r5_e9_trade_free_unique_model_control.py` `d8d97584a6a624cf…`
 - **OK** `registry/JANUS_P_VS_NP_GLOBAL_PREMATH_NO_DUPLICATION_GATE_2026-09-24_v1.0.json` `df511048a4205b0c…`
 - **OK** `registry/JANUS_P_VS_NP_PREMATH_AUDIT_LEDGER_2026-09-24_v1.0.json` `18e5ae1343bbcabb…`
-- **OK** `governance/JANUS_P_VS_NP_PREMATH_SUPPLEMENT_2026-09-27_v1.1.json` `a1920c31b0563815…`
+- **OK** `governance/JANUS_P_VS_NP_PREMATH_SUPPLEMENT_2026-09-27_v1.5.json` `56bb7ae58b780d98…`
 
 ## Recent non-cache commits
 
+- `2e2699485693` — 2026-09-27T15:11:44+03:00 — Integrate semantic stream resume state into live context cache
+- `7cde5903181d` — 2026-09-27T15:10:12+03:00 — Bind live context index to canonical P-vs-NP stream cache
 - `e3fb10d7f525` — 2026-09-27T15:07:17+03:00 — Automate JANUS persistent context cache refresh
 - `260f1b5857e6` — 2026-09-27T15:06:52+03:00 — Add JANUS context cache resume entrypoint
 - `d93b0b9ff7dd` — 2026-09-27T15:06:30+03:00 — Add deterministic JANUS context cache generator
@@ -92,18 +137,24 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `21d1f9d41d94` — 2026-09-27T13:46:02+03:00 — Remove accidental transport-only dummy file
 - `7e73123e8475` — 2026-09-27T13:45:34+03:00 — dummy
 - `d4476576ce48` — 2026-09-27T13:32:31+03:00 — Add signed-trade boundary projection regression
+- `15ebd07c8829` — 2026-09-27T13:31:57+03:00 — Prove signed-trade polysize boundary projection
+- `b08ad94a26ca` — 2026-09-27T13:05:35+03:00 — Add binary-kernel bipartite signed-trade donor theorem
+- `17cdce2a2833` — 2026-09-27T13:04:40+03:00 — Add binary-kernel bipartite trade donor control
 
 ## Resume protocol
 
 1. Read JANUS_CONTEXT_CACHE_START_HERE.md.
-2. Read docs/JANUS_CONTEXT_CACHE_CURRENT.md for the human checkpoint.
-3. Use registry/JANUS_CONTEXT_CACHE_CURRENT.json as the machine-readable authority for source HEAD, file hashes, transport state, and evidence pointers.
-4. Fetch the listed must-read artifacts before changing scientific status.
-5. Run anti-duplication/source checks before creating a new theorem or experiment.
-6. Never promote P_VS_NP, E8_D1, or a PA/NM identifier from cache text alone; promotion still requires the repository governance/checker path.
+2. Read docs/JANUS_CONTEXT_CACHE_CURRENT.md.
+3. Treat .janus/P_VS_NP_STREAM_CACHE_CURRENT.json as the semantic frontier/next-action checkpoint and registry/JANUS_CONTEXT_CACHE_CURRENT.json as the automatic live Git continuity/index layer.
+4. If relation_to_live_source_head is LIVE_DESCENDS_FROM_SEMANTIC_CACHE, ingest every listed newer non-cache commit before continuing mathematics.
+5. If the relation is DIVERGED_OR_SOURCE_MISSING or SEMANTIC_CACHE_AHEAD_OF_LIVE, stop writes and reconcile Git history.
+6. Fetch must-read/critical artifacts and run anti-duplication/source checks before a new theorem or experiment.
+7. Never promote P_VS_NP, E8_D1, or a PA/NM identifier from cache text alone; promotion requires governance/checker/CI.
+
+## Scope boundary
+
+This repository cache stores explicit scientific/project context only. It deliberately excludes private model chain-of-thought, hidden runtime cache, credentials, and secrets.
 
 ## Machine-readable companion
 
-`registry/JANUS_CONTEXT_CACHE_CURRENT.json` contains the complete indexed snapshot, evidence excerpts, hashes, and recent commit list.
-
-Historical snapshots are append-only under `registry/context_cache/history/<source-head>.json`.
+`registry/JANUS_CONTEXT_CACHE_CURRENT.json` contains the complete live index and the embedded semantic checkpoint. History is append-only under `registry/context_cache/history/<source-head>.json`.
