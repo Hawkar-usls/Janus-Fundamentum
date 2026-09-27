@@ -124,16 +124,16 @@ Use the frozen connected linear cubic `10_3` UNSAT control from the semantic aud
 {5,8,9}
 ```
 
-There is a legal adjacent A-reduction sequence:
+There is a legal adjacent A-reduction sequence. The certificate below uses the pairing convention of the executable replay.
 
 First step:
 
 ```text
-remove row 9 and column 9;
+remove old row 9 and old column 9;
 remaining row-9 columns = {5,8};
 remaining column-9 rows = {4,6};
-reconnect row 4 -> column 8,
-          row 6 -> column 5.
+reconnect old row 4 -> old column 8,
+          old row 6 -> old column 5.
 ```
 
 The reduced graph remains connected, cubic and linear.
@@ -141,13 +141,14 @@ The reduced graph remains connected, cubic and linear.
 Second step:
 
 ```text
-remove the surviving image of row 8 and column 8
-using the opposite legal pairing.
+remove the surviving images of old row 8 and old column 8;
+reconnect relabelled row 4 -> relabelled column 6,
+          relabelled row 7 -> relabelled column 1.
 ```
 
 The second reduced graph again remains connected, cubic and linear.
 
-Thus the alternating four-vertex topology above is not a synthetic forbidden pattern: it occurs inside an explicit source-valid consecutive A->A reduction sequence.
+The checker independently enumerates all legality conditions and verifies both steps. Thus the alternating four-vertex topology above is not a synthetic forbidden pattern: it occurs inside an explicit source-valid consecutive A->A reduction sequence.
 
 ## 4. Consequence for the Boben universal route
 
@@ -201,7 +202,7 @@ UNIFORM 3-STATE PER-EDGE A-LIFT
 = FALSIFIED
 
 LEGAL SOURCE-VALID TWO-STEP WITNESS
-= EXPLICIT
+= EXPLICIT / CHECKED
 
 FOUR-STATE / POLYNOMIAL CORRELATION ALGEBRA
 = OPEN
