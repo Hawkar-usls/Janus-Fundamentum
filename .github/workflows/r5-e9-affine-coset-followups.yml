@@ -1,0 +1,66 @@
+name: R5 E9 Affine-Coset Followups
+
+on:
+  push:
+    paths:
+      - "experiments/r5_e9_affine_coset_local_parity_lp_blindness.py"
+      - "experiments/r5_e9_local_swap_binary_coset_exactone_classification.py"
+      - "research/R5_E9_AFFINE_COSET_LOCAL_ODD_PARITY_LP_BLINDNESS_2026-09-27_v1.0.md"
+      - "research/R5_E9_LOCAL_SWAP_BINARY_COSET_EXACTONE_CLASSIFICATION_2026-09-27_v1.0.md"
+      - ".github/workflows/r5-e9-affine-coset-followups.yml"
+  pull_request:
+    paths:
+      - "experiments/r5_e9_affine_coset_local_parity_lp_blindness.py"
+      - "experiments/r5_e9_local_swap_binary_coset_exactone_classification.py"
+      - "research/R5_E9_AFFINE_COSET_LOCAL_ODD_PARITY_LP_BLINDNESS_2026-09-27_v1.0.md"
+      - "research/R5_E9_LOCAL_SWAP_BINARY_COSET_EXACTONE_CLASSIFICATION_2026-09-27_v1.0.md"
+      - ".github/workflows/r5-e9-affine-coset-followups.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  replay:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Compile checkers
+        run: |
+          python -m py_compile experiments/r5_e9_affine_coset_local_parity_lp_blindness.py
+          python -m py_compile experiments/r5_e9_local_swap_binary_coset_exactone_classification.py
+      - name: Replay LP blindness control
+        run: |
+          python experiments/r5_e9_affine_coset_local_parity_lp_blindness.py > /tmp/lp.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          x=json.loads(Path('/tmp/lp.json').read_text())
+          assert x['status']=='PASS_LOCAL_ODD_PARITY_LP_BLINDNESS'
+          by={v['name']:v for v in x['controls']}
+          assert by['CONNECTED_LINEAR_CUBIC_UNSAT9']['exact_one_solution_count']==0
+          assert by['CONNECTED_LINEAR_CUBIC_UNSAT9']['local_parity_lp_optimum']=='3'
+          assert by['AFFINE_3X3_SAT']['exact_one_solution_count']==3
+          assert by['AFFINE_3X3_SAT']['local_parity_lp_optimum']=='3'
+          print('R5_E9_LOCAL_PARITY_LP_BLINDNESS=PASS')
+          PY
+      - name: Replay local-swap classification
+        run: |
+          python experiments/r5_e9_local_swap_binary_coset_exactone_classification.py > /tmp/swap.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          x=json.loads(Path('/tmp/swap.json').read_text())
+          assert x['status']=='PASS_LOCAL_SWAP_BINARY_COSET_EXACTONE_CLASSIFICATION'
+          assert x['gf2_nullity_law']=='m=n/3'
+          assert x['parity_coset_size']=='2^m'
+          assert x['exact_one_solution_count']=='2^(m-1)'
+          assert x['direct_witness_construction']=='O(n)'
+          assert x['E8_D1']=='EMPTY'
+          assert x['P_VS_NP']=='OPEN'
+          print('R5_E9_LOCAL_SWAP_BINARY_CLASSIFICATION=PASS')
+          PY
