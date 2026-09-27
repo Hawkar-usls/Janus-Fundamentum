@@ -5,16 +5,16 @@
 - **Repository:** `Hawkar-usls/Janus-Fundamentum`
 - **PR:** `#510`
 - **Branch:** `codex/r5-e8-direct-contract-20260921-82493a57`
-- **Live source HEAD:** `efed2c7e3fcd9ab03407b02fe9ba6b01362e1719`
-- **Source commit time:** `2026-09-27T22:55:37+03:00`
+- **Live source HEAD:** `774aef86193591768ef570f79f25ab2c1e0510bb`
+- **Source commit time:** `2026-09-27T22:57:11+03:00`
 - **Indexed changed scientific artifacts:** `667`
 
 ## Continuity status
 
 - Semantic cache: `.janus/P_VS_NP_STREAM_CACHE_CURRENT.json`
-- Semantic source HEAD: `3091b7f0ef3b671ad56ea7bff718c8948be4b5e1`
+- Semantic source HEAD: `efed2c7e3fcd9ab03407b02fe9ba6b01362e1719`
 - Relation: **`LIVE_DESCENDS_FROM_SEMANTIC_CACHE`**
-- Commits after semantic checkpoint: `9`
+- Commits after semantic checkpoint: `1`
 
 ## Scientific firewall
 
@@ -35,28 +35,33 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 
 ## Semantic live frontier
 
-- **Frontier:** `R5_E9_MATCHING_NORMALIZED_AFFINE_CYCLE_SYNDROME_COMPRESSION_GATE_V1`
-- **Carrier:** NP-complete connected/linear cubic positive Exact-One; matching-normalized A=I+P+Q; affine parity intersect cycle-2factor independence
+- **Frontier:** `R5_E9_UNIVERSAL_SEMANTIC_COMPRESSION_DUAL_ROUTE_V1`
+- **Carrier:** NP-complete connected/linear cubic positive Exact-One; exact forms include A=I+P+Q, affine parity intersect cycle-2factor independence, and Boben-reducible v3 Levi structure
 - Established: Exact linear cubic Positive 1-in-3 SAT is NP-complete via a constant-size linear cubic EQ3 regularization gadget.
 - Established: For cubic Exact-One, Boolean SAT is exactly affine parity Ax=1 mod 2 at Hamming weight n/3.
 - Established: Affine-coset global Hamming optimality is equivalent to absence of a negative binary-matroid circuit; greedy descent uses at most n improving circuits, but universal polynomial negative-circuit synthesis on the full NP-complete carrier is not an admitted free primitive.
 - Established: Any cubic bipartite Levi graph admits polynomial matching normalization A=I+P+Q.
 - Established: For a linear carrier, the unmatched-pair graph C_M with edges {p(i),q(i)} is a simple disjoint union of cycles.
 - Established: Exact-One is exactly Ax=1 mod 2 together with supp(x) independent in C_M.
+- Established: A connected linear cubic rank-14 n=15 carrier is singular over Q but Exact-One UNSAT; singularity or lambda_min=-3 is not sufficient for SAT.
+- Established: The EQ3 regularizer has a terminal-zero local F2 kernel mode; recursively regularizing the connected linear-cubic UNSAT n=15 seed gives n_t=15*10^t and nullity_F2>=n_t/10 while preserving UNSAT. Raw F2 nullity is not a SAT/progress measure.
+- Established: The local-swap family is SAT, connected, linear cubic, primitive for every m>=3, and has nullity_Q>=n/3. Primitive group action does not imply O(log n) rational nullity, so the primitive/imprimitive nullity router is closed as stated.
+- Established: The older Harries n_t=35*2^t high-nullity family is automatically Exact-One UNSAT because 3 does not divide n_t; retain it only as a structural stress family, not a SAT-side obstruction.
 - Established: Boben adjacent/A reductions terminate structurally in a polynomial bounded-width terminal class, but exact semantic transport through arbitrary A-reduction sequences remains open.
-- Established: Commuting P,Q is a closed polynomial terminal; high-nullity noncommuting families and separator-generated high-nullity families already exist, so neither commutativity nor raw nullity is universal.
-- Established: Distance-regular/strongly-regular Delsarte classification results do not apply to arbitrary source conflict graphs and are forbidden as a universal spectral shortcut.
+- Established: One adjacent Boben semantic contraction has minimum hidden bond dimension 3; a 2-state wire lift is impossible. The local relation is a three-entry partial permutation, but global closure under repeated A-steps is unproved.
+- Established: Krom plus genuinely high-width affine boundary is already universal in the existing APAC sharpness theorem; the affine-cycle residual must not be relabeled as ordinary 2-SAT.
+- Established: Commuting P,Q is a closed polynomial terminal; noncommuting high-nullity primitive SAT families exist, so commutativity, primitivity and raw nullity are not universal currencies.
 
 ### Live split
 
 ```json
 {
   "primary": {
-    "goal": "Construct a deterministic polynomial exact solver for the affine-parity plus cycle-2factor-independence form, with polynomial syndrome/state compression and witness reconstruction.",
+    "goal": "Construct a deterministic polynomial exact solver for affine parity plus cycle-2factor independence, using a provably polynomial semantic/syndrome representation rather than raw syndrome enumeration or a negative-circuit oracle.",
     "status": "OPEN"
   },
   "secondary": {
-    "goal": "Use Boben A-reduction semantic lift only if an exact polynomial-size signature algebra is proved; do not assume constant state from the one-step rank-3 relation.",
+    "goal": "Exploit universal Boben A-reducibility only if exact semantic information can be carried through arbitrary adjacent reductions with polynomial total state and polynomial witness reconstruction.",
     "status": "OPEN"
   }
 }
@@ -64,22 +69,15 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 
 ### Next attack
 
-1. Derive the exact transfer/trellis state required when eliminating each cycle component while preserving Ax=1 mod 2.
-2. Prove a polynomial bound for a canonical compressed syndrome representation, or construct an explicit source-valid family falsifying that representation and abandon it.
-3. If cycle-syndrome compression fails, return to A-reduction semantic transport with a polynomial-size representation target, not to a hidden SAT/negative-circuit oracle.
-4. Promote E8_D1 only after one route closes SOUND, COMPLETE, TERMINATES, POLY and polynomial witness reconstruction for every instance in the NP-complete linear cubic carrier.
+1. For the affine-cycle form, derive a canonical representation of the Krom-over-affine boundary that uses the source relations b_i+b_p(i)+b_q(i)=0; test and prove polynomial closure, not generic high-width Krom assumptions.
+2. For Boben A-reduction, exploit the exact three-state partial-permutation structure of one adjacent contraction and determine whether repeated reductions close under a polynomial signature algebra; abandon any representation on an explicit growing family if it does not.
+3. Use exact-matching / graph-lift machinery only when the number of group/syndrome constraints is proved bounded or when the external deterministic Bipartite Exact Matching claim is independently validated; do not import it as an oracle.
+4. Do not reopen raw-nullity, singularity, commutativity-only, or primitive/imprimitive routers.
+5. Promote E8_D1 only after one route closes SOUND, COMPLETE, TERMINATES, POLY and polynomial witness reconstruction for every instance in the NP-complete linear cubic carrier.
 
 ## Commits newer than semantic checkpoint — MUST INGEST
 
-- `db1e5f64edd6` — 2026-09-27T21:08:57+03:00 — R5 E9: sync semantic checkpoint after cycle-2factor normalization
-- `9d4047896b1d` — 2026-09-27T21:22:21+03:00 — R5 E9: freeze singular UNSAT rank-14 countercontrol
-- `0211dfa54dae` — 2026-09-27T21:22:39+03:00 — R5 E9: add singular UNSAT exact regression
-- `6ddc22ae29a9` — 2026-09-27T22:41:43+03:00 — R5 E9: prove EQ3 gauge-nullity UNSAT family
-- `5a04104a2cb9` — 2026-09-27T22:42:17+03:00 — R5 E9: add EQ3 gauge-nullity UNSAT regression
-- `1312a57404e4` — 2026-09-27T22:42:30+03:00 — R5 E9: add EQ3 gauge-nullity UNSAT CI
-- `afc1ed0fe575` — 2026-09-27T22:55:00+03:00 — R5 E9: prove primitive linear-nullity local-swap family
-- `94b1075a4d29` — 2026-09-27T22:55:29+03:00 — R5 E9: add primitive local-swap family regression
-- `efed2c7e3fcd` — 2026-09-27T22:55:37+03:00 — R5 E9: add primitive local-swap family CI
+- `774aef861935` — 2026-09-27T22:57:11+03:00 — R5 E9: sync semantic checkpoint after nullity route closures
 
 ## Transport / stale-bootstrap watch
 
@@ -90,7 +88,7 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 
 ## Must-read authority/evidence artifacts
 
-- **OK** `.janus/P_VS_NP_STREAM_CACHE_CURRENT.json` `a5caaf99c780832a…`
+- **OK** `.janus/P_VS_NP_STREAM_CACHE_CURRENT.json` `56f439ebb7566bbb…`
 - **OK** `tools/janus_stream_resume_cache.py` `adc6ab7f260d2384…`
 - **OK** `research/R5_E9_UNIVERSAL_SELECTOR_EQUIVALENCE_BARRIER_2026-09-27_v1.0.md` `a426b38d6d17eea3…`
 - **OK** `research/R5_E9_UNIVERSAL_SELECTOR_INTERNAL_ANTI_LOOP_BINDING_2026-09-27_v1.0.md` `e3ce2b82dd656b71…`
@@ -110,6 +108,7 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 
 ## Recent non-cache commits
 
+- `774aef861935` — 2026-09-27T22:57:11+03:00 — R5 E9: sync semantic checkpoint after nullity route closures
 - `efed2c7e3fcd` — 2026-09-27T22:55:37+03:00 — R5 E9: add primitive local-swap family CI
 - `94b1075a4d29` — 2026-09-27T22:55:29+03:00 — R5 E9: add primitive local-swap family regression
 - `afc1ed0fe575` — 2026-09-27T22:55:00+03:00 — R5 E9: prove primitive linear-nullity local-swap family
@@ -134,7 +133,6 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `c365d05768e6` — 2026-09-27T17:39:25+03:00 — R5 E9: compact and sync semantic checkpoint after Boben state barrier
 - `12951a374240` — 2026-09-27T17:38:25+03:00 — R5 E9: add CI for Boben local state barrier
 - `53906e11c112` — 2026-09-27T17:38:15+03:00 — R5 E9: add checker for Boben local bond-dimension barrier
-- `ec00bb9c8181` — 2026-09-27T17:37:53+03:00 — R5 E9: prove local Boben semantic bond-dimension barrier
 
 ## Resume protocol
 
