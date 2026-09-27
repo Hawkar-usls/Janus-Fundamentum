@@ -5,8 +5,8 @@
 - **Repository:** `Hawkar-usls/Janus-Fundamentum`
 - **PR:** `#510`
 - **Branch:** `codex/r5-e8-direct-contract-20260921-82493a57`
-- **Live source HEAD:** `300424ce867764e0afaade7ea20aa3ef43d242f0`
-- **Source commit time:** `2026-09-27T17:14:17+03:00`
+- **Live source HEAD:** `95c96aed5790f09bdca4cf6e1ebc8c2b5089869d`
+- **Source commit time:** `2026-09-27T17:15:22+03:00`
 - **Indexed changed scientific artifacts:** `637`
 
 ## Continuity status
@@ -14,7 +14,7 @@
 - Semantic cache: `.janus/P_VS_NP_STREAM_CACHE_CURRENT.json`
 - Semantic source HEAD: `65870a285b36a645d7407c16d759fb6cd5b37421`
 - Relation: **`LIVE_DESCENDS_FROM_SEMANTIC_CACHE`**
-- Commits after semantic checkpoint: `36`
+- Commits after semantic checkpoint: `37`
 
 ## Scientific firewall
 
@@ -109,6 +109,7 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `d39535eaa10d` — 2026-09-27T16:48:37+03:00 — R5 E9: sync semantic checkpoint after hostile-donor rejection
 - `3b5e6fc63899` — 2026-09-27T17:13:48+03:00 — R5 E9: prove rank-1 stitched TD33 linear high-nullity family
 - `300424ce8677` — 2026-09-27T17:14:17+03:00 — R5 E9: add checker for rank-1 stitched TD33 family
+- `95c96aed5790` — 2026-09-27T17:15:22+03:00 — R5 E9: sync checkpoint after rank-1 stitched high-nullity theorem
 
 ## Transport / stale-bootstrap watch
 
@@ -139,6 +140,7 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 
 ## Recent non-cache commits
 
+- `95c96aed5790` — 2026-09-27T17:15:22+03:00 — R5 E9: sync checkpoint after rank-1 stitched high-nullity theorem
 - `300424ce8677` — 2026-09-27T17:14:17+03:00 — R5 E9: add checker for rank-1 stitched TD33 family
 - `3b5e6fc63899` — 2026-09-27T17:13:48+03:00 — R5 E9: prove rank-1 stitched TD33 linear high-nullity family
 - `d39535eaa10d` — 2026-09-27T16:48:37+03:00 — R5 E9: sync semantic checkpoint after hostile-donor rejection
@@ -163,7 +165,6 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `1c812c489489` — 2026-09-27T15:17:13+03:00 — Add one-edge-twist nullity amplifier replay
 - `1056934836ec` — 2026-09-27T15:16:39+03:00 — Prove one-edge-twist trade-free nullity amplifier
 - `aa75fdfa8417` — 2026-09-27T15:12:05+03:00 — Verify semantic resume cache before live context refresh
-- `2e2699485693` — 2026-09-27T15:11:44+03:00 — Integrate semantic stream resume state into live context cache
 
 ## Resume protocol
 
