@@ -1,0 +1,51 @@
+name: R5 E9 Cubic Linear Girth10 Spectral Nullity
+
+on:
+  push:
+    paths:
+      - "experiments/r5_e9_cubic_linear_girth10_spectral_nullity_bound.py"
+      - "research/R5_E9_CUBIC_LINEAR_GIRTH10_SPECTRAL_NULLITY_BOUND_2026-09-27_v1.0.md"
+      - "governance/audits/2026-09-27_cubic_linear_girth10_spectral_nullity_source_audit.md"
+      - "governance/JANUS_P_VS_NP_PREMATH_SUPPLEMENT_2026-09-27_v1.3.json"
+      - ".github/workflows/r5-e9-cubic-linear-girth10-spectral-nullity.yml"
+  pull_request:
+    paths:
+      - "experiments/r5_e9_cubic_linear_girth10_spectral_nullity_bound.py"
+      - "research/R5_E9_CUBIC_LINEAR_GIRTH10_SPECTRAL_NULLITY_BOUND_2026-09-27_v1.0.md"
+      - "governance/audits/2026-09-27_cubic_linear_girth10_spectral_nullity_source_audit.md"
+      - "governance/JANUS_P_VS_NP_PREMATH_SUPPLEMENT_2026-09-27_v1.3.json"
+      - ".github/workflows/r5-e9-cubic-linear-girth10-spectral-nullity.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  replay:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Compile spectral checker
+        run: python -m py_compile experiments/r5_e9_cubic_linear_girth10_spectral_nullity_bound.py
+      - name: Replay exact identities
+        run: |
+          python experiments/r5_e9_cubic_linear_girth10_spectral_nullity_bound.py > /tmp/spectral-nullity.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          x=json.loads(Path('/tmp/spectral-nullity.json').read_text())
+          assert x['status']=='PASS_CUBIC_LINEAR_GIRTH10_SPECTRAL_NULLITY_REGRESSION'
+          assert x['tree_moments_even_0_to_8']==[1,3,15,87,543]
+          assert x['mean_q_squared']=='1/4'
+          assert x['girth10_bound']=='k <= n/4 - 1'
+          assert x['E8_D1']=='EMPTY'
+          assert x['P_VS_NP']=='OPEN'
+          print('R5_E9_SPECTRAL_NULLITY=PASS')
+          PY
+      - name: Validate pre-math gate
+        run: python tools/validate_premath_gate.py
