@@ -5,16 +5,16 @@
 - **Repository:** `Hawkar-usls/Janus-Fundamentum`
 - **PR:** `#510`
 - **Branch:** `codex/r5-e8-direct-contract-20260921-82493a57`
-- **Live source HEAD:** `667eb0743f6440f363bbd62e3043240bc189833f`
-- **Source commit time:** `2026-09-27T16:34:07+03:00`
-- **Indexed changed scientific artifacts:** `628`
+- **Live source HEAD:** `dd4d1b587d0b7d902d356c0b3abe75f137ada2d5`
+- **Source commit time:** `2026-09-27T16:35:04+03:00`
+- **Indexed changed scientific artifacts:** `629`
 
 ## Continuity status
 
 - Semantic cache: `.janus/P_VS_NP_STREAM_CACHE_CURRENT.json`
 - Semantic source HEAD: `65870a285b36a645d7407c16d759fb6cd5b37421`
 - Relation: **`LIVE_DESCENDS_FROM_SEMANTIC_CACHE`**
-- Commits after semantic checkpoint: `24`
+- Commits after semantic checkpoint: `25`
 
 ## Scientific firewall
 
@@ -97,6 +97,7 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `0f9d44820b84` — 2026-09-27T16:19:08+03:00 — Add CI for Hoffman coclique equivalence
 - `c3d67f7d1ca4` — 2026-09-27T16:23:28+03:00 — R5 E9 audit n3 perfect-matching hardness boundary
 - `667eb0743f64` — 2026-09-27T16:34:07+03:00 — R5 E9: add Levi general-factor and two-permutation normal form
+- `dd4d1b587d0b` — 2026-09-27T16:35:04+03:00 — R5 E9: add executable checker for Levi and two-permutation normal form
 
 ## Transport / stale-bootstrap watch
 
@@ -127,6 +128,7 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 
 ## Recent non-cache commits
 
+- `dd4d1b587d0b` — 2026-09-27T16:35:04+03:00 — R5 E9: add executable checker for Levi and two-permutation normal form
 - `667eb0743f64` — 2026-09-27T16:34:07+03:00 — R5 E9: add Levi general-factor and two-permutation normal form
 - `c3d67f7d1ca4` — 2026-09-27T16:23:28+03:00 — R5 E9 audit n3 perfect-matching hardness boundary
 - `0f9d44820b84` — 2026-09-27T16:19:08+03:00 — Add CI for Hoffman coclique equivalence
@@ -151,7 +153,6 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `450804ab69d6` — 2026-09-27T14:53:32+03:00 — Document P-vs-NP stream resume recovery protocol
 - `d405b1df3d0a` — 2026-09-27T14:53:09+03:00 — Add current P-vs-NP stream resume checkpoint
 - `553e94296531` — 2026-09-27T14:52:33+03:00 — Add durable P-vs-NP stream resume cache tool
-- `65870a285b36` — 2026-09-27T14:22:46+03:00 — R5 E9 add trade-free unique-model replay workflow
 
 ## Resume protocol
 
