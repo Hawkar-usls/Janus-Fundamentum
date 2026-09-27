@@ -5,16 +5,16 @@
 - **Repository:** `Hawkar-usls/Janus-Fundamentum`
 - **PR:** `#510`
 - **Branch:** `codex/r5-e8-direct-contract-20260921-82493a57`
-- **Live source HEAD:** `db1e5f64edd670ac82705808d3b5669e7d7f9ea4`
-- **Source commit time:** `2026-09-27T21:08:57+03:00`
-- **Indexed changed scientific artifacts:** `659`
+- **Live source HEAD:** `0211dfa54dae6c615ef13843808cac6aad8a2d54`
+- **Source commit time:** `2026-09-27T21:22:39+03:00`
+- **Indexed changed scientific artifacts:** `661`
 
 ## Continuity status
 
 - Semantic cache: `.janus/P_VS_NP_STREAM_CACHE_CURRENT.json`
 - Semantic source HEAD: `3091b7f0ef3b671ad56ea7bff718c8948be4b5e1`
 - Relation: **`LIVE_DESCENDS_FROM_SEMANTIC_CACHE`**
-- Commits after semantic checkpoint: `1`
+- Commits after semantic checkpoint: `3`
 
 ## Scientific firewall
 
@@ -72,6 +72,8 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 ## Commits newer than semantic checkpoint — MUST INGEST
 
 - `db1e5f64edd6` — 2026-09-27T21:08:57+03:00 — R5 E9: sync semantic checkpoint after cycle-2factor normalization
+- `9d4047896b1d` — 2026-09-27T21:22:21+03:00 — R5 E9: freeze singular UNSAT rank-14 countercontrol
+- `0211dfa54dae` — 2026-09-27T21:22:39+03:00 — R5 E9: add singular UNSAT exact regression
 
 ## Transport / stale-bootstrap watch
 
@@ -102,6 +104,8 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 
 ## Recent non-cache commits
 
+- `0211dfa54dae` — 2026-09-27T21:22:39+03:00 — R5 E9: add singular UNSAT exact regression
+- `9d4047896b1d` — 2026-09-27T21:22:21+03:00 — R5 E9: freeze singular UNSAT rank-14 countercontrol
 - `db1e5f64edd6` — 2026-09-27T21:08:57+03:00 — R5 E9: sync semantic checkpoint after cycle-2factor normalization
 - `3091b7f0ef3b` — 2026-09-27T21:07:40+03:00 — R5 E9: add cycle-2factor exact normal-form CI
 - `b11a523e9d94` — 2026-09-27T20:57:58+03:00 — R5 E9: add exact cycle-2factor normal-form regression
@@ -125,8 +129,6 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `fcd881578273` — 2026-09-27T17:32:46+03:00 — R5 E9: audit Boben reductions against Exact-One semantics
 - `191797d3a325` — 2026-09-27T17:28:43+03:00 — R5 E9: sync checkpoint after commuting exact terminal
 - `b482f59a29a1` — 2026-09-27T17:27:31+03:00 — R5 E9: add CI for commuting two-permutation terminal
-- `9f37b4757442` — 2026-09-27T17:25:34+03:00 — R5 E9: add checker for commuting two-permutation terminal
-- `ba8ae11ef7e1` — 2026-09-27T17:25:04+03:00 — R5 E9: add exact commuting two-permutation terminal
 
 ## Resume protocol
 
