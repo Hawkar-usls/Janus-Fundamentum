@@ -5,16 +5,16 @@
 - **Repository:** `Hawkar-usls/Janus-Fundamentum`
 - **PR:** `#510`
 - **Branch:** `codex/r5-e8-direct-contract-20260921-82493a57`
-- **Live source HEAD:** `2c5de8ee94d56a16580243601c9c840e2441a9c5`
-- **Source commit time:** `2026-09-27T16:40:13+03:00`
-- **Indexed changed scientific artifacts:** `633`
+- **Live source HEAD:** `19b4f2724528d24ce0da61517c96d4a66657e7a2`
+- **Source commit time:** `2026-09-27T16:47:06+03:00`
+- **Indexed changed scientific artifacts:** `634`
 
 ## Continuity status
 
 - Semantic cache: `.janus/P_VS_NP_STREAM_CACHE_CURRENT.json`
 - Semantic source HEAD: `65870a285b36a645d7407c16d759fb6cd5b37421`
 - Relation: **`LIVE_DESCENDS_FROM_SEMANTIC_CACHE`**
-- Commits after semantic checkpoint: `30`
+- Commits after semantic checkpoint: `31`
 
 ## Scientific firewall
 
@@ -103,6 +103,7 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `374fc4068659` — 2026-09-27T16:39:11+03:00 — R5 E9: add executable primitive nullity-2 falsifier
 - `e21328ab452c` — 2026-09-27T16:39:36+03:00 — R5 E9: wire Levi normal form and primitive falsifier checks
 - `2c5de8ee94d5` — 2026-09-27T16:40:13+03:00 — R5 E9: sync checkpoint after primitive nullity-2 falsifier
+- `19b4f2724528` — 2026-09-27T16:47:06+03:00 — R5 E9: reject 2025 cubic monotone P=NP donor by exact counterexamples
 
 ## Transport / stale-bootstrap watch
 
@@ -133,6 +134,7 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 
 ## Recent non-cache commits
 
+- `19b4f2724528` — 2026-09-27T16:47:06+03:00 — R5 E9: reject 2025 cubic monotone P=NP donor by exact counterexamples
 - `2c5de8ee94d5` — 2026-09-27T16:40:13+03:00 — R5 E9: sync checkpoint after primitive nullity-2 falsifier
 - `e21328ab452c` — 2026-09-27T16:39:36+03:00 — R5 E9: wire Levi normal form and primitive falsifier checks
 - `374fc4068659` — 2026-09-27T16:39:11+03:00 — R5 E9: add executable primitive nullity-2 falsifier
@@ -157,7 +159,6 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `260f1b5857e6` — 2026-09-27T15:06:52+03:00 — Add JANUS context cache resume entrypoint
 - `d93b0b9ff7dd` — 2026-09-27T15:06:30+03:00 — Add deterministic JANUS context cache generator
 - `c86148ee608d` — 2026-09-27T15:05:19+03:00 — Add JANUS persistent context cache configuration
-- `480e4ee82b54` — 2026-09-27T14:57:47+03:00 — Repair spectral replay governance validator drift
 
 ## Resume protocol
 
