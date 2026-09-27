@@ -5,16 +5,16 @@
 - **Repository:** `Hawkar-usls/Janus-Fundamentum`
 - **PR:** `#510`
 - **Branch:** `codex/r5-e8-direct-contract-20260921-82493a57`
-- **Live source HEAD:** `0192c134abab5868d0bc47de0ec19509392d8be5`
-- **Source commit time:** `2026-09-28T02:28:10+03:00`
-- **Indexed changed scientific artifacts:** `676`
+- **Live source HEAD:** `acdd0edb4dd3223673a551bd02b96e0515af7fa8`
+- **Source commit time:** `2026-09-28T02:39:27+03:00`
+- **Indexed changed scientific artifacts:** `677`
 
 ## Continuity status
 
 - Semantic cache: `.janus/P_VS_NP_STREAM_CACHE_CURRENT.json`
 - Semantic source HEAD: `b47e6a2cfceb2fd7672a571b152100501937728d`
 - Relation: **`LIVE_DESCENDS_FROM_SEMANTIC_CACHE`**
-- Commits after semantic checkpoint: `1`
+- Commits after semantic checkpoint: `2`
 
 ## Scientific firewall
 
@@ -82,6 +82,7 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 ## Commits newer than semantic checkpoint — MUST INGEST
 
 - `0192c134abab` — 2026-09-28T02:28:10+03:00 — R5 E9: sync semantic checkpoint after exact-matching exchange barrier
+- `acdd0edb4dd3` — 2026-09-28T02:39:27+03:00 — R5 E9: prove exact three-edge-cut boundary algebra
 
 ## Transport / stale-bootstrap watch
 
@@ -112,6 +113,7 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 
 ## Recent non-cache commits
 
+- `acdd0edb4dd3` — 2026-09-28T02:39:27+03:00 — R5 E9: prove exact three-edge-cut boundary algebra
 - `0192c134abab` — 2026-09-28T02:28:10+03:00 — R5 E9: sync semantic checkpoint after exact-matching exchange barrier
 - `b47e6a2cfceb` — 2026-09-28T02:24:07+03:00 — R5 E9: add CI for exact-matching toggle exchange
 - `6a88b0fa7c5e` — 2026-09-28T02:23:57+03:00 — R5 E9: add exact toggle pair-exchange replay
@@ -136,7 +138,6 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `afc1ed0fe575` — 2026-09-27T22:55:00+03:00 — R5 E9: prove primitive linear-nullity local-swap family
 - `1312a57404e4` — 2026-09-27T22:42:30+03:00 — R5 E9: add EQ3 gauge-nullity UNSAT CI
 - `5a04104a2cb9` — 2026-09-27T22:42:17+03:00 — R5 E9: add EQ3 gauge-nullity UNSAT regression
-- `6ddc22ae29a9` — 2026-09-27T22:41:43+03:00 — R5 E9: prove EQ3 gauge-nullity UNSAT family
 
 ## Resume protocol
 
