@@ -5,16 +5,16 @@
 - **Repository:** `Hawkar-usls/Janus-Fundamentum`
 - **PR:** `#510`
 - **Branch:** `codex/r5-e8-direct-contract-20260921-82493a57`
-- **Live source HEAD:** `365808a740a5b5d13bcb48c78c3dec34c50185d6`
-- **Source commit time:** `2026-09-28T02:23:27+03:00`
-- **Indexed changed scientific artifacts:** `674`
+- **Live source HEAD:** `b47e6a2cfceb2fd7672a571b152100501937728d`
+- **Source commit time:** `2026-09-28T02:24:07+03:00`
+- **Indexed changed scientific artifacts:** `676`
 
 ## Continuity status
 
 - Semantic cache: `.janus/P_VS_NP_STREAM_CACHE_CURRENT.json`
 - Semantic source HEAD: `efed2c7e3fcd9ab03407b02fe9ba6b01362e1719`
 - Relation: **`LIVE_DESCENDS_FROM_SEMANTIC_CACHE`**
-- Commits after semantic checkpoint: `16`
+- Commits after semantic checkpoint: `18`
 
 ## Scientific firewall
 
@@ -93,6 +93,8 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `b73cdfbc97b0` — 2026-09-28T02:15:12+03:00 — R5 E9: prove EQ3 local gauge quotient returns source hardness
 - `2711d52b3e08` — 2026-09-28T02:15:27+03:00 — R5 E9: add exact checker for EQ3 local gauge quotient
 - `365808a740a5` — 2026-09-28T02:23:27+03:00 — R5 E9: prove exact-matching toggle pair-exchange barrier
+- `6a88b0fa7c5e` — 2026-09-28T02:23:57+03:00 — R5 E9: add exact toggle pair-exchange replay
+- `b47e6a2cfceb` — 2026-09-28T02:24:07+03:00 — R5 E9: add CI for exact-matching toggle exchange
 
 ## Transport / stale-bootstrap watch
 
@@ -123,6 +125,8 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 
 ## Recent non-cache commits
 
+- `b47e6a2cfceb` — 2026-09-28T02:24:07+03:00 — R5 E9: add CI for exact-matching toggle exchange
+- `6a88b0fa7c5e` — 2026-09-28T02:23:57+03:00 — R5 E9: add exact toggle pair-exchange replay
 - `365808a740a5` — 2026-09-28T02:23:27+03:00 — R5 E9: prove exact-matching toggle pair-exchange barrier
 - `2711d52b3e08` — 2026-09-28T02:15:27+03:00 — R5 E9: add exact checker for EQ3 local gauge quotient
 - `b73cdfbc97b0` — 2026-09-28T02:15:12+03:00 — R5 E9: prove EQ3 local gauge quotient returns source hardness
@@ -146,8 +150,6 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `5a04104a2cb9` — 2026-09-27T22:42:17+03:00 — R5 E9: add EQ3 gauge-nullity UNSAT regression
 - `6ddc22ae29a9` — 2026-09-27T22:41:43+03:00 — R5 E9: prove EQ3 gauge-nullity UNSAT family
 - `0211dfa54dae` — 2026-09-27T21:22:39+03:00 — R5 E9: add singular UNSAT exact regression
-- `9d4047896b1d` — 2026-09-27T21:22:21+03:00 — R5 E9: freeze singular UNSAT rank-14 countercontrol
-- `db1e5f64edd6` — 2026-09-27T21:08:57+03:00 — R5 E9: sync semantic checkpoint after cycle-2factor normalization
 
 ## Resume protocol
 
