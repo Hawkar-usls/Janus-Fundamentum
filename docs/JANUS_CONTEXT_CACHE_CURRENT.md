@@ -5,8 +5,8 @@
 - **Repository:** `Hawkar-usls/Janus-Fundamentum`
 - **PR:** `#510`
 - **Branch:** `codex/r5-e8-direct-contract-20260921-82493a57`
-- **Live source HEAD:** `2e2699485693c0d557496c38fa4806147e7c9aa3`
-- **Source commit time:** `2026-09-27T15:11:44+03:00`
+- **Live source HEAD:** `aa75fdfa8417378a727b6fd6e49e147e9b315b16`
+- **Source commit time:** `2026-09-27T15:12:05+03:00`
 - **Indexed changed scientific artifacts:** `613`
 
 ## Continuity status
@@ -14,7 +14,7 @@
 - Semantic cache: `.janus/P_VS_NP_STREAM_CACHE_CURRENT.json`
 - Semantic source HEAD: `65870a285b36a645d7407c16d759fb6cd5b37421`
 - Relation: **`LIVE_DESCENDS_FROM_SEMANTIC_CACHE`**
-- Commits after semantic checkpoint: `12`
+- Commits after semantic checkpoint: `13`
 
 ## Scientific firewall
 
@@ -85,6 +85,7 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `e3fb10d7f525` — 2026-09-27T15:07:17+03:00 — Automate JANUS persistent context cache refresh
 - `7cde5903181d` — 2026-09-27T15:10:12+03:00 — Bind live context index to canonical P-vs-NP stream cache
 - `2e2699485693` — 2026-09-27T15:11:44+03:00 — Integrate semantic stream resume state into live context cache
+- `aa75fdfa8417` — 2026-09-27T15:12:05+03:00 — Verify semantic resume cache before live context refresh
 
 ## Transport / stale-bootstrap watch
 
@@ -115,6 +116,7 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 
 ## Recent non-cache commits
 
+- `aa75fdfa8417` — 2026-09-27T15:12:05+03:00 — Verify semantic resume cache before live context refresh
 - `2e2699485693` — 2026-09-27T15:11:44+03:00 — Integrate semantic stream resume state into live context cache
 - `7cde5903181d` — 2026-09-27T15:10:12+03:00 — Bind live context index to canonical P-vs-NP stream cache
 - `e3fb10d7f525` — 2026-09-27T15:07:17+03:00 — Automate JANUS persistent context cache refresh
@@ -139,7 +141,6 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `d4476576ce48` — 2026-09-27T13:32:31+03:00 — Add signed-trade boundary projection regression
 - `15ebd07c8829` — 2026-09-27T13:31:57+03:00 — Prove signed-trade polysize boundary projection
 - `b08ad94a26ca` — 2026-09-27T13:05:35+03:00 — Add binary-kernel bipartite signed-trade donor theorem
-- `17cdce2a2833` — 2026-09-27T13:04:40+03:00 — Add binary-kernel bipartite trade donor control
 
 ## Resume protocol
 
