@@ -3,25 +3,25 @@
 Date: 2026-09-27
 
 Checkpoint status:
-`SYNCHRONIZED_AFTER_MATERIAL_FALSIFIER`
+`SYNCHRONIZED_AFTER_HOSTILE_DONOR_REJECTION`
 
-Purpose: compact restart surface for a new chat or proof-search process. It records theorem-level state, falsified shortcuts, explicit prohibitions, and the next admissible gate.
+This is the canonical compact restart surface after the latest material mathematics.
 
 ## LIVE SCIENTIFIC STATE
 
 ```text
 P_VS_NP = OPEN
 E8_D1 = EMPTY
-
 UNIVERSAL POLYNOMIAL SAT / EXACT-ONE DECIDER = NOT PROVED
 
 AUTHORITATIVE RESIDUAL GATE
 = R5_E9_OET_IRREDUCIBLE_HOFFMAN_COCLIQUE_GATE_V1
+
+CURRENT ATTACK
+= PRIMITIVE NULLITY GROWTH INSIDE THE OET-IRREDUCIBLE HIGH-NULLITY RESIDUAL
 ```
 
-## PROVED
-
-### Spectral / conflict-graph bridge
+## PROVED CORE
 
 For a connected linear cubic square incidence matrix `A` and its conflict graph `G`:
 
@@ -44,7 +44,7 @@ iff
 G has equitable quotient [[0,6],[3,3]].
 ```
 
-### Existing polynomial terminals
+Polynomial terminals already proved:
 
 ```text
 rank_Q(A)=n
@@ -57,101 +57,79 @@ recognized one-edge-twist 2-lift tower
 => exact polynomial contraction to its root with witness reconstruction.
 ```
 
-### Levi / dual exact forms
+## LEVI / DUAL / TWO-PERMUTATION NORMAL FORMS
 
 Let `L(A)` be the cubic bipartite Levi graph.
 
 ```text
 Ax=1
 iff
-L(A) has General Factor with
-  K(row)={1},
-  K(column)={0,3}.
-```
-
-Dualizing the incidence structure:
-
-```text
-Ax=1
+L(A) has General Factor with K(row)={1}, K(column)={0,3}
 iff
 selected dual 3-edges form a perfect matching / parallel class.
 ```
 
-### Two-permutation normal form
-
-Every cubic square carrier is polynomially decomposable into three disjoint perfect matchings of its Levi graph:
+Every cubic square carrier is polynomially decomposable into three Levi perfect matchings:
 
 ```text
-A = P0 + P1 + P2.
+A=P0+P1+P2.
 ```
 
-After exact row normalization:
+After row normalization:
 
 ```text
-A' = I + P + Q,
+A'=I+P+Q,
 P,Q permutation matrices,
 Ax=1 iff A'x=1,
 nullity_Q(A')=nullity_Q(A).
 ```
 
-If `p,q` are the corresponding permutations, then:
+If `p,q` are their permutations:
 
 ```text
-L(A) connected
-iff
-<p,q> acts transitively on [n].
+L(A) connected iff <p,q> acts transitively.
 ```
 
-For the linear carrier, the row triples
+Linearity becomes the triple condition on
 
 ```text
-{i,p(i),q(i)}
+{i,p(i),q(i)}.
 ```
 
-have distinct entries and no unordered pair appears twice.
-
-The kernel law is
+Kernel law:
 
 ```text
-z_i + z_{p(i)} + z_{q(i)} = 0 for every i.
+z_i+z_{p(i)}+z_{q(i)}=0 for every i.
 ```
 
-An Exact-One witness is the special kernel vector
+Exact-One witness law:
 
 ```text
 w=3x-1 in {-1,2}^n,
+and every row triple has local multiset (-1,-1,2).
 ```
 
-and every normalized source triple carries exactly the local multiset
+## FROZEN STRUCTURAL FALSIFIER
+
+Explicit linear `12_3` normalized carrier:
 
 ```text
-(-1,-1,2).
+p=[9,4,6,1,10,8,7,2,0,5,11,3]
+q=[3,8,4,5,0,11,10,1,7,6,9,2]
+A=I+P+Q
 ```
 
-## MATERIAL FALSIFIER NOW FROZEN
-
-An explicit normalized linear `12_3` carrier is fixed by
-
-```text
-p = [9,4,6,1,10,8,7,2,0,5,11,3]
-q = [3,8,4,5,0,11,10,1,7,6,9,2]
-A = I + P + Q.
-```
-
-Exact checks give
+Exact checks:
 
 ```text
 rank_Q(A)=10
 nullity_Q(A)=2
 <p,q> transitive
 <p,q> primitive
-Exact-One witness exists and is unique:
-  selected columns {0,1,6,11}.
+unique Exact-One witness selects {0,1,6,11}
 ```
 
-Primitivity is certified without third-party algebra software: in degree 12, every nontrivial block containing 0 must have size in `{2,3,4,6}`; all 693 candidates are exhaustively rejected under the orbit action of `p,q,p^-1,q^-1`.
-
-Therefore the following implications are now mathematically false and must not be revisited:
+All 693 possible nontrivial blocks containing 0 are rejected exactly. Therefore these shortcuts are false:
 
 ```text
 singular => imprimitive
@@ -160,9 +138,87 @@ SAT + singular => imprimitive
 {-1,2} kernel witness => imprimitive
 ```
 
-This finite falsifier does NOT refute an asymptotic theorem requiring `nullity_Q(A)=omega(log n)` plus additional structure.
+This finite falsifier does not refute an asymptotic theorem requiring `nullity_Q(A)=omega(log n)` plus extra structure.
 
-## OPEN RESIDUAL
+## HOSTILE DONOR AUDIT — KETTANI 2025
+
+Audited claim:
+
+```text
+Cubic Monotone 1-in-3 SAT is polynomial-time solvable
+=> P=NP.
+```
+
+JANUS rejects this donor by two independent unconditional counterexamples.
+
+### Failure A — nonsingular branch
+
+Every cubic square incidence matrix satisfies
+
+```text
+A*1 = 3*1.
+```
+
+Hence if `A` is nonsingular,
+
+```text
+A^{-1}*1 = (1/3)*1,
+```
+
+which is not Boolean. Therefore the correct rule is
+
+```text
+rank_Q(A)=n => BOOLEAN UNSAT,
+```
+
+not SAT.
+
+Explicit Fano `7_3` instance:
+
+```text
+row i = i+{0,1,3} mod 7
+|det A|=24
+unique rational solution=(1/3)1
+Boolean Exact-One witnesses=0.
+```
+
+Thus the donor's `det(A)!=0` branch is falsified.
+
+### Failure B — claimed treewidth theorem
+
+The donor claims
+
+```text
+Delta<=6
++ induced-K1,4-free
++ every vertex in >=3 triangles
+=> treewidth<=6.
+```
+
+Counterfamily for every `m>=5`:
+
+```text
+T_m = Cay(Z_m^2, {±(1,0), ±(0,1), ±(1,-1)}).
+```
+
+It is 6-regular, induced-`K1,4`-free, and every vertex belongs to six triangles. It contains the ordinary `m x m` grid as a subgraph after deleting edges, so
+
+```text
+tw(T_m) >= tw(P_m square P_m) = m.
+```
+
+Treewidth is therefore unbounded. The theorem as stated is false.
+
+Freeze:
+
+```text
+FORBIDDEN_DONOR_ROUTE
+= KETTANI_2025_BOUNDED_TREEWIDTH_CUBIC_MONOTONE_1IN3
+```
+
+The audit does not change the open frontier; it prevents a false shortcut from entering E8-D1.
+
+## OPEN RESIDUAL — THREE EQUIVALENT SURFACES
 
 ### Hoffman surface
 
@@ -180,7 +236,7 @@ This finite falsifier does NOT refute an asymptotic theorem requiring `nullity_Q
 ```text
 A'=I+P+Q
 + <p,q> transitive
-+ linear triple condition on {i,p(i),q(i)}
++ linear triple condition
 + dim_Q ker(I+P+Q)=omega(log n)
 + no recognized OET quotient
 + decide whether ker(I+P+Q) intersects {-1,2}^n.
@@ -189,24 +245,12 @@ A'=I+P+Q
 ### Levi-factor surface
 
 ```text
-connected cubic bipartite Levi graph of girth >= 6
+connected cubic bipartite Levi graph of girth>=6
 + square color classes
 + high rational nullity of its biadjacency matrix
 + no recognized OET quotient
 + General Factor degree sets {1}/{0,3}.
 ```
-
-## EXTERNAL ANTI-LOOP
-
-Open literature confirms that the generic representations are not free polynomial donors:
-
-- bipartite General Factor remains NP-hard in the singleton-list setting; `{1}/{0,3}` is a standard hard General-Factor pattern;
-- existence of a parallel class is NP-complete for general partial Steiner triple systems;
-- neither source is imported as an NP-hardness proof for the stricter regular high-nullity OET-irreducible JANUS residual.
-
-Relevant sources:
-- Gutin et al., Algorithmica 64(1), 112–125 (2012), DOI `10.1007/s00453-011-9548-8`, preprint `https://arxiv.org/abs/1106.3527`.
-- Li & Toulouse, Ars Combinatoria 80 (2006), 45–51.
 
 ## FORBIDDEN / DO NOT LOOP
 
@@ -214,83 +258,83 @@ Relevant sources:
 1. generic maximum-independent-set oracle;
 2. enumerate the -3 eigenspace when multiplicity is superlogarithmic;
 3. lambda_min=-3 => SAT;
-4. round an arbitrary -3 eigenvector into {-1,2};
-5. generic LP feasibility (x=1/3 * 1 is always a fractional solution);
-6. relax kernel equations to unrestricted GF(3) and call that Exact-One;
-7. call General Factor / dual perfect matching itself a solver;
-8. infer exact regular-carrier NP-hardness from general partial-STS hardness;
-9. reuse the OET high-nullity tower as an irreducible counterfamily;
-10. singular => imprimitive;
-11. nullity>=2 => imprimitive;
-12. SAT or {-1,2} kernel witness => imprimitive;
-13. assume OET-irreducible => primitive;
-14. claim P=NP from any special-carrier theorem without the full E8 contract.
+4. round arbitrary -3 eigenvectors to {-1,2};
+5. generic LP feasibility: x=(1/3)1 is always a fractional solution;
+6. unrestricted GF(3) kernel equations as Exact-One;
+7. General Factor / dual matching alone as solver;
+8. infer exact JANUS-carrier hardness from broader partial-STS hardness;
+9. reuse OET high-nullity towers as irreducible counterfamilies;
+10. singular or nullity>=2 => imprimitive;
+11. SAT or {-1,2} witness => imprimitive;
+12. OET-irreducible => primitive;
+13. det(A)!=0 => Boolean SAT;
+14. Delta<=6 + K1,4-free + >=3 triangles/vertex => bounded treewidth;
+15. import Kettani-2025 as a valid P=NP donor;
+16. claim P=NP from any special-carrier theorem without the full E8 contract.
 ```
 
 ## NEXT GATE
 
-Primary attack remains
-
 ```text
-R5_E9_HIGH_NULLITY_TWO_PERM_STRUCTURE_ATTACK_V1
+R5_E9_PRIMITIVE_NULLITY_GROWTH_GATE_V1
 ```
 
-but the naive block-system route has been narrowed.
+Question:
 
-Given
+For linear transitive
 
 ```text
-A'=I+P+Q,
-Gamma=<p,q> transitive,
-linear row-triple system,
-nullity_Q(A')=omega(log n),
+A=I+P+Q,
+Gamma=<p,q> primitive,
 OET quotient absent,
 ```
 
-admissible next progress is now one of:
+how large can
 
 ```text
-A. find an asymptotically scalable invariant tying large nullity to an exact quotient/decomposition;
-B. prove a block-system theorem only with additional explicit hypotheses not falsified by the 12_3 primitive example;
-C. construct a primitive family with unbounded/superlogarithmic rational nullity, killing the broader block-system route;
-D. prove an upper bound on nullity for primitive linear two-permutation carriers strong enough to force a quotient in the hard branch;
-E. prove a polynomial terminal directly for the primitive high-nullity residual;
-F. import a source-proved theorem that applies exactly to this stricter carrier.
+nu_Q(A)=dim_Q ker(I+P+Q)
 ```
 
-Most promising immediate mathematical target:
+be as a function of `n`?
+
+Material outcomes:
 
 ```text
-PRIMITIVE NULLITY GROWTH QUESTION
-
-For linear transitive A=I+P+Q with <p,q> primitive,
-how large can nullity_Q(A) be as a function of n?
+A. prove primitive => nullity_Q(A)=O(log n), closing primitive side by the existing kernel router;
+B. prove another polynomial nullity bound sufficient for the router after recursive decomposition;
+C. construct a primitive family with nullity_Q(A)=omega(log n), falsifying this route;
+D. show large nullity forces a different exact recognizable quotient/decomposition;
+E. prove a direct polynomial terminal for the primitive high-nullity residual.
 ```
 
-A theorem `primitive => nullity_Q(A)=O(log n)` would close the primitive side immediately by the existing kernel router. A primitive family with `nullity_Q(A)=omega(log n)` would falsify that route and force a different invariant. No such theorem is currently assumed.
+No asymptotic implication is currently assumed.
 
 ## RESTART RECEIPT
 
 ```text
-LAST MATERIAL THEOREM
-= LEVI GENERAL-FACTOR / DUAL MATCHING / TWO-PERMUTATION NORMAL FORM
-THEOREM COMMIT
+TWO-PERM NORMAL-FORM THEOREM COMMIT
 = 667eb0743f6440f363bbd62e3043240bc189833f
 
-NORMAL-FORM REGRESSION COMMIT
+NORMAL-FORM CHECKER COMMIT
 = dd4d1b587d0b7d902d356c0b3abe75f137ada2d5
 
-LAST MATERIAL FALSIFIER
-= PRIMITIVE LINEAR 12_3 CARRIER WITH nullity_Q=2 AND SAT WITNESS
-FALSIFIER NOTE COMMIT
+PRIMITIVE NULLITY-2 FALSIFIER NOTE
 = e779c827866f2947a02db9fc2c54b853df0490d4
-FALSIFIER CHECKER COMMIT
+
+PRIMITIVE NULLITY-2 CHECKER
 = 374fc406865909e8c3b9788c104f0a34a8cd9e32
-CI WIRING COMMIT
-= e21328ab452c34d3a4f25dbd9b056cf6469963b6
+
+KETTANI-2025 HOSTILE-DONOR AUDIT
+= 19b4f2724528d24ce0da61517c96d4a66657e7a2
+
+KETTANI-2025 EXECUTABLE FALSIFIER
+= bb47a3b19d2c39974afea71fbfc786f16a28f7d8
+
+CI WITH ALL THREE R5-E9 CHECKERS
+= de88fe45d8f5b061cb928c6fff70cdaf25cc964a
 
 CURRENT SCIENTIFIC FRONTIER
-= PRIMITIVE NULLITY GROWTH INSIDE OET-IRREDUCIBLE HIGH-NULLITY RESIDUAL
+= R5_E9_PRIMITIVE_NULLITY_GROWTH_GATE_V1
 
 D1
 = EMPTY
