@@ -5,16 +5,16 @@
 - **Repository:** `Hawkar-usls/Janus-Fundamentum`
 - **PR:** `#510`
 - **Branch:** `codex/r5-e8-direct-contract-20260921-82493a57`
-- **Live source HEAD:** `afc1ed0fe575b07ed2ea495d7ed7ca6eeb03a1aa`
-- **Source commit time:** `2026-09-27T22:55:00+03:00`
-- **Indexed changed scientific artifacts:** `665`
+- **Live source HEAD:** `efed2c7e3fcd9ab03407b02fe9ba6b01362e1719`
+- **Source commit time:** `2026-09-27T22:55:37+03:00`
+- **Indexed changed scientific artifacts:** `667`
 
 ## Continuity status
 
 - Semantic cache: `.janus/P_VS_NP_STREAM_CACHE_CURRENT.json`
 - Semantic source HEAD: `3091b7f0ef3b671ad56ea7bff718c8948be4b5e1`
 - Relation: **`LIVE_DESCENDS_FROM_SEMANTIC_CACHE`**
-- Commits after semantic checkpoint: `7`
+- Commits after semantic checkpoint: `9`
 
 ## Scientific firewall
 
@@ -78,6 +78,8 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `5a04104a2cb9` — 2026-09-27T22:42:17+03:00 — R5 E9: add EQ3 gauge-nullity UNSAT regression
 - `1312a57404e4` — 2026-09-27T22:42:30+03:00 — R5 E9: add EQ3 gauge-nullity UNSAT CI
 - `afc1ed0fe575` — 2026-09-27T22:55:00+03:00 — R5 E9: prove primitive linear-nullity local-swap family
+- `94b1075a4d29` — 2026-09-27T22:55:29+03:00 — R5 E9: add primitive local-swap family regression
+- `efed2c7e3fcd` — 2026-09-27T22:55:37+03:00 — R5 E9: add primitive local-swap family CI
 
 ## Transport / stale-bootstrap watch
 
@@ -108,6 +110,8 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 
 ## Recent non-cache commits
 
+- `efed2c7e3fcd` — 2026-09-27T22:55:37+03:00 — R5 E9: add primitive local-swap family CI
+- `94b1075a4d29` — 2026-09-27T22:55:29+03:00 — R5 E9: add primitive local-swap family regression
 - `afc1ed0fe575` — 2026-09-27T22:55:00+03:00 — R5 E9: prove primitive linear-nullity local-swap family
 - `1312a57404e4` — 2026-09-27T22:42:30+03:00 — R5 E9: add EQ3 gauge-nullity UNSAT CI
 - `5a04104a2cb9` — 2026-09-27T22:42:17+03:00 — R5 E9: add EQ3 gauge-nullity UNSAT regression
@@ -131,8 +135,6 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `12951a374240` — 2026-09-27T17:38:25+03:00 — R5 E9: add CI for Boben local state barrier
 - `53906e11c112` — 2026-09-27T17:38:15+03:00 — R5 E9: add checker for Boben local bond-dimension barrier
 - `ec00bb9c8181` — 2026-09-27T17:37:53+03:00 — R5 E9: prove local Boben semantic bond-dimension barrier
-- `9f1e093b97d7` — 2026-09-27T17:35:07+03:00 — R5 E9: sync checkpoint after Boben semantic audit
-- `43e3d0cd879d` — 2026-09-27T17:33:35+03:00 — R5 E9: add CI for Boben semantic audit
 
 ## Resume protocol
 
