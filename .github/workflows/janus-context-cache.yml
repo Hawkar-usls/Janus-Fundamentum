@@ -43,6 +43,10 @@ jobs:
             echo "skip=false" >> "$GITHUB_OUTPUT"
           fi
 
+      - name: Verify canonical semantic P-vs-NP resume checkpoint
+        if: steps.freshness.outputs.skip == 'false'
+        run: python tools/janus_stream_resume_cache.py verify
+
       - name: Generate deterministic externalized context
         if: steps.freshness.outputs.skip == 'false'
         run: python tools/janus_context_cache.py
