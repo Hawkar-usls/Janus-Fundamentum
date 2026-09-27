@@ -5,16 +5,16 @@
 - **Repository:** `Hawkar-usls/Janus-Fundamentum`
 - **PR:** `#510`
 - **Branch:** `codex/r5-e8-direct-contract-20260921-82493a57`
-- **Live source HEAD:** `fcd8815782736802a82f215495352eda0880361c`
-- **Source commit time:** `2026-09-27T17:32:46+03:00`
-- **Indexed changed scientific artifacts:** `643`
+- **Live source HEAD:** `43e3d0cd879de93585b946522f2daa754b62315c`
+- **Source commit time:** `2026-09-27T17:33:35+03:00`
+- **Indexed changed scientific artifacts:** `645`
 
 ## Continuity status
 
 - Semantic cache: `.janus/P_VS_NP_STREAM_CACHE_CURRENT.json`
 - Semantic source HEAD: `65870a285b36a645d7407c16d759fb6cd5b37421`
 - Relation: **`LIVE_DESCENDS_FROM_SEMANTIC_CACHE`**
-- Commits after semantic checkpoint: `45`
+- Commits after semantic checkpoint: `47`
 
 ## Scientific firewall
 
@@ -118,6 +118,8 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `b482f59a29a1` — 2026-09-27T17:27:31+03:00 — R5 E9: add CI for commuting two-permutation terminal
 - `191797d3a325` — 2026-09-27T17:28:43+03:00 — R5 E9: sync checkpoint after commuting exact terminal
 - `fcd881578273` — 2026-09-27T17:32:46+03:00 — R5 E9: audit Boben reductions against Exact-One semantics
+- `a3c10fffa342` — 2026-09-27T17:33:23+03:00 — R5 E9: add executable Boben semantic counterexamples
+- `43e3d0cd879d` — 2026-09-27T17:33:35+03:00 — R5 E9: add CI for Boben semantic audit
 
 ## Transport / stale-bootstrap watch
 
@@ -148,6 +150,8 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 
 ## Recent non-cache commits
 
+- `43e3d0cd879d` — 2026-09-27T17:33:35+03:00 — R5 E9: add CI for Boben semantic audit
+- `a3c10fffa342` — 2026-09-27T17:33:23+03:00 — R5 E9: add executable Boben semantic counterexamples
 - `fcd881578273` — 2026-09-27T17:32:46+03:00 — R5 E9: audit Boben reductions against Exact-One semantics
 - `191797d3a325` — 2026-09-27T17:28:43+03:00 — R5 E9: sync checkpoint after commuting exact terminal
 - `b482f59a29a1` — 2026-09-27T17:27:31+03:00 — R5 E9: add CI for commuting two-permutation terminal
@@ -171,8 +175,6 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `dd4d1b587d0b` — 2026-09-27T16:35:04+03:00 — R5 E9: add executable checker for Levi and two-permutation normal form
 - `667eb0743f64` — 2026-09-27T16:34:07+03:00 — R5 E9: add Levi general-factor and two-permutation normal form
 - `c3d67f7d1ca4` — 2026-09-27T16:23:28+03:00 — R5 E9 audit n3 perfect-matching hardness boundary
-- `0f9d44820b84` — 2026-09-27T16:19:08+03:00 — Add CI for Hoffman coclique equivalence
-- `f50771e35f76` — 2026-09-27T16:18:52+03:00 — Add Hoffman coclique equivalence regression checker
 
 ## Resume protocol
 
