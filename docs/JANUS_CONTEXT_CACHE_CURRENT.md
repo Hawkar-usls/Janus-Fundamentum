@@ -5,16 +5,16 @@
 - **Repository:** `Hawkar-usls/Janus-Fundamentum`
 - **PR:** `#510`
 - **Branch:** `codex/r5-e8-direct-contract-20260921-82493a57`
-- **Live source HEAD:** `6ddc22ae29a915ce51217c16de2579a366f74916`
-- **Source commit time:** `2026-09-27T22:41:43+03:00`
-- **Indexed changed scientific artifacts:** `662`
+- **Live source HEAD:** `5a04104a2cb930b02159691bdd76868e45ebed6d`
+- **Source commit time:** `2026-09-27T22:42:17+03:00`
+- **Indexed changed scientific artifacts:** `663`
 
 ## Continuity status
 
 - Semantic cache: `.janus/P_VS_NP_STREAM_CACHE_CURRENT.json`
 - Semantic source HEAD: `3091b7f0ef3b671ad56ea7bff718c8948be4b5e1`
 - Relation: **`LIVE_DESCENDS_FROM_SEMANTIC_CACHE`**
-- Commits after semantic checkpoint: `4`
+- Commits after semantic checkpoint: `5`
 
 ## Scientific firewall
 
@@ -75,6 +75,7 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `9d4047896b1d` — 2026-09-27T21:22:21+03:00 — R5 E9: freeze singular UNSAT rank-14 countercontrol
 - `0211dfa54dae` — 2026-09-27T21:22:39+03:00 — R5 E9: add singular UNSAT exact regression
 - `6ddc22ae29a9` — 2026-09-27T22:41:43+03:00 — R5 E9: prove EQ3 gauge-nullity UNSAT family
+- `5a04104a2cb9` — 2026-09-27T22:42:17+03:00 — R5 E9: add EQ3 gauge-nullity UNSAT regression
 
 ## Transport / stale-bootstrap watch
 
@@ -105,6 +106,7 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 
 ## Recent non-cache commits
 
+- `5a04104a2cb9` — 2026-09-27T22:42:17+03:00 — R5 E9: add EQ3 gauge-nullity UNSAT regression
 - `6ddc22ae29a9` — 2026-09-27T22:41:43+03:00 — R5 E9: prove EQ3 gauge-nullity UNSAT family
 - `0211dfa54dae` — 2026-09-27T21:22:39+03:00 — R5 E9: add singular UNSAT exact regression
 - `9d4047896b1d` — 2026-09-27T21:22:21+03:00 — R5 E9: freeze singular UNSAT rank-14 countercontrol
@@ -129,7 +131,6 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `43e3d0cd879d` — 2026-09-27T17:33:35+03:00 — R5 E9: add CI for Boben semantic audit
 - `a3c10fffa342` — 2026-09-27T17:33:23+03:00 — R5 E9: add executable Boben semantic counterexamples
 - `fcd881578273` — 2026-09-27T17:32:46+03:00 — R5 E9: audit Boben reductions against Exact-One semantics
-- `191797d3a325` — 2026-09-27T17:28:43+03:00 — R5 E9: sync checkpoint after commuting exact terminal
 
 ## Resume protocol
 
