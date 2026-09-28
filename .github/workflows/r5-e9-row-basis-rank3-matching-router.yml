@@ -1,0 +1,46 @@
+name: R5 E9 Row-Basis Rank3 Matching Router
+
+on:
+  push:
+    branches:
+      - codex/r5-e8-direct-contract-20260921-82493a57
+    paths:
+      - "research/R5_E9_ROW_BASIS_RANK3_MATCHING_ROUTER_2026-09-28_v1.0.md"
+      - "experiments/r5_e9_row_basis_rank3_matching_router.py"
+      - ".github/workflows/r5-e9-row-basis-rank3-matching-router.yml"
+  pull_request:
+    paths:
+      - "research/R5_E9_ROW_BASIS_RANK3_MATCHING_ROUTER_2026-09-28_v1.0.md"
+      - "experiments/r5_e9_row_basis_rank3_matching_router.py"
+      - ".github/workflows/r5-e9-row-basis-rank3-matching-router.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Compile checker
+        run: python -m py_compile experiments/r5_e9_row_basis_rank3_matching_router.py
+      - name: Replay exact router regression
+        run: |
+          python experiments/r5_e9_row_basis_rank3_matching_router.py > /tmp/rank3-router.json
+          python - <<'PY'
+          import json
+          x=json.load(open('/tmp/rank3-router.json'))
+          assert x['status']=='PASS_ROW_BASIS_RANK3_MATCHING_ROUTER'
+          assert x['theorem']['basis_router']=='2^h poly(n)'
+          assert x['theorem']['bound']=='h <= delta/2'
+          assert x['theorem']['universal_exponent']=='<= 2n/5'
+          assert x['E8_D1']=='EMPTY'
+          assert x['P_VS_NP']=='OPEN'
+          print('R5_E9_ROW_BASIS_RANK3_MATCHING_ROUTER=PASS')
+          PY
