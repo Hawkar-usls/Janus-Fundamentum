@@ -5,16 +5,16 @@
 - **Repository:** `Hawkar-usls/Janus-Fundamentum`
 - **PR:** `#510`
 - **Branch:** `codex/r5-e8-direct-contract-20260921-82493a57`
-- **Live source HEAD:** `a0dd1e8d113504045a9d145c17f81a5e011944aa`
-- **Source commit time:** `2026-09-28T15:42:56+03:00`
-- **Indexed changed scientific artifacts:** `771`
+- **Live source HEAD:** `cd4ee9ab1d4310f1b94fdf722b0e7955fa821fb2`
+- **Source commit time:** `2026-09-28T16:11:50+03:00`
+- **Indexed changed scientific artifacts:** `772`
 
 ## Continuity status
 
 - Semantic cache: `.janus/P_VS_NP_STREAM_CACHE_CURRENT.json`
 - Semantic source HEAD: `8e940bc0e949dabf589a033479f7afce93e1ef22`
 - Relation: **`LIVE_DESCENDS_FROM_SEMANTIC_CACHE`**
-- Commits after semantic checkpoint: `5`
+- Commits after semantic checkpoint: `6`
 
 ## Scientific firewall
 
@@ -76,6 +76,7 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `2f01102867a2` — 2026-09-28T15:42:04+03:00 — R5 E9: freeze rooted F7* source controls
 - `9d73742c3b32` — 2026-09-28T15:42:43+03:00 — R5 E9: add exact rooted F7* source-control census
 - `a0dd1e8d1135` — 2026-09-28T15:42:56+03:00 — R5 E9: add CI for rooted F7* source controls
+- `cd4ee9ab1d43` — 2026-09-28T16:11:50+03:00 — R5 E9: extend syndrome terminal to single-odd dual-Fano criterion
 
 ## Transport / stale-bootstrap watch
 
@@ -106,6 +107,7 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 
 ## Recent non-cache commits
 
+- `cd4ee9ab1d43` — 2026-09-28T16:11:50+03:00 — R5 E9: extend syndrome terminal to single-odd dual-Fano criterion
 - `a0dd1e8d1135` — 2026-09-28T15:42:56+03:00 — R5 E9: add CI for rooted F7* source controls
 - `9d73742c3b32` — 2026-09-28T15:42:43+03:00 — R5 E9: add exact rooted F7* source-control census
 - `2f01102867a2` — 2026-09-28T15:42:04+03:00 — R5 E9: freeze rooted F7* source controls
@@ -130,7 +132,6 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `8df0c2d1d571` — 2026-09-28T14:52:22+03:00 — R5 E9: add CI for bilinear witness-selection rank barrier
 - `25891fd18187` — 2026-09-28T14:52:00+03:00 — R5 E9: add bilinear Hankel-rank regression
 - `8bda813d4e05` — 2026-09-28T14:51:40+03:00 — R5 E9: prove exponential bilinear witness-selection Hankel rank barrier
-- `a5bfd13bdce8` — 2026-09-28T14:49:50+03:00 — R5 E9: add executable PolaritySAT forced-assignment falsifier
 
 ## Resume protocol
 
