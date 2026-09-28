@@ -2,10 +2,12 @@
 """Exact regression for the PG15 rational-kernel chamber-greedy barrier.
 
 No LP solver is used. The strict local-minimum claim handles coincident /
-projectively parallel kernel hyperplanes explicitly.
+projectively parallel kernel hyperplanes explicitly. Boundary distances are
+certified by exhaustive enumeration of the 15-choose-5 Exact-One witnesses.
 """
 
 from fractions import Fraction
+from itertools import combinations
 from math import gcd
 
 ROWS = [
@@ -15,28 +17,16 @@ ROWS = [
 ]
 
 B = [
-    [-1,-1, 0, 0],
-    [-1, 0,-1, 0],
-    [ 2, 1, 1, 0],
-    [-1,-1,-1, 1],
-    [-1,-1, 0, 0],
-    [-1, 0,-1, 0],
-    [-1, 0, 0,-1],
-    [ 1, 0, 0, 0],
-    [ 1, 0, 1,-1],
-    [ 1, 1, 0,-1],
-    [ 0, 0, 0, 1],
-    [ 1, 0, 0, 0],
-    [ 0, 1, 0, 0],
-    [ 0, 0, 1, 0],
-    [ 0, 0, 0, 1],
+    [-1,-1, 0, 0],[-1, 0,-1, 0],[ 2, 1, 1, 0],[-1,-1,-1, 1],
+    [-1,-1, 0, 0],[-1, 0,-1, 0],[-1, 0, 0,-1],[ 1, 0, 0, 0],
+    [ 1, 0, 1,-1],[ 1, 1, 0,-1],[ 0, 0, 0, 1],[ 1, 0, 0, 0],
+    [ 0, 1, 0, 0],[ 0, 0, 1, 0],[ 0, 0, 0, 1],
 ]
 
 ALPHA = [-7, 8, 8, -8]
 EXPECTED_Y = [-1,-1,2,-17,-1,-1,15,-7,9,9,-8,-7,8,8,-8]
 TOPE = "--+---+-++--++-"
 
-# 0-based positive coordinate -> exact positive-dependence support after flipping it.
 CERTS = {
     2:  (0,1,2),
     6:  (6,7,10),
@@ -45,8 +35,6 @@ CERTS = {
     12: (0,7,12),
     13: (1,7,13),
 }
-
-WITNESS = {0,4,6,8,13}
 
 
 def incidence_matrix():
@@ -73,11 +61,8 @@ def rank_q(M):
 
 
 def matmul(A, Bm):
-    return [
-        [sum(A[i][k] * Bm[k][j] for k in range(len(Bm)))
-         for j in range(len(Bm[0]))]
-        for i in range(len(A))
-    ]
+    return [[sum(A[i][k] * Bm[k][j] for k in range(len(Bm)))
+             for j in range(len(Bm[0]))] for i in range(len(A))]
 
 
 def matvec(M, x):
@@ -108,9 +93,17 @@ def projective_key(row):
     return tuple(q)
 
 
+def exact_one_witnesses(A):
+    out = []
+    for C in combinations(range(15), 5):
+        S = set(C)
+        if all(sum(row[j] for j in S) == 1 for row in A):
+            out.append(S)
+    return out
+
+
 def main():
     A = incidence_matrix()
-
     assert all(sum(row) == 3 for row in A)
     assert all(sum(A[i][j] for i in range(15)) == 3 for j in range(15))
     assert rank_q(A) == 11
@@ -126,8 +119,7 @@ def main():
     m1 = m2 = 0
     for row in A:
         vals = [y[j] for j, a in enumerate(row) if a]
-        assert len(vals) == 3
-        assert sum(vals) == 0
+        assert len(vals) == 3 and sum(vals) == 0
         q = sum(v > 0 for v in vals)
         assert q in (1, 2)
         if q == 1:
@@ -140,28 +132,20 @@ def main():
     positive = {i for i, s in enumerate(TOPE) if s == '+'}
     assert positive == set(CERTS)
 
-    # Build exact geometric hyperplane classes: proportional kernel rows define
-    # the same central hyperplane and are crossed together.
     classes = {}
     for i, row in enumerate(B):
         classes.setdefault(projective_key(row), []).append(i)
-    projective_classes = list(classes.values())
-    multi = sorted(tuple(C) for C in projective_classes if len(C) > 1)
+    projective_classes = [set(v) for v in classes.values()]
+    multi = sorted(tuple(sorted(C)) for C in projective_classes if len(C) > 1)
     assert multi == [(0,4), (1,5), (7,11), (10,14)]
 
-    # Every positive coordinate at the trap is a singleton hyperplane class.
-    # Every non-singleton class is entirely negative, so crossing such a class
-    # can only increase p, never lower it.
     for C in projective_classes:
-        pos_in_class = [i for i in C if i in positive]
+        pos_in_class = C & positive
         if pos_in_class:
             assert len(C) == 1
         else:
             assert all(TOPE[i] == '-' for i in C)
 
-    # The only geometric hyperplane crossings that could lower p are therefore
-    # the six positive singleton classes. Each is blocked by an exact positive
-    # dependence among signed normals after the proposed flip.
     for flip, support in CERTS.items():
         desired = list(TOPE)
         assert desired[flip] == '+'
@@ -170,13 +154,40 @@ def main():
         zero = [sum(signed[i][j] for i in support) for j in range(4)]
         assert zero == [0, 0, 0, 0], (flip, support, zero)
 
-    # A strictly better global chamber exists because the frozen instance is SAT.
-    x = [1 if i in WITNESS else 0 for i in range(15)]
-    assert matvec(A, x) == [1] * 15
-    y_star = [3 * z - 1 for z in x]
-    assert matvec(A, y_star) == [0] * 15
-    assert all(z != 0 for z in y_star)
-    assert sum(z > 0 for z in y_star) == 5
+    witnesses = exact_one_witnesses(A)
+    assert len(witnesses) == 4
+    assert {tuple(sorted(S)) for S in witnesses} == {
+        (0,4,6,8,13),
+        (1,5,6,9,12),
+        (2,7,8,9,11),
+        (2,10,12,13,14),
+    }
+
+    hamming_distances = []
+    projective_separations = []
+    for S in witnesses:
+        x = [1 if i in S else 0 for i in range(15)]
+        assert matvec(A, x) == [1] * 15
+        y_star = [3 * z - 1 for z in x]
+        assert matvec(A, y_star) == [0] * 15
+        boundary = signs_of(y_star)
+        assert boundary.count('+') == 5
+
+        diff = {i for i in range(15) if boundary[i] != TOPE[i]}
+        assert all(not (diff & C) or C <= diff for C in projective_classes)
+        hamming_distances.append(len(diff))
+        projective_separations.append(sum(1 for C in projective_classes if C <= diff))
+
+    assert hamming_distances == [5,5,5,5]
+    assert projective_separations == [4,4,4,4]
+
+    # In a real hyperplane arrangement, chamber-graph distance equals the
+    # number of separating geometric hyperplanes: a generic segment crosses
+    # each separating hyperplane once and no nonseparating hyperplane.
+    min_hamming_to_boundary = min(hamming_distances)
+    min_chamber_distance_to_boundary = min(projective_separations)
+    assert min_hamming_to_boundary == 5
+    assert min_chamber_distance_to_boundary == 4
 
     print({
         'status': 'PASS_EXACT_NON_GLOBAL_GEOMETRIC_CHAMBER_LOCAL_MINIMUM',
@@ -190,7 +201,9 @@ def main():
         'non_singleton_negative_classes': len(multi),
         'potentially_improving_singleton_classes': len(CERTS),
         'exact_blocking_certificates': len(CERTS),
-        'global_boundary_positive_count': 5,
+        'boundary_chambers': len(witnesses),
+        'min_hamming_distance_to_boundary': min_hamming_to_boundary,
+        'min_chamber_graph_distance_to_boundary': min_chamber_distance_to_boundary,
         'adjacent_chamber_greedy_descent': 'FALSIFIED',
         'E8_D1': 'EMPTY',
         'P_VS_NP': 'OPEN',
