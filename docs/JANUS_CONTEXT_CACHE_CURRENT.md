@@ -5,16 +5,16 @@
 - **Repository:** `Hawkar-usls/Janus-Fundamentum`
 - **PR:** `#510`
 - **Branch:** `codex/r5-e8-direct-contract-20260921-82493a57`
-- **Live source HEAD:** `9468c6a9137fe8ba7f5a6d8f74812545b0672b1f`
-- **Source commit time:** `2026-09-29T00:46:56+03:00`
-- **Indexed changed scientific artifacts:** `850`
+- **Live source HEAD:** `86a4a787925353cc6c1a17cc1f842164f88bb3af`
+- **Source commit time:** `2026-09-29T00:47:39+03:00`
+- **Indexed changed scientific artifacts:** `851`
 
 ## Continuity status
 
 - Semantic cache: `.janus/P_VS_NP_STREAM_CACHE_CURRENT.json`
 - Semantic source HEAD: `05563fb285a1b2a4ae62d2a6aab0143bdbe52899`
 - Relation: **`LIVE_DESCENDS_FROM_SEMANTIC_CACHE`**
-- Commits after semantic checkpoint: `73`
+- Commits after semantic checkpoint: `74`
 
 ## Scientific firewall
 
@@ -152,6 +152,7 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `260d77cc956a` — 2026-09-29T00:43:08+03:00 — R5 E9: add CI for graphic-kernel Z3 solver island
 - `b605330bda4b` — 2026-09-29T00:46:12+03:00 — R5 E9: close exact graphic-kernel recognition via network matrices
 - `9468c6a9137f` — 2026-09-29T00:46:56+03:00 — R5 E9: add checker for exact graphic-kernel network router
+- `86a4a7879253` — 2026-09-29T00:47:39+03:00 — R5 E9: add CI for exact graphic-kernel network router
 
 ## Transport / stale-bootstrap watch
 
@@ -182,6 +183,7 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 
 ## Recent non-cache commits
 
+- `86a4a7879253` — 2026-09-29T00:47:39+03:00 — R5 E9: add CI for exact graphic-kernel network router
 - `9468c6a9137f` — 2026-09-29T00:46:56+03:00 — R5 E9: add checker for exact graphic-kernel network router
 - `b605330bda4b` — 2026-09-29T00:46:12+03:00 — R5 E9: close exact graphic-kernel recognition via network matrices
 - `260d77cc956a` — 2026-09-29T00:43:08+03:00 — R5 E9: add CI for graphic-kernel Z3 solver island
@@ -206,7 +208,6 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `75f7ac08250f` — 2026-09-28T23:17:59+03:00 — R5 E9: add exact RKPR-survival regression for two-edge SAT lifts
 - `36577823df8b` — 2026-09-28T23:16:58+03:00 — R5 E9: prove two-edge SAT lift survives RKPR with linear nullity
 - `c7fb34355b27` — 2026-09-28T22:52:50+03:00 — R5 E9: sharpen projective parity filter with Smith torsion identity
-- `afe2e97cc3df` — 2026-09-28T22:46:23+03:00 — R5 E9: add CI for projective parity filter
 
 ## Resume protocol
 
