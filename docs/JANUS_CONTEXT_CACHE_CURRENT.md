@@ -5,16 +5,16 @@
 - **Repository:** `Hawkar-usls/Janus-Fundamentum`
 - **PR:** `#510`
 - **Branch:** `codex/r5-e8-direct-contract-20260921-82493a57`
-- **Live source HEAD:** `ffa4e5ba58ee4d72d241aaba7f77c2e80f271e5e`
-- **Source commit time:** `2026-09-28T06:09:52+03:00`
-- **Indexed changed scientific artifacts:** `728`
+- **Live source HEAD:** `7a8421d5802a9c438b48fe06a1494b2c7f060370`
+- **Source commit time:** `2026-09-28T06:19:34+03:00`
+- **Indexed changed scientific artifacts:** `733`
 
 ## Continuity status
 
 - Semantic cache: `.janus/P_VS_NP_STREAM_CACHE_CURRENT.json`
 - Semantic source HEAD: `7a1ca3a9e52ba360cdb700306ca3fc58746aa27f`
 - Relation: **`LIVE_DESCENDS_FROM_SEMANTIC_CACHE`**
-- Commits after semantic checkpoint: `24`
+- Commits after semantic checkpoint: `29`
 
 ## Scientific firewall
 
@@ -105,6 +105,11 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `c4d0ec5f7ed2` — 2026-09-28T06:09:22+03:00 — R5 E9 classify single-variable overlay projection as DP
 - `ec0d87a9e4e9` — 2026-09-28T06:09:40+03:00 — R5 E9 add single-variable DP projection regression
 - `ffa4e5ba58ee` — 2026-09-28T06:09:52+03:00 — R5 E9 validate single-variable DP anti-loop
+- `575bccc3db21` — 2026-09-28T06:18:41+03:00 — R5 E9: classify one-coherence cross-layer pivot as exact DP
+- `3dde3e11a403` — 2026-09-28T06:18:52+03:00 — R5 E9: add checker for one-coherence DP exactness
+- `39df19f4339c` — 2026-09-28T06:19:05+03:00 — R5 E9 seal C4-free source-incidence pivot barrier
+- `5a1ac05608a7` — 2026-09-28T06:19:22+03:00 — R5 E9 add C4-free incidence barrier regression
+- `7a8421d5802a` — 2026-09-28T06:19:34+03:00 — R5 E9 validate C4-free incidence pivot barrier
 
 ## Transport / stale-bootstrap watch
 
@@ -135,6 +140,11 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 
 ## Recent non-cache commits
 
+- `7a8421d5802a` — 2026-09-28T06:19:34+03:00 — R5 E9 validate C4-free incidence pivot barrier
+- `5a1ac05608a7` — 2026-09-28T06:19:22+03:00 — R5 E9 add C4-free incidence barrier regression
+- `39df19f4339c` — 2026-09-28T06:19:05+03:00 — R5 E9 seal C4-free source-incidence pivot barrier
+- `3dde3e11a403` — 2026-09-28T06:18:52+03:00 — R5 E9: add checker for one-coherence DP exactness
+- `575bccc3db21` — 2026-09-28T06:18:41+03:00 — R5 E9: classify one-coherence cross-layer pivot as exact DP
 - `ffa4e5ba58ee` — 2026-09-28T06:09:52+03:00 — R5 E9 validate single-variable DP anti-loop
 - `ec0d87a9e4e9` — 2026-09-28T06:09:40+03:00 — R5 E9 add single-variable DP projection regression
 - `c4d0ec5f7ed2` — 2026-09-28T06:09:22+03:00 — R5 E9 classify single-variable overlay projection as DP
@@ -155,11 +165,6 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `86233194dd62` — 2026-09-28T05:46:04+03:00 — E9 wire EQ3 middle-nullity slab replay
 - `e21763bc52eb` — 2026-09-28T05:45:54+03:00 — E9 add EQ3 middle-nullity slab checker
 - `3232a99f1759` — 2026-09-28T05:45:26+03:00 — E9 seal EQ3 middle-nullity hardness slab
-- `8b5a12ea3c7f` — 2026-09-28T05:40:09+03:00 — R5 E9: add CI for row-basis rank3 matching router
-- `2505ad65bc7a` — 2026-09-28T05:39:57+03:00 — R5 E9: add regression for row-basis rank3 matching router
-- `fda43e701a71` — 2026-09-28T05:39:25+03:00 — R5 E9: sync semantic checkpoint to cross-layer global pivot
-- `b9430f8ce33c` — 2026-09-28T05:39:02+03:00 — R5 E9: add actual-row-basis rank3 matching FPT router
-- `7a1ca3a9e52b` — 2026-09-28T05:09:13+03:00 — R5 E9: add CI for defect-free UNSAT nullity amplifier
 
 ## Resume protocol
 
