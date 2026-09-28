@@ -5,16 +5,16 @@
 - **Repository:** `Hawkar-usls/Janus-Fundamentum`
 - **PR:** `#510`
 - **Branch:** `codex/r5-e8-direct-contract-20260921-82493a57`
-- **Live source HEAD:** `f1bdc0616e38f6f3c666bc084d1eeb91ff7fabd5`
-- **Source commit time:** `2026-09-28T14:57:52+03:00`
-- **Indexed changed scientific artifacts:** `756`
+- **Live source HEAD:** `b9e7fd4f58ab50a74098c43a940976502c02be39`
+- **Source commit time:** `2026-09-28T15:10:02+03:00`
+- **Indexed changed scientific artifacts:** `757`
 
 ## Continuity status
 
 - Semantic cache: `.janus/P_VS_NP_STREAM_CACHE_CURRENT.json`
 - Semantic source HEAD: `ad3ccb96cbd44c5f0194f1775a1424d758897b04`
 - Relation: **`LIVE_DESCENDS_FROM_SEMANTIC_CACHE`**
-- Commits after semantic checkpoint: `1`
+- Commits after semantic checkpoint: `2`
 
 ## Scientific firewall
 
@@ -79,6 +79,7 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 ## Commits newer than semantic checkpoint — MUST INGEST
 
 - `f1bdc0616e38` — 2026-09-28T14:57:52+03:00 — R5 E9: synchronize semantic checkpoint after global representation barriers
+- `b9e7fd4f58ab` — 2026-09-28T15:10:02+03:00 — R5 E9: prove augmented-regular-matroid polynomial syndrome terminal
 
 ## Transport / stale-bootstrap watch
 
@@ -109,6 +110,7 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 
 ## Recent non-cache commits
 
+- `b9e7fd4f58ab` — 2026-09-28T15:10:02+03:00 — R5 E9: prove augmented-regular-matroid polynomial syndrome terminal
 - `f1bdc0616e38` — 2026-09-28T14:57:52+03:00 — R5 E9: synchronize semantic checkpoint after global representation barriers
 - `ad3ccb96cbd4` — 2026-09-28T14:54:59+03:00 — R5 E9: add CI for PolaritySAT hostile donor falsifier
 - `ba193be31c95` — 2026-09-28T14:54:20+03:00 — R5 E9: add CI for singular prime h-perfect relaxation gap
@@ -133,7 +135,6 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `5e283d0d0b24` — 2026-09-28T06:27:29+03:00 — R5 E9 seal sparse-incomparability high-girth pivot barrier
 - `30ba01698359` — 2026-09-28T06:24:27+03:00 — R5 E9: add CI for single-variable DP biclique classification
 - `958155ec7672` — 2026-09-28T06:21:25+03:00 — R5 E9: add checker for single-variable DP biclique theorem
-- `f1797d961846` — 2026-09-28T06:21:09+03:00 — R5 E9: prove whole-variable coherence path elimination equals DP biclique
 
 ## Resume protocol
 
