@@ -5,16 +5,16 @@
 - **Repository:** `Hawkar-usls/Janus-Fundamentum`
 - **PR:** `#510`
 - **Branch:** `codex/r5-e8-direct-contract-20260921-82493a57`
-- **Live source HEAD:** `3bf5f4708c7235ca349b38712bfdf295fb2cf560`
-- **Source commit time:** `2026-09-29T00:20:15+03:00`
-- **Indexed changed scientific artifacts:** `836`
+- **Live source HEAD:** `6743f72cba8d850040a6026875df71ff668a8a5b`
+- **Source commit time:** `2026-09-29T00:23:19+03:00`
+- **Indexed changed scientific artifacts:** `837`
 
 ## Continuity status
 
 - Semantic cache: `.janus/P_VS_NP_STREAM_CACHE_CURRENT.json`
 - Semantic source HEAD: `05563fb285a1b2a4ae62d2a6aab0143bdbe52899`
 - Relation: **`LIVE_DESCENDS_FROM_SEMANTIC_CACHE`**
-- Commits after semantic checkpoint: `59`
+- Commits after semantic checkpoint: `60`
 
 ## Scientific firewall
 
@@ -138,6 +138,7 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `e10bd1f522eb` — 2026-09-29T00:19:35+03:00 — R5 E9: prove connected commuting two-perm nullity collapse
 - `a37dc3f4559f` — 2026-09-29T00:20:00+03:00 — R5 E9: add exact checker for commuting nullity collapse
 - `3bf5f4708c72` — 2026-09-29T00:20:15+03:00 — R5 E9: add CI for commuting nullity collapse
+- `6743f72cba8d` — 2026-09-29T00:23:19+03:00 — R5 E9: prove linear cubic trace rank nullity bound
 
 ## Transport / stale-bootstrap watch
 
@@ -168,6 +169,7 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 
 ## Recent non-cache commits
 
+- `6743f72cba8d` — 2026-09-29T00:23:19+03:00 — R5 E9: prove linear cubic trace rank nullity bound
 - `3bf5f4708c72` — 2026-09-29T00:20:15+03:00 — R5 E9: add CI for commuting nullity collapse
 - `a37dc3f4559f` — 2026-09-29T00:20:00+03:00 — R5 E9: add exact checker for commuting nullity collapse
 - `e10bd1f522eb` — 2026-09-29T00:19:35+03:00 — R5 E9: prove connected commuting two-perm nullity collapse
@@ -192,7 +194,6 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `d8e60cc564d2` — 2026-09-28T21:35:08+03:00 — R5 E9: add exact geometric tope-radius stress controls
 - `29b9f62a0fb2` — 2026-09-28T21:24:31+03:00 — R5 E9: add CI for raw-radius 2-lift amplifier
 - `5b802dab7ee7` — 2026-09-28T21:24:23+03:00 — R5 E9: add raw-radius 2-lift amplifier regression
-- `71be1c58613f` — 2026-09-28T21:23:44+03:00 — R5 E9: prove raw tope-radius 2-lift amplifier
 
 ## Resume protocol
 
