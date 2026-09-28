@@ -5,16 +5,16 @@
 - **Repository:** `Hawkar-usls/Janus-Fundamentum`
 - **PR:** `#510`
 - **Branch:** `codex/r5-e8-direct-contract-20260921-82493a57`
-- **Live source HEAD:** `d7256243325ad5e01b7dc6cde93894106e0a1740`
-- **Source commit time:** `2026-09-29T01:14:00+03:00`
-- **Indexed changed scientific artifacts:** `852`
+- **Live source HEAD:** `3d3b68e7b9307b2b507d4e42343e9fa0326fbd0e`
+- **Source commit time:** `2026-09-29T01:20:48+03:00`
+- **Indexed changed scientific artifacts:** `855`
 
 ## Continuity status
 
 - Semantic cache: `.janus/P_VS_NP_STREAM_CACHE_CURRENT.json`
 - Semantic source HEAD: `05563fb285a1b2a4ae62d2a6aab0143bdbe52899`
 - Relation: **`LIVE_DESCENDS_FROM_SEMANTIC_CACHE`**
-- Commits after semantic checkpoint: `75`
+- Commits after semantic checkpoint: `78`
 
 ## Scientific firewall
 
@@ -154,6 +154,9 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `9468c6a9137f` — 2026-09-29T00:46:56+03:00 — R5 E9: add checker for exact graphic-kernel network router
 - `86a4a7879253` — 2026-09-29T00:47:39+03:00 — R5 E9: add CI for exact graphic-kernel network router
 - `d7256243325a` — 2026-09-29T01:14:00+03:00 — R5 E9: add exact cycle-kernel flow solver router
+- `7ecda3714cbc` — 2026-09-29T01:14:30+03:00 — R5 E9: add cycle-kernel flow router regression
+- `669d849f579e` — 2026-09-29T01:14:37+03:00 — R5 E9: add CI for cycle-kernel flow router
+- `3d3b68e7b930` — 2026-09-29T01:20:48+03:00 — R5 E9: add bidirected cycle-kernel binet router
 
 ## Transport / stale-bootstrap watch
 
@@ -184,6 +187,9 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 
 ## Recent non-cache commits
 
+- `3d3b68e7b930` — 2026-09-29T01:20:48+03:00 — R5 E9: add bidirected cycle-kernel binet router
+- `669d849f579e` — 2026-09-29T01:14:37+03:00 — R5 E9: add CI for cycle-kernel flow router
+- `7ecda3714cbc` — 2026-09-29T01:14:30+03:00 — R5 E9: add cycle-kernel flow router regression
 - `d7256243325a` — 2026-09-29T01:14:00+03:00 — R5 E9: add exact cycle-kernel flow solver router
 - `86a4a7879253` — 2026-09-29T00:47:39+03:00 — R5 E9: add CI for exact graphic-kernel network router
 - `9468c6a9137f` — 2026-09-29T00:46:56+03:00 — R5 E9: add checker for exact graphic-kernel network router
@@ -206,9 +212,6 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `3d7a21320533` — 2026-09-28T23:54:11+03:00 — R5 E9: add CI for primitive local-swap barrier
 - `d9d54a1f2bd3` — 2026-09-28T23:54:05+03:00 — R5 E9: add exact primitive local-swap barrier checker
 - `beaf84b5ed06` — 2026-09-28T23:53:35+03:00 — R5 E9: prove primitive linear-nullity local-swap barrier
-- `3d572a8026d1` — 2026-09-28T23:18:07+03:00 — R5 E9: add CI for two-edge SAT RKPR survival
-- `75f7ac08250f` — 2026-09-28T23:17:59+03:00 — R5 E9: add exact RKPR-survival regression for two-edge SAT lifts
-- `36577823df8b` — 2026-09-28T23:16:58+03:00 — R5 E9: prove two-edge SAT lift survives RKPR with linear nullity
 
 ## Resume protocol
 
