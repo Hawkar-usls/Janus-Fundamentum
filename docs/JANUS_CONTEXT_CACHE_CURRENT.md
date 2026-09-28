@@ -5,16 +5,16 @@
 - **Repository:** `Hawkar-usls/Janus-Fundamentum`
 - **PR:** `#510`
 - **Branch:** `codex/r5-e8-direct-contract-20260921-82493a57`
-- **Live source HEAD:** `81fb943743ec874f6b955e5cf5d6a8500c81b3f8`
-- **Source commit time:** `2026-09-28T05:08:33+03:00`
-- **Indexed changed scientific artifacts:** `703`
+- **Live source HEAD:** `7a1ca3a9e52ba360cdb700306ca3fc58746aa27f`
+- **Source commit time:** `2026-09-28T05:09:13+03:00`
+- **Indexed changed scientific artifacts:** `705`
 
 ## Continuity status
 
 - Semantic cache: `.janus/P_VS_NP_STREAM_CACHE_CURRENT.json`
 - Semantic source HEAD: `d782ea4b1c3c55c7b101d821a55e25a3472b070b`
 - Relation: **`LIVE_DESCENDS_FROM_SEMANTIC_CACHE`**
-- Commits after semantic checkpoint: `8`
+- Commits after semantic checkpoint: `10`
 
 ## Scientific firewall
 
@@ -90,6 +90,8 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `b06f4a90d29c` — 2026-09-28T03:30:27+03:00 — R5 E9: add CI for irreducible two-edge-twist nullity family
 - `dd28a3fa4d69` — 2026-09-28T03:30:31+03:00 — R5 E9: add CI for odd-cycle equality-channel cut-rank barrier
 - `81fb943743ec` — 2026-09-28T05:08:33+03:00 — R5 E9: prove defect-free two-edge UNSAT linear-nullity family
+- `389b359dcc75` — 2026-09-28T05:09:03+03:00 — R5 E9: add checker for defect-free UNSAT nullity amplifier
+- `7a1ca3a9e52b` — 2026-09-28T05:09:13+03:00 — R5 E9: add CI for defect-free UNSAT nullity amplifier
 
 ## Transport / stale-bootstrap watch
 
@@ -120,6 +122,8 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 
 ## Recent non-cache commits
 
+- `7a1ca3a9e52b` — 2026-09-28T05:09:13+03:00 — R5 E9: add CI for defect-free UNSAT nullity amplifier
+- `389b359dcc75` — 2026-09-28T05:09:03+03:00 — R5 E9: add checker for defect-free UNSAT nullity amplifier
 - `81fb943743ec` — 2026-09-28T05:08:33+03:00 — R5 E9: prove defect-free two-edge UNSAT linear-nullity family
 - `dd28a3fa4d69` — 2026-09-28T03:30:31+03:00 — R5 E9: add CI for odd-cycle equality-channel cut-rank barrier
 - `b06f4a90d29c` — 2026-09-28T03:30:27+03:00 — R5 E9: add CI for irreducible two-edge-twist nullity family
@@ -143,8 +147,6 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `53fb72e1a43c` — 2026-09-28T03:03:24+03:00 — R5 E9: add CI for acyclic grouped matching barrier
 - `7138befb3d1b` — 2026-09-28T03:03:11+03:00 — R5 E9: add checker for acyclic grouped matching barrier
 - `fd154fbc2e79` — 2026-09-28T03:02:34+03:00 — R5 E9: prove acyclic grouped matching delta-matroid barrier
-- `e2cc859a97f7` — 2026-09-28T02:52:06+03:00 — R5 E10: add exact checker for edge-wise matchgate gauge barrier
-- `29617c02149e` — 2026-09-28T02:52:02+03:00 — R5 E9: add checker for balanced Exact-One terminal
 
 ## Resume protocol
 
