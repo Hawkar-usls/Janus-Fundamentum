@@ -5,8 +5,8 @@
 - **Repository:** `Hawkar-usls/Janus-Fundamentum`
 - **PR:** `#510`
 - **Branch:** `codex/r5-e8-direct-contract-20260921-82493a57`
-- **Live source HEAD:** `ae7034a92cd75cf1ed91c5f2394e644131f7e2e9`
-- **Source commit time:** `2026-09-28T19:13:47+03:00`
+- **Live source HEAD:** `7c7daf5cc4dce0d043737eeeabaa6880b24973db`
+- **Source commit time:** `2026-09-28T19:14:23+03:00`
 - **Indexed changed scientific artifacts:** `788`
 
 ## Continuity status
@@ -14,7 +14,7 @@
 - Semantic cache: `.janus/P_VS_NP_STREAM_CACHE_CURRENT.json`
 - Semantic source HEAD: `05563fb285a1b2a4ae62d2a6aab0143bdbe52899`
 - Relation: **`LIVE_DESCENDS_FROM_SEMANTIC_CACHE`**
-- Commits after semantic checkpoint: `5`
+- Commits after semantic checkpoint: `6`
 
 ## Scientific firewall
 
@@ -84,6 +84,7 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `177cd4b176ea` — 2026-09-28T19:10:50+03:00 — R5 E9: prove projective line-trade gauge and mod-3 Walsh gap
 - `4d6ec5eea8fd` — 2026-09-28T19:11:23+03:00 — R5 E9: add projective line-trade gauge regression
 - `ae7034a92cd7` — 2026-09-28T19:13:47+03:00 — R5 E9: strengthen line-trade gauge with terminal-exposing switch
+- `7c7daf5cc4dc` — 2026-09-28T19:14:23+03:00 — R5 E9: strengthen line-trade regression with full-rank terminal census
 
 ## Transport / stale-bootstrap watch
 
@@ -114,6 +115,7 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 
 ## Recent non-cache commits
 
+- `7c7daf5cc4dc` — 2026-09-28T19:14:23+03:00 — R5 E9: strengthen line-trade regression with full-rank terminal census
 - `ae7034a92cd7` — 2026-09-28T19:13:47+03:00 — R5 E9: strengthen line-trade gauge with terminal-exposing switch
 - `4d6ec5eea8fd` — 2026-09-28T19:11:23+03:00 — R5 E9: add projective line-trade gauge regression
 - `177cd4b176ea` — 2026-09-28T19:10:50+03:00 — R5 E9: prove projective line-trade gauge and mod-3 Walsh gap
@@ -138,7 +140,6 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `2f01102867a2` — 2026-09-28T15:42:04+03:00 — R5 E9: freeze rooted F7* source controls
 - `c5a42f73d972` — 2026-09-28T15:34:05+03:00 — R5 E9: sync semantic checkpoint to rooted F7* syndrome gate
 - `b0db547849a7` — 2026-09-28T15:25:40+03:00 — R5 E9: add CI for KS theta-equality countercarrier
-- `8e940bc0e949` — 2026-09-28T15:25:19+03:00 — R5 E9: add checker for KS theta-equality countercarrier
 
 ## Resume protocol
 
