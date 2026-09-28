@@ -5,16 +5,16 @@
 - **Repository:** `Hawkar-usls/Janus-Fundamentum`
 - **PR:** `#510`
 - **Branch:** `codex/r5-e8-direct-contract-20260921-82493a57`
-- **Live source HEAD:** `260d77cc956a50086a32af2bf7d2c250d56836f1`
-- **Source commit time:** `2026-09-29T00:43:08+03:00`
-- **Indexed changed scientific artifacts:** `848`
+- **Live source HEAD:** `b605330bda4bbbd8c7e9f4de7af5b332cfb742bb`
+- **Source commit time:** `2026-09-29T00:46:12+03:00`
+- **Indexed changed scientific artifacts:** `849`
 
 ## Continuity status
 
 - Semantic cache: `.janus/P_VS_NP_STREAM_CACHE_CURRENT.json`
 - Semantic source HEAD: `05563fb285a1b2a4ae62d2a6aab0143bdbe52899`
 - Relation: **`LIVE_DESCENDS_FROM_SEMANTIC_CACHE`**
-- Commits after semantic checkpoint: `71`
+- Commits after semantic checkpoint: `72`
 
 ## Scientific firewall
 
@@ -150,6 +150,7 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `9ebadc90e883` — 2026-09-29T00:42:29+03:00 — R5 E9: prove graphic-kernel Z3 phase solver island
 - `09347d93a329` — 2026-09-29T00:42:59+03:00 — R5 E9: add checker for graphic-kernel Z3 solver island
 - `260d77cc956a` — 2026-09-29T00:43:08+03:00 — R5 E9: add CI for graphic-kernel Z3 solver island
+- `b605330bda4b` — 2026-09-29T00:46:12+03:00 — R5 E9: close exact graphic-kernel recognition via network matrices
 
 ## Transport / stale-bootstrap watch
 
@@ -180,6 +181,7 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 
 ## Recent non-cache commits
 
+- `b605330bda4b` — 2026-09-29T00:46:12+03:00 — R5 E9: close exact graphic-kernel recognition via network matrices
 - `260d77cc956a` — 2026-09-29T00:43:08+03:00 — R5 E9: add CI for graphic-kernel Z3 solver island
 - `09347d93a329` — 2026-09-29T00:42:59+03:00 — R5 E9: add checker for graphic-kernel Z3 solver island
 - `9ebadc90e883` — 2026-09-29T00:42:29+03:00 — R5 E9: prove graphic-kernel Z3 phase solver island
@@ -204,7 +206,6 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `c7fb34355b27` — 2026-09-28T22:52:50+03:00 — R5 E9: sharpen projective parity filter with Smith torsion identity
 - `afe2e97cc3df` — 2026-09-28T22:46:23+03:00 — R5 E9: add CI for projective parity filter
 - `52a7d50f280c` — 2026-09-28T22:46:14+03:00 — R5 E9: add exact projective parity filter checker
-- `55490108beea` — 2026-09-28T22:45:25+03:00 — R5 E9: add rational-tope defect syndrome projective filter
 
 ## Resume protocol
 
