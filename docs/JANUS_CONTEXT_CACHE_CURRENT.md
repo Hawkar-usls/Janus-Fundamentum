@@ -5,16 +5,16 @@
 - **Repository:** `Hawkar-usls/Janus-Fundamentum`
 - **PR:** `#510`
 - **Branch:** `codex/r5-e8-direct-contract-20260921-82493a57`
-- **Live source HEAD:** `de90927bb8a01358e95cefced8281e4dd94366b0`
-- **Source commit time:** `2026-09-28T15:23:35+03:00`
-- **Indexed changed scientific artifacts:** `763`
+- **Live source HEAD:** `c817538fbd83cd64b9e1564dd924c1e4cb5af195`
+- **Source commit time:** `2026-09-28T15:24:29+03:00`
+- **Indexed changed scientific artifacts:** `765`
 
 ## Continuity status
 
 - Semantic cache: `.janus/P_VS_NP_STREAM_CACHE_CURRENT.json`
 - Semantic source HEAD: `ad3ccb96cbd44c5f0194f1775a1424d758897b04`
 - Relation: **`LIVE_DESCENDS_FROM_SEMANTIC_CACHE`**
-- Commits after semantic checkpoint: `8`
+- Commits after semantic checkpoint: `10`
 
 ## Scientific firewall
 
@@ -86,6 +86,8 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `5235e35582af` — 2026-09-28T15:21:31+03:00 — R5 E9: add regression for prime-tower augmented regularity
 - `b9b36579fd77` — 2026-09-28T15:21:42+03:00 — R5 E9: add CI for prime-tower augmented regularity
 - `de90927bb8a0` — 2026-09-28T15:23:35+03:00 — R5 E9: extend syndrome terminal to rooted MFMC matroids
+- `efa672ef4efa` — 2026-09-28T15:24:26+03:00 — R5 E9: add rooted MFMC syndrome regression checker
+- `c817538fbd83` — 2026-09-28T15:24:29+03:00 — R5 E9: build linear-cubic KS theta-equality countercarrier
 
 ## Transport / stale-bootstrap watch
 
@@ -116,6 +118,8 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 
 ## Recent non-cache commits
 
+- `c817538fbd83` — 2026-09-28T15:24:29+03:00 — R5 E9: build linear-cubic KS theta-equality countercarrier
+- `efa672ef4efa` — 2026-09-28T15:24:26+03:00 — R5 E9: add rooted MFMC syndrome regression checker
 - `de90927bb8a0` — 2026-09-28T15:23:35+03:00 — R5 E9: extend syndrome terminal to rooted MFMC matroids
 - `b9b36579fd77` — 2026-09-28T15:21:42+03:00 — R5 E9: add CI for prime-tower augmented regularity
 - `5235e35582af` — 2026-09-28T15:21:31+03:00 — R5 E9: add regression for prime-tower augmented regularity
@@ -139,8 +143,6 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `3762a09f4c13` — 2026-09-28T14:36:22+03:00 — R5 E9: reject PolaritySAT 2026 by forced-assignment counterexample
 - `80ac578f98a3` — 2026-09-28T06:34:21+03:00 — R5 E9 strengthen high-girth checkpoint with bounded occurrence
 - `d8f917f19b4a` — 2026-09-28T06:33:40+03:00 — R5 E9 validate high-girth bounded-occurrence barrier
-- `b86d0355f169` — 2026-09-28T06:33:29+03:00 — R5 E9 add bounded-occurrence high-girth structural regression
-- `23310916c004` — 2026-09-28T06:33:02+03:00 — R5 E9 add high-girth bounded-occurrence pivot barrier
 
 ## Resume protocol
 
