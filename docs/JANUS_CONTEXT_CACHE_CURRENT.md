@@ -5,16 +5,16 @@
 - **Repository:** `Hawkar-usls/Janus-Fundamentum`
 - **PR:** `#510`
 - **Branch:** `codex/r5-e8-direct-contract-20260921-82493a57`
-- **Live source HEAD:** `5224ef36594eff40f51329c3b718b2b46430dd26`
-- **Source commit time:** `2026-09-28T17:10:34+03:00`
-- **Indexed changed scientific artifacts:** `779`
+- **Live source HEAD:** `36a8ea82be59187072d9e7f9996fc50bce71a1a8`
+- **Source commit time:** `2026-09-28T17:10:56+03:00`
+- **Indexed changed scientific artifacts:** `780`
 
 ## Continuity status
 
 - Semantic cache: `.janus/P_VS_NP_STREAM_CACHE_CURRENT.json`
 - Semantic source HEAD: `24ea91f06754ff206dd13782db1b3a64931111ef`
 - Relation: **`LIVE_DESCENDS_FROM_SEMANTIC_CACHE`**
-- Commits after semantic checkpoint: `3`
+- Commits after semantic checkpoint: `4`
 
 ## Scientific firewall
 
@@ -79,6 +79,7 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `1c17360bc01f` — 2026-09-28T16:57:27+03:00 — R5 E9: synchronize semantic checkpoint to intersection residual
 - `5969540d9767` — 2026-09-28T17:09:43+03:00 — R5 E9: prove rooted series-pair syndrome contraction
 - `5224ef36594e` — 2026-09-28T17:10:34+03:00 — R5 E9: add exact rooted series contraction regression
+- `36a8ea82be59` — 2026-09-28T17:10:56+03:00 — R5 E9: add CI for rooted series-pair syndrome contraction
 
 ## Transport / stale-bootstrap watch
 
@@ -109,6 +110,7 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 
 ## Recent non-cache commits
 
+- `36a8ea82be59` — 2026-09-28T17:10:56+03:00 — R5 E9: add CI for rooted series-pair syndrome contraction
 - `5224ef36594e` — 2026-09-28T17:10:34+03:00 — R5 E9: add exact rooted series contraction regression
 - `5969540d9767` — 2026-09-28T17:09:43+03:00 — R5 E9: prove rooted series-pair syndrome contraction
 - `1c17360bc01f` — 2026-09-28T16:57:27+03:00 — R5 E9: synchronize semantic checkpoint to intersection residual
@@ -133,7 +135,6 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `4d8153140aed` — 2026-09-28T15:20:35+03:00 — R5 E9: prove augmented regularity of the UNSAT prime tower
 - `02aa589f4dba` — 2026-09-28T15:10:55+03:00 — R5 E9: add CI for augmented regular-matroid syndrome terminal
 - `8cdb09dbf7cf` — 2026-09-28T15:10:42+03:00 — R5 E9: add exact regression for augmented regular-matroid terminal
-- `b9e7fd4f58ab` — 2026-09-28T15:10:02+03:00 — R5 E9: prove augmented-regular-matroid polynomial syndrome terminal
 
 ## Resume protocol
 
