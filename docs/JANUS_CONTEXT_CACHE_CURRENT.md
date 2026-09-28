@@ -5,16 +5,16 @@
 - **Repository:** `Hawkar-usls/Janus-Fundamentum`
 - **PR:** `#510`
 - **Branch:** `codex/r5-e8-direct-contract-20260921-82493a57`
-- **Live source HEAD:** `a0c0657da853674f6b66620e8b6cfc3413916afe`
-- **Source commit time:** `2026-09-28T05:47:40+03:00`
-- **Indexed changed scientific artifacts:** `712`
+- **Live source HEAD:** `d779e82327293f49e5e1b31d31432b34d9a4852f`
+- **Source commit time:** `2026-09-28T05:48:25+03:00`
+- **Indexed changed scientific artifacts:** `714`
 
 ## Continuity status
 
 - Semantic cache: `.janus/P_VS_NP_STREAM_CACHE_CURRENT.json`
 - Semantic source HEAD: `7a1ca3a9e52ba360cdb700306ca3fc58746aa27f`
 - Relation: **`LIVE_DESCENDS_FROM_SEMANTIC_CACHE`**
-- Commits after semantic checkpoint: `8`
+- Commits after semantic checkpoint: `10`
 
 ## Scientific firewall
 
@@ -89,6 +89,8 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `e21763bc52eb` — 2026-09-28T05:45:54+03:00 — E9 add EQ3 middle-nullity slab checker
 - `86233194dd62` — 2026-09-28T05:46:04+03:00 — E9 wire EQ3 middle-nullity slab replay
 - `a0c0657da853` — 2026-09-28T05:47:40+03:00 — E9 derive row-basis rank3 hypermatching quotient
+- `c9daaa7fd53e` — 2026-09-28T05:48:13+03:00 — E9 add rank3 hypermatching quotient checker
+- `d779e8232729` — 2026-09-28T05:48:25+03:00 — E9 wire rank3 hypermatching quotient replay
 
 ## Transport / stale-bootstrap watch
 
@@ -119,6 +121,8 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 
 ## Recent non-cache commits
 
+- `d779e8232729` — 2026-09-28T05:48:25+03:00 — E9 wire rank3 hypermatching quotient replay
+- `c9daaa7fd53e` — 2026-09-28T05:48:13+03:00 — E9 add rank3 hypermatching quotient checker
 - `a0c0657da853` — 2026-09-28T05:47:40+03:00 — E9 derive row-basis rank3 hypermatching quotient
 - `86233194dd62` — 2026-09-28T05:46:04+03:00 — E9 wire EQ3 middle-nullity slab replay
 - `e21763bc52eb` — 2026-09-28T05:45:54+03:00 — E9 add EQ3 middle-nullity slab checker
@@ -142,8 +146,6 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `733ac860c50c` — 2026-09-28T03:18:12+03:00 — R5 E9: derive strong odd-cycle determinant-2 transfer normal form
 - `7aea8f113b66` — 2026-09-28T03:16:40+03:00 — R5 E9: falsify low-nullity prime-core hypothesis by two-edge lifts
 - `b76675b6429c` — 2026-09-28T03:15:51+03:00 — R5 E9: sync semantic checkpoint after irreducible UNSAT hostile control
-- `5dc336418238` — 2026-09-28T03:07:27+03:00 — R5 E9: sync semantic checkpoint after acyclic matching barrier
-- `3e6118229890` — 2026-09-28T03:06:41+03:00 — R5 E9: add CI for 3-cut-irreducible singular UNSAT control
 
 ## Resume protocol
 
