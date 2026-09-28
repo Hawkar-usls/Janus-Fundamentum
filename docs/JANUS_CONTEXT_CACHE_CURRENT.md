@@ -5,16 +5,16 @@
 - **Repository:** `Hawkar-usls/Janus-Fundamentum`
 - **PR:** `#510`
 - **Branch:** `codex/r5-e8-direct-contract-20260921-82493a57`
-- **Live source HEAD:** `11d7cf104b90fb6657994f0231e9c374a3fde59c`
-- **Source commit time:** `2026-09-29T01:32:40+03:00`
-- **Indexed changed scientific artifacts:** `858`
+- **Live source HEAD:** `84429eb3a166a538bc093bde81007cda1c02fd2c`
+- **Source commit time:** `2026-09-29T01:33:29+03:00`
+- **Indexed changed scientific artifacts:** `860`
 
 ## Continuity status
 
 - Semantic cache: `.janus/P_VS_NP_STREAM_CACHE_CURRENT.json`
 - Semantic source HEAD: `05563fb285a1b2a4ae62d2a6aab0143bdbe52899`
 - Relation: **`LIVE_DESCENDS_FROM_SEMANTIC_CACHE`**
-- Commits after semantic checkpoint: `81`
+- Commits after semantic checkpoint: `83`
 
 ## Scientific firewall
 
@@ -79,8 +79,6 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 
 ## Commits newer than semantic checkpoint — MUST INGEST
 
-- `16d7a4284629` — 2026-09-28T18:31:05+03:00 — R5 E9: prove projective signature Walsh arrangement quotient
-- `177cd4b176ea` — 2026-09-28T19:10:50+03:00 — R5 E9: prove projective line-trade gauge and mod-3 Walsh gap
 - `4d6ec5eea8fd` — 2026-09-28T19:11:23+03:00 — R5 E9: add projective line-trade gauge regression
 - `ae7034a92cd7` — 2026-09-28T19:13:47+03:00 — R5 E9: strengthen line-trade gauge with terminal-exposing switch
 - `7c7daf5cc4dc` — 2026-09-28T19:14:23+03:00 — R5 E9: strengthen line-trade regression with full-rank terminal census
@@ -159,6 +157,8 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `0bf3e91ce41f` — 2026-09-29T01:22:24+03:00 — R5 E9: add bidirected binet router regression
 - `bb16a1cb46e0` — 2026-09-29T01:22:32+03:00 — R5 E9: add CI for bidirected binet router
 - `11d7cf104b90` — 2026-09-29T01:32:40+03:00 — R5 E9: add exact TU-rowspace Boolean LP router
+- `01d26b711a0b` — 2026-09-29T01:33:21+03:00 — R5 E9: add TU-rowspace router regression
+- `84429eb3a166` — 2026-09-29T01:33:29+03:00 — R5 E9: add CI for TU-rowspace Boolean LP router
 
 ## Transport / stale-bootstrap watch
 
@@ -189,6 +189,8 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 
 ## Recent non-cache commits
 
+- `84429eb3a166` — 2026-09-29T01:33:29+03:00 — R5 E9: add CI for TU-rowspace Boolean LP router
+- `01d26b711a0b` — 2026-09-29T01:33:21+03:00 — R5 E9: add TU-rowspace router regression
 - `11d7cf104b90` — 2026-09-29T01:32:40+03:00 — R5 E9: add exact TU-rowspace Boolean LP router
 - `bb16a1cb46e0` — 2026-09-29T01:22:32+03:00 — R5 E9: add CI for bidirected binet router
 - `0bf3e91ce41f` — 2026-09-29T01:22:24+03:00 — R5 E9: add bidirected binet router regression
@@ -212,8 +214,6 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `9c9d5da7fde0` — 2026-09-29T00:23:48+03:00 — R5 E9: add exact checker for linear cubic trace rank bound
 - `6743f72cba8d` — 2026-09-29T00:23:19+03:00 — R5 E9: prove linear cubic trace rank nullity bound
 - `3bf5f4708c72` — 2026-09-29T00:20:15+03:00 — R5 E9: add CI for commuting nullity collapse
-- `a37dc3f4559f` — 2026-09-29T00:20:00+03:00 — R5 E9: add exact checker for commuting nullity collapse
-- `e10bd1f522eb` — 2026-09-29T00:19:35+03:00 — R5 E9: prove connected commuting two-perm nullity collapse
 
 ## Resume protocol
 
