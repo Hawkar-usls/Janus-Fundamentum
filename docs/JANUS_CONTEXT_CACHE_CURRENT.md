@@ -5,16 +5,16 @@
 - **Repository:** `Hawkar-usls/Janus-Fundamentum`
 - **PR:** `#510`
 - **Branch:** `codex/r5-e8-direct-contract-20260921-82493a57`
-- **Live source HEAD:** `d779e82327293f49e5e1b31d31432b34d9a4852f`
-- **Source commit time:** `2026-09-28T05:48:25+03:00`
-- **Indexed changed scientific artifacts:** `714`
+- **Live source HEAD:** `f2dca2d717b9307106e7e869874d1966c1051426`
+- **Source commit time:** `2026-09-28T05:50:41+03:00`
+- **Indexed changed scientific artifacts:** `715`
 
 ## Continuity status
 
 - Semantic cache: `.janus/P_VS_NP_STREAM_CACHE_CURRENT.json`
 - Semantic source HEAD: `7a1ca3a9e52ba360cdb700306ca3fc58746aa27f`
 - Relation: **`LIVE_DESCENDS_FROM_SEMANTIC_CACHE`**
-- Commits after semantic checkpoint: `10`
+- Commits after semantic checkpoint: `11`
 
 ## Scientific firewall
 
@@ -91,6 +91,7 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `a0c0657da853` — 2026-09-28T05:47:40+03:00 — E9 derive row-basis rank3 hypermatching quotient
 - `c9daaa7fd53e` — 2026-09-28T05:48:13+03:00 — E9 add rank3 hypermatching quotient checker
 - `d779e8232729` — 2026-09-28T05:48:25+03:00 — E9 wire rank3 hypermatching quotient replay
+- `f2dca2d717b9` — 2026-09-28T05:50:41+03:00 — Audit E9 middle-nullity hypermatching quotient
 
 ## Transport / stale-bootstrap watch
 
@@ -121,6 +122,7 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 
 ## Recent non-cache commits
 
+- `f2dca2d717b9` — 2026-09-28T05:50:41+03:00 — Audit E9 middle-nullity hypermatching quotient
 - `d779e8232729` — 2026-09-28T05:48:25+03:00 — E9 wire rank3 hypermatching quotient replay
 - `c9daaa7fd53e` — 2026-09-28T05:48:13+03:00 — E9 add rank3 hypermatching quotient checker
 - `a0c0657da853` — 2026-09-28T05:47:40+03:00 — E9 derive row-basis rank3 hypermatching quotient
@@ -145,7 +147,6 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `fdf17e814b2d` — 2026-09-28T03:18:42+03:00 — R5 E9: add checker for strong odd-cycle transfer normal form
 - `733ac860c50c` — 2026-09-28T03:18:12+03:00 — R5 E9: derive strong odd-cycle determinant-2 transfer normal form
 - `7aea8f113b66` — 2026-09-28T03:16:40+03:00 — R5 E9: falsify low-nullity prime-core hypothesis by two-edge lifts
-- `b76675b6429c` — 2026-09-28T03:15:51+03:00 — R5 E9: sync semantic checkpoint after irreducible UNSAT hostile control
 
 ## Resume protocol
 
