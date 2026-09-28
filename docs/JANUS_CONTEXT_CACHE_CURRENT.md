@@ -5,16 +5,16 @@
 - **Repository:** `Hawkar-usls/Janus-Fundamentum`
 - **PR:** `#510`
 - **Branch:** `codex/r5-e8-direct-contract-20260921-82493a57`
-- **Live source HEAD:** `b9b36579fd77c7fc205b4964533744bb985134cc`
-- **Source commit time:** `2026-09-28T15:21:42+03:00`
-- **Indexed changed scientific artifacts:** `762`
+- **Live source HEAD:** `de90927bb8a01358e95cefced8281e4dd94366b0`
+- **Source commit time:** `2026-09-28T15:23:35+03:00`
+- **Indexed changed scientific artifacts:** `763`
 
 ## Continuity status
 
 - Semantic cache: `.janus/P_VS_NP_STREAM_CACHE_CURRENT.json`
 - Semantic source HEAD: `ad3ccb96cbd44c5f0194f1775a1424d758897b04`
 - Relation: **`LIVE_DESCENDS_FROM_SEMANTIC_CACHE`**
-- Commits after semantic checkpoint: `7`
+- Commits after semantic checkpoint: `8`
 
 ## Scientific firewall
 
@@ -85,6 +85,7 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `4d8153140aed` — 2026-09-28T15:20:35+03:00 — R5 E9: prove augmented regularity of the UNSAT prime tower
 - `5235e35582af` — 2026-09-28T15:21:31+03:00 — R5 E9: add regression for prime-tower augmented regularity
 - `b9b36579fd77` — 2026-09-28T15:21:42+03:00 — R5 E9: add CI for prime-tower augmented regularity
+- `de90927bb8a0` — 2026-09-28T15:23:35+03:00 — R5 E9: extend syndrome terminal to rooted MFMC matroids
 
 ## Transport / stale-bootstrap watch
 
@@ -115,6 +116,7 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 
 ## Recent non-cache commits
 
+- `de90927bb8a0` — 2026-09-28T15:23:35+03:00 — R5 E9: extend syndrome terminal to rooted MFMC matroids
 - `b9b36579fd77` — 2026-09-28T15:21:42+03:00 — R5 E9: add CI for prime-tower augmented regularity
 - `5235e35582af` — 2026-09-28T15:21:31+03:00 — R5 E9: add regression for prime-tower augmented regularity
 - `4d8153140aed` — 2026-09-28T15:20:35+03:00 — R5 E9: prove augmented regularity of the UNSAT prime tower
@@ -139,7 +141,6 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `d8f917f19b4a` — 2026-09-28T06:33:40+03:00 — R5 E9 validate high-girth bounded-occurrence barrier
 - `b86d0355f169` — 2026-09-28T06:33:29+03:00 — R5 E9 add bounded-occurrence high-girth structural regression
 - `23310916c004` — 2026-09-28T06:33:02+03:00 — R5 E9 add high-girth bounded-occurrence pivot barrier
-- `6b22c8516fb5` — 2026-09-28T06:30:30+03:00 — R5 E9 checkpoint high-girth-safe nonlocal global pivot
 
 ## Resume protocol
 
