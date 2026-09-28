@@ -5,8 +5,8 @@
 - **Repository:** `Hawkar-usls/Janus-Fundamentum`
 - **PR:** `#510`
 - **Branch:** `codex/r5-e8-direct-contract-20260921-82493a57`
-- **Live source HEAD:** `bec918c31cfac3214d033121d324ccfe65252f85`
-- **Source commit time:** `2026-09-28T21:10:50+03:00`
+- **Live source HEAD:** `96c5cd2e81f32be7adb027a4dbaf13e2d6c05a85`
+- **Source commit time:** `2026-09-28T21:14:04+03:00`
 - **Indexed changed scientific artifacts:** `812`
 
 ## Continuity status
@@ -14,7 +14,7 @@
 - Semantic cache: `.janus/P_VS_NP_STREAM_CACHE_CURRENT.json`
 - Semantic source HEAD: `05563fb285a1b2a4ae62d2a6aab0143bdbe52899`
 - Relation: **`LIVE_DESCENDS_FROM_SEMANTIC_CACHE`**
-- Commits after semantic checkpoint: `31`
+- Commits after semantic checkpoint: `32`
 
 ## Scientific firewall
 
@@ -110,6 +110,7 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `54774f50cd5a` — 2026-09-28T21:10:11+03:00 — R5 E9: freeze kernel-tope greedy local-minimum barrier
 - `e1062ed9da53` — 2026-09-28T21:10:40+03:00 — R5 E9: add exact PG15 tope local-minimum checker
 - `bec918c31cfa` — 2026-09-28T21:10:50+03:00 — R5 E9: add CI for kernel-tope greedy barrier
+- `96c5cd2e81f3` — 2026-09-28T21:14:04+03:00 — R5 E9: repair tope adjacency for parallel kernel hyperplanes
 
 ## Transport / stale-bootstrap watch
 
@@ -140,6 +141,7 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 
 ## Recent non-cache commits
 
+- `96c5cd2e81f3` — 2026-09-28T21:14:04+03:00 — R5 E9: repair tope adjacency for parallel kernel hyperplanes
 - `bec918c31cfa` — 2026-09-28T21:10:50+03:00 — R5 E9: add CI for kernel-tope greedy barrier
 - `e1062ed9da53` — 2026-09-28T21:10:40+03:00 — R5 E9: add exact PG15 tope local-minimum checker
 - `54774f50cd5a` — 2026-09-28T21:10:11+03:00 — R5 E9: freeze kernel-tope greedy local-minimum barrier
@@ -164,7 +166,6 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `dfd4ba288014` — 2026-09-28T20:15:09+03:00 — R5 E9: add projective fractional-support closure regression
 - `2a28c8b43829` — 2026-09-28T20:14:14+03:00 — R5 E9: prove projective fractional-support exact closure
 - `a980d85e89da` — 2026-09-28T19:18:05+03:00 — R5 E9: add fixed-r trade rank-ascent regression
-- `237aa3e648b2` — 2026-09-28T19:17:36+03:00 — R5 E9: prove fixed-r projective trade rank-ascent router
 
 ## Resume protocol
 
