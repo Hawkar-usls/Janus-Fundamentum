@@ -5,16 +5,16 @@
 - **Repository:** `Hawkar-usls/Janus-Fundamentum`
 - **PR:** `#510`
 - **Branch:** `codex/r5-e8-direct-contract-20260921-82493a57`
-- **Live source HEAD:** `cd4ee9ab1d4310f1b94fdf722b0e7955fa821fb2`
-- **Source commit time:** `2026-09-28T16:11:50+03:00`
-- **Indexed changed scientific artifacts:** `772`
+- **Live source HEAD:** `89f5f64e60dadc0944abb3383bee63d6923bebc6`
+- **Source commit time:** `2026-09-28T16:13:36+03:00`
+- **Indexed changed scientific artifacts:** `773`
 
 ## Continuity status
 
 - Semantic cache: `.janus/P_VS_NP_STREAM_CACHE_CURRENT.json`
 - Semantic source HEAD: `8e940bc0e949dabf589a033479f7afce93e1ef22`
 - Relation: **`LIVE_DESCENDS_FROM_SEMANTIC_CACHE`**
-- Commits after semantic checkpoint: `6`
+- Commits after semantic checkpoint: `7`
 
 ## Scientific firewall
 
@@ -77,6 +77,7 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `9d73742c3b32` — 2026-09-28T15:42:43+03:00 — R5 E9: add exact rooted F7* source-control census
 - `a0dd1e8d1135` — 2026-09-28T15:42:56+03:00 — R5 E9: add CI for rooted F7* source controls
 - `cd4ee9ab1d43` — 2026-09-28T16:11:50+03:00 — R5 E9: extend syndrome terminal to single-odd dual-Fano criterion
+- `89f5f64e60da` — 2026-09-28T16:13:36+03:00 — R5 E9: add exact rooted dual-Fano source census
 
 ## Transport / stale-bootstrap watch
 
@@ -107,6 +108,7 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 
 ## Recent non-cache commits
 
+- `89f5f64e60da` — 2026-09-28T16:13:36+03:00 — R5 E9: add exact rooted dual-Fano source census
 - `cd4ee9ab1d43` — 2026-09-28T16:11:50+03:00 — R5 E9: extend syndrome terminal to single-odd dual-Fano criterion
 - `a0dd1e8d1135` — 2026-09-28T15:42:56+03:00 — R5 E9: add CI for rooted F7* source controls
 - `9d73742c3b32` — 2026-09-28T15:42:43+03:00 — R5 E9: add exact rooted F7* source-control census
@@ -131,7 +133,6 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `c3d7988b5766` — 2026-09-28T14:53:32+03:00 — R5 E9: freeze singular prime h-perfect relaxation gap control
 - `8df0c2d1d571` — 2026-09-28T14:52:22+03:00 — R5 E9: add CI for bilinear witness-selection rank barrier
 - `25891fd18187` — 2026-09-28T14:52:00+03:00 — R5 E9: add bilinear Hankel-rank regression
-- `8bda813d4e05` — 2026-09-28T14:51:40+03:00 — R5 E9: prove exponential bilinear witness-selection Hankel rank barrier
 
 ## Resume protocol
 
