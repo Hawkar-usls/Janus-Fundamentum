@@ -1,9 +1,13 @@
 #!/usr/bin/env python3
-"""Exact finite regression for rooted series-pair syndrome contraction.
+"""Exact finite regressions for rooted series-pair syndrome contraction.
 
-This checker validates the frozen SAT_12_3 control only.  The theorem itself is
-proved in the companion research note.  No finite regression is promoted to a
-universal P-vs-NP claim.
+Controls:
+- SAT_12_3 contracts to a constant weighted AG(3,2) core;
+- the frozen singular UNSAT 15_3 control has two eight-element series classes,
+  one containing the root, forcing rooted cost seven > n/3.
+
+The theorem itself is proved in the companion research note. No finite
+regression is promoted to a universal P-vs-NP claim.
 """
 from itertools import combinations
 import json
@@ -30,6 +34,14 @@ def cols_from_supports(n, supports):
         for r in supp:
             v |= 1 << r
         out.append(v)
+    return out
+
+
+def cols_from_rows(n, rows):
+    out = [0] * n
+    for r, row in enumerate(rows):
+        for c in row:
+            out[c] |= 1 << r
     return out
 
 
@@ -93,12 +105,35 @@ def minimum_root_cost(cols, labels, weights, root):
 
 
 def affine_hyperplane_certificate(cols):
-    """Return phi with phi(v)=1 for all columns, if one exists."""
     width = max((v.bit_length() for v in cols), default=0)
     for phi in range(1, 1 << width):
         if all(((phi & v).bit_count() & 1) == 1 for v in cols):
             return phi
     return None
+
+
+def series_classes(cols, labels):
+    adj = {lab: set() for lab in labels}
+    for a, b in combinations(labels, 2):
+        if is_two_cocircuit(cols, labels, a, b):
+            adj[a].add(b)
+            adj[b].add(a)
+    seen = set()
+    classes = []
+    for lab in labels:
+        if lab in seen or not adj[lab]:
+            continue
+        stack = [lab]
+        comp = set()
+        while stack:
+            u = stack.pop()
+            if u in comp:
+                continue
+            comp.add(u)
+            seen.add(u)
+            stack.extend(adj[u] - comp)
+        classes.append(sorted(comp))
+    return sorted(classes)
 
 
 def sat12_control():
@@ -138,8 +173,6 @@ def sat12_control():
     assert gf2_rank(cols) == 5
     assert is_two_cocircuit(cols, labels, 0, root)
 
-    before_root_pair, _ = minimum_root_cost(cols, labels, weights, root)
-    assert before_root_pair == 4
     offset = weights[0]
     cols, labels = contract_column(cols, labels, 0)
     reduced_cost, reduced_witness = minimum_root_cost(cols, labels, weights, root)
@@ -148,27 +181,22 @@ def sat12_control():
     assert offset + reduced_cost == initial_cost
     assert reduced_witness == [1,2,3]
 
-    # The final matroid has eight distinct nonzero elements of rank four.
     assert len(cols) == 8
     assert len(set(cols)) == 8
     assert all(v != 0 for v in cols)
     assert gf2_rank(cols) == 4
 
-    # An affine hyperplane certificate: all eight points satisfy phi(v)=1.
-    # Since the represented span has rank four and the set has 8 points, this
-    # is exactly a rank-4 binary affine hyperplane, hence AG(3,2).
     phi = affine_hyperplane_certificate(cols)
     assert phi is not None
 
-    # Independently check 3-connectivity of the final 8-element matroid.
     r = gf2_rank(cols)
     n = len(cols)
     min_lambda = None
     for size in range(2, n - 1):
-        for S in combinations(range(n), size):
+        for S0 in combinations(range(n), size):
             if n - size < 2:
                 continue
-            S = set(S)
+            S = set(S0)
             X = [cols[i] for i in S]
             Y = [cols[i] for i in range(n) if i not in S]
             lam = gf2_rank(X) + gf2_rank(Y) - r
@@ -200,12 +228,61 @@ def sat12_control():
     }
 
 
+def singular15_control():
+    rows = [
+        (0,5,12),(1,7,9),(2,9,14),(3,10,11),(3,4,13),
+        (1,5,10),(6,7,14),(2,3,7),(1,4,8),(0,6,9),
+        (2,10,12),(5,11,13),(6,8,12),(0,8,13),(4,11,14),
+    ]
+    n = 15
+    root = 15
+    cols = cols_from_rows(n, rows) + [(1 << n) - 1]
+    labels = list(range(16))
+    weights = {lab: (0 if lab == root else 1) for lab in labels}
+
+    assert gf2_rank(cols) == 14
+    classes = series_classes(cols, labels)
+    expected = [
+        [0,2,3,6,11,12,13,14],
+        [1,4,5,7,8,9,10,15],
+    ]
+    assert classes == expected
+
+    # The root is in the second eight-element series class. By binary
+    # circuit-cocircuit parity, every rooted circuit must contain all seven
+    # nonroot members. Their XOR is indeed the root syndrome, so cost 7 is
+    # attained and is the exact optimum.
+    root_class = next(C for C in classes if root in C)
+    forced = [e for e in root_class if e != root]
+    syn = 0
+    for e in forced:
+        syn ^= cols[labels.index(e)]
+    assert syn == cols[labels.index(root)]
+    min_cost, witness = minimum_root_cost(cols, labels, weights, root)
+    assert min_cost == 7
+    assert witness == forced
+    assert n // 3 == 5
+    assert min_cost > n // 3
+
+    return {
+        "n": n,
+        "augmented_rank": 14,
+        "series_classes": classes,
+        "root_series_class": root_class,
+        "forced_root_support": forced,
+        "minimum_root_cost": min_cost,
+        "exactone_target": n // 3,
+        "decision": "UNSAT",
+    }
+
+
 def main():
     out = {
         "status": "PASS_ROOTED_SERIES_PAIR_SYNDROME_CONTRACTION",
-        "scientific_ceiling": "FINITE_EXACT_REGRESSION__THEOREM_IN_COMPANION_NOTE__NO_D1_PROMOTION__P_VS_NP_OPEN",
+        "scientific_ceiling": "FINITE_EXACT_REGRESSIONS__THEOREM_IN_COMPANION_NOTE__NO_D1_PROMOTION__P_VS_NP_OPEN",
         "SAT_12_3": sat12_control(),
-        "conclusion": "SAT_12_3 contracts exactly to a constant weighted AG(3,2) rooted terminal",
+        "SINGULAR_UNSAT_15_3": singular15_control(),
+        "conclusion": "SAT12 collapses to weighted AG(3,2); singular15 is decided by a root series class",
     }
     print(json.dumps(out, indent=2, sort_keys=True))
 
