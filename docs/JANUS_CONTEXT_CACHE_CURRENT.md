@@ -5,16 +5,16 @@
 - **Repository:** `Hawkar-usls/Janus-Fundamentum`
 - **PR:** `#510`
 - **Branch:** `codex/r5-e8-direct-contract-20260921-82493a57`
-- **Live source HEAD:** `fda43e701a7115471df4a9355578607c1c4fe1d8`
-- **Source commit time:** `2026-09-28T05:39:25+03:00`
-- **Indexed changed scientific artifacts:** `706`
+- **Live source HEAD:** `8b5a12ea3c7fdc5f09da565fec913be5fc6b608d`
+- **Source commit time:** `2026-09-28T05:40:09+03:00`
+- **Indexed changed scientific artifacts:** `708`
 
 ## Continuity status
 
 - Semantic cache: `.janus/P_VS_NP_STREAM_CACHE_CURRENT.json`
 - Semantic source HEAD: `7a1ca3a9e52ba360cdb700306ca3fc58746aa27f`
 - Relation: **`LIVE_DESCENDS_FROM_SEMANTIC_CACHE`**
-- Commits after semantic checkpoint: `2`
+- Commits after semantic checkpoint: `4`
 
 ## Scientific firewall
 
@@ -83,6 +83,8 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 
 - `b9430f8ce33c` — 2026-09-28T05:39:02+03:00 — R5 E9: add actual-row-basis rank3 matching FPT router
 - `fda43e701a71` — 2026-09-28T05:39:25+03:00 — R5 E9: sync semantic checkpoint to cross-layer global pivot
+- `2505ad65bc7a` — 2026-09-28T05:39:57+03:00 — R5 E9: add regression for row-basis rank3 matching router
+- `8b5a12ea3c7f` — 2026-09-28T05:40:09+03:00 — R5 E9: add CI for row-basis rank3 matching router
 
 ## Transport / stale-bootstrap watch
 
@@ -113,6 +115,8 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 
 ## Recent non-cache commits
 
+- `8b5a12ea3c7f` — 2026-09-28T05:40:09+03:00 — R5 E9: add CI for row-basis rank3 matching router
+- `2505ad65bc7a` — 2026-09-28T05:39:57+03:00 — R5 E9: add regression for row-basis rank3 matching router
 - `fda43e701a71` — 2026-09-28T05:39:25+03:00 — R5 E9: sync semantic checkpoint to cross-layer global pivot
 - `b9430f8ce33c` — 2026-09-28T05:39:02+03:00 — R5 E9: add actual-row-basis rank3 matching FPT router
 - `7a1ca3a9e52b` — 2026-09-28T05:09:13+03:00 — R5 E9: add CI for defect-free UNSAT nullity amplifier
@@ -136,8 +140,6 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `b96a0b96a54c` — 2026-09-28T03:05:27+03:00 — R5 E9: add CI for singular UNSAT 3-cut hostile core
 - `b01463284dd2` — 2026-09-28T03:05:18+03:00 — R5 E9: add exact 3-cut census for singular UNSAT core
 - `694bad41c55e` — 2026-09-28T03:05:04+03:00 — R5 E9: freeze singular UNSAT 3-cut-irreducible hostile core
-- `17d7e41c474a` — 2026-09-28T03:04:38+03:00 — R5 E9: freeze 3-cut-irreducible singular UNSAT hostile control
-- `53fb72e1a43c` — 2026-09-28T03:03:24+03:00 — R5 E9: add CI for acyclic grouped matching barrier
 
 ## Resume protocol
 
