@@ -5,16 +5,16 @@
 - **Repository:** `Hawkar-usls/Janus-Fundamentum`
 - **PR:** `#510`
 - **Branch:** `codex/r5-e8-direct-contract-20260921-82493a57`
-- **Live source HEAD:** `4d46fc88a5cbaf97b7a9dc79bb6be70b145b146d`
-- **Source commit time:** `2026-09-28T20:53:19+03:00`
-- **Indexed changed scientific artifacts:** `803`
+- **Live source HEAD:** `a5030a34807af84ce518f063e3b70f0a40ed1f75`
+- **Source commit time:** `2026-09-28T20:54:11+03:00`
+- **Indexed changed scientific artifacts:** `805`
 
 ## Continuity status
 
 - Semantic cache: `.janus/P_VS_NP_STREAM_CACHE_CURRENT.json`
 - Semantic source HEAD: `05563fb285a1b2a4ae62d2a6aab0143bdbe52899`
 - Relation: **`LIVE_DESCENDS_FROM_SEMANTIC_CACHE`**
-- Commits after semantic checkpoint: `21`
+- Commits after semantic checkpoint: `23`
 
 ## Scientific firewall
 
@@ -100,6 +100,8 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `ba8c9de2ad21` — 2026-09-28T20:49:58+03:00 — R5 E9: add source-kernel tope geodesic regression
 - `c5178dad5b94` — 2026-09-28T20:52:14+03:00 — R5 E9: add CI for source-kernel tope geodesic bound
 - `4d46fc88a5cb` — 2026-09-28T20:53:19+03:00 — R5 E9: prove PG15 kernel boundary is nonconvex and nongated
+- `4de044cf8440` — 2026-09-28T20:53:54+03:00 — R5 E9: add PG15 boundary nonconvexity regression
+- `a5030a34807a` — 2026-09-28T20:54:11+03:00 — R5 E9: add CI for kernel-boundary nonconvexity barrier
 
 ## Transport / stale-bootstrap watch
 
@@ -130,6 +132,8 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 
 ## Recent non-cache commits
 
+- `a5030a34807a` — 2026-09-28T20:54:11+03:00 — R5 E9: add CI for kernel-boundary nonconvexity barrier
+- `4de044cf8440` — 2026-09-28T20:53:54+03:00 — R5 E9: add PG15 boundary nonconvexity regression
 - `4d46fc88a5cb` — 2026-09-28T20:53:19+03:00 — R5 E9: prove PG15 kernel boundary is nonconvex and nongated
 - `c5178dad5b94` — 2026-09-28T20:52:14+03:00 — R5 E9: add CI for source-kernel tope geodesic bound
 - `ba8c9de2ad21` — 2026-09-28T20:49:58+03:00 — R5 E9: add source-kernel tope geodesic regression
@@ -153,8 +157,6 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `c7ddc902348f` — 2026-09-28T18:12:02+03:00 — R5 E9: synchronize semantic checkpoint to projective-line avoidance gate
 - `05563fb285a1` — 2026-09-28T17:45:38+03:00 — R5 E9: add CI for kernel-signature projective avoidance
 - `85a14827a61f` — 2026-09-28T17:43:33+03:00 — R5 E9: add kernel-signature projective avoidance regression
-- `c92fa9cc9cc3` — 2026-09-28T17:41:59+03:00 — R5 E9: derive kernel-signature series and projective avoidance normal form
-- `d917a16093c4` — 2026-09-28T17:13:43+03:00 — R5 E9: extend series contraction regression to singular 15_3
 
 ## Resume protocol
 
