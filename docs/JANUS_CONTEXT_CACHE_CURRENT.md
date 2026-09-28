@@ -5,16 +5,16 @@
 - **Repository:** `Hawkar-usls/Janus-Fundamentum`
 - **PR:** `#510`
 - **Branch:** `codex/r5-e8-direct-contract-20260921-82493a57`
-- **Live source HEAD:** `53fb72e1a43c38ee31cf3f6a11018c556d785033`
-- **Source commit time:** `2026-09-28T03:03:24+03:00`
-- **Indexed changed scientific artifacts:** `686`
+- **Live source HEAD:** `17d7e41c474ae65762f61e75ef91cf4c61146102`
+- **Source commit time:** `2026-09-28T03:04:38+03:00`
+- **Indexed changed scientific artifacts:** `687`
 
 ## Continuity status
 
 - Semantic cache: `.janus/P_VS_NP_STREAM_CACHE_CURRENT.json`
 - Semantic source HEAD: `f1e556b93e6e85eec5846faffb6fc3e79992a30e`
 - Relation: **`LIVE_DESCENDS_FROM_SEMANTIC_CACHE`**
-- Commits after semantic checkpoint: `8`
+- Commits after semantic checkpoint: `9`
 
 ## Scientific firewall
 
@@ -84,6 +84,7 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `fd154fbc2e79` — 2026-09-28T03:02:34+03:00 — R5 E9: prove acyclic grouped matching delta-matroid barrier
 - `7138befb3d1b` — 2026-09-28T03:03:11+03:00 — R5 E9: add checker for acyclic grouped matching barrier
 - `53fb72e1a43c` — 2026-09-28T03:03:24+03:00 — R5 E9: add CI for acyclic grouped matching barrier
+- `17d7e41c474a` — 2026-09-28T03:04:38+03:00 — R5 E9: freeze 3-cut-irreducible singular UNSAT hostile control
 
 ## Transport / stale-bootstrap watch
 
@@ -114,6 +115,7 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 
 ## Recent non-cache commits
 
+- `17d7e41c474a` — 2026-09-28T03:04:38+03:00 — R5 E9: freeze 3-cut-irreducible singular UNSAT hostile control
 - `53fb72e1a43c` — 2026-09-28T03:03:24+03:00 — R5 E9: add CI for acyclic grouped matching barrier
 - `7138befb3d1b` — 2026-09-28T03:03:11+03:00 — R5 E9: add checker for acyclic grouped matching barrier
 - `fd154fbc2e79` — 2026-09-28T03:02:34+03:00 — R5 E9: prove acyclic grouped matching delta-matroid barrier
@@ -138,7 +140,6 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `44547a4ce762` — 2026-09-27T23:24:38+03:00 — R5 E9: add two-step Boben state-4 replay
 - `c09c01be5e90` — 2026-09-27T23:24:12+03:00 — R5 E9: freeze two-step Boben state-4 barrier
 - `591e8e81e20e` — 2026-09-27T23:13:51+03:00 — R5 E9: remove duplicate gauge-nullity workflow
-- `e71898a2e208` — 2026-09-27T23:13:44+03:00 — R5 E9: remove duplicate gauge-nullity checker
 
 ## Resume protocol
 
