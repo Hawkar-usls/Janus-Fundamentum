@@ -1,0 +1,46 @@
+name: R5 E9 EQ3 Middle Nullity Hardness Slab
+
+on:
+  push:
+    paths:
+      - "research/R5_E9_EQ3_MID_NULLITY_HARDNESS_SLAB_2026-09-28_v1.0.md"
+      - "experiments/r5_e9_eq3_mid_nullity_hardness_slab.py"
+      - ".github/workflows/r5-e9-eq3-mid-nullity-hardness-slab.yml"
+  pull_request:
+    paths:
+      - "research/R5_E9_EQ3_MID_NULLITY_HARDNESS_SLAB_2026-09-28_v1.0.md"
+      - "experiments/r5_e9_eq3_mid_nullity_hardness_slab.py"
+      - ".github/workflows/r5-e9-eq3-mid-nullity-hardness-slab.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  replay:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Compile checker
+        run: python -m py_compile experiments/r5_e9_eq3_mid_nullity_hardness_slab.py
+      - name: Replay exact rank identities
+        run: |
+          python experiments/r5_e9_eq3_mid_nullity_hardness_slab.py > /tmp/mhs.json
+          python - <<'PY'
+          import json
+          x=json.load(open('/tmp/mhs.json'))
+          assert x['status']=='PASS_EQ3_MID_NULLITY_HARDNESS_SLAB_RANK_REPLAY'
+          assert x['gadget_rank_Q']==8
+          assert x['gadget_nullity_Q']==2
+          assert x['output_nullity_identity']=='K=m+kappa'
+          assert x['hardness_slab']=='N/10<=K<=N/6'
+          assert x['delta_slab']=='3N/2<=Delta<=17N/10'
+          assert x['E8_D1']=='EMPTY'
+          assert x['P_VS_NP']=='OPEN'
+          print('R5_E9_EQ3_MID_NULLITY_HARDNESS_SLAB=PASS')
+          PY
