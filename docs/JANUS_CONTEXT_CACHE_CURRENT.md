@@ -5,16 +5,16 @@
 - **Repository:** `Hawkar-usls/Janus-Fundamentum`
 - **PR:** `#510`
 - **Branch:** `codex/r5-e8-direct-contract-20260921-82493a57`
-- **Live source HEAD:** `8df0c2d1d5711e0122a3f731a4c56ad3e42e7e06`
-- **Source commit time:** `2026-09-28T14:52:22+03:00`
-- **Indexed changed scientific artifacts:** `752`
+- **Live source HEAD:** `ad3ccb96cbd44c5f0194f1775a1424d758897b04`
+- **Source commit time:** `2026-09-28T14:54:59+03:00`
+- **Indexed changed scientific artifacts:** `756`
 
 ## Continuity status
 
 - Semantic cache: `.janus/P_VS_NP_STREAM_CACHE_CURRENT.json`
 - Semantic source HEAD: `7a1ca3a9e52ba360cdb700306ca3fc58746aa27f`
 - Relation: **`LIVE_DESCENDS_FROM_SEMANTIC_CACHE`**
-- Commits after semantic checkpoint: `49`
+- Commits after semantic checkpoint: `53`
 
 ## Scientific firewall
 
@@ -130,6 +130,10 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `8bda813d4e05` — 2026-09-28T14:51:40+03:00 — R5 E9: prove exponential bilinear witness-selection Hankel rank barrier
 - `25891fd18187` — 2026-09-28T14:52:00+03:00 — R5 E9: add bilinear Hankel-rank regression
 - `8df0c2d1d571` — 2026-09-28T14:52:22+03:00 — R5 E9: add CI for bilinear witness-selection rank barrier
+- `c3d7988b5766` — 2026-09-28T14:53:32+03:00 — R5 E9: freeze singular prime h-perfect relaxation gap control
+- `d0d0c719a1cb` — 2026-09-28T14:54:03+03:00 — R5 E9: add exact checker for h-perfect relaxation gap control
+- `ba193be31c95` — 2026-09-28T14:54:20+03:00 — R5 E9: add CI for singular prime h-perfect relaxation gap
+- `ad3ccb96cbd4` — 2026-09-28T14:54:59+03:00 — R5 E9: add CI for PolaritySAT hostile donor falsifier
 
 ## Transport / stale-bootstrap watch
 
@@ -160,6 +164,10 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 
 ## Recent non-cache commits
 
+- `ad3ccb96cbd4` — 2026-09-28T14:54:59+03:00 — R5 E9: add CI for PolaritySAT hostile donor falsifier
+- `ba193be31c95` — 2026-09-28T14:54:20+03:00 — R5 E9: add CI for singular prime h-perfect relaxation gap
+- `d0d0c719a1cb` — 2026-09-28T14:54:03+03:00 — R5 E9: add exact checker for h-perfect relaxation gap control
+- `c3d7988b5766` — 2026-09-28T14:53:32+03:00 — R5 E9: freeze singular prime h-perfect relaxation gap control
 - `8df0c2d1d571` — 2026-09-28T14:52:22+03:00 — R5 E9: add CI for bilinear witness-selection rank barrier
 - `25891fd18187` — 2026-09-28T14:52:00+03:00 — R5 E9: add bilinear Hankel-rank regression
 - `8bda813d4e05` — 2026-09-28T14:51:40+03:00 — R5 E9: prove exponential bilinear witness-selection Hankel rank barrier
@@ -181,10 +189,6 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `958155ec7672` — 2026-09-28T06:21:25+03:00 — R5 E9: add checker for single-variable DP biclique theorem
 - `f1797d961846` — 2026-09-28T06:21:09+03:00 — R5 E9: prove whole-variable coherence path elimination equals DP biclique
 - `7a8421d5802a` — 2026-09-28T06:19:34+03:00 — R5 E9 validate C4-free incidence pivot barrier
-- `5a1ac05608a7` — 2026-09-28T06:19:22+03:00 — R5 E9 add C4-free incidence barrier regression
-- `39df19f4339c` — 2026-09-28T06:19:05+03:00 — R5 E9 seal C4-free source-incidence pivot barrier
-- `3dde3e11a403` — 2026-09-28T06:18:52+03:00 — R5 E9: add checker for one-coherence DP exactness
-- `575bccc3db21` — 2026-09-28T06:18:41+03:00 — R5 E9: classify one-coherence cross-layer pivot as exact DP
 
 ## Resume protocol
 
