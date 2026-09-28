@@ -2,7 +2,7 @@
 
 Date: 2026-09-28
 
-Status: `JANUS_DERIVED_EXACT_REPRESENTATION_GAUGE_AND_OBJECTIVE_GAP__NO_D1_PROMOTION`
+Status: `JANUS_DERIVED_EXACT_REPRESENTATION_GAUGE__TERMINAL_EXPOSING_CONTROL__OBJECTIVE_GAP__NO_D1_PROMOTION`
 
 Parents:
 - `research/R5_E9_BINARY_KERNEL_SIGNATURE_SERIES_PROJECTIVE_AVOIDANCE_2026-09-28_v1.0.md`
@@ -14,9 +14,10 @@ Checker:
 Scientific ceiling:
 
 ```text
-THIS NOTE PROVES A NEW EXACT SEMANTIC GAUGE AND A SOURCE-SPECIFIC OBJECTIVE GAP.
-IT DOES NOT GIVE A POLYNOMIAL ALGORITHM FOR FINDING A USEFUL TRADE SEQUENCE OR
-FOR SOLVING THE REMAINING PROJECTIVE POINT-SET MAXIMUM-WEIGHT PROBLEM.
+THIS NOTE PROVES AN EXACT SEMANTIC GAUGE, A TERMINAL-EXPOSING FINITE CONTROL,
+AND A SOURCE-SPECIFIC OBJECTIVE GAP.
+IT DOES NOT PROVE THAT EVERY RESIDUAL HAS A POLYNOMIALLY DISCOVERABLE TRADE
+SEQUENCE TO A KNOWN TERMINAL.
 
 E8_D1 = EMPTY.
 P_VS_NP = OPEN.
@@ -56,7 +57,7 @@ Under the four conditions above,
 
 ### Proof
 
-Take a row `{a,b,c}` of `A'`.  For every `z in K`,
+Take a row `{a,b,c}` of `A'`. For every `z in K`,
 
 ```text
 z_a+z_b+z_c
@@ -109,15 +110,15 @@ Consequently
 }
 \]
 
-So a degree-preserving projective-line trade that passes the single polynomial
-rank test is an **exact semantic representation change**: SAT/UNSAT and every
-Boolean witness are preserved.
+So a degree-preserving projective-line trade that passes one polynomial `F2` rank
+test is an **exact semantic representation change**: SAT/UNSAT and every Boolean
+witness are preserved. Witness lifting is the identity map.
 
 ## 3. Local trade certificate
 
 A convenient local form replaces a set `R` of source lines by a disjoint set `R'`
 of projective lines such that every point has the same incidence multiplicity in
-`R` and `R'`. This preserves all column degrees.  If the resulting square matrix
+`R` and `R'`. This preserves all column degrees. If the resulting square matrix
 passes
 
 ```text
@@ -126,39 +127,60 @@ rank_F2(A') = rank_F2(A),
 
 PLTG-1 applies immediately.
 
-The rank test is ordinary Gaussian elimination and is polynomial.  The theorem
-does **not** claim that a useful trade always exists or that a polynomial sequence
-to a known terminal always exists.
+The rank test is ordinary Gaussian elimination and is polynomial. The theorem does
+**not** claim that a useful trade always exists or that a polynomial sequence to a
+known terminal always exists.
 
-## 4. Exact PG(3,2) hostile control
+## 4. Terminal-exposing `PG(3,2)` hostile control
 
 On frozen `PG15_UNSAT_R13`, the actual signature set is all fifteen nonzero vectors
 of `F2^4`; hence it contains all 35 projective lines. The original 15 source lines
-admit the following degree-preserving 3-for-3 exchange:
+have
+
+```text
+rank_F2(A)=11,
+rank_Q(A)=13,
+Exact-One = UNSAT.
+```
+
+Exhaustively census all degree-preserving 3-for-3 exchanges using projective lines
+outside the source arrangement and retain only those preserving `rank_F2=11`.
+The checker finds exactly
+
+```text
+31 rank-safe 3<->3 trades,
+6 of them expose rank_Q(A')=15.
+```
+
+One explicit terminal-exposing trade is
 
 ```text
 remove:
   (1,12,13)
-  (2,4,6)
   (3,8,11)
+  (6,9,15)
 
 add:
-  (1,2,3)
-  (4,8,12)
+  (1,8,9)
+  (3,12,15)
   (6,11,13)
 ```
 
-Every point has identical removed/added multiplicity.  The checker verifies
+It satisfies
 
 ```text
 old rank_F2 = 11,
 new rank_F2 = 11,
+old rank_Q  = 13,
+new rank_Q  = 15,
 old kernel  = new kernel,
 old Exact-One witness set = new witness set = empty.
 ```
 
-Thus the line-arrangement gauge is nontrivial on an actual series-irreducible
-hostile residual.
+Therefore one exact local gauge move turns this hostile-looking representation into
+the already admitted full-rational-rank polynomial UNSAT terminal while preserving
+all Boolean semantics.  This is a finite positive control for **useful** line-trade
+rewriting, not an asymptotic convergence theorem.
 
 ## 5. Mod-3 bad-line gap
 
@@ -172,10 +194,10 @@ q(t) = number of source rows fully contained in H_t.
 The proved Walsh identity is
 
 \[
-q(t)=n-\frac32 w(t).
+q(t)=n-\frac32 w(t),
 \]
 
-Equivalently,
+so
 
 \[
 \boxed{3w(t)=2(n-q(t)).}
@@ -203,19 +225,19 @@ Using `w(t)=2(n-q(t))/3` gives the exact objective gap
 
 \[
 \boxed{
-SAT \Longrightarrow w_max=2n/3,
+SAT \Longrightarrow w_{max}=2n/3,
 \qquad
-UNSAT \Longrightarrow w_max\le2n/3-2.
+UNSAT \Longrightarrow w_{max}\le2n/3-2.
 }
 \]
 
 This gap is source-specific but is not by itself a polynomial approximation
-algorithm. Generic nearest-codeword / syndrome-decoding hardness may not be
-imported as a solver or as a lower bound for the stricter JANUS source image.
+algorithm. Generic nearest-codeword hardness is only a boundary control; it is not
+a lower bound theorem for the stricter JANUS image.
 
-## 6. New admissible attack
+## 6. New global gate
 
-The projective quotient now has an additional exact freedom:
+The point-set quotient now admits an exact rewrite system:
 
 ```text
 same actual signature point set S
@@ -224,17 +246,29 @@ same actual signature point set S
 => exact same Boolean Exact-One witness set.
 ```
 
-A genuine next PASS may therefore search for a polynomially discoverable sequence
-of rank-preserving line trades leading to an already admitted terminal
-(separator, balanced, commuting, matroid, or other), provided it proves:
+Freeze the candidate mechanism gate
 
-1. a trade or terminal always exists on every unresolved source;
-2. each trade is found in polynomial time;
-3. a polynomially bounded potential strictly decreases;
-4. witness lifting is explicit (here it is the identity on `x`);
-5. the total representation size remains polynomial.
+```text
+R5_E9_PROJECTIVE_LINE_TRADE_TERMINALIZATION_GATE_V1
+```
 
-Absent those five items this is a representation gauge, not a universal solver.
+A universal PASS must prove that every unresolved source either is already in an
+admitted polynomial terminal or admits a polynomially discoverable rank-safe trade
+(or polynomial-size batch of trades) such that a polynomially bounded potential
+strictly improves, eventually reaching a terminal or constructive witness form.
+
+Required:
+1. trade discovery in polynomial time;
+2. exact `F2` rank preservation at every semantic rewrite;
+3. polynomial total number and size of rewrites;
+4. strict global potential, not a local heuristic;
+5. identity or explicit polynomial witness lifting.
+
+Forbidden:
+- assuming that every extra projective triangle participates in a useful trade;
+- exponential search through all 3-regular line decompositions;
+- finite PG(3,2) connectivity promoted to an asymptotic theorem;
+- a trade sequence whose destination terminal is known only after solving SAT.
 
 ## 7. Ceiling
 
@@ -243,14 +277,17 @@ RANK-PRESERVING PROJECTIVE LINE TRADE
 => EXACT KERNEL PRESERVATION
 = PROVED
 
-PARITY-SOLUTION AFFINE SPACE
+PARITY-SOLUTION / EXACT-ONE WITNESS SET
 = IDENTICAL BEFORE/AFTER TRADE
 
-EXACT-ONE WITNESS SET
-= IDENTICAL BEFORE/AFTER TRADE
+PG15_UNSAT RANK-SAFE 3<->3 TRADES
+= 31 EXACTLY (FINITE CONTROL)
 
-PG15_UNSAT NONTRIVIAL 3<->3 TRADE
-= EXACT CONTROL
+PG15_UNSAT FULL-Q-RANK-EXPOSING TRADES
+= 6 EXACTLY (FINITE CONTROL)
+
+ONE LOCAL TRADE TO KNOWN POLY TERMINAL
+= EXPLICIT
 
 BAD-LINE CONGRUENCE
 q(t) = n (mod 3)
@@ -261,7 +298,7 @@ q_min >= 3
 w_max <= 2n/3-2
 = PROVED
 
-POLYNOMIAL USEFUL-TRADE CONVERGENCE THEOREM
+POLYNOMIAL TRADE-TERMINALIZATION THEOREM
 = OPEN
 
 UNIVERSAL POLYNOMIAL DECIDER
