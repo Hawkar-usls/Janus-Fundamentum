@@ -5,16 +5,16 @@
 - **Repository:** `Hawkar-usls/Janus-Fundamentum`
 - **PR:** `#510`
 - **Branch:** `codex/r5-e8-direct-contract-20260921-82493a57`
-- **Live source HEAD:** `8012c8d052b3e7a26b840d5cc61455d24f59f0a5`
-- **Source commit time:** `2026-09-28T21:43:35+03:00`
-- **Indexed changed scientific artifacts:** `819`
+- **Live source HEAD:** `f6a098bddb522f07e1cb96d7e3591d536ede6d16`
+- **Source commit time:** `2026-09-28T21:44:33+03:00`
+- **Indexed changed scientific artifacts:** `821`
 
 ## Continuity status
 
 - Semantic cache: `.janus/P_VS_NP_STREAM_CACHE_CURRENT.json`
 - Semantic source HEAD: `05563fb285a1b2a4ae62d2a6aab0143bdbe52899`
 - Relation: **`LIVE_DESCENDS_FROM_SEMANTIC_CACHE`**
-- Commits after semantic checkpoint: `41`
+- Commits after semantic checkpoint: `43`
 
 ## Scientific firewall
 
@@ -120,6 +120,8 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `c8f67b77b847` — 2026-09-28T21:36:22+03:00 — R5 E9: bind geometric augmentation meta-theorem and prime-tower stress
 - `9390f66e6134` — 2026-09-28T21:36:29+03:00 — R5 E9: add CI for geometric tope-radius stress
 - `8012c8d052b3` — 2026-09-28T21:43:35+03:00 — R5 E9: prove linear projective escape-radius prime tower
+- `7aa19ec97edd` — 2026-09-28T21:44:26+03:00 — R5 E9: add exact recurrence replay through n120
+- `f6a098bddb52` — 2026-09-28T21:44:33+03:00 — R5 E9: add CI for projective escape-radius recurrence
 
 ## Transport / stale-bootstrap watch
 
@@ -150,6 +152,8 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 
 ## Recent non-cache commits
 
+- `f6a098bddb52` — 2026-09-28T21:44:33+03:00 — R5 E9: add CI for projective escape-radius recurrence
+- `7aa19ec97edd` — 2026-09-28T21:44:26+03:00 — R5 E9: add exact recurrence replay through n120
 - `8012c8d052b3` — 2026-09-28T21:43:35+03:00 — R5 E9: prove linear projective escape-radius prime tower
 - `9390f66e6134` — 2026-09-28T21:36:29+03:00 — R5 E9: add CI for geometric tope-radius stress
 - `c8f67b77b847` — 2026-09-28T21:36:22+03:00 — R5 E9: bind geometric augmentation meta-theorem and prime-tower stress
@@ -173,8 +177,6 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `4d46fc88a5cb` — 2026-09-28T20:53:19+03:00 — R5 E9: prove PG15 kernel boundary is nonconvex and nongated
 - `c5178dad5b94` — 2026-09-28T20:52:14+03:00 — R5 E9: add CI for source-kernel tope geodesic bound
 - `ba8c9de2ad21` — 2026-09-28T20:49:58+03:00 — R5 E9: add source-kernel tope geodesic regression
-- `f510fd4789aa` — 2026-09-28T20:49:25+03:00 — R5 E9: bound source-kernel augmenting paths by tope geodesics
-- `bd6205f45e17` — 2026-09-28T20:45:45+03:00 — R5 E9: add CI for Tukey tope-descent barrier
 
 ## Resume protocol
 
