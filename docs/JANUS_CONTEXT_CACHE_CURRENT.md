@@ -5,16 +5,16 @@
 - **Repository:** `Hawkar-usls/Janus-Fundamentum`
 - **PR:** `#510`
 - **Branch:** `codex/r5-e8-direct-contract-20260921-82493a57`
-- **Live source HEAD:** `a78056a7516597db003e9fcf7f01ce2faad28f8a`
-- **Source commit time:** `2026-09-28T21:16:09+03:00`
-- **Indexed changed scientific artifacts:** `812`
+- **Live source HEAD:** `d8e60cc564d20141da393123194f1ea47d63b150`
+- **Source commit time:** `2026-09-28T21:35:08+03:00`
+- **Indexed changed scientific artifacts:** `816`
 
 ## Continuity status
 
 - Semantic cache: `.janus/P_VS_NP_STREAM_CACHE_CURRENT.json`
 - Semantic source HEAD: `05563fb285a1b2a4ae62d2a6aab0143bdbe52899`
 - Relation: **`LIVE_DESCENDS_FROM_SEMANTIC_CACHE`**
-- Commits after semantic checkpoint: `34`
+- Commits after semantic checkpoint: `38`
 
 ## Scientific firewall
 
@@ -113,6 +113,10 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `96c5cd2e81f3` — 2026-09-28T21:14:04+03:00 — R5 E9: repair tope adjacency for parallel kernel hyperplanes
 - `aa237e2a4c76` — 2026-09-28T21:14:42+03:00 — R5 E9: verify projective hyperplane classes in greedy barrier
 - `a78056a75165` — 2026-09-28T21:16:09+03:00 — R5 E9: certify exact boundary distances from PG15 trap
+- `71be1c58613f` — 2026-09-28T21:23:44+03:00 — R5 E9: prove raw tope-radius 2-lift amplifier
+- `5b802dab7ee7` — 2026-09-28T21:24:23+03:00 — R5 E9: add raw-radius 2-lift amplifier regression
+- `29b9f62a0fb2` — 2026-09-28T21:24:31+03:00 — R5 E9: add CI for raw-radius 2-lift amplifier
+- `d8e60cc564d2` — 2026-09-28T21:35:08+03:00 — R5 E9: add exact geometric tope-radius stress controls
 
 ## Transport / stale-bootstrap watch
 
@@ -143,6 +147,10 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 
 ## Recent non-cache commits
 
+- `d8e60cc564d2` — 2026-09-28T21:35:08+03:00 — R5 E9: add exact geometric tope-radius stress controls
+- `29b9f62a0fb2` — 2026-09-28T21:24:31+03:00 — R5 E9: add CI for raw-radius 2-lift amplifier
+- `5b802dab7ee7` — 2026-09-28T21:24:23+03:00 — R5 E9: add raw-radius 2-lift amplifier regression
+- `71be1c58613f` — 2026-09-28T21:23:44+03:00 — R5 E9: prove raw tope-radius 2-lift amplifier
 - `a78056a75165` — 2026-09-28T21:16:09+03:00 — R5 E9: certify exact boundary distances from PG15 trap
 - `aa237e2a4c76` — 2026-09-28T21:14:42+03:00 — R5 E9: verify projective hyperplane classes in greedy barrier
 - `96c5cd2e81f3` — 2026-09-28T21:14:04+03:00 — R5 E9: repair tope adjacency for parallel kernel hyperplanes
@@ -164,10 +172,6 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `11793acebcaa` — 2026-09-28T20:45:36+03:00 — R5 E9: add PG15 monotone tope-descent countercontrol
 - `79e3015cd010` — 2026-09-28T20:45:03+03:00 — R5 E9: kill monotone Tukey tope descent on PG15 SAT
 - `bba8036e144c` — 2026-09-28T20:35:38+03:00 — R5 E9: add CI for kernel Tukey-depth boundary
-- `3e4c7d688740` — 2026-09-28T20:35:26+03:00 — R5 E9: add kernel Tukey-depth boundary regression
-- `40d673255f47` — 2026-09-28T20:34:53+03:00 — R5 E9: prove rational-kernel Tukey-depth boundary quotient
-- `5419bb7585f0` — 2026-09-28T20:15:20+03:00 — R5 E9: add CI for projective fractional-support closure
-- `dfd4ba288014` — 2026-09-28T20:15:09+03:00 — R5 E9: add projective fractional-support closure regression
 
 ## Resume protocol
 
