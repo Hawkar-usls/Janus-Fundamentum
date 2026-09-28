@@ -5,16 +5,16 @@
 - **Repository:** `Hawkar-usls/Janus-Fundamentum`
 - **PR:** `#510`
 - **Branch:** `codex/r5-e8-direct-contract-20260921-82493a57`
-- **Live source HEAD:** `40d673255f475bb03e775ae7936d75f9aaaf2bdb`
-- **Source commit time:** `2026-09-28T20:34:53+03:00`
-- **Indexed changed scientific artifacts:** `794`
+- **Live source HEAD:** `bba8036e144cac88f81673d277279a5619c0c458`
+- **Source commit time:** `2026-09-28T20:35:38+03:00`
+- **Indexed changed scientific artifacts:** `796`
 
 ## Continuity status
 
 - Semantic cache: `.janus/P_VS_NP_STREAM_CACHE_CURRENT.json`
 - Semantic source HEAD: `05563fb285a1b2a4ae62d2a6aab0143bdbe52899`
 - Relation: **`LIVE_DESCENDS_FROM_SEMANTIC_CACHE`**
-- Commits after semantic checkpoint: `12`
+- Commits after semantic checkpoint: `14`
 
 ## Scientific firewall
 
@@ -91,6 +91,8 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `dfd4ba288014` — 2026-09-28T20:15:09+03:00 — R5 E9: add projective fractional-support closure regression
 - `5419bb7585f0` — 2026-09-28T20:15:20+03:00 — R5 E9: add CI for projective fractional-support closure
 - `40d673255f47` — 2026-09-28T20:34:53+03:00 — R5 E9: prove rational-kernel Tukey-depth boundary quotient
+- `3e4c7d688740` — 2026-09-28T20:35:26+03:00 — R5 E9: add kernel Tukey-depth boundary regression
+- `bba8036e144c` — 2026-09-28T20:35:38+03:00 — R5 E9: add CI for kernel Tukey-depth boundary
 
 ## Transport / stale-bootstrap watch
 
@@ -121,6 +123,8 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 
 ## Recent non-cache commits
 
+- `bba8036e144c` — 2026-09-28T20:35:38+03:00 — R5 E9: add CI for kernel Tukey-depth boundary
+- `3e4c7d688740` — 2026-09-28T20:35:26+03:00 — R5 E9: add kernel Tukey-depth boundary regression
 - `40d673255f47` — 2026-09-28T20:34:53+03:00 — R5 E9: prove rational-kernel Tukey-depth boundary quotient
 - `5419bb7585f0` — 2026-09-28T20:15:20+03:00 — R5 E9: add CI for projective fractional-support closure
 - `dfd4ba288014` — 2026-09-28T20:15:09+03:00 — R5 E9: add projective fractional-support closure regression
@@ -144,8 +148,6 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `24ea91f06754` — 2026-09-28T16:55:21+03:00 — R5 E9: add CI for rooted dual-Fano E10 reconciliation
 - `84b2c77be435` — 2026-09-28T16:55:01+03:00 — R5 E9: add exact cross-route rooted dual-Fano regression
 - `436015067066` — 2026-09-28T16:54:21+03:00 — R5 E9: reconcile rooted dual-Fano with E10 and semantic terminals
-- `eee109833b13` — 2026-09-28T16:14:02+03:00 — R5 E9: add CI for rooted dual-Fano source controls
-- `89f5f64e60da` — 2026-09-28T16:13:36+03:00 — R5 E9: add exact rooted dual-Fano source census
 
 ## Resume protocol
 
