@@ -5,16 +5,16 @@
 - **Repository:** `Hawkar-usls/Janus-Fundamentum`
 - **PR:** `#510`
 - **Branch:** `codex/r5-e8-direct-contract-20260921-82493a57`
-- **Live source HEAD:** `789c1400869caf1118bfa960cff9c218bf15cbf8`
-- **Source commit time:** `2026-09-28T21:55:26+03:00`
-- **Indexed changed scientific artifacts:** `822`
+- **Live source HEAD:** `55490108beeae45fbf0ed6ed4b15e3c288963c68`
+- **Source commit time:** `2026-09-28T22:45:25+03:00`
+- **Indexed changed scientific artifacts:** `825`
 
 ## Continuity status
 
 - Semantic cache: `.janus/P_VS_NP_STREAM_CACHE_CURRENT.json`
 - Semantic source HEAD: `05563fb285a1b2a4ae62d2a6aab0143bdbe52899`
 - Relation: **`LIVE_DESCENDS_FROM_SEMANTIC_CACHE`**
-- Commits after semantic checkpoint: `44`
+- Commits after semantic checkpoint: `47`
 
 ## Scientific firewall
 
@@ -123,6 +123,9 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `7aa19ec97edd` — 2026-09-28T21:44:26+03:00 — R5 E9: add exact recurrence replay through n120
 - `f6a098bddb52` — 2026-09-28T21:44:33+03:00 — R5 E9: add CI for projective escape-radius recurrence
 - `789c1400869c` — 2026-09-28T21:55:26+03:00 — R5 E9: reconcile RKPR with prime tower and EQ3 hardness image
+- `46f9a6f0f774` — 2026-09-28T21:55:50+03:00 — R5 E9: add RKPR post-quotient reconciliation replay
+- `97244b0e6985` — 2026-09-28T21:55:57+03:00 — R5 E9: add CI for RKPR post-quotient reconciliation
+- `55490108beea` — 2026-09-28T22:45:25+03:00 — R5 E9: add rational-tope defect syndrome projective filter
 
 ## Transport / stale-bootstrap watch
 
@@ -153,6 +156,9 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 
 ## Recent non-cache commits
 
+- `55490108beea` — 2026-09-28T22:45:25+03:00 — R5 E9: add rational-tope defect syndrome projective filter
+- `97244b0e6985` — 2026-09-28T21:55:57+03:00 — R5 E9: add CI for RKPR post-quotient reconciliation
+- `46f9a6f0f774` — 2026-09-28T21:55:50+03:00 — R5 E9: add RKPR post-quotient reconciliation replay
 - `789c1400869c` — 2026-09-28T21:55:26+03:00 — R5 E9: reconcile RKPR with prime tower and EQ3 hardness image
 - `f6a098bddb52` — 2026-09-28T21:44:33+03:00 — R5 E9: add CI for projective escape-radius recurrence
 - `7aa19ec97edd` — 2026-09-28T21:44:26+03:00 — R5 E9: add exact recurrence replay through n120
@@ -175,9 +181,6 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `f318557a9306` — 2026-09-28T20:57:31+03:00 — R5 E9: add navigation-shell finite binding
 - `e7f9f0f7a0d0` — 2026-09-28T20:57:00+03:00 — R5 E9: isolate polynomial source-kernel navigation shell
 - `a5030a34807a` — 2026-09-28T20:54:11+03:00 — R5 E9: add CI for kernel-boundary nonconvexity barrier
-- `4de044cf8440` — 2026-09-28T20:53:54+03:00 — R5 E9: add PG15 boundary nonconvexity regression
-- `4d46fc88a5cb` — 2026-09-28T20:53:19+03:00 — R5 E9: prove PG15 kernel boundary is nonconvex and nongated
-- `c5178dad5b94` — 2026-09-28T20:52:14+03:00 — R5 E9: add CI for source-kernel tope geodesic bound
 
 ## Resume protocol
 
