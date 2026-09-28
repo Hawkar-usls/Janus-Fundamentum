@@ -5,16 +5,16 @@
 - **Repository:** `Hawkar-usls/Janus-Fundamentum`
 - **PR:** `#510`
 - **Branch:** `codex/r5-e8-direct-contract-20260921-82493a57`
-- **Live source HEAD:** `3d572a8026d1de0baf7d55fb8c2b34a343d1859a`
-- **Source commit time:** `2026-09-28T23:18:07+03:00`
-- **Indexed changed scientific artifacts:** `830`
+- **Live source HEAD:** `beaf84b5ed0638fe152e772c46c58656261c8084`
+- **Source commit time:** `2026-09-28T23:53:35+03:00`
+- **Indexed changed scientific artifacts:** `831`
 
 ## Continuity status
 
 - Semantic cache: `.janus/P_VS_NP_STREAM_CACHE_CURRENT.json`
 - Semantic source HEAD: `05563fb285a1b2a4ae62d2a6aab0143bdbe52899`
 - Relation: **`LIVE_DESCENDS_FROM_SEMANTIC_CACHE`**
-- Commits after semantic checkpoint: `53`
+- Commits after semantic checkpoint: `54`
 
 ## Scientific firewall
 
@@ -132,6 +132,7 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `36577823df8b` — 2026-09-28T23:16:58+03:00 — R5 E9: prove two-edge SAT lift survives RKPR with linear nullity
 - `75f7ac08250f` — 2026-09-28T23:17:59+03:00 — R5 E9: add exact RKPR-survival regression for two-edge SAT lifts
 - `3d572a8026d1` — 2026-09-28T23:18:07+03:00 — R5 E9: add CI for two-edge SAT RKPR survival
+- `beaf84b5ed06` — 2026-09-28T23:53:35+03:00 — R5 E9: prove primitive linear-nullity local-swap barrier
 
 ## Transport / stale-bootstrap watch
 
@@ -162,6 +163,7 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 
 ## Recent non-cache commits
 
+- `beaf84b5ed06` — 2026-09-28T23:53:35+03:00 — R5 E9: prove primitive linear-nullity local-swap barrier
 - `3d572a8026d1` — 2026-09-28T23:18:07+03:00 — R5 E9: add CI for two-edge SAT RKPR survival
 - `75f7ac08250f` — 2026-09-28T23:17:59+03:00 — R5 E9: add exact RKPR-survival regression for two-edge SAT lifts
 - `36577823df8b` — 2026-09-28T23:16:58+03:00 — R5 E9: prove two-edge SAT lift survives RKPR with linear nullity
@@ -186,7 +188,6 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `96c5cd2e81f3` — 2026-09-28T21:14:04+03:00 — R5 E9: repair tope adjacency for parallel kernel hyperplanes
 - `bec918c31cfa` — 2026-09-28T21:10:50+03:00 — R5 E9: add CI for kernel-tope greedy barrier
 - `e1062ed9da53` — 2026-09-28T21:10:40+03:00 — R5 E9: add exact PG15 tope local-minimum checker
-- `54774f50cd5a` — 2026-09-28T21:10:11+03:00 — R5 E9: freeze kernel-tope greedy local-minimum barrier
 
 ## Resume protocol
 
