@@ -5,16 +5,16 @@
 - **Repository:** `Hawkar-usls/Janus-Fundamentum`
 - **PR:** `#510`
 - **Branch:** `codex/r5-e8-direct-contract-20260921-82493a57`
-- **Live source HEAD:** `b9430f8ce33c0fdf672500df291574755e5fb2b5`
-- **Source commit time:** `2026-09-28T05:39:02+03:00`
+- **Live source HEAD:** `fda43e701a7115471df4a9355578607c1c4fe1d8`
+- **Source commit time:** `2026-09-28T05:39:25+03:00`
 - **Indexed changed scientific artifacts:** `706`
 
 ## Continuity status
 
 - Semantic cache: `.janus/P_VS_NP_STREAM_CACHE_CURRENT.json`
-- Semantic source HEAD: `d782ea4b1c3c55c7b101d821a55e25a3472b070b`
+- Semantic source HEAD: `7a1ca3a9e52ba360cdb700306ca3fc58746aa27f`
 - Relation: **`LIVE_DESCENDS_FROM_SEMANTIC_CACHE`**
-- Commits after semantic checkpoint: `11`
+- Commits after semantic checkpoint: `2`
 
 ## Scientific firewall
 
@@ -35,38 +35,36 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 
 ## Semantic live frontier
 
-- **Frontier:** `R5_E9_THREE_CUT_IRREDUCIBLE_UNBALANCED_STRONG_ODD_CYCLE_GATE_V1`
-- **Carrier:** NP-complete connected/linear cubic positive Exact-One; exact forms include A=I+P+Q, affine parity plus cycle-2factor independence, dual rank-3 perfect hypermatching, grouped Levi interfaces, and set-partitioning polytope P(A)
-- Established: Exact linear cubic Positive 1-in-3 SAT is NP-complete via the constant-size linear cubic EQ3 regularization gadget.
-- Established: Cubic Exact-One is exactly affine parity Ax=1 mod 2 at Hamming weight n/3; negative-kernel descent is exact but polynomial synthesis on the full carrier is not admitted.
-- Established: Matching normalization A=I+P+Q gives Exact-One = affine parity intersect independence in a simple cycle 2-factor.
-- Established: For every exact 3-edge interface the boundary algebra is constant: every nonempty projected relation is either an even delta-matroid with at most three tuples or a complementary twisted-EQ3 pair.
-- Established: Therefore genuine <=3-edge interfaces do not create semantic state explosion; trivial vertex-isolating 3-cuts are not counted as progress.
-- Established: If the source incidence matrix A is balanced, P(A)={x>=0:Ax=1} is integral and a Boolean Exact-One witness is deterministically constructible in polynomial time.
-- Established: If A is unbalanced, polynomial balancedness recognition supplies a strong odd-cycle / chordless 4k+2 Levi-cycle certificate.
-- Established: The frozen connected linear-cubic 15_3 rank-14 UNSAT control has no nontrivial edge cut of size <=3: its 30 three-edge cuts are exactly the 30 vertex stars. It is unbalanced via rows {0,12,13} and columns {0,8,12}, which form the forbidden odd 3x3 cycle submatrix.
-- Established: That 15_3 object is a hostile control for separator+balanced+singularity shortcuts, not an ultimate hard core: its rational nullity is only 1 and the existing low-nullity router can solve it.
-- Established: A common EQ3/EXACT1 matchgate basis and the stronger edge-wise matchgate-gauge route are closed as universal Pfaffian shortcuts.
-- Established: Three-port local matching gadgets and one-toggle additive Exact-Matching counters are closed; ordinary matching escape must be genuinely nonlocal.
-- Established: Every connected acyclic grouped EQ3/EXACT1 region containing an EQ3 node has a boundary relation that is not a delta-matroid, hence is not ordinary matching-realizable, for arbitrary region size.
-- Established: Boben A-reductions terminate structurally in bounded-width terminals, but exact semantic transport remains open; one A-step needs at least 3 states and an explicit legal two-step region needs at least 4.
-- Established: Raw rational/F2 nullity, singularity, commutativity, primitivity, local EQ3 gauge quotient and Harries/OET amplifier statistics are not universal complexity currencies.
-- Established: For every strong odd cycle of odd order k, the full third-occurrence boundary has an exact two-state cyclic transfer form: sigma_{i+1}=2w_i-sigma_i and 2(a_i+b_i)=1+sigma_i; equivalently det(I+S_k)=2 and belt feasibility is alternating sums in {−1,+1}. Single-cycle boundary table explosion is closed, but global composition closure is unproved.
+- **Frontier:** `R5_E9_NONLOCAL_RANK1_CROSS_LAYER_GLOBAL_PIVOT_GATE_V1`
+- **Carrier:** arbitrary signed 3CNF via exact two-path XOR/AND overlay and affine symmetric rank-one F2 moment representation; NP-complete linear-cubic Exact-One remains mandatory hostile source
+- Established: Exact linear-cubic Positive 1-in-3 SAT is NP-complete via the constant-size linear cubic EQ3 regularization gadget.
+- Established: Low rational nullity and near-maximal rational nullity have exact FPT routers, but nullity is not a universal complexity currency.
+- Established: There are explicit infinite SAT and UNSAT connected linear-cubic unbalanced 3-cut-prime families with rational nullity Theta(n); therefore both low-nullity-after-separators and large-nullity-implies-SAT shortcuts are false.
+- Established: Genuine <=3-edge interfaces have constant exact boundary algebra; balanced incidence matrices are a deterministic polynomial Exact-One terminal.
+- Established: Strong odd cycles have an exact local bond-2 transfer form, but pinned k=3 blocks realize independent equality channels with cut rank 2^m, so local bond dimension does not imply a polynomial single-summary global state.
+- Established: Generic AFFINE-SYMMETRIC-RANK1-F2 feasibility is NP-complete; a valid polynomial solver must exploit JANUS-specific provenance.
+- Established: The rank-one moment representation has polynomial lift-or-defect, sound cuts, a complete O(N^2) multiplicative obstruction basis, and polynomial witness reconstruction; the remaining obligation is the refined exact solver R2.
+- Established: APAC completely classifies one-product affine contexts. No-FULL plus 2-affine Krom boundary is an exact polynomial terminal.
+- Established: APAC sharpness is two-axis: 2-affine plus unrestricted FULL products and NO-FULL plus width-3 affine/Krom each linearly encode arbitrary 3CNF.
+- Established: Arbitrary signed 3CNF has an exact linear two-path XOR/AND overlay representation in which the affine layer and product layer separately have treewidth one; only the cross-layer overlay carries the hardness.
+- Established: Any potential depending only on product-layer complexity and affine-layer complexity separately is invalid; a successful potential must inspect cross-layer overlay.
+- Established: Individual rank-one defect cuts plus local projection merely reactivate original OR3 clauses and are forbidden as pseudo-progress.
+- Established: Witness-dominance quotient contraction is exact when a polynomial certificate exists, but the first signed-permutation certificate family is not universally available.
 
 ### Live split
 
 ```json
 {
   "primary": {
-    "goal": "Prove polynomial total-size closure of the exact two-state strong-odd-cycle transfer objects under overlapping cycle contractions, composed with <=3-cut decomposition and the balanced terminal; or falsify this representation on a source-valid growth family.",
+    "goal": "Construct a deterministic polynomial GLOBAL_PIVOT on affine + FULL-product + Krom states using a genuinely cross-layer overlay invariant. A successful contraction must preserve SAT exactly, support polynomial witness lifting, and strictly decrease a polynomially bounded joint potential without recreating an equivalent universal carrier.",
     "status": "OPEN"
   },
   "secondary": {
-    "goal": "On the residual core, prove or falsify a low-rational-nullity bound after exhaustive genuine <=3-cut decomposition; the rank-14 n=15 control is not a falsifier because its nullity is 1. If the bound fails, freeze an explicit high-nullity 3-cut-irreducible counterfamily and abandon this currency.",
+    "goal": "Exploit the exact actual-row-basis semantic core Bx=1 iff Ax=1 only if it yields a non-enumerative global matching/hypermatching contraction; private-variable stripping and rational nullity statistics alone are not progress.",
     "status": "OPEN"
   },
   "reserve": {
-    "goal": "Derive source-specific polynomial syndrome compression for affine parity plus cycle-2factor independence or a polynomial Boben correlation algebra; generic high-width affine/Krom and constant-state shortcuts remain forbidden.",
+    "goal": "Recheck newly published recursive-AIP or beyond-gadget/posetal-adjunction donors only when a proof-ready polynomial construction theorem exists; current April 2026 higher-level AIP source does not supply the missing universal recursion.",
     "status": "OPEN"
   }
 }
@@ -74,25 +72,17 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 
 ### Next attack
 
-1. Compose two and then arbitrary overlapping strong odd-cycle transfer objects symbolically and measure exact state/formula growth; seek a closed matrix/correlation algebra rather than expanding boundary tables.
-2. Require a strict global progress measure: every admitted cycle contraction must reduce original EQ3/EXACT1 structure without reintroducing an equivalent NP-complete carrier under a new name.
-3. In parallel, search for a high-rational-nullity 3-cut-irreducible unbalanced family before promoting any low-nullity residual theorem.
-4. Do not reopen ordinary matching realization of full odd-cycle boundaries, tree-shaped grouped matching gadgets, local/additive Exact-Matching gadgets, matchgate gauges, local EQ3 gauge quotient, singularity-only, or constant three-state Boben lifts.
-5. Promote E8_D1 only after SOUND, COMPLETE, TERMINATES, POLY and polynomial witness reconstruction hold for every instance in the NP-complete carrier.
+1. Model the exact two-path overlay as a two-edge-coloured incidence object and compute cross-layer circuits/alternating cycles rather than separate-layer widths.
+2. Classify the smallest nonlocal block containing two clause-product paths joined through one XOR coherence edge; identify every exact contraction relation and reject any rule that is just Davis-Putnam clause reactivation or selector conservation.
+3. Test overlay cut-rank, alternating-cycle space and grouped product-syndrome candidates first on the exact universal two-path encoding and on the frozen SAT/UNSAT high-nullity Exact-One lineages.
+4. Promote a GLOBAL_PIVOT only with a proof that every nonterminal source-generated state has a polynomially discoverable contraction or polynomial terminal and that a joint potential strictly decreases.
+5. Do not reopen nullity/singularity, separators, primitive-group routing, fixed-cut summary states, local matchgate/delta-matroid gadgets, individual product cuts, layerwise treewidth/cycle rank, or generic affine-rank1 feasibility.
+6. Promote E8_D1 only after SOUND, COMPLETE, TERMINATES, POLY and polynomial witness reconstruction hold for every arbitrary 3CNF input.
 
 ## Commits newer than semantic checkpoint — MUST INGEST
 
-- `b04dcf27de57` — 2026-09-28T03:21:12+03:00 — R5 E9: sync semantic checkpoint after odd-cycle transfer theorem
-- `c918bc17c8d9` — 2026-09-28T03:29:09+03:00 — R5 E9: prove 3-cut-irreducible linear-nullity 2-lift family
-- `48583f353b8f` — 2026-09-28T03:30:02+03:00 — R5 E9: prove odd-cycle equality-channel cut-rank barrier
-- `3f9204baf499` — 2026-09-28T03:30:14+03:00 — R5 E9: add checker for irreducible two-edge-twist nullity family
-- `789234b93778` — 2026-09-28T03:30:18+03:00 — R5 E9: add checker for odd-cycle equality-channel cut-rank barrier
-- `b06f4a90d29c` — 2026-09-28T03:30:27+03:00 — R5 E9: add CI for irreducible two-edge-twist nullity family
-- `dd28a3fa4d69` — 2026-09-28T03:30:31+03:00 — R5 E9: add CI for odd-cycle equality-channel cut-rank barrier
-- `81fb943743ec` — 2026-09-28T05:08:33+03:00 — R5 E9: prove defect-free two-edge UNSAT linear-nullity family
-- `389b359dcc75` — 2026-09-28T05:09:03+03:00 — R5 E9: add checker for defect-free UNSAT nullity amplifier
-- `7a1ca3a9e52b` — 2026-09-28T05:09:13+03:00 — R5 E9: add CI for defect-free UNSAT nullity amplifier
 - `b9430f8ce33c` — 2026-09-28T05:39:02+03:00 — R5 E9: add actual-row-basis rank3 matching FPT router
+- `fda43e701a71` — 2026-09-28T05:39:25+03:00 — R5 E9: sync semantic checkpoint to cross-layer global pivot
 
 ## Transport / stale-bootstrap watch
 
@@ -103,7 +93,7 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 
 ## Must-read authority/evidence artifacts
 
-- **OK** `.janus/P_VS_NP_STREAM_CACHE_CURRENT.json` `4f50f65a051e3f4c…`
+- **OK** `.janus/P_VS_NP_STREAM_CACHE_CURRENT.json` `9804ae228465377e…`
 - **OK** `tools/janus_stream_resume_cache.py` `adc6ab7f260d2384…`
 - **OK** `research/R5_E9_UNIVERSAL_SELECTOR_EQUIVALENCE_BARRIER_2026-09-27_v1.0.md` `a426b38d6d17eea3…`
 - **OK** `research/R5_E9_UNIVERSAL_SELECTOR_INTERNAL_ANTI_LOOP_BINDING_2026-09-27_v1.0.md` `e3ce2b82dd656b71…`
@@ -123,6 +113,7 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 
 ## Recent non-cache commits
 
+- `fda43e701a71` — 2026-09-28T05:39:25+03:00 — R5 E9: sync semantic checkpoint to cross-layer global pivot
 - `b9430f8ce33c` — 2026-09-28T05:39:02+03:00 — R5 E9: add actual-row-basis rank3 matching FPT router
 - `7a1ca3a9e52b` — 2026-09-28T05:09:13+03:00 — R5 E9: add CI for defect-free UNSAT nullity amplifier
 - `389b359dcc75` — 2026-09-28T05:09:03+03:00 — R5 E9: add checker for defect-free UNSAT nullity amplifier
@@ -147,7 +138,6 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `694bad41c55e` — 2026-09-28T03:05:04+03:00 — R5 E9: freeze singular UNSAT 3-cut-irreducible hostile core
 - `17d7e41c474a` — 2026-09-28T03:04:38+03:00 — R5 E9: freeze 3-cut-irreducible singular UNSAT hostile control
 - `53fb72e1a43c` — 2026-09-28T03:03:24+03:00 — R5 E9: add CI for acyclic grouped matching barrier
-- `7138befb3d1b` — 2026-09-28T03:03:11+03:00 — R5 E9: add checker for acyclic grouped matching barrier
 
 ## Resume protocol
 
