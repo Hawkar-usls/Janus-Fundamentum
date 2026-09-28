@@ -5,16 +5,16 @@
 - **Repository:** `Hawkar-usls/Janus-Fundamentum`
 - **PR:** `#510`
 - **Branch:** `codex/r5-e8-direct-contract-20260921-82493a57`
-- **Live source HEAD:** `7a8421d5802a9c438b48fe06a1494b2c7f060370`
-- **Source commit time:** `2026-09-28T06:19:34+03:00`
-- **Indexed changed scientific artifacts:** `733`
+- **Live source HEAD:** `958155ec76722502cbed65d8debf6c0f8fc2ef64`
+- **Source commit time:** `2026-09-28T06:21:25+03:00`
+- **Indexed changed scientific artifacts:** `735`
 
 ## Continuity status
 
 - Semantic cache: `.janus/P_VS_NP_STREAM_CACHE_CURRENT.json`
 - Semantic source HEAD: `7a1ca3a9e52ba360cdb700306ca3fc58746aa27f`
 - Relation: **`LIVE_DESCENDS_FROM_SEMANTIC_CACHE`**
-- Commits after semantic checkpoint: `29`
+- Commits after semantic checkpoint: `31`
 
 ## Scientific firewall
 
@@ -110,6 +110,8 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `39df19f4339c` — 2026-09-28T06:19:05+03:00 — R5 E9 seal C4-free source-incidence pivot barrier
 - `5a1ac05608a7` — 2026-09-28T06:19:22+03:00 — R5 E9 add C4-free incidence barrier regression
 - `7a8421d5802a` — 2026-09-28T06:19:34+03:00 — R5 E9 validate C4-free incidence pivot barrier
+- `f1797d961846` — 2026-09-28T06:21:09+03:00 — R5 E9: prove whole-variable coherence path elimination equals DP biclique
+- `958155ec7672` — 2026-09-28T06:21:25+03:00 — R5 E9: add checker for single-variable DP biclique theorem
 
 ## Transport / stale-bootstrap watch
 
@@ -140,6 +142,8 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 
 ## Recent non-cache commits
 
+- `958155ec7672` — 2026-09-28T06:21:25+03:00 — R5 E9: add checker for single-variable DP biclique theorem
+- `f1797d961846` — 2026-09-28T06:21:09+03:00 — R5 E9: prove whole-variable coherence path elimination equals DP biclique
 - `7a8421d5802a` — 2026-09-28T06:19:34+03:00 — R5 E9 validate C4-free incidence pivot barrier
 - `5a1ac05608a7` — 2026-09-28T06:19:22+03:00 — R5 E9 add C4-free incidence barrier regression
 - `39df19f4339c` — 2026-09-28T06:19:05+03:00 — R5 E9 seal C4-free source-incidence pivot barrier
@@ -163,8 +167,6 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `c9daaa7fd53e` — 2026-09-28T05:48:13+03:00 — E9 add rank3 hypermatching quotient checker
 - `a0c0657da853` — 2026-09-28T05:47:40+03:00 — E9 derive row-basis rank3 hypermatching quotient
 - `86233194dd62` — 2026-09-28T05:46:04+03:00 — E9 wire EQ3 middle-nullity slab replay
-- `e21763bc52eb` — 2026-09-28T05:45:54+03:00 — E9 add EQ3 middle-nullity slab checker
-- `3232a99f1759` — 2026-09-28T05:45:26+03:00 — E9 seal EQ3 middle-nullity hardness slab
 
 ## Resume protocol
 
