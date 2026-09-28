@@ -5,16 +5,16 @@
 - **Repository:** `Hawkar-usls/Janus-Fundamentum`
 - **PR:** `#510`
 - **Branch:** `codex/r5-e8-direct-contract-20260921-82493a57`
-- **Live source HEAD:** `24ea91f06754ff206dd13782db1b3a64931111ef`
-- **Source commit time:** `2026-09-28T16:55:21+03:00`
+- **Live source HEAD:** `1c17360bc01fec924f86975d705ccc02c5d2b718`
+- **Source commit time:** `2026-09-28T16:57:27+03:00`
 - **Indexed changed scientific artifacts:** `777`
 
 ## Continuity status
 
 - Semantic cache: `.janus/P_VS_NP_STREAM_CACHE_CURRENT.json`
-- Semantic source HEAD: `8e940bc0e949dabf589a033479f7afce93e1ef22`
+- Semantic source HEAD: `24ea91f06754ff206dd13782db1b3a64931111ef`
 - Relation: **`LIVE_DESCENDS_FROM_SEMANTIC_CACHE`**
-- Commits after semantic checkpoint: `11`
+- Commits after semantic checkpoint: `1`
 
 ## Scientific firewall
 
@@ -35,15 +35,16 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 
 ## Semantic live frontier
 
-- **Frontier:** `R5_E9_ROOTED_SYNDROME_F7STAR_GLOBAL_CONTRACTION_GATE_V1`
-- **Carrier:** cubic square Exact-One = minimum-weight circuit through distinguished syndrome element e_b in M_F2([A|1]); arbitrary signed 3CNF remains universal parent
-- Established: Exact-One SAT iff mu(A)=n/3, where mu(A)=min{|x|:Ax=1 over F2}.
-- Established: mu(A) equals minimum weight of a circuit through e_b in M_F2([A|1]).
-- Established: Augmented regular matroid implies deterministic polynomial decision+witness reconstruction.
-- Established: The entire prior two-edge UNSAT prime tower has augmented regular matroids and is polynomially decided; it is no longer a hostile residual here.
-- Established: Rooted MFMC strictly extends regularity: if e_b is in no F7* minor of its connected component, minimum circuit through e_b is polynomially computable.
-- Established: Therefore the live matroid obstruction is source-generated rooted F7* containing e_b, not generic nonregularity or unrooted F7/F7*.
-- Established: KS-derived 2334_3 Exact-One UNSAT has theta(G)=n/3 but alpha(G)<n/3, so theta/Hoffman equality is not a SAT certificate.
+- **Frontier:** `R5_E9_INTERSECTION_RESIDUAL_GLOBAL_CONTRACTION_GATE_V1`
+- **Carrier:** arbitrary signed 3CNF via exact reductions; primary hostile image is connected linear-cubic Exact-One / 3-uniform 3-regular perfect matching with all proven E9/E10 polynomial terminals applied
+- Established: Exact-One SAT iff mu(A)=n/3, where mu(A)=min{|x|:Ax=1 over F2}, equivalently the minimum circuit-through-e_b threshold in M_F2([A|1]).
+- Established: Single-odd SOC is polynomial if e_b is absent from rooted F7 or absent from rooted F7*; no-S8 binary matroids were already an older polynomial terminal.
+- Established: Low rational nullity/full rational rank, commuting/abelian two-permutation sources, fixed-factorization Z3 phase PASS, balanced sources, perfect conflict graphs and genuine small separators are exact polynomial terminals.
+- Established: There are source-valid SAT and UNSAT families with linear rational nullity and no nontrivial <=3-edge separator, so raw nullity/separator metrics are not universal complexity currencies.
+- Established: The old n=15 E10 leaf A=I+P+P^4 simultaneously contains S8, has q_graph>=4, and contains rooted F7 and rooted F7* through e_b, yet rank_Q(A)=15 with |det A|=144 and zero Exact-One witnesses; it is polynomial by the existing full-rank/commuting terminal.
+- Established: Therefore rooted dual-Fano, S8 presence, q_graph, odd holes, or raw nullity alone are not canonical hard cores. The genuine residual is the intersection after all certified terminals.
+- Established: Direct projected-delta-matroid, local matchgate, fixed-modulus counting, polynomial-dimensional bilinear annihilation summaries, theta/Hoffman equality, and PolaritySAT-2026 shortcuts are closed by exact countercontrols.
+- Established: Current public literature does not provide a polynomial theorem for the full linear-cubic exact-cover carrier; 2026 results continue to place closely related regular/linear hypergraph tasks on NP-hard sides.
 - Established: No unconditional deterministic polynomial SAT decider has been established.
 
 ### Live split
@@ -51,11 +52,15 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 ```json
 {
   "primary": {
-    "goal": "Exact polynomial contraction/decomposition for source-generated rooted F7* containing e_b preserving minimum circuit-through-e_b and witness lift with strict polynomial global decrease.",
+    "goal": "Construct a deterministic polynomial GLOBAL CONTRACTION / GLOBAL PIVOT for the full intersection residual, preserving SAT exactly, with strict polynomial progress and witness lifting.",
     "status": "OPEN"
   },
   "secondary": {
-    "goal": "Build the smallest source-valid rooted-F7* hostile control, starting from FANO_7/AFFINE_3X3.",
+    "goal": "Construct or certify a source-valid survivor that simultaneously escapes all currently proved terminals; use it as the mandatory hostile control for every new global pivot.",
+    "status": "OPEN"
+  },
+  "reserve": {
+    "goal": "Import a newly published external polynomial donor only after exact hostile-control validation and proof-level source audit.",
     "status": "OPEN"
   }
 }
@@ -63,25 +68,15 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 
 ### Next attack
 
-1. Check open literature and repo for rooted-F7* shortest-route decompositions beyond MFMC.
-2. Test FANO_7 and AFFINE_3X3 for rooted F7* through e_b.
-3. Classify rooted F7* interface costs under binary 1/2/3-sums and prove polynomial total-state composition or falsify it.
-4. Exploit source provenance A*1=1 plus cubic/linear incidence, not a generic shortest-circuit oracle.
-5. Promote E8_D1 only after SOUND+COMPLETE+TERMINATES+POLY+RECONSTRUCT for arbitrary 3CNF.
+1. Build the combined-terminal survivor classifier instead of treating any single structural obstruction as the hard core.
+2. On survivors, attack the source-generated global coupling directly: noncommuting + phase-fail + no-low-nullity + no matroid/graph/separator terminal.
+3. Test any candidate contraction first on high-girth/high-nullity SAT and UNSAT controls and require a strict global potential that cannot recreate an equivalent universal carrier.
+4. Do not reopen S8-free, q_graph<=2, Mersenne q_graph, rooted-F7* alone, spectral singularity, local odd-cycle transfer, direct delta-matroid, fixed-modulus or bilinear-summary routes.
+5. Promote E8_D1 only after SOUND+COMPLETE+TERMINATES+POLY+RECONSTRUCT hold for arbitrary 3CNF.
 
 ## Commits newer than semantic checkpoint — MUST INGEST
 
-- `b0db547849a7` — 2026-09-28T15:25:40+03:00 — R5 E9: add CI for KS theta-equality countercarrier
-- `c5a42f73d972` — 2026-09-28T15:34:05+03:00 — R5 E9: sync semantic checkpoint to rooted F7* syndrome gate
-- `2f01102867a2` — 2026-09-28T15:42:04+03:00 — R5 E9: freeze rooted F7* source controls
-- `9d73742c3b32` — 2026-09-28T15:42:43+03:00 — R5 E9: add exact rooted F7* source-control census
-- `a0dd1e8d1135` — 2026-09-28T15:42:56+03:00 — R5 E9: add CI for rooted F7* source controls
-- `cd4ee9ab1d43` — 2026-09-28T16:11:50+03:00 — R5 E9: extend syndrome terminal to single-odd dual-Fano criterion
-- `89f5f64e60da` — 2026-09-28T16:13:36+03:00 — R5 E9: add exact rooted dual-Fano source census
-- `eee109833b13` — 2026-09-28T16:14:02+03:00 — R5 E9: add CI for rooted dual-Fano source controls
-- `436015067066` — 2026-09-28T16:54:21+03:00 — R5 E9: reconcile rooted dual-Fano with E10 and semantic terminals
-- `84b2c77be435` — 2026-09-28T16:55:01+03:00 — R5 E9: add exact cross-route rooted dual-Fano regression
-- `24ea91f06754` — 2026-09-28T16:55:21+03:00 — R5 E9: add CI for rooted dual-Fano E10 reconciliation
+- `1c17360bc01f` — 2026-09-28T16:57:27+03:00 — R5 E9: synchronize semantic checkpoint to intersection residual
 
 ## Transport / stale-bootstrap watch
 
@@ -92,7 +87,7 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 
 ## Must-read authority/evidence artifacts
 
-- **OK** `.janus/P_VS_NP_STREAM_CACHE_CURRENT.json` `810575d026d236f8…`
+- **OK** `.janus/P_VS_NP_STREAM_CACHE_CURRENT.json` `febc862ab9c129f8…`
 - **OK** `tools/janus_stream_resume_cache.py` `adc6ab7f260d2384…`
 - **OK** `research/R5_E9_UNIVERSAL_SELECTOR_EQUIVALENCE_BARRIER_2026-09-27_v1.0.md` `a426b38d6d17eea3…`
 - **OK** `research/R5_E9_UNIVERSAL_SELECTOR_INTERNAL_ANTI_LOOP_BINDING_2026-09-27_v1.0.md` `e3ce2b82dd656b71…`
@@ -112,6 +107,7 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 
 ## Recent non-cache commits
 
+- `1c17360bc01f` — 2026-09-28T16:57:27+03:00 — R5 E9: synchronize semantic checkpoint to intersection residual
 - `24ea91f06754` — 2026-09-28T16:55:21+03:00 — R5 E9: add CI for rooted dual-Fano E10 reconciliation
 - `84b2c77be435` — 2026-09-28T16:55:01+03:00 — R5 E9: add exact cross-route rooted dual-Fano regression
 - `436015067066` — 2026-09-28T16:54:21+03:00 — R5 E9: reconcile rooted dual-Fano with E10 and semantic terminals
@@ -136,7 +132,6 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `b9e7fd4f58ab` — 2026-09-28T15:10:02+03:00 — R5 E9: prove augmented-regular-matroid polynomial syndrome terminal
 - `f1bdc0616e38` — 2026-09-28T14:57:52+03:00 — R5 E9: synchronize semantic checkpoint after global representation barriers
 - `ad3ccb96cbd4` — 2026-09-28T14:54:59+03:00 — R5 E9: add CI for PolaritySAT hostile donor falsifier
-- `ba193be31c95` — 2026-09-28T14:54:20+03:00 — R5 E9: add CI for singular prime h-perfect relaxation gap
 
 ## Resume protocol
 
