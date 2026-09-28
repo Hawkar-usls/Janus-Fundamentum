@@ -5,16 +5,16 @@
 - **Repository:** `Hawkar-usls/Janus-Fundamentum`
 - **PR:** `#510`
 - **Branch:** `codex/r5-e8-direct-contract-20260921-82493a57`
-- **Live source HEAD:** `d3d16c724f0d7c664470c5b9b21c900f929d9a4b`
-- **Source commit time:** `2026-09-29T01:43:50+03:00`
-- **Indexed changed scientific artifacts:** `861`
+- **Live source HEAD:** `3526f6b46384895ee98f534596e1d606b241c780`
+- **Source commit time:** `2026-09-29T01:47:00+03:00`
+- **Indexed changed scientific artifacts:** `862`
 
 ## Continuity status
 
 - Semantic cache: `.janus/P_VS_NP_STREAM_CACHE_CURRENT.json`
 - Semantic source HEAD: `05563fb285a1b2a4ae62d2a6aab0143bdbe52899`
 - Relation: **`LIVE_DESCENDS_FROM_SEMANTIC_CACHE`**
-- Commits after semantic checkpoint: `86`
+- Commits after semantic checkpoint: `87`
 
 ## Scientific firewall
 
@@ -79,7 +79,6 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 
 ## Commits newer than semantic checkpoint — MUST INGEST
 
-- `237aa3e648b2` — 2026-09-28T19:17:36+03:00 — R5 E9: prove fixed-r projective trade rank-ascent router
 - `a980d85e89da` — 2026-09-28T19:18:05+03:00 — R5 E9: add fixed-r trade rank-ascent regression
 - `2a28c8b43829` — 2026-09-28T20:14:14+03:00 — R5 E9: prove projective fractional-support exact closure
 - `dfd4ba288014` — 2026-09-28T20:15:09+03:00 — R5 E9: add projective fractional-support closure regression
@@ -159,6 +158,7 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `42b88fff70e5` — 2026-09-29T01:39:56+03:00 — R5 E10A: seal deterministic optimal-face blossom parity DP
 - `d512cd1a28dd` — 2026-09-29T01:40:48+03:00 — Remove duplicate optimal-face blossom parity theorem
 - `d3d16c724f0d` — 2026-09-29T01:43:50+03:00 — R5 E10A: strict-max promise universal padding barrier
+- `3526f6b46384` — 2026-09-29T01:47:00+03:00 — R5 E10A: add strict-max padding barrier exact checker
 
 ## Transport / stale-bootstrap watch
 
@@ -189,6 +189,7 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 
 ## Recent non-cache commits
 
+- `3526f6b46384` — 2026-09-29T01:47:00+03:00 — R5 E10A: add strict-max padding barrier exact checker
 - `d3d16c724f0d` — 2026-09-29T01:43:50+03:00 — R5 E10A: strict-max promise universal padding barrier
 - `d512cd1a28dd` — 2026-09-29T01:40:48+03:00 — Remove duplicate optimal-face blossom parity theorem
 - `42b88fff70e5` — 2026-09-29T01:39:56+03:00 — R5 E10A: seal deterministic optimal-face blossom parity DP
@@ -213,7 +214,6 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `462088b2b0e2` — 2026-09-29T00:33:27+03:00 — R5 E9: add CI for Paley11 post-RKPR control
 - `a479c74e7203` — 2026-09-29T00:33:20+03:00 — R5 E9: add exact Paley11 post-RKPR checker
 - `35fd7f0afe3d` — 2026-09-29T00:32:53+03:00 — R5 E9: add Paley11 post-RKPR linear nullity-10 control
-- `c749c8ac5e8f` — 2026-09-29T00:24:03+03:00 — R5 E9: add CI for linear cubic trace rank bound
 
 ## Resume protocol
 
