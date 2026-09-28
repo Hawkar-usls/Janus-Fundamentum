@@ -5,8 +5,8 @@
 - **Repository:** `Hawkar-usls/Janus-Fundamentum`
 - **PR:** `#510`
 - **Branch:** `codex/r5-e8-direct-contract-20260921-82493a57`
-- **Live source HEAD:** `afe2e97cc3df8c7bd9e47541a15e5e8b97923020`
-- **Source commit time:** `2026-09-28T22:46:23+03:00`
+- **Live source HEAD:** `c7fb34355b277b1247b86f136ad7ecb11e620c56`
+- **Source commit time:** `2026-09-28T22:52:50+03:00`
 - **Indexed changed scientific artifacts:** `827`
 
 ## Continuity status
@@ -14,7 +14,7 @@
 - Semantic cache: `.janus/P_VS_NP_STREAM_CACHE_CURRENT.json`
 - Semantic source HEAD: `05563fb285a1b2a4ae62d2a6aab0143bdbe52899`
 - Relation: **`LIVE_DESCENDS_FROM_SEMANTIC_CACHE`**
-- Commits after semantic checkpoint: `49`
+- Commits after semantic checkpoint: `50`
 
 ## Scientific firewall
 
@@ -128,6 +128,7 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `55490108beea` — 2026-09-28T22:45:25+03:00 — R5 E9: add rational-tope defect syndrome projective filter
 - `52a7d50f280c` — 2026-09-28T22:46:14+03:00 — R5 E9: add exact projective parity filter checker
 - `afe2e97cc3df` — 2026-09-28T22:46:23+03:00 — R5 E9: add CI for projective parity filter
+- `c7fb34355b27` — 2026-09-28T22:52:50+03:00 — R5 E9: sharpen projective parity filter with Smith torsion identity
 
 ## Transport / stale-bootstrap watch
 
@@ -158,6 +159,7 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 
 ## Recent non-cache commits
 
+- `c7fb34355b27` — 2026-09-28T22:52:50+03:00 — R5 E9: sharpen projective parity filter with Smith torsion identity
 - `afe2e97cc3df` — 2026-09-28T22:46:23+03:00 — R5 E9: add CI for projective parity filter
 - `52a7d50f280c` — 2026-09-28T22:46:14+03:00 — R5 E9: add exact projective parity filter checker
 - `55490108beea` — 2026-09-28T22:45:25+03:00 — R5 E9: add rational-tope defect syndrome projective filter
@@ -182,7 +184,6 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `6989b0f9d519` — 2026-09-28T21:04:01+03:00 — R5 E9: add rational-kernel projective ratio pinning quotient
 - `5d7f1da66f7a` — 2026-09-28T20:58:18+03:00 — R5 E9: bind exact PG15 interval vector in nonconvex barrier
 - `19f903e120d5` — 2026-09-28T20:57:39+03:00 — R5 E9: add CI for source-kernel navigation shell
-- `f318557a9306` — 2026-09-28T20:57:31+03:00 — R5 E9: add navigation-shell finite binding
 
 ## Resume protocol
 
