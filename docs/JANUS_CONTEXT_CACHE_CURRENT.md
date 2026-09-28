@@ -5,16 +5,16 @@
 - **Repository:** `Hawkar-usls/Janus-Fundamentum`
 - **PR:** `#510`
 - **Branch:** `codex/r5-e8-direct-contract-20260921-82493a57`
-- **Live source HEAD:** `436015067066f73c07415b2b5744d687f58262bc`
-- **Source commit time:** `2026-09-28T16:54:21+03:00`
-- **Indexed changed scientific artifacts:** `775`
+- **Live source HEAD:** `24ea91f06754ff206dd13782db1b3a64931111ef`
+- **Source commit time:** `2026-09-28T16:55:21+03:00`
+- **Indexed changed scientific artifacts:** `777`
 
 ## Continuity status
 
 - Semantic cache: `.janus/P_VS_NP_STREAM_CACHE_CURRENT.json`
 - Semantic source HEAD: `8e940bc0e949dabf589a033479f7afce93e1ef22`
 - Relation: **`LIVE_DESCENDS_FROM_SEMANTIC_CACHE`**
-- Commits after semantic checkpoint: `9`
+- Commits after semantic checkpoint: `11`
 
 ## Scientific firewall
 
@@ -80,6 +80,8 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `89f5f64e60da` — 2026-09-28T16:13:36+03:00 — R5 E9: add exact rooted dual-Fano source census
 - `eee109833b13` — 2026-09-28T16:14:02+03:00 — R5 E9: add CI for rooted dual-Fano source controls
 - `436015067066` — 2026-09-28T16:54:21+03:00 — R5 E9: reconcile rooted dual-Fano with E10 and semantic terminals
+- `84b2c77be435` — 2026-09-28T16:55:01+03:00 — R5 E9: add exact cross-route rooted dual-Fano regression
+- `24ea91f06754` — 2026-09-28T16:55:21+03:00 — R5 E9: add CI for rooted dual-Fano E10 reconciliation
 
 ## Transport / stale-bootstrap watch
 
@@ -110,6 +112,8 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 
 ## Recent non-cache commits
 
+- `24ea91f06754` — 2026-09-28T16:55:21+03:00 — R5 E9: add CI for rooted dual-Fano E10 reconciliation
+- `84b2c77be435` — 2026-09-28T16:55:01+03:00 — R5 E9: add exact cross-route rooted dual-Fano regression
 - `436015067066` — 2026-09-28T16:54:21+03:00 — R5 E9: reconcile rooted dual-Fano with E10 and semantic terminals
 - `eee109833b13` — 2026-09-28T16:14:02+03:00 — R5 E9: add CI for rooted dual-Fano source controls
 - `89f5f64e60da` — 2026-09-28T16:13:36+03:00 — R5 E9: add exact rooted dual-Fano source census
@@ -133,8 +137,6 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `f1bdc0616e38` — 2026-09-28T14:57:52+03:00 — R5 E9: synchronize semantic checkpoint after global representation barriers
 - `ad3ccb96cbd4` — 2026-09-28T14:54:59+03:00 — R5 E9: add CI for PolaritySAT hostile donor falsifier
 - `ba193be31c95` — 2026-09-28T14:54:20+03:00 — R5 E9: add CI for singular prime h-perfect relaxation gap
-- `d0d0c719a1cb` — 2026-09-28T14:54:03+03:00 — R5 E9: add exact checker for h-perfect relaxation gap control
-- `c3d7988b5766` — 2026-09-28T14:53:32+03:00 — R5 E9: freeze singular prime h-perfect relaxation gap control
 
 ## Resume protocol
 
