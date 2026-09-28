@@ -5,16 +5,16 @@
 - **Repository:** `Hawkar-usls/Janus-Fundamentum`
 - **PR:** `#510`
 - **Branch:** `codex/r5-e8-direct-contract-20260921-82493a57`
-- **Live source HEAD:** `23310916c0048b3663a3d28807092191c2ac2f29`
-- **Source commit time:** `2026-09-28T06:33:02+03:00`
-- **Indexed changed scientific artifacts:** `741`
+- **Live source HEAD:** `80ac578f98a3e9d4c576ef29f3fb42ade06e63c6`
+- **Source commit time:** `2026-09-28T06:34:21+03:00`
+- **Indexed changed scientific artifacts:** `743`
 
 ## Continuity status
 
 - Semantic cache: `.janus/P_VS_NP_STREAM_CACHE_CURRENT.json`
 - Semantic source HEAD: `7a1ca3a9e52ba360cdb700306ca3fc58746aa27f`
 - Relation: **`LIVE_DESCENDS_FROM_SEMANTIC_CACHE`**
-- Commits after semantic checkpoint: `37`
+- Commits after semantic checkpoint: `40`
 
 ## Scientific firewall
 
@@ -118,6 +118,9 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `a413e1e9b6a3` — 2026-09-28T06:28:11+03:00 — R5 E9 validate sparse-incomparability high-girth pivot barrier
 - `6b22c8516fb5` — 2026-09-28T06:30:30+03:00 — R5 E9 checkpoint high-girth-safe nonlocal global pivot
 - `23310916c004` — 2026-09-28T06:33:02+03:00 — R5 E9 add high-girth bounded-occurrence pivot barrier
+- `b86d0355f169` — 2026-09-28T06:33:29+03:00 — R5 E9 add bounded-occurrence high-girth structural regression
+- `d8f917f19b4a` — 2026-09-28T06:33:40+03:00 — R5 E9 validate high-girth bounded-occurrence barrier
+- `80ac578f98a3` — 2026-09-28T06:34:21+03:00 — R5 E9 strengthen high-girth checkpoint with bounded occurrence
 
 ## Transport / stale-bootstrap watch
 
@@ -148,6 +151,9 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 
 ## Recent non-cache commits
 
+- `80ac578f98a3` — 2026-09-28T06:34:21+03:00 — R5 E9 strengthen high-girth checkpoint with bounded occurrence
+- `d8f917f19b4a` — 2026-09-28T06:33:40+03:00 — R5 E9 validate high-girth bounded-occurrence barrier
+- `b86d0355f169` — 2026-09-28T06:33:29+03:00 — R5 E9 add bounded-occurrence high-girth structural regression
 - `23310916c004` — 2026-09-28T06:33:02+03:00 — R5 E9 add high-girth bounded-occurrence pivot barrier
 - `6b22c8516fb5` — 2026-09-28T06:30:30+03:00 — R5 E9 checkpoint high-girth-safe nonlocal global pivot
 - `a413e1e9b6a3` — 2026-09-28T06:28:11+03:00 — R5 E9 validate sparse-incomparability high-girth pivot barrier
@@ -170,9 +176,6 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `258e921c6320` — 2026-09-28T06:02:38+03:00 — Audit rank3 coupling against 2026 subcubic general-factor dichotomy
 - `a6c929d39cdf` — 2026-09-28T05:55:08+03:00 — R5 E9 validate rank3 matching router
 - `9108b5c3da66` — 2026-09-28T05:54:56+03:00 — R5 E9 add rank3 matching router regression
-- `a4c57cc95c97` — 2026-09-28T05:53:47+03:00 — R5 E9 add row-basis rank3 matching router
-- `763ffe4b3b13` — 2026-09-28T05:53:12+03:00 — R5 E9: add CI for exact UNSAT linear-nullity prime tower
-- `258d9b7d0f54` — 2026-09-28T05:53:02+03:00 — R5 E9: add checker for exact UNSAT linear-nullity prime tower
 
 ## Resume protocol
 
