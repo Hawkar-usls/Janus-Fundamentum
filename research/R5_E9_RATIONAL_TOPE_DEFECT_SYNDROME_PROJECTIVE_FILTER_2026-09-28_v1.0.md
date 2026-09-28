@@ -2,13 +2,14 @@
 
 Date: 2026-09-28
 
-Status: `JANUS_DERIVED_EXACT_CROSS_FIELD_PROJECTIVE_PARITY_FILTER__FPT_IN_RESIDUAL_PARITY_NULLITY__NO_D1_PROMOTION`
+Status: `JANUS_DERIVED_EXACT_CROSS_FIELD_PROJECTIVE_PARITY_FILTER__SMITH_2TORSION_IDENTITY__NO_NEW_LOW_NULLITY_COVERAGE__NO_D1_PROMOTION`
 
 Parents:
 - `research/R5_E9_RATIONAL_KERNEL_TUKEY_DEPTH_BOUNDARY_QUOTIENT_2026-09-28_v1.0.md`
 - `research/R5_E9_RATIONAL_KERNEL_PROJECTIVE_RATIO_PINNING_QUOTIENT_2026-09-28_v1.0.md`
+- `research/R5_E9_RATIONAL_KERNEL_NULLITY_FPT_ROUTER_2026-09-27_v1.0.md`
 - `research/R5_E9_SOURCE_KERNEL_POLYNOMIAL_NAVIGATION_SHELL_2026-09-28_v1.0.md`
-- `research/R5_E9_AFFINE_COSET_CIRCUIT_AUGMENTATION_GLOBAL_OPTIMALITY_2026-09-27_v1.0.md`
+- `research/R5_E9_SIGNED_TORSION_SIDE_CODE_QUOTIENT_2026-09-23_v1.0.md`
 
 Checker:
 - `experiments/r5_e9_rational_tope_defect_syndrome_projective_filter.py`
@@ -16,56 +17,55 @@ Checker:
 Scientific ceiling:
 
 ```text
-FOR EVERY FULL-SUPPORT RATIONAL-KERNEL TOPE, THE BINARY SYNDROME
+FOR EVERY FULL-SUPPORT RATIONAL-KERNEL TOPE,
 
-    d = 1 + A x  (mod 2),   x_i = 1[y_i>0],
+    d = 1 + A x (mod 2),   x_i=1[y_i>0],
 
-IS EXACTLY THE INDICATOR OF THE SOURCE ROWS OF SIGN TYPE ++-.
-THEREFORE
+IS EXACTLY THE INDICATOR OF ++- SOURCE ROWS, SO
 
-    |d| = 3p-n,
+    |d|=3p-n,
     BOUNDARY <=> d=0.
 
-AFTER COLLAPSING RATIONAL PROJECTIVE KERNEL-ROW CLASSES, ALL POSSIBLE
-BOUNDARY TOPES LIE IN ONE EXPLICIT AFFINE GF(2) SUBSPACE
+AFTER RATIONAL PROJECTIVE CLASS COLLAPSE,
 
-    G z = d0,   G=A R (mod 2).
+    x(z)=x0+Rz,
+    Gz=d0,  G=AR (mod 2)
 
-IF ITS NULLITY kappa IS O(log n), ENUMERATING THAT AFFINE SUBSPACE AND
-TESTING EACH SIGN PATTERN BY RATIONAL LP IS A DETERMINISTIC POLYNOMIAL
-EXACT-ONE DECIDER WITH WITNESS RECONSTRUCTION.
+IS AN EXACT AFFINE FILTER FOR ALL BOUNDARY TOPES.
 
-THIS IS A NEW EXACT FPT/POLY TERMINAL, NOT A UNIVERSAL D1 SOLUTION.
+AFTER THE RKPR PIN/EQUALITY PREPROCESSOR, EVERY SURVIVING PROJECTIVE CLASS
+HAS EQUAL RATIONAL KERNEL ROWS.  WRITING B=RH THEN GIVES
+
+    ker_Q(AR)=col(H),
+    nullity_Q(AR)=d=nullity_Q(A).
+
+IF tau_2 IS THE NUMBER OF EVEN NONZERO SMITH INVARIANT FACTORS OF AR, THEN
+
+    kappa := nullity_F2(AR) = d + tau_2 >= d.
+
+THEREFORE THE 2^kappa ENUMERATOR IS EXACT BUT DOES NOT CREATE A NEW
+LOW-NULLITY POLYNOMIAL ISLAND BEYOND THE EXISTING 2^d RATIONAL-KERNEL
+ROUTER.  ITS VALUE IS STRUCTURAL: IT IDENTIFIES THE EXTRA CROSS-FIELD
+OBSTRUCTION PRECISELY AS 2-TORSION AND BINDS PARITY TO REAL TOPE DEFECTS.
+
 E8_D1 = EMPTY.
 P_VS_NP = OPEN.
 ```
 
-## 1. Source and rational-kernel signs
+## 1. Rational-kernel sign defect
 
-Let
-
-```text
-A in {0,1}^{n x n}
-```
-
-be a cubic square positive Exact-One source matrix. Every row and every column
-has weight three. Let
+Let `A in {0,1}^{n x n}` be a cubic square positive Exact-One source and let
+`B in Q^{n x d}` have columns forming a basis of `ker_Q(A)`.  For a
+full-support coefficient vector `alpha`, put
 
 ```text
-B in Q^{n x d}
+y=B alpha,
+x_i=1[y_i>0],
+p=|x|.
 ```
 
-have columns forming a basis of `ker_Q(A)`. For a full-support coefficient
-vector `alpha`, write
-
-```text
-y = B alpha,
-x_i = 1[y_i>0],
-p = |x|.
-```
-
-Because `Ay=0`, the three nonzero coordinates of `y` in every source row sum to
-zero. Hence every row has exactly one of the two sign types
+Every source row contains three nonzero entries of `y` summing to zero.
+Therefore its sign type is exactly one of
 
 ```text
 +--
@@ -74,106 +74,65 @@ zero. Hence every row has exactly one of the two sign types
 
 up to permutation.
 
-The earlier Tukey-depth theorem counted the second type and proved
+The Tukey-depth boundary theorem already gives
 
 ```text
-#(++- rows) = 3p-n.
+#(++- rows)=3p-n.
 ```
 
-The present note identifies that count with an exact binary syndrome.
+## 2. Exact defect-syndrome theorem
 
-## 2. Defect syndrome identity
-
-Work over `F2` and define
+Over `F2`, define
 
 ```text
-d(x) = 1 + A x.
+d(x)=1+A x.
 ```
 
-On a source row:
+On a `+--` row, `Ax=1`, hence `d_r=0`.  On a `++-` row, `Ax=0`, hence
+`d_r=1`.  Thus:
 
-- sign type `+--` has one positive coordinate, so `(Ax)_r=1` and `d_r=0`;
-- sign type `++-` has two positive coordinates, so `(Ax)_r=0` and `d_r=1`.
-
-Therefore:
-
-### Theorem RTDS-1 — exact defect syndrome
-
-For every full-support rational-kernel tope,
+### Theorem RTDS-1
 
 \[
-\boxed{d(x)=\mathbf 1+A x\pmod 2}
+\boxed{d(x)=\mathbf1+A x\pmod2}
 \]
 
-is exactly the indicator vector of the `++-` source rows. Consequently
+is exactly the indicator vector of the `++-` rows, and
 
 \[
 \boxed{|d(x)|=3p-n.}
 \]
 
-In particular,
+Consequently
 
 \[
-\boxed{
- p=n/3
- \iff d(x)=0
- \iff A x=\mathbf1\pmod2.
-}
+\boxed{p=n/3\iff d(x)=0\iff Ax=\mathbf1\pmod2.}
 \]
 
-Because a rational-kernel tope has only one-positive or two-positive rows, the
-last parity condition is stronger here than it is for an arbitrary Boolean
-vector: `Ax=1 (mod 2)` forces exactly one positive coordinate in every source
-row. Hence its positive set is an integer Exact-One witness.
+For an arbitrary Boolean vector, odd row parity would not imply Exact-One.
+For a rational-kernel tope it does, because the zero-sum/nonzero condition
+already restricts every row to one or two positives.  Hence a realizable tope
+with zero defect syndrome gives an integer Exact-One witness immediately.
 
-Thus the real-arrangement boundary and the binary affine syndrome meet exactly,
-not approximately.
+## 3. Projective toggle coordinates
 
-## 3. Projective-class toggle coordinates
-
-Partition the nonzero rows of `B` into their rational projective classes
-
-```text
-C_1,...,C_q,
-```
-
-where rows belong to the same class iff they are nonzero rational scalar
-multiples. Choose any full-support base tope `alpha_0` and let
-
-```text
-x_0 = 1[B alpha_0 > 0].
-```
-
-Define the class-incidence matrix
+Partition the nonzero rows of `B` into rational projective classes
+`C_1,...,C_q`.  Let `R in F2^{n x q}` be their incidence matrix:
 
 \[
-R\in\mathbb F_2^{n\times q},
-\qquad
-R_{ij}=1 \iff i\in C_j.
+R_{ij}=1\iff i\in C_j.
 \]
 
-Every other chamber of the simplified projective arrangement has a unique
-projective toggle vector
+Choose one full-support base tope and let `x0` be its positive-coordinate bit
+vector.  Every other chamber of the simplified projective arrangement differs
+from the base on a unique projective toggle vector `z in F2^q`.
 
-```text
-z in F2^q
-```
-
-relative to the base chamber: `z_j=1` exactly when chamber and base lie on
-opposite sides of projective hyperplane class `C_j`.
-
-Flipping one projective class reverses the raw sign of every original coordinate
-in that class, including antiparallel representatives. Therefore the raw sign
-bits of any chamber obey the exact identity
+Flipping class `C_j` reverses every raw coordinate sign in that class, even when
+some representatives are antiparallel. Therefore
 
 \[
 \boxed{x(z)=x_0+Rz\pmod2.}
 \]
-
-This identity is purely combinatorial once the rational projective classes have
-been computed.
-
-## 4. Boundary becomes one affine GF(2) filter
 
 Put
 
@@ -182,260 +141,329 @@ G  = A R       (mod 2),
 d0 = 1 + A x0  (mod 2).
 ```
 
-Substituting `x(z)=x0+Rz` into RTDS-1 gives
+Then RTDS-1 yields
 
 \[
 \boxed{d(z)=d_0+Gz.}
 \]
 
-Therefore:
+and hence:
 
 ### Theorem RTDS-2 — projective parity filter
 
-Every boundary chamber satisfies
+A realizable projective sign pattern is a boundary tope iff
 
 \[
 \boxed{Gz=d_0.}
 \]
 
-Conversely, if a projective sign pattern with toggle vector `z` is realizable as
-a full-support rational-kernel chamber and satisfies `Gz=d0`, then its defect
-syndrome is zero and its positive set is an Exact-One witness.
-
-Thus Exact-One is equivalent to
+Thus Exact-One is equivalent to asking whether the affine binary slice
 
 ```text
-there exists z with Gz=d0
-whose projective sign pattern is realizable by the rational arrangement.
+Z={z in F2^q : Gz=d0}
 ```
 
-The Boolean linear system is a necessary filter for arbitrary sign patterns and
-is necessary-and-sufficient after the rational sign pattern is certified
-realizable.
+contains a sign vector realizable by the rational hyperplane arrangement.
 
-## 5. Exact FPT algorithm
+## 4. Exact affine-slice enumerator
 
 Let
 
 ```text
-kappa = dim ker_F2(G) = q-rank_F2(G).
+kappa=nullity_F2(G).
 ```
 
-Gaussian elimination over `F2` does one of two things in polynomial time:
+Gaussian elimination either proves `Gz=d0` inconsistent or returns one solution
+plus a basis of `ker_F2(G)`.  In the consistent case there are exactly
+`2^kappa` candidates.
 
-1. proves `Gz=d0` inconsistent, which is an immediate exact UNSAT certificate;
-2. returns one solution `z_*` and a basis `v_1,...,v_kappa` of `ker(G)`.
-
-In the second case every parity-compatible projective target is
-
-\[
-z=z_*+\sum_{j=1}^{\kappa}\lambda_jv_j,
-\qquad \lambda_j\in\mathbb F_2.
-\]
-
-Enumerate all `2^kappa` such vectors. For each one, ask whether its desired
-projective sign vector is realizable. If `h_1,...,h_q` are oriented rational
-representatives of the projective kernel rows and `s_j in {+1,-1}` is the
-desired sign, realizability is the homogeneous strict system
+For each candidate, rational tope realizability is the strict homogeneous system
 
 \[
-s_j h_j\alpha>0\quad(j=1,...,q).
+s_j h_j\alpha>0\qquad(j=1,...,q),
 \]
 
-As in the navigation-shell theorem, strict feasibility is equivalent by scaling
-to the rational LP
+where `h_j` is an oriented rational representative of projective class `C_j`.
+By positive scaling this is equivalent to rational LP feasibility of
 
 \[
-s_j h_j\alpha\ge1\quad(j=1,...,q).
+s_j h_j\alpha\ge1\qquad(j=1,...,q).
 \]
 
-If one candidate is feasible, RTDS-2 reconstructs the Exact-One witness from the
-positive coordinates of `B alpha`. If none is feasible, no boundary chamber
-exists and the source is UNSAT.
-
-Therefore:
-
-### Theorem RTDS-3 — FPT/poly terminal
-
-The projective-boundary problem is deterministically solvable in
+Therefore the slice can be searched exactly in
 
 ```text
 2^kappa * poly(input bit length)
 ```
 
-time, with exact witness reconstruction.
+time, with direct witness reconstruction when a realizable member is found.
 
-In particular, whenever
+This statement is exact, but the next section shows why it is not a new
+low-nullity coverage theorem.
+
+## 5. Equality-quotient rational kernel
+
+Apply the already frozen RKPR preprocessing first.  Illegal rational row ratios
+reject, `-2/-1/2` classes pin and propagate, and every surviving unpinned
+projective class consists of **equal**, not merely proportional, rational kernel
+rows.
+
+On that hard residual choose one row representative per class and place them in
 
 ```text
-kappa = O(log n),
+H in Q^{q x d}.
 ```
 
-the route is polynomial.
+Because rows inside each class are equal,
 
-This strictly combines two earlier representations: rational projective
-compression reduces the sign-coordinate count, while binary syndrome algebra
-filters the surviving projective patterns before any arrangement search.
+\[
+\boxed{B=RH.}
+\]
 
-## 6. Relation to previous nullity routers
-
-If every rational projective class is a singleton, then `R=I` and
+Let
 
 ```text
-G=A (mod 2),
-kappa=nullity_F2(A).
+M=AR
 ```
 
-So RTDS-3 contains ordinary binary-nullity enumeration as a special case.
+over the integers/rationals.
 
-When rational projective equality classes exist, `q<n` and `G=AR` acts on class
-toggles rather than raw coordinates. The residual `kappa` can therefore be
-strictly smaller than a raw-coordinate parity search dimension.
+Since `AB=0`,
 
-The theorem does not assert that `kappa` is always logarithmic. A universal D1
-promotion would require either proving such a bound after admitted preprocessing
-or solving the large-`kappa` residual by another polynomial mechanism.
+\[
+MH=ARH=AB=0.
+\]
 
-## 7. Exact PG15 positive control
+So `col(H) subseteq ker_Q(M)`.
 
-Use the frozen `PG15_SAT_R11` source and its rational kernel basis. Its eleven
-rational projective classes are
+Conversely, if `Mc=0`, then
 
 ```text
-C1 ={1,5}
-C2 ={2,6}
-C3 ={3}
-C4 ={4}
-C5 ={7}
-C6 ={8,12}
-C7 ={9}
-C8 ={10}
-C9 ={11,15}
-C10={13}
-C11={14}.
+A(Rc)=0,
 ```
 
-Take
+so `Rc in ker_Q(A)=col(B)=col(RH)`.  Hence for some `alpha`,
 
 ```text
-alpha0=(-1,2,2,-2).
+Rc=RH alpha.
+```
+
+The class-incidence matrix `R` has disjoint nonempty columns and therefore has
+full column rank.  Cancelling `R` gives
+
+```text
+c=H alpha.
+```
+
+Thus:
+
+### Theorem RTDS-3 — exact quotient-kernel identity
+
+\[
+\boxed{\ker_Q(AR)=\operatorname{col}(H)}
+\]
+
+and therefore
+
+\[
+\boxed{\nu_Q(AR)=d=\nu_Q(A).}
+\]
+
+This is basis-independent after the RKPR equality quotient.
+
+## 6. Smith decomposition of kappa
+
+Let the nonzero Smith invariant factors of the integer matrix `M=AR` be
+
+```text
+s_1 | s_2 | ... | s_r,
+r=rank_Q(M)=q-d.
+```
+
+Reduction modulo two keeps one pivot for every odd `s_i` and loses one pivot for
+every even `s_i`.  Let
+
+```text
+tau_2 = # {i : s_i is even}.
 ```
 
 Then
 
 ```text
-p(x0)=6,
-|d0|=3=3*6-15.
+rank_F2(M)=r-tau_2.
 ```
 
-For the exact class-incidence matrix `R`, the checker proves
+Therefore:
+
+### Theorem RTDS-4 — exact cross-field nullity law
+
+\[
+\boxed{
+\kappa
+=\nu_{F_2}(AR)
+=q-(r-\tau_2)
+=d+\tau_2.
+}
+\]
+
+In particular
+
+\[
+\boxed{\kappa\ge d.}
+\]
+
+This corrects the tempting interpretation that projective parity filtering might
+create a smaller exponential parameter than rational nullity on the RKPR hard
+residual.  It cannot: any excess is precisely characteristic-two Smith torsion.
+
+Consequences:
 
 ```text
-q                 = 11,
-rank_F2(G)         = 7,
-kappa              = 4,
-# solutions Gz=d0  = 16.
+kappa=O(log n) => d=O(log n),
 ```
 
-So the cross-field filter reduces the complete projective target search to only
-sixteen parity-compatible sign patterns.
+so the old rational-kernel `2^d poly(n)` router already covers that island.
+The parity filter remains useful as a structural coupling and as a possible
+source of compact certificates, but not as a new asymptotic low-nullity router.
 
-The checker then gives exact certificates for all sixteen candidates:
+## 7. PG15 exact control
 
-- four are realizable, by the four frozen rational coefficient vectors for the
-  four Exact-One witnesses;
-- each of the remaining twelve is unrealizable because three desired signed
-  projective normals sum exactly to zero, which is incompatible with all three
-  corresponding strict inequalities being positive.
-
-Thus the sixteen parity candidates collapse exactly to the four known boundary
-topes, with no floating-point or sampled-arrangement argument.
-
-## 8. Why this is not yet P=NP
-
-The hostile residual is now precise:
+For `PG15_SAT_R11`, the eleven equality projective classes are
 
 ```text
-large kappa
-+
-affine parity-compatible projective sign family
-+
-rational arrangement realizability.
+{1,5}, {2,6}, {3}, {4}, {7}, {8,12},
+{9}, {10}, {11,15}, {13}, {14}.
 ```
 
-Enumerating `2^kappa` is forbidden when `kappa` is superlogarithmic. The prime
-and high-nullity families already warn that large algebraic dimensions can
-persist under strong graph structure.
+With
 
-The next universal step must therefore exploit additional structure of the
-affine solution space and the oriented arrangement jointly; it cannot merely
-rename exhaustive character enumeration.
+```text
+alpha0=(-1,2,2,-2)
+```
 
-## 9. Sharpened live gate
+the base tope has
+
+```text
+p=6,
+|d0|=3=3p-15.
+```
+
+The exact checker proves
+
+```text
+q=11,
+rank_F2(AR)=7,
+kappa=4,
+# {z:Gz=d0}=16.
+```
+
+Here `d=4`, so the observed control has `tau_2=0` and `kappa=d`.
+
+All sixteen parity candidates are certified exactly:
+
+- four are realized by the four known integer `alpha` vectors for the four
+  Exact-One boundary topes;
+- each of the remaining twelve has a positive dependence certificate: three
+  desired signed projective normals sum exactly to zero, so their three strict
+  positive inequalities cannot hold simultaneously.
+
+Hence the affine slice contains exactly the four known realizable boundary
+topes on this control, with no floating-point argument.
+
+## 8. Corrected strategic meaning
+
+Freeze the following facts:
+
+```text
+DEFECT SYNDROME / REAL TOPE BRIDGE
+= NEW EXACT STRUCTURAL IDENTITY
+
+PROJECTIVE AFFINE GF(2) FILTER
+= EXACT
+
+LOW-kappa ENUMERATION
+= EXACT BUT ASYMPTOTICALLY SUBSUMED BY LOW-d RATIONAL NULLITY
+
+EXCESS kappa-d
+= EXACTLY 2-TORSION COUNT tau_2 OF AR
+```
+
+Do not count the `2^kappa` enumerator as independent progress toward P=NP.
+
+The useful new universal question is instead whether the high-rational-nullity
+core admits a polynomial operation on the affine parity slice **without**
+enumerating it, possibly exploiting its coupling to the realizable oriented
+arrangement and/or its Smith structure.
+
+## 9. Live gate
 
 Freeze
 
 ```text
-R5_E9_PROJECTIVE_PARITY_SLICE_LARGE_KAPPA_GATE_V1
+R5_E9_HIGH_NULLITY_PROJECTIVE_PARITY_SLICE_GLOBAL_CONTRACTION_GATE_V2
 ```
 
-Input:
-- cubic square positive Exact-One source surviving admitted terminals;
-- rational projective class matrix `R`;
-- `G=AR (mod 2)`;
-- an affine parity slice `Z={z:Gz=d0}` of superlogarithmic dimension;
-- exact rational projective hyperplane representatives.
+Input after admitted preprocessing:
 
-PASS requires one of:
+```text
+d=nu_Q(A)=omega(log n),
+kappa=d+tau_2,
+Z={z:Gz=d0},
+exact rational projective arrangement.
+```
 
-1. a deterministic polynomial algorithm deciding whether `Z` contains a
-   realizable tope sign vector;
-2. a polynomial contraction reducing `kappa` while preserving boundary
-   realizability and reconstructing witnesses;
-3. a polynomially verifiable certificate that no `z in Z` is realizable;
-4. a different complete universal polynomial solver satisfying the E8-DIRECT
+A PASS requires one of:
+
+1. a deterministic polynomial method deciding whether `Z` contains a realizable
+   tope, without `2^kappa` enumeration;
+2. a polynomial contraction of the affine slice / oriented arrangement with
+   exact witness reconstruction;
+3. a polynomially verifiable UNSAT certificate excluding the entire affine
+   slice;
+4. another complete universal polynomial solver satisfying the E8-DIRECT
    contract.
 
 Forbidden pseudo-progress:
-- enumerating all `2^kappa` vectors for superlogarithmic `kappa`;
-- treating parity compatibility alone as rational realizability;
-- using floating-point sign sampling as an exact certificate;
-- promoting the PG15 finite collapse to an asymptotic theorem;
-- claiming D1 or P=NP from this FPT terminal.
+- claiming low `kappa` adds coverage beyond low rational nullity;
+- enumerating `2^kappa` on the high-nullity core;
+- treating parity compatibility as rational realizability;
+- using floating-point sampling as proof;
+- treating torsion magnitude alone as hardness or tractability;
+- promoting D1 or claiming P=NP.
 
 ## 10. Ceiling
 
 ```text
 RATIONAL-TOPE DEFECT SYNDROME
-= 1 + A x (mod 2)
 = EXACT ++- ROW INDICATOR
 
-DEFECT COUNT
+|d|
 = 3p-n
 
 BOUNDARY
-<=> DEFECT SYNDROME ZERO
+<=> d=0
 
 PROJECTIVE TOGGLE FORM
 x(z)=x0+Rz
 
-BOUNDARY PARITY FILTER
-Gz=d0, G=AR (mod 2)
+BOUNDARY AFFINE FILTER
+AR z=d0 (mod 2)
 
-RESIDUAL PARAMETER
-kappa=q-rank_F2(G)
+AFTER RKPR EQUALITY QUOTIENT
+ker_Q(AR)=col(H)
+nu_Q(AR)=d
 
-EXACT RUN TIME
-2^kappa * poly(input)
-
-kappa=O(log n)
-=> POLYNOMIAL EXACT-ONE TERMINAL
+SMITH CROSS-FIELD LAW
+kappa=d+tau_2 >= d
 
 PG15
-q=11, rank(G)=7, kappa=4
+q=11, d=4, kappa=4, tau_2=0
 16 parity candidates -> exactly 4 realizable boundary topes
 
-LARGE-kappa PARITY-SLICE REALIZABILITY
+NEW LOW-NULLITY COVERAGE
+= NONE
+
+HIGH-NULLITY GLOBAL PARITY-SLICE / TOPE INTERSECTION
 = OPEN
 
 UNIVERSAL POLYNOMIAL DECIDER
