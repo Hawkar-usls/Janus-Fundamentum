@@ -5,16 +5,16 @@
 - **Repository:** `Hawkar-usls/Janus-Fundamentum`
 - **PR:** `#510`
 - **Branch:** `codex/r5-e8-direct-contract-20260921-82493a57`
-- **Live source HEAD:** `733ac860c50cd60cf48f116737c17d1ca93d43e4`
-- **Source commit time:** `2026-09-28T03:18:12+03:00`
-- **Indexed changed scientific artifacts:** `694`
+- **Live source HEAD:** `d782ea4b1c3c55c7b101d821a55e25a3472b070b`
+- **Source commit time:** `2026-09-28T03:18:54+03:00`
+- **Indexed changed scientific artifacts:** `696`
 
 ## Continuity status
 
 - Semantic cache: `.janus/P_VS_NP_STREAM_CACHE_CURRENT.json`
 - Semantic source HEAD: `3e6118229890f31800268fc683de8062736aa558`
 - Relation: **`LIVE_DESCENDS_FROM_SEMANTIC_CACHE`**
-- Commits after semantic checkpoint: `4`
+- Commits after semantic checkpoint: `6`
 
 ## Scientific firewall
 
@@ -85,6 +85,8 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `b76675b6429c` — 2026-09-28T03:15:51+03:00 — R5 E9: sync semantic checkpoint after irreducible UNSAT hostile control
 - `7aea8f113b66` — 2026-09-28T03:16:40+03:00 — R5 E9: falsify low-nullity prime-core hypothesis by two-edge lifts
 - `733ac860c50c` — 2026-09-28T03:18:12+03:00 — R5 E9: derive strong odd-cycle determinant-2 transfer normal form
+- `fdf17e814b2d` — 2026-09-28T03:18:42+03:00 — R5 E9: add checker for strong odd-cycle transfer normal form
+- `d782ea4b1c3c` — 2026-09-28T03:18:54+03:00 — R5 E9: add CI for strong odd-cycle transfer normal form
 
 ## Transport / stale-bootstrap watch
 
@@ -115,6 +117,8 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 
 ## Recent non-cache commits
 
+- `d782ea4b1c3c` — 2026-09-28T03:18:54+03:00 — R5 E9: add CI for strong odd-cycle transfer normal form
+- `fdf17e814b2d` — 2026-09-28T03:18:42+03:00 — R5 E9: add checker for strong odd-cycle transfer normal form
 - `733ac860c50c` — 2026-09-28T03:18:12+03:00 — R5 E9: derive strong odd-cycle determinant-2 transfer normal form
 - `7aea8f113b66` — 2026-09-28T03:16:40+03:00 — R5 E9: falsify low-nullity prime-core hypothesis by two-edge lifts
 - `b76675b6429c` — 2026-09-28T03:15:51+03:00 — R5 E9: sync semantic checkpoint after irreducible UNSAT hostile control
@@ -138,8 +142,6 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `acdd0edb4dd3` — 2026-09-28T02:39:27+03:00 — R5 E9: prove exact three-edge-cut boundary algebra
 - `0192c134abab` — 2026-09-28T02:28:10+03:00 — R5 E9: sync semantic checkpoint after exact-matching exchange barrier
 - `b47e6a2cfceb` — 2026-09-28T02:24:07+03:00 — R5 E9: add CI for exact-matching toggle exchange
-- `6a88b0fa7c5e` — 2026-09-28T02:23:57+03:00 — R5 E9: add exact toggle pair-exchange replay
-- `365808a740a5` — 2026-09-28T02:23:27+03:00 — R5 E9: prove exact-matching toggle pair-exchange barrier
 
 ## Resume protocol
 
