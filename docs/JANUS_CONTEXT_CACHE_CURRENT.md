@@ -5,16 +5,16 @@
 - **Repository:** `Hawkar-usls/Janus-Fundamentum`
 - **PR:** `#510`
 - **Branch:** `codex/r5-e8-direct-contract-20260921-82493a57`
-- **Live source HEAD:** `847012de640abf0b039f9991f3852bfdbc7270ca`
-- **Source commit time:** `2026-09-28T14:46:54+03:00`
-- **Indexed changed scientific artifacts:** `748`
+- **Live source HEAD:** `a5bfd13bdce878f55a3427f32fb954336f1e4f11`
+- **Source commit time:** `2026-09-28T14:49:50+03:00`
+- **Indexed changed scientific artifacts:** `749`
 
 ## Continuity status
 
 - Semantic cache: `.janus/P_VS_NP_STREAM_CACHE_CURRENT.json`
 - Semantic source HEAD: `7a1ca3a9e52ba360cdb700306ca3fc58746aa27f`
 - Relation: **`LIVE_DESCENDS_FROM_SEMANTIC_CACHE`**
-- Commits after semantic checkpoint: `45`
+- Commits after semantic checkpoint: `46`
 
 ## Scientific firewall
 
@@ -126,6 +126,7 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `994ce75da1e3` — 2026-09-28T14:42:10+03:00 — R5 E9: add cycle-syndrome homology regression
 - `3edaf60fa94d` — 2026-09-28T14:46:26+03:00 — R5 E9: falsify endpoint delta-matroid across all affine9 normalizations
 - `847012de640a` — 2026-09-28T14:46:54+03:00 — R5 E9: add exhaustive affine9 endpoint-DM normalization falsifier
+- `a5bfd13bdce8` — 2026-09-28T14:49:50+03:00 — R5 E9: add executable PolaritySAT forced-assignment falsifier
 
 ## Transport / stale-bootstrap watch
 
@@ -156,6 +157,7 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 
 ## Recent non-cache commits
 
+- `a5bfd13bdce8` — 2026-09-28T14:49:50+03:00 — R5 E9: add executable PolaritySAT forced-assignment falsifier
 - `847012de640a` — 2026-09-28T14:46:54+03:00 — R5 E9: add exhaustive affine9 endpoint-DM normalization falsifier
 - `3edaf60fa94d` — 2026-09-28T14:46:26+03:00 — R5 E9: falsify endpoint delta-matroid across all affine9 normalizations
 - `994ce75da1e3` — 2026-09-28T14:42:10+03:00 — R5 E9: add cycle-syndrome homology regression
@@ -180,7 +182,6 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `ffa4e5ba58ee` — 2026-09-28T06:09:52+03:00 — R5 E9 validate single-variable DP anti-loop
 - `ec0d87a9e4e9` — 2026-09-28T06:09:40+03:00 — R5 E9 add single-variable DP projection regression
 - `c4d0ec5f7ed2` — 2026-09-28T06:09:22+03:00 — R5 E9 classify single-variable overlay projection as DP
-- `a3026241cb88` — 2026-09-28T06:04:38+03:00 — R5 E9: add CI for left-kernel-safe UNSAT nullity family
 
 ## Resume protocol
 
