@@ -5,16 +5,16 @@
 - **Repository:** `Hawkar-usls/Janus-Fundamentum`
 - **PR:** `#510`
 - **Branch:** `codex/r5-e8-direct-contract-20260921-82493a57`
-- **Live source HEAD:** `17d7e41c474ae65762f61e75ef91cf4c61146102`
-- **Source commit time:** `2026-09-28T03:04:38+03:00`
-- **Indexed changed scientific artifacts:** `687`
+- **Live source HEAD:** `3e6118229890f31800268fc683de8062736aa558`
+- **Source commit time:** `2026-09-28T03:06:41+03:00`
+- **Indexed changed scientific artifacts:** `692`
 
 ## Continuity status
 
 - Semantic cache: `.janus/P_VS_NP_STREAM_CACHE_CURRENT.json`
 - Semantic source HEAD: `f1e556b93e6e85eec5846faffb6fc3e79992a30e`
 - Relation: **`LIVE_DESCENDS_FROM_SEMANTIC_CACHE`**
-- Commits after semantic checkpoint: `9`
+- Commits after semantic checkpoint: `14`
 
 ## Scientific firewall
 
@@ -85,6 +85,11 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `7138befb3d1b` — 2026-09-28T03:03:11+03:00 — R5 E9: add checker for acyclic grouped matching barrier
 - `53fb72e1a43c` — 2026-09-28T03:03:24+03:00 — R5 E9: add CI for acyclic grouped matching barrier
 - `17d7e41c474a` — 2026-09-28T03:04:38+03:00 — R5 E9: freeze 3-cut-irreducible singular UNSAT hostile control
+- `694bad41c55e` — 2026-09-28T03:05:04+03:00 — R5 E9: freeze singular UNSAT 3-cut-irreducible hostile core
+- `b01463284dd2` — 2026-09-28T03:05:18+03:00 — R5 E9: add exact 3-cut census for singular UNSAT core
+- `b96a0b96a54c` — 2026-09-28T03:05:27+03:00 — R5 E9: add CI for singular UNSAT 3-cut hostile core
+- `5d7718002c8d` — 2026-09-28T03:06:33+03:00 — R5 E9: add checker for 3-cut-irreducible singular UNSAT control
+- `3e6118229890` — 2026-09-28T03:06:41+03:00 — R5 E9: add CI for 3-cut-irreducible singular UNSAT control
 
 ## Transport / stale-bootstrap watch
 
@@ -115,6 +120,11 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 
 ## Recent non-cache commits
 
+- `3e6118229890` — 2026-09-28T03:06:41+03:00 — R5 E9: add CI for 3-cut-irreducible singular UNSAT control
+- `5d7718002c8d` — 2026-09-28T03:06:33+03:00 — R5 E9: add checker for 3-cut-irreducible singular UNSAT control
+- `b96a0b96a54c` — 2026-09-28T03:05:27+03:00 — R5 E9: add CI for singular UNSAT 3-cut hostile core
+- `b01463284dd2` — 2026-09-28T03:05:18+03:00 — R5 E9: add exact 3-cut census for singular UNSAT core
+- `694bad41c55e` — 2026-09-28T03:05:04+03:00 — R5 E9: freeze singular UNSAT 3-cut-irreducible hostile core
 - `17d7e41c474a` — 2026-09-28T03:04:38+03:00 — R5 E9: freeze 3-cut-irreducible singular UNSAT hostile control
 - `53fb72e1a43c` — 2026-09-28T03:03:24+03:00 — R5 E9: add CI for acyclic grouped matching barrier
 - `7138befb3d1b` — 2026-09-28T03:03:11+03:00 — R5 E9: add checker for acyclic grouped matching barrier
@@ -135,11 +145,6 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `b73cdfbc97b0` — 2026-09-28T02:15:12+03:00 — R5 E9: prove EQ3 local gauge quotient returns source hardness
 - `820e1045b841` — 2026-09-27T23:46:39+03:00 — R5 E9: rule out common EQ3/Exact1 matchgate basis
 - `64f0d8af5ab7` — 2026-09-27T23:35:29+03:00 — R5 E9: correct legal Boben two-step certificate
-- `a5e7fcf80d9f` — 2026-09-27T23:35:05+03:00 — R5 E9: repair legal Boben two-step replay
-- `ac934d02ef73` — 2026-09-27T23:24:52+03:00 — R5 E9: add CI for two-step Boben state-4 barrier
-- `44547a4ce762` — 2026-09-27T23:24:38+03:00 — R5 E9: add two-step Boben state-4 replay
-- `c09c01be5e90` — 2026-09-27T23:24:12+03:00 — R5 E9: freeze two-step Boben state-4 barrier
-- `591e8e81e20e` — 2026-09-27T23:13:51+03:00 — R5 E9: remove duplicate gauge-nullity workflow
 
 ## Resume protocol
 
