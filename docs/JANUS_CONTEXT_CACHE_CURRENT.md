@@ -5,16 +5,16 @@
 - **Repository:** `Hawkar-usls/Janus-Fundamentum`
 - **PR:** `#510`
 - **Branch:** `codex/r5-e8-direct-contract-20260921-82493a57`
-- **Live source HEAD:** `f79f8b4aeb7abf9ba2a0c94188a54e18004f863b`
-- **Source commit time:** `2026-09-28T14:41:48+03:00`
-- **Indexed changed scientific artifacts:** `745`
+- **Live source HEAD:** `994ce75da1e3d4d550393af55844f80b72bf76e1`
+- **Source commit time:** `2026-09-28T14:42:10+03:00`
+- **Indexed changed scientific artifacts:** `746`
 
 ## Continuity status
 
 - Semantic cache: `.janus/P_VS_NP_STREAM_CACHE_CURRENT.json`
 - Semantic source HEAD: `7a1ca3a9e52ba360cdb700306ca3fc58746aa27f`
 - Relation: **`LIVE_DESCENDS_FROM_SEMANTIC_CACHE`**
-- Commits after semantic checkpoint: `42`
+- Commits after semantic checkpoint: `43`
 
 ## Scientific firewall
 
@@ -123,6 +123,7 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `80ac578f98a3` — 2026-09-28T06:34:21+03:00 — R5 E9 strengthen high-girth checkpoint with bounded occurrence
 - `3762a09f4c13` — 2026-09-28T14:36:22+03:00 — R5 E9: reject PolaritySAT 2026 by forced-assignment counterexample
 - `f79f8b4aeb7a` — 2026-09-28T14:41:48+03:00 — R5 E9: isolate cycle-syndrome homology and delta-matroid boundary
+- `994ce75da1e3` — 2026-09-28T14:42:10+03:00 — R5 E9: add cycle-syndrome homology regression
 
 ## Transport / stale-bootstrap watch
 
@@ -153,6 +154,7 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 
 ## Recent non-cache commits
 
+- `994ce75da1e3` — 2026-09-28T14:42:10+03:00 — R5 E9: add cycle-syndrome homology regression
 - `f79f8b4aeb7a` — 2026-09-28T14:41:48+03:00 — R5 E9: isolate cycle-syndrome homology and delta-matroid boundary
 - `3762a09f4c13` — 2026-09-28T14:36:22+03:00 — R5 E9: reject PolaritySAT 2026 by forced-assignment counterexample
 - `80ac578f98a3` — 2026-09-28T06:34:21+03:00 — R5 E9 strengthen high-girth checkpoint with bounded occurrence
@@ -177,7 +179,6 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `a3026241cb88` — 2026-09-28T06:04:38+03:00 — R5 E9: add CI for left-kernel-safe UNSAT nullity family
 - `b702f33d3d23` — 2026-09-28T06:04:27+03:00 — R5 E9: add checker for left-kernel-safe UNSAT nullity amplifier
 - `7891d2ab3058` — 2026-09-28T06:04:00+03:00 — R5 E9: prove left-kernel-safe UNSAT prime nullity amplifier
-- `258e921c6320` — 2026-09-28T06:02:38+03:00 — Audit rank3 coupling against 2026 subcubic general-factor dichotomy
 
 ## Resume protocol
 
