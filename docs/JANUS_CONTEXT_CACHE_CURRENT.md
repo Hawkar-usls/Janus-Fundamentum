@@ -5,16 +5,16 @@
 - **Repository:** `Hawkar-usls/Janus-Fundamentum`
 - **PR:** `#510`
 - **Branch:** `codex/r5-e8-direct-contract-20260921-82493a57`
-- **Live source HEAD:** `b04dcf27de57e8cceaa9e8511528d142c6912ed2`
-- **Source commit time:** `2026-09-28T03:21:12+03:00`
-- **Indexed changed scientific artifacts:** `696`
+- **Live source HEAD:** `c918bc17c8d9a1c27ac4380588fa8e3d13d12de8`
+- **Source commit time:** `2026-09-28T03:29:09+03:00`
+- **Indexed changed scientific artifacts:** `697`
 
 ## Continuity status
 
 - Semantic cache: `.janus/P_VS_NP_STREAM_CACHE_CURRENT.json`
 - Semantic source HEAD: `d782ea4b1c3c55c7b101d821a55e25a3472b070b`
 - Relation: **`LIVE_DESCENDS_FROM_SEMANTIC_CACHE`**
-- Commits after semantic checkpoint: `1`
+- Commits after semantic checkpoint: `2`
 
 ## Scientific firewall
 
@@ -83,6 +83,7 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 ## Commits newer than semantic checkpoint — MUST INGEST
 
 - `b04dcf27de57` — 2026-09-28T03:21:12+03:00 — R5 E9: sync semantic checkpoint after odd-cycle transfer theorem
+- `c918bc17c8d9` — 2026-09-28T03:29:09+03:00 — R5 E9: prove 3-cut-irreducible linear-nullity 2-lift family
 
 ## Transport / stale-bootstrap watch
 
@@ -113,6 +114,7 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 
 ## Recent non-cache commits
 
+- `c918bc17c8d9` — 2026-09-28T03:29:09+03:00 — R5 E9: prove 3-cut-irreducible linear-nullity 2-lift family
 - `b04dcf27de57` — 2026-09-28T03:21:12+03:00 — R5 E9: sync semantic checkpoint after odd-cycle transfer theorem
 - `d782ea4b1c3c` — 2026-09-28T03:18:54+03:00 — R5 E9: add CI for strong odd-cycle transfer normal form
 - `fdf17e814b2d` — 2026-09-28T03:18:42+03:00 — R5 E9: add checker for strong odd-cycle transfer normal form
@@ -137,7 +139,6 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `f1e556b93e6e` — 2026-09-28T02:40:10+03:00 — R5 E9: add CI for exact three-edge-cut algebra
 - `f1e6f9fb1d36` — 2026-09-28T02:39:58+03:00 — R5 E9: add checker for exact three-edge-cut algebra
 - `acdd0edb4dd3` — 2026-09-28T02:39:27+03:00 — R5 E9: prove exact three-edge-cut boundary algebra
-- `0192c134abab` — 2026-09-28T02:28:10+03:00 — R5 E9: sync semantic checkpoint after exact-matching exchange barrier
 
 ## Resume protocol
 
