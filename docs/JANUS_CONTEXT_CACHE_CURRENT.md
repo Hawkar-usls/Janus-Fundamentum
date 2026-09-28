@@ -5,16 +5,16 @@
 - **Repository:** `Hawkar-usls/Janus-Fundamentum`
 - **PR:** `#510`
 - **Branch:** `codex/r5-e8-direct-contract-20260921-82493a57`
-- **Live source HEAD:** `258e921c6320c2845bb0607f0731a1ecf85d8db6`
-- **Source commit time:** `2026-09-28T06:02:38+03:00`
-- **Indexed changed scientific artifacts:** `722`
+- **Live source HEAD:** `7891d2ab30585f6182268f234a50c27e8e252d99`
+- **Source commit time:** `2026-09-28T06:04:00+03:00`
+- **Indexed changed scientific artifacts:** `723`
 
 ## Continuity status
 
 - Semantic cache: `.janus/P_VS_NP_STREAM_CACHE_CURRENT.json`
 - Semantic source HEAD: `7a1ca3a9e52ba360cdb700306ca3fc58746aa27f`
 - Relation: **`LIVE_DESCENDS_FROM_SEMANTIC_CACHE`**
-- Commits after semantic checkpoint: `18`
+- Commits after semantic checkpoint: `19`
 
 ## Scientific firewall
 
@@ -99,6 +99,7 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `9108b5c3da66` — 2026-09-28T05:54:56+03:00 — R5 E9 add rank3 matching router regression
 - `a6c929d39cdf` — 2026-09-28T05:55:08+03:00 — R5 E9 validate rank3 matching router
 - `258e921c6320` — 2026-09-28T06:02:38+03:00 — Audit rank3 coupling against 2026 subcubic general-factor dichotomy
+- `7891d2ab3058` — 2026-09-28T06:04:00+03:00 — R5 E9: prove left-kernel-safe UNSAT prime nullity amplifier
 
 ## Transport / stale-bootstrap watch
 
@@ -129,6 +130,7 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 
 ## Recent non-cache commits
 
+- `7891d2ab3058` — 2026-09-28T06:04:00+03:00 — R5 E9: prove left-kernel-safe UNSAT prime nullity amplifier
 - `258e921c6320` — 2026-09-28T06:02:38+03:00 — Audit rank3 coupling against 2026 subcubic general-factor dichotomy
 - `a6c929d39cdf` — 2026-09-28T05:55:08+03:00 — R5 E9 validate rank3 matching router
 - `9108b5c3da66` — 2026-09-28T05:54:56+03:00 — R5 E9 add rank3 matching router regression
@@ -153,7 +155,6 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `dd28a3fa4d69` — 2026-09-28T03:30:31+03:00 — R5 E9: add CI for odd-cycle equality-channel cut-rank barrier
 - `b06f4a90d29c` — 2026-09-28T03:30:27+03:00 — R5 E9: add CI for irreducible two-edge-twist nullity family
 - `789234b93778` — 2026-09-28T03:30:18+03:00 — R5 E9: add checker for odd-cycle equality-channel cut-rank barrier
-- `3f9204baf499` — 2026-09-28T03:30:14+03:00 — R5 E9: add checker for irreducible two-edge-twist nullity family
 
 ## Resume protocol
 
