@@ -5,16 +5,16 @@
 - **Repository:** `Hawkar-usls/Janus-Fundamentum`
 - **PR:** `#510`
 - **Branch:** `codex/r5-e8-direct-contract-20260921-82493a57`
-- **Live source HEAD:** `eee109833b13c07714144fa1c703051eb6f3d5ca`
-- **Source commit time:** `2026-09-28T16:14:02+03:00`
-- **Indexed changed scientific artifacts:** `774`
+- **Live source HEAD:** `436015067066f73c07415b2b5744d687f58262bc`
+- **Source commit time:** `2026-09-28T16:54:21+03:00`
+- **Indexed changed scientific artifacts:** `775`
 
 ## Continuity status
 
 - Semantic cache: `.janus/P_VS_NP_STREAM_CACHE_CURRENT.json`
 - Semantic source HEAD: `8e940bc0e949dabf589a033479f7afce93e1ef22`
 - Relation: **`LIVE_DESCENDS_FROM_SEMANTIC_CACHE`**
-- Commits after semantic checkpoint: `8`
+- Commits after semantic checkpoint: `9`
 
 ## Scientific firewall
 
@@ -79,6 +79,7 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `cd4ee9ab1d43` — 2026-09-28T16:11:50+03:00 — R5 E9: extend syndrome terminal to single-odd dual-Fano criterion
 - `89f5f64e60da` — 2026-09-28T16:13:36+03:00 — R5 E9: add exact rooted dual-Fano source census
 - `eee109833b13` — 2026-09-28T16:14:02+03:00 — R5 E9: add CI for rooted dual-Fano source controls
+- `436015067066` — 2026-09-28T16:54:21+03:00 — R5 E9: reconcile rooted dual-Fano with E10 and semantic terminals
 
 ## Transport / stale-bootstrap watch
 
@@ -109,6 +110,7 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 
 ## Recent non-cache commits
 
+- `436015067066` — 2026-09-28T16:54:21+03:00 — R5 E9: reconcile rooted dual-Fano with E10 and semantic terminals
 - `eee109833b13` — 2026-09-28T16:14:02+03:00 — R5 E9: add CI for rooted dual-Fano source controls
 - `89f5f64e60da` — 2026-09-28T16:13:36+03:00 — R5 E9: add exact rooted dual-Fano source census
 - `cd4ee9ab1d43` — 2026-09-28T16:11:50+03:00 — R5 E9: extend syndrome terminal to single-odd dual-Fano criterion
@@ -133,7 +135,6 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `ba193be31c95` — 2026-09-28T14:54:20+03:00 — R5 E9: add CI for singular prime h-perfect relaxation gap
 - `d0d0c719a1cb` — 2026-09-28T14:54:03+03:00 — R5 E9: add exact checker for h-perfect relaxation gap control
 - `c3d7988b5766` — 2026-09-28T14:53:32+03:00 — R5 E9: freeze singular prime h-perfect relaxation gap control
-- `8df0c2d1d571` — 2026-09-28T14:52:22+03:00 — R5 E9: add CI for bilinear witness-selection rank barrier
 
 ## Resume protocol
 
