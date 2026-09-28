@@ -5,16 +5,16 @@
 - **Repository:** `Hawkar-usls/Janus-Fundamentum`
 - **PR:** `#510`
 - **Branch:** `codex/r5-e8-direct-contract-20260921-82493a57`
-- **Live source HEAD:** `35fd7f0afe3dd5dce866930fb7aaf309de444dcc`
-- **Source commit time:** `2026-09-29T00:32:53+03:00`
-- **Indexed changed scientific artifacts:** `840`
+- **Live source HEAD:** `198faf5d844c236d87159a3e5b81a6dd18e12b54`
+- **Source commit time:** `2026-09-29T00:38:40+03:00`
+- **Indexed changed scientific artifacts:** `843`
 
 ## Continuity status
 
 - Semantic cache: `.janus/P_VS_NP_STREAM_CACHE_CURRENT.json`
 - Semantic source HEAD: `05563fb285a1b2a4ae62d2a6aab0143bdbe52899`
 - Relation: **`LIVE_DESCENDS_FROM_SEMANTIC_CACHE`**
-- Commits after semantic checkpoint: `63`
+- Commits after semantic checkpoint: `66`
 
 ## Scientific firewall
 
@@ -142,6 +142,9 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `9c9d5da7fde0` — 2026-09-29T00:23:48+03:00 — R5 E9: add exact checker for linear cubic trace rank bound
 - `c749c8ac5e8f` — 2026-09-29T00:24:03+03:00 — R5 E9: add CI for linear cubic trace rank bound
 - `35fd7f0afe3d` — 2026-09-29T00:32:53+03:00 — R5 E9: add Paley11 post-RKPR linear nullity-10 control
+- `a479c74e7203` — 2026-09-29T00:33:20+03:00 — R5 E9: add exact Paley11 post-RKPR checker
+- `462088b2b0e2` — 2026-09-29T00:33:27+03:00 — R5 E9: add CI for Paley11 post-RKPR control
+- `198faf5d844c` — 2026-09-29T00:38:40+03:00 — R5 E9: prove infinite Paley post-RKPR sqrt-nullity family
 
 ## Transport / stale-bootstrap watch
 
@@ -172,6 +175,9 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 
 ## Recent non-cache commits
 
+- `198faf5d844c` — 2026-09-29T00:38:40+03:00 — R5 E9: prove infinite Paley post-RKPR sqrt-nullity family
+- `462088b2b0e2` — 2026-09-29T00:33:27+03:00 — R5 E9: add CI for Paley11 post-RKPR control
+- `a479c74e7203` — 2026-09-29T00:33:20+03:00 — R5 E9: add exact Paley11 post-RKPR checker
 - `35fd7f0afe3d` — 2026-09-29T00:32:53+03:00 — R5 E9: add Paley11 post-RKPR linear nullity-10 control
 - `c749c8ac5e8f` — 2026-09-29T00:24:03+03:00 — R5 E9: add CI for linear cubic trace rank bound
 - `9c9d5da7fde0` — 2026-09-29T00:23:48+03:00 — R5 E9: add exact checker for linear cubic trace rank bound
@@ -194,9 +200,6 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `789c1400869c` — 2026-09-28T21:55:26+03:00 — R5 E9: reconcile RKPR with prime tower and EQ3 hardness image
 - `f6a098bddb52` — 2026-09-28T21:44:33+03:00 — R5 E9: add CI for projective escape-radius recurrence
 - `7aa19ec97edd` — 2026-09-28T21:44:26+03:00 — R5 E9: add exact recurrence replay through n120
-- `8012c8d052b3` — 2026-09-28T21:43:35+03:00 — R5 E9: prove linear projective escape-radius prime tower
-- `9390f66e6134` — 2026-09-28T21:36:29+03:00 — R5 E9: add CI for geometric tope-radius stress
-- `c8f67b77b847` — 2026-09-28T21:36:22+03:00 — R5 E9: bind geometric augmentation meta-theorem and prime-tower stress
 
 ## Resume protocol
 
