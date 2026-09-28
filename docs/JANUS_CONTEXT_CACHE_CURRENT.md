@@ -5,16 +5,16 @@
 - **Repository:** `Hawkar-usls/Janus-Fundamentum`
 - **PR:** `#510`
 - **Branch:** `codex/r5-e8-direct-contract-20260921-82493a57`
-- **Live source HEAD:** `d606fdcfd8741df13963a6faf99501ceded6f90b`
-- **Source commit time:** `2026-09-28T05:52:12+03:00`
-- **Indexed changed scientific artifacts:** `716`
+- **Live source HEAD:** `763ffe4b3b13a4def3059786adfcb2fde3adfd2e`
+- **Source commit time:** `2026-09-28T05:53:12+03:00`
+- **Indexed changed scientific artifacts:** `718`
 
 ## Continuity status
 
 - Semantic cache: `.janus/P_VS_NP_STREAM_CACHE_CURRENT.json`
 - Semantic source HEAD: `7a1ca3a9e52ba360cdb700306ca3fc58746aa27f`
 - Relation: **`LIVE_DESCENDS_FROM_SEMANTIC_CACHE`**
-- Commits after semantic checkpoint: `12`
+- Commits after semantic checkpoint: `14`
 
 ## Scientific firewall
 
@@ -93,6 +93,8 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `d779e8232729` — 2026-09-28T05:48:25+03:00 — E9 wire rank3 hypermatching quotient replay
 - `f2dca2d717b9` — 2026-09-28T05:50:41+03:00 — Audit E9 middle-nullity hypermatching quotient
 - `d606fdcfd874` — 2026-09-28T05:52:12+03:00 — R5 E9: prove exact UNSAT linear-nullity prime tower
+- `258d9b7d0f54` — 2026-09-28T05:53:02+03:00 — R5 E9: add checker for exact UNSAT linear-nullity prime tower
+- `763ffe4b3b13` — 2026-09-28T05:53:12+03:00 — R5 E9: add CI for exact UNSAT linear-nullity prime tower
 
 ## Transport / stale-bootstrap watch
 
@@ -123,6 +125,8 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 
 ## Recent non-cache commits
 
+- `763ffe4b3b13` — 2026-09-28T05:53:12+03:00 — R5 E9: add CI for exact UNSAT linear-nullity prime tower
+- `258d9b7d0f54` — 2026-09-28T05:53:02+03:00 — R5 E9: add checker for exact UNSAT linear-nullity prime tower
 - `d606fdcfd874` — 2026-09-28T05:52:12+03:00 — R5 E9: prove exact UNSAT linear-nullity prime tower
 - `f2dca2d717b9` — 2026-09-28T05:50:41+03:00 — Audit E9 middle-nullity hypermatching quotient
 - `d779e8232729` — 2026-09-28T05:48:25+03:00 — E9 wire rank3 hypermatching quotient replay
@@ -146,8 +150,6 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `c918bc17c8d9` — 2026-09-28T03:29:09+03:00 — R5 E9: prove 3-cut-irreducible linear-nullity 2-lift family
 - `b04dcf27de57` — 2026-09-28T03:21:12+03:00 — R5 E9: sync semantic checkpoint after odd-cycle transfer theorem
 - `d782ea4b1c3c` — 2026-09-28T03:18:54+03:00 — R5 E9: add CI for strong odd-cycle transfer normal form
-- `fdf17e814b2d` — 2026-09-28T03:18:42+03:00 — R5 E9: add checker for strong odd-cycle transfer normal form
-- `733ac860c50c` — 2026-09-28T03:18:12+03:00 — R5 E9: derive strong odd-cycle determinant-2 transfer normal form
 
 ## Resume protocol
 
