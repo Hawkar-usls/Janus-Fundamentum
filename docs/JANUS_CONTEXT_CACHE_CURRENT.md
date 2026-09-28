@@ -5,16 +5,16 @@
 - **Repository:** `Hawkar-usls/Janus-Fundamentum`
 - **PR:** `#510`
 - **Branch:** `codex/r5-e8-direct-contract-20260921-82493a57`
-- **Live source HEAD:** `b0091f3de589b3b24a73381f77638bf4fd3db08f`
-- **Source commit time:** `2026-09-29T02:42:33+03:00`
-- **Indexed changed scientific artifacts:** `869`
+- **Live source HEAD:** `e7364206c1f592ddd6aee2e82c02b2580811463f`
+- **Source commit time:** `2026-09-29T02:44:13+03:00`
+- **Indexed changed scientific artifacts:** `870`
 
 ## Continuity status
 
 - Semantic cache: `.janus/P_VS_NP_STREAM_CACHE_CURRENT.json`
 - Semantic source HEAD: `05563fb285a1b2a4ae62d2a6aab0143bdbe52899`
 - Relation: **`LIVE_DESCENDS_FROM_SEMANTIC_CACHE`**
-- Commits after semantic checkpoint: `96`
+- Commits after semantic checkpoint: `97`
 
 ## Scientific firewall
 
@@ -79,7 +79,6 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 
 ## Commits newer than semantic checkpoint — MUST INGEST
 
-- `bd6205f45e17` — 2026-09-28T20:45:45+03:00 — R5 E9: add CI for Tukey tope-descent barrier
 - `f510fd4789aa` — 2026-09-28T20:49:25+03:00 — R5 E9: bound source-kernel augmenting paths by tope geodesics
 - `ba8c9de2ad21` — 2026-09-28T20:49:58+03:00 — R5 E9: add source-kernel tope geodesic regression
 - `c5178dad5b94` — 2026-09-28T20:52:14+03:00 — R5 E9: add CI for source-kernel tope geodesic bound
@@ -159,6 +158,7 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `d5cd5db5a381` — 2026-09-29T02:30:33+03:00 — R5 E9: CI for Paley voltage nullity family
 - `cca768e15373` — 2026-09-29T02:38:09+03:00 — R5 E9: add integer-lattice Smith terminal
 - `b0091f3de589` — 2026-09-29T02:42:33+03:00 — R5 E9: add exact Smith lattice terminal checker
+- `e7364206c1f5` — 2026-09-29T02:44:13+03:00 — R5 E9: CI for integer-lattice Smith terminal
 
 ## Transport / stale-bootstrap watch
 
@@ -189,6 +189,7 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 
 ## Recent non-cache commits
 
+- `e7364206c1f5` — 2026-09-29T02:44:13+03:00 — R5 E9: CI for integer-lattice Smith terminal
 - `b0091f3de589` — 2026-09-29T02:42:33+03:00 — R5 E9: add exact Smith lattice terminal checker
 - `cca768e15373` — 2026-09-29T02:38:09+03:00 — R5 E9: add integer-lattice Smith terminal
 - `d5cd5db5a381` — 2026-09-29T02:30:33+03:00 — R5 E9: CI for Paley voltage nullity family
@@ -213,7 +214,6 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `d7256243325a` — 2026-09-29T01:14:00+03:00 — R5 E9: add exact cycle-kernel flow solver router
 - `86a4a7879253` — 2026-09-29T00:47:39+03:00 — R5 E9: add CI for exact graphic-kernel network router
 - `9468c6a9137f` — 2026-09-29T00:46:56+03:00 — R5 E9: add checker for exact graphic-kernel network router
-- `b605330bda4b` — 2026-09-29T00:46:12+03:00 — R5 E9: close exact graphic-kernel recognition via network matrices
 
 ## Resume protocol
 
