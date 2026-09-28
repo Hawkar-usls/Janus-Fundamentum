@@ -5,16 +5,16 @@
 - **Repository:** `Hawkar-usls/Janus-Fundamentum`
 - **PR:** `#510`
 - **Branch:** `codex/r5-e8-direct-contract-20260921-82493a57`
-- **Live source HEAD:** `3d7a21320533a92de80364439c538de63a8913ad`
-- **Source commit time:** `2026-09-28T23:54:11+03:00`
-- **Indexed changed scientific artifacts:** `833`
+- **Live source HEAD:** `e10bd1f522eb8f67373fe5be0905b28f73309f74`
+- **Source commit time:** `2026-09-29T00:19:35+03:00`
+- **Indexed changed scientific artifacts:** `834`
 
 ## Continuity status
 
 - Semantic cache: `.janus/P_VS_NP_STREAM_CACHE_CURRENT.json`
 - Semantic source HEAD: `05563fb285a1b2a4ae62d2a6aab0143bdbe52899`
 - Relation: **`LIVE_DESCENDS_FROM_SEMANTIC_CACHE`**
-- Commits after semantic checkpoint: `56`
+- Commits after semantic checkpoint: `57`
 
 ## Scientific firewall
 
@@ -135,6 +135,7 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `beaf84b5ed06` — 2026-09-28T23:53:35+03:00 — R5 E9: prove primitive linear-nullity local-swap barrier
 - `d9d54a1f2bd3` — 2026-09-28T23:54:05+03:00 — R5 E9: add exact primitive local-swap barrier checker
 - `3d7a21320533` — 2026-09-28T23:54:11+03:00 — R5 E9: add CI for primitive local-swap barrier
+- `e10bd1f522eb` — 2026-09-29T00:19:35+03:00 — R5 E9: prove connected commuting two-perm nullity collapse
 
 ## Transport / stale-bootstrap watch
 
@@ -165,6 +166,7 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 
 ## Recent non-cache commits
 
+- `e10bd1f522eb` — 2026-09-29T00:19:35+03:00 — R5 E9: prove connected commuting two-perm nullity collapse
 - `3d7a21320533` — 2026-09-28T23:54:11+03:00 — R5 E9: add CI for primitive local-swap barrier
 - `d9d54a1f2bd3` — 2026-09-28T23:54:05+03:00 — R5 E9: add exact primitive local-swap barrier checker
 - `beaf84b5ed06` — 2026-09-28T23:53:35+03:00 — R5 E9: prove primitive linear-nullity local-swap barrier
@@ -189,7 +191,6 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `71be1c58613f` — 2026-09-28T21:23:44+03:00 — R5 E9: prove raw tope-radius 2-lift amplifier
 - `a78056a75165` — 2026-09-28T21:16:09+03:00 — R5 E9: certify exact boundary distances from PG15 trap
 - `aa237e2a4c76` — 2026-09-28T21:14:42+03:00 — R5 E9: verify projective hyperplane classes in greedy barrier
-- `96c5cd2e81f3` — 2026-09-28T21:14:04+03:00 — R5 E9: repair tope adjacency for parallel kernel hyperplanes
 
 ## Resume protocol
 
