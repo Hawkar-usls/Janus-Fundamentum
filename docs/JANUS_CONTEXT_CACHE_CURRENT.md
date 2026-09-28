@@ -5,16 +5,16 @@
 - **Repository:** `Hawkar-usls/Janus-Fundamentum`
 - **PR:** `#510`
 - **Branch:** `codex/r5-e8-direct-contract-20260921-82493a57`
-- **Live source HEAD:** `4d8153140aedcae11a2281012939be3abf90ae6d`
-- **Source commit time:** `2026-09-28T15:20:35+03:00`
-- **Indexed changed scientific artifacts:** `760`
+- **Live source HEAD:** `b9b36579fd77c7fc205b4964533744bb985134cc`
+- **Source commit time:** `2026-09-28T15:21:42+03:00`
+- **Indexed changed scientific artifacts:** `762`
 
 ## Continuity status
 
 - Semantic cache: `.janus/P_VS_NP_STREAM_CACHE_CURRENT.json`
 - Semantic source HEAD: `ad3ccb96cbd44c5f0194f1775a1424d758897b04`
 - Relation: **`LIVE_DESCENDS_FROM_SEMANTIC_CACHE`**
-- Commits after semantic checkpoint: `5`
+- Commits after semantic checkpoint: `7`
 
 ## Scientific firewall
 
@@ -83,6 +83,8 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `8cdb09dbf7cf` — 2026-09-28T15:10:42+03:00 — R5 E9: add exact regression for augmented regular-matroid terminal
 - `02aa589f4dba` — 2026-09-28T15:10:55+03:00 — R5 E9: add CI for augmented regular-matroid syndrome terminal
 - `4d8153140aed` — 2026-09-28T15:20:35+03:00 — R5 E9: prove augmented regularity of the UNSAT prime tower
+- `5235e35582af` — 2026-09-28T15:21:31+03:00 — R5 E9: add regression for prime-tower augmented regularity
+- `b9b36579fd77` — 2026-09-28T15:21:42+03:00 — R5 E9: add CI for prime-tower augmented regularity
 
 ## Transport / stale-bootstrap watch
 
@@ -113,6 +115,8 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 
 ## Recent non-cache commits
 
+- `b9b36579fd77` — 2026-09-28T15:21:42+03:00 — R5 E9: add CI for prime-tower augmented regularity
+- `5235e35582af` — 2026-09-28T15:21:31+03:00 — R5 E9: add regression for prime-tower augmented regularity
 - `4d8153140aed` — 2026-09-28T15:20:35+03:00 — R5 E9: prove augmented regularity of the UNSAT prime tower
 - `02aa589f4dba` — 2026-09-28T15:10:55+03:00 — R5 E9: add CI for augmented regular-matroid syndrome terminal
 - `8cdb09dbf7cf` — 2026-09-28T15:10:42+03:00 — R5 E9: add exact regression for augmented regular-matroid terminal
@@ -136,8 +140,6 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `b86d0355f169` — 2026-09-28T06:33:29+03:00 — R5 E9 add bounded-occurrence high-girth structural regression
 - `23310916c004` — 2026-09-28T06:33:02+03:00 — R5 E9 add high-girth bounded-occurrence pivot barrier
 - `6b22c8516fb5` — 2026-09-28T06:30:30+03:00 — R5 E9 checkpoint high-girth-safe nonlocal global pivot
-- `a413e1e9b6a3` — 2026-09-28T06:28:11+03:00 — R5 E9 validate sparse-incomparability high-girth pivot barrier
-- `f7ec09aaaa01` — 2026-09-28T06:28:00+03:00 — R5 E9 add sparse-incomparability structural regression
 
 ## Resume protocol
 
