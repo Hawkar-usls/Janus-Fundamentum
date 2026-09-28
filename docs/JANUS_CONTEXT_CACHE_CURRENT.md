@@ -5,16 +5,16 @@
 - **Repository:** `Hawkar-usls/Janus-Fundamentum`
 - **PR:** `#510`
 - **Branch:** `codex/r5-e8-direct-contract-20260921-82493a57`
-- **Live source HEAD:** `8bda813d4e056081ab75cde14598cd09037dd5bd`
-- **Source commit time:** `2026-09-28T14:51:40+03:00`
-- **Indexed changed scientific artifacts:** `750`
+- **Live source HEAD:** `8df0c2d1d5711e0122a3f731a4c56ad3e42e7e06`
+- **Source commit time:** `2026-09-28T14:52:22+03:00`
+- **Indexed changed scientific artifacts:** `752`
 
 ## Continuity status
 
 - Semantic cache: `.janus/P_VS_NP_STREAM_CACHE_CURRENT.json`
 - Semantic source HEAD: `7a1ca3a9e52ba360cdb700306ca3fc58746aa27f`
 - Relation: **`LIVE_DESCENDS_FROM_SEMANTIC_CACHE`**
-- Commits after semantic checkpoint: `47`
+- Commits after semantic checkpoint: `49`
 
 ## Scientific firewall
 
@@ -128,6 +128,8 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `847012de640a` — 2026-09-28T14:46:54+03:00 — R5 E9: add exhaustive affine9 endpoint-DM normalization falsifier
 - `a5bfd13bdce8` — 2026-09-28T14:49:50+03:00 — R5 E9: add executable PolaritySAT forced-assignment falsifier
 - `8bda813d4e05` — 2026-09-28T14:51:40+03:00 — R5 E9: prove exponential bilinear witness-selection Hankel rank barrier
+- `25891fd18187` — 2026-09-28T14:52:00+03:00 — R5 E9: add bilinear Hankel-rank regression
+- `8df0c2d1d571` — 2026-09-28T14:52:22+03:00 — R5 E9: add CI for bilinear witness-selection rank barrier
 
 ## Transport / stale-bootstrap watch
 
@@ -158,6 +160,8 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 
 ## Recent non-cache commits
 
+- `8df0c2d1d571` — 2026-09-28T14:52:22+03:00 — R5 E9: add CI for bilinear witness-selection rank barrier
+- `25891fd18187` — 2026-09-28T14:52:00+03:00 — R5 E9: add bilinear Hankel-rank regression
 - `8bda813d4e05` — 2026-09-28T14:51:40+03:00 — R5 E9: prove exponential bilinear witness-selection Hankel rank barrier
 - `a5bfd13bdce8` — 2026-09-28T14:49:50+03:00 — R5 E9: add executable PolaritySAT forced-assignment falsifier
 - `847012de640a` — 2026-09-28T14:46:54+03:00 — R5 E9: add exhaustive affine9 endpoint-DM normalization falsifier
@@ -181,8 +185,6 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `39df19f4339c` — 2026-09-28T06:19:05+03:00 — R5 E9 seal C4-free source-incidence pivot barrier
 - `3dde3e11a403` — 2026-09-28T06:18:52+03:00 — R5 E9: add checker for one-coherence DP exactness
 - `575bccc3db21` — 2026-09-28T06:18:41+03:00 — R5 E9: classify one-coherence cross-layer pivot as exact DP
-- `ffa4e5ba58ee` — 2026-09-28T06:09:52+03:00 — R5 E9 validate single-variable DP anti-loop
-- `ec0d87a9e4e9` — 2026-09-28T06:09:40+03:00 — R5 E9 add single-variable DP projection regression
 
 ## Resume protocol
 
