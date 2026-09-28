@@ -5,16 +5,16 @@
 - **Repository:** `Hawkar-usls/Janus-Fundamentum`
 - **PR:** `#510`
 - **Branch:** `codex/r5-e8-direct-contract-20260921-82493a57`
-- **Live source HEAD:** `bee44236bd7f197407cacdc48093f8f13f949c67`
-- **Source commit time:** `2026-09-29T00:39:42+03:00`
-- **Indexed changed scientific artifacts:** `845`
+- **Live source HEAD:** `9ebadc90e8835a3c970dafa2c4e1ad0319d33624`
+- **Source commit time:** `2026-09-29T00:42:29+03:00`
+- **Indexed changed scientific artifacts:** `846`
 
 ## Continuity status
 
 - Semantic cache: `.janus/P_VS_NP_STREAM_CACHE_CURRENT.json`
 - Semantic source HEAD: `05563fb285a1b2a4ae62d2a6aab0143bdbe52899`
 - Relation: **`LIVE_DESCENDS_FROM_SEMANTIC_CACHE`**
-- Commits after semantic checkpoint: `68`
+- Commits after semantic checkpoint: `69`
 
 ## Scientific firewall
 
@@ -147,6 +147,7 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `198faf5d844c` — 2026-09-29T00:38:40+03:00 — R5 E9: prove infinite Paley post-RKPR sqrt-nullity family
 - `f1558aad3c32` — 2026-09-29T00:39:30+03:00 — R5 E9: add exact regression for Paley sqrt-nullity family
 - `bee44236bd7f` — 2026-09-29T00:39:42+03:00 — R5 E9: add CI for Paley sqrt-nullity family
+- `9ebadc90e883` — 2026-09-29T00:42:29+03:00 — R5 E9: prove graphic-kernel Z3 phase solver island
 
 ## Transport / stale-bootstrap watch
 
@@ -177,6 +178,7 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 
 ## Recent non-cache commits
 
+- `9ebadc90e883` — 2026-09-29T00:42:29+03:00 — R5 E9: prove graphic-kernel Z3 phase solver island
 - `bee44236bd7f` — 2026-09-29T00:39:42+03:00 — R5 E9: add CI for Paley sqrt-nullity family
 - `f1558aad3c32` — 2026-09-29T00:39:30+03:00 — R5 E9: add exact regression for Paley sqrt-nullity family
 - `198faf5d844c` — 2026-09-29T00:38:40+03:00 — R5 E9: prove infinite Paley post-RKPR sqrt-nullity family
@@ -201,7 +203,6 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `55490108beea` — 2026-09-28T22:45:25+03:00 — R5 E9: add rational-tope defect syndrome projective filter
 - `97244b0e6985` — 2026-09-28T21:55:57+03:00 — R5 E9: add CI for RKPR post-quotient reconciliation
 - `46f9a6f0f774` — 2026-09-28T21:55:50+03:00 — R5 E9: add RKPR post-quotient reconciliation replay
-- `789c1400869c` — 2026-09-28T21:55:26+03:00 — R5 E9: reconcile RKPR with prime tower and EQ3 hardness image
 
 ## Resume protocol
 
