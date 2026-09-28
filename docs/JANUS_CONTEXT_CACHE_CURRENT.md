@@ -5,16 +5,16 @@
 - **Repository:** `Hawkar-usls/Janus-Fundamentum`
 - **PR:** `#510`
 - **Branch:** `codex/r5-e8-direct-contract-20260921-82493a57`
-- **Live source HEAD:** `3d3b68e7b9307b2b507d4e42343e9fa0326fbd0e`
-- **Source commit time:** `2026-09-29T01:20:48+03:00`
-- **Indexed changed scientific artifacts:** `855`
+- **Live source HEAD:** `bb16a1cb46e042ae48d8d3e42d5c657c2762c4b8`
+- **Source commit time:** `2026-09-29T01:22:32+03:00`
+- **Indexed changed scientific artifacts:** `857`
 
 ## Continuity status
 
 - Semantic cache: `.janus/P_VS_NP_STREAM_CACHE_CURRENT.json`
 - Semantic source HEAD: `05563fb285a1b2a4ae62d2a6aab0143bdbe52899`
 - Relation: **`LIVE_DESCENDS_FROM_SEMANTIC_CACHE`**
-- Commits after semantic checkpoint: `78`
+- Commits after semantic checkpoint: `80`
 
 ## Scientific firewall
 
@@ -157,6 +157,8 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `7ecda3714cbc` — 2026-09-29T01:14:30+03:00 — R5 E9: add cycle-kernel flow router regression
 - `669d849f579e` — 2026-09-29T01:14:37+03:00 — R5 E9: add CI for cycle-kernel flow router
 - `3d3b68e7b930` — 2026-09-29T01:20:48+03:00 — R5 E9: add bidirected cycle-kernel binet router
+- `0bf3e91ce41f` — 2026-09-29T01:22:24+03:00 — R5 E9: add bidirected binet router regression
+- `bb16a1cb46e0` — 2026-09-29T01:22:32+03:00 — R5 E9: add CI for bidirected binet router
 
 ## Transport / stale-bootstrap watch
 
@@ -187,6 +189,8 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 
 ## Recent non-cache commits
 
+- `bb16a1cb46e0` — 2026-09-29T01:22:32+03:00 — R5 E9: add CI for bidirected binet router
+- `0bf3e91ce41f` — 2026-09-29T01:22:24+03:00 — R5 E9: add bidirected binet router regression
 - `3d3b68e7b930` — 2026-09-29T01:20:48+03:00 — R5 E9: add bidirected cycle-kernel binet router
 - `669d849f579e` — 2026-09-29T01:14:37+03:00 — R5 E9: add CI for cycle-kernel flow router
 - `7ecda3714cbc` — 2026-09-29T01:14:30+03:00 — R5 E9: add cycle-kernel flow router regression
@@ -210,8 +214,6 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `a37dc3f4559f` — 2026-09-29T00:20:00+03:00 — R5 E9: add exact checker for commuting nullity collapse
 - `e10bd1f522eb` — 2026-09-29T00:19:35+03:00 — R5 E9: prove connected commuting two-perm nullity collapse
 - `3d7a21320533` — 2026-09-28T23:54:11+03:00 — R5 E9: add CI for primitive local-swap barrier
-- `d9d54a1f2bd3` — 2026-09-28T23:54:05+03:00 — R5 E9: add exact primitive local-swap barrier checker
-- `beaf84b5ed06` — 2026-09-28T23:53:35+03:00 — R5 E9: prove primitive linear-nullity local-swap barrier
 
 ## Resume protocol
 
