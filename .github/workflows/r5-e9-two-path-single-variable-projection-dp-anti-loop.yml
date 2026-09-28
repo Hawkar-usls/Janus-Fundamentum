@@ -1,0 +1,47 @@
+name: R5 E9 Two-Path Single-Variable DP Anti-Loop
+
+on:
+  push:
+    branches:
+      - codex/r5-e8-direct-contract-20260921-82493a57
+    paths:
+      - "research/R5_E9_TWO_PATH_SINGLE_VARIABLE_PROJECTION_DP_ANTI_LOOP_2026-09-28_v1.0.md"
+      - "experiments/r5_e9_two_path_single_variable_projection_dp_anti_loop.py"
+      - ".github/workflows/r5-e9-two-path-single-variable-projection-dp-anti-loop.yml"
+  pull_request:
+    paths:
+      - "research/R5_E9_TWO_PATH_SINGLE_VARIABLE_PROJECTION_DP_ANTI_LOOP_2026-09-28_v1.0.md"
+      - "experiments/r5_e9_two_path_single_variable_projection_dp_anti_loop.py"
+      - ".github/workflows/r5-e9-two-path-single-variable-projection-dp-anti-loop.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Compile checker
+        run: python -m py_compile experiments/r5_e9_two_path_single_variable_projection_dp_anti_loop.py
+      - name: Replay exact projection classification
+        run: |
+          python experiments/r5_e9_two_path_single_variable_projection_dp_anti_loop.py > /tmp/svp.json
+          python - <<'PY'
+          import json
+          x=json.load(open('/tmp/svp.json'))
+          assert x['status']=='PASS_TWO_PATH_SINGLE_VARIABLE_PROJECTION_DP_ANTI_LOOP'
+          assert x['witness_reconstruction']=='PASS'
+          assert x['pure_literal_cases']=='PASS'
+          assert x['low_current_degree_le_3']=='STRICT_CLAUSE_COUNT_DROP'
+          assert x['classification']=='SINGLE_VARIABLE_PATH_PROJECTION_IS_DAVIS_PUTNAM'
+          assert x['E8_D1']=='EMPTY'
+          assert x['P_VS_NP']=='OPEN'
+          print('R5_E9_TWO_PATH_SINGLE_VARIABLE_DP_ANTI_LOOP=PASS')
+          PY
