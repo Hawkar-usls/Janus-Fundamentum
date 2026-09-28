@@ -5,16 +5,16 @@
 - **Repository:** `Hawkar-usls/Janus-Fundamentum`
 - **PR:** `#510`
 - **Branch:** `codex/r5-e8-direct-contract-20260921-82493a57`
-- **Live source HEAD:** `79e3015cd01065eab89fea70a7d3a5c25483ffb9`
-- **Source commit time:** `2026-09-28T20:45:03+03:00`
-- **Indexed changed scientific artifacts:** `797`
+- **Live source HEAD:** `bd6205f45e1770b08941ebd4f24c3928c1f54053`
+- **Source commit time:** `2026-09-28T20:45:45+03:00`
+- **Indexed changed scientific artifacts:** `799`
 
 ## Continuity status
 
 - Semantic cache: `.janus/P_VS_NP_STREAM_CACHE_CURRENT.json`
 - Semantic source HEAD: `05563fb285a1b2a4ae62d2a6aab0143bdbe52899`
 - Relation: **`LIVE_DESCENDS_FROM_SEMANTIC_CACHE`**
-- Commits after semantic checkpoint: `15`
+- Commits after semantic checkpoint: `17`
 
 ## Scientific firewall
 
@@ -94,6 +94,8 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `3e4c7d688740` — 2026-09-28T20:35:26+03:00 — R5 E9: add kernel Tukey-depth boundary regression
 - `bba8036e144c` — 2026-09-28T20:35:38+03:00 — R5 E9: add CI for kernel Tukey-depth boundary
 - `79e3015cd010` — 2026-09-28T20:45:03+03:00 — R5 E9: kill monotone Tukey tope descent on PG15 SAT
+- `11793acebcaa` — 2026-09-28T20:45:36+03:00 — R5 E9: add PG15 monotone tope-descent countercontrol
+- `bd6205f45e17` — 2026-09-28T20:45:45+03:00 — R5 E9: add CI for Tukey tope-descent barrier
 
 ## Transport / stale-bootstrap watch
 
@@ -124,6 +126,8 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 
 ## Recent non-cache commits
 
+- `bd6205f45e17` — 2026-09-28T20:45:45+03:00 — R5 E9: add CI for Tukey tope-descent barrier
+- `11793acebcaa` — 2026-09-28T20:45:36+03:00 — R5 E9: add PG15 monotone tope-descent countercontrol
 - `79e3015cd010` — 2026-09-28T20:45:03+03:00 — R5 E9: kill monotone Tukey tope descent on PG15 SAT
 - `bba8036e144c` — 2026-09-28T20:35:38+03:00 — R5 E9: add CI for kernel Tukey-depth boundary
 - `3e4c7d688740` — 2026-09-28T20:35:26+03:00 — R5 E9: add kernel Tukey-depth boundary regression
@@ -147,8 +151,6 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `5224ef36594e` — 2026-09-28T17:10:34+03:00 — R5 E9: add exact rooted series contraction regression
 - `5969540d9767` — 2026-09-28T17:09:43+03:00 — R5 E9: prove rooted series-pair syndrome contraction
 - `1c17360bc01f` — 2026-09-28T16:57:27+03:00 — R5 E9: synchronize semantic checkpoint to intersection residual
-- `24ea91f06754` — 2026-09-28T16:55:21+03:00 — R5 E9: add CI for rooted dual-Fano E10 reconciliation
-- `84b2c77be435` — 2026-09-28T16:55:01+03:00 — R5 E9: add exact cross-route rooted dual-Fano regression
 
 ## Resume protocol
 
