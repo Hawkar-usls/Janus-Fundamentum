@@ -5,16 +5,16 @@
 - **Repository:** `Hawkar-usls/Janus-Fundamentum`
 - **PR:** `#510`
 - **Branch:** `codex/r5-e8-direct-contract-20260921-82493a57`
-- **Live source HEAD:** `16d7a42846292bce7c135b2cb3825f172c7d1425`
-- **Source commit time:** `2026-09-28T18:31:05+03:00`
-- **Indexed changed scientific artifacts:** `786`
+- **Live source HEAD:** `4d6ec5eea8fdb06eeef39828137a50d4337aadff`
+- **Source commit time:** `2026-09-28T19:11:23+03:00`
+- **Indexed changed scientific artifacts:** `788`
 
 ## Continuity status
 
 - Semantic cache: `.janus/P_VS_NP_STREAM_CACHE_CURRENT.json`
 - Semantic source HEAD: `05563fb285a1b2a4ae62d2a6aab0143bdbe52899`
 - Relation: **`LIVE_DESCENDS_FROM_SEMANTIC_CACHE`**
-- Commits after semantic checkpoint: `2`
+- Commits after semantic checkpoint: `4`
 
 ## Scientific firewall
 
@@ -81,6 +81,8 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 
 - `c7ddc902348f` — 2026-09-28T18:12:02+03:00 — R5 E9: synchronize semantic checkpoint to projective-line avoidance gate
 - `16d7a4284629` — 2026-09-28T18:31:05+03:00 — R5 E9: prove projective signature Walsh arrangement quotient
+- `177cd4b176ea` — 2026-09-28T19:10:50+03:00 — R5 E9: prove projective line-trade gauge and mod-3 Walsh gap
+- `4d6ec5eea8fd` — 2026-09-28T19:11:23+03:00 — R5 E9: add projective line-trade gauge regression
 
 ## Transport / stale-bootstrap watch
 
@@ -111,6 +113,8 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 
 ## Recent non-cache commits
 
+- `4d6ec5eea8fd` — 2026-09-28T19:11:23+03:00 — R5 E9: add projective line-trade gauge regression
+- `177cd4b176ea` — 2026-09-28T19:10:50+03:00 — R5 E9: prove projective line-trade gauge and mod-3 Walsh gap
 - `16d7a4284629` — 2026-09-28T18:31:05+03:00 — R5 E9: prove projective signature Walsh arrangement quotient
 - `c7ddc902348f` — 2026-09-28T18:12:02+03:00 — R5 E9: synchronize semantic checkpoint to projective-line avoidance gate
 - `05563fb285a1` — 2026-09-28T17:45:38+03:00 — R5 E9: add CI for kernel-signature projective avoidance
@@ -134,8 +138,6 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `b0db547849a7` — 2026-09-28T15:25:40+03:00 — R5 E9: add CI for KS theta-equality countercarrier
 - `8e940bc0e949` — 2026-09-28T15:25:19+03:00 — R5 E9: add checker for KS theta-equality countercarrier
 - `721f3b8056f8` — 2026-09-28T15:24:59+03:00 — R5 E9: add CI for rooted MFMC syndrome terminal
-- `c817538fbd83` — 2026-09-28T15:24:29+03:00 — R5 E9: build linear-cubic KS theta-equality countercarrier
-- `efa672ef4efa` — 2026-09-28T15:24:26+03:00 — R5 E9: add rooted MFMC syndrome regression checker
 
 ## Resume protocol
 
