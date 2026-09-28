@@ -5,16 +5,16 @@
 - **Repository:** `Hawkar-usls/Janus-Fundamentum`
 - **PR:** `#510`
 - **Branch:** `codex/r5-e8-direct-contract-20260921-82493a57`
-- **Live source HEAD:** `05563fb285a1b2a4ae62d2a6aab0143bdbe52899`
-- **Source commit time:** `2026-09-28T17:45:38+03:00`
+- **Live source HEAD:** `c7ddc902348f131e6433f9ff62892c3939e16a64`
+- **Source commit time:** `2026-09-28T18:12:02+03:00`
 - **Indexed changed scientific artifacts:** `783`
 
 ## Continuity status
 
 - Semantic cache: `.janus/P_VS_NP_STREAM_CACHE_CURRENT.json`
-- Semantic source HEAD: `24ea91f06754ff206dd13782db1b3a64931111ef`
+- Semantic source HEAD: `05563fb285a1b2a4ae62d2a6aab0143bdbe52899`
 - Relation: **`LIVE_DESCENDS_FROM_SEMANTIC_CACHE`**
-- Commits after semantic checkpoint: `8`
+- Commits after semantic checkpoint: `1`
 
 ## Scientific firewall
 
@@ -35,16 +35,19 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 
 ## Semantic live frontier
 
-- **Frontier:** `R5_E9_INTERSECTION_RESIDUAL_GLOBAL_CONTRACTION_GATE_V1`
-- **Carrier:** arbitrary signed 3CNF via exact reductions; primary hostile image is connected linear-cubic Exact-One / 3-uniform 3-regular perfect matching with all proven E9/E10 polynomial terminals applied
-- Established: Exact-One SAT iff mu(A)=n/3, where mu(A)=min{|x|:Ax=1 over F2}, equivalently the minimum circuit-through-e_b threshold in M_F2([A|1]).
-- Established: Single-odd SOC is polynomial if e_b is absent from rooted F7 or absent from rooted F7*; no-S8 binary matroids were already an older polynomial terminal.
-- Established: Low rational nullity/full rational rank, commuting/abelian two-permutation sources, fixed-factorization Z3 phase PASS, balanced sources, perfect conflict graphs and genuine small separators are exact polynomial terminals.
-- Established: There are source-valid SAT and UNSAT families with linear rational nullity and no nontrivial <=3-edge separator, so raw nullity/separator metrics are not universal complexity currencies.
-- Established: The old n=15 E10 leaf A=I+P+P^4 simultaneously contains S8, has q_graph>=4, and contains rooted F7 and rooted F7* through e_b, yet rank_Q(A)=15 with |det A|=144 and zero Exact-One witnesses; it is polynomial by the existing full-rank/commuting terminal.
-- Established: Therefore rooted dual-Fano, S8 presence, q_graph, odd holes, or raw nullity alone are not canonical hard cores. The genuine residual is the intersection after all certified terminals.
-- Established: Direct projected-delta-matroid, local matchgate, fixed-modulus counting, polynomial-dimensional bilinear annihilation summaries, theta/Hoffman equality, and PolaritySAT-2026 shortcuts are closed by exact countercontrols.
-- Established: Current public literature does not provide a polynomial theorem for the full linear-cubic exact-cover carrier; 2026 results continue to place closely related regular/linear hypergraph tasks on NP-hard sides.
+- **Frontier:** `R5_E9_PROJECTIVE_LINE_AVOIDANCE_GLOBAL_CONTRACTION_GATE_V1`
+- **Carrier:** post-series connected linear-cubic Exact-One source represented by distinct nonzero binary-kernel signatures; every source row is a projective line {u,v,u+v} and SAT is existence of a hyperplane containing no source line
+- Established: Exact-One SAT iff mu(A)=n/3, equivalently the rooted minimum-circuit threshold in M_F2([A|1]).
+- Established: All previously certified polynomial terminals remain active: full rational rank/low rational nullity, balanced, commuting/abelian, phase-pass, perfect-conflict, genuine small separators, single-odd rooted matroid terminals, and other frozen E9/E10 terminals.
+- Established: Polynomial-dimensional bilinear annihilation summaries are impossible in the scoped witness-selection model: m independent polarity channels have connection rank 2^m.
+- Established: Direct endpoint projected-delta-matroid encodings fail on all 42 perfect-matching normalizations of AFFINE_3X3.
+- Established: Rooted and nonroot 2-cocircuit series pairs admit exact polynomial weighted contraction with witness lifting; SAT_12_3 collapses to a constant AG(3,2) core.
+- Established: For K=ker_F2(A), equal kernel signatures are exactly nonroot series classes and zero signatures are exactly root-series classes.
+- Established: After exhaustive series contraction all surviving signatures are distinct and nonzero; a surviving row has signatures {u,v,u+v}, a projective line in PG(k-1,2).
+- Established: Every parity solution is x_j=1+sigma_j dot t. Exact-One holds iff no source projective line is contained in H_t={u:u dot t=0}.
+- Established: Equivalently SAT asks for t outside the union of codimension-two orthogonal subspaces of the source lines.
+- Established: Generic 2-SUB-SAT / union-of-subspace avoidance is NP-hard; only source-specific 3-regular linear projective-line geometry or a stronger global contraction remains admissible.
+- Established: Series-irreducible PG(3,2) controls include both SAT and UNSAT instances; series-irreducibility alone is not a decision certificate.
 - Established: No unconditional deterministic polynomial SAT decider has been established.
 
 ### Live split
@@ -52,15 +55,15 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 ```json
 {
   "primary": {
-    "goal": "Construct a deterministic polynomial GLOBAL CONTRACTION / GLOBAL PIVOT for the full intersection residual, preserving SAT exactly, with strict polynomial progress and witness lifting.",
+    "goal": "Construct a deterministic polynomial global contraction or zero-test for the 3-regular projective-line hyperplane-avoidance residual, with exact witness lifting and a strict polynomial progress measure.",
     "status": "OPEN"
   },
   "secondary": {
-    "goal": "Construct or certify a source-valid survivor that simultaneously escapes all currently proved terminals; use it as the mandatory hostile control for every new global pivot.",
+    "goal": "Exploit the exact Walsh/incidence form of the bad-line count without enumerating 2^k characters; reject any method that is only generic sparse-Fourier minimization or nearest-codeword in disguise.",
     "status": "OPEN"
   },
   "reserve": {
-    "goal": "Import a newly published external polynomial donor only after exact hostile-control validation and proof-level source audit.",
+    "goal": "Import an external polynomial donor only after exact source audit and hostile-control validation.",
     "status": "OPEN"
   }
 }
@@ -68,22 +71,15 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 
 ### Next attack
 
-1. Build the combined-terminal survivor classifier instead of treating any single structural obstruction as the hard core.
-2. On survivors, attack the source-generated global coupling directly: noncommuting + phase-fail + no-low-nullity + no matroid/graph/separator terminal.
-3. Test any candidate contraction first on high-girth/high-nullity SAT and UNSAT controls and require a strict global potential that cannot recreate an equivalent universal carrier.
-4. Do not reopen S8-free, q_graph<=2, Mersenne q_graph, rooted-F7* alone, spectral singularity, local odd-cycle transfer, direct delta-matroid, fixed-modulus or bilinear-summary routes.
+1. Derive the exact bad-line counting identity for a character t using 3-regular projective-line incidence and test whether equality q(t)=0 has a source-specific polynomial certificate.
+2. Search current literature for algorithms or hardness specific to 3-regular projective-line / partial-Steiner parallel-class objects; do not import degree-at-most-3 hardness as exact degree-3 without proof.
+3. Test any Fourier/spectral or projective contraction first on the frozen series-irreducible PG15 SAT and UNSAT controls and on high-girth/high-nullity source families.
+4. If the Walsh zero-test is only generic codeword optimization, freeze that route and move to a genuinely representation-changing contraction on the projective arrangement.
 5. Promote E8_D1 only after SOUND+COMPLETE+TERMINATES+POLY+RECONSTRUCT hold for arbitrary 3CNF.
 
 ## Commits newer than semantic checkpoint — MUST INGEST
 
-- `1c17360bc01f` — 2026-09-28T16:57:27+03:00 — R5 E9: synchronize semantic checkpoint to intersection residual
-- `5969540d9767` — 2026-09-28T17:09:43+03:00 — R5 E9: prove rooted series-pair syndrome contraction
-- `5224ef36594e` — 2026-09-28T17:10:34+03:00 — R5 E9: add exact rooted series contraction regression
-- `36a8ea82be59` — 2026-09-28T17:10:56+03:00 — R5 E9: add CI for rooted series-pair syndrome contraction
-- `d917a16093c4` — 2026-09-28T17:13:43+03:00 — R5 E9: extend series contraction regression to singular 15_3
-- `c92fa9cc9cc3` — 2026-09-28T17:41:59+03:00 — R5 E9: derive kernel-signature series and projective avoidance normal form
-- `85a14827a61f` — 2026-09-28T17:43:33+03:00 — R5 E9: add kernel-signature projective avoidance regression
-- `05563fb285a1` — 2026-09-28T17:45:38+03:00 — R5 E9: add CI for kernel-signature projective avoidance
+- `c7ddc902348f` — 2026-09-28T18:12:02+03:00 — R5 E9: synchronize semantic checkpoint to projective-line avoidance gate
 
 ## Transport / stale-bootstrap watch
 
@@ -94,7 +90,7 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 
 ## Must-read authority/evidence artifacts
 
-- **OK** `.janus/P_VS_NP_STREAM_CACHE_CURRENT.json` `febc862ab9c129f8…`
+- **OK** `.janus/P_VS_NP_STREAM_CACHE_CURRENT.json` `b32b1ddf5e8d9247…`
 - **OK** `tools/janus_stream_resume_cache.py` `adc6ab7f260d2384…`
 - **OK** `research/R5_E9_UNIVERSAL_SELECTOR_EQUIVALENCE_BARRIER_2026-09-27_v1.0.md` `a426b38d6d17eea3…`
 - **OK** `research/R5_E9_UNIVERSAL_SELECTOR_INTERNAL_ANTI_LOOP_BINDING_2026-09-27_v1.0.md` `e3ce2b82dd656b71…`
@@ -114,6 +110,7 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 
 ## Recent non-cache commits
 
+- `c7ddc902348f` — 2026-09-28T18:12:02+03:00 — R5 E9: synchronize semantic checkpoint to projective-line avoidance gate
 - `05563fb285a1` — 2026-09-28T17:45:38+03:00 — R5 E9: add CI for kernel-signature projective avoidance
 - `85a14827a61f` — 2026-09-28T17:43:33+03:00 — R5 E9: add kernel-signature projective avoidance regression
 - `c92fa9cc9cc3` — 2026-09-28T17:41:59+03:00 — R5 E9: derive kernel-signature series and projective avoidance normal form
@@ -138,7 +135,6 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `c817538fbd83` — 2026-09-28T15:24:29+03:00 — R5 E9: build linear-cubic KS theta-equality countercarrier
 - `efa672ef4efa` — 2026-09-28T15:24:26+03:00 — R5 E9: add rooted MFMC syndrome regression checker
 - `de90927bb8a0` — 2026-09-28T15:23:35+03:00 — R5 E9: extend syndrome terminal to rooted MFMC matroids
-- `b9b36579fd77` — 2026-09-28T15:21:42+03:00 — R5 E9: add CI for prime-tower augmented regularity
 
 ## Resume protocol
 
