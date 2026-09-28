@@ -5,16 +5,16 @@
 - **Repository:** `Hawkar-usls/Janus-Fundamentum`
 - **PR:** `#510`
 - **Branch:** `codex/r5-e8-direct-contract-20260921-82493a57`
-- **Live source HEAD:** `1c17360bc01fec924f86975d705ccc02c5d2b718`
-- **Source commit time:** `2026-09-28T16:57:27+03:00`
-- **Indexed changed scientific artifacts:** `777`
+- **Live source HEAD:** `5969540d97673b7bb28b70a09e8939865f0f45c7`
+- **Source commit time:** `2026-09-28T17:09:43+03:00`
+- **Indexed changed scientific artifacts:** `778`
 
 ## Continuity status
 
 - Semantic cache: `.janus/P_VS_NP_STREAM_CACHE_CURRENT.json`
 - Semantic source HEAD: `24ea91f06754ff206dd13782db1b3a64931111ef`
 - Relation: **`LIVE_DESCENDS_FROM_SEMANTIC_CACHE`**
-- Commits after semantic checkpoint: `1`
+- Commits after semantic checkpoint: `2`
 
 ## Scientific firewall
 
@@ -77,6 +77,7 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 ## Commits newer than semantic checkpoint — MUST INGEST
 
 - `1c17360bc01f` — 2026-09-28T16:57:27+03:00 — R5 E9: synchronize semantic checkpoint to intersection residual
+- `5969540d9767` — 2026-09-28T17:09:43+03:00 — R5 E9: prove rooted series-pair syndrome contraction
 
 ## Transport / stale-bootstrap watch
 
@@ -107,6 +108,7 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 
 ## Recent non-cache commits
 
+- `5969540d9767` — 2026-09-28T17:09:43+03:00 — R5 E9: prove rooted series-pair syndrome contraction
 - `1c17360bc01f` — 2026-09-28T16:57:27+03:00 — R5 E9: synchronize semantic checkpoint to intersection residual
 - `24ea91f06754` — 2026-09-28T16:55:21+03:00 — R5 E9: add CI for rooted dual-Fano E10 reconciliation
 - `84b2c77be435` — 2026-09-28T16:55:01+03:00 — R5 E9: add exact cross-route rooted dual-Fano regression
@@ -131,7 +133,6 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `8cdb09dbf7cf` — 2026-09-28T15:10:42+03:00 — R5 E9: add exact regression for augmented regular-matroid terminal
 - `b9e7fd4f58ab` — 2026-09-28T15:10:02+03:00 — R5 E9: prove augmented-regular-matroid polynomial syndrome terminal
 - `f1bdc0616e38` — 2026-09-28T14:57:52+03:00 — R5 E9: synchronize semantic checkpoint after global representation barriers
-- `ad3ccb96cbd4` — 2026-09-28T14:54:59+03:00 — R5 E9: add CI for PolaritySAT hostile donor falsifier
 
 ## Resume protocol
 
