@@ -5,16 +5,16 @@
 - **Repository:** `Hawkar-usls/Janus-Fundamentum`
 - **PR:** `#510`
 - **Branch:** `codex/r5-e8-direct-contract-20260921-82493a57`
-- **Live source HEAD:** `b9e7fd4f58ab50a74098c43a940976502c02be39`
-- **Source commit time:** `2026-09-28T15:10:02+03:00`
-- **Indexed changed scientific artifacts:** `757`
+- **Live source HEAD:** `02aa589f4dba0408fb918137b17ea7473686b3f8`
+- **Source commit time:** `2026-09-28T15:10:55+03:00`
+- **Indexed changed scientific artifacts:** `759`
 
 ## Continuity status
 
 - Semantic cache: `.janus/P_VS_NP_STREAM_CACHE_CURRENT.json`
 - Semantic source HEAD: `ad3ccb96cbd44c5f0194f1775a1424d758897b04`
 - Relation: **`LIVE_DESCENDS_FROM_SEMANTIC_CACHE`**
-- Commits after semantic checkpoint: `2`
+- Commits after semantic checkpoint: `4`
 
 ## Scientific firewall
 
@@ -80,6 +80,8 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 
 - `f1bdc0616e38` — 2026-09-28T14:57:52+03:00 — R5 E9: synchronize semantic checkpoint after global representation barriers
 - `b9e7fd4f58ab` — 2026-09-28T15:10:02+03:00 — R5 E9: prove augmented-regular-matroid polynomial syndrome terminal
+- `8cdb09dbf7cf` — 2026-09-28T15:10:42+03:00 — R5 E9: add exact regression for augmented regular-matroid terminal
+- `02aa589f4dba` — 2026-09-28T15:10:55+03:00 — R5 E9: add CI for augmented regular-matroid syndrome terminal
 
 ## Transport / stale-bootstrap watch
 
@@ -110,6 +112,8 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 
 ## Recent non-cache commits
 
+- `02aa589f4dba` — 2026-09-28T15:10:55+03:00 — R5 E9: add CI for augmented regular-matroid syndrome terminal
+- `8cdb09dbf7cf` — 2026-09-28T15:10:42+03:00 — R5 E9: add exact regression for augmented regular-matroid terminal
 - `b9e7fd4f58ab` — 2026-09-28T15:10:02+03:00 — R5 E9: prove augmented-regular-matroid polynomial syndrome terminal
 - `f1bdc0616e38` — 2026-09-28T14:57:52+03:00 — R5 E9: synchronize semantic checkpoint after global representation barriers
 - `ad3ccb96cbd4` — 2026-09-28T14:54:59+03:00 — R5 E9: add CI for PolaritySAT hostile donor falsifier
@@ -133,8 +137,6 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `a413e1e9b6a3` — 2026-09-28T06:28:11+03:00 — R5 E9 validate sparse-incomparability high-girth pivot barrier
 - `f7ec09aaaa01` — 2026-09-28T06:28:00+03:00 — R5 E9 add sparse-incomparability structural regression
 - `5e283d0d0b24` — 2026-09-28T06:27:29+03:00 — R5 E9 seal sparse-incomparability high-girth pivot barrier
-- `30ba01698359` — 2026-09-28T06:24:27+03:00 — R5 E9: add CI for single-variable DP biclique classification
-- `958155ec7672` — 2026-09-28T06:21:25+03:00 — R5 E9: add checker for single-variable DP biclique theorem
 
 ## Resume protocol
 
