@@ -5,16 +5,16 @@
 - **Repository:** `Hawkar-usls/Janus-Fundamentum`
 - **PR:** `#510`
 - **Branch:** `codex/r5-e8-direct-contract-20260921-82493a57`
-- **Live source HEAD:** `e7f9f0f7a0d0050ef6f36149112f80bfb1b8d854`
-- **Source commit time:** `2026-09-28T20:57:00+03:00`
-- **Indexed changed scientific artifacts:** `806`
+- **Live source HEAD:** `5d7f1da66f7a8fe54134d6e79726d71986825f2a`
+- **Source commit time:** `2026-09-28T20:58:18+03:00`
+- **Indexed changed scientific artifacts:** `808`
 
 ## Continuity status
 
 - Semantic cache: `.janus/P_VS_NP_STREAM_CACHE_CURRENT.json`
 - Semantic source HEAD: `05563fb285a1b2a4ae62d2a6aab0143bdbe52899`
 - Relation: **`LIVE_DESCENDS_FROM_SEMANTIC_CACHE`**
-- Commits after semantic checkpoint: `24`
+- Commits after semantic checkpoint: `27`
 
 ## Scientific firewall
 
@@ -103,6 +103,9 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `4de044cf8440` — 2026-09-28T20:53:54+03:00 — R5 E9: add PG15 boundary nonconvexity regression
 - `a5030a34807a` — 2026-09-28T20:54:11+03:00 — R5 E9: add CI for kernel-boundary nonconvexity barrier
 - `e7f9f0f7a0d0` — 2026-09-28T20:57:00+03:00 — R5 E9: isolate polynomial source-kernel navigation shell
+- `f318557a9306` — 2026-09-28T20:57:31+03:00 — R5 E9: add navigation-shell finite binding
+- `19f903e120d5` — 2026-09-28T20:57:39+03:00 — R5 E9: add CI for source-kernel navigation shell
+- `5d7f1da66f7a` — 2026-09-28T20:58:18+03:00 — R5 E9: bind exact PG15 interval vector in nonconvex barrier
 
 ## Transport / stale-bootstrap watch
 
@@ -133,6 +136,9 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 
 ## Recent non-cache commits
 
+- `5d7f1da66f7a` — 2026-09-28T20:58:18+03:00 — R5 E9: bind exact PG15 interval vector in nonconvex barrier
+- `19f903e120d5` — 2026-09-28T20:57:39+03:00 — R5 E9: add CI for source-kernel navigation shell
+- `f318557a9306` — 2026-09-28T20:57:31+03:00 — R5 E9: add navigation-shell finite binding
 - `e7f9f0f7a0d0` — 2026-09-28T20:57:00+03:00 — R5 E9: isolate polynomial source-kernel navigation shell
 - `a5030a34807a` — 2026-09-28T20:54:11+03:00 — R5 E9: add CI for kernel-boundary nonconvexity barrier
 - `4de044cf8440` — 2026-09-28T20:53:54+03:00 — R5 E9: add PG15 boundary nonconvexity regression
@@ -155,9 +161,6 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `ae7034a92cd7` — 2026-09-28T19:13:47+03:00 — R5 E9: strengthen line-trade gauge with terminal-exposing switch
 - `4d6ec5eea8fd` — 2026-09-28T19:11:23+03:00 — R5 E9: add projective line-trade gauge regression
 - `177cd4b176ea` — 2026-09-28T19:10:50+03:00 — R5 E9: prove projective line-trade gauge and mod-3 Walsh gap
-- `16d7a4284629` — 2026-09-28T18:31:05+03:00 — R5 E9: prove projective signature Walsh arrangement quotient
-- `c7ddc902348f` — 2026-09-28T18:12:02+03:00 — R5 E9: synchronize semantic checkpoint to projective-line avoidance gate
-- `05563fb285a1` — 2026-09-28T17:45:38+03:00 — R5 E9: add CI for kernel-signature projective avoidance
 
 ## Resume protocol
 
