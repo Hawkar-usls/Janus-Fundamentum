@@ -5,16 +5,16 @@
 - **Repository:** `Hawkar-usls/Janus-Fundamentum`
 - **PR:** `#510`
 - **Branch:** `codex/r5-e8-direct-contract-20260921-82493a57`
-- **Live source HEAD:** `a980d85e89da26fdac6371a209dc887da9e064fc`
-- **Source commit time:** `2026-09-28T19:18:05+03:00`
-- **Indexed changed scientific artifacts:** `790`
+- **Live source HEAD:** `2a28c8b438298c5b7f093ef9a7e748a085a37b82`
+- **Source commit time:** `2026-09-28T20:14:14+03:00`
+- **Indexed changed scientific artifacts:** `791`
 
 ## Continuity status
 
 - Semantic cache: `.janus/P_VS_NP_STREAM_CACHE_CURRENT.json`
 - Semantic source HEAD: `05563fb285a1b2a4ae62d2a6aab0143bdbe52899`
 - Relation: **`LIVE_DESCENDS_FROM_SEMANTIC_CACHE`**
-- Commits after semantic checkpoint: `8`
+- Commits after semantic checkpoint: `9`
 
 ## Scientific firewall
 
@@ -87,6 +87,7 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `7c7daf5cc4dc` — 2026-09-28T19:14:23+03:00 — R5 E9: strengthen line-trade regression with full-rank terminal census
 - `237aa3e648b2` — 2026-09-28T19:17:36+03:00 — R5 E9: prove fixed-r projective trade rank-ascent router
 - `a980d85e89da` — 2026-09-28T19:18:05+03:00 — R5 E9: add fixed-r trade rank-ascent regression
+- `2a28c8b43829` — 2026-09-28T20:14:14+03:00 — R5 E9: prove projective fractional-support exact closure
 
 ## Transport / stale-bootstrap watch
 
@@ -117,6 +118,7 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 
 ## Recent non-cache commits
 
+- `2a28c8b43829` — 2026-09-28T20:14:14+03:00 — R5 E9: prove projective fractional-support exact closure
 - `a980d85e89da` — 2026-09-28T19:18:05+03:00 — R5 E9: add fixed-r trade rank-ascent regression
 - `237aa3e648b2` — 2026-09-28T19:17:36+03:00 — R5 E9: prove fixed-r projective trade rank-ascent router
 - `7c7daf5cc4dc` — 2026-09-28T19:14:23+03:00 — R5 E9: strengthen line-trade regression with full-rank terminal census
@@ -141,7 +143,6 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `cd4ee9ab1d43` — 2026-09-28T16:11:50+03:00 — R5 E9: extend syndrome terminal to single-odd dual-Fano criterion
 - `a0dd1e8d1135` — 2026-09-28T15:42:56+03:00 — R5 E9: add CI for rooted F7* source controls
 - `9d73742c3b32` — 2026-09-28T15:42:43+03:00 — R5 E9: add exact rooted F7* source-control census
-- `2f01102867a2` — 2026-09-28T15:42:04+03:00 — R5 E9: freeze rooted F7* source controls
 
 ## Resume protocol
 
