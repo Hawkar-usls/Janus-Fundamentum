@@ -5,16 +5,16 @@
 - **Repository:** `Hawkar-usls/Janus-Fundamentum`
 - **PR:** `#510`
 - **Branch:** `codex/r5-e8-direct-contract-20260921-82493a57`
-- **Live source HEAD:** `55490108beeae45fbf0ed6ed4b15e3c288963c68`
-- **Source commit time:** `2026-09-28T22:45:25+03:00`
-- **Indexed changed scientific artifacts:** `825`
+- **Live source HEAD:** `afe2e97cc3df8c7bd9e47541a15e5e8b97923020`
+- **Source commit time:** `2026-09-28T22:46:23+03:00`
+- **Indexed changed scientific artifacts:** `827`
 
 ## Continuity status
 
 - Semantic cache: `.janus/P_VS_NP_STREAM_CACHE_CURRENT.json`
 - Semantic source HEAD: `05563fb285a1b2a4ae62d2a6aab0143bdbe52899`
 - Relation: **`LIVE_DESCENDS_FROM_SEMANTIC_CACHE`**
-- Commits after semantic checkpoint: `47`
+- Commits after semantic checkpoint: `49`
 
 ## Scientific firewall
 
@@ -126,6 +126,8 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `46f9a6f0f774` — 2026-09-28T21:55:50+03:00 — R5 E9: add RKPR post-quotient reconciliation replay
 - `97244b0e6985` — 2026-09-28T21:55:57+03:00 — R5 E9: add CI for RKPR post-quotient reconciliation
 - `55490108beea` — 2026-09-28T22:45:25+03:00 — R5 E9: add rational-tope defect syndrome projective filter
+- `52a7d50f280c` — 2026-09-28T22:46:14+03:00 — R5 E9: add exact projective parity filter checker
+- `afe2e97cc3df` — 2026-09-28T22:46:23+03:00 — R5 E9: add CI for projective parity filter
 
 ## Transport / stale-bootstrap watch
 
@@ -156,6 +158,8 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 
 ## Recent non-cache commits
 
+- `afe2e97cc3df` — 2026-09-28T22:46:23+03:00 — R5 E9: add CI for projective parity filter
+- `52a7d50f280c` — 2026-09-28T22:46:14+03:00 — R5 E9: add exact projective parity filter checker
 - `55490108beea` — 2026-09-28T22:45:25+03:00 — R5 E9: add rational-tope defect syndrome projective filter
 - `97244b0e6985` — 2026-09-28T21:55:57+03:00 — R5 E9: add CI for RKPR post-quotient reconciliation
 - `46f9a6f0f774` — 2026-09-28T21:55:50+03:00 — R5 E9: add RKPR post-quotient reconciliation replay
@@ -179,8 +183,6 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `5d7f1da66f7a` — 2026-09-28T20:58:18+03:00 — R5 E9: bind exact PG15 interval vector in nonconvex barrier
 - `19f903e120d5` — 2026-09-28T20:57:39+03:00 — R5 E9: add CI for source-kernel navigation shell
 - `f318557a9306` — 2026-09-28T20:57:31+03:00 — R5 E9: add navigation-shell finite binding
-- `e7f9f0f7a0d0` — 2026-09-28T20:57:00+03:00 — R5 E9: isolate polynomial source-kernel navigation shell
-- `a5030a34807a` — 2026-09-28T20:54:11+03:00 — R5 E9: add CI for kernel-boundary nonconvexity barrier
 
 ## Resume protocol
 
