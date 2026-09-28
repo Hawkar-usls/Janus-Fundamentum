@@ -111,14 +111,14 @@ Now take
 Z: alpha_Z=(-1,-1,2,-3).
 ```
 
-Then
+Exact multiplication by the frozen kernel basis gives
 
 ```text
 B alpha_Z
-=(-1? evaluated only by signs here)
+=(2,-1,-1,-3,2,-1,4,-1,4,1,-3,-1,-1,2,-3).
 ```
 
-has positive set exactly
+Hence its positive set is exactly
 
 ```text
 P(Z)={1,5,7,9,10,14},
