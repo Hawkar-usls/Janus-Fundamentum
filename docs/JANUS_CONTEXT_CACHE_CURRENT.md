@@ -5,16 +5,16 @@
 - **Repository:** `Hawkar-usls/Janus-Fundamentum`
 - **PR:** `#510`
 - **Branch:** `codex/r5-e8-direct-contract-20260921-82493a57`
-- **Live source HEAD:** `6b22c8516fb5a03a7e4e29dfdfc9f677d54bb449`
-- **Source commit time:** `2026-09-28T06:30:30+03:00`
-- **Indexed changed scientific artifacts:** `740`
+- **Live source HEAD:** `23310916c0048b3663a3d28807092191c2ac2f29`
+- **Source commit time:** `2026-09-28T06:33:02+03:00`
+- **Indexed changed scientific artifacts:** `741`
 
 ## Continuity status
 
 - Semantic cache: `.janus/P_VS_NP_STREAM_CACHE_CURRENT.json`
 - Semantic source HEAD: `7a1ca3a9e52ba360cdb700306ca3fc58746aa27f`
 - Relation: **`LIVE_DESCENDS_FROM_SEMANTIC_CACHE`**
-- Commits after semantic checkpoint: `36`
+- Commits after semantic checkpoint: `37`
 
 ## Scientific firewall
 
@@ -117,6 +117,7 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `f7ec09aaaa01` — 2026-09-28T06:28:00+03:00 — R5 E9 add sparse-incomparability structural regression
 - `a413e1e9b6a3` — 2026-09-28T06:28:11+03:00 — R5 E9 validate sparse-incomparability high-girth pivot barrier
 - `6b22c8516fb5` — 2026-09-28T06:30:30+03:00 — R5 E9 checkpoint high-girth-safe nonlocal global pivot
+- `23310916c004` — 2026-09-28T06:33:02+03:00 — R5 E9 add high-girth bounded-occurrence pivot barrier
 
 ## Transport / stale-bootstrap watch
 
@@ -147,6 +148,7 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 
 ## Recent non-cache commits
 
+- `23310916c004` — 2026-09-28T06:33:02+03:00 — R5 E9 add high-girth bounded-occurrence pivot barrier
 - `6b22c8516fb5` — 2026-09-28T06:30:30+03:00 — R5 E9 checkpoint high-girth-safe nonlocal global pivot
 - `a413e1e9b6a3` — 2026-09-28T06:28:11+03:00 — R5 E9 validate sparse-incomparability high-girth pivot barrier
 - `f7ec09aaaa01` — 2026-09-28T06:28:00+03:00 — R5 E9 add sparse-incomparability structural regression
@@ -171,7 +173,6 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `a4c57cc95c97` — 2026-09-28T05:53:47+03:00 — R5 E9 add row-basis rank3 matching router
 - `763ffe4b3b13` — 2026-09-28T05:53:12+03:00 — R5 E9: add CI for exact UNSAT linear-nullity prime tower
 - `258d9b7d0f54` — 2026-09-28T05:53:02+03:00 — R5 E9: add checker for exact UNSAT linear-nullity prime tower
-- `d606fdcfd874` — 2026-09-28T05:52:12+03:00 — R5 E9: prove exact UNSAT linear-nullity prime tower
 
 ## Resume protocol
 
