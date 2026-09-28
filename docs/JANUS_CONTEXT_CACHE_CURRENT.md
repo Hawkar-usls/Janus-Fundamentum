@@ -5,16 +5,16 @@
 - **Repository:** `Hawkar-usls/Janus-Fundamentum`
 - **PR:** `#510`
 - **Branch:** `codex/r5-e8-direct-contract-20260921-82493a57`
-- **Live source HEAD:** `c7ddc902348f131e6433f9ff62892c3939e16a64`
-- **Source commit time:** `2026-09-28T18:12:02+03:00`
-- **Indexed changed scientific artifacts:** `783`
+- **Live source HEAD:** `16d7a42846292bce7c135b2cb3825f172c7d1425`
+- **Source commit time:** `2026-09-28T18:31:05+03:00`
+- **Indexed changed scientific artifacts:** `786`
 
 ## Continuity status
 
 - Semantic cache: `.janus/P_VS_NP_STREAM_CACHE_CURRENT.json`
 - Semantic source HEAD: `05563fb285a1b2a4ae62d2a6aab0143bdbe52899`
 - Relation: **`LIVE_DESCENDS_FROM_SEMANTIC_CACHE`**
-- Commits after semantic checkpoint: `1`
+- Commits after semantic checkpoint: `2`
 
 ## Scientific firewall
 
@@ -80,6 +80,7 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 ## Commits newer than semantic checkpoint — MUST INGEST
 
 - `c7ddc902348f` — 2026-09-28T18:12:02+03:00 — R5 E9: synchronize semantic checkpoint to projective-line avoidance gate
+- `16d7a4284629` — 2026-09-28T18:31:05+03:00 — R5 E9: prove projective signature Walsh arrangement quotient
 
 ## Transport / stale-bootstrap watch
 
@@ -110,6 +111,7 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 
 ## Recent non-cache commits
 
+- `16d7a4284629` — 2026-09-28T18:31:05+03:00 — R5 E9: prove projective signature Walsh arrangement quotient
 - `c7ddc902348f` — 2026-09-28T18:12:02+03:00 — R5 E9: synchronize semantic checkpoint to projective-line avoidance gate
 - `05563fb285a1` — 2026-09-28T17:45:38+03:00 — R5 E9: add CI for kernel-signature projective avoidance
 - `85a14827a61f` — 2026-09-28T17:43:33+03:00 — R5 E9: add kernel-signature projective avoidance regression
@@ -134,7 +136,6 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `721f3b8056f8` — 2026-09-28T15:24:59+03:00 — R5 E9: add CI for rooted MFMC syndrome terminal
 - `c817538fbd83` — 2026-09-28T15:24:29+03:00 — R5 E9: build linear-cubic KS theta-equality countercarrier
 - `efa672ef4efa` — 2026-09-28T15:24:26+03:00 — R5 E9: add rooted MFMC syndrome regression checker
-- `de90927bb8a0` — 2026-09-28T15:23:35+03:00 — R5 E9: extend syndrome terminal to rooted MFMC matroids
 
 ## Resume protocol
 
