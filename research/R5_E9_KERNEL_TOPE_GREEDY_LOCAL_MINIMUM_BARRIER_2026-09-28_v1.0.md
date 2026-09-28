@@ -2,7 +2,7 @@
 
 Date: 2026-09-28
 
-Status: `JANUS_EXACT_GREEDY_DEPTH_DESCENT_FALSIFIER__PG15_SAT_R11__NO_D1_PROMOTION`
+Status: `JANUS_EXACT_GREEDY_DEPTH_DESCENT_FALSIFIER__PG15_SAT_R11__PARALLEL_CLASS_REPAIRED__NO_D1_PROMOTION`
 
 Parents:
 - `research/R5_E9_RATIONAL_KERNEL_TUKEY_DEPTH_BOUNDARY_QUOTIENT_2026-09-28_v1.0.md`
@@ -16,15 +16,17 @@ Scientific ceiling:
 
 ```text
 THE SOURCE-KERNEL DEPTH QUOTIENT IS EXACT,
-BUT SINGLE-COORDINATE GREEDY DESCENT ON THE TOPE GRAPH IS NOT.
+BUT GREEDY DESCENT BY ADJACENT ARRANGEMENT CHAMBERS IS NOT.
 
-A FROZEN SAT CONTROL HAS A STRICTLY NON-GLOBAL LOCAL MINIMUM.
+A FROZEN SAT CONTROL HAS A STRICTLY NON-GLOBAL GEOMETRIC LOCAL MINIMUM.
+
+PARALLEL / COINCIDENT KERNEL HYPERPLANES ARE HANDLED EXPLICITLY.
 
 E8_D1 = EMPTY.
 P_VS_NP = OPEN.
 ```
 
-## 1. Setup
+## 1. Setup and adjacency convention
 
 For a cubic square Exact-One source `A`, choose a rational kernel basis
 
@@ -33,7 +35,7 @@ B in Q^{n x d},
 ker_Q(A) = { B alpha : alpha in Q^d }.
 ```
 
-Every full-support kernel vector gives a tope sign vector
+Every full-support kernel vector gives a chamber sign vector
 
 ```text
 t(alpha)_i = sign((B alpha)_i) in {-,+}.
@@ -45,28 +47,28 @@ Let
 p(t) = # positive coordinates of t.
 ```
 
-The already-proved depth theorem gives
+The depth theorem gives
 
 ```text
 p(t) >= n/3
 ```
 
-for every source-valid full-support kernel tope, and
+for every source-valid full-support kernel chamber, and
 
 ```text
-A SAT iff some tope has p(t)=n/3.
+A SAT iff some chamber has p(t)=n/3.
 ```
 
-Because the tope graph of a realizable oriented matroid connects chambers that differ in one sign coordinate, the most natural greedy candidate is:
+Important degeneracy rule: if several rows of `B` are proportional, they define the same geometric hyperplane. Crossing that hyperplane may flip the signs of the entire projective row class at once. Therefore geometric chamber adjacency is by one **projective hyperplane class**, not necessarily one raw coordinate.
+
+The greedy candidate tested here is the correct geometric one:
 
 ```text
-while an adjacent tope has smaller p:
+while an adjacent arrangement chamber has smaller p:
     move to it.
 ```
 
-If every local minimum were global, this would be a potentially powerful route to the exact `n/3` boundary.
-
-The theorem below kills that shortcut exactly.
+The theorem below falsifies this shortcut exactly.
 
 ## 2. Frozen positive control
 
@@ -118,9 +120,15 @@ B =
 [ 0  0  0  1].
 ```
 
-The checker verifies `AB=0` and linear independence of the four columns.
+The non-singleton projective row classes are
 
-## 3. A non-global local minimum
+```text
+{1,5}, {2,6}, {8,12}, {11,15}
+```
+
+in 1-based indexing. Every other row is a singleton class.
+
+## 3. A non-global chamber
 
 Take
 
@@ -135,7 +143,7 @@ y = B alpha
   = (-1,-1,2,-17,-1,-1,15,-7,9,9,-8,-7,8,8,-8)^T.
 ```
 
-Hence the tope is
+Hence
 
 ```text
 t = --+---+-++--++-
@@ -147,84 +155,67 @@ with positive coordinates
 {3,7,9,10,13,14}
 ```
 
-in 1-based indexing, so
+and therefore
 
 ```text
 p(t)=6.
 ```
 
-Since `n=15`, the exact SAT boundary is
+All six positive coordinates belong to singleton projective hyperplane classes. The four non-singleton projective classes listed above are entirely negative in `t`.
 
-```text
-n/3=5.
-```
+Since `n=15`, the exact SAT boundary is `n/3=5`.
 
-Thus this chamber is not globally optimal if the instance is SAT. We now prove it is nevertheless a local minimum under every single improving sign flip.
+## 4. Exact blocking certificates for every potentially improving adjacent class
 
-## 4. Exact no-improving-neighbor certificates
-
-Write `b_i` for row `i` of `B`. For a desired sign vector `s in {-,+}^15`, define the signed normal
+Write `b_i` for row `i` of `B`. For a desired sign vector `s`, define the signed normal
 
 ```text
 c_i = s_i b_i.
 ```
 
-A chamber with sign vector `s` exists iff there is some `alpha` with
-
-```text
-c_i dot alpha > 0
-```
-
-for all `i`.
-
-If a subset of signed normals has a positive dependence
+If
 
 ```text
 lambda_1 c_i1 + ... + lambda_r c_ir = 0,
 lambda_j > 0,
 ```
 
-then such an `alpha` cannot exist, because dotting with `alpha` would give a strictly positive sum equal to zero.
+then no `alpha` can realize all desired strict signs.
 
-For each positive coordinate of `t`, flip only that coordinate from `+` to `-` and keep all other signs fixed. The following exact three-term positive dependences certify that every such proposed improving neighbor is infeasible.
-
-Indices below are 1-based.
+Because every positive projective class of `t` is a singleton, an adjacent chamber can lower `p` only by crossing one of the six singleton hyperplanes at coordinates
 
 ```text
-flip 3:
-    c_1 + c_2 + c_3 = 0
+3,7,9,10,13,14.
+```
 
-flip 7:
-    c_7 + c_8 + c_11 = 0
+For each such attempted flip, the following exact positive dependence blocks the chamber:
 
-flip 9:
-    c_2 + c_9 + c_11 = 0
-
-flip 10:
-    c_1 + c_10 + c_11 = 0
-
-flip 13:
-    c_1 + c_8 + c_13 = 0
-
-flip 14:
-    c_2 + c_8 + c_14 = 0
+```text
+flip 3:   c_1 + c_2 + c_3 = 0
+flip 7:   c_7 + c_8 + c_11 = 0
+flip 9:   c_2 + c_9 + c_11 = 0
+flip 10:  c_1 + c_10 + c_11 = 0
+flip 13:  c_1 + c_8 + c_13 = 0
+flip 14:  c_2 + c_8 + c_14 = 0
 ```
 
 All coefficients are exactly `+1`.
 
-Therefore no tope differing from `t` in exactly one positive coordinate has `p=5`.
+Crossing any of the four non-singleton projective classes flips only negative coordinates of `t` to positive coordinates and therefore strictly increases `p`.
 
-So `t` is a genuine local minimum of `p` in the tope graph.
+Thus **every geometrically adjacent chamber has larger `p`**, while every potentially decreasing adjacent class is infeasible.
+
+Therefore `t` is a genuine strict local minimum of `p` in the actual arrangement chamber graph.
 
 ## 5. It is strictly non-global
 
-The same frozen source has exact Boolean witnesses; for example
+The same source is SAT. For example, the 1-based set
 
 ```text
 S={1,5,7,9,14}
 ```
 
-in 1-based indexing satisfies `Ax=1`.
+satisfies `Ax=1`.
 
 Then
 
@@ -232,108 +223,121 @@ Then
 y*=3x-1
 ```
 
-lies in `ker_Q(A)`, has full support, and has exactly five positive coordinates.
-
-Hence
+lies in `ker_Q(A)`, has full support, and has exactly five positive coordinates. Hence
 
 ```text
 h(A)=5
 ```
 
-while the local-minimum chamber above has
+while the local trap has `p(t)=6`.
 
-```text
-p(t)=6.
-```
-
-This is a strict non-global local minimum on a SAT instance.
+So this is a strict non-global geometric local minimum on a frozen SAT instance.
 
 ## 6. Defect interpretation
 
-For any full-support kernel tope of a cubic source,
+For every full-support kernel chamber of a cubic source,
 
 ```text
 #(++- source rows)=3p-n.
 ```
 
-Therefore the local trap has
+The trap therefore has
 
 ```text
 3*6-15=3
 ```
 
-unavoidable `++-` rows in that chamber, while the global SAT boundary has defect zero.
+`++-` defects, whereas the SAT boundary has defect zero.
 
-An improving adjacent chamber would have to reduce `p` by one and therefore remove exactly three defects at once. The six positive coordinates of the trap all fail that coordinated three-defect cancellation condition.
+An improving move from `p=6` to `p=5` must remove all three defects net. No adjacent projective hyperplane crossing can do so.
 
-So the obstruction is not merely graph-theoretic: it is source-semantic.
+## 7. Distance audit
 
-## 7. Consequence
+Exact chamber enumeration of this rank-4 arrangement gives the following distinction:
 
-The following implication is false even on the frozen positive control:
+```text
+minimum raw Hamming distance from the trap to a p=5 chamber = 5,
+minimum geometric chamber-graph distance to a p=5 chamber = 4.
+```
+
+The values differ because coincident/projectively parallel kernel rows can flip together in one geometric crossing.
+
+Therefore future augmentation claims must state which distance they use. The scientific route should use geometric chamber-graph distance or explicitly quotient proportional kernel rows first.
+
+## 8. Consequence
+
+The following implication is false:
 
 ```text
 SOURCE DEPTH FLOOR = n/3
 AND SAT BOUNDARY EXISTS
-=> EVERY NONBOUNDARY TOPE HAS AN ADJACENT LOWER-p TOPE.
+=> EVERY NONBOUNDARY CHAMBER HAS AN ADJACENT LOWER-p CHAMBER.
 ```
 
-Therefore this algorithm is forbidden as a universal proof route:
+So the universal algorithm
 
 ```text
 pick any rational-kernel chamber
-repeat a single-coordinate p-decreasing chamber flip
-until no improvement
-accept iff p=n/3.
+repeat a p-decreasing adjacent chamber move
+accept iff p=n/3
 ```
 
-It can stop at `p=6` although the same instance has `p=5` witnesses.
+is falsified.
 
-## 8. What remains open
+## 9. What remains open
 
-This barrier kills only naive one-edge greedy descent. It does not rule out:
+This barrier does not rule out:
 
-- bounded-radius multi-flip augmentation;
-- nonlocal pivot rules;
-- globally optimized tope search using source structure;
-- closure-enhanced kernel arrangements where exact constraints remove traps;
-- a potential different from raw `p` or raw defect count;
-- polynomial decomposition of the arrangement induced by source triples.
+- bounded-radius geometric augmentation;
+- nonlocal pivot / augmenting-path rules;
+- globally optimized chamber search using source triple structure;
+- closure-enhanced kernel arrangements that remove traps;
+- potentials stronger than raw `p` or raw defect count;
+- decomposition of the projective kernel arrangement.
 
-The next admissible descent question is therefore not `is there always an improving neighbor?`, but:
+The next live question is:
 
 ```text
-is there a polynomially bounded augmentation radius / source-local exchange
-that escapes every nonboundary local minimum?
+is there a polynomially bounded source-specific augmentation rule that escapes
+every nonboundary local minimum and strictly lowers p?
 ```
 
-Any such claim must survive this PG15 trap and the frozen singular UNSAT controls.
+Any candidate must survive this PG15 trap, the singular UNSAT controls, and the high-nullity exact source families.
 
-## 9. Prior-art interaction
+## 10. Prior-art interaction
 
-General halfspace-depth / densest-hemisphere optimization in variable dimension is not a generic polynomial donor. The source-specific `1/3` floor remains the useful theorem; the present result shows that local chamber adjacency alone does not exploit it strongly enough.
+General halfspace-depth / densest-hemisphere optimization in variable dimension is not a generic polynomial donor. The source-specific `1/3` floor remains the useful theorem; this result shows that ordinary chamber adjacency does not exploit it strongly enough.
 
-No literature novelty claim is made for the existence of local traps in arbitrary arrangements. The scientific content here is the exact binding of such a trap to the frozen cubic Exact-One source geometry and its rational kernel quotient.
+No literature-novelty claim is made for arbitrary arrangement local minima. The JANUS contribution claimed here is only the exact source-bound falsifier and its certificates.
 
-## 10. Ceiling
+## 11. Ceiling
 
 ```text
 PG15_SAT_R11 GLOBAL DEPTH
 = 5/15 = 1/3
 
-EXPLICIT SOURCE-KERNEL TOPE
+EXPLICIT SOURCE-KERNEL CHAMBER
 = --+---+-++--++-
 
 ITS POSITIVE COUNT
 = 6
 
-SINGLE-FLIP IMPROVING NEIGHBORS
-= 0, EXACT POSITIVE-DEPENDENCE CERTIFICATES
+ALL GEOMETRICALLY ADJACENT LOWER-p MOVES
+= BLOCKED EXACTLY
 
-NON-GLOBAL LOCAL MINIMUM
+NON-SINGLETON PARALLEL CLASSES
+= ALL NEGATIVE AT THE TRAP; CROSSING THEM INCREASES p
+
+STRICT NON-GLOBAL GEOMETRIC LOCAL MINIMUM
 = PROVED
 
-NAIVE TOPE-GREEDY DESCENT
+MIN HAMMING DISTANCE TO BOUNDARY
+= 5
+
+MIN CHAMBER-GRAPH DISTANCE TO BOUNDARY
+= 4
+
+NAIVE ADJACENT-CHAMBER GREEDY DESCENT
 = FALSIFIED
 
 BOUNDED-RADIUS / NONLOCAL AUGMENTATION
