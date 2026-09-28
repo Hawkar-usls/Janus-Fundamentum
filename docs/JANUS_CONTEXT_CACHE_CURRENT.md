@@ -5,16 +5,16 @@
 - **Repository:** `Hawkar-usls/Janus-Fundamentum`
 - **PR:** `#510`
 - **Branch:** `codex/r5-e8-direct-contract-20260921-82493a57`
-- **Live source HEAD:** `a413e1e9b6a31322a11c37c50cd3af81b756ab65`
-- **Source commit time:** `2026-09-28T06:28:11+03:00`
-- **Indexed changed scientific artifacts:** `739`
+- **Live source HEAD:** `6b22c8516fb5a03a7e4e29dfdfc9f677d54bb449`
+- **Source commit time:** `2026-09-28T06:30:30+03:00`
+- **Indexed changed scientific artifacts:** `740`
 
 ## Continuity status
 
 - Semantic cache: `.janus/P_VS_NP_STREAM_CACHE_CURRENT.json`
 - Semantic source HEAD: `7a1ca3a9e52ba360cdb700306ca3fc58746aa27f`
 - Relation: **`LIVE_DESCENDS_FROM_SEMANTIC_CACHE`**
-- Commits after semantic checkpoint: `35`
+- Commits after semantic checkpoint: `36`
 
 ## Scientific firewall
 
@@ -116,6 +116,7 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `5e283d0d0b24` — 2026-09-28T06:27:29+03:00 — R5 E9 seal sparse-incomparability high-girth pivot barrier
 - `f7ec09aaaa01` — 2026-09-28T06:28:00+03:00 — R5 E9 add sparse-incomparability structural regression
 - `a413e1e9b6a3` — 2026-09-28T06:28:11+03:00 — R5 E9 validate sparse-incomparability high-girth pivot barrier
+- `6b22c8516fb5` — 2026-09-28T06:30:30+03:00 — R5 E9 checkpoint high-girth-safe nonlocal global pivot
 
 ## Transport / stale-bootstrap watch
 
@@ -146,6 +147,7 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 
 ## Recent non-cache commits
 
+- `6b22c8516fb5` — 2026-09-28T06:30:30+03:00 — R5 E9 checkpoint high-girth-safe nonlocal global pivot
 - `a413e1e9b6a3` — 2026-09-28T06:28:11+03:00 — R5 E9 validate sparse-incomparability high-girth pivot barrier
 - `f7ec09aaaa01` — 2026-09-28T06:28:00+03:00 — R5 E9 add sparse-incomparability structural regression
 - `5e283d0d0b24` — 2026-09-28T06:27:29+03:00 — R5 E9 seal sparse-incomparability high-girth pivot barrier
@@ -170,7 +172,6 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `763ffe4b3b13` — 2026-09-28T05:53:12+03:00 — R5 E9: add CI for exact UNSAT linear-nullity prime tower
 - `258d9b7d0f54` — 2026-09-28T05:53:02+03:00 — R5 E9: add checker for exact UNSAT linear-nullity prime tower
 - `d606fdcfd874` — 2026-09-28T05:52:12+03:00 — R5 E9: prove exact UNSAT linear-nullity prime tower
-- `f2dca2d717b9` — 2026-09-28T05:50:41+03:00 — Audit E9 middle-nullity hypermatching quotient
 
 ## Resume protocol
 
