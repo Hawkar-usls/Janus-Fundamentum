@@ -5,16 +5,16 @@
 - **Repository:** `Hawkar-usls/Janus-Fundamentum`
 - **PR:** `#510`
 - **Branch:** `codex/r5-e8-direct-contract-20260921-82493a57`
-- **Live source HEAD:** `30ba01698359181e30aab6faaf8a1bdcb8ed46c0`
-- **Source commit time:** `2026-09-28T06:24:27+03:00`
-- **Indexed changed scientific artifacts:** `736`
+- **Live source HEAD:** `5e283d0d0b24eb463cd0510a6a3f8998b6243156`
+- **Source commit time:** `2026-09-28T06:27:29+03:00`
+- **Indexed changed scientific artifacts:** `737`
 
 ## Continuity status
 
 - Semantic cache: `.janus/P_VS_NP_STREAM_CACHE_CURRENT.json`
 - Semantic source HEAD: `7a1ca3a9e52ba360cdb700306ca3fc58746aa27f`
 - Relation: **`LIVE_DESCENDS_FROM_SEMANTIC_CACHE`**
-- Commits after semantic checkpoint: `32`
+- Commits after semantic checkpoint: `33`
 
 ## Scientific firewall
 
@@ -113,6 +113,7 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `f1797d961846` — 2026-09-28T06:21:09+03:00 — R5 E9: prove whole-variable coherence path elimination equals DP biclique
 - `958155ec7672` — 2026-09-28T06:21:25+03:00 — R5 E9: add checker for single-variable DP biclique theorem
 - `30ba01698359` — 2026-09-28T06:24:27+03:00 — R5 E9: add CI for single-variable DP biclique classification
+- `5e283d0d0b24` — 2026-09-28T06:27:29+03:00 — R5 E9 seal sparse-incomparability high-girth pivot barrier
 
 ## Transport / stale-bootstrap watch
 
@@ -143,6 +144,7 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 
 ## Recent non-cache commits
 
+- `5e283d0d0b24` — 2026-09-28T06:27:29+03:00 — R5 E9 seal sparse-incomparability high-girth pivot barrier
 - `30ba01698359` — 2026-09-28T06:24:27+03:00 — R5 E9: add CI for single-variable DP biclique classification
 - `958155ec7672` — 2026-09-28T06:21:25+03:00 — R5 E9: add checker for single-variable DP biclique theorem
 - `f1797d961846` — 2026-09-28T06:21:09+03:00 — R5 E9: prove whole-variable coherence path elimination equals DP biclique
@@ -167,7 +169,6 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `f2dca2d717b9` — 2026-09-28T05:50:41+03:00 — Audit E9 middle-nullity hypermatching quotient
 - `d779e8232729` — 2026-09-28T05:48:25+03:00 — E9 wire rank3 hypermatching quotient replay
 - `c9daaa7fd53e` — 2026-09-28T05:48:13+03:00 — E9 add rank3 hypermatching quotient checker
-- `a0c0657da853` — 2026-09-28T05:47:40+03:00 — E9 derive row-basis rank3 hypermatching quotient
 
 ## Resume protocol
 
