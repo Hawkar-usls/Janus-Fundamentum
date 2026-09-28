@@ -5,16 +5,16 @@
 - **Repository:** `Hawkar-usls/Janus-Fundamentum`
 - **PR:** `#510`
 - **Branch:** `codex/r5-e8-direct-contract-20260921-82493a57`
-- **Live source HEAD:** `b0db547849a7cd9d747d3e3c797eb938c4ef6ff2`
-- **Source commit time:** `2026-09-28T15:25:40+03:00`
+- **Live source HEAD:** `c5a42f73d972f4fbac7bf732ee9e313db43fbddf`
+- **Source commit time:** `2026-09-28T15:34:05+03:00`
 - **Indexed changed scientific artifacts:** `768`
 
 ## Continuity status
 
 - Semantic cache: `.janus/P_VS_NP_STREAM_CACHE_CURRENT.json`
-- Semantic source HEAD: `ad3ccb96cbd44c5f0194f1775a1424d758897b04`
+- Semantic source HEAD: `8e940bc0e949dabf589a033479f7afce93e1ef22`
 - Relation: **`LIVE_DESCENDS_FROM_SEMANTIC_CACHE`**
-- Commits after semantic checkpoint: `13`
+- Commits after semantic checkpoint: `2`
 
 ## Scientific firewall
 
@@ -35,21 +35,15 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 
 ## Semantic live frontier
 
-- **Frontier:** `R5_E9_HIGH_GIRTH_SAFE_NONLOCAL_GLOBAL_PIVOT_GATE_V1`
-- **Carrier:** arbitrary signed 3CNF via exact two-path XOR/AND overlay; secondary Exact-One form is matching on disjoint cycles with source-generated F2 endpoint syndrome
-- Established: Linear-cubic Positive 1-in-3 SAT is NP-complete via the exact EQ3 regularization; its hard image has linear nullity and linear-density {0,3} coupling.
-- Established: Both SAT and UNSAT connected linear-cubic unbalanced 3-cut-prime families with rational nullity Theta(n) exist; raw nullity/singularity/separators are not universal currencies.
-- Established: Actual-row-basis N1/N2 material is polynomial by matching after rank-3 choices are fixed, but the frozen hard slab has linear-density rank-3 {0,3} coupling for every actual-row basis.
-- Established: Arbitrary signed 3CNF has an exact two-path XOR/AND overlay with each layer separately treewidth one; only the cross-layer overlay carries hardness.
-- Established: Single-variable-path and one-coherence projections are exactly Davis-Putnam elimination, not new global pivots.
-- Established: Bounded-degree source images of arbitrarily high fixed relational girth remain hard, closing any universal finite short-cycle or high-degree pivot dichotomy.
-- Established: Boundary Myhill-Nerode state is the exact projected extension relation; generic polynomial boundary keys require a proved restricted composition calculus.
-- Established: In matching normalization A=I+P+Q, every cycle component C obeys A chi_C=chi_C; the remaining hard object is global endpoint-syndrome coupling.
-- Established: Direct projected-linear-delta-matroid encoding of {0,3} is closed; AFFINE_3X3 endpoint feasible sets are non-delta-matroid for all 42 perfect-matching normalizations.
-- Established: PolaritySAT 2026 is rejected: its forced-assignment lemma has an explicit satisfiable counterexample.
-- Established: Witness selection is exact: choose one literal occurrence per clause without choosing both polarities of a source variable.
-- Established: For m independent polarity channels, exact left/right compatibility has rank 2^m; any exact d-dimensional bilinear scalar zero-test summary requires d>=2^m. This is a scoped representation barrier, not a SAT lower bound.
-- Established: On the frozen singular 3-cut-prime UNSAT 15_3 control, clique number is 3 and alpha=4 while the full h-perfect relaxation (nonnegativity + all clique + all induced odd-hole inequalities) has optimum 5=n/3; clique+odd-hole polyhedral closure is not an exact universal terminal.
+- **Frontier:** `R5_E9_ROOTED_SYNDROME_F7STAR_GLOBAL_CONTRACTION_GATE_V1`
+- **Carrier:** cubic square Exact-One = minimum-weight circuit through distinguished syndrome element e_b in M_F2([A|1]); arbitrary signed 3CNF remains universal parent
+- Established: Exact-One SAT iff mu(A)=n/3, where mu(A)=min{|x|:Ax=1 over F2}.
+- Established: mu(A) equals minimum weight of a circuit through e_b in M_F2([A|1]).
+- Established: Augmented regular matroid implies deterministic polynomial decision+witness reconstruction.
+- Established: The entire prior two-edge UNSAT prime tower has augmented regular matroids and is polynomially decided; it is no longer a hostile residual here.
+- Established: Rooted MFMC strictly extends regularity: if e_b is in no F7* minor of its connected component, minimum circuit through e_b is polynomially computable.
+- Established: Therefore the live matroid obstruction is source-generated rooted F7* containing e_b, not generic nonregularity or unrooted F7/F7*.
+- Established: KS-derived 2334_3 Exact-One UNSAT has theta(G)=n/3 but alpha(G)<n/3, so theta/Hoffman equality is not a SAT certificate.
 - Established: No unconditional deterministic polynomial SAT decider has been established.
 
 ### Live split
@@ -57,11 +51,11 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 ```json
 {
   "primary": {
-    "goal": "Find a deterministic polynomial high-girth-safe GLOBAL_PIVOT with exact semantics, polynomial witness lift, and a strictly decreasing polynomially bounded cross-layer potential.",
+    "goal": "Exact polynomial contraction/decomposition for source-generated rooted F7* containing e_b preserving minimum circuit-through-e_b and witness lift with strict polynomial global decrease.",
     "status": "OPEN"
   },
   "secondary": {
-    "goal": "Solve or contract source-generated cycle endpoint-syndrome matching without exponential group enumeration, direct endpoint delta-matroids, or bilinear annihilation summaries.",
+    "goal": "Build the smallest source-valid rooted-F7* hostile control, starting from FANO_7/AFFINE_3X3.",
     "status": "OPEN"
   }
 }
@@ -69,28 +63,16 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 
 ### Next attack
 
-1. Attack the source-generated cycle endpoint-syndrome object with genuinely representation-changing global operations.
-2. Require polynomial exact join/projection/conditioning, witness reconstruction, and a strict global decrease theorem.
-3. Test every candidate on frozen SAT/UNSAT prime Exact-One lineages and AFFINE_3X3 normalization controls.
-4. Require universal coverage of bounded-degree arbitrarily-high-fixed-girth signed-3CNF images.
-5. Do not reopen nullity, separators, clever row bases, local matchgates/delta-matroids, single-variable DP, fixed-modulus counting, local odd-cycle transfer, PolaritySAT, or bilinear polarity-annihilation summaries.
-6. Promote E8_D1 only after SOUND+COMPLETE+TERMINATES+POLY+RECONSTRUCT hold for arbitrary 3CNF.
+1. Check open literature and repo for rooted-F7* shortest-route decompositions beyond MFMC.
+2. Test FANO_7 and AFFINE_3X3 for rooted F7* through e_b.
+3. Classify rooted F7* interface costs under binary 1/2/3-sums and prove polynomial total-state composition or falsify it.
+4. Exploit source provenance A*1=1 plus cubic/linear incidence, not a generic shortest-circuit oracle.
+5. Promote E8_D1 only after SOUND+COMPLETE+TERMINATES+POLY+RECONSTRUCT for arbitrary 3CNF.
 
 ## Commits newer than semantic checkpoint — MUST INGEST
 
-- `f1bdc0616e38` — 2026-09-28T14:57:52+03:00 — R5 E9: synchronize semantic checkpoint after global representation barriers
-- `b9e7fd4f58ab` — 2026-09-28T15:10:02+03:00 — R5 E9: prove augmented-regular-matroid polynomial syndrome terminal
-- `8cdb09dbf7cf` — 2026-09-28T15:10:42+03:00 — R5 E9: add exact regression for augmented regular-matroid terminal
-- `02aa589f4dba` — 2026-09-28T15:10:55+03:00 — R5 E9: add CI for augmented regular-matroid syndrome terminal
-- `4d8153140aed` — 2026-09-28T15:20:35+03:00 — R5 E9: prove augmented regularity of the UNSAT prime tower
-- `5235e35582af` — 2026-09-28T15:21:31+03:00 — R5 E9: add regression for prime-tower augmented regularity
-- `b9b36579fd77` — 2026-09-28T15:21:42+03:00 — R5 E9: add CI for prime-tower augmented regularity
-- `de90927bb8a0` — 2026-09-28T15:23:35+03:00 — R5 E9: extend syndrome terminal to rooted MFMC matroids
-- `efa672ef4efa` — 2026-09-28T15:24:26+03:00 — R5 E9: add rooted MFMC syndrome regression checker
-- `c817538fbd83` — 2026-09-28T15:24:29+03:00 — R5 E9: build linear-cubic KS theta-equality countercarrier
-- `721f3b8056f8` — 2026-09-28T15:24:59+03:00 — R5 E9: add CI for rooted MFMC syndrome terminal
-- `8e940bc0e949` — 2026-09-28T15:25:19+03:00 — R5 E9: add checker for KS theta-equality countercarrier
 - `b0db547849a7` — 2026-09-28T15:25:40+03:00 — R5 E9: add CI for KS theta-equality countercarrier
+- `c5a42f73d972` — 2026-09-28T15:34:05+03:00 — R5 E9: sync semantic checkpoint to rooted F7* syndrome gate
 
 ## Transport / stale-bootstrap watch
 
@@ -101,7 +83,7 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 
 ## Must-read authority/evidence artifacts
 
-- **OK** `.janus/P_VS_NP_STREAM_CACHE_CURRENT.json` `2a5443a1e47f9d7e…`
+- **OK** `.janus/P_VS_NP_STREAM_CACHE_CURRENT.json` `810575d026d236f8…`
 - **OK** `tools/janus_stream_resume_cache.py` `adc6ab7f260d2384…`
 - **OK** `research/R5_E9_UNIVERSAL_SELECTOR_EQUIVALENCE_BARRIER_2026-09-27_v1.0.md` `a426b38d6d17eea3…`
 - **OK** `research/R5_E9_UNIVERSAL_SELECTOR_INTERNAL_ANTI_LOOP_BINDING_2026-09-27_v1.0.md` `e3ce2b82dd656b71…`
@@ -121,6 +103,7 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 
 ## Recent non-cache commits
 
+- `c5a42f73d972` — 2026-09-28T15:34:05+03:00 — R5 E9: sync semantic checkpoint to rooted F7* syndrome gate
 - `b0db547849a7` — 2026-09-28T15:25:40+03:00 — R5 E9: add CI for KS theta-equality countercarrier
 - `8e940bc0e949` — 2026-09-28T15:25:19+03:00 — R5 E9: add checker for KS theta-equality countercarrier
 - `721f3b8056f8` — 2026-09-28T15:24:59+03:00 — R5 E9: add CI for rooted MFMC syndrome terminal
@@ -145,7 +128,6 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `847012de640a` — 2026-09-28T14:46:54+03:00 — R5 E9: add exhaustive affine9 endpoint-DM normalization falsifier
 - `3edaf60fa94d` — 2026-09-28T14:46:26+03:00 — R5 E9: falsify endpoint delta-matroid across all affine9 normalizations
 - `994ce75da1e3` — 2026-09-28T14:42:10+03:00 — R5 E9: add cycle-syndrome homology regression
-- `f79f8b4aeb7a` — 2026-09-28T14:41:48+03:00 — R5 E9: isolate cycle-syndrome homology and delta-matroid boundary
 
 ## Resume protocol
 
