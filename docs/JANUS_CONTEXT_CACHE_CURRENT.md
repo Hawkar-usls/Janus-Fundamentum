@@ -5,16 +5,16 @@
 - **Repository:** `Hawkar-usls/Janus-Fundamentum`
 - **PR:** `#510`
 - **Branch:** `codex/r5-e8-direct-contract-20260921-82493a57`
-- **Live source HEAD:** `7a1ca3a9e52ba360cdb700306ca3fc58746aa27f`
-- **Source commit time:** `2026-09-28T05:09:13+03:00`
-- **Indexed changed scientific artifacts:** `705`
+- **Live source HEAD:** `b9430f8ce33c0fdf672500df291574755e5fb2b5`
+- **Source commit time:** `2026-09-28T05:39:02+03:00`
+- **Indexed changed scientific artifacts:** `706`
 
 ## Continuity status
 
 - Semantic cache: `.janus/P_VS_NP_STREAM_CACHE_CURRENT.json`
 - Semantic source HEAD: `d782ea4b1c3c55c7b101d821a55e25a3472b070b`
 - Relation: **`LIVE_DESCENDS_FROM_SEMANTIC_CACHE`**
-- Commits after semantic checkpoint: `10`
+- Commits after semantic checkpoint: `11`
 
 ## Scientific firewall
 
@@ -92,6 +92,7 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `81fb943743ec` — 2026-09-28T05:08:33+03:00 — R5 E9: prove defect-free two-edge UNSAT linear-nullity family
 - `389b359dcc75` — 2026-09-28T05:09:03+03:00 — R5 E9: add checker for defect-free UNSAT nullity amplifier
 - `7a1ca3a9e52b` — 2026-09-28T05:09:13+03:00 — R5 E9: add CI for defect-free UNSAT nullity amplifier
+- `b9430f8ce33c` — 2026-09-28T05:39:02+03:00 — R5 E9: add actual-row-basis rank3 matching FPT router
 
 ## Transport / stale-bootstrap watch
 
@@ -122,6 +123,7 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 
 ## Recent non-cache commits
 
+- `b9430f8ce33c` — 2026-09-28T05:39:02+03:00 — R5 E9: add actual-row-basis rank3 matching FPT router
 - `7a1ca3a9e52b` — 2026-09-28T05:09:13+03:00 — R5 E9: add CI for defect-free UNSAT nullity amplifier
 - `389b359dcc75` — 2026-09-28T05:09:03+03:00 — R5 E9: add checker for defect-free UNSAT nullity amplifier
 - `81fb943743ec` — 2026-09-28T05:08:33+03:00 — R5 E9: prove defect-free two-edge UNSAT linear-nullity family
@@ -146,7 +148,6 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `17d7e41c474a` — 2026-09-28T03:04:38+03:00 — R5 E9: freeze 3-cut-irreducible singular UNSAT hostile control
 - `53fb72e1a43c` — 2026-09-28T03:03:24+03:00 — R5 E9: add CI for acyclic grouped matching barrier
 - `7138befb3d1b` — 2026-09-28T03:03:11+03:00 — R5 E9: add checker for acyclic grouped matching barrier
-- `fd154fbc2e79` — 2026-09-28T03:02:34+03:00 — R5 E9: prove acyclic grouped matching delta-matroid barrier
 
 ## Resume protocol
 
