@@ -5,16 +5,16 @@
 - **Repository:** `Hawkar-usls/Janus-Fundamentum`
 - **PR:** `#510`
 - **Branch:** `codex/r5-e8-direct-contract-20260921-82493a57`
-- **Live source HEAD:** `763ffe4b3b13a4def3059786adfcb2fde3adfd2e`
-- **Source commit time:** `2026-09-28T05:53:12+03:00`
-- **Indexed changed scientific artifacts:** `718`
+- **Live source HEAD:** `a4c57cc95c97989de29e54f540db3b49aad95208`
+- **Source commit time:** `2026-09-28T05:53:47+03:00`
+- **Indexed changed scientific artifacts:** `719`
 
 ## Continuity status
 
 - Semantic cache: `.janus/P_VS_NP_STREAM_CACHE_CURRENT.json`
 - Semantic source HEAD: `7a1ca3a9e52ba360cdb700306ca3fc58746aa27f`
 - Relation: **`LIVE_DESCENDS_FROM_SEMANTIC_CACHE`**
-- Commits after semantic checkpoint: `14`
+- Commits after semantic checkpoint: `15`
 
 ## Scientific firewall
 
@@ -95,6 +95,7 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `d606fdcfd874` — 2026-09-28T05:52:12+03:00 — R5 E9: prove exact UNSAT linear-nullity prime tower
 - `258d9b7d0f54` — 2026-09-28T05:53:02+03:00 — R5 E9: add checker for exact UNSAT linear-nullity prime tower
 - `763ffe4b3b13` — 2026-09-28T05:53:12+03:00 — R5 E9: add CI for exact UNSAT linear-nullity prime tower
+- `a4c57cc95c97` — 2026-09-28T05:53:47+03:00 — R5 E9 add row-basis rank3 matching router
 
 ## Transport / stale-bootstrap watch
 
@@ -125,6 +126,7 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 
 ## Recent non-cache commits
 
+- `a4c57cc95c97` — 2026-09-28T05:53:47+03:00 — R5 E9 add row-basis rank3 matching router
 - `763ffe4b3b13` — 2026-09-28T05:53:12+03:00 — R5 E9: add CI for exact UNSAT linear-nullity prime tower
 - `258d9b7d0f54` — 2026-09-28T05:53:02+03:00 — R5 E9: add checker for exact UNSAT linear-nullity prime tower
 - `d606fdcfd874` — 2026-09-28T05:52:12+03:00 — R5 E9: prove exact UNSAT linear-nullity prime tower
@@ -149,7 +151,6 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `48583f353b8f` — 2026-09-28T03:30:02+03:00 — R5 E9: prove odd-cycle equality-channel cut-rank barrier
 - `c918bc17c8d9` — 2026-09-28T03:29:09+03:00 — R5 E9: prove 3-cut-irreducible linear-nullity 2-lift family
 - `b04dcf27de57` — 2026-09-28T03:21:12+03:00 — R5 E9: sync semantic checkpoint after odd-cycle transfer theorem
-- `d782ea4b1c3c` — 2026-09-28T03:18:54+03:00 — R5 E9: add CI for strong odd-cycle transfer normal form
 
 ## Resume protocol
 
