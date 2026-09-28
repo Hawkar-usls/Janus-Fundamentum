@@ -5,16 +5,16 @@
 - **Repository:** `Hawkar-usls/Janus-Fundamentum`
 - **PR:** `#510`
 - **Branch:** `codex/r5-e8-direct-contract-20260921-82493a57`
-- **Live source HEAD:** `9390f66e6134c49bcbba8fb04ad4de6c41e239a3`
-- **Source commit time:** `2026-09-28T21:36:29+03:00`
-- **Indexed changed scientific artifacts:** `818`
+- **Live source HEAD:** `8012c8d052b3e7a26b840d5cc61455d24f59f0a5`
+- **Source commit time:** `2026-09-28T21:43:35+03:00`
+- **Indexed changed scientific artifacts:** `819`
 
 ## Continuity status
 
 - Semantic cache: `.janus/P_VS_NP_STREAM_CACHE_CURRENT.json`
 - Semantic source HEAD: `05563fb285a1b2a4ae62d2a6aab0143bdbe52899`
 - Relation: **`LIVE_DESCENDS_FROM_SEMANTIC_CACHE`**
-- Commits after semantic checkpoint: `40`
+- Commits after semantic checkpoint: `41`
 
 ## Scientific firewall
 
@@ -119,6 +119,7 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `d8e60cc564d2` — 2026-09-28T21:35:08+03:00 — R5 E9: add exact geometric tope-radius stress controls
 - `c8f67b77b847` — 2026-09-28T21:36:22+03:00 — R5 E9: bind geometric augmentation meta-theorem and prime-tower stress
 - `9390f66e6134` — 2026-09-28T21:36:29+03:00 — R5 E9: add CI for geometric tope-radius stress
+- `8012c8d052b3` — 2026-09-28T21:43:35+03:00 — R5 E9: prove linear projective escape-radius prime tower
 
 ## Transport / stale-bootstrap watch
 
@@ -149,6 +150,7 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 
 ## Recent non-cache commits
 
+- `8012c8d052b3` — 2026-09-28T21:43:35+03:00 — R5 E9: prove linear projective escape-radius prime tower
 - `9390f66e6134` — 2026-09-28T21:36:29+03:00 — R5 E9: add CI for geometric tope-radius stress
 - `c8f67b77b847` — 2026-09-28T21:36:22+03:00 — R5 E9: bind geometric augmentation meta-theorem and prime-tower stress
 - `d8e60cc564d2` — 2026-09-28T21:35:08+03:00 — R5 E9: add exact geometric tope-radius stress controls
@@ -173,7 +175,6 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `ba8c9de2ad21` — 2026-09-28T20:49:58+03:00 — R5 E9: add source-kernel tope geodesic regression
 - `f510fd4789aa` — 2026-09-28T20:49:25+03:00 — R5 E9: bound source-kernel augmenting paths by tope geodesics
 - `bd6205f45e17` — 2026-09-28T20:45:45+03:00 — R5 E9: add CI for Tukey tope-descent barrier
-- `11793acebcaa` — 2026-09-28T20:45:36+03:00 — R5 E9: add PG15 monotone tope-descent countercontrol
 
 ## Resume protocol
 
