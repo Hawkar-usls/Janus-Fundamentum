@@ -5,16 +5,16 @@
 - **Repository:** `Hawkar-usls/Janus-Fundamentum`
 - **PR:** `#510`
 - **Branch:** `codex/r5-e8-direct-contract-20260921-82493a57`
-- **Live source HEAD:** `ab9864e27230d826e4a8e6907ec812b4c6449df2`
-- **Source commit time:** `2026-09-29T01:57:29+03:00`
-- **Indexed changed scientific artifacts:** `864`
+- **Live source HEAD:** `48c38517c2a16c9c4fa3f513c59febe3e6af4fb3`
+- **Source commit time:** `2026-09-29T02:29:26+03:00`
+- **Indexed changed scientific artifacts:** `865`
 
 ## Continuity status
 
 - Semantic cache: `.janus/P_VS_NP_STREAM_CACHE_CURRENT.json`
 - Semantic source HEAD: `05563fb285a1b2a4ae62d2a6aab0143bdbe52899`
 - Relation: **`LIVE_DESCENDS_FROM_SEMANTIC_CACHE`**
-- Commits after semantic checkpoint: `91`
+- Commits after semantic checkpoint: `92`
 
 ## Scientific firewall
 
@@ -79,7 +79,6 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 
 ## Commits newer than semantic checkpoint — MUST INGEST
 
-- `40d673255f47` — 2026-09-28T20:34:53+03:00 — R5 E9: prove rational-kernel Tukey-depth boundary quotient
 - `3e4c7d688740` — 2026-09-28T20:35:26+03:00 — R5 E9: add kernel Tukey-depth boundary regression
 - `bba8036e144c` — 2026-09-28T20:35:38+03:00 — R5 E9: add CI for kernel Tukey-depth boundary
 - `79e3015cd010` — 2026-09-28T20:45:03+03:00 — R5 E9: kill monotone Tukey tope descent on PG15 SAT
@@ -159,6 +158,7 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `b5accb7d274f` — 2026-09-29T01:48:10+03:00 — R5 E10A: enable push replay for strict-max padding barrier
 - `5feabff534f6` — 2026-09-29T01:55:04+03:00 — Bootstrap PA-0029 NM-0033 arithmetic repair
 - `ab9864e27230` — 2026-09-29T01:57:29+03:00 — Diagnose PA-0029 NM-0033 payload transport
+- `48c38517c2a1` — 2026-09-29T02:29:26+03:00 — R5 E9: prove Paley voltage post-RKPR linear-nullity family
 
 ## Transport / stale-bootstrap watch
 
@@ -189,6 +189,7 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 
 ## Recent non-cache commits
 
+- `48c38517c2a1` — 2026-09-29T02:29:26+03:00 — R5 E9: prove Paley voltage post-RKPR linear-nullity family
 - `ab9864e27230` — 2026-09-29T01:57:29+03:00 — Diagnose PA-0029 NM-0033 payload transport
 - `5feabff534f6` — 2026-09-29T01:55:04+03:00 — Bootstrap PA-0029 NM-0033 arithmetic repair
 - `b5accb7d274f` — 2026-09-29T01:48:10+03:00 — R5 E10A: enable push replay for strict-max padding barrier
@@ -213,7 +214,6 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `09347d93a329` — 2026-09-29T00:42:59+03:00 — R5 E9: add checker for graphic-kernel Z3 solver island
 - `9ebadc90e883` — 2026-09-29T00:42:29+03:00 — R5 E9: prove graphic-kernel Z3 phase solver island
 - `bee44236bd7f` — 2026-09-29T00:39:42+03:00 — R5 E9: add CI for Paley sqrt-nullity family
-- `f1558aad3c32` — 2026-09-29T00:39:30+03:00 — R5 E9: add exact regression for Paley sqrt-nullity family
 
 ## Resume protocol
 
