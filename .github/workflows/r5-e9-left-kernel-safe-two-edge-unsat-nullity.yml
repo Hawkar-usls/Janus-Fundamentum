@@ -1,0 +1,31 @@
+name: R5 E9 Left-Kernel Safe UNSAT Nullity Family
+
+on:
+  push:
+    paths:
+      - "research/R5_E9_LEFT_KERNEL_SAFE_TWO_EDGE_UNSAT_LINEAR_NULLITY_FAMILY_2026-09-28_v1.0.md"
+      - "experiments/r5_e9_left_kernel_safe_two_edge_unsat_linear_nullity.py"
+      - ".github/workflows/r5-e9-left-kernel-safe-two-edge-unsat-nullity.yml"
+  pull_request:
+    paths:
+      - "research/R5_E9_LEFT_KERNEL_SAFE_TWO_EDGE_UNSAT_LINEAR_NULLITY_FAMILY_2026-09-28_v1.0.md"
+      - "experiments/r5_e9_left_kernel_safe_two_edge_unsat_linear_nullity.py"
+      - ".github/workflows/r5-e9-left-kernel-safe-two-edge-unsat-nullity.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  replay:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Compile checker
+        run: python -m py_compile experiments/r5_e9_left_kernel_safe_two_edge_unsat_linear_nullity.py
+      - name: Replay exact bootstrap and theorem guards
+        run: python experiments/r5_e9_left_kernel_safe_two_edge_unsat_linear_nullity.py
