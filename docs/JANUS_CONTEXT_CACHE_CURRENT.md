@@ -5,16 +5,16 @@
 - **Repository:** `Hawkar-usls/Janus-Fundamentum`
 - **PR:** `#510`
 - **Branch:** `codex/r5-e8-direct-contract-20260921-82493a57`
-- **Live source HEAD:** `d8e60cc564d20141da393123194f1ea47d63b150`
-- **Source commit time:** `2026-09-28T21:35:08+03:00`
-- **Indexed changed scientific artifacts:** `816`
+- **Live source HEAD:** `9390f66e6134c49bcbba8fb04ad4de6c41e239a3`
+- **Source commit time:** `2026-09-28T21:36:29+03:00`
+- **Indexed changed scientific artifacts:** `818`
 
 ## Continuity status
 
 - Semantic cache: `.janus/P_VS_NP_STREAM_CACHE_CURRENT.json`
 - Semantic source HEAD: `05563fb285a1b2a4ae62d2a6aab0143bdbe52899`
 - Relation: **`LIVE_DESCENDS_FROM_SEMANTIC_CACHE`**
-- Commits after semantic checkpoint: `38`
+- Commits after semantic checkpoint: `40`
 
 ## Scientific firewall
 
@@ -117,6 +117,8 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `5b802dab7ee7` — 2026-09-28T21:24:23+03:00 — R5 E9: add raw-radius 2-lift amplifier regression
 - `29b9f62a0fb2` — 2026-09-28T21:24:31+03:00 — R5 E9: add CI for raw-radius 2-lift amplifier
 - `d8e60cc564d2` — 2026-09-28T21:35:08+03:00 — R5 E9: add exact geometric tope-radius stress controls
+- `c8f67b77b847` — 2026-09-28T21:36:22+03:00 — R5 E9: bind geometric augmentation meta-theorem and prime-tower stress
+- `9390f66e6134` — 2026-09-28T21:36:29+03:00 — R5 E9: add CI for geometric tope-radius stress
 
 ## Transport / stale-bootstrap watch
 
@@ -147,6 +149,8 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 
 ## Recent non-cache commits
 
+- `9390f66e6134` — 2026-09-28T21:36:29+03:00 — R5 E9: add CI for geometric tope-radius stress
+- `c8f67b77b847` — 2026-09-28T21:36:22+03:00 — R5 E9: bind geometric augmentation meta-theorem and prime-tower stress
 - `d8e60cc564d2` — 2026-09-28T21:35:08+03:00 — R5 E9: add exact geometric tope-radius stress controls
 - `29b9f62a0fb2` — 2026-09-28T21:24:31+03:00 — R5 E9: add CI for raw-radius 2-lift amplifier
 - `5b802dab7ee7` — 2026-09-28T21:24:23+03:00 — R5 E9: add raw-radius 2-lift amplifier regression
@@ -170,8 +174,6 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `f510fd4789aa` — 2026-09-28T20:49:25+03:00 — R5 E9: bound source-kernel augmenting paths by tope geodesics
 - `bd6205f45e17` — 2026-09-28T20:45:45+03:00 — R5 E9: add CI for Tukey tope-descent barrier
 - `11793acebcaa` — 2026-09-28T20:45:36+03:00 — R5 E9: add PG15 monotone tope-descent countercontrol
-- `79e3015cd010` — 2026-09-28T20:45:03+03:00 — R5 E9: kill monotone Tukey tope descent on PG15 SAT
-- `bba8036e144c` — 2026-09-28T20:35:38+03:00 — R5 E9: add CI for kernel Tukey-depth boundary
 
 ## Resume protocol
 
