@@ -5,16 +5,16 @@
 - **Repository:** `Hawkar-usls/Janus-Fundamentum`
 - **PR:** `#510`
 - **Branch:** `codex/r5-e8-direct-contract-20260921-82493a57`
-- **Live source HEAD:** `ba8c9de2ad21632420355ee9de5689ebbe1e9e80`
-- **Source commit time:** `2026-09-28T20:49:58+03:00`
-- **Indexed changed scientific artifacts:** `801`
+- **Live source HEAD:** `c5178dad5b94c78ecbe10be5c572f331e552a46c`
+- **Source commit time:** `2026-09-28T20:52:14+03:00`
+- **Indexed changed scientific artifacts:** `802`
 
 ## Continuity status
 
 - Semantic cache: `.janus/P_VS_NP_STREAM_CACHE_CURRENT.json`
 - Semantic source HEAD: `05563fb285a1b2a4ae62d2a6aab0143bdbe52899`
 - Relation: **`LIVE_DESCENDS_FROM_SEMANTIC_CACHE`**
-- Commits after semantic checkpoint: `19`
+- Commits after semantic checkpoint: `20`
 
 ## Scientific firewall
 
@@ -98,6 +98,7 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `bd6205f45e17` — 2026-09-28T20:45:45+03:00 — R5 E9: add CI for Tukey tope-descent barrier
 - `f510fd4789aa` — 2026-09-28T20:49:25+03:00 — R5 E9: bound source-kernel augmenting paths by tope geodesics
 - `ba8c9de2ad21` — 2026-09-28T20:49:58+03:00 — R5 E9: add source-kernel tope geodesic regression
+- `c5178dad5b94` — 2026-09-28T20:52:14+03:00 — R5 E9: add CI for source-kernel tope geodesic bound
 
 ## Transport / stale-bootstrap watch
 
@@ -128,6 +129,7 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 
 ## Recent non-cache commits
 
+- `c5178dad5b94` — 2026-09-28T20:52:14+03:00 — R5 E9: add CI for source-kernel tope geodesic bound
 - `ba8c9de2ad21` — 2026-09-28T20:49:58+03:00 — R5 E9: add source-kernel tope geodesic regression
 - `f510fd4789aa` — 2026-09-28T20:49:25+03:00 — R5 E9: bound source-kernel augmenting paths by tope geodesics
 - `bd6205f45e17` — 2026-09-28T20:45:45+03:00 — R5 E9: add CI for Tukey tope-descent barrier
@@ -152,7 +154,6 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `c92fa9cc9cc3` — 2026-09-28T17:41:59+03:00 — R5 E9: derive kernel-signature series and projective avoidance normal form
 - `d917a16093c4` — 2026-09-28T17:13:43+03:00 — R5 E9: extend series contraction regression to singular 15_3
 - `36a8ea82be59` — 2026-09-28T17:10:56+03:00 — R5 E9: add CI for rooted series-pair syndrome contraction
-- `5224ef36594e` — 2026-09-28T17:10:34+03:00 — R5 E9: add exact rooted series contraction regression
 
 ## Resume protocol
 
