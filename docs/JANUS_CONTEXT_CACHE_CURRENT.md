@@ -5,8 +5,8 @@
 - **Repository:** `Hawkar-usls/Janus-Fundamentum`
 - **PR:** `#510`
 - **Branch:** `codex/r5-e8-direct-contract-20260921-82493a57`
-- **Live source HEAD:** `b5accb7d274f231e927fd9943d51991cb5ce4579`
-- **Source commit time:** `2026-09-29T01:48:10+03:00`
+- **Live source HEAD:** `5feabff534f63e5fdf5ccda9e72156ca1bba161b`
+- **Source commit time:** `2026-09-29T01:55:04+03:00`
 - **Indexed changed scientific artifacts:** `863`
 
 ## Continuity status
@@ -14,7 +14,7 @@
 - Semantic cache: `.janus/P_VS_NP_STREAM_CACHE_CURRENT.json`
 - Semantic source HEAD: `05563fb285a1b2a4ae62d2a6aab0143bdbe52899`
 - Relation: **`LIVE_DESCENDS_FROM_SEMANTIC_CACHE`**
-- Commits after semantic checkpoint: `89`
+- Commits after semantic checkpoint: `90`
 
 ## Scientific firewall
 
@@ -79,7 +79,6 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 
 ## Commits newer than semantic checkpoint — MUST INGEST
 
-- `dfd4ba288014` — 2026-09-28T20:15:09+03:00 — R5 E9: add projective fractional-support closure regression
 - `5419bb7585f0` — 2026-09-28T20:15:20+03:00 — R5 E9: add CI for projective fractional-support closure
 - `40d673255f47` — 2026-09-28T20:34:53+03:00 — R5 E9: prove rational-kernel Tukey-depth boundary quotient
 - `3e4c7d688740` — 2026-09-28T20:35:26+03:00 — R5 E9: add kernel Tukey-depth boundary regression
@@ -159,11 +158,12 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `3526f6b46384` — 2026-09-29T01:47:00+03:00 — R5 E10A: add strict-max padding barrier exact checker
 - `090e601e1fb2` — 2026-09-29T01:47:16+03:00 — R5 E10A: add strict-max padding barrier CI
 - `b5accb7d274f` — 2026-09-29T01:48:10+03:00 — R5 E10A: enable push replay for strict-max padding barrier
+- `5feabff534f6` — 2026-09-29T01:55:04+03:00 — Bootstrap PA-0029 NM-0033 arithmetic repair
 
 ## Transport / stale-bootstrap watch
 
 - `.github/workflows/bootstrap-pa0029-nm0033.yml`: **PRESENT** — sha256 `1c797a7936a08cedd722eac59fadda976acd569b64b91f1bec93dcef9cafdc3b`
-- `.github/workflows/bootstrap-pa0029-nm0033-arithmetic-repair.yml`: **PRESENT** — sha256 `807e95ebab2f9f2fe8699e17e4242584a295aec41bf9658d6517e7c67c5721f2`
+- `.github/workflows/bootstrap-pa0029-nm0033-arithmetic-repair.yml`: **PRESENT** — sha256 `d2b85f2b6022053a237bbd0d20fa9f6610dfe749b394b6d680696c9d84c22d02`
 - `.janus_bootstrap_pa0029_nm0033_payload.txt`: **PRESENT** — sha256 `41d52c45bfa314f66a959159f80d5bfdcaa3d3f9c2141d624f8762899b5e9fe2`
 - `.janus_bootstrap_pa0029_nm0033_arithmetic_repair_payload.txt`: **PRESENT** — sha256 `11e93256d6aa25386a9e974972925a635c1738f1c97a49869c8c9aefd8195d4e`
 
@@ -189,6 +189,7 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 
 ## Recent non-cache commits
 
+- `5feabff534f6` — 2026-09-29T01:55:04+03:00 — Bootstrap PA-0029 NM-0033 arithmetic repair
 - `b5accb7d274f` — 2026-09-29T01:48:10+03:00 — R5 E10A: enable push replay for strict-max padding barrier
 - `090e601e1fb2` — 2026-09-29T01:47:16+03:00 — R5 E10A: add strict-max padding barrier CI
 - `3526f6b46384` — 2026-09-29T01:47:00+03:00 — R5 E10A: add strict-max padding barrier exact checker
@@ -213,7 +214,6 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `bee44236bd7f` — 2026-09-29T00:39:42+03:00 — R5 E9: add CI for Paley sqrt-nullity family
 - `f1558aad3c32` — 2026-09-29T00:39:30+03:00 — R5 E9: add exact regression for Paley sqrt-nullity family
 - `198faf5d844c` — 2026-09-29T00:38:40+03:00 — R5 E9: prove infinite Paley post-RKPR sqrt-nullity family
-- `462088b2b0e2` — 2026-09-29T00:33:27+03:00 — R5 E9: add CI for Paley11 post-RKPR control
 
 ## Resume protocol
 
