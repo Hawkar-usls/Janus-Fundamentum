@@ -5,8 +5,8 @@
 - **Repository:** `Hawkar-usls/Janus-Fundamentum`
 - **PR:** `#510`
 - **Branch:** `codex/r5-e8-direct-contract-20260921-82493a57`
-- **Live source HEAD:** `aa237e2a4c769870a646d17b2eda757bc0e192a3`
-- **Source commit time:** `2026-09-28T21:14:42+03:00`
+- **Live source HEAD:** `a78056a7516597db003e9fcf7f01ce2faad28f8a`
+- **Source commit time:** `2026-09-28T21:16:09+03:00`
 - **Indexed changed scientific artifacts:** `812`
 
 ## Continuity status
@@ -14,7 +14,7 @@
 - Semantic cache: `.janus/P_VS_NP_STREAM_CACHE_CURRENT.json`
 - Semantic source HEAD: `05563fb285a1b2a4ae62d2a6aab0143bdbe52899`
 - Relation: **`LIVE_DESCENDS_FROM_SEMANTIC_CACHE`**
-- Commits after semantic checkpoint: `33`
+- Commits after semantic checkpoint: `34`
 
 ## Scientific firewall
 
@@ -112,6 +112,7 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `bec918c31cfa` — 2026-09-28T21:10:50+03:00 — R5 E9: add CI for kernel-tope greedy barrier
 - `96c5cd2e81f3` — 2026-09-28T21:14:04+03:00 — R5 E9: repair tope adjacency for parallel kernel hyperplanes
 - `aa237e2a4c76` — 2026-09-28T21:14:42+03:00 — R5 E9: verify projective hyperplane classes in greedy barrier
+- `a78056a75165` — 2026-09-28T21:16:09+03:00 — R5 E9: certify exact boundary distances from PG15 trap
 
 ## Transport / stale-bootstrap watch
 
@@ -142,6 +143,7 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 
 ## Recent non-cache commits
 
+- `a78056a75165` — 2026-09-28T21:16:09+03:00 — R5 E9: certify exact boundary distances from PG15 trap
 - `aa237e2a4c76` — 2026-09-28T21:14:42+03:00 — R5 E9: verify projective hyperplane classes in greedy barrier
 - `96c5cd2e81f3` — 2026-09-28T21:14:04+03:00 — R5 E9: repair tope adjacency for parallel kernel hyperplanes
 - `bec918c31cfa` — 2026-09-28T21:10:50+03:00 — R5 E9: add CI for kernel-tope greedy barrier
@@ -166,7 +168,6 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `40d673255f47` — 2026-09-28T20:34:53+03:00 — R5 E9: prove rational-kernel Tukey-depth boundary quotient
 - `5419bb7585f0` — 2026-09-28T20:15:20+03:00 — R5 E9: add CI for projective fractional-support closure
 - `dfd4ba288014` — 2026-09-28T20:15:09+03:00 — R5 E9: add projective fractional-support closure regression
-- `2a28c8b43829` — 2026-09-28T20:14:14+03:00 — R5 E9: prove projective fractional-support exact closure
 
 ## Resume protocol
 
