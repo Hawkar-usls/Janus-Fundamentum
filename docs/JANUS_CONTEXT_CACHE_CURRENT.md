@@ -5,16 +5,16 @@
 - **Repository:** `Hawkar-usls/Janus-Fundamentum`
 - **PR:** `#510`
 - **Branch:** `codex/r5-e8-direct-contract-20260921-82493a57`
-- **Live source HEAD:** `c4d0ec5f7ed28c9e2c01f86679ce6bd08dc9fd9f`
-- **Source commit time:** `2026-09-28T06:09:22+03:00`
-- **Indexed changed scientific artifacts:** `726`
+- **Live source HEAD:** `ffa4e5ba58ee4d72d241aaba7f77c2e80f271e5e`
+- **Source commit time:** `2026-09-28T06:09:52+03:00`
+- **Indexed changed scientific artifacts:** `728`
 
 ## Continuity status
 
 - Semantic cache: `.janus/P_VS_NP_STREAM_CACHE_CURRENT.json`
 - Semantic source HEAD: `7a1ca3a9e52ba360cdb700306ca3fc58746aa27f`
 - Relation: **`LIVE_DESCENDS_FROM_SEMANTIC_CACHE`**
-- Commits after semantic checkpoint: `22`
+- Commits after semantic checkpoint: `24`
 
 ## Scientific firewall
 
@@ -103,6 +103,8 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `b702f33d3d23` — 2026-09-28T06:04:27+03:00 — R5 E9: add checker for left-kernel-safe UNSAT nullity amplifier
 - `a3026241cb88` — 2026-09-28T06:04:38+03:00 — R5 E9: add CI for left-kernel-safe UNSAT nullity family
 - `c4d0ec5f7ed2` — 2026-09-28T06:09:22+03:00 — R5 E9 classify single-variable overlay projection as DP
+- `ec0d87a9e4e9` — 2026-09-28T06:09:40+03:00 — R5 E9 add single-variable DP projection regression
+- `ffa4e5ba58ee` — 2026-09-28T06:09:52+03:00 — R5 E9 validate single-variable DP anti-loop
 
 ## Transport / stale-bootstrap watch
 
@@ -133,6 +135,8 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 
 ## Recent non-cache commits
 
+- `ffa4e5ba58ee` — 2026-09-28T06:09:52+03:00 — R5 E9 validate single-variable DP anti-loop
+- `ec0d87a9e4e9` — 2026-09-28T06:09:40+03:00 — R5 E9 add single-variable DP projection regression
 - `c4d0ec5f7ed2` — 2026-09-28T06:09:22+03:00 — R5 E9 classify single-variable overlay projection as DP
 - `a3026241cb88` — 2026-09-28T06:04:38+03:00 — R5 E9: add CI for left-kernel-safe UNSAT nullity family
 - `b702f33d3d23` — 2026-09-28T06:04:27+03:00 — R5 E9: add checker for left-kernel-safe UNSAT nullity amplifier
@@ -156,8 +160,6 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `fda43e701a71` — 2026-09-28T05:39:25+03:00 — R5 E9: sync semantic checkpoint to cross-layer global pivot
 - `b9430f8ce33c` — 2026-09-28T05:39:02+03:00 — R5 E9: add actual-row-basis rank3 matching FPT router
 - `7a1ca3a9e52b` — 2026-09-28T05:09:13+03:00 — R5 E9: add CI for defect-free UNSAT nullity amplifier
-- `389b359dcc75` — 2026-09-28T05:09:03+03:00 — R5 E9: add checker for defect-free UNSAT nullity amplifier
-- `81fb943743ec` — 2026-09-28T05:08:33+03:00 — R5 E9: prove defect-free two-edge UNSAT linear-nullity family
 
 ## Resume protocol
 
