@@ -5,16 +5,16 @@
 - **Repository:** `Hawkar-usls/Janus-Fundamentum`
 - **PR:** `#510`
 - **Branch:** `codex/r5-e8-direct-contract-20260921-82493a57`
-- **Live source HEAD:** `ad3ccb96cbd44c5f0194f1775a1424d758897b04`
-- **Source commit time:** `2026-09-28T14:54:59+03:00`
+- **Live source HEAD:** `f1bdc0616e38f6f3c666bc084d1eeb91ff7fabd5`
+- **Source commit time:** `2026-09-28T14:57:52+03:00`
 - **Indexed changed scientific artifacts:** `756`
 
 ## Continuity status
 
 - Semantic cache: `.janus/P_VS_NP_STREAM_CACHE_CURRENT.json`
-- Semantic source HEAD: `7a1ca3a9e52ba360cdb700306ca3fc58746aa27f`
+- Semantic source HEAD: `ad3ccb96cbd44c5f0194f1775a1424d758897b04`
 - Relation: **`LIVE_DESCENDS_FROM_SEMANTIC_CACHE`**
-- Commits after semantic checkpoint: `53`
+- Commits after semantic checkpoint: `1`
 
 ## Scientific firewall
 
@@ -35,36 +35,33 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 
 ## Semantic live frontier
 
-- **Frontier:** `R5_E9_NONLOCAL_RANK1_CROSS_LAYER_GLOBAL_PIVOT_GATE_V1`
-- **Carrier:** arbitrary signed 3CNF via exact two-path XOR/AND overlay and affine symmetric rank-one F2 moment representation; NP-complete linear-cubic Exact-One remains mandatory hostile source
-- Established: Exact linear-cubic Positive 1-in-3 SAT is NP-complete via the constant-size linear cubic EQ3 regularization gadget.
-- Established: Low rational nullity and near-maximal rational nullity have exact FPT routers, but nullity is not a universal complexity currency.
-- Established: There are explicit infinite SAT and UNSAT connected linear-cubic unbalanced 3-cut-prime families with rational nullity Theta(n); therefore both low-nullity-after-separators and large-nullity-implies-SAT shortcuts are false.
-- Established: Genuine <=3-edge interfaces have constant exact boundary algebra; balanced incidence matrices are a deterministic polynomial Exact-One terminal.
-- Established: Strong odd cycles have an exact local bond-2 transfer form, but pinned k=3 blocks realize independent equality channels with cut rank 2^m, so local bond dimension does not imply a polynomial single-summary global state.
-- Established: Generic AFFINE-SYMMETRIC-RANK1-F2 feasibility is NP-complete; a valid polynomial solver must exploit JANUS-specific provenance.
-- Established: The rank-one moment representation has polynomial lift-or-defect, sound cuts, a complete O(N^2) multiplicative obstruction basis, and polynomial witness reconstruction; the remaining obligation is the refined exact solver R2.
-- Established: APAC completely classifies one-product affine contexts. No-FULL plus 2-affine Krom boundary is an exact polynomial terminal.
-- Established: APAC sharpness is two-axis: 2-affine plus unrestricted FULL products and NO-FULL plus width-3 affine/Krom each linearly encode arbitrary 3CNF.
-- Established: Arbitrary signed 3CNF has an exact linear two-path XOR/AND overlay representation in which the affine layer and product layer separately have treewidth one; only the cross-layer overlay carries the hardness.
-- Established: Any potential depending only on product-layer complexity and affine-layer complexity separately is invalid; a successful potential must inspect cross-layer overlay.
-- Established: Individual rank-one defect cuts plus local projection merely reactivate original OR3 clauses and are forbidden as pseudo-progress.
-- Established: Witness-dominance quotient contraction is exact when a polynomial certificate exists, but the first signed-permutation certificate family is not universally available.
+- **Frontier:** `R5_E9_HIGH_GIRTH_SAFE_NONLOCAL_GLOBAL_PIVOT_GATE_V1`
+- **Carrier:** arbitrary signed 3CNF via exact two-path XOR/AND overlay; secondary Exact-One form is matching on disjoint cycles with source-generated F2 endpoint syndrome
+- Established: Linear-cubic Positive 1-in-3 SAT is NP-complete via the exact EQ3 regularization; its hard image has linear nullity and linear-density {0,3} coupling.
+- Established: Both SAT and UNSAT connected linear-cubic unbalanced 3-cut-prime families with rational nullity Theta(n) exist; raw nullity/singularity/separators are not universal currencies.
+- Established: Actual-row-basis N1/N2 material is polynomial by matching after rank-3 choices are fixed, but the frozen hard slab has linear-density rank-3 {0,3} coupling for every actual-row basis.
+- Established: Arbitrary signed 3CNF has an exact two-path XOR/AND overlay with each layer separately treewidth one; only the cross-layer overlay carries hardness.
+- Established: Single-variable-path and one-coherence projections are exactly Davis-Putnam elimination, not new global pivots.
+- Established: Bounded-degree source images of arbitrarily high fixed relational girth remain hard, closing any universal finite short-cycle or high-degree pivot dichotomy.
+- Established: Boundary Myhill-Nerode state is the exact projected extension relation; generic polynomial boundary keys require a proved restricted composition calculus.
+- Established: In matching normalization A=I+P+Q, every cycle component C obeys A chi_C=chi_C; the remaining hard object is global endpoint-syndrome coupling.
+- Established: Direct projected-linear-delta-matroid encoding of {0,3} is closed; AFFINE_3X3 endpoint feasible sets are non-delta-matroid for all 42 perfect-matching normalizations.
+- Established: PolaritySAT 2026 is rejected: its forced-assignment lemma has an explicit satisfiable counterexample.
+- Established: Witness selection is exact: choose one literal occurrence per clause without choosing both polarities of a source variable.
+- Established: For m independent polarity channels, exact left/right compatibility has rank 2^m; any exact d-dimensional bilinear scalar zero-test summary requires d>=2^m. This is a scoped representation barrier, not a SAT lower bound.
+- Established: On the frozen singular 3-cut-prime UNSAT 15_3 control, clique number is 3 and alpha=4 while the full h-perfect relaxation (nonnegativity + all clique + all induced odd-hole inequalities) has optimum 5=n/3; clique+odd-hole polyhedral closure is not an exact universal terminal.
+- Established: No unconditional deterministic polynomial SAT decider has been established.
 
 ### Live split
 
 ```json
 {
   "primary": {
-    "goal": "Construct a deterministic polynomial GLOBAL_PIVOT on affine + FULL-product + Krom states using a genuinely cross-layer overlay invariant. A successful contraction must preserve SAT exactly, support polynomial witness lifting, and strictly decrease a polynomially bounded joint potential without recreating an equivalent universal carrier.",
+    "goal": "Find a deterministic polynomial high-girth-safe GLOBAL_PIVOT with exact semantics, polynomial witness lift, and a strictly decreasing polynomially bounded cross-layer potential.",
     "status": "OPEN"
   },
   "secondary": {
-    "goal": "Exploit the exact actual-row-basis semantic core Bx=1 iff Ax=1 only if it yields a non-enumerative global matching/hypermatching contraction; private-variable stripping and rational nullity statistics alone are not progress.",
-    "status": "OPEN"
-  },
-  "reserve": {
-    "goal": "Recheck newly published recursive-AIP or beyond-gadget/posetal-adjunction donors only when a proof-ready polynomial construction theorem exists; current April 2026 higher-level AIP source does not supply the missing universal recursion.",
+    "goal": "Solve or contract source-generated cycle endpoint-syndrome matching without exponential group enumeration, direct endpoint delta-matroids, or bilinear annihilation summaries.",
     "status": "OPEN"
   }
 }
@@ -72,68 +69,16 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 
 ### Next attack
 
-1. Model the exact two-path overlay as a two-edge-coloured incidence object and compute cross-layer circuits/alternating cycles rather than separate-layer widths.
-2. Classify the smallest nonlocal block containing two clause-product paths joined through one XOR coherence edge; identify every exact contraction relation and reject any rule that is just Davis-Putnam clause reactivation or selector conservation.
-3. Test overlay cut-rank, alternating-cycle space and grouped product-syndrome candidates first on the exact universal two-path encoding and on the frozen SAT/UNSAT high-nullity Exact-One lineages.
-4. Promote a GLOBAL_PIVOT only with a proof that every nonterminal source-generated state has a polynomially discoverable contraction or polynomial terminal and that a joint potential strictly decreases.
-5. Do not reopen nullity/singularity, separators, primitive-group routing, fixed-cut summary states, local matchgate/delta-matroid gadgets, individual product cuts, layerwise treewidth/cycle rank, or generic affine-rank1 feasibility.
-6. Promote E8_D1 only after SOUND, COMPLETE, TERMINATES, POLY and polynomial witness reconstruction hold for every arbitrary 3CNF input.
+1. Attack the source-generated cycle endpoint-syndrome object with genuinely representation-changing global operations.
+2. Require polynomial exact join/projection/conditioning, witness reconstruction, and a strict global decrease theorem.
+3. Test every candidate on frozen SAT/UNSAT prime Exact-One lineages and AFFINE_3X3 normalization controls.
+4. Require universal coverage of bounded-degree arbitrarily-high-fixed-girth signed-3CNF images.
+5. Do not reopen nullity, separators, clever row bases, local matchgates/delta-matroids, single-variable DP, fixed-modulus counting, local odd-cycle transfer, PolaritySAT, or bilinear polarity-annihilation summaries.
+6. Promote E8_D1 only after SOUND+COMPLETE+TERMINATES+POLY+RECONSTRUCT hold for arbitrary 3CNF.
 
 ## Commits newer than semantic checkpoint — MUST INGEST
 
-- `b9430f8ce33c` — 2026-09-28T05:39:02+03:00 — R5 E9: add actual-row-basis rank3 matching FPT router
-- `fda43e701a71` — 2026-09-28T05:39:25+03:00 — R5 E9: sync semantic checkpoint to cross-layer global pivot
-- `2505ad65bc7a` — 2026-09-28T05:39:57+03:00 — R5 E9: add regression for row-basis rank3 matching router
-- `8b5a12ea3c7f` — 2026-09-28T05:40:09+03:00 — R5 E9: add CI for row-basis rank3 matching router
-- `3232a99f1759` — 2026-09-28T05:45:26+03:00 — E9 seal EQ3 middle-nullity hardness slab
-- `e21763bc52eb` — 2026-09-28T05:45:54+03:00 — E9 add EQ3 middle-nullity slab checker
-- `86233194dd62` — 2026-09-28T05:46:04+03:00 — E9 wire EQ3 middle-nullity slab replay
-- `a0c0657da853` — 2026-09-28T05:47:40+03:00 — E9 derive row-basis rank3 hypermatching quotient
-- `c9daaa7fd53e` — 2026-09-28T05:48:13+03:00 — E9 add rank3 hypermatching quotient checker
-- `d779e8232729` — 2026-09-28T05:48:25+03:00 — E9 wire rank3 hypermatching quotient replay
-- `f2dca2d717b9` — 2026-09-28T05:50:41+03:00 — Audit E9 middle-nullity hypermatching quotient
-- `d606fdcfd874` — 2026-09-28T05:52:12+03:00 — R5 E9: prove exact UNSAT linear-nullity prime tower
-- `258d9b7d0f54` — 2026-09-28T05:53:02+03:00 — R5 E9: add checker for exact UNSAT linear-nullity prime tower
-- `763ffe4b3b13` — 2026-09-28T05:53:12+03:00 — R5 E9: add CI for exact UNSAT linear-nullity prime tower
-- `a4c57cc95c97` — 2026-09-28T05:53:47+03:00 — R5 E9 add row-basis rank3 matching router
-- `9108b5c3da66` — 2026-09-28T05:54:56+03:00 — R5 E9 add rank3 matching router regression
-- `a6c929d39cdf` — 2026-09-28T05:55:08+03:00 — R5 E9 validate rank3 matching router
-- `258e921c6320` — 2026-09-28T06:02:38+03:00 — Audit rank3 coupling against 2026 subcubic general-factor dichotomy
-- `7891d2ab3058` — 2026-09-28T06:04:00+03:00 — R5 E9: prove left-kernel-safe UNSAT prime nullity amplifier
-- `b702f33d3d23` — 2026-09-28T06:04:27+03:00 — R5 E9: add checker for left-kernel-safe UNSAT nullity amplifier
-- `a3026241cb88` — 2026-09-28T06:04:38+03:00 — R5 E9: add CI for left-kernel-safe UNSAT nullity family
-- `c4d0ec5f7ed2` — 2026-09-28T06:09:22+03:00 — R5 E9 classify single-variable overlay projection as DP
-- `ec0d87a9e4e9` — 2026-09-28T06:09:40+03:00 — R5 E9 add single-variable DP projection regression
-- `ffa4e5ba58ee` — 2026-09-28T06:09:52+03:00 — R5 E9 validate single-variable DP anti-loop
-- `575bccc3db21` — 2026-09-28T06:18:41+03:00 — R5 E9: classify one-coherence cross-layer pivot as exact DP
-- `3dde3e11a403` — 2026-09-28T06:18:52+03:00 — R5 E9: add checker for one-coherence DP exactness
-- `39df19f4339c` — 2026-09-28T06:19:05+03:00 — R5 E9 seal C4-free source-incidence pivot barrier
-- `5a1ac05608a7` — 2026-09-28T06:19:22+03:00 — R5 E9 add C4-free incidence barrier regression
-- `7a8421d5802a` — 2026-09-28T06:19:34+03:00 — R5 E9 validate C4-free incidence pivot barrier
-- `f1797d961846` — 2026-09-28T06:21:09+03:00 — R5 E9: prove whole-variable coherence path elimination equals DP biclique
-- `958155ec7672` — 2026-09-28T06:21:25+03:00 — R5 E9: add checker for single-variable DP biclique theorem
-- `30ba01698359` — 2026-09-28T06:24:27+03:00 — R5 E9: add CI for single-variable DP biclique classification
-- `5e283d0d0b24` — 2026-09-28T06:27:29+03:00 — R5 E9 seal sparse-incomparability high-girth pivot barrier
-- `f7ec09aaaa01` — 2026-09-28T06:28:00+03:00 — R5 E9 add sparse-incomparability structural regression
-- `a413e1e9b6a3` — 2026-09-28T06:28:11+03:00 — R5 E9 validate sparse-incomparability high-girth pivot barrier
-- `6b22c8516fb5` — 2026-09-28T06:30:30+03:00 — R5 E9 checkpoint high-girth-safe nonlocal global pivot
-- `23310916c004` — 2026-09-28T06:33:02+03:00 — R5 E9 add high-girth bounded-occurrence pivot barrier
-- `b86d0355f169` — 2026-09-28T06:33:29+03:00 — R5 E9 add bounded-occurrence high-girth structural regression
-- `d8f917f19b4a` — 2026-09-28T06:33:40+03:00 — R5 E9 validate high-girth bounded-occurrence barrier
-- `80ac578f98a3` — 2026-09-28T06:34:21+03:00 — R5 E9 strengthen high-girth checkpoint with bounded occurrence
-- `3762a09f4c13` — 2026-09-28T14:36:22+03:00 — R5 E9: reject PolaritySAT 2026 by forced-assignment counterexample
-- `f79f8b4aeb7a` — 2026-09-28T14:41:48+03:00 — R5 E9: isolate cycle-syndrome homology and delta-matroid boundary
-- `994ce75da1e3` — 2026-09-28T14:42:10+03:00 — R5 E9: add cycle-syndrome homology regression
-- `3edaf60fa94d` — 2026-09-28T14:46:26+03:00 — R5 E9: falsify endpoint delta-matroid across all affine9 normalizations
-- `847012de640a` — 2026-09-28T14:46:54+03:00 — R5 E9: add exhaustive affine9 endpoint-DM normalization falsifier
-- `a5bfd13bdce8` — 2026-09-28T14:49:50+03:00 — R5 E9: add executable PolaritySAT forced-assignment falsifier
-- `8bda813d4e05` — 2026-09-28T14:51:40+03:00 — R5 E9: prove exponential bilinear witness-selection Hankel rank barrier
-- `25891fd18187` — 2026-09-28T14:52:00+03:00 — R5 E9: add bilinear Hankel-rank regression
-- `8df0c2d1d571` — 2026-09-28T14:52:22+03:00 — R5 E9: add CI for bilinear witness-selection rank barrier
-- `c3d7988b5766` — 2026-09-28T14:53:32+03:00 — R5 E9: freeze singular prime h-perfect relaxation gap control
-- `d0d0c719a1cb` — 2026-09-28T14:54:03+03:00 — R5 E9: add exact checker for h-perfect relaxation gap control
-- `ba193be31c95` — 2026-09-28T14:54:20+03:00 — R5 E9: add CI for singular prime h-perfect relaxation gap
-- `ad3ccb96cbd4` — 2026-09-28T14:54:59+03:00 — R5 E9: add CI for PolaritySAT hostile donor falsifier
+- `f1bdc0616e38` — 2026-09-28T14:57:52+03:00 — R5 E9: synchronize semantic checkpoint after global representation barriers
 
 ## Transport / stale-bootstrap watch
 
@@ -144,7 +89,7 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 
 ## Must-read authority/evidence artifacts
 
-- **OK** `.janus/P_VS_NP_STREAM_CACHE_CURRENT.json` `9804ae228465377e…`
+- **OK** `.janus/P_VS_NP_STREAM_CACHE_CURRENT.json` `2a5443a1e47f9d7e…`
 - **OK** `tools/janus_stream_resume_cache.py` `adc6ab7f260d2384…`
 - **OK** `research/R5_E9_UNIVERSAL_SELECTOR_EQUIVALENCE_BARRIER_2026-09-27_v1.0.md` `a426b38d6d17eea3…`
 - **OK** `research/R5_E9_UNIVERSAL_SELECTOR_INTERNAL_ANTI_LOOP_BINDING_2026-09-27_v1.0.md` `e3ce2b82dd656b71…`
@@ -164,6 +109,7 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 
 ## Recent non-cache commits
 
+- `f1bdc0616e38` — 2026-09-28T14:57:52+03:00 — R5 E9: synchronize semantic checkpoint after global representation barriers
 - `ad3ccb96cbd4` — 2026-09-28T14:54:59+03:00 — R5 E9: add CI for PolaritySAT hostile donor falsifier
 - `ba193be31c95` — 2026-09-28T14:54:20+03:00 — R5 E9: add CI for singular prime h-perfect relaxation gap
 - `d0d0c719a1cb` — 2026-09-28T14:54:03+03:00 — R5 E9: add exact checker for h-perfect relaxation gap control
@@ -188,7 +134,6 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `30ba01698359` — 2026-09-28T06:24:27+03:00 — R5 E9: add CI for single-variable DP biclique classification
 - `958155ec7672` — 2026-09-28T06:21:25+03:00 — R5 E9: add checker for single-variable DP biclique theorem
 - `f1797d961846` — 2026-09-28T06:21:09+03:00 — R5 E9: prove whole-variable coherence path elimination equals DP biclique
-- `7a8421d5802a` — 2026-09-28T06:19:34+03:00 — R5 E9 validate C4-free incidence pivot barrier
 
 ## Resume protocol
 
