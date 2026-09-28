@@ -5,16 +5,16 @@
 - **Repository:** `Hawkar-usls/Janus-Fundamentum`
 - **PR:** `#510`
 - **Branch:** `codex/r5-e8-direct-contract-20260921-82493a57`
-- **Live source HEAD:** `d782ea4b1c3c55c7b101d821a55e25a3472b070b`
-- **Source commit time:** `2026-09-28T03:18:54+03:00`
+- **Live source HEAD:** `b04dcf27de57e8cceaa9e8511528d142c6912ed2`
+- **Source commit time:** `2026-09-28T03:21:12+03:00`
 - **Indexed changed scientific artifacts:** `696`
 
 ## Continuity status
 
 - Semantic cache: `.janus/P_VS_NP_STREAM_CACHE_CURRENT.json`
-- Semantic source HEAD: `3e6118229890f31800268fc683de8062736aa558`
+- Semantic source HEAD: `d782ea4b1c3c55c7b101d821a55e25a3472b070b`
 - Relation: **`LIVE_DESCENDS_FROM_SEMANTIC_CACHE`**
-- Commits after semantic checkpoint: `6`
+- Commits after semantic checkpoint: `1`
 
 ## Scientific firewall
 
@@ -51,13 +51,14 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - Established: Every connected acyclic grouped EQ3/EXACT1 region containing an EQ3 node has a boundary relation that is not a delta-matroid, hence is not ordinary matching-realizable, for arbitrary region size.
 - Established: Boben A-reductions terminate structurally in bounded-width terminals, but exact semantic transport remains open; one A-step needs at least 3 states and an explicit legal two-step region needs at least 4.
 - Established: Raw rational/F2 nullity, singularity, commutativity, primitivity, local EQ3 gauge quotient and Harries/OET amplifier statistics are not universal complexity currencies.
+- Established: For every strong odd cycle of odd order k, the full third-occurrence boundary has an exact two-state cyclic transfer form: sigma_{i+1}=2w_i-sigma_i and 2(a_i+b_i)=1+sigma_i; equivalently det(I+S_k)=2 and belt feasibility is alternating sums in {−1,+1}. Single-cycle boundary table explosion is closed, but global composition closure is unproved.
 
 ### Live split
 
 ```json
 {
   "primary": {
-    "goal": "Compose all genuine nontrivial <=3-edge separations with polynomial total signature/reconstruction cost, route balanced pieces to the LP-integral terminal, and solve or contract the remaining 3-cut-irreducible unbalanced core carrying an explicit strong odd cycle.",
+    "goal": "Prove polynomial total-size closure of the exact two-state strong-odd-cycle transfer objects under overlapping cycle contractions, composed with <=3-cut decomposition and the balanced terminal; or falsify this representation on a source-valid growth family.",
     "status": "OPEN"
   },
   "secondary": {
@@ -73,20 +74,15 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 
 ### Next attack
 
-1. On a residual strong odd cycle, derive an exact dimension-dropping contraction including all third-incidence boundary semantics; belt-only projection or ordinary matching realization is insufficient.
-2. Exploit det(C_odd)=2 only if the resulting single Z2 torsion channel plus Boolean range constraints can be represented and updated in polynomial total size; abandon it on an explicit source-valid growth family.
-3. Search for a high-rational-nullity 3-cut-irreducible unbalanced family before promoting any low-nullity residual theorem.
-4. Do not reopen tree-shaped grouped matching gadgets, local/additive Exact-Matching gadgets, common or edge-wise matchgate gauges, local EQ3 gauge quotient, singularity-only, or constant three-state Boben lifts.
+1. Compose two and then arbitrary overlapping strong odd-cycle transfer objects symbolically and measure exact state/formula growth; seek a closed matrix/correlation algebra rather than expanding boundary tables.
+2. Require a strict global progress measure: every admitted cycle contraction must reduce original EQ3/EXACT1 structure without reintroducing an equivalent NP-complete carrier under a new name.
+3. In parallel, search for a high-rational-nullity 3-cut-irreducible unbalanced family before promoting any low-nullity residual theorem.
+4. Do not reopen ordinary matching realization of full odd-cycle boundaries, tree-shaped grouped matching gadgets, local/additive Exact-Matching gadgets, matchgate gauges, local EQ3 gauge quotient, singularity-only, or constant three-state Boben lifts.
 5. Promote E8_D1 only after SOUND, COMPLETE, TERMINATES, POLY and polynomial witness reconstruction hold for every instance in the NP-complete carrier.
 
 ## Commits newer than semantic checkpoint — MUST INGEST
 
-- `5dc336418238` — 2026-09-28T03:07:27+03:00 — R5 E9: sync semantic checkpoint after acyclic matching barrier
-- `b76675b6429c` — 2026-09-28T03:15:51+03:00 — R5 E9: sync semantic checkpoint after irreducible UNSAT hostile control
-- `7aea8f113b66` — 2026-09-28T03:16:40+03:00 — R5 E9: falsify low-nullity prime-core hypothesis by two-edge lifts
-- `733ac860c50c` — 2026-09-28T03:18:12+03:00 — R5 E9: derive strong odd-cycle determinant-2 transfer normal form
-- `fdf17e814b2d` — 2026-09-28T03:18:42+03:00 — R5 E9: add checker for strong odd-cycle transfer normal form
-- `d782ea4b1c3c` — 2026-09-28T03:18:54+03:00 — R5 E9: add CI for strong odd-cycle transfer normal form
+- `b04dcf27de57` — 2026-09-28T03:21:12+03:00 — R5 E9: sync semantic checkpoint after odd-cycle transfer theorem
 
 ## Transport / stale-bootstrap watch
 
@@ -97,7 +93,7 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 
 ## Must-read authority/evidence artifacts
 
-- **OK** `.janus/P_VS_NP_STREAM_CACHE_CURRENT.json` `3837482dab238d43…`
+- **OK** `.janus/P_VS_NP_STREAM_CACHE_CURRENT.json` `4f50f65a051e3f4c…`
 - **OK** `tools/janus_stream_resume_cache.py` `adc6ab7f260d2384…`
 - **OK** `research/R5_E9_UNIVERSAL_SELECTOR_EQUIVALENCE_BARRIER_2026-09-27_v1.0.md` `a426b38d6d17eea3…`
 - **OK** `research/R5_E9_UNIVERSAL_SELECTOR_INTERNAL_ANTI_LOOP_BINDING_2026-09-27_v1.0.md` `e3ce2b82dd656b71…`
@@ -117,6 +113,7 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 
 ## Recent non-cache commits
 
+- `b04dcf27de57` — 2026-09-28T03:21:12+03:00 — R5 E9: sync semantic checkpoint after odd-cycle transfer theorem
 - `d782ea4b1c3c` — 2026-09-28T03:18:54+03:00 — R5 E9: add CI for strong odd-cycle transfer normal form
 - `fdf17e814b2d` — 2026-09-28T03:18:42+03:00 — R5 E9: add checker for strong odd-cycle transfer normal form
 - `733ac860c50c` — 2026-09-28T03:18:12+03:00 — R5 E9: derive strong odd-cycle determinant-2 transfer normal form
@@ -141,7 +138,6 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `f1e6f9fb1d36` — 2026-09-28T02:39:58+03:00 — R5 E9: add checker for exact three-edge-cut algebra
 - `acdd0edb4dd3` — 2026-09-28T02:39:27+03:00 — R5 E9: prove exact three-edge-cut boundary algebra
 - `0192c134abab` — 2026-09-28T02:28:10+03:00 — R5 E9: sync semantic checkpoint after exact-matching exchange barrier
-- `b47e6a2cfceb` — 2026-09-28T02:24:07+03:00 — R5 E9: add CI for exact-matching toggle exchange
 
 ## Resume protocol
 
