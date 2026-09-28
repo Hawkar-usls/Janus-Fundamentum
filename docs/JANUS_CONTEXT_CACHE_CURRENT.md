@@ -5,16 +5,16 @@
 - **Repository:** `Hawkar-usls/Janus-Fundamentum`
 - **PR:** `#510`
 - **Branch:** `codex/r5-e8-direct-contract-20260921-82493a57`
-- **Live source HEAD:** `8b5a12ea3c7fdc5f09da565fec913be5fc6b608d`
-- **Source commit time:** `2026-09-28T05:40:09+03:00`
-- **Indexed changed scientific artifacts:** `708`
+- **Live source HEAD:** `3232a99f175968d20aef83a5dc49a19f343b736e`
+- **Source commit time:** `2026-09-28T05:45:26+03:00`
+- **Indexed changed scientific artifacts:** `709`
 
 ## Continuity status
 
 - Semantic cache: `.janus/P_VS_NP_STREAM_CACHE_CURRENT.json`
 - Semantic source HEAD: `7a1ca3a9e52ba360cdb700306ca3fc58746aa27f`
 - Relation: **`LIVE_DESCENDS_FROM_SEMANTIC_CACHE`**
-- Commits after semantic checkpoint: `4`
+- Commits after semantic checkpoint: `5`
 
 ## Scientific firewall
 
@@ -85,6 +85,7 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `fda43e701a71` — 2026-09-28T05:39:25+03:00 — R5 E9: sync semantic checkpoint to cross-layer global pivot
 - `2505ad65bc7a` — 2026-09-28T05:39:57+03:00 — R5 E9: add regression for row-basis rank3 matching router
 - `8b5a12ea3c7f` — 2026-09-28T05:40:09+03:00 — R5 E9: add CI for row-basis rank3 matching router
+- `3232a99f1759` — 2026-09-28T05:45:26+03:00 — E9 seal EQ3 middle-nullity hardness slab
 
 ## Transport / stale-bootstrap watch
 
@@ -115,6 +116,7 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 
 ## Recent non-cache commits
 
+- `3232a99f1759` — 2026-09-28T05:45:26+03:00 — E9 seal EQ3 middle-nullity hardness slab
 - `8b5a12ea3c7f` — 2026-09-28T05:40:09+03:00 — R5 E9: add CI for row-basis rank3 matching router
 - `2505ad65bc7a` — 2026-09-28T05:39:57+03:00 — R5 E9: add regression for row-basis rank3 matching router
 - `fda43e701a71` — 2026-09-28T05:39:25+03:00 — R5 E9: sync semantic checkpoint to cross-layer global pivot
@@ -139,7 +141,6 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `5d7718002c8d` — 2026-09-28T03:06:33+03:00 — R5 E9: add checker for 3-cut-irreducible singular UNSAT control
 - `b96a0b96a54c` — 2026-09-28T03:05:27+03:00 — R5 E9: add CI for singular UNSAT 3-cut hostile core
 - `b01463284dd2` — 2026-09-28T03:05:18+03:00 — R5 E9: add exact 3-cut census for singular UNSAT core
-- `694bad41c55e` — 2026-09-28T03:05:04+03:00 — R5 E9: freeze singular UNSAT 3-cut-irreducible hostile core
 
 ## Resume protocol
 
