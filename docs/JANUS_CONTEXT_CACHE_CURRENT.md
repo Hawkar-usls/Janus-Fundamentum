@@ -5,16 +5,16 @@
 - **Repository:** `Hawkar-usls/Janus-Fundamentum`
 - **PR:** `#510`
 - **Branch:** `codex/r5-e8-direct-contract-20260921-82493a57`
-- **Live source HEAD:** `c749c8ac5e8f08856dea949befc23ccc73bef12b`
-- **Source commit time:** `2026-09-29T00:24:03+03:00`
-- **Indexed changed scientific artifacts:** `839`
+- **Live source HEAD:** `35fd7f0afe3dd5dce866930fb7aaf309de444dcc`
+- **Source commit time:** `2026-09-29T00:32:53+03:00`
+- **Indexed changed scientific artifacts:** `840`
 
 ## Continuity status
 
 - Semantic cache: `.janus/P_VS_NP_STREAM_CACHE_CURRENT.json`
 - Semantic source HEAD: `05563fb285a1b2a4ae62d2a6aab0143bdbe52899`
 - Relation: **`LIVE_DESCENDS_FROM_SEMANTIC_CACHE`**
-- Commits after semantic checkpoint: `62`
+- Commits after semantic checkpoint: `63`
 
 ## Scientific firewall
 
@@ -141,6 +141,7 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `6743f72cba8d` — 2026-09-29T00:23:19+03:00 — R5 E9: prove linear cubic trace rank nullity bound
 - `9c9d5da7fde0` — 2026-09-29T00:23:48+03:00 — R5 E9: add exact checker for linear cubic trace rank bound
 - `c749c8ac5e8f` — 2026-09-29T00:24:03+03:00 — R5 E9: add CI for linear cubic trace rank bound
+- `35fd7f0afe3d` — 2026-09-29T00:32:53+03:00 — R5 E9: add Paley11 post-RKPR linear nullity-10 control
 
 ## Transport / stale-bootstrap watch
 
@@ -171,6 +172,7 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 
 ## Recent non-cache commits
 
+- `35fd7f0afe3d` — 2026-09-29T00:32:53+03:00 — R5 E9: add Paley11 post-RKPR linear nullity-10 control
 - `c749c8ac5e8f` — 2026-09-29T00:24:03+03:00 — R5 E9: add CI for linear cubic trace rank bound
 - `9c9d5da7fde0` — 2026-09-29T00:23:48+03:00 — R5 E9: add exact checker for linear cubic trace rank bound
 - `6743f72cba8d` — 2026-09-29T00:23:19+03:00 — R5 E9: prove linear cubic trace rank nullity bound
@@ -195,7 +197,6 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `8012c8d052b3` — 2026-09-28T21:43:35+03:00 — R5 E9: prove linear projective escape-radius prime tower
 - `9390f66e6134` — 2026-09-28T21:36:29+03:00 — R5 E9: add CI for geometric tope-radius stress
 - `c8f67b77b847` — 2026-09-28T21:36:22+03:00 — R5 E9: bind geometric augmentation meta-theorem and prime-tower stress
-- `d8e60cc564d2` — 2026-09-28T21:35:08+03:00 — R5 E9: add exact geometric tope-radius stress controls
 
 ## Resume protocol
 
