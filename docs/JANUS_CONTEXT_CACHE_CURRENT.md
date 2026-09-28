@@ -5,16 +5,16 @@
 - **Repository:** `Hawkar-usls/Janus-Fundamentum`
 - **PR:** `#510`
 - **Branch:** `codex/r5-e8-direct-contract-20260921-82493a57`
-- **Live source HEAD:** `c817538fbd83cd64b9e1564dd924c1e4cb5af195`
-- **Source commit time:** `2026-09-28T15:24:29+03:00`
-- **Indexed changed scientific artifacts:** `765`
+- **Live source HEAD:** `b0db547849a7cd9d747d3e3c797eb938c4ef6ff2`
+- **Source commit time:** `2026-09-28T15:25:40+03:00`
+- **Indexed changed scientific artifacts:** `768`
 
 ## Continuity status
 
 - Semantic cache: `.janus/P_VS_NP_STREAM_CACHE_CURRENT.json`
 - Semantic source HEAD: `ad3ccb96cbd44c5f0194f1775a1424d758897b04`
 - Relation: **`LIVE_DESCENDS_FROM_SEMANTIC_CACHE`**
-- Commits after semantic checkpoint: `10`
+- Commits after semantic checkpoint: `13`
 
 ## Scientific firewall
 
@@ -88,6 +88,9 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `de90927bb8a0` — 2026-09-28T15:23:35+03:00 — R5 E9: extend syndrome terminal to rooted MFMC matroids
 - `efa672ef4efa` — 2026-09-28T15:24:26+03:00 — R5 E9: add rooted MFMC syndrome regression checker
 - `c817538fbd83` — 2026-09-28T15:24:29+03:00 — R5 E9: build linear-cubic KS theta-equality countercarrier
+- `721f3b8056f8` — 2026-09-28T15:24:59+03:00 — R5 E9: add CI for rooted MFMC syndrome terminal
+- `8e940bc0e949` — 2026-09-28T15:25:19+03:00 — R5 E9: add checker for KS theta-equality countercarrier
+- `b0db547849a7` — 2026-09-28T15:25:40+03:00 — R5 E9: add CI for KS theta-equality countercarrier
 
 ## Transport / stale-bootstrap watch
 
@@ -118,6 +121,9 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 
 ## Recent non-cache commits
 
+- `b0db547849a7` — 2026-09-28T15:25:40+03:00 — R5 E9: add CI for KS theta-equality countercarrier
+- `8e940bc0e949` — 2026-09-28T15:25:19+03:00 — R5 E9: add checker for KS theta-equality countercarrier
+- `721f3b8056f8` — 2026-09-28T15:24:59+03:00 — R5 E9: add CI for rooted MFMC syndrome terminal
 - `c817538fbd83` — 2026-09-28T15:24:29+03:00 — R5 E9: build linear-cubic KS theta-equality countercarrier
 - `efa672ef4efa` — 2026-09-28T15:24:26+03:00 — R5 E9: add rooted MFMC syndrome regression checker
 - `de90927bb8a0` — 2026-09-28T15:23:35+03:00 — R5 E9: extend syndrome terminal to rooted MFMC matroids
@@ -140,9 +146,6 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `3edaf60fa94d` — 2026-09-28T14:46:26+03:00 — R5 E9: falsify endpoint delta-matroid across all affine9 normalizations
 - `994ce75da1e3` — 2026-09-28T14:42:10+03:00 — R5 E9: add cycle-syndrome homology regression
 - `f79f8b4aeb7a` — 2026-09-28T14:41:48+03:00 — R5 E9: isolate cycle-syndrome homology and delta-matroid boundary
-- `3762a09f4c13` — 2026-09-28T14:36:22+03:00 — R5 E9: reject PolaritySAT 2026 by forced-assignment counterexample
-- `80ac578f98a3` — 2026-09-28T06:34:21+03:00 — R5 E9 strengthen high-girth checkpoint with bounded occurrence
-- `d8f917f19b4a` — 2026-09-28T06:33:40+03:00 — R5 E9 validate high-girth bounded-occurrence barrier
 
 ## Resume protocol
 
