@@ -5,8 +5,8 @@
 - **Repository:** `Hawkar-usls/Janus-Fundamentum`
 - **PR:** `#510`
 - **Branch:** `codex/r5-e8-direct-contract-20260921-82493a57`
-- **Live source HEAD:** `da74ed88e4145a04c001e9b05831003541cde8c7`
-- **Source commit time:** `2026-09-29T15:04:02+03:00`
+- **Live source HEAD:** `c43992f8911e8fd88d934b094a0e046a6613c2ed`
+- **Source commit time:** `2026-09-29T15:05:47+03:00`
 - **Indexed changed scientific artifacts:** `958`
 
 ## Continuity status
@@ -14,7 +14,7 @@
 - Semantic cache: `.janus/P_VS_NP_STREAM_CACHE_CURRENT.json`
 - Semantic source HEAD: `480eed45722312b7b16e4a5d9f3d19149e125892`
 - Relation: **`LIVE_DESCENDS_FROM_SEMANTIC_CACHE`**
-- Commits after semantic checkpoint: `19`
+- Commits after semantic checkpoint: `20`
 
 ## Scientific firewall
 
@@ -101,6 +101,7 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `b82a8ebc6e74` — 2026-09-29T14:58:57+03:00 — R5 E9: add exact TU row-space integer LP router
 - `102b3b95b8d9` — 2026-09-29T15:03:54+03:00 — R5 E9: add exact TU row-space router regression
 - `da74ed88e414` — 2026-09-29T15:04:02+03:00 — R5 E9: add CI for exact TU row-space router
+- `c43992f8911e` — 2026-09-29T15:05:47+03:00 — R5 E9: bind PG15 non-TU residual control
 
 ## Transport / stale-bootstrap watch
 
@@ -131,6 +132,7 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 
 ## Recent non-cache commits
 
+- `c43992f8911e` — 2026-09-29T15:05:47+03:00 — R5 E9: bind PG15 non-TU residual control
 - `da74ed88e414` — 2026-09-29T15:04:02+03:00 — R5 E9: add CI for exact TU row-space router
 - `102b3b95b8d9` — 2026-09-29T15:03:54+03:00 — R5 E9: add exact TU row-space router regression
 - `b82a8ebc6e74` — 2026-09-29T14:58:57+03:00 — R5 E9: add exact TU row-space integer LP router
@@ -155,7 +157,6 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `7b6eafd3315e` — 2026-09-29T04:43:15+03:00 — R5 E9: add IF2E router and three-external hostile regression
 - `534eae0ff8a7` — 2026-09-29T04:42:50+03:00 — R5 E9: add regression for prime unique-model nullity tower
 - `7e940a17c60b` — 2026-09-29T04:42:48+03:00 — R5 E9: freeze three-external hostile local-minimum countercontrol
-- `644609b4b4fd` — 2026-09-29T04:42:16+03:00 — R5 E9: prove prime unique-model linear-nullity two-edge tower
 
 ## Resume protocol
 
