@@ -5,16 +5,16 @@
 - **Repository:** `Hawkar-usls/Janus-Fundamentum`
 - **PR:** `#510`
 - **Branch:** `codex/r5-e8-direct-contract-20260921-82493a57`
-- **Live source HEAD:** `5983c4a70e7000b2769a03b002ef22bbe1b0adfa`
-- **Source commit time:** `2026-09-29T03:25:30+03:00`
-- **Indexed changed scientific artifacts:** `894`
+- **Live source HEAD:** `bdef754555b4c6a931fe07fd65f64ad264610b77`
+- **Source commit time:** `2026-09-29T03:29:29+03:00`
+- **Indexed changed scientific artifacts:** `902`
 
 ## Continuity status
 
 - Semantic cache: `.janus/P_VS_NP_STREAM_CACHE_CURRENT.json`
 - Semantic source HEAD: `05563fb285a1b2a4ae62d2a6aab0143bdbe52899`
 - Relation: **`LIVE_DESCENDS_FROM_SEMANTIC_CACHE`**
-- Commits after semantic checkpoint: `124`
+- Commits after semantic checkpoint: `128`
 
 ## Scientific firewall
 
@@ -79,14 +79,6 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 
 ## Commits newer than semantic checkpoint — MUST INGEST
 
-- `46f9a6f0f774` — 2026-09-28T21:55:50+03:00 — R5 E9: add RKPR post-quotient reconciliation replay
-- `97244b0e6985` — 2026-09-28T21:55:57+03:00 — R5 E9: add CI for RKPR post-quotient reconciliation
-- `55490108beea` — 2026-09-28T22:45:25+03:00 — R5 E9: add rational-tope defect syndrome projective filter
-- `52a7d50f280c` — 2026-09-28T22:46:14+03:00 — R5 E9: add exact projective parity filter checker
-- `afe2e97cc3df` — 2026-09-28T22:46:23+03:00 — R5 E9: add CI for projective parity filter
-- `c7fb34355b27` — 2026-09-28T22:52:50+03:00 — R5 E9: sharpen projective parity filter with Smith torsion identity
-- `36577823df8b` — 2026-09-28T23:16:58+03:00 — R5 E9: prove two-edge SAT lift survives RKPR with linear nullity
-- `75f7ac08250f` — 2026-09-28T23:17:59+03:00 — R5 E9: add exact RKPR-survival regression for two-edge SAT lifts
 - `3d572a8026d1` — 2026-09-28T23:18:07+03:00 — R5 E9: add CI for two-edge SAT RKPR survival
 - `beaf84b5ed06` — 2026-09-28T23:53:35+03:00 — R5 E9: prove primitive linear-nullity local-swap barrier
 - `d9d54a1f2bd3` — 2026-09-28T23:54:05+03:00 — R5 E9: add exact primitive local-swap barrier checker
@@ -159,6 +151,14 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `0eed3744c479` — 2026-09-29T03:22:59+03:00 — R5 E9: add exact pair2 completeness falsifier checker
 - `17b25b7a9d80` — 2026-09-29T03:23:56+03:00 — R5 E9: add CI for pair2 completeness falsifier
 - `5983c4a70e70` — 2026-09-29T03:25:30+03:00 — R5 E9: add integer-lattice L1 Graver augmentation gate
+- `13432a47778c` — 2026-09-29T03:25:45+03:00 — R5 E9: falsify pair2 completeness on linear cubic carrier
+- `904a8ba22cfe` — 2026-09-29T03:26:06+03:00 — R5 E9: add exact L1 Graver gate checker
+- `71334111ff4b` — 2026-09-29T03:26:20+03:00 — R5 E9: add CI for integer-lattice L1 Graver gate
+- `2adcc87e4cdb` — 2026-09-29T03:26:50+03:00 — R5 E9: add exact pair2 completeness falsifier checker
+- `466b73317f94` — 2026-09-29T03:27:00+03:00 — R5 E9: add pair2 completeness falsifier CI
+- `49d3347b88b0` — 2026-09-29T03:28:57+03:00 — R5 E9: prove Exact-One3 projection-polymorphism bounded-width barrier
+- `78b289dd6f0f` — 2026-09-29T03:29:15+03:00 — R5 E9: add exact finite polymorphism regression
+- `bdef754555b4` — 2026-09-29T03:29:29+03:00 — R5 E9: add CI for projection-polymorphism barrier
 
 ## Transport / stale-bootstrap watch
 
@@ -189,6 +189,14 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 
 ## Recent non-cache commits
 
+- `bdef754555b4` — 2026-09-29T03:29:29+03:00 — R5 E9: add CI for projection-polymorphism barrier
+- `78b289dd6f0f` — 2026-09-29T03:29:15+03:00 — R5 E9: add exact finite polymorphism regression
+- `49d3347b88b0` — 2026-09-29T03:28:57+03:00 — R5 E9: prove Exact-One3 projection-polymorphism bounded-width barrier
+- `466b73317f94` — 2026-09-29T03:27:00+03:00 — R5 E9: add pair2 completeness falsifier CI
+- `2adcc87e4cdb` — 2026-09-29T03:26:50+03:00 — R5 E9: add exact pair2 completeness falsifier checker
+- `71334111ff4b` — 2026-09-29T03:26:20+03:00 — R5 E9: add CI for integer-lattice L1 Graver gate
+- `904a8ba22cfe` — 2026-09-29T03:26:06+03:00 — R5 E9: add exact L1 Graver gate checker
+- `13432a47778c` — 2026-09-29T03:25:45+03:00 — R5 E9: falsify pair2 completeness on linear cubic carrier
 - `5983c4a70e70` — 2026-09-29T03:25:30+03:00 — R5 E9: add integer-lattice L1 Graver augmentation gate
 - `17b25b7a9d80` — 2026-09-29T03:23:56+03:00 — R5 E9: add CI for pair2 completeness falsifier
 - `0eed3744c479` — 2026-09-29T03:22:59+03:00 — R5 E9: add exact pair2 completeness falsifier checker
@@ -206,14 +214,6 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `9ad821f7385e` — 2026-09-29T03:08:59+03:00 — R5 E9: add gradient-exact Z3 phase checker
 - `4fdea0fb9a4a` — 2026-09-29T03:08:41+03:00 — R5 E9: prove gradient-exact kernel Z3 phase polynomial island
 - `e5f4f950e9d0` — 2026-09-29T03:07:43+03:00 — R5 E9: add Paley gradient quotient control
-- `760c65707859` — 2026-09-29T03:07:32+03:00 — R5 E9: open gradient quotient next gate
-- `55ca05acf362` — 2026-09-29T03:07:15+03:00 — R5 E9: record Paley free-orbit barrier receipt
-- `d31bf97c214d` — 2026-09-29T03:07:01+03:00 — R5 E9: add Paley free-orbit barrier CI
-- `e49052311fb1` — 2026-09-29T03:06:50+03:00 — R5 E9: add exact Paley free-orbit structural checker
-- `cd36a8f5ca59` — 2026-09-29T03:06:05+03:00 — R5 E9: prove Paley free-orbit post-RKPR linear nullity barrier
-- `0fc2deb10cfc` — 2026-09-29T03:04:06+03:00 — R5 E9: linearize post-SNF RKPR falsifier via EQ3
-- `5531ffc733f4` — 2026-09-29T02:59:30+03:00 — R5 E9: reconcile Paley voltage family with SNF terminal
-- `3d7563c94007` — 2026-09-29T02:59:09+03:00 — R5 E9: CI for lattice pair-projection 2-SAT terminal
 
 ## Resume protocol
 
