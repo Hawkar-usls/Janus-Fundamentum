@@ -5,9 +5,9 @@
 - **Repository:** `Hawkar-usls/Janus-Fundamentum`
 - **PR:** `#510`
 - **Branch:** `codex/r5-e8-direct-contract-20260921-82493a57`
-- **Live source HEAD:** `bdef754555b4c6a931fe07fd65f64ad264610b77`
-- **Source commit time:** `2026-09-29T03:29:29+03:00`
-- **Indexed changed scientific artifacts:** `902`
+- **Live source HEAD:** `3a592d68aa6422576da9bef08309f0e7a97d0c12`
+- **Source commit time:** `2026-09-29T03:33:08+03:00`
+- **Indexed changed scientific artifacts:** `903`
 
 ## Continuity status
 
@@ -79,7 +79,6 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 
 ## Commits newer than semantic checkpoint — MUST INGEST
 
-- `3d572a8026d1` — 2026-09-28T23:18:07+03:00 — R5 E9: add CI for two-edge SAT RKPR survival
 - `beaf84b5ed06` — 2026-09-28T23:53:35+03:00 — R5 E9: prove primitive linear-nullity local-swap barrier
 - `d9d54a1f2bd3` — 2026-09-28T23:54:05+03:00 — R5 E9: add exact primitive local-swap barrier checker
 - `3d7a21320533` — 2026-09-28T23:54:11+03:00 — R5 E9: add CI for primitive local-swap barrier
@@ -159,6 +158,7 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `49d3347b88b0` — 2026-09-29T03:28:57+03:00 — R5 E9: prove Exact-One3 projection-polymorphism bounded-width barrier
 - `78b289dd6f0f` — 2026-09-29T03:29:15+03:00 — R5 E9: add exact finite polymorphism regression
 - `bdef754555b4` — 2026-09-29T03:29:29+03:00 — R5 E9: add CI for projection-polymorphism barrier
+- `3a592d68aa64` — 2026-09-29T03:33:08+03:00 — R5 E9: prove F2^4 five-line spread UNSAT terminal
 
 ## Transport / stale-bootstrap watch
 
@@ -189,6 +189,7 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 
 ## Recent non-cache commits
 
+- `3a592d68aa64` — 2026-09-29T03:33:08+03:00 — R5 E9: prove F2^4 five-line spread UNSAT terminal
 - `bdef754555b4` — 2026-09-29T03:29:29+03:00 — R5 E9: add CI for projection-polymorphism barrier
 - `78b289dd6f0f` — 2026-09-29T03:29:15+03:00 — R5 E9: add exact finite polymorphism regression
 - `49d3347b88b0` — 2026-09-29T03:28:57+03:00 — R5 E9: prove Exact-One3 projection-polymorphism bounded-width barrier
@@ -213,7 +214,6 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `8d3c7a3d1ebb` — 2026-09-29T03:09:09+03:00 — R5 E9: add gradient-exact Z3 phase island CI
 - `9ad821f7385e` — 2026-09-29T03:08:59+03:00 — R5 E9: add gradient-exact Z3 phase checker
 - `4fdea0fb9a4a` — 2026-09-29T03:08:41+03:00 — R5 E9: prove gradient-exact kernel Z3 phase polynomial island
-- `e5f4f950e9d0` — 2026-09-29T03:07:43+03:00 — R5 E9: add Paley gradient quotient control
 
 ## Resume protocol
 
