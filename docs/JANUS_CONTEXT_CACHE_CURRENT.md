@@ -5,16 +5,16 @@
 - **Repository:** `Hawkar-usls/Janus-Fundamentum`
 - **PR:** `#510`
 - **Branch:** `codex/r5-e8-direct-contract-20260921-82493a57`
-- **Live source HEAD:** `a2fa88d9656d6472e5f4f0256634be40b5db3688`
-- **Source commit time:** `2026-09-29T03:58:45+03:00`
-- **Indexed changed scientific artifacts:** `917`
+- **Live source HEAD:** `4c0189564bef58e94aac3924a917c3cbc9aa8977`
+- **Source commit time:** `2026-09-29T04:00:49+03:00`
+- **Indexed changed scientific artifacts:** `918`
 
 ## Continuity status
 
 - Semantic cache: `.janus/P_VS_NP_STREAM_CACHE_CURRENT.json`
 - Semantic source HEAD: `c9873372bcc260aa17f299188b55f528c9b2a0a1`
 - Relation: **`LIVE_DESCENDS_FROM_SEMANTIC_CACHE`**
-- Commits after semantic checkpoint: `9`
+- Commits after semantic checkpoint: `10`
 
 ## Scientific firewall
 
@@ -90,6 +90,7 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `ffe65f3a8ed0` — 2026-09-29T03:56:30+03:00 — R5 E9: prove exponential Graver coefficients in linear-cubic nullity-one family
 - `ef6ee2aa6bf3` — 2026-09-29T03:57:02+03:00 — R5 E9: add exact exponential Graver family regression
 - `a2fa88d9656d` — 2026-09-29T03:58:45+03:00 — R5 E9: add CI for exponential Graver coefficient family
+- `4c0189564bef` — 2026-09-29T04:00:49+03:00 — R5 E9: isolate continuous L1 barycenter and crossing penalty
 
 ## Transport / stale-bootstrap watch
 
@@ -120,6 +121,7 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 
 ## Recent non-cache commits
 
+- `4c0189564bef` — 2026-09-29T04:00:49+03:00 — R5 E9: isolate continuous L1 barycenter and crossing penalty
 - `a2fa88d9656d` — 2026-09-29T03:58:45+03:00 — R5 E9: add CI for exponential Graver coefficient family
 - `ef6ee2aa6bf3` — 2026-09-29T03:57:02+03:00 — R5 E9: add exact exponential Graver family regression
 - `ffe65f3a8ed0` — 2026-09-29T03:56:30+03:00 — R5 E9: prove exponential Graver coefficients in linear-cubic nullity-one family
@@ -144,7 +146,6 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `71334111ff4b` — 2026-09-29T03:26:20+03:00 — R5 E9: add CI for integer-lattice L1 Graver gate
 - `904a8ba22cfe` — 2026-09-29T03:26:06+03:00 — R5 E9: add exact L1 Graver gate checker
 - `13432a47778c` — 2026-09-29T03:25:45+03:00 — R5 E9: falsify pair2 completeness on linear cubic carrier
-- `5983c4a70e70` — 2026-09-29T03:25:30+03:00 — R5 E9: add integer-lattice L1 Graver augmentation gate
 
 ## Resume protocol
 
