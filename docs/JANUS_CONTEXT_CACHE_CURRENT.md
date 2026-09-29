@@ -5,16 +5,16 @@
 - **Repository:** `Hawkar-usls/Janus-Fundamentum`
 - **PR:** `#510`
 - **Branch:** `codex/r5-e8-direct-contract-20260921-82493a57`
-- **Live source HEAD:** `c6a72f69d591358961854913a6f77b90aec10c5d`
-- **Source commit time:** `2026-09-29T05:09:46+03:00`
-- **Indexed changed scientific artifacts:** `944`
+- **Live source HEAD:** `da9a19e241f3d125d5aa70120dcb1614342c3996`
+- **Source commit time:** `2026-09-29T13:07:14+03:00`
+- **Indexed changed scientific artifacts:** `947`
 
 ## Continuity status
 
 - Semantic cache: `.janus/P_VS_NP_STREAM_CACHE_CURRENT.json`
 - Semantic source HEAD: `480eed45722312b7b16e4a5d9f3d19149e125892`
 - Relation: **`LIVE_DESCENDS_FROM_SEMANTIC_CACHE`**
-- Commits after semantic checkpoint: `5`
+- Commits after semantic checkpoint: `8`
 
 ## Scientific firewall
 
@@ -87,6 +87,9 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `703cf69645d9` — 2026-09-29T04:57:58+03:00 — R5 E9: add Walsh moment augmentation regression
 - `404c9f1bd197` — 2026-09-29T04:58:13+03:00 — R5 E9: add CI for Walsh moment global augmentation
 - `c6a72f69d591` — 2026-09-29T05:09:46+03:00 — R5 E9: add exact MaxLin2-AA router for negative-mean Walsh gate
+- `62ffcf76426f` — 2026-09-29T05:11:57+03:00 — R5 E9: add exact Walsh-to-MaxLin2 mapping regression
+- `87efa2d7c38e` — 2026-09-29T05:12:07+03:00 — R5 E9: add CI for Walsh MaxLin2-AA router
+- `da9a19e241f3` — 2026-09-29T13:07:14+03:00 — R5 E9: add Paley11 chain-switch post-RKPR linear-nullity family
 
 ## Transport / stale-bootstrap watch
 
@@ -117,6 +120,9 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 
 ## Recent non-cache commits
 
+- `da9a19e241f3` — 2026-09-29T13:07:14+03:00 — R5 E9: add Paley11 chain-switch post-RKPR linear-nullity family
+- `87efa2d7c38e` — 2026-09-29T05:12:07+03:00 — R5 E9: add CI for Walsh MaxLin2-AA router
+- `62ffcf76426f` — 2026-09-29T05:11:57+03:00 — R5 E9: add exact Walsh-to-MaxLin2 mapping regression
 - `c6a72f69d591` — 2026-09-29T05:09:46+03:00 — R5 E9: add exact MaxLin2-AA router for negative-mean Walsh gate
 - `404c9f1bd197` — 2026-09-29T04:58:13+03:00 — R5 E9: add CI for Walsh moment global augmentation
 - `703cf69645d9` — 2026-09-29T04:57:58+03:00 — R5 E9: add Walsh moment augmentation regression
@@ -139,9 +145,6 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `cdd3b8c52dd4` — 2026-09-29T04:22:52+03:00 — R5 E9: reduce parity defects to source-signed linear even cover WGFP
 - `9fce9bc8db9b` — 2026-09-29T04:09:38+03:00 — R5 E9: add CI for NAE transversal copy flow
 - `d911d51d384b` — 2026-09-29T04:09:31+03:00 — R5 E9: add exact NAE copy-flow regression
-- `a5b56657ee56` — 2026-09-29T04:08:55+03:00 — R5 E9: derive NAE transversal copy-flow normal form
-- `78e0cbc8909c` — 2026-09-29T04:03:56+03:00 — R5 E9: sync semantic checkpoint to crossing-penalty trade frontier
-- `50c5c8500bf8` — 2026-09-29T04:03:23+03:00 — R5 E9: add exact EQ3 L1 private-elimination checker
 
 ## Resume protocol
 
