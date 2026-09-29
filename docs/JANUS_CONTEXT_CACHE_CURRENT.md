@@ -5,16 +5,16 @@
 - **Repository:** `Hawkar-usls/Janus-Fundamentum`
 - **PR:** `#510`
 - **Branch:** `codex/r5-e8-direct-contract-20260921-82493a57`
-- **Live source HEAD:** `7aae6e3121466ef9a8de0bd07734c0a9bcf007c5`
-- **Source commit time:** `2026-09-29T04:57:16+03:00`
-- **Indexed changed scientific artifacts:** `941`
+- **Live source HEAD:** `404c9f1bd1976a514d88560658dd7d5d0b172bea`
+- **Source commit time:** `2026-09-29T04:58:13+03:00`
+- **Indexed changed scientific artifacts:** `943`
 
 ## Continuity status
 
 - Semantic cache: `.janus/P_VS_NP_STREAM_CACHE_CURRENT.json`
 - Semantic source HEAD: `480eed45722312b7b16e4a5d9f3d19149e125892`
 - Relation: **`LIVE_DESCENDS_FROM_SEMANTIC_CACHE`**
-- Commits after semantic checkpoint: `2`
+- Commits after semantic checkpoint: `4`
 
 ## Scientific firewall
 
@@ -84,6 +84,8 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 
 - `d9807a85a3f2` — 2026-09-29T04:50:46+03:00 — R5 E9: synchronize semantic checkpoint to global sign-crossing trade gate
 - `7aae6e312146` — 2026-09-29T04:57:16+03:00 — R5 E9: add global Walsh moment kernel augmentation router
+- `703cf69645d9` — 2026-09-29T04:57:58+03:00 — R5 E9: add Walsh moment augmentation regression
+- `404c9f1bd197` — 2026-09-29T04:58:13+03:00 — R5 E9: add CI for Walsh moment global augmentation
 
 ## Transport / stale-bootstrap watch
 
@@ -114,6 +116,8 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 
 ## Recent non-cache commits
 
+- `404c9f1bd197` — 2026-09-29T04:58:13+03:00 — R5 E9: add CI for Walsh moment global augmentation
+- `703cf69645d9` — 2026-09-29T04:57:58+03:00 — R5 E9: add Walsh moment augmentation regression
 - `7aae6e312146` — 2026-09-29T04:57:16+03:00 — R5 E9: add global Walsh moment kernel augmentation router
 - `d9807a85a3f2` — 2026-09-29T04:50:46+03:00 — R5 E9: synchronize semantic checkpoint to global sign-crossing trade gate
 - `480eed457223` — 2026-09-29T04:49:04+03:00 — R5 E9: add exact circuit-augmentation barrier checker
@@ -137,8 +141,6 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `78e0cbc8909c` — 2026-09-29T04:03:56+03:00 — R5 E9: sync semantic checkpoint to crossing-penalty trade frontier
 - `50c5c8500bf8` — 2026-09-29T04:03:23+03:00 — R5 E9: add exact EQ3 L1 private-elimination checker
 - `620f19b64a9c` — 2026-09-29T04:03:08+03:00 — R5 E9: eliminate EQ3 private L1 coordinates exactly
-- `66e9e29aa352` — 2026-09-29T04:01:39+03:00 — R5 E9: add CI for continuous L1 crossing barrier
-- `d972c0cd518d` — 2026-09-29T04:01:29+03:00 — R5 E9: add exact checker for continuous L1 crossing barrier
 
 ## Resume protocol
 
