@@ -5,16 +5,16 @@
 - **Repository:** `Hawkar-usls/Janus-Fundamentum`
 - **PR:** `#510`
 - **Branch:** `codex/r5-e8-direct-contract-20260921-82493a57`
-- **Live source HEAD:** `17b25b7a9d802b98755c25c33a68c6593e3889b3`
-- **Source commit time:** `2026-09-29T03:23:56+03:00`
-- **Indexed changed scientific artifacts:** `893`
+- **Live source HEAD:** `5983c4a70e7000b2769a03b002ef22bbe1b0adfa`
+- **Source commit time:** `2026-09-29T03:25:30+03:00`
+- **Indexed changed scientific artifacts:** `894`
 
 ## Continuity status
 
 - Semantic cache: `.janus/P_VS_NP_STREAM_CACHE_CURRENT.json`
 - Semantic source HEAD: `05563fb285a1b2a4ae62d2a6aab0143bdbe52899`
 - Relation: **`LIVE_DESCENDS_FROM_SEMANTIC_CACHE`**
-- Commits after semantic checkpoint: `123`
+- Commits after semantic checkpoint: `124`
 
 ## Scientific firewall
 
@@ -79,7 +79,6 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 
 ## Commits newer than semantic checkpoint — MUST INGEST
 
-- `789c1400869c` — 2026-09-28T21:55:26+03:00 — R5 E9: reconcile RKPR with prime tower and EQ3 hardness image
 - `46f9a6f0f774` — 2026-09-28T21:55:50+03:00 — R5 E9: add RKPR post-quotient reconciliation replay
 - `97244b0e6985` — 2026-09-28T21:55:57+03:00 — R5 E9: add CI for RKPR post-quotient reconciliation
 - `55490108beea` — 2026-09-28T22:45:25+03:00 — R5 E9: add rational-tope defect syndrome projective filter
@@ -159,6 +158,7 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `4be8ce563307` — 2026-09-29T03:21:52+03:00 — R5 E9: falsify pair-projection completeness on linear-cubic carrier
 - `0eed3744c479` — 2026-09-29T03:22:59+03:00 — R5 E9: add exact pair2 completeness falsifier checker
 - `17b25b7a9d80` — 2026-09-29T03:23:56+03:00 — R5 E9: add CI for pair2 completeness falsifier
+- `5983c4a70e70` — 2026-09-29T03:25:30+03:00 — R5 E9: add integer-lattice L1 Graver augmentation gate
 
 ## Transport / stale-bootstrap watch
 
@@ -189,6 +189,7 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 
 ## Recent non-cache commits
 
+- `5983c4a70e70` — 2026-09-29T03:25:30+03:00 — R5 E9: add integer-lattice L1 Graver augmentation gate
 - `17b25b7a9d80` — 2026-09-29T03:23:56+03:00 — R5 E9: add CI for pair2 completeness falsifier
 - `0eed3744c479` — 2026-09-29T03:22:59+03:00 — R5 E9: add exact pair2 completeness falsifier checker
 - `4be8ce563307` — 2026-09-29T03:21:52+03:00 — R5 E9: falsify pair-projection completeness on linear-cubic carrier
@@ -213,7 +214,6 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `0fc2deb10cfc` — 2026-09-29T03:04:06+03:00 — R5 E9: linearize post-SNF RKPR falsifier via EQ3
 - `5531ffc733f4` — 2026-09-29T02:59:30+03:00 — R5 E9: reconcile Paley voltage family with SNF terminal
 - `3d7563c94007` — 2026-09-29T02:59:09+03:00 — R5 E9: CI for lattice pair-projection 2-SAT terminal
-- `393e7dcd1813` — 2026-09-29T02:58:54+03:00 — R5 E9: add exact pair-projection 2-SAT checker
 
 ## Resume protocol
 
