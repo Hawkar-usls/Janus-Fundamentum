@@ -5,16 +5,16 @@
 - **Repository:** `Hawkar-usls/Janus-Fundamentum`
 - **PR:** `#510`
 - **Branch:** `codex/r5-e8-direct-contract-20260921-82493a57`
-- **Live source HEAD:** `d71a16a888c182b47803523e236cfd84ea01c212`
-- **Source commit time:** `2026-09-29T04:34:04+03:00`
-- **Indexed changed scientific artifacts:** `929`
+- **Live source HEAD:** `f675173f3ef17c0b18074c27a6030ae69b613e2e`
+- **Source commit time:** `2026-09-29T04:34:29+03:00`
+- **Indexed changed scientific artifacts:** `931`
 
 ## Continuity status
 
 - Semantic cache: `.janus/P_VS_NP_STREAM_CACHE_CURRENT.json`
 - Semantic source HEAD: `66e9e29aa352f9b2df8ea9b36ec1732066ad19b8`
 - Relation: **`LIVE_DESCENDS_FROM_SEMANTIC_CACHE`**
-- Commits after semantic checkpoint: `10`
+- Commits after semantic checkpoint: `12`
 
 ## Scientific firewall
 
@@ -96,6 +96,8 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `e2e79fa1c36f` — 2026-09-29T04:23:47+03:00 — R5 E9: add source-signed even-cover WGFP regression
 - `4d060d749e84` — 2026-09-29T04:23:56+03:00 — R5 E9: add CI for source-signed even-cover WGFP
 - `d71a16a888c1` — 2026-09-29T04:34:04+03:00 — R5 E9: prove maximum linear even-cover saturation equivalence
+- `00c94877999b` — 2026-09-29T04:34:20+03:00 — R5 E9: add maximum even-cover saturation regression
+- `f675173f3ef1` — 2026-09-29T04:34:29+03:00 — R5 E9: add CI for maximum even-cover saturation
 
 ## Transport / stale-bootstrap watch
 
@@ -126,6 +128,8 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 
 ## Recent non-cache commits
 
+- `f675173f3ef1` — 2026-09-29T04:34:29+03:00 — R5 E9: add CI for maximum even-cover saturation
+- `00c94877999b` — 2026-09-29T04:34:20+03:00 — R5 E9: add maximum even-cover saturation regression
 - `d71a16a888c1` — 2026-09-29T04:34:04+03:00 — R5 E9: prove maximum linear even-cover saturation equivalence
 - `4d060d749e84` — 2026-09-29T04:23:56+03:00 — R5 E9: add CI for source-signed even-cover WGFP
 - `e2e79fa1c36f` — 2026-09-29T04:23:47+03:00 — R5 E9: add source-signed even-cover WGFP regression
@@ -149,8 +153,6 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `5f3f94c9ae38` — 2026-09-29T03:39:18+03:00 — R5 E9: synchronize semantic checkpoint to source-trade augmentation frontier
 - `5b9b1fd3c146` — 2026-09-29T03:37:56+03:00 — R5 E9: add exact triple-empty lift falsifier checker
 - `c9873372bcc2` — 2026-09-29T03:36:53+03:00 — R5 E9: falsify triple-empty completeness via exact two-edge lift
-- `9f37d12b95b4` — 2026-09-29T03:34:48+03:00 — R5 E9: add CI for EQ3 determinant packing barrier
-- `5d904345553f` — 2026-09-29T03:34:32+03:00 — R5 E9: add exact EQ3 determinant packing checker
 
 ## Resume protocol
 
