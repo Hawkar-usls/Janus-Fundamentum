@@ -35,7 +35,7 @@ Ax=\mathbf1,\ x\in\{0,1\}^{E}
 }
 \]
 
-Therefore this branch is decidable, constructible, reconstructible, and verifiable in polynomial time by Gaussian elimination over \(\mathbb F_3\).
+Therefore this branch is decidable, constructible, reconstructible, and verifiable in polynomial time by linear consistency/propagation over \(\mathbb F_3\).
 
 ---
 
@@ -74,20 +74,22 @@ y=Dz.
 For each oriented edge \(u\to v\),
 
 \[
-z_v-z_u=y_{u\to v}\in\{-1,2\}.
+z_v-z_u=y_{u\to v}\in\{-1,2\}\subset\mathbb Z.
 \]
 
-Reducing modulo 3 gives
+Thus every edge difference is integral. On each connected component choose a root \(r\) and subtract \(z_r\) from all vertex potentials in that component. Along any root-to-vertex path, the resulting potential is a sum of integral edge differences, hence is itself an integer. Therefore there is an integer potential \(z'\) with
 
 \[
-z_v-z_u\equiv-1\pmod3.
+y=Dz'.
 \]
 
-Since all edge differences are integers, fix one vertex per connected component and propagate; the potential is congruent modulo 3 to an \(\mathbb F_3\) vertex labelling \(\phi\) satisfying
+Reducing this integer potential modulo 3 gives an \(\mathbb F_3\) vertex labelling \(\phi\) satisfying
 
 \[
-\phi(v)-\phi(u)=-1.
+\phi(v)-\phi(u)=-1
 \]
+
+on every oriented edge.
 
 ---
 
@@ -147,12 +149,13 @@ This direction does not need the kernel-equality hypothesis; `AD=0` and the phas
    \]
 
    For a connected underlying graph this is \(\nu_{\mathbb Q}(A)=|V|-1\).
-3. Solve the affine linear system over \(\mathbb F_3\)
+3. Solve the edge-difference system over \(\mathbb F_3\)
 
    \[
    D\phi=-\mathbf1.
    \]
 
+   This can be done by Gaussian elimination or, more directly, by component propagation because every edge fixes a unique relative phase.
 4. If inconsistent, return UNSAT.
 5. If consistent, choose representatives `0,1,2`, construct
 
@@ -184,7 +187,7 @@ Hence
 \ker A=\operatorname{im}D.
 \]
 
-The phase equations are inconsistent (equivalently, a directed triangle itself gives phase sum `-3 = 0 mod 3`, while the complete tournament creates incompatible pair requirements globally). Therefore the source is certified UNSAT in polynomial time.
+The phase equations are inconsistent, so the source is certified UNSAT in polynomial time.
 
 The earlier potential-diameter argument remains a valid independent UNSAT certificate, but the phase criterion is the algorithmically cleaner terminal.
 
@@ -200,7 +203,7 @@ This result does **not** rescue the nullity-enumeration route: the infinite Pale
 
 and rational nullity at least \(\Omega(\sqrt n)\).
 
-It does establish a genuine new polynomial island:
+It does establish a genuine polynomial island:
 
 ```text
 cycle-incidence source
