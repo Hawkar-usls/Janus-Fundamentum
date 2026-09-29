@@ -5,16 +5,16 @@
 - **Repository:** `Hawkar-usls/Janus-Fundamentum`
 - **PR:** `#510`
 - **Branch:** `codex/r5-e8-direct-contract-20260921-82493a57`
-- **Live source HEAD:** `d9807a85a3f276fee614093af042ec54cc97d269`
-- **Source commit time:** `2026-09-29T04:50:46+03:00`
-- **Indexed changed scientific artifacts:** `940`
+- **Live source HEAD:** `7aae6e3121466ef9a8de0bd07734c0a9bcf007c5`
+- **Source commit time:** `2026-09-29T04:57:16+03:00`
+- **Indexed changed scientific artifacts:** `941`
 
 ## Continuity status
 
 - Semantic cache: `.janus/P_VS_NP_STREAM_CACHE_CURRENT.json`
 - Semantic source HEAD: `480eed45722312b7b16e4a5d9f3d19149e125892`
 - Relation: **`LIVE_DESCENDS_FROM_SEMANTIC_CACHE`**
-- Commits after semantic checkpoint: `1`
+- Commits after semantic checkpoint: `2`
 
 ## Scientific firewall
 
@@ -83,6 +83,7 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 ## Commits newer than semantic checkpoint — MUST INGEST
 
 - `d9807a85a3f2` — 2026-09-29T04:50:46+03:00 — R5 E9: synchronize semantic checkpoint to global sign-crossing trade gate
+- `7aae6e312146` — 2026-09-29T04:57:16+03:00 — R5 E9: add global Walsh moment kernel augmentation router
 
 ## Transport / stale-bootstrap watch
 
@@ -113,6 +114,7 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 
 ## Recent non-cache commits
 
+- `7aae6e312146` — 2026-09-29T04:57:16+03:00 — R5 E9: add global Walsh moment kernel augmentation router
 - `d9807a85a3f2` — 2026-09-29T04:50:46+03:00 — R5 E9: synchronize semantic checkpoint to global sign-crossing trade gate
 - `480eed457223` — 2026-09-29T04:49:04+03:00 — R5 E9: add exact circuit-augmentation barrier checker
 - `44d31b0ab5ae` — 2026-09-29T04:48:43+03:00 — R5 E9: falsify circuit-only integer L1 augmentation
@@ -137,7 +139,6 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `620f19b64a9c` — 2026-09-29T04:03:08+03:00 — R5 E9: eliminate EQ3 private L1 coordinates exactly
 - `66e9e29aa352` — 2026-09-29T04:01:39+03:00 — R5 E9: add CI for continuous L1 crossing barrier
 - `d972c0cd518d` — 2026-09-29T04:01:29+03:00 — R5 E9: add exact checker for continuous L1 crossing barrier
-- `4c0189564bef` — 2026-09-29T04:00:49+03:00 — R5 E9: isolate continuous L1 barycenter and crossing penalty
 
 ## Resume protocol
 
