@@ -5,16 +5,16 @@
 - **Repository:** `Hawkar-usls/Janus-Fundamentum`
 - **PR:** `#510`
 - **Branch:** `codex/r5-e8-direct-contract-20260921-82493a57`
-- **Live source HEAD:** `b8dd44bb17bb4bb22f76435580b7fd5e512a4851`
-- **Source commit time:** `2026-09-29T13:26:55+03:00`
-- **Indexed changed scientific artifacts:** `953`
+- **Live source HEAD:** `b82a8ebc6e749132bc500f3603fdac9a9658e610`
+- **Source commit time:** `2026-09-29T14:58:57+03:00`
+- **Indexed changed scientific artifacts:** `956`
 
 ## Continuity status
 
 - Semantic cache: `.janus/P_VS_NP_STREAM_CACHE_CURRENT.json`
 - Semantic source HEAD: `480eed45722312b7b16e4a5d9f3d19149e125892`
 - Relation: **`LIVE_DESCENDS_FROM_SEMANTIC_CACHE`**
-- Commits after semantic checkpoint: `14`
+- Commits after semantic checkpoint: `17`
 
 ## Scientific firewall
 
@@ -96,6 +96,9 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `db8358972870` — 2026-09-29T13:19:15+03:00 — R5 E9: add exact Paley11 gradient-kernel checker
 - `fc5ad37840c5` — 2026-09-29T13:19:24+03:00 — R5 E9: add Paley11 gradient-kernel CI
 - `b8dd44bb17bb` — 2026-09-29T13:26:55+03:00 — R5 E9: prove infinite Paley-orbit post-RKPR gradient family
+- `469349bd9b7b` — 2026-09-29T13:27:58+03:00 — R5 E9: add exact checker for infinite Paley-orbit family
+- `8bc2dbd046e8` — 2026-09-29T13:28:07+03:00 — R5 E9: add CI for infinite Paley-orbit gradient family
+- `b82a8ebc6e74` — 2026-09-29T14:58:57+03:00 — R5 E9: add exact TU row-space integer LP router
 
 ## Transport / stale-bootstrap watch
 
@@ -126,6 +129,9 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 
 ## Recent non-cache commits
 
+- `b82a8ebc6e74` — 2026-09-29T14:58:57+03:00 — R5 E9: add exact TU row-space integer LP router
+- `8bc2dbd046e8` — 2026-09-29T13:28:07+03:00 — R5 E9: add CI for infinite Paley-orbit gradient family
+- `469349bd9b7b` — 2026-09-29T13:27:58+03:00 — R5 E9: add exact checker for infinite Paley-orbit family
 - `b8dd44bb17bb` — 2026-09-29T13:26:55+03:00 — R5 E9: prove infinite Paley-orbit post-RKPR gradient family
 - `fc5ad37840c5` — 2026-09-29T13:19:24+03:00 — R5 E9: add Paley11 gradient-kernel CI
 - `db8358972870` — 2026-09-29T13:19:15+03:00 — R5 E9: add exact Paley11 gradient-kernel checker
@@ -148,9 +154,6 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `644609b4b4fd` — 2026-09-29T04:42:16+03:00 — R5 E9: prove prime unique-model linear-nullity two-edge tower
 - `9bb40a0690d2` — 2026-09-29T04:41:12+03:00 — R5 E9: add checker for zero-crossing trap
 - `c7575b64bb28` — 2026-09-29T04:40:47+03:00 — R5 E9: prove fixed-NAE sign equivalence and zero-crossing trap
-- `4f41dd32fa95` — 2026-09-29T04:40:28+03:00 — R5 E9: add independent-flat two-external augmentation router
-- `f675173f3ef1` — 2026-09-29T04:34:29+03:00 — R5 E9: add CI for maximum even-cover saturation
-- `00c94877999b` — 2026-09-29T04:34:20+03:00 — R5 E9: add maximum even-cover saturation regression
 
 ## Resume protocol
 
