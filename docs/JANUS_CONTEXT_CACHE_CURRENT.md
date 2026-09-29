@@ -5,16 +5,16 @@
 - **Repository:** `Hawkar-usls/Janus-Fundamentum`
 - **PR:** `#510`
 - **Branch:** `codex/r5-e8-direct-contract-20260921-82493a57`
-- **Live source HEAD:** `fe80c58e3c6cfbafdddec26e05db263882b6805f`
-- **Source commit time:** `2026-09-29T13:18:00+03:00`
-- **Indexed changed scientific artifacts:** `950`
+- **Live source HEAD:** `fc5ad37840c5238e3ca021a5f68e7fe0fd2c3295`
+- **Source commit time:** `2026-09-29T13:19:24+03:00`
+- **Indexed changed scientific artifacts:** `952`
 
 ## Continuity status
 
 - Semantic cache: `.janus/P_VS_NP_STREAM_CACHE_CURRENT.json`
 - Semantic source HEAD: `480eed45722312b7b16e4a5d9f3d19149e125892`
 - Relation: **`LIVE_DESCENDS_FROM_SEMANTIC_CACHE`**
-- Commits after semantic checkpoint: `11`
+- Commits after semantic checkpoint: `13`
 
 ## Scientific firewall
 
@@ -93,6 +93,8 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `64b373e90b66` — 2026-09-29T13:08:00+03:00 — R5 E9: add exact Paley11 chain-switch nullity checker
 - `e3bb810fa89b` — 2026-09-29T13:08:12+03:00 — R5 E9: add CI for Paley11 chain-switch nullity family
 - `fe80c58e3c6c` — 2026-09-29T13:18:00+03:00 — R5 E9: add Paley11 gradient-kernel post-RKPR UNSAT terminal
+- `db8358972870` — 2026-09-29T13:19:15+03:00 — R5 E9: add exact Paley11 gradient-kernel checker
+- `fc5ad37840c5` — 2026-09-29T13:19:24+03:00 — R5 E9: add Paley11 gradient-kernel CI
 
 ## Transport / stale-bootstrap watch
 
@@ -123,6 +125,8 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 
 ## Recent non-cache commits
 
+- `fc5ad37840c5` — 2026-09-29T13:19:24+03:00 — R5 E9: add Paley11 gradient-kernel CI
+- `db8358972870` — 2026-09-29T13:19:15+03:00 — R5 E9: add exact Paley11 gradient-kernel checker
 - `fe80c58e3c6c` — 2026-09-29T13:18:00+03:00 — R5 E9: add Paley11 gradient-kernel post-RKPR UNSAT terminal
 - `e3bb810fa89b` — 2026-09-29T13:08:12+03:00 — R5 E9: add CI for Paley11 chain-switch nullity family
 - `64b373e90b66` — 2026-09-29T13:08:00+03:00 — R5 E9: add exact Paley11 chain-switch nullity checker
@@ -146,8 +150,6 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `f675173f3ef1` — 2026-09-29T04:34:29+03:00 — R5 E9: add CI for maximum even-cover saturation
 - `00c94877999b` — 2026-09-29T04:34:20+03:00 — R5 E9: add maximum even-cover saturation regression
 - `d71a16a888c1` — 2026-09-29T04:34:04+03:00 — R5 E9: prove maximum linear even-cover saturation equivalence
-- `4d060d749e84` — 2026-09-29T04:23:56+03:00 — R5 E9: add CI for source-signed even-cover WGFP
-- `e2e79fa1c36f` — 2026-09-29T04:23:47+03:00 — R5 E9: add source-signed even-cover WGFP regression
 
 ## Resume protocol
 
