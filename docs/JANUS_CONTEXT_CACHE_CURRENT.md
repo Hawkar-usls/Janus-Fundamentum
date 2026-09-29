@@ -5,16 +5,16 @@
 - **Repository:** `Hawkar-usls/Janus-Fundamentum`
 - **PR:** `#510`
 - **Branch:** `codex/r5-e8-direct-contract-20260921-82493a57`
-- **Live source HEAD:** `f675173f3ef17c0b18074c27a6030ae69b613e2e`
-- **Source commit time:** `2026-09-29T04:34:29+03:00`
-- **Indexed changed scientific artifacts:** `931`
+- **Live source HEAD:** `7b6eafd3315e0dfc49cdf7cb5959439fef8ee857`
+- **Source commit time:** `2026-09-29T04:43:15+03:00`
+- **Indexed changed scientific artifacts:** `938`
 
 ## Continuity status
 
 - Semantic cache: `.janus/P_VS_NP_STREAM_CACHE_CURRENT.json`
 - Semantic source HEAD: `66e9e29aa352f9b2df8ea9b36ec1732066ad19b8`
 - Relation: **`LIVE_DESCENDS_FROM_SEMANTIC_CACHE`**
-- Commits after semantic checkpoint: `12`
+- Commits after semantic checkpoint: `19`
 
 ## Scientific firewall
 
@@ -98,6 +98,13 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `d71a16a888c1` — 2026-09-29T04:34:04+03:00 — R5 E9: prove maximum linear even-cover saturation equivalence
 - `00c94877999b` — 2026-09-29T04:34:20+03:00 — R5 E9: add maximum even-cover saturation regression
 - `f675173f3ef1` — 2026-09-29T04:34:29+03:00 — R5 E9: add CI for maximum even-cover saturation
+- `4f41dd32fa95` — 2026-09-29T04:40:28+03:00 — R5 E9: add independent-flat two-external augmentation router
+- `c7575b64bb28` — 2026-09-29T04:40:47+03:00 — R5 E9: prove fixed-NAE sign equivalence and zero-crossing trap
+- `9bb40a0690d2` — 2026-09-29T04:41:12+03:00 — R5 E9: add checker for zero-crossing trap
+- `644609b4b4fd` — 2026-09-29T04:42:16+03:00 — R5 E9: prove prime unique-model linear-nullity two-edge tower
+- `7e940a17c60b` — 2026-09-29T04:42:48+03:00 — R5 E9: freeze three-external hostile local-minimum countercontrol
+- `534eae0ff8a7` — 2026-09-29T04:42:50+03:00 — R5 E9: add regression for prime unique-model nullity tower
+- `7b6eafd3315e` — 2026-09-29T04:43:15+03:00 — R5 E9: add IF2E router and three-external hostile regression
 
 ## Transport / stale-bootstrap watch
 
@@ -128,6 +135,13 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 
 ## Recent non-cache commits
 
+- `7b6eafd3315e` — 2026-09-29T04:43:15+03:00 — R5 E9: add IF2E router and three-external hostile regression
+- `534eae0ff8a7` — 2026-09-29T04:42:50+03:00 — R5 E9: add regression for prime unique-model nullity tower
+- `7e940a17c60b` — 2026-09-29T04:42:48+03:00 — R5 E9: freeze three-external hostile local-minimum countercontrol
+- `644609b4b4fd` — 2026-09-29T04:42:16+03:00 — R5 E9: prove prime unique-model linear-nullity two-edge tower
+- `9bb40a0690d2` — 2026-09-29T04:41:12+03:00 — R5 E9: add checker for zero-crossing trap
+- `c7575b64bb28` — 2026-09-29T04:40:47+03:00 — R5 E9: prove fixed-NAE sign equivalence and zero-crossing trap
+- `4f41dd32fa95` — 2026-09-29T04:40:28+03:00 — R5 E9: add independent-flat two-external augmentation router
 - `f675173f3ef1` — 2026-09-29T04:34:29+03:00 — R5 E9: add CI for maximum even-cover saturation
 - `00c94877999b` — 2026-09-29T04:34:20+03:00 — R5 E9: add maximum even-cover saturation regression
 - `d71a16a888c1` — 2026-09-29T04:34:04+03:00 — R5 E9: prove maximum linear even-cover saturation equivalence
@@ -146,13 +160,6 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `a2fa88d9656d` — 2026-09-29T03:58:45+03:00 — R5 E9: add CI for exponential Graver coefficient family
 - `ef6ee2aa6bf3` — 2026-09-29T03:57:02+03:00 — R5 E9: add exact exponential Graver family regression
 - `ffe65f3a8ed0` — 2026-09-29T03:56:30+03:00 — R5 E9: prove exponential Graver coefficients in linear-cubic nullity-one family
-- `c86fb2ba353b` — 2026-09-29T03:52:20+03:00 — R5 E9: add exact NAE defect-flow positive-layer regression
-- `dfa150d17ee4` — 2026-09-29T03:51:47+03:00 — R5 E9: derive NAE defect-flow decomposition and positive-layer barrier
-- `d40ad5b159f0` — 2026-09-29T03:41:37+03:00 — R5 E9: add exact odd-L1 source-trade regression
-- `4f462a685ab4` — 2026-09-29T03:41:16+03:00 — R5 E9: derive odd-L1 parity-coset source-trade normal form
-- `5f3f94c9ae38` — 2026-09-29T03:39:18+03:00 — R5 E9: synchronize semantic checkpoint to source-trade augmentation frontier
-- `5b9b1fd3c146` — 2026-09-29T03:37:56+03:00 — R5 E9: add exact triple-empty lift falsifier checker
-- `c9873372bcc2` — 2026-09-29T03:36:53+03:00 — R5 E9: falsify triple-empty completeness via exact two-edge lift
 
 ## Resume protocol
 
