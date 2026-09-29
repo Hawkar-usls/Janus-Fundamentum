@@ -5,16 +5,16 @@
 - **Repository:** `Hawkar-usls/Janus-Fundamentum`
 - **PR:** `#510`
 - **Branch:** `codex/r5-e8-direct-contract-20260921-82493a57`
-- **Live source HEAD:** `04d50eae81c84c99ae21549763294350f43e5a17`
-- **Source commit time:** `2026-09-29T02:58:16+03:00`
-- **Indexed changed scientific artifacts:** `871`
+- **Live source HEAD:** `5531ffc733f43f4652044c13e8beca209584fa26`
+- **Source commit time:** `2026-09-29T02:59:30+03:00`
+- **Indexed changed scientific artifacts:** `874`
 
 ## Continuity status
 
 - Semantic cache: `.janus/P_VS_NP_STREAM_CACHE_CURRENT.json`
 - Semantic source HEAD: `05563fb285a1b2a4ae62d2a6aab0143bdbe52899`
 - Relation: **`LIVE_DESCENDS_FROM_SEMANTIC_CACHE`**
-- Commits after semantic checkpoint: `98`
+- Commits after semantic checkpoint: `101`
 
 ## Scientific firewall
 
@@ -79,9 +79,6 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 
 ## Commits newer than semantic checkpoint — MUST INGEST
 
-- `ba8c9de2ad21` — 2026-09-28T20:49:58+03:00 — R5 E9: add source-kernel tope geodesic regression
-- `c5178dad5b94` — 2026-09-28T20:52:14+03:00 — R5 E9: add CI for source-kernel tope geodesic bound
-- `4d46fc88a5cb` — 2026-09-28T20:53:19+03:00 — R5 E9: prove PG15 kernel boundary is nonconvex and nongated
 - `4de044cf8440` — 2026-09-28T20:53:54+03:00 — R5 E9: add PG15 boundary nonconvexity regression
 - `a5030a34807a` — 2026-09-28T20:54:11+03:00 — R5 E9: add CI for kernel-boundary nonconvexity barrier
 - `e7f9f0f7a0d0` — 2026-09-28T20:57:00+03:00 — R5 E9: isolate polynomial source-kernel navigation shell
@@ -159,6 +156,9 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `b0091f3de589` — 2026-09-29T02:42:33+03:00 — R5 E9: add exact Smith lattice terminal checker
 - `e7364206c1f5` — 2026-09-29T02:44:13+03:00 — R5 E9: CI for integer-lattice Smith terminal
 - `04d50eae81c8` — 2026-09-29T02:58:16+03:00 — R5 E9: add integer-lattice pair-projection 2-SAT terminal
+- `393e7dcd1813` — 2026-09-29T02:58:54+03:00 — R5 E9: add exact pair-projection 2-SAT checker
+- `3d7563c94007` — 2026-09-29T02:59:09+03:00 — R5 E9: CI for lattice pair-projection 2-SAT terminal
+- `5531ffc733f4` — 2026-09-29T02:59:30+03:00 — R5 E9: reconcile Paley voltage family with SNF terminal
 
 ## Transport / stale-bootstrap watch
 
@@ -189,6 +189,9 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 
 ## Recent non-cache commits
 
+- `5531ffc733f4` — 2026-09-29T02:59:30+03:00 — R5 E9: reconcile Paley voltage family with SNF terminal
+- `3d7563c94007` — 2026-09-29T02:59:09+03:00 — R5 E9: CI for lattice pair-projection 2-SAT terminal
+- `393e7dcd1813` — 2026-09-29T02:58:54+03:00 — R5 E9: add exact pair-projection 2-SAT checker
 - `04d50eae81c8` — 2026-09-29T02:58:16+03:00 — R5 E9: add integer-lattice pair-projection 2-SAT terminal
 - `e7364206c1f5` — 2026-09-29T02:44:13+03:00 — R5 E9: CI for integer-lattice Smith terminal
 - `b0091f3de589` — 2026-09-29T02:42:33+03:00 — R5 E9: add exact Smith lattice terminal checker
@@ -211,9 +214,6 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `0bf3e91ce41f` — 2026-09-29T01:22:24+03:00 — R5 E9: add bidirected binet router regression
 - `3d3b68e7b930` — 2026-09-29T01:20:48+03:00 — R5 E9: add bidirected cycle-kernel binet router
 - `669d849f579e` — 2026-09-29T01:14:37+03:00 — R5 E9: add CI for cycle-kernel flow router
-- `7ecda3714cbc` — 2026-09-29T01:14:30+03:00 — R5 E9: add cycle-kernel flow router regression
-- `d7256243325a` — 2026-09-29T01:14:00+03:00 — R5 E9: add exact cycle-kernel flow solver router
-- `86a4a7879253` — 2026-09-29T00:47:39+03:00 — R5 E9: add CI for exact graphic-kernel network router
 
 ## Resume protocol
 
