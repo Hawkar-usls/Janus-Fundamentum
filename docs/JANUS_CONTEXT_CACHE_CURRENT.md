@@ -5,16 +5,16 @@
 - **Repository:** `Hawkar-usls/Janus-Fundamentum`
 - **PR:** `#510`
 - **Branch:** `codex/r5-e8-direct-contract-20260921-82493a57`
-- **Live source HEAD:** `9fce9bc8db9b4c6530ab8df2bfef1ada3079bbe3`
-- **Source commit time:** `2026-09-29T04:09:38+03:00`
-- **Indexed changed scientific artifacts:** `925`
+- **Live source HEAD:** `cdd3b8c52dd4d2f34176b49b8f51bb06512476d1`
+- **Source commit time:** `2026-09-29T04:22:52+03:00`
+- **Indexed changed scientific artifacts:** `926`
 
 ## Continuity status
 
 - Semantic cache: `.janus/P_VS_NP_STREAM_CACHE_CURRENT.json`
 - Semantic source HEAD: `66e9e29aa352f9b2df8ea9b36ec1732066ad19b8`
 - Relation: **`LIVE_DESCENDS_FROM_SEMANTIC_CACHE`**
-- Commits after semantic checkpoint: `6`
+- Commits after semantic checkpoint: `7`
 
 ## Scientific firewall
 
@@ -92,6 +92,7 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `a5b56657ee56` — 2026-09-29T04:08:55+03:00 — R5 E9: derive NAE transversal copy-flow normal form
 - `d911d51d384b` — 2026-09-29T04:09:31+03:00 — R5 E9: add exact NAE copy-flow regression
 - `9fce9bc8db9b` — 2026-09-29T04:09:38+03:00 — R5 E9: add CI for NAE transversal copy flow
+- `cdd3b8c52dd4` — 2026-09-29T04:22:52+03:00 — R5 E9: reduce parity defects to source-signed linear even cover WGFP
 
 ## Transport / stale-bootstrap watch
 
@@ -122,6 +123,7 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 
 ## Recent non-cache commits
 
+- `cdd3b8c52dd4` — 2026-09-29T04:22:52+03:00 — R5 E9: reduce parity defects to source-signed linear even cover WGFP
 - `9fce9bc8db9b` — 2026-09-29T04:09:38+03:00 — R5 E9: add CI for NAE transversal copy flow
 - `d911d51d384b` — 2026-09-29T04:09:31+03:00 — R5 E9: add exact NAE copy-flow regression
 - `a5b56657ee56` — 2026-09-29T04:08:55+03:00 — R5 E9: derive NAE transversal copy-flow normal form
@@ -146,7 +148,6 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `f3edd34ceb0a` — 2026-09-29T03:34:16+03:00 — R5 E9: prove exponential subdeterminant and linear TU-deletion barrier
 - `ef4c165d03cf` — 2026-09-29T03:34:03+03:00 — R5 E9: add CI for five-line spread UNSAT terminal
 - `fb0f43233656` — 2026-09-29T03:33:43+03:00 — R5 E9: add exact five-line spread UNSAT regression
-- `3a592d68aa64` — 2026-09-29T03:33:08+03:00 — R5 E9: prove F2^4 five-line spread UNSAT terminal
 
 ## Resume protocol
 
