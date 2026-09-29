@@ -5,16 +5,16 @@
 - **Repository:** `Hawkar-usls/Janus-Fundamentum`
 - **PR:** `#510`
 - **Branch:** `codex/r5-e8-direct-contract-20260921-82493a57`
-- **Live source HEAD:** `dfa150d17ee4a46032dc16e4df7dcdb450425cd7`
-- **Source commit time:** `2026-09-29T03:51:47+03:00`
-- **Indexed changed scientific artifacts:** `913`
+- **Live source HEAD:** `c86fb2ba353b017d95669d9e4657db811141c559`
+- **Source commit time:** `2026-09-29T03:52:20+03:00`
+- **Indexed changed scientific artifacts:** `914`
 
 ## Continuity status
 
 - Semantic cache: `.janus/P_VS_NP_STREAM_CACHE_CURRENT.json`
 - Semantic source HEAD: `c9873372bcc260aa17f299188b55f528c9b2a0a1`
 - Relation: **`LIVE_DESCENDS_FROM_SEMANTIC_CACHE`**
-- Commits after semantic checkpoint: `5`
+- Commits after semantic checkpoint: `6`
 
 ## Scientific firewall
 
@@ -86,6 +86,7 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `4f462a685ab4` — 2026-09-29T03:41:16+03:00 — R5 E9: derive odd-L1 parity-coset source-trade normal form
 - `d40ad5b159f0` — 2026-09-29T03:41:37+03:00 — R5 E9: add exact odd-L1 source-trade regression
 - `dfa150d17ee4` — 2026-09-29T03:51:47+03:00 — R5 E9: derive NAE defect-flow decomposition and positive-layer barrier
+- `c86fb2ba353b` — 2026-09-29T03:52:20+03:00 — R5 E9: add exact NAE defect-flow positive-layer regression
 
 ## Transport / stale-bootstrap watch
 
@@ -116,6 +117,7 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 
 ## Recent non-cache commits
 
+- `c86fb2ba353b` — 2026-09-29T03:52:20+03:00 — R5 E9: add exact NAE defect-flow positive-layer regression
 - `dfa150d17ee4` — 2026-09-29T03:51:47+03:00 — R5 E9: derive NAE defect-flow decomposition and positive-layer barrier
 - `d40ad5b159f0` — 2026-09-29T03:41:37+03:00 — R5 E9: add exact odd-L1 source-trade regression
 - `4f462a685ab4` — 2026-09-29T03:41:16+03:00 — R5 E9: derive odd-L1 parity-coset source-trade normal form
@@ -140,7 +142,6 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `17b25b7a9d80` — 2026-09-29T03:23:56+03:00 — R5 E9: add CI for pair2 completeness falsifier
 - `0eed3744c479` — 2026-09-29T03:22:59+03:00 — R5 E9: add exact pair2 completeness falsifier checker
 - `4be8ce563307` — 2026-09-29T03:21:52+03:00 — R5 E9: falsify pair-projection completeness on linear-cubic carrier
-- `5cc78daf06c5` — 2026-09-29T03:18:14+03:00 — R5 E9: falsify pair2 completeness and add triple mod7 terminal
 
 ## Resume protocol
 
