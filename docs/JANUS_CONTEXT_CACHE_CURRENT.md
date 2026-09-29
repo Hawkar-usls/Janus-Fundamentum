@@ -5,16 +5,16 @@
 - **Repository:** `Hawkar-usls/Janus-Fundamentum`
 - **PR:** `#510`
 - **Branch:** `codex/r5-e8-direct-contract-20260921-82493a57`
-- **Live source HEAD:** `c43992f8911e8fd88d934b094a0e046a6613c2ed`
-- **Source commit time:** `2026-09-29T15:05:47+03:00`
-- **Indexed changed scientific artifacts:** `958`
+- **Live source HEAD:** `7df75eb560c4d8d7030490bce31bf9b1728ae394`
+- **Source commit time:** `2026-09-29T15:07:00+03:00`
+- **Indexed changed scientific artifacts:** `955`
 
 ## Continuity status
 
 - Semantic cache: `.janus/P_VS_NP_STREAM_CACHE_CURRENT.json`
 - Semantic source HEAD: `480eed45722312b7b16e4a5d9f3d19149e125892`
 - Relation: **`LIVE_DESCENDS_FROM_SEMANTIC_CACHE`**
-- Commits after semantic checkpoint: `20`
+- Commits after semantic checkpoint: `23`
 
 ## Scientific firewall
 
@@ -102,6 +102,9 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `102b3b95b8d9` — 2026-09-29T15:03:54+03:00 — R5 E9: add exact TU row-space router regression
 - `da74ed88e414` — 2026-09-29T15:04:02+03:00 — R5 E9: add CI for exact TU row-space router
 - `c43992f8911e` — 2026-09-29T15:05:47+03:00 — R5 E9: bind PG15 non-TU residual control
+- `d8a7a0846dcb` — 2026-09-29T15:06:47+03:00 — R5 E9: remove duplicate TU row-space theorem
+- `2389d8fc71dd` — 2026-09-29T15:06:53+03:00 — R5 E9: remove duplicate TU row-space checker
+- `7df75eb560c4` — 2026-09-29T15:07:00+03:00 — R5 E9: remove duplicate TU row-space CI
 
 ## Transport / stale-bootstrap watch
 
@@ -132,6 +135,9 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 
 ## Recent non-cache commits
 
+- `7df75eb560c4` — 2026-09-29T15:07:00+03:00 — R5 E9: remove duplicate TU row-space CI
+- `2389d8fc71dd` — 2026-09-29T15:06:53+03:00 — R5 E9: remove duplicate TU row-space checker
+- `d8a7a0846dcb` — 2026-09-29T15:06:47+03:00 — R5 E9: remove duplicate TU row-space theorem
 - `c43992f8911e` — 2026-09-29T15:05:47+03:00 — R5 E9: bind PG15 non-TU residual control
 - `da74ed88e414` — 2026-09-29T15:04:02+03:00 — R5 E9: add CI for exact TU row-space router
 - `102b3b95b8d9` — 2026-09-29T15:03:54+03:00 — R5 E9: add exact TU row-space router regression
@@ -154,9 +160,6 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `d9807a85a3f2` — 2026-09-29T04:50:46+03:00 — R5 E9: synchronize semantic checkpoint to global sign-crossing trade gate
 - `480eed457223` — 2026-09-29T04:49:04+03:00 — R5 E9: add exact circuit-augmentation barrier checker
 - `44d31b0ab5ae` — 2026-09-29T04:48:43+03:00 — R5 E9: falsify circuit-only integer L1 augmentation
-- `7b6eafd3315e` — 2026-09-29T04:43:15+03:00 — R5 E9: add IF2E router and three-external hostile regression
-- `534eae0ff8a7` — 2026-09-29T04:42:50+03:00 — R5 E9: add regression for prime unique-model nullity tower
-- `7e940a17c60b` — 2026-09-29T04:42:48+03:00 — R5 E9: freeze three-external hostile local-minimum countercontrol
 
 ## Resume protocol
 
