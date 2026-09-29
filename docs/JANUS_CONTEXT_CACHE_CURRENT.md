@@ -5,16 +5,16 @@
 - **Repository:** `Hawkar-usls/Janus-Fundamentum`
 - **PR:** `#510`
 - **Branch:** `codex/r5-e8-direct-contract-20260921-82493a57`
-- **Live source HEAD:** `cd36a8f5ca5971e6d6e723adb0006ca31bb7c4fc`
-- **Source commit time:** `2026-09-29T03:06:05+03:00`
-- **Indexed changed scientific artifacts:** `876`
+- **Live source HEAD:** `5cc78daf06c5bf3b2e11d25c6f755e84da98c6a7`
+- **Source commit time:** `2026-09-29T03:18:14+03:00`
+- **Indexed changed scientific artifacts:** `890`
 
 ## Continuity status
 
 - Semantic cache: `.janus/P_VS_NP_STREAM_CACHE_CURRENT.json`
 - Semantic source HEAD: `05563fb285a1b2a4ae62d2a6aab0143bdbe52899`
 - Relation: **`LIVE_DESCENDS_FROM_SEMANTIC_CACHE`**
-- Commits after semantic checkpoint: `103`
+- Commits after semantic checkpoint: `120`
 
 ## Scientific firewall
 
@@ -79,23 +79,6 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 
 ## Commits newer than semantic checkpoint — MUST INGEST
 
-- `e7f9f0f7a0d0` — 2026-09-28T20:57:00+03:00 — R5 E9: isolate polynomial source-kernel navigation shell
-- `f318557a9306` — 2026-09-28T20:57:31+03:00 — R5 E9: add navigation-shell finite binding
-- `19f903e120d5` — 2026-09-28T20:57:39+03:00 — R5 E9: add CI for source-kernel navigation shell
-- `5d7f1da66f7a` — 2026-09-28T20:58:18+03:00 — R5 E9: bind exact PG15 interval vector in nonconvex barrier
-- `6989b0f9d519` — 2026-09-28T21:04:01+03:00 — R5 E9: add rational-kernel projective ratio pinning quotient
-- `54774f50cd5a` — 2026-09-28T21:10:11+03:00 — R5 E9: freeze kernel-tope greedy local-minimum barrier
-- `e1062ed9da53` — 2026-09-28T21:10:40+03:00 — R5 E9: add exact PG15 tope local-minimum checker
-- `bec918c31cfa` — 2026-09-28T21:10:50+03:00 — R5 E9: add CI for kernel-tope greedy barrier
-- `96c5cd2e81f3` — 2026-09-28T21:14:04+03:00 — R5 E9: repair tope adjacency for parallel kernel hyperplanes
-- `aa237e2a4c76` — 2026-09-28T21:14:42+03:00 — R5 E9: verify projective hyperplane classes in greedy barrier
-- `a78056a75165` — 2026-09-28T21:16:09+03:00 — R5 E9: certify exact boundary distances from PG15 trap
-- `71be1c58613f` — 2026-09-28T21:23:44+03:00 — R5 E9: prove raw tope-radius 2-lift amplifier
-- `5b802dab7ee7` — 2026-09-28T21:24:23+03:00 — R5 E9: add raw-radius 2-lift amplifier regression
-- `29b9f62a0fb2` — 2026-09-28T21:24:31+03:00 — R5 E9: add CI for raw-radius 2-lift amplifier
-- `d8e60cc564d2` — 2026-09-28T21:35:08+03:00 — R5 E9: add exact geometric tope-radius stress controls
-- `c8f67b77b847` — 2026-09-28T21:36:22+03:00 — R5 E9: bind geometric augmentation meta-theorem and prime-tower stress
-- `9390f66e6134` — 2026-09-28T21:36:29+03:00 — R5 E9: add CI for geometric tope-radius stress
 - `8012c8d052b3` — 2026-09-28T21:43:35+03:00 — R5 E9: prove linear projective escape-radius prime tower
 - `7aa19ec97edd` — 2026-09-28T21:44:26+03:00 — R5 E9: add exact recurrence replay through n120
 - `f6a098bddb52` — 2026-09-28T21:44:33+03:00 — R5 E9: add CI for projective escape-radius recurrence
@@ -159,6 +142,23 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `5531ffc733f4` — 2026-09-29T02:59:30+03:00 — R5 E9: reconcile Paley voltage family with SNF terminal
 - `0fc2deb10cfc` — 2026-09-29T03:04:06+03:00 — R5 E9: linearize post-SNF RKPR falsifier via EQ3
 - `cd36a8f5ca59` — 2026-09-29T03:06:05+03:00 — R5 E9: prove Paley free-orbit post-RKPR linear nullity barrier
+- `e49052311fb1` — 2026-09-29T03:06:50+03:00 — R5 E9: add exact Paley free-orbit structural checker
+- `d31bf97c214d` — 2026-09-29T03:07:01+03:00 — R5 E9: add Paley free-orbit barrier CI
+- `55ca05acf362` — 2026-09-29T03:07:15+03:00 — R5 E9: record Paley free-orbit barrier receipt
+- `760c65707859` — 2026-09-29T03:07:32+03:00 — R5 E9: open gradient quotient next gate
+- `e5f4f950e9d0` — 2026-09-29T03:07:43+03:00 — R5 E9: add Paley gradient quotient control
+- `4fdea0fb9a4a` — 2026-09-29T03:08:41+03:00 — R5 E9: prove gradient-exact kernel Z3 phase polynomial island
+- `9ad821f7385e` — 2026-09-29T03:08:59+03:00 — R5 E9: add gradient-exact Z3 phase checker
+- `8d3c7a3d1ebb` — 2026-09-29T03:09:09+03:00 — R5 E9: add gradient-exact Z3 phase island CI
+- `759d63bde7e3` — 2026-09-29T03:09:48+03:00 — temporary marker
+- `df0b241799d3` — 2026-09-29T03:10:29+03:00 — R5 E9: fix integer-potential step in gradient-phase proof
+- `f6e5699f8395` — 2026-09-29T03:10:36+03:00 — remove temporary gradient-phase marker
+- `f60dd06b98a6` — 2026-09-29T03:11:34+03:00 — R5 E9: add exact checker for EQ3-linearized pair2 strict control
+- `00bcfd88b855` — 2026-09-29T03:11:51+03:00 — R5 E9: CI for EQ3-linearized post-SNF/RKPR pair2 control
+- `ecdd65478a60` — 2026-09-29T03:14:23+03:00 — R5 E9: prove Paley full-orbit post-RKPR sqrt-nullity barrier
+- `35f03d9aa7d3` — 2026-09-29T03:15:26+03:00 — R5 E9: add exact Paley full-orbit barrier checker
+- `18f292477e89` — 2026-09-29T03:15:39+03:00 — R5 E9: add Paley full-orbit sqrt-nullity CI
+- `5cc78daf06c5` — 2026-09-29T03:18:14+03:00 — R5 E9: falsify pair2 completeness and add triple mod7 terminal
 
 ## Transport / stale-bootstrap watch
 
@@ -189,6 +189,23 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 
 ## Recent non-cache commits
 
+- `5cc78daf06c5` — 2026-09-29T03:18:14+03:00 — R5 E9: falsify pair2 completeness and add triple mod7 terminal
+- `18f292477e89` — 2026-09-29T03:15:39+03:00 — R5 E9: add Paley full-orbit sqrt-nullity CI
+- `35f03d9aa7d3` — 2026-09-29T03:15:26+03:00 — R5 E9: add exact Paley full-orbit barrier checker
+- `ecdd65478a60` — 2026-09-29T03:14:23+03:00 — R5 E9: prove Paley full-orbit post-RKPR sqrt-nullity barrier
+- `00bcfd88b855` — 2026-09-29T03:11:51+03:00 — R5 E9: CI for EQ3-linearized post-SNF/RKPR pair2 control
+- `f60dd06b98a6` — 2026-09-29T03:11:34+03:00 — R5 E9: add exact checker for EQ3-linearized pair2 strict control
+- `f6e5699f8395` — 2026-09-29T03:10:36+03:00 — remove temporary gradient-phase marker
+- `df0b241799d3` — 2026-09-29T03:10:29+03:00 — R5 E9: fix integer-potential step in gradient-phase proof
+- `759d63bde7e3` — 2026-09-29T03:09:48+03:00 — temporary marker
+- `8d3c7a3d1ebb` — 2026-09-29T03:09:09+03:00 — R5 E9: add gradient-exact Z3 phase island CI
+- `9ad821f7385e` — 2026-09-29T03:08:59+03:00 — R5 E9: add gradient-exact Z3 phase checker
+- `4fdea0fb9a4a` — 2026-09-29T03:08:41+03:00 — R5 E9: prove gradient-exact kernel Z3 phase polynomial island
+- `e5f4f950e9d0` — 2026-09-29T03:07:43+03:00 — R5 E9: add Paley gradient quotient control
+- `760c65707859` — 2026-09-29T03:07:32+03:00 — R5 E9: open gradient quotient next gate
+- `55ca05acf362` — 2026-09-29T03:07:15+03:00 — R5 E9: record Paley free-orbit barrier receipt
+- `d31bf97c214d` — 2026-09-29T03:07:01+03:00 — R5 E9: add Paley free-orbit barrier CI
+- `e49052311fb1` — 2026-09-29T03:06:50+03:00 — R5 E9: add exact Paley free-orbit structural checker
 - `cd36a8f5ca59` — 2026-09-29T03:06:05+03:00 — R5 E9: prove Paley free-orbit post-RKPR linear nullity barrier
 - `0fc2deb10cfc` — 2026-09-29T03:04:06+03:00 — R5 E9: linearize post-SNF RKPR falsifier via EQ3
 - `5531ffc733f4` — 2026-09-29T02:59:30+03:00 — R5 E9: reconcile Paley voltage family with SNF terminal
@@ -197,23 +214,6 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `04d50eae81c8` — 2026-09-29T02:58:16+03:00 — R5 E9: add integer-lattice pair-projection 2-SAT terminal
 - `e7364206c1f5` — 2026-09-29T02:44:13+03:00 — R5 E9: CI for integer-lattice Smith terminal
 - `b0091f3de589` — 2026-09-29T02:42:33+03:00 — R5 E9: add exact Smith lattice terminal checker
-- `cca768e15373` — 2026-09-29T02:38:09+03:00 — R5 E9: add integer-lattice Smith terminal
-- `d5cd5db5a381` — 2026-09-29T02:30:33+03:00 — R5 E9: CI for Paley voltage nullity family
-- `0e847f6d28ad` — 2026-09-29T02:30:20+03:00 — R5 E9: add exact checker for Paley voltage nullity family
-- `48c38517c2a1` — 2026-09-29T02:29:26+03:00 — R5 E9: prove Paley voltage post-RKPR linear-nullity family
-- `ab9864e27230` — 2026-09-29T01:57:29+03:00 — Diagnose PA-0029 NM-0033 payload transport
-- `5feabff534f6` — 2026-09-29T01:55:04+03:00 — Bootstrap PA-0029 NM-0033 arithmetic repair
-- `b5accb7d274f` — 2026-09-29T01:48:10+03:00 — R5 E10A: enable push replay for strict-max padding barrier
-- `090e601e1fb2` — 2026-09-29T01:47:16+03:00 — R5 E10A: add strict-max padding barrier CI
-- `3526f6b46384` — 2026-09-29T01:47:00+03:00 — R5 E10A: add strict-max padding barrier exact checker
-- `d3d16c724f0d` — 2026-09-29T01:43:50+03:00 — R5 E10A: strict-max promise universal padding barrier
-- `d512cd1a28dd` — 2026-09-29T01:40:48+03:00 — Remove duplicate optimal-face blossom parity theorem
-- `42b88fff70e5` — 2026-09-29T01:39:56+03:00 — R5 E10A: seal deterministic optimal-face blossom parity DP
-- `84429eb3a166` — 2026-09-29T01:33:29+03:00 — R5 E9: add CI for TU-rowspace Boolean LP router
-- `01d26b711a0b` — 2026-09-29T01:33:21+03:00 — R5 E9: add TU-rowspace router regression
-- `11d7cf104b90` — 2026-09-29T01:32:40+03:00 — R5 E9: add exact TU-rowspace Boolean LP router
-- `bb16a1cb46e0` — 2026-09-29T01:22:32+03:00 — R5 E9: add CI for bidirected binet router
-- `0bf3e91ce41f` — 2026-09-29T01:22:24+03:00 — R5 E9: add bidirected binet router regression
 
 ## Resume protocol
 
