@@ -5,16 +5,16 @@
 - **Repository:** `Hawkar-usls/Janus-Fundamentum`
 - **PR:** `#510`
 - **Branch:** `codex/r5-e8-direct-contract-20260921-82493a57`
-- **Live source HEAD:** `fc5ad37840c5238e3ca021a5f68e7fe0fd2c3295`
-- **Source commit time:** `2026-09-29T13:19:24+03:00`
-- **Indexed changed scientific artifacts:** `952`
+- **Live source HEAD:** `b8dd44bb17bb4bb22f76435580b7fd5e512a4851`
+- **Source commit time:** `2026-09-29T13:26:55+03:00`
+- **Indexed changed scientific artifacts:** `953`
 
 ## Continuity status
 
 - Semantic cache: `.janus/P_VS_NP_STREAM_CACHE_CURRENT.json`
 - Semantic source HEAD: `480eed45722312b7b16e4a5d9f3d19149e125892`
 - Relation: **`LIVE_DESCENDS_FROM_SEMANTIC_CACHE`**
-- Commits after semantic checkpoint: `13`
+- Commits after semantic checkpoint: `14`
 
 ## Scientific firewall
 
@@ -95,6 +95,7 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `fe80c58e3c6c` — 2026-09-29T13:18:00+03:00 — R5 E9: add Paley11 gradient-kernel post-RKPR UNSAT terminal
 - `db8358972870` — 2026-09-29T13:19:15+03:00 — R5 E9: add exact Paley11 gradient-kernel checker
 - `fc5ad37840c5` — 2026-09-29T13:19:24+03:00 — R5 E9: add Paley11 gradient-kernel CI
+- `b8dd44bb17bb` — 2026-09-29T13:26:55+03:00 — R5 E9: prove infinite Paley-orbit post-RKPR gradient family
 
 ## Transport / stale-bootstrap watch
 
@@ -125,6 +126,7 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 
 ## Recent non-cache commits
 
+- `b8dd44bb17bb` — 2026-09-29T13:26:55+03:00 — R5 E9: prove infinite Paley-orbit post-RKPR gradient family
 - `fc5ad37840c5` — 2026-09-29T13:19:24+03:00 — R5 E9: add Paley11 gradient-kernel CI
 - `db8358972870` — 2026-09-29T13:19:15+03:00 — R5 E9: add exact Paley11 gradient-kernel checker
 - `fe80c58e3c6c` — 2026-09-29T13:18:00+03:00 — R5 E9: add Paley11 gradient-kernel post-RKPR UNSAT terminal
@@ -149,7 +151,6 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `4f41dd32fa95` — 2026-09-29T04:40:28+03:00 — R5 E9: add independent-flat two-external augmentation router
 - `f675173f3ef1` — 2026-09-29T04:34:29+03:00 — R5 E9: add CI for maximum even-cover saturation
 - `00c94877999b` — 2026-09-29T04:34:20+03:00 — R5 E9: add maximum even-cover saturation regression
-- `d71a16a888c1` — 2026-09-29T04:34:04+03:00 — R5 E9: prove maximum linear even-cover saturation equivalence
 
 ## Resume protocol
 
