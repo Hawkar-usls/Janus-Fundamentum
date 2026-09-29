@@ -5,16 +5,16 @@
 - **Repository:** `Hawkar-usls/Janus-Fundamentum`
 - **PR:** `#510`
 - **Branch:** `codex/r5-e8-direct-contract-20260921-82493a57`
-- **Live source HEAD:** `44d31b0ab5ae445130c5949c7606ccb349a972bd`
-- **Source commit time:** `2026-09-29T04:48:43+03:00`
-- **Indexed changed scientific artifacts:** `939`
+- **Live source HEAD:** `480eed45722312b7b16e4a5d9f3d19149e125892`
+- **Source commit time:** `2026-09-29T04:49:04+03:00`
+- **Indexed changed scientific artifacts:** `940`
 
 ## Continuity status
 
 - Semantic cache: `.janus/P_VS_NP_STREAM_CACHE_CURRENT.json`
 - Semantic source HEAD: `66e9e29aa352f9b2df8ea9b36ec1732066ad19b8`
 - Relation: **`LIVE_DESCENDS_FROM_SEMANTIC_CACHE`**
-- Commits after semantic checkpoint: `20`
+- Commits after semantic checkpoint: `21`
 
 ## Scientific firewall
 
@@ -106,6 +106,7 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `534eae0ff8a7` — 2026-09-29T04:42:50+03:00 — R5 E9: add regression for prime unique-model nullity tower
 - `7b6eafd3315e` — 2026-09-29T04:43:15+03:00 — R5 E9: add IF2E router and three-external hostile regression
 - `44d31b0ab5ae` — 2026-09-29T04:48:43+03:00 — R5 E9: falsify circuit-only integer L1 augmentation
+- `480eed457223` — 2026-09-29T04:49:04+03:00 — R5 E9: add exact circuit-augmentation barrier checker
 
 ## Transport / stale-bootstrap watch
 
@@ -136,6 +137,7 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 
 ## Recent non-cache commits
 
+- `480eed457223` — 2026-09-29T04:49:04+03:00 — R5 E9: add exact circuit-augmentation barrier checker
 - `44d31b0ab5ae` — 2026-09-29T04:48:43+03:00 — R5 E9: falsify circuit-only integer L1 augmentation
 - `7b6eafd3315e` — 2026-09-29T04:43:15+03:00 — R5 E9: add IF2E router and three-external hostile regression
 - `534eae0ff8a7` — 2026-09-29T04:42:50+03:00 — R5 E9: add regression for prime unique-model nullity tower
@@ -160,7 +162,6 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `d972c0cd518d` — 2026-09-29T04:01:29+03:00 — R5 E9: add exact checker for continuous L1 crossing barrier
 - `4c0189564bef` — 2026-09-29T04:00:49+03:00 — R5 E9: isolate continuous L1 barycenter and crossing penalty
 - `a2fa88d9656d` — 2026-09-29T03:58:45+03:00 — R5 E9: add CI for exponential Graver coefficient family
-- `ef6ee2aa6bf3` — 2026-09-29T03:57:02+03:00 — R5 E9: add exact exponential Graver family regression
 
 ## Resume protocol
 
