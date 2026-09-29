@@ -5,16 +5,16 @@
 - **Repository:** `Hawkar-usls/Janus-Fundamentum`
 - **PR:** `#510`
 - **Branch:** `codex/r5-e8-direct-contract-20260921-82493a57`
-- **Live source HEAD:** `b82a8ebc6e749132bc500f3603fdac9a9658e610`
-- **Source commit time:** `2026-09-29T14:58:57+03:00`
-- **Indexed changed scientific artifacts:** `956`
+- **Live source HEAD:** `da74ed88e4145a04c001e9b05831003541cde8c7`
+- **Source commit time:** `2026-09-29T15:04:02+03:00`
+- **Indexed changed scientific artifacts:** `958`
 
 ## Continuity status
 
 - Semantic cache: `.janus/P_VS_NP_STREAM_CACHE_CURRENT.json`
 - Semantic source HEAD: `480eed45722312b7b16e4a5d9f3d19149e125892`
 - Relation: **`LIVE_DESCENDS_FROM_SEMANTIC_CACHE`**
-- Commits after semantic checkpoint: `17`
+- Commits after semantic checkpoint: `19`
 
 ## Scientific firewall
 
@@ -99,6 +99,8 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `469349bd9b7b` — 2026-09-29T13:27:58+03:00 — R5 E9: add exact checker for infinite Paley-orbit family
 - `8bc2dbd046e8` — 2026-09-29T13:28:07+03:00 — R5 E9: add CI for infinite Paley-orbit gradient family
 - `b82a8ebc6e74` — 2026-09-29T14:58:57+03:00 — R5 E9: add exact TU row-space integer LP router
+- `102b3b95b8d9` — 2026-09-29T15:03:54+03:00 — R5 E9: add exact TU row-space router regression
+- `da74ed88e414` — 2026-09-29T15:04:02+03:00 — R5 E9: add CI for exact TU row-space router
 
 ## Transport / stale-bootstrap watch
 
@@ -129,6 +131,8 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 
 ## Recent non-cache commits
 
+- `da74ed88e414` — 2026-09-29T15:04:02+03:00 — R5 E9: add CI for exact TU row-space router
+- `102b3b95b8d9` — 2026-09-29T15:03:54+03:00 — R5 E9: add exact TU row-space router regression
 - `b82a8ebc6e74` — 2026-09-29T14:58:57+03:00 — R5 E9: add exact TU row-space integer LP router
 - `8bc2dbd046e8` — 2026-09-29T13:28:07+03:00 — R5 E9: add CI for infinite Paley-orbit gradient family
 - `469349bd9b7b` — 2026-09-29T13:27:58+03:00 — R5 E9: add exact checker for infinite Paley-orbit family
@@ -152,8 +156,6 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `534eae0ff8a7` — 2026-09-29T04:42:50+03:00 — R5 E9: add regression for prime unique-model nullity tower
 - `7e940a17c60b` — 2026-09-29T04:42:48+03:00 — R5 E9: freeze three-external hostile local-minimum countercontrol
 - `644609b4b4fd` — 2026-09-29T04:42:16+03:00 — R5 E9: prove prime unique-model linear-nullity two-edge tower
-- `9bb40a0690d2` — 2026-09-29T04:41:12+03:00 — R5 E9: add checker for zero-crossing trap
-- `c7575b64bb28` — 2026-09-29T04:40:47+03:00 — R5 E9: prove fixed-NAE sign equivalence and zero-crossing trap
 
 ## Resume protocol
 
