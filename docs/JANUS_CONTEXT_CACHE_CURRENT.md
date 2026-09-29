@@ -5,16 +5,16 @@
 - **Repository:** `Hawkar-usls/Janus-Fundamentum`
 - **PR:** `#510`
 - **Branch:** `codex/r5-e8-direct-contract-20260921-82493a57`
-- **Live source HEAD:** `5531ffc733f43f4652044c13e8beca209584fa26`
-- **Source commit time:** `2026-09-29T02:59:30+03:00`
-- **Indexed changed scientific artifacts:** `874`
+- **Live source HEAD:** `0fc2deb10cfc57abbe4f913233af775f2902c309`
+- **Source commit time:** `2026-09-29T03:04:06+03:00`
+- **Indexed changed scientific artifacts:** `875`
 
 ## Continuity status
 
 - Semantic cache: `.janus/P_VS_NP_STREAM_CACHE_CURRENT.json`
 - Semantic source HEAD: `05563fb285a1b2a4ae62d2a6aab0143bdbe52899`
 - Relation: **`LIVE_DESCENDS_FROM_SEMANTIC_CACHE`**
-- Commits after semantic checkpoint: `101`
+- Commits after semantic checkpoint: `102`
 
 ## Scientific firewall
 
@@ -79,7 +79,6 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 
 ## Commits newer than semantic checkpoint — MUST INGEST
 
-- `4de044cf8440` — 2026-09-28T20:53:54+03:00 — R5 E9: add PG15 boundary nonconvexity regression
 - `a5030a34807a` — 2026-09-28T20:54:11+03:00 — R5 E9: add CI for kernel-boundary nonconvexity barrier
 - `e7f9f0f7a0d0` — 2026-09-28T20:57:00+03:00 — R5 E9: isolate polynomial source-kernel navigation shell
 - `f318557a9306` — 2026-09-28T20:57:31+03:00 — R5 E9: add navigation-shell finite binding
@@ -159,6 +158,7 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `393e7dcd1813` — 2026-09-29T02:58:54+03:00 — R5 E9: add exact pair-projection 2-SAT checker
 - `3d7563c94007` — 2026-09-29T02:59:09+03:00 — R5 E9: CI for lattice pair-projection 2-SAT terminal
 - `5531ffc733f4` — 2026-09-29T02:59:30+03:00 — R5 E9: reconcile Paley voltage family with SNF terminal
+- `0fc2deb10cfc` — 2026-09-29T03:04:06+03:00 — R5 E9: linearize post-SNF RKPR falsifier via EQ3
 
 ## Transport / stale-bootstrap watch
 
@@ -189,6 +189,7 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 
 ## Recent non-cache commits
 
+- `0fc2deb10cfc` — 2026-09-29T03:04:06+03:00 — R5 E9: linearize post-SNF RKPR falsifier via EQ3
 - `5531ffc733f4` — 2026-09-29T02:59:30+03:00 — R5 E9: reconcile Paley voltage family with SNF terminal
 - `3d7563c94007` — 2026-09-29T02:59:09+03:00 — R5 E9: CI for lattice pair-projection 2-SAT terminal
 - `393e7dcd1813` — 2026-09-29T02:58:54+03:00 — R5 E9: add exact pair-projection 2-SAT checker
@@ -213,7 +214,6 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `bb16a1cb46e0` — 2026-09-29T01:22:32+03:00 — R5 E9: add CI for bidirected binet router
 - `0bf3e91ce41f` — 2026-09-29T01:22:24+03:00 — R5 E9: add bidirected binet router regression
 - `3d3b68e7b930` — 2026-09-29T01:20:48+03:00 — R5 E9: add bidirected cycle-kernel binet router
-- `669d849f579e` — 2026-09-29T01:14:37+03:00 — R5 E9: add CI for cycle-kernel flow router
 
 ## Resume protocol
 
