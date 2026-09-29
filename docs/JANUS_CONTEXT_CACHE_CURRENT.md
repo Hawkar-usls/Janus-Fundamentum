@@ -5,16 +5,16 @@
 - **Repository:** `Hawkar-usls/Janus-Fundamentum`
 - **PR:** `#510`
 - **Branch:** `codex/r5-e8-direct-contract-20260921-82493a57`
-- **Live source HEAD:** `480eed45722312b7b16e4a5d9f3d19149e125892`
-- **Source commit time:** `2026-09-29T04:49:04+03:00`
+- **Live source HEAD:** `d9807a85a3f276fee614093af042ec54cc97d269`
+- **Source commit time:** `2026-09-29T04:50:46+03:00`
 - **Indexed changed scientific artifacts:** `940`
 
 ## Continuity status
 
 - Semantic cache: `.janus/P_VS_NP_STREAM_CACHE_CURRENT.json`
-- Semantic source HEAD: `66e9e29aa352f9b2df8ea9b36ec1732066ad19b8`
+- Semantic source HEAD: `480eed45722312b7b16e4a5d9f3d19149e125892`
 - Relation: **`LIVE_DESCENDS_FROM_SEMANTIC_CACHE`**
-- Commits after semantic checkpoint: `21`
+- Commits after semantic checkpoint: `1`
 
 ## Scientific firewall
 
@@ -35,25 +35,21 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 
 ## Semantic live frontier
 
-- **Frontier:** `R5_E9_LINEAR_CUBIC_CROSSING_PENALTY_TRADE_GATE_V1`
-- **Carrier:** connected square linear-cubic Positive-1-in-3 source after exact integer-lattice membership, in odd affine-coset form Ay=-1 with y odd; minimize ||y||_1 and solve the discrete crossing-penalty source-trade problem
-- Established: Exact linear-cubic Positive 1-in-3 SAT is NP-complete via the frozen constant-size EQ3 regularizer with polynomial witness transfer.
-- Established: Integer-lattice membership Ax=1 over Z is polynomial by Smith/Hermite methods and is a sound UNSAT terminal.
-- Established: The change y=2z-1 is an exact bijection between integer Az=1 and odd integer Ay=-1; F(z)=sum_i|2z_i-1| equals ||y||_1.
-- Established: Exact-One SAT iff the odd-coset L1 optimum is n; UNSAT has optimum at least n+2.
-- Established: Every feasible odd point satisfies sum_i y_i=-n/3; every feasible move is y->y+2g with integer Ag=0, and cubic column sums force sum_i g_i=0.
-- Established: Thresholding an integer lattice point yields a positive NAE coloring b. Writing z=b+p-q gives Ap-Aq=-1_T, |T|=3(||q||_1-||p||_1), and F-n=4||p||_1+2|T|/3.
-- Established: The shortcut p=0 or z in {-1,0,1} at a global optimum is false on an exact connected rank-14 linear-cubic control; positive overshoot can be unavoidable.
-- Established: The real L1 relaxation is universal and trivial: min{||y||_1:Ay=-1,y real}=n/3, attained at -1/3*1 for every square cubic source.
-- Established: No odd feasible point can be a continuous L1 optimum; a strict real kernel descent direction always exists.
-- Established: For integer source trade g, exact objective change is (||y+2g||_1-||y||_1)/2 = s^T g + P_y(g), where s=sign(y) and P_y(g)=sum_i max(0,-|y_i|-2 s_i g_i). The missing information is the discrete crossing penalty.
-- Established: Known Graver augmentation gives polynomially many iterations conditional on a suitable improving/best Graver direction, but constructing that direction remains open on the unrestricted linear-cubic carrier.
-- Established: Connected square linear-cubic nullity-one matrices can have primitive integer-kernel/Graver coefficient infinity norm 2^(n/7-1); therefore cubicity and linearity do not imply polynomially bounded primitive trade coefficients.
-- Established: Large Graver coefficients have only polynomial bit length, so this is a coefficient-enumeration barrier, not a lower bound against symbolic augmentation.
-- Established: The EQ3 NP-hard image has exponentially large subdeterminants and linear row/column deletion distance to TU, so bounded-determinant and O(1)-near-TU machinery is not universal.
-- Established: Pair2 completeness and empty-triple completeness are false even on explicit connected square linear-cubic UNSAT controls; fixed local-projection arity escalation is frozen.
-- Established: All finitary polymorphisms of raw EXACT_ONE_3 are coordinate projections; ordinary bounded-width local consistency is not a universal route.
-- Established: Network/graphic/TU, balanced, separator, low-nullity, commuting, phase, series/projective and other certified islands remain polynomial terminals but do not cover the universal residual.
+- **Frontier:** `R5_E9_GLOBAL_SIGN_CROSSING_SOURCE_TRADE_GATE_V2`
+- **Carrier:** connected square linear-cubic Positive-1-in-3 source after polynomial integer-lattice membership; odd affine-coset Ay=-1 with y odd; SAT iff min ||y||_1=n; threshold form is NAE transversal plus nonnegative copy-flow
+- Established: Exact linear-cubic Positive 1-in-3 SAT is NP-complete via the frozen EQ3 regularizer with polynomial witness transfer.
+- Established: Integer-lattice membership Az=1 over Z is polynomial; y=2z-1 converts it exactly to odd Ay=-1 and SAT iff the odd-coset L1 optimum is n.
+- Established: For a feasible odd point, an integer source trade is y->y+2g with g in ker_Z(A); exact half-objective change is s^T g + P_y(g), with P_y the sign-crossing penalty.
+- Established: Thresholding an integer feasible point gives a NAE transversal B. Exact identities: |T|=3|B|-n and F=n/3+2|B|+4||p||_1. Exact-One SAT iff the transversal number is n/3.
+- Established: For fixed NAE threshold b, copy magnitudes obey r_minority-r_majority1-r_majority2=tau. The copy matrix is exactly M_b=R_b A S_b, so row/column signing preserves the source determinant/kernel obstruction.
+- Established: Zero-crossing augmentation is exactly augmentation inside one fixed NAE orthant. It is not complete: for every Exact-One witness x, zc=1-2x is integer feasible, is a fixed-orthant optimum with F=5n/3, while x has F=n; the direct improving trade crosses every coordinate.
+- Established: The frozen unique-model 18_3 source is a stronger finite hostile control: from its complement point, every support-minimal rational kernel circuit is integer-line-search nonimproving although the unique Boolean witness has lower objective.
+- Established: Support-minimal oriented-matroid circuits therefore cannot replace genuinely global/Graver augmentation.
+- Established: A recursive two-edge frustration-2 lift from the frozen unique-model 18_3 seed yields an infinite connected square linear-cubic SAT family that is unique-model, signed-trade-free, unbalanced, 3-cut-prime, and has rational nullity at least n/18+1.
+- Established: Thus large nullity, model multiplicity, small signed trades, and <=3-edge decompositions cannot justify the missing sign-crossing move.
+- Established: Primitive integer-kernel/Graver coefficients can be exponentially large even for connected square linear-cubic nullity-one matrices; a valid algorithm must handle binary-encoded large coefficients symbolically.
+- Established: Private EQ3 integer coordinates eliminate exactly to a separable convex source penalty phi(q), returning the NP-complete source core rather than a network/TU problem.
+- Established: Direct matching/matchgate/delta-matroid, fixed-modulus counting, PolaritySAT-2026, small-boundary summaries, low-nullity, near-TU, and bounded-width/local-consistency shortcuts are frozen negative controls.
 - Established: P_VS_NP remains OPEN and E8_D1 remains EMPTY.
 
 ### Live split
@@ -61,15 +57,15 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 ```json
 {
   "primary": {
-    "goal": "Construct a deterministic polynomial integer source-trade procedure that, for odd feasible y, finds g in ker_Z(A) with s^T g + P_y(g)<0 or certifies global odd-coset L1 optimality, with polynomial total bit complexity and witness reconstruction.",
+    "goal": "Construct a deterministic polynomial source-trade procedure that can cross NAE orthants: from a polynomially constructed integer feasible point, find a globally improving g in ker_Z(A) under the exact crossing penalty or certify global odd-coset L1 optimality, with polynomial bit complexity and witness reconstruction.",
     "status": "OPEN"
   },
   "secondary": {
-    "goal": "Find a symbolic decomposition/augmentation calculus that tolerates exponentially large primitive trade coefficients and updates the exact NAE defect-flow state (T,p,q) without enumerating the Graver basis.",
+    "goal": "Exploit the exact NAE transversal/copy-flow representation to build a blossom/Lehman-like global augmentation or decomposition that keeps the three-way copy constraint exact and does not enumerate Graver elements, thresholds, or crossing sets.",
     "status": "OPEN"
   },
   "reserve": {
-    "goal": "Investigate set-cover integrality-gap / minimally-nonideal Lehman-core extraction as a possible blossom-like global decomposition, but do not assume an unproved complete classification of cubic Lehman matrices.",
+    "goal": "Investigate minimally-nonideal/Lehman cores only as a source of recognizable global inequalities or contractions; do not assume a complete classification or polynomial idealness recognizer.",
     "status": "OPEN"
   }
 }
@@ -77,36 +73,16 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 
 ### Next attack
 
-1. Attack the zero-crossing region first: decide whether there exists integer g in ker(A) satisfying s_i g_i >= -d_i for every i and s^T g<0; identify an exact polynomial donor or a source-valid obstruction.
-2. If zero-crossing descent fails, classify the minimum crossing set and derive a symbolic augmentation rule whose cost is the exact penalty P_y(g), not an LP surrogate.
-3. Use the NAE defect-flow equations Ap-Aq=-1_T to search for a min-cost circulation/b-matching formulation that changes T,p,q jointly and survives the EQ3 determinant-packing barrier.
-4. Search source literature on linear-cubic configuration trades, circuit/Graver augmentation, parity-constrained flows, and Lehman/minimally-nonideal cores for a polynomial symbolic donor; reject donors requiring bounded coefficients, bounded determinants, bounded treedepth, or O(1) near-TU distance.
-5. Do not infer hardness from general hypergraph toric ideals unless the exact linear-cubic regular intersection is source-proved.
+1. Search for a polynomially constructible non-circuit global augmentation certificate for separable-convex lattice optimization on A=I+P+Q / linear-cubic source matrices.
+2. Use the exact copy-flow identity M_b=R_b A S_b to derive a threshold-changing move calculus; zero-crossing-only is forbidden.
+3. Test every proposed global move on the unique-model prime linear-nullity SAT tower and on the existing prime linear-nullity UNSAT tower.
+4. Investigate Lehman/minimally-nonideal rank inequalities as blossom-like donors, but require polynomial discovery/separation and exact witness reconstruction; idealness recognition itself is not a free oracle.
+5. Do not replace Graver augmentation by rational circuits: the frozen 18_3 complement state is circuit-local but not globally optimal.
 6. Promote E8_D1 only after SOUND+COMPLETE+TERMINATES+POLY+RECONSTRUCT hold for arbitrary 3CNF.
 
 ## Commits newer than semantic checkpoint — MUST INGEST
 
-- `620f19b64a9c` — 2026-09-29T04:03:08+03:00 — R5 E9: eliminate EQ3 private L1 coordinates exactly
-- `50c5c8500bf8` — 2026-09-29T04:03:23+03:00 — R5 E9: add exact EQ3 L1 private-elimination checker
-- `78e0cbc8909c` — 2026-09-29T04:03:56+03:00 — R5 E9: sync semantic checkpoint to crossing-penalty trade frontier
-- `a5b56657ee56` — 2026-09-29T04:08:55+03:00 — R5 E9: derive NAE transversal copy-flow normal form
-- `d911d51d384b` — 2026-09-29T04:09:31+03:00 — R5 E9: add exact NAE copy-flow regression
-- `9fce9bc8db9b` — 2026-09-29T04:09:38+03:00 — R5 E9: add CI for NAE transversal copy flow
-- `cdd3b8c52dd4` — 2026-09-29T04:22:52+03:00 — R5 E9: reduce parity defects to source-signed linear even cover WGFP
-- `e2e79fa1c36f` — 2026-09-29T04:23:47+03:00 — R5 E9: add source-signed even-cover WGFP regression
-- `4d060d749e84` — 2026-09-29T04:23:56+03:00 — R5 E9: add CI for source-signed even-cover WGFP
-- `d71a16a888c1` — 2026-09-29T04:34:04+03:00 — R5 E9: prove maximum linear even-cover saturation equivalence
-- `00c94877999b` — 2026-09-29T04:34:20+03:00 — R5 E9: add maximum even-cover saturation regression
-- `f675173f3ef1` — 2026-09-29T04:34:29+03:00 — R5 E9: add CI for maximum even-cover saturation
-- `4f41dd32fa95` — 2026-09-29T04:40:28+03:00 — R5 E9: add independent-flat two-external augmentation router
-- `c7575b64bb28` — 2026-09-29T04:40:47+03:00 — R5 E9: prove fixed-NAE sign equivalence and zero-crossing trap
-- `9bb40a0690d2` — 2026-09-29T04:41:12+03:00 — R5 E9: add checker for zero-crossing trap
-- `644609b4b4fd` — 2026-09-29T04:42:16+03:00 — R5 E9: prove prime unique-model linear-nullity two-edge tower
-- `7e940a17c60b` — 2026-09-29T04:42:48+03:00 — R5 E9: freeze three-external hostile local-minimum countercontrol
-- `534eae0ff8a7` — 2026-09-29T04:42:50+03:00 — R5 E9: add regression for prime unique-model nullity tower
-- `7b6eafd3315e` — 2026-09-29T04:43:15+03:00 — R5 E9: add IF2E router and three-external hostile regression
-- `44d31b0ab5ae` — 2026-09-29T04:48:43+03:00 — R5 E9: falsify circuit-only integer L1 augmentation
-- `480eed457223` — 2026-09-29T04:49:04+03:00 — R5 E9: add exact circuit-augmentation barrier checker
+- `d9807a85a3f2` — 2026-09-29T04:50:46+03:00 — R5 E9: synchronize semantic checkpoint to global sign-crossing trade gate
 
 ## Transport / stale-bootstrap watch
 
@@ -117,7 +93,7 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 
 ## Must-read authority/evidence artifacts
 
-- **OK** `.janus/P_VS_NP_STREAM_CACHE_CURRENT.json` `d6fc5e9acbbfda5a…`
+- **OK** `.janus/P_VS_NP_STREAM_CACHE_CURRENT.json` `e86f968896d3aa7a…`
 - **OK** `tools/janus_stream_resume_cache.py` `adc6ab7f260d2384…`
 - **OK** `research/R5_E9_UNIVERSAL_SELECTOR_EQUIVALENCE_BARRIER_2026-09-27_v1.0.md` `a426b38d6d17eea3…`
 - **OK** `research/R5_E9_UNIVERSAL_SELECTOR_INTERNAL_ANTI_LOOP_BINDING_2026-09-27_v1.0.md` `e3ce2b82dd656b71…`
@@ -137,6 +113,7 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 
 ## Recent non-cache commits
 
+- `d9807a85a3f2` — 2026-09-29T04:50:46+03:00 — R5 E9: synchronize semantic checkpoint to global sign-crossing trade gate
 - `480eed457223` — 2026-09-29T04:49:04+03:00 — R5 E9: add exact circuit-augmentation barrier checker
 - `44d31b0ab5ae` — 2026-09-29T04:48:43+03:00 — R5 E9: falsify circuit-only integer L1 augmentation
 - `7b6eafd3315e` — 2026-09-29T04:43:15+03:00 — R5 E9: add IF2E router and three-external hostile regression
@@ -161,7 +138,6 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `66e9e29aa352` — 2026-09-29T04:01:39+03:00 — R5 E9: add CI for continuous L1 crossing barrier
 - `d972c0cd518d` — 2026-09-29T04:01:29+03:00 — R5 E9: add exact checker for continuous L1 crossing barrier
 - `4c0189564bef` — 2026-09-29T04:00:49+03:00 — R5 E9: isolate continuous L1 barycenter and crossing penalty
-- `a2fa88d9656d` — 2026-09-29T03:58:45+03:00 — R5 E9: add CI for exponential Graver coefficient family
 
 ## Resume protocol
 
