@@ -174,7 +174,6 @@ def k33_control():
     assert ok, bad
     pointwise_equivalence(a, f)
 
-    # Diagonal perfect matching.
     x = [Fraction(0)] * len(edges)
     for e in ((0, 3), (1, 4), (2, 5)):
         x[edges.index(e)] = 1
@@ -223,18 +222,42 @@ def petersen_rejection_control():
     pivots, f = normalize_rowspace(a)
     assert pivots == list(range(10))
 
-    # Fixed exact non-TU certificate under this deterministic edge/pivot ordering.
     rs = (0, 2, 9)
     cs = (11, 13, 14)
     minor = [[f[i][j] for j in cs] for i in rs]
     d = det_q(minor)
     assert d == -2, (minor, d)
 
-    # The source itself is SAT (the five spokes form a perfect matching), so TU
-    # rejection is not a SAT/UNSAT conclusion. The existing binet router handles it.
     x = [Fraction(0)] * len(edges)
     for i in range(5):
         x[edges.index((i, 5 + i))] = 1
+    assert exact_one(a, x)
+    return rs, cs, d
+
+
+def pg15_rejection_control():
+    rows = [
+        (1, 2, 3), (1, 10, 11), (1, 12, 13), (2, 9, 11),
+        (2, 12, 14), (3, 4, 7), (3, 5, 6), (4, 9, 13),
+        (4, 10, 14), (5, 8, 13), (5, 10, 15), (6, 8, 14),
+        (6, 9, 15), (7, 8, 15), (7, 11, 12),
+    ]
+    a = [[int(j + 1 in row) for j in range(15)] for row in rows]
+    assert all(sum(row) == 3 for row in a)
+    assert all(sum(a[i][j] for i in range(15)) == 3 for j in range(15))
+
+    pivots, f = normalize_rowspace(a)
+    assert len(f) == 11
+    assert pivots == list(range(11))
+
+    rs = (0, 2)
+    cs = (0, 11)
+    minor = [[f[i][j] for j in cs] for i in rs]
+    d = det_q(minor)
+    assert d == -2, (minor, d)
+
+    witness = {0, 4, 6, 8, 13}
+    x = [Fraction(int(i in witness)) for i in range(15)]
     assert exact_one(a, x)
     return rs, cs, d
 
@@ -243,11 +266,13 @@ def main():
     kshape = k33_control()
     b = network_unsat_control()
     rs, cs, d = petersen_rejection_control()
+    prs, pcs, pd = pg15_rejection_control()
 
     print("R5 E9 exact TU row-space router regression: PASS")
     print(f"K3,3 normalized shape = {kshape[0]} x {kshape[1]}; exhaustive tiny-control TU = PASS")
     print("network UNSAT normalized rhs =", [str(v) for v in b])
     print(f"Petersen non-TU witness: rows={rs} cols={cs} det={d}")
+    print(f"PG15 non-TU witness: rows={prs} cols={pcs} det={pd}")
     print("scope: exhaustive minors are regression only; general theorem uses polynomial TU recognition")
 
 
