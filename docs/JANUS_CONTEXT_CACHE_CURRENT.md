@@ -5,16 +5,16 @@
 - **Repository:** `Hawkar-usls/Janus-Fundamentum`
 - **PR:** `#510`
 - **Branch:** `codex/r5-e8-direct-contract-20260921-82493a57`
-- **Live source HEAD:** `4be8ce563307d106f7f521a72ef590c85ab96f34`
-- **Source commit time:** `2026-09-29T03:21:52+03:00`
-- **Indexed changed scientific artifacts:** `891`
+- **Live source HEAD:** `0eed3744c479344b94e8b439b738fe7bfe84e2bb`
+- **Source commit time:** `2026-09-29T03:22:59+03:00`
+- **Indexed changed scientific artifacts:** `892`
 
 ## Continuity status
 
 - Semantic cache: `.janus/P_VS_NP_STREAM_CACHE_CURRENT.json`
 - Semantic source HEAD: `05563fb285a1b2a4ae62d2a6aab0143bdbe52899`
 - Relation: **`LIVE_DESCENDS_FROM_SEMANTIC_CACHE`**
-- Commits after semantic checkpoint: `121`
+- Commits after semantic checkpoint: `122`
 
 ## Scientific firewall
 
@@ -79,7 +79,6 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 
 ## Commits newer than semantic checkpoint — MUST INGEST
 
-- `7aa19ec97edd` — 2026-09-28T21:44:26+03:00 — R5 E9: add exact recurrence replay through n120
 - `f6a098bddb52` — 2026-09-28T21:44:33+03:00 — R5 E9: add CI for projective escape-radius recurrence
 - `789c1400869c` — 2026-09-28T21:55:26+03:00 — R5 E9: reconcile RKPR with prime tower and EQ3 hardness image
 - `46f9a6f0f774` — 2026-09-28T21:55:50+03:00 — R5 E9: add RKPR post-quotient reconciliation replay
@@ -159,6 +158,7 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `18f292477e89` — 2026-09-29T03:15:39+03:00 — R5 E9: add Paley full-orbit sqrt-nullity CI
 - `5cc78daf06c5` — 2026-09-29T03:18:14+03:00 — R5 E9: falsify pair2 completeness and add triple mod7 terminal
 - `4be8ce563307` — 2026-09-29T03:21:52+03:00 — R5 E9: falsify pair-projection completeness on linear-cubic carrier
+- `0eed3744c479` — 2026-09-29T03:22:59+03:00 — R5 E9: add exact pair2 completeness falsifier checker
 
 ## Transport / stale-bootstrap watch
 
@@ -189,6 +189,7 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 
 ## Recent non-cache commits
 
+- `0eed3744c479` — 2026-09-29T03:22:59+03:00 — R5 E9: add exact pair2 completeness falsifier checker
 - `4be8ce563307` — 2026-09-29T03:21:52+03:00 — R5 E9: falsify pair-projection completeness on linear-cubic carrier
 - `5cc78daf06c5` — 2026-09-29T03:18:14+03:00 — R5 E9: falsify pair2 completeness and add triple mod7 terminal
 - `18f292477e89` — 2026-09-29T03:15:39+03:00 — R5 E9: add Paley full-orbit sqrt-nullity CI
@@ -213,7 +214,6 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `3d7563c94007` — 2026-09-29T02:59:09+03:00 — R5 E9: CI for lattice pair-projection 2-SAT terminal
 - `393e7dcd1813` — 2026-09-29T02:58:54+03:00 — R5 E9: add exact pair-projection 2-SAT checker
 - `04d50eae81c8` — 2026-09-29T02:58:16+03:00 — R5 E9: add integer-lattice pair-projection 2-SAT terminal
-- `e7364206c1f5` — 2026-09-29T02:44:13+03:00 — R5 E9: CI for integer-lattice Smith terminal
 
 ## Resume protocol
 
