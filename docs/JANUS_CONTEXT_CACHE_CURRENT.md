@@ -5,16 +5,16 @@
 - **Repository:** `Hawkar-usls/Janus-Fundamentum`
 - **PR:** `#510`
 - **Branch:** `codex/r5-e8-direct-contract-20260921-82493a57`
-- **Live source HEAD:** `cdd3b8c52dd4d2f34176b49b8f51bb06512476d1`
-- **Source commit time:** `2026-09-29T04:22:52+03:00`
-- **Indexed changed scientific artifacts:** `926`
+- **Live source HEAD:** `d71a16a888c182b47803523e236cfd84ea01c212`
+- **Source commit time:** `2026-09-29T04:34:04+03:00`
+- **Indexed changed scientific artifacts:** `929`
 
 ## Continuity status
 
 - Semantic cache: `.janus/P_VS_NP_STREAM_CACHE_CURRENT.json`
 - Semantic source HEAD: `66e9e29aa352f9b2df8ea9b36ec1732066ad19b8`
 - Relation: **`LIVE_DESCENDS_FROM_SEMANTIC_CACHE`**
-- Commits after semantic checkpoint: `7`
+- Commits after semantic checkpoint: `10`
 
 ## Scientific firewall
 
@@ -93,6 +93,9 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `d911d51d384b` — 2026-09-29T04:09:31+03:00 — R5 E9: add exact NAE copy-flow regression
 - `9fce9bc8db9b` — 2026-09-29T04:09:38+03:00 — R5 E9: add CI for NAE transversal copy flow
 - `cdd3b8c52dd4` — 2026-09-29T04:22:52+03:00 — R5 E9: reduce parity defects to source-signed linear even cover WGFP
+- `e2e79fa1c36f` — 2026-09-29T04:23:47+03:00 — R5 E9: add source-signed even-cover WGFP regression
+- `4d060d749e84` — 2026-09-29T04:23:56+03:00 — R5 E9: add CI for source-signed even-cover WGFP
+- `d71a16a888c1` — 2026-09-29T04:34:04+03:00 — R5 E9: prove maximum linear even-cover saturation equivalence
 
 ## Transport / stale-bootstrap watch
 
@@ -123,6 +126,9 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 
 ## Recent non-cache commits
 
+- `d71a16a888c1` — 2026-09-29T04:34:04+03:00 — R5 E9: prove maximum linear even-cover saturation equivalence
+- `4d060d749e84` — 2026-09-29T04:23:56+03:00 — R5 E9: add CI for source-signed even-cover WGFP
+- `e2e79fa1c36f` — 2026-09-29T04:23:47+03:00 — R5 E9: add source-signed even-cover WGFP regression
 - `cdd3b8c52dd4` — 2026-09-29T04:22:52+03:00 — R5 E9: reduce parity defects to source-signed linear even cover WGFP
 - `9fce9bc8db9b` — 2026-09-29T04:09:38+03:00 — R5 E9: add CI for NAE transversal copy flow
 - `d911d51d384b` — 2026-09-29T04:09:31+03:00 — R5 E9: add exact NAE copy-flow regression
@@ -145,9 +151,6 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `c9873372bcc2` — 2026-09-29T03:36:53+03:00 — R5 E9: falsify triple-empty completeness via exact two-edge lift
 - `9f37d12b95b4` — 2026-09-29T03:34:48+03:00 — R5 E9: add CI for EQ3 determinant packing barrier
 - `5d904345553f` — 2026-09-29T03:34:32+03:00 — R5 E9: add exact EQ3 determinant packing checker
-- `f3edd34ceb0a` — 2026-09-29T03:34:16+03:00 — R5 E9: prove exponential subdeterminant and linear TU-deletion barrier
-- `ef4c165d03cf` — 2026-09-29T03:34:03+03:00 — R5 E9: add CI for five-line spread UNSAT terminal
-- `fb0f43233656` — 2026-09-29T03:33:43+03:00 — R5 E9: add exact five-line spread UNSAT regression
 
 ## Resume protocol
 
