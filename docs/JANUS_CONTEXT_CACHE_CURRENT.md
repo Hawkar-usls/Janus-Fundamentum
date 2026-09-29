@@ -5,16 +5,16 @@
 - **Repository:** `Hawkar-usls/Janus-Fundamentum`
 - **PR:** `#510`
 - **Branch:** `codex/r5-e8-direct-contract-20260921-82493a57`
-- **Live source HEAD:** `0fc2deb10cfc57abbe4f913233af775f2902c309`
-- **Source commit time:** `2026-09-29T03:04:06+03:00`
-- **Indexed changed scientific artifacts:** `875`
+- **Live source HEAD:** `cd36a8f5ca5971e6d6e723adb0006ca31bb7c4fc`
+- **Source commit time:** `2026-09-29T03:06:05+03:00`
+- **Indexed changed scientific artifacts:** `876`
 
 ## Continuity status
 
 - Semantic cache: `.janus/P_VS_NP_STREAM_CACHE_CURRENT.json`
 - Semantic source HEAD: `05563fb285a1b2a4ae62d2a6aab0143bdbe52899`
 - Relation: **`LIVE_DESCENDS_FROM_SEMANTIC_CACHE`**
-- Commits after semantic checkpoint: `102`
+- Commits after semantic checkpoint: `103`
 
 ## Scientific firewall
 
@@ -79,7 +79,6 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 
 ## Commits newer than semantic checkpoint — MUST INGEST
 
-- `a5030a34807a` — 2026-09-28T20:54:11+03:00 — R5 E9: add CI for kernel-boundary nonconvexity barrier
 - `e7f9f0f7a0d0` — 2026-09-28T20:57:00+03:00 — R5 E9: isolate polynomial source-kernel navigation shell
 - `f318557a9306` — 2026-09-28T20:57:31+03:00 — R5 E9: add navigation-shell finite binding
 - `19f903e120d5` — 2026-09-28T20:57:39+03:00 — R5 E9: add CI for source-kernel navigation shell
@@ -159,6 +158,7 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `3d7563c94007` — 2026-09-29T02:59:09+03:00 — R5 E9: CI for lattice pair-projection 2-SAT terminal
 - `5531ffc733f4` — 2026-09-29T02:59:30+03:00 — R5 E9: reconcile Paley voltage family with SNF terminal
 - `0fc2deb10cfc` — 2026-09-29T03:04:06+03:00 — R5 E9: linearize post-SNF RKPR falsifier via EQ3
+- `cd36a8f5ca59` — 2026-09-29T03:06:05+03:00 — R5 E9: prove Paley free-orbit post-RKPR linear nullity barrier
 
 ## Transport / stale-bootstrap watch
 
@@ -189,6 +189,7 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 
 ## Recent non-cache commits
 
+- `cd36a8f5ca59` — 2026-09-29T03:06:05+03:00 — R5 E9: prove Paley free-orbit post-RKPR linear nullity barrier
 - `0fc2deb10cfc` — 2026-09-29T03:04:06+03:00 — R5 E9: linearize post-SNF RKPR falsifier via EQ3
 - `5531ffc733f4` — 2026-09-29T02:59:30+03:00 — R5 E9: reconcile Paley voltage family with SNF terminal
 - `3d7563c94007` — 2026-09-29T02:59:09+03:00 — R5 E9: CI for lattice pair-projection 2-SAT terminal
@@ -213,7 +214,6 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `11d7cf104b90` — 2026-09-29T01:32:40+03:00 — R5 E9: add exact TU-rowspace Boolean LP router
 - `bb16a1cb46e0` — 2026-09-29T01:22:32+03:00 — R5 E9: add CI for bidirected binet router
 - `0bf3e91ce41f` — 2026-09-29T01:22:24+03:00 — R5 E9: add bidirected binet router regression
-- `3d3b68e7b930` — 2026-09-29T01:20:48+03:00 — R5 E9: add bidirected cycle-kernel binet router
 
 ## Resume protocol
 
