@@ -1,0 +1,73 @@
+{
+  "artifact_id": "JANUS-TRUMP-E8-RIGID-C4-SOURCE-GEOMETRY-HOLONOMY-TREE-FRONTIER-2026-09-30-v7.4",
+  "version": "v7.4",
+  "date_local": "2026-09-30",
+  "status": "EXACT_SOURCE_GEOMETRY_CORRECTION_AND_TREE_TERMINAL__NO_P_EQUALS_NP_CLAIM",
+  "parents": [
+    "research/R5_B1B1C5B2B2_E8_C4_RIGID_GAIN_HOLONOMY_COMPILATION_2026-09-30_v7.2.json",
+    "research/R5_B1B1C5B2B2_E8_C4_RIGID_ORBIT_RELATIONAL_COMPLETENESS_BARRIER_2026-09-30_v7.3.json"
+  ],
+  "purpose": "Audit whether the abstract pp-completeness result of v7.3 is source-preserving for the smooth-C4 Hamiltonian quotient. It is not, already on the explicit v7.3 NEQ certificate. The same three rigid bundles that pp-define NEQ after forgetting gauges cannot be glued on three C4 variables within Hamiltonian port capacity, and even if capacity is ignored their unique S3 gains have inconsistent holonomy for every abstractly satisfying orbit triple. In the positive direction, any connected all-rigid interaction region whose bundle graph is a tree is exactly solvable by three-state tree DP plus unique-gain reconstruction.",
+  "source_model": {
+    "C4_ports": [0,1,2,3],
+    "hamiltonian_capacity": "Every original C4 port is one graph vertex and has exactly two Hamiltonian neighbours. Therefore each quotient C4 port has Hamiltonian half-edge capacity exactly two across all incident bundles.",
+    "rigid_bundle_semantics": "For a bundle B between components X,Y and orbit labels a,b, orbit-rigidity means the allowed relative gain set S_B(a,b) is either empty or one permutation h_B(a,b) in S3. Source satisfaction requires both orbit admissibility and one globally consistent component gauge per C4; binary orbit masks alone are insufficient on cycles."
+  },
+  "v7_3_explicit_certificate_audit": {
+    "A_bundle": [[0,0],[1,1],[2,3],[3,2]],
+    "B_bundle": [[0,0],[0,1],[1,2],[1,3],[2,0],[3,3]],
+    "C_bundle": [[0,0],[1,0],[1,2],[2,1],[2,3],[3,1]],
+    "abstract_formula": "A(x,y) AND exists z [B(x,z) AND C(z,y)]",
+    "abstract_result": "After existentially forgetting relative gains independently, the orbit masks satisfy A AND (B composed C) = NEQ_3.",
+    "capacity_failure": {
+      "x": "A-left contributes [1,1,1,1] and B-left contributes [2,2,1,1], totaling [3,3,2,2].",
+      "y": "A-right contributes [1,1,1,1] and C-right contributes [2,2,1,1], totaling [3,3,2,2].",
+      "z": "B-right contributes [2,1,1,2] and C-left contributes [1,2,2,1], totaling [3,3,3,3].",
+      "conclusion": "Every attempted direct identification of the three abstract variables with single C4 components exceeds the per-port capacity two. This remains true under port permutation for x and y because A uses every port once while the corresponding six-edge bundle necessarily uses some port twice."
+    },
+    "holonomy_failure_even_without_capacity": {
+      "abstract_satisfying_orbit_triples_xyz": [[0,1,2],[0,2,1],[1,1,0],[1,1,2],[2,2,0],[2,2,1]],
+      "orientation": "Use A on x->y, B on x->z, C on z->y. Relative gains are h_xy=g_y^{-1}g_x, h_xz=g_z^{-1}g_x, h_zy=g_y^{-1}g_z, so global consistency requires h_xy = h_zy composed h_xz.",
+      "exact_result": "For all six abstractly satisfying triples, the unique B and C gains compose to the identity permutation, while the unique A gain is a nonidentity permutation. Hence the required cycle equality fails in every case.",
+      "source_semantic_relation": "The gauge-aware three-bundle triangle has EMPTY terminal relation, not NEQ_3. Exhaustive enumeration over all orbit triples and all component gauges confirms zero globally satisfying assignments."
+    }
+  },
+  "composition_only_audit": {
+    "base": "The 120 distinct binary orbit masks induced by valid orbit-rigid labelled C4 bundles from v7.3.",
+    "operations": ["argument reversal", "one-variable relational composition"],
+    "exact_closure_size": 346,
+    "missing_relations": ["EQ_3", "NEQ_3"],
+    "meaning": "The jump from 120 rigid masks to all 512 binary relations in v7.3 genuinely uses abstract same-variable-pair intersections. Those intersections are not automatically source operations: simultaneous bundles must share one gauge and obey the same two-half-edge port budget. Therefore 512/512 abstract pp closure must not be promoted to a source-preserving hardness claim."
+  },
+  "positive_tree_terminal": {
+    "theorem": "ALL_RIGID_BUNDLE_TREE_IS_POLYNOMIAL",
+    "statement": "Let Q be a connected interaction graph whose vertices are C4 components and whose edges are orbit-rigid bundles. If the simple bundle interaction graph Q is a tree, exact satisfiability is decidable in linear time up to constant-domain table work.",
+    "algorithm": [
+      "Root Q. For each directed tree edge parent-child and each parent orbit a in {0,1,2}, compute whether some child orbit b is bundle-admissible and its child subtree is feasible. This is ordinary constant-domain tree DP with three states per component.",
+      "If the root has a feasible orbit, recover one orbit label per component by backtracking DP choices.",
+      "Choose an arbitrary root S3 gauge. Because every accepted rigid edge has one unique relative gain and Q has no cycles, propagate gauges uniquely from the root to all components. No holonomy check or gauge branching remains.",
+      "Reconstruct every original C4 vertex colour from its orbit representative and propagated gauge."
+    ],
+    "complexity": "O(|V(Q)|+|E(Q)|) after constant-size bundle lookup tables; witness reconstruction is linear.",
+    "scope": "This is a genuine exact terminal for tree-shaped all-rigid quotient regions. It does not solve cyclic rigid quotients, non-rigid gain-set bundles, or arbitrary smooth Hamiltonian instances."
+  },
+  "main_conclusion": {
+    "name": "ABSTRACT_RIGID_PP_COMPLETENESS_IS_NOT_SOURCE_COMPLETENESS",
+    "statement": "The v7.3 result is valid as an abstract finite-domain language theorem, but its explicit NEQ pp certificate is not a legal source gadget and is not even gauge-semantically NEQ when its three atoms are placed around one cycle. Hamiltonian port conservation and S3 holonomy are independent source-level constraints that must be retained.",
+    "algorithmic_leverage": "The next useful representation should treat port capacity and cycle holonomy as first-class conserved data. A tractable tree terminal already follows; any hardness embedding or polynomial contraction for cyclic quotients must cross this conservation boundary explicitly."
+  },
+  "next_target": {
+    "name": "E8_RIGID_C4_CYCLIC_GEOMETRIC_CLOSURE_OR_SOURCE_GADGET_V7_5",
+    "directive": "Classify source-realizable cyclic compositions rather than abstract pp closure. Search for the smallest legal smooth-C4 gadget whose terminals realize EQ_3 or NEQ_3 while every port has Hamiltonian degree at most two and all unique relative gains satisfy cycle holonomy. If no such small gadget exists, extract an invariant of the port transition system plus S3 gains that forbids it and test whether that invariant extends to a polynomial contraction. Do not use variable identification or relation intersection unless an explicit legal port/gauge realization is supplied. Mandatory controls: the v7.1 holonomy triangle, the rejected v7.3 NEQ certificate, and the all-rigid tree terminal."
+  },
+  "external_source_control": {
+    "fact": "Fleischner--Sabidussi show NP-completeness for the class of 4-regular Hamiltonian graphs whose complementary components are non-selfcrossing cycles of constant length at least four.",
+    "firewall": "This artifact does not infer from that class statement that the all-C4 rigid-bundle subclass is NP-hard. A source-preserving reduction for the exact subclass remains an open obligation here.",
+    "reference": "H. Fleischner and G. Sabidussi, 3-colorability of 4-regular hamiltonian graphs, Journal of Graph Theory 42(2) (2003), 125-140, DOI 10.1002/jgt.10079."
+  },
+  "scientific_ceiling": {
+    "P_VS_NP": "OPEN",
+    "P_EQUALS_NP_ALGORITHM": "NOT_CONSTRUCTED",
+    "E8_D1": "EMPTY"
+  }
+}
