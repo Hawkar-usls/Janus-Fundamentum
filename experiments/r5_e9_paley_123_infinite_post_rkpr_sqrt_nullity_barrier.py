@@ -7,6 +7,7 @@ No floating point is used.
 """
 
 from itertools import combinations
+from math import isqrt
 
 PRIME = 1_000_003
 
@@ -135,23 +136,25 @@ def check_linearity(rows):
 
 def main():
     # First exact family member after the excluded q=7.
-    H31, cols31, rows31 = build_component(31)
+    H31, _cols31, rows31 = build_component(31)
     assert len(H31) == 15
     assert len(rows31) == 465
     check_linearity(rows31)
 
-    # Gradient kernel has dimension q-1=30.  Exact modular rank 435 gives
+    # Gradient kernel has dimension q-1=30. Exact modular rank 435 gives
     # the opposite inequality, so rank_Q(A)=435 and nullity_Q(A)=30.
     rank31 = rank_mod_sparse(rows31, PRIME)
     assert rank31 == 435
     assert len(rows31) - rank31 == 30
 
-    # Larger replay.  No dense matrix or asymptotic rank equality is needed:
+    # Larger replay. No dense matrix or asymptotic rank equality is needed:
     # the theorem only needs the forced gradient lower bound q-1.
-    H79, cols79, rows79 = build_component(79)
+    H79, _cols79, rows79 = build_component(79)
     assert len(H79) >= 1
     assert len(rows79) == 79 * len(H79)
-    assert 78 >= (int((1 + 8 * len(rows79)) ** 0.5) - 1) // 2 or len(H79) <= 39
+    n79 = len(rows79)
+    root_floor = (isqrt(1 + 8 * n79) - 1) // 2
+    assert 78 >= root_floor
 
     # Explicit nonzero voltage used in the connectedness proof.
     for q in (31, 79):
@@ -169,7 +172,7 @@ def main():
     print("  exact_nullity_Q = 30")
     print("q=79:")
     print(f"  |H| = {len(H79)}")
-    print(f"  n = {len(rows79)}")
+    print(f"  n = {n79}")
     print("  row_degree = column_degree = 3")
     print("  Levi_connected = True")
     print("  forced_gradient_nullity >= 78")
