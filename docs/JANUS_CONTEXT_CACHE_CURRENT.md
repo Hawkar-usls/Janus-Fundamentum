@@ -5,16 +5,16 @@
 - **Repository:** `Hawkar-usls/Janus-Fundamentum`
 - **PR:** `#510`
 - **Branch:** `codex/r5-e8-direct-contract-20260921-82493a57`
-- **Live source HEAD:** `a164045d23c0ca186af65ae06ec52083eeeadb49`
-- **Source commit time:** `2026-09-30T03:15:08+03:00`
-- **Indexed changed scientific artifacts:** `959`
+- **Live source HEAD:** `4e7506885f09f0a42868c9c39ec4f9ced4afddf1`
+- **Source commit time:** `2026-09-30T03:53:29+03:00`
+- **Indexed changed scientific artifacts:** `964`
 
 ## Continuity status
 
 - Semantic cache: `.janus/P_VS_NP_STREAM_CACHE_CURRENT.json`
 - Semantic source HEAD: `480eed45722312b7b16e4a5d9f3d19149e125892`
 - Relation: **`LIVE_DESCENDS_FROM_SEMANTIC_CACHE`**
-- Commits after semantic checkpoint: `27`
+- Commits after semantic checkpoint: `33`
 
 ## Scientific firewall
 
@@ -109,6 +109,12 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `9efd37493952` — 2026-09-30T03:06:49+03:00 — R5 E9: add exact Paley19 gradient-kernel checker
 - `29c3a79d7a05` — 2026-09-30T03:06:56+03:00 — R5 E9: add CI for Paley19 gradient-kernel control
 - `a164045d23c0` — 2026-09-30T03:15:08+03:00 — R5 E9: prove infinite post-RKPR sqrt-nullity Paley barrier
+- `5ffac5b1325b` — 2026-09-30T03:15:57+03:00 — R5 E9: add checker for infinite Paley post-RKPR barrier
+- `cd01e32f09c2` — 2026-09-30T03:16:25+03:00 — R5 E9: keep infinite Paley checker exact with integer sqrt
+- `4a73a4317e24` — 2026-09-30T03:16:34+03:00 — R5 E9: add CI for infinite Paley post-RKPR sqrt-nullity barrier
+- `11011ae1b97c` — 2026-09-30T03:52:39+03:00 — R5 E9: add affine F3 nowhere-zero Exact-One normal form
+- `059c0fcf5e36` — 2026-09-30T03:53:15+03:00 — R5 E9: add exact affine F3 nowhere-zero regression
+- `4e7506885f09` — 2026-09-30T03:53:29+03:00 — R5 E9: add CI for affine F3 nowhere-zero normal form
 
 ## Transport / stale-bootstrap watch
 
@@ -139,6 +145,12 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 
 ## Recent non-cache commits
 
+- `4e7506885f09` — 2026-09-30T03:53:29+03:00 — R5 E9: add CI for affine F3 nowhere-zero normal form
+- `059c0fcf5e36` — 2026-09-30T03:53:15+03:00 — R5 E9: add exact affine F3 nowhere-zero regression
+- `11011ae1b97c` — 2026-09-30T03:52:39+03:00 — R5 E9: add affine F3 nowhere-zero Exact-One normal form
+- `4a73a4317e24` — 2026-09-30T03:16:34+03:00 — R5 E9: add CI for infinite Paley post-RKPR sqrt-nullity barrier
+- `cd01e32f09c2` — 2026-09-30T03:16:25+03:00 — R5 E9: keep infinite Paley checker exact with integer sqrt
+- `5ffac5b1325b` — 2026-09-30T03:15:57+03:00 — R5 E9: add checker for infinite Paley post-RKPR barrier
 - `a164045d23c0` — 2026-09-30T03:15:08+03:00 — R5 E9: prove infinite post-RKPR sqrt-nullity Paley barrier
 - `29c3a79d7a05` — 2026-09-30T03:06:56+03:00 — R5 E9: add CI for Paley19 gradient-kernel control
 - `9efd37493952` — 2026-09-30T03:06:49+03:00 — R5 E9: add exact Paley19 gradient-kernel checker
@@ -158,12 +170,6 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `fe80c58e3c6c` — 2026-09-29T13:18:00+03:00 — R5 E9: add Paley11 gradient-kernel post-RKPR UNSAT terminal
 - `e3bb810fa89b` — 2026-09-29T13:08:12+03:00 — R5 E9: add CI for Paley11 chain-switch nullity family
 - `64b373e90b66` — 2026-09-29T13:08:00+03:00 — R5 E9: add exact Paley11 chain-switch nullity checker
-- `da9a19e241f3` — 2026-09-29T13:07:14+03:00 — R5 E9: add Paley11 chain-switch post-RKPR linear-nullity family
-- `87efa2d7c38e` — 2026-09-29T05:12:07+03:00 — R5 E9: add CI for Walsh MaxLin2-AA router
-- `62ffcf76426f` — 2026-09-29T05:11:57+03:00 — R5 E9: add exact Walsh-to-MaxLin2 mapping regression
-- `c6a72f69d591` — 2026-09-29T05:09:46+03:00 — R5 E9: add exact MaxLin2-AA router for negative-mean Walsh gate
-- `404c9f1bd197` — 2026-09-29T04:58:13+03:00 — R5 E9: add CI for Walsh moment global augmentation
-- `703cf69645d9` — 2026-09-29T04:57:58+03:00 — R5 E9: add Walsh moment augmentation regression
 
 ## Resume protocol
 
