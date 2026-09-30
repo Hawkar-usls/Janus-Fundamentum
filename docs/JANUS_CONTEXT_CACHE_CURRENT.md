@@ -5,16 +5,16 @@
 - **Repository:** `Hawkar-usls/Janus-Fundamentum`
 - **PR:** `#510`
 - **Branch:** `codex/r5-e8-direct-contract-20260921-82493a57`
-- **Live source HEAD:** `165af10bcaae19a0a58d70701039f2b2b1551a85`
-- **Source commit time:** `2026-09-30T04:24:54+03:00`
-- **Indexed changed scientific artifacts:** `968`
+- **Live source HEAD:** `cb4c72acf7fcbc45152a27958f5cc978f88032ed`
+- **Source commit time:** `2026-09-30T04:25:38+03:00`
+- **Indexed changed scientific artifacts:** `970`
 
 ## Continuity status
 
 - Semantic cache: `.janus/P_VS_NP_STREAM_CACHE_CURRENT.json`
 - Semantic source HEAD: `480eed45722312b7b16e4a5d9f3d19149e125892`
 - Relation: **`LIVE_DESCENDS_FROM_SEMANTIC_CACHE`**
-- Commits after semantic checkpoint: `39`
+- Commits after semantic checkpoint: `41`
 
 ## Scientific firewall
 
@@ -121,6 +121,8 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `adfbd510e682` — 2026-09-30T04:16:26+03:00 — R5 E9: add exact branch-width full-support DP regression
 - `f5b52bf95c06` — 2026-09-30T04:16:34+03:00 — R5 E9: add CI for augmented ternary branch-width DP
 - `165af10bcaae` — 2026-09-30T04:24:54+03:00 — R5 E9: add affine F3 projective blocking line terminal
+- `a6f4fd196780` — 2026-09-30T04:25:28+03:00 — R5 E9: add exact checker for projective blocking line terminal
+- `cb4c72acf7fc` — 2026-09-30T04:25:38+03:00 — R5 E9: add CI for projective blocking line terminal
 
 ## Transport / stale-bootstrap watch
 
@@ -151,6 +153,8 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 
 ## Recent non-cache commits
 
+- `cb4c72acf7fc` — 2026-09-30T04:25:38+03:00 — R5 E9: add CI for projective blocking line terminal
+- `a6f4fd196780` — 2026-09-30T04:25:28+03:00 — R5 E9: add exact checker for projective blocking line terminal
 - `165af10bcaae` — 2026-09-30T04:24:54+03:00 — R5 E9: add affine F3 projective blocking line terminal
 - `f5b52bf95c06` — 2026-09-30T04:16:34+03:00 — R5 E9: add CI for augmented ternary branch-width DP
 - `adfbd510e682` — 2026-09-30T04:16:26+03:00 — R5 E9: add exact branch-width full-support DP regression
@@ -174,8 +178,6 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `da74ed88e414` — 2026-09-29T15:04:02+03:00 — R5 E9: add CI for exact TU row-space router
 - `102b3b95b8d9` — 2026-09-29T15:03:54+03:00 — R5 E9: add exact TU row-space router regression
 - `b82a8ebc6e74` — 2026-09-29T14:58:57+03:00 — R5 E9: add exact TU row-space integer LP router
-- `8bc2dbd046e8` — 2026-09-29T13:28:07+03:00 — R5 E9: add CI for infinite Paley-orbit gradient family
-- `469349bd9b7b` — 2026-09-29T13:27:58+03:00 — R5 E9: add exact checker for infinite Paley-orbit family
 
 ## Resume protocol
 
