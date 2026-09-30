@@ -1,0 +1,52 @@
+{
+  "artifact_id": "JANUS-TRUMP-E8-P3-OVERLAP-EXPONENTIAL-MINOR-LUCAS-BARRIER-2026-09-30-v2.5",
+  "version": "v2.5",
+  "date_local": "2026-09-30",
+  "status": "EXACT_ARBITRARY_SIZE_BARRIER__NO_P_EQUALS_NP_CLAIM",
+  "parent": "research/R5_B1B1C5B2B2_E8_P3_OVERLAP_THREE_PARTITION_MATROID_CARRIER_2026-09-30_v2.4.json",
+  "purpose": "Test whether the exact P3-overlap 0-1 formulation accidentally falls into TU, bimodular, trimodular, or any fixed-Delta bounded-subdeterminant class. It does not: an explicit SAT family has exponentially growing square minors.",
+  "carrier_matrix": {
+    "variables": "One 0-1 variable x_o per literal occurrence o.",
+    "clause_rows": "For each clause C, sum_{o in C} x_o = 1.",
+    "mixed_degree3_conflict_rows": "For majority occurrences L,R and minority occurrence M of one Boolean variable, x_L+x_M <= 1 and x_M+x_R <= 1.",
+    "square_cubic_case": "If there are n 3-clauses and n mixed degree-3 Boolean variables, there are 3n occurrence columns, n clause rows and 2n conflict rows, hence a 3n by 3n coefficient matrix Q_n."
+  },
+  "local_elimination_lemma": {
+    "statement": "For each mixed degree-3 variable, the two conflict rows on columns (L,M,R) are [[1,1,0],[0,1,1]]. A unimodular column change with third basis vector (1,-1,1)^T turns these two rows into a rank-2 unit block plus one zero quotient column. Therefore |det Q| equals |det B|, where B is the clause-by-variable signed incidence matrix obtained by assigning +1 to both majority occurrences and -1 to the minority occurrence.",
+    "reason": "The local conflict matrix has kernel span{(1,-1,1)} and has a 2x2 minor of determinant 1, so quotienting by the conflict rows introduces no determinant factor other than sign."
+  },
+  "explicit_family": {
+    "formula": "For n>=4, indices modulo n, let C_i=(x_i OR x_{i+1} OR NOT x_{i+2}). Every variable occurs exactly three times: positively in C_i and C_{i-1}, negatively in C_{i-2}. The all-true assignment satisfies every clause.",
+    "signed_quotient_matrix": "With P the cyclic shift permutation matrix, B_n = I + P - P^2 up to the harmless convention P versus P^{-1}.",
+    "determinant_formula": "det(B_n)=1+(-1)^n(1-L_n), where L_n is the nth Lucas number (L_0=2,L_1=1,L_{n}=L_{n-1}+L_{n-2}).",
+    "closed_form_proof": [
+      "The eigenvalues of P are the nth roots of unity zeta, so det(B_n)=product_{zeta^n=1}(1+zeta-zeta^2).",
+      "Let alpha,beta be the roots of z^2-z-1=0. Then 1+z-z^2=-(z-alpha)(z-beta), alpha*beta=-1, and alpha^n+beta^n=L_n.",
+      "Using product_{zeta^n=1}(zeta-alpha)=(-1)^n(alpha^n-1) and the same identity for beta gives det(B_n)=(-1)^n(alpha^n-1)(beta^n-1)=1+(-1)^n(1-L_n)."
+    ],
+    "growth": "For odd n, |det(B_n)|=L_n. For even n>=4, |det(B_n)|=L_n-2. Hence |det(Q_n)|=Theta(phi^n), phi=(1+sqrt(5))/2."
+  },
+  "algorithmic_consequence": {
+    "killed_shortcuts": [
+      "Treat the exact P3-overlap carrier matrix as totally unimodular.",
+      "Invoke the strongly-polynomial bimodular IP theorem by claiming all minors are bounded by 2.",
+      "Invoke strict-3-modular or any fixed-Delta bounded-subdeterminant algorithm/conjecture as if the carrier had constant Delta.",
+      "Infer a constant denominator bound merely from the local P3/K2 structure."
+    ],
+    "not_killed": [
+      "A formula-specific nonlinear augmentation theorem.",
+      "A global determinant/Pfaffian cancellation identity not based on bounded minors.",
+      "The exterior/Fourier all-or-none projection route.",
+      "P=NP."
+    ]
+  },
+  "next_target": {
+    "name": "E8_PARITY_GROUP_EXTERIOR_ALL_OR_NONE_PROJECTION_V2_6",
+    "directive": "Exploit determinant multilinearity before any exponential character enumeration: sum the local even-parity sign choices of each occurrence group in exterior algebra, reducing each degree-2/3 equality group to exactly two decomposable wedge states (all-constant versus all-perturbed). Then attack the remaining global product of rank-2 exterior tensors without materializing 2^n selector states."
+  },
+  "scientific_ceiling": {
+    "P_VS_NP": "OPEN",
+    "P_EQUALS_NP_ALGORITHM": "NOT_CONSTRUCTED",
+    "E8_D1": "EMPTY"
+  }
+}
