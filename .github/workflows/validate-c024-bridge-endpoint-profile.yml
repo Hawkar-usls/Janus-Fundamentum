@@ -1,0 +1,33 @@
+name: Validate C024 Bridge Endpoint Profile
+
+on:
+  push:
+    paths:
+      - "experiments/direct/janus_tear_gt_bridge_endpoint_profile.py"
+      - "experiments/direct/janus_tear_gt_non_tail_bridge_blockers.py"
+      - "experiments/direct/janus_tear_gt_coresolvable_tail_bridge_certificate.py"
+      - ".github/workflows/validate-c024-bridge-endpoint-profile.yml"
+  pull_request:
+    paths:
+      - "experiments/direct/janus_tear_gt_bridge_endpoint_profile.py"
+      - "experiments/direct/janus_tear_gt_non_tail_bridge_blockers.py"
+      - "experiments/direct/janus_tear_gt_coresolvable_tail_bridge_certificate.py"
+      - ".github/workflows/validate-c024-bridge-endpoint-profile.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  bridge-endpoint-profile:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Profile all pre-frontier spanning bridge literals
+        run: python experiments/direct/janus_tear_gt_bridge_endpoint_profile.py
+      - name: Classify blockers for non-tail spanning bridges
+        run: python experiments/direct/janus_tear_gt_non_tail_bridge_blockers.py
+      - name: Certify the co-resolvable tail-bridge invariant
+        run: python experiments/direct/janus_tear_gt_coresolvable_tail_bridge_certificate.py

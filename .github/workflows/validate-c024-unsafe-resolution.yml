@@ -1,0 +1,45 @@
+name: Validate C024 Unsafe Resolution
+
+on:
+  push:
+    paths:
+      - "experiments/direct/janus_tear_gt_rank_safety_dichotomy.py"
+      - "experiments/direct/janus_tear_gt_attempted_resolution_safety.py"
+      - "experiments/direct/janus_tear_gt_frozen_parent_unsafe_pair_search.py"
+      - "experiments/direct/janus_tear_gt_unsafe_clause_one_generation.py"
+      - "experiments/direct/janus_tear_gt_unsafe_resolution_summary.py"
+      - "experiments/direct/janus_tear_gt_double_bridge_pivot_audit.py"
+      - "experiments/direct/janus_tear_gt_same_cut_pivot_audit.py"
+      - "experiments/direct/janus_tear_gt_bridge_cut_summary.py"
+      - ".github/workflows/validate-c024-unsafe-resolution.yml"
+  pull_request:
+    paths:
+      - "experiments/direct/janus_tear_gt_rank_safety_dichotomy.py"
+      - "experiments/direct/janus_tear_gt_attempted_resolution_safety.py"
+      - "experiments/direct/janus_tear_gt_frozen_parent_unsafe_pair_search.py"
+      - "experiments/direct/janus_tear_gt_unsafe_clause_one_generation.py"
+      - "experiments/direct/janus_tear_gt_unsafe_resolution_summary.py"
+      - "experiments/direct/janus_tear_gt_double_bridge_pivot_audit.py"
+      - "experiments/direct/janus_tear_gt_same_cut_pivot_audit.py"
+      - "experiments/direct/janus_tear_gt_bridge_cut_summary.py"
+      - ".github/workflows/validate-c024-unsafe-resolution.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  unsafe-resolution:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Emit compact unsafe-resolution summary
+        run: python experiments/direct/janus_tear_gt_unsafe_resolution_summary.py
+      - name: Audit double-bridge pivots in all frozen parent pairs
+        run: python experiments/direct/janus_tear_gt_double_bridge_pivot_audit.py
+      - name: Audit same-cut double-bridge pivots
+        run: python experiments/direct/janus_tear_gt_same_cut_pivot_audit.py
+      - name: Emit compact bridge-cut summary
+        run: python experiments/direct/janus_tear_gt_bridge_cut_summary.py

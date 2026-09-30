@@ -1,0 +1,35 @@
+name: Validate C024 Bridge Cut Summary
+
+on:
+  push:
+    paths:
+      - "experiments/direct/janus_tear_gt_double_bridge_pivot_audit.py"
+      - "experiments/direct/janus_tear_gt_same_cut_pivot_audit.py"
+      - "experiments/direct/janus_tear_gt_bridge_cut_summary.py"
+      - ".github/workflows/validate-c024-bridge-cut-summary.yml"
+  pull_request:
+    paths:
+      - "experiments/direct/janus_tear_gt_double_bridge_pivot_audit.py"
+      - "experiments/direct/janus_tear_gt_same_cut_pivot_audit.py"
+      - "experiments/direct/janus_tear_gt_bridge_cut_summary.py"
+      - ".github/workflows/validate-c024-bridge-cut-summary.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  bridge-cut-summary:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Emit bridge-cut summary only
+        run: python experiments/direct/janus_tear_gt_bridge_cut_summary.py | tee bridge-cut-summary.txt
+      - name: Upload bridge-cut summary
+        uses: actions/upload-artifact@v4
+        with:
+          name: c024-bridge-cut-summary
+          path: bridge-cut-summary.txt
+          if-no-files-found: error
