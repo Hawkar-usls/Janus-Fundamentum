@@ -5,16 +5,16 @@
 - **Repository:** `Hawkar-usls/Janus-Fundamentum`
 - **PR:** `#510`
 - **Branch:** `codex/r5-e8-direct-contract-20260921-82493a57`
-- **Live source HEAD:** `432c9bd283565c33ebe57f39f962c2062fcd659f`
-- **Source commit time:** `2026-09-30T04:05:19+03:00`
-- **Indexed changed scientific artifacts:** `965`
+- **Live source HEAD:** `e3cd39c9b20b8164e318ce0f099c838a1fd24ee1`
+- **Source commit time:** `2026-09-30T04:05:53+03:00`
+- **Indexed changed scientific artifacts:** `964`
 
 ## Continuity status
 
 - Semantic cache: `.janus/P_VS_NP_STREAM_CACHE_CURRENT.json`
 - Semantic source HEAD: `480eed45722312b7b16e4a5d9f3d19149e125892`
 - Relation: **`LIVE_DESCENDS_FROM_SEMANTIC_CACHE`**
-- Commits after semantic checkpoint: `34`
+- Commits after semantic checkpoint: `35`
 
 ## Scientific firewall
 
@@ -116,6 +116,7 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `059c0fcf5e36` — 2026-09-30T03:53:15+03:00 — R5 E9: add exact affine F3 nowhere-zero regression
 - `4e7506885f09` — 2026-09-30T03:53:29+03:00 — R5 E9: add CI for affine F3 nowhere-zero normal form
 - `432c9bd28356` — 2026-09-30T04:05:19+03:00 — R5 E9: add exact checker for affine F3 nowhere-zero normal form
+- `e3cd39c9b20b` — 2026-09-30T04:05:53+03:00 — R5 E9: remove duplicate affine F3 checker
 
 ## Transport / stale-bootstrap watch
 
@@ -146,6 +147,7 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 
 ## Recent non-cache commits
 
+- `e3cd39c9b20b` — 2026-09-30T04:05:53+03:00 — R5 E9: remove duplicate affine F3 checker
 - `432c9bd28356` — 2026-09-30T04:05:19+03:00 — R5 E9: add exact checker for affine F3 nowhere-zero normal form
 - `4e7506885f09` — 2026-09-30T03:53:29+03:00 — R5 E9: add CI for affine F3 nowhere-zero normal form
 - `059c0fcf5e36` — 2026-09-30T03:53:15+03:00 — R5 E9: add exact affine F3 nowhere-zero regression
@@ -170,7 +172,6 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `fc5ad37840c5` — 2026-09-29T13:19:24+03:00 — R5 E9: add Paley11 gradient-kernel CI
 - `db8358972870` — 2026-09-29T13:19:15+03:00 — R5 E9: add exact Paley11 gradient-kernel checker
 - `fe80c58e3c6c` — 2026-09-29T13:18:00+03:00 — R5 E9: add Paley11 gradient-kernel post-RKPR UNSAT terminal
-- `e3bb810fa89b` — 2026-09-29T13:08:12+03:00 — R5 E9: add CI for Paley11 chain-switch nullity family
 
 ## Resume protocol
 
