@@ -5,16 +5,16 @@
 - **Repository:** `Hawkar-usls/Janus-Fundamentum`
 - **PR:** `#510`
 - **Branch:** `codex/r5-e8-direct-contract-20260921-82493a57`
-- **Live source HEAD:** `ff316dda71a1f6897fcb4a84093f4ccf2fcd78f2`
-- **Source commit time:** `2026-09-30T06:26:31+03:00`
-- **Indexed changed scientific artifacts:** `1015`
+- **Live source HEAD:** `4fbae71b9101b4620d7e2d9012341af43e934f05`
+- **Source commit time:** `2026-09-30T06:31:31+03:00`
+- **Indexed changed scientific artifacts:** `1017`
 
 ## Continuity status
 
 - Semantic cache: `.janus/P_VS_NP_STREAM_CACHE_CURRENT.json`
 - Semantic source HEAD: `480eed45722312b7b16e4a5d9f3d19149e125892`
 - Relation: **`LIVE_DESCENDS_FROM_SEMANTIC_CACHE`**
-- Commits after semantic checkpoint: `86`
+- Commits after semantic checkpoint: `89`
 
 ## Scientific firewall
 
@@ -82,9 +82,6 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 
 ## Commits newer than semantic checkpoint — MUST INGEST
 
-- `87efa2d7c38e` — 2026-09-29T05:12:07+03:00 — R5 E9: add CI for Walsh MaxLin2-AA router
-- `da9a19e241f3` — 2026-09-29T13:07:14+03:00 — R5 E9: add Paley11 chain-switch post-RKPR linear-nullity family
-- `64b373e90b66` — 2026-09-29T13:08:00+03:00 — R5 E9: add exact Paley11 chain-switch nullity checker
 - `e3bb810fa89b` — 2026-09-29T13:08:12+03:00 — R5 E9: add CI for Paley11 chain-switch nullity family
 - `fe80c58e3c6c` — 2026-09-29T13:18:00+03:00 — R5 E9: add Paley11 gradient-kernel post-RKPR UNSAT terminal
 - `db8358972870` — 2026-09-29T13:19:15+03:00 — R5 E9: add exact Paley11 gradient-kernel checker
@@ -162,6 +159,9 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `36a7a14f0ea2` — 2026-09-30T06:12:26+03:00 — R5 E9: add exact six-hyperplane essential-cover regression
 - `6ccf5064e4cd` — 2026-09-30T06:19:07+03:00 — R5 E9: prove AF3 projective scaling invariance
 - `ff316dda71a1` — 2026-09-30T06:26:31+03:00 — R5 E9: add AF3 projective scaling regression
+- `bbf2369c5b5a` — 2026-09-30T06:26:56+03:00 — R5 E9: make AF3 projective regression kernel-dimensional
+- `9addb3121770` — 2026-09-30T06:27:05+03:00 — R5 E9: add CI for AF3 projective invariance
+- `4fbae71b9101` — 2026-09-30T06:31:31+03:00 — R5 E9: add AF3 normal-excess dual FPT router
 
 ## Transport / stale-bootstrap watch
 
@@ -192,6 +192,9 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 
 ## Recent non-cache commits
 
+- `4fbae71b9101` — 2026-09-30T06:31:31+03:00 — R5 E9: add AF3 normal-excess dual FPT router
+- `9addb3121770` — 2026-09-30T06:27:05+03:00 — R5 E9: add CI for AF3 projective invariance
+- `bbf2369c5b5a` — 2026-09-30T06:26:56+03:00 — R5 E9: make AF3 projective regression kernel-dimensional
 - `ff316dda71a1` — 2026-09-30T06:26:31+03:00 — R5 E9: add AF3 projective scaling regression
 - `6ccf5064e4cd` — 2026-09-30T06:19:07+03:00 — R5 E9: prove AF3 projective scaling invariance
 - `36a7a14f0ea2` — 2026-09-30T06:12:26+03:00 — R5 E9: add exact six-hyperplane essential-cover regression
@@ -214,9 +217,6 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `698011e9cb79` — 2026-09-30T05:40:26+03:00 — R5 E9: prove Paley AF3 linear-excess barrier
 - `1905caed5bb1` — 2026-09-30T05:35:37+03:00 — R5 E9: add AF3 residual normal-codimension DP router
 - `42d520841356` — 2026-09-30T05:32:47+03:00 — R5 E9: add CI for AF3 APSQ EQ3 local source return
-- `3a60af0631c7` — 2026-09-30T05:32:40+03:00 — R5 E9: add exact AF3 APSQ EQ3 source-return regression
-- `b53c23ebf36c` — 2026-09-30T05:32:06+03:00 — R5 E9: add AF3 APSQ EQ3 local source-return barrier
-- `b694e147e696` — 2026-09-30T05:27:25+03:00 — R5 E9: add CI for persistent F3 UNSAT certificate
 
 ## Resume protocol
 
