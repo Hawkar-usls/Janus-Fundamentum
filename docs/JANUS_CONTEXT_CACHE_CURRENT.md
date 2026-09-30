@@ -5,16 +5,16 @@
 - **Repository:** `Hawkar-usls/Janus-Fundamentum`
 - **PR:** `#510`
 - **Branch:** `codex/r5-e8-direct-contract-20260921-82493a57`
-- **Live source HEAD:** `2342ff8e2d8969e24f4394adfdb4d9f9c779ec96`
-- **Source commit time:** `2026-09-30T05:59:02+03:00`
-- **Indexed changed scientific artifacts:** `1002`
+- **Live source HEAD:** `11cf454019a4c92ab1012f97e4e6399a17b072e1`
+- **Source commit time:** `2026-09-30T05:59:40+03:00`
+- **Indexed changed scientific artifacts:** `1004`
 
 ## Continuity status
 
 - Semantic cache: `.janus/P_VS_NP_STREAM_CACHE_CURRENT.json`
 - Semantic source HEAD: `480eed45722312b7b16e4a5d9f3d19149e125892`
 - Relation: **`LIVE_DESCENDS_FROM_SEMANTIC_CACHE`**
-- Commits after semantic checkpoint: `73`
+- Commits after semantic checkpoint: `75`
 
 ## Scientific firewall
 
@@ -155,6 +155,8 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `888a360afec7` — 2026-09-30T05:57:25+03:00 — R5 E9: add exact AF3 RNCDP inert source-return regression
 - `38c840ea467c` — 2026-09-30T05:57:34+03:00 — R5 E9: add CI for AF3 RNCDP inert source return
 - `2342ff8e2d89` — 2026-09-30T05:59:02+03:00 — R5 E9: close projectively-distinct hyperplane-cover shortcut
+- `6ec209236afe` — 2026-09-30T05:59:17+03:00 — R5 E9: add F3 four-hyperplane cover regression
+- `11cf454019a4` — 2026-09-30T05:59:40+03:00 — R5 E9: add CI for F3 four-hyperplane cover barrier
 
 ## Transport / stale-bootstrap watch
 
@@ -185,6 +187,8 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 
 ## Recent non-cache commits
 
+- `11cf454019a4` — 2026-09-30T05:59:40+03:00 — R5 E9: add CI for F3 four-hyperplane cover barrier
+- `6ec209236afe` — 2026-09-30T05:59:17+03:00 — R5 E9: add F3 four-hyperplane cover regression
 - `2342ff8e2d89` — 2026-09-30T05:59:02+03:00 — R5 E9: close projectively-distinct hyperplane-cover shortcut
 - `38c840ea467c` — 2026-09-30T05:57:34+03:00 — R5 E9: add CI for AF3 RNCDP inert source return
 - `888a360afec7` — 2026-09-30T05:57:25+03:00 — R5 E9: add exact AF3 RNCDP inert source-return regression
@@ -208,8 +212,6 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `50dba3f20081` — 2026-09-30T05:15:36+03:00 — R5 E9: add CI for affine F3 parallel saturation quotient
 - `fc02013a5738` — 2026-09-30T05:15:25+03:00 — R5 E9: add exact F3 parallel-saturation regression
 - `58da760a67ad` — 2026-09-30T05:14:44+03:00 — R5 E9: add affine F3 parallel-saturation quotient
-- `80107908fe4c` — 2026-09-30T05:13:22+03:00 — R5 E9: add CI for AF3 PCQ-fixed line-free 2-lift family
-- `327b42fb9e63` — 2026-09-30T05:13:13+03:00 — R5 E9: add exact checker for AF3 PCQ-fixed line-free 2-lift family
 
 ## Resume protocol
 
