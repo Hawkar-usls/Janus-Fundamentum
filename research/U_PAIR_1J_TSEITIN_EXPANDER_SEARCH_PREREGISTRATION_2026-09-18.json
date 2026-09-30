@@ -1,0 +1,160 @@
+{
+  "artifact_id": "JANUS-TRUMP-U-PAIR-1J-TSEITIN-EXPANDER-SEARCH-PREREGISTRATION-2026-09-18-v1.0",
+  "date": "2026-09-18",
+  "authority": "PREREGISTERED_HOSTILE_SUCCESSOR__NO_RUN_YET",
+  "branch": "research/U-PAIR-1J-tseitin-expander-search-2026-09-18",
+  "lineage": {
+    "parent_bridge_control_head": "44bf300c1b7886fe4f00de256dfd167039159c4c",
+    "parent_majority_reconciliation_head": "7ebacdb7fddd4359a3a0101c4686651aec7bed4d",
+    "required_original_blind_authority": "96937b044bb6a316911443277d72357784eba5c2",
+    "forbidden_duplicate_majority_authority": true,
+    "frozen_parent_pr_489_head": "8c2447db82f0dc93d83ac2e43c423b5ecae07a85"
+  },
+  "target": "TSEITIN_EXPANDER_SEARCH_RELATIONS",
+  "calculus": {
+    "name": "SKOLEM_LOCAL_DERIVATION_V1_1_SHIELDING_BRIDGE",
+    "mutation_allowed": false,
+    "allowed_rule_forms": [
+      "CONST(c)",
+      "AFFINE_XOR(c,support)",
+      "EXISTING_DAG_NODE(node_id)",
+      "GUARDED_ITE(guard,rule_true,rule_false) with hash-consed sharing",
+      "INTERNAL_COVER_WITNESS(alpha)"
+    ],
+    "forbidden": [
+      "generic SKOLEM_VALID oracle",
+      "generic Boolean-DAG tautology oracle",
+      "truth-table enumeration",
+      "SAT solver hidden in synthesis",
+      "reference-answer import",
+      "special-case table keyed by frozen instance hash",
+      "unaccounted exponential branch tree",
+      "dropping or silently totalizing D",
+      "retroactive calculus extension after seeing results"
+    ]
+  },
+  "exact_relation": {
+    "graph": "connected bounded-degree undirected graph G=(V,E)",
+    "charge": "ell:V->{0,1} with XOR_v ell(v)=1",
+    "boundary": "one bit y_e for every e in E",
+    "violation": "viol_v(Y)=ell(v) XOR XOR_{e incident to v} y_e",
+    "witness": "binary vertex code W of width log2(|V|), with |V| restricted to powers of two",
+    "relation": "F_G(W,Y) holds iff the decoded vertex v=W satisfies viol_v(Y)=1",
+    "domain": "D_G(Y)=TRUE for all Y by odd-charge parity",
+    "domain_proof_obligation": "pi_D must symbolically certify XOR_v viol_v(Y)=XOR_v ell(v)=1 because every edge variable occurs exactly twice",
+    "witness_proof_obligation": "pi_f must certify that the decoded witness vertex is violated using only locally checked affine violation predicates and complementary GUARDED_ITE composition",
+    "no_explicit_search_output_node": true,
+    "no_precomputed_violation_DAG_nodes": true
+  },
+  "finite_series": {
+    "vertex_counts": [
+      16,
+      32,
+      64,
+      128,
+      256
+    ],
+    "degree": 3,
+    "all_instances_mandatory": true,
+    "optional_stopping": false,
+    "graph_source_freeze_before_constructor": true,
+    "graph_selection": "one deterministic seeded simple 3-regular graph per n; exact edge lists are frozen before constructor implementation",
+    "charge_selection": "deterministic seeded charge vector adjusted once to odd Hamming parity before freeze",
+    "relabeling": "opaque deterministic vertex and edge ids after source freeze",
+    "source_failure_policy": "If a frozen graph is not simple, 3-regular, connected, or fails the preregistered finite spectral-stress gate, return SOURCE_FAMILY_INVALID; do not resample after seeing constructor behavior."
+  },
+  "finite_spectral_stress_gate": {
+    "purpose": "finite-instance qualification only; not an asymptotic expander theorem",
+    "metric": "second largest eigenvalue lambda2 of adjacency divided by degree",
+    "threshold": "lambda2/3 <= 0.99",
+    "usage": "source qualification only; never available to constructor or verifier as a witness shortcut",
+    "theorem_claim": false
+  },
+  "blind_synthesis_contract": {
+    "constructor_input": [
+      "frozen opaque edge incidence",
+      "frozen odd charge bits",
+      "boundary variable ids",
+      "witness bit ids"
+    ],
+    "constructor_forbidden_reads": [
+      "graph generator seed",
+      "spectral qualification data",
+      "reference witness DAG",
+      "old C018-C020 Tseitin solution artifacts",
+      "majority reference DAGs"
+    ],
+    "required_algorithmic_behavior": [
+      "derive each local viol_v only as AFFINE_XOR from incident edge bits and charge",
+      "construct a shared complementary-guard search DAG that selects some violated vertex",
+      "emit one proof root for each witness bit with hash-consed sharing",
+      "emit symbolic odd-charge domain proof",
+      "never enumerate boundary assignments"
+    ]
+  },
+  "independent_verifier": {
+    "constructor_import_forbidden": true,
+    "semantic_truth_table_forbidden": true,
+    "reference_DAG_forbidden": true,
+    "checks": [
+      "graph and charge match frozen source authority",
+      "each AFFINE_XOR violation guard has exactly the frozen incident-edge support and charge constant",
+      "each GUARDED_ITE uses an exact guard/complement split and already checked children",
+      "witness-bit roots decode to the selected guard branch at every proof node",
+      "odd-charge domain proof cancels every edge exactly twice and leaves constant 1",
+      "all output roots share one accounted proof DAG"
+    ]
+  },
+  "metrics": [
+    "S_synth_DAG_nodes",
+    "S_synth_DAG_bytes",
+    "T_synth_ns",
+    "T_verify_ns",
+    "max_live_shared_nodes",
+    "constructor_state_visits",
+    "verifier_node_visits",
+    "derived_affine_guard_count",
+    "guarded_ITE_node_count",
+    "sharing_ratio_before_after_hashcons"
+  ],
+  "frozen_resource_policy": {
+    "per_instance_timeout_seconds": 120,
+    "total_series_timeout_seconds": 600,
+    "memory_budget_mb": 1024,
+    "retry_with_more_resources": false,
+    "verdict_on_exhaustion": "UNKNOWN_RESOURCE_LIMIT"
+  },
+  "verdict_taxonomy": [
+    "PASS_SCOPED_HOSTILE_SYNTHESIS",
+    "FAIL_CALCULUS_EXPRESSIVITY",
+    "FAIL_SYNTHESIS_ACCESS",
+    "FAIL_PROOF_DAG_BLOWUP",
+    "FAIL_HIDDEN_GENERIC_VALIDATION",
+    "FAIL_DOMAIN_DROPPED",
+    "UNKNOWN_RESOURCE_LIMIT",
+    "SOURCE_FAMILY_INVALID"
+  ],
+  "verdict_rules": {
+    "PASS_SCOPED_HOSTILE_SYNTHESIS": "Every frozen finite instance receives an independently accepted exact DOMAIN+WITNESS+PROOF certificate within the frozen resources.",
+    "FAIL_CALCULUS_EXPRESSIVITY": "A compact admissible candidate is separately demonstrated but cannot be certified by the frozen V1.1 rule forms.",
+    "FAIL_SYNTHESIS_ACCESS": "After blind candidate freeze, a compact certificate accepted by the same verifier is shown to exist, but the blind constructor did not synthesize it.",
+    "FAIL_PROOF_DAG_BLOWUP": "The frozen constructor's observed DAG exceeds a preregistered resource/size envelope. This is an observed constructor outcome, not a lower bound on all possible proof DAGs.",
+    "FAIL_HIDDEN_GENERIC_VALIDATION": "Audit finds SAT/coNP validity, truth-table, reference, or equivalent hidden machinery.",
+    "FAIL_DOMAIN_DROPPED": "The exact total domain proof is omitted, replaced by assumption, or not independently checked.",
+    "UNKNOWN_RESOURCE_LIMIT": "Only the frozen resource cap prevents classification.",
+    "SOURCE_FAMILY_INVALID": "The source graph/charge family violates its preregistered structural qualification before synthesis."
+  },
+  "scientific_firewall": {
+    "observed_blowup_is_not_mathematical_lower_bound": true,
+    "finite_series_pass_is_only": "EMPIRICAL_SCALING_PASS",
+    "symbolic_all_n_bounds_required_for_theorem": [
+      "T_synth(n) <= p(n)",
+      "|Pi_n| <= p(n)",
+      "T_verify(n) <= p(n)"
+    ],
+    "GENERAL_SAT_IN_P": "NOT_PROVED",
+    "P_EQ_NP": "NOT_PROVED",
+    "P_VS_NP": "OPEN"
+  },
+  "execution_gate": "SOURCE FREEZE -> INDEPENDENT SOURCE CHECK -> CONSTRUCTOR+VERIFIER IMPLEMENTATION -> IMPLEMENTATION REVIEW -> ONE BLIND SERIES RUN -> FREEZE -> OPTIONAL POSTFREEZE RECONCILIATION"
+}

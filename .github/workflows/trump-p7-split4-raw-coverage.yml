@@ -1,0 +1,165 @@
+name: TRUMP P7 SPLIT4 Raw Coverage Gate
+
+on:
+  pull_request:
+    branches:
+      - research/general-sat-universal-coverage-map-2026-09-19
+    paths:
+      - 'research/TRUMP_P7_SPLIT4_RAW_COVERAGE_RUN_TRIGGER_2026-09-20_v1.0.json'
+      - 'research/TRUMP_P7_SPLIT4_RAW_COVERAGE_EXECUTION_FREEZE_2026-09-20_v1.0.json'
+      - 'research/tools/p7_split4_raw_coverage/**'
+      - '.github/workflows/trump-p7-split4-raw-coverage.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  raw-coverage:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Bind frozen lineage
+        shell: bash
+        run: |
+          set -euo pipefail
+          for sha in \
+            8d6b85dad4032c988a945691b86eadc3a3c69c99 \
+            6495d8889517ae1903a208e679a9f26b066aa768 \
+            55ba8f7aabc6537a0ccd862fb45f27ea341c44ef \
+            debc0d3e100f79694cf162b59d0bbc30e1bfd905 \
+            21386ba81a3512c689dba105f46df57d0daa5da3 \
+            14c713b2e3848f44dbdd5d5eb2fc20df99a8bfdd
+          do
+            git merge-base --is-ancestor "$sha" HEAD
+          done
+          python -m py_compile \
+            research/tools/p7_split4_raw_coverage/raw_coverage_checker.py \
+            research/tools/p7_split4_raw_coverage/independent_verifier.py \
+            research/tools/p7_corridor_rigidity/instance_checker.py
+
+      - name: Run frozen raw representative coverage killer-test
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p split4raw
+          python research/tools/p7_split4_raw_coverage/raw_coverage_checker.py \
+            --out split4raw/run \
+            --rigidity-parent research/tools/p7_corridor_rigidity/instance_checker.py \
+            | tee split4raw/candidate.stdout
+
+      - name: Independent replay
+        shell: bash
+        run: |
+          set -euo pipefail
+          python research/tools/p7_split4_raw_coverage/independent_verifier.py \
+            split4raw/run \
+            split4raw/independent.json \
+            | tee split4raw/independent.stdout
+
+      - name: Assemble scientific manifest
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import hashlib,json,pathlib,subprocess
+          root=pathlib.Path("split4raw")
+          run=root/"run"
+          summary=json.loads((run/"summary.json").read_text())
+          indep=json.loads((root/"independent.json").read_text())
+          probe=json.loads((run/"PROBE_GLOBAL_INTERACTION_3TYPE.receipt.json").read_text())
+
+          def sha(p):
+              return hashlib.sha256(pathlib.Path(p).read_bytes()).hexdigest()
+
+          controls_ok=summary["controls_ok"] is True
+          indep_ok=indep["verdict"] in {"INDEPENDENT_FAIL_WITNESS_VERIFIED","INDEPENDENT_FINITE_PASS_REPLAY"}
+          assert controls_ok
+          assert indep_ok
+
+          if summary["scientific_gate"]=="FAIL_RAW_REPRESENTATIVE_COVERAGE":
+              final="FAIL_RAW_REPRESENTATIVE_COVERAGE"
+              raw_equiv="NOT_REACHED"
+          else:
+              final="FINITE_REPLAY_PASS__UNIVERSAL_AUTHORITY_NOT_ESTABLISHED"
+              raw_equiv="FINITE_WITNESS_PASS_ONLY"
+
+          manifest={
+            "schema":"janus.trump.p7_split4.raw_coverage_scientific_manifest.v1",
+            "workflow_head":subprocess.check_output(["git","rev-parse","HEAD"],text=True).strip(),
+            "frozen_preregistration_commit":"8d6b85dad4032c988a945691b86eadc3a3c69c99",
+            "schema_commit":"6495d8889517ae1903a208e679a9f26b066aa768",
+            "execution_freeze_commit":"55ba8f7aabc6537a0ccd862fb45f27ea341c44ef",
+            "implementation_commits":{
+              "candidate_checker":"21386ba81a3512c689dba105f46df57d0daa5da3",
+              "independent_verifier":"14c713b2e3848f44dbdd5d5eb2fc20df99a8bfdd",
+              "rigidity_parent_checker":"debc0d3e100f79694cf162b59d0bbc30e1bfd905"
+            },
+            "controls":{
+              "all_four_branch_controls_pass":controls_ok,
+              "summary_sha256":sha(run/"summary.json")
+            },
+            "interaction_probe":{
+              "candidate_verdict":probe["verdict"],
+              "receipt_sha256":sha(run/"PROBE_GLOBAL_INTERACTION_3TYPE.receipt.json"),
+              "witness":probe.get("witness"),
+              "minimized_induced_subgraph_witness":probe.get("minimized_induced_subgraph_witness")
+            },
+            "independent_replay":{
+              "verdict":indep["verdict"],
+              "receipt_sha256":sha(root/"independent.json")
+            },
+            "scientific_gate":{"verdict":final},
+            "raw_equivalence_authority":raw_equiv,
+            "authority_ceiling":{
+              "RAW_EQUIVALENCE_VERIFIED":"NOT_CLAIMED" if final!="RAW_EQUIVALENCE_VERIFIED" else "CLAIMED",
+              "SUBGATE_A":"OPEN",
+              "LEMMA7_P7_TRANSFER":"NOT_STARTED",
+              "LEMMA10_P7_TRANSFER":"NOT_STARTED",
+              "BREAK_B":"NOT_STARTED",
+              "LEMMA11_P7_LIFT":"OPEN",
+              "P7_FREE_4_COLOR_IN_P":"NOT_PROVED",
+              "P_VS_NP":"OPEN"
+            },
+            "source_digests":{
+              "checker_sha256":sha("research/tools/p7_split4_raw_coverage/raw_coverage_checker.py"),
+              "independent_sha256":sha("research/tools/p7_split4_raw_coverage/independent_verifier.py"),
+              "freeze_sha256":sha("research/TRUMP_P7_SPLIT4_RAW_COVERAGE_EXECUTION_FREEZE_2026-09-20_v1.0.json")
+            },
+            "successor_autoactivated":False
+          }
+          (root/"scientific_manifest.json").write_text(json.dumps(manifest,indent=2,sort_keys=True)+"\n")
+          print(json.dumps({"scientific_gate":final,"probe":probe["verdict"],"independent":indep["verdict"]},sort_keys=True))
+          PY
+
+      - name: Assert authority ceiling
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json
+          m=json.load(open("split4raw/scientific_manifest.json"))
+          assert m["authority_ceiling"]["SUBGATE_A"]=="OPEN"
+          assert m["authority_ceiling"]["LEMMA7_P7_TRANSFER"]=="NOT_STARTED"
+          assert m["authority_ceiling"]["LEMMA10_P7_TRANSFER"]=="NOT_STARTED"
+          assert m["authority_ceiling"]["BREAK_B"]=="NOT_STARTED"
+          assert m["authority_ceiling"]["P_VS_NP"]=="OPEN"
+          assert m["successor_autoactivated"] is False
+          print("AUTHORITY_CEILING_PASS")
+          PY
+
+      - name: Upload proof-carrying artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: trump-p7-split4-raw-coverage-v1
+          path: split4raw/
+          if-no-files-found: error
+          retention-days: 90

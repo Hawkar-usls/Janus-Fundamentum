@@ -1,0 +1,95 @@
+name: TRUMP Stage4 Backdoor DNF Frozen Replay
+
+on:
+  push:
+    branches:
+      - research/general-sat-universal-coverage-map-2026-09-19
+    paths:
+      - ".github/workflows/trump-stage4-backdoor-dnf-frozen-replay.yml"
+      - "research/tools/trump_r50g25x_run_authors_backdoor_dnf.py"
+      - "research/tools/trump_verify_authors_backdoor_dnf.py"
+      - "research/tools/backdoor_dnf_compat_requirements.txt"
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  authors-backdoor-dnf-frozen-replay:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Fetch already-frozen authors artifact and R50G25X source
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p stage4/dnf stage4/source
+          curl -fL \
+            -H "Authorization: Bearer $GH_TOKEN" \
+            -H "Accept: application/vnd.github+json" \
+            "https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/artifacts/10573309340/zip" \
+            -o stage4/dnf_transport.zip
+          echo "1fd841a0055665d3ccf5e39a6109bda9efb811103f6153861f2080757687f4ad  stage4/dnf_transport.zip" \
+            | sha256sum -c -
+          unzip -q stage4/dnf_transport.zip -d stage4/dnf
+
+          AUTHORS_ZIP="$(find stage4/dnf -type f -name backdoor_dnf_supplementary.zip | head -1)"
+          test -n "$AUTHORS_ZIP"
+          echo "7a3c2c8cfe62af5602789d140ec812111d9faae8e8c2b0fd5a4f556dff9ec3b7  $AUTHORS_ZIP" \
+            | sha256sum -c -
+
+          curl -fL \
+            -H "Authorization: Bearer $GH_TOKEN" \
+            -H "Accept: application/vnd.github+json" \
+            "https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/artifacts/9992845123/zip" \
+            -o stage4/source/r50g25x.zip
+          unzip -q stage4/source/r50g25x.zip -d stage4/source/unpacked
+          test -f stage4/source/unpacked/JANUS_TRUMP_R50G25X_ADVERSARIAL_STALL_SEARCH.json
+
+      - name: Install compatibility environment without modifying authors source
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m pip install -r research/tools/backdoor_dnf_compat_requirements.txt
+          python - <<'PY'
+          import pysat
+          from pysat.solvers import Cadical153
+          with Cadical153() as s:
+              assert s.solve()
+          print("PYSAT_VERSION=" + getattr(pysat, "__version__", "UNKNOWN"))
+          print("CADICAL153_COMPATIBILITY_PASS")
+          PY
+
+      - name: Execute authors detector and independent replay
+        shell: bash
+        run: |
+          set -euo pipefail
+          RUNNER="$(find stage4/dnf -type f -name runner.py | head -1)"
+          test -n "$RUNNER"
+          SRC="$(dirname "$RUNNER")"
+          chmod +x "$SRC/bin/muser-2"
+          python research/tools/trump_r50g25x_run_authors_backdoor_dnf.py \
+            stage4/source/unpacked/JANUS_TRUMP_R50G25X_ADVERSARIAL_STALL_SEARCH.json \
+            "$SRC" \
+            research/tools/trump_verify_authors_backdoor_dnf.py \
+            stage4/dnf_execution \
+            --timeout 20
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: trump-stage4-backdoor-dnf-frozen-replay
+          path: stage4/dnf_execution/
+          if-no-files-found: error
+          retention-days: 30

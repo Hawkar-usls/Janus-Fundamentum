@@ -1,0 +1,166 @@
+name: TRUMP C11 Pair Pi Discovery Gate
+
+on:
+  pull_request:
+    branches:
+      - research/general-sat-universal-coverage-map-2026-09-19
+    paths:
+      - 'research/TRUMP_C11_PAIR_PI_DISCOVERY_GATE_RUN_TRIGGER_2026-09-20_v1.0.json'
+      - 'research/TRUMP_C11_PAIR_PI_DISCOVERY_GATE_EXECUTION_FREEZE_2026-09-20_v1.0.json'
+      - 'research/tools/c11_pair_pi_discovery/**'
+      - '.github/workflows/trump-c11-pair-pi-discovery.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  pi-discovery:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Bind frozen authority
+        shell: bash
+        run: |
+          set -euo pipefail
+          for sha in \
+            07f541fcf3366962e79734a9644546e3a1001aad \
+            3b20111f84a74c75c379bb31bff207ae3d1dc440 \
+            40c3f02c179a751007b23f4047e1d77702d9c4e5 \
+            979da07ffef9acdb7f9a9960868accdb345833a2 \
+            ece366af062cac03388cfc0f90b5b89281279297 \
+            bd2db9c1f5c13012700dfce0fafbb7521435a7bd \
+            2c52df20ae329a92a7119c42d3c588805c84150d \
+            a775697fb3f0752e13fb2eb2cf0a9afbe2fbc09a
+          do
+            git merge-base --is-ancestor "$sha" HEAD
+          done
+          test "$(git rev-parse 07f541fcf3366962e79734a9644546e3a1001aad:research/TRUMP_C11_PAIR_PI_DISCOVERY_GATE_PREREG_2026-09-20_v1.0.json)" = "873c409e4872a2365cf95e087086c865de574c4f"
+          python -m py_compile \
+            research/tools/c11_pair_pi_discovery/pi_discovery_checker.py \
+            research/tools/c11_pair_pi_discovery/independent_verifier.py
+
+      - name: Run frozen Pi discovery route
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p pigate
+          python research/tools/c11_pair_pi_discovery/pi_discovery_checker.py \
+            --prereg research/TRUMP_C11_PAIR_PI_DISCOVERY_GATE_PREREG_2026-09-20_v1.0.json \
+            --freeze research/TRUMP_C11_PAIR_PI_DISCOVERY_GATE_EXECUTION_FREEZE_2026-09-20_v1.0.json \
+            --transfer research/TRUMP_P7_LEMMA5_6_7_10_HYPOTHESIS_ERASURE_GATE_RESULT_2026-09-20_v1.0.json \
+            --counter research/TRUMP_C11_PAIR_MULTIPLICITY_FALSE_TWIN_BLOWUP_THEOREM_RESULT_2026-09-20_v1.0.json \
+            --out pigate/run \
+            | tee pigate/candidate.stdout
+
+      - name: Independent replay
+        shell: bash
+        run: |
+          set -euo pipefail
+          python research/tools/c11_pair_pi_discovery/independent_verifier.py \
+            --candidate pigate/run/candidate_result.json \
+            --out pigate/independent.json \
+            | tee pigate/independent.stdout
+
+      - name: Assemble scientific manifest
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import hashlib,json,pathlib,subprocess
+          root=pathlib.Path("pigate")
+          cand=json.loads((root/"run/candidate_result.json").read_text())
+          indep=json.loads((root/"independent.json").read_text())
+          def sha(p): return hashlib.sha256(pathlib.Path(p).read_bytes()).hexdigest()
+
+          assert cand["primary_outcome"]=="D2_PARTIAL_PI_DISCOVERY"
+          assert cand["positive_terminal_subclass"]["status"]=="VERIFIED_POLYNOMIAL_SUBCLASS"
+          assert cand["route_obstruction"]["status"]=="NO_GLOBAL_MISSING_COLOR_VERIFIED"
+          assert cand["D1"]["status"]=="NOT_ESTABLISHED"
+          assert cand["P3_EXACT_PAIR_QUOTIENT"]=="NOT_ESTABLISHED"
+          assert indep["verdict"]=="INDEPENDENT_D2_PI_DISCOVERY_ROUTE_OBSTRUCTION_VERIFIED"
+          assert cand["repair_attempted"] is False
+          assert cand["successor_autoactivated"] is False
+          assert cand["stop"] is True
+
+          manifest={
+            "schema":"janus.trump.c11_pair_pi_discovery.scientific_manifest.v1",
+            "workflow_head":subprocess.check_output(["git","rev-parse","HEAD"],text=True).strip(),
+            "frozen_preregistration":{
+              "commit":"07f541fcf3366962e79734a9644546e3a1001aad",
+              "content_blob":"873c409e4872a2365cf95e087086c865de574c4f"
+            },
+            "execution_freeze_commit":"bd2db9c1f5c13012700dfce0fafbb7521435a7bd",
+            "implementation_commits":{
+              "candidate_checker":"2c52df20ae329a92a7119c42d3c588805c84150d",
+              "independent_verifier":"a775697fb3f0752e13fb2eb2cf0a9afbe2fbc09a"
+            },
+            "outcome":"D2_PARTIAL_PI_DISCOVERY",
+            "positive_terminal_subclass":cand["positive_terminal_subclass"],
+            "route_obstruction":cand["route_obstruction"],
+            "D1":cand["D1"],
+            "D2":cand["D2"],
+            "P3_EXACT_PAIR_QUOTIENT":"NOT_ESTABLISHED",
+            "independent_replay":{
+              "verdict":indep["verdict"],
+              "receipt_sha256":sha(root/"independent.json")
+            },
+            "candidate_receipt_sha256":sha(root/"run/candidate_result.json"),
+            "source_digests":{
+              "candidate_checker_sha256":sha("research/tools/c11_pair_pi_discovery/pi_discovery_checker.py"),
+              "independent_verifier_sha256":sha("research/tools/c11_pair_pi_discovery/independent_verifier.py"),
+              "execution_freeze_sha256":sha("research/TRUMP_C11_PAIR_PI_DISCOVERY_GATE_EXECUTION_FREEZE_2026-09-20_v1.0.json")
+            },
+            "scientific_ceiling":cand["scientific_ceiling"],
+            "oracle_use":cand["oracle_use"],
+            "forbidden_interpretations":cand["forbidden_interpretations"],
+            "repair_attempted":False,
+            "successor_autoactivated":False,
+            "stop":True
+          }
+          (root/"scientific_manifest.json").write_text(json.dumps(manifest,indent=2,sort_keys=True)+"\n")
+          print(json.dumps({
+            "outcome":"D2_PARTIAL_PI_DISCOVERY",
+            "D1":"NOT_ESTABLISHED",
+            "P3":"NOT_ESTABLISHED",
+            "independent":indep["verdict"]
+          },sort_keys=True))
+          PY
+
+      - name: Assert ceiling and stop
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json
+          m=json.load(open("pigate/scientific_manifest.json"))
+          assert m["outcome"]=="D2_PARTIAL_PI_DISCOVERY"
+          assert m["P3_EXACT_PAIR_QUOTIENT"]=="NOT_ESTABLISHED"
+          assert m["oracle_use"]["extension_oracle"] is False
+          assert m["oracle_use"]["general_P7_free_4color_oracle"] is False
+          assert m["scientific_ceiling"]["REPAIR"]=="NOT_STARTED"
+          assert m["scientific_ceiling"]["NEW_DESCRIPTOR"]=="NOT_DEFINED"
+          assert m["scientific_ceiling"]["LEMMA11_P7_LIFT"]=="OPEN"
+          assert m["scientific_ceiling"]["P7_FREE_4_COLOR_IN_P"]=="NOT_PROVED"
+          assert m["scientific_ceiling"]["P_VS_NP"]=="OPEN"
+          assert m["repair_attempted"] is False
+          assert m["successor_autoactivated"] is False
+          assert m["stop"] is True
+          print("STOP_CEILING_PASS")
+          PY
+
+      - name: Upload immutable artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: trump-c11-pair-pi-discovery-gate-v1
+          path: pigate/
+          if-no-files-found: error
+          retention-days: 90

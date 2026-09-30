@@ -1,0 +1,641 @@
+name: TRUMP Stage6B.4 Adaptive Exact Distance Round 2
+
+on:
+  push:
+    branches:
+      - research/general-sat-universal-coverage-map-2026-09-19
+    paths:
+      - ".github/workflows/trump-stage6b4-adaptive-exact-distance-round2.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  scientific-query:
+    name: "B4 Round2 index ${{ matrix.index }}"
+    runs-on: ubuntu-24.04
+    timeout-minutes: 35
+    strategy:
+      fail-fast: false
+      max-parallel: 13
+      matrix:
+        include:
+          - {index: 1,  prev_artifact_id: 10589549949, prev_artifact_digest: "sha256:5fd4e3c033e9841577493fe978f9bc5304e72f52fb4a84b55fbaa87e7011bd7f"}
+          - {index: 2,  prev_artifact_id: 10589064062, prev_artifact_digest: "sha256:acaf5500c3d6fbffd9c72a03341cc1992647c3069437f3bac889ad9d98e0cc39"}
+          - {index: 3,  prev_artifact_id: 10588839336, prev_artifact_digest: "sha256:c2c654c066fb937797f95c5a1a328098505b0d5fedba768c711f304009a3f708"}
+          - {index: 4,  prev_artifact_id: 10589955312, prev_artifact_digest: "sha256:e2b6bd1928e76414fa238c93b8347602a4332782126a1ce34613dd1204f45dd7"}
+          - {index: 5,  prev_artifact_id: 10589014050, prev_artifact_digest: "sha256:9b89682818fbbf3b8acf0f7bd814fae560e696a16091001a154ec3d40bc910a1"}
+          - {index: 6,  prev_artifact_id: 10589009123, prev_artifact_digest: "sha256:0b938857b5184d24307a62aafa6c5ba5d10f47f228354e42f3ea52a4e1f6710d"}
+          - {index: 7,  prev_artifact_id: 10589679637, prev_artifact_digest: "sha256:42a3fe4435ee7fb0b1fb34e7db366998c99df32c7b41b5f06da04175fc320d9e"}
+          - {index: 9,  prev_artifact_id: 10589539924, prev_artifact_digest: "sha256:5e95a0567b30f71dbebb9c67c9274231cf99a50d234a5e3d71da55af02d8a317"}
+          - {index: 10, prev_artifact_id: 10589915392, prev_artifact_digest: "sha256:2d9404d911a376deef2a4d56bc6f8fea63b336101286e90c1e7a24894abab716"}
+          - {index: 11, prev_artifact_id: 10590130048, prev_artifact_digest: "sha256:7dc058ee01cbbfd3b6a8773c8e3c7abd7fff4be274703bf2be7673d19b27223d"}
+          - {index: 12, prev_artifact_id: 10588714512, prev_artifact_digest: "sha256:f7a7f99ca1842c22515835d7c55a57c49ddf532be67dcf7eb49e936844dcf749"}
+          - {index: 13, prev_artifact_id: 10589804398, prev_artifact_digest: "sha256:f523e97bbce00fde4ccc0a70f0a072e0ffe4d377a13667b27f6414e180cf959d"}
+          - {index: 14, prev_artifact_id: 10589774538, prev_artifact_digest: "sha256:bde5cb461fab06e08b9b729a679ef636931a34275341715532ed381b5ab8cbee"}
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Verify frozen B.4 scientific lineage
+        shell: bash
+        run: |
+          set -euo pipefail
+          for C in \
+            9b71c8a9df811a3a6a93cd25a547000629b44be8 \
+            ec279137463f1796145973fe60d4e3dac68b9b28 \
+            f269702142410b6fed5d5f1a15ebf50c5c6ce768 \
+            a663d61fbc7b584432698c4248b32cf1d9f73207 \
+            35b844dde0b33fa78cc36aae5c0e24eafe56756e \
+            c97d1b892623465c5497d1161833e36a400598b4 \
+            49620f43d5bfc08e0edbaef378c1520f806902db \
+            cca848a8a4f06059ee8fb85ddda146814665842a \
+            7d1fa7e36bfc9a355d1fa302fd69f7745b652eee \
+            66deda983997ef06dd0293901873275de11c7a9b \
+            b3900ea39666626ce0ef1283e732dbd7ede8005b \
+            4aa65af4c9f0745ef273ca8265b2b00b4235504b \
+            0ff5023651d3a74cb392e59d3629917562559f4c \
+            662cc2b5b96123c7fc26a5f743217d2772d51393 \
+            0144b6871f36891fda0a55f3b1f5074aa797157e \
+            c6edcd22107debeeb00bf2b690bc05a101f748a8 \
+            62b734479473ac84394b2bedc7d12f6864bb5bc6
+          do
+            git merge-base --is-ancestor "$C" HEAD
+          done
+
+          python -m py_compile \
+            research/tools/trump_stage6b4_adaptive_bracket_controller.py \
+            research/tools/trump_stage6b4_query_binding.py \
+            research/tools/trump_stage6b4_bracket_opb_auditor.py \
+            research/tools/trump_stage6b4_sat_model_qhorn_verifier.py \
+            research/tools/trump_stage6b4_unsat_authority_adapter.py \
+            research/tools/trump_stage6b4_veripb_v2_harness.py \
+            research/tools/trump_stage6b3_canonical_cnf_audit.py \
+            research/tools/trump_stage6b3_canonical_opb_generator.py \
+            research/tools/trump_stage6b3_independent_opb_auditor.py \
+            research/tools/trump_stage6b3_roundingsat_runner.py \
+            research/tools/trump_stage6b3_cakepb_secondary_harness.py
+
+      - name: Bind successful non-scientific UNSAT proof-pipeline smoke
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p stage6b4/smoke/unpacked
+
+          curl -fsSL \
+            -H "Authorization: Bearer $GH_TOKEN" \
+            -H "Accept: application/vnd.github+json" \
+            "https://api.github.com/repos/$GITHUB_REPOSITORY/actions/artifacts/10588833689" \
+            -o stage6b4/smoke/artifact_metadata.json
+
+          curl -fL \
+            -H "Authorization: Bearer $GH_TOKEN" \
+            -H "Accept: application/vnd.github+json" \
+            "https://api.github.com/repos/$GITHUB_REPOSITORY/actions/artifacts/10588833689/zip" \
+            -o stage6b4/smoke/artifact.zip
+
+          unzip -q stage6b4/smoke/artifact.zip -d stage6b4/smoke/unpacked
+
+          python - <<'PY'
+          import hashlib,json,pathlib
+          def sha(p):
+              h=hashlib.sha256()
+              with open(p,"rb") as f:
+                  for b in iter(lambda:f.read(1<<20),b""): h.update(b)
+              return h.hexdigest()
+
+          meta=json.load(open("stage6b4/smoke/artifact_metadata.json",encoding="utf-8"))
+          assert meta["id"]==10588833689
+          assert meta["expired"] is False
+          assert meta.get("digest")=="sha256:9c1ca99e88e1c3032f01513c0c37e362be661912fbf760b046eb1684217d960c"
+          assert (meta.get("workflow_run") or {}).get("id")==35460365123
+          assert (meta.get("workflow_run") or {}).get("head_sha")=="0144b6871f36891fda0a55f3b1f5074aa797157e"
+          assert sha("stage6b4/smoke/artifact.zip")=="9c1ca99e88e1c3032f01513c0c37e362be661912fbf760b046eb1684217d960c"
+
+          receipts=list(pathlib.Path("stage6b4/smoke/unpacked").rglob("smoke.receipt.json"))
+          assert len(receipts)==1, receipts
+          d=json.load(open(receipts[0],encoding="utf-8"))
+          assert d["status"]=="UNSAT_PROOF_PIPELINE_SMOKE_PASS"
+          assert d["roundingsat_status"]=="UNSAT"
+          assert d["veripb_raw_proof_verified"]=="YES"
+          assert d["veripb_conclusion"]=="UNSAT"
+          assert d["veripb_conclusion_section_valid"] is True
+          assert d["scientific_deletion_qhorn_authority"] is False
+          pathlib.Path("stage6b4/smoke_binding_receipt.json").write_text(
+              json.dumps({
+                "smoke_run_id":35460365123,
+                "artifact_id":10588833689,
+                "artifact_digest":meta["digest"],
+                "artifact_zip_sha256":sha("stage6b4/smoke/artifact.zip"),
+                "smoke_receipt_sha256":sha(receipts[0]),
+                "status":d["status"],
+                "veripb_raw_proof_verified":d["veripb_raw_proof_verified"],
+                "veripb_conclusion":d["veripb_conclusion"],
+                "cakepb_status":d.get("cakepb_status"),
+                "scientific_authority":False
+              },indent=2,sort_keys=True)+"\n",encoding="utf-8"
+          )
+          PY
+
+      - name: Fetch exact sealed Round-1 target authority artifact
+        env:
+          GH_TOKEN: ${{ github.token }}
+          IDX: "${{ matrix.index }}"
+          PREV_ID: "${{ matrix.prev_artifact_id }}"
+          PREV_DIGEST: "${{ matrix.prev_artifact_digest }}"
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p stage6b4/previous
+          curl -fsSL \
+            -H "Authorization: Bearer $GH_TOKEN" \
+            -H "Accept: application/vnd.github+json" \
+            "https://api.github.com/repos/$GITHUB_REPOSITORY/actions/artifacts/$PREV_ID" \
+            -o stage6b4/previous/artifact_metadata.json
+          curl -fL \
+            -H "Authorization: Bearer $GH_TOKEN" \
+            -H "Accept: application/vnd.github+json" \
+            "https://api.github.com/repos/$GITHUB_REPOSITORY/actions/artifacts/$PREV_ID/zip" \
+            -o stage6b4/previous/round1.zip
+          unzip -q stage6b4/previous/round1.zip -d stage6b4/previous/unpacked
+
+          python - "$IDX" "$PREV_ID" "$PREV_DIGEST" <<'PY'
+          import hashlib,json,pathlib,sys
+          idx=int(sys.argv[1]); aid=int(sys.argv[2]); expected_digest=sys.argv[3]
+          def sha(p):
+              h=hashlib.sha256()
+              with open(p,"rb") as f:
+                  for b in iter(lambda:f.read(1<<20),b""): h.update(b)
+              return h.hexdigest()
+
+          meta=json.load(open("stage6b4/previous/artifact_metadata.json"))
+          assert meta["id"]==aid and meta["expired"] is False
+          assert meta.get("digest")==expected_digest
+          assert (meta.get("workflow_run") or {}).get("id")==35461153243
+          assert (meta.get("workflow_run") or {}).get("head_sha")=="c6edcd22107debeeb00bf2b690bc05a101f748a8"
+          assert "sha256:"+sha("stage6b4/previous/round1.zip")==expected_digest
+
+          pad=f"{idx:02d}"
+          root=pathlib.Path("stage6b4/previous/unpacked")/f"target_{pad}"
+          state=json.load(open(root/"state.after.json"))
+          auth=json.load(open(root/"unsat.authority.json"))
+          r1=json.load(open(root/"round1.receipt.json"))
+          checkpoint=json.load(open("research/TRUMP_STAGE6B4_ROUND1_AUTHORITY_CHECKPOINT_2026-09-19_v1.0.json"))
+          row=next(r for r in checkpoint["rows"] if int(r["index"])==idx)
+
+          assert int(state["index"])==idx
+          assert state["closed"] is False
+          assert state["final_outcome"] is None
+          assert state["lower_authority"]["type"]=="VERIPB_VERIFIED_BOUNDARY_UNSAT"
+          assert int(state["lower_authority"]["boundary"])==int(state["L"])
+          assert int(state["L"])==int(row["L"])
+          assert int(state["U"])==int(row["U"])
+          assert row["artifact_id"]==aid
+          assert row["artifact_digest"]==expected_digest
+          assert auth["VERIPB_PRIMARY_raw_proof_verified"]=="YES"
+          assert auth["VERIPB_CHECKER_REPORTED_CONCLUSION"]=="UNSAT"
+          assert auth["VERIPB_CONCLUSION_SECTION_VALID"] is True
+          assert auth["raw_proof_sha256"]==row["proof"]
+          assert auth["OPB_sha256"]==row["opb"]
+          assert auth["CakePB_status"]=="CAKEPB_VERIFIED"
+          assert r1["bracket_invariant"]=="PASS"
+          assert int(r1["L_after"])==int(state["L"])
+          assert int(r1["U_after"])==int(state["U"])
+
+          pathlib.Path("stage6b4/previous_binding_receipt.json").write_text(
+              json.dumps({
+                "index":idx,
+                "round1_run_id":35461153243,
+                "artifact_id":aid,
+                "artifact_digest":expected_digest,
+                "artifact_zip_sha256":sha("stage6b4/previous/round1.zip"),
+                "previous_state_sha256":sha(root/"state.after.json"),
+                "previous_unsat_authority_sha256":sha(root/"unsat.authority.json"),
+                "previous_round_receipt_sha256":sha(root/"round1.receipt.json"),
+                "L":state["L"],"U":state["U"],
+                "authority":"VERIPB_VERIFIED_BOUNDARY_UNSAT"
+              },indent=2,sort_keys=True)+"\n"
+          )
+          PY
+
+      - name: Fetch exact frozen R50G25X source and bind Round-2 query
+        env:
+          GH_TOKEN: ${{ github.token }}
+          IDX: "${{ matrix.index }}"
+        shell: bash
+        run: |
+          set -euo pipefail
+          PAD="$(printf '%02d' "$IDX")"
+          DIR="stage6b4/target_$PAD"
+          PREV="stage6b4/previous/unpacked/target_$PAD"
+          mkdir -p "$DIR" stage6b4/source/unpacked
+
+          curl -fsSL \
+            -H "Authorization: Bearer $GH_TOKEN" \
+            -H "Accept: application/vnd.github+json" \
+            "https://api.github.com/repos/$GITHUB_REPOSITORY/actions/artifacts/9992845123" \
+            -o stage6b4/source/artifact_metadata.json
+          curl -fL \
+            -H "Authorization: Bearer $GH_TOKEN" \
+            -H "Accept: application/vnd.github+json" \
+            "https://api.github.com/repos/$GITHUB_REPOSITORY/actions/artifacts/9992845123/zip" \
+            -o stage6b4/source/source.zip
+          unzip -q stage6b4/source/source.zip -d stage6b4/source/unpacked
+
+          python - <<'PY'
+          import hashlib,json
+          def sha(p):
+              h=hashlib.sha256()
+              with open(p,"rb") as f:
+                  for b in iter(lambda:f.read(1<<20),b""): h.update(b)
+              return h.hexdigest()
+          meta=json.load(open("stage6b4/source/artifact_metadata.json"))
+          assert meta["id"]==9992845123 and meta["expired"] is False
+          assert meta.get("digest")=="sha256:32232b076165663a0f699adf34b237d0b755e6e1be06a8c0c2974f13741e1069"
+          assert sha("stage6b4/source/source.zip")=="32232b076165663a0f699adf34b237d0b755e6e1be06a8c0c2974f13741e1069"
+          assert sha("stage6b4/source/unpacked/JANUS_TRUMP_R50G25X_ADVERSARIAL_STALL_SEARCH.json")=="bbf1bfde77d293b716abfd861736ed71d569405f80261a32b274cb95cc4b0e16"
+          PY
+
+          python research/tools/trump_stage6b3_canonical_cnf_audit.py \
+            stage6b4/source/unpacked/JANUS_TRUMP_R50G25X_ADVERSARIAL_STALL_SEARCH.json \
+            "$DIR/canonical" \
+            --indices "$IDX" \
+            | tee "$DIR/canonical_audit.stdout"
+
+          cp "$DIR/canonical/r50g25x_$PAD.canonical.json" "$DIR/source_canonical.json"
+          cmp -s "$DIR/source_canonical.json" "$PREV/source_canonical.json"
+          cp "$PREV/state.after.json" "$DIR/state.before.json"
+
+          K="$(python research/tools/trump_stage6b4_adaptive_bracket_controller.py next "$DIR/state.before.json")"
+          test "$K" != "CLOSED"
+          printf '%s\n' "$K" > "$DIR/selected_k.txt"
+
+          python research/tools/trump_stage6b4_query_binding.py \
+            "$DIR/source_canonical.json" \
+            "$DIR/state.before.json" \
+            "$DIR/query_audit.json" \
+            "$DIR/query_binding.receipt.json" \
+            | tee "$DIR/query_binding.stdout"
+
+          python - "$DIR/state.before.json" "$DIR/query_binding.receipt.json" "$K" <<'PY'
+          import json,sys
+          s=json.load(open(sys.argv[1])); q=json.load(open(sys.argv[2])); k=int(sys.argv[3])
+          assert int(s["round"])==1
+          assert k==(int(s["L"])+int(s["U"]))//2
+          assert int(q["round"])==2
+          assert int(q["selected_k"])==k
+          assert q["selection_rule"]=="floor((L+U)/2)"
+          PY
+
+      - name: Generate and independently audit exact PB24 midpoint instance
+        env:
+          IDX: "${{ matrix.index }}"
+        shell: bash
+        run: |
+          set -euo pipefail
+          PAD="$(printf '%02d' "$IDX")"
+          DIR="stage6b4/target_$PAD"
+
+          python research/tools/trump_stage6b3_canonical_opb_generator.py \
+            "$DIR/query_audit.json" \
+            "$DIR/query.opb" \
+            "$DIR/opb.generation.json" \
+            | tee "$DIR/opb.generator.stdout"
+
+          python research/tools/trump_stage6b3_independent_opb_auditor.py \
+            "$DIR/query_audit.json" \
+            "$DIR/query.opb" \
+            "$DIR/opb.generation.json" \
+            "$DIR/pb24.audit.json" \
+            | tee "$DIR/pb24.audit.stdout"
+
+          python research/tools/trump_stage6b4_bracket_opb_auditor.py \
+            "$DIR/source_canonical.json" \
+            "$DIR/state.before.json" \
+            "$DIR/query_audit.json" \
+            "$DIR/query_binding.receipt.json" \
+            "$DIR/opb.generation.json" \
+            "$DIR/pb24.audit.json" \
+            "$DIR/query.opb" \
+            "$DIR/bracket_opb.audit.json" \
+            | tee "$DIR/bracket_opb.audit.stdout"
+
+      - name: Build exact frozen proof toolchain
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo apt-get update -y
+          sudo apt-get install -y build-essential cmake git libboost-all-dev libgmp-dev python3-dev file
+          mkdir -p stage6b4/tools stage6b4/toolchain_logs
+
+          RS_SRC="stage6b4/tools/roundingsat"
+          git clone https://gitlab.com/MIAOresearch/software/roundingsat.git "$RS_SRC" \
+            > stage6b4/toolchain_logs/roundingsat.clone.stdout 2> stage6b4/toolchain_logs/roundingsat.clone.stderr
+          git -C "$RS_SRC" checkout 7116cbc7c228335d7a828fc9086639e4321fd5d1 \
+            > stage6b4/toolchain_logs/roundingsat.checkout.stdout 2> stage6b4/toolchain_logs/roundingsat.checkout.stderr
+          git -C "$RS_SRC" submodule update --init --recursive \
+            > stage6b4/toolchain_logs/roundingsat.submodules.stdout 2> stage6b4/toolchain_logs/roundingsat.submodules.stderr || true
+          cmake -S "$RS_SRC" -B "$RS_SRC/build" -DCMAKE_BUILD_TYPE=Release -Dsoplex=OFF \
+            > stage6b4/toolchain_logs/roundingsat.cmake.stdout 2> stage6b4/toolchain_logs/roundingsat.cmake.stderr
+          cmake --build "$RS_SRC/build" -j2 \
+            > stage6b4/toolchain_logs/roundingsat.build.stdout 2> stage6b4/toolchain_logs/roundingsat.build.stderr
+          RS_BIN="$RS_SRC/build/roundingsat"
+          test -x "$RS_BIN"
+
+          VP_SRC="stage6b4/tools/VeriPB-archive"
+          git clone https://gitlab.com/MIAOresearch/software/VeriPB-archive.git "$VP_SRC" \
+            > stage6b4/toolchain_logs/veripb.clone.stdout 2> stage6b4/toolchain_logs/veripb.clone.stderr
+          git -C "$VP_SRC" checkout 9dbb658ffb8d88815c3f3d8ff7fcefd6c6fc43db \
+            > stage6b4/toolchain_logs/veripb.checkout.stdout 2> stage6b4/toolchain_logs/veripb.checkout.stderr
+          python -m venv stage6b4/tools/veripb-venv
+          stage6b4/tools/veripb-venv/bin/python -m pip install --upgrade pip setuptools wheel \
+            > stage6b4/toolchain_logs/veripb.bootstrap.stdout 2> stage6b4/toolchain_logs/veripb.bootstrap.stderr
+          stage6b4/tools/veripb-venv/bin/python -m pip install "$VP_SRC" \
+            > stage6b4/toolchain_logs/veripb.install.stdout 2> stage6b4/toolchain_logs/veripb.install.stderr
+          VP_BIN="stage6b4/tools/veripb-venv/bin/veripb"
+          test -x "$VP_BIN"
+
+          CP_SRC="stage6b4/tools/cakepb"
+          CAKE_BIN=""
+          set +e
+          git clone https://gitlab.com/MIAOresearch/software/cakepb.git "$CP_SRC" \
+            > stage6b4/toolchain_logs/cakepb.clone.stdout 2> stage6b4/toolchain_logs/cakepb.clone.stderr
+          RC=$?
+          if [ "$RC" -eq 0 ]; then
+            git -C "$CP_SRC" checkout b29b4e967413ee4e8c3dcb1bbc78bd0d508d6817 \
+              > stage6b4/toolchain_logs/cakepb.checkout.stdout 2> stage6b4/toolchain_logs/cakepb.checkout.stderr
+            if [ -f "$CP_SRC/Makefile" ]; then
+              make -C "$CP_SRC" -j2 \
+                > stage6b4/toolchain_logs/cakepb.build.stdout 2> stage6b4/toolchain_logs/cakepb.build.stderr
+            fi
+            while IFS= read -r CAND; do
+              if [ -x "$CAND" ]; then CAKE_BIN="$CAND"; break; fi
+            done < <(find "$CP_SRC" -type f \( -name 'cake_pb' -o -name 'cake_pb_*' -o -name 'cakepb' \) 2>/dev/null)
+          fi
+          set -e
+
+          printf '%s\n' "$RS_BIN" > stage6b4/roundingsat.path
+          printf '%s\n' "$VP_BIN" > stage6b4/veripb.path
+          printf '%s\n' "$CAKE_BIN" > stage6b4/cakepb.path
+
+          python - <<'PY'
+          import hashlib,json,pathlib,subprocess
+          def sha(p): return hashlib.sha256(pathlib.Path(p).read_bytes()).hexdigest()
+          def rev(p): return subprocess.check_output(["git","-C",p,"rev-parse","HEAD"],text=True).strip()
+          rs=pathlib.Path("stage6b4/roundingsat.path").read_text().strip()
+          vp=pathlib.Path("stage6b4/veripb.path").read_text().strip()
+          cp=pathlib.Path("stage6b4/cakepb.path").read_text().strip()
+          assert rev("stage6b4/tools/roundingsat")=="7116cbc7c228335d7a828fc9086639e4321fd5d1"
+          assert rev("stage6b4/tools/VeriPB-archive")=="9dbb658ffb8d88815c3f3d8ff7fcefd6c6fc43db"
+          if pathlib.Path("stage6b4/tools/cakepb/.git").exists():
+              assert rev("stage6b4/tools/cakepb")=="b29b4e967413ee4e8c3dcb1bbc78bd0d508d6817"
+          pathlib.Path("stage6b4/toolchain.receipt.json").write_text(json.dumps({
+            "roundingsat_revision":rev("stage6b4/tools/roundingsat"),
+            "roundingsat_binary_sha256":sha(rs),
+            "veripb_revision":rev("stage6b4/tools/VeriPB-archive"),
+            "veripb_binary_sha256":sha(vp),
+            "cakepb_revision":rev("stage6b4/tools/cakepb") if pathlib.Path("stage6b4/tools/cakepb/.git").exists() else None,
+            "cakepb_binary_sha256":sha(cp) if cp else None,
+            "runtime_limits_seconds":{"RoundingSat":300,"VeriPB":600,"CakePB":600}
+          },indent=2,sort_keys=True)+"\n")
+          PY
+
+      - name: Execute exactly one frozen midpoint scientific query
+        env:
+          IDX: "${{ matrix.index }}"
+        shell: bash
+        run: |
+          set -euo pipefail
+          PAD="$(printf '%02d' "$IDX")"
+          DIR="stage6b4/target_$PAD"
+          K="$(cat "$DIR/selected_k.txt")"
+          RS_BIN="$(cat stage6b4/roundingsat.path)"
+          VP_BIN="$(cat stage6b4/veripb.path)"
+          CAKE_BIN="$(cat stage6b4/cakepb.path)"
+          mkdir -p "$DIR/roundingsat" "$DIR/veripb" "$DIR/cakepb"
+
+          python research/tools/trump_stage6b3_roundingsat_runner.py \
+            "$RS_BIN" "$DIR/query.opb" "$DIR/roundingsat" \
+            --timeout-seconds 300 \
+            | tee "$DIR/roundingsat/runner.stdout"
+
+          STATUS="$(python - "$DIR/roundingsat/roundingsat.receipt.json" <<'PY'
+          import json,sys
+          print(json.load(open(sys.argv[1]))["proof_producer_status"])
+          PY
+          )"
+
+          if [ "$STATUS" = "SAT" ]; then
+            python research/tools/trump_stage6b4_sat_model_qhorn_verifier.py \
+              "$DIR/query_audit.json" \
+              "$DIR/opb.generation.json" \
+              "$DIR/pb24.audit.json" \
+              "$DIR/bracket_opb.audit.json" \
+              "$DIR/query.opb" \
+              "$DIR/roundingsat/roundingsat.stdout" \
+              "$DIR/roundingsat/roundingsat.receipt.json" \
+              "$DIR/sat.verifier.json" \
+              | tee "$DIR/sat.verifier.stdout"
+
+            python - "$DIR/sat.verifier.json" "$DIR/sat.authority.json" <<'PY'
+          import hashlib,json,pathlib,sys
+          src,out=sys.argv[1:]
+          raw=pathlib.Path(src).read_bytes()
+          d=json.loads(raw)
+          d["receipt_sha256"]=hashlib.sha256(raw).hexdigest()
+          pathlib.Path(out).write_text(json.dumps(d,indent=2,sort_keys=True)+"\n")
+          PY
+
+            python research/tools/trump_stage6b4_adaptive_bracket_controller.py \
+              sat "$DIR/state.before.json" "$K" "$DIR/sat.authority.json" "$DIR/state.after.json"
+
+          elif [ "$STATUS" = "UNSAT" ]; then
+            PROOF="$(python - "$DIR/roundingsat/roundingsat.receipt.json" <<'PY'
+          import json,sys
+          print(json.load(open(sys.argv[1])).get("raw_proof_path") or "")
+          PY
+            )"
+            if [ -z "$PROOF" ] || [ ! -s "$PROOF" ]; then
+              python research/tools/trump_stage6b4_adaptive_bracket_controller.py \
+                stop "$DIR/state.before.json" UNVERIFIED_UNSAT_NO_AUTHORITY "$DIR/state.after.json" \
+                --detail "RoundingSat reported UNSAT without non-empty raw proof"
+            else
+              set +e
+              python research/tools/trump_stage6b4_veripb_v2_harness.py \
+                "$VP_BIN" "$DIR/query.opb" "$PROOF" \
+                "$DIR/veripb/kernel.pbp" "$DIR/veripb" \
+                --timeout-seconds 600 \
+                | tee "$DIR/veripb/harness.stdout"
+              VP_RC=$?
+              set -e
+
+              if [ "$VP_RC" -ne 0 ]; then
+                OUTCOME="$(python - "$DIR/veripb/veripb.receipt.json" <<'PY'
+          import json,sys
+          try:
+              d=json.load(open(sys.argv[1]))
+          except Exception:
+              print("FAIL_UNSAT_CERTIFICATE"); raise SystemExit
+          print("UNKNOWN_PROOF_CHECK_RESOURCE_LIMIT" if d.get("verification_timed_out") else "FAIL_UNSAT_CERTIFICATE")
+          PY
+                )"
+                python research/tools/trump_stage6b4_adaptive_bracket_controller.py \
+                  stop "$DIR/state.before.json" "$OUTCOME" "$DIR/state.after.json" \
+                  --detail "VeriPB v2 authority harness did not accept boundary proof"
+              else
+                CAKE_RECEIPT=""
+                if [ -n "$CAKE_BIN" ] && [ -x "$CAKE_BIN" ] && [ -s "$DIR/veripb/kernel.pbp" ]; then
+                  set +e
+                  python research/tools/trump_stage6b3_cakepb_secondary_harness.py \
+                    "$CAKE_BIN" "$DIR/query.opb" "$DIR/veripb/kernel.pbp" "$DIR/cakepb" \
+                    --timeout-seconds 600 \
+                    | tee "$DIR/cakepb/harness.stdout"
+                  set -e
+                  if [ -f "$DIR/cakepb/cakepb.receipt.json" ]; then
+                    CAKE_RECEIPT="$DIR/cakepb/cakepb.receipt.json"
+                  fi
+                fi
+
+                if [ -n "$CAKE_RECEIPT" ]; then
+                  python research/tools/trump_stage6b4_unsat_authority_adapter.py \
+                    "$DIR/query.opb" "$PROOF" "$DIR/veripb/veripb.receipt.json" \
+                    "$DIR/unsat.authority.json" \
+                    --cakepb-receipt "$CAKE_RECEIPT" \
+                    | tee "$DIR/unsat.authority.stdout"
+                else
+                  python research/tools/trump_stage6b4_unsat_authority_adapter.py \
+                    "$DIR/query.opb" "$PROOF" "$DIR/veripb/veripb.receipt.json" \
+                    "$DIR/unsat.authority.json" \
+                    | tee "$DIR/unsat.authority.stdout"
+                fi
+
+                python research/tools/trump_stage6b4_adaptive_bracket_controller.py \
+                  unsat "$DIR/state.before.json" "$K" "$DIR/unsat.authority.json" "$DIR/state.after.json"
+              fi
+            fi
+
+          elif [ "$STATUS" = "TIMEOUT" ]; then
+            python research/tools/trump_stage6b4_adaptive_bracket_controller.py \
+              stop "$DIR/state.before.json" TARGET_EXACTNESS_UNKNOWN_RESOURCE_LIMIT "$DIR/state.after.json" \
+              --detail "RoundingSat reached frozen 300 second query limit"
+          else
+            python research/tools/trump_stage6b4_adaptive_bracket_controller.py \
+              stop "$DIR/state.before.json" INFRASTRUCTURE_ERROR "$DIR/state.after.json" \
+              --detail "Non-authoritative proof producer status: $STATUS"
+          fi
+
+          python - "$DIR/state.before.json" "$DIR/state.after.json" "$DIR/query_binding.receipt.json" "$DIR/roundingsat/roundingsat.receipt.json" "$DIR/round2.receipt.json" <<'PY'
+          import hashlib,json,pathlib,sys
+          before,after,qb,sr,out=sys.argv[1:]
+          def sha(p): return hashlib.sha256(pathlib.Path(p).read_bytes()).hexdigest()
+          b=json.load(open(before)); a=json.load(open(after)); q=json.load(open(qb)); s=json.load(open(sr))
+          receipt={
+            "schema":"janus.trump.stage6b4.round2.target_receipt.v1",
+            "index":a["index"],"round":2,
+            "L_before":b["L"],"U_before":b["U"],
+            "selected_k":q["selected_k"],"selection_rule":q["selection_rule"],
+            "proof_producer_status":s["proof_producer_status"],
+            "proof_producer_runtime_seconds":s.get("runtime_seconds"),
+            "L_after":a["L"],"U_after":a["U"],
+            "closed":a["closed"],"final_outcome":a.get("final_outcome"),
+            "exact_distance":a.get("exact_distance"),
+            "state_before_sha256":sha(before),"state_after_sha256":sha(after),
+            "query_binding_receipt_sha256":sha(qb),
+            "roundingsat_receipt_sha256":sha(sr),
+            "bracket_invariant":"PASS" if 0 <= int(a["L"]) < int(a["U"]) else "FAIL",
+            "new_janus_controller_authorized":False
+          }
+          pathlib.Path(out).write_text(json.dumps(receipt,indent=2,sort_keys=True)+"\n")
+          print(json.dumps(receipt,sort_keys=True))
+          assert receipt["bracket_invariant"]=="PASS"
+          PY
+
+      - name: Upload target Round-2 proof-carrying artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: "trump-stage6b4-round2-index-${{ matrix.index }}"
+          path: |
+            stage6b4/smoke_binding_receipt.json
+            stage6b4/previous_binding_receipt.json
+            stage6b4/toolchain.receipt.json
+            stage6b4/target_*/
+            stage6b4/toolchain_logs/
+          if-no-files-found: error
+          retention-days: 30
+
+  summarize:
+    name: B4 Round2 summary
+    needs: scientific-query
+    if: always()
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: trump-stage6b4-round2-index-*
+          path: stage6b4-round2-artifacts
+
+      - name: Assemble immutable Round-2 summary
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import collections,hashlib,json,pathlib
+          root=pathlib.Path("stage6b4-round2-artifacts")
+          rows=[]
+          for p in root.rglob("round2.receipt.json"):
+              r=json.load(open(p))
+              r["receipt_sha256"]=hashlib.sha256(p.read_bytes()).hexdigest()
+              rows.append(r)
+          rows.sort(key=lambda x:int(x["index"]))
+          expected=[1,2,3,4,5,6,7,9,10,11,12,13,14]
+          assert [int(r["index"]) for r in rows]==expected, [r["index"] for r in rows]
+          counts=dict(collections.Counter(r["proof_producer_status"] for r in rows))
+          outcomes=dict(collections.Counter(r.get("final_outcome") or "BRACKET_OPEN" for r in rows))
+          out={
+            "schema":"janus.trump.stage6b4.adaptive_exact_distance_round2.summary.v1",
+            "gate":"TRUMP_STAGE6B4_ADAPTIVE_PROOF_CARRYING_EXACT_DELETION_QHORN_DISTANCE_GATE",
+            "scientific_parent":"9b71c8a9df811a3a6a93cd25a547000629b44be8",
+            "round1_checkpoint_commit":"62b734479473ac84394b2bedc7d12f6864bb5bc6",
+            "round1_run_id":35461153243,
+            "smoke_run_id":35460365123,
+            "smoke_artifact_id":10588833689,
+            "smoke_artifact_digest":"sha256:9c1ca99e88e1c3032f01513c0c37e362be661912fbf760b046eb1684217d960c",
+            "round":2,"rows":rows,
+            "proof_producer_status_counts":counts,
+            "target_outcome_counts":outcomes,
+            "human_selected_k_count":0,
+            "new_janus_controller_authorized":False,
+            "claim_ceiling":{
+              "GENERAL_SAT_IN_P":"NOT_PROVED",
+              "P_EQ_NP":"NOT_PROVED",
+              "P_VS_NP":"OPEN",
+              "FINITE_EXACT_DISTANCES_IMPLY_ASYMPTOTIC_RESULT":False
+            }
+          }
+          pathlib.Path("stage6b4-round2-summary.json").write_text(json.dumps(out,indent=2,sort_keys=True)+"\n")
+          print(json.dumps({"counts":counts,"outcomes":outcomes,"rows":[
+            {"index":r["index"],"L_before":r["L_before"],"U_before":r["U_before"],
+             "k":r["selected_k"],"status":r["proof_producer_status"],
+             "L_after":r["L_after"],"U_after":r["U_after"],
+             "closed":r["closed"],"outcome":r.get("final_outcome"),
+             "exact_distance":r.get("exact_distance")}
+            for r in rows
+          ]},sort_keys=True))
+          PY
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: trump-stage6b4-round2-summary
+          path: stage6b4-round2-summary.json
+          retention-days: 30

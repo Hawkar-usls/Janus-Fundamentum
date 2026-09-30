@@ -1,0 +1,199 @@
+name: TRUMP C11 Two-Octahedron Channel Structure Gate
+
+on:
+  pull_request:
+    branches:
+      - research/general-sat-universal-coverage-map-2026-09-19
+    paths:
+      - 'research/TRUMP_C11_TWO_OCTAHEDRON_CHANNEL_STRUCTURE_GATE_RUN_TRIGGER_2026-09-20_v1.0.json'
+      - 'research/TRUMP_C11_TWO_OCTAHEDRON_CHANNEL_STRUCTURE_GATE_EXECUTION_FREEZE_2026-09-20_v1.0.json'
+      - 'research/tools/c11_two_octahedron_channel_structure/**'
+      - '.github/workflows/trump-c11-two-octahedron-channel-structure.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  channel-gate:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Bind frozen authority
+        shell: bash
+        run: |
+          set -euo pipefail
+          for sha in \
+            5f4e9c0a282e4a757105a90d3aa6ee9dcf5915de \
+            b8ea5e4d76eb21d28ea594b16774a21a2a9b6086 \
+            677dba79f808faef69b9d9c79fd596309ce71e8f \
+            ee2fbb4e591dccf786c37839f516664136a67fb2 \
+            28d695d709d57ae47d6ed57f6e205d713df1fd44 \
+            e4838eded06d92fc059560a6c3c465d66b42cc95 \
+            1c032097e3f944a5f3059c746af9773ea7a3ae97
+          do
+            git merge-base --is-ancestor "$sha" HEAD
+          done
+          test "$(git rev-parse 5f4e9c0a282e4a757105a90d3aa6ee9dcf5915de:research/TRUMP_C11_TWO_OCTAHEDRON_CHANNEL_STRUCTURE_GATE_PREREG_2026-09-20_v1.0.json)" = "28941861f137c75036c3bc01a5122f8eb595e1c3"
+          test "$(git rev-parse b8ea5e4d76eb21d28ea594b16774a21a2a9b6086:research/TRUMP_C11_TWO_OCTAHEDRON_CHANNEL_STRUCTURE_GATE_EXECUTION_FREEZE_2026-09-20_v1.0.json)" = "485fc73397c3980933450c8383e671109b5ff5e3"
+          python -m py_compile \
+            research/tools/c11_two_octahedron_channel_structure/exhaustive_checker.py \
+            research/tools/c11_two_octahedron_channel_structure/independent_verifier.py
+
+      - name: Run exhaustive 65,536-mask audit
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p channelgate
+          python research/tools/c11_two_octahedron_channel_structure/exhaustive_checker.py \
+            --prereg research/TRUMP_C11_TWO_OCTAHEDRON_CHANNEL_STRUCTURE_GATE_PREREG_2026-09-20_v1.0.json \
+            --freeze research/TRUMP_C11_TWO_OCTAHEDRON_CHANNEL_STRUCTURE_GATE_EXECUTION_FREEZE_2026-09-20_v1.0.json \
+            --out channelgate/run \
+            | tee channelgate/candidate.stdout
+
+      - name: Independent exhaustive replay
+        shell: bash
+        run: |
+          set -euo pipefail
+          python research/tools/c11_two_octahedron_channel_structure/independent_verifier.py \
+            --candidate channelgate/run/candidate_result.json \
+            --freeze research/TRUMP_C11_TWO_OCTAHEDRON_CHANNEL_STRUCTURE_GATE_EXECUTION_FREEZE_2026-09-20_v1.0.json \
+            --table channelgate/run/all_masks.ndjson \
+            --out channelgate/independent.json \
+            | tee channelgate/independent.stdout
+
+      - name: Assemble scientific manifest
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import hashlib,json,pathlib,subprocess
+          root=pathlib.Path("channelgate")
+          cand=json.loads((root/"run/candidate_result.json").read_text())
+          indep=json.loads((root/"independent.json").read_text())
+          def sha(p): return hashlib.sha256(pathlib.Path(p).read_bytes()).hexdigest()
+
+          M=cand["M_axis"]["verdict"]
+          C=cand["C_axis"]["verdict"]
+          assert M in {
+            "M1_PORT_CHANNEL_MATCHING_STRUCTURE_UNIVERSAL",
+            "M2_NONMATCHING_PORT_CHANNEL_WITNESS"
+          }
+          assert C in {
+            "C1_DIRECT_CHANNEL_MATCHING_NUMBER_LE3_UNIVERSAL",
+            "C2_FOURTH_INDEPENDENT_DIRECT_CHANNEL_WITNESS"
+          }
+          assert cand["enumeration"]["raw_masks_expected"]==65536
+          assert cand["enumeration"]["raw_masks_accounted"]==65536
+          assert cand["enumeration"]["admissible_count"]>0
+          assert cand["controls"]["current_Q2_enumeration"]["pass"] is True
+          assert cand["both_axes_completed"] is True
+          assert cand["early_stop_used"] is False
+          assert indep["verdict"]=="INDEPENDENT_BOTH_CHANNEL_AXES_EXHAUSTIVELY_VERIFIED"
+          assert indep["independent_M_verdict"]==M
+          assert indep["independent_C_verdict"]==C
+          assert all(indep["checks"].values())
+          assert cand["scientific_ceiling"]["UNIVERSAL_SEPARATOR4_COMPOSITION"]=="NOT_OPENED"
+          assert cand["scientific_ceiling"]["TW4"]=="NOT_OPENED"
+          assert cand["scientific_ceiling"]["BACKDOOR_SIZE_2"]=="NOT_OPENED"
+          assert cand["scientific_ceiling"]["REPAIR"]=="NOT_STARTED"
+          assert cand["scientific_ceiling"]["P_VS_NP"]=="OPEN"
+          assert cand["stop"] is True
+
+          manifest={
+            "schema":"janus.trump.c11_two_octahedron_channel_structure.scientific_manifest.v1",
+            "workflow_head":subprocess.check_output(["git","rev-parse","HEAD"],text=True).strip(),
+            "frozen_preregistration":{
+              "commit":"5f4e9c0a282e4a757105a90d3aa6ee9dcf5915de",
+              "content_blob":"28941861f137c75036c3bc01a5122f8eb595e1c3"
+            },
+            "execution_freeze":{
+              "commit":"b8ea5e4d76eb21d28ea594b16774a21a2a9b6086",
+              "content_blob":"485fc73397c3980933450c8383e671109b5ff5e3"
+            },
+            "implementation_commits":{
+              "candidate_checker":"677dba79f808faef69b9d9c79fd596309ce71e8f",
+              "independent_verifier":"ee2fbb4e591dccf786c37839f516664136a67fb2"
+            },
+            "outcome":{
+              "M_axis":M,
+              "C_axis":C,
+              "combined":cand["combined_verdict"]
+            },
+            "frame_authority":cand["frame_authority"],
+            "enumeration":cand["enumeration"],
+            "controls":cand["controls"],
+            "M_axis":cand["M_axis"],
+            "C_axis":cand["C_axis"],
+            "both_axes_completed":True,
+            "early_stop_used":False,
+            "independent_replay":{
+              "verdict":indep["verdict"],
+              "M_axis":indep["independent_M_verdict"],
+              "C_axis":indep["independent_C_verdict"],
+              "reason_histogram":indep["independent_reason_histogram"],
+              "admissible_count":indep["independent_admissible_count"],
+              "max_Delta":indep["independent_max_Delta"],
+              "max_nu":indep["independent_max_nu"],
+              "receipt_sha256":sha(root/"independent.json")
+            },
+            "receipts":{
+              "candidate_sha256":sha(root/"run/candidate_result.json"),
+              "all_masks_ndjson_sha256":sha(root/"run/all_masks.ndjson"),
+              "independent_sha256":sha(root/"independent.json")
+            },
+            "source_digests":{
+              "candidate_checker_sha256":sha("research/tools/c11_two_octahedron_channel_structure/exhaustive_checker.py"),
+              "independent_verifier_sha256":sha("research/tools/c11_two_octahedron_channel_structure/independent_verifier.py"),
+              "execution_freeze_sha256":sha("research/TRUMP_C11_TWO_OCTAHEDRON_CHANNEL_STRUCTURE_GATE_EXECUTION_FREEZE_2026-09-20_v1.0.json")
+            },
+            "oracle_use":cand["oracle_use"],
+            "scientific_ceiling":cand["scientific_ceiling"],
+            "stop":True
+          }
+          (root/"scientific_manifest.json").write_text(json.dumps(manifest,indent=2,sort_keys=True)+"\n")
+          print(json.dumps({
+            "M_axis":M,
+            "C_axis":C,
+            "combined":cand["combined_verdict"],
+            "raw_masks":cand["enumeration"]["raw_masks_accounted"],
+            "admissible":cand["enumeration"]["admissible_count"],
+            "independent":indep["verdict"]
+          },sort_keys=True))
+          PY
+
+      - name: Assert dual-axis ceiling and stop
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json
+          m=json.load(open("channelgate/scientific_manifest.json"))
+          assert m["both_axes_completed"] is True
+          assert m["early_stop_used"] is False
+          assert m["enumeration"]["raw_masks_accounted"]==65536
+          assert m["scientific_ceiling"]["UNIVERSAL_SEPARATOR4_COMPOSITION"]=="NOT_OPENED"
+          assert m["scientific_ceiling"]["SEPARATOR_SIZE_5"]=="NOT_OPENED"
+          assert m["scientific_ceiling"]["TW4"]=="NOT_OPENED"
+          assert m["scientific_ceiling"]["BACKDOOR_SIZE_2"]=="NOT_OPENED"
+          assert m["scientific_ceiling"]["REPAIR"]=="NOT_STARTED"
+          assert m["scientific_ceiling"]["P_VS_NP"]=="OPEN"
+          assert m["stop"] is True
+          print("DUAL_AXIS_STOP_CEILING_PASS")
+          PY
+
+      - name: Upload immutable artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: trump-c11-two-octahedron-channel-structure-gate-v1
+          path: channelgate/
+          if-no-files-found: error
+          retention-days: 90
