@@ -5,16 +5,16 @@
 - **Repository:** `Hawkar-usls/Janus-Fundamentum`
 - **PR:** `#510`
 - **Branch:** `codex/r5-e8-direct-contract-20260921-82493a57`
-- **Live source HEAD:** `8a6e8c0dee0ba7a8821ff13413a0f9cb82f2a7f9`
-- **Source commit time:** `2026-09-30T07:12:44+03:00`
-- **Indexed changed scientific artifacts:** `1033`
+- **Live source HEAD:** `bc0ffec278db28d4e93060a8a8103ae9b2425d20`
+- **Source commit time:** `2026-09-30T07:47:51+03:00`
+- **Indexed changed scientific artifacts:** `1036`
 
 ## Continuity status
 
 - Semantic cache: `.janus/P_VS_NP_STREAM_CACHE_CURRENT.json`
 - Semantic source HEAD: `480eed45722312b7b16e4a5d9f3d19149e125892`
 - Relation: **`LIVE_DESCENDS_FROM_SEMANTIC_CACHE`**
-- Commits after semantic checkpoint: `108`
+- Commits after semantic checkpoint: `111`
 
 ## Scientific firewall
 
@@ -82,9 +82,6 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 
 ## Commits newer than semantic checkpoint — MUST INGEST
 
-- `cd01e32f09c2` — 2026-09-30T03:16:25+03:00 — R5 E9: keep infinite Paley checker exact with integer sqrt
-- `4a73a4317e24` — 2026-09-30T03:16:34+03:00 — R5 E9: add CI for infinite Paley post-RKPR sqrt-nullity barrier
-- `11011ae1b97c` — 2026-09-30T03:52:39+03:00 — R5 E9: add affine F3 nowhere-zero Exact-One normal form
 - `059c0fcf5e36` — 2026-09-30T03:53:15+03:00 — R5 E9: add exact affine F3 nowhere-zero regression
 - `4e7506885f09` — 2026-09-30T03:53:29+03:00 — R5 E9: add CI for affine F3 nowhere-zero normal form
 - `432c9bd28356` — 2026-09-30T04:05:19+03:00 — R5 E9: add exact checker for affine F3 nowhere-zero normal form
@@ -162,6 +159,9 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `33007d906421` — 2026-09-30T07:00:16+03:00 — R5 E9: add exact checker for affine F3 rank-2 cover router
 - `5638c04d0318` — 2026-09-30T07:00:28+03:00 — R5 E9: add CI for affine F3 rank-2 cover router
 - `8a6e8c0dee0b` — 2026-09-30T07:12:44+03:00 — R5 E9: falsify rank-2 F3 cover completeness with Paley19
+- `d5097828bfea` — 2026-09-30T07:13:35+03:00 — R5 E9: add exact Paley19 rank-2 cover falsifier checker
+- `f7333dd9cf93` — 2026-09-30T07:13:44+03:00 — R5 E9: add CI for Paley19 rank-2 cover falsifier
+- `bc0ffec278db` — 2026-09-30T07:47:51+03:00 — R5 E9: close AF3 model-count mod-3 shortcut
 
 ## Transport / stale-bootstrap watch
 
@@ -192,6 +192,9 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 
 ## Recent non-cache commits
 
+- `bc0ffec278db` — 2026-09-30T07:47:51+03:00 — R5 E9: close AF3 model-count mod-3 shortcut
+- `f7333dd9cf93` — 2026-09-30T07:13:44+03:00 — R5 E9: add CI for Paley19 rank-2 cover falsifier
+- `d5097828bfea` — 2026-09-30T07:13:35+03:00 — R5 E9: add exact Paley19 rank-2 cover falsifier checker
 - `8a6e8c0dee0b` — 2026-09-30T07:12:44+03:00 — R5 E9: falsify rank-2 F3 cover completeness with Paley19
 - `5638c04d0318` — 2026-09-30T07:00:28+03:00 — R5 E9: add CI for affine F3 rank-2 cover router
 - `33007d906421` — 2026-09-30T07:00:16+03:00 — R5 E9: add exact checker for affine F3 rank-2 cover router
@@ -214,9 +217,6 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `4fbae71b9101` — 2026-09-30T06:31:31+03:00 — R5 E9: add AF3 normal-excess dual FPT router
 - `9addb3121770` — 2026-09-30T06:27:05+03:00 — R5 E9: add CI for AF3 projective invariance
 - `bbf2369c5b5a` — 2026-09-30T06:26:56+03:00 — R5 E9: make AF3 projective regression kernel-dimensional
-- `ff316dda71a1` — 2026-09-30T06:26:31+03:00 — R5 E9: add AF3 projective scaling regression
-- `6ccf5064e4cd` — 2026-09-30T06:19:07+03:00 — R5 E9: prove AF3 projective scaling invariance
-- `36a7a14f0ea2` — 2026-09-30T06:12:26+03:00 — R5 E9: add exact six-hyperplane essential-cover regression
 
 ## Resume protocol
 
