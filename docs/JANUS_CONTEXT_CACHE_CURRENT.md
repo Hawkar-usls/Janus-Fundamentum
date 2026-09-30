@@ -5,16 +5,16 @@
 - **Repository:** `Hawkar-usls/Janus-Fundamentum`
 - **PR:** `#510`
 - **Branch:** `codex/r5-e8-direct-contract-20260921-82493a57`
-- **Live source HEAD:** `601fa603eafa880d93ba230c4fb3571aaf6138ff`
-- **Source commit time:** `2026-09-30T06:04:12+03:00`
-- **Indexed changed scientific artifacts:** `1008`
+- **Live source HEAD:** `f9050ef243363e9819d2653adb84d4858ff2f61c`
+- **Source commit time:** `2026-09-30T06:08:19+03:00`
+- **Indexed changed scientific artifacts:** `1009`
 
 ## Continuity status
 
 - Semantic cache: `.janus/P_VS_NP_STREAM_CACHE_CURRENT.json`
 - Semantic source HEAD: `480eed45722312b7b16e4a5d9f3d19149e125892`
 - Relation: **`LIVE_DESCENDS_FROM_SEMANTIC_CACHE`**
-- Commits after semantic checkpoint: `79`
+- Commits after semantic checkpoint: `80`
 
 ## Scientific firewall
 
@@ -161,6 +161,7 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `260408147852` — 2026-09-30T06:02:43+03:00 — R5 E9: add exact global AF3 EQ3 APSQ factorization regression
 - `b70f974bb002` — 2026-09-30T06:02:52+03:00 — R5 E9: add CI for global AF3 EQ3 APSQ factorization
 - `601fa603eafa` — 2026-09-30T06:04:12+03:00 — R5 E9: reconcile AF3 with infinite linear-dimension UNSAT cover family
+- `f9050ef24336` — 2026-09-30T06:08:19+03:00 — R5 E9: add locally-3K2 clique-operator Exact-One countercontrol
 
 ## Transport / stale-bootstrap watch
 
@@ -191,6 +192,7 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 
 ## Recent non-cache commits
 
+- `f9050ef24336` — 2026-09-30T06:08:19+03:00 — R5 E9: add locally-3K2 clique-operator Exact-One countercontrol
 - `601fa603eafa` — 2026-09-30T06:04:12+03:00 — R5 E9: reconcile AF3 with infinite linear-dimension UNSAT cover family
 - `b70f974bb002` — 2026-09-30T06:02:52+03:00 — R5 E9: add CI for global AF3 EQ3 APSQ factorization
 - `260408147852` — 2026-09-30T06:02:43+03:00 — R5 E9: add exact global AF3 EQ3 APSQ factorization regression
@@ -215,7 +217,6 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `74d3bfff97a3` — 2026-09-30T05:22:33+03:00 — R5 E9: add exact regression for unique-model F3 collapse
 - `14944ed2a576` — 2026-09-30T05:22:02+03:00 — R5 E9: prove F3 parallel collapse of unique-model tower
 - `71c2206d34f5` — 2026-09-30T05:21:07+03:00 — R5 E9: add CI for two-edge-twist contraction router
-- `9a4cf5ff45e1` — 2026-09-30T05:20:55+03:00 — R5 E9: add regression for two-edge-twist contraction router
 
 ## Resume protocol
 
