@@ -5,16 +5,16 @@
 - **Repository:** `Hawkar-usls/Janus-Fundamentum`
 - **PR:** `#510`
 - **Branch:** `codex/r5-e8-direct-contract-20260921-82493a57`
-- **Live source HEAD:** `b53c23ebf36c6b0d07fa037c4151d053d6cb12df`
-- **Source commit time:** `2026-09-30T05:32:06+03:00`
-- **Indexed changed scientific artifacts:** `992`
+- **Live source HEAD:** `1905caed5bb16bdf02735cd234edfb7952b30c40`
+- **Source commit time:** `2026-09-30T05:35:37+03:00`
+- **Indexed changed scientific artifacts:** `995`
 
 ## Continuity status
 
 - Semantic cache: `.janus/P_VS_NP_STREAM_CACHE_CURRENT.json`
 - Semantic source HEAD: `480eed45722312b7b16e4a5d9f3d19149e125892`
 - Relation: **`LIVE_DESCENDS_FROM_SEMANTIC_CACHE`**
-- Commits after semantic checkpoint: `63`
+- Commits after semantic checkpoint: `66`
 
 ## Scientific firewall
 
@@ -145,6 +145,9 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `e997cb31f383` — 2026-09-30T05:27:15+03:00 — R5 E9: add exact regression for persistent F3 UNSAT certificate
 - `b694e147e696` — 2026-09-30T05:27:25+03:00 — R5 E9: add CI for persistent F3 UNSAT certificate
 - `b53c23ebf36c` — 2026-09-30T05:32:06+03:00 — R5 E9: add AF3 APSQ EQ3 local source-return barrier
+- `3a60af0631c7` — 2026-09-30T05:32:40+03:00 — R5 E9: add exact AF3 APSQ EQ3 source-return regression
+- `42d520841356` — 2026-09-30T05:32:47+03:00 — R5 E9: add CI for AF3 APSQ EQ3 local source return
+- `1905caed5bb1` — 2026-09-30T05:35:37+03:00 — R5 E9: add AF3 residual normal-codimension DP router
 
 ## Transport / stale-bootstrap watch
 
@@ -175,6 +178,9 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 
 ## Recent non-cache commits
 
+- `1905caed5bb1` — 2026-09-30T05:35:37+03:00 — R5 E9: add AF3 residual normal-codimension DP router
+- `42d520841356` — 2026-09-30T05:32:47+03:00 — R5 E9: add CI for AF3 APSQ EQ3 local source return
+- `3a60af0631c7` — 2026-09-30T05:32:40+03:00 — R5 E9: add exact AF3 APSQ EQ3 source-return regression
 - `b53c23ebf36c` — 2026-09-30T05:32:06+03:00 — R5 E9: add AF3 APSQ EQ3 local source-return barrier
 - `b694e147e696` — 2026-09-30T05:27:25+03:00 — R5 E9: add CI for persistent F3 UNSAT certificate
 - `e997cb31f383` — 2026-09-30T05:27:15+03:00 — R5 E9: add exact regression for persistent F3 UNSAT certificate
@@ -197,9 +203,6 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `85716a950963` — 2026-09-30T04:30:38+03:00 — R5 E9: add CI for affine F3 parallel-class quotient
 - `3eae415d1dbe` — 2026-09-30T04:30:30+03:00 — R5 E9: add exact checker for affine F3 parallel-class quotient
 - `784cfa930a8a` — 2026-09-30T04:30:00+03:00 — R5 E9: add affine F3 parallel-class fixed-point quotient
-- `cb4c72acf7fc` — 2026-09-30T04:25:38+03:00 — R5 E9: add CI for projective blocking line terminal
-- `a6f4fd196780` — 2026-09-30T04:25:28+03:00 — R5 E9: add exact checker for projective blocking line terminal
-- `165af10bcaae` — 2026-09-30T04:24:54+03:00 — R5 E9: add affine F3 projective blocking line terminal
 
 ## Resume protocol
 
