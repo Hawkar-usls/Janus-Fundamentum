@@ -3,17 +3,19 @@
 Date: 2026-09-30
 
 Status:
-`JANUS_EXACT_AF3_FPT_ROUTER__NORMAL_RANK_VS_EXCESS_DUALITY__NO_D1_PROMOTION`
+`JANUS_EXACT_AF3_FPT_ROUTER__NORMAL_RANK_VS_EXCESS_DUALITY__PROJECTIVE_INVARIANT__NO_D1_PROMOTION`
 
 Parents:
 - `research/R5_E9_AFFINE_F3_NOWHERE_ZERO_EXACTONE_NORMAL_FORM_2026-09-30_v1.0.md`
 - `research/R5_E9_AFFINE_F3_PARALLEL_SATURATION_QUOTIENT_2026-09-30_v1.0.md`
+- `research/R5_E9_AF3_PROJECTIVE_SCALING_FULL_SUPPORT_INVARIANCE_2026-09-30_v1.0.md`
 
 Scientific ceiling:
 
 ```text
 THIS IS AN EXACT DETERMINISTIC FPT ROUTER FOR AN APSQ-SATURATED AF3 RESIDUAL.
-IT DOES NOT PROVE THAT THE AF3 NORMAL EXCESS IS O(log n) ON ALL SOURCES.
+THE NORMAL RANK / EXCESS PARAMETERS ARE INVARIANT UNDER LEGAL AF3 PROJECTIVE
+REPRESENTATION CHANGES; PROJECTIVE SCALING CANNOT BE USED TO MAKE k SMALLER.
 IT DOES NOT PROVIDE A UNIVERSAL POLYNOMIAL SAT SOLVER.
 E8_D1 = EMPTY.
 P_VS_NP = OPEN.
@@ -27,178 +29,118 @@ After AF3 conversion and exact parallel saturation, write the surviving avoidanc
 a_j\alpha\ne b_j,\qquad j=1,\dots,m,
 \]
 
-over `F3`, where:
-
-- every `a_j` is nonzero;
-- no two surviving constraints have projectively parallel normals;
-- all constant-zero and constant-safe coordinates have already been removed;
-- all two-offset parallel pins have already been substituted;
-- a three-offset class would already have returned UNSAT.
+over `F3`, with nonzero pairwise nonprojective normals. Constant coordinates and all one-/two-/three-offset parallel terminals have already been processed by APSQ.
 
 Let
 
 \[
 r:=\operatorname{rank}_{\mathbb F_3}\{a_1,\dots,a_m\},
-\qquad
-k:=m-r.
+\qquad k:=m-r.
 \]
 
-Call `k` the **AF3 normal excess**.
+Call `k` the **AF3 normal excess**. This is different from the older rational row-basis overlap excess: here `r` is the rank of the coordinate-zero hyperplane normal family after AF3/APSQ, not `rank_Q(A)`.
 
-The distinction from the older rational row-basis overlap excess is essential: here `r` is the rank of the projectively simplified AF3 coordinate-normal family after APSQ, not `rank_Q(A)`.
+## 2. Exact Boolean-cube quotient
 
-## 2. Quotient away invisible parameter directions
-
-Choose `r` surviving constraints whose normals form a basis, and relabel them `1,...,r`. Put their normals into the matrix
+Choose `r` surviving constraints whose normals form a basis and put their normals into a matrix `B`. Relabel them `1,...,r`, and define
 
 \[
-B=\begin{pmatrix}a_1\\ \vdots\\ a_r\end{pmatrix}.
+y_i=a_i\alpha-b_i.
 \]
 
-The linear map `alpha -> B alpha` is onto `F3^r`. Any parameter direction in `ker B` is invisible to every surviving constraint because every other normal lies in the row span of `B`.
+Every surviving normal lies in `row(B)`, and the map `alpha -> B alpha` is onto `F3^r`; directions in `ker B` are invisible to the whole residual. Therefore the residual depends only on `y`.
 
-Define new quotient coordinates
-
-\[
-y_i=a_i\alpha-b_i,
-\qquad i=1,\dots,r.
-\]
-
-For every `y in F3^r` there exists an `alpha` producing that `y`, and all surviving constraints depend only on `y`.
-
-The `r` chosen basis constraints become simply
+The basis constraints become
 
 \[
 y_i\ne0,
 \]
 
-so any avoiding point must satisfy
+so
 
 \[
 \boxed{y\in(F_3^*)^r=\{1,2\}^r.}
 \]
 
-## 3. Extra constraints in basis coordinates
-
-For each extra normal `a_{r+j}`, `j=1,...,k`, compute its unique coefficient row
+For every extra constraint write uniquely
 
 \[
-c_j\in F_3^r,
-\qquad a_{r+j}=c_jB.
+a_{r+j}=c_jB.
 \]
 
-Since
+If `b_B=(b_1,...,b_r)^T`, then its forbidden equation becomes
 
 \[
-B\alpha=y+b_B,
+c_jy=e_j,
+\qquad e_j=b_{r+j}-c_jb_B.
 \]
 
-where `b_B=(b_1,...,b_r)^T`, the extra forbidden equation
+Collect the `c_j` into `C in F3^{k x r}` and the offsets into `e in F3^k`.
 
-\[
-a_{r+j}\alpha=b_{r+j}
-\]
-
-becomes
-
-\[
-c_j y=e_j,
-\qquad
-\boxed{e_j=b_{r+j}-c_jb_B.}
-\]
-
-Collect the rows `c_j` into
-
-\[
-C\in F_3^{k\times r},
-\qquad e\in F_3^k.
-\]
-
-### Theorem NED-1 — exact Boolean-cube syndrome normal form
+### Theorem NED-1
 
 The APSQ residual is satisfiable iff
 
 \[
 \boxed{
-\exists y\in\{1,2\}^r
-\quad\forall j\in[k]:
-(Cy)_j\ne e_j.
+\exists y\in\{1,2\}^r\quad
+\forall j\in[k]:(Cy)_j\ne e_j.
 }
 \]
 
-Every successful `y` reconstructs an original AF3 parameter point by solving `B alpha=y+b_B`, and AF3 then reconstructs the Boolean Exact-One witness.
+Every successful `y` reconstructs an AF3 parameter point by solving `B alpha=y+b_B`; AF3 then reconstructs the Boolean Exact-One witness.
 
-## 4. Direct-side exact router
+## 3. Direct router
 
-Enumerating all `2^r` vectors `y in {1,2}^r` and checking the `k` extra equations gives
+Enumerate all `2^r` Boolean-cube points and check the `k` extra forbidden equations:
 
 \[
-T_{\rm direct}=2^r\operatorname{poly}(m,r).
+\boxed{T_{direct}=2^r\operatorname{poly}(m,r).}
 \]
 
 Thus `r=O(log n)` is a polynomial island.
 
-## 5. Dual syndrome DP
+## 4. Dual syndrome DP
 
-The key new route parameterizes by `k=m-r`, not by `r`.
-
-Write the `i`-th column of `C` as
+Write the `i`-th column of `C` as `v_i in F3^k`. Since `y_i in {1,2}={+1,-1}`,
 
 \[
-v_i\in F_3^k.
+Cy=\sum_i y_iv_i.
 \]
 
-For `y_i in {1,2}={+1,-1}` modulo 3,
+Let `S_i` be the reachable syndromes after the first `i` variables. Initialize
 
 \[
-Cy=\sum_{i=1}^r y_i v_i.
+S_0=\{0\}
 \]
 
-Process the columns one at a time. Let `S_i subseteq F3^k` be the set of syndromes reachable using the first `i` variables.
-
-Initialize
+and update
 
 \[
-S_0=\{0\}.
+\boxed{S_i=(S_{i-1}+v_i)\cup(S_{i-1}-v_i).}
 \]
 
-Update
+At every stage `|S_i|<=3^k`. At the end, SAT holds iff some `s in S_r` obeys
 
 \[
-\boxed{
-S_i=(S_{i-1}+v_i)\cup(S_{i-1}-v_i).
-}
+s_j\ne e_j\quad\forall j.
 \]
 
-At all times
+Store one predecessor/sign for each reached syndrome to reconstruct `y`.
+
+### Theorem NED-2
+
+The APSQ residual is decidable with exact witness reconstruction in
 
 \[
-|S_i|\le3^k.
+\boxed{3^k\operatorname{poly}(m,r)}.
 \]
 
-After all `r` variables have been processed, NED-1 is SAT iff some reachable syndrome `s in S_r` satisfies
+No `3^d` affine-space enumeration and no hyperplane-subfamily enumeration is used.
 
-\[
-\boxed{s_j\ne e_j\quad\forall j.}
-\]
+## 5. Combined two-sided router
 
-Store for each newly reached syndrome one predecessor and one sign choice; reversing those pointers reconstructs `y` in `O(r)` stages.
-
-### Theorem NED-2 — dual exact FPT router
-
-The APSQ residual is decidable with witness reconstruction in
-
-\[
-\boxed{3^k\operatorname{poly}(m,r)}
-\]
-
-bit operations, where `k=m-r` is the AF3 normal excess.
-
-The algorithm never enumerates the `3^d` original affine parameter space and never enumerates hyperplane subfamilies.
-
-## 6. Combined two-sided router
-
-Run the cheaper of the direct cube enumeration and the syndrome DP:
+Run the cheaper exact route:
 
 \[
 \boxed{
@@ -206,87 +148,122 @@ T=\min(2^r,3^{m-r})\operatorname{poly}(n).
 }
 \]
 
-Therefore both of the following are exact polynomial islands:
+Hence both
 
 ```text
-AF3 normal rank r = O(log n),
-AF3 normal excess m-r = O(log n).
+r = O(log n)
 ```
 
-A universal polynomial algorithm would still need a theorem that handles the middle region where both quantities are superlogarithmic, or a different representation route that bypasses them.
+and
 
-## 7. Sharp generic control: excess two can already be UNSAT
+```text
+m-r = O(log n)
+```
 
-The FPT theorem must not be confused with a statement that small positive excess forces SAT.
+are deterministic polynomial islands.
 
-Take `r>=2`. Use the `r` basis hyperplanes
+## 6. Sharp generic control: excess two may already be UNSAT
 
-\[
-y_i=0,
-\]
-
-and add only the two further forbidden hyperplanes
+Take `r>=2`, the basis forbidden hyperplanes `y_i=0`, and only two extra forbidden hyperplanes
 
 \[
 y_1+y_2=0,
-\qquad
-y_1-y_2=0.
+\qquad y_1-y_2=0.
 \]
 
-All `r+2` normals are projectively distinct where relevant, so this is parallel-simple and has
-
-\[
-k=(r+2)-r=2.
-\]
-
-But for every `y_1,y_2 in {+1,-1}`, either `y_1=y_2` or `y_1=-y_2`. Therefore one of the two extra equations is always hit and there is no avoiding point.
-
-Hence
+The four relevant normal directions are projectively distinct. Here `k=2`, yet every pair `y_1,y_2 in {+1,-1}` is either equal or opposite, so one extra hyperplane is always hit. Thus
 
 \[
 \boxed{k=2\not\Rightarrow SAT.}
 \]
 
-The dual DP correctly decides this control using at most `3^2=9` syndrome states.
+The dual DP decides this UNSAT control using at most nine syndrome states.
 
-## 8. PG15 control
+## 7. PG15 control
 
-For the canonical PG15 source, exact AF3 conversion followed by APSQ gives
-
-```text
-parameter dimension before quotient = 4,
-distinct surviving hyperplanes m    = 11,
-normal rank r                        = 4,
-normal excess k=m-r                  = 7.
-```
-
-The direct side checks `2^4=16` quotient-cube points; the syndrome side uses at most `3^7=2187` states. The exact regression verifies that the reconstructed avoiding points decode to the four frozen Exact-One witnesses.
-
-This finite control is not an asymptotic polynomial-coverage claim.
-
-## 9. Relation to representation changes
-
-AF3 projective row/column transformations preserve full-support existence. The parameters `(m,r,k)` are properties of a chosen APSQ hyperplane presentation and need not be invariant under every legal projective representation change.
-
-That is an opportunity rather than a problem: a future polynomial representation algorithm may deliberately transform the augmented ternary matroid to reduce normal excess or enter a graphic/frame/bounded-width terminal, provided construction and witness transport are polynomially charged.
-
-## 10. New frontier
-
-Freeze the unresolved middle gate as
+For canonical PG15, exact AF3 + APSQ gives
 
 ```text
-R5_E9_AF3_PROJECTIVE_REPRESENTATION_OR_MIDDLE_EXCESS_GATE_V1
+m = 11
+r = 4
+k = 7
 ```
 
-A universal PASS must either:
+The direct quotient has only `2^4=16` points. The exact regression finds precisely four avoiding points and reconstructs the four frozen Exact-One witnesses. The syndrome DP visits at most `3^7` states (and only 16 on the frozen deterministic normalization).
 
-1. find in deterministic polynomial time a projectively equivalent representation whose AF3 residual has `r=O(log n)` or `m-r=O(log n)`; or
-2. recognize another polynomial full-support class (graphic/cographic/frame/signed-graphic/bounded-width/etc.); or
-3. provide a different global full-support constructor / cover certificate for the middle-excess residual.
+## 8. Projective invariance of the arrangement parameters
 
-No existence-only representation theorem is sufficient; representation discovery and witness reconstruction are charged.
+The initial version of this note incorrectly suggested that a legal AF3 projective representation change might reduce `(m,r,k)`. That possibility is now explicitly closed.
 
-## 11. Ceiling
+Let
+
+\[
+M=[A\mid-\mathbf1]
+\]
+
+and let a legal projective representation change be
+
+\[
+N=UMD,
+\qquad U\in GL,
+\qquad D=\operatorname{diag}(d_e),\ d_e\ne0.
+\]
+
+The AF3 projective-invariance theorem gives the support-preserving code isomorphism
+
+\[
+z\mapsto Dz.
+\]
+
+Fix the distinguished syndrome coordinate `e_b`. On the affine slices normalized to syndrome value one, this isomorphism acts on source coordinates by the nonzero diagonal scaling
+
+\[
+z_i\longmapsto (d_i/d_{e_b})z_i.
+\]
+
+Therefore the two affine solution spaces are linearly isomorphic and each coordinate-zero set maps exactly to the corresponding coordinate-zero set.
+
+Consequently the complete coordinate-hyperplane arrangement is preserved up to affine-linear isomorphism. In particular it preserves:
+
+```text
+which coordinate hyperplanes coincide,
+parallel classes and their multiplicities,
+all linear dependencies among normal directions,
+normal rank r,
+number m of distinct surviving hyperplanes,
+normal excess k=m-r.
+```
+
+APSQ operations themselves are defined only from zero/constant hyperplanes and one-/two-/three-offset parallel classes. Those structures are also preserved by the same isomorphism. Thus APSQ-saturated residuals are isomorphic and have identical `(m,r,k)`.
+
+### Theorem NED-3 — projective invariance
+
+\[
+\boxed{
+(m,r,k)_{APSQ}
+\text{ is invariant under legal AF3 row operations and nonzero column scalings.}
+}
+\]
+
+Hence projective representation changes may expose a different polynomial structural class, but they cannot turn a middle-excess instance into a low-`r` or low-`k` instance of this router.
+
+## 9. Correct live frontier
+
+Freeze
+
+```text
+R5_E9_AF3_MIDDLE_EXCESS_OR_NEW_REPRESENTATION_CLASS_GATE_V2
+```
+
+A universal PASS must handle the residual where both `r` and `k=m-r` are superlogarithmic by one of:
+
+1. recognizing another polynomial full-support class (regular/graphic/cographic/frame where applicable, bounded-width, etc.);
+2. a source-specific polynomial decomposition with exact witness lifting; or
+3. a direct global full-support constructor / cover certificate.
+
+Projective representation changes remain legal and useful for entering such classes, but **not** for reducing `r` or `k` themselves.
+
+## 10. Ceiling
 
 ```text
 AF3 BASIS-CUBE NORMAL FORM
@@ -300,6 +277,9 @@ DUAL SYNDROME ROUTER
 
 COMBINED ROUTER
 = min(2^r,3^(m-r)) poly
+
+APSQ NORMAL RANK / EXCESS UNDER AF3 PROJECTIVE CHANGES
+= INVARIANT / PROVED
 
 EXCESS 2 => SAT
 = FALSE
