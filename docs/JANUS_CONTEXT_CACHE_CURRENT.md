@@ -5,16 +5,16 @@
 - **Repository:** `Hawkar-usls/Janus-Fundamentum`
 - **PR:** `#510`
 - **Branch:** `codex/r5-e8-direct-contract-20260921-82493a57`
-- **Live source HEAD:** `edf2d8691d314b56b9fb5b72ad0bebaa1e1866d1`
-- **Source commit time:** `2026-09-30T07:48:19+03:00`
-- **Indexed changed scientific artifacts:** `1038`
+- **Live source HEAD:** `4b48016fc803b1c59538b89eeffea7750ec70692`
+- **Source commit time:** `2026-09-30T08:00:51+03:00`
+- **Indexed changed scientific artifacts:** `1039`
 
 ## Continuity status
 
 - Semantic cache: `.janus/P_VS_NP_STREAM_CACHE_CURRENT.json`
 - Semantic source HEAD: `480eed45722312b7b16e4a5d9f3d19149e125892`
 - Relation: **`LIVE_DESCENDS_FROM_SEMANTIC_CACHE`**
-- Commits after semantic checkpoint: `113`
+- Commits after semantic checkpoint: `114`
 
 ## Scientific firewall
 
@@ -82,7 +82,6 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 
 ## Commits newer than semantic checkpoint — MUST INGEST
 
-- `432c9bd28356` — 2026-09-30T04:05:19+03:00 — R5 E9: add exact checker for affine F3 nowhere-zero normal form
 - `e3cd39c9b20b` — 2026-09-30T04:05:53+03:00 — R5 E9: remove duplicate affine F3 checker
 - `29664d5bb057` — 2026-09-30T04:15:43+03:00 — R5 E9: add augmented ternary branch-width full-support DP router
 - `adfbd510e682` — 2026-09-30T04:16:26+03:00 — R5 E9: add exact branch-width full-support DP regression
@@ -162,6 +161,7 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `bc0ffec278db` — 2026-09-30T07:47:51+03:00 — R5 E9: close AF3 model-count mod-3 shortcut
 - `8c6b2ac8e247` — 2026-09-30T07:48:11+03:00 — R5 E9: add exact checker for mod-3 model-count barrier
 - `edf2d8691d31` — 2026-09-30T07:48:19+03:00 — R5 E9: add CI for mod-3 model-count barrier
+- `4b48016fc803` — 2026-09-30T08:00:51+03:00 — R5 E9: prove directed-triangle fourth-point completion barrier
 
 ## Transport / stale-bootstrap watch
 
@@ -192,6 +192,7 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 
 ## Recent non-cache commits
 
+- `4b48016fc803` — 2026-09-30T08:00:51+03:00 — R5 E9: prove directed-triangle fourth-point completion barrier
 - `edf2d8691d31` — 2026-09-30T07:48:19+03:00 — R5 E9: add CI for mod-3 model-count barrier
 - `8c6b2ac8e247` — 2026-09-30T07:48:11+03:00 — R5 E9: add exact checker for mod-3 model-count barrier
 - `bc0ffec278db` — 2026-09-30T07:47:51+03:00 — R5 E9: close AF3 model-count mod-3 shortcut
@@ -216,7 +217,6 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `60877843fca4` — 2026-09-30T06:33:28+03:00 — R5 E9: prove exact one-zero minus-two augmentation criterion
 - `c4ed01ca7ae8` — 2026-09-30T06:33:16+03:00 — R5 E9: add CI for AF3 normal-excess dual router
 - `bf08e87be017` — 2026-09-30T06:32:21+03:00 — R5 E9: add exact AF3 normal-excess router regression
-- `4fbae71b9101` — 2026-09-30T06:31:31+03:00 — R5 E9: add AF3 normal-excess dual FPT router
 
 ## Resume protocol
 
