@@ -5,16 +5,16 @@
 - **Repository:** `Hawkar-usls/Janus-Fundamentum`
 - **PR:** `#510`
 - **Branch:** `codex/r5-e8-direct-contract-20260921-82493a57`
-- **Live source HEAD:** `d78c2eb3689b2c55a2a583b5d8eee4e619a1a0c0`
-- **Source commit time:** `2026-09-30T05:11:59+03:00`
-- **Indexed changed scientific artifacts:** `977`
+- **Live source HEAD:** `58da760a67adffd1e07115a7278cbeb1093d62b3`
+- **Source commit time:** `2026-09-30T05:14:44+03:00`
+- **Indexed changed scientific artifacts:** `980`
 
 ## Continuity status
 
 - Semantic cache: `.janus/P_VS_NP_STREAM_CACHE_CURRENT.json`
 - Semantic source HEAD: `480eed45722312b7b16e4a5d9f3d19149e125892`
 - Relation: **`LIVE_DESCENDS_FROM_SEMANTIC_CACHE`**
-- Commits after semantic checkpoint: `48`
+- Commits after semantic checkpoint: `51`
 
 ## Scientific firewall
 
@@ -130,6 +130,9 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `b8a5ccfd7925` — 2026-09-30T04:50:33+03:00 — R5 E9: add exact line-free proper blocking countercontrol
 - `dea704682975` — 2026-09-30T04:50:43+03:00 — R5 E9: add CI for line-free proper blocking countercontrol
 - `d78c2eb3689b` — 2026-09-30T05:11:59+03:00 — R5 E9: prove infinite AF3 PCQ-fixed line-free UNSAT 2-lift family
+- `327b42fb9e63` — 2026-09-30T05:13:13+03:00 — R5 E9: add exact checker for AF3 PCQ-fixed line-free 2-lift family
+- `80107908fe4c` — 2026-09-30T05:13:22+03:00 — R5 E9: add CI for AF3 PCQ-fixed line-free 2-lift family
+- `58da760a67ad` — 2026-09-30T05:14:44+03:00 — R5 E9: add affine F3 parallel-saturation quotient
 
 ## Transport / stale-bootstrap watch
 
@@ -160,6 +163,9 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 
 ## Recent non-cache commits
 
+- `58da760a67ad` — 2026-09-30T05:14:44+03:00 — R5 E9: add affine F3 parallel-saturation quotient
+- `80107908fe4c` — 2026-09-30T05:13:22+03:00 — R5 E9: add CI for AF3 PCQ-fixed line-free 2-lift family
+- `327b42fb9e63` — 2026-09-30T05:13:13+03:00 — R5 E9: add exact checker for AF3 PCQ-fixed line-free 2-lift family
 - `d78c2eb3689b` — 2026-09-30T05:11:59+03:00 — R5 E9: prove infinite AF3 PCQ-fixed line-free UNSAT 2-lift family
 - `dea704682975` — 2026-09-30T04:50:43+03:00 — R5 E9: add CI for line-free proper blocking countercontrol
 - `b8a5ccfd7925` — 2026-09-30T04:50:33+03:00 — R5 E9: add exact line-free proper blocking countercontrol
@@ -182,9 +188,6 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `cd01e32f09c2` — 2026-09-30T03:16:25+03:00 — R5 E9: keep infinite Paley checker exact with integer sqrt
 - `5ffac5b1325b` — 2026-09-30T03:15:57+03:00 — R5 E9: add checker for infinite Paley post-RKPR barrier
 - `a164045d23c0` — 2026-09-30T03:15:08+03:00 — R5 E9: prove infinite post-RKPR sqrt-nullity Paley barrier
-- `29c3a79d7a05` — 2026-09-30T03:06:56+03:00 — R5 E9: add CI for Paley19 gradient-kernel control
-- `9efd37493952` — 2026-09-30T03:06:49+03:00 — R5 E9: add exact Paley19 gradient-kernel checker
-- `f0818bdb7d88` — 2026-09-30T03:06:14+03:00 — R5 E9: add Paley19 gradient-kernel post-RKPR control theorem
 
 ## Resume protocol
 
