@@ -5,16 +5,16 @@
 - **Repository:** `Hawkar-usls/Janus-Fundamentum`
 - **PR:** `#510`
 - **Branch:** `codex/r5-e8-direct-contract-20260921-82493a57`
-- **Live source HEAD:** `e3cd39c9b20b8164e318ce0f099c838a1fd24ee1`
-- **Source commit time:** `2026-09-30T04:05:53+03:00`
-- **Indexed changed scientific artifacts:** `964`
+- **Live source HEAD:** `29664d5bb0576a70a66310f0e07a11562961a880`
+- **Source commit time:** `2026-09-30T04:15:43+03:00`
+- **Indexed changed scientific artifacts:** `965`
 
 ## Continuity status
 
 - Semantic cache: `.janus/P_VS_NP_STREAM_CACHE_CURRENT.json`
 - Semantic source HEAD: `480eed45722312b7b16e4a5d9f3d19149e125892`
 - Relation: **`LIVE_DESCENDS_FROM_SEMANTIC_CACHE`**
-- Commits after semantic checkpoint: `35`
+- Commits after semantic checkpoint: `36`
 
 ## Scientific firewall
 
@@ -117,6 +117,7 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `4e7506885f09` — 2026-09-30T03:53:29+03:00 — R5 E9: add CI for affine F3 nowhere-zero normal form
 - `432c9bd28356` — 2026-09-30T04:05:19+03:00 — R5 E9: add exact checker for affine F3 nowhere-zero normal form
 - `e3cd39c9b20b` — 2026-09-30T04:05:53+03:00 — R5 E9: remove duplicate affine F3 checker
+- `29664d5bb057` — 2026-09-30T04:15:43+03:00 — R5 E9: add augmented ternary branch-width full-support DP router
 
 ## Transport / stale-bootstrap watch
 
@@ -147,6 +148,7 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 
 ## Recent non-cache commits
 
+- `29664d5bb057` — 2026-09-30T04:15:43+03:00 — R5 E9: add augmented ternary branch-width full-support DP router
 - `e3cd39c9b20b` — 2026-09-30T04:05:53+03:00 — R5 E9: remove duplicate affine F3 checker
 - `432c9bd28356` — 2026-09-30T04:05:19+03:00 — R5 E9: add exact checker for affine F3 nowhere-zero normal form
 - `4e7506885f09` — 2026-09-30T03:53:29+03:00 — R5 E9: add CI for affine F3 nowhere-zero normal form
@@ -171,7 +173,6 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `b8dd44bb17bb` — 2026-09-29T13:26:55+03:00 — R5 E9: prove infinite Paley-orbit post-RKPR gradient family
 - `fc5ad37840c5` — 2026-09-29T13:19:24+03:00 — R5 E9: add Paley11 gradient-kernel CI
 - `db8358972870` — 2026-09-29T13:19:15+03:00 — R5 E9: add exact Paley11 gradient-kernel checker
-- `fe80c58e3c6c` — 2026-09-29T13:18:00+03:00 — R5 E9: add Paley11 gradient-kernel post-RKPR UNSAT terminal
 
 ## Resume protocol
 
