@@ -5,16 +5,16 @@
 - **Repository:** `Hawkar-usls/Janus-Fundamentum`
 - **PR:** `#510`
 - **Branch:** `codex/r5-e8-direct-contract-20260921-82493a57`
-- **Live source HEAD:** `698011e9cb792b6402539c81f788431fe77d289d`
-- **Source commit time:** `2026-09-30T05:40:26+03:00`
-- **Indexed changed scientific artifacts:** `996`
+- **Live source HEAD:** `a8b3b9a6389d11d12f79aaff01dd0fa03e33a5b7`
+- **Source commit time:** `2026-09-30T05:56:34+03:00`
+- **Indexed changed scientific artifacts:** `999`
 
 ## Continuity status
 
 - Semantic cache: `.janus/P_VS_NP_STREAM_CACHE_CURRENT.json`
 - Semantic source HEAD: `480eed45722312b7b16e4a5d9f3d19149e125892`
 - Relation: **`LIVE_DESCENDS_FROM_SEMANTIC_CACHE`**
-- Commits after semantic checkpoint: `67`
+- Commits after semantic checkpoint: `70`
 
 ## Scientific firewall
 
@@ -149,6 +149,9 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `42d520841356` — 2026-09-30T05:32:47+03:00 — R5 E9: add CI for AF3 APSQ EQ3 local source return
 - `1905caed5bb1` — 2026-09-30T05:35:37+03:00 — R5 E9: add AF3 residual normal-codimension DP router
 - `698011e9cb79` — 2026-09-30T05:40:26+03:00 — R5 E9: prove Paley AF3 linear-excess barrier
+- `1e2b2ab72842` — 2026-09-30T05:42:43+03:00 — R5 E9: add exact residual-normal codimension DP regression
+- `1df439744bbb` — 2026-09-30T05:42:55+03:00 — R5 E9: add CI for AF3 residual-normal codimension DP router
+- `a8b3b9a6389d` — 2026-09-30T05:56:34+03:00 — R5 E9: prove AF3 RNCDP inert source-return identity
 
 ## Transport / stale-bootstrap watch
 
@@ -179,6 +182,9 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 
 ## Recent non-cache commits
 
+- `a8b3b9a6389d` — 2026-09-30T05:56:34+03:00 — R5 E9: prove AF3 RNCDP inert source-return identity
+- `1df439744bbb` — 2026-09-30T05:42:55+03:00 — R5 E9: add CI for AF3 residual-normal codimension DP router
+- `1e2b2ab72842` — 2026-09-30T05:42:43+03:00 — R5 E9: add exact residual-normal codimension DP regression
 - `698011e9cb79` — 2026-09-30T05:40:26+03:00 — R5 E9: prove Paley AF3 linear-excess barrier
 - `1905caed5bb1` — 2026-09-30T05:35:37+03:00 — R5 E9: add AF3 residual normal-codimension DP router
 - `42d520841356` — 2026-09-30T05:32:47+03:00 — R5 E9: add CI for AF3 APSQ EQ3 local source return
@@ -201,9 +207,6 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `d78c2eb3689b` — 2026-09-30T05:11:59+03:00 — R5 E9: prove infinite AF3 PCQ-fixed line-free UNSAT 2-lift family
 - `dea704682975` — 2026-09-30T04:50:43+03:00 — R5 E9: add CI for line-free proper blocking countercontrol
 - `b8a5ccfd7925` — 2026-09-30T04:50:33+03:00 — R5 E9: add exact line-free proper blocking countercontrol
-- `7bc65a9348cc` — 2026-09-30T04:49:49+03:00 — R5 E9: add line-free proper blocking source countercontrol
-- `85716a950963` — 2026-09-30T04:30:38+03:00 — R5 E9: add CI for affine F3 parallel-class quotient
-- `3eae415d1dbe` — 2026-09-30T04:30:30+03:00 — R5 E9: add exact checker for affine F3 parallel-class quotient
 
 ## Resume protocol
 
