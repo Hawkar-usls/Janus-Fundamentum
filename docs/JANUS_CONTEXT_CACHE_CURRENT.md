@@ -5,16 +5,16 @@
 - **Repository:** `Hawkar-usls/Janus-Fundamentum`
 - **PR:** `#510`
 - **Branch:** `codex/r5-e8-direct-contract-20260921-82493a57`
-- **Live source HEAD:** `bf08e87be017a15537444472ea5e187ad17f7053`
-- **Source commit time:** `2026-09-30T06:32:21+03:00`
-- **Indexed changed scientific artifacts:** `1018`
+- **Live source HEAD:** `4d870d06310aa64b3f5c16327f6f36e00b6cf129`
+- **Source commit time:** `2026-09-30T06:37:09+03:00`
+- **Indexed changed scientific artifacts:** `1023`
 
 ## Continuity status
 
 - Semantic cache: `.janus/P_VS_NP_STREAM_CACHE_CURRENT.json`
 - Semantic source HEAD: `480eed45722312b7b16e4a5d9f3d19149e125892`
 - Relation: **`LIVE_DESCENDS_FROM_SEMANTIC_CACHE`**
-- Commits after semantic checkpoint: `90`
+- Commits after semantic checkpoint: `95`
 
 ## Scientific firewall
 
@@ -82,11 +82,6 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 
 ## Commits newer than semantic checkpoint — MUST INGEST
 
-- `fe80c58e3c6c` — 2026-09-29T13:18:00+03:00 — R5 E9: add Paley11 gradient-kernel post-RKPR UNSAT terminal
-- `db8358972870` — 2026-09-29T13:19:15+03:00 — R5 E9: add exact Paley11 gradient-kernel checker
-- `fc5ad37840c5` — 2026-09-29T13:19:24+03:00 — R5 E9: add Paley11 gradient-kernel CI
-- `b8dd44bb17bb` — 2026-09-29T13:26:55+03:00 — R5 E9: prove infinite Paley-orbit post-RKPR gradient family
-- `469349bd9b7b` — 2026-09-29T13:27:58+03:00 — R5 E9: add exact checker for infinite Paley-orbit family
 - `8bc2dbd046e8` — 2026-09-29T13:28:07+03:00 — R5 E9: add CI for infinite Paley-orbit gradient family
 - `b82a8ebc6e74` — 2026-09-29T14:58:57+03:00 — R5 E9: add exact TU row-space integer LP router
 - `102b3b95b8d9` — 2026-09-29T15:03:54+03:00 — R5 E9: add exact TU row-space router regression
@@ -162,6 +157,11 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `9addb3121770` — 2026-09-30T06:27:05+03:00 — R5 E9: add CI for AF3 projective invariance
 - `4fbae71b9101` — 2026-09-30T06:31:31+03:00 — R5 E9: add AF3 normal-excess dual FPT router
 - `bf08e87be017` — 2026-09-30T06:32:21+03:00 — R5 E9: add exact AF3 normal-excess router regression
+- `c4ed01ca7ae8` — 2026-09-30T06:33:16+03:00 — R5 E9: add CI for AF3 normal-excess dual router
+- `60877843fca4` — 2026-09-30T06:33:28+03:00 — R5 E9: prove exact one-zero minus-two augmentation criterion
+- `88e671194b0c` — 2026-09-30T06:34:10+03:00 — R5 E9: add one-zero exact augmentation regression
+- `65e7e4a33664` — 2026-09-30T06:34:19+03:00 — R5 E9: add CI for one-zero exact augmentation theorem
+- `4d870d06310a` — 2026-09-30T06:37:09+03:00 — R5 E9: prove one-zero bipartite complement-graph polynomial terminal
 
 ## Transport / stale-bootstrap watch
 
@@ -192,6 +192,11 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 
 ## Recent non-cache commits
 
+- `4d870d06310a` — 2026-09-30T06:37:09+03:00 — R5 E9: prove one-zero bipartite complement-graph polynomial terminal
+- `65e7e4a33664` — 2026-09-30T06:34:19+03:00 — R5 E9: add CI for one-zero exact augmentation theorem
+- `88e671194b0c` — 2026-09-30T06:34:10+03:00 — R5 E9: add one-zero exact augmentation regression
+- `60877843fca4` — 2026-09-30T06:33:28+03:00 — R5 E9: prove exact one-zero minus-two augmentation criterion
+- `c4ed01ca7ae8` — 2026-09-30T06:33:16+03:00 — R5 E9: add CI for AF3 normal-excess dual router
 - `bf08e87be017` — 2026-09-30T06:32:21+03:00 — R5 E9: add exact AF3 normal-excess router regression
 - `4fbae71b9101` — 2026-09-30T06:31:31+03:00 — R5 E9: add AF3 normal-excess dual FPT router
 - `9addb3121770` — 2026-09-30T06:27:05+03:00 — R5 E9: add CI for AF3 projective invariance
@@ -212,11 +217,6 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `2342ff8e2d89` — 2026-09-30T05:59:02+03:00 — R5 E9: close projectively-distinct hyperplane-cover shortcut
 - `38c840ea467c` — 2026-09-30T05:57:34+03:00 — R5 E9: add CI for AF3 RNCDP inert source return
 - `888a360afec7` — 2026-09-30T05:57:25+03:00 — R5 E9: add exact AF3 RNCDP inert source-return regression
-- `a8b3b9a6389d` — 2026-09-30T05:56:34+03:00 — R5 E9: prove AF3 RNCDP inert source-return identity
-- `1df439744bbb` — 2026-09-30T05:42:55+03:00 — R5 E9: add CI for AF3 residual-normal codimension DP router
-- `1e2b2ab72842` — 2026-09-30T05:42:43+03:00 — R5 E9: add exact residual-normal codimension DP regression
-- `698011e9cb79` — 2026-09-30T05:40:26+03:00 — R5 E9: prove Paley AF3 linear-excess barrier
-- `1905caed5bb1` — 2026-09-30T05:35:37+03:00 — R5 E9: add AF3 residual normal-codimension DP router
 
 ## Resume protocol
 
