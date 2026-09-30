@@ -5,16 +5,16 @@
 - **Repository:** `Hawkar-usls/Janus-Fundamentum`
 - **PR:** `#510`
 - **Branch:** `codex/r5-e8-direct-contract-20260921-82493a57`
-- **Live source HEAD:** `f9050ef243363e9819d2653adb84d4858ff2f61c`
-- **Source commit time:** `2026-09-30T06:08:19+03:00`
-- **Indexed changed scientific artifacts:** `1009`
+- **Live source HEAD:** `a058e88311157476905e11c17ceb261229b3c40b`
+- **Source commit time:** `2026-09-30T06:08:52+03:00`
+- **Indexed changed scientific artifacts:** `1011`
 
 ## Continuity status
 
 - Semantic cache: `.janus/P_VS_NP_STREAM_CACHE_CURRENT.json`
 - Semantic source HEAD: `480eed45722312b7b16e4a5d9f3d19149e125892`
 - Relation: **`LIVE_DESCENDS_FROM_SEMANTIC_CACHE`**
-- Commits after semantic checkpoint: `80`
+- Commits after semantic checkpoint: `82`
 
 ## Scientific firewall
 
@@ -82,8 +82,6 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 
 ## Commits newer than semantic checkpoint — MUST INGEST
 
-- `d9807a85a3f2` — 2026-09-29T04:50:46+03:00 — R5 E9: synchronize semantic checkpoint to global sign-crossing trade gate
-- `7aae6e312146` — 2026-09-29T04:57:16+03:00 — R5 E9: add global Walsh moment kernel augmentation router
 - `703cf69645d9` — 2026-09-29T04:57:58+03:00 — R5 E9: add Walsh moment augmentation regression
 - `404c9f1bd197` — 2026-09-29T04:58:13+03:00 — R5 E9: add CI for Walsh moment global augmentation
 - `c6a72f69d591` — 2026-09-29T05:09:46+03:00 — R5 E9: add exact MaxLin2-AA router for negative-mean Walsh gate
@@ -162,6 +160,8 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `b70f974bb002` — 2026-09-30T06:02:52+03:00 — R5 E9: add CI for global AF3 EQ3 APSQ factorization
 - `601fa603eafa` — 2026-09-30T06:04:12+03:00 — R5 E9: reconcile AF3 with infinite linear-dimension UNSAT cover family
 - `f9050ef24336` — 2026-09-30T06:08:19+03:00 — R5 E9: add locally-3K2 clique-operator Exact-One countercontrol
+- `4cb1c946a86f` — 2026-09-30T06:08:34+03:00 — R5 E9: add exact clique-operator noninvariance regression
+- `a058e8831115` — 2026-09-30T06:08:52+03:00 — R5 E9: add CI for clique-operator Exact-One noninvariance
 
 ## Transport / stale-bootstrap watch
 
@@ -192,6 +192,8 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 
 ## Recent non-cache commits
 
+- `a058e8831115` — 2026-09-30T06:08:52+03:00 — R5 E9: add CI for clique-operator Exact-One noninvariance
+- `4cb1c946a86f` — 2026-09-30T06:08:34+03:00 — R5 E9: add exact clique-operator noninvariance regression
 - `f9050ef24336` — 2026-09-30T06:08:19+03:00 — R5 E9: add locally-3K2 clique-operator Exact-One countercontrol
 - `601fa603eafa` — 2026-09-30T06:04:12+03:00 — R5 E9: reconcile AF3 with infinite linear-dimension UNSAT cover family
 - `b70f974bb002` — 2026-09-30T06:02:52+03:00 — R5 E9: add CI for global AF3 EQ3 APSQ factorization
@@ -215,8 +217,6 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `65530c97e691` — 2026-09-30T05:26:39+03:00 — R5 E9: prove persistent F3 UNSAT certificate for prime tower
 - `6264dd021824` — 2026-09-30T05:22:41+03:00 — R5 E9: add CI for unique-model F3 parallel collapse
 - `74d3bfff97a3` — 2026-09-30T05:22:33+03:00 — R5 E9: add exact regression for unique-model F3 collapse
-- `14944ed2a576` — 2026-09-30T05:22:02+03:00 — R5 E9: prove F3 parallel collapse of unique-model tower
-- `71c2206d34f5` — 2026-09-30T05:21:07+03:00 — R5 E9: add CI for two-edge-twist contraction router
 
 ## Resume protocol
 
