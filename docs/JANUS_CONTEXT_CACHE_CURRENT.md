@@ -5,16 +5,16 @@
 - **Repository:** `Hawkar-usls/Janus-Fundamentum`
 - **PR:** `#510`
 - **Branch:** `codex/r5-e8-direct-contract-20260921-82493a57`
-- **Live source HEAD:** `4d870d06310aa64b3f5c16327f6f36e00b6cf129`
-- **Source commit time:** `2026-09-30T06:37:09+03:00`
-- **Indexed changed scientific artifacts:** `1023`
+- **Live source HEAD:** `0f0dd2919f0d4ece13974c1060b7f941118dbc9b`
+- **Source commit time:** `2026-09-30T06:42:10+03:00`
+- **Indexed changed scientific artifacts:** `1024`
 
 ## Continuity status
 
 - Semantic cache: `.janus/P_VS_NP_STREAM_CACHE_CURRENT.json`
 - Semantic source HEAD: `480eed45722312b7b16e4a5d9f3d19149e125892`
 - Relation: **`LIVE_DESCENDS_FROM_SEMANTIC_CACHE`**
-- Commits after semantic checkpoint: `95`
+- Commits after semantic checkpoint: `96`
 
 ## Scientific firewall
 
@@ -82,7 +82,6 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 
 ## Commits newer than semantic checkpoint — MUST INGEST
 
-- `8bc2dbd046e8` — 2026-09-29T13:28:07+03:00 — R5 E9: add CI for infinite Paley-orbit gradient family
 - `b82a8ebc6e74` — 2026-09-29T14:58:57+03:00 — R5 E9: add exact TU row-space integer LP router
 - `102b3b95b8d9` — 2026-09-29T15:03:54+03:00 — R5 E9: add exact TU row-space router regression
 - `da74ed88e414` — 2026-09-29T15:04:02+03:00 — R5 E9: add CI for exact TU row-space router
@@ -162,6 +161,7 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `88e671194b0c` — 2026-09-30T06:34:10+03:00 — R5 E9: add one-zero exact augmentation regression
 - `65e7e4a33664` — 2026-09-30T06:34:19+03:00 — R5 E9: add CI for one-zero exact augmentation theorem
 - `4d870d06310a` — 2026-09-30T06:37:09+03:00 — R5 E9: prove one-zero bipartite complement-graph polynomial terminal
+- `0f0dd2919f0d` — 2026-09-30T06:42:10+03:00 — R5 E9: prove PG15 augmented ternary support-width barrier
 
 ## Transport / stale-bootstrap watch
 
@@ -192,6 +192,7 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 
 ## Recent non-cache commits
 
+- `0f0dd2919f0d` — 2026-09-30T06:42:10+03:00 — R5 E9: prove PG15 augmented ternary support-width barrier
 - `4d870d06310a` — 2026-09-30T06:37:09+03:00 — R5 E9: prove one-zero bipartite complement-graph polynomial terminal
 - `65e7e4a33664` — 2026-09-30T06:34:19+03:00 — R5 E9: add CI for one-zero exact augmentation theorem
 - `88e671194b0c` — 2026-09-30T06:34:10+03:00 — R5 E9: add one-zero exact augmentation regression
@@ -216,7 +217,6 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `6ec209236afe` — 2026-09-30T05:59:17+03:00 — R5 E9: add F3 four-hyperplane cover regression
 - `2342ff8e2d89` — 2026-09-30T05:59:02+03:00 — R5 E9: close projectively-distinct hyperplane-cover shortcut
 - `38c840ea467c` — 2026-09-30T05:57:34+03:00 — R5 E9: add CI for AF3 RNCDP inert source return
-- `888a360afec7` — 2026-09-30T05:57:25+03:00 — R5 E9: add exact AF3 RNCDP inert source-return regression
 
 ## Resume protocol
 
