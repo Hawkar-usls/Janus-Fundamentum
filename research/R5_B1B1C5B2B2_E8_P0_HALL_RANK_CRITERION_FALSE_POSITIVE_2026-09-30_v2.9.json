@@ -1,0 +1,71 @@
+{
+  "artifact_id": "JANUS-TRUMP-E8-P0-HALL-RANK-CRITERION-FALSE-POSITIVE-2026-09-30-v2.9",
+  "version": "v2.9",
+  "date_local": "2026-09-30",
+  "status": "EXACT_FINITE_COUNTEREXAMPLE__NO_P_EQUALS_NP_CLAIM",
+  "parent": "research/R5_B1B1C5B2B2_E8_P0_PRINCIPAL_TRANSVERSAL_COEFFICIENT_CARRIER_2026-09-30_v2.8.json",
+  "purpose": "Test whether the classical PSD mixed-discriminant positivity criterion based only on subset ranks extends to the much narrower JANUS P0 principal-transversal carrier. It does not, even with one full unit of rank slack on every nonempty clause subset.",
+  "external_donor_boundary": {
+    "psd_fact": "For positive semidefinite matrices, positivity of the mixed discriminant admits a Hall/Konig-type characterization by rank inequalities rank(sum_{i in S} A_i)>=|S| for all index subsets S, leading to a matroid-intersection decision algorithm.",
+    "warning": "The present theorem does not dispute the PSD result. It proves only that P0 plus nonnegative 0/1 principal minors is insufficient to inherit that criterion."
+  },
+  "frozen_unsat_formula": {
+    "clauses": [[1,2],[1,-2],[-1,3],[-3,4],[-3,-4]],
+    "unsat_proof": [
+      "(x1 OR x2) and (x1 OR NOT x2) force x1=1.",
+      "Then (NOT x1 OR x3) forces x3=1.",
+      "Then (NOT x3 OR x4) and (NOT x3 OR NOT x4) force x4 and NOT x4 simultaneously."
+    ],
+    "bounded_occurrence": {"x1":3,"x2":2,"x3":3,"x4":2}
+  },
+  "p0_carrier": {
+    "construction": "Build the block-diagonal K from v2.8. Mixed degree-3 variables use K3=[[1,1,-1],[1,1,-1],[0,-1,1]], mixed degree-2 variables use K2=[[1,1],[1,1]]. Let D_C be the diagonal projector onto occurrences in clause C and A_C=K D_C.",
+    "properties": [
+      "Every principal minor of K is 0 or 1.",
+      "rank(A_C)<=|C|=2 for this frozen formula.",
+      "The target coefficient W(F)=[product_C z_C] det(I+sum_C z_C A_C) equals zero because F is UNSAT."
+    ]
+  },
+  "exact_rank_census": {
+    "statement": "For every nonempty clause subset S, rank_Q(sum_{C in S} A_C)>=|S|+1.",
+    "by_subset_cardinality": {
+      "1": {"number_of_subsets":5,"minimum_rank":2,"maximum_rank":2},
+      "2": {"number_of_subsets":10,"minimum_rank":3,"maximum_rank":4},
+      "3": {"number_of_subsets":10,"minimum_rank":4,"maximum_rank":6},
+      "4": {"number_of_subsets":5,"minimum_rank":5,"maximum_rank":6},
+      "5": {"number_of_subsets":1,"minimum_rank":6,"maximum_rank":6}
+    },
+    "stronger_than_naive_hall": "The ordinary condition rank(sum_{C in S} A_C)>=|S| not only holds; every nonempty subset has at least one extra rank."
+  },
+  "theorem": {
+    "name": "P0_HALL_RANK_INEQUALITIES_DO_NOT_CERTIFY_TARGET_COEFFICIENT_POSITIVITY",
+    "statement": "There exists a bounded-occurrence 2/3-CNF P0 principal-transversal instance for which every nonempty subset-rank inequality rank(sum_{C in S} A_C)>=|S|+1 holds, yet the full-clause coefficient W(F) is zero.",
+    "proof": [
+      "The frozen formula is UNSAT by the direct implication proof above, so v2.8 gives W(F)=0.",
+      "The checker constructs K and every A_C exactly over Q and exhausts all 31 nonempty clause subsets.",
+      "The exact census gives the displayed minimum ranks 2,3,4,5,6 for subset sizes 1,2,3,4,5, respectively.",
+      "Hence all Hall-style rank inequalities hold with unit slack despite coefficient zero."
+    ]
+  },
+  "algorithmic_consequence": {
+    "killed": [
+      "Extending the PSD mixed-discriminant positivity theorem to the v2.8 P0 carrier by replacing PSD with 'all principal minors nonnegative'.",
+      "Any decision rule that depends only on the rank function S -> rank(sum_{C in S} A_C) and accepts whenever all Hall inequalities hold."
+    ],
+    "not_killed": [
+      "A criterion using oriented/sign data beyond ranks.",
+      "A Pfaffian/determinantal cancellation identity specialized to the local K2/K3 blocks.",
+      "A nonlinear augmentation theorem on clause transversals.",
+      "P=NP."
+    ]
+  },
+  "next_target": {
+    "name": "E8_ORIENTED_RANK3_P0_TRANSVERSAL_INVARIANT_V3_0",
+    "directive": "Any successful polynomial criterion must retain more than subset ranks. Search for an oriented-minor/Pfaffian invariant, exact exchange obstruction, or source-aligned cancellation rule that distinguishes the frozen UNSAT witness from SAT instances with the same rank profile without enumerating transversals."
+  },
+  "scientific_ceiling": {
+    "P_VS_NP": "OPEN",
+    "P_EQUALS_NP_ALGORITHM": "NOT_CONSTRUCTED",
+    "E8_D1": "EMPTY"
+  }
+}
