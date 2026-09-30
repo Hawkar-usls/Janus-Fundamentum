@@ -5,16 +5,16 @@
 - **Repository:** `Hawkar-usls/Janus-Fundamentum`
 - **PR:** `#510`
 - **Branch:** `codex/r5-e8-direct-contract-20260921-82493a57`
-- **Live source HEAD:** `58da760a67adffd1e07115a7278cbeb1093d62b3`
-- **Source commit time:** `2026-09-30T05:14:44+03:00`
-- **Indexed changed scientific artifacts:** `980`
+- **Live source HEAD:** `a578d7cc3da9a3a75af515727799bb86bced59e1`
+- **Source commit time:** `2026-09-30T05:18:40+03:00`
+- **Indexed changed scientific artifacts:** `983`
 
 ## Continuity status
 
 - Semantic cache: `.janus/P_VS_NP_STREAM_CACHE_CURRENT.json`
 - Semantic source HEAD: `480eed45722312b7b16e4a5d9f3d19149e125892`
 - Relation: **`LIVE_DESCENDS_FROM_SEMANTIC_CACHE`**
-- Commits after semantic checkpoint: `51`
+- Commits after semantic checkpoint: `54`
 
 ## Scientific firewall
 
@@ -133,6 +133,9 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `327b42fb9e63` — 2026-09-30T05:13:13+03:00 — R5 E9: add exact checker for AF3 PCQ-fixed line-free 2-lift family
 - `80107908fe4c` — 2026-09-30T05:13:22+03:00 — R5 E9: add CI for AF3 PCQ-fixed line-free 2-lift family
 - `58da760a67ad` — 2026-09-30T05:14:44+03:00 — R5 E9: add affine F3 parallel-saturation quotient
+- `fc02013a5738` — 2026-09-30T05:15:25+03:00 — R5 E9: add exact F3 parallel-saturation regression
+- `50dba3f20081` — 2026-09-30T05:15:36+03:00 — R5 E9: add CI for affine F3 parallel saturation quotient
+- `a578d7cc3da9` — 2026-09-30T05:18:40+03:00 — R5 E9: add two-edge-twist exact contraction recognition router
 
 ## Transport / stale-bootstrap watch
 
@@ -163,6 +166,9 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 
 ## Recent non-cache commits
 
+- `a578d7cc3da9` — 2026-09-30T05:18:40+03:00 — R5 E9: add two-edge-twist exact contraction recognition router
+- `50dba3f20081` — 2026-09-30T05:15:36+03:00 — R5 E9: add CI for affine F3 parallel saturation quotient
+- `fc02013a5738` — 2026-09-30T05:15:25+03:00 — R5 E9: add exact F3 parallel-saturation regression
 - `58da760a67ad` — 2026-09-30T05:14:44+03:00 — R5 E9: add affine F3 parallel-saturation quotient
 - `80107908fe4c` — 2026-09-30T05:13:22+03:00 — R5 E9: add CI for AF3 PCQ-fixed line-free 2-lift family
 - `327b42fb9e63` — 2026-09-30T05:13:13+03:00 — R5 E9: add exact checker for AF3 PCQ-fixed line-free 2-lift family
@@ -185,9 +191,6 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `059c0fcf5e36` — 2026-09-30T03:53:15+03:00 — R5 E9: add exact affine F3 nowhere-zero regression
 - `11011ae1b97c` — 2026-09-30T03:52:39+03:00 — R5 E9: add affine F3 nowhere-zero Exact-One normal form
 - `4a73a4317e24` — 2026-09-30T03:16:34+03:00 — R5 E9: add CI for infinite Paley post-RKPR sqrt-nullity barrier
-- `cd01e32f09c2` — 2026-09-30T03:16:25+03:00 — R5 E9: keep infinite Paley checker exact with integer sqrt
-- `5ffac5b1325b` — 2026-09-30T03:15:57+03:00 — R5 E9: add checker for infinite Paley post-RKPR barrier
-- `a164045d23c0` — 2026-09-30T03:15:08+03:00 — R5 E9: prove infinite post-RKPR sqrt-nullity Paley barrier
 
 ## Resume protocol
 
