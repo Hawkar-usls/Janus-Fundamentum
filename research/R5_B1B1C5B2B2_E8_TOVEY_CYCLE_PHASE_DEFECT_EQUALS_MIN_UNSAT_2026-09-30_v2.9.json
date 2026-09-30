@@ -1,0 +1,70 @@
+{
+  "artifact_id": "JANUS-TRUMP-E8-TOVEY-CYCLE-PHASE-DEFECT-EQUALS-MIN-UNSAT-2026-09-30-v2.9",
+  "version": "v2.9",
+  "date_local": "2026-09-30",
+  "status": "EXACT_SOURCE_ALIGNED_EQUIVALENCE__NO_P_EQUALS_NP_CLAIM",
+  "parents": [
+    "research/R5_B1B1C5B2B2_E8_P3_OVERLAP_THREE_PARTITION_MATROID_CARRIER_2026-09-30_v2.4.json",
+    "research/R5_B1B1C5B2B2_E8_LOCAL_VALUATED_MATCHING_PENALTY_BARRIER_2026-09-30_v2.8.json"
+  ],
+  "purpose": "Exploit the exact Tovey/ReducedFewSat bounded-occurrence image rather than arbitrary degree<=3 CNF. Show that the one-conflict-dropped matching relaxation decomposes into two-phase implication cycles and that its minimum number of remaining LM defects is exactly the minimum number of unsatisfied clauses of the original 3-CNF. This closes the idea that generic matching-defect minimization creates an easier global objective.",
+  "source_normalization": {
+    "input": "An arbitrary 3-CNF phi with no repeated variable inside a clause.",
+    "copy_step": "For every occurrence j of original variable x, replace that occurrence by a fresh copy x_j with the inherited literal sign.",
+    "consistency_cycle": "If x has copies x_1,...,x_k, add the 2-clauses I_j=(not x_j OR x_{j+1}) cyclically. These implications force all copies of x to have the same truth value.",
+    "occurrence_property": "Every copy x_j now occurs exactly once in an original 3-clause, once negatively in outgoing I_j, and once positively in incoming I_{j-1}. Thus every copy has degree exactly three and mixed polarity."
+  },
+  "source_aligned_P3_labels": {
+    "rule": "For each copy x_j, choose L_j to be its unique original-3-clause occurrence. Of the two implication occurrences, call R_j the one having the same literal sign as L_j and M_j the one having the opposite sign.",
+    "relaxation": "Keep the pair constraint {M_j,R_j} as one right resource q_j and drop only the conflict {L_j,M_j}. The L_j occurrence has its own singleton right resource l_j.",
+    "cycle_geometry": "For every original variable x, q_j is adjacent exactly to implication clauses I_{j-1} and I_j. Hence the bipartite subgraph on {I_j} and {q_j} is an even cycle C_{2k}."
+  },
+  "two_phase_lemma": {
+    "name": "IMPLICATION_CYCLE_HAS_EXACTLY_TWO_PERFECT_MATCHING_PHASES",
+    "statement": "A left-perfect matching of all implication clauses to q-resources chooses one of exactly two alternating phases independently for each original variable cycle.",
+    "phase0": "Every I_j is matched to q_j (the outgoing occurrence of x_j).",
+    "phase1": "Every I_j is matched to q_{j+1}, equivalently q_j is matched from I_{j-1} (the incoming occurrence of x_j).",
+    "truth_map": "Interpret phase0 as x=0 and phase1 as x=1."
+  },
+  "literal_defect_lemma": {
+    "name": "LM_DEFECT_IFF_SELECTED_LITERAL_IS_FALSE",
+    "proof": [
+      "If the inherited original literal L_j is positive, M_j is the outgoing negative implication occurrence. It is selected exactly in phase0, i.e. x=0, exactly when the positive literal is false.",
+      "If L_j is negative, M_j is the incoming positive implication occurrence. It is selected exactly in phase1, i.e. x=1, exactly when the negative literal is false.",
+      "Therefore selecting L_j as the witness of its original clause creates the dropped LM conflict exactly when that literal is false under the phase assignment."
+    ]
+  },
+  "main_theorem": {
+    "name": "MIN_MATCHING_DEFECT_EQUALS_MIN_UNSAT",
+    "statement": "Let d*(phi) be the minimum number of dropped LM conflict pairs simultaneously selected by any left-perfect matching of the one-conflict-dropped source-aligned relaxation of red(phi). Then d*(phi)=min_a |{C in phi : C(a)=false}|.",
+    "proof": [
+      "Fix one of the two matching phases for every original-variable implication cycle. This is exactly a Boolean assignment a of phi.",
+      "Every original 3-clause node is incident only to its three L singleton resources, so its witness choice is independent of all other 3-clause witness choices once the phases are fixed.",
+      "By LM_DEFECT_IFF_SELECTED_LITERAL_IS_FALSE, a clause can choose a zero-defect witness iff it contains a true literal under a. If all three literals are false, every possible witness contributes exactly one defect.",
+      "Hence for fixed a the minimum number of LM defects is exactly the number of clauses falsified by a. Minimizing over all cycle phases/assignments proves the identity."
+    ],
+    "decision_corollary": "d*(phi)=0 iff phi is satisfiable."
+  },
+  "algorithmic_consequence": {
+    "positive": "The source alignment collapses each entire copy-consistency cycle to one exact Boolean phase; there is no hidden extra matching freedom in the implication layer.",
+    "anti_loop": [
+      "Do not claim that minimizing the number of remaining matching conflict pairs is an easier convex/matching objective: on the canonical source image it is exactly Min-UNSAT, equivalently the complement of Max-3SAT optimization.",
+      "Do not treat neutral alternating moves on implication cycles as new information: changing the cycle phase is exactly flipping the corresponding original Boolean variable.",
+      "The source-aligned relaxation is an exact reparameterization of the original assignment landscape, not a polynomial contraction by itself."
+    ],
+    "not_killed": [
+      "A genuinely global operation that changes many variable-cycle phases with a provably polynomial exact progress measure.",
+      "A nonlocal algebraic cancellation identity that sums/cancels all phase choices without enumerating assignments.",
+      "P=NP"
+    ]
+  },
+  "next_target": {
+    "name": "E8_GLOBAL_PHASE_CANCELLATION_OR_NONLOCAL_PROGRESS_V3_0",
+    "directive": "Stop generic conflict-matching optimization. Any next step must exploit a global invariant across many Tovey implication-cycle phases that is not merely the original assignment vector or Min-UNSAT objective. Require a polynomial-size representation and exact witness reconstruction."
+  },
+  "scientific_ceiling": {
+    "P_VS_NP": "OPEN",
+    "P_EQUALS_NP_ALGORITHM": "NOT_CONSTRUCTED",
+    "E8_D1": "EMPTY"
+  }
+}
