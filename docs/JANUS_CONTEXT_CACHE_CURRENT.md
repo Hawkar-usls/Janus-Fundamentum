@@ -5,16 +5,16 @@
 - **Repository:** `Hawkar-usls/Janus-Fundamentum`
 - **PR:** `#510`
 - **Branch:** `codex/r5-e8-direct-contract-20260921-82493a57`
-- **Live source HEAD:** `1905caed5bb16bdf02735cd234edfb7952b30c40`
-- **Source commit time:** `2026-09-30T05:35:37+03:00`
-- **Indexed changed scientific artifacts:** `995`
+- **Live source HEAD:** `698011e9cb792b6402539c81f788431fe77d289d`
+- **Source commit time:** `2026-09-30T05:40:26+03:00`
+- **Indexed changed scientific artifacts:** `996`
 
 ## Continuity status
 
 - Semantic cache: `.janus/P_VS_NP_STREAM_CACHE_CURRENT.json`
 - Semantic source HEAD: `480eed45722312b7b16e4a5d9f3d19149e125892`
 - Relation: **`LIVE_DESCENDS_FROM_SEMANTIC_CACHE`**
-- Commits after semantic checkpoint: `66`
+- Commits after semantic checkpoint: `67`
 
 ## Scientific firewall
 
@@ -148,6 +148,7 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `3a60af0631c7` — 2026-09-30T05:32:40+03:00 — R5 E9: add exact AF3 APSQ EQ3 source-return regression
 - `42d520841356` — 2026-09-30T05:32:47+03:00 — R5 E9: add CI for AF3 APSQ EQ3 local source return
 - `1905caed5bb1` — 2026-09-30T05:35:37+03:00 — R5 E9: add AF3 residual normal-codimension DP router
+- `698011e9cb79` — 2026-09-30T05:40:26+03:00 — R5 E9: prove Paley AF3 linear-excess barrier
 
 ## Transport / stale-bootstrap watch
 
@@ -178,6 +179,7 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 
 ## Recent non-cache commits
 
+- `698011e9cb79` — 2026-09-30T05:40:26+03:00 — R5 E9: prove Paley AF3 linear-excess barrier
 - `1905caed5bb1` — 2026-09-30T05:35:37+03:00 — R5 E9: add AF3 residual normal-codimension DP router
 - `42d520841356` — 2026-09-30T05:32:47+03:00 — R5 E9: add CI for AF3 APSQ EQ3 local source return
 - `3a60af0631c7` — 2026-09-30T05:32:40+03:00 — R5 E9: add exact AF3 APSQ EQ3 source-return regression
@@ -202,7 +204,6 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `7bc65a9348cc` — 2026-09-30T04:49:49+03:00 — R5 E9: add line-free proper blocking source countercontrol
 - `85716a950963` — 2026-09-30T04:30:38+03:00 — R5 E9: add CI for affine F3 parallel-class quotient
 - `3eae415d1dbe` — 2026-09-30T04:30:30+03:00 — R5 E9: add exact checker for affine F3 parallel-class quotient
-- `784cfa930a8a` — 2026-09-30T04:30:00+03:00 — R5 E9: add affine F3 parallel-class fixed-point quotient
 
 ## Resume protocol
 
