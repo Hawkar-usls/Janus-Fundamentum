@@ -1,0 +1,22 @@
+name: validate-quantum-physarum-claim-probe
+
+on:
+  pull_request:
+    paths:
+      - 'experiments/direct/janus_quantum_physarum_claim_probe.py'
+      - '.github/workflows/validate-quantum-physarum-claim-probe.yml'
+  workflow_dispatch:
+
+jobs:
+  claim-probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Compile probe
+        run: python -m py_compile experiments/direct/janus_quantum_physarum_claim_probe.py
+      - name: Run fail-closed Quantum-P=NP Physarum probe
+        run: python experiments/direct/janus_quantum_physarum_claim_probe.py
