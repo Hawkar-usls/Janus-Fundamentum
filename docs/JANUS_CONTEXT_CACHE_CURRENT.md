@@ -5,16 +5,16 @@
 - **Repository:** `Hawkar-usls/Janus-Fundamentum`
 - **PR:** `#510`
 - **Branch:** `codex/r5-e8-direct-contract-20260921-82493a57`
-- **Live source HEAD:** `11a14d62c08a3fc8501c353b68b065ac1f579230`
-- **Source commit time:** `2026-09-30T06:49:43+03:00`
-- **Indexed changed scientific artifacts:** `1027`
+- **Live source HEAD:** `b2fe277a4e0a5251da074cdc9d7ce1c0bee9e74e`
+- **Source commit time:** `2026-09-30T06:50:32+03:00`
+- **Indexed changed scientific artifacts:** `1029`
 
 ## Continuity status
 
 - Semantic cache: `.janus/P_VS_NP_STREAM_CACHE_CURRENT.json`
 - Semantic source HEAD: `480eed45722312b7b16e4a5d9f3d19149e125892`
 - Relation: **`LIVE_DESCENDS_FROM_SEMANTIC_CACHE`**
-- Commits after semantic checkpoint: `102`
+- Commits after semantic checkpoint: `104`
 
 ## Scientific firewall
 
@@ -82,8 +82,6 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 
 ## Commits newer than semantic checkpoint — MUST INGEST
 
-- `7df75eb560c4` — 2026-09-29T15:07:00+03:00 — R5 E9: remove duplicate TU row-space CI
-- `f0818bdb7d88` — 2026-09-30T03:06:14+03:00 — R5 E9: add Paley19 gradient-kernel post-RKPR control theorem
 - `9efd37493952` — 2026-09-30T03:06:49+03:00 — R5 E9: add exact Paley19 gradient-kernel checker
 - `29c3a79d7a05` — 2026-09-30T03:06:56+03:00 — R5 E9: add CI for Paley19 gradient-kernel control
 - `a164045d23c0` — 2026-09-30T03:15:08+03:00 — R5 E9: prove infinite post-RKPR sqrt-nullity Paley barrier
@@ -162,6 +160,8 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `936d74edb2d1` — 2026-09-30T06:46:57+03:00 — R5 E9: compress AF3 dual router to syndrome-image rank
 - `0bbb0deabad3` — 2026-09-30T06:47:49+03:00 — R5 E9: regression-test syndrome-rank compressed AF3 router
 - `11a14d62c08a` — 2026-09-30T06:49:43+03:00 — R5 E9: add affine F3 parallel-triple UNSAT terminal
+- `7967fa6f7d24` — 2026-09-30T06:50:23+03:00 — R5 E9: add exact checker for F3 parallel-triple terminal
+- `b2fe277a4e0a` — 2026-09-30T06:50:32+03:00 — R5 E9: add CI for F3 parallel-triple UNSAT terminal
 
 ## Transport / stale-bootstrap watch
 
@@ -192,6 +192,8 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 
 ## Recent non-cache commits
 
+- `b2fe277a4e0a` — 2026-09-30T06:50:32+03:00 — R5 E9: add CI for F3 parallel-triple UNSAT terminal
+- `7967fa6f7d24` — 2026-09-30T06:50:23+03:00 — R5 E9: add exact checker for F3 parallel-triple terminal
 - `11a14d62c08a` — 2026-09-30T06:49:43+03:00 — R5 E9: add affine F3 parallel-triple UNSAT terminal
 - `0bbb0deabad3` — 2026-09-30T06:47:49+03:00 — R5 E9: regression-test syndrome-rank compressed AF3 router
 - `936d74edb2d1` — 2026-09-30T06:46:57+03:00 — R5 E9: compress AF3 dual router to syndrome-image rank
@@ -215,8 +217,6 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `a058e8831115` — 2026-09-30T06:08:52+03:00 — R5 E9: add CI for clique-operator Exact-One noninvariance
 - `4cb1c946a86f` — 2026-09-30T06:08:34+03:00 — R5 E9: add exact clique-operator noninvariance regression
 - `f9050ef24336` — 2026-09-30T06:08:19+03:00 — R5 E9: add locally-3K2 clique-operator Exact-One countercontrol
-- `601fa603eafa` — 2026-09-30T06:04:12+03:00 — R5 E9: reconcile AF3 with infinite linear-dimension UNSAT cover family
-- `b70f974bb002` — 2026-09-30T06:02:52+03:00 — R5 E9: add CI for global AF3 EQ3 APSQ factorization
 
 ## Resume protocol
 
