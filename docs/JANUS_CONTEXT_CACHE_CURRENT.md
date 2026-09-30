@@ -5,16 +5,16 @@
 - **Repository:** `Hawkar-usls/Janus-Fundamentum`
 - **PR:** `#510`
 - **Branch:** `codex/r5-e8-direct-contract-20260921-82493a57`
-- **Live source HEAD:** `65530c97e6911392e533d32ed8091de44e15bb32`
-- **Source commit time:** `2026-09-30T05:26:39+03:00`
-- **Indexed changed scientific artifacts:** `989`
+- **Live source HEAD:** `b53c23ebf36c6b0d07fa037c4151d053d6cb12df`
+- **Source commit time:** `2026-09-30T05:32:06+03:00`
+- **Indexed changed scientific artifacts:** `992`
 
 ## Continuity status
 
 - Semantic cache: `.janus/P_VS_NP_STREAM_CACHE_CURRENT.json`
 - Semantic source HEAD: `480eed45722312b7b16e4a5d9f3d19149e125892`
 - Relation: **`LIVE_DESCENDS_FROM_SEMANTIC_CACHE`**
-- Commits after semantic checkpoint: `60`
+- Commits after semantic checkpoint: `63`
 
 ## Scientific firewall
 
@@ -142,6 +142,9 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `74d3bfff97a3` — 2026-09-30T05:22:33+03:00 — R5 E9: add exact regression for unique-model F3 collapse
 - `6264dd021824` — 2026-09-30T05:22:41+03:00 — R5 E9: add CI for unique-model F3 parallel collapse
 - `65530c97e691` — 2026-09-30T05:26:39+03:00 — R5 E9: prove persistent F3 UNSAT certificate for prime tower
+- `e997cb31f383` — 2026-09-30T05:27:15+03:00 — R5 E9: add exact regression for persistent F3 UNSAT certificate
+- `b694e147e696` — 2026-09-30T05:27:25+03:00 — R5 E9: add CI for persistent F3 UNSAT certificate
+- `b53c23ebf36c` — 2026-09-30T05:32:06+03:00 — R5 E9: add AF3 APSQ EQ3 local source-return barrier
 
 ## Transport / stale-bootstrap watch
 
@@ -172,6 +175,9 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 
 ## Recent non-cache commits
 
+- `b53c23ebf36c` — 2026-09-30T05:32:06+03:00 — R5 E9: add AF3 APSQ EQ3 local source-return barrier
+- `b694e147e696` — 2026-09-30T05:27:25+03:00 — R5 E9: add CI for persistent F3 UNSAT certificate
+- `e997cb31f383` — 2026-09-30T05:27:15+03:00 — R5 E9: add exact regression for persistent F3 UNSAT certificate
 - `65530c97e691` — 2026-09-30T05:26:39+03:00 — R5 E9: prove persistent F3 UNSAT certificate for prime tower
 - `6264dd021824` — 2026-09-30T05:22:41+03:00 — R5 E9: add CI for unique-model F3 parallel collapse
 - `74d3bfff97a3` — 2026-09-30T05:22:33+03:00 — R5 E9: add exact regression for unique-model F3 collapse
@@ -194,9 +200,6 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `cb4c72acf7fc` — 2026-09-30T04:25:38+03:00 — R5 E9: add CI for projective blocking line terminal
 - `a6f4fd196780` — 2026-09-30T04:25:28+03:00 — R5 E9: add exact checker for projective blocking line terminal
 - `165af10bcaae` — 2026-09-30T04:24:54+03:00 — R5 E9: add affine F3 projective blocking line terminal
-- `f5b52bf95c06` — 2026-09-30T04:16:34+03:00 — R5 E9: add CI for augmented ternary branch-width DP
-- `adfbd510e682` — 2026-09-30T04:16:26+03:00 — R5 E9: add exact branch-width full-support DP regression
-- `29664d5bb057` — 2026-09-30T04:15:43+03:00 — R5 E9: add augmented ternary branch-width full-support DP router
 
 ## Resume protocol
 
