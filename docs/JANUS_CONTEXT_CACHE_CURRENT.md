@@ -5,8 +5,8 @@
 - **Repository:** `Hawkar-usls/Janus-Fundamentum`
 - **PR:** `#510`
 - **Branch:** `codex/r5-e8-direct-contract-20260921-82493a57`
-- **Live source HEAD:** `936d74edb2d1b5bea6476a86b1be24b958597362`
-- **Source commit time:** `2026-09-30T06:46:57+03:00`
+- **Live source HEAD:** `0bbb0deabad34785d8b5cd0eed7560567790dbf5`
+- **Source commit time:** `2026-09-30T06:47:49+03:00`
 - **Indexed changed scientific artifacts:** `1026`
 
 ## Continuity status
@@ -14,7 +14,7 @@
 - Semantic cache: `.janus/P_VS_NP_STREAM_CACHE_CURRENT.json`
 - Semantic source HEAD: `480eed45722312b7b16e4a5d9f3d19149e125892`
 - Relation: **`LIVE_DESCENDS_FROM_SEMANTIC_CACHE`**
-- Commits after semantic checkpoint: `100`
+- Commits after semantic checkpoint: `101`
 
 ## Scientific firewall
 
@@ -82,7 +82,6 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 
 ## Commits newer than semantic checkpoint — MUST INGEST
 
-- `d8a7a0846dcb` — 2026-09-29T15:06:47+03:00 — R5 E9: remove duplicate TU row-space theorem
 - `2389d8fc71dd` — 2026-09-29T15:06:53+03:00 — R5 E9: remove duplicate TU row-space checker
 - `7df75eb560c4` — 2026-09-29T15:07:00+03:00 — R5 E9: remove duplicate TU row-space CI
 - `f0818bdb7d88` — 2026-09-30T03:06:14+03:00 — R5 E9: add Paley19 gradient-kernel post-RKPR control theorem
@@ -162,6 +161,7 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `ae8a3aa4fbea` — 2026-09-30T06:42:40+03:00 — R5 E9: add CI for PG15 support-width barrier
 - `e6410f147212` — 2026-09-30T06:45:20+03:00 — R5 E9: correct AF3 normal-excess projective invariance
 - `936d74edb2d1` — 2026-09-30T06:46:57+03:00 — R5 E9: compress AF3 dual router to syndrome-image rank
+- `0bbb0deabad3` — 2026-09-30T06:47:49+03:00 — R5 E9: regression-test syndrome-rank compressed AF3 router
 
 ## Transport / stale-bootstrap watch
 
@@ -192,6 +192,7 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 
 ## Recent non-cache commits
 
+- `0bbb0deabad3` — 2026-09-30T06:47:49+03:00 — R5 E9: regression-test syndrome-rank compressed AF3 router
 - `936d74edb2d1` — 2026-09-30T06:46:57+03:00 — R5 E9: compress AF3 dual router to syndrome-image rank
 - `e6410f147212` — 2026-09-30T06:45:20+03:00 — R5 E9: correct AF3 normal-excess projective invariance
 - `ae8a3aa4fbea` — 2026-09-30T06:42:40+03:00 — R5 E9: add CI for PG15 support-width barrier
@@ -216,7 +217,6 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `601fa603eafa` — 2026-09-30T06:04:12+03:00 — R5 E9: reconcile AF3 with infinite linear-dimension UNSAT cover family
 - `b70f974bb002` — 2026-09-30T06:02:52+03:00 — R5 E9: add CI for global AF3 EQ3 APSQ factorization
 - `260408147852` — 2026-09-30T06:02:43+03:00 — R5 E9: add exact global AF3 EQ3 APSQ factorization regression
-- `98ef041af307` — 2026-09-30T06:02:02+03:00 — R5 E9: prove global AF3 APSQ factorization of EQ3 regularizer
 
 ## Resume protocol
 
