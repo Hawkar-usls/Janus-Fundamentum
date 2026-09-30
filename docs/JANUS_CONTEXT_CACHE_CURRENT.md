@@ -5,16 +5,16 @@
 - **Repository:** `Hawkar-usls/Janus-Fundamentum`
 - **PR:** `#510`
 - **Branch:** `codex/r5-e8-direct-contract-20260921-82493a57`
-- **Live source HEAD:** `bc0ffec278db28d4e93060a8a8103ae9b2425d20`
-- **Source commit time:** `2026-09-30T07:47:51+03:00`
-- **Indexed changed scientific artifacts:** `1036`
+- **Live source HEAD:** `edf2d8691d314b56b9fb5b72ad0bebaa1e1866d1`
+- **Source commit time:** `2026-09-30T07:48:19+03:00`
+- **Indexed changed scientific artifacts:** `1038`
 
 ## Continuity status
 
 - Semantic cache: `.janus/P_VS_NP_STREAM_CACHE_CURRENT.json`
 - Semantic source HEAD: `480eed45722312b7b16e4a5d9f3d19149e125892`
 - Relation: **`LIVE_DESCENDS_FROM_SEMANTIC_CACHE`**
-- Commits after semantic checkpoint: `111`
+- Commits after semantic checkpoint: `113`
 
 ## Scientific firewall
 
@@ -82,8 +82,6 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 
 ## Commits newer than semantic checkpoint — MUST INGEST
 
-- `059c0fcf5e36` — 2026-09-30T03:53:15+03:00 — R5 E9: add exact affine F3 nowhere-zero regression
-- `4e7506885f09` — 2026-09-30T03:53:29+03:00 — R5 E9: add CI for affine F3 nowhere-zero normal form
 - `432c9bd28356` — 2026-09-30T04:05:19+03:00 — R5 E9: add exact checker for affine F3 nowhere-zero normal form
 - `e3cd39c9b20b` — 2026-09-30T04:05:53+03:00 — R5 E9: remove duplicate affine F3 checker
 - `29664d5bb057` — 2026-09-30T04:15:43+03:00 — R5 E9: add augmented ternary branch-width full-support DP router
@@ -162,6 +160,8 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `d5097828bfea` — 2026-09-30T07:13:35+03:00 — R5 E9: add exact Paley19 rank-2 cover falsifier checker
 - `f7333dd9cf93` — 2026-09-30T07:13:44+03:00 — R5 E9: add CI for Paley19 rank-2 cover falsifier
 - `bc0ffec278db` — 2026-09-30T07:47:51+03:00 — R5 E9: close AF3 model-count mod-3 shortcut
+- `8c6b2ac8e247` — 2026-09-30T07:48:11+03:00 — R5 E9: add exact checker for mod-3 model-count barrier
+- `edf2d8691d31` — 2026-09-30T07:48:19+03:00 — R5 E9: add CI for mod-3 model-count barrier
 
 ## Transport / stale-bootstrap watch
 
@@ -192,6 +192,8 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 
 ## Recent non-cache commits
 
+- `edf2d8691d31` — 2026-09-30T07:48:19+03:00 — R5 E9: add CI for mod-3 model-count barrier
+- `8c6b2ac8e247` — 2026-09-30T07:48:11+03:00 — R5 E9: add exact checker for mod-3 model-count barrier
 - `bc0ffec278db` — 2026-09-30T07:47:51+03:00 — R5 E9: close AF3 model-count mod-3 shortcut
 - `f7333dd9cf93` — 2026-09-30T07:13:44+03:00 — R5 E9: add CI for Paley19 rank-2 cover falsifier
 - `d5097828bfea` — 2026-09-30T07:13:35+03:00 — R5 E9: add exact Paley19 rank-2 cover falsifier checker
@@ -215,8 +217,6 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `c4ed01ca7ae8` — 2026-09-30T06:33:16+03:00 — R5 E9: add CI for AF3 normal-excess dual router
 - `bf08e87be017` — 2026-09-30T06:32:21+03:00 — R5 E9: add exact AF3 normal-excess router regression
 - `4fbae71b9101` — 2026-09-30T06:31:31+03:00 — R5 E9: add AF3 normal-excess dual FPT router
-- `9addb3121770` — 2026-09-30T06:27:05+03:00 — R5 E9: add CI for AF3 projective invariance
-- `bbf2369c5b5a` — 2026-09-30T06:26:56+03:00 — R5 E9: make AF3 projective regression kernel-dimensional
 
 ## Resume protocol
 
