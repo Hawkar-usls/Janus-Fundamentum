@@ -1,0 +1,66 @@
+name: Physarius Activation Circuit Vascular Law
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'registry/PHYSARIUS_ACTIVATION_CIRCUIT_VASCULAR_CONSTITUTION_v1.json'
+      - 'registry/PHYSARIUS_ACTIVATION_CIRCUIT_VASCULAR_MAP_v1.json'
+      - 'registry/PHYSARIUS_VESSEL_PACKET.schema.json'
+      - 'registry/PHYSARIUS_VESSEL_RECEIPT.schema.json'
+      - 'tools/validate_physarius_activation_vascular_map.py'
+      - '.github/workflows/physarius-activation-circuit-vascular.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'registry/PHYSARIUS_ACTIVATION_CIRCUIT_VASCULAR_CONSTITUTION_v1.json'
+      - 'registry/PHYSARIUS_ACTIVATION_CIRCUIT_VASCULAR_MAP_v1.json'
+      - 'registry/PHYSARIUS_VESSEL_PACKET.schema.json'
+      - 'registry/PHYSARIUS_VESSEL_RECEIPT.schema.json'
+      - 'tools/validate_physarius_activation_vascular_map.py'
+      - '.github/workflows/physarius-activation-circuit-vascular.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  structural-law:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Compile validator
+        run: python -m py_compile tools/validate_physarius_activation_vascular_map.py
+      - name: Validate JSON syntax
+        run: |
+          python -m json.tool registry/PHYSARIUS_ACTIVATION_CIRCUIT_VASCULAR_CONSTITUTION_v1.json >/dev/null
+          python -m json.tool registry/PHYSARIUS_ACTIVATION_CIRCUIT_VASCULAR_MAP_v1.json >/dev/null
+          python -m json.tool registry/PHYSARIUS_VESSEL_PACKET.schema.json >/dev/null
+          python -m json.tool registry/PHYSARIUS_VESSEL_RECEIPT.schema.json >/dev/null
+      - name: Enforce vascular constitution
+        run: |
+          python tools/validate_physarius_activation_vascular_map.py \
+            --map registry/PHYSARIUS_ACTIVATION_CIRCUIT_VASCULAR_MAP_v1.json \
+            --constitution registry/PHYSARIUS_ACTIVATION_CIRCUIT_VASCULAR_CONSTITUTION_v1.json \
+            | tee /tmp/physarius-activation-vascular-validation.json
+      - name: Assert fail-closed frontier is explicit
+        run: |
+          python - <<'PY'
+          import json, subprocess
+          out=subprocess.check_output([
+            'python','tools/validate_physarius_activation_vascular_map.py',
+            '--map','registry/PHYSARIUS_ACTIVATION_CIRCUIT_VASCULAR_MAP_v1.json',
+            '--constitution','registry/PHYSARIUS_ACTIVATION_CIRCUIT_VASCULAR_CONSTITUTION_v1.json'
+          ], text=True)
+          r=json.loads(out)
+          assert r['status'] in {'STRUCTURAL_PASS','FULL_VASCULARIZATION_PASS'}
+          if not r['strict_complete']:
+              assert r['terminal']=='OPEN_VASCULARIZATION'
+              assert r['unresolved_nodes'] or r['migration_edges'] or r['blocked_edges'] or r['design_edges']
+          print('PHYSARIUS_ACTIVATION_VASCULAR_STRUCTURAL_LAW=PASS')
+          print('STRICT_COMPLETE=' + str(r['strict_complete']).upper())
+          PY
