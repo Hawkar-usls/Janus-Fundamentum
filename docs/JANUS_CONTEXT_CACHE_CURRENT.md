@@ -5,16 +5,16 @@
 - **Repository:** `Hawkar-usls/Janus-Fundamentum`
 - **PR:** `#510`
 - **Branch:** `codex/r5-e8-direct-contract-20260921-82493a57`
-- **Live source HEAD:** `11cf454019a4c92ab1012f97e4e6399a17b072e1`
-- **Source commit time:** `2026-09-30T05:59:40+03:00`
-- **Indexed changed scientific artifacts:** `1004`
+- **Live source HEAD:** `601fa603eafa880d93ba230c4fb3571aaf6138ff`
+- **Source commit time:** `2026-09-30T06:04:12+03:00`
+- **Indexed changed scientific artifacts:** `1008`
 
 ## Continuity status
 
 - Semantic cache: `.janus/P_VS_NP_STREAM_CACHE_CURRENT.json`
 - Semantic source HEAD: `480eed45722312b7b16e4a5d9f3d19149e125892`
 - Relation: **`LIVE_DESCENDS_FROM_SEMANTIC_CACHE`**
-- Commits after semantic checkpoint: `75`
+- Commits after semantic checkpoint: `79`
 
 ## Scientific firewall
 
@@ -157,6 +157,10 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `2342ff8e2d89` — 2026-09-30T05:59:02+03:00 — R5 E9: close projectively-distinct hyperplane-cover shortcut
 - `6ec209236afe` — 2026-09-30T05:59:17+03:00 — R5 E9: add F3 four-hyperplane cover regression
 - `11cf454019a4` — 2026-09-30T05:59:40+03:00 — R5 E9: add CI for F3 four-hyperplane cover barrier
+- `98ef041af307` — 2026-09-30T06:02:02+03:00 — R5 E9: prove global AF3 APSQ factorization of EQ3 regularizer
+- `260408147852` — 2026-09-30T06:02:43+03:00 — R5 E9: add exact global AF3 EQ3 APSQ factorization regression
+- `b70f974bb002` — 2026-09-30T06:02:52+03:00 — R5 E9: add CI for global AF3 EQ3 APSQ factorization
+- `601fa603eafa` — 2026-09-30T06:04:12+03:00 — R5 E9: reconcile AF3 with infinite linear-dimension UNSAT cover family
 
 ## Transport / stale-bootstrap watch
 
@@ -187,6 +191,10 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 
 ## Recent non-cache commits
 
+- `601fa603eafa` — 2026-09-30T06:04:12+03:00 — R5 E9: reconcile AF3 with infinite linear-dimension UNSAT cover family
+- `b70f974bb002` — 2026-09-30T06:02:52+03:00 — R5 E9: add CI for global AF3 EQ3 APSQ factorization
+- `260408147852` — 2026-09-30T06:02:43+03:00 — R5 E9: add exact global AF3 EQ3 APSQ factorization regression
+- `98ef041af307` — 2026-09-30T06:02:02+03:00 — R5 E9: prove global AF3 APSQ factorization of EQ3 regularizer
 - `11cf454019a4` — 2026-09-30T05:59:40+03:00 — R5 E9: add CI for F3 four-hyperplane cover barrier
 - `6ec209236afe` — 2026-09-30T05:59:17+03:00 — R5 E9: add F3 four-hyperplane cover regression
 - `2342ff8e2d89` — 2026-09-30T05:59:02+03:00 — R5 E9: close projectively-distinct hyperplane-cover shortcut
@@ -208,10 +216,6 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `14944ed2a576` — 2026-09-30T05:22:02+03:00 — R5 E9: prove F3 parallel collapse of unique-model tower
 - `71c2206d34f5` — 2026-09-30T05:21:07+03:00 — R5 E9: add CI for two-edge-twist contraction router
 - `9a4cf5ff45e1` — 2026-09-30T05:20:55+03:00 — R5 E9: add regression for two-edge-twist contraction router
-- `a578d7cc3da9` — 2026-09-30T05:18:40+03:00 — R5 E9: add two-edge-twist exact contraction recognition router
-- `50dba3f20081` — 2026-09-30T05:15:36+03:00 — R5 E9: add CI for affine F3 parallel saturation quotient
-- `fc02013a5738` — 2026-09-30T05:15:25+03:00 — R5 E9: add exact F3 parallel-saturation regression
-- `58da760a67ad` — 2026-09-30T05:14:44+03:00 — R5 E9: add affine F3 parallel-saturation quotient
 
 ## Resume protocol
 
