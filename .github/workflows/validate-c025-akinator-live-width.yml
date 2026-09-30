@@ -1,0 +1,39 @@
+name: Validate C025 Akinator Live Width
+
+on:
+  push:
+    branches:
+      - c025-policy0b-fair-reason
+    paths:
+      - 'proof_attempts/C025/C025_AKINATOR_LIVE_WIDTH_PATH_DP_CERTIFICATE.md'
+      - 'experiments/direct/janus_tear_akinator_live_width_path_dp.py'
+      - '.github/workflows/validate-c025-akinator-live-width.yml'
+  pull_request:
+    paths:
+      - 'proof_attempts/C025/C025_AKINATOR_LIVE_WIDTH_PATH_DP_CERTIFICATE.md'
+      - 'experiments/direct/janus_tear_akinator_live_width_path_dp.py'
+      - '.github/workflows/validate-c025-akinator-live-width.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  finite-mechanics:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Compile replay
+        run: python -m py_compile experiments/direct/janus_tear_akinator_live_width_path_dp.py
+      - name: Run live-width path-DP finite replay
+        run: python experiments/direct/janus_tear_akinator_live_width_path_dp.py
+      - name: Claim ceiling reminder
+        run: |
+          echo 'Finite mechanics only.'
+          echo 'Path-decomposition validity and DP complexity are analytic statements, not CI theorems.'
+          echo 'The pair-fanout all-topological-order lower bound is analytic and architecture-scoped.'
+          echo 'Equivalent low-width rewrite discovery and global progress remain OPEN.'
+          echo 'P_VS_NP = OPEN'

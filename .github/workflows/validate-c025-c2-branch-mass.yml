@@ -1,0 +1,29 @@
+name: Validate C025 C2 Branch Mass
+
+on:
+  push:
+    paths:
+      - "experiments/direct/janus_tear_policy0b_c2_branch_mass.py"
+      - "proof_attempts/C025/C025_C2_BRANCH_MASS_PROGRESS_GATE.md"
+      - ".github/workflows/validate-c025-c2-branch-mass.yml"
+  pull_request:
+    paths:
+      - "experiments/direct/janus_tear_policy0b_c2_branch_mass.py"
+      - "proof_attempts/C025/C025_C2_BRANCH_MASS_PROGRESS_GATE.md"
+      - ".github/workflows/validate-c025-c2-branch-mass.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  verify-c2-branch-mass:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Compile C2 branch-mass replay
+        run: python -m py_compile experiments/direct/janus_tear_policy0b_c2_branch_mass.py
+      - name: Replay C2 branch-mass mechanics
+        run: python experiments/direct/janus_tear_policy0b_c2_branch_mass.py

@@ -1,0 +1,40 @@
+name: Validate C025 Akinator ROBDD
+
+on:
+  push:
+    branches:
+      - c025-policy0b-fair-reason
+    paths:
+      - 'proof_attempts/C025/C025_AKINATOR_LARGE_SUPPORT_ROBDD_CERTIFICATE.md'
+      - 'experiments/direct/janus_tear_akinator_large_support_robdd.py'
+      - '.github/workflows/validate-c025-akinator-robdd.yml'
+  pull_request:
+    paths:
+      - 'proof_attempts/C025/C025_AKINATOR_LARGE_SUPPORT_ROBDD_CERTIFICATE.md'
+      - 'experiments/direct/janus_tear_akinator_large_support_robdd.py'
+      - '.github/workflows/validate-c025-akinator-robdd.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  finite-mechanics:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Compile replay
+        run: python -m py_compile experiments/direct/janus_tear_akinator_large_support_robdd.py
+      - name: Run ROBDD finite replay
+        run: python experiments/direct/janus_tear_akinator_large_support_robdd.py
+      - name: Claim ceiling reminder
+        run: |
+          echo 'Finite ROBDD mechanics only.'
+          echo 'Residual-frontier and local certificate statements are analytic, not CI theorems.'
+          echo 'General OBDD order-improvement hardness is an external literature result.'
+          echo 'No target-NW order hardness or order-independent OBDD lower bound is claimed.'
+          echo 'Global progress remains OPEN.'
+          echo 'P_VS_NP = OPEN'

@@ -1,0 +1,29 @@
+name: Validate C025 Policy-0B.1 Resolution Compiler
+
+on:
+  push:
+    paths:
+      - "experiments/direct/janus_tear_policy0b1_resolution_compiler.py"
+      - "proof_attempts/C025/C025_POLICY0B1_RESOLUTION_LOWER_BOUND_ROUTE_CLOSURE.md"
+      - ".github/workflows/validate-c025-policy0b1-resolution-compiler.yml"
+  pull_request:
+    paths:
+      - "experiments/direct/janus_tear_policy0b1_resolution_compiler.py"
+      - "proof_attempts/C025/C025_POLICY0B1_RESOLUTION_LOWER_BOUND_ROUTE_CLOSURE.md"
+      - ".github/workflows/validate-c025-policy0b1-resolution-compiler.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  verify-policy0b1-resolution-compiler:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Compile execution-to-Resolution replay
+        run: python -m py_compile experiments/direct/janus_tear_policy0b1_resolution_compiler.py
+      - name: Replay branch conflict compiler mechanics
+        run: python experiments/direct/janus_tear_policy0b1_resolution_compiler.py

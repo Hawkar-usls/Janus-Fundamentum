@@ -1,0 +1,26 @@
+name: Validate C025 F3D-D4 Parity Residual Transfer
+
+on:
+  push:
+    paths:
+      - "experiments/direct/janus_tear_e2r_f3d_d4_parity_residual_transfer.py"
+      - ".github/workflows/validate-c025-f3d-d4-parity-transfer.yml"
+  pull_request:
+    paths:
+      - "experiments/direct/janus_tear_e2r_f3d_d4_parity_residual_transfer.py"
+      - ".github/workflows/validate-c025-f3d-d4-parity-transfer.yml"
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  verify-f3d-d4:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Compile D4 transfer probe
+        run: python -m py_compile experiments/direct/janus_tear_e2r_f3d_d4_parity_residual_transfer.py
+      - name: Replay exact parity residual transfer mechanics
+        run: python experiments/direct/janus_tear_e2r_f3d_d4_parity_residual_transfer.py
