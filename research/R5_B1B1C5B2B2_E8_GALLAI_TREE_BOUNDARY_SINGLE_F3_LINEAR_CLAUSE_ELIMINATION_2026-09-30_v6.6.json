@@ -1,0 +1,83 @@
+{
+  "artifact_id": "JANUS-TRUMP-E8-GALLAI-TREE-BOUNDARY-SINGLE-F3-LINEAR-CLAUSE-ELIMINATION-2026-09-30-v6.6",
+  "version": "v6.6",
+  "date_local": "2026-09-30",
+  "status": "EXACT_SYMBOLIC_COMPONENT_ELIMINATION__NO_P_EQUALS_NP_CLAIM",
+  "parents": [
+    "research/R5_B1B1C5B2B2_E8_GALLAI_TREE_THREECOLOR_BAD_BOUNDARY_BLOCK_LABEL_CARRIER_2026-09-30_v6.5.json",
+    "research/R5_B1B1C5B2B2_E8_DEGREE3_NONGALLAI_LIST_EXTENSION_KERNEL_2026-09-30_v6.4.json"
+  ],
+  "purpose": "Eliminate every non-K4 degree-three Gallai component symbolically. Show that its unique non-extendable boundary condition is a conjunction of homogeneous GF(3) linear equalities and disequalities after polynomial Gaussian elimination of block labels. Negating that conjunction yields one polynomial-size disjunction of affine GF(3) equations: a single Res(lin GF(3))-style boundary clause exactly equivalent to extendability across the deleted component.",
+  "local_linearization": {
+    "colour_field": "Identify the three colours with GF(3).",
+    "ALLDIFF3_identity": "For a,b,c in GF(3), ALLDIFF_3(a,b,c) iff a+b+c=0 and a-b!=0. If the sum is zero and a!=b, then c=-a-b differs from both a and b; conversely the three distinct field elements are exactly 0,1,2 and sum to zero.",
+    "v6_5_rules": [
+      "leaf K2: k+a+b=0 and a-b!=0",
+      "single K3/odd block: k-a=0",
+      "two K2 plus one outside colour a: k1+k2+a=0 and k1-k2!=0",
+      "K2 plus K3/odd block: k1-k2=0",
+      "three K2 blocks: k1+k2+k3=0 and k1-k2!=0",
+      "isolated degree-three vertex: a+b+c=0 and a-b!=0"
+    ],
+    "meaning": "The complete bad-boundary relation from v6.5 is an AND of O(|H|) homogeneous linear equalities and linear nonzeroness tests in block-label variables k and boundary-colour variables x."
+  },
+  "label_uniqueness": {
+    "theorem": "For every connected Gallai component H other than K4 and an isolated vertex, the equality subsystem has full column rank in the block-label variables. Hence every block label is uniquely determined as a GF(3)-linear form of the boundary colours whenever the residual boundary equalities hold.",
+    "leaf_stripping_proof": [
+      "The block-cut incidence graph of a connected Gallai tree is a tree.",
+      "Every leaf K2 block has a non-cut endpoint of internal degree one; its two outside neighbours give the equation k=-(a+b), uniquely determining the block label.",
+      "Every leaf K3/odd-cycle block has a non-cut vertex of internal degree two; its outside neighbour gives k=a, uniquely determining the block forbidden colour. Additional non-cut vertices only add consistency equations on boundary colours.",
+      "At the cut vertex joining an already determined leaf block to the remaining tree, the v6.5 local equality either identifies the parent label with the child label or gives one sum equation that uniquely determines the parent label once the other incident labels/outside colour are known.",
+      "Repeatedly delete leaf blocks. Triangular elimination reaches every block label, proving full label rank and uniqueness."
+    ],
+    "endpoints": "H=K4 is an unconditional non-extendable terminal. H={v} has no block labels and is handled directly by its ALLDIFF_3 boundary condition."
+  },
+  "gaussian_elimination": {
+    "input_system": "Write equalities as E_k k + E_x x=0 and disequalities d_j(k,x)!=0.",
+    "rref": "Gaussian-eliminate with block-label columns first. Full label rank yields explicit pivots k=P x plus residual boundary equations R_i(x)=0.",
+    "substitution": "Reduce every disequality by the same pivot rows, obtaining boundary linear forms S_j(x)!=0. A reduced zero disequality makes BAD impossible and the component universally extendable.",
+    "bad_normal_form": "BAD_H(x) iff [AND_i R_i(x)=0] AND [AND_j S_j(x)!=0]."
+  },
+  "single_clause_theorem": {
+    "name": "GALLAI_COMPONENT_EXTENDABILITY_IS_ONE_F3_LINEAR_CLAUSE",
+    "statement": "For every non-K4 Gallai degree-three component H there is a polynomial-size affine-linear clause C_H(x) over only its outside degree-four boundary colours such that an outside proper colouring extends across H iff C_H(x) is true.",
+    "construction": [
+      "For each required bad equality R_i(x)=0, its violation R_i(x)!=0 is the disjunction R_i(x)=1 OR R_i(x)=2.",
+      "For each required bad disequality S_j(x)!=0, its violation is the single affine equation S_j(x)=0.",
+      "Therefore EXTEND_H(x)=NOT BAD_H(x) is the single disjunction of all equations R_i=1, R_i=2 and S_j=0.",
+      "If BAD is symbolically impossible, C_H is the constant TRUE clause. If H=K4, extendability is constant FALSE."
+    ],
+    "size": "There are O(|H|) source equations/disequalities. RREF has polynomial arithmetic complexity over the fixed field GF(3); storing all resulting boundary forms densely uses O(|H|*|boundary(H)|)=O(|H|^2) field entries in the worst case. Clause length is O(|H|).",
+    "reconstruction": "After a boundary colouring satisfies C_H, run polynomial list-colouring on the original stored Gallai component to reconstruct its internal vertex colours. No boundary-state enumeration is needed."
+  },
+  "algorithmic_consequence": {
+    "positive": [
+      "Every degree-three component removed by v6.4/v6.6 now has an exact polynomial-size symbolic replacement on the degree-four boundary.",
+      "The replacement is not an arbitrary high-arity truth table but one disjunction of affine GF(3) equations.",
+      "The only nonlinearity needed for the bad relation was nonzeroness of linear forms; all block-label variables are eliminable by ordinary Gaussian elimination."
+    ],
+    "source_return_firewall": [
+      "On a pure 4-regular graph there are no degree-three components, so the procedure inserts no new clause and is completely silent.",
+      "Ordinary degree-four core edges already impose x_u!=x_v, equivalently the two-literal affine clause (x_v-x_u=1) OR (x_v-x_u=2). Thus the pure 4-regular Hamiltonian NP-hard source remains inside the resulting linear-clause language.",
+      "Consequently a generic polynomial solver for the resulting Res(lin GF(3))-style clause system cannot be assumed; that would itself solve the hard source."
+    ],
+    "not_killed": [
+      "A polynomial contraction exploiting the special origin/interlacement of the generated linear clauses together with the degree-four core.",
+      "A direct pure 4-regular Hamiltonian contraction.",
+      "P=NP"
+    ]
+  },
+  "next_target": {
+    "name": "E8_PURE_4REG_HAMILTONIAN_OR_STRUCTURED_F3_LINEAR_CLAUSE_CONTRACTION_V6_7",
+    "directive": "Treat v6.6 as the completed degree-three interface and stop expanding Gallai boundary states. Return to the pure 4-regular Hamiltonian source, where every constraint is already a two-literal affine GF(3) clause, and seek a graph-changing contraction or a source-specific linear-clause minimax invariant. Any candidate must preserve witness reconstruction and must not invoke generic Res(lin) completeness, exponential proof search, or boundary enumeration."
+  },
+  "scientific_ceiling": {
+    "P_VS_NP": "OPEN",
+    "P_EQUALS_NP_ALGORITHM": "NOT_CONSTRUCTED",
+    "E8_D1": "EMPTY"
+  },
+  "sources": [
+    "Borodin / Erdos--Rubin--Taylor characterization of uncolourable degree-list assignments on Gallai trees.",
+    "Standard Gaussian elimination over GF(3)."
+  ]
+}
