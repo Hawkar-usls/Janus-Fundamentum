@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Exact F3 regression for the AF3 normal-rank / normal-excess dual router."""
+"""Exact F3 regression for the AF3 normal-rank / syndrome-image-rank router."""
 
 from itertools import product
 
@@ -21,8 +21,7 @@ def rref(M):
     piv = []; r = 0
     for c in range(n):
         q = next((i for i in range(r, m) if A[i][c]), None)
-        if q is None:
-            continue
+        if q is None: continue
         A[r], A[q] = A[q], A[r]
         inv = pow(A[r][c], -1, P)
         A[r] = [(x * inv) % P for x in A[r]]
@@ -31,24 +30,20 @@ def rref(M):
                 f = A[i][c]
                 A[i] = [(A[i][j] - f * A[r][j]) % P for j in range(n)]
         piv.append(c); r += 1
-        if r == m:
-            break
+        if r == m: break
     return A, piv
 
 
-def rank(M):
-    return len(rref(M)[1])
+def rank(M): return len(rref(M)[1])
 
 
 def kernel_basis(A):
-    R, piv = rref(A)
-    n = len(A[0])
+    R, piv = rref(A); n = len(A[0])
     free = [j for j in range(n) if j not in piv]
     out = []
     for f in free:
         x = [0] * n; x[f] = 1
-        for i, c in enumerate(piv):
-            x[c] = (-R[i][f]) % P
+        for i, c in enumerate(piv): x[c] = (-R[i][f]) % P
         out.append(x)
     return out
 
@@ -56,10 +51,7 @@ def kernel_basis(A):
 def affine_one(A):
     m = len(A); n = len(A[0])
     M = [[x % P for x in A[i]] + [1] for i in range(m)]
-    R, piv = rref(M)
-    # rref() is allowed to pivot in the augmented column, so use a dedicated solve.
-    M = [[x % P for x in A[i]] + [1] for i in range(m)]
-    rr = 0; pp = []
+    rr = 0; piv = []
     for c in range(n):
         q = next((i for i in range(rr, m) if M[i][c]), None)
         if q is None: continue
@@ -70,22 +62,15 @@ def affine_one(A):
             if i != rr and M[i][c]:
                 f = M[i][c]
                 M[i] = [(M[i][j] - f * M[rr][j]) % P for j in range(n + 1)]
-        pp.append(c); rr += 1
+        piv.append(c); rr += 1
     assert not any(all(M[i][j] == 0 for j in range(n)) and M[i][n]
                    for i in range(rr, m))
     x = [0] * n
-    for i, c in enumerate(pp): x[c] = M[i][n]
+    for i, c in enumerate(piv): x[c] = M[i][n]
     return x
 
 
-def canon(normal, forbidden):
-    q = next(i for i, x in enumerate(normal) if x % P)
-    inv = pow(normal[q] % P, -1, P)
-    return tuple((inv * x) % P for x in normal), (inv * forbidden) % P
-
-
 def solve_unique(M, b):
-    # M is square and nonsingular.
     n = len(M)
     A = [[M[i][j] % P for j in range(n)] + [b[i] % P] for i in range(n)]
     for c in range(n):
@@ -100,160 +85,163 @@ def solve_unique(M, b):
     return [A[i][n] for i in range(n)]
 
 
-def row_coeff_in_basis(a, basis_rows):
-    # c * B = a  <=> B^T c^T = a^T. Select r independent coordinates.
-    r = len(basis_rows)
-    d = len(a)
-    cols = []
-    current = []
+def independent_rows_for_columns(Q):
+    # Q is k x rho of full column rank; return rho row indices making a square nonsingular minor.
+    rho = len(Q[0]) if Q else 0
+    chosen = []
+    for i in range(len(Q)):
+        trial = [Q[j] for j in chosen + [i]]
+        if rank(trial) > len(chosen):
+            chosen.append(i)
+            if len(chosen) == rho: break
+    assert len(chosen) == rho
+    return chosen
+
+
+def solve_in_column_basis(Q, v):
+    rows = independent_rows_for_columns(Q)
+    M = [[Q[i][j] for j in range(len(Q[0]))] for i in rows]
+    b = [v[i] for i in rows]
+    w = solve_unique(M, b)
+    assert [sum(Q[i][j] * w[j] for j in range(len(w))) % P for i in range(len(Q))] == v
+    return w
+
+
+def canon(normal, forbidden):
+    q = next(i for i, x in enumerate(normal) if x)
+    inv = pow(normal[q], -1, P)
+    return tuple((inv * x) % P for x in normal), (inv * forbidden) % P
+
+
+def row_coeff(a, basis_rows):
+    # Solve c * B = a using an independent square coordinate minor.
+    r = len(basis_rows); d = len(a); chosen = []
     for j in range(d):
-        trial = current + [[basis_rows[i][j] for i in range(r)]]
-        # rank of columns = rank of transpose list
-        mat = [[basis_rows[i][q] for q in [*cols, j]] for i in range(r)]
-        if rank(mat) > len(cols):
-            cols.append(j)
-            if len(cols) == r: break
-    assert len(cols) == r
-    M = [[basis_rows[i][j] for i in range(r)] for j in cols]
-    rhs = [a[j] for j in cols]
-    return solve_unique(M, rhs)
+        mat = [[basis_rows[i][q] for q in chosen + [j]] for i in range(r)]
+        if rank(mat) > len(chosen):
+            chosen.append(j)
+            if len(chosen) == r: break
+    assert len(chosen) == r
+    M = [[basis_rows[i][j] for i in range(r)] for j in chosen]
+    c = solve_unique(M, [a[j] for j in chosen])
+    assert [sum(c[t] * basis_rows[t][j] for t in range(r)) % P for j in range(d)] == a
+    return c
 
 
-def build_pg15_residual():
-    A = source()
-    c = affine_one(A)
-    K = kernel_basis(A)
-    d = len(K)
+def pg15_residual():
+    A = source(); particular = affine_one(A); K = kernel_basis(A); d = len(K)
     assert d == 4
-    B = [[K[t][i] for t in range(d)] for i in range(15)]
-
+    eval_rows = [[K[t][i] for t in range(d)] for i in range(15)]
     groups = {}
     for i in range(15):
-        normal = B[i]
-        assert any(normal)
-        forbidden = (-c[i]) % P
-        a, b = canon(normal, forbidden)
+        a, b = canon(eval_rows[i], (-particular[i]) % P)
         groups.setdefault(a, set()).add(b)
     assert all(len(v) == 1 for v in groups.values())
     constraints = [(list(a), next(iter(v))) for a, v in groups.items()]
-    return A, c, B, constraints
+    return A, particular, eval_rows, constraints
 
 
-def normalize_constraints(constraints):
-    normals = [a for a, _ in constraints]
-    r = rank(normals)
-    basis_idx = []
-    cur = []
+def normalize(constraints):
+    normals = [a for a, _ in constraints]; r = rank(normals)
+    basis_idx = []; basis_rows = []
     for i, a in enumerate(normals):
-        if rank(cur + [a]) > len(cur):
-            cur.append(a); basis_idx.append(i)
-            if len(cur) == r: break
-    basis_rows = [normals[i] for i in basis_idx]
-    basis_forbidden = [constraints[i][1] for i in basis_idx]
-    extras = [i for i in range(len(constraints)) if i not in set(basis_idx)]
-
+        if rank(basis_rows + [a]) > len(basis_rows):
+            basis_rows.append(a); basis_idx.append(i)
+            if len(basis_rows) == r: break
+    bB = [constraints[i][1] for i in basis_idx]
+    extra = [i for i in range(len(constraints)) if i not in set(basis_idx)]
     C = []; e = []
-    for i in extras:
-        coeff = row_coeff_in_basis(normals[i], basis_rows)
-        assert [sum(coeff[t] * basis_rows[t][j] for t in range(r)) % P
-                for j in range(len(normals[i]))] == normals[i]
-        C.append(coeff)
-        e.append((constraints[i][1] - sum(coeff[t] * basis_forbidden[t]
-                                          for t in range(r))) % P)
-    return r, basis_idx, basis_rows, basis_forbidden, C, e
-
-
-def syndrome_dp(C, e, r):
-    k = len(C)
-    cols = [[C[j][i] for j in range(k)] for i in range(r)]
-    parent = [{(0,) * k: None}]
-    states = {(0,) * k}
-    max_states = 1
-    for i, v in enumerate(cols):
-        nxt = {}
-        for s in states:
-            for sign in (1, 2):
-                t = tuple((s[j] + sign * v[j]) % P for j in range(k))
-                if t not in nxt:
-                    nxt[t] = (s, sign)
-        states = set(nxt)
-        parent.append(nxt)
-        max_states = max(max_states, len(states))
-    target = next((s for s in states if all(s[j] != e[j] for j in range(k))), None)
-    if target is None:
-        return None, max_states
-    y = [0] * r
-    s = target
-    for i in range(r, 0, -1):
-        prev, sign = parent[i][s]
-        y[i - 1] = sign
-        s = prev
-    return y, max_states
+    for i in extra:
+        c = row_coeff(normals[i], basis_rows)
+        C.append(c)
+        e.append((constraints[i][1] - sum(c[t] * bB[t] for t in range(r))) % P)
+    return r, basis_idx, basis_rows, bB, C, e
 
 
 def direct_solutions(C, e, r):
     out = []
     for y in product((1, 2), repeat=r):
-        syn = [sum(C[j][i] * y[i] for i in range(r)) % P for j in range(len(C))]
-        if all(syn[j] != e[j] for j in range(len(C))):
-            out.append(y)
+        s = [sum(C[j][i] * y[i] for i in range(r)) % P for j in range(len(C))]
+        if all(s[j] != e[j] for j in range(len(C))): out.append(y)
     return out
 
 
-def reconstruct_pg15(A, c, B, constraints, basis_idx, basis_rows, basis_forbidden, y):
-    # Solve basis normal equations a_i alpha = y_i + b_i.
-    # basis_rows is 4x4 for PG15.
-    rhs = [(y[i] + basis_forbidden[i]) % P for i in range(len(y))]
-    alpha = solve_unique(basis_rows, rhs)
-    rword = [(c[i] + sum(B[i][t] * alpha[t] for t in range(len(alpha)))) % P
-             for i in range(15)]
-    assert all(v in (1, 2) for v in rword)
-    x = [int(v == 2) for v in rword]
+def compressed_dp(C, e, r):
+    k = len(C)
+    full_cols = [[C[j][i] for j in range(k)] for i in range(r)]
+    rho = rank(C)
+
+    # Greedy column-space basis Q.
+    basis_cols = []
+    for v in full_cols:
+        old = rank([[q[i] for q in basis_cols] for i in range(k)]) if basis_cols else 0
+        trial_cols = basis_cols + [v]
+        trial = [[q[i] for q in trial_cols] for i in range(k)]
+        if rank(trial) > old:
+            basis_cols.append(v)
+            if len(basis_cols) == rho: break
+    assert len(basis_cols) == rho
+    Q = [[basis_cols[j][i] for j in range(rho)] for i in range(k)]
+    W = [solve_in_column_basis(Q, v) for v in full_cols]
+
+    zero = (0,) * rho
+    states = {zero}; parents = [{zero: None}]; max_states = 1
+    for w in W:
+        nxt = {}
+        for s in states:
+            for sign in (1, 2):
+                t = tuple((s[j] + sign * w[j]) % P for j in range(rho))
+                if t not in nxt: nxt[t] = (s, sign)
+        states = set(nxt); parents.append(nxt); max_states = max(max_states, len(states))
+
+    def expand(t):
+        return [sum(Q[i][j] * t[j] for j in range(rho)) % P for i in range(k)]
+
+    target = next((t for t in states if all(expand(t)[j] != e[j] for j in range(k))), None)
+    if target is None: return None, rho, max_states
+    y = [0] * r; t = target
+    for i in range(r, 0, -1):
+        prev, sign = parents[i][t]; y[i - 1] = sign; t = prev
+    return tuple(y), rho, max_states
+
+
+def reconstruct(A, particular, eval_rows, basis_rows, bB, y):
+    alpha = solve_unique(basis_rows, [(y[i] + bB[i]) % P for i in range(len(y))])
+    rw = [(particular[i] + sum(eval_rows[i][t] * alpha[t] for t in range(len(alpha)))) % P
+          for i in range(15)]
+    assert all(v in (1, 2) for v in rw)
+    x = tuple(int(v == 2) for v in rw)
     assert all(sum(A[i][j] * x[j] for j in range(15)) == 1 for i in range(15))
-    return tuple(x)
+    return x
 
 
 def main():
-    A, c, B, constraints = build_pg15_residual()
-    assert len(constraints) == 11
-    r, idx, basis_rows, bB, C, e = normalize_constraints(constraints)
+    A, particular, eval_rows, constraints = pg15_residual()
+    r, idx, basis_rows, bB, C, e = normalize(constraints)
     k = len(C)
-    assert (len(constraints), r, k) == (11, 4, 7)
+    assert (len(constraints), r, k, rank(C)) == (11, 4, 7, 4)
 
     direct = direct_solutions(C, e, r)
     assert len(direct) == 4
-    y, max_states = syndrome_dp(C, e, r)
+    y, rho, max_states = compressed_dp(C, e, r)
     assert y in direct
-    witness = reconstruct_pg15(A, c, B, constraints, idx, basis_rows, bB, y)
-    assert sum(witness) == 5
-    decoded = {reconstruct_pg15(A, c, B, constraints, idx, basis_rows, bB, q)
-               for q in direct}
+    decoded = {reconstruct(A, particular, eval_rows, basis_rows, bB, q) for q in direct}
     assert len(decoded) == 4
-    assert max_states <= 3 ** k
+    assert rho == 4 and max_states <= 3 ** rho
 
-    # Sharp generic excess-two UNSAT control.
-    # Basis forbidden hyperplanes y1=0,y2=0; extras y1+y2=0 and y1-y2=0.
-    C2 = [[1, 1], [1, 2]]
-    e2 = [0, 0]
+    C2 = [[1,1],[1,2]]; e2 = [0,0]
     assert direct_solutions(C2, e2, 2) == []
-    y2, states2 = syndrome_dp(C2, e2, 2)
-    assert y2 is None
-    assert states2 <= 9
+    y2, rho2, states2 = compressed_dp(C2, e2, 2)
+    assert y2 is None and rho2 == 2 and states2 <= 9
 
     print({
-        'status': 'PASS_AF3_NORMAL_EXCESS_DUAL_FPT_ROUTER',
-        'PG15_m': 11,
-        'PG15_normal_rank': r,
-        'PG15_normal_excess': k,
-        'PG15_avoiding_points': len(direct),
-        'PG15_exactone_witnesses': len(decoded),
-        'PG15_dp_max_states': max_states,
-        'sharp_k2_unsat': True,
-        'sharp_k2_dp_max_states': states2,
-        'E8_D1': 'EMPTY',
-        'P_VS_NP': 'OPEN',
+        'status': 'PASS_AF3_SYNDROME_RANK_DUAL_FPT_ROUTER',
+        'PG15_m': 11, 'PG15_r': r, 'PG15_k': k, 'PG15_rho': rho,
+        'PG15_avoiding_points': len(direct), 'PG15_witnesses': len(decoded),
+        'PG15_compressed_dp_max_states': max_states,
+        'sharp_k2_rho2_unsat': True,
+        'E8_D1': 'EMPTY', 'P_VS_NP': 'OPEN',
     })
 
 
-if __name__ == '__main__':
-    main()
+if __name__ == '__main__': main()
