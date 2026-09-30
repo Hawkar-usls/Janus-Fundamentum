@@ -5,16 +5,16 @@
 - **Repository:** `Hawkar-usls/Janus-Fundamentum`
 - **PR:** `#510`
 - **Branch:** `codex/r5-e8-direct-contract-20260921-82493a57`
-- **Live source HEAD:** `7df75eb560c4d8d7030490bce31bf9b1728ae394`
-- **Source commit time:** `2026-09-29T15:07:00+03:00`
-- **Indexed changed scientific artifacts:** `955`
+- **Live source HEAD:** `f0818bdb7d88f66a6073568cc570abd9173e51d2`
+- **Source commit time:** `2026-09-30T03:06:14+03:00`
+- **Indexed changed scientific artifacts:** `956`
 
 ## Continuity status
 
 - Semantic cache: `.janus/P_VS_NP_STREAM_CACHE_CURRENT.json`
 - Semantic source HEAD: `480eed45722312b7b16e4a5d9f3d19149e125892`
 - Relation: **`LIVE_DESCENDS_FROM_SEMANTIC_CACHE`**
-- Commits after semantic checkpoint: `23`
+- Commits after semantic checkpoint: `24`
 
 ## Scientific firewall
 
@@ -105,6 +105,7 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `d8a7a0846dcb` — 2026-09-29T15:06:47+03:00 — R5 E9: remove duplicate TU row-space theorem
 - `2389d8fc71dd` — 2026-09-29T15:06:53+03:00 — R5 E9: remove duplicate TU row-space checker
 - `7df75eb560c4` — 2026-09-29T15:07:00+03:00 — R5 E9: remove duplicate TU row-space CI
+- `f0818bdb7d88` — 2026-09-30T03:06:14+03:00 — R5 E9: add Paley19 gradient-kernel post-RKPR control theorem
 
 ## Transport / stale-bootstrap watch
 
@@ -135,6 +136,7 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 
 ## Recent non-cache commits
 
+- `f0818bdb7d88` — 2026-09-30T03:06:14+03:00 — R5 E9: add Paley19 gradient-kernel post-RKPR control theorem
 - `7df75eb560c4` — 2026-09-29T15:07:00+03:00 — R5 E9: remove duplicate TU row-space CI
 - `2389d8fc71dd` — 2026-09-29T15:06:53+03:00 — R5 E9: remove duplicate TU row-space checker
 - `d8a7a0846dcb` — 2026-09-29T15:06:47+03:00 — R5 E9: remove duplicate TU row-space theorem
@@ -159,7 +161,6 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `7aae6e312146` — 2026-09-29T04:57:16+03:00 — R5 E9: add global Walsh moment kernel augmentation router
 - `d9807a85a3f2` — 2026-09-29T04:50:46+03:00 — R5 E9: synchronize semantic checkpoint to global sign-crossing trade gate
 - `480eed457223` — 2026-09-29T04:49:04+03:00 — R5 E9: add exact circuit-augmentation barrier checker
-- `44d31b0ab5ae` — 2026-09-29T04:48:43+03:00 — R5 E9: falsify circuit-only integer L1 augmentation
 
 ## Resume protocol
 
