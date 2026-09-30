@@ -1,0 +1,163 @@
+{
+  "schema": "JANUS/C025/FACTORIZED-RESOLUTION-PRODUCT-REPRESENTATION-GATE-PREREGISTRATION/v1",
+  "date": "2026-08-26",
+  "status": "FROZEN_BEFORE_FACTORIZER_IMPLEMENTATION",
+  "motivation": {
+    "training_obstruction": "PHP_5_4 Stage-4 second elimination produced 11x11=121 raw resolution pairs, 105 non-tautological unique resolvents, zero duplicate resolvents and an explicit canonical state volume of 343 above the frozen cap 256.",
+    "target_question": "Can the exact resolution cross-product be represented as a semantics-preserving latent product node without materializing every resolvent clause?",
+    "forbidden_inference": "A compact representation by itself does not establish polynomial-time SAT or P=NP."
+  },
+  "input_contract": {
+    "input": "A canonical exact CNF state F and one pivot variable x.",
+    "family_labels_allowed": false,
+    "training_fingerprint_visibility": "Allowed only for the already-known PHP_5_4 training specimen; the algorithm must not branch on fingerprints.",
+    "required_partition": {
+      "U": "clauses not containing x or -x",
+      "P": "clauses containing positive x, written canonically as x OR A_i",
+      "N": "clauses containing negative x, written canonically as -x OR B_j"
+    },
+    "tautological_input_clause_policy": "Use the same canonicalization policy as the frozen C025 engine; ambiguity or malformed literals fail closed."
+  },
+  "frozen_exact_identity": {
+    "source_form": "U AND (AND_i (x OR A_i)) AND (AND_j (-x OR B_j))",
+    "eliminated_form": "U AND ((AND_i A_i) OR (AND_j B_j))",
+    "explicit_resolution_CNF_equivalent": "U AND (AND_{i,j} (A_i OR B_j)), with tautological resolvents omitted under canonical CNF semantics.",
+    "semantic_requirement": "The factorized node must denote exactly existential elimination of x from the source state. No probabilistic or approximate semantics are admitted."
+  },
+  "frozen_representation_grammar": {
+    "node_type": "EXACT_RESOLUTION_PRODUCT_FACTOR",
+    "fields": [
+      "pivot",
+      "unaffected_clause_commitment",
+      "positive_tail_family",
+      "negative_tail_family",
+      "source_state_fingerprint",
+      "source_partition_commitment",
+      "canonicalization_version"
+    ],
+    "latent_semantics": "OR(AND positive_tail_family, AND negative_tail_family) conjoined with U",
+    "sharing": "Tail clauses and unaffected clauses may be hash-consed/DAG-shared; sharing must be explicit in the certificate.",
+    "nested_nodes": "Not admitted in gate v1 unless they arise only as opaque already-verified input atoms. v1 tests one exact representation transition, not recursive totality.",
+    "no_family_specific_fields": true,
+    "no_PHP_coordinates": true,
+    "no_S4_coordinates": true,
+    "no_known_block_width": true,
+    "no_template_name_oracle": true
+  },
+  "certificate_contract": {
+    "must_commit": [
+      "canonical source-state fingerprint",
+      "pivot literal",
+      "complete partition U/P/N",
+      "ordered or canonically sorted positive tails A_i",
+      "ordered or canonically sorted negative tails B_j",
+      "mapping from every source clause to exactly one partition role",
+      "factor-node fingerprint"
+    ],
+    "must_not_require": [
+      "SAT oracle",
+      "UNSAT oracle",
+      "family label",
+      "enumeration of assignments",
+      "materialization of every A_i OR B_j resolvent merely to establish the distributive identity"
+    ]
+  },
+  "independent_verifier_contract": {
+    "independent_from_synthesizer": true,
+    "must_not_call_factorizer": true,
+    "checks": [
+      "canonical source fingerprint matches",
+      "pivot occurs with exactly the claimed signs",
+      "U/P/N is a total disjoint partition of source clauses",
+      "removing the pivot literal from P and N yields exactly the committed A_i and B_j tails",
+      "the node grammar denotes the frozen distributive existential-elimination identity",
+      "all referenced DAG/hash-consed atoms resolve to exact committed content",
+      "certificate/resource ledger is internally consistent"
+    ],
+    "tamper_cases_required": [
+      "change pivot",
+      "drop one source clause",
+      "duplicate one partition mapping while omitting another",
+      "change one tail literal",
+      "move a clause to the wrong sign partition",
+      "change source fingerprint",
+      "change factor-node fingerprint",
+      "under-report representation or certificate bytes"
+    ],
+    "tamper_acceptance": "ZERO_TAMPERS_ACCEPTED"
+  },
+  "resource_ledger": {
+    "mandatory_metrics": [
+      "input_state_units",
+      "input_bytes",
+      "partition_scan_literal_visits",
+      "factor_nodes_created",
+      "tail_references",
+      "unique_tail_bytes",
+      "representation_bytes",
+      "certificate_bytes",
+      "verification_literal_visits",
+      "verification_hash_work",
+      "explicit_resolution_pairs_avoided",
+      "explicit_non_tautological_resolvents_if_diagnostic_only",
+      "max_live_representation_units",
+      "progress_before",
+      "progress_after"
+    ],
+    "hidden_expansion_forbidden": true,
+    "diagnostic_explicit_expansion": "May be used only in bounded training/holdout measurement to compare semantics/resource volume; it is not part of the admitted factorized algorithm path.",
+    "fixed_cap": "Use the same frozen cap policy associated with the supplied Stage-4 context; the gate may not increase cap exponent after seeing the holdout."
+  },
+  "progress_gate": {
+    "required": true,
+    "local_v1_requirement": "The pivot x is removed from the represented semantics and no new Boolean variable is introduced by the factor node.",
+    "global_totality_claim": false,
+    "warning": "Local variable elimination with compact representation is not enough; later operations on factor nodes must themselves obtain separately preregistered polynomial resource/progress bounds."
+  },
+  "admission_rule": {
+    "accept_if_all": [
+      "exact source partition replay passes",
+      "factor node is structurally valid under the frozen grammar",
+      "independent verifier passes",
+      "all tamper tests reject",
+      "representation plus certificate remain within the frozen context cap",
+      "local progress strictly removes the pivot",
+      "no hidden explicit cross-product is executed on the admitted path"
+    ],
+    "otherwise": "OPEN",
+    "ambiguity": "OPEN"
+  },
+  "constructor_adversary_policy": {
+    "constructor_swarm": "May propose pivots or syntactically equivalent candidate factor layouts, but proposal order has no semantic authority.",
+    "adversary_swarm": "May search for malformed partitions, representation blowups, verifier mismatches and contexts where the factor grammar cannot be operated on compactly.",
+    "randomness": "SEARCH_ORDER_ONLY",
+    "learned_scheduler": "SEARCH_ORDER_ONLY",
+    "verifier": "SOLE_ACCEPT_REJECT_AUTHORITY"
+  },
+  "forbidden": [
+    "CHANGE_GRAMMAR_AFTER_HOLDOUT_EXPOSURE",
+    "CHANGE_CAP_EXPONENT_AFTER_HOLDOUT_EXPOSURE",
+    "PHP_SPECIFIC_BRANCHING",
+    "FINGERPRINT_SPECIFIC_BRANCHING",
+    "SEMANTIC_EQUIVALENCE_ORACLE",
+    "RANDOMNESS_AS_PROOF",
+    "HEURISTIC_COMPRESSION_SCORE_AS_PROOF",
+    "RECURSIVE_SHANNON_DEPTH_INCREASE",
+    "COUNT_DIAGNOSTIC_EXPANSION_AS_FREE",
+    "PROMOTE_FINITE_PASS_TO_UNIVERSAL_TOTALITY"
+  ],
+  "success_labels": {
+    "training_pass": "EXACT_FACTORIZED_RESOLUTION_PRODUCT_REPRESENTATION_TRAINING_PASS",
+    "holdout_pass": "EXACT_FACTORIZED_RESOLUTION_PRODUCT_REPRESENTATION_HOLDOUT_PASS",
+    "universal_status_after_any_finite_pass": "OPEN"
+  },
+  "next_required_event": "Freeze an independently selected non-PHP over-cap elimination-context holdout before factorizer implementation.",
+  "does_not_imply": [
+    "POLYNOMIAL_OPERATIONS_ON_ARBITRARILY_NESTED_FACTOR_DAGS",
+    "POLYNOMIAL_NUMBER_OF_ELIMINATION_STEPS",
+    "ARBITRARY_CNF_COVERAGE",
+    "STAGE4_TOTALITY",
+    "P_EQUALS_NP"
+  ],
+  "P_VS_NP": "OPEN"
+}

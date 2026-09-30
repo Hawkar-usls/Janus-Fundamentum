@@ -1,0 +1,41 @@
+name: Validate JANUS Sealed Discovery
+
+on:
+  push:
+    paths:
+      - 'security/JANUS_SEALED_DISCOVERY_POLICY.json'
+      - 'security/requirements-sealed-discovery.txt'
+      - 'tools/janus_seal_discovery.py'
+      - '.github/workflows/validate-janus-sealed-discovery.yml'
+  pull_request:
+    paths:
+      - 'security/JANUS_SEALED_DISCOVERY_POLICY.json'
+      - 'security/requirements-sealed-discovery.txt'
+      - 'tools/janus_seal_discovery.py'
+      - '.github/workflows/validate-janus-sealed-discovery.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  selftest:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install crypto dependency
+        run: python -m pip install -r security/requirements-sealed-discovery.txt
+      - name: Compile check
+        run: python -m py_compile tools/janus_seal_discovery.py
+      - name: Authenticated-encryption selftest
+        run: python tools/janus_seal_discovery.py selftest
+      - name: Fail closed without key
+        run: |
+          set +e
+          printf 'DO NOT COMMIT PLAINTEXT' | python tools/janus_seal_discovery.py seal - /tmp/should-not-exist.json --label NO_KEY_TEST
+          rc=$?
+          set -e
+          test "$rc" -ne 0
+          test ! -e /tmp/should-not-exist.json

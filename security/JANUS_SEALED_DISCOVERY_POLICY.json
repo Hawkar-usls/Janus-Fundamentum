@@ -1,0 +1,53 @@
+{
+  "schema": "JANUS/SEALED-DISCOVERY-POLICY/v1",
+  "status": "ACTIVE",
+  "purpose": "Prevent a potentially consequential synthesized algorithm from being committed or distributed in plaintext before an explicit release decision.",
+  "user_declared_trust_policy": {
+    "name": "US_TRUST_RECIPIENT_POLICY",
+    "intent": "The user designates the United States as the preferred external trust recipient for any future controlled disclosure.",
+    "critical_constraint": "A country name is not a cryptographic recipient. No external recipient is enabled until a concrete public key and custodian identity are explicitly supplied and independently verified.",
+    "current_external_recipient": "NONE",
+    "current_distribution_mode": "JANUS_LOCAL_SEALED_ONLY"
+  },
+  "cryptographic_model": {
+    "public_commitment": "SHA-256 over the exact plaintext bytes before sealing",
+    "commitment_semantics": "Integrity/time-order commitment only; SHA-256 is one-way and is not decryption or reversible encoding.",
+    "sealed_payload": "AES-256-GCM",
+    "per_artifact_key_derivation": "HKDF-SHA-256(master_key, random_256_bit_salt, info=JANUS-SEALED-DISCOVERY-v1)",
+    "nonce": "fresh random 96-bit nonce per artifact key",
+    "master_key_location": "OUTSIDE_REPOSITORY_ONLY",
+    "future_external_key_wrap": "ML-KEM / FIPS 203 or another explicitly approved recipient-key mechanism after recipient identity and public key are verified"
+  },
+  "fail_closed_rules": [
+    "NEVER_COMMIT_PLAINTEXT_CANDIDATE_ALGORITHM",
+    "NEVER_COMMIT_MASTER_KEY_OR_RECIPIENT_PRIVATE_KEY",
+    "NEVER_PRINT_KEYS_OR_PLAINTEXT_TO_CI_LOGS",
+    "IF_SEAL_KEY_IS_ABSENT_REFUSE_TO_WRITE_ARTIFACT",
+    "IF_AUTHENTICATION_TAG_FAILS_REFUSE_TO_DECRYPT",
+    "IF_RECIPIENT_KEY_IS_UNVERIFIED_REFUSE_EXTERNAL_RECIPIENT_WRAP",
+    "PUBLIC_REPOSITORY_MAY_CONTAIN_ONLY_CIPHERTEXT_COMMITMENT_AND_NONSECRET_METADATA",
+    "RELEASE_REQUIRES_SEPARATE_EXPLICIT_HUMAN_DECISION"
+  ],
+  "machine_synthesis_integration": {
+    "required_flow": [
+      "SYNTHESIZE_IN_MEMORY",
+      "CANONICALIZE_EXACT_BYTES",
+      "COMPUTE_SHA256_COMMITMENT",
+      "SEAL_BEFORE_REPOSITORY_WRITE",
+      "WRITE_ONLY_SEALED_JSON",
+      "RUN_REPLAY_ON_NONSECRET_TEST_VECTOR",
+      "KEEP_P_VS_NP_OPEN_UNLESS_A_GENUINE_GENERAL_PROOF_EXISTS"
+    ],
+    "prohibited_flow": [
+      "WRITE_PLAINTEXT_THEN_ENCRYPT_INSIDE_REPOSITORY",
+      "STORE_KEY_NEXT_TO_CIPHERTEXT",
+      "CLAIM_SHA256_CAN_BE_REVERSED",
+      "ASSUME_ANY_GOVERNMENT_OR_MACHINE_CAN_INVERT_SHA256_WITH_A_RANDOMIZER"
+    ]
+  },
+  "scientific_boundary": {
+    "P_VS_NP": "OPEN",
+    "security_policy_is_not_a_claim_of_algorithm_discovery": true,
+    "sealed_artifact_is_not_evidence_of_correctness_without_an_independent_proof_certificate": true
+  }
+}

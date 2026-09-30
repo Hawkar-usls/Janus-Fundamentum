@@ -1,0 +1,144 @@
+{
+  "schema": "JANUS/C025/RAD750-PROOF-CARRYING-EXECUTION-PROFILE/v1",
+  "date": "2026-08-26",
+  "status": "PUBLIC_SPEC_GROUNDED__HARDWARE_PROFILE_ONLY__PROOF_SEMANTICS_UNCHANGED",
+  "purpose": "Compile JANUS C025 proof search and exact verification into a deterministic, fail-closed execution discipline suitable for a RAD750-class PowerPC 750 target without allowing hardware details to change mathematical admission.",
+  "epistemic_boundary": {
+    "hardware_profile_is_not_a_complexity_proof": true,
+    "hardware_profile_must_not_change_SAT_UNSAT_OPEN": true,
+    "hardware_profile_must_not_change_state_cap_exponent": true,
+    "hardware_profile_must_not_change_certificate_semantics": true,
+    "P_VS_NP": "OPEN"
+  },
+  "publicly_grounded_RAD750_facts": {
+    "architecture": {
+      "value": "licensed radiation-hardened version of IBM PowerPC 750",
+      "source": "BAE Systems RAD750 component datasheet 2025"
+    },
+    "rad_tolerant_variant": {
+      "technology": "0.25 um radiation-hardened bulk CMOS",
+      "clock_mhz": [110, 132],
+      "total_ionizing_dose": "200 Krad(Si)",
+      "SEU": "<1.6E-10 errors/bit-day, 90% worst-case GEO",
+      "latchup": "immune",
+      "performance": ">260 Dhrystone 2.1 MIPS at 132 MHz"
+    },
+    "rad_hard_variant": {
+      "technology": "0.15 um radiation-hardened bulk CMOS",
+      "clock_mhz": 200,
+      "total_ionizing_dose": "1 Mrad(Si)",
+      "SEU": "<1.6E-10 errors/bit-day, 90% worst-case GEO",
+      "latchup": "immune",
+      "performance": ">400 Dhrystone 2.1 MIPS at 200 MHz"
+    },
+    "package": "360-pin ceramic column grid array (CGA)",
+    "PowerPC750_microarchitecture_from_public_manual": {
+      "superscalar": true,
+      "max_instruction_fetch_per_clock": 4,
+      "max_dispatch_per_clock": 2,
+      "max_execute_per_clock": 6,
+      "execution_units": ["BPU", "IU1", "IU2", "FPU", "LSU", "SRU"],
+      "integer_register_width_bits": 32,
+      "floating_point_register_width_bits": 64,
+      "L1_instruction_cache_bytes": 32768,
+      "L1_data_cache_bytes": 32768,
+      "branch_history_table_entries": 512,
+      "branch_target_instruction_cache_entries": 64,
+      "external_address_bus_bits": 32,
+      "external_data_bus_bits": 64
+    },
+    "mission_confirmation": {
+      "Perseverance": "NASA states its Rover Compute Elements use radiation-hardened BAE RAD750 PowerPC 750 processors operating up to 200 MHz; redundant rover computers are used.",
+      "Curiosity": "NASA states its rover computers use BAE RAD750 PowerPC 750 processors operating up to 200 MHz."
+    }
+  },
+  "claims_explicitly_not_promoted_to_fact": {
+    "RAD750_is_SOI": {
+      "status": "REJECTED_FOR_THIS_PROFILE",
+      "reason": "Current BAE public component datasheet specifies radiation-hardened bulk CMOS for both 0.25 um and 0.15 um variants."
+    },
+    "all_internal_RAD750_registers_are_TMR": {
+      "status": "NOT_PUBLICLY_CONFIRMED",
+      "reason": "Do not transfer TMR details from other rad-hard processors to RAD750 without a RAD750-specific primary source."
+    },
+    "every_RAD750_computation_is_majority_voted": {
+      "status": "NOT_PUBLICLY_CONFIRMED",
+      "reason": "Radiation hardening and board-level ECC/redundancy must not be paraphrased as universal per-operation TMR without evidence."
+    },
+    "RAD750_L1_is_ECC": {
+      "status": "NOT_ASSERTED",
+      "reason": "Board memory ECC and processor-cache protection are distinct claims; this profile does not conflate them."
+    }
+  },
+  "janus_execution_contract": {
+    "semantic_layer": {
+      "canonical_CNF": true,
+      "exact_integer_logic_only_for_admission": true,
+      "floating_point_may_not_decide_truth": true,
+      "randomness_may_not_decide_truth": true,
+      "heuristics_may_only_order_proposals": true,
+      "independent_exact_replay_required": true,
+      "ambiguity_or_replay_mismatch": "OPEN_FAIL_CLOSED"
+    },
+    "RAD750_flight_kernel_policy": {
+      "word_model": "32-bit integer words for proof state and bitsets",
+      "canonical_serialization_byte_order": "big-endian network order, independent of host CPU mode",
+      "dynamic_recursion": "FORBIDDEN_IN_FLIGHT_KERNEL",
+      "unbounded_stack_growth": "FORBIDDEN_IN_FLIGHT_KERNEL",
+      "floating_point_in_verifier": "FORBIDDEN",
+      "undefined_integer_overflow": "FORBIDDEN",
+      "iteration_order": "CANONICAL_AND_DETERMINISTIC",
+      "heap_policy": "prefer preallocated arenas and bounded scratch regions",
+      "hot_instruction_target_bytes": 24576,
+      "hot_data_chunk_target_bytes": 24576,
+      "hot_cache_target_rationale": "Software target reserves approximately one quarter of each 32 KiB L1 cache for stack, metadata, conflict effects and runtime overhead; this is a JANUS policy, not a RAD750 hardware guarantee.",
+      "streaming_required_when_state_exceeds_hot_data_chunk": true,
+      "checkpoint_digest": "SHA-256 in reference implementation; flight implementation may use a separately validated implementation but digest identity must match canonical bytes",
+      "checkpoint_fields": [
+        "root_fingerprint",
+        "residual_fingerprint",
+        "progress_phi",
+        "semantic_state_cap",
+        "ledger_counters",
+        "extension_count",
+        "last_verified_transition"
+      ],
+      "watchdog_epoch": "Every bounded proof-search epoch must have a predeclared work budget and terminate in VERIFIED_PROGRESS, VERIFIED_TERMINAL, OPEN_BUDGET, or SAFE_ERROR.",
+      "fault_response": "Never invent or repair a mathematical result after an integrity mismatch; replay from the last verified checkpoint or return OPEN/SAFE_ERROR."
+    },
+    "redundancy_without_false_TMR_claim": {
+      "proposal_channel": "may be single, replicated, heuristic, learned or host-assisted",
+      "verification_channel_A": "reference exact verifier",
+      "verification_channel_B": "independently implemented verifier with the same formal transition contract",
+      "acceptance": "A semantic transition is admitted only if both verifiers agree on canonical before/after fingerprints and certificate validity.",
+      "optional_third_replay": "May be used for fault localization, but 2-of-3 voting must never override a formally invalid certificate.",
+      "common_mode_warning": "Software replication does not eliminate common-mode specification or implementation bugs."
+    },
+    "resource_separation": {
+      "semantic_cap": "Frozen theorem-side N^C bound measured from the root input; hardware cannot relax it.",
+      "hardware_working_set": "RAD750 scheduling/chunking target; may split a certified operation into bounded deterministic passes without changing the mathematical object.",
+      "time_budget": "Reported separately from semantic state size and certificate bytes.",
+      "memory_budget": "Reported separately for L1-hot scratch, external RAM state, certificate storage and checkpoint storage.",
+      "no_hidden_resource": true
+    }
+  },
+  "portable_algorithmic_speedup_interpretation": {
+    "correct": "If JANUS eventually finds a genuinely better exact algorithm with a proved polynomial bound, that algorithmic advantage is in principle portable across general-purpose machines capable of implementing the operations.",
+    "incorrect": "The algorithm does not increase the RAD750 clock rate, MIPS rating, cache size, radiation hardness, or physically boost arbitrary processors.",
+    "practical_caveat": "Constant factors, memory bandwidth, compiler quality, word size, cache behavior and available RAM can dominate finite instances even when asymptotic complexity is better."
+  },
+  "implementation_order": [
+    "Keep C025 mathematical grammar hardware-neutral.",
+    "Emit a deterministic flight manifest from every proof ledger.",
+    "Implement a small integer-only reference verifier suitable for C/PowerPC 750 porting.",
+    "Add independent verifier diversity and checkpoint replay.",
+    "Only after semantic CI passes, tune data layout and instruction scheduling for PowerPC 750 caches/pipelines."
+  ],
+  "source_urls": [
+    "https://www.baesystems.com/en-us/dam/jcr:c297f318-c618-4015-9399-adf76ac5cf55/16-f78-RAD750-Component-datasheet-2025-web.pdf",
+    "https://www.nxp.com/docs/en/reference-manual/MPC750UM.pdf",
+    "https://science.nasa.gov/mission/mars-2020-perseverance/rover-components/",
+    "https://mars.nasa.gov/multimedia/interactives/learncuriosity/index-2.html"
+  ],
+  "P_VS_NP": "OPEN"
+}

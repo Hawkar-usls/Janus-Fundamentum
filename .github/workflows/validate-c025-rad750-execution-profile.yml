@@ -1,0 +1,37 @@
+name: Validate C025 RAD750 Execution Profile
+
+on:
+  push:
+    branches:
+      - research/c025-unified-proof-carrying-akinator-jec
+    paths:
+      - 'experiments/direct/janus_rad750_execution_profile.py'
+      - 'experiments/direct/rad750/janus_c025_rad750_flight_kernel.c'
+      - 'research/C025_RAD750_PROOF_CARRYING_EXECUTION_PROFILE_2026-08-26.json'
+      - '.github/workflows/validate-c025-rad750-execution-profile.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  rad750-profile:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Compile profile and frozen engine
+        run: |
+          python -m py_compile experiments/direct/janus_rad750_execution_profile.py
+          python -m py_compile experiments/direct/janus_unified_proof_carrying_akinator_jec.py
+      - name: Execute deterministic RAD750 profile self-test
+        run: python experiments/direct/janus_rad750_execution_profile.py
+      - name: Compile portable 32-bit-PowerPC-class flight kernel contract
+        run: |
+          cc -std=c11 -O2 -Wall -Wextra -Werror -DJANUS_C025_SELFTEST \
+            experiments/direct/rad750/janus_c025_rad750_flight_kernel.c \
+            -o /tmp/janus_c025_rad750_kernel_test
+          /tmp/janus_c025_rad750_kernel_test

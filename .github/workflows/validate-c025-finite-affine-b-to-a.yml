@@ -1,0 +1,38 @@
+name: Validate C025 Finite-Affine B-to-A
+
+on:
+  push:
+    branches:
+      - research/c025-unified-proof-carrying-akinator-jec
+    paths:
+      - 'experiments/direct/janus_b_to_a_finite_affine_synthesizer.py'
+      - 'experiments/direct/janus_b_to_a_exact_algebra_selector.py'
+      - 'experiments/direct/janus_b_to_a_cross_family_selector_gate.py'
+      - 'experiments/direct/janus_tseitin_b_to_a_training_gate.py'
+      - 'experiments/direct/janus_tseitin_b_to_a_petersen_holdout.py'
+      - 'research/C025_TSEITIN_**'
+      - '.github/workflows/validate-c025-finite-affine-b-to-a.yml'
+  workflow_dispatch:
+
+jobs:
+  exact-affine:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Compile exact B-to-A modules
+        run: |
+          python -m py_compile experiments/direct/janus_b_to_a_finite_affine_synthesizer.py
+          python -m py_compile experiments/direct/janus_b_to_a_exact_algebra_selector.py
+          python -m py_compile experiments/direct/janus_b_to_a_cross_family_selector_gate.py
+          python -m py_compile experiments/direct/janus_tseitin_b_to_a_training_gate.py
+          python -m py_compile experiments/direct/janus_tseitin_b_to_a_petersen_holdout.py
+      - name: Run toroidal local-twin training gate
+        run: python experiments/direct/janus_tseitin_b_to_a_training_gate.py --radii 0,1
+      - name: Run frozen Petersen topology-arity holdout
+        run: python experiments/direct/janus_tseitin_b_to_a_petersen_holdout.py
+      - name: Run one-selector cross-family algebra gate
+        run: python experiments/direct/janus_b_to_a_cross_family_selector_gate.py

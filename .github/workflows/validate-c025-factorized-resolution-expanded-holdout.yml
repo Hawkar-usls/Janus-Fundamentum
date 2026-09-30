@@ -1,0 +1,38 @@
+name: Validate C025 Factorized Resolution Expanded Holdout
+
+on:
+  push:
+    branches:
+      - research/c025-unified-proof-carrying-akinator-jec
+    paths:
+      - 'experiments/direct/janus_factorized_resolution_product_expanded_holdout_search.py'
+      - 'research/C025_FACTORIZED_RESOLUTION_PRODUCT_EXPANDED_HOLDOUT_PREREGISTRATION_2026-08-26.json'
+      - 'research/C025_SINGLE_ELIMINATION_N2_BOUND_LEMMA_2026-08-26.json'
+      - '.github/workflows/validate-c025-factorized-resolution-expanded-holdout.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  expanded-blind-holdout:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Compile expanded selector
+        run: |
+          python -m py_compile experiments/direct/janus_factorized_resolution_product_expanded_holdout_search.py
+          python -m py_compile experiments/direct/janus_unified_proof_carrying_akinator_jec.py
+          python -m py_compile experiments/direct/janus_one_variable_separator_escape.py
+      - name: Enforce no future factorizer dependency
+        run: |
+          if grep -Eqi 'import .*factorized|from .*factorized' experiments/direct/janus_factorized_resolution_product_expanded_holdout_search.py; then
+            echo 'forbidden factorizer dependency detected'
+            exit 1
+          fi
+      - name: Execute preregistered expanded blind holdout search
+        run: python experiments/direct/janus_factorized_resolution_product_expanded_holdout_search.py

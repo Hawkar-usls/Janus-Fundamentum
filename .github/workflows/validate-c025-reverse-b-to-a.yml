@@ -1,0 +1,147 @@
+name: Validate C025 Reverse B-to-A Quotient Search
+
+on:
+  push:
+    branches:
+      - research/c025-unified-proof-carrying-akinator-jec
+    paths:
+      - 'experiments/direct/janus_reverse_b_to_a_quotient_search.py'
+      - 'experiments/direct/janus_reverse_b_to_a_php_family_probe.py'
+      - 'experiments/direct/janus_reverse_b_to_a_global_disambiguation.py'
+      - 'experiments/direct/janus_reverse_b_to_a_php65_width4.py'
+      - 'experiments/direct/janus_reverse_b_to_a_role_fiber_synthesizer.py'
+      - 'experiments/direct/janus_reverse_b_to_a_pair_relation_fiber_synthesizer.py'
+      - 'experiments/direct/janus_reverse_b_to_a_relation_product_counting_law.py'
+      - 'experiments/direct/janus_php87_relation_product_holdout.py'
+      - 'experiments/direct/janus_php54_auto_block_discovery_quotient_gate.py'
+      - 'research/C025_PHP8_7_RELATION_PRODUCT_HOLDOUT_PREDICTION_2026-08-26.json'
+      - '.github/workflows/validate-c025-reverse-b-to-a.yml'
+  pull_request:
+    paths:
+      - 'experiments/direct/janus_reverse_b_to_a_quotient_search.py'
+      - 'experiments/direct/janus_reverse_b_to_a_php_family_probe.py'
+      - 'experiments/direct/janus_reverse_b_to_a_global_disambiguation.py'
+      - 'experiments/direct/janus_reverse_b_to_a_php65_width4.py'
+      - 'experiments/direct/janus_reverse_b_to_a_role_fiber_synthesizer.py'
+      - 'experiments/direct/janus_reverse_b_to_a_pair_relation_fiber_synthesizer.py'
+      - 'experiments/direct/janus_reverse_b_to_a_relation_product_counting_law.py'
+      - 'experiments/direct/janus_php87_relation_product_holdout.py'
+      - 'experiments/direct/janus_php54_auto_block_discovery_quotient_gate.py'
+      - 'research/C025_PHP8_7_RELATION_PRODUCT_HOLDOUT_PREDICTION_2026-08-26.json'
+      - '.github/workflows/validate-c025-reverse-b-to-a.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  reverse-search:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Compile reverse search
+        run: python -m py_compile experiments/direct/janus_reverse_b_to_a_quotient_search.py experiments/direct/janus_reverse_b_to_a_php_family_probe.py experiments/direct/janus_reverse_b_to_a_global_disambiguation.py experiments/direct/janus_reverse_b_to_a_php65_width4.py experiments/direct/janus_reverse_b_to_a_role_fiber_synthesizer.py experiments/direct/janus_reverse_b_to_a_pair_relation_fiber_synthesizer.py experiments/direct/janus_reverse_b_to_a_relation_product_counting_law.py experiments/direct/janus_php87_relation_product_holdout.py
+      - name: Search exact quotient from B back to A
+        run: python experiments/direct/janus_reverse_b_to_a_quotient_search.py
+
+  php-family-transfer:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - pigeons: 6
+            holes: 5
+          - pigeons: 7
+            holes: 6
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Compile family probe
+        run: python -m py_compile experiments/direct/janus_reverse_b_to_a_php_family_probe.py
+      - name: Probe PHP_${{ matrix.pigeons }}_${{ matrix.holes }} C1
+        run: python experiments/direct/janus_reverse_b_to_a_php_family_probe.py --pigeons ${{ matrix.pigeons }} --holes ${{ matrix.holes }}
+
+  php65-global-b-disambiguation-width3:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Compile global disambiguation
+        run: python -m py_compile experiments/direct/janus_reverse_b_to_a_global_disambiguation.py
+      - name: Filter width-3 A ambiguity by exact global B constraints
+        run: python experiments/direct/janus_reverse_b_to_a_global_disambiguation.py
+
+  php65-global-b-disambiguation-width4:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Compile width-4 reverse fiber
+        run: python -m py_compile experiments/direct/janus_reverse_b_to_a_php65_width4.py
+      - name: Test width-4 fiber by exact global B constraints
+        run: python experiments/direct/janus_reverse_b_to_a_php65_width4.py
+
+  role-fiber-synthesis:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Compile width-free role fiber synthesizer
+        run: python -m py_compile experiments/direct/janus_reverse_b_to_a_role_fiber_synthesizer.py
+      - name: Infer PHP_5_4 through PHP_7_6 fibers without width input
+        run: python experiments/direct/janus_reverse_b_to_a_role_fiber_synthesizer.py --cases 5:4,6:5,7:6
+
+  pair-relation-fiber-synthesis:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Compile exact pair-relation nested fiber synthesizer
+        run: python -m py_compile experiments/direct/janus_reverse_b_to_a_pair_relation_fiber_synthesizer.py
+      - name: Derive and replay PHP_5_4 through PHP_7_6 nested fibers without width input
+        run: python experiments/direct/janus_reverse_b_to_a_pair_relation_fiber_synthesizer.py --cases 5:4,6:5,7:6
+
+  relation-product-law-training:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Compile exact relation-product law
+        run: python -m py_compile experiments/direct/janus_reverse_b_to_a_relation_product_counting_law.py
+      - name: Derive law on pre-holdout PHP_5_4 through PHP_7_6
+        run: python experiments/direct/janus_reverse_b_to_a_relation_product_counting_law.py --cases 5:4,6:5,7:6
+
+  php87-preregistered-holdout:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Compile preregistered holdout harness
+        run: python -m py_compile experiments/direct/janus_php87_relation_product_holdout.py
+      - name: Execute frozen PHP_8_7 prediction
+        run: python experiments/direct/janus_php87_relation_product_holdout.py
