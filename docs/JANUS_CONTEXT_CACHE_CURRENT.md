@@ -5,16 +5,16 @@
 - **Repository:** `Hawkar-usls/Janus-Fundamentum`
 - **PR:** `#510`
 - **Branch:** `codex/r5-e8-direct-contract-20260921-82493a57`
-- **Live source HEAD:** `a8b3b9a6389d11d12f79aaff01dd0fa03e33a5b7`
-- **Source commit time:** `2026-09-30T05:56:34+03:00`
-- **Indexed changed scientific artifacts:** `999`
+- **Live source HEAD:** `2342ff8e2d8969e24f4394adfdb4d9f9c779ec96`
+- **Source commit time:** `2026-09-30T05:59:02+03:00`
+- **Indexed changed scientific artifacts:** `1002`
 
 ## Continuity status
 
 - Semantic cache: `.janus/P_VS_NP_STREAM_CACHE_CURRENT.json`
 - Semantic source HEAD: `480eed45722312b7b16e4a5d9f3d19149e125892`
 - Relation: **`LIVE_DESCENDS_FROM_SEMANTIC_CACHE`**
-- Commits after semantic checkpoint: `70`
+- Commits after semantic checkpoint: `73`
 
 ## Scientific firewall
 
@@ -152,6 +152,9 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `1e2b2ab72842` — 2026-09-30T05:42:43+03:00 — R5 E9: add exact residual-normal codimension DP regression
 - `1df439744bbb` — 2026-09-30T05:42:55+03:00 — R5 E9: add CI for AF3 residual-normal codimension DP router
 - `a8b3b9a6389d` — 2026-09-30T05:56:34+03:00 — R5 E9: prove AF3 RNCDP inert source-return identity
+- `888a360afec7` — 2026-09-30T05:57:25+03:00 — R5 E9: add exact AF3 RNCDP inert source-return regression
+- `38c840ea467c` — 2026-09-30T05:57:34+03:00 — R5 E9: add CI for AF3 RNCDP inert source return
+- `2342ff8e2d89` — 2026-09-30T05:59:02+03:00 — R5 E9: close projectively-distinct hyperplane-cover shortcut
 
 ## Transport / stale-bootstrap watch
 
@@ -182,6 +185,9 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 
 ## Recent non-cache commits
 
+- `2342ff8e2d89` — 2026-09-30T05:59:02+03:00 — R5 E9: close projectively-distinct hyperplane-cover shortcut
+- `38c840ea467c` — 2026-09-30T05:57:34+03:00 — R5 E9: add CI for AF3 RNCDP inert source return
+- `888a360afec7` — 2026-09-30T05:57:25+03:00 — R5 E9: add exact AF3 RNCDP inert source-return regression
 - `a8b3b9a6389d` — 2026-09-30T05:56:34+03:00 — R5 E9: prove AF3 RNCDP inert source-return identity
 - `1df439744bbb` — 2026-09-30T05:42:55+03:00 — R5 E9: add CI for AF3 residual-normal codimension DP router
 - `1e2b2ab72842` — 2026-09-30T05:42:43+03:00 — R5 E9: add exact residual-normal codimension DP regression
@@ -204,9 +210,6 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `58da760a67ad` — 2026-09-30T05:14:44+03:00 — R5 E9: add affine F3 parallel-saturation quotient
 - `80107908fe4c` — 2026-09-30T05:13:22+03:00 — R5 E9: add CI for AF3 PCQ-fixed line-free 2-lift family
 - `327b42fb9e63` — 2026-09-30T05:13:13+03:00 — R5 E9: add exact checker for AF3 PCQ-fixed line-free 2-lift family
-- `d78c2eb3689b` — 2026-09-30T05:11:59+03:00 — R5 E9: prove infinite AF3 PCQ-fixed line-free UNSAT 2-lift family
-- `dea704682975` — 2026-09-30T04:50:43+03:00 — R5 E9: add CI for line-free proper blocking countercontrol
-- `b8a5ccfd7925` — 2026-09-30T04:50:33+03:00 — R5 E9: add exact line-free proper blocking countercontrol
 
 ## Resume protocol
 
