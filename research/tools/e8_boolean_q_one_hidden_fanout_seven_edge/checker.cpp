@@ -98,12 +98,14 @@ bool required_alive(const std::array<Bits216,16>& masks){
     return plus&&minus;
 }
 void print_witness(){
+    int wl[4]={0,0,0,0};
     std::cout<<"WITNESS_EDGES="<<witness.size()<<"\n";
     for(int ei:witness){
         auto e=EDGES[ei];
+        ++wl[e.a]; ++wl[e.b];
         std::cout<<WNAME[e.a]<<"."<<PNAME[e.p]<<" -- "<<WNAME[e.b]<<"."<<PNAME[e.q]<<"\n";
     }
-    std::cout<<"WITNESS_LOADS=("<<loadv[0]<<","<<loadv[1]<<","<<loadv[2]<<","<<loadv[3]<<")\n";
+    std::cout<<"WITNESS_LOADS=("<<wl[0]<<","<<wl[1]<<","<<wl[2]<<","<<wl[3]<<")\n";
 }
 void dfs(int start,int depth,const std::array<Bits216,16>& masks){
     ++nodes[depth];
