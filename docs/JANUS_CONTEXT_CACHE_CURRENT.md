@@ -5,16 +5,16 @@
 - **Repository:** `Hawkar-usls/Janus-Fundamentum`
 - **PR:** `#510`
 - **Branch:** `codex/r5-e8-direct-contract-20260921-82493a57`
-- **Live source HEAD:** `cb4c72acf7fcbc45152a27958f5cc978f88032ed`
-- **Source commit time:** `2026-09-30T04:25:38+03:00`
-- **Indexed changed scientific artifacts:** `970`
+- **Live source HEAD:** `784cfa930a8a55499cd4b70a5a36f4e35d254fab`
+- **Source commit time:** `2026-09-30T04:30:00+03:00`
+- **Indexed changed scientific artifacts:** `971`
 
 ## Continuity status
 
 - Semantic cache: `.janus/P_VS_NP_STREAM_CACHE_CURRENT.json`
 - Semantic source HEAD: `480eed45722312b7b16e4a5d9f3d19149e125892`
 - Relation: **`LIVE_DESCENDS_FROM_SEMANTIC_CACHE`**
-- Commits after semantic checkpoint: `41`
+- Commits after semantic checkpoint: `42`
 
 ## Scientific firewall
 
@@ -123,6 +123,7 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `165af10bcaae` — 2026-09-30T04:24:54+03:00 — R5 E9: add affine F3 projective blocking line terminal
 - `a6f4fd196780` — 2026-09-30T04:25:28+03:00 — R5 E9: add exact checker for projective blocking line terminal
 - `cb4c72acf7fc` — 2026-09-30T04:25:38+03:00 — R5 E9: add CI for projective blocking line terminal
+- `784cfa930a8a` — 2026-09-30T04:30:00+03:00 — R5 E9: add affine F3 parallel-class fixed-point quotient
 
 ## Transport / stale-bootstrap watch
 
@@ -153,6 +154,7 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 
 ## Recent non-cache commits
 
+- `784cfa930a8a` — 2026-09-30T04:30:00+03:00 — R5 E9: add affine F3 parallel-class fixed-point quotient
 - `cb4c72acf7fc` — 2026-09-30T04:25:38+03:00 — R5 E9: add CI for projective blocking line terminal
 - `a6f4fd196780` — 2026-09-30T04:25:28+03:00 — R5 E9: add exact checker for projective blocking line terminal
 - `165af10bcaae` — 2026-09-30T04:24:54+03:00 — R5 E9: add affine F3 projective blocking line terminal
@@ -177,7 +179,6 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `c43992f8911e` — 2026-09-29T15:05:47+03:00 — R5 E9: bind PG15 non-TU residual control
 - `da74ed88e414` — 2026-09-29T15:04:02+03:00 — R5 E9: add CI for exact TU row-space router
 - `102b3b95b8d9` — 2026-09-29T15:03:54+03:00 — R5 E9: add exact TU row-space router regression
-- `b82a8ebc6e74` — 2026-09-29T14:58:57+03:00 — R5 E9: add exact TU row-space integer LP router
 
 ## Resume protocol
 
