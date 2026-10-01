@@ -5,16 +5,16 @@
 - **Repository:** `Hawkar-usls/Janus-Fundamentum`
 - **PR:** `#510`
 - **Branch:** `codex/r5-e8-direct-contract-20260921-82493a57`
-- **Live source HEAD:** `4b48016fc803b1c59538b89eeffea7750ec70692`
-- **Source commit time:** `2026-09-30T08:00:51+03:00`
-- **Indexed changed scientific artifacts:** `1039`
+- **Live source HEAD:** `837a387b3dae1f492af91ca73590a80adad4c3e3`
+- **Source commit time:** `2026-10-01T06:58:51+03:00`
+- **Indexed changed scientific artifacts:** `1045`
 
 ## Continuity status
 
 - Semantic cache: `.janus/P_VS_NP_STREAM_CACHE_CURRENT.json`
 - Semantic source HEAD: `480eed45722312b7b16e4a5d9f3d19149e125892`
 - Relation: **`LIVE_DESCENDS_FROM_SEMANTIC_CACHE`**
-- Commits after semantic checkpoint: `114`
+- Commits after semantic checkpoint: `120`
 
 ## Scientific firewall
 
@@ -82,12 +82,6 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 
 ## Commits newer than semantic checkpoint — MUST INGEST
 
-- `e3cd39c9b20b` — 2026-09-30T04:05:53+03:00 — R5 E9: remove duplicate affine F3 checker
-- `29664d5bb057` — 2026-09-30T04:15:43+03:00 — R5 E9: add augmented ternary branch-width full-support DP router
-- `adfbd510e682` — 2026-09-30T04:16:26+03:00 — R5 E9: add exact branch-width full-support DP regression
-- `f5b52bf95c06` — 2026-09-30T04:16:34+03:00 — R5 E9: add CI for augmented ternary branch-width DP
-- `165af10bcaae` — 2026-09-30T04:24:54+03:00 — R5 E9: add affine F3 projective blocking line terminal
-- `a6f4fd196780` — 2026-09-30T04:25:28+03:00 — R5 E9: add exact checker for projective blocking line terminal
 - `cb4c72acf7fc` — 2026-09-30T04:25:38+03:00 — R5 E9: add CI for projective blocking line terminal
 - `784cfa930a8a` — 2026-09-30T04:30:00+03:00 — R5 E9: add affine F3 parallel-class fixed-point quotient
 - `3eae415d1dbe` — 2026-09-30T04:30:30+03:00 — R5 E9: add exact checker for affine F3 parallel-class quotient
@@ -162,6 +156,12 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `8c6b2ac8e247` — 2026-09-30T07:48:11+03:00 — R5 E9: add exact checker for mod-3 model-count barrier
 - `edf2d8691d31` — 2026-09-30T07:48:19+03:00 — R5 E9: add CI for mod-3 model-count barrier
 - `4b48016fc803` — 2026-09-30T08:00:51+03:00 — R5 E9: prove directed-triangle fourth-point completion barrier
+- `7ac2a5ba39bc` — 2026-09-30T08:01:10+03:00 — R5 E9: add exact directed-triangle completion regression
+- `27525c9144e2` — 2026-09-30T08:01:23+03:00 — R5 E9: add CI for directed-triangle completion barrier
+- `23fcf5f92ee8` — 2026-09-30T08:02:24+03:00 — R5 E9: add affine F3 critical-exponent and rank-2 cover terminal
+- `efd35e99d91c` — 2026-09-30T08:03:35+03:00 — R5 E9: add exact checker for F3 critical exponent rank-2 cover terminal
+- `d2e147d6f925` — 2026-09-30T08:03:43+03:00 — R5 E9: add CI for F3 critical exponent rank-2 cover terminal
+- `837a387b3dae` — 2026-10-01T06:58:51+03:00 — E9: prove exact Paley19 minimum AF3 cover rank six
 
 ## Transport / stale-bootstrap watch
 
@@ -192,6 +192,12 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 
 ## Recent non-cache commits
 
+- `837a387b3dae` — 2026-10-01T06:58:51+03:00 — E9: prove exact Paley19 minimum AF3 cover rank six
+- `d2e147d6f925` — 2026-09-30T08:03:43+03:00 — R5 E9: add CI for F3 critical exponent rank-2 cover terminal
+- `efd35e99d91c` — 2026-09-30T08:03:35+03:00 — R5 E9: add exact checker for F3 critical exponent rank-2 cover terminal
+- `23fcf5f92ee8` — 2026-09-30T08:02:24+03:00 — R5 E9: add affine F3 critical-exponent and rank-2 cover terminal
+- `27525c9144e2` — 2026-09-30T08:01:23+03:00 — R5 E9: add CI for directed-triangle completion barrier
+- `7ac2a5ba39bc` — 2026-09-30T08:01:10+03:00 — R5 E9: add exact directed-triangle completion regression
 - `4b48016fc803` — 2026-09-30T08:00:51+03:00 — R5 E9: prove directed-triangle fourth-point completion barrier
 - `edf2d8691d31` — 2026-09-30T07:48:19+03:00 — R5 E9: add CI for mod-3 model-count barrier
 - `8c6b2ac8e247` — 2026-09-30T07:48:11+03:00 — R5 E9: add exact checker for mod-3 model-count barrier
@@ -211,12 +217,6 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `ae8a3aa4fbea` — 2026-09-30T06:42:40+03:00 — R5 E9: add CI for PG15 support-width barrier
 - `f79856cc267f` — 2026-09-30T06:42:30+03:00 — R5 E9: add exact PG15 support-width checker
 - `0f0dd2919f0d` — 2026-09-30T06:42:10+03:00 — R5 E9: prove PG15 augmented ternary support-width barrier
-- `4d870d06310a` — 2026-09-30T06:37:09+03:00 — R5 E9: prove one-zero bipartite complement-graph polynomial terminal
-- `65e7e4a33664` — 2026-09-30T06:34:19+03:00 — R5 E9: add CI for one-zero exact augmentation theorem
-- `88e671194b0c` — 2026-09-30T06:34:10+03:00 — R5 E9: add one-zero exact augmentation regression
-- `60877843fca4` — 2026-09-30T06:33:28+03:00 — R5 E9: prove exact one-zero minus-two augmentation criterion
-- `c4ed01ca7ae8` — 2026-09-30T06:33:16+03:00 — R5 E9: add CI for AF3 normal-excess dual router
-- `bf08e87be017` — 2026-09-30T06:32:21+03:00 — R5 E9: add exact AF3 normal-excess router regression
 
 ## Resume protocol
 
