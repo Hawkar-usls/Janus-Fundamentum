@@ -1,0 +1,50 @@
+{
+  "artifact_id": "JANUS-TRUMP-E8-C4-ALTERNATE-PATH-DECOMPOSITION-CONSTANT-WIDTH-CONTROL-2026-10-01-v8.6.1",
+  "version": "v8.6.1",
+  "date_local": "2026-10-01",
+  "status": "EXACT_POSITIVE_CONTROL__PATHWIDTH_AT_MOST_11__CI_PENDING__NO_P_EQUALS_NP_CLAIM",
+  "parent": "research/R5_B1B1C5B2B2_E8_C4_HAMILTONIAN_PREFIX_EXTENSION_EQUIVALENCE_EXPONENTIAL_BARRIER_2026-10-01_v8.6.json",
+  "checker": "research/tools/e8_c4_alternate_path_decomposition_constant_width/checker.py",
+  "purpose": "Prevent overclaim from v8.5.9/v8.6. The explicit smooth-C4 witness family has exponentially many exact extension types along the supplied Hamiltonian prefix order, but it also admits an explicit constant-width alternate path decomposition. Therefore the exponential prefix-state barrier is genuinely order-specific and is not a graph-global treewidth/pathwidth lower bound.",
+  "source_family": {
+    "graph": "Use the same G_m as v8.5.9/v8.6: V={(r,i): r in Z_4, 0<=i<m}; supplied Hamiltonian order consists of four consecutive rows; each column i has complementary C4_i.",
+    "parameter": "m>=3 (the decomposition itself does not require m odd)",
+    "column": "C_i={(0,i),(1,i),(2,i),(3,i)}"
+  },
+  "path_decomposition": {
+    "bags": "For i=0,...,m-2 let B_i = C_0 union C_i union C_{i+1}.",
+    "bag_sizes": "B_0 has 8 vertices; every later bag has at most 12 vertices. Hence width=max_i |B_i|-1 <=11.",
+    "edge_coverage": [
+      "Every horizontal Hamiltonian edge (r,i)-(r,i+1) is contained in B_i.",
+      "Every complementary C4 edge lies inside one column C_j and therefore appears in a bag containing C_j.",
+      "All four row-connector/wrap Hamiltonian edges between C_{m-1} and C_0 are contained in B_{m-2}, which contains both columns."
+    ],
+    "running_intersection": [
+      "Every vertex of C_0 occurs in every bag, so its bag-index set is an interval.",
+      "For 1<=j<=m-2, every vertex of C_j occurs exactly in B_{j-1} and B_j, two consecutive bags.",
+      "Every vertex of C_{m-1} occurs only in B_{m-2}."
+    ],
+    "theorem": "The displayed bags form a valid path decomposition of G_m of width at most 11 for every m>=3. Consequently pathwidth(G_m)<=11 and treewidth(G_m)<=11."
+  },
+  "algorithmic_consequence": {
+    "positive_control": [
+      "The v8.6 witness family itself is not evidence that all smooth-C4 source graphs have large global decomposition width.",
+      "A standard exact 3-colouring dynamic program on this explicit path decomposition uses only a constant-size bag state space (at most 3^12 raw colour assignments per bag before local pruning), so this particular G_m family is polynomial-time solvable by the alternate decomposition even though the supplied-Hamiltonian prefix order has 2^(n/4-1) extension types.",
+      "Any future lower-bound claim must therefore quantify over decompositions/orders or use a source family whose relevant global width is provably unbounded; one bad order is insufficient."
+    ],
+    "firewall": "This is a positive control for one explicit witness family, not a polynomial algorithm for the full Fleischner-Sabidussi hard source, not a proof that all smooth C4 graphs have bounded width, and not a statement about P versus NP."
+  },
+  "exact_controls": {
+    "checker_scope": "For m in {3,5,7,11,25}, build G_m and the bags exactly; verify graph simplicity and degree 4, complete vertex coverage, every graph edge covered by at least one bag, the running-intersection property for every vertex, and maximum bag size <=12.",
+    "expected": "PATH_DECOMPOSITION_VALID; WIDTH_AT_MOST_11"
+  },
+  "next_target": {
+    "name": "E8_C4_HARD_SOURCE_WIDTH_AND_ALTERNATE_DECOMPOSITION_AUDIT_V8_6_2",
+    "directive": "Move away from the easy witness G_m. Audit the actual smooth fixed-C4 NP-hard source geometry for alternate decompositions. Seek either (a) an explicit source-realizable smooth C4 family with provably growing treewidth/branchwidth and then test whether the v8.6 extension-type construction survives balanced separators, or (b) a structural decomposition theorem yielding a constructive polynomial route. Do not infer unbounded width merely from NP-hardness; produce an explicit family, minor/grid certificate, or exact decomposition argument. Preserve witness reconstruction and all P-vs-NP firewalls."
+  },
+  "scientific_ceiling": {
+    "P_VS_NP": "OPEN",
+    "P_EQUALS_NP_ALGORITHM": "NOT_CONSTRUCTED",
+    "E8_D1": "EMPTY"
+  }
+}
