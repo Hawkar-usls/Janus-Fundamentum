@@ -1,0 +1,78 @@
+{
+  "artifact_id": "JANUS-TRUMP-E8-C4-GLOBAL-F3-CHARACTERISTIC-POLYNOMIAL-COLLAPSE-2026-10-01-v8.5.4",
+  "version": "v8.5.4",
+  "date_local": "2026-10-01",
+  "status": "EXACT_EDGE_STATE_COLLAPSE__CI_PENDING__NO_P_EQUALS_NP_CLAIM",
+  "parent": "research/R5_B1B1C5B2B2_E8_C4_GLOBAL_F3_PARTITION_RANK_STATE_SUM_2026-10-01_v8.5.3.json",
+  "checker": "research/tools/e8_c4_global_f3_characteristic_collapse/checker.py",
+  "purpose": "Analytically eliminate the entire 2^(3m) edge zero/free layer of the v8.5.3 GF(3) rank-state sum for each fixed local transition assignment, leaving an exact 3^m sum of characteristic-polynomial/full-support-code evaluations.",
+  "setup": {
+    "closed_network": "m canonical six-port quotient wires with E=3m physical NEQ splice edges",
+    "local_state": "tau_v in {0,+,-} with weights w(0)=-2 and w(+)=w(-)=3",
+    "A_tau": "The GF(3) row matrix whose rows are all wire current-conservation equations plus VP or VM at each wire selected by nonzero tau_v. Columns are the E oriented splice currents in their actual Hamiltonian exposed-port incidence order.",
+    "M_tau": "The GF(3)-representable column matroid of A_tau."
+  },
+  "edge_subset_elimination": {
+    "v8_5_3_inner_sum": "For fixed tau, sum over zero-edge subsets S subseteq E of (-1)^(E-|S|) * 3^|S| * 3^(E-rank([A_tau; I_S])).",
+    "rank_lemma": "Writing U=E\\S, rank([A_tau; I_S]) = |S| + rank((A_tau)_U). This follows by quotienting the row space by the selected coordinate rows I_S; only the restriction of A_tau to unselected columns U remains.",
+    "simplified_inner_sum": "sum_{U subseteq E} (-1)^|U| * 3^(E-rank((A_tau)_U)).",
+    "characteristic_identity": "For the column matroid M_tau, chi_M_tau(3)=sum_{U subseteq E} (-1)^|U| * 3^(r(M_tau)-r(U)). Therefore the complete edge layer equals 3^(E-r(M_tau))*chi_M_tau(3).",
+    "global_identity": "Z = 3^(-2m) * sum_{tau in {0,+,-}^V} [prod_v w(tau_v)] * 3^(E-r(M_tau)) * chi_M_tau(3).",
+    "explicit_outer_state_count": "3^m instead of 24^m."
+  },
+  "full_support_code_interpretation": {
+    "statement": "For a full-row-rank representation of A_tau, chi_M_tau(3) equals the number of row-space codewords whose every edge coordinate is nonzero.",
+    "equivalent_form": "chi_M_tau(3) = | Row(A_tau) intersection {+1,-1}^E | over GF(3).",
+    "significance": "The residual hard object is now an exact full-support ternary linear-code count tied to the actual Hamiltonian port incidence, not a generic transition-matroid isomorphism invariant."
+  },
+  "exact_two_wire_control": {
+    "closures": 720,
+    "local_tau_states_per_closure": 9,
+    "method": "For every permutation joining the six exposed ports of two quotient wires, compare direct enumeration over 12^2 wire states with the characteristic-collapse identity. For every one of the nine local tau choices independently verify chi_M_tau(3) by both the subset-rank definition and enumeration of full-support GF(3) row-space codewords.",
+    "direct_count_profile": {
+      "0": 96,
+      "6": 180,
+      "12": 168,
+      "18": 168,
+      "24": 80,
+      "30": 20,
+      "36": 8
+    },
+    "expected_result": "all 720 exact equalities"
+  },
+  "anti_loop": {
+    "v6_8_transition_matroid": "Not a loop. v6.8 kills carriers depending only on full-transition-matroid isomorphism. A_tau keeps actual Hamiltonian port incidence and ordered VP/VM rows, data explicitly outside that invariant.",
+    "v1_9_linear_hash": "Not a loophole around v1.9. The v1.9 barrier forbids dimension-reducing linear zero hashing as an exact feasibility oracle. Here chi_M_tau(3) preserves the exact full-support row-space set/count; replacing it by a lower-dimensional hash or span relaxation would again require a new soundness proof and is not assumed.",
+    "generic_hardness_warning": "An exact characteristic-polynomial identity is not itself an efficient algorithm. Neither generic chi_M(3) evaluation nor the outer 3^m local-state sum is asserted polynomial time."
+  },
+  "algorithmic_consequence": {
+    "gained": [
+      "The entire explicit 2^(3m) edge zero/free state layer is removed algebraically.",
+      "The visible state sum contracts from 24^m rank terms to 3^m Hamiltonian-order-sensitive ternary matroid terms.",
+      "Each residual matroid term has a second exact interpretation as a full-support row-space codeword count, giving a concrete object for the next compression attack."
+    ],
+    "not_gained": [
+      "No polynomial-time evaluator for the family M_tau.",
+      "No polynomial compression of the remaining 3^m local transition assignments.",
+      "No witness-reconstruction procedure from a compressed aggregate.",
+      "No P=NP result."
+    ]
+  },
+  "next_target": {
+    "name": "E8_C4_GF3_COHOMOLOGY_LOCAL_TRANSITION_COMPRESSION_V8_5_5",
+    "directive": "Quotient the selected VP/VM rows by the conservation/cut-space rows and exploit the special Hamiltonian six-port incidence. Determine whether all 3^m local choices can be aggregated through a polynomial number of cohomology or residual-row-space signatures while retaining exact full-support counts. If the number of exact signatures grows exponentially on an explicit smooth-C4 source family, freeze that as the next scoped barrier instead of hiding it inside a transfer table.",
+    "mandatory_gates": [
+      "polynomial number of states/signatures",
+      "polynomial bitlength",
+      "exact nonzero decision equivalence",
+      "Hamiltonian port-order sensitivity",
+      "witness reconstruction",
+      "control against v6.8 balanced-mutation invariance and v1.9 lossy linear hashing"
+    ]
+  },
+  "scientific_ceiling": {
+    "P_VS_NP": "OPEN",
+    "P_EQUALS_NP_ALGORITHM": "NOT_CONSTRUCTED",
+    "E8_D1": "EMPTY"
+  }
+}
