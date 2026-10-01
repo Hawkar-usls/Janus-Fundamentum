@@ -5,16 +5,16 @@
 - **Repository:** `Hawkar-usls/Janus-Fundamentum`
 - **PR:** `#510`
 - **Branch:** `codex/r5-e8-direct-contract-20260921-82493a57`
-- **Live source HEAD:** `c33cedbb457678af96a12e1b988aac983e9bd106`
-- **Source commit time:** `2026-10-01T12:06:55+03:00`
-- **Indexed changed scientific artifacts:** `1085`
+- **Live source HEAD:** `99065fd19a51ba97e22b6518bdb6b5c60ddc56c0`
+- **Source commit time:** `2026-10-01T12:07:43+03:00`
+- **Indexed changed scientific artifacts:** `1087`
 
 ## Continuity status
 
 - Semantic cache: `.janus/P_VS_NP_STREAM_CACHE_CURRENT.json`
 - Semantic source HEAD: `480eed45722312b7b16e4a5d9f3d19149e125892`
 - Relation: **`LIVE_DESCENDS_FROM_SEMANTIC_CACHE`**
-- Commits after semantic checkpoint: `131`
+- Commits after semantic checkpoint: `130`
 
 ## Scientific firewall
 
@@ -82,8 +82,6 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 
 ## Commits newer than semantic checkpoint — MUST INGEST
 
-- `a058e8831115` — 2026-09-30T06:08:52+03:00 — R5 E9: add CI for clique-operator Exact-One noninvariance
-- `634184a16b07` — 2026-09-30T06:12:13+03:00 — R5 E9: close essential AF3 cover-size shortcut
 - `36a7a14f0ea2` — 2026-09-30T06:12:26+03:00 — R5 E9: add exact six-hyperplane essential-cover regression
 - `6ccf5064e4cd` — 2026-09-30T06:19:07+03:00 — R5 E9: prove AF3 projective scaling invariance
 - `ff316dda71a1` — 2026-09-30T06:26:31+03:00 — R5 E9: add AF3 projective scaling regression
@@ -162,6 +160,8 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `40a1c881f2aa` — 2026-10-01T12:02:44+03:00 — E9 Paley5419 add exact order10 Ore-chain checker
 - `871761b51ad4` — 2026-10-01T12:03:03+03:00 — E9 Paley5419 add exact order10 Ore-chain CI
 - `c33cedbb4576` — 2026-10-01T12:06:55+03:00 — E9 Paley87211 add Ore13 character-gain positive control
+- `dbb310a60b26` — 2026-10-01T12:07:25+03:00 — E9 Paley87211 add Ore13 exact checker
+- `99065fd19a51` — 2026-10-01T12:07:43+03:00 — E9 Paley87211 add Ore13 CI
 
 ## Transport / stale-bootstrap watch
 
@@ -192,6 +192,8 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 
 ## Recent non-cache commits
 
+- `99065fd19a51` — 2026-10-01T12:07:43+03:00 — E9 Paley87211 add Ore13 CI
+- `dbb310a60b26` — 2026-10-01T12:07:25+03:00 — E9 Paley87211 add Ore13 exact checker
 - `c33cedbb4576` — 2026-10-01T12:06:55+03:00 — E9 Paley87211 add Ore13 character-gain positive control
 - `871761b51ad4` — 2026-10-01T12:03:03+03:00 — E9 Paley5419 add exact order10 Ore-chain CI
 - `40a1c881f2aa` — 2026-10-01T12:02:44+03:00 — E9 Paley5419 add exact order10 Ore-chain checker
@@ -215,8 +217,6 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `255bbeb2d4eb` — 2026-10-01T07:53:17+03:00 — R5 E9: add Paley5419 diamond macro exact-order-10 workflow
 - `bfd1e66e4498` — 2026-10-01T07:52:38+03:00 — R5 E9: make Paley5419 macro BFS replay tie-break independent
 - `98f4af07860b` — 2026-10-01T07:51:29+03:00 — R5 E9: add Paley5419 diamond macro BFS exact checker
-- `24184aa03c7f` — 2026-10-01T07:50:40+03:00 — R5 E9: close Paley5419 balanced critical order at 10 via diamond macro BFS
-- `c58fca31eb68` — 2026-10-01T07:40:47+03:00 — R5 E9: add Paley331 Moser spindle regression workflow
 
 ## Resume protocol
 
