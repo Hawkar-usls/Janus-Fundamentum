@@ -5,16 +5,16 @@
 - **Repository:** `Hawkar-usls/Janus-Fundamentum`
 - **PR:** `#510`
 - **Branch:** `codex/r5-e8-direct-contract-20260921-82493a57`
-- **Live source HEAD:** `114f3b23da7a60dd141919834e5d884f41f0668a`
-- **Source commit time:** `2026-10-01T07:24:48+03:00`
-- **Indexed changed scientific artifacts:** `1051`
+- **Live source HEAD:** `53f97e652e372643ca696bb9aefc871e3731a586`
+- **Source commit time:** `2026-10-01T07:27:05+03:00`
+- **Indexed changed scientific artifacts:** `1054`
 
 ## Continuity status
 
 - Semantic cache: `.janus/P_VS_NP_STREAM_CACHE_CURRENT.json`
 - Semantic source HEAD: `480eed45722312b7b16e4a5d9f3d19149e125892`
 - Relation: **`LIVE_DESCENDS_FROM_SEMANTIC_CACHE`**
-- Commits after semantic checkpoint: `126`
+- Commits after semantic checkpoint: `129`
 
 ## Scientific firewall
 
@@ -82,9 +82,6 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 
 ## Commits newer than semantic checkpoint — MUST INGEST
 
-- `dea704682975` — 2026-09-30T04:50:43+03:00 — R5 E9: add CI for line-free proper blocking countercontrol
-- `d78c2eb3689b` — 2026-09-30T05:11:59+03:00 — R5 E9: prove infinite AF3 PCQ-fixed line-free UNSAT 2-lift family
-- `327b42fb9e63` — 2026-09-30T05:13:13+03:00 — R5 E9: add exact checker for AF3 PCQ-fixed line-free 2-lift family
 - `80107908fe4c` — 2026-09-30T05:13:22+03:00 — R5 E9: add CI for AF3 PCQ-fixed line-free 2-lift family
 - `58da760a67ad` — 2026-09-30T05:14:44+03:00 — R5 E9: add affine F3 parallel-saturation quotient
 - `fc02013a5738` — 2026-09-30T05:15:25+03:00 — R5 E9: add exact F3 parallel-saturation regression
@@ -162,6 +159,9 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `e13752d7795c` — 2026-10-01T07:04:20+03:00 — E9: add Paley AF3 character-split K4 falsifier checker
 - `ae9cdd4256be` — 2026-10-01T07:06:51+03:00 — E9: add CI for Paley AF3 character split and K4 falsifier
 - `114f3b23da7a` — 2026-10-01T07:24:48+03:00 — E9: prove exact F3 constant-gradient kernel for Paley orbit family
+- `b61bf4ce2051` — 2026-10-01T07:25:19+03:00 — E9: add exact F3 kernel replay for Paley orbit family
+- `2d2d8aa73100` — 2026-10-01T07:25:35+03:00 — E9: add CI for exact F3 Paley orbit kernel theorem
+- `53f97e652e37` — 2026-10-01T07:27:05+03:00 — E9: establish Paley331 Moser balanced critical cover
 
 ## Transport / stale-bootstrap watch
 
@@ -192,6 +192,9 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 
 ## Recent non-cache commits
 
+- `53f97e652e37` — 2026-10-01T07:27:05+03:00 — E9: establish Paley331 Moser balanced critical cover
+- `2d2d8aa73100` — 2026-10-01T07:25:35+03:00 — E9: add CI for exact F3 Paley orbit kernel theorem
+- `b61bf4ce2051` — 2026-10-01T07:25:19+03:00 — E9: add exact F3 kernel replay for Paley orbit family
 - `114f3b23da7a` — 2026-10-01T07:24:48+03:00 — E9: prove exact F3 constant-gradient kernel for Paley orbit family
 - `ae9cdd4256be` — 2026-10-01T07:06:51+03:00 — E9: add CI for Paley AF3 character split and K4 falsifier
 - `e13752d7795c` — 2026-10-01T07:04:20+03:00 — E9: add Paley AF3 character-split K4 falsifier checker
@@ -214,9 +217,6 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `5638c04d0318` — 2026-09-30T07:00:28+03:00 — R5 E9: add CI for affine F3 rank-2 cover router
 - `33007d906421` — 2026-09-30T07:00:16+03:00 — R5 E9: add exact checker for affine F3 rank-2 cover router
 - `aac63f73af05` — 2026-09-30T06:59:20+03:00 — R5 E9: add affine F3 rank-2 quotient cover UNSAT router
-- `b2fe277a4e0a` — 2026-09-30T06:50:32+03:00 — R5 E9: add CI for F3 parallel-triple UNSAT terminal
-- `7967fa6f7d24` — 2026-09-30T06:50:23+03:00 — R5 E9: add exact checker for F3 parallel-triple terminal
-- `11a14d62c08a` — 2026-09-30T06:49:43+03:00 — R5 E9: add affine F3 parallel-triple UNSAT terminal
 
 ## Resume protocol
 
