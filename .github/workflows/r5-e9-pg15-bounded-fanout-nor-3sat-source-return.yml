@@ -1,0 +1,32 @@
+name: R5 E9 PG15 bounded-fanout NOR 3SAT source return
+
+on:
+  push:
+    branches:
+      - codex/r5-e8-direct-contract-20260921-82493a57
+    paths:
+      - 'research/R5_E9_PG15_BOUNDED_FANOUT_NOR_3SAT_SOURCE_RETURN_2026-10-01_v1.0.md'
+      - 'experiments/r5_e9_pg15_bounded_fanout_nor_3sat_source_return.py'
+      - '.github/workflows/r5-e9-pg15-bounded-fanout-nor-3sat-source-return.yml'
+  pull_request:
+    paths:
+      - 'research/R5_E9_PG15_BOUNDED_FANOUT_NOR_3SAT_SOURCE_RETURN_2026-10-01_v1.0.md'
+      - 'experiments/r5_e9_pg15_bounded_fanout_nor_3sat_source_return.py'
+      - '.github/workflows/r5-e9-pg15-bounded-fanout-nor-3sat-source-return.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  exact-replay:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Compile checker
+        run: python -m py_compile experiments/r5_e9_pg15_bounded_fanout_nor_3sat_source_return.py
+      - name: Replay bounded-fanout compiler and exact semantics
+        run: python experiments/r5_e9_pg15_bounded_fanout_nor_3sat_source_return.py
