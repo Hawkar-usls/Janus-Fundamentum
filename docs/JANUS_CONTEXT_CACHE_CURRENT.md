@@ -5,9 +5,9 @@
 - **Repository:** `Hawkar-usls/Janus-Fundamentum`
 - **PR:** `#510`
 - **Branch:** `codex/r5-e8-direct-contract-20260921-82493a57`
-- **Live source HEAD:** `870d6af2aaca6934c237338cf37b3dba50b857c2`
-- **Source commit time:** `2026-10-01T10:55:03+03:00`
-- **Indexed changed scientific artifacts:** `1078`
+- **Live source HEAD:** `123c930b068db8491bd26aac09d928e0027d5ad7`
+- **Source commit time:** `2026-10-01T11:57:08+03:00`
+- **Indexed changed scientific artifacts:** `1079`
 
 ## Continuity status
 
@@ -82,7 +82,6 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 
 ## Commits newer than semantic checkpoint — MUST INGEST
 
-- `11cf454019a4` — 2026-09-30T05:59:40+03:00 — R5 E9: add CI for F3 four-hyperplane cover barrier
 - `98ef041af307` — 2026-09-30T06:02:02+03:00 — R5 E9: prove global AF3 APSQ factorization of EQ3 regularizer
 - `260408147852` — 2026-09-30T06:02:43+03:00 — R5 E9: add exact global AF3 EQ3 APSQ factorization regression
 - `b70f974bb002` — 2026-09-30T06:02:52+03:00 — R5 E9: add CI for global AF3 EQ3 APSQ factorization
@@ -162,6 +161,7 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `c2b1088e7cf0` — 2026-10-01T10:52:11+03:00 — R5 E9 add exact PG15 NOR source composition checker
 - `e11e3afdc0d2` — 2026-10-01T10:54:17+03:00 — R5 E9 prove PG15 fixed-port NOR source composition
 - `870d6af2aaca` — 2026-10-01T10:55:03+03:00 — R5 E9 add PG15 NOR source composition CI
+- `123c930b068d` — 2026-10-01T11:57:08+03:00 — R5 E9 close PG15 bounded-fanout NOR 3SAT source return
 
 ## Transport / stale-bootstrap watch
 
@@ -192,6 +192,7 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 
 ## Recent non-cache commits
 
+- `123c930b068d` — 2026-10-01T11:57:08+03:00 — R5 E9 close PG15 bounded-fanout NOR 3SAT source return
 - `870d6af2aaca` — 2026-10-01T10:55:03+03:00 — R5 E9 add PG15 NOR source composition CI
 - `e11e3afdc0d2` — 2026-10-01T10:54:17+03:00 — R5 E9 prove PG15 fixed-port NOR source composition
 - `c2b1088e7cf0` — 2026-10-01T10:52:11+03:00 — R5 E9 add exact PG15 NOR source composition checker
@@ -216,7 +217,6 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `dd98a87b5beb` — 2026-10-01T07:39:07+03:00 — E9: freeze Paley5419 balanced critical order greater than nine
 - `11ca64af79df` — 2026-10-01T07:39:02+03:00 — R5 E9: add Paley331 character Moser spindle gain cover
 - `0aac579d4d97` — 2026-10-01T07:32:41+03:00 — E9: add CI for Paley331 Moser critical cover
-- `87eea22f1c18` — 2026-10-01T07:32:21+03:00 — E9: add exact Paley331 Moser critical-cover checker
 
 ## Resume protocol
 
