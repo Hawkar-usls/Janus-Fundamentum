@@ -5,16 +5,16 @@
 - **Repository:** `Hawkar-usls/Janus-Fundamentum`
 - **PR:** `#510`
 - **Branch:** `codex/r5-e8-direct-contract-20260921-82493a57`
-- **Live source HEAD:** `87eea22f1c18f3fe56d00162b50a1d5e95a23c4b`
-- **Source commit time:** `2026-10-01T07:32:21+03:00`
-- **Indexed changed scientific artifacts:** `1055`
+- **Live source HEAD:** `0aac579d4d97a17a3e0a8bf85ceeee4cd069bcfe`
+- **Source commit time:** `2026-10-01T07:32:41+03:00`
+- **Indexed changed scientific artifacts:** `1056`
 
 ## Continuity status
 
 - Semantic cache: `.janus/P_VS_NP_STREAM_CACHE_CURRENT.json`
 - Semantic source HEAD: `480eed45722312b7b16e4a5d9f3d19149e125892`
 - Relation: **`LIVE_DESCENDS_FROM_SEMANTIC_CACHE`**
-- Commits after semantic checkpoint: `130`
+- Commits after semantic checkpoint: `131`
 
 ## Scientific firewall
 
@@ -82,7 +82,6 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 
 ## Commits newer than semantic checkpoint — MUST INGEST
 
-- `58da760a67ad` — 2026-09-30T05:14:44+03:00 — R5 E9: add affine F3 parallel-saturation quotient
 - `fc02013a5738` — 2026-09-30T05:15:25+03:00 — R5 E9: add exact F3 parallel-saturation regression
 - `50dba3f20081` — 2026-09-30T05:15:36+03:00 — R5 E9: add CI for affine F3 parallel saturation quotient
 - `a578d7cc3da9` — 2026-09-30T05:18:40+03:00 — R5 E9: add two-edge-twist exact contraction recognition router
@@ -162,6 +161,7 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `2d2d8aa73100` — 2026-10-01T07:25:35+03:00 — E9: add CI for exact F3 Paley orbit kernel theorem
 - `53f97e652e37` — 2026-10-01T07:27:05+03:00 — E9: establish Paley331 Moser balanced critical cover
 - `87eea22f1c18` — 2026-10-01T07:32:21+03:00 — E9: add exact Paley331 Moser critical-cover checker
+- `0aac579d4d97` — 2026-10-01T07:32:41+03:00 — E9: add CI for Paley331 Moser critical cover
 
 ## Transport / stale-bootstrap watch
 
@@ -192,6 +192,7 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 
 ## Recent non-cache commits
 
+- `0aac579d4d97` — 2026-10-01T07:32:41+03:00 — E9: add CI for Paley331 Moser critical cover
 - `87eea22f1c18` — 2026-10-01T07:32:21+03:00 — E9: add exact Paley331 Moser critical-cover checker
 - `53f97e652e37` — 2026-10-01T07:27:05+03:00 — E9: establish Paley331 Moser balanced critical cover
 - `2d2d8aa73100` — 2026-10-01T07:25:35+03:00 — E9: add CI for exact F3 Paley orbit kernel theorem
@@ -216,7 +217,6 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `d5097828bfea` — 2026-09-30T07:13:35+03:00 — R5 E9: add exact Paley19 rank-2 cover falsifier checker
 - `8a6e8c0dee0b` — 2026-09-30T07:12:44+03:00 — R5 E9: falsify rank-2 F3 cover completeness with Paley19
 - `5638c04d0318` — 2026-09-30T07:00:28+03:00 — R5 E9: add CI for affine F3 rank-2 cover router
-- `33007d906421` — 2026-09-30T07:00:16+03:00 — R5 E9: add exact checker for affine F3 rank-2 cover router
 
 ## Resume protocol
 
