@@ -5,9 +5,9 @@
 - **Repository:** `Hawkar-usls/Janus-Fundamentum`
 - **PR:** `#510`
 - **Branch:** `codex/r5-e8-direct-contract-20260921-82493a57`
-- **Live source HEAD:** `c51afc720a02c58412e5b4172ea2b106814a9983`
-- **Source commit time:** `2026-10-01T08:01:06+03:00`
-- **Indexed changed scientific artifacts:** `1068`
+- **Live source HEAD:** `3d54f7baea923048340145ef6d5a7d8daf06b189`
+- **Source commit time:** `2026-10-01T08:06:58+03:00`
+- **Indexed changed scientific artifacts:** `1069`
 
 ## Continuity status
 
@@ -82,7 +82,6 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 
 ## Commits newer than semantic checkpoint — MUST INGEST
 
-- `42d520841356` — 2026-09-30T05:32:47+03:00 — R5 E9: add CI for AF3 APSQ EQ3 local source return
 - `1905caed5bb1` — 2026-09-30T05:35:37+03:00 — R5 E9: add AF3 residual normal-codimension DP router
 - `698011e9cb79` — 2026-09-30T05:40:26+03:00 — R5 E9: prove Paley AF3 linear-excess barrier
 - `1e2b2ab72842` — 2026-09-30T05:42:43+03:00 — R5 E9: add exact residual-normal codimension DP regression
@@ -162,6 +161,7 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `6d2e3570b540` — 2026-10-01T07:59:22+03:00 — R5 E9: close Paley-orbit AF3 gain-cover frontier by canonical diamond cycle
 - `4eb0d6c8e4e9` — 2026-10-01T08:00:22+03:00 — R5 E9: add Paley-orbit canonical diamond AF3 family regression
 - `c51afc720a02` — 2026-10-01T08:01:06+03:00 — R5 E9: add Paley-orbit canonical diamond AF3 family workflow
+- `3d54f7baea92` — 2026-10-01T08:06:58+03:00 — R5 E9: add PG15 AF3 implication threshold-8 and NOR return
 
 ## Transport / stale-bootstrap watch
 
@@ -192,6 +192,7 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 
 ## Recent non-cache commits
 
+- `3d54f7baea92` — 2026-10-01T08:06:58+03:00 — R5 E9: add PG15 AF3 implication threshold-8 and NOR return
 - `c51afc720a02` — 2026-10-01T08:01:06+03:00 — R5 E9: add Paley-orbit canonical diamond AF3 family workflow
 - `4eb0d6c8e4e9` — 2026-10-01T08:00:22+03:00 — R5 E9: add Paley-orbit canonical diamond AF3 family regression
 - `6d2e3570b540` — 2026-10-01T07:59:22+03:00 — R5 E9: close Paley-orbit AF3 gain-cover frontier by canonical diamond cycle
@@ -216,7 +217,6 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `edb94e17fe13` — 2026-10-01T07:03:52+03:00 — E9: split Paley AF3 branch and falsify universal gain-K4 motif
 - `4985556dfc2e` — 2026-10-01T06:59:52+03:00 — E9: add CI for Paley19 exact minimum cover rank six
 - `191d1f263b75` — 2026-10-01T06:59:38+03:00 — E9: add independent Paley19 rank-six exhaustive checker
-- `837a387b3dae` — 2026-10-01T06:58:51+03:00 — E9: prove exact Paley19 minimum AF3 cover rank six
 
 ## Resume protocol
 
