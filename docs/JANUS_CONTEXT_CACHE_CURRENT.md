@@ -5,16 +5,16 @@
 - **Repository:** `Hawkar-usls/Janus-Fundamentum`
 - **PR:** `#510`
 - **Branch:** `codex/r5-e8-direct-contract-20260921-82493a57`
-- **Live source HEAD:** `255bbeb2d4ebd56b08d78765016a27fb728c1883`
-- **Source commit time:** `2026-10-01T07:53:17+03:00`
-- **Indexed changed scientific artifacts:** `1065`
+- **Live source HEAD:** `6d2e3570b540b8af1a7bd0d415e9b620e3f8c106`
+- **Source commit time:** `2026-10-01T07:59:22+03:00`
+- **Indexed changed scientific artifacts:** `1066`
 
 ## Continuity status
 
 - Semantic cache: `.janus/P_VS_NP_STREAM_CACHE_CURRENT.json`
 - Semantic source HEAD: `480eed45722312b7b16e4a5d9f3d19149e125892`
 - Relation: **`LIVE_DESCENDS_FROM_SEMANTIC_CACHE`**
-- Commits after semantic checkpoint: `135`
+- Commits after semantic checkpoint: `134`
 
 ## Scientific firewall
 
@@ -82,7 +82,6 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 
 ## Commits newer than semantic checkpoint — MUST INGEST
 
-- `b694e147e696` — 2026-09-30T05:27:25+03:00 — R5 E9: add CI for persistent F3 UNSAT certificate
 - `b53c23ebf36c` — 2026-09-30T05:32:06+03:00 — R5 E9: add AF3 APSQ EQ3 local source-return barrier
 - `3a60af0631c7` — 2026-09-30T05:32:40+03:00 — R5 E9: add exact AF3 APSQ EQ3 source-return regression
 - `42d520841356` — 2026-09-30T05:32:47+03:00 — R5 E9: add CI for AF3 APSQ EQ3 local source return
@@ -162,6 +161,7 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `98f4af07860b` — 2026-10-01T07:51:29+03:00 — R5 E9: add Paley5419 diamond macro BFS exact checker
 - `bfd1e66e4498` — 2026-10-01T07:52:38+03:00 — R5 E9: make Paley5419 macro BFS replay tie-break independent
 - `255bbeb2d4eb` — 2026-10-01T07:53:17+03:00 — R5 E9: add Paley5419 diamond macro exact-order-10 workflow
+- `6d2e3570b540` — 2026-10-01T07:59:22+03:00 — R5 E9: close Paley-orbit AF3 gain-cover frontier by canonical diamond cycle
 
 ## Transport / stale-bootstrap watch
 
@@ -192,6 +192,7 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 
 ## Recent non-cache commits
 
+- `6d2e3570b540` — 2026-10-01T07:59:22+03:00 — R5 E9: close Paley-orbit AF3 gain-cover frontier by canonical diamond cycle
 - `255bbeb2d4eb` — 2026-10-01T07:53:17+03:00 — R5 E9: add Paley5419 diamond macro exact-order-10 workflow
 - `bfd1e66e4498` — 2026-10-01T07:52:38+03:00 — R5 E9: make Paley5419 macro BFS replay tie-break independent
 - `98f4af07860b` — 2026-10-01T07:51:29+03:00 — R5 E9: add Paley5419 diamond macro BFS exact checker
@@ -216,7 +217,6 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `837a387b3dae` — 2026-10-01T06:58:51+03:00 — E9: prove exact Paley19 minimum AF3 cover rank six
 - `d2e147d6f925` — 2026-09-30T08:03:43+03:00 — R5 E9: add CI for F3 critical exponent rank-2 cover terminal
 - `efd35e99d91c` — 2026-09-30T08:03:35+03:00 — R5 E9: add exact checker for F3 critical exponent rank-2 cover terminal
-- `23fcf5f92ee8` — 2026-09-30T08:02:24+03:00 — R5 E9: add affine F3 critical-exponent and rank-2 cover terminal
 
 ## Resume protocol
 
