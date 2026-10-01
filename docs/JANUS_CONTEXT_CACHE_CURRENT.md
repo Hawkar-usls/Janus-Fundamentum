@@ -5,16 +5,16 @@
 - **Repository:** `Hawkar-usls/Janus-Fundamentum`
 - **PR:** `#510`
 - **Branch:** `codex/r5-e8-direct-contract-20260921-82493a57`
-- **Live source HEAD:** `edb94e17fe1303f78f3c097495588bd6822c4e32`
-- **Source commit time:** `2026-10-01T07:03:52+03:00`
-- **Indexed changed scientific artifacts:** `1048`
+- **Live source HEAD:** `e13752d7795cfc3fb637d4e0caab008002711f40`
+- **Source commit time:** `2026-10-01T07:04:20+03:00`
+- **Indexed changed scientific artifacts:** `1049`
 
 ## Continuity status
 
 - Semantic cache: `.janus/P_VS_NP_STREAM_CACHE_CURRENT.json`
 - Semantic source HEAD: `480eed45722312b7b16e4a5d9f3d19149e125892`
 - Relation: **`LIVE_DESCENDS_FROM_SEMANTIC_CACHE`**
-- Commits after semantic checkpoint: `123`
+- Commits after semantic checkpoint: `124`
 
 ## Scientific firewall
 
@@ -82,7 +82,6 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 
 ## Commits newer than semantic checkpoint — MUST INGEST
 
-- `85716a950963` — 2026-09-30T04:30:38+03:00 — R5 E9: add CI for affine F3 parallel-class quotient
 - `7bc65a9348cc` — 2026-09-30T04:49:49+03:00 — R5 E9: add line-free proper blocking source countercontrol
 - `b8a5ccfd7925` — 2026-09-30T04:50:33+03:00 — R5 E9: add exact line-free proper blocking countercontrol
 - `dea704682975` — 2026-09-30T04:50:43+03:00 — R5 E9: add CI for line-free proper blocking countercontrol
@@ -162,6 +161,7 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `191d1f263b75` — 2026-10-01T06:59:38+03:00 — E9: add independent Paley19 rank-six exhaustive checker
 - `4985556dfc2e` — 2026-10-01T06:59:52+03:00 — E9: add CI for Paley19 exact minimum cover rank six
 - `edb94e17fe13` — 2026-10-01T07:03:52+03:00 — E9: split Paley AF3 branch and falsify universal gain-K4 motif
+- `e13752d7795c` — 2026-10-01T07:04:20+03:00 — E9: add Paley AF3 character-split K4 falsifier checker
 
 ## Transport / stale-bootstrap watch
 
@@ -192,6 +192,7 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 
 ## Recent non-cache commits
 
+- `e13752d7795c` — 2026-10-01T07:04:20+03:00 — E9: add Paley AF3 character-split K4 falsifier checker
 - `edb94e17fe13` — 2026-10-01T07:03:52+03:00 — E9: split Paley AF3 branch and falsify universal gain-K4 motif
 - `4985556dfc2e` — 2026-10-01T06:59:52+03:00 — E9: add CI for Paley19 exact minimum cover rank six
 - `191d1f263b75` — 2026-10-01T06:59:38+03:00 — E9: add independent Paley19 rank-six exhaustive checker
@@ -216,7 +217,6 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `11a14d62c08a` — 2026-09-30T06:49:43+03:00 — R5 E9: add affine F3 parallel-triple UNSAT terminal
 - `0bbb0deabad3` — 2026-09-30T06:47:49+03:00 — R5 E9: regression-test syndrome-rank compressed AF3 router
 - `936d74edb2d1` — 2026-09-30T06:46:57+03:00 — R5 E9: compress AF3 dual router to syndrome-image rank
-- `e6410f147212` — 2026-09-30T06:45:20+03:00 — R5 E9: correct AF3 normal-excess projective invariance
 
 ## Resume protocol
 
