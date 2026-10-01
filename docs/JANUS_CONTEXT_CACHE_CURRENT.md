@@ -5,16 +5,16 @@
 - **Repository:** `Hawkar-usls/Janus-Fundamentum`
 - **PR:** `#510`
 - **Branch:** `codex/r5-e8-direct-contract-20260921-82493a57`
-- **Live source HEAD:** `d54ca11588705672946a4c7a58a6496616a27bb8`
-- **Source commit time:** `2026-10-01T11:59:17+03:00`
-- **Indexed changed scientific artifacts:** `1080`
+- **Live source HEAD:** `dd27543e9536de7ff875fd15ce69e6842134243a`
+- **Source commit time:** `2026-10-01T11:59:41+03:00`
+- **Indexed changed scientific artifacts:** `1081`
 
 ## Continuity status
 
 - Semantic cache: `.janus/P_VS_NP_STREAM_CACHE_CURRENT.json`
 - Semantic source HEAD: `480eed45722312b7b16e4a5d9f3d19149e125892`
 - Relation: **`LIVE_DESCENDS_FROM_SEMANTIC_CACHE`**
-- Commits after semantic checkpoint: `132`
+- Commits after semantic checkpoint: `131`
 
 ## Scientific firewall
 
@@ -82,7 +82,6 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 
 ## Commits newer than semantic checkpoint — MUST INGEST
 
-- `260408147852` — 2026-09-30T06:02:43+03:00 — R5 E9: add exact global AF3 EQ3 APSQ factorization regression
 - `b70f974bb002` — 2026-09-30T06:02:52+03:00 — R5 E9: add CI for global AF3 EQ3 APSQ factorization
 - `601fa603eafa` — 2026-09-30T06:04:12+03:00 — R5 E9: reconcile AF3 with infinite linear-dimension UNSAT cover family
 - `f9050ef24336` — 2026-09-30T06:08:19+03:00 — R5 E9: add locally-3K2 clique-operator Exact-One countercontrol
@@ -162,6 +161,7 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `870d6af2aaca` — 2026-10-01T10:55:03+03:00 — R5 E9 add PG15 NOR source composition CI
 - `123c930b068d` — 2026-10-01T11:57:08+03:00 — R5 E9 close PG15 bounded-fanout NOR 3SAT source return
 - `d54ca1158870` — 2026-10-01T11:59:17+03:00 — R5 E9 add PG15 bounded-fanout NOR 3SAT compiler replay
+- `dd27543e9536` — 2026-10-01T11:59:41+03:00 — R5 E9 add PG15 bounded-fanout NOR 3SAT CI
 
 ## Transport / stale-bootstrap watch
 
@@ -192,6 +192,7 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 
 ## Recent non-cache commits
 
+- `dd27543e9536` — 2026-10-01T11:59:41+03:00 — R5 E9 add PG15 bounded-fanout NOR 3SAT CI
 - `d54ca1158870` — 2026-10-01T11:59:17+03:00 — R5 E9 add PG15 bounded-fanout NOR 3SAT compiler replay
 - `123c930b068d` — 2026-10-01T11:57:08+03:00 — R5 E9 close PG15 bounded-fanout NOR 3SAT source return
 - `870d6af2aaca` — 2026-10-01T10:55:03+03:00 — R5 E9 add PG15 NOR source composition CI
@@ -216,7 +217,6 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `e40e58fee570` — 2026-10-01T07:40:15+03:00 — E9: add CI for Paley5419 critical-order falsifier
 - `78d6881000b7` — 2026-10-01T07:39:58+03:00 — E9: add exact Paley5419 critical-catalog falsifier checker
 - `dd98a87b5beb` — 2026-10-01T07:39:07+03:00 — E9: freeze Paley5419 balanced critical order greater than nine
-- `11ca64af79df` — 2026-10-01T07:39:02+03:00 — R5 E9: add Paley331 character Moser spindle gain cover
 
 ## Resume protocol
 
