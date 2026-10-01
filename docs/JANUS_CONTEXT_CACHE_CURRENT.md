@@ -5,16 +5,16 @@
 - **Repository:** `Hawkar-usls/Janus-Fundamentum`
 - **PR:** `#510`
 - **Branch:** `codex/r5-e8-direct-contract-20260921-82493a57`
-- **Live source HEAD:** `8117e9ab90aee7bac632980c3ffd1b9d5053fb0a`
-- **Source commit time:** `2026-10-01T08:09:49+03:00`
-- **Indexed changed scientific artifacts:** `1072`
+- **Live source HEAD:** `493cf8a8a270daa358931025abe43bc9051e3e29`
+- **Source commit time:** `2026-10-01T08:32:22+03:00`
+- **Indexed changed scientific artifacts:** `1073`
 
 ## Continuity status
 
 - Semantic cache: `.janus/P_VS_NP_STREAM_CACHE_CURRENT.json`
 - Semantic source HEAD: `480eed45722312b7b16e4a5d9f3d19149e125892`
 - Relation: **`LIVE_DESCENDS_FROM_SEMANTIC_CACHE`**
-- Commits after semantic checkpoint: `134`
+- Commits after semantic checkpoint: `133`
 
 ## Scientific firewall
 
@@ -82,7 +82,6 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 
 ## Commits newer than semantic checkpoint — MUST INGEST
 
-- `1df439744bbb` — 2026-09-30T05:42:55+03:00 — R5 E9: add CI for AF3 residual-normal codimension DP router
 - `a8b3b9a6389d` — 2026-09-30T05:56:34+03:00 — R5 E9: prove AF3 RNCDP inert source-return identity
 - `888a360afec7` — 2026-09-30T05:57:25+03:00 — R5 E9: add exact AF3 RNCDP inert source-return regression
 - `38c840ea467c` — 2026-09-30T05:57:34+03:00 — R5 E9: add CI for AF3 RNCDP inert source return
@@ -162,6 +161,7 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `cf30c1eea7ae` — 2026-10-01T08:07:37+03:00 — R5 E9 freeze PG15 minimal 8-macro affine pin and NOR return
 - `9a3a4ec9424e` — 2026-10-01T08:08:19+03:00 — R5 E9 add PG15 minimal 8-macro NOR checker
 - `8117e9ab90ae` — 2026-10-01T08:09:49+03:00 — R5 E9 add PG15 minimal 8-macro NOR CI
+- `493cf8a8a270` — 2026-10-01T08:32:22+03:00 — R5 E9: falsify submodular orthant-cost shortcut
 
 ## Transport / stale-bootstrap watch
 
@@ -192,6 +192,7 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 
 ## Recent non-cache commits
 
+- `493cf8a8a270` — 2026-10-01T08:32:22+03:00 — R5 E9: falsify submodular orthant-cost shortcut
 - `8117e9ab90ae` — 2026-10-01T08:09:49+03:00 — R5 E9 add PG15 minimal 8-macro NOR CI
 - `9a3a4ec9424e` — 2026-10-01T08:08:19+03:00 — R5 E9 add PG15 minimal 8-macro NOR checker
 - `cf30c1eea7ae` — 2026-10-01T08:07:37+03:00 — R5 E9 freeze PG15 minimal 8-macro affine pin and NOR return
@@ -216,7 +217,6 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `b61bf4ce2051` — 2026-10-01T07:25:19+03:00 — E9: add exact F3 kernel replay for Paley orbit family
 - `114f3b23da7a` — 2026-10-01T07:24:48+03:00 — E9: prove exact F3 constant-gradient kernel for Paley orbit family
 - `ae9cdd4256be` — 2026-10-01T07:06:51+03:00 — E9: add CI for Paley AF3 character split and K4 falsifier
-- `e13752d7795c` — 2026-10-01T07:04:20+03:00 — E9: add Paley AF3 character-split K4 falsifier checker
 
 ## Resume protocol
 
