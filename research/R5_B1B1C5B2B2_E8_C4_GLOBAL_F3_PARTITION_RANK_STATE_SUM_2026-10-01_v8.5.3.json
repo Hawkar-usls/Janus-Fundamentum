@@ -1,0 +1,74 @@
+{
+  "artifact_id": "JANUS-TRUMP-E8-C4-GLOBAL-F3-PARTITION-RANK-STATE-SUM-2026-10-01-v8.5.3",
+  "version": "v8.5.3",
+  "date_local": "2026-10-01",
+  "status": "EXACT_RANK_STATE_NORMAL_FORM__CI_PENDING__NO_P_EQUALS_NP_CLAIM",
+  "parent": "research/R5_B1B1C5B2B2_E8_C4_EXPOSED_QUOTIENT_GLOBAL_F3_CURRENT_2026-10-01_v8.5.2.json",
+  "checker": "research/tools/e8_c4_global_f3_rank_state_sum/checker.py",
+  "purpose": "Expand the exact v8.5.2 Fourier-current contraction into a finite rank-generating state sum over GF(3), isolating the remaining exponential object without losing the Hamiltonian exposed-port order.",
+  "starting_identity": {
+    "closed_network": "m canonical six-port quotient wires and 3m physical NEQ splice edges forming a perfect matching of all exposed ports",
+    "current_identity": "Z = 3^(-2m) * sum_{k in K} prod_e h(k_e) * prod_v A_v(k)",
+    "h": "h(t)=3*delta[t=0]-1",
+    "local_wire_factor": "A_v=3*delta[l_{v,+}=0]+3*delta[l_{v,-}=0]-2",
+    "base_constraints": "K is the GF(3) linear subspace defined by one signed current-conservation equation at every wire"
+  },
+  "rank_state_expansion": {
+    "edge_state": "For each splice edge e choose free or zero. The free term contributes coefficient -1; the zero term contributes coefficient 3 and appends the coordinate row k_e=0.",
+    "wire_state": "For each wire v choose one symbol in {0,+,-}. Symbol 0 contributes coefficient -2 and no extra row. Symbol + contributes coefficient 3 and appends l_{v,+}=0. Symbol - contributes coefficient 3 and appends l_{v,-}=0.",
+    "state_count": "2^(3m) * 3^m = 24^m",
+    "matrix": "R(S,tau) consists of all m conservation rows, the coordinate rows for selected zero-edges S, and one local VP/VM row for every nonzero tau_v.",
+    "term_count": "For a state (S,tau), the number of compatible currents is exactly 3^(3m-rank_GF3(R(S,tau))).",
+    "exact_formula": "Z = 3^(-2m) * sum_{S subseteq E} sum_{tau in {0,+,-}^V} (-1)^(3m-|S|) * 3^|S| * [prod_v w(tau_v)] * 3^(3m-rank(R(S,tau))), where w(0)=-2 and w(+)=w(-)=3."
+  },
+  "structural_interpretation": {
+    "object": "partition-constrained ternary linear rank-generating state sum",
+    "ground_rows": "optional edge-coordinate rows together with two optional local linear-form rows {l_{v,+},l_{v,-}} per wire, over the fixed conservation row space",
+    "partition_rule": "At each wire at most one of the two local rows may be selected, with a third null state carrying coefficient -2.",
+    "why_not_v6_8_loop": "v6.8 ruled out solvers that factor only through the isomorphism class of the full transition matroid. The present matrix is built from the actual Hamiltonian exposed-port incidence and the ordered VP/VM forms, so it retains data explicitly allowed by the v6.8 not-killed list rather than replacing the graph by its transition-matroid isomorphism class.",
+    "known_context": "Multimatroid/interlace/transition polynomials naturally encode rank or circuit-partition state sums, but identifying this exact weighted ternary specialization does not by itself provide a polynomial-time evaluator."
+  },
+  "exact_two_wire_control": {
+    "closures": 720,
+    "states_per_closure": 576,
+    "total_rank_states_checked": 414720,
+    "method": "For every permutation matching the six exposed ports of wire 1 to the six exposed ports of wire 2, compare direct enumeration of 12^2 quotient assignments against the rank-state expansion using exact GF(3) Gaussian elimination.",
+    "direct_count_profile": {
+      "0": 96,
+      "6": 180,
+      "12": 168,
+      "18": 168,
+      "24": 80,
+      "30": 20,
+      "36": 8
+    },
+    "expected_result": "all 720 exact equalities"
+  },
+  "algorithmic_consequence": {
+    "gained": [
+      "Every exponential current assignment has been eliminated in favor of a rank-generating state sum whose individual terms are polynomial-time Gaussian-rank evaluations.",
+      "The exact remaining source of exponential growth is isolated as the 24^m choice of edge zero/free states and local {0,+,-} transition states.",
+      "The representation remains sensitive to Hamiltonian port order and therefore does not fall under the v6.8 full-transition-matroid invariance barrier."
+    ],
+    "not_gained": [
+      "No polynomial-time evaluation of the full 24^m rank-state sum.",
+      "No polynomial-size witness-reconstruction algorithm from a compressed rank evaluation.",
+      "No P=NP result."
+    ]
+  },
+  "next_target": {
+    "name": "E8_C4_GF3_RANK_STATE_SUM_COMPRESSION_V8_5_4",
+    "directive": "Exploit the special six-port Hamiltonian incidence rather than generic transition-matroid invariants. Attempt an exact deletion-contraction / low-rank-update / transfer compression of the optional coordinate rows and paired VP/VM rows. Mandatory gates: polynomial number of states, polynomial bitlength, exact nonzero decision, source-order sensitivity, witness reconstruction, and a control distinguishing any compression from the v6.8 balanced-mutation-invariant failure mode.",
+    "first_attack": "For fixed edge subset S, contract the conservation+coordinate row span and study the paired local rows as a GF(3)-representable rank polynomial with one-of-three local states. Determine whether the quotient row types remain bounded under elimination on the smooth C4 Hamiltonian source; if the number of distinct residual row-space signatures grows exponentially, freeze that as the next exact barrier."
+  },
+  "scientific_ceiling": {
+    "P_VS_NP": "OPEN",
+    "P_EQUALS_NP_ALGORITHM": "NOT_CONSTRUCTED",
+    "E8_D1": "EMPTY"
+  },
+  "sources": [
+    "Robert Brijder and Hendrik Jan Hoogeboom, Interlace Polynomials for Multimatroids and Delta-Matroids, 2010/2012.",
+    "Robert Brijder, Orienting Transversals and Transition Polynomials of Multimatroids, Advances in Applied Mathematics 94 (2018), 120-155.",
+    "Lorenzo Traldi, The transition matroid of a 4-regular graph: an introduction, European Journal of Combinatorics 50 (2015), 180-207."
+  ]
+}
