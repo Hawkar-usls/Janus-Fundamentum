@@ -5,9 +5,9 @@
 - **Repository:** `Hawkar-usls/Janus-Fundamentum`
 - **PR:** `#510`
 - **Branch:** `codex/r5-e8-direct-contract-20260921-82493a57`
-- **Live source HEAD:** `6d2e3570b540b8af1a7bd0d415e9b620e3f8c106`
-- **Source commit time:** `2026-10-01T07:59:22+03:00`
-- **Indexed changed scientific artifacts:** `1066`
+- **Live source HEAD:** `c51afc720a02c58412e5b4172ea2b106814a9983`
+- **Source commit time:** `2026-10-01T08:01:06+03:00`
+- **Indexed changed scientific artifacts:** `1068`
 
 ## Continuity status
 
@@ -82,8 +82,6 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 
 ## Commits newer than semantic checkpoint — MUST INGEST
 
-- `b53c23ebf36c` — 2026-09-30T05:32:06+03:00 — R5 E9: add AF3 APSQ EQ3 local source-return barrier
-- `3a60af0631c7` — 2026-09-30T05:32:40+03:00 — R5 E9: add exact AF3 APSQ EQ3 source-return regression
 - `42d520841356` — 2026-09-30T05:32:47+03:00 — R5 E9: add CI for AF3 APSQ EQ3 local source return
 - `1905caed5bb1` — 2026-09-30T05:35:37+03:00 — R5 E9: add AF3 residual normal-codimension DP router
 - `698011e9cb79` — 2026-09-30T05:40:26+03:00 — R5 E9: prove Paley AF3 linear-excess barrier
@@ -162,6 +160,8 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `bfd1e66e4498` — 2026-10-01T07:52:38+03:00 — R5 E9: make Paley5419 macro BFS replay tie-break independent
 - `255bbeb2d4eb` — 2026-10-01T07:53:17+03:00 — R5 E9: add Paley5419 diamond macro exact-order-10 workflow
 - `6d2e3570b540` — 2026-10-01T07:59:22+03:00 — R5 E9: close Paley-orbit AF3 gain-cover frontier by canonical diamond cycle
+- `4eb0d6c8e4e9` — 2026-10-01T08:00:22+03:00 — R5 E9: add Paley-orbit canonical diamond AF3 family regression
+- `c51afc720a02` — 2026-10-01T08:01:06+03:00 — R5 E9: add Paley-orbit canonical diamond AF3 family workflow
 
 ## Transport / stale-bootstrap watch
 
@@ -192,6 +192,8 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 
 ## Recent non-cache commits
 
+- `c51afc720a02` — 2026-10-01T08:01:06+03:00 — R5 E9: add Paley-orbit canonical diamond AF3 family workflow
+- `4eb0d6c8e4e9` — 2026-10-01T08:00:22+03:00 — R5 E9: add Paley-orbit canonical diamond AF3 family regression
 - `6d2e3570b540` — 2026-10-01T07:59:22+03:00 — R5 E9: close Paley-orbit AF3 gain-cover frontier by canonical diamond cycle
 - `255bbeb2d4eb` — 2026-10-01T07:53:17+03:00 — R5 E9: add Paley5419 diamond macro exact-order-10 workflow
 - `bfd1e66e4498` — 2026-10-01T07:52:38+03:00 — R5 E9: make Paley5419 macro BFS replay tie-break independent
@@ -215,8 +217,6 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `4985556dfc2e` — 2026-10-01T06:59:52+03:00 — E9: add CI for Paley19 exact minimum cover rank six
 - `191d1f263b75` — 2026-10-01T06:59:38+03:00 — E9: add independent Paley19 rank-six exhaustive checker
 - `837a387b3dae` — 2026-10-01T06:58:51+03:00 — E9: prove exact Paley19 minimum AF3 cover rank six
-- `d2e147d6f925` — 2026-09-30T08:03:43+03:00 — R5 E9: add CI for F3 critical exponent rank-2 cover terminal
-- `efd35e99d91c` — 2026-09-30T08:03:35+03:00 — R5 E9: add exact checker for F3 critical exponent rank-2 cover terminal
 
 ## Resume protocol
 
