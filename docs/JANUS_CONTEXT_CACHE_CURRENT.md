@@ -5,16 +5,16 @@
 - **Repository:** `Hawkar-usls/Janus-Fundamentum`
 - **PR:** `#510`
 - **Branch:** `codex/r5-e8-direct-contract-20260921-82493a57`
-- **Live source HEAD:** `e11e3afdc0d2f3ccb7d855515ce51b1fc4cfe6b8`
-- **Source commit time:** `2026-10-01T10:54:17+03:00`
-- **Indexed changed scientific artifacts:** `1077`
+- **Live source HEAD:** `870d6af2aaca6934c237338cf37b3dba50b857c2`
+- **Source commit time:** `2026-10-01T10:55:03+03:00`
+- **Indexed changed scientific artifacts:** `1078`
 
 ## Continuity status
 
 - Semantic cache: `.janus/P_VS_NP_STREAM_CACHE_CURRENT.json`
 - Semantic source HEAD: `480eed45722312b7b16e4a5d9f3d19149e125892`
 - Relation: **`LIVE_DESCENDS_FROM_SEMANTIC_CACHE`**
-- Commits after semantic checkpoint: `133`
+- Commits after semantic checkpoint: `132`
 
 ## Scientific firewall
 
@@ -82,7 +82,6 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 
 ## Commits newer than semantic checkpoint — MUST INGEST
 
-- `6ec209236afe` — 2026-09-30T05:59:17+03:00 — R5 E9: add F3 four-hyperplane cover regression
 - `11cf454019a4` — 2026-09-30T05:59:40+03:00 — R5 E9: add CI for F3 four-hyperplane cover barrier
 - `98ef041af307` — 2026-09-30T06:02:02+03:00 — R5 E9: prove global AF3 APSQ factorization of EQ3 regularizer
 - `260408147852` — 2026-09-30T06:02:43+03:00 — R5 E9: add exact global AF3 EQ3 APSQ factorization regression
@@ -162,6 +161,7 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `14963178e54e` — 2026-10-01T08:33:54+03:00 — R5 E9: add CI for sign-crossing submodularity falsifier
 - `c2b1088e7cf0` — 2026-10-01T10:52:11+03:00 — R5 E9 add exact PG15 NOR source composition checker
 - `e11e3afdc0d2` — 2026-10-01T10:54:17+03:00 — R5 E9 prove PG15 fixed-port NOR source composition
+- `870d6af2aaca` — 2026-10-01T10:55:03+03:00 — R5 E9 add PG15 NOR source composition CI
 
 ## Transport / stale-bootstrap watch
 
@@ -192,6 +192,7 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 
 ## Recent non-cache commits
 
+- `870d6af2aaca` — 2026-10-01T10:55:03+03:00 — R5 E9 add PG15 NOR source composition CI
 - `e11e3afdc0d2` — 2026-10-01T10:54:17+03:00 — R5 E9 prove PG15 fixed-port NOR source composition
 - `c2b1088e7cf0` — 2026-10-01T10:52:11+03:00 — R5 E9 add exact PG15 NOR source composition checker
 - `14963178e54e` — 2026-10-01T08:33:54+03:00 — R5 E9: add CI for sign-crossing submodularity falsifier
@@ -216,7 +217,6 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `11ca64af79df` — 2026-10-01T07:39:02+03:00 — R5 E9: add Paley331 character Moser spindle gain cover
 - `0aac579d4d97` — 2026-10-01T07:32:41+03:00 — E9: add CI for Paley331 Moser critical cover
 - `87eea22f1c18` — 2026-10-01T07:32:21+03:00 — E9: add exact Paley331 Moser critical-cover checker
-- `53f97e652e37` — 2026-10-01T07:27:05+03:00 — E9: establish Paley331 Moser balanced critical cover
 
 ## Resume protocol
 
