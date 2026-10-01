@@ -5,9 +5,9 @@
 - **Repository:** `Hawkar-usls/Janus-Fundamentum`
 - **PR:** `#510`
 - **Branch:** `codex/r5-e8-direct-contract-20260921-82493a57`
-- **Live source HEAD:** `99065fd19a51ba97e22b6518bdb6b5c60ddc56c0`
-- **Source commit time:** `2026-10-01T12:07:43+03:00`
-- **Indexed changed scientific artifacts:** `1087`
+- **Live source HEAD:** `8642a44f9e10b2c147caf9ec8bdfb41f0252c16a`
+- **Source commit time:** `2026-10-01T12:12:07+03:00`
+- **Indexed changed scientific artifacts:** `1088`
 
 ## Continuity status
 
@@ -82,7 +82,6 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 
 ## Commits newer than semantic checkpoint — MUST INGEST
 
-- `36a7a14f0ea2` — 2026-09-30T06:12:26+03:00 — R5 E9: add exact six-hyperplane essential-cover regression
 - `6ccf5064e4cd` — 2026-09-30T06:19:07+03:00 — R5 E9: prove AF3 projective scaling invariance
 - `ff316dda71a1` — 2026-09-30T06:26:31+03:00 — R5 E9: add AF3 projective scaling regression
 - `bbf2369c5b5a` — 2026-09-30T06:26:56+03:00 — R5 E9: make AF3 projective regression kernel-dimensional
@@ -162,6 +161,7 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `c33cedbb4576` — 2026-10-01T12:06:55+03:00 — E9 Paley87211 add Ore13 character-gain positive control
 - `dbb310a60b26` — 2026-10-01T12:07:25+03:00 — E9 Paley87211 add Ore13 exact checker
 - `99065fd19a51` — 2026-10-01T12:07:43+03:00 — E9 Paley87211 add Ore13 CI
+- `8642a44f9e10` — 2026-10-01T12:12:07+03:00 — R5 E9 falsify PG15 partial-sign bisubmodularity
 
 ## Transport / stale-bootstrap watch
 
@@ -192,6 +192,7 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 
 ## Recent non-cache commits
 
+- `8642a44f9e10` — 2026-10-01T12:12:07+03:00 — R5 E9 falsify PG15 partial-sign bisubmodularity
 - `99065fd19a51` — 2026-10-01T12:07:43+03:00 — E9 Paley87211 add Ore13 CI
 - `dbb310a60b26` — 2026-10-01T12:07:25+03:00 — E9 Paley87211 add Ore13 exact checker
 - `c33cedbb4576` — 2026-10-01T12:06:55+03:00 — E9 Paley87211 add Ore13 character-gain positive control
@@ -216,7 +217,6 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `6d2e3570b540` — 2026-10-01T07:59:22+03:00 — R5 E9: close Paley-orbit AF3 gain-cover frontier by canonical diamond cycle
 - `255bbeb2d4eb` — 2026-10-01T07:53:17+03:00 — R5 E9: add Paley5419 diamond macro exact-order-10 workflow
 - `bfd1e66e4498` — 2026-10-01T07:52:38+03:00 — R5 E9: make Paley5419 macro BFS replay tie-break independent
-- `98f4af07860b` — 2026-10-01T07:51:29+03:00 — R5 E9: add Paley5419 diamond macro BFS exact checker
 
 ## Resume protocol
 
