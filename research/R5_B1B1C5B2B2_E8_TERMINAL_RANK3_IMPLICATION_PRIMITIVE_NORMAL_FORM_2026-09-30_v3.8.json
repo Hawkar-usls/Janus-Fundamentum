@@ -1,0 +1,61 @@
+{
+  "artifact_id": "JANUS-TRUMP-E8-TERMINAL-RANK3-IMPLICATION-PRIMITIVE-NORMAL-FORM-2026-09-30-v3.8",
+  "version": "v3.8",
+  "date_local": "2026-09-30",
+  "status": "EXACT_POLYNOMIAL_PREPROCESSING_THEOREM__NO_P_EQUALS_NP_CLAIM",
+  "parent": "research/R5_B1B1C5B2B2_E8_RANK3_TERMINAL_BIJUNCTIVE_PROJECTION_KERNEL_2026-09-30_v3.7.json",
+  "purpose": "After eliminating all nonterminal rank-2 bulk, repeatedly absorb every 3-clause interaction already implied by the terminal 2-CNF closure. The result is an implication-primitive rank-3 core in which no remaining 3-clause can be shortened or deleted using any unary/binary consequence of the current bijunctive layer.",
+  "input": "K(F)=H AND F3 from v3.7, where H is a satisfiable 2-CNF over terminal variables and F3 is the set of genuine 3-clauses.",
+  "rules": [
+    {
+      "name": "FORCED_TRUE",
+      "condition": "H entails literal a (equivalently NOT a reaches a in the implication graph).",
+      "action": "Delete every 3-clause containing a."
+    },
+    {
+      "name": "FORCED_FALSE",
+      "condition": "H entails NOT a (equivalently a reaches NOT a).",
+      "action": "Delete a from every 3-clause containing it. A resulting 2-clause is moved into H."
+    },
+    {
+      "name": "IMPLIED_DOMINATION",
+      "condition": "A 3-clause contains distinct literals a,b,c and H entails a -> b.",
+      "action": "Replace (a OR b OR c) by (b OR c) and move the binary clause into H. Under H the two formulas are equivalent."
+    },
+    {
+      "name": "ENTAILED_SUBCLAUSE",
+      "condition": "For two literals a,b of a 3-clause, H entails (a OR b), equivalently NOT a -> b in the implication closure.",
+      "action": "Delete the whole 3-clause as redundant."
+    }
+  ],
+  "algorithm": {
+    "loop": "Apply a rule, rebuild/close the implication graph of H, reject if H becomes inconsistent, and continue until no rule applies.",
+    "progress": "Every non-rejection rule either removes a 3-clause or replaces one by a 2-clause. Hence the number of 3-clauses strictly decreases on every substantive step; there are at most k such steps after duplicate/tautology cleanup.",
+    "runtime": "Polynomial. A simple implementation may recompute SCC/reachability after each step; incremental implication maintenance is optional and not required for the theorem."
+  },
+  "theorem": {
+    "name": "IMPLICATION_PRIMITIVE_RANK3_NORMAL_FORM",
+    "statement": "The procedure preserves satisfiability and polynomial witness reconstruction. At termination, for every remaining 3-clause (a OR b OR c): no literal is forced by H; no literal is forced false by H; no literal implies another literal in the same clause; and H entails no binary subclause formed by two of its literals.",
+    "proof": [
+      "FORCED_TRUE and FORCED_FALSE are ordinary substitution by consequences of H.",
+      "If H entails a -> b, then under H any model of (a OR b OR c) with b=false and c=false cannot use a=true, because a would force b. Thus (a OR b OR c) is equivalent under H to (b OR c).",
+      "If H entails (a OR b), then H already satisfies (a OR b OR c), so the 3-clause is redundant.",
+      "Every added binary clause is logically equivalent to the removed 3-clause relative to the previous H, so iterating closure preserves the total model set projected to the surviving variables.",
+      "Termination properties follow because otherwise one of the rules would still apply."
+    ]
+  },
+  "interpretation": {
+    "positive": "The hard frontier can be assumed to contain only 3-clauses that are genuinely new relative to every unary/binary implication already available. Rank-3 atoms that merely restate rank-2 information are removed exactly.",
+    "not_a_solver": "For a pure arbitrary 3-CNF with empty H, the normal form may do nothing. Thus this is a strict preprocessing theorem, not universal tractability.",
+    "anti_loop": "Do not count a 3-clause as a hard atom until it survives this implication-primitive reduction."
+  },
+  "next_target": {
+    "name": "E8_PRIMITIVE_RANK3_GLOBAL_HYPERIMPLICATION_CONTRACTION_V3_9",
+    "directive": "Attack only implication-primitive 3-clauses. Each such clause contributes the genuinely ternary rule that if two literals are false the third must be true. Seek a polynomial closure/contraction for these pair-antecedent hyperimplications that does not enumerate pairs/subsets exponentially and that strictly reduces the number of primitive rank-3 atoms or returns an exact global UNSAT certificate."
+  },
+  "scientific_ceiling": {
+    "P_VS_NP": "OPEN",
+    "P_EQUALS_NP_ALGORITHM": "NOT_CONSTRUCTED",
+    "E8_D1": "EMPTY"
+  }
+}

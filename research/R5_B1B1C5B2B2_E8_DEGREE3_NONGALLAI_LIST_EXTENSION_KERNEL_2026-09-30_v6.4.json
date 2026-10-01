@@ -1,0 +1,81 @@
+{
+  "artifact_id": "JANUS-TRUMP-E8-DEGREE3-NONGALLAI-LIST-EXTENSION-KERNEL-2026-09-30-v6.4",
+  "version": "v6.4",
+  "date_local": "2026-09-30",
+  "status": "EXACT_POLYNOMIAL_GRAPH_CONTRACTION__NO_P_EQUALS_NP_CLAIM",
+  "parents": [
+    "research/R5_B1B1C5B2B2_E8_COLOR3_DEGREE2_PEEL_BROOKS_TERMINAL_AND_DEG4_BOUNDARY_2026-09-30_v5.0.json",
+    "research/R5_B1B1C5B2B2_E8_ODD_WHEEL_FULL_NONZERO_SYNDROME_NO_LINEAR_COMPRESSION_2026-09-30_v6.3.json"
+  ],
+  "purpose": "Move beyond linear syndrome compression with an exact graph-changing contraction on maximum-degree-four 3-colourability cores. After degree<=2 peeling, delete every connected component of current degree-three vertices that is not a Gallai tree. Any colouring of the remaining graph extends across such a component by the Borodin--Erdos--Rubin--Taylor degree-choosability theorem, and the extension can be reconstructed in polynomial time.",
+  "input_regime": {
+    "graph": "A simple graph G with maximum degree at most four, as in the NP-hard max-degree-four / 4-regular 3-COLOR source frontier.",
+    "preprocess": "First exhaust the exact v5.0 degree<=2 peel. Thus every remaining vertex has degree three or four unless a K4/subcubic terminal has already fired.",
+    "degree3_layer": "Let S={v:deg_G(v)=3}. Consider a connected component H of the induced subgraph G[S]."
+  },
+  "boundary_list_lemma": {
+    "outside_colouring": "Fix any proper 3-colouring phi of G-V(H).",
+    "available_list": "For v in H let L(v) be the three colours minus the colours used by neighbours of v outside H.",
+    "count": "Because v has total degree three and every degree-three neighbour belongs to the same S-component H, the number of outside neighbours is exactly 3-d_H(v). Therefore |L(v)|>=3-(3-d_H(v))=d_H(v).",
+    "meaning": "Extending phi to H is a degree-list-colouring problem on H."
+  },
+  "degree_choosability_theorem": {
+    "source_fact": "Borodin and independently Erdos--Rubin--Taylor characterize connected degree-choosable graphs: H is colourable from every list assignment with |L(v)|>=d_H(v) iff H is not a Gallai tree.",
+    "Gallai_tree": "A connected graph whose every block is a complete graph or an odd cycle.",
+    "extension": "If H is not a Gallai tree, the boundary lists above always admit a proper L-colouring. Thus every proper 3-colouring of G-H extends to G.",
+    "equivalence": "Consequently G is 3-colourable iff G-H is 3-colourable whenever H is a non-Gallai component of the current degree-three layer."
+  },
+  "kernel_algorithm": {
+    "loop": [
+      "Exhaust degree<=2 peeling, storing deleted vertices and their then-current neighbour lists for reverse reconstruction.",
+      "Compute connected components of the current degree-three induced subgraph.",
+      "Recognize Gallai trees by block decomposition: every block must be a clique or an odd cycle.",
+      "If a non-Gallai component H exists, delete all vertices of H and store H together with its outside-neighbour incidences; then restart low-degree peeling because boundary degrees may have fallen.",
+      "Stop when neither low-degree peeling nor non-Gallai degree-three deletion applies."
+    ],
+    "progress": "Every substantive step deletes at least one vertex. Block decomposition, degree updates and degree-list colouring are polynomial; a straightforward implementation is polynomial even without dynamic optimization.",
+    "reconstruction": [
+      "Colour the final kernel.",
+      "Undo stored deletions in reverse order.",
+      "For a deleted non-Gallai H, all vertices that were outside H at deletion time are already coloured. Build the boundary lists L(v) and run a constructive degree-list-colouring algorithm guaranteed by the theorem.",
+      "For degree<=2 peeled vertices, use the v5.0 greedy reverse insertion rule."
+    ]
+  },
+  "terminal_normal_form": {
+    "statement": "At a nonterminal fixed point, minimum degree is at least three and every connected component of the degree-three induced subgraph is a Gallai tree.",
+    "max_degree_four_shape": "Hence the residual consists of degree-four vertices coupled through degree-three Gallai-tree pieces whose blocks are only K2/K3/K4 or odd cycles (subject to the ambient degree-three bound).",
+    "K4_note": "A degree-three component equal to K4 is itself an explicit non-3-colourable component and should be rejected immediately rather than retained as a boundary gadget."
+  },
+  "source_return_firewall": {
+    "four_regular": "On a 4-regular input S is empty, so the contraction deletes nothing. Since 3-COLOR is NP-complete on 4-regular Hamiltonian graphs, this preprocessing theorem is not a universal solver.",
+    "odd_wheels": "Odd wheels contain a high-degree hub and are outside the max-degree-four family once the rim length exceeds four; v6.3 remains a syndrome-compression barrier, not a counterexample to this graph reduction.",
+    "meaning": "The contraction is genuine exact progress on mixed degree-3/4 instances while preserving a clean NP-hard source-return class on which it is silent."
+  },
+  "algorithmic_consequence": {
+    "positive": [
+      "A new deterministic polynomial exact contraction independent of linear syndrome hashing, Polynomial Calculus and autarky cones.",
+      "Polynomial witness lifting follows from list colouring, not from branching over boundary colour assignments.",
+      "The surviving degree-three structure is sharply restricted to Gallai trees."
+    ],
+    "not_killed": [
+      "A polynomial contraction of degree-three Gallai-tree boundary gadgets into constraints on the degree-four core.",
+      "A direct invariant on pure 4-regular cores.",
+      "Hamiltonian/interlacement-specific contractions on the frozen hard source.",
+      "P=NP"
+    ]
+  },
+  "next_target": {
+    "name": "E8_GALLAI_TREE_BOUNDARY_GADGET_ELIMINATION_OR_4REG_CORE_V6_5",
+    "directive": "After v6.4, either compile each remaining degree-three Gallai-tree component into a polynomial-size exact relation on its degree-four boundary and prove that the resulting global system is tractable, or return immediately to the pure 4-regular Hamiltonian source where the degree-three layer is empty. Reject any compilation whose boundary table is exponential in the number of attachments."
+  },
+  "scientific_ceiling": {
+    "P_VS_NP": "OPEN",
+    "P_EQUALS_NP_ALGORITHM": "NOT_CONSTRUCTED",
+    "E8_D1": "EMPTY"
+  },
+  "sources": [
+    "O. V. Borodin, degree-choosability characterization (1970s).",
+    "P. Erdos, A. L. Rubin, H. Taylor, Choosability in graphs, 1979.",
+    "Modern restatement: a connected graph is degree-choosable iff it is not a Gallai tree."
+  ]
+}

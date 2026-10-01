@@ -1,0 +1,59 @@
+{
+  "artifact_id": "JANUS-TRUMP-E8-GLOBAL-WEIGHTED-RANK1-BOOLEAN-SUM-DETERMINANT-IDENTITY-2026-09-26-v0.9",
+  "version": "v0.9",
+  "date_local": "2026-09-26",
+  "status": "CONSTRUCTIVE_EXACT_IDENTITY__SCOPED_POSITIVE_MECHANISM__NO_P_EQUALS_NP_CLAIM",
+  "parents": [
+    "research/R5_B1B1C5B2B2_E8_RANK1_BOOLEAN_DETERMINANT_ELIMINATION_IDENTITY_2026-09-26_v0.7.json",
+    "research/R5_B1B1C5B2B2_E8_ONE_CORE_BOUNDED_RANK_BOOLEAN_ELIMINATION_BARRIER_2026-09-26_v0.8.json"
+  ],
+  "identity": {
+    "name": "GLOBAL_WEIGHTED_RANK1_BOOLEAN_SUM_IS_ONE_DETERMINANT_V0_9",
+    "setup": "M is m by m, U=[u_1...u_n] and V=[v_1...v_n] are m by n, D_a=diag(a_1,...,a_n) for a in {0,1}^n, and T=diag(t_1,...,t_n).",
+    "statement": "sum_a (product_i t_i^{a_i}) det(M + U D_a V^T) = det([[M,U],[-T V^T,I+T]]).",
+    "unweighted_corollary": "At t_i=1 for all i: sum_a det(M+U D_a V^T) = det([[M,U],[-V^T,2I]]).",
+    "signed_corollary": "Weights t_i=-1 are allowed algebraically, so the same determinant computes exact alternating character sums over the Boolean update cube."
+  },
+  "proof": [
+    "Assume first that M is invertible and write K=V^T M^{-1}U.",
+    "For a with support S, the matrix determinant lemma gives det(M+U D_a V^T)=det(M) det(I + D_a K).",
+    "Principal-minor expansion gives det(I+D_a K)=sum_{R subseteq S} det(K[R,R]).",
+    "After multiplying by t_S=product_{i in S}t_i and summing over S, swap the sums. For a fixed R, sum_{S superset R} t_S = t_R product_{j notin R}(1+t_j).",
+    "Hence the Boolean sum equals det(M) sum_R det(K[R,R]) t_R product_{j notin R}(1+t_j).",
+    "The last sum is exactly det(I+T+TK) by the principal-minor expansion of diag(1+t_i)+T K.",
+    "Schur complement of [[M,U],[-T V^T,I+T]] is I+T+T V^T M^{-1}U, proving the identity for invertible M.",
+    "Both sides are polynomial in all entries, so the identity extends to singular M as a polynomial identity."
+  ],
+  "algorithmic_value": {
+    "positive": [
+      "Collapses 2^n rank-one Boolean update determinants into one determinant of dimension m+n.",
+      "Supports arbitrary product weights without enumerating assignments.",
+      "Gives exact character/alternating sums by choosing roots such as t_i=-1.",
+      "All matrix entries have polynomial description whenever M,U,V,T do."
+    ],
+    "critical_missing_bridge": "Arbitrary 3-SAT does not admit the required universal rank-one-per-original-variable determinantal support representation; v0.4 supplies an explicit field-independent obstruction.",
+    "new_use": "Apply v0.9 to occurrence-local rank-one clause gadgets, then search for a polynomial global transform that projects occurrence assignments onto consistency classes of original variables without exponential character enumeration."
+  },
+  "next_target": {
+    "name": "E8_OCCURRENCE_LOCAL_RANK1_PLUS_GLOBAL_EQUALITY_PROJECTION_V1_0",
+    "construction_frame": [
+      "Use independent occurrence bits so each clause gadget is constant-size and every occurrence enters through a rank-one determinant update.",
+      "Use v0.9 to evaluate arbitrary product-character-weighted sums over occurrence assignments by one determinant.",
+      "Express original-variable consistency as equality tensors / Fourier parity projectors over occurrence groups.",
+      "Find a polynomial-size simultaneous projector for all equality groups; reject any implementation requiring a product over exponentially many character choices."
+    ],
+    "success_would_require": "One polynomial-size exact object whose nonzero value is equivalent to SAT, plus polynomial witness reconstruction."
+  },
+  "source_alignment": [
+    {
+      "source": "Orzel, Srinivasan, Tavenas, Yehudayoff, The Algebraic Cost of a Boolean Sum, FSTTCS 2025",
+      "url": "https://doi.org/10.4230/LIPIcs.FSTTCS.2025.47",
+      "relevance": "General determinant Boolean summation is not closed under the paper's simple-projection cost notion; v0.9 is explicitly a special low-rank-update identity and must not be promoted to unrestricted determinant Boolean-sum closure."
+    }
+  ],
+  "scientific_ceiling": {
+    "P_VS_NP": "OPEN",
+    "P_EQUALS_NP_ALGORITHM": "NOT_CONSTRUCTED",
+    "NEW_POSITIVE_MECHANISM": "Exact simultaneous weighted Boolean summation for arbitrary collections of rank-one determinant updates."
+  }
+}

@@ -1,0 +1,58 @@
+{
+  "artifact_id": "JANUS-TRUMP-E8-READ2-SQUAREFREE-MONOMIAL-CARRIER-2026-09-26-v2.1",
+  "version": "v2.1",
+  "date_local": "2026-09-26",
+  "status": "EXACT_SOURCE_ALIGNED_REDUCTION__NO_P_EQUALS_NP_CLAIM",
+  "parent": "research/R5_B1B1C5B2B2_E8_PROJECTED_LINEAR_PAIR_DECOMPOSITION_THREEWAY_BARRIER_2026-09-26_v2.0.json",
+  "purpose": "Move the exact Boolean fanout obstruction into the narrowest monotone arithmetic form found so far: existence of a squarefree/multilinear monomial in a depth-3 read-at-most-twice product-of-three-term-sums whose terms have degree at most two.",
+  "source_alignment": {
+    "paper": "Zhixiang Chen and Bin Fu, The Complexity of Testing Monomials in Multivariate Polynomials, ECCC TR10-114 (2010)",
+    "url": "https://eccc.weizmann.ac.il/report/2010/114/",
+    "theorem": "Theorem 2 gives the same bounded-occurrence 3-SAT replacement into a Pi-Sigma_3-Pi_2 polynomial and proves SAT iff a multilinear monomial exists. The present artifact additionally freezes the read-at-most-two property of the introduced generators, which follows directly from that replacement."
+  },
+  "construction": {
+    "input": "A CNF with clauses of size at most three in which each Boolean variable occurs at most three times; arbitrary 3-SAT reaches this form by the standard polynomial bounded-occurrence normalization.",
+    "orientation": "If a variable occurs with both signs and three total occurrences, rename/negate it if needed so the majority sign occurs twice and the minority sign once.",
+    "mixed_degree3": "Introduce generators e_i,f_i. Replace the two majority-sign occurrences by e_i and f_i, and replace the single minority-sign occurrence by e_i*f_i.",
+    "mixed_degree2": "If the two occurrences have opposite signs, introduce e_i and replace both opposite-sign occurrences by e_i.",
+    "pure_or_singleton": "Occurrences having no opposite-sign conflict can be represented by fresh read-once generators (or constants for pure-literal-eliminated controls).",
+    "clause_polynomial": "Replace every Boolean clause by the sum of its literal terms.",
+    "global_formula": "P_F is the product of all clause polynomials. It is monotone, depth three, each sum has at most three terms, every term has degree at most two, and every introduced generator labels at most two leaves."
+  },
+  "exact_identity": {
+    "statement": "F is satisfiable iff P_F contains at least one multilinear (squarefree) monomial.",
+    "proof": [
+      "Expanding P_F chooses exactly one literal term from every clause.",
+      "For a mixed degree-3 variable, choosing the minority-sign term e_i*f_i together with either majority term repeats e_i or f_i and is non-multilinear; choosing one or both majority terms is squarefree, and choosing the minority term alone is squarefree.",
+      "For an opposite-sign degree-2 variable, selecting both signs repeats e_i and is non-multilinear.",
+      "Therefore an expansion monomial is squarefree exactly when its selected clause witnesses never use both signs of any original Boolean variable.",
+      "A satisfying assignment supplies one true witness literal per clause and hence a squarefree monomial. Conversely, any sign-consistent witness set extends to a Boolean assignment satisfying every clause."
+    ]
+  },
+  "read_bound": {
+    "degree3_mixed": "e_i appears in one majority singleton and in the minority product e_i*f_i; f_i likewise. Hence each is read exactly twice.",
+    "degree2_mixed": "e_i labels the two opposite occurrences, hence is read twice.",
+    "other": "fresh generators are read once.",
+    "conclusion": "P_F is a monotone read-at-most-two arithmetic formula."
+  },
+  "known_boundary": {
+    "ordinary_PIT": "Deterministic polynomial identity testing for read-twice formulas does not solve the target: P_F is monotone and nonzero regardless of satisfiability.",
+    "whole_formula_multilinearity": "Polynomial-time tests asking whether every monomial is multilinear are also different from asking whether at least one multilinear monomial exists.",
+    "two_terms_per_sum": "Chen-Fu give a polynomial matching/purging algorithm for Pi-Sigma_2-Pi, while the three-term case is NP-hard. Thus the live boundary is exactly the third local alternative, not arithmetic identity testing itself."
+  },
+  "next_target": {
+    "name": "E8_READ2_THREE_TERM_PURGING_OR_MATCHING_EXTENSION_V2_2",
+    "directive": "Seek a deterministic polynomial algorithm that decides whether this source-aligned read-2 Pi-Sigma_3-Pi_2 formula has any multilinear monomial. Start from the known two-term purging/matching algorithm and identify a non-branching augmentation/contraction for the single third alternative. Any rule must preserve existence exactly and be adversarially tested on the frozen v1.5 UNSAT formula and bounded-occurrence SAT controls.",
+    "success_obligations": [
+      "polynomial runtime in formula size",
+      "no enumeration of monomials/subsets/assignments",
+      "exact multilinear-monomial existence",
+      "polynomial witness reconstruction",
+      "therefore arbitrary SAT after polynomial normalization"
+    ]
+  },
+  "scientific_ceiling": {
+    "P_VS_NP": "OPEN",
+    "P_EQUALS_NP_ALGORITHM": "NOT_CONSTRUCTED"
+  }
+}

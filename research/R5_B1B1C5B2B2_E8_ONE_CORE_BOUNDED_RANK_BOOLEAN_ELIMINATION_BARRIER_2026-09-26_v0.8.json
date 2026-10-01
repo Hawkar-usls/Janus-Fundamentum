@@ -1,0 +1,57 @@
+{
+  "artifact_id": "JANUS-TRUMP-E8-ONE-CORE-BOUNDED-RANK-BOOLEAN-ELIMINATION-BARRIER-2026-09-26-v0.8",
+  "version": "v0.8",
+  "date_local": "2026-09-26",
+  "status": "THEOREM_CANDIDATE__CHARACTERISTIC_ZERO__NO_P_EQUALS_NP_CLAIM",
+  "parent": "research/R5_B1B1C5B2B2_E8_RANK1_BOOLEAN_DETERMINANT_ELIMINATION_IDENTITY_2026-09-26_v0.7.json",
+  "purpose": "Test whether the exact rank-one Boolean determinant elimination identity extends to constant rank r>=2 with one copy of the current core matrix, constant-size local Schur augmentation, and no duplication of untouched variable state.",
+  "model": {
+    "rank_r_update": "M -> M + U V^T, with U,V having r columns.",
+    "one_core_local_augmentation": "N = [[M, U R],[-L V^T, D]], where D,L,R depend only on r (not on M or the remaining variables) and the top-left block contains exactly one copy of M.",
+    "target_identity": "det N = det M + det(M+UV^T) for all invertible M and all U,V, equivalently as a polynomial identity where defined."
+  },
+  "theorem": {
+    "name": "RANK_ONE_IS_THE_ONLY_EXACT_ONE_CORE_LOCAL_SCHUR_BOOLEAN_ELIMINATION_CASE_IN_CHARACTERISTIC_ZERO_V0_8",
+    "statement": "Over a characteristic-zero field, the target identity in the frozen one-core local augmentation model is impossible for every r>=2. For r=1 it is realized by D=[2], L=R=[1].",
+    "proof": [
+      "Let K=V^T M^{-1}U. Schur complement gives det N = det(M) det(D + L K R).",
+      "The matrix determinant lemma gives det(M+UV^T)=det(M) det(I_r+K). Therefore universality requires det(D+LKR)=1+det(I_r+K) for all r by r matrices K.",
+      "At K=0, det(D)=2. In characteristic zero D is invertible.",
+      "Apply the determinant lemma/Sylvester identity to the auxiliary block: det(D+LKR)=det(D) det(I_r + K R D^{-1} L)=2 det(I_r+K H), with H=R D^{-1}L.",
+      "Thus 2 det(I_r+K H)=1+det(I_r+K) for every K.",
+      "Compare degree-one coefficients. The right side has linear part tr(K); the left side has 2 tr(KH). Equality for every matrix K forces H=(1/2) I_r.",
+      "Compare the degree-r coefficient det(K). The left side contributes 2 det(H) det(K)=2^(1-r) det(K), while the right side contributes 1*det(K).",
+      "In characteristic zero 2^(1-r)=1 iff r=1. Hence no r>=2 identity exists in this model."
+    ],
+    "positive_control": "For r=1, H=1/2 and the concrete block [[M,u],[-v^T,2]] gives det(M)+det(M+uv^T), exactly as v0.7."
+  },
+  "algorithmic_consequence": {
+    "killed": "The simplest plan to solve bounded-occurrence SAT by giving each variable a constant-rank determinant update and eliminating variables one by one through a single-core Schur gadget with O(poly(r)) local overhead.",
+    "why_duplication_is_rejected": "A generic determinant representation of det(M)+det(M+UV^T) can duplicate M, but doing that once per Boolean variable doubles the representation repeatedly and creates exponential size unless an additional global compression theorem is proved.",
+    "survives": [
+      "nonlocal/global cancellation involving multiple variables at once",
+      "augmentations not factoring through the rank-r update subspaces U and V",
+      "formula-dependent nonlinear transforms",
+      "colored determinant / conditional-stack mechanisms",
+      "characteristic-specific mechanisms not covered by the characteristic-zero coefficient argument",
+      "P=NP"
+    ]
+  },
+  "next_target": {
+    "name": "E8_MULTI_VARIABLE_GLOBAL_ELIMINATION_WITHOUT_CORE_DUPLICATION_V0_9",
+    "directive": "Stop eliminating rank>=2 variables independently. Search for a simultaneous many-variable identity or a different global invariant whose matrix/object grows only polynomially once for the whole formula.",
+    "success_obligations": [
+      "one global polynomial-size object",
+      "exact Boolean-cube semantics",
+      "no exponential duplication of the core",
+      "polynomial coefficient bitlength",
+      "SAT iff nonzero/feasible",
+      "polynomial witness reconstruction"
+    ]
+  },
+  "scientific_ceiling": {
+    "P_VS_NP": "OPEN",
+    "P_EQUALS_NP_ALGORITHM": "NOT_CONSTRUCTED",
+    "THEOREM_SCOPE": "ONE_CORE_LOCAL_SCHUR_AUGMENTATION_FACTORED_THROUGH_U,V_OVER_CHARACTERISTIC_ZERO"
+  }
+}
