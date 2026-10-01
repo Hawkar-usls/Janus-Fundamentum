@@ -5,16 +5,16 @@
 - **Repository:** `Hawkar-usls/Janus-Fundamentum`
 - **PR:** `#510`
 - **Branch:** `codex/r5-e8-direct-contract-20260921-82493a57`
-- **Live source HEAD:** `c58fca31eb686d881c76e61ef80ff94dd7b16b40`
-- **Source commit time:** `2026-10-01T07:40:47+03:00`
-- **Indexed changed scientific artifacts:** `1062`
+- **Live source HEAD:** `24184aa03c7f7938e0867e41688d1502b1f27589`
+- **Source commit time:** `2026-10-01T07:50:40+03:00`
+- **Indexed changed scientific artifacts:** `1063`
 
 ## Continuity status
 
 - Semantic cache: `.janus/P_VS_NP_STREAM_CACHE_CURRENT.json`
 - Semantic source HEAD: `480eed45722312b7b16e4a5d9f3d19149e125892`
 - Relation: **`LIVE_DESCENDS_FROM_SEMANTIC_CACHE`**
-- Commits after semantic checkpoint: `135`
+- Commits after semantic checkpoint: `134`
 
 ## Scientific firewall
 
@@ -82,7 +82,6 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 
 ## Commits newer than semantic checkpoint — MUST INGEST
 
-- `74d3bfff97a3` — 2026-09-30T05:22:33+03:00 — R5 E9: add exact regression for unique-model F3 collapse
 - `6264dd021824` — 2026-09-30T05:22:41+03:00 — R5 E9: add CI for unique-model F3 parallel collapse
 - `65530c97e691` — 2026-09-30T05:26:39+03:00 — R5 E9: prove persistent F3 UNSAT certificate for prime tower
 - `e997cb31f383` — 2026-09-30T05:27:15+03:00 — R5 E9: add exact regression for persistent F3 UNSAT certificate
@@ -162,6 +161,7 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `e40e58fee570` — 2026-10-01T07:40:15+03:00 — E9: add CI for Paley5419 critical-order falsifier
 - `a4189b7a99af` — 2026-10-01T07:40:27+03:00 — R5 E9: add Paley331 Moser spindle exact checker
 - `c58fca31eb68` — 2026-10-01T07:40:47+03:00 — R5 E9: add Paley331 Moser spindle regression workflow
+- `24184aa03c7f` — 2026-10-01T07:50:40+03:00 — R5 E9: close Paley5419 balanced critical order at 10 via diamond macro BFS
 
 ## Transport / stale-bootstrap watch
 
@@ -192,6 +192,7 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 
 ## Recent non-cache commits
 
+- `24184aa03c7f` — 2026-10-01T07:50:40+03:00 — R5 E9: close Paley5419 balanced critical order at 10 via diamond macro BFS
 - `c58fca31eb68` — 2026-10-01T07:40:47+03:00 — R5 E9: add Paley331 Moser spindle regression workflow
 - `a4189b7a99af` — 2026-10-01T07:40:27+03:00 — R5 E9: add Paley331 Moser spindle exact checker
 - `e40e58fee570` — 2026-10-01T07:40:15+03:00 — E9: add CI for Paley5419 critical-order falsifier
@@ -216,7 +217,6 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `27525c9144e2` — 2026-09-30T08:01:23+03:00 — R5 E9: add CI for directed-triangle completion barrier
 - `7ac2a5ba39bc` — 2026-09-30T08:01:10+03:00 — R5 E9: add exact directed-triangle completion regression
 - `4b48016fc803` — 2026-09-30T08:00:51+03:00 — R5 E9: prove directed-triangle fourth-point completion barrier
-- `edf2d8691d31` — 2026-09-30T07:48:19+03:00 — R5 E9: add CI for mod-3 model-count barrier
 
 ## Resume protocol
 
