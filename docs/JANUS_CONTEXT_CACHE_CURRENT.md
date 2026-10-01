@@ -5,16 +5,16 @@
 - **Repository:** `Hawkar-usls/Janus-Fundamentum`
 - **PR:** `#510`
 - **Branch:** `codex/r5-e8-direct-contract-20260921-82493a57`
-- **Live source HEAD:** `ae9cdd4256be167adefa670cff0a520dc4961cc5`
-- **Source commit time:** `2026-10-01T07:06:51+03:00`
-- **Indexed changed scientific artifacts:** `1050`
+- **Live source HEAD:** `114f3b23da7a60dd141919834e5d884f41f0668a`
+- **Source commit time:** `2026-10-01T07:24:48+03:00`
+- **Indexed changed scientific artifacts:** `1051`
 
 ## Continuity status
 
 - Semantic cache: `.janus/P_VS_NP_STREAM_CACHE_CURRENT.json`
 - Semantic source HEAD: `480eed45722312b7b16e4a5d9f3d19149e125892`
 - Relation: **`LIVE_DESCENDS_FROM_SEMANTIC_CACHE`**
-- Commits after semantic checkpoint: `125`
+- Commits after semantic checkpoint: `126`
 
 ## Scientific firewall
 
@@ -82,7 +82,6 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 
 ## Commits newer than semantic checkpoint — MUST INGEST
 
-- `b8a5ccfd7925` — 2026-09-30T04:50:33+03:00 — R5 E9: add exact line-free proper blocking countercontrol
 - `dea704682975` — 2026-09-30T04:50:43+03:00 — R5 E9: add CI for line-free proper blocking countercontrol
 - `d78c2eb3689b` — 2026-09-30T05:11:59+03:00 — R5 E9: prove infinite AF3 PCQ-fixed line-free UNSAT 2-lift family
 - `327b42fb9e63` — 2026-09-30T05:13:13+03:00 — R5 E9: add exact checker for AF3 PCQ-fixed line-free 2-lift family
@@ -162,6 +161,7 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `edb94e17fe13` — 2026-10-01T07:03:52+03:00 — E9: split Paley AF3 branch and falsify universal gain-K4 motif
 - `e13752d7795c` — 2026-10-01T07:04:20+03:00 — E9: add Paley AF3 character-split K4 falsifier checker
 - `ae9cdd4256be` — 2026-10-01T07:06:51+03:00 — E9: add CI for Paley AF3 character split and K4 falsifier
+- `114f3b23da7a` — 2026-10-01T07:24:48+03:00 — E9: prove exact F3 constant-gradient kernel for Paley orbit family
 
 ## Transport / stale-bootstrap watch
 
@@ -192,6 +192,7 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 
 ## Recent non-cache commits
 
+- `114f3b23da7a` — 2026-10-01T07:24:48+03:00 — E9: prove exact F3 constant-gradient kernel for Paley orbit family
 - `ae9cdd4256be` — 2026-10-01T07:06:51+03:00 — E9: add CI for Paley AF3 character split and K4 falsifier
 - `e13752d7795c` — 2026-10-01T07:04:20+03:00 — E9: add Paley AF3 character-split K4 falsifier checker
 - `edb94e17fe13` — 2026-10-01T07:03:52+03:00 — E9: split Paley AF3 branch and falsify universal gain-K4 motif
@@ -216,7 +217,6 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `b2fe277a4e0a` — 2026-09-30T06:50:32+03:00 — R5 E9: add CI for F3 parallel-triple UNSAT terminal
 - `7967fa6f7d24` — 2026-09-30T06:50:23+03:00 — R5 E9: add exact checker for F3 parallel-triple terminal
 - `11a14d62c08a` — 2026-09-30T06:49:43+03:00 — R5 E9: add affine F3 parallel-triple UNSAT terminal
-- `0bbb0deabad3` — 2026-09-30T06:47:49+03:00 — R5 E9: regression-test syndrome-rank compressed AF3 router
 
 ## Resume protocol
 
