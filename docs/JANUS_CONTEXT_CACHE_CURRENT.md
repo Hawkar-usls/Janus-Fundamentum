@@ -5,16 +5,16 @@
 - **Repository:** `Hawkar-usls/Janus-Fundamentum`
 - **PR:** `#510`
 - **Branch:** `codex/r5-e8-direct-contract-20260921-82493a57`
-- **Live source HEAD:** `dd27543e9536de7ff875fd15ce69e6842134243a`
-- **Source commit time:** `2026-10-01T11:59:41+03:00`
-- **Indexed changed scientific artifacts:** `1081`
+- **Live source HEAD:** `871761b51ad45d3f5ee18451af5af97d22411f04`
+- **Source commit time:** `2026-10-01T12:03:03+03:00`
+- **Indexed changed scientific artifacts:** `1084`
 
 ## Continuity status
 
 - Semantic cache: `.janus/P_VS_NP_STREAM_CACHE_CURRENT.json`
 - Semantic source HEAD: `480eed45722312b7b16e4a5d9f3d19149e125892`
 - Relation: **`LIVE_DESCENDS_FROM_SEMANTIC_CACHE`**
-- Commits after semantic checkpoint: `131`
+- Commits after semantic checkpoint: `132`
 
 ## Scientific firewall
 
@@ -82,9 +82,6 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 
 ## Commits newer than semantic checkpoint — MUST INGEST
 
-- `b70f974bb002` — 2026-09-30T06:02:52+03:00 — R5 E9: add CI for global AF3 EQ3 APSQ factorization
-- `601fa603eafa` — 2026-09-30T06:04:12+03:00 — R5 E9: reconcile AF3 with infinite linear-dimension UNSAT cover family
-- `f9050ef24336` — 2026-09-30T06:08:19+03:00 — R5 E9: add locally-3K2 clique-operator Exact-One countercontrol
 - `4cb1c946a86f` — 2026-09-30T06:08:34+03:00 — R5 E9: add exact clique-operator noninvariance regression
 - `a058e8831115` — 2026-09-30T06:08:52+03:00 — R5 E9: add CI for clique-operator Exact-One noninvariance
 - `634184a16b07` — 2026-09-30T06:12:13+03:00 — R5 E9: close essential AF3 cover-size shortcut
@@ -162,6 +159,9 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `123c930b068d` — 2026-10-01T11:57:08+03:00 — R5 E9 close PG15 bounded-fanout NOR 3SAT source return
 - `d54ca1158870` — 2026-10-01T11:59:17+03:00 — R5 E9 add PG15 bounded-fanout NOR 3SAT compiler replay
 - `dd27543e9536` — 2026-10-01T11:59:41+03:00 — R5 E9 add PG15 bounded-fanout NOR 3SAT CI
+- `d95b66910f5f` — 2026-10-01T12:01:03+03:00 — E9 Paley5419 seal exact order10 Ore-chain witness
+- `40a1c881f2aa` — 2026-10-01T12:02:44+03:00 — E9 Paley5419 add exact order10 Ore-chain checker
+- `871761b51ad4` — 2026-10-01T12:03:03+03:00 — E9 Paley5419 add exact order10 Ore-chain CI
 
 ## Transport / stale-bootstrap watch
 
@@ -192,6 +192,9 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 
 ## Recent non-cache commits
 
+- `871761b51ad4` — 2026-10-01T12:03:03+03:00 — E9 Paley5419 add exact order10 Ore-chain CI
+- `40a1c881f2aa` — 2026-10-01T12:02:44+03:00 — E9 Paley5419 add exact order10 Ore-chain checker
+- `d95b66910f5f` — 2026-10-01T12:01:03+03:00 — E9 Paley5419 seal exact order10 Ore-chain witness
 - `dd27543e9536` — 2026-10-01T11:59:41+03:00 — R5 E9 add PG15 bounded-fanout NOR 3SAT CI
 - `d54ca1158870` — 2026-10-01T11:59:17+03:00 — R5 E9 add PG15 bounded-fanout NOR 3SAT compiler replay
 - `123c930b068d` — 2026-10-01T11:57:08+03:00 — R5 E9 close PG15 bounded-fanout NOR 3SAT source return
@@ -214,9 +217,6 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `24184aa03c7f` — 2026-10-01T07:50:40+03:00 — R5 E9: close Paley5419 balanced critical order at 10 via diamond macro BFS
 - `c58fca31eb68` — 2026-10-01T07:40:47+03:00 — R5 E9: add Paley331 Moser spindle regression workflow
 - `a4189b7a99af` — 2026-10-01T07:40:27+03:00 — R5 E9: add Paley331 Moser spindle exact checker
-- `e40e58fee570` — 2026-10-01T07:40:15+03:00 — E9: add CI for Paley5419 critical-order falsifier
-- `78d6881000b7` — 2026-10-01T07:39:58+03:00 — E9: add exact Paley5419 critical-catalog falsifier checker
-- `dd98a87b5beb` — 2026-10-01T07:39:07+03:00 — E9: freeze Paley5419 balanced critical order greater than nine
 
 ## Resume protocol
 
