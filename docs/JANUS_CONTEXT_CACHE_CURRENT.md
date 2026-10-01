@@ -5,16 +5,16 @@
 - **Repository:** `Hawkar-usls/Janus-Fundamentum`
 - **PR:** `#510`
 - **Branch:** `codex/r5-e8-direct-contract-20260921-82493a57`
-- **Live source HEAD:** `dd98a87b5bebc51809b1ad001cf6f4800cf53d46`
-- **Source commit time:** `2026-10-01T07:39:07+03:00`
-- **Indexed changed scientific artifacts:** `1058`
+- **Live source HEAD:** `c58fca31eb686d881c76e61ef80ff94dd7b16b40`
+- **Source commit time:** `2026-10-01T07:40:47+03:00`
+- **Indexed changed scientific artifacts:** `1062`
 
 ## Continuity status
 
 - Semantic cache: `.janus/P_VS_NP_STREAM_CACHE_CURRENT.json`
 - Semantic source HEAD: `480eed45722312b7b16e4a5d9f3d19149e125892`
 - Relation: **`LIVE_DESCENDS_FROM_SEMANTIC_CACHE`**
-- Commits after semantic checkpoint: `133`
+- Commits after semantic checkpoint: `135`
 
 ## Scientific firewall
 
@@ -82,10 +82,6 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 
 ## Commits newer than semantic checkpoint — MUST INGEST
 
-- `a578d7cc3da9` — 2026-09-30T05:18:40+03:00 — R5 E9: add two-edge-twist exact contraction recognition router
-- `9a4cf5ff45e1` — 2026-09-30T05:20:55+03:00 — R5 E9: add regression for two-edge-twist contraction router
-- `71c2206d34f5` — 2026-09-30T05:21:07+03:00 — R5 E9: add CI for two-edge-twist contraction router
-- `14944ed2a576` — 2026-09-30T05:22:02+03:00 — R5 E9: prove F3 parallel collapse of unique-model tower
 - `74d3bfff97a3` — 2026-09-30T05:22:33+03:00 — R5 E9: add exact regression for unique-model F3 collapse
 - `6264dd021824` — 2026-09-30T05:22:41+03:00 — R5 E9: add CI for unique-model F3 parallel collapse
 - `65530c97e691` — 2026-09-30T05:26:39+03:00 — R5 E9: prove persistent F3 UNSAT certificate for prime tower
@@ -162,6 +158,10 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `0aac579d4d97` — 2026-10-01T07:32:41+03:00 — E9: add CI for Paley331 Moser critical cover
 - `11ca64af79df` — 2026-10-01T07:39:02+03:00 — R5 E9: add Paley331 character Moser spindle gain cover
 - `dd98a87b5beb` — 2026-10-01T07:39:07+03:00 — E9: freeze Paley5419 balanced critical order greater than nine
+- `78d6881000b7` — 2026-10-01T07:39:58+03:00 — E9: add exact Paley5419 critical-catalog falsifier checker
+- `e40e58fee570` — 2026-10-01T07:40:15+03:00 — E9: add CI for Paley5419 critical-order falsifier
+- `a4189b7a99af` — 2026-10-01T07:40:27+03:00 — R5 E9: add Paley331 Moser spindle exact checker
+- `c58fca31eb68` — 2026-10-01T07:40:47+03:00 — R5 E9: add Paley331 Moser spindle regression workflow
 
 ## Transport / stale-bootstrap watch
 
@@ -192,6 +192,10 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 
 ## Recent non-cache commits
 
+- `c58fca31eb68` — 2026-10-01T07:40:47+03:00 — R5 E9: add Paley331 Moser spindle regression workflow
+- `a4189b7a99af` — 2026-10-01T07:40:27+03:00 — R5 E9: add Paley331 Moser spindle exact checker
+- `e40e58fee570` — 2026-10-01T07:40:15+03:00 — E9: add CI for Paley5419 critical-order falsifier
+- `78d6881000b7` — 2026-10-01T07:39:58+03:00 — E9: add exact Paley5419 critical-catalog falsifier checker
 - `dd98a87b5beb` — 2026-10-01T07:39:07+03:00 — E9: freeze Paley5419 balanced critical order greater than nine
 - `11ca64af79df` — 2026-10-01T07:39:02+03:00 — R5 E9: add Paley331 character Moser spindle gain cover
 - `0aac579d4d97` — 2026-10-01T07:32:41+03:00 — E9: add CI for Paley331 Moser critical cover
@@ -213,10 +217,6 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `7ac2a5ba39bc` — 2026-09-30T08:01:10+03:00 — R5 E9: add exact directed-triangle completion regression
 - `4b48016fc803` — 2026-09-30T08:00:51+03:00 — R5 E9: prove directed-triangle fourth-point completion barrier
 - `edf2d8691d31` — 2026-09-30T07:48:19+03:00 — R5 E9: add CI for mod-3 model-count barrier
-- `8c6b2ac8e247` — 2026-09-30T07:48:11+03:00 — R5 E9: add exact checker for mod-3 model-count barrier
-- `bc0ffec278db` — 2026-09-30T07:47:51+03:00 — R5 E9: close AF3 model-count mod-3 shortcut
-- `f7333dd9cf93` — 2026-09-30T07:13:44+03:00 — R5 E9: add CI for Paley19 rank-2 cover falsifier
-- `d5097828bfea` — 2026-09-30T07:13:35+03:00 — R5 E9: add exact Paley19 rank-2 cover falsifier checker
 
 ## Resume protocol
 
