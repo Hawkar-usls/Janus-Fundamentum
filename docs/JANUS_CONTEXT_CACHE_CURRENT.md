@@ -5,16 +5,16 @@
 - **Repository:** `Hawkar-usls/Janus-Fundamentum`
 - **PR:** `#510`
 - **Branch:** `codex/r5-e8-direct-contract-20260921-82493a57`
-- **Live source HEAD:** `8642a44f9e10b2c147caf9ec8bdfb41f0252c16a`
-- **Source commit time:** `2026-10-01T12:12:07+03:00`
-- **Indexed changed scientific artifacts:** `1088`
+- **Live source HEAD:** `5393fa4c3e842504e686601248ec948f6fd34614`
+- **Source commit time:** `2026-10-01T12:14:14+03:00`
+- **Indexed changed scientific artifacts:** `1093`
 
 ## Continuity status
 
 - Semantic cache: `.janus/P_VS_NP_STREAM_CACHE_CURRENT.json`
 - Semantic source HEAD: `480eed45722312b7b16e4a5d9f3d19149e125892`
 - Relation: **`LIVE_DESCENDS_FROM_SEMANTIC_CACHE`**
-- Commits after semantic checkpoint: `130`
+- Commits after semantic checkpoint: `132`
 
 ## Scientific firewall
 
@@ -82,11 +82,6 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 
 ## Commits newer than semantic checkpoint — MUST INGEST
 
-- `6ccf5064e4cd` — 2026-09-30T06:19:07+03:00 — R5 E9: prove AF3 projective scaling invariance
-- `ff316dda71a1` — 2026-09-30T06:26:31+03:00 — R5 E9: add AF3 projective scaling regression
-- `bbf2369c5b5a` — 2026-09-30T06:26:56+03:00 — R5 E9: make AF3 projective regression kernel-dimensional
-- `9addb3121770` — 2026-09-30T06:27:05+03:00 — R5 E9: add CI for AF3 projective invariance
-- `4fbae71b9101` — 2026-09-30T06:31:31+03:00 — R5 E9: add AF3 normal-excess dual FPT router
 - `bf08e87be017` — 2026-09-30T06:32:21+03:00 — R5 E9: add exact AF3 normal-excess router regression
 - `c4ed01ca7ae8` — 2026-09-30T06:33:16+03:00 — R5 E9: add CI for AF3 normal-excess dual router
 - `60877843fca4` — 2026-09-30T06:33:28+03:00 — R5 E9: prove exact one-zero minus-two augmentation criterion
@@ -162,6 +157,11 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `dbb310a60b26` — 2026-10-01T12:07:25+03:00 — E9 Paley87211 add Ore13 exact checker
 - `99065fd19a51` — 2026-10-01T12:07:43+03:00 — E9 Paley87211 add Ore13 CI
 - `8642a44f9e10` — 2026-10-01T12:12:07+03:00 — R5 E9 falsify PG15 partial-sign bisubmodularity
+- `55c47d276710` — 2026-10-01T12:12:50+03:00 — R5 E9 add exact partial-sign bisubmodular falsifier
+- `029a0d256640` — 2026-10-01T12:13:13+03:00 — E9 Paley L33 add Ore16 two-prime positive control
+- `0be69e6f66c2` — 2026-10-01T12:13:23+03:00 — R5 E9 add CI for partial-sign bisubmodular falsifier
+- `454207900e83` — 2026-10-01T12:13:52+03:00 — E9 Paley L33 add Ore16 exact checker
+- `5393fa4c3e84` — 2026-10-01T12:14:14+03:00 — E9 Paley L33 add Ore16 CI
 
 ## Transport / stale-bootstrap watch
 
@@ -192,6 +192,11 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 
 ## Recent non-cache commits
 
+- `5393fa4c3e84` — 2026-10-01T12:14:14+03:00 — E9 Paley L33 add Ore16 CI
+- `454207900e83` — 2026-10-01T12:13:52+03:00 — E9 Paley L33 add Ore16 exact checker
+- `0be69e6f66c2` — 2026-10-01T12:13:23+03:00 — R5 E9 add CI for partial-sign bisubmodular falsifier
+- `029a0d256640` — 2026-10-01T12:13:13+03:00 — E9 Paley L33 add Ore16 two-prime positive control
+- `55c47d276710` — 2026-10-01T12:12:50+03:00 — R5 E9 add exact partial-sign bisubmodular falsifier
 - `8642a44f9e10` — 2026-10-01T12:12:07+03:00 — R5 E9 falsify PG15 partial-sign bisubmodularity
 - `99065fd19a51` — 2026-10-01T12:07:43+03:00 — E9 Paley87211 add Ore13 CI
 - `dbb310a60b26` — 2026-10-01T12:07:25+03:00 — E9 Paley87211 add Ore13 exact checker
@@ -212,11 +217,6 @@ Construct and prove a deterministic polynomial-time algorithm for arbitrary 3-CN
 - `9a3a4ec9424e` — 2026-10-01T08:08:19+03:00 — R5 E9 add PG15 minimal 8-macro NOR checker
 - `cf30c1eea7ae` — 2026-10-01T08:07:37+03:00 — R5 E9 freeze PG15 minimal 8-macro affine pin and NOR return
 - `3d54f7baea92` — 2026-10-01T08:06:58+03:00 — R5 E9: add PG15 AF3 implication threshold-8 and NOR return
-- `c51afc720a02` — 2026-10-01T08:01:06+03:00 — R5 E9: add Paley-orbit canonical diamond AF3 family workflow
-- `4eb0d6c8e4e9` — 2026-10-01T08:00:22+03:00 — R5 E9: add Paley-orbit canonical diamond AF3 family regression
-- `6d2e3570b540` — 2026-10-01T07:59:22+03:00 — R5 E9: close Paley-orbit AF3 gain-cover frontier by canonical diamond cycle
-- `255bbeb2d4eb` — 2026-10-01T07:53:17+03:00 — R5 E9: add Paley5419 diamond macro exact-order-10 workflow
-- `bfd1e66e4498` — 2026-10-01T07:52:38+03:00 — R5 E9: make Paley5419 macro BFS replay tie-break independent
 
 ## Resume protocol
 
