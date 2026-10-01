@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Exact v8.5.6 checker: local C4 current signature symmetry/product obstruction."""
+"""Exact v8.5.6 checker: local C4 current signature holographic/product obstruction."""
 
 from fractions import Fraction
 from itertools import combinations, permutations, product
@@ -118,6 +118,15 @@ assert rank_profiles[3] == Counter({12: 8, 9: 8, 6: 4})
 for size in (1, 2, 3):
     assert min(rank_profiles[size]) > 1
 
+# Stronger portwise symmetrization obstruction.
+# Every GL(3)^6 change preserves each named bipartition flattening rank.
+# A fully symmetric 6-leg tensor has equal rank on all cuts of a fixed size,
+# because S6 acts transitively on k-subsets.  Our size-2 and size-3 profiles
+# contain multiple distinct ranks, so no independent invertible port bases can
+# map this tensor to a fully symmetric tensor.
+assert len(rank_profiles[2]) > 1
+assert len(rank_profiles[3]) > 1
+
 print("PASS: local current tensor support is exactly the 5D conservation hyperplane (243/729 states)")
 print("PASS: value profile is 27x4, 108x1, 108x(-2), 486x0")
 print("PASS: exact S6 leg-permutation stabilizer has order 4 (Klein four)")
@@ -125,5 +134,6 @@ print("STABILIZER=(id),(1 3),(0 4)(2 5),(0 4)(1 3)(2 5)")
 print("PASS: 1|5 flattening ranks = 3 on all 6 cuts")
 print("PASS: 2|4 flattening ranks profile = rank3:1, rank6:6, rank9:8")
 print("PASS: 3|3 flattening ranks profile = rank6:4, rank9:8, rank12:8")
-print("VERDICT: UNIFORM_HOLOGRAPHIC_SYMMETRIZATION_AND_PORTWISE_PRODUCT_FACTORIZATION_ARE_EXACTLY_OBSTRUCTED")
+print("PASS: unequal same-size flattening ranks obstruct full symmetry throughout the entire GL(3)^6 portwise orbit")
+print("VERDICT: PORTWISE_HOLOGRAPHIC_SYMMETRIZATION_AND_PORTWISE_PRODUCT_FACTORIZATION_ARE_EXACTLY_OBSTRUCTED")
 print("P_VS_NP=OPEN; P_EQUALS_NP_ALGORITHM=NOT_CONSTRUCTED; E8_D1=EMPTY")
