@@ -1,0 +1,31 @@
+name: R5 E9 sign-crossing orthant-cost submodularity falsifier
+
+on:
+  push:
+    paths:
+      - 'experiments/r5_e9_sign_crossing_projected_orthant_cost_submodularity_falsifier.py'
+      - 'research/R5_E9_SIGN_CROSSING_PROJECTED_ORTHANT_COST_SUBMODULARITY_FALSIFIER_2026-10-01_v1.0.md'
+      - '.github/workflows/r5-e9-sign-crossing-orthant-cost-submodularity-falsifier.yml'
+  pull_request:
+    paths:
+      - 'experiments/r5_e9_sign_crossing_projected_orthant_cost_submodularity_falsifier.py'
+      - 'research/R5_E9_SIGN_CROSSING_PROJECTED_ORTHANT_COST_SUBMODULARITY_FALSIFIER_2026-10-01_v1.0.md'
+      - '.github/workflows/r5-e9-sign-crossing-orthant-cost-submodularity-falsifier.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  exact-falsifier:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Compile checker
+        run: python -m py_compile experiments/r5_e9_sign_crossing_projected_orthant_cost_submodularity_falsifier.py
+      - name: Run exact PG15 submodularity falsifier
+        run: python experiments/r5_e9_sign_crossing_projected_orthant_cost_submodularity_falsifier.py
