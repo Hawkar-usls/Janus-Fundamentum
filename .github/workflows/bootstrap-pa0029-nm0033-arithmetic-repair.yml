@@ -1,0 +1,94 @@
+name: Bootstrap PA-0029 NM-0033 arithmetic repair
+
+on:
+  push:
+    paths:
+      - ".github/workflows/bootstrap-pa0029-nm0033-arithmetic-repair.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    if: github.event.head_commit.message == 'Bootstrap PA-0029 NM-0033 arithmetic repair'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref_name }}
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Verify trigger head
+        run: |
+          git fetch origin "$GITHUB_REF_NAME"
+          test "$(git rev-parse "origin/$GITHUB_REF_NAME")" = "$GITHUB_SHA"
+
+      - name: Materialize audited arithmetic repair
+        run: |
+          python - <<'PY'
+          import base64, json, zlib
+          from pathlib import Path
+
+          payload_path=Path('.janus_bootstrap_pa0029_nm0033_arithmetic_repair_payload.txt')
+          raw=''.join(payload_path.read_text().split())
+          data=json.loads(zlib.decompress(base64.b64decode(raw)).decode())
+
+          for p,text in data['files'].items():
+              q=Path(p)
+              q.parent.mkdir(parents=True,exist_ok=True)
+              q.write_text(text)
+
+          ledger_path=Path('registry/JANUS_P_VS_NP_PREMATH_AUDIT_LEDGER_2026-09-24_v1.0.json')
+          ledger=json.loads(ledger_path.read_text())
+          ids={x['id'] for x in ledger['audits']}
+          for entry in data['entries']:
+              assert entry['id'] not in ids, entry['id']
+              ledger['audits'].append(entry)
+              ids.add(entry['id'])
+          ledger_path.write_text(json.dumps(ledger,indent=2)+'\n')
+
+          global_path=Path('registry/JANUS_P_VS_NP_GLOBAL_PREMATH_NO_DUPLICATION_GATE_2026-09-24_v1.0.json')
+          gate=json.loads(global_path.read_text())
+          gate['current_frontier']=data['frontier']
+          closed=gate.setdefault('closed_subroutes',[])
+          if not any(x.get('id')==data['closed']['id'] for x in closed):
+              closed.append(data['closed'])
+          global_path.write_text(json.dumps(gate,indent=2)+'\n')
+
+          for stale in (
+              '.janus_bootstrap_pa0029_nm0033_payload.txt',
+              '.github/workflows/bootstrap-pa0029-nm0033.yml',
+              '.janus_bootstrap_pa0029_nm0033_arithmetic_repair_payload.txt',
+              '.github/workflows/bootstrap-pa0029-nm0033-arithmetic-repair.yml',
+          ):
+              p=Path(stale)
+              if p.exists():
+                  p.unlink()
+          PY
+
+      - name: Replay PA-0029 and NM-0033
+        run: |
+          python -m py_compile experiments/r5_e9_integer_lattice_torsion_filter.py
+          python -m py_compile experiments/r5_e9_arithmetic_safe_z16_linear_nullity_family.py
+          python experiments/r5_e9_integer_lattice_torsion_filter.py
+          python experiments/r5_e9_arithmetic_safe_z16_linear_nullity_family.py
+
+      - name: Commit candidate state before governance validation
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "PA-0029 NM-0033 repair arithmetic-safe survivor"
+
+      - name: Validate governance and registry
+        run: |
+          python tools/validate_premath_gate.py
+          python tools/validate_registry.py
+
+      - name: Push audited state
+        run: git push origin "HEAD:$GITHUB_REF_NAME"
+
+# trigger-only: 2026-09-29

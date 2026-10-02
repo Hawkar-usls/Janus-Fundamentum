@@ -1,0 +1,43 @@
+name: R5 E10A Mersenne Family S8 Binding
+
+on:
+  push:
+    paths:
+      - "experiments/r5_e10a_mersenne_family_s8_binding.py"
+      - "research/R5_E10A_MERSENNE_FAMILY_WIDE_S8_BINDING_2026-09-25_v1.0.md"
+      - "registry/JANUS_P_VS_NP_R5_E10A_MERSENNE_FAMILY_WIDE_S8_BINDING_2026-09-25_v1.0.json"
+      - ".github/workflows/r5-e10a-mersenne-family-s8-binding.yml"
+  pull_request:
+    paths:
+      - "experiments/r5_e10a_mersenne_family_s8_binding.py"
+      - "research/R5_E10A_MERSENNE_FAMILY_WIDE_S8_BINDING_2026-09-25_v1.0.md"
+      - "registry/JANUS_P_VS_NP_R5_E10A_MERSENNE_FAMILY_WIDE_S8_BINDING_2026-09-25_v1.0.json"
+      - ".github/workflows/r5-e10a-mersenne-family-s8-binding.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  replay:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Compile checker
+        run: python -m py_compile experiments/r5_e10a_mersenne_family_s8_binding.py
+      - name: Replay algebraic side-check
+        run: |
+          python experiments/r5_e10a_mersenne_family_s8_binding.py > /tmp/nm0021.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          x=json.loads(Path('/tmp/nm0021.json').read_text())
+          assert x["status"]=="PASS_MERSENNE_FAMILY_S8_BINDING_ALGEBRAIC_SIDE_CHECK"
+          assert "M_L has an S8 minor" in x["derived"]
+          assert x["scope"]["binding"]=="EXISTENCE_THEOREM_NOT_UNIFORM_COORDINATE_EXTRACTION"
+          print("R5_E10A_NM0021=PASS")
+          PY

@@ -1,0 +1,46 @@
+name: R5 E9 Odd-Hole Full Boundary Delta-Matroid Barrier
+
+on:
+  push:
+    paths:
+      - "experiments/r5_e9_odd_hole_full_boundary_delta_matroid_barrier.py"
+      - "research/R5_E9_ODD_HOLE_FULL_BOUNDARY_DELTA_MATROID_BARRIER_2026-09-26_v1.0.md"
+      - "registry/JANUS_P_VS_NP_R5_E9_ODD_HOLE_FULL_BOUNDARY_DELTA_MATROID_BARRIER_2026-09-26_v1.0.json"
+      - ".github/workflows/r5-e9-odd-hole-full-boundary-delta-matroid-barrier.yml"
+  pull_request:
+    paths:
+      - "experiments/r5_e9_odd_hole_full_boundary_delta_matroid_barrier.py"
+      - "research/R5_E9_ODD_HOLE_FULL_BOUNDARY_DELTA_MATROID_BARRIER_2026-09-26_v1.0.md"
+      - "registry/JANUS_P_VS_NP_R5_E9_ODD_HOLE_FULL_BOUNDARY_DELTA_MATROID_BARRIER_2026-09-26_v1.0.json"
+      - ".github/workflows/r5-e9-odd-hole-full-boundary-delta-matroid-barrier.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  replay:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Compile checker
+        run: python -m py_compile experiments/r5_e9_odd_hole_full_boundary_delta_matroid_barrier.py
+      - name: Replay full-boundary exchange barrier
+        run: |
+          python experiments/r5_e9_odd_hole_full_boundary_delta_matroid_barrier.py > /tmp/nm0024.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          x=json.loads(Path('/tmp/nm0024.json').read_text())
+          assert x["status"]=="PASS_FULL_ODD_HOLE_BOUNDARY_NOT_DELTA_MATROID"
+          assert x["uniform_theorem"]["matching_realizable"]=="IMPOSSIBLE"
+          for k in ("5","7","9"):
+              c=x["finite_controls"][k]
+              assert c["delta_matroid_exchange"]=="FAIL"
+              assert not any(c["exchange_candidates"].values())
+          print("R5_E9_NM0024=PASS")
+          PY

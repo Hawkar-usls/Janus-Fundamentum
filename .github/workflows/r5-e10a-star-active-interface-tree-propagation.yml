@@ -1,0 +1,48 @@
+name: R5 E10A Star Active Interface Tree Propagation
+
+on:
+  push:
+    paths:
+      - "experiments/r5_e10a_star_active_interface_tree_propagation.py"
+      - "research/R5_E10A_STAR_SUPPORT_ACTIVE_INTERFACE_TREE_PROPAGATION_2026-09-25_v1.0.md"
+      - "registry/JANUS_P_VS_NP_R5_E10A_STAR_SUPPORT_ACTIVE_INTERFACE_TREE_PROPAGATION_2026-09-25_v1.0.json"
+      - ".github/workflows/r5-e10a-star-active-interface-tree-propagation.yml"
+  pull_request:
+    paths:
+      - "experiments/r5_e10a_star_active_interface_tree_propagation.py"
+      - "research/R5_E10A_STAR_SUPPORT_ACTIVE_INTERFACE_TREE_PROPAGATION_2026-09-25_v1.0.md"
+      - "registry/JANUS_P_VS_NP_R5_E10A_STAR_SUPPORT_ACTIVE_INTERFACE_TREE_PROPAGATION_2026-09-25_v1.0.json"
+      - ".github/workflows/r5-e10a-star-active-interface-tree-propagation.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  replay:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Compile checker
+        run: python -m py_compile experiments/r5_e10a_star_active_interface_tree_propagation.py
+      - name: Replay active-interface controls
+        run: |
+          python experiments/r5_e10a_star_active_interface_tree_propagation.py > /tmp/nm0015.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          x=json.loads(Path('/tmp/nm0015.json').read_text())
+          assert x["status"]=="PASS_FINITE_STAR_ACTIVE_INTERFACE_CONTROLS"
+          assert x["theorem_bounds"]["active_incident_interfaces_per_star"] == 4
+          assert x["theorem_bounds"]["local_star_representative_support"] == 8
+          assert x["theorem_bounds"]["two_row_signature_support_from_two_small_quotient_generators"] == 16
+          assert x["exhaustive_named"]["max_active"] <= 4
+          assert x["exhaustive_named"]["max_local_support_bound"] <= 8
+          assert x["random"]["instances"] == 1000
+          assert x["theorem_bounds"]["P_VS_NP"] == "OPEN"
+          print("R5_E10A_NM0015=PASS")
+          PY

@@ -1,0 +1,49 @@
+name: R5 E10A Nondistinguished Boundary Lifting
+
+on:
+  push:
+    paths:
+      - "experiments/r5_e10a_nondistinguished_single_root_boundary_lifting.py"
+      - "research/R5_E10A_NONDISTINGUISHED_SINGLE_ROOT_BOUNDARY_LIFTING_2026-09-25_v1.0.md"
+      - "registry/JANUS_P_VS_NP_R5_E10A_NONDISTINGUISHED_SINGLE_ROOT_BOUNDARY_LIFTING_2026-09-25_v1.0.json"
+      - ".github/workflows/r5-e10a-nondistinguished-boundary-lifting.yml"
+  pull_request:
+    paths:
+      - "experiments/r5_e10a_nondistinguished_single_root_boundary_lifting.py"
+      - "research/R5_E10A_NONDISTINGUISHED_SINGLE_ROOT_BOUNDARY_LIFTING_2026-09-25_v1.0.md"
+      - "registry/JANUS_P_VS_NP_R5_E10A_NONDISTINGUISHED_SINGLE_ROOT_BOUNDARY_LIFTING_2026-09-25_v1.0.json"
+      - ".github/workflows/r5-e10a-nondistinguished-boundary-lifting.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  replay:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Compile checker
+        run: python -m py_compile experiments/r5_e10a_nondistinguished_single_root_boundary_lifting.py
+      - name: Replay 2/Delta3/Y3 boundary controls
+        run: |
+          python experiments/r5_e10a_nondistinguished_single_root_boundary_lifting.py > /tmp/nm0014.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          x=json.loads(Path('/tmp/nm0014.json').read_text())
+          assert x["status"]=="PASS_FINITE_SINGLE_ROOT_BOUNDARY_LIFTING_CONTROLS"
+          assert x["two_sum"]["instances"] == 100
+          assert x["delta_three_sum"]["instances"] == 100
+          assert x["y_three_sum"]["instances"] == 100
+          assert x["bounds"]["two_sum_cocycle_generator_support"] == 4
+          assert x["bounds"]["delta_three_sum_cocycle_generator_support"] == 5
+          assert x["bounds"]["y_three_sum_lift_generator_support"] == 4
+          assert x["bounds"]["y_three_sum_interface_kernel_support"] == 3
+          assert x["bounds"]["P_VS_NP"] == "OPEN"
+          print("R5_E10A_NM0014=PASS")
+          PY

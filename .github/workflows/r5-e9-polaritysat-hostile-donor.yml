@@ -1,0 +1,25 @@
+name: R5 E9 PolaritySAT hostile donor falsifier
+
+on:
+  push:
+    paths:
+      - 'research/R5_E9_POLARITYSAT_2026_HOSTILE_DONOR_AUDIT_2026-09-28_v1.0.md'
+      - 'experiments/r5_e9_polaritysat_forced_assignment_counterexample.py'
+      - '.github/workflows/r5-e9-polaritysat-hostile-donor.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  exact-counterexample:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Compile falsifier
+        run: python -m py_compile experiments/r5_e9_polaritysat_forced_assignment_counterexample.py
+      - name: Replay exact counterexample
+        run: python experiments/r5_e9_polaritysat_forced_assignment_counterexample.py

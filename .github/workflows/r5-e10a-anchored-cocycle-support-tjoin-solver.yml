@@ -1,0 +1,47 @@
+name: R5 E10A Anchored Cocycle Support T-Join Solver
+
+on:
+  push:
+    paths:
+      - "experiments/r5_e10a_anchored_cocycle_support_tjoin_solver.py"
+      - "research/R5_E10A_ANCHORED_COCYCLE_SWITCHING_CONSTANT_SUPPORT_TJOIN_SOLVER_2026-09-25_v1.0.md"
+      - "registry/JANUS_P_VS_NP_R5_E10A_ANCHORED_COCYCLE_SWITCHING_CONSTANT_SUPPORT_TJOIN_SOLVER_2026-09-25_v1.0.json"
+      - ".github/workflows/r5-e10a-anchored-cocycle-support-tjoin-solver.yml"
+  pull_request:
+    paths:
+      - "experiments/r5_e10a_anchored_cocycle_support_tjoin_solver.py"
+      - "research/R5_E10A_ANCHORED_COCYCLE_SWITCHING_CONSTANT_SUPPORT_TJOIN_SOLVER_2026-09-25_v1.0.md"
+      - "registry/JANUS_P_VS_NP_R5_E10A_ANCHORED_COCYCLE_SWITCHING_CONSTANT_SUPPORT_TJOIN_SOLVER_2026-09-25_v1.0.json"
+      - ".github/workflows/r5-e10a-anchored-cocycle-support-tjoin-solver.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  replay:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Compile checker
+        run: python -m py_compile experiments/r5_e10a_anchored_cocycle_support_tjoin_solver.py
+      - name: Replay anchored support and T-join controls
+        run: |
+          python experiments/r5_e10a_anchored_cocycle_support_tjoin_solver.py > /tmp/nm0013.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          x=json.loads(Path('/tmp/nm0013.json').read_text())
+          assert x["status"]=="PASS_FINITE_ANCHORED_SUPPORT_AND_TJOIN_CONTROLS"
+          assert x["normalization"]["normalized_signature_support"] <= 7
+          assert x["solver"]["instances"] == 300
+          assert x["solver"]["max_signature_support_tested"] <= 6
+          assert x["theorem_scope"]["derived_signature_support_bound"] == 7
+          assert x["theorem_scope"]["solver"] == "CONSTANT_ENUMERATION_PLUS_ORDINARY_T_JOIN"
+          assert x["theorem_scope"]["P_VS_NP"] == "OPEN"
+          print("R5_E10A_NM0013=PASS")
+          PY

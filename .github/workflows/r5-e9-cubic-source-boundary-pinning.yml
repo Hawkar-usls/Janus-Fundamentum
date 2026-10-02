@@ -1,0 +1,45 @@
+name: R5 E9 Cubic Source Boundary Pinning
+
+on:
+  push:
+    paths:
+      - "experiments/r5_e9_cubic_source_boundary_pinning.py"
+      - "research/R5_E9_CUBIC_SOURCE_BOUNDARY_PINNING_AND_CONTEXT_SEPARATION_2026-09-26_v1.0.md"
+      - "registry/JANUS_P_VS_NP_R5_E9_CUBIC_SOURCE_BOUNDARY_PINNING_2026-09-26_v1.0.json"
+      - ".github/workflows/r5-e9-cubic-source-boundary-pinning.yml"
+  pull_request:
+    paths:
+      - "experiments/r5_e9_cubic_source_boundary_pinning.py"
+      - "research/R5_E9_CUBIC_SOURCE_BOUNDARY_PINNING_AND_CONTEXT_SEPARATION_2026-09-26_v1.0.md"
+      - "registry/JANUS_P_VS_NP_R5_E9_CUBIC_SOURCE_BOUNDARY_PINNING_2026-09-26_v1.0.json"
+      - ".github/workflows/r5-e9-cubic-source-boundary-pinning.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  replay:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Compile checker
+        run: python -m py_compile experiments/r5_e9_cubic_source_boundary_pinning.py
+      - name: Replay cubic source pinning
+        run: |
+          python experiments/r5_e9_cubic_source_boundary_pinning.py > /tmp/nm0025.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          x=json.loads(Path('/tmp/nm0025.json').read_text())
+          assert x["status"]=="PASS_CUBIC_SOURCE_BOUNDARY_PINNING"
+          assert len(x["all_eight_three_bit_patterns"])==8
+          assert x["theorem"]["all_8_singleton_patterns"]
+          assert x["theorem"]["old_boundary_total_degree_after_gluing"]=="1+2=3"
+          assert x["scope"]["context_independent_hole_state_merge"]=="BLOCKED_AS_UNIVERSAL_SOURCE_REDUCTION"
+          print("R5_E9_NM0025=PASS")
+          PY
