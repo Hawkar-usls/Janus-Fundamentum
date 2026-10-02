@@ -3,44 +3,60 @@
 Date: 2026-10-02
 
 Status:
-`EXACT_HARDNESS_BRIDGE_MULTICLAW_FIREWALL__EVERY_E12_TARGET_VERTEX_HAS_4_OR_8_CLAW_STATES__E49_BACKDOOR_LINEAR`
+`CORRECTED_COLUMN_CONFLICT_ORIENTATION__EVERY_E12_VARIABLE_COLUMN_HAS_2_4_OR_8_CLAW_TRIPLES__E49_BACKDOOR_LINEAR`
 
 Scientific ceiling:
 
 ```text
-R5 E49 SOLVES THE CONFLICT-STATE CSP BY 2-SAT WHEN EVERY VERTEX HAS AT MOST
-ONE CLAW-LEAF TRIPLE, AND BY O(21^t poly(n)) WHEN ONLY t VERTICES HAVE TWO
-OR MORE CLAW TRIPLES.
+R5 E49 SOLVES THE CONFLICT-STATE CSP BY 2-SAT WHEN EVERY VARIABLE-COLUMN
+HAS AT MOST ONE CLAW-LEAF TRIPLE, AND BY O(21^t poly(n)) WHEN ONLY t
+VARIABLE-COLUMNS HAVE TWO OR MORE CLAW TRIPLES.
 
-THE R5 E12 NP-COMPLETE HARDNESS BRIDGE LIVES MAXIMALLY FAR FROM THAT REGIME.
-FOR EVERY TARGET PRODUCED BY THE E12 GADGET REDUCTION:
+FOR THE R5 E12 NP-COMPLETE HARDNESS BRIDGE, THE RELEVANT CONFLICT GRAPH IS
+THE GRAPH ON TARGET TRIPLES / MATRIX COLUMNS: TWO TARGET TRIPLES ARE
+ADJACENT IFF THEY SHARE A TARGET ELEMENT / MATRIX ROW.
 
-  each internal z or Z vertex has exactly 4 claw triples;
-  each local t vertex has exactly 8 claw triples;
-  each global boundary x or x' vertex has exactly 8 claw triples.
+ON THAT CORRECT GRAPH, EVERY E12 TARGET VARIABLE IS MULTICLAW:
 
-THEREFORE EVERY TARGET VERTEX IS MULTICLAW AND
-  t_multiclaw = n.
+  L1-L3, P1-P3, D1-D6 : c(v)=4;
+  L4-L5, P4-P5       : c(v)=2;
+  D7                  : c(v)=8.
 
-SO E49 IS A GENUINE FPT ISLAND, NOT A UNIVERSAL SOLVER IN DISGUISE.
+THUS EVERY TARGET VERTEX HAS c(v)>=2 AND
+  t_multiclaw=n.
+
+THE EARLIER POINT-GRAPH 4/8 COUNT WAS AN ORIENTATION ERROR AND IS NOT USED.
+THIS CORRECTED NOTE REPLACES IT.
+
 P_VS_NP = OPEN.
 ```
 
-## 1. Recall the E12 target gadget
+## 1. Orientation correction
 
-Each RXC3 source triple is replaced by the 17-row / 15-internal-element gadget of
-R5 E12.
-
-For one gadget the variable types are
+The E12 reduction is naturally written as a 3-uniform hypergraph:
 
 ```text
-boundary: x1,x2,x3,p1,p2,p3
-unprimed internal: z1,...,z6
-primed internal:   Z1,...,Z6
-local: t1,t2,t3.
+target elements  = Exact-One constraints / matrix rows,
+target triples   = selectable Exact-One variables / matrix columns.
 ```
 
-The target source rows are
+R5 E45--E49 define the conflict graph on **variable-columns**.
+Therefore the correct E12 conflict graph has:
+
+```text
+one conflict vertex per target triple L_i,P_i,D_i,
+```
+
+with two conflict vertices adjacent exactly when the corresponding target triples
+share a target element.
+
+The point graph on target elements is also 6-regular because the target is square,
+cubic and linear, but it is the conflict graph of the dual incidence matrix and is
+not the graph used by E45--E49. E50 henceforth uses only the correct column graph.
+
+## 2. Recall one E12 gadget
+
+For one source triple, the 17 selectable target triples are
 
 ```text
 L1={x1,z1,z4}       P1={p1,Z1,Z4}
@@ -58,170 +74,201 @@ D6={Z1,Z5,t1}
 D7={t1,t2,t3}.
 ```
 
-Global boundary variables are identified across the three source gadgets incident
-to the same RXC3 element. Every target variable has source degree three and the
-target remains linear.
+Every target triple contains three elements. Every target element lies in exactly
+three target triples. Linearity says any two target triples share at most one
+element.
 
-## 2. Claw triples in a cubic-linear conflict neighborhood
+Therefore each conflict vertex has six distinct neighbors arranged into three
+adjacent pairs, one pair for each element of the triple.
 
-For any target variable `v`, its six conflict neighbors are partitioned into the
-three source-pairs contributed by the three source rows containing `v`.
+A claw-leaf triple centered at a target triple is an independent transversal:
+choose one neighbor from each of those three pairs, subject to no extra adjacency
+between the three chosen neighbors.
 
-A claw-leaf triple centered at `v` is exactly an independent transversal selecting
-one neighbor from each of those three pairs.
+There are at most `2^3=8` such transversals.
 
-Without extra cross-adjacencies there are
+## 3. Boundary L/P triples L1--L3 and P1--P3 have c=4
 
-```text
-2^3=8
-```
+Consider `L1={x1,z1,z4}`.
 
-possible transversals.
-
-The E12 gadget either preserves all eight or introduces local cross-conflicts that
-remove exactly half.
-
-## 3. Boundary variables have eight claw triples
-
-Take a global boundary variable `x` (the primed case is identical).
-
-RXC3 regularity makes `x` occur in exactly three source gadgets. In each gadget its
-target occurrence is in one row of the form
+Its three conflict-neighbor pairs are:
 
 ```text
-{x, z_a, z_b}.
+through x1 : the two other target triples from the other two source gadgets
+             incident with the same global RXC3 element x1;
+through z1 : {L4,D3};
+through z4 : {L5,D2}.
 ```
 
-Hence its six conflict neighbors are arranged as three disjoint pairs, one pair
-from each distinct gadget.
+The two external neighbors through `x1` belong to distinct gadgets. They have no
+cross-adjacencies to the local `z`-neighbors above.
 
-Internal variables belonging to different gadgets never share target source rows,
-so there are no cross-adjacencies between different pairs.
+Between the two local pairs, direct gadget inspection gives exactly two forbidden
+cross choices:
 
-Therefore every choice of one endpoint from each pair is independent:
+```text
+L4 -- D2   (share z3),
+D3 -- L5   (share z5).
+```
+
+The other two pairwise choices are nonadjacent.
+
+Hence the external pair contributes a free factor `2`, while the two local pairs
+have exactly two compatible transversals:
 
 ```text
 boxed:
-c(x)=8.
+c(L1)=2*2=4.
 ```
 
-The same proof gives
-
-```text
-c(x')=8.
-```
-
-This is independent of the specific RXC3 instance.
-
-## 4. The t-variables have eight claw triples
-
-Consider `t1`; the other two cases are cyclic relabelings.
-
-Its three source rows are
-
-```text
-D1={z2,z6,t1},
-D6={Z1,Z5,t1},
-D7={t1,t2,t3}.
-```
-
-Thus its neighbor pairs are
-
-```text
-{z2,z6},
-{Z1,Z5},
-{t2,t3}.
-```
-
-No endpoint from one displayed pair is adjacent to an endpoint from another pair:
-inspection of D2--D5 shows that `t2,t3` couple to different z/Z coordinates, while
-primed and unprimed z families meet only through the t variables and never directly.
-
-Therefore the induced neighborhood is exactly `3K2`, and all eight transversals are
-independent:
+The same argument holds for `L2,L3` by cyclic symmetry and for `P1,P2,P3` in the
+primed copy:
 
 ```text
 boxed:
-c(t_i)=8
+c(L1)=c(L2)=c(L3)=c(P1)=c(P2)=c(P3)=4.
 ```
 
-for `i=1,2,3`.
+This count is independent of the global RXC3 wiring beyond the regular promise that
+each source element occurs in three source triples.
 
-## 5. The z/Z variables have exactly four claw triples
+## 4. Internal L4,L5,P4,P5 have c=2
 
-It suffices by gadget symmetry to inspect one representative, say `z1`.
-
-The three source rows containing `z1` are
+Take
 
 ```text
-L1={x1,z1,z4},
-L4={z1,z2,z3},
-D3={z1,z5,t3}.
+L4={z1,z2,z3}.
 ```
 
-So the three source-pairs in `N(z1)` are
+Its three neighbor pairs are
 
 ```text
-{x1,z4},
-{z2,z3},
-{z5,t3}.
+{L1,D3},
+{L2,D1},
+{L3,D2}.
 ```
 
-There are eight raw transversals. Additional gadget rows create cross-adjacencies:
+Among the eight raw transversals, direct inspection of the fixed gadget shows that
+only two are independent:
 
 ```text
-z4 -- z5     via L5,
-z4 -- z3     via D2,
-z2 -- z5     via L2,
-z2 -- t3     via D1? no: D1 uses z2,z6,t1,
+{L1,L2,L3},
+{D3,D1,D2}.
 ```
 
-and the complete direct inspection of the fixed 17-row gadget leaves exactly four
-independent transversals.
+Every mixed choice contains a conflicting pair through one of the other `z`
+incidences.
 
-The same local pattern is carried to every `z_i` by the cyclic gadget symmetries;
-the primed copy is isomorphic. Hence
+Thus
 
 ```text
 boxed:
-c(z_i)=c(Z_i)=4
+c(L4)=2.
 ```
 
-for every `i=1,...,6`.
-
-Because this statement is purely local, the global RXC3 wiring does not change it.
-
-The companion exact checker independently enumerates all neighborhood triples on the
-frozen q=6 target and verifies the full count distribution.
-
-## 6. Global count
-
-For an RXC3 instance with `q` source triples, the E12 target contains
-
-```text
-12q z/Z internal vertices,
-3q  t vertices,
-2q  global boundary x/x' vertices,
-```
-
-for a total of
-
-```text
-n=17q.
-```
-
-The claw-count distribution is therefore
-
-```text
-c=4 : 12q vertices,
-c=8 :  5q vertices.
-```
-
-Equivalently,
+The same fixed local pattern gives
 
 ```text
 boxed:
-all n=17q vertices satisfy c(v)>=4.
+c(L5)=c(P4)=c(P5)=2.
+```
+
+## 5. D1--D6 have c=4
+
+Consider
+
+```text
+D1={z2,z6,t1}.
+```
+
+Its three neighbor pairs are
+
+```text
+through z2 : {L2,L4},
+through z6 : {L3,L5},
+through t1 : {D6,D7}.
+```
+
+The local cross-adjacencies of the fixed E12 gadget eliminate exactly half of the
+eight raw transversals. Direct enumeration leaves four independent triples.
+
+The six rows `D1,...,D6` are related by the unprimed/primed and cyclic gadget
+symmetries, hence
+
+```text
+boxed:
+c(D_i)=4 for i=1,...,6.
+```
+
+The companion checker enumerates these transversals explicitly on the frozen q=6
+target.
+
+## 6. D7 has c=8
+
+For
+
+```text
+D7={t1,t2,t3},
+```
+
+the three conflict-neighbor pairs are
+
+```text
+{D1,D6},
+{D2,D4},
+{D3,D5}.
+```
+
+No target triple from one displayed pair shares an element with a target triple
+from another displayed pair. Therefore there are no cross-adjacencies at all among
+the three pairs.
+
+Every one of the eight transversals is independent:
+
+```text
+boxed:
+c(D7)=8.
+```
+
+## 7. Global count for every E12 target
+
+Each source gadget contributes exactly
+
+```text
+6 columns of type L1-L3/P1-P3 with c=4,
+4 columns of type L4-L5/P4-P5    with c=2,
+6 columns of type D1-D6          with c=4,
+1 column  of type D7             with c=8.
+```
+
+Therefore per gadget:
+
+```text
+c=2 : 4 columns,
+c=4 : 12 columns,
+c=8 : 1 column.
+```
+
+For an RXC3 source with `q` triples, the E12 target has
+
+```text
+n=17q
+```
+
+variable-columns and exact distribution
+
+```text
+boxed:
+c=2 : 4q,
+c=4 : 12q,
+c=8 : q.
+```
+
+In particular every target variable satisfies
+
+```text
+boxed:
+c(v)>=2.
 ```
 
 Thus the E49 exceptional set
@@ -237,112 +284,99 @@ boxed:
 |B|=n.
 ```
 
-## 7. Frozen q=6 control
+## 8. Frozen q=6 control
 
-For the q=6 E17 fixture,
+For the E17 q=6 fixture,
 
 ```text
 n=102.
 ```
 
-The checker obtains exactly
+The corrected checker computes on the target-column conflict graph:
 
 ```text
+24 vertices with c=2,
 72 vertices with c=4,
-30 vertices with c=8,
-0 vertices with c<=1.
+ 6 vertices with c=8,
+ 0 vertices with c<=1.
 ```
 
-Broken down by type:
+Equivalently:
 
 ```text
-z  : 36 vertices, all c=4,
-Z  : 36 vertices, all c=4,
-t  : 18 vertices, all c=8,
-x  :  6 vertices, all c=8,
-x' :  6 vertices, all c=8.
+L1-L3,P1-P3,D1-D6 -> 72 total vertices with c=4,
+L4-L5,P4-P5       -> 24 total vertices with c=2,
+D7                 ->  6 total vertices with c=8.
 ```
 
-Therefore
+Hence
 
 ```text
 t_multiclaw=102=n.
 ```
 
-## 8. Consequence for E49
+## 9. Consequence for E49
 
-R5 E49 gives
+R5 E49 is polynomial when every local conflict domain has at most two states and is
+FPT when only `t` vertices have two or more claw triples.
 
-```text
-O(21^t poly(n))
-```
-
-when only `t` vertices have multiple claw triples.
-
-On the E12 reduction target,
+The E12 target instead has local state-domain sizes
 
 ```text
-t=n,
+1+c(v) in {3,5,9}
 ```
 
-so this branch is exponential and gives no universal polynomial bound.
+at every vertex and
+
+```text
+t=n.
+```
+
+So the E49 backdoor is linear on the frozen NP-complete bridge.
 
 Therefore:
 
 ```text
 boxed:
-MULTICLAW AMBIGUITY IS GENUINELY PRESENT AT LINEAR DENSITY IN THE FROZEN
-NP-COMPLETE HARDNESS BRIDGE.
+DENSE MULTICLAW AMBIGUITY IS GENUINELY PRESENT THROUGHOUT THE E12 HARDNESS
+TARGET ON THE CORRECT VARIABLE-CONFLICT GRAPH.
 ```
 
-This is the correct firewall against over-interpreting E48/E49.
+The exact 2/4/8 distribution replaces the erroneous point-graph 4/8 distribution.
 
-## 9. What survives after the firewall
+## 10. What survives after the firewall
 
-The local-state picture is still useful, but the hard target carries 5-state or
-9-state local domains everywhere:
+The hard bridge already defeats all strategies based only on:
 
 ```text
-1 SEL state + 4 claw states for z/Z,
-1 SEL state + 8 claw states for t/x/x'.
+existence of claws,
+non-claw forcing,
+unique-claw 2-SAT,
+small numbers of multiclaw vertices,
+bounded constant local-state domains.
 ```
 
-So the next question cannot be whether local domains are small in an absolute
-constant sense; they already are, yet the global CSP remains NP-hard.
+Every local domain is still constant-size, but the global compatibility CSP remains
+NP-hard.
 
-The useful next target is structural compression of **compatibility among these
-constant-size domains**.
+Thus the next graph-state attack must exploit the structure of **compatibility among
+many 3/5/9-state domains**, not their individual sizes.
 
-For the E12 gadget, R5 E17 already shows that much local linear freedom quotients to
-the original RXC3 source. The graph-state analogue should therefore determine
-whether eliminating internal 5/9-state variables also projects exactly to a compact
-boundary relation that recreates the RXC3 choice.
+R5 E12's exact local gadget theorem and R5 E17's kernel quotient already suggest the
+expected firewall: exact elimination of bounded gadget interiors can project back
+to the original RXC3 source language.
 
-If so, that will identify precisely how the NP-hard source survives every local-state
-compression.
+## 11. Updated frontier
 
-## 10. Updated frontier
+After corrected E50, a universal graph-state theorem must go beyond local ambiguity
+counts and find a global matching, parity, potential, quotient, or decomposition
+structure that the E12 source itself cannot reproduce.
 
-After E50, a universal graph-state theorem must exploit something stronger than
-
-```text
-bounded local state count,
-claw existence,
-unique-claw forcing,
-or a sparse population of ambiguous vertices.
-```
-
-The hard bridge already defeats all four.
-
-The remaining graph-state frontier is:
+The active graph-state frontier remains:
 
 ```text
 GLOBAL COMPATIBILITY STRUCTURE OF DENSE MULTICLAW DOMAINS.
 ```
-
-A successful polynomial theorem must either expose another global matching/parity/
-potential structure in that compatibility system or prove a decomposition that the
-E12 source cannot evade.
 
 ```text
 P_VS_NP = OPEN.
