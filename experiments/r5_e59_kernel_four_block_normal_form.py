@@ -1,9 +1,20 @@
 #!/usr/bin/env python3
 """R5 E59 exact controls: every binary kernel word has a canonical 4-block form.
 
-Let A=I+P+Q over F_2 and k in ker(A).  With K=supp(k), write PK=supp(Pk),
-QK=supp(Qk).  At every coordinate the membership triple in (K,PK,QK) has
-even parity, hence is one of
+Row convention in this checker is
+
+    (A k)_i = k_i + k_{p(i)} + k_{q(i)}.
+
+Hence, if \hat P denotes the actual permutation-matrix action on vectors,
+
+    (\hat P k)_i = k_{p(i)},
+
+then supp(\hat P k)=p^{-1}(K).  We write PK and QK below for these matrix-action
+supports, not for the forward set images p(K),q(K).
+
+Let A=I+P+Q over F_2 and k in ker(A).  With K=supp(k), PK=supp(Pk),
+QK=supp(Qk), every coordinate membership triple in (K,PK,QK) has even parity,
+hence is one of
 
     000, 110, 101, 011.
 
@@ -27,11 +38,11 @@ Because P,Q preserve cardinality, |A|=|B|=|C|=:m. Therefore
     |D| = n-3m = n - 3|K|/2.
 
 Thus the E58 weight cap |K|<=2n/3 is exactly D>=0, and Exact-One is exactly
-D=empty. At D=empty, x=1+k has support C and
+D=empty. At D=empty, x=1+k has support C and, under matrix action,
 
-    P(C)=B, Q(C)=A,
+    supp(Px)=B, supp(Qx)=A,
 
-so V=C ⊔ P(C) ⊔ Q(C).
+so V=supp(x) ⊔ supp(Px) ⊔ supp(Qx).
 """
 import itertools
 
@@ -60,23 +71,21 @@ def support(bits):
     return {i for i,b in enumerate(bits) if b}
 
 
-def perm_action_on_vector(p, x):
-    """Permutation-matrix action: output at p[i] receives x[i]."""
-    y = [0] * len(x)
-    for i,j in enumerate(p):
-        y[j] = x[i]
-    return y
+def matrix_perm_action_on_vector(p, x):
+    """Row convention: (P x)_i = x_{p[i]}."""
+    return [x[p[i]] for i in range(len(x))]
 
 
-def perm_action_on_set(p, S):
-    return {p[i] for i in S}
+def matrix_perm_action_on_set(p, S):
+    """Support of the matrix action: {i : p(i) in S}=p^{-1}(S)."""
+    return {i for i in range(len(p)) if p[i] in S}
 
 
 def classify_blocks(p, q, k):
     n = len(k)
     K = support(k)
-    PK = perm_action_on_set(p, K)
-    QK = perm_action_on_set(q, K)
+    PK = matrix_perm_action_on_set(p, K)
+    QK = matrix_perm_action_on_set(q, K)
 
     A = K & PK
     B = K & QK
@@ -138,15 +147,17 @@ def check_fixture(name, p, q, expect_exact, expect_kmax, expect_min_D):
 
         if not Dblk:
             # At the cap, complement support is exactly C, and the other
-            # two exact-cover images are B and A.
+            # two exact-cover images are B and A under matrix action.
             S = support(x)
+            PS = matrix_perm_action_on_set(p, S)
+            QS = matrix_perm_action_on_set(q, S)
             assert S == Cblk
-            assert perm_action_on_set(p, S) == Bblk
-            assert perm_action_on_set(q, S) == Ablk
-            assert S.isdisjoint(perm_action_on_set(p,S))
-            assert S.isdisjoint(perm_action_on_set(q,S))
-            assert perm_action_on_set(p,S).isdisjoint(perm_action_on_set(q,S))
-            assert S | perm_action_on_set(p,S) | perm_action_on_set(q,S) == set(range(n))
+            assert PS == Bblk
+            assert QS == Ablk
+            assert S.isdisjoint(PS)
+            assert S.isdisjoint(QS)
+            assert PS.isdisjoint(QS)
+            assert S | PS | QS == set(range(n))
             assert y == [1] * n
 
     kmax = max(w for w,_,_,_ in kernel)
