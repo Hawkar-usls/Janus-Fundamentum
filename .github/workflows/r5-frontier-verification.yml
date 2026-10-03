@@ -1,0 +1,50 @@
+name: R5 Frontier Verification
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'experiments/r5_e17_hardness_kernel_quotient.py'
+      - 'experiments/r5_e53_e12_boolean_boundary_quotient.py'
+      - 'experiments/r5_e61_two_level_kernel_hoffman_regular_set.py'
+      - 'experiments/r5_e62_hypergraph_balanced_odd_cycle_frontier.py'
+      - 'experiments/r5_e63_e12_nonaffine_c5_packing_raw_parameter_firewall.py'
+      - 'research/R5_E17_*'
+      - 'research/R5_E53_*'
+      - 'research/R5_E61_*'
+      - 'research/R5_E62_*'
+      - 'research/R5_E63_*'
+      - '.github/workflows/r5-frontier-verification.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  replay:
+    name: Replay E17 E53 E61 E62 E63
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: E17 kernel quotient
+        run: python experiments/r5_e17_hardness_kernel_quotient.py
+
+      - name: E53 Boolean boundary quotient
+        run: python experiments/r5_e53_e12_boolean_boundary_quotient.py
+
+      - name: E61 two-level kernel and Hoffman set
+        run: python experiments/r5_e61_two_level_kernel_hoffman_regular_set.py
+
+      - name: E62 balanced hypergraph odd-cycle frontier
+        run: python experiments/r5_e62_hypergraph_balanced_odd_cycle_frontier.py
+
+      - name: E63 non-affine C5 packing firewall
+        run: python experiments/r5_e63_e12_nonaffine_c5_packing_raw_parameter_firewall.py
