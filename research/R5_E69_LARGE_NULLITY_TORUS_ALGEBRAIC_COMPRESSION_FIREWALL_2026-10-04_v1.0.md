@@ -30,253 +30,171 @@ COMPRESSION.  THIS SHOWS WHAT A LARGE-NULLITY BRANCH WOULD HAVE TO LOOK LIKE:
 NOT GENERIC SMALL-SEPARATOR DP, BUT A STRONGER ALGEBRAIC OR QUOTIENT STRUCTURE.
 ```
 
+Replay correction: the first E69 CI run caught an overstatement in the general
+even-section congruence.  The correct universal relation is
+
+```text
+D == n (mod 3),
+```
+
+not `D == 0 (mod 3)` unless `3|n`.  The torus nullity theorem and the width
+firewall were unaffected.  This correction is incorporated below.
+
 ## 1. Anti-loop from Fundamentum
 
-The following earlier results are binding.
+Binding earlier results:
 
 * E58:
-
-  ```text
-  Exact-One SAT
-  iff max_{k in ker_F2(A)} |k| = 2n/3.
-  ```
-
+  `Exact-One SAT iff max_{k in ker_F2(A)} |k| = 2n/3`.
 * E61:
-
-  ```text
-  d = dim ker_F2(A) = O(log n)
-  -> exact 2^d poly(n) enumeration is polynomial.
-  ```
-
+  `d=dim ker_F2(A)=O(log n)` gives exact `2^d poly(n)` enumeration.
 * E63:
-
-  Raw gadget nullity is not a reliable hardness parameter because bounded gadget
-  substitutions can inflate it linearly and exact quotienting can remove the
-  inflation.
-
+  raw gadget nullity can be inflated and must be quotiented before being treated
+  as hardness structure.
 * E64-E68:
-
-  Connected post-quotient carriers can have nontrivial nullity; low-order spectral,
-  exchange, moment and degree-2 SDP information does not universally decide the
-  hard core.
+  connected post-quotient carriers survive simple spectral, exchange, low-moment
+  and degree-2 SDP shortcuts.
 
 Therefore E69 works directly with a genuine connected post-quotient family.
 
 ## 2. Open-literature anti-loop
 
-Two external bodies of work are relevant.
+Bounded branch-width/decomposition width is algorithmically useful for
+finite-field represented matroids, but the literature does not provide a
+converse saying that large nullity forces small branch-width/treewidth.  Relevant
+references include Hlineny on matroid branch-width, Kral on decomposition width,
+and Jeong-Kim-Oum on branch decompositions of represented structures.
 
-### 2.1 Bounded branch-width is algorithmically useful, but no converse from nullity is known
-
-For finite-field represented matroids, bounded branch-width/decomposition width
-supports polynomial/FPT dynamic programming and MSO model checking.  See, e.g.
-
-* P. Hlineny, "A Parametrized Algorithm for Matroid Branch-Width",
-  SIAM J. Comput. 35 (2006), and subsequent finite-field branch-width work;
-* D. Kral, "Decomposition width of matroids", Discrete Applied Mathematics 160
-  (2012), 913-923;
-* J. Jeong, E. J. Kim, S. Oum, "Finding Branch-Decompositions of Matroids,
-  Hypergraphs, and More", SIAM J. Discrete Math. 35 (2021).
-
-These results justify testing width as an algorithmic route.  They do **not** say
-that a large nullspace forces small branch-width/treewidth.  E69 supplies an
-explicit counterexample to the analogous graph-width hope inside our exact
-square-cubic-linear carrier class.
-
-### 2.2 The polynomial `1+X+Y` is a known algebraic-dynamics object
-
-The binary algebraic subshift annihilated by
-
-```text
-1 + X + Y
-```
-
-is the Ledrappier/3-dot system.  The object itself is classical; E69 is not
-claiming invention of that polynomial dynamical system.  A modern reference is
-J. Kari and E. Moutot, "Nivat's conjecture and pattern complexity in algebraic
-subshifts", Theoretical Computer Science 777 (2019), which explicitly defines
-the Ledrappier subshift by the annihilator `1+X+Y` over F2.
-
-E69 uses a finite torus specialization of that known algebraic object as a
-firewall for our rank/nullity dichotomy.
+The polynomial `1+X+Y` is also not new: over F2 it defines the classical
+Ledrappier/3-dot algebraic subshift.  A modern reference is Kari-Moutot,
+"Nivat's conjecture and pattern complexity in algebraic subshifts", TCS 777
+(2019).  E69 uses a finite-torus specialization of this known algebraic object as
+an anti-loop/control family.
 
 ## 3. The torus carrier
 
-Fix
-
-```text
-m >= 3
-```
-
-and index both rows and columns by
+Fix `m>=3` and index rows and columns by
 
 ```text
 G_m = Z_m x Z_m.
 ```
 
-Define the binary matrix `A_m` by
+Define
 
 ```text
 row(i,j) = {(i,j), (i+1,j), (i,j+1)}
 ```
 
-with coordinates modulo `m`.
-
-Equivalently, on functions on `G_m`,
+modulo `m`, equivalently
 
 ```text
 A_m = I + P_x + P_y.
 ```
 
-Every row has weight three.  Translation invariance gives column weight three.
-The six nonzero ordered differences of the local support
+Rows and columns have weight three.  The six ordered nonzero differences of
+`{(0,0),(1,0),(0,1)}` are distinct, so row-row and column-column intersections
+have size at most one.  The Levi graph is connected because the two translations
+generate `Z_m x Z_m`.
 
-```text
-{(0,0),(1,0),(0,1)}
-```
+Thus `A_m` is a connected square-cubic-linear carrier.
 
-are distinct for `m>=3`, so two distinct row supports meet in at most one column;
-by duality the same holds for columns.  Thus `A_m` is square-cubic-linear.
+## 4. Exact binary nullity for `m=2^r-1`
 
-The Levi graph is connected because the two translation directions generate
-`Z_m x Z_m`.
-
-## 4. Exact binary nullity on `m=2^r-1`
-
-Take
+Set
 
 ```text
 m = 2^r - 1.
 ```
 
-Then `m` is odd, so `X^m-1` and `Y^m-1` are separable over the splitting field
-`F_{2^r}`.  Extend scalars from `F2` to `F_{2^r}`.  Rank and nullity do not change
-under field extension.
+Because `m` is odd, `X^m-1` and `Y^m-1` split with distinct roots over
+`F_{2^r}`.  Scalar extension preserves rank/nullity, and the group algebra
+becomes diagonal in the character basis.
 
-The group algebra diagonalizes in the character basis.  A character indexed by
-
-```text
-(alpha,beta) in (F_{2^r}^*)^2
-```
-
-has eigenvalue
+A character `(alpha,beta)` has eigenvalue
 
 ```text
 1 + alpha + beta.
 ```
 
-Because `F_{2^r}^*` has order `m`, every nonzero field element is an `m`th root
-of unity.  Therefore
-
-```text
-1+alpha+beta=0
-```
-
-with `alpha,beta` both nonzero is equivalent to
+Every nonzero element of `F_{2^r}` is an `m`th root of unity.  Hence zero
+eigenvalue characters are exactly
 
 ```text
 beta = 1+alpha,
-alpha in F_{2^r} \ {0,1}.
+alpha in F_{2^r} minus {0,1}.
 ```
 
-There are exactly
-
-```text
-2^r - 2 = m-1
-```
-
-such characters.  Hence
+There are `2^r-2=m-1` of them.  Therefore
 
 ```text
 boxed:
 dim_F2 ker(A_m) = m-1.
 ```
 
-Since
-
-```text
-n=m^2,
-```
-
-we obtain
+Since `n=m^2`,
 
 ```text
 boxed:
 d = sqrt(n)-1.
 ```
 
-This is already far above the E61 logarithmic-enumeration regime.
+This is already far beyond the E61 logarithmic-enumeration regime.
 
 ## 5. Large nullity does not force bounded/log graph width
 
-In the Levi graph, contract every natural identity-matching edge
+Contract in the Levi graph every natural matching edge
 
 ```text
 row(i,j) -- column(i,j).
 ```
 
-The two remaining incidences from that row become exactly
+The two remaining incidences become
 
 ```text
 (i,j)--(i+1,j),
-(i,j)--(i,j+1).
+(i,j)--(i,j+1),
 ```
 
-Thus the contraction minor is
+so the contraction minor is
 
 ```text
 C_m square C_m.
 ```
 
-The toroidal grid contains an ordinary `m x m` grid after deleting wrap edges,
-and the `m x m` grid has treewidth `m` (up to the standard endpoint convention).
-Treewidth is minor-monotone, so in particular
+Deleting wrap edges gives the ordinary `m x m` grid.  Grid treewidth is
+Theta(m), and treewidth is minor-monotone.  Hence
 
 ```text
 boxed:
 tw(Levi(A_m)) = Omega(m) = Omega(sqrt(n)).
 ```
 
-Therefore the naive implication
+Therefore
 
 ```text
-large nullity -> bounded/logarithmic Levi-treewidth -> polynomial separator DP
+large nullity -> bounded/log Levi-treewidth -> polynomial separator DP
 ```
 
-is false even on connected square-cubic-linear post-quotient carriers.
+is false even inside connected square-cubic-linear carriers.
 
-This does not rule out every possible matroidal or algebraic decomposition.
-It specifically kills the simple graph-separator version of the E69 dichotomy.
+This statement is deliberately limited to the graph-width route; it does not
+rule out every matroidal or algebraic compression.
 
-## 6. Exact kernel words are cubic even-sections
+## 6. Kernel words are cubic even-sections
 
-Let `H_A` be the 3-uniform hypergraph whose vertices are columns of `A` and whose
-hyperedges are row supports.
-
-For a binary word `k` and
-
-```text
-U = supp(k),
-```
-
-we have
+Let `H_A` have the columns of `A` as vertices and the row supports as
+3-uniform hyperedges.  For `U=supp(k)`,
 
 ```text
 A k = 0 mod 2
 ```
 
-if and only if every row-hyperedge meets `U` in an even number of points.  Since
-row size is three, the only possibilities are
+iff every hyperedge meets `U` in `0` or `2` points.
 
-```text
-0 or 2.
-```
-
-Now keep the hyperedges meeting `U` in two points and replace each by the pair of
-selected points it contains.  Every selected point belongs to exactly three
-row-hyperedges, and each such hyperedge must contain exactly one other selected
-point.  Therefore the resulting ordinary graph on `U` is cubic.  Linearity of
-`A` makes it simple.
+Keep only the hyperedges meeting `U` twice and replace each by the pair of
+selected vertices.  Every selected column lies in exactly three rows, and every
+such row must contain one other selected column.  Thus the resulting graph on
+`U` is cubic.  Linearity makes it simple.
 
 Hence
 
@@ -286,73 +204,73 @@ k in ker_F2(A)
 iff supp(k) is a cubic even-section of H_A.
 ```
 
-Let `D(k)` be the number of row-hyperedges disjoint from `U`.  The other `n-D`
-hyperedges become edges of the cubic section.  Double counting incidences gives
+Let `D(k)` be the number of row-hyperedges disjoint from `U`.  There are `n-D`
+used hyperedges.  Double counting gives
 
 ```text
 3|U| = 2(n-D).
 ```
 
-Therefore
+Therefore the correct universal congruence is
 
 ```text
-D = 0 mod 3,
+boxed:
+D == n (mod 3),
+```
+
+and
+
+```text
+|k| = 2(n-D)/3.
+```
+
+When `3|n` this specializes to
+
+```text
+D == 0 (mod 3),
 |k| = 2n/3 - 2D/3.
 ```
 
-Combining with E58:
+This is exactly the regime used by E65, where `D=3m_defect`.
+
+Combining with E58 (and hence automatically `3|n` in any SAT instance):
 
 ```text
 boxed:
 Exact-One SAT
 iff there exists a kernel cubic even-section with D=0,
-i.e. one that uses every row-hyperedge.
+i.e. one using every row-hyperedge.
 ```
 
-The E65 quantized defect has the exact combinatorial interpretation
+The first CI run failed precisely because the `D==0 mod 3` specialization had
+been incorrectly asserted before checking `3|n`; the checker now enforces the
+correct universal congruence.
+
+## 7. The torus family is algebraically compressible
+
+Every Exact-One solution uses exactly `n/3=m^2/3` columns, so `3|m` is
+necessary.
+
+If `3|m`, set
 
 ```text
-m_defect = D/3.
+x_(i,j)=1 iff i-j == 0 mod 3.
 ```
 
-This is a new structural normalization of the top-shell problem; it does not by
-itself give an algorithm.
-
-## 7. The torus family is nevertheless algebraically compressible
-
-The family above has large nullity and large Levi treewidth, but Exact-One is
-still trivial to decide from `m`.
-
-Every Exact-One solution selects exactly
-
-```text
-n/3 = m^2/3
-```
-
-columns.  Hence `3|m` is necessary.
-
-If `3|m`, define
-
-```text
-x_(i,j) = 1 iff i-j = 0 mod 3.
-```
-
-Because the three columns in row `(i,j)` have residues
+The three columns in row `(i,j)` have residues
 
 ```text
 (i-j), (i-j)+1, (i-j)-1 mod 3,
 ```
 
-exactly one is selected.  Thus the condition is sufficient.
-
-So
+so exactly one is selected.  Thus
 
 ```text
 boxed:
 A_m is Exact-One SAT iff 3 divides m.
 ```
 
-For the frozen family `m=2^r-1`,
+For `m=2^r-1`,
 
 ```text
 3 | (2^r-1) iff r is even,
@@ -365,57 +283,48 @@ boxed:
 SAT iff r is even.
 ```
 
-This is the positive lesson of E69: a large-nullity/high-width branch can still
-collapse polynomially by **global algebraic structure**.  Separator width is not
-the only possible compression mechanism.
+So this family simultaneously has
+
+```text
+d = Theta(sqrt(n)),
+tw(Levi)=Omega(sqrt(n)),
+```
+
+and a constant-description exact decision rule.  This is the model lesson:
+large-nullity compression, when it exists, can be global/algebraic rather than a
+small-separator DP.
 
 ## 8. Hardness-bridge control
 
-The companion checker also replays the frozen E17/E12 `q=6` RXC3 source.  Its
-binary nullity is zero, so E58 immediately certifies UNSAT.  E69 does not replace
-or weaken the E12/RXC3 hardness bridge.
+The checker also replays the frozen E17/E12 `q=6` RXC3 source.  Its binary
+nullity is zero, so E58 immediately certifies UNSAT.  The highly translational
+torus family is not claimed to represent the hard RXC3 branch and must not be
+used as evidence that arbitrary large-nullity quotients admit Fourier
+compression.
 
-More importantly, the torus family is highly translation-structured and is not
-claimed to be a hard family.  It must not be used as evidence that arbitrary
-large-nullity quotients admit the same Fourier/group-algebra compression.
+## 9. Consequence for the universal P=NP route
 
-## 9. Consequence for the universal dichotomy
-
-The post-E68 program must now be sharpened from
-
-```text
-large nullity -> small separator
-```
-
-to something like
+The desired dichotomy must now be sharpened to something stronger than width:
 
 ```text
 small nullity
-    -> E61 enumeration,
+    -> E61 enumeration;
 
 large nullity + compressible dependency algebra
-    -> polynomial quotient/Fourier/recurrence solver,
+    -> polynomial quotient/Fourier/recurrence solver;
 
 large nullity without such compression
-    -> THIS is the unresolved universal frontier.
+    -> unresolved universal frontier.
 ```
 
-A real P=NP route must prove that the third case is empty, or provide a separate
-polynomial algorithm for it.
+A genuine P=NP route has to prove the third case empty or solve it separately in
+polynomial time.
 
-The next useful target is therefore to study the **dependency algebra of the
-left/right kernel**, not only its dimension.  Natural quantities to test include
-
-```text
-* support growth of kernel generators;
-* orbit/module structure of row dependencies;
-* whether the kernel admits a bounded-description recurrence;
-* whether large nullity forces many low-complexity even-sections;
-* whether those even-sections generate a polynomial-size quotient algebra.
-```
-
-Every proposed statement must be tested first against E12/RXC3 and then against
-non-gadget connected controls such as E64-E69.
+The next object to study is therefore not nullity alone but the **dependency
+algebra** of the left/right kernels: support growth, module/orbit structure,
+short descriptions/recurrences, and the algebra generated by cubic
+even-sections.  Every proposed theorem must be attacked against E12/RXC3 and
+against connected non-gadget controls E64-E69.
 
 ## 10. Replay
 
@@ -425,7 +334,7 @@ Companion checker:
 experiments/r5_e69_nullity_structure_torus_firewall.py
 ```
 
-It verifies on `r=2,3,4,5`, i.e. `m=3,7,15,31`:
+It verifies `r=2,3,4,5` (`m=3,7,15,31`):
 
 ```text
 * square/cubic/linear incidence;
@@ -433,6 +342,7 @@ It verifies on `r=2,3,4,5`, i.e. `m=3,7,15,31`:
 * contraction to C_m square C_m;
 * exact binary nullity m-1;
 * cubic even-section structure for every computed kernel-basis word;
+* correct universal congruence D == n mod 3;
 * explicit Exact-One cover for 3|m;
 * divisibility obstruction for 3 not dividing m;
 * E58 top-shell witness when SAT;
