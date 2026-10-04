@@ -18,7 +18,7 @@ For the infinite family m=2^r-1 one has
 
 The general proof is in the companion note, using scalar extension to GF(2^r)
 and diagonalization of the group algebra: 1+X+Y vanishes exactly on
-(alpha,1+alpha), alpha in GF(2^r)\{0,1}.
+(alpha,1+alpha), alpha in GF(2^r) minus {0,1}.
 
 The Levi graph contracts along the natural identity matching to C_m square C_m,
 so its treewidth is Omega(m)=Omega(sqrt(n)).  Thus large nullity does not force
@@ -169,7 +169,8 @@ def verify_even_section(supports, word):
     assert set(row_hits) <= {0, 2}
     D = sum(h == 0 for h in row_hits)
     assert 3 * w == 2 * (n - D)
-    assert D % 3 == 0
+    # Universal congruence.  E65's D=0 mod 3 is the special case 3|n.
+    assert (D - n) % 3 == 0
 
     # The used rows induce a simple cubic graph on support(word).
     degrees = {}
@@ -254,6 +255,7 @@ def main():
         )
     print("Levi contraction certificate: each checked carrier contracts to C_m square C_m")
     print("general theorem: for m=2^r-1, dim_F2 ker(A_m)=m-1 by GF(2^r) character diagonalization")
+    print("even-section correction: D is congruent to n mod 3; when 3|n this reduces to D=0 mod 3")
     print("family decision compression: SAT iff 3|m iff r is even")
     print(f"frozen E17 q=6 RXC3 source control: dim_F2={d_q6}, UNSAT by E58")
     print("large nullity does not imply bounded/log graph width; algebraic compression can still exist")
