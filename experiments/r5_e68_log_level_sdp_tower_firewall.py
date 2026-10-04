@@ -34,7 +34,7 @@ It verifies four points.
 3. Canonical moment-only annihilator diagnostic.
    For each exact kernel weight support S, form
 
-       F(w)=prod_{s in S\{0}} (w-s).
+       F(w)=prod_{s in positive support S} (w-s).
 
    On the allowed even grid [0,2n/3], add the minimum sign-correction factors
    used by this checker between consecutive non-root grid points where sign F
@@ -71,7 +71,7 @@ This is a hierarchy diagnostic/firewall, not a universal polynomial algorithm.
 P_VS_NP remains OPEN.
 """
 
-from collections import Counter, deque
+from collections import Counter
 from fractions import Fraction
 
 from r5_e64_connected_postquotient_nullity_firewall import (
