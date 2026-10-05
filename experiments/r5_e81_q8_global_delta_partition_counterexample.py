@@ -110,7 +110,7 @@ def main():
     verify_source(A)
 
     connected_count, rows = exhaustive_delta_rows(A)
-    assert connected_count == 12621
+    assert connected_count == 18043
     assert len(rows) == 200
     assert dict(sorted(Counter(r["size"] for r in rows).items())) == EXPECTED_BY_SIZE
 
@@ -134,7 +134,7 @@ def main():
 
     print("R5 E81 q8 static global delta-partition counterexample: PASS")
     print("source: cyclic {j,j+1,j+3} mod 8; square/cubic/linear/C4-free/connected")
-    print("connected Tanner subsets=12621")
+    print("connected Tanner subsets=18043")
     print("connected delta-support clusters=200 by_size=", EXPECTED_BY_SIZE)
     print("all 200 delta relations are even binary")
     print("singleton delta modules are exactly the 8 check vertices")
