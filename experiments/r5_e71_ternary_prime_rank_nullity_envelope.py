@@ -19,6 +19,10 @@ Thus for every fixed prime p>=3:
 
     T_p(A) = p^min(r_p,d_p) poly(n).
 
+For p=3 and a square-cubic carrier, 1^T A=0.  Hence consistency of
+A x=1 already forces n=0 mod 3.  The checker freezes this explicitly on E69
+m=7, where r_3=48,d_3=1 but the ternary affine system is inconsistent.
+
 This is combined with E70's binary envelope, not substituted for it.  The
 checker verifies the theorem on small exact controls and freezes stress ranks on
 E12, E64, and E69 families.  In particular E69's binary-large-nullity torus
@@ -79,11 +83,14 @@ def rank_nullity(A, p):
 
 
 def affine_basis(A, b, p):
-    """Return x0, kernel basis, rank for A x=b over F_p, or None if inconsistent."""
+    """Return x0, kernel basis, rank, consistency for A x=b over F_p."""
     M, pivots, inconsistent = rref_aug(A, b, p)
-    if inconsistent:
-        return None
     n = len(A[0])
+    r = len(pivots)
+    d = n - r
+    if inconsistent:
+        return None, None, r, d, False
+
     free = [c for c in range(n) if c not in pivots]
     x0 = [0] * n
     for rr, pc in enumerate(pivots):
@@ -96,17 +103,16 @@ def affine_basis(A, b, p):
         for rr, pc in enumerate(pivots):
             v[pc] = (-M[rr][f]) % p
         basis.append(v)
-    return x0, basis, len(pivots)
+    assert len(basis) == d
+    return x0, basis, r, d, True
 
 
 def affine_boolean_witness(A, p):
     """Exact p^d search for a Boolean point of A x=1 over F_p."""
-    data = affine_basis(A, [1] * len(A), p)
-    if data is None:
-        return None, None, None
-    x0, basis, r = data
+    x0, basis, r, d, consistent = affine_basis(A, [1] * len(A), p)
+    if not consistent:
+        return None, r, d, False
     n = len(A[0])
-    d = len(basis)
     for coeffs in product(range(p), repeat=d):
         x = x0[:]
         for c, v in zip(coeffs, basis):
@@ -114,8 +120,8 @@ def affine_boolean_witness(A, p):
                 for j in range(n):
                     x[j] = (x[j] + c * v[j]) % p
         if all(v in (0, 1) for v in x):
-            return x, r, d
-    return None, r, d
+            return x, r, d, True
+    return None, r, d, True
 
 
 def encode(vec, p):
@@ -144,9 +150,9 @@ def rank_subset_dp(A, p):
     m = len(A)
     n = len(A[0])
     M, pivots, inconsistent = rref_aug(A, [1] * m, p)
-    if inconsistent:
-        return False, len(pivots)
     r = len(pivots)
+    if inconsistent:
+        return False, r, False
 
     sigs = []
     for j in range(n):
@@ -161,7 +167,7 @@ def rank_subset_dp(A, p):
         for state in range(size):
             if old[state]:
                 dp[add_encoded(state, s, r, p)] = 1
-    return bool(dp[target]), r
+    return bool(dp[target]), r, True
 
 
 def exact_one_bruteforce(A):
@@ -188,10 +194,20 @@ def torus_matrix(m):
     return A
 
 
-def check_small(name, A, p, expected_r, expected_d, expected_sat, run_rank_dp=True):
-    w, r, d = affine_boolean_witness(A, p)
+def check_small(
+    name,
+    A,
+    p,
+    expected_r,
+    expected_d,
+    expected_sat,
+    run_rank_dp=True,
+    expected_consistent=True,
+):
+    w, r, d, consistent = affine_boolean_witness(A, p)
     assert r == expected_r
     assert d == expected_d
+    assert consistent == expected_consistent
     sat_affine = w is not None
     sat_direct = exact_one_bruteforce(A) if len(A[0]) <= 15 else expected_sat
     assert sat_affine == sat_direct == expected_sat
@@ -199,10 +215,14 @@ def check_small(name, A, p, expected_r, expected_d, expected_sat, run_rank_dp=Tr
         assert all(v in (0, 1) for v in w)
         assert all(sum(a * x for a, x in zip(row, w)) == 1 for row in A)
     if run_rank_dp:
-        sat_dp, rr = rank_subset_dp(A, p)
+        sat_dp, rr, dp_consistent = rank_subset_dp(A, p)
         assert rr == r
+        assert dp_consistent == consistent
         assert sat_dp == expected_sat
-    print(f"{name}: p={p} n={len(A[0])} rank={r} nullity={d} sat={expected_sat}")
+    print(
+        f"{name}: p={p} n={len(A[0])} rank={r} nullity={d} "
+        f"consistent={consistent} sat={expected_sat}"
+    )
 
 
 def check_stress_rank(name, A, p, expected_r, expected_d):
@@ -228,7 +248,18 @@ def main():
     check_small("UNSAT12_P5", unsat12, 5, 11, 1, False, run_rank_dp=False)
 
     # E69: binary nullity grows as m-1, while ternary nullity is tiny here.
-    check_small("E69_TORUS_M7", torus_matrix(7), 3, 48, 1, False, run_rank_dp=False)
+    # For m=7, n=49 is not divisible by 3, so the ternary affine system is
+    # inconsistent by 1^T A=0 and 1^T 1=n != 0 mod 3.
+    check_small(
+        "E69_TORUS_M7",
+        torus_matrix(7),
+        3,
+        48,
+        1,
+        False,
+        run_rank_dp=True,
+        expected_consistent=False,
+    )
     check_small("E69_TORUS_M15", torus_matrix(15), 3, 222, 3, True, run_rank_dp=False)
 
     # Stress controls: ternary nullity does NOT universally collapse.
@@ -248,9 +279,10 @@ def main():
 
     print("R5 E71 ternary/fixed-prime rank-nullity envelope: PASS")
     print("theorem: for every fixed prime p>=3, Exact-One iff A x=1 over F_p for Boolean x")
-    print("algorithm: p^min(rank_Fp(A), nullity_Fp(A)) * poly(n)")
+    print("algorithm: p^min(rank_Fp(A), nullity_Fp(A)) * poly(n), after consistency check")
+    print("F3 square-cubic consistency lemma: A x=1 implies 3|n because 1^T A=0")
     print("combined with E70: choose binary weight-envelope or ternary Boolean-envelope per instance")
-    print("E69 controls: d3(m=3,7,15)=(3,1,3), so binary-large nullity can collapse over F3")
+    print("E69 controls: d3(m=3,7,15)=(3,1,3); m=7 is field-inconsistent before enumeration")
     print("E64 GH22: d3=14; E12 q6 target: d3=20, so ternary nullity is not universally small")
     print("P_VS_NP remains OPEN")
 
