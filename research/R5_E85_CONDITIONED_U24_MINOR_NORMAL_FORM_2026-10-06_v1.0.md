@@ -86,7 +86,7 @@ of eliminated elements followed by projection.}
 
 This is the exact basis-family form of the standard deletion/contraction
 definition of matroid minors. Standard sources also state that restriction is
-deletion and contraction is its dual operation. citeturn437630search0turn437630search1
+deletion and contraction is its dual operation.
 
 ## 3. Undoing the canonical Tanner twist
 
@@ -119,7 +119,7 @@ witness**. There is no need to reason about arbitrary abstract minors after
 this reduction.
 
 This also matches Tutte's unique excluded-minor characterization of binary
-matroids. citeturn494845search0turn494845search2
+matroids.
 
 ## 4. Five possible survivor orientations
 
