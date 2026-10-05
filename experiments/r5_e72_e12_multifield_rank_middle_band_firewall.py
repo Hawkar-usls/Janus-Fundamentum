@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 """R5 E72 exact controls: E12 hardness image sits deep in the multi-field middle band.
 
-Let R be a q x q square-cubic-linear RXC3 source incidence matrix and B the
-17q x 17q E12 target.  Write d_K(M)=nullity over field K and c(H) for the
-number of connected components of the source hypergraph.
+Let R be a q x q square-cubic RXC3 source incidence matrix (the source need not
+be linear) and B the 17q x 17q square-cubic-linear E12 target.  Write
+d_K(M)=nullity over field K and c(H) for the number of connected components of
+the source hypergraph.
 
 This checker freezes the exact quotient formulas
 
@@ -36,16 +37,15 @@ R=M1+M2+M3=U+V.  Global boundary equations reduce to
     U a + V b = 0,
     R(c+a) = 0.
 
-[U V] is an oriented incidence matrix of the graph obtained by replacing each
-source triple (u,v,w) by the two edges w->u and w->v, so its rank is q-c(H).
-Adding the 2q local zero-port gauge dimensions gives the F3 formula above.
+[U V] is an oriented incidence matrix of the multigraph obtained by replacing
+each source triple (u,v,w) by the two edges w->u and w->v, so its rank is
+q-c(H).  Parallel edges are harmless.  Adding the 2q local zero-port gauge
+dimensions gives the F3 formula above.
 
 Scientific ceiling: this is a firewall against rank-MAGNITUDE-only dichotomies,
 not a polynomial solver.  A universal polynomial implication would have to act
 inside the E12 NP-hard image itself.  P_VS_NP remains OPEN.
 """
-
-from fractions import Fraction
 
 from r5_e17_hardness_kernel_quotient import (
     gadget,
@@ -125,6 +125,7 @@ def source_components(q, source_sets):
 
 
 def check_source(q, source_sets):
+    """Check the RXC3 source conditions only; source linearity is NOT required."""
     assert len(source_sets) == q
     assert len(set(source_sets)) == q
     counts = [0] * q
@@ -135,10 +136,13 @@ def check_source(q, source_sets):
             assert 0 <= v < q
             counts[v] += 1
     assert counts == [3] * q
-    # Linearity: no two source triples share two vertices.
-    for i in range(q):
-        for j in range(i):
-            assert len(set(source_sets[i]) & set(source_sets[j])) <= 1
+
+
+def check_target_square_cubic(B):
+    n = len(B)
+    assert all(len(row) == n for row in B)
+    assert all(sum(row) == 3 for row in B)
+    assert all(sum(B[i][j] for i in range(n)) == 3 for j in range(n))
 
 
 def check_local_field_quotients():
@@ -191,6 +195,7 @@ def check_global_fixture(name, q, source_sets, check_q_target=True):
     B = natural_target_matrix(transform_rx(q, source_sets))
     N = 17 * q
     assert len(B) == N and len(B[0]) == N
+    check_target_square_cubic(B)
 
     rQ_R = rank_q(R)
     dQ_R = q - rQ_R
@@ -239,12 +244,13 @@ def check_global_fixture(name, q, source_sets, check_q_target=True):
 def main():
     check_local_field_quotients()
 
-    # Frozen E17/E12 q=6 fixture: connected, Q/F2 full rank, F3 nullity one.
+    # Frozen E17/E12 q=6 RXC3 fixture.  This source is deliberately NOT
+    # required to be linear; E12 is the linearizing transformation.
     q6, s6 = rx_fixture()
     check_global_fixture("E12_FROZEN_Q6", q6, s6, check_q_target=True)
 
-    # Connected genuine square-cubic-linear fixture with nontrivial nullity in
-    # all three fields; this exercises the +d_K(R) terms.
+    # Connected linear q=9 extra control with nontrivial nullity in all three
+    # fields; this exercises the +d_K(R) terms but is not needed by the theorem.
     s9 = [
         (0, 5, 8),
         (0, 1, 4),
