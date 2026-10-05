@@ -2,7 +2,7 @@
 """R5 E84: direct U2,4 / S5 linearity killer.
 
 E83 reduced binary representability of an exact Tanner delta interface to the
-ordinary matroid obstruction U_{2,4}.  E84 attacks the strongest *direct*
+ordinary matroid obstruction U_{2,4}. E84 attacks the strongest *direct*
 four-boundary realization inside the square-cubic-linear / C4-free source
 class.
 
@@ -22,18 +22,22 @@ with two check-side and two variable-side coordinates, then necessarily:
   * using the all-one boundary state as a reference exact cover, the 2t
     unselected internal variables become the vertices of a SIMPLE CUBIC
     residual-exchange graph G; Tanner checks become the 3t edges of G;
+  * G need not be connected: reference-cover variables may connect distinct
+    residual components in the original Tanner cluster;
   * the two boundary checks are two distinguished edges of G;
   * the two boundary variables are two 2-edge matchings of G;
   * the remaining t-2 reference-cover variables are 3-edge matchings; these
     blocks partition every non-distinguished edge of G.
 
-Thus direct S5 realizability is reduced exactly to a finite cubic-graph +
-matching-partition problem.
+Thus direct S5 realizability is reduced exactly to a finite simple-cubic-graph
+plus matching-partition problem.
 
-This checker exhausts every such partition for the complete connected simple
-cubic graph census on 2t = 4,6,8 residual vertices (census sizes 1,2,5), hence
-all direct candidates with |C|=|V| = 6,9,12.  Frozen total = 92,338 matching
-partitions.  No S5 relation occurs.  Every delta relation that does occur is
+This checker exhausts every such partition for ALL simple cubic residual
+ topologies on 2t=4,6,8 vertices. The connected census has sizes 1,2,5; at
+8 vertices there is one additional disconnected topology K4 disjoint-union K4.
+Hence the complete topology counts used here are 1,2,6. This covers every
+direct candidate with |C|=|V|=6,9,12. Frozen total = 106,090 matching
+partitions. No S5 relation occurs. Every delta relation that does occur is
 binary-even.
 
 Scientific ceiling:
@@ -55,8 +59,10 @@ from r5_e79_binary_reconstruction_matchgate_firewall import reconstruct_even_bin
 
 S5 = frozenset({0, 5, 6, 9, 10, 15})
 
-# Complete representatives of connected simple cubic graphs on 4,6,8 vertices.
-# Census sizes 1,2,5 are the classical connected-cubic counts A002851.
+# Complete representatives of ALL simple cubic residual topologies on 4,6,8
+# vertices.  The connected census sizes are 1,2,5.  On 8 vertices the only
+# disconnected possibility is K4 disjoint-union K4, because every simple cubic
+# component has at least four vertices.
 CUBIC_REPS = {
     4: [
         ((0,1),(0,2),(0,3),(1,2),(1,3),(2,3)),
@@ -71,14 +77,16 @@ CUBIC_REPS = {
         ((0,1),(0,2),(0,3),(1,2),(1,4),(2,5),(3,6),(3,7),(4,6),(4,7),(5,6),(5,7)),
         ((0,1),(0,2),(0,3),(1,4),(1,5),(2,4),(2,6),(3,5),(3,6),(4,7),(5,7),(6,7)),
         ((0,1),(0,2),(0,3),(1,4),(1,5),(2,4),(2,6),(3,5),(3,7),(4,7),(5,6),(6,7)),
+        ((0,1),(0,2),(0,3),(1,2),(1,3),(2,3),
+         (4,5),(4,6),(4,7),(5,6),(5,7),(6,7)),
     ],
 }
 
-EXPECTED_TOTAL_PARTITIONS = {2: 6, 3: 360, 4: 91972}
+EXPECTED_TOTAL_PARTITIONS = {2: 6, 3: 360, 4: 105724}
 EXPECTED_RELATIONS_T2 = Counter({(15,): 6})
 EXPECTED_RELATIONS_T3 = Counter({(15,): 144, (0,15): 216})
 EXPECTED_RELATIONS_T4 = Counter({
-    (15,): 66378,
+    (15,): 80130,
     (0,15): 19488,
     (6,15): 1592,
     (10,15): 1592,
@@ -95,19 +103,10 @@ def verify_cubic_graph(n, edges):
     E={tuple(sorted(e)) for e in edges}
     assert len(E)==3*n//2
     deg=[0]*n
-    adj=[set() for _ in range(n)]
     for u,v in E:
         assert 0 <= u < v < n
         deg[u]+=1; deg[v]+=1
-        adj[u].add(v); adj[v].add(u)
     assert deg == [3]*n
-    seen={0}; stack=[0]
-    while stack:
-        u=stack.pop()
-        for v in adj[u]:
-            if v not in seen:
-                seen.add(v); stack.append(v)
-    assert len(seen)==n
     return tuple(sorted(E))
 
 
@@ -116,17 +115,20 @@ def graph_fingerprint(n, edges):
     adj=[set() for _ in range(n)]
     for u,v in E:
         adj[u].add(v); adj[v].add(u)
+
     triangles=sum(
         1 for a,b,c in combinations(range(n),3)
         if b in adj[a] and c in adj[a] and c in adj[b]
     )
-    # Distribution of common-neighbour counts distinguishes the frozen reps.
     common=Counter(len(adj[u] & adj[v]) for u,v in combinations(range(n),2))
-    # Bipartiteness.
+
     color={}
     bip=True
+    components=0
     for root in range(n):
-        if root in color: continue
+        if root in color:
+            continue
+        components += 1
         color[root]=0; stack=[root]
         while stack:
             u=stack.pop()
@@ -135,7 +137,7 @@ def graph_fingerprint(n, edges):
                     color[v]=1-color[u]; stack.append(v)
                 elif color[v]==color[u]:
                     bip=False
-    return triangles, bip, tuple(sorted(common.items()))
+    return components, triangles, bip, tuple(sorted(common.items()))
 
 
 def matching_masks(edges, size):
@@ -177,7 +179,7 @@ def boundary_relation(cuts, c0, c1, u0, u1, core_blocks):
     family=set()
     for cut in cuts:
         # Every reference-cover block must be either wholly crossed by the
-        # residual independent set, or wholly untouched.  Partial crossing
+        # residual independent set, or wholly untouched. Partial crossing
         # would leave a check uncovered or doubly covered.
         if any(uniform_status(cut,B) is None for B in core_blocks):
             continue
@@ -208,34 +210,41 @@ def census_graph(n, edges, t):
         c0=1<<i; c1=1<<j
         rem=full ^ c0 ^ c1
         for u0 in pairs:
-            if u0 & ~rem: continue
+            if u0 & ~rem:
+                continue
             rem1=rem ^ u0
             for u1 in pairs:
-                if u1 & ~rem1: continue
-            
+                if u1 & ~rem1:
+                    continue
+
                 rem2=rem1 ^ u1
                 if t==2:
-                    if rem2: continue
+                    if rem2:
+                        continue
                     cores=()
                     total += 1
                     rel=boundary_relation(cuts,c0,c1,u0,u1,cores)
                     relations[tuple(sorted(rel))] += 1
                 elif t==3:
-                    if rem2 not in triples: continue
+                    if rem2 not in triples:
+                        continue
                     cores=(rem2,)
                     total += 1
                     rel=boundary_relation(cuts,c0,c1,u0,u1,cores)
                     relations[tuple(sorted(rel))] += 1
                 elif t==4:
-                    # The two 3-edge core blocks are unordered.  Force the
-                    # least remaining edge into the first block to count each
-                    # partition exactly once.
+                    # The two 3-edge core blocks are unordered. Force the
+                    # least remaining edge into the first block so each
+                    # partition is counted exactly once.
                     first=rem2 & -rem2
                     for q0 in triples:
-                        if not (q0 & first): continue
-                        if q0 & ~rem2: continue
+                        if not (q0 & first):
+                            continue
+                        if q0 & ~rem2:
+                            continue
                         q1=rem2 ^ q0
-                        if q1 not in triples: continue
+                        if q1 not in triples:
+                            continue
                         cores=(q0,q1)
                         total += 1
                         rel=boundary_relation(cuts,c0,c1,u0,u1,cores)
@@ -246,14 +255,12 @@ def census_graph(n, edges, t):
 
 
 def verify_distinct_representatives():
-    expected={4:1,6:2,8:5}
+    expected={4:1,6:2,8:6}
     for n,reps in CUBIC_REPS.items():
         fps=[]
         for E in reps:
             E=verify_cubic_graph(n,E)
             fps.append(graph_fingerprint(n,E))
-        # For n<=8 these elementary fingerprints separate every frozen census
-        # representative; the external complete census supplies the counts.
         assert len(reps)==expected[n]
         assert len(set(fps))==len(reps)
 
@@ -287,12 +294,12 @@ def main():
     assert aggregate[2][1] == EXPECTED_RELATIONS_T2
     assert aggregate[3][1] == EXPECTED_RELATIONS_T3
     assert aggregate[4][1] == EXPECTED_RELATIONS_T4
-    assert grand_total == 92338
+    assert grand_total == 106090
 
     print("R5 E84 direct U2,4 / S5 C4-free linearity killer: PASS")
     print("normal form: direct 4-port S5 => |C|=|V|=3t and a simple cubic residual-exchange graph on 2t vertices")
-    print("complete cubic topology census used: residual vertices 4/6/8 -> 1/2/5 connected simple cubic graphs")
-    print("matching partitions exhausted: t=2 -> 6; t=3 -> 360; t=4 -> 91972; total=92338")
+    print("complete residual topology counts for 4/6/8 vertices = 1/2/6 (8-vertex set includes K4 disjoint-union K4)")
+    print("matching partitions exhausted: t=2 -> 6; t=3 -> 360; t=4 -> 105724; total=106090")
     print("S5/U2,4 direct witnesses found=0 through 12x12 C4-free clusters")
     print("every delta relation encountered in the census is binary-even")
     print("remaining representation frontier: conditioned U2,4 minors and direct candidates at 15x15 or larger")
