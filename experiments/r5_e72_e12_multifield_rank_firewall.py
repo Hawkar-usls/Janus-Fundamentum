@@ -1,18 +1,23 @@
 #!/usr/bin/env python3
 """R5 E72: exact E12 multi-field rank firewall controls.
 
-Checks the local E12 gadget quotient over F2 and F3 and the resulting
-global nullity formulas for square cubic source matrices R:
+For the square-cubic E12 source matrix R (q x q) and its 17q x 17q
+hardness target T, this checker validates the local quotient and the
+field-rank identities used in the E72 proof.
 
-    d2(T) = 2q + 2 d2(R)
-    d3(T) = 3q + d3(R) + c(R)
+For every prime p != 3:
+    d_p(T) = 2q + 2 d_p(R)
+    r_p(T) = 13q + 2 r_p(R) >= 13q.
 
-where T is the 17q x 17q E12 target and c(R) is the number of connected
-components of the bipartite incidence graph of R.
+Characteristic 3 is the unique exceptional local quotient:
+    d_3(T) = 3q + d_3(R) + c(R)
+    r_3(T) = 13q + r_3(R) - c(R) >= 12q,
+where c(R) is the number of connected components of the bipartite
+incidence graph of R.
 
-Together with E17's rational identity dQ(T)=2q+2dQ(R), these formulas
-show that the E12 hardness bridge remains linearly deep in the
-dQ/r2/r3 middle band.
+E17 supplies the rational identity d_Q(T)=2q+2d_Q(R).
+The controls below include p=2,5,7,11, the frozen q=6 fixture, a Fano
+q=7 fixture with reordered ports, and a disconnected direct sum.
 """
 
 from fractions import Fraction
@@ -106,6 +111,7 @@ NAMES = [
     "D1","D2","D3","D4","D5","D6","D7",
 ]
 IDX = {name: i for i, name in enumerate(NAMES)}
+PORTS = [IDX[x] for x in ("L1","L2","L3","P1","P2","P3")]
 
 
 def eq(*names):
@@ -135,9 +141,6 @@ def local_internal_matrix():
     ]
 
 
-PORTS = [IDX[x] for x in ("L1","L2","L3","P1","P2","P3")]
-
-
 def projection_rank(basis, p):
     if not basis:
         return 0
@@ -148,16 +151,19 @@ def projection_rank(basis, p):
 def check_local():
     M = local_internal_matrix()
 
-    K2 = nullspace_mod(M, 2)
-    assert rank_mod(M, 2) == 13
-    assert len(K2) == 4
-    assert projection_rank(K2, 2) == 2
-    assert len(K2) - projection_rank(K2, 2) == 2
-    for v in K2:
-        l1,l2,l3,p1,p2,p3 = [v[i] for i in PORTS]
-        assert l1 == l2 == l3
-        assert p1 == p2 == p3
+    # Characteristic != 3: the local quotient is the Q/F2 type.
+    for p in (2, 5, 7, 11, 13, 17, 19):
+        K = nullspace_mod(M, p)
+        assert rank_mod(M, p) == 13
+        assert len(K) == 4
+        assert projection_rank(K, p) == 2
+        assert len(K) - projection_rank(K, p) == 2
+        for v in K:
+            l1,l2,l3,p1,p2,p3 = [v[i] for i in PORTS]
+            assert l1 == l2 == l3
+            assert p1 == p2 == p3
 
+    # Characteristic 3: one extra port direction appears.
     K3 = nullspace_mod(M, 3)
     assert rank_mod(M, 3) == 12
     assert len(K3) == 5
@@ -169,11 +175,6 @@ def check_local():
         t = (p1 + l1) % 3
         assert (p2 + l2) % 3 == t
         assert (p3 + l3) % 3 == t
-
-    return {
-        "F2": (13, 4, 2, 2),
-        "F3": (12, 5, 3, 2),
-    }
 
 
 def source_matrix(q, source_sets):
@@ -270,74 +271,73 @@ def direct_sum(parts):
     return q, out
 
 
-def field_profile(q, source_sets):
+def check_prime_formula(q, source_sets, p):
+    assert p != 3
+    R = source_matrix(q, source_sets)
+    T = transform_rx(q, source_sets)
+    rR = rank_mod(R, p)
+    dR = q - rR
+    rT = rank_mod(T, p)
+    dT = 17*q - rT
+    assert dT == 2*q + 2*dR
+    assert rT == 13*q + 2*rR
+    assert dT >= 2*q and rT >= 13*q
+    return rT, dT
+
+
+def field3_profile(q, source_sets):
     R = source_matrix(q, source_sets)
     T = transform_rx(q, source_sets)
     c = incidence_components(R)
-
-    r2R = rank_mod(R, 2)
-    r3R = rank_mod(R, 3)
-    d2R = q - r2R
-    d3R = q - r3R
-
-    r2T = rank_mod(T, 2)
-    r3T = rank_mod(T, 3)
-    d2T = 17*q - r2T
-    d3T = 17*q - r3T
-
-    assert d2T == 2*q + 2*d2R
-    assert d3T == 3*q + d3R + c
-    assert r2T == 13*q + 2*r2R
-    assert r3T == 13*q + r3R - c
-    assert r2T >= 13*q
-    assert r3T >= 12*q
-
-    return {
-        "q": q, "c": c,
-        "r2R": r2R, "d2R": d2R, "r3R": r3R, "d3R": d3R,
-        "r2T": r2T, "d2T": d2T, "r3T": r3T, "d3T": d3T,
-    }
+    rR = rank_mod(R, 3)
+    dR = q - rR
+    rT = rank_mod(T, 3)
+    dT = 17*q - rT
+    assert dT == 3*q + dR + c
+    assert rT == 13*q + rR - c
+    assert dT >= 3*q and rT >= 12*q
+    return {"q": q, "c": c, "r3R": rR, "d3R": dR, "r3T": rT, "d3T": dT}
 
 
 def main():
     check_local()
 
     q6, C6 = frozen_q6()
-    f6 = field_profile(q6, C6)
-    T6 = transform_rx(q6, C6)
     R6 = source_matrix(q6, C6)
+    T6 = transform_rx(q6, C6)
     dQR = q6 - rank_q(R6)
     dQT = 17*q6 - rank_q(T6)
     assert dQT == 2*q6 + 2*dQR == 12
-    assert f6["d2T"] == 12
-    assert f6["d3T"] == 20
+
+    non3_q6 = {p: check_prime_formula(q6, C6, p) for p in (2,5,7,11)}
+    f3_q6 = field3_profile(q6, C6)
+    assert non3_q6[2] == (90, 12)
+    assert f3_q6["r3T"] == 82 and f3_q6["d3T"] == 20
 
     q7, C7 = fano_q7(False)
-    f7 = field_profile(q7, C7)
     q7r, C7r = fano_q7(True)
-    f7r = field_profile(q7r, C7r)
-    assert f7["d3T"] == f7r["d3T"] == 23
+    for p in (2,5,7,11):
+        assert check_prime_formula(q7, C7, p) == check_prime_formula(q7r, C7r, p)
+    f3_q7 = field3_profile(q7, C7)
+    f3_q7r = field3_profile(q7r, C7r)
+    assert f3_q7["d3T"] == f3_q7r["d3T"] == 23
 
     q12, C12 = direct_sum([C6, C6])
-    f12 = field_profile(q12, C12)
-    assert f12["c"] == 2
-    assert f12["d2T"] == 24
-    assert f12["d3T"] == 40
+    for p in (2,5,7,11):
+        check_prime_formula(q12, C12, p)
+    f3_q12 = field3_profile(q12, C12)
+    assert f3_q12["c"] == 2 and f3_q12["d3T"] == 40
 
     print("R5 E72 E12 multi-field rank firewall: PASS")
-    print("local F2: internal_rank=13 nullity=4 port_dim=2 gauge_dim=2")
-    print("local F3: internal_rank=12 nullity=5 port_dim=3 gauge_dim=2")
-    print(
-        "F3 port quotient: l1+l2+l3=0 and "
-        "p_i=-l_i+t for a common t"
-    )
-    print("global identities:")
-    print("  d2(T)=2q+2*d2(R), r2(T)=13q+2*r2(R)>=13q")
-    print("  d3(T)=3q+d3(R)+c, r3(T)=13q+r3(R)-c>=12q")
-    print("  E17: dQ(T)=2q+2*dQ(R)>=2q")
-    print("frozen q=6:", f6)
-    print("Fano q=7:", f7)
-    print("disconnected q=12:", f12)
+    print("local p!=3: rank=13 nullity=4 port_dim=2 gauge_dim=2")
+    print("local p=3: rank=12 nullity=5 port_dim=3 gauge_dim=2")
+    print("p!=3 identity: d_p(T)=2q+2*d_p(R), r_p(T)=13q+2*r_p(R)")
+    print("p=3 identity: d3(T)=3q+d3(R)+c, r3(T)=13q+r3(R)-c")
+    print("E17 rational identity: dQ(T)=2q+2*dQ(R)")
+    print("frozen q=6 non3:", non3_q6)
+    print("frozen q=6 F3:", f3_q6)
+    print("Fano q=7 F3:", f3_q7)
+    print("disconnected q=12 F3:", f3_q12)
     print("scientific ceiling: P_VS_NP=OPEN")
 
 
