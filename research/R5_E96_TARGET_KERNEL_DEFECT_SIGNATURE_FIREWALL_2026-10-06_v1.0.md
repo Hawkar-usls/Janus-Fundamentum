@@ -1,3 +1,5 @@
+> **E102 correction (2026-10-06).** The 31-partition LOCAL defect classification in E96 remains valid. The former GLOBAL claim that, without a rigid defect, failure of all four canonical candidates requires all three proper-conflict signatures is superseded by E102: a kernel correction can create a new defect at a base-good check. Use `R5_E102_FULL_SIGNATURE_HOLONOMY_FIREWALL_2026-10-06_v1.0.md` for global reasoning.
+
 # R5 E96 — Target-Kernel Defect Signature Firewall
 
 Date: 2026-10-06
@@ -16,9 +18,8 @@ CAN REACT TO THE TWO INDEPENDENT TARGET-DERIVED GF(2) KERNEL CORRECTIONS.
 ONLY FIVE OF 31 EVEN SUPPORT PARTITIONS ARE LOCALLY UNREPAIRABLE.
 THEY ARE EXACTLY THE COARSENINGS OF THREE OPPOSITE TARGET-STATE PAIRS.
 
-IF NO SUCH RIGID DEFECT EXISTS, GLOBAL FAILURE OF ALL FOUR CANONICAL
-PARITY CANDIDATES REQUIRES ALL THREE PAIRWISE-CONFLICT REPAIR SIGNATURES
-TO OCCUR SOMEWHERE IN THE GEOMETRY.
+THE 31-PARTITION STATEMENT IS LOCAL TO BASE E95 DEFECTS. THE EARLIER GLOBAL
+THREE-CONFLICT NECESSITY IS SUPERSEDED BY E102'S COMPLETE 122-PARTITION AUDIT.
 
 P_VS_NP = OPEN.
 ```
@@ -89,27 +90,11 @@ there are exactly Bell(3)=5 possibilities.
 
 Thus a locally rigid defect has no arbitrary form.
 
-## Global consequence
+## Local intersection observation (global extrapolation superseded by E102)
 
-Suppose no rigid opposite-pair defect occurs.
+Among the 31 **base E95 defects**, the three proper repair signatures are the three 2-subsets of the nonzero corrections. Any two intersect and all three have empty common intersection.
 
-Every remaining proper repair signature is one of the three 2-subsets of the
-three nonzero corrections.
-
-Any two distinct such signatures intersect in one correction.
-
-All three different signature types have empty common intersection.
-
-Therefore:
-
-```text
-boxed:
-Without a rigid defect, all four canonical state8 parity candidates can fail
-globally only if defect checks of all three pair-conflict signature types are
-present.
-```
-
-This is the E96 universal residual frontier.
+This observation remains correct locally. It is **not** a complete global criterion, because E102 shows that applying a correction can create a new defect at a check that was exact for the base E95 candidate. E102 classifies all 122 ordinary support partitions and replaces this section's former global inference with a component-wise holonomy criterion.
 
 ## Next killer
 
