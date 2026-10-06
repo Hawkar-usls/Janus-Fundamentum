@@ -1,3 +1,5 @@
+> **E102 correction (2026-10-06).** E97's exchange-graph dictionary, mod-3 invariant, and E92 support-spectrum firewall remain valid. Its inherited claim that rigid-free global failure requires all three E96 proper-conflict classes is superseded by E102's complete 122-partition Good-set/holonomy analysis.
+
 # R5 E97 — Opposite-Pair Exchange-Graph and Support-Spectrum Firewall
 
 Date: 2026-10-06
@@ -254,36 +256,7 @@ Steiner 2-trades.  E97 only records the structural analogy.
 If a genuine exact TARGET6 parent exists, E97 says it must escape the E92
 support spectrum and satisfy E96 globally.
 
-If a rigid defect is absent, global failure of the four E96 parity candidates
-requires all three proper conflict classes.  Geometrically this means there
-must be ordinary defect checks
-
-```text
-c0, c1, c2
-```
-
-such that
-
-```text
-c0 is missed only by G0,
-c1 is missed only by G1,
-c2 is missed only by G2.
-```
-
-At the same time each total unsplit count N_i is divisible by three.
-
-Therefore the next killer is:
-
-```text
-E98 THREE-EXCHANGE-GRAPH TOPOLOGY KILLER
-
-Use the common four terminals A,B,C,V, simplicity/C4-freeness, cubicity,
-and N_i == 0 mod 3 to either:
-
-1. prove a rigid defect or a rainbow triple of missing-graph conflict checks
-   forces a reducible exchange component / additional raw boundary state; or
-2. construct the first exact TARGET6 C4-free parent.
-```
+E102 later showed that the inherited global three-conflict necessity is too strong: base-good checks can impose additional anti-conflict restrictions on the same kernel corrections. The exchange-graph interpretation and the mod-3 invariant established here remain valid, but the global residual frontier is now E102's bad nonzero-color holonomy component rather than only a rainbow triple of E96 defect signatures.
 
 The main representation claim remains open until that step is resolved.
 
