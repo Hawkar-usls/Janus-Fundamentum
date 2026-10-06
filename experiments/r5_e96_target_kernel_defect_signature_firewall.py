@@ -22,12 +22,12 @@ Exact exhaustive classification:
   * 8 partitions are repaired by all three nonzero corrections;
   * the remaining 18 split 6/6/6 among the three two-correction signatures.
 
-Therefore, if no rigid opposite-pair defect occurs, failure of all four
-canonical parity candidates requires defect checks exhibiting all three
-pair-signature types simultaneously.
-
-This is a universal six-state finite-algebra firewall.  It does not yet prove
-those residual geometric patterns impossible.
+E102 correction (2026-10-06): the preceding classification is LOCAL to the
+31 base E95 defects and remains valid.  The former GLOBAL extrapolation that,
+without a rigid defect, failure of all four candidates requires all three
+pair-signature types is superseded: E102 shows a correction can create a new
+defect on a base-good check.  Use E102's complete 122-partition Good-set table
+for global reasoning.
 
 P_VS_NP remains OPEN.
 """
@@ -118,10 +118,9 @@ def main():
     assert rigid==opposite_coarsenings()
     assert len(rigid)==5
 
-    # Global consequence when no rigid defect is present:
-    # the only proper repair signatures are the three 2-subsets of NONZERO.
-    # Any two distinct such signatures intersect; all three have empty
-    # intersection.  Thus global failure requires all three conflict types.
+    # LOCAL intersection geometry among the three proper base-defect
+    # signatures.  E102 supersedes the former global extrapolation because
+    # base-good checks may impose additional anti-conflict restrictions.
     assert set(p01_10)&set(p10_11)=={(1,0)}
     assert set(p01_10)&set(p01_11)=={(0,1)}
     assert set(p10_11)&set(p01_11)=={(1,1)}
@@ -132,8 +131,8 @@ def main():
     print("repair signature counts=", dict(counts))
     print("rigid partitions=5, exactly opposite-pair coarsenings")
     print("opposite pairs: (XA,QBC), (XB,QAC), (XC,QAB)")
-    print("without a rigid defect, global four-candidate failure requires all three pair-signature types")
-    print("next target: geometry-kill rigid opposite-pair defects and the three-signature conflict")
+    print("LOCAL proper-defect signatures: pairwise intersect, triple intersection empty")
+    print("GLOBAL extrapolation superseded by E102 full 122-partition signature audit")
     print("P_VS_NP remains OPEN")
 
 
