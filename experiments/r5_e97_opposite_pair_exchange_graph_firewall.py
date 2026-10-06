@@ -211,7 +211,7 @@ def main():
     print("each opposite-pair unsplit ordinary-check count is divisible by 3")
     print("E92 even-support spectrum:", even)
     print("E92 support-spectrum defect triples=0 => TARGET6 forces state8 for entire support-spectrum class")
-    print("next target: combine mod-3 exchange-graph counts with boundary-terminal topology to kill rigid/rainbow-conflict geometries")
+    print("global rainbow-conflict extrapolation superseded by E102; exchange dictionary/mod-3/support-spectrum results remain valid")
     print("P_VS_NP remains OPEN")
 
 
