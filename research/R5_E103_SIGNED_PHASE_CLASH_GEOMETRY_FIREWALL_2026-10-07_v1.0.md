@@ -308,6 +308,58 @@ CAN REALIZE THE MINIMAL TWO-CHECK SIGNED PHASE CLASH.
 
 This falsifies a geometry-only E103-A killer.
 
+## 8A. Stronger graft into the real E92 TARGET6 witness geometry
+
+The closed 27x27 gadget can be inserted into the actual E92 five-port cluster
+without disturbing any of the six TARGET6 witnesses.
+
+E92's deterministic witness support spectrum contains an internal cubic
+variable with empty six-state support.  The E103 gadget also has empty-support
+variables.  Perform one additional Tanner 2-switch between those two variables.
+
+Because both variables are unselected in all six target witnesses, every target
+selected-count at the two switched checks is preserved exactly.
+
+The checker verifies the resulting combined cluster:
+
+```text
+45 internal variables,
+46 internal checks,
+four check-side boundary ports A,B,C,E,
+one variable-side boundary port V,
+connected,
+C4-free,
+all ordinary variable degrees 3,
+all ordinary check degrees 3,
+and all six actual raw TARGET6 masks
+  {1,2,4,19,21,22}
+have exact internal witnesses.
+```
+
+The inserted phase-clash gadget still contributes
+
+```text
+9 H_(1,0)^0 checks,
+9 unrestricted checks,
+9 H_(1,0)^1 checks,
+```
+
+inside one bad nonzero-color holonomy component.
+
+Therefore the firewall strengthens to:
+
+```text
+boxed:
+C4-free + cubic + existence of all six ACTUAL TARGET6 boundary witnesses
+still does not forbid the signed phase clash.
+```
+
+What is still not supplied by this graft is an **exact parent relation equal to
+TARGET6 and nothing else**.  E92 already has raw8, and the graft is not claimed
+to remove it.  Hence the missing force is now isolated even more sharply:
+exact-parent/no-raw8 semantics or witness minimality.
+
+
 ## 8. Why this does not refute the active TARGET6 parent route
 
 The constructed 27x27 source is a closed six-cover geometry.
