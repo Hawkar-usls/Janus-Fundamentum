@@ -1,0 +1,33 @@
+name: TRUMP general SAT uniform Gaussian closure audit
+
+on:
+  push:
+    branches:
+      - research/general-sat-uniform-gaussian-closure-audit-2026-10-08
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+      - name: Uniform Gaussian implication closure audit
+        run: python research/tools/general_sat_uniform_closure/uniform_gaussian_implication_audit.py
+      - name: Preserve scientific claim ceiling
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p=Path("research/TRUMP_GENERAL_SAT_UNIFORM_GAUSSIAN_CLOSURE_AUDIT_2026-10-08_v1.0.md")
+          s=p.read_text(encoding="utf-8")
+          assert "GENERAL_SAT_IN_P = NOT_PROVED" in s
+          assert "P_VS_NP = OPEN" in s
+          assert "HIGH_RANK_CONNECTED_RESIDUE = OPEN" in s
+          print("CLAIM_CEILING_OK")
+          PY
