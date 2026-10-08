@@ -1229,3 +1229,244 @@ GENERAL_SAT_IN_P = NOT_PROVED.
 P_VS_NP = OPEN.
 ```
 
+## 21. Exact graph-coloring quotient firewall
+
+The finite-domain quotient idea has an important universal limit.
+
+For any ordinary graph
+
+```text
+G=(V,E)
+```
+
+give each vertex (v) two Boolean variables
+
+```text
+x_{v,0}, x_{v,1}.
+```
+
+For every edge (uv), add one native 2-XNF clause
+
+```text
+(x_{u,0} XOR x_{v,0})
+OR
+(x_{u,1} XOR x_{v,1}).
+```
+
+Interpret the two bits of a vertex as one element of a four-element color
+domain.
+
+The edge clause is false exactly when the two endpoint labels are equal.
+
+Therefore:
+
+```text
+boxed:
+F_G is SAT
+iff
+G is 4-colorable.
+```
+
+This is an exact polynomial reduction in the direction needed here; no
+normalization gadget is required.
+
+Thus even perfect discovery of a finite-domain object quotient does not by
+itself make the residual easy.  The quotient conflict graph may be arbitrary.
+
+For every fixed (k>=3), graph k-colorability is NP-complete in general; for
+fixed (k>=4) it remains NP-complete even on triangle-free graphs.
+
+The role of that external hardness fact is an anti-loop only:
+
+```text
+"discover the finite-domain quotient"
+is not a polynomial completion theorem unless the discovered conflict
+structure is also guaranteed tractable.
+```
+
+### 21.1 Frozen 5-chromatic triangle-free control
+
+The checker constructs the twice-Mycielski graph of (C_5).
+
+It independently verifies:
+
+```text
+vertices           = 23
+edges              = 71
+triangle-free      = true
+4-colorable        = false
+2-XNF variables    = 46
+2-XNF clauses      = 71
+normal rank        = 44.
+```
+
+The current closure portfolio returns:
+
+```text
+two-sided Gaussian probing = OPEN
+learned affine rank         = 0
+probe calls                 = 284
+
+complete binary AllDifferent        = OPEN
+subspace complete AllDifferent      = OPEN.
+```
+
+So the firewall is not hidden by the already-added capacity terminals.
+
+Companion checker:
+
+```text
+research/tools/general_sat_uniform_closure/
+  graph4color_2xnf_firewall.py
+```
+
+## 22. Polynomial critical-core closure for 4-color quotients
+
+The graph-coloring quotient still admits exact polynomial preprocessing.
+
+### 22.1 Degree-three peeling
+
+If a vertex has degree at most three, delete it.
+
+Every proper 4-coloring of the remainder extends to the deleted vertex because
+at most three colors appear on its neighbors.
+
+Repeating this rule computes the 4-core.
+
+The deletion order is also a constructive reconstruction certificate.
+
+### 22.2 Connected and articulation decomposition
+
+Connected components color independently.
+
+More strongly, articulation blocks color independently: after coloring two
+blocks, permute the four color names in one block so their shared articulation
+vertex receives the same color.
+
+Hence colorability factors across biconnected blocks.
+
+### 22.3 Brooks terminal
+
+For a connected block of maximum degree at most four, Brooks' theorem gives a
+4-coloring unless the block is the complete graph (K_5).
+
+The odd-cycle exception in the usual Brooks statement is harmless here because
+an odd cycle is still 4-colorable.
+
+Therefore the branch-free terminal is:
+
+```text
+K5 block
+  => UNSAT;
+
+all residual blocks have Delta <= 4 and are not K5
+  => SAT.
+```
+
+### 22.4 Exact residual after critical-core closure
+
+The frozen twice-Mycielski firewall survives unchanged:
+
+```text
+peeled vertices = 0
+4-core vertices = 23
+biconnected open blocks = 1
+block vertices   = 23
+block edges      = 71
+minimum degree   = 4
+maximum degree   = 11.
+```
+
+Thus the first graph-quotient hard core is now explicitly:
+
+```text
+biconnected,
+minimum degree >= 4,
+maximum degree >= 5,
+not K5.
+```
+
+Companion checker:
+
+```text
+research/tools/general_sat_uniform_closure/
+  graph4color_critical_core_closure.py
+```
+
+## 23. Updated uniform-closure frontier
+
+The original review gap was:
+
+```text
+OPEN residues are solved only by full-mode branching,
+with no polynomial bound.
+```
+
+The current review branch has now converted that vague gap into a sequence of
+proof-carrying polynomial closures:
+
+```text
+1. Gaussian implication / SCC / failed-lineral closure.
+2. Two-sided nonrecursive Gaussian probing with common affine consequences.
+3. Rank-0/rank-1 affine propagation.
+4. Low normal-rank quotient solving.
+5. Normal-matroid direct-sum decomposition.
+6. Low-width subspace DP terminals.
+7. Choice/resource Hall capacity.
+8. Complete binary AllDifferent capacity.
+9. Basis-invariant subspace AllDifferent transport/capacity.
+10. Finite-domain conflict-graph critical-core reduction.
+```
+
+None hides unrestricted Boolean branching.
+
+But none is universal.
+
+The remaining residue already contains the exact quotient problem
+
+```text
+4-COLORING ON BICONNECTED HIGH-DEGREE 4-CORES.
+```
+
+So the next theorem cannot merely be another Gaussian consistency rule or a
+complete-AllDifferent recognizer.
+
+The correct target is:
+
+```text
+UNIFORM CRITICAL-QUOTIENT CLOSURE
+
+Given a closure-fixed affine-flat instance, polynomially discover a quotient
+CSP and prove that one of the following always happens:
+
+A. the quotient language/interaction graph lies in a polynomial tractable
+   class, together with a constructive solver;
+
+B. the quotient exposes a globally forced affine equation or contraction,
+   reducing the original affine rank / critical core;
+
+C. the quotient decomposes through a polynomially bounded separator/width
+   measure;
+
+or
+
+D. freeze an explicit scalable family on which A/B/C all fail.
+```
+
+A universal A/B/C theorem with one fixed polynomial resource bound would be
+the kind of result required to replace full-mode branching.
+
+At present no such theorem is proved.
+
+Scientific status:
+
+```text
+UGIC = SOUND POLYNOMIAL INCOMPLETE.
+TWO-SIDED GAUSSIAN PROBING = SOUND POLYNOMIAL INCOMPLETE.
+SUBSPACE ALLDIFFERENT = SOUND POLYNOMIAL SCOPED.
+GRAPH QUOTIENT CRITICAL-CORE CLOSURE = SOUND POLYNOMIAL SCOPED.
+HIGH-RANK CRITICAL FINITE-DOMAIN QUOTIENT = OPEN.
+GENERAL_SAT_IN_P = NOT_PROVED.
+P_VS_NP = OPEN.
+```
+
