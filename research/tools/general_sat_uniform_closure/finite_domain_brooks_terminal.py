@@ -121,9 +121,14 @@ def constructive_brooks_component(vertices,adj,q):
     # Greedy extension through any sub-q vertex.
     low=next((v for v in sorted(V) if deg[v]<q),None)
     if low is not None:
-        st,col,why=constructive_brooks_component(V-{low},adj,q)
-        if st!="SAT":
-            return st,col,why
+        col={}
+        subreasons=[]
+        for C in components(V-{low},adj):
+            st,subcol,why=constructive_brooks_component(C,adj,q)
+            if st!="SAT":
+                return st,subcol,why
+            col.update(subcol)
+            subreasons.append(why)
         used={col[u] for u in adj[low] if u in col}
         avail=next((c for c in range(q) if c not in used),None)
         assert avail is not None
