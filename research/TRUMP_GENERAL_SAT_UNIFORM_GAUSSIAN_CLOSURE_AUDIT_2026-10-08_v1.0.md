@@ -872,3 +872,360 @@ HIGH_RANK_CONNECTED_RESIDUE = OPEN.
 GENERAL_SAT_IN_P = NOT_PROVED.
 P_VS_NP = OPEN.
 ```
+
+## 18. Polynomial two-sided Gaussian probing closure
+
+The review next adds a stronger closure layer without introducing recursive DPLL.
+
+For every active nonzero normal (m), temporarily run the existing UGIC under
+
+```text
+m dot x = 0
+```
+
+and
+
+```text
+m dot x = 1.
+```
+
+There are three sound outcomes.
+
+1. Both probes are UNSAT.
+
+   Then the current global affine context is UNSAT.
+
+2. Exactly one probe is UNSAT.
+
+   Then the opposite value of (m dot x) is globally forced and is added as
+   one affine equation.
+
+3. Both probes survive.
+
+   Compute the intersection of the two complete affine-equation consequence
+   spaces.
+
+   The intersection must be performed on the augmented GF(2) row spaces
+
+   ```text
+   (mask | rhs)
+   ```
+
+   rather than by comparing RREF rows syntactically.
+
+   Every common affine equation is true in both possible values of (m dot x),
+   hence globally implied by excluded middle.
+
+No probe recursively launches another probe layer.
+
+The outer loop repeats only after global affine rank increases, so there are at
+most (n) strict global learning rounds.
+
+If (q=O(m)) active normals are probed, the complete procedure makes
+
+```text
+O(n q)
+```
+
+calls to a polynomial UGIC routine plus polynomial Gaussian row-space
+intersection work.
+
+Therefore:
+
+```text
+boxed:
+TWO-SIDED GAUSSIAN PROBING IS SOUND AND POLYNOMIAL.
+```
+
+It is strictly stronger than the baseline closure.
+
+### 18.1 Frozen obstruction
+
+The original 3-variable / 4-clause exact affine-cover obstruction is now
+detected as UNSAT after only two probe calls.
+
+So the old finite OPEN witness no longer survives the strengthened closure.
+
+### 18.2 Unary PHP replay
+
+For normalized PHP samples the probing layer gives:
+
+```text
+k=3 : UNSAT
+k=4 : OPEN, learned affine rank 15
+k=5 : OPEN, learned affine rank 24
+k=6 : OPEN, learned affine rank 35
+```
+
+The ranks satisfy
+
+```text
+15,24,35 = k^2-1.
+```
+
+This equals
+
+```text
+(k+1)
++
+(k+1)(k-2),
+```
+
+matching exactly:
+
+```text
+one exact-one parity equation per pigeon
++
+one affine definition per chained conversion auxiliary.
+```
+
+Thus the probing layer is not merely assigning Boolean values.  On this family
+it recovers a semantic affine quotient hidden by the 2-XNF normalization.
+
+The remaining PHP contradiction is still global capacity/Hall information and
+is closed by the existing Hall terminal.
+
+### 18.3 Bit-PHP replay
+
+For bit-PHP:
+
+```text
+ell=2 : UNSAT under probing
+ell=3 : OPEN, learned affine rank 0.
+```
+
+So even the two-sided polynomial probe closure does not subsume the
+AllDifferent capacity layer.
+
+Scientific consequence:
+
+```text
+finite-depth polynomial probing is a genuine strengthening,
+but it is not a universal completion theorem.
+```
+
+Companion checker:
+
+```text
+research/tools/general_sat_uniform_closure/
+  two_sided_gaussian_probe_closure.py
+```
+
+## 19. Basis-invariant subspace AllDifferent terminal
+
+The first Binary AllDifferent terminal is intentionally syntax-specific: it
+expects each address-difference lineral to be one weight-two XOR.
+
+That condition is not invariant under Gaussian coordinate changes.
+
+For each object (i), replace its address (x_i in GF(2)^ell) by
+
+```text
+y_i = T x_i
+```
+
+for any invertible (T in GL(ell,2)).
+
+The capacity semantics is unchanged:
+
+```text
+p pairwise-distinct y_i values
+inside a domain of size 2^ell.
+```
+
+But a row of (T) with weight greater than one turns one bit-difference
+lineral into a dense XOR over the two endpoint object blocks.
+
+The original weight-two detector therefore returns OPEN on such a scrambled
+encoding.
+
+### 19.1 Clause-normal subspaces
+
+For every native XNF inequality clause (c), forget its chosen lineral basis
+and retain only the span of its normals
+
+```text
+L_c <= W.
+```
+
+In a complete binary AllDifferent system:
+
+```text
+dim L_c = ell
+```
+
+and clauses correspond to the edges of a complete graph (K_p).
+
+If two edge-subspaces share one object, their sum contains exactly one further
+clause subspace: the third edge of that triangle.
+
+This triangle-closure relation reconstructs the line graph (L(K_p)) and,
+for (p>=5), its (p) star cliques.
+
+### 19.2 Root-star direct sum
+
+Choose one reconstructed object as root.
+
+The (p-1) clause subspaces incident with the root must form a direct sum
+
+```text
+S_1 direct_sum ... direct_sum S_{p-1},
+dim S_i=ell.
+```
+
+Every remaining edge-subspace (L_{ij}) must lie inside
+
+```text
+S_i + S_j
+```
+
+and its projections to both endpoint blocks must have full rank (ell).
+
+Therefore (L_{ij}) is the graph of a linear isomorphism
+
+```text
+M_{ij}: S_i -> S_j.
+```
+
+The detector then verifies the triangle cocycle
+
+```text
+M_{ik} = M_{jk} o M_{ij}.
+```
+
+This proves that all reconstructed object blocks admit one common
+(ell)-dimensional label space, up to invertible basis transport.
+
+### 19.3 Capacity theorem
+
+Any global assignment induces one transported label for each of the (p)
+objects.
+
+The clause on edge (ij) is false exactly when the two transported labels
+coincide.
+
+Thus satisfying all clauses requires (p) pairwise-distinct elements of one
+domain of size (2^ell).
+
+Hence
+
+```text
+boxed:
+p > 2^ell
+=> UNSAT.
+```
+
+The certificate is entirely linear-algebraic:
+
+```text
+clause subspaces,
+triangle relation,
+reconstructed K_p stars,
+root-star direct-sum basis,
+edge graph-isomorphisms,
+transport cocycle,
+p > 2^ell.
+```
+
+All operations are polynomial GF(2) rank/containment tests and graph scans.
+No Boolean branching is used.
+
+### 19.4 Scrambled regression
+
+The checker applies an invertible unitriangular transform to every object
+address of bit-PHP.
+
+Results:
+
+```text
+ell=2:
+  old syntactic detector = OPEN
+  subspace detector       = UNSAT
+
+ell=3:
+  old syntactic detector = OPEN
+  two-sided probing      = OPEN, learned rank 0
+  subspace detector      = UNSAT
+
+ell=4:
+  old syntactic detector = OPEN
+  subspace detector       = UNSAT.
+```
+
+So the new terminal closes a high-rank capacity family that is invisible to
+both the old weight-two recognizer and, for the nontrivial ell=3 control, the
+new probing layer.
+
+Companion checker:
+
+```text
+research/tools/general_sat_uniform_closure/
+  subspace_alldifferent_capacity_terminal.py
+```
+
+## 20. Updated frontier after probing and subspace transport
+
+The closure stack now contains three conceptually distinct polynomial layers:
+
+```text
+LOCAL / AFFINE:
+  Gaussian reduction,
+  implication/SCC,
+  failed linerals,
+  two-sided nonrecursive Gaussian probing.
+
+STRUCTURAL DECOMPOSITION:
+  rank-0/rank-1 propagation,
+  low normal-rank quotient,
+  normal-matroid components,
+  low-width subspace DP.
+
+GLOBAL FINITE-DOMAIN CAPACITY:
+  choice/resource Hall,
+  syntax-level binary AllDifferent,
+  basis-invariant subspace AllDifferent transport.
+```
+
+This is materially stronger than a collection of solved fixtures.
+
+But it is still not a universal SAT algorithm.
+
+The remaining high-rank residue may fail to expose a complete (K_p)
+AllDifferent arrangement, a Hall injection structure, or any currently known
+low-width quotient.
+
+The next theorem target should therefore be representation-invariant:
+
+```text
+UNIFORM FINITE-DOMAIN QUOTIENT DISCOVERY
+
+Given a high-rank, closure-fixed 2-XNF affine-flat system, discover in
+polynomial time either
+
+A. a nontrivial affine quotient whose fibers behave as finite-domain object
+   labels and whose conflict graph admits a polynomial capacity/matching
+   certificate;
+
+B. a polynomially bounded normal-span / branchwidth decomposition;
+
+C. a new globally forced affine equation;
+
+or
+
+D. an explicit scalable family proving that all three mechanisms can fail.
+```
+
+Only a universal A/B/C theorem with one fixed polynomial resource bound would
+close the current GENERAL SAT gap.
+
+Scientific status:
+
+```text
+UNIFORM_GAUSSIAN_IMPLICATION_CLOSURE = SOUND_POLYNOMIAL_INCOMPLETE.
+TWO_SIDED_GAUSSIAN_PROBING = SOUND_POLYNOMIAL_STRONGER_INCOMPLETE.
+SUBSPACE_ALLDIFFERENT_CAPACITY = SOUND_POLYNOMIAL_SCOPED_TERMINAL.
+HIGH_RANK_CONNECTED_RESIDUE = OPEN.
+GENERAL_SAT_IN_P = NOT_PROVED.
+P_VS_NP = OPEN.
+```
+
