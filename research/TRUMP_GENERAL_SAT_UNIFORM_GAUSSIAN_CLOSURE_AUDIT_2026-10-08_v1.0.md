@@ -1470,3 +1470,162 @@ GENERAL_SAT_IN_P = NOT_PROVED.
 P_VS_NP = OPEN.
 ```
 
+
+
+## 24. Parameterized constructive Brooks / domination q-core
+
+The graph-quotient lane is not restricted to the four-color fixture.
+
+For an inequality quotient with domain size
+
+```text
+q >= 4
+```
+
+the branch now carries a constructive polynomial terminal:
+
+```text
+research/tools/general_sat_uniform_closure/
+  finite_domain_brooks_terminal.py
+```
+
+Before invoking Brooks, it takes the exact fixed point of two reconstruction-safe reductions:
+
+```text
+LOW:
+  delete any vertex of current degree < q;
+  after coloring the remainder, greedily restore it.
+
+DOM:
+  if u,v are nonadjacent and N(u) subseteq N(v), delete u;
+  after coloring the remainder, give u the color of v.
+```
+
+If the surviving q-core has maximum degree at most q, constructive Brooks coloring closes every connected component except the explicit complete obstruction
+
+```text
+K_{q+1}.
+```
+
+The implementation returns and replays the actual coloring certificate.
+
+Therefore the residual inequality-quotient frontier can be sharpened to
+
+```text
+domination-free q-core,
+minimum degree >= q,
+maximum degree > q,
+unless an explicit K_{q+1} obstruction is found.
+```
+
+For the frozen 23-vertex four-color firewall, no domination reduction fires and the core remains
+
+```text
+23 vertices,
+71 edges,
+minimum degree 4,
+maximum degree 11.
+```
+
+The generalized terminal is still scoped: high-degree q-colorability remains OPEN.
+
+## 25. Reuse of the frozen C11 separator-composition theorems
+
+The older C11 line already proved exact fixed-palette factorization over vertex separators of size two and three, and sealed an explicit size-four composition witness.
+
+The current review reuses that mathematics instead of rediscovering it.
+
+For the twice-Mycielski four-color firewall, exhaustive polynomial separator discovery gives
+
+```text
+Sep_1 = empty
+Sep_2 = empty
+Sep_3 = empty
+
+first Sep_4 = {0,2,10,22}.
+```
+
+Deleting that separator yields components of sizes
+
+```text
+1 and 18.
+```
+
+Up to global permutation of the four colors, a four-vertex boundary assignment is determined by its equality partition.
+
+There are exactly
+
+```text
+Bell(4)=15
+```
+
+such boundary states.
+
+For each state the replay checker:
+
+1. rejects equality blocks containing an original conflict edge;
+2. contracts boundary vertices required to have equal colors;
+3. makes distinct boundary blocks pairwise adjacent;
+4. applies only the current polynomial graph critical-core closure to each downstream component.
+
+An independent exact coloring search is used only as a regression oracle, never as the solver.
+
+The gated result is:
+
+```text
+exact globally feasible boundary states = 0
+
+current polynomially rejected states    = 1
+current downstream OPEN states          = 14.
+```
+
+Thus:
+
+```text
+boxed:
+SEPARATOR-4 FACTORIZATION IS EXACT BUT DOES NOT CLOSE THE FIREWALL.
+```
+
+This is an important distinction.
+
+The missing problem is no longer separator discovery.  It is exact polynomial extraction of the boundary relation / precolor-extension relation of the surviving high-degree critical component.
+
+Companion checker:
+
+```text
+research/tools/general_sat_uniform_closure/
+  graph4_c11_separator4_replay.py
+```
+
+Gated run:
+
+```text
+TRUMP general SAT uniform Gaussian closure audit #37
+SUCCESS
+head = e2110ff8284b910fdd08fede376a22c9e287949b
+```
+
+### Updated frontier after C11 reuse
+
+A universal rule must now handle, without unbounded value branching, at least the class
+
+```text
+high-rank closure-fixed affine-flat instance
+  ->
+finite-domain inequality quotient
+  ->
+domination-free high-degree critical q-core
+  ->
+small-separator composition when available
+  ->
+high-degree precolor-extension relation on the downstream block.
+```
+
+The next closure experiment therefore returns to the affine representation itself: learn not only globally forced affine equations, but every pairwise affine value exclusion that can be certified by polynomial Gaussian probing.
+
+Scientific status remains:
+
+```text
+GENERAL_SAT_IN_P = NOT_PROVED.
+P_VS_NP = OPEN.
+```
