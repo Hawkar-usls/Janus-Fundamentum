@@ -636,7 +636,106 @@ remain, the rule returns OPEN rather than overclaiming SAT/UNSAT.
 Therefore Hall closure demonstrates what a useful next-layer rule looks like,
 but does not establish a universal closure theorem.
 
-## 15. Correct next experiment
+## 15. Bit-pigeonhole firewall beyond simple Hall closure
+
+The choice/resource Hall terminal closes the unary PHP family, but it does not
+close the same counting obstruction when choices are encoded in binary.
+
+Let
+
+```text
+h=2^ell,
+p=h+1.
+```
+
+Represent each pigeon i by ell address bits and require every pair of pigeons
+to have distinct addresses:
+
+```text
+OR_b (x_{i,b} XOR x_{j,b}).
+```
+
+This is native XNF and is UNSAT by the pigeonhole principle.
+
+After exact conversion to 2-XNF, the companion checker verifies for
+ell=2,3,4:
+
+```text
+UGIC verdict             = OPEN
+learned affine rank       = 0
+choice/resource Hall      = OPEN
+normal-matroid components = 1.
+```
+
+The family has
+
+```text
+N =
+  p*ell + C(p,2)(ell-2)
+```
+
+2-XNF variables for ell>=2, and its active normal-span rank is
+
+```text
+r =
+  ell(p-1) + C(p,2)(ell-2).
+```
+
+The first term is the direct sum of the even-difference spaces of the ell
+complete pigeon graphs; the second term consists of the independent auxiliary
+coordinates created by the exact 2-XNF conversion.
+
+Thus r grows linearly with the full normalized variable count.
+
+The represented normal matroid is connected.  Two circuit families certify
+this:
+
+```text
+1. every active rank-2 2-XNF clause contributes its 3-element binary line;
+
+2. for every address bit b and every pigeon triple i,j,k,
+
+   d_{ij,b} XOR d_{jk,b} XOR d_{ik,b} = 0,
+
+   giving the graphic triangle circuits of K_p.
+```
+
+The conversion lines connect those bit-layer graphic pieces through the
+auxiliary coordinates.
+
+So bit-PHP is an explicit infinite residue that survives:
+
+```text
+Gaussian implication closure,
+failed-lineral closure,
+the simple unary choice/resource Hall terminal,
+low normal-rank quotienting,
+and normal-matroid direct-sum splitting.
+```
+
+### 15.1 Resolution-over-parities anti-loop
+
+This family is also a warning against replacing the OPEN status by unrestricted
+parity-resolution saturation and then assuming the saturation is polynomial.
+
+Kamil Braun, *An exponential lower bound for the bit pigeonhole principle in
+resolution over parities* (2026, arXiv:2609.23015), proves an exponential lower
+bound for unrestricted DAG-like Res(oplus) refutations of bit pigeonhole.
+
+That is a proof-system lower bound, not a lower bound for SAT decision and not
+evidence that P!=NP.
+
+Its role here is narrower:
+
+```text
+A polynomial universal closure theorem cannot be justified merely by saying
+"close under all Res(oplus) consequences."
+```
+
+The next rule must exploit structure beyond generic parity resolution, or use a
+different algorithmic certificate altogether.
+
+## 16. Correct next experiment
 
 Do not add another unrestricted branch fallback.
 
