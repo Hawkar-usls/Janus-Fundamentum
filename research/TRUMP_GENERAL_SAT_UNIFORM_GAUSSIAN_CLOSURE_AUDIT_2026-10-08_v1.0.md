@@ -575,7 +575,68 @@ contains Hall/counting contradictions and still covers every residual input.
 
 No such theorem is currently proved.
 
-## 14. Correct next experiment
+## 14. Choice-resource Hall terminal
+
+The scalable PHP firewall identifies the first genuinely global information
+missing from Gaussian/implication closure: a capacity obstruction.
+
+A sound polynomial terminal can be added without recognizing a benchmark by
+name.
+
+From the source CNF retained by the solver's own exact normalization, detect a
+clean family of pairwise-disjoint positive choice clauses
+
+```text
+G_i = OR_{x in G_i} x
+```
+
+such that all negative binary pairs inside each G_i are present.  Each G_i is
+therefore an exact-one choice group.
+
+Now inspect negative binary clauses between different choice groups.  If their
+connected components are cliques and contain at most one variable from each
+choice group, each component is a unit-capacity resource.
+
+Every satisfying assignment then induces an injection
+
+```text
+choice groups -> resources.
+```
+
+Construct the bipartite choice/resource graph and compute a maximum matching.
+
+If the matching does not saturate all choice groups, the standard alternating
+reachable sets give an explicit Hall witness
+
+```text
+S subseteq choice groups,
+N(S) subseteq resources,
+|N(S)| < |S|.
+```
+
+This is a polynomially replayable UNSAT certificate.  No Boolean value
+branching is used.
+
+On PHP_{k+1}^k the detector recovers exactly:
+
+```text
+k+1 choice groups,
+k resource components,
+maximum matching size k,
+Hall witness |S|=k+1 > |N(S)|=k.
+```
+
+Thus the entire scalable PHP OPEN-family is eliminated by one uniform
+branch-free macro rule.
+
+This is deliberately a scoped terminal.  If the clean choice/resource
+structure is absent, or if a saturating matching exists while other clauses
+remain, the rule returns OPEN rather than overclaiming SAT/UNSAT.
+
+Therefore Hall closure demonstrates what a useful next-layer rule looks like,
+but does not establish a universal closure theorem.
+
+## 15. Correct next experiment
 
 Do not add another unrestricted branch fallback.
 
