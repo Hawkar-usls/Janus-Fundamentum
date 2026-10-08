@@ -687,21 +687,25 @@ coordinates created by the exact 2-XNF conversion.
 
 Thus r grows linearly with the full normalized variable count.
 
-The represented normal matroid is connected.  Two circuit families certify
-this:
+The represented normal matroid on the **actual ground normals of the converted
+2-XNF** is connected.  The checker certifies this by exact represented-matroid
+fundamental-circuit decomposition.
+
+A subtle correction matters here: a source difference vector d_{ij,b} need not
+itself remain a ground element after conversion; it may only lie in the span
+of one conversion block.  Therefore source K_p triangle identities cannot be
+used as if every d_{ij,b} were literally present in the ground set.
+
+The structural reason connectivity nevertheless survives is that each
+conversion block spans its source difference directions, while the identities
 
 ```text
-1. every active rank-2 2-XNF clause contributes its 3-element binary line;
-
-2. for every address bit b and every pigeon triple i,j,k,
-
-   d_{ij,b} XOR d_{jk,b} XOR d_{ik,b} = 0,
-
-   giving the graphic triangle circuits of K_p.
+d_{ij,b} XOR d_{jk,b} XOR d_{ik,b}=0
 ```
 
-The conversion lines connect those bit-layer graphic pieces through the
-auxiliary coordinates.
+create dependencies across pigeon-pair block spans.  The frozen checker uses
+the safer exact matroid-component computation rather than promoting these
+hidden span vectors to ground elements.
 
 So bit-PHP is an explicit infinite residue that survives:
 
