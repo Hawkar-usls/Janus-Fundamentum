@@ -19,12 +19,10 @@ Facts frozen here:
         C(p,2)(ell-2) + ell(p-1),
     i.e. all auxiliary coordinates plus the even-difference subspace in each
     bit layer;
-  * the represented normal matroid is connected.  Connectivity is certified
-    by:
-      - every active rank-2 clause line as a 3-circuit;
-      - for each bit b and pigeon triple i,j,k,
-            d_ij,b + d_jk,b + d_ik,b = 0,
-        a graphic triangle circuit of K_p.
+  * the represented normal matroid on the ACTUAL 2-XNF ground normals is
+    connected.  This must be checked on the represented matroid itself:
+    source difference vectors may be only linear combinations inside a
+    conversion block and need not individually occur as ground elements.
 
 Thus BPHP is an explicit infinite high-rank connected residue after the
 Gaussian implication and simple Hall terminals.
@@ -71,47 +69,99 @@ def line_points(formula):
     return tuple(out)
 
 
-def circuit_connectivity(formula,diffs,pigeons,ell):
-    # Ground set = distinct nonzero normals visible in the represented system.
-    lines=line_points(formula)
-    ground=set(g for L in lines for g in L)
+def independent_basis(vecs):
+    piv={}
+    B=[]
+    for x in vecs:
+        y=x
+        while y:
+            p=y.bit_length()-1
+            if p in piv:
+                y ^= piv[p]
+            else:
+                piv[p]=y
+                B.append(x)
+                break
+    return tuple(B)
 
-    adj={g:set() for g in ground}
 
-    def join_circuit(C):
-        C=[g for g in C if g]
-        assert len(C)>=2
-        root=C[0]
-        for g in C[1:]:
-            adj[root].add(g)
-            adj[g].add(root)
+def elimination_for_basis(B):
+    piv={}
+    for i,x in enumerate(B):
+        y=x
+        coeff=1<<i
+        while y:
+            p=y.bit_length()-1
+            if p in piv:
+                row,cm=piv[p]
+                y ^= row
+                coeff ^= cm
+            else:
+                piv[p]=(y,coeff)
+                break
+        assert y
+    return piv
 
-    # Clause rank-2 lines.
-    for L in lines:
-        join_circuit(tuple(L))
 
-    # Graphic triangle circuits inside each address-bit K_p difference system.
-    for b in range(ell):
-        for i,j,k in combinations(range(pigeons),3):
-            a=diffs[(i,j,b)]
-            c=diffs[(j,k,b)]
-            d=diffs[(i,k,b)]
-            assert a^c^d==0
-            assert {a,c,d} <= ground
-            join_circuit((a,c,d))
+def coords_in_basis(x,B,piv=None):
+    if piv is None:
+        piv=elimination_for_basis(B)
+    y=x
+    coeff=0
+    for p in sorted(piv,reverse=True):
+        if (y>>p)&1:
+            row,cm=piv[p]
+            y ^= row
+            coeff ^= cm
+    assert y==0
+    return coeff
 
-    start=next(iter(ground))
-    seen={start}
-    stack=[start]
-    while stack:
-        u=stack.pop()
-        for v in adj[u]:
-            if v not in seen:
-                seen.add(v)
-                stack.append(v)
 
-    assert seen==ground
-    return len(ground)
+def represented_matroid_components(vecs):
+    """Exact connected components of the represented binary vector matroid."""
+    elems=tuple(sorted(set(v for v in vecs if v)))
+    B=independent_basis(elems)
+    piv=elimination_for_basis(B)
+    basis_set=set(B)
+
+    adj={v:set() for v in elems}
+    for e in elems:
+        coeff=coords_in_basis(e,B,piv)
+        support=[B[i] for i in range(len(B)) if (coeff>>i)&1]
+
+        if e in basis_set and support==[e]:
+            continue
+
+        # e together with the basis vectors in its representation contains
+        # the fundamental circuit (for a nonbasis e it is exactly that
+        # circuit; duplicate vectors produce the expected parallel circuit).
+        nodes=list(set(support)|{e})
+        if len(nodes)>=2:
+            root=nodes[0]
+            for v in nodes[1:]:
+                adj[root].add(v)
+                adj[v].add(root)
+
+    comps=[]
+    seen=set()
+    for s in elems:
+        if s in seen:
+            continue
+        C=set()
+        stack=[s]
+        while stack:
+            x=stack.pop()
+            if x in C:
+                continue
+            C.add(x)
+            seen.add(x)
+            stack.extend(adj[x]-C)
+        comps.append(frozenset(C))
+
+    ranks=[len(independent_basis(C)) for C in comps]
+    assert sum(ranks)==len(B)
+    return tuple(comps),tuple(ranks)
+
 
 
 def expected_sizes(ell):
@@ -152,7 +202,9 @@ def verify_instance(ell):
     r=rank_vectors(normals)
     assert r==R
 
-    ground=circuit_connectivity(active,diffs,pigeons,ell)
+    comps,component_ranks=represented_matroid_components(normals)
+    assert len(comps)==1
+    ground=len(set(normals))
 
     return {
         "ell":ell,
@@ -165,7 +217,8 @@ def verify_instance(ell):
         "Hall_terminal":"OPEN",
         "normal_rank":r,
         "distinct_normal_elements":ground,
-        "normal_component_count":1,
+        "normal_component_count":len(comps),
+        "normal_component_ranks":component_ranks,
     }
 
 
@@ -178,7 +231,7 @@ def main():
     print("symbolic source theorem: 2^ell+1 distinct ell-bit addresses into 2^ell holes is impossible")
     print("UGIC and simple choice-resource Hall both leave the family OPEN")
     print("normal rank grows as C(p,2)(ell-2)+ell(p-1)")
-    print("represented normal matroid is connected by clause-line + K_p bit-layer triangle circuits")
+    print("represented normal matroid on actual ground normals is connected by exact fundamental-circuit decomposition")
     print("unrestricted parity-resolution saturation is NOT licensed as polynomial closure")
     print("GENERAL_SAT_IN_P = NOT_PROVED")
     print("P_VS_NP = OPEN")
