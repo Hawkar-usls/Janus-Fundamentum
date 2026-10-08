@@ -211,6 +211,68 @@ def constructive_brooks_component(vertices,adj,q):
     return "SAT",color,"constructive_brooks"
 
 
+
+def domination_qcore(vertices,adj,q):
+    """Exact fixed point before Brooks.
+
+    Delete low-degree vertices (deg<q) and nonadjacent dominated vertices
+    N(u) subseteq N(v).  Return surviving set plus reconstruction log.
+    """
+    alive=set(vertices)
+    log=[]
+
+    while True:
+        changed=False
+
+        # Exhaust low-degree deletions first.
+        low=next((u for u in sorted(alive)
+                  if len(adj[u]&alive)<q),None)
+        if low is not None:
+            log.append(("LOW",low,None))
+            alive.remove(low)
+            changed=True
+            continue
+
+        # Neighborhood domination may fire even when all remaining degrees
+        # are >=q.  Naive O(n^3) scan is sufficient for a polynomial gate.
+        neigh={u:(adj[u]&alive) for u in alive}
+        pair=None
+        for u in sorted(alive):
+            for v in sorted(alive):
+                if u==v or v in neigh[u]:
+                    continue
+                if neigh[u] <= neigh[v]:
+                    pair=(u,v)
+                    break
+            if pair:
+                break
+
+        if pair is not None:
+            u,v=pair
+            log.append(("DOM",u,v))
+            alive.remove(u)
+            changed=True
+            continue
+
+        if not changed:
+            break
+
+    return frozenset(alive),tuple(log)
+
+
+def reconstruct_reductions(color,log,adj,q):
+    color=dict(color)
+    for kind,u,v in reversed(log):
+        if kind=="DOM":
+            assert v in color
+            color[u]=color[v]
+        else:
+            used={color[w] for w in adj[u] if w in color}
+            avail=next((a for a in range(q) if a not in used),None)
+            assert avail is not None
+            color[u]=avail
+    return color
+
 def finite_domain_brooks_terminal(graph,q):
     n,edges=graph
     if q<4:
@@ -218,18 +280,35 @@ def finite_domain_brooks_terminal(graph,q):
     adj=make_adj(n,edges)
     V=frozenset(range(n))
 
-    maxdeg=max((len(adj[v]) for v in V),default=0)
+    core,log=domination_qcore(V,adj,q)
+    maxdeg=max((len(adj[v]&core) for v in core),default=0)
+    mindeg=min((len(adj[v]&core) for v in core),default=0)
+
+    if not core:
+        coloring=reconstruct_reductions({},log,adj,q)
+        assert verify_coloring(V,adj,coloring,q)
+        return {
+            "status":"SAT",
+            "reason":"QCORE_REDUCED_EMPTY",
+            "domain":q,
+            "reduction_count":len(log),
+            "coloring":tuple(coloring[v] for v in range(n)),
+        }
+
     if maxdeg>q:
         return {
             "status":"OPEN",
-            "reason":"MAX_DEGREE_GT_DOMAIN",
+            "reason":"DOMINATION_FREE_HIGH_DEGREE_QCORE",
             "max_degree":maxdeg,
+            "min_degree":mindeg,
+            "core_vertices":len(core),
+            "reduction_count":len(log),
             "domain":q,
         }
 
     coloring={}
     reasons=[]
-    for C in components(V,adj):
+    for C in components(core,adj):
         st,col,why=constructive_brooks_component(C,adj,q)
         reasons.append(why)
         if st=="UNSAT":
@@ -248,12 +327,14 @@ def finite_domain_brooks_terminal(graph,q):
             }
         coloring.update(col)
 
+    coloring=reconstruct_reductions(coloring,log,adj,q)
     assert verify_coloring(V,adj,coloring,q)
     return {
         "status":"SAT",
         "reason":"BROOKS_BOUNDED_DEGREE",
         "domain":q,
         "max_degree":maxdeg,
+        "reduction_count":len(log),
         "coloring":tuple(coloring[v] for v in range(n)),
         "component_reasons":tuple(reasons),
     }
@@ -292,8 +373,9 @@ def verify_terminal():
     assert not exact_k_colorable(G,4)
     r=finite_domain_brooks_terminal(G,4)
     assert r["status"]=="OPEN"
-    assert r["reason"]=="MAX_DEGREE_GT_DOMAIN"
+    assert r["reason"]=="DOMINATION_FREE_HIGH_DEGREE_QCORE"
     assert r["max_degree"]>4
+    assert r["min_degree"]>=4
 
     # General q control.
     r=finite_domain_brooks_terminal(complete_graph(9),8)
@@ -317,8 +399,8 @@ def main():
     print(receipt)
     print("theorem lane: recovered inequality quotient + Delta(G)<=q")
     print("SAT unless a connected component is K_{q+1}; coloring is constructed and replayed")
-    print("E23 Mycielski 4-color firewall survives only in the high-degree lane")
-    print("next frontier: high-degree q-color quotient core, not capacity or bounded degree")
+    print("E23 Mycielski firewall survives the q-core + neighborhood-domination fixed point")
+    print("next frontier: domination-free high-degree q-core, not capacity/bounded-degree artifacts")
     print("GENERAL_SAT_IN_P = NOT_PROVED")
     print("P_VS_NP = OPEN")
 
