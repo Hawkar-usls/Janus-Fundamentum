@@ -396,7 +396,186 @@ AT A CLOSURE FIXPOINT.
 For arbitrary 2-XNF this class cannot be dismissed by finite testing because
 2-XNF SAT is NP-complete.
 
-## 13. Correct next experiment
+## 13. Scalable PHP OPEN-family firewall
+
+The 3-variable obstruction proves incompleteness, but a finite fixture does not
+identify the asymptotic gap.  The companion scalable checker therefore uses
+the standard pigeonhole family
+
+```text
+PHP_{k+1}^k,  k>=3,
+```
+
+and converts every wide positive pigeon clause to exact equisatisfiable 2-XNF
+using the standard chained auxiliary-variable construction.
+
+For the resulting 2-XNF instance:
+
+```text
+original variables     = k(k+1)
+auxiliary variables    = (k+1)(k-2)
+total variables N_k    = 2(k^2-1)
+
+total 2-XNF clauses M_k
+                       = (k+1)(2k^2+3k-6)/2.
+```
+
+The checker independently truth-table verifies the local CNF-to-2-XNF
+conversion for clause widths 3 through 6.
+
+### 13.1 Symbolic closure stall
+
+For every k>=3 the implication graph admits a four-level acyclic grading:
+
+```text
+level 0:
+  positive chained XOR linerals R=Y XOR Z,
+  negative auxiliary Y linerals
+
+level 1:
+  positive original pigeon variables X
+
+level 2:
+  negative original pigeon variables X
+
+level 3:
+  negative chained XOR linerals,
+  positive auxiliary Y linerals.
+```
+
+Every implication edge is strictly level-increasing.
+
+The complementary lineral of a node lies at a distinct incompatible level, and
+the conversion-label structure prevents any directed path from a lineral to its
+complement.
+
+Therefore at the closure fixed point:
+
+```text
+SCC contradiction       = none
+failed linerals          = none
+learned affine equations = 0
+verdict                   = OPEN
+```
+
+for the whole family.
+
+But the source formula is UNSAT for every k by the pigeonhole principle.
+
+Hence the Uniform Gaussian implication closure has an explicit infinite UNSAT
+family on which it does no affine learning.
+
+### 13.2 Normal rank is asymptotically large
+
+Complete every active rank-two clause pair {a,b} to the binary line
+
+```text
+{a,b,a XOR b}.
+```
+
+Every original coordinate normal and every auxiliary coordinate normal occurs
+in this line system.
+
+Therefore:
+
+```text
+normal-span rank = N_k = 2(k^2-1).
+```
+
+The circuit-overlap graph of these lines is connected:
+
+```text
+* original pigeon variables are connected by the row/hole at-most-one
+  constraints;
+* each auxiliary variable is connected into that component by its conversion
+  clauses.
+```
+
+So E109 direct-sum decomposition does not split this family into bounded-rank
+components.
+
+### 13.3 Branchwidth is also asymptotically large
+
+Fix one hole and look only at its at-most-one clauses.
+
+For q=k+1 pigeons they contain every pair subspace
+
+```text
+span(e_i,e_j),  1<=i<j<=q.
+```
+
+This is the K_q edge-subspace arrangement with
+
+```text
+M = C(q,2)
+```
+
+leaves.
+
+Any subcubic branch tree has a balanced cut whose two leaf sides each contain
+at least M/3 leaves.
+
+Let S be the coordinate vertices that occur on both sides of that cut.
+
+Because K_q is complete, all vertices outside S must belong to the same side
+type.  Hence the opposite side's at least M/3 edges lie entirely inside S.
+
+Therefore
+
+```text
+C(|S|,2) >= C(q,2)/3.
+```
+
+The cut boundary is exactly the span of the shared coordinate directions, so
+its dimension is |S|.
+
+Consequently
+
+```text
+branchwidth
+  >= min{s : C(s,2) >= C(q,2)/3}
+  = Omega(q)
+  = Omega(k).
+```
+
+Since N_k=Theta(k^2), this is Omega(sqrt(N_k)).
+
+Thus the constructive low-width terminal from E110-E111 does not provide a
+polynomial universal bound on this family.
+
+### 13.4 Scientific consequence
+
+This closes a critical methodological gap:
+
+```text
+THE OPEN RESIDUE IS NOT A HANDFUL OF SAVED EXAMPLES.
+```
+
+There is an explicit infinite family that simultaneously has:
+
+```text
+* exact UNSAT semantics;
+* zero affine learning under UGIC;
+* full growing normal rank;
+* one connected normal-matroid block;
+* growing subspace branchwidth.
+```
+
+Therefore any next "uniform closure" rule must explain a genuinely global
+property of this family.  Solving only the frozen fixtures cannot establish
+universality.
+
+For PHP the missing property is visible at the macro level as a global
+cardinality/Hall obstruction.  That observation is only a scoped clue:
+adding one pigeonhole/Hall recognizer does not solve arbitrary 2-XNF.
+
+The correct next question is whether the high-rank closure-fixed residue admits
+a **uniformly discoverable polynomial global certificate class** that strictly
+contains Hall/counting contradictions and still covers every residual input.
+
+No such theorem is currently proved.
+
+## 14. Correct next experiment
 
 Do not add another unrestricted branch fallback.
 
