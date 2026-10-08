@@ -96,6 +96,9 @@ def exhaustive_small_firewall():
         for b in ambient:
             for c in ambient:
                 subspaces.add(span_set((a,b,c)))
+    # Include the full 4-dimensional ambient space as well.
+    subspaces.add(span_set(tuple(ambient)))
+    assert len(subspaces)==67
 
     counts={0:0,1:0,3:0}
     leak_examples=0
