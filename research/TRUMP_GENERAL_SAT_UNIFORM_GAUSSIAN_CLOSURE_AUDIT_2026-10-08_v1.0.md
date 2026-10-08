@@ -735,7 +735,92 @@ A polynomial universal closure theorem cannot be justified merely by saying
 The next rule must exploit structure beyond generic parity resolution, or use a
 different algorithmic certificate altogether.
 
-## 16. Correct next experiment
+## 16. Binary-domain AllDifferent capacity terminal
+
+Bit-PHP shows that the same capacity obstruction can be hidden behind a compact
+binary address encoding rather than a one-hot choice encoding.
+
+A second sound polynomial macro terminal detects this directly from native XNF
+syntax, without benchmark names.
+
+Assume every clause has width ell and every lineral is a positive XOR of two
+base variables.
+
+Build the graph whose vertices are base variables and whose edges are those
+weight-two XOR normals.
+
+The accepted normal form requires:
+
+```text
+* exactly ell connected components;
+* every component is a clique K_p of the same size p;
+* every XNF clause contains exactly one edge from each clique;
+* there are exactly C(p,2) clauses;
+* the clause-induced edge correspondence between each clique and a reference
+  clique preserves edge incidence.
+```
+
+For p>=4, the edge correspondence determines a vertex bijection: the star of
+one reference vertex maps to edges with one unique common endpoint in every
+other layer.
+
+Thus the syntax itself reconstructs
+
+```text
+p abstract objects,
+ell Boolean address bits per object,
+one inequality clause for every object pair.
+```
+
+Every satisfying assignment would therefore assign p pairwise-distinct
+ell-bit strings.
+
+The address domain contains exactly
+
+```text
+2^ell
+```
+
+values.
+
+Hence
+
+```text
+p > 2^ell
+=> UNSAT.
+```
+
+The certificate consists only of:
+
+```text
+layer cliques,
+the reconstructed layer bijections,
+complete pair coverage,
+p > 2^ell.
+```
+
+All checks are graph scans / incidence tests and integer comparison, so the
+terminal is polynomial and branch-free.
+
+The companion checker replays ell=2,3,4,5 for standard bit-PHP and confirms:
+
+```text
+UGIC                    = OPEN
+simple one-hot Hall     = OPEN
+binary AllDifferent     = UNSAT.
+```
+
+This demonstrates a useful pattern:
+
+```text
+a high-rank affine residue may still collapse when a polynomially recognizable
+global finite-domain macro is restored.
+```
+
+Again, the rule is scoped.  An arbitrary 2-XNF residual need not expose a
+complete AllDifferent macro.
+
+## 17. Updated universal frontier
 
 Do not add another unrestricted branch fallback.
 
