@@ -5,9 +5,11 @@ Exact rules:
   1. Connected components factor independently.
   2. A vertex of degree <=3 can be deleted: every 4-coloring of the remainder
      extends greedily to that vertex.
-  3. Articulation blocks factor for k-colorability: color permutations let
+  3. If u,v are nonadjacent and N(u) subseteq N(v), delete u: after coloring
+     the remainder give u the color of v.
+  4. Articulation blocks factor for k-colorability: color permutations let
      block colorings agree on their shared articulation vertex.
-  4. Brooks terminal for a connected block of maximum degree <=4:
+  5. Brooks terminal for a connected block of maximum degree <=4:
        if the block is K5 -> UNSAT;
        otherwise it is 4-colorable.
      (Odd-cycle exceptions to Brooks at Delta=2 are still 4-colorable.)
@@ -47,26 +49,60 @@ def induced_graph(vertices,A):
     return len(verts),frozenset(E),verts
 
 
+def dominated_nonadjacent_pair(alive,A):
+    """Return u,v with N_alive(u) subseteq N_alive(v) and uv nonedge."""
+    V=[u for u in range(len(A)) if alive[u]]
+    neigh={u:{w for w in A[u] if alive[w]} for u in V}
+    for u in V:
+        Nu=neigh[u]
+        for v in V:
+            if u==v or v in Nu:
+                continue
+            if Nu <= neigh[v]:
+                return u,v
+    return None
+
 def peel_degree_le3(graph):
     n,E=graph
     A=adjacency(graph)
     alive=[True]*n
     deg=[len(A[v]) for v in range(n)]
-    q=deque(v for v in range(n) if deg[v]<=3)
     order=[]
-    while q:
-        v=q.popleft()
-        if not alive[v] or deg[v]>3:
+    domination=[]
+
+    # Fixed point of two exact deletion rules.
+    while True:
+        changed=False
+        q=deque(v for v in range(n) if alive[v] and deg[v]<=3)
+        while q:
+            v=q.popleft()
+            if not alive[v] or deg[v]>3:
+                continue
+            alive[v]=False
+            order.append(v)
+            changed=True
+            for u in A[v]:
+                if alive[u]:
+                    deg[u]-=1
+                    if deg[u]<=3:
+                        q.append(u)
+
+        pair=dominated_nonadjacent_pair(alive,A)
+        if pair is not None:
+            u,v=pair
+            alive[u]=False
+            domination.append((u,v))
+            changed=True
+            for w in A[u]:
+                if alive[w]:
+                    deg[w]-=1
             continue
-        alive[v]=False
-        order.append(v)
-        for u in A[v]:
-            if alive[u]:
-                deg[u]-=1
-                if deg[u]<=3:
-                    q.append(u)
+
+        if not changed:
+            break
+
     core={v for v in range(n) if alive[v]}
-    return core,tuple(order),A
+    return core,tuple(order),tuple(domination),A
 
 
 def connected_components(vertices,A):
@@ -157,13 +193,14 @@ def block_max_degree(block,A):
 
 def graph4_critical_core_closure(graph):
     n,E=graph
-    core,peeled,A=peel_degree_le3(graph)
+    core,peeled,domination,A=peel_degree_le3(graph)
 
     if not core:
         return {
             "status":"SAT",
             "reason":"DEGENERACY_LE_3",
             "peeled":len(peeled),
+            "dominated_deleted":len(domination),
             "core_vertices":0,
             "open_blocks":tuple(),
         }
@@ -181,6 +218,7 @@ def graph4_critical_core_closure(graph):
                     "status":"UNSAT",
                     "reason":"K5_BLOCK",
                     "peeled":len(peeled),
+            "dominated_deleted":len(domination),
                     "core_vertices":len(core),
                     "witness_block":tuple(sorted(B)),
                     "open_blocks":tuple(),
@@ -209,6 +247,7 @@ def graph4_critical_core_closure(graph):
             "status":"SAT",
             "reason":"PEEL_BLOCK_BROOKS",
             "peeled":len(peeled),
+            "dominated_deleted":len(domination),
             "core_vertices":len(core),
             "brooks_blocks":brook_blocks,
             "open_blocks":tuple(),
@@ -218,6 +257,7 @@ def graph4_critical_core_closure(graph):
         "status":"OPEN",
         "reason":"HIGH_DEGREE_4CRITICAL_CORE",
         "peeled":len(peeled),
+            "dominated_deleted":len(domination),
         "core_vertices":len(core),
         "brooks_blocks":brook_blocks,
         "open_blocks":tuple(open_blocks),
@@ -268,7 +308,7 @@ def main():
     print("GRAPH 4-COLOR CRITICAL-CORE CLOSURE: PASS")
     print("4-colorable control M(C5):",sat_control)
     print("5-chromatic triangle-free M^2(C5):",hard)
-    print("exact polynomial rules: degree<=3 peel + articulation blocks + Brooks Delta<=4 terminal")
+    print("exact polynomial rules: degree<=3 peel + nonadjacent neighborhood domination + articulation blocks + Brooks Delta<=4 terminal")
     print("residual OPEN = biconnected 4-core block with max degree >=5")
     print("no Boolean color branching is used")
     print("GENERAL_SAT_IN_P = NOT_PROVED")
