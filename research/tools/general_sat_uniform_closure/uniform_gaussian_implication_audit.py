@@ -150,15 +150,21 @@ def reachability(nodes, edges):
     return out
 
 
-def uniform_gaussian_implication_closure(formula, n):
+def uniform_gaussian_implication_closure(formula, n, initial_equations=tuple()):
     """Sound branch-free closure.
 
     Returns:
       ("SAT_LINEAR", equations, active_clauses)
       ("UNSAT", equations_or_None, active_clauses)
       ("OPEN", equations, active_clauses)
+
+    Optional initial_equations supplies a sound affine assumption/context.
+    This keeps the original zero-context API unchanged while allowing
+    polynomial non-recursive probing layers to reuse the exact same closure.
     """
-    equations=tuple()
+    equations=rref_affine(tuple(initial_equations),n)
+    if equations is None:
+        return "UNSAT",None,tuple()
 
     # Every strict iteration learns at least one independent affine equation,
     # so at most n successful learning rounds are possible.
