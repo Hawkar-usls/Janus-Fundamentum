@@ -175,7 +175,43 @@ So this is also a high-noncommutativity negative control.
 
 In particular, large commutator support does not force SAT.
 
-## 7. Consequence for the universal route
+## 7. Anti-overclaim correction: E120 is not post-KLOC-3 hard
+
+E120 is decisive only against the ROW-ALIGNED three-port shortcut.
+
+Its rational nullity is two, so the already-existing small-nullity router solves
+it in constant 2^2 kernel-state time.
+
+Moreover an exhaustive KLOC-3 replay over arbitrary coordinate triples finds
+the certificate
+
+    S = {0,1,11}
+
+for which
+
+    pi_S(ker_Q A) intersect {-1,2}^3 = empty.
+
+Thus E20 KLOC-3 independently certifies this instance UNSAT.
+
+So E120 must NOT be promoted as a survivor of the existing Fundamentum router.
+Its correct role is narrower:
+
+    every SOURCE ROW is maximally rationally permissive,
+    yet a NON-ROW coordinate triple already exposes the obstruction.
+
+This shows exactly why row-aligned ThreePortExtendibility is weaker than the
+existing arbitrary-coordinate KLOC machinery.
+
+A genuinely new asymptotic hard benchmark for this route must satisfy all of:
+
+    3|n,
+    rational nullity omega(log n),
+    every KLOC-3 coordinate subset alphabet-compatible,
+    Exact-One UNSAT.
+
+No such benchmark is established here.
+
+## 8. Consequence for the universal route
 
 The following shortcut is now refuted:
 
@@ -203,8 +239,9 @@ ThreePortExtendibility or rational-projection solver.
 
 SAT_ADMISSIBLE = YES.
 CONNECTED_SQUARE_CUBIC_LINEAR = YES.
-RATIONAL_NULLITY = 2.
-EVERY_ROW_PROJECTION_RANK = 2.
+RATIONAL_NULLITY = 2 (ALREADY SMALL-NULLITY POLYNOMIAL TERMINAL).
+KLOC3_ARBITRARY_COORDINATES = FAILS AT {0,1,11} (UNSAT CERTIFICATE).
+EVERY_SOURCE_ROW_PROJECTION_RANK = 2.
 EVERY_RATIONAL_THREE_PORT_TABLE = 111.
 EXACT_ONE = UNSAT.
 BINARY_KERNEL_MAX_WEIGHT = 8 < 10.
