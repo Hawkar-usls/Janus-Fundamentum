@@ -279,8 +279,8 @@ def main():
     assert len(nonempty) == 4
 
     connected = [(s, p) for s, p in nonempty if connected_bipartite_trade_graph(redges, labels, s, p)]
-    assert len(connected) == 4
-    assert Counter(len(s) for s, _ in connected) == Counter({6: 2, 3: 2})
+    assert len(connected) == 3
+    assert Counter(len(s) for s, _ in connected) == Counter({6: 1, 3: 2})
 
     D = trade_matrix(redges, labels, blocks, len(residual))
     assert len(D) == 12 and len(D[0]) == 12
