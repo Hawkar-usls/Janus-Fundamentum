@@ -1,0 +1,64 @@
+name: Checkpoint Provenance
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'research/**'
+      - 'registry/**'
+      - 'docs/**'
+      - 'tools/checkpoint_observer/**'
+      - '.github/workflows/checkpoint-provenance.yml'
+  workflow_run:
+    workflows: ['R5 Frontier Verification']
+    types: [completed]
+    branches: [main]
+  schedule:
+    - cron: '23 * * * *'
+  workflow_dispatch:
+permissions:
+  contents: write
+  actions: read
+concurrency:
+  group: checkpoint-provenance
+  cancel-in-progress: false
+jobs:
+  report:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: main
+          fetch-depth: 0
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+      - name: Test observer
+        run: python -m unittest discover -s tools/checkpoint_observer -p 'test_*.py'
+      - name: Prepare persistent report branch
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'JANUS Checkpoint Observer'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git ls-remote --heads origin checkpoint-reports > /tmp/checkpoint-ref
+          if test -s /tmp/checkpoint-ref; then
+            git fetch origin checkpoint-reports
+            git worktree add /tmp/checkpoint-reports -b checkpoint-reports FETCH_HEAD
+          else
+            git worktree add --detach /tmp/checkpoint-reports HEAD
+            git -C /tmp/checkpoint-reports switch --orphan checkpoint-reports
+          fi
+      - name: Build provenance reports
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python tools/checkpoint_observer/observer.py --state-dir /tmp/checkpoint-reports
+      - name: Publish reports without changing scientific sources
+        shell: bash
+        run: |
+          set -euo pipefail
+          git -C /tmp/checkpoint-reports add -- '*.json' '*.md'
+          if ! git -C /tmp/checkpoint-reports diff --cached --quiet; then
+            git -C /tmp/checkpoint-reports commit -m 'Record checkpoint provenance and exact-commit CI'
+            git -C /tmp/checkpoint-reports push origin HEAD:checkpoint-reports
+          fi
