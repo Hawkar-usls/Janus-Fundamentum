@@ -3,7 +3,7 @@
 Fixed-M trade-span normal-form replay.
 
 Deterministic replay on the frozen 18x18 control used by the parity trade
-frontier.  Verifies:
+frontier. Verifies:
   * exact residual cubic graph R_M and its 3-edge matching blocks;
   * integer block-cut characterization of fixed-M trades;
   * a det=2 minor in the fixed-M trade matrix (non-TU firewall);
@@ -19,20 +19,21 @@ from itertools import combinations
 
 
 def rank_q(mat):
-    a = [list(map(float, row)) for row in mat]
+    from fractions import Fraction
+    a = [[Fraction(x) for x in row] for row in mat]
     if not a:
         return 0
     m, n = len(a), len(a[0])
     r = 0
     for c in range(n):
-        pivot = next((i for i in range(r, m) if abs(a[i][c]) > 1e-9), None)
+        pivot = next((i for i in range(r, m) if a[i][c]), None)
         if pivot is None:
             continue
         a[r], a[pivot] = a[pivot], a[r]
         q = a[r][c]
         a[r] = [x / q for x in a[r]]
         for i in range(m):
-            if i != r and abs(a[i][c]) > 1e-9:
+            if i != r and a[i][c]:
                 q = a[i][c]
                 a[i] = [a[i][j] - q * a[r][j] for j in range(n)]
         r += 1
@@ -120,7 +121,7 @@ def fixed_m_residual(h, m_size=6):
         verts = []
         for e in es:
             verts += list(redges[e])
-        assert len(set(verts)) == 6  # each block is a 3-edge matching
+        assert len(set(verts)) == 6
 
     return residual, redges, labels, blocks, adj
 
@@ -155,7 +156,6 @@ def enumerate_fixed_m_trades(redges, blocks, nres):
 
 def connected_bipartite_trade_graph(redges, labels, s, p):
     s, p = set(s), set(p)
-    # Trade graph vertices are selected residual vars and removed M blocks.
     adj = {("S", u): set() for u in s}
     adj.update({("P", m): set() for m in p})
 
@@ -182,11 +182,9 @@ def connected_bipartite_trade_graph(redges, labels, s, p):
     return len(seen) == len(adj)
 
 
-def trade_matrix(redges, labels, blocks, nres):
-    # Variables are residual y_u.  For each M-block choose its first edge as
-    # reference and impose equality of endpoint sums with the other two.
+def trade_matrix(redges, blocks, nres):
     rows = []
-    for m, es in blocks.items():
+    for es in blocks.values():
         e0 = es[0]
         u0, v0 = redges[e0]
         for e in es[1:]:
@@ -257,7 +255,6 @@ def check_defect_firewall(redges, blocks, nres, trade_sets):
 
 
 def circuit_check(h, trade_s, trade_p, m_size=6):
-    # Columns in original A: removed M variables plus selected residual variables.
     cols = list(trade_p) + [m_size + u for u in trade_s]
     A = incidence(h, len(h))
     sub = [[row[j] for j in cols] for row in A]
@@ -278,27 +275,34 @@ def main():
     assert len(trades) == 5
     assert len(nonempty) == 4
 
-    connected = [(s, p) for s, p in nonempty if connected_bipartite_trade_graph(redges, labels, s, p)]
+    connected = [
+        (s, p) for s, p in nonempty
+        if connected_bipartite_trade_graph(redges, labels, s, p)
+    ]
     assert len(connected) == 3
-    assert Counter(len(s) for s, _ in connected) == Counter({6: 1, 3: 2})
+    assert Counter(len(s) for s, _ in connected) == Counter({3: 2, 6: 1})
 
-    D = trade_matrix(redges, labels, blocks, len(residual))
+    D = trade_matrix(redges, blocks, len(residual))
     assert len(D) == 12 and len(D[0]) == 12
     det2 = find_det2_minor(D)
     assert det2 is not None
 
-    # Every connected trade in this control is a real column-matroid circuit.
     circ = [circuit_check(h, s, p) for s, p in connected]
-
-    sub_cex, super_cex = check_defect_firewall(redges, blocks, len(residual), trades)
+    sub_cex, super_cex = check_defect_firewall(
+        redges, blocks, len(residual), trades
+    )
 
     print("FIXED_M_RESIDUAL_VERTICES =", len(residual))
     print("FIXED_M_RESIDUAL_EDGES =", len(redges))
     print("R_M_SIMPLE_CUBIC = PASS")
     print("BLOCKS =", len(blocks), "each a 3-edge matching")
     print("FIXED_M_TRADE_UNIONS =", len(trades))
+    print("NONEMPTY_TRADE_UNIONS =", len(nonempty))
     print("NONEMPTY_CONNECTED_TRADES =", len(connected))
-    print("CONNECTED_TRADE_VOLUMES =", dict(sorted(Counter(len(s) for s, _ in connected).items())))
+    print(
+        "CONNECTED_TRADE_VOLUMES =",
+        dict(sorted(Counter(len(s) for s, _ in connected).items())),
+    )
     print("CONNECTED_TRADE_COLUMN_CIRCUIT = PASS")
     print("CIRCUIT_RANK_PAIRS =", circ)
     print("FIXED_M_TRADE_MATRIX_RANK =", rank_q(D))
