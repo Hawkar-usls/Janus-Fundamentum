@@ -44,7 +44,7 @@ Then:
 * linearity of H forbids two non-M variables from sharing two clauses, so R_M
   is simple.
 
-For m in M, its three clauses become three edges of R_M.  Denote this triple
+For m in M, its three clauses become three edges of R_M. Denote this triple
 by B_m.
 
 The three edges in B_m form a matching: if two shared a residual endpoint u,
@@ -153,7 +153,7 @@ d = 0 otherwise.
 ```
 
 For every active clause, exactly two support columns occur: one S-column and
-one P-column.  Hence A d=0.
+one P-column. Hence A d=0.
 
 Now let q be any real kernel vector supported inside supp(d).
 
@@ -247,7 +247,7 @@ But R_M is cubic, so its ordinary edge connectivity is at most three (a
 single-vertex star is a 3-cut).
 
 Therefore Karger's polynomial bound on alpha-near cuts relative to the
-*ordinary minimum cut* would compare 3g with a denominator at most three and
+ordinary minimum cut would compare 3g with a denominator at most three and
 gives an exponent depending on g.
 
 It is useful only while g=O(log n), exactly the sector already handled by the
@@ -270,7 +270,7 @@ Psi(S) = 3|N_K(S)| - 3|S| + 2 e_R(S).
 Block by block this is nonnegative.
 
 For a touched block B_m, let q be the number of its three paired R_M edges
-with exactly one endpoint in S.  Its contribution is 3-q.
+with exactly one endpoint in S. Its contribution is 3-q.
 
 Hence
 
@@ -313,7 +313,7 @@ can be flipped simultaneously and remains a w-minimum perfect matching.
 Thus the minimum face can be viewed combinatorially as compatible packings of
 connected zero-circulation M-trades.
 
-This explains why a large family of *disjoint* trades is already a product
+This explains why a large family of disjoint trades is already a product
 decomposition; the unresolved case is many heavily overlapping near-minimum
 trade circuits.
 
@@ -400,7 +400,7 @@ or
 ```
 
 The separator must be a separator of the circuit/trade span or exact-cover
-interface.  Section 5 and the previous expander-trade realization show that it
+interface. Section 5 and the previous expander-trade realization show that it
 cannot be inferred from a physical separator of one trade.
 
 ## 13. Replay
@@ -416,8 +416,9 @@ Frozen control verifies:
 * all 4096 residual vertex subsets satisfy the exact integer block-cut
   characterization;
 * there are 5 fixed-M trade unions including the empty state and 4 nonempty
-  connected trades on this control;
-* connected trade volumes are 3 (two trades) and 6 (two trades);
+  trade unions; exactly 3 of the nonempty unions are connected;
+* connected trade volumes are 3 (two trades) and 6 (one trade); the other
+  volume-6 trade union is disconnected;
 * every connected trade support has column rank |support|-1 and every
   one-column deletion is independent;
 * D_M has a determinant-2 minor;
