@@ -205,16 +205,15 @@ Gurjar and Vishnoi prove polynomial near-minimum circuit counts for regular
 matroids, using regularity in an essential decomposition argument:
 DOI 10.1137/20M1338642.
 
-## 6. Coherent cut code over GF(2)
+## 6. Coherent cut span over GF(2) — corrected boundary
 
 For z in GF(2)^M, repeat z_m on the three edges B_m.
 
-A block vector z is coherent iff that repeated edge vector is a cut of R_M.
-
-Equivalently, there exists x in GF(2)^{V(R_M)} satisfying
+A block vector z is GF(2)-coherent iff that repeated edge vector is a cut of
+R_M. Equivalently, there exists x in GF(2)^{V(R_M)} satisfying
 
 ```text
-x_u + x_v = z_m
+x_u + x_v = z_m   (mod 2)
 ```
 
 for every uv in B_m.
@@ -227,17 +226,49 @@ sum_m |C intersect B_m| z_m = 0 mod 2
 
 for every cycle C of R_M.
 
-Thus the coherent block vectors form a binary linear code
+Hence the coherent block vectors form a binary linear code
 
 ```text
 C_M = { z : repeat_B(z) in Cut(R_M) }.
 ```
 
-Actual trades are a nonlinear subset: one shore of the coherent cut must be
-independent, equivalently equation (*) must hold over the integers, not only
-modulo two.
+CRITICAL CORRECTION:
 
-This separates the linear span question from the integrality / trade question.
+This GF(2) system does **not** characterize fixed-M Exact-One trades by itself.
+
+If z_m=0, the parity equation permits both endpoint patterns 00 and 11 on an
+edge uv in B_m.  A true fixed-M trade with m retained permits only 00.
+Equivalently, for the selected residual shore
+
+```text
+S = {u : x_u=1},
+```
+
+a genuine trade additionally requires
+
+```text
+S is independent in R_M.
+```
+
+Thus the exact containment is
+
+```text
+GF(2) coherent-cut span
+    superseteq
+integer Exact-One fixed-M trades
+    superseteq
+connected zero-circulation trade circuits.
+```
+
+The first inclusion can be strict.
+
+Therefore no theorem about the binary code C_M alone is sufficient for the
+parity route.  The missing theorem must exploit the integer Exact-One /
+independent-shore constraint together with connected circuit minimality and
+zero circulation.
+
+This correction supersedes any wording in this checkpoint that could be read
+as identifying all binary coherent-cut solutions with exact trades.
 
 ## 7. Why ordinary Karger counting does not close the problem
 
@@ -430,11 +461,13 @@ Frozen control verifies:
 ```text
 FIXED_M_BLOCK_CUT_NORMAL_FORM = PROVED_LOCALLY.
 CONNECTED_TRADE_IS_COLUMN_MATROID_CIRCUIT = PROVED_LOCALLY.
+GF2_COHERENT_SPAN_EQUALS_EXACT_TRADES = REFUTED / CORRECTED.
+EXACT_TRADES_REQUIRE_INDEPENDENT_SHORE_INTEGER_CONSTRAINT = PROVED_LOCALLY.
 FIXED_M_AUTOMATIC_TU = REFUTED.
 ORDINARY_KARGER_SHORTCUT = INSUFFICIENT FOR LARGE g.
 NATURAL_PSI_SUBMODULARITY = REFUTED.
 
-SUPERPOLY_NEAR_TRADES => LOW SPAN CONNECTIVITY = OPEN.
+SUPERPOLY_NEAR_INTEGER_TRADES => LOW EXACT-SYSTEM CONNECTIVITY = OPEN.
 POLYNOMIAL ISOLATING FAMILY = OPEN.
 UNIVERSAL POLYNOMIAL EXACTONE SOLVER = NOT CONSTRUCTED.
 P_VS_NP = OPEN.
