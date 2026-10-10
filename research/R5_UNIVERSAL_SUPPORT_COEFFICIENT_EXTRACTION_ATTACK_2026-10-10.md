@@ -151,6 +151,51 @@ Every target check has genuine SUPPORT=111 but mod-2 count mask=000.
 The general amplification theorem is symbolic, while these two cases
 are finite replay controls.
 
+## 4A. All-prime linear-consistency obstruction on E123 (finite exact proof)
+
+A distinct tempting substitute for counting is to test whether each
+one-check-pinned **linear** quotient is consistent over selected fields.
+E127 reports rational consistency on 189/189 pinned E123 branches;
+E130 probes finitely many prime fields. The present checker proves the
+stronger *all-prime* failure for linear consistency on this frozen
+UNSAT instance.
+
+E65 already enumerated 252 minimum-weight GF(2) parity solutions
+`b` for the UNSAT E64/E123 q63 carrier, each of weight 23. In each,
+exactly three checks are triple-covered; those three checks are the
+full incidence support of a uniquely selected column `v`.
+
+Set
+
+    z_j = b_j        if j != v,
+    z_v = -1         (instead of b_v=1).
+
+For the 60 other rows `Az=1` because each was covered once; for
+the three defect rows, changing the selected v contribution from
++1 to -1 changes their selected count from 3 to 1. Thus
+
+    z in {-1,0,1}^63 and A z = 1 over the INTEGERS.
+
+Each such integer solution obeys a correct Boolean one-check pin
+(1,0,0) on precisely 60 of the 63 checks. The complete enumeration
+classifies all 252 such z and verifies an exact, uniform distribution:
+
+    63 checks * 3 selected-port choices = 189 pins,
+    exactly 80 integer global solutions for EVERY pin,
+    total incidences = 189*80 = 252*60 = 15120.
+
+So every one of E123's 189 pinned linear systems has an actual
+**integer solution**. Reducing that solution modulo any prime gives
+a solution over the corresponding finite field. Therefore, no
+linear-consistency test over **any collection of prime fields**
+(no matter how many) can reject the E123 branches, even though
+the Boolean Exact-One formula is UNSAT.
+
+Scope: this definitively refutes an all-prime **linear-consistency**
+support oracle. It does *not* refute the coefficient-count/CRT oracle
+of Section 2, because the latter encodes the missing Boolean
+condition and is computationally stronger.
+
 ## 5. Scientific boundary / unsolved polynomial-time obligation
 
 We did not produce a universal polynomial algorithm. This attempt
@@ -165,6 +210,8 @@ polynomial **total** complexity.
     COEFFICIENT_IDENTITY_FOR_ALL_INPUTS = PROVED.
     E118_MULTIPLICITY_2^(2n/3) = PROVED.
     FIXED_CHARACTERISTIC_2_ORDINARY_COUNT_SUPPORT = REFUTED.
+    E123_ALL_189_INTEGER_PIN_LINEAR_SOLUTIONS = EXACT_FINITE_PROOF.
+    E123_ALL_PRIME_LINEAR_CONSISTENCY_SUPPORT = REFUTED.
     POLYNOMIAL_GLOBAL_MODULAR_EXTRACTION = OPEN.
     DETERMINISTIC_GLOBAL_SYMBOLIC_SUPPORT = OPEN.
     UNIVERSAL_SOLVER_SOUND_COMPLETE_POLY = NOT_CONSTRUCTED.
