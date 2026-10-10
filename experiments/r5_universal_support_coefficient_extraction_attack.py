@@ -16,6 +16,9 @@ from __future__ import annotations
 from collections import Counter
 from itertools import product
 
+from r5_e64_connected_postquotient_nullity_firewall import tutte12_incidence
+from r5_e65_transpose_asymmetry_quantized_defect import gf2_rref_basis
+
 from r5_e118_universal_linear_cubic_exactone_hardness_bridge import (
     GADGET_CLAUSES, INTERNAL, PORTS, exact_one,
     rename_gadget, split_occurrences,
@@ -119,9 +122,77 @@ def verify_toy(k: int) -> None:
     )
 
 
+def e123_integer_solution_all_189_pins() -> None:
+    """E123: every Exact-One check pin survives over the integers.
+
+    The full Boolean problem is still UNSAT (E64). Therefore not even
+    testing linear *consistency* over all prime fields could be a support
+    oracle. This is distinct from the stronger modular coefficient-count
+    construction investigated above.
+    """
+    A = tutte12_incidence()
+    n = len(A)
+    assert n == 63
+    piv, free, basis = gf2_rref_basis(A)
+    assert len(basis) == 14
+    full = (1 << n) - 1
+    clauses = [tuple(j for j,v in enumerate(row) if v) for row in A]
+    col_supports = [
+        frozenset(i for i in range(n) if A[i][j])
+        for j in range(n)
+    ]
+    pin_counts = Counter()
+    near_models = 0
+
+    for choice in range(1 << len(basis)):
+        bits = full
+        for j, k in enumerate(basis):
+            if choice >> j & 1:
+                bits ^= k
+        if bits.bit_count() != 23:
+            continue
+        bad = frozenset(
+            i for i, ports in enumerate(clauses)
+            if all(bits >> j & 1 for j in ports)
+        )
+        assert len(bad) == 3
+        special = [j for j, support in enumerate(col_supports) if support == bad]
+        assert len(special) == 1
+        defect_col = special[0]
+        assert bits >> defect_col & 1
+
+        # Correct the three triply-covered rows using a single -1.
+        z = [(bits >> j) & 1 for j in range(n)]
+        z[defect_col] = -1
+        assert sorted(set(z)) == [-1, 0, 1]
+        assert all(sum(z[j] for j in ports) == 1 for ports in clauses)
+
+        near_models += 1
+        for i,ports in enumerate(clauses):
+            for chosen in ports:
+                if z[chosen] == 1 and all(
+                    z[j] == 0 for j in ports if j != chosen
+                ):
+                    pin_counts[(i,chosen)] += 1
+
+    assert near_models == 252
+    assert len(pin_counts) == 63 * 3 == 189
+    assert set(pin_counts.values()) == {80}
+    assert sum(pin_counts.values()) == 252 * 60 == 189 * 80
+    print(
+        "E123 integer-lift barrier: 252 global Ax=1 solutions in {-1,0,1}^63; "
+        "every one of 189 Exact-One pins admitted by exactly 80"
+    )
+    print(
+        "Therefore all 189 pinned systems are consistent mod EVERY prime; "
+        "E123 remains Boolean UNSAT"
+    )
+
+
 def main():
     verify_toy(1)
     verify_toy(2)
+    e123_integer_solution_all_189_pins()
     print("General E118 exact amplification: Z_target=2^(2n/3)*Z_source")
     print("General target one-port counts divisible by 2^(2n/3-1)")
     print("Global coefficient extraction in polynomial time: NOT ESTABLISHED")
