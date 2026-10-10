@@ -175,6 +175,30 @@ def e122_all_one_check_pin_xor_exhaustion():
     return counts, by_check
 
 
+def rational_pin_rank_audit(M):
+    """Explain the apparent E127 d=14 -> 10 descent by 7 forced pins.
+
+    The kernel coordinate matrix B parametrizes y=3*x-1 in ker_Q(M).
+    Restriction of its rows to the seven UP-fixed variables has rank four.
+    The target affine values (-1 or 2) are Q-consistent on every branch.
+    """
+    B = kernel_coordinate_rows(M)
+    n = len(M)
+    clauses = [[j for j, a in enumerate(row) if a] for row in M]
+    for ports in clauses:
+        for chosen in ports:
+            initial = {j: int(j == chosen) for j in ports}
+            vals = propagate(clauses, n, initial)
+            assert vals is not None
+            fixed = [j for j, v in enumerate(vals) if v is not None]
+            assert len(fixed) == 7
+            local = [B[j] for j in fixed]
+            assert rank_q(local) == 4
+            targets = [3 * vals[j] - 1 for j in fixed]
+            assert rank_q([row + [targets[k]] for k,row in enumerate(local)]) == 4
+    return 14-4
+
+
 def main():
     R = tutte12_incidence()
     RT = transpose(R)
@@ -208,6 +232,10 @@ def main():
 
     # E123 already proves E18/KLOC3-clean for R. Extend to transpose.
     assert dual_local_projection_check(RT) == 63
+    # Check the seven pinned coordinates alone already remove rank four.
+    assert rational_pin_rank_audit(R) == 10
+    assert rational_pin_rank_audit(RT) == 10
+
     # Extend E127's UNSAT local-closure signature to SAT-transpose control.
     assert len(transpose_affine_signature_check(RT)) == 1
 
@@ -220,6 +248,8 @@ def main():
     print("E127 UNSAT R and SC23 SAT R^T: identical 189 local affine profiles")
     print("all pinned branches: unknown=56 XOR-components=44 ternaries=48")
     print("all signed quotient matrices: rank_Q=34, residual rational nullity=10")
+    print("all 189 pins per orientation: 7 fixed sites, pin projection rank=4")
+    print("d=14 -> d=10 already from pins; no further Q-nullity gain from XOR")
     print("Finite exponential enumeration only; universal symbolic SUPPORT_c OPEN")
     print("P_VS_NP remains OPEN")
 
