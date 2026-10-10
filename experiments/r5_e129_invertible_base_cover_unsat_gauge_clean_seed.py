@@ -76,26 +76,29 @@ def rank_mod2(M):
 
 
 def verify_base(A):
+    # Support both the q12 base and any square r-sheet Levi cover.
+    n=len(A)
+    assert n>0 and all(len(row)==n for row in A)
     assert all(sum(row)==3 for row in A)
-    assert all(sum(A[i][j] for i in range(N))==3 for j in range(N))
-    for i in range(N):
-        for j in range(i+1,N):
-            assert sum(A[i][c]*A[j][c] for c in range(N))<=1
+    assert all(sum(A[i][j] for i in range(n))==3 for j in range(n))
+    for i in range(n):
+        for j in range(i+1,n):
+            assert sum(A[i][c]*A[j][c] for c in range(n))<=1
 
     # Levi connectivity.
-    adj=[[] for _ in range(2*N)]
+    adj=[[] for _ in range(2*n)]
     for i,row in enumerate(A):
         for j,v in enumerate(row):
             if v:
-                adj[i].append(N+j)
-                adj[N+j].append(i)
+                adj[i].append(n+j)
+                adj[n+j].append(i)
     seen={0}; q=[0]
     while q:
         u=q.pop()
         for v in adj[u]:
             if v not in seen:
                 seen.add(v); q.append(v)
-    assert len(seen)==2*N
+    assert len(seen)==2*n
 
 
 def signed_matrix(A):
