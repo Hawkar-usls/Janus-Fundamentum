@@ -1,0 +1,105 @@
+{
+  "artifact_id": "JANUS-TRUMP-E8-C4-HAMILTONIAN-ORDER-COMMUNICATION-RANK-EXPONENTIAL-BARRIER-2026-10-01-v8.5.9",
+  "version": "v8.5.9",
+  "date_local": "2026-10-01",
+  "status": "EXACT_SCOPED_EXPONENTIAL_COMMUNICATION_RANK_BARRIER__CI_CONFIRMED__NO_P_EQUALS_NP_CLAIM",
+  "parents": [
+    "research/R5_B1B1C5B2B2_E8_C4_TWO_LINEAR_FACTOR_CP12_FULL_SUPPORT_DUAL_RETURN_2026-10-01_v8.5.8.json",
+    "research/R5_B1B1C5B2B2_E8_SMOOTH_C4_TRIANGLE_SOURCE_CORRECTION_2026-09-30_v7.6.1.json",
+    "research/R5_B1B1C5B2B2_E8_SMOOTH_C4_FULL_THREE_EDGE_SPLICE_PATH_CYCLE_TERMINAL_2026-09-30_v8.1.json"
+  ],
+  "checker": "research/tools/e8_c4_hamiltonian_order_communication_rank_exponential/checker.py",
+  "purpose": "Attack the v8.5.8 next target directly. Test whether smooth/non-selfcrossing C4 source geometry forces a polynomial-dimensional exact Hamiltonian-cut transfer space. It does not for linear/communication-matrix summaries: an explicit smooth 4-regular Hamiltonian family has a Boolean compatibility matrix containing a 2^(m-1) by 2^(m-1) Kronecker submatrix of full rank.",
+  "source_family": {
+    "parameter": "odd m >= 3",
+    "vertices": "V={(r,i): r in Z_4, 0<=i<m}",
+    "hamiltonian_order": "(0,0),(0,1),...,(0,m-1),(1,0),...,(1,m-1),(2,0),...,(3,m-1), then back to (0,0)",
+    "complement_C4_i": "(0,i)-(1,i)-(2,i)-(3,i)-(0,i) for every i",
+    "graph_facts": [
+      "For m>=3 the Hamiltonian and complement edges are disjoint, so the graph is simple and 4-regular.",
+      "The displayed Hamiltonian cycle is spanning and connected.",
+      "For every complementary C4_i, its four occurrences along H are in cyclic port order 0,1,2,3. Hence every inner C4 passes the exact smooth/non-selfcrossing port-order test frozen in v7.6.1."
+    ],
+    "size": "n=4m vertices"
+  },
+  "hamiltonian_cut": {
+    "left": "rounds r=0,1",
+    "right": "rounds r=2,3",
+    "crossing_edges": "For each i, complement edges (1,i)-(2,i) and (3,i)-(0,i), plus Hamiltonian edges (1,m-1)-(2,0) and (3,m-1)-(0,0).",
+    "communication_matrix": "Rows are proper 3-colourings of the left induced subgraph, columns are proper 3-colourings of the right induced subgraph, and C_m[x,y]=1 iff x union y also satisfies every crossing edge."
+  },
+  "explicit_exponential_submatrix": {
+    "left_even_pair_states": [[0,1],[0,2]],
+    "left_odd_pair_states": [[1,0],[2,0]],
+    "right_even_pair_states": [[0,1],[2,1]],
+    "right_odd_pair_states": [[1,0],[1,2]],
+    "pair_meaning": "At component i, a left pair is colours ((0,i),(1,i)); a right pair is colours ((2,i),(3,i)).",
+    "independence": "For i=0,...,m-2 choose either state independently according to parity on both sides. At the final even component i=m-1 fix the first state on both sides: left (0,1), right (0,1).",
+    "internal_legality": "Alternating parity makes every within-round Hamiltonian adjacency automatically proper; each listed pair is internally unequal, so the complement edge inside each side is proper. Because m is odd, the round-0-to-round-1 and round-2-to-round-3 Hamiltonian bridge edges are also automatically proper.",
+    "crossing_endpoint_legality": "The fixed last states force colour(1,m-1)=1 != colour(2,0) in {0,2} and colour(3,m-1)=1 != colour(0,0)=0, so the two Hamiltonian crossing edges impose no further condition on the free bits.",
+    "local_component_matrix": [[1,1],[1,0]],
+    "local_matrix_derivation": "For either parity, crossing complement legality is exactly [left second != right first] AND [left first != right second], producing K=[[1,1],[1,0]].",
+    "tensor_identity": "After fixing the final component, the selected square submatrix is exactly K^(tensor (m-1)).",
+    "rank": "det(K)=-1, so rank(K)=2 over every field. Therefore rank(K^(tensor(m-1)))=2^(m-1). Hence rank(C_m) >= 2^(m-1)=2^(n/4-1)."
+  },
+  "main_theorem": {
+    "name": "SMOOTH_C4_HAMILTONIAN_CUT_COMMUNICATION_RANK_IS_EXPONENTIAL",
+    "statement": "There is an infinite family of simple smooth/non-selfcrossing 4-regular Hamiltonian graphs with complementary C4s for which the exact proper-3-colouring compatibility matrix across a cut of the supplied Hamiltonian order has rank at least 2^(m-1) over every field, where n=4m.",
+    "proof": [
+      "Construct G_m from four consecutive copies of component labels 0,...,m-1 along H and vertical complementary C4s.",
+      "The v7.6.1 smooth test is componentwise cyclic occurrence order; each C4_i appears as 0,1,2,3 and is therefore smooth.",
+      "Use the explicit alternating two-state row and column code above. All internal edges and the two nonlocal Hamiltonian crossing edges are automatically proper.",
+      "Each of the first m-1 complementary crossing pairs contributes independently the same 2x2 matrix K=[[1,1],[1,0]]. The final component is fixed to an accepted crossing pair, so the restricted communication matrix is K^(tensor(m-1)).",
+      "Because det(K)=-1, the restricted matrix has rank 2^(m-1) over any field. A submatrix cannot have larger rank than the full communication matrix, proving the lower bound."
+    ]
+  },
+  "algorithmic_consequence": {
+    "killed": [
+      "Any exact Hamiltonian-order transfer method whose separator summary is a vector space of dimension polynomial in n and whose left/right compatibility factors through that linear summary on the full smooth-C4 source class.",
+      "The hope that smooth/non-selfcrossing C4 order alone forces polynomial communication rank across every Hamiltonian prefix cut.",
+      "Any bounded-rank matrix-product/linear-state contraction justified only by the supplied Hamiltonian order."
+    ],
+    "not_killed": [
+      "Nonlinear or problem-specific summaries not lower-bounded by ordinary matrix rank.",
+      "Algorithms using a different decomposition whose separators avoid this cut.",
+      "Graph-global algebraic cancellations, randomized methods, or structural theorems stronger than smoothness alone.",
+      "Special subclasses such as the full-three-edge-splice path/cycle language already solved in v8.1.",
+      "A universal polynomial algorithm for 3-COLOR or SAT.",
+      "P=NP."
+    ],
+    "firewall": "Communication-rank lower bounds obstruct a broad linear transfer architecture, not every possible polynomial algorithm. No complexity-class separation or equality follows."
+  },
+  "exact_controls": {
+    "symbolic": [
+      "K=[[1,1],[1,0]] and det(K)=-1",
+      "selected matrix is a Kronecker power by independent crossing constraints",
+      "rank lower bound is field-independent"
+    ],
+    "enumeration": "The checker explicitly builds G_m and both code families for m=3,5,7; verifies simplicity/degree/smooth port order, every internal colouring constraint, every communication entry, exact Kronecker equality, and exact rational ranks 4,16,64."
+  },
+  "ci": {
+    "branch_head_sha": "dc283f20c3aebfc52060addd5352841ac1c2465d",
+    "merge_test_sha": "3b90022a7e958e362b3f71bb5c79a2f36eedae05",
+    "run_id": 36804735293,
+    "job_id": 110186441037,
+    "conclusion": "success",
+    "verified_stdout": [
+      "m=3,n=12 selected 4x4 exact rank 4",
+      "m=5,n=20 selected 16x16 exact rank 16",
+      "m=7,n=28 selected 64x64 exact rank 64",
+      "family simple 4-regular Hamiltonian with smooth complementary C4 occurrence order",
+      "K determinant -1 and field-independent rank 2",
+      "selected cut matrix exactly K^(tensor(m-1)); rank >=2^(m-1)=2^(n/4-1)"
+    ],
+    "verdict": "ORDINARY_HAMILTONIAN_CUT_LINEAR_COMMUNICATION_STATE_HAS_EXPONENTIAL_RANK_ON_A_SMOOTH_C4_SOURCE_FAMILY"
+  },
+  "next_target": {
+    "name": "E8_C4_NONLINEAR_SEPARATOR_OR_ALTERNATE_DECOMPOSITION_V8_6",
+    "directive": "Do not continue ordinary Hamiltonian-cut matrix-rank transfer. Search for a genuinely nonlinear exact invariant or a different graph decomposition whose active boundary is provably polynomial on the Fleischner-Sabidussi smooth fixed-C4 source. Any positive route must prove polynomial state count, update time, bitlength, exact nonzero decision and witness reconstruction. Any new negative route must identify the precise algorithmic architecture it excludes rather than infer hardness from communication rank alone."
+  },
+  "scientific_ceiling": {
+    "P_VS_NP": "OPEN",
+    "P_EQUALS_NP_ALGORITHM": "NOT_CONSTRUCTED",
+    "E8_D1": "EMPTY"
+  }
+}

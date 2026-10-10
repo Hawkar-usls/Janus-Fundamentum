@@ -1,0 +1,60 @@
+{
+  "artifact_id": "JANUS-TRUMP-E8-GF2-BOOLEAN-CLAUSE-SPAN-AFFINE-KERNEL-2026-09-30-v4.1",
+  "version": "v4.1",
+  "date_local": "2026-09-30",
+  "status": "EXACT_POLYNOMIAL_GLOBAL_ALGEBRAIC_KERNEL__NO_P_EQUALS_NP_CLAIM",
+  "parents": [
+    "research/R5_B1B1C5B2B2_E8_PAIR_CONDITIONED_HYPERIMPLICATION_BINARY_KERNEL_2026-09-30_v4.0.json",
+    "research/R5_B1B1C5B2B2_E8_DIRECT_PVNP_ALGEBRAIC_COMPRESSION_ATTACK_2026-09-26_v0.1.json"
+  ],
+  "purpose": "Add a genuinely global parity-sensitive layer after implication and pair-probe closure. Encode every width<=3 clause as its Boolean falsity polynomial over GF(2), Gaussian-eliminate the polynomial row span in the O(n^3)-dimensional multilinear degree<=3 monomial space, reject when the constant polynomial 1 appears, and extract affine-linear consequences for the existing implication layer. This detects global cancellations such as Tseitin parity contradictions that are invisible to local propagation.",
+  "boolean_quotient": {
+    "ring": "B_n=GF(2)[x_1,...,x_n]/(x_i^2-x_i). Every monomial is represented squarefreely.",
+    "false_literal": {
+      "positive_x": "1+x over GF(2)",
+      "negative_x": "x"
+    },
+    "clause_polynomial": "For C=(l_1 OR ... OR l_t), t<=3, put f_C=product_j false(l_j). A Boolean assignment satisfies C iff f_C evaluates to 0.",
+    "ambient_dimension": "Every f_C is multilinear of degree at most three, so all rows live in the vector space spanned by squarefree monomials of degree <=3. Its dimension is sum_{i=0}^3 binom(n,i)=O(n^3)."
+  },
+  "algorithm": {
+    "span": "Build the GF(2) coefficient matrix with one row per f_C and one column per degree<=3 squarefree monomial; compute a row-echelon basis.",
+    "unsat_terminal": "Test whether the constant polynomial 1 lies in the row span. If yes, store the corresponding GF(2) combination of input clauses as a certificate and return UNSAT.",
+    "affine_extraction": "Compute the intersection of the clause-polynomial span with the affine-linear subspace span{1,x_1,...,x_n}. Every resulting equation b+sum a_i x_i=0 is an exact affine consequence of F. Gaussian elimination on these consequences detects affine inconsistency and exposes weight-1/weight-2 consequences that can be translated to unit/equality/disequality 2-CNF constraints and fed back to the SCC/pair kernel.",
+    "iteration": "After adding any new unary/binary affine consequence, rerun the already frozen implication-primitive, width3-resolution and pair-conditioned kernels, then rebuild the clause span if the formula changed.",
+    "runtime": "Polynomial: the coefficient space has O(n^3) columns, ordinary GF(2) Gaussian elimination is polynomial, and there are only O(n^2) possible unary/binary consequences to add."
+  },
+  "theorem": {
+    "name": "GF2_BOOLEAN_CLAUSE_SPAN_UNSAT_AND_AFFINE_CONSEQUENCE_KERNEL",
+    "soundness": [
+      "Every model of F zeros every row polynomial f_C.",
+      "Therefore every GF(2)-linear combination of the f_C also vanishes on every model.",
+      "If 1 belongs to the span, a model would have to satisfy 1=0, impossible; hence the formula is UNSAT.",
+      "Every extracted affine-linear row is likewise entailed by F, so adding its unary/binary consequences preserves the model set."
+    ],
+    "certificate": "A span refutation is a subset/XOR combination of input clause-polynomial rows equal to 1. Verification expands at most degree-three multilinear polynomials and XORs their O(n^3)-coordinate vectors, hence is polynomial."
+  },
+  "strict_global_gain": {
+    "control": "The v4.0 K4 Tseitin contradiction: six edge variables, four degree-three parity constraints encoded by sixteen 3-clauses, with odd total vertex charge.",
+    "pair_and_resolution_state": "Complete width<=3 resolution derives no new clause, and every consistent singleton/pair assumption remains unit-propagation consistent.",
+    "local_block_identity": "For each cubic vertex v, XORing its four CNF clause-polynomials cancels all quadratic/cubic terms and yields the affine equation XOR_{e incident v} x_e = charge(v).",
+    "global_identity": "XORing the four vertex equations cancels every edge variable exactly twice and leaves the constant 1 because the total charge is odd. Equivalently, XORing all sixteen clause-polynomials gives 1.",
+    "consequence": "The GF2 clause-span terminal refutes this explicit pair-closed width3-closed UNSAT core by one polynomial Gaussian elimination."
+  },
+  "scientific_ceiling": {
+    "not_complete": "Constant-degree algebraic reasoning is not a universal SAT refutation method. Polynomial-calculus/PCR degree lower bounds are known for expanding/random k-CNFs and other standard contradictions, so a fixed low-degree linear-algebra layer cannot be promoted to D1.",
+    "anti_loop": "Failure of the span test is SILENCE, not SAT evidence. Do not infer affine structure merely because no contradiction is found.",
+    "P_VS_NP": "OPEN",
+    "P_EQUALS_NP_ALGORITHM": "NOT_CONSTRUCTED",
+    "E8_D1": "EMPTY"
+  },
+  "next_target": {
+    "name": "E8_LOW_DEGREE_CLOSED_NONAFFINE_GLOBAL_CONTRACTION_V4_2",
+    "directive": "Attack only cores surviving implication closure, width3 resolution, pair-conditioned propagation, and GF2 clause-span affine elimination. The next operation must compress genuinely higher-degree/non-affine correlations without enumerating monomials of unbounded degree. Seek a polynomial-size global invariant, topology-changing contraction, or minimax certificate with exact witness reconstruction."
+  },
+  "sources": [
+    "S. Buss, D. Grigoriev, R. Impagliazzo, T. Pitassi, Linear Gaps between Degrees for the Polynomial Calculus Modulo Distinct Primes, JCSS 62 (2001), 267-289.",
+    "M. Alekhnovich and A. Razborov, Lower Bounds for Polynomial Calculus: Nonbinomial Case, Proc. Steklov Inst. Math. 242 (2003), 18-35.",
+    "S. Lauria and J. Nordstrom, A Generalized Method for Proving Polynomial Calculus Degree Lower Bounds, CCC 2015 / JACM 2024."
+  ]
+}

@@ -1,0 +1,55 @@
+{
+  "artifact_id": "JANUS-TRUMP-E8-GLOBAL-GF2-GROUP-CONSTRAINED-FACTOR-REDUCTION-2026-09-26-v1.8",
+  "version": "v1.8",
+  "date_local": "2026-09-26",
+  "status": "EXACT_DECISION_REDUCTION__NO_P_EQUALS_NP_CLAIM",
+  "parent": "research/R5_B1B1C5B2B2_E8_PROJECTED_LINEAR_RELAXATION_BARRIER_2026-09-26_v1.7.json",
+  "purpose": "Remove the only hard local degree constraint {0,3} from the subcubic factor formulation and enforce variable consistency instead by one global zero-label condition over a succinct direct-sum GF(2) group.",
+  "input_normal_form": {
+    "formula": "A 2/3-CNF in which every variable occurs at most three times, obtained by the polynomial bounded-occurrence normalization used in v1.4.",
+    "soft_factor_graph": "Use the v1.6 subcubic graph, but replace each variable all-or-none constraint {0,d} by the trivial interval {0,1,...,d}. Keep each clause constraint {1,...,deg(C)} and each negative-literal inverter constraint {1}."
+  },
+  "label_group": {
+    "group": "G=(GF(2))^r with r=sum_i max(0,occ(x_i)-1)<=2n; coordinate blocks for distinct variables are disjoint.",
+    "degree1": "No label coordinate is required.",
+    "degree2": "With basis alpha_i, label the two variable-incident occurrence edges alpha_i, alpha_i.",
+    "degree3": "With basis alpha_i,beta_i, label the three variable-incident occurrence edges alpha_i, alpha_i+beta_i, beta_i.",
+    "other_edges": "All clause-side inverter edges and all auxiliary edges have label 0."
+  },
+  "local_zero_identity": {
+    "degree2": "For occurrence-selection bits y1,y2, the variable block contribution is alpha_i*(y1+y2), zero iff y1=y2.",
+    "degree3": "For bits y1,y2,y3, the block contribution is alpha_i*(y1+y2)+beta_i*(y2+y3), zero iff y1=y2=y3.",
+    "global": "Because variable coordinate blocks are a direct sum, the total group label is zero iff every original variable has equal selection bits on all its occurrences."
+  },
+  "literal_semantics": {
+    "positive": "A positive clause incidence is selected iff its variable-side occurrence bit y is 1.",
+    "negative": "The degree-2 inverter has constraint {1}, so its clause-side incidence is selected iff the variable-side bit y is 0. Thus the clause sees NOT y exactly.",
+    "clause": "The interval constraint {1,...,deg(C)} is feasible iff at least one incident literal evaluates true."
+  },
+  "theorem": {
+    "name": "SAT_IFF_ZERO_LABEL_SOFT_SUBCUBIC_FACTOR_V1_8",
+    "statement": "The normalized formula F is satisfiable iff the soft subcubic factor graph has a feasible factor whose total G-label is zero.",
+    "proof": [
+      "Given a satisfying Boolean assignment, choose every variable-side occurrence edge according to the common variable bit. The inverter constraints complement negative literals, every clause sees at least one selected truth edge, and each variable label block sums to zero.",
+      "Conversely, a zero-label feasible soft factor has equal occurrence bits inside every variable block by the local zero identities. These common bits define a Boolean assignment. The inverter and clause constraints then imply that every clause is satisfied."
+    ]
+  },
+  "size_and_runtime_accounting": {
+    "graph_size": "O(|F|)",
+    "label_dimension": "r<=2n=O(|F|)",
+    "label_encoding": "Each edge label is a sparse O(log n)-index description with at most two nonzero coordinates; total encoding size is polynomial.",
+    "group_order_warning": "|G|=2^r may be exponential. Any algorithm that enumerates group elements or uses a full group algebra is rejected."
+  },
+  "known_boundary": {
+    "generic_group_algorithms": "Generic zero-group common-basis/matching machinery does not automatically give polynomial time when the group dimension grows with n; the direct-sum rank-2 support structure must be exploited.",
+    "scientific_claim": "This artifact is an exact reduction only, not a polynomial algorithm for the zero-label factor problem."
+  },
+  "next_target": {
+    "name": "E8_SPARSE_BLOCK_ZERO_SYNDROME_FACTOR_ALGORITHM_V1_9",
+    "directive": "Construct a polynomial algorithm for zero-label feasibility using the disjoint 1D/2D variable label blocks without enumerating G. Immediately test any hashing, affine-span, or compressed-syndrome proposal on the frozen v1.5 UNSAT control."
+  },
+  "scientific_ceiling": {
+    "P_VS_NP": "OPEN",
+    "P_EQUALS_NP_ALGORITHM": "NOT_CONSTRUCTED"
+  }
+}

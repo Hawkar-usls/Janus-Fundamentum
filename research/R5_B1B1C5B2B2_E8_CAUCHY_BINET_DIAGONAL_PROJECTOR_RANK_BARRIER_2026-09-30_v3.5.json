@@ -1,0 +1,60 @@
+{
+  "artifact_id": "JANUS-TRUMP-E8-CAUCHY-BINET-DIAGONAL-PROJECTOR-RANK-BARRIER-2026-09-30-v3.5",
+  "version": "v3.5",
+  "date_local": "2026-09-30",
+  "status": "EXACT_GENERIC_LINEAR_COMBINATION_BARRIER__NO_P_EQUALS_NP_CLAIM",
+  "parents": [
+    "research/R5_B1B1C5B2B2_E8_CAUCHY_BINET_BOOLEAN_SELECTOR_2026-09-26_v0.3.json",
+    "research/R5_B1B1C5B2B2_E8_FIXED_AUXILIARY_PRINCIPAL_MINOR_PROJECTOR_BARRIER_2026-09-26_v1.1.json",
+    "research/R5_B1B1C5B2B2_E8_P0_PRINCIPAL_TRANSVERSAL_COEFFICIENT_CARRIER_2026-09-30_v2.8.json"
+  ],
+  "purpose": "Test a broader ordinary-determinant diagonal-extraction model than v1.1. The target P0 coefficient is a sum of principal minors over clause transversals. A determinant sandwich det(A K B) produces all rectangular minors K[S,T]. Prove that any K-independent linear combination of such sandwiches that projects exactly onto S=T for every generic K needs at least one term per transversal.",
+  "setup": {
+    "ground": "q occurrence ports partitioned into m nonempty clause blocks C_1,...,C_m.",
+    "transversals": "T={S subseteq [q]: |S intersect C_i|=1 for every i}; N=|T|=product_i |C_i|.",
+    "generic_target": "Q_T(K)=sum_{S in T} det K[S,S] for an arbitrary symbolic q by q matrix K.",
+    "allowed_term": "For j=1,...,r choose K-independent matrices A_j of size m by q and B_j of size q by m and scalar gamma_j, and use gamma_j det(A_j K B_j)."
+  },
+  "theorem": {
+    "name": "ORDINARY_CAUCHY_BINET_DIAGONAL_PROJECTOR_NEEDS_TRANSVERSAL_RANK",
+    "statement": "If sum_{j=1}^r gamma_j det(A_j K B_j)=Q_T(K) identically for every q by q matrix K over a field, then r>=N=|T|.",
+    "proof": [
+      "Apply Cauchy-Binet twice. Each j-th term expands as sum_{|S|=|U|=m} alpha_j(S) beta_j(U) det K[S,U], where alpha_j(S)=gamma_j det A_j[:,S] and beta_j(U)=det B_j[U,:].",
+      "For a generic symbolic matrix K, its m by m minors det K[S,U] are linearly independent as polynomials across distinct row/column set pairs (S,U): every monomial in such a minor uses exactly row set S and column set U, so no nonzero linear combination can cancel between different pairs.",
+      "Therefore equality with Q_T forces the coefficient kernel W(S,U)=sum_j alpha_j(S) beta_j(U) to equal 1 when S=U belongs to T and 0 on all other pairs.",
+      "Restrict W to the N by N rows/columns indexed by T. The target restriction is exactly the identity matrix I_N.",
+      "Each j contributes one outer product alpha_j|_T times beta_j|_T, hence has matrix rank at most one. A sum of r such terms has rank at most r.",
+      "Since rank(I_N)=N, necessarily r>=N."
+    ],
+    "exponential_corollary": "If all m clause blocks have three occurrences, N=3^m. Thus no polynomial number of ordinary K-independent determinant sandwiches can implement generic principal-transversal diagonal extraction."
+  },
+  "scoped_finite_controls": {
+    "naive_sandwich": "Taking one clause-incidence selector A and det(A K A^T) mixes S!=T rectangular minors rather than selecting only principal terms.",
+    "source_examples": [
+      "On the frozen bounded-occurrence UNSAT five-clause control, the exact P0 target W is 0 while det(A K A^T) is nonzero.",
+      "There are SAT bounded-occurrence controls with W>0 while det(A K A^T)=0."
+    ]
+  },
+  "scope_firewall": {
+    "ruled_out": [
+      "A polynomial-size K-independent linear combination of ordinary determinant sandwiches claimed to be a universal diagonal projector for arbitrary K.",
+      "The naive one-sandwich replacement Q_T(K)=det(A K A^T)."
+    ],
+    "not_ruled_out": [
+      "Algorithms exploiting the special block-diagonal K2/K3 source family rather than working for arbitrary K.",
+      "Nonlinear/adaptive formula-dependent transforms in which the selector depends on K in a nontrivial way.",
+      "Pfaffian/exterior contractions not expressible as a polynomial linear combination of ordinary sandwiches.",
+      "A source-specific rank-3 claw augmentation theorem.",
+      "P=NP"
+    ]
+  },
+  "next_target": {
+    "name": "E8_SOURCE_SPECIFIC_K3_DIAGONAL_CONTRACTION_V3_6",
+    "directive": "Generic equality projection is exponentially ranked, so stop searching for a universal K-independent diagonal projector. Exploit the actual source K: a direct sum of fixed K2/K3/identity blocks with 0/1 principal minors, together with rank<=3 clause projectors. Seek a polynomial contraction that uses these local algebraic identities before diagonal extraction, or a combinatorially equivalent global claw augmentation."
+  },
+  "scientific_ceiling": {
+    "P_VS_NP": "OPEN",
+    "P_EQUALS_NP_ALGORITHM": "NOT_CONSTRUCTED",
+    "E8_D1": "EMPTY"
+  }
+}

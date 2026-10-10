@@ -1,0 +1,25 @@
+name: TRUMP E8 Boolean q One-Hidden Fanout Seven-Edge Replay
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'research/tools/e8_boolean_q_one_hidden_fanout_seven_edge_replay/checker.cpp'
+      - 'research/R5_B1B1C5B2B2_E8_BOOLEAN_Q_ONE_HIDDEN_FANOUT_SEVEN_EDGE_BARRIER_2026-10-01_v8.4.json'
+      - '.github/workflows/trump-e8-boolean-q-one-hidden-fanout-seven-edge-replay.yml'
+  pull_request:
+    paths:
+      - 'research/tools/e8_boolean_q_one_hidden_fanout_seven_edge_replay/checker.cpp'
+      - 'research/R5_B1B1C5B2B2_E8_BOOLEAN_Q_ONE_HIDDEN_FANOUT_SEVEN_EDGE_BARRIER_2026-10-01_v8.4.json'
+      - '.github/workflows/trump-e8-boolean-q-one-hidden-fanout-seven-edge-replay.yml'
+
+jobs:
+  independent-replay:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - name: Compile independent DSU replay
+        run: g++ -O3 -march=native -std=c++17 research/tools/e8_boolean_q_one_hidden_fanout_seven_edge_replay/checker.cpp -o /tmp/e8_q_one_hidden_replay
+      - name: Replay exact bounded v8.4 search independently
+        run: /tmp/e8_q_one_hidden_replay

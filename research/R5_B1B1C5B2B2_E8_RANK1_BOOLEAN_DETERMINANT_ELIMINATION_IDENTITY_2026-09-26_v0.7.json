@@ -1,0 +1,37 @@
+{
+  "artifact_id": "JANUS-TRUMP-E8-RANK1-BOOLEAN-DETERMINANT-ELIMINATION-IDENTITY-2026-09-26-v0.7",
+  "version": "v0.7",
+  "date_local": "2026-09-26",
+  "status": "CONSTRUCTIVE_EXACT_IDENTITY__SCOPED_POSITIVE_MECHANISM__NO_P_EQUALS_NP_CLAIM",
+  "identity": {
+    "name": "RANK1_BOOLEAN_SUM_IS_ONE_AUGMENTED_DETERMINANT_V0_7",
+    "statement": "For every square matrix M over a commutative field (indeed as a polynomial identity over a commutative ring) and compatible column vectors u,v, det(M)+det(M+u v^T) = det([[M,u],[-v^T,2]]).",
+    "proof": [
+      "For invertible M, the block Schur complement gives det([[M,u],[-v^T,2]]) = det(M)*(2+v^T M^{-1}u).",
+      "The rank-one determinant lemma gives det(M+uv^T)=det(M)+v^T adj(M)u = det(M)*(1+v^T M^{-1}u).",
+      "Therefore the block determinant is det(M)+det(M+uv^T).",
+      "Both sides are polynomial expressions in the entries of M,u,v, so equality extends from invertible M to all M."
+    ]
+  },
+  "iterated_boolean_elimination": {
+    "setup": "Suppose D(x_1,...,x_n)=det(C + sum_i x_i u_i v_i^T), with each Boolean variable entering through one rank-one coefficient matrix.",
+    "closure": "Eliminating x_i by D|_{x_i=0}+D|_{x_i=1} replaces the current matrix by one augmented row/column. Every other coefficient x_j u_j v_j^T embeds as blockdiag(u_j v_j^T,0), still rank one.",
+    "consequence": "After n eliminations, a determinant of dimension dim(C)+n equals sum_{a in {0,1}^n} D(a). Construction is polynomial and does not enumerate assignments.",
+    "sat_implication_if_representation_existed": "If arbitrary 3-CNF F admitted, in polynomial time and polynomial bitlength, such a rank-one determinantal representation with D(a)>=0 and D(a)>0 iff F(a)=1, then SAT would be in P; if D(a)=F(a) in {0,1}, the final determinant would equal #SAT(F)."
+  },
+  "relation_to_existing_e8_results": {
+    "v0_4_obstruction": "The explicit field-independent transversal/principal-minor support obstruction shows that the required universal rank-one SAT-support representation does NOT exist in the normalized rank-one model, so v0.7 is a positive elimination primitive, not a completed SAT algorithm.",
+    "v0_6_fanout": "Attempting to repair rank one by atomically selecting multirow Boolean bundles inside ordinary Cauchy-Binet is blocked by matroid basis exchange.",
+    "new_design_question": "Find a larger representation class than rank-one-per-variable that remains closed under exact Boolean elimination with only polynomial dimension growth."
+  },
+  "next_target": {
+    "name": "E8_BOUNDED_RANK_BOOLEAN_ELIMINATION_CLOSURE_V0_8",
+    "question": "For a rank-r update M -> M+UV^T with constant r>=2, can det(M)+det(M+UV^T) be represented by one augmented determinant using only one copy of M, with O(poly(r)) overhead, while preserving bounded rank of every untouched variable coefficient?",
+    "why_critical": "A YES with overhead depending only on constant occurrence rank, together with a polynomial bounded-rank determinantal representation of bounded-occurrence 3-SAT, would create a genuine universal route. A construction that duplicates M on every elimination causes exponential blowup and is rejected."
+  },
+  "scientific_ceiling": {
+    "P_VS_NP": "OPEN",
+    "P_EQUALS_NP_ALGORITHM": "NOT_CONSTRUCTED",
+    "POSITIVE_RESULT": "Exact one-determinant Boolean elimination is closed for rank-one variable updates with additive dimension growth."
+  }
+}

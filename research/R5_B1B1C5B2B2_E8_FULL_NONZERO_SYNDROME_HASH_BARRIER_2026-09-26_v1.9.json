@@ -1,0 +1,55 @@
+{
+  "artifact_id": "JANUS-TRUMP-E8-FULL-NONZERO-SYNDROME-HASH-BARRIER-2026-09-26-v1.9",
+  "version": "v1.9",
+  "date_local": "2026-09-26",
+  "status": "EXPLICIT_COUNTEREXAMPLE_AND_CLASS_BARRIER__NO_P_EQUALS_NP_CLAIM",
+  "parent": "research/R5_B1B1C5B2B2_E8_GLOBAL_GF2_GROUP_CONSTRAINED_FACTOR_REDUCTION_2026-09-26_v1.8.json",
+  "purpose": "Adversarially test linear syndrome compression, hashing, and affine-span reachability on the exact v1.8 zero-syndrome formulation.",
+  "frozen_unsat_formula": {
+    "clauses": [[1,2],[1,-2],[-1,3],[-3,4],[-3,-4]],
+    "occurrences": {"1":3,"2":2,"3":3,"4":2},
+    "unsat_proof": [
+      "(x1 OR x2) and (x1 OR NOT x2) force x1=1.",
+      "Then (NOT x1 OR x3) forces x3=1.",
+      "Then (NOT x3 OR x4) and (NOT x3 OR NOT x4) force x4=1 and x4=0 simultaneously."
+    ]
+  },
+  "soft_occurrence_model": {
+    "definition": "Give every literal occurrence its own Boolean variable-side bit, keep all clause constraints and negative-literal complement semantics, but drop equality between different occurrences of the same original variable.",
+    "number_of_occurrence_bits": 10,
+    "number_of_soft_clause_satisfying_assignments": 243,
+    "syndrome_coordinates": "For variable occurrence lists [0,2,4], [1,3], [5,6,8], [7,9], use consecutive XORs, giving six GF(2) consistency coordinates.",
+    "verified_syndrome_set": "Exactly GF(2)^6 minus the zero vector: all 63 nonzero syndromes occur, and zero does not."
+  },
+  "theorem": {
+    "name": "NO_DIMENSION_REDUCING_LINEAR_ZERO_HASH_IS_SOUND_ON_V1_9_WITNESS",
+    "statement": "Let H:GF(2)^6 -> GF(2)^r be linear with r<6. If a soft factor is accepted whenever H(syndrome)=0, then H accepts at least one soft factor of the frozen UNSAT formula.",
+    "proof": [
+      "Since r<6, H is noninjective and ker(H) contains a nonzero vector s.",
+      "The verified soft syndrome set contains every nonzero vector of GF(2)^6, hence contains s.",
+      "That soft factor has H(s)=0 although the original formula is UNSAT. Therefore the compressed zero test has a false positive."
+    ],
+    "affine_span_corollary": "The soft syndrome set contains every standard basis vector and therefore has full linear/affine span GF(2)^6. Any decision rule that replaces exact zero membership by membership in the linear or affine span is also unsound on this witness."
+  },
+  "algorithmic_consequence": {
+    "killed": [
+      "Any deterministic linear syndrome compression to fewer than the six witness coordinates followed only by a zero test",
+      "Random linear hashing used as a one-sided exact zero-membership oracle without additional nonlinear verification",
+      "Affine-span or linear-span reachability as a substitute for exact feasible-syndrome membership"
+    ],
+    "not_killed": [
+      "Nonlinear polynomial-size representations of the feasible syndrome set",
+      "Augmentation algorithms that preserve exact combinatorial feasibility rather than only syndrome span",
+      "A bespoke algorithm exploiting the disjoint variable-block and subcubic structure",
+      "P=NP"
+    ]
+  },
+  "next_target": {
+    "name": "E8_EXACT_FEASIBLE_SYNDROME_AUGMENTATION_V2_0",
+    "directive": "Stop compressing syndromes linearly. Characterize the exact feasible-syndrome set under basic factor augmentations and seek a polynomial zero-membership algorithm that preserves nonlinear compatibility. Test every proposed closure/augmentation rule against the frozen full-nonzero witness before promotion."
+  },
+  "scientific_ceiling": {
+    "P_VS_NP": "OPEN",
+    "P_EQUALS_NP_ALGORITHM": "NOT_CONSTRUCTED"
+  }
+}

@@ -1,0 +1,75 @@
+{
+  "artifact_id": "JANUS-TRUMP-E8-MATCHING-AUTARKY-DM-KERNEL-AND-TOVEY-LEAN-BARRIER-2026-09-30-v4.6",
+  "version": "v4.6",
+  "date_local": "2026-09-30",
+  "status": "EXACT_POLYNOMIAL_CONTRACTION_PLUS_SOURCE_RETURN_BARRIER__NO_P_EQUALS_NP_CLAIM",
+  "parents": [
+    "research/R5_B1B1C5B2B2_E8_TERMINAL_RANK3_IMPLICATION_PRIMITIVE_NORMAL_FORM_2026-09-30_v3.8.json",
+    "research/R5_B1B1C5B2B2_E8_ADAPTIVE_MACAULAY_LINEAR_DEGREE_EXPONENTIAL_BARRIER_2026-09-30_v4.5.json"
+  ],
+  "purpose": "Add a genuinely combinatorial minimax contraction based on clause-variable matching. Compute the canonical matching-lean kernel by one Dulmage-Mendelsohn style alternating-reachability pass, reconstruct an explicit matching autarky for the deleted clauses, and prove that the canonical Tovey copy-cycle hard image can already be matching-lean, so this contraction is exact and useful but cannot by itself solve the universal hard core.",
+  "incidence_graph": {
+    "definition": "Let G=(C,V,E) be the bipartite clause-variable incidence graph: c in C is adjacent to x in V iff x or NOT x occurs in c.",
+    "matched_terminal": "If a matching saturates all clauses, assign each matched variable the value satisfying its matched literal. Distinct clauses use distinct variables, so the formula is SAT with an explicit polynomial witness."
+  },
+  "dm_kernel_algorithm": {
+    "step_1": "Compute a maximum matching M in G.",
+    "step_2": "Orient every nonmatching edge clause->variable and every matching edge variable->clause.",
+    "step_3": "Let U be all clauses unmatched by M. Compute directed reachability R from U. Put C0=R intersect C and V0=R intersect V.",
+    "step_4": "Let A=C\\C0. Every clause in A is matched. Let X be the set of M-mates of clauses in A. Assign each x in X to satisfy the literal of x in its matched clause, remove all clauses A, and retain C0 as the kernel."
+  },
+  "theorem": {
+    "name": "ONE_PASS_DM_REACHABILITY_RETURNS_THE_MATCHING_LEAN_KERNEL",
+    "proof": [
+      "No variable in X is adjacent to a reachable clause. If c in C0 had an edge to x in X, then either c->x is a nonmatching directed edge and x would be reachable, or x-c is matching and reachability of c forces x reachable through the unique matched predecessor structure. Thus N(X)=A.",
+      "The matching M restricted to A-X saturates every clause of A. Setting each x in X to satisfy its matched clause therefore satisfies every clause touched by X and touches no clause of C0. This is an explicit matching autarky, so deleting A preserves satisfiability and witness reconstruction.",
+      "Let d=|C|-|M|. Every variable in V0 is matched, otherwise an alternating path from an unmatched clause to an unmatched variable would augment M. Every reached matched clause is paired with a reached variable, hence |C0|-|V0|=d. Also every neighbor of C0 lies in V0, so C0 attains the maximum Hall deficiency d.",
+      "For any clause subset S, |S|-|N(S)|<=d. Equality forces S to contain every unmatched clause and to be closed under the same alternating-reachability steps; therefore every tight S contains C0. Thus C0 is the smallest maximum-deficiency tight clause subset.",
+      "The standard matching-autarky characterization identifies this smallest tight subset with the canonical matching-lean kernel. Equivalently, if C0 had a nontrivial matching autarky, deleting its touched clauses would produce a strict tight subset, contradicting minimality of C0."
+    ],
+    "complexity": "Maximum bipartite matching plus one graph reachability pass is deterministic polynomial time. The deleted assignment and later witness lifting are explicit and polynomial."
+  },
+  "tovey_source_return_barrier": {
+    "setup": "Take a standard Tovey copy-cycle image of a 3-CNF hard core after trivial degree-0/1 cleanup. Let q be the number of literal occurrences/copy variables and m the number of inherited 3-clauses. There are q binary implication-cycle clauses and m inherited 3-clauses; every copy variable occurs in exactly three clauses: one inherited clause and two implication clauses.",
+    "full_deficiency": "delta(F)=(m+q)-q=m.",
+    "strict_subset_argument": [
+      "Let S=F\\D for any nonempty deleted clause set D, and let t be the number of copy variables that disappear completely from S.",
+      "Each disappearing copy variable has all three incident clauses in D, contributing three incidences into D.",
+      "The total number of literal slots in D is at most 3|D|. If t>0 then D contains an implication 2-clause incident to a disappearing copy variable, so the slot count is strictly less than 3|D|. Hence 3t<3|D| and t<|D|. If t=0 the same strict inequality is trivial.",
+      "Therefore delta(S)=(m+q-|D|)-(q-t)=m-|D|+t<m=delta(F)."
+    ],
+    "conclusion": "Every strict clause subset has smaller deficiency, so the Tovey image is matching-lean. The canonical DM/matching-autarky contraction can therefore remove zero clauses on a full NP-hard source-return image.",
+    "meaning": "Matching autarkies are a real exact polynomial preprocessor, but matching leanness is not a tractability certificate."
+  },
+  "algorithmic_consequence": {
+    "positive": [
+      "Exact polynomial deletion of every clause outside the canonical matching-lean kernel, with explicit partial assignment and witness lifting.",
+      "Immediate SAT terminal when the incidence graph is clause-saturating matched.",
+      "A Hall/minimax invariant that is genuinely global and independent of bounded-degree Macaulay, local propagation and convex relaxations."
+    ],
+    "killed": [
+      "Hope that repeated clause-variable matching/autarky stripping necessarily shrinks the canonical bounded-occurrence Tovey hard image.",
+      "Treat positive deficiency or matching leanness alone as UNSAT evidence."
+    ],
+    "not_killed": [
+      "Stronger autarky systems such as linear autarkies or formula-specific nonlocal contractions.",
+      "A polynomial invariant inside matching-lean source-return cores.",
+      "Global cancellation/minimax mechanisms not equivalent to Hall matching deficiency.",
+      "P=NP"
+    ]
+  },
+  "next_target": {
+    "name": "E8_MATCHING_LEAN_HIGH_DEFICIENCY_GLOBAL_CONTRACTION_V4_7",
+    "directive": "Preprocess by the exact DM matching-autarky kernel first. Then attack only matching-lean cores. Because Tovey source images can already be matching-lean, the next invariant must use sign/orientation or higher-order clause interaction beyond the unsigned incidence graph. Seek a polynomial contraction/minimax certificate with strict progress on at least one source-return family and exact witness reconstruction."
+  },
+  "scientific_ceiling": {
+    "P_VS_NP": "OPEN",
+    "P_EQUALS_NP_ALGORITHM": "NOT_CONSTRUCTED",
+    "E8_D1": "EMPTY"
+  },
+  "sources": [
+    "Oliver Kullmann, Lean clause-sets: generalizations of minimally unsatisfiable clause-sets, Discrete Applied Mathematics 130(2), 2003.",
+    "Oliver Kullmann, Constraint Satisfaction Problems in Clausal Form I: Autarkies and Deficiency, Fundamenta Informaticae 109(1), 2011.",
+    "John V. Franco and Allen Van Gelder, A perspective on certain polynomial-time solvable classes of satisfiability, Discrete Applied Mathematics 125, 2003."
+  ]
+}

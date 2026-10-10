@@ -1,0 +1,23 @@
+name: TRUMP E8 C4 Wire F3 Fourier Two-Linear-Form Identity
+
+on:
+  pull_request:
+    paths:
+      - 'research/R5_B1B1C5B2B2_E8_C4_WIRE_F3_FOURIER_TWO_LINEAR_FORM_IDENTITY_2026-10-01_v8.5.1.json'
+      - 'research/tools/e8_c4_wire_f3_fourier_two_linear_form/checker.cpp'
+      - '.github/workflows/trump-e8-c4-wire-f3-fourier-two-linear-form.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  exact-fourier-wire-identity:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Compile exact checker
+        run: g++ -O2 -std=c++17 research/tools/e8_c4_wire_f3_fourier_two_linear_form/checker.cpp -o /tmp/e8_wire_fourier
+      - name: Verify all 729 F3 frequencies
+        run: /tmp/e8_wire_fourier
