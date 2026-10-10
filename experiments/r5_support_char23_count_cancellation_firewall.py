@@ -4,6 +4,7 @@
 No general solver claim. E65 already proves transpose SAT asymmetry; this
 replay adds exact three-port multiplicities and dual E18/KLOC3 cleanliness.
 """
+from collections import Counter
 from itertools import combinations, product
 
 from r5_e64_connected_postquotient_nullity_firewall import (
@@ -14,6 +15,10 @@ from r5_e65_transpose_asymmetry_quantized_defect import (
 )
 from r5_e123_e64_tutte12_post_e18_kloc3_rebind import (
     kernel_coordinate_rows,
+)
+
+from r5_e127_tutte12_affine_support_nullity_descent import (
+    affine_closure, signed_matrix,
 )
 
 ALPHABET = (-1, 2)
@@ -109,6 +114,33 @@ def dual_local_projection_check(M):
     return dependent
 
 
+def transpose_affine_signature_check(M):
+    """Replay E127's complete affine closure on *SAT transpose* orientation.
+
+    The UNSAT orientation's identical signature is already certified by E127.
+    We do NOT claim quotient tensors are isomorphic, only these summary values.
+    """
+    n = len(M)
+    clauses = [[j for j, v in enumerate(row) if v] for row in M]
+    observed = Counter()
+    for ports in clauses:
+        for chosen in ports:
+            initial = {j: int(j == chosen) for j in ports}
+            out = affine_closure(clauses, n, initial)
+            assert out is not None
+            vals, unknown, comps, parity, compid, qtern = out
+            sizes = tuple(sorted((len(comp) for comp in comps), reverse=True))
+            B, rhs = signed_matrix(comps, qtern)
+            r = rank_q(B)
+            assert rank_q([row + [rhs[i]] for i, row in enumerate(B)]) == r
+            observed[(len(unknown), len(comps), len(qtern), sizes, r, len(comps)-r)] += 1
+
+    expected_sizes = (2,) * 12 + (1,) * 32
+    expected = (56, 44, 48, expected_sizes, 34, 10)
+    assert observed == Counter({expected: 189})
+    return observed
+
+
 def main():
     R = tutte12_incidence()
     RT = transpose(R)
@@ -139,12 +171,17 @@ def main():
 
     # E123 already proves E18/KLOC3-clean for R. Extend to transpose.
     assert dual_local_projection_check(RT) == 63
+    # Extend E127's UNSAT local-closure signature to SAT-transpose control.
+    assert len(transpose_affine_signature_check(RT)) == 1
 
     print("R5 SC23 three-port extension-count firewall: PASS")
     print("R: n=63 rank_Q=49 nullity_Q=14 Exact-One=0 SUPPORT_c=000 for all c")
     print("R^T: same n/rank/girth, Exact-One=36, per-check ports=(12,12,12)")
     print("R^T SUPPORT_c=111 for all c; counts mod 2 AND mod 3=(0,0,0)")
     print("R^T: E18-clean; KLOC1/2/3-clean; dependent KLOC3 triples=63")
+    print("E127 UNSAT R and SC23 SAT R^T: identical 189 local affine profiles")
+    print("all pinned branches: unknown=56 XOR-components=44 ternaries=48")
+    print("all signed quotient matrices: rank_Q=34, residual rational nullity=10")
     print("Finite exponential enumeration only; universal symbolic SUPPORT_c OPEN")
     print("P_VS_NP remains OPEN")
 
