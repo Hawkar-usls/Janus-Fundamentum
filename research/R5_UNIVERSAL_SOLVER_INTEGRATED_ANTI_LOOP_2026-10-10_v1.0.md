@@ -285,6 +285,83 @@ bounded treewidth, TU representation or local shrink.
 If this theorem is proved, repeated support queries reconstruct a full witness;
 if every support bit is absent, UNSAT is certified.
 
+## 9A. Successor replay authority update
+
+The branch has now been reconciled with current main and the unified
+`R5 Frontier Verification` workflow has been extended through the executable
+PR #515 successor checks.
+
+On branch HEAD `db98961836958a1f2fbe667c6039e85736125e92`:
+
+* `R5 Frontier Verification` run `38011541158` = SUCCESS;
+* `Validate JANUS registry` run `38011541147` = SUCCESS.
+
+The replay includes the canonical E17/E53/E61--E119 chain plus the branch
+checkers for canonical-twist matroid gluing, q8 delta-junction recursion,
+one-check support reduction, affine closure, the characteristic-2/3 E79
+firewall, E120, the cube-root/rainbow-Z3 terminal, E121, the parity-trade
+normal forms, and the later E122/E123 rebinding.
+
+Therefore the branch is now a replayed scientific successor of E119 rather
+than an unintegrated note stack. It remains a draft PR and is not merged into
+main.
+
+## 9B. E122/E123 benchmark correction
+
+E122 proves the finite implication
+
+    3|n + E18-projective-clean + KLOC3-clean => SAT
+
+is false already at q=36.
+
+Its carrier is connected square/cubic/linear, has no zero/proportional rational
+kernel-coordinate rows, every coordinate subset of size at most three is
+alphabet-compatible, and is Exact-One UNSAT. But its rational nullity is only
+3, so the existing small-nullity terminal still solves it.
+
+E123 then rebinds the older E64 Tutte-12 q=63 carrier through the later E18 and
+KLOC3 filters:
+
+    q = 63,
+    rank_Q = 49,
+    nullity_Q = 14,
+    E18 zero/proportional rows = none,
+    all KLOC1/KLOC2/KLOC3 subsets clean,
+    Exact-One UNSAT.
+
+This is the strongest current finite post-E18/KLOC3 negative control, but one
+finite q=63 point does not establish superlogarithmic effective nullity
+asymptotically.
+
+Hence the benchmark target is now sharpened to
+
+    SCALABLE_POST_ROUTER_UNSAT
+
+requiring a family with effective nullity escaping O(log n) and avoiding every
+already-admitted low-rank/component/branchwidth terminal.
+
+The theorem target remains unchanged:
+
+    GLOBAL SYMBOLIC SUPPORT CONSTRUCTION.
+
+## 9C. New anti-loop for scalable lift searches
+
+Cyclic voltage lifts admit a character decomposition: the lifted matrix
+decomposes into base-size character blocks obtained by evaluating the voltage
+matrix at roots of unity. This is standard voltage-lift algebra and is already
+used concretely in E121/E122.
+
+Therefore a scalable high-nullity lift family cannot be justified merely by
+observing one singular twisted block at order 3. It needs a uniform algebraic
+mechanism, such as a Laurent-polynomial kernel relation that forces singularity
+for an unbounded set of characters, together with an independent UNSAT
+certificate that survives the lift.
+
+Conversely, phase-engineering a common-scale cube-root kernel mode is forbidden
+as an UNSAT construction by the rainbow-Z3 terminal: such a mode immediately
+constructs Exact-One witnesses.
+
+
 ## Claim boundary
 
 ONE_CHECK_BOUNDARY_RANK1_MATROID = PROVED.
@@ -294,5 +371,6 @@ POST_CLOSURE_TU = REFUTED.
 POST_CLOSURE_BIMODULAR = REFUTED.
 STAGE6B4_ROUND1_AND_ROUND2 = PROOF_CARRYING_FINITE_NEGATIVE_EVIDENCE.
 GLOBAL_SYMBOLIC_SUPPORT_CONSTRUCTION = OPEN.
+SCALABLE_POST_ROUTER_UNSAT = OPEN.
 UNIVERSAL_POLYNOMIAL_EXACTONE_SOLVER = NOT_CONSTRUCTED.
 P_VS_NP = OPEN.
