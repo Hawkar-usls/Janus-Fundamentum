@@ -1,0 +1,179 @@
+{
+  "artifact_id": "JANUS-TRUMP-P7-SPLIT4-RAW-REPRESENTATIVE-COVERAGE-EQUIVALENCE-PREREG-2026-09-20-v1.0",
+  "version": "v1.0",
+  "date": "2026-09-20",
+  "status": "FROZEN_PREREGISTRATION__RAW_REPRESENTATIVE_LAYER_ONLY__NO_EXECUTION",
+  "parent": {
+    "schema_name": "RIGID_SPLIT4_STATE_SCHEMA_V1",
+    "schema_path": "research/TRUMP_RIGID_SPLIT4_STATE_SCHEMA_RESULT_2026-09-20_v1.0.json",
+    "schema_commit": "6495d8889517ae1903a208e679a9f26b066aa768",
+    "schema_status": "CANDIDATE_SCHEMA_SPEC_CLOSED__UNPROVED",
+    "schema_fields_complete": true
+  },
+  "primary_source_binding": {
+    "paper": "Four-Coloring P6-Free Graphs. II. Finding an Excellent Precoloring",
+    "authors": [
+      "Maria Chudnovsky",
+      "Sophie Spirkl",
+      "Mingxian Zhong"
+    ],
+    "primary_pdf": "https://web.math.princeton.edu/~mchudnov/4colpaper2.pdf",
+    "audited_region": "Lemma 11 completeness/equivalence construction, printed pp. 12-13",
+    "source_facts": [
+      "For each ordered type-pair, the legacy completeness proof chooses one local representative mode before globally assembling Q.",
+      "If a suitable nonadjacent endpoint pair exists, Lemma 4 supplies a common Y0 neighbor and the proof chooses legacy 111.",
+      "If no such endpoint pair exists but a suitable T'-side Y0-neighbor exists with color different from f(T), the proof chooses legacy 001.",
+      "Otherwise the proof chooses legacy 000 and colors the corresponding Z-set with f(T).",
+      "After all local choices are made, Q, S(Q), Z(Q), and P_{Q,f'} are assembled globally.",
+      "The fixed extension c is used existentially in the completeness proof; it is not an oracle available to the enumeration algorithm."
+    ]
+  },
+  "scope": "RAW representative selection, global assembly, and raw extension equivalence only.",
+  "forbidden": [
+    "Lemma 7 transfer",
+    "Lemma 10 transfer",
+    "acceptability proof",
+    "Break B repair",
+    "Paper I",
+    "full Lemma 11 lift",
+    "complexity/hardness promotion",
+    "using an unknown extension c as an algorithmic oracle",
+    "automatic activation of any successor gate"
+  ],
+  "fixed_extension_semantics": {
+    "role_of_c": "Existential witness used only in the completeness proof to identify one already-enumerated global state and one admissible coloring.",
+    "algorithmic_firewall": "The state family must be enumerable from P alone within the frozen polynomial budget; no construction step may query or infer c.",
+    "violation_label": "FAIL_COMPLETENESS_USES_EXTENSION_ORACLE"
+  },
+  "per_type_decision_tree": {
+    "index": "ordered relevant type-pair (T,T')",
+    "preconditions": [
+      "|f(T)|=|f(T')|=1",
+      "f(T)!=f(T')"
+    ],
+    "CASE_A_BAD_PAIR_EXISTS": {
+      "condition": "There exist nonadjacent p in Y(T) intersect N(Y0) and n in Y(T') intersect N(Y0) with c(p),c(n) notin f(T) union f(T').",
+      "choose": "A deterministic witness pair may be fixed for the proof; enumeration authority does not depend on this choice.",
+      "A1_COMMON": {
+        "condition": "There exists z in Y0 intersect N(p) intersect N(n).",
+        "local_state": "legacy 111: ({p},{z},{n})",
+        "color_binding": "f'(p)=c(p), f'(z)=c(z), f'(n)=c(n)"
+      },
+      "A2_NO_COMMON": {
+        "condition": "Y0 intersect N(p) intersect N(n) is empty.",
+        "choose": [
+          "a in Y0 intersect N(p)",
+          "b in Y0 intersect N(n)"
+        ],
+        "required_derived_relations": [
+          "p-b notin E because otherwise b is a common Y0 neighbor",
+          "a-n notin E because otherwise a is a common Y0 neighbor",
+          "p-n notin E by bad-pair choice",
+          "a-b notin E: if a-b were an edge of Y0, p would be mixed on the Y0-edge ab, contradicting Lemma-11 input axiom (iv)"
+        ],
+        "parent_theorem_binding": "Apply verified P7_CORRIDOR_RIGIDITY to obtain the canonical exact induced P6 certificate a-p-s-s'-n-b.",
+        "local_state": "RIGID_SPLIT4(T,T',p,a,b,n; certificate)",
+        "color_binding": "support colors are inherited from c for the completeness witness"
+      }
+    },
+    "CASE_B_NO_BAD_PAIR_BUT_001_WITNESS": {
+      "condition": "CASE A fails, and there exists n in Y(T') intersect N(Y0) with c(n) != f(T).",
+      "local_state": "legacy 001: (empty,empty,{n})",
+      "color_binding": "f'(n)=c(n)",
+      "z_semantics": "exactly legacy 001"
+    },
+    "CASE_C_000": {
+      "condition": "Neither CASE A nor CASE B applies.",
+      "local_state": "legacy 000: (empty,empty,empty)",
+      "derived_color_fact": "For every v in Y(T') intersect N(Y0), c(v)=f(T).",
+      "z_semantics": "exactly legacy 000; Z(T,T')=Y(T') intersect N(Y0)",
+      "color_binding": "f' on that Z-set equals f(T), hence agrees with c"
+    }
+  },
+  "coverage_claims": {
+    "COVERAGE_LOCAL": {
+      "statement": "For every ordered relevant type-pair and every fixed extension c, exactly one branch class A1/A2/B/C is applicable under the frozen priority order, and the selected object is a valid local state in the extended language.",
+      "authority_target": "PASS_RAW_COVERAGE_LOCAL",
+      "failure_output": "smallest decorated (P,c,T,T') witness plus exact failed membership/derived relation"
+    },
+    "COVERAGE_GLOBAL_ASSEMBLY": {
+      "statement": "All selected local states can be united into one global Qhat. If a vertex appears in more than one local support component, its f' value is consistent because every selected value is inherited from the same fixed extension c.",
+      "additional_obligations": [
+        "global support is the union of local support projections",
+        "global Z is the union of local Z-selectors",
+        "shared-vertex color assignments are consistent",
+        "the assembled f union f' is proper because it is the restriction of c on the completeness witness"
+      ],
+      "authority_target": "PASS_RAW_COVERAGE_GLOBAL_ASSEMBLY"
+    },
+    "COVERAGE_POLY_CONSTRUCTIBLE": {
+      "statement": "The algorithm enumerates the complete polynomial candidate family independently of c; completeness only proves that one member of this family equals the existentially selected Qhat_c.",
+      "parent_budget": "RIGID_SPLIT4_V1 polynomial budget",
+      "authority_target": "PASS_RAW_COVERAGE_POLY_CONSTRUCTIBLE",
+      "oracle_firewall": true
+    }
+  },
+  "raw_equivalence_target": {
+    "formula": "Ext(P) iff OR_{Qhat, f' in Adm(Qhat)} Ext(P_{Qhat,f'})",
+    "prerequisite": "RAW_REPRESENTATIVE_COVERAGE_PASS",
+    "RAW_COMPLETENESS": {
+      "statement": "Given c in Ext(P), the per-type decision tree defines Qhat_c. Let f'_c be c restricted to S(Qhat_c) union Z(Qhat_c). Then f'_c is admissible and c extends P_{Qhat_c,f'_c}.",
+      "legacy_branches": "Use the original 000/001/111 completeness reasoning unchanged.",
+      "split4_branch": [
+        "Z_SPLIT4 is empty",
+        "support colors p,a,b,n are inherited from c",
+        "f union f'_c is proper on the enlarged precolored induced subgraph because c is proper",
+        "the local SPLIT4 membership and rigidity certificate are supplied by CASE A2"
+      ],
+      "authority_target": "PASS_RAW_COMPLETENESS"
+    },
+    "RAW_SOUNDNESS": {
+      "statement": "If d extends a generated raw P_{Qhat,f'}, then d extends the original P.",
+      "proof_shape": "The raw constructor keeps the same graph and original precolored assignments and only fixes additional vertices/reclassifies partition sets; no original coloring constraint is removed.",
+      "authority_target": "PASS_RAW_SOUNDNESS"
+    },
+    "RAW_EQUIVALENCE": {
+      "requires": [
+        "PASS_RAW_REPRESENTATIVE_COVERAGE",
+        "PASS_RAW_SOUNDNESS",
+        "PASS_RAW_COMPLETENESS"
+      ],
+      "authority_target": "RAW_EQUIVALENCE_VERIFIED"
+    }
+  },
+  "failure_taxonomy": [
+    "FAIL_LOCAL_DECISION_TREE_INCOMPLETE",
+    "FAIL_SPLIT4_MEMBERSHIP_DERIVATION",
+    "FAIL_RIGIDITY_PARENT_BINDING",
+    "FAIL_GLOBAL_SUPPORT_ASSEMBLY",
+    "FAIL_GLOBAL_COLOR_CONSISTENCY",
+    "FAIL_ADMISSIBILITY",
+    "FAIL_COMPLETENESS_USES_EXTENSION_ORACLE",
+    "FAIL_RAW_COMPLETENESS",
+    "FAIL_RAW_SOUNDNESS",
+    "FAIL_POLYNOMIAL_FAMILY_BINDING"
+  ],
+  "witness_carrying_failure_rule": "No bare boolean failure. Return the smallest available decorated witness, exact ordered type-pair, branch, graph relations, color values, and first failed inference.",
+  "promotion_ladder": [
+    "RIGID_SPLIT4_SCHEMA_SPEC_CLOSED",
+    "RAW_REPRESENTATIVE_COVERAGE_PASS",
+    "RAW_SOUNDNESS_PASS",
+    "RAW_COMPLETENESS_PASS",
+    "RAW_EQUIVALENCE_VERIFIED",
+    "STOP"
+  ],
+  "authority_firewall": {
+    "RAW_EQUIVALENCE_PASS_NOT_EQUAL_SUBGATE_A_PASS": true,
+    "SUBGATE_A": "STILL_OPEN_AFTER_ANY_RAW_PASS",
+    "LEMMA7_P7_TRANSFER": "NOT_STARTED",
+    "LEMMA10_P7_TRANSFER": "NOT_STARTED",
+    "BREAK_B": "NOT_STARTED",
+    "SUBGATE_B": "NOT_STARTED",
+    "LEMMA11_P7_LIFT": "OPEN",
+    "P7_FREE_4_COLOR_IN_P": "NOT_PROVED",
+    "P_VS_NP": "OPEN"
+  },
+  "execution_authorization": "NOT_GRANTED_BY_THIS_PREREGISTRATION",
+  "next_allowed_action": "Implement or formally prove only this raw coverage/equivalence gate in a separate execution lineage after explicit authorization. Do not touch downstream transfers.",
+  "stop": true
+}

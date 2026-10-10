@@ -1,0 +1,96 @@
+{
+  "artifact_id": "JANUS-U-PAIR-1J-V1_1-BOOLEAN-CIRCUIT-REPRESENTATION-EQUIVALENCE-LEMMA-2026-09-19-v1.0",
+  "date": "2026-09-19",
+  "authority": "REPRESENTATION_LEMMA__NOT_SYNTHESIS_THEOREM__NOT_PROOF_SYSTEM_SIMULATION_THEOREM",
+  "parent_frontier_commit": "1dd7468bc2e35a28e2604b63bc58d0396eb03c46",
+  "empirical_typing_authority": {
+    "mixed_killer_control_commit": "9d794acc97c127bada6c4f092293c3256ea08472",
+    "fact_used": "Frozen V1.1 accepts verified derived Boolean DAG roots as GUARDED_ITE guards/children without adding a new rule form."
+  },
+  "objects": {
+    "V1_1_boolean_DAG_fragment": [
+      "CONST(c)",
+      "AFFINE_XOR(c, support)",
+      "EXISTING_DAG_NODE(node_id)",
+      "GUARDED_ITE(guard, true_child, false_child)"
+    ],
+    "standard_circuit_model": "Acyclic bounded-fanin Boolean circuits over {AND, OR, NOT} with free input variables and fanout by sharing.",
+    "size_measure_V1_1": "Number of distinct hash-consed DAG nodes plus total literal/support occurrences stored by AFFINE_XOR nodes.",
+    "size_measure_standard": "Number of Boolean gates plus input-wire/literal occurrences needed to encode the circuit."
+  },
+  "lemma": {
+    "name": "POLYNOMIAL_REPRESENTATION_EQUIVALENCE_OF_V1_1_BOOLEAN_DAGS_AND_STANDARD_BOOLEAN_CIRCUITS",
+    "statement": "For every Boolean function represented by a standard bounded-fanin Boolean circuit C there is a V1.1 Boolean DAG P computing the same function with size O(|C|). Conversely, every V1.1 Boolean DAG P has an equivalent standard Boolean circuit C_P whose size is O(N_ITE_CONST + SUM_AFFINE_SUPPORT), hence polynomial in the frozen V1.1 representation size.",
+    "scope": "Boolean-function representation only. This does not include the cost of discovering P from a source relation, producing Pi_domain, proving Skolem validity, or translating arbitrary proof derivations between proof systems."
+  },
+  "forward_translation_standard_to_V1_1": {
+    "input_x": "AFFINE_XOR(0,{x}) or an already-licensed input/root reference",
+    "NOT_x": "GUARDED_ITE(x, CONST(0), CONST(1))",
+    "AND_xy": "GUARDED_ITE(x, y, CONST(0))",
+    "OR_xy": "GUARDED_ITE(x, CONST(1), y)",
+    "XOR_xy_optional": "GUARDED_ITE(x, NOT(y), y)",
+    "sharing": "Translate each source circuit gate once and preserve fanout by DAG references/hash-consing.",
+    "bound": "O(s) V1.1 nodes for a standard circuit with s gates, apart from representation of already-given inputs."
+  },
+  "reverse_translation_V1_1_to_standard": {
+    "CONST": "One constant source/gate.",
+    "GUARDED_ITE_g_t_f": "(g AND t) OR ((NOT g) AND f), constant bounded-fanin overhead.",
+    "AFFINE_XOR_c_support_t": "Balanced or sequential XOR tree on t support bits plus optional negation/constant; O(t) bounded-fanin Boolean gates. XOR itself has constant-size {AND,OR,NOT} implementation.",
+    "EXISTING_DAG_NODE": "Wire/reference only; no semantic gate expansion.",
+    "sharing": "Translate each distinct V1.1 DAG node once.",
+    "bound": "O(number_of_non_affine_nodes + total_affine_support_occurrences)."
+  },
+  "proof_sketch": [
+    "The forward direction follows gate-by-gate from the explicit ITE identities for NOT, AND and OR and preservation of DAG sharing.",
+    "The reverse direction follows by replacing each ITE by a constant-size bounded-fanin Boolean subcircuit and each t-ary affine XOR by an O(t)-size XOR network.",
+    "Both translations preserve the Boolean function exactly by structural induction on DAG/circuit topological order."
+  ],
+  "consequences": {
+    "representation_lower_bound_warning": "An unconditional superpolynomial lower bound for unrestricted V1.1 witness-DAG representation of an explicit Boolean function, under the stated size measure, would imply a corresponding superpolynomial lower bound for general Boolean circuits for that function.",
+    "frontier_shift": [
+      "UNIFORM_SOURCE_TO_WITNESS_SYNTHESIS_ACCESS",
+      "LOCAL_PROOF_CERTIFICATE_CONSTRUCTION",
+      "EXACT_DOMAIN_CERTIFICATION",
+      "PROOF_TO_WITNESS_EXTRACTION_OVERHEAD",
+      "LOCAL_COMMITMENT_VS_GLOBAL_SHARING",
+      "TRANSLATION_OVERHEAD_BETWEEN_V1_1_AND_PUBLISHED_QBF_SYNTHESIS_PROOF_SYSTEMS"
+    ],
+    "not_implied": [
+      "V1.1 can synthesize every small circuit in polynomial time from an arbitrary source formula",
+      "V1.1 has polynomial-size proofs/certificates for every relation with small Skolem circuits",
+      "V1.1 is polynomially equivalent to SynQBF as a proof system",
+      "SAT is in P",
+      "P equals NP"
+    ]
+  },
+  "synqbf_comparison_contract": {
+    "primary_reference": "Akshay et al., Proof Systems for QBF Synthesis: Extracting Skolem and Herbrand Functions, SAT 2026, DOI 10.4230/LIPIcs.SAT.2026.3",
+    "published_facts": [
+      "SynQBF is sound and complete.",
+      "Skolem/Herbrand extraction and intermediate game-value computation are polynomial-time in proof size.",
+      "The paper states optimality among proof systems that permit efficient Skolem/Herbrand extraction.",
+      "The paper gives conditional lower bounds and comparisons/orthogonality with existing QBF proof systems.",
+      "A compilation algorithm from arbitrary QBF to SynQBF proofs is provided; this does not by itself imply polynomial compilation for every input family."
+    ],
+    "next_theory_questions": [
+      "Define a semantics-preserving map from a restricted SynQBF proof fragment into (Pi_domain, Pi_witness, local V1.1 derivation) and bound proof-size/extraction overhead.",
+      "Define a map from frozen V1.1 proof-carrying objects into SynQBF when the source relation is encoded as a QBF with matching dependency discipline.",
+      "Separate representation overhead from proof-generation overhead and from extraction overhead.",
+      "Do not compare runtimes on arbitrary n before a translation/model-match theorem identifies a meaningful common object."
+    ]
+  },
+  "qbf_strategy_extraction_context": {
+    "published_context": "QBF literature already uses strategy-extraction complexity to transfer restricted circuit hardness into proof-size lower bounds, and shows that some powerful systems such as refutational QRAT cannot have polynomial-time strategy extraction unless P=PSPACE.",
+    "janus_use": "Use these results as proof-system/extraction comparators, not as unrestricted V1.1 DAG lower bounds."
+  },
+  "governance_effect": {
+    "block_default_target": "RAW_UNRESTRICTED_V1_1_DAG_SIZE_LOWER_BOUND_HUNT",
+    "allow_only_if": "A future target comes with a lower bound that provably applies to the exact V1.1 representation/proof model, or the research question concerns synthesis/proof/extraction overhead rather than raw circuit existence.",
+    "next_preferred_work": "V1_1_VS_SYNQBF_TRANSLATION_MODEL_MATCH__THEORY_ONLY_BEFORE_ANY_NEW_HOSTILE"
+  },
+  "claim_ceiling": {
+    "GENERAL_SAT_IN_P": "NOT_PROVED",
+    "P_EQ_NP": "NOT_PROVED",
+    "P_VS_NP": "OPEN"
+  }
+}

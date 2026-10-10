@@ -1,0 +1,157 @@
+name: TRUMP Legacy Normalized Constructor Replay Gate
+
+on:
+  pull_request:
+    branches:
+      - research/general-sat-universal-coverage-map-2026-09-19
+    paths:
+      - 'research/TRUMP_LEGACY_NORMALIZED_CONSTRUCTOR_REPLAY_RUN_TRIGGER_2026-09-20_v1.0.json'
+      - 'research/TRUMP_LEGACY_NORMALIZED_CONSTRUCTOR_REPLAY_GATE_PREREG_2026-09-20_v1.0.json'
+      - 'research/TRUMP_LEGACY_NORMALIZED_CONSTRUCTOR_REPLAY_EXECUTION_FREEZE_2026-09-20_v1.0.json'
+      - 'research/tools/legacy_normalized_constructor_replay/**'
+      - '.github/workflows/trump-legacy-normalized-constructor-replay.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  legacy-replay:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Bind frozen lineage
+        shell: bash
+        run: |
+          set -euo pipefail
+          for sha in \
+            90057eb9da3a907d2de43d8b4db24be41b44af61 \
+            c30e2daa11d5392b9b00d2106e9cac0e15e59e3d \
+            add6b9661a5011d9f1ad92ac216a1446ae3527f7 \
+            4114c9ba2808406e123ae23678a237194f48b09c \
+            8dc00f457359ef3207910a18f7824e9849aa94fd
+          do
+            git merge-base --is-ancestor "$sha" HEAD
+          done
+          python -m py_compile \
+            research/tools/legacy_normalized_constructor_replay/replay_checker.py \
+            research/tools/legacy_normalized_constructor_replay/independent_verifier.py
+
+      - name: Run legacy P6-free normalized-constructor replay
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p legacyreplay
+          python research/tools/legacy_normalized_constructor_replay/replay_checker.py \
+            --out legacyreplay/run \
+            | tee legacyreplay/replay.stdout
+
+      - name: Independent replay
+        shell: bash
+        run: |
+          set -euo pipefail
+          python research/tools/legacy_normalized_constructor_replay/independent_verifier.py \
+            legacyreplay/run \
+            legacyreplay/independent.json \
+            | tee legacyreplay/independent.stdout
+
+      - name: Assemble scientific manifest
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import hashlib,json,pathlib,subprocess
+          root=pathlib.Path("legacyreplay")
+          run=root/"run"
+          summary=json.loads((run/"summary.json").read_text())
+          indep=json.loads((root/"independent.json").read_text())
+          sealed=json.loads((run/"SEALED_111_PLUS_000_SUPPORT_Z_COLLISION.receipt.json").read_text())
+          pure000=json.loads((run/"LEGACY_000_FORCE_ONLY.receipt.json").read_text())
+
+          def sha(p):
+              return hashlib.sha256(pathlib.Path(p).read_bytes()).hexdigest()
+
+          assert summary["scientific_gate"]=="PASS_LEGACY_NORMALIZED_CONSTRUCTOR_REPLAY"
+          assert indep["verdict"]=="INDEPENDENT_LEGACY_NORMALIZATION_REPLAY_PASS"
+          assert sealed["literal_constructor"]=="FAIL_SUPPORT_Z_COLLISION"
+          assert sealed["normalized_constructor"]=="PASS_ROLE_NORMALIZATION"
+          assert pure000["R5_lemma7_10_replay"]["lemma6"]["deleted"]
+
+          manifest={
+            "schema":"janus.trump.legacy_normalized_constructor_replay.scientific_manifest.v1",
+            "workflow_head":subprocess.check_output(["git","rev-parse","HEAD"],text=True).strip(),
+            "frozen_parent_normalization_commit":"90057eb9da3a907d2de43d8b4db24be41b44af61",
+            "preregistration_commit":"c30e2daa11d5392b9b00d2106e9cac0e15e59e3d",
+            "execution_freeze_commit":"add6b9661a5011d9f1ad92ac216a1446ae3527f7",
+            "implementation_commits":{
+              "replay_checker":"4114c9ba2808406e123ae23678a237194f48b09c",
+              "independent_verifier":"8dc00f457359ef3207910a18f7824e9849aa94fd"
+            },
+            "sealed_regression":{
+              "literal":"FAIL_SUPPORT_Z_COLLISION",
+              "normalized":"PASS_ROLE_NORMALIZATION",
+              "receipt_sha256":sha(run/"SEALED_111_PLUS_000_SUPPORT_Z_COLLISION.receipt.json")
+            },
+            "authoritative_core":{
+              "verdict":"PASS_FULL_LEGACY_REPLAY",
+              "all_controls_pass":summary["authoritative_core_ok"],
+              "pure_000_nontrivial_lemma6_path":summary["pure_000_nontrivial_lemma6_path"],
+              "summary_sha256":sha(run/"summary.json")
+            },
+            "independent_replay":{
+              "verdict":indep["verdict"],
+              "receipt_sha256":sha(root/"independent.json")
+            },
+            "quarantined_001":summary["quarantined_001"],
+            "scientific_gate":{
+              "verdict":"PASS_LEGACY_NORMALIZED_CONSTRUCTOR_REPLAY",
+              "authority_mode":"FINITE_SOURCE_FAITHFUL_REPLAY__NOT_UNIVERSAL_FORMAL_PROOF"
+            },
+            "authority_ceiling":summary["ceiling"],
+            "source_digests":{
+              "checker_sha256":sha("research/tools/legacy_normalized_constructor_replay/replay_checker.py"),
+              "independent_sha256":sha("research/tools/legacy_normalized_constructor_replay/independent_verifier.py"),
+              "prereg_sha256":sha("research/TRUMP_LEGACY_NORMALIZED_CONSTRUCTOR_REPLAY_GATE_PREREG_2026-09-20_v1.0.json"),
+              "freeze_sha256":sha("research/TRUMP_LEGACY_NORMALIZED_CONSTRUCTOR_REPLAY_EXECUTION_FREEZE_2026-09-20_v1.0.json")
+            },
+            "successor_autoactivated":False
+          }
+          (root/"scientific_manifest.json").write_text(json.dumps(manifest,indent=2,sort_keys=True)+"\n")
+          print(json.dumps({"scientific_gate":manifest["scientific_gate"],"independent":indep["verdict"],
+                            "q001":summary["quarantined_001"]},sort_keys=True))
+          PY
+
+      - name: Assert frozen ceiling
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json
+          m=json.load(open("legacyreplay/scientific_manifest.json"))
+          c=m["authority_ceiling"]
+          assert m["scientific_gate"]["authority_mode"]=="FINITE_SOURCE_FAITHFUL_REPLAY__NOT_UNIVERSAL_FORMAL_PROOF"
+          assert c["AUTHORS_INTENDED_NORMALIZATION"]=="NOT_CLAIMED"
+          assert c["SOURCE_001_SEMANTICS"]=="AMBIGUOUS"
+          assert c["RIGID_SPLIT4"]=="STILL_PAUSED"
+          assert c["P7_RAW_COVERAGE"]=="NOT_RERUN"
+          assert c["LEMMA11_P7_LIFT"]=="OPEN"
+          assert c["P_VS_NP"]=="OPEN"
+          assert m["successor_autoactivated"] is False
+          print("AUTHORITY_CEILING_PASS")
+          PY
+
+      - name: Upload proof-carrying artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: trump-legacy-normalized-constructor-replay-v1
+          path: legacyreplay/
+          if-no-files-found: error
+          retention-days: 90

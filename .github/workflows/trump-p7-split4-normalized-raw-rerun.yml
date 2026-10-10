@@ -1,0 +1,210 @@
+name: TRUMP P7 SPLIT4 Normalized Raw Coverage Rerun
+
+on:
+  pull_request:
+    branches:
+      - research/general-sat-universal-coverage-map-2026-09-19
+    paths:
+      - 'research/TRUMP_P7_SPLIT4_NORMALIZED_RAW_COVERAGE_RERUN_RUN_TRIGGER_2026-09-20_v1.0.json'
+      - 'research/TRUMP_P7_SPLIT4_NORMALIZED_RAW_COVERAGE_RERUN_EXECUTION_FREEZE_2026-09-20_v1.0.json'
+      - 'research/tools/p7_split4_normalized_raw_rerun/**'
+      - '.github/workflows/trump-p7-split4-normalized-raw-rerun.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  normalized-raw-rerun:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Bind frozen authority
+        shell: bash
+        run: |
+          set -euo pipefail
+          for sha in \
+            a29255f63878a0cc05b58233cd24a62ef9b10d92 \
+            955b13dcbba71008898636d2c083377d96a558bc \
+            6495d8889517ae1903a208e679a9f26b066aa768 \
+            96853b34393d966dcd4aaaf086e3bc69bd791e82 \
+            a09e582617f4ff255d2635a38e8bb0cd9748903d \
+            e01f67a636fa0eacfc767d8c34dbe1869ff230b5 \
+            e043f5785b075ae50039ce70f63a1a73fdc8db75 \
+            debc0d3e100f79694cf162b59d0bbc30e1bfd905
+          do
+            git merge-base --is-ancestor "$sha" HEAD
+          done
+          test "$(git rev-parse a29255f63878a0cc05b58233cd24a62ef9b10d92:research/TRUMP_P7_SPLIT4_NORMALIZED_RAW_COVERAGE_RERUN_PREREGISTRATION_2026-09-20_v1.0.json)" = "e5b2deb178df5ef2e694f62ac319f318ecf54d65"
+          python -m py_compile \
+            research/tools/p7_split4_normalized_raw_rerun/normalized_raw_checker.py \
+            research/tools/p7_split4_normalized_raw_rerun/independent_verifier.py \
+            research/tools/p7_corridor_rigidity/instance_checker.py
+
+      - name: Run frozen normalized SPLIT4 ladder
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p normalizedrerun
+          python research/tools/p7_split4_normalized_raw_rerun/normalized_raw_checker.py \
+            --out normalizedrerun/run \
+            --rigidity-parent research/tools/p7_corridor_rigidity/instance_checker.py \
+            | tee normalizedrerun/candidate.stdout
+
+      - name: Independent replay
+        shell: bash
+        run: |
+          set -euo pipefail
+          python research/tools/p7_split4_normalized_raw_rerun/independent_verifier.py \
+            normalizedrerun/run \
+            normalizedrerun/independent.json \
+            | tee normalizedrerun/independent.stdout
+
+      - name: Assemble scientific manifest
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import hashlib,json,pathlib,subprocess
+          root=pathlib.Path("normalizedrerun")
+          run=root/"run"
+          summary=json.loads((run/"summary.json").read_text())
+          indep=json.loads((root/"independent.json").read_text())
+
+          def sha(p):
+              return hashlib.sha256(pathlib.Path(p).read_bytes()).hexdigest()
+
+          scientific=summary["scientific_gate"]
+          if scientific=="FAIL_SUPPORT_Z_COLLISION":
+              raise AssertionError("forbidden legacy verdict resurfaced")
+          if scientific=="P7_SPLIT4_NORMALIZED_RAW_EQUIVALENCE_AUTHORITATIVE_CORE_VERIFIED":
+              assert indep["verdict"]=="INDEPENDENT_AUTHORITATIVE_CORE_PASS"
+          else:
+              assert scientific.startswith("FAIL_")
+              assert indep["verdict"]=="INDEPENDENT_WITNESS_CARRYING_FAIL_RECORDED"
+              ff=summary.get("first_failure")
+              assert ff and ff.get("witness") is not None and ff.get("first_failing_inference")
+
+          mandatory=summary["mandatory_overlap_checks"]
+          # If the run passes, the mandatory SPLIT4-support/legacy-Z_FORCE regression must really have been exercised.
+          if scientific=="P7_SPLIT4_NORMALIZED_RAW_EQUIVALENCE_AUTHORITATIVE_CORE_VERIFIED":
+              assert mandatory and all(mandatory.values())
+
+          q=summary["001_quarantine"]
+          assert q["SOURCE_001_RESOLVED"] is False
+          for case in q["cases"]:
+              assert "formal_definition" in case
+              assert "completeness_text" in case
+              assert "variant_invariant" in case
+              assert "affects_main_authority" in case
+              if not case["authoritative"]:
+                  assert case["affects_main_authority"] is False
+
+          ceiling=summary["ceiling"]
+          assert ceiling["SUBGATE_A"]=="OPEN"
+          assert ceiling["LEMMA7_P7_TRANSFER"]=="NOT_STARTED"
+          assert ceiling["LEMMA10_P7_TRANSFER"]=="NOT_STARTED"
+          assert ceiling["BREAK_B"]=="NOT_STARTED"
+          assert ceiling["SUBGATE_B"]=="NOT_STARTED"
+          assert ceiling["LEMMA11_P7_LIFT"]=="OPEN"
+          assert ceiling["P7_FREE_4_COLOR_IN_P"]=="NOT_PROVED"
+          assert ceiling["HARDNESS_LOCALIZED"]=="NOT_CLAIMED"
+          assert ceiling["P_VS_NP"]=="OPEN"
+          assert summary["successor_autoactivated"] is False
+
+          manifest={
+            "schema":"janus.trump.p7_split4.normalized_raw_rerun.scientific_manifest.v1",
+            "workflow_head":subprocess.check_output(["git","rev-parse","HEAD"],text=True).strip(),
+            "frozen_preregistration":{
+              "commit":"a29255f63878a0cc05b58233cd24a62ef9b10d92",
+              "content_blob":"e5b2deb178df5ef2e694f62ac319f318ecf54d65"
+            },
+            "frozen_parents":{
+              "P7_CORRIDOR_RIGIDITY":"955b13dcbba71008898636d2c083377d96a558bc",
+              "RIGID_SPLIT4_V1":"6495d8889517ae1903a208e679a9f26b066aa768",
+              "PASS_LEGACY_NORMALIZED_CONSTRUCTOR_REPLAY":"96853b34393d966dcd4aaaf086e3bc69bd791e82"
+            },
+            "execution_freeze_commit":"a09e582617f4ff255d2635a38e8bb0cd9748903d",
+            "implementation_commits":{
+              "candidate_checker":"e01f67a636fa0eacfc767d8c34dbe1869ff230b5",
+              "independent_verifier":"e043f5785b075ae50039ce70f63a1a73fdc8db75",
+              "rigidity_parent_checker":"debc0d3e100f79694cf162b59d0bbc30e1bfd905"
+            },
+            "candidate":{
+              "scientific_gate":scientific,
+              "summary_sha256":sha(run/"summary.json"),
+              "authoritative_core_verified":summary["authoritative_core_verified"],
+              "mandatory_overlap_checks":mandatory,
+              "exhaustive_main_extensions":summary["exhaustive_main_extensions"],
+              "authoritative_candidate_soundness":summary["authoritative_candidate_soundness"],
+              "poly_constructibility":summary["poly_constructibility"]
+            },
+            "001_quarantine":{
+              "count":q["count"],
+              "SOURCE_001_RESOLVED":False,
+              "full_source_domain":summary["full_source_domain"],
+              "explicit_fixture_sha256":sha(run/"QUARANTINED_001_TEXT_DISCREPANCY.receipt.json"),
+              "all_extension_records_sha256":sha(run/"main_all_extensions.json")
+            },
+            "controls":{
+              "selected_control_verdicts":summary["selected_control_verdicts"],
+              "legacy_normalization_regression":summary["legacy_normalization_regression"],
+              "negative_force_conflict_control":summary["negative_force_conflict_control"]
+            },
+            "independent_replay":{
+              "verdict":indep["verdict"],
+              "receipt_sha256":sha(root/"independent.json")
+            },
+            "scientific_ceiling":ceiling,
+            "source_digests":{
+              "candidate_checker_sha256":sha("research/tools/p7_split4_normalized_raw_rerun/normalized_raw_checker.py"),
+              "independent_verifier_sha256":sha("research/tools/p7_split4_normalized_raw_rerun/independent_verifier.py"),
+              "execution_freeze_sha256":sha("research/TRUMP_P7_SPLIT4_NORMALIZED_RAW_COVERAGE_RERUN_EXECUTION_FREEZE_2026-09-20_v1.0.json")
+            },
+            "successor_autoactivated":False
+          }
+          (root/"scientific_manifest.json").write_text(json.dumps(manifest,indent=2,sort_keys=True)+"\n")
+          print(json.dumps({
+            "scientific_gate":scientific,
+            "independent":indep["verdict"],
+            "full_source_domain":summary["full_source_domain"],
+            "quarantined_001":q["count"]
+          },sort_keys=True))
+          PY
+
+      - name: Assert stop ceiling
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json
+          m=json.load(open("normalizedrerun/scientific_manifest.json"))
+          c=m["scientific_ceiling"]
+          assert c["SUBGATE_A"]=="OPEN"
+          assert c["LEMMA7_P7_TRANSFER"]=="NOT_STARTED"
+          assert c["LEMMA10_P7_TRANSFER"]=="NOT_STARTED"
+          assert c["BREAK_B"]=="NOT_STARTED"
+          assert c["SUBGATE_B"]=="NOT_STARTED"
+          assert c["LEMMA11_P7_LIFT"]=="OPEN"
+          assert c["P7_FREE_4_COLOR_IN_P"]=="NOT_PROVED"
+          assert c["HARDNESS_LOCALIZED"]=="NOT_CLAIMED"
+          assert c["P_VS_NP"]=="OPEN"
+          assert m["successor_autoactivated"] is False
+          print("STOP_CEILING_PASS")
+          PY
+
+      - name: Upload immutable proof-carrying artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: trump-p7-split4-normalized-raw-rerun-v1
+          path: normalizedrerun/
+          if-no-files-found: error
+          retention-days: 90

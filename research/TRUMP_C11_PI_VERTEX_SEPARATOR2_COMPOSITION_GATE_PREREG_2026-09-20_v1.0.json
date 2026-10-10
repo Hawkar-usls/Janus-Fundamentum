@@ -1,0 +1,258 @@
+{
+  "artifact_id": "JANUS-TRUMP-C11-PI-VERTEX-SEPARATOR2-COMPOSITION-GATE-PREREG-2026-09-20-v1.0",
+  "version": "v1.0",
+  "date": "2026-09-20",
+  "status": "FROZEN_VERTEX_SEPARATOR2_COMPOSITION_PREREGISTRATION__NO_REPAIR",
+  "name": "C11_PI_VERTEX_SEPARATOR2_COMPOSITION_GATE_V1",
+  "parents": {
+    "cut_vertex_S2": {
+      "path": "research/TRUMP_C11_PI_CUT_VERTEX_COMPOSITION_GATE_RESULT_2026-09-20_v1.0.json",
+      "commit": "6d53be02956dfe36bb58cc666bb5f04b4afa6cfc",
+      "blob": "31bfb0bd694e00db6102efe0fc2aaa2ff38f0de6",
+      "status": "S2_CUT_VERTEX_COMPOSITION_ESCAPE_PATH_A"
+    },
+    "two_vertex_separator_factorization": {
+      "path": "research/TRUMP_FIXED_PALETTE_TWO_VERTEX_SEPARATOR_LIST_FACTORIZATION_RESULT_2026-09-20_v1.0.json",
+      "commit": "7f321f2c032ed58ca8f1f930f8d0f9598a79d12f",
+      "blob": "a94e8399cbe1ae0e394a0418ab42e4ec0be595c0",
+      "status": "PASS_FIXED_PALETTE_TWO_VERTEX_SEPARATOR_LIST_FACTORIZATION"
+    },
+    "current_S2_separator2_control": {
+      "path": "research/TRUMP_C11_S2_SEPARATOR2_COMPOSITION_TERMINAL_RESULT_2026-09-20_v1.0.json",
+      "commit": "b60212e52ea9a0b8add6248f2b6a55559f5ae355",
+      "status": "PASS_CURRENT_S2_SEPARATOR2_COMPOSITION_TERMINAL"
+    },
+    "tw3_terminal": {
+      "path": "research/TRUMP_TREEWIDTH3_LIST_COLORING_TERMINAL_RESULT_2026-09-20_v1.0.json",
+      "commit": "7a6c7127b4ebe16c61000b3e49809fad85aaf33a",
+      "status": "PASS_TREEWIDTH3_LIST_COLORING_POLYNOMIAL_TERMINAL"
+    },
+    "literal_octahedron_terminal": {
+      "path": "research/TRUMP_LITERAL_OCTAHEDRON_EXACT_LIST_TERMINAL_RESULT_2026-09-20_v1.0.json",
+      "commit": "733c7d62ce3b52a4e1390076f417fb7dc11cf9ee",
+      "status": "PASS_LITERAL_OCTAHEDRON_EXACT_LIST_POLYNOMIAL_TERMINAL"
+    }
+  },
+  "domain": {
+    "class_name": "AUTHORITATIVE_CUT_VERTEX_FREE_C11_PI_RESIDUALS_OUTSIDE_BASE_TERMINAL_STACK",
+    "definition": [
+      "C is a connected authoritative C11 PI residual component after only frozen deterministic propagation/normalization.",
+      "C is noncontradictory.",
+      "C is NOT_L3_READY.",
+      "C is NOT_TW3_LIST_READY, with tw(C)>3 certified when needed by a frozen forbidden-minor model.",
+      "C is not exactly a six-vertex literal octahedron eligible for the exact-octahedron terminal.",
+      "Cut(C)=empty is independently verified graph-only."
+    ],
+    "rationale": "This gate continues the actually verified S2 Path-A lineage and asks whether the remaining cut-vertex-free interaction factorizes across a separator of exactly two vertices."
+  },
+  "base_terminal_stack": {
+    "CONTRADICTION": "Exact frozen contradiction certificate.",
+    "L3_READY": "Global missing color followed by frozen P7-free List-3.",
+    "TW3_LIST_READY": "Verified width-3 decomposition followed by frozen arbitrary-list TW3 DP.",
+    "LITERAL_OCTAHEDRON_EXACT_LIST_READY": "Entire component exactly a six-vertex K_{2,2,2}, solved by direct <=4^6 enumeration."
+  },
+  "separator2_discovery": {
+    "graph_only": true,
+    "Sep_2_C": "All unordered 2-subsets S of V(C) such that C-S is disconnected.",
+    "algorithm": "Enumerate all O(n^2) unordered pairs S, delete S, compute connected components, retain exactly those with at least two components.",
+    "complexity": "O(n^2*(n+m)) by direct audit; polynomial.",
+    "oracle_used": false
+  },
+  "separator_state_semantics": {
+    "Col_L_S": "All assignments psi:S->[4] that respect both exact lists and are proper on C[S].",
+    "raw_state_bound": 16,
+    "empty_state_rule": "If Col_L(S)=empty, then S is automatically a GOOD_2 separator (CORE/BOUNDARY_UNSAT): no coloring of C can restrict to a proper list-respecting coloring on S."
+  },
+  "closed_definition": {
+    "formula": "Closed(C,S,psi) holds iff after fixing every s in S to psi(s) and applying only frozen deterministic propagation, the branch is CONTRADICTION or every surviving connected component is closed by the base terminal stack.",
+    "component_logic": "For a fixed psi, exact two-vertex separator factorization makes the surviving C-S components independent once all boundary-color restrictions are reflected in their lists."
+  },
+  "good2_definition": {
+    "per_separator": "GOOD_2(C,S) := S in Sep_2(C) AND [Col_L(S)=empty OR for every psi in Col_L(S): Closed(C,S,psi)].",
+    "per_residual": "GOOD_2(C) := exists S in Sep_2(C): GOOD_2(C,S)."
+  },
+  "exact_negation_binding": {
+    "formula": "not GOOD_2(C) iff Sep_2(C)=empty OR for every S in Sep_2(C): [Col_L(S) is nonempty AND exists psi_S in Col_L(S) such that not Closed(C,S,psi_S)].",
+    "rule": "A single bad separator or a single bad boundary assignment is LOCAL_SEPARATOR2_ESCAPE only and MUST NOT falsify GOOD_2(C).",
+    "empty_assignment_consequence": "Any S with Col_L(S)=empty is a good separator and blocks strong negative outcome for that C."
+  },
+  "per_separator_audit": {
+    "for_each_S": [
+      "Enumerate every proper list-respecting psi in Col_L(S), at most 16.",
+      "Fix psi and apply only frozen deterministic propagation.",
+      "If contradiction arises, branch is CLOSED.",
+      "Otherwise compute every surviving connected component Q.",
+      "Classify each Q in strict order: L3_READY, TW3_LIST_READY, LITERAL_OCTAHEDRON_EXACT_LIST_READY, otherwise ESCAPE."
+    ],
+    "branch_closed_iff": "Every surviving component is closed by the base terminal stack."
+  },
+  "outcomes": {
+    "R1_SEPARATOR2_COMPOSITION_UNIVERSAL": {
+      "label": "R1_SEPARATOR2_COMPOSITION_UNIVERSAL",
+      "formula": "For every C in the frozen domain, GOOD_2(C).",
+      "pass_requires": [
+        "A theorem/proof-carrying universal argument; finite corpus success is insufficient.",
+        "A polynomial graph-only method finding at least one good 2-separator S(C) for every domain residual.",
+        "For every proper list-respecting boundary assignment psi on S(C), all branches close through the frozen base terminal stack.",
+        "Exact SAT reconstruction / UNSAT aggregation over at most 16 separator states.",
+        "Polynomial accounting for separator enumeration, propagation, component decomposition, and downstream terminals."
+      ],
+      "consequence_ceiling": "The current cut-vertex-free authoritative residual family is polynomially resolved by graph-discoverable two-vertex separator composition."
+    },
+    "LOCAL_SEPARATOR2_ESCAPE": {
+      "label": "LOCAL_SEPARATOR2_ESCAPE",
+      "formula": "exists C, exists S in Sep_2(C), exists psi in Col_L(S): not Closed(C,S,psi).",
+      "interpretation": "Only this particular separator state fails. Another 2-separator may still be universally good; no universal claim is falsified."
+    },
+    "R2_SEPARATOR2_COMPOSITION_ESCAPE": {
+      "label": "R2_SEPARATOR2_COMPOSITION_ESCAPE",
+      "strong_formula": "exists authoritative C in domain such that Sep_2(C)=empty OR for every S in Sep_2(C), [Col_L(S) nonempty AND exists defeating psi_S with a certified escaping component D_{S,psi_S}].",
+      "path_A_no_separator": {
+        "condition": "Sep_2(C)=empty.",
+        "conclusion": "Because the domain already has Cut(C)=empty and C is connected, vertex connectivity satisfies kappa(C)>=3.",
+        "certificate": [
+          "complete authoritative C and exact lists",
+          "independent Cut(C)=empty receipt",
+          "complete graph-only Sep_2(C) enumeration showing empty",
+          "domain nonterminal certificates",
+          "P7-free inheritance/check and independent replay"
+        ]
+      },
+      "path_B_all_separators_defeated": {
+        "condition": "Sep_2(C) nonempty and every S in Sep_2(C) has at least one defeating proper list-respecting psi_S.",
+        "certificate": [
+          "complete graph-only enumeration of Sep_2(C)",
+          "for every S, exact nonempty Col_L(S) enumeration receipt",
+          "for every S, one defeating psi_S",
+          "exact frozen propagation transcript for each defeating state",
+          "exact surviving connected D_{S,psi_S} and exact lists",
+          "D noncontradictory and NOT_L3_READY",
+          "tw(D)>3 with explicit frozen forbidden-minor model",
+          "D is not exactly a six-vertex literal octahedron",
+          "independent replay of separator-set completeness and every defeating state"
+        ]
+      },
+      "consequence_ceiling": "There exists an authoritative cut-vertex-free residual whose unresolved interaction is not universally decomposed by any two-vertex separator under the current terminal library."
+    },
+    "R3_GATE_UNRESOLVED": {
+      "label": "R3_GATE_UNRESOLVED",
+      "condition": "Neither theorem-level R1 nor complete strong-R2 certificate is established."
+    }
+  },
+  "escape_certificate": {
+    "required": [
+      "exact D vertices/edges/lists",
+      "connected and noncontradictory",
+      "union of lists=[4] and NOT_L3_READY",
+      "tw(D)>3 certified by explicit minor model from {K5,OCTAHEDRON,WAGNER_V8,PENTAGONAL_PRISM}",
+      "D is not exactly a six-vertex literal octahedron",
+      "all separator/boundary restrictions encoded in exact propagated lists"
+    ]
+  },
+  "mandatory_positive_control": {
+    "source": "PASS_CURRENT_S2_SEPARATOR2_COMPOSITION_TERMINAL",
+    "residual": "The sealed 13-vertex S2 Path-A residual.",
+    "expected": {
+      "Cut_C": [],
+      "Sep_2_C": [
+        [
+          "z",
+          "a0"
+        ],
+        [
+          "z",
+          "e0"
+        ]
+      ],
+      "separator_count": 2,
+      "vertex_connectivity": "kappa(C)=2",
+      "good_separator_example": [
+        "z",
+        "a0"
+      ],
+      "components_after_example_separator": [
+        "K_{1,2,2} -> TW3_LIST_READY",
+        "K_{2,2,2} -> LITERAL_OCTAHEDRON_EXACT_LIST_READY"
+      ],
+      "every_boundary_state_closed": true,
+      "GOOD_2_C": true
+    }
+  },
+  "mandatory_quantifier_controls": [
+    {
+      "name": "TWO_SEPARATOR_MIXED_CONTROL",
+      "authority": "CONTROL_ONLY__NON_SCIENTIFIC",
+      "structure": "Synthetic cut-vertex-free residual with two 2-separators S1,S2.",
+      "required_behavior": [
+        "S1 has at least one escaping proper boundary assignment.",
+        "S2 closes for every proper boundary assignment.",
+        "LOCAL_SEPARATOR2_ESCAPE=true for S1.",
+        "GOOD_2(C)=true via S2.",
+        "R2=false."
+      ]
+    },
+    {
+      "name": "EMPTY_SEPARATOR_STATE_CONTROL",
+      "authority": "CONTROL_ONLY__NON_SCIENTIFIC",
+      "structure": "Synthetic 2-separator S with Col_L(S)=empty.",
+      "required_behavior": [
+        "Classify S as GOOD_2 by boundary-UNSAT semantics.",
+        "No defeating psi is demanded from an empty state set.",
+        "R2=false for any C having this good separator."
+      ]
+    },
+    {
+      "name": "NO_SEPARATOR2_CONTROL",
+      "authority": "CONTROL_ONLY__NON_SCIENTIFIC",
+      "structure": "Synthetic connected cut-vertex-free graph with Sep_2(C)=empty and a mocked nonterminal label.",
+      "required_behavior": [
+        "Sep_2(C)=empty.",
+        "strong-R2 Path A is recognized.",
+        "kappa>=3 conclusion is allowed only because Cut(C)=empty is also verified."
+      ]
+    }
+  ],
+  "anti_cheat": [
+    "Do not stop after the first bad 2-separator when attempting R2.",
+    "Do not promote LOCAL_SEPARATOR2_ESCAPE to R2.",
+    "Do not choose S or psi using extension knowledge.",
+    "Do not treat Col_L(S)=empty as an escape; it makes S good.",
+    "Do not call failed TW3 heuristic search an escape; require explicit forbidden-minor certificate.",
+    "Do not call an exact literal six-vertex octahedron an escape.",
+    "Finite testing cannot establish R1.",
+    "Do not open separator size 3, backdoor size 2, tw4, repair, or new state language."
+  ],
+  "scientific_ceiling": {
+    "CURRENT_S2_WITNESS": "POLYNOMIALLY_RESOLVED_BY_TWO_VERTEX_SEPARATOR_COMPOSITION",
+    "CURRENT_S2_VERTEX_CONNECTIVITY": "EXACTLY_2",
+    "UNIVERSAL_SEPARATOR2_COMPOSITION": "OPEN",
+    "AUTHORITATIVE_KAPPA_GE_3_OR_ALL_SEPARATOR2_DEFEATED_RESIDUAL": "NOT_YET_VERIFIED",
+    "PI_DISCOVERY": "PARTIAL",
+    "P3_EXACT_PAIR_QUOTIENT": "NOT_ESTABLISHED",
+    "SEPARATOR_SIZE_3": "NOT_OPENED",
+    "BACKDOOR_SIZE_2": "NOT_OPENED",
+    "TW4": "NOT_OPENED",
+    "REPAIR": "NOT_STARTED",
+    "NEW_DESCRIPTOR": "NOT_DEFINED",
+    "C1S_CS1_CSS": "NOT_REACHED",
+    "LEMMA11_P7_LIFT": "OPEN",
+    "P7_FREE_4_COLOR_IN_P": "NOT_PROVED",
+    "HARDNESS_LOCALIZED": "NOT_CLAIMED",
+    "P_VS_NP": "OPEN"
+  },
+  "forbidden": [
+    "separator size 3",
+    "backdoor size 2",
+    "tw4",
+    "branching repair",
+    "new descriptor/state language",
+    "general P7-free 4-coloring/list-4 oracle",
+    "extension oracle",
+    "inspect C1S/CS1/CSS",
+    "promote LOCAL_SEPARATOR2_ESCAPE to R2",
+    "hardness/lower-bound/unbounded-treewidth/P-vs-NP inference"
+  ],
+  "execution_authorization": "NOT_GRANTED_BY_THIS_PREREGISTRATION",
+  "next_action": "Separate authorization required. Audit only two-vertex separator composition on the frozen cut-vertex-free frontier and stop at R1/strong-R2/R3.",
+  "stop": true
+}

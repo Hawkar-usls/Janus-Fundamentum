@@ -1,0 +1,288 @@
+name: TRUMP Stage6B.1 Bounded Deletion q-Horn Feasibility Gate
+
+on:
+  push:
+    branches:
+      - research/general-sat-universal-coverage-map-2026-09-19
+    paths:
+      - ".github/workflows/trump-stage6b1-bounded-deletion-qhorn-feasibility.yml"
+      - "research/tools/trump_stage6b1_bounded_deletion_qhorn_z3_proposer.py"
+      - "research/tools/trump_stage6b1_bounded_deletion_qhorn_independent_checker.py"
+      - "research/TRUMP_STAGE6B1_BOUNDED_DELETION_QHORN_FEASIBILITY_GATE_PREREGISTRATION_2026-09-19_v1.0.json"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  bounded-deletion-qhorn-feasibility:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Verify frozen Stage6B.1 lineage
+        shell: bash
+        run: |
+          set -euo pipefail
+          git merge-base --is-ancestor b60adda80316d87b742cae96ea77fa9fe8bc7df4 HEAD
+          git merge-base --is-ancestor 153c2ed916dbdd4379e60278922a8c7a4b170676 HEAD
+          git merge-base --is-ancestor c731521d64a84ec0828b8b93397648147f1425a5 HEAD
+          python - <<'PY'
+          import json
+          p="research/TRUMP_STAGE6B1_BOUNDED_DELETION_QHORN_FEASIBILITY_GATE_PREREGISTRATION_2026-09-19_v1.0.json"
+          d=json.load(open(p,encoding="utf-8"))
+          assert d["gate"]=="TRUMP_STAGE6B1_BOUNDED_DELETION_QHORN_FEASIBILITY_GATE"
+          assert d["pinned_scientific_parent"]=="1c6e9fc1eb2b0789c0dc27ae4ea8ef58acfc30e0"
+          assert d["frozen_k_ladder"]["values"]==[1,2,4,8,16,32]
+          assert d["frozen_k_ladder"]["per_k_timeout_ms"]==10000
+          assert d["external_proposer"]["optimize_forbidden"] is True
+          assert d["claim_ceiling"]["GENERIC_UNSAT_K_IS_LOWER_BOUND"] is False
+          assert d["stage6C_stage6D_lock"]=="DO_NOT_EXECUTE_UNTIL_STAGE6B1_RESULT_IS_FROZEN"
+          PY
+
+      - name: Syntax-check frozen implementation
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m py_compile research/tools/trump_stage6_qhorn_independent_checker.py
+          python -m py_compile research/tools/trump_stage6b_deletion_qhorn_independent_checker.py
+          python -m py_compile research/tools/trump_stage6b1_bounded_deletion_qhorn_z3_proposer.py
+          python -m py_compile research/tools/trump_stage6b1_bounded_deletion_qhorn_independent_checker.py
+
+      - name: Fetch and bind exact frozen source and Stage6A proof artifact
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p stage6b1/source/unpacked stage6b1/stage6a/unpacked
+
+          curl -fsSL \
+            -H "Authorization: Bearer $GH_TOKEN" \
+            -H "Accept: application/vnd.github+json" \
+            "https://api.github.com/repos/$GITHUB_REPOSITORY/actions/artifacts/9992845123" \
+            -o stage6b1/source/artifact_metadata.json
+          curl -fL \
+            -H "Authorization: Bearer $GH_TOKEN" \
+            -H "Accept: application/vnd.github+json" \
+            "https://api.github.com/repos/$GITHUB_REPOSITORY/actions/artifacts/9992845123/zip" \
+            -o stage6b1/source/r50g25x.zip
+          sha256sum stage6b1/source/r50g25x.zip | tee stage6b1/source/r50g25x.zip.sha256
+          unzip -q stage6b1/source/r50g25x.zip -d stage6b1/source/unpacked
+          test -f stage6b1/source/unpacked/JANUS_TRUMP_R50G25X_ADVERSARIAL_STALL_SEARCH.json
+
+          curl -fsSL \
+            -H "Authorization: Bearer $GH_TOKEN" \
+            -H "Accept: application/vnd.github+json" \
+            "https://api.github.com/repos/$GITHUB_REPOSITORY/actions/artifacts/10584038105" \
+            -o stage6b1/stage6a/artifact_metadata.json
+          curl -fL \
+            -H "Authorization: Bearer $GH_TOKEN" \
+            -H "Accept: application/vnd.github+json" \
+            "https://api.github.com/repos/$GITHUB_REPOSITORY/actions/artifacts/10584038105/zip" \
+            -o stage6b1/stage6a/stage6a.zip
+          sha256sum stage6b1/stage6a/stage6a.zip | tee stage6b1/stage6a/stage6a.zip.sha256
+          unzip -q stage6b1/stage6a/stage6a.zip -d stage6b1/stage6a/unpacked
+
+          STAGE6A_RESULT="$(find stage6b1/stage6a/unpacked -name TRUMP_STAGE6_PUBLIC_QHORN_CERTIFICATE_GATE_RESULT.json -print -quit)"
+          test -n "$STAGE6A_RESULT"
+          cp "$STAGE6A_RESULT" stage6b1/stage6a/TRUMP_STAGE6_PUBLIC_QHORN_CERTIFICATE_GATE_RESULT.json
+
+          python - <<'PY'
+          import hashlib,json,pathlib
+          def sha(p):
+              h=hashlib.sha256()
+              with open(p,"rb") as f:
+                  for b in iter(lambda:f.read(1<<20),b""): h.update(b)
+              return h.hexdigest()
+
+          sm=json.load(open("stage6b1/source/artifact_metadata.json",encoding="utf-8"))
+          am=json.load(open("stage6b1/stage6a/artifact_metadata.json",encoding="utf-8"))
+          assert sm["id"]==9992845123 and sm["expired"] is False
+          assert sm.get("digest")=="sha256:32232b076165663a0f699adf34b237d0b755e6e1be06a8c0c2974f13741e1069"
+          assert am["id"]==10584038105 and am["expired"] is False
+          assert am.get("digest")=="sha256:37060910daae1c8e3f32c4ce8d7f9f1679be96564295de81e660f7f7f5afd9cb"
+          assert sha("stage6b1/stage6a/TRUMP_STAGE6_PUBLIC_QHORN_CERTIFICATE_GATE_RESULT.json")=="fe43b9e80dcf9cd73d60e17559ccd6b5d2da3569011030d21174fae3a064be14"
+
+          receipt={
+            "source_artifact_id":9992845123,
+            "source_artifact_api_digest":sm.get("digest"),
+            "downloaded_source_zip_sha256":sha("stage6b1/source/r50g25x.zip"),
+            "source_json_sha256":sha("stage6b1/source/unpacked/JANUS_TRUMP_R50G25X_ADVERSARIAL_STALL_SEARCH.json"),
+            "stage6A_artifact_id":10584038105,
+            "stage6A_artifact_api_digest":am.get("digest"),
+            "downloaded_stage6A_zip_sha256":sha("stage6b1/stage6a/stage6a.zip"),
+            "stage6A_result_sha256":sha("stage6b1/stage6a/TRUMP_STAGE6_PUBLIC_QHORN_CERTIFICATE_GATE_RESULT.json"),
+            "stage6A_result_freeze_commit":"27676d521b57c113996c482726657abe1de5f34b",
+            "stage6B_result_freeze_commit":"1c6e9fc1eb2b0789c0dc27ae4ea8ef58acfc30e0"
+          }
+          pathlib.Path("stage6b1/source_binding_receipt.json").write_text(
+            json.dumps(receipt,indent=2,sort_keys=True)+"\n",encoding="utf-8"
+          )
+          PY
+
+      - name: Install same public generic Z3 package family as Stage6A
+        shell: bash
+        run: |
+          set -euo pipefail
+          STAGE6A_TOOL="$(find stage6b1/stage6a/unpacked -name proposer_tool.json -print -quit)"
+          test -n "$STAGE6A_TOOL"
+          Z3PKG="$(python - "$STAGE6A_TOOL" <<'PY'
+          import json,sys
+          d=json.load(open(sys.argv[1],encoding="utf-8"))
+          print(d["package_version"])
+          PY
+          )"
+          python -m pip install --disable-pip-version-check "z3-solver==$Z3PKG" \
+            > stage6b1/tool_install.stdout 2> stage6b1/tool_install.stderr
+          python - <<'PY' > stage6b1/proposer_tool.json
+          import importlib.metadata,json,z3
+          print(json.dumps({
+            "tool":"z3-solver",
+            "mode":"Solver_Boolean_PseudoBoolean_Feasibility",
+            "role":"EXTERNAL_GENERIC_PROPOSER_ONLY__NO_LOWER_BOUND_OR_MINIMALITY_AUTHORITY",
+            "package_version":importlib.metadata.version("z3-solver"),
+            "z3_version":z3.get_version_string()
+          },indent=2,sort_keys=True))
+          PY
+
+      - name: Execute frozen bounded-feasibility ladder with verify-before-stop
+        shell: bash
+        run: |
+          set -euo pipefail
+          SOURCE="stage6b1/source/unpacked/JANUS_TRUMP_R50G25X_ADVERSARIAL_STALL_SEARCH.json"
+          STAGE6A="stage6b1/stage6a/TRUMP_STAGE6_PUBLIC_QHORN_CERTIFICATE_GATE_RESULT.json"
+          INDICES="2 9 10 11 12 13 14 1 3 4 5 6 7"
+          LADDER="1 2 4 8 16 32"
+          mkdir -p stage6b1/attempts stage6b1/final
+
+          for IDX in $INDICES; do
+            PAD="$(printf '%02d' "$IDX")"
+            ADIR="stage6b1/attempts/r50g25x_$PAD"
+            mkdir -p "$ADIR"
+
+            for K in $LADDER; do
+              KPAD="$(printf '%02d' "$K")"
+              PROPOSAL="$ADIR/k_$KPAD.proposal.json"
+              VERIFY="$ADIR/k_$KPAD.verification.json"
+
+              python research/tools/trump_stage6b1_bounded_deletion_qhorn_z3_proposer.py \
+                "$SOURCE" "$PROPOSAL" \
+                --index "$IDX" \
+                --k "$K" \
+                --timeout-ms 10000 \
+                | tee "$ADIR/k_$KPAD.proposer.stdout"
+
+              python research/tools/trump_stage6b1_bounded_deletion_qhorn_independent_checker.py \
+                verify "$SOURCE" "$STAGE6A" "$PROPOSAL" "$VERIFY" \
+                --index "$IDX" \
+                --k "$K" \
+                | tee "$ADIR/k_$KPAD.checker.stdout"
+
+              DECISION="$(python - "$VERIFY" <<'PY'
+          import json,sys
+          d=json.load(open(sys.argv[1],encoding="utf-8"))
+          if d.get("accepted"):
+              print("STOP_PASS")
+          elif d.get("scientific_outcome") in ("FAIL_CERTIFICATE","INFRASTRUCTURE_ERROR"):
+              print("STOP_FAILURE")
+          else:
+              print("CONTINUE")
+          PY
+              )"
+
+              if [ "$DECISION" = "STOP_PASS" ] || [ "$DECISION" = "STOP_FAILURE" ]; then
+                break
+              fi
+            done
+
+            python research/tools/trump_stage6b1_bounded_deletion_qhorn_independent_checker.py \
+              finalize-index "$ADIR" "stage6b1/final/r50g25x_$PAD.final.json" \
+              --index "$IDX" \
+              | tee "$ADIR/finalize.stdout"
+          done
+
+      - name: Aggregate Stage6B.1 scientific result
+        shell: bash
+        run: |
+          set -euo pipefail
+          python research/tools/trump_stage6b1_bounded_deletion_qhorn_independent_checker.py \
+            aggregate \
+            stage6b1/final \
+            stage6b1/TRUMP_STAGE6B1_BOUNDED_DELETION_QHORN_FEASIBILITY_GATE_RESULT.json \
+            stage6b1/source_binding_receipt.json \
+            --prereg-commit b60adda80316d87b742cae96ea77fa9fe8bc7df4 \
+            --proposer-commit 153c2ed916dbdd4379e60278922a8c7a4b170676 \
+            --checker-commit c731521d64a84ec0828b8b93397648147f1425a5 \
+            --implementation-head "$GITHUB_SHA" \
+            | tee stage6b1/aggregate.stdout
+
+      - name: Emit immutable Stage6B.1 execution receipt
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import hashlib,json,os,pathlib
+          def sha(p):
+              h=hashlib.sha256()
+              with open(p,"rb") as f:
+                  for b in iter(lambda:f.read(1<<20),b""): h.update(b)
+              return h.hexdigest()
+
+          result="stage6b1/TRUMP_STAGE6B1_BOUNDED_DELETION_QHORN_FEASIBILITY_GATE_RESULT.json"
+          receipt={
+            "prereg_commit":"b60adda80316d87b742cae96ea77fa9fe8bc7df4",
+            "proposer_commit":"153c2ed916dbdd4379e60278922a8c7a4b170676",
+            "checker_commit":"c731521d64a84ec0828b8b93397648147f1425a5",
+            "implementation_head":os.environ["GITHUB_SHA"],
+            "result_sha256":sha(result),
+            "proposer_sha256":sha("research/tools/trump_stage6b1_bounded_deletion_qhorn_z3_proposer.py"),
+            "checker_sha256":sha("research/tools/trump_stage6b1_bounded_deletion_qhorn_independent_checker.py"),
+            "stage6A_checker_sha256":sha("research/tools/trump_stage6_qhorn_independent_checker.py"),
+            "stage6B_checker_sha256":sha("research/tools/trump_stage6b_deletion_qhorn_independent_checker.py"),
+            "source_artifact_id":9992845123,
+            "stage6A_artifact_id":10584038105,
+            "k_ladder":[1,2,4,8,16,32],
+            "per_k_timeout_ms":10000,
+            "generic_unsat_k_is_lower_bound":False,
+            "first_successful_k_is_minimum":False,
+            "stage6C_stage6D_executed":False,
+            "new_janus_controller_authorized":False
+          }
+          pathlib.Path("stage6b1/execution_receipt.json").write_text(
+            json.dumps(receipt,indent=2,sort_keys=True)+"\n",encoding="utf-8"
+          )
+          PY
+
+      - name: Upload Stage6B.1 proof-carrying artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: trump-stage6b1-bounded-deletion-qhorn-feasibility
+          path: |
+            stage6b1/TRUMP_STAGE6B1_BOUNDED_DELETION_QHORN_FEASIBILITY_GATE_RESULT.json
+            stage6b1/execution_receipt.json
+            stage6b1/source_binding_receipt.json
+            stage6b1/proposer_tool.json
+            stage6b1/tool_install.stdout
+            stage6b1/tool_install.stderr
+            stage6b1/attempts/
+            stage6b1/final/
+            stage6b1/aggregate.stdout
+            stage6b1/source/artifact_metadata.json
+            stage6b1/source/r50g25x.zip.sha256
+            stage6b1/source/unpacked/JANUS_TRUMP_R50G25X_ADVERSARIAL_STALL_SEARCH.json
+            stage6b1/stage6a/artifact_metadata.json
+            stage6b1/stage6a/stage6a.zip.sha256
+            stage6b1/stage6a/TRUMP_STAGE6_PUBLIC_QHORN_CERTIFICATE_GATE_RESULT.json
+          if-no-files-found: warn
+          retention-days: 30

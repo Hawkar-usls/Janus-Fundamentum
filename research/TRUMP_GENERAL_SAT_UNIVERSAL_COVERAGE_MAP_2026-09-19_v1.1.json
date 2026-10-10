@@ -1,0 +1,152 @@
+{
+  "artifact_id": "JANUS-TRUMP-GENERAL-SAT-UNIVERSAL-COVERAGE-MAP-2026-09-19-v1.1",
+  "date": "2026-09-19",
+  "authority": "READ_ONLY_COVERAGE_MAP_UPDATE__PUBLIC_ARSENAL_FIRST__NO_SAT_IN_P_OR_P_EQ_NP_PROMOTION",
+  "branch": "research/general-sat-universal-coverage-map-2026-09-19",
+  "parent_commit": "34beb6f5ee16563f3062574c9eb41d5acdc2baeb",
+  "policy": "USE_EVERY_KNOWN_EXACT_POLYNOMIAL_OR_PARAMETERIZED_LANE_BEFORE_NEW_MECHANISM_DESIGN",
+  "direct_public_P_lane_additions": [
+    {
+      "name": "MATCHED_CNF",
+      "class": "P_LANE__SAT_TERMINAL",
+      "admission": "Incidence bipartite graph has a matching covering every clause.",
+      "recognition": "Polynomial bipartite maximum matching.",
+      "solve": "A matching gives each clause a distinct representative variable; set each representative to satisfy its matched clause.",
+      "limitation": "Membership implies SAT; this is not an UNSAT class.",
+      "references": [
+        "Franco and Van Gelder, A perspective on certain polynomial-time solvable classes of satisfiability, Discrete Applied Mathematics 125 (2003).",
+        "Szeider, Matched Formulas and Backdoor Sets."
+      ]
+    },
+    {
+      "name": "HITTING_CNF",
+      "class": "P_LANE",
+      "admission": "Every pair of clauses clashes on complementary literals.",
+      "recognition": "Polynomial pairwise clash test.",
+      "solve": "SAT/model count is polynomial; falsifying assignment sets of clauses are disjoint, yielding direct counting and decision.",
+      "references": [
+        "Iwama, CNF-Satisfiability Test by Counting and Polynomial Average Time, 1989.",
+        "Peitl and Szeider, Are hitting formulas hard for resolution?, Discrete Applied Mathematics 337 (2023)."
+      ]
+    },
+    {
+      "name": "CC_BALANCED_CNF",
+      "class": "P_LANE__IMPORT_REQUIRED",
+      "admission": "CC-balanced signed incidence matrix condition.",
+      "recognition": "Polynomial-time recognition is known.",
+      "solve": "Polynomial-time SAT algorithms are known.",
+      "status": "PUBLIC_THEORY_CONFIRMED__JANUS_IMPLEMENTATION_NOT_YET_IMPORTED",
+      "references": [
+        "Balanced / CC-balanced SAT literature summarized by Franco and Van Gelder 2003."
+      ]
+    },
+    {
+      "name": "LINEARLY_SATISFIABLE_CNF",
+      "class": "P_LANE__SAT_TERMINAL__IMPORT_REQUIRED",
+      "admission": "Canonical polynomial linear-autarky decomposition has empty linearly-lean remainder.",
+      "recognition": "Largest linear autark part / linearly lean remainder is computable in polynomial time by linear programming.",
+      "solve": "A linear autarky satisfying the full clause-set provides a SAT certificate; unassigned variables may be completed arbitrarily.",
+      "relationship": "Strictly useful as a wider SAT-only door; literature states it generalizes matched formulas and contains satisfiable q-Horn formulas modulo unit-clause elimination.",
+      "references": [
+        "Oliver Kullmann, Investigations on autark assignments, Discrete Applied Mathematics 107 (2000/2001)."
+      ]
+    }
+  ],
+  "parameterized_lane_additions": [
+    {
+      "name": "MAXIMUM_DEFICIENCY",
+      "class": "PARAM_LANE",
+      "parameter": "k = md(F), maximum clause-variable deficiency over all subformulas.",
+      "parameter_discovery": "Polynomial via bipartite maximum matching / Hall deficiency.",
+      "solve_runtime": "O(2^k * n^3) for SAT.",
+      "polynomial_coverage_condition": "k=O(log n), or fixed constant k.",
+      "importance": "Orthogonal to treewidth: known families have bounded md and unbounded treewidth, and vice versa.",
+      "references": [
+        "Stefan Szeider, Minimal unsatisfiable formulas with bounded clause-variable difference are fixed-parameter tractable, JCSS 69 (2004)."
+      ]
+    },
+    {
+      "name": "DELETION_DISTANCE_TO_Q_HORN",
+      "class": "PARAM_LANE",
+      "parameter": "minimum deletion q-Horn backdoor size k",
+      "result": "SAT is fixed-parameter tractable in this distance; q-Horn strictly contains Horn, Krom and renamable Horn.",
+      "polynomial_promotion_rule": "Do not infer k=O(log n) => polynomial until the imported implementation's explicit parameter dependence is frozen and shown polynomial under the proposed bound.",
+      "references": [
+        "Gaspers, Ordyniak, Ramanujan, Saurabh, Szeider, Backdoors to q-Horn, STACS 2013 / Algorithmica."
+      ]
+    },
+    {
+      "name": "BACKDOOR_DEPTH_TO_SCHAEFER",
+      "class": "PARAM_LANE",
+      "base_classes": [
+        "Horn",
+        "dual-Horn",
+        "Krom"
+      ],
+      "result": "Backdoor depth admits FPT approximation; CNF-SAT is linear-time for bounded depth.",
+      "significance": "Depth can stay constant while ordinary backdoor size is arbitrarily large, so it is a genuinely different funnel door.",
+      "polynomial_promotion_rule": "Bounded constant depth is direct polynomial coverage. Any growing-depth claim requires the explicit approximation/solve dependence before promotion.",
+      "references": [
+        "Dreier, Ordyniak, Szeider, SAT backdoors: Depth beats size, JCSS 142 (2024)."
+      ]
+    },
+    {
+      "name": "HETEROGENEOUS_SCHAEFER_BACKDOOR",
+      "class": "PARAM_LANE__IMPORT_CANDIDATE",
+      "result": "Strong backdoor detection to heterogeneous unions/combinations of Schaefer tractable classes has an established parameterized complexity landscape with FPT cases and single-exponential improvements.",
+      "value": "Different assignments to one backdoor may land in different known P classes, potentially shrinking the required set versus one homogeneous target.",
+      "references": [
+        "Gaspers, Misra, Ordyniak, Szeider, Zivny, Backdoors into Heterogeneous Classes of SAT and CSP, AAAI 2014 / JCSS 85 (2017)."
+      ],
+      "firewall": "Use only exact theorem-supported combinations; do not treat arbitrary union of tractable classes as tractable."
+    }
+  ],
+  "negative_public_guidance": [
+    {
+      "parameter": "INCIDENCE_CLIQUE_WIDTH",
+      "status": "DO_NOT_PROMOTE_AS_GENERAL_FPT_DOOR",
+      "reason": "SAT parameterized by undirected clique-width of the incidence graph is W[1]-hard in the known result.",
+      "reference": "Ordyniak, Paulusma, Szeider, Satisfiability of acyclic and almost acyclic CNF formulas, TCS 481 (2013)."
+    },
+    {
+      "topic": "EXTENDED_HORN",
+      "status": "DO_NOT_USE_AS_CHEAP_DIRECT_RECOGNITION_GATE_WITHOUT_A_RECOGNIZABLE_SUBCLASS",
+      "reason": "SAT algorithms exist for extended Horn, but polynomial recognition of the full extended-Horn class is not known in the cited literature; simple extended/enlarged Horn subclasses have recognizers."
+    },
+    {
+      "topic": "SLUR",
+      "status": "SOLVER_BEHAVIOR_CAN_BE_USEFUL__MEMBERSHIP_NOT_A_CHEAP_P_LANE",
+      "reason": "SAT can be efficiently solved when the SLUR algorithm succeeds, but membership testing in SLUR is coNP-complete."
+    }
+  ],
+  "current_import_priority": [
+    "GENERAL_Q_HORN_RECOGNIZER_AND_SOLVER",
+    "MATCHED_CNF_GATE",
+    "HITTING_CNF_GATE",
+    "MAXIMUM_DEFICIENCY_PARAMETER_AND_FPT_SOLVER_INTERFACE",
+    "LINEAR_AUTARKY_DECOMPOSITION",
+    "CC_BALANCED_RECOGNIZER_SOLVER",
+    "STRONG_HORN_KROM_BACKDOOR_DETECTORS",
+    "Q_HORN_DELETION_BACKDOOR_DETECTOR",
+    "BACKDOOR_DEPTH_TO_HORN_DHORN_KROM",
+    "CERTIFIED_INCIDENCE_TREEWIDTH_DECOMPOSITION_FRONTEND_FOR_BA25"
+  ],
+  "universal_funnel_refinement": {
+    "old_residual_name": "GENERAL_MIXED_HIGH_WIDTH_NO_SMALL_BACKDOOR_RESIDUAL",
+    "new_name": "GENERAL_MIXED_RESIDUAL_OUTSIDE_KNOWN_P_AND_POLYNOMIALLY_ACCESSIBLE_PARAMETER_DOORS",
+    "definition": [
+      "not in any imported direct P/SAT-terminal lane",
+      "not certified linearly satisfiable by polynomial autarky decomposition",
+      "no currently certified parameter route with total f(k)*poly(n) made polynomial by an input-wide parameter bound",
+      "no source-specific affine/component/interface terminal",
+      "no certified polynomial controlled-growth route into one of those lanes"
+    ],
+    "theorem_target": "For every reachable residual, a uniform polynomial procedure must either enter a direct P lane, certify a parameter bound that makes an imported parameterized solver polynomial, or perform an exact globally polynomially charged transition that moves toward such a door."
+  },
+  "claim_ceiling": {
+    "UNIVERSAL_COVERAGE": "OPEN",
+    "GENERAL_SAT_IN_P": "NOT_PROVED",
+    "P_EQ_NP": "NOT_PROVED",
+    "P_VS_NP": "OPEN"
+  }
+}

@@ -1,0 +1,173 @@
+name: TRUMP Stage6B.4 UNSAT Proof Pipeline Smoke
+
+on:
+  push:
+    branches:
+      - research/general-sat-universal-coverage-map-2026-09-19
+    paths:
+      - ".github/workflows/trump-stage6b4-unsat-proof-pipeline-smoke.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  unsat-proof-pipeline-smoke:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Verify frozen B.4 smoke lineage
+        shell: bash
+        run: |
+          set -euo pipefail
+          for C in \
+            ec279137463f1796145973fe60d4e3dac68b9b28 \
+            f269702142410b6fed5d5f1a15ebf50c5c6ce768 \
+            a663d61fbc7b584432698c4248b32cf1d9f73207 \
+            35b844dde0b33fa78cc36aae5c0e24eafe56756e \
+            c97d1b892623465c5497d1161833e36a400598b4 \
+            49620f43d5bfc08e0edbaef378c1520f806902db \
+            cca848a8a4f06059ee8fb85ddda146814665842a \
+            7d1fa7e36bfc9a355d1fa302fd69f7745b652eee \
+            66deda983997ef06dd0293901873275de11c7a9b \
+            b3900ea39666626ce0ef1283e732dbd7ede8005b \
+            4aa65af4c9f0745ef273ca8265b2b00b4235504b \
+            0ff5023651d3a74cb392e59d3629917562559f4c \
+            662cc2b5b96123c7fc26a5f743217d2772d51393
+          do
+            git merge-base --is-ancestor "$C" HEAD
+          done
+          python -m py_compile \
+            research/tools/trump_stage6b4_unsat_pipeline_smoke.py \
+            research/tools/trump_stage6b3_roundingsat_runner.py \
+            research/tools/trump_stage6b4_veripb_v2_harness.py \
+            research/tools/trump_stage6b3_cakepb_secondary_harness.py
+
+      - name: Build exact frozen proof toolchain
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo apt-get update -y
+          sudo apt-get install -y build-essential cmake git libboost-all-dev libgmp-dev python3-dev file
+          mkdir -p stage6b4smoke/tools stage6b4smoke/logs
+
+          RS_SRC="stage6b4smoke/tools/roundingsat"
+          git clone https://gitlab.com/MIAOresearch/software/roundingsat.git "$RS_SRC" \
+            > stage6b4smoke/logs/roundingsat.clone.stdout 2> stage6b4smoke/logs/roundingsat.clone.stderr
+          git -C "$RS_SRC" checkout 7116cbc7c228335d7a828fc9086639e4321fd5d1 \
+            > stage6b4smoke/logs/roundingsat.checkout.stdout 2> stage6b4smoke/logs/roundingsat.checkout.stderr
+          git -C "$RS_SRC" submodule update --init --recursive \
+            > stage6b4smoke/logs/roundingsat.submodules.stdout 2> stage6b4smoke/logs/roundingsat.submodules.stderr || true
+          cmake -S "$RS_SRC" -B "$RS_SRC/build" -DCMAKE_BUILD_TYPE=Release -Dsoplex=OFF \
+            > stage6b4smoke/logs/roundingsat.cmake.stdout 2> stage6b4smoke/logs/roundingsat.cmake.stderr
+          cmake --build "$RS_SRC/build" -j2 \
+            > stage6b4smoke/logs/roundingsat.build.stdout 2> stage6b4smoke/logs/roundingsat.build.stderr
+          RS_BIN="$RS_SRC/build/roundingsat"
+          test -x "$RS_BIN"
+
+          VP_SRC="stage6b4smoke/tools/VeriPB-archive"
+          git clone https://gitlab.com/MIAOresearch/software/VeriPB-archive.git "$VP_SRC" \
+            > stage6b4smoke/logs/veripb.clone.stdout 2> stage6b4smoke/logs/veripb.clone.stderr
+          git -C "$VP_SRC" checkout 9dbb658ffb8d88815c3f3d8ff7fcefd6c6fc43db \
+            > stage6b4smoke/logs/veripb.checkout.stdout 2> stage6b4smoke/logs/veripb.checkout.stderr
+          python -m venv stage6b4smoke/tools/veripb-venv
+          stage6b4smoke/tools/veripb-venv/bin/python -m pip install --upgrade pip setuptools wheel \
+            > stage6b4smoke/logs/veripb.bootstrap.stdout 2> stage6b4smoke/logs/veripb.bootstrap.stderr
+          stage6b4smoke/tools/veripb-venv/bin/python -m pip install "$VP_SRC" \
+            > stage6b4smoke/logs/veripb.install.stdout 2> stage6b4smoke/logs/veripb.install.stderr
+          VP_BIN="stage6b4smoke/tools/veripb-venv/bin/veripb"
+          test -x "$VP_BIN"
+
+          CP_SRC="stage6b4smoke/tools/cakepb"
+          CAKE_BIN=""
+          set +e
+          git clone https://gitlab.com/MIAOresearch/software/cakepb.git "$CP_SRC" \
+            > stage6b4smoke/logs/cakepb.clone.stdout 2> stage6b4smoke/logs/cakepb.clone.stderr
+          RC=$?
+          if [ "$RC" -eq 0 ]; then
+            git -C "$CP_SRC" checkout b29b4e967413ee4e8c3dcb1bbc78bd0d508d6817 \
+              > stage6b4smoke/logs/cakepb.checkout.stdout 2> stage6b4smoke/logs/cakepb.checkout.stderr
+            if [ -f "$CP_SRC/Makefile" ]; then
+              make -C "$CP_SRC" -j2 > stage6b4smoke/logs/cakepb.build.stdout 2> stage6b4smoke/logs/cakepb.build.stderr
+            fi
+            while IFS= read -r CAND; do
+              if [ -x "$CAND" ]; then CAKE_BIN="$CAND"; break; fi
+            done < <(find "$CP_SRC" -type f \( -name 'cake_pb' -o -name 'cake_pb_*' -o -name 'cakepb' \) 2>/dev/null)
+          fi
+          set -e
+
+          printf '%s\n' "$RS_BIN" > stage6b4smoke/roundingsat.path
+          printf '%s\n' "$VP_BIN" > stage6b4smoke/veripb.path
+          printf '%s\n' "$CAKE_BIN" > stage6b4smoke/cakepb.path
+
+          python - <<'PY'
+          import hashlib,json,pathlib,subprocess
+          def sha(p):
+              return hashlib.sha256(pathlib.Path(p).read_bytes()).hexdigest()
+          def rev(p):
+              return subprocess.check_output(["git","-C",p,"rev-parse","HEAD"],text=True).strip()
+          rs=pathlib.Path("stage6b4smoke/roundingsat.path").read_text().strip()
+          vp=pathlib.Path("stage6b4smoke/veripb.path").read_text().strip()
+          cp=pathlib.Path("stage6b4smoke/cakepb.path").read_text().strip()
+          assert rev("stage6b4smoke/tools/roundingsat")=="7116cbc7c228335d7a828fc9086639e4321fd5d1"
+          assert rev("stage6b4smoke/tools/VeriPB-archive")=="9dbb658ffb8d88815c3f3d8ff7fcefd6c6fc43db"
+          receipt={
+            "roundingsat_revision":rev("stage6b4smoke/tools/roundingsat"),
+            "roundingsat_binary_sha256":sha(rs),
+            "veripb_revision":rev("stage6b4smoke/tools/VeriPB-archive"),
+            "veripb_binary_sha256":sha(vp),
+            "cakepb_revision":rev("stage6b4smoke/tools/cakepb") if pathlib.Path("stage6b4smoke/tools/cakepb/.git").exists() else None,
+            "cakepb_binary_sha256":sha(cp) if cp else None
+          }
+          pathlib.Path("stage6b4smoke/toolchain.receipt.json").write_text(json.dumps(receipt,indent=2,sort_keys=True)+"\n")
+          PY
+
+      - name: Run non-scientific UNSAT proof pipeline smoke
+        shell: bash
+        run: |
+          set -euo pipefail
+          RS_BIN="$(cat stage6b4smoke/roundingsat.path)"
+          VP_BIN="$(cat stage6b4smoke/veripb.path)"
+          CAKE_BIN="$(cat stage6b4smoke/cakepb.path)"
+          ARGS=(
+            "$RS_BIN"
+            "$VP_BIN"
+            research/fixtures/TRUMP_STAGE6B4_TRIVIAL_UNSAT_PB24_SMOKE.opb
+            stage6b4smoke/run
+          )
+          if [ -n "$CAKE_BIN" ] && [ -x "$CAKE_BIN" ]; then
+            ARGS+=(--cakepb "$CAKE_BIN")
+          fi
+          python research/tools/trump_stage6b4_unsat_pipeline_smoke.py "${ARGS[@]}" \
+            | tee stage6b4smoke/smoke.stdout
+          python - <<'PY'
+          import json
+          d=json.load(open("stage6b4smoke/run/smoke.receipt.json"))
+          assert d["scientific_deletion_qhorn_authority"] is False
+          assert d["status"]=="UNSAT_PROOF_PIPELINE_SMOKE_PASS"
+          assert d["roundingsat_status"]=="UNSAT"
+          assert d["veripb_raw_proof_verified"]=="YES"
+          assert d["veripb_conclusion"]=="UNSAT"
+          assert d["veripb_conclusion_section_valid"] is True
+          PY
+
+      - name: Upload smoke artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: trump-stage6b4-unsat-proof-pipeline-smoke
+          path: |
+            stage6b4smoke/toolchain.receipt.json
+            stage6b4smoke/run/
+            stage6b4smoke/logs/
+            stage6b4smoke/smoke.stdout
+            research/fixtures/TRUMP_STAGE6B4_TRIVIAL_UNSAT_PB24_SMOKE.opb
+          retention-days: 30
