@@ -3,7 +3,7 @@
 Date: 2026-10-10
 
 Status:
-PROVED_SCALABLE_HIGH_NULLITY_HIGH_WIDTH_UNSAT_FAMILY__LATE_ROUTER_FILTERS_OPEN
+PROVED_RAW_HIGH_NULLITY_HIGH_WIDTH_UNSAT_FIREWALL__CONSTANT_LOCAL_UNSAT_CORE_ROUTER
 
 P_VS_NP = OPEN.
 
@@ -28,11 +28,13 @@ The result is an explicit infinite family with
     Levi treewidth Omega(sqrt(n)).
 
 Thus scalable high-nullity UNSAT need not come with the constant separator of
-E124.
+the one-edge 2-lift construction.
 
-This does NOT yet prove that the family survives E18/KLOC3, the later
-normal-span/component routers, or every branchwidth terminal. Those are the
-next filters.
+However this construction is NOT a post-router survivor: the 62 retained local
+checks in every E64 block are already UNSAT by one-check redundancy. Therefore
+each member contains a constant-size UNSAT subformula. E125 is a firewall
+showing that raw nullity and raw Levi width can both be large while the formula
+remains locally easy.
 
 ## 2. Base authority
 
@@ -267,22 +269,31 @@ this is
 Therefore E125 is not routed by the constant-separator defect that killed E124,
 nor by any claimed universal O(sqrt(log n)) width bound.
 
-## 10. What remains to test
+## 10. Constant local UNSAT core
 
-E125 is a genuine improvement over E124, but it is not yet certified
-POST-ROUTER.
+The same semantic proof of Section 7 gives a stronger anti-overclaim fact.
 
-The next exact replay must test the family, or growing members, against:
+For every left block, the 62 retained E64 checks involve only that block's 63
+variables. Any Boolean assignment satisfying those 62 checks would, by
+one-check redundancy, also satisfy the deleted E64 check c0 and hence solve the
+frozen E64 base.
 
-1. E18 zero/projective coordinate compression;
-2. arbitrary-coordinate KLOC3;
-3. cube-root/rainbow-Z3 SAT terminal;
-4. E108/E109 normal-span and component compression;
-5. E110/E111 subspace-arrangement branchwidth on the actual post-reduction
-   representation, not only raw Levi treewidth.
+Therefore those 62 retained checks alone are UNSAT.
 
-The family must not be called a universal hard core until those late filters
-are crossed.
+So every E125 instance contains an UNSAT subformula of constant size
+independent of t.
+
+Consequently E125 is NOT a candidate SCALABLE_POST_ROUTER_UNSAT family even
+before E18/KLOC3/normal-span testing. A polynomial router may detect the frozen
+local obstruction once and reuse it.
+
+The correct use of E125 is narrower:
+
+    large rational nullity + growing raw Levi treewidth
+    do not by themselves imply a globally hard support relation.
+
+A genuine scalable benchmark must ensure that every bounded-size induced/local
+region remains extendible while global UNSAT survives.
 
 ## 11. Scientific consequence
 
@@ -298,11 +309,10 @@ E125 proves that this is not forced:
 
 can coexist in an explicit connected square+cubic+linear family.
 
-The active benchmark question is now whether the later algebraic routers
-collapse E125 despite its raw width.
+But the same family is locally trivial through a constant 62-check UNSAT core.
 
-If they do, that collapse is new structure to understand.
-If they do not, E125 becomes the first scalable post-router benchmark.
+Therefore the next benchmark must add a LOCAL-EXTENDIBILITY requirement:
+bounded-size regions must not already certify UNSAT.
 
 ## Claim boundary
 
@@ -321,11 +331,11 @@ RAW_LEVI_TREEWIDTH
 CONSTANT_SEPARATOR_FIREWALL_FROM_E124
   = REMOVED.
 
-POST_E18_KLOC3_CLEAN
-  = NOT YET ESTABLISHED.
+CONSTANT_LOCAL_UNSAT_CORE
+  = PRESENT (62 retained checks per block).
 
-POST_NORMAL_SPAN_BRANCHWIDTH_CLEAN
-  = NOT YET ESTABLISHED.
+POST_ROUTER_SURVIVOR
+  = NO.
 
 SCALABLE_POST_ROUTER_UNSAT
   = OPEN.
