@@ -17,8 +17,9 @@ from r5_e123_e64_tutte12_post_e18_kloc3_rebind import (
     kernel_coordinate_rows,
 )
 
+from r5_e122_post_e18_kloc3_clean_small_nullity_unsat import lift_matrix as e122_lift_matrix
 from r5_e127_tutte12_affine_support_nullity_descent import (
-    affine_closure, signed_matrix,
+    affine_closure, signed_matrix, propagate, quotient,
 )
 
 ALPHABET = (-1, 2)
@@ -141,6 +142,39 @@ def transpose_affine_signature_check(M):
     return observed
 
 
+def e122_all_one_check_pin_xor_exhaustion():
+    """Polynomial local UNSAT route for the frozen E122 q36 carrier.
+
+    Any solution satisfies exactly one of the three choices at every check.
+    We classify the *first* contradiction at unit propagation or XOR parity.
+    No exponential kernel enumeration is used for this E122 certificate.
+    """
+    A = e122_lift_matrix()
+    n = len(A)
+    assert n == 36
+    clauses = [[j for j, val in enumerate(row) if val] for row in A]
+    counts = Counter()
+    by_check = Counter()
+    for ports in clauses:
+        local = Counter()
+        for chosen in ports:
+            init = {j: int(j == chosen) for j in ports}
+            vals = propagate(clauses, n, init)
+            if vals is None:
+                reason = "UP"
+            elif quotient(clauses, vals) is None:
+                reason = "XOR"
+            else:
+                raise AssertionError("E122 pin branch survived UP+XOR")
+            counts[reason] += 1
+            local[reason] += 1
+        assert sum(local.values()) == 3
+        by_check[(local["UP"], local["XOR"])] += 1
+    assert counts == Counter({"UP": 90, "XOR": 18})
+    assert by_check == Counter({(3,0):18, (2,1):18})
+    return counts, by_check
+
+
 def main():
     R = tutte12_incidence()
     RT = transpose(R)
@@ -169,12 +203,16 @@ def main():
     assert set(exact_mask_RT) == {(1, 1, 1)}
     assert all(z % 2 == 0 and z % 3 == 0 for ct in count_RT for z in ct)
 
+    # E122 is solved for every one-check pin by immediate UP/XOR contradiction.
+    e122_all_one_check_pin_xor_exhaustion()
+
     # E123 already proves E18/KLOC3-clean for R. Extend to transpose.
     assert dual_local_projection_check(RT) == 63
     # Extend E127's UNSAT local-closure signature to SAT-transpose control.
     assert len(transpose_affine_signature_check(RT)) == 1
 
     print("R5 SC23 three-port extension-count firewall: PASS")
+    print("E122 q36: 108/108 one-check branches fail (UP=90, XOR=18)")
     print("R: n=63 rank_Q=49 nullity_Q=14 Exact-One=0 SUPPORT_c=000 for all c")
     print("R^T: same n/rank/girth, Exact-One=36, per-check ports=(12,12,12)")
     print("R^T SUPPORT_c=111 for all c; counts mod 2 AND mod 3=(0,0,0)")
