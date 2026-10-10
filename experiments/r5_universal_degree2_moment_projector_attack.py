@@ -60,6 +60,47 @@ def exact_unsat_from_f2_kernel(A):
     return max_weight
 
 
+def verify_transpose_true_moments(A):
+    """The SAT transpose realizes the SAME shell moment formula honestly."""
+    n=len(A)
+    AT=[list(row) for row in zip(*A)]
+    graph=levi_graph(AT)
+    D=[distances(graph,n+i)[n:] for i in range(n)]
+    scale={0:8,2:-4,4:2,6:-1}
+    H=[[scale[d] for d in row] for row in D]
+    assert all(
+        sum(AT[i][k]*H[k][j] for k in range(n))==0
+        for i in range(n) for j in range(n)
+    )
+    assert all(
+        sum(H[i][k]*H[k][j] for k in range(n))==36*H[i][j]
+        for i in range(n) for j in range(n)
+    )
+    _,_,basis=gf2_rref_basis(AT)
+    assert len(basis)==14
+    models=[]
+    ones=(1<<n)-1
+    rowbits=[sum(1<<j for j,v in enumerate(row) if v) for row in AT]
+    for mask in range(1<<len(basis)):
+        k=0
+        for i,word in enumerate(basis):
+            if (mask>>i)&1:
+                k ^= word
+        x=ones^k
+        if x.bit_count()==n//3:
+            assert all((rb&x).bit_count()==1 for rb in rowbits)
+            models.append(x)
+    assert len(models)==36
+    expected={0:12,2:0,4:6,6:3}
+    for i in range(n):
+        for j in range(n):
+            real_count=sum(((w>>i)&1) and ((w>>j)&1) for w in models)
+            assert real_count==expected[D[i][j]], (i,j,D[i][j],real_count)
+            assert real_count==4+H[i][j]
+    print("Transpose SAT: all 36 Boolean witnesses realize the SAME shell moment profile")
+    print("Real pair counts among 36 witnesses: d=0:12 d=2:0 d=4:6 d=6:3")
+
+
 def main():
     A=tutte12_incidence()
     n=len(A)
@@ -144,6 +185,7 @@ def main():
     print("Unpinned Boolean/ExactOne degree-2 moment SDP = FEASIBLE")
     print("189 conditional first moments yield the exact earlier pinned LP vectors")
     print(f"E123 Boolean UNSAT independently: max F2 kernel weight {bad_top_weight}<42")
+    verify_transpose_true_moments(A)
     print("Level-1 moment feasibility => Boolean SAT is FALSE")
     print("UNIVERSAL_POLYNOMIAL_EXACTONE_SOLVER=NOT_CONSTRUCTED; P_VS_NP=OPEN")
 
