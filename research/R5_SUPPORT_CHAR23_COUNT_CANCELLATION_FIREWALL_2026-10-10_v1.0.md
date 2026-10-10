@@ -139,6 +139,35 @@ symbolic invariant of those matrices remains a possible approach.
 This comparison reuses E127 rather than repeating its earlier UNSAT proof,
 and still uses only finite controls, not an asymptotic theorem.
 
+## 3B. E122/E123 adversarial fork for the exact SUPPORT_c algorithm
+
+The primary request was to test actual polynomial support construction on
+both E122 and E123, rather than only refine finite parameterized routers.
+
+For the frozen E122 q36 UNSAT cyclic 3-lift, the same elementary E127
+`propagate` and `quotient` procedures reject **every one-check pin**
+before any global arithmetic solving:
+
+    36 checks * 3 states = 108 states,
+    90 rejected by Exact-One unit propagation,
+    18 rejected by XOR-component parity inconsistency,
+    0 surviving.
+
+At the check level, 18 checks have (3 UP, 0 XOR) and 18 checks have
+(2 UP, 1 XOR). Every check independently yields all three absent
+`SUPPORT_c` bits. Thus a **deterministic polynomial** procedure with three
+pins at any fixed check plus polynomial UP/XOR closure decides E122 UNSAT.
+This is a stronger executable route for E122 than its previously cited
+small rational nullity d=3, and no 2^d enumeration is required.
+
+By contrast, E123 q63 UNSAT survives all 189 E127 pin/affine states.
+Its SAT-transpose also survives all 189, with identical coarse closure
+profiles, despite opposite exact support masks.
+
+This does not solve an unrestricted input family. It sharpens the mandatory
+benchmark: use E122 as a positive test of cheap UNSAT detection and E123
+as the adversarial survivor of exactly the same preprocessing.
+
 ## 4. Consequence for the actual theorem target
 
 A valid `GLOBAL_SYMBOLIC_SUPPORT_CONSTRUCTION` must distinguish
@@ -155,6 +184,7 @@ completeness theorem, or runtime theorem is established here.
     SC23_PER_PORT_COUNTS = EXACT_FINITE_CERTIFICATE.
     SC23_MOD2_MOD3_COUNT_TO_SUPPORT = REFUTED.
     SC23_DUAL_AFFINE_SUMMARY_SUPPORT = REFUTED.
+    SC23_E122_UP_XOR_BRANCH_EXHAUSTION = FINITE POLYNOMIAL CERTIFICATE.
     GLOBAL_SYMBOLIC_SUPPORT_CONSTRUCTION = OPEN.
     SCALABLE_POST_ROUTER_UNSAT = OPEN.
     SolveLinearCubicXSAT = NOT_CONSTRUCTED.
