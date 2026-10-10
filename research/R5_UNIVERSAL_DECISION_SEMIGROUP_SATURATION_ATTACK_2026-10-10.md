@@ -124,6 +124,30 @@ obstruction itself, not merely lattice feasibility.
 This is a precise refutation of the proposed shortcut, not a
 refutation of every possible semigroup algorithm.
 
+## 4A. Why a linear RHS-space separation certificate cannot rescue the attack
+
+For any affine semigroup S(A), a real linear inequality
+
+    ell(y) >= c
+
+valid for every y in S(A) must have c <= 0 (because 0 in S(A))
+and ell(A_j) >= 0 for every generator column A_j (otherwise large
+multiples m A_j would violate the bound). Consequently the same
+inequality holds on the **entire nonnegative rational cone** of A,
+including b=A(1/3*1). So no semigroup-valid ordinary linear
+inequality in RHS coordinates y can separate any such b from S(A).
+
+Likewise, any abelian-group congruence or character condition that
+vanishes on all column generators automatically vanishes on b
+whenever b in Z A (as on E123).
+
+This is a general proof, not merely a q63 calculation. It only
+disqualifies separators acting directly on the RHS image space
+which must be valid for ALL semigroup elements. Instance-dependent
+integer-hull cuts in preimage x-space and genuinely nonlinear or
+extended certificates are not ruled out. Any proposed polytime
+separation theorem must state its certificate class precisely.
+
 ## 5. The actual missing *algorithmic* statement
 
 A valid constructive successor would prove:
@@ -183,6 +207,8 @@ UNIVERSAL_SEMIGROUP_FORMULATION = EXACT BUT NOT AN ALGORITHM.
 GENERAL_COKERNEL_3_TORSION = PROVED.
 SMITH_ORDER_3 => UNSAT = PROVED.
 E123_SATURATION_HOLE_WITH_3b_IN_S = PROVED FROM EXISTING CHECKS.
+ORDINARY_RHS_LINEAR_SEPARATION_OF_ANY_SUCH_HOLE = IMPOSSIBLE.
+GENERATOR_GROUP_CHARACTERS_CANNOT_DETECT_LATTICE_HOLES = PROVED.
 R_VS_R_TRANSPOSE_SEMIGROUP_ORIENTATION = PROVED FROM EXISTING CHECKS.
 GLOBAL_POLYNOMIAL_NONNEGATIVE_SEMIGROUP_MEMBERSHIP = OPEN.
 UNIVERSAL_POLYNOMIAL_EXACTONE_SOLVER = NOT CONSTRUCTED.
