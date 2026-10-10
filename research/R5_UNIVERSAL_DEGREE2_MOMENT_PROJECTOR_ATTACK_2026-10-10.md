@@ -2,11 +2,17 @@
 
 Date: 2026-10-10
 Source authority: Hawkar-usls/Janus-Fundamentum PR #515;
-pre-existing E64 q63 generalized hexagon, E65 transpose asymmetry and
-E123 post-E18/KLOC3 controls. New runnable witness:
+pre-existing E64 q63 generalized hexagon, E65 transpose asymmetry,
+**E68 degree-2 SDP transpose firewall (original authority for the SDP
+incompleteness finding)**, and E123 post-E18/KLOC3 controls. New runnable witness:
 `experiments/r5_universal_degree2_moment_projector_attack.py`.
 
-STATUS = DEGREE2_MOMENT_SDP_NOT_UNIVERSAL.
+STATUS = EXACT_INTEGER_PROJECTOR_REPRODUCTION_AND_STRONGER_MOMENT_DETAILS.
+ANTI-DUPLICATION: E68 ALREADY PROVED the basic R/R^T level-1 SDP
+counterexample; do NOT count that basic conclusion as a new theorem.
+What is newly checked here: integer shell projector H^2=36H,
+all local pair moments, genuine SAT transpose pair-counts from all 36
+Boolean models, and the link to 189 conditional first moments.
 UNIVERSAL_POLYNOMIAL_SOLVER = NOT CONSTRUCTED.
 P_VS_NP = OPEN.
 
@@ -41,7 +47,7 @@ UNSAT criterion.
 If this polynomial-size SDP relaxation were also complete for every
 square/cubic/linear instance, it could support a polynomial solver
 subject to rigorous SDP decision bit-complexity and witness recovery.
-**That proposed completeness theorem is false.**
+**That proposed completeness theorem is false, as already established by E68.**
 
 ## 2. Exact rational pseudo-moment matrix on UNSAT E123
 
@@ -98,9 +104,9 @@ But E64/E65/E123 independently certify R is Boolean UNSAT:
 ker_F2(R) has dimension14, maximum weight40, while Exact-One would
 require a kernel word of weight2*63/3=42.
 
-Therefore there exists a FULLY VERIFIED PSD second-moment
-pseudodistribution on an UNSAT member of the exact target class.
-The degree-2 moment SDP is not a universal decision oracle.
+This reproduces E68's basic SDP obstruction with a new compact
+integer-squared projector and explicit local Boolean pair identities.
+The degree-2 moment SDP is not a universal decision oracle (E68).
 
 No floating eigenvalue computations, external SDP solver,
 randomized search or approximate rational reconstruction are used
@@ -183,12 +189,12 @@ the moment PSD identity is an exact constructive certificate.
 
 ## Claim ledger
 
-EXACT_UNSAT_E123_PSEUDOMOMENT = PROVED_BY_INTEGER_REPLAY.
+EXACT_UNSAT_E123_PSEUDOMOMENT = E68 PREDECESSOR; INDEPENDENT INTEGER REPLAY.
 H_OVER_36_IS_ORTHOGONAL_KERNEL_PROJECTOR = PROVED.
 DISTANCE_SHELL_MOMENTS_OF_R_AND_RT = EXACTLY_EQUAL_PROFILES.
 REAL_36_WITNESS_TRANSPOSE_PAIR_COUNTS = PROVED_BY_ENUMERATION.
 PREVIOUS_189_PINNED_LP_VECTORS_ARE_CONDITIONAL_FIRST_MOMENTS = PROVED.
-DEGREE2_MOMENT_SDP_IS_COMPLETE_FOR_ALL_SCL = REFUTED.
+DEGREE2_MOMENT_SDP_IS_COMPLETE_FOR_ALL_SCL = ALREADY REFUTED IN E68.
 UNIVERSAL_POLYNOMIAL_SDP_HIERARCHY = NOT ESTABLISHED.
 UNIVERSAL_POLYNOMIAL_EXACTONE_SOLVER = NOT CONSTRUCTED.
 P_VS_NP = OPEN.
