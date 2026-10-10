@@ -168,6 +168,43 @@ This does not solve an unrestricted input family. It sharpens the mandatory
 benchmark: use E122 as a positive test of cheap UNSAT detection and E123
 as the adversarial survivor of exactly the same preprocessing.
 
+## 3C. Provenance correction to E127's apparent nullity descent
+
+E127 reports that after every one-check pin plus full affine/XOR closure
+on E123, the effective rational nullity decreases from 14 to 10.
+We independently traced the **source of that decrease** on both `R`
+and `R^T`.
+
+Write the rational kernel-coordinate matrix `B` of size 63x14.
+Since `A*1=3*1`, every rational solution of `Ax=1` has the form
+`x=1/3*1+(1/3)B*t`. If unit propagation fixes coordinates `P` to
+Boolean values `b`, their rational parameter equations are
+
+    B_P * t = 3*b - 1.
+
+Every one of the 189 pin branches per orientation yields:
+
+    exactly |P|=7 UP-fixed coordinates;
+    rank_Q(B_P)=4;
+    rank_Q([B_P | 3*b-1])=4 (affine-consistent).
+
+Therefore the pinned *rational* solution space already has dimension
+
+    d_pinned=14-4=10.
+
+E127's final 44-component / 34-rank signed quotient likewise has
+`d_quotient=44-34=10`. On these controls, XOR-component substitution
+does **not** reduce the rational affine dimension beyond the seven
+already-imposed pin values. Its decrease in the *number of variables*
+is compensated by loss of redundant linear equations.
+
+Thus the finite ratio `10/14` is a correct observation but **not
+evidence of a new global fractional-nullity contraction**. A universal
+multiplicative rank-shrink theorem remains unproved; any recursive
+analysis must track the actual projection rank consumed per pin and
+must apply to the signed affine quotient language encountered after
+the first branch.
+
 ## 4. Consequence for the actual theorem target
 
 A valid `GLOBAL_SYMBOLIC_SUPPORT_CONSTRUCTION` must distinguish
@@ -185,6 +222,7 @@ completeness theorem, or runtime theorem is established here.
     SC23_MOD2_MOD3_COUNT_TO_SUPPORT = REFUTED.
     SC23_DUAL_AFFINE_SUMMARY_SUPPORT = REFUTED.
     SC23_E122_UP_XOR_BRANCH_EXHAUSTION = FINITE POLYNOMIAL CERTIFICATE.
+    SC23_E127_NULLITY_DROP_EXPLAINED_BY_LOCAL_PIN_RANK = FINITE EXACT REPLAY.
     GLOBAL_SYMBOLIC_SUPPORT_CONSTRUCTION = OPEN.
     SCALABLE_POST_ROUTER_UNSAT = OPEN.
     SolveLinearCubicXSAT = NOT_CONSTRUCTED.
