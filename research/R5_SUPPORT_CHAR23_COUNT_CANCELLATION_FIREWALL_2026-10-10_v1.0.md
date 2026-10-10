@@ -108,6 +108,37 @@ provably sufficient reconstruction bound, or an entirely different
 symbolic invariant. It refutes only the above direct fixed-characteristic
 nonzero-coefficient oracle.
 
+## 3A. E127 dual-orientation affine-closure comparison
+
+The independent E127 checkpoint had already computed the complete fixed-point
+pin/unit/XOR/affine closure for every one-check state of the **UNSAT** orientation
+`R`, reporting 189 surviving states and a uniform quotient profile.
+
+SC23 now applies the **same E127 code** to all 189 pinned one-check states of
+the **SAT** orientation `R^T`, including exact rational ranks of each
+signed quotient. Every branch survives, and all 189 branches in *each*
+orientation share the summary signature:
+
+    originally unknown variables = 56
+    XOR quotient components = 44
+    size-2 components = 12
+    size-1 components = 32
+    surviving proper ternary constraints = 48
+    signed quotient rank_Q = 34
+    effective affine nullity = 10.
+
+Yet the true global support mask remains `000` on `R` and `111`
+on `R^T`.
+
+**Precise obstruction:** a proposed `SUPPORT_c` procedure that uses only
+these post-affine-closure **summary statistics** to decide the three ports
+must fail. We do **not** claim the complete signed quotient matrices or
+their full symbolic representations are isomorphic; a genuinely global
+symbolic invariant of those matrices remains a possible approach.
+
+This comparison reuses E127 rather than repeating its earlier UNSAT proof,
+and still uses only finite controls, not an asymptotic theorem.
+
 ## 4. Consequence for the actual theorem target
 
 A valid `GLOBAL_SYMBOLIC_SUPPORT_CONSTRUCTION` must distinguish
@@ -123,6 +154,7 @@ completeness theorem, or runtime theorem is established here.
     SC23_RT_E18_KLOC3_CLEAN = FINITE_REPLAY.
     SC23_PER_PORT_COUNTS = EXACT_FINITE_CERTIFICATE.
     SC23_MOD2_MOD3_COUNT_TO_SUPPORT = REFUTED.
+    SC23_DUAL_AFFINE_SUMMARY_SUPPORT = REFUTED.
     GLOBAL_SYMBOLIC_SUPPORT_CONSTRUCTION = OPEN.
     SCALABLE_POST_ROUTER_UNSAT = OPEN.
     SolveLinearCubicXSAT = NOT_CONSTRUCTED.
