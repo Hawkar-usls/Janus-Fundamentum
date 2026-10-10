@@ -1,0 +1,47 @@
+name: R5 E9 High-Girth Bounded-Occurrence Pivot Barrier
+
+on:
+  push:
+    branches:
+      - codex/r5-e8-direct-contract-20260921-82493a57
+    paths:
+      - "research/R5_E9_HIGH_GIRTH_BOUNDED_OCCURRENCE_GLOBAL_PIVOT_BARRIER_2026-09-28_v1.0.md"
+      - "experiments/r5_e9_high_girth_bounded_occurrence_pivot_barrier.py"
+      - ".github/workflows/r5-e9-high-girth-bounded-occurrence-pivot-barrier.yml"
+  pull_request:
+    paths:
+      - "research/R5_E9_HIGH_GIRTH_BOUNDED_OCCURRENCE_GLOBAL_PIVOT_BARRIER_2026-09-28_v1.0.md"
+      - "experiments/r5_e9_high_girth_bounded_occurrence_pivot_barrier.py"
+      - ".github/workflows/r5-e9-high-girth-bounded-occurrence-pivot-barrier.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Compile checker
+        run: python -m py_compile experiments/r5_e9_high_girth_bounded_occurrence_pivot_barrier.py
+      - name: Replay structural degree controls
+        run: |
+          python experiments/r5_e9_high_girth_bounded_occurrence_pivot_barrier.py > /tmp/hgbd.json
+          python - <<'PY'
+          import json
+          x=json.load(open('/tmp/hgbd.json'))
+          assert x['status']=='PASS_HIGH_GIRTH_BOUNDED_OCCURRENCE_PIVOT_BARRIER_STRUCTURAL_CHECKS'
+          assert x['max_source_degree_seen'] <= 4
+          assert x['degree_bound_formula']=='D = 4 * M_tau_1_27'
+          assert x['barrier']=='NO_SHORT_SOURCE_CYCLE_OR_UNBOUNDED_SOURCE_DEGREE_UNIVERSAL_DICHOTOMY'
+          assert x['next_gate']=='R5_E9_HIGH_GIRTH_SAFE_NONLOCAL_GLOBAL_PIVOT_GATE_V1'
+          assert x['E8_D1']=='EMPTY'
+          assert x['P_VS_NP']=='OPEN'
+          print('R5_E9_HIGH_GIRTH_BOUNDED_OCCURRENCE_PIVOT_BARRIER=PASS')
+          PY

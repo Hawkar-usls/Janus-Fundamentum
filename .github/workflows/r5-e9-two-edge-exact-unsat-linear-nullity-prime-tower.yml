@@ -1,0 +1,31 @@
+name: R5 E9 two-edge exact UNSAT linear-nullity prime tower
+
+on:
+  push:
+    paths:
+      - "research/R5_E9_TWO_EDGE_EXACT_UNSAT_LINEAR_NULLITY_PRIME_TOWER_2026-09-28_v1.0.md"
+      - "experiments/r5_e9_two_edge_exact_unsat_linear_nullity_prime_tower.py"
+      - ".github/workflows/r5-e9-two-edge-exact-unsat-linear-nullity-prime-tower.yml"
+  pull_request:
+    paths:
+      - "research/R5_E9_TWO_EDGE_EXACT_UNSAT_LINEAR_NULLITY_PRIME_TOWER_2026-09-28_v1.0.md"
+      - "experiments/r5_e9_two_edge_exact_unsat_linear_nullity_prime_tower.py"
+      - ".github/workflows/r5-e9-two-edge-exact-unsat-linear-nullity-prime-tower.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  replay:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Compile checker
+        run: python -m py_compile experiments/r5_e9_two_edge_exact_unsat_linear_nullity_prime_tower.py
+      - name: Replay theorem controls
+        run: python experiments/r5_e9_two_edge_exact_unsat_linear_nullity_prime_tower.py

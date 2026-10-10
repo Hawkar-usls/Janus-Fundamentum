@@ -1,0 +1,48 @@
+name: R5 E9 High-Girth Odd-Hole Sparse Attachment
+
+on:
+  push:
+    paths:
+      - "experiments/r5_e9_high_girth_odd_hole_sparse_attachment.py"
+      - "research/R5_E9_HIGH_GIRTH_ODD_HOLE_SPARSE_ATTACHMENT_NEGATIVE_CONTROL_2026-09-26_v1.0.md"
+      - "registry/JANUS_P_VS_NP_R5_E9_HIGH_GIRTH_ODD_HOLE_SPARSE_ATTACHMENT_2026-09-26_v1.0.json"
+      - ".github/workflows/r5-e9-high-girth-odd-hole-sparse-attachment.yml"
+  pull_request:
+    paths:
+      - "experiments/r5_e9_high_girth_odd_hole_sparse_attachment.py"
+      - "research/R5_E9_HIGH_GIRTH_ODD_HOLE_SPARSE_ATTACHMENT_NEGATIVE_CONTROL_2026-09-26_v1.0.md"
+      - "registry/JANUS_P_VS_NP_R5_E9_HIGH_GIRTH_ODD_HOLE_SPARSE_ATTACHMENT_2026-09-26_v1.0.json"
+      - ".github/workflows/r5-e9-high-girth-odd-hole-sparse-attachment.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  replay:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Compile checker
+        run: python -m py_compile experiments/r5_e9_high_girth_odd_hole_sparse_attachment.py
+      - name: Replay high-girth sparse attachment control
+        run: |
+          python experiments/r5_e9_high_girth_odd_hole_sparse_attachment.py > /tmp/nm0028.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          x=json.loads(Path('/tmp/nm0028.json').read_text())
+          assert x["status"]=="PASS_HIGH_GIRTH_ODD_HOLE_SPARSE_ATTACHMENT_CONTROL"
+          assert x["source_control"]["girth"]==10
+          assert x["odd_hole"]["external_ports_unique"]==15
+          assert x["odd_hole"]["every_hole_vertex_is_claw_center"]
+          assert x["conflict_graph"]["degree"]==6
+          assert x["conflict_graph"]["closed_neighborhood_domination_pairs"]==[]
+          assert x["epistemic_firewall"]["rational_nullity"]==0
+          assert x["scope"]["two_expansion_forces_local_port_aliasing"]=="FALSIFIED"
+          print("R5_E9_NM0028=PASS")
+          PY

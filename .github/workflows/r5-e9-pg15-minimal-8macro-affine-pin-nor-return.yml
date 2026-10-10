@@ -1,0 +1,30 @@
+name: R5 E9 PG15 Minimal 8-Macro Affine Pin NOR Return
+
+on:
+  pull_request:
+    paths:
+      - 'research/R5_E9_PG15_MINIMAL_8MACRO_AFFINE_PIN_AND_NOR_RETURN_2026-10-01_v1.0.md'
+      - 'experiments/r5_e9_pg15_minimal_8macro_affine_pin_nor_return.py'
+      - '.github/workflows/r5-e9-pg15-minimal-8macro-affine-pin-nor-return.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  exact-replay:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Run exact PG15 macro census and NOR return
+        run: |
+          python experiments/r5_e9_pg15_minimal_8macro_affine_pin_nor_return.py | tee /tmp/pg15_nor.log
+          grep -F 'PASS_PG15_MINIMAL_8MACRO_AFFINE_PIN_NOR_RETURN' /tmp/pg15_nor.log
+          grep -F 'minimal_affine_implication_arity=8' /tmp/pg15_nor.log
+          grep -F 'compressing_arity8_subsets=8' /tmp/pg15_nor.log
+          grep -F 'common_source_pin_one_based=r4=1' /tmp/pg15_nor.log
+          grep -F 'conditioned_boolean_relation_name=NOR(b1,b2)->b0' /tmp/pg15_nor.log
+          grep -F 'E8_D1=EMPTY P_VS_NP=OPEN' /tmp/pg15_nor.log

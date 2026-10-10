@@ -1,0 +1,45 @@
+name: R5 E9 Conflict Odd-Hole Selector Conservation
+
+on:
+  push:
+    paths:
+      - "experiments/r5_e9_conflict_odd_hole_selector_conservation.py"
+      - "research/R5_E9_CONFLICT_ODD_HOLE_COVERAGE_SELECTOR_CONSERVATION_2026-09-25_v1.0.md"
+      - "registry/JANUS_P_VS_NP_R5_E9_CONFLICT_ODD_HOLE_SELECTOR_CONSERVATION_2026-09-25_v1.0.json"
+      - ".github/workflows/r5-e9-conflict-odd-hole-selector-conservation.yml"
+  pull_request:
+    paths:
+      - "experiments/r5_e9_conflict_odd_hole_selector_conservation.py"
+      - "research/R5_E9_CONFLICT_ODD_HOLE_COVERAGE_SELECTOR_CONSERVATION_2026-09-25_v1.0.md"
+      - "registry/JANUS_P_VS_NP_R5_E9_CONFLICT_ODD_HOLE_SELECTOR_CONSERVATION_2026-09-25_v1.0.json"
+      - ".github/workflows/r5-e9-conflict-odd-hole-selector-conservation.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  replay:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Compile checker
+        run: python -m py_compile experiments/r5_e9_conflict_odd_hole_selector_conservation.py
+      - name: Replay selector-conservation controls
+        run: |
+          python experiments/r5_e9_conflict_odd_hole_selector_conservation.py > /tmp/nm0023.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          x=json.loads(Path('/tmp/nm0023.json').read_text())
+          assert x["status"]=="PASS_ODD_HOLE_COVERAGE_SELECTOR_CONSERVATION"
+          assert x["single_edge_relation"]["equals_exact_one_3"]
+          assert x["odd_belt_controls"]["5"]["same_as_exact_one_belt"]
+          assert x["odd_belt_controls"]["7"]["same_as_exact_one_belt"]
+          assert x["theorem"]["naive_one_coverage_bit_per_hole_vertex"]=="NO_BOOLEAN_DIMENSION_REDUCTION"
+          print("R5_E9_NM0023=PASS")
+          PY

@@ -1,0 +1,59 @@
+name: R5 E9 One-Edge-Twist Exact SAT Contraction
+
+on:
+  push:
+    paths:
+      - "experiments/r5_e9_one_edge_twist_exact_sat_contraction.py"
+      - "research/R5_E9_ONE_EDGE_TWIST_2LIFT_EXACT_SAT_CONTRACTION_2026-09-27_v1.0.md"
+      - "governance/audits/2026-09-27_one_edge_twist_exact_sat_contraction_source_audit.md"
+      - "governance/JANUS_P_VS_NP_PREMATH_SUPPLEMENT_2026-09-27_v1.7.json"
+      - "tools/validate_premath_gate.py"
+      - "tools/validate_premath_gate_overlay.py"
+      - ".github/workflows/r5-e9-one-edge-twist-exact-sat-contraction.yml"
+  pull_request:
+    paths:
+      - "experiments/r5_e9_one_edge_twist_exact_sat_contraction.py"
+      - "research/R5_E9_ONE_EDGE_TWIST_2LIFT_EXACT_SAT_CONTRACTION_2026-09-27_v1.0.md"
+      - "governance/audits/2026-09-27_one_edge_twist_exact_sat_contraction_source_audit.md"
+      - "governance/JANUS_P_VS_NP_PREMATH_SUPPLEMENT_2026-09-27_v1.7.json"
+      - "tools/validate_premath_gate.py"
+      - "tools/validate_premath_gate_overlay.py"
+      - ".github/workflows/r5-e9-one-edge-twist-exact-sat-contraction.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  replay:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Compile checker
+        run: python -m py_compile experiments/r5_e9_one_edge_twist_exact_sat_contraction.py
+      - name: Replay exact contraction regression
+        run: |
+          python experiments/r5_e9_one_edge_twist_exact_sat_contraction.py > /tmp/oec.json
+          python - <<'PY'
+          import json
+          x=json.load(open('/tmp/oec.json'))
+          assert x['status']=='PASS_ONE_EDGE_TWIST_EXACT_SAT_CONTRACTION_REGRESSION'
+          assert x['model_space_exact'] is True
+          assert x['sat_equivalence'] is True
+          assert x['j3']=={'base_models':3,'lift_models':5}
+          assert x['fano_unsat_preserved'] is True
+          assert x['unique9_model_count_base']==1
+          assert x['unique9_model_count_lift']==1
+          assert x['known_twisted_pair_is_two_edge_cut'] is True
+          assert x['recognition_route']=='TWO_EDGE_CUT_PLUS_BOUNDED_DEGREE_COLORED_GI'
+          assert x['E8_D1']=='EMPTY'
+          assert x['P_VS_NP']=='OPEN'
+          print('R5_E9_ONE_EDGE_TWIST_EXACT_CONTRACTION=PASS')
+          PY
+      - name: Validate pre-math gate
+        run: python tools/validate_premath_gate_overlay.py

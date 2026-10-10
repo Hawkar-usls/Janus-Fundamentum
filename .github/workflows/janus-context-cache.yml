@@ -1,0 +1,73 @@
+name: JANUS Persistent Context Cache
+
+on:
+  push:
+    branches:
+      - codex/r5-e8-direct-contract-20260921-82493a57
+    paths-ignore:
+      - "registry/JANUS_CONTEXT_CACHE_CURRENT.json"
+      - "docs/JANUS_CONTEXT_CACHE_CURRENT.md"
+      - "registry/context_cache/history/**"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: janus-context-cache-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref_name }}
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Refuse to overwrite a newer scientific head
+        id: freshness
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch origin "$GITHUB_REF_NAME"
+          REMOTE_HEAD="$(git rev-parse "origin/$GITHUB_REF_NAME")"
+          if [ "$REMOTE_HEAD" != "$GITHUB_SHA" ]; then
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+            echo "Newer branch head detected: $REMOTE_HEAD; its push will refresh the cache."
+          else
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Verify canonical semantic P-vs-NP resume checkpoint
+        if: steps.freshness.outputs.skip == 'false'
+        run: python tools/janus_stream_resume_cache.py verify
+
+      - name: Generate deterministic externalized context
+        if: steps.freshness.outputs.skip == 'false'
+        run: python tools/janus_context_cache.py
+
+      - name: Commit cache snapshot
+        if: steps.freshness.outputs.skip == 'false'
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add \
+            registry/JANUS_CONTEXT_CACHE_CURRENT.json \
+            docs/JANUS_CONTEXT_CACHE_CURRENT.md \
+            registry/context_cache/history
+          if git diff --cached --quiet; then
+            echo "Context cache already current."
+            exit 0
+          fi
+          git commit -m "[context-cache] refresh externalized scientific state"
+          if ! git push origin "HEAD:$GITHUB_REF_NAME"; then
+            echo "Branch advanced during cache refresh; refusing force-push. A newer push owns the next refresh."
+            exit 0
+          fi

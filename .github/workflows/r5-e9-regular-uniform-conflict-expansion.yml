@@ -1,0 +1,45 @@
+name: R5 E9 Regular-Uniform Conflict Expansion
+
+on:
+  push:
+    paths:
+      - "experiments/r5_e9_regular_uniform_conflict_expansion.py"
+      - "research/R5_E9_REGULAR_UNIFORM_CONFLICT_EXPANSION_AND_CRITICAL_SET_EXTINCTION_2026-09-26_v1.0.md"
+      - "registry/JANUS_P_VS_NP_R5_E9_REGULAR_UNIFORM_CONFLICT_EXPANSION_2026-09-26_v1.0.json"
+      - ".github/workflows/r5-e9-regular-uniform-conflict-expansion.yml"
+  pull_request:
+    paths:
+      - "experiments/r5_e9_regular_uniform_conflict_expansion.py"
+      - "research/R5_E9_REGULAR_UNIFORM_CONFLICT_EXPANSION_AND_CRITICAL_SET_EXTINCTION_2026-09-26_v1.0.md"
+      - "registry/JANUS_P_VS_NP_R5_E9_REGULAR_UNIFORM_CONFLICT_EXPANSION_2026-09-26_v1.0.json"
+      - ".github/workflows/r5-e9-regular-uniform-conflict-expansion.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  replay:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Compile checker
+        run: python -m py_compile experiments/r5_e9_regular_uniform_conflict_expansion.py
+      - name: Replay expansion controls
+        run: |
+          python experiments/r5_e9_regular_uniform_conflict_expansion.py > /tmp/nm0027.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          x=json.loads(Path('/tmp/nm0027.json').read_text())
+          assert x["status"]=="PASS_REGULAR_UNIFORM_CONFLICT_EXPANSION"
+          assert x["cubic"]["expansion_factor"]==2
+          assert x["cubic"]["nonempty_critical_independent_set"] is False
+          assert x["cubic"]["classical_crown_side"] is False
+          assert x["r4_d2_control"]["expansion_factor"]==3
+          print("R5_E9_NM0027=PASS")
+          PY

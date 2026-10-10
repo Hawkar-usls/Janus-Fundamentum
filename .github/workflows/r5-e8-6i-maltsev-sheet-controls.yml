@@ -1,0 +1,74 @@
+name: R5 E8 6I Mal'tsev and Three-Sheet Composition Controls
+
+on:
+  pull_request:
+    paths:
+      - 'research/tools/r5_e8_6i_f2square_maltsev_or3_lift_checker.py'
+      - 'research/R5_B1B1C5B2B2_E8_6I_F2SQUARED_MALTSEV_OR3_LIFT_CLASSIFICATION_2026-09-22_v1.0.json'
+      - 'research/tools/r5_e8_6i_three_sheet_majority_cover_checker.py'
+      - 'research/R5_B1B1C5B2B2_E8_6I_THREE_SHEET_MAJORITY_COVER_2026-09-22_v1.0.json'
+      - '.github/workflows/r5-e8-6i-maltsev-sheet-controls.yml'
+  push:
+    branches:
+      - 'codex/r5-e8-direct-contract-20260921-82493a57'
+    paths:
+      - 'research/tools/r5_e8_6i_f2square_maltsev_or3_lift_checker.py'
+      - 'research/R5_B1B1C5B2B2_E8_6I_F2SQUARED_MALTSEV_OR3_LIFT_CLASSIFICATION_2026-09-22_v1.0.json'
+      - 'research/tools/r5_e8_6i_three_sheet_majority_cover_checker.py'
+      - 'research/R5_B1B1C5B2B2_E8_6I_THREE_SHEET_MAJORITY_COVER_2026-09-22_v1.0.json'
+      - '.github/workflows/r5-e8-6i-maltsev-sheet-controls.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  exact-replay:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Compile exact checkers
+        run: |
+          set -euo pipefail
+          python -m py_compile \
+            research/tools/r5_e8_6i_f2square_maltsev_or3_lift_checker.py \
+            research/tools/r5_e8_6i_three_sheet_majority_cover_checker.py
+
+      - name: Replay F2^2 Mal'tsev exact classification
+        run: |
+          set -euo pipefail
+          python research/tools/r5_e8_6i_f2square_maltsev_or3_lift_checker.py > /tmp/f2_actual.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          a=json.loads(Path('/tmp/f2_actual.json').read_text())
+          f=json.loads(Path('research/R5_B1B1C5B2B2_E8_6I_F2SQUARED_MALTSEV_OR3_LIFT_CLASSIFICATION_2026-09-22_v1.0.json').read_text())
+          assert a==f
+          assert a['status']=='PASS_EXACT_FIXED_CARRIER_CLASSIFICATION'
+          assert a['enumeration']['affine_subspaces_F2_6']==26387
+          assert a['enumeration']['concrete_positive_OR3_liftable_decoder_triples']==544
+          assert a['exact_positive_OR3_characterization']['iff']=='AT_LEAST_TWO_DECODERS_HAVE_ONE_FIBRE_SIZE_3'
+          assert a['firewall']['P_VS_NP']=='OPEN'
+          assert a['firewall']['D1']=='EMPTY'
+          print('R5_E8_6I_F2SQUARED_MALTSEV=PASS')
+          PY
+
+      - name: Replay three-sheet OR3 identity
+        run: |
+          set -euo pipefail
+          python research/tools/r5_e8_6i_three_sheet_majority_cover_checker.py > /tmp/sheets_actual.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          a=json.loads(Path('/tmp/sheets_actual.json').read_text())
+          f=json.loads(Path('research/R5_B1B1C5B2B2_E8_6I_THREE_SHEET_MAJORITY_COVER_2026-09-22_v1.0.json').read_text())
+          assert a==f
+          assert a['status']=='PASS_EXACT_BOOLEAN_IDENTITY'
+          assert a['minimal_cover']['minimum_sheet_count']==3
+          assert a['signed_clause_checks']==64
+          assert a['firewall']['P_VS_NP']=='OPEN'
+          print('R5_E8_6I_THREE_SHEET_COVER=PASS')
+          PY

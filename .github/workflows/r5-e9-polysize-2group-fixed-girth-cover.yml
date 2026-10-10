@@ -1,0 +1,44 @@
+name: R5 E9 Polynomial 2-Group Fixed-Girth Cover
+
+on:
+  push:
+    paths:
+      - "experiments/r5_e9_polysize_2group_fixed_girth_cover.py"
+      - "research/R5_E9_POLYSIZE_2GROUP_FIXED_GIRTH_COVER_THEOREM_2026-09-26_v1.0.md"
+      - "registry/JANUS_P_VS_NP_R5_E9_POLYSIZE_2GROUP_FIXED_GIRTH_COVER_2026-09-26_v1.0.json"
+      - ".github/workflows/r5-e9-polysize-2group-fixed-girth-cover.yml"
+  pull_request:
+    paths:
+      - "experiments/r5_e9_polysize_2group_fixed_girth_cover.py"
+      - "research/R5_E9_POLYSIZE_2GROUP_FIXED_GIRTH_COVER_THEOREM_2026-09-26_v1.0.md"
+      - "registry/JANUS_P_VS_NP_R5_E9_POLYSIZE_2GROUP_FIXED_GIRTH_COVER_2026-09-26_v1.0.json"
+      - ".github/workflows/r5-e9-polysize-2group-fixed-girth-cover.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  replay:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Compile checker
+        run: python -m py_compile experiments/r5_e9_polysize_2group_fixed_girth_cover.py
+      - name: Replay accounting controls
+        run: |
+          python experiments/r5_e9_polysize_2group_fixed_girth_cover.py > /tmp/nm0030.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          x=json.loads(Path('/tmp/nm0030.json').read_text())
+          assert x["status"]=="PASS_POLYSIZE_2GROUP_FIXED_GIRTH_ACCOUNTING"
+          assert x["fixed_cubic_g10_short_walk_upper"]=="1533*n"
+          assert x["toy_voltage_control"]["lift_girth"]==8
+          assert x["boundary"]["ten_cycle_preservation"]=="OPEN"
+          print("R5_E9_NM0030=PASS")
+          PY

@@ -1,0 +1,281 @@
+{
+  "artifact_id": "JANUS-R5-E8-NET-PROJECTION-CHARGE-AND-STEP0-THEOREM-2026-09-22-v1.0",
+  "date": "2026-09-22",
+  "version": "1.1",
+  "authority": "SCOPED_SYMBOLIC_THEOREM__FROZEN_STRUCTURAL_AIG_ONLY__NO_D1_PROMOTION",
+  "repository": "Hawkar-usls/Janus-Fundamentum",
+  "lineage": {
+    "pull_request": 510,
+    "branch": "codex/r5-e8-direct-contract-20260921-82493a57",
+    "frozen_executor": "research/tools/r5_e8_frozen_structural_aig_executor.py",
+    "parent_theorem": "R5_E8_ODD_SELECTOR_GREEDY_PREFIX_THEOREM_V1"
+  },
+  "net_projection_charge_identity": {
+    "name": "R5_E8_NET_PROJECTION_CHARGE_IDENTITY_V1",
+    "status": "PROVED",
+    "definitions": {
+      "N": "number of old reachable nodes in current state S",
+      "A_v": "number of reachable AND gates whose transitive fanin contains unresolved variable v",
+      "Q_v": "OR(S[v=0],S[v=1]) under the frozen executor",
+      "kappa_v": "number of old v-independent reachable nodes absent from Q_v",
+      "NEW_v": "reachable node ids of Q_v not present in the old reachable set",
+      "sigma_v": "(2*A_v+1)-|NEW_v|",
+      "E_v": "A_v-sigma_v-kappa_v"
+    },
+    "bounded_new_nodes": "|NEW_v| <= 2*A_v+1 because each cofactor can allocate at most one new AND per old v-dependent AND gate, plus at most one final OR node",
+    "proof": [
+      "All old v-dependent AND nodes disappear after restriction because returned cofactor DAGs are v-free.",
+      "The old input node v disappears.",
+      "Exactly kappa_v additional old v-independent nodes disappear by definition.",
+      "Therefore old nodes lost = A_v+1+kappa_v.",
+      "New reachable nodes = 2*A_v+1-sigma_v by definition.",
+      "Hence cost(v)=N-(A_v+1+kappa_v)+(2*A_v+1-sigma_v)=N+A_v-sigma_v-kappa_v=N+E_v."
+    ],
+    "selector_key_equivalence": "Within one current state N is common, so frozen key (cost,A_v,id) is equivalent to (E_v,A_v,id)."
+  },
+  "family": {
+    "parameter": "m=2^r >= 4",
+    "formula": "AND_i ((x_i OR z_i OR NOT z_{i+1}) AND (NOT x_i OR z_{i+2} OR NOT z_{i+3})) with payload indices cyclic mod m",
+    "encoded_length": "O(m log m)"
+  },
+  "initial_state": {
+    "theorem_name": "R5_E8_POWER_OF_TWO_STEP0_SELECTOR_THEOREM_V1",
+    "status": "PROVED",
+    "exact_live_size": "N0=8m-1",
+    "live_size_derivation": [
+      "2m variable nodes",
+      "4m clause-AIG gates because each of 2m three-literal clauses contributes two gates",
+      "m first-round G_i block gates",
+      "m-1 upper complete block-tree gates"
+    ],
+    "selector_profile": {
+      "A_x": "r+5",
+      "NEW_x": "2r+3",
+      "kappa_x": 0,
+      "sigma_x": 8,
+      "E_x": "r-3",
+      "cost_x": "8m+r-4",
+      "derivation": [
+        "Each selector occurs in two clauses and contributes four dependent clause gates total.",
+        "G_i contributes one dependent gate.",
+        "The complete block tree contributes r dependent ancestors above G_i.",
+        "Each cofactor constructs one two-literal payload clause node plus r rebuilt tree ancestors.",
+        "The final Shannon OR contributes one new node.",
+        "No x-independent internal gate in the affected clause trees is lost because the selector literal is the first literal in each clause and all unaffected siblings remain reachable."
+      ]
+    },
+    "payload_profile": {
+      "support_blocks": "G_j,G_{j-1},G_{j-2},G_{j-3}",
+      "s_j": "number of the four occurrences where z_j is the first payload literal after the selector in frozen literal order",
+      "T_j": "number of dependent upper block-tree AND gates in the rooted union of the four support-block paths",
+      "A_z": "T_j+s_j+8",
+      "NEW_z": "2*T_j+s_j+5",
+      "kappa_z": 0,
+      "sigma_z": "s_j+12",
+      "E_z": "T_j-4",
+      "key_cancellation": "The local clause-order term s_j cancels exactly from E_z.",
+      "derivation": [
+        "The four affected clauses contribute 4+s_j dependent clause gates.",
+        "The four G blocks contribute four dependent gates.",
+        "The rooted block-tree union contributes T_j dependent gates.",
+        "Across both cofactors, the s_j first-payload occurrences create s_j residual two-literal clause nodes in total.",
+        "Exactly two affected z-literals are unsatisfied in each cofactor, creating exactly two modified G nodes per cofactor, four total.",
+        "Each cofactor rebuilds exactly the T_j affected upper block-tree gates.",
+        "The final Shannon OR contributes one node.",
+        "Every old z-independent node remains reachable in at least one cofactor: satisfied-clause residual structure is exposed by the opposite cofactor and unaffected sibling subtrees remain reachable."
+      ]
+    },
+    "rooted_support_bound": {
+      "claim": "T_j >= r+1 for every payload",
+      "proof": "Four distinct support leaves in a complete height-r binary block tree require at least three internal nodes to join the four leaves plus r-2 ancestors from the four-leaf subtree root to the global root; equality occurs for an aligned four-leaf subtree."
+    },
+    "comparison": [
+      "Every payload has E_z=T_j-4 >= r-3 = E_x.",
+      "If E_z=E_x then T_j=r+1 and A_z=T_j+s_j+8 >= r+9 > r+5=A_x.",
+      "Thus every selector beats every payload at step 0 under the exact frozen lexicographic key.",
+      "All selectors tie in E and A initially, so the variable-id tie-break chooses x1."
+    ],
+    "conclusion": "For every m=2^r>=4, the first frozen greedy choice is x1."
+  },
+  "finite_replay_crosscheck": {
+    "m16_best_odd_vs_payload": [
+      {
+        "t": 0,
+        "odd": {
+          "A": 9,
+          "sigma": 8,
+          "kappa": 0,
+          "E": 1
+        },
+        "payload": {
+          "A": 13,
+          "sigma": 12,
+          "kappa": 0,
+          "E": 1
+        }
+      },
+      {
+        "t": 1,
+        "odd": {
+          "A": 11,
+          "sigma": 9,
+          "kappa": 0,
+          "E": 2
+        },
+        "payload": {
+          "A": 15,
+          "sigma": 12,
+          "kappa": 0,
+          "E": 3
+        }
+      },
+      {
+        "t": 2,
+        "odd": {
+          "A": 16,
+          "sigma": 8,
+          "kappa": 0,
+          "E": 8
+        },
+        "payload": {
+          "A": 22,
+          "sigma": 14,
+          "kappa": 0,
+          "E": 8
+        }
+      },
+      {
+        "t": 3,
+        "odd": {
+          "A": 24,
+          "sigma": 8,
+          "kappa": 0,
+          "E": 16
+        },
+        "payload": {
+          "A": 30,
+          "sigma": 14,
+          "kappa": 0,
+          "E": 16
+        }
+      },
+      {
+        "t": 4,
+        "odd": {
+          "A": 43,
+          "sigma": 10,
+          "kappa": 0,
+          "E": 33
+        },
+        "payload": {
+          "A": 47,
+          "sigma": 12,
+          "kappa": 0,
+          "E": 35
+        }
+      },
+      {
+        "t": 5,
+        "odd": {
+          "A": 75,
+          "sigma": 9,
+          "kappa": 0,
+          "E": 66
+        },
+        "payload": {
+          "A": 79,
+          "sigma": 12,
+          "kappa": 0,
+          "E": 67
+        }
+      },
+      {
+        "t": 6,
+        "odd": {
+          "A": 143,
+          "sigma": 10,
+          "kappa": 0,
+          "E": 133
+        },
+        "payload": {
+          "A": 147,
+          "sigma": 12,
+          "kappa": 0,
+          "E": 135
+        }
+      },
+      {
+        "t": 7,
+        "odd": {
+          "A": 271,
+          "sigma": 10,
+          "kappa": 0,
+          "E": 261
+        },
+        "payload": {
+          "A": 275,
+          "sigma": 12,
+          "kappa": 0,
+          "E": 263
+        }
+      }
+    ],
+    "scope": "DIAGNOSTIC_CROSSCHECK_ONLY__THE_STEP0_PROOF_DOES_NOT_DEPEND_ON_FINITE_DATA",
+    "additional_scope_checks": {
+      "m8": "all odd-prefix permutation states checked diagnostically: no violation of related payload domination or payload kappa=0 / sigma<=s+12 bounds",
+      "m16": "random odd-prefix states checked diagnostically: no violation observed",
+      "authority": "DIAGNOSTIC_ONLY__NOT_USED_AS_PROOF"
+    }
+  },
+  "sharpened_open_core": {
+    "name": "R5_E8_ODD_PREFIX_NET_CHARGE_THEOREM_V1",
+    "status": "OPEN",
+    "target": "For every odd-only prefix state before all odd selectors are removed, there exists an unresolved odd selector o such that for every payload z the tuple (E_o,A_o,o) is lexicographically smaller than (E_z,A_z,z).",
+    "useful_reduction": [
+      "Payload kappa_z=0 is sufficient; odd-selector kappa_o need not be zero because positive kappa_o only helps the selector.",
+      "A sufficient local inequality when kappa_z=0 is A_z-A_o >= sigma_z-sigma_o; equality in E is then resolved by A_o<A_z or finally by selector id.",
+      "The amplifier theorem remains closed and must not be reopened."
+    ],
+    "payload_backbone_subgate": {
+      "name": "R5_E8_PAYLOAD_BACKBONE_RIGIDITY_V1",
+      "status": "OPEN",
+      "target": [
+        "prove kappa_z=0 for every payload on every odd-only prefix state",
+        "prove sigma_z<=s_z+12, where s_z is the frozen local clause-order count from the original four payload occurrences",
+        "interpretation: all extra Shannon-backbone dependent gates must rebuild without additional semantic/structural collapse; payload savings remain local"
+      ]
+    },
+    "related_cone_subgate": {
+      "name": "R5_E8_RELATED_PAYLOAD_CONE_GAP_V1",
+      "status": "OPEN",
+      "target": "If payload z still has an unresolved odd selector o in one of its four support blocks, prove A_z-A_o >= s_z+4.",
+      "consequence": "Together with sigma_o>=8 and payload rigidity, E_z-E_o >= 0; since A_z>A_o, the related odd selector strictly beats z under the frozen key."
+    },
+    "orphan_payload_subgate": {
+      "name": "R5_E8_ORPHAN_PAYLOAD_BARRIER_V1",
+      "status": "OPEN_AFTER_RELATED_DOMINATION",
+      "definition": "payload whose two odd support selectors have already been projected",
+      "target": "show no orphan payload can become the minimum payload key before all odd selectors are removed, or exhibit the first symbolic counterexample"
+    }
+  },
+  "claim_ceiling": {
+    "ODD_PREFIX_STEP0": "CLOSED",
+    "ODD_PREFIX_ALL_STEPS": "OPEN",
+    "GREEDY_PROJECTOR_PEAK_THEOREM": "OPEN",
+    "P_VS_NP": "OPEN",
+    "D1": "NOT_ADMITTED"
+  },
+  "odd_selector_savings_floor": {
+    "theorem": "R5_E8_ODD_SELECTOR_LOCAL_SAVINGS_FLOOR_V1",
+    "status": "PROVED",
+    "claim": "In any state reached by projecting only other odd selectors, every still-unresolved odd selector o satisfies sigma_o >= 8.",
+    "proof": [
+      "The original unprojected block G_o remains an exact shared structural sub-DAG because no previous projection touched variable o.",
+      "Its two selector clauses contribute four o-dependent clause gates and G_o contributes one o-dependent block gate.",
+      "Across the two cofactors o=0 and o=1 those five local gates create at most one residual two-literal payload-clause node per cofactor, two new local nodes total.",
+      "Thus among the ten local dependent-gate opportunities across both cofactors at least eight do not contribute a new reachable node.",
+      "Any additional simplification, interning hit, unreachable fresh node, or final-OR collapse can only increase sigma_o.",
+      "Therefore sigma_o>=8 independently of the size of the global Shannon backbone."
+    ]
+  }
+}

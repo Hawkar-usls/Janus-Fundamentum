@@ -1,0 +1,25 @@
+name: R5 E9 Witness-selection bilinear Hankel rank
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'research/R5_E9_WITNESS_SELECTION_BILINEAR_HANKEL_RANK_BARRIER_2026-09-28_v1.0.md'
+      - 'experiments/r5_e9_witness_selection_bilinear_hankel_rank.py'
+      - '.github/workflows/r5-e9-witness-selection-bilinear-hankel-rank.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  regression:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Compile checker
+        run: python -m py_compile experiments/r5_e9_witness_selection_bilinear_hankel_rank.py
+      - name: Replay exact finite controls
+        run: python experiments/r5_e9_witness_selection_bilinear_hankel_rank.py
