@@ -44,6 +44,32 @@ treewidth, genus, a snark hypothesis or special graph family.
 **Proven all simple cubic graphs**, subject only to the
 stated four-edge cut.
 
+### General k-edge-cut state-count theorem
+
+The four-edge 21-state alphabet is a special case of an
+**exact closed formula for every edge-cut width k>=0**.
+Let N_k count ordered k-tuples of NONZERO F2^2 elements
+whose XOR is zero. By character orthogonality in F2^2:
+
+    N_k = (1/4) sum_{chi in dual F2^2}
+                     (sum_{a != 0} chi(a))^k
+        = (3^k + 3*(-1)^k)/4.
+
+The trivial character contributes 3^k; each of the
+THREE nontrivial characters sums -1 over the three nonzero
+flow labels. For k=0 use the standard 0-th power convention,
+giving N_0=1. This is an all-k combinatorial theorem, not
+a polynomial contraction algorithm.
+
+      k     1   2   3   4   5    6    7    8
+      N_k   0   3   6  21  60  183  546  1641
+
+For k=4, N_4=21 as above. The formula makes the global
+failure mode quantitative: if the interface width k is
+Theta(n), merely listing the possible boundary states is
+already exponential in n. It does NOT imply a lower bound
+for arbitrary implicit/factorized representations.
+
 ## 2. Exact count contraction and SAT witness gluing
 
 For each boundary colour tuple a in H_nonzero^4 let
@@ -106,6 +132,27 @@ It does not find a magical separator in arbitrary
 cyclically 5-edge-connected cubic graphs: a return of
 NONE is valid and may leave a hard SAT or UNSAT core.
 
+### Four-edge surgery can REPAIR an UNSAT snark
+
+In the finite independent CI test, the original Petersen graph
+has ZERO 3-edge-colourings. Deleting TWO disjoint Petersen edges,
+deleting two disjoint K4 edges, and reconnecting their eight
+ends across a four-edge cut produces a 14-vertex cubic graph with
+EXACTLY 24 labelled proper 3-edge-colourings. Its witnesses are
+independently checked.
+
+Thus the scalar answer `Petersen = UNSAT` cannot serve as a
+boundary signature for an *opened* four-pole: the opened
+Petersen graph admits boundary assignments that participate in
+SAT solutions after an external four-edge coupling.
+The 21-state transfer retains precisely the missing boundary
+semantics. This is a finite structural counterexample to
+scalar 4-pole composition; no global polynomial algorithm follows.
+
+The same CI enumerator confirms the Petersen graph has NO cyclic
+4-edge cut at all. Thus a global solver cannot rely on the
+existence of such separators in its hardest inputs.
+
 ## 4. What this does NOT prove
 
 The dimension of a SINGLE four-edge cut boundary signature
@@ -151,9 +198,12 @@ component has exponential worst-case time.
 ## 6. Gate ledger
 
 ALL_CUBIC_4EDGE_BOUNDARY_21_LABELS = PROVED_ALL_4CUTS.
+GENERAL_K_EDGE_BOUNDARY_NK=(3^K+3*(-1)^K)/4 = PROVED_ALL_K.
 FOUR_POLE_SIGN_FREE_COUNT_CONTRACTION = PROVED_ALL_4CUTS.
 FOUR_POLE_SAT_WITNESS_GLUE = PROVED_ALL_4CUTS.
 CYCLIC_FOUR_CUT_POLYNOMIAL_DETECTION = PROVED_O_N5.
+PETERSEN_NO_CYCLIC_4CUT = VERIFIED_FINITE.
+PETERSEN_FOUR_POLE_SURGERY_SAT24 = VERIFIED_FINITE.
 CORE_FOUR_POLE_SIGNATURE_POLYNOMIAL_EVALUATION = NOT_CONSTRUCTED.
 UNIVERSAL_POLY_SOLVELINEARCUBICXSAT = NOT_CONSTRUCTED.
 P_VS_NP = OPEN.
