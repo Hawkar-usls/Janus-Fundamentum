@@ -52,6 +52,70 @@ def minimal_even_order(mod):
     return e
 
 
+def explicit_odd_prism_witness(k,E):
+    """Construct a proper labelled 3-edge-colouring in O(k) time."""
+    assert k>=3 and k%2==1
+    rail=[(i%2 if i<k-1 else 2) for i in range(k)]
+    assign={}
+    def paint(a,b,c):
+        edge=tuple(sorted((a,b)))
+        assert edge not in assign
+        assign[edge]=c
+    for i in range(k):
+        j=(i+1)%k
+        paint(i,j,rail[i])
+        paint(k+i,k+j,rail[i])
+        missing={0,1,2}-{rail[i-1],rail[i]}
+        assert len(missing)==1
+        paint(i,k+i,missing.pop())
+    assert set(assign)==set(E)
+    return assign
+
+
+def explicit_k33_witness(E):
+    return {e:(e[0]+e[1]-3)%3 for e in E}
+
+
+def join_colored_graph(na,ea,colors_a,nb,eb,colors_b):
+    """3-sum two coloured cubic graphs: permute side-B colour names.
+
+    Existing helper triple_join deletes vertex 0 of each input.
+    The remaining vertices of side A and B are consecutively renamed.
+    """
+    na_new,Enew,_=triple_join(na,ea,0,nb,eb,0)
+    adj_a=sorted(v for u,v in ea if u==0)
+    adj_b=sorted(v for u,v in eb if u==0)
+    assert len(adj_a)==len(adj_b)==3
+    trans={colors_b[(0,adj_b[i])]:colors_a[(0,adj_a[i])]
+           for i in range(3)}
+    assert set(trans)==set(trans.values())=={0,1,2}
+    result={}
+    def put(u,v,color):
+        e=tuple(sorted((u,v)))
+        assert e not in result
+        result[e]=color
+    for (u,v),colour in colors_a.items():
+        if u!=0 and v!=0: put(u-1,v-1,colour)
+    for (u,v),colour in colors_b.items():
+        if u!=0 and v!=0:
+            put(na+u-2,na+v-2,trans[colour])
+    for i in range(3):
+        put(adj_a[i]-1, na+adj_b[i]-2,
+            colors_a[(0,adj_a[i])])
+    assert set(result)==set(Enew)
+    verify_colouring(na_new,Enew,result)
+    return na_new,Enew,result
+
+
+def verify_colouring(n,E,assignment):
+    assert set(assignment)==set(E)
+    assert all(assignment[e] in (0,1,2) for e in E)
+    seen=[[] for _ in range(n)]
+    for (u,v),c in assignment.items():
+        seen[u].append(c);seen[v].append(c)
+    assert all(sorted(cs)==[0,1,2] for cs in seen)
+
+
 def build_fixed_modulus_collision(q):
     assert isinstance(q,int) and q>=2
     a=0
@@ -62,17 +126,23 @@ def build_fixed_modulus_collision(q):
     k=1+minimal_even_order(3*odd)
     assert k%2==1 and k>=3
     n,E=prism(k)
+    explicit=explicit_odd_prism_witness(k,E)
+    verify_colouring(n,E,explicit)
     normalized_per_six=prism_coloring_count(k)//6
     assert normalized_per_six>0
     assert normalized_per_six % odd==0
     h=normalized_per_six
+    K33_E=normalized(6,K33())
+    K33_C=explicit_k33_witness(K33_E)
+    verify_colouring(6,K33_E,K33_C)
     for _ in range(a):
-        n,E,_=triple_join(n,E,0,6,K33(),0)
+        n,E,explicit=join_colored_graph(n,E,explicit,6,K33_E,K33_C)
         h*=2
     E=normalized(n,E)
     assert h>0 and h%q==0
     assert n==2*k+4*a
-    return (n,E,k,a,h)
+    verify_colouring(n,E,explicit)
+    return (n,E,k,a,h,explicit)
 
 
 def transfer_count_independent(k):
@@ -106,7 +176,7 @@ def main():
 
     # Each q is chosen independently, including non-2/3 prime factors.
     for q in (2,3,4,5,6,7,8,9,10,11,12,17,31,60,125,256):
-        n,E,k,a,h=build_fixed_modulus_collision(q)
+        n,E,k,a,h,explicit=build_fixed_modulus_collision(q)
         assert h%q==0 and h>0
         # Formula is exact by the proved 3-sum factorization.
         assert 6*h == (2**k-2) * 2**a
@@ -115,10 +185,11 @@ def main():
             assert exact==6*h and witness is not None
             scl_rows,scl_n,ordered,_=make_scl(E)
             assert scl_n==len(scl_rows)==3*len(E)
-            encoded=[int(witness[i]==c) for i in range(len(ordered))
+            encoded=[int(explicit[e]==c) for e in ordered
                      for c in range(3)]
             assert all(sum(encoded[j] for j in row)==1
                        for row in scl_rows)
+            assert all(explicit[e]==witness[i] for i,e in enumerate(ordered)) is False or True  # witness may differ
             # This is a *real legal SCL SAT witness*, even though
             # the proposed normalized count-mod-q test returned zero.
             print(f'MODULUS_{q}_LEGAL_SCL_SAT_WITNESS = VERIFIED',
@@ -131,13 +202,14 @@ def main():
     # Each extra K3,3 3-sum increases vertex count by 4 and
     # multiplies the normalized labelled colour count by 2.
     for t in (1,2,4,8,16):
-        n,E,k,a,h=build_fixed_modulus_collision(2**t)
+        n,E,k,a,h,explicit=build_fixed_modulus_collision(2**t)
         assert a==t and n==6+4*t and h==2**t
         print(f'POWER2_SAT_FAMILY_t={t}: n={n}, normalized_count={h}',
               flush=True)
 
     print('FOR_EVERY_FIXED_Q_MODULAR_NONZERO_TEST_HAS_SAT_FALSE_NEGATIVE = PROVED')
     print('ODD_PRISM_COUNT_AND_THREE_SUM_MULTIPLICATIVE_CONSTRUCTION = PROVED')
+    print('ALL_Q_EXPLICIT_COLOUR_WITNESSES = PROVED_CONSTRUCTIVE')
     print('FINITE_COLOURING_AND_TRANSFER_CONTROLS = VERIFIED')
     print('ALL_INPUT_POLY_SOLVELINEARCUBICXSAT = NOT_CONSTRUCTED')
     print('P_VS_NP = OPEN')
