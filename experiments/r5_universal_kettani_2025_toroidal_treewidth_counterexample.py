@@ -77,8 +77,6 @@ def verified_conflict_graph(rows,L):
         assert len(set.union(*neighbor_pairs))==6
         assert set.union(*neighbor_pairs)==G[v]
         assert all(pair<=G[v] for pair in neighbor_pairs)
-        assert all(any((G[u]&G[w]) or u in G[w] for u,w in [])
-                   for pair in ()) # vacuous, not needed for proof
         # Three distinct clause triangles through v:
         assert len({frozenset(row) for row in incidences[v]})==3
     # Each underlying non-wrap grid edge is explicitly present.
