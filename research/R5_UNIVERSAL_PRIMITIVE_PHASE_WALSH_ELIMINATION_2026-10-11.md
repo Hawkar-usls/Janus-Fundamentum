@@ -211,6 +211,89 @@ Important distinction:
   schedule theorem cannot be assumed from cheap first
   elimination on two fixed finite controls.
 
+## IV-A. GENERAL E118 proof: the six-bit gadget flip ALWAYS has a 2-bit interface
+
+This is a symbolic theorem for the WHOLE E118 occurrence-splitting
+reduction family, not a statement inferred from the two q90 examples.
+
+Let one E118 equality gadget have external ports x,y,z and
+internal variables a,b,c,d,e,f,g. Over F2 its nine homogeneous
+parity equations are equivalent to the exact parametrization
+
+    x=y=p,       z=g=q,        f=t,
+    a=c=p XOR q XOR t,
+    b=e=p XOR t,
+    d=q XOR t.
+
+The checker tests this against **all** 2^10 Boolean local
+assignments, with precisely 2^3=8 homogeneous solutions.
+
+Changing t from 0 to 1 while holding p,q fixed flips exactly
+the SIX internal coordinates a,b,c,d,e,f, and leaves
+x,y,z,g unchanged. Consequently the vector
+
+    v_g := e_a+e_b+e_c+e_d+e_e+e_f
+
+is a weight-6 word in the GF2 kernel of every E118 target,
+independently of the source formula. The local flip
+is zero on all source-clause rows, so flips associated
+with distinct variable gadgets are independent:
+their supports are disjoint and all lie in the global kernel.
+
+Gauge-fix the unique representative of each coset of these
+flip directions by setting the local f coordinate t=0.
+The other six coordinates are then
+
+    (a,b,c,d,e,f) =
+      (p XOR q, p, p XOR q, q, p, 0).
+
+The intersection weight between the gauge representative and v_g is
+
+    |u AND v_g| = 2*(p XOR q) + 2*p + q.
+
+Thus the eliminated factor is EXACTLY the four-value table
+
+    (p,q)=(0,0): 1+zeta^3;
+    (p,q)=(1,0): 1+zeta^(-1);
+    (p,q)=(0,1): 2;
+    (p,q)=(1,1): 2.
+
+This is a function of AT MOST TWO Boolean linear forms.
+Hence the projected-Walsh elimination from Section III
+has at most 2^2=FOUR terms for each E118 gadget, for
+**every possible source formula and input size**. At
+any primitive power-of-two root with Q>=16,
+all four Walsh numerators are nonzero:
+
+    W_00 = 6+zeta^3+zeta^(-1),
+    W_10 = zeta^3-zeta^(-1),
+    W_01 = zeta^3+zeta^(-1)-2,
+    W_11 = zeta^3-zeta^(-1),
+
+where Walsh indices are ordered as (p,q). The local
+coefficients are computed in exact integral coordinates
+with four one-line sums.
+
+**Important limit:** after removing ALL source-variable
+gadget flips, the remaining gauge-fixed parity system
+still contains the source clauses and globally couples
+the p,q port variables. E118 SAT equivalence and the
+known extension factor 2^(2n_source/3) show that a
+general sound/complete polynomial exact-contraction
+algorithm for this remaining network would solve the
+NP-complete source problem. The existence of a uniform
+FOUR-term local rule does not imply such a global theorem.
+
+Companion executable:
+    python experiments/r5_universal_e118_gadget_local_four_phase_lemma.py
+
+This result is new only as a **phase-elimination
+interpretation of E118's already-proved equality gadget**.
+It neither rediscovers the E118 reduction nor claims
+a global solver. The value is an exact explanation
+of why the q90 first step compresses to four terms,
+and where the difficult interaction survives.
+
 ## V. The next precise universal obligation
 
 A true universal recursive evaluator needs an EXPLICIT
@@ -243,6 +326,10 @@ ONE_DIRECTION_EXACT_PHASE_ELIMINATION = PROVED.
 SCALAR_SINGLE_PHASE_CLOSURE_ON_E118_E123 = REFUTED_FOR_EVERY_DIRECTION.
 PROJECTED_WALSH_SPECTRAL_IDENTITY = PROVED.
 PROJECTED_ONE_STEP_COMPLEXITY = O(2^r * poly(n)).
+E118_ALL_SOURCE_LOCAL_GADGET_FLIP_WEIGHT_SIX = PROVED.
+E118_ALL_SOURCE_LOCAL_PROJECTED_PHASE_RANK_LE_TWO = PROVED.
+E118_LOCAL_GADGET_FOUR_WALSH_TERMS = PROVED.
+E118_POST_GAUGE_GLOBAL_SOURCE_COUPLING = NP_HARD_PREDECESSOR.
 E118_FIRST_PIVOT_EXACT_BRANCH_COUNT = 4.
 E123_FIRST_PIVOT_EXACT_BRANCH_COUNT = 4096.
 GLOBAL_RECURSIVE_POLYNOMIAL_BRANCH_BOUND = OPEN.
