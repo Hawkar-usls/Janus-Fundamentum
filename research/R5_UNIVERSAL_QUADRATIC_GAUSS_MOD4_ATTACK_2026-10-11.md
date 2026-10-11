@@ -144,13 +144,69 @@ connected square/cubic/linear target compiled from two q9
 cubic sources (cyclic offsets (1,6) UNSAT and (1,2) SAT).
 
 The resulting n=90 target weight is 2m=60, a 0-mod4 class.
-The checker records both mod4 counts. Positive mod4 residue
-count on an UNSAT target, if observed, is an explicit counterexample
-to any assertion that the MOD4 oracle alone decides all SCL.
+Independent exact computation on both connected n=90 targets gives:
+
+    q9(1,6) source UNSAT -> q90 target UNSAT:
+        d=18, N0=131,072, N2=131,072.
+    q9(1,2) source SAT -> q90 target SAT:
+        d=18, N0=131,072, N2=131,072.
+
+The *correct* residue for weight 60 is N0, which is positive on
+both! This explicitly REFUTES the extension of the E123 MOD4 success
+to a universal SAT decision rule, while keeping the sound exclusion
+direction intact. Both source statuses are determined independently
+by their nine-variable brute-force truth tables plus the generic
+E118 SAT-preserving construction, not inferred from the Gauss test.
 
 Even without such a finite example, NP-completeness of the
 E118 full target class means no general completeness may be
 assumed without proving a new theorem.
+
+## 3A. Why the next root-of-unity / MOD8 extension becomes cubic
+
+For even-weight codewords b_i, the exact binary XOR identity
+gives, for t_i in {0,1},
+
+    |XOR_i t_i b_i|/2  =
+      sum_i (|b_i|/2) t_i
+      - sum_{i<j} |b_i intersect b_j| t_i t_j
+      + 2 sum_{i<j<k} |b_i intersect b_j intersect b_k|
+          t_i t_j t_k                       (mod 4).
+
+All terms of degree >=4 are multiples of 4 after division by 2.
+This is an exact integer identity modulo 4, not an approximate
+statistical statement.
+
+The next half-weight root-of-unity evaluation
+
+    H(i)=sum_{k in K} i^(|k|/2)
+
+therefore has a **cubic** phase modulo4, rather than the
+quadratic F2 phase used by H(-1). The 2-mod4 cubic coefficients
+are nonzero precisely where the triple coordinate intersection
+has odd parity.
+
+For the canonical RREF bases in the frozen checker, exact counts
+of nonzero cubic coefficients are:
+
+    E123 UNSAT R (d=14): 152 of binom(14,3)=364;
+    E123 SAT  R^T(d=14): 163 of binom(14,3)=364;
+    E118 UNSAT90(d=18):   14 of binom(18,3)=816;
+    E118 SAT90  (d=18):    9 of binom(18,3)=816.
+
+These counts depend on the chosen basis (the existence of nonzero
+third-order finite differences, however, is intrinsic). They
+demonstrate why directly reusing pairwise quadratic-Gauss
+elimination for H(i) is *not justified*: eliminating a pair from
+a general cubic phase does not preserve bounded-degree quadratic
+structure. It does **not** rule out some other globally compressed
+polynomial algorithm for the cubic phase or for the original SAT.
+
+This makes the next mathematical obligation precise: supply a
+uniform polynomial exact evaluator for enough higher-order
+half-weight phases/coefficient information, or bypass this
+interpolation family altogether. A new named phase or extra
+symmetric moment by itself is not a universal algorithm.
 
 ## 4. Relation to the rank-aggregation route
 
@@ -211,7 +267,9 @@ AFFINE_PINNED_QUADRATIC_GAUSS_ALL_INPUT_POLYNOMIAL = PROVED.
 E123_SOURCE_Q63_MOD4_UNSAT = POLYNOMIAL_CERTIFICATE.
 E123_ALL_189_PIN_MOD4_EXCLUSION = EXACT_REPLAY.
 TRANSPOSE_R_T_SAT_SUPPORT_RETAINS_MOD4 = EXACT_REPLAY.
-MOD4_RESIDUE_POSITIVE_IMPLIES_EXACTONE_SAT = NOT_PROVED.
+MOD4_RESIDUE_POSITIVE_IMPLIES_EXACTONE_SAT = REFUTED_BY_E118_UNSAT90.
+MOD8_HALF_WEIGHT_PHASE_HAS_CUBIC_INTERACTIONS = PROVED.
+GENERIC_QUADRATIC_GAUSS_EVALUATES_MOD8_PHASE = NOT_ESTABLISHED.
 RANK_AGGREGATION_FOR_TOP_COEFFICIENT = OPEN.
 UNIVERSAL_POLYNOMIAL_EXACTONE_SOLVER = NOT_CONSTRUCTED.
 P_VS_NP = OPEN.
