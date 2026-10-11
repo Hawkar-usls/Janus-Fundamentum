@@ -113,6 +113,42 @@ an edge exactly when two variables appear in the same check.
    each with n/3 selected variables. Thus the paper cannot
    rescue the universal tw claim by excluding hard UNSAT cases.
 
+### Stronger theorem: these growing-width SAT carriers have EXACTLY three models
+
+The 3 explicit periodic assignments above are ALL solutions for L
+divisible by three; this can be proved without enumerating the
+2^(L^2) Boolean assignments.
+
+Let P and Q denote commuting cyclic shifts in the i and j
+directions, so A_L=I+P+Q. These shifts are simultaneously
+diagonalized by the discrete Fourier basis
+e_(a,b)(i,j)=exp(2*pi*i*(a*i+b*j)/L).
+
+The corresponding eigenvalue of A_L is
+
+    1+u+v,  u=exp(2*pi*i*a/L), v=exp(2*pi*i*b/L).
+
+For complex numbers u,v of unit modulus,
+1+u+v=0 implies |1+u|=1 and hence Re(u)=-1/2.
+Therefore {u,v}={omega,omega^2}, where omega^3=1,
+omega !=1. For 3|L, exactly TWO frequency pairs vanish.
+Thus dim_C ker(A_L)=dim_R ker(A_L)=2.
+
+Since A_L*1=3*1, all real solutions to A_L*x=1 are
+1/3*1 plus combinations of the two conjugate modes
+omega^(i-j), omega^(-(i-j)). Hence x is constant on the
+THREE residue classes of (i-j) mod 3. The Exact-One row
+then imposes a0+a1+a2=1, and Booleanity
+a0,a1,a2 in {0,1} leaves exactly THREE possibilities.
+
+    Number_of_Boolean_SAT_models(A_L) = 3, for all 3|L.
+
+This is also a caution: the family's UNBOUNDED conflict
+treewidth does NOT imply SAT computation is difficult on
+the same family, because its Fourier symmetry makes it easy.
+Only the external universal constant-treewidth theorem is
+refuted; no lower bound on general solver runtime is claimed.
+
 This directly disproves Proposition 4's structural implication
 on matrices of EXACTLY the class addressed in the paper.
 
