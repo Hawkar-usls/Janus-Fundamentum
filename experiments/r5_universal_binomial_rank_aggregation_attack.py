@@ -20,7 +20,7 @@ from __future__ import annotations
 from collections import Counter
 from fractions import Fraction
 from itertools import combinations
-from math import comb
+from math import comb, factorial
 
 from r5_e61_two_level_kernel_hoffman_regular_set import (
     P_SAT, Q_SAT, P_UNSAT, Q_UNSAT, build_A,
@@ -122,6 +122,11 @@ def small_controls(A,expected):
     m=n//3
     basis,words=weights_of_kernel(A)
     coeff=binomial_basis_coefficients(m)
+    scale=(1<<m)*factorial(m)
+    scaled=[int(v*scale) for v in coeff]
+    assert all(v*scale==int(v*scale) for v in coeff)
+    if m==4:
+        assert scaled==[0,-15,30,-36,24]
     for pins in [{},{0:0},{0:1},{0:0,1:1},{0:1,1:0}]:
         moments=rank_moments(basis,n,m,pins)
         direct,valid=direct_count(words,m,pins)
@@ -131,6 +136,7 @@ def small_controls(A,expected):
         )
         reconstructed=sum((c*B for c,B in zip(coeff,moments)),Fraction(0))
         assert reconstructed==direct,(pins,reconstructed,direct)
+        assert sum(a*B for a,B in zip(scaled,moments))==scale*direct
         if not pins:
             assert direct==expected
     print(f"n={n} expected_sat_count={expected}: all 5 pin/rank-moment checks PASS")
