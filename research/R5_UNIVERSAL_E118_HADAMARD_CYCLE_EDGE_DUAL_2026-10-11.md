@@ -110,6 +110,51 @@ full partition function a product of independent
 cycle transfer matrices. The missing global elimination
 is the interaction via this owner-to-edge permutation.
 
+### Strong equivalence theorem: cubic Exact-One IS cycle-cover + permutation Exact-One
+
+The preceding Hall-matching construction has a polynomial-time inverse.
+
+Given n vertices and a 2-regular MULTIGRAPH H with exactly n
+edges, choose a bijection owner:E(H)->V(H) such that the owner
+of every edge e={a,b} is distinct from both a and b.
+Create one triple check
+
+    x_owner(e) + x_a + x_b = 1
+
+for each edge e. Every vertex appears in exactly ONE check as
+the owner, and in exactly TWO checks as an endpoint of H;
+therefore every variable occurs exactly three times,
+there are exactly n cubic checks and n variables,
+and the result is a valid cubic monotone 1-in-3-SAT SOURCE.
+
+Conversely, every cubic 3-uniform source has a clause-variable
+perfect matching (Hall counting) and hence yields precisely
+such a pair (H,owner) in polynomial time. The original
+source clause sets are recovered exactly as above. The
+checker performs this inverse reconstruction for all sources.
+
+Therefore the ORIGINAL NP-complete 3-uniform, 3-regular,
+monotone 1-in-3-SAT class admits a **polynomially equivalent**
+presentation as:
+
+    CYCLE_OWNER_EXACTONE(H, owner):
+       decide whether exists x in {0,1}^n s.t.
+       x_owner(e) + x_endpoint1(e) + x_endpoint2(e) = 1,
+       for every edge e of a 2-regular H.
+
+This class is NP-complete, assuming the E118 source
+NP-completeness predecessor. It is NOT a new easier subclass:
+the arbitrary owner permutation is the full source coupling.
+The proof is an exact reduction in both directions.
+
+The positive lesson: the difficult global information can be
+localized entirely to a PERMUTATION between vertices and
+edges of an otherwise trivial 2-factor.
+The negative lesson: "H is just cycles" does NOT supply
+a universal polynomial algorithm when owner labels are
+unrestricted. A new theorem must exploit both the cycles
+and the owner permutation, or bypass this representation.
+
 ### Explicit small CONNECTED cross-cycle witness
 
 Take six variables v0..v5 and clauses with listed owners:
@@ -247,6 +292,7 @@ but does not prove that such an evaluator is impossible.
 
 ALL_SOURCE_HADAMARD_2_FACTOR_DUAL = PROVED_BY_IDENTITY.
 NON_OWNER_GRAPH_EVERY_VERTEX_DEGREE_TWO = PROVED.
+CUBIC_EXACTONE_POLY_EQUIVALENT_TO_LABELLED_2_FACTOR_EXACTONE = PROVED_USING_E118_HARDNESS.
 CYCLE_OWNER_PERMUTATION_MAY_COUPLE_DISTINCT_CYCLES = PROVED.
 IDENTICAL_UNLABELLED_2_FACTOR_OPPOSITE_SAT_STATUS = EXACT_FINITE_CERTIFICATE.
 DUAL_C_COUPLING_RANK_TWO_AT_PRIMITIVE_PHASE = PROVED.
