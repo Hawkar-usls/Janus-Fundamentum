@@ -75,13 +75,80 @@ def hierarchy(seed,levels=6):
         n*=2
 
 
+
+def base_integer_fibre_separator():
+    """Construct integral u with u^T A=36*e_0, sum(u)=12.
+
+    Fractions are used in a 12x12 exact Gauss-Jordan solve to build an
+    integer vector; verification uses ONLY integer arithmetic.
+    """
+    from fractions import Fraction
+    A=base_matrix()
+    n=len(A)
+    assert n==12
+    assert det_bareiss(A)==36
+    # Solve A^T*u = 36*e0 exactly.
+    aug=[
+        [Fraction(A[j][i]) for j in range(n)]
+        +[Fraction(36 if i==0 else 0)]
+        for i in range(n)
+    ]
+    for k in range(n):
+        pivot=next(i for i in range(k,n) if aug[i][k])
+        aug[k],aug[pivot]=aug[pivot],aug[k]
+        q=aug[k][k]
+        aug[k]=[v/q for v in aug[k]]
+        for i in range(n):
+            if i!=k and aug[i][k]:
+                q=aug[i][k]
+                aug[i]=[v-q*w for v,w in zip(aug[i],aug[k])]
+    assert all(aug[i][j]==int(i==j) for i in range(n) for j in range(n))
+    u=[row[-1] for row in aug]
+    assert all(z.denominator==1 for z in u)
+    z=[int(t) for t in u]
+    assert sum(z)==12
+    assert [
+        sum(z[i]*A[i][j] for i in range(n)) for j in range(n)
+    ]==[36]+[0]*11
+    return tuple(z)
+
+
+def validate_integer_cover_refutation(rows,n,r,base_rows,u):
+    """Independent O(n) exact linear certificate; no Boolean search.
+
+    Lifted check copies get coefficient u_i. Sum their equations:
+       36 * (number of selected copies of base variable 0) = 12*r.
+    Since 3 does not divide r this is impossible for INTEGER x.
+    """
+    nbase=12
+    assert n==12*r and len(base_rows)==nbase and len(u)==nbase
+    labels={t:i for i,t in enumerate(base_rows)}
+    left=[0]*n
+    sum_coeff=0
+    for row in rows:
+        key=tuple(sorted(v//r for v in row))
+        i=labels[key]
+        w=u[i]
+        sum_coeff+=w
+        for j in row:
+            left[j]+=w
+    expected=[36 if j//r==0 else 0 for j in range(n)]
+    assert left==expected,(n,left[:20],expected[:20])
+    assert sum_coeff==12*r
+    assert 3*(sum_coeff//12)==3*r
+    assert r%3!=0
+    return True
+
 def main():
     base,_=sparse_base()
     results=[]
+    u=base_integer_fibre_separator()
+    print("FIBRE_LINEAR_UNSAT_CERTIFICATE_INTEGER_U12=",u)
     # Complete q12/q24/q48/q96 where affordable; guarded at larger n.
     caps={12:2500,24:4500,48:6000,96:6000,192:1800,384:1000}
     for seed in (129,132,9421):
         for k,n,r,rows in hierarchy(seed,levels=6):
+            assert validate_integer_cover_refutation(rows,n,r,base,u)
             result=ExactSupportResidualDAG_sparse(
                 rows,n,max_states=caps[n]
             )
@@ -107,6 +174,8 @@ def main():
     assert all(s in ("UNSAT","UNKNOWN") for _,_,s,_ in results)
     assert len(results)==18
     print("E129_INVERTIBLE_BASE_DET36 = PREDECESSOR_REPLAY")
+    print("EXPLICIT_O(N)_VERIFY_INTEGER_UNSAT_CERTIFICATE = PROVED_FOR_ALL_COVERS")
+    print("THIS_FAMILY_HAS_SHORT_ARITHMETIC_PROOFS; NOT_A_UNIVERSAL_LOWER_BOUND")
     print("ALL_POWERS_OF_TWO_LEVI_COVERS_UNSAT = E129_GENERAL_THEOREM")
     print("EXACT_FIBRE_COVER_MAP = INDEPENDENTLY_VERIFIED")
     print("ACTUAL_MEMO_STATES = FINITE_OBSERVATION_WITH_GUARD")
