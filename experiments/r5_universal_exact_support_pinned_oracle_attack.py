@@ -253,6 +253,61 @@ def _e118_A(source):
     return [[int(j in row) for j in range(n)] for row in rows]
 
 
+def independent_n12_full_boolean_replay():
+    """Frozen legal 3-regular C4-free samples vs independent enumeration.
+
+    Enumeration is deliberately used ONLY for fixed n=12 tests.
+    It is NOT a proposed universal polynomial algorithm.
+    """
+    from itertools import combinations
+    permutations=[
+        ([9,10,6,5,1,2,11,4,0,3,7,8],
+         [11,3,8,7,0,10,1,2,5,6,9,4]),
+        ([8,5,1,2,0,4,11,9,7,3,6,10],
+         [11,3,4,0,9,6,7,10,2,8,1,5]),
+        ([7,6,9,1,0,2,5,4,3,10,11,8],
+         [6,2,8,11,5,10,9,1,7,3,4,0]),
+        ([4,2,11,9,10,0,1,3,6,8,7,5],
+         [8,4,6,2,5,3,7,11,10,1,0,9]),
+        ([11,3,7,4,2,10,9,8,6,0,1,5],
+         [1,8,11,7,5,0,3,10,4,2,9,6]),
+        ([4,11,1,10,5,6,7,9,3,8,0,2],
+         [1,5,9,2,7,3,8,10,11,0,6,4]),
+    ]
+    statuses=[]
+    for p,q in permutations:
+        n=12
+        rows=[(i,p[i],q[i]) for i in range(n)]
+        assert all(len(set(row))==3 for row in rows)
+        A=[[int(j in row) for j in range(n)] for row in rows]
+        assert len(constraints_from_matrix(A))==n
+        # 3|x|=12: only 4 selected variables could form a model.
+        genuine=[]
+        for selected in combinations(range(n),4):
+            chosen=set(selected)
+            if all(sum(j in chosen for j in row)==1 for row in rows):
+                genuine.append(sum(1<<j for j in chosen))
+        pins_to_test=(
+            {},{0:0},{0:1},{0:0,1:0},{0:0,1:1},
+            {0:1,1:0},{0:1,1:1},
+        )
+        for pins in pins_to_test:
+            expected=any(
+                all((word>>j)&1==v for j,v in pins.items())
+                for word in genuine
+            )
+            result=ExactSupport(A,pins,max_nodes=20000)
+            assert result["status"]==("SAT" if expected else "UNSAT"),(
+                p,q,pins,expected,result
+            )
+            if expected:
+                word=sum(v<<j for j,v in enumerate(result["witness"]))
+                assert word in genuine and all((word>>j)&1==v
+                                               for j,v in pins.items())
+        statuses.append(("SAT" if genuine else "UNSAT",len(genuine)))
+    print("INDEPENDENT_FROZEN_n12_C4FREE_PINNED_42_REPLAYS=PASS",statuses)
+
+
 def main():
     for name,A,expected in (
         ("E61_SAT12",build_A(P_SAT,Q_SAT),"SAT"),
@@ -301,6 +356,7 @@ def main():
             assert sum(r["witness"])==30
         print(name,r["status"],r["reason"],r["audit"])
 
+    independent_n12_full_boolean_replay()
     print("EXACT_SUPPORT_PINNED_SOUND_COMPLETE = PROVED, WORST_CASE_EXPONENTIAL")
     print("EXACT_SUPPORT_SAT_WITNESS_SELF_REDUCTION = PROVED")
     print("UNKNOWN_ON_GUARD = IMPLEMENTED, NO FALSE_UNSAT")
