@@ -195,7 +195,43 @@ the polynomial complexity of the proposed global aggregate.
 The n63 control enumerates 2^14 kernel words because the finite
 fixture has nullity 14; it is not a worst-case poly-time algorithm.
 
-## VI. Anti-duplicate / literature audit
+## VI. Computed moment-discrimination depth: E123 q63 R vs SAT transpose
+
+The exact E64/E65 q63 kernel word enumerators, from 2^14 words each,
+yield binomial weight moments
+
+    B_s = sum_{k in ker_F2(A)} binom(|k|,s).
+
+For the UNSAT orientation R and SAT orientation T=R^T,
+
+    B_s(R) == B_s(T)   for every 0 <= s <= 5,
+
+but
+
+    B_6(R) = 16,915,325,952;
+    B_6(T) = 16,915,411,968;
+    B_6(T) - B_6(R) = 86,016.
+
+The exact SAT witness counts differ already in top shell:
+
+    Z(R) = 0, Z(T)=36.
+
+Thus **no scalar criterion obtained solely as a fixed rational linear
+combination of B_0,...,B_5** can distinguish the two orientations,
+regardless of how efficiently those five values are computed. The
+same holds for any deterministic procedure whose ONLY observable
+data about the input are these five moment values and n.
+This is an exact *finite indistinguishability certificate* for the
+weight-moment approach, not a computational complexity lower bound
+on methods inspecting the full incidence matrix.
+
+The first moment divergence at s=6 does NOT imply sixth-order
+moments universally decide Exact-One. The general exact indicator
+q_m has degree m=n/3 (21 for this q63 case), and a compressed
+global procedure or totally different invariants would still need
+an all-input theorem.
+
+## VII. Anti-duplicate / literature audit
 
 This is a Newton/binomial-moment re-expression of the E61/E65
 top-shell criterion and the general coding theory rank-polynomial
@@ -215,12 +251,14 @@ Neither source proves a complexity lower bound for every possible
 algorithm or for this specific exact moment aggregate in a restricted
 complexity model. P vs NP remains OPEN.
 
-## Verdict
+## VIII. Verdict
 
 TOP_SHELL_BINOMIAL_FILTER = PROVED_FOR_ALL_SQUARE_CUBIC_INPUTS.
 WEIGHT_GRID_EXACT_INTERPOLATION_DEGREE = n/3 (abstract full-grid only).
 INDIVIDUAL_SUBSET_PROJECTION_RANK_COUNT = POLYNOMIAL_EXACT.
 PINNED_RANK_AGGREGATION_FORMULA = PROVED.
+E123_R_VS_RT_FIRST_WEIGHT_MOMENT_DIVERGENCE_AT_S6 = EXACT_FINITE_REPLAY.
+DEGREE_LE5_WEIGHT_MOMENT_ONLY_DISTINGUISHER_FOR_THIS_PAIR = REFUTED.
 GLOBAL_POLY_RANK_AGGREGATION = OPEN.
 SOUND_COMPLETE_POLY_SOLVER_VIA_AGGREGATOR = CONDITIONAL_ONLY.
 UNIVERSAL_POLYNOMIAL_EXACTONE_SOLVER = NOT_CONSTRUCTED.
