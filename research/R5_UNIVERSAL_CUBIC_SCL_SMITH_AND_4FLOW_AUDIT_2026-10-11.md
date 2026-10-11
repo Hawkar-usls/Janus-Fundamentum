@@ -215,7 +215,7 @@ while their *minimal 5-edge-cut* profiles separate:
 This yields a strict **finite low-moment collision** with identical
 complete Smith form as well as graph size, connectivity, and low
 cut counts:
-  Smith(A) = 1^52, 2^2, 0^20
+  Smith(A) = 1^68, 2^2, 0^20
   SAT Boolean models = 72; UNSAT Boolean models = 0.
 
 ### All-graph fixed-k edge deletion identity
