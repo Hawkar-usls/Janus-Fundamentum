@@ -139,6 +139,63 @@ Relevant sources:
   https://doi.org/10.1137/S0097539703436485
   https://www.cs.columbia.edu/~rocco/papers/stoc16frege.html
 
+## 4-A. Stronger CONDITIONAL implication: uniform UNSAT-only bound suffices
+
+A precise, useful reduction in the remaining theorem obligation
+does NOT require showing that the frozen algorithm is fast on
+positive search traces.
+
+Suppose there exist fixed C and c such that, for EVERY legal
+SCL incidence matrix A, for EVERY pinned Boolean slice pi
+that is UNSAT, the COMPLETE frozen residual-DAG algorithm
+finishes in at most B(n)=c*n^C distinct memo states.
+
+Then a deterministic polynomial SAT decision procedure follows:
+run `ExactSupportResidualDAG(A,pi,max_states=B(n))`.
+If it returns UNSAT, that is correct. If it returns SAT with
+verified witness, correct. If it returns UNKNOWN, the
+uniform UNSAT-only hypothesis rules out UNSAT; therefore
+the pinned formula MUST be SAT.
+
+For witness recovery, first establish SAT at no pins,
+then for each unpinned coordinate j query the slice
+pi union {x_j=0} under that same budget. If the
+bounded run says UNSAT, fix x_j=1 (necessarily safe
+because the parent is SAT); otherwise, whether the
+bounded run returns SAT or UNKNOWN, fix x_j=0.
+By induction every pinned prefix remains extendible.
+After n steps verify the reconstructed Boolean Ax=1.
+
+At most n+1 bounded exact runs use O(B(n)*poly(n))
+bit operations. This would prove P=NP by the
+already validated E118 NP-hardness bridge.
+
+**THE UNSAT-ONLY BOUND HAS NOT BEEN PROVED.** This is
+an implication, not a proposed real-time procedure:
+WITHOUT a valid uniform bound, treating UNKNOWN as
+SAT is MATHEMATICALLY UNSOUND and strictly forbidden.
+The implemented production solver continues to
+return UNKNOWN under any finite resource guard.
+
+This sharpening also shows why one cannot infer that
+a small SAT witness alone proves the whole search fast.
+The difficulty may live specifically in provably
+UNSAT pinned subinstances.
+
+### Caching-proof-system caution
+
+Beame, Impagliazzo and Segerlind,
+*Formula Caching in DPLL* (2006/2010),
+https://eccc.weizmann.ac.il/eccc-reports/2006/TR06-140/index.html
+explicitly prove that different formula-caching proof
+systems have substantially different power, including
+separations from resolution for some variants.
+The 2022 Tseitin resolution lower bound cannot simply
+be transplanted to THIS exact residual-DAG solver;
+one first needs a rigorous simulation in the
+correct direction and a hardness-preserving
+SCL gadget reduction. Both remain unproved here.
+
 ## 5. Correct mathematical next target
 
 The ONLY remaining success gate is an all-input exact
