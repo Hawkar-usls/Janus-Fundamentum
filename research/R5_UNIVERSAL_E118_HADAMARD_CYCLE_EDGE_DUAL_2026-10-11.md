@@ -264,6 +264,103 @@ The finite checks do NOT establish worst-case polynomial
 evaluation, because the present direct dual histogram
 loops over 2^n edge-bit assignments.
 
+## V-A. Uniform exact elimination of one root spin per cycle
+
+The 2-factor graph H also permits a SECOND, completely
+non-Fourier, explicit global contraction. It eliminates
+one GF2 spin per connected cycle algebraically while
+keeping the full integer target weight enumerator.
+
+Let H have c cycle components, with n vertices and n edges.
+Choose a spanning tree from each cycle by deleting one
+cycle edge. The forest has exactly n-c edges.
+
+For each FOREST edge e={u,w}, introduce a free binary
+edge gradient y_e=p_u XOR p_w. These n-c variables
+determine a unique relative spin d_v(y) on every
+vertex once the root of each component has been set
+to zero. For the deleted edge e'=(u,w), its gradient
+is then forced to d_u(y) XOR d_w(y) by the condition
+that XOR of all gradients around a cycle equals zero.
+
+For each matching-owner vertex v, the required q_v is
+the gradient of its corresponding owner-labelled edge:
+
+    q_v(y) = d_endpoint1(e_v)(y)
+             XOR d_endpoint2(e_v)(y).
+
+Every original p assignment is now uniquely encoded by
+a forest-gradient tuple y in F2^(n-c) and one root bit
+b_C per cycle component C:
+
+    p_v=d_v(y) XOR b_{component(v)}.
+
+Substituting this EXACT bijection into the weighted sum,
+we may sum each b_C locally:
+
+    S(alpha) =
+      sum_{y in F2^(n-c)}
+        product_{C in components(H)}
+          [ product_{v in C}
+                W_{d_v(y),q_v(y)}(alpha)
+            +
+            product_{v in C}
+                W_{1 XOR d_v(y),q_v(y)}(alpha)
+          ].
+
+This is an exact polynomial identity for EVERY cubic
+source, ALL alpha values, and in particular every
+primitive cyclotomic phase. Every local product and
+coefficient uses O(poly(n)) exact integer bit arithmetic
+for the formal weight histogram.
+
+**Explicit-state complexity:**
+    O(2^(n-c)*poly(n))
+instead of the prior 2^n source assignments. No
+assumption that H's cycles are independent was made:
+q_v(y) still depends on gradients of the remote edge
+owned by v. The formula sums each cycle root exactly,
+while preserving ALL cross-cycle interactions.
+
+Exact frozen controls, with the canonical Hall matching
+used for q9 sources and the explicit owner maps for q6:
+
+    source                   cycles c   explicit states
+    E118 UNSAT q9               1              256
+    E118 SAT q9                 4               32
+    connected UNSAT q6          2               16
+    connected SAT q6            2               16
+
+All coefficients are compared with an independent
+2^n-source-word exact polynomial. Expected target
+top coefficients remain 0/192 on q90 and 0/48
+on q60 respectively.
+
+**Sharp all-input firewall:** H has NO LOOPS because
+every source clause contains 3 distinct variables.
+Each cycle component therefore has at least two
+vertices. Consequently c<=floor(n/2) and
+
+    n-c >= ceil(n/2).
+
+Thus any algorithm that still explicitly lists all
+2^(n-c) gradient choices has an exponential worst-case
+envelope at least 2^(ceil(n/2)) for ANY perfect matching.
+Picking a better Hall matching can improve constant
+exponents but CANNOT by itself make this explicit
+gradient-enumeration route polynomial.
+
+This is a strict lower bound on the number of states
+of THIS CHOSEN REPRESENTATION, NOT a universal
+algorithmic time lower bound or a P!=NP result.
+A compressed computation exploiting cancellations,
+symbolic sharing or a wholly different invariant
+remains mathematically possible and is the needed
+all-input theorem.
+
+Companion:
+    python experiments/r5_universal_e118_cycle_gradient_elimination.py
+
 ## VI. Exact next universal obligation
 
 The source and dual E118 partition functions are equally
@@ -298,6 +395,8 @@ IDENTICAL_UNLABELLED_2_FACTOR_OPPOSITE_SAT_STATUS = EXACT_FINITE_CERTIFICATE.
 DUAL_C_COUPLING_RANK_TWO_AT_PRIMITIVE_PHASE = PROVED.
 Q90_FULL_INTEGER_POLYNOMIAL_DUAL_REPLAY = EXPECTED_CHECK.
 CONNECTED_Q6_TWO_CYCLE_CROSS_OWNER_REPLAY = EXPECTED_CHECK.
+CYCLE_ROOT_SPIN_SUM_ELIMINATION = PROVED_ALL_SOURCES.
+EXPLICIT_GRADIENT_STATES_GE_2^(N/2) = PROVED_FOR_THIS_REPRESENTATION.
 UNIVERSAL_POLYNOMIAL_DUAL_CONTRACTION = OPEN.
 UNIVERSAL_SOLVELINEARCUBICXSAT = NOT_CONSTRUCTED.
 P_VS_NP = OPEN.
