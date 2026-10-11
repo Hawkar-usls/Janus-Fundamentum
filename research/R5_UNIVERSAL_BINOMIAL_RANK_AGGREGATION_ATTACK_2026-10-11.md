@@ -107,6 +107,59 @@ The computational obstruction is **not** a single difficult rank,
 the integer size of Z(A), or calculating the coefficients c_s.
 It is **combining the ranks over exponentially many coordinate sets**.
 
+## II-A. A surprisingly short TWO-RANK difference identity
+
+There is no need to branch on consistency to represent any
+individual subset count. Define U_S to be the rows of the n x d
+binary kernel generator U indexed by S and let
+
+    r(S)  = rank_F2(U_S);
+    r+(S) = rank_F2([U_S | 1_S]).
+
+Appending a single RHS column increases rank by either 0 or 1.
+A direct two-case calculation proves the unconditional **integer**
+identity
+
+    #{t in F2^d: U_S t=1_S}
+      = 2^(d+1-r+(S)) - 2^(d-r(S)).
+
+When r+=r this is 2^(d-r); when r+=r+1 this is 0.
+Both exponents are nonnegative integers. The same formula holds
+for any pinned affine constraints: stack the specified rows/RHS,
+including both copies of a coordinate if a pin conflicts with a
+required value 1, then use the two ranks.
+
+For the unpinned family introduce two binary row matroids
+represented by U and the one-column augmentation U+=[U | 1].
+Define their finite rank generating polynomials at q=2:
+
+    P_U(z)  = sum_{S subset [n]} 2^(d-r(S)) z^|S|,
+    P_U+(z) = sum_{S subset [n]} 2^(d+1-r+(S)) z^|S|.
+
+Then the **ENTIRE ordinary binomial moment polynomial** is
+
+    sum_{k in K}(1+z)^|k| = P_U+(z) - P_U(z).
+
+This is a new proof-aligned target for **constructive difference
+evaluation**, not proof that either rank polynomial has a
+polynomial-time representation. The identity is verified by
+independent exact GF2 rank implementations on all n12 moment
+subsets/pins.
+
+A proposed Cauchy-Binet determinant shortcut must be proved:
+ordinary determinants sum **squared numeric minors**, not the
+required powers of binary ranks or the augmented affine
+consistency contributions. The 3-regular/linear promise by itself
+does not supply total unimodularity or a known universal
+determinant identity.
+
+The exact missing theorem can equivalently ask for polynomial-time
+extraction of the prescribed top-shell Newton functional from
+P_U+(z)-P_U(z), or any alternative direct procedure achieving
+the same nonnegative zero test. The general binary-matroid rank
+polynomial / Tutte connection warns that polynomial circuit
+construction cannot be assumed.
+
 ## III. The precise required constructive theorem for this route
 
 Define an affine pin assignment pi on some x coordinates. Because
@@ -279,6 +332,8 @@ TOP_SHELL_BINOMIAL_FILTER = PROVED_FOR_ALL_SQUARE_CUBIC_INPUTS.
 WEIGHT_GRID_EXACT_INTERPOLATION_DEGREE = n/3 (abstract full-grid only).
 INDIVIDUAL_SUBSET_PROJECTION_RANK_COUNT = POLYNOMIAL_EXACT.
 PINNED_RANK_AGGREGATION_FORMULA = PROVED.
+AFFINE_TWO_RANK_DIFFERENCE_IDENTITY = PROVED_AND_REPLAYED.
+BINARY_MATROID_RANK_POLYNOMIAL_DIFFERENCE = PROVED_AS_IDENTITY_ONLY.
 E123_R_VS_RT_FIRST_WEIGHT_MOMENT_DIVERGENCE_AT_S6 = EXACT_FINITE_REPLAY.
 DEGREE_LE5_WEIGHT_MOMENT_ONLY_DISTINGUISHER_FOR_THIS_PAIR = REFUTED.
 GLOBAL_POLY_RANK_AGGREGATION = OPEN.
