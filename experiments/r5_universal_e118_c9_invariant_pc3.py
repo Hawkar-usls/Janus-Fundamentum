@@ -96,35 +96,23 @@ def monomial_orbit_coordinates(n,d,sigma):
     mons=monomial_masks(n,d)
     coords={}
     sizes=defaultdict(int)
+    orbit_id=0
     for mon in mons:
         if mon in coords:continue
         orbit=[]
         curr=mon
-        while curr not in coords and curr not in orbit:
+        while curr not in orbit:
+            assert curr not in coords,(mon,curr)
             orbit.append(curr)
             curr=rotate_mask(curr,sigma)
         assert curr==mon and 9%len(orbit)==0,(mon,len(orbit))
-        oid=len(sizes) # do not use: sizes is keyed by orbit length!
-        oid=len(coords) # do not use: increases per monomial!
-        oid=counter[0] if False else 0
-        # Correct orbit index assigned by explicit running integer.
         for x in orbit:
-            coords[x]=len(sizes) if False else -1
+            coords[x]=orbit_id
         sizes[len(orbit)]+=1
-    # Reassign deterministic orbit IDs (avoids accidental noncontiguous keys)
-    coords.clear()
-    orbit_id=0
-    for mon in mons:
-        if mon in coords:continue
-        curr=mon
-        while curr not in coords:
-            coords[curr]=orbit_id
-            curr=rotate_mask(curr,sigma)
-        assert curr==mon
         orbit_id+=1
     assert len(coords)==len(mons)
     assert sum(k*v for k,v in sizes.items())==len(mons)
-    assert 9*sum(v for k,v in sizes.items())>=len(mons)
+    assert sum(sizes.values())==orbit_id
     return coords,orbit_id,dict(sorted(sizes.items()))
 
 
