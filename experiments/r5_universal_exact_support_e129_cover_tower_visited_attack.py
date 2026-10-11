@@ -122,7 +122,15 @@ def validate_integer_cover_refutation(rows,n,r,base_rows,u):
     """
     nbase=12
     assert n==12*r and len(base_rows)==nbase and len(u)==nbase
-    labels={t:i for i,t in enumerate(base_rows)}
+    # u's indices refer to the ORIGINAL base_matrix row order.
+    # validate_sparse sorts rows lexicographically, so enumerate(base_rows)
+    # would silently permute u and INVALIDATE the certificate!
+    B=base_matrix()
+    labels={
+        tuple(j for j,value in enumerate(row) if value): i
+        for i,row in enumerate(B)
+    }
+    assert len(labels)==12 and set(labels)==set(base_rows)
     left=[0]*n
     sum_coeff=0
     for row in rows:
@@ -135,7 +143,6 @@ def validate_integer_cover_refutation(rows,n,r,base_rows,u):
     expected=[36 if j//r==0 else 0 for j in range(n)]
     assert left==expected,(n,left[:20],expected[:20])
     assert sum_coeff==12*r
-    assert 3*(sum_coeff//12)==3*r
     assert r%3!=0
     return True
 
