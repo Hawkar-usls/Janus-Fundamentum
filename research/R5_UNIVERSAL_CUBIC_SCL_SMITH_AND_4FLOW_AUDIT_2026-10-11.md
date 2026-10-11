@@ -91,77 +91,93 @@ matrices, full incidence structure, or more powerful algebraic objects.
 
 ## III-A. General 4-flow support-moment / cut-profile theorem
 
-For a connected simple cubic graph G that is 3-edge-connected and
-whose size-three edge cuts are all vertex-stars, put N=|V|, M=|E|,
-r=M-N+1 (binary cycle-space dimension), and let b4 denote the
-number of **distinct four-edge cutsets**. Assume r>=4.
+**Stronger all-input theorem within its stated graph promise.**
+Let G be ANY connected, simple, **3-edge-connected** cubic graph
+with N vertices, M=3N/2 edges, binary cycle rank r=M-N+1>=4.
+Let b3 and b4 count **distinct edge cutsets** of cardinality
+three and four respectively, including nontrivial 3-cuts.
 
-For each pair of binary circulations (f,g) in C(G)^2 let
-w(f,g)=|supp(f) union supp(g)|, and define the *unrestricted*
-(non-nowhere-zero included) binomial support moments
+For binary circulations (f,g) in C(G)^2 put
+w(f,g)=|supp(f) union supp(g)| and
 
   H_k(G) = sum_{f,g in C(G)} binom(w(f,g), k).
 
-These count exactly the pairs and a chosen k-edge set S on which
-both bits are not simultaneously zero.
+This is a moment of unrestricted 4-valued flows; it includes pairs
+whose union does not cover all edges, and does not itself decide SAT.
 
-**Exact uniform theorem (all graphs satisfying this promise):**
+**Exact uniform identities:**
 
   H_0 = 4^r
   H_1 = 3 M 4^(r-1)
   H_2 = 9 binom(M,2) 4^(r-2)
-  H_3 = [27 binom(M,3) - 3N] 4^(r-3)
-  H_4 = [81 binom(M,4) - 9N(M-3) + 3 b4] 4^(r-4).
+  H_3 = [27 binom(M,3) - 3 b3] 4^(r-3)
+  H_4 = [81 binom(M,4) - 9 b3(M-3) + 3 b4] 4^(r-4).
 
-**Proof:** On edge set S, the projected binary cycle space has
-orthogonal dependencies precisely the binary cut vectors supported
-inside S. For |S|=k<=4, no cut dependency gives an unconstrained
-F2^2 labelling with all labels nonzero: 3^k possibilities, each
-lifting to 4^(r-k) global cycle-pairs.
+**Complete proof:**
+For each edge set S, the projected F2 binary cycle space on S
+has as its dual the F2 cut relations **supported entirely in S**.
+If S contains no nonempty cut, then edge colours in F2^2 are
+independent, and the number of projected all-nonzero labels is
+3^|S|, each lifting to 4^(r-|S|) global flow pairs.
 
-For k=3, the only possible nontrivial cut dependence is a single
-vertex-star: the three edge labels have XOR sum zero, and exactly
-3*2=6 choices are all nonzero, each lifting 4^(r-2).
-This contributes 6*4^(r-2) instead of 27*4^(r-3),
-a difference of -3*4^(r-3), N times.
+For |S|<=2 no cut exists by 3-edge-connectivity.
+For |S|=3, a three-edge cut contributes exactly 6 pairwise
+distinct nonzero labels (the triple XORs to zero), lifting
+to 6*4^(r-2) instead of 27*4^(r-3): difference
+-3*4^(r-3). There are b3 such cuts.
 
-For k=4, because minimum cut size is three and all 3-cuts are
-vertex-stars, at most one cut relation is supported inside S.
-The exceptional S are:
- (a) a star triple plus one of M-3 other edges, N(M-3) sets;
-     three star labels are pairwise distinct nonzero (6 choices),
-     and the fourth has 3 choices, giving 18*4^(r-3)
-     instead of 81*4^(r-4): correction -9*4^(r-4);
- (b) an exact 4-cutset, b4 sets, with XOR of all four labels zero.
-     There are precisely 21 all-nonzero labelings, each lifting
-     4^(r-3): correction +3*4^(r-4).
-The exceptional classes cannot overlap, else their cut XOR would
-create a cut of size one, contradicting 3-edge-connectivity.
-Summing proves the formula. This is a specialized finite-moment
-consequence of binary cut/cycle duality, not a polynomial SAT solver.
+For |S|=4, at most one independent cut relation fits:
+two distinct three-edge cuts in S would have intersection >=2,
+so their binary XOR would form a cut of size <=2, impossible;
+a three-edge cut and a distinct four-edge cut supported on S
+would XOR to a cut of size one, also impossible.
+There are two **disjoint** exceptional cases.
 
-**Finite bridge controls independently replayed:**
-  Graph        N  M  r  #3-cuts  #4-cuts  H4
-  K3,3         6  9  4      6         9       9,909
-  Cube         8 12  5      8        15     157,968
-  Prism C5    10 15  6     10        20   1,752,720
-  Petersen    10 15  6     10        15   1,752,480
+(a) S contains a 3-cut and one of M-3 remaining edges:
+exactly 6*3=18 all-nonzero labelings, lifting to
+18*4^(r-3) instead of 81*4^(r-4).
+Correction: -9*4^(r-4), repeated b3(M-3) times.
 
-For Prism C5 and Petersen, ALL FOUR moments H0,H1,H2,H3 agree:
-(4096, 46080, 241920, 784320), while H4 splits by exactly 240.
-Since their true Boolean 3-edge colouring counts are respectively
-30 and 0, **no procedure whose only observations are N and
-these first four numbers H0..H3 can decide the two cases**.
-This is a finite indistinguishability certificate for those
-statistics, NOT a universal complexity lower bound.
-The initial separation at H4 detects five additional size-4
-edge cutsets (the prism's side faces) rather than detecting
-Boolean satisfiability directly.
+(b) S itself is a 4-cut:
+exactly 21 nonzero labels have XOR zero on its four edges,
+lifting to 21*4^(r-3), rather than 81*4^(r-4).
+Correction: +3*4^(r-4), repeated b4 times.
 
-Asymptotic warning: higher moments or a compressed full
-flow-support enumerator may encode all SAT information;
-there is no proof that computing their relevant final
-coefficient can be done in n^O(1) operations.
+Summing contributions proves H0--H4 for EVERY connected simple
+3-edge-connected cubic graph with r>=4. Neither cubic girth
+nor cyclic four-edge connectivity is assumed. This is a
+specialized coding-theory / cut-cycle duality identity;
+no mathematical priority over the literature is asserted.
+
+**Independent exhaustive controls, matched to the analytic identities:**
+
+  graph         N   M  r  b3  b4        H3          H4    #colourings
+  triangular     6   9  4   7   9       8988        9855         6
+  K3,3           6   9  4   6   9       9000        9909        12
+  cube           8  12  5   8  15      94656      157968        24
+  pent. prism   10  15  6  10  20     784320     1752720        30
+  Petersen      10  15  6  10  15     784320     1752480         0
+  hex. prism    12  18  7  12  27    5630976    15764544        72
+
+The triangular prism has b3=7>N=6 because the three cross
+edges separating the two triangles form a nontrivial 3-edge cut:
+this **refutes** replacing b3 with N unconditionally.
+The generalization above repairs precisely that assumption.
+
+For the pentagonal prism and Petersen, H0,H1,H2,H3 coincide:
+  (4096, 46080, 241920, 784320).
+Their H4 differ by 240, because the prism has five extra
+four-edge cuts: 5*3*4^(6-4)=240.
+Yet Boolean 3-edge-colouring counts are 30 versus 0.
+Thus a decision procedure observing **only** graph size and
+these first four moment values H0..H3 cannot distinguish this
+finite SAT/UNSAT pair. This is a finite information firewall,
+NOT a lower bound on unrestricted algorithms.
+
+The high-order moment or the whole flow-support enumerator still
+contains global NP-complete information. No polynomial-time
+evaluation or compression of the necessary high-order term has
+been proved.
 
 ## III-B. Literature anti-duplicate
 
@@ -196,8 +212,9 @@ decision procedure with proof.
 CUBIC_SCL_FULL_SMITH_INVARIANTS = PROVED_FOR_ALL_SIMPLE_CUBIC_G.
 PETERSEN_VS_5PRISM_SAME_SMITH_DIFFERENT_BOOLEAN = PROVED_FINITE_PAIR.
 THREE_EXACT_COUNTING_ROUTES_AGREE = VERIFIED_FINITE.
-LOW_FLOW_SUPPORT_MOMENTS_0_TO_4_FROM_CUT_PROFILE = PROVED_ALL_PROMISED_GRAPHS.
+LOW_FLOW_SUPPORT_MOMENTS_0_TO_4_FROM_CUT_PROFILE = PROVED_ALL_3EDGE_CONNECTED_CUBIC_G.
 PETERSEN_PRISM_FIRST_FOUR_SUPPORT_MOMENTS_EQUAL = VERIFIED_FINITE.
+NONTRIVIAL_THREE_EDGE_CUT_B3_VS_N_FIREWALL = PROVED_FINITE.
 FLOW_MOMENTS_0_TO_3_ONLY_DECIDER = REFUTED_FINITE_PAIR.
 SMITH_ONLY_UNIVERSAL_SCL_SOLVER = REFUTED.
 NOWHERE_ZERO_4FLOW_POLYNOMIAL_EVALUATION = NOT_PROVED.
