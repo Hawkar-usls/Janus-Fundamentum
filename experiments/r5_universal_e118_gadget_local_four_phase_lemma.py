@@ -141,6 +141,83 @@ def all_gadget_flips_in_global_kernel(source):
     return len(source_vars),len(B),len(seen)
 
 
+
+def exact_full_phase_by_gauge(source):
+    """Eliminate ALL local gadget-flip directions symbolically.
+
+    A general exact algorithm for E118 targets with cost
+        O(2^(dim K - #gadgets) * polynomial(n)).
+    The remaining gauge dimension can be linear in n.
+    Only the n=9 scientific fixtures are materialized below.
+    """
+    from collections import defaultdict
+
+    rows,_,pos=e118_target(source)
+    verify_target(rows)
+    n=len(rows)
+    src_vars=sorted(set(v for row in source for v in row))
+    num_gadgets=len(src_vars)
+    A=[[int(j in row) for j in range(n)] for row in rows]
+    basis=matrix_basis(A)
+
+    flips=[
+        sum(1<<pos[f"G_{v}_{s}"] for s in FLIP_COORDS)
+        for v in src_vars
+    ]
+    fcoords=[pos[f"G_{v}_f"] for v in src_vars]
+    for flipped,fpos in zip(flips,fcoords):
+        assert flipped>>fpos&1
+        assert all(((flipped>>other)&1)==0 for other in fcoords if other!=fpos)
+    rowbits=[sum(1<<j for j in row) for row in rows]
+    assert all(all((row&v).bit_count()%2==0 for row in rowbits) for v in flips)
+
+    # Gauge-fix t=f=0, then Gaussian-eliminate the image of the
+    # entire target kernel basis. The map's kernel is exactly
+    # span(flips), so the gauge dimension is d-num_gadgets.
+    pivots={}
+    gauge_basis=[]
+    for w in basis:
+        projected=w
+        for f,v in zip(fcoords,flips):
+            if projected>>f&1:
+                projected^=v
+        assert all(not(projected>>f&1) for f in fcoords)
+        z=projected
+        while z:
+            p=z.bit_length()-1
+            if p not in pivots:
+                pivots[p]=z
+                gauge_basis.append(projected)
+                break
+            z^=pivots[p]
+    gauge_dim=len(gauge_basis)
+    assert gauge_dim==len(basis)-num_gadgets
+    # No general polynomiality asserted; frozen fixture is bounded.
+    assert gauge_dim<=9
+
+    hist=defaultdict(int)
+    for mask in range(1<<gauge_dim):
+        w=0
+        for j,codeword in enumerate(gauge_basis):
+            if mask>>j&1:
+                w^=codeword
+        assert all(not(w>>f&1) for f in fcoords)
+        assert w.bit_count()%2==0
+        local_poly={w.bit_count()//2:1}
+        for flip in flips:
+            delta=flip.bit_count()//2-(w&flip).bit_count()
+            nxt=defaultdict(int)
+            for degree,count in local_poly.items():
+                nxt[degree]+=count
+                nxt[degree+delta]+=count
+            local_poly=nxt
+        for degree,count in local_poly.items():
+            hist[degree]+=count
+
+    assert sum(hist.values())==1<<len(basis)
+    assert min(hist)>=0 and max(hist)<=n//3
+    return dict(hist),len(basis),gauge_dim
+
 def main():
     assert exact_gadget_kernel_truth_table()
     for Q in (32,64,128):
@@ -159,8 +236,18 @@ def main():
         A=[[int(j in row) for j in range(len(rows))] for row in rows]
         canonical=projected_walsh_phase_elimination(matrix_basis(A),len(rows))
         assert canonical["r"]==2 and canonical["walsh_support"]==4
+        hist,d_full,d_gauge=exact_full_phase_by_gauge(source)
+        assert d_full==18 and d_gauge==9
+        assert sum(hist.values())==1<<18
+        if name=="E118_UNSAT90":
+            assert hist.get(30,0)==0 and hist[29]==864
+        else:
+            assert hist[30]==192 and hist[29]==1728
         print(f"{name}: {gadgets} independent local weight-6 kernel flips; "
-              f"global nullity={d}; sampled gauge words={checked}; first-step 4-term phase PASS")
+              f"global nullity={d}; gauge nullity={d_gauge}; "
+              f"phase words {1<<d_full} -> {1<<d_gauge}; "
+              f"top coefficient Z={hist.get(30,0)}; "
+              f"sampled gauge words={checked}; local four-phase PASS")
 
     print("ALL_E118_GADGET_LOCAL_PHASE_ELIMINATION_RANK_LE_2 = SYMBOLICALLY PROVED")
     print("E118_GLOBAL_SOURCE_COUPLING = REMAINS_NP_HARD")
