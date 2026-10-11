@@ -69,6 +69,33 @@ def exact_pfaffian_cube(n, raw, orientation_masks=(0,0,0)):
     return positive,negative,len(records)
 
 
+def symbolic_labelled_coefficients(n, raw):
+    """Explicit tiny-fixture coefficient in independent y_(edge,color).
+
+    For each complete squarefree ordered triple of perfect matchings,
+    record its unique colour-label monomial and signed coefficient.
+    Enumeration is exponential, not an efficient symbolic extractor.
+    """
+    E=normalized(n,raw)
+    allmask=(1<<len(E))-1
+    index_edge={e:i for i,e in enumerate(E)}
+    index={}
+    for M in enumerate_matchings(n,E):
+        mask=sum(1<<index_edge[e] for e in M)
+        index[mask]=crossing_sign(M)
+    result={}
+    for a,sa in index.items():
+        for b,sb in index.items():
+            if a&b: continue
+            c=allmask^(a|b)
+            if c not in index: continue
+            key=tuple(0 if a&(1<<i) else 1 if b&(1<<i) else 2
+                      for i in range(len(E)))
+            assert key not in result, "distinct labelled colorings cannot collide"
+            result[key]=sa*sb*index[c]
+    return result
+
+
 def make_cube():
     return [(v,v^(1<<bit)) for v in range(8) for bit in range(3)
             if v<(v^(1<<bit))]
@@ -102,6 +129,10 @@ def main():
         pos,neg,pm=exact_pfaffian_cube(n,E)
         assert direct==expected
         assert pos+neg==direct, (name,pos,neg,direct)
+        formal=symbolic_labelled_coefficients(n,E)
+        assert len(formal)==direct
+        assert all(abs(coefficient)==1 for coefficient in formal.values())
+        assert sum(formal.values())==pos-neg
         assert (witness is not None)==(expected>0)
         if name=='K33':
             assert (pos,neg,pm)==(6,6,6)
@@ -119,6 +150,8 @@ def main():
               f'perfect_matchings={pm}, PfCube_plus={pos}, '
               f'PfCube_minus={neg}, PfCube_signed={pos-neg}',flush=True)
 
+    print('INDEPENDENT_Y_LABELLED_COEFFICIENT_MONOMIALS = VERIFIED_FINITE')
+    print('K33_12_DISTINCT_Y_MONOMIALS_NO_SYMBOLIC_CANCELLATION = VERIFIED_FINITE')
     print('K33_SAT12_BUT_SINGLE_PFAFFIAN_CUBE_COEFFICIENT_ZERO = PROVED_FINITE')
     print('COMMON_EDGE_REORIENTATION_CANNOT_REPAIR_CANCELLATION = PROVED_ALL_GRAPH')
     print('INDEPENDENT_LABELLED_THREE_PFAFFIAN_COEFFICIENT =')
