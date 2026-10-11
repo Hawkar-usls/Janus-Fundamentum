@@ -105,6 +105,30 @@ The implication is sound for EVERY square-cubic-linear input
 positive it does NOT imply any weight-2m vector exists;
 therefore it is NOT a complete universal solver.
 
+**Sharp all-input ceiling for the UNPINNED filter:**
+
+- If m is EVEN, desired |k|=2m is a 0-mod4 weight. The zero
+  kernel word always belongs to that residue, so N0>=1.
+  Consequently the unpinned MOD4 test can NEVER conclude UNSAT
+  for any such A. It may still prune *pinned* affine slices.
+- If m is ODD, the desired weight has residue 2 mod4. The
+  unpinned MOD4 test can prove UNSAT exactly when N2=0,
+  i.e. when the entire K is DOUBLY EVEN.
+- The all-input doubly-even condition has a particularly simple
+  exact polynomial check on ANY binary basis b_i:
+
+      |b_i| == 0 (mod4)  for all i, AND
+      |b_i intersect b_j| == 0 (mod2) for all i<j.
+
+  Proof: |u+v|=|u|+|v|-2|u intersect v|. Sufficiency
+  follows by induction over the span; necessity from each
+  basis vector and each pair. Complexity O(n*d^2) bit work.
+  The checker verifies this independently of the Gauss sum.
+
+These bounds are not performance heuristics. They formally show
+which input families the basic unpinned MOD4 certificate can
+and cannot decide.
+
 ## 2. E123 UNSAT vs transpose SAT: a strong exact result
 
 For the E64/E123 Tutte-12 incidence carrier R, n=63,m=21,d=14.
@@ -157,6 +181,30 @@ to a universal SAT decision rule, while keeping the sound exclusion
 direction intact. Both source statuses are determined independently
 by their nine-variable brute-force truth tables plus the generic
 E118 SAT-preserving construction, not inferred from the Gauss test.
+
+Even imposing any of the 3 pinned Exact-One states in each of the
+90 source rows does NOT repair the method. All 90*3=270 one-check
+pins have strictly positive 0-mod4 solution counts for BOTH
+orientations of the E118 positive/negative control, despite the
+negative target being Boolean UNSAT. Exact profiles:
+
+    UNSAT90:
+      (N0,N2)=(32768,32768): 235 pins;
+               (33024,32512): 16 pins;
+               (33280,32256): 11 pins;
+               (32512,33024):  8 pins.
+
+    SAT90:
+      (N0,N2)=(32768,32768): 231 pins;
+               (33024,32512): 24 pins;
+               (32512,33024): 12 pins;
+               (33280,32256):  3 pins.
+
+The count of *surviving* check choices is 270/270 on BOTH,
+so the polynomial MOD4 oracle does not give even a single
+first-level prune on the UNSAT90 target. The distributions
+of residue counts differ; no equality of ALL possible
+quadratic invariants is claimed.
 
 Even without such a finite example, NP-completeness of the
 E118 full target class means no general completeness may be
@@ -330,6 +378,9 @@ E123_SOURCE_Q63_MOD4_UNSAT = POLYNOMIAL_CERTIFICATE.
 E123_ALL_189_PIN_MOD4_EXCLUSION = EXACT_REPLAY.
 TRANSPOSE_R_T_SAT_SUPPORT_RETAINS_MOD4 = EXACT_REPLAY.
 MOD4_RESIDUE_POSITIVE_IMPLIES_EXACTONE_SAT = REFUTED_BY_E118_UNSAT90.
+E118_NEGATIVE_270_OF_270_PINNED_MOD4_SURVIVORS = EXACT_REPLAY.
+UNPINNED_MOD4_FOR_EVEN_M_CANNOT_CERTIFY_UNSAT = PROVED.
+UNPINNED_MOD4_FOR_ODD_M_EQUALS_DOUBLY_EVEN_TEST = PROVED.
 MOD8_HALF_WEIGHT_PHASE_HAS_CUBIC_INTERACTIONS = PROVED.
 GENERIC_QUADRATIC_GAUSS_EVALUATES_MOD8_PHASE = NOT_ESTABLISHED.
 RANK_AGGREGATION_FOR_TOP_COEFFICIENT = OPEN.
