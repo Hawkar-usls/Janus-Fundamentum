@@ -151,6 +151,39 @@ preserves Boolean witnesses bijectively, EVERY one
 of these graphs produces a fully legal SCL instance
 with the same SAT-vs-UNSAT modular ambiguity.
 
+## III-A. Explicit all-q witness construction
+
+The entire SAT collision family is now **constructively witnessed**,
+not merely shown colourable by positive count.
+
+For an odd prism P_k, choose top rail colour t_i=i mod 2 for
+i=0,...,k-2, but assign the final horizontal rail edge
+t_(k-1)=2. Assign each bottom horizontal edge the SAME colour
+as its corresponding top edge. At rung vertex i, the previous
+and next rail colours are unequal, so give the vertical rung
+the unique third colour in {0,1,2}. The same holds on the bottom.
+This constructs a proper labelled 3-edge-colouring in O(k).
+
+For K3,3 with bipartitions {0,1,2} and {3,4,5}, colour edge
+(i,3+j) with (i+j) mod 3. All incident colours are distinct.
+
+To perform each cubic 3-edge-sum, list the three neighbours of
+the two deleted vertices in the boundary order induced by
+the join. The three boundary edge colours in each input are
+different. There is a UNIQUE S3 colour permutation on the
+second component matching them in that order. Apply it globally
+to the second component and copy all remaining edge colours.
+The resulting cubic graph's three incident edge colours are
+exactly {0,1,2} at every vertex.
+
+The executable constructs this colouring on ALL requested q,
+checks it independently against every original cubic vertex,
+and, for small q, also maps it through the 3-edge-colour->SCL
+bijection and validates every positive exact-one row.
+
+Thus the statement `C(G_q)>0` is supported by a uniform explicit
+witness constructor AND the separate all-input counting proof.
+
 ## IV. Reproducible adversarial tests
 
 Executable (standard library and existing tested R5 imports):
@@ -164,6 +197,8 @@ Checks:
 - graph constructor legality and count by 3-sum theorem
   for q in {2,3,4,5,6,7,8,9,10,11,12,17,31,60,125,256};
 - direct finite enumeration on all small constructed G_q;
+- explicit constructive proper 3-edge colouring on EVERY G_q;
+- independent legal SCL rows with exact-one witness on small q;
 - 2-adic connected SAT family t=1,2,4,8,16 with
   N=6+4t and C=2^t.
 
@@ -178,6 +213,7 @@ CONNECTED_CUBIC_MODULAR_SAT_COLLISION_CONSTRUCTION = PROVED_ALL_Q.
 ODD_PRISM_LABELLED_3EDGE_COLOUR_COUNT = PROVED_ALL_ODD_K.
 THREE_EDGE_SUM_NORMALIZED_COUNT_MULTIPLICATION = PREDECESSOR_PROVED.
 CONSTRUCTED_GRAPH_IS_LEGAL_SCL = PREDECESSOR_PROVED.
+ALL_Q_EXPLICIT_SAT_WITNESS_CONSTRUCTION = PROVED.
 UNIFORM_POLYNOMIAL_FLOW_NONZERO_TEST = NOT_CONSTRUCTED.
 UNIVERSAL_POLY_SOLVELINEARCUBICXSAT = NOT_CONSTRUCTED.
 P_VS_NP = OPEN.
