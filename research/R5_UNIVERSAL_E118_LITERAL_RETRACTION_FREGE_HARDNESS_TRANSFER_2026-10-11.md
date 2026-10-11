@@ -201,12 +201,62 @@ This finite test is not a proof of asymptotic hard
 families. The all-input substitution theorem follows
 from the nine symbolic identities.
 
+## VI. No-go for independent degree-two source-variable fillers
+
+There is a simple exact congruence obstruction to one
+tempting but invalid shortcut in cubic-source regularization.
+
+Suppose a *positive Exact-One* filler H is a 3-uniform
+hypergraph with m rows; it has a set P of boundary variables
+(coming from the original source and each used exactly ONCE
+inside H), and all other variables are internal and each
+occurs exactly THREE times in H. For ANY Boolean assignment
+satisfying all m filler rows, summing the integer equalities
+gives
+
+    m = sum_{p in P} x_p + 3*sum_{z internal} x_z,
+
+hence
+
+    sum_{p in P} x_p == m (mod 3).
+
+**Therefore no such filler is an unconstrained conservative
+extension of its boundary:** its projection to P CANNOT
+equal the full Boolean cube {0,1}^P for nonempty P.
+Even the empty and one-selected boundary assignments
+differ mod 3; they cannot both be extended.
+
+In particular the naive idea "take an arbitrary positive
+1-in-3 source where every variable occurs twice, and
+add an independent exact-one padding network that gives
+each old variable exactly one more occurrence, without
+introducing any constraints on the source variables"
+is **mathematically impossible** if the padding network
+has the described degree profile and must extend ALL
+Boolean assignments on its interface.
+
+This does NOT rule out a gadget that extends only source
+assignments satisfying the original formula; in a
+2-regular cubic-clause source the overall number of
+selected variables is itself restricted by the sum
+of source equations, which might satisfy the global
+mod-3 boundary congruence. Nor does it rule out
+regularization with bounded-degree interface
+re-encoding, copies, signed literals, gadgets coupling
+old clauses, or proof-preserving pp-interpretations.
+
+The no-go result prevents falsely claiming an
+assignment-independent degree-completion gadget
+without reconciling its global mod-3 counting obligation.
+
 ## Gate ledger
 
 E118_LOCAL_VARIABLE_RETRACTION_LITERAL_CONSTANT = PROVED_ALL_SOURCES.
 E118_10N_LEGAL_SCL_TARGET = PREDECESSOR_PROVED.
 E118_FREGE_PROOF_SIZE_TRANSFER_FROM_TARGET_TO_CUBIC_SOURCE = PROVED.
 E118_BOUNDED_DEPTH_TRANSFER_WITH_O1_OVERHEAD = PROVED.
+BOUNDARY_DEGREE_ONE_FILLER_MOD3_CONGRUENCE = PROVED.
+INDEPENDENT_UNCONSTRAINED_DEGREE_THREE_FILLER = IMPOSSIBLE_UNDER_STATED_PROFILE.
 UNRESTRICTED_CSP_HARD_TO_CUBIC_SOURCE_PROOF_PRESERVATION = OPEN.
 LEGAL_SCL_SUPERPOLYNOMIAL_BOUNDED_DEPTH_FREGE_LOWER_BOUND = OPEN.
 JANUS_ANDOR_SUPERPOLYNOMIAL_REFUTATION_LOWER_BOUND = OPEN.
