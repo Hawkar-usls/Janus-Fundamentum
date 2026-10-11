@@ -130,6 +130,42 @@ But every owner v on the first triangle labels an edge
 on the OTHER triangle. Thus in the dual, every local
 factor C couples bit(s) on two DIFFERENT cycle components.
 
+More decisively, keep EXACTLY the same two-triangle 2-factor
+H and relabel ONLY the owners of the three second-triangle edges.
+
+CASE NEGATIVE (six owner-labelled clauses):
+    (v3,v0,v1), (v4,v1,v2), (v5,v2,v0),
+    (v0,v3,v4), (v1,v4,v5), (v2,v5,v3).
+
+CASE POSITIVE (the SAME underlying six undirected cycle edges):
+    (v3,v0,v1), (v4,v1,v2), (v5,v2,v0),
+    (v1,v3,v4), (v2,v4,v5), (v0,v5,v3).
+
+Both cubic source hypergraphs are connected, and both have
+the SAME unlabelled two-triangle H with identical cycle
+components {v0,v1,v2} and {v3,v4,v5}. Complete finite
+enumeration of all 2^6 source Boolean assignments gives:
+
+    NEGATIVE source: 0 Exact-One witnesses;
+    POSITIVE source: 3 Exact-One witnesses.
+
+E118 yields connected legal square/cubic/linear target
+formulas N=60, whose exact solution counts differ by
+the proven extension factor 2^(2*6/3)=16:
+
+    NEGATIVE E118 target: Z=0;
+    POSITIVE E118 target: Z=48.
+
+The new dual checker compares EVERY integer coefficient
+of the full source-weight phase polynomial in both cases
+between independent primal and dual calculations.
+
+**Therefore no function of the unlabelled 2-factor H
+alone, even given its full edge set, can be a universal
+Exact-One decision procedure.** The owner-to-edge
+permutation is essential data, and the exact dual
+formula preserves it.
+
 This is a concrete all-integer obstruction to the claim
 "2-factor H -> independent cycle transfer":
 such a local separation would require the nontrivial
@@ -173,11 +209,11 @@ controls (n=9 dual states each).
 Expected [alpha^60] target Exact-One coefficients:
 UNSAT90 0; SAT90 192.
 
-The six-variable connected two-triangle source is an
-independent non-factorization control; its target has
-N=60 variables. The checker verifies every coefficient
-on this source too, and reconstructs the E118 target
-Exact-One count as 2^4 times the source SAT model count.
+The six-variable connected two-triangle SAT/UNSAT PAIR
+is an independent non-factorization control; both targets
+have N=60 variables. The checker verifies every
+coefficient on BOTH sources independently and confirms
+target counts 0 and 48, despite identical unlabelled H.
 
 The finite checks do NOT establish worst-case polynomial
 evaluation, because the present direct dual histogram
@@ -212,6 +248,7 @@ but does not prove that such an evaluator is impossible.
 ALL_SOURCE_HADAMARD_2_FACTOR_DUAL = PROVED_BY_IDENTITY.
 NON_OWNER_GRAPH_EVERY_VERTEX_DEGREE_TWO = PROVED.
 CYCLE_OWNER_PERMUTATION_MAY_COUPLE_DISTINCT_CYCLES = PROVED.
+IDENTICAL_UNLABELLED_2_FACTOR_OPPOSITE_SAT_STATUS = EXACT_FINITE_CERTIFICATE.
 DUAL_C_COUPLING_RANK_TWO_AT_PRIMITIVE_PHASE = PROVED.
 Q90_FULL_INTEGER_POLYNOMIAL_DUAL_REPLAY = EXPECTED_CHECK.
 CONNECTED_Q6_TWO_CYCLE_CROSS_OWNER_REPLAY = EXPECTED_CHECK.
