@@ -104,8 +104,11 @@ def finite_field_audit(prime):
         )
         assert eigenvalue(EXACTONE3, clause_image, prime) is None
 
-    expected_anti_triples = (prime - 1) ** 3
-    assert equality_stabilizers == expected_anti_triples
+    # For an anti-diagonal involution [[0,b],[b^-1,0]], EQUALITY3
+    # is an eigenvector iff (b1*b2*b3)^2=1.  Over an odd prime field
+    # this gives two possible products and (p-1)^2 triples per product.
+    expected_equality_stabilizers = 2 * (prime - 1) ** 2
+    assert equality_stabilizers == expected_equality_stabilizers
     return {
         "prime": prime,
         "involutions": len(involutions),
