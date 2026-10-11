@@ -97,13 +97,49 @@ def consistent_kernel_count(basis, n, ones=(), pins=None):
     return 1<<(d-len(pivots))
 
 
+
+def gf2rank_bitrows(rows):
+    pivots={}
+    for word in rows:
+        while word:
+            lead=word.bit_length()-1
+            if lead not in pivots:
+                pivots[lead]=word
+                break
+            word^=pivots[lead]
+    return len(pivots)
+
+
+def affine_count_as_two_rank_powers(basis,n,ones=(),pins=None):
+    """Difference of two exact binary-matroid rank functions.
+
+    A duplicate coordinate with conflicting RHS is intentionally retained:
+    its augmented rows detect inconsistency by rank difference.
+    """
+    d=len(basis)
+    cond=list((pins or {}).items())+[(i,1) for i in ones]
+    assert all(0<=i<n and v in (0,1) for i,v in cond)
+    coeff=[
+        sum(((basis[t]>>coord)&1)<<t for t in range(d))
+        for coord,_ in cond
+    ]
+    base_rank=gf2rank_bitrows(coeff)
+    augmented_rank=gf2rank_bitrows([
+        word|(rhs<<d) for word,(_,rhs) in zip(coeff,cond)
+    ])
+    assert augmented_rank in (base_rank,base_rank+1)
+    # Consistent: 2^(d-r); inconsistent: 0.
+    return (1<<(d+1-augmented_rank))-(1<<(d-base_rank))
+
 def rank_moments(basis,n,m,pins=None):
     result=[]
     for s in range(m+1):
-        B=sum(
-            consistent_kernel_count(basis,n,S,pins)
-            for S in combinations(range(n),s)
-        )
+        B=0
+        for S in combinations(range(n),s):
+            a=consistent_kernel_count(basis,n,S,pins)
+            v=affine_count_as_two_rank_powers(basis,n,S,pins)
+            assert a==v, (n,s,S,pins,a,v)
+            B+=a
         result.append(B)
     return result
 
