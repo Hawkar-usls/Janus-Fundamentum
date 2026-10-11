@@ -41,6 +41,25 @@ where y_0 counts how many of the r lifted copies of the base variable
 0 are selected by an integer (a fortiori Boolean) solution.
 This would imply 3*y_0=r, an impossibility if r is not divisible by 3.
 
+The exact integer checker reconstructs the explicit fixed
+coefficient vector (base row order):
+
+    u = (12,-6,12,0,-12,-6,6,-6,-12,18,6,0).
+
+The proof can also be expressed directly as a one-line
+**modulo-nine UNSAT certificate**. Reducing
+
+    36*y_0 = 12*r
+
+modulo 9 yields
+
+    0 ≡ 3*r (mod 9),
+
+which is FALSE whenever 3 does not divide r.
+This is a complete polynomially verifiable modular
+linear obstruction on this cover family, independent
+of the enormous potential Boolean assignment space.
+
 The proof has an O(12)-word constant seed u, the r-cover map, and
 the source 12x12 matrix. Given an explicit map with N=12r lifted
 checks and N lifted variables, its verification scans each nonzero
@@ -124,6 +143,7 @@ not equivalent to Boolean exact-one feasibility.
 
 E129_INVERTIBLE_BASE_UNSAT_COVER_THEOREM = PREDECESSOR_PROVED.
 E129_EXPLICIT_INTEGER_U_FIBRE_LINEAR_CERTIFICATE = PROVED.
+E129_MOD9_0_EQ_3R_GLOBAL_CONGRUENCE_REFUTATION = PROVED.
 E129_COVER_CERTIFICATE_CHECK_BIT_TIME_POLYNOMIAL = PROVED_WITH_GIVEN_MAP.
 E129_R2K_3_SEEDS_18_FROZEN_FIXTURES = VERIFIED.
 E129_N384 = UNKNOWN_SEARCH_RESOURCE_GUARD (MATHEMATICALLY UNSAT).
