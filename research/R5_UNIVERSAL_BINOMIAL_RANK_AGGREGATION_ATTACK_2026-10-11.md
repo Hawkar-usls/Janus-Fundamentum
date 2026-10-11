@@ -81,6 +81,28 @@ explicit signed rational linear combination of exact polynomial-time
 rank observations. All coefficients c_s have polynomial-size
 numerators and denominators (m=O(n)).
 
+**Integer-only stronger form (no rational coefficients):**
+let D_m=2^m m! and a_s=D_m c_s. Every a_s is an integer,
+as it is the s-th finite difference of the integer-coefficient
+polynomial
+
+    F_m(w) = product_{j=0}^{m-1}(w-2j).
+
+Then the exact identity is
+
+    D_m * Z(A,pi) = sum_{s=0}^m a_s * B_s(A,pi).
+
+For m=4 (n=12), an explicit one-line exact formula is
+
+    384 * Z = -15 B_1 + 30 B_2 - 36 B_3 + 24 B_4,
+
+with B_s the *pinned or unpinned* rank moments.
+These integer coefficients are checked independently by the executable
+replay. In general D_m and all a_s require only O(n log n) bits.
+The final scalar is a NONNEGATIVE integer multiple of D_m, despite
+signed intermediate cancellations. This avoids any hidden
+rational-precision requirement; it does not avoid subset explosion.
+
 The computational obstruction is **not** a single difficult rank,
 the integer size of Z(A), or calculating the coefficients c_s.
 It is **combining the ranks over exponentially many coordinate sets**.
