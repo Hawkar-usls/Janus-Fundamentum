@@ -1,0 +1,119 @@
+#!/usr/bin/env python3
+"""E129 cover tower: uniformly UNSAT, ACTUAL visited ExactSupport-DAG stress.
+
+For every rationally invertible square cubic base A and any r-sheet
+incidence cover L, a Boolean Exact-One solution yields A*y=r*1,
+where y_j is the integer count of selected variables in column fibre j.
+As A*1=3*1, uniqueness gives y=(r/3)*1, impossible if 3 does not
+divide r. All powers of 2 are therefore UNSAT.
+
+This theorem is from E129, not rediscovered. Our NEW finite experiment:
+build seeded iterated 2-lifts of its explicit det(A)=36 legal q12 base,
+verify the complete fibre-cover map, and measure the actual UNIQUE
+memoized residual states consumed by the exact frozen DAG algorithm.
+Always distinguish a budget-limited UNKNOWN from proven UNSAT.
+
+Scientific gate: no extrapolation from finite sizes to 2^Omega(n) or
+to n^O(1). A proof-size transfer theorem would still be needed.
+"""
+from __future__ import annotations
+
+from random import Random
+
+from r5_e129_invertible_base_cover_unsat_gauge_clean_seed import (
+    base_matrix, det_bareiss
+)
+from r5_universal_exact_support_2lift_visited_dag_frontier import two_lift
+from r5_universal_exact_support_residual_dag_attack import (
+    validate_sparse, ExactSupportResidualDAG_sparse
+)
+
+
+def sparse_base():
+    A=base_matrix()
+    assert det_bareiss(A)==36
+    n=len(A)
+    rows=validate_sparse([
+        tuple(j for j,x in enumerate(row) if x) for row in A
+    ],n)
+    return rows,n
+
+
+def assert_exact_cover_map(rows,n,degree,base_rows,base_n):
+    """Every lift check fibre projects bijectively to all source incidences."""
+    assert n==degree*base_n
+    names={row:i for i,row in enumerate(base_rows)}
+    origin_counts=[0]*base_n
+    for row in rows:
+        roots=tuple(sorted(j//degree for j in row))
+        assert roots in names
+        origin_counts[names[roots]]+=1
+    assert all(num==degree for num in origin_counts)
+    for ri,base_row in enumerate(base_rows):
+        lifted_rows=[
+            row for row in rows
+            if tuple(sorted(j//degree for j in row))==base_row
+        ]
+        assert len(lifted_rows)==degree
+        for v in base_row:
+            fibres=[next(j for j in row if j//degree==v)%degree
+                    for row in lifted_rows]
+            assert sorted(fibres)==list(range(degree))
+    return True
+
+
+def hierarchy(seed,levels=6):
+    base,n=sparse_base()
+    rng=Random(seed)
+    rows=base
+    degree=1
+    for k in range(levels):
+        assert_exact_cover_map(rows,n,degree,base,12)
+        yield k,n,degree,rows
+        rows=two_lift(rows,n,rng)
+        degree*=2
+        n*=2
+
+
+def main():
+    base,_=sparse_base()
+    results=[]
+    # Complete q12/q24/q48/q96 where affordable; guarded at larger n.
+    caps={12:2500,24:4500,48:6000,96:6000,192:1800,384:1000}
+    for seed in (129,132,9421):
+        for k,n,r,rows in hierarchy(seed,levels=6):
+            result=ExactSupportResidualDAG_sparse(
+                rows,n,max_states=caps[n]
+            )
+            status=result["status"]
+            stats=result["stats"]
+            # ALL members are mathematically UNSAT by the E129 theorem,
+            # including those for which the solver returns UNKNOWN.
+            assert r&(r-1)==0 and r%3!=0
+            assert status in ("UNSAT","UNKNOWN"),(seed,k,n,status)
+            if status=="UNKNOWN":
+                assert stats["distinct_states"]==caps[n]
+                assert stats["guard_hits"]>=1
+            else:
+                assert result["witness"] is None
+            results.append((seed,n,status,stats["distinct_states"]))
+            print(
+                f"E129_COVER2 seed={seed}, n={n}, r={r}, "
+                f"math=UNSAT, solver={status}, "
+                f"ACTUAL_VISITED_S={stats['distinct_states']}, "
+                f"cap={caps[n]}, component_splits={stats['component_splits']}, "
+                f"cache_hits={stats['cache_hits']}"
+            )
+    assert all(s in ("UNSAT","UNKNOWN") for _,_,s,_ in results)
+    assert len(results)==18
+    print("E129_INVERTIBLE_BASE_DET36 = PREDECESSOR_REPLAY")
+    print("ALL_POWERS_OF_TWO_LEVI_COVERS_UNSAT = E129_GENERAL_THEOREM")
+    print("EXACT_FIBRE_COVER_MAP = INDEPENDENTLY_VERIFIED")
+    print("ACTUAL_MEMO_STATES = FINITE_OBSERVATION_WITH_GUARD")
+    print("EXPONENTIAL_ACTUAL_SEARCH_PROOF_SIZE_LOWER_BOUND = OPEN")
+    print("GLOBAL_POLYNOMIAL_ExactSupport = NOT_CONSTRUCTED")
+    print("P_VS_NP = OPEN")
+
+
+if __name__=="__main__":
+    main()
