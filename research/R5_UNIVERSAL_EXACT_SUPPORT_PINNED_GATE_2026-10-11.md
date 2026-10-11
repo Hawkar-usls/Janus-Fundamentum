@@ -91,6 +91,15 @@ hence T(n)=O(3^(n/3)*poly(n)) by induction
 A branch ends with a genuine SAT witness or a sound
 contradiction; an exhausted tree proves UNSAT.
 
+**Not a new complexity theorem:** branching on an exact-cover
+clause and the O(3^(n/3)) upper bound are classical Algorithm-X
+style techniques (David Eppstein, "Analyzing Algorithm X", 2008:
+https://11011110.github.io/blog/2008/01/10/analyzing-algorithm-x.html).
+This checkpoint's contribution is the callable pinned decision
+interface, strict UNKNOWN semantics, integration of all-input
+polynomial negative filters, and verified witness extraction.
+Do NOT promote this known branching bound as P=NP progress.
+
 The solver returns the FIRST verified SAT model in fixed
 deterministic branch order, or UNSAT only after the full tree
 has been explored. This completes the decision algorithm,
@@ -142,7 +151,13 @@ FINITE exact controls (not universal polynomial proof):
     E118 connected negative q90 -> root MOD4 does NOT solve it;
     E118 positive/negative q90 -> exact branch solver
         provides verified SAT/UNSAT on bounded finite fixtures
-        if that CI check terminates within resource budget.
+        if that CI check terminates within resource budget;
+    - six independently generated frozen legal n12 SCL
+      matrices; for each the complete fixed finite family
+      of 495 four-column choices is enumerated as an
+      independent oracle, and seven pinned variants
+      are compared with ExactSupport (42 exact comparisons).
+      This is finite testing, not a global complexity theorem.
 
 COUNTEREXAMPLE/limitation:
     Prior E118 tests show all 270 first-check pins of
