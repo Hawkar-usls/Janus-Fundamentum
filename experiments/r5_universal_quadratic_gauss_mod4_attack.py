@@ -182,6 +182,41 @@ def exact_one_pins(A,selected,check):
     return {j: int(j!=selected) for j in js}
 
 
+
+def mod8_weight_phase_cubic_count(basis):
+    """Exact cubic ANF obstruction for (|k|/2) mod 4.
+
+    On a binary code of even-weight words, the integer identity
+        |XOR_i t_i b_i|/2 ==
+          sum_i (|b_i|/2)t_i
+          - sum_{i<j}|b_i & b_j| t_i*t_j
+          + 2 sum_{i<j<k}|b_i&b_j&b_k|t_i*t_j*t_k  (mod 4)
+    holds for all Boolean t. Terms of degree >=4 vanish mod 4.
+    """
+    assert all(v.bit_count()%2==0 for v in basis)
+    d=len(basis)
+    cubic=sum(
+        (basis[i]&basis[j]&basis[k]).bit_count()%2
+        for i,j,k in combinations(range(d),3)
+    )
+    if d<=8:
+        for t in range(1<<d):
+            truth=affine_word_map(basis,t).bit_count()//2 %4
+            rhs=sum(
+                (basis[i].bit_count()//2) for i in range(d) if t>>i&1
+            )
+            rhs-=sum(
+                (basis[i]&basis[j]).bit_count()
+                for i,j in combinations(range(d),2) if (t>>i)&1 and (t>>j)&1
+            )
+            rhs+=2*sum(
+                (basis[i]&basis[j]&basis[k]).bit_count()
+                for i,j,k in combinations(range(d),3)
+                if (t>>i)&1 and (t>>j)&1 and (t>>k)&1
+            )
+            assert truth == rhs%4
+    return cubic
+
 def main():
     # All computations below are exact. Brute-force is used only as
     # INDEPENDENT small finite replay, never inside the general algorithm.
@@ -208,6 +243,8 @@ def main():
         assert len(basis)==14
         got=mod4_weight_counts(basis,n)
         assert got==expected,(label,got)
+        cubic_terms=mod8_weight_phase_cubic_count(basis)
+        assert cubic_terms == (152 if label=="E123_UNSAT" else 163)
         accepted=0
         for check in range(n):
             for selected in [j for j,c in enumerate(M[check]) if c]:
@@ -219,7 +256,7 @@ def main():
                     assert c2>0
                 accepted+=1
         assert accepted==189
-        print(f"{label}: mod4 (weight=0,2) counts={got}; 189 quadratic pin checks PASS")
+        print(f"{label}: mod4 (weight=0,2) counts={got}; 189 quadratic pin checks PASS; mod8 cubic terms={cubic_terms}")
 
     # E118 direct hard negative: no universal inference from nonzero
     # candidate target-residue mass is allowed.
@@ -240,12 +277,14 @@ def main():
         assert n==90
         assert len(basis)==18
         assert counts==(131072,131072), (label,counts)
+        cubic_terms=mod8_weight_phase_cubic_count(basis)
+        assert cubic_terms == (14 if not expect_sat else 9), (label,cubic_terms)
         assert sum(counts)==1<<len(basis)
         # Target size n=90, |k| target=60, so mod4 class is 0.
         # BOTH source statuses have the same positive target residue count.
         # In particular the unsatisfiable q90 still passes this test.
         assert counts[0]>0
-        print(f"{label}: n=90 d={len(basis)}, mod4 counts={counts}")
+        print(f"{label}: n=90 d={len(basis)}, mod4 counts={counts}, mod8 cubic terms={cubic_terms}")
     print("QUADRATIC_GAUSS_FOR_EVERY_AFFINE_GF2_KERNEL = POLYNOMIAL AND EXACT")
     print("MOD4_EXCLUSION = SOUND UNSAT TEST; COMPLETENESS NOT CLAIMED")
     print("UNIVERSAL_POLYNOMIAL_EXACTONE_SOLVER = NOT_CONSTRUCTED; P_VS_NP = OPEN")
