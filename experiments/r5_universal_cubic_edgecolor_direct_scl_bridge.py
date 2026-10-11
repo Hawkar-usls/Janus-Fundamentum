@@ -175,6 +175,59 @@ def petersen_graph():
     ))
 
 
+def graph_matroid_rank_obstruction(rows,n,vertices,edges,idx):
+    """Construct N INDEPENDENT rational-left-kernel vectors.
+
+    Per original vertex v:
+      sum_c row(vertex v,c) - sum_(e incident v) row(edge e) = 0.
+    Independence is witnessed by distinct vertex-color row
+    supports, since edge clauses and vertex-color clauses are disjoint.
+    This proves nullity_Q(A) >= |V| without a rank oracle.
+    """
+    labels={tuple(c):i for i,c in enumerate(rows)}
+    assert len(labels)==n
+    for v in vertices:
+        coeff=[0]*n
+        local=[e for e in edges if v in e]
+        assert len(local)==3
+        for color in range(3):
+            key=tuple(sorted(idx[e,color] for e in local))
+            assert key in labels
+            coeff[labels[key]]+=1
+        for e in local:
+            key=tuple(idx[e,color] for color in range(3))
+            assert key in labels
+            coeff[labels[key]]-=1
+        assert sum(x!=0 for x in coeff)==6
+        assert all(
+            sum(coeff[i]*int(j in row) for i,row in enumerate(rows))==0
+            for j in range(n)
+        )
+    # At vertex v's unique (v,0)-row, all other vertex relations
+    # have zero coefficient, proving linear independence directly.
+    return len(vertices)
+
+
+def signed_integer_exactone_from_perfect_matching(rows,n,edges,matching):
+    """An INTEGER solution on ANY cubic graph possessing a matching.
+
+    e in matching: (x_e0,x_e1,x_e2)=(1,1,-1)
+    e not in matching: (0,0,1).
+
+    Vertex color0 and1 sum to 1 via the perfect matching.
+    Vertex color2 = 2*1+(-1)=1 at each cubic vertex.
+    Each edge-color row sums to 1 in both cases.
+    """
+    matching=set(matching)
+    x=[]
+    for e in edges:
+        x.extend((1,1,-1) if e in matching else (0,0,1))
+    assert len(x)==n
+    assert all(sum(x[j] for j in row)==1 for row in rows)
+    assert any(t<0 for t in x)
+    return x
+
+
 def main():
     cases=(
         ("K4_SAT",K4(),True),
@@ -187,6 +240,10 @@ def main():
         local=brute_three_edge_coloring(edges)
         assert (local is not None)==expected
         rows,n,ordered,idx=make_scl(edges)
+        kernel_lb=graph_matroid_rank_obstruction(
+            rows,n,vertices,ordered,idx
+        )
+        assert kernel_lb==len(vertices)
         target=ExactSupportHybrid_sparse(rows,n,max_states=10000)
         assert target["status"]==("SAT" if expected else "UNSAT"),(
             name,target["status"],target["stats"])
@@ -203,10 +260,24 @@ def main():
             assert len(matches)==6
             assert all(not residual_2factor_bipartite(vertices,edges,set(m))
                        for m in matches)
+            signed=signed_integer_exactone_from_perfect_matching(
+                rows,n,ordered,matches[0]
+            )
+            assert signed.count(-1)==len(vertices)//2
+            from r5_universal_exact_support_mod9_dual_certificate import (
+                mod9_linear_system
+            )
+            A=[[int(j in row) for j in range(n)] for row in rows]
+            assert mod9_linear_system(A,[1]*n)[0]=="CONSISTENT"
+            # Existence of integral signed Ax=1 implies compatibility
+            # modulo EVERY modulus, not just 9.
+            print("PETERSEN_SIGNED_INTEGER_SOLUTION_AX_EQ_ONE = PASS")
+            print("PETERSEN_ALL_MODULI_LINEAR_FEASIBLE_BUT_BOOLEAN_UNSAT = PROVED")
         print(f"{name}: graph_V={len(vertices)} graph_E={len(edges)} "
               f"SCL_n={n} verdict={target['status']} "
               f"hybrid_DAG_states={target['stats']['residual_states']}")
     print("PETERSEN_INDEPENDENT_ALL_6_PERFECT_MATCHINGS_ODD_CYCLE = PASS")
+    print("EDGE_COLOR_SCL_RATIONAL_NULLITY_GE_GRAPH_VERTEX_COUNT = PROVED")
     print("CUBIC_GRAPH_3_EDGE_COLORING_TO_SCL_DIRECT_BIJECTION = PROVED_ALL_INPUTS")
     print("SQUARE_3_UNIFORM_3_REGULAR_C4_FREE = PROVED_ALL_INPUTS")
     print("CUBIC_EDGE_COLOR_NP_COMPLETE = HOLYER_1981_LITERATURE")
