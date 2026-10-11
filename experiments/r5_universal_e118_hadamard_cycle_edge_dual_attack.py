@@ -154,6 +154,41 @@ def main():
               f"all {len(dual)} integer coefficients exact; "
               f"top a^60 count={dual.get(60,0)} PASS")
 
+    # A CONNECTED source with a fixed matching whose 2-regular H
+    # has TWO separate 3-cycles, but the owner-edge permutation
+    # couples the cycles. This refutes naive independent-cycle
+    # factorization, while not limiting arbitrary symbolic methods.
+    bridge=(
+        ("v3","v0","v1"),
+        ("v4","v1","v2"),
+        ("v5","v2","v0"),
+        ("v0","v3","v4"),
+        ("v1","v4","v5"),
+        ("v2","v5","v3"),
+    )
+    matching={0:"v3",1:"v4",2:"v5",3:"v0",4:"v1",5:"v2"}
+    assert set(matching)==set(range(6))
+    assert all(owner in bridge[i] for i,owner in matching.items())
+    deg=Counter(x for row in bridge for x in row)
+    assert len(deg)==6 and set(deg.values())=={3}
+    names,edges,incident,cycles=other_port_graph(bridge,matching)
+    assert cycles==[3,3]
+    classes=[set(("v0","v1","v2")),set(("v3","v4","v5"))]
+    assert all(set(edges[v])<=classes[1] for v in classes[0])
+    assert all(set(edges[v])<=classes[0] for v in classes[1])
+    # Each local dual tensor C_{r_v,s_v} connects r_v from
+    # its own vertex cycle to s_v from the OTHER edge cycle.
+    # det C!=0, so the coupling is not rank-one.
+    primal=exact_phase_histogram_n_source_bits(bridge,matching)
+    dual,two_cycles=dual_phase_histogram(bridge,matching)
+    assert primal==dual and two_cycles==[3,3]
+    exact_source_count=len(source_solutions(bridge))
+    assert primal.get(40,0)==exact_source_count*16
+    print(f"CONNECTED_CROSS_CYCLE_6: H cycles={two_cycles}, "
+          f"SAT source count={exact_source_count}, "
+          f"target Exact-One count={primal.get(40,0)}, "
+          "ALL coefficients dual/primal PASS; independent-cycle factorization invalid")
+
     print("ALL_SOURCE_MATCHED_E118_HADAMARD_CYCLE_EDGE_DUAL=PROVED")
     print("DUAL_BIPARTITE_EQUALITY_WIRES_FORM_2_REGULAR_GRAPH=PROVED")
     print("DUAL_TERNARY_COUPLING_NONZERO_DETERMINANT=PROVED")
