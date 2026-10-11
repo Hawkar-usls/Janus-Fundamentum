@@ -205,8 +205,18 @@ def main():
     for tag,A in cases:
         status,lam=mod9_exactone_precheck(A)
         assert status=="INCONSISTENT" and lam is not None,(tag,status)
+        # Verify the production pinned ExactSupport actually calls this
+        # new polynomial negative gate BEFORE any exponential branch.
+        root=ExactSupport(A,max_nodes=0,gauss_depth=-1)
+        assert root["status"]=="UNSAT"
+        assert root["reason"]=="PINNED_MOD9_INTEGER_OBSTRUCTION"
+        assert root["audit"]["mod9_checks"]==1
+        assert root["audit"]["mod9_prunes"]==1
+        assert root["audit"]["branches"]==0
+        assert tuple(root["mod9_certificate"])==tuple(lam)
         print(f"{tag}: O(n^3) mod9 UNSAT certificate length={len(lam)}, "
-              f"nonzero={sum(z!=0 for z in lam)}")
+              f"nonzero={sum(z!=0 for z in lam)}, "
+              "ExactSupport root returned UNSAT without branch")
 
     # Another genuine 2-lift of the q24 cover is an r=4 cover of
     # E129's q12 base and must also be congruence-inconsistent.
@@ -216,7 +226,10 @@ def main():
     A48=[[int(j in row) for j in range(48)] for row in lifted48]
     status,lam=mod9_exactone_precheck(A48)
     assert status=="INCONSISTENT" and lam is not None
-    print(f"E129_COVER_UNSAT48: polynomial mod9 UNSAT certificate nonzero={sum(z!=0 for z in lam)}")
+    root48=ExactSupport(A48,max_nodes=0,gauss_depth=-1)
+    assert root48["status"]=="UNSAT" and root48["audit"]["branches"]==0
+    assert root48["reason"]=="PINNED_MOD9_INTEGER_OBSTRUCTION"
+    print(f"E129_COVER_UNSAT48: polynomial mod9 UNSAT certificate nonzero={sum(z!=0 for z in lam)}; production gate PASS")
 
     # A TRUE Boolean SAT example and arbitrary pins agreeing with an
     # actual witness must remain congruence-compatible.
