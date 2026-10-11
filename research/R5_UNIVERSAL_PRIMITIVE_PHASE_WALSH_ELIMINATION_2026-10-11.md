@@ -354,6 +354,118 @@ symbolic derivation, not a P=NP result.
 Companion:
     python experiments/r5_universal_e118_gadget_local_four_phase_lemma.py
 
+## IV-C. POLYNOMIAL CONSTRUCTIBLE PERFECT-MATCHING E118 PORT NORMAL FORM
+
+There is an even more precise all-source representation of the
+remaining global interaction, WITHOUT claiming to evaluate it fast.
+
+For any cubic 3-uniform source with v variables, its bipartite
+variable-check incidence graph is 3-regular. Hall's condition
+follows by counting: for any subset S of variables,
+3|S| incident edges enter its clause-neighborhood N(S),
+which holds at most 3|N(S)| edges, so |N(S)|>=|S|.
+A perfect matching between source variables and source checks
+therefore exists and is found in deterministic polynomial time
+(e.g. repeated augmenting paths).
+
+For each source variable assign its occurrence in the matched
+source check to E118's gadget port z=q, and its other two
+occurrences to ports x=y=p (in either order). Because the
+E118 gadget enforces exact Boolean equality of all three
+ports, choosing which occurrence is z preserves its
+SAT-preserving reduction and square/cubic/linear structure.
+
+Now EVERY source check contains exactly ONE q-port and TWO
+p-ports. Its homogeneous F2 parity constraint is therefore
+
+    q_v = p_a XOR p_b,
+
+where v is the variable matched to this source check,
+and a,b are the other two variables in that check.
+
+Hence ALL q-bits are uniquely determined by the v free
+p-bits. The n source parity rows have an identity submatrix
+on the q coordinates; their GF2 rank is exactly v.
+
+Combining with the v independent gadget-flip bits t,
+we obtain the general dimension theorem
+
+    dim_F2 ker(A_E118_matching) = 2v.
+
+This applies to every source and all sizes, not merely
+the finite q90 pair.
+
+### Exact local 2x2 WEIGHT matrix
+
+Let alpha be a formal square root of z, so
+alpha^(wt(k))=z^(wt(k)/2) for globally even-weight
+kernel words. For one gadget, enumerate t=0,1 using the
+exact GF2 parametrization from IV-A. The TOTAL Hamming
+weights of its 10 coordinates are:
+
+    (p,q)       t=0  t=1
+      0,0         0    6
+      1,0         6    4
+      0,1         5    5
+      1,1         7    7
+
+Thus after summing the free flip t, its exact two-port
+weight matrix (rows p, columns q) is
+
+      W(alpha) =
+        [ 1+alpha^6      2 alpha^5 ]
+        [ alpha^4+alpha^6   2 alpha^7 ].
+
+This polynomial matrix is NOT rank-one in the formal ring:
+
+    det W(alpha)
+      = 2 alpha^7 (1-alpha^2)(1-alpha^4).
+
+At alpha^2=zeta_Q for the selected primitive Q-power root,
+Q>=16, both factors are nonzero. Hence its full two-port
+coupling survives the primitive-phase substitution:
+a trivial separation into independent p and q factors is
+not available. This does NOT rule out polynomial-size
+matchgate/tensor identities of OTHER types.
+
+The ENTIRE E118 target kernel phase is now the EXACT
+binary weighted source sum
+
+    W_K(alpha) =
+      sum_{p in F2^v}
+         product_{g=1}^v W_{p_g, q_g(p)}(alpha),
+
+where each q_g(p)=p_a XOR p_b is derived by the unique
+matched source check. The sum is over exactly 2^v
+source-bit assignments. After multiplication, all
+nonzero exponents of alpha are even because source
+parity is satisfied and K is an even-weight code.
+Substituting z=alpha^2 gives the complete H_target(z).
+
+This eliminates the full target 2^(2v)-word
+kernel enumeration at the cost of an exact
+2^v-state weighted 3-local source partition function.
+It is uniformly CONSTRUCTIBLE, not uniformly
+POLYNOMIALLY EVALUABLE: v grows and 2^v is still
+exponential. The weighted source sum retains the
+NP-hard E118 SAT decision content.
+
+The companion checker computes one perfect matching by
+augmenting paths; builds legal q90 modified E118
+incidence carriers; computes the complete polynomial
+via 512 source-bit assignments; and independently
+recomputes ALL coefficients using all 262,144
+target GF2 kernel words. For the q9 hard pair,
+[z^30] is 0 on UNSAT and 192 on SAT exactly.
+It also verifies the determinant symbolically.
+
+    python experiments/r5_universal_e118_matching_port_phase_normal_form.py
+
+**This is a general normal-form and contraction identity,
+not a polynomial algorithm.** A new theorem compressing
+the remaining 3-local weighted partition sum in worst-case
+polynomial time would be a P=NP-scale achievement.
+
 ## V. The next precise universal obligation
 
 A true universal recursive evaluator needs an EXPLICIT
@@ -393,6 +505,10 @@ E118_POST_GAUGE_GLOBAL_SOURCE_COUPLING = NP_HARD_PREDECESSOR.
 E118_ALL_SOURCE_KERNEL_GAUGE_DIRECT_SUM = PROVED.
 E118_FULL_PHASE_GAUGE_FACTOR_FORMULA = PROVED.
 E118_Q90_EXACT_PHASE_GAUGE_512_VS_262144 = EXACT_REPLAY.
+E118_PERFECT_MATCHING_PORT_NORMAL_FORM_ALL_SOURCES = PROVED.
+E118_MATCHED_PORT_GF2_NULLITY_EXACTLY_2V = PROVED.
+E118_TWO_PORT_WEIGHT_MATRIX_FULL_RANK_AT_PRIMITIVE_PHASE = PROVED.
+E118_MATCHED_FULL_PHASE_V_BIT_SUM = PROVED_AS_FORMULA_NOT_POLY_EVALUATION.
 E118_FIRST_PIVOT_EXACT_BRANCH_COUNT = 4.
 E123_FIRST_PIVOT_EXACT_BRANCH_COUNT = 4096.
 GLOBAL_RECURSIVE_POLYNOMIAL_BRANCH_BOUND = OPEN.
