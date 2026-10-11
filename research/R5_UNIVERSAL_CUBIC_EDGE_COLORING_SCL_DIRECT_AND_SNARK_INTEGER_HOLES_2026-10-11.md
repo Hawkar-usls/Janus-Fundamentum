@@ -243,6 +243,73 @@ a legal standalone SCL source. The exact
 3-port equality control is consistent with
 the modular count.
 
+## VI-A. Explicit infinite Isaacs flower snark J_k SCL family
+
+The signed-integer hole theorem is not confined to a finite
+Petersen graph. The reproducible program
+
+    experiments/r5_universal_isaacs_flower_snark_scl_hole_family.py
+
+constructs for every k>=5 the standard flower graph:
+- 4k vertices A_i,B_i,C_i,D_i, i in Z/kZ;
+- 3k claw edges A_i B_i, A_i C_i, A_i D_i;
+- k-cycle B_0 B_1 ... B_(k-1) B_0;
+- 2k-cycle C_0 C_1 ... C_(k-1) D_0 D_1 ...
+  D_(k-1) C_0.
+
+These have exactly 6k edges and all vertices degree3.
+For ODD k>=5 they are the flower SNARKS J_k of
+Rufus Isaacs (1975), a published infinite family of
+bridgeless cubic graphs with chromatic index FOUR:
+
+    R. Isaacs, Infinite Families of Nontrivial Trivalent
+    Graphs Which Are Not Tait Colorable,
+    American Mathematical Monthly, 1975.
+    https://mathworld.wolfram.com/FlowerSnark.html
+
+Their exact legal square+cubic+linear JANUS incidence
+matrices have n=3*(6k)=18k rows and 18k columns.
+
+An explicit O(k)-constructible perfect matching is
+M={A_i B_i : all i} together with edges pairing
+consecutive positions 0-1,2-3,... of the
+2k-cycle. This directly proves the existence of an
+integer signed solution to A_G z=1, with exactly
+2k coordinates z=-1. It also yields
+rational nullity at least 4k.
+
+Thus the infinite set J_k for odd k>=5 provides
+independently sourced ALL-UNSAT legal SCL matrices
+which cannot be excluded by any family of integer
+linear solvability or mod-q linear consistency
+filters. This does NOT prove high Frege complexity
+or an exponential lower bound on any particular
+DAG solver.
+
+Focused CI run #38153209789 = SUCCESS:
+
+    J5: graph=20 vertices, 30 edges; target SCL n= 90;
+        Z-solution verified, nullity>=20,
+        original DAG explored 200 states -> UNKNOWN.
+
+    J7: graph=28 vertices, 42 edges; target SCL n=126;
+        Z-solution verified, nullity>=28,
+        original DAG explored 200 states -> UNKNOWN.
+
+    J9: graph=36 vertices, 54 edges; target SCL n=162;
+        Z-solution verified, nullity>=36,
+        original DAG explored 200 states -> UNKNOWN.
+
+For J5, independent explicit graph-edge-colour search also
+returned UNSAT. For J7/J9 the full uncolourability
+assertion uses Isaacs' published all-odd-k theorem,
+not a truncated search result.
+
+Each 200-state exhaustion is a RESOURCE GUARD: no
+SAT/UNSAT conclusion is inferred from it, and the
+numbers are finite OBSERVATIONS, not a
+superpolynomial asymptotic lower bound.
+
 ## VII. Next decisive missing theorem
 
 To establish a genuine worst-case polynomial
@@ -275,6 +342,8 @@ SCL_PRESERVES_EDGE_COLORING_WITNESS_BIJECTION = PROVED.
 SCL_GRAPH_EDGE_COLOR_NP_COMPLETENESS = HOLYER_LITERATURE.
 SCL_GRAPH_LEFT_NULLITY_GE_NVERTICES = PROVED_ALL_INPUTS.
 SCL_BRIDGELESS_SNARK_INTEGER_SEMIGROUP_HOLES = PROVED.
+ISAACS_ODD_FLOWER_SNARK_JK_SCL_N18K_SEMIGROUP_HOLES = PROVED_USING_LITERATURE.
+ISAACS_J5_J7_J9_200_STATE_GUARD_UNKNOWN = VERIFIED_FINITE.
 PETERSEN_UNSAT45_W_PERFECT_MATCHING_CERT = VERIFIED_FINITE.
 SEPARATED_XOR3_DEG1_OR_DEG2_MOD3_NO_GO = PROVED.
 LEGAL_SCL_SUPERPOLYNOMIAL_BDFREGE_PROOF_LOWER_BOUND = OPEN.
