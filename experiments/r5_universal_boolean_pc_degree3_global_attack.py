@@ -122,10 +122,10 @@ def pc_refutation(rows,n,d,progress=False):
 
 
 def main():
-    n33,rows33,_,_=make_scl(K33())
-    nP,rowsP,_,_=make_scl(petersen_graph())
+    rows33,n33,_,_=make_scl(K33())
+    rowsP,nP,_,_=make_scl(petersen_graph())
     _,prism5=prism(5)
-    n5,rows5,_,_=make_scl(prism5)
+    rows5,n5,_,_=make_scl(prism5)
     assert n33==27 and n5==nP==45
 
     # Known independent decision results:
