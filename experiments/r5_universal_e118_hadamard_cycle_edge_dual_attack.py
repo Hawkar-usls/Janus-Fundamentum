@@ -83,6 +83,17 @@ def other_port_graph(source,matching):
     assert all(len(incident[v])==2 for v in names)
     assert set(incident)==set(names)
 
+    # Reconstruct the ENTIRE cubic 1-in-3-SAT source from just
+    # the two-factor multigraph and its owner->edge bijection.
+    # This is the constructive inverse to the Hall-matching route.
+    recovered=Counter(
+        tuple(sorted((owner,*endpoints)))
+        for owner,endpoints in edge_endpoints.items()
+    )
+    assert recovered==Counter(tuple(sorted(row)) for row in source)
+    assert all(owner not in endpoints
+               for owner,endpoints in edge_endpoints.items())
+
     # A finite graph where all vertices have degree 2 is a disjoint
     # union of cycles, including 2-cycles of parallel edges.
     seen=set()
