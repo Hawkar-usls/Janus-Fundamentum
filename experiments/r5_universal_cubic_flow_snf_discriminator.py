@@ -10,6 +10,7 @@ Petersen and C5 prism: same Smith invariants, Boolean counts 0 vs 30.
 No universal polynomial solver or P=NP is claimed.
 """
 from collections import Counter
+from math import comb
 
 
 def normalized(n, edges):
@@ -122,7 +123,37 @@ def flow_count(n,edges):
             if all(((s&mask).bit_count()%2)==0
                    for mask in parity_masks)]
     all_edges=(1<<m)-1
-    return sum((x|y)==all_edges for x in cycles for y in cycles),len(cycles)
+    histogram=Counter((x|y).bit_count() for x in cycles for y in cycles)
+    moments=tuple(sum(num*comb(w,k) for w,num in histogram.items() if w>=k)
+                  for k in range(min(m,4)+1))
+    return histogram.get(m,0),len(cycles),moments
+
+
+def edge_cut_census(n, edges):
+    """Small finite exact cut census; exponential in vertices, only a fixture."""
+    cuts=set()
+    for vertex_mask in range(1,1<<(n-1)):
+        boundary=frozenset(i for i,(u,v) in enumerate(edges)
+                           if ((vertex_mask>>u)&1)!=((vertex_mask>>v)&1))
+        if boundary and len(boundary)<=4:
+            cuts.add(boundary)
+    return Counter(map(len,cuts))
+
+
+def low_moment_formula(n, m, r, four_cuts):
+    """Theorem for 3-edge-connected cubic, only vertex-star 3-cuts, r>=4.
+
+    Moment k counts pairs of binary cycles with k chosen jointly nonzero
+    edges, summed over all subsets of k edges. No SAT oracle.
+    """
+    assert r>=4
+    return (
+        4**r,
+        3*m*4**(r-1),
+        9*comb(m,2)*4**(r-2),
+        (27*comb(m,3)-3*n)*4**(r-3),
+        (81*comb(m,4)-9*n*(m-3)+3*four_cuts)*4**(r-4),
+    )
 
 
 def rank_mod(rows,n,p):
@@ -177,7 +208,7 @@ def main():
         rows=make_rows(n,edges)
         exact,witness=colour_count(n,edges)
         match,pm_count,extendable=matching_count(n,edges)
-        flow,cycle_size=flow_count(n,edges)
+        flow,cycle_size,moments=flow_count(n,edges)
         assert (exact,match,flow)==(want,want,want),(name,exact,match,flow)
         assert (witness is not None)==(want>0)
         if witness is not None:
@@ -186,13 +217,26 @@ def main():
         N=3*len(edges)
         rank2=rank_mod(rows,N,2)
         rank3=rank_mod(rows,N,3)
+        if name != 'K4':
+            cuts=edge_cut_census(n,edges)
+            assert cuts[1]==0 and cuts[2]==0 and cuts[3]==n
+            expected_low=low_moment_formula(n,len(edges),
+                                             len(edges)-n+1,cuts[4])
+            assert moments==expected_low,(name,moments,expected_low)
+            print(f'{name} FLOW_SUPPORT_MOMENTS_0_TO_4={moments} '
+                  f'CUTS_3={cuts[3]} CUTS_4={cuts[4]}')
         if name in ('PRISM5','PETERSEN'):
             connected,odd=connected_nonbip(n,edges)
             assert connected and odd and n==10 and N==45
             assert (rank2,rank3)==(33,35)
+            assert moments[:4]==(4096,46080,241920,784320)
+            assert moments[4]==(1752720 if name=='PRISM5' else 1752480)
         print(f'{name}: SCL_N={N}, direct={exact}, matching_sum={match}, '
               f'flow_F2xF2={flow}, PM={pm_count}, extendable_PM={extendable}, '
               f'cycle_space={cycle_size}, rank_F2={rank2}, rank_F3={rank3}')
+    print('FIRST_4_FLOW_MOMENTS_MATCH_AT_K0_K1_K2_K3 = PROVED_FINITE')
+    print('K4_MOMENT_SPLIT_BY_5_EXTRA_4CUTS = 5*3*4^(6-4) = 240')
+    print('LOW_MOMENT_CUT_PROFILE_THEOREM = ANALYTIC_ALL_3EDGE_CONNECTED_CUBIC')
     print('SMITH_PAIR_PRISM_PETERSEN: invariants 1^33,2^2,0^10; BOOL 30 vs 0')
     print('SMITH_ONLY_DECISION = REFUTED; UNIVERSAL_POLY_SOLVER = NOT_CONSTRUCTED')
     print('P_VS_NP = OPEN')
