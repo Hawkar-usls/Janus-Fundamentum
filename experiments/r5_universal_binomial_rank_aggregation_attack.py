@@ -17,6 +17,7 @@ is the UNPROVED / NP-hard universal algorithmic step.
 """
 from __future__ import annotations
 
+from collections import Counter
 from fractions import Fraction
 from itertools import combinations
 from math import comb
@@ -143,6 +144,7 @@ def large_controls(A,expected):
     count,_=direct_count(words,m)
     assert count==expected
     print(f"n={n} GF2 nullity={len(basis)} top_weight={2*m} exact_cover_count={count} PASS")
+    return Counter(w.bit_count() for w in words)
 
 
 def main():
@@ -154,8 +156,22 @@ def main():
     small_controls(build_A(P_UNSAT,Q_UNSAT),0)
 
     R=tutte12_incidence()
-    large_controls(R,0)
-    large_controls([list(c) for c in zip(*R)],36)
+    wr=large_controls(R,0)
+    wt=large_controls([list(c) for c in zip(*R)],36)
+
+    # Orientation-sensitive obstruction quantified EXACTLY:
+    # the same dual rank/nullity and identical first five code
+    # weight moments, but unequal SAT counts.
+    def bm(W,s):
+        return sum(v*comb(w,s) for w,v in W.items() if w>=s)
+    assert all(bm(wr,s)==bm(wt,s) for s in range(6))
+    assert bm(wt,6)-bm(wr,6)==86016
+    assert bm(wr,6)==16915325952
+    assert bm(wt,6)==16915411968
+    print("q63 R vs R^T: binomial moments s=0..5 identical; first discrepancy s=6")
+    print("q63 B6: UNSAT R=16915325952; SAT RT=16915411968; delta=86016")
+    print("Any universal orientation test using only linear combinations")
+    print("of weight binomial moments of order <=5 cannot distinguish this pair")
 
     for n in (12,30,63,90):
         m=n//3
