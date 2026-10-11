@@ -140,8 +140,8 @@ def edge_cut_census(n, edges):
     return Counter(map(len,cuts))
 
 
-def low_moment_formula(n, m, r, four_cuts):
-    """Theorem for 3-edge-connected cubic, only vertex-star 3-cuts, r>=4.
+def low_moment_formula(n, m, r, three_cuts, four_cuts):
+    """Theorem for ANY 3-edge-connected cubic, r>=4.
 
     Moment k counts pairs of binary cycles with k chosen jointly nonzero
     edges, summed over all subsets of k edges. No SAT oracle.
@@ -151,8 +151,8 @@ def low_moment_formula(n, m, r, four_cuts):
         4**r,
         3*m*4**(r-1),
         9*comb(m,2)*4**(r-2),
-        (27*comb(m,3)-3*n)*4**(r-3),
-        (81*comb(m,4)-9*n*(m-3)+3*four_cuts)*4**(r-4),
+        (27*comb(m,3)-3*three_cuts)*4**(r-3),
+        (81*comb(m,4)-9*three_cuts*(m-3)+3*four_cuts)*4**(r-4),
     )
 
 
@@ -201,8 +201,14 @@ def main():
     spokes=[(i,5+i) for i in range(5)]
     prism=outer+spokes+[(5+i,5+(i+1)%5) for i in range(5)]
     petersen=outer+spokes+[(5+i,5+(i+2)%5) for i in range(5)]
-    cases=[('K4',4,k4,6),('K33',6,k33,12),('CUBE',8,cube,24),
-           ('PRISM5',10,prism,30),('PETERSEN',10,petersen,0)]
+    def prism_edges(k):
+        return ([(i,(i+1)%k) for i in range(k)] +
+                [(k+i,k+(i+1)%k) for i in range(k)] +
+                [(i,k+i) for i in range(k)])
+    cases=[('K4',4,k4,6),('PRISM3_NONTRIVIAL_3CUT',6,prism_edges(3),6),
+           ('K33',6,k33,12),('CUBE',8,cube,24),
+           ('PRISM5',10,prism,30),('PETERSEN',10,petersen,0),
+           ('PRISM6',12,prism_edges(6),72)]
     for name,n,raw,want in cases:
         edges=normalized(n,raw)
         rows=make_rows(n,edges)
@@ -219,9 +225,11 @@ def main():
         rank3=rank_mod(rows,N,3)
         if name != 'K4':
             cuts=edge_cut_census(n,edges)
-            assert cuts[1]==0 and cuts[2]==0 and cuts[3]==n
+            assert cuts[1]==0 and cuts[2]==0 and cuts[3]>=n
+            if name=='PRISM3_NONTRIVIAL_3CUT':
+                assert cuts[3]==7 and cuts[3]>n
             expected_low=low_moment_formula(n,len(edges),
-                                             len(edges)-n+1,cuts[4])
+                                             len(edges)-n+1,cuts[3],cuts[4])
             assert moments==expected_low,(name,moments,expected_low)
             print(f'{name} FLOW_SUPPORT_MOMENTS_0_TO_4={moments} '
                   f'CUTS_3={cuts[3]} CUTS_4={cuts[4]}')
@@ -236,7 +244,7 @@ def main():
               f'cycle_space={cycle_size}, rank_F2={rank2}, rank_F3={rank3}')
     print('FIRST_4_FLOW_MOMENTS_MATCH_AT_K0_K1_K2_K3 = PROVED_FINITE')
     print('K4_MOMENT_SPLIT_BY_5_EXTRA_4CUTS = 5*3*4^(6-4) = 240')
-    print('LOW_MOMENT_CUT_PROFILE_THEOREM = ANALYTIC_ALL_3EDGE_CONNECTED_CUBIC')
+    print('LOW_MOMENT_CUT_PROFILE_THEOREM = PROVED_ALL_3EDGE_CONNECTED_CUBIC')
     print('SMITH_PAIR_PRISM_PETERSEN: invariants 1^33,2^2,0^10; BOOL 30 vs 0')
     print('SMITH_ONLY_DECISION = REFUTED; UNIVERSAL_POLY_SOLVER = NOT_CONSTRUCTED')
     print('P_VS_NP = OPEN')
