@@ -294,6 +294,66 @@ a global solver. The value is an exact explanation
 of why the q90 first step compresses to four terms,
 and where the difficult interaction survives.
 
+## IV-B. ALL-E118 full phase gauge factorization (removes 2^v local choices exactly)
+
+The v disjoint local flips e_1,...,e_v in any E118 reduction
+target are independent in K_target. The linear map
+
+    T(k) = k XOR sum_{g: f_g(k)=1} e_g
+
+sets every gadget's internal f-coordinate to 0. It is an
+idempotent F2-linear projector onto
+
+    K_gauge = {k in K_target: f_g(k)=0 for all g}.
+
+Its kernel is exactly span(e_1,...,e_v), hence
+
+    K_target = K_gauge direct_sum span(e_1,...,e_v),
+    dim K_gauge = dim K_target-v.
+
+The FULL half-weight generating function has the exact
+factorization (the local z-powers may individually be negative):
+
+    H_target(z) =
+       sum_{u in K_gauge} z^(|u|/2)
+            product_{g=1}^v (1+z^(3-|u AND e_g|)).
+
+Proof: expand the product; each subset of gadgets corresponds
+to one distinct global kernel word u XOR XOR_{g in subset} e_g.
+The e_g supports are disjoint, so the Hamming-weight correction
+adds exactly, and no term is omitted or double-counted.
+
+The formula evaluates ALL integer half-weight coefficients
+using only
+
+    O(2^(dim K_target-v) * poly(N))
+
+arithmetic/bit operations (N=10v), rather than 2^dim K_target
+kernel enumeration. Nevertheless this remains exponential
+when dim K_target-v=Theta(v), as it can be on hard E118 sources.
+The factorization gives NO universal polynomial phase evaluator.
+
+Exact q90 replay, both connected C4-free controls:
+
+    Target                   dim K   dim K_gauge   gauge states
+    E118 UNSAT90               18         9              512
+    E118 SAT90                 18         9              512
+
+Compared to full kernel size 2^18=262,144, this is a factor-512
+reduction in explicitly enumerated words.
+Exact top two high coefficients:
+
+    E118 UNSAT90:  [z^30]H=0;   [z^29]H=864.
+    E118 SAT90:    [z^30]H=192; [z^29]H=1728.
+
+The q90 top-coefficient multiplicity 192 was known from E118's
+SAT-preserving 2^(2n/3) extension theorem. The NEW check is
+the exact all-weights gauge contraction and its generic
+symbolic derivation, not a P=NP result.
+
+Companion:
+    python experiments/r5_universal_e118_gadget_local_four_phase_lemma.py
+
 ## V. The next precise universal obligation
 
 A true universal recursive evaluator needs an EXPLICIT
@@ -330,6 +390,9 @@ E118_ALL_SOURCE_LOCAL_GADGET_FLIP_WEIGHT_SIX = PROVED.
 E118_ALL_SOURCE_LOCAL_PROJECTED_PHASE_RANK_LE_TWO = PROVED.
 E118_LOCAL_GADGET_FOUR_WALSH_TERMS = PROVED.
 E118_POST_GAUGE_GLOBAL_SOURCE_COUPLING = NP_HARD_PREDECESSOR.
+E118_ALL_SOURCE_KERNEL_GAUGE_DIRECT_SUM = PROVED.
+E118_FULL_PHASE_GAUGE_FACTOR_FORMULA = PROVED.
+E118_Q90_EXACT_PHASE_GAUGE_512_VS_262144 = EXACT_REPLAY.
 E118_FIRST_PIVOT_EXACT_BRANCH_COUNT = 4.
 E123_FIRST_PIVOT_EXACT_BRANCH_COUNT = 4096.
 GLOBAL_RECURSIVE_POLYNOMIAL_BRANCH_BOUND = OPEN.
