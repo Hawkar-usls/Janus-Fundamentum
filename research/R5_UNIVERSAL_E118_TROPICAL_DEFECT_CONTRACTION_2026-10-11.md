@@ -184,6 +184,45 @@ bound on all NP-complete 3-uniform cubic sources.
 Consequently this is a genuine implemented EXACT
 solver, but NOT the requested universal POLYNOMIAL solver.
 
+### Exact SCL-width obstruction to an all-input polynomial factor-table bound
+
+A prior independent Fundamentum theorem, audited against the
+2025 Kettani constant-treewidth claim, gives the explicit family
+of legal square+cubic+linear SAT carriers for every L divisible
+by 3, L>=9:
+
+    x_(i,j) + x_(i+1,j) + x_(i,j+1) = 1
+    on the L-by-L toroidal grid.
+
+Every such formula has n=L^2 variables/clauses and its primal
+conflict graph contains the ordinary L-by-L grid. The
+cross-bramble/Helly argument gives
+
+    treewidth(primal) >= L-1 = sqrt(n)-1.
+
+The width of ANY elimination order using explicit dense
+binary factors on that graph is at least its treewidth;
+therefore the maximum factor-table scope has at least
+sqrt(n)-1 other variables and requires at least
+
+    2^(sqrt(n)-1)
+
+entries on those instances. This rules out deriving an
+n^O(1) worst-case bound from explicit table-based min-sum
+elimination, even with the best elimination ordering.
+It is a LOWER BOUND ONLY FOR THIS REPRESENTATION/ALGORITHM,
+not a general SAT algorithm lower bound.
+
+The toroidal family is actually SAT with exactly three
+simple periodic models, so it is an especially clear
+illustration that large explicit factor tables may be
+avoidable by a **different symbolic representation**.
+The width theorem alone cannot prove P!=NP or that
+every solver must be exponential.
+
+The min-fill code checks its measured width on L=9,12,15
+while NOT allocating any exponential factor table there.
+
 Nothing in this note proves `P=NP`.
 
 ## 4. Why ordinary source defect minimization does not evade hardness
@@ -220,7 +259,12 @@ Tests include:
   phase maximum formula, the global clause-count
   identity, 3-divisibility and quantified gap;
 - exact min-plus factor elimination with checked
-  argmin reconstruction and measured induced width.
+  argmin reconstruction and measured induced width;
+- independent SAT witness lifting through the E118 90-variable
+  reduction gadget and a full exact-one target verification;
+- legal toroidal SCL SAT carriers L=9,12,15 whose
+  min-fill order has induced width >=L-1, without
+  running an exponential table computation.
 
 Full R5 verifies the runnable checkpoint; do not
 treat success of finite tests as proof of n^O(1).
@@ -233,7 +277,8 @@ E118_SAT_IFF_MAX_KERNEL_WEIGHT_TOP = PREDECESSOR_AND_PROVED.
 E118_UNSAT_MAX_WEIGHT_GAP_GE_TWO = PROVED_FOR_3_DIVIDES_S.
 MIN_SUM_FACTOR_ELIMINATION_SOUND_COMPLETE = PROVED_ALL_INPUTS.
 MIN_SUM_FACTOR_ELIMINATION_RUNTIME = O(2^w * poly(n)).
-UNIFORM_WORST_CASE_W_LE_O_LOG_N = NOT_PROVED.
+UNIFORM_WORST_CASE_W_LE_O_LOG_N = REFUTED_FOR_EXPLICIT_TABLE_ELIMINATION.
+LEGAL_SCL_TOROIDAL_PRIMAL_TW_GE_SQRT_N_MINUS_ONE = PREDECESSOR_PROVED.
 GLOBAL_POLYNOMIAL_TROPICAL_CONTRACTION = OPEN.
 UNIVERSAL_POLYNOMIAL_SolveLinearCubicXSAT = NOT_CONSTRUCTED.
 P_VS_NP = OPEN.
