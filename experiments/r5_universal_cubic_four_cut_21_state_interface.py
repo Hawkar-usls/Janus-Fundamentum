@@ -150,7 +150,7 @@ def exact_signature_count(n,E,S):
 def join_after_two_disjoint_edge_deletions(na,ea,ra,nb,eb,rb):
     """Four new edges between two cubic shores after deleting two edges."""
     ea=normalized(na,ea);eb=normalized(nb,eb)
-    ra=tuple(sorted(e) for e in ra);rb=tuple(sorted(e) for e in rb)
+    ra=tuple(tuple(sorted(e)) for e in ra);rb=tuple(tuple(sorted(e)) for e in rb)
     assert len(ra)==len(rb)==2
     assert set(ra)<=set(ea) and set(rb)<=set(eb)
     pa=tuple(v for e in ra for v in e)
