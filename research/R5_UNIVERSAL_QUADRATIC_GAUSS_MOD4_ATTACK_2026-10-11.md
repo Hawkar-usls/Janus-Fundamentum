@@ -245,6 +245,68 @@ Gauss sums; see Agarwal and Jindal, "Deterministic NC Quadratic
 Root Counting in Characteristic Two", arXiv:2609.12669 for
 recent independent context, not a priority or originality claim.
 
+## 4A. Exact all-input Fourier phase theorem required for UNIVERSAL recovery
+
+The MOD4 quadratic Gauss result is one efficiently computable Fourier
+sample, not the full weight enumerator. The exact minimum all-input
+information for this *specific Fourier route* is as follows.
+
+Let m=n/3 and Q=the smallest power of two STRICTLY GREATER than m.
+Because every kernel word weight is even and <=2m, the pinned
+half-weight enumerator
+
+    H_pi(z) = sum_{k in K meeting pi} z^(|k|/2)
+
+is an INTEGER polynomial of degree at most m, even after pins.
+Thus Q>m and Q<=2(m+1)=O(n).
+
+With omega a primitive Q-th root of unity, the exact
+root-of-unity filter gives
+
+    Z(A,pi) = [z^m]H_pi(z)
+            = (1/Q)sum_{j=0}^{Q-1}
+                    omega^(-jm) H_pi(omega^j).
+
+This identity is exact for EVERY input and EVERY pin. Unlike
+a single residue check, all Q=O(n) phases together separate
+the top weight from every lower even weight.
+
+Important bit-complexity point: Q=2^s, so the cyclotomic
+polynomial is Phi_Q(x)=x^(Q/2)+1 for Q>=2. Every phase value is
+an algebraic integer with at most Q/2=O(n) integral coordinates
+in the basis 1,omega,...,omega^(Q/2-1). Each coordinate is a
+signed sum of at most 2^d' individual terms, hence has <=d'+1
+plus sign bits, i.e. O(n) bits. Thus the ENTIRE output encoding
+for all Q values is polynomial, and exact cyclotomic additions,
+sign reductions and the final division by Q are polynomial.
+
+**The single UNPROVED algorithmic theorem for this route:**
+
+    UNIFORM_POLYNOMIAL_EXACT_CYCLOTOMIC_PHASE_EVALUATOR:
+    Given ANY square+cubic+linear A, any pins pi, and
+    j in [0,Q), compute H_pi(omega^j) exactly as Q/2
+    integer coefficients in deterministic poly(n) bit time.
+
+If proved, invoke it Q=O(n) times, apply exact Fourier inversion,
+and recover Z(A,pi). By successive pinned queries, obtain a
+universal sound/complete polynomial-time SAT+witness or UNSAT
+solver. This is a valid SUFFICIENT theorem; it is presently OPEN.
+The all-input E118 NP-completeness makes an all-Q solution a
+P=NP-scale breakthrough, not a consequence of a short formula.
+
+Our polynomial quadratic-Gauss oracle computes H_pi(omega^(Q/2))
+=H_pi(-1), plus H_pi(1) is immediate. The next genuinely new
+values for Q divisible by four include H_pi(i), whose phase
+already has the cubic terms exhibited in Section 3A.
+No polynomial algorithm for those general all-input evaluations
+has been proved here.
+
+This Fourier restatement does not reduce general complexity:
+it isolates the missing phase computation rather than hiding
+exponential work in a DFT, in complex precision, or in a
+postulated oracle. Do not count the identity as the global
+solver itself.
+
 ## 5. Exact reproduction
 
     python experiments/r5_universal_quadratic_gauss_mod4_attack.py
@@ -271,5 +333,7 @@ MOD4_RESIDUE_POSITIVE_IMPLIES_EXACTONE_SAT = REFUTED_BY_E118_UNSAT90.
 MOD8_HALF_WEIGHT_PHASE_HAS_CUBIC_INTERACTIONS = PROVED.
 GENERIC_QUADRATIC_GAUSS_EVALUATES_MOD8_PHASE = NOT_ESTABLISHED.
 RANK_AGGREGATION_FOR_TOP_COEFFICIENT = OPEN.
+UNIVERSAL_EXACT_CYCLOTOMIC_PHASE_EVALUATOR = OPEN.
+EXACT_FOURIER_RECOVERY_WITH_POLYNOMIAL_OUTPUT_BITS = PROVED_CONDITIONALLY_ON_PHASE_ORACLE.
 UNIVERSAL_POLYNOMIAL_EXACTONE_SOLVER = NOT_CONSTRUCTED.
 P_VS_NP = OPEN.
