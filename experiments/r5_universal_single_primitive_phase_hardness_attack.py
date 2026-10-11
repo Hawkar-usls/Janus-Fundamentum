@@ -121,6 +121,47 @@ def phase_anf_nonzero_counts(basis,Q):
     return nonzero,examples
 
 
+
+def independent_finite_mobius_anf_counts(basis,Q):
+    """Full independent ANF derivation for FIXED finite controls only.
+
+    Exponent evaluations enumerate 2^d kernel words; a subset
+    Mobius transform then recovers exact multilinear coefficients mod Q.
+    It validates, but does NOT accelerate, the general phase formula.
+    """
+    d=len(basis)
+    size=1<<d
+    assert d<=18  # scientific fixture budget, not general complexity
+    v=[0]*size
+    last=0
+    word=0
+    for t in range(size):
+        g=t^(t>>1)
+        change=g^last
+        if change:
+            word^=basis[change.bit_length()-1]
+        last=g
+        assert word.bit_count()%2==0
+        v[g]=word.bit_count()//2%Q
+
+    for i in range(d):
+        step=1<<i
+        for mask in range(size):
+            if mask&step:
+                v[mask]=(v[mask]-v[mask^step])%Q
+
+    s=Q.bit_length()-1
+    counts=[0]*min(d,s+1)
+    for mask,coeff in enumerate(v):
+        degree=mask.bit_count()
+        if degree>s+1:
+            assert coeff==0, (mask,degree,coeff)
+        elif degree and coeff:
+            counts[degree-1]+=1
+        elif degree==0:
+            assert coeff==0
+    return counts
+
 def check(name,A,expected_top,expected_dim,expected_top_degree=None):
     n=len(A)
     m,Q,D=primitive_phase_parameters(n)
@@ -136,6 +177,8 @@ def check(name,A,expected_top,expected_dim,expected_top_degree=None):
     assert canonical_coordinates[m]==expected_top
     assert max(canonical_coordinates)<(1<<(expected_dim+1))
     counts,examples=phase_anf_nonzero_counts(basis,Q)
+    independent=independent_finite_mobius_anf_counts(basis,Q)
+    assert counts==independent, (name,counts,independent)
     if expected_top_degree is not None:
         assert max(i for i,v in enumerate(counts,1) if v)>=(expected_top_degree)
         assert counts[expected_top_degree-1]>0
