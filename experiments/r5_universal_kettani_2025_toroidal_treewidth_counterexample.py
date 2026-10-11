@@ -139,7 +139,62 @@ def verify_sat_assignments(rows,L):
     assert len(set(found))==3
 
 
+
+def bareiss_determinant(M):
+    """Exact integer O(n^3) fraction-free elimination, tiny frozen fixture."""
+    n=len(M)
+    a=[list(map(int,row)) for row in M]
+    assert all(len(row)==n for row in a)
+    sign=1
+    divisor=1
+    for k in range(n-1):
+        if not a[k][k]:
+            pivot=next((i for i in range(k+1,n) if a[i][k]),None)
+            if pivot is None:
+                return 0
+            a[k],a[pivot]=a[pivot],a[k]
+            sign=-sign
+        pivot=a[k][k]
+        for i in range(k+1,n):
+            for j in range(k+1,n):
+                numerator=pivot*a[i][j]-a[i][k]*a[k][j]
+                assert numerator%divisor==0
+                a[i][j]=numerator//divisor
+            a[i][k]=0
+        divisor=pivot
+    return sign*a[-1][-1]
+
+
+def verify_invertible_nonboolean_counterexample():
+    """Independent failure in paper's Algorithm 2 determinant shortcut.
+
+    For EVERY square cubic A, A(1/3*1)=1. If det A !=0,
+    it is the UNIQUE rational solution, which is NOT Boolean:
+    contrary to the paper's Step 2 treating A^-1 1 as Exact-One.
+    """
+    n=9
+    rows=[
+        tuple(sorted((i,(i+1)%n,(i+3)%n)))
+        for i in range(n)
+    ]
+    pairs=[tuple(sorted(p)) for row in rows for p in combinations(row,2)]
+    assert len(set(pairs))==3*n
+    assert all(sum(j in row for row in rows)==3 for j in range(n))
+    assert all(len(row)==3 for row in rows)
+    M=[[int(j in row) for j in range(n)] for row in rows]
+    determinant=bareiss_determinant(M)
+    assert determinant==27
+    # The actual n=9 Exact-One problem is UNSAT: any Boolean solution
+    # would equal the unique rational solution (1/3,...,1/3).
+    assert all(sum(row)==3 for row in M)
+    print(
+        "Published Algorithm 2 Step 2 failure: n=9, circulant "
+        "{0,1,3}; det(A)=27, unique rational solution "
+        "x=(1/3)*1, Boolean SAT=FALSE"
+    )
+
 def main():
+    verify_invertible_nonboolean_counterexample()
     for L in (9,12,15):
         rows=toroidal_triangular_carrier(L)
         G=verified_conflict_graph(rows,L)
@@ -153,6 +208,7 @@ def main():
             f"tw(G)>={lower}>6"
         )
     print("PUBLISHED_TW_LE_6_FOR_ASSOCIATED_GRAPH = REFUTED")
+    print("PUBLISHED_DET_NONZERO_IMPLICATION_OF_BOOLEAN_SAT = REFUTED")
     print("PUBLISHED_P_EQ_NP_PROOF_VIA_CONSTANT_TW = NOT_VALIDATED")
     print("THIS_IS_A_PROOF_AUDIT_NOT_A_PROOF_OF_P_NE_NP")
     print("JANUS_UNIVERSAL_SOLVER = NOT_CONSTRUCTED; P_VS_NP = OPEN")
