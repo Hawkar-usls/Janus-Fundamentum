@@ -38,6 +38,14 @@ def affine_word_map(basis, coeff):
     return word
 
 
+
+def doubly_even_certificate(basis):
+    """O(n*d^2) exact criterion for every word in span(basis) to have 4|wt."""
+    return (
+        all(w.bit_count()%4==0 for w in basis)
+        and all((a&b).bit_count()%2==0 for a,b in combinations(basis,2))
+    )
+
 def pinned_affine_basis(basis, n, pins=None):
     """Solve linear constraints k_i=pins[i] in coefficient space.
 
@@ -241,6 +249,7 @@ def main():
         n=len(M)
         basis=kernel_basis(M)
         assert len(basis)==14
+        assert doubly_even_certificate(basis)==(label=="E123_UNSAT")
         got=mod4_weight_counts(basis,n)
         assert got==expected,(label,got)
         cubic_terms=mod8_weight_phase_cubic_count(basis)
@@ -284,7 +293,34 @@ def main():
         # BOTH source statuses have the same positive target residue count.
         # In particular the unsatisfiable q90 still passes this test.
         assert counts[0]>0
-        print(f"{label}: n=90 d={len(basis)}, mod4 counts={counts}, mod8 cubic terms={cubic_terms}")
+        # Test EVERY first-check pin, not just the unpinned formula.
+        # The E118 UNSAT target fools even this global polynomial
+        # quadratric Gauss support test on ALL 270 candidates.
+        pin_counts=[]
+        for check,row in enumerate(M):
+            js=[j for j,v in enumerate(row) if v]
+            for selected in js:
+                pin=exact_one_pins(M,selected,check)
+                pin_counts.append(mod4_weight_counts(basis,n,pin))
+        assert len(pin_counts)==270
+        assert all(c0>0 for c0,c2 in pin_counts)
+        from collections import Counter
+        pin_profile=Counter(pin_counts)
+        if expect_sat:
+            assert pin_profile==Counter({
+                (32768,32768):231,
+                (33024,32512):24,
+                (32512,33024):12,
+                (33280,32256):3,
+            }),pin_profile
+        else:
+            assert pin_profile==Counter({
+                (32768,32768):235,
+                (33024,32512):16,
+                (33280,32256):11,
+                (32512,33024):8,
+            }),pin_profile
+        print(f"{label}: n=90 d={len(basis)}, mod4 counts={counts}, mod8 cubic terms={cubic_terms}; all 270 pins survive")
     print("QUADRATIC_GAUSS_FOR_EVERY_AFFINE_GF2_KERNEL = POLYNOMIAL AND EXACT")
     print("MOD4_EXCLUSION = SOUND UNSAT TEST; COMPLETENESS NOT CLAIMED")
     print("UNIVERSAL_POLYNOMIAL_EXACTONE_SOLVER = NOT_CONSTRUCTED; P_VS_NP = OPEN")
