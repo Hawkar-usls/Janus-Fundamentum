@@ -39,7 +39,7 @@ def boundary_patterns():
         if total==[0,0]:
             allowed.append(pattern)
     assert len(allowed)==21
-    assert Counter(sorted(Counter(p).values()) for p in allowed)==Counter(
+    assert Counter(tuple(sorted(Counter(p).values())) for p in allowed)==Counter(
         {tuple([4]):3,tuple([2,2]):18}
     )
     return tuple(allowed)
@@ -130,7 +130,7 @@ def exact_signature_count(n,E,S):
         if La[p] and Lb[p]:
             witness={}
             for e,col in Wa[p].items():
-                verts=list(A[3]); inverse={v:k for k,v in A[3].items()}
+                inverse={v:k for k,v in A[3].items()}
                 original=tuple(sorted((inverse[e[0]],inverse[e[1]])))
                 witness[original]=col
             inverse={v:k for k,v in B[3].items()}
