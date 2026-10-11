@@ -215,8 +215,12 @@ def ExactSupport(A,pins=None,max_nodes=None,gauss_depth=0):
                     runtime="bounded search, no SAT/UNSAT claim")
 
     if found is None:
+        # Provenance: a leaf's local filter is NOT a root UNSAT
+        # certificate unless no branch was needed.
+        root_reason=(last_reason[0] if audit.branches==0
+                     else "EXHAUSTIVE_EXACT_CLAUSE_SPLIT")
         return dict(status="UNSAT",witness=None,
-                    reason=last_reason[0] or "EXHAUSTIVE_EXACT_CLAUSE_SPLIT",
+                    reason=root_reason or "EXHAUSTIVE_EXACT_CLAUSE_SPLIT",
                     audit=audit.as_dict(),
                     runtime="worst-case O(3^(n/3)*poly(n)); NOT polynomial")
     assert all(found[j]==v for j,v in supplied.items())
