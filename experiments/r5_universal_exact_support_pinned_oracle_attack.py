@@ -26,6 +26,9 @@ from r5_e65_transpose_asymmetry_quantized_defect import gf2_rref_basis
 from r5_universal_quadratic_gauss_mod4_attack import (
     pinned_affine_basis,mod4_weight_counts
 )
+from r5_universal_exact_support_mod9_dual_certificate import (
+    mod9_exactone_precheck,independent_verify_mod9_certificate
+)
 from r5_universal_e118_tropical_defect_variable_elimination import (
     constraints_from_matrix
 )
@@ -49,6 +52,8 @@ class Audit:
     top_capacity_prunes:int=0
     mod4_checks:int=0
     mod4_prunes:int=0
+    mod9_checks:int=0
+    mod9_prunes:int=0
     max_depth:int=0
     guard_hits:int=0
 
@@ -154,6 +159,32 @@ def ExactSupport(A,pins=None,max_nodes=None,gauss_depth=0):
     if n%3:
         return dict(status="UNSAT",witness=None,reason="3_DOES_NOT_DIVIDE_N",
                     audit=audit.as_dict(),runtime="polynomial")
+
+    # Independent O(n^3) ring-consistency NEGATIVE gate. A Boolean
+    # exact-one witness must solve the pinned linear equations mod 9;
+    # the ring eliminator either constructs a CHECKABLE annihilating
+    # row vector or returns CONSISTENT (meaning UNKNOWN, never SAT).
+    audit.mod9_checks+=1
+    ring_status,mod9_certificate=mod9_exactone_precheck(A,supplied)
+    if ring_status=="INCONSISTENT":
+        audit.mod9_prunes+=1
+        rows_for_certificate=[list(row) for row in A]
+        right_for_certificate=[1]*n
+        for idx,value in sorted(supplied.items()):
+            pin_row=[0]*n
+            pin_row[idx]=1
+            rows_for_certificate.append(pin_row)
+            right_for_certificate.append(value)
+        assert independent_verify_mod9_certificate(
+            rows_for_certificate,right_for_certificate,mod9_certificate
+        )
+        return dict(
+            status="UNSAT",witness=None,
+            reason="PINNED_MOD9_INTEGER_OBSTRUCTION",
+            mod9_certificate=mod9_certificate,
+            audit=audit.as_dict(),
+            runtime="polynomial fixed-ring bit complexity"
+        )
 
     _,_,basis=gf2_rref_basis(A)
     partial=[-1]*n
