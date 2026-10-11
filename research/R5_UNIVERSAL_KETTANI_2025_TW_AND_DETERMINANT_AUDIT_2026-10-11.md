@@ -48,8 +48,7 @@ an edge exactly when two variables appear in the same check.
 
 3. LINEARITY: each check support is a translate of
    S={(0,0),(1,0),(0,1)}. Its six nonzero ordered differences
-   are (+/-1,0), (0,+/-1), (+/-1,mp1) in the paired
-   diagonal orientations (+1,-1),(-1,+1).
+   are (+1,0), (-1,0), (0,+1), (0,-1), (+1,-1), (-1,+1).
    These are all distinct in Z_L^2 for L>=4.
    If two distinct translates had intersection size >=2,
    their translation displacement would be expressed by
