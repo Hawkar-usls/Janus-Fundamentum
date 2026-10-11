@@ -238,10 +238,13 @@ def main():
         basis=kernel_basis(M)
         counts=mod4_weight_counts(basis,n)
         assert n==90
+        assert len(basis)==18
+        assert counts==(131072,131072), (label,counts)
         assert sum(counts)==1<<len(basis)
         # Target size n=90, |k| target=60, so mod4 class is 0.
-        if expect_sat:
-            assert counts[0]>0
+        # BOTH source statuses have the same positive target residue count.
+        # In particular the unsatisfiable q90 still passes this test.
+        assert counts[0]>0
         print(f"{label}: n=90 d={len(basis)}, mod4 counts={counts}")
     print("QUADRATIC_GAUSS_FOR_EVERY_AFFINE_GF2_KERNEL = POLYNOMIAL AND EXACT")
     print("MOD4_EXCLUSION = SOUND UNSAT TEST; COMPLETENESS NOT CLAIMED")
