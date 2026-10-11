@@ -135,8 +135,10 @@ Standalone standard-library program reusing frozen local fixtures:
   python experiments/r5_universal_pfaffian_cube_k33_cancellation.py
 
 It independently enumerates labelled proper colourings and matching
-triples, verifies on K4, K3,3, cube, five-prism, Petersen, J5 and
-the 20-vertex SAT control, and checks K3,3 common-vs-independent
+triples, constructs a separate y-monomial for EVERY colouring,
+checks that every symbolic coefficient is exactly +/-1, verifies
+on K4, K3,3, cube, five-prism, Petersen, J5 and the 20-vertex
+SAT control, and checks K3,3 common-vs-independent
 edge-orientation choices.
 
 The checker is finite/exponential and labelled as such; no asymptotic
@@ -149,7 +151,7 @@ SINGLE_PFAFFIAN_CUBE_NONZERO_SAT_TEST = REFUTED_BY_K33_SAT.
 K33_PFAFFIAN_CUBE_ZERO_WITH_12_BOOLEAN_WITNESSES = PROVED_FINITE.
 COMMON_EDGE_SIGN_REORIENTATION_CANNOT_REPAIR_ZERO = PROVED_ALL_CUBIC.
 THREE_INDEPENDENTLY_LABELLED_PFAFFIANS_COEFFICIENT_POLY =
-    EXACT_ZERO_IFF_3EDGECOLORABLE_FALSE; CORRECT NONZERO_IFF_SAT.
+    EXACT_FORMAL_NONZERO_IFF_3EDGE_COLORABLE, PROVED_ALL_SIMPLE_CUBIC.
 UNIFORM_POLYNOMIAL_SYMBOLIC_COEFFICIENT_ZERO_TEST = NOT_CONSTRUCTED.
 ALL_INPUT_POLY_SolveLinearCubicXSAT = NOT_CONSTRUCTED.
 P_VS_NP = OPEN.
