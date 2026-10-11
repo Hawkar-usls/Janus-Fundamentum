@@ -24,6 +24,7 @@ from r5_universal_cubic_flow_snf_discriminator import (
     normalized, colour_count,
 )
 from r5_universal_cubic_three_edge_cut_factorization import triple_join, K33
+from r5_universal_cubic_edgecolor_direct_scl_bridge import make_scl
 
 
 def prism(k):
@@ -112,6 +113,16 @@ def main():
         if n<=20:   # genuinely independent exhaustive check
             exact,witness=colour_count(n,E)
             assert exact==6*h and witness is not None
+            scl_rows,scl_n,ordered,_=make_scl(E)
+            assert scl_n==len(scl_rows)==3*len(E)
+            encoded=[int(witness[i]==c) for i in range(len(ordered))
+                     for c in range(3)]
+            assert all(sum(encoded[j] for j in row)==1
+                       for row in scl_rows)
+            # This is a *real legal SCL SAT witness*, even though
+            # the proposed normalized count-mod-q test returned zero.
+            print(f'MODULUS_{q}_LEGAL_SCL_SAT_WITNESS = VERIFIED',
+                  flush=True)
         print(f'MODULUS_{q}: cubic_vertices={n}, odd_prism_k={k}, '
               f'K33_joins={a}, #Col3_div6={h}, '
               f'residue={h%q}',flush=True)
