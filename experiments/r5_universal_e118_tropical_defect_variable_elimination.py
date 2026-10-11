@@ -37,6 +37,12 @@ from r5_universal_boolean_quadratic_pc2_attack import (
 from r5_universal_e118_matching_port_phase_normal_form import (
     incidence_perfect_matching,local_weight_poly
 )
+from r5_universal_kettani_2025_toroidal_treewidth_counterexample import (
+    toroidal_triangular_carrier
+)
+from r5_universal_boolean_quadratic_pc2_attack import (
+    e118_target, real_witness_from_source, verify_target
+)
 
 PHI=(1,0,2,1)
 
@@ -251,15 +257,43 @@ def finite_controls():
         actual=source_solutions(source)
         assert (optimum==0)==bool(actual)==(expected=="SAT")
         assert optimum==(0 if expected=="SAT" else 3)
+        if expected=="SAT":
+            source_model={name:x[index[name]] for name in names}
+            target_rows,ports,target_index=e118_target(source)
+            verify_target(target_rows)
+            target_witness=real_witness_from_source(
+                source_model,ports,target_rows,target_index
+            )
+            assert len(target_witness)==90
+            assert sum(target_witness)==30
+            assert all(sum(target_witness[v] for v in row)==1
+                       for row in target_rows)
+            print(name,"source-to-target SAT witness lifting PASS")
         defects=exact_e118_maxplus_bridge(source,match)
         assert min(defects)==optimum//3
         assert sum(defects.values())==1<<9
         print(name,expected,"width",width,"min B",optimum,
               "max target-kernel weight",60-2*min(defects))
 
+    # Unconditional structural width obstruction to THIS algorithm.
+    # The legal SCL triangular torus has a L x L GRID SUBGRAPH in
+    # its primal conflict graph. All elimination orders have
+    # induced width >= treewidth >= L-1 (cross bramble proof
+    # in the independent Kettani audit).
+    for L in (9,12,15):
+        grid=toroidal_triangular_carrier(L)
+        n=L*L
+        order,width=minfill_order(n,grid)
+        assert len(order)==n
+        assert width>=L-1,(L,width)
+        print(f"SCL toroidal SAT-primal width firewall: L={L} n={n} "
+              f"minfill width={width} >= {L-1}; "
+              "explicit 2^w factor tables NOT polynomial worst-case")
+
     print("MIN_PLUS_DP_EXACT_WITH_WITNESS_FOR_ALL_SCL = PROVED")
     print("E118_MAX_PLUS_LOCAL_GADGET_DEFECT_IDENTITY = REPLAYED")
-    print("UNIFORM_POLYNOMIAL_WIDTH_BOUND = NOT_PROVED")
+    print("SCL_TOROIDAL_FAMILY_EXPLICIT_MINPLUS_WIDTH_GE_SQRT_N_MINUS_ONE = PROVED")
+    print("UNIFORM_POLYNOMIAL_WIDTH_BOUND = REFUTED_FOR_EXPLICIT_FACTOR_TABLES")
     print("SolveLinearCubicXSAT worst-case polynomial = NOT_CONSTRUCTED")
     print("P_VS_NP = OPEN")
 
