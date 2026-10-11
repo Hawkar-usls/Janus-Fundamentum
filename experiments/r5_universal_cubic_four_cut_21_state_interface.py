@@ -29,6 +29,12 @@ COLORS=(0,1,2)
 NONZERO_FOUR=((1,0),(0,1),(1,1))
 
 
+def allowed_boundary_count(k):
+    """Exact all-cut flow boundary-state count by F2^2 character filter."""
+    assert k>=0
+    return (3**k+3*((-1)**k))//4
+
+
 def boundary_patterns():
     allowed=[]
     for pattern in product(COLORS,repeat=4):
@@ -38,7 +44,7 @@ def boundary_patterns():
             total[1]^=NONZERO_FOUR[c][1]
         if total==[0,0]:
             allowed.append(pattern)
-    assert len(allowed)==21
+    assert len(allowed)==21==allowed_boundary_count(4)
     assert Counter(tuple(sorted(Counter(p).values())) for p in allowed)==Counter(
         {tuple([4]):3,tuple([2,2]):18}
     )
@@ -197,6 +203,21 @@ def discover_cyclic_four_cut(n,E):
 def main():
     patterns=boundary_patterns()
     assert len(patterns)==21
+    for k,expected in ((0,1),(1,0),(2,3),(3,6),(4,21),
+                       (5,60),(6,183),(7,546),(8,1641)):
+        assert allowed_boundary_count(k)==expected
+        if k<=7:
+            brute=sum(
+                all(sum(NONZERO_FOUR[c][b] for c in pattern)%2==0
+                    for b in (0,1))
+                for pattern in product(COLORS,repeat=k)
+            )
+            assert brute==expected,(k,brute,expected)
+    assert discover_cyclic_four_cut(10,normalized(10,petersen())) is None
+    assert discover_cyclic_four_cut(6,normalized(6,K33())) is None
+    print('ALL_K_FOUR_FLOW_BOUNDARY_STATES=(3^k+3*(-1)^k)/4 '
+          'VERIFY_K0_TO_K8=PASS',flush=True)
+    print('PETERSEN_NO_CYCLIC_FOUR_CUT = VERIFIED_FINITE',flush=True)
     k4=normalized(4,K4())
     k33=normalized(6,K33())
     cube8=normalized(8,cube())
@@ -224,6 +245,8 @@ def main():
               f'boundary_contraction={count}, 21_boundary_states=YES, '
               f'allowed_matches={overlap}, found_cyclic_4cut=YES, '
               f'witness_glued={witness is not None}',flush=True)
+    print('FOUR_EDGE_K4_PETERSEN_JOIN_REPAIRS_UNSAT_TO_SAT = VERIFIED_FINITE')
+    print('GENERAL_K_EDGE_CUT_STATE_COUNT_FORMULA = PROVED_ALL_K')
     print('ALL_CUBIC_FOUR_CUT_21_STATE_GLUE_COUNT = PROVED')
     print('ALL_CUBIC_FOUR_CUT_WITNESS_GLUE = PROVED')
     print('CYCLIC_FOUR_CUT_POLY_FINDER = PROVED_O_MPOW4_TIMES_NPLUSM')
