@@ -100,6 +100,106 @@ def certified_tanner_edge_connectivity(rows,n,first_only=True):
     }
 
 
+def certified_two_cut_mod3_rules(rows,n,max_n=None):
+    """Certified polynomial preprocessing on CONNECTED sources.
+
+    For a 2-edge cut side S with r internal rows and r internal vars,
+    the two crossing original-incidence ports define u=inside variable
+    incident to an external clause, and v=external variable incident
+    to an inside clause. Exact-One row-sum over S yields
+
+        3*sum_{w in variables(S)} x_w = r + x_u - x_v.
+
+    Hence (r modulo 3):
+      0 -> x_u=x_v (two certified forbidden unequal pairs);
+      1 -> x_u=0, x_v=1;
+      2 -> x_u=1, x_v=0.
+
+    Every forced pin is backed by the original cut rows/variable IDs.
+    This preprocessing runs at most O(n^3) bounded-degree graph work.
+    If max_n restricts its execution, it returns SKIPPED, not a guess.
+    """
+    rows=validate_sparse(rows,n)
+    if max_n is not None and n>max_n:
+        return {'status':'SKIPPED_SIZE_GUARD',
+                'pins':{},'equalities':(),'certificates':()}
+    edges,adj=exact_tanner_graph(rows,n)
+    assert len(reach(adj))==2*n, 'component preprocessing comes first'
+    props=certified_tanner_edge_connectivity(rows,n,first_only=False)
+    pins={};equalities=set();certs=[]
+    for cut in props['cuts']:
+        side=cut['side']
+        profile=cut['profile']
+        assert profile['row_out']==profile['variable_out']==1
+        a,b=cut['edge_ids']
+        edge_pair=(edges[a],edges[b])
+        outgoing=[(row,var) for row,var in edge_pair if row in side]
+        incoming=[(row,var) for row,var in edge_pair if n+var in side]
+        assert len(outgoing)==len(incoming)==1
+        # edges[] hold (row node, n+variable node) not local index:
+        ext_variable=outgoing[0][1]-n
+        int_variable=incoming[0][1]-n
+        assert n+int_variable in side and n+ext_variable not in side
+        residue=profile['rows_side']%3
+        record={
+            'edge_ids':(a,b),
+            'row_side_count':profile['rows_side'],
+            'variable_side_count':profile['variables_side'],
+            'inside_var':int_variable,
+            'outside_var':ext_variable,
+            'residue':residue,
+            'algebraic_identity':'3sum_inside_x = rows_inside + inside_x - outside_x',
+        }
+        certs.append(record)
+        if residue==0:
+            equalities.add(tuple(sorted((int_variable,ext_variable))))
+        else:
+            assignments=(
+                {int_variable:0,ext_variable:1}
+                if residue==1
+                else {int_variable:1,ext_variable:0}
+            )
+            for v,b in assignments.items():
+                if v in pins and pins[v]!=b:
+                    return {'status':'UNSAT',
+                            'reason':'CONFLICTING_VERIFIED_TWO_CUT_ARITHMETIC_PINS',
+                            'pins':pins,'equalities':tuple(sorted(equalities)),
+                            'certificates':tuple(certs)}
+                pins[v]=b
+    return {'status':'CERTIFIED',
+            'pins':pins,'equalities':tuple(sorted(equalities)),
+            'certificates':tuple(certs)}
+
+
+def exact_connected_incidence_switch(source_a,source_b):
+    """Join two valid SCL sources with a certified 2-edge Tanner cut."""
+    na=len(source_a);nb=len(source_b)
+    rows=[tuple(row) for row in validate_sparse(source_a,na)]
+    rows.extend(tuple(v+na for v in row)
+                for row in validate_sparse(source_b,nb))
+    inside=rows[0][0];outside=rows[na][0]
+    rows[0]=tuple(sorted((set(rows[0])-{inside})|{outside}))
+    rows[na]=tuple(sorted((set(rows[na])-{outside})|{inside}))
+    total=validate_sparse(rows,na+nb)
+    assert len(canonical_connected_components_for_test(total,na+nb))==1
+    return total
+
+
+def canonical_connected_components_for_test(rows,n):
+    edges,adj=exact_tanner_graph(rows,n)
+    parts=[]
+    unvisited=set(range(2*n))
+    while unvisited:
+        start=min(unvisited);todo=[start];found={start}
+        while todo:
+            for v,_ in adj[todo.pop()]:
+                if v not in found:
+                    found.add(v);todo.append(v)
+        parts.append(found)
+        unvisited-=found
+    return parts
+
+
 def main():
     from r5_universal_all_odd_cyclic_pc2_four_orbit_identity import cyclic
     from r5_universal_cubic_edgecolor_direct_scl_bridge import K4,make_scl
@@ -131,6 +231,33 @@ def main():
     print(f'CONNECTED_SCL36_INCIDENCE_SWAP_CUT2=VERIFIED '
           f'row_partition={cut["profile"]["rows_side"]}+{2*n-cut["profile"]["rows_side"]} '
           f'cut_edges={cut["edge_incidence"]}',flush=True)
+    fano_cyclic=cyclic(7)
+    cyclic8=validate_sparse(
+        [tuple(sorted((i,(i+1)%8,(i+3)%8))) for i in range(8)],8
+    )
+    connected15=exact_connected_incidence_switch(fano_cyclic,cyclic8)
+    derived=certified_two_cut_mod3_rules(connected15,15,max_n=32)
+    assert derived['status']=='CERTIFIED'
+    assert derived['pins'] and len(derived['pins'])==2
+    assert len(derived['certificates'])>=1
+    # TRUE universal implication checked independently for every
+    # complete Boolean assignment of this finite n15 instance.
+    satisfying=0
+    for mask in range(1<<15):
+        if all(sum((mask>>v)&1 for v in clause)==1
+               for clause in connected15):
+            satisfying+=1
+            assert all(((mask>>v)&1)==b
+                       for v,b in derived['pins'].items())
+    print(f'CONNECTED_SCL15_CUT2_ARITHMETIC_FORCES_PINS={derived["pins"]} '
+          f'finite_sat_witnesses={satisfying}',flush=True)
+    assert satisfying>0, 'ensure forced pins are nonvacuous'
+    same=certified_two_cut_mod3_rules(out,2*n,max_n=40)
+    assert same['status']=='CERTIFIED'
+    assert len(same['pins'])==0 and len(same['equalities'])>=1
+    print(f'CONNECTED_SCL36_CUT2_MOD3_EQUALITIES={same["equalities"][:2]}',
+          flush=True)
+    print('UNIVERSAL_SCL_TWO_CUT_MOD3_BOUNDARY_RULES=PROVED',flush=True)
     print('ALL_SCL_TANNER_SINGLE_EDGE_CUT_IMPOSSIBLE=PROVED_ALL_INPUTS',flush=True)
     print('ALL_SCL_TANNER_TWO_EDGE_CUT_BALANCED_CROSS_PORTS=PROVED_ALL_INPUTS',flush=True)
     print('CONNECTED_NO_CUT2_IMPLIES_3_EDGE_CONNECTED=PROVED_ALL_INPUTS',flush=True)
