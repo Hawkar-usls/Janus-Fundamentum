@@ -99,6 +99,33 @@ def test():
     print('UNSAT_DISJOINT_K4_FANO_SCL25_PC3_FIXED_ROWS=PROVED_UNSAT '
           f'orbit_terms={decision["stats"]["verified_orbit_certificate_terms"]}',
           flush=True)
+    # A stronger full-size legal SCL case whose GLOBAL n is divisible
+    # by three: fixed SAT K4 SCL18 + an odd 3-cycle of Fano7 components.
+    # The order-3 action fixes ALL 18 K4 clauses; each Fano clause
+    # belongs to a distinct 3-orbit. The source is UNSAT because
+    # every Fano component individually has an explicit PC2 proof,
+    # not merely because of the global n%3 cardinality test.
+    rows39=validate_sparse(
+        tuple(rows)+tuple(
+            tuple(v+18+7*t for v in clause)
+            for t in range(3) for clause in fano
+        ),39,
+    )
+    sigma39=tuple(range(18))+tuple(
+        18+7*((t+1)%3)+v
+        for t in range(3) for v in range(7)
+    )
+    assert validate_odd_row_regular_symmetry(
+        rows39,39,sigma39
+    )==3
+    assert len(row_orbits(rows39,sigma39,3))==25
+    case39=certified_odd_symmetry_pc3(rows39,39,sigma39)
+    assert case39['status']=='UNSAT'
+    assert case39['stats']['independently_replayed_original_ring']
+    print('UNSAT_SCL39_N_DIVISIBLE_BY3_FIXED_ORBITS_RAW_PROOF=PASS '
+          f'orbit_terms={case39["stats"]["verified_orbit_certificate_terms"]}',
+          flush=True)
+
     bad=list(mixed_sigma);bad[0],bad[1]=bad[1],bad[0]
     assert certified_odd_symmetry_pc3(
         unsat_rows,n2,bad
