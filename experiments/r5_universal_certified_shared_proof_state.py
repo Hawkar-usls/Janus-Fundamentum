@@ -418,6 +418,11 @@ class CertifiedSharedState:
         query_start=self.query_count
         accepted=0
         rounds=0
+        initial_status,initial_pins,initial_trace=self.propagate()
+        if initial_status!='FIXPOINT':
+            return {'status':'UNKNOWN_CONFLICT_REQUIRES_ROOT_PROOF',
+                    'queries':0,'new_facts':0,'rounds':0,
+                    'potential':self.potential}
         while True:
             rounds+=1
             progress=False
