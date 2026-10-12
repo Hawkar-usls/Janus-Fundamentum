@@ -42,13 +42,13 @@ SOURCE-LEGALITY:
 - each original variable node loses exactly one incident source row and gains exactly one;
 - every original row/column still has degree 3, all original rows remain triples;
 - there cannot be a C4 crossing the component interface, because each unordered pair of the three previously disjoint components has only one new cross edge and any inter-component cycle uses all THREE cross edges;
-- graph is connected (assuming the original connected Tanner and each cut edge is non-bridging; connected cubic Tanner graphs with no bridges are sufficient). In fact for a connected 3-regular bipartite Tanner graph a bridge is possible in general; the concrete Fano tower sources are verified bridgeless at their chosen cut by an alternate path, so the connectivity assertion is source-verified on the present family.
+- graph is connected whenever the original Tanner is connected. **Every connected 3-regular bipartite graph is bridgeless:** if a Tanner edge were a bridge, considering one side with R row-nodes and C variable-nodes, incidence-degree counting would give \`3(R-C)=+1\` or \`-1\`, impossible over integers. Therefore removing the chosen incidence leaves each original Tanner copy connected, and the three cross incidences connect these copies in a cycle.
 
 New size n=3m is ALWAYS divisible by3. Nonetheless each block's congruence forces all (a_i,b_i) identical as (1,0) OR (0,1), and the 3-cycle requires a_i=b_(i+1), contradiction. Hence joined source UNSAT with a short original-source arithmetic certificate even though 3|n. This source proof does NOT infer UNSAT merely because a CI enumerator returned zero.
 
 GIRTH: every cycle that lies in one original component has length≥g. A cycle using the cross connections uses all 3 of them and a path inside each cut component from the former row endpoint to the former variable endpoint. Such a path has length≥g−1, otherwise restoring the original edge creates a cycle shorter than g. Hence any new cross-component cycle has length at least `3+3(g-1)=3g`. Therefore joined Tanner girth≥g, and the source remains C4-free.
 
-The source-independent connectivity caveat does not affect the explicitly constructed infinite Fano-cover family: its connectedness is independently checked on finite sources, and the girth/cover argument yields an alternate path for the chosen cut when needed. The general theorem's UNSAT/counting identity itself does not rely on the quotient being connected.
+The connectivity proof is fully all-source for every CONNECTED legal SCL input: 3-regular bipartite Tanner graphs have no bridges, as shown by the one-edge-cut degree divisibility argument. In the explicit tower, connectivity is additionally source-verified for finite controls.
 
 ## 3. Infinite HIGH-GIRTH, 3|n, connected source UNSAT family
 
