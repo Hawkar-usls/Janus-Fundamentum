@@ -78,6 +78,7 @@ def SolveLinearCubicXSAT_Portfolio(
     pins=_pins(n,pins)
     events=[]
     cut_provenance=[]
+    cut_derived_pins={}
 
     def result(status,expert,reason,witness=None,**extra):
         if status=='SAT':
@@ -95,6 +96,7 @@ def SolveLinearCubicXSAT_Portfolio(
             'mode':'POLY_ONLY' if poly_only else 'TOTAL_EXACT_MAY_BE_EXPONENTIAL',
             'universal_polynomial_claim':False,
             'tanner_cut_provenance':tuple(cut_provenance),
+            'tanner_cut_derived_pins':dict(sorted(cut_derived_pins.items())),
             **extra,
         }
 
@@ -216,6 +218,7 @@ def SolveLinearCubicXSAT_Portfolio(
                 'UNSAT','CERTIFIED_TANNER_TWO_CUT_MOD3',
                 'INCONSISTENT_GLOBAL_TWO_CUT_ARITHMETIC'
             )
+        prior_pins=dict(pins)
         derived=dict(cuts['pins'])
         for v,value in derived.items():
             if v in pins and pins[v]!=value:
@@ -238,6 +241,10 @@ def SolveLinearCubicXSAT_Portfolio(
                     pins[v]=pins[u];changed=True
                 elif v in pins:
                     pins[u]=pins[v];changed=True
+        cut_derived_pins.update({
+            v:value for v,value in pins.items()
+            if v not in prior_pins
+        })
 
     root=ExactSupportHybrid_sparse(rows,n,pins=pins,max_states=0)
     events.append('HYBRID_ROOT_GF2_MOD9_AND_CLOSURE')
