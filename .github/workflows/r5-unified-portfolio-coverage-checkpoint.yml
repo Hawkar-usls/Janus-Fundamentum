@@ -1,0 +1,33 @@
+name: R5 Unified Portfolio Coverage Checkpoint
+on:
+  push:
+    branches:
+      - research/r5-cubic-flow-smith-pair-20261011
+    paths:
+      - 'research/R5_JOINT_EXPERT_GLOBAL_COVERAGE_STRIKE_2026-10-12.md'
+      - '.github/workflows/r5-unified-portfolio-coverage-checkpoint.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  single-head-replay:
+    name: One HEAD proof-state + portfolio + full finite coverage replay
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Certified expert portfolio including original UNSAT proof replay
+        run: python -u experiments/r5_universal_certified_expert_portfolio.py
+      - name: Shared chronological PC3 ANDOR provenance and fixpoint replay
+        run: python -u experiments/r5_universal_certified_shared_proof_state.py
+      - name: Independent 11-family exact coverage matrix
+        run: python -u experiments/r5_universal_certified_portfolio_coverage_matrix.py
+      - name: Guarded state limits 0 n and n-squared
+        run: python -u experiments/r5_universal_certified_portfolio_poly_budget_ladder.py
+      - name: Strongest semantic width-two SAT witness obstruction
+        run: python -u experiments/r5_universal_semantic_width2_fixpoint_barrier.py
