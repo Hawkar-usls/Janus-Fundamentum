@@ -188,7 +188,7 @@ def recover_source_witness_with_pinned_zero_oracle(report,zero_oracle):
     """
     n=report["source_n"]
     if zero_oracle({}):
-        return None,n+1 if False else 1
+        return None,1
     pins={}
     calls=1
     for original_v in report["matching"]:
@@ -203,6 +203,73 @@ def recover_source_witness_with_pinned_zero_oracle(report,zero_oracle):
                for row in report["source_rows"])
     assert calls==n+1
     return witness,calls
+
+
+def affine_plane_scl9():
+    """Genuine SAT legal SCL of order 9, independent of Holyer.
+
+    Take 3x3 affine plane F3^2, choose three parallel-class
+    directions: horizontal, vertical, x+y=constant.
+    The omitted parallel class x-y=constant gives three distinct
+    source SAT witnesses with exactly three chosen variables.
+    """
+    def idx(x,y):
+        return 3*x+y
+    rows=[]
+    for x in range(3):
+        rows.append(tuple(idx(x,y) for y in range(3)))
+    for y in range(3):
+        rows.append(tuple(idx(x,y) for x in range(3)))
+    for d in range(3):
+        rows.append(tuple(idx(x,y) for x in range(3)
+                          for y in range(3) if (x+y)%3==d))
+    rows=validate_sparse(rows,9)
+    witnesses=[]
+    for c in range(3):
+        assignment=tuple(
+            int((x-y)%3==c)
+            for x in range(3) for y in range(3)
+        )
+        assert all(sum(assignment[v] for v in row)==1 for row in rows)
+        witnesses.append(assignment)
+    assert len(set(witnesses))==3
+    return rows,witnesses
+
+
+def finite_exact_loop_oracle_demo_affine9():
+    """ACTUAL loop-expansion ZERO oracle and end-to-end SAT extraction.
+
+    This is a FINITE exponential test of our conditional theorem.
+    It must not be misreported as a polytime all-SCL oracle.
+    """
+    rows,expected=affine_plane_scl9()
+    Q=paired_quartic_network(rows,9)
+    assert pin_source_truth_count(Q,{})==3
+    calls=[]
+    def exact_source_loop_zero(pins):
+        result=signed_pinned_loop_exact(Q,pins,limit=6000000)
+        assert result["status"]=="EXACT",result
+        independent_count=pin_source_truth_count(Q,pins)
+        assert result["loop"]==Fraction(independent_count,1)*(
+            Fraction(27,16)**3
+        ),(pins,result,independent_count)
+        calls.append((tuple(sorted(pins.items())),result["states"],
+                      independent_count))
+        return result["loop"]==0
+    witness,num_calls=recover_source_witness_with_pinned_zero_oracle(
+        Q,exact_source_loop_zero
+    )
+    assert num_calls==10
+    assert witness in expected,(witness,expected)
+    assert len(calls)==10
+    assert all(sum(witness[v] for v in row)==1 for row in rows)
+    print("AFFINE9_ACTUAL_LOOP_ORACLE_WITNESS="+str(witness),
+          flush=True)
+    print("AFFINE9_FULL_PINNED_LOOP_SELF_REDUCTION_CALLS=10 "
+          "VISITED_STATES="+str(sum(c[1] for c in calls)),flush=True)
+    print("AFFINE9_INDEPENDENT_EXACT_SOURCE_COUNTS_THROUGH_EVERY_PREFIX=PASS",
+          flush=True)
+    return witness
 
 
 def main():
@@ -284,6 +351,7 @@ def main():
               f"{witness if witness is not None else 'UNSAT'} "
               f"ORACLE_CALLS={calls}",flush=True)
 
+    finite_exact_loop_oracle_demo_affine9()
     print("ALL_SCL_PINNED_LOOP_IDENTITY_EXACT=PROVED")
     print("ALL_SCL_WITNESS_RECOVERY_LE_N_PLUS_ONE_PINNED_ORACLE_CALLS=PROVED")
     print("UNPINNED_LOOP_ZERO_TEST_ALONE_DOES_NOT_YIELD_THIS_PINNED_ORACLE")
