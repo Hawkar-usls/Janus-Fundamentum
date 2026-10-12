@@ -1,0 +1,29 @@
+name: R5 Universal SCL Component Proof Glue
+on:
+  push:
+    branches:
+      - research/r5-cubic-flow-smith-pair-20261011
+    paths:
+      - 'experiments/r5_universal_certified_scl_component_decomposition.py'
+      - 'experiments/r5_universal_component_gluing_cross_expert_test.py'
+      - 'experiments/r5_universal_certified_expert_portfolio.py'
+      - '.github/workflows/r5-scl-component-proof-gluing.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  component-lift:
+    name: 'SCL all-input Tanner decomposition, SAT glue, UNSAT lifting'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Independent components and original-coordinate proof replay
+        run: python -u experiments/r5_universal_component_gluing_cross_expert_test.py
+      - name: Regression exact/partial portfolio on connected SCL sources
+        run: python -u experiments/r5_universal_certified_expert_portfolio.py
