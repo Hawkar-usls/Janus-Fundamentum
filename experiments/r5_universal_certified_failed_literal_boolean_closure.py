@@ -221,12 +221,26 @@ def main():
         bridged_cubic_graph,
     )
     from r5_universal_all_odd_cyclic_pc2_four_orbit_identity import cyclic
+    from r5_universal_modular_flow_count_all_q_no_go import prism
+    from r5_e61_two_level_kernel_hoffman_regular_set import (
+        build_A,P_SAT,Q_SAT,P_UNSAT,Q_UNSAT,
+    )
+    def e61_rows(p,q):
+        A=build_A(p,q)
+        return validate_sparse(
+            [tuple(i for i,v in enumerate(row) if v) for row in A],
+            len(A),
+        )
     cases=(
         ('SAT_K4',make_scl(K4())[0],'SAT'),
         ('SAT_K33',make_scl(K33())[0],'SAT'),
+        ('SAT_PRISM3',make_scl(prism(3)[1])[0],'SAT'),
+        ('SAT_PRISM5',make_scl(prism(5)[1])[0],'SAT'),
         ('UNSAT_PETERSEN',make_scl(petersen_graph())[0],'UNSAT'),
         ('UNSAT_BRIDGE',make_scl(bridged_cubic_graph())[0],'UNSAT'),
         ('UNSAT_FANO',cyclic(7),'UNSAT'),
+        ('SAT_E61',e61_rows(P_SAT,Q_SAT),'SAT'),
+        ('UNSAT_E61',e61_rows(P_UNSAT,Q_UNSAT),'UNSAT'),
     )
     for label,rows,truth in cases:
         n=len(rows)
