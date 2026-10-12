@@ -41,7 +41,7 @@ def main():
     tested=0
     for n in (7,11,13,17,19,23,25,29,31,35,37,41,43,47,53,59,65,71,77,83,89,95):
         rows,sigma=cyclic_n(n)
-        refuted,stats=pc3_symmetry_test(rows,sigma,n)
+        refuted,stats=pc3_symmetry_test(rows,sigma,n,emit_small_proof=(n in (7,11,13,17,19)))
         tested+=1
         print(f'CYCLIC_ALL_SCL_N={n} SAT_TRUTH=UNSAT_BY_3_DIVISIBILITY '
               f'FULL_PC3={"PROVED_UNSAT" if refuted else "INCONCLUSIVE"} '
