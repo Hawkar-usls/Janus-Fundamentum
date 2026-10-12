@@ -52,6 +52,7 @@ def SolveLinearCubicXSAT_Portfolio(
     two_port_max_n=45,two_port_states=64,
     certified_holyer_edges=None,
     gf2_linear_propagation=True,
+    failed_literal_max_n=45,
 ):
     """Correct on EVERY legal SCL input. Poly mode may return UNKNOWN.
 
@@ -71,6 +72,8 @@ def SolveLinearCubicXSAT_Portfolio(
     if not isinstance(poly_only,bool):raise ValueError('poly_only must be bool')
     if not isinstance(gf2_linear_propagation,bool):
         raise ValueError('gf2_linear_propagation must be bool')
+    if type(failed_literal_max_n) is not int or failed_literal_max_n<0:
+        raise ValueError('failed_literal_max_n must be nonnegative int')
     if not isinstance(pc3_max_n,int) or pc3_max_n<0:
         raise ValueError('pc3_max_n must be nonnegative int')
     if not isinstance(bounded_states,int) or bounded_states<0:
@@ -192,6 +195,7 @@ def SolveLinearCubicXSAT_Portfolio(
                 two_port_max_n=two_port_max_n,
                 two_port_states=two_port_states,
                 gf2_linear_propagation=gf2_linear_propagation,
+                failed_literal_max_n=failed_literal_max_n,
             )
             summaries.append({
                 'component_index':ci,
@@ -427,6 +431,39 @@ def SolveLinearCubicXSAT_Portfolio(
             bounded_stats=bounded['stats'],
         )
     assert bounded['status']=='UNKNOWN'
+    # One-level failed-literal Boolean/GF2 lookahead is a FINITE
+    # polynomial sequence of independently replayed assumption proofs;
+    # it never recursively branches. Its n² conditional-probe budget
+    # is polynomial but incomplete (Petersen test remains UNKNOWN).
+    # Run it only AFTER all cheap prior certified experts failed,
+    # and only on an explicitly bounded source dimension. Disabling
+    # the GF2 proof lane also disables this lookahead so isolated
+    # negative-control comparisons remain correctly scoped.
+    if (gf2_linear_propagation and failed_literal_max_n
+            and n<=failed_literal_max_n):
+        from r5_universal_certified_failed_literal_boolean_closure import (
+            certified_failed_literal_closure,verify_probe_certificate,
+        )
+        initial_lookahead_pins=dict(pins)
+        lookahead=certified_failed_literal_closure(
+            rows,n,initial_lookahead_pins
+        )
+        assert verify_probe_certificate(
+            rows,n,initial_lookahead_pins,lookahead
+        )
+        events.append('CERTIFIED_GF2_EXACTONE_FAILED_LITERAL_LOOKAHEAD')
+        if lookahead['status'] in ('SAT','UNSAT'):
+            return result(
+                lookahead['status'],
+                'CERTIFIED_GF2_BOOLEAN_FAILED_LITERAL',
+                lookahead['reason'],lookahead.get('witness'),
+                failed_literal_certificate=lookahead,
+                failed_literal_replayed=True,
+                failed_literal_probes=lookahead['probes'],
+                bounded_stats=bounded['stats'],
+            )
+        assert lookahead['status']=='UNKNOWN'
+        events.append('FAILED_LITERAL_PROBES_INCONCLUSIVE')
     if poly_only:
         return result(
             'UNKNOWN','ALL_BOUNDED_EXPERTS_EXHAUSTED',
