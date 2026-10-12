@@ -78,7 +78,7 @@ def tracked_paths():
 def sha256(data):return hashlib.sha256(data).hexdigest()
 
 def code_profile(path,data):
-    raw=data.decode('utf-8','replace')
+    raw=data.decode('utf-8-sig','replace')
     profile={'syntax':'NOT_PYTHON','functions':[],'classes':[],
              'local_imports':[],'other_imports':[],'static_file_mentions':[],
              'docstring':'','parse_error':None}
@@ -156,7 +156,7 @@ def build():
         role=classify(path)
         pr=code_profile(path,data)
         if path.endswith('.py'):python_profiles[path]=pr
-        text=data.decode('utf8','replace')
+        text=data.decode('utf-8-sig','replace')
         source_text[path]=text if (
             path.endswith(('.py','.yml','.yaml','.md','.json'))
             and len(data)<=350000
