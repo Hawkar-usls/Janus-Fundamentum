@@ -48,6 +48,7 @@ def SolveLinearCubicXSAT_Portfolio(
     rows,n,pins=None,*,poly_only=True,
     pc3_max_n=48,bounded_states=48,shared_state=None,
     certified_symmetry=None,sym_pc3_max_n=126,
+    tanner_cut_max_n=45,
 ):
     """Correct on EVERY legal SCL input. Poly mode may return UNKNOWN.
 
@@ -71,9 +72,12 @@ def SolveLinearCubicXSAT_Portfolio(
         raise ValueError('bounded_states must be nonnegative int')
     if not isinstance(sym_pc3_max_n,int) or sym_pc3_max_n<0:
         raise ValueError('sym_pc3_max_n must be nonnegative int')
+    if not isinstance(tanner_cut_max_n,int) or tanner_cut_max_n<0:
+        raise ValueError('tanner_cut_max_n must be nonnegative int')
     requested=pins
     pins=_pins(n,pins)
     events=[]
+    cut_provenance=[]
 
     def result(status,expert,reason,witness=None,**extra):
         if status=='SAT':
@@ -90,6 +94,7 @@ def SolveLinearCubicXSAT_Portfolio(
             'experts':tuple(events),
             'mode':'POLY_ONLY' if poly_only else 'TOTAL_EXACT_MAY_BE_EXPONENTIAL',
             'universal_polynomial_claim':False,
+            'tanner_cut_provenance':tuple(cut_provenance),
             **extra,
         }
 
@@ -148,6 +153,7 @@ def SolveLinearCubicXSAT_Portfolio(
                 bounded_states=bounded_states,
                 shared_state=None,certified_symmetry=None,
                 sym_pc3_max_n=sym_pc3_max_n,
+                tanner_cut_max_n=tanner_cut_max_n,
             )
             summaries.append({
                 'component_index':ci,
@@ -186,6 +192,52 @@ def SolveLinearCubicXSAT_Portfolio(
             witness=witness,
             component_provenance=tuple(summaries),
         )
+
+    # Certified TWO-EDGE TANNER CUT arithmetic. Each side S of the
+    # cut has equal row and variable count r, exactly one outgoing
+    # variable-port u and one incoming external variable-port v.
+    # Exact-One row-sum gives 3*selected_inside = r + x_u - x_v.
+    # Thus residue 0 enforces u=v, residue 1 enforces u=0,v=1,
+    # residue 2 enforces u=1,v=0. This is a sound all-SCL theorem,
+    # independently checked against the ORIGINAL cut incidence.
+    # We only enumerate cuts below a fixed resource size threshold;
+    # skipping > threshold does not affect solver correctness.
+    if tanner_cut_max_n and n<=tanner_cut_max_n:
+        from r5_universal_connected_scl_tanner_two_cut_proof_audit import (
+            certified_two_cut_mod3_rules,
+        )
+        cuts=certified_two_cut_mod3_rules(rows,n,max_n=tanner_cut_max_n)
+        assert cuts['status'] in ('CERTIFIED','UNSAT')
+        if cuts['certificates']:
+            events.append('CERTIFIED_TANNER_TWO_CUT_MOD3')
+            cut_provenance.extend(cuts['certificates'])
+        if cuts['status']=='UNSAT':
+            return result(
+                'UNSAT','CERTIFIED_TANNER_TWO_CUT_MOD3',
+                'INCONSISTENT_GLOBAL_TWO_CUT_ARITHMETIC'
+            )
+        derived=dict(cuts['pins'])
+        for v,value in derived.items():
+            if v in pins and pins[v]!=value:
+                return result(
+                    'UNSAT','CERTIFIED_TANNER_TWO_CUT_MOD3',
+                    'EXTERNAL_PIN_CONTRADICTS_CERTIFIED_TWO_CUT'
+                )
+            pins[v]=value
+        changed=True
+        while changed:
+            changed=False
+            for u,v in cuts['equalities']:
+                if u in pins and v in pins:
+                    if pins[u]!=pins[v]:
+                        return result(
+                            'UNSAT','CERTIFIED_TANNER_TWO_CUT_MOD3',
+                            'CERTIFIED_TWO_CUT_EQUALITY_PIN_CONFLICT'
+                        )
+                elif u in pins:
+                    pins[v]=pins[u];changed=True
+                elif v in pins:
+                    pins[u]=pins[v];changed=True
 
     root=ExactSupportHybrid_sparse(rows,n,pins=pins,max_states=0)
     events.append('HYBRID_ROOT_GF2_MOD9_AND_CLOSURE')
