@@ -1,0 +1,40 @@
+name: R5 Flower Certified Fixed Three-Ply Saturation
+on:
+  push:
+    branches:
+      - research/r5-cubic-flow-smith-pair-20261011
+    paths:
+      - 'experiments/r5_universal_flower_three_ply_certified_saturation.py'
+      - '.github/workflows/r5-flower-certified-three-ply-saturation.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  flower-third-ply:
+    name: 'J${{ matrix.k }} x0=${{ matrix.bit }} original source proof tree'
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - k: 5
+            bit: 0
+          - k: 5
+            bit: 1
+          - k: 7
+            bit: 0
+          - k: 7
+            bit: 1
+    env:
+      FLOWER_K: ${{ matrix.k }}
+      OUTER_BIT: ${{ matrix.bit }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Independently verify each assumption discharge and reject nested forgery
+        run: python -u experiments/r5_universal_flower_three_ply_certified_saturation.py
