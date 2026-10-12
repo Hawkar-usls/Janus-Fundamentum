@@ -517,9 +517,13 @@ def main():
     mod9_n=len(mod9_A)
     mod9_rows=tuple(tuple(i for i,v in enumerate(row) if v)
                     for row in mod9_A)
+    # Force the isolated MOD9 provenance lane for THIS SPECIFIC
+    # regression. The combined portfolio may now find a separately
+    # certified GF2 refutation first; that is not a MOD9 failure.
     mod9_portfolio=SolveLinearCubicXSAT_Portfolio(
         mod9_rows,mod9_n,poly_only=True,
         pc3_max_n=0,bounded_states=0,
+        gf2_linear_propagation=False,
     )
     assert mod9_portfolio['status']=='UNSAT'
     assert mod9_portfolio['certificate_type']=='VERIFIED_MOD9_LEFT_ANNIHILATOR'
