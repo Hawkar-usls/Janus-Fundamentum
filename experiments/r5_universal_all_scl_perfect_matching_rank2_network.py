@@ -173,14 +173,18 @@ def verify_paired_quartic_network(rows,n,report):
     assert set(inc)=={(i,v) for i,row in enumerate(rows)
                      for v in row if v!=m[i]}
     loc={wire:z for z,wire in enumerate(inc)}
+    var_rows=[[] for _ in range(n)]
+    for source_i,source_row in enumerate(rows):
+        for source_v in source_row:
+            var_rows[source_v].append(source_i)
+    assert all(len(appearances)==3 for appearances in var_rows)
     cells=tuple(tuple(c) for c in report["cells"])
     assert len(cells)==n
     reconstructed_edges=[[] for _ in inc]
     for i,ports in enumerate(cells):
         assert len(ports)==4
         rv={loc[(i,v)] for v in rows[i] if v!=m[i]}
-        vr={loc[(j,m[i])] for j,row in enumerate(rows)
-            if j!=i and m[i] in row}
+        vr={loc[(j,m[i])] for j in var_rows[m[i]] if j!=i}
         assert set(ports[:2])==rv
         assert set(ports[2:])==vr
         assert len(set(ports))==4
