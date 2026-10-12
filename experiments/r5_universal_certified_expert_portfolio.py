@@ -50,6 +50,7 @@ def SolveLinearCubicXSAT_Portfolio(
     certified_symmetry=None,sym_pc3_max_n=126,
     tanner_cut_max_n=45,
     two_port_max_n=45,two_port_states=64,
+    certified_holyer_edges=None,
 ):
     """Correct on EVERY legal SCL input. Poly mode may return UNKNOWN.
 
@@ -132,6 +133,28 @@ def SolveLinearCubicXSAT_Portfolio(
         assert all(derived_pins[v]==value for v,value in pins.items())
         pins=derived_pins
         events.append('CERTIFIED_SHARED_NOGOOD_AND_EXACTONE_PROPAGATION')
+
+    # Authenticated cubic-graph Holyer source bridge short UNSAT gate.
+    # Optional untrusted hint is matched against EVERY original SCL
+    # clause before colour-parity proof is admitted. The original
+    # cubic bridge may exist even when the SCL Tanner graph has
+    # edge connectivity 3, so Tanner cut preprocessing cannot
+    # substitute for this proof. Wrong hint raises, not UNSAT.
+    if certified_holyer_edges is not None:
+        from r5_universal_atomic_gf4_cycle_cut_fourier_duality import (
+            authenticated_holyer_bridge,
+        )
+        bridge=authenticated_holyer_bridge(
+            rows,n,certified_holyer_edges
+        )
+        events.append('AUTHENTICATED_EXACT_HOLYER_SOURCE_GRAPH')
+        if bridge['status']=='UNSAT':
+            return result(
+                'UNSAT','HOLYER_CUBIC_BRIDGE_PARITY',
+                bridge['reason'],
+                cubic_bridge_provenance=bridge['bridge_provenance'],
+                source_holyer_exact_identity=True,
+            )
 
     # UNIVERSAL semantic-preserving disconnected-source preprocessing.
     # Every Tanner component is again an independently verified SCL
