@@ -297,3 +297,51 @@ UNIFORM_POLYTIME_IMPLICIT_RANK2_SUM_ZERO_TEST = NOT_CONSTRUCTED
 UNIVERSAL_POLY_SOLVELINEARCUBICXSAT = NOT_CONSTRUCTED
 P_VS_NP = OPEN
 ```
+
+
+## 9. Post-checkpoint hardening and broad provenance controls
+
+The first polynomial matching implementation used a recursive
+augmenting-path routine. Although the underlying algorithm was
+polynomial, a default Python recursion depth could in principle
+become an extraneous runtime failure on larger legal sources.
+It was replaced by ITERATIVE BFS alternating augmenting paths,
+avoiding Python recursion limits for arbitrary n.
+
+The certificate verifier now additionally replays the exact
+original `source_rows`, source_n, 2n edge count, n cell count,
+and local tensor signature metadata rather than trusting
+a stored source field. Deliberately changed source metadata
+must be rejected. The historical original matching/port
+tamper tests remain active.
+
+[#38306861342](https://github.com/Hawkar-usls/Janus-Fundamentum/actions/runs/38306861342)
+SUCCESS at `439711d289af7802d66a29fdf0a1084cd61203c3`:
+a fully CONNECTED flower J63 Holyer SCL source with 1134 original
+variables gives 1134 paired quartic cells and 2268 quotient
+wires, with successful source verification and connectedness
+check. It is not an attempted exact decision of J63.
+
+Broader source family controls:
+[#38306949951](https://github.com/Hawkar-usls/Janus-Fundamentum/actions/runs/38306949951)
+SUCCESS at `ec6f999a15ee037491b0a4cb949e063020c8aea2`:
+- Non-Holyer original E61 SAT12 SCL: quotient exact count = 1;
+- Non-Holyer original E61 UNSAT12 SCL: quotient exact count = 0;
+- Disconnected K4+K4 original legal SCL36: quotient
+  consists of disconnected matching-quotient components
+  and original exact solution count = 6*6 = 36;
+- connected J63 SCL1134 construction, source replay,
+  iterative matching and metadata-tamper protection PASS.
+
+These are finite robustness controls ONLY. The Hall theorem and
+source-to-quotient bijection are the all-input proofs.
+
+Consolidated one-HEAD workflow:
+`.github/workflows/r5-matched-rank2-one-head-replay.yml`
+replays constructor, selector expansion and treewidth-lifting
+verifiers at ONE exact same research HEAD. Its final CI
+conclusion must be checked rather than inferred from creation.
+
+This is NOT a universal polynomial `SolveLinearCubicXSAT`:
+the quotient ZERO/NONZERO decision and its required general
+polynomial UNSAT certification remain completely unsolved.
