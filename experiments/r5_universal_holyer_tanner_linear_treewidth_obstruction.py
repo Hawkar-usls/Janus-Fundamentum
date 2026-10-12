@@ -55,7 +55,18 @@ def verify_original_holyer_tanner_topological_minor(rows,n,graph):
             incidence[n+literal].add(i)
     assert all(len(neigh)==3 for neigh in incidence.values())
 
-    kept_vertex_colour_rows={ecount+3*v for v in vertices}
+    # validate_sparse canonically sorts the ORIGINAL clause list, so
+    # the physical row IDs are NOT ecount+3*v. Resolve by SOURCE clause
+    # contents instead of accidentally trusting pre-validation ordering.
+    row_index={tuple(row):i for i,row in enumerate(rows)}
+    assert len(row_index)==n
+    vertex_row={}
+    for v in vertices:
+        expected=tuple(sorted(idx[(e,0)] for e in edges if v in e))
+        assert expected in row_index
+        vertex_row[v]=row_index[expected]
+    assert len(set(vertex_row.values()))==vcount
+    kept_vertex_colour_rows=set(vertex_row.values())
     kept_edge_colour_variables={n+idx[(e,0)] for e in edges}
     kept=kept_vertex_colour_rows|kept_edge_colour_variables
     assert len(kept)==vcount+ecount
@@ -68,10 +79,10 @@ def verify_original_holyer_tanner_topological_minor(rows,n,graph):
         u,v=e; middle=n+idx[(e,0)]
         assert middle not in internally_used
         internally_used.add(middle)
-        assert sub[middle]=={ecount+3*u,ecount+3*v}
+        assert sub[middle]=={vertex_row[u],vertex_row[v]}
         extracted.add((u,v))
     assert extracted==set(edges)
-    assert all(len(sub[ecount+3*v])==3 for v in vertices)
+    assert all(len(sub[vertex_row[v]])==3 for v in vertices)
     assert all(len(sub[x])==2 for x in kept_edge_colour_variables)
 
     # Contract each edge-colour variable onto one endpoint: G remains.
