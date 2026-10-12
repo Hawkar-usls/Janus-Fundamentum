@@ -247,6 +247,42 @@ def main():
                 authenticated_holyer_bridge(rows,n,petersen_graph())
             except ValueError:pass
             else:raise AssertionError('unverified source hint accepted')
+    # The graph bridge is a genuine atomic-Tanner obstruction,
+    # and its proof must survive the real shared SCL dispatcher.
+    from r5_universal_certified_expert_portfolio import (
+        SolveLinearCubicXSAT_Portfolio,
+    )
+    edges=bridged_cubic_graph()
+    rows,n,_,_=make_scl(edges)
+    certified=SolveLinearCubicXSAT_Portfolio(
+        rows,n,poly_only=True,pc3_max_n=0,
+        bounded_states=0,tanner_cut_max_n=0,
+        two_port_max_n=0,certified_holyer_edges=edges,
+    )
+    assert certified['status']=='UNSAT'
+    assert certified['expert']=='HOLYER_CUBIC_BRIDGE_PARITY'
+    assert certified['source_holyer_exact_identity']
+    assert verify_bridge_witness(
+        edges,certified['cubic_bridge_provenance']
+    )
+    print('REAL_PORTFOLIO_HOLYER_BRIDGE_UNSAT_WITH_ZERO_SEARCH=VERIFIED',
+          flush=True)
+    # Petersen has the SAME SCL dimension 45, so merely checking
+    # source size cannot authenticate a graph-derived theorem.
+    petersen_rows,pn,_,_=make_scl(petersen_graph())
+    assert pn==n
+    rejected=False
+    try:
+        SolveLinearCubicXSAT_Portfolio(
+            petersen_rows,pn,poly_only=True,pc3_max_n=0,
+            bounded_states=0,tanner_cut_max_n=0,
+            two_port_max_n=0,certified_holyer_edges=edges,
+        )
+    except ValueError:
+        rejected=True
+    assert rejected
+    print('FALSE_HOLYER_HINT_SAME_DIMENSION_REJECTED=VERIFIED',
+          flush=True)
     print('UNIVERSAL_GF4_CYCLE_PAIR_WALSH_CUT_DUALITY=PROVED_ALL_GRAPHS')
     print('POTTS_SIGNED_INTEGER_DIVISIBILITY=PROVED_ALL_GRAPHS')
     print('FOURIER_DUAL_EXPONENTIAL_NOT_POLYNOMIAL_ALGORITHM=CONFIRMED')
