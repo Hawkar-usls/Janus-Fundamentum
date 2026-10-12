@@ -139,6 +139,17 @@ def gf2_certified_source_closure(rows,n,pins=None):
             relations.append((u,v,bu^bv,pu^pv))
     relations=tuple(sorted(relations))
 
+    # Odd positive 3-literal rows satisfy A*1=1 mod2, hence
+    # x=1^n is ALWAYS a solution of the UNPINNED linear relaxation.
+    # Therefore the unpinned pure GF2 equations NEVER give a
+    # contradiction, and all unpinned forced literals are 1,
+    # all unpinned pair parities enforce equality, never opposition.
+    # Boolean EXACT-ONE is what makes 3 forced ones in a clause
+    # contradict the original source despite parity consistency.
+    if not pins:
+        assert all(bit==1 for _,bit,_ in forced)
+        assert all(parity==0 for _,_,parity,_ in relations)
+
     ff={v:b for v,b,p in forced}
     for i,row in enumerate(rows):
         if (sum(ff.get(v,0)==1 for v in row)>=2 or
