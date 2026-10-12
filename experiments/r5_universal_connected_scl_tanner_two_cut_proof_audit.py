@@ -270,6 +270,38 @@ def main():
           flush=True)
     print(f'CONNECTED_SCL36_CUT2_MOD3_EQUALITIES={same["equalities"][:2]}',
           flush=True)
+    u,v=same['equalities'][0]
+    routed=SolveLinearCubicXSAT_Portfolio(
+        out,2*n,pins={u:1},poly_only=True,
+        pc3_max_n=0,bounded_states=0,tanner_cut_max_n=40,
+    )
+    assert routed['status']!='UNSAT'
+    assert routed['tanner_cut_derived_pins'].get(v)==1
+    assert routed['tanner_cut_provenance']
+    print(f'CERTIFIED_TANNER_EQUALITY_SHARED_TO_PORTFOLIO={u}->{v}=1',
+          flush=True)
+    impossible=SolveLinearCubicXSAT_Portfolio(
+        out,2*n,pins={u:1,v:0},poly_only=True,
+        pc3_max_n=0,bounded_states=0,tanner_cut_max_n=40,
+    )
+    assert impossible['status']=='UNSAT'
+    assert impossible['expert']=='CERTIFIED_TANNER_TWO_CUT_MOD3'
+    print('PORTFOLIO_DETECTS_INCONSISTENT_TWO_CUT_BOUNDARY_PINS=PROVED',
+          flush=True)
+    n15check=SolveLinearCubicXSAT_Portfolio(
+        connected15,15,poly_only=True,
+        pc3_max_n=0,bounded_states=0,tanner_cut_max_n=32,
+    )
+    assert n15check['tanner_cut_derived_pins']==derived['pins']
+    print('CONNECTED_SCL15_TWO_CUT_FORCED_PINS_ENTER_COMMON_PORTFOLIO=VERIFIED',
+          flush=True)
+    guarded=SolveLinearCubicXSAT_Portfolio(
+        out,2*n,pins={u:1},poly_only=True,
+        pc3_max_n=0,bounded_states=0,tanner_cut_max_n=0,
+    )
+    assert not guarded['tanner_cut_derived_pins']
+    print('EXPLICIT_CUT2_BUDGET_OFF_DISALLOWS_UNPROVED_INFERENCE=VERIFIED',
+          flush=True)
     print('UNIVERSAL_SCL_TWO_CUT_MOD3_BOUNDARY_RULES=PROVED',flush=True)
     print('ALL_SCL_TANNER_SINGLE_EDGE_CUT_IMPOSSIBLE=PROVED_ALL_INPUTS',flush=True)
     print('ALL_SCL_TANNER_TWO_EDGE_CUT_BALANCED_CROSS_PORTS=PROVED_ALL_INPUTS',flush=True)
