@@ -341,6 +341,44 @@ def main():
             print(f"RANK2_QUOTIENT_EXACT_COUNT_{name}="
                   f"{check['count']} explored={check['states']}",flush=True)
 
+    # Different original SCL provenance (E61), not Holyer/flower:
+    # direct source rows from frozen I+P+Q matrices.
+    from r5_e61_two_level_kernel_hoffman_regular_set import (
+        build_A,P_SAT,Q_SAT,P_UNSAT,Q_UNSAT,
+    )
+    for label,p,q,truth in (
+        ("E61_SAT12",P_SAT,Q_SAT,"SAT"),
+        ("E61_UNSAT12",P_UNSAT,Q_UNSAT,"UNSAT"),
+    ):
+        A=build_A(p,q)
+        rows_e=validate_sparse(
+            [tuple(j for j,value in enumerate(row) if value)
+             for row in A],len(A)
+        )
+        network_e=paired_quartic_network(rows_e,len(rows_e))
+        result=independent_network_count_small(
+            network_e,max_nodes=18,max_states=1000000
+        )
+        assert result["status"]==truth,(label,result)
+        print(f"NONHOLYER_{label}_MATCHGATE_SUM_EXACT_COUNT="
+              f"{result['count']} status={result['status']}",flush=True)
+
+    # Disconnected legal original SCL: the quotient representation is
+    # independent of connectedness and preserves solution products.
+    original_k4,component_n,_,_=make_scl(K4())
+    joined=validate_sparse(
+        original_k4+
+        tuple(tuple(v+component_n for v in row)
+              for row in original_k4),2*component_n
+    )
+    disjoint=paired_quartic_network(joined,len(joined))
+    assert not certify_connected_quotient(disjoint)
+    disjoint_count=independent_network_count_small(
+        disjoint,max_nodes=36,max_states=1000000
+    )
+    assert disjoint_count["status"]=="SAT" and disjoint_count["count"]==36
+    print("DISCONNECTED_K4_PLUS_K4_MATCHED_HOLANT_COUNT=36",flush=True)
+
     # Source label robustness: matching is independently rechecked.
     rows,n,_,_=make_scl(K4())
     network=paired_quartic_network(rows,n)
