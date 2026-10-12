@@ -46,7 +46,8 @@ def witness_verified(rows,n,pins,witness):
 
 def SolveLinearCubicXSAT_Portfolio(
     rows,n,pins=None,*,poly_only=True,
-    pc3_max_n=48,bounded_states=48,shared_state=None,\n    certified_symmetry=None,sym_pc3_max_n=126,
+    pc3_max_n=48,bounded_states=48,shared_state=None,
+    certified_symmetry=None,sym_pc3_max_n=126,
 ):
     """Correct on EVERY legal SCL input. Poly mode may return UNKNOWN.
 
