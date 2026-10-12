@@ -124,8 +124,29 @@ def SolveLinearCubicXSAT_Portfolio(
         return result('SAT','HYBRID_ROOT',root['reason'],root['witness'],
                       root_stats=root['stats'])
     if root['status']=='UNSAT':
+        certificate=root.get('root_certificate')
+        provenance={}
+        if certificate is not None:
+            # This does NOT rerun the modular-9 solver. Verify only
+            # the exact annihilator already produced by its existing
+            # transitive call inside ExactSupportHybrid.
+            from r5_universal_exact_support_mod9_dual_certificate import (
+                independent_verify_mod9_certificate,
+            )
+            B=[[int(j in row) for j in range(n)] for row in rows]
+            rhs=[1]*len(rows)
+            for v,value in sorted(pins.items()):
+                unit=[0]*n;unit[v]=1
+                B.append(unit);rhs.append(value)
+            independent_verify_mod9_certificate(B,rhs,certificate)
+            provenance={
+                'certificate_type':'VERIFIED_MOD9_LEFT_ANNIHILATOR',
+                'certificate':tuple(certificate),
+                'certificate_replayed':True,
+            }
+            events.append('ROOT_MOD9_INDEPENDENT_CERTIFICATE_REPLAY')
         return result('UNSAT','HYBRID_ROOT',root['reason'],
-                      root_stats=root['stats'])
+                      root_stats=root['stats'],**provenance)
     assert root['status']=='UNKNOWN'
 
     if not pins and n<=pc3_max_n:
@@ -230,6 +251,26 @@ def main():
               f'poly_expert={fast["expert"]}, '
               f'exact={exact["status"]} exact_expert={exact["expert"]}, '
               f'expert_path={exact["experts"]}',flush=True)
+
+    # Independent certificate propagation from the ALREADY CALLED
+    # MOD9 module, rather than running duplicate MOD9 solvers.
+    from r5_e129_invertible_base_cover_unsat_gauge_clean_seed import (
+        base_matrix,
+    )
+    mod9_A=base_matrix()
+    mod9_n=len(mod9_A)
+    mod9_rows=tuple(tuple(i for i,v in enumerate(row) if v)
+                    for row in mod9_A)
+    mod9_portfolio=SolveLinearCubicXSAT_Portfolio(
+        mod9_rows,mod9_n,poly_only=True,
+        pc3_max_n=0,bounded_states=0,
+    )
+    assert mod9_portfolio['status']=='UNSAT'
+    assert mod9_portfolio['certificate_type']=='VERIFIED_MOD9_LEFT_ANNIHILATOR'
+    assert mod9_portfolio['certificate_replayed']
+    print(f'E129_MOD9_TRANSITIVE_EVIDENCE_PROVENANCE=VERIFIED '
+          f'certificate_size={len(mod9_portfolio["certificate"])}',
+          flush=True)
 
     # Proven correctness of policy boundaries: zero experts
     # are not permitted to guess SAT or UNSAT on an open instance.
