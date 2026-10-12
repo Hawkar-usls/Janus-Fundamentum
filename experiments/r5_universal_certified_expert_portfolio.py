@@ -185,9 +185,8 @@ def main():
     ):
         rs,n,_,_=make_scl(G)
         cases.append((name,n,rs,name=='SAT_K33'))
-    cases.append((
-        'SAT_PRISM5',*make_scl(prism(5)[1])[:2],True
-    ))
+    prism_rows,prism_n,_,_=make_scl(prism(5)[1])
+    cases.append(('SAT_PRISM5',prism_n,prism_rows,True))
 
     for name,n,rows,known_sat in cases:
         fast=SolveLinearCubicXSAT_Portfolio(
