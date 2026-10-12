@@ -211,6 +211,54 @@ def independent_brute_source_count(rows,n):
     return count
 
 
+def two_gadget_sat21_comparison():
+    """Source-legality control of EXACT SAME size as triple Fano UNSAT21.
+
+    Two open original legal G10/G11 gadget sources have opposite
+    nonzero cut transfer states: G10(a,b)=(1,0) once and
+    G11(a,b)=(0,1) twice. Swapping their cut Tanner incidences
+    W10->V11 and W11->V10 is consistent: a10=b11=1,
+    a11=b10=0, giving 1*2=2 source SAT witnesses.
+
+    These are genuinely original square+cubic+linear SCL21 rows
+    with no marking, no unary clauses and no untrusted symmetry.
+    """
+    from r5_universal_scl_pin_to_unpinned_constant_gadget import (
+        gadget, exhaustive_open_transfer
+    )
+    g10,r10,v10=gadget(10)
+    g11,r11,v11=gadget(11)
+    t10,w10=exhaustive_open_transfer(10)
+    t11,w11=exhaustive_open_transfer(11)
+    assert t10==((0,0),(1,0))
+    assert t11==((0,2),(0,0))
+    output=list(g10)
+    output.extend(tuple(10+v for v in row) for row in g11)
+    assert v10 in output[r10] and 10+v11 in output[10+r11]
+    output[r10]=tuple(sorted(
+        (set(output[r10])-{v10})|{10+v11}
+    ))
+    output[10+r11]=tuple(sorted(
+        (set(output[10+r11])-{10+v11})|{v10}
+    ))
+    source=validate_sparse(output,21)
+    assert certify_connected_tanner(source,21)
+    witnesses=[]
+    for u in w10[(1,0)]:
+        for v in w11[(0,1)]:
+            x=tuple(u)+tuple(v)
+            assert len(x)==21
+            assert all(sum(x[j] for j in row)==1 for row in source)
+            witnesses.append(x)
+    assert len(witnesses)==2 and len(set(witnesses))==2
+    # Independent original-row Boolean enumeration is a finite
+    # source control only; never the claimed polynomial zero test.
+    assert independent_brute_source_count(source,21)==2
+    print("MATCHED_N21_CONNECTED_SAT2_VS_UNSAT0_SOURCE_PAIR=VERIFIED",
+          flush=True)
+    return source,tuple(witnesses)
+
+
 def main():
     base=cyclic(7)
     assert tanner_girth_up_to(base,7,9)==6
@@ -219,6 +267,13 @@ def main():
     assert original_block_divisibility_unsat_certificate(
         base,7,output,n,cert)["status"]=="UNSAT"
     assert independent_brute_source_count(output,n)==0
+    sat21,source_witnesses=two_gadget_sat21_comparison()
+    assert len(sat21)==n and len(source_witnesses)==2
+    assert n%3==0
+    sat_girth=tanner_girth_up_to(sat21,21,5)
+    assert sat_girth is None
+    print("SAME_SIZE_CONNECTED_SAT21_UNSAT21_BOTH_NMOD3_ZERO="
+          "AND_GIRTH_AT_LEAST6",flush=True)
     observed=tanner_girth_up_to(output,n,9)
     assert observed is None or observed>=6,(observed,cert)
     print(f"THREE_FANO7_CONNECTED_SCL21_MOD3_ZERO_UNSAT="
