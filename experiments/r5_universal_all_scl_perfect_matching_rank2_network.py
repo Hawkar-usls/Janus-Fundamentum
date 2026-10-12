@@ -43,25 +43,47 @@ LOCAL_OPTIONS=((1,0,0,0),(0,1,0,0),(0,0,1,1))
 
 
 def polynomial_source_perfect_matching(rows,n):
+    """Iterative augmenting paths; robust at arbitrary n, O(n^2).
+
+    3-regular bipartite Hall certificate guarantees every augmentation.
+    No Python recursion limit dependence, and no exponential search.
+    """
     rows=validate_sparse(rows,n)
-    owner=[-1]*n
-    def augment(i,seen):
-        for v in rows[i]:
-            if v in seen:continue
-            seen.add(v)
-            if owner[v]<0 or augment(owner[v],seen):
-                owner[v]=i
-                return True
-        return False
-    for i in range(n):
-        assert augment(i,set()),"violates 3-regular bipartite Hall theorem"
-    inverse=[-1]*n
-    for var,row in enumerate(owner):
-        assert 0<=row<n and inverse[row]==-1
-        inverse[row]=var
-    assert all(inverse[i] in rows[i] for i in range(n))
-    assert set(inverse)==set(range(n))
-    return tuple(inverse)
+    owner=[-1]*n            # column v -> matched row
+    rowmate=[-1]*n          # row i -> matched column
+    for start in range(n):
+        queue=deque([start])
+        seen_row={start}
+        seen_var=set()
+        pred={}             # visited column -> predecessor row
+        terminal=None
+        while queue and terminal is None:
+            i=queue.popleft()
+            for v in rows[i]:
+                if v in seen_var:continue
+                seen_var.add(v)
+                pred[v]=i
+                if owner[v]==-1:
+                    terminal=v
+                    break
+                next_row=owner[v]
+                if next_row not in seen_row:
+                    seen_row.add(next_row)
+                    queue.append(next_row)
+        assert terminal is not None,"violates 3-regular bipartite Hall theorem"
+        v=terminal
+        while v is not None:
+            i=pred[v]
+            previous=rowmate[i]
+            owner[v]=i
+            rowmate[i]=v
+            v=previous if previous!=-1 else None
+    assert all(v>=0 for v in rowmate)
+    assert all(v>=0 for v in owner)
+    assert all(owner[v]==i for i,v in enumerate(rowmate))
+    assert all(rowmate[i] in rows[i] for i in range(n))
+    assert set(rowmate)==set(range(n))
+    return tuple(rowmate)
 
 
 def certify_matching(rows,n,matching):
@@ -137,6 +159,12 @@ def verify_paired_quartic_network(rows,n,report):
     labels. Accept ANY valid original Tanner perfect matching.
     """
     rows=validate_sparse(rows,n)
+    assert report["source_rows"]==rows, "forged source rows"
+    assert report["source_n"]==n
+    assert report["quartic_cells"]==n
+    assert report["quotient_edges"]==2*n
+    assert tuple(report["local_options"])==LOCAL_OPTIONS
+    assert report["gate"]=="T4_TWO_STANDARD_MATCHGATES"
     m=tuple(report["matching"])
     assert certify_matching(rows,n,m)
     owner={v:i for i,v in enumerate(m)}
@@ -337,6 +365,29 @@ def main():
         print("FORGED_RANK2_CELL_PORT_BINDING_REJECTED=PASS",flush=True)
     else:
         raise AssertionError("invalid quotient ports accepted")
+
+    # Large CONNECTED legal SCL beyond default Python recursion depth.
+    # This verifies the matching CONSTRUCTION is stack independent.
+    big,n_big,_,_=make_scl(flower(63))
+    assert n_big==1134
+    big_network=paired_quartic_network(big,n_big)
+    assert big_network["quartic_cells"]==1134
+    assert big_network["quotient_edges"]==2268
+    assert certify_connected_quotient(big_network)
+    print("CONNECTED_FLOWER_J63_SCL1134_ITERATIVE_RANK2_MATCHING=PASS",
+          flush=True)
+
+    # Independently reject substituted provenance even when the
+    # source-port graph certificate was generated correctly.
+    falsified=dict(network)
+    falsified["source_rows"]=tuple(reversed(network["source_rows"]))
+    assert falsified["source_rows"]!=network["source_rows"]
+    try:
+        verify_paired_quartic_network(rows,n,falsified)
+    except (AssertionError,ValueError):
+        print("FORGED_RANK2_SOURCE_METADATA_REJECTED=PASS",flush=True)
+    else:
+        raise AssertionError("forged source metadata accepted")
 
     print("ALL_SCL_POLYNOMIAL_MATCHING_TO_RANK2_T4_NETWORK=PROVED")
     print("ALL_SCL_SOURCE_WITNESS_BIJECTION_EXACT=PROVED")
