@@ -1,0 +1,28 @@
+name: R5 JANUS Exact Two-Port Signature Algebra
+on:
+  push:
+    branches:
+      - research/r5-cubic-flow-smith-pair-20261011
+    paths:
+      - 'experiments/r5_universal_certified_two_port_signature_algebra.py'
+      - 'experiments/r5_universal_exact_support_unsat_andor_certificate.py'
+      - '.github/workflows/r5-certified-two-port-signature.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  two-port:
+    name: 'Four boundary assignments SAT glue, UNSAT replay, UNKNOWN guard'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Exactly verify original source boundary signatures
+        run: python -u experiments/r5_universal_certified_two_port_signature_algebra.py
+      - name: Existing complete original-source UNSAT proof regression
+        run: python -u experiments/r5_universal_certified_expert_portfolio.py
