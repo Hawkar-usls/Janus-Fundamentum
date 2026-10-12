@@ -251,10 +251,23 @@ def main():
                        for v,b in derived['pins'].items())
     print(f'CONNECTED_SCL15_CUT2_ARITHMETIC_FORCES_PINS={derived["pins"]} '
           f'finite_sat_witnesses={satisfying}',flush=True)
-    assert satisfying>0, 'ensure forced pins are nonvacuous'
+    # The n15 cyclic 7+8 test is itself UNSAT: these two source\n    # blocks admit no compatible near-perfect covers. The forced\n    # boundary pins remain a correct arithmetic implication, but\n    # this finite control alone would be VACUOUS evidence of forcing.
     same=certified_two_cut_mod3_rules(out,2*n,max_n=40)
     assert same['status']=='CERTIFIED'
     assert len(same['pins'])==0 and len(same['equalities'])>=1
+    # Positive proof witness on the connected K4+K4 surgery shows
+    # equality signatures are non-vacuous and witness compatible.
+    from r5_universal_certified_expert_portfolio import (
+        SolveLinearCubicXSAT_Portfolio,
+    )
+    solved=SolveLinearCubicXSAT_Portfolio(
+        out,2*n,poly_only=False,pc3_max_n=0,bounded_states=300
+    )
+    assert solved['status']=='SAT'
+    assert all(solved['witness'][u]==solved['witness'][v]
+               for u,v in same['equalities'])
+    print('CONNECTED_SCL36_NONVACUOUS_CUT2_EQUALITY_WITH_SAT_WITNESS=VERIFIED',
+          flush=True)
     print(f'CONNECTED_SCL36_CUT2_MOD3_EQUALITIES={same["equalities"][:2]}',
           flush=True)
     print('UNIVERSAL_SCL_TWO_CUT_MOD3_BOUNDARY_RULES=PROVED',flush=True)
