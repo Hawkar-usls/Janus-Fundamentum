@@ -258,6 +258,22 @@ def main():
     assert routed['expert']=='CERTIFIED_GF2_SOURCE_CLAUSE_CONFLICT'
     print('REAL_PORTFOLIO_NO_HOLYER_HINT_BRIDGE_UNSAT=VERIFIED',
           flush=True)
+    # Scientifically honest ablation: compare against all PREVIOUS
+    # root experts with GF2 extraction OFF, still no graph hint.
+    # A pre-existing MOD9/Hybrid refutation would mean this new gate
+    # improves provenance/transparency but NOT decision coverage
+    # for this particular bridge control.
+    baseline=SolveLinearCubicXSAT_Portfolio(
+        rows,n,poly_only=True,
+        pc3_max_n=0,bounded_states=0,
+        tanner_cut_max_n=0,two_port_max_n=0,
+        gf2_linear_propagation=False,
+    )
+    assert baseline['status'] in ('UNSAT','UNKNOWN')
+    print(f'ABLATION_BRIDGE_NO_HINT_NEW_GF2_OFF '
+          f'status={baseline["status"]} expert={baseline["expert"]}',
+          flush=True)
+
 
     for name,G in (('K4',K4()),('K33',K33()),
                    ('PETERSEN',petersen_graph())):
