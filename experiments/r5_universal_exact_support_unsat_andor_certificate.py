@@ -39,8 +39,29 @@ class SearchLimit(Exception):
     pass
 
 
-def construct_unsat_proof(rows,n,pins=None,max_states=None):
-    rows=validate_sparse(rows,n)
+def validate_irregular_exactone_boundary(rows,n):
+    """Narrow, checked extension for cut-open Exact-One fragments.
+
+    Source boundary incidence need not be square/cubic: maintain
+    original three-literal Exact-One clauses, all distinct within
+    each clause, and local Boolean columns indexed [0,n).
+    This does NOT alter strict validation of ordinary SCL sources.
+    """
+    assert isinstance(n,int) and n>=1
+    normalized=[]
+    for row in rows:
+        clause=tuple(sorted(row))
+        assert len(clause)==3 and len(set(clause))==3
+        assert all(type(v) is int and 0<=v<n for v in clause)
+        normalized.append(clause)
+    assert len(set(normalized))==len(normalized)
+    return tuple(sorted(normalized))
+
+
+def construct_unsat_proof(rows,n,pins=None,max_states=None,*,
+                          allow_irregular=False):
+    rows=(validate_irregular_exactone_boundary(rows,n)
+          if allow_irregular else validate_sparse(rows,n))
     pins=dict(pins or {})
     assert all(0<=j<n and x in (0,1) for j,x in pins.items())
     initial=residual_normalize(
@@ -102,9 +123,10 @@ def construct_unsat_proof(rows,n,pins=None,max_states=None):
     return "UNSAT",(initial,proof)
 
 
-def verify_unsat_proof(rows,n,initial,proof,pins=None):
+def verify_unsat_proof(rows,n,initial,proof,pins=None,*,allow_irregular=False):
     """INDEPENDENT local proof verifier; never searches SAT assignments."""
-    rows=validate_sparse(rows,n)
+    rows=(validate_irregular_exactone_boundary(rows,n)
+          if allow_irregular else validate_sparse(rows,n))
     pins=dict(pins or {})
     expected=residual_normalize(
         rows,
