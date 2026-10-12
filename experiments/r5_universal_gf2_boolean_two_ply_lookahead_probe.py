@@ -156,6 +156,67 @@ def main():
         print(f'TWO_PLY_BOOLEAN_PROBING {name} n={n} '
               f'answer={answer["status"]} truth={truth} '
               f'calls={answer["calls"]}',flush=True)
+    # The actual JANUS portfolio must select this witness/proof
+    # after all other bounded polynomial experts are disabled,
+    # without invoking the exponential complete AND/OR fallback.
+    from r5_universal_certified_expert_portfolio import (
+        SolveLinearCubicXSAT_Portfolio,
+    )
+    for name,graph,wanted in (
+        ('K4',K4(),'SAT'),('PETERSEN',petersen_graph(),'UNSAT')
+    ):
+        rs,source_n,_,_=make_scl(graph)
+        opts={
+            'poly_only':True,'pc3_max_n':0,'bounded_states':0,
+            'tanner_cut_max_n':0,'two_port_max_n':0,
+            'sym_pc3_max_n':0,'two_ply_max_n':source_n,
+            'failed_literal_max_n':source_n,
+        }
+        before=SolveLinearCubicXSAT_Portfolio(
+            rs,source_n,**{**opts,'two_ply_max_n':0}
+        )
+        assert before['status']=='UNKNOWN',(name,before['expert'])
+        after=SolveLinearCubicXSAT_Portfolio(
+            rs,source_n,**opts
+        )
+        assert after['status']==wanted,(name,after['expert'])
+        assert after['expert']=='CERTIFIED_GF2_BOOLEAN_TWO_PLY'
+        assert after['two_ply_proof_replayed']
+        assert after['two_ply_calls']==3
+        assert verify_two_ply_certificate(
+            rs,source_n,{},after['two_ply_certificate']
+        )
+        if wanted=='SAT':
+            assert check_original_witness(
+                rs,source_n,{},after['witness']
+            )
+        print(f'PORTFOLIO_TWO_PLY_ABILITY_{name} '
+              f'before={before["status"]} after={after["status"]} '
+              f'after_expert={after["expert"]}',flush=True)
+
+    # Non-refutation test: tamper with the inner source proof for
+    # a conditional Petersen branch and prove original checker rejects.
+    negrows,neg_n,_,_=make_scl(petersen_graph())
+    original=certified_two_ply_probe(negrows,neg_n)
+    assert original['status']=='UNSAT'
+    forged=dict(original)
+    cases=[dict(c) for c in original['cases']]
+    assert cases and cases[-1]['status']=='UNSAT'
+    case=cases[-1]
+    inner=dict(case['branch_proofs'])
+    bad=dict(inner[0])
+    bad['status']='SAT'
+    inner[0]=bad
+    case['branch_proofs']=inner
+    forged['cases']=tuple(cases)
+    rejected=False
+    try:
+        verify_two_ply_certificate(negrows,neg_n,{},forged)
+    except (AssertionError,KeyError):
+        rejected=True
+    assert rejected
+    print('FORGED_NESTED_PETERSEN_TWO_PLY_UNSAT_PROOF_REJECTED=PASS',
+          flush=True)
     print('TWO_PLY_UNIFORM_POLYNOMIAL_FOR_FIXED_DEPTH=PROVED')
     print('SCALING_LOOKAHEAD_DEPTH_WITH_N_UNIFORM_POLYNOMIAL=NOT_PROVED')
     print('UNIVERSAL_POLY_SOLVELINEARCUBICXSAT=NOT_CONSTRUCTED')
