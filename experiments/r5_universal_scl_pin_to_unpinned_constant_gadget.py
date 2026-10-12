@@ -394,6 +394,32 @@ def main():
         print(f"ALL_SCL_PIN_COMPILER_{name}_SIZE={nnew}_LEGAL_SOURCE=PASS",
               flush=True)
 
+    # Full independent replay must reject a counterfeit compiled row
+    # and a forged multiplicity / pinned-bit proof field.
+    compiled1,n1,cert1=compile_source_pins(rows9,9,{0:1})
+    forged=list(compiled1)
+    forged[0]=compiled1[1]
+    try:
+        certify_source_pin_chain(rows9,9,{0:1},tuple(forged),cert1)
+    except AssertionError:
+        print("FORGED_COMPILER_SOURCE_ROW_REJECTED=PASS",flush=True)
+    else:
+        raise AssertionError("forged compiled source row accepted")
+    wrongmeta=dict(cert1[0])
+    wrongmeta["transfer_multiplier"]=3
+    try:
+        certify_source_pin_chain(rows9,9,{0:1},compiled1,(wrongmeta,))
+    except AssertionError:
+        print("FORGED_COMPILER_MULTIPLICITY_REJECTED=PASS",flush=True)
+    else:
+        raise AssertionError("forged original-count multiplier accepted")
+    try:
+        certify_source_pin_chain(rows9,9,{0:0},compiled1,cert1)
+    except AssertionError:
+        print("FORGED_COMPILER_PIN_BIT_REJECTED=PASS",flush=True)
+    else:
+        raise AssertionError("forged pin value accepted")
+
     finite_unmarked_only_witness_demo()
     print("ALL_SCL_TWO_TERMINAL_PIN_GADGETS_WITH_TRANSFER_MULTIPLIER2=PROVED")
     print("ALL_SCL_SOURCE_PIN_TO_UNPINNED_LEGAL_SCL_POLY_COMPILER=PROVED")
