@@ -274,6 +274,7 @@ def main():
     routed=SolveLinearCubicXSAT_Portfolio(
         out,2*n,pins={u:1},poly_only=True,
         pc3_max_n=0,bounded_states=0,tanner_cut_max_n=40,
+        gf2_linear_propagation=False,
     )
     assert routed['status']!='UNSAT'
     assert routed['tanner_cut_derived_pins'].get(v)==1
@@ -283,6 +284,7 @@ def main():
     impossible=SolveLinearCubicXSAT_Portfolio(
         out,2*n,pins={u:1,v:0},poly_only=True,
         pc3_max_n=0,bounded_states=0,tanner_cut_max_n=40,
+        gf2_linear_propagation=False,
     )
     assert impossible['status']=='UNSAT'
     assert impossible['expert']=='CERTIFIED_TANNER_TWO_CUT_MOD3'
@@ -291,6 +293,7 @@ def main():
     n15check=SolveLinearCubicXSAT_Portfolio(
         connected15,15,poly_only=True,
         pc3_max_n=0,bounded_states=0,tanner_cut_max_n=32,
+        gf2_linear_propagation=False,
     )
     assert n15check['tanner_cut_derived_pins']==derived['pins']
     print('CONNECTED_SCL15_TWO_CUT_FORCED_PINS_ENTER_COMMON_PORTFOLIO=VERIFIED',
@@ -298,6 +301,7 @@ def main():
     guarded=SolveLinearCubicXSAT_Portfolio(
         out,2*n,pins={u:1},poly_only=True,
         pc3_max_n=0,bounded_states=0,tanner_cut_max_n=0,
+        gf2_linear_propagation=False,
     )
     assert not guarded['tanner_cut_derived_pins']
     print('EXPLICIT_CUT2_BUDGET_OFF_DISALLOWS_UNPROVED_INFERENCE=VERIFIED',
