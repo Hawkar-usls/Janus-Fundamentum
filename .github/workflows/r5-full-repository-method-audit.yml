@@ -1,0 +1,47 @@
+name: R5 Exhaustive Repository Solver Method Audit
+on:
+  push:
+    branches:
+      - research/r5-cubic-flow-smith-pair-20261011
+    paths:
+      - 'tools/audit_r5_solver_method_inventory.py'
+      - '.github/workflows/r5-full-repository-method-audit.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: r5-repo-audit-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  inventory:
+    name: Full tracked file AST import method and folder audit
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Scan EVERY tracked source file and directory
+        run: python -u tools/audit_r5_solver_method_inventory.py
+      - name: Upload audit artifacts with all 1600 source entries
+        uses: actions/upload-artifact@v4
+        with:
+          name: r5-complete-method-inventory
+          path: audits/r5_repository_inventory/
+          retention-days: 90
+      - name: Commit reproducible inventory to research branch, not main
+        if: github.ref == 'refs/heads/research/r5-cubic-flow-smith-pair-20261011'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add audits/r5_repository_inventory/
+          if ! git diff --cached --quiet; then
+            git commit -m "audit(r5): freeze complete source-tree method inventory"
+            git push origin "HEAD:${GITHUB_REF_NAME}"
+          fi
