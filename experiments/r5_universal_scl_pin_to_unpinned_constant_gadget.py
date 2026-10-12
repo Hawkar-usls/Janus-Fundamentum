@@ -215,6 +215,81 @@ def lift_single_source_witness(rows,n,witness,var,pin):
     return compiled,tuple(lifted)
 
 
+def recover_original_witness_from_unpinned_scl_oracle(rows,n,zero_test):
+    """GENERAL conditional theorem, all calls on legal UNPINNED SCL.
+
+    zero_test(F,m) must return TRUE iff the ordinary original SCL F
+    is UNSAT, for ALL legal square+cubic+linear sources F,
+    including compiled sources of size <=22n.
+    """
+    source=validate_sparse(rows,n)
+    calls=1
+    if zero_test(source,n):
+        return None,calls
+    fixed={}
+    for v in range(n):
+        trial=dict(fixed)
+        trial[v]=0
+        candidate,nnew,cert=compile_source_pins(source,n,trial)
+        assert certify_source_pin_chain(source,n,trial,candidate,cert)
+        calls+=1
+        if zero_test(candidate,nnew):
+            fixed[v]=1
+        else:
+            fixed[v]=0
+    witness=tuple(fixed[v] for v in range(n))
+    assert all(sum(witness[v] for v in row)==1 for row in source)
+    assert calls==n+1
+    return witness,calls
+
+
+def finite_unpinned_scl_oracle_affine9(rows,n):
+    """Finite exact exponential oracle, not a polynomial all-SCL solver.
+
+    Accepts ONLY ORIGINAL LEGAL cubic linear square sources: no
+    marked tensors, pins, clauses of other sizes or source hints.
+    """
+    from r5_universal_all_scl_perfect_matching_rank2_network import (
+        paired_quartic_network,independent_network_count_small
+    )
+    Q=paired_quartic_network(rows,n)
+    result=independent_network_count_small(
+        Q,max_nodes=220,max_states=3500000
+    )
+    assert result["status"] in ("SAT","UNSAT"),result
+    if result["status"]=="SAT":
+        assert result["witness"] is not None
+        assert all(sum(result["witness"][v] for v in row)==1
+                   for row in Q["source_rows"])
+    return result
+
+
+def finite_unmarked_only_witness_demo():
+    from r5_universal_pinned_loop_witness_extraction_gate import (
+        affine_plane_scl9
+    )
+    source,expected=affine_plane_scl9()
+    history=[]
+    def oracle(rows,n):
+        result=finite_unpinned_scl_oracle_affine9(rows,n)
+        history.append((n,result["status"],result["states"]))
+        return result["status"]=="UNSAT"
+    witness,calls=recover_original_witness_from_unpinned_scl_oracle(
+        source,9,oracle
+    )
+    assert calls==10
+    assert witness in expected
+    assert len(history)==10
+    assert max(n for n,status,states in history)<=9+21*9
+    print("AFFINE9_WITNESS_FROM_TEN_UNPINNED_LEGAL_SCL_CALLS="+
+          str(witness),flush=True)
+    print("AFFINE9_UNPINNED_COMPILER_QUERY_SIZES="+
+          str(tuple(row[0] for row in history)),flush=True)
+    print("AFFINE9_UNPINNED_FINITE_ORACLE_TOTAL_STATES="+
+          str(sum(row[2] for row in history)),flush=True)
+    return witness
+
+
 def main():
     from r5_universal_pinned_loop_witness_extraction_gate import (
         affine_plane_scl9
@@ -319,6 +394,7 @@ def main():
         print(f"ALL_SCL_PIN_COMPILER_{name}_SIZE={nnew}_LEGAL_SOURCE=PASS",
               flush=True)
 
+    finite_unmarked_only_witness_demo()
     print("ALL_SCL_TWO_TERMINAL_PIN_GADGETS_WITH_TRANSFER_MULTIPLIER2=PROVED")
     print("ALL_SCL_SOURCE_PIN_TO_UNPINNED_LEGAL_SCL_POLY_COMPILER=PROVED")
     print("COMPILED_SOURCE_SIZE_N_PLUS21_PER_PIN=PROVED")
