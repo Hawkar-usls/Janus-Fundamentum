@@ -46,7 +46,7 @@ def witness_verified(rows,n,pins,witness):
 
 def SolveLinearCubicXSAT_Portfolio(
     rows,n,pins=None,*,poly_only=True,
-    pc3_max_n=48,bounded_states=48,shared_state=None,
+    pc3_max_n=48,bounded_states=48,shared_state=None,\n    certified_symmetry=None,sym_pc3_max_n=126,
 ):
     """Correct on EVERY legal SCL input. Poly mode may return UNKNOWN.
 
@@ -68,6 +68,8 @@ def SolveLinearCubicXSAT_Portfolio(
         raise ValueError('pc3_max_n must be nonnegative int')
     if not isinstance(bounded_states,int) or bounded_states<0:
         raise ValueError('bounded_states must be nonnegative int')
+    if not isinstance(sym_pc3_max_n,int) or sym_pc3_max_n<0:
+        raise ValueError('sym_pc3_max_n must be nonnegative int')
     requested=pins
     pins=_pins(n,pins)
     events=[]
@@ -148,6 +150,24 @@ def SolveLinearCubicXSAT_Portfolio(
         return result('UNSAT','HYBRID_ROOT',root['reason'],
                       root_stats=root['stats'],**provenance)
     assert root['status']=='UNKNOWN'
+
+    if (certified_symmetry is not None and not pins
+            and n<=sym_pc3_max_n):
+        from r5_universal_certified_odd_symmetry_adapter import (
+            certified_odd_symmetry_pc3,
+        )
+        sym=certified_odd_symmetry_pc3(
+            rows,n,certified_symmetry
+        )
+        events.append('ODD_AUTOMORPHISM_PC3_PRECONDITION_GATE')
+        if sym['status']=='UNSAT':
+            return result(
+                'UNSAT','VERIFIED_ODD_SYMMETRY_PC3',
+                sym['reason'],
+                symmetry_order=sym['symmetry_order'],
+                sym_pc3_stats=sym['stats'],
+                certificate_type=sym['certificate_type'],
+            )
 
     if not pins and n<=pc3_max_n:
         refuted,stats=pc_refutation(rows,n,3)
