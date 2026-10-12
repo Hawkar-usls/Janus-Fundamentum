@@ -62,6 +62,7 @@ def certified_odd_symmetry_pc3(rows,n,sigma):
     refuted,stats=pc3_symmetry_test(rows,tuple(sigma),order)
     if refuted:
         assert stats['verified_orbit_certificate_terms']>0
+        assert stats['independently_replayed_original_ring'] is True
         return {'status':'UNSAT',
                 'reason':'CROSS_CHECKED_ODD_GROUP_PC3_REFUTATION',
                 'certificate_type':'SYMMETRY_ORBIT_GF2_PC3',
