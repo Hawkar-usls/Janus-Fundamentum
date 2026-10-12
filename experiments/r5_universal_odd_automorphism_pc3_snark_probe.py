@@ -142,6 +142,53 @@ def symmetric_generator(row,mask,kind,coord,sigma,order):
     return out
 
 
+def verify_unsat_orbit_certificate_in_original_ring(
+    rows,sigma,order,representatives,selected,
+):
+    """Independent raw Boolean-ring replay, NOT orbit-space reduction.
+
+    For each selected orbit-symmetrized source generator, explicitly
+    reconstruct its ORIGINAL polynomial over GF2[x]/(xi²=xi):
+    parity generators p=1+xa+xb+xc and quadratic generators
+    q=xaxb+xaxc+xbxc. Multiply by the original monomial, rotate
+    the source indices through the entire odd group, and XOR
+    literal monomial masks. Only the singleton constant polynomial
+    {0} can justify UNSAT.
+
+    This checker intentionally neither calls poly_row nor uses the
+    orbit coordinate map/rank basis from the producer.
+    """
+    remaining=set()
+    for ri,mult,kind in selected:
+        source=tuple(representatives[ri])
+        mon=mult
+        for _ in range(order):
+            a,b,c=source
+            terms=(
+                (0,1<<a,1<<b,1<<c)
+                if kind=='parity'
+                else ((1<<a)|(1<<b),
+                      (1<<a)|(1<<c),
+                      (1<<b)|(1<<c))
+            )
+            for term in terms:
+                val=term|mon
+                if val in remaining:
+                    remaining.remove(val)
+                else:
+                    remaining.add(val)
+            source=tuple(sigma[v] for v in source)
+            newmon=0
+            for v in range(len(sigma)):
+                if (mon>>v)&1:newmon|=1<<sigma[v]
+            mon=newmon
+    assert remaining=={0},(
+        'invalid raw GF2 Boolean ring UNSAT certificate',
+        len(remaining), sorted(remaining)[:10]
+    )
+    return True
+
+
 def pc3_symmetry_test(rows,sigma,order,emit_small_proof=False):
     n=len(rows);coord,dim,sizes=monomial_orbit_map(n,sigma,order)
     reps=row_orbits(rows,sigma,order)
@@ -178,6 +225,15 @@ def pc3_symmetry_test(rows,sigma,order,emit_small_proof=False):
                 check^=symmetric_generator(reps[ri],m,kind,coord,sigma,order)
                 support+=1
         assert check==1<<coord[0]
+        selected=tuple(
+            (ri,m,kind)
+            for j,(ri,m,kind) in enumerate(gen)
+            if (c>>j)&1
+        )
+        assert len(selected)==support
+        assert verify_unsat_orbit_certificate_in_original_ring(
+            rows,sigma,order,reps,selected
+        )
         if emit_small_proof and support<=12:
             terms=[
                 {'row_orbit':ri,'kind':kind,
@@ -195,6 +251,8 @@ def pc3_symmetry_test(rows,sigma,order,emit_small_proof=False):
         'rank':rank,
         'nullity':dim-rank,
         'verified_orbit_certificate_terms':support,
+        'independently_replayed_original_ring':
+            bool(refuted and support>0),
     }
 
 
