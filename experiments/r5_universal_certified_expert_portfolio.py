@@ -121,6 +121,72 @@ def SolveLinearCubicXSAT_Portfolio(
         pins=derived_pins
         events.append('CERTIFIED_SHARED_NOGOOD_AND_EXACTONE_PROPAGATION')
 
+    # UNIVERSAL semantic-preserving disconnected-source preprocessing.
+    # Every Tanner component is again an independently verified SCL
+    # square/cubic/linear matrix (3*r=3*v); SAT witnesses glue,
+    # component UNSAT refutes the original entire source. All
+    # components use the same bounded/exact mode as their parent.
+    # A whole-source symmetry certificate need not restrict to
+    # a given component; do not propagate that unverified hint.
+    from r5_universal_certified_scl_component_decomposition import (
+        canonical_scl_components,independently_verify_lifted_witness,
+    )
+    parts=canonical_scl_components(rows,n)
+    if len(parts)>1:
+        events.append('CERTIFIED_ALL_SOURCE_COMPONENT_DECOMPOSITION')
+        witness=[0]*n
+        summaries=[]
+        saw_unknown=False
+        for ci,part in enumerate(parts):
+            local_pins={
+                i:pins[v] for i,v in enumerate(part['columns'])
+                if v in pins
+            }
+            child=SolveLinearCubicXSAT_Portfolio(
+                part['rows'],part['n'],pins=local_pins,
+                poly_only=poly_only,pc3_max_n=pc3_max_n,
+                bounded_states=bounded_states,
+                shared_state=None,certified_symmetry=None,
+                sym_pc3_max_n=sym_pc3_max_n,
+            )
+            summaries.append({
+                'component_index':ci,
+                'n':part['n'],
+                'status':child['status'],
+                'expert':child['expert'],
+                'global_columns':part['columns'],
+            })
+            if child['status']=='UNSAT':
+                return result(
+                    'UNSAT','CERTIFIED_COMPONENT_UNSAT_LIFT',
+                    'SOURCE_COMPONENT_PROVED_UNSAT',
+                    component_provenance=tuple(summaries),
+                    refuted_component_index=ci,
+                    child_result=child,
+                )
+            if child['status']=='UNKNOWN':
+                saw_unknown=True
+            else:
+                assert child['status']=='SAT'
+                for i,v in enumerate(part['columns']):
+                    witness[v]=child['witness'][i]
+        if saw_unknown:
+            assert poly_only
+            return result(
+                'UNKNOWN','SOURCE_COMPONENT_COVERAGE_GAP',
+                'AT_LEAST_ONE_COMPONENT_UNKNOWN',
+                component_provenance=tuple(summaries),
+            )
+        assert independently_verify_lifted_witness(
+            rows,n,parts,witness
+        )
+        return result(
+            'SAT','CERTIFIED_COMPONENT_SAT_GLUE',
+            'ALL_SOURCE_COMPONENT_WITNESSES_REPLAYED',
+            witness=witness,
+            component_provenance=tuple(summaries),
+        )
+
     root=ExactSupportHybrid_sparse(rows,n,pins=pins,max_states=0)
     events.append('HYBRID_ROOT_GF2_MOD9_AND_CLOSURE')
     if root['status']=='SAT':
