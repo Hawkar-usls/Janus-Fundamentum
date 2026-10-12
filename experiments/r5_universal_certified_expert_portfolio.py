@@ -49,6 +49,7 @@ def SolveLinearCubicXSAT_Portfolio(
     pc3_max_n=48,bounded_states=48,shared_state=None,
     certified_symmetry=None,sym_pc3_max_n=126,
     tanner_cut_max_n=45,
+    two_port_max_n=45,two_port_states=64,
 ):
     """Correct on EVERY legal SCL input. Poly mode may return UNKNOWN.
 
@@ -74,6 +75,10 @@ def SolveLinearCubicXSAT_Portfolio(
         raise ValueError('sym_pc3_max_n must be nonnegative int')
     if not isinstance(tanner_cut_max_n,int) or tanner_cut_max_n<0:
         raise ValueError('tanner_cut_max_n must be nonnegative int')
+    if not isinstance(two_port_max_n,int) or two_port_max_n<0:
+        raise ValueError('two_port_max_n must be nonnegative int')
+    if not isinstance(two_port_states,int) or two_port_states<0:
+        raise ValueError('two_port_states must be nonnegative int')
     requested=pins
     pins=_pins(n,pins)
     events=[]
@@ -156,6 +161,8 @@ def SolveLinearCubicXSAT_Portfolio(
                 shared_state=None,certified_symmetry=None,
                 sym_pc3_max_n=sym_pc3_max_n,
                 tanner_cut_max_n=tanner_cut_max_n,
+                two_port_max_n=two_port_max_n,
+                two_port_states=two_port_states,
             )
             summaries.append({
                 'component_index':ci,
@@ -305,6 +312,40 @@ def SolveLinearCubicXSAT_Portfolio(
                 'EXACT_DEGREE3_PC_CONSTANT_1_COMBINATION',
                 pc3_stats=stats,
             )
+
+    # Four exact joint port values give a constant-size INTERFACE.
+    # Bounded local AND/OR proof construction may still be hard; UNKNOWN
+    # is NEVER called UNSAT. Original SAT witnesses and each of the
+    # four local UNSAT cases must pass independent verification.
+    if two_port_max_n and n<=two_port_max_n:
+        from r5_universal_certified_two_port_signature_algebra import (
+            certified_two_port_signature,verify_two_port_report,
+        )
+        signature=certified_two_port_signature(
+            rows,n,pins=pins,max_states=two_port_states
+        )
+        if signature['status'] in ('SAT','UNSAT'):
+            replay=verify_two_port_report(rows,n,pins,signature)
+            assert replay['verified']
+            events.append('CERTIFIED_TWO_PORT_EXACT_BOUNDARY_SIGNATURE')
+            if signature['status']=='SAT':
+                return result(
+                    'SAT','CERTIFIED_TWO_PORT_SIGNATURE',
+                    'ORIGINAL_SOURCE_WITNESS_FROM_TWO_PORT_GLUE',
+                    signature['witness'],
+                    two_port_boundary_ports=signature['ports'],
+                    two_port_certificate_replayed=True,
+                )
+            return result(
+                'UNSAT','CERTIFIED_TWO_PORT_SIGNATURE',
+                'FOUR_BOUNDARY_STATES_INDEPENDENT_UNSAT_REPLAY',
+                two_port_boundary_ports=signature['ports'],
+                two_port_proof_nodes=signature['verified_nodes'],
+                two_port_certificate_replayed=True,
+                two_port_certificate=signature,
+            )
+        if signature['reason']!='NO_TANNER_TWO_CUT':
+            events.append('TWO_PORT_SIGNATURE_UNKNOWN_GUARDED')
 
     bounded=ExactSupportHybrid_sparse(
         rows,n,pins=pins,max_states=bounded_states
