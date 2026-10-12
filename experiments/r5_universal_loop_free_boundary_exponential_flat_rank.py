@@ -163,6 +163,70 @@ def replay_source_independent_boundary(rows,n,name):
     return len(I)
 
 
+def source_free_boundary_matrix(Q,chosen):
+    """Independent actual SOURCE-WIRE enumeration of selected cells.
+
+    Open every quotient incidence of chosen pairwise-nonadjacent
+    source cells. The left tuple contains local ports 0 and 2,
+    right tuple contains local ports 1 and 3. For k<=3 this
+    explicitly enumerates all 4^k x 4^k boundary entries.
+    """
+    assert len(chosen)<=3
+    selected=set(chosen)
+    assert all(not (
+        edge[0][0] in selected and edge[1][0] in selected
+    ) for edge in Q["endpoints"])
+    out=[]
+    for left in product((0,1),repeat=2*len(chosen)):
+        line=[]
+        for right in product((0,1),repeat=2*len(chosen)):
+            edge_values={}
+            accepted=1
+            for k,cell in enumerate(chosen):
+                ports=Q["cells"][cell]
+                assert len(ports)==4
+                bits=(left[2*k],right[2*k],
+                      left[2*k+1],right[2*k+1])
+                for edge,value in zip(ports,bits):
+                    if edge in edge_values:
+                        assert edge_values[edge]==value
+                    edge_values[edge]=value
+                accepted*=int(bits in (
+                    (1,0,0,0),(0,1,0,0),(0,0,1,1)
+                ))
+            assert len(edge_values)==4*len(chosen)
+            line.append(Fraction(accepted))
+        out.append(tuple(line))
+    return tuple(out)
+
+
+def source_rank_sat_unsat_same_size_controls():
+    from r5_e61_two_level_kernel_hoffman_regular_set import (
+        build_A,P_SAT,Q_SAT,P_UNSAT,Q_UNSAT
+    )
+    import itertools
+    count_profile={}
+    for name,p,q in (("SAT",P_SAT,Q_SAT),("UNSAT",P_UNSAT,Q_UNSAT)):
+        A=build_A(p,q)
+        rows=validate_sparse(
+            [tuple(j for j,v in enumerate(row) if v)
+             for row in A],len(A)
+        )
+        Q=paired_quartic_network(rows,len(rows))
+        selected=source_greedy_independent_cells(Q)
+        assert len(selected)>=3
+        actual=source_free_boundary_matrix(Q,selected[:3])
+        assert rank_exact(actual)==27
+        counts=sum(all(sum((mask>>v)&1 for v in row)==1
+                       for row in rows) for mask in range(1<<len(rows)))
+        count_profile[name]=counts
+        print(f"REAL_SOURCE_E61_{name}12_OPEN_THREE_CELLS_RANK=27 "
+              f"ORIGINAL_SOURCE_COUNT={counts}",flush=True)
+    assert count_profile=={"SAT":1,"UNSAT":0}
+    print("SAME_SIZE_SAT_UNSAT_IDENTICAL_LOCAL_FREE_BOUNDARY_RANK=PASS",
+          flush=True)
+
+
 def main():
     from r5_universal_all_odd_cyclic_pc2_four_orbit_identity import cyclic
     from r5_universal_cubic_edgecolor_direct_scl_bridge import (
@@ -173,6 +237,7 @@ def main():
         build_A,P_SAT,Q_SAT,P_UNSAT,Q_UNSAT
     )
     finite_rank_audit(3)
+    source_rank_sat_unsat_same_size_controls()
     cases=[
         ("FANO7",cyclic(7),7),
         ("K4_SCL18",*make_scl(K4())[:2]),
