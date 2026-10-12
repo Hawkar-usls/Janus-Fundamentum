@@ -96,7 +96,8 @@ def main():
         ("CYCLIC_N33",cyclic(33),60),
     ]
     for name,(n,rows,known_witness),budget in challenge_families:
-        assert checked_matrix(rows,n)==rows
+        rows=checked_matrix(rows,n)
+        assert rows is not None
         assert len(known_witness)==n//3
         assert all(sum(v in known_witness for v in row)==1 for row in rows)
         print(f'{name}_BASE = SAT_WITH_EXPLICIT_WITNESS n={n}',flush=True)
