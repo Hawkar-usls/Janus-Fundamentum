@@ -156,10 +156,14 @@ def paired_cayley_quotient(rows,n,p,el,idx):
     location={iv:z for z,iv in enumerate(incidence)}
     cells=[]
     endpoints=[[] for _ in incidence]
+    appearances=[[] for _ in range(n)]
+    for source_i,source_row in enumerate(rows):
+        for source_v in source_row:
+            appearances[source_v].append(source_i)
+    assert all(len(appearances[v])==3 for v in range(n))
     for i,v in enumerate(group_matching):
         outs=[location[(i,w)] for w in rows[i] if w!=v]
-        ins=[location[(j,v)] for j,row in enumerate(rows)
-             if j!=i and v in row]
+        ins=[location[(j,v)] for j in appearances[v] if j!=i]
         assert len(outs)==len(ins)==2
         ports=tuple(outs+ins)
         for k,e in enumerate(ports):
@@ -202,7 +206,7 @@ def main():
     print("QUOTIENT_CAYLEY_GIRTH_GE5_ALL_P_GE29=PROVED_SYMBOLIC")
     print("ORIENTABLE_GENUS_GE_N_OVER10_PLUS1=EULER_THEOREM")
 
-    for p in (5,7,11):
+    for p in (5,7,11,29):
         rows,n,elements,index=original_group_scl(p)
         q=paired_cayley_quotient(rows,n,p,elements,index)
         assert exact_girth_five_audit(q)==n
