@@ -208,6 +208,64 @@ def explicit_three_colour_layer_paths(edges,src_e,dst_e):
 
 
 
+def verify_coloring(edges,colormap):
+    """Check every ORIGINAL cubic vertex receives three distinct colours."""
+    vertices,E=validate_cubic_graph(edges)
+    assert set(colormap)==set(E)
+    assert all(colormap[e] in (0,1,2) for e in E)
+    for v in vertices:
+        assert sorted(colormap[e] for e in E if v in e)==[0,1,2]
+    return True
+
+
+def forward_switch_coloring(original,original_coloring,record):
+    """Explicit SAT-witness transfer under a single connected edge switch."""
+    _,before=validate_cubic_graph(original)
+    assert verify_coloring(before,original_coloring)
+    e,f=record['removed']
+    crosses=record['inserted']
+    left=set(record['component1'])
+    right=set(record['component2'])
+    assert e in before and f in before
+    target=original_coloring[e]
+    source=original_coloring[f]
+    remaining=[v for v in range(3) if v!=source]
+    available=[v for v in range(3) if v!=target]
+    recolor={source:target}
+    recolor.update(zip(remaining,available))
+    new={}
+    for edge,value in original_coloring.items():
+        if edge in (e,f):continue
+        if all(v in right for v in edge):
+            new[edge]=recolor[value]
+        else:
+            new[edge]=value
+    for edge in crosses:new[edge]=target
+    expected=(set(before)-{e,f})|set(crosses)
+    assert set(new)==expected
+    assert verify_coloring(tuple(sorted(expected)),new)
+    return new
+
+
+def backward_switch_coloring(connected,connected_coloring,record):
+    """Explicit 2-edge-cut colour parity witness recovery."""
+    _,after=validate_cubic_graph(connected)
+    assert verify_coloring(after,connected_coloring)
+    cross1,cross2=record['inserted']
+    cut_side=set(record['component1'])
+    assert color_parity_every_cubic_cut(
+        after,tuple(connected_coloring[e] for e in after),cut_side
+    )
+    assert connected_coloring[cross1]==connected_coloring[cross2]
+    value=connected_coloring[cross1]
+    e,f=record['removed']
+    new={k:v for k,v in connected_coloring.items() if k not in (cross1,cross2)}
+    new[e]=value;new[f]=value
+    assert verify_coloring(tuple(sorted(new)),new)
+    return new
+
+
+
 def main():
     # A bridged cubic graph is also a valid positive control
     # for Tanner connectivity; G itself need NOT be bridgeless.
@@ -267,6 +325,18 @@ def main():
         assert len(history)==1 and len(graph_components(result))==1
         colored=brute_three_edge_coloring(result)
         assert (colored is not None)==truth
+        if truth:
+            original_colors=brute_three_edge_coloring(src)
+            assert original_colors is not None
+            old_colors={e:original_colors[i] for i,e in enumerate(src)}
+            switched=forward_switch_coloring(
+                src,old_colors,history[0]
+            )
+            assert verify_coloring(result,switched)
+            independently_recovered=backward_switch_coloring(
+                result,switched,history[0]
+            )
+            assert verify_coloring(src,independently_recovered)
         rows,n,_,_=make_scl(result)
         topo=certified_tanner_edge_connectivity(rows,n)
         assert topo["edge_connectivity"]==3
