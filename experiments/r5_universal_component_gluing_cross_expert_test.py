@@ -52,6 +52,7 @@ def main():
     conservative=SolveLinearCubicXSAT_Portfolio(
         positive,n36,poly_only=True,
         pc3_max_n=0,bounded_states=0,
+        two_ply_max_n=0,  # isolated historical UNKNOWN sentinel
     )
     assert conservative['status']=='UNKNOWN'
     assert conservative['expert']=='SOURCE_COMPONENT_COVERAGE_GAP'
@@ -80,6 +81,7 @@ def main():
     decision=SolveLinearCubicXSAT_Portfolio(
         mixed,n63,poly_only=True,
         pc3_max_n=48,bounded_states=0,
+        two_ply_max_n=0,  # require original UNKNOWN sibling for lift proof
     )
     assert decision['status']=='UNSAT'
     assert decision['expert']=='CERTIFIED_COMPONENT_UNSAT_LIFT'
