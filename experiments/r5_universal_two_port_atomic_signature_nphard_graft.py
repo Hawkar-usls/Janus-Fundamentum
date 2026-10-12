@@ -67,14 +67,19 @@ def graft_any_connected_source(source):
     edge_list,_=exact_tanner_graph(joined,total)
     u=source[0][0]
     w=n+gadget[0][0]
-    expected={(0,total+w),(n,total+u)}
-    cut_ids=tuple(i for i,edge in enumerate(edge_list)
-                  if edge in expected)
-    assert len(cut_ids)==2
+    # validate_sparse() canonicalizes/sorts the complete row list.
+    # Identify ORIGINAL A-side rows by two (or three) A columns
+    # instead of assuming any particular post-sort row index.
+    source_row_ids=tuple(ci for ci,row in enumerate(joined)
+                         if sum(v<n for v in row)>=2)
+    assert len(source_row_ids)==n
     side=frozenset(
-        tuple(range(n))+
-        tuple(total+v for v in range(n))
+        source_row_ids+tuple(total+v for v in range(n))
     )
+    cut_ids=tuple(i for i,(row,var) in enumerate(edge_list)
+                  if (row in side)!=(var in side))
+    assert len(cut_ids)==2
+    assert {edge_list[i][1]-total for i in cut_ids}=={u,w}
     cut={'side':side,'edge_ids':cut_ids}
     pieces,ports=cut_open_fragments(joined,total,cut)
     assert ports==(u,w)
