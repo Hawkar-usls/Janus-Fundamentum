@@ -43,5 +43,12 @@ jobs:
           git add audits/r5_repository_inventory/
           if ! git diff --cached --quiet; then
             git commit -m "audit(r5): freeze complete source-tree method inventory"
-            git push origin "HEAD:${GITHUB_REF_NAME}"
+            for attempt in 1 2 3; do
+              git fetch origin "${GITHUB_REF_NAME}"
+              git rebase "origin/${GITHUB_REF_NAME}"
+              if git push origin "HEAD:${GITHUB_REF_NAME}"; then
+                exit 0
+              fi
+            done
+            exit 1
           fi
