@@ -311,7 +311,7 @@ def main():
     assert all(p['local_n']==19 for p in pieces)
     blocked={u:1,w:0}
     neg=certified_two_port_signature(
-        positives,n,pins=blocked,max_states=0,
+        positives,n,pins=blocked,max_states=256,
     )
     assert neg['status']=='UNSAT'
     verifier=verify_two_port_report(positives,n,blocked,neg)
@@ -356,11 +356,12 @@ def main():
     else:
         raise AssertionError('need nontrivial ANDOR certificate control')
     damaged['boundary_cases']=tuple(records)
+    rejected=False
     try:
         verify_two_port_report(neg25,25,{},damaged)
-        raise AssertionError('corrupt proof wrongly accepted')
     except (AssertionError,KeyError):
-        pass
+        rejected=True
+    assert rejected, 'corrupt independent certificate was accepted'
     print('TWO_PORT_CORRUPTED_LOCAL_UNSAT_DAG_REJECTED=PASS',flush=True)
 
     print('EXACT_TWO_PORT_ALGEBRA_SOUND_COMPLETE_WITH_UNBOUNDED_FALLBACK=PROVED')
