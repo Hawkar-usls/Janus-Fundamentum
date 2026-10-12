@@ -302,6 +302,22 @@ def main():
     assert verify_two_port_report(positives,n,{},sat)['verified']
     print('TWO_PORT_CONNECTED_SCL36_SAT_WITNESS_INDEPENDENTLY_GLUED=PASS',
           flush=True)
+    # Actual high-level JANUS portfolio integration, not a shadow demo.
+    from r5_universal_certified_expert_portfolio import (
+        SolveLinearCubicXSAT_Portfolio,
+    )
+    integrated=SolveLinearCubicXSAT_Portfolio(
+        positives,n,poly_only=True,pc3_max_n=0,
+        tanner_cut_max_n=0,bounded_states=0,
+        two_port_max_n=40,two_port_states=256,
+    )
+    assert integrated['status']=='SAT'
+    assert integrated['expert']=='CERTIFIED_TWO_PORT_SIGNATURE',integrated['expert']
+    assert integrated['two_port_certificate_replayed']
+    assert all(sum(integrated['witness'][v] for v in row)==1
+               for row in positives)
+    print('TWO_PORT_HIGH_LEVEL_POLY_GUARDED_PORTFOLIO_SAT_GLUE=VERIFIED',
+          flush=True)
 
     cut=certified_tanner_edge_connectivity(
         positives,n,first_only=True
@@ -317,6 +333,20 @@ def main():
     verifier=verify_two_port_report(positives,n,blocked,neg)
     assert verifier['verified']
     print('TWO_PORT_CONTRADICTORY_BOUNDARY_PIN_FULL_CERTIFICATE=PASS',
+          flush=True)
+    integrated_negative=SolveLinearCubicXSAT_Portfolio(
+        positives,n,pins=blocked,poly_only=True,
+        pc3_max_n=0,bounded_states=0,
+        tanner_cut_max_n=0,
+        two_port_max_n=40,two_port_states=256,
+    )
+    assert integrated_negative['status']=='UNSAT'
+    assert integrated_negative['expert'] in (
+        'CERTIFIED_TWO_PORT_SIGNATURE','HYBRID_ROOT'
+    )
+    if integrated_negative['expert']=='CERTIFIED_TWO_PORT_SIGNATURE':
+        assert integrated_negative['two_port_certificate_replayed']
+    print('TWO_PORT_OR_ROOT_INDEPENDENTLY_REPLAYED_UNSAT_GUARD=VERIFIED',
           flush=True)
 
     no_budget=certified_two_port_signature(
