@@ -63,7 +63,7 @@ def base_parameters(rows,n):
     k=n//3
     bethe=Fraction(16,27)**k
     D=2**(2*k)*3**n
-    assert D==2**(2*n)*bethe
+    assert D==Fraction(2**(2*n),1)/bethe
     assert bethe>0 and bethe<1
     return {"n":n,"status":"DIVISIBLE_SIZE",
             "k":k,"bethe":bethe,"divisor":D,
