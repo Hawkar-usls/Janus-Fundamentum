@@ -98,7 +98,7 @@ Original first CI [#38322030433 SUCCESS](https://github.com/Hawkar-usls/Janus-Fu
 
 Strengthened source adversarial control:
 - Independently construct actual free-boundary matrices using the original source's quotient incidence ports on three selected cells in non-Holyer E61 SAT12 AND E61 UNSAT12. BOTH have exact rank27 while the original source solution counts differ, respectively 1 and0. Therefore even this strong local-rank observable does NOT discriminate SAT from UNSAT.
-- First strength-replay CI is launched on commit `b5fe67197b974a5e75a014879a61570f4b7c19ea`. Its success must be checked before declaring the strengthened control verified.
+- The strengthened independent source-matrix replay [#38322154776 SUCCESS](https://github.com/Hawkar-usls/Janus-Fundamentum/actions/runs/38322154776) ran on commit `b5fe67197b974a5e75a014879a61570f4b7c19ea`. Both SAT12 and UNSAT12 direct source-boundary matrices have rank 27 while original exact solution counts are 1 and 0.
 
 These controls corroborate the all-input proof; no finite extrapolation is necessary for the rank theorem.
 
