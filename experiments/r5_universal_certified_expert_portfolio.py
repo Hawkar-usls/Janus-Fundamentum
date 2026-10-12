@@ -218,6 +218,34 @@ def main():
     assert undecided['witness'] is None
     print('POLY_PORTFOLIO_UNKNOWN_NEVER_RELABELED_SAT_OR_UNSAT = VERIFIED')
 
+    # End-to-end orchestration through the actual COMPLETE fallback,
+    # with BOTH SAT witness and independently replayed UNSAT proof.
+    forced_sat=SolveLinearCubicXSAT_Portfolio(
+        rows,n,poly_only=False,pc3_max_n=0,bounded_states=0
+    )
+    assert forced_sat['status']=='SAT'
+    assert forced_sat['expert']=='COMPLETE_ANDOR'
+    assert witness_verified(rows,n,{},forced_sat['witness'])
+    print('FORCED_EXACT_FALLBACK_SAT_WITNESS = VERIFIED')
+
+    # Preserve original-input pins under every expert and fallback.
+    port1=SolveLinearCubicXSAT_Portfolio(
+        rows,n,pins={0:1},poly_only=False,
+        pc3_max_n=0,bounded_states=0,
+    )
+    port0=SolveLinearCubicXSAT_Portfolio(
+        rows,n,pins={0:0},poly_only=False,
+        pc3_max_n=0,bounded_states=0,
+    )
+    assert port1['status']=='SAT' and port0['status']=='SAT'
+    assert port1['witness'][0]==1 and port0['witness'][0]==0
+    illegal=SolveLinearCubicXSAT_Portfolio(
+        rows,n,pins={j:1 for j in rows[0][:2]},
+        poly_only=True,pc3_max_n=0,bounded_states=0,
+    )
+    assert illegal['status']=='UNSAT'
+    print('PINNED_EXPERT_FALLBACK_AND_CONFLICT_VERIFIED = PASS')
+
     # Complete fallback emits a separately independently verified
     # proof on a genuine UNSAT fixture when early bound experts off.
     neg_rows,n,_,_=make_scl(petersen_graph())
@@ -229,6 +257,13 @@ def main():
     nodes=verify_unsat_proof(neg_rows,n,initial,proof,pins={})
     assert nodes>0
     print(f'PETERSEN_INDEPENDENT_ANDOR_UNSAT_PROOF_NODES={nodes}')
+    forced_unsat=SolveLinearCubicXSAT_Portfolio(
+        neg_rows,n,poly_only=False,pc3_max_n=0,bounded_states=0
+    )
+    assert forced_unsat['status']=='UNSAT'
+    assert forced_unsat['expert']=='COMPLETE_ANDOR'
+    assert forced_unsat['proof_nodes']==nodes
+    print('FORCED_EXACT_FALLBACK_UNSAT_PROOF_REPLAY = VERIFIED')
 
     print('SOUND_COOPERATIVE_ALL_SCL_PORTFOLIO = PROVED_FROM_EXISTING_EXPERTS')
     print('POLY_ONLY_CAN_RETURN_UNKNOWN = PROVED')
