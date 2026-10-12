@@ -121,7 +121,24 @@ def triple_cyclic_source_glue(rows,m):
     return source,n,provenance
 
 
+def group_source_rows_by_original_block(joined,m):
+    """Rows are canonically re-sorted by validate_sparse, so do NOT
+    assume row index ranges survive the three-way incidence switch.
+    A transformed cut row retains exactly two variables from its
+    original block; all other source rows retain three.
+    """
+    out=[[] for _ in range(3)]
+    for row in joined:
+        tags=[v//m for v in row]
+        owner=next((i for i in range(3) if tags.count(i)>=2),None)
+        assert owner is not None
+        out[owner].append(row)
+    assert all(len(z)==m for z in out)
+    return tuple(tuple(sorted(z)) for z in out)
+
+
 def independently_replay_source_glue(base,m,joined,n,cert):
+    from collections import Counter
     base=validate_sparse(base,m)
     joined=validate_sparse(joined,n)
     assert n==3*m and cert["base_n"]==m
@@ -130,17 +147,16 @@ def independently_replay_source_glue(base,m,joined,n,cert):
     assert cert["cut_original_variable"]==base[0][0]
     assert cert["source_cut_row"]==tuple(base[0])
     assert cert["base_mod3"]==m%3
+    blockrows=group_source_rows_by_original_block(joined,m)
     for i in range(3):
-        srcvars=set(range(i*m,(i+1)*m))
+        expected=[]
         for j,row in enumerate(base):
-            actual=joined[i*m+j]
-            expected=set(i*m+v for v in row)
+            translated=set(i*m+v for v in row)
             if j==0:
-                expected.remove(i*m+base[0][0])
-                expected.add(((i+1)%3)*m+base[0][0])
-            assert set(actual)==expected,(i,j)
-        for v in srcvars:
-            assert sum(v in row for row in joined)==3
+                translated.remove(i*m+base[0][0])
+                translated.add(((i+1)%3)*m+base[0][0])
+            expected.append(tuple(sorted(translated)))
+        assert Counter(blockrows[i])==Counter(expected)
     assert cert["cyclic_wiring"]==tuple(
         ((i*m),((i+1)%3)*m+base[0][0]) for i in range(3)
     )
@@ -161,8 +177,9 @@ def original_block_divisibility_unsat_certificate(base,m,joined,n,cert):
     residue=m%3
     assert residue in (1,2)
     expected_ab=(1,0) if residue==1 else (0,1)
+    blockrows=group_source_rows_by_original_block(joined,m)
     for i in range(3):
-        rowset=joined[i*m:(i+1)*m]
+        rowset=blockrows[i]
         inblock=range(i*m,(i+1)*m)
         counts={u:sum(u in row for row in rowset) for u in inblock}
         assert all(counts[u]==(2 if u==i*m+v else 3)
