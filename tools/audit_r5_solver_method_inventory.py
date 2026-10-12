@@ -30,6 +30,8 @@ DEST=ROOT/'audits'/'r5_repository_inventory'
 EXCLUDED_PREFIX='audits/r5_repository_inventory/'
 ROLE_DECISIONS={
  'experiments/r5_universal_certified_expert_portfolio.py':('INTEGRATED','CERTIFIED','main cooperative router'),
+ 'experiments/r5_universal_certified_odd_symmetry_adapter.py':('INTEGRATED_CONDITIONAL','CERTIFIED_ODD_AUTOMORPHISM','row permutation validated before exact odd-group PC3'),
+ 'experiments/r5_universal_certified_portfolio_coverage_matrix.py':('EVIDENCE_AUDIT','FINITE_COVERAGE_FALSIFIER','11 independent SCL fixture truths versus bounded portfolio'),
  'experiments/r5_universal_certified_shared_proof_state.py':('INTEGRATED','CERTIFIED','shared no-good+GF2+ANDOR provenance ledger'),
  'experiments/r5_universal_exact_support_hybrid_algebraic_dag.py':('INTEGRATED','EXACT_GUARDED','root algebra + exact bounded DAG'),
  'experiments/r5_universal_exact_support_residual_dag_attack.py':('INTEGRATED','EXACT_GUARDED','source validation, pins, residual DAG'),
