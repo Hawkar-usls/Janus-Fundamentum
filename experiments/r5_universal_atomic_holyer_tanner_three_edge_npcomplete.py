@@ -149,6 +149,65 @@ def color_parity_every_cubic_cut(edges,colors,side):
     return True
 
 
+def explicit_three_colour_layer_paths(edges,src_e,dst_e):
+    """Generate and independently recheck 3 edge-disjoint Tanner paths.
+
+    All three use the SAME source line-graph walk and DIFFERENT colours.
+    No Tanner source row ordering is assumed after canonical sorting.
+    Returned paths are actual Tanner bipartite node IDs.
+    """
+    vertices,E=validate_cubic_graph(edges)
+    assert src_e in E and dst_e in E and src_e!=dst_e
+    rows,n,_,idx=make_scl(E)
+    row_to_id={tuple(row):i for i,row in enumerate(rows)}
+    eid={e:i for i,e in enumerate(E)}
+    edge_row={e:row_to_id[tuple(sorted(idx[(e,c)] for c in range(3)))]
+              for e in E}
+    vertex_row={}
+    for v in vertices:
+        for c in range(3):
+            key=tuple(sorted(idx[(e,c)] for e in E if v in e))
+            vertex_row[(v,c)]=row_to_id[key]
+    # Build one simple line-graph path in polynomial time.
+    parent={src_e:None};queue=[src_e]
+    for e in queue:
+        if dst_e in parent:break
+        for f in E:
+            if f not in parent and set(f)&set(e):
+                parent[f]=e;queue.append(f)
+    assert dst_e in parent
+    chain=[];cur=dst_e
+    while cur is not None:
+        chain.append(cur);cur=parent[cur]
+    chain.reverse()
+    assert chain[0]==src_e and chain[-1]==dst_e
+    original_incidence={
+        tuple(sorted((ri,n+v))) for ri,row in enumerate(rows) for v in row
+    }
+    paths=[]
+    for colour in range(3):
+        nodes=[edge_row[src_e]]
+        for pos,e in enumerate(chain):
+            nodes.append(n+idx[(e,colour)])
+            if pos+1<len(chain):
+                next_e=chain[pos+1]
+                common=set(e)&set(next_e)
+                assert len(common)==1
+                nodes.append(vertex_row[(next(iter(common)),colour)])
+            else:
+                nodes.append(edge_row[dst_e])
+        assert len(nodes)==len(set(nodes))
+        path_edges={tuple(sorted((a,b)))
+                    for a,b in zip(nodes,nodes[1:])}
+        assert len(path_edges)==len(nodes)-1
+        assert path_edges<=original_incidence
+        paths.append((tuple(nodes),path_edges))
+    assert all(not(paths[i][1]&paths[j][1])
+               for i in range(3) for j in range(i+1,3))
+    return tuple(x[0] for x in paths)
+
+
+
 def main():
     # A bridged cubic graph is also a valid positive control
     # for Tanner connectivity; G itself need NOT be bridgeless.
@@ -173,6 +232,14 @@ def main():
         assert len(canonical_scl_components(rows,n))==1
         audited=certified_tanner_edge_connectivity(rows,n)
         assert audited["edge_connectivity"]==3
+        # Validate the *constructive* three colour-disjoint paths
+        # independently of the expensive Tanner cut enumerator.
+        # Sample every edge-row source pair on all small controls.
+        for e in E:
+            for f in E:
+                if e<f:
+                    paths=explicit_three_colour_layer_paths(E,e,f)
+                    assert len(paths)==3
         assert not audited["two_edge_cut_exists"]
         witness=brute_three_edge_coloring(E)
         assert (witness is not None)==expect
