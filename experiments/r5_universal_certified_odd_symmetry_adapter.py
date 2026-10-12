@@ -3,8 +3,7 @@
 
 A supplied permutation is UNTRUSTED until verified against EVERY original
 Exact-One triple. Verify it is a bijection, has O(n)-bounded odd order,
-acts with full order on all source row orbits (required by the current
-odd-symmetry PC3 kernel), and preserves all clauses exactly.
+permutes original source rows with orbit sizes dividing its odd order, and preserves all clauses exactly.
 
 Only then run the existing NO-LOSS odd-order GF2 PC3 orbit compression:
 1 in the full degree-3 Boolean polynomial-calculus space iff 1 occurs
@@ -43,11 +42,14 @@ def validate_odd_row_regular_symmetry(rows,n,sigma):
         canonical=tuple(sorted(row))
         if canonical in seen:continue
         current=canonical
-        for t in range(order):
+        orb=[]
+        while current not in orb:
             if current in seen:return None
-            seen.add(current)
+            orb.append(current)
             current=tuple(sorted(sigma[v] for v in current))
         if current!=canonical:return None
+        if order%len(orb)!=0 or len(orb)%2==0:return None
+        seen.update(orb)
     if len(seen)!=len(source):return None
     return order
 
