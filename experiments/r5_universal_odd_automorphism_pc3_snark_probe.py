@@ -138,7 +138,7 @@ def symmetric_generator(row,mask,kind,coord,sigma,order):
     return out
 
 
-def pc3_symmetry_test(rows,sigma,order):
+def pc3_symmetry_test(rows,sigma,order,emit_small_proof=False):
     n=len(rows);coord,dim,sizes=monomial_orbit_map(n,sigma,order)
     reps=row_orbits(rows,sigma,order)
     mult_p=monomial_masks(n,2)
@@ -174,6 +174,14 @@ def pc3_symmetry_test(rows,sigma,order):
                 check^=symmetric_generator(reps[ri],m,kind,coord,sigma,order)
                 support+=1
         assert check==1<<coord[0]
+        if emit_small_proof and support<=12:
+            terms=[
+                {'row_orbit':ri,'kind':kind,
+                 'monomial_variables':tuple(i for i in range(n) if (m>>i)&1)}
+                for j,(ri,m,kind) in enumerate(gen)
+                if (c>>j)&1
+            ]
+            print(f'ODD_SYM_PC3_SHORT_CERTIFICATE={terms}',flush=True)
     return refuted,{
         'full_pc3_monomials':sum(comb(n,j) for j in range(4)),
         'odd_invariant_monomials':dim,
