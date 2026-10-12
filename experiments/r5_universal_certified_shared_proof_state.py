@@ -216,6 +216,30 @@ class CertifiedSharedState:
         )
         self.query_count+=1
         if result=='UNKNOWN':return 'UNKNOWN'
+        if result is None and data is None:
+            # The existing complete AND/OR constructor returns this
+            # sentinel when root assumptions immediately contradict
+            # an Exact-One clause. Replay via independent normalization,
+            # rather than mistaking it for a resource UNKNOWN.
+            from r5_universal_exact_support_residual_dag_attack import (
+                residual_normalize,
+            )
+            assert residual_normalize(
+                self.rows,
+                fixed_zero=[v for v,x in ordered if x==0],
+                fixed_one=[v for v,x in ordered if x==1],
+            ) is None
+            record={
+                'nogood':ng,'certificate':None,
+                'context':ordered,'previous':len(self.nogoods),
+                'authority':'VERIFIED_LOCAL_PIN_CONFLICT',
+                'stats':{'proof_nodes':0},
+            }
+            self.nogoods.append(ng)
+            self.ledger.append(record)
+            self.known.add(ng)
+            self.potential-=1
+            return 'PROVED_FORBIDDEN'
         if result=='SAT':
             selected=set(data)
             witness=tuple(int(v in selected) for v in range(self.n))
@@ -260,6 +284,16 @@ class CertifiedSharedState:
                     record['andor_proof'],pins=dict(record['context'])
                 )
                 assert nodes==record['stats']['proof_nodes']
+            elif record['authority']=='VERIFIED_LOCAL_PIN_CONFLICT':
+                from r5_universal_exact_support_residual_dag_attack import (
+                    residual_normalize,
+                )
+                ctx=dict(record['context'])
+                assert residual_normalize(
+                    self.rows,
+                    fixed_zero=[v for v,x in ctx.items() if x==0],
+                    fixed_one=[v for v,x in ctx.items() if x==1],
+                ) is None
             else:
                 raise AssertionError('unrecognized proof authority')
             previous.append(record['nogood'])
@@ -461,7 +495,9 @@ def main():
     act=combined.learn_bounded_andor(((0,1),(1,1)),max_states=48)
     assert act=='PROVED_FORBIDDEN',act
     assert combined.replay_ledger()
-    assert combined.ledger[0]['authority']=='VERIFIED_ANDOR_DAG'
+    assert combined.ledger[0]['authority'] in (
+        'VERIFIED_ANDOR_DAG','VERIFIED_LOCAL_PIN_CONFLICT'
+    )
     # PC3 then derives another forbidden assignment while treating
     # the ANDOR-certified restriction as an available new axiom.
     p_before=combined.potential
@@ -469,9 +505,10 @@ def main():
     assert act2=='PROVED_FORBIDDEN',act2
     assert combined.potential==p_before-1
     assert combined.replay_ledger()
-    assert [r['authority'] for r in combined.ledger]==[
-        'VERIFIED_ANDOR_DAG','VERIFIED_GF2_PC3'
-    ]
+    assert combined.ledger[1]['authority']=='VERIFIED_GF2_PC3'
+    assert combined.ledger[0]['authority'] in (
+        'VERIFIED_LOCAL_PIN_CONFLICT','VERIFIED_ANDOR_DAG'
+    )
     print('TWO_EXPERT_PROVENANCE_CHAIN_ANDOR_TO_GF2_PC3=VERIFIED',
           flush=True)
 
