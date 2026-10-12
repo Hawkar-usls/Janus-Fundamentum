@@ -86,6 +86,42 @@ def verify_uniform_odd_invariant(T):
     return True
 
 
+def abstract_boundary_state(s):
+    """Eight live quotient labels: D+/- or E_(singleton,repeated)."""
+    distinct=len(set(s))
+    if distinct==3:
+        return ("D",parity(s))
+    if distinct==2:
+        singleton=next(col for col in COLOURS if s.count(col)==1)
+        repeated=next(col for col in COLOURS if s.count(col)==2)
+        return ("E",singleton,repeated)
+    return ("DEAD",s[0])
+
+
+def verify_eight_state_quotient(T):
+    live={abstract_boundary_state(s) for s in STATES
+          if len(set(s)) in (2,3)}
+    assert len(live)==8,live
+    for s in STATES:
+        kind=abstract_boundary_state(s)
+        for t in STATES:
+            if not T[STATE_INDEX[s]][STATE_INDEX[t]]:
+                continue
+            actual=abstract_boundary_state(t)
+            if kind[0]=="D":
+                assert actual==kind
+                assert abstract_boundary_state(twist(t))==(
+                    "D",1-kind[1])
+            else:
+                assert kind[0]=="E"
+                singleton,rep=kind[1:]
+                flipped=next(v for v in COLOURS
+                             if v not in (singleton,rep))
+                assert actual==("E",singleton,flipped)
+                assert abstract_boundary_state(twist(t))==actual
+    return live
+
+
 def boolean_power_paths(T,k):
     """Independent bounded 27-state path reachability, O(k * 27^3)."""
     size=len(STATES)
@@ -123,6 +159,8 @@ def verify_authenticated_flower_unsat(rows,n,k):
 def main():
     T=construct_transfer()
     assert verify_uniform_odd_invariant(T)
+    quotient=verify_eight_state_quotient(T)
+    print(f"FLOWER_EIGHT_STATE_QUOTIENT_CERTIFIED={len(quotient)}",flush=True)
     print("FLOWER_27_STATE_TRANSFER_LOCAL_COMPATIBILITY=48_OF_729",flush=True)
     print("FLOWER_ALL_ODD_K_SYMBOLIC_TRANSFER_PARITY_UNSAT=PROVED",
           flush=True)
