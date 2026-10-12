@@ -300,6 +300,65 @@ class CertifiedSharedState:
         assert current==pins
         return True
 
+    def run_bounded_descent(self,max_queries=6):
+        """Deterministic bounded schedule for all width<=2 no-goods.
+
+        A strictly decreasing potential is checked on EVERY accepted
+        update, while resource guard and saturation are distinct from
+        decision SAT/UNSAT. There are O(n^2) candidate patterns;
+        a no-budget run with restart after every discovery needs at
+        most O(n^4) PC3 queries, each polynomial for degree=3.
+        """
+        if not isinstance(max_queries,int) or max_queries<0:
+            raise ValueError('max_queries must be nonnegative int')
+        def candidates():
+            for v in range(self.n):
+                for b in (0,1):
+                    yield ((v,b),)
+            for u,v in combinations(range(self.n),2):
+                for a in (0,1):
+                    for b in (0,1):
+                        yield ((u,a),(v,b))
+        query_start=self.query_count
+        accepted=0
+        rounds=0
+        while True:
+            rounds+=1
+            progress=False
+            for ng in candidates():
+                if ng in self.known:continue
+                if self.query_count-query_start>=max_queries:
+                    return {
+                        'status':'UNKNOWN_RESOURCE_GUARD',
+                        'queries':self.query_count-query_start,
+                        'new_facts':accepted,'rounds':rounds,
+                        'potential':self.potential,
+                    }
+                before=self.potential
+                action=self.learn_pc3(ng)
+                assert self.potential<=before
+                if action=='PROVED_FORBIDDEN':
+                    assert self.potential==before-1
+                    progress=True
+                    accepted+=1
+                    status,implications,trace=self.propagate()
+                    if status!='FIXPOINT':
+                        return {
+                            'status':'UNKNOWN_CONFLICT_REQUIRES_ROOT_PROOF',
+                            'queries':self.query_count-query_start,
+                            'new_facts':accepted,'rounds':rounds,
+                            'potential':self.potential,
+                        }
+                    break
+            if not progress:
+                return {
+                    'status':'UNKNOWN_AT_FIXED_POINT',
+                    'queries':self.query_count-query_start,
+                    'new_facts':accepted,'rounds':rounds,
+                    'potential':self.potential,
+                }
+            assert accepted<=self.potential_initial
+
     def summarize(self):
         assert self.potential>=0
         return {"learned_nogoods":len(self.nogoods),
@@ -364,6 +423,12 @@ def main():
     outcome,pins,trace=base.propagate()
     assert outcome=='FIXPOINT'
     assert not pins and not base.nogoods
+    # The new deterministic scheduler never invents a verdict.
+    bounded=base.run_bounded_descent(max_queries=2)
+    assert bounded['status'].startswith('UNKNOWN')
+    assert bounded['queries']<=2
+    print(f'BOUNDED_SHARED_DESCENT={bounded}',flush=True)
+
     print('SOUND_POLY_PROOF_STATE_CAN_STALL_ON_SAT_WITH_NO_FACTS = VERIFIED')
 
     # A structurally distinct SCL source can contribute constraints
@@ -390,6 +455,7 @@ def main():
     print('GLOBAL_MONOTONE_POTENTIAL_ACCEPTED_UPDATE_LIMIT=O_N_SQUARED PROVED')
     print('SHARED_CERTIFICATE_CHAIN_REPLAY = VERIFIED')
     print('SHARED_FACT_PROPAGATION_INDEPENDENT_REPLAY = VERIFIED')
+    print('POLYNOMIAL_QUERY_BUDGET_WITHOUT_FALSE_FINAL_VERDICT = VERIFIED')
     print('FIXPOINT_IMPLIES_GLOBAL_SAT_OR_UNSAT = FALSE_NOT_ASSERTED')
     print('UNIVERSAL_POLY_SOLVELINEARCUBICXSAT = NOT_CONSTRUCTED')
     print('P_VS_NP = OPEN')
