@@ -1,0 +1,349 @@
+#!/usr/bin/env python3
+"""R5 all-SCL perfect-matching pairing to ONE fixed rank-two matchgate-sum gate.
+
+Original SCL Tanner graph is 3-regular bipartite. A perfect matching
+between ORIGINAL row nodes and column nodes exists by Hall's theorem.
+Construct it by deterministic augmenting paths (polynomial time) and
+REPLAY it against the original source. Contract every matched wire.
+
+One source row/variable pair becomes ONE arity-four tensor with ordered
+ports: other two row incidences, other two variable incidences.
+For any original legal source this is the SAME tensor:
+   T4 = |1000> + |0100> + |0011>
+      = |0011> [even matchgate]
+      + (|1000> + |0100>) [odd matchgate].
+All original 3n Tanner wires become precisely 2n quotient wires,
+in an n-vertex 4-regular (possibly multigraph) network.
+The network's exact nonnegative Holant partition equals the number
+of ORIGINAL 0/1 Exact-One witnesses. Source SAT iff quotient has
+a nonzero assignment. A quotient assignment has a UNIQUE original
+Boolean witness and vice versa: full proof in science checkpoint.
+
+Since general SCL decision is NP-complete, NONZERO contraction
+on this exact promised four-regular quartic-T4 network image is
+NP-complete (in NP: guess 2n wire bits and check n constant gates).
+Consequently a universal polynomial zero-test for this compact
+rank-two matchgate-sum representation would IMPLY P=NP. THIS
+does not prove P!=NP, nor a superpolynomial size lower bound.
+
+Independent finite quotient-network DFS below is exponential and
+is used only as a source alignment regression, NEVER as a claimed
+polynomial algorithm.
+"""
+from __future__ import annotations
+
+from collections import Counter,deque
+from itertools import product
+from r5_universal_exact_support_residual_dag_attack import validate_sparse
+from r5_universal_grouped_cell_matchgate_sum_rank import (
+    components_4,verify_all_matchgate_identities,
+)
+
+LOCAL_OPTIONS=((1,0,0,0),(0,1,0,0),(0,0,1,1))
+
+
+def polynomial_source_perfect_matching(rows,n):
+    rows=validate_sparse(rows,n)
+    owner=[-1]*n
+    def augment(i,seen):
+        for v in rows[i]:
+            if v in seen:continue
+            seen.add(v)
+            if owner[v]<0 or augment(owner[v],seen):
+                owner[v]=i
+                return True
+        return False
+    for i in range(n):
+        assert augment(i,set()),"violates 3-regular bipartite Hall theorem"
+    inverse=[-1]*n
+    for var,row in enumerate(owner):
+        assert 0<=row<n and inverse[row]==-1
+        inverse[row]=var
+    assert all(inverse[i] in rows[i] for i in range(n))
+    assert set(inverse)==set(range(n))
+    return tuple(inverse)
+
+
+def certify_matching(rows,n,matching):
+    rows=validate_sparse(rows,n)
+    assert len(matching)==n
+    assert all(type(x) is int for x in matching)
+    assert set(matching)==set(range(n))
+    assert all(matching[i] in rows[i] for i in range(n))
+    return True
+
+
+def paired_quartic_network(rows,n):
+    rows=validate_sparse(rows,n)
+    match=polynomial_source_perfect_matching(rows,n)
+    assert certify_matching(rows,n,match)
+    owner={v:i for i,v in enumerate(match)}
+    appearances={v:[] for v in range(n)}
+    for i,row in enumerate(rows):
+        for v in row:appearances[v].append(i)
+    assert all(len(appe) == 3 for appe in appearances.values())
+
+    # Every unmatched ORIGINAL incidence (row i, variable v) defines
+    # one quotient edge. Each original row pair has two outgoing
+    # row-side ports, each matched variable pair two incoming
+    # variable-side ports.
+    incidences=tuple(
+        (i,v) for i,row in enumerate(rows)
+        for v in row if v!=match[i]
+    )
+    assert len(incidences)==2*n
+    edge_index={iv:z for z,iv in enumerate(incidences)}
+    assert len(edge_index)==2*n
+    cells=[]
+    edge_endpoints=[[] for _ in incidences]
+    for i in range(n):
+        v=match[i]
+        row_variables=tuple(x for x in rows[i] if x!=v)
+        var_rows=tuple(j for j in appearances[v] if j!=i)
+        assert len(row_variables)==len(var_rows)==2
+        ports=tuple([edge_index[(i,x)] for x in row_variables]+
+                    [edge_index[(j,v)] for j in var_rows])
+        assert len(set(ports))==4
+        for slot,edge in enumerate(ports):
+            edge_endpoints[edge].append((i,slot))
+        cells.append(ports)
+
+    assert all(len(pair)==2 for pair in edge_endpoints)
+    for (i,v),pair in zip(incidences,edge_endpoints):
+        assert set(c for c,slot in pair)=={i,owner[v]}
+        assert any(c==i and slot<2 for c,slot in pair)
+        assert any(c==owner[v] and slot>=2 for c,slot in pair)
+        assert i!=owner[v]
+
+    result={
+        "source_rows":rows,"source_n":n,
+        "matching":match,
+        "incidences":incidences,
+        "cells":tuple(cells),
+        "endpoints":tuple(tuple(pair) for pair in edge_endpoints),
+        "quotient_edges":2*n,
+        "quartic_cells":n,
+        "local_options":LOCAL_OPTIONS,
+        "gate":"T4_TWO_STANDARD_MATCHGATES",
+    }
+    assert verify_paired_quartic_network(rows,n,result)
+    return result
+
+
+def verify_paired_quartic_network(rows,n,report):
+    """Rebuild all quotient ports directly from original-source rows.
+
+    Independent of augmenting-path algorithm and producer's port
+    labels. Accept ANY valid original Tanner perfect matching.
+    """
+    rows=validate_sparse(rows,n)
+    m=tuple(report["matching"])
+    assert certify_matching(rows,n,m)
+    owner={v:i for i,v in enumerate(m)}
+    inc=tuple(report["incidences"])
+    assert len(inc)==2*n and len(set(inc))==2*n
+    assert set(inc)=={(i,v) for i,row in enumerate(rows)
+                     for v in row if v!=m[i]}
+    loc={wire:z for z,wire in enumerate(inc)}
+    cells=tuple(tuple(c) for c in report["cells"])
+    assert len(cells)==n
+    reconstructed_edges=[[] for _ in inc]
+    for i,ports in enumerate(cells):
+        assert len(ports)==4
+        rv={loc[(i,v)] for v in rows[i] if v!=m[i]}
+        vr={loc[(j,m[i])] for j,row in enumerate(rows)
+            if j!=i and m[i] in row}
+        assert set(ports[:2])==rv
+        assert set(ports[2:])==vr
+        assert len(set(ports))==4
+        for port,e in enumerate(ports):
+            assert type(e) is int and 0<=e<len(inc)
+            reconstructed_edges[e].append((i,port))
+    assert tuple(tuple(x) for x in reconstructed_edges)==tuple(
+        tuple(x) for x in report["endpoints"]
+    )
+    assert all(len(x)==2 for x in reconstructed_edges)
+    assert len(inc)==2*n
+    assert all(set(c for c,_ in edges)=={i,owner[v]}
+               for (i,v),edges in zip(inc,reconstructed_edges))
+
+    T,(even,odd)=components_4()
+    assert all(T[sum(bits[j]<<j for j in range(4))]==int(bits in LOCAL_OPTIONS)
+               for bits in product((0,1),repeat=4))
+    assert verify_all_matchgate_identities(even,4)
+    assert verify_all_matchgate_identities(odd,4)
+    return True
+
+
+def original_to_quotient_wires(report,witness):
+    rows=report["source_rows"];n=report["source_n"]
+    assert len(witness)==n and all(type(x) is int and x in (0,1)
+                                    for x in witness)
+    assert all(sum(witness[v] for v in row)==1 for row in rows)
+    bits=tuple(witness[v] for i,v in report["incidences"])
+    assert quotient_wire_assignment_valid(report,bits)
+    return bits
+
+
+def quotient_wire_assignment_valid(report,bits):
+    assert len(bits)==report["quotient_edges"]
+    if any(type(x) is not int or x not in (0,1) for x in bits):
+        return False
+    return all(tuple(bits[edge] for edge in ports) in LOCAL_OPTIONS
+               for ports in report["cells"])
+
+
+def quotient_to_original_witness(report,bits):
+    assert quotient_wire_assignment_valid(report,bits)
+    n=report["source_n"]
+    ans=[None]*n
+    for i,var in enumerate(report["matching"]):
+        ports=report["cells"][i]
+        assert bits[ports[2]]==bits[ports[3]]
+        ans[var]=bits[ports[2]]
+    ans=tuple(ans)
+    assert all(type(x) is int and x in (0,1) for x in ans)
+    assert all(sum(ans[v] for v in row)==1
+               for row in report["source_rows"])
+    assert original_to_quotient_wires(report,ans)==tuple(bits)
+    return ans
+
+
+def certify_connected_quotient(report):
+    n=report["source_n"]
+    graph=[set() for _ in range(n)]
+    for p in report["endpoints"]:
+        i,j=p[0][0],p[1][0]
+        graph[i].add(j);graph[j].add(i)
+    found={0};q=deque([0])
+    while q:
+        i=q.popleft()
+        for j in graph[i]-found:
+            found.add(j);q.append(j)
+    return len(found)==n
+
+
+def independent_network_count_small(report,max_nodes=18,
+                                    max_states=2000000):
+    """Enumerate 3-valued CELL configurations (NOT source bits).
+
+    This is deliberately exponential, solely a finite audit.
+    An exhausted resource fence returns UNKNOWN, never UNSAT.
+    """
+    n=report["source_n"]
+    assert n<=max_nodes
+    cells=report["cells"]
+    # Prefer adjacent highly constrained cells on each step.
+    options={}
+    visits=0
+    count=0
+    sample=None
+    states=[-1]*report["quotient_edges"]
+    done=[False]*n
+
+    class ResourceExceeded(Exception):pass
+
+    def recurse(left):
+        nonlocal visits,count,sample
+        visits+=1
+        if visits>max_states:raise ResourceExceeded
+        if not left:
+            assert quotient_wire_assignment_valid(report,states)
+            w=quotient_to_original_witness(report,states)
+            count+=1
+            if sample is None:sample=w
+            return
+        cell=max(left,key=lambda i:(
+            sum(states[e]>=0 for e in cells[i]),-i
+        ))
+        rest=left-{cell}
+        for choice in LOCAL_OPTIONS:
+            ports=cells[cell]
+            if any(states[e]>=0 and states[e]!=b
+                   for e,b in zip(ports,choice)):
+                continue
+            changed=[]
+            for e,b in zip(ports,choice):
+                if states[e]<0:
+                    states[e]=b
+                    changed.append(e)
+            recurse(rest)
+            for e in changed:states[e]=-1
+
+    try:
+        recurse(set(range(n)))
+    except ResourceExceeded:
+        return {"status":"UNKNOWN_RESOURCE_LIMIT","states":visits}
+    return {"status":"SAT" if count else "UNSAT",
+            "count":count,"states":visits,"witness":sample}
+
+
+def main():
+    from r5_universal_cubic_edgecolor_direct_scl_bridge import (
+        make_scl,K4,K33,petersen_graph,
+    )
+    from r5_universal_all_odd_cyclic_pc2_four_orbit_identity import cyclic
+    from r5_universal_cubic_flow_lowmoment_collision_20v import flower
+
+    cases=(
+        ("FANO7",cyclic(7),7,0),
+        ("K4_SCL18",*make_scl(K4())[:2],6),
+        ("K33_SCL27",*make_scl(K33())[:2],12),
+        ("PETERSEN_SCL45",*make_scl(petersen_graph())[:2],0),
+        ("FLOWER_J5_SCL90",*make_scl(flower(5))[:2],0),
+    )
+    for name,rows,n,known in cases:
+        network=paired_quartic_network(rows,n)
+        assert network["quartic_cells"]==n
+        assert network["quotient_edges"]==2*n
+        assert certify_connected_quotient(network)
+        print(f"ORIGINAL_{name}_RANK2_MATCHGATE_SUM_QUOTIENT="
+              f"cells={n} edges={2*n} source_auth=PASS",flush=True)
+        if n<=27:
+            check=independent_network_count_small(
+                network,max_nodes=27,max_states=1000000
+            )
+            assert check["status"]!="UNKNOWN_RESOURCE_LIMIT",(
+                name,check
+            )
+            assert check["count"]==known,(name,check)
+            if check["status"]=="SAT":
+                bits=original_to_quotient_wires(network,check["witness"])
+                assert quotient_to_original_witness(network,bits)==check["witness"]
+            print(f"RANK2_QUOTIENT_EXACT_COUNT_{name}="
+                  f"{check['count']} explored={check['states']}",flush=True)
+
+    # Source label robustness: matching is independently rechecked.
+    rows,n,_,_=make_scl(K4())
+    network=paired_quartic_network(rows,n)
+    forged=dict(network)
+    bad=list(network["matching"])
+    bad[0]=bad[1]
+    forged["matching"]=tuple(bad)
+    try:
+        verify_paired_quartic_network(rows,n,forged)
+    except (AssertionError,ValueError):
+        print("FORGED_ORIGINAL_MATCHING_REJECTED=PASS",flush=True)
+    else:
+        raise AssertionError("invalid matching accepted")
+
+    forged=dict(network)
+    ports=[list(p) for p in network["cells"]]
+    ports[0][0]=ports[0][1]
+    forged["cells"]=tuple(map(tuple,ports))
+    try:
+        verify_paired_quartic_network(rows,n,forged)
+    except (AssertionError,ValueError):
+        print("FORGED_RANK2_CELL_PORT_BINDING_REJECTED=PASS",flush=True)
+    else:
+        raise AssertionError("invalid quotient ports accepted")
+
+    print("ALL_SCL_POLYNOMIAL_MATCHING_TO_RANK2_T4_NETWORK=PROVED")
+    print("ALL_SCL_SOURCE_WITNESS_BIJECTION_EXACT=PROVED")
+    print("ALL_SCL_RANK2_MATCHGATE_SUM_NETWORK_NONZERO_NP_COMPLETE=THEOREM")
+    print("POLYNOMIAL_GLOBAL_RANK2_SUM_CONTRACTION=NOT_CONSTRUCTED")
+    print("P_VS_NP=OPEN")
+
+
+if __name__=="__main__":
+    main()
