@@ -94,6 +94,19 @@ def cut_open_fragments(rows,n,cut):
     return (left,right),(u,w)
 
 
+def arithmetic_two_port_allowed(piece,values):
+    """Exact original source-row sum certificate for boundary states.
+
+    For the left side, r original rows and r internal variables:
+      3 * internal selected variables = r + x_u - x_w.
+    Modulo 3 this is necessary for every satisfying assignment.
+    """
+    assert len(values)==2
+    u,w=values
+    residue=len(piece['row_indices'])%3
+    return (residue+u-w)%3==0
+
+
 def local_pins(piece,pins,ports,values):
     assert len(ports)==2 and len(values)==2
     desired=dict(pins)
@@ -191,6 +204,10 @@ def verify_two_port_report(rows,n,pins,report):
             assert any(v in pins and pins[v]!=x
                        for v,x in zip(ports,(a,b)))
             continue
+        if record['status']=='CUT_MOD3_CONFLICT':
+            assert record['residue']==len(parts[0]['row_indices'])%3
+            assert not arithmetic_two_port_allowed(parts[0],(a,b))
+            continue
         assert record['status']=='SIDE_UNSAT'
         side=record['side']
         assert side in (0,1)
@@ -229,6 +246,13 @@ def certified_two_port_signature(rows,n,pins=None,max_states=100,
         if any(v in pins and pins[v]!=b for v,b in value_pins.items()):
             cases.append({
                 'port_values':values,'status':'ORIGINAL_PIN_CONFLICT'
+            })
+            continue
+        if not arithmetic_two_port_allowed(pieces[0],values):
+            cases.append({
+                'port_values':values,'status':'CUT_MOD3_CONFLICT',
+                'residue':len(pieces[0]['row_indices'])%3,
+                'proof_authority':'EXACT_ORIGINAL_ROW_SUM_MOD3',
             })
             continue
         neg=None;models=[];unknown=False
@@ -334,6 +358,16 @@ def main():
     assert verifier['verified']
     print('TWO_PORT_CONTRADICTORY_BOUNDARY_PIN_FULL_CERTIFICATE=PASS',
           flush=True)
+    instant=certified_two_port_signature(
+        positives,n,pins=blocked,max_states=0
+    )
+    assert instant['status']=='UNSAT'
+    assert verify_two_port_report(positives,n,blocked,instant)['verified']
+    assert all(c['status'] in (
+        'ORIGINAL_PIN_CONFLICT','CUT_MOD3_CONFLICT'
+    ) for c in instant['boundary_cases'])
+    print('TWO_PORT_PIN_CONFLICT_MOD3_ZERO_INNER_STATES_UNSAT=PROVED',
+          flush=True)
     integrated_negative=SolveLinearCubicXSAT_Portfolio(
         positives,n,pins=blocked,poly_only=True,
         pc3_max_n=0,bounded_states=0,
@@ -394,6 +428,7 @@ def main():
     assert rejected, 'corrupt independent certificate was accepted'
     print('TWO_PORT_CORRUPTED_LOCAL_UNSAT_DAG_REJECTED=PASS',flush=True)
 
+    print('TWO_PORT_ARITHMETIC_RESIDUE_REDUCES_4_STATES_TO_AT_MOST_2_OR_1=PROVED')
     print('EXACT_TWO_PORT_ALGEBRA_SOUND_COMPLETE_WITH_UNBOUNDED_FALLBACK=PROVED')
     print('POLY_TWO_PORT_ATOMIC_SIGNATURE_CONSTRUCTION=OPEN')
     print('UNIVERSAL_POLY_SOLVELINEARCUBICXSAT=NOT_CONSTRUCTED')
