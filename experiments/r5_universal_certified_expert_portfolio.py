@@ -46,9 +46,12 @@ def witness_verified(rows,n,pins,witness):
 
 def SolveLinearCubicXSAT_Portfolio(
     rows,n,pins=None,*,poly_only=True,
-    pc3_max_n=48,bounded_states=48,
+    pc3_max_n=48,bounded_states=48,shared_state=None,
 ):
     """Correct on EVERY legal SCL input. Poly mode may return UNKNOWN.
+
+    Optional shared_state replays its entire certificate + propagation
+    ledger before strengthening pins passed to *all* downstream experts.
 
     For fixed nonnegative pc3_max_n and bounded_states, the poly path
     is polynomial worst-case bit time (conservatively O(n^9) from
@@ -94,6 +97,26 @@ def SolveLinearCubicXSAT_Portfolio(
         events.append('INCIDENCE_CARDINALITY')
         return result('UNSAT','INCIDENCE_CARDINALITY',
                       'THREE_TIMES_SELECTED_COUNT_MUST_EQUAL_N')
+
+    # Incoming proof-state is trusted ONLY after full certificate-chain
+    # and independently replayed literal implication checks. It must
+    # represent precisely the same original source and caller pins.
+    if shared_state is not None:
+        assert shared_state.n==n
+        assert tuple(shared_state.rows)==tuple(rows)
+        assert tuple(shared_state.base_pins)==tuple(sorted(pins.items()))
+        verdict,derived_pins,trace=shared_state.propagate()
+        if verdict!='FIXPOINT':
+            raise ValueError(
+                'shared UNSAT conflict needs a separately replayable '
+                'root refutation before publishing an UNSAT verdict'
+            )
+        assert shared_state.independently_replay_propagation(
+            derived_pins,trace
+        )
+        assert all(derived_pins[v]==value for v,value in pins.items())
+        pins=derived_pins
+        events.append('CERTIFIED_SHARED_NOGOOD_AND_EXACTONE_PROPAGATION')
 
     root=ExactSupportHybrid_sparse(rows,n,pins=pins,max_states=0)
     events.append('HYBRID_ROOT_GF2_MOD9_AND_CLOSURE')
