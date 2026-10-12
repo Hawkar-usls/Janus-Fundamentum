@@ -212,7 +212,6 @@ class CertifiedSharedState:
             additions={}
             def conclude(var,value,why):
                 if var in pins:
-                    assert pins[var]==value or True
                     if pins[var]!=value:
                         return ('CONFLICT',var,value,why)
                     return None
@@ -252,13 +251,54 @@ class CertifiedSharedState:
                         self.stored_pins[v]=x
                         self.potential-=1
                 self.prop_trace=trace
-                self.replay_ledger()
+                self.independently_replay_propagation(pins,trace)
                 assert self.potential==self.potential_initial-len(self.nogoods)-len(self.stored_pins)
                 return 'FIXPOINT',pins,trace
             for v,(value,why) in sorted(additions.items()):
                 pins[v]=value
                 trace.append(('IMPLIED',v,value,why))
         raise AssertionError('sound unit propagation exceeded n additions')
+
+    def independently_replay_propagation(self,pins,trace):
+        """Independent sequential checker of each asserted derived literal.
+
+        Unlike the production closure routine, replay performs no
+        propagation or search: each supplied trace step is checked
+        against already known literals and original clauses/ledger.
+        """
+        assert self.replay_ledger()
+        current=dict(self.base_pins)
+        for record in trace:
+            assert len(record)==4 and record[0]=='IMPLIED',record
+            _,v,value,reason=record
+            assert v not in current and value in (0,1)
+            kind=reason[0]
+            if kind=='EXACT_ONE_TRUE':
+                _,ci,one=reason
+                assert 0<=ci<len(self.rows)
+                row=self.rows[ci]
+                assert v in row and one in row and v!=one
+                assert current.get(one)==1 and value==0
+            elif kind=='EXACT_ONE_TWO_ZEROS':
+                _,ci,zeros=reason
+                assert 0<=ci<len(self.rows)
+                row=self.rows[ci]
+                assert v in row and len(zeros)==2
+                assert all(z in row and z!=v and current.get(z)==0
+                           for z in zeros)
+                assert value==1
+            elif kind=='LEARNED_NOGOOD_UNIT':
+                _,ni=reason
+                assert 0<=ni<len(self.nogoods)
+                ng=self.nogoods[ni]
+                assert (v,1-value) in ng
+                assert all(current.get(u)==b
+                           for u,b in ng if u!=v)
+            else:
+                raise AssertionError(('unknown provenance',kind))
+            current[v]=value
+        assert current==pins
+        return True
 
     def summarize(self):
         assert self.potential>=0
@@ -302,6 +342,7 @@ def main():
     assert status=='FIXPOINT' and pins[1]==0 and pins[2]==0
     assert len(local.nogoods)==1
     assert local.replay_ledger()
+    assert local.independently_replay_propagation(pins,trace)
     p1=local.potential
     # Portfolio consumes the derived pins as exact context, not
     # speculative guesses, and still independently checks witness.
@@ -347,6 +388,7 @@ def main():
 
     print('GLOBAL_MONOTONE_POTENTIAL_ACCEPTED_UPDATE_LIMIT=O_N_SQUARED PROVED')
     print('SHARED_CERTIFICATE_CHAIN_REPLAY = VERIFIED')
+    print('SHARED_FACT_PROPAGATION_INDEPENDENT_REPLAY = VERIFIED')
     print('FIXPOINT_IMPLIES_GLOBAL_SAT_OR_UNSAT = FALSE_NOT_ASSERTED')
     print('UNIVERSAL_POLY_SOLVELINEARCUBICXSAT = NOT_CONSTRUCTED')
     print('P_VS_NP = OPEN')
