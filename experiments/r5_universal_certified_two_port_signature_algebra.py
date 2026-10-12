@@ -368,6 +368,24 @@ def main():
     ) for c in instant['boundary_cases'])
     print('TWO_PORT_PIN_CONFLICT_MOD3_ZERO_INNER_STATES_UNSAT=PROVED',
           flush=True)
+    forged={**instant}
+    bad_records=[dict(x) for x in instant['boundary_cases']]
+    attacked=False
+    for entry in bad_records:
+        if entry['status']=='CUT_MOD3_CONFLICT':
+            entry['residue']=(entry['residue']+1)%3
+            attacked=True
+            break
+    assert attacked
+    forged['boundary_cases']=tuple(bad_records)
+    bad_mod3_rejected=False
+    try:
+        verify_two_port_report(positives,n,blocked,forged)
+    except (AssertionError,KeyError):
+        bad_mod3_rejected=True
+    assert bad_mod3_rejected
+    print('TWO_PORT_FORGED_MOD3_CUT_ARITHMETIC_PROOF_REJECTED=VERIFIED',
+          flush=True)
     integrated_negative=SolveLinearCubicXSAT_Portfolio(
         positives,n,pins=blocked,poly_only=True,
         pc3_max_n=0,bounded_states=0,
@@ -428,6 +446,15 @@ def main():
     assert rejected, 'corrupt independent certificate was accepted'
     print('TWO_PORT_CORRUPTED_LOCAL_UNSAT_DAG_REJECTED=PASS',flush=True)
 
+    # Atomic core safeguard: Fano's genuine 3-edge-connected Tanner
+    # graph does not acquire a fake 2-port signature or negative
+    # conclusion just because the global source is UNSAT.
+    from r5_universal_all_odd_cyclic_pc2_four_orbit_identity import cyclic
+    atomic=certified_two_port_signature(cyclic(7),7,max_states=0)
+    assert atomic['status']=='UNKNOWN'
+    assert atomic['reason']=='NO_TANNER_TWO_CUT'
+    print('THREE_EDGE_CONNECTED_ATOMIC_SOURCE_HAS_NO_FAKE_PORT_SIGNATURE=VERIFIED',
+          flush=True)
     print('TWO_PORT_ARITHMETIC_RESIDUE_REDUCES_4_STATES_TO_AT_MOST_2_OR_1=PROVED')
     print('EXACT_TWO_PORT_ALGEBRA_SOUND_COMPLETE_WITH_UNBOUNDED_FALLBACK=PROVED')
     print('POLY_TWO_PORT_ATOMIC_SIGNATURE_CONSTRUCTION=OPEN')
