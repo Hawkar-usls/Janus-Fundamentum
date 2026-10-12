@@ -163,6 +163,40 @@ def gf2_certified_source_closure(rows,n,pins=None):
     return report
 
 
+def bridged_join_of_two_cubic_graphs(first,second):
+    """Polynomial-size connected cubic bridge construction, no enumeration.
+
+    For each given simple cubic graph remove one edge a-b, subdivide it
+    with a fresh vertex s; do the same in another disjoint graph; join
+    the subdivision vertices by one bridge. The result is connected
+    simple cubic whenever both input components are connected.
+    """
+    from r5_universal_cubic_edgecolor_direct_scl_bridge import (
+        validate_cubic_graph,
+    )
+    v1,e1=validate_cubic_graph(first)
+    v2,e2=validate_cubic_graph(second)
+    n1=len(v1);n2=len(v2)
+    assert v1==tuple(range(n1)) and v2==tuple(range(n2))
+    a,b=e1[0]
+    c,d=e2[0]
+    c+=n1;d+=n1
+    s=n1+n2;t=s+1
+    raw=[edge for edge in e1 if edge!=(a,b)]
+    raw+= [(x+n1,y+n1) for x,y in e2
+           if (x,y)!=e2[0]]
+    raw+= [(a,s),(b,s),(c,t),(d,t),(s,t)]
+    vv,E=validate_cubic_graph(raw)
+    assert len(vv)==n1+n2+2
+    from r5_universal_atomic_gf4_cycle_cut_fourier_duality import (
+        exact_bridge_witness,
+    )
+    witness=exact_bridge_witness(E)
+    assert witness is not None
+    return E,witness
+
+
+
 def main():
     from r5_universal_atomic_gf4_cycle_cut_fourier_duality import (
         bridged_cubic_graph,
@@ -182,6 +216,34 @@ def main():
     print(f'BRIDGED_ATOMIC_SCL_GF2_NO_GRAPH_HINT_UNSAT=VERIFIED '
           f'n={n} forced={len(report["forced"])} '
           f'pair_relations={len(report["pairs"])}',flush=True)
+
+    # BROAD infinite source theorem: any connected cubic bridge yields
+    # GF2-forced x_(bridge,c)=1 for ALL 3 colour variables, since
+    # summing the colour-c vertex rows over the odd bridge shore
+    # cancels internal variables twice and leaves that lone bit.
+    # The edge-row exactly-one equation forbids all three being 1.
+    from r5_universal_cubic_edgecolor_direct_scl_bridge import (
+        cube_graph,
+    )
+    for label,g1,g2 in (
+        ('K4_K4',K4(),K4()),
+        ('K4_K33',K4(),K33()),
+        ('K33_K33',K33(),K33()),
+        ('K4_CUBE',K4(),cube_graph()),
+        ('K4_PETERSEN',K4(),petersen_graph()),
+    ):
+        joined,bcert=bridged_join_of_two_cubic_graphs(g1,g2)
+        formula,joint_n,normalized,indices=make_scl(joined)
+        direct=gf2_certified_source_closure(formula,joint_n)
+        assert direct['status']=='UNSAT'
+        assert direct['reason']=='EXACTONE_FORCED_CLAUSE_CONFLICT'
+        left=dict((v,b) for v,b,_ in direct['forced'])
+        for colour in range(3):
+            assert left[indices[(tuple(bcert['bridge']),colour)]]==1
+        assert verify_gf2_ledger(formula,joint_n,{},direct)
+        print(f'FAMILY_BRIDGED_{label}_NO_HINT_UNSAT '
+              f'source_n={joint_n} forced={len(direct["forced"])}',
+              flush=True)
 
     # No symmetry, Holyer, or graph metadata supplied to this main
     # solver. Disable PC3, residual search and graph-hint gates so
