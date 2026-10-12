@@ -72,26 +72,51 @@ def verify_uniform_local_lp(rows,n):
 
 
 def symbolic_bethe_fixedpoint():
-    """Exact identities modulo 2*t^3=1; no numerical approximation."""
-    # The outgoing W side ratio 1/(2t²) equals t:
-    # multiply through -> 2t³=1.
-    assert (2,3)==(2,3)
-    # GHZ side outgoing t/(2t²)=t²:
-    # multiply through -> 2t³=1.
-    # The local 3 weights are (r,r,t²), r=t² -> equal.
-    # The edge product rs=t³=1/2 -> marginal 1/3.
-    # Bethe normalization:
-    # factor T4 has 3t²; each of 2n edges has 1+t³=3/2.
-    # cube of factor-per-cell (3t²)/(3/2)^2
-    # = (4t²/3)^3 = (64/27)*t^6 = (64/27)*(1/4)
-    # = 16/27. A strictly positive irrational algebraic
-    # number raised to n cannot vanish.
-    t_cube=Fraction(1,2)
-    r_squared_cube=t_cube*t_cube
-    Zb_per_cell_cubed=Fraction(64,27)*r_squared_cube
-    assert Zb_per_cell_cubed==Fraction(16,27)
-    assert Fraction(1,1)/(Fraction(2,1)*t_cube)==1
-    return Zb_per_cell_cubed
+    """Exact arithmetic in Q[t]/(2*t**3 - 1), no float assumptions.
+
+    Cubic ring is a field since 2*t^3-1 is irreducible over Q.
+    Each polynomial is a three-entry tuple of Rational coefficients.
+    Multiplication reduces t^3 to 1/2, and t^4 to t/2.
+    """
+    F=Fraction
+    zero=(F(0),F(0),F(0))
+    one=(F(1),F(0),F(0))
+    t=(F(0),F(1),F(0))
+    def add(x,y):
+        return tuple(a+b for a,b in zip(x,y))
+    def scale(x,c):
+        return tuple(F(c)*v for v in x)
+    def mul(x,y):
+        co=[F(0) for _ in range(5)]
+        for i,a in enumerate(x):
+            for j,b in enumerate(y):
+                co[i+j]+=a*b
+        for k in (4,3):
+            co[k-3]+=co[k]/2
+        return tuple(co[:3])
+
+    r=mul(t,t)
+    assert mul(r,t)==scale(one,F(1,2)) # t^3 = 1/2
+    s=t
+    assert mul(s,s)==r
+    w_den=add(r,mul(s,s))
+    # W output is ratio 1/(r+s²), must equal s.
+    assert mul(s,w_den)==one
+    # GHZ output is ratio s/(2r), must equal r.
+    assert mul(scale(r,2),r)==s
+    # Both types of T4 local marginals must be 1/3.
+    local_weights=(r,r,mul(s,s))
+    assert local_weights==(r,r,r)
+    # Exact edge belief odds r*s=1/2 -> P(1)=1/3.
+    edge_odds=mul(r,s)
+    assert edge_odds==scale(one,F(1,2))
+    assert add(one,edge_odds)==scale(one,F(3,2))
+    # Bethe-normalization factor per cell:
+    # z_cell=(3r)/(1+rs)^2 = (4/3) r.
+    z_per_cell=scale(r,F(4,3))
+    cube=mul(mul(z_per_cell,z_per_cell),z_per_cell)
+    assert cube==scale(one,F(16,27))
+    return cube[0]
 
 
 def enumerate_original_count(rows,n,guard=18):
