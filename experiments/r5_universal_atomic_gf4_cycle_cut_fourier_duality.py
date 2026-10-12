@@ -254,6 +254,14 @@ def main():
     )
     edges=bridged_cubic_graph()
     rows,n,_,_=make_scl(edges)
+    # A cubic bridge does NOT imply a Tanner bridge; indeed this
+    # original Holyer SCL is a proven atomic 3-edge-connected input.
+    from r5_universal_connected_scl_tanner_two_cut_proof_audit import (
+        certified_tanner_edge_connectivity,
+    )
+    atomic=certified_tanner_edge_connectivity(rows,n)
+    assert atomic['edge_connectivity']==3
+    print('ORIGINAL_CUBIC_BRIDGE_WITH_ATOMIC_TANNER3=VERIFIED',flush=True)
     certified=SolveLinearCubicXSAT_Portfolio(
         rows,n,poly_only=True,pc3_max_n=0,
         bounded_states=0,tanner_cut_max_n=0,
