@@ -153,8 +153,8 @@ def pc3_symmetry_test(rows,sigma,order):
                 while vec:
                     pivot=vec.bit_length()-1
                     if pivot in basis:
-                        b,comb=basis[pivot]
-                        vec^=b;cert^=comb
+                        b,pivot_certificate=basis[pivot]
+                        vec^=b;cert^=pivot_certificate
                     else:
                         basis[pivot]=(vec,cert);rank+=1;break
         print(f'ODD_SYM_PC3 progress_reps={ri+1}/{len(reps)} '
@@ -163,8 +163,8 @@ def pc3_symmetry_test(rows,sigma,order):
     while target:
         pivot=target.bit_length()-1
         if pivot not in basis:break
-        vec,comb=basis[pivot]
-        target^=vec;c^=comb
+        vec,pivot_certificate=basis[pivot]
+        target^=vec;c^=pivot_certificate
     refuted=target==0
     support=0
     if refuted:
