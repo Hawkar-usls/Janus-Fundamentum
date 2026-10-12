@@ -212,7 +212,7 @@ def verify_source_parity_contradiction(rows,n,libraries):
         elif rule==1:
             edge_basis={e:libraries[2] for e in edges}
         else:
-            edge_basis={e:libraries[(rule*i+3*v)%len(libraries)]
+            edge_basis={(i,v):libraries[(rule*i+3*v)%len(libraries)]
                         for i,v in edges}
         clauses=[]
         for i,row in enumerate(rows):
