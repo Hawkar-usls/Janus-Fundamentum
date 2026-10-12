@@ -134,7 +134,7 @@ def certified_two_cut_mod3_rules(rows,n,max_n=None):
         a,b=cut['edge_ids']
         edge_pair=(edges[a],edges[b])
         outgoing=[(row,var) for row,var in edge_pair if row in side]
-        incoming=[(row,var) for row,var in edge_pair if n+var in side]
+        incoming=[(row,var) for row,var in edge_pair if var in side]
         assert len(outgoing)==len(incoming)==1
         # edges[] hold (row node, n+variable node) not local index:
         ext_variable=outgoing[0][1]-n
