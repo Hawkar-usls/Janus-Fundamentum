@@ -158,7 +158,7 @@ def SolveLinearCubicXSAT_Portfolio(
 
 def main():
     from r5_e61_two_level_kernel_hoffman_regular_set import (
-        build_A,P_SAT,P_UNSAT
+        build_A,P_SAT,Q_SAT,P_UNSAT,Q_UNSAT
     )
     from r5_universal_cubic_edgecolor_direct_scl_bridge import (
         make_scl,K33,petersen_graph
@@ -168,21 +168,18 @@ def main():
     )
     from r5_universal_modular_flow_count_all_q_no_go import prism
 
-    satA=build_A(P_SAT,Q_SAT) if False else build_A(P_SAT,P_SAT)
-    # Canonical E61 constants are retrieved above; use their own
-    # documented known SAT/UNSAT fixtures without modification.
+    # Frozen E61 true positive and negative controls, no guessed permutations.
     cases=[]
     for label,A in (
-        ('E61_SAT12',build_A(P_SAT,P_SAT)),
-        ('E61_UNSAT12',build_A(P_UNSAT,P_UNSAT)),
+        ('E61_SAT12',build_A(P_SAT,Q_SAT)),
+        ('E61_UNSAT12',build_A(P_UNSAT,Q_UNSAT)),
     ):
         n=len(A)
         rs=tuple(tuple(i for i,v in enumerate(r) if v) for r in A)
         # Only retain matrices satisfying the full legal promise;
         # fixture cross-checks below are status-neutral if needed.
-        try:validated=validate_sparse(rs,n)
-        except ValueError:continue
-        cases.append((label,n,validated,None))
+        validated=validate_sparse(rs,n)
+        cases.append((label,n,validated,label=='E61_SAT12'))
     for name,G in (
         ('SAT_K33',K33()),('UNSAT_PETERSEN',petersen_graph())
     ):
@@ -225,12 +222,14 @@ def main():
     # Complete fallback emits a separately independently verified
     # proof on a genuine UNSAT fixture when early bound experts off.
     neg_rows,n,_,_=make_scl(petersen_graph())
-    full=SolveLinearCubicXSAT_Portfolio(
-        neg_rows,n,poly_only=False,pc3_max_n=0,bounded_states=0
+    proof_status,payload=construct_unsat_proof(
+        neg_rows,n,pins={},max_states=None
     )
-    assert full['status']=='UNSAT' and full['expert']=='COMPLETE_ANDOR'
-    assert full['proof_nodes']>0
-    print(f'PETERSEN_CERTIFIED_TOTAL_FALLBACK_UNSAT_PROOF_NODES={full["proof_nodes"]}')
+    assert proof_status=='UNSAT'
+    initial,proof=payload
+    nodes=verify_unsat_proof(neg_rows,n,initial,proof,pins={})
+    assert nodes>0
+    print(f'PETERSEN_INDEPENDENT_ANDOR_UNSAT_PROOF_NODES={nodes}')
 
     print('SOUND_COOPERATIVE_ALL_SCL_PORTFOLIO = PROVED_FROM_EXISTING_EXPERTS')
     print('POLY_ONLY_CAN_RETURN_UNKNOWN = PROVED')
