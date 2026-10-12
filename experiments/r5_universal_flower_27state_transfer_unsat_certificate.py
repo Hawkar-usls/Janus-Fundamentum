@@ -143,6 +143,33 @@ def twisted_accepted_states(T,k):
                  if s==twist(t) and path[STATE_INDEX[s]][STATE_INDEX[t]])
 
 
+def verify_holyer_global_colour_discharge(rows,n,edges,idx):
+    """Proof rule: ONE 1-pinned colour refutation refutes whole SCL.
+
+    Under the authenticated 3-edge-colour Holyer encoding, all S3
+    permutations of colour labels are original-source automorphisms.
+    Every original SAT witness has exactly one colour at each edge:
+    permute this chosen colour to 0. Thus if F & X_(edge0,0)=1
+    is refuted, F is UNSAT; the two other colour branches can be
+    transported from a single existing certificate, not recomputed.
+
+    This function validates the finite colour action, NOT an UNSAT
+    branch proof on its own. A caller must separately replay the
+    conditional proof before applying the rule.
+    """
+    rows=validate_sparse(rows,n)
+    edge0=edges[0]
+    assert tuple(idx[(edge0,c)] for c in COLOURS)==(0,1,2)
+    row_set=set(rows)
+    assert (0,1,2) in row_set
+    for perm in PERMS:
+        mapping=tuple(idx[(e,perm[c])] for e in edges for c in COLOURS)
+        assert set(mapping)==set(range(n))
+        transported={tuple(sorted(mapping[v] for v in row)) for row in rows}
+        assert transported==row_set
+    return True
+
+
 def verify_authenticated_flower_unsat(rows,n,k):
     assert type(k) is int and k>=5 and k%2==1
     source,n_source,_,_=make_scl(flower(k))
@@ -165,7 +192,8 @@ def main():
     print("FLOWER_ALL_ODD_K_SYMBOLIC_TRANSFER_PARITY_UNSAT=PROVED",
           flush=True)
     for k in (5,7,9,11,13):
-        rows,n,_,_=make_scl(flower(k))
+        rows,n,edges,idx=make_scl(flower(k))
+        assert verify_holyer_global_colour_discharge(rows,n,edges,idx)
         assert verify_authenticated_flower_unsat(rows,n,k)
         accepted=twisted_accepted_states(T,k)
         assert not accepted
