@@ -224,13 +224,27 @@ new private research-branch algorithms.
    polynomial budget, additional certified source transformations,
    or entirely different global theorem could cover all inputs.
 
-3. A new odd-order automorphism PC3 adapter is prepared at
-   `experiments/r5_universal_certified_odd_symmetry_adapter.py`.
-   It verifies the INPUT row permutation rather than trusting
-   source labels or model hypotheses; only then can a
-   degree-three orbit-PC certificate be admitted.
-   No automatic universal odd-symmetry discovery is assumed.
-   Only promote once the focused CI validates it.
+3. The odd-order automorphism PC3 adapter is now **INTEGRATED**
+   at `experiments/r5_universal_certified_odd_symmetry_adapter.py`.
+   The router accepts an optional `certified_symmetry` input
+   permutation, checks exact bijectivity, odd order bounded by n,
+   original clause permutation and full-order row orbits, and
+   then runs the already proof-replaying orbit-compressed PC3.
+   An invalid permutation yields UNKNOWN; no automorphism
+   discovery on general SCL is claimed.
+
+   Verified CI:
+   https://github.com/Hawkar-usls/Janus-Fundamentum/actions/runs/38189176839
+   SUCCESS: E118 UNSAT90 => admitted UNSAT; J5 snark SCL90 =>
+   admitted UNSAT; E118 SAT90 => UNKNOWN; invalid symmetry
+   => UNKNOWN. Full prior portfolio regression also passed:
+   https://github.com/Hawkar-usls/Janus-Fundamentum/actions/runs/38189176810 .
+
+   Crucial anti-cheat: this changes the actual coverage of the
+   **annotated, verified-symmetry** input protocol, but cannot
+   yet be counted as a universal all-input automatic selector.
+   The six-UNKNOWN baseline above did not supply any symmetry;
+   it remains the frozen baseline for that unannotated budget.
 
 ## 4. Global-coverage theorem: attack AFTER complete inventory
 
@@ -295,6 +309,7 @@ ALL_PYTHON_AST_PARSE = VERIFIED_CI.
 ALL_PYTHON_SEMANTIC_MATHEMATICAL_REVIEW = NOT_COMPLETE.
 SOURCE_METHOD_ROLE_FIRST_PASS = PARTIALLY_MANUALLY_VERIFIED.
 SOLVER_PORTFOLIO_MOD9_PROOF_UPLIFT = VERIFIED_CI.
+CERTIFIED_ODD_SYMMETRY_PC3_ADAPTER = VERIFIED_CI_CONDITIONAL.
 PORTFOLIO_11_FIXTURE_POLY_PROFILE_DECIDES_ALL = FALSE_FINITE.
 PORTFOLIO_PROOF_STATE_MONOTONE_KNOWLEDGE_DESCENT = PREDECESSOR_PROVED.
 ALL_SCL_POLYNOMIAL_EXPERTS_UNION_COVERAGE = OPEN.
