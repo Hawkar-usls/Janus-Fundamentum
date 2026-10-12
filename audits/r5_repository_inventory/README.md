@@ -4,20 +4,20 @@
 > mathematical semantic verification limited to explicitly reviewed entrypoints.
 > Code is NOT assumed unused merely because it has no static importer.
 
-Frozen source commit: `bd0b13a69c73f3b4db31d29522a14a6ab7927e0f`.
-Tracked files scanned: **1542**.
+Frozen source commit: `dc6c3bff1ec883515c1a4eff40d7f896a3e426e0`.
+Tracked files scanned: **1544**.
 Tracked folders represented: **126**.
-Bytes scanned: **12181876**.
-Python modules parsed: **425**.
+Bytes scanned: **12189994**.
+Python modules parsed: **426**.
 Python parse errors: **0**.
-Static local import edges: **333**.
-Workflows: **95**.
+Static local import edges: **344**.
+Workflows: **96**.
 
 ## Every top-level subtree
 
 | Subtree | Tracked files | Role |
 |---|---:|---|
-| `.github` | 98 | CI_GOVERNANCE |
+| `.github` | 99 | CI_GOVERNANCE |
 | `.janus` | 4 | AGENT_POLICY |
 | `CONTRIBUTING.md` | 1 | source/root metadata |
 | `JANUS_AGENT_BEACON.json` | 1 | source/root metadata |
@@ -27,7 +27,7 @@ Workflows: **95**.
 | `archive` | 1 | ARCHIVED_CONTROLS |
 | `docs` | 92 | PUBLIC_SCIENTIFIC_DOCUMENTATION |
 | `experiment_manifest.json` | 1 | source/root metadata |
-| `experiments` | 391 | RUNNABLE_EXPERIMENTS_AND_FIXTURES |
+| `experiments` | 392 | RUNNABLE_EXPERIMENTS_AND_FIXTURES |
 | `proof_attempts` | 43 | LEGACY_PROOF_ATTEMPTS |
 | `proposals` | 10 | PROPOSALS_UNADMITTED |
 | `registry` | 224 | FROZEN_PROVENANCE_JSON |
@@ -41,21 +41,21 @@ Workflows: **95**.
 |---|---:|
 | `ADAPTER_PRECONDITION` | 4 |
 | `BENCHMARK_DATA` | 7 |
-| `CI_WORKFLOW` | 98 |
+| `CI_WORKFLOW` | 99 |
 | `CNF_FORMULA_CACHING_OR_PROOF_CONTROL` | 47 |
 | `CODE_REVIEW_QUEUE` | 54 |
 | `INTEGRATED` | 6 |
+| `INTEGRATED_TRANSITIVE` | 3 |
 | `LEGACY_OR_HEURISTIC_CONTROL` | 19 |
 | `NEGATIVE_CONTROL` | 4 |
 | `OPTIONAL_SAT_SEARCH` | 2 |
 | `OTHER_SOURCE` | 1 |
 | `PROVENANCE_OR_DATA` | 664 |
-| `R5_METHOD_REVIEW_QUEUE` | 159 |
+| `R5_METHOD_REVIEW_QUEUE` | 160 |
 | `REVIEW_CONDITIONAL` | 7 |
 | `SCIENTIFIC_NOTE_OR_DOC` | 347 |
 | `SEPARATE_APMA_TRACK_ADAPTER_NEEDED` | 103 |
 | `TOOL_REVIEW_QUEUE` | 17 |
-| `VERIFY_ADAPTER` | 3 |
 
 ## High-value method audit (manually scoped first-pass)
 
@@ -77,20 +77,20 @@ Workflows: **95**.
 | `experiments/r5_universal_cubic_three_edge_cut_factorization.py` | ADAPTER_PRECONDITION | CUBIC_GRAPH_ONLY — 3-edge cut factor + witness gluing |
 | `experiments/r5_universal_exact_support_exponential_reachable_residual_firewall.py` | NEGATIVE_CONTROL | EXACT_SUPPORT_EXPONENTIAL_STATE_FAMILY — forbid claim state count always polynomial |
 | `experiments/r5_universal_exact_support_hybrid_algebraic_dag.py` | INTEGRATED | EXACT_GUARDED — root algebra + exact bounded DAG |
-| `experiments/r5_universal_exact_support_mod9_dual_certificate.py` | VERIFY_ADAPTER | POLY_SOUND_UNSAT — independent mod9 annihilator certificate |
-| `experiments/r5_universal_exact_support_pinned_oracle_attack.py` | VERIFY_ADAPTER | EXACT_EXPONENTIAL — independent exact pinned oracle and self-reduction |
+| `experiments/r5_universal_exact_support_mod9_dual_certificate.py` | INTEGRATED_TRANSITIVE | POLY_SOUND_UNSAT — called by ExactSupportHybrid; its negative certificate now lifted to main router and replayed |
+| `experiments/r5_universal_exact_support_pinned_oracle_attack.py` | INTEGRATED_TRANSITIVE | EXACT_EXPONENTIAL — ExactSupportHybrid root calls this old pinned solver; do not duplicate |
 | `experiments/r5_universal_exact_support_residual_dag_attack.py` | INTEGRATED | EXACT_GUARDED — source validation, pins, residual DAG |
 | `experiments/r5_universal_exact_support_unsat_andor_certificate.py` | INTEGRATED | EXACT_PROOF — complete fallback/independent replay |
 | `experiments/r5_universal_kettani_2025_toroidal_treewidth_counterexample.py` | NEGATIVE_CONTROL | REFUTED_TW_SHORTCUT — unbounded treewidth blocks naive bounded-width generality |
 | `experiments/r5_universal_modular_flow_count_all_q_no_go.py` | NEGATIVE_CONTROL | REFUTED_FIXED_MODULAR_NONZERO — SAT false zero mod arbitrary fixed q |
 | `experiments/r5_universal_pfaffian_cube_k33_cancellation.py` | NEGATIVE_CONTROL | REFUTED_NAIVE_PFAFFIAN — SAT false zero due sign cancellation |
-| `experiments/r5_universal_quadratic_gauss_mod4_attack.py` | VERIFY_ADAPTER | POLY_SOUND_UNSAT — mod4 quadratic-Gauss negative filter |
+| `experiments/r5_universal_quadratic_gauss_mod4_attack.py` | INTEGRATED_TRANSITIVE | POLY_SOUND_UNSAT — ExactSupport root imports modular Gauss filter; independently check boundary |
 | `experiments/v2.0-selective-distributed/src/solvers.py` | OPTIONAL_SAT_SEARCH | HEURISTIC_SAT_ONLY — WalkSAT/Junction hints never UNSAT proof |
 | `tools/OdontoForge_PNP_EXP.py` | OPTIONAL_SAT_SEARCH | EXACT_CNF_EXTERNAL_ADAPTER — exact CNF branch search, guard UNKNOWN; no general poly |
 
 ## Review and integration rules
 
-1. **Keep:** original source validators, exact support, proof replay, PC3, mod9, and their independently checked SAT/UNSAT gates.
+1. **Keep:** original source validators, exact support, proof replay, PC3, mod9, and their independently checked SAT/UNSAT gates. Do not duplicate calls already integrated transitively; surface their proof objects in the common router.
 2. **Adapter required:** representation-specific 3/4-cut, rank-FPT, perfect graph, matroid/delta, and formula-cache methods, only after exact bidirectional semantics and input preconditions are proved.
 3. **Shadow only:** heuristic search, learned routing, old benchmark witnesses. They can suggest or find SAT assignments, but cannot certify UNSAT from timeout or silence.
 4. **Negative firewall:** preserve counterexamples to Pfaffian cancellation, fixed modulus, bounded width and exponential-state shortcuts; NEVER import as positive solver passes.
