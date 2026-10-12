@@ -11,7 +11,7 @@ invariant monomial orbit sums form an exact basis (all orbit sizes odd).
 
 This checker tests exact PC degree 3 on:
  * SAT pentagonal prism (5-fold automorphism)
- * UNSAT Isaacs flower snark J5 (5-fold automorphism).
+ * UNSAT Isaacs flower snarks J5 and J7 (odd 5-/7-fold automorphisms).
 It independently counts graph colourings by a perfect matching
 route, constructs a legal SCL target, verifies the graph automorphism
 and its incidence action, computes complete PC3 *invariant* span
@@ -191,6 +191,7 @@ def main():
     for name,raw,nv,vertex_perm,colorable,expected in (
         ('SAT_PRISM5',prism(k)[1],2*k,automorphism_prism(k),True,30),
         ('UNSAT_FLOWER_J5',flower(k),4*k,automorphism_flower(k),False,0),
+        ('UNSAT_FLOWER_J7',flower(7),28,automorphism_flower(7),False,0),
     ):
         E=tuple(sorted(tuple(sorted(e)) for e in raw))
         assert len(E)==3*nv//2
@@ -199,9 +200,10 @@ def main():
         n=3*len(E)
         full,pm,extendable=three_edge_colour_count(nv,E)
         assert full==expected and (full>0)==colorable
-        rows,sigma=direct_scl_action(E,vertex_perm,k)
+        order=7 if name=='UNSAT_FLOWER_J7' else k
+        rows,sigma=direct_scl_action(E,vertex_perm,order)
         assert n==len(rows)
-        refuted,st=pc3_symmetry_test(rows,sigma,k)
+        refuted,st=pc3_symmetry_test(rows,sigma,order)
         assert not (colorable and refuted)
         print(f'{name}: SCL_n={n}, independent_colouring={full}, '
               f'perfect_matchings={pm}, '
