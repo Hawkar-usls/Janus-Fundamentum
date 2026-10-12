@@ -334,6 +334,7 @@ def main():
         positives,n,poly_only=True,pc3_max_n=0,
         tanner_cut_max_n=0,bounded_states=0,
         two_port_max_n=40,two_port_states=256,
+        gf2_linear_propagation=False,
     )
     assert integrated['status']=='SAT'
     assert integrated['expert']=='CERTIFIED_TWO_PORT_SIGNATURE',integrated['expert']
@@ -391,6 +392,7 @@ def main():
         pc3_max_n=0,bounded_states=0,
         tanner_cut_max_n=0,
         two_port_max_n=40,two_port_states=256,
+        gf2_linear_propagation=False,
     )
     assert integrated_negative['status']=='UNSAT'
     assert integrated_negative['expert'] in (
