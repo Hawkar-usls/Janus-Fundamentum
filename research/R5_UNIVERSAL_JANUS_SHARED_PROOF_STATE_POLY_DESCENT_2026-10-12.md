@@ -191,7 +191,9 @@ a degree-preserving reduction.
 
 ## 4. CI evidence and graph-independent controls
 
-Main replay:
+Main final executable replay:
+https://github.com/Hawkar-usls/Janus-Fundamentum/actions/runs/38188437913
+The earlier two-expert shared-proof correction replay:
 https://github.com/Hawkar-usls/Janus-Fundamentum/actions/runs/38188393743
 and the earlier verified state-to-router integration:
 https://github.com/Hawkar-usls/Janus-Fundamentum/actions/runs/38188219557
