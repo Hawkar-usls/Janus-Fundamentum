@@ -119,9 +119,13 @@ def row_orbits(rows,sigma,order):
             orbit.append(j)
             cur=tuple(sorted(sigma[v] for v in cur))
         assert order%len(orbit)==0
-        # This implementation uses row orbits of FULL order;
-        # tested source flower/prism automorphisms have this property.
-        assert len(orbit)==order,(i,len(orbit),order)
+        # Order is odd, therefore every row-orbit length dividing
+        # order is odd (including FIXED rows, length=1).
+        # Summing the full group orbit of a generator g over GF2 is
+        # the same as its distinct orbit sum: each orbit element
+        # is repeated order/orbit_size times, an ODD multiplicity.
+        # Previously rejecting short row orbits was unnecessary.
+        assert len(orbit)%2==1,(i,len(orbit),order)
         seen.update(orbit)
         reprs.append(tuple(row))
     assert len(seen)==len(rows)
