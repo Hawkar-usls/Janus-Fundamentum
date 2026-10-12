@@ -347,10 +347,11 @@ def main():
     # Portfolio consumes the derived pins as exact context, not
     # speculative guesses, and still independently checks witness.
     portfolio=SolveLinearCubicXSAT_Portfolio(
-        rows,n,pins=pins,poly_only=False,pc3_max_n=0,
-        bounded_states=150,
+        rows,n,pins={0:1},poly_only=False,pc3_max_n=0,
+        bounded_states=150,shared_state=local,
     )
     assert portfolio['status']=='SAT'
+    assert 'CERTIFIED_SHARED_NOGOOD_AND_EXACTONE_PROPAGATION' in portfolio['experts']
     assert all(portfolio['witness'][v]==x for v,x in pins.items())
     assert all(sum(portfolio['witness'][v] for v in row)==1 for row in rows)
     print(f'CROSS_EXPERT_PC3_NOGOOD_TO_PROPAGATION_TO_EXACT_PORTFOLIO '
