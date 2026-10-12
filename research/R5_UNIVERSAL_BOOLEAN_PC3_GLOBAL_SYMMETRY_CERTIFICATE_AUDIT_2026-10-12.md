@@ -212,6 +212,90 @@ This explicitly excludes mutations that retain ANY of the
 three original rainbow class SAT models, and checks genuine
 UNSAT (if obtained) against full PC3 and an independent dual.
 
+## IV-A. Two-switch structured UNSAT vs full PC3 — completed CI
+
+For the exact three-colour rainbow SCL sources from section IV,
+construct TWO valid incidence swaps, requiring all three original
+rainbow SAT assignments to fail. Every resulting matrix is
+independently validated square+cubic+linear/C4-free and connected;
+a COMPLETE Boolean exact-cover search decides its finite truth.
+
+Verified [run #38186872823](https://github.com/Hawkar-usls/Janus-Fundamentum/actions/runs/38186872823):
+
+    torus L6 n36     70 actual UNSAT / 70 PC3-proved UNSAT
+    cyclic n27       70 actual UNSAT / 70 PC3-proved UNSAT
+    cyclic n33       70 actual UNSAT / 70 PC3-proved UNSAT
+    TOTAL           210 actual UNSAT / 210 PC3-proved UNSAT
+
+These tests are not "all SAT" as the one-switch experiment was:
+they defeat all three preexisting explicit SAT models.
+They still provide only finite observations, no universal theorem.
+
+Program: `experiments/r5_universal_scl_double_switch_pc3_dual.py`.
+
+## IV-B. All-odd cyclic LEGAL SCL with exact 4n-term PC2 certificate
+
+A distinct successful **analytical identity for an INFINITE
+family**, discovered by extracting the same FOUR short cyclic
+degree-3 certificates from 22 tested counting-UNSAT controls.
+
+For any ODD n>=7 define the square/cubic/C4-free incidence
+clause at every i mod n:
+
+    C_i = {i, i+1, i+3}.
+
+This is a simple legal 3-regular linear family: the six
+signed ordered differences of {0,1,3} are +/-1,+/-2,+/-3,
+distinct modulo every n>=7. The row and column weights
+are exactly three. The graph is connected because 1 is
+one of the shifts.
+
+Over the Boolean ring F2[x]/(x_i^2-x_i), let
+
+    p_i := 1+x_i+x_(i+1)+x_(i+3),
+    q_i := x_i*x_(i+1)+x_i*x_(i+3)+x_(i+1)*x_(i+3).
+
+**For EVERY odd n>=7**, including n divisible by three,
+the following is an EXACT polynomial identity:
+
+    sum_{i=0}^{n-1} [ p_i + x_i*p_i + x_(i+2)*p_i + q_i ] = 1.  (†)
+
+Proof by grouping terms over F2, all indices modulo n:
+
+  sum_i p_i = (n mod2) + sum_i x_i = 1+sum_i x_i.
+  sum_i x_i*p_i = sum_i[x_i*x_(i+1)+x_i*x_(i+3)].
+  sum_i x_(i+2)*p_i =
+       sum_i x_i + sum_i x_i*x_(i+2).
+  sum_i q_i =
+       sum_i[x_i*x_(i+1)+x_i*x_(i+2)+x_i*x_(i+3)].
+
+Pair monomials cancel twice and x_i linear monomials
+cancel twice, leaving constant 1. Each summand on (†)
+has degree at most TWO. Hence the identity is a complete,
+explicit O(n)-generator **degree-2 Polynomial Calculus
+UNSAT refutation** for this legal connected infinite SCL
+family. It is also valid for n=9,15,21, etc., where simple
+3-divisibility of source size gives NO contradiction.
+For even n>=8 the identical polynomial sum is 0,
+so this specific certificate does not prove their UNSAT.
+
+This is an actual **general theorem about one family**,
+not an extrapolation from n<=95 tests and not an all-SCL
+solver. The pre-existing E118 q90 UNSAT but degree2
+non-refutable instance still refutes UNIVERSAL PC2
+completeness. Likewise no evidence provided establishes
+the all-input PC3 completeness theorem.
+
+Code:
+`experiments/r5_universal_all_odd_cyclic_pc2_four_orbit_identity.py`.
+
+Independent exact coefficient replay:
+[CI #38187289444](https://github.com/Hawkar-usls/Janus-Fundamentum/actions/runs/38187289444) SUCCESS on 18 sizes from n7..n95, including
+n divisible by three. Direct original cyclic invariant
+PC3 test: [#38187214287](https://github.com/Hawkar-usls/Janus-Fundamentum/actions/runs/38187214287)
+SUCCESS, exposing the exact same four orbit-generator types
+for 7,11,13,17,19, with full PC3 rank for 22 n.
+
 ## V. Literature and guardrails
 
 The full SCL class is NP-complete by E118 and the direct
@@ -248,6 +332,8 @@ J7_SCL126_PC3_4159_SYMMETRIZED_CERTIFICATE = VERIFIED_FINITE.
 ODD_AUTOMORPHISM_PC_REFUTATION_PRESERVING_COMPRESSION = PROVED.
 GENERAL_SCL_RANDOM_UNSAT_47_PC3_REFUTED = OBSERVATION.
 ALL_RAINBOW_ONE_SWITCH_SAT_PRESERVATION = PROVED.
+DOUBLE_SWITCH_NEAR_SAT_UNSAT210_PC3_REFUTED = FINITE_CI_OBSERVATION.
+ALL_ODD_CYCLIC_SCL_PC2_FOUR_ORBIT_REFUTATION = PROVED_INFINITE_FAMILY.
 PC3_ALL_UNSAT_SCL_COMPLETENESS = **OPEN**.
 ALL_INPUT_POLY_SolveLinearCubicXSAT = **NOT CONSTRUCTED**.
 P_VS_NP = **OPEN**.
