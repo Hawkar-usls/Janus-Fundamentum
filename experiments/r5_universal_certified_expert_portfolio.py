@@ -51,6 +51,7 @@ def SolveLinearCubicXSAT_Portfolio(
     tanner_cut_max_n=45,
     two_port_max_n=45,two_port_states=64,
     certified_holyer_edges=None,
+    gf2_linear_propagation=True,
 ):
     """Correct on EVERY legal SCL input. Poly mode may return UNKNOWN.
 
@@ -68,6 +69,8 @@ def SolveLinearCubicXSAT_Portfolio(
     """
     rows=validate_sparse(rows,n)
     if not isinstance(poly_only,bool):raise ValueError('poly_only must be bool')
+    if not isinstance(gf2_linear_propagation,bool):
+        raise ValueError('gf2_linear_propagation must be bool')
     if not isinstance(pc3_max_n,int) or pc3_max_n<0:
         raise ValueError('pc3_max_n must be nonnegative int')
     if not isinstance(bounded_states,int) or bounded_states<0:
@@ -84,6 +87,7 @@ def SolveLinearCubicXSAT_Portfolio(
     pins=_pins(n,pins)
     events=[]
     cut_provenance=[]
+    gf2_provenance=None
     cut_derived_pins={}
 
     def result(status,expert,reason,witness=None,**extra):
@@ -102,6 +106,7 @@ def SolveLinearCubicXSAT_Portfolio(
             'mode':'POLY_ONLY' if poly_only else 'TOTAL_EXACT_MAY_BE_EXPONENTIAL',
             'universal_polynomial_claim':False,
             'tanner_cut_provenance':tuple(cut_provenance),
+            'gf2_provenance':gf2_provenance,
             'tanner_cut_derived_pins':dict(sorted(cut_derived_pins.items())),
             **extra,
         }
@@ -186,6 +191,7 @@ def SolveLinearCubicXSAT_Portfolio(
                 tanner_cut_max_n=tanner_cut_max_n,
                 two_port_max_n=two_port_max_n,
                 two_port_states=two_port_states,
+                gf2_linear_propagation=gf2_linear_propagation,
             )
             summaries.append({
                 'component_index':ci,
@@ -224,6 +230,46 @@ def SolveLinearCubicXSAT_Portfolio(
             witness=witness,
             component_provenance=tuple(summaries),
         )
+
+    # Completely general original-source GF2 affine proof extraction.
+    # Source equations and caller/shared pins are reduced with a
+    # provenance bitset for EVERY XOR combination. Independent replay
+    # checks each inferred forced literal and pair relation against the
+    # ORIGINAL exact-one rows + caller pins. Algebraic consistency or
+    # pair-relation closure alone is NEVER a SAT decision.
+    if gf2_linear_propagation:
+        from r5_universal_certified_gf2_affine_forced_literals import (
+            gf2_certified_source_closure,verify_gf2_ledger,
+        )
+        old_pins=dict(pins)
+        affine=gf2_certified_source_closure(rows,n,pins)
+        assert verify_gf2_ledger(rows,n,old_pins,affine)
+        gf2_provenance={
+            'certificate_type':'ORIGINAL_GF2_ROW_XOR',
+            'forced':affine['forced'],
+            'pairs':affine['pairs'],
+            'original_caller_pins':tuple(sorted(old_pins.items())),
+            'independently_replayed':True,
+        }
+        events.append('CERTIFIED_ORIGINAL_GF2_AFFINE_PROOF_STATE')
+        if affine['status']=='UNSAT':
+            gf2_provenance['proof_reason']=affine['reason']
+            if affine['reason']=='INCONSISTENT_GF2':
+                gf2_provenance['unsat_proof']=affine['unsat_proof']
+                which='CERTIFIED_GF2_SOURCE_INCONSISTENT'
+            else:
+                gf2_provenance['clause_index']=affine['clause_index']
+                which='CERTIFIED_GF2_SOURCE_CLAUSE_CONFLICT'
+            return result('UNSAT',which,affine['reason'])
+        if affine['status']=='SAT':
+            return result(
+                'SAT','CERTIFIED_GF2_FULL_BOOLEAN_WITNESS',
+                'GF2_UNIQUE_AFFINE_POINT_IS_EXACTONE',
+                witness=affine['witness'],
+            )
+        for v,bit,provenance in affine['forced']:
+            assert v not in pins or pins[v]==bit
+            pins[v]=bit
 
     # Certified TWO-EDGE TANNER CUT arithmetic. Each side S of the
     # cut has equal row and variable count r, exactly one outgoing
