@@ -4,20 +4,20 @@
 > mathematical semantic verification limited to explicitly reviewed entrypoints.
 > Code is NOT assumed unused merely because it has no static importer.
 
-Frozen source commit: `dc6c3bff1ec883515c1a4eff40d7f896a3e426e0`.
-Tracked files scanned: **1544**.
+Frozen source commit: `76184e5fd993479097b1c1ff877217c072ae118b`.
+Tracked files scanned: **1547**.
 Tracked folders represented: **126**.
-Bytes scanned: **12189994**.
-Python modules parsed: **426**.
+Bytes scanned: **12213327**.
+Python modules parsed: **427**.
 Python parse errors: **0**.
-Static local import edges: **344**.
-Workflows: **96**.
+Static local import edges: **350**.
+Workflows: **97**.
 
 ## Every top-level subtree
 
 | Subtree | Tracked files | Role |
 |---|---:|---|
-| `.github` | 99 | CI_GOVERNANCE |
+| `.github` | 100 | CI_GOVERNANCE |
 | `.janus` | 4 | AGENT_POLICY |
 | `CONTRIBUTING.md` | 1 | source/root metadata |
 | `JANUS_AGENT_BEACON.json` | 1 | source/root metadata |
@@ -27,11 +27,11 @@ Workflows: **96**.
 | `archive` | 1 | ARCHIVED_CONTROLS |
 | `docs` | 92 | PUBLIC_SCIENTIFIC_DOCUMENTATION |
 | `experiment_manifest.json` | 1 | source/root metadata |
-| `experiments` | 392 | RUNNABLE_EXPERIMENTS_AND_FIXTURES |
+| `experiments` | 393 | RUNNABLE_EXPERIMENTS_AND_FIXTURES |
 | `proof_attempts` | 43 | LEGACY_PROOF_ATTEMPTS |
 | `proposals` | 10 | PROPOSALS_UNADMITTED |
 | `registry` | 224 | FROZEN_PROVENANCE_JSON |
-| `research` | 652 | SCIENTIFIC_ARGUMENT_EVIDENCE |
+| `research` | 653 | SCIENTIFIC_ARGUMENT_EVIDENCE |
 | `reviews` | 2 | REVIEW_RECORDS |
 | `tools` | 19 | GENERAL_TOOLING |
 
@@ -41,19 +41,21 @@ Workflows: **96**.
 |---|---:|
 | `ADAPTER_PRECONDITION` | 4 |
 | `BENCHMARK_DATA` | 7 |
-| `CI_WORKFLOW` | 99 |
+| `CI_WORKFLOW` | 100 |
 | `CNF_FORMULA_CACHING_OR_PROOF_CONTROL` | 47 |
 | `CODE_REVIEW_QUEUE` | 54 |
+| `EVIDENCE_AUDIT` | 1 |
 | `INTEGRATED` | 6 |
+| `INTEGRATED_CONDITIONAL` | 1 |
 | `INTEGRATED_TRANSITIVE` | 3 |
 | `LEGACY_OR_HEURISTIC_CONTROL` | 19 |
 | `NEGATIVE_CONTROL` | 4 |
 | `OPTIONAL_SAT_SEARCH` | 2 |
 | `OTHER_SOURCE` | 1 |
 | `PROVENANCE_OR_DATA` | 664 |
-| `R5_METHOD_REVIEW_QUEUE` | 160 |
+| `R5_METHOD_REVIEW_QUEUE` | 159 |
 | `REVIEW_CONDITIONAL` | 7 |
-| `SCIENTIFIC_NOTE_OR_DOC` | 347 |
+| `SCIENTIFIC_NOTE_OR_DOC` | 348 |
 | `SEPARATE_APMA_TRACK_ADAPTER_NEEDED` | 103 |
 | `TOOL_REVIEW_QUEUE` | 17 |
 
@@ -70,6 +72,8 @@ Workflows: **96**.
 | `experiments/r5_parity_fixed_m_trade_span_normal_form.py` | REVIEW_CONDITIONAL | FIXED_MATCHING_PRECONDITION — trade circuit evidence; non-TU firewall |
 | `experiments/r5_universal_boolean_pc_degree3_global_attack.py` | INTEGRATED | POLY_SOUND_UNSAT — degree3 GF2 PC refuter, not complete |
 | `experiments/r5_universal_certified_expert_portfolio.py` | INTEGRATED | CERTIFIED — main cooperative router |
+| `experiments/r5_universal_certified_odd_symmetry_adapter.py` | INTEGRATED_CONDITIONAL | CERTIFIED_ODD_AUTOMORPHISM — row permutation validated before exact odd-group PC3 |
+| `experiments/r5_universal_certified_portfolio_coverage_matrix.py` | EVIDENCE_AUDIT | FINITE_COVERAGE_FALSIFIER — 11 independent SCL fixture truths versus bounded portfolio |
 | `experiments/r5_universal_certified_shared_proof_state.py` | INTEGRATED | CERTIFIED — shared no-good+GF2+ANDOR provenance ledger |
 | `experiments/r5_universal_cubic_edgecolor_direct_scl_bridge.py` | ADAPTER_PRECONDITION | GADGET_MAP — graph-SCL witness preserving map |
 | `experiments/r5_universal_cubic_four_cut_21_state_interface.py` | ADAPTER_PRECONDITION | CUBIC_GRAPH_ONLY — four-edge cut signature 21 states |
