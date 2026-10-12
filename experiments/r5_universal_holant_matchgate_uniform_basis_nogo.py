@@ -108,6 +108,38 @@ def verify_parity_obstruction_on_basis(B):
     return kind
 
 
+def symmetric_pairing(left,right):
+    """Ternary tensor contraction on three shared wires (weights 1,3,3,1)."""
+    from math import comb
+    return sum(comb(3,k)*left[k]*right[k] for k in range(4))
+
+
+def verify_exact_inverse_dual_gauge_invariance():
+    """Independent contraction check, includes nonzero pairings.
+
+    F'=B^tensor3 F and G'=(B^-T)^tensor3 G preserve each
+    original binary-wire delta contraction. A tempting incorrect
+    use of B^-1 instead of B^-T would not generally work.
+    """
+    from fractions import Fraction
+    from itertools import product
+    probes=0
+    for a,b,c,d in product(range(-2,3),repeat=4):
+        B=((a,b),(c,d))
+        if a*d-b*c==0:continue
+        invT=matrix_inverse_transpose(B)
+        for f,g in ((W,GHZ),(W,(2,3,-1,5)),((1,2,-3,4),(3,-2,1,5))):
+            lhs=symmetric_pairing(
+                transform_symmetric_ternary(f,B),
+                transform_symmetric_ternary(g,invT),
+            )
+            rhs=symmetric_pairing(f,g)
+            assert Fraction(lhs)==Fraction(rhs),(B,f,g,lhs,rhs)
+            probes+=1
+    assert probes>1000
+    return probes
+
+
 def verify_symbolic_nogo_lemmas():
     """Algebraic proof rules independently mirrored in finite examples.
 
@@ -190,6 +222,8 @@ def main():
     )
     from r5_universal_all_odd_cyclic_pc2_four_orbit_identity import cyclic
     assert verify_symbolic_nogo_lemmas()
+    gauge_trials=verify_exact_inverse_dual_gauge_invariance()
+    print(f"INVERSE_DUAL_LOCAL_GAUGE_INVARIANCE={gauge_trials}_EXACT_TESTS",flush=True)
     print("EXACTONE3_HOLOGRAPHIC_PARITY_ODD_IMPLIES_DIAGONAL_B=PROVED")
     print("EXACTONE3_HOLOGRAPHIC_PARITY_EVEN_IMPLIES_ANTIDIAGONAL_B=PROVED")
     print("EQUALITY3_INVERSE_DUAL_PARITY_CONFLICT=PROVED")
