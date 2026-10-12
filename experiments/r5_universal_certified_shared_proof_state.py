@@ -153,6 +153,7 @@ class CertifiedSharedState:
         self.query_count=0
         self.stored_pins=dict(self.base_pins)
         self.prop_trace=[]
+        self.found_witness=None
         self.potential_initial=n+2*n+4*comb(n,2)
         self.potential=self.potential_initial-len(self.stored_pins)
 
@@ -191,15 +192,76 @@ class CertifiedSharedState:
         self.potential-=1
         return 'PROVED_FORBIDDEN'
 
+    def learn_bounded_andor(self,assumptions,max_states=48):
+        """Second independent proof expert contributes a certified no-good.
+
+        Its proof relies on ORIGINAL SCL clauses, not on unverified
+        previous PC3 facts. Unlike PC3, it can also return a globally
+        checkable satisfying assignment found under test assumptions.
+        """
+        from r5_universal_exact_support_unsat_andor_certificate import (
+            construct_unsat_proof,verify_unsat_proof,
+        )
+        ng=canonical_assumptions(assumptions,self.n)
+        assert 1<=len(ng)<=2
+        if ng in self.known:return 'DUPLICATE'
+        context=dict(self.base_pins)
+        for v,value in ng:
+            if v in context and context[v]!=value:
+                return 'TRIVIAL_CONTEXT_CONFLICT'
+            context[v]=value
+        ordered=tuple(sorted(context.items()))
+        result,data=construct_unsat_proof(
+            self.rows,self.n,pins=dict(ordered),max_states=max_states
+        )
+        self.query_count+=1
+        if result=='UNKNOWN':return 'UNKNOWN'
+        if result=='SAT':
+            selected=set(data)
+            witness=tuple(int(v in selected) for v in range(self.n))
+            assert all(sum(witness[v] for v in row)==1 for row in self.rows)
+            assert all(witness[v]==value for v,value in ordered)
+            self.found_witness=witness
+            return 'SAT_WITNESS'
+        assert result=='UNSAT' and data is not None
+        initial,proof=data
+        nodes=verify_unsat_proof(
+            self.rows,self.n,initial,proof,pins=dict(ordered)
+        )
+        record={
+            'nogood':ng,'certificate':None,
+            'context':ordered,'previous':len(self.nogoods),
+            'authority':'VERIFIED_ANDOR_DAG',
+            'andor_initial':initial,'andor_proof':proof,
+            'stats':{'proof_nodes':nodes},
+        }
+        self.nogoods.append(ng)
+        self.ledger.append(record)
+        self.known.add(ng)
+        self.potential-=1
+        return 'PROVED_FORBIDDEN'
+
     def replay_ledger(self):
         previous=[]
         for record in self.ledger:
             assert record['previous']==len(previous)
             assert record['nogood'] not in previous
-            assert independent_check_pc3_identity(
-                self.rows,self.n,tuple(previous),record['context'],
-                record['certificate']
-            )
+            if record['authority']=='VERIFIED_GF2_PC3':
+                assert independent_check_pc3_identity(
+                    self.rows,self.n,tuple(previous),record['context'],
+                    record['certificate']
+                )
+            elif record['authority']=='VERIFIED_ANDOR_DAG':
+                from r5_universal_exact_support_unsat_andor_certificate import (
+                    verify_unsat_proof,
+                )
+                nodes=verify_unsat_proof(
+                    self.rows,self.n,record['andor_initial'],
+                    record['andor_proof'],pins=dict(record['context'])
+                )
+                assert nodes==record['stats']['proof_nodes']
+            else:
+                raise AssertionError('unrecognized proof authority')
             previous.append(record['nogood'])
         assert previous==self.nogoods
         return True
@@ -391,6 +453,26 @@ def main():
     print(f'GLOBAL_PAIR_NOGOOD_PC3_CERTIFIED: '
           f'P_initial={p0} P_after={state.potential} '
           f'certificate_terms={state.ledger[-1]["stats"]["proof_terms"]}',
+          flush=True)
+
+    # A second independent expert can insert a proof into the SAME
+    # proof-state, not just publish a disconnected terminal answer.
+    combined=CertifiedSharedState(rows,n)
+    act=combined.learn_bounded_andor(((0,1),(1,1)),max_states=48)
+    assert act=='PROVED_FORBIDDEN',act
+    assert combined.replay_ledger()
+    assert combined.ledger[0]['authority']=='VERIFIED_ANDOR_DAG'
+    # PC3 then derives another forbidden assignment while treating
+    # the ANDOR-certified restriction as an available new axiom.
+    p_before=combined.potential
+    act2=combined.learn_pc3(((0,1),(2,1)))
+    assert act2=='PROVED_FORBIDDEN',act2
+    assert combined.potential==p_before-1
+    assert combined.replay_ledger()
+    assert [r['authority'] for r in combined.ledger]==[
+        'VERIFIED_ANDOR_DAG','VERIFIED_GF2_PC3'
+    ]
+    print('TWO_EXPERT_PROVENANCE_CHAIN_ANDOR_TO_GF2_PC3=VERIFIED',
           flush=True)
 
     # Distinct expert: the Boolean propagation engine consumes exactly
