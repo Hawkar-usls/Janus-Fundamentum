@@ -96,6 +96,24 @@ Updated:
   cardinality shortcut); it is NOT a new hard P=NP
   case. Its value is that the old adapter wrongly
   rejected the valid group action.
+- A stronger full-size control, legal SCL39 with
+  n divisible by 3: SAT K4 SCL18 plus THREE disjoint Fano
+  SCL7 components, cyclically rotated by an order-3
+  automorphism that FIXES all 18 K4 original rows and
+  cycles the Fano component rows in length-3 orbits.
+  Each Fano component is independently UNSAT via the
+  explicit prior degree-two Boolean PC identity.
+  The global 39-variable instance cannot be rejected
+  by the trivial n%3!=0 rule. The generalized degree3
+  orbit solver independently proves original-ring
+  UNSAT with **20** orbit-summed terms and reproduces
+  it by a separate unsymmetrized squarefree polynomial
+  checker. There are 25 row orbit representatives,
+  invariant ambient dimension 3970 and rank 3895.
+  This is a finite VALID conditional example, not
+  an all-input hardness result. Source CI:
+  https://github.com/Hawkar-usls/Janus-Fundamentum/actions/runs/38249010839
+  SUCCESS.
 - An invalid would-be automorphism is rejected with
   UNKNOWN, not UNSAT.
 
@@ -133,6 +151,7 @@ linear snark visited-state counts cannot prove the theorem.
 CURRENT:
   ODD_SYMMETRY_SHORT_ROW_ORBITS_CORRECTED = PROVED.
   ORIGINAL_BOOLEAN_RING_UNSAT_REPLAY = VERIFIED_CI.
+  SCL39_N_DIVISIBLE_BY3_SHORT_ODD_ORBIT_PC3 = VERIFIED_FINITE.
   GLOBAL_SCL_COVERAGE = OPEN.
   UNIVERSAL_POLY_SOLVELINEARCUBICXSAT = NOT_CONSTRUCTED.
   P_VS_NP = OPEN.
