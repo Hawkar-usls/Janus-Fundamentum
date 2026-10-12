@@ -53,6 +53,7 @@ def SolveLinearCubicXSAT_Portfolio(
     certified_holyer_edges=None,
     gf2_linear_propagation=True,
     failed_literal_max_n=45,
+    two_ply_max_n=45,
 ):
     """Correct on EVERY legal SCL input. Poly mode may return UNKNOWN.
 
@@ -74,6 +75,8 @@ def SolveLinearCubicXSAT_Portfolio(
         raise ValueError('gf2_linear_propagation must be bool')
     if type(failed_literal_max_n) is not int or failed_literal_max_n<0:
         raise ValueError('failed_literal_max_n must be nonnegative int')
+    if type(two_ply_max_n) is not int or two_ply_max_n<0:
+        raise ValueError('two_ply_max_n must be nonnegative int')
     if not isinstance(pc3_max_n,int) or pc3_max_n<0:
         raise ValueError('pc3_max_n must be nonnegative int')
     if not isinstance(bounded_states,int) or bounded_states<0:
@@ -196,6 +199,7 @@ def SolveLinearCubicXSAT_Portfolio(
                 two_port_states=two_port_states,
                 gf2_linear_propagation=gf2_linear_propagation,
                 failed_literal_max_n=failed_literal_max_n,
+                two_ply_max_n=two_ply_max_n,
             )
             summaries.append({
                 'component_index':ci,
@@ -464,6 +468,33 @@ def SolveLinearCubicXSAT_Portfolio(
             )
         assert lookahead['status']=='UNKNOWN'
         events.append('FAILED_LITERAL_PROBES_INCONCLUSIVE')
+    # Fixed-depth two-ply outer assumption discharge, with nested
+    # ORIGINAL GF2/ExactOne certificates verified independently.
+    # It solves the frozen Petersen/K4 controls without PC3 or DAG,
+    # but it is NOT complete on arbitrary SCL and has a safe cap.
+    if (gf2_linear_propagation and two_ply_max_n
+            and n<=two_ply_max_n):
+        from r5_universal_gf2_boolean_two_ply_lookahead_probe import (
+            certified_two_ply_probe,verify_two_ply_certificate,
+        )
+        initial_pins=dict(pins)
+        two_ply=certified_two_ply_probe(rows,n,initial_pins)
+        if two_ply['status'] in ('SAT','UNSAT'):
+            assert verify_two_ply_certificate(
+                rows,n,initial_pins,two_ply
+            )
+            events.append('CERTIFIED_TWO_PLY_SOURCE_BOOLEAN_PROOF')
+            return result(
+                two_ply['status'],
+                'CERTIFIED_GF2_BOOLEAN_TWO_PLY',
+                'TWO_LAYER_BOOL_BRANCH_SOURCE_PROOF_REPLAYED',
+                two_ply.get('witness'),
+                two_ply_certificate=two_ply,
+                two_ply_proof_replayed=True,
+                two_ply_calls=two_ply['calls'],
+                bounded_stats=bounded['stats'],
+            )
+        events.append('TWO_PLY_SOURCE_PROBING_UNKNOWN')
     if poly_only:
         return result(
             'UNKNOWN','ALL_BOUNDED_EXPERTS_EXHAUSTED',
@@ -573,7 +604,8 @@ def main():
     # are not permitted to guess SAT or UNSAT on an open instance.
     rows,n,_,_=make_scl(K33())
     undecided=SolveLinearCubicXSAT_Portfolio(
-        rows,n,poly_only=True,pc3_max_n=0,bounded_states=0
+        rows,n,poly_only=True,pc3_max_n=0,bounded_states=0,
+        two_ply_max_n=0,
     )
     assert undecided['status']=='UNKNOWN'
     assert undecided['witness'] is None
@@ -582,7 +614,8 @@ def main():
     # End-to-end orchestration through the actual COMPLETE fallback,
     # with BOTH SAT witness and independently replayed UNSAT proof.
     forced_sat=SolveLinearCubicXSAT_Portfolio(
-        rows,n,poly_only=False,pc3_max_n=0,bounded_states=0
+        rows,n,poly_only=False,pc3_max_n=0,bounded_states=0,
+        two_ply_max_n=0,
     )
     assert forced_sat['status']=='SAT'
     assert forced_sat['expert']=='COMPLETE_ANDOR'
@@ -619,7 +652,8 @@ def main():
     assert nodes>0
     print(f'PETERSEN_INDEPENDENT_ANDOR_UNSAT_PROOF_NODES={nodes}')
     forced_unsat=SolveLinearCubicXSAT_Portfolio(
-        neg_rows,n,poly_only=False,pc3_max_n=0,bounded_states=0
+        neg_rows,n,poly_only=False,pc3_max_n=0,bounded_states=0,
+        two_ply_max_n=0,
     )
     assert forced_unsat['status']=='UNSAT'
     assert forced_unsat['expert']=='COMPLETE_ANDOR'
