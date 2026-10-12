@@ -1,0 +1,29 @@
+name: R5 Two-Ply Flower Snark Targeted Gate
+on:
+  push:
+    branches:
+      - research/r5-cubic-flow-smith-pair-20261011
+    paths:
+      - 'experiments/r5_universal_two_ply_flower_first_branch_probe.py'
+      - '.github/workflows/r5-two-ply-flower-targeted.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  snark:
+    name: 'J${{ matrix.k }} first source variable two-ply proof'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        k: [5, 7]
+    env:
+      FLOWER_K: '${{ matrix.k }}'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Independently verify zero search vs genuine two-case original proofs
+        run: python -u experiments/r5_universal_two_ply_flower_first_branch_probe.py
