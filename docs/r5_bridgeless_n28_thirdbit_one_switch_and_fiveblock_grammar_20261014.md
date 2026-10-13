@@ -40,7 +40,7 @@ Per-skeleton results, indexed by the four explicit skeletons in the executable:
 | 1 | 1584 | 7641 | 0 | **0** |
 | 2 | 1213 | 7187 | 42 | **0** |
 | 3 | 868 | 5019 | 34 | **0** |
-| **Total** | **5210** | **29707** | **112** | **0** |
+| **Total** | **5210** | **29717** | **112** | **0** |
 
 The GOOD-only count includes multiplicity across distinct assignments of signature classes, port labellings and/or pairings; NOT counts of nonisomorphic physical graphs. The four skeletons may have bridges at block level or individual fourpoles may have internal bridges. Each fourpole class is physically realizable by a connected simple cubic block; hence the finite relation algebra applies to all sizes of the corresponding constituent blocks. It DOES NOT cover multiedge block skeletons, six-plus block skeletons, arbitrary decompositions or genuinely indivisible sixpole cores.
 
