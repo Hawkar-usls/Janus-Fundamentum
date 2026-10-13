@@ -59,6 +59,15 @@ WITNESS_EDGES = (
 )
 WITNESS_AFTER = (0, 1, 1, 1, 0, 0, 2, 2, 2)
 
+# Independent second physical witness: internal graph has girth SIX,
+# and the same five-step lift changes ALL NINE interior edges.
+GIRTH6_EDGES = (
+    (2, 4), (3, 6), (5, 7),
+    (0, 6), (1, 7), (3, 5),
+    (0, 1), (2, 6), (4, 7),
+)
+GIRTH6_AFTER = (2, 1, 1, 2, 2, 0, 1, 0, 0)
+
 
 def bits(p):
     return ''.join(str(int(p[a] == p[b])) for a, b in PORT_PAIRS)
@@ -87,6 +96,28 @@ def connected(edges):
             if b not in seen:
                 seen.add(b); stack.append(b)
     return len(seen) == 8
+
+
+def girth(edges):
+    adj = [[] for _ in range(8)]
+    for a, b in edges:
+        adj[a].append(b)
+        adj[b].append(a)
+    best = 99
+    for start in range(8):
+        from collections import deque
+        todo = deque([start])
+        dist, parent = {start: 0}, {start: -1}
+        while todo:
+            u = todo.popleft()
+            for v in adj[u]:
+                if v not in dist:
+                    dist[v] = dist[u] + 1
+                    parent[v] = u
+                    todo.append(v)
+                elif parent[u] != v:
+                    best = min(best, dist[u] + dist[v] + 1)
+    return best
 
 
 def check_colouring(edges, ec, p):
@@ -192,6 +223,15 @@ def run():
     assert lift_five_path(WITNESS_EDGES, WITNESS_AFTER, PORTS) is None
     print('EXPLICIT_N8_PHYSICAL_NONTRIVIAL_FIVE_LOOP PASS', differences)
     print('EXPLICIT_N8_FIBRE_OVER_001212 EXACTLY_TWO PASS')
+    check_colouring(GIRTH6_EDGES, REFERENCE_C, PORTS)
+    assert connected(GIRTH6_EDGES)
+    assert girth(GIRTH6_EDGES) == 6
+    assert lift_five_path(GIRTH6_EDGES) == (GIRTH6_AFTER, PORTS)
+    assert len(xor_circulation(GIRTH6_EDGES, REFERENCE_C, GIRTH6_AFTER)) == 9
+    assert set(fibre_at_fixed_ports(GIRTH6_EDGES)) == {
+        REFERENCE_C, GIRTH6_AFTER
+    }
+    print('EXPLICIT_N8_GIRTH6_ALL_NINE_EDGES_CHANGE PASS')
 
     matchings = {c: tuple(matching(
         tuple(v for v in range(8) if v>=6 or PORTS[v]!=c)
@@ -199,6 +239,7 @@ def run():
     assert [len(matchings[c]) for c in COLOURS] == [15,15,15]
     counts = Counter()
     nontrivial_witnesses = 0
+    change_profiles = Counter()
     for a,b,c in product(matchings[0], matchings[1], matchings[2]):
         edges = a+b+c
         if len(set(edges))!=9 or not connected(edges):
@@ -216,6 +257,8 @@ def run():
         else:
             counts['nontrivial'] += 1
             nontrivial_witnesses += 1
+            diffsize = sum(a != b for a,b in zip(lift[0], REFERENCE_C))
+            change_profiles[(diffsize, girth(edges))] += 1
     assert counts == Counter({
         'simple_connected':1472,
         'fully_liftable':192,
@@ -223,6 +266,8 @@ def run():
         'nontrivial':32
     }), counts
     assert nontrivial_witnesses == 32
+    assert change_profiles == Counter({(4, 4):16, (9, 6):16}), change_profiles
+    print('NONTRIVIAL_FIVE_LOOP_PROFILES', sorted(change_profiles.items()))
     print('N8_LABELLED_CONNECTED_1472_FIVE_LOOP_192_TRIVIAL_160_NONTRIVIAL_32 PASS')
     # For n=8, m=(3n-6)/2=9 and beta=m-n+1=2; fibre bound 2^(2*beta)=16.
     assert len(actual_fibre) == 2 <= (1 << (8-4))
