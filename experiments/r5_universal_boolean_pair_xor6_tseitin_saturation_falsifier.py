@@ -26,13 +26,28 @@ def cycle_edge_colourings(n):
 
 def wire_c4():
     counts = Counter()
+    boundary = Counter()
     witnesses = {}
     for es, ports in cycle_edge_colourings(4):
         t = (int(ports[0] == ports[1]), int(ports[2] == ports[3]))
         assert t[0] == t[1], ("violates parity 4-pole", es, ports)
+        # Exact COLOUR-level transfer, stronger than equality of bits:
+        # TRUE input AA -> output BB (any B, possibly A);
+        # FALSE input AB -> output BA (necessarily reversed).
+        if t[0] == 0:
+            assert ports[0] == ports[3] and ports[1] == ports[2]
         counts[t] += 1
+        boundary[ports] += 1
         witnesses.setdefault(t[0], (es, ports))
     assert counts == {(1,1):12, (0,0):6}, counts
+    expected_true={(a,a,b,b) for a in range(3) for b in range(3)}
+    expected_false={(a,b,b,a) for a in range(3) for b in range(3) if a!=b}
+    assert set(boundary)==expected_true|expected_false
+    assert len(boundary)==15
+    assert all(boundary[(a,a,a,a)]==2 for a in range(3))
+    assert all(v==1 for k,v in boundary.items() if k[0]!=k[1] or k[0]!=k[2])
+    print("C4_COLOUR_PORT_TRANSFORM: 15 boundary signatures exactly:")
+    print("  TRUE AA -> BB any colour B; FALSE AB -> BA reversed PASS")
     assert set(witnesses) == {0,1}
     # A base Boolean variable b selects an explicit legal colour
     # assignment in the 4-pole. Target edge-indicator P_e,c(b) is
