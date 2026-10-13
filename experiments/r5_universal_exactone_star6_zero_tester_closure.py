@@ -121,6 +121,19 @@ def check_sample_sources():
                 gluable=bool(permuted_states & STAR)
                 assert gluable==((0,0,0) in R),(
                     "failed tester universal semantic",n,edges,pairs)
+                # MATCH3 tester comprises 3 free edges, one per pair:
+                # its full boundary has each couple colours equal.
+                matching_closure_colourable=((1,1,1) in R)
+                singleton_closure_colourable=tuple(
+                    any(b[i] for b in R) for i in range(3))
+                # Five graph operations: STAR6 closure UNSAT,
+                # MATCH3 direct-pair closure UNSAT, 3 single-pair
+                # closures SAT. Cubic parity disallows exactly 2 ones.
+                all_five=((not gluable) and
+                          (not matching_closure_colourable) and
+                          all(singleton_closure_colourable))
+                assert all_five == (R==ONEHOT),(
+                    "five-closure theorem contradicted",n,pairs,R)
                 if triples:
                     counts["triple_heterochromatic"]+=1
                     assert gluable
@@ -129,7 +142,7 @@ def check_sample_sources():
     assert counts["interfaces"]==94065
     assert counts["triple_heterochromatic"]==44
     print("ALL_STAR6_FINITE_CONTROLS_PASS",dict(counts))
-    print("THEOREM: EXPOSED_ONEHOT iff 3 HETEROCHROMATIC")
+    print("FIVE_CLOSURES: STAR6 and MATCH3 UNSAT + EACH SINGLE PAIR SAT")\n    print("THEOREM: EXPOSED_ONEHOT iff 3 HETEROCHROMATIC")
     print("  SINGLE-PAIR CLOSURES AND STAR6_CLOSED_GRAPH_UNCOLOURABLE")
     print("UNBOUNDED_NATIVE_GF3_PC_DEGREE=OPEN; P_VS_NP=OPEN")
 
