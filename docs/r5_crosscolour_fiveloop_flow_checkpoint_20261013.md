@@ -53,6 +53,26 @@ Counts of the **1,472** surviving simple connected proper coloured eight-vertex 
 
 These counts describe labelled *starting reference colourings*, NOT 1,472 nonisomorphic graphs, and are finite observations. The explicit witness above belongs to the 32 nontrivial instances.
 
+### Second physical witness: nontrivial holonomy without short cycles
+
+Exactly 16 of the 32 nontrivial lifts differ on an alternating internal 4-cycle in a graph of girth 4. The other **16** change all nine internal ordinary edges of a graph whose ordinary-edge girth is **6**. In particular, forbidding triangles and quadrilaterals does not guarantee the boundary 5-loop acts trivially.
+
+An explicit second witness has the following ordered ordinary edges (again indexed by colour classes 0,1,2 in three blocks):
+
+```
+(2,4), (3,6), (5,7),
+(0,6), (1,7), (3,5),
+(0,1), (2,6), (4,7).
+```
+
+With the SAME starting port tuple `001212` and starting internal colours `000111222`, the SAME five terminal-path flips listed above give
+
+`c'=(2,1,1,2,2,0,1,0,0)`
+
+with exactly the same physical boundary tuple. Every one of its nine ordinary edge colours differs, and the resulting `F2^2` displacement is a closed (Kirchhoff) circulation. Direct DFS again finds exactly two full colourings with those fixed six port colours. The difference support is the entire internal edge set, not a monochromatic or bichromatic short cycle.
+
+**Caution:** Girth 6 is only the girth of the internal ordinary-edge graph. This does not make the witness a globally GOOD-only Exact-One sixpole; it is still a necessary negative control only.
+
 ## Theorem — all-size GF(2)^2 cycle-space confinement of colour-fibre holonomy
 
 Represent the three edge colours by the three nonzero group elements `1,2,3` of `F2^2` (bitwise XOR). At every cubic vertex the three incident colours xor to zero: `1 XOR 2 XOR 3 = 0`. A full properly coloured cubic sixpole is equivalently a nowhere-zero Klein-four flow with six labelled semiedges.
