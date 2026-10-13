@@ -86,8 +86,9 @@ def main():
         bits=tuple(int(p[i]==p[i+3]) for i in range(3))
         assert bits!=(1,1,1), ("incorrect Petersen 3-edge-coloring",p)
         ps[p].append(assigned)
-    bitcounts=Counter(tuple(int(p[i]==p[i+3]) for i in range(3))*
-                      len(assignments) for p,assignments in ps.items())
+    bitcounts=Counter()
+    for p, assignments in ps.items():
+        bitcounts[tuple(int(p[i]==p[i+3]) for i in range(3))] += len(assignments)
     assert set(bitcounts)=={(0,0,0),(1,0,0),(0,1,0),(0,0,1)}
     assert len(ps)==84 and sum(len(v) for v in ps.values())==108
     assert bitcounts[(0,0,0)]==36
