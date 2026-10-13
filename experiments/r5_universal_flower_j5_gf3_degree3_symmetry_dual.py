@@ -101,7 +101,7 @@ def source_moment_orbits(n,actions):
             orbit_keys.append(canon)
         orbit_index.append(mon_orbits[canon])
     assert orbit_keys[0]==()
-    assert all(orbit_index[key[tuple(sorted(p[v] for v in M))]]==orbit_index[j]
+    assert all(orbit_index[keys[tuple(sorted(p[v] for v in M))]]==orbit_index[j]
                for j,M in enumerate(monomials[:100])
                for p,r in actions)
     return monomials,keys,tuple(orbit_index),tuple(orbit_keys)
