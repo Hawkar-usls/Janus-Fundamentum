@@ -2,17 +2,17 @@
 
 **Date:** 2026-10-13
 **Scope:** 3-edge-colourable cubic 4-poles, 6 physical external ports, native SCL context.
-**Scientific status:** semantic/gluing replacement theorem PROVED (using elementary parity + 11 finite templates); native PC degree-1 back-simulation NOT ESTABLISHED; universal open Exact-One nonexistence OPEN; \`SolveLinearCubicXSAT\` NOT CONSTRUCTED; P vs NP OPEN.
+**Scientific status:** semantic/gluing replacement theorem PROVED (using elementary parity + 11 finite templates); native PC degree-1 back-simulation NOT ESTABLISHED; universal open Exact-One nonexistence OPEN; `SolveLinearCubicXSAT` NOT CONSTRUCTED; P vs NP OPEN.
 
 ## Definitions
 
-A cubic 4-pole has four labelled semiedges; all vertices have three total incident ordinary edges/semiedges. A *proper 3-edge-colouring* assigns colours 0,1,2 so every vertex sees each colour exactly once. The ordered boundary relation \`Col4(B)\` is the **set**, not multiset, of all four-tuples of semiedge colours induced by proper colourings. We allow distinct semiedges to meet the same old vertex. \`Col6(M)\` similarly uses all six *ordered physical* outer semiedges. No colour anchoring is imposed.
+A cubic 4-pole has four labelled semiedges; all vertices have three total incident ordinary edges/semiedges. A *proper 3-edge-colouring* assigns colours 0,1,2 so every vertex sees each colour exactly once. The ordered boundary relation `Col4(B)` is the **set**, not multiset, of all four-tuples of semiedge colours induced by proper colourings. We allow distinct semiedges to meet the same old vertex. `Col6(M)` similarly uses all six *ordered physical* outer semiedges. No colour anchoring is imposed.
 
 ### Lemma 1 — four boundary orbit types
 
 By the parity lemma, every colour occurs an even number of times among four semiedges. Up to global colour relabelling, only these four patterns are possible:
 
-\`1111\`, \`1122\`, \`1212\`, \`1221\`.
+`1111`, `1122`, `1212`, `1221`.
 
 A type with four equal port colours contains 3 physical tuples; each two-pair type contains 6. Each non-empty colour set is a union of complete S3 colour relabelling orbits.
 
@@ -20,13 +20,13 @@ A type with four equal port colours contains 3 physical tuples; each two-pair ty
 
 Fix a proper colouring of a colourable 4-pole. If the ports are all colour A, select absent colour B and switch one A/B Kempe path ending at two A ports: the result has two A and two B terminals, hence changes orbit type.
 
-Otherwise the boundary is \`AABB\` after a port permutation. In the A/B subgraph, the four exposed terminals pair into two alternating paths. Switching the path containing the first A terminal either joins the other A (creating \`BBBB\`) or joins one B (creating one of the two *different* pair patterns). In every case, at least one distinct orbit type appears.
+Otherwise the boundary is `AABB` after a port permutation. In the A/B subgraph, the four exposed terminals pair into two alternating paths. Switching the path containing the first A terminal either joins the other A (creating `BBBB`) or joins one B (creating one of the two *different* pair patterns). In every case, at least one distinct orbit type appears.
 
-Thus \`2 <= |Col4(B)/S3| <= 4\` whenever B is colourable.
+Thus `2 <= |Col4(B)/S3| <= 4` whenever B is colourable.
 
 ### Lemma 3 — eleven explicit representatives
 
-There are at most \`C(4,2)+C(4,3)+C(4,4)=11\` possible sets of 2, 3 or 4 orbit types. All eleven are realized by permuting the ordered semiedges of these five **simple connected** templates (edge endpoints are 0-based, each listed port root gets one semiedge):
+There are at most `C(4,2)+C(4,3)+C(4,4)=11` possible sets of 2, 3 or 4 orbit types. All eleven are realized by permuting the ordered semiedges of these five **simple connected** templates (edge endpoints are 0-based, each listed port root gets one semiedge):
 
 | Template | Internal vertices | Ordered roots | Realized orbit types |
 | --- | ---: | --- | --- |
@@ -36,9 +36,9 @@ There are at most \`C(4,2)+C(4,3)+C(4,4)=11\` possible sets of 2, 3 or 4 orbit t
 | PETERSEN_MINUS_ADJACENT_TWO_ISO | 8 | (0,2,3,4) | 1111,1221 |
 | EIGHT_VERTEX_ALL_FOUR | 8 | (0,1,2,3) | 1111,1122,1212,1221 |
 
-Full ordinary edge lists, precise permutations, and machine checks are in [the executable atlas](../experiments/r5_universal_four_cut_11_signature_substitution.py). The first graph is a 4-cycle, and the fourth is the 4-pole obtained by deleting two adjacent vertices of the Petersen graph. Reordering the four labelled semiedges freely permutes the three distinct two-pair types while fixing \`1111\`. Thus the representatives cover three pairs containing \`1111\`, three pairs excluding it, three triples containing it, one triple excluding it, and the full set — all eleven subsets.
+Full ordinary edge lists, precise permutations, and machine checks are in [the executable atlas](../experiments/r5_universal_four_cut_11_signature_substitution.py). The first graph is a 4-cycle, and the fourth is the 4-pole obtained by deleting two adjacent vertices of the Petersen graph. Reordering the four labelled semiedges freely permutes the three distinct two-pair types while fixing `1111`. Thus the representatives cover three pairs containing `1111`, three pairs excluding it, three triples containing it, one triple excluding it, and the full set — all eleven subsets.
 
-**Conclusion:** For every colourable cubic 4-pole B, some simple connected 4-pole B* with exactly four distinct semiedge roots and at most eight internal vertices satisfies \`Col4(B*)=Col4(B)\`.
+**Conclusion:** For every colourable cubic 4-pole B, some simple connected 4-pole B* with exactly four distinct semiedge roots and at most eight internal vertices satisfies `Col4(B*)=Col4(B)`.
 
 ### Theorem 4 — all-size port-free 4-cut semantic substitution
 
@@ -46,15 +46,15 @@ Let M be a connected simple cubic sixpole, and B a connected internal vertex blo
 
 Then
 
-\`Col6(M) = Col6(M[B -> B*])\`.
+`Col6(M) = Col6(M[B -> B*])`.
 
-**Proof.** In every proper colouring of M, the ordered four interface colours lie in \`Col4(B)\`, and hence extend to B*. Conversely, every proper colouring of the quotient induces an interface tuple in \`Col4(B*)=Col4(B)\`, and therefore extends to B. The outside colouring and the six ordered outer semiedge colours remain unchanged in both directions. The new block is connected and simple, its vertices are fresh, and its four port roots are distinct. Consequently, the new sixpole stays connected and simple even when two old outside cut-edge endpoints coincide. All vertices remain cubic by construction. This proves exact **set equality**; internal colouring multiplicities are not asserted to match. □
+**Proof.** In every proper colouring of M, the ordered four interface colours lie in `Col4(B)`, and hence extend to B*. Conversely, every proper colouring of the quotient induces an interface tuple in `Col4(B*)=Col4(B)`, and therefore extends to B. The outside colouring and the six ordered outer semiedge colours remain unchanged in both directions. The new block is connected and simple, its vertices are fresh, and its four port roots are distinct. Consequently, the new sixpole stays connected and simple even when two old outside cut-edge endpoints coincide. All vertices remain cubic by construction. This proves exact **set equality**; internal colouring multiplicities are not asserted to match. □
 
 ### Corollary 5 — minimal Exact-One 6-poles exclude large internal 4-cuts
 
-If a colourable sixpole M is minimum order in its exact \`100,010,001\` pair-equality signature class, it has no port-free connected four-edge-cut block with ten or more vertices. Indeed, substituting B* yields a strictly smaller sixpole with the identical six-port colour set. In particular, for an 18-vertex candidate with such a block, the quotient has at most 16 vertices, which is inside the separately finite-excluded range of CI [#38408523974](https://github.com/Hawkar-usls/Janus-Fundamentum/actions/runs/38408523974). A hypothetical exact-one candidate is colourable by definition, so its internal blocks are colourable; the structural filter does not need to decide arbitrary block colourability.
+If a colourable sixpole M is minimum order in its exact `100,010,001` pair-equality signature class, it has no port-free connected four-edge-cut block with ten or more vertices. Indeed, substituting B* yields a strictly smaller sixpole with the identical six-port colour set. In particular, for an 18-vertex candidate with such a block, the quotient has at most 16 vertices, which is inside the separately finite-excluded range of CI [#38408523974](https://github.com/Hawkar-usls/Janus-Fundamentum/actions/runs/38408523974). A hypothetical exact-one candidate is colourable by definition, so its internal blocks are colourable; the structural filter does not need to decide arbitrary block colourability.
 
-The cut detector runs in \`O(m^4(n+m))\` by checking all 4-edge sets, deleting them, taking connected components, and retaining components free of the six external ports with all four deleted edges on their boundary. It does **not** colour the graph or claim to decide arbitrary SCL.
+The cut detector runs in `O(m^4(n+m))` by checking all 4-edge sets, deleting them, taking connected components, and retaining components free of the six external ports with all four deleted edges on their boundary. It does **not** colour the graph or claim to decide arbitrary SCL.
 
 ### Reproducible finite regression facts
 
