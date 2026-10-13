@@ -26,7 +26,7 @@ Outcome (2) is NOT a certificate that there are no forbidden states elsewhere.
 
 In particular a hypothetical exact open six-port Exact-One gadget must realise exactly 108 distinct physical boundary tuples and its total number of proper colourings is divisible by 36, with strictly positive `m_100,m_010,m_001`.
 
-The theorem assumes a full colouring witness for the constructive algorithm. Finding such a witness for arbitrary input, testing the global GOOD-only property, and solving native SCL remain unresolved.
+The theorem assumes a full colouring witness for the constructive algorithm. The current executable uses the existing R5 representation in which the six distinct physical port roots have vertex indices 0 through 5; any six-pole with distinct port roots can be relabelled into this representation in linear time. This implementation does not directly accept multiple semiedges at the same root without a representation upgrade. Finding a full colouring witness for arbitrary input, testing the global GOOD-only property, and solving native SCL remain unresolved.
 
 ## Finite matching lemma — independently recomputed
 
