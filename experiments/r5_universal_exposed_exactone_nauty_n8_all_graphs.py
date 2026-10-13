@@ -173,9 +173,14 @@ def main():
         print("OPEN_EXACTONE_N<=8_NO_CANDIDATE: exact nauty classification")
     n10,_=run_case(10)
     if n10:
-        print("OPEN_EXACTONE_N10_FOUND: requires independent certificate and native PC simulation")
+        print("OPEN_EXACTONE_N10_FOUND: needs independent certificate and native PC simulation")
     else:
         print("OPEN_EXACTONE_N<=10_NO_CANDIDATE: exact nauty classification")
+    n12,_=run_case(12)
+    if n12:
+        print("OPEN_EXACTONE_N12_FOUND: needs independent certificate and native PC simulation")
+    else:
+        print("OPEN_EXACTONE_N<=12_NO_CANDIDATE: exact nauty classification")
     print("UNBOUNDED_NATIVE_GF3_PC_DEGREE=OPEN")
     print("UNIVERSAL_POLY_SOLVER=NOT_CONSTRUCTED; P_VS_NP=OPEN")
 
