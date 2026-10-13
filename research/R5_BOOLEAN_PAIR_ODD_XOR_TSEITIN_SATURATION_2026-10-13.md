@@ -177,11 +177,14 @@ Let a base Boolean polynomial CSP H have constraints g_j of degree
 target native SCL gadgets, and for EVERY legal global base assignment
 there is a **consistent target-edge-colour assignment** defined
 by fixed local functions P_i(b) of at most s=O(1) original base
-Boolean variables. All target source rows and Boolean axioms are
-required to hold under these P_i on EVERY satisfying base assignment.
-Assume each target axiom's substituted support belongs to a constant
-number of base variables and constraints, i.e. a locally total
-interpretation, not merely existence of arbitrary global extension.
+Boolean variables. For EACH substituted target source axiom Q with local support U,
+we require **local completeness**: Q vanishes on EVERY Boolean assignment
+to U satisfying the designated local base constraints, NOT merely
+on those partial assignments that extend to some global model.
+The support U and the complete list of designated base constraints
+are of size at most s=O(1); the constraints contain no base variables
+outside U. This is a strong locality/interpretation hypothesis and
+cannot be inferred from global SAT-preservation alone.
 
 For a finite support U of m<=s local base Boolean variables,
 define projectors
@@ -240,3 +243,59 @@ GATES:
     UNBOUNDED_NATIVE_GF3_PC_DEGREE = OPEN
     SolveLinearCubicXSAT = NOT_CONSTRUCTED
     P_VS_NP = OPEN
+
+## 8. NEW Petersen 6-pole: at-most-one equality, not a reusable closed gate
+
+Research code:
+`experiments/r5_universal_petersen_6pole_boolean_atmostone_exact_source.py`;
+workflow: `.github/workflows/r5-petersen-sixpole-boolean-atmostone.yml`.
+
+Take the Petersen cubic graph (10 vertices, 15 edges). Remove THREE
+pairwise vertex-disjoint edges on a six-cycle:
+    (0,1), (2,3), (5,8).
+The remaining internal 10-vertex graph has 12 ordinary edges plus
+six dangling semiedges, paired according to each severed edge.
+Define Boolean T_i=1 if the two semiedges at endpoints of old cut
+edge i have the SAME colour.
+
+UNCONDITIONAL symbolic negative case: the state 111 cannot occur.
+If all three pairs were equal, the three removed Petersen edges
+could be re-inserted in those corresponding colours, giving a
+proper 3-edge colouring of the Petersen snark, contradiction.
+As for ANY cubic 6-pole, the 011,101,110 boundary equality
+patterns are excluded by GF2² parity.
+Therefore only {000,100,010,001} can occur.
+
+Finite exact exhaustive result:
+- All four allowed patterns ARE REALIZED.
+- 108 complete colourings of the 12 ordinary internal edges
+  (36 for 000 and 24 for each of 100,010,001).
+- 84 DISTINCT six-port colour signatures.
+This yields an **AT-MOST-ONE** Boolean ternary relation on
+equality bits for this open multipole.
+
+Composing with the C6 opposite-pair odd-XOR multipole by gluing
+all six corresponding pairs of semiedges gives a closed,
+simple cubic graph with 16 vertices, 24 edges and an ORIGINAL
+square+cubic+linear SCL72 source.
+Intersection of local Boolean signatures is EXACTLY {100,010,001}.
+The executable enumerates, builds and independently checks all
+36 proper edge-colourings against EVERY original SCL row.
+
+CRITICAL: The 3 Boolean values are **INTERNAL**: all six ports
+are consumed when the two multipoles are glued. This is NOT yet
+a reusable standalone three-input Exact-One gate with three external
+pair interfaces. Claiming a global native SCL reduction from this
+closed SAT72 would be invalid.
+
+Published structural context: Petersen 4-/6-poles, isochromatic
+connectors and the colour parity lemma are classical snark tools,
+not invented here. Example reference:
+https://www.combinatorics.org/ojs/index.php/eljc/article/download/v31i2p6/pdf/
+
+NEW GATES:
+    PETERSEN_SIXPOLE_T_EQ_ATMOSTONE = PROVED_EXACT
+    C6_PLUS_PETERSEN_INTERNAL_T_EXACTONE = PROVED_EXACT
+    CLOSED_NATIVE_SCL72_36_SAT_WITNESSES = TESTED
+    EXPOSED_T_EXACTONE_THREE_INPUT_GATE = NOT_CONSTRUCTED
+    GENERAL_HARD_PC_REDUCTION = OPEN
