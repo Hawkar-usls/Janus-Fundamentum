@@ -207,6 +207,31 @@ def fibre_at_fixed_ports(edges, p=PORTS):
     return found
 
 
+def full_physical_boundary_relation(edges):
+    """Independently enumerate all proper colourings; do not fix ports."""
+    inc = [[] for _ in range(8)]
+    for k,(a,b) in enumerate(edges):
+        inc[a].append(k);inc[b].append(k)
+    assert [len(inc[v]) for v in range(8)] == [2]*6+[3]*2
+    used=[set() for _ in range(8)]
+    physical=set()
+    def dfs(k):
+        if k==len(edges):
+            assert all(len(used[v])==3 for v in range(6,8))
+            missing=tuple(next(c for c in COLOURS if c not in used[v])
+                          for v in range(6))
+            physical.add(missing);return
+        u,v=edges[k]
+        for c in COLOURS:
+            if c in used[u] or c in used[v]:
+                continue
+            used[u].add(c);used[v].add(c)
+            dfs(k+1)
+            used[u].remove(c);used[v].remove(c)
+    dfs(0)
+    return physical
+
+
 def run():
     assert bits(PORTS) == '100'
     check_colouring(WITNESS_EDGES, REFERENCE_C, PORTS)
@@ -232,6 +257,15 @@ def run():
         REFERENCE_C, GIRTH6_AFTER
     }
     print('EXPLICIT_N8_GIRTH6_ALL_NINE_EDGES_CHANGE PASS')
+    first_relation=full_physical_boundary_relation(WITNESS_EDGES)
+    second_relation=full_physical_boundary_relation(GIRTH6_EDGES)
+    assert len(first_relation)==75
+    assert Counter(bits(s) for s in first_relation)==Counter({
+        '100':30,'000':18,'010':12,'111':9,'001':6})
+    assert len(second_relation)==72
+    assert Counter(bits(s) for s in second_relation)==Counter({
+        '100':30,'000':12,'010':12,'001':12,'111':6})
+    print('COMPLETE_PHYSICAL_SIGNATURES_SHOW_FORBIDDEN_BITS_N8_75_AND_72 PASS')
 
     matchings = {c: tuple(matching(
         tuple(v for v in range(8) if v>=6 or PORTS[v]!=c)
