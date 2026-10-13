@@ -16,7 +16,7 @@ All 6 open ports are physical, distinct; two missing port colours at
 a degree-one internal vertex get BOTH permutations.
 
 Input: nauty-geng -cq -d1 -D3 16 21 (all connected simple graphs
-of n=16 internal vertices, m=18 interior edges, up to isomorphism).
+of n=16 internal vertices, m=21 interior edges, up to isomorphism).
 Streaming generation avoids large memory usage. All 15 pairings are
 checked for every graph. A found candidate prints graph6, physical
 port IDs, matching and all observed target bit states; independently
