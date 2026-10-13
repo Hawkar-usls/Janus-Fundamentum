@@ -109,7 +109,7 @@ def build_catalogue():
     assert len(signatures) == 11
     assert Counter(map(len, signatures)) == Counter({2: 6, 3: 4, 4: 1})
     for k in (2, 3, 4):
-        assert all(sub in signatures
+        assert all(frozenset(sub) in signatures
                    for sub in combinations(sorted(ALL_FOUR), k))
     print("FOUR_POLE_COMPLETE_SIGNATURE_CATALOGUE 11/11 PASS")
     print("FOUR_POLE_SIZES_MAX_8 TRUE")
