@@ -90,6 +90,48 @@ def independent_source_replay(rows,n,combo):
     return True
 
 
+def verify_degree2_dual_certificate(rows,n,dual):
+    """Independent original-source F3 functional certificate.
+
+    The dual y sends the unit polynomial to 1 but EVERY
+    degree<=2 multilinear source generator E_i and E_i*x_j
+    to 0, so 1 cannot be in the frozen degree2 row span.
+    No appeal to a SAT model and no dependency on Gaussian pivots.
+    """
+    rows=validate_sparse(rows,n)
+    assert dual.get(0,0)%3==1
+    assert all(isinstance(k,int) and 0<=k<1+n+n*n
+               and c in (1,2) for k,c in dual.items())
+    for _gid,generator in source_generators(rows,n):
+        residual=sum(dual.get(k,0)*v for k,v in generator.items())%3
+        assert residual==0,("forged dual moment",_gid,residual)
+    return True
+
+
+def degree2_dual_from_triangular_basis(rows,n,pivot_basis):
+    """Exactly solve degree2 moment equations from row-echelon basis.
+
+    Each pivot is highest monomial in its row, with coefficient 1.
+    The unit monomial is a free nonpivot. Set its dual value to 1,
+    other free monomials 0, and recover all dependent moments
+    in ASCENDING pivot order from the triangular constraints.
+    This constructs a small independently source-checkable dual
+    certificate of NON-membership of constant 1 in row span.
+    """
+    assert 0 not in pivot_basis
+    values={0:1}
+    for pivot in sorted(pivot_basis):
+        row=pivot_basis[pivot]
+        assert row[pivot]==1 and all(k<=pivot for k in row)
+        required=sum(coef*values.get(k,0)
+                     for k,coef in row.items() if k!=pivot)
+        value=(-required)%3
+        values[pivot]=value
+    dual={k:c for k,c in values.items() if c%3}
+    assert verify_degree2_dual_certificate(rows,n,dual)
+    return dual
+
+
 def degree2_row_span(rows,n,guard_n=50):
     rows=validate_sparse(rows,n)
     assert n<=guard_n
@@ -127,10 +169,12 @@ def degree2_row_span(rows,n,guard_n=50):
     assert 0 not in pivot_basis
     dim=1+n+(n*(n-1))//2
     assert len(pivot_basis)<=dim
+    dual=degree2_dual_from_triangular_basis(rows,n,pivot_basis)
     return {"status":"DEGREE2_UNRESOLVED",
             "n":n,"span_rank":len(pivot_basis),
             "ambient_dim":dim,"generators_seen":generator_count,
-            "constant_not_in_span":True}
+            "constant_not_in_span":True,
+            "dual_certificate":dual,"dual_size":len(dual)}
 
 
 def main():
@@ -171,6 +215,14 @@ def main():
         )
         if name in ("FANO7","TRIPLE_FANO_UNSAT21"):
             assert verdict=="UNSAT_DEGREE2_SOURCE_CERTIFIED",(name,result)
+        if verdict=="DEGREE2_UNRESOLVED":
+            assert verify_degree2_dual_certificate(
+                rows,n,result["dual_certificate"]
+            )
+            if name=="PETERSEN_SCL45":
+                print("PETERSEN_SCL45_UNSAT_F3_DEGREE2_DUAL_PSEUDOMOMENT="
+                      f"SOURCE_CERTIFIED dimension={result['ambient_dim']} "
+                      f"support={result['dual_size']}",flush=True)
         print(f"F3_BOOLEAN_PC_DEGREE2_{name}={verdict} "
               f"span_rank={result['span_rank']} "
               f"generators_seen={result['generators_seen']} "
