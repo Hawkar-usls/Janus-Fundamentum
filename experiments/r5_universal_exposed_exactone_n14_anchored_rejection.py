@@ -74,8 +74,9 @@ def graph6_decode(line):
 
 
 def code_base3(digits):
+    # itertools.product enumerates lexicographically: first is most significant.
     acc=0
-    for d in reversed(digits):
+    for d in digits:
         acc=3*acc+d
     return acc
 
