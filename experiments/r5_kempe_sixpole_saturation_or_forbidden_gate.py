@@ -110,10 +110,22 @@ def forced_transition_graph():
         component_sizes[bits(s)] = len(routes)
         diameters[max(map(len, routes.values()))] += 1
     assert component_sizes == {"001":36, "010":36, "100":36}
+    # The forced-move base for each bit is an undirected 36-vertex,
+    # 72-edge graph. Its graph-theoretic cycle rank is 72-36+1=37.
+    for b in GOOD:
+        vertices = [x for x in states if bits(x) == b]
+        undirected_edges = {
+            tuple(sorted((x, y)))
+            for x in vertices for y, _, _ in forced[x]
+        }
+        assert len(vertices) == 36
+        assert len(undirected_edges) == 72
+        assert len(undirected_edges) - len(vertices) + 1 == 37
     assert diameters == Counter({3: 36, 4: 72}), diameters
     print("GOOD_MATCHINGS_UNIQUE_252_AMBIGUOUS_72 PASS")
     print("BIDIRECTIONAL_FORCED_SINGLE_PATH_EDGES_432 PASS")
     print("SAME_BIT_COMPONENTS_THREE_OF_36 PASS")
+    print("KEMPE_BASE_PER_BIT_V36_E72_CYCLE_RANK37 PASS")
     print("ALL_STARTS_DIAMETER_AT_MOST_4", dict(sorted(diameters.items())))
     return forced
 
