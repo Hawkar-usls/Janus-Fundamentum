@@ -142,7 +142,8 @@ def check_sample_sources():
     assert counts["interfaces"]==94065
     assert counts["triple_heterochromatic"]==44
     print("ALL_STAR6_FINITE_CONTROLS_PASS",dict(counts))
-    print("FIVE_CLOSURES: STAR6 and MATCH3 UNSAT + EACH SINGLE PAIR SAT")\n    print("THEOREM: EXPOSED_ONEHOT iff 3 HETEROCHROMATIC")
+    print("FIVE_CLOSURES: STAR6 and MATCH3 UNSAT + EACH SINGLE PAIR SAT")
+    print("THEOREM: EXPOSED_ONEHOT iff 3 HETEROCHROMATIC")
     print("  SINGLE-PAIR CLOSURES AND STAR6_CLOSED_GRAPH_UNCOLOURABLE")
     print("UNBOUNDED_NATIVE_GF3_PC_DEGREE=OPEN; P_VS_NP=OPEN")
 
