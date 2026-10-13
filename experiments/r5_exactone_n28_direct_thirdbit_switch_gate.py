@@ -24,7 +24,7 @@ FINITE local search only; multiple switches or graph enlargement could
 produce a legal three-bit gadget. No all-n exclusion or P=NP result.
 """
 from collections import Counter
-from itertools import combinations
+from itertools import combinations, permutations
 from r5_exactone_bridgeless_n28_twobit_constructive import (
     build_k4minus_two_bit, find_bridges,
     all_physical_colours, bits
@@ -51,7 +51,40 @@ def all_one_switches(edges):
     return result
 
 
+SIMPLE_FIVE_BLOCK_SKELETONS=(
+    ((0,1),(0,2),(0,3),(0,4),(1,2),(1,3),(1,4)),
+    ((0,1),(0,2),(0,3),(0,4),(1,2),(1,3),(2,3)),
+    ((0,1),(0,2),(0,3),(0,4),(1,2),(1,3),(2,4)),
+    ((0,1),(0,2),(0,3),(1,2),(1,3),(2,4),(3,4)),
+)
+
+
+def canonical_five_block_skeleton(edges):
+    representatives=[]
+    for ren in permutations(range(5)):
+        representatives.append(tuple(sorted(
+            tuple(sorted((ren[u],ren[v]))) for u,v in edges
+        )))
+    return min(representatives)
+
+
+def independently_certify_four_simple_skeletons():
+    all_edge_pairs=tuple(combinations(range(5),2))
+    canonical=frozenset(
+        canonical_five_block_skeleton(candidate)
+        for candidate in combinations(all_edge_pairs,7)
+        if connected(candidate,5)
+    )
+    asserted=frozenset(map(
+        canonical_five_block_skeleton,
+        SIMPLE_FIVE_BLOCK_SKELETONS
+    ))
+    assert len(canonical)==4 and canonical==asserted
+    print("EXACT_FOUR_UNLABELLED_CONNECTED_SIMPLE_5BLOCK_7EDGE_SKELETONS PASS")
+
+
 def test():
+    independently_certify_four_simple_skeletons()
     edges,roots=build_k4minus_two_bit(True)
     assert len(edges)==39 and len(roots)==6
     assert not find_bridges(edges,28)
