@@ -131,7 +131,8 @@ def main():
     print("ALL_SOURCE_RETRACTION_CONTROLS",dict(all_),flush=True)
     print("ALL_N THEOREM: whenever triangle contraction remains simple,")
     print(" exact full six-port physical colouring signatures preserved.")
-    print("N16 MINIMAL EXACTONE: NO CONTRACTIBLE INTERNAL TRIANGLE.")
+    print("N18 EXACTONE CANDIDATE: NO CONTRACTIBLE INTERNAL TRIANGLE,")
+    print("  since contraction would give forbidden n16 exactone.")
     print("SOURCE_F3_PC_MAP: existing triangle inflation literal degree1 lemma.")
     print("NO_P_VS_NP_RESULT; UNIVERSAL_SOLVER_NOT_CONSTRUCTED.")
 
