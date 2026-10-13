@@ -37,7 +37,7 @@ Run:
 python -u experiments/r5_kempe_monodromy_square_rank22.py
 """
 from collections import Counter, defaultdict
-from itertools import combinations
+from itertools import combinations, permutations, product
 
 from r5_kempe_sixpole_saturation_or_forbidden_gate import (
     GOOD, bits, parity_states, forced_transition_graph, toggled_boundary
@@ -105,16 +105,82 @@ def forced_squares(graph):
     return list(squares.values())
 
 
-def voltage_cover_connected(vertices, base_edges, selected):
+def voltage_cover_connected(vertices, base_edges, odd_edges):
     """Check a nontrivial abstract 2-sheet cover with a single odd edge."""
     lifts = {(v, sheet) for v in vertices for sheet in (0, 1)}
     lifted_edges = set()
     for u, v in base_edges:
-        parity = int((u, v) == selected)
+        parity = int((u, v) in odd_edges)
         for sheet in (0, 1):
             lifted_edges.add(edge((u, sheet), (v, sheet ^ parity)))
     assert len(lifts) == 72 and len(lifted_edges) == 144
     return connected(lifts, lifted_edges)
+
+
+def bit_preserving_symmetry_orbits(vertices, base_edges, untouched):
+    """Full S3 colours x (C2^3 semiport flips ⋊ S2 unequal-pair swap)."""
+    pair_slots = ((0, 1), (2, 3), (4, 5))
+    actions = []
+    for swapflags in product((0, 1), repeat=3):
+        for last_two in (0, 1):
+            ps = [list(x) for x in pair_slots]
+            if last_two:
+                ps[1], ps[2] = ps[2], ps[1]
+            ps = [tuple(reversed(x)) if swapflags[i] else tuple(x)
+                  for i, x in enumerate(ps)]
+            perm = tuple(i for pair in ps for i in pair)
+            for ren in permutations(range(3)):
+                actions.append((perm, ren))
+    assert len(actions) == 96
+    def transform(s, action):
+        pp, ren = action
+        return tuple(ren[s[i]] for i in pp)
+    for action in actions:
+        assert {transform(s, action) for s in vertices} == vertices
+        assert {edge(transform(u, action), transform(v, action))
+                for u, v in base_edges} == base_edges
+        assert {edge(transform(u, action), transform(v, action))
+                for u, v in untouched} == untouched
+    remain = set(base_edges)
+    orbit_lengths = []
+    while remain:
+        root = min(remain)
+        orbit = {edge(transform(root[0], action),
+                      transform(root[1], action))
+                 for action in actions}
+        assert orbit <= remain
+        orbit_lengths.append((len(orbit), len(orbit & untouched)))
+        remain -= orbit
+    assert sorted(orbit_lengths) == [
+        (12, 0), (12, 12), (24, 0), (24, 0)
+    ] or sorted(orbit_lengths) == [
+        (12, 0), (12, 12), (24, 24), (24, 24)
+    ]
+    # All three types of square edges are a union of non-odd orbits.
+    assert sorted(len_o for len_o, _ in orbit_lengths) == [12, 12, 24, 24]
+    assert sum(odd for _, odd in orbit_lengths) == 12
+    return orbit_lengths
+
+
+def shortest_odd_voltage_loop(vertices, base_edges, odd_edges):
+    """Shortest closed boundary walk changing Z2 sheet of the cover."""
+    start = min(vertices)
+    adj = defaultdict(list)
+    for u, v in base_edges:
+        p = int((u, v) in odd_edges)
+        adj[u].append((v, p))
+        adj[v].append((u, p))
+    queue = [(start, 0)]
+    seen = {(start, 0): 0}
+    for v, sheet in queue:
+        if (v, sheet) == (start, 1):
+            return seen[(v, sheet)]
+        for w, p in adj[v]:
+            nxt = (w, sheet ^ p)
+            if nxt not in seen:
+                seen[nxt] = seen[(v, sheet)] + 1
+                queue.append(nxt)
+    raise AssertionError("voltage cover disconnected")
 
 
 def test():
@@ -170,7 +236,12 @@ def test():
         # remain at zero voltage. Nonbridge => connected 2-sheet cover.
         selected = min(untouched)
         assert connected(V, E - {selected})
-        assert voltage_cover_connected(V, E, selected)
+        assert voltage_cover_connected(V, E, {selected})
+        orbits = bit_preserving_symmetry_orbits(V, E, untouched)
+        # Assign odd voltage to ALL 12 non-square edges; invariant under
+        # the full 96-element colour+port boundary stabilizer.
+        assert voltage_cover_connected(V, E, untouched)
+        assert shortest_odd_voltage_loop(V, E, untouched) == 5
         print('MONODROMY_SQUARES', b, {
             'boundary_states':len(V), 'forced_edges':len(E),
             'square_faces':len(S), 'mixed_squares':types['mixed'],
@@ -178,11 +249,15 @@ def test():
             'edge_disjoint_square_edges':len(appearances),
             'other_edges':len(untouched), 'square_f2_rank':rank_f2(masks),
             'pi1_before_rank':beta1, 'pi1_after_rank':free_rank,
-            'nontrivial_two_sheet_square_flat_cover':True
+            'nontrivial_two_sheet_square_flat_cover':True,
+            'colour_port_symmetry_group_size':96,
+            'symmetry_edge_orbits':sorted(orbits),
+            'symmetric_two_sheet_odd_loop_length':5
         }, flush=True)
 
     print('ALL_3_EXACTONE_BITS: 45_EDGE_DISJOINT_COMMUTATION_SQUARES PASS')
     print('ALL_SIZE_CONDITIONAL_MONODROMY: F37 -> F22 PASS')
+    print('S3_x_16_PORT_SYMMETRY_INVARIANT_NONTRIVIAL_TWO_SHEET_COVER PASS')
     print('NO_REAL_SIXPOLE_FROM_ABSTRACT_COVER; NO_EXACTONE_NO_GO')
     print('SolveLinearCubicXSAT=NOT_CONSTRUCTED; P_VS_NP=OPEN')
 
