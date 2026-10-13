@@ -43,7 +43,7 @@ def graph6_edges(line):
     assert line and not line.startswith(">>")
     nums=[ord(c)-63 for c in line]
     n=nums[0]
-    assert 2<=n<=8
+    assert 2<=n<=12
     bits=[]
     for x in nums[1:]:
         bits.extend(((x>>s)&1 for s in (5,4,3,2,1,0)))
@@ -169,10 +169,13 @@ def main():
     n8,_=run_case(8)
     if n8:
         print("OPEN_EXACTONE_8_FOUND: inspect frozen color-level witness")
-        print("PC_SIMULATION_NOT_YET_PROVED")
     else:
-        print("OPEN_EXACTONE_N<=8_NO_CANDIDATE: complete nauty interior graphs")
-        print("NEXT_N=10_OR_ALTERNATIVE_INTERFACE_REQUIRED")
+        print("OPEN_EXACTONE_N<=8_NO_CANDIDATE: exact nauty classification")
+    n10,_=run_case(10)
+    if n10:
+        print("OPEN_EXACTONE_N10_FOUND: requires independent certificate and native PC simulation")
+    else:
+        print("OPEN_EXACTONE_N<=10_NO_CANDIDATE: exact nauty classification")
     print("UNBOUNDED_NATIVE_GF3_PC_DEGREE=OPEN")
     print("UNIVERSAL_POLY_SOLVER=NOT_CONSTRUCTED; P_VS_NP=OPEN")
 
