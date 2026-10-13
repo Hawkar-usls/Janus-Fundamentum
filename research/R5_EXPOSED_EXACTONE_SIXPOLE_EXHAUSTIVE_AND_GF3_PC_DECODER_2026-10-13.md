@@ -115,6 +115,27 @@ The composition family is STRICTLY finite: it says nothing about
 other gadgets, more than two component blocks, different numbers of
 glued wires, or general sixpoles.
 
+## 4-A. Stronger physically compositional C4 fourpole transfer
+
+The previous C4 `Boolean equal-bit wire` must NOT be treated as
+an unrestricted wire for ordered physical edge-colour pairs. A full
+source-colouring enumeration gives EXACTLY **15 distinct** four-port
+colour signatures, with multiplicities:
+- TRUE left pair `AA`: right pair `BB` for ANY colour B
+  (9 signatures; 3 all-equal signatures have multiplicity TWO,
+  6 unequal A/B signatures multiplicity ONE).
+- FALSE left pair `AB` with A!=B: right pair is necessarily
+  **REVERSED** `BA` (6 signatures, each multiplicity ONE).
+There are no other full boundary signatures. In particular, a
+FALSE ordered pair `AB` cannot pass through C4 as `AB` without
+reversing its physical endpoint order; even though the Boolean bit
+is preserved. This explicitly exposes the nontrivial gauge/port
+orientation that a full PC-preserving global reduction must track.
+
+The assertion-backed exact port-colour table is part of
+`experiments/r5_universal_boolean_pair_xor6_tseitin_saturation_falsifier.py`
+and the combined one-HEAD workflow.
+
 ## 5. Positive algebraic result: full original-source GF(3) equality-bit decoder certificate
 
 Let `p_c`,`q_c`, c in {0,1,2}, be original native SCL
