@@ -76,8 +76,6 @@ def quotient_without_colour(E,ports,B):
         if len(set(roots))<3:return None
         marker=max(V)+1
         Q=set(outside)|{norm(marker,r) for r in roots}
-    if len(Q)!=len(outside)+k//2 if False else False:
-        raise AssertionError("unreachable")
     try:
         qV=assert_simple_cubic_multipole(frozenset(Q),ports)
     except AssertionError:
