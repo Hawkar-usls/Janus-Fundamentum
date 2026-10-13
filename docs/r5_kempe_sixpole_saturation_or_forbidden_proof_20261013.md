@@ -65,6 +65,16 @@ For any forced transition s --(a,b;u,v)--> t, flip the unique (a,b)-Kempe path j
 
 All 36 vertices of a given bit are connected by these reversible forced moves; hence their fibres are bijective and all have common cardinality m_b. This proves the saturation claim and the counting identity.
 
+## Corollary — finite covering and monodromy representation
+
+For a six-pole with global GOOD-only boundary relation, fix one realized bit b and let `Gamma_b` be the 36-vertex graph of unique GOOD-compatible elementary terminal-path swaps. Each `Gamma_b` has **72 undirected edges** and is connected, so its graph cycle rank is `72 - 36 + 1 = 37`.
+
+Form the graph whose vertices are **all full 3-edge-colourings** of M whose physical port tuple has bit b, and whose labelled edges are the forced terminal-path Kempe interchanges. By the two-sided uniqueness lemma above, for every base edge and every full colouring over its source there is exactly one corresponding lifted edge. Therefore projection from the full-colouring graph to `Gamma_b` is a (possibly disconnected) finite graph covering of degree `m_b`.
+
+Choosing a spanning tree of the 36-state base gives **37 fundamental cycles**. Lifting those closed paths from a chosen full colouring generates a homomorphism from the free group on 37 generators to permutations of the fibre, `rho_b : F_37 -> S_(m_b)`. This is a necessary consistency object for any genuine Exact-One six-pole. Arbitrary choices of such permutations are **not** sufficient to realize a cubic multipole: all lifts must arise from the SAME three edge-colour matchings inside one graph.
+
+**Next genuinely unresolved theorem:** characterize which `rho_b` may arise simultaneously from a common cubic sixpole for all three b, and test whether every such realization must contain a forbidden colouring. The covering-space description itself is NOT a no-go proof or a polynomial-time generic SCL solver.
+
 ## Provenance and limitations
 
 Independent local combinatorial evaluation established 108 GOOD states, 252 forced matching choices, 432 forced directed moves, three connected components of 36, and eccentricity histogram {3:36,4:72}. On the pre-existing properly coloured simple connected eight-vertex sixpole, a forbidden `000` witness is obtained after three Kempe-path flips.
