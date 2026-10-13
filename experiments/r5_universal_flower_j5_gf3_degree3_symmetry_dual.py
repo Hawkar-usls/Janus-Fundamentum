@@ -193,6 +193,8 @@ def orbit_degree3_dual(rows,n,actions):
             "generator_orbits_processed":processed,
             "dual_support":len(full),
             "orbit_dual_support":len(sparse_orbit_dual),
+            "orbit_dual_bytes":bytes(values.get(i,0)
+                                    for i in range(len(orbits))),
             "full_dual":full}
 
 
@@ -216,6 +218,17 @@ def main():
         mono,keys=multilinear_monomials(n,3)
         dual=result["full_dual"]
         assert verify_dual_source(rows,n,dual,mono,keys)
+        # An independently replayable COMPRESSED FIXED CERTIFICATE,
+        # distinct from the code that discovered the vector.
+        import base64,hashlib,zlib
+        witness=result["orbit_dual_bytes"]
+        assert len(witness)==result["ambient_orbit_dim"]
+        assert all(v in (0,1,2) for v in witness)
+        print("FROZEN_J5_ORBIT_DUAL_SHA256="+
+              hashlib.sha256(witness).hexdigest(),flush=True)
+        print("FROZEN_J5_ORBIT_DUAL_B64Z="+
+              base64.b64encode(zlib.compress(witness,9)).decode("ascii"),
+              flush=True)
         print("ALL_SCL_DEGREE3_UNIVERSAL_COMPLETENESS=REFUTED_BY_J5_SCL90",
               flush=True)
         # Drop one verified dual coordinate, preserving y(1)
