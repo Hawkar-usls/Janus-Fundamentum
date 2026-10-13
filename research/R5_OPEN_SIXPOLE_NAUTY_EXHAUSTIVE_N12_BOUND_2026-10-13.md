@@ -109,6 +109,47 @@ boundary pairing realizes ALL 100,010,001 must realize at least one
 of 000 or 111. This is NOT proven and MUST NOT be promoted to a
 general theorem.
 
+## Independent universal-necessary Kempe signature sanity theorem
+
+Research file:
+`experiments/r5_universal_open_sixpole_kempe_necessary_closure.py`;
+CI [#38401979434](https://github.com/Hawkar-usls/Janus-Fundamentum/actions/runs/38401979434) SUCCESS.
+
+For a colourable proper cubic multipole M and a fixed FULL physical
+six-port boundary colour state s, the two-colour subgraph for any
+two labels A,B is a disjoint union of cycles and alternating paths.
+The boundary semiedges coloured A or B are paired by those paths.
+Any SUBSET of these disjoint paths can have A and B exchanged
+independently while retaining a proper cubic 3-edge colouring.
+Therefore, a necessary condition for ANY proposed boundary state
+set S=Col(M) is:
+
+For every state s in S and every pair of colours (A,B), there
+exists some perfect pairing P of the A/B-coloured terminal positions
+such that ALL `2^|P|` independently swapped boundary states
+remain members of S.
+
+The candidate EXACTONE projected relation has precisely **108**
+FULL SIX-COLOUR boundary states consistent with the cubic colour
+parity rule; its projections are exactly {100,010,001}.
+A complete enumerator checked **ALL 108 * 3 = 324** such
+state/colour-pair cases; every one has a matching P that satisfies
+this necessary condition. It freezes explicit matching examples.
+
+Consequently **PARITY plus EXISTENTIAL boundary Kempe-pair closure
+alone CANNOT disprove the target abstract relation**. This is NOT
+a graph-realization theorem: actual one fixed interior topology
+must realize the path pairings consistently for all colour states.
+The missing GLOBAL path-consistency theorem remains OPEN.
+
+Literature context: Fiol--Vilaltella (2015), *Some Results on the
+Structure of Multipoles in the Study of Snarks*,
+https://www.combinatorics.org/ojs/index.php/eljc/article/view/v22i1p45
+formalizes colour-state sets, cubic parity and Kempe state constraints.
+The no-go via these necessary conditions alone is excluded by the
+above constructive finite abstract relation, but other stronger
+universal structural identities may still rule out ExactOne.
+
 ## Essential exclusions / non-overclaims
 
 - Does NOT rule out n>=14 gadgets.
