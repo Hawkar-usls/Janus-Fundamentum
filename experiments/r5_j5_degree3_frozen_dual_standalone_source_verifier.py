@@ -42,6 +42,7 @@ PATH=Path("research/certificates/R5_J5_SCL90_GF3_V3_ORBIT_DUAL_2026-10-13.b64z")
 EXPECTED_ORBITS=6656
 EXPECTED_MONOMIALS=121576
 EXPECTED_ORIGINAL_GENERATORS=368640
+EXPECTED_SHA256="f2944e1a4fb474ebaac3aa2fcc19689139d1bee256f3f01af1f4ecebfd7c1edd"
 
 
 def independent_original_dual_checker(rows,n,monoms,keys,dual):
@@ -82,6 +83,7 @@ def main():
     # Fingerprint printed so frozen certificate can be independently
     # compared to the original dual discovery workflow.
     hash_sha256=hashlib.sha256(raw).hexdigest()
+    assert hash_sha256==EXPECTED_SHA256, "FROZEN_DUAL_SHA256_MISMATCH"
     actions=source_symmetry_actions(5,edges,idx,rows)
     monoms,keys,orbit_ids,orbit_keys=source_moment_orbits(n,actions)
     assert len(orbit_keys)==EXPECTED_ORBITS
