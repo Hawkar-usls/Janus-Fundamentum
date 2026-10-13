@@ -1,0 +1,31 @@
+name: R5 Isaacs Snark Quadratic Portfolio Coverage Stress
+on:
+  push:
+    branches:
+      - research/r5-cubic-flow-smith-pair-20261011
+    paths:
+      - 'experiments/r5_universal_flower_snark_quadratic_coverage_challenge.py'
+      - '.github/workflows/r5-flower-snark-quadratic-coverage.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  flower:
+    name: 'J${{ matrix.k }} exact-root unsymmetric n and n² budget'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        k: [5, 7, 9, 11]
+    env:
+      FLOWER_K: '${{ matrix.k }}'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Prove honest budgeted UNKNOWN or source-correct UNSAT
+        run: python -u experiments/r5_universal_flower_snark_quadratic_coverage_challenge.py

@@ -1,0 +1,33 @@
+name: R5 Exact SCL 2lift Quadratic Coverage Falsifier
+on:
+  push:
+    branches:
+      - research/r5-cubic-flow-smith-pair-20261011
+    paths:
+      - 'experiments/r5_universal_scl_2lift_quadratic_poly_coverage_falsifier.py'
+      - '.github/workflows/r5-2lift-quadratic-coverage-falsifier.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  legal-two-lift:
+    name: '${{ matrix.source }} seed ${{ matrix.seed }} at n² budget'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        source: [TUTTE63, PETERSEN45]
+        seed: [9421, 11223, 334455]
+    env:
+      SOURCE: '${{ matrix.source }}'
+      SEED: '${{ matrix.seed }}'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Check legal SCL 2lift with exact guarded polynomial budget
+        run: python -u experiments/r5_universal_scl_2lift_quadratic_poly_coverage_falsifier.py

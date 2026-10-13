@@ -1,0 +1,29 @@
+name: R5 Port-Free Topological Native PC and N18 Kernel One HEAD
+on:
+  push:
+    branches: [research/r5-cubic-flow-smith-pair-20261011]
+    paths:
+      - 'experiments/r5_universal_portfree_two_three_edge_cut_exact_signature_retraction.py'
+      - 'experiments/r5_universal_native_scl_two_three_cut_pc_degree1_retraction.py'
+      - 'experiments/r5_universal_n18_portfree_smallcut_structural_filter.py'
+      - 'research/R5_ALLSIZE_PORTFREE_2_3_CUT_NATIVE_GF3_PC_DEGREE1_RETRACTION_2026-10-13.md'
+      - '.github/workflows/r5-portfree-topological-native-pc-n18-one-head.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  exact-all-size-controls:
+    name: Replay sixport physical signature equality, every original SCL PC row, and n18 structural cut kernel
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Independently replay all six physical port colours under k2 k3 cuts
+        run: python -u experiments/r5_universal_portfree_two_three_edge_cut_exact_signature_retraction.py
+      - name: Independently certify all literal original SCL rows and Boolean PC axioms
+        run: python -u experiments/r5_universal_native_scl_two_three_cut_pc_degree1_retraction.py
+      - name: Reject n18 reducible candidates by polynomial small edge-cut scans without colour search
+        run: python -u experiments/r5_universal_n18_portfree_smallcut_structural_filter.py

@@ -1,0 +1,26 @@
+name: R5 Sixpole Triangle Shrink Physical Ports Original Source Gate
+on:
+  push:
+    branches: [research/r5-cubic-flow-smith-pair-20261011]
+    paths:
+      - 'experiments/r5_universal_sixpole_internal_triangle_shrink_exact_port.py'
+      - '.github/workflows/r5-sixpole-triangle-shrink-source.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  source-triangle:
+    name: Independently audit every contractible triangle n6 n8 n10 exact six-port physical signatures
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install canonical connected graphs
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq nauty
+      - name: Independently check exact full physical port colour bijection for every valid triangle shrink
+        run: python -u experiments/r5_universal_sixpole_internal_triangle_shrink_exact_port.py

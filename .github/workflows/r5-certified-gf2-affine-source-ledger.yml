@@ -1,0 +1,26 @@
+name: R5 Universal GF2 Affine Source Proof Ledger
+on:
+  push:
+    branches:
+      - research/r5-cubic-flow-smith-pair-20261011
+    paths:
+      - 'experiments/r5_universal_certified_gf2_affine_forced_literals.py'
+      - 'experiments/r5_universal_certified_expert_portfolio.py'
+      - '.github/workflows/r5-certified-gf2-affine-source-ledger.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  gf2-source:
+    name: 'Verified all-SCL linear XOR consequences -> Exact-One proof and legacy solver regression'
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Original matrix XOR ledger, bridge test without metadata and forged proof rejection
+        run: python -u experiments/r5_universal_certified_gf2_affine_forced_literals.py
+      - name: Existing portfolio canonical controls on modified universal gate
+        run: python -u experiments/r5_universal_certified_expert_portfolio.py

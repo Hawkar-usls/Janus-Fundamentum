@@ -1,0 +1,32 @@
+name: R5 ExactOne Triple Hetero and STAR6 Physical Zero One HEAD
+on:
+  push:
+    branches: [research/r5-cubic-flow-smith-pair-20261011]
+    paths:
+      - 'experiments/r5_universal_exactone_heterochromatic_triple_closure.py'
+      - 'experiments/r5_universal_exactone_star6_zero_tester_closure.py'
+      - 'research/R5_EXACTONE_HETERO_TRIPLE_STAR000_SNARK_CLOSURE_2026-10-13.md'
+      - '.github/workflows/r5-exactone-hetero-star6-one-head.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  scientific:
+    name: Triple 4pole heterochromatic and physical STAR6 all-input theorem on 94065 cases
+    runs-on: ubuntu-latest
+    timeout-minutes: 18
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install exact graph enumeration engine
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq nauty
+      - name: Check all 94065 three-heterochromatic-closure interfaces
+        run: python -u experiments/r5_universal_exactone_heterochromatic_triple_closure.py
+      - name: Check every physically admissible STAR6 000 colour boundary and gluing
+        run: python -u experiments/r5_universal_exactone_star6_zero_tester_closure.py
+      - name: Replay original GF3 edge-pair Boolean decoder source certificate
+        run: python -u experiments/r5_universal_boolean_pair_gf3_decoder_charge_gauge.py

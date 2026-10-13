@@ -1,0 +1,31 @@
+name: R5 Isaacs Flower Exact Two-Ply Orbit Gate
+on:
+  push:
+    branches:
+      - research/r5-cubic-flow-smith-pair-20261011
+    paths:
+      - 'experiments/r5_universal_two_ply_flower_orbit_complete_gate.py'
+      - '.github/workflows/r5-isaacs-flower-two-ply-orbit-gate.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  isaacs-orbit-closure:
+    name: 'J${{ matrix.k }} four certified SCL edge orbits'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        k: [5, 7]
+    env:
+      FLOWER_K: ${{ matrix.k }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Prove four graph automorphism orbits and replay all eight conditionals
+        run: python -u experiments/r5_universal_two_ply_flower_orbit_complete_gate.py

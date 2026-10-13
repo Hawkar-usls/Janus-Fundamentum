@@ -1,0 +1,27 @@
+name: R5 N16 Exact Open-Sixpole Onehot Census
+on:
+  push:
+    branches: [research/r5-cubic-flow-smith-pair-20261011]
+    paths:
+      - 'experiments/r5_universal_exposed_exactone_n16_anchored_rejection.py'
+      - '.github/workflows/r5-exposed-exactone-n16-anchored.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  n16-exact:
+    name: Exact n16 sixpole census, witness-driven rejection and physical boundary
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install nauty isomorphism-free enumeration
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq nauty
+          command -v nauty-geng
+      - name: Stream all connected simple 16-vertex 21-edge interiors
+        run: python -u experiments/r5_universal_exposed_exactone_n16_anchored_rejection.py

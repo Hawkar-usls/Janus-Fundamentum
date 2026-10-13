@@ -1,0 +1,26 @@
+name: R5 Two-Ply GF2 Boolean Atomic Closure Challenge
+on:
+  push:
+    branches:
+      - research/r5-cubic-flow-smith-pair-20261011
+    paths:
+      - 'experiments/r5_universal_gf2_boolean_two_ply_lookahead_probe.py'
+      - 'experiments/r5_universal_certified_expert_portfolio.py'
+      - '.github/workflows/r5-gf2-two-ply-atomic-challenge.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  two-ply:
+    name: 'Fixed-depth two-ply polynomial conditional proof trees against Petersen'
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Independently replay two-layer original-source assumption proofs
+        run: python -u experiments/r5_universal_gf2_boolean_two_ply_lookahead_probe.py
+      - name: Full original JANUS portfolio regressions with fixed two-ply gate
+        run: python -u experiments/r5_universal_certified_expert_portfolio.py

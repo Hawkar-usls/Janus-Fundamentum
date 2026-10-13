@@ -1,0 +1,28 @@
+name: R5 Open Exact-One Sixpole Exhaustive Nauty N12
+on:
+  push:
+    branches: [research/r5-cubic-flow-smith-pair-20261011]
+    paths:
+      - 'experiments/r5_universal_exposed_exactone_nauty_n8_all_graphs.py'
+      - '.github/workflows/r5-exposed-exactone-nauty-n8.yml'
+      - 'research/R5_OPEN_SIXPOLE_NAUTY_EXHAUSTIVE_N12_BOUND_2026-10-13.md'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  exhaustive-nauty:
+    name: Enumerate every simple connected n4 n6 n8 n10 n12 interior and all 15 physical pairings
+    runs-on: ubuntu-latest
+    timeout-minutes: 18
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install nauty's exact isomorph-free graph generator
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq nauty
+          command -v nauty-geng
+      - name: Verify exhaustive n4 through n12 open-sixpole colour relations, without sampling
+        run: python -u experiments/r5_universal_exposed_exactone_nauty_n8_all_graphs.py

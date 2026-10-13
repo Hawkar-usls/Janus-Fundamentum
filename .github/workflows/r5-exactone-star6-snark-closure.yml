@@ -1,0 +1,26 @@
+name: R5 STAR6 Exact Zero Tester Snark Closure and 94065 Ports
+on:
+  push:
+    branches: [research/r5-cubic-flow-smith-pair-20261011]
+    paths:
+      - 'experiments/r5_universal_exactone_star6_zero_tester_closure.py'
+      - '.github/workflows/r5-exactone-star6-snark-closure.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  source-exact:
+    name: Audit full 48-state STAR6 physical tester and all 94065 n<=12 couplings
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install nauty
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq nauty
+      - name: Verify full physical 000 STAR sixpole and every colour-state fibre
+        run: python -u experiments/r5_universal_exactone_star6_zero_tester_closure.py

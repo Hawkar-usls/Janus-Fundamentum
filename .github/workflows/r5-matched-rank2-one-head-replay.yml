@@ -1,0 +1,32 @@
+name: R5 Universal Matched Rank Two One HEAD Proof Replay
+on:
+  push:
+    branches:
+      - research/r5-cubic-flow-smith-pair-20261011
+    paths:
+      - 'experiments/r5_universal_all_scl_perfect_matching_rank2_network.py'
+      - 'experiments/r5_universal_matched_rank2_selector_exact_witness.py'
+      - 'experiments/r5_universal_matched_rank2_quotient_treewidth_lift.py'
+      - 'research/R5_UNIVERSAL_MATCHED_RANK2_QUARTIC_HOLANT_NPCOMPLETE_2026-10-12.md'
+      - '.github/workflows/r5-matched-rank2-one-head-replay.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  one-head:
+    name: Source perfect pairing, exact selectors, and treewidth lifting on ONE commit
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Source-checked rank-two quotient and independent finite enumeration
+        run: python -u experiments/r5_universal_all_scl_perfect_matching_rank2_network.py
+      - name: Exact selector-to-original-witness source replay
+        run: python -u experiments/r5_universal_matched_rank2_selector_exact_witness.py
+      - name: Treewidth quotient decomposition lift and graph source audit
+        run: python -u experiments/r5_universal_matched_rank2_quotient_treewidth_lift.py
