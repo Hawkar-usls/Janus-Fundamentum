@@ -49,8 +49,10 @@ def graph6_edges(line):
         bits.extend(((x>>s)&1 for s in (5,4,3,2,1,0)))
     edges=[]
     k=0
-    for v in range(n):
-        for w in range(v+1,n):
+    # graph6 uses upper-triangle COLUMN order:
+    # (0,1),(0,2),(1,2),(0,3),(1,3),(2,3), ...
+    for w in range(1,n):
+        for v in range(w):
             if bits[k]:
                 edges.append((v,w))
             k+=1
