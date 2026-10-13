@@ -80,6 +80,24 @@ Every intermediate physical sixport tuple still has truth bit 001 relative to ((
 
 Ten of the eighteen ordinary edge colours have changed. The entire five-step path is replayed from the SAME physical graph and checked to be fully proper after each path flip. The remaining 35 port fibres likewise have a nontrivial five-step loop.
 
+## Important provenance correction — physical cover is NOT the same as the earlier symmetric abstract voltage cover
+
+Although both covers are connected and have two sheets over the same 36-vertex / 72-edge GOOD-only forced boundary graph, **they do not represent the same labelled covering-space isomorphism class**. This is a substantive safeguard against overinterpreting the earlier abstract model as now completely physically realized.
+
+The previous 96-symmetry-invariant ABSTRACT control assigned odd Z2 voltage to all twelve base edges NOT belonging to any of the 15 mandatory same-colour commuting squares, and voltage zero to all other 60 edges. In the actual n14 graph the physical two-sheet monodromy differs.
+
+One explicit closed length-five boundary walk (in the original physical port order of this proof) is:
+
+    001001 -> 002002 -> 002112 -> 001111 -> 001221 -> 001001.
+
+Every transition is a uniquely forced Kempe boundary edge. On this walk:
+- the abstract voltage control has **odd** parity (its loop swaps sheets);
+- the n14 actual physical full-colouring lift has **even** parity (it returns to its starting complete colouring).
+
+These are gauge-invariant conflicting loop holonomies, so no relabelling of the two physical fibre elements over each boundary vertex makes these TWO SPECIFIC labelled double covers identical. The new executable checks this distinction directly using the 60 square edges, the complementary twelve edges and five actual internal path flips.
+
+**Positive theorem that DOES hold:** the real n14 GOOD-only physical covering is nontrivial (some other shortest length-five loops swap its two sheets), and all fifteen same-colour squares commute physically. It proves the existence of *a* genuine nontrivial double covering, NOT the realizability of *every* abstract or 96-symmetric voltage assignment.
+
 ## Scientific interpretation
 
 This construction proves a clear physical POSSIBILITY, not an impossibility:
