@@ -90,3 +90,25 @@ GATES:
 - GENERAL_POLY_LOOPZERO = NOT_CONSTRUCTED
 - SolveLinearCubicXSAT = NOT_CONSTRUCTED
 - P_VS_NP = OPEN
+
+
+## Frozen certificate without Gaussian elimination — independent third proof mode
+
+The second symmetry-invariant J5 dual has now been frozen as actual immutable-by-commit source data, separate from all algorithms which DISCOVERED it:
+
+- Path: research/certificates/R5_J5_SCL90_GF3_V3_ORBIT_DUAL_2026-10-13.b64z
+- Content: 1452 Base64 characters encoding zlib-compressed 6656 GF3 moment orbit bytes.
+- SHA256 of DECOMPRESSED 6656-byte orbit vector:
+  f2944e1a4fb474ebaac3aa2fcc19689139d1bee256f3f01af1f4ecebfd7c1edd
+- Standalone code: experiments/r5_j5_degree3_frozen_dual_standalone_source_verifier.py
+- Independent CI: https://github.com/Hawkar-usls/Janus-Fundamentum/actions/runs/38332775987 — SUCCESS.
+
+This standalone source verifier does NOT perform Gaussian elimination or invoke the degree-three dual GENERATOR. It:
+1. rechecks the exact native J5 source SCL90 and original 27-state UNSAT transfer;
+2. decodes the frozen 6656-entry moment-orbit byte string, checks its SHA256 and exact source symmetries;
+3. expands all 121576 multilinear moments and checks the exact F3 linear relation for **every one of the 368640 original clause×monomial degree-three generators**;
+4. rejects a deliberately corrupted witness.
+
+Thus the fixed certificate is an independently verifiable actual finite mathematical WITNESS of nonmembership 1 outside V3(F), not merely a numerical rank statistic or code which promises to construct a dual. The original SCL source is independently UNSAT; the elementary 1=y(1)=0 contradiction completes the theorem.
+
+The FALSE universality of GF3 degree3 now has independently checkable code, frozen small data, hash and completed CI.
