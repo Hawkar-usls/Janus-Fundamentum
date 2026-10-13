@@ -90,6 +90,16 @@ Petersen graph           0         0           0          0              0
 
 All constructed M_G are connected and simple, have six **distinct** semiedge roots, and share the *same ordered six-edge* Q as C6. These controls cover nontrivial YES/NO behaviour; the NP-completeness follows from the **all-size reduction plus Holyer**, not from the four finite examples.
 
+## Alignment with native square/cubic/linear SCL
+
+The existing independent source-level bridge [r5_universal_cubic_edgecolor_direct_scl_bridge.py](../experiments/r5_universal_cubic_edgecolor_direct_scl_bridge.py) constructs, from any simple cubic G, variables x_(e,c) for each ordinary source edge e and colour c∈{0,1,2}. It uses one Exact-One row for each edge e over its three colours and one Exact-One row for each source vertex v and colour c over the three edges incident to v.
+
+For N source vertices and M=3N/2 edges, the construction has 3M variables and M+3N=3M rows. Every row has exactly three positive variables; each variable occurs in exactly three rows (its edge row and both endpoint-colour rows); distinct rows share at most one variable because G is simple. These are exactly the native JANUS SCL promises: square incidence, cubic row and column degrees, and linear intersections. Full proper 3-edge-colourings of G correspond bijectively to SAT witnesses of this native SCL instance.
+
+The new executable rechecks these three-degree/linearity constraints independently for each of the K4, prism, cube and Petersen controls, with respectively 18, 27, 36 and 45 native rows and columns. This does NOT map every sixpole to an arbitrary native SCL input by itself; it demonstrates that the same NP-hard SOURCE G feeds both legally promised constructions.
+
+An abstract polynomial-time algorithm computing the **complete exact physical six-port colour support for arbitrary cubic sixpoles** is therefore equivalent (in decision power) to P=NP: its one pinned entry suffices to decide cubic 3-edge-colourability and hence SAT; conversely, P=NP allows 729 individual NP membership tests to compute the whole finite support polynomially. This is an equivalence of *hypothetical algorithms*, not an achieved algorithm.
+
 ## Open scientific gates and next action
 
 - FIXED-SIXPOLE-SIGNATURE-ENTRY: NP-COMPLETE (polynomial reduction proved).
