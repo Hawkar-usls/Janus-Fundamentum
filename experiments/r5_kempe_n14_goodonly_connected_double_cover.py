@@ -231,6 +231,52 @@ def certify_all_physical_kempe_squares(fibres,lifted):
     print("ACTUAL_N14_GOOD_ONLY_FORCED_SQUARE_LIFTS_15_ALL_COMMUTE PASS")
 
 
+def distinguish_abstract_symmetric_cover(fibres,lifted,base_edges):
+    """Give a length-5 cycle that distinguishes two NON-isomorphic covers.
+
+    The earlier abstract 96-symmetric voltage model puts Z2 value one
+    on the twelve boundary base edges excluded from all 15 compulsory
+    same-colour commuting squares. This actual physical n14 cover is
+    connected, but has a DIFFERENT gauge-invariant holonomy class.
+    """
+    def e(a,b):
+        return tuple(sorted((a,b)))
+    square_edges=set()
+    for p in fibres:
+        for ab in combinations(COL,2):
+            opts=legal_good_matchings(p,ab)
+            if len(opts)!=1 or len(opts[0])!=2:
+                continue
+            e1,e2=opts[0]
+            x=swap_ends(p,ab,e1)
+            y=swap_ends(p,ab,e2)
+            z=swap_ends(x,ab,e2)
+            for a,b in ((p,x),(x,z),(z,y),(y,p)):
+                square_edges.add(e(a,b))
+    assert len(square_edges)==60
+    uncovered=base_edges-square_edges
+    assert len(uncovered)==12
+    loop=(
+        (0,0,1,0,0,1), (0,0,2,0,0,2),
+        (0,0,2,1,1,2), (0,0,1,1,1,1),
+        (0,0,1,2,2,1), (0,0,1,0,0,1),
+    )
+    assert all(p in fibres for p in loop)
+    assert sum(e(a,b) in uncovered for a,b in zip(loop,loop[1:]))%2==1
+    start=min(fibres[loop[0]])
+    full=start
+    for p in loop[1:]:
+        neighbours=[other for other in lifted[full] if other[1]==p]
+        assert len(neighbours)==1
+        full=neighbours[0]
+    assert full==start
+    print("PHYSICAL_GOOD_ONLY_COVER_DISTINCT_FROM_96_SYMMETRIC_ABSTRACT",{
+        "closed_boundary_five_cycle":loop,
+        "physical_holonomy":0,
+        "abstract_twelve_edge_voltage_holonomy":1,
+    },flush=True)
+
+
 def run():
     edges,roots=get_graph()
     coloured=all_full_colourings(edges,roots)
@@ -272,6 +318,7 @@ def run():
     assert sum(len(x) for x in lifted.values())//2==144
     assert forced_pair_decisions==Counter({1:168,5:48})
     certify_all_physical_kempe_squares(fibres,lifted)
+    distinguish_abstract_symmetric_cover(fibres,lifted,base_edges)
     # For a 36-state base, 36*3 decisions =108, each with 2 lifts.
     print("ACTUAL_GOOD_ONLY_TWO_SHEET_COVER",{
         "n":14,"ordinary_edges":18,"full_colourings":72,
