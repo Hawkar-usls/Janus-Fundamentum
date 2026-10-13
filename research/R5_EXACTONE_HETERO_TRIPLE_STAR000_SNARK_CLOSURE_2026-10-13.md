@@ -107,6 +107,51 @@ This is an exact bridge from the missing open gadget to the
 well-developed theory of heterochromatic 4poles and snarks.
 It is NOT an existence theorem or complete algorithm.
 
+## 2-B. An equivalent FIVE-CLOSURE criterion with two UNSAT completions
+
+Define `K(M)` by joining all THREE designated pairs of semiedges
+directly into three distinct ordinary edges (no additional
+internal vertices). Equivalently it is the closure of M by the
+`MATCH3` 6-pole of three disconnected free edges.
+Its complete proper 3-edge-colourings correspond *bijectively*
+to colourings of M with Boolean pair bits `111`: one edge
+requires its two physical semiedge colours to be identical.
+This remains true if K(M) contains parallel edges as a multigraph;
+a native SIMPLE SCL conclusion requires separate simplicity audit.
+
+By the cubic sixpole parity theorem, NO actual physical boundary
+colouring can have exactly TWO 1-bits. Therefore `R(M)` is always a
+subset of
+    {000, 100, 010, 001, 111}.
+
+Consequently we obtain a particularly sharp all-size theorem:
+
+    M realizes EXACTONE={100,010,001}
+    IFF
+        STAR6 closure H(M) is UNSAT under proper 3-edge-colouring,
+        MATCH3 direct-pair closure K(M) is UNSAT,
+        and all THREE single-pair closures M_i are SAT
+        under proper 3-edge-colouring.
+
+Proof: H UNSAT removes precisely 000; K UNSAT removes precisely
+111. The cubic parity law independently removes exactly-two-on
+patterns 110,101,011. The 3 single-pair SAT conditions ensure
+a colouring realizing t_i=1 for every i; since 111 is excluded,
+each must be precisely the corresponding singleton. QED.
+
+This recasts a difficult gadget search as FIVE related, fully
+specified graph 3-edge-colourability claims (TWO UNSAT and THREE
+SAT witnesses). It is an equivalence of DECISIONS and not yet
+a Polynomial Calculus degree-preserving reduction.
+
+For a genuine hypothetical exposed-ExactOne M, the STAR6 H(M)
+is simple cubic (under standard simple-M promise and distinct
+terminals in each pair), while direct-pair K(M) may have parallel
+edges if two original terminal vertices were already adjacent.
+Thus only H(M) is automatically a legal original square/cubic/
+linear Positive Exact-One source; do NOT silently use K(M)
+as a simple-cubic SCL without checking simplicity.
+
 ## 3. Native ORIGINAL SCL legality of the STAR closure
 
 Let M have n internal vertices and m=(3n-6)/2 internal edges,
