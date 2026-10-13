@@ -54,12 +54,18 @@ from r5_kempe_physical_fiveloop_gf4_flow_witness import (
 )
 
 
-def minimum_rank_same_bit(edges, ports, bit):
+def minimum_rank_same_bit(edges, ports, bit, start=None, graph=None):
     assert len(ports) == 6
     candidates = (s for s in parity_states() if bits(s) == bit)
     values = [(linear_envelope(edges, tuple(range(6)), s)[0], s)
               for s in candidates]
     assert len(values) == 36
+    if start is not None:
+        assert graph is not None and bits(start) == bit
+        routes = routes_from(start, graph)
+        assert len(routes) == 36
+        return min(values, key=lambda item: (
+            item[0], len(routes[item[1]]), item[1]))
     return min(values)
 
 
@@ -120,7 +126,8 @@ def rank_zero_forbidden_certificate(edges, a, b, ports, graph):
     assert is_connected(n, edges)
     verify_colouring(n, edges, a, ports)
     verify_colouring(n, edges, b, ports)
-    rank, target = minimum_rank_same_bit(edges, ports, bits(ports))
+    rank, target = minimum_rank_same_bit(
+        edges, ports, bits(ports), start=ports, graph=graph)
     assert rank == 0, ("rank-zero precondition unavailable", rank)
     path = routes_from(ports, graph)[target]
     assert len(path) <= 4
