@@ -215,8 +215,8 @@ def run():
     assert base_n==6 and base_q==6
     assert len(base_Q)==6
 
-    for label,G,total_expected,fixed_expected,
-        outer_expected,total_M_expected in source_graphs():
+    for (label,G,total_expected,fixed_expected,
+         outer_expected,total_M_expected) in source_graphs():
         n,E=G
         E=tuple(sorted(norm(*e) for e in E))
         check_cubic(n,E)
