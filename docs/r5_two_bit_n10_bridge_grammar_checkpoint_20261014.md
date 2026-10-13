@@ -42,6 +42,20 @@ Exhaustive and independent proper 3-edge-colouring DFS gives:
 
 This saturates BOTH realised onehot bits and has NO forbidden or extra Boolean states.
 
+### Two literal full-colouring certificates
+
+The following tuples order the 12 ordinary edges EXACTLY as listed in the complete physical graph above. Each tuple is a proper edge-colouring of the SAME graph; the six outer physical port colours are uniquely determined by the missing colour at each of the six distinct roots:
+
+    bit 100
+    ports:         (2,2,2,0,2,0)
+    ordinary edges:(0,1,1,1,0,2,0,1,2,1,0,2)
+
+    bit 010
+    ports:         (2,2,0,2,2,0)
+    ordinary edges:(0,1,1,1,2,0,2,1,0,1,0,2)
+
+These are independently reproducible SAT witnesses of both realised truth values, not a substitute for checking the full 72-state relation.
+
 ### Two actual graph components
 
 The 7-vertex 5-pole uses vertices 0,...,6, five semiedges at roots (0,1,2,3,4) and eight ordinary edges:
