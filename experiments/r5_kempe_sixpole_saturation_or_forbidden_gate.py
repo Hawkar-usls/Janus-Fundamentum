@@ -173,7 +173,8 @@ def saturation_or_forbidden(edges, ec, ports, forced):
             # This is the exact matching that is uniquely GOOD-safe
             # in the abstract finite calculation.
             allowed = tuple(
-                pair for to, pair, xy in forced[curr_p] if xy == ab
+                endpoints for _, pair, endpoints in forced[curr_p]
+                if pair == ab
             )
             canonical = frozenset(allowed)
             if frozenset(choices) != canonical:
