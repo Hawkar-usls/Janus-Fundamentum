@@ -239,6 +239,8 @@ def regression(label, edges, roots=tuple(range(6)), reference=None):
 
 
 def test():
+    all_tuples = tuple(product(range(3), repeat=6))
+    assert len(all_tuples) == 729
     assert [gaussian_binomial(6,k) for k in range(7)] == [
         1,63,651,1395,651,63,1
     ]
