@@ -29,7 +29,7 @@ from r5_universal_exact_support_residual_dag_attack import validate_sparse
 
 
 def main():
-    for k,guard in ((5,100000000),(7,100000000)):
+    for k,guard in ((5,500000000),):
         G=flower(k)
         rows,n,edges,idx=make_scl(G)
         assert n==18*k
