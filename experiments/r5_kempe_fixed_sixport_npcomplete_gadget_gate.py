@@ -177,6 +177,37 @@ def count_full_colourings(n, edges, roots=(), ports=(), fixed_edge=None):
     return count
 
 
+def native_square_cubic_linear_exactone_promise(n, edges):
+    """Independent direct Holyer->native SCL combinatorial promise audit."""
+    edges=tuple(sorted(edges))
+    assert len(edges)==3*n//2
+    column={(e,c):3*j+c for j,e in enumerate(edges)
+            for c in range(3)}
+    rows=[frozenset(column[e,c] for c in range(3))
+          for e in edges]
+    for v in range(n):
+        incident=[e for e in edges if v in e]
+        assert len(incident)==3
+        for c in range(3):
+            rows.append(frozenset(column[e,c] for e in incident))
+    vars_count=3*len(edges)
+    assert len(rows)==vars_count
+    assert all(len(row)==3 for row in rows)
+    degrees=Counter(j for row in rows for j in row)
+    assert all(degrees[j]==3 for j in range(vars_count))
+    seen_pairs=set()
+    for row in rows:
+        for j in row:
+            for k in row:
+                if j < k:
+                    assert (j,k) not in seen_pairs, (j,k)
+                    seen_pairs.add((j,k))
+    # The previous variable-pair test is even stronger than
+    # pairwise row intersection <=1: repeated variable pairs in
+    # two distinct rows are forbidden.
+    return len(rows), vars_count
+
+
 def cycle_fragment_interface_audit():
     """Enumerate all 3^5 path colour assignments given s* and equal cuts."""
     from itertools import product
@@ -220,6 +251,7 @@ def run():
         n,E=G
         E=tuple(sorted(norm(*e) for e in E))
         check_cubic(n,E)
+        native_rows,native_cols=native_square_cubic_linear_exactone_promise(n,E)
         N,M,deleted=splice((n,E))
         selected=E.index(deleted)
         total_G=count_full_colourings(n,E)
@@ -245,6 +277,7 @@ def run():
         print("FIXED_Q_NP_COMPLETE_PIN_WITNESS",{
             "source":label,"source_vertices":n,
             "source_3edge_colourings":total_G,
+            "native_SCL_square_row_column_count":native_rows,
             "source_edge_colour_1":colour1_G,
             "sixpole_vertices":N,
             "pinned_001221_full_colours":pinned_M,
