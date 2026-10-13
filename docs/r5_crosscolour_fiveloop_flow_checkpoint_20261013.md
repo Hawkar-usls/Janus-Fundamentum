@@ -111,6 +111,34 @@ Here `Fibre(s)` counts complete **proper** internal edge-colour assignments exte
 
 The witness above realises a nonzero circulation `D` supported on the 4-cycle `3-6-7-5-3`. This is the **physical** source of its nontrivial five-loop displacement.
 
+## Stronger polynomial linear envelope of a fixed physical boundary fibre
+
+For six **distinct** semiedge roots and a fixed proper external colouring `s`, we have more than the generic cycle-space bound. At root `v_i` with external colour `a_i`, two internal edge colours must be the other two nonzero `F2^2` group elements. Between two full proper extensions of **the same** `s`, they either stay fixed or exchange; hence the difference labels on BOTH internal incident edges obey
+
+```
+D_e = D_f in span_F2(a_i) = {0, a_i}.
+```
+
+Let `Z_s` be the `F2`-linear subspace of ordinary-edge `F2^2` flows satisfying (i) Kirchhoff conservation at every vertex and (ii) one boundary-colour line constraint at each semiedge root. It is constructed directly from graph incidence and the six external colours **without** enumerating internal colourings; Gaussian elimination computes `d_s = dim(Z_s)` in polynomial time.
+
+For any chosen full proper reference colouring extending `s` (when one exists), every other colouring in the fibre gives a UNIQUE `D in Z_s`. Thus
+
+```
+|Fibre(s)| <= 2^(d_s) <= 2^(n-4).
+```
+
+In particular, if `d_s=0` and a full reference colouring is already supplied, the fibre contains **exactly one** internal colouring. The bound alone gives no proof that the fibre is nonempty for arbitrary input.
+
+New [independent fixed-port envelope verifier](../experiments/r5_kempe_fixed_port_gf4_linear_envelope.py) enumerates all 1,472 labelled valid n=8 reference colourings above port state `001212`. It independently DFS-enumerates all internal full colourings for each graph and checks the linear conditions on every difference:
+
+| `dim(Z_s)` | Actual `|Fibre(s)|` | Configurations |
+| ---: | ---: | ---: |
+| 0 | 1 | 1,072 |
+| 1 | 1 | 240 |
+| 1 | 2 | 160 |
+
+No general polynomial `SolveLinearCubicXSAT` follows because (a) a proper reference colouring need not be available, and (b) `d_s` can grow with graph size. The dimension `d_s` is a parameterized upper-envelope, **not** a complete solver.
+
 ## What remains to prove
 
 The current abstract `F22` model allows arbitrary fibre permutations satisfying the 15 commutation squares. Physical realizations obey the stronger pointwise `F2^2` circulation constraint, and all their colour-specific matching/path updates share one fixed cubic incidence structure. However these conditions do not yet exclude all three nonempty bit fibres `100,010,001`.
