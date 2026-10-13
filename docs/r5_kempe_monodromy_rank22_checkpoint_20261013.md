@@ -47,6 +47,16 @@ Thus parity, forced path pairings, independent same-colour commutations, **and t
 
 **Critical:** This is an ABSTRACT covering graph, NOT a realizable cubic multipole. No claim is made that its sheets can be identified with internal proper 3-edge-colourings. Additional necessary equations involving paths of DISTINCT colour pairs and a single shared set of cubic internal vertices are required.
 
+## Negative control — local vertex chirality does NOT reduce F22
+
+Fix an arbitrary ordering of the three incident edge-ends at every internal trivalent vertex. A proper edge-colouring defines a local permutation of the colours at that vertex. Let `chi(c)` be the product of its permutation signs over all internal vertices. For an (a,b)-Kempe interchange on a single terminal-to-terminal path, `chi` changes by `(-1)^k`, where k is the number of internal vertices of that path. By alternation, k is odd iff the two terminal colours differ. A bicolour **cycle** has even length and does not change chi.
+
+Hence each forced boundary edge `s -> t` has a necessary chirality sign determined by its exposed endpoint colours, `w(s,t) = [s_u != s_v] in F2`. Checking all three 36-state forced graphs shows that this 1-cochain is **exact**: a potential `h_b` exists with `w(s,t)=h_b(s)+h_b(t)`; in each component, exactly 18 states have each potential value.
+
+Therefore chirality contributes **zero monodromy on all closed forced boundary walks**. A hypothetical additional reduction of F22 based on nonzero chirality around one of the 22 residual cycles would be invalid. The 2-sheet abstract countermodel remains consistent with this constraint (both sheets may carry the same corrected chirality).
+
+This is a negative control, not an exclusion theorem.
+
 ## Next physical realizability gate
 
 For a candidate sixpole choose three edge-colour matchings `P_0,P_1,P_2` on the SAME set of internal vertices plus the six dangling terminals. At each internal vertex there must be exactly one edge/semiedge of each colour. The pairwise unions `P_a union P_b` must induce the forced boundary terminal pairings, **and** after any forced path swap all three matchings must update consistently on the same graph.
