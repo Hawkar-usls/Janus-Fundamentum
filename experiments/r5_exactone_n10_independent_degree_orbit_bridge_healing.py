@@ -255,6 +255,85 @@ def no_bridge_heal_after_diamonds(max_diamonds):
     return attempts
 
 
+def triangle_expansion(edges,vertex,next_start):
+    """Replace unmarked trivalent vertex by a 3-cycle (+2 vertices).
+
+    Each original incident edge connects to a different corner of the
+    triangle, so all 3 outer incident colours must differ exactly as
+    at the old vertex. Every proper colouring extends uniquely,
+    preserving the COMPLETE original sixport physical colour relation.
+    """
+    neighbours=sorted(v if u==vertex else u
+                      for u,v in edges if vertex in (u,v))
+    assert len(neighbours)==3
+    a,b=next_start,next_start+1
+    removed={tuple(sorted((vertex,w))) for w in neighbours}
+    added={(vertex,a),(vertex,b),(a,b)}
+    added |= {tuple(sorted((vertex,neighbours[0]))),
+              tuple(sorted((a,neighbours[1]))),
+              tuple(sorted((b,neighbours[2])))}
+    return tuple(sorted(set(edges)-removed|added))
+
+
+def no_bridge_heal_after_triangle_expansions():
+    """Check all expansion sequences of 1,2,3 marked-free vertices.
+
+    n12: 4 labelled expansion histories, 278 bridgeless repairs
+    n14: 24 histories, 2388 repairs
+    n16: 192 histories, 25728 repairs
+    Different histories/repairs need not be nonisomorphic; the grammar
+    is EXACTLY 'triangle vertex inflations then ONE cross-shore
+    two-edge switch', not all graphs of corresponding size.
+    """
+    states=[(SOURCE_EDGES,set(range(7)),set(range(7,10)),10,())]
+    expected=((4,278),(24,2388),(192,25728))
+    for level,(expected_histories,expected_attempts) in enumerate(expected,1):
+        successors=[]
+        checked=0
+        for edges,A,B,n,history in states:
+            deg=Counter(v for edge in edges for v in edge)
+            possible=tuple(v for v in range(n)
+                           if v not in SOURCE_ROOTS and deg[v]==3)
+            for vertex in possible:
+                new_edges=triangle_expansion(edges,vertex,n)
+                next_A=set(A);next_B=set(B)
+                (next_A if vertex in A else next_B).update(
+                    (n,n+1))
+                successors.append((
+                    new_edges,next_A,next_B,n+2,history+(vertex,)
+                ))
+                inner_A=[e for e in new_edges if set(e)<=next_A]
+                inner_B=[e for e in new_edges if set(e)<=next_B]
+                for eA in inner_A:
+                    for eB in inner_B:
+                        a,b=eA
+                        c,d=eB
+                        for cross in (((a,c),(b,d)),((a,d),(b,c))):
+                            additions={tuple(sorted(e)) for e in cross}
+                            candidate=tuple(sorted(
+                                (set(new_edges)-{eA,eB})|additions
+                            ))
+                            if len(candidate)!=len(new_edges):
+                                continue
+                            if bridges(candidate,n+2):
+                                continue
+                            checked+=1
+                            _,forbidden=colouring_bits(candidate)
+                            assert forbidden,(
+                                "BRIDGELESS GOODONLY AFTER TRIANGLE HEALING",
+                                level,history,vertex,eA,eB,candidate
+                            )
+        assert len(successors)==expected_histories
+        assert checked==expected_attempts,(
+            level,len(successors),checked,expected_attempts
+        )
+        print("TRIANGLE_INFLATION_DEPTH",level,
+              "HISTORIES",len(successors),
+              "BRIDGELESS_HEALING_ATTEMPTS",checked,
+              "ALL_HAVE_FORBIDDEN_COLOURING PASS",flush=True)
+        states=successors
+
+
 def test():
     assert degree_graph_count(0,(2,)*6+(3,)*4)==888292
     assert rooted_orbit_size()==144
@@ -282,6 +361,7 @@ def test():
     }),counts
     print("ALL_72_IMMEDIATE_EDGE_SWITCHES_FAIL_GOODONLY",dict(counts),flush=True)
 
+    no_bridge_heal_after_triangle_expansions()
     for k in (1,2):
         n=no_bridge_heal_after_diamonds(k)
         print("DIAMOND_INSERTIONS",k,"BRIDGELESS_HEALING_ATTEMPTS",n,
