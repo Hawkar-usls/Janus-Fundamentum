@@ -216,14 +216,14 @@ def check():
     cuts = find_portfree_4cut_large_blocks(E18, ports)
     assert len(cuts) == 5 and all(len(B) == 10 for B in cuts)
     before, _ = colour_states(E18, ports)
-    assert before
+    assert len(before) == 63
     result_sizes = []
     for B in cuts:
         quotient, label, sig = replace_4block(E18, ports, B, catalogue)
         after, _ = colour_states(quotient, ports)
         assert after == before
         result_sizes.append(len(assert_simple_cubic_multipole(quotient, ports)))
-    assert all(12 <= n <= 16 for n in result_sizes), result_sizes
+    assert Counter(result_sizes) == Counter({14: 5}), result_sizes
     print("N18_GRAPH_ONLY_PORTFREE_K4_CUTS", len(cuts), "PASS")
     print("N18_K4_FIVE_EXACT_SIXPORT_RETRACTIONS",
           dict(Counter(result_sizes)), "PASS")
