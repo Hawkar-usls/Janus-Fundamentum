@@ -212,6 +212,69 @@ def real_two_bit_ten_vertex_gate():
     },flush=True)
 
 
+def all_size_three_fourpole_cycle_gate():
+    """Exhaust cyclic A-B-C assembly, 2 exposed + 2 interface ports per 4pole.
+
+    Interface pattern:
+      A[2]=B[3], B[2]=C[3], C[2]=A[3].
+    The six external ports are A[:2]+B[:2]+C[:2], paired by ANY
+    of the 15 perfect matchings. This describes the FULL semantic
+    colour relation of arbitrarily large real four-pole components.
+
+    The construction is a bridgeless TRIANGLE at the component level,
+    unlike a single-edge block bridge; it is NOT all bridgeless graphs.
+    """
+    catalogue=tuple(expand_fourpole_class(s)
+                    for k in (2,3,4)
+                    for s in combinations(FOUR_ORBITS,k))
+    assert len(catalogue)==11
+    lookup=[]
+    for signature in catalogue:
+        d=defaultdict(set)
+        for s in signature:
+            d[(s[2],s[3])].add(s[:2])
+        lookup.append(d)
+    pairings=tuple(perfect_matchings(range(6)))
+    assert len(pairings)==15
+    all_cases=0
+    empty_cases=0
+    good_counts=Counter()
+    for i,j,k in product(range(11),repeat=3):
+        external=set()
+        for ab,bc,ca in product(PHYSICAL_COLOURS,repeat=3):
+            A=lookup[i].get((ab,ca),())
+            B=lookup[j].get((bc,ab),())
+            C=lookup[k].get((ca,bc),())
+            for a,b,c in product(A,B,C):
+                external.add(a+b+c)
+        if not external:
+            empty_cases+=15
+            all_cases+=15
+            continue
+        for pairing in pairings:
+            all_cases+=1
+            observed=frozenset(
+                port_bits(state,pairing) for state in external
+            )
+            if observed<=GOOD:
+                assert len(observed)==1,(i,j,k,pairing,observed)
+                assert len(external)==36
+                good_counts[tuple(sorted(observed))]+=1
+    assert all_cases==11**3*15==19965
+    assert empty_cases==45
+    assert good_counts==Counter({
+        ("100",):39,("010",):33,("001",):45
+    }),good_counts
+    assert sum(good_counts.values())==117
+    print("ALL_N_THREE_FOURPOLE_CYCLIC_TRIANGLE_GATE",{
+        "compositions":19965,"empty_compositions":45,
+        "goodonly_one_bit":dict(good_counts),
+        "goodonly_two_bits":0,"goodonly_three_bits":0,
+        "all_goodonly_physical_tuple_count":36,
+        "claim_scope":"triangle of THREE genuine 4pole blocks",
+    },flush=True)
+
+
 def bridge_cut_parity_taxonomy():
     # Saturated full GOOD bits have 36 parity-legal physical tuples
     # each, and a proper 2-outside+1-bridge cubic 3-pole must have
@@ -239,6 +302,7 @@ def bridge_cut_parity_taxonomy():
 
 if __name__=="__main__":
     all_size_three_plus_three_gate()
+    all_size_three_fourpole_cycle_gate()
     bridge_cut_parity_taxonomy()
     real_two_bit_ten_vertex_gate()
     print("BRIDGE_SPLIT_2PLUS4_TWO_BITS_SHARP; 3PLUS3_AT_MOST_ONE_BIT")
