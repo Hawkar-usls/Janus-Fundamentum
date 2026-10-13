@@ -54,7 +54,10 @@ from collections import Counter
 from itertools import product
 
 from r5_universal_portfree_two_three_edge_cut_exact_signature_retraction import (
-    graph_cycle6, inflate_edge_diamond, norm,
+    graph_cycle6, inflate_edge_diamond, norm, colour_states,
+)
+from r5_universal_four_cut_11_signature_substitution import (
+    templates, glue_to_cycle6,
 )
 from r5_kempe_fixed_port_gf4_linear_envelope import linear_envelope
 from r5_kempe_physical_fiveloop_gf4_flow_witness import WITNESS_EDGES
@@ -263,6 +266,41 @@ def test():
         assert all(nxt[s]-base[s]==4*num for s in base)
         prior=nxt
         link=norm(first_new+2,first_new+3)
+    # Physical NONLINEAR firewall: same labelled Q and all 729 values
+    # r_s, yet radically different full proper sixport colour relations.
+    names=(
+        "FOUR_CYCLE_THREE_WITH_1111",
+        "SIX_VERTEX_HETERO_TWO",
+        "SIX_VERTEX_THREE_WITHOUT_1111",
+    )
+    expected_cardinalities=(87,75,99)
+    physical_sets=[]
+    sixedge_Q=[]
+    codim_profiles=[]
+    for label,expected in zip(names,expected_cardinalities):
+        parts=templates()[label]
+        full,outer_ports=glue_to_cycle6(*parts)
+        assert outer_ports==ports
+        physical,_=colour_states(full,outer_ports)
+        assert len(physical)==expected,(label,len(physical),expected)
+        all_dims,q_model=regression(
+            "SAME_TRACE_DIFFERENT_COLOUR_%s"%label,
+            tuple(sorted(full)),outer_ports
+        )
+        Qfull,qcount,order=marked_six_edge_quotient(
+            tuple(sorted(full)),outer_ports)
+        assert q_model==Qfull
+        sixedge_Q.append(Qfull)
+        codim_profiles.append(tuple(
+            order-4-all_dims[t] for t in all_tuples
+        ))
+        physical_sets.append(physical)
+    assert sixedge_Q[0]==sixedge_Q[1]==sixedge_Q[2]
+    assert codim_profiles[0]==codim_profiles[1]==codim_profiles[2]
+    assert len(set(physical_sets))==3
+    print("SAME_SIX_EDGE_GRAPH_ALL_729_NORMALIZED_RANKS_DIFFERENT_PHYSICAL_87_75_99 PASS")
+    print("Q_AND_NORMALIZED_LINEAR_RANK_ALONE_CANNOT_DECIDE_EXACTONE")
+
     print("ALL_N_EXACT_SEQUENCE: LINEAR_Zs_TO_FIXED_6_EDGE_FLOW_GRAPH PASS")
     print("ALL_N_DIM_LOWER_BOUND_n_MINUS_10; RANK0_RANK1_IMPOSSIBLE_n_GE_12")
     print("ONLY_LINEAR_RELATION_NORMALIZED; NONZERO_EDGE_COLOURABILITY_NOT_DECIDED")
