@@ -1,0 +1,32 @@
+name: R5 Kempe Coupled Involutions and Four-Cut Atlas
+
+on:
+  push:
+    branches:
+      - research/r5-kempe-coupled-involutions-20261013
+    paths:
+      - '.github/workflows/r5-fourcut-colour-atlas.yml'
+      - 'experiments/r5_kempe_coupled_involutions_n8_barrier.py'
+      - 'experiments/r5_kempe_boundary_only_countermodel.py'
+      - 'experiments/r5_universal_four_cut_11_signature_substitution.py'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  four-cut-and-kempe:
+    name: Full 108-state abstract model, n8 coupled witness and 11 four-pole signatures
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Verify 108-state Kempe matching taxonomy and n8 3-switch witness
+        run: python -u experiments/r5_kempe_coupled_involutions_n8_barrier.py
+      - name: Verify complete abstract Kempe countermodel at all switch depths
+        run: python -u experiments/r5_kempe_boundary_only_countermodel.py
+      - name: Verify universal 11-signature 4-pole atlas and n18 4-cut reductions
+        run: python -u experiments/r5_universal_four_cut_11_signature_substitution.py
