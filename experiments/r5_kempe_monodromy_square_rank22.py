@@ -185,6 +185,38 @@ def shortest_odd_voltage_loop(vertices, base_edges, odd_edges):
     raise AssertionError("voltage cover disconnected")
 
 
+def local_chirality_edge_cocycle_is_exact(vertices, graph):
+    """The sign of local colour-order permutations supplies no new loop obstruction.
+
+    At each cubic vertex an (a,b) path interchange is a transposition.
+    An alternating terminal path passes an odd number of internal
+    vertices precisely when its two endpoint semiedges differ in
+    colour. Thus local chirality changes by (-1)^w, where w is that
+    endpoint difference. On the forced 36-state graph, w is an EXACT
+    F2 1-cochain and vanishes around every closed walk.
+    """
+    start = min(vertices)
+    potential = {start: 0}
+    stack = [start]
+    while stack:
+        s = stack.pop()
+        for t, pair, endpoints in graph[s]:
+            assert t in vertices
+            u, v = endpoints
+            sign_change = int(s[u] != s[v])
+            expected = potential[s] ^ sign_change
+            if t not in potential:
+                potential[t] = expected
+                stack.append(t)
+            else:
+                assert potential[t] == expected, (
+                    "nonzero chirality holonomy", s, t, pair
+                )
+    assert len(potential) == 36
+    assert Counter(potential.values()) == Counter({0: 18, 1: 18})
+    return potential
+
+
 def test():
     graph = forced_transition_graph()
     states = parity_states()
@@ -198,6 +230,7 @@ def test():
         V = {s for s in states if bits(s) == b}
         E = {e for e in all_edges if bits(e[0]) == b}
         assert len(V) == 36 and len(E) == 72 and connected(V, E)
+        chirality_potential = local_chirality_edge_cocycle_is_exact(V, graph)
         S = [(ab, cyc) for ab, cyc in squares if bits(cyc[0]) == b]
         assert len(S) == 15
         appearances = Counter()
@@ -254,12 +287,14 @@ def test():
             'nontrivial_two_sheet_square_flat_cover':True,
             'colour_port_symmetry_group_size':96,
             'symmetry_edge_orbits':sorted(orbits),
-            'symmetric_two_sheet_odd_loop_length':5
+            'symmetric_two_sheet_odd_loop_length':5,
+            'chirality_potential_fibre_hist':dict(Counter(chirality_potential.values()))
         }, flush=True)
 
     print('ALL_3_EXACTONE_BITS: 45_EDGE_DISJOINT_COMMUTATION_SQUARES PASS')
     print('ALL_SIZE_CONDITIONAL_MONODROMY: F37 -> F22 PASS')
     print('S3_x_16_PORT_SYMMETRY_INVARIANT_NONTRIVIAL_TWO_SHEET_COVER PASS')
+    print('LOCAL_VERTEX_COLOUR_CHIRALITY_COCYCLE_EXACT__NO_EXTRA_MONODROMY_OBSTRUCTION PASS')
     print('NO_REAL_SIXPOLE_FROM_ABSTRACT_COVER; NO_EXACTONE_NO_GO')
     print('SolveLinearCubicXSAT=NOT_CONSTRUCTED; P_VS_NP=OPEN')
 
