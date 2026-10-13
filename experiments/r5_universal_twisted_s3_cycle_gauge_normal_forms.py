@@ -101,8 +101,8 @@ def canonicalize_twists(G,old):
     q=deque([0])
     while q:
         u=q.popleft()
-        children=sorted((v,e) for v,(p,e) in parent.items()
-                        if p==u)
+        children=sorted((v,pe[1]) for v,pe in parent.items()
+                        if pe is not None and pe[0]==u)
         for v,e in children:
             # Fix incidence at BOTH endpoints to ID:
             # h p_u g_u = ID  => h=(p_u g_u)^(-1)
