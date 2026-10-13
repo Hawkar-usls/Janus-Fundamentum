@@ -88,7 +88,7 @@ def is_bridgeless(G):
     return all(connected(e) for e in G)
 
 
-def search(max_scans=2500, max_pc=3):
+def search(max_scans=2500, max_pc=1):
     G=tuple(petersen_graph())
     scans=0
     tested=0
@@ -126,7 +126,7 @@ def search(max_scans=2500, max_pc=3):
                       f"case={tested} graph_edges={edges}",
                       flush=True)
                 proof=degree3_source_span(
-                    rows,n,max_updates=100000000
+                    rows,n,max_updates=650000000
                 )
                 print(f"DOT_PETERSEN_SCL81_GF3_V3_{tested}="
                       f"{proof['status']} rank={proof['rank']} "
