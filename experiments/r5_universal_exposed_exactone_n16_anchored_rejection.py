@@ -172,7 +172,7 @@ def main():
     command=shutil.which("nauty-geng") or shutil.which("geng")
     if not command:
         raise RuntimeError("Missing nauty-geng: exact n16 classification UNKNOWN")
-    command=[command,"-c","-q","-d1","-D3","14","18"]
+    command=[command,"-c","-q","-d1","-D3","16","21"]
     proc=subprocess.Popen(command,stdout=subprocess.PIPE,
                           stderr=subprocess.PIPE,text=True)
     counts=Counter()
