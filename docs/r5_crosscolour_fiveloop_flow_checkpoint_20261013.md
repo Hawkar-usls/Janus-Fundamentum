@@ -73,6 +73,21 @@ with exactly the same physical boundary tuple. Every one of its nine ordinary ed
 
 **Caution:** Girth 6 is only the girth of the internal ordinary-edge graph. This does not make the witness a globally GOOD-only Exact-One sixpole; it is still a necessary negative control only.
 
+## Complete physical six-port signature audit of both witnesses
+
+The executable now also DFS-enumerates **all** proper internal edge-colourings with **unfixed** six semiedges, recording their distinct ordered physical boundary tuples. This independently verifies that neither physical holonomy witness is a genuine exact-one gadget:
+
+| Boundary bit | Four-cycle holonomy witness | Girth-six all-edge witness |
+| --- | ---: | ---: |
+| `100` | 30 | 30 |
+| `010` | 12 | 12 |
+| `001` | 6 | 12 |
+| **`000` (forbidden)** | **18** | **12** |
+| **`111` (forbidden)** | **9** | **6** |
+| **Total distinct physical tuples** | **75** | **72** |
+
+The discrepancy between 75/72 and 108 is significant: these are real physical counterexamples only to an **unconditional local loop identity**. The globally GOOD-only hypothesis is false for both witnesses and therefore remains an essential potential source of further identities.
+
 ## Theorem — all-size GF(2)^2 cycle-space confinement of colour-fibre holonomy
 
 Represent the three edge colours by the three nonzero group elements `1,2,3` of `F2^2` (bitwise XOR). At every cubic vertex the three incident colours xor to zero: `1 XOR 2 XOR 3 = 0`. A full properly coloured cubic sixpole is equivalently a nowhere-zero Klein-four flow with six labelled semiedges.
