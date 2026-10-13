@@ -241,6 +241,73 @@ Our additional source-specific statement is the **literal
 native Holyer Exact-One Boolean PC generator mapping**,
 fully replayed against all original source rows.
 
+
+## 4-A. Polynomial-time STRUCTURAL CANDIDATE FILTER (no colour search)
+
+Executable:
+`experiments/r5_universal_n18_portfree_smallcut_structural_filter.py`.
+Workflow:
+`.github/workflows/r5-n18-portfree-smallcut-kernel.yml`.
+
+Independent [CI #38421071311](https://github.com/Hawkar-usls/Janus-Fundamentum/actions/runs/38421071311)
+SUCCESS.
+
+For any explicitly supplied candidate internal graph on n
+vertices and m ordinary edges, enumerate subsets of 1, 2, 3
+edges (O(m³) combinations). For each, compute components of
+the graph after deleting these edges in O(n+m); inspect every
+component B which is nonempty, connected and disjoint from
+ALL six source external port roots. Determine its ACTUAL
+ordinary edge boundary delta(B), ignoring spurious guessed
+edges. If |delta(B)|=1, a promised colourable exposed onehot
+cannot exist (parity). If the boundary has 2 or 3 edges,
+build respectively the edge or vertex quotient WITHOUT
+enumerating ANY graph colourings. Explicitly recheck:
+- no new loop or multiple edge;
+- every quotient vertex completed by its original number of
+  existing free semiedges has cubic degree 3;
+- quotient is simple, connected, STRICTLY smaller;
+- all SIX original port roots and their physical identity survive.
+Return the certified B, cut and quotient as a structural
+disqualification witness for a HYPOTHETICAL EXPOSED EXACTONE
+minimal candidate, relying ONLY on its necessary colourability,
+the universal exact signature theorem and the frozen n<=16
+negative finite theorem.
+
+Complexity O(m³(n+m)) on a single candidate. This is a
+POLYNOMIAL TOPOLGICAL KERNEL FILTER under a candidate promise,
+not a deterministic polynomial decision procedure for
+arbitrary source SCL or even for all abstract multipoles.
+If B itself is uncolourable, replacement may create colourings
+that did not exist; the filter expressly depends on the
+hypothesis that an actual ExactOne candidate M is colourable.
+
+Frozen constructed positive regression sources:
+- native base C6 sixpole: no port-free component, PASS;
+- n10 diamond: one shrinkable k2 cut removing 4 vertices;
+- n14 double diamond: 2 shrinkable k2 cuts, 2 shrinkable
+  k3 cuts (their quotients are simple);
+- n16 double diamond with triangle inflation: 2 k2
+  cuts and 4 k3 cuts;
+- **n18** double diamond with twice nested triangle
+  inflation: **2** shrinkable k2 cuts, **6**
+  shrinkable k3 cuts; the largest cut removes **12**
+  port-free vertices, yielding directly a connected
+  ordinary n6 sixpole. All counts are exact outputs
+  of the independent source structural CI.
+
+In every source the remaining detected small cuts that
+cannot produce a simple strict quotient are labelled
+`NON_SIMPLE_OR_NON_SHRINKABLE`; they are NOT
+incorrectly discarded as reducible, and no global
+topological no-go is claimed.
+
+This is a real route to n>=18 *structurally irreducible
+candidates* without a large-scale graph census:
+reject port-free small cut reductions FIRST, then if
+necessary run a full physical source 3-colour enumeration
+only on surviving candidates.
+
 ## 5. Epistemic gates
 
 - ANY_COLORABLE_PORTFREE_TWOPOLE_EQUALS_EDGE = PROVED_ALL_SIZE
@@ -248,6 +315,7 @@ fully replayed against all original source rows.
 - SIX_PHYSICAL_PORT_STATE_PRESERVATION = PROVED_ALL_SIZE_CONDITIONAL_SIMPLE
 - ORIGINAL_NATIVE_SCL_ALL_GENERATOR_PC_DEGREE1_RETRACTION = PROVED_ALL_SIZE_CONDITIONAL_SIMPLE
 - FOUR_SOURCE_CONSTRUCTIONS_FULL_PHYSICAL_AND_PC_REPLAY = CI_SUCCESS
+- O_M3_N_PLUS_M_STRUCTURAL_N18_KERNEL_FILTER = CI_SUCCESS
 - MINIMAL_N18_NO_PORTFREE_SIMPLE_K<=3_REDUCTION = PROVED
 - GENERAL_EQUALITY_PAIR_EXACTONE_N<=16 = REFUTED_FINITE
 - ALLSIZE_EQUALITY_PAIR_EXACTONE_EXISTENCE = OPEN
