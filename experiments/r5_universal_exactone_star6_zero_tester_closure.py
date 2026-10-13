@@ -113,9 +113,9 @@ def check_sample_sources():
             for pairs in PAIRS:
                 counts["interfaces"]+=1
                 R,triples,nozero=evaluate_boundary(color_states,pairs)
-                permuted_states=frozenset(tuple(
-                    x[i] for pair in pairs for i in pair)[j]
-                    for j in (0,2,4,1,3,5))
+                permuted_states=frozenset(
+                    tuple(x[pairs[i][side]]
+                          for side in (0,1) for i in range(3))
                     for x in color_states)
                 # Physical gluing means exact tuple membership in STAR.
                 gluable=bool(permuted_states & STAR)
