@@ -235,13 +235,13 @@ def run():
             outer_expected,total_M_expected
         ),label
         assert total_G==3*colour1_G
-        # Every prescribed six-port linear defect is the SAME.
-        for a in range(3):
-            for b in range(3):
-                for c in range(3):
-                    sample=(a,a,b,b,c,c)
-                    assert six_edge_flow_rank(Q,q,sample)==six_edge_flow_rank(
-                        base_Q,base_q,sample)
+        # Check ALL 729 external colour tuples, not just same-pair
+        # colour tuples. Since the labelled Q is identical, this is a
+        # strict independent regression of the normalized rank table.
+        from itertools import product
+        for sample in product(range(3), repeat=6):
+            assert six_edge_flow_rank(Q,q,sample)==six_edge_flow_rank(
+                base_Q,base_q,sample)
         print("FIXED_Q_NP_COMPLETE_PIN_WITNESS",{
             "source":label,"source_vertices":n,
             "source_3edge_colourings":total_G,
