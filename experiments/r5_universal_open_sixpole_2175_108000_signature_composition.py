@@ -159,7 +159,85 @@ def audit_three_port_gluings(label,SA,SB):
     return counts
 
 
+
+def connected_simple_graph(n,edges):
+    adj=[[] for _ in range(n)]
+    for u,v in edges:
+        adj[u].append(v)
+        adj[v].append(u)
+    if min(map(len,adj))<1 or max(map(len,adj))>3:
+        return False
+    seen={0}
+    pending=[0]
+    while pending:
+        for v in adj[pending.pop()]:
+            if v not in seen:
+                seen.add(v)
+                pending.append(v)
+    return len(seen)==n
+
+
+def arbitrary_sixpole_boundary_signatures(n,edges):
+    incidence=[[] for _ in range(n)]
+    for i,(u,v) in enumerate(edges):
+        incidence[u].append(i)
+        incidence[v].append(i)
+    assert sum(3-len(incident) for incident in incidence)==6
+    colours=[-1]*len(edges)
+    signatures=set()
+    def dfs(k):
+        if k==len(edges):
+            local=[]
+            for incident in incidence:
+                missing=tuple(col for col in range(3)
+                              if col not in (colours[j] for j in incident))
+                if missing:
+                    local.append(tuple(permutations(missing)))
+            for blocks in product(*local):
+                p=tuple(color for block in blocks for color in block)
+                assert len(p)==6
+                signatures.add(p)
+            return
+        u,v=edges[k]
+        for col in (0,1,2):
+            if all(colours[j]!=col for w in (u,v)
+                   for j in incidence[w] if j<k):
+                colours[k]=col
+                dfs(k+1)
+                colours[k]=-1
+    dfs(0)
+    return frozenset(signatures)
+
+
+def audit_all_small_simple_connected():
+    # 2|E|=3n-6, so n is even. n=2 would have zero
+    # internal edges and cannot be connected.
+    for n,expected_graphs in ((4,16),(6,2700)):
+        universe=tuple(combinations(range(n),2))
+        m=(3*n-6)//2
+        tested_graphs=0
+        tested_interfaces=0
+        for edges in combinations(universe,m):
+            if not connected_simple_graph(n,edges):
+                continue
+            tested_graphs+=1
+            boundary=arbitrary_sixpole_boundary_signatures(n,edges)
+            assert boundary,("unexpected uncolourable small graph",n,edges)
+            for pairs in PAIRINGS:
+                relation=truth_relation(boundary,pairs)
+                tested_interfaces+=1
+                assert relation!=TARGET,("FOUND EXACT-ONE",n,edges,pairs)
+        assert tested_graphs==expected_graphs,(n,tested_graphs)
+        assert tested_interfaces==expected_graphs*15
+        print(f"ALL_SMALL_{n}: {tested_graphs} labelled connected simple")
+        print(f"  cubic-sixpole internal graphs x15 pairings = {tested_interfaces};")
+        print("  EXPOSED_EXACT_ONE=0 exhaustive PASS")
+    print("LOWER_BOUND: simple connected open sixpole exact-one requires")
+    print("  >=8 internal vertices, without isolated free edges")
+
+
 def main():
+    audit_all_small_simple_connected()
     P=audit_petersen()
     C=ring6_signatures()
     stats={}
