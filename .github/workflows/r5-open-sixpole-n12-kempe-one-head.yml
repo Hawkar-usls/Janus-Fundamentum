@@ -1,0 +1,35 @@
+name: R5 Open ExactOne N12 and Kempe One HEAD
+on:
+  push:
+    branches: [research/r5-cubic-flow-smith-pair-20261011]
+    paths:
+      - 'research/R5_OPEN_SIXPOLE_NAUTY_EXHAUSTIVE_N12_BOUND_2026-10-13.md'
+      - 'experiments/r5_universal_exposed_exactone_nauty_n8_all_graphs.py'
+      - 'experiments/r5_universal_open_sixpole_kempe_necessary_closure.py'
+      - '.github/workflows/r5-open-sixpole-n12-kempe-one-head.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  unified-native-sixpole:
+    name: n2..12 exhaustive nauty 94065 interfaces, Kempe324, GF3 native decoder
+    runs-on: ubuntu-latest
+    timeout-minutes: 18
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install nauty isomorph-free graph census
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq nauty
+          command -v nauty-geng
+      - name: Replay EVERY connected simple n2..12 sixpole and every physical pairing
+        run: python -u experiments/r5_universal_exposed_exactone_nauty_n8_all_graphs.py
+      - name: Audit full 108-state parity and all 324 Kempe necessary closures
+        run: python -u experiments/r5_universal_open_sixpole_kempe_necessary_closure.py
+      - name: Replay degree-four original GF3 equality-bit decoder
+        run: python -u experiments/r5_universal_boolean_pair_gf3_decoder_charge_gauge.py
+      - name: Original SCL72 Petersen and C6 finite control
+        run: python -u experiments/r5_universal_petersen_6pole_boolean_atmostone_exact_source.py
