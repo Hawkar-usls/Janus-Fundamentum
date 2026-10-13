@@ -120,12 +120,16 @@ def voltage_cover_connected(vertices, base_edges, odd_edges):
 def bit_preserving_symmetry_orbits(vertices, base_edges, untouched):
     """Full S3 colours x (C2^3 semiport flips ⋊ S2 unequal-pair swap)."""
     pair_slots = ((0, 1), (2, 3), (4, 5))
+    preserved_bit = bits(min(vertices))
+    unequal_pair_indices = [i for i, x in enumerate(preserved_bit) if x == '0']
+    assert len(unequal_pair_indices) == 2
     actions = []
     for swapflags in product((0, 1), repeat=3):
         for last_two in (0, 1):
             ps = [list(x) for x in pair_slots]
             if last_two:
-                ps[1], ps[2] = ps[2], ps[1]
+                i, j = unequal_pair_indices
+                ps[i], ps[j] = ps[j], ps[i]
             ps = [tuple(reversed(x)) if swapflags[i] else tuple(x)
                   for i, x in enumerate(ps)]
             perm = tuple(i for pair in ps for i in pair)
@@ -153,8 +157,6 @@ def bit_preserving_symmetry_orbits(vertices, base_edges, untouched):
         remain -= orbit
     assert sorted(orbit_lengths) == [
         (12, 0), (12, 12), (24, 0), (24, 0)
-    ] or sorted(orbit_lengths) == [
-        (12, 0), (12, 12), (24, 24), (24, 24)
     ]
     # All three types of square edges are a union of non-odd orbits.
     assert sorted(len_o for len_o, _ in orbit_lengths) == [12, 12, 24, 24]
