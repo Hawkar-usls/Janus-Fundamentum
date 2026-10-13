@@ -193,6 +193,44 @@ def shortest_lift(adj,start,goal):
     raise AssertionError("covering graph disconnected")
 
 
+def certify_all_physical_kempe_squares(fibres,lifted):
+    """Independently verify each one of 15 mandatory commutation squares.
+
+    Both independent terminal paths of ONE colour pair are switched in
+    either order on the SAME complete physical colouring, and must
+    return the identical full edge-colouring at the fourth corner.
+    """
+    squares=set()
+    def unique_move(full,label):
+        outputs=[other for other,lbl in lifted[full].items()
+                 if lbl==label]
+        assert len(outputs)==1,(full,label,len(outputs))
+        return outputs[0]
+    for physical,twins in fibres.items():
+        for ab in combinations(COL,2):
+            options=legal_good_matchings(physical,ab)
+            if len(options)!=1 or len(options[0])!=2:
+                continue
+            e1,e2=(tuple(sorted(ends)) for ends in options[0])
+            assert not (set(e1)&set(e2))
+            x=swap_ends(physical,ab,e1)
+            y=swap_ends(physical,ab,e2)
+            z=swap_ends(x,ab,e2)
+            assert z==swap_ends(y,ab,e1)
+            assert len({physical,x,y,z})==4
+            square=frozenset((physical,x,y,z))
+            squares.add(square)
+            for full in twins:
+                first=unique_move(full,(ab,e1))
+                second=unique_move(full,(ab,e2))
+                assert first[1]==x and second[1]==y
+                fourth1=unique_move(first,(ab,e2))
+                fourth2=unique_move(second,(ab,e1))
+                assert fourth1==fourth2 and fourth1[1]==z
+    assert len(squares)==15,len(squares)
+    print("ACTUAL_N14_GOOD_ONLY_FORCED_SQUARE_LIFTS_15_ALL_COMMUTE PASS")
+
+
 def run():
     edges,roots=get_graph()
     coloured=all_full_colourings(edges,roots)
@@ -233,6 +271,7 @@ def run():
     assert connected_components(coloured,lifted)==[72]
     assert sum(len(x) for x in lifted.values())//2==144
     assert forced_pair_decisions==Counter({1:168,5:48})
+    certify_all_physical_kempe_squares(fibres,lifted)
     # For a 36-state base, 36*3 decisions =108, each with 2 lifts.
     print("ACTUAL_GOOD_ONLY_TWO_SHEET_COVER",{
         "n":14,"ordinary_edges":18,"full_colourings":72,
