@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """Independent control for anchored n14 exact-one rejection logic.
 
-Two nonisomorphic manually constructed 14-vertex / 18-edge sixpoles
-(14-cycle + four non-adjacent chords) are exhaustively coloured by an
+Two distinct manually constructed 14-vertex / 18-edge sixpoles
+(14-cycle + four disjoint chords; no isomorphism claim) are exhaustively coloured by an
 independent non-anchored DFS. All 15 full boundary bit relations are
 obtained without early pruning and compared with their versions
 restricted to first edge colour 0. We also call the optimized
@@ -17,12 +17,18 @@ from r5_universal_exposed_exactone_n14_anchored_rejection import (
 )
 
 
-def make_graph(offset):
+CHORDS={
+    "antipodal": ((0,7),(1,8),(2,9),(3,10)),
+    "mixed": ((0,5),(1,7),(2,9),(3,11)),
+}
+
+
+def make_graph(label):
     n=14
     edges={tuple(sorted((i,(i+1)%n))) for i in range(n)}
-    for i in range(4):
-        a=(offset+i)%n
-        b=(offset+i+7)%n
+    chords=CHORDS[label]
+    assert len({v for e in chords for v in e})==8
+    for a,b in chords:
         assert a!=b
         edges.add(tuple(sorted((a,b))))
     E=tuple(sorted(edges))
@@ -76,10 +82,10 @@ def full_relations(E,first_colour=None):
 
 def main():
     previous=set()
-    for offset in (0,4):
+    for offset in CHORDS:
         E=make_graph(offset)
-        # E may be isomorphic by rotational symmetry; use even so
-        # the full-vs-anchored comparison is reproducible anyway.
+        # Independent physical-colour reference enumerates every label,
+        # not only the globally normalized colour of the first edge.
         full,nfull,ns=full_relations(E,None)
         anch,nanch,nas=full_relations(E,0)
         assert nanch>0 and nfull==3*nanch
@@ -89,7 +95,7 @@ def main():
         result,ports,exact,_,_=graph_test(E)
         assert (result=="candidate")==expected
         assert len(ports)==6
-        print("N14_CONTROL",{"offset":offset,"full_colourings":nfull,
+        print("N14_CONTROL",{"topology":offset,"full_colourings":nfull,
              "anchored":nanch,"full_boundary_signatures":ns,
              "anchored_boundary_signatures":nas,
              "full_pairing_equals_anchored":True,
