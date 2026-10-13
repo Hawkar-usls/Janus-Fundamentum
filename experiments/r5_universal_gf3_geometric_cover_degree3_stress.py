@@ -53,6 +53,21 @@ def symplectic_source15():
     assert len(source)==15
     assert certify_connected_tanner(source,15)
     assert all(sum(v in row for row in source)==3 for v in range(15))
+    # Exact original Tanner girth>=8: linearity already excludes
+    # quadrilaterals. A Tanner 6-cycle would be three distinct
+    # source lines that pairwise meet in 3 distinct points.
+    # On F2^4 symplectic space these 3 points would be 3
+    # independent pairwise orthogonal vectors, impossible
+    # in a rank-4 alternating nondegenerate form (maximal
+    # totally isotropic dimension is 2). Check directly too.
+    for a,b,c in combinations(source,3):
+        ab=set(a)&set(b)
+        ac=set(a)&set(c)
+        bc=set(b)&set(c)
+        if ab and ac and bc:
+            assert len({next(iter(ab)),next(iter(ac)),
+                        next(iter(bc))})!=3
+
     truth=original_source_exact_solve(source,15)
     assert truth["status"]=="SAT"
     assert all(sum(truth["witness"][v] for v in row)==1 for row in source)
