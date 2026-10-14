@@ -547,6 +547,30 @@ def self_test():
         rows, source, [(0, 0)],
         {"kind": "UNSUPPORTED"})[0]
     p = cases["HolyerPetersen_UNSAT"]
+    assert len(p) == 45
+    assert gf2_affine(p, 0, 0)[2] == 12
+    assert bound_cube(p, (0, 0)) == 4096
+    assert local_consequences(p, (0, 0))[0] == "STABLE"
+    assert gf2_consequences(p, (0, 0))[0] == "STABLE"
+    assert bounded_affine_expert(p, (0, 0), 8)[0] == "DECLINE"
+    # Every single-variable complete partition preserves this
+    # particular potential at the root. This is a genuine finite
+    # counterexample to universal one-step geometric shrink for the
+    # FROZEN restricted cooperative expert family, NOT to P=NP.
+    assert all(
+        (bound_cube(p, (1 << v, 0)) +
+         bound_cube(p, (0, 1 << v))) == 4096
+        for v in range(45)
+    )
+    result["HolyerPetersen_root_stall_certificate"] = {
+        "n": 45, "GF2_dimension": 12,
+        "U_root": 4096,
+        "singleton_partitions_without_shrink": 45,
+        "local_exact_one": "STABLE",
+        "GF2_forcing": "STABLE",
+        "small_kernel_cap8": "DECLINE",
+        "scope": "finite counterexample to restricted expert progress",
+    }
     from tempfile import TemporaryDirectory
     with TemporaryDirectory() as folder:
         file = str(Path(folder)/"resume.json")
