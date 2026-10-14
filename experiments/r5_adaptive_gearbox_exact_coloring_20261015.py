@@ -404,6 +404,12 @@ def fixtures():
                  tuple(list(tuple(combinations(range(4), 2))) +
                        [(u+4, v+4) for u, v in combinations(range(4), 2)]),
                  True),
+        "K4x10": (
+            40,
+            tuple((4*b+u, 4*b+v) for b in range(10)
+                  for u, v in combinations(range(4), 2)),
+            True,
+        ),
         "Bridge10": (10, tuple(
             [e for e in combinations(range(4), 2) if e != (0, 1)]
             + [(0, 8), (1, 8)]
