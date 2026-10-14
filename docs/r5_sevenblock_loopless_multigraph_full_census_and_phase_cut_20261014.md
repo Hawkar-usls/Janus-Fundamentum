@@ -45,6 +45,9 @@ Therefore **2,134,020** labelled skeletons in this category have at least one is
 
 **Important proof boundary:** this census proves the existence of those combinatorial cuts. It does NOT by itself show no full 108-state relation for any low-connectivity skeleton. In particular, some outer one-port transfer bridge can be eliminated by physical contraction only under its explicit colourability condition and without incorrectly inferring it was a minimal graph.
 
+
+**Additional exact port-parity bridge audit:** 757,680 labelled connected multigraphs have at least one 1+5 outer-port bridge (this category overlaps 3+3 bridges); precisely 220,500 have 1+5 bridges and NO 3+3 bridge. Every single-edge block cut has an ODD number of exposed ports on either side because 4 times the number of constituent blocks minus twice their internal joining edges minus the bridge equals the outer-port count. Thus only 1+5 and 3+3 single-edge port splits exist; no 0+6 or 2+4 bridge split occurs. A 1+5 colourable pendant component may be shortened in a minimum physical gadget, but this alone does not prove every 1+5-bridged assembly UNSAT.
+
 ## 2. Complete 3-edge-connected multigraph classification
 
 When the block skeleton's minimum edge-cut is three, every block degree is at least three. Eleven joining edges give total degree 22; with seven constituent FOURPOLES this forces exactly one degree-four hub and six degree-three terminal blocks. Fix the hub at vertex 0. Independently generate ALL loopless multigraph degree realizations with degrees `(4,3,3,3,3,3,3)`:
