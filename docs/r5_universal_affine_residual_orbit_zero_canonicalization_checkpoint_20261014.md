@@ -94,7 +94,23 @@ But enforcing the colour constraints at ALL 10 vertices of Petersen gives ZERO p
 
 Thus every fixed-small collection of such local edge-colour constraints in this explicit UNSAT instance looks compatible; it is the GLOBAL conjunction that is inconsistent. The finite check is not itself an all-size lower bound against adaptive algebraic reasoning or powerful proof systems.
 
-## 5. Uniform construction gate — exact next theorem
+## 5. Second unconditional obstruction: affine-equivalence classes are NOT closed under gluing without alignments
+
+This point is distinct from coNP-hard canonicalization. Even if a hypothetical oracle gave the exact affine orbit CLASS LABEL of every partial function at zero cost, combining two functions that share a physical/algebraic variable cannot depend on the two class labels alone.
+
+For the GF3 point indicator
+`δ_a(v)=1−(v−a)^2`, all three `δ_0,δ_1,δ_2` are AFFINELY EQUIVALENT under translations of v. Yet:
+
+    δ_0(v) * δ_0(v) = δ_0(v)   (NONZERO),
+    δ_0(v) * δ_1(v) = 0        (ZERO).
+
+The inputs on the two lines have the SAME two affine orbit labels (point-function orbit, point-function orbit) but their products lie in DIFFERENT affine orbits (point-function, zero). Thus affine-equivalence modulo independent parameter changes is NOT A CONGRUENCE for pointwise multiplication / conjunction on a shared coordinate; there can be no universally correct operation `[f]⊗[g]=[fg]` based on bare orbit labels.
+
+This is NOT just an artificial low-degree algebra example. The exact GRID9 Boolean indicator, after the ACTUAL existential elimination of its Gaussian parameter z, yields the physically sourced projected relation `Q(u,v)=1−(u−v)^2`. Fixing u=a produces exactly the three `δ_a(v)` functions above. The new executable calls the independently verified full GRID9 trace and explicitly reproduces these same/nonzero versus cross/zero products.
+
+The necessary repair is to store **relative affine alignments** of shared variables (and enough provenance to update them under composition), not only canonical orbit IDs. No polynomial bound has been proved for the cost of this relative alignment data in general Holyer-hard SCL inputs. The example disproves an ORBIT-ID-ONLY dynamic programming rule, but is NOT a lower bound on dynamic programs that correctly retain transformations or on all polynomial algorithms.
+
+## 6. Uniform construction gate — exact next theorem
 
 The conjecture "at most n^C affine-equivalence classes of semantic residuals after any eliminations" is INSUFFICIENT by itself. For a universal polynomial SCL solver, the missing proof must supply all of:
 
