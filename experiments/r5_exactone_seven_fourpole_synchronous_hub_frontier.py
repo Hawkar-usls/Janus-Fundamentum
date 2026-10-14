@@ -94,7 +94,8 @@ def verify_all_four_nonisomorphic_skeletons():
         orbits.append(relabelled)
     sizes=tuple(map(len,orbits))
     assert sizes==(2520,1260,1260,630),sizes
-    assert sum(sizes)==len(set().union(*orbits))==5670
+    complete_orbit=set().union(*orbits)
+    assert sum(sizes)==len(complete_orbit)==5670
     universe=tuple(combinations(range(7),2))
     total=0
     for chosen in combinations(universe,11):
@@ -102,7 +103,7 @@ def verify_all_four_nonisomorphic_skeletons():
         if sorted(d[v] for v in range(7))!=[3]*6+[4]:
             continue
         total+=1
-        assert chosen in set().union(*orbits)
+        assert chosen in complete_orbit
         assert edge_connectivity_at_least_three(chosen)
     assert total==5670
     print("SEVEN_FOURPOLE_3_EDGE_CONNECTED_SIMPLE_SKELETONS",{
