@@ -44,14 +44,14 @@ array<Edge,11> chosen{};
 array<int,7> degree{};
 uint64_t all=0;
 array<uint64_t,4> connectivity{};
-uint64_t bridges_33=0,bridges_other=0;
+uint64_t bridges_33=0,bridges_other=0,bridges_15=0;
 uint64_t cut2_has_24=0,cut2_has_other=0;
 array<uint64_t,3> cut2_degree2_count{};
 
 void check_one_multigraph() {
     ++all;
     int mincut=11;
-    bool bridge33=false,has24=false,hasOther=false;
+    bool bridge33=false,bridge15=false,has24=false,hasOther=false;
     // Only 63 nonempty proper subsets of seven vertices containing
     // fixed vertex zero need examination; complements are redundant.
     for(int mask=1;mask<127;mask+=2) {
@@ -63,7 +63,11 @@ void check_one_multigraph() {
             int exposed=0;
             for(int v=0;v<7;v++)
                 if(mask>>v&1)exposed+=4-degree[v];
-            if(boundary==1 && exposed==3)bridge33=true;
+            if(boundary==1) {
+                if(exposed==3)bridge33=true;
+                else if(exposed==1 || exposed==5)bridge15=true;
+                else __builtin_trap();
+            }
             if(boundary==2) {
                 if(exposed==2 || exposed==4)has24=true;
                 else hasOther=true;
@@ -76,6 +80,7 @@ void check_one_multigraph() {
     }
     ++connectivity[mincut];
     if(mincut==1) {
+        bridges_15+=bridge15;
         if(bridge33)++bridges_33;
         else ++bridges_other;
     }
@@ -122,8 +127,9 @@ int main() {
         (unsigned long long)connectivity[1],
         (unsigned long long)connectivity[2],
         (unsigned long long)connectivity[3]);
-    printf("SEVENBLOCK_LOOPLESS_BRIDGE_3PLUS3 %llu OTHER_BRIDGES %llu\n",
-        (unsigned long long)bridges_33,(unsigned long long)bridges_other);
+    printf("SEVENBLOCK_LOOPLESS_BRIDGE_3PLUS3 %llu BRIDGE_1PLUS5 %llu ONLY_1PLUS5 %llu\n",
+        (unsigned long long)bridges_33,(unsigned long long)bridges_15,
+        (unsigned long long)bridges_other);
     printf("SEVENBLOCK_LOOPLESS_CUT2_HAS_2PLUS4 %llu ALSO_OTHER %llu\n",
         (unsigned long long)cut2_has_24,(unsigned long long)cut2_has_other);
     printf("SEVENBLOCK_LOOPLESS_CUT2_DEG2_NONE %llu ONE %llu MULTIPLE %llu\n",
@@ -132,7 +138,7 @@ int main() {
         (unsigned long long)cut2_degree2_count[2]);
     bool ok=all==5229168 && connectivity==array<uint64_t,4>{
          493458,2532390,2188830,14490}
-         && bridges_33==2311890 && bridges_other==220500
+         && bridges_33==2311890 && bridges_15==757680 && bridges_other==220500
          && cut2_has_24==2188830 && cut2_has_other==289590
          && cut2_degree2_count==array<uint64_t,3>{54810,740670,1393350};
     if(!ok) {
