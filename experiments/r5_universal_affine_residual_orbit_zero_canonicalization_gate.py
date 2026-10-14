@@ -240,9 +240,9 @@ def verify_affine_orbit_not_a_product_congruence():
         slices[a]=frozenset(v for v in range(3)
             if any((a,v,z) in support for z in range(3)))
         assert slices[a]==frozenset((a,))
-    # Translation v -> v+(a-b) carries delta_a to delta_b.
+    # Translation v -> v+(b-a) carries delta_a to delta_b.
     assert all(
-        frozenset((v+(a-b))%3 for v in slices[a])==slices[b]
+        frozenset((v+(b-a))%3 for v in slices[a])==slices[b]
         for a in range(3) for b in range(3)
     )
     same=slices[0]&slices[0]
