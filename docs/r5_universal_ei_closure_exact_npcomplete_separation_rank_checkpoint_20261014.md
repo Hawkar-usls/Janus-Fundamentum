@@ -85,6 +85,9 @@ each summand contributes a rank-at-most-one evaluation matrix, so rank subadditi
 
     w >= rank_GF3(M_k) = 3^k.
 
+**Second exact normal-form lower bound on the SAME post-projection polynomial.** For one block,
+`1-(u-v)^2 = 1+2u^2+2uv+2v^2` over GF(3). These FOUR monomials are distinct in the finite-function quotient (all exponents are <=2), and all have NONZERO coefficients. In k blocks, the variable sets are disjoint; multiplying the k factors yields precisely `4^k=4^{n/9}` distinct NONZERO monomials, without cancellation or finite-field reduction. Therefore any algorithm that insists on explicitly materializing every coefficient of the unique reduced polynomial normal form after these actual existential eliminations needs exponentially large output. The same function still has an `O(k)` factored circuit and trivial SAT status. This is an unconditional lower bound on a REPRESENTATION FORMAT, **not** on general arithmetic circuits or decision algorithms.
+
 **This is a rigorous exponential lower bound for that specific representation family after exact existential elimination.** It refutes any proposed universal theorem claiming every projected native indicator has polynomial separable rank for every split of Gaussian coordinates, including disconnected legal native inputs.
 
 **EXTREMELY IMPORTANT NON-CLAIMS:** The same Q_k has an O(k)-SIZE FACTORIZED ARITHMETIC CIRCUIT, namely its above product of k local equalities. Therefore the large evaluation rank says **NOTHING** by itself about general arithmetic circuit size, adaptive network representations, polynomial-time satisfiability of this easy family, or the still-open P vs NP question. Nor does a disconnected counterexample prove the same property for the more restricted connected promise. This barrier is meaningful ONLY against a proposed polynomial-separable-rank **normal form**, not against all compact representations.
