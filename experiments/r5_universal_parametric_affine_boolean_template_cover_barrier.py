@@ -130,7 +130,6 @@ def native_grid9_solutions():
 def affine_cube_images_for_small_k(solutions,k,r):
     """Exhaustive affine maps with nonzero generating vectors, not random."""
     assert k in (1,2)
-    from itertools import permutations
     S=tuple(tuple(y for choice in state for y in solutions[choice])
             for state in product(range(3),repeat=k))
     n=len(S[0])
@@ -141,7 +140,7 @@ def affine_cube_images_for_small_k(solutions,k,r):
     for base in S:
         directions=tuple(tuple((p[j]-base[j])%3 for j in range(n))
                          for p in S if p!=base)
-        for generators in permutations(directions,r):
+        for generators in product(directions,repeat=r):
             tested+=1
             image=set()
             valid=True
@@ -157,10 +156,10 @@ def affine_cube_images_for_small_k(solutions,k,r):
                 good+=1
                 max_size=max(max_size,len(image))
                 assert len(image)<=2**k
-    assert max_size == (2**k if r<=k else 0),(k,r,max_size)
+    assert max_size == (2**r if r<=k else 0),(k,r,max_size)
     print("EXACT_AFFINE_BOOLEAN_TEMPLATE_EXHAUSTION",{
         "grid9_blocks":k, "binary_parameters":r,
-        "all_base_and_distinct_nonzero_generator_choices":tested,
+        "all_base_and_nonzero_generator_choices_including_repeats":tested,
         "sound_affine_cube_maps":good,
         "maximum_solutions_per_sound_map":max_size,
         "theorem_maximum":2**k,
