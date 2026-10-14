@@ -179,6 +179,32 @@ def verify_flow_phase_theorem():
     return frozenset(parity),target
 
 
+def prove_minimum_two_compensation_wires(target):
+    """All-size cut parity gate for a candidate phase selector.
+
+    A proper-colourable connected submultipole exposing FOUR
+    physical semiedges constituting exactly two whole logical pairs
+    A,B, plus k connector semiedges to the rest, must satisfy
+        XOR(connector colours) = d_A XOR d_B = d_C.
+    Across all THREE required bits, d_C can be 0 OR nonzero.
+    k=0 only yields zero; k=1 only yields nonzero, since all physical
+    semiedge colours are nonzero. k>=2 is NECESSARY, not sufficient.
+    """
+    required={b:set() for b in GOOD}
+    for s in target:
+        required[truth(s)].add(phase(s)[2])
+    assert required["001"]=={0}
+    assert required["100"]=={1,2,3}
+    assert required["010"]=={1,2,3}
+    possible_k0={0}
+    possible_k1={1,2,3}
+    possible_k2={a^b for a in (1,2,3) for b in (1,2,3)}
+    assert possible_k2=={0,1,2,3}
+    assert not ({0,1,2,3}<=possible_k0)
+    assert not ({0,1,2,3}<=possible_k1)
+    print("ALL_N_TWO_WHOLE_PAIRS_NEED_MINIMUM_TWO_COMPENSATION_CUT_WIRES PASS")
+
+
 def verify_n28_two_bit_boundary_physics(parity):
     E=EXPECTED_N28_EDGES
     roots=EXPECTED_N28_ROOTS
@@ -249,6 +275,7 @@ def quantitative_K4minus_wiring_gate():
             winners=[selected]
         elif forbidden==minimum:
             winners.append(selected)
+    assert covered==439,covered
     assert minimum==42 and sorted(winners)==[
         (4,10,6,7),(4,10,7,6)
     ],(minimum,winners)
@@ -268,6 +295,7 @@ def quantitative_K4minus_wiring_gate():
 
 if __name__=="__main__":
     parity,target=verify_flow_phase_theorem()
+    prove_minimum_two_compensation_wires(target)
     verify_n28_two_bit_boundary_physics(parity)
     quantitative_K4minus_wiring_gate()
     print("SYNCHRONOUS_PHYSICS_ROLE=HEURISTIC_DISCOVERY_OF_EXACT_BOUNDARY_INVARIANTS")
