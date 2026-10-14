@@ -157,6 +157,53 @@ not guarantees that the selected gear always beats a fixed gear.
 The JSON reports permit comparing node counts, probe counts and
 constraint evaluations on the same frozen fixtures.
 
+## Verified operational results (GitHub Actions 2026-10-15)
+CI [run 38652483021](https://github.com/Hawkar-usls/Janus-Fundamentum/actions/runs/38652483021)
+completed SUCCESS at source commit `c9b8d03d36b7386809819b659c9ae93a983384a3`.
+The workflow ran every previous R5 theorem checker plus the gearbox
+self-test with all three fixed gears, adaptive policy and exact resume.
+
+| Fixture | n | Expected | FAST nodes | PRECISION nodes | AUTO nodes |
+| --- | ---: | --- | ---: | ---: | ---: |
+| K4 | 4 | SAT | 3 | 3 | 3 |
+| K3,3 | 6 | SAT | 4 | 4 | 4 |
+| Petersen | 10 | UNSAT | 22 | 10 | 10 |
+| SAT Hall trap | 10 | SAT | 4 | 4 | 4 |
+| SAT imbalance trap | 12 | SAT | 4 | 4 | 4 |
+| K4 x 2 (disconnected) | 8 | SAT | 5 | 5 | 5 |
+| Bridge10 | 10 | UNSAT | 0 | 0 | 0 |
+| Circulant bipartite | 20 | SAT | 7 | 7 | 7 |
+| Circulant bipartite | 60 | SAT | 7 | 7 | 7 |
+| K4 x 10 (disconnected) | 40 | SAT | 21 | 21 | 21 |
+
+**Actual gear-shift trace:** On K4 x 10, automatic gearbox
+changed PRECISION(2) -> BALANCED(1) at visited node **8** after
+probes failed to eliminate any candidates; BALANCED(1) -> FAST(0)
+at visited node **12**, because there were no two-edge-cut equality
+constraints. A full PRECISION run performed **100** literal probes;
+the AUTO run performed **40** probes and visited the same 21 nodes.
+This is a real reduction in one category of work, not a wall-clock
+benchmark and not evidence of asymptotic improvement.
+
+**When strong gear is valuable:** On Petersen, fixed/automatic
+PRECISION explored 10 nodes; FAST explored 22. Both returned UNSAT
+and the adaptive controller avoided premature downshift.
+
+**Resume:** Petersen with a one-node budget returned
+UNKNOWN_RESOURCE_LIMIT, persisted frontier, resumed to UNSAT,
+and matched the uninterrupted visit count exactly.
+
+**Holyer source verification:** Every SAT witness additionally
+reconstructs and verifies square + cubic + linear positive exact-one
+incidence rows: 3m variables and rows, exactly three variables per
+row and three occurrences per variable, at most one variable shared
+by any two rows, with exactly one true literal in every row.
+
+**Caveat:** finite pass rates are not all-n convergence bounds;
+switch policies may lose to either fixed gear on other inputs.
+Worst-case search remains exponential. No universal polynomial
+`SolveLinearCubicXSAT` was constructed.
+
 ## Next research gate
 Benchmark all three fixed gears versus adaptive on connected
 Holyer-derived hard graphs with fixed time/node caps. Evaluate
