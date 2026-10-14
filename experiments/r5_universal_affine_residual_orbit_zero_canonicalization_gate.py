@@ -106,6 +106,7 @@ def exact_affine_truth_tables(A):
     assert d>=2
     tables={}
     accepted=0
+    accepted_params=[]
     # Pure-Python exhaustive finite test; not a proposed algorithm.
     for prefix in product(range(3),repeat=d-2):
         cofactor=0
@@ -121,8 +122,9 @@ def exact_affine_truth_tables(A):
             if good:
                 cofactor|=1<<k
                 accepted+=1
+                accepted_params.append(coeffs)
         tables[prefix]=cofactor
-    return rank,d,accepted,tables
+    return rank,d,accepted,tables,accepted_params
 
 
 def verify_holyer_class_observation():
@@ -135,7 +137,7 @@ def verify_holyer_class_observation():
     for name,vertices,E,n,rk,d,count,num,raw,agl in expected:
         A,edges,vars_=holyer_native_bridge(vertices,E)
         proper,_=count_proper_three_edge_colours(vertices,edges)
-        rank,dim,boolean_points,tables=exact_affine_truth_tables(A)
+        rank,dim,boolean_points,tables,points=exact_affine_truth_tables(A)
         table_masks=Counter(tables.values())
         canon_masks=Counter(canonical_cofactor(x,perms)
                             for x in tables.values())
@@ -143,6 +145,20 @@ def verify_holyer_class_observation():
                 len(table_masks),len(canon_masks))==(
                 n,rk,d,count,num,raw,agl)
         assert proper==count
+        expected_all_depth_raw={
+            "K4":(2,4,4,3,1),
+            "K33":(2,3,4,8,7,6,4,3,1),
+            "PETERSEN":(1,)*11,
+        }[name]
+        raw_across_all_depths=[]
+        for remaining in range(dim+1):
+            prefixes={prefix:set() for prefix in product(
+                range(3),repeat=dim-remaining)}
+            for t in points:
+                prefixes[t[:dim-remaining]].add(t[dim-remaining:])
+            raw_across_all_depths.append(len(set(
+                frozenset(v) for v in prefixes.values())))
+        assert tuple(raw_across_all_depths)==expected_all_depth_raw
         if name=="PETERSEN":
             assert table_masks==Counter({0:3**(d-2)})
             assert canon_masks==Counter({0:3**(d-2)})
@@ -156,6 +172,7 @@ def verify_holyer_class_observation():
             "raw_distinct_two_variable_tables":len(table_masks),
             "AGL2_equivalence_classes":len(canon_masks),
             "nonzero_cofactors":sum(x!=0 for x in tables.values()),
+            "raw_residual_class_counts_at_all_suffix_depths":raw_across_all_depths,
         },flush=True)
 
 
