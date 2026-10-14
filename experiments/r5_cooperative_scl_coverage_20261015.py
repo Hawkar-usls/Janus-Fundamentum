@@ -213,6 +213,60 @@ def bounded_affine_expert(rows, cube, max_dimension=8):
     return "UNSAT_CUBE", None, checked
 
 
+def verify_progress(rows, source_cube, replacement, proof):
+    """Independent, polynomial-time verifier for one expert exchange.
+
+    'proof' is a tiny opcode and optional branch variable. The verifier
+    RECOMPUTES source consequences; it never trusts claimed bound changes.
+    Returned tuple: (verified, U_before, U_after, threshold_met).
+    For SMALL_KERNEL_UNSAT the fixed dimension cap is <=8.
+    """
+    kind = proof["kind"]
+    u0 = bound_cube(rows, source_cube)
+    if kind == "EXACT_ONE":
+        status, child, _ = local_consequences(rows, source_cube)
+        accepted = status == "FORCED" and replacement == [child]
+    elif kind == "GF2":
+        status, child, _ = gf2_consequences(rows, source_cube)
+        accepted = status == "FORCED" and replacement == [child]
+    elif kind == "BRANCH":
+        v = proof.get("variable")
+        fixed = source_cube[0] | source_cube[1]
+        accepted = (
+            isinstance(v, int) and 0 <= v < len(rows)
+            and not (fixed >> v) & 1
+            and replacement == [
+                (source_cube[0] | (1 << v), source_cube[1]),
+                (source_cube[0], source_cube[1] | (1 << v))
+            ]
+        )
+    elif kind == "BOUND_ZERO":
+        accepted = u0 == 0 and replacement == []
+    elif kind == "SMALL_KERNEL_UNSAT":
+        accepted = (replacement == [] and
+                    bounded_affine_expert(rows, source_cube, 8)[0]
+                    == "UNSAT_CUBE")
+    elif kind == "EXACT_ONE_CONFLICT":
+        accepted = (replacement == [] and
+                    local_consequences(rows, source_cube)[0] == "CONFLICT")
+    elif kind == "GF2_CONFLICT":
+        accepted = (replacement == [] and
+                    gf2_consequences(rows, source_cube)[0] == "CONFLICT")
+    else:
+        accepted = False
+    if not accepted:
+        return False, u0, None, False
+    u1 = sum(bound_cube(rows, child) for child in replacement)
+    if u1 > u0:
+        return False, u0, u1, False
+    power = proof.get("progress_power", 1)
+    if not isinstance(power, int) or power < 0 or power > 8:
+        return False, u0, u1, False
+    n = len(rows)
+    significant = u1 * (n ** power) <= (n ** power - 1) * u0
+    return True, u0, u1, significant
+
+
 def choose_branch(rows, cube):
     fixed = cube[0] | cube[1]
     # Degree is uniformly 3 in source SCL. Pick variable closest to
@@ -290,7 +344,11 @@ def solve(rows, node_budget=200, kernel_limit=8,
         before = bound_cube(rows, old)
         after = bound_cube(rows, new)
         assert after <= before
-        if after*n**progress_power <= (n**progress_power-1)*before:
+        ok, certified_from, certified_to, significant = verify_progress(
+            rows, old, [new], {"kind": name,
+                              "progress_power": progress_power})
+        assert ok and certified_from == before and certified_to == after
+        if significant:
             report["certified_shrinks"] += 1
         stack.append(new)
         log({"expert": name, "before": list(old), "after": list(new),
@@ -351,6 +409,13 @@ def solve(rows, node_budget=200, kernel_limit=8,
         assert not low[0] & low[1] and not high[0] & high[1]
         b = bound_cube(rows, low) + bound_cube(rows, high)
         assert b <= u, "partition min-bound monotonicity violation"
+        ok, checked_before, checked_after, significant = verify_progress(
+            rows, cube, [low, high],
+            {"kind": "BRANCH", "variable": v,
+             "progress_power": progress_power})
+        assert ok and checked_before == u and checked_after == b
+        if significant:
+            report["certified_shrinks"] += 1
         # Reverse push order: process 0 first. Keeping BOTH alternatives
         # guarantees completeness even after expert declines.
         stack.extend((high, low))
@@ -465,16 +530,37 @@ def self_test():
                         "cooperative_stalls": state["cooperative_stalls"],
                         "found_by": state.get("found_by")}
     rows = cases["AffinePlane9_SAT"]
-    assert result["AffinePlane9_SAT"]["initial_weight_candidates"] if False else True
     assert result["AffinePlane9_SAT"]["initial_frontier_bound"] == 4
     assert result["AffinePlane9_SAT"]["initial_GF2_candidates"] == 4
     assert result["AffinePlane9_SAT"]["oracle_witnesses"] == 3
+    # An accepted proof must be replayable independently; invalid
+    # expert claims must be rejected before changing shared frontier.
+    source = (0, 0)
+    good, u0, u1, significant = verify_progress(
+        rows, source, [(1, 0), (0, 1)],
+        {"kind": "BRANCH", "variable": 0})
+    assert good and u1 <= u0
+    assert not verify_progress(
+        rows, source, [(0, 0)],
+        {"kind": "GF2"})[0]
+    assert not verify_progress(
+        rows, source, [(0, 0)],
+        {"kind": "UNSUPPORTED"})[0]
     p = cases["HolyerPetersen_UNSAT"]
     from tempfile import TemporaryDirectory
     with TemporaryDirectory() as folder:
         file = str(Path(folder)/"resume.json")
         v = solve(p, node_budget=3, checkpoint=file, kernel_limit=8)
         assert v["verdict"] == "UNKNOWN_RESOURCE_LIMIT" and v["frontier_count"]>0
+        # Finite falsification of this SPECIFIC progress policy: on
+        # Petersen-Holyer, the first cube is unconstrained by local
+        # forced assignments, and its exact parity bound is unchanged
+        # by at least one complete Boolean split. No fractional
+        # improvement for this bounded expert portfolio at that step.
+        branches = [ev for ev in v["proof_step_log"]
+                    if ev.get("expert") == "BRANCH"]
+        assert branches and branches[0]["U_after"] == branches[0]["U_before"]
+        assert v["cooperative_stalls"] > 0
         resumed = solve(p, node_budget=3, resume=file, checkpoint=file)
         assert resumed["total_visited"] >= v["total_visited"]
         assert resumed["verdict"] in ("UNKNOWN_RESOURCE_LIMIT","UNSAT")
