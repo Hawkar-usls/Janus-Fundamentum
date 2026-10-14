@@ -202,7 +202,7 @@ def run():
     star551 = incident_star_for_hall(N10_EDGES, {3})
     state682 = all_signatures(10, N10_EDGES)[682]
     assert state682["delta"] == 2
-    assert 682.bit_count() == 5
+    assert (682).bit_count() == 5
     assert len(hall_obstacle_cut & star551) == 4
     hall10["necessary_clause_false_positive"] = {
         "target_mask": 682,
