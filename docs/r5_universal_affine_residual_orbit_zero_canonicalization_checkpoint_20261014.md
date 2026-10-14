@@ -1,15 +1,15 @@
 # R5 — Affine residual-function canonicalization: coNP-complete zero orbit, and exact Holyer/Petersen controls
 
 **Date:** 2026-10-14 (Kyiv).  
-**Main goal:** deterministic all-input polynomial \`SolveLinearCubicXSAT\`.  
-**Status:** NOT CONSTRUCTED; \`P\) vs \`NP\` OPEN.  
+**Main goal:** deterministic all-input polynomial `SolveLinearCubicXSAT`.  
+**Status:** NOT CONSTRUCTED; `P` vs `NP` OPEN.  
 **Reproducer:** [r5_universal_affine_residual_orbit_zero_canonicalization_gate.py](../experiments/r5_universal_affine_residual_orbit_zero_canonicalization_gate.py).  
 **Earlier direct native Holyer reduction:** [r5_universal_ei_closure_holyer_npcomplete_separation_rank.py](../experiments/r5_universal_ei_closure_holyer_npcomplete_separation_rank.py).  
 **Earlier GF3 Boolean fibre:** [r5_universal_f3_boolean_exactification_connected_nullity_barrier.py](../experiments/r5_universal_f3_boolean_exactification_connected_nullity_barrier.py).
 
 ## 1. Critical correction to the "few affine residual orbit classes" approach
 
-For a legal square/cubic/linear positive Exact-One incidence matrix \`A\`, solve its affine linear equations over \`F3\` by Gaussian elimination:
+For a legal square/cubic/linear positive Exact-One incidence matrix `A`, solve its affine linear equations over `F3` by Gaussian elimination:
 
     x=x0+Bt,   t in F3^d
 
@@ -19,28 +19,28 @@ and define the exact Boolean-point indicator on the finite field domain
 
 This is 1 exactly when the corresponding native Exact-One assignment is binary and 0 otherwise. It is evaluated in the FINITE FUNCTION ALGEBRA, not as a formal-polynomial identity. Because for boolean x each three-variable clause has total in {0,1,2,3}, it is exactly equivalent to the native integer one-in-three condition.
 
-If native \`A\` is UNSAT, then \`P_A(t)=0\` for ALL t. Consequently every EXACT existential projection of \`P_A\` is identically zero, and every EXACT cofactor under every partial parameter assignment is identically zero. **There is exactly ONE semantic affine-equivalence class at every step on any globally UNSAT instance**, no matter how globally difficult the UNSAT certificate may be. This does NOT give an algorithm to RECOGNIZE that class in polynomial time.
+If native `A` is UNSAT, then `P_A(t)=0` for ALL t. Consequently every EXACT existential projection of `P_A` is identically zero, and every EXACT cofactor under every partial parameter assignment is identically zero. **There is exactly ONE semantic affine-equivalence class at every step on any globally UNSAT instance**, no matter how globally difficult the UNSAT certificate may be. This does NOT give an algorithm to RECOGNIZE that class in polynomial time.
 
 The statement
 
     #affine-orbits of residual functions <= poly(n)
 
-even if someday PROVED for all native legal inputs, would NOT ALONE imply a polynomial \`SolveLinearCubicXSAT\`: the algorithm must uniformly compute the residual semantics, detect equivalence, construct representatives, combine them on each projection, and stop within one fixed n^C bound.
+even if someday PROVED for all native legal inputs, would NOT ALONE imply a polynomial `SolveLinearCubicXSAT`: the algorithm must uniformly compute the residual semantics, detect equivalence, construct representatives, combine them on each projection, and stop within one fixed n^C bound.
 
 ## 2. UNIVERSAL hardness theorem for recognizing the ZERO affine orbit
 
-**THEOREM.** Given as input a legal native square/cubic/linear positive Exact-One matrix \`A\`, represent the consistent affine \`F3\` system in polynomial time, and ask whether the resulting factored Boolean-point indicator \`P_A\` is affine-equivalent to the identically zero function on its parameter space. This decision problem is **coNP-COMPLETE**.
+**THEOREM.** Given as input a legal native square/cubic/linear positive Exact-One matrix `A`, represent the consistent affine `F3` system in polynomial time, and ask whether the resulting factored Boolean-point indicator `P_A` is affine-equivalent to the identically zero function on its parameter space. This decision problem is **coNP-COMPLETE**.
 
-*Proof of semantic equivalence:* for ANY bijective affine automorphism \`g:F3^d→F3^d\`, \`P_A∘g\` vanishes at all field points iff \`P_A\` does. In particular a nonzero function cannot be transformed into zero by any invertible affine coordinate change. Hence
+*Proof of semantic equivalence:* for ANY bijective affine automorphism `g:F3^d→F3^d`, `P_A∘g` vanishes at all field points iff `P_A` does. In particular a nonzero function cannot be transformed into zero by any invertible affine coordinate change. Hence
 
     P_A affine-equivalent to zero
         iff P_A identically zero as FUNCTION on F3^d
         iff no binary Exact-One witness exists
         iff A native UNSAT.
 
-*Proof of coNP membership:* the complement is witnessed by an affine parameter point \`t∈F3^d\` (equivalently its binary vector x), which can be verified in polynomial time by checking \`A*x=1\` over the integers.
+*Proof of coNP membership:* the complement is witnessed by an affine parameter point `t∈F3^d` (equivalently its binary vector x), which can be verified in polynomial time by checking `A*x=1` over the integers.
 
-*Proof of coNP hardness even under the promise that the affine system is consistent:* use the prior DIRECT Holyer reduction: a simple cubic graph G becomes a legal native SCL \`A_G\`; it has a binary exact cover iff G admits a proper three-edge-colouring, a problem NP-complete by Holyer (SIAM Journal on Computing 10(4):718–720, 1981; DOI 10.1137/0210055). These matrices are also ALWAYS consistent over F3, even when the graph is uncolourable. To prove consistency, let D be the non-oriented vertex-edge incidence matrix over F3 and solve \`D*y=1\`. For every \`w∈ker(D^T)\` and edge uv, \`w_u+w_v=0\`. On any connected nonbipartite component, an odd cycle gives w=0; on any connected bipartite CUBIC component, w is ±a on the two colour classes, which have equal size by cubicity, so \`w^T 1=0\`. Thus \`1∈im(D)\`. Given this y, assign \`x_(e,0)=x_(e,1)=y_e\` and \`x_(e,2)=1-2*y_e\` over F3. The edge clauses and every vertex/colour clause equal 1 modulo 3. Thus ALL these Holyer-hard native matrices admit an affine RREF; the only obstruction is Boolean-point existence.
+*Proof of coNP hardness even under the promise that the affine system is consistent:* use the prior DIRECT Holyer reduction: a simple cubic graph G becomes a legal native SCL `A_G`; it has a binary exact cover iff G admits a proper three-edge-colouring, a problem NP-complete by Holyer (SIAM Journal on Computing 10(4):718–720, 1981; DOI 10.1137/0210055). These matrices are also ALWAYS consistent over F3, even when the graph is uncolourable. To prove consistency, let D be the non-oriented vertex-edge incidence matrix over F3 and solve `D*y=1`. For every `w∈ker(D^T)` and edge uv, `w_u+w_v=0`. On any connected nonbipartite component, an odd cycle gives w=0; on any connected bipartite CUBIC component, w is ±a on the two colour classes, which have equal size by cubicity, so `w^T 1=0`. Thus `1∈im(D)`. Given this y, assign `x_(e,0)=x_(e,1)=y_e` and `x_(e,2)=1-2*y_e` over F3. The edge clauses and every vertex/colour clause equal 1 modulo 3. Thus ALL these Holyer-hard native matrices admit an affine RREF; the only obstruction is Boolean-point existence.
 
 Therefore affine-equivalence to the ZERO function for the native factored indicator class is coNP-complete, not simply "graph isomorphism difficulty" or an unresolved canonical-labeling nuance. A UNIFORM poly-time full affine canonicalizer capable of recognizing zero for these instances would prove P=NP. This is a hardness EQUIVALENCE, **not an unconditional no-go theorem**, since P vs NP is open.
 
@@ -60,7 +60,7 @@ To measure literal "number of residual functions", fix the FIRST d−m Gaussian 
     K3,3:     (2,3,4,8,7,6,4,3,1)             for m=0..8
     Petersen: (1,1,1,1,1,1,1,1,1,1,1)         for m=0..10.
 
-For a FULLY EXACT affine-equivalence test, at suffix dimension m=2 enumerate ALL 432 invertible affine transformations \`AGL(2,3)\` on the nine field points and canonicalize each table by the least transformed 9-bit support mask.
+For a FULLY EXACT affine-equivalence test, at suffix dimension m=2 enumerate ALL 432 invertible affine transformations `AGL(2,3)` on the nine field points and canonicalize each table by the least transformed 9-bit support mask.
 
 | Cubic graph | Prefix-fixed cofactors at m=2 | Raw distinct truth tables | EXACT affine orbits |
 | --- | ---: | ---: | ---: |
@@ -74,7 +74,7 @@ The choice of Gaussian basis and parameter order is explicitly the deterministic
 
 On the graph Petersen, which has 10 vertices, 15 edges and girth 5, enforce every "each edge has exactly one of 3 colours" equation, but only require all three incident colours to be distinct at a chosen subset W of s<5 vertices.
 
-Every induced G[W] is a FOREST, with s vertices and c tree components. Colour the three incident edges at one root of each component (6 choices), then each nonroot vertex has exactly two choices for its two previously uncoloured incident edges because one incoming edge colour is fixed. Hence there are \`6^c * 2^(s-c)\` colourings of edges incident to W, which number 2s+c. The other \`15−2s−c\` edges each admit any of 3 colours. The total is
+Every induced G[W] is a FOREST, with s vertices and c tree components. Colour the three incident edges at one root of each component (6 choices), then each nonroot vertex has exactly two choices for its two previously uncoloured incident edges because one incoming edge colour is fixed. Hence there are `6^c * 2^(s-c)` colourings of edges incident to W, which number 2s+c. The other `15−2s−c` edges each admit any of 3 colours. The total is
 
     N(W)=6^c *2^(s-c) *3^(15−2s−c)
         = 2^s *3^(15−2s) > 0.
