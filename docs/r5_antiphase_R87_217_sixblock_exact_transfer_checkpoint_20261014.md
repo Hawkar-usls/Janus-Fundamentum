@@ -51,6 +51,8 @@ Because EVERY one of the 108 `T108` tuples has EXACTLY ONE right origin, **all**
 
 This avoids the earlier ineffective strategy of demanding that the right remainder itself realize full GOOD under some pairing. `R87` is a genuinely different exact sixport relation and cannot be replaced by a mere Boolean truth support target.
 
+**Frozen exact trace checksum:** encode each of the 87 tuples as six base-3 digits (0,1,2), sort lexicographically, join with a newline and append a trailing newline. SHA-256 of the resulting UTF-8 bytes is `e763a3440ee9c03f0da62a3387cebf93214c3d13f01fc5e83eff977c3c37fcb9`. The executable asserts this, preventing accidental redefinition of the R87 target during later searches.
+
 ## 3. Isomorphism-complete sixblock loopless multigraph catalogue
 
 Delete the degree-two anti-phase H constituent from a seven-fourpole / eleven-join connected loopless multigraph. If this deletion leaves a connected right remainder (true whenever the whole skeleton is 2-edge-connected), it has exactly six fourpole constituents and nine ordinary interblock links, allowing parallel joins, and exposes six physical semiedges.
