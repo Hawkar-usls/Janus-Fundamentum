@@ -194,6 +194,23 @@ def run():
     assert hall10["positive_hall_certificates"]["551"]["hall_defect"] == 1
     assert hall10["min_hamming_to_zero"] == 2
     assert hall10["min_cut_edges_to_zero"] == 4
+    # Negative firewall: balance + admissibility + the Hall cut clause
+    # do not themselves force a strict decrease in Delta.
+    # Mask 682 is valid and balanced, hits the star of X={3},
+    # but its deficit is still 2 (the source 551 also has Delta=2).
+    hall_obstacle_cut = global_cut(N10_EDGES, 551, 682)
+    star551 = incident_star_for_hall(N10_EDGES, {3})
+    state682 = all_signatures(10, N10_EDGES)[682]
+    assert state682["delta"] == 2
+    assert 682.bit_count() == 5
+    assert len(hall_obstacle_cut & star551) == 4
+    hall10["necessary_clause_false_positive"] = {
+        "target_mask": 682,
+        "target_delta": state682["delta"],
+        "cut_edge_count": len(hall_obstacle_cut),
+        "cut_star_hits": len(hall_obstacle_cut & star551),
+        "note": "Necessary Hall cut and balance satisfied; NOT a descent",
+    }
     assert report["SAT_Imbalance12"]["min_hamming_to_zero"] == 5
     assert report["SAT_Imbalance12"]["min_cut_edges_to_zero"] == 5
     summary = {
