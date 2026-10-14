@@ -228,6 +228,9 @@ def edge_step(state, graph, cuts):
             state["gear"], stats, state["edge_last"], True,
             state["gear_window"]
         )
+        # Keep checkpoint/history size polynomial across arbitrarily
+        # many resumed invocations. Full aggregate counts stay in ints.
+        stats["gear_changes"] = stats["gear_changes"][-64:]
         state["edge_last"] = {
             key: stats[key] for key in
             ("nodes", "failed_literals", "probes", "equal_checks", "dead")
@@ -299,11 +302,12 @@ def run(graph, max_nodes=None, checkpoint=None, resume=None,
     cuts = precompute_cuts(graph, max_triples=state["cut_limit"])
 
     if cuts["bridges"]:
-        return {
-            "verdict": "UNSAT", "reason": "certified cubic graph bridge",
-            "bridge_edges": [graph["edges"][i] for i in cuts["bridges"]],
-            "polynomial_visit_cap": cap, "visited_this_call": 0
-        }
+        outcome = finished("UNSAT", graph, state, 0, cap)
+        outcome["reason"] = "certified cubic graph bridge"
+        outcome["bridge_edges"] = [
+            graph["edges"][i] for i in cuts["bridges"]
+        ]
+        return outcome
 
     visited = 0
     while visited < fuel:
@@ -343,6 +347,17 @@ def run(graph, max_nodes=None, checkpoint=None, resume=None,
         progress = max(0.0, math.log2(1 + before_mass) -
                        math.log2(1 + after_mass))
         if name == "edge_domains":
+            state["work_units"]["vertex_factor_checks"] += (
+                engine_stats["triple_checks"] -
+                before_stats["triple_checks"]
+            )
+            state["work_units"]["pair_checks"] += (
+                engine_stats["equal_checks"] -
+                before_stats["equal_checks"]
+            )
+            state["work_units"]["failed_literal_probes"] += (
+                engine_stats["probes"] - before_stats["probes"]
+            )
             work = (engine_stats["triple_checks"] -
                     before_stats["triple_checks"] +
                     engine_stats["equal_checks"] -
@@ -365,6 +380,7 @@ def run(graph, max_nodes=None, checkpoint=None, resume=None,
                 "from": old, "to": name,
                 "reason": "sample/fairness/measured bound reduction"
             })
+        selector["switch_log"] = selector["switch_log"][-64:]
         selector["last_engine"] = name
         selector["last_seen_quantum"][name] = selector["quanta"]
         selector["quanta"] += 1
