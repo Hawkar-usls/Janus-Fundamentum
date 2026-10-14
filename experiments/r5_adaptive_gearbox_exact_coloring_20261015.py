@@ -316,7 +316,10 @@ def solve(graph, max_nodes=None, resume=None, checkpoint=None,
         frontier = [(7,) * len(graph["edges"])]
         gear, stats, last = start_gear, default_stats(), default_stats()
     assert 0 <= gear <= 2
-    cuts = precompute_cuts(graph, max_triples=cut_budget)
+    # Cheap fixed gears never precompute expensive 3-edge-cut relations.
+    # Adaptive sessions retain the high-gear cut table for future upshifts.
+    triple_budget = cut_budget if (adaptive or gear == 2) else 0
+    cuts = precompute_cuts(graph, max_triples=triple_budget)
     if cuts["bridges"]:
         result = {"verdict": "UNSAT", "reason": "cubic graph has a bridge",
                   "bridge_edges": [list(graph["edges"][i])
@@ -446,14 +449,33 @@ def self_test():
                 domains = tuple(COLORS[c] for c in out["edge_colors"])
                 assert verify_coloring(graph, domains)
                 assert verify_holyer_exact_one_witness(graph, domains)
-            outputs[str(gear)] = {"verdict": out["verdict"],
-                                  "nodes": out["stats"]["nodes"]}
+            outputs[str(gear)] = {
+                "verdict": out["verdict"], "nodes": out["stats"]["nodes"],
+                "probes": out["stats"]["probes"],
+                "triple_checks": out["stats"]["triple_checks"],
+                "failed_literals": out["stats"]["failed_literals"],
+            }
         auto = solve(graph, adaptive=True, adapt_every=2, cut_budget=5000)
         assert (auto["verdict"] == "SAT") == expected_sat
         outputs["automatic"] = {
             "verdict": auto["verdict"], "nodes": auto["stats"]["nodes"],
+            "probes": auto["stats"]["probes"],
+            "triple_checks": auto["stats"]["triple_checks"],
+            "failed_literals": auto["stats"]["failed_literals"],
             "gear_changes": auto["stats"]["gear_changes"]}
         result[name] = outputs
+
+    # Real, not simulated, gear transitions on 10 independent K4 blocks.
+    # The strong gear's failed-literal probes yield no refutations here.
+    shifts = result["K4x10"]["automatic"]["gear_changes"]
+    assert [(event["from"], event["to"]) for event in shifts] == [
+        (2, 1), (1, 0)
+    ], shifts
+    assert result["K4x10"]["automatic"]["nodes"] == 21
+    # Strong reasoning demonstrably prunes Petersen search more than FAST.
+    assert result["Petersen"]["2"]["nodes"] == 10
+    assert result["Petersen"]["0"]["nodes"] == 22
+    assert result["Petersen"]["automatic"]["nodes"] == 10
 
     graph = graph_info(10, fixtures()["Petersen"][1])
     with TemporaryDirectory() as folder:
