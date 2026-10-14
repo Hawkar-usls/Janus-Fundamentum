@@ -67,7 +67,15 @@ Run from repository root:
 
 The checker exhaustively enumerates all admissible s on five frozen small cubic graphs (K4, K3,3, Petersen, a n=10 connected SAT Hall trap, n=12 connected SAT imbalance trap). It enumerates **every** Hall-deficient subset X in both residual bipartition sides, not just a selected witness, and checks the unconditional cut-capacity upper bound on all admissible pairs and the quantitative Hall-repair inequality on every zero-deficit target. The test runtime is exponential in n; this is for finite falsification and provenance only.
 
-For the n=10 SAT fixture, source mask 551 has X={3}, h_X=1. Source mask 551 -> target 682 is an admissible balanced move hitting the Hall star but keeps Delta=2. Therefore the weighted cut inequality and exact cutspace/matching constraints are also only necessary. No claim of closure follows.
+For the n=10 SAT fixture, source mask 551 has X={3}, h_X=1.
+The exhaustive checker enumerates **every** Hall-deficient X of both residual
+sides at mask 551 and verifies that source mask 551 -> target 682 satisfies
+**all** the weighted source Hall cut lower bounds. The target is admissible
+and balanced, and its cutspace constraint is valid, **yet Delta(682)=2**.
+Thus even the complete collection of source-state quantitative Hall
+constraints plus admissibility and balance is not a sufficient test for
+strict improvement or zero-deficit. New Hall obstructions can remain or
+appear at the candidate target. No claim of global polynomial closure follows.
 
 ## Required next theorem or counterexample
 The research objective remains a deterministic polynomial-time **search**, not short static necessary inequalities: given arbitrary G,s as above, find a cut C satisfying cutspace membership, terminal balance, matching admissibility, and all dynamic Hall demands such that Delta strictly decreases; or return a sound UNSAT result. Prove bound O(n^C) on total candidate-generation, constraint handling, updates and iterations for a universal constant C. Any claimed algorithm must run on both SAT fixtures and Petersen; isolated subclass, bounded-n scan, oracle assumption or syntactic formula is not closure.
