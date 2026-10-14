@@ -134,6 +134,17 @@ This is immediate by equating `|V_0|-a+b` and `|V_1|-b+a`.
 It is a necessary global cardinality equation, not a guarantee that
 Hall deficiency vanishes.
 
+## A necessary Hall clause is not sufficient (explicit adversarial control)
+For the balanced Hall-obstructed SAT start `s=551` on the n=10 fixture
+(`Delta(s)=2`, witness X={3}), choose the alternative admissible
+balanced mask `s'=682`. Then the cut C=delta_G({v:s(v)!=s'(v)})
+contains 6 edges, **4** of which meet `Star(N_G[X])`. The exact
+Hall-cut inequality and terminal balance equation are satisfied, and
+`M_{s'}` is a matching — but **`Delta(s')=2`**, so no improvement
+occurred. This is a finite counterexample to the sufficiency of the
+combined necessary constraints. They are sound search filters only.
+The exact checker explicitly asserts this false-positive control.
+
 ## Reproducible finite controls
 Run from repository root:
 ```bash
