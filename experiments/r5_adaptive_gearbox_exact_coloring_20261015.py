@@ -274,6 +274,9 @@ def solve(graph, max_nodes=None, resume=None, checkpoint=None,
         gear = cp["gear"]
         stats = cp["stats"]
         cut_budget = cp["cut_budget"]
+        adapt_every = cp["adapt_every"]
+        adaptive = cp["adaptive"]
+        probe_edges = cp["probe_edges"]
         last = cp["window_previous"]
     else:
         frontier = [(7,) * len(graph["edges"])]
@@ -338,6 +341,9 @@ def solve(graph, max_nodes=None, resume=None, checkpoint=None,
             "frontier": [list(x) for x in frontier],
             "gear": gear, "stats": stats,
             "cut_budget": cut_budget,
+            "adapt_every": adapt_every,
+            "adaptive": adaptive,
+            "probe_edges": probe_edges,
             "window_previous": last
         }
         Path(checkpoint).write_text(
@@ -397,7 +403,7 @@ def self_test():
         assert limited["verdict"] == "UNKNOWN_RESOURCE_LIMIT"
         assert file.exists() and limited["frontier_size"] > 0
         resumed = solve(graph, resume=file, cut_budget=5000)
-        full = solve(graph, cut_budget=5000)
+        full = solve(graph, cut_budget=5000, adapt_every=1)
         assert resumed["verdict"] == "UNSAT" == full["verdict"]
         assert resumed["stats"]["nodes"] == full["stats"]["nodes"]
     return {"scientific_status": "FINITE_EXACT_GEARBOX_NOT_POLYNOMIAL",
