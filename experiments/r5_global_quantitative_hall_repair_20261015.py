@@ -153,7 +153,14 @@ def run():
     }
     assert results["SAT_Hall10"]["anchor"]["h_X"] == 1
     assert results["SAT_Hall10"]["anchor"]["target_delta"] == 0
-    assert results["SAT_Imbalance12"]["largest_Hall_deficit_on_fixture"] == 0
+    # Smaller-side Hall defect of 1246 is zero; on the larger side,
+    # the all-subsets witness X=U_large has deficit 4, due to imbalance.
+    state1246 = all_signatures(12, N12_EDGES)[1246]
+    assert state1246["remaining"] == (0, 5, 7, 8, 9, 11)
+    assert any(X == frozenset((0, 5, 8, 9, 11)) and h == 4
+               for X, h, _ in all_hall_sets(
+                   12, N12_EDGES, 1246, state1246))
+    assert results["SAT_Imbalance12"]["largest_Hall_deficit_on_fixture"] >= 4
 
     report = {
         "status": "PROVED_ALL_N_BOUND_FINITE_EXHAUSTIVE_REPLAY",
