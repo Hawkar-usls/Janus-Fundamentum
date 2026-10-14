@@ -208,6 +208,17 @@ def verify_tensor_barrier(support):
                 assert exists==expected,(k,u,v)
                 accepted+=bool(exists)
         assert accepted==n
+        # The UNIQUE reduced polynomial normal form over
+        # F3[u_i,v_i]/(u_i^3-u_i,v_i^3-v_i) also has exponential
+        # coefficient list length: each pair equality is
+        #   1 + 2*u_i^2 + 2*u_i*v_i + 2*v_i^2.
+        # Variables of distinct blocks are disjoint, hence the
+        # 4**k products are all distinct monomials, with nonzero
+        # coefficients; no modular reductions or cancellations occur.
+        for a,b in product(COLORS,repeat=2):
+            one_factor=(1+2*a*a+2*a*b+2*b*b)%3
+            assert one_factor==int(a==b)
+        normal_form_monomials=4**k
         print("EXACT_EXISTENTIAL_PROJECTION_KRON_IDENTITY",{
             "grid9_blocks":k,
             "native_SCL_variables":9*k,
@@ -216,8 +227,11 @@ def verify_tensor_barrier(support):
             "evaluated_matrix_dimension":n,
             "rank_over_F3":n,
             "minimum_separated_summands":n,
+            "dense_finite_field_normal_form_terms":normal_form_monomials,
             "factored_circuit_size":f"O({k})",
         },flush=True)
+    print("ALL_K_DENSE_NORMAL_FORM_COEFFICIENT_LOWER_BOUND", 
+          "4^k=4^(native_n/9) after actual existential elimination")
     print("ALL_K_SEPARATOR_RANK_LOWER_BOUND",
           "3^k=3^(native_n/9) for this prescribed F3 split")
     print("DOES_NOT_PROVE_ARITHMETIC_CIRCUIT_LOWER_BOUND")
