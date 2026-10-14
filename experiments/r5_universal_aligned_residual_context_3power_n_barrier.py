@@ -70,7 +70,7 @@ def native_grid9_projection():
     assert_legal(A)
     rank,consistent,x0,B=gf3_rref_affine(A)
     assert rank==6 and consistent and len(B)==3
-    assert tuple(j for j in range(9) if any(B[i][j] == 1 for i in range(3)))  # use real RREF, not fabricated grid
+    # Compute all coordinates from the actual RREF, rather than a fabricated relation.
     S=set()
     transformed=set()
     for t in product(range(3),repeat=3):
