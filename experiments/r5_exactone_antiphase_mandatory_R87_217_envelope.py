@@ -106,7 +106,7 @@ def mandatory_right87():
         False:66,True:21
     })
     assert len({canonical_colours(s) for s in right})==15
-    frozen="\\n".join("".join(map(str,state)) for state in sorted(right))+"\\n"
+    frozen="\n".join("".join(map(str,state)) for state in sorted(right))+"\n"
     assert sha256(frozen.encode()).hexdigest()==(
         "e763a3440ee9c03f0da62a3387cebf93214c3d13f01fc5e83eff977c3c37fcb9"
     )
