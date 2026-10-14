@@ -33,6 +33,20 @@ This sharpens the old unweighted clause C intersect E_G(N_G[X]) != empty. It omi
 
 Notice that checking the inequalities for a proposed C costs polynomial time, and a violated Hall witness X can be found by a polynomial-time bipartite matching on **fixed** s. Nothing proves polynomial-time simultaneous construction of C over the exponentially large cut space.
 
+## Two distinct meanings of "Hall deficit" — corrected falsification note
+The previous 12-vertex SAT control at mask 1246 was called "pure imbalance"
+because its **smaller-side** Hall deficiency in the decomposition
+`Delta=2abs(|V0|-|V1|)+2h_small` is zero. This does NOT mean that
+**every** subset of **both** residual sides satisfies Hall.
+In fact, that control has `U_0={0,5,8,9,11}`, `U_1={7}`:
+the larger-side set `X=U_0` has `h_X=5-1=4`.
+The theorem applies to such X as well; the corresponding numerical
+repair clause captures the same imbalance already counted separately.
+The first all-subsets CI check correctly exposed an overly strong test
+assumption `max_h_all_sides==0`; it was replaced by an explicit
+larger-side witness with h=4. **Do not promote distinctness of
+imbalance/Hall as independence over both sides.**
+
 ## Theorem C — uniform global-improvement operator would solve P vs NP
 Assume a deterministic algorithm `GlobalCutImprove(G,s)` with one universal polynomial bound in n on *every input*, which for every connected simple cubic G and admissible s:
   (i) returns another admissible s' with Delta(s')<Delta(s) if G is SAT and Delta(s)>0; or
