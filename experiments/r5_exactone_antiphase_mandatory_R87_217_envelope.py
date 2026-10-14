@@ -55,6 +55,7 @@ exhaustive proper 3-colour orbit calculations, no heuristic physics.
 from collections import Counter, defaultdict
 from itertools import combinations, permutations, product
 from pathlib import Path
+from hashlib import sha256
 import sys
 
 from r5_exactone_six_fourpole_nineedge_simple_skeleton_gate import (
@@ -105,6 +106,10 @@ def mandatory_right87():
         False:66,True:21
     })
     assert len({canonical_colours(s) for s in right})==15
+    frozen="\\n".join("".join(map(str,state)) for state in sorted(right))+"\\n"
+    assert sha256(frozen.encode()).hexdigest()==(
+        "e763a3440ee9c03f0da62a3387cebf93214c3d13f01fc5e83eff977c3c37fcb9"
+    )
     # Every safe right state is mandatory, since it gives at least
     # one target full state with one and only one generating right.
     assert all(outcomes for outcomes in right.values())
