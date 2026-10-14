@@ -37,6 +37,14 @@ For **EVERY** subset of physical port indices of size 1, 2, or 3, the coordinate
 
 A single four-coordinate projection onto two complete logical pairs, e.g. the physical port indices `(0,5,1,4)`, DOES separate all 75 forbidden tuples when combined with cubic parity. That 4-port projected relation has **48** ordered colour-tuples; it is an exact realization-level specification of a potential four-body synchronization gate, NOT automatically the boundary relation of an isolated cubic FOURPOLE (an isolated fourpole itself obeys the four-semiedge parity constraint and cannot realize all 48).
 
+## All-size separator theorem: minimum TWO phase compensation wires
+
+Suppose a connected submultipole exposes four physical ports constituting exactly two complete logical pairs A and B, plus k internal interface semiedges. The Klein-four cut equation requires XOR of all k connector colours to equal d_A XOR d_B = d_C.
+
+Across a full three-bit Exact-One relation, d_C is zero in truth bit 001 and is nonzero in bits 100 and 010. Since every actual coloured connector edge carries a nonzero Klein-four element, k=0 forces zero, whereas k=1 forces nonzero. Neither can support all three bits. Thus k>=2 is NECESSARY for this four-port synchronized selector. With k=2 the connector colours can be equal (zero XOR) or different (nonzero XOR), so the parity obstruction disappears, but physical gadget realizability is NOT implied.
+
+This is a conservation-law interface theorem, not a new physical law, and not a polynomial SAT solver.
+
 ## Precise phase characterization of the physical bridgeless n28 TWO-bit seed
 
 The independently complete 39-ordinary-edge colouring enumeration of the real n28 bridgeless 6pole yields exactly 72 physical tuples, each with two proper full colouring extensions, and bits exactly 100:36,010:36. That relation is mathematically identical to the 183-state parity relation intersected with THREE low-arity boundary restrictions:
