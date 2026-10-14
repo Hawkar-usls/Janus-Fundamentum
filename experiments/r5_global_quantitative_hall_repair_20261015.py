@@ -153,6 +153,25 @@ def run():
     }
     assert results["SAT_Hall10"]["anchor"]["h_X"] == 1
     assert results["SAT_Hall10"]["anchor"]["target_delta"] == 0
+    # False-positive guard: every source Hall repair-capacity inequality
+    # can hold together with balance and an admissible cut while the
+    # target STILL has positive deficiency. Necessary != sufficient.
+    old10, new10 = all_signatures(10, N10_EDGES)[551], all_signatures(
+        10, N10_EDGES)[682]
+    assert new10["delta"] == 2 and (682).bit_count() == 5
+    local_witnesses = list(all_hall_sets(10, N10_EDGES, 551, old10))
+    assert local_witnesses
+    assert all(verify_repair(
+        10, N10_EDGES, 551, old10, 682, new10, X, h
+    )[1] >= h for X, h, _ in local_witnesses)
+    results["SAT_Hall10"]["all_source_Hall_clauses_false_positive"] = {
+        "source_mask": 551,
+        "target_mask": 682,
+        "source_Hall_sets": len(local_witnesses),
+        "target_delta": new10["delta"],
+        "target_balanced": True,
+        "all_source_quantitative_Hall_cut_bounds_satisfied": True,
+    }
     # Smaller-side Hall defect of 1246 is zero; on the larger side,
     # the all-subsets witness X=U_large has deficit 4, due to imbalance.
     state1246 = all_signatures(12, N12_EDGES)[1246]
