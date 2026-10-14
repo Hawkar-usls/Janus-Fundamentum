@@ -70,8 +70,6 @@ GOOD=frozenset(("100","010","001"))
 ORBIT_REPS=(
     (0,0,0,0),(0,0,1,1),(0,1,0,1),(0,1,1,0)
 )
-CLASS_ORBITS=tuple(combinations(range(4),k)
-                   for k in ())  # replaced below with flat sequence
 CLASS_ORBITS=tuple(C for k in (2,3,4)
                    for C in combinations(range(4),k))
 assert len(CLASS_ORBITS)==11
