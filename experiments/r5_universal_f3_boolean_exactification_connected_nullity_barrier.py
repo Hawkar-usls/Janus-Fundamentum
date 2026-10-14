@@ -58,7 +58,7 @@ UNSAT12 = (
     (4,5,7),(5,10,11),(2,4,6),(1,6,7),
     (0,2,8),(8,9,10),(0,3,10),(3,8,11),
 )
-GRID_SAT_COLUMNS=(2,5,8)
+GRID_SAT_COLUMNS=(2,4,6)
 
 
 def incidence(rows):
