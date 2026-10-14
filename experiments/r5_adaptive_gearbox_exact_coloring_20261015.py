@@ -224,13 +224,40 @@ def verify_coloring(graph, state):
     return all({state[i] for i in group} == set(COLORS)
                for group in graph["incidence"])
 
+def verify_holyer_exact_one_witness(graph, state):
+    """Independent check of square+cubic+linear positive 1-in-3 embedding.
+
+    x_(e,c) is one exactly when edge e receives color c.
+    Every variable participates in one edge-row and two vertex-color rows.
+    """
+    if not verify_coloring(graph, state):
+        return False
+    n, m = graph["n"], len(graph["edges"])
+    x = {(e, c): int(state[e] == COLORS[c])
+         for e in range(m) for c in range(3)}
+    rows = [set((e, c) for c in range(3)) for e in range(m)]
+    rows += [set((e, c) for e in graph["incidence"][v])
+             for v in range(n) for c in range(3)]
+    assert len(rows) == 3*m == len(x)
+    assert all(len(row) == 3 for row in rows)
+    assert all(sum(x[k] for k in row) == 1 for row in rows)
+    occurrences = Counter(k for row in rows for k in row)
+    assert all(count == 3 for count in occurrences.values())
+    assert all(len(rows[i] & rows[j]) <= 1
+               for i in range(len(rows)) for j in range(i))
+    return True
+
+
+
 
 def default_stats():
     return {"nodes": 0, "dead": 0, "branches": 0,
             "triple_checks": 0, "equal_checks": 0,
             "probes": 0, "failed_literals": 0,
             "forced_bits": 0, "gear_changes": [],
-            "gear_node_histogram": [0, 0, 0]}
+            "gear_node_histogram": [0, 0, 0],
+            "gear_since_node": 0, "gear_baseline_probes": 0,
+            "gear_baseline_failed": 0, "gear_baseline_dead": 0}
 
 
 def gearbox_shift(gear, stats, previous, adaptive, window):
@@ -240,19 +267,22 @@ def gearbox_shift(gear, stats, previous, adaptive, window):
     """
     if not adaptive or window <= 0 or stats["nodes"] % window:
         return gear
-    dn = stats["nodes"] - previous["nodes"]
-    fp = stats["failed_literals"] - previous["failed_literals"]
-    probes = stats["probes"] - previous["probes"]
-    equal = stats["equal_checks"] - previous["equal_checks"]
-    deaths = stats["dead"] - previous["dead"]
-    if gear == 2 and probes >= max(2, dn) and fp == 0:
-        new, reason = 1, "failed-literal probes expensive without pruning"
-    elif gear == 1 and equal == 0:
-        new, reason = 0, "no two-edge-cut constraints to process"
-    elif gear == 1 and equal > 4 * max(1, dn) and deaths == 0:
-        new, reason = 0, "cut equalities add evaluation overhead"
-    elif gear == 0 and deaths >= max(2, 3 * dn // 4):
-        new, reason = 1, "cheap gear hitting repeated contradictions"
+    # Use a complete residency window rather than reacting to two
+    # unproductive probes. This avoids premature downshifts on Petersen,
+    # where global failed-literal pruning only becomes useful later.
+    dn = stats["nodes"] - stats["gear_since_node"]
+    probes = stats["probes"] - stats["gear_baseline_probes"]
+    failed = stats["failed_literals"] - stats["gear_baseline_failed"]
+    deaths = stats["dead"] - stats["gear_baseline_dead"]
+    equal_since_last_window = (
+        stats["equal_checks"] - previous["equal_checks"]
+    )
+    if gear == 2 and dn >= max(8, window) and probes >= 12 and failed == 0:
+        new, reason = 1, "sustained costly lookahead with zero failed literals"
+    elif gear == 1 and dn >= max(4, window) and equal_since_last_window == 0:
+        new, reason = 0, "no two-edge-cut constraints to justify balanced gear"
+    elif gear == 0 and dn >= max(6, window) and deaths >= max(4, dn * 3 // 4):
+        new, reason = 2, "cheap gear produced many dead branches; precision rescue"
     else:
         new, reason = gear, ""
     if new != gear:
@@ -260,6 +290,10 @@ def gearbox_shift(gear, stats, previous, adaptive, window):
             "at_node": stats["nodes"], "from": gear,
             "to": new, "reason": reason,
         })
+        stats["gear_since_node"] = stats["nodes"]
+        stats["gear_baseline_probes"] = stats["probes"]
+        stats["gear_baseline_failed"] = stats["failed_literals"]
+        stats["gear_baseline_dead"] = stats["dead"]
     return new
 
 
@@ -370,6 +404,13 @@ def fixtures():
                  tuple(list(tuple(combinations(range(4), 2))) +
                        [(u+4, v+4) for u, v in combinations(range(4), 2)]),
                  True),
+        "Bridge10": (10, tuple(
+            [e for e in combinations(range(4), 2) if e != (0, 1)]
+            + [(0, 8), (1, 8)]
+            + [(u+4, v+4) for u, v in combinations(range(4), 2)
+               if (u, v) != (0, 1)]
+            + [(4, 9), (5, 9), (8, 9)]
+        ), False),
     }
 
 
@@ -386,6 +427,7 @@ def self_test():
             if expected_sat:
                 domains = tuple(COLORS[c] for c in out["edge_colors"])
                 assert verify_coloring(graph, domains)
+                assert verify_holyer_exact_one_witness(graph, domains)
             outputs[str(gear)] = {"verdict": out["verdict"],
                                   "nodes": out["stats"]["nodes"]}
         auto = solve(graph, adaptive=True, adapt_every=2, cut_budget=5000)
