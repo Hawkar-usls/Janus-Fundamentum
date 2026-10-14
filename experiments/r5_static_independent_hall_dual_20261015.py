@@ -190,6 +190,64 @@ def petersen_convexity_certificate(report, edges):
     }
 
 
+def disjoint_two_petersen_gap_check(edges):
+    """Finite k=2 replay of the all-k direct-product integrality gap.
+
+    Does NOT enumerate all 2^20 candidate masks: use the exact Cartesian
+    product of the 10 frozen admissible labels per Petersen component.
+    """
+    states = all_signatures(10, edges)
+    assert len(states) == 10
+    exposures = [
+        sum(1 << v for v in st["remaining"])
+        for st in states.values()
+    ]
+    independent = independent_set_masks_and_neighborhoods(10, edges)
+    assert len(independent) == 76
+    assert all(st["delta"] == 4 for st in states.values())
+    product_states = [(a, b) for a in exposures for b in exposures]
+    assert len(product_states) == 100
+    per_vertex_counts = [
+        sum(((a >> v) & 1) for a, _ in product_states)
+        for v in range(10)
+    ] + [
+        sum(((b >> v) & 1) for _, b in product_states)
+        for v in range(10)
+    ]
+    assert per_vertex_counts == [40] * 20
+
+    # Independent-set families of disjoint unions are Cartesian products.
+    # Their support functions add exactly, rather than approximately.
+    for a, b in product_states:
+        max_left = exact_max_critical_difference(a, independent)
+        max_right = exact_max_critical_difference(b, independent)
+        assert max_left == max_right == 4
+        assert max_left + max_right == 8
+
+    # Petersen spokes give a perfect matching in each block. Every
+    # independent set of the disjoint union expands in neighborhood
+    # cardinality; the uniform vector 2/5 therefore obeys all Hall cuts.
+    assert all(X.bit_count() <= nbr.bit_count()
+               for X, nbr in independent)
+    max_average_numerator = max(
+        40 * (X.bit_count() - nbr.bit_count())
+        for X, nbr in independent
+    )
+    assert max_average_numerator == 0
+    return {
+        "disjoint_Petersen_blocks": 2,
+        "vertices": 20,
+        "admissible_states": 100,
+        "independent_sets": 76**2,
+        "exact_integer_min_of_max": 8,
+        "fractional_convex_min_of_max": 0,
+        "average_exposure_counts_numerator": per_vertex_counts,
+        "denominator": 100,
+        "general_formula": "k Petersen components: discrete 4k, convex 0",
+        "scope": "unbounded gap on disconnected cubic inputs; connected n=10 gap already certified",
+    }
+
+
 def run():
     fixtures = {
         "K4": (4, tuple(combinations(range(4), 2)), {0: 6}, True),
@@ -211,6 +269,9 @@ def run():
         ),
         "convex_relaxation_obstruction": petersen_convexity_certificate(
             data["Petersen"], fixtures["Petersen"][1]
+        ),
+        "two_block_convex_gap_regression": disjoint_two_petersen_gap_check(
+            fixtures["Petersen"][1]
         ),
         "quadratic_lift": (
             "mono_uv=1-a_u-a_v+2*a_u*a_v; "
