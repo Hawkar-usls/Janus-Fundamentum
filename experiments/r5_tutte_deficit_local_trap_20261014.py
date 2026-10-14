@@ -107,9 +107,22 @@ def controls():
             (10, petersen, {4: 10}))
 
 
+def assert_admissible_flip_support(n, edges, admissible_masks):
+    """Finite regression for the universal (analytically proven) flip lemma."""
+    for a in admissible_masks:
+        for b in admissible_masks:
+            if a == b:
+                continue
+            flips = {v for v in range(n) if ((a ^ b) >> v) & 1}
+            assert all(any(w in flips for u, w in edges if u == v)
+                       or any(u in flips for u, w in edges if w == v)
+                       for v in flips), (a, b, flips)
+
+
 def run():
     verify_cubic(12, N12_EDGES)
     observed = all_signatures(12, N12_EDGES)
+    assert_admissible_flip_support(12, N12_EDGES, observed)
     histogram = dict(sorted(Counter(x["delta"] for x in observed.values()).items()))
     assert histogram == {0: 8, 4: 2}, histogram
     assert set(k for k, x in observed.items() if x["delta"] > 0) == {1246, 2849}
@@ -144,8 +157,10 @@ def run():
     control_report = {}
     for n, edges, expected in controls():
         verify_cubic(n, edges)
+        states = all_signatures(n, edges)
+        assert_admissible_flip_support(n, edges, states)
         hist = dict(sorted(Counter(x["delta"] for x in
-                                   all_signatures(n, edges).values()).items()))
+                                   states.values()).items()))
         assert hist == expected, (n, hist)
         control_report[str(n)] = hist
 
