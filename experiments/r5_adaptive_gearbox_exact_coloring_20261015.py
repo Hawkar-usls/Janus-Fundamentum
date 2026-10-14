@@ -38,15 +38,8 @@ def graph_info(n, input_edges):
     for u, v in edges:
         adj[u].add(v)
         adj[v].add(u)
-    seen = {0}
-    stack = [0]
-    while stack:
-        v = stack.pop()
-        for w in adj[v]:
-            if w not in seen:
-                seen.add(w)
-                stack.append(w)
-    assert len(seen) == n, "connected cubic input required"
+    # Disconnected inputs are allowed. Their colorings combine componentwise.
+    # Preprocessing must not mistake old disconnectedness for a bridge.
     return {"n": n, "edges": edges,
             "incidence": tuple(tuple(row) for row in incidence)}
 
@@ -65,14 +58,26 @@ def disconnected_component(graph, omitted):
         if i not in omitted:
             adj[u].append(v)
             adj[v].append(u)
-    seen = {0}
-    queue = [0]
-    for u in queue:
-        for v in adj[u]:
-            if v not in seen:
-                seen.add(v)
-                queue.append(v)
-    return seen if len(seen) < n else None
+    unseen = set(range(n))
+    while unseen:
+        root = min(unseen)
+        seen = {root}
+        queue = [root]
+        unseen.remove(root)
+        for u in queue:
+            for v in adj[u]:
+                if v not in seen:
+                    seen.add(v)
+                    unseen.remove(v)
+                    queue.append(v)
+        # A component created by edge deletion has a nonempty boundary.
+        # An original disconnected component has empty boundary.
+        boundary = {i for i, (u, v) in enumerate(edges)
+                    if (u in seen) != (v in seen)}
+        if boundary:
+            assert boundary.issubset(omitted)
+            return seen
+    return None
 
 
 def precompute_cuts(graph, max_triples=20000):
@@ -355,6 +360,10 @@ def fixtures():
         "Petersen": (10, controls()[2][1], False),
         "SAT_Hall10": (10, N10_EDGES, True),
         "SAT_Imbalance12": (12, N12_EDGES, True),
+        "K4x2": (8,
+                 tuple(list(tuple(combinations(range(4), 2))) +
+                       [(u+4, v+4) for u, v in combinations(range(4), 2)]),
+                 True),
     }
 
 
