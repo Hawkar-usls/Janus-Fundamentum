@@ -151,7 +151,7 @@ def generate_all_degree_hub_graphs():
     visit(0,())
     assert totals==Counter({
         "degree":13440,"connected":12300,
-        "cut_1":2400,"cut_2":7830,"cut_3":2070
+        "cut_0":1140,"cut_1":2400,"cut_2":7830,"cut_3":2070
     }),totals
     assert len(canonical)==7
     assert sum(canonical.values())==2070
