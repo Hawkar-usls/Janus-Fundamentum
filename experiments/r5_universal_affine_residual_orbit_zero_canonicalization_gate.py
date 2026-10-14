@@ -187,8 +187,6 @@ def count_colours_at_selected_vertices(E,chosen):
 
 def verify_petersen_local_vs_global():
     assert len(PETERSEN)==15
-    assert not any(set(t)<=set(PETERSEN)
-                   for t in ())  # explicit no-op control
     counts=Counter()
     for s in range(5):
         for W in combinations(range(10),s):
@@ -213,7 +211,7 @@ def verify_petersen_local_vs_global():
 def main():
     verify_holyer_class_observation()
     verify_petersen_local_vs_global()
-    print("THEOREM_AFFINE_EQUIVALENCE_TO_ZERO_COINP_COMPLETE_VIA_HOLYER")
+    print("THEOREM_AFFINE_EQUIVALENCE_TO_ZERO_coNP_COMPLETE_VIA_HOLYER")
     print("SMALL_AFFINE_RESIDUAL_ORBIT_COUNT_NOT_POLYTIME_CANONICALIZATION")
     print("UNIFORM_POLYNOMIAL_SolveLinearCubicXSAT_NOT_CONSTRUCTED")
     print("P_VS_NP_OPEN")
