@@ -56,6 +56,7 @@ def initial_state(graph):
             "last_seen_quantum": {e: -1 for e in ENGINES},
             "scores": {e: 0.0 for e in ENGINES},
             "switch_log": [],
+            "work_progress_log": [],
             "engine_node_histogram": {e: 0 for e in ENGINES}
         },
         "cut_limit": min(256, graph["n"] * graph["n"]),
@@ -341,6 +342,8 @@ def run(graph, max_nodes=None, checkpoint=None, resume=None,
                 out["edge_colors"] = found
                 return out
         after_mass = frontier_mass(state, graph, name)
+        if after_mass > before_mass:
+            raise AssertionError("frontier raw-assignment upper bound increased")
         delta_nodes = engine_stats["nodes"] - before_stats["nodes"]
         # Strong pruning score: normalized log decrease of a verified
         # per-engine upper bound; NOT an estimate of unexplored SAT count.
@@ -369,6 +372,23 @@ def run(graph, max_nodes=None, checkpoint=None, resume=None,
         density = progress / max(1, work)
         selector["scores"][name] = round(
             0.5 * selector["scores"][name] + 0.5 * density, 12
+        )
+        # A compact history of actual decrease in an upper bound on raw
+        # candidate completions (not a count of viable SAT witnesses).
+        selector["work_progress_log"].append({
+            "engine": name,
+            "at_total_node": (
+                state["edge_stats"]["nodes"] +
+                state["matching_stats"]["nodes"]
+            ),
+            "before_bound_log2": round(math.log2(1+before_mass), 4),
+            "after_bound_log2": round(math.log2(1+after_mass), 4),
+            "log2_reduction": round(progress, 4),
+            "work_proxy": work,
+            "pruning_per_work_proxy": round(density, 9)
+        })
+        selector["work_progress_log"] = (
+            selector["work_progress_log"][-64:]
         )
         old = selector["last_engine"]
         if name != old:
@@ -418,7 +438,11 @@ def finished(verdict, graph, state, nodes, cap):
             "edge_domains": len(state["edge_frontier"]),
             "matching_even_factor": len(state["matching_frontier"])
         },
-        "work_units": state["work_units"]
+        "work_units": state["work_units"],
+        "remaining_raw_upper_bound_log2": {
+            e: round(math.log2(1+frontier_mass(state, graph, e)), 4)
+            for e in ENGINES
+        }
     }
 
 
@@ -449,6 +473,11 @@ def self_test():
         assert second["verdict"] in ("UNKNOWN_RESOURCE_LIMIT", "UNSAT")
         final = run(graph, resume=checkpoint, quantum=1)
         assert final["verdict"] == "UNSAT"
+        # Budget-resume must retain BOTH frontiers and sample both
+        # independent complete engines, not silently restart either.
+        assert final["edge_stats"]["nodes"] > 0
+        assert final["matching_stats"]["nodes"] > 0
+        assert len(final["selector"]["switch_log"]) >= 2
         assert final["total_nodes"] >= first["total_nodes"]
         assert final["visited_this_call"] <= polynomial_nodes(graph["n"])
         # Hash check must prevent loading the wrong graph state.
@@ -465,6 +494,11 @@ def self_test():
             "terminal": final["verdict"],
             "hash_guard": "PASS"
         }
+    # Each per-engine search-mass upper bound is monotone under its
+    # branching + propagation, verified for every scheduled quantum.
+    assert result["Petersen"]["edge_nodes"] > 0
+    assert result["Petersen"]["matching_nodes"] > 0
+    assert result["K4x10"]["found_by"] == "matching_even_factor"
     # Polynomial single-call cap must not be bypassable by CLI requests.
     tiny = graph_info(10, fixtures()["Petersen"][1])
     assert run(tiny, max_nodes=0)["verdict"] == "UNKNOWN_RESOURCE_LIMIT"
