@@ -411,6 +411,12 @@ def fixtures():
                if (u, v) != (0, 1)]
             + [(4, 9), (5, 9), (8, 9)]
         ), False),
+        "CirculantBipartite20": (
+            20,
+            tuple((u, 10 + ((u + d) % 10))
+                  for u in range(10) for d in (0, 1, 3)),
+            True,
+        ),
     }
 
 
