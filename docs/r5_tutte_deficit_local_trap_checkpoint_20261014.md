@@ -56,6 +56,26 @@ the complementary 2-factor is bipartite under `1295` and hence edge-2-colourable
 
 This is a counterexample to the **proposed 4-local strict-descent guarantee**. It does **not** preclude a polynomial global `Improve` operation, a change of representation, leaving the admissible region between steps, or moves that flip >= 5 bits.
 
+
+## Universal flip-support lemma (analytic, all n)
+**Lemma.** For any cubic graph and any two admissible binary labelings s,t, the set
+`F={v : s(v) != t(v)}` of flipped vertices has no isolated vertex in the
+induced graph `G[F]` (unless F is empty).
+
+*Proof.* Suppose `v in F` has no neighbour in F. Because `s` is
+admissible, at most one of the three edges incident to v has equal endpoint
+labels in s. Thus at least two incident edges have unequal labels in s.
+Flipping v while leaving all three neighbours unchanged turns at least two
+of these edges into equal-label edges in t, contradicting admissibility of
+t. QED.
+
+Consequences: a single-bit flip is **never** a valid transition between
+admissible labelings on any cubic graph. A valid two-bit flip, if one exists,
+must flip adjacent vertices. More generally any valid simultaneous flip
+must have internal minimum degree at least one in its changed-vertex support.
+This lemma is unconditional; it does not imply a polynomial solver or
+rule out nonlocal/global updates.
+
 ## Exact reproducibility
 From the repository root:
 
