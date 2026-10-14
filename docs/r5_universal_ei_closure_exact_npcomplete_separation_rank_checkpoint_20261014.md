@@ -40,6 +40,9 @@ For Boolean-valued functions \`Q\` this equals the existential OR over the three
 
 If a representation scheme provides (i) polynomial-time initial compilation for EVERY native input, (ii) uniformly polynomial-time exact \`E_z\` update on ALL intermediate projected functions with a uniform \`n^C\` size limit, and (iii) polynomial-time evaluation of the final constant, then the direct cubic-edge-colouring reduction makes its existence a constructive proof of \`P=NP\`. One cannot use this desired closure as a premise without providing the missing universal theorem.
 
+**Essential distinction: existence versus efficient construction.** A statement of the form "for each intermediate projected function, SOME algebraic circuit of size n^C exists" is NOT yet a solver, because no algorithm has been given to find the circuit or to update it after the next E_z. The required theorem must specify a UNIFORM polynomial-time procedure to construct each next representation, plus a single polynomial size bound valid along arbitrary legal inputs and all d<=n sequential projections. Even a polynomial-circuit existence theorem with no constructor is insufficient to infer P=NP or provide the user a working SolveLinearCubicXSAT.
+
+
 ## 3. Concrete unconditional barrier: exponential bipartition separable rank, AFTER a real \`E\` projection, on fully legal native instances
 
 Take the legal square, cubic, linear GRID9 block, whose nine Exact-One row clauses are
