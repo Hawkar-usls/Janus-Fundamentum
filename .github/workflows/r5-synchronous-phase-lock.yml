@@ -15,6 +15,9 @@ on:
       - 'experiments/r5_exactone_sevenblock_loopless_full_multigraph_census.cpp'
       - 'experiments/r5_exactone_sevenblock_loopless_multigraph_independent_degree_dp.py'
       - 'experiments/r5_exactone_sevenblock_multigraph_cut2_no_degree2_exact_nogo.py'
+      - 'experiments/r5_sixblock_217_loopless_catalogue_for_antiphase.cpp'
+      - 'experiments/r5_exactone_antiphase_mandatory_R87_217_envelope.py'
+      - 'experiments/r5_exactone_antiphase_R87_fixed_fourpole_class_csp.py'
       - 'experiments/r5_exactone_bridgeless_n28_twobit_constructive.py'
   workflow_dispatch:
 
@@ -49,3 +52,11 @@ jobs:
         run: python -u experiments/r5_exactone_sevenblock_loopless_multigraph_independent_degree_dp.py
       - name: Exclude all 19 two-edge-connected sevenblock parallel skeletons with no degree-two constituent
         run: python -u experiments/r5_exactone_sevenblock_multigraph_cut2_no_degree2_exact_nogo.py
+      - name: Build complete independent sixblock loopless 217 skeleton atlas
+        run: |
+          g++ -std=c++17 -O2 experiments/r5_sixblock_217_loopless_catalogue_for_antiphase.cpp -o /tmp/r5_sixblock_217_catalogue
+          /tmp/r5_sixblock_217_catalogue > /tmp/r5_sixblock_217.txt
+      - name: Prove exact anti-phase mandatory 87 state right trace and screen all 78120 interface placements
+        run: python -u experiments/r5_exactone_antiphase_mandatory_R87_217_envelope.py /tmp/r5_sixblock_217.txt
+      - name: Verify nontrivial exact sixblock 11-class antiphase UNSAT fixtures with SAT positive regression
+        run: python -u experiments/r5_exactone_antiphase_R87_fixed_fourpole_class_csp.py /tmp/r5_sixblock_217.txt
