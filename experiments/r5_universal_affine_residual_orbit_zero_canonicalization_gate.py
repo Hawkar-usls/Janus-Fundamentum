@@ -65,7 +65,7 @@ from r5_universal_f3_boolean_exactification_connected_nullity_barrier import (
 )
 from r5_universal_ei_closure_holyer_npcomplete_separation_rank import (
     K4, K33, PETERSEN, holyer_native_bridge,
-    count_proper_three_edge_colours
+    count_proper_three_edge_colours, transformed_grid9_support
 )
 
 DOMAIN=tuple(product(range(3),repeat=2))
@@ -225,9 +225,43 @@ def verify_petersen_local_vs_global():
     },flush=True)
 
 
+def verify_affine_orbit_not_a_product_congruence():
+    """Actual projected GRID9 trace gives affine equivalent point tests.
+
+    After eliminating z, GRID9 yields Q(u,v)=1 iff u==v.
+    Setting u=a leaves delta_a(v), for all a in GF3.
+    The delta_a are all affinely equivalent by translation, but their
+    products vary from NONZERO to ZERO depending on relative shift.
+    Thus orbit label alone is NOT a congruence for conjunction.
+    """
+    support=transformed_grid9_support()
+    slices={}
+    for a in range(3):
+        slices[a]=frozenset(v for v in range(3)
+            if any((a,v,z) in support for z in range(3)))
+        assert slices[a]==frozenset((a,))
+    # Translation v -> v+(a-b) carries delta_a to delta_b.
+    assert all(
+        frozenset((v+(a-b))%3 for v in slices[a])==slices[b]
+        for a in range(3) for b in range(3)
+    )
+    same=slices[0]&slices[0]
+    cross=slices[0]&slices[1]
+    assert same==frozenset((0,))
+    assert cross==frozenset()
+    print("AFFINE_ORBIT_CLASSES_NOT_CONGRUENCE_FOR_SHARED_VARIABLE_PRODUCT",{
+        "same_affine_orbit_input_constraints":True,
+        "same_shift_product_nonzero":True,
+        "different_shift_product_zero":True,
+        "actual_origin":"GRID9 true GF3 Boolean indicator after E_z",
+        "consequence":"must retain relative affine coordinate alignment",
+    },flush=True)
+
+
 def main():
     verify_holyer_class_observation()
     verify_petersen_local_vs_global()
+    verify_affine_orbit_not_a_product_congruence()
     print("THEOREM_AFFINE_EQUIVALENCE_TO_ZERO_coNP_COMPLETE_VIA_HOLYER")
     print("SMALL_AFFINE_RESIDUAL_ORBIT_COUNT_NOT_POLYTIME_CANONICALIZATION")
     print("UNIFORM_POLYNOMIAL_SolveLinearCubicXSAT_NOT_CONSTRUCTED")
