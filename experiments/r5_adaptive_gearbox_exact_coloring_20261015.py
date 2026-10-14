@@ -417,6 +417,12 @@ def fixtures():
                   for u in range(10) for d in (0, 1, 3)),
             True,
         ),
+        "CirculantBipartite60": (
+            60,
+            tuple((u, 30 + ((u + d) % 30))
+                  for u in range(30) for d in (0, 1, 3)),
+            True,
+        ),
     }
 
 
