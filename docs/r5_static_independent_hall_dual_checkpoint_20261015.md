@@ -103,6 +103,36 @@ The finite regression independently tests each of Petersen's 76
 independent sets, all 10 exposed states, and the averaged 2/5 vector
 using exact integer arithmetic.
 
+## Theorem B2: Unbounded all-k gap on cubic direct sums (NOT connected)
+Let `P` be Petersen and let `G_k` be the disjoint union of k
+copies of P (a simple cubic graph with n=10k vertices).
+For every admissible vertex labeling of `G_k`, its restriction to
+each component is admissible, and `Delta` is additive under disjoint
+union. Since every admissible label of P has Delta=4:
+```text
+min_{s admissible on G_k} Delta(s) = 4k.
+```
+Uniformly independently sample one of the 10 admissible Petersen
+labels in each component. The average exposure is identically 2/5
+at all 10k vertices. A perfect matching exists in every component,
+so their disjoint union has a perfect matching. As above, every
+independent X in G_k satisfies |X|<=|N(X)|, hence the averaged
+exposure satisfies all static independent-set Hall inequalities.
+The convex min-max relaxation has value 0.
+
+Thus the integrality gap is **4k = (2/5)n**, unbounded with n,
+even when ALL fixed-index independent-set inequalities are retained.
+The n=10 Petersen example already provides a CONNECTED obstruction;
+the linear-growth construction here is a *disconnected* direct-sum
+family. Do NOT claim it proves a linear gap for connected inputs.
+
+The executable independently replays k=2 by Cartesian products of
+the 10 admissible Petersen states: 100 admissible two-block states,
+5776 independent-set pairs, integer deficit 8,
+averaged exposure 40/100 at every vertex and convex value 0.
+This is a finite regression and an analytic all-k proof, not a
+universal complexity lower bound on nonlinear algorithms.
+
 ## Theorem C: All future Hall checks have a UNIFORM polynomial-size circuit
 For each fixed simple cubic graph G on n vertices, a Boolean circuit
 `C_G(a)` with input a in {0,1}^n and size n^O(1) can be
