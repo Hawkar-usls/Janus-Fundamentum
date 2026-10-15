@@ -70,8 +70,12 @@ def directed_twists(start_seed=0,trial_limit=72,mutation_seed=20261015):
     same=[]
     difference=None
     for trial in range(trial_limit):
+        # Deliberately include 1-, 2- and 3-switch compositions.
+        # Intermediate rank may change, but the FINAL rank and
+        # signed spectral/anchor fingerprint must be identical.
+        chain_length=1+(trial%3)
         proposal,moves=unrestricted_connected_mutation(
-            source,rng,steps=1)
+            source,rng,steps=chain_length)
         validate_scl(proposal)
         assert len(connected_scl_components(proposal))==1
         if not moves:
@@ -89,6 +93,7 @@ def directed_twists(start_seed=0,trial_limit=72,mutation_seed=20261015):
             tallies["REJECT_DISCRIMINANT"]+=1
             continue
         tallies["ACCEPT_MATCHED_CORE"]+=1
+        tallies["ACCEPT_CHAIN_LENGTH_"+str(chain_length)]+=1
         trial_oracle=classify_affine(proposal,cap=1<<12)
         if trial_oracle["verdict"]=="UNKNOWN_RESOURCE_LIMIT":
             tallies["UNKNOWN_BUDGET"]+=1
@@ -122,6 +127,7 @@ def directed_twists(start_seed=0,trial_limit=72,mutation_seed=20261015):
         "original_exact_SAT_count":original["count"],
         "target_core_signed_k2_A4_A6":str(target),
         "trial_limit":trial_limit,
+        "chain_lengths_tested":(1,2,3),
         "rejection_statistics":dict(tallies),
         "accepted_exact_controls":same,
         "opposite_status_pair":difference,
