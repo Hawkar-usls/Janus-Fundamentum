@@ -202,6 +202,55 @@ Integrated finite tests:
 - Petersen45 with c=3: exact UNSAT after scanning 4096 parity states;
 - saved wrong-matrix checkpoint rejected; genuine resume advances.
 
+## Successor Coverage Breaker: exact n72 finite root stall for current certificates
+
+File: `experiments/r5_moment_coverage_breaker_20261015.py`.
+Input: a disconnected cubic graph containing **four independent
+copies of K4**, encoded into 72-variable *legal* square/cubic/linear
+positive Exact-One via the standard Holyer encoding. This graph is SAT,
+but the current restricted expert family can still show shallow
+non-progress in its particular potential.
+
+GF(2) affine dimension d=24, hence there are `2^24=16,777,216`
+parity words at the root; `72^3=373,248`. The polynomial
+`LOG_KERNEL(c=3)` correctly returns `DECLINE`.
+
+Moment degree is capped at 3, but our **current dual template library**
+contains q1, q2, Petersen-specific q3 and qchild0. For n=72 the
+Petersen-specific cubics fail the *all-support nonnegativity check*
+and MUST be rejected, rather than unsoundly extrapolated. The remaining
+valid templates give
+```text
+U(root) = 5,452,595
+For EACH v=0..71:
+U(v=0)=2,254,438
+U(v=1)=3,198,156
+U(children)=5,452,594.
+```
+Thus each individual variable split reduces U by exactly one count,
+and violates the geometric c=1 requirement:
+`U(children)*72 > U(root)*71`.
+
+All 72 splits were **independently replayed** using GF(2)-restriction
+moment rank checks (fixed degree 3) in GitHub Actions:
+[CI SUCCESS run 38698911282](https://github.com/Hawkar-usls/Janus-Fundamentum/actions/runs/38698911282)
+at commit `ca2ed25cb4ce70971cfb45f7c32cdbb2b8a4f565`.
+
+**Limits:**
+1. This example is DISCONNECTED, not a hard connected source.
+2. These are finite failures of **the current finite set of permitted
+   dual certificates**, not a lower bound on every possible
+   degree-3 dual LP or another polynomial expert.
+3. The input is SAT, so a branch can still reach a witness; no
+   universal UNSAT barrier is proved.
+4. A monotone bound dropping by just one is not the multiplicative
+   progress required for the conditional Cooperative Progress theorem.
+
+New gate: generate new degree-3 duals valid for all t=0,3,...,72
+using a separate polynomial LP / small exact-rational dual finder,
+and recheck whether ANY new certificate eliminates the n72 stall;
+then seek harder connected SCL examples with d>c log n.
+
 ## Proof boundary / next test
 Required next step is to find a legal SCL instance with large affine
 nullity `2^d>n^c`, root U_r>0 and NO progress under small-degree
