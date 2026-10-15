@@ -83,11 +83,12 @@ def survey(seed=20261016,trials=96):
         counters["CERTIFIED_UNSAT"]+=1
         A=[[int(v in row) for v in range(36)] for row in proposal]
         mod=mod_rank(A)
-        if mod>34:
+        # rank_(mod p) is a LOWER bound on rank_Q.
+        # Necessary multi-z condition is rank_Q<=n-2=34.
+        # A modular rank EQUAL to 34 is *not* sufficient
+        # for rejection; it must go through exact Q rank!
+        if mod>=35:
             counters["REJECT_RANK_MOD_PRIME_GE35"]+=1
-            continue
-        if mod==34:
-            counters["REJECT_RANK_MOD_PRIME_GE34"]+=1
             continue
         rank,pivots,pr,qbasis=rational_rref(A)
         assert rank>=mod
