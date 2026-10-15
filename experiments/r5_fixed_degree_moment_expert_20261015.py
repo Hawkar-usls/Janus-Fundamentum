@@ -203,6 +203,29 @@ def self_test():
     assert root["duals"]["q2"]["integer_upper_bound"]==640
     assert root["duals"]["q3"]["integer_upper_bound"]==480
     assert root["bound"]==480
+    # Second, INDEPENDENT finite oracle: enumerate the entire d=12
+    # parity affine space (4096 words), count all #111 rows, and
+    # recompute N1,N2,N3 directly without rank restriction queries.
+    # Exponential work is permitted ONLY as a tiny CI control.
+    from collections import Counter
+    from r5_cooperative_scl_coverage_20261015 import gf2_affine
+    particular,basis,dimension=gf2_affine(p,0,0)
+    assert dimension==12
+    histogram=Counter()
+    for seed in range(1<<dimension):
+        x=particular
+        for bit,b in enumerate(basis):
+            if (seed>>bit)&1:
+                x^=b
+        t=sum(all((x>>v)&1 for v in clause) for clause in p)
+        assert t%3==0 and 3*x.bit_count()==45+2*t
+        histogram[t]+=1
+    expected={3:270,6:540,9:1350,12:720,15:684,
+              18:240,21:225,27:30,30:36,45:1}
+    assert dict(histogram)==expected,dict(histogram)
+    for order in range(4):
+        assert sum(count*comb(t,order)
+                   for t,count in histogram.items())==int(root["moments"][order])
     assert check_dual(45,Q2) and check_dual(45,Q3) and check_dual(45,QCHILD0)
     assert not check_dual(90,Q3)  # cubic becomes negative on long support
 
