@@ -226,7 +226,7 @@ def self_test():
     assert aa!=bb and aa[-1]!=(bb[-1])
     assert (aa[-1],bb[-1])==((0,3),(0,2))
     counts={str(h):signature_cost(36,h) for h in range(5)}
-    assert counts=={"0":1,"1":73,"2":2593,"3":73993,"4":1582873}
+    assert counts=={"0":1,"1":73,"2":2593,"3":59713,"4":1002193}
     return {"gate":"INFORMATIONALLY_INDEPENDENT_AFFINE_SIGNATURE",
             "all_n_theorem":"SIGNED_PLESS_TRIANGULAR_EQUIVALENCE",
             "finite_independent_checks":checked,
