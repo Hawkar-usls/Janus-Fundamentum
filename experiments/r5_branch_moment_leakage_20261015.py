@@ -82,6 +82,34 @@ def counted_ones_branch_moment(words,m,q,h):
     return total
 
 
+def recover_from_unlabeled_parity_tagged_pairs(words,m,q=2):
+    """S1 can reconstruct x_i=1 WITHOUT explicit value labels.
+
+    The restricted free-v parity tag after fixing x_i=0 is 1,
+    and after x_i=1 is 0, from the original column-odd SCL
+    parity theorem. Thus sorting each child pair does not
+    erase which one is the x_i=1 branch as long as parity
+    is retained. This is a theorem of THIS S1 feature grammar,
+    not a claim about arbitrary untagged summaries.
+    """
+    unlabeled_pairs=[]
+    for i in range(m):
+        branch0=sum(comb(w.bit_count(),q) for w in words
+                    if ((w>>i)&1)==0)
+        branch1=sum(comb(w.bit_count()-1,q) for w in words
+                    if ((w>>i)&1)==1)
+        pair=tuple(sorted(((1,branch0),(0,branch1))))
+        unlabeled_pairs.append(pair)
+    # Discard variable identities and left/right branch order.
+    multiset=tuple(sorted(unlabeled_pairs))
+    identified_ones_total=sum(
+        next(value for parity,value in pair if parity==0)
+        for pair in multiset)
+    return {"sum_xi_one_Mq":identified_ones_total,
+            "distinct_unlabeled_pair_profiles":len(set(multiset)),
+            "parity_tags_recover_branch_value":True}
+
+
 def signed_dual_low_from_x_affine(words,m,d,k=4):
     # Coset x=1+ker(A), root signed D=(-1)^s B_s.
     # Independent inverse Krawtchouk on all parity words of x,
@@ -109,6 +137,8 @@ def replay():
         # independent direct 72 singleton child traversals
         L1=counted_ones_branch_moment(words,m,2,1)
         assert L1==3*M["3"]
+        from_unlabeled=recover_from_unlabeled_parity_tagged_pairs(words,m,2)
+        assert from_unlabeled["sum_xi_one_Mq"]==L1
         L2=counted_ones_branch_moment(words,m,2,2)
         assert L2==6*M["4"]
         # All h=1 q=0/1/2, and h=2 q=0/1/2 exact.
@@ -135,6 +165,7 @@ def replay():
                        "root_signed_D0_to4":D,
                        "all_depth1_depth2_moment_identities":detail,
                        "branch_q2_sum_depth1":L1,
+                       "unlabeled_parity_tagged_S1_leakage":from_unlabeled,
                        "branch_q2_sum_depth2":L2,
                        "source_sha256":fingerprint(rows),
                        "true_SAT_count":H["SAT"]}
@@ -152,7 +183,8 @@ def replay():
             "delta_B3_SAT_minus_UNSAT":diff_B3,
             "delta_sum_all72_child_M2":diff_child,
             "48_delta_B3":48*diff_B3,
-            "branch_value_label_required_for_this_exact_identity":True,
+            "branch_value_label_required_for_this_exact_identity":
+                "EXPLICIT_OR_RECOVERABLE_FROM_RETAINED_CHILD_PARITY",
             "universal_polynomial_SCL":"NOT_CONSTRUCTED",
             "P_vs_NP":"OPEN"}
 
