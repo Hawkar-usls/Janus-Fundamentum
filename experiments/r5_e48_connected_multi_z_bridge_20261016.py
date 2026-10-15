@@ -284,6 +284,13 @@ def joint_cover(C,Y):
         assert valid_witness(rows,bits)
         witnesses.append(bits)
     assert len(set(witnesses))==len(Y)
+    full=(1<<n)-1
+    swapped=[((w&full)<<n)|(w>>n) for w in witnesses]
+    for k,(w,w2) in enumerate(zip(witnesses,swapped)):
+        assert w!=w2 and valid_witness(rows,w2)
+        assert (((w&full)^(w>>n))==Y[k]["z"])
+        assert (((w2&full)^(w2>>n))==Y[k]["z"])
+    assert len(set(witnesses+swapped))==2*len(Y)
     return {
         "status":"JOINT_SAT_2LIFT_WITNESSES_VERIFIED",
         "linear_GF2_equations":len(equations),
@@ -294,6 +301,8 @@ def joint_cover(C,Y):
         "witness_bits_decimal":[str(x) for x in witnesses],
         "witness_sheet_XOR":[str(item["z"]) for item in Y],
         "distinct_valid_SAT_witnesses":len(witnesses),
+        "directly_verified_sheet_swap_witnesses":2*len(Y),
+        "sheet_swapped_witness_bits_decimal":[str(w) for w in swapped],
         "2lift_rows":[list(row) for row in rows]
     },rows
 
