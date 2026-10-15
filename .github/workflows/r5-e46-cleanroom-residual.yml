@@ -6,6 +6,7 @@ on:
       - "experiments/r5_e46_export_fixture_20261016.py"
       - "experiments/r5_e46_clean_room_verify_20261016.py"
       - "experiments/r5_residual_yz_exact_cover_20261016.py"
+      - "experiments/r5_multi_z_rank4_frontier_20261016.py"
       - "experiments/r5_e46_frozen_fixture_20261016.json"
       - "docs/r5_e46_cleanroom_residual_checkpoint_20261016.md"
       - ".github/workflows/r5-e46-cleanroom-residual.yml"
@@ -14,6 +15,7 @@ on:
       - "experiments/r5_e46_export_fixture_20261016.py"
       - "experiments/r5_e46_clean_room_verify_20261016.py"
       - "experiments/r5_residual_yz_exact_cover_20261016.py"
+      - "experiments/r5_multi_z_rank4_frontier_20261016.py"
       - "experiments/r5_e46_frozen_fixture_20261016.json"
       - "docs/r5_e46_cleanroom_residual_checkpoint_20261016.md"
       - ".github/workflows/r5-e46-cleanroom-residual.yml"
@@ -39,6 +41,10 @@ jobs:
         run: python3 experiments/r5_e46_clean_room_verify_20261016.py --fixture frozen_fixture.json > clean_room_certificate.json
       - name: Report independent mathematical checks
         run: python3 -c 'import json;a=json.load(open("clean_room_certificate.json"));b=json.load(open("residual_yz_certificate.json"));print(json.dumps({"clean_room":a["gate"],"Psi_rank":a["Psi_rank"],"SAT_UNSAT":a["actual_class_counts"],"mismatches":a["independent_oracle_disagreements"],"residual_Y_z":b["exact_cover_count"],"clean_columns":b["clean_outside_cols"],"selected_y2":b["exact_cover_y2_columns"]},sort_keys=True))'
+      - name: Finite multi-z obstruction-rank4 and residual feasible Yz scout
+        run: python3 experiments/r5_multi_z_rank4_frontier_20261016.py --self-test > multi_z_frontier_certificate.json
+      - name: Report multi-z frontier
+        run: python3 -c 'import json;d=json.load(open("multi_z_frontier_certificate.json"));print(json.dumps({"status":d["status"],"tested":d["tested_flip_candidates"],"rank4":d["rank4_examined"],"Yz":d["Yz_feasibility_histogram"],"best":d.get("first_multi_z_candidate",d.get("best_record"))},sort_keys=True))'
       - uses: actions/upload-artifact@v4
         with:
           name: r5-e46-cleanroom-residual-certificates
@@ -46,4 +52,5 @@ jobs:
             frozen_fixture.json
             residual_yz_certificate.json
             clean_room_certificate.json
+            multi_z_frontier_certificate.json
           retention-days: 90
