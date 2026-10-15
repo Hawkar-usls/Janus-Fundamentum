@@ -81,8 +81,12 @@ def self_test():
     assert a["root"]["new_bound"]==480
     assert all(x["U_children"]==467 and x["geometric_c1"] for x in a["probes"])
     g=k4_direct_sum(4)
-    b=probe_graph(g,(0,1,2))
-    assert b["root"]["new_bound"]<=5452595
+    b=probe_graph(g,tuple(range(72)))
+    assert b["root"]["old_bound"]==5452595
+    assert b["root"]["new_bound"]==1310720
+    assert len(b["probes"])==72
+    assert all(item["U_children"]==1310719 and not item["geometric_c1"]
+               for item in b["probes"])
     return {
         "status":"CERTIFIED_ALL_N_ADJACENT_ROOT_CUBIC_FAMILY",
         "proven":"all-n dual positivity for adjacent roots, polynomial n templates",
