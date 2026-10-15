@@ -23,6 +23,7 @@ from itertools import combinations
 import json,argparse,random
 
 from r5_optimal_moment_lp_20261015 import simplex
+from r5_anchored_moment_lp_20261015 import anchored_optimal_lp
 from r5_cooperative_scl_coverage_20261015 import (
     gf2_affine,fixtures
 )
@@ -269,10 +270,20 @@ def self_test():
                 k,anchors,{j:v for j,v in known.items() if j>0}
             )
             assert data["integer_upper_bound"]>=hist[0]
+            raw=moments_from_hist(n,hist,k)
+            known_spectrum_free=solve_exact_mac_lp(
+                n,d,raw,k,anchors,known_dual=None)
+            anchored_t={n-3*i//2:a for i,a in anchors.items()}
+            moment_only=anchored_optimal_lp(n,raw,k,anchored_t)
+            assert (Q(data["optimum"])<=
+                    Q(known_spectrum_free["optimum"])<=
+                    Q(moment_only["exact_optimum"]))
             graded[str(k)]={"optimum":data["optimum"],
                             "floor":data["integer_upper_bound"],
                             "primal_dual_verified":True,
-                            "iterations":data["phase_iterations"]}
+                            "iterations":data["phase_iterations"],
+                            "Mac_without_low_B":known_spectrum_free["optimum"],
+                            "same_anchors_moment_only":moment_only["exact_optimum"]}
         result[label]={"n":n,"nullity":d,
                        "true_SAT":hist[0],"anchors":anchors,
                        "row_dual_low":known,"optima":graded}
@@ -289,6 +300,12 @@ def self_test():
     c72=solve_exact_mac_lp(n,d,moments_from_hist(n,hist,2),
                           2,anchors,{j:v for j,v in known.items() if j>0})
     assert c72["integer_upper_bound"]>=1296
+    raw72=moments_from_hist(n,hist,2)
+    free72=solve_exact_mac_lp(n,d,raw72,2,anchors,known_dual=None)
+    moment72=anchored_optimal_lp(n,raw72,2,
+                      {n-3*i//2:a for i,a in anchors.items()})
+    assert (Q(c72["optimum"])<=Q(free72["optimum"])<=
+            Q(moment72["exact_optimum"]))
     result["DisconnectedK4x4_72"]={
         "n":n,"nullity":d,"global_parity_words":1<<d,
         "local_words_checked":words_checked,
@@ -297,7 +314,9 @@ def self_test():
         "degree2":{"optimum":c72["optimum"],
                    "floor":c72["integer_upper_bound"],
                    "primal_dual_verified":True,
-                   "iterations":c72["phase_iterations"]}}
+                   "iterations":c72["phase_iterations"],
+                   "Mac_without_low_B":free72["optimum"],
+                   "same_anchors_moment_only":moment72["exact_optimum"]}}
     return {
         "status":"EXACT_BIDIRECTIONAL_MACWILLIAMS_PRIMAL_DUAL_VERIFIED",
         "controls":result,
