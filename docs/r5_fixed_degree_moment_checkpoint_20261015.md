@@ -306,6 +306,34 @@ says that EVERY possible degree-3 dual LP optimum lies in this
 family. Therefore a stalled root under this family is not a
 lower bound for all fixed-degree moment algorithms.
 
+## Integration of the adjacent-root family into the actual SCL solver
+
+As of commit `315bc407a5fd15a5802e6685c159ada4f431e93a`,
+`r5_moment_cooperative_solver_20261015.py` uses the BEST VALID
+degree-3 adjacent-root certificate by default, not just the earlier
+fixed Petersen templates. The flag `--no-adjacent-family` provides a
+frozen baseline comparison. The proof policy is stored and validated
+in the saved checkpoint; a resume using a different certificate policy
+is refused to prevent mixing incompatible frontier potentials.
+
+Finite integration regressions:
+- Petersen45 (c1): U3 root 480, U3 first split 467,
+  UNKNOWN on one-node budget, exact saved frontier.
+- Petersen45 (c3): LOG_KERNEL checks all 4096 parity words,
+  returns UNSAT soundly on the frozen input.
+- High-nullity K4x4_72 (c3): LOG_KERNEL declines, adjacent
+  certificate improves U root to 1,310,720, but one exact split
+  leaves U=1,310,719, so the geometric c1 test fails.
+  Verdict at one-node budget remains honest UNKNOWN.
+- Explicit resume with wrong matrix or changed policy is rejected.
+
+Each admitted dual certificate is independently checked as a
+nonnegative rational polynomial on the support. The user-supplied
+Petersen q3 is never extrapolated to n=72, where it is invalid.
+This operation reduces the certified numerical potential without
+claiming actual individual SAT candidates were eliminated at the
+same rate. Global geometric convergence remains OPEN.
+
 ## Proof boundary / next test
 Required next step is to find a legal SCL instance with large affine
 nullity `2^d>n^c`, root U_r>0 and NO progress under small-degree
