@@ -24,19 +24,23 @@ from r5_cooperative_scl_coverage_20261015 import (
 from r5_fixed_degree_moment_expert_20261015 import (
     log_kernel, moment_bounds
 )
+from r5_adjacent_root_dual_20261015 import best_cubic
+from r5_moment_coverage_breaker_20261015 import k4_direct_sum
 
 
-def certified_cube_bound(rows,cube,degree):
+def certified_cube_bound(rows,cube,degree,adjacent=True):
+    if degree==3 and adjacent:
+        return best_cubic(rows,cube)["new_bound"]
     return moment_bounds(rows,cube,degree)["bound"]
 
 
-def certified_frontier_mass(rows,frontier,degree):
-    return sum(certified_cube_bound(rows,cube,degree)
+def certified_frontier_mass(rows,frontier,degree,adjacent=True):
+    return sum(certified_cube_bound(rows,cube,degree,adjacent)
                for cube in frontier)
 
 
 def solve(rows, node_budget=80, moment_degree=3, log_kernel_exponent=1,
-          checkpoint=None,resume=None):
+          checkpoint=None,resume=None,adjacent_family=True):
     rows=validate_scl(rows)
     n=len(rows)
     if not 0<=moment_degree<=3 or not 0<=log_kernel_exponent<=3:
@@ -49,7 +53,8 @@ def solve(rows, node_budget=80, moment_degree=3, log_kernel_exponent=1,
         if (rec.get("version")!=1 or
             rec.get("sha256")!=fingerprint(rows) or
             rec.get("moment_degree")!=moment_degree or
-            rec.get("log_kernel_exponent")!=log_kernel_exponent):
+            rec.get("log_kernel_exponent")!=log_kernel_exponent or
+            rec.get("adjacent_family")!=adjacent_family):
             raise ValueError("checkpoint graph, version or policy mismatch")
         frontier=[tuple(pair) for pair in rec["frontier"]]
         if len(frontier)>n+1:
@@ -61,7 +66,7 @@ def solve(rows, node_budget=80, moment_degree=3, log_kernel_exponent=1,
     else:
         frontier=[(0,0)]
         prior=0
-    original=certified_frontier_mass(rows,frontier,moment_degree) if n%3==0 else 0
+    original=certified_frontier_mass(rows,frontier,moment_degree,adjacent_family) if n%3==0 else 0
     event_log=[]
     stats={
         "n":n,"sha256":fingerprint(rows),
@@ -70,6 +75,7 @@ def solve(rows, node_budget=80, moment_degree=3, log_kernel_exponent=1,
         "previous_visited":prior,
         "moment_degree":moment_degree,
         "kernel_exponent":log_kernel_exponent,
+        "adjacent_family":adjacent_family,
         "certified_shrinks":0,
         "exact_split":0,
         "exact_one_forced":0,
@@ -93,7 +99,7 @@ def solve(rows, node_budget=80, moment_degree=3, log_kernel_exponent=1,
     while frontier and stats["visited_this_call"]<fuel:
         cube=frontier.pop()
         stats["visited_this_call"]+=1
-        ub=certified_cube_bound(rows,cube,moment_degree)
+        ub=certified_cube_bound(rows,cube,moment_degree,adjacent_family)
         if ub==0:
             # Moment dual is a full upper-bound proof for this cube.
             stats["moment_zero_cubes"]+=1
@@ -105,7 +111,7 @@ def solve(rows, node_budget=80, moment_degree=3, log_kernel_exponent=1,
             continue
         if kind=="FORCED":
             assert local_consequences(rows,cube)[1]==new
-            assert certified_cube_bound(rows,new,moment_degree)<=ub
+            assert certified_cube_bound(rows,new,moment_degree,adjacent_family)<=ub
             frontier.append(new)
             stats["exact_one_forced"]+=1
             emit({"expert":"EXACT_ONE","U_before":ub,
@@ -142,8 +148,8 @@ def solve(rows, node_budget=80, moment_degree=3, log_kernel_exponent=1,
         v=choose_branch(rows,cube)
         low=(cube[0]|1<<v,cube[1])
         high=(cube[0],cube[1]|1<<v)
-        U_low=certified_cube_bound(rows,low,moment_degree)
-        U_high=certified_cube_bound(rows,high,moment_degree)
+        U_low=certified_cube_bound(rows,low,moment_degree,adjacent_family)
+        U_high=certified_cube_bound(rows,high,moment_degree,adjacent_family)
         if U_low+U_high>ub:
             raise AssertionError("sound fixed-dual potential must be subadditive under exact split")
         if (U_low+U_high)*n<=ub*(n-1):
@@ -158,13 +164,14 @@ def solve(rows, node_budget=80, moment_degree=3, log_kernel_exponent=1,
     stats["total_visited"]=prior+stats["visited_this_call"]
     stats["frontier_cubes"]=len(frontier)
     stats["frontier_bound"]=certified_frontier_mass(
-        rows,frontier,moment_degree) if verdict!="SAT" else None
+        rows,frontier,moment_degree,adjacent_family) if verdict!="SAT" else None
     if witness is not None:
         stats["witness_bits"]=witness
     if verdict=="UNKNOWN_RESOURCE_LIMIT" and checkpoint:
         rec={"version":1,"sha256":fingerprint(rows),
              "moment_degree":moment_degree,
              "log_kernel_exponent":log_kernel_exponent,
+             "adjacent_family":adjacent_family,
              "frontier":frontier,"total_visited":stats["total_visited"]}
         Path(checkpoint).write_text(json.dumps(rec,sort_keys=True),
                                     encoding="utf-8")
@@ -187,6 +194,15 @@ def self_test():
     assert solved["verdict"]=="UNSAT"
     assert solved["kernel_refuted"]==1 and solved["kernel_words_checked"]==4096
     assert solved["frontier_bound"]==0
+    # Second high-nullity regression: the adjacent-root all-n family
+    # improves the bound but still cannot meet c=1 geometric decrease.
+    harder=k4_direct_sum(4)
+    stress=solve(harder,node_budget=1,moment_degree=3,
+                 log_kernel_exponent=3,adjacent_family=True)
+    assert stress["verdict"]=="UNKNOWN_RESOURCE_LIMIT"
+    assert stress["initial_certified_U"]==1310720
+    assert stress["frontier_bound"]==1310719
+    assert stress["certified_shrinks"]==0
     with TemporaryDirectory() as t:
         fp=str(Path(t)/"root.json")
         first=solve(p,node_budget=1,moment_degree=3,
@@ -210,6 +226,9 @@ def self_test():
                               "budget_1":"UNKNOWN"},
         "Petersen45_LOG_KERNEL_c3":{"verdict":"UNSAT",
                                    "words_checked":4096},
+        "K4x4_72":{"U_adjacent_root":stress["initial_certified_U"],
+                   "U_after_split":stress["frontier_bound"],
+                   "geometric_c1":False,"verdict":stress["verdict"]},
         "resume_check":"PASS",
         "universal_polynomial_SCL":"NOT_CONSTRUCTED",
         "P_vs_NP":"OPEN"
@@ -224,6 +243,7 @@ def main():
     p.add_argument("--log-kernel-exponent",type=int,default=1)
     p.add_argument("--node-budget",type=int,default=80)
     p.add_argument("--resume")
+    p.add_argument("--no-adjacent-family",action="store_true")
     p.add_argument("--checkpoint")
     a=p.parse_args()
     if a.self_test:
@@ -232,7 +252,8 @@ def main():
         out=solve(fixtures()[a.fixture],node_budget=a.node_budget,
                   moment_degree=a.moment_degree,
                   log_kernel_exponent=a.log_kernel_exponent,
-                  checkpoint=a.checkpoint,resume=a.resume)
+                  checkpoint=a.checkpoint,resume=a.resume,
+                  adjacent_family=not a.no_adjacent_family)
     else:
         p.error("pass --self-test or --fixture")
     print(json.dumps(out,sort_keys=True,indent=2))
