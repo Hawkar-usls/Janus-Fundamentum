@@ -24,6 +24,7 @@ from r5_optimal_moment_lp_20261015 import exact_optimal_lp
 from r5_anchored_moment_lp_20261015 import (
     anchored_optimal_lp,exact_manual_anchored_q36
 )
+from r5_moment_cooperative_solver_20261015 import solve as cooperative_solve
 from r5_local_codeword_anchors_20261015 import (
     anchor_counts,full_affine_anchor_oracle,incidence_girth_ge_10,
     local_codewords,linear_validate_and_incidence
@@ -102,13 +103,37 @@ def self_test():
     # Independently derived valid quadratic q (not necessarily LP optimum):
     assert (188-21*a["A4"]-15*a["A6"])//6==23
     assert (188-21*b["A4"]-15*b["A6"])//6==26
+    # Proof-carrying anchors are installed in the actual cooperative
+    # SCL solver, not only the one-shot root analysis.
+    cooperative_pair=[]
+    for seed,r in ((0,a),(13,b)):
+        run=cooperative_solve(build_pair(seed),node_budget=1,
+                              moment_degree=3,log_kernel_exponent=1,
+                              anchored_moments=True)
+        assert run["anchored_moments"] and run["verdict"] in (
+            "UNKNOWN_RESOURCE_LIMIT","SAT"
+        )
+        assert run["initial_certified_U"]<=r["degree_2_to_5"]["3"]["new_integer_bound"]
+        cooperative_pair.append({
+            "seed":seed,"verdict":run["verdict"],
+            "initial_U":run["initial_certified_U"],
+            "remaining_U":run["frontier_bound"]})
     p=anchored_report(fixtures()["HolyerPetersen_UNSAT"])
     assert p["true_SAT_count"]==0
+    coop_p=cooperative_solve(fixtures()["HolyerPetersen_UNSAT"],node_budget=1,
+                             moment_degree=3,log_kernel_exponent=1,
+                             anchored_moments=True)
+    assert coop_p["initial_certified_U"]<=420
+    assert coop_p["verdict"]=="UNKNOWN_RESOURCE_LIMIT"
     g=anchored_report(k4_blocks(4),method="factor",verify_local=False)
     assert g["true_SAT_count"]==1296 and g["affine_words_checked"]==256
     return {
         "scientific_status":"GATE_E3_ANCHORED_LP_DEGREE2_TO5_VERIFIED",
         "manual_GateD_94_over_3":"PASS",
+        "cooperative_anchor_integration_pair":cooperative_pair,
+        "cooperative_anchor_Petersen45":{
+            "initial_U":coop_p["initial_certified_U"],
+            "verdict":coop_p["verdict"]},
         "Connected_SCL36_seed0":a,
         "Connected_SCL36_seed13":b,
         "Petersen45":p,
