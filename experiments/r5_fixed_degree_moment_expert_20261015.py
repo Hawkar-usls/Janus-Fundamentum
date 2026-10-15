@@ -212,7 +212,7 @@ def self_test():
         high=moment_bounds(p,(0,1<<v),degree=3)
         assert low["dimension"]==high["dimension"]==11
         assert low["moments"]==["2048","21504","124032","523264"],(v,low)
-        assert high["moments"]==["2048","24576","164?","?"] if False else True
+        assert high["moments"]==["2048","24576","163968","814016"],(v,high)
         assert low["bound"]==246,(v,low)
         assert high["bound"]==221,(v,high)
         assert low["bound"]+high["bound"]==467
