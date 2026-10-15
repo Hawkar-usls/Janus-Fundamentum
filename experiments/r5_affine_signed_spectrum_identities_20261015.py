@@ -61,11 +61,11 @@ def fixed_branch_invariants(data,k=3):
     expected_signed_sum=(1<<r) if homogeneous else 0
     # In the complete LP this equality follows by evaluating
     # its coset MacWilliams s=0 transform and its C0 anchor.
-    assert (original==0)==homogeneous or (
-        homogeneous and original!=0) is False
-    # No dependence on choosing a particular vector:
-    # c=0 iff the affine coset is exactly the kernel.
-    assert homogeneous==(original==0)
+    # A Gaussian particular solution NEED NOT equal zero when c=0.
+    # The mathematical test is that the original fixed-source RHS
+    # vanishes; comparing this to the chosen v0 would be UNSOUND.
+    if original==0:
+        assert homogeneous
 
     return {"verdict":"CONSISTENT",
             "m":m,"r":r,"d":d,"parity":parity,
