@@ -26,7 +26,9 @@ jobs:
       - name: Exact integer ternary lift and rank obstruction with gauge checks
         run: python3 experiments/r5_rank_preserving_cover_twins_20261015.py --self-test
       - name: Independent complete GF2 verification and SAT/UNSAT spectral comparison
-        run: python3 experiments/r5_cover_twins_independent_audit_20261015.py --self-test > cover_twin_certificate.json
+        run: |
+          python3 experiments/r5_cover_twins_independent_audit_20261015.py --self-test > cover_twin_certificate.json
+          python3 -c 'import json; d=json.load(open("cover_twin_certificate.json")); print(json.dumps({"status":d["scientific_status"],"root_equal":d["joint_root_signature_equal"],"root_features":d["joint_root_signature_components"],"SAT_count":d["SAT_cover_exact"]["sat_count"],"UNSAT_count":d["UNSAT_cover_exact"]["sat_count"],"first_spectrum_differences":d["full_kernel_spectrum_first_differences"],"girth12_SAT":d["SAT_cover_girth12"],"girth12_UNSAT":d["UNSAT_cover_girth12"],"delta":d["nongauge_kernel_delta"]},sort_keys=True))'
       - uses: actions/upload-artifact@v4
         with:
           name: r5-cover-twin-certificate
