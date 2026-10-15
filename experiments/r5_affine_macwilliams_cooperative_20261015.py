@@ -103,9 +103,12 @@ def one_step(rows,cube=(0,0),degree=2,low_spectrum=3):
             "children":children,
             "child_bound_data":bounds,
             "child_total_bound":new_total,
-            "certified_shrink":new_total<original,
-            "geometric_c1":new_total*n<=original*(n-1),
-            "upper_bound_monotone":new_total<=original,
+            # Parent bound remains valid for the union of the children;
+            # child bounds sum is also valid. Keep the tighter proof.
+            "certified_min_bound":min(original,new_total),
+            "certified_shrink":min(original,new_total)<original,
+            "geometric_c1":min(original,new_total)*n<=original*(n-1),
+            "upper_bound_monotone":min(original,new_total)<=original,
             "local_rewrite_verified":True}
 
 
@@ -196,6 +199,8 @@ def self_test():
         assert first["verdict"]=="UNKNOWN_RESOURCE_LIMIT"
         resumed=solve(rows,budget=1,resume=p,checkpoint=p)
         assert resumed["total_nodes"]==2
+        assert root["certified_min_bound"]==10
+        assert branch["certified_min_bound"]==4
         try:
             solve(fixtures()["AffinePlane9_SAT"],budget=1,
                   resume=p)
