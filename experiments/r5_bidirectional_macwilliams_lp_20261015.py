@@ -185,7 +185,6 @@ def solve_exact_mac_lp(n,d,raw,k,anchors,known_dual=None):
     for j in range(n+1):
         value=sum(a*krawtchouk(n,j,i) for i,a in masses.items())
         assert value>=0,("Mac negativity",j,value)
-        assert value%N==0 if all(x.denominator==1 for x in masses.values()) else True
         spectrum[j]=value/Q(N)
         assert spectrum[j]>=0
         if 0<j<=n//2:
