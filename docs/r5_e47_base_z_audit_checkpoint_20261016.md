@@ -76,14 +76,14 @@ generated legal connected n36: 96
 exact SAT: 17
 exact UNSAT: 79
 UNSAT rejected mod prime rank >=35: 66
-UNSAT rejected mod prime rank ==34: 12
+UNSAT with mod rank34, rejected by EXACT Q nullity1: 12
 UNSAT passing rational nullity>=2: 1
 that one fully enumerated for Z(A): 1
 Z(A) size of that candidate: 0
 found legal connected multi-z UNSAT source: NONE
 ```
 
-For this single rational-eligible source Z(A)=empty, so NO SAT graph two-cover is possible from it, not merely no MULTI_Z. These are **FINITE NEGATIVE** outcomes for the frozen 96-source generator and seed. They do NOT establish an all-n impossibility, a lower bound for SAT, or completeness of source-graph construction.
+For this single rational-eligible source Z(A)=empty, so NO SAT graph two-cover is possible from it, not merely no MULTI_Z. **Provenance correction:** an earlier exploratory CI script mistakenly rejected rank_mod=34, which is mathematically unsound because the required threshold is rank_Q<=34. The bug was corrected in a subsequent commit: the 12 rank_mod=34 sources were subjected to exact rational elimination and all 12 independently found to have Q-nullity1. Frozen all-63 base audit and its rank33 are unaffected; only the 96-source prescreen semantics were corrected. These are **FINITE NEGATIVE** outcomes for the frozen 96-source generator and seed. They do NOT establish an all-n impossibility, a lower bound for SAT, or completeness of source-graph construction.
 
 The exact integer/z certificates for the rare candidate appear in the uploaded JSON CI artifact; no new SAT 2-cover is claimed.
 
@@ -98,7 +98,7 @@ The exact integer/z certificates for the rare candidate appear in the uploaded J
 | Frozen base GF2 dimension6 all63 exact Y_z verified twice | CI PASS |
 | Frozen Z(A) singleton, multi-z impossible across ALL covers | FINITE PROOF-CARRYING CERTIFICATE |
 | Frozen rank_Q33/nullity3, 33×33 nonzero det −96 | EXACT CERTIFICATE |
-| Bounded 96-source UNSAT scout | 79 UNSAT, 78 rejected by rational filter, one with Z(A)=empty |
+| Bounded 96-source UNSAT scout | 79 UNSAT, 66 rejected by mod rank>=35 + 12 by exact Q rank34, one with Z(A)=empty |
 | Connected UNSAT source with >=2 eligible z and joint affine cycle loci | NOT FOUND |
 | Opposite SAT/UNSAT full depth1-degree2 spectral+anchors twins | OPEN |
 | Polynomial construction of complete Z(A) for arbitrary GF2 d | NOT PROVED |
