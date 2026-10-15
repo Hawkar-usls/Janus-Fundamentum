@@ -1,0 +1,37 @@
+name: R5 Local8-10 MacWilliams Delsarte
+on:
+  push:
+    branches: [research/r5-macwilliams-local-8-10-20261015]
+    paths:
+      - "experiments/r5_local_codeword_anchors_8_10_20261015.py"
+      - "experiments/r5_bidirectional_macwilliams_lp_20261015.py"
+      - "experiments/r5_joint_spectral_anchor_twins_20261015.py"
+      - "experiments/r5_macwilliams_cooperative_bridge_20261015.py"
+      - "docs/r5_macwilliams_local_8_10_checkpoint_20261015.md"
+      - ".github/workflows/r5-macwilliams-local.yml"
+  pull_request:
+    paths:
+      - "experiments/r5_local_codeword_anchors_8_10_20261015.py"
+      - "experiments/r5_bidirectional_macwilliams_lp_20261015.py"
+      - "experiments/r5_joint_spectral_anchor_twins_20261015.py"
+      - "experiments/r5_macwilliams_cooperative_bridge_20261015.py"
+      - "docs/r5_macwilliams_local_8_10_checkpoint_20261015.md"
+      - ".github/workflows/r5-macwilliams-local.yml"
+  workflow_dispatch:
+jobs:
+  exact-macwilliams-local:
+    runs-on: ubuntu-latest
+    timeout-minutes: 14
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Verify E3.5 A8/A10 complete kernels and restricted cubes
+        run: python3 experiments/r5_local_codeword_anchors_8_10_20261015.py --self-test
+      - name: MacWilliams exact rational LP all positivity constraints
+        run: python3 experiments/r5_bidirectional_macwilliams_lp_20261015.py --self-test
+      - name: Connected joint spectral anchor SAT UNSAT twins honest bounded search
+        run: python3 experiments/r5_joint_spectral_anchor_twins_20261015.py --self-test
+      - name: Integrated root MacWilliams gear preserves UNKNOWN proof policy
+        run: python3 experiments/r5_macwilliams_cooperative_bridge_20261015.py --self-test
