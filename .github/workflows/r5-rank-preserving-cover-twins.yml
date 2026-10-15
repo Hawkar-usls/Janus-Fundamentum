@@ -6,6 +6,7 @@ on:
       - "experiments/r5_rank_preserving_cover_twins_20261015.py"
       - "experiments/r5_cover_twins_independent_audit_20261015.py"
       - "experiments/r5_cover_rank_spectral_orbit_20261015.py"
+      - "experiments/r5_cover_branch_twin_check_20261015.py"
       - "docs/r5_rank_preserving_cover_twins_checkpoint_20261015.md"
       - ".github/workflows/r5-rank-preserving-cover-twins.yml"
   pull_request:
@@ -13,6 +14,7 @@ on:
       - "experiments/r5_rank_preserving_cover_twins_20261015.py"
       - "experiments/r5_cover_twins_independent_audit_20261015.py"
       - "experiments/r5_cover_rank_spectral_orbit_20261015.py"
+      - "experiments/r5_cover_branch_twin_check_20261015.py"
       - "docs/r5_rank_preserving_cover_twins_checkpoint_20261015.md"
       - ".github/workflows/r5-rank-preserving-cover-twins.yml"
   workflow_dispatch:
@@ -45,3 +47,13 @@ jobs:
           name: r5-cover-2048-spectral-orbit
           path: cover_spectral_orbit_certificate.json
           retention-days: 90
+      - name: Unlabeled signed-affine depth1 twin invariant proof check
+        run: python3 experiments/r5_cover_branch_twin_check_20261015.py --self-test > cover_branch_twin_certificate.json
+      - name: Show depth1 witness separation
+        run: python3 -c 'import json;d=json.load(open("cover_branch_twin_certificate.json"));print(json.dumps({"SAT_count":d["SAT_count"],"UNSAT_count":d["UNSAT_count"],"depth1_equal":d["depth1_all_variable_unlabeled_profile_identical"],"h_star":d["h_star"],"number_profiles_SAT":d["distinct_child_pair_profiles_SAT"],"number_profiles_UNSAT":d["distinct_child_pair_profiles_UNSAT"]}))'
+      - uses: actions/upload-artifact@v4
+        with:
+          name: r5-cover-depth1-certificate
+          path: cover_branch_twin_certificate.json
+          retention-days: 90
+
