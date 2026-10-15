@@ -28,7 +28,7 @@ from r5_affine_macwilliams_soundness_20261015 import (
     affine_data,coset_moments,signed_low_rowspace,exact_affine_lp
 )
 from r5_cooperative_scl_coverage_20261015 import (
-    fixtures,validate_scl
+    fixtures,validate_scl,gf2_affine,valid_witness
 )
 from r5_joint_spectral_anchor_twins_20261015 import (
     unrestricted_connected_mutation,classify_affine,root_signature
@@ -223,10 +223,26 @@ def self_test():
         }
     finite=compare_root_collisions(samples=36)
     assert finite["exact_classified"]>0
+    # Larger connected, witness-certified positive control:
+    # d=21 exceeds the finite UNSAT oracle cap. We NEVER infer
+    # UNSAT or a hard-complexity theorem from this cutoff.
+    larger,witness,_=make_connected(4,20261015)
+    large_aff=gf2_affine(larger,0,0)
+    assert large_aff is not None and len(larger)==72
+    assert valid_witness(larger,witness)
+    large_d=large_aff[2]
+    assert large_d==21
+    larger_control={"n":72,"affine_dimension":large_d,
+                    "all_parity_words":1<<large_d,
+                    "SAT_witness_independently_verified":True,
+                    "exact_global_count":"NOT_COMPUTED",
+                    "UNSAT_verdict_if_no_witness":"FORBIDDEN",
+                    "small_separator_hardness":"NOT_PROVED"}
     return {
         "gate":"BRANCH_STABLE_SPECTRAL_TWINS",
         "relabeling_tests":samples,
         "finite_connected_search":finite,
+        "connected_high_nullity_control":larger_control,
         "depth_signatures":"UNLABELED_ALL_SPLITS_MULTISET",
         "uniform_polynomial_h_growing":"NOT_PROVED",
         "P_vs_NP":"OPEN"
