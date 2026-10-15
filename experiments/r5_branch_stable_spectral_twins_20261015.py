@@ -184,13 +184,28 @@ def self_test():
         "HolyerK4":fixtures()["HolyerK4_SAT"]
     }.items():
         other=permute_source(rows)
-        # Entire rooted one-step profile includes EXACT optimal
-        # rational affine Mac LP, verified on each child.
+        # AffinePlane9: EVERY root and singleton-child profile
+        # includes exact optimal rational LP, independently verified.
+        # On n18 the depth1/2 test uses fixed-degree spectral data
+        # only (no costly repeated exact-Fraction simplex).
+        lp_all=(name=="AffinePlane9")
         sig=branch_signature(rows,depth=1,k=1,moment_degree=1,
-                             with_lp=True)
+                             with_lp=lp_all)
         perm=branch_signature(other,depth=1,k=1,moment_degree=1,
-                              with_lp=True)
+                              with_lp=lp_all)
         assert sig==perm
+        # Exact LP is additionally checked for the n18 root
+        # and one matched single-child cube, not all 36 branches.
+        if not lp_all:
+            assert base_signature(rows,(0,0),k=1,moment_degree=1,
+                                  with_lp=True)==base_signature(
+                other,(0,0),k=1,moment_degree=1,with_lp=True)
+            v=0
+            vv=(5*v+2)%len(rows)
+            assert base_signature(rows,(1<<v,0),k=1,
+                                  moment_degree=1,with_lp=True)==(
+                base_signature(other,(1<<vv,0),k=1,
+                               moment_degree=1,with_lp=True))
         # Depth TWO is checked with cheap invariant data only,
         # and its cost scales as O(n^2) signatures.
         sig2=branch_signature(rows,depth=2,k=1,moment_degree=1,
@@ -200,7 +215,9 @@ def self_test():
         assert sig2==perm2
         samples[name]={
             "n":len(rows),
-            "depth1_full_LP_permutation_invariance":"PASS",
+            "depth1_full_LP_permutation_invariance":(
+                "PASS_ALL_BRANCHES" if lp_all else
+                "LP_ROOT_PLUS_MATCHED_SINGLE_CHILD;SPECTRAL_ALL_BRANCHES"),
             "depth2_low_spectrum_permutation_invariance":"PASS",
             "complete_isomorphism_test":"NOT_CLAIMED"
         }
