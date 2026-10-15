@@ -30,10 +30,11 @@ jobs:
           python-version: "3.11"
       - name: Direct fixed-z residual exact cover, independent pair enumeration
         run: python3 experiments/r5_residual_yz_exact_cover_20261016.py --self-test > residual_yz_certificate.json
-      - name: Export deterministic declarative fixture
+      - name: Detect frozen source drift without updating proof fixture
         run: |
-          python3 experiments/r5_e46_export_fixture_20261016.py > frozen_fixture.json
-          echo "FROZEN_FIXTURE_JSON $(cat frozen_fixture.json)"
+          python3 experiments/r5_e46_export_fixture_20261016.py > generated_candidate.json
+          python3 -c 'import json; frozen=json.load(open("experiments/r5_e46_frozen_fixture_20261016.json")); new=json.load(open("generated_candidate.json")); assert frozen==new,"FROZEN_INSTANCE_DRIFT"; print("FROZEN_INSTANCE_DRIFT_CHECK PASS")'
+          cp experiments/r5_e46_frozen_fixture_20261016.json frozen_fixture.json
       - name: Clean-room standalone full cycle and SAT oracle 2048-class replay
         run: python3 experiments/r5_e46_clean_room_verify_20261016.py --fixture frozen_fixture.json > clean_room_certificate.json
       - name: Report independent mathematical checks
