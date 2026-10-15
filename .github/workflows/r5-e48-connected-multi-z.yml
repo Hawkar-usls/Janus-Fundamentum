@@ -1,0 +1,34 @@
+name: R5 E4.8 Constructive Connected MULTI_Z
+on:
+  push:
+    branches: [research/r5-e48-bridge-multi-z-20261016]
+    paths:
+      - "experiments/r5_e48_connected_multi_z_bridge_20261016.py"
+      - "experiments/r5_e48_independent_bridge_verifier_20261016.py"
+      - "docs/r5_e48_constructive_multi_z_checkpoint_20261016.md"
+      - ".github/workflows/r5-e48-connected-multi-z.yml"
+  pull_request:
+    paths:
+      - "experiments/r5_e48_connected_multi_z_bridge_20261016.py"
+      - "experiments/r5_e48_independent_bridge_verifier_20261016.py"
+      - "docs/r5_e48_constructive_multi_z_checkpoint_20261016.md"
+      - ".github/workflows/r5-e48-connected-multi-z.yml"
+  workflow_dispatch:
+jobs:
+  constructive-e48:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Exact SCL45 and SCL54 cross-switch legal UNSAT MULTI_Z construction
+        run: python3 experiments/r5_e48_connected_multi_z_bridge_20261016.py --self-test > e48_bridge_certificate.json
+      - name: Report multi-z base and constructive joint voltage
+        run: python3 -c 'import json;d=json.load(open("e48_bridge_certificate.json"));print(json.dumps({k:{"n":v["n"],"B_SAT":v["B_exact_SAT_count"],"Z_constructed":v["certified_constructed_distinct_z"],"exact_Z":v.get("complete_Z_A",{}).get("Z_size"),"UNSAT_checked":v["C_UNSAT_full_GF2_oracle"]["checked"],"Q_nullity":v["rational_nullity"],"joint":v["JOINT_COVER"]["status"],"joint_SAT_witnesses":v["JOINT_COVER"].get("distinct_valid_SAT_witnesses")} for k,v in d["controls"].items()},sort_keys=True))'
+      - uses: actions/upload-artifact@v4
+        with:
+          name: r5-e48-constructive-multi-z-certificate
+          path: e48_bridge_certificate.json
+          retention-days: 90
