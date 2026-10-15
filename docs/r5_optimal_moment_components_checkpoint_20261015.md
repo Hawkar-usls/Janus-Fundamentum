@@ -124,13 +124,40 @@ solutions, with n and affine |L| fixed, equality of these signed
 low-weight spectra also forces equality of the first k moments
 of t. However it does NOT force equality of the SAT count.
 
-Seeded finite search: 24 witness-preserving connected n36
-incidence-switch instances, signed spectra up to k=2.
-The search produced **one** low-signature class, but NO PAIR
-with different actual SAT count. Therefore its
-`PAIR_DIFFERENT_SAT` status is NOT_FOUND_IN_FINITE_SAMPLE,
-not a positive indistinguishability theorem. New adversarial
-generators with richer connected incidence trades remain needed.
+**First strict finite positive result:** The original 24
+single-cross-component swaps produced identical signatures and
+identical SAT counts. After adding multiple additional legal
+witness-preserving 2-switches INSIDE the connected n36 source,
+the seeded search discovered two DIFFERENT connected legal
+n36 SCL instances with equal GF(2) affine dimension **d=7**,
+identical signed dual low-weight spectrum up to degree2
+`(b0,b1,b2)=(1,0,10)`, identical raw violation moments
+`(N0,N1,N2)=(128,1152,6624)`, and DIFFERENT EXACT solution
+counts **2** and **3** respectively.
+
+Frozen reproducibility:
+```text
+seed 0:  sha256 afc007f7654d59af6d918dbe9d7a25e14f178a26710377aae61a687abac7e7ce
+         #SAT 2, signed dual k<=2=(1,0,10)
+seed 13: sha256 3adc96ebb00fc6c28330dce9c6bd1ef53e0dc1eeb7ba5b030e8584e5d950c1b2
+         #SAT 3, signed dual k<=2=(1,0,10)
+```
+Both are independently rebuilt, validated connected/cubic/linear,
+their SAT counts checked by full **2^7=128** parity-word
+enumerations, and their raw moments recomputed from the EXACT
+histogram. The frozen test also verifies both produce the
+**SAME OPTIMAL DEGREE-2 LP bound** by separately replaying the
+rational primal/dual simplex.
+
+At degree3 their signed spectrum ALREADY diverges:
+`b3=-122` versus `b3=-110`. Thus this pair proves a finite
+degree-2 insufficiency, **NOT** a fixed-degree-3 insufficiency,
+and not a complexity lower bound for all legal SCL.
+
+The fact both instances are SAT also matters: they demonstrate
+inability to COUNT precisely with low moments, but NOT inability
+to distinguish SAT from UNSAT. A collision with different
+SAT/UNSAT statuses would be a stronger decision-oriented gate.
 
 ## Reproduction commands
 ```bash
@@ -151,7 +178,7 @@ Workflow: `.github/workflows/r5-optimal-moment-components.yml`.
 | SCL72 exact local SAT count =1296 | CI FINITE VERIFIED |
 | Connected legal n36 and n72 controls | CI FINITE VERIFIED |
 | Fixed-k signed dual low-weight enumeration | PROVED / CI VERIFIED |
-| Signed-spectrum collision with differing SAT count | NOT FOUND |
+| Connected signed-spectrum degree2 collision with differing exact SAT count | CI FINITE VERIFIED |
 | Connected source proven moment LP stall | NOT TESTED FOR ALL BRANCHES |
 | Uniform polynomial cooperative progress for all legal SCL | NOT PROVED |
 | SolveLinearCubicXSAT n^O(1) total solver | NOT CONSTRUCTED |
@@ -159,7 +186,6 @@ Workflow: `.github/workflows/r5-optimal-moment-components.yml`.
 
 **Next substantive move**: build connected/irreducible SCL with no
 cheap 2-edge separator, verify optimal moment LP and all branching
-variables; extend signed-dual collision search beyond structurally
-isomorphic switches; and test separator-aware factor expert. The
+variables; extend signed-dual collision search to pairs with different SAT/UNSAT statuses or indistinguishable degree3 signatures; and test separator-aware factor expert. The
 finite optimality of k=3 is a meaningful grammar-level negative
 certificate, not a universal complexity lower bound.
