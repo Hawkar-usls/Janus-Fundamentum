@@ -176,6 +176,16 @@ def replay():
     diff_child=X["branch_q2_sum_depth1"]-Y["branch_q2_sum_depth1"]
     assert diff_child==48*diff_B3
     assert diff_child!=0
+    # Full 2048-class audit: a depth-one parity-tagged S1
+    # with M0..M2 necessarily exposes root M3, and at fixed
+    # m,d,B0..B2 this determines B3. Thus an exhaustive
+    # absence of opposite SAT/UNSAT B0..B3 root twins rules out
+    # h>=1 twins for the SAME full signed-affine branch grammar.
+    from r5_cover_rank_spectral_orbit_20261015 import exhaustive_orbit
+    orbit=exhaustive_orbit()
+    assert orbit["all_classes_checked"]==2048
+    assert not orbit["truncated_spectral_buckets"]["3"][
+        "opposite_status_same_rank_anchor_and_low_B"]
     return {"status":"DEPTH_ONE_TWO_MOMENT_LEAKAGE_VERIFIED",
             "theorem_all_n":"sum_I M_q(C_I,ones^-I)=binom(q+h,h)*M_(q+h)(C)",
             "controls":outcome,
@@ -183,6 +193,9 @@ def replay():
             "delta_B3_SAT_minus_UNSAT":diff_B3,
             "delta_sum_all72_child_M2":diff_child,
             "48_delta_B3":48*diff_B3,
+            "complete_fixed_Phi_orbit_B0_to3_opposite_twin":False,
+            "S1_parity_tagged_degree2_opposite_twin_in_fixed_Phi_orbit":False,
+            "proof":"S1 parity tags reveal x_i=1 children, whose M2 sum determines M3 and then B3",
             "branch_value_label_required_for_this_exact_identity":
                 "EXPLICIT_OR_RECOVERABLE_FROM_RETAINED_CHILD_PARITY",
             "universal_polynomial_SCL":"NOT_CONSTRUCTED",
