@@ -150,8 +150,9 @@ def residual_two_ways(rows,z):
     assert len(R0)+len(R2)==n and 2*len(R2)==3*len(S)
     assert len(S)%2==0
     p=n//3-len(S)//2
-    if p<0:
-        assert len(R0)<0 or False  # this case impossible for legal kernel
+    # Every source row has 0 or 2 selected z-coordinates, so
+    # 3*|z|=2*|R2|<=2*n and p>=0 on every legal kernel word.
+    assert p>=0 and 3*p==len(R0)
     indexed={i:j for j,i in enumerate(R0)}
     full=(1<<len(R0))-1
     neighbor=[set(i for i,row in enumerate(rows) if v in row)
