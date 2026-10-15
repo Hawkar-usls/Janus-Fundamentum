@@ -29,8 +29,38 @@ from r5_connected_coverage_breaker_20261015 import (
 import random
 
 
+def linear_validate_and_incidence(rows):
+    """O(n) expected-time sparse validator under bounded word-RAM hashing.
+
+    Three variable IDs per row; pair uniqueness is equivalent to
+    source linearity. Unlike older quadratic validator, scan each
+    row and every pair once; no all-pairs row comparison.
+    """
+    n=len(rows)
+    if not n:
+        raise ValueError("empty SCL")
+    seen_pairs=set()
+    incid=[[] for _ in range(n)]
+    canonical=[]
+    for i,row in enumerate(rows):
+        if len(row)!=3 or len(set(row))!=3 or not all(
+                isinstance(v,int) and 0<=v<n for v in row):
+            raise ValueError("invalid size-three SCL clause")
+        r=tuple(row)
+        canonical.append(r)
+        for v in r:
+            incid[v].append(i)
+        for pair in combinations(sorted(r),2):
+            if pair in seen_pairs:
+                raise ValueError("nonlinear source: duplicate variable pair")
+            seen_pairs.add(pair)
+    if any(len(group)!=3 for group in incid):
+        raise ValueError("noncubic column degree")
+    return tuple(canonical),tuple(tuple(e) for e in incid)
+
+
 def intersection_graph(rows):
-    rows=validate_scl(rows)
+    rows,_=linear_validate_and_incidence(rows)
     n=len(rows)
     adj=[set() for _ in range(n)]
     for row in rows:
@@ -41,16 +71,26 @@ def intersection_graph(rows):
     return tuple(tuple(sorted(x)) for x in adj)
 
 
-def kernel_word(rows, chosen):
-    """Exact independent parity check: each row meets S in 0 or 2."""
-    mask=sum(1<<v for v in chosen)
-    return all(sum((mask>>v)&1 for v in row)%2==0 for row in rows)
+def kernel_word(rows, chosen, incid=None):
+    """Exact local GF2 kernel check in O(3*|chosen|), not O(n).
+
+    Only clauses incident to selected variables can violate parity.
+    Return true iff every touched row has exactly two selected
+    variables (the source has exactly three per row).
+    """
+    if incid is None:
+        _,incid=linear_validate_and_incidence(rows)
+    hits={}
+    for v in chosen:
+        for r in incid[v]:
+            hits[r]=hits.get(r,0)+1
+    return all(k==2 for k in hits.values())
 
 
 def local_codewords(rows,weight):
     if weight not in (4,6):
         raise ValueError("only weight 4 and 6 certified linear enumerators")
-    rows=validate_scl(rows)
+    rows,incid=linear_validate_and_incidence(rows)
     adj=intersection_graph(rows)
     n=len(rows)
     candidates=set()
@@ -58,7 +98,7 @@ def local_codewords(rows,weight):
         for root in range(n):
             for triple in combinations((v for v in adj[root] if v>root),3):
                 candidate=(root,)+triple
-                if kernel_word(rows,candidate):
+                if kernel_word(rows,candidate,incid):
                     candidates.add(candidate)
     else:
         # Each cubic six-vertex G_v is connected. Enumerate rooted
@@ -77,13 +117,13 @@ def local_codewords(rows,weight):
                 current=nxt
             assert all(len(s)==6 for s in current)
             for subset in current:
-                if kernel_word(rows,subset):
+                if kernel_word(rows,subset,incid):
                     candidates.add(subset)
     return tuple(sorted(candidates))
 
 
 def anchor_counts(rows,cube=(0,0),weights=(4,6),precomputed=None):
-    rows=validate_scl(rows)
+    rows,_=linear_validate_and_incidence(rows)
     zeros,ones=cube
     n=len(rows)
     if (zeros&ones) or ((zeros|ones)>>n):
@@ -110,7 +150,7 @@ def incidence_girth_ge_10(rows):
     Check every cross edge whose origin has depth <4; any cycle of
     length <=8 is exposed in at least one rooted BFS.
     """
-    rows=validate_scl(rows)
+    rows,_=linear_validate_and_incidence(rows)
     n=len(rows)
     adj=[set() for _ in range(2*n)]
     for i,row in enumerate(rows):
@@ -159,7 +199,7 @@ def full_affine_anchor_oracle(rows,cube=(0,0),limit=1<<16):
 
 def bounded_cubic_graph_certificate(rows,word):
     """Structural proof replay: selected 3-regular simple graph."""
-    rows=validate_scl(rows)
+    rows,_=linear_validate_and_incidence(rows)
     S=set(word)
     partners={v:set() for v in word}
     for clause in rows:
@@ -215,7 +255,7 @@ def self_test():
     return {
         "status":"EXACT_LOCAL_KERNEL_ANCHORS_AND_PARTIAL_FILTERS",
         "pair":pair,
-        "all_n_linear_time_weight4_weight6":"PROVED_FOR_FIXED_DEGREE_SIX",
+        "all_n_linear_time_weight4_weight6":"O(n) sparse operations, fixed support size, bounded degree",
         "P_vs_NP":"OPEN"
     }
 
