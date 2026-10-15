@@ -276,6 +276,28 @@ def self_test():
         result[label]={"n":n,"nullity":d,
                        "true_SAT":hist[0],"anchors":anchors,
                        "row_dual_low":known,"optima":graded}
+    # Fourth control: 4xK4 disconnected n72 with d=24, polynomial
+    # component convolution rather than exponential 2^24 enumeration.
+    large=k4_blocks(4)
+    n=len(large)
+    d=gf2_affine(large,0,0)[2]
+    assert d==24
+    hist,words_checked=component_hist(large)
+    assert words_checked==256 and hist[0]==1296
+    known=rowspace_low_counts(large,3)
+    anchors=anchors_root(large)
+    c72=solve_exact_mac_lp(n,d,moments_from_hist(n,hist,2),
+                          2,anchors,{j:v for j,v in known.items() if j>0})
+    assert c72["integer_upper_bound"]>=1296
+    result["DisconnectedK4x4_72"]={
+        "n":n,"nullity":d,"global_parity_words":1<<d,
+        "local_words_checked":words_checked,
+        "true_SAT":hist[0],"anchors":anchors,
+        "low_row_dual":known,
+        "degree2":{"optimum":c72["optimum"],
+                   "floor":c72["integer_upper_bound"],
+                   "primal_dual_verified":True,
+                   "iterations":c72["phase_iterations"]}}
     return {
         "status":"EXACT_BIDIRECTIONAL_MACWILLIAMS_PRIMAL_DUAL_VERIFIED",
         "controls":result,
