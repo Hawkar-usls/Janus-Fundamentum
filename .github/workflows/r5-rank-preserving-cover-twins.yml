@@ -1,0 +1,59 @@
+name: R5 Rank Preserving Cover Twins
+on:
+  push:
+    branches: [research/r5-rank-preserving-cover-twins-20261015]
+    paths:
+      - "experiments/r5_rank_preserving_cover_twins_20261015.py"
+      - "experiments/r5_cover_twins_independent_audit_20261015.py"
+      - "experiments/r5_cover_rank_spectral_orbit_20261015.py"
+      - "experiments/r5_cover_branch_twin_check_20261015.py"
+      - "docs/r5_rank_preserving_cover_twins_checkpoint_20261015.md"
+      - ".github/workflows/r5-rank-preserving-cover-twins.yml"
+  pull_request:
+    paths:
+      - "experiments/r5_rank_preserving_cover_twins_20261015.py"
+      - "experiments/r5_cover_twins_independent_audit_20261015.py"
+      - "experiments/r5_cover_rank_spectral_orbit_20261015.py"
+      - "experiments/r5_cover_branch_twin_check_20261015.py"
+      - "docs/r5_rank_preserving_cover_twins_checkpoint_20261015.md"
+      - ".github/workflows/r5-rank-preserving-cover-twins.yml"
+  workflow_dispatch:
+jobs:
+  cover-gate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Exact integer ternary lift and rank obstruction with gauge checks
+        run: python3 experiments/r5_rank_preserving_cover_twins_20261015.py --self-test
+      - name: Independent complete GF2 verification and SAT/UNSAT spectral comparison
+        run: |
+          python3 experiments/r5_cover_twins_independent_audit_20261015.py --self-test > cover_twin_certificate.json
+          python3 -c 'import json; d=json.load(open("cover_twin_certificate.json")); print(json.dumps({"status":d["scientific_status"],"root_equal":d["joint_root_signature_equal"],"root_features":d["joint_root_signature_components"],"SAT_count":d["SAT_cover_exact"]["sat_count"],"UNSAT_count":d["UNSAT_cover_exact"]["sat_count"],"first_spectrum_differences":d["full_kernel_spectrum_first_differences"],"girth12_SAT":d["SAT_cover_girth12"],"girth12_UNSAT":d["UNSAT_cover_girth12"],"delta":d["nongauge_kernel_delta"]},sort_keys=True))'
+      - uses: actions/upload-artifact@v4
+        with:
+          name: r5-cover-twin-certificate
+          path: cover_twin_certificate.json
+          retention-days: 90
+      - name: Exhaust complete 2048-class rank-Phi gauge quotient and spectral twins
+        run: python3 experiments/r5_cover_rank_spectral_orbit_20261015.py --self-test > cover_spectral_orbit_certificate.json
+      - name: Show exact 2048-class orbit outcomes
+        run: python3 -c 'import json;d=json.load(open("cover_spectral_orbit_certificate.json"));print(json.dumps({"classes":d["all_classes_checked"],"SAT_UNSAT":d["class_counts"],"low_B_buckets":{k:{"buckets":v["distinct_bucket_count"],"twin_found":v["opposite_status_same_rank_anchor_and_low_B"],"pair":(None if v["finite_pair_replay"] is None else [v["finite_pair_replay"]["A"]["orbit_index"],v["finite_pair_replay"]["B"]["orbit_index"]])} for k,v in d["truncated_spectral_buckets"].items()}},sort_keys=True))'
+      - uses: actions/upload-artifact@v4
+        with:
+          name: r5-cover-2048-spectral-orbit
+          path: cover_spectral_orbit_certificate.json
+          retention-days: 90
+      - name: Unlabeled signed-affine depth1 twin invariant proof check
+        run: python3 experiments/r5_cover_branch_twin_check_20261015.py --self-test > cover_branch_twin_certificate.json
+      - name: Show depth1 witness separation
+        run: python3 -c 'import json;d=json.load(open("cover_branch_twin_certificate.json"));print(json.dumps({"SAT_count":d["SAT_count"],"UNSAT_count":d["UNSAT_count"],"depth1_equal":d["depth1_all_variable_unlabeled_profile_identical"],"h_star":d["h_star"],"number_profiles_SAT":d["distinct_child_pair_profiles_SAT"],"number_profiles_UNSAT":d["distinct_child_pair_profiles_UNSAT"]}))'
+      - uses: actions/upload-artifact@v4
+        with:
+          name: r5-cover-depth1-certificate
+          path: cover_branch_twin_certificate.json
+          retention-days: 90
+
