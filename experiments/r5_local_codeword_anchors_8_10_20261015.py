@@ -49,9 +49,11 @@ def connected_words(rows,weight):
             if selected.bit_count()>weight:
                 return
             bad=None
-            for v in range(root,n):
-                if not ((selected>>v)&1):
-                    continue
+            current=selected
+            while current:
+                vbit=current&-current
+                current^=vbit
+                v=vbit.bit_length()-1
                 for ri in incidence[v]:
                     intersect=sum((selected>>u)&1 for u in rows[ri])
                     if intersect==3:
@@ -113,9 +115,11 @@ def pair_count(left,right,Z=0,O=0,symmetric=False):
     # pairs are O(n) in bounded-degree fixed-support graphs.
     idx=defaultdict(list)
     for j,w in enumerate(allowedR):
-        for v in range(w.bit_length()):
-            if w>>v&1:
-                idx[v].append(j)
+        bits=w
+        while bits:
+            vbit=bits&-bits
+            bits^=vbit
+            idx[vbit.bit_length()-1].append(j)
     corrections=0
     for i,w in enumerate(allowedL):
         touching=set()
