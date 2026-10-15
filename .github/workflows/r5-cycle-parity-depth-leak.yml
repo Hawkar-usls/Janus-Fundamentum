@@ -1,0 +1,41 @@
+name: R5 Cycle Parity and Depth Leakage
+on:
+  push:
+    branches: [research/r5-cycle-parity-depth-leak-20261015]
+    paths:
+      - "experiments/r5_cycle_parity_certificate_20261015.py"
+      - "experiments/r5_branch_moment_leakage_20261015.py"
+      - "docs/r5_cycle_parity_depth_leak_checkpoint_20261015.md"
+      - ".github/workflows/r5-cycle-parity-depth-leak.yml"
+  pull_request:
+    paths:
+      - "experiments/r5_cycle_parity_certificate_20261015.py"
+      - "experiments/r5_branch_moment_leakage_20261015.py"
+      - "docs/r5_cycle_parity_depth_leak_checkpoint_20261015.md"
+      - ".github/workflows/r5-cycle-parity-depth-leak.yml"
+  workflow_dispatch:
+
+jobs:
+  exact-cycle-and-leak:
+    runs-on: ubuntu-latest
+    timeout-minutes: 14
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Rank-five cycle parity, entire 2048-class independent replay
+        run: python3 experiments/r5_cycle_parity_certificate_20261015.py --self-test > r5_cycle_parity_certificate.json
+      - name: Report cycle rank and predicted classifications
+        run: python3 -c 'import json;d=json.load(open("r5_cycle_parity_certificate.json"));print(json.dumps({"Psi_rank":d["Psi_rank"],"cycle_count":d["fundamental_cycles"],"z_weight":d["z_star_weight"],"Y_z":d["Y_z_cardinality_proved"],"predicted":d["class_counts_predicted"],"exact_solution_count_distribution":d["exact_SAT_solution_count_distribution"],"mismatch":d["predicted_status_mismatches"]},sort_keys=True))'
+      - name: Depth-one and depth-two moment leakage, 48 delta B3
+        run: python3 experiments/r5_branch_moment_leakage_20261015.py --self-test > r5_moment_leakage_certificate.json
+      - name: Report root third spectral moment leakage
+        run: python3 -c 'import json;d=json.load(open("r5_moment_leakage_certificate.json"));print(json.dumps({"delta_B3":d["delta_B3_SAT_minus_UNSAT"],"observed_child_delta":d["delta_sum_all72_child_M2"],"predicted_child_delta":d["48_delta_B3"],"moment_validation":d["status"]},sort_keys=True))'
+      - uses: actions/upload-artifact@v4
+        with:
+          name: r5-cycle-parity-and-moment-leakage
+          path: |
+            r5_cycle_parity_certificate.json
+            r5_moment_leakage_certificate.json
+          retention-days: 90
