@@ -251,6 +251,61 @@ using a separate polynomial LP / small exact-rational dual finder,
 and recheck whether ANY new certificate eliminates the n72 stall;
 then seek harder connected SCL examples with d>c log n.
 
+## ALL-n valid adjacent-root third-moment family (additional new expert)
+
+Executable: `experiments/r5_adjacent_root_dual_20261015.py`.
+For any legal SCL size n divisible by three and any
+`a in {3,6,...,n-6}`, define
+```
+q_(a,n)(t) = (1-t/a)*(1-t/(a+3))*(1-t/n).
+```
+On the only possible t support `{0,3,6,...,n}` this polynomial
+satisfies q(0)=1 and q(t)>=0: for t<=a all three factors are
+nonnegative; there are no grid points strictly between a and a+3;
+for a+3<=t<=n the first two factors are both nonpositive and
+the third nonnegative. Hence the product is nonnegative everywhere.
+
+There are O(n) templates, with coefficients in the rational
+binomial basis of degree exactly 3, polynomial bit length and
+a deterministic exact-rational verifier. For a cube, compute
+N0..N3 once, evaluate every template and take the smallest sound
+floor bound. Because the template set is independent of the
+candidate assignments and both moment computation and each
+certificate check have polynomial complexity, this expert is
+all-n deterministic polynomial for FIXED r=3.
+
+At n=45 the root-optimal template in this family has
+`a=12`, recovering the frozen q3 polynomial
+`(t-12)(t-15)(t-45)/(-12*-15*-45)`
+and U=480. The child-low optimal template has a=9, the
+child-high optimal template has a=12, reproducing 246+221=467.
+
+At n=72, the current fixed certificate library yielded U=5,452,595
+because the frozen Petersen-specific q3 is INVALID when checked
+on the entire larger support. The all-n adjacent-root family,
+which automatically adapts the terminal root to n,
+finds a better n72 certificate `a=18` and improves the root to
+```
+U_adjacent(root)=1,310,720.
+```
+For a sample singleton split, low and high bounds
+`669,143 + 641,576 = 1,310,719`; reduction by one
+does not meet the geometric c=1 requirement for n72.
+
+The code checks the full nonnegative-support condition on EVERY
+chosen polynomial, and all arithmetic uses Python Fractions.
+It also independently compares the new family against the prior
+moment library. This establishes a new universally sound
+and cheap **certificate generator**, not a guaranteed progressive
+solver. A branch that fails to shrink the certified proxy still
+remains a legal exact DFS branch; it does not imply UNSAT.
+
+**Scope firewall:** the finite library of adjacent-root duals is
+a SUFFICIENT family of valid third-degree witnesses. No proof here
+says that EVERY possible degree-3 dual LP optimum lies in this
+family. Therefore a stalled root under this family is not a
+lower bound for all fixed-degree moment algorithms.
+
 ## Proof boundary / next test
 Required next step is to find a legal SCL instance with large affine
 nullity `2^d>n^c`, root U_r>0 and NO progress under small-degree
