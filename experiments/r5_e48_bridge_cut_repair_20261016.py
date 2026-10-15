@@ -30,6 +30,12 @@ from pathlib import Path
 from r5_e48_connected_multi_z_bridge_20261016 import (
     bridge,joint_cover,exact_sat_words,incidence_component_sizes
 )
+from r5_e47_base_z_rational_audit_20261016 import (
+    low_pivot_kernel,residual_two_ways,rational_rref
+)
+from r5_high_girth_adversarial_gate_20261015 import (
+    small_balanced_separator_profile
+)
 from r5_cooperative_scl_coverage_20261015 import (
     fixtures,validate_scl,valid_witness,fingerprint
 )
@@ -164,7 +170,38 @@ def run(limit=400):
         exact=independent_lift_count(lifted)
         if exact["status"]=="EXACT":
             assert exact["exact_SAT_count"]>=4
+        # Full independent GF2 kernel + Yz scan, not just
+        # preservation of two handpicked ternary witnesses.
+        n=len(C2)
+        rank2,basis=low_pivot_kernel(
+            [sum(1<<v for v in row) for row in C2],n)
+        assert rank2==oracle["rank"] and len(basis)==oracle["d"]
+        zs=[0]
+        for b in basis:
+            zs.extend([z^b for z in tuple(zs)])
+        admissible=[]
+        for z in sorted(zs):
+            if not z:continue
+            residual=residual_two_ways(C2,z)
+            if residual["Y_count"]:
+                admissible.append({"z_decimal":str(z),
+                                   "Y_count":residual["Y_count"],
+                                   "weight":z.bit_count()})
+        assert all(str(item["z"]) in
+                   {v["z_decimal"] for v in admissible}
+                   for item in Y)
+        Qrank,*_=rational_rref(
+            [[int(v in row) for v in range(n)] for row in C2])
+        assert n-Qrank>=2
+        balanced=small_balanced_separator_profile(C2,max_removed=2)
         success={
+            "exact_Z_A":{
+                "all_nonzero_GF2_words_checked":len(zs)-1,
+                "admissible_z":admissible,
+                "count":len(admissible)},
+            "rational_rank":Qrank,
+            "rational_nullity":n-Qrank,
+            "balanced_25percent_vertex_separator_k_le2":balanced,
             "second_switch_A_edge":[e1[0],e1[1]],
             "second_switch_B_edge":[e2[0],e2[1]],
             "base_45_rows":[list(row) for row in C2],
