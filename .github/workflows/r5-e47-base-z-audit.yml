@@ -1,0 +1,42 @@
+name: R5 E4.7 Complete Base Z and Rational Nullity
+on:
+  push:
+    branches: [research/r5-e47-base-z-audit-20261016]
+    paths:
+      - "experiments/r5_e47_base_z_rational_audit_20261016.py"
+      - "experiments/r5_e47_find_multi_z_base_20261016.py"
+      - "experiments/r5_e46_frozen_fixture_20261016.json"
+      - "docs/r5_e47_base_z_audit_checkpoint_20261016.md"
+      - ".github/workflows/r5-e47-base-z-audit.yml"
+  pull_request:
+    paths:
+      - "experiments/r5_e47_base_z_rational_audit_20261016.py"
+      - "experiments/r5_e47_find_multi_z_base_20261016.py"
+      - "experiments/r5_e46_frozen_fixture_20261016.json"
+      - "docs/r5_e47_base_z_audit_checkpoint_20261016.md"
+      - ".github/workflows/r5-e47-base-z-audit.yml"
+  workflow_dispatch:
+jobs:
+  exact-e47:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Complete all 63 directions and independent residual exact covers
+        run: python3 experiments/r5_e47_base_z_rational_audit_20261016.py --fixture experiments/r5_e46_frozen_fixture_20261016.json > e47_base_z_certificate.json
+      - name: Report exact rational rank and unique relevant sheet XOR
+        run: python3 -c 'import json;d=json.load(open("e47_base_z_certificate.json"));print(json.dumps({"rational_rank":d["rational_rank"],"rational_nullity":d["rational_nullity"],"nonzero_minor":d["rational_rank_33x33_minor_det_decimal"],"all_GF2_z":d["nonzero_kernel_directions_checked"],"Z_of_A":d["admissible_Z_A"],"multi_z_impossible":d["ALL_2_lifts_MULTI_Z_forbidden_on_this_base"],"table_sha256":d["all_63_table_sha256"]},sort_keys=True))'
+      - name: Directed 96-source connected UNSAT multi-z baseline search
+        run: python3 experiments/r5_e47_find_multi_z_base_20261016.py --trials 96 > e47_connected_multi_z_scout.json
+      - name: Report new connected multi-z source or bounded negative
+        run: python3 -c 'import json;d=json.load(open("e47_connected_multi_z_scout.json"));print(json.dumps({"status":d["status"],"counts":d["counts"],"positive":d["first_multi_z_UNSAT_source"]},sort_keys=True))'
+      - uses: actions/upload-artifact@v4
+        with:
+          name: r5-e47-base-z-rational-certificate
+          path: |
+            e47_base_z_certificate.json
+            e47_connected_multi_z_scout.json
+          retention-days: 90
