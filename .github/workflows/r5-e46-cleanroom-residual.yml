@@ -1,0 +1,48 @@
+name: R5 E4.6 Clean Room and Residual Exact Cover
+on:
+  push:
+    branches: [research/r5-e46-cleanroom-residual-yz-20261016]
+    paths:
+      - "experiments/r5_e46_export_fixture_20261016.py"
+      - "experiments/r5_e46_clean_room_verify_20261016.py"
+      - "experiments/r5_residual_yz_exact_cover_20261016.py"
+      - "experiments/r5_e46_frozen_fixture_20261016.json"
+      - "docs/r5_e46_cleanroom_residual_checkpoint_20261016.md"
+      - ".github/workflows/r5-e46-cleanroom-residual.yml"
+  pull_request:
+    paths:
+      - "experiments/r5_e46_export_fixture_20261016.py"
+      - "experiments/r5_e46_clean_room_verify_20261016.py"
+      - "experiments/r5_residual_yz_exact_cover_20261016.py"
+      - "experiments/r5_e46_frozen_fixture_20261016.json"
+      - "docs/r5_e46_cleanroom_residual_checkpoint_20261016.md"
+      - ".github/workflows/r5-e46-cleanroom-residual.yml"
+  workflow_dispatch:
+
+jobs:
+  independent-e46:
+    runs-on: ubuntu-latest
+    timeout-minutes: 16
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Direct fixed-z residual exact cover, independent pair enumeration
+        run: python3 experiments/r5_residual_yz_exact_cover_20261016.py --self-test > residual_yz_certificate.json
+      - name: Export deterministic declarative fixture
+        run: |
+          python3 experiments/r5_e46_export_fixture_20261016.py > frozen_fixture.json
+          echo "FROZEN_FIXTURE_JSON $(cat frozen_fixture.json)"
+      - name: Clean-room standalone full cycle and SAT oracle 2048-class replay
+        run: python3 experiments/r5_e46_clean_room_verify_20261016.py --fixture frozen_fixture.json > clean_room_certificate.json
+      - name: Report independent mathematical checks
+        run: python3 -c 'import json;a=json.load(open("clean_room_certificate.json"));b=json.load(open("residual_yz_certificate.json"));print(json.dumps({"clean_room":a["gate"],"Psi_rank":a["Psi_rank"],"SAT_UNSAT":a["actual_class_counts"],"mismatches":a["independent_oracle_disagreements"],"residual_Y_z":b["exact_cover_count"],"clean_columns":b["clean_outside_cols"],"selected_y2":b["exact_cover_y2_columns"]},sort_keys=True))'
+      - uses: actions/upload-artifact@v4
+        with:
+          name: r5-e46-cleanroom-residual-certificates
+          path: |
+            frozen_fixture.json
+            residual_yz_certificate.json
+            clean_room_certificate.json
+          retention-days: 90
