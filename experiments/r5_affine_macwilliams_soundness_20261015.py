@@ -158,7 +158,9 @@ def spectral_transform_from_oracle(data,hist):
               for j,mass in hist.items())/Q(1<<d)
         assert t.denominator==1
         D[s]=int(t)
-    assert all(D[m-s]==((-1)**data["parity"])*D[s]\n               for s in range(m+1))\n    return D
+    assert all(D[m-s]==((-1)**data["parity"])*D[s]
+               for s in range(m+1))
+    return D
 
 
 def check_exact_coset_identity(data,hist,D):
