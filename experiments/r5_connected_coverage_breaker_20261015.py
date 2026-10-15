@@ -25,6 +25,7 @@ from r5_component_factor_20261015 import (
 from r5_cooperative_scl_coverage_20261015 import (
     gf2_affine, validate_scl, valid_witness, fingerprint
 )
+from r5_optimal_moment_lp_20261015 import exact_optimal_lp
 
 
 def swap_rows(rows, r1, v1, r2, v2):
@@ -205,9 +206,15 @@ def frozen_low_spectrum_pair():
     assert a["low_signed_spectrum_k2"]==(7,(1,0,10))
     assert a["raw_moments_degree2"]==b["raw_moments_degree2"]
     assert (a["SAT_count"],b["SAT_count"])==(2,3)
+    assert a["low_signed_spectrum_k3"]!=b["low_signed_spectrum_k3"]
+    lpa=exact_optimal_lp(36,a["raw_moments_degree2"],2)
+    lpb=exact_optimal_lp(36,b["raw_moments_degree2"],2)
+    assert lpa["exact_optimum"]==lpb["exact_optimum"]
     return {"scientific_status":"EXACT_CONNECTED_SIGNED_LOW_SPECTRUM_INDISTINGUISHABILITY_K2",
             "examples":specimens,
             "same_moments_degree2":True,
+            "same_optimal_degree2_LP":lpa["exact_optimum"],
+            "degree3_signed_spectrum_distinguishes":True,
             "different_exact_sat_counts":True,
             "all_n_fixed_degree_lower_bound":"NOT_PROVED"}
 
