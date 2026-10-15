@@ -99,12 +99,48 @@ def signed_dual_low_spectrum(rows,k=2):
     return (d,tuple(signature))
 
 
+def mutate_connected(rows,witness,rng,moves=8):
+    """Witness-preserving legal random 2-switches WITHIN a connected source.
+
+    A switch replaces two incidence edges, preserving degree three.
+    Revalidation catches any forbidden 4-cycle; a connectivity check
+    forbids disconnection. The old witness stays valid because both
+    exchanged variable bits match exactly.
+    """
+    accepted=0
+    rows=validate_scl(rows)
+    for _ in range(moves):
+        for attempt in range(300):
+            r1,r2=rng.sample(range(len(rows)),2)
+            v1=rng.choice(rows[r1])
+            v2=rng.choice(rows[r2])
+            if v1==v2 or (witness>>v1)&1 != (witness>>v2)&1:
+                continue
+            # A degenerate swap with shared variable membership is rejected.
+            if v1 in rows[r2] or v2 in rows[r1]:
+                continue
+            try:
+                updated=swap_rows(rows,r1,v1,r2,v2)
+            except ValueError:
+                continue
+            if len(connected_scl_components(updated))!=1:
+                continue
+            assert valid_witness(updated,witness)
+            rows=updated
+            accepted+=1
+            break
+    return rows,accepted
+
+
 def search_indistinguishable(samples=24,degree=2):
     seen={}
     collision=None
     records=[]
     for seed in range(samples):
         rows,witness,switches=make_connected(2,seed)
+        rng=random.Random(seed*991+20261015)
+        rows,moves=mutate_connected(rows,witness,rng,
+                                   moves=4+(seed%13))
         count=factor_exact(rows,exponent=3)
         assert count["verdict"]=="SAT" and count["components"]==1
         spectrum=signed_dual_low_spectrum(rows,degree)
@@ -112,13 +148,14 @@ def search_indistinguishable(samples=24,degree=2):
         rec={"seed":seed,"fingerprint":fingerprint(rows),
              "nullity":spectrum[0],"low_signed_spectrum":spectrum[1],
              "SAT_count":count["solution_count"],
-             "swaps":switches}
+             "swaps":switches,"extra_legal_switches":moves}
         records.append(rec)
         if key in seen and seen[key]["SAT_count"]!=rec["SAT_count"]:
             collision={"a":seen[key],"b":rec}
             break
         seen[key]=rec
     return {"searched":len(records),"k":degree,
+            "mutation":"multiple witness-preserving valid connected incidence 2-switches",
             "pair_with_same_dual_low_spectrum_and_different_sat_count":collision,
             "distinct_signatures":len(seen),
             "honest_collision_status":"FOUND" if collision else "NOT_FOUND_IN_FINITE_SAMPLE"}
@@ -145,7 +182,7 @@ def self_test():
                        "swaps":swaps72,"GF2_dimension":d72,
                        "affine_words":1<<d72,
                        "log_kernel_c3":"DECLINE" if 1<<d72>72**3 else "COVERED"},
-        "moment_indistinguishability_search":search_indistinguishable(24,2),
+        "moment_indistinguishability_search":search_indistinguishable(80,2),
         "universal_result":"NOT_PROVED","P_vs_NP":"OPEN"
     }
 
