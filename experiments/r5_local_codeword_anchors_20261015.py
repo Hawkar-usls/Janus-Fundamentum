@@ -214,6 +214,30 @@ def bounded_cubic_graph_certificate(rows,word):
     return True
 
 
+def cubic_support_type(rows,word):
+    """Independently identify 4- and 6-word cubic graph isomorphism class.
+
+    The only simple cubic graphs with 6 vertices are K3,3 and the
+    triangular prism. Count triangles (0 vs 2) as a concise verifier.
+    """
+    assert bounded_cubic_graph_certificate(rows,word)
+    selected=set(word)
+    edges=set()
+    for r in rows:
+        hit=selected.intersection(r)
+        if len(hit)==2:
+            edges.add(tuple(sorted(hit)))
+    triangles=sum(all(tuple(sorted((a,b))) in edges
+                      for a,b in combinations(trio,2))
+                  for trio in combinations(sorted(selected),3))
+    if len(word)==4:
+        assert len(edges)==6 and triangles==4
+        return "K4_Pasch"
+    assert len(word)==6 and len(edges)==9
+    assert triangles in (0,2),triangles
+    return "K33" if triangles==0 else "TriangularPrism"
+
+
 def self_test():
     from r5_component_factor_20261015 import k4_blocks
     from r5_cooperative_scl_coverage_20261015 import fixtures
@@ -226,7 +250,9 @@ def self_test():
         assert fast==slow,(len(rows),fast,slow)
         for weight in (4,6):
             for subset in local_codewords(rows,weight):
-                assert bounded_cubic_graph_certificate(rows,subset)
+                assert cubic_support_type(rows,subset) in (
+                    "K4_Pasch","K33","TriangularPrism"
+                )
         if incidence_girth_ge_10(rows):
             assert fast[len(rows)-6]==fast[len(rows)-9]==0
 
@@ -246,9 +272,15 @@ def self_test():
             assert anchored==brute,(seed,cube,anchored,brute)
         a4=counts[36-6]
         a6=counts[36-9]
+        types={}
+        for word in local_codewords(rows,6):
+            name=cubic_support_type(rows,word)
+            types[name]=types.get(name,0)+1
+        assert sum(types.values())==a6
         assert 21*a4+15*a6<=188
         pair.append({
             "seed":seed,"n":36,"A4":a4,"A6":a6,
+            "weight6_graph_types":types,
             "girth_ge_10":incidence_girth_ge_10(rows),
             "anchored_q_integer_bound":(188-21*a4-15*a6)//6,
             "all_partial_checks":"PASS"})
