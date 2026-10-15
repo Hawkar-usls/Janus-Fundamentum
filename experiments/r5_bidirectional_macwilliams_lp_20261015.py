@@ -261,6 +261,9 @@ def self_test():
         d=affine[2]
         hist=affine_hist(rows,cap=n**3)
         anchors=anchors_root(rows)
+        assert all(hist[n-3*i//2]==cnt for i,cnt in anchors.items()),(
+            label,anchors,hist
+        )
         known=rowspace_low_counts(rows,3)
         assert known[0]==1
         graded={}
@@ -297,6 +300,7 @@ def self_test():
     assert words_checked==256 and hist[0]==1296
     known=rowspace_low_counts(large,3)
     anchors=anchors_root(large)
+    assert all(hist[n-3*i//2]==cnt for i,cnt in anchors.items())
     c72=solve_exact_mac_lp(n,d,moments_from_hist(n,hist,2),
                           2,anchors,{j:v for j,v in known.items() if j>0})
     assert c72["integer_upper_bound"]>=1296
