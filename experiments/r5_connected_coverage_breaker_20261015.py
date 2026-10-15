@@ -161,6 +161,57 @@ def search_indistinguishable(samples=24,degree=2):
             "honest_collision_status":"FOUND" if collision else "NOT_FOUND_IN_FINITE_SAMPLE"}
 
 
+def frozen_low_spectrum_pair():
+    """Independent replay of seeds 0,13 and raw violation moments.
+
+    These are TWO connected legal SCL n36 instances. Equal low-weight
+    signed dual spectra up to k=2 imply equal low-order moments of t,
+    while exact SAT counts differ. The test enumerates only 2^7
+    solutions PER example as a finite independent control.
+    """
+    from math import comb
+    from collections import Counter
+    specimens=[]
+    for seed in (0,13):
+        rows,witness,swaps=make_connected(2,seed)
+        rng=random.Random(seed*991+20261015)
+        rows,moves=mutate_connected(rows,witness,rng,moves=4+(seed%13))
+        assert len(connected_scl_components(rows))==1
+        assert valid_witness(rows,witness)
+        affine=gf2_affine(rows,0,0)
+        part,basis,d=affine
+        assert d==7
+        histogram=Counter()
+        for mask in range(1<<d):
+            x=part
+            for j,b in enumerate(basis):
+                if mask>>j&1:
+                    x^=b
+            t=sum(all((x>>v)&1 for v in row) for row in rows)
+            assert t%3==0
+            histogram[t]+=1
+        moments=tuple(sum(cnt*comb(t,j) for t,cnt in histogram.items())
+                      for j in range(3))
+        specimens.append({
+            "seed":seed,"sha256":fingerprint(rows),
+            "low_signed_spectrum_k2":signed_dual_low_spectrum(rows,2),
+            "low_signed_spectrum_k3":signed_dual_low_spectrum(rows,3),
+            "raw_moments_degree2":moments,
+            "SAT_count":histogram[0],
+            "n":len(rows),"affine_dimension":d
+        })
+    a,b=specimens
+    assert a["low_signed_spectrum_k2"]==b["low_signed_spectrum_k2"]
+    assert a["low_signed_spectrum_k2"]==(7,(1,0,10))
+    assert a["raw_moments_degree2"]==b["raw_moments_degree2"]
+    assert (a["SAT_count"],b["SAT_count"])==(2,3)
+    return {"scientific_status":"EXACT_CONNECTED_SIGNED_LOW_SPECTRUM_INDISTINGUISHABILITY_K2",
+            "examples":specimens,
+            "same_moments_degree2":True,
+            "different_exact_sat_counts":True,
+            "all_n_fixed_degree_lower_bound":"NOT_PROVED"}
+
+
 def self_test():
     rows36,witness36,swaps36=make_connected(2)
     exact36=factor_exact(rows36,3)
@@ -183,6 +234,7 @@ def self_test():
                        "affine_words":1<<d72,
                        "log_kernel_c3":"DECLINE" if 1<<d72>72**3 else "COVERED"},
         "moment_indistinguishability_search":search_indistinguishable(80,2),
+        "frozen_degree2_indistinguishable_pair":frozen_low_spectrum_pair(),
         "universal_result":"NOT_PROVED","P_vs_NP":"OPEN"
     }
 
