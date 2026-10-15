@@ -15,11 +15,13 @@ voltage, every feasible y gives exactly 2^c SAT witnesses if
 the cycle-parity linear system on G_z is consistent (c=#G_z
 components), and zero otherwise.
 
-If a single cover has exactly 2 SAT witnesses, necessarily
-c=1 and |Y_z|=1. Then SAT voltages in ANY affine fixed-H
-gauge-quotient form a single (possibly empty) affine GF2
-subspace. WARNING: without |Y_z|=1, it is a UNION of affine
-subspaces and need not itself be affine.
+For a FIXED nonzero z, the cycle constraints do NOT depend on
+which y in Y_z is selected: the SAT voltage locus is a single
+(possibly empty) affine GF2 subspace whenever Y_z is nonempty.
+The number of witnesses per compatible voltage is |Y_z|*2^c.
+If a cover has exactly 2 witnesses and c=1, |Y_z|=1.
+WARNING: if ker H has dimension >1, DISTINCT nonzero z may
+produce a UNION of different affine subspaces, not always affine.
 
 This executable independently derives the fixed z from H,
 builds G_z, all fundamental cycle voltage equations, pulls
@@ -62,7 +64,6 @@ def context():
     assert gf2_rank(matrix)==5
     ker=gf2_nullspace(matrix,d)
     assert len(ker)==1
-    z=sum(0 for _ in ())  # representation overwritten by XOR below
     z=0
     for j,b in enumerate(frame["right"]):
         if (ker[0]>>j)&1:z^=b
@@ -266,7 +267,8 @@ def replay():
         "class_counts_predicted":dict(tallies),
         "exact_SAT_solution_count_distribution":dict(witness_counts),
         "fixed_Phi_only":True,
-        "general_if_multiple_y":"UNION_OF_AFFINE_SUBSPACES_NOT_ALWAYS_AFFINE",
+        "multiple_y_with_same_z":"SAME_AFFINE_VOLTAGE_LOCUS;WITNESS_MULTIPLICITY_Y_TIMES_2_POWER_C",
+        "multiple_nonzero_z":"POSSIBLE_UNION_OF_AFFINE_LOCUS_NOT_ALWAYS_AFFINE",
         "global_polynomial_SCL":"NOT_CONSTRUCTED",
         "P_vs_NP":"OPEN"
     }
