@@ -5,6 +5,8 @@ on:
     paths:
       - "experiments/r5_e48_connected_multi_z_bridge_20261016.py"
       - "experiments/r5_e48_bridge_cut_repair_20261016.py"
+      - "experiments/r5_e48_cleanroom_repaired_verify_20261016.py"
+      - "experiments/r5_e48_frozen_repaired_multi_z_20261016.json"
       - "experiments/r5_e48_independent_bridge_verifier_20261016.py"
       - "docs/r5_e48_constructive_multi_z_checkpoint_20261016.md"
       - ".github/workflows/r5-e48-connected-multi-z.yml"
@@ -12,6 +14,8 @@ on:
     paths:
       - "experiments/r5_e48_connected_multi_z_bridge_20261016.py"
       - "experiments/r5_e48_bridge_cut_repair_20261016.py"
+      - "experiments/r5_e48_cleanroom_repaired_verify_20261016.py"
+      - "experiments/r5_e48_frozen_repaired_multi_z_20261016.json"
       - "experiments/r5_e48_independent_bridge_verifier_20261016.py"
       - "docs/r5_e48_constructive_multi_z_checkpoint_20261016.md"
       - ".github/workflows/r5-e48-connected-multi-z.yml"
@@ -56,6 +60,12 @@ jobs:
           json.dump(v,open("e48_frozen_candidate.json","w"),sort_keys=True,indent=2)
           print("FROZEN_E48 "+json.dumps(v,sort_keys=True,separators=(",",":")))
           PY
+      - name: Freeze drift check against committed repaired source and signed cover
+        run: python3 -c 'import json;assert json.load(open("e48_frozen_candidate.json"))==json.load(open("experiments/r5_e48_frozen_repaired_multi_z_20261016.json")),"E48_FROZEN_REPAIRED_SOURCE_DRIFT";print("E48_FROZEN_SOURCE_DRIFT_CHECK PASS")'
+      - name: Independent standard-library proof check of repaired base and 90-var signed cover
+        run: python3 experiments/r5_e48_cleanroom_repaired_verify_20261016.py --fixture experiments/r5_e48_frozen_repaired_multi_z_20261016.json > e48_cleanroom_repaired_certificate.json
+      - name: Report independent exact repaired-source and same-2lift multi-z solutions
+        run: python3 -c 'import json;d=json.load(open("e48_cleanroom_repaired_certificate.json"));print(json.dumps({"cleanroom":d["gate"],"source_UNSAT":d["source_GF2_UNSAT_certificate"],"rational_rank":d["source_exact_Q_rank"],"edge_pairs_checked":d["no_one_or_two_edge_cut_proof"]["all_edge_pairs_exhaustively_checked"],"source_Z":d["exact_Z_A"],"lift_exact_SAT":d["lift_GF2_complete_oracle"],"lift_z_multiplicities":d["lift_exact_SAT_sheet_XOR_multiplicities"]},sort_keys=True))'
       - uses: actions/upload-artifact@v4
         with:
           name: r5-e48-constructive-multi-z-certificate
@@ -63,4 +73,5 @@ jobs:
             e48_bridge_certificate.json
             e48_cut_repair_certificate.json
             e48_frozen_candidate.json
+            e48_cleanroom_repaired_certificate.json
           retention-days: 90
