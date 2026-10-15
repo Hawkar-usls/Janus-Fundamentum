@@ -403,7 +403,7 @@ def prove_finite_cube(rows,cube):
 
 def self_test():
     cases={"AffinePlane9":fixtures()["AffinePlane9_SAT"],
-           "Petersen45":fixtures()["HolyerPetersen_UNSAT"]}
+           "HolyerK4":fixtures()["HolyerK4_SAT"]}
     out={}
     for name,rows in cases.items():
         n=len(rows)
@@ -411,6 +411,7 @@ def self_test():
                ((1<<0)|(1<<2),0)]
         vals=[]
         for cube in tests:
+            print("CHECK_AFFINE_CUBE",name,cube,flush=True)
             try:
                 ret=prove_finite_cube(rows,cube)
             except ValueError as exc:
