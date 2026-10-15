@@ -158,8 +158,7 @@ def spectral_transform_from_oracle(data,hist):
               for j,mass in hist.items())/Q(1<<d)
         assert t.denominator==1
         D[s]=int(t)
-        assert D[m-s]==((-1)**data["parity"])*D[s] if s>=m//2 else True
-    return D
+    assert all(D[m-s]==((-1)**data["parity"])*D[s]\n               for s in range(m+1))\n    return D
 
 
 def check_exact_coset_identity(data,hist,D):
@@ -187,6 +186,16 @@ def exact_affine_lp(data,k=2,known_signed_degree=3):
     H_indices=list(range(0,m+1,2))
     if jtarget is None or not 0<=jtarget<=m or jtarget%2!=parity:
         return {"verdict":"UNSAT","reason":"target free weight impossible"}
+    # A zero-weight continuation consists only of v_T=0 and is
+    # directly checkable without invoking any relaxation.
+    if jtarget==0:
+        cnt=int(data["particular_free"]==0)
+        return {"verdict":"EXACT_DIRECT_ZERO_TARGET",
+                "exact_rational_optimum":str(cnt),
+                "integer_upper_bound":cnt,
+                "primal_verified":True,"dual_verified":True,
+                "known_signed_low":{},
+                "target_free_weight":0}
     low=signed_low_rowspace(data,known_signed_degree)
     # Full rowspace 1_T always belongs to R_T, and has signed
     # character (-1)^|v0|. Thus fixed endpoint spectra.
