@@ -1,0 +1,77 @@
+name: R5 E4.8 Constructive Connected MULTI_Z
+on:
+  push:
+    branches: [research/r5-e48-bridge-multi-z-20261016]
+    paths:
+      - "experiments/r5_e48_connected_multi_z_bridge_20261016.py"
+      - "experiments/r5_e48_bridge_cut_repair_20261016.py"
+      - "experiments/r5_e48_cleanroom_repaired_verify_20261016.py"
+      - "experiments/r5_e48_frozen_repaired_multi_z_20261016.json"
+      - "experiments/r5_e48_independent_bridge_verifier_20261016.py"
+      - "docs/r5_e48_constructive_multi_z_checkpoint_20261016.md"
+      - ".github/workflows/r5-e48-connected-multi-z.yml"
+  pull_request:
+    paths:
+      - "experiments/r5_e48_connected_multi_z_bridge_20261016.py"
+      - "experiments/r5_e48_bridge_cut_repair_20261016.py"
+      - "experiments/r5_e48_cleanroom_repaired_verify_20261016.py"
+      - "experiments/r5_e48_frozen_repaired_multi_z_20261016.json"
+      - "experiments/r5_e48_independent_bridge_verifier_20261016.py"
+      - "docs/r5_e48_constructive_multi_z_checkpoint_20261016.md"
+      - ".github/workflows/r5-e48-connected-multi-z.yml"
+  workflow_dispatch:
+jobs:
+  constructive-e48:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Exact SCL45 and SCL54 cross-switch legal UNSAT MULTI_Z construction
+        run: python3 experiments/r5_e48_connected_multi_z_bridge_20261016.py --self-test > e48_bridge_certificate.json
+      - name: Report multi-z base and constructive joint voltage
+        run: python3 -c 'import json;d=json.load(open("e48_bridge_certificate.json"));print(json.dumps({k:{"n":v["n"],"B_SAT":v["B_exact_SAT_count"],"Z_constructed":v["certified_constructed_distinct_z"],"exact_Z":v.get("complete_Z_A",{}).get("Z_size"),"UNSAT_checked":v["C_UNSAT_full_GF2_oracle"]["checked"],"Q_nullity":v["rational_nullity"],"joint":v["JOINT_COVER"]["status"],"joint_SAT_witnesses":v["JOINT_COVER"].get("distinct_valid_SAT_witnesses")} for k,v in d["controls"].items()},sort_keys=True))'
+      - name: Attempt to eliminate two-edge cut with exact UNSAT and simultaneous SAT lifted witnesses
+        run: python3 experiments/r5_e48_bridge_cut_repair_20261016.py --limit 400 > e48_cut_repair_certificate.json
+      - name: Report small-cut elimination outcome and exact covers
+        run: python3 -c 'import json;d=json.load(open("e48_cut_repair_certificate.json"));s=d["first_certified_separator_resistant_multi_z"];print(json.dumps({"status":d["status"],"baseline_cover":d["baseline_SCL45_SAT_2lift_oracle"],"tries":d["second_switch_candidates"],"new_source":None if s is None else {"GF2_UNSAT_words":s["C2_exact_UNSAT_GF2_words"],"nullity":s["C2_nullity"],"lift":s["2lift_exact_GF2_oracle"],"no_small_edge_cut":s["no_edge_cut_size_1_or_2"],"full_Z":s["exact_Z_A"]["count"],"rational_nullity":s["rational_nullity"],"balanced_vertex_k_le2":s["balanced_25percent_vertex_separator_k_le2"]}},sort_keys=True))'
+      - name: Generate explicit repaired n45 plus n90 voltage replay fixture
+        run: |
+          python3 - <<'PY'
+          import json
+          d=json.load(open("e48_cut_repair_certificate.json"))
+          s=d["first_certified_separator_resistant_multi_z"]
+          assert s is not None
+          v={"version":"R5_E48_REPAIRED_SOURCE_V1",
+             "base_45_rows":s["base_45_rows"],
+             "sat_lift_voltage_bits_decimal":s["2lift_joint"]["sign_bitmask_decimal"],
+             "SAT_witness_bits_decimal":s["2lift_joint"]["witness_bits_decimal"],
+             "distinct_z_decimal":s["z_distinct"],
+             "second_swaps":[s["second_switch_A_edge"],s["second_switch_B_edge"]],
+             "base_canonical_sha256":s["C2_sha256"],
+             "expected":{"base_n":45,"base_UNSAT":True,
+                         "base_GF2_nullity":s["C2_nullity"],
+                         "base_Yz_count":s["exact_Z_A"]["count"],
+                         "rational_nullity":s["rational_nullity"],
+                         "no_1_or_2_edge_cut":True,
+                         "2lift_n":90,"2lift_SAT":s["2lift_exact_GF2_oracle"]["exact_SAT_count"]}}
+          json.dump(v,open("e48_frozen_candidate.json","w"),sort_keys=True,indent=2)
+          print("FROZEN_E48 "+json.dumps(v,sort_keys=True,separators=(",",":")))
+          PY
+      - name: Freeze drift check against committed repaired source and signed cover
+        run: python3 -c 'import json;assert json.load(open("e48_frozen_candidate.json"))==json.load(open("experiments/r5_e48_frozen_repaired_multi_z_20261016.json")),"E48_FROZEN_REPAIRED_SOURCE_DRIFT";print("E48_FROZEN_SOURCE_DRIFT_CHECK PASS")'
+      - name: Independent standard-library proof check of repaired base and 90-var signed cover
+        run: python3 experiments/r5_e48_cleanroom_repaired_verify_20261016.py --fixture experiments/r5_e48_frozen_repaired_multi_z_20261016.json > e48_cleanroom_repaired_certificate.json
+      - name: Report independent exact repaired-source and same-2lift multi-z solutions
+        run: python3 -c 'import json;d=json.load(open("e48_cleanroom_repaired_certificate.json"));print(json.dumps({"cleanroom":d["gate"],"source_UNSAT":d["source_GF2_UNSAT_certificate"],"rational_rank":d["source_exact_Q_rank"],"edge_pairs_checked":d["no_one_or_two_edge_cut_proof"]["all_edge_pairs_exhaustively_checked"],"source_Z":d["exact_Z_A"],"lift_exact_SAT":d["lift_GF2_complete_oracle"],"lift_z_multiplicities":d["lift_exact_SAT_sheet_XOR_multiplicities"]},sort_keys=True))'
+      - uses: actions/upload-artifact@v4
+        with:
+          name: r5-e48-constructive-multi-z-certificate
+          path: |
+            e48_bridge_certificate.json
+            e48_cut_repair_certificate.json
+            e48_frozen_candidate.json
+            e48_cleanroom_repaired_certificate.json
+          retention-days: 90
