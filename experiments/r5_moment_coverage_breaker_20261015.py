@@ -75,9 +75,13 @@ def main():
     ap.add_argument("--probes",type=int,default=3)
     ap.add_argument("--self-test",action="store_true")
     args=ap.parse_args()
-    result=run(4,3) if args.self_test else run(args.blocks,args.probes)
+    result=run(4,72) if args.self_test else run(args.blocks,args.probes)
     if args.self_test:
-        assert len(result["tested_singleton_splits"])==3
+        assert len(result["tested_singleton_splits"])==72
+        assert result["no_geometric_progress_on_tested_splits"]==72
+        assert result["root_bound"]==5452595
+        assert all(item["U_split"]==5452594
+                   for item in result["tested_singleton_splits"])
         assert result["n"]==72
         assert result["log_kernel_c3"]=="DECLINE"
     print(json.dumps(result,indent=2,sort_keys=True))
