@@ -22,27 +22,44 @@ from r5_cooperative_scl_coverage_20261015 import (
     local_consequences, validate_scl, valid_witness, fixtures
 )
 from r5_fixed_degree_moment_expert_20261015 import (
-    log_kernel, moment_bounds
+    log_kernel, moment_bounds, raw_binomial_moments
 )
+from r5_local_codeword_anchors_20261015 import (
+    anchor_counts,local_codewords
+)
+from r5_anchored_moment_lp_20261015 import anchored_optimal_lp
 from r5_adjacent_root_dual_20261015 import best_cubic
 from r5_moment_coverage_breaker_20261015 import k4_direct_sum
 
 
-def certified_cube_bound(rows,cube,degree,adjacent=True):
-    if degree==3 and adjacent:
-        return best_cubic(rows,cube)["new_bound"]
-    return moment_bounds(rows,cube,degree)["bound"]
+def certified_cube_bound(rows,cube,degree,adjacent=True,anchors=None):
+    baseline=(best_cubic(rows,cube)["new_bound"]
+              if degree==3 and adjacent
+              else moment_bounds(rows,cube,degree)["bound"])
+    if anchors is None:
+        return baseline
+    raw,d=raw_binomial_moments(rows,cube,degree)
+    if d<0:
+        return 0
+    actual=anchor_counts(rows,cube,precomputed=anchors)
+    optimal=anchored_optimal_lp(len(rows),raw,degree,actual)
+    return min(baseline,optimal["integer_upper_bound"])
 
 
-def certified_frontier_mass(rows,frontier,degree,adjacent=True):
-    return sum(certified_cube_bound(rows,cube,degree,adjacent)
+def certified_frontier_mass(rows,frontier,degree,adjacent=True,anchors=None):
+    return sum(certified_cube_bound(rows,cube,degree,adjacent,anchors)
                for cube in frontier)
 
 
 def solve(rows, node_budget=80, moment_degree=3, log_kernel_exponent=1,
-          checkpoint=None,resume=None,adjacent_family=True):
+          checkpoint=None,resume=None,adjacent_family=True,
+          anchored_moments=False):
     rows=validate_scl(rows)
     n=len(rows)
+    if anchored_moments and n<18:
+        raise ValueError("anchored polynomial LP requires n>=18 for available support")
+    anchor_cache=({4:local_codewords(rows,4),6:local_codewords(rows,6)}
+                  if anchored_moments else None)
     if not 0<=moment_degree<=3 or not 0<=log_kernel_exponent<=3:
         raise ValueError("fixed moment_degree and log exponent must be 0..3")
     if node_budget<0:
@@ -54,7 +71,8 @@ def solve(rows, node_budget=80, moment_degree=3, log_kernel_exponent=1,
             rec.get("sha256")!=fingerprint(rows) or
             rec.get("moment_degree")!=moment_degree or
             rec.get("log_kernel_exponent")!=log_kernel_exponent or
-            rec.get("adjacent_family")!=adjacent_family):
+            rec.get("adjacent_family")!=adjacent_family or
+            rec.get("anchored_moments",False)!=anchored_moments):
             raise ValueError("checkpoint graph, version or policy mismatch")
         frontier=[tuple(pair) for pair in rec["frontier"]]
         if len(frontier)>n+1:
@@ -66,7 +84,7 @@ def solve(rows, node_budget=80, moment_degree=3, log_kernel_exponent=1,
     else:
         frontier=[(0,0)]
         prior=0
-    original=certified_frontier_mass(rows,frontier,moment_degree,adjacent_family) if n%3==0 else 0
+    original=certified_frontier_mass(rows,frontier,moment_degree,adjacent_family,anchor_cache) if n%3==0 else 0
     event_log=[]
     stats={
         "n":n,"sha256":fingerprint(rows),
@@ -76,6 +94,7 @@ def solve(rows, node_budget=80, moment_degree=3, log_kernel_exponent=1,
         "moment_degree":moment_degree,
         "kernel_exponent":log_kernel_exponent,
         "adjacent_family":adjacent_family,
+        "anchored_moments":anchored_moments,
         "certified_shrinks":0,
         "exact_split":0,
         "exact_one_forced":0,
@@ -99,7 +118,7 @@ def solve(rows, node_budget=80, moment_degree=3, log_kernel_exponent=1,
     while frontier and stats["visited_this_call"]<fuel:
         cube=frontier.pop()
         stats["visited_this_call"]+=1
-        ub=certified_cube_bound(rows,cube,moment_degree,adjacent_family)
+        ub=certified_cube_bound(rows,cube,moment_degree,adjacent_family,anchor_cache)
         if ub==0:
             # Moment dual is a full upper-bound proof for this cube.
             stats["moment_zero_cubes"]+=1
@@ -111,11 +130,11 @@ def solve(rows, node_budget=80, moment_degree=3, log_kernel_exponent=1,
             continue
         if kind=="FORCED":
             assert local_consequences(rows,cube)[1]==new
-            assert certified_cube_bound(rows,new,moment_degree,adjacent_family)<=ub
+            assert certified_cube_bound(rows,new,moment_degree,adjacent_family,anchor_cache)<=ub
             frontier.append(new)
             stats["exact_one_forced"]+=1
             emit({"expert":"EXACT_ONE","U_before":ub,
-                  "U_after":certified_cube_bound(rows,new,moment_degree)})
+                  "U_after":certified_cube_bound(rows,new,moment_degree,adjacent_family,anchor_cache)})
             continue
         kind,new,d=gf2_consequences(rows,cube)
         if kind=="CONFLICT":
@@ -123,7 +142,7 @@ def solve(rows, node_budget=80, moment_degree=3, log_kernel_exponent=1,
             continue
         if kind=="FORCED":
             assert gf2_consequences(rows,cube)[1]==new
-            assert certified_cube_bound(rows,new,moment_degree)<=ub
+            assert certified_cube_bound(rows,new,moment_degree,adjacent_family,anchor_cache)<=ub
             frontier.append(new)
             stats["gf2_forced"]+=1
             emit({"expert":"GF2","U_before":ub,
@@ -148,8 +167,8 @@ def solve(rows, node_budget=80, moment_degree=3, log_kernel_exponent=1,
         v=choose_branch(rows,cube)
         low=(cube[0]|1<<v,cube[1])
         high=(cube[0],cube[1]|1<<v)
-        U_low=certified_cube_bound(rows,low,moment_degree,adjacent_family)
-        U_high=certified_cube_bound(rows,high,moment_degree,adjacent_family)
+        U_low=certified_cube_bound(rows,low,moment_degree,adjacent_family,anchor_cache)
+        U_high=certified_cube_bound(rows,high,moment_degree,adjacent_family,anchor_cache)
         if U_low+U_high>ub:
             raise AssertionError("sound fixed-dual potential must be subadditive under exact split")
         if (U_low+U_high)*n<=ub*(n-1):
@@ -164,7 +183,7 @@ def solve(rows, node_budget=80, moment_degree=3, log_kernel_exponent=1,
     stats["total_visited"]=prior+stats["visited_this_call"]
     stats["frontier_cubes"]=len(frontier)
     stats["frontier_bound"]=certified_frontier_mass(
-        rows,frontier,moment_degree,adjacent_family) if verdict!="SAT" else None
+        rows,frontier,moment_degree,adjacent_family,anchor_cache) if verdict!="SAT" else None
     if witness is not None:
         stats["witness_bits"]=witness
     if verdict=="UNKNOWN_RESOURCE_LIMIT" and checkpoint:
@@ -172,6 +191,7 @@ def solve(rows, node_budget=80, moment_degree=3, log_kernel_exponent=1,
              "moment_degree":moment_degree,
              "log_kernel_exponent":log_kernel_exponent,
              "adjacent_family":adjacent_family,
+             "anchored_moments":anchored_moments,
              "frontier":frontier,"total_visited":stats["total_visited"]}
         Path(checkpoint).write_text(json.dumps(rec,sort_keys=True),
                                     encoding="utf-8")
@@ -244,6 +264,7 @@ def main():
     p.add_argument("--node-budget",type=int,default=80)
     p.add_argument("--resume")
     p.add_argument("--no-adjacent-family",action="store_true")
+    p.add_argument("--anchored-moments",action="store_true")
     p.add_argument("--checkpoint")
     a=p.parse_args()
     if a.self_test:
@@ -253,7 +274,8 @@ def main():
                   moment_degree=a.moment_degree,
                   log_kernel_exponent=a.log_kernel_exponent,
                   checkpoint=a.checkpoint,resume=a.resume,
-                  adjacent_family=not a.no_adjacent_family)
+                  adjacent_family=not a.no_adjacent_family,
+                  anchored_moments=a.anchored_moments)
     else:
         p.error("pass --self-test or --fixture")
     print(json.dumps(out,sort_keys=True,indent=2))
