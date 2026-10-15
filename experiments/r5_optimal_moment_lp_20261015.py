@@ -96,8 +96,10 @@ def exact_optimal_lp(n, raw, k, check=True):
                 tab[z]=[x-mul*y for x,y in zip(tab[z],tab[i])]
         basis[i]=entering
 
+    # Phase II allows ONLY original distribution variables to enter.
+    # Artificial columns remain in the tableau only to recover B^{-1}.
     obj2,iterations2=simplex(tab,basis,
-                             [Q(int(t==0)) for t in ts]+[Q(0)]*m)
+                             [Q(int(t==0)) for t in ts])
     primal=[Q(0)]*size
     for i,j in enumerate(basis):
         assert j<size
