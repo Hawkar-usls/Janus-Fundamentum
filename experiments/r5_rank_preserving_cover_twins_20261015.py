@@ -177,8 +177,6 @@ def check_rank_formula(rows,signs,data=None):
     data=phi_data(rows) if data is None else data
     edges=data["edges"]
     signs_mask=signmask_from_signs(edges,signs)
-    t=gf2_rank([data["images"][q] for q in range(len(edges))
-                if (signs_mask>>q)&1])
     # WARNING: rank-of-COLUMNS is NOT rank of XOR-AGGREGATED Phi(signs).
     # Correct obstruction matrix is a SINGLE d*d bit-vector, with
     # rank over GF2 after interpreting its d rows.
@@ -261,8 +259,8 @@ def integer_two_cover_witness(rows,node_budget=12000):
 def sat_cover_from_y(rows,y):
     rows=validate_scl(rows)
     n=len(rows)
-    if len(y)!=n or any(v not in (0,1,2) for v in y) or
-       any(sum(y[j] for j in row)!=2 for row in rows):
+    if (len(y)!=n or any(v not in (0,1,2) for v in y) or
+        any(sum(y[j] for j in row)!=2 for row in rows)):
         raise ValueError("invalid Ay=2 witness")
     signs={}
     for i,row in enumerate(rows):
