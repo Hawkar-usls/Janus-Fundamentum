@@ -52,6 +52,8 @@ def affine_data(rows,cube):
     assert d+m*0==len(basis)
     assert m-d>=0
     a=Z
+    homogeneous=all(sum((a>>v)&1 for v in row)%2==0
+                    for row in rows)
     # Independent parity check in all original rows for x and v.
     for row in rows:
         assert sum((x0>>v)&1 for v in row)%2==1
@@ -61,6 +63,7 @@ def affine_data(rows,cube):
             "free_mask":free_mask,"m":m,"d":d,"r":m-d,
             "particular_free":v0,"kernel_basis":basis,
             "fixed_v_weight":Z.bit_count(),
+            "homogeneous_restricted_rhs":homogeneous,
             "parity":v0.bit_count()%2,
             "target_free_weight":2*n//3-Z.bit_count() if n%3==0 else None}
 
@@ -191,7 +194,7 @@ def exact_affine_lp(data,k=2,known_signed_degree=3):
     # A zero-weight continuation consists only of v_T=0 and is
     # directly checkable without invoking any relaxation.
     if jtarget==0:
-        cnt=int(data["particular_free"]==0)
+        cnt=int(data["homogeneous_restricted_rhs"])
         return {"verdict":"EXACT_DIRECT_ZERO_TARGET",
                 "exact_rational_optimum":str(cnt),
                 "integer_upper_bound":cnt,
@@ -210,7 +213,7 @@ def exact_affine_lp(data,k=2,known_signed_degree=3):
     Hanchors={0:1}
     Canchors={}
     if 0 in C_indices:
-        Canchors[0]=1 if data["particular_free"]==0 else 0
+        Canchors[0]=int(data["homogeneous_restricted_rhs"])
     unknownH=[i for i in H_indices if i not in Hanchors]
     unknownC=[i for i in C_indices if i not in Canchors]
     spect=[s for s in range(1,m) if s not in anchored_spec]
