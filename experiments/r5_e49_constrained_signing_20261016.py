@@ -30,7 +30,9 @@ from pathlib import Path
 
 import numpy as np
 
-from r5_e49_joint_cyclespace_20261016 import run as cyclespace_run
+from r5_e49_joint_cyclespace_20261016 import (
+    run as cyclespace_run,witness_for_z
+)
 
 
 def signed_incidence(rows,mask):
@@ -143,6 +145,18 @@ def run(path,samples=400,seed=20261016):
     for j,g in enumerate(gens):
         if (best_code>>j)&1:derived^=g
     assert derived==best
+    E=[(i,j) for i,row in enumerate(rows) for j in row]
+    lookup={edge:k for k,edge in enumerate(E)}
+    zlist=[int(z) for z in F["distinct_z_decimal"]]
+    found_witnesses=[witness_for_z(rows,z,best,lookup) for z in zlist]
+    assert all(w is not None for w in found_witnesses)
+    assert len(set(found_witnesses))==len(zlist)
+    # Explicit source-edge cycle equations are checked again for
+    # the FINAL combined perturbation, not only its basis vectors.
+    for Z in C["G_z"]:
+        for eq in Z["fundamental_cycle_constraints"]:
+            mask=int(eq["incidence_mask_decimal"])
+            assert ((mask&best).bit_count()&1)==eq["rhs"]
     # Numerical brackets are GUESSES. Exact rational LDL
     # counts constitute the actual acceptance certificate.
     low=max(0,int(floor(best_rho*1000))-1)
@@ -155,6 +169,8 @@ def run(path,samples=400,seed=20261016):
     best_spec=count_at(Gbest,low,high,1000)
     assert best_spec["count_singular_values_greater_than_lower"]>=1
     assert best_spec["count_singular_values_greater_than_upper"]==0
+    assert high*high<8*(1000**2), "new-spectrum bound not certified"
+    assert 29049**2>8*(10000**2), "old-spectrum obstruction not certified"
     # We can assert observable best signed radius above/below
     # Ramanujan bound 2 sqrt2 using rational 8 threshold
     # without irrational arithmetic: q²=8.
@@ -174,6 +190,10 @@ def run(path,samples=400,seed=20261016):
         "best_quotient_code_decimal":str(best_code),
         "best_voltage_mask_decimal":str(best),
         "best_compatible_exact_GF2":True,
+        "best_witnesses_for_both_z_decimal":[str(w) for w in found_witnesses],
+        "best_witnesses_exact_row_sum_verified":True,
+        "certified_new_spectrum_strictly_inside_2sqrt2":True,
+        "certified_source_lambda2_strictly_above_2sqrt2":True,
         "source_lambda2_numerical":sorted(
             np.linalg.svd(signed_incidence(rows,0),compute_uv=False),
             reverse=True)[1],
