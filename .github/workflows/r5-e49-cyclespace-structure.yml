@@ -24,10 +24,14 @@ jobs:
           python-version: "3.11"
       - name: Independent exact full joint cycle rank and 27 free switching classes
         run: python3 experiments/r5_e49_joint_cyclespace_20261016.py --fixture experiments/r5_e48_frozen_repaired_multi_z_20261016.json > e49_joint_cycle_certificate.json
+      - name: Complete source girth, all 3-cuts, cyclic cut4, conductance upper bounds
+        run: python3 experiments/r5_e49_structural_profile_20261016.py --fixture experiments/r5_e48_frozen_repaired_multi_z_20261016.json > e49_structural_certificate.json
       - name: Show exact geometric invariants
         run: python3 -c 'import json;d=json.load(open("e49_joint_cycle_certificate.json"));print(json.dumps({"cycle_ranks":d["single_direction_cycle_ranks"],"joint_kappa":d["joint_cycle_rank_kappa"],"gauge":d["gauge_rank"],"quotient_dim":d["compatible_switching_quotient_dim"],"count":d["compatible_switching_class_count_decimal"]},sort_keys=True))'
       - uses: actions/upload-artifact@v4
         with:
           name: r5-e49-joint-cyclespace-certificate
-          path: e49_joint_cycle_certificate.json
+          path: |
+            e49_joint_cycle_certificate.json
+            e49_structural_certificate.json
           retention-days: 90
