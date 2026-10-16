@@ -106,16 +106,6 @@ def affine_unit_rhs(masks,width):
 
 def lift_rows(base,sign):
     n=len(base)
-    idx=0
-    out=[]
-    for layer in (0,1):
-        for row in base:
-            arr=[]
-            for j in row:
-                # source incidence order is deterministic
-                # and repeats on both layers
-                pass
-            out.append(arr)
     E=[(i,j) for i,row in enumerate(base) for j in row]
     lookup={(i,j):(sign>>k)&1 for k,(i,j) in enumerate(E)}
     out=[]
