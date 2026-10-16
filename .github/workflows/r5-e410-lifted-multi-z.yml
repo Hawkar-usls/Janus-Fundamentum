@@ -25,8 +25,31 @@ jobs:
         run: python3 experiments/r5_e410_girth_lifted_unsat_multi_z_20261016.py --fixture experiments/r5_e48_frozen_repaired_multi_z_20261016.json --samples 96 > e410_lifted_source_certificate.json
       - name: Report certified source or sound constrained obstruction
         run: python3 -c 'import json;d=json.load(open("e410_lifted_source_certificate.json"));print(json.dumps({"status":d["status"],"n":d.get("source_n"),"girth":d.get("source_girth"),"SAT":d.get("source_exact_SAT_count"),"nullity":d.get("source_GF2_nullity"),"parity_words":d.get("source_full_parity_words"),"conditions":d["search_log"]},sort_keys=True))'
+      - name: Emit immutable independent replay fixture candidate
+        run: |
+          python3 - <<'PY'
+          import json
+          d=json.load(open("e410_lifted_source_certificate.json"))
+          assert d["status"]=="FOUND_CERTIFIED_N90_UNSAT_MULTI_Z_GIRTH6"
+          source={"version":"R5_E410_FROZEN_N90_UNSAT_MULTIZ_1",
+                  "parent_fixture_sha":"79d48f357fe9bffd32734ea44df33ab50e46cfb345859da7384a5c3d136626d0",
+                  "parent_C45_rows_source":"r5_e48_frozen_repaired_multi_z_20261016.json",
+                  "voltage_decimal":d["new_source_voltages_decimal"],
+                  "source_n90_rows":d["n90_source_rows"],
+                  "source_sha256":d["new_source_sha256"],
+                  "two_ternary_directions":d["lifted_distinct_Yz"],
+                  "hexagon_odd_parity_obstruction":d["hexagon_GF2_contradiction"],
+                  "expected":{"girth":6,"GF2_rank":d["source_GF2_rank"],
+                              "GF2_nullity":d["source_GF2_nullity"],
+                              "UNSAT_words_checked":d["source_full_parity_words"],
+                              "exact_SAT_count":0}}
+          json.dump(source,open("e410_frozen_candidate.json","w"),sort_keys=True,indent=2)
+          print("E410_FROZEN "+json.dumps(source,sort_keys=True,separators=(",",":")))
+          PY
       - uses: actions/upload-artifact@v4
         with:
           name: r5-e410-exact-lifted-source-certificate
-          path: e410_lifted_source_certificate.json
+          path: |
+            e410_lifted_source_certificate.json
+            e410_frozen_candidate.json
           retention-days: 90
