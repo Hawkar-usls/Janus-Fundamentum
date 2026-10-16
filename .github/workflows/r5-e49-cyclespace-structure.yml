@@ -30,6 +30,8 @@ jobs:
         run: python3 experiments/r5_e49_structural_profile_20261016.py --fixture experiments/r5_e48_frozen_repaired_multi_z_20261016.json > e49_structural_certificate.json
       - name: Constrained signed spectral search and exact rational LDL inertia proof
         run: python3 experiments/r5_e49_constrained_signing_20261016.py --fixture experiments/r5_e48_frozen_repaired_multi_z_20261016.json --samples 400 > e49_constrained_signing_certificate.json
+      - name: Independent stdlib-only replay of FROZEN best signed cover and rational spectral bounds
+        run: python3 experiments/r5_e49_signed_spectral_cleanroom_20261016.py --fixture experiments/r5_e48_frozen_repaired_multi_z_20261016.json --signing experiments/r5_e49_frozen_constrained_signing_20261016.json > e49_cleanroom_signed_spectrum.json
       - name: Report certified source and constrained signed spectral bounds
         run: python3 -c 'import json;d=json.load(open("e49_constrained_signing_certificate.json"));print(json.dumps({"numeric_old_lambda2":d["source_lambda2_numerical"],"old_inertia":d["source_lambda2_exact_rational_interval"],"baseline_new_numeric":d["baseline_new_signed_rho_numeric"],"best_observed_new_numeric":d["best_observed_new_signed_rho_numeric"],"best_new_inertia":d["new_signed_radius_exact_rational_interval"],"samples":d["distinct_random_samples_tried"],"best_voltage":d["best_voltage_mask_decimal"],"best_code":d["best_quotient_code_decimal"],"certifies_new_Ramanujan":d["certified_new_spectrum_strictly_inside_2sqrt2"],"old_gap_still_bad":d["certified_source_lambda2_strictly_above_2sqrt2"]},sort_keys=True))'
       - name: Show exact geometric invariants
@@ -41,4 +43,5 @@ jobs:
             e49_joint_cycle_certificate.json
             e49_structural_certificate.json
             e49_constrained_signing_certificate.json
+            e49_cleanroom_signed_spectrum.json
           retention-days: 90
