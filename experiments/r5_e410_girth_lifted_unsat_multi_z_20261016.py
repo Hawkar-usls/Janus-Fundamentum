@@ -82,17 +82,36 @@ def short_base_cycles(adj,less_than):
 def affine_unit_rhs(masks,width):
     """Solve all cycle-mask dot sigma=1 via augmented GF2 RREF."""
     rows=[mask|(1<<width) for mask in masks]
+    # Each elimination row tracks which ORIGINAL simple cycles
+    # were XOR-combined to derive it. An inconsistent 0=1 row
+    # therefore yields a short portable proof independent of
+    # the elimination implementation.
+    provenance=[1<<i for i in range(len(masks))]
     rank=0;pivots=[]
     for j in range(width):
         i=next((i for i in range(rank,len(rows)) if (rows[i]>>j)&1),None)
         if i is None:continue
         rows[i],rows[rank]=rows[rank],rows[i]
+        provenance[i],provenance[rank]=provenance[rank],provenance[i]
         for k in range(len(rows)):
-            if k!=rank and ((rows[k]>>j)&1):rows[k]^=rows[rank]
+            if k!=rank and ((rows[k]>>j)&1):
+                rows[k]^=rows[rank]
+                provenance[k]^=provenance[rank]
         pivots.append(j);rank+=1
-    if any(row==(1<<width) for row in rows[rank:]):
-        return {"consistent":False,"rank":rank,
-                "constraint_count":len(masks)},None,None
+    for j in range(rank,len(rows)):
+        if rows[j]==(1<<width):
+            ids=[i for i in range(len(masks))
+                 if (provenance[j]>>i)&1]
+            folded=0
+            for i in ids:folded^=masks[i]
+            assert folded==0 and len(ids)%2==1
+            proof={"original_cycle_indices":ids,
+                   "original_cycle_masks_decimal":[str(masks[i]) for i in ids],
+                   "xor_all_masks_zero":True,
+                   "odd_number_of_cycles":len(ids)}
+            return {"consistent":False,"rank":rank,
+                    "constraint_count":len(masks),
+                    "contradiction_certificate":proof},None,None
     particular=0
     for i,j in enumerate(pivots):
         if (rows[i]>>width)&1:particular|=1<<j
@@ -150,6 +169,15 @@ def run(path,samples=96):
                     solved["consistent"]}
         log.append(attempt)
         if not solved["consistent"]:
+            # Recheck the certificate WITHOUT relying on row-reduction:
+            # pure XOR of the cited short cycle masks is zero and an
+            # odd number of required RHS ones sums to one.
+            relation=solved["contradiction_certificate"]
+            folded=0
+            for decimal in relation["original_cycle_masks_decimal"]:
+                folded^=int(decimal)
+            assert folded==0
+            assert len(relation["original_cycle_masks_decimal"])%2==1
             continue
         choices=[]
         for k in range(samples):
