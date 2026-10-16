@@ -246,6 +246,62 @@ def run(path,samples=96):
             "depth1_spectral_twins":"NOT_CONSTRUCTED",
             "P_vs_NP":"OPEN"
         }
+    # A structural 0=1 certificate has now shown that EVERY
+    # two-lift of THIS frozen source retains a 6-cycle: no
+    # signing can make all source hexagons odd. Construct the
+    # useful relaxed n90 UNSAT + MULTI_Z positive control anyway.
+    assert log[-1]["target_girth"]==8
+    assert not log[-1]["GF2_odd_cycle_system"]["consistent"]
+    for attempt in range(samples):
+        sigma=rng.getrandbits(len(E))
+        if not is_unsat_by_cycle_sign(sigma,systems):continue
+        signed=lift_rows(base,sigma)
+        adj_new,_=graph_from_rows(signed)
+        if comp_sizes(adj_new)!=[2*len(signed)]:continue
+        girth,_=girth_and_cycle(adj_new)
+        assert girth==6,("hexagon obstruction predicts girth6",girth)
+        oracle=exact_sat_words(signed,cap=1<<16)
+        assert oracle["status"]=="EXACT" and oracle["count"]==0
+        ycontrols=[]
+        n=len(base)
+        for z in zlist:
+            y=[int((z>>j)&1)+2*int(j in (1,16))
+               for j in range(n)]
+            assert all(sum(y[j] for j in row)==2 for row in base)
+            y2=y+y
+            assert all(sum(y2[j] for j in row)==2 for row in signed)
+            z2=sum(1<<i for i,val in enumerate(y2) if val&1)
+            assert all(sum((z2>>j)&1 for j in row)%2==0
+                       for row in signed)
+            ycontrols.append({
+                "base_z_decimal":str(z),
+                "lifted_z_decimal":str(z2),
+                "lifted_y2_columns":[1,16,n+1,n+16],
+                "all_integer_rows_eq2_checked":True})
+        assert len({item["lifted_z_decimal"] for item in ycontrols})==2
+        return {
+            "status":"FOUND_CERTIFIED_N90_UNSAT_MULTI_Z_GIRTH6",
+            "source_n":len(signed),
+            "source_incidence_vertex_count":2*len(signed),
+            "source_girth":girth,
+            "source_GF2_rank":oracle["rank"],
+            "source_GF2_nullity":oracle["d"],
+            "source_full_parity_words":oracle["checked"],
+            "source_exact_SAT_count":0,
+            "all_2lifts_of_original_C45_forced_girth6":True,
+            "hexagon_GF2_contradiction":
+                log[-1]["GF2_odd_cycle_system"]["contradiction_certificate"],
+            "lifted_distinct_Yz":ycontrols,
+            "new_source_voltages_decimal":str(sigma),
+            "n90_source_rows":[list(row) for row in signed],
+            "new_source_sha256":fingerprint(validate_scl(signed)),
+            "source_cut_conductance_upper_bound":"2/27",
+            "search_attempt_index":attempt,
+            "search_log":log,
+            "girth10_and_12":"PROVED_IMPOSSIBLE_FOR_2LIFTS_OF_THIS_SOURCE",
+            "large_expansion":"NOT_PROVED",
+            "depth1_opposite_status_twins":"NOT_CONSTRUCTED",
+            "P_vs_NP":"OPEN"}
     return {"status":"NO_CERTIFIED_GIRTH_ENHANCED_UNSAT_FOUND",
             "search_log":log,
             "n90_2lift_MULTI_Z_inheritance":"PROVED_ALL_N",
