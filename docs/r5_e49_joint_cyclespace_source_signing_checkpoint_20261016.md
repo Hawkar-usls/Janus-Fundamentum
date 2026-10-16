@@ -141,7 +141,7 @@ Thus the numerical best signing is **independently proof-carrying** even if a fu
 | Global `Phi_alpha` minima and alpha=0.25 upper | NOT COMPUTED |
 | Source old λ2 strict interval (2.9049,2.9050) | EXACT RATIONAL INERTIA CI VERIFIED |
 | One JANUS-constrained signing with new spectral norm <2sqrt2 | EXACT RATIONAL INERTIA + INDEPENDENT CLEAN-ROOM CI VERIFIED |
-| All four SAT witnesses under best new signing, total count | FOUR DIRECTLY VERIFIED; exact full count NOT ESTABLISHED |
+| Best new signing exact SAT count 4, two per source z | INDEPENDENT FULL GF(2) ORACLE CI VERIFIED |
 | Global optimum over all 2^27 | NOT PROVED |
 | Uniform constrained signing theorem | NOT PROVED |
 | New n>=63 legal connected UNSAT source with joint MULTI_Z and high girth | **NOT CONSTRUCTED** |
@@ -149,6 +149,55 @@ Thus the numerical best signing is **independently proof-carrying** even if a fu
 | Depth1 opposite-status spectral+anchor S1 twins | NOT CONSTRUCTED |
 | Universal polynomial time SolveLinearCubicXSAT | NOT CONSTRUCTED |
 | P versus NP | OPEN |
+
+## E4.9.D — exact SAT count is CONSTANT across the full 27-dimensional compatible signing family
+
+The E4.8 frozen source C45 has been FULLY audited: it is UNSAT, and
+`Z(C)={z1,z2}` contains exactly TWO nonzero parity sheet-XOR
+directions. Each fixed-z residual exact cover yields
+`|Y_z1|=|Y_z2|=1`. Both support graphs `G_z1,G_z2` are connected,
+so `c_z1=c_z2=1`.
+
+For EVERY incidence voltage sigma that satisfies the 19
+independent joint parity constraints (equivalently, EVERY one
+of the 2^27 compatible gauge-quotient classes), E4.5's ALL-n
+signed two-lift counting identity gives
+
+```text
+#SAT(lift_sigma(C45))
+= sum_{z in Z(C45)} |Y_z| * 2^{c_z} * 1[cycle_z(sigma) holds]
+= 1*2 + 1*2
+= 4.
+```
+
+No other 90-var Exact-One solutions can exist:
+the source C45 is UNSAT, hence sheet-XOR zero is
+impossible; Z(C45) was FULLY enumerated and has
+no third admissible direction. Therefore the ENTIRE
+27-dimensional affine family—not merely the one
+selected good signing—has **exactly four SAT witnesses
+per graph 2-lift**, two for each z. This claim is
+conditional on the frozen exact source certificate;
+it is not an all-n constant-count theorem for
+arbitrary SCL instances.
+
+A newly extended **independent stdlib-only verifier**
+`experiments/r5_e49_signed_spectral_cleanroom_20261016.py`
+now reconstructs the winning 90×90 signed two-cover,
+computes its ACTUAL GF2 rank/nullity using a separate
+HIGH-pivot elimination, enumerates every one of its
+`2^d` parity words, and checks that EXACTLY the four
+constructed signed Exact-One words survive (two per z).
+CRITICAL scientific repair: unlike the ORIGINAL frozen
+2-lift, the newly optimized signing is NOT assumed
+to retain rank81/nullity9. Its rank is recomputed
+from the new matrix; the old rank was never protected
+by the cycle parity constraints alone. The numerical
+spectral certificate did not depend on this correction.
+
+This adds an independent finite count certificate
+to the exact cycle-theoretic deduction, not a uniform
+polynomial-time all-SCL solver.
 
 ## Reproduction
 
