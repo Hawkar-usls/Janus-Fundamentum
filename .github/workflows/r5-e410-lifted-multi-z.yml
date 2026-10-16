@@ -1,0 +1,32 @@
+name: R5 E4.10 Lifted UNSAT MULTI_Z and Short Cycles
+on:
+  push:
+    branches: [research/r5-e410-lifted-unsat-highgirth-20261016]
+    paths:
+      - "experiments/r5_e410_girth_lifted_unsat_multi_z_20261016.py"
+      - "docs/r5_e410_*.md"
+      - ".github/workflows/r5-e410-lifted-multi-z.yml"
+  pull_request:
+    paths:
+      - "experiments/r5_e410_girth_lifted_unsat_multi_z_20261016.py"
+      - "docs/r5_e410_*.md"
+      - ".github/workflows/r5-e410-lifted-multi-z.yml"
+  workflow_dispatch:
+jobs:
+  exact-lift:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Enumerate short simple base cycles and solve voltage GF2 equations
+        run: python3 experiments/r5_e410_girth_lifted_unsat_multi_z_20261016.py --fixture experiments/r5_e48_frozen_repaired_multi_z_20261016.json --samples 96 > e410_lifted_source_certificate.json
+      - name: Report certified source or sound constrained obstruction
+        run: python3 -c 'import json;d=json.load(open("e410_lifted_source_certificate.json"));print(json.dumps({"status":d["status"],"n":d.get("source_n"),"girth":d.get("source_girth"),"SAT":d.get("source_exact_SAT_count"),"nullity":d.get("source_GF2_nullity"),"parity_words":d.get("source_full_parity_words"),"conditions":d["search_log"]},sort_keys=True))'
+      - uses: actions/upload-artifact@v4
+        with:
+          name: r5-e410-exact-lifted-source-certificate
+          path: e410_lifted_source_certificate.json
+          retention-days: 90
