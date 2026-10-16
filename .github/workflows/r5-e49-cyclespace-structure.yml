@@ -1,0 +1,47 @@
+name: R5 E4.9 Joint Cyclespace and Structural Profile
+on:
+  push:
+    branches: [research/r5-e49-cyclespace-structural-signings-20261016]
+    paths:
+      - "experiments/r5_e49_*.py"
+      - "docs/r5_e49_*.md"
+      - ".github/workflows/r5-e49-cyclespace-structure.yml"
+  pull_request:
+    paths:
+      - "experiments/r5_e49_*.py"
+      - "docs/r5_e49_*.md"
+      - ".github/workflows/r5-e49-cyclespace-structure.yml"
+  workflow_dispatch:
+
+jobs:
+  full-e49:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install numpy for candidate SVD search only
+        run: python3 -m pip install numpy
+      - name: Independent exact full joint cycle rank and 27 free switching classes
+        run: python3 experiments/r5_e49_joint_cyclespace_20261016.py --fixture experiments/r5_e48_frozen_repaired_multi_z_20261016.json > e49_joint_cycle_certificate.json
+      - name: Complete source girth, all 3-cuts, cyclic cut4, conductance upper bounds
+        run: python3 experiments/r5_e49_structural_profile_20261016.py --fixture experiments/r5_e48_frozen_repaired_multi_z_20261016.json > e49_structural_certificate.json
+      - name: Constrained signed spectral search and exact rational LDL inertia proof
+        run: python3 experiments/r5_e49_constrained_signing_20261016.py --fixture experiments/r5_e48_frozen_repaired_multi_z_20261016.json --samples 400 > e49_constrained_signing_certificate.json
+      - name: Independent stdlib-only replay of FROZEN best signed cover and rational spectral bounds
+        run: python3 experiments/r5_e49_signed_spectral_cleanroom_20261016.py --fixture experiments/r5_e48_frozen_repaired_multi_z_20261016.json --signing experiments/r5_e49_frozen_constrained_signing_20261016.json > e49_cleanroom_signed_spectrum.json
+      - name: Report certified source and constrained signed spectral bounds
+        run: python3 -c 'import json;d=json.load(open("e49_constrained_signing_certificate.json"));print(json.dumps({"numeric_old_lambda2":d["source_lambda2_numerical"],"old_inertia":d["source_lambda2_exact_rational_interval"],"baseline_new_numeric":d["baseline_new_signed_rho_numeric"],"best_observed_new_numeric":d["best_observed_new_signed_rho_numeric"],"best_new_inertia":d["new_signed_radius_exact_rational_interval"],"samples":d["distinct_random_samples_tried"],"best_voltage":d["best_voltage_mask_decimal"],"best_code":d["best_quotient_code_decimal"],"certifies_new_Ramanujan":d["certified_new_spectrum_strictly_inside_2sqrt2"],"old_gap_still_bad":d["certified_source_lambda2_strictly_above_2sqrt2"]},sort_keys=True))'
+      - name: Show exact geometric invariants
+        run: python3 -c 'import json;d=json.load(open("e49_joint_cycle_certificate.json"));print(json.dumps({"cycle_ranks":d["single_direction_cycle_ranks"],"joint_kappa":d["joint_cycle_rank_kappa"],"gauge":d["gauge_rank"],"quotient_dim":d["compatible_switching_quotient_dim"],"count":d["compatible_switching_class_count_decimal"]},sort_keys=True))'
+      - uses: actions/upload-artifact@v4
+        with:
+          name: r5-e49-joint-cyclespace-certificate
+          path: |
+            e49_joint_cycle_certificate.json
+            e49_structural_certificate.json
+            e49_constrained_signing_certificate.json
+            e49_cleanroom_signed_spectrum.json
+          retention-days: 90
