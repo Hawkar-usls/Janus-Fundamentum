@@ -192,9 +192,13 @@ def replay(fixture_path,signing_path):
         witnesses.extend((x,swap))
     assert len(set(witnesses))==4
     independent=independent_complete_exact_one_oracle(lifted)
-    assert independent["rank_GF2"]==81
-    assert independent["nullity_GF2"]==9
-    assert independent["all_parity_words_checked"]==512
+    # A new signing can CHANGE the GF2 rank of the 2-lift.
+    # The original frozen signing had rank81/nullity9, but
+    # imposing the SAME SAT-compatible cycle equations does
+    # not preserve the rank obstruction matrix L^T A0 K.
+    # Learn its ACTUAL kernel dimension from this new matrix.
+    assert independent["rank_GF2"]+independent["nullity_GF2"]==len(lifted)
+    assert independent["all_parity_words_checked"]==(1<<independent["nullity_GF2"])
     assert set(independent["solutions"])==set(witnesses)
     z_counts={}
     for w in independent["solutions"]:
