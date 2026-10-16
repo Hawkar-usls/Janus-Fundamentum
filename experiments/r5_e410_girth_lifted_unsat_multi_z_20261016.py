@@ -130,7 +130,9 @@ def run(path,samples=96):
     assert len(base)==45
     adj,E=graph_from_rows(base)
     assert girth_and_cycle(adj)[0]==6
-    lookup={(i,j):k for k,(i,j) in enumerate(E)}
+    # graph_from_rows numbers COLUMN VERTICES as n+j; cycle_equations
+    # expects original source column indices j.
+    lookup={(i,v-len(base)):k for k,(i,v) in enumerate(E)}
     zlist=[int(z) for z in F["distinct_z_decimal"]]
     systems=[[(mask,rhs) for mask,rhs,trail in
               cycle_equations(base,z,lookup)["equations"]]
