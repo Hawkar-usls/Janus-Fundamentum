@@ -4,6 +4,8 @@ on:
     branches: [research/r5-e410-lifted-unsat-highgirth-20261016]
     paths:
       - "experiments/r5_e410_girth_lifted_unsat_multi_z_20261016.py"
+      - "experiments/r5_e410_cleanroom_lifted_unsat_20261016.py"
+      - "experiments/r5_e410_frozen_unsat_multi_z_20261016.json"
       - "docs/r5_e410_*.md"
       - ".github/workflows/r5-e410-lifted-multi-z.yml"
   pull_request:
@@ -46,10 +48,17 @@ jobs:
           json.dump(source,open("e410_frozen_candidate.json","w"),sort_keys=True,indent=2)
           print("E410_FROZEN "+json.dumps(source,sort_keys=True,separators=(",",":")))
           PY
+      - name: Immutable n90 source drift check
+        run: python3 -c 'import json;new=json.load(open("e410_frozen_candidate.json"));old=json.load(open("experiments/r5_e410_frozen_unsat_multi_z_20261016.json"));assert new==old,"E410_FROZEN_SOURCE_DRIFT";print("E410_FROZEN_SOURCE_DRIFT PASS")'
+      - name: Independent no-project-import SCL90 UNSAT multi-z and hexagon proof
+        run: python3 experiments/r5_e410_cleanroom_lifted_unsat_20261016.py --fixture experiments/r5_e410_frozen_unsat_multi_z_20261016.json --parent experiments/r5_e48_frozen_repaired_multi_z_20261016.json > e410_cleanroom_certificate.json
+      - name: Report fully independent 90-var GF2 and girth obstruction
+        run: python3 -c 'import json;d=json.load(open("e410_cleanroom_certificate.json"));print(json.dumps({"status":d["gate"],"n":d["n"],"GF2rank":d["GF2_rank"],"GF2nullity":d["GF2_nullity"],"tested":d["all_parity_words_checked"],"SAT":d["SAT_count"],"girth":d["girth"],"three_hexagons":d["hexagon_proof"],"two_ternary_z":d["explicit_distinct_lifted_Y_z"]},sort_keys=True))'
       - uses: actions/upload-artifact@v4
         with:
           name: r5-e410-exact-lifted-source-certificate
           path: |
             e410_lifted_source_certificate.json
             e410_frozen_candidate.json
+            e410_cleanroom_certificate.json
           retention-days: 90
