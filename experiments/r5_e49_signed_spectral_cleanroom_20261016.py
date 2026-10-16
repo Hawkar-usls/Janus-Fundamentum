@@ -128,6 +128,45 @@ def exact_one(rows,x):
     return all(sum((x>>j)&1 for j in row)==1 for row in rows)
 
 
+def independent_complete_exact_one_oracle(rows):
+    """HIGH-pivot GF2 RREF and complete complement-code enumeration.
+
+    Every legal square cubic Exact-One SAT word x yields
+    A*(1+x)=0 over GF2. This is an EXACT finite oracle.
+    """
+    n=len(rows)
+    bits=[sum(1<<j for j in row) for row in rows]
+    pivots={}
+    for row in bits:
+        v=row
+        while v:
+            p=v.bit_length()-1
+            if p in pivots:v^=pivots[p]
+            else:
+                pivots[p]=v
+                break
+    free=[j for j in range(n) if j not in pivots]
+    assert len(free)<=12,("UNKNOWN_RESOURCE_LIMIT",len(free))
+    basis=[]
+    for j in free:
+        v=1<<j
+        for p in sorted(pivots):
+            if (v&pivots[p]).bit_count()&1:v|=1<<p
+        assert all((v&r).bit_count()%2==0 for r in bits)
+        basis.append(v)
+    full=(1<<n)-1
+    solutions=[]
+    for mask in range(1<<len(basis)):
+        v=0
+        for i,b in enumerate(basis):
+            if (mask>>i)&1:v^=b
+        x=full^v
+        if exact_one(rows,x):solutions.append(x)
+    return {"rank_GF2":n-len(basis),"nullity_GF2":len(basis),
+            "all_parity_words_checked":1<<len(basis),
+            "solutions":solutions}
+
+
 def replay(fixture_path,signing_path):
     source=json.loads(Path(fixture_path).read_text())
     sig=json.loads(Path(signing_path).read_text())
@@ -152,6 +191,16 @@ def replay(fixture_path,signing_path):
         assert (swap&full)^(swap>>n)==z
         witnesses.extend((x,swap))
     assert len(set(witnesses))==4
+    independent=independent_complete_exact_one_oracle(lifted)
+    assert independent["rank_GF2"]==81
+    assert independent["nullity_GF2"]==9
+    assert independent["all_parity_words_checked"]==512
+    assert set(independent["solutions"])==set(witnesses)
+    z_counts={}
+    for w in independent["solutions"]:
+        z=(w&((1<<n)-1))^(w>>n)
+        z_counts[str(z)]=z_counts.get(str(z),0)+1
+    assert z_counts=={z:2 for z in source["distinct_z_decimal"]}
     def bracket(G,label,expected_lower,expected_upper):
         b=sig[label]
         def parse(s):
@@ -179,7 +228,12 @@ def replay(fixture_path,signing_path):
             "two_distinct_z_both_active_under_one_signing":True,
             "independent_2lift_integer_SAT_witnesses":[str(x) for x in witnesses],
             "number_explicit_valid_SAT_witnesses":len(witnesses),
-            "total_SAT_solutions_for_this_signing":"NOT_COUNTED",
+            "total_SAT_solutions_for_this_signing":len(independent["solutions"]),
+            "independent_exact_GF2_oracle":{
+                "rank":independent["rank_GF2"],
+                "nullity":independent["nullity_GF2"],
+                "parity_words_checked":independent["all_parity_words_checked"],
+                "z_multiplicities":z_counts},
             "exact_new_signed_radius_interval":new,
             "exact_old_source_lambda2_interval":old,
             "strict_new_bound_below_2_sqrt2":True,
