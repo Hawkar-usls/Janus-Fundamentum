@@ -1,0 +1,64 @@
+name: R5 E4.10 Lifted UNSAT MULTI_Z and Short Cycles
+on:
+  push:
+    branches: [research/r5-e410-lifted-unsat-highgirth-20261016]
+    paths:
+      - "experiments/r5_e410_girth_lifted_unsat_multi_z_20261016.py"
+      - "experiments/r5_e410_cleanroom_lifted_unsat_20261016.py"
+      - "experiments/r5_e410_frozen_unsat_multi_z_20261016.json"
+      - "docs/r5_e410_*.md"
+      - ".github/workflows/r5-e410-lifted-multi-z.yml"
+  pull_request:
+    paths:
+      - "experiments/r5_e410_girth_lifted_unsat_multi_z_20261016.py"
+      - "docs/r5_e410_*.md"
+      - ".github/workflows/r5-e410-lifted-multi-z.yml"
+  workflow_dispatch:
+jobs:
+  exact-lift:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Enumerate short simple base cycles and solve voltage GF2 equations
+        run: python3 experiments/r5_e410_girth_lifted_unsat_multi_z_20261016.py --fixture experiments/r5_e48_frozen_repaired_multi_z_20261016.json --samples 96 > e410_lifted_source_certificate.json
+      - name: Report certified source or sound constrained obstruction
+        run: python3 -c 'import json;d=json.load(open("e410_lifted_source_certificate.json"));print(json.dumps({"status":d["status"],"n":d.get("source_n"),"girth":d.get("source_girth"),"SAT":d.get("source_exact_SAT_count"),"nullity":d.get("source_GF2_nullity"),"parity_words":d.get("source_full_parity_words"),"conditions":d["search_log"]},sort_keys=True))'
+      - name: Emit immutable independent replay fixture candidate
+        run: |
+          python3 - <<'PY'
+          import json
+          d=json.load(open("e410_lifted_source_certificate.json"))
+          assert d["status"]=="FOUND_CERTIFIED_N90_UNSAT_MULTI_Z_GIRTH6"
+          source={"version":"R5_E410_FROZEN_N90_UNSAT_MULTIZ_1",
+                  "parent_fixture_sha":"79d48f357fe9bffd32734ea44df33ab50e46cfb345859da7384a5c3d136626d0",
+                  "parent_C45_rows_source":"r5_e48_frozen_repaired_multi_z_20261016.json",
+                  "voltage_decimal":d["new_source_voltages_decimal"],
+                  "source_n90_rows":d["n90_source_rows"],
+                  "source_sha256":d["new_source_sha256"],
+                  "two_ternary_directions":d["lifted_distinct_Yz"],
+                  "hexagon_odd_parity_obstruction":d["hexagon_GF2_contradiction"],
+                  "expected":{"girth":6,"GF2_rank":d["source_GF2_rank"],
+                              "GF2_nullity":d["source_GF2_nullity"],
+                              "UNSAT_words_checked":d["source_full_parity_words"],
+                              "exact_SAT_count":0}}
+          json.dump(source,open("e410_frozen_candidate.json","w"),sort_keys=True,indent=2)
+          print("E410_FROZEN "+json.dumps(source,sort_keys=True,separators=(",",":")))
+          PY
+      - name: Immutable n90 source drift check
+        run: python3 -c 'import json;new=json.load(open("e410_frozen_candidate.json"));old=json.load(open("experiments/r5_e410_frozen_unsat_multi_z_20261016.json"));assert new==old,"E410_FROZEN_SOURCE_DRIFT";print("E410_FROZEN_SOURCE_DRIFT PASS")'
+      - name: Independent no-project-import SCL90 UNSAT multi-z and hexagon proof
+        run: python3 experiments/r5_e410_cleanroom_lifted_unsat_20261016.py --fixture experiments/r5_e410_frozen_unsat_multi_z_20261016.json --parent experiments/r5_e48_frozen_repaired_multi_z_20261016.json > e410_cleanroom_certificate.json
+      - name: Report fully independent 90-var GF2 and girth obstruction
+        run: python3 -c 'import json;d=json.load(open("e410_cleanroom_certificate.json"));print(json.dumps({"status":d["gate"],"n":d["n"],"GF2rank":d["GF2_rank"],"GF2nullity":d["GF2_nullity"],"tested":d["all_parity_words_checked"],"SAT":d["SAT_count"],"girth":d["girth"],"three_hexagons":d["hexagon_proof"],"two_ternary_z":d["explicit_distinct_lifted_Y_z"]},sort_keys=True))'
+      - uses: actions/upload-artifact@v4
+        with:
+          name: r5-e410-exact-lifted-source-certificate
+          path: |
+            e410_lifted_source_certificate.json
+            e410_frozen_candidate.json
+            e410_cleanroom_certificate.json
+          retention-days: 90
