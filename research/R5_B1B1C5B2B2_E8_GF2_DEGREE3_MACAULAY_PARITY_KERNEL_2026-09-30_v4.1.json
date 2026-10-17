@@ -1,0 +1,74 @@
+{
+  "artifact_id": "JANUS-TRUMP-E8-GF2-DEGREE3-MACAULAY-PARITY-KERNEL-2026-09-30-v4.1",
+  "version": "v4.1",
+  "date_local": "2026-09-30",
+  "status": "EXACT_POLYNOMIAL_ALGEBRAIC_PREPROCESSING__NO_P_EQUALS_NP_CLAIM",
+  "parents": [
+    "research/R5_B1B1C5B2B2_E8_PAIR_CONDITIONED_HYPERIMPLICATION_BINARY_KERNEL_2026-09-30_v4.0.json",
+    "research/R5_B1B1C5B2B2_E8_F2_AFFINE_NONSINGULARITY_DECISION_REDUCTION_2026-09-26_v1.3.json"
+  ],
+  "purpose": "Add a characteristic-2 algebraic closure that strictly sees global parity contradictions invisible to width-3 resolution and singleton/pair failed-literal probing. Encode every clause by its Boolean unsatisfied-indicator polynomial and compute the full polynomial-calculus/Macaulay closure inside the squarefree degree-at-most-three quotient space. This is polynomial because that space has O(n^3) monomials.",
+  "boolean_polynomial_encoding": {
+    "field": "GF(2)",
+    "quotient": "Work modulo x_i^2=x_i, so every polynomial is represented by squarefree monomials.",
+    "literal_false_factor": "For positive literal x_i use 1+x_i; for negative literal NOT x_i use x_i.",
+    "clause_axiom": "For clause C=(l_1 OR ... OR l_t), t<=3, use p_C=product_j false(l_j)=0. On every Boolean assignment p_C=1 exactly when C is falsified.",
+    "degree3_space": "V_3=span over GF(2) of all squarefree monomials of degree at most three. dim(V_3)=sum_{j=0}^3 binom(n,j)=O(n^3)."
+  },
+  "closure_algorithm": {
+    "initial_rows": "Insert all clause polynomials p_C into V_3.",
+    "multiplication_rule": "Whenever q is in the current row space and x_i*q, multilinearized modulo x_i^2=x_i, still has degree at most three, insert x_i*q.",
+    "linear_rule": "Maintain the GF(2) row span by Gaussian elimination and iterate multiplication until the span stabilizes.",
+    "unsat_certificate": "If the constant polynomial 1 enters the span, then the input CNF is UNSAT. Store row-combination parents to obtain a polynomial-size degree<=3 algebraic refutation certificate.",
+    "runtime": "There are O(n^3) basis monomials and at most that many independent rows. Naive repeated multiplication by n variables and Gaussian elimination is polynomial in n and input size; no assignment enumeration is used."
+  },
+  "strict_gain_control": {
+    "instance": "Odd-charge Tseitin contradiction on the cubic graph K4: six edge variables and four degree-3 parity constraints, each parity constraint encoded by four 3-CNF clauses, for 16 ternary clauses total.",
+    "parents_silence": "The v4.0 exact checker verifies that complete width<=3 resolution and every consistent singleton/pair unit-propagation probe add nothing on this UNSAT instance.",
+    "local_parity_extraction": "For one degree-3 parity equation x+y+z=b, summing its four forbidden-assignment clause polynomials in GF(2) gives exactly x+y+z+b=0.",
+    "global_refutation": "Summing the four extracted K4 vertex equations cancels every edge variable twice. For odd total charge the result is 1=0, so the degree-3 Macaulay span contains the constant 1 and refutes the instance.",
+    "meaning": "The degree-3 GF2 closure is a strict polynomial preprocessing gain over the frozen width3/pair-closed kernel."
+  },
+  "soundness": {
+    "theorem": "Every generated row belongs to the Boolean ideal consequence space of the clause axioms under degree<=3 multiplication. Any Boolean model annihilates every initial clause polynomial and therefore every generated linear/multiplicative consequence. Hence derivation of 1 is a sound UNSAT certificate.",
+    "sat_side": "Failure to derive 1 is INCONCLUSIVE. A SAT verdict is never inferred from algebraic silence."
+  },
+  "fixed_degree_barrier": {
+    "statement": "Degree three is not a universal refutation bound. More generally, fixed-degree polynomial-calculus/Macaulay closure cannot decide arbitrary 3-CNF in polynomial time by completeness of that bounded degree alone.",
+    "evidence": [
+      "Buss-Grigoriev-Impagliazzo-Pitassi prove near-optimal linear polynomial-calculus degree lower bounds for Tseitin/counting principles over mismatched characteristics.",
+      "Modern generalized PC degree lower-bound frameworks also yield growing degree requirements for random k-CNF and expanding clause-variable incidence families over arbitrary fields."
+    ],
+    "cross_characteristic_firewall": "Characteristic 2 is exactly the favorable field for ordinary mod-2 Tseitin, so success on the K4 control is expected and useful, not evidence of universal tractability. Other hard families force the required degree to grow."
+  },
+  "algorithmic_consequence": {
+    "positive": [
+      "Pair-closed kernels can be strengthened by all degree<=3 GF2 algebraic consequences in deterministic polynomial time.",
+      "Native or syntactically recoverable XOR/Tseitin contradictions are collapsed by Gaussian row-space reasoning even when resolution-style local reasoning is silent."
+    ],
+    "killed": [
+      "Claim that width3 resolution plus pair probing already captures all polynomially accessible global information.",
+      "Claim that success of degree-3 GF2 closure on Tseitin implies arbitrary 3-SAT is solved."
+    ],
+    "not_killed": [
+      "Hybrid proof systems combining parity with genuinely non-affine/global constraints.",
+      "A source-specific contraction whose state is not bounded-degree monomial space.",
+      "A polynomially compressed unbounded-degree invariant.",
+      "P=NP"
+    ]
+  },
+  "next_target": {
+    "name": "E8_PARITY_CLOSED_NONAFFINE_CORE_V4_2",
+    "directive": "Run terminal projection, width3 resolution, pair probing, and GF2 degree3 closure first. Attack only kernels surviving all four. Extract every low-degree affine consequence but do not confuse affine closure with the OR3 hard core. Seek a polynomial-size invariant that couples parity subspaces with the remaining genuinely non-affine ternary atoms without fixed-degree monomial expansion, or produce an exact barrier for that hybrid route."
+  },
+  "scientific_ceiling": {
+    "P_VS_NP": "OPEN",
+    "P_EQUALS_NP_ALGORITHM": "NOT_CONSTRUCTED",
+    "E8_D1": "EMPTY"
+  },
+  "sources": [
+    "S. Buss, D. Grigoriev, R. Impagliazzo, T. Pitassi, Linear Gaps between Degrees for the Polynomial Calculus Modulo Distinct Primes, JCSS 62(2), 2001.",
+    "A Generalized Method for Proving Polynomial Calculus Degree Lower Bounds, Journal of the ACM, 2024.",
+    "T. Laitinen, T. Junttila, I. Niemela, Simulating Parity Reasoning, 2013/2014."
+  ]
+}

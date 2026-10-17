@@ -1,0 +1,87 @@
+{
+  "artifact_id": "JANUS-TRUMP-R5-B1B1C5B2B2-E8-TRANSVERSAL-MINOR-SUPPORT-OBSTRUCTION-2026-09-26-v0.4",
+  "version": "v0.4",
+  "date_local": "2026-09-26",
+  "status": "THEOREM_CANDIDATE__SYMBOLIC_PROOF_WRITTEN__NO_P_EQUALS_NP_CLAIM",
+  "gate": "R5_B1B1C5B2B2_E8_TRANSVERSAL_MINOR_SUPPORT_OBSTRUCTION_V0_4",
+  "parent": "research/R5_B1B1C5B2B2_E8_CAUCHY_BINET_BOOLEAN_SELECTOR_2026-09-26_v0.3.json",
+  "purpose": "Attack the exact missing lemma of v0.3: can arbitrary 3-CNF satisfiability support be represented by one selected row from each variable pair so that Cauchy-Binet collapses all assignments into one determinant?",
+  "counterexample_formula": {
+    "variables": ["x1", "x2", "x3", "x4"],
+    "formula": "(x1 OR NOT x2 OR x3) AND (x1 OR x2 OR x4) AND (NOT x2 OR x3 OR x4)",
+    "selected_truth_values": {
+      "1000": 1,
+      "0000": 0,
+      "0100": 0,
+      "1100": 0,
+      "0110": 1,
+      "0001": 1,
+      "0101": 0,
+      "1101": 1
+    }
+  },
+  "forbidden_representation": {
+    "model": "For each variable i choose two row vectors r_i^0,r_i^1 over an arbitrary field K. For assignment a, form the 4x4 matrix R(a) whose i-th row is r_i^{a_i}. Require det R(a) != 0 iff F(a)=1.",
+    "claim": "No such representation exists over any field.",
+    "relation_to_v0_3": "This is exactly the zero/nonzero support obligation needed by the one-row-pair Cauchy-Binet Boolean selector. It is stronger than falsifying exact 0/1 minor values."
+  },
+  "proof": {
+    "reference_assignment": "b=1000 is satisfying, so R(b) is invertible. Use its four selected rows as a basis.",
+    "principal_minor_reduction": [
+      "Express the opposite row choice for variable i in coordinates of the basis R(b), and put these four coordinate rows into a 4x4 matrix M=(m_ij).",
+      "For any assignment obtained from b by flipping the variable set S, det R(a)/det R(b) = det M[S,S]. This follows by factoring R(a)=P_S R(b), where P_S is the identity with exactly the rows in S replaced by the corresponding rows of M.",
+      "Therefore the selected SAT/UNSAT statuses impose zero/nonzero conditions on principal minors p_S=det M[S,S]."
+    ],
+    "translated_conditions": [
+      "0000 is UNSAT and differs from b in {1}: p_1=0, hence m_11=0.",
+      "1100 is UNSAT and differs from b in {2}: p_2=0, hence m_22=0.",
+      "0100 is UNSAT and differs from b in {1,2}: p_12=0. With m_11=m_22=0 this gives m_12*m_21=0.",
+      "0001 is SAT and differs from b in {1,4}: p_14 != 0. Hence m_14*m_41 != 0.",
+      "1101 is SAT and differs from b in {2,4}: p_24 != 0. Hence m_24*m_42 != 0.",
+      "0101 is UNSAT and differs from b in {1,2,4}: p_124=0.",
+      "0110 is SAT and differs from b in {1,2,3}: p_123 != 0."
+    ],
+    "contradiction": [
+      "Expanding p_124 with m_11=m_22=0 gives p_124 = -m_12*m_21*m_44 + m_12*m_24*m_41 + m_14*m_21*m_42.",
+      "Because m_12*m_21=0, the first term is zero.",
+      "Because m_14,m_41,m_24,m_42 are all nonzero, p_124=0 forces BOTH m_12=0 and m_21=0: if m_12=0 then m_14*m_21*m_42=0 implies m_21=0; symmetrically if m_21=0 then m_12*m_24*m_41=0 implies m_12=0.",
+      "Now expand p_123 = -m_12*m_21*m_33 + m_12*m_23*m_31 + m_13*m_21*m_32. With m_12=m_21=0, p_123=0.",
+      "But the satisfying assignment 0110 requires p_123 != 0. Contradiction."
+    ],
+    "field_scope": "The argument uses only determinant identities and absence of zero divisors, so it holds over every field, including characteristic 2."
+  },
+  "consequence": {
+    "killed": "UNIVERSAL_NONNEGATIVE_TRANSVERSAL_MINOR_REPRESENTATION_FOR_3CNF in the one-row-pair-per-variable model of v0.3.",
+    "preserved_positive_result": "The Cauchy-Binet selector identity itself remains exact; what fails is universal localization of arbitrary 3-CNF satisfaction into its selected minors.",
+    "not_killed": [
+      "determinant constructions where a variable controls multiple coupled rows/columns",
+      "nonlinear/global cancellation not expressible as one transversal minor per assignment",
+      "colored determinant / conditional-stack mechanisms",
+      "adaptive global transforms",
+      "P=NP"
+    ]
+  },
+  "source_alignment": [
+    {
+      "source": "Lin and Sturmfels, Polynomial relations among principal minors of a 4x4-matrix, Journal of Algebra 322 (2009)",
+      "url": "https://arxiv.org/abs/0812.0601",
+      "relevance": "Principal-minor vectors satisfy nontrivial algebraic relations already for 4x4 matrices; the proof here uses an even smaller zero-pattern consequence tailored to the frozen SAT counterexample."
+    },
+    {
+      "source": "Aravind et al., Learning Read-Once Determinants and the Principal Minor Assignment Problem, STOC 2026 / arXiv:2603.04255",
+      "url": "https://arxiv.org/abs/2603.04255",
+      "relevance": "Rank-one symbolic determinants are equivalent to read-once determinants and connect directly to principal-minor assignment, matching the normalization used in this obstruction."
+    }
+  ],
+  "next_gate": {
+    "name": "E8_COUPLED_BLOCK_OR_COLORED_DETERMINANT_CANCELLATION_V0_5",
+    "directive": "Do not repair v0.3 by fixed mandatory padding or another single row pair. The next candidate must allow genuinely coupled multi-occurrence/global structure while retaining polynomial construction and polynomial determinant-like evaluation.",
+    "preferred_attack": "Test whether a coupled colored-determinant/conditional-stack representation can encode SAT support while admitting a polynomial-time zero/nonzero decision that avoids evaluating the VNP-complete polynomial itself.",
+    "firewall": "If zero/nonzero of the candidate invariant is itself NP-hard/#P-hard or requires exponential state, reject it rather than rename it a solver."
+  },
+  "scientific_ceiling": {
+    "P_VS_NP": "OPEN",
+    "P_EQUALS_NP_ALGORITHM": "NOT_YET_CONSTRUCTED",
+    "PROVEN_IF_REPLAY_PASSES": "The one-row-pair Cauchy-Binet SAT-support route is impossible even for an explicit 3-clause 4-variable 3-CNF, over every field."
+  }
+}

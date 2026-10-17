@@ -1,0 +1,61 @@
+{
+  "artifact_id": "JANUS-TRUMP-E8-P3-OCCURRENCE-2D-MATROID-PARITY-LIFT-OBSTRUCTION-2026-09-30-v2.8",
+  "version": "v2.8",
+  "date_local": "2026-09-30",
+  "status": "EXACT_LOCAL_LINEAR_SUBSPACE_OBSTRUCTION__NO_P_EQUALS_NP_CLAIM",
+  "parents": [
+    "research/R5_B1B1C5B2B2_E8_P3_OVERLAP_THREE_PARTITION_MATROID_CARRIER_2026-09-30_v2.4.json",
+    "research/R5_B1B1C5B2B2_E8_MINIMAL_RANK3_SWITCH_FRONTIER_2026-09-26_v1.4.json"
+  ],
+  "purpose": "Test the most direct route from the P3-overlap carrier into polynomial linear matroid parity: represent each literal occurrence by a 2-dimensional subspace and declare a witness set feasible exactly when the selected subspaces form a direct sum. The local P3 switch plus ordinary clause conflict already makes this impossible.",
+  "model": {
+    "ambient": "A vector space W over an arbitrary field K.",
+    "occurrence_representation": "Each literal occurrence o is assigned a 2-dimensional subspace S_o <= W (equivalently a pair of columns spanning S_o).",
+    "selection_rule": "A set X of occurrences is accepted iff dim(sum_{o in X} S_o)=2|X|. This is exactly independence of the union of the corresponding pairs in linear matroid parity.",
+    "required_pair_semantics": "If two occurrences are forbidden together by the exact carrier, their subspaces must intersect nontrivially. If they are allowed together, their subspaces must intersect trivially."
+  },
+  "local_configuration": {
+    "rank3_switch": "For one mixed degree-3 Boolean variable, L and R are the two majority-sign occurrences and M is the minority-sign occurrence. The exact carrier forbids LM and MR but allows LR.",
+    "minority_clause_alternative": "Let N be any other literal occurrence in the clause containing M. The exact clause-capacity constraint forbids MN. There are normalized SAT instances in which L,R,N are simultaneously chosen as legal clause witnesses."
+  },
+  "theorem": {
+    "name": "NO_EXACT_OCCURRENCE_2D_DIRECT_SUM_LIFT_FOR_P3_SWITCH_PLUS_CLAUSE",
+    "statement": "No assignment of 2-dimensional subspaces can realize the exact pair semantics LM forbidden, MR forbidden, LR allowed, MN forbidden while also accepting the legal triple {L,R,N} by direct-sum independence.",
+    "proof": [
+      "LR allowed implies S_L intersect S_R = {0}.",
+      "LM forbidden and MR forbidden imply A=S_M intersect S_L and B=S_M intersect S_R are nonzero subspaces.",
+      "Because S_M is 2-dimensional, A and B each contain a line. These lines are distinct: if a nonzero vector lay in both, it would lie in S_L intersect S_R, contradicting LR allowed.",
+      "Two distinct lines span the 2-dimensional space S_M. Hence S_M is contained in S_L + S_R.",
+      "MN forbidden implies S_M intersect S_N contains a nonzero vector v.",
+      "But S_M <= S_L+S_R, so v lies in S_N intersect (S_L+S_R). Therefore S_N is not disjoint from S_L+S_R.",
+      "Consequently dim(S_L+S_R+S_N) < 6, so the supposedly legal triple {L,R,N} is rejected by the direct-sum selection rule. Contradiction."
+    ],
+    "field_scope": "Every field; the proof is pure dimension/intersection linear algebra and has no characteristic assumption."
+  },
+  "explicit_sat_control": {
+    "formula": "C1=(x OR a OR b), C2=(x OR c OR d), C3=(NOT x OR y OR z), with fresh auxiliary variables. The assignment x=1,y=1 (and arbitrary remaining values consistent with the displayed true literals) is SAT and the witness set {L=x in C1, R=x in C2, N=y in C3} is legal, while M=NOT x in C3 conflicts with L,R by sign and with N by clause capacity.",
+    "meaning": "The contradictory local pattern is not an artificial independence table; it occurs inside an actual bounded-occurrence SAT image."
+  },
+  "algorithmic_consequence": {
+    "killed": [
+      "One 2-dimensional linear-matroid-parity pair per literal occurrence with exact feasibility represented solely by direct-sum independence.",
+      "Any local lift in that model that encodes the P3 sign conflicts and clause capacity only through subspace intersections."
+    ],
+    "not_killed": [
+      "Higher-dimensional or auxiliary subspace gadgets whose selected object is not one fixed 2D pair per occurrence.",
+      "A nonlocal linear-matroid-parity construction that changes the occurrence ground set and reconstructs witnesses globally.",
+      "Pfaffian/determinantal cancellation not expressible as direct-sum occurrence independence.",
+      "The exterior secant-Grassmann contraction target.",
+      "P=NP."
+    ]
+  },
+  "next_target": {
+    "name": "E8_NONLOCAL_AUGMENTATION_OR_HIGHER_LIFT_FOR_RANK3_SWITCH_V2_9",
+    "directive": "Do not retry one-pair-per-occurrence linear matroid parity. Search for either (i) a nonlocal auxiliary lift whose dimension remains polynomial and whose projection exactly preserves the P3-overlap carrier, or (ii) a direct augmenting-exchange theorem on the carrier itself. Every candidate must preserve the legal L,R,N configuration above."
+  },
+  "scientific_ceiling": {
+    "P_VS_NP": "OPEN",
+    "P_EQUALS_NP_ALGORITHM": "NOT_CONSTRUCTED",
+    "E8_D1": "EMPTY"
+  }
+}

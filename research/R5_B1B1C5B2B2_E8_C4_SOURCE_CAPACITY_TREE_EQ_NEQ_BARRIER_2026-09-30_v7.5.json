@@ -1,0 +1,107 @@
+{
+  "artifact_id": "JANUS-TRUMP-E8-C4-SOURCE-CAPACITY-TREE-EQ-NEQ-BARRIER-2026-09-30-v7.5",
+  "version": "v7.5",
+  "date_local": "2026-09-30",
+  "status": "EXACT_FINITE_SOURCE_CAPACITY_TREE_CLOSURE_BARRIER__NO_P_EQUALS_NP_CLAIM",
+  "parents": [
+    "research/R5_B1B1C5B2B2_E8_RIGID_C4_SOURCE_GEOMETRY_HOLONOMY_TREE_FRONTIER_2026-09-30_v7.4.json",
+    "research/R5_B1B1C5B2B2_E8_C4_RIGID_ORBIT_RELATIONAL_COMPLETENESS_BARRIER_2026-09-30_v7.3.json"
+  ],
+  "purpose": "Strengthen the v7.4 source-geometry correction from one rejected pp certificate to every capacity-respecting C4 interaction tree. Enumerate all simple C4-to-C4 Hamiltonian edge bundles with per-port degree at most two, then close them under arbitrary rooted tree composition while retaining exact port usage. Prove by finite exhaustive closure that neither orbit equality EQ_3 nor orbit disequality NEQ_3 is realizable as a two-terminal relation by any such tree gadget, even in a relaxed source model that ignores the additional global requirement that the Hamiltonian edges form one single cycle. Therefore any genuine source realization of these orbit wires must use cyclic interaction/holonomy or leave this C4-tree language.",
+  "local_source_model": {
+    "C4_ports": [0,1,2,3],
+    "orbit_representatives": {
+      "T0": [0,1,0,1],
+      "T1": [0,1,0,2],
+      "T2": [0,1,2,1]
+    },
+    "bundle": "A bundle is a simple subset of the 16 possible Hamiltonian edges between the four ports of two distinct C4 components. On each side every port may occur in at most two bundle edges, matching the degree-two Hamiltonian budget of the original graph vertex.",
+    "binary_orbit_relation": "For orbit labels a,b, the bundle accepts (a,b) iff there exists a relative permutation h in S3 such that every bundle edge joins unequal colours h(rho_a[p]) != rho_b[q].",
+    "tree_exactness": "On an interaction tree, once an orbit pair is accepted on every tree edge, one may choose one allowed relative gain independently on every edge, fix one root gauge, and propagate gauges through the tree. There is no cycle holonomy equation. Hence existential projection to orbit labels is exact on trees even for non-rigid bundles."
+  },
+  "base_enumeration": {
+    "candidate_edge_subsets_checked": "All nonempty simple subsets of the 4x4 port pair set with size at most eight are tested; larger subsets cannot satisfy degree<=2 on both four-port sides.",
+    "valid_capacity_respecting_bundles": 7342,
+    "distinct_binary_orbit_relations": 159,
+    "direct_EQ_3_bundle_exists": false,
+    "direct_NEQ_3_bundle_exists": false,
+    "meaning": "Neither equality nor disequality is already one legal two-C4 bundle, even when bundle connectivity and global Hamiltonian-cycle completion are not required."
+  },
+  "path_closure": {
+    "state": "A path state stores the port-usage vector of the current end C4 and the exact binary relation between the first terminal orbit and the current orbit. Left-terminal usage need not be stored for existence because only the current end is touched by future extensions.",
+    "transition": "Append any valid bundle whose left port-usage vector plus the current end usage is coordinatewise at most two; existentially eliminate the joined orbit by ordinary relational composition.",
+    "reachable_state_counts_by_max_path_length": [
+      {"length":1,"states":998},
+      {"length":2,"states":1578},
+      {"length":3,"states":2569},
+      {"length":4,"states":2748},
+      {"length":5,"states":2895},
+      {"length":6,"states":2895}
+    ],
+    "fixed_point": 2895,
+    "EQ_3_present": false,
+    "NEQ_3_present": false
+  },
+  "rooted_tree_unary_closure": {
+    "state": "A rooted-tree message is (u,S), where u in {0,1,2}^4 is the exact Hamiltonian port usage consumed at the root by the hidden tree, and S is the subset of {0,1,2} root orbit labels extendable through that hidden tree.",
+    "branch_rule": "For a bundle from parent to child and a child rooted message (u,S), require bundle-right-usage+u<=2. The branch sends to the parent the preimage of S under the bundle orbit relation and consumes the bundle-left usage.",
+    "root_combination": "Multiple child branches combine by coordinatewise addition of consumed port usage, rejecting any coordinate above two, and by intersection of their allowed root-orbit sets.",
+    "fixed_point_iterations": [1,219,298,323,323],
+    "reachable_rooted_states": 323,
+    "reachable_unary_relations": 8,
+    "unary_note": "All eight unary subsets, including singletons and the empty set, occur somewhere; therefore the subsequent binary closure is not protected merely by lack of unary pinning."
+  },
+  "full_two_terminal_tree_closure": {
+    "decomposition": "Every tree with two distinguished terminal components has a unique terminal-to-terminal path. All other branches are rooted side trees and are represented exactly by the 323-message unary closure.",
+    "state": "During a path scan store the incoming/current port-usage vector and the exact binary terminal-to-current orbit relation. Before appending the next bundle, insert any reachable rooted side-tree unary filter whose usage plus incoming and outgoing bundle usages stays coordinatewise <=2.",
+    "endpoint_rule": "At either terminal, any rooted side tree whose usage fits the remaining port budget may also be attached. The terminal relation is filtered by its exact reachable unary set.",
+    "reachable_binary_state_counts_by_max_path_length": [
+      {"length":1,"states":1640},
+      {"length":2,"states":2777},
+      {"length":3,"states":3049},
+      {"length":4,"states":3083},
+      {"length":5,"states":3109},
+      {"length":6,"states":3109}
+    ],
+    "fixed_point": 3109,
+    "EQ_3_present": false,
+    "NEQ_3_present": false
+  },
+  "main_theorem": {
+    "name": "NO_EQ_OR_NEQ_ORBIT_WIRE_IN_CAPACITY_RESPECTING_C4_INTERACTION_TREES",
+    "statement": "In the relaxed C4 source model above, no finite interaction tree built from simple per-port-degree<=2 C4-to-C4 Hamiltonian bundles has two-terminal orbit relation exactly EQ_3 or exactly NEQ_3.",
+    "proof": [
+      "There are finitely many valid local bundles and the checker exhausts all 7342 of them, deriving each exact projected orbit relation by testing all three-by-three orbit pairs and all six relative S3 gains.",
+      "The rooted-message fixed point is complete by induction on a rooted interaction tree: deleting the root separates it into independent child branches, each represented by one previously reachable child message; conversely every accepted message combination constructs such a rooted tree. Port usage is retained exactly and never exceeds two.",
+      "For a two-terminal tree, delete the unique terminal path. Every remaining component is one of the rooted side trees already represented by the unary fixed point. Relational composition along the path plus exact unary filtering therefore enumerates every possible two-terminal relation of the relaxed tree language.",
+      "The binary state closure stabilizes at 3109 states and direct inspection finds neither the three-pair diagonal EQ_3 relation nor the six-pair off-diagonal NEQ_3 relation.",
+      "The relaxed model drops the stricter requirement that all Hamiltonian edges globally complete to one simple Hamiltonian cycle. It is therefore a superset of actual source-legal interaction-tree gadgets. Non-realizability in the superset implies non-realizability in the true source subclass."
+    ]
+  },
+  "algorithmic_consequence": {
+    "positive": [
+      "Extends the v7.4 all-rigid tree terminal to arbitrary valid non-rigid C4 bundles: exact orbit satisfiability on a fixed interaction tree is a constant-domain tree CSP with exact S3 gauge reconstruction.",
+      "Makes the source bottleneck sharper: arbitrary tree branching and even full unary pinning do not recover EQ_3 or NEQ_3 while respecting per-port capacity.",
+      "Provides a finite replayable invariant test for proposed tree gadgets before any expensive Hamiltonian embedding search."
+    ],
+    "killed": [
+      "Repair the v7.3 abstract NEQ certificate merely by replacing illegal intersections with a larger tree of legal C4 bundles.",
+      "Obtain orbit EQ_3/NEQ_3 from any capacity-respecting acyclic C4 interaction gadget, even allowing non-rigid bundle relations and arbitrary hidden side trees.",
+      "Treat abstract pp composition on orbit masks as sufficient evidence of source realizability."
+    ],
+    "firewall": [
+      "This is a scoped non-realizability theorem for two-terminal EQ_3/NEQ_3 in the relaxed C4 interaction-tree language, not a tractability theorem for cyclic smooth-C4 instances.",
+      "Cyclic interaction graphs reintroduce shared-gauge holonomy constraints that are absent from the tree proof and may realize relations impossible on trees.",
+      "No P=NP conclusion follows."
+    ]
+  },
+  "next_target": {
+    "name": "E8_C4_SOURCE_LEGAL_CYCLE_HOLONOMY_RELATION_SEARCH_V7_6",
+    "directive": "Search source-realizable cyclic C4 interaction gadgets, beginning with one fundamental cycle plus attached trees. Track simultaneously: exact per-port Hamiltonian usage, exact allowed S3 relative-gain sets, and the product/holonomy constraint around the cycle. Determine the smallest legal cycle gadget realizing EQ_3 or NEQ_3, or derive a cycle invariant excluding them. Any candidate must then be embedded into an actual Hamiltonian word whose every C4 port has total Hamiltonian degree exactly two and whose Hamiltonian edges form one simple cycle. Mandatory controls: v7.1 holonomy triangle, the rejected v7.3 A/B/C NEQ certificate, and the v7.5 tree-closure fixed point."
+  },
+  "scientific_ceiling": {
+    "P_VS_NP": "OPEN",
+    "P_EQUALS_NP_ALGORITHM": "NOT_CONSTRUCTED",
+    "E8_D1": "EMPTY"
+  }
+}

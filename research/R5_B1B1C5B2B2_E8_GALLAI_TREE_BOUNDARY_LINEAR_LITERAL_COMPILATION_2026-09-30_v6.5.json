@@ -1,0 +1,87 @@
+{
+  "artifact_id": "JANUS-TRUMP-E8-GALLAI-TREE-BOUNDARY-LINEAR-LITERAL-COMPILATION-2026-09-30-v6.5",
+  "version": "v6.5",
+  "date_local": "2026-09-30",
+  "status": "EXACT_POLYNOMIAL_BOUNDARY_COMPILATION__NO_P_EQUALS_NP_CLAIM",
+  "parents": [
+    "research/R5_B1B1C5B2B2_E8_DEGREE3_NONGALLAI_LIST_EXTENSION_KERNEL_2026-09-30_v6.4.json",
+    "research/R5_B1B1C5B2B2_E8_GRAPHIC_AF3_NOWHERE_ZERO_TENSION_BRIDGE_2026-09-30_v5.2.json"
+  ],
+  "purpose": "Finish the degree-three Gallai-tree side of the max-degree-four 3-colour frontier more sharply. For a retained degree-three component H that is a Gallai tree, characterize exactly when a fixed colouring of the degree-four boundary fails to extend across H. In the 3-colour palette, the classical bad supervalent-list structure collapses to one 3-state label per block and deterministic leaf-to-root propagation. Hence the non-extension relation can be compiled in polynomial time to a conjunction of affine GF(3) equalities/disequalities; the extension relation is one polynomial-size disjunction of affine linear literals. No exponential boundary-colouring table is needed.",
+  "source_fact": {
+    "theorem": "For a connected graph with a supervalent list assignment |L(v)|>=d(v), non-list-colourability forces equality |L(v)|=d(v), Gallai-tree block structure, and a decomposition of each vertex list as a union of block palettes L_B with |L_B|=chi(B)-1. This is the Borodin--Erdos--Rubin--Taylor degree-choosability structure in its bad-list form.",
+    "sources": [
+      "Borodin; Erdos--Rubin--Taylor degree-choosability theorem.",
+      "Kostochka--Stiebitz--Wirth / Thomassen descriptions of bad degree-list assignments on Gallai trees.",
+      "Modern supervalent formulation: if no L-colouring exists then every list is tight and L(v)=union_{B contains v} L_B with |L_B|=chi(B)-1."
+    ]
+  },
+  "input_regime": {
+    "ambient": "Simple graph G of maximum degree at most four after exhaustive degree<=2 peeling and v6.4 deletion of non-Gallai components of the current degree-three layer.",
+    "component": "H is one connected component of the induced subgraph on vertices of current degree three, and H is a Gallai tree.",
+    "boundary": "Every neighbour of H outside H has current degree four. Fix a proper colouring phi of G-V(H) by colours GF(3)={0,1,2}.",
+    "available_list": "For v in H, L_phi(v)=GF(3) minus the set of colours used by neighbours of v outside H. Since deg_G(v)=3, |L_phi(v)|>=d_H(v)."
+  },
+  "three_colour_block_palettes": {
+    "K2_block": "chi(K2)-1=1, so its bad-list block palette is one colour sigma_B in GF(3).",
+    "odd_cycle_or_K3_block": "chi(B)-1=2, so its palette is GF(3)\\{mu_B} for one missing colour mu_B.",
+    "K4": "A K4 block can occur only as a standalone degree-three component; it is an immediate non-3-colourable terminal and is rejected before boundary compilation.",
+    "subcubic_shape": "Apart from standalone K4, cycle/clique blocks contribute internal degree two at each non-cut vertex and can meet the rest of H only through K2 blocks, because two cyclic blocks sharing a cut vertex would give degree at least four inside H."
+  },
+  "local_bad_extension_rules": {
+    "isolated_vertex": "If H is one isolated degree-three vertex with three outside neighbours a,b,c, extension fails exactly when phi(a),phi(b),phi(c) are all distinct.",
+    "K2_leaf": "If a non-cut endpoint v of K2 block B has two outside neighbours a,b, badness requires ALLDIFF(phi(a),phi(b),sigma_B). Thus phi(a)!=phi(b) and sigma_B=-(phi(a)+phi(b)) in GF(3).",
+    "odd_leaf_noncut": "If v is a non-cut vertex of odd-cycle/K3 block B, it has one outside neighbour a and badness requires phi(a)=mu_B. Hence all outside neighbours attached to non-cut vertices of one such block must have the same colour mu_B.",
+    "two_K2_cut": "At a cut vertex incident with two K2 blocks B1,B2 and one outside neighbour a, badness is ALLDIFF(sigma_B1,sigma_B2,phi(a)); if one block label and phi(a) are known and distinct, the other label is their unique third colour.",
+    "three_K2_cut": "At a cut vertex incident with three K2 blocks, badness is ALLDIFF(sigma_B1,sigma_B2,sigma_B3).",
+    "cycle_plus_K2_cut": "At a cut vertex incident with an odd-cycle/K3 block B and a K2 block E, there is no outside neighbour and badness requires sigma_E=mu_B.",
+    "alldiff_linearization": "Over GF(3), ALLDIFF(a,b,c) is equivalent to a+b+c=0 together with a!=b. Once any two distinct values are known, the third is uniquely -(a+b)."
+  },
+  "deterministic_propagation_theorem": {
+    "name": "BAD_GALLAI_BOUNDARY_LABELS_PROPAGATE_WITHOUT_BRANCHING",
+    "statement": "For every connected non-K4 Gallai component H and fixed boundary colouring phi, there is at most one assignment of block labels {sigma_B,mu_B} satisfying all bad-list rules. It is found, or disproved, by a leaf-to-root traversal of the block-cut tree.",
+    "proof": [
+      "A leaf K2 block has a non-cut endpoint with two outside neighbours, so its sigma label is uniquely the third colour when those two colours are distinct; otherwise no bad certificate exists.",
+      "A leaf odd-cycle/K3 block has non-cut vertices with outside neighbours; all such boundary colours must agree and uniquely determine mu_B.",
+      "After a leaf block is labelled, remove it conceptually. At the incident cut vertex the local rule uniquely determines the parent K2 label: equality for cycle-plus-K2, or the unique third colour for a two/three-K2 junction. If a required equality/disequality fails, no bad certificate exists.",
+      "Induct on the block-cut tree until the root. The final root condition is only an equality/ALLDIFF check, so no choice is introduced anywhere."
+    ],
+    "runtime": "Linear in |V(H)|+|E(H)| after block decomposition; all arithmetic is over GF(3)."
+  },
+  "affine_compilation": {
+    "symbolic_labels": "Run the same leaf-to-root traversal symbolically. A K2 leaf label is -(a+b); an odd block label is one boundary colour subject to equality of the other boundary colours; every internal third-colour step is another negated sum. Therefore every propagated block label is an affine GF(3) linear form in boundary colour variables.",
+    "side_conditions": "Every propagation check becomes either equality of two affine forms or disequality of two affine forms. The number of such conditions is O(|H|), and every form can be stored with O(|boundary(H)|) coefficients, hence polynomial total bit size.",
+    "bad_relation": "BAD_H(phi) is exactly a conjunction of O(|H|) affine equalities/disequalities over boundary vertex colours.",
+    "extension_relation": "EXTEND_H(phi) is NOT BAD_H(phi), hence one disjunction of the negated affine literals. Over GF(3), a literal L!=0 may be written as (L=1 OR L=2), so EXTEND_H has a polynomial-size Res(GF3)-style linear-clause representation.",
+    "elimination": "Delete V(H) and attach the compiled boundary linear clause. A colouring of the remaining graph satisfies that clause iff it extends to a proper 3-colouring of H. Reconstruction reruns the deterministic block propagation/list-colouring procedure."
+  },
+  "algorithmic_consequence": {
+    "positive": [
+      "Completes the v6.4 directive on the Gallai-tree side without an exponential table of boundary colourings.",
+      "All degree-three Gallai components can be removed from the graph and replaced by polynomial-size affine GF(3) boundary constraints.",
+      "The compilation is functional: no hidden branching over block states and no exponential auxiliary-state product.",
+      "Odd-cycle/K3 blocks of arbitrary length collapse to one missing-colour state before symbolic elimination."
+    ],
+    "firewall": [
+      "This is not a universal 3-COLOR solver. Pure 4-regular instances have no degree-three layer, so the compilation is silent on the known NP-hard 4-regular Hamiltonian source.",
+      "The residual problem is a degree-four core coupled to polynomial-size GF(3) linear clauses/disequalities. Tractability of that hybrid system is not proved.",
+      "Do not expand the linear clause into all boundary colourings."
+    ]
+  },
+  "next_target": {
+    "name": "E8_DEG4_CORE_PLUS_GF3_LINEAR_CLAUSES_CONTRACTION_V6_6",
+    "directive": "Run v5.0 and v6.4-v6.5 first, thereby deleting all degree<=3 structure. Attack the remaining degree-four core together with the compiled GF(3) linear boundary clauses. Seek a polynomial contraction or exact minimax invariant that also makes progress on the pure 4-regular Hamiltonian source, where no boundary clauses are generated. Mandatory controls include K5, fixed-C4-complement Hamiltonian hard instances, and mixed degree-3/4 graphs whose Gallai components compile to long affine literals.",
+    "success_obligations": [
+      "deterministic polynomial construction and solve time",
+      "exact 3-colourability equivalence",
+      "polynomial witness reconstruction",
+      "no assignment enumeration or exponential boundary table",
+      "must not rely on the presence of degree-three vertices"
+    ]
+  },
+  "scientific_ceiling": {
+    "P_VS_NP": "OPEN",
+    "P_EQUALS_NP_ALGORITHM": "NOT_CONSTRUCTED",
+    "E8_D1": "EMPTY"
+  }
+}

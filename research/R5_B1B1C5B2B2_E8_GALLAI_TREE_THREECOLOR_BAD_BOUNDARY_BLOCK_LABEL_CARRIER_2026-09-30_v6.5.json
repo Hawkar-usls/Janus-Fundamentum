@@ -1,0 +1,82 @@
+{
+  "artifact_id": "JANUS-TRUMP-E8-GALLAI-TREE-THREECOLOR-BAD-BOUNDARY-BLOCK-LABEL-CARRIER-2026-09-30-v6.5",
+  "version": "v6.5",
+  "date_local": "2026-09-30",
+  "status": "EXACT_POLYNOMIAL_BOUNDARY_RELATION_COMPILATION__NO_P_EQUALS_NP_CLAIM",
+  "parents": [
+    "research/R5_B1B1C5B2B2_E8_DEGREE3_NONGALLAI_LIST_EXTENSION_KERNEL_2026-09-30_v6.4.json",
+    "research/R5_B1B1C5B2B2_E8_COLOR3_DEGREE2_PEEL_BROOKS_TERMINAL_AND_DEG4_BOUNDARY_2026-09-30_v5.0.json"
+  ],
+  "purpose": "Complete the symbolic interface left by v6.4. For a connected component H of current degree-three vertices in a maximum-degree-four 3-colouring instance, characterize exactly which outside 3-colourings fail to extend across H when H is a Gallai tree. Replace an exponential table over boundary colourings by a linear-size block-label certificate using only 3-state labels and EQ/NEQ/ALLDIFF_3 constraints.",
+  "boundary_setup": {
+    "graph": "G is simple, Delta(G)<=4, and after the v5.0 degree<=2 peel every vertex of H has degree exactly three in G. H is one connected component of the induced subgraph on current degree-three vertices.",
+    "outside_colouring": "phi is any proper 3-colouring of G-V(H), with colour set C={0,1,2}.",
+    "available_list": "L_phi(v)=C minus phi(N_G(v)\\V(H)). Since v has total degree three, |L_phi(v)|>=d_H(v).",
+    "extension_equivalence": "phi extends to a proper 3-colouring of G[V(H) union (V(G)-V(H))] iff H is L_phi-colourable."
+  },
+  "source_theorem": {
+    "name": "BORODIN_ERDOS_RUBIN_TAYLOR_UNCOLORABLE_GALLAI_LIST_CHARACTERIZATION",
+    "statement": "For a Gallai tree H and lists satisfying |L(v)|>=d_H(v), H is not L-colourable iff there is an assignment lambda sending every block B to a colour set lambda(B) of size Delta(B), such that blocks meeting in a cut vertex receive disjoint colour sets and L(v) is exactly the union of lambda(B) over blocks containing v.",
+    "specialized_blocks": "In the present subcubic H, blocks are K2, K3, odd cycles, or K4. Their Delta values are respectively 1,2,2,3."
+  },
+  "three_colour_block_labels": {
+    "K2": "Represent lambda(B)={kappa_B} by one label kappa_B in C.",
+    "K3_or_odd_cycle": "Represent the two-colour set lambda(B) by its unique forbidden colour kappa_B in C, so lambda(B)=C\\{kappa_B}.",
+    "K4": "lambda(B)=C. In a degree-three component a K4 block cannot share a cut vertex with another block; therefore H=K4 and extension is impossible for every outside colouring (there is no boundary).",
+    "isolated_vertex": "If H is one isolated degree-three vertex and has no blocks, non-extension occurs exactly when its three outside neighbours use all three colours."
+  },
+  "local_normal_form": {
+    "only_K2_d1": "If v lies in one K2 block B and has two outside neighbours a,b, badness requires ALLDIFF_3(kappa_B,phi(a),phi(b)).",
+    "only_cycle_d2": "If v lies only in one K3/odd-cycle block B and has one outside neighbour a, badness requires kappa_B=phi(a).",
+    "two_K2_d2": "If v is the cut vertex of K2 blocks B1,B2 and has one outside neighbour a, badness requires ALLDIFF_3(kappa_B1,kappa_B2,phi(a)).",
+    "K2_plus_cycle_d3": "If v belongs to one K2 block E and one K3/odd-cycle block B, badness requires kappa_E=kappa_B.",
+    "three_K2_d3": "If v belongs to three K2 blocks B1,B2,B3, badness requires ALLDIFF_3(kappa_B1,kappa_B2,kappa_B3).",
+    "isolated_d0": "If H={v}, badness requires ALLDIFF_3(phi(a),phi(b),phi(c)) on the three outside neighbours."
+  },
+  "main_theorem": {
+    "name": "GALLAI_TREE_BAD_BOUNDARY_IFF_BLOCK_LABEL_CSP",
+    "statement": "For every outside proper colouring phi, phi fails to extend across H iff either H=K4, or H is isolated and its three outside neighbour colours are all distinct, or the block labels kappa_B can be chosen to satisfy all local constraints above.",
+    "proof": [
+      "Apply the Borodin--Erdos--Rubin--Taylor characterization to L_phi. Every uncolourable boundary has |L_phi(v)|=d_H(v) and block colour sets lambda(B) that are disjoint at cut vertices and whose union equals L_phi(v).",
+      "Over exactly three colours, a size-one block set is one label and a size-two block set is uniquely represented by its missing colour. Exhausting the possible degree partitions of d_H(v)<=3 gives precisely the six local rules listed above.",
+      "Conversely, any satisfying block-label assignment reconstructs the corresponding lambda(B) sets. The local rules guarantee pairwise disjointness at cut vertices and exact equality L_phi(v)=union_{B contains v} lambda(B). The source theorem then says H is not L_phi-colourable, so phi does not extend.",
+      "The K4 and isolated-vertex cases are the zero-boundary-block and zero-block endpoints of the same list characterization."
+    ]
+  },
+  "representation_and_evaluation": {
+    "size": "One 3-state label per block and O(1) constraints per vertex, hence O(|V(H)|) symbolic size; no table over 3^|boundary(H)| colourings is materialized.",
+    "fixed_boundary_test": "For a fixed outside colouring, badness can be tested in polynomial time by dynamic programming on the block-cut tree with three states per block label, or directly by bounded-domain CSP propagation. If the bad certificate is absent, H is list-colourable and a colouring can be reconstructed in polynomial time by block-tree list-colouring.",
+    "witness_lifting": "When the boundary is extendable, store the reconstructed colouring of H; when the block-label certificate exists it is a compact exact non-extension witness for that fixed boundary colouring."
+  },
+  "algorithmic_consequence": {
+    "positive": [
+      "Completes the missing exact interface for the degree-three Gallai components left by v6.4.",
+      "Exponential boundary truth tables are unnecessary: the only bad boundary relation has a linear-size 3-state block-label representation.",
+      "The remaining degree-three obstruction is reduced to EQ/NEQ/ALLDIFF_3 structure attached to the degree-four core."
+    ],
+    "firewall": [
+      "This does not make the whole max-degree-four instance polynomial: boundary vertices belonging to the degree-four core may be shared by many component constraints, so the global coupled relation need not have bounded treewidth.",
+      "On a pure 4-regular input there is no degree-three component and v6.5 is silent, preserving the known NP-hard Hamiltonian source-return class.",
+      "Do not complement or enumerate the block-label relation into an explicit boundary table."
+    ],
+    "not_killed": [
+      "A polynomial elimination of the block-label variables into a tractable global gain/affine relation on the degree-four core.",
+      "A direct contraction on pure 4-regular Hamiltonian cores.",
+      "P=NP"
+    ]
+  },
+  "next_target": {
+    "name": "E8_GALLAI_BLOCK_LABEL_GAIN_ELIMINATION_OR_PURE_4REG_CORE_V6_6",
+    "directive": "Test whether the EQ/ALLDIFF_3 block-label carrier can be eliminated into a polynomial-size affine/gain system on degree-four boundary colours without introducing a hard three-state CSP. Mandatory controls include long K2 block trees, odd-cycle blocks, repeated boundary vertices, and the pure 4-regular Hamiltonian source where the entire degree-three interface disappears. If no tractable elimination exists, return immediately to the pure 4-regular Hamiltonian core."
+  },
+  "scientific_ceiling": {
+    "P_VS_NP": "OPEN",
+    "P_EQUALS_NP_ALGORITHM": "NOT_CONSTRUCTED",
+    "E8_D1": "EMPTY"
+  },
+  "sources": [
+    "O. V. Borodin, degree-choosability/list-colouring characterization of Gallai trees.",
+    "P. Erdos, A. L. Rubin, H. Taylor, Choosability in graphs, 1979/1980.",
+    "Modern hard-pair restatements of the Borodin--Erdos--Rubin--Taylor theorem."
+  ]
+}

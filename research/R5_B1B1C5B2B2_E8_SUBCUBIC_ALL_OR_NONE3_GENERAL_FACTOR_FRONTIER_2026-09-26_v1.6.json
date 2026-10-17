@@ -1,0 +1,57 @@
+{
+  "artifact_id": "JANUS-TRUMP-E8-SUBCUBIC-ALL-OR-NONE3-GENERAL-FACTOR-FRONTIER-2026-09-26-v1.6",
+  "version": "v1.6",
+  "date_local": "2026-09-26",
+  "status": "EXACT_REDUCTION_AND_SOURCE_ALIGNED_FRONTIER__NO_P_EQUALS_NP_CLAIM",
+  "parent": "research/R5_B1B1C5B2B2_E8_NONCOMMUTATIVE_RANK_FALSE_POSITIVE_2026-09-26_v1.5.json",
+  "purpose": "Re-express the bounded-occurrence SAT frontier as one explicit hard degree constraint inside the 2026 subcubic general-factor dichotomy, so every other locally tractable ingredient can be separated from the only universal hard atom.",
+  "construction": {
+    "input": "A CNF with clauses of size 2 or 3 and each variable occurring at most three times, obtained by a polynomial Tovey-style normalization.",
+    "graph": "Build a subcubic graph with one variable vertex per Boolean variable, one clause vertex per clause, and one degree-2 inverter vertex for every negative literal occurrence.",
+    "variable_constraint": "If variable x has d occurrence branches, assign degree constraint {0,d}. Degree 0 encodes x=0 and degree d encodes x=1, forcing all variable-side occurrence bits equal. The only hard case is d=3, i.e. {0,3}.",
+    "positive_literal": "Connect the variable branch directly to its clause vertex, so the clause-side edge is selected iff x=1.",
+    "negative_literal": "Subdivide the branch by an inverter vertex with degree constraint {1}; exactly one of the variable-side and clause-side edges is selected, so the clause-side edge is selected iff x=0.",
+    "clause_constraint": "For a k-clause (k in {2,3}), assign interval degree constraint {1,...,k}; this requires at least one literal-side edge to be selected.",
+    "decision_identity": "The general-factor instance has a feasible factor iff the CNF is satisfiable. Satisfying assignments map to factors by selecting exactly the literal-side branches made true; feasible factors map back because each variable {0,d} vertex has one global Boolean state and every clause has positive selected degree.",
+    "size": "The construction is linear in the number of literal occurrences and preserves maximum graph degree at most three."
+  },
+  "source_alignment": {
+    "paper": "Shao and Zivny, Real-weighted general factors on subcubic graphs, Mathematical Programming, published 2026-09-14",
+    "url": "https://link.springer.com/article/10.1007/s10107-026-02416-3",
+    "theorem_use": "Their Theorem 1.2 gives a strongly polynomial-time algorithm on subcubic graphs whenever the arity-3 degree constraint {0,3} is absent, while the mixed regime containing {0,3} is the exceptional NP-hard side of the dichotomy.",
+    "interpretation": "Our exact SAT encoding uses only interval clause constraints, degree-1 inverter constraints, easy {0,d} variable constraints for d<=2, and the single exceptional hard atom {0,3} for irreducible degree-3 variables."
+  },
+  "anti_loop_consequence": {
+    "do_not_retry": [
+      "generic matching reduction that ignores the {0,3} all-or-none constraint",
+      "generic subcubic general-factor solver from the tractable side of the dichotomy",
+      "unrestricted noncommutative-rank relaxation",
+      "local rank-2 replacement that unties the three occurrence bits"
+    ],
+    "exact_live_atom": "ALL_OR_NONE_3 = {000,111} = degree constraint {0,3} on a subcubic variable vertex."
+  },
+  "two_tractable_relaxations": {
+    "R1": "Replace {0,3} by {0,1,3}.",
+    "R2": "Replace {0,3} by {0,2,3}.",
+    "fact": "Both relaxations lie on the strongly-polynomial side of the Shao-Zivny subcubic theorem, while R1 intersection R2 = {0,3} locally.",
+    "warning": "Solving R1 and R2 separately is not enough. A universal algorithm needs one common factor satisfying both relaxations simultaneously, or an equivalent global augmentation theorem; naive independent optimization loses the shared Boolean state."
+  },
+  "next_target": {
+    "name": "E8_GLOBAL_ALL_OR_NONE3_AUGMENTATION_V1_7",
+    "directive": "Construct a deterministic polynomial-time common-factor/augmentation algorithm that removes all degree-1/degree-2 defects introduced by the two tractable relaxations and returns a factor with every variable degree in {0,3}, without branching over variables.",
+    "success_obligations": [
+      "arbitrary normalized 2/3-CNF with occurrence degree at most three",
+      "polynomial construction and runtime",
+      "exact factor feasibility iff SAT",
+      "polynomial satisfying-assignment reconstruction",
+      "no exponential parity split over {0,3} vertices",
+      "no relaxation false positives",
+      "no hidden exponential oracle, dimension, or bitlength"
+    ]
+  },
+  "scientific_ceiling": {
+    "P_VS_NP": "OPEN",
+    "P_EQUALS_NP_ALGORITHM": "NOT_CONSTRUCTED",
+    "NEW_EXACT_FRONTIER": "Global polynomial elimination of the subcubic all-or-none degree-3 constraint {0,3}."
+  }
+}

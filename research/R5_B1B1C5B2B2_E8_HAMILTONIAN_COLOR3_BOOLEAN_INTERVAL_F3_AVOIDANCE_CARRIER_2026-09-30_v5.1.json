@@ -1,0 +1,70 @@
+{
+  "artifact_id": "JANUS-TRUMP-E8-HAMILTONIAN-COLOR3-BOOLEAN-INTERVAL-F3-AVOIDANCE-CARRIER-2026-09-30-v5.1",
+  "version": "v5.1",
+  "date_local": "2026-09-30",
+  "status": "EXACT_NP_HARD_SOURCE_CARRIER__NO_P_EQUALS_NP_CLAIM",
+  "parents": [
+    "research/R5_B1B1C5B2B2_E8_COLOR3_DEGREE2_PEEL_BROOKS_TERMINAL_AND_DEG4_BOUNDARY_2026-09-30_v5.0.json",
+    "research/R5_B1B1C5B2B2_E8_COLOR3_LINEARLY_LEAN_FIXED_DEGREE_PC_SOURCE_BARRIER_2026-09-30_v4.9.json"
+  ],
+  "purpose": "Exploit the sharp degree-four graph frontier by using a supplied Hamiltonian cycle as a global coordinate system. Encode every proper 3-colouring by one Boolean direction bit per Hamiltonian edge. All remaining graph edges become forbidden residues of interval sums over GF(3), yielding a linear-size exact Boolean interval-mod-3 avoidance carrier on a source class where 3-colourability is still NP-complete.",
+  "input": {
+    "graph": "A graph G with a specified Hamiltonian cycle H=(v_0,v_1,...,v_{n-1},v_0).",
+    "hard_source": "In the degree-four source boundary every vertex has two H-edges and two complement edges, so E(G)\\E(H) is a 2-factor, i.e. a disjoint union of cycles."
+  },
+  "difference_encoding": {
+    "fix_global_symmetry": "Set c_0=0 in GF(3); every other 3-colouring is equivalent under a global colour shift to exactly one such colouring.",
+    "hamiltonian_edge": "Proper colouring requires c_{i+1}-c_i in {1,2}. Introduce b_i in {0,1} by c_{i+1}-c_i = 1+b_i mod 3.",
+    "prefix_reconstruction": "For j=1,...,n-1, c_j = j + sum_{k=0}^{j-1} b_k mod 3.",
+    "cycle_closure": "The final Hamiltonian edge v_{n-1}v_0 is proper together with closure c_n=c_0 exactly when n+sum_{k=0}^{n-1} b_k = 0 mod 3. Equivalently the oriented differences around H sum to zero."
+  },
+  "complement_edge_constraints": {
+    "orientation": "For a non-H edge {v_i,v_j} choose 0<=i<j<=n-1 and the forward H interval I=[i,j).",
+    "difference": "c_j-c_i = (j-i)+sum_{k=i}^{j-1} b_k mod 3.",
+    "properness": "The edge is properly coloured iff sum_{k=i}^{j-1} b_k != -(j-i) mod 3.",
+    "carrier": "Thus every complement edge forbids exactly one GF(3) residue of one consecutive-ones linear form in Boolean variables."
+  },
+  "main_theorem": {
+    "name": "HAMILTONIAN_3COLOR_IFF_BOOLEAN_INTERVAL_F3_AVOIDANCE",
+    "statement": "G is 3-colourable iff there exists b in {0,1}^n satisfying one global mod-3 cycle-closure equality and every complement-edge interval disequality above.",
+    "proof": [
+      "Forward: from a proper colouring with c_0=0, each Hamiltonian difference is 1 or 2 and uniquely defines b_i. Telescoping around H gives the global closure equation, and every complement edge gives its interval disequality.",
+      "Backward: from b, define colours by the prefix formula. Every Hamiltonian edge has nonzero difference 1+b_i, global closure identifies c_n with c_0, and every complement interval disequality makes its endpoint colours distinct. Hence all graph edges are properly coloured.",
+      "The maps are linear-time and mutually reconstructing up to the fixed global colour shift."
+    ]
+  },
+  "prefix_gain_graph_view": {
+    "prefix_bits": "Let q_i=sum_{k=0}^{i-1} b_k mod3. Then b_i in {0,1} is the binary transition constraint q_{i+1}-q_i in {0,1}.",
+    "chord": "Every complement edge becomes q_j-q_i != -(j-i) mod3.",
+    "interpretation": "This is a 3-state gain-graph binary CSP in which each edge forbids exactly one difference in GF(3). The interval presentation and the gain-graph presentation are polynomially equivalent."
+  },
+  "source_hardness_firewall": {
+    "fact": "3-colourability remains NP-complete for 4-regular Hamiltonian graphs. Published restrictions keep a given Hamiltonian cycle and impose strong structure on the complementary 2-factor.",
+    "meaning": "Consecutive-ones interval normals, one global GF(3) equation, Boolean coefficients and a complement 2-factor do not by themselves license a polynomial algorithm. A polynomial exact solver for this carrier would constitute genuine progress on P versus NP."
+  },
+  "algorithmic_consequence": {
+    "positive": [
+      "A linear-size exact hard-source carrier with only Boolean variables and GF(3) interval linear forms.",
+      "Global colour symmetry is removed explicitly; witness reconstruction is a single prefix scan.",
+      "The carrier connects the graph-critical v5.0 frontier back to the AF3/hyperplane-avoidance algebraic language, but with the extra consecutive-ones structure absent from generic AF3."
+    ],
+    "anti_loop": [
+      "Do not expand all 2^n Boolean direction strings.",
+      "Do not treat interval matrices being totally unimodular over the integers as a SAT algorithm: the constraints are modular disequalities on Boolean points, and the source class is NP-hard.",
+      "Do not drop the global cycle-closure equation."
+    ]
+  },
+  "next_target": {
+    "name": "E8_BOOLEAN_INTERVAL_F3_AVOIDANCE_CONTRACTION_V5_2",
+    "directive": "Attack the exact interval carrier directly. Seek a polynomial zero/nonzero or minimax invariant exploiting consecutive-ones normals and complement-2-factor structure without enumerating Boolean strings, residues on O(n) boundaries, or generic high-degree monomials. Mandatory controls are K5 with a Hamiltonian cycle, 3-colourable 4-regular controls, and the NP-hard 4-regular Hamiltonian source class."
+  },
+  "scientific_ceiling": {
+    "P_VS_NP": "OPEN",
+    "P_EQUALS_NP_ALGORITHM": "NOT_CONSTRUCTED",
+    "E8_D1": "EMPTY"
+  },
+  "sources": [
+    "Herbert Fleischner and Gert Sabidussi, 3-colorability of 4-regular hamiltonian graphs, Journal of Graph Theory 42(2), 2003.",
+    "Classical Brooks theorem and maximum-degree-four 3-colourability hardness sources from v5.0."
+  ]
+}

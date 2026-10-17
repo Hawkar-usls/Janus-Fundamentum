@@ -1,0 +1,130 @@
+{
+  "artifact_id": "JANUS-TRUMP-E8-P3-OVERLAP-THREE-PARTITION-MATROID-CARRIER-2026-09-30-v2.4",
+  "version": "v2.4",
+  "date_local": "2026-09-30",
+  "status": "EXACT_EQUIVALENCE_AND_LOCAL_DEFECT_THEOREM__NO_P_EQUALS_NP_CLAIM",
+  "parents": [
+    "research/R5_B1B1C5B2B2_E8_MINIMAL_RANK3_SWITCH_FRONTIER_2026-09-26_v1.4.json",
+    "research/R5_B1B1C5B2B2_E8_READ2_SQUAREFREE_MONOMIAL_CARRIER_2026-09-26_v2.1.json",
+    "research/R5_B1B1C5B2B2_E8_PROJECTED_LINEAR_PAIR_DECOMPOSITION_THREEWAY_BARRIER_2026-09-26_v2.0.json"
+  ],
+  "purpose": "Unify the surviving rank-3 switch, read-2 squarefree-monomial, rainbow-selection, and three-way constraint views into one canonical partition-matroid carrier. The aim is to isolate exactly which local exchange defect remains after bounded-occurrence normalization, without claiming a polynomial solver.",
+  "input_normal_form": {
+    "formula": "A 2/3-CNF in which every Boolean variable occurs at most three times, obtained by the standard polynomial bounded-occurrence normalization used by the parent artifacts.",
+    "ground_set": "One element for every literal occurrence. A selected element means that this literal occurrence is chosen as the witness satisfying its clause.",
+    "witness_criterion": "The CNF is satisfiable iff there exists a set S containing exactly one literal occurrence from every clause and never containing both signs of the same original variable."
+  },
+  "three_partition_matroids": {
+    "M_C": {
+      "blocks": "The literal occurrences of each clause form one partition block of capacity 1.",
+      "role": "Independence in M_C means at most one witness occurrence per clause. A common independent set of cardinality equal to the number of clauses therefore chooses exactly one occurrence from every clause."
+    },
+    "M_L": {
+      "degree3_mixed_variable": "After possibly negating the variable, let L,R be its two majority-sign occurrences and M its one minority-sign occurrence. Put {L,M} in one capacity-1 block; all other occurrences of that variable are singleton blocks.",
+      "degree2_mixed_variable": "Put the two opposite-sign occurrences in one capacity-1 block.",
+      "other_variables": "Use only singleton blocks."
+    },
+    "M_R": {
+      "degree3_mixed_variable": "For the same L,R,M put {R,M} in one capacity-1 block; all other occurrences are singleton blocks.",
+      "degree2_mixed_variable": "Use singleton blocks here; the conflict is already enforced in M_L.",
+      "other_variables": "Use only singleton blocks."
+    },
+    "pair_block_overlap": "The union of nontrivial pair blocks from M_L and M_R is a disjoint union of P3 components L-M-R for mixed degree-3 variables and K2 components for mixed degree-2 variables."
+  },
+  "theorem": {
+    "name": "SAT_IFF_P3_OVERLAP_THREE_PARTITION_COMMON_INDEPENDENT_SET",
+    "statement": "Let m be the number of clauses. The normalized CNF F is satisfiable iff there exists S with |S|=m that is independent in M_C, M_L, and M_R.",
+    "proof": [
+      "If F is satisfiable, choose one true literal occurrence from each clause. Then |S|=m and M_C-independence is immediate. No variable contributes occurrences of both signs, so no conflict pair {L,M}, {R,M}, or degree-2 opposite-sign pair is selected; hence S is independent in M_L and M_R.",
+      "Conversely, let S be common independent with |S|=m. M_C has exactly m capacity-1 clause blocks, so S contains exactly one occurrence from every clause.",
+      "For a mixed degree-3 variable, M_L forbids selecting L together with M and M_R forbids selecting R together with M. Therefore S may select any subset of the two majority occurrences, or the minority occurrence, but never both signs.",
+      "For a mixed degree-2 variable, M_L forbids selecting its two opposite-sign occurrences. Pure/singleton variables create no sign conflict.",
+      "Thus the chosen one-per-clause witness set is sign-consistent for every original variable. Assign each variable according to the selected sign when present, arbitrarily otherwise. Every clause contains its selected true witness, so F is satisfied."
+    ]
+  },
+  "local_rank3_switch_relation": {
+    "ground": [
+      "L",
+      "M",
+      "R"
+    ],
+    "feasible_subsets": [
+      [],
+      [
+        "L"
+      ],
+      [
+        "M"
+      ],
+      [
+        "R"
+      ],
+      [
+        "L",
+        "R"
+      ]
+    ],
+    "interpretation": "This is exactly the intersection of the two capacity-1 pair constraints {L,M} and {R,M}.",
+    "delta_matroid_failure": {
+      "X": [
+        "L",
+        "R"
+      ],
+      "Y": [
+        "M"
+      ],
+      "u": "M",
+      "statement": "For every v in X symmetric-difference Y, X symmetric-difference {u,v} is infeasible (with v=u meaning toggle u once). Therefore the symmetric-exchange axiom fails.",
+      "candidate_results": {
+        "v=M": [
+          "L",
+          "M",
+          "R"
+        ],
+        "v=L": [
+          "M",
+          "R"
+        ],
+        "v=R": [
+          "L",
+          "M"
+        ]
+      }
+    },
+    "minimality": "The three missing subsets are {L,M}, {M,R}, and {L,M,R}. Adding any one of these to the five-state feasible family yields a six-state family satisfying the symmetric-exchange axiom; the checker exhaustively verifies all three cases."
+  },
+  "equivalent_views": {
+    "read2_squarefree": "The same occurrence witnesses are terms in the read-at-most-two Pi-Sigma_3-Pi_2 carrier; squarefreeness is exactly absence of the pair conflicts encoded by M_L and M_R.",
+    "conflict_graph": "Pair conflicts form disjoint P3/K2 components. Independent witness selection chooses one vertex from each clause color class while staying independent in this conflict graph.",
+    "rainbow_matching": "Because a disjoint union of P3/K2 conflict components is a line graph of a disjoint union of P4/P3 components, the carrier is equivalently a clause-colored rainbow matching problem on that linear forest.",
+    "rank3_switch": "Each mixed degree-3 Boolean variable is exactly the 2-vs-1 rank-3 switch isolated by the v1.4 determinant formulation."
+  },
+  "algorithmic_consequence": {
+    "positive": "All local variable-side structure is now partition-matroidal and pairwise; the only non-delta local atom is one three-port exchange defect.",
+    "not_a_solver": "Intersection of three partition matroids is not generically polynomial-time, and this artifact does not prove that the P3-overlap restriction makes it polynomial.",
+    "anti_loop": [
+      "Do not treat ordinary two-matroid intersection as directly applicable: M_L intersection M_R is not itself a matroid/delta-matroid on the rank-3 switch.",
+      "Do not branch over the three missing local states independently; that is exponential in the number of degree-3 mixed variables.",
+      "Do not replace exact common independence by linear span, parity, or hash reachability; frozen counterexamples already invalidate those relaxations."
+    ]
+  },
+  "next_target": {
+    "name": "E8_P3_OVERLAP_AUGMENTING_EXCHANGE_THEOREM_V2_5",
+    "directive": "Construct a deterministic polynomial augmentation theorem for common independent sets of (M_C,M_L,M_R) using that all nontrivial M_L/M_R blocks have size two and their overlap graph is a disjoint union of P3/K2. The theorem must either increase cardinality or return an exact obstruction certificate, without branching over rank-3 switches.",
+    "required_progress_measure": "A polynomially bounded potential Phi(S) and an augmentation/obstruction procedure whose every successful step strictly improves Phi or |S|, with at most poly(|F|) distinct steps.",
+    "success_obligations": [
+      "arbitrary bounded-occurrence 2/3-CNF image",
+      "deterministic polynomial construction and runtime",
+      "exact feasibility iff SAT",
+      "polynomial satisfying-assignment reconstruction",
+      "polynomially discoverable UNSAT obstruction or exact no-augmentation certificate",
+      "no hidden exponential branching, state space, field extension, coefficient bitlength, or oracle"
+    ]
+  },
+  "scientific_ceiling": {
+    "P_VS_NP": "OPEN",
+    "P_EQUALS_NP_ALGORITHM": "NOT_CONSTRUCTED",
+    "E8_D1": "EMPTY",
+    "NEW_EXACT_FRONTIER": "P3-overlap common-independent-set problem for three partition matroids, with one local symmetric-exchange defect per mixed degree-3 variable."
+  }
+}

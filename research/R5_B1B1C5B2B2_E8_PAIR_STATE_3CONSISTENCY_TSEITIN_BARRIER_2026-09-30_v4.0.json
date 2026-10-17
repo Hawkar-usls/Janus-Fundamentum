@@ -1,0 +1,68 @@
+{
+  "artifact_id": "JANUS-TRUMP-E8-PAIR-STATE-3CONSISTENCY-TSEITIN-BARRIER-2026-09-30-v4.0",
+  "version": "v4.0",
+  "date_local": "2026-09-30",
+  "status": "EXACT_LOCAL_CONSISTENCY_BARRIER__NO_P_EQUALS_NP_CLAIM",
+  "parents": [
+    "research/R5_B1B1C5B2B2_E8_TERMINAL_RANK3_IMPLICATION_PRIMITIVE_NORMAL_FORM_2026-09-30_v3.8.json",
+    "research/R5_B1B1C5B2B2_E8_WIDTH3_RESOLUTION_BINARY_CONSEQUENCE_KERNEL_2026-09-30_v3.9.json"
+  ],
+  "purpose": "Test the polynomial pair-state lift suggested by the width-3-closed primitive frontier. There are only O(n^2) literal/variable-pair states, so one might try to propagate every ternary clause by strong 3-consistency/path-consistency style local extension. An explicit cubic Tseitin contradiction shows that this local pair-state closure can be perfectly consistent while the full formula is UNSAT.",
+  "pair_state_candidate": {
+    "states": "For each unordered variable pair {x,y}, retain the four Boolean assignments to that pair unless forbidden by unary/binary closure.",
+    "ternary_update": "For each ternary constraint on {x,y,z}, retain a pair assignment iff it has at least one value of the third variable extending it to a satisfying local triple; iterate the analogous condition over all pairs/triples until stable.",
+    "complexity": "The explicit state space is O(n^2) and every local update is polynomial. This is the natural strong-3-consistency / pair-extension closure, not an exponential subset-state algorithm."
+  },
+  "frozen_k4_tseitin_control": {
+    "graph": "K4 with vertices 0,1,2,3 and edge variables e01,e02,e03,e12,e13,e23.",
+    "constraints": [
+      "e01 XOR e02 XOR e03 = 1",
+      "e01 XOR e12 XOR e13 = 0",
+      "e02 XOR e12 XOR e23 = 0",
+      "e03 XOR e13 XOR e23 = 0"
+    ],
+    "cnf_encoding": "Encode each arity-3 parity equation by the four width-3 clauses excluding the four assignments of wrong parity, for 16 three-clauses total.",
+    "unsat_proof": "XOR the four equations. Every edge variable appears exactly twice and cancels, so the left side is 0 while the total charge on the right side is 1. Hence the system and its 3-CNF encoding are UNSAT."
+  },
+  "theorem": {
+    "name": "K4_TSEITIN_IS_STRONGLY_3_LOCAL_CONSISTENT_BUT_GLOBALLY_UNSAT",
+    "proof": [
+      "For one parity constraint x XOR y XOR z=b, every assignment to any two of x,y,z has exactly one extension to the third variable. Therefore every binary projection of every local ternary relation is the full four-element Boolean pair relation.",
+      "Distinct K4 vertex constraints have distinct 3-edge scopes and share only their common graph edge. Consequently no pair assignment is removed by iterative strong-3-consistency/pair-extension propagation: all four states survive on every variable pair.",
+      "Nevertheless the XOR-of-all-vertices argument gives a global contradiction because the total charge is odd.",
+      "The exact checker additionally saturates ordinary resolution while retaining clauses of width at most three and verifies that on this frozen control the closure adds no new clause and does not derive the empty clause."
+    ]
+  },
+  "algorithmic_consequence": {
+    "killed": [
+      "Claim completeness from an O(n^2) table of pair assignments plus only local ternary extension/strong-3-consistency propagation.",
+      "Treat survival of every pair state after width-3 closure as evidence that a global satisfying assignment exists.",
+      "Any pair-state algorithm whose only information is the family of locally extendable assignments on scopes of size at most three."
+    ],
+    "not_killed": [
+      "A pair-indexed algorithm carrying genuinely global algebraic labels, such as parity/cycle invariants, beyond local extendability.",
+      "Higher-order nonlocal cuts whose scope grows with the instance while retaining a polynomial representation.",
+      "Polynomial Gaussian elimination on XOR subclasses.",
+      "A new global contraction for arbitrary 3-SAT.",
+      "P=NP"
+    ]
+  },
+  "literature_boundary": {
+    "resolution": "Tseitin contradictions on expanding bounded-degree graphs require resolution width growing with n; fixed-width closure is therefore not universally complete.",
+    "csp": "Bounded-width/local-consistency methods characterize only bounded-width CSP languages; arbitrary SAT is outside the regime where constant-level local consistency is complete."
+  },
+  "next_target": {
+    "name": "E8_GLOBAL_PAIR_LABEL_OR_CYCLE_INVARIANT_V4_1",
+    "directive": "If pair states are retained, enrich them only with a polynomial-size genuinely global invariant. The invariant must detect odd Tseitin charge/cycle obstructions but also handle non-affine primitive OR3 atoms; local extension tables alone are forbidden. A successful rule must strictly contract primitive ternary atoms or return a polynomial exact certificate, with witness reconstruction."
+  },
+  "scientific_ceiling": {
+    "P_VS_NP": "OPEN",
+    "P_EQUALS_NP_ALGORITHM": "NOT_CONSTRUCTED",
+    "E8_D1": "EMPTY"
+  },
+  "sources": [
+    "E. Ben-Sasson and A. Wigderson, Short Proofs are Narrow - Resolution made Simple, JACM 48(2), 2001.",
+    "D. Itsykson, A. Riazanov, P. Smirnov, Tight Bounds for Tseitin Formulas, SAT 2022.",
+    "J. Thapper and S. Zivny, The Power of Sherali-Adams Relaxations for General-Valued CSPs, SIAM Journal on Computing 46(4), 2017."
+  ]
+}

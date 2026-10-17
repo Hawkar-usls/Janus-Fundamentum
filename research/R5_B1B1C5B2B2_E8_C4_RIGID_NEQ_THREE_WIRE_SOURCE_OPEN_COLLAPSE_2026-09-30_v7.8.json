@@ -1,0 +1,93 @@
+{
+  "artifact_id": "JANUS-TRUMP-E8-C4-RIGID-NEQ-THREE-WIRE-SOURCE-OPEN-COLLAPSE-2026-09-30-v7.8",
+  "version": "v7.8",
+  "date_local": "2026-09-30",
+  "status": "EXACT_FINITE_THREE_WIRE_SOURCE_OPEN_COMPOSITION_BARRIER__NO_P_EQUALS_NP_CLAIM",
+  "parents": [
+    "research/R5_B1B1C5B2B2_E8_C4_SOURCE_OPEN_RIGID_NEQ_GAIN_WIRE_2026-09-30_v7.7.json",
+    "research/R5_B1B1C5B2B2_E8_C4_RIGID_GAIN_HOLONOMY_COMPILATION_2026-09-30_v7.2.json"
+  ],
+  "purpose": "Test the first composition route required by v7.7 without dropping source geometry or S3 gain data. Take three disjoint copies of the source-open rigid NEQ wire. Choose two whole terminal C4 components as the external interfaces, leave both dangling Hamiltonian half-edges on each external terminal open, pair every remaining dangling half-edge by Hamiltonian splice edges between distinct C4 components, and require the compressed Hamiltonian subgraph to remain exactly two open paths with no internal Hamiltonian cycle. Exhaust every such topology and compute the exact terminal relation on orbit labels and relative S3 gain. The orbit relation always collapses to the full 3x3 relation; no EQ_3 or NEQ_3 wire survives three-wire source-open composition in this interface.",
+  "wire_interface": {
+    "source": "v7.7 four-C4 wire W(X,Y)",
+    "X_dangling_ports": [0,1],
+    "Y_dangling_ports": [1,2],
+    "compressed_internal_H_paths": [["X0","Y1"],["X1","Y2"]],
+    "terminal_semantics": "For orbit labels tau_X!=tau_Y there is exactly one relative gain h_XY=g_Y^{-1}g_X in S3; equal orbit labels are impossible.",
+    "rigid_gain_table": {
+      "0,1": [0,1,2],
+      "0,2": [2,0,1],
+      "1,0": [2,1,0],
+      "1,2": [2,1,0],
+      "2,0": [0,2,1],
+      "2,1": [0,1,2]
+    }
+  },
+  "composition_model": {
+    "copies": 3,
+    "terminal_components": ["X0","Y0","X1","Y1","X2","Y2"],
+    "external_choice": "Choose any two of the six terminal C4 components as named external terminals. Both dangling half-edges of each named terminal remain open.",
+    "hidden_saturation": "All eight dangling half-edges belonging to the other four terminal C4 components are perfectly paired into four new Hamiltonian splice edges.",
+    "splice_scope": "A splice edge must join dangling vertices belonging to distinct C4 components. Same-C4 Hamiltonian diagonals are outside this v7.8 language.",
+    "topology_gate": "After contracting each long v7.7 internal Hamiltonian path to an edge, the six wire-path edges plus four splice edges must have exactly four degree-one vertices, namely the four external dangling vertices, and no cycle component. Equivalently the kept Hamiltonian graph is exactly two vertex-disjoint open paths and is therefore source-open and further spliceable.",
+    "boundary_state": "Retain the exact triple (tau_A,tau_B,h_AB) with h_AB=g_B^{-1}g_A in S3. Global colour symmetry fixes g_A=id during replay."
+  },
+  "exact_enumeration": {
+    "external_terminal_pairs_checked": 15,
+    "same_wire_external_pairs_with_valid_two_path_topology": 0,
+    "cross_wire_external_pairs": 12,
+    "valid_two_path_topologies_per_cross_wire_pair": 40,
+    "valid_source_open_topologies_total": 480,
+    "distinct_orbit_projections": 1,
+    "orbit_projection_for_every_topology": "FULL_3x3",
+    "gain_refined_terminal_triple_counts": {
+      "46": 48,
+      "50": 96,
+      "52": 48,
+      "54": 288
+    },
+    "full_boundary_relation_size": 54,
+    "fully_gauge_transparent_universal_topologies": 288,
+    "topologies_retaining_some_gain_information": 192,
+    "gauge_transparent_EQ_3_found": false,
+    "gauge_transparent_NEQ_3_found": false,
+    "orbit_EQ_3_or_NEQ_3_found_even_with_gain_retained": false
+  },
+  "main_theorem": {
+    "name": "THREE_V7_7_WIRES_ERASE_ALL_ORBIT_LOGIC_IN_EVERY_TWO_PATH_SOURCE_OPEN_COMPOSITION",
+    "statement": "Within the explicit three-copy composition language above, every valid two-terminal source-open composition has all nine terminal orbit pairs extendable. Therefore no such composition realizes orbit EQ_3, orbit NEQ_3, or any other nontrivial binary relation on the three C4 orbit labels. In 288 of the 480 topologies the stronger exact boundary relation is the complete 54-element set {0,1,2}^2 x S3.",
+    "proof": [
+      "Each v7.7 copy is represented by its exact rigid six-pair orbit/gain table, so no internal wire state is approximated.",
+      "For each external-terminal choice, enumerate every perfect matching of the eight hidden dangling vertices, reject same-C4 splice edges, and retain exactly the matchings whose compressed Hamiltonian graph is two open paths with no cycle.",
+      "For each retained topology fix the first external gauge to identity and exhaust the six rigid states of that wire together with the thirty-six rigid states of each remaining wire. Every splice edge is checked as an actual vertex-colour inequality using the canonical C4 orbit representatives and exact gauges.",
+      "Project each satisfying assignment only after all splice inequalities are checked, recording both external orbit labels and h_AB=g_B^{-1}g_A. Direct replay finds exactly 480 valid topologies and the same full nine-pair orbit projection in every one.",
+      "Refining by h_AB gives only four total relation sizes, 46,50,52,54, with multiplicities 48,96,48,288 respectively; hence most topologies are already completely gauge-transparent and none restores an orbit wire."
+    ]
+  },
+  "algorithmic_consequence": {
+    "positive": [
+      "The v7.7 primitive is reusable topologically, but its NEQ_3 orbit semantics is not stable under naive source-open composition.",
+      "The loss is quantified exactly: two hidden splice layers are already enough for three copies to accept every terminal orbit pair.",
+      "The 192 non-universal cases isolate the only surviving information in this three-wire language: a proper subset of relative S3 gains, not an orbit relation."
+    ],
+    "killed": [
+      "Build a durable EQ_3/NEQ_3 orbit wire by combining exactly three v7.7 primitives while keeping two whole terminal C4 interfaces and saturating all other dangling half-edges into a two-path Hamiltonian-open gadget.",
+      "Reason about v7.7 compositions using orbit masks alone; the orbit mask becomes universal even when nontrivial gain restrictions remain.",
+      "Infer hardness from repeated serial or arbitrarily re-paired three-wire NEQ masks without carrying gains and source topology."
+    ],
+    "firewall": [
+      "This is an exhaustive theorem only for three v7.7 copies, whole-terminal two-dangling interfaces, intercomponent splice edges, and a two-open-path topology. It does not exclude four-or-more copies, asymmetric one-half-edge interfaces, same-C4 Hamiltonian diagonals, or mixtures with other source-open gadgets.",
+      "A universal orbit projection does not imply the full boundary relation is trivial: 192 topologies retain relative-gain restrictions.",
+      "No polynomial SAT or 3-COLOR algorithm follows, and no P=NP conclusion follows."
+    ]
+  },
+  "next_target": {
+    "name": "E8_SOURCE_OPEN_GAIN_ONLY_RELATION_COMPOSITION_OR_ADAPTER_V7_9",
+    "directive": "Stop searching for orbit EQ/NEQ inside the three-v7.7 whole-terminal language. Catalogue the four gain-refined boundary types of sizes 46,50,52,54 up to terminal/orbit/gauge symmetry and test whether the nontrivial 46/50/52 relations can serve as adapters when mixed with the v7.7 rigid wire or the smooth v7.6.1 twisted-bijection seed. Preserve exact dangling-port identities and require an explicit two-path Hamiltonian splicing witness. If those gain-only atoms also collapse under composition, move to four-wire or asymmetric one-half-edge interfaces rather than repeating the three-wire search."
+  },
+  "scientific_ceiling": {
+    "P_VS_NP": "OPEN",
+    "P_EQUALS_NP_ALGORITHM": "NOT_CONSTRUCTED",
+    "E8_D1": "EMPTY"
+  }
+}

@@ -1,0 +1,113 @@
+{
+  "artifact_id": "JANUS-TRUMP-E8-SMOOTH-C4-PARTIAL-SPLICE-BOOLEAN-SWITCH-NORMAL-FORM-2026-09-30-v8.2",
+  "version": "v8.2",
+  "date_local": "2026-09-30",
+  "status": "EXACT_BOUNDARY_NORMAL_FORM_WITH_SOURCE_OPEN_BOOLEAN_EQ_IMP_OR_AND_FANOUT_GATE__NO_P_EQUALS_NP_CLAIM",
+  "parents": [
+    "research/R5_B1B1C5B2B2_E8_SMOOTH_C4_TWISTED_WIRE_FULL_STATE_PERMUTATION_BACKBONE_2026-09-30_v7.9.json",
+    "research/R5_B1B1C5B2B2_E8_SMOOTH_C4_FULL_THREE_EDGE_SPLICE_PATH_CYCLE_TERMINAL_2026-09-30_v8.1.json",
+    "research/R5_B1B1C5B2B2_E8_SMOOTH_C4_RIGID_TRANSDUCER_PHYSICAL_SPLICE_BRANCHING_2026-09-30_v8.0.json"
+  ],
+  "purpose": "Open the first genuinely branching physical-composition frontier left by v8.1. Replace the 18-state terminal description of the explicit smooth twisted wire by its exact six-dangling-colour boundary normal form, expose one Boolean switch bit q, and classify the smallest source-open cross-wire splice gadgets on q. Show exact source-open EQ, implication and 3-OR carriers, prove that 3-OR needs at least five splice edges in the direct three-wire matching language, and isolate the remaining composition bottleneck: every direct three-edge q-EQ copy consumes two unavoidable critical ports on each wire, so direct EQ cannot fan out twice from one six-port wire.",
+  "six_boundary_colour_normal_form": {
+    "boundary_order": ["L0","L2","L3","R0","R2","R3"],
+    "exact_colour_pattern_orbits": [
+      "A: (a,a,b,a,a,b) with a!=b",
+      "B: (a,b,c,b,c,a) with a,b,c pairwise distinct"
+    ],
+    "pattern_counts": "Each pattern orbit has six colour assignments under S3, for exactly twelve six-boundary assignments total.",
+    "deterministic_left_to_right_map": "Writing the left triple as (a,b,c)=(L0,L2,L3), the right triple is (R0,R2,R3)=(b,-a-b,-a+b+c) over GF(3).",
+    "matrix": [[0,1,0],[2,2,0],[2,1,1]],
+    "matrix_order": 3,
+    "left_domain": "a!=c and b!=c; these two inequalities define exactly the twelve left boundary states and the matrix preserves this domain."
+  },
+  "difference_coordinate_form": {
+    "definition": "Let c=L3, u=L0-L3 and v=L2-L3. The domain is u,v in {+1,-1} subset GF(3). Write u=s and v=s*q with s,q in {+1,-1}.",
+    "boolean_switch": "q=+1 iff L0=L2 (pattern A); q=-1 iff L0!=L2 (pattern B). The sign s records the orientation of the two nonzero colour differences.",
+    "boundary_colours": {
+      "L0": "c+s",
+      "L2": "c+s*q",
+      "L3": "c",
+      "R0": "c+s*q",
+      "R2": "c-s*(1+q)",
+      "R3": "c+s*(q-1)"
+    },
+    "wire_transfer_on_terminal_coordinates": "(c,s,q) -> (c+s*(q-1), s, q). Thus q and s are invariants of the open wire, while c is translated only in the q=-1 branch.",
+    "interpretation": "Physical partial splices are ordinary NEQ_3 tests between selected affine colour observations c+offset(s,q). The Boolean control q is not an approximation: it is an exact quotient coordinate of the six-boundary relation."
+  },
+  "direct_two_wire_three_splice_classification": {
+    "model": "Take two open wires A,B. Add exactly three cross-wire Hamiltonian splice edges forming a matching on their dangling vertices and reject any choice creating a closed H component. Project existentially over c_A,s_A,c_B,s_B and retain only (q_A,q_B).",
+    "valid_source_open_matchings": 2112,
+    "relations": [
+      {"mask_pairs":[[1,1],[-1,-1]],"meaning":"EQ(qA,qB)","count":24,"witness":[["A.L0","B.L0"],["A.L2","B.L2"],["A.R2","B.R2"]]},
+      {"mask_pairs":[[1,1],[1,-1],[-1,-1]],"meaning":"qA=-1 implies qB=-1","count":168,"witness":[["A.L0","B.L0"],["A.L2","B.L2"],["A.L3","B.R0"]]},
+      {"mask_pairs":[[1,1],[-1,1],[-1,-1]],"meaning":"qB=-1 implies qA=-1","count":168,"witness":[["A.L0","B.L0"],["A.L2","B.L2"],["A.R0","B.L3"]]},
+      {"meaning":"FULL_2x2","count":1752}
+    ],
+    "no_nontrivial_one_or_two_edge_relation": "With one or two cross-wire splice edges the q-projection is always FULL_2x2. Three is the first direct Boolean interaction size."
+  },
+  "direct_eq_capacity_barrier": {
+    "all_EQ_matchings": 24,
+    "possible_port_sets_on_either_terminal": [
+      ["L0","L2","R2"],
+      ["L0","R0","R2"]
+    ],
+    "critical_ports": ["L0","R2"],
+    "theorem": "Every direct source-open three-splice q-EQ gadget consumes L0 and R2 on each participating wire. Therefore no single six-dangling-port wire can participate in two disjoint direct q-EQ gadgets: the two copies would collide on both critical ports.",
+    "scope": "This blocks only fan-out by two direct two-wire EQ gadgets. It does not exclude a larger auxiliary copy/fan-out construction using implications or additional wires."
+  },
+  "source_open_three_OR": {
+    "truth_encoding": "FALSE=q=+1, TRUE=q=-1.",
+    "wires": ["A","B","C"],
+    "splice_edges": [
+      ["A.L0","B.L0"],
+      ["A.L2","B.L3"],
+      ["A.R0","C.L0"],
+      ["B.L2","C.L2"],
+      ["B.R3","C.R0"]
+    ],
+    "port_loads": {"A":3,"B":4,"C":3},
+    "exact_q_relation": "All eight assignments except (qA,qB,qC)=(+1,+1,+1). Under the truth encoding this is exactly OR_3(A,B,C).",
+    "H_topology": "The three wires contribute nine internal open H paths. After the five splices the kept H subgraph is a forest of four open paths with eight dangling endpoints; no internal Hamiltonian cycle is created.",
+    "minimality_in_direct_three_wire_matching_language": {
+      "k1":{"all_matchings":108,"source_open":108,"OR_or_reverse_OR_or_NAE":0},
+      "k2":{"all_matchings":4590,"source_open":4536,"OR_or_reverse_OR_or_NAE":0},
+      "k3":{"all_matchings":99000,"source_open":95328,"OR_or_reverse_OR_or_NAE":0},
+      "k4":{"all_matchings":1166400,"source_open":1074816,"OR_or_reverse_OR_or_NAE":0},
+      "conclusion":"Five cross-wire splice edges are the first achieved and, by exhaustive replay through k<=4, the minimum possible size for OR_3, reverse-OR_3 or NAE_3 in this direct three-wire matching model."
+    }
+  },
+  "main_theorem": {
+    "name": "PARTIAL_SPLICES_EXPOSE_AN_EXACT_BOOLEAN_SWITCH_LAYER_WITH_EQ_IMP_AND_SOURCE_OPEN_OR3",
+    "statement": "The explicit smooth twisted wire has an exact (c,s,q) boundary normal form with one Boolean invariant q. Source-open physical splice matchings pp-define q equality, directed implication and a five-edge OR_3 relation. However the direct equality primitive has a strict six-port capacity bottleneck preventing two-way direct EQ fan-out from one wire.",
+    "proof": [
+      "Enumerate the exact 18 full terminal states of the v7.9 control, project to the six dangling vertex colours and quotient duplicates. Exactly twelve assignments remain, forming the two displayed S3-orbits.",
+      "Solve the unique affine GF(3) map from the left triple to the right triple and verify M^3=I on the whole ambient vector space and preservation of the twelve-state inequality domain.",
+      "Rewrite with u=a-c and v=b-c; nonzeroness gives u,v in {+1,-1}, hence u=s, v=s*q and the displayed boundary formulas follow by substitution.",
+      "Exhaust all source-open three-edge matchings between two wires and all local (c,s,q) states. Exactly four q-relations occur with counts 24,168,168,1752, including the explicit EQ and implication controls.",
+      "Inspect all 24 EQ matchings: on either endpoint the used port set is exactly one of two triples and both contain L0,R2, proving the direct fan-out collision theorem.",
+      "For three wires, exhaust every source-open matching with one through four cross-wire splice edges. None projects to OR_3, its complement-polarity reverse OR, or NAE_3. The displayed five-edge forest is replayed directly and projects to all Boolean triples except all-FALSE."
+    ]
+  },
+  "algorithmic_consequence": {
+    "positive": [
+      "Replaces the partial-splice 18-state search by a transparent GF(3) base colour c plus two signs s,q; q is the exact Boolean branch variable.",
+      "Finds the first explicit source-open ternary Boolean clause atom in this branch: OR_3.",
+      "Finds exact source-open q-EQ and implication primitives and pinpoints why the obvious EQ-copy network cannot branch."
+    ],
+    "firewall": [
+      "OR_3 plus one non-composable EQ witness is not yet a source-preserving NP-hardness reduction. Variable reuse/fan-out must be realized within the six-port Hamiltonian budget before any hardness promotion.",
+      "The five-edge OR minimality statement is scoped to three copies of this explicit wire, cross-wire matching edges only, and the no-internal-H-cycle source-open gate.",
+      "No result here constructs a polynomial solver for the partial-splice language; conversely no P=NP conclusion follows from finding the Boolean atoms."
+    ]
+  },
+  "next_target": {
+    "name": "E8_BOOLEAN_Q_COMPOSABLE_FANOUT_OR_CAPACITY_INVARIANT_V8_3",
+    "directive": "Do not repeat direct EQ search: its critical-port collision is complete. Use the 168 implication gadgets, whose endpoint port triples are much more diverse, to search for a source-open copy/fan-out network q_parent=q_child1=q_child2 or an equivalent variable-consistency backbone with no wire exceeding its six dangling ports. In parallel test auxiliary-wire EQ gadgets with terminal port load <=2; if impossible, extract an observational/cut invariant rather than treating finite failure as universal. Any hardness claim must include an explicit Hamiltonian-open composition scheme connecting variable consistency gadgets to the five-edge OR_3 atom."
+  },
+  "scientific_ceiling": {
+    "P_VS_NP": "OPEN",
+    "P_EQUALS_NP_ALGORITHM": "NOT_CONSTRUCTED",
+    "E8_D1": "EMPTY"
+  }
+}

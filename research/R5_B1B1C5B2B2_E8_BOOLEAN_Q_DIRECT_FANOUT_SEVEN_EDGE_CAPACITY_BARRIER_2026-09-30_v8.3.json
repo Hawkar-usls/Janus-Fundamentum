@@ -1,0 +1,89 @@
+{
+  "artifact_id": "JANUS-TRUMP-E8-BOOLEAN-Q-DIRECT-FANOUT-SEVEN-EDGE-CAPACITY-BARRIER-2026-09-30-v8.3",
+  "version": "v8.3",
+  "date_local": "2026-09-30",
+  "status": "EXACT_FINITE_DIRECT_FANOUT_MINIMALITY_AND_CAPACITY_BARRIER__NO_P_EQUALS_NP_CLAIM",
+  "parents": [
+    "research/R5_B1B1C5B2B2_E8_SMOOTH_C4_PARTIAL_SPLICE_BOOLEAN_SWITCH_NORMAL_FORM_2026-09-30_v8.2.json",
+    "research/R5_B1B1C5B2B2_E8_SMOOTH_C4_EXPOSED_PORT_12STATE_PARTIAL_SPLICE_QUOTIENT_2026-09-30_v8.2.json"
+  ],
+  "purpose": "Close the first direct three-wire fanout question left by the Boolean q normal form. Exhaust every source-open cross-wire matching gadget on three copies of the explicit smooth twisted wire through six physical splice edges and prove that none projects to ALL_EQ_3(qA,qB,qC). Then give an explicit seven-edge source-open gadget whose exact q projection is ALL_EQ_3. Since a reusable three-output fanout that leaves at least two dangling Hamiltonian ports on every named wire can use at most six splice edges, the seven-edge logical threshold is already beyond the physical composability budget.",
+  "model": {
+    "wire_boundary_ports": ["L0","L2","L3","R0","R2","R3"],
+    "wire_internal_H_paths": [["L0","R3"],["L2","R0"],["L3","R2"]],
+    "local_state": "(c,s,q) with c in GF(3), s in {+1,-1}, q in {+1,-1}, using the exact v8.2 boundary formulas.",
+    "splice": "A physical splice edge joins one unused dangling port of one wire to one unused dangling port of another wire and imposes colour inequality. Ports are used at most once.",
+    "source_open_gate": "The union of the three wires' nine internal H paths and selected splice edges must contain no closed Hamiltonian component; equivalently the kept H subgraph remains a forest of open paths.",
+    "target_relation": "ALL_EQ_3={(+1,+1,+1),(-1,-1,-1)} on (qA,qB,qC)."
+  },
+  "symmetry_reduction": {
+    "statement": "For each fixed q triple, global colour relabelling is the affine S3 action x -> alpha*x+beta on GF(3), alpha in {+1,-1}. It acts freely and transitively on one wire's six (c,s) frames. Therefore fix wire A to cA=0,sA=+1 without loss and enumerate only the 6*6=36 frames of wires B,C.",
+    "effect": "Every q-assignment satisfiability set is represented by one 36-bit mask. Adding a splice edge is exact bitwise intersection with its precomputed mask. No colour assignment is approximated or dropped."
+  },
+  "exhaustive_minimality_search": {
+    "edge_universe": "108 possible cross-wire edges: three unordered wire pairs times 6 times 6 endpoint ports.",
+    "enumeration": "Depth-first in increasing edge id, so every matching edge set is visited exactly once. Maintain exact open-path endpoint pairing; adding an edge between the two endpoints of one existing path is rejected because it would close an H cycle. Maintain the eight exact 36-bit q masks and prune only when one of the two required all-equal q assignments has already become impossible, which cannot remove an ALL_EQ_3 witness.",
+    "target_preserving_nodes_by_depth": [
+      {"k":0,"count":1},
+      {"k":1,"count":108},
+      {"k":2,"count":4536},
+      {"k":3,"count":95328},
+      {"k":4,"count":1073472},
+      {"k":5,"count":6405168},
+      {"k":6,"count":18706368}
+    ],
+    "result": "No visited source-open matching through k=6 has exact q relation ALL_EQ_3. Because every candidate ALL_EQ_3 gadget must preserve both all-equal assignments, the target-preserving DFS is exhaustive for the claim."
+  },
+  "seven_edge_witness": {
+    "splice_edges": [
+      ["A.L0","B.L0"],
+      ["A.L2","B.L2"],
+      ["A.L3","C.L3"],
+      ["A.R0","C.R2"],
+      ["A.R2","C.L2"],
+      ["A.R3","C.R0"],
+      ["B.R2","C.R3"]
+    ],
+    "port_loads": {"A":6,"B":3,"C":5},
+    "source_open": true,
+    "exact_q_projection": [[1,1,1],[-1,-1,-1]],
+    "meaning": "The Boolean equality-of-three relation is physically realizable in this direct language, but only after crossing the reusable three-output port budget. The witness distinguishes a genuine capacity obstruction from a purely logical non-definability obstruction."
+  },
+  "capacity_corollary": {
+    "reusable_interface_requirement": "Demand at least two unused dangling Hamiltonian ports on each of A,B,C after the fanout gadget, so each named copy can still be spliced into later source-open logic.",
+    "counting_bound": "Each wire has six dangling ports, hence can spend at most four. Across three wires at most 12 port incidences can be consumed, i.e. at most six splice edges.",
+    "theorem": "No direct three-wire source-open ALL_EQ_3 fanout with at least two residual dangling ports on every terminal exists in this matching language.",
+    "proof": "Any such reusable gadget has k<=6 by the incidence count, while the exhaustive exact search proves ALL_EQ_3 absent for every source-open matching through k=6."
+  },
+  "main_theorem": {
+    "name": "DIRECT_Q_ALL_EQ3_NEEDS_SEVEN_SPLICES_AND_THEREFORE_EXCEEDS_THREE_OUTPUT_CAPACITY",
+    "statement": "Within the direct three-wire cross-splice matching language of v8.2, source-open ALL_EQ_3 has minimum splice size seven. Consequently no such direct ALL_EQ_3 gadget can retain two or more dangling ports on each of its three named wires; direct reusable Boolean fanout is impossible in this language.",
+    "firewall": "Minimum seven is scoped to exactly three copies of the explicit twisted wire, cross-wire matching edges only, and the source-open no-internal-H-cycle gate. Auxiliary wires, larger gadgets, or interfaces exposing different ports remain open."
+  },
+  "algorithmic_consequence": {
+    "positive": [
+      "Turns the v8.2 direct-EQ critical-port observation into a complete three-output direct fanout barrier rather than a single-gadget failure.",
+      "Shows that q equality itself is not logically missing: it appears exactly at seven direct splice edges; the obstruction is reusable Hamiltonian port capacity.",
+      "Provides a tiny explicit seven-edge ALL_EQ_3 control for every future auxiliary-wire construction."
+    ],
+    "killed": [
+      "Search longer within the same three-wire direct matching language for a reusable ALL_EQ_3 fanout with at least two free ports per output.",
+      "Assume that combining the direct q-EQ/implication atoms on only the three named wires will eventually evade the six-port budget without auxiliary structure."
+    ],
+    "not_killed": [
+      "Auxiliary-wire fanout in which hidden wires absorb the seven-edge equality burden while named terminals retain external ports.",
+      "A variable-consistency backbone using implications plus clause gadgets without literal three-way ALL_EQ_3.",
+      "A polynomial algorithm exploiting the same capacity invariant.",
+      "P=NP"
+    ]
+  },
+  "next_target": {
+    "name": "E8_AUXILIARY_WIRE_Q_FANOUT_OR_CONSISTENCY_BACKBONE_V8_4",
+    "directive": "Stop searching the direct three-wire matching language: v8.3 closes it. Add one or more auxiliary twisted wires and search source-open gadgets whose named terminals retain at least two dangling ports each while their projected q relation is ALL_EQ_3 or an equivalent variable-consistency relation sufficient to connect the v8.2 OR_3 clause atom. Track exact (c,s,q) witnesses and H-path topology. Start with four wires and use the seven-edge witness as a seed to move saturation onto hidden wires. If bounded auxiliary search fails, extract a cut/port-flow invariant rather than extrapolating from finite failure."
+  },
+  "scientific_ceiling": {
+    "P_VS_NP": "OPEN",
+    "P_EQUALS_NP_ALGORITHM": "NOT_CONSTRUCTED",
+    "E8_D1": "EMPTY"
+  }
+}

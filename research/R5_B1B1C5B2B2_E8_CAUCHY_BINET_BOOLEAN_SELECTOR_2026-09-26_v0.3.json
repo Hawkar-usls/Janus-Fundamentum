@@ -1,0 +1,83 @@
+{
+  "artifact_id": "JANUS-TRUMP-R5-B1B1C5B2B2-E8-CAUCHY-BINET-BOOLEAN-SELECTOR-2026-09-26-v0.3",
+  "version": "v0.3",
+  "date_local": "2026-09-26",
+  "status": "CONSTRUCTIVE_CANDIDATE__EXACT_SELECTOR_LEMMA__NO_P_EQUALS_NP_CLAIM",
+  "gate": "R5_B1B1C5B2B2_E8_CAUCHY_BINET_BOOLEAN_SELECTOR_V0_3",
+  "parent": "research/R5_B1B1C5B2B2_E8_LINEAR_BOUNDARY_RANK_BARRIER_2026-09-26_v0.2.json",
+  "goal": "Replace explicit 2^n Boolean summation by one polynomial-time determinant, provided the SAT indicator can be localized into assignment-selected minors without cancellation.",
+  "selector_lemma": {
+    "name": "CAUCHY_BINET_EXACT_BOOLEAN_TRANSVERSAL_SUM_V0_3",
+    "setup": [
+      "Let B be any 2n by n matrix over a commutative field/ring where determinants are defined.",
+      "Index rows of B as (i,b) with i in [n] and b in {0,1}.",
+      "Let A be n by 2n with both columns (i,0) and (i,1) equal to the i-th standard basis vector e_i."
+    ],
+    "identity": "det(A B) = sum_{a in {0,1}^n} det(B[S_a,:]), where S_a={(i,a_i):i in [n]}.",
+    "proof": [
+      "Apply Cauchy-Binet: det(AB)=sum_{S subset [2n], |S|=n} det(A[:,S]) det(B[S,:]).",
+      "If S omits a variable pair or chooses two columns from one pair, A[:,S] has a missing or duplicated standard-basis direction, so its determinant is zero.",
+      "The only surviving S choose exactly one column from every pair; these are in bijection with Boolean assignments a.",
+      "For every surviving S_a, A[:,S_a] is the identity matrix in pair order, so det(A[:,S_a])=1.",
+      "Substitution yields the stated identity."
+    ],
+    "complexity": "Given B explicitly, A and AB are constructible in polynomial time and det(AB) is computable in polynomial arithmetic time. No 2^n minors are materialized."
+  },
+  "sat_route": {
+    "required_object": "For arbitrary 3-CNF F on n variables, construct in poly(|F|) time a 2n by n rational/integer matrix B_F of polynomial bitlength such that det(B_F[S_a,:]) is nonnegative for every assignment a and is positive iff F(a)=1.",
+    "consequence_if_constructed": [
+      "By the selector lemma, det(A B_F)=sum_a det(B_F[S_a,:]).",
+      "All terms are nonnegative, so det(A B_F)>0 iff at least one satisfying assignment exists.",
+      "Thus SAT is decided by one polynomial-size determinant computation.",
+      "If every satisfying minor equals 1, det(A B_F)=#SAT(F), strengthening the route to exact counting."
+    ],
+    "witness_reconstruction": "If the decision construction exists and remains exact under fixing x_i=0 or 1, standard self-reduction reconstructs a satisfying assignment using O(n) determinant decisions, still polynomial.",
+    "current_missing_lemma": "UNIVERSAL_NONNEGATIVE_TRANSVERSAL_MINOR_REPRESENTATION_FOR_3CNF is NOT PROVED. This is the live constructive obligation, not an assumed subroutine."
+  },
+  "padding_observation": {
+    "statement": "Adding polynomially many fixed mandatory rows/columns to the Cauchy-Binet selector does not by itself enlarge the zero/nonzero support class of assignment-selected minors.",
+    "reason": "If any selected full minor is nonzero, the mandatory fixed rows are independent. Quotienting the ambient row space by their span reduces every selected full determinant to the determinant of the n variable-selected row images, up to one fixed nonzero scalar/basis factor.",
+    "scope": "This concerns mandatory fixed padding only; more elaborate gadgets with additional optional choices or cancellations are not covered."
+  },
+  "finite_falsifier": {
+    "model": "un-padded one-row-pair-per-variable selector over GF(2)",
+    "formula": "NAE3(x,y,z) = (x OR y OR z) AND (NOT x OR NOT y OR NOT z)",
+    "result": "EXHAUSTIVE_FAIL_OVER_GF2",
+    "method": "Enumerate all 2^18 possible 6x3 GF(2) matrices and compare the eight assignment-selected 3x3 determinant values to the NAE3 truth table.",
+    "interpretation": "The simplest selector representation already fails for a 2-clause 3-CNF over GF(2). This is field/model-specific, not a general impossibility theorem.",
+    "control": "Over GF(3) the same NAE3 support IS representable; an explicit six-row control is stored in the checker. Therefore the GF(2) falsifier must not be promoted beyond its exact scope."
+  },
+  "source_audit": [
+    {
+      "source": "Orzel, Srinivasan, Tavenas, Yehudayoff, The Algebraic Cost of a Boolean Sum, FSTTCS 2025",
+      "url": "https://doi.org/10.4230/LIPIcs.FSTTCS.2025.47",
+      "relevance": "Both permanent and determinant simulate formulas, but the paper proves alpha_perm(2)<=3 while alpha_det(2)=infinity for their simple-projection Boolean-sum cost. Therefore a naive constant-padding iterative determinant Boolean-sum closure is not available."
+    },
+    {
+      "source": "Hrubes and Joglekar, On Read-k Projections of the Determinant, STACS 2025",
+      "url": "https://doi.org/10.4230/LIPIcs.STACS.2025.53",
+      "relevance": "Read-k determinant representations have unconditional non-expressibility results; localizing every Boolean variable to few determinant entries is a genuine expressivity restriction, not a free normalization."
+    },
+    {
+      "source": "Chaugule, A new characterization of VNP via Colored Determinant, ECCC TR25-214",
+      "url": "https://eccc.weizmann.ac.il/report/2025/214/",
+      "relevance": "A colored determinant is VNP-complete and conditional-stack branching programs characterize VNP, confirming that determinant-like global cancellation can express Boolean-sum complexity only after adding structure beyond the ordinary determinant."
+    }
+  ],
+  "next_gate": {
+    "name": "E8_CHAR0_TRANSVERSAL_MINOR_SAT_INDICATOR_SEARCH_V0_4",
+    "target": "Either construct B_F over Q/Z with polynomial bitlength and nonnegative assignment minors exactly matching arbitrary 3-CNF satisfaction, or produce a field-independent explicit 3-CNF obstruction to this transversal-minor representation.",
+    "anti_loop": [
+      "Do not return to fixed multiplicative quotient sketches (killed by v0.1).",
+      "Do not return to generic polynomial-dimensional linear/bilinear separator messages (killed by v0.2).",
+      "Do not claim determinant Boolean-sum closure by repeated constant padding; current literature explicitly blocks that simple route.",
+      "Do not infer impossibility of P=NP from failure of this candidate model."
+    ]
+  },
+  "scientific_ceiling": {
+    "P_VS_NP": "OPEN",
+    "P_EQUALS_NP_ALGORITHM": "NOT_YET_CONSTRUCTED",
+    "NEW_POSITIVE_MECHANISM": "One determinant exactly sums all assignment-indexed transversal minors without enumerating assignments.",
+    "MISSING": "Polynomial universal construction of satisfying-assignment minors for arbitrary 3-CNF."
+  }
+}

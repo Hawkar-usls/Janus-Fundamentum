@@ -1,0 +1,92 @@
+{
+  "artifact_id": "JANUS-TRUMP-E8-2EXTENSION-COLOR-PRESERVING-REDUCTION-BARRIER-2026-09-30-v7.0",
+  "version": "v7.0",
+  "date_local": "2026-09-30",
+  "status": "EXACT_FINITE_INDUCTIVE_REDUCTION_BARRIER__NO_P_EQUALS_NP_CLAIM",
+  "parents": [
+    "research/R5_B1B1C5B2B2_E8_K5_MINUS_2K2_BOUNDARY_WIRE_GLUE_TERMINAL_2026-09-30_v6.9.json",
+    "research/R5_B1B1C5B2B2_E8_FULL_TRANSITION_MATROID_BALANCED_MUTATION_COLORING_BARRIER_2026-09-30_v6.8.json"
+  ],
+  "purpose": "Test the natural inductive strategy suggested by the structural theorem that every essentially 6-edge-connected 4-regular graph is obtained from K5 by 2-extensions. Prove the exact colouring condition for an inverse 2-reduction and exhibit a colourable essentially-6 Hamiltonian graph for which every admissible 2-reduction parent is non-3-colourable. Thus 3-colourability cannot be propagated by plain parent-graph recursion along the structural construction tree.",
+  "source_structure": {
+    "two_extension": "Choose two independent edges ab and cd, delete them, add a new vertex v, and add va,vb,vc,vd.",
+    "two_reduction": "Conversely, at a degree-four vertex v choose a perfect matching {{a,b},{c,d}} of N(v), delete v, and add ab and cd when this yields a simple graph in the required structural class.",
+    "structural_theorem": "Every essentially 6-edge-connected 4-regular graph is obtainable from K5 by a sequence of 2-extensions; equivalently every non-K5 member has a structural 2-reduction sequence back to K5."
+  },
+  "colour_preservation_lemma": {
+    "name": "TWO_REDUCTION_PRESERVES_A_FIXED_THREE_COLOURING_IFF_THE_NEIGHBOUR_SPLIT_IS_2_PLUS_2_AND_THE_PAIRING_CROSSES",
+    "statement": "Let phi be a proper 3-colouring of a 4-regular graph G and v a vertex. Since all neighbours of v avoid phi(v), N(v) uses at most the other two colours. A perfect-matching 2-reduction at v preserves phi restricted to G-v exactly when both added matching edges join different colours. Such a perfect matching exists iff the four neighbour colours split 2+2. In that case exactly two of the three perfect matchings cross the two colour classes. For a 3+1 or 4+0 split every perfect matching contains a monochromatic pair.",
+    "proof": [
+      "The only new constraints in the parent graph are the two added matching edges, so the restricted colouring is proper iff each matched pair receives different colours.",
+      "With only two available neighbour colours, two disjoint bichromatic pairs use exactly two vertices of each colour, giving the necessary 2+2 condition.",
+      "Conversely a 2+2 split has exactly two perfect matchings consisting entirely of cross-colour pairs; the third matches equal colours. A 3+1 or 4+0 multiset leaves a same-colour pair in every perfect matching."
+    ]
+  },
+  "finite_control": {
+    "vertices": [0,1,2,3,4,5,6,7,8,9],
+    "edges": [[0,3],[0,5],[0,7],[0,8],[1,2],[1,4],[1,6],[1,9],[2,4],[2,6],[2,9],[3,4],[3,5],[3,6],[4,7],[5,7],[5,8],[6,8],[7,9],[8,9]],
+    "hamiltonian_cycle": [0,3,4,1,2,6,8,9,7,5,0],
+    "regularity": "Every vertex has degree four.",
+    "essential_6_control": "The checker exhausts every nontrivial vertex shore 2<=|S|<=5 and finds minimum cut size six; hence there is no nontrivial edge cut of size below six.",
+    "three_colouring_count": 24,
+    "neighbour_pattern": "For every one of the 24 proper 3-colourings and every one of the 10 vertices, the four neighbour colours have multiplicities 3+1. No vertex in any solution has a 2+2 neighbour split."
+  },
+  "all_admissible_reductions": {
+    "definition": "Enumerate every vertex and all three perfect matchings of its four neighbours. Keep exactly the pairings whose two added edges are nonedges of G-v and whose parent is simple, connected, 4-regular and essentially 6-edge-connected.",
+    "count": 12,
+    "reducible_vertices": [3,4,6,7,8,9],
+    "parents": [
+      {"v":3,"pairs":[[0,4],[5,6]]},
+      {"v":3,"pairs":[[0,6],[4,5]]},
+      {"v":4,"pairs":[[1,3],[2,7]]},
+      {"v":4,"pairs":[[1,7],[2,3]]},
+      {"v":6,"pairs":[[1,3],[2,8]]},
+      {"v":6,"pairs":[[1,8],[2,3]]},
+      {"v":7,"pairs":[[0,4],[5,9]]},
+      {"v":7,"pairs":[[0,9],[4,5]]},
+      {"v":8,"pairs":[[0,6],[5,9]]},
+      {"v":8,"pairs":[[0,9],[5,6]]},
+      {"v":9,"pairs":[[1,7],[2,8]]},
+      {"v":9,"pairs":[[1,8],[2,7]]}
+    ],
+    "exact_result": "Every one of the 12 admissible parent graphs has zero proper 3-colourings. The checker verifies this by exhaustive 3^9 evaluation for every parent."
+  },
+  "main_theorem": {
+    "name": "COLOURABLE_ESSENTIALLY6_GRAPH_WITH_NO_COLOURABLE_ADMISSIBLE_2REDUCTION_PARENT",
+    "statement": "There exists a simple essentially 6-edge-connected 4-regular Hamiltonian graph G such that G is 3-colourable but every admissible 2-reduction parent of G is not 3-colourable.",
+    "proof": [
+      "The finite control checker verifies all graph-structural properties and finds 24 proper 3-colourings of G.",
+      "It exhausts all vertex/pairing choices and finds exactly 12 admissible 2-reduction parents.",
+      "Each of those 12 parents has zero proper 3-colourings by exhaustive exact evaluation.",
+      "Independently, every solution of G has a 3+1 neighbour split at every vertex, so the local colour-preservation lemma already forbids restricting any solution through any 2-reduction."
+    ]
+  },
+  "algorithmic_consequence": {
+    "killed": [
+      "The recurrence 3COL(G) iff there exists an admissible structural 2-reduction parent H with 3COL(H).",
+      "An induction that follows the K5-to-G 2-extension characterization while storing only the parent graph and one parent 3-colouring.",
+      "The hope that every colourable essentially-6 4-regular graph has some colour-compatible 2-reducible vertex."
+    ],
+    "positive": [
+      "The exact obstruction to colour-preserving reduction is localized: inverse elimination of v must retain the four-neighbour NAD4 relation rather than replace it only by two graph edges.",
+      "The structural 2-extension theorem can still serve as a decomposition skeleton if the algorithm carries a richer boundary/CSP state through reductions."
+    ],
+    "not_killed": [
+      "A polynomial symbolic recurrence carrying NEQ plus NAD4 or another compact boundary relation instead of plain parent graphs.",
+      "A different reduction sequence with non-graph constraints accumulated and later eliminated globally.",
+      "P=NP"
+    ]
+  },
+  "next_target": {
+    "name": "E8_2REDUCTION_NEQ_NAD4_SYMBOLIC_STATE_V7_1",
+    "directive": "Stop plain graph-only induction on 2-reductions. Derive the exact constraint language produced by repeatedly eliminating degree-four vertices: original graph edges give NEQ_3 and each eliminated vertex gives NAD4 on its four neighbours. Test whether the resulting three-state CSP admits a polynomial closure/elimination or whether its projected relations generate a known hard clone. Any candidate must handle the v7.0 control without branching over the 24 colourings or over three pairings per reduction."
+  },
+  "scientific_ceiling": {
+    "P_VS_NP": "OPEN",
+    "P_EQUALS_NP_ALGORITHM": "NOT_CONSTRUCTED",
+    "E8_D1": "EMPTY"
+  },
+  "sources": [
+    "EGRES Technical Report 2022-13 / Jordan--Huang--Simmons--Weatherspoon--Zheng: every essentially 6-edge-connected 4-regular graph is obtainable from K5 by 2-extensions."
+  ]
+}

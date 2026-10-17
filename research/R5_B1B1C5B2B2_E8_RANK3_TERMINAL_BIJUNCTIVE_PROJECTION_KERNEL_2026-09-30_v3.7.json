@@ -1,0 +1,53 @@
+{
+  "artifact_id": "JANUS-TRUMP-E8-RANK3-TERMINAL-BIJUNCTIVE-PROJECTION-KERNEL-2026-09-30-v3.7",
+  "version": "v3.7",
+  "date_local": "2026-09-30",
+  "status": "EXACT_POLYNOMIAL_KERNELIZATION__NO_P_EQUALS_NP_CLAIM",
+  "parents": [
+    "research/R5_B1B1C5B2B2_E8_RANK2_SCC_TERMINAL_AND_EXACTONE3_BIJUNCTIVE_BARRIER_2026-09-30_v3.4.json",
+    "research/R5_B1B1C5B2B2_E8_TOVEY_LINK_CYCLE_WITNESS_SOURCE_RETURN_2026-09-30_v2.6.json"
+  ],
+  "purpose": "Eliminate the entire polynomially tractable rank-2 layer before attacking rank-3 clauses. Given an arbitrary mixed 2/3-CNF, existentially project its 2-CNF part onto only the variables that occur in 3-clauses. The projection is again bijunctive and has an explicit O(k^2)-clause implication representation, where k is the number of 3-clauses.",
+  "input": {
+    "formula": "F=F2 AND F3, where F2 contains clauses of size at most two and F3 contains exactly the 3-clauses.",
+    "rank3_count": "k=|F3|.",
+    "terminal_variables": "T is the set of Boolean variables appearing in F3, so |T|<=3k."
+  },
+  "construction": {
+    "step_1": "Build the implication graph G of F2 and compute SCCs/reachability. If some literal l and its negation lie in one SCC, F2 and hence F are UNSAT.",
+    "step_2": "For every pair of terminal literals a,b with a path a -> b in G, add the binary clause (NOT a OR b). Unit consequences are included as the special case a -> NOT a or NOT a -> a, represented by duplicated literals if desired.",
+    "projected_2cnf": "Call the resulting formula H_T. It uses only variables T and has O(|T|^2)=O(k^2) binary clauses after deduplication.",
+    "kernel": "K(F)=H_T AND F3."
+  },
+  "theorem": {
+    "name": "EXACT_RANK3_TERMINAL_BIJUNCTIVE_PROJECTION_KERNEL",
+    "statement": "F is satisfiable iff K(F) is satisfiable. Moreover every satisfying assignment of K(F) can be extended to a satisfying assignment of F in polynomial time.",
+    "proof": [
+      "The set of assignments to T extendable to a model of F2 is the existential projection of the bijunctive relation defined by F2. Bijunctive relations are closed under existential projection, so this projected relation is definable by 2-CNF.",
+      "For 2-CNF, an implication a -> b is entailed exactly when b is reachable from a in the implication graph, after the usual SCC consistency check. Therefore H_T contains all binary/unit implicates over terminal literals and defines exactly the projected relation on T.",
+      "If F is satisfiable, its restriction to T satisfies H_T and also all original 3-clauses F3, so it satisfies K(F).",
+      "Conversely, if an assignment tau on T satisfies K(F), then tau satisfies the exact projection H_T and therefore extends to an assignment sigma satisfying F2. Since F3 depends only on T and tau satisfies F3, sigma satisfies all of F.",
+      "To reconstruct sigma, add the terminal literals fixed by tau as unit clauses to F2 and run ordinary 2-SAT/SCC assignment reconstruction; exact projection guarantees consistency."
+    ]
+  },
+  "complexity": {
+    "terminals": "at most 3k variables",
+    "binary_kernel_size": "O(k^2) clauses",
+    "construction": "polynomial time by SCC plus transitive reachability on the implication condensation graph",
+    "reconstruction": "one polynomial 2-SAT solve after a terminal model is found"
+  },
+  "interpretation": {
+    "positive": "All variables and clauses belonging only to the rank-2 layer can be removed exactly. Any universal algorithm may therefore focus on a compact terminal system consisting of k rank-3 clauses plus their induced bijunctive implication relation.",
+    "not_a_solver": "k can be linear in the input size. Brute-force over terminal assignments or 3-clause choices remains exponential and is forbidden as a D1 algorithm.",
+    "source_return_control": "On the canonical Tovey bounded-occurrence normalization, projecting the link-cycle 2-clauses contracts the copy variables back to the original arbitrary 3-SAT variables. Thus this kernelization is exact cleanup, not hidden tractability."
+  },
+  "next_target": {
+    "name": "E8_TERMINAL_RANK3_GLOBAL_CONTRACTION_V3_8",
+    "directive": "Work only on K(F)=H_T AND F3: at most 3k terminal variables, an explicit bijunctive implication closure H_T, and k genuine 3-clauses. Seek a deterministic polynomial contraction/minimax invariant that handles all k rank-3 atoms simultaneously without branching on their three choices. Any claimed progress must beat the trivial 3^k terminal enumeration and survive Tovey source-return controls."
+  },
+  "scientific_ceiling": {
+    "P_VS_NP": "OPEN",
+    "P_EQUALS_NP_ALGORITHM": "NOT_CONSTRUCTED",
+    "E8_D1": "EMPTY"
+  }
+}

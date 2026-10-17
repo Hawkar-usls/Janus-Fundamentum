@@ -1,0 +1,54 @@
+{
+  "artifact_id": "JANUS-TRUMP-E8-F2-AFFINE-NONSINGULARITY-DECISION-REDUCTION-2026-09-26-v1.3",
+  "version": "v1.3",
+  "date_local": "2026-09-26",
+  "status": "EXACT_DECISION_REDUCTION__NO_P_EQUALS_NP_CLAIM",
+  "parent": "research/R5_B1B1C5B2B2_E8_OCCURRENCE_RANK1_FOURIER_EQUALITY_REDUCTION_2026-09-26_v1.0.json",
+  "goal": "Remove #SAT/counting entirely and express SAT itself as finite-field affine matrix nonsingularity over F2.",
+  "construction": {
+    "input": "A 3-CNF F with clauses C_1,...,C_m on Boolean variables x_1,...,x_n, with no repeated variable inside a clause.",
+    "field": "GF(2).",
+    "literal_false_indicator": "For a positive literal x_i use f=1+x_i; for a negative literal NOT x_i use f=x_i.",
+    "clause_block": "For false-indicators f1,f2,f3 define G_C=[[1,f1,0],[0,1,f2],[f3,0,1]] over GF(2).",
+    "clause_determinant": "det(G_C)=1+f1*f2*f3, hence on GF(2)^n it equals 1 iff the clause is satisfied and 0 iff all three literals are false.",
+    "global_pencil": "M_F(x)=blockdiag_C G_C(x)=M_0+sum_i x_i A_i.",
+    "decision_identity": "det M_F(a)=1 iff every clause of F is satisfied by a. Therefore F is satisfiable iff there exists a in GF(2)^n with det(M_0+sum_i a_i A_i) != 0.",
+    "direction_rank": "rank(A_i) equals the number of occurrences of x_i because the occurrence entries lie in pairwise disjoint clause blocks and use distinct row/column coordinates. After a standard 3-SAT-4 reduction, every direction has rank at most 4."
+  },
+  "homogeneous_linear_space_form": {
+    "construction": "Introduce y0 and B(y0,x)=diag(y0, y0*M_0+sum_i x_i A_i).",
+    "identity": "B is nonsingular over GF(2) iff y0=1 and M_F(x) is nonsingular. Thus SAT is equivalent to whether the linear matrix space span{B_0,B_1,...,B_n} contains a nonsingular matrix over GF(2).",
+    "purpose": "Connect the exact decision frontier to finite-field Edmonds/max-rank machinery without replacing Boolean coefficients by a larger field."
+  },
+  "source_alignment": [
+    {
+      "source": "Buss, Frandsen, Shallit, The Computational Complexity of Some Problems of Linear Algebra, JCSS 58 (1999)",
+      "relevance": "General finite-field NONSING/MAXRANK is NP-complete; this confirms that moving to GF(2) nonsingularity does not solve SAT by itself and that any polynomial algorithm must exploit the frozen clause-block / bounded-rank-direction structure."
+    },
+    {
+      "source": "Tovey, A simplified NP-complete satisfiability problem, Discrete Applied Mathematics 8 (1984)",
+      "relevance": "3-SAT remains NP-complete when every variable appears in at most four clauses, so the frozen decision reduction can be restricted to rank(A_i)<=4 without losing universality."
+    },
+    {
+      "source": "Ivanyos, Karpinski, Qiao, Santha, Generalized Wong sequences and their applications to Edmonds' problems, STACS 2014 / JCSS 2015",
+      "relevance": "Polynomial algorithms exist for special matrix-space classes such as rank-1-spanned and triangularizable spaces; v1.3 asks whether the specific clause-block rank<=4 spaces admit a stronger structural algorithm rather than invoking general finite-field NONSING."
+    }
+  ],
+  "next_target": {
+    "name": "E8_F2_CLAUSE_BLOCK_MAXRANK_ALGORITHM_V1_4",
+    "directive": "Construct a deterministic polynomial-time algorithm for the frozen GF(2) block-diagonal 3-clause pencil with rank<=4 variable directions, returning a satisfying assignment exactly when a nonsingular completion exists. Do not enlarge the coefficient field, do not replace Boolean coefficients by symbolic indeterminates, and do not use exhaustive assignment enumeration.",
+    "success_obligations": [
+      "works for arbitrary 3-SAT after polynomial 3-SAT-4 normalization",
+      "deterministic polynomial construction and runtime",
+      "GF(2) assignments only",
+      "SAT iff nonsingular completion",
+      "polynomial witness reconstruction",
+      "no hidden exponential field extension, state, bitlength, or branching"
+    ]
+  },
+  "scientific_ceiling": {
+    "P_VS_NP": "OPEN",
+    "P_EQUALS_NP_ALGORITHM": "NOT_CONSTRUCTED",
+    "NEW_EXACT_FRONTIER": "Bounded-rank GF(2) affine nonsingularity for the explicit clause-block pencil."
+  }
+}

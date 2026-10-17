@@ -1,0 +1,87 @@
+{
+  "artifact_id": "JANUS-TRUMP-E8-P0-PRINCIPAL-TRANSVERSAL-COEFFICIENT-CARRIER-2026-09-30-v2.8",
+  "version": "v2.8",
+  "date_local": "2026-09-30",
+  "status": "EXACT_POSITIVE_COEFFICIENT_CARRIER__NO_P_EQUALS_NP_CLAIM",
+  "parents": [
+    "research/R5_B1B1C5B2B2_E8_P3_OVERLAP_THREE_PARTITION_MATROID_CARRIER_2026-09-30_v2.4.json",
+    "research/R5_B1B1C5B2B2_E8_PARITY_GROUP_EXTERIOR_ALL_OR_NONE_PROJECTION_2026-09-30_v2.6.json",
+    "research/R5_B1B1C5B2B2_E8_CAUCHY_BINET_BOOLEAN_SELECTOR_2026-09-26_v0.3.json"
+  ],
+  "purpose": "Move the exact bounded-occurrence SAT witness carrier into one sparse block-diagonal P0 matrix whose principal minors are only 0 or 1. Clause choice is then isolated entirely in one squarefree coefficient of det(I+K Z). This removes local Boolean fanout from the determinant itself and exposes the precise live boundary: coefficient extraction for rank-at-most-three clause aggregates.",
+  "input_normal_form": {
+    "formula": "A 2/3-CNF F with each Boolean variable occurring at most three times, obtained by the standard polynomial bounded-occurrence normalization used by the parent artifacts.",
+    "occurrence_ground_set": "One index o for every literal occurrence. Let C(o) denote its clause.",
+    "sign_consistent_set": "S is sign-consistent when, for every original Boolean variable, all selected occurrences in S have the same literal sign."
+  },
+  "local_blocks": {
+    "mixed_degree3": {
+      "notation": "After possibly negating the variable, let L,R be the two majority-sign occurrences and M the single minority-sign occurrence.",
+      "matrix_order_LMR": [[1,1,-1],[1,1,-1],[0,-1,1]],
+      "principal_minor_support": [[],["L"],["M"],["R"],["L","R"]],
+      "principal_minor_values": "Every supported principal minor equals 1; the LM, MR and LMR principal minors equal 0.",
+      "meaning": "det K_x[S]=1 exactly when S uses at most one sign of x."
+    },
+    "mixed_degree2": {
+      "notation": "Let A,B be the two opposite-sign occurrences.",
+      "matrix_order_AB": [[1,1],[1,1]],
+      "principal_minor_support": [[],["A"],["B"]],
+      "principal_minor_values": "The empty and singleton principal minors are 1 and det K_x[{A,B}]=0."
+    },
+    "pure_or_single_sign": {
+      "matrix": "Use the identity matrix I_d on the d<=3 same-sign occurrences.",
+      "meaning": "Every local subset is sign-consistent and every principal minor equals 1."
+    }
+  },
+  "global_matrix": {
+    "definition": "Let K be the block diagonal direct sum of the local K_x blocks over original variables, in occurrence coordinates.",
+    "p0_property": "Every principal minor of K is a product of local principal minors and therefore belongs to {0,1}. In particular K is a real P0 matrix.",
+    "exact_support_identity": "For every occurrence subset S, det K[S,S]=1 iff S is sign-consistent, and det K[S,S]=0 otherwise."
+  },
+  "principal_minor_generating_polynomial": {
+    "clause_diagonal": "Let Z(z) be diagonal on occurrences with Z_oo=z_{C(o)}.",
+    "polynomial": "G_F(z)=det(I+K Z(z)).",
+    "principal_minor_expansion": "G_F(z)=sum_{S subseteq Occ(F)} det K[S,S] * product_{o in S} z_{C(o)}.",
+    "target_coefficient": "W(F)=[product_C z_C] G_F(z).",
+    "coefficient_identity": "W(F)=sum_{S: |S intersect C|=1 for every clause C} det K[S,S].",
+    "combinatorial_meaning": "Because every summand is 0 or 1, W(F) is exactly the number of sign-consistent one-literal-per-clause witness transversals."
+  },
+  "theorem": {
+    "name": "SAT_IFF_POSITIVE_P0_PRINCIPAL_TRANSVERSAL_COEFFICIENT",
+    "statement": "For every bounded-occurrence 2/3-CNF F in the frozen normal form, F is satisfiable iff W(F)>0.",
+    "proof": [
+      "If F is satisfiable, choose one true literal occurrence in every clause. The chosen occurrence set S is sign-consistent, so det K[S,S]=1 and contributes positively to W(F).",
+      "Conversely, W(F)>0 implies some clause-transversal S has det K[S,S]=1. The global support identity makes S sign-consistent. Assign every variable according to its selected sign when present and arbitrarily otherwise. Each clause contains its selected true witness, so F is satisfiable.",
+      "No cancellation argument is used: every coefficient contribution is nonnegative and integral."
+    ],
+    "witness_reconstruction_if_decision_oracle_exists": "Any polynomial algorithm deciding positivity of W remains exact after fixing literals/variables, so standard SAT self-reduction reconstructs a satisfying assignment with polynomially many calls. This is only a conditional reconstruction statement, not an algorithm claim."
+  },
+  "rank_aggregate_frontier": {
+    "decomposition": "Write G_F(z)=det(I+sum_C z_C A_C), where A_C=K D_C and D_C is the diagonal projector onto the occurrences of clause C.",
+    "rank_bound": "rank(A_C)<=|C|<=3.",
+    "rank1_terminal": "If every A_C has rank one, write A_C=u_C v_C^T, U=[u_C], V=[v_C]. Then det(I+U diag(z) V^T)=det(I+diag(z) V^T U), and the coefficient of product_C z_C is det(V^T U), computable in polynomial time.",
+    "live_boundary": "The bounded-occurrence SAT image therefore differs from this immediate determinant terminal only by allowing rank-two/rank-three clause aggregates. No generic polynomial coefficient algorithm for this source-aligned rank<=3 family is proved here."
+  },
+  "relation_to_existing_barriers": {
+    "fixed_auxiliary_projector": "v1.1 forbids one fixed auxiliary determinant reweighting around an unchanged occurrence block. The present carrier instead changes the core representation and asks for one specific transversal coefficient, so it is not logically killed by v1.1.",
+    "atomic_bundle_selector": "v0.6 shows ordinary Cauchy-Binet support cannot force multirow all-or-none bundles. Here inconsistent local subsets are killed by principal minors of K rather than by selector support, so the representation is different; the remaining difficulty is clause-transversal coefficient extraction.",
+    "exterior_projection": "v2.6 removes the Fourier character sum and leaves one two-state exterior tensor per Boolean variable. The principal-minor carrier is a discrete equivalent support/counting view of the same surviving all-or-none switch."
+  },
+  "next_target": {
+    "name": "E8_RANK3_P0_PRINCIPAL_TRANSVERSAL_CONTRACTION_V2_9",
+    "directive": "Construct a deterministic polynomial algorithm for W(F)>0 exploiting simultaneously: K is block diagonal with blocks of size at most three; every principal minor of K is 0/1; each clause aggregate A_C has rank at most three; every occurrence belongs to exactly one clause. Acceptable progress is either a polynomial determinant/Pfaffian/matroid contraction identity or an exact augmentation/minimax theorem. Do not expand clause transversals, exterior states, assignments, or characters.",
+    "success_obligations": [
+      "polynomial construction and arithmetic bit complexity",
+      "deterministic polynomial decision for W(F)>0",
+      "exact SAT equivalence on arbitrary normalized 2/3-CNF",
+      "polynomial satisfying-assignment reconstruction",
+      "no hidden exponential coefficient extraction, interpolation grid, state space, field extension, or oracle"
+    ]
+  },
+  "scientific_ceiling": {
+    "P_VS_NP": "OPEN",
+    "P_EQUALS_NP_ALGORITHM": "NOT_CONSTRUCTED",
+    "E8_D1": "EMPTY",
+    "NEW_EXACT_FRONTIER": "Positive full-clause coefficient of det(I+sum_C z_C A_C) where K is a block-size<=3 0/1-principal-minor P0 matrix and rank(A_C)<=3."
+  }
+}

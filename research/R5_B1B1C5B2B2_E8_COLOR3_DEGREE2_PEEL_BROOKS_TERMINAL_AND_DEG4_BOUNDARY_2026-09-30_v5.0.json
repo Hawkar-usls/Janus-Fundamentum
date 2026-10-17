@@ -1,0 +1,61 @@
+{
+  "artifact_id": "JANUS-TRUMP-E8-COLOR3-DEGREE2-PEEL-BROOKS-TERMINAL-AND-DEG4-BOUNDARY-2026-09-30-v5.0",
+  "version": "v5.0",
+  "date_local": "2026-09-30",
+  "status": "EXACT_GRAPH_CONTRACTION_AND_SHARP_DEGREE_BOUNDARY__NO_P_EQUALS_NP_CLAIM",
+  "parents": [
+    "research/R5_B1B1C5B2B2_E8_COLOR3_LINEARLY_LEAN_FIXED_DEGREE_PC_SOURCE_BARRIER_2026-09-30_v4.9.json"
+  ],
+  "purpose": "Exploit the graph semantics of the mandatory 3-COLOR residual instead of another proof-system cutoff. Repeatedly delete degree-at-most-two vertices with exact witness lifting, then use Brooks' theorem as a complete polynomial terminal for subcubic components. Freeze maximum degree four as the sharp next source boundary because 3-colourability is NP-complete already there, including planar 4-regular graphs.",
+  "degree2_peel": {
+    "algorithm": "While a vertex v has current degree at most two, delete v and push it with its current neighbor list onto a stack.",
+    "equivalence": "G is 3-colourable iff the peeled residual H is 3-colourable.",
+    "reconstruction": "Given a 3-colouring of H, reinsert deleted vertices in reverse order. When v is reinserted, every neighbor that was present at deletion time is already coloured and uses at most two colours, so one of the three colours remains available. Neighbors deleted earlier are coloured later and will avoid v in their own reconstruction step.",
+    "runtime": "Linear or near-linear with a degree queue. No branching is used."
+  },
+  "subcubic_terminal": {
+    "theorem": "After peeling, every nonempty component has minimum degree at least three. If its maximum degree is also at most three, then it is cubic. Brooks' theorem gives chi(G)<=3 for every connected cubic component except K4. Therefore a peeled subcubic residual is 3-colourable iff no component is K4.",
+    "witness": "For non-K4 subcubic components a constructive Brooks colouring algorithm is polynomial; the peeled vertices are then reconstructed by the stack rule.",
+    "unsat_certificate": "A K4 component is an explicit constant-size obstruction requiring four colours."
+  },
+  "degree3_elimination_relation": {
+    "setup": "If a degree-three vertex v with neighbors a,b,c is existentially eliminated rather than retained, v can be assigned a colour iff the neighbour colours do not use all three colours.",
+    "relation": "NAD3(a,b,c): |{col(a),col(b),col(c)}|<=2.",
+    "meaning": "The first nontrivial elimination atom is ternary. Degree-two vertices disappear for free; degree-three elimination creates a genuine 3-way Not-All-Distinct constraint and therefore does not stay inside ordinary graph 3-colouring without additional structure."
+  },
+  "sharp_hardness_boundary": {
+    "source": "3-COLOR is NP-complete on graphs of maximum degree four; classical results strengthen this to planar 4-regular graphs.",
+    "source_return": "On a 4-regular input the degree<=2 peel removes nothing, and the subcubic Brooks terminal does not apply. Hence the exact v5.0 contraction can be completely silent on an NP-hard source family.",
+    "frontier": "After v5.0, a graph-only universal attack may assume minimum degree at least three and must handle degree-four structure. On max-degree-four sources the remaining degrees are only 3 and 4."
+  },
+  "algorithmic_consequence": {
+    "positive": [
+      "A deterministic exact polynomial contraction with direct colouring reconstruction.",
+      "A complete polynomial terminal for all subcubic 3-colourability residuals.",
+      "A new source-aligned local atom NAD3 exposed by eliminating degree-three vertices."
+    ],
+    "killed": [
+      "Treat low-degree graph cleanup as merely heuristic; degree<=2 deletion is exact and should always be performed.",
+      "Hope that bounded graph degree alone makes the 3-COLOR benchmark polynomial: degree four already retains NP-completeness."
+    ],
+    "not_killed": [
+      "A polynomial contraction for degree-3/4 cores exploiting planarity, separators, cycle structure or the NAD3 relation.",
+      "A non-graph invariant that solves the degree-four source and then transports back to arbitrary 3-SAT.",
+      "P=NP"
+    ]
+  },
+  "next_target": {
+    "name": "E8_COLOR3_DEG34_NAD3_GLOBAL_CONTRACTION_V5_1",
+    "directive": "Attack degree-3/4 cores after exact peeling. Treat elimination of a degree-three vertex as the ternary NAD3 relation, not as a free graph contraction. Seek a polynomial global elimination/minimax rule for the coupled EDGE_NEQ plus NAD3 CSP, or prove a scoped barrier. Mandatory controls include 4-regular NP-hard source graphs and K4."
+  },
+  "scientific_ceiling": {
+    "P_VS_NP": "OPEN",
+    "P_EQUALS_NP_ALGORITHM": "NOT_CONSTRUCTED",
+    "E8_D1": "EMPTY"
+  },
+  "sources": [
+    "R. L. Brooks, On colouring the nodes of a network, 1941.",
+    "Martin Kochol, Vadim Lozin, Bert Randerath, The 3-Colorability Problem on Graphs with Maximum Degree Four, SIAM Journal on Computing.",
+    "David P. Dailey, Uniqueness of colorability and colorability of planar 4-regular graphs are NP-complete, Discrete Mathematics 30(3), 1980."
+  ]
+}

@@ -1,0 +1,66 @@
+{
+  "artifact_id": "JANUS-TRUMP-E8-LOCAL-VALUATED-MATCHING-PENALTY-BARRIER-2026-09-30-v2.8",
+  "version": "v2.8",
+  "date_local": "2026-09-30",
+  "status": "EXACT_LOCAL_VALUATED_DELTA_MATROID_BARRIER__NO_P_EQUALS_NP_CLAIM",
+  "parents": [
+    "research/R5_B1B1C5B2B2_E8_P3_OVERLAP_THREE_PARTITION_MATROID_CARRIER_2026-09-30_v2.4.json",
+    "research/R5_B1B1C5B2B2_E8_MINIMAL_RANK3_SWITCH_FRONTIER_2026-09-26_v1.4.json"
+  ],
+  "purpose": "Test the tempting repair: drop one of the two rank-3-switch conflicts so the global problem becomes ordinary bipartite matching, then attach a local weighted-matching gadget whose cost is zero on all five original switch states and strictly positive on the one extra relaxed state. Prove that no terminal valuation in the valuated-delta-matroid class can implement this penalty profile.",
+  "local_switch": {
+    "ground": ["L","M","R"],
+    "exact_states": [[],["L"],["M"],["R"],["L","R"]],
+    "relaxation": "Drop the {L,M} conflict and keep only {M,R}. The relaxed feasible states are exact_states plus {L,M}.",
+    "desired_min_cost": "phi(X)=0 for every exact state, phi({L,M})=lambda>0; states containing {M,R} are infeasible.",
+    "equivalent_max_valuation": "delta=-phi on the relaxed support, so delta=0 on the five exact states and delta({L,M})=-lambda."
+  },
+  "source_facts": [
+    {
+      "source": "K. Murota, Characterizing a Valuated Delta-matroid as a Family of Delta-matroids, JORSJ 40(4), 1997",
+      "fact": "For an even valuated delta-matroid, for every linear weighting p the maximizers of delta+p form the feasible-set family of a delta-matroid. In particular p=0 forces the maximizer family itself to be a delta-matroid."
+    },
+    {
+      "source": "K. Takazawa, Optimal Matching Forests and Valuated Delta-Matroids, SIAM J. Discrete Math. 28(1), 2014",
+      "fact": "Weighted matching forests induce a valuated delta-matroid; the induced delta-matroid need not be even. Ordinary weighted matching terminal-set valuations are the classical even special case."
+    }
+  ],
+  "theorem": {
+    "name": "NO_LOCAL_VALUATED_MATCHING_GADGET_FOR_SINGLE_RANK3_SWITCH_PENALTY",
+    "statement": "For every lambda>0, the desired local max-valuation delta cannot be a valuated delta-matroid (nor a weighted-matching/matching-forest terminal valuation satisfying the same maximizer-delta property).",
+    "proof": [
+      "At zero external linear weighting p=0, the maximizers of delta are exactly the five zero-penalty exact states R={empty,{L},{M},{R},{L,R}}.",
+      "R is not a delta-matroid. Take X={L,R}, Y={M}, and u=M in X symmetric-difference Y. For v=M,L,R respectively, X symmetric-difference {u,v} is {L,M,R}, {M,R}, or {L,M}; none belongs to R.",
+      "Therefore the symmetric-exchange axiom fails for the maximizer family.",
+      "The maximizer characterization of valuated delta-matroids is violated already at p=0. Hence no valuation in that class realizes the requested local penalty profile."
+    ]
+  },
+  "algorithmic_consequence": {
+    "killed": [
+      "Drop one P3 conflict, solve the resulting two-partition-matroid matching, and encode the missing conflict by a local weighted-matching terminal gadget with zero cost on all exact states and positive cost only on {L,M}.",
+      "Any equivalent local terminal-cost construction whose value function is a valuated delta-matroid and whose optimum states are exactly the five rank-3-switch states."
+    ],
+    "not_killed": [
+      "A genuinely nonlocal weighted construction coupling several rank-3 switches simultaneously without exposing the five-state relation as one terminal valuation.",
+      "An augmentation algorithm outside the valuated-delta-matroid/matching-gadget model.",
+      "Global algebraic cancellation where locally forbidden states survive and cancel only after combining many variables.",
+      "P=NP"
+    ]
+  },
+  "next_target": {
+    "name": "E8_NONLOCAL_SWITCH_AUGMENTATION_OR_GLOBAL_CANCELLATION_V2_9",
+    "directive": "Do not retry additive local penalties or local weighted matching gadgets. Search for a polynomially discoverable global augmenting structure that couples multiple P3 switches, or a global cancellation identity in which locally inconsistent states may survive transiently but cancel exactly without exponential state expansion.",
+    "success_obligations": [
+      "arbitrary bounded-occurrence 2/3-CNF image",
+      "deterministic polynomial construction/runtime",
+      "exact SAT iff feasible/nonzero",
+      "polynomial witness reconstruction",
+      "no exponential branching, boundary-state tensor product, character enumeration, or hidden oracle"
+    ]
+  },
+  "scientific_ceiling": {
+    "P_VS_NP": "OPEN",
+    "P_EQUALS_NP_ALGORITHM": "NOT_CONSTRUCTED",
+    "E8_D1": "EMPTY"
+  }
+}

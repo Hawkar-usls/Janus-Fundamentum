@@ -1,0 +1,79 @@
+{
+  "artifact_id": "JANUS-TRUMP-E8-C4-COHOMOLOGY-SIGNATURE-EXPLOSION-DUAL-RETURN-2026-10-01-v8.5.5",
+  "version": "v8.5.5",
+  "date_local": "2026-10-01",
+  "status": "EXACT_SCOPED_BARRIER__CI_CONFIRMED__NO_P_EQUALS_NP_CLAIM",
+  "parents": [
+    "research/R5_B1B1C5B2B2_E8_C4_GLOBAL_F3_CHARACTERISTIC_POLYNOMIAL_COLLAPSE_2026-10-01_v8.5.4.json",
+    "research/R5_B1B1C5B2B2_E8_SMOOTH_C4_EXPOSED_PORT_12STATE_PARTIAL_SPLICE_QUOTIENT_2026-09-30_v8.2.json",
+    "research/R5_B1B1C5B2B2_E8_BOOLEAN_Q_DIRECT_FANOUT_SEVEN_EDGE_CAPACITY_BARRIER_2026-09-30_v8.3.json"
+  ],
+  "checker": "research/tools/e8_c4_cohomology_signature_explosion_dual_return/checker.py",
+  "purpose": "Test the two most immediate proposed compressions of the v8.5.4 outer 3^m local-state sum: exact memoization by residual row/cohomology subspace, and MacWilliams/Fourier dualization of each characteristic-polynomial term. The first has an explicit source-aware exponential signature family; the second algebraically returns the already-known v8.5.2 current contraction.",
+  "source_aware_ring_family": {
+    "wire_port_order": ["L0", "L2", "L3", "R0", "R2", "R3"],
+    "internal_H_paths_per_wire": [["L0", "R3"], ["L2", "R0"], ["L3", "R2"]],
+    "external_splices": [
+      "wire v L0 -- wire v+1 R2",
+      "wire v L2 -- wire v+1 R3",
+      "wire v L3 -- wire v+1 R0"
+    ],
+    "ports_used_once": true,
+    "interaction_graph": "an m-cycle with three parallel physical splice edges on every consecutive wire pair",
+    "hamiltonian_channel_map": "After one external splice followed by the next wire's internal H path, the left-channel permutation is 0->2, 1->0, 2->1, a 3-cycle.",
+    "single_H_cycle_condition": "The closed H subgraph is one cycle exactly when m mod 3 != 0; when m mod 3 = 0 it splits into three cycles."
+  },
+  "cohomology_independence_theorem": {
+    "rows": "Let B_v be the signed conservation row and P_v,M_v the ordered VP/VM local rows of wire v in the v8.5.2 current coordinates.",
+    "left_relation": "For a dependence sum_v a_v B_v + b_v P_v + g_v M_v = 0, the three splice-edge equations on the v->v+1 bundle imply (a_{v+1},b_{v+1},g_{v+1}) = T(a_v,b_v,g_v).",
+    "T": [[1, 0, 1], [0, 1, 0], [0, 1, 1]],
+    "period": "T^3=I over GF(3). For m mod 3 != 0, Fix(T^m)=Fix(T) has dimension one and consists only of b=g=0 with constant a. For m mod 3 = 0 the fixed space has dimension three.",
+    "rank_consequence": "For m mod 3 != 0, rank(B)=m-1 and rank(B,P,M)=3m-1, so all 2m local classes [P_v],[M_v] are linearly independent modulo the conservation row space.",
+    "signature_consequence": "Every tau in {0,+,-}^m selects a unique subset of this independent 2m-set. Hence the exact residual subspaces Row(B plus selected P/M rows) are pairwise distinct: exactly 3^m signatures.",
+    "scope": "This kills only compression schemes whose dynamic-programming or memoization key must preserve the exact selected row/cohomology subspace. It does not prove that a coarser exact aggregate, characteristic value, transfer invariant, or different representation needs 3^m states."
+  },
+  "dual_return_theorem": {
+    "macwilliams_fourier_identity": "For any ternary row space V of dimension r on E coordinates, 3^(E-r)*|V intersect (GF(3)^*)^E| = sum_{z in V^perp} prod_e h(z_e), where h(0)=2 and h(1)=h(2)=-1.",
+    "apply_to_v8_5_4": "For V_tau=Row(A_tau), its orthogonal space consists of currents satisfying conservation and every local linear equation selected by tau.",
+    "sum_tau_locally": "The tau weights w(0)=-2,w(+)=w(-)=3 give at each wire the factor -2 + 3*delta(P_v dot z=0) + 3*delta(M_v dot z=0), exactly the v8.5.2 local current amplitude A_v(z).",
+    "result": "Substituting the dual identity into v8.5.4 and summing tau therefore reproduces exactly Z=3^(-2m) sum_{z in K} prod_e h(z_e) prod_v A_v(z), the v8.5.2 global current contraction.",
+    "meaning": "MacWilliams/dual-code conversion is a useful crosscheck and change of representation, but by itself it is an algebraic loop rather than a new asymptotic compression."
+  },
+  "exact_controls": {
+    "ring_family": "Checker verifies Hamiltonian component counts and rank formulas for every m=3..30; m=4 and m=5 additionally exhaust all tau and obtain exactly 3^m canonical row-space signatures.",
+    "dual_two_wire": "For every 6!=720 two-wire port closure and each of 3^2=9 tau states, verify the MacWilliams/Fourier identity independently, for 6480 exact local checks total.",
+    "global_return": "For all 720 closures, the dual-return current expression equals direct 12-state counting with profile 0:96,6:180,12:168,18:168,24:80,30:20,36:8."
+  },
+  "ci": {
+    "head_sha": "f38d29d9124cf9ccde136e5c04f6ea0b6abba825",
+    "merge_test_sha": "a7cb4c41259a4f0b0ff362668f514eaa65681350",
+    "run_id": 36800938715,
+    "job_id": 110174882605,
+    "conclusion": "success",
+    "verdict": "EXACT_COHOMOLOGY_SIGNATURE_EXPLOSION_AND_DUAL_RETURN_BARRIER_ESTABLISHED",
+    "dual_checks": 6480,
+    "two_wire_closures": 720
+  },
+  "algorithmic_consequence": {
+    "killed": [
+      "Exact memoization/canonicalization by Row(A_tau) as the proposed polynomial compression of the 3^m outer local-state sum.",
+      "Exact memoization by the selected local cohomology subspace modulo conservation when the state key distinguishes that subspace exactly.",
+      "Treating MacWilliams/Fourier dualization of chi_M_tau(3) followed by the tau sum as a new contraction; it returns v8.5.2 exactly."
+    ],
+    "not_killed": [
+      "A coarser exact aggregate that merges distinct row spaces while preserving the weighted sum.",
+      "Graph-structural transfer, deletion-contraction, holographic or other transforms that exploit more than exact row-space identity.",
+      "A polynomial evaluator for the v8.5.2 current contraction with witness reconstruction.",
+      "P=NP."
+    ]
+  },
+  "next_target": {
+    "name": "E8_C4_CURRENT_GRAPH_STRUCTURAL_CONTRACTION_V8_5_6",
+    "directive": "Return to the v8.5.2 current partition function as the irreducible live normal form. Search for a genuinely new contraction that uses the ordered Hamiltonian six-port graph structure, not exact row-space memoization and not mere Fourier/MacWilliams duality. First test whether the degree-six local signature belongs, after any invertible ternary basis/holographic transform compatible with the edge form h, to a known polynomially contractible class; otherwise extract an exact finite obstruction. Mandatory gates remain polynomial state count and bitlength, hard-source preservation, exact nonzero decision, and witness reconstruction."
+  },
+  "scientific_ceiling": {
+    "P_VS_NP": "OPEN",
+    "P_EQUALS_NP_ALGORITHM": "NOT_CONSTRUCTED",
+    "E8_D1": "EMPTY"
+  }
+}

@@ -1,0 +1,55 @@
+{
+  "artifact_id": "JANUS-TRUMP-E8-BOOLEAN-Q-TWO-HIDDEN-FANOUT-STATE-CODEC-2026-10-01-v8.5",
+  "version": "v8.5",
+  "date_local": "2026-10-01",
+  "status": "LANGUAGE_FROZEN__STATE_CODEC_READY__NO_SEARCH_VERDICT_YET__NO_P_EQUALS_NP_CLAIM",
+  "parents": [
+    "research/R5_B1B1C5B2B2_E8_BOOLEAN_Q_OR3_MINIMAL_PORT_LOAD_CLASSIFICATION_2026-09-30_v8.3.1.json",
+    "research/R5_B1B1C5B2B2_E8_BOOLEAN_Q_ONE_HIDDEN_FANOUT_SEVEN_EDGE_BARRIER_2026-10-01_v8.4.json"
+  ],
+  "purpose": "Freeze the first exact finite language for the minimal auxiliary escalation after v8.4: two hidden Boolean-q wires D,E. This artifact deliberately does not claim a positive or negative fanout result. It defines the state codec and invariants that every v8.5 search, DP quotient, witness verifier, or bounded barrier must use.",
+  "bounded_language": {
+    "wires": ["A", "B", "C", "D", "E"],
+    "named_outputs": ["A", "B", "C"],
+    "hidden_wires": ["D", "E"],
+    "ports_per_wire": ["L0", "L2", "L3", "R0", "R2", "R3"],
+    "candidate_splice_edges": "all cross-wire port pairs between distinct wires: C(5,2)*6*6 = 360",
+    "port_capacity": "matching: each exposed endpoint is used at most once",
+    "named_load_bound": "load(A),load(B),load(C) <= 3 so each named wire keeps at least three free ports for a minimum direct OR_3 occurrence",
+    "hidden_load_bound": "load(D),load(E) <= 6",
+    "total_splice_bound": "<= 10 edges from total available fanout incidences 3+3+3+6+6 = 21, hence floor(21/2)=10",
+    "source_open_gate": "the three initial H paths per wire plus selected splice edges must remain a forest of open paths; any splice joining endpoints already in the same path component closes an H cycle and is illegal",
+    "local_semantics": "exact v8.2 affine F3 boundary state (c,s,q), q in {+1,-1}",
+    "frame_quotient": "fix A to (c,s)=(0,+1) by global AGL(1,3)=S3 colour symmetry; enumerate all 6^4 = 1296 frames for B,C,D,E for each q tuple",
+    "q_tuple_count": "2^5 = 32",
+    "semantic_mask_width": "1296 frame bits per q tuple, stored as 21 x 64-bit words",
+    "hidden_projection": "existentially quantify q_D, q_E and the affine frames of D,E",
+    "target_named_relation": "ALL_EQ_3 on A,B,C = {+++ , ---}, relation mask 129"
+  },
+  "state_codec_obligations": [
+    "Any checker must generate exactly 360 candidate splice edges over unordered wire pairs and ordered endpoint choices.",
+    "Any semantic state must carry 32 q branches and 1296 affine frame possibilities per branch before edge intersections.",
+    "Any topology state must enforce matching endpoints and open-path acyclicity, not merely degree bounds.",
+    "Any branch prune must be monotone-safe under future edge intersections. The safe mandatory prune is preservation of at least one surviving frame for named +++ and at least one surviving frame for named ---, after existential hidden projection.",
+    "A positive witness must be validated by a standalone verifier that recomputes exact masks and source-open topology from the printed edge list.",
+    "A negative result must either exhaust this full finite language or prove a sound quotient whose classes refine exact semantics and topology."
+  ],
+  "not_allowed_as_proof": [
+    "random search near-misses",
+    "SAT/SMT black-box models without independent exact replay",
+    "orbit-mask intersection that ignores port identities or H-splicing topology",
+    "declaring a bounded v8.5 result as a universal P=NP algorithm",
+    "hidden exponential boundary tables or unaccounted bitlength/state blowup"
+  ],
+  "next_engine": {
+    "name": "E8_V8_5_TWO_HIDDEN_Q_FANOUT_CODEC_AND_QUOTIENT_SEARCH",
+    "first_checker": "research/tools/e8_boolean_q_two_hidden_fanout_state_codec/checker.cpp",
+    "first_workflow": ".github/workflows/trump-e8-boolean-q-two-hidden-fanout-state-codec.yml",
+    "directive": "Prove the state codec and constants first, then implement quotient/DP search. Do not run naive depth-10 brute force over 360 edges without a state quotient."
+  },
+  "scientific_ceiling": {
+    "P_VS_NP": "OPEN",
+    "P_EQUALS_NP_ALGORITHM": "NOT_CONSTRUCTED",
+    "E8_D1": "EMPTY"
+  }
+}

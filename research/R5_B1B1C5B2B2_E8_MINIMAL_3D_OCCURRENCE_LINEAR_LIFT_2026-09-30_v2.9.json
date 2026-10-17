@@ -1,0 +1,64 @@
+{
+  "artifact_id": "JANUS-TRUMP-E8-MINIMAL-3D-OCCURRENCE-LINEAR-LIFT-2026-09-30-v2.9",
+  "version": "v2.9",
+  "date_local": "2026-09-30",
+  "status": "EXACT_EQUIVALENCE_AND_MINIMAL_LOCAL_DIMENSION__NO_P_EQUALS_NP_CLAIM",
+  "parents": [
+    "research/R5_B1B1C5B2B2_E8_P3_OVERLAP_THREE_PARTITION_MATROID_CARRIER_2026-09-30_v2.4.json",
+    "research/R5_B1B1C5B2B2_E8_P3_OCCURRENCE_2D_MATROID_PARITY_LIFT_OBSTRUCTION_2026-09-30_v2.8.json"
+  ],
+  "purpose": "Complete the local linear-lift classification for the exact bounded-occurrence witness carrier. v2.8 proves that one 2D subspace per occurrence cannot be exact. This artifact gives an explicit one-3D-subspace-per-occurrence representation whose direct-sum selections are exactly the legal conflict-free witness sets.",
+  "construction": {
+    "ground": "One literal occurrence o per clause position of the normalized 2/3-CNF.",
+    "forbidden_pairs": "Two occurrences conflict iff they lie in the same clause or are opposite-sign occurrences of the same original Boolean variable.",
+    "ambient_basis": [
+      "For every clause C create one basis token c_C.",
+      "For every sign-conflict edge e={o,o'} create one basis token s_e.",
+      "For every occurrence o create enough private basis tokens p_{o,j} to bring its block dimension to exactly three."
+    ],
+    "occurrence_block": "S_o is the span of c_{C(o)}, all sign tokens s_e incident to o, and its private padding tokens. Under occurrence degree <=3, an occurrence has at most two opposite-sign conflict neighbors, so before padding this uses at most three independent basis tokens.",
+    "size": "There are O(q) clause/sign/private tokens and q occurrence blocks, so the represented matrix has polynomial dimensions and a sparse 0/1 description."
+  },
+  "theorem": {
+    "name": "LEGAL_WITNESS_SETS_IFF_DIRECT_SUMS_OF_3D_OCCURRENCE_BLOCKS",
+    "statement": "For every set X of literal occurrences, dim(sum_{o in X} S_o)=3|X| iff X contains no forbidden pair. Consequently, for a normalized formula with m clauses, F is satisfiable iff there exist m occurrence blocks whose sum has dimension 3m.",
+    "proof": [
+      "If X contains a same-clause pair, both blocks contain c_C; if it contains an opposite-sign pair, both blocks contain their common s_e. In either case the selected blocks are not a direct sum.",
+      "Conversely, if X contains no forbidden pair, no two selected blocks share any clause token or sign-conflict token. Private padding tokens are unique by construction. Hence the basis supports of all selected S_o are pairwise disjoint, so their sum is direct and has dimension 3|X|.",
+      "A direct-sum selection of m blocks cannot contain two occurrences from one clause. There are exactly m clauses, so it chooses exactly one occurrence from every clause. It also contains no opposite-sign pair. Thus it is exactly a sign-consistent one-witness-per-clause set and reconstructs a satisfying assignment.",
+      "A satisfying assignment supplies one true occurrence witness per clause; these are sign-consistent, hence conflict-free, and their blocks form a direct sum of dimension 3m."
+    ]
+  },
+  "minimality": {
+    "upper_bound": "Three dimensions per occurrence suffice by the explicit construction above.",
+    "lower_bound_scope": "In the natural one-fixed-subspace-per-occurrence direct-sum model with 2D blocks, v2.8 proves impossibility already on one mixed degree-3 P3 switch plus the minority clause alternative.",
+    "conclusion": "Within the one-block-per-occurrence direct-sum model, local dimension 3 is the first possible exact dimension."
+  },
+  "structure": {
+    "clause_coordinate": "Every block has exactly one clause token.",
+    "sign_coordinates": "Every block has at most two sign-conflict tokens; the sign-token incidence graph is a disjoint union of P3/K2 components inherited from v2.4.",
+    "private_coordinates": "Padding coordinates occur in exactly one block and are algorithmically inert except for fixing block dimension.",
+    "hard_core": "After deleting private coordinates, each block is clause-token + <=2 P3/K2 sign tokens. This is much narrower than arbitrary 3-dimensional linear matroid matching."
+  },
+  "algorithmic_consequence": {
+    "positive": "The exact SAT residual has a polynomial-size linear representation with block dimension exactly three and extremely sparse support.",
+    "not_a_solver": "Generic selection of disjoint/independent 3-element linear blocks is not supplied as a polynomial subroutine. This artifact is a representation theorem, not a P=NP proof.",
+    "live_attack": "Exploit the clause+P3/K2 token geometry to construct a nonlocal reduction from these special 3D blocks to a polynomially solvable 2D matroid-parity/Pfaffian object, or derive a direct augmentation theorem on the 3D blocks."
+  },
+  "next_target": {
+    "name": "E8_SPARSE_3D_TO_2D_GLOBAL_CONTRACTION_OR_AUGMENTATION_V3_0",
+    "directive": "Use that every nonprivate 3D block consists of one clause coordinate plus at most two sign coordinates whose incidence graph is P3/K2. A successful transformation must preserve the legal L,R,N configuration that killed local 2D lifts, so any dimension reduction must be genuinely global/nonlocal rather than blockwise.",
+    "success_obligations": [
+      "polynomial construction and represented dimension",
+      "exact SAT equivalence",
+      "deterministic polynomial solve or zero-test",
+      "polynomial witness reconstruction",
+      "no exponential branching, subset expansion, field degree, or coefficient bitlength"
+    ]
+  },
+  "scientific_ceiling": {
+    "P_VS_NP": "OPEN",
+    "P_EQUALS_NP_ALGORITHM": "NOT_CONSTRUCTED",
+    "E8_D1": "EMPTY"
+  }
+}

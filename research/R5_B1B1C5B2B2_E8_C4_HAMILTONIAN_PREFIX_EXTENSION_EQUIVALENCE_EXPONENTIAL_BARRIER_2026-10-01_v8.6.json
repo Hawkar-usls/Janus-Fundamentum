@@ -1,0 +1,81 @@
+{
+  "artifact_id": "JANUS-TRUMP-E8-C4-HAMILTONIAN-PREFIX-EXTENSION-EQUIVALENCE-EXPONENTIAL-BARRIER-2026-10-01-v8.6",
+  "version": "v8.6",
+  "date_local": "2026-10-01",
+  "status": "EXACT_SCOPED_NONLINEAR_PREFIX_STATE_BARRIER__CI_CONFIRMED__NO_P_EQUALS_NP_CLAIM",
+  "parent": "research/R5_B1B1C5B2B2_E8_C4_HAMILTONIAN_ORDER_COMMUNICATION_RANK_EXPONENTIAL_BARRIER_2026-10-01_v8.5.9.json",
+  "checker": "research/tools/e8_c4_hamiltonian_prefix_extension_equivalence_exponential/checker.py",
+  "purpose": "Strengthen v8.5.9 beyond linear communication rank. On the same explicit smooth C4 source family, prove exponentially many pairwise extension-inequivalent left partial colourings across one supplied-Hamiltonian prefix cut. Therefore any exact deterministic prefix dynamic program whose retained state is sufficient to decide all possible right continuations requires exponentially many states on this family, even if the state representation and update rules are nonlinear.",
+  "source_and_cut": {
+    "reuse": "Use exactly the odd-m smooth simple 4-regular Hamiltonian family G_m and the rounds {0,1}|{2,3} cut from v8.5.9.",
+    "n": "4m",
+    "selected_left_family": "2^(m-1) proper left colourings indexed by b in {0,1}^{m-1}, using alternating two-state component codes and the frozen final even component.",
+    "selected_right_family": "2^(m-1) proper right continuations indexed by c in {0,1}^{m-1} with the matching alternating two-state code and frozen final component.",
+    "restricted_compatibility": "C_selected = K^(tensor(m-1)), K=[[1,1],[1,0]]."
+  },
+  "extension_equivalence": {
+    "definition": "For proper left colourings x,x', define x ~ x' iff for every proper colouring y of the right induced subgraph, x union y extends to a proper colouring of all crossing edges exactly when x' union y does. Equivalently, x and x' are equivalent iff their rows in the full Boolean communication matrix are identical.",
+    "selected_row_uniqueness": "The two rows of K are r0=[1,1] and r1=[1,0]. Hence every bit word b produces row r_b = tensor_j r_{b_j}. All 2^(m-1) such rows are pairwise distinct.",
+    "explicit_distinguishing_continuation": "For distinct b,b', choose any coordinate j with b_j != b'_j. Set the selected right word c_j=1 and c_i=0 for every i!=j. Since K[:,0]=[1,1]^T, all unchanged coordinates accept both left choices. At coordinate j, K[0,1]=1 while K[1,1]=0, so this one proper right continuation accepts exactly the left word having bit 0 at j and rejects the left word having bit 1 there.",
+    "consequence": "The full cut has at least 2^(m-1)=2^(n/4-1) extension-equivalence classes of proper left partial colourings."
+  },
+  "main_theorem": {
+    "name": "SMOOTH_C4_HAMILTONIAN_PREFIX_HAS_EXPONENTIALLY_MANY_EXACT_EXTENSION_TYPES",
+    "statement": "For every odd m>=3, the v8.5.9 smooth C4 source graph G_m has a cut of its supplied Hamiltonian order with at least 2^(m-1) pairwise extension-inequivalent proper left colourings. Consequently any deterministic exact one-pass Hamiltonian-prefix algorithm that replaces the processed prefix by a finite summary state and requires that equal summary states have identical feasibility against every possible unprocessed right continuation must have at least 2^(m-1) states on G_m.",
+    "proof": [
+      "v8.5.9 gives a source-realizable selected compatibility submatrix K^(tensor(m-1)).",
+      "Rows of K are distinct and column 0 accepts both rows while column 1 distinguishes them.",
+      "For any two different left bit words, choose a differing coordinate j; the right word with c_j=1 and all other c_i=0 is a valid selected right colouring and distinguishes the two rows.",
+      "Therefore all selected left colourings have distinct full extension sets, because they are already distinct after restriction to selected right continuations.",
+      "An extension-sufficient deterministic summary cannot merge two inequivalent prefixes: doing so would force identical future acceptance despite the explicit distinguishing continuation."
+    ]
+  },
+  "algorithmic_consequence": {
+    "killed": [
+      "Polynomial-state exact deterministic dynamic programming that scans this supplied Hamiltonian order and summarizes each processed prefix solely by an extension-sufficient finite state.",
+      "Any such prefix DP that hoped to evade v8.5.9 merely by replacing a linear/vector summary with an arbitrary nonlinear label or hash while still merging prefixes only when all future continuations behave identically.",
+      "The hypothesis that smooth/non-selfcrossing complementary C4 order alone bounds the number of exact boundary behaviours polynomially along every supplied-Hamiltonian prefix cut."
+    ],
+    "not_killed": [
+      "Algorithms using a different vertex/order decomposition that never exposes this separator.",
+      "Algorithms retaining or revisiting non-prefix global information rather than replacing the processed side by one extension-sufficient state.",
+      "Randomized, algebraic, inclusion-exclusion, branch-and-reduce, or other methods whose correctness does not factor through deterministic prefix extension types.",
+      "Special restricted composition languages such as the v8.1 full-three-edge-splice path/cycle terminal.",
+      "Any general conclusion that 3-COLOR is not in P.",
+      "P!=NP or P=NP."
+    ],
+    "firewall": "This is an architecture lower bound for exact deterministic Hamiltonian-prefix state compression on one explicit smooth source family. It is not a complexity-class lower bound and does not rule out polynomial algorithms using different global structure."
+  },
+  "exact_controls": {
+    "symbolic": [
+      "K row0=[1,1], row1=[1,0]",
+      "column0 is a common accepter; column1 distinguishes the two local rows",
+      "tensor-product row signatures are therefore pairwise distinct for all bit words"
+    ],
+    "enumeration": "The checker reuses the explicit source-realizable colouring codes for m=3,5,7, builds the selected compatibility matrices directly from graph crossing constraints, verifies 4,16,64 distinct row signatures, and constructs a valid distinguishing right continuation for every unordered pair of selected left words."
+  },
+  "ci": {
+    "branch_head_sha": "16f7daa89253446ecf14d6fbd4c9ca09b41057a2",
+    "merge_test_sha": "2a23de8175f19218a7c917901292563f950da280",
+    "run_id": 36805307689,
+    "job_id": 110188210653,
+    "conclusion": "success",
+    "verified_stdout": [
+      "m=3,n=12: 4 selected prefixes, 4 distinct extension signatures, 6 pair witnesses",
+      "m=5,n=20: 16 selected prefixes, 16 distinct extension signatures, 120 pair witnesses",
+      "m=7,n=28: 64 selected prefixes, 64 distinct extension signatures, 2016 pair witnesses",
+      "every pair has an explicit proper right continuation distinguishing feasibility",
+      "exact deterministic extension-sufficient Hamiltonian-prefix summaries require at least 2^(m-1)=2^(n/4-1) states"
+    ],
+    "verdict": "NONLINEAR_DETERMINISTIC_HAMILTONIAN_PREFIX_EXTENSION_STATE_COUNT_IS_EXPONENTIAL_ON_A_SMOOTH_C4_SOURCE_FAMILY"
+  },
+  "next_target": {
+    "name": "E8_C4_ALTERNATE_DECOMPOSITION_OR_GLOBAL_CANCELLATION_V8_6_1",
+    "directive": "Freeze supplied-Hamiltonian prefix DP as a dead route on the full smooth-C4 source. Search instead for an alternate decomposition, separator theorem, or graph-global algebraic cancellation that does not identify processed sides solely by extension sets across this cut. First audit the explicit G_m family for treewidth/branchwidth and compare against the actual Fleischner-Sabidussi reduction geometry; do not infer a global lower bound from one order-specific separator. Any positive solver path must retain exact witness reconstruction and polynomial state/bitlength accounting."
+  },
+  "scientific_ceiling": {
+    "P_VS_NP": "OPEN",
+    "P_EQUALS_NP_ALGORITHM": "NOT_CONSTRUCTED",
+    "E8_D1": "EMPTY"
+  }
+}

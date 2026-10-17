@@ -1,0 +1,57 @@
+{
+  "artifact_id": "JANUS-TRUMP-E8-EXTERIOR-PARITY-PROJECTION-IDENTITY-2026-09-30-v2.5",
+  "version": "v2.5",
+  "date_local": "2026-09-30",
+  "status": "EXACT_ALGEBRAIC_IDENTITY__NO_P_EQUALS_NP_CLAIM",
+  "parents": [
+    "research/R5_B1B1C5B2B2_E8_OCCURRENCE_RANK1_FOURIER_EQUALITY_REDUCTION_2026-09-26_v1.0.json",
+    "research/R5_B1B1C5B2B2_E8_P3_OVERLAP_THREE_PARTITION_MATROID_CARRIER_2026-09-30_v2.4.json"
+  ],
+  "purpose": "Collapse the explicit even-character sum inside each occurrence group by exterior-algebra character orthogonality. This removes the 2^(q-n) Fourier enumeration symbolically, but does not yet provide a polynomial algorithm for the remaining top-coefficient extraction.",
+  "setup": {
+    "augmented_determinant": "For the occurrence-rank1 construction, write the fixed top rows of [[M0,U],[-T V^T,I+T]] as R. For occurrence o, write its bottom row as w_o(t)=a_o+t b_o with a_o=[0|e_o] and b_o=[-v_o^T|e_o], t in {+1,-1}.",
+    "groups": "For original variable i, O_i is its occurrence set, d_i=|O_i|. The Fourier equality projector restricts signs to product_{o in O_i} t_o=1.",
+    "ordering": "Fix one global row order with occurrences grouped by original variable. Any permutation from the source occurrence order contributes one fixed sign only; the checker normalizes the same order on both sides."
+  },
+  "local_identity": {
+    "name": "EVEN_CHARACTER_WEDGE_PROJECTOR",
+    "statement": "For any ordered group G of size d>=1, sum over t in {+-1}^G with product t=1 of wedge_{o in G}(a_o+t_o b_o) = 2^(d-1) (A_G+B_G), where A_G=wedge_{o in G} a_o and B_G=wedge_{o in G} b_o.",
+    "proof": [
+      "Expand the wedge product by the subset S of positions at which b_o is chosen.",
+      "The coefficient of the S-term is sum_{product t=1} product_{o in S} t_o.",
+      "The even-sign subgroup has annihilator {empty,G}; hence this character sum equals 2^(d-1) for S=empty or S=G and equals 0 otherwise.",
+      "Only the all-a and all-b blades survive."
+    ]
+  },
+  "global_identity": {
+    "statement": "Let q be the total occurrence count and n the number of nonempty variable groups. Then the previous identity #SAT(F)=2^(n-q) sum_{t in E} det([[M0,U],[-T V^T,I+T]]) becomes exactly #SAT(F) = [top] R wedge product_i (A_i+B_i).",
+    "power_of_two_cancellation": "product_i 2^(d_i-1)=2^(q-n), exactly cancelling the Fourier prefactor 2^(n-q).",
+    "assignment_expansion": "Expanding product_i(A_i+B_i) chooses one of two coherent blades per original variable. Choosing A_i sets all occurrence-copy bits of variable i to 0; choosing B_i sets them all to 1. Schur complementation then gives det(M0+U D_x V^T), exactly the Boolean clause-indicator product for assignment x. Therefore the top coefficient is sum_x 1[F(x)=1]=#SAT(F)."
+  },
+  "algorithmic_meaning": {
+    "positive": [
+      "The explicit 2^(q-n) Fourier-character sum is eliminated symbolically.",
+      "Each original variable contributes only one constant-degree two-blade-choice factor A_i+B_i; under bounded occurrence d_i<=3.",
+      "All coefficients and vector coordinates remain polynomial-bitlength integers."
+    ],
+    "missing": "No polynomial-time method is proved for extracting the top coefficient of R wedge product_i(A_i+B_i) for arbitrary formulas. Expanding the two coherent blade choices is still 2^n in the worst case.",
+    "known_boundary": "When all variable factors were degree-2 alternating forms, Pfaffian machinery would be the natural comparison. The degree-3 mixed-variable factors are the first non-Pfaffian layer; generic higher-order hyperpfaffian evaluation is known to be VNP-complete, so no generic hyperpfaffian subroutine may be assumed polynomial."
+  },
+  "next_target": {
+    "name": "E8_SOURCE_ALIGNED_TWO_BLADE_TOP_COEFFICIENT_CONTRACTION_V2_6",
+    "directive": "Exploit the special vectors a_o=[0|e_o], b_o=[-v_o|e_o], clause-block locality of v_o, and d_i<=3. Seek a polynomial-size contraction/determinant/Pfaffian-like representation of [top] R wedge product_i(A_i+B_i) that does not expand 2^n coherent choices. Immediately reject generic exterior-state DP, generic hyperpfaffian evaluation, or any representation whose middle exterior degree has exponential dimension.",
+    "success_obligations": [
+      "arbitrary 3-CNF after polynomial bounded-occurrence normalization",
+      "deterministic polynomial construction and evaluation",
+      "exact SAT iff resulting invariant is nonzero (or exact #SAT)",
+      "polynomial witness reconstruction by self-reduction if decision-only",
+      "no hidden exponential basis, field extension, coefficient size, branching, or oracle"
+    ]
+  },
+  "scientific_ceiling": {
+    "P_VS_NP": "OPEN",
+    "P_EQUALS_NP_ALGORITHM": "NOT_CONSTRUCTED",
+    "E8_D1": "EMPTY",
+    "NEW_EXACT_RESULT": "The equality Fourier projector factors locally into an all-a plus all-b exterior blade with exact cancellation of every mixed local occurrence state."
+  }
+}

@@ -1,0 +1,70 @@
+{
+  "artifact_id": "JANUS-TRUMP-E8-EXTERIOR-EVEN-PARITY-BLOCK-COMPRESSION-2026-09-30-v2.5",
+  "version": "v2.5",
+  "date_local": "2026-09-30",
+  "status": "EXACT_EXTERIOR_COMPRESSION_IDENTITY__NO_P_EQUALS_NP_CLAIM",
+  "parents": [
+    "research/R5_B1B1C5B2B2_E8_OCCURRENCE_RANK1_FOURIER_EQUALITY_REDUCTION_2026-09-26_v1.0.json",
+    "research/R5_B1B1C5B2B2_E8_P3_OVERLAP_THREE_PARTITION_MATROID_CARRIER_2026-09-30_v2.4.json"
+  ],
+  "purpose": "Perform the entire even-Fourier sum inside each original-variable occurrence group symbolically, replacing 2^(q-n) character choices by one binary exterior block A_i+B_i per original variable. This is an exact algebraic compression of the parity projection, not yet a polynomial-time evaluator of the resulting top exterior coefficient.",
+  "setup": {
+    "occurrence_rank1_matrix": "Use the v1.0 augmented determinant N(t)=[[M0,U],[-T V^T,I+T]], with one sign t_o in {+1,-1} per literal occurrence o.",
+    "fixed_rows": "Let R_fixed be the wedge of the top rows [M0,U] in their canonical order.",
+    "bottom_row_split": "For occurrence o, the bottom row is r_o(t_o)=a_o+t_o b_o, where a_o=(0,e_o) and b_o=(-v_o^T,e_o).",
+    "groups": "For original variable i let O_i be its ordered set of occurrence indices and d_i=|O_i|. Reorder bottom rows once so occurrence rows are grouped by original variable; record the computable permutation sign sigma(F).",
+    "group_blades": "A_i = wedge_{o in O_i} a_o and B_i = wedge_{o in O_i} b_o, using the frozen within-group occurrence order."
+  },
+  "local_character_identity": {
+    "name": "EVEN_SIGN_GROUP_PROJECTOR",
+    "statement": "For every nonempty occurrence group O of size d, sum over sign vectors t in {+1,-1}^O with product_o t_o=1 of wedge_{o in O}(a_o+t_o b_o) equals 2^(d-1)(A_O+B_O).",
+    "proof": [
+      "Expand the wedge product by the subset S of positions choosing b_o instead of a_o.",
+      "The coefficient of the S-term is sum_{product t=1} product_{o in S} t_o.",
+      "The even-sign subgroup has exactly two trivial characters on subset labels: S=empty and S=O. Hence the character sum is 2^(d-1) for S=empty or S=O and is 0 for every proper nonempty S.",
+      "The two surviving terms are precisely A_O and B_O."
+    ]
+  },
+  "global_theorem": {
+    "name": "SAT_COUNT_AS_ONE_EXTERIOR_BINARY_BLOCK_COEFFICIENT",
+    "statement": "Let n be the number of nonempty original-variable groups and q the number of literal occurrences. Then #SAT(F)=sigma(F)*[TOP](R_fixed wedge product_i(A_i+B_i)), where [TOP] is the coefficient of the canonical top exterior basis after the bottom-row grouping permutation.",
+    "proof": [
+      "The v1.0 Fourier identity gives #SAT(F)=2^(n-q) sum_{s in E} det N((-1)^s), where E imposes even parity independently inside every O_i.",
+      "After the one fixed bottom-row permutation, determinant is the top exterior coefficient of R_fixed wedge product_i product_{o in O_i}(a_o+t_o b_o), multiplied by sigma(F).",
+      "The sign choices factor by variable group. Apply EVEN_SIGN_GROUP_PROJECTOR independently to every group.",
+      "The product of local factors is product_i 2^(d_i-1)=2^(sum_i d_i-n)=2^(q-n), which cancels the Fourier prefactor 2^(n-q) exactly.",
+      "The remaining object is one product of n binary exterior blocks A_i+B_i."
+    ]
+  },
+  "bounded_occurrence_specialization": {
+    "statement": "After the standard bounded-occurrence normalization used by the E8 rank-3-switch line, d_i<=3. Therefore every live factor A_i+B_i is a sum of two decomposable blades of degree at most three.",
+    "degree1": "A_i+B_i is one ordinary vector.",
+    "degree2": "A_i+B_i is a 2-form that is a sum of two decomposable 2-blades.",
+    "degree3": "A_i+B_i is a 3-form that is a sum of two decomposable 3-blades; this is the exterior-algebra image of the 2-vs-1 Boolean switch."
+  },
+  "algorithmic_value": {
+    "positive": [
+      "The exponential even-character sum is eliminated symbolically with no approximation and no loss of witness information at the identity level.",
+      "No group algebra of size 2^(q-n) is materialized.",
+      "The resulting exterior expression has polynomial description size: two decomposable blades per original variable plus the fixed top-row wedge."
+    ],
+    "missing": "A deterministic polynomial-time exact algorithm for the top coefficient of this source-aligned product of binary blades. Expanding the n binary factors is 2^n and is forbidden.",
+    "warning": "Polynomial description size of an exterior circuit is not the same as polynomial evaluability of its top coefficient; generic higher-order Pfaffian/hyperpfaffian coefficient extraction is not assumed tractable."
+  },
+  "next_target": {
+    "name": "E8_SOURCE_ALIGNED_BINARY_BLADE_TOP_COEFFICIENT_V2_6",
+    "directive": "Exploit the special occurrence-rank1 vectors a_o=(0,e_o), b_o=(-v_o^T,e_o), clause-block structure of R_fixed, and degree<=3 groups. Seek a polynomial determinant/Pfaffian/augmentation identity for the top coefficient. Immediately reject any proposal that merely re-expands the 2^n coherent A_i/B_i choices, invokes a generic hyperpfaffian oracle, or stores an exponential Grassmann basis.",
+    "success_obligations": [
+      "deterministic polynomial construction and arithmetic/bit complexity",
+      "exact zero/nonzero decision equivalent to SAT",
+      "polynomial witness reconstruction via self-reduction or direct lifting",
+      "no hidden exponential basis, character sum, branch tree, field extension, or oracle"
+    ]
+  },
+  "scientific_ceiling": {
+    "P_VS_NP": "OPEN",
+    "P_EQUALS_NP_ALGORITHM": "NOT_CONSTRUCTED",
+    "E8_D1": "EMPTY",
+    "NEW_POSITIVE_MECHANISM": "Exact cancellation of all proper mixed occurrence states inside every variable group, leaving exactly the two coherent exterior blades A_i and B_i."
+  }
+}

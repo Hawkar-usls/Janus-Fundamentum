@@ -1,0 +1,51 @@
+{
+  "artifact_id": "JANUS-TRUMP-E8-WIDTH3-RESOLUTION-BINARY-CONSEQUENCE-KERNEL-2026-09-30-v3.9",
+  "version": "v3.9",
+  "date_local": "2026-09-30",
+  "status": "EXACT_POLYNOMIAL_PREPROCESSING_THEOREM__NO_P_EQUALS_NP_CLAIM",
+  "parents": [
+    "research/R5_B1B1C5B2B2_E8_RANK3_TERMINAL_BIJUNCTIVE_PROJECTION_KERNEL_2026-09-30_v3.7.json",
+    "research/R5_B1B1C5B2B2_E8_TERMINAL_RANK3_IMPLICATION_PRIMITIVE_NORMAL_FORM_2026-09-30_v3.8.json"
+  ],
+  "purpose": "Couple distinct rank-3 clauses before the hard solve. Saturate resolution while retaining only clauses of width at most three, harvest every derived unit/binary consequence into the bijunctive layer, then rerun the implication-primitive reduction. This is an exact polynomial preprocessing theorem, not a complete resolution solver.",
+  "input": "A terminal kernel F=H AND F3 on n terminal variables, where H is 2-CNF and every clause of F3 has width three.",
+  "width3_closure": {
+    "universe": "All non-tautological clauses of width at most three over n variables. Their number is sum_{i=0}^3 2^i * binom(n,i)=O(n^3).",
+    "rule": "Whenever C union {x} and D union {NOT x} are present, form the resolvent C union D. Discard tautologies and resolvents of width greater than three; otherwise insert the resolvent if new.",
+    "termination": "At most O(n^3) distinct clauses can ever be inserted, so naive repeated pair saturation is polynomial (for example O(n^9) with no optimization).",
+    "certificate": "Store one parent pair and pivot for each newly inserted clause. If the empty clause appears, the resulting resolution DAG is a polynomial-size exact UNSAT certificate."
+  },
+  "binary_extraction": {
+    "definition": "Let B be the set of all unit and binary clauses in the saturated width-3 closure.",
+    "action": "Replace the current bijunctive layer H by H union B, then apply the v3.8 implication-primitive normal-form rules to the original genuine 3-clauses.",
+    "soundness": "Every member of B is a resolution consequence of F, so adding B preserves the model set exactly. The v3.8 transformations are equivalences relative to the strengthened H."
+  },
+  "theorem": {
+    "name": "WIDTH3_RESOLUTION_BINARY_CONSEQUENCE_KERNEL",
+    "statement": "The procedure runs in deterministic polynomial time, preserves SAT/UNSAT and polynomial witness reconstruction, detects every refutation admitting a resolution proof of width at most three, and otherwise returns an equivalent implication-primitive terminal kernel enriched by every unit/binary consequence derivable through width-at-most-three resolution.",
+    "cross_clause_example": "From (a OR b OR c) and (a OR b OR NOT c), width-3 resolution derives (a OR b). This binary consequence is invisible to v3.8 when H is initially empty, but after extraction it makes both ternary clauses redundant.",
+    "proof": [
+      "Resolution is sound, hence every inserted clause is entailed by the input.",
+      "The clause universe has polynomial cardinality for fixed width three, proving termination and polynomial construction time.",
+      "If the empty clause is derived, soundness gives UNSAT and the stored parent DAG verifies the refutation in polynomial time.",
+      "If no empty clause is derived, adjoining all derived unit/binary clauses does not remove any model because they are logical consequences.",
+      "Applying v3.8 after this augmentation preserves equivalence and reconstruction by its theorem.",
+      "At saturation, every unit/binary clause possessing a width-at-most-three resolution derivation is present by closure under the only inference rule of resolution."
+    ]
+  },
+  "scientific_ceiling_and_barrier": {
+    "not_complete": "Fixed width is not a universal refutation bound. Ben-Sasson--Wigderson width lower bounds and later 3-CNF width-restricted lower bounds exhibit unsatisfiable bounded-width CNFs whose resolution refutations require width growing with n; Tseitin formulas on constant-degree expanders have linear resolution width.",
+    "consequence": "Failure to derive the empty clause at width three is SILENCE, not evidence of SAT. No P=NP claim follows from this closure.",
+    "P_VS_NP": "OPEN",
+    "P_EQUALS_NP_ALGORITHM": "NOT_CONSTRUCTED",
+    "E8_D1": "EMPTY"
+  },
+  "next_target": {
+    "name": "E8_WIDTH3_CLOSED_PRIMITIVE_HYPERIMPLICATION_CORE_V4_0",
+    "directive": "Attack only kernels surviving terminal projection, implication-primitive reduction, and complete width-3 resolution saturation. Every remaining 3-clause is genuinely ternary even after all width-3 cross-clause reasoning. Seek a global contraction/minimax invariant outside fixed-width resolution that either reduces the number of surviving ternary atoms or returns an exact polynomial UNSAT certificate."
+  },
+  "sources": [
+    "E. Ben-Sasson and A. Wigderson, Short Proofs are Narrow - Resolution made Simple, ECCC TR99-022 / JACM 2001.",
+    "E. Ben-Sasson and J. Johannsen, Lower bounds for width-restricted clause learning on small width formulas, ECCC TR10-085 (2010)."
+  ]
+}

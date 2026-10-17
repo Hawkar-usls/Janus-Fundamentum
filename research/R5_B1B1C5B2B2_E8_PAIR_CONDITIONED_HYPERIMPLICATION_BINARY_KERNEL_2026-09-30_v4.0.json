@@ -1,0 +1,69 @@
+{
+  "artifact_id": "JANUS-TRUMP-E8-PAIR-CONDITIONED-HYPERIMPLICATION-BINARY-KERNEL-2026-09-30-v4.0",
+  "version": "v4.0",
+  "date_local": "2026-09-30",
+  "status": "EXACT_POLYNOMIAL_PREPROCESSING_PLUS_STRICTNESS_AND_TSEITIN_BARRIER__NO_P_EQUALS_NP_CLAIM",
+  "parents": [
+    "research/R5_B1B1C5B2B2_E8_WIDTH3_RESOLUTION_BINARY_CONSEQUENCE_KERNEL_2026-09-30_v3.9.json",
+    "research/R5_B1B1C5B2B2_E8_TERMINAL_RANK3_IMPLICATION_PRIMITIVE_NORMAL_FORM_2026-09-30_v3.8.json"
+  ],
+  "purpose": "Exploit the primitive ternary clauses as pair-antecedent hyperimplications. Probe every singleton and every consistent literal pair, run ordinary unit propagation through the entire 2/3-CNF, and whenever a probe refutes, add the corresponding exact unit/binary consequence to the bijunctive layer. Iterate to closure. Prove polynomiality, show strict gain beyond width<=3 resolution, and freeze an explicit UNSAT Tseitin control on which the whole pair-probe closure is silent.",
+  "algorithm": {
+    "input": "A 2/3-CNF F, preferably after terminal projection, implication-primitive reduction and width<=3 resolution saturation.",
+    "single_probe": "For each literal p, run unit propagation on F AND p. If it derives contradiction, add unit NOT p.",
+    "pair_probe": "For each consistent pair p,q with p!=q and p!=-q, run unit propagation on F AND p AND q. If it derives contradiction, add the binary clause (NOT p OR NOT q).",
+    "iteration": "Adjoin all new unit/binary consequences, close the 2-CNF implication graph, simplify/re-run the implication-primitive rules, and repeat until no new unit/binary consequence is found or contradiction is derived.",
+    "progress": "There are O(n^2) possible non-tautological unit/binary clauses. Every nonterminal round inserts at least one previously absent consequence or removes a ternary clause through the existing exact simplification rules.",
+    "runtime": "Polynomial. A naive implementation performs O(n^2) probes per round, each unit-propagation run linear in the current formula size, for at most polynomially many rounds."
+  },
+  "theorem": {
+    "name": "PAIR_CONDITIONED_HYPERIMPLICATION_BINARY_KERNEL",
+    "soundness": "If unit propagation refutes F AND p, then F entails NOT p. If it refutes F AND p AND q, then F entails (NOT p OR NOT q). Adding such consequences preserves the model set exactly.",
+    "reconstruction": "Only logical consequences are added and the existing simplification rules preserve equivalence, so any model of the final kernel extends/reconstructs to a model of the input in polynomial time.",
+    "termination": "The finite O(n^2) unit/binary consequence universe plus strict insertion/removal progress gives deterministic polynomial termination."
+  },
+  "strictness_over_width3_resolution": {
+    "formula": [
+      [1,2,5],
+      [3,-4,-2],
+      [3,-4,-5],
+      [3,-4,-1]
+    ],
+    "fact": "The complete width<=3 resolution closure contains no binary clause (3 OR NOT 4).",
+    "pair_probe": "Assume 4 and NOT 3. The last three clauses become the units NOT 2, NOT 5, NOT 1, which falsify the first clause. Therefore unit propagation refutes the pair and the kernel adds (NOT 4 OR 3).",
+    "meaning": "Pair-conditioned propagation can expose long ternary interaction consequences whose resolution derivation requires an intermediate clause wider than three; it is a strict preprocessing gain over the frozen v3.9 closure."
+  },
+  "explicit_incompleteness_control": {
+    "source": "Tseitin parity contradiction on the cubic graph K4.",
+    "variables": "One Boolean variable for each of the six edges of K4.",
+    "constraints": "At every vertex encode XOR of its three incident edge variables equals the vertex charge using the standard four 3-CNF clauses. Choose charges with odd total parity, for example charge 1 at one vertex and 0 at the other three.",
+    "unsat_proof": "XOR all four vertex equations. Every edge occurs exactly twice, so the left side cancels to 0, while the odd total charge gives right side 1.",
+    "width3_control": "The exact checker finds that complete width<=3 resolution saturation leaves precisely the original 16 ternary clauses: no unit, binary, or empty clause is derived.",
+    "pair_probe_control": "For every consistent singleton or pair of edge literals, unit propagation does not derive contradiction. Hence the pair-conditioned kernel adds nothing and remains silent on this explicit UNSAT instance.",
+    "ceiling": "Silence after pair closure is not SAT evidence. The procedure is a strict polynomial kernelizer, not a complete SAT algorithm."
+  },
+  "algorithmic_consequence": {
+    "positive": [
+      "All binary consequences witnessed by arbitrary-length unit/hyperimplication chains under one or two assumptions can be harvested in polynomial time.",
+      "The live hard core can be assumed pair-probe closed in addition to width3-resolution closed and implication-primitive."
+    ],
+    "killed": [
+      "Claim that exhaustive singleton/pair failed-literal probing completes the width3-closed rank3 kernel.",
+      "Treat absence of pair-conditioned contradiction as evidence of satisfiability."
+    ],
+    "not_killed": [
+      "A nonlocal parity/cycle certificate capable of seeing Tseitin-type global inconsistency.",
+      "A polynomial contraction that reasons over an unbounded family of correlated antecedents without enumerating subsets.",
+      "P=NP"
+    ]
+  },
+  "next_target": {
+    "name": "E8_PAIR_CLOSED_GLOBAL_PARITY_OR_CLAW_CONTRACTION_V4_1",
+    "directive": "Attack only kernels closed under width<=3 resolution, implication simplification, and all singleton/pair unit-propagation probes. The K4 Tseitin control proves that the missing information can be genuinely global parity/cycle information. Seek a polynomial-size invariant or contraction that captures such global correlations without fixed-k assumption enumeration."
+  },
+  "scientific_ceiling": {
+    "P_VS_NP": "OPEN",
+    "P_EQUALS_NP_ALGORITHM": "NOT_CONSTRUCTED",
+    "E8_D1": "EMPTY"
+  }
+}

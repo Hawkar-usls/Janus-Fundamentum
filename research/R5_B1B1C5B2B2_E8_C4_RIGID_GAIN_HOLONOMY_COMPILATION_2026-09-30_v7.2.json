@@ -1,0 +1,70 @@
+{
+  "artifact_id": "JANUS-TRUMP-E8-C4-RIGID-GAIN-HOLONOMY-COMPILATION-2026-09-30-v7.2",
+  "version": "v7.2",
+  "date_local": "2026-09-30",
+  "status": "EXACT_POLYNOMIAL_GAUGE_ELIMINATION_FOR_RIGID_BUNDLES__NO_P_EQUALS_NP_CLAIM",
+  "parents": [
+    "research/R5_B1B1C5B2B2_E8_COMPLEMENT_CYCLE_S3_ORBIT_GAUGE_QUOTIENT_CARRIER_2026-09-30_v5.3.json",
+    "research/R5_B1B1C5B2B2_E8_C4_ORBIT_PAIRWISE_GAUGE_HOLONOMY_BARRIER_2026-09-30_v7.1.json"
+  ],
+  "purpose": "Repair exactly the information loss isolated by v7.1 on the important subclass of orbit-rigid C4 interaction bundles. Instead of existentially forgetting the relative S3 gauge, retain its unique value as a function of the two orbit labels. Then global component gauges can be eliminated without 6^k enumeration: a fixed orbit assignment is gauge-realizable iff the induced relative gains have trivial holonomy on a fundamental cycle basis.",
+  "bundle_definition": {
+    "ports": "Each smooth complementary C4 has labelled ports 0,1,2,3 in Hamiltonian occurrence order.",
+    "orbit_representatives": {"T0": [0,1,0,1], "T1": [0,1,0,2], "T2": [0,1,2,1]},
+    "bundle": "For two quotient components X,Y, B_XY is the set of Hamiltonian port pairs (p,q) joining X-port p to Y-port q.",
+    "relative_gain": "Orient X->Y and put h_XY=g_Y^{-1} composed with g_X in S3. For orbit pair (a,b), define S_B(a,b)={h in S3 : h(T_a[p]) != T_b[q] for every (p,q) in B}.",
+    "orbit_rigid": "B is orbit-rigid iff every nonempty S_B(a,b) is a singleton. Then write A_B={(a,b):S_B(a,b) nonempty} and h_B(a,b) for the unique member."
+  },
+  "main_theorem": {
+    "name": "RIGID_RELATIVE_GAINS_ELIMINATE_TO_FUNDAMENTAL_HOLONOMY",
+    "statement": "Let Q be a connected C4 quotient interaction multigraph in which every component-pair bundle is orbit-rigid. Fix orbit labels tau_X satisfying (tau_X,tau_Y) in A_B on every oriented quotient edge/bundle. Then global gauges {g_X in S3} satisfying every original Hamiltonian inequality exist iff the unique gains h_XY=h_B(tau_X,tau_Y) have trivial product around every cycle of Q. It suffices to check one fundamental cycle basis from any spanning tree.",
+    "proof": [
+      "Necessity: if h_XY=g_Y^{-1}g_X, composition telescopes around every directed closed walk, so the cycle product is the identity.",
+      "Sufficiency: choose one root gauge arbitrarily, for example identity. On a spanning tree T, use each singleton relation h_XY=g_Y^{-1}g_X to determine the child gauge uniquely from its parent. This assigns exactly one gauge to every quotient vertex.",
+      "For a non-tree edge XY, the assigned endpoint gauges satisfy that bundle iff their induced relative gain equals its unique h_B(tau_X,tau_Y). This equality is exactly the identity of the fundamental cycle formed by XY plus the T-path between X and Y.",
+      "Therefore all non-tree edges are satisfied iff all fundamental-cycle holonomies are trivial. No gauge branching is required."
+    ],
+    "complexity_for_fixed_tau": "Build a spanning forest, propagate gauges, and check all non-tree edges in O(|V(Q)|+|E(Q)|) group operations. S3 operations are constant-time.",
+    "witness_reconstruction": "Once tau passes the holonomy test, the propagated gauges reconstruct every C4 vertex colour in linear time."
+  },
+  "symbolic_compilation": {
+    "input": "An all-rigid quotient Q with orbit labels still unknown.",
+    "output": "Keep only the 3-state variables tau_X, the binary admissibility relations A_B, and for each fundamental cycle a compact S3 word constraint requiring the product of the corresponding h_B(tau_X,tau_Y) terms (or inverses when traversed backwards) to equal identity.",
+    "size": "A spanning tree has |V|-1 edges and at most |E|-|V|+1 fundamental cycles. Storing each cycle as references to quotient edges is polynomial size; a naive explicit representation is O(|V||E|), and shared path/tree representations can be smaller.",
+    "exactness": "For every tau assignment, the compiled instance accepts exactly when some global gauge assignment exists. Thus the S3 gauge variables are eliminated exactly on the all-rigid subclass without enumerating 6^|V| states.",
+    "firewall": "This compilation alone is not a polynomial decision algorithm for the remaining tau variables; the resulting 3-state orbit-plus-holonomy CSP may still be hard."
+  },
+  "v7_1_control_repair": {
+    "fact": "All three component-pair bundles in the v7.1 twelve-vertex smooth-C4 control are orbit-rigid: every accepted orbit pair has exactly one allowed relative S3 gain.",
+    "false_positive_tau": [1,1,0],
+    "unique_gain_indices_under_lexicographic_S3": {"h01": 2, "h12": 5, "h02": 4},
+    "cycle_check": "For orientation 0->1->2 and direct 0->2, consistency requires h02 = h12 composed with h01. The left side is permutation index 4 while the right side is index 3, so the holonomy check rejects the pairwise false positive immediately.",
+    "meaning": "v7.1 did not require retaining three independent 6-state gauges on this control. The exact missing bit is the nontrivial product of the unique relative gains around the quotient triangle."
+  },
+  "finite_local_catalog": {
+    "scope": "Exhaust every simple C4-to-C4 port bundle B subseteq {0,1,2,3}^2 with no port used more than twice inside that bundle, as required by Hamiltonian degree two at each original vertex.",
+    "bundle_counts_by_size": {"1":16,"2":120,"3":528,"4":1428,"5":2304,"6":2040,"7":816,"8":90},
+    "orbit_rigid_bundle_counts": {"1":0,"2":0,"3":64,"4":576,"5":1728,"6":1856,"7":800,"8":88},
+    "nonempty_gain_set_sizes": {"1":[4],"2":[2,3,4],"3":[1,2,3,4],"4":[1,2,3,4],"5":[1,2,3],"6":[1,2,3],"7":[1,2,3],"8":[1,2,3]},
+    "interpretation": "Rigidity is a substantial exact local class starting at three cross-edges, but it is not universal. The catalog is only a finite local classification; it makes no distributional claim about hard instances."
+  },
+  "algorithmic_consequence": {
+    "positive": [
+      "Exact linear-time gauge reconstruction/checking for any fixed orbit assignment on an all-rigid quotient.",
+      "Exact polynomial-size elimination of all component S3 gauges into orbit admissibility plus cycle holonomy constraints on the all-rigid subclass.",
+      "A constant-time recognizer/table for whether any C4 port bundle is orbit-rigid and, when it is, for its unique gain function h_B.",
+      "A direct repair of the v7.1 pairwise false positive without restoring exponential gauge enumeration."
+    ],
+    "not_solved": [
+      "Choosing the tau orbit labels globally in polynomial time on arbitrary rigid quotients.",
+      "Non-rigid bundles with two, three, or four allowed relative gains.",
+      "The full smooth fixed-inner-cycle NP-hard source.",
+      "P=NP"
+    ]
+  },
+  "next_target": {
+    "name": "E8_C4_RIGID_ORBIT_HOLONOMY_CSP_POLYMORPHISM_OR_NONRIGID_CORE_V7_3",
+    "directive": "Separate the quotient into rigid and non-rigid bundles. First classify the finite binary orbit relations A_B and gain functions h_B of all rigid bundle symmetry types and test whether the resulting 3-state fundamental-holonomy CSP has a Maltsev/affine/group polymorphism or already contains a known hard finite-domain relation. In parallel contract any full-state functional/bijective rigid edges. Only then attack non-rigid gain-set atoms. Mandatory controls: v7.1 holonomy triangle, v6.8 balanced-mutation pair, v7.0 essentially-6 graph, and the smooth Hamiltonian source."
+  },
+  "scientific_ceiling": {"P_VS_NP":"OPEN","P_EQUALS_NP_ALGORITHM":"NOT_CONSTRUCTED","E8_D1":"EMPTY"}
+}
