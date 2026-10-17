@@ -1,0 +1,68 @@
+{
+  "artifact_id": "JANUS-TRUMP-PUBLIC-CERTIFICATE-ENGINE-DELTA-STAGE5-2026-09-19-v1.0",
+  "date": "2026-09-19",
+  "authority": "READ_ONLY_PUBLIC_ENGINE_COMPOSITION_AND_KILL_SWITCH__NO_NEW_JANUS_CONTROLLER",
+  "branch": "research/general-sat-universal-coverage-map-2026-09-19",
+  "parent": "9e501f250d695dd9ab64ed5a5ef8c26a8d46e61c",
+  "target_survivors": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14
+  ],
+  "public_fvs_to_forest_backdoor": {
+    "external_engine": {
+      "repo": "wata-orz/fvs",
+      "role": "exact undirected Feedback Vertex Set proposal engine",
+      "pedigree": "winner of PACE 2016 Feedback Vertex Set exact challenge",
+      "implementation_claim": "default FPTBranchingSolver with O*(4^k) parameter dependence",
+      "certificate": "returned vertex set X; independent verification checks incidence graph minus X is acyclic"
+    },
+    "composition": {
+      "input": "CNF incidence graph G with maximum clause width d",
+      "external_witness": "feedback vertex set X of G",
+      "conversion": "Y=(X intersect variable-vertices) union, for each clause-vertex C in X, all variable neighbors N(C)",
+      "proof": [
+        "Every clause-vertex C replaced from X has all its neighbors in Y, so C is isolated in G-Y.",
+        "Any cycle in G-Y therefore avoids every clause-vertex originally in X.",
+        "It also avoids variable-vertices originally in X because those are included in Y.",
+        "Hence any cycle in G-Y would be a cycle in G-X, contradicting that X is an FVS."
+      ],
+      "consequence": "G-Y is a forest. Since assigning Y only removes further clauses/edges from the incidence graph, every residual F[tau] has acyclic incidence graph. Thus Y is a strong Forest deletion backdoor.",
+      "size_bound": "|Y| <= d*|X|",
+      "polynomial_condition": "For fixed d, if k=|X|=O(log n), public O*(4^k) FVS discovery and at most 2^(d*k) assignment routing to polynomial Forest-SAT are polynomial in n."
+    },
+    "novelty": "NOT_CLAIMED__STRAIGHTFORWARD_PUBLIC_COMPOSITION",
+    "implementation": {
+      "harness_commit": "4dc16d4511ca75622a7f3b301fa17e9f6bc7bb7e",
+      "workflow_commit": "89f934c1b63c8599e55c9e60f46cf5ac54ba10df",
+      "workflow_run": 35411773276
+    }
+  },
+  "signed_twin_width_kill_switch": {
+    "public_engine": "ASchidler/twin_width",
+    "positive_technology": [
+      "accepts DIMACS CNF and computes signed twin-width/contraction sequences",
+      "repository contains a proof_checker.py for contraction-sequence verification"
+    ],
+    "theory_limit": "SAT 2022 proves FPT for Bounded-ones Weighted Model Counting parameterized by certified signed twin-width plus the bounded-ones parameter k.",
+    "forbidden_inference": "Bounded signed twin-width alone is not a tractability island for unrestricted SAT; the paper reports paraNP-hardness when the bounded-ones parameter is unrestricted.",
+    "funnel_status": "DO_NOT_PROMOTE_AS_GENERAL_SAT_PARAMETER_LANE",
+    "possible_use": "diagnostic / auxiliary structural certificate only unless another independently bounded parameter restores tractability"
+  },
+  "claim_ceiling": {
+    "NEW_JANUS_CONTROLLER_AUTHORIZED": false,
+    "GENERAL_SAT_IN_P": "NOT_PROVED",
+    "P_EQ_NP": "NOT_PROVED",
+    "P_VS_NP": "OPEN"
+  }
+}

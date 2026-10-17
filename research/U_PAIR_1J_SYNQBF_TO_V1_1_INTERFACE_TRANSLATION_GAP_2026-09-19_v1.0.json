@@ -1,0 +1,88 @@
+{
+  "artifact_id": "JANUS-U-PAIR-1J-SYNQBF-TO-V1_1-INTERFACE-TRANSLATION-GAP-2026-09-19-v1.0",
+  "date": "2026-09-19",
+  "authority": "THEORY_MODEL_MATCH__NO_HOSTILE__NO_RUN__NO_NEW_CALCULUS_RULE",
+  "parent": {
+    "representation_equivalence_commit": "f1ac06e974be98396c0bed4c83fa55fe6a4773e6",
+    "no_redundant_work_policy_commit": "e0726ccf91ded3cd6e9eea537e23f7880c5c7841",
+    "primary_reference": "Akshay et al., Proof Systems for QBF Synthesis: Extracting Skolem and Herbrand Functions, SAT 2026, DOI 10.4230/LIPIcs.SAT.2026.3"
+  },
+  "source_model": {
+    "synqbf_proof_object": "A circuit phi_hat over xi and xhat_i satisfying SynQBF Definition 4.3.",
+    "relevant_published_facts": [
+      "Condition 1 identifies the original matrix after substituting xhat_i = NOT xi.",
+      "Condition 2 requires a quantifier-dependent representability equivalence for every variable.",
+      "Conditions 1 and 2 are propositional equivalences; the paper notes they are checkable in coNP.",
+      "The paper notes a Cook-Reckhow extension could attach propositional proofs of these equivalences, but does not build that extension in the presented system.",
+      "Game-value circuits at every prefix position are obtainable from a SynQBF proof by restriction.",
+      "Skolem/Herbrand functions are obtainable by restriction of the same proof circuit.",
+      "SynQBF proof size is polynomially related to total game-value circuit size.",
+      "Any QBF proof system with polynomial-time extraction of Skolem and Herbrand circuits is p-simulated by SynQBF."
+    ]
+  },
+  "scoped_prefix": {
+    "form": "forall B exists X . F(B,X)",
+    "purpose": "Match the existing V1.1 local Boolean-functional-synthesis interface.",
+    "boundary_variables": "B",
+    "internal_witness_variables": "X",
+    "exact_domain": "D(B) := exists X F(B,X)"
+  },
+  "analytically_mapped_axes": {
+    "domain_representation": {
+      "status": "POLYNOMIAL_REPRESENTATION_MAP_ESTABLISHED",
+      "map": "For a SynQBF proof of forall B exists X . F, restrict the proof circuit to the game-value circuit immediately after all B moves. The remaining suffix is existential, so this game value is exactly D(B)=exists X F(B,X).",
+      "v1_1_representation": "Translate that Boolean circuit gate-by-gate using the frozen V1.1 circuit-equivalence lemma.",
+      "size_claim": "Polynomial in SynQBF proof size."
+    },
+    "witness_representation": {
+      "status": "POLYNOMIAL_REPRESENTATION_MAP_ESTABLISHED",
+      "map": "Use the published SynQBF restriction for each existential variable to extract its Skolem circuit, then translate the circuit to V1.1 DAG form.",
+      "size_claim": "Polynomial in SynQBF proof size."
+    },
+    "extraction_time": {
+      "status": "POLYNOMIAL_BY_PUBLISHED_SYNQBF_EXTRACTION_PLUS_V1_1_GATE_TRANSLATION",
+      "caveat": "This concerns obtaining Boolean DAG representations only, not local V1.1 proof certificates."
+    }
+  },
+  "unresolved_certificate_axis": {
+    "status": "OPEN",
+    "target": "Construct (pi_D, pi_f) accepted by the frozen V1.1 local checker from a SynQBF proof without invoking generic propositional equivalence/tautology validity.",
+    "exact_obstruction": "SynQBF Definition 4.3 conditions (1) and (2) are semantic propositional equivalences. Treating those equivalences as already-valid atoms inside V1.1 would violate the generic-validity firewall unless an explicit locally replayable proof translation is supplied.",
+    "forbidden_shortcuts": [
+      "GENERIC_BOOLEAN_EQUIVALENCE_ORACLE",
+      "GENERIC_TAUTOLOGY_ORACLE",
+      "SAT_CALL_HIDDEN_AS_PROOF_CHECK",
+      "CO_NP_VALIDITY_ASSUMED_FREE",
+      "RETROACTIVE_V1_1_RULE_EXTENSION"
+    ],
+    "acceptable_routes": [
+      "Restrict to a SynQBF fragment where each representability equivalence has a syntactic/local certificate replayable by frozen V1.1 rules.",
+      "Attach an explicit propositional proof object and give a polynomial local translation of that proof system into frozen V1.1 certificates.",
+      "Prove a direct structural translation for a nontrivial SynQBF fragment using only CONST, AFFINE_XOR, EXISTING_DAG_NODE, GUARDED_ITE, INTERNAL_COVER_WITNESS and already-frozen local justifications."
+    ]
+  },
+  "reverse_direction_no_redundant_work": {
+    "theorem_4_14_barrier": "Do not manually build a general V1.1-to-SynQBF proof translation before checking whether V1.1 qualifies as a QBF proof system with polynomial-time extraction of both Skolem and Herbrand functions. If it did, SynQBF's published optimality theorem would already imply polynomial simulation by SynQBF.",
+    "current_v1_1_status": "Frozen V1.1 is not yet established as a sound/complete QBF proof system and does not currently provide a full Herbrand-extraction theorem for arbitrary prenex QBF. Therefore Theorem 4.14 cannot yet be invoked as a completed translation result.",
+    "immediate_question": "Which precise additional properties would make the existing V1.1 interface qualify for the premises of Theorem 4.14, and can they be established without changing the frozen scientific claims?"
+  },
+  "first_theory_target": {
+    "name": "LOCALLY_CERTIFIED_SYNQBF_FRAGMENT_TO_V1_1",
+    "question": "Identify the largest useful SynQBF fragment whose Definition-4.3 proof obligations can be translated into frozen V1.1 local certificates with polynomial proof-size and translation-time overhead.",
+    "accounting_axes": [
+      "SynQBF proof circuit size",
+      "V1.1 D/f DAG size",
+      "V1.1 pi_D/pi_f certificate size",
+      "translation time",
+      "local verification time"
+    ],
+    "experiment_status": "BLOCKED__THEORY_FIRST"
+  },
+  "verdict": "REPRESENTATION_AND_EXTRACTION_AXES_ANALYTICALLY_MAPPED__LOCAL_CERTIFICATE_TRANSLATION_OPEN",
+  "scientific_firewall": {
+    "GENERAL_SAT_IN_P": "NOT_PROVED",
+    "P_EQ_NP": "NOT_PROVED",
+    "P_VS_NP": "OPEN",
+    "no_claim_of_synqbf_v1_1_polynomial_equivalence_as_proof_systems": true
+  }
+}

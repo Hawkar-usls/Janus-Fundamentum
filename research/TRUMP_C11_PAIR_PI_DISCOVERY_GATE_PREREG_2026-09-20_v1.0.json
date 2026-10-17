@@ -1,0 +1,139 @@
+{
+  "artifact_id": "JANUS-TRUMP-C11-PAIR-PI-DISCOVERY-GATE-PREREG-2026-09-20-v1.0",
+  "version": "v1.0",
+  "date": "2026-09-20",
+  "status": "FROZEN_PI_DISCOVERY_PREREGISTRATION__NO_REPAIR",
+  "name": "C11_PAIR_PI_DISCOVERY_GATE_V1",
+  "parents": {
+    "pair_family_P4": {
+      "path": "research/TRUMP_C11_SURVIVOR_PAIR_FAMILY_GATE_RESULT_2026-09-20_v1.0.json",
+      "commit": "40c3f02c179a751007b23f4047e1d77702d9c4e5",
+      "blob": "3ae0ea180b9723bf28471c112fb7d62edb83fd04",
+      "status": "P4_PAIR_STRUCTURE_UNRESOLVED"
+    },
+    "pi_semantic_quotient": {
+      "path": "research/TRUMP_C11_PAIR_PI_SEMANTIC_QUOTIENT_BOUND_RESULT_2026-09-20_v1.0.json",
+      "commit": "3b20111f84a74c75c379bb31bff207ae3d1dc440",
+      "status": "PASS_C11_PAIR_PI_SEMANTIC_QUOTIENT_BOUND"
+    },
+    "pair_relation": {
+      "path": "research/TRUMP_C11_SURVIVOR_PAIR_RELATION_REPRESENTATION_RESULT_2026-09-20_v1.0.json",
+      "commit": "224cddb467bd1846e8c60de5caa8e3f43d69e387",
+      "status": "PASS_C11_SURVIVOR_PAIR_RELATION_REPRESENTATION"
+    }
+  },
+  "target": {
+    "object": "For each ordered survivor pair (y,y') in R_C11, compute the four bits q_33,q_34,q_43,q_44.",
+    "bit_definition": "q_{gamma,delta}(y,y')=1 iff the fixed descendant P' has an extension with y=gamma and y'=delta, gamma,delta in {3,4}.",
+    "Pi": "Pi(y,y')={(gamma,delta):q_{gamma,delta}=1}.",
+    "semantic_class_key": "4-bit Pi mask",
+    "semantic_class_upper_bound": 16
+  },
+  "central_question": "Can all four Pi feasibility bits be computed in polynomial time from frozen graph/state structure, without invoking the original 4-precoloring extension problem as an oracle?",
+  "anti_cheat": [
+    "The operation 'precolor y,y' and ask whether it extends' is the bit definition, not a polynomial discovery algorithm.",
+    "Adding y,y' to a seed/fixed set is not by itself a terminal algorithm.",
+    "Finite empirical success is not D1.",
+    "The <=16 semantic mask bound alone does not establish graph-discoverability.",
+    "A call to general P7-free 4-coloring/precoloring extension is forbidden.",
+    "No hidden use of an extension witness c is allowed in discovery."
+  ],
+  "first_route": {
+    "name": "PAIR_FIXED_THREE_COLOR_COLLAPSE",
+    "per_assignment": {
+      "input": "one pair (y,y') and one (gamma,delta) in {3,4}^2",
+      "steps": [
+        "Fix y=gamma and y'=delta by an exact polynomial transformation whose satisfiability is equivalent to the bit q_{gamma,delta}.",
+        "Apply only already frozen/source-faithful propagation and Lemma-7/Lemma-10-compatible normalization steps; record exact semantics and reconstruction.",
+        "Let H be the remaining undecided induced graph after fixed vertices are represented in lists.",
+        "Decompose H into connected components C.",
+        "For every C, find a color c_C in [4] absent from every list in C, equivalently union_{v in C} L(v) is a subset of [4]\\{c_C}.",
+        "Rename the three allowed colors if needed and solve the resulting List-3-Coloring instance on induced P7-free C.",
+        "The fixed assignment is feasible iff every component is list-colorable; reconstruct an extension in polynomial time."
+      ]
+    }
+  },
+  "list3_terminal_authority": {
+    "paper_II_use": "Lemma 6 applies Theorem 2 to a precoloring-extension subproblem using only three colors on an induced subgraph.",
+    "cited_result": "Bonomo et al., Three-Coloring and List Three-Coloring of Graphs Without Induced Paths on Seven Vertices, Combinatorica 38(4):779-801 (2018), DOI 10.1007/s00493-017-3553-8.",
+    "authority_statement": "List 3-Coloring with lists contained in a three-color palette is polynomial-time solvable on P7-free graphs.",
+    "hereditary_condition": "Every connected component of an induced subgraph of a P7-free graph is P7-free."
+  },
+  "route_success_obligations": [
+    "Exact equivalence between q_{gamma,delta} and the transformed fixed-pair instance.",
+    "All propagation/normalization steps polynomial and semantics-preserving.",
+    "Every remaining undecided component has a certified globally missing color.",
+    "All external fixed-neighbor effects are fully encoded in the component lists.",
+    "No edges/interactions remain between distinct undecided components.",
+    "List-3 calls are on induced P7-free components.",
+    "Reconstruction of a full extension is polynomial.",
+    "Total time for one bit is polynomial; all four bits per pair remain polynomial.",
+    "Computing masks for all at most n^2 structural survivor pairs remains within the frozen polynomial budget."
+  ],
+  "obstruction_receipt_for_three_color_route": {
+    "label": "NO_GLOBAL_MISSING_COLOR",
+    "required_fields": [
+      "frozen input and exact survivor pair",
+      "assignment (gamma,delta)",
+      "exact transformed/normalized state",
+      "component C",
+      "complete current list assignment on C",
+      "certificate union_{v in C} L(v)=[4]",
+      "proof that C is a remaining undecided connected component",
+      "proof no frozen propagation rule removes another color before the proposed List-3 terminal"
+    ],
+    "interpretation": "This refutes only the direct componentwise missing-color/List-3 route at that state. It does not prove q hard to compute or P3 false."
+  },
+  "outcomes": {
+    "D1_PI_POLY_DISCOVERABLE": {
+      "condition": "A proof-carrying polynomial algorithm computes all four bits for every authoritative-core C11 survivor pair.",
+      "consequences": [
+        "Pi is polynomially graph-discoverable.",
+        "Equivalence by equal Pi masks becomes a polynomially discoverable exact semantic quotient with <=16 classes.",
+        "Each class summary is exactly four bits and independent of class multiplicity.",
+        "If |R_C11|>16, at least two distinct pairs are genuinely merged by pigeonhole; if |R_C11|<=16, the family is already constant-size at this semantic level.",
+        "The mapping of at most n^2 pairs to 4-bit masks plus <=16 summaries is polynomial-size.",
+        "Therefore frozen P3_EXACT_PAIR_QUOTIENT is VERIFIED."
+      ]
+    },
+    "D2_PARTIAL_PI_DISCOVERY": {
+      "condition": "At least one nontrivial subset of assignments/pairs is solved by a proved polynomial terminal route, while at least one exact frozen route obstruction is returned.",
+      "required_output": [
+        "which q bits/routes are polynomially certified",
+        "first exact obstruction receipt",
+        "P3 remains NOT_ESTABLISHED unless all four bits for all pairs are covered"
+      ]
+    },
+    "D3_PI_DISCOVERY_UNRESOLVED": {
+      "condition": "No universal polynomial computation of all four bits is established and no stronger conclusion is justified.",
+      "consequence": "P3 remains NOT_ESTABLISHED; STOP."
+    }
+  },
+  "scientific_ceiling": {
+    "PI_SEMANTIC_CLASS_COUNT": "<=16_VERIFIED",
+    "PI_EQUALITY_EXACTNESS": "VERIFIED",
+    "PI_DISCOVERY": "OPEN",
+    "P3_EXACT_PAIR_QUOTIENT": "NOT_ESTABLISHED_UNLESS_D1",
+    "REPAIR": "NOT_STARTED",
+    "NEW_DESCRIPTOR": "NOT_DEFINED",
+    "C1S_CS1_CSS": "NOT_REACHED",
+    "LEMMA11_P7_LIFT": "OPEN",
+    "P7_FREE_4_COLOR_IN_P": "NOT_PROVED",
+    "HARDNESS_LOCALIZED": "NOT_CLAIMED",
+    "P_VS_NP": "OPEN"
+  },
+  "forbidden": [
+    "repair C11",
+    "C11_ABSORB",
+    "new seed descriptor",
+    "general P7-free 4-coloring oracle",
+    "extension oracle",
+    "investigate C1S/CS1/CSS",
+    "claim hardness/lower bound from D2/D3",
+    "claim full Lemma11 P7 lift",
+    "claim P=NP"
+  ],
+  "execution_authorization": "NOT_GRANTED_BY_THIS_PREREGISTRATION",
+  "next_action": "Separate execution authorization required. First audit PAIR_FIXED_THREE_COLOR_COLLAPSE exactly; do not search for repair.",
+  "stop": true
+}

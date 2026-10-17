@@ -1,0 +1,202 @@
+name: TRUMP Stage6B.3 SAT Model Materialization Replay
+
+on:
+  push:
+    branches:
+      - research/general-sat-universal-coverage-map-2026-09-19
+    paths:
+      - ".github/workflows/trump-stage6b3-sat-model-materialization-replay.yml"
+      - "research/tools/stage6b3_sat_model_materialization_checker.py"
+      - "research/TRUMP_STAGE6B3_SAT_MODEL_SYNTAX_MATERIALIZATION_GAP_OBSERVATION_2026-09-19_v1.0.json"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  sealed-sat-model-materialization:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Verify frozen materialization lineage
+        shell: bash
+        run: |
+          set -euo pipefail
+          for C in \
+            04f18f88b03f1f18d181387e74dc9cbf25533428 \
+            4e6325491f1a862e7405c65dffde9d6bdd71b9d3 \
+            787f6fb4088628a06e18178deb20b948b483bdfa \
+            224a6234e3547885b9dddc0d3a1a0531877ec3d7 \
+            6f8a27b5d0b61f1545b56a9bd5bd9f40081bcfb6 \
+            d53b2b556345e14960d75c812a02db0cb990cf0b \
+            dd162e1cbb821ea601371858ef62e6ef99344451
+          do
+            git merge-base --is-ancestor "$C" HEAD
+          done
+          python -m py_compile \
+            research/tools/stage6b3_sat_model_materialization_checker.py \
+            research/tools/trump_stage6_qhorn_independent_checker.py \
+            research/tools/trump_stage6b_deletion_qhorn_independent_checker.py
+
+      - name: Fetch exact sealed Stage6B.3 authority-run artifact
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p stage6b3m/source stage6b3m/materialized
+
+          curl -fsSL \
+            -H "Authorization: Bearer $GH_TOKEN" \
+            -H "Accept: application/vnd.github+json" \
+            "https://api.github.com/repos/$GITHUB_REPOSITORY/actions/artifacts/10587463384" \
+            -o stage6b3m/artifact_metadata.json
+
+          curl -fL \
+            -H "Authorization: Bearer $GH_TOKEN" \
+            -H "Accept: application/vnd.github+json" \
+            "https://api.github.com/repos/$GITHUB_REPOSITORY/actions/artifacts/10587463384/zip" \
+            -o stage6b3m/source.zip
+
+          sha256sum stage6b3m/source.zip | tee stage6b3m/source.zip.sha256
+          unzip -q stage6b3m/source.zip -d stage6b3m/source
+
+          python - <<'PY'
+          import hashlib,json,pathlib
+          def sha(p):
+              h=hashlib.sha256()
+              with open(p,"rb") as f:
+                  for chunk in iter(lambda:f.read(1<<20),b""):
+                      h.update(chunk)
+              return h.hexdigest()
+
+          meta=json.load(open("stage6b3m/artifact_metadata.json",encoding="utf-8"))
+          assert meta["id"]==10587463384
+          assert meta["expired"] is False
+          assert meta.get("digest")=="sha256:ca44eb8eeb8d40cb0a387ef4d08812f759af1164f6512bdef6ab6391f76fe111"
+          assert (meta.get("workflow_run") or {}).get("id")==35454747120
+          assert (meta.get("workflow_run") or {}).get("head_sha")=="6f8a27b5d0b61f1545b56a9bd5bd9f40081bcfb6"
+          assert sha("stage6b3m/source.zip")=="ca44eb8eeb8d40cb0a387ef4d08812f759af1164f6512bdef6ab6391f76fe111"
+          assert sha("stage6b3m/source/TRUMP_STAGE6B3_EXACT_DELETION_QHORN_BOUNDARY_PROOF_GATE_RESULT.json")=="0dbdd81975f8497f763fa3104b5a7855b877c697fd03fa2493ab84835bc62d96"
+          assert sha("stage6b3m/source/execution_receipt.json")=="ce2460d0493188b66d43852a1acd5dd4d9ea531a855b4e84915d95f5f4130bd5"
+          assert sha("stage6b3m/source/parser_smoke/parser_smoke.receipt.json")=="152c6c46605bc45ec0701a6e3deb916762a133703e18b7a94a4646751e5890fb"
+
+          smoke=json.load(open("stage6b3m/source/parser_smoke/parser_smoke.receipt.json",encoding="utf-8"))
+          assert smoke["status"]=="PARSER_SMOKE_PASS"
+          assert smoke["parser_accepted"] is True
+          assert smoke["scientific_authority"] is False
+
+          receipt={
+            "source_boundary_run_id":35454747120,
+            "source_boundary_head_sha":"6f8a27b5d0b61f1545b56a9bd5bd9f40081bcfb6",
+            "source_artifact_id":10587463384,
+            "source_artifact_digest":meta["digest"],
+            "downloaded_zip_sha256":sha("stage6b3m/source.zip"),
+            "source_result_sha256":sha("stage6b3m/source/TRUMP_STAGE6B3_EXACT_DELETION_QHORN_BOUNDARY_PROOF_GATE_RESULT.json"),
+            "source_execution_receipt_sha256":sha("stage6b3m/source/execution_receipt.json"),
+            "source_parser_smoke_receipt_sha256":sha("stage6b3m/source/parser_smoke/parser_smoke.receipt.json"),
+            "solver_rerun":False
+          }
+          pathlib.Path("stage6b3m/source_binding_receipt.json").write_text(
+              json.dumps(receipt,indent=2,sort_keys=True)+"\n",encoding="utf-8"
+          )
+          PY
+
+      - name: Replay all 13 sealed SAT models independently
+        shell: bash
+        run: |
+          set -euo pipefail
+          for IDX in 1 2 3 4 5 6 7 9 10 11 12 13 14; do
+            PAD="$(printf '%02d' "$IDX")"
+            SRC="stage6b3m/source/targets/r50g25x_$PAD"
+            OUT="stage6b3m/materialized/r50g25x_$PAD.materialized.json"
+
+            python research/tools/stage6b3_sat_model_materialization_checker.py \
+              verify \
+              "$SRC/canonical.json" \
+              "$SRC/opb.generation.json" \
+              "$SRC/opb.audit.json" \
+              "$SRC/boundary.opb" \
+              "$SRC/roundingsat/roundingsat.stdout" \
+              "$SRC/roundingsat/roundingsat.receipt.json" \
+              "$OUT" \
+              | tee "stage6b3m/materialized/r50g25x_$PAD.stdout"
+          done
+
+      - name: Aggregate scientific SAT-boundary result
+        shell: bash
+        run: |
+          set -euo pipefail
+          python research/tools/stage6b3_sat_model_materialization_checker.py \
+            aggregate \
+            stage6b3m/materialized \
+            stage6b3m/source/stage6b2/frozen_result.json \
+            stage6b3m/TRUMP_STAGE6B3_SAT_MODEL_MATERIALIZATION_RESULT.json \
+            | tee stage6b3m/aggregate.stdout
+
+      - name: Emit immutable materialization receipt
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import hashlib,json,os,pathlib
+          def sha(p):
+              h=hashlib.sha256()
+              with open(p,"rb") as f:
+                  for chunk in iter(lambda:f.read(1<<20),b""):
+                      h.update(chunk)
+              return h.hexdigest()
+
+          result="stage6b3m/TRUMP_STAGE6B3_SAT_MODEL_MATERIALIZATION_RESULT.json"
+          receipt={
+            "source_boundary_run_id":35454747120,
+            "source_artifact_id":10587463384,
+            "source_artifact_digest":"sha256:ca44eb8eeb8d40cb0a387ef4d08812f759af1164f6512bdef6ab6391f76fe111",
+            "observation_commit":"d53b2b556345e14960d75c812a02db0cb990cf0b",
+            "checker_commit":"dd162e1cbb821ea601371858ef62e6ef99344451",
+            "materialization_workflow_head":os.environ["GITHUB_SHA"],
+            "checker_sha256":sha("research/tools/stage6b3_sat_model_materialization_checker.py"),
+            "result_sha256":sha(result),
+            "solver_rerun":False,
+            "smaller_k_tested":False,
+            "shrink_executed":False,
+            "optimization_executed":False,
+            "new_janus_controller_authorized":False
+          }
+          pathlib.Path("stage6b3m/materialization_execution_receipt.json").write_text(
+              json.dumps(receipt,indent=2,sort_keys=True)+"\n",encoding="utf-8"
+          )
+          PY
+
+      - name: Upload Stage6B.3 SAT model materialization artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: trump-stage6b3-sat-model-materialization-replay
+          path: |
+            stage6b3m/TRUMP_STAGE6B3_SAT_MODEL_MATERIALIZATION_RESULT.json
+            stage6b3m/materialization_execution_receipt.json
+            stage6b3m/source_binding_receipt.json
+            stage6b3m/artifact_metadata.json
+            stage6b3m/source.zip.sha256
+            stage6b3m/aggregate.stdout
+            stage6b3m/materialized/
+            stage6b3m/source/parser_smoke/parser_smoke.receipt.json
+            stage6b3m/source/targets/*/canonical.json
+            stage6b3m/source/targets/*/opb.generation.json
+            stage6b3m/source/targets/*/opb.audit.json
+            stage6b3m/source/targets/*/boundary.opb
+            stage6b3m/source/targets/*/roundingsat/roundingsat.receipt.json
+            stage6b3m/source/targets/*/roundingsat/roundingsat.stdout
+          if-no-files-found: error
+          retention-days: 30

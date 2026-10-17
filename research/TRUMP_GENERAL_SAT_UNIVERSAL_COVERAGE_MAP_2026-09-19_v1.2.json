@@ -1,0 +1,187 @@
+{
+  "artifact_id": "JANUS-TRUMP-GENERAL-SAT-UNIVERSAL-COVERAGE-MAP-2026-09-19-v1.2",
+  "date": "2026-09-19",
+  "authority": "READ_ONLY_COVERAGE_MAP_UPDATE__PUBLIC_ARSENAL_FIRST__NO_SAT_IN_P_OR_P_EQ_NP_PROMOTION",
+  "branch": "research/general-sat-universal-coverage-map-2026-09-19",
+  "parents": {
+    "v1_1": "b37584d01e7478ac93509e8608ca99cb892fc21b",
+    "theory_delta": "b68934ff3a0f00492b62751973fd8b44ffb960e1",
+    "stage2_partial": "a1598619597b6eafc7df6bdc15df221837067471",
+    "nested_screen": "a5d935558c59a99b8474f8cc9a27bad0fc712448",
+    "consensus_diagnostic": "57af81a72a3c35612f1361cd848396f5ff351781"
+  },
+  "inherited_policy": "Use every known exact polynomial or parameterized SAT lane before designing a new JANUS mechanism. A lane counts as universal polynomial coverage only when admission/discovery, solve, reconstruction and verification all fit one polynomial bound in original input size.",
+  "new_direct_or_near_direct_lanes": [
+    {
+      "name": "NESTED_CNF",
+      "class": "P_LANE",
+      "recognition": "F is nested iff augmented incidence graph inc+u(F) is planar; planarity is polynomial/linear-time.",
+      "solve": "Knuth nested-SAT polynomial algorithm; #SAT also polynomial via bounded incidence-treewidth methods.",
+      "frozen_R50G25X": "NOT_NESTED_15_OF_15 with explicit K3,3-subdivision/Kuratowski certificates.",
+      "references": [
+        "Knuth, Nested satisfiability, 1990.",
+        "Kratochvil-Krivanek planarity characterization, used explicitly by Gaspers-Szeider, Strong Backdoors to Nested Satisfiability, SAT 2012."
+      ]
+    },
+    {
+      "name": "ACYCLIC_INCIDENCE_FOREST",
+      "class": "P_LANE",
+      "recognition": "Incidence graph is a forest; graph acyclicity is linear-time.",
+      "solve": "SAT and #SAT polynomial on acyclic-incidence formulas.",
+      "reference": "Gaspers-Szeider, Backdoors to Acyclic SAT, ICALP 2012."
+    },
+    {
+      "name": "ACYCLIC_BACKDOOR_TO_TRACTABLE_ARCHIPELAGO",
+      "class": "P_PROMISE_LANE__ADMISSION_ROUTE_NEEDS_FAIL_CLOSED_IMPORT",
+      "statement": "For any finite set U of permissively tractable classes, SAT is polynomial on formulas with backdoor treewidth btw_U(F)=1. The algorithm need not explicitly find the acyclic backdoor.",
+      "example": "U={q-Horn,Hitting}; arbitrary-size blocks may land in different classes under assignments while backdoor variables interact in a forest-like torso.",
+      "why_not_yet_counted_as_unconditional_portfolio_gate": "The published theorem guarantees polynomial correctness on the promise class. JANUS still needs a fail-closed admission/certificate interface before using a negative/UNSAT answer on arbitrary input.",
+      "reference": "Ganian-Ramanujan-Szeider, Backdoor Treewidth for SAT, SAT 2017."
+    }
+  ],
+  "new_parameter_lanes": [
+    {
+      "name": "STRONG_BACKDOOR_TO_NESTED",
+      "class": "PARAM_LANE",
+      "parameter": "size k of smallest strong Nested-backdoor",
+      "result": "SAT and #SAT FPT; FPT-approximation finds a backdoor bounded by a function of optimum.",
+      "safe_polynomial_promotion": "fixed constant k; no O(log n) promotion recorded without explicit frozen f(k).",
+      "reference": "Gaspers-Szeider, Strong Backdoors to Nested Satisfiability, SAT 2012."
+    },
+    {
+      "name": "WEAK_FOREST_BACKDOOR_FIXED_D_CNF",
+      "class": "PARAM_LANE",
+      "parameter": "weak backdoor size k to acyclic-incidence formulas",
+      "domain": "fixed d-CNF",
+      "result": "detection FPT for every fixed d>=3; solve by enumerating assignments and polynomial forest-SAT.",
+      "R50G25X_relevance": "All fifteen frozen residuals have maximum clause width <=5, so this lane applies to the entire finite corpus.",
+      "reference": "Gaspers-Szeider, Backdoors to Acyclic SAT, ICALP 2012."
+    },
+    {
+      "name": "STRONG_FOREST_BACKDOOR",
+      "class": "PARAM_LANE",
+      "parameter": "smallest strong backdoor size k to acyclic-incidence formulas",
+      "result": "FPT-approximation: either excludes size<=k or returns a strong Forest backdoor of size bounded by the public theorem; SAT/#SAT FPT.",
+      "safe_polynomial_promotion": "fixed constant k only unless explicit combined dependence is frozen.",
+      "reference": "Gaspers-Szeider, Backdoors to Acyclic SAT, ICALP 2012."
+    },
+    {
+      "name": "BACKDOOR_TO_SMALL_INCIDENCE_TREEWIDTH_FOR_D_CNF",
+      "class": "PARAM_LANE",
+      "parameters": "fixed maximum clause width d, fixed target incidence-treewidth t, backdoor size k",
+      "runtime": "2^O(k)*|F| with hidden dependence on fixed d,t; algorithm solves SAT or correctly concludes no weak/strong backdoor size<=k to width t.",
+      "polynomial_coverage_condition": "k=O(log |F|) for fixed d,t.",
+      "R50G25X_relevance": "All fifteen residuals have d<=5.",
+      "reference": "Fomin-Lokshtanov-Misra-Ramanujan-Saurabh, Solving d-SAT via Backdoors to Small Treewidth, SODA 2015."
+    },
+    {
+      "name": "BACKDOOR_TREEWIDTH_HORN_DHORN_KROM",
+      "class": "PARAM_LANE",
+      "parameter": "treewidth of the torso of a strong backdoor, not number of backdoor variables",
+      "result": "SAT FPT for Horn, Anti-Horn/dual-Horn and 2CNF; a suitable backdoor of width<=k can be found or excluded by the public FPT algorithm.",
+      "key_relation": "backdoor-treewidth <= min(primal-treewidth, ordinary backdoor size), and can stay small when ordinary backdoor size is unbounded.",
+      "safe_polynomial_promotion": "fixed constant k; no logarithmic promotion recorded until explicit f(k) is frozen.",
+      "reference": "Ganian-Ramanujan-Szeider, Backdoor Treewidth for SAT, SAT 2017."
+    },
+    {
+      "name": "CONSENSUS_TREEWIDTH",
+      "class": "PARAM_LANE",
+      "parameter": "treewidth k of the consensus graph on clauses (edge iff clauses do not clash)",
+      "runtime": "#SAT, hence SAT, in 2^O(k)*L*(L+delta), including a 2^O(k) decomposition approximation route.",
+      "polynomial_coverage_condition": "k=O(log L).",
+      "frozen_R50G25X": "Explicit clique certificates give consensus-tw lower bounds 20..61; min-fill upper bounds 54..260. This is finite diagnostic only.",
+      "reference": "Ganian-Szeider, New Width Parameters for Model Counting / SAT and #SAT, SAT 2017 and Artificial Intelligence 2021."
+    },
+    {
+      "name": "CLUSTERING_WIDTH",
+      "class": "PARAM_LANE",
+      "parameter": "minimum vertex-cover size of the public obstruction graph; hitting formulas are width 0.",
+      "result": "Strong cluster-backdoor detection via vertex cover and #SAT/SAT exact solving; bounded clustering-width gives uniform polynomial time.",
+      "detection_bound": "Public paper gives O(1.273^k + n k) for the relevant backdoor/obstruction route.",
+      "polynomial_coverage_condition": "k=O(log n) under the explicit single-exponential detection plus 2^O(k) branching/solve route.",
+      "orthogonality": "Incomparable with treewidth, branchwidth and clique-width in the cited result.",
+      "reference": "Nishimura-Ragde-Szeider, Solving #SAT Using Vertex Covers, Acta Informatica 2007."
+    },
+    {
+      "name": "H_MODULARITY",
+      "class": "PARAM_LANE",
+      "parameter": "h-modularity k: hitting communities with sparse/tree-like inter-community structure",
+      "discovery": "FPT approximation; given k, public algorithm either reports h-mod(F)>k or returns an h-structure of h-modularity <=k^2+k.",
+      "solve": "Given h-structure P, SAT in 2^O(h-mod(P)^2)*L^2; #SAT also FPT.",
+      "safe_polynomial_promotion": "fixed constant k only in this map; avoid inventing a logarithmic promotion through the k^2 approximation without freezing the entire dependence.",
+      "reference": "Ganian-Szeider, Community Structure Inspired Algorithms for SAT and #SAT, SAT 2015 / AI 2021."
+    },
+    {
+      "name": "SIGNED_RANK_WIDTH",
+      "class": "PARAM_LANE",
+      "parameter": "signed rank-width t of the signed formula graph",
+      "runtime_without_supplied_decomposition": "2^Theta(t^2)*|F|^3 for #SAT/MaxSAT in the cited algorithmic bound; SAT follows from #SAT.",
+      "polynomial_coverage_condition": "t=O(sqrt(log |F|)) under the explicit bound.",
+      "structural_note": "Rank-width can be exponentially smaller than clique-width and is not upper-bounded by treewidth in general.",
+      "reference": "Ganian-Hlineny-Obdrzalek, Better Algorithms for Satisfiability Problems for Formulas of Bounded Rank-width, FSTTCS 2010."
+    }
+  ],
+  "representation_or_decomposition_accelerators": [
+    {
+      "name": "PS_WIDTH",
+      "class": "PARAM_OR_REPRESENTATION_ACCELERATOR",
+      "result": "Weighted MaxSAT and #SAT polynomial when a decomposition of polynomial ps-width is supplied; polynomial decompositions are known for some structured incidence classes.",
+      "firewall": "Do not count arbitrary-CNF ps-width as a discoverable parameter lane unless the decomposition finder is included.",
+      "reference": "Saether-Telle-Vatshelle, Solving MaxSAT and #SAT on structured CNF formulas, 2014."
+    }
+  ],
+  "negative_parameter_guidance": [
+    {
+      "name": "CONFLICT_TREEWIDTH",
+      "verdict": "DO_NOT_PROMOTE",
+      "reason": "SAT is W[1]-hard parameterized by conflict treewidth.",
+      "reference": "Ganian-Szeider, New Width Parameters for SAT and #SAT."
+    },
+    {
+      "name": "MODULAR_INCIDENCE_TREEWIDTH",
+      "verdict": "FIXED_CONSTANT_CLASS_ONLY__NOT_GENERAL_FPT_PARAMETER",
+      "reason": "#SAT is polynomial for every fixed modular incidence treewidth, but SAT is W[1]-hard parameterized by modular incidence treewidth; polynomial degree depends on k.",
+      "reference": "Paulusma-Slivovsky-Szeider, Model Counting for CNF Formulas of Bounded Modular Treewidth."
+    }
+  ],
+  "frozen_R50G25X_clause_width_profile": {
+    "maximum_over_corpus": 5,
+    "pure_width_at_most_3_indices": [
+      0,
+      2,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14
+    ],
+    "significance": "Fixed-d public backdoor-to-Forest and backdoor-to-small-treewidth algorithms are applicable to all fifteen residuals."
+  },
+  "revised_live_public_doors_before_new_JANUS_controller": [
+    "BACKDOOR_DNF_HORN_DHORN_KROM_AND_SUPPORTED_HETEROGENEOUS_VARIANTS",
+    "BACKDOOR_DEPTH_BEYOND_EXACT_DEPTH_2_USING_PUBLISHED_MACHINERY",
+    "Q_HORN_DELETION_DISTANCE__PARTIAL_FINITE_MEASUREMENT_EXISTS",
+    "CERTIFIED_INCIDENCE_TREEWIDTH_TO_BA25",
+    "STRONG_BACKDOOR_TO_NESTED",
+    "WEAK_OR_STRONG_FOREST_BACKDOOR",
+    "BACKDOOR_TO_SMALL_INCIDENCE_TREEWIDTH_FOR_FIXED_D_CNF",
+    "BACKDOOR_TREEWIDTH_TO_HORN_DHORN_KROM",
+    "ACYCLIC_BACKDOOR_TO_PERMISSIVE_ARCHIPELAGO__NEEDS_ADMISSION_INTERFACE",
+    "CLUSTERING_WIDTH",
+    "H_MODULARITY",
+    "SIGNED_RANK_WIDTH"
+  ],
+  "residual_frontier_v1_2": {
+    "name": "GENERAL_MIXED_RESIDUAL_OUTSIDE_IMPORTED_DIRECT_AND_STRUCTURED_PARAMETER_FUNNEL",
+    "warning": "The complement is still relative to an incomplete public arsenal. Do not name a new JANUS mechanism until the listed structured-backdoor and orthogonal-width lanes are either imported or responsibly excluded for the target residual.",
+    "desired_final_shape": "Only after these routes are exhausted should the Universal Residual Funnel theorem attack the remaining intersection with a new exact controlled-growth mechanism."
+  },
+  "claim_ceiling": {
+    "NEW_JANUS_CONTROLLER_AUTHORIZED": false,
+    "UNIVERSAL_COVERAGE": "OPEN",
+    "GENERAL_SAT_IN_P": "NOT_PROVED",
+    "P_EQ_NP": "NOT_PROVED",
+    "P_VS_NP": "OPEN"
+  }
+}

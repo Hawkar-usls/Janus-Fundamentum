@@ -1,0 +1,201 @@
+name: TRUMP P7 SPLIT4 Lemma11 Acceptability Fragment Gate
+
+on:
+  pull_request:
+    branches:
+      - research/general-sat-universal-coverage-map-2026-09-19
+    paths:
+      - 'research/TRUMP_P7_SPLIT4_LEMMA11_ACCEPTABILITY_FRAGMENT_RUN_TRIGGER_2026-09-20_v1.0.json'
+      - 'research/TRUMP_P7_SPLIT4_LEMMA11_ACCEPTABILITY_FRAGMENT_EXECUTION_FREEZE_2026-09-20_v1.0.json'
+      - 'research/tools/p7_split4_acceptability_fragment/**'
+      - '.github/workflows/trump-p7-split4-acceptability-fragment.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  acceptability-fragment:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Bind frozen authority
+        shell: bash
+        run: |
+          set -euo pipefail
+          for sha in \
+            c13d3c81dd227b971bb9729d976a8d6010e5424b \
+            9366055f10daa79695604f3970154682bf952082 \
+            979da07ffef9acdb7f9a9960868accdb345833a2 \
+            6495d8889517ae1903a208e679a9f26b066aa768 \
+            955b13dcbba71008898636d2c083377d96a558bc \
+            a2ad5f5065ff387b8503d829b04cb72765355b57 \
+            08e9cc089feca8fa1cf94fbb0d138fa5f1591faa \
+            6bfff59f708f012493128187bf68f8418570846a
+          do
+            git merge-base --is-ancestor "$sha" HEAD
+          done
+          test "$(git rev-parse c13d3c81dd227b971bb9729d976a8d6010e5424b:research/TRUMP_P7_SPLIT4_LEMMA11_ACCEPTABILITY_FRAGMENT_GATE_PREREG_2026-09-20_v1.0.json)" = "98e47c530eafe58d901b96db6fc10f747c5080fe"
+          python -m py_compile \
+            research/tools/p7_split4_acceptability_fragment/acceptability_fragment_checker.py \
+            research/tools/p7_split4_acceptability_fragment/independent_verifier.py
+
+      - name: Run frozen E0-E6 classifier
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p acceptability
+          python research/tools/p7_split4_acceptability_fragment/acceptability_fragment_checker.py \
+            --out acceptability/run \
+            --upstream-normalized-result research/TRUMP_P7_SPLIT4_NORMALIZED_RAW_COVERAGE_RERUN_RESULT_2026-09-20_v1.0.json \
+            | tee acceptability/candidate.stdout
+
+      - name: Independent replay
+        shell: bash
+        run: |
+          set -euo pipefail
+          python research/tools/p7_split4_acceptability_fragment/independent_verifier.py \
+            acceptability/run \
+            acceptability/independent.json \
+            | tee acceptability/independent.stdout
+
+      - name: Assemble scientific manifest
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import hashlib,json,pathlib,subprocess
+          root=pathlib.Path("acceptability")
+          run=root/"run"
+          cand=json.loads((run/"candidate_result.json").read_text())
+          summary=json.loads((run/"summary.json").read_text())
+          indep=json.loads((root/"independent.json").read_text())
+          controls=json.loads((run/"controls.json").read_text())
+          quarantine=json.loads((run/"001_quarantine.json").read_text())
+
+          def sha(p):
+              return hashlib.sha256(pathlib.Path(p).read_bytes()).hexdigest()
+
+          assert cand["verdict"]=="FAIL_P7_ACCEPTABILITY_ESCAPE"
+          assert cand["E6"]["cell"]=="C11"
+          assert cand["E6"]["classification"]=="CELL_REACHABLE_ESCAPE"
+          assert summary["first_reachable_cell"]=="C11"
+          assert summary["stop_triggered"] is True
+          assert summary["repair_attempted"] is False
+          assert indep["verdict"]=="INDEPENDENT_C11_REACHABLE_ESCAPE_VERIFIED"
+          assert all(x["verdict"]=="PASS_CONTROL" for x in controls)
+          assert quarantine["verdict"]=="CELL_001_QUARANTINED"
+          assert quarantine["affects_main_authority"] is False
+          assert quarantine["main_C11_path_uses_001"] is False
+
+          # Later cells are deliberately not classified after the required STOP.
+          assert summary["matrix"]["C11"]["classification"]=="CELL_REACHABLE_ESCAPE"
+          for cell in ["C1S","CS1","CSS"]:
+              assert summary["matrix"][cell]["classification"] is None
+              assert summary["matrix"][cell]["analysis_status"]=="NOT_REACHED_DUE_TO_STOP"
+
+          ceiling=summary["scientific_ceiling"]
+          assert ceiling["SUBGATE_A"]=="NOT_CLAIMED"
+          assert ceiling["FULL_LEMMA11_P7_LIFT"]=="OPEN"
+          assert ceiling["P7_FREE_4_COLOR_IN_P"]=="NOT_PROVED"
+          assert ceiling["HARDNESS_LOCALIZED"]=="NOT_CLAIMED"
+          assert ceiling["P_VS_NP"]=="OPEN"
+
+          manifest={
+            "schema":"janus.trump.p7_split4.lemma11_acceptability_fragment.scientific_manifest.v1",
+            "workflow_head":subprocess.check_output(["git","rev-parse","HEAD"],text=True).strip(),
+            "frozen_preregistration":{
+              "commit":"c13d3c81dd227b971bb9729d976a8d6010e5424b",
+              "content_blob":"98e47c530eafe58d901b96db6fc10f747c5080fe"
+            },
+            "frozen_parents":{
+              "normalized_raw_split4":"9366055f10daa79695604f3970154682bf952082",
+              "lemma5_6_7_10_transfer":"979da07ffef9acdb7f9a9960868accdb345833a2",
+              "RIGID_SPLIT4_V1":"6495d8889517ae1903a208e679a9f26b066aa768",
+              "P7_CORRIDOR_RIGIDITY":"955b13dcbba71008898636d2c083377d96a558bc"
+            },
+            "execution_freeze_commit":"a2ad5f5065ff387b8503d829b04cb72765355b57",
+            "implementation_commits":{
+              "candidate_checker":"08e9cc089feca8fa1cf94fbb0d138fa5f1591faa",
+              "independent_verifier":"6bfff59f708f012493128187bf68f8418570846a"
+            },
+            "candidate":{
+              "verdict":cand["verdict"],
+              "cell":"C11",
+              "classification":"CELL_REACHABLE_ESCAPE",
+              "candidate_receipt_sha256":sha(run/"candidate_result.json"),
+              "first_unsupported_inference":cand["reachable_escape_receipt"]["first_unsupported_inference"],
+              "minimum_vertex_count":cand["minimization"]["vertex_count"],
+              "minimization_provenance":cand["reachable_escape_receipt"]["minimization_provenance"]
+            },
+            "matrix":summary["matrix"],
+            "controls":{
+              "verdicts":{x["id"]:x["verdict"] for x in controls},
+              "receipt_sha256":sha(run/"controls.json")
+            },
+            "001_quarantine":{
+              "verdict":quarantine["verdict"],
+              "affects_main_authority":False,
+              "main_C11_path_uses_001":False,
+              "receipt_sha256":sha(run/"001_quarantine.json")
+            },
+            "independent_replay":{
+              "verdict":indep["verdict"],
+              "receipt_sha256":sha(root/"independent.json")
+            },
+            "scientific_ceiling":ceiling,
+            "source_digests":{
+              "candidate_checker_sha256":sha("research/tools/p7_split4_acceptability_fragment/acceptability_fragment_checker.py"),
+              "independent_verifier_sha256":sha("research/tools/p7_split4_acceptability_fragment/independent_verifier.py"),
+              "execution_freeze_sha256":sha("research/TRUMP_P7_SPLIT4_LEMMA11_ACCEPTABILITY_FRAGMENT_EXECUTION_FREEZE_2026-09-20_v1.0.json")
+            },
+            "repair_attempted":False,
+            "successor_autoactivated":False,
+            "stop":True
+          }
+          (root/"scientific_manifest.json").write_text(json.dumps(manifest,indent=2,sort_keys=True)+"\n")
+          print(json.dumps({
+            "scientific_verdict":cand["verdict"],
+            "cell":"C11",
+            "independent":indep["verdict"],
+            "minimum_vertex_count":cand["minimization"]["vertex_count"],
+            "stop":True
+          },sort_keys=True))
+          PY
+
+      - name: Assert frozen stop ceiling
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json
+          m=json.load(open("acceptability/scientific_manifest.json"))
+          assert m["candidate"]["verdict"]=="FAIL_P7_ACCEPTABILITY_ESCAPE"
+          assert m["candidate"]["cell"]=="C11"
+          assert m["repair_attempted"] is False
+          assert m["successor_autoactivated"] is False
+          assert m["stop"] is True
+          c=m["scientific_ceiling"]
+          assert c["SUBGATE_A"]=="NOT_CLAIMED"
+          assert c["FULL_LEMMA11_P7_LIFT"]=="OPEN"
+          assert c["P7_FREE_4_COLOR_IN_P"]=="NOT_PROVED"
+          assert c["HARDNESS_LOCALIZED"]=="NOT_CLAIMED"
+          assert c["P_VS_NP"]=="OPEN"
+          print("STOP_CEILING_PASS")
+          PY
+
+      - name: Upload immutable proof-carrying artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: trump-p7-split4-lemma11-acceptability-fragment-v1
+          path: acceptability/
+          if-no-files-found: error
+          retention-days: 90

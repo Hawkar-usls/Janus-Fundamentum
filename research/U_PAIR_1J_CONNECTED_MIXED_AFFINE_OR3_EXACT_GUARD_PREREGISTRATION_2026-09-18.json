@@ -1,0 +1,191 @@
+{
+  "artifact_id": "JANUS-TRUMP-U-PAIR-1J-CONNECTED-MIXED-AFFINE-OR3-EXACT-GUARD-SYNTHESIS-PREREGISTRATION-2026-09-18-v1.0",
+  "date": "2026-09-18",
+  "authority": "PREREGISTERED_HOSTILE_SUCCESSOR__NO_RUN_YET",
+  "branch": "research/U-PAIR-1J-mixed-exact-guard-synthesis-2026-09-18",
+  "lineage": {
+    "frozen_u_pair_1j_head": "8c2447db82f0dc93d83ac2e43c423b5ecae07a85",
+    "frozen_u_pair_1j_prereg_blob": "e7830566a195d5b2c2b5dcb17a07c9324962b7c0",
+    "shielding_bridge_prereg_commit": "81ddc1ae86ff914dd4c6ac508a943969365d3011",
+    "tseitin_postfreeze_reconciliation_parent": "59dd16a276647da10a3624236daa10ced5a0ce6b",
+    "completed_hostiles": [
+      "IMPLICIT_MAJORITY_SKOL_RELATION_WITHOUT_EXPLICIT_OUTPUT_NODE",
+      "TSEITIN_EXPANDER_SEARCH_RELATIONS"
+    ],
+    "target_from_frozen_first_hostile_suite": "CONNECTED_MIXED_AFFINE_OR3_EXPANDER_INTERLEAVE"
+  },
+  "attack_name": "SYNTHESIS_OF_MIXED_EXACT_GUARDS",
+  "attack_question": "Can frozen SKOLEM_LOCAL_DERIVATION_V1_1_SHIELDING_BRIDGE synthesize and locally certify exact Boolean guards whose semantics genuinely compose affine predicates with OR3 constraints, while separately carrying an exact domain proof and a shared witness-selection proof, without source-precompiled mixed guards or generic validity machinery?",
+  "calculus_governance": {
+    "calculus": "SKOLEM_LOCAL_DERIVATION_V1_1_SHIELDING_BRIDGE",
+    "mutation_allowed": false,
+    "inherited_rule_forms": [
+      "CONST(c)",
+      "AFFINE_XOR(c, support)",
+      "EXISTING_DAG_NODE(node_id)",
+      "GUARDED_ITE(guard, rule_true, rule_false) with hash-consed sharing",
+      "INTERNAL_COVER_WITNESS(alpha)"
+    ],
+    "no_new_OR3_rule": true,
+    "or3_must_be_synthesized_from_existing_forms": true,
+    "derived_guard_typing_firewall": "A synthesized Boolean rule root is not automatically promoted to a fresh atomic guard. Selector composition must either use a guard form already licensed by frozen V1.1 or structurally inline/compose the verified guard DAG without adding a rule form.",
+    "internal_cover_witness_relevance": "Not expected to be needed for this hostile; any use must satisfy the already frozen clausewise checker and is separately accounted."
+  },
+  "exact_hostile_relation": {
+    "boundary": "One Boolean y_e per frozen graph edge.",
+    "graph": "Connected simple 3-regular undirected graph G=(V,E), |V| a power of two, with odd charge ell:V->{0,1}.",
+    "base_affine_predicate": "A_v(Y) := ell(v) XOR XOR_{e incident to v} y_e.",
+    "raw_affine_atoms": "For each OR3 block j and k in {0,1,2}, source contains only a raw affine definition Z_{j,k}(Y) := c_{j,k} XOR XOR_{e in S_{j,k}} y_e. The three supports inside one block are pairwise disjoint, nonempty, and chosen away from the incident-edge supports of both vertices assigned to that block.",
+    "raw_or3_constraint": "O_j(Y) := Z_{j,0}(Y) OR Z_{j,1}(Y) OR Z_{j,2}(Y), represented in source only as a raw OR3 constraint over the three affine atom ids; no Boolean output node is supplied.",
+    "pairing": "Vertices are partitioned into deterministic frozen pairs. Each pair references exactly one OR3 block, so every O_j occurs for exactly two vertices.",
+    "candidate_interleave": "For vertex v in pair j, exact admissibility guard is G_v(Y) := A_v(Y) XOR O_j(Y). Source stores only raw incidence linking v to its base affine constraint and OR3 block; it does not store G_v or any compiled Boolean DAG for G_v.",
+    "witness": "Binary code of any vertex v whose exact mixed guard G_v(Y)=1.",
+    "domain": "D(Y) := exists v G_v(Y).",
+    "totality_theorem": "XOR_v G_v = XOR_v A_v XOR XOR_v O_pair(v) = 1 XOR 0 = 1, because every graph edge occurs twice in XOR_v A_v, total charge is odd, and every raw OR3 predicate occurs exactly twice under the frozen vertex pairing. Therefore D(Y)=TRUE for all boundary assignments.",
+    "domain_independence_contract": "Pi_domain must certify totality from raw graph parity plus even OR3-block incidence. It may not import synthesized mixed-guard truth tables, witness outputs, or constructor claims."
+  },
+  "source_anti_cheat": [
+    "NO_PRECOMPUTED_MIXED_GUARD",
+    "NO_EXPLICIT_WITNESS_OUTPUT_NODE",
+    "NO_OR3_TO_BOOLEAN_GUARD_COMPILATION_IN_SOURCE",
+    "NO_PRECOMPUTED_OR3_OUTPUT_NODE",
+    "NO_PRECOMPUTED_AFFINE_SUBSTITUTION_INTO_OR3",
+    "NO_OLD_CONNECTED_MIXED_RESULT_IMPORT",
+    "NO_OLD_TSEITIN_CANDIDATE_IMPORT",
+    "NO_SAT",
+    "NO_GENERIC_SKOLEM_VALID",
+    "NO_TRUTH_TABLE",
+    "NO_GENERIC_TAUTOLOGY",
+    "NO_CALCULUS_MUTATION"
+  ],
+  "proof_object": {
+    "notation": "Pi = (Pi_guard, Pi_select, Pi_domain)",
+    "Pi_guard": "Proof-carrying derivations of every exact G_v from raw A_v plus raw affine-atom definitions plus raw OR3 syntax, using only frozen V1.1 forms.",
+    "Pi_select": "Shared proof DAG selecting a witness vertex from the exact mixed guards. A mixed guard may not be treated as a magical atomic predicate merely because Pi_guard exists; composition must respect the frozen guard typing.",
+    "Pi_domain": "Independent symbolic certificate that D(Y)=TRUE by odd-charge cancellation plus even duplicated OR3-block incidence.",
+    "exact_interface": "DOMAIN + WITNESS + PROOF"
+  },
+  "required_guard_synthesis_semantics": {
+    "or3_compilation_example": "For affine atom roots P,Q,R, OR3(P,Q,R) can be represented without a new OR3 rule by GUARDED_ITE(P, CONST(1), GUARDED_ITE(Q, CONST(1), R)), with each guard/child locally justified.",
+    "mixed_xor_example": "G=A XOR O may be represented by branching on affine root A and using exact O / NOT O derivations in the children, or by an equivalent structurally inlined frozen-rule DAG.",
+    "shortcut_forbidden": "The source may not hand the constructor an O or G Boolean node. The constructor must discover/build the exact derivation from raw constraints."
+  },
+  "mandatory_killer_control": {
+    "name": "MIXED_EXACT_GUARD_COMPOSITION_CONTROL",
+    "raw_atoms": {
+      "A": "a XOR b",
+      "P": "c XOR d",
+      "Q": "1 XOR e XOR f",
+      "R": "g XOR h"
+    },
+    "raw_or3": "O := P OR Q OR R",
+    "target_guard": "G := A XOR O",
+    "expected": "PASS_EXACT_MIXED_GUARD_DERIVATION_UNDER_FROZEN_V1_1",
+    "must_use_both_semantic_layers": true,
+    "affine_only_shortcut_rejected_by": "Hold O=1 and compare A=0 versus A=1; G changes as NOT A, so G is not the base affine predicate A and, because O is an OR3 of independent affine atoms, G is not affine in the underlying boundary bits.",
+    "or3_only_shortcut_rejected_by": "Hold O=1 and flip independent A; O stays fixed while G flips.",
+    "no_full_truth_table_required": true,
+    "independent_verifier_must_check": "Raw affine supports are independent as preregistered; OR3 syntax is raw; the accepted proof uses only frozen rule forms; exact target semantics follows by local branch reduction.",
+    "hostile_execution_gate": "The hostile series is forbidden unless this killer control passes both constructor and independent verifier."
+  },
+  "source_freeze_policy": {
+    "vertex_counts": [
+      16,
+      32,
+      64,
+      128,
+      256
+    ],
+    "degree": 3,
+    "all_mandatory": true,
+    "graph_generation": "One deterministic seeded simple 3-regular graph candidate per n after deterministic structural generation; no resampling after any constructor observation.",
+    "graph_gate": "simple + 3-regular + connected; spectral ratio lambda2/3 is diagnostic metadata and must be <=0.99 or SOURCE_FAMILY_INVALID. It is not used to choose among candidates after constructor observation.",
+    "charge_generation": "Deterministic frozen bits, adjusted at one fixed predeclared vertex if necessary to make total XOR odd.",
+    "pairing_generation": "Deterministic frozen perfect matching over opaque vertex ids, generated before constructor exists.",
+    "affine_atom_generation": "For each pair, generate exactly three nonconstant affine atoms with pairwise-disjoint supports of fixed size 2; supports exclude graph edges incident to either paired vertex. Reuse across different pairs is permitted and fully frozen.",
+    "or3_generation": "Exactly one raw positive OR3 clause over the three affine atom ids per pair; both paired vertices reference the same clause id.",
+    "interleave_gate": "Combined incidence graph over graph vertices, graph-edge variables, affine atoms, and OR3 blocks must be connected.",
+    "opaque_ids": true,
+    "freeze_before_constructor": true
+  },
+  "accounting": {
+    "structural_sets": {
+      "G": "Unique proof-DAG nodes reachable from all mixed-guard proof roots.",
+      "S": "Unique proof-DAG nodes reachable from all witness-selection roots.",
+      "D": "Domain-certificate structural terms/nodes.",
+      "shared_G_S": "G intersection S."
+    },
+    "size_metrics": [
+      "S_guards_nodes",
+      "S_guards_bytes",
+      "S_selector_reachable_nodes",
+      "S_selector_exclusive_nodes",
+      "S_selector_bytes",
+      "S_shared_guard_selector_nodes",
+      "S_domain_terms",
+      "S_domain_bytes",
+      "S_total_union_nodes",
+      "S_total_union_bytes",
+      "max_live_shared_nodes"
+    ],
+    "time_metrics": [
+      "T_guard_synth",
+      "T_select_synth",
+      "T_domain_synth",
+      "T_guard_verify",
+      "T_select_verify",
+      "T_domain_verify"
+    ],
+    "visit_metrics": [
+      "guard_constructor_visits",
+      "selector_constructor_visits",
+      "domain_constructor_visits",
+      "guard_verifier_visits",
+      "selector_verifier_visits",
+      "domain_verifier_visits"
+    ],
+    "attribution_requirement": "If total proof growth occurs, result must identify whether the observed pressure is in mixed-guard derivation, selector composition/sharing, domain certification, or shared overlap."
+  },
+  "failure_taxonomy": {
+    "FAIL_CALCULUS_EXPRESSIVITY": "Mandatory mixed control cannot be represented under frozen V1.1 without a new rule or illicit guard typing.",
+    "FAIL_MIXED_GUARD_SYNTHESIS_ACCESS": "Required primitives are expressible and killer control passes, but frozen hostile constructor cannot derive exact G_v from raw mixed constraints without forbidden machinery.",
+    "FAIL_MIXED_GUARD_REPRESENTATION_PRESSURE": "Observed frozen-series growth is localized to Pi_guard and exceeds the preregistered resource envelope. This is an observed constructor outcome only, not a lower bound.",
+    "FAIL_SELECTOR_SHARING": "Exact mixed guards remain compact but composition into witness selection causes the observed resource failure or uncontrolled duplication.",
+    "FAIL_DOMAIN_PROOF": "Witness/guard objects may exist, but the independent exact domain certificate cannot be synthesized or verified under the frozen contract.",
+    "FAIL_HIDDEN_GENERIC_VALIDATION": "Any SAT, generic SKOLEM_VALID, generic tautology, unrestricted truth-table, reference result, or equivalent hidden oracle is used.",
+    "FAIL_DOMAIN_DROPPED": "Exact D is omitted, inferred from witness success, or totalized without the independent parity/incidence certificate.",
+    "UNKNOWN_RESOURCE_LIMIT": "Authorized frozen run exhausts time or memory without a scientific lower-bound conclusion.",
+    "SOURCE_FAMILY_INVALID": "Frozen source violates graph, pairing, affine-atom independence, OR3, connectivity, hash, or provenance gates.",
+    "PASS_SCOPED_MIXED_GUARD_HOSTILE_SYNTHESIS": "All mandatory control and frozen hostile instances carry exact mixed guards, selection proof, and independent domain proof with clean forbidden-machinery audit inside the preregistered resource envelope."
+  },
+  "resources": {
+    "per_instance_timeout_seconds": 120,
+    "total_series_timeout_seconds": 600,
+    "memory_mb": 1024,
+    "retries_with_more_resources": false,
+    "optional_stopping": false,
+    "one_hostile_series_run_only": true
+  },
+  "execution_order": [
+    "PREREG FREEZE",
+    "HOSTILE SOURCE GENERATOR + INDEPENDENT SOURCE CHECKER",
+    "HOSTILE SOURCE FREEZE BEFORE ANY MIXED CONSTRUCTOR",
+    "MANDATORY KILLER CONTROL IMPLEMENTATION + INDEPENDENT VERIFIER",
+    "KILLER CONTROL RUN",
+    "HOSTILE CONSTRUCTOR + INDEPENDENT VERIFIER FREEZE",
+    "IMPLEMENTATION REVIEW",
+    "ONE BLIND HOSTILE SERIES RUN",
+    "FREEZE",
+    "OPTIONAL READ-ONLY POSTFREEZE RECONCILIATION"
+  ],
+  "next_if_pass": "PAIR_SELECTOR_HITTING_3_RANDOM_MIXED_CONTROLS",
+  "scientific_firewall": {
+    "finite_hostile_pass_is_not_universal_theorem": true,
+    "observed_blowup_is_not_lower_bound": true,
+    "constructor_specific_upper_bound_is_not_general_calculus_bound": true,
+    "cheap_verification_does_not_imply_cheap_synthesis": true,
+    "GENERAL_SAT_IN_P": "NOT_PROVED",
+    "P_EQ_NP": "NOT_PROVED",
+    "P_VS_NP": "OPEN"
+  }
+}

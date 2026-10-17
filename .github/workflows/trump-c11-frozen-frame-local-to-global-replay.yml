@@ -1,0 +1,80 @@
+name: TRUMP Frozen Frame Local-to-Global Connectivity Replay
+
+on:
+  pull_request:
+    branches:
+      - research/general-sat-universal-coverage-map-2026-09-19
+    paths:
+      - 'research/TRUMP_C11_FROZEN_FRAME_LOCAL_TO_GLOBAL_CONNECTIVITY_REPLAY_TRIGGER_2026-09-20_v1.0.json'
+      - 'research/tools/c11_frozen_frame_local_to_global/**'
+      - '.github/workflows/trump-c11-frozen-frame-local-to-global-replay.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  replay:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Bind frozen sources
+        shell: bash
+        run: |
+          set -euo pipefail
+          for sha in \
+            b8ea5e4d76eb21d28ea594b16774a21a2a9b6086 \
+            af536b8c82811d92a828124a63b5b96885bd8fb3 \
+            388b9f8de66040c20cebbf1534d0092ca050db9a \
+            31f6ba449ad3cdf693da01e240dad9a2e6e6cc40 \
+            dc6e87d4e0e6b60f2f08e6ad40d01eebb097834c
+          do
+            git merge-base --is-ancestor "$sha" HEAD
+          done
+          test "$(git rev-parse b8ea5e4d76eb21d28ea594b16774a21a2a9b6086:research/TRUMP_C11_TWO_OCTAHEDRON_CHANNEL_STRUCTURE_GATE_EXECUTION_FREEZE_2026-09-20_v1.0.json)" = "485fc73397c3980933450c8383e671109b5ff5e3"
+          python -m py_compile research/tools/c11_frozen_frame_local_to_global/connectivity_replay.py
+
+      - name: Replay all 256 admissible descendants
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p localglobal
+          python research/tools/c11_frozen_frame_local_to_global/connectivity_replay.py \
+            --freeze research/TRUMP_C11_TWO_OCTAHEDRON_CHANNEL_STRUCTURE_GATE_EXECUTION_FREEZE_2026-09-20_v1.0.json \
+            --out localglobal/replay.json \
+            | tee localglobal/stdout.txt
+
+      - name: Assert closure theorem support
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json,hashlib,pathlib
+          p=pathlib.Path("localglobal/replay.json")
+          r=json.loads(p.read_text())
+          assert r["admissible_descendants"]==256
+          assert r["nu_distribution"]=={"0":1,"1":16,"2":78,"3":112,"4":49}
+          assert r["global_kappa_distribution"]=={"1":1,"2":16,"3":78,"4":112,"5":49}
+          assert r["local_lambda_distribution"]=={"1":1,"2":16,"3":78,"4":112,"5":49}
+          assert r["lambda_minus_kappa_distribution"]=={"0":256}
+          assert r["formula_failures"]==[]
+          assert r["theorem_replay_pass"] is True
+          print("REPLAY_SHA256="+hashlib.sha256(p.read_bytes()).hexdigest())
+          print("LOCAL_TO_GLOBAL_TRANSFER_REPLAY_PASS")
+          PY
+
+      - name: Upload replay artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: trump-c11-frozen-frame-local-to-global-replay-v1
+          path: localglobal/
+          if-no-files-found: error
+          retention-days: 90
