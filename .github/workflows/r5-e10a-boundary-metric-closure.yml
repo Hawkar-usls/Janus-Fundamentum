@@ -1,0 +1,48 @@
+name: R5 E10A Boundary Metric Closure
+
+on:
+  push:
+    paths:
+      - "experiments/r5_e10a_boundary_metric_closure.py"
+      - "research/R5_E10A_BOUNDARY_METRIC_CLOSURE_2026-09-25_v1.0.md"
+      - "registry/JANUS_P_VS_NP_R5_E10A_BOUNDARY_METRIC_CLOSURE_2026-09-25_v1.0.json"
+      - ".github/workflows/r5-e10a-boundary-metric-closure.yml"
+  pull_request:
+    paths:
+      - "experiments/r5_e10a_boundary_metric_closure.py"
+      - "research/R5_E10A_BOUNDARY_METRIC_CLOSURE_2026-09-25_v1.0.md"
+      - "registry/JANUS_P_VS_NP_R5_E10A_BOUNDARY_METRIC_CLOSURE_2026-09-25_v1.0.json"
+      - ".github/workflows/r5-e10a-boundary-metric-closure.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  replay:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Compile checker
+        run: python -m py_compile experiments/r5_e10a_boundary_metric_closure.py
+      - name: Replay boundary metric closure controls
+        run: |
+          python experiments/r5_e10a_boundary_metric_closure.py > /tmp/nm0016.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          x=json.loads(Path('/tmp/nm0016.json').read_text())
+          assert x["status"]=="PASS_FINITE_BOUNDARY_METRIC_CLOSURE_CONTROLS"
+          assert x["two_sum_tables"] == 300
+          assert x["four_state_semimetric_tables"] == 500
+          assert x["min_plus_convolutions"] == 500
+          assert x["delta_half_sum_misuse_falsifier"] == "PASS"
+          assert x["theorem"]["delta_compiler"] == "SINGLETON_CLASS_DISTANCES"
+          assert x["theorem"]["y_compiler"] == "HALF_SUM_WEIGHTS"
+          assert x["theorem"]["P_VS_NP"] == "OPEN"
+          print("R5_E10A_NM0016=PASS")
+          PY

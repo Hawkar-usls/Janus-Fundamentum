@@ -1,0 +1,25 @@
+name: R5 E9 Pair2 completeness linear-cubic falsifier
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'research/R5_E9_PAIR2_COMPLETENESS_LINEAR_CUBIC_FALSIFIER_2026-09-29_v1.0.md'
+      - 'experiments/r5_e9_pair2_completeness_linear_cubic_falsifier.py'
+      - '.github/workflows/r5-e9-pair2-completeness-linear-cubic-falsifier.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  regression:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Compile checker
+        run: python -m py_compile experiments/r5_e9_pair2_completeness_linear_cubic_falsifier.py
+      - name: Replay exact falsifier
+        run: python experiments/r5_e9_pair2_completeness_linear_cubic_falsifier.py

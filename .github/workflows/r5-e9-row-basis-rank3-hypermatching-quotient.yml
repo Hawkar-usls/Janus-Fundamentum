@@ -1,0 +1,45 @@
+name: R5 E9 Row Basis Rank3 Hypermatching Quotient
+
+on:
+  push:
+    paths:
+      - "research/R5_E9_ROW_BASIS_RANK3_HYPERMATCHING_QUOTIENT_2026-09-28_v1.0.md"
+      - "experiments/r5_e9_row_basis_rank3_hypermatching_quotient.py"
+      - ".github/workflows/r5-e9-row-basis-rank3-hypermatching-quotient.yml"
+  pull_request:
+    paths:
+      - "research/R5_E9_ROW_BASIS_RANK3_HYPERMATCHING_QUOTIENT_2026-09-28_v1.0.md"
+      - "experiments/r5_e9_row_basis_rank3_hypermatching_quotient.py"
+      - ".github/workflows/r5-e9-row-basis-rank3-hypermatching-quotient.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  replay:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Compile checker
+        run: python -m py_compile experiments/r5_e9_row_basis_rank3_hypermatching_quotient.py
+      - name: Replay quotient identities
+        run: |
+          python experiments/r5_e9_row_basis_rank3_hypermatching_quotient.py > /tmp/rhq.json
+          python - <<'PY'
+          import json
+          x=json.load(open('/tmp/rhq.json'))
+          assert x['status']=='PASS_ROW_BASIS_RANK3_HYPERMATCHING_QUOTIENT_FINITE_REPLAY'
+          assert x['router']=='2^t_B*poly(n,L)'
+          assert x['identities']==['3k=2p+s','delta=s+2t','t-p=n-3k']
+          assert x['post_triple_residual']=='GENERAL_GRAPH_MATCHING_WITH_MANDATORY_VERTICES'
+          assert x['hard_slab_basis_lower_bound']=='k<=n/6_IMPLIES_t_B>=n/2_FOR_EVERY_ACTUAL_ROW_BASIS'
+          assert x['E8_D1']=='EMPTY'
+          assert x['P_VS_NP']=='OPEN'
+          print('R5_E9_ROW_BASIS_RANK3_HYPERMATCHING_QUOTIENT=PASS')
+          PY

@@ -1,0 +1,35 @@
+name: R5 E9 Actual Row Basis Rank3 Matching Router
+
+on:
+  push:
+    paths:
+      - "research/R5_E9_ACTUAL_ROW_BASIS_RANK3_MATCHING_FPT_ROUTER_2026-09-28_v1.0.md"
+      - "experiments/r5_e9_actual_row_basis_rank3_matching_router.py"
+      - ".github/workflows/r5-e9-actual-row-basis-rank3-matching-router.yml"
+  pull_request:
+    paths:
+      - "research/R5_E9_ACTUAL_ROW_BASIS_RANK3_MATCHING_FPT_ROUTER_2026-09-28_v1.0.md"
+      - "experiments/r5_e9_actual_row_basis_rank3_matching_router.py"
+      - ".github/workflows/r5-e9-actual-row-basis-rank3-matching-router.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  replay:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Compile checker
+        run: python -m py_compile experiments/r5_e9_actual_row_basis_rank3_matching_router.py
+      - name: Replay exact finite controls
+        run: |
+          python experiments/r5_e9_actual_row_basis_rank3_matching_router.py | tee /tmp/rb3.out
+          grep -q '^PASS_ACTUAL_ROW_BASIS_RANK3_MATCHING_ROUTER$' /tmp/rb3.out
+          grep -q '^SCIENTIFIC_CEILING=FPT_2\^c_NOT_UNIVERSAL_POLY$' /tmp/rb3.out
+          grep -q '^P_VS_NP=OPEN$' /tmp/rb3.out

@@ -1,0 +1,49 @@
+name: R5 E10A Mersenne Torus Three-Defect Propagation
+
+on:
+  push:
+    paths:
+      - "experiments/r5_e10a_mersenne_torus_three_defect_propagation.py"
+      - "research/R5_E10A_MERSENNE_TORUS_THREE_DEFECT_PROPAGATION_TERMINALITY_2026-09-25_v1.0.md"
+      - "registry/JANUS_P_VS_NP_R5_E10A_MERSENNE_TORUS_THREE_DEFECT_PROPAGATION_TERMINALITY_2026-09-25_v1.0.json"
+      - ".github/workflows/r5-e10a-mersenne-torus-three-defect-propagation.yml"
+  pull_request:
+    paths:
+      - "experiments/r5_e10a_mersenne_torus_three_defect_propagation.py"
+      - "research/R5_E10A_MERSENNE_TORUS_THREE_DEFECT_PROPAGATION_TERMINALITY_2026-09-25_v1.0.md"
+      - "registry/JANUS_P_VS_NP_R5_E10A_MERSENNE_TORUS_THREE_DEFECT_PROPAGATION_TERMINALITY_2026-09-25_v1.0.json"
+      - ".github/workflows/r5-e10a-mersenne-torus-three-defect-propagation.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  replay:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Compile checker
+        run: python -m py_compile experiments/r5_e10a_mersenne_torus_three_defect_propagation.py
+      - name: Replay three-defect local certificate
+        run: |
+          python experiments/r5_e10a_mersenne_torus_three_defect_propagation.py > /tmp/nm0020.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          x=json.loads(Path('/tmp/nm0020.json').read_text())
+          assert x["status"]=="PASS_THREE_DEFECT_TORUS_PROPAGATION_LOCAL_CERTIFICATE"
+          assert x["infinite_local_deleted_cluster_classification"]["1"]["shapes"]==1
+          assert x["infinite_local_deleted_cluster_classification"]["2"]["shapes"]==9
+          assert x["infinite_local_deleted_cluster_classification"]["3"]["shapes"]==99
+          assert x["isolated_ordinary_coordinate"]["minimum_defects"]==3
+          assert x["isolated_ordinary_coordinate"]["normalized_three_defect_cover_count"]==8
+          assert x["unique_singleton_plaquette_hole"]["extra_isolated_ordinary_vertices"]==0
+          assert x["L7_exhaustive"]["defect_subsets_checked"]==19650
+          assert x["L7_exhaustive"]["max_secondary_ordinary_mass"]==3
+          print("R5_E10A_NM0020=PASS")
+          PY

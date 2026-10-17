@@ -1,0 +1,56 @@
+name: R5 E9 Trade-Free Unique-Model Control
+
+on:
+  push:
+    paths:
+      - "experiments/r5_e9_trade_free_unique_model_control.py"
+      - "research/R5_E9_TRADE_FREE_UNIQUE_MODEL_DISSOCIATED_NULLITY_GATE_2026-09-27_v1.0.md"
+      - "governance/audits/2026-09-27_trade_free_unique_dissociated_nullity_source_audit.md"
+      - "governance/JANUS_P_VS_NP_PREMATH_SUPPLEMENT_2026-09-27_v1.5.json"
+      - "tools/validate_premath_gate.py"
+      - "tools/validate_premath_gate_overlay.py"
+      - ".github/workflows/r5-e9-trade-free-unique-model-control.yml"
+  pull_request:
+    paths:
+      - "experiments/r5_e9_trade_free_unique_model_control.py"
+      - "research/R5_E9_TRADE_FREE_UNIQUE_MODEL_DISSOCIATED_NULLITY_GATE_2026-09-27_v1.0.md"
+      - "governance/audits/2026-09-27_trade_free_unique_dissociated_nullity_source_audit.md"
+      - "governance/JANUS_P_VS_NP_PREMATH_SUPPLEMENT_2026-09-27_v1.5.json"
+      - "tools/validate_premath_gate.py"
+      - "tools/validate_premath_gate_overlay.py"
+      - ".github/workflows/r5-e9-trade-free-unique-model-control.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  replay:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Compile checker
+        run: python -m py_compile experiments/r5_e9_trade_free_unique_model_control.py
+      - name: Replay exact countercontrol
+        run: |
+          python experiments/r5_e9_trade_free_unique_model_control.py > /tmp/trade-free.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          x=json.loads(Path('/tmp/trade-free.json').read_text())
+          assert x['status']=='PASS_TRADE_FREE_UNIQUE_MODEL_CONTROL'
+          assert x['rank_Q']==8 and x['nullity_Q']==1
+          assert x['exact_one_model_count']==1
+          assert x['signed_trade_count']==0
+          assert x['trade_only_universal_coverage']=='FALSIFIED'
+          assert x['E8_D1']=='EMPTY'
+          assert x['P_VS_NP']=='OPEN'
+          print('R5_E9_TRADE_FREE_UNIQUE_CONTROL=PASS')
+          PY
+      - name: Validate pre-math gate
+        run: python tools/validate_premath_gate_overlay.py

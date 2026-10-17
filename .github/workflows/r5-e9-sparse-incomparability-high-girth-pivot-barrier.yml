@@ -1,0 +1,50 @@
+name: R5 E9 Sparse-Incomparability High-Girth Pivot Barrier
+
+on:
+  push:
+    branches:
+      - codex/r5-e8-direct-contract-20260921-82493a57
+    paths:
+      - "research/R5_E9_SPARSE_INCOMPARABILITY_HIGH_GIRTH_GLOBAL_PIVOT_BARRIER_2026-09-28_v1.0.md"
+      - "experiments/r5_e9_sparse_incomparability_high_girth_pivot_barrier.py"
+      - ".github/workflows/r5-e9-sparse-incomparability-high-girth-pivot-barrier.yml"
+  pull_request:
+    paths:
+      - "research/R5_E9_SPARSE_INCOMPARABILITY_HIGH_GIRTH_GLOBAL_PIVOT_BARRIER_2026-09-28_v1.0.md"
+      - "experiments/r5_e9_sparse_incomparability_high_girth_pivot_barrier.py"
+      - ".github/workflows/r5-e9-sparse-incomparability-high-girth-pivot-barrier.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Compile checker
+        run: python -m py_compile experiments/r5_e9_sparse_incomparability_high_girth_pivot_barrier.py
+      - name: Replay fixed-template and girth structural checks
+        run: |
+          python experiments/r5_e9_sparse_incomparability_high_girth_pivot_barrier.py > /tmp/high-girth.json
+          python - <<'PY'
+          import json
+          x=json.load(open('/tmp/high-girth.json'))
+          assert x['status']=='PASS_SPARSE_INCOMPARABILITY_HIGH_GIRTH_PIVOT_BARRIER'
+          assert x['fixed_target_domain_size']==2
+          assert x['signed_clause_relation_count']==8
+          assert x['each_relation_size']==7
+          assert x['structural_encoding']=='SIGNED_3SAT_EXACT_FIXED_BOOLEAN_CSP'
+          assert x['complexity_import']=='SOURCE_BOUND_SPARSE_INCOMPARABILITY_NOT_MACHINE_PROVED'
+          assert x['barrier']=='NO_FIXED_BOUNDED_LENGTH_SOURCE_CYCLE_CAN_BE_MANDATORY_UNIVERSAL_PROGRESS_TRIGGER'
+          assert x['next_gate']=='R5_E9_HIGH_GIRTH_SAFE_NONLOCAL_GLOBAL_PIVOT_GATE_V1'
+          assert x['E8_D1']=='EMPTY'
+          assert x['P_VS_NP']=='OPEN'
+          print('R5_E9_SPARSE_INCOMPARABILITY_HIGH_GIRTH_PIVOT_BARRIER=PASS')
+          PY

@@ -1,0 +1,102 @@
+name: Diagnose PA-0029 NM-0033 payload transport
+
+on:
+  push:
+    paths:
+      - '.github/workflows/diagnose-pa0029-nm0033-payload.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  diagnose:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Diagnose and bounded single-byte salvage
+        run: |
+          python - <<'PY'
+          import base64, json, zlib
+          from pathlib import Path
+
+          p = Path('.janus_bootstrap_pa0029_nm0033_arithmetic_repair_payload.txt')
+          raw = ''.join(p.read_text().split())
+          print('base64_chars=', len(raw), 'mod4=', len(raw) % 4)
+          comp = base64.b64decode(raw, validate=True)
+          print('decoded_bytes=', len(comp), 'zlib_header=', comp[:2].hex(), 'tail=', comp[-8:].hex())
+
+          try:
+              out = zlib.decompress(comp)
+              data = json.loads(out)
+              print('DIRECT_DECOMPRESS=PASS', 'json_bytes=', len(out), 'files=', sorted(data.get('files',{})))
+              raise SystemExit(0)
+          except Exception as e:
+              print('DIRECT_DECOMPRESS=FAIL', type(e).__name__, repr(str(e)))
+
+          # Find the compressed-byte position at which the streaming decoder first raises.
+          d = zlib.decompressobj()
+          fail = None
+          produced = 0
+          for i,b in enumerate(comp):
+              try:
+                  piece = d.decompress(bytes((b,)))
+                  produced += len(piece)
+              except zlib.error as e:
+                  fail = i
+                  print('STREAM_FAIL_AT=', i, 'produced=', produced, 'error=', repr(str(e)))
+                  break
+          if fail is None:
+              print('STREAM_NO_EARLY_FAIL; flush/checksum failure likely')
+              fail = len(comp)-1
+
+          def valid(candidate):
+              try:
+                  out = zlib.decompress(candidate)
+                  data = json.loads(out)
+                  if not isinstance(data, dict): return None
+                  if not {'files','entries','frontier','closed'} <= set(data): return None
+                  if not isinstance(data['files'], dict) or not isinstance(data['entries'], list): return None
+                  return out, data
+              except Exception:
+                  return None
+
+          # A single corrupt base64 character changes at most two neighboring decoded bytes.
+          # Search around the first decoder failure; exact zlib checksum + JSON structure makes
+          # accidental false positives effectively impossible.
+          lo=max(0,fail-512); hi=min(len(comp),fail+65)
+          hits=[]
+          buf=bytearray(comp)
+          for pos in range(lo,hi):
+              old=buf[pos]
+              for val in range(256):
+                  if val == old: continue
+                  buf[pos]=val
+                  r=valid(bytes(buf))
+                  if r is not None:
+                      out,data=r
+                      hits.append((pos,old,val,len(out),sorted(data['files']),data['frontier']))
+                      print('SINGLE_BYTE_HIT=', hits[-1])
+                      if len(hits)>2: break
+              buf[pos]=old
+              if len(hits)>2: break
+          print('SEARCH_WINDOW=', lo, hi, 'HITS=', len(hits))
+          if len(hits)==1:
+              pos,old,val,_,_,_=hits[0]
+              fixed=bytearray(comp); fixed[pos]=val
+              out=zlib.decompress(bytes(fixed)); data=json.loads(out)
+              print('UNIQUE_SINGLE_BYTE_REPAIR=PASS')
+              print('REPAIR_POS=',pos,'OLD=',old,'NEW=',val)
+              print('JSON_KEYS=',sorted(data))
+              print('FILES=',sorted(data['files']))
+              print('ENTRY_IDS=',[x.get('id') for x in data['entries']])
+              print('FRONTIER=',data['frontier'])
+              print('CLOSED_ID=',data['closed'].get('id'))
+          elif len(hits)==0:
+              print('UNIQUE_SINGLE_BYTE_REPAIR=NOT_FOUND_IN_WINDOW')
+          else:
+              print('UNIQUE_SINGLE_BYTE_REPAIR=AMBIGUOUS')
+          PY

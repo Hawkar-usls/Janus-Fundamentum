@@ -1,0 +1,47 @@
+name: R5 E9 Affine-Coset Circuit Augmentation
+
+on:
+  push:
+    paths:
+      - "research/R5_E9_AFFINE_COSET_CIRCUIT_AUGMENTATION_GLOBAL_OPTIMALITY_2026-09-27_v1.0.md"
+      - "experiments/r5_e9_affine_coset_circuit_augmentation.py"
+      - ".github/workflows/r5-e9-affine-coset-circuit-augmentation.yml"
+  pull_request:
+    paths:
+      - "research/R5_E9_AFFINE_COSET_CIRCUIT_AUGMENTATION_GLOBAL_OPTIMALITY_2026-09-27_v1.0.md"
+      - "experiments/r5_e9_affine_coset_circuit_augmentation.py"
+      - ".github/workflows/r5-e9-affine-coset-circuit-augmentation.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  replay:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Compile
+        run: python -m py_compile experiments/r5_e9_affine_coset_circuit_augmentation.py
+      - name: Replay circuit augmentation control
+        run: |
+          python experiments/r5_e9_affine_coset_circuit_augmentation.py > /tmp/cad.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          x=json.loads(Path('/tmp/cad.json').read_text())
+          assert x['status']=='PASS_AFFINE_COSET_CIRCUIT_AUGMENTATION_FINITE_REPLAY'
+          assert x['theorem_under_test']=='GLOBAL_MINIMUM_IFF_NO_NEGATIVE_CIRCUIT'
+          by={c['name']:c for c in x['controls']}
+          assert by['AFFINE_3X3']['coset_min_weight']==3
+          assert by['CONNECTED_LINEAR_CUBIC_UNSAT9']['coset_min_weight']==9
+          assert all(c['circuit_local_iff_global_checked_on_all_coset_points'] for c in x['controls'])
+          assert x['negative_circuit_polynomial_algorithm']=='OPEN'
+          assert x['E8_D1']=='EMPTY'
+          assert x['P_VS_NP']=='OPEN'
+          print('R5_E9_CIRCUIT_AUGMENTATION=PASS')
+          PY

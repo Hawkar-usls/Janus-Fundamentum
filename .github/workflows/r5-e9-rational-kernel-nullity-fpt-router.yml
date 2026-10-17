@@ -1,0 +1,48 @@
+name: R5 E9 Rational-Kernel Nullity FPT Router
+
+on:
+  push:
+    paths:
+      - "research/R5_E9_RATIONAL_KERNEL_NULLITY_FPT_ROUTER_2026-09-27_v1.0.md"
+      - "experiments/r5_e9_rational_kernel_nullity_fpt_router.py"
+      - ".github/workflows/r5-e9-rational-kernel-nullity-fpt-router.yml"
+  pull_request:
+    paths:
+      - "research/R5_E9_RATIONAL_KERNEL_NULLITY_FPT_ROUTER_2026-09-27_v1.0.md"
+      - "experiments/r5_e9_rational_kernel_nullity_fpt_router.py"
+      - ".github/workflows/r5-e9-rational-kernel-nullity-fpt-router.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  replay:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Compile
+        run: python -m py_compile experiments/r5_e9_rational_kernel_nullity_fpt_router.py
+      - name: Replay exact rational-nullity router
+        run: |
+          python experiments/r5_e9_rational_kernel_nullity_fpt_router.py > /tmp/rkn.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          x=json.loads(Path('/tmp/rkn.json').read_text())
+          assert x['status']=='PASS_RATIONAL_KERNEL_NULLITY_FPT_ROUTER_FINITE_REPLAY'
+          by={c['name']:c for c in x['controls']}
+          assert by['CONNECTED_LINEAR_CUBIC_UNSAT9']['rational_nullity']==0
+          assert by['AFFINE_3X3']['rational_nullity']==2
+          assert by['AFFINE_3X3']['exact_one_solution_count']==3
+          assert x['k_zero_terminal']=='UNSAT'
+          assert x['k_log_n_terminal']=='POLYNOMIAL'
+          assert x['high_nullity_core']=='OPEN'
+          assert x['E8_D1']=='EMPTY'
+          assert x['P_VS_NP']=='OPEN'
+          print('R5_E9_RATIONAL_NULLITY_ROUTER=PASS')
+          PY

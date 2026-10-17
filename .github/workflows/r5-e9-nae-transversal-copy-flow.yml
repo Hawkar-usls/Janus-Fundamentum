@@ -1,0 +1,25 @@
+name: R5 E9 NAE transversal copy flow
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'research/R5_E9_NAE_TRANSVERSAL_COPY_FLOW_NORMAL_FORM_2026-09-29_v1.0.md'
+      - 'experiments/r5_e9_nae_transversal_copy_flow.py'
+      - '.github/workflows/r5-e9-nae-transversal-copy-flow.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  regression:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Compile checker
+        run: python -m py_compile experiments/r5_e9_nae_transversal_copy_flow.py
+      - name: Replay frozen exact control
+        run: python experiments/r5_e9_nae_transversal_copy_flow.py

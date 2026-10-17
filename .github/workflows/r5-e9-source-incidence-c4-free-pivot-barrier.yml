@@ -1,0 +1,45 @@
+name: R5 E9 Source-Incidence C4-Free Pivot Barrier
+
+on:
+  push:
+    branches:
+      - codex/r5-e8-direct-contract-20260921-82493a57
+    paths:
+      - "research/R5_E9_SOURCE_INCIDENCE_C4_FREE_GLOBAL_PIVOT_BARRIER_2026-09-28_v1.0.md"
+      - "experiments/r5_e9_source_incidence_c4_free_pivot_barrier.py"
+      - ".github/workflows/r5-e9-source-incidence-c4-free-pivot-barrier.yml"
+  pull_request:
+    paths:
+      - "research/R5_E9_SOURCE_INCIDENCE_C4_FREE_GLOBAL_PIVOT_BARRIER_2026-09-28_v1.0.md"
+      - "experiments/r5_e9_source_incidence_c4_free_pivot_barrier.py"
+      - ".github/workflows/r5-e9-source-incidence-c4-free-pivot-barrier.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Compile checker
+        run: python -m py_compile experiments/r5_e9_source_incidence_c4_free_pivot_barrier.py
+      - name: Replay C4-free structural barrier
+        run: |
+          python experiments/r5_e9_source_incidence_c4_free_pivot_barrier.py > /tmp/c4.json
+          python - <<'PY'
+          import json
+          x=json.load(open('/tmp/c4.json'))
+          assert x['status']=='PASS_SOURCE_INCIDENCE_C4_FREE_PIVOT_BARRIER'
+          assert x['universal_barrier']=='SOURCE_C4_CANNOT_BE_MANDATORY_PROGRESS_TRIGGER'
+          assert x['next_gate']=='R5_E9_C4_FREE_SAFE_MULTI_PATH_GLOBAL_PIVOT_GATE_V1'
+          assert x['E8_D1']=='EMPTY'
+          assert x['P_VS_NP']=='OPEN'
+          print('R5_E9_SOURCE_INCIDENCE_C4_FREE_PIVOT_BARRIER=PASS')
+          PY
