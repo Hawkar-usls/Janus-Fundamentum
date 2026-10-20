@@ -1,0 +1,26 @@
+name: BABEL-18 independent rank2 cover method bootstrap
+on:
+  push:
+    branches: ['research/babel18-*']
+    paths: ['experiments/babel18/**','.github/workflows/babel18-bootstrap.yml']
+  pull_request:
+    paths: ['experiments/babel18/**','.github/workflows/babel18-bootstrap.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  inspect-frozen-legal-cover-method:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: '3.12'}
+      - name: Inspect frozen legal-cover constructors
+        run: python experiments/babel18/bootstrap.py
+      - name: Archive methods inventory
+        uses: actions/upload-artifact@v4
+        with:
+          name: babel18-legal-cover-bootstrap
+          path: babel18_bootstrap.json
+          retention-days: 7
