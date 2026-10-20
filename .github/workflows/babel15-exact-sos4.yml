@@ -1,0 +1,65 @@
+name: BABEL-15 exact rational SOS4 seed1 replay
+
+on:
+  pull_request:
+    paths:
+      - 'experiments/babel15/**'
+      - '.github/workflows/babel15-exact-sos4.yml'
+  push:
+    branches:
+      - 'research/babel15-*'
+    paths:
+      - 'experiments/babel15/**'
+      - '.github/workflows/babel15-exact-sos4.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  exact-replay:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install replay dependencies
+        run: python -m pip install --disable-pip-version-check 'numpy>=1.26,<3' 'scipy>=1.12,<2'
+      - name: Unpack frozen source and new seed1 proofs
+        run: |
+          mkdir -p /tmp/babel15-proof
+          unzip -q experiments/babel14/BABEL14_SEED2_COMPACT_PROOF_BUNDLE_20261020.zip -d /tmp/babel15-proof
+          unzip -q experiments/babel15/BABEL15_SEED1_COMPACT_PROOF_BUNDLE_20261020.zip -d /tmp/babel15-proof
+      - name: Independently replay source rational Krylov polynomial
+        working-directory: /tmp/babel15-proof
+        run: |
+          python janus_babel8_krylov_verify.py babel9_BALANCED_BIT68_DEGREE4_KRYLOV.json \
+            --output babel14_SEED2_SOURCE_KRYLOV_REPLAY.json
+      - name: Verify exact seed1 8x8 determinant and sector transfer
+        working-directory: /tmp/babel15-proof
+        run: |
+          python janus_babel15_seed1_transfer.py \
+            --verify babel15_SEED1_EXACT_RATIONAL_TRANSFER_SCHEME.json
+      - name: Reconstruct full seed1 exact integer identity
+        working-directory: /tmp/babel15-proof
+        run: |
+          python janus_babel15_seed1_expand_exact.py \
+            --report babel15_SEED1_EXACT_RATIONAL_PASS.json
+      - name: Independently verify all Fourier frequencies and minimum degree
+        working-directory: /tmp/babel15-proof
+        run: |
+          python janus_babel15_seed1_expand_exact.py --verify-only \
+            --report babel15_SEED1_INDEPENDENT_EXACT_REPLAY.json
+          python -m unittest test_janus_babel15.py -v
+      - name: Archive regenerated complete rational identity
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: babel15-seed1-complete-integer-identity
+          path: |
+            /tmp/babel15-proof/babel15_SEED1_EXPLICIT_INTEGER_IDENTITY.json.gz
+            /tmp/babel15-proof/babel15_SEED1_EXACT_RATIONAL_PASS.json
+            /tmp/babel15-proof/babel15_SEED1_INDEPENDENT_EXACT_REPLAY.json
+          retention-days: 7
