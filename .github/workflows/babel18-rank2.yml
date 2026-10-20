@@ -1,0 +1,35 @@
+name: BABEL-18 exact two-character kernel geometry seed0 seed4
+on:
+  push:
+    branches: ['research/babel18-*']
+    paths: ['experiments/babel18/rank2_geometry.py','.github/workflows/babel18-rank2.yml']
+  pull_request:
+    paths: ['experiments/babel18/rank2_geometry.py','.github/workflows/babel18-rank2.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  exact-character-kernel-geometry:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: '3.12'}
+      - name: Install original scientific prerequisites
+        run: python -m pip install --disable-pip-version-check 'numpy>=1.26,<3' 'scipy>=1.12,<2'
+      - name: Extract frozen scientific constructors
+        run: |
+          mkdir -p /tmp/babel18r
+          unzip -q experiments/babel14/BABEL14_SEED2_COMPACT_PROOF_BUNDLE_20261020.zip -d /tmp/babel18r
+          cp experiments/babel18/rank2_geometry.py /tmp/babel18r/
+      - name: Verify exact restriction kernels and legal character fibers
+        working-directory: /tmp/babel18r
+        run: python rank2_geometry.py
+      - name: Archive rank2 character geometry
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: babel18-seed0-seed4-rank2-geometry
+          path: /tmp/babel18r/babel18_seed0_seed4_exact_geometry.json
+          retention-days: 7
