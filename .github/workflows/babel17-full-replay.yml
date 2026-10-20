@@ -1,0 +1,58 @@
+name: BABEL-17 seed3 complete exact rational SOS4 replay
+on:
+  pull_request:
+    paths:
+      - 'experiments/babel17/janus_babel17_expand_exact.py'
+      - '.github/workflows/babel17-full-replay.yml'
+  push:
+    branches: ['research/babel17-*']
+    paths:
+      - 'experiments/babel17/janus_babel17_expand_exact.py'
+      - '.github/workflows/babel17-full-replay.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  complete-exact-integer-identity:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install exact replay arithmetic prerequisites
+        run: python -m pip install --disable-pip-version-check 'numpy>=1.26,<3' 'scipy>=1.12,<2'
+      - name: Unpack frozen source, seed1/seed2, and seed3 partial proofs
+        run: |
+          mkdir -p /tmp/babel17-full
+          unzip -q experiments/babel14/BABEL14_SEED2_COMPACT_PROOF_BUNDLE_20261020.zip -d /tmp/babel17-full
+          unzip -q experiments/babel15/BABEL15_SEED1_COMPACT_PROOF_BUNDLE_20261020.zip -d /tmp/babel17-full
+          unzip -q experiments/babel16/BABEL16_SEED3_CANONICAL_TRANSFER_BARRIER_20261020.zip -d /tmp/babel17-full
+          cp experiments/babel17/janus_babel17_*.py /tmp/babel17-full/
+      - name: Exact seven-frequency source syzygy and sector construction
+        working-directory: /tmp/babel17-full
+        run: |
+          python janus_babel17_syzygy.py
+          python janus_babel17_koszul.py
+          python janus_babel17_union.py
+          python janus_babel17_transfer.py
+      - name: Reconstruct all seed3 Fourier coefficients over integers
+        working-directory: /tmp/babel17-full
+        run: |
+          python janus_babel17_expand_exact.py --report babel17_SEED3_FULL_EXACT_PASS.json
+      - name: Independently replay complete Fourier identity
+        working-directory: /tmp/babel17-full
+        run: |
+          python janus_babel17_expand_exact.py --verify-only --report babel17_SEED3_INDEPENDENT_REPLAY.json
+      - name: Archive complete exact seed3 identity and independent verdict
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: babel17-seed3-complete-integer-fourier-certificate
+          path: |
+            /tmp/babel17-full/babel17_SEED3_EXPLICIT_INTEGER_IDENTITY.json.gz
+            /tmp/babel17-full/babel17_SEED3_TRANSFER_SCHEME.json
+            /tmp/babel17-full/babel17_SEED3_FULL_EXACT_PASS.json
+            /tmp/babel17-full/babel17_SEED3_INDEPENDENT_REPLAY.json
+          retention-days: 7

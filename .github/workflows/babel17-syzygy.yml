@@ -1,0 +1,37 @@
+name: BABEL-17 exact seed3 source-syzygy compatibility
+on:
+  push:
+    branches: ['research/babel17-*']
+    paths: ['experiments/babel17/**','.github/workflows/babel17-syzygy.yml']
+  pull_request:
+    paths: ['experiments/babel17/**','.github/workflows/babel17-syzygy.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  exact-seven-coordinate-test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: '3.12'}
+      - name: Exact dependency setup
+        run: python -m pip install --disable-pip-version-check 'numpy>=1.26,<3' 'scipy>=1.12,<2'
+      - name: Unpack frozen scientific sources
+        run: |
+          mkdir -p /tmp/babel17-proof
+          unzip -q experiments/babel14/BABEL14_SEED2_COMPACT_PROOF_BUNDLE_20261020.zip -d /tmp/babel17-proof
+          unzip -q experiments/babel15/BABEL15_SEED1_COMPACT_PROOF_BUNDLE_20261020.zip -d /tmp/babel17-proof
+          unzip -q experiments/babel16/BABEL16_SEED3_CANONICAL_TRANSFER_BARRIER_20261020.zip -d /tmp/babel17-proof
+          cp experiments/babel17/janus_babel17_syzygy.py /tmp/babel17-proof/
+      - name: Independently construct exact source syzygy image
+        working-directory: /tmp/babel17-proof
+        run: python janus_babel17_syzygy.py
+      - name: Preserve machine-readable diagnostic
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: babel17-seven-coordinate-compatibility-diagnostic
+          path: /tmp/babel17-proof/babel17_SEED3_SYZYGY_COMPATIBILITY.json
+          retention-days: 7
