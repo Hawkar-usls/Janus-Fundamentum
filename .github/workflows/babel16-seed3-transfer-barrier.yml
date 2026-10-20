@@ -1,0 +1,57 @@
+name: BABEL-16 exact seed3 canonical transfer barrier
+
+on:
+  pull_request:
+    paths:
+      - 'experiments/babel16/**'
+      - '.github/workflows/babel16-seed3-transfer-barrier.yml'
+  push:
+    branches:
+      - 'research/babel16-*'
+    paths:
+      - 'experiments/babel16/**'
+      - '.github/workflows/babel16-seed3-transfer-barrier.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  exact-paired-transfer-obstruction:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install exact replay dependencies
+        run: python -m pip install --disable-pip-version-check 'numpy>=1.26,<3' 'scipy>=1.12,<2'
+      - name: Unpack frozen source, prior methods, and BABEL16 proof
+        run: |
+          mkdir -p /tmp/babel16-proof
+          unzip -q experiments/babel14/BABEL14_SEED2_COMPACT_PROOF_BUNDLE_20261020.zip -d /tmp/babel16-proof
+          unzip -q experiments/babel15/BABEL15_SEED1_COMPACT_PROOF_BUNDLE_20261020.zip -d /tmp/babel16-proof
+          unzip -q experiments/babel16/BABEL16_SEED3_CANONICAL_TRANSFER_BARRIER_20261020.zip -d /tmp/babel16-proof
+      - name: Construct exact seven-dimensional Q-left kernel of paired projection
+        working-directory: /tmp/babel16-proof
+        run: |
+          python janus_babel16_seed3_exact_pair_kernel.py \
+            --output babel16_SEED3_EXACT_PAIRED_KERNEL.json
+      - name: Check exact 556-step canonical source lift at invisible frequencies
+        working-directory: /tmp/babel16-proof
+        run: |
+          python janus_babel16_seed3_source_residual.py \
+            --output babel16_SEED3_SOURCE_RESIDUAL.json
+      - name: Independently test frozen signatures and scoped negative conclusion
+        working-directory: /tmp/babel16-proof
+        run: python -m unittest test_janus_babel16.py -v
+      - name: Archive exact scoped obstruction witness
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: babel16-seed3-exact-paired-transfer-barrier
+          path: |
+            /tmp/babel16-proof/babel16_SEED3_EXACT_PAIRED_KERNEL.json
+            /tmp/babel16-proof/babel16_SEED3_SOURCE_RESIDUAL.json
+          retention-days: 7
