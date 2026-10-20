@@ -1,0 +1,21 @@
+name: BABEL-17 provisional source inspection
+on:
+  push:
+    branches: ['research/babel17-*']
+    paths: ['experiments/babel17/**','.github/workflows/babel17-probe.yml']
+  pull_request:
+    paths: ['experiments/babel17/**','.github/workflows/babel17-probe.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  inspect-frozen-methods:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Inspect exact seed3 source and transfer scripts (read-only)
+        run: python experiments/babel17/inspect_frozen.py
