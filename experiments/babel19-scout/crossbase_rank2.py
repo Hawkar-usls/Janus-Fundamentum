@@ -8,6 +8,7 @@ NO conclusion of SOS4 impossibility. No source syzygies are omitted from a
 negative full-matrix claim because no such claim is made.
 """
 import argparse,json,time,gzip,hashlib
+import full_kerT_sparse
 from collections import Counter,defaultdict
 from pathlib import Path
 from full_kerT_sparse import WeightedDSU,P
@@ -113,7 +114,7 @@ def audit(seed,passes=6,base_name='SCL126_flip68'):
         output.append(result)
         print("BABEL18B_ITERATIVE_PASS",seed,json.dumps({k:v for k,v in result.items() if k!="support_distribution"},sort_keys=True),flush=True)
         if uf.free==0 or delta==0:break
-    witness_path=Path(f"babel19_{base_name}_seed{seed}_modular_pivots.json.gz")
+    witness_path=Path(f"babel19_{base_name}_seed{seed}_p{P}_modular_pivots.json.gz")
     with gzip.open(witness_path,"wt",encoding="utf-8",compresslevel=6) as f:
         json.dump({"format":"JANUS_BABEL18B_EXACT_MODULAR_ROW_RANK_WITNESS_V1",
                    "seed":seed,"base_name":base_name,"prime":P,"antisector_dimension":dimension,
@@ -139,6 +140,10 @@ if __name__=="__main__":
     parser.add_argument("--passes",type=int,default=6)
     parser.add_argument("--seed",type=int,required=True)
     parser.add_argument("--base-name",default="SCL126_flip16")
+    parser.add_argument("--prime",type=int,default=65521)
     args=parser.parse_args()
+    global P
+    P=args.prime
+    full_kerT_sparse.P=args.prime
     result=audit(args.seed,args.passes,args.base_name)
-    Path(f"babel19_{args.base_name}_seed{args.seed}_rank.json").write_text(json.dumps(result,indent=2,sort_keys=True)+"\n")
+    Path(f"babel19_{args.base_name}_seed{args.seed}_p{P}_rank.json").write_text(json.dumps(result,indent=2,sort_keys=True)+"\n")

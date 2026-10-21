@@ -53,7 +53,8 @@ class IndependentLinearVerifier:
 def verify(path):
     with gzip.open(path,"rt",encoding="utf-8") as f:doc=json.load(f)
     assert doc["format"]=="JANUS_BABEL18B_EXACT_MODULAR_ROW_RANK_WITNESS_V1"
-    assert doc["prime"]==P
+    global P
+    P=doc["prime"]
     seed=doc["seed"]
     source=frozen_instances()[doc["base_name"]]
     lift=make_lift(source,seed)[0]
