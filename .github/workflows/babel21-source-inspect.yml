@@ -1,0 +1,36 @@
+name: BABEL-21 inspect exact source Krylov verifier interfaces
+on:
+  push:
+    branches: ['research/babel21-*']
+    paths: ['.github/workflows/babel21-source-inspect.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  inspect-frozen-source-proof:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Inspect selected immutable source Krylov APIs
+        run: |
+          python - <<'PY'
+          import ast, zipfile
+          p='experiments/babel14/BABEL14_SEED2_COMPACT_PROOF_BUNDLE_20261020.zip'
+          with zipfile.ZipFile(p) as z:
+              files=sorted(z.namelist())
+              for n in files:
+                  if ('babel8' in n or 'babel9' in n or 'babel10' in n) and n.endswith('.py'):
+                      s=z.read(n).decode()
+                      try: t=ast.parse(s)
+                      except SyntaxError:continue
+                      f=[(x.name,[a.arg for a in x.args.args]) for x in t.body if isinstance(x,(ast.FunctionDef,ast.AsyncFunctionDef))]
+                      print('BABEL21_SOURCE_CODE_INDEX',n,str(f)[:1500],flush=True)
+                      if n in ('janus_babel8_krylov_verify.py','janus_babel9_krylov.py'):
+                          print('BABEL21_SOURCE_CODE_BEGIN',n,flush=True)
+                          print(s[:20000],flush=True)
+                          print('BABEL21_SOURCE_CODE_END',n,flush=True)
+              for n in files:
+                  if 'KRYLOV' in n.upper() and n.endswith('.json'):
+                      print('BABEL21_SPECTRAL_EVIDENCE_FILE',n,len(z.read(n)),flush=True)
+          PY
