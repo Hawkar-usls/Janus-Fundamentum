@@ -43,8 +43,10 @@ class WeightedDSU:
             return False
         self.parent[ri]=rj
         self.w[ri]=-bb*pow(aa,-1,P)%P
-        self.zero[rj]=self.zero[rj] or self.zero[ri]
-        if not (self.zero[ri] and self.zero[rj]):
+        was_zero_ri=self.zero[ri]
+        was_zero_rj=self.zero[rj]
+        self.zero[rj]=was_zero_rj or was_zero_ri
+        if not (was_zero_ri and was_zero_rj):
             self.free-=1;self.independent+=1
         self.unions+=1
         return True

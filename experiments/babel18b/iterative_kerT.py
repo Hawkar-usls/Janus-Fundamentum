@@ -7,7 +7,7 @@ If all quotient variables vanish, full row rank is proved OVER Q. Otherwise
 NO conclusion of SOS4 impossibility. No source syzygies are omitted from a
 negative full-matrix claim because no such claim is made.
 """
-import argparse,json,time
+import argparse,json,time,gzip,hashlib
 from collections import Counter,defaultdict
 from pathlib import Path
 from full_kerT_sparse import WeightedDSU,P
@@ -53,7 +53,7 @@ def generate(source,lift,labels,base_Q,fibers,coord):
                     diff=defaultdict(int)
                     for q in (u,*(u^labels[j] for j in row)):diff[q]+=1
                     for q in base:diff[q]-=1
-                    yield r,tuple((coord[q],v) for q,v in diff.items()
+                    yield r,source_u,rr,u,tuple((coord[q],v) for q,v in diff.items()
                                  if v and q in coord)
 
 def apply_short(uf,signature):
@@ -75,13 +75,14 @@ def audit(seed,passes=6):
     dimension=len(coord)
     uf=WeightedDSU(dimension)
     output=[]
+    pivots=[]
     started=time.monotonic()
     expected=2*len(src)*len(Q)-len(src)*len(base_Q)
     for phase in range(passes):
         before=uf.independent
         counts=Counter()
         enumerated=0
-        for row_idx,signature in generate(src,lift,labels,base_Q,fibers,coord):
+        for row_idx,source_u,rr,u,signature in generate(src,lift,labels,base_Q,fibers,coord):
             enumerated+=1
             if phase==0:
                 counts["original_"+str(len(signature))]+=1
@@ -94,10 +95,14 @@ def audit(seed,passes=6):
                     if not uf.zero[root]:reduced[root]=(reduced[root]+v*weight)%P
                 row=[(i,v) for i,v in reduced.items() if v]
             else:row=[]
+            previous_rank=uf.independent
             if len(row)==1:uf.force_zero(row[0][0])
             elif len(row)==2:
                 (i,a),(j,b)=row
                 uf.add(i,a,j,b)
+            if uf.independent>previous_rank:
+                assert uf.independent==previous_rank+1
+                pivots.append([row_idx,source_u,rr,u])
             counts["reduced_"+str(len(row))]+=1
         assert enumerated==expected,(enumerated,expected)
         delta=uf.independent-before
@@ -108,8 +113,17 @@ def audit(seed,passes=6):
         output.append(result)
         print("BABEL18B_ITERATIVE_PASS",seed,json.dumps({k:v for k,v in result.items() if k!="support_distribution"},sort_keys=True),flush=True)
         if uf.free==0 or delta==0:break
+    witness_path=Path(f"babel18b_seed{seed}_independent_modular_pivots.json.gz")
+    with gzip.open(witness_path,"wt",encoding="utf-8",compresslevel=6) as f:
+        json.dump({"format":"JANUS_BABEL18B_EXACT_MODULAR_ROW_RANK_WITNESS_V1",
+                   "seed":seed,"prime":P,"antisector_dimension":dimension,
+                   "pivots":pivots},f,separators=(",",":"),sort_keys=True)
+    assert len(pivots)==uf.independent
+    witness_sha256=hashlib.sha256(witness_path.read_bytes()).hexdigest()
     summary={"gate":"BABEL18B_ITERATIVE_MODULAR_SHORT_COLUMN_ELIMINATION",
         "seed":seed,"prime":P,"all_kerT_generators_per_pass":expected,
+        "pivot_witness":str(witness_path),"pivot_witness_sha256":witness_sha256,
+        "pivot_witness_length":len(pivots),
         "target_antisector_dimension":dimension,
         "exact_full_rank_over_Q_proved":uf.free==0,
         "rational_full_antisector_membership_for_arbitrary_base_certificate":uf.free==0,
