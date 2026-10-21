@@ -1,0 +1,36 @@
+name: BABEL-20 independent noncover SCL21 full-degree2 search
+on:
+  push:
+    branches: ['research/babel20-*']
+    paths: ['experiments/babel20/noncover_scout.py','.github/workflows/babel20-noncover.yml']
+  pull_request:
+    paths: ['experiments/babel20/noncover_scout.py','.github/workflows/babel20-noncover.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  exact-SCL21-connected-controls:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install frozen code scientific prerequisites
+        run: python -m pip install --disable-pip-version-check 'numpy>=1.26,<3' 'scipy>=1.12,<2'
+      - name: Restore JANUS exact Fourier labels
+        run: |
+          mkdir -p /tmp/b20noncover
+          unzip -q experiments/babel14/BABEL14_SEED2_COMPACT_PROOF_BUNDLE_20261020.zip -d /tmp/b20noncover
+          cp experiments/babel20/noncover_scout.py /tmp/b20noncover/
+      - name: Check legality exact SAT and all degree2 Fourier columns mod prime
+        working-directory: /tmp/b20noncover
+        run: python noncover_scout.py --count 20
+      - name: Archive exact legal-incidence audit
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: babel20-noncover-SCL21-degree4-search
+          path: /tmp/b20noncover/babel20_noncovers_21.json
+          retention-days: 7
