@@ -1,0 +1,35 @@
+name: BABEL-18B exact iterative full kerT rank saturation
+on:
+  push:
+    branches: ['research/babel18b-*']
+    paths: ['experiments/babel18b/iterative_kerT.py','.github/workflows/babel18b-iterative.yml']
+  pull_request:
+    paths: ['experiments/babel18b/iterative_kerT.py','.github/workflows/babel18b-iterative.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  iterative-antisector-rank:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: '3.12'}
+      - name: Install source scientific dependencies
+        run: python -m pip install --disable-pip-version-check 'numpy>=1.26,<3' 'scipy>=1.12,<2'
+      - name: Restore frozen code and exact sparse auditor
+        run: |
+          mkdir -p /tmp/babel18bi
+          unzip -q experiments/babel14/BABEL14_SEED2_COMPACT_PROOF_BUNDLE_20261020.zip -d /tmp/babel18bi
+          cp experiments/babel18/rank2_geometry.py experiments/babel18b/full_kerT_sparse.py experiments/babel18b/iterative_kerT.py /tmp/babel18bi/
+      - name: Saturate exact finite-field short-column constraints
+        working-directory: /tmp/babel18bi
+        run: python iterative_kerT.py --passes 6
+      - name: Preserve saturated rank evidence
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: babel18b-iterative-kerT-rank-saturation
+          path: /tmp/babel18bi/babel18b_iterated_antisector_rank.json
+          retention-days: 7
