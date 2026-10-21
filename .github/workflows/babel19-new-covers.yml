@@ -1,0 +1,35 @@
+name: BABEL-19 independent diverse-cover exact census
+on:
+  push:
+    branches: ['research/babel19-scout-*']
+    paths: ['experiments/babel19-scout/**','.github/workflows/babel19-new-covers.yml']
+  pull_request:
+    paths: ['experiments/babel19-scout/**','.github/workflows/babel19-new-covers.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  new-legal-unsat-and-sat-controls:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: '3.12'}
+      - name: Install frozen data scientific dependencies
+        run: python -m pip install --disable-pip-version-check 'numpy>=1.26,<3' 'scipy>=1.12,<2'
+      - name: Restore exact original source generators
+        run: |
+          mkdir -p /tmp/babel19-scout
+          unzip -q experiments/babel14/BABEL14_SEED2_COMPACT_PROOF_BUNDLE_20261020.zip -d /tmp/babel19-scout
+          cp experiments/babel19-scout/new_cover_census.py /tmp/babel19-scout/
+      - name: Check connected legal covers and exact GF2 SAT counts
+        working-directory: /tmp/babel19-scout
+        run: python new_cover_census.py
+      - name: Preserve frozen reproducible incidence manifest
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: babel19-independent-source-cover-census
+          path: /tmp/babel19-scout/babel19_new_source_cover_census.json
+          retention-days: 7
