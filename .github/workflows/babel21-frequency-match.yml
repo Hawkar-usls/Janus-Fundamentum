@@ -1,0 +1,46 @@
+name: BABEL-21 all-source-column Fourier coordinate match
+on:
+  push:
+    branches: ['research/babel21-*']
+    paths: ['experiments/babel21/frequency_match.py','.github/workflows/babel21-frequency-match.yml']
+  pull_request:
+    paths: ['experiments/babel21/frequency_match.py','.github/workflows/babel21-frequency-match.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+jobs:
+  independent-source-frequency-match:
+    strategy:
+      fail-fast: false
+      matrix:
+        seed: [20,37]
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Restore exact original source algebra
+        run: |
+          mkdir -p /tmp/b21frequency
+          unzip -q experiments/babel14/BABEL14_SEED2_COMPACT_PROOF_BUNDLE_20261020.zip -d /tmp/b21frequency
+          cp experiments/babel21/frequency_match.py /tmp/b21frequency/
+      - name: Download independently built exact source-functional
+        uses: actions/download-artifact@v4
+        with:
+          name: babel21-source-phi-seed${{ matrix.seed }}
+          run-id: 39643234313
+          github-token: ${{ github.token }}
+          path: /tmp/b21frequency
+      - name: Check against every source row/multiplier equation
+        working-directory: /tmp/b21frequency
+        run: python frequency_match.py --base SCL126_flip16 --seed ${{ matrix.seed }}
+      - name: Archive exact matching frequencies
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: babel21-frequency-match-seed${{ matrix.seed }}
+          path: /tmp/b21frequency/babel21_*_frequency_match.json
+          retention-days: 7
