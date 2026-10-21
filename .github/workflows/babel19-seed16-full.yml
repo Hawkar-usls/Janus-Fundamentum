@@ -1,0 +1,51 @@
+name: BABEL-19 seed16 exact full Fourier certificate with Koszul repair
+on:
+  push:
+    branches: ['research/babel19-scout-*']
+    paths: ['experiments/babel19-scout/recover_seed16_full.py','.github/workflows/babel19-seed16-full.yml']
+  pull_request:
+    paths: ['experiments/babel19-scout/recover_seed16_full.py','.github/workflows/babel19-seed16-full.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  seed16-exact-complete-replay:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: '3.12'}
+      - name: Setup frozen exact arithmetic dependencies
+        run: python -m pip install --disable-pip-version-check 'numpy>=1.26,<3' 'scipy>=1.12,<2'
+      - name: Restore immutable SCL source and exact rational constructors
+        run: |
+          mkdir -p /tmp/babel19-seed16
+          unzip -q experiments/babel14/BABEL14_SEED2_COMPACT_PROOF_BUNDLE_20261020.zip -d /tmp/babel19-seed16
+          cp experiments/babel18/rank2_geometry.py experiments/babel18b/*.py experiments/babel19/*.py experiments/babel19-scout/crossbase_rank2.py experiments/babel19-scout/seed16_exact_cokernel.py experiments/babel19-scout/seed16_koszul_response.py experiments/babel19-scout/recover_seed16_full.py /tmp/babel19-seed16/
+      - name: Verify exact sparse algebra solver regression
+        working-directory: /tmp/babel19-seed16
+        run: python rational_dag_inverse.py
+      - name: Rebuild 60374 exact legal pivot differences
+        working-directory: /tmp/babel19-seed16
+        run: python crossbase_rank2.py --base-name SCL126_flip68 --seed 16 --prime 65521 --passes 6
+      - name: Prove exact rational missing direction and source Koszul response
+        working-directory: /tmp/babel19-seed16
+        run: |
+          python seed16_exact_cokernel.py
+          python seed16_koszul_response.py
+      - name: Reconstruct full rational Fourier identity with Koszul final pivot
+        working-directory: /tmp/babel19-seed16
+        run: python recover_seed16_full.py --seed 16
+      - name: Independent full integer Fourier replay from saved artifact
+        working-directory: /tmp/babel19-seed16
+        run: python -c "from pathlib import Path; from recover_cover import independent_verify; print(independent_verify(16,Path('babel19_seed16_full_integer_identity.json.gz')))"
+      - name: Preserve explicit exact witness
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: babel19-seed16-exact-full-fourier-certificate
+          path: |
+            /tmp/babel19-seed16/babel19_seed16_full_integer_identity.json.gz
+            /tmp/babel19-seed16/babel19_seed16_koszul_response.json
+          retention-days: 7

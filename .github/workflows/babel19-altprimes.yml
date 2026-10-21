@@ -1,0 +1,47 @@
+name: BABEL-19 independent prime-field sensitivity for seed16
+on:
+  push:
+    branches: ['research/babel19-scout-*']
+    paths: ['experiments/babel19-scout/crossbase_rank2.py','experiments/babel19-scout/crossbase_verify.py','.github/workflows/babel19-altprimes.yml']
+  pull_request:
+    paths: ['experiments/babel19-scout/crossbase_rank2.py','experiments/babel19-scout/crossbase_verify.py','.github/workflows/babel19-altprimes.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  multiple-prime-sensitivity:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: '3.12'}
+      - name: Install scientific prerequisites
+        run: python -m pip install --disable-pip-version-check 'numpy>=1.26,<3' 'scipy>=1.12,<2'
+      - name: Restore frozen exact SCL geometry
+        run: |
+          mkdir -p /tmp/babel19-primes
+          unzip -q experiments/babel14/BABEL14_SEED2_COMPACT_PROOF_BUNDLE_20261020.zip -d /tmp/babel19-primes
+          cp experiments/babel18/rank2_geometry.py experiments/babel18b/full_kerT_sparse.py experiments/babel19-scout/crossbase_rank2.py experiments/babel19-scout/crossbase_verify.py /tmp/babel19-primes/
+      - name: Test second prime 100003
+        working-directory: /tmp/babel19-primes
+        run: python crossbase_rank2.py --base-name SCL126_flip68 --seed 16 --prime 100003 --passes 6
+      - name: Test third prime 100019
+        working-directory: /tmp/babel19-primes
+        run: python crossbase_rank2.py --base-name SCL126_flip68 --seed 16 --prime 100019 --passes 6
+      - name: Independently validate all selected pivots
+        working-directory: /tmp/babel19-primes
+        run: |
+          python crossbase_verify.py \
+            babel19_SCL126_flip68_seed16_p100003_modular_pivots.json.gz \
+            babel19_SCL126_flip68_seed16_p100019_modular_pivots.json.gz
+      - name: Archive prime-specific exact rank evidence
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: babel19-seed16-prime-sensitivity
+          path: |
+            /tmp/babel19-primes/babel19_*_rank.json
+            /tmp/babel19-primes/babel19_*_modular_pivots.json.gz
+            /tmp/babel19-primes/babel18b_independent_rank_verdicts.json
+          retention-days: 7
