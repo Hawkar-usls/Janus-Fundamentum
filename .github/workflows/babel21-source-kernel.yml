@@ -1,0 +1,50 @@
+name: BABEL-21 exact source kernel search diagnostic
+on:
+  push:
+    branches: ['research/babel21-*']
+    paths: ['experiments/babel21/**','.github/workflows/babel21-source-kernel.yml']
+  pull_request:
+    paths: ['experiments/babel21/**','.github/workflows/babel21-source-kernel.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  exact-source-kernel:
+    strategy:
+      fail-fast: false
+      matrix:
+        seed: [20,37]
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install original prerequisites
+        run: python -m pip install 'numpy>=1.26,<3' 'scipy>=1.12,<2'
+      - name: Restore frozen source proofs and scripts
+        run: |
+          mkdir -p /tmp/babel21
+          unzip -q experiments/babel14/BABEL14_SEED2_COMPACT_PROOF_BUNDLE_20261020.zip -d /tmp/babel21
+          cp experiments/babel18/rank2_geometry.py experiments/babel18b/full_kerT_sparse.py experiments/babel19-scout/crossbase_rank2.py experiments/babel20/exact_cokernel.py experiments/babel20/source_koszul.py experiments/babel20/equal_source_syzygies.py experiments/babel21/source_kernel_probe.py /tmp/babel21/
+      - name: Reconstruct fully rational kerT cokernel
+        working-directory: /tmp/babel21
+        run: |
+          python crossbase_rank2.py --base-name SCL126_flip16 --seed ${{ matrix.seed }} --prime 65521 --passes 4
+          python exact_cokernel.py --base SCL126_flip16 --seed ${{ matrix.seed }}
+      - name: Reconstruct frozen exact source syzygies
+        working-directory: /tmp/babel21
+        run: |
+          python source_koszul.py --base SCL126_flip16 --seed ${{ matrix.seed }}
+          python equal_source_syzygies.py --base SCL126_flip16 --seed ${{ matrix.seed }}
+      - name: Probe the full source generator matrix with residual responses
+        working-directory: /tmp/babel21
+        run: python source_kernel_probe.py --seed ${{ matrix.seed }} --max-pivots 12000 --max-nnz 500
+      - name: Preserve precise status without false exact assertions
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: babel21-source-kernel-diagnostic-${{ matrix.seed }}
+          path: /tmp/babel21/babel21_*_source_kernel_probe.json
+          retention-days: 7
