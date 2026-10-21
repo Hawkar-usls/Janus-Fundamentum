@@ -1,0 +1,38 @@
+name: BABEL-19 exact rational cokernel seed16 kerT
+on:
+  push:
+    branches: ['research/babel19-scout-*']
+    paths: ['experiments/babel19-scout/seed16_exact_cokernel.py','.github/workflows/babel19-seed16-cokernel.yml']
+  pull_request:
+    paths: ['experiments/babel19-scout/seed16_exact_cokernel.py','.github/workflows/babel19-seed16-cokernel.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  exact-kerT-cokernel:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: '3.12'}
+      - name: Install frozen dependencies
+        run: python -m pip install --disable-pip-version-check 'numpy>=1.26,<3' 'scipy>=1.12,<2'
+      - name: Restore exact source
+        run: |
+          mkdir -p /tmp/babel19k
+          unzip -q experiments/babel14/BABEL14_SEED2_COMPACT_PROOF_BUNDLE_20261020.zip -d /tmp/babel19k
+          cp experiments/babel18/rank2_geometry.py experiments/babel18b/full_kerT_sparse.py experiments/babel19-scout/crossbase_rank2.py experiments/babel19-scout/seed16_exact_cokernel.py /tmp/babel19k/
+      - name: Construct seed16 exact modular pivot candidates
+        working-directory: /tmp/babel19k
+        run: python crossbase_rank2.py --base-name SCL126_flip68 --seed 16 --prime 65521 --passes 6
+      - name: Reconstruct rational cokernel and check every source-zero column
+        working-directory: /tmp/babel19k
+        run: python seed16_exact_cokernel.py
+      - name: Archive exact integer left-kernel witness
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: babel19-seed16-rational-kerT-cokernel
+          path: /tmp/babel19k/babel19_seed16_exact_kerT_cokernel.json.gz
+          retention-days: 7
