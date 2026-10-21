@@ -34,3 +34,22 @@ The *separate* independent checker in [CI #39666021816](https://github.com/Hawka
 Seed37's separate independent check passed for its 2502-term source syzygy, but its source response rank is only **7 of 11**, leaving four directions unresolved. A shorter 394-term exact relation was independently replayed in earlier [#39656991020](https://github.com/Hawkar-usls/Janus-Fundamentum/actions/runs/39656991020); it spans the same new response direction. No full rank claim for seed37 is warranted.
 
 A deeper seed37 source-elimination research CI tests a larger set of distinct source generator signatures and independently verifies only exact rational syzygies. A modular hit alone does not change scientific gates. No full rational dual of the entire M2 with nonzero target pairing has been demonstrated. No universal polynomial-time result or P=NP proof.
+
+
+## BABEL-21G: polynomial-size Gram characterization of complete source-syzygy response rank
+
+For any rational source Fourier generator matrix \(A\in\mathbb Q^{F\times E}\) and rational response matrix \(R\in\mathbb Q^{k\times E}\), encoding how legal source coefficients affect the cover anti-sector, the dimension of all source syzygy responses is exactly
+
+\[
+\dim_{\mathbb Q}R(\ker A)
+=\operatorname{rank}_{\mathbb Q}(A^{\mathsf T}A+R^{\mathsf T}R)
+-\operatorname{rank}_{\mathbb Q}(A^{\mathsf T}A).
+\]
+
+Proof: \(\ker X=\ker(X^{\mathsf T}X)\) for rational matrices embedded in the reals, because \(\|Xv\|^2=0\) exactly when \(Xv=0\). Then \(\dim R(\ker A)=\operatorname{rank}[A;R]-\operatorname{rank}A\).
+
+In the fixed-degree2 JANUS Fourier ideal system, \(E\le n(1+n+\binom n2)=O(n^3)\), each generator column has support at most four Fourier frequencies, and \(A^{\mathsf T}A\) is constructed from pairwise intersections of the four-support multisets. Thus no exponential state enumeration is needed to form the polynomial-size Gram. Given a polynomial-size rational representation of R, both exact rank computations are polynomial-time. This **does not** prove universal degree2 sufficiency, and is standard rational linear algebra.
+
+Exact rational regressions on four legal SCL21 controls compared full direct Fourier ranks with sparse Gram ranks: rank pairs (32,35), (16,19), (8,11), (4,7), all with response rank 3. [Independent GitHub CI #39667050594](https://github.com/Hawkar-usls/Janus-Fundamentum/actions/runs/39667050594) PASS. Script: experiments/babel21/gram_kernel_rank.py.
+
+For the actual SCL126 source, E is around 303,408 and naïve dense Gram elimination remains resource-intensive despite polynomial asymptotics. The identity is a general rank criterion, not an already completed full-303k-column computation for seed37.
