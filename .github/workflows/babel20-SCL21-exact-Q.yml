@@ -1,0 +1,36 @@
+name: BABEL-20 independent exact full-M2 rational test on legal SCL21
+on:
+  push:
+    branches: ['research/babel20-*']
+    paths: ['experiments/babel20/noncover_full_Q.py','.github/workflows/babel20-SCL21-exact-Q.yml']
+  pull_request:
+    paths: ['experiments/babel20/noncover_full_Q.py','.github/workflows/babel20-SCL21-exact-Q.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  full-degree2-exact-Q:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install frozen SCL prerequisites
+        run: python -m pip install --disable-pip-version-check 'numpy>=1.26,<3' 'scipy>=1.12,<2'
+      - name: Restore immutable Fourier basis code
+        run: |
+          mkdir -p /tmp/b20Q
+          unzip -q experiments/babel14/BABEL14_SEED2_COMPACT_PROOF_BUNDLE_20261020.zip -d /tmp/b20Q
+          cp experiments/babel20/noncover_scout.py experiments/babel20/noncover_full_Q.py /tmp/b20Q/
+      - name: Exact rational M2 membership with full certificate or full left-kernel
+        working-directory: /tmp/b20Q
+        run: python noncover_full_Q.py --count 20
+      - name: Archive all rational instances and explicit certificates
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: babel20-SCL21-full-rational-M2-evidence
+          path: /tmp/b20Q/babel20_SCL21_full_rational_census.json.gz
+          retention-days: 7
