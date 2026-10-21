@@ -13,3 +13,13 @@ Exact rational recovery scripts and workflows are committed: [seed37 #3965470904
 A genuine negative full-M2 witness must give rational H with H^T M2=0 for **all** legal degree2 Fourier generator columns and H(e0) nonzero. The current anti-sector cokernel h has h(e0)=0. Missing syzygies in the transfer method cannot be called a full degree4 lower bound.
 
 Fourier/ideal certificate degree is **not** automatically standard PSD SOS/Gram degree. No general polynomial-time SolveLinearCubicXSAT, no P=NP. Main remains unchanged.
+
+## Addendum: independently generated exact Q relations for seed37
+
+The [full exact-Q elimination #39654709047](https://github.com/Hawkar-usls/Janus-Fundamentum/actions/runs/39654709047) successfully reconstructed an **exact rational source Fourier syzygy with 2,502 nonzero coefficients**, for which the complete base Fourier frequency vector is zero and the cover anti-cokernel response is nonzero. Hence independent source-syzygy response rank rises **6 to 7 of 11**. Four response directions are not yet accounted for.
+
+An algorithmically separate [modular DAG then bounded rational reconstruction #39655878473](https://github.com/Hawkar-usls/Janus-Fundamentum/actions/runs/39655878473) constructed a **394-term** exact rational source syzygy for seed37; its source Fourier equality and nonzero new cover response were verified over Q. These do not increase rank beyond 7/11 because they lie in the same one-dimensional new response direction.
+
+The same bounded reconstruction tested two seed20 modular dependencies but did **not** yield an exact Q source syzygy; seed20 status stays **OPEN**. A longer rational-elimination CI is separately running, and must pass before any mathematical promotion.
+
+An independent all-term replay script `experiments/babel21/independent_source_verify.py` is now committed, with [GitHub Actions #39656991020](https://github.com/Hawkar-usls/Janus-Fundamentum/actions/runs/39656991020) as the independent verification gate. Do not claim its result until its jobs finish.
