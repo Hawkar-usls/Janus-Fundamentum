@@ -1,0 +1,35 @@
+name: BABEL-18B rank2 full kerT antisector sparse audit
+on:
+  push:
+    branches: ['research/babel18b-*']
+    paths: ['experiments/babel18b/**','.github/workflows/babel18b-sparse.yml']
+  pull_request:
+    paths: ['experiments/babel18b/**','.github/workflows/babel18b-sparse.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  rank2-full-kerT-audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: '3.12'}
+      - name: Install numerical prerequisites only for frozen row construction
+        run: python -m pip install --disable-pip-version-check 'numpy>=1.26,<3' 'scipy>=1.12,<2'
+      - name: Restore exact source code
+        run: |
+          mkdir -p /tmp/babel18b
+          unzip -q experiments/babel14/BABEL14_SEED2_COMPACT_PROOF_BUNDLE_20261020.zip -d /tmp/babel18b
+          cp experiments/babel18/rank2_geometry.py experiments/babel18b/full_kerT_sparse.py /tmp/babel18b/
+      - name: Enumerate all source-fiber differences and exact short-column rank
+        working-directory: /tmp/babel18b
+        run: python full_kerT_sparse.py --output babel18b_full_kerT_sparsity.json
+      - name: Archive exact sparse operator inventory
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: babel18b-full-kerT-antisector-rank-audit
+          path: /tmp/babel18b/babel18b_full_kerT_sparsity.json
+          retention-days: 7
