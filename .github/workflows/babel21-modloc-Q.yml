@@ -29,7 +29,7 @@ jobs:
         run: |
           mkdir -p /tmp/b21modloc
           unzip -q experiments/babel14/BABEL14_SEED2_COMPACT_PROOF_BUNDLE_20261020.zip -d /tmp/b21modloc
-          cp experiments/babel18/rank2_geometry.py experiments/babel18b/full_kerT_sparse.py experiments/babel19-scout/crossbase_rank2.py experiments/babel20/exact_cokernel.py experiments/babel20/source_koszul.py experiments/babel20/equal_source_syzygies.py experiments/babel21/source_kernel_probe.py experiments/babel21/modloc_exactQ.py /tmp/b21modloc/
+          cp experiments/babel18/rank2_geometry.py experiments/babel18b/full_kerT_sparse.py experiments/babel19-scout/crossbase_rank2.py experiments/babel20/exact_cokernel.py experiments/babel20/source_koszul.py experiments/babel20/equal_source_syzygies.py experiments/babel21/source_kernel_probe.py experiments/babel21/modloc_exactQ.py experiments/babel21/independent_source_verify.py /tmp/b21modloc/
       - name: Generate exact Q source-functionals
         working-directory: /tmp/b21modloc
         run: |
@@ -40,10 +40,15 @@ jobs:
       - name: Independently validate bounded-Q candidate after modular locator
         working-directory: /tmp/b21modloc
         run: python modloc_exactQ.py --seed ${{ matrix.seed }} --maxcols ${{ matrix.columns }} --maxpivots ${{ matrix.pivots }} --bound 512
+      - name: Independent exact-Q source and cover response replay
+        working-directory: /tmp/b21modloc
+        run: python independent_source_verify.py --seed ${{ matrix.seed }}
       - name: Archive new rational syzygies or no-candidate status
         if: success()
         uses: actions/upload-artifact@v4
         with:
           name: babel21-modloc-Q-seed${{ matrix.seed }}
-          path: /tmp/b21modloc/babel21_*_modloc_exactQ.json
+          path: |
+            /tmp/b21modloc/babel21_*_modloc_exactQ.json
+            /tmp/b21modloc/babel21_*_independent_Q_replay.json
           retention-days: 7
