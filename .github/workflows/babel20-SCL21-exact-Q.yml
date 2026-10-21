@@ -23,14 +23,19 @@ jobs:
         run: |
           mkdir -p /tmp/b20Q
           unzip -q experiments/babel14/BABEL14_SEED2_COMPACT_PROOF_BUNDLE_20261020.zip -d /tmp/b20Q
-          cp experiments/babel20/noncover_scout.py experiments/babel20/noncover_full_Q.py /tmp/b20Q/
+          cp experiments/babel20/noncover_scout.py experiments/babel20/noncover_full_Q.py experiments/babel20/noncover_verify.py /tmp/b20Q/
       - name: Exact rational M2 membership with full certificate or full left-kernel
         working-directory: /tmp/b20Q
         run: python noncover_full_Q.py --count 20
+      - name: Independent all-Fourier-frequency certificate replay
+        working-directory: /tmp/b20Q
+        run: python noncover_verify.py
       - name: Archive all rational instances and explicit certificates
         if: success()
         uses: actions/upload-artifact@v4
         with:
           name: babel20-SCL21-full-rational-M2-evidence
-          path: /tmp/b20Q/babel20_SCL21_full_rational_census.json.gz
+          path: |
+            /tmp/b20Q/babel20_SCL21_full_rational_census.json.gz
+            /tmp/b20Q/babel20_SCL21_independent_replay.json
           retention-days: 7
