@@ -1,0 +1,56 @@
+name: BABEL-21 independent exact source CRT and dual-pairing gate
+on:
+  push:
+    branches: ['research/babel21-*']
+    paths: ['experiments/babel21/rebuild_exact_flip16.py','.github/workflows/babel21-full-source-CRT.yml']
+  pull_request:
+    paths: ['experiments/babel21/rebuild_exact_flip16.py','.github/workflows/babel21-full-source-CRT.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+jobs:
+  reproduce-original-integer-source-proof:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install pinned normal-operator libraries
+        run: python -m pip install --disable-pip-version-check 'numpy>=1.26,<3' 'scipy>=1.12,<2'
+      - name: Extract immutable JANUS source verifier and geometry
+        run: |
+          mkdir -p /tmp/babel21crt
+          unzip -q experiments/babel14/BABEL14_SEED2_COMPACT_PROOF_BUNDLE_20261020.zip -d /tmp/babel21crt
+          cp experiments/babel21/rebuild_exact_flip16.py /tmp/babel21crt/
+      - name: Download exact remaining seed20 functional
+        uses: actions/download-artifact@v4
+        with:
+          name: babel21-source-phi-seed20
+          run-id: 39643234313
+          github-token: ${{ github.token }}
+          path: /tmp/babel21crt
+      - name: Download exact remaining seed37 functionals
+        uses: actions/download-artifact@v4
+        with:
+          name: babel21-source-phi-seed37
+          run-id: 39643234313
+          github-token: ${{ github.token }}
+          path: /tmp/babel21crt
+      - name: Rebuild all 90 prime residues and exact integer source Krylov certificate
+        working-directory: /tmp/babel21crt
+        env:
+          OPENBLAS_NUM_THREADS: '1'
+          OMP_NUM_THREADS: '1'
+        run: python rebuild_exact_flip16.py --max-primes 110
+      - name: Archive original source Krylov proof and independent BABEL21 final
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: babel21-regenerated-original-BABEL8-and-seed20-seed37-proof
+          path: |
+            /tmp/babel21crt/babel8_DEGREE4_KRYLOV_RATIONAL_DUAL.json
+            /tmp/babel21crt/babel21_INDEPENDENT_EXACT_FINAL.json
+          retention-days: 7
