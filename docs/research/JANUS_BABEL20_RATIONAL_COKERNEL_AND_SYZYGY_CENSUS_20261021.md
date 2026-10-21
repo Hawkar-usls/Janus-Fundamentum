@@ -51,3 +51,11 @@ integer matrix columns. Every column has <=4 positive integral entries counting 
 4. Compare correction ranks, number of syzygies, and exact determinant sizes across instances without extrapolating from finite samples.
 
 Scientific authority remains frozen-instance only. Main branch and prior gates untouched.
+
+## Supplement BABEL-20R — exact Q certificates on the 20 noncovers
+
+The previous module-65521 scout was only a candidate filter. We replaced it with **full exact rational linear algebra** on every legal degree-2 Fourier multiplier column in all 20 connected square cubic linear SCL21 fixtures. The [exact-Q constructor CI #39600099222](https://github.com/Hawkar-usls/Janus-Fundamentum/actions/runs/39600099222) produced a rational identity with between **1 and 8 nonzero multipliers** for each instance, and checked the full Fourier spectrum over Q. All twenty are exact UNSAT by separate GF(2)-kernel enumeration.
+
+A genuinely separate [independent saved-certificate replay CI #39600394387](https://github.com/Hawkar-usls/Janus-Fundamentum/actions/runs/39600394387) reconstructs the frozen row incidence of each fixture and re-evaluates all its rational Fourier coefficients. **20/20 PASS**, zero left-kernel obstructions. Complete compressed certificate collection SHA-256 `dd7af5d03f982ac4dd9aac2df260e4672381f5769c425199682972479cc9324e`. Github artifact ID 12344723976; artifact ZIP SHA-256 `e66b7fd7926c18ee1b1327a4ef4ccd400aec4de4dc942a2bacf75123042ed7b7`; retention to October 28, 2026 UTC. All regenerating Python and YAML are retained in the Draft PR.
+
+This replaces the previous statement \"modular checks only\" for this finite noncover set. It does not imply any uniform degree theorem or polynomial algorithm for all legal cubic linear XSAT.
