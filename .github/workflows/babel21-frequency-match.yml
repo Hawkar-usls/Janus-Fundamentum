@@ -36,6 +36,23 @@ jobs:
           run-id: 39643234313
           github-token: ${{ github.token }}
           path: /tmp/b21frequency
+      - name: Inspect frozen source Krylov logic for full kernel test
+        working-directory: /tmp/b21frequency
+        run: |
+          python - <<'PY'
+          import ast
+          from pathlib import Path
+          for name in ("janus_babel8_krylov_verify.py","janus_babel9_krylov.py","janus_babel10_exact_lower.py"):
+              p=Path(name)
+              if not p.exists():continue
+              s=p.read_text()
+              f=[(x.name,[a.arg for a in x.args.args]) for x in ast.parse(s).body if isinstance(x,ast.FunctionDef)]
+              print("BABEL21_SOURCE_FUNCTIONS",name,f,flush=True)
+              if "krylov" in name:
+                  print("BABEL21_SOURCE_CODE",name,s[:16000],flush=True)
+          for p in sorted(Path(".").glob("*KRYLOV*.json")):
+              print("BABEL21_FROZEN_KRYLOV_JSON",p.name,p.stat().st_size,flush=True)
+          PY
       - name: Check against every source row/multiplier equation
         working-directory: /tmp/b21frequency
         run: python frequency_match.py --base SCL126_flip16 --seed ${{ matrix.seed }}
