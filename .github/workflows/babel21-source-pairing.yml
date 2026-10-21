@@ -1,0 +1,48 @@
+name: BABEL-21 independent source degree4 identity and residual pairing
+on:
+  push:
+    branches: ['research/babel21-*']
+    paths: ['experiments/babel21/source_pairing.py','.github/workflows/babel21-source-pairing.yml']
+  pull_request:
+    paths: ['experiments/babel21/source_pairing.py','.github/workflows/babel21-source-pairing.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+jobs:
+  source-proof-pairing:
+    strategy:
+      fail-fast: false
+      matrix:
+        seed: [20,37]
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install original scientific dependencies
+        run: python -m pip install --disable-pip-version-check 'numpy>=1.26,<3' 'scipy>=1.12,<2'
+      - name: Unpack frozen source proof and exact replay modules
+        run: |
+          mkdir -p /tmp/b21pair
+          unzip -q experiments/babel14/BABEL14_SEED2_COMPACT_PROOF_BUNDLE_20261020.zip -d /tmp/b21pair
+          cp experiments/babel21/source_pairing.py /tmp/b21pair/
+      - name: Retrieve independently derived remaining functionals
+        uses: actions/download-artifact@v4
+        with:
+          name: babel21-source-phi-seed${{ matrix.seed }}
+          run-id: 39643234313
+          github-token: ${{ github.token }}
+          path: /tmp/b21pair
+      - name: Verify original rational identity and calculate exact functional pairings
+        working-directory: /tmp/b21pair
+        run: python source_pairing.py --base SCL126_flip16 --seed ${{ matrix.seed }}
+      - name: Archive exact base-normal and pairing result
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: babel21-source-Krylov-pairing-seed${{ matrix.seed }}
+          path: /tmp/b21pair/babel21_*_source_pairing.json
+          retention-days: 7
