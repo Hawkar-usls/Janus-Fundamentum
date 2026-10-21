@@ -1,0 +1,35 @@
+name: BABEL-19 exact rank2 cover discovery across source geometries
+on:
+  push:
+    branches: ['research/babel19-scout-*']
+    paths: ['experiments/babel19-scout/rank2_sweep.py','.github/workflows/babel19-rank2-sweep.yml']
+  pull_request:
+    paths: ['experiments/babel19-scout/rank2_sweep.py','.github/workflows/babel19-rank2-sweep.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  distinct-source-rank2-scan:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: '3.12'}
+      - name: Install source dependencies
+        run: python -m pip install --disable-pip-version-check 'numpy>=1.26,<3' 'scipy>=1.12,<2'
+      - name: Restore frozen SCL source and lifting code
+        run: |
+          mkdir -p /tmp/babel19-rank2
+          unzip -q experiments/babel14/BABEL14_SEED2_COMPACT_PROOF_BUNDLE_20261020.zip -d /tmp/babel19-rank2
+          cp experiments/babel19-scout/rank2_sweep.py /tmp/babel19-rank2/
+      - name: Sweep 64 signings per source and exact parity-kernel ranks
+        working-directory: /tmp/babel19-rank2
+        run: python rank2_sweep.py --limit 64
+      - name: Preserve reproducible exact candidate list
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: babel19-diverse-source-rank2-cover-candidates
+          path: /tmp/babel19-rank2/babel19_rank2_source_sweep.json
+          retention-days: 7
