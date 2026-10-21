@@ -1,0 +1,43 @@
+name: BABEL-21 seed20 exact rational full-source syzygy
+on:
+  push:
+    branches: ['research/babel21-*']
+    paths: ['.github/workflows/babel21-exact-seed20.yml']
+  pull_request:
+    paths: ['.github/workflows/babel21-exact-seed20.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  exact-rational-source-response:
+    runs-on: ubuntu-latest
+    timeout-minutes: 55
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install frozen source dependencies
+        run: python -m pip install 'numpy>=1.26,<3' 'scipy>=1.12,<2'
+      - name: Restore source and exact syzygy replay
+        run: |
+          mkdir -p /tmp/b21seed20
+          unzip -q experiments/babel14/BABEL14_SEED2_COMPACT_PROOF_BUNDLE_20261020.zip -d /tmp/b21seed20
+          cp experiments/babel18/rank2_geometry.py experiments/babel18b/full_kerT_sparse.py experiments/babel19-scout/crossbase_rank2.py experiments/babel20/exact_cokernel.py experiments/babel20/source_koszul.py experiments/babel20/equal_source_syzygies.py experiments/babel21/source_kernel_probe.py experiments/babel21/exact_source_syzygies.py /tmp/b21seed20/
+      - name: Rebuild 1D exact rational unresolved cokernel for seed20
+        working-directory: /tmp/b21seed20
+        run: |
+          python crossbase_rank2.py --base-name SCL126_flip16 --seed 20 --prime 65521 --passes 4
+          python exact_cokernel.py --base SCL126_flip16 --seed 20
+          python source_koszul.py --base SCL126_flip16 --seed 20
+          python equal_source_syzygies.py --base SCL126_flip16 --seed 20
+      - name: Reconstruct and verify exact Q source syzygy from observed dependency
+        working-directory: /tmp/b21seed20
+        run: python exact_source_syzygies.py --seed 20 --maxcols 44000 --maxpivots 19000
+      - name: Preserve full exact-Q witness or precise OPEN status
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: babel21-seed20-full-source-exact-Q-witness
+          path: /tmp/b21seed20/babel21_*_exact_source_syzygies.json
+          retention-days: 7

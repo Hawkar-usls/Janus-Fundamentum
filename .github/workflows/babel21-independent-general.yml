@@ -1,0 +1,56 @@
+name: BABEL-21 independent exact full-source rational proof replay
+on:
+  push:
+    branches: ['research/babel21-*']
+    paths: ['experiments/babel21/independent_general_Q.py','.github/workflows/babel21-independent-general.yml']
+  pull_request:
+    paths: ['experiments/babel21/independent_general_Q.py','.github/workflows/babel21-independent-general.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+jobs:
+  independent-source-replay:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - {seed: 20, source_run: 39655495155, artifact: babel21-seed20-full-source-exact-Q-witness}
+          - {seed: 37, source_run: 39654709047, artifact: babel21-seed37-exact-source-syzygies}
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install frozen scientific prerequisites
+        run: python -m pip install 'numpy>=1.26,<3' 'scipy>=1.12,<2'
+      - name: Download previous completed exact-Q witness artifacts, without trusting their claims
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir -p /tmp/b21ind
+          gh run download ${{ matrix.source_run }} --repo "$GITHUB_REPOSITORY" -n ${{ matrix.artifact }} -D /tmp/b21ind
+          test -s /tmp/b21ind/babel21_SCL126_flip16_seed${{ matrix.seed }}_exact_source_syzygies.json
+      - name: Rebuild frozen source matrices and independent checking logic
+        run: |
+          unzip -q experiments/babel14/BABEL14_SEED2_COMPACT_PROOF_BUNDLE_20261020.zip -d /tmp/b21ind
+          cp experiments/babel18/rank2_geometry.py experiments/babel18b/full_kerT_sparse.py experiments/babel19-scout/crossbase_rank2.py experiments/babel20/exact_cokernel.py experiments/babel20/source_koszul.py experiments/babel20/equal_source_syzygies.py experiments/babel21/source_kernel_probe.py experiments/babel21/independent_general_Q.py /tmp/b21ind/
+      - name: Rebuild exact rational reference cokernel and known source syzygies
+        working-directory: /tmp/b21ind
+        run: |
+          python crossbase_rank2.py --base-name SCL126_flip16 --seed ${{ matrix.seed }} --prime 65521 --passes 4
+          python exact_cokernel.py --base SCL126_flip16 --seed ${{ matrix.seed }}
+          python source_koszul.py --base SCL126_flip16 --seed ${{ matrix.seed }}
+          python equal_source_syzygies.py --base SCL126_flip16 --seed ${{ matrix.seed }}
+      - name: Independently reexpand every rational generator and certify response rank
+        working-directory: /tmp/b21ind
+        run: python independent_general_Q.py --seed ${{ matrix.seed }}
+      - name: Preserve exact certificate replay verdict
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: babel21-independent-Q-seed${{ matrix.seed }}
+          path: /tmp/b21ind/babel21_*_independent_general_Q.json
+          retention-days: 7

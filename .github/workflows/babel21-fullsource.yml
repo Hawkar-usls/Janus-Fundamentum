@@ -1,0 +1,43 @@
+name: BABEL-21 exhaustive-source modular response probe
+on:
+  push:
+    branches: ['research/babel21-*']
+    paths: ['.github/workflows/babel21-fullsource.yml']
+  pull_request:
+    paths: ['.github/workflows/babel21-fullsource.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  all-source-pivots:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install frozen prerequisites
+        run: python -m pip install 'numpy>=1.26,<3' 'scipy>=1.12,<2'
+      - name: Restore source and exact low-degree witness generators
+        run: |
+          mkdir -p /tmp/babel21full
+          unzip -q experiments/babel14/BABEL14_SEED2_COMPACT_PROOF_BUNDLE_20261020.zip -d /tmp/babel21full
+          cp experiments/babel18/rank2_geometry.py experiments/babel18b/full_kerT_sparse.py experiments/babel19-scout/crossbase_rank2.py experiments/babel20/exact_cokernel.py experiments/babel20/source_koszul.py experiments/babel20/equal_source_syzygies.py experiments/babel21/source_kernel_probe.py /tmp/babel21full/
+      - name: Rebuild exact seed20 cokernel and known source syzygies
+        working-directory: /tmp/babel21full
+        run: |
+          python crossbase_rank2.py --base-name SCL126_flip16 --seed 20 --prime 65521 --passes 4
+          python exact_cokernel.py --base SCL126_flip16 --seed 20
+          python source_koszul.py --base SCL126_flip16 --seed 20
+          python equal_source_syzygies.py --base SCL126_flip16 --seed 20
+      - name: Probe all 128013 distinct source four-term columns
+        working-directory: /tmp/babel21full
+        run: python source_kernel_probe.py --seed 20 --max-pivots 35000 --max-nnz 1500
+      - name: Preserve source rank and exact assumptions
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: babel21-fullsource-seed20-modular-diagnostics
+          path: /tmp/babel21full/babel21_*_source_kernel_probe.json
+          retention-days: 7
