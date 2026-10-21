@@ -92,7 +92,7 @@ def verify(path):
         rows_checked+=1
         if rows_checked%15000==0:
             print("BABEL18B_INDEPENDENT_RANK_PROGRESS",seed,rows_checked,"of",n,flush=True)
-    assert validator.rank==n
+    assert validator.rank==len(doc["pivots"])
     if len(doc["pivots"])==n:
         assert all(validator.dead[validator.find(i)[0]] for i in range(n)), "uneliminated anti coordinate"
     verdict={"status":("EXACT_Q_FULL_ANTISECTOR_RANK_VIA_MODULAR_NONZERO_MINOR_PASS" if len(doc["pivots"])==n else "INDEPENDENT_MODULAR_RANK_LOWER_BOUND_ONLY"),
