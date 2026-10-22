@@ -1,0 +1,207 @@
+name: TRUMP Stage6B.2 Certificate Materialization Replay
+
+on:
+  push:
+    branches:
+      - research/general-sat-universal-coverage-map-2026-09-19
+    paths:
+      - ".github/workflows/trump-stage6b2-certificate-materialization-replay.yml"
+      - "research/tools/trump_stage6b2_certificate_materialization_replay.py"
+      - "research/TRUMP_STAGE6B2_CERTIFICATE_MATERIALIZATION_REPLAY_PREREGISTRATION_2026-09-19_v1.0.json"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  materialize-stage6b2-certificates:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Verify frozen repair lineage
+        shell: bash
+        run: |
+          set -euo pipefail
+          git merge-base --is-ancestor 31a76d1a60716ea02545e5422b47ace20898c4e5 HEAD
+          git merge-base --is-ancestor b2fd4ce3071aa30e1456b7b7178d235f2e89437c HEAD
+          python - <<'PY'
+          import json
+          p="research/TRUMP_STAGE6B2_CERTIFICATE_MATERIALIZATION_REPLAY_PREREGISTRATION_2026-09-19_v1.0.json"
+          d=json.load(open(p,encoding="utf-8"))
+          assert d["gate"]=="TRUMP_STAGE6B2_CERTIFICATE_MATERIALIZATION_REPLAY"
+          assert d["authority"]=="READ_ONLY_ARCHIVAL_CERTIFICATE_MATERIALIZATION__NO_SEARCH_NO_SHRINK_NO_RESELECTION"
+          assert d["acceptance"]["all_13_final_B_star_hashes_must_match_preregistered_hashes"] is True
+          assert d["forbidden_actions"][0]=="CHANGE_ANY_B_STAR"
+          PY
+
+      - name: Syntax-check materialization replay tool
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m py_compile research/tools/trump_stage6_qhorn_independent_checker.py
+          python -m py_compile research/tools/trump_stage6b_deletion_qhorn_independent_checker.py
+          python -m py_compile research/tools/trump_stage6b2_qhorn_witness_transfer.py
+          python -m py_compile research/tools/trump_stage6b2_certificate_materialization_replay.py
+
+      - name: Fetch exact frozen source and sealed Stage6B.2 artifact
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p repair/source/unpacked repair/stage6b2/unpacked repair/out
+
+          curl -fsSL \
+            -H "Authorization: Bearer $GH_TOKEN" \
+            -H "Accept: application/vnd.github+json" \
+            "https://api.github.com/repos/$GITHUB_REPOSITORY/actions/artifacts/9992845123" \
+            -o repair/source/artifact_metadata.json
+          curl -fL \
+            -H "Authorization: Bearer $GH_TOKEN" \
+            -H "Accept: application/vnd.github+json" \
+            "https://api.github.com/repos/$GITHUB_REPOSITORY/actions/artifacts/9992845123/zip" \
+            -o repair/source/source.zip
+          unzip -q repair/source/source.zip -d repair/source/unpacked
+          test -f repair/source/unpacked/JANUS_TRUMP_R50G25X_ADVERSARIAL_STALL_SEARCH.json
+
+          curl -fsSL \
+            -H "Authorization: Bearer $GH_TOKEN" \
+            -H "Accept: application/vnd.github+json" \
+            "https://api.github.com/repos/$GITHUB_REPOSITORY/actions/artifacts/10585029459" \
+            -o repair/stage6b2/artifact_metadata.json
+          curl -fL \
+            -H "Authorization: Bearer $GH_TOKEN" \
+            -H "Accept: application/vnd.github+json" \
+            "https://api.github.com/repos/$GITHUB_REPOSITORY/actions/artifacts/10585029459/zip" \
+            -o repair/stage6b2/stage6b2.zip
+          unzip -q repair/stage6b2/stage6b2.zip -d repair/stage6b2/unpacked
+
+          B2_RESULT="$(find repair/stage6b2/unpacked -name TRUMP_STAGE6B2_QHORN_BACKDOOR_WITNESS_TRANSFER_AND_SHRINK_GATE_RESULT.json -print -quit)"
+          test -n "$B2_RESULT"
+          cp "$B2_RESULT" repair/stage6b2/TRUMP_STAGE6B2_QHORN_BACKDOOR_WITNESS_TRANSFER_AND_SHRINK_GATE_RESULT.json
+
+          python - <<'PY'
+          import hashlib,json,pathlib
+          def sha(p):
+              h=hashlib.sha256()
+              with open(p,"rb") as f:
+                  for b in iter(lambda:f.read(1<<20),b""): h.update(b)
+              return h.hexdigest()
+
+          sm=json.load(open("repair/source/artifact_metadata.json",encoding="utf-8"))
+          bm=json.load(open("repair/stage6b2/artifact_metadata.json",encoding="utf-8"))
+          assert sm["id"]==9992845123 and sm["expired"] is False
+          assert sm.get("digest")=="sha256:32232b076165663a0f699adf34b237d0b755e6e1be06a8c0c2974f13741e1069"
+          assert bm["id"]==10585029459 and bm["expired"] is False
+          assert bm.get("digest")=="sha256:6b13ecfc5a0f82838e758d2c5853dcb644d9c2aa74adc798eeec85841f272856"
+          assert sha("repair/stage6b2/TRUMP_STAGE6B2_QHORN_BACKDOOR_WITNESS_TRANSFER_AND_SHRINK_GATE_RESULT.json")=="5ce8812da5a352306a10d5bb1188862733b24e490ff779f22b608facda1ec62a"
+
+          receipt={
+            "source_artifact_id":9992845123,
+            "source_artifact_digest":sm.get("digest"),
+            "source_json_sha256":sha("repair/source/unpacked/JANUS_TRUMP_R50G25X_ADVERSARIAL_STALL_SEARCH.json"),
+            "stage6B2_artifact_id":10585029459,
+            "stage6B2_artifact_digest":bm.get("digest"),
+            "stage6B2_result_sha256":sha("repair/stage6b2/TRUMP_STAGE6B2_QHORN_BACKDOOR_WITNESS_TRANSFER_AND_SHRINK_GATE_RESULT.json")
+          }
+          pathlib.Path("repair/source_binding_receipt.json").write_text(
+            json.dumps(receipt,indent=2,sort_keys=True)+"\n",encoding="utf-8"
+          )
+          PY
+
+      - name: Install exact Z3 package family recorded by Stage6B.2
+        shell: bash
+        run: |
+          set -euo pipefail
+          TOOL="$(find repair/stage6b2/unpacked -name proposer_tool.json -print -quit)"
+          test -n "$TOOL"
+          Z3PKG="$(python - "$TOOL" <<'PY'
+          import json,sys
+          d=json.load(open(sys.argv[1],encoding="utf-8"))
+          print(d["package_version"])
+          PY
+          )"
+          python -m pip install --disable-pip-version-check "z3-solver==$Z3PKG" \
+            > repair/tool_install.stdout 2> repair/tool_install.stderr
+          python - <<'PY' > repair/tool_receipt.json
+          import importlib.metadata,json,z3
+          print(json.dumps({
+            "tool":"z3-solver",
+            "package_version":importlib.metadata.version("z3-solver"),
+            "z3_version":z3.get_version_string(),
+            "role":"FRESH_POSITIVE_QHORN_CERTIFICATE_PROPOSER_ONLY"
+          },indent=2,sort_keys=True))
+          PY
+
+      - name: Materialize and independently verify all 13 certificate bodies
+        shell: bash
+        run: |
+          set -euo pipefail
+          python research/tools/trump_stage6b2_certificate_materialization_replay.py \
+            repair/source/unpacked/JANUS_TRUMP_R50G25X_ADVERSARIAL_STALL_SEARCH.json \
+            repair/stage6b2/TRUMP_STAGE6B2_QHORN_BACKDOOR_WITNESS_TRANSFER_AND_SHRINK_GATE_RESULT.json \
+            research/TRUMP_STAGE6B2_CERTIFICATE_MATERIALIZATION_REPLAY_PREREGISTRATION_2026-09-19_v1.0.json \
+            repair/out \
+            --timeout-ms 10000 \
+            | tee repair/materialization.stdout
+
+      - name: Emit immutable materialization receipt
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import hashlib,json,os,pathlib
+          def sha(p):
+              h=hashlib.sha256()
+              with open(p,"rb") as f:
+                  for b in iter(lambda:f.read(1<<20),b""): h.update(b)
+              return h.hexdigest()
+
+          result="repair/out/TRUMP_STAGE6B2_CERTIFICATE_MATERIALIZATION_REPLAY_RESULT.json"
+          receipt={
+            "prereg_commit":"31a76d1a60716ea02545e5422b47ace20898c4e5",
+            "replay_tool_commit":"b2fd4ce3071aa30e1456b7b7178d235f2e89437c",
+            "implementation_head":os.environ["GITHUB_SHA"],
+            "materialization_result_sha256":sha(result),
+            "replay_tool_sha256":sha("research/tools/trump_stage6b2_certificate_materialization_replay.py"),
+            "stage6B2_artifact_id":10585029459,
+            "scientific_decisions_changed":False,
+            "search_executed":False,
+            "shrink_executed":False,
+            "seed_reselection_executed":False,
+            "stage6B3_stage6C_stage6D_executed":False
+          }
+          pathlib.Path("repair/execution_receipt.json").write_text(
+            json.dumps(receipt,indent=2,sort_keys=True)+"\n",encoding="utf-8"
+          )
+          PY
+
+      - name: Upload complete certificate materialization artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: trump-stage6b2-certificate-materialization-replay
+          path: |
+            repair/out/
+            repair/execution_receipt.json
+            repair/source_binding_receipt.json
+            repair/tool_receipt.json
+            repair/tool_install.stdout
+            repair/tool_install.stderr
+            repair/materialization.stdout
+            repair/source/artifact_metadata.json
+            repair/source/unpacked/JANUS_TRUMP_R50G25X_ADVERSARIAL_STALL_SEARCH.json
+            repair/stage6b2/artifact_metadata.json
+            repair/stage6b2/TRUMP_STAGE6B2_QHORN_BACKDOOR_WITNESS_TRANSFER_AND_SHRINK_GATE_RESULT.json
+          if-no-files-found: warn
+          retention-days: 30

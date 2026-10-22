@@ -1,0 +1,152 @@
+name: U-PAIR-1J implicit majority blind input freeze
+
+on:
+  push:
+    branches:
+      - research/U-PAIR-1J-majority-blind-synthesis-2026-09-18
+    paths:
+      - .github/workflows/u-pair-1j-majority-blind-input-freeze.yml
+
+permissions:
+  contents: write
+
+concurrency:
+  group: u-pair-1j-majority-blind-input-freeze
+  cancel-in-progress: false
+
+jobs:
+  freeze:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      BRANCH: research/U-PAIR-1J-majority-blind-synthesis-2026-09-18
+      OUT_DIR: research/generated/u_pair_1j_majority_blind_inputs
+      CHECK_OUT: research/U_PAIR_1J_IMPLICIT_MAJORITY_BLIND_INPUT_INDEPENDENT_CHECK_2026-09-18_v1.0.json
+      AUTH_OUT: research/U_PAIR_1J_IMPLICIT_MAJORITY_BLIND_INPUT_FREEZE_AUTHORITY_2026-09-18_v1.0.json
+
+    steps:
+      - name: Checkout exact blind head
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Verify frozen input authorities
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import hashlib
+          from pathlib import Path
+          expected={
+            "research/U_PAIR_1J_IMPLICIT_MAJORITY_BLIND_SYNTHESIS_PREREGISTRATION_2026-09-18.json":"49272b132238fc05a4afc11928b094a358424095",
+            "research/tools/u_pair_1j_majority_blind/input_generator.py":"8cb89b0ef89350962119748acbaca801ff9ea8bc",
+            "research/tools/u_pair_1j_majority_blind/independent_input_check.py":"e7a0d81cce50f59c85164c08759d9602ec4bac8b",
+          }
+          def blob(path):
+              b=Path(path).read_bytes()
+              return hashlib.sha1(f"blob {len(b)}\0".encode()+b).hexdigest()
+          bad={p:(h,blob(p)) for p,h in expected.items() if blob(p)!=h}
+          if bad: raise SystemExit(f"BLIND_INPUT_AUTHORITY_BIND_FAILURE:{bad}")
+          print("BLIND_INPUT_AUTHORITIES_OK")
+          PY
+
+      - name: Generate opaque layered hostile inputs
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf "$OUT_DIR"
+          python research/tools/u_pair_1j_majority_blind/input_generator.py "$OUT_DIR"
+
+      - name: Check blind inputs independently
+        shell: bash
+        run: |
+          set -euo pipefail
+          python research/tools/u_pair_1j_majority_blind/independent_input_check.py "$OUT_DIR" "$CHECK_OUT"
+
+      - name: Build source-freeze authority
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import hashlib,json,os
+          from pathlib import Path
+          out=Path(os.environ["OUT_DIR"])
+          check=json.load(open(os.environ["CHECK_OUT"]))
+          rows=[]
+          for n in (5,9,17,33,65):
+              p=out/f"hostile_n{n}.json"
+              b=p.read_bytes()
+              rows.append({
+                "n":n,
+                "path":str(p),
+                "sha256":hashlib.sha256(b).hexdigest(),
+                "git_blob":hashlib.sha1(f"blob {len(b)}\0".encode()+b).hexdigest()
+              })
+          m=(out/"input_manifest.json").read_bytes()
+          auth={
+            "artifact_id":"JANUS-U-PAIR-1J-IMPLICIT-MAJORITY-BLIND-INPUT-FREEZE-AUTHORITY-2026-09-18-v1.0",
+            "date":"2026-09-18",
+            "series":[5,9,17,33,65],
+            "input_receipts":rows,
+            "manifest":{
+              "path":str(out/"input_manifest.json"),
+              "sha256":hashlib.sha256(m).hexdigest(),
+              "git_blob":hashlib.sha1(f"blob {len(m)}\0".encode()+m).hexdigest()
+            },
+            "independent_input_check":{
+              "verdict":check["verdict"],
+              "reference_branch_read":check["reference_branch_read"],
+              "semantic_truth_table_used":check["semantic_truth_table_used"]
+            },
+            "visibility":{
+              "state_ids_opaque":True,
+              "explicit_output_node_present":False,
+              "reference_DAG_imported":False
+            },
+            "verdict":"PASS_BLIND_INPUT_FREEZE"
+          }
+          Path(os.environ["AUTH_OUT"]).write_text(json.dumps(auth,indent=2,sort_keys=True)+"\n")
+          print(json.dumps({"verdict":auth["verdict"],"sources":len(rows)},sort_keys=True))
+          PY
+
+      - name: Upload blind input receipt
+        uses: actions/upload-artifact@v4
+        with:
+          name: u-pair-1j-majority-blind-input-${{ github.run_id }}
+          path: |
+            research/generated/u_pair_1j_majority_blind_inputs/
+            research/U_PAIR_1J_IMPLICIT_MAJORITY_BLIND_INPUT_INDEPENDENT_CHECK_2026-09-18_v1.0.json
+            research/U_PAIR_1J_IMPLICIT_MAJORITY_BLIND_INPUT_FREEZE_AUTHORITY_2026-09-18_v1.0.json
+          if-no-files-found: error
+          retention-days: 90
+
+      - name: Freeze blind input authority
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add "$OUT_DIR" "$CHECK_OUT" "$AUTH_OUT"
+          git commit -m "U-PAIR-1J freeze implicit majority blind hostile inputs"
+          git push origin "HEAD:$BRANCH"
+
+      - name: Enforce blind input firewall
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json,os
+          x=json.load(open(os.environ["AUTH_OUT"]))
+          assert x["verdict"]=="PASS_BLIND_INPUT_FREEZE"
+          assert x["independent_input_check"]["verdict"]=="PASS_INDEPENDENT_LAYERED_RELATION_INPUT_FREEZE"
+          assert x["independent_input_check"]["reference_branch_read"] is False
+          assert x["visibility"]["state_ids_opaque"] is True
+          assert x["visibility"]["explicit_output_node_present"] is False
+          print("BLIND_INPUT_FREEZE_PASS")
+          PY

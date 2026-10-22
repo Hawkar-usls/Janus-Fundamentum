@@ -1,0 +1,81 @@
+{
+  "artifact_id": "JANUS-U-PAIR-1J-BPHP-COLLISION-ANALYTIC-DISCHARGE-2026-09-19-v1.0",
+  "date": "2026-09-19",
+  "authority": "READ_ONLY_ANALYTIC_DISCHARGE__NO_PREREG__NO_SOURCE_GENERATOR__NO_RUN",
+  "parent_gate_commit": "5ae7ab6c993bc16bd3dc84a9c7fadfccbcf0066a",
+  "policy_commit": "e0726ccf91ded3cd6e9eea537e23f7880c5c7841",
+  "v1_1_composition_evidence": {
+    "mixed_killer_control_commit": "9d794acc97c127bada6c4f092293c3256ea08472",
+    "relevance": "Frozen V1.1 already demonstrated legal composition of verified derived DAG roots through GUARDED_ITE without adding a nonlinear rule form."
+  },
+  "primary_source_reconstruction": {
+    "reference": "Brendan Juba and Kuldeep S. Meel, The Limitations and Power of NP-Oracle Based Functional Synthesis Techniques, AAAI 2026, DOI 10.1609/aaai.v40i17.38440",
+    "paper_family": "bPHP^k_n",
+    "parameters": "n = k*m with m = ceil(log2 n)-1",
+    "inputs": "X consists of k blocks of m Boolean bits; block i encodes the hole address selected by pigeon i.",
+    "outputs": "Y consists of m Boolean bits and encodes a collision hole.",
+    "relation_semantics": "F(X,Y) holds iff Y names a hole b for which at least two input blocks X_i1 and X_i2 both equal b.",
+    "domain": "D(X) = exists Y F(X,Y), i.e. the input assignment contains at least one collision.",
+    "published_compact_witness": "The paper chooses Y as the lexicographically first collision hole.",
+    "published_size_statement": "Theorem 5 states a family with Skolem functions of size tilde-O(n^4), while resolution-based interpolation produces circuits of size at least 2^{Omega(n/log^2 n)}."
+  },
+  "critical_prior_art_observation": {
+    "paper_lemma": "Lemma 1 of the same paper gives a deterministic synthesis algorithm for any F(X,Y) with m output bits, producing a circuit of size O(|F|*m*2^(2m)) in time polynomial in |F| and 2^m.",
+    "application_to_bphp": "Here m = ceil(log2 n)-1, hence 2^m < n. Therefore the paper itself already gives a generic polynomial-time / polynomial-size synthesis route for this bPHP parameterization.",
+    "consequence": "bPHP is a route-separation example against resolution-based interpolation, not an open compactness/scaling question for general Boolean functional synthesis."
+  },
+  "explicit_v1_1_mapping": {
+    "literal_encoding": "For a boundary/input bit x, x is AFFINE_XOR(0,{x}) and NOT x is AFFINE_XOR(1,{x}).",
+    "and_encoding": "AND(p,q) = GUARDED_ITE(p,q,CONST(0)).",
+    "or_encoding": "OR(p,q) = GUARDED_ITE(p,CONST(1),q).",
+    "equality_test": "E_{i,b}(X) = AND_j [X_{i,j}=b_j] via a shared ITE chain over m affine literals.",
+    "pair_collision": "C_{i1,i2,b} = AND(E_{i1,b},E_{i2,b}).",
+    "hole_collision": "H_b = OR_{i1<i2} C_{i1,i2,b}.",
+    "domain_proof_object": "D(X) = OR_b H_b; this preserves the exact partial domain rather than totalizing it.",
+    "witness_selection": "Use a shared lexicographic priority selector over the H_b roots and emit the m-bit code of the first b with H_b=1.",
+    "rule_forms_needed": [
+      "CONST",
+      "AFFINE_XOR",
+      "GUARDED_ITE"
+    ],
+    "new_rule_needed": false,
+    "generic_validity_oracle_needed": false,
+    "truth_table_needed": false,
+    "SAT_needed_for_this_explicit_construction": false
+  },
+  "constructor_specific_symbolic_bound": {
+    "raw_bound": "O(2^m * (k^2 + k*m + m)) proof-DAG nodes with straightforward sharing",
+    "using_n_equals_km_and_2m_less_than_n": "O(n^3) is a safe coarse polynomial upper bound in the paper's n parameter; tighter accounting is possible but scientifically unnecessary for the gate.",
+    "verification": "Polynomial in the explicit proof-DAG size plus source checks.",
+    "interpretation": "This is an existence/constructor-specific upper bound for bPHP under frozen V1.1 composition semantics, not a bound for arbitrary BFS."
+  },
+  "model_match_resolution": {
+    "resolution_interpolation_lower_bound": "RETAINED_AS_PUBLISHED_ROUTE_SEPARATION",
+    "v1_1_lower_bound": "NOT_IMPLIED",
+    "v1_1_scaling_unknown": false,
+    "reason": "An explicit polynomial V1.1 proof architecture is available before any run."
+  },
+  "no_redundant_work_decision": {
+    "scientific_scaling_campaign": "BLOCKED",
+    "source_generator": "DO_NOT_CREATE_FOR_DISCOVERY",
+    "multi_size_hostile_run": "DO_NOT_RUN_FOR_SCIENTIFIC_COMPACTNESS_DISCOVERY",
+    "optional_use": "Theory/control example showing a route separation: resolution-interpolation can blow up although a direct V1.1-style ITE construction remains polynomial.",
+    "recommended_record_type": "ANALYTIC_COMPARISON_NOTE_ONLY"
+  },
+  "sequential_trap_note": {
+    "paper_theorem_3": "The sequential-synthesis trap uses a function h chosen to require circuits of size 2^{Omega(m)}.",
+    "benchmark_warning": "This is highly informative as a theoretical anti-pattern, but it is not automatically a concrete executable benchmark family for Janus unless an explicit h with the required lower bound and faithful finite encoding is supplied.",
+    "action": "Do not build a generator from the theorem statement alone."
+  },
+  "external_baseline_note": {
+    "public_bfs_corpus_checked": true,
+    "exact_bphp_packaged_instance_found": false,
+    "interpretation": "The standard BooleanFunctionalSynthesis public corpus exposes Arithmetic, Disjunctive_Decomposition, Factorization, QBFEval2017 and QBFEval2018; no exact packaged Juba-Meel bPHP family was identified in the current check. This does not justify creating it for scaling because analytical discharge already blocks that purpose."
+  },
+  "verdict": "ANALYTICALLY_DISCHARGED_AS_SCIENTIFIC_SCALING_TARGET__RETAIN_AS_ROUTE_SEPARATION_THEORY_CONTROL",
+  "claim_ceiling": {
+    "GENERAL_SAT_IN_P": "NOT_PROVED",
+    "P_EQ_NP": "NOT_PROVED",
+    "P_VS_NP": "OPEN"
+  }
+}

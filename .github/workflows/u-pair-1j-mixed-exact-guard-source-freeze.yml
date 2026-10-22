@@ -1,0 +1,69 @@
+name: U-PAIR-1J mixed exact-guard source freeze
+
+on:
+  push:
+    branches:
+      - research/U-PAIR-1J-mixed-exact-guard-synthesis-2026-09-18
+    paths:
+      - '.github/workflows/u-pair-1j-mixed-exact-guard-source-freeze.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  source-freeze:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: research/U-PAIR-1J-mixed-exact-guard-synthesis-2026-09-18
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install pinned source-check dependency
+        run: python -m pip install numpy==2.1.1
+
+      - name: Assert mixed constructor does not exist before source freeze
+        shell: bash
+        run: |
+          set -euo pipefail
+          test ! -e research/tools/u_pair_1j_mixed_exact_guard/constructor.py
+          test ! -e research/tools/u_pair_1j_mixed_exact_guard/independent_verify.py
+          test ! -e research/generated/u_pair_1j_mixed_exact_guard_run
+
+      - name: Generate frozen raw mixed source family
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf research/generated/u_pair_1j_mixed_exact_guard_source
+          python research/tools/u_pair_1j_mixed_exact_guard/input_generator.py             research/generated/u_pair_1j_mixed_exact_guard_source
+
+      - name: Commit source freeze
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add research/generated/u_pair_1j_mixed_exact_guard_source
+          git commit -m "U-PAIR-1J freeze connected mixed affine OR3 hostile sources"
+          git push origin HEAD:research/U-PAIR-1J-mixed-exact-guard-synthesis-2026-09-18
+          git rev-parse HEAD > /tmp/source_freeze_sha
+
+      - name: Independent source check after freeze
+        shell: bash
+        run: |
+          set -euo pipefail
+          FREEZE_SHA="$(cat /tmp/source_freeze_sha)"
+          python research/tools/u_pair_1j_mixed_exact_guard/independent_source_check.py             research/generated/u_pair_1j_mixed_exact_guard_source             research/U_PAIR_1J_CONNECTED_MIXED_AFFINE_OR3_INDEPENDENT_SOURCE_CHECK_2026-09-18_v1.0.json             "$FREEZE_SHA"
+
+      - name: Commit independent source check
+        shell: bash
+        run: |
+          set -euo pipefail
+          git add research/U_PAIR_1J_CONNECTED_MIXED_AFFINE_OR3_INDEPENDENT_SOURCE_CHECK_2026-09-18_v1.0.json
+          git commit -m "U-PAIR-1J verify frozen connected mixed affine OR3 sources"
+          git push origin HEAD:research/U-PAIR-1J-mixed-exact-guard-synthesis-2026-09-18

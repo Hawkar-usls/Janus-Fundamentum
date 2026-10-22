@@ -1,0 +1,164 @@
+name: TRUMP C11 PI TW2 or List3 Terminal Gate
+
+on:
+  pull_request:
+    branches:
+      - research/general-sat-universal-coverage-map-2026-09-19
+    paths:
+      - 'research/TRUMP_C11_PI_TREEWIDTH2_OR_LIST3_TERMINAL_GATE_RUN_TRIGGER_2026-09-20_v1.0.json'
+      - 'research/TRUMP_C11_PI_TREEWIDTH2_OR_LIST3_TERMINAL_GATE_EXECUTION_FREEZE_2026-09-20_v1.0.json'
+      - 'research/tools/c11_pi_tw2_or_list3/**'
+      - '.github/workflows/trump-c11-pi-tw2-or-list3.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  terminal-gate:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Bind frozen authority
+        shell: bash
+        run: |
+          set -euo pipefail
+          for sha in \
+            b9b565a4fb058779f883da03e01257803a56acfd \
+            5bc61bdf4e2271edce28f6ed47b6251d31dcb874 \
+            3b4e90799c1eee892b34694154447549f9d1a4ea \
+            60f99e634188deb72534b5bab8eeebcfbfbd6167 \
+            5bd3b16a4f5c58a42b1e7772b3ecfee440020885 \
+            3e46af071829ea723110a268d9ce1bbd36b69b42
+          do
+            git merge-base --is-ancestor "$sha" HEAD
+          done
+          test "$(git rev-parse b9b565a4fb058779f883da03e01257803a56acfd:research/TRUMP_C11_PI_TREEWIDTH2_OR_LIST3_TERMINAL_GATE_PREREG_2026-09-20_v1.0.json)" = "d9844c3590653e85594f808167219cbca5b19207"
+          python -m py_compile \
+            research/tools/c11_pi_tw2_or_list3/terminal_checker.py \
+            research/tools/c11_pi_tw2_or_list3/independent_verifier.py
+
+      - name: Run frozen W2 audit
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p tw2gate
+          python research/tools/c11_pi_tw2_or_list3/terminal_checker.py \
+            --prereg research/TRUMP_C11_PI_TREEWIDTH2_OR_LIST3_TERMINAL_GATE_PREREG_2026-09-20_v1.0.json \
+            --freeze research/TRUMP_C11_PI_TREEWIDTH2_OR_LIST3_TERMINAL_GATE_EXECUTION_FREEZE_2026-09-20_v1.0.json \
+            --tw2-terminal research/TRUMP_TREEWIDTH2_LIST_COLORING_TERMINAL_RESULT_2026-09-20_v1.0.json \
+            --out tw2gate/run \
+            | tee tw2gate/candidate.stdout
+
+      - name: Independent replay
+        shell: bash
+        run: |
+          set -euo pipefail
+          python research/tools/c11_pi_tw2_or_list3/independent_verifier.py \
+            --candidate tw2gate/run/candidate_result.json \
+            --freeze research/TRUMP_C11_PI_TREEWIDTH2_OR_LIST3_TERMINAL_GATE_EXECUTION_FREEZE_2026-09-20_v1.0.json \
+            --out tw2gate/independent.json \
+            | tee tw2gate/independent.stdout
+
+      - name: Assemble scientific manifest
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import hashlib,json,pathlib,subprocess
+          root=pathlib.Path("tw2gate")
+          cand=json.loads((root/"run/candidate_result.json").read_text())
+          indep=json.loads((root/"independent.json").read_text())
+          def sha(p): return hashlib.sha256(pathlib.Path(p).read_bytes()).hexdigest()
+
+          assert cand["primary_outcome"]=="W2_K4_MINOR_FOUR_COLOR_RESIDUAL"
+          assert cand["W1"]["status"]=="FALSIFIED_BY_AUTHORITATIVE_W2_COMPONENT"
+          assert cand["W2"]["status"]=="VERIFIED"
+          assert cand["positive_TW2_C4_control"]["pass"] is True
+          assert cand["negative_K4_classifier_control"]["pass"] is True
+          assert cand["minimization"]["vertex_minimal_under_induced_deletion_for_exact_decorated_C"] is True
+          assert indep["verdict"]=="INDEPENDENT_W2_K4_MINOR_FOUR_COLOR_RESIDUAL_VERIFIED"
+          assert cand["repair_attempted"] is False
+          assert cand["successor_autoactivated"] is False
+          assert cand["stop"] is True
+
+          manifest={
+            "schema":"janus.trump.c11_pi_tw2_or_list3.scientific_manifest.v1",
+            "workflow_head":subprocess.check_output(["git","rev-parse","HEAD"],text=True).strip(),
+            "frozen_preregistration":{
+              "commit":"b9b565a4fb058779f883da03e01257803a56acfd",
+              "content_blob":"d9844c3590653e85594f808167219cbca5b19207"
+            },
+            "execution_freeze_commit":"60f99e634188deb72534b5bab8eeebcfbfbd6167",
+            "implementation_commits":{
+              "candidate_checker":"5bd3b16a4f5c58a42b1e7772b3ecfee440020885",
+              "independent_verifier":"3e46af071829ea723110a268d9ce1bbd36b69b42"
+            },
+            "outcome":"W2_K4_MINOR_FOUR_COLOR_RESIDUAL",
+            "authority_checks":cand["authority_checks"],
+            "route34":cand["route34"],
+            "positive_TW2_C4_control":cand["positive_TW2_C4_control"],
+            "negative_K4_classifier_control":cand["negative_K4_classifier_control"],
+            "W1":cand["W1"],"W2":cand["W2"],"W3":cand["W3"],
+            "minimization":cand["minimization"],
+            "independent_replay":{
+              "verdict":indep["verdict"],
+              "receipt_sha256":sha(root/"independent.json")
+            },
+            "candidate_receipt_sha256":sha(root/"run/candidate_result.json"),
+            "source_digests":{
+              "candidate_checker_sha256":sha("research/tools/c11_pi_tw2_or_list3/terminal_checker.py"),
+              "independent_verifier_sha256":sha("research/tools/c11_pi_tw2_or_list3/independent_verifier.py"),
+              "execution_freeze_sha256":sha("research/TRUMP_C11_PI_TREEWIDTH2_OR_LIST3_TERMINAL_GATE_EXECUTION_FREEZE_2026-09-20_v1.0.json")
+            },
+            "oracle_use":cand["oracle_use"],
+            "scientific_ceiling":cand["scientific_ceiling"],
+            "forbidden_interpretations":cand["forbidden_interpretations"],
+            "repair_attempted":False,
+            "successor_autoactivated":False,
+            "stop":True
+          }
+          (root/"scientific_manifest.json").write_text(json.dumps(manifest,indent=2,sort_keys=True)+"\n")
+          print(json.dumps({
+            "outcome":"W2_K4_MINOR_FOUR_COLOR_RESIDUAL",
+            "W1":"FALSIFIED_BY_COUNTERCOMPONENT",
+            "independent":indep["verdict"]
+          },sort_keys=True))
+          PY
+
+      - name: Assert ceiling and stop
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json
+          m=json.load(open("tw2gate/scientific_manifest.json"))
+          assert m["outcome"]=="W2_K4_MINOR_FOUR_COLOR_RESIDUAL"
+          assert m["scientific_ceiling"]["UNBOUNDED_TREEWIDTH"]=="NOT_CLAIMED"
+          assert m["scientific_ceiling"]["BACKDOOR_SIZE_2"]=="NOT_OPENED"
+          assert m["scientific_ceiling"]["REPAIR"]=="NOT_STARTED"
+          assert m["scientific_ceiling"]["NEW_DESCRIPTOR"]=="NOT_DEFINED"
+          assert m["scientific_ceiling"]["LEMMA11_P7_LIFT"]=="OPEN"
+          assert m["scientific_ceiling"]["P7_FREE_4_COLOR_IN_P"]=="NOT_PROVED"
+          assert m["scientific_ceiling"]["P_VS_NP"]=="OPEN"
+          assert m["repair_attempted"] is False
+          assert m["successor_autoactivated"] is False
+          assert m["stop"] is True
+          print("STOP_CEILING_PASS")
+          PY
+
+      - name: Upload immutable artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: trump-c11-pi-tw2-or-list3-terminal-gate-v1
+          path: tw2gate/
+          if-no-files-found: error
+          retention-days: 90

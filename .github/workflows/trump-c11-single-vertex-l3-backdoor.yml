@@ -1,0 +1,168 @@
+name: TRUMP C11 Single Vertex L3 Backdoor Gate
+
+on:
+  pull_request:
+    branches:
+      - research/general-sat-universal-coverage-map-2026-09-19
+    paths:
+      - 'research/TRUMP_C11_PI_SINGLE_VERTEX_LIST3_BACKDOOR_GATE_RUN_TRIGGER_2026-09-20_v1.0.json'
+      - 'research/TRUMP_C11_PI_SINGLE_VERTEX_LIST3_BACKDOOR_GATE_EXECUTION_FREEZE_2026-09-20_v1.0.json'
+      - 'research/tools/c11_pi_single_vertex_l3_backdoor/**'
+      - '.github/workflows/trump-c11-single-vertex-l3-backdoor.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  backdoor-gate:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Bind frozen authority
+        shell: bash
+        run: |
+          set -euo pipefail
+          for sha in \
+            a87dc714153c27d9f0f3646db0c7fcb489dd0fb1 \
+            bdec8439613b1eaf3d20f44095137241a431689b \
+            e11b709add7ac76ebd3837594a52b5ed33689d54 \
+            979da07ffef9acdb7f9a9960868accdb345833a2 \
+            dd38b9d149ef1d72644382086ff12c606461eee4 \
+            43838a485c2c7c3df0ded5844ce9ce0eb12c4735 \
+            e5cad360d82307fa6ec8d9eb1b4849ddeea5abc4
+          do
+            git merge-base --is-ancestor "$sha" HEAD
+          done
+          test "$(git rev-parse a87dc714153c27d9f0f3646db0c7fcb489dd0fb1:research/TRUMP_C11_PI_SINGLE_VERTEX_LIST3_BACKDOOR_GATE_PREREG_2026-09-20_v1.0.json)" = "76a83abc21bf1dbd24d6affd37c758f03c871698"
+          python -m py_compile \
+            research/tools/c11_pi_single_vertex_l3_backdoor/backdoor_checker.py \
+            research/tools/c11_pi_single_vertex_l3_backdoor/independent_verifier_v2.py
+
+      - name: Run frozen B2 audit
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p backdoor
+          python research/tools/c11_pi_single_vertex_l3_backdoor/backdoor_checker.py \
+            --prereg research/TRUMP_C11_PI_SINGLE_VERTEX_LIST3_BACKDOOR_GATE_PREREG_2026-09-20_v1.0.json \
+            --freeze research/TRUMP_C11_PI_SINGLE_VERTEX_LIST3_BACKDOOR_GATE_EXECUTION_FREEZE_2026-09-20_v1.0.json \
+            --positive-control research/TRUMP_C11_FALSE_TWIN_FAMILY_SINGLE_VERTEX_L3_BACKDOOR_RESULT_2026-09-20_v1.0.json \
+            --transfer research/TRUMP_P7_LEMMA5_6_7_10_HYPOTHESIS_ERASURE_GATE_RESULT_2026-09-20_v1.0.json \
+            --out backdoor/run \
+            | tee backdoor/candidate.stdout
+
+      - name: Independent replay
+        shell: bash
+        run: |
+          set -euo pipefail
+          python research/tools/c11_pi_single_vertex_l3_backdoor/independent_verifier_v2.py \
+            --candidate backdoor/run/candidate_result.json \
+            --freeze research/TRUMP_C11_PI_SINGLE_VERTEX_LIST3_BACKDOOR_GATE_EXECUTION_FREEZE_2026-09-20_v1.0.json \
+            --out backdoor/independent.json \
+            | tee backdoor/independent.stdout
+
+      - name: Assemble scientific manifest
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import hashlib,json,pathlib,subprocess
+          root=pathlib.Path("backdoor")
+          cand=json.loads((root/"run/candidate_result.json").read_text())
+          indep=json.loads((root/"independent.json").read_text())
+          def sha(p): return hashlib.sha256(pathlib.Path(p).read_bytes()).hexdigest()
+
+          assert cand["primary_outcome"]=="B2_NO_SINGLE_VERTEX_BACKDOOR"
+          assert cand["B1"]["status"]=="FALSIFIED_BY_AUTHORITATIVE_B2_COUNTERCOMPONENT"
+          assert cand["B2"]["status"]=="VERIFIED"
+          assert cand["negative_quantifier_control"]["pass"] is True
+          assert cand["minimization"]["vertex_minimal_under_induced_deletion_for_exact_decorated_C"] is True
+          assert indep["verdict"]=="INDEPENDENT_B2_SINGLE_VERTEX_L3_BACKDOOR_COUNTERCOMPONENT_VERIFIED"
+          assert cand["oracle_use"]["extension_oracle"] is False
+          assert cand["oracle_use"]["general_P7_free_4color_oracle"] is False
+          assert cand["oracle_use"]["size2_backdoor_search"] is False
+          assert cand["repair_attempted"] is False
+          assert cand["successor_autoactivated"] is False
+          assert cand["stop"] is True
+
+          manifest={
+            "schema":"janus.trump.c11_pi_single_vertex_l3_backdoor.scientific_manifest.v1",
+            "workflow_head":subprocess.check_output(["git","rev-parse","HEAD"],text=True).strip(),
+            "frozen_preregistration":{
+              "commit":"a87dc714153c27d9f0f3646db0c7fcb489dd0fb1",
+              "content_blob":"76a83abc21bf1dbd24d6affd37c758f03c871698"
+            },
+            "execution_freeze_commit":"dd38b9d149ef1d72644382086ff12c606461eee4",
+            "implementation_commits":{
+              "candidate_checker":"43838a485c2c7c3df0ded5844ce9ce0eb12c4735",
+              "independent_verifier_v2":"e5cad360d82307fa6ec8d9eb1b4849ddeea5abc4"
+            },
+            "outcome":"B2_NO_SINGLE_VERTEX_BACKDOOR",
+            "authority_checks":cand["authority_checks"],
+            "route34":cand["route34"],
+            "defeating_table":cand["defeating_table"],
+            "negative_quantifier_control":cand["negative_quantifier_control"],
+            "minimization":cand["minimization"],
+            "B1":cand["B1"],"B2":cand["B2"],"B3":cand["B3"],
+            "independent_replay":{
+              "verdict":indep["verdict"],
+              "receipt_sha256":sha(root/"independent.json")
+            },
+            "candidate_receipt_sha256":sha(root/"run/candidate_result.json"),
+            "source_digests":{
+              "candidate_checker_sha256":sha("research/tools/c11_pi_single_vertex_l3_backdoor/backdoor_checker.py"),
+              "independent_verifier_sha256":sha("research/tools/c11_pi_single_vertex_l3_backdoor/independent_verifier_v2.py"),
+              "execution_freeze_sha256":sha("research/TRUMP_C11_PI_SINGLE_VERTEX_LIST3_BACKDOOR_GATE_EXECUTION_FREEZE_2026-09-20_v1.0.json")
+            },
+            "oracle_use":cand["oracle_use"],
+            "scientific_ceiling":cand["scientific_ceiling"],
+            "forbidden_interpretations":cand["forbidden_interpretations"],
+            "repair_attempted":False,
+            "successor_autoactivated":False,
+            "stop":True
+          }
+          (root/"scientific_manifest.json").write_text(json.dumps(manifest,indent=2,sort_keys=True)+"\n")
+          print(json.dumps({
+            "outcome":"B2_NO_SINGLE_VERTEX_BACKDOOR",
+            "B1":"FALSIFIED_BY_COUNTERCOMPONENT",
+            "bd_L3_C":">1_RELATIVE_TO_FROZEN_STACK",
+            "independent":indep["verdict"]
+          },sort_keys=True))
+          PY
+
+      - name: Assert ceiling and stop
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json
+          m=json.load(open("backdoor/scientific_manifest.json"))
+          assert m["outcome"]=="B2_NO_SINGLE_VERTEX_BACKDOOR"
+          assert m["scientific_ceiling"]["BACKDOOR_SIZE_2"]=="NOT_OPENED"
+          assert m["scientific_ceiling"]["REPAIR"]=="NOT_STARTED"
+          assert m["scientific_ceiling"]["NEW_DESCRIPTOR"]=="NOT_DEFINED"
+          assert m["scientific_ceiling"]["LEMMA11_P7_LIFT"]=="OPEN"
+          assert m["scientific_ceiling"]["P7_FREE_4_COLOR_IN_P"]=="NOT_PROVED"
+          assert m["scientific_ceiling"]["P_VS_NP"]=="OPEN"
+          assert m["repair_attempted"] is False
+          assert m["successor_autoactivated"] is False
+          assert m["stop"] is True
+          print("STOP_CEILING_PASS")
+          PY
+
+      - name: Upload immutable artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: trump-c11-single-vertex-l3-backdoor-gate-v1
+          path: backdoor/
+          if-no-files-found: error
+          retention-days: 90

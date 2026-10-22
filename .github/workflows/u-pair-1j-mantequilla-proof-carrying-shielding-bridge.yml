@@ -1,0 +1,101 @@
+name: TRUMP U-PAIR-1J Mantequilla proof-carrying shielding bridge controls
+
+on:
+  push:
+    branches:
+      - research/U-PAIR-1J-MANTEQUILLA-proof-carrying-shielding-bridge-2026-09-18
+    paths:
+      - .github/workflows/u-pair-1j-mantequilla-proof-carrying-shielding-bridge.yml
+
+permissions:
+  contents: write
+
+concurrency:
+  group: u-pair-1j-mantequilla-proof-carrying-shielding-bridge
+  cancel-in-progress: false
+
+jobs:
+  controls:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      BRANCH: research/U-PAIR-1J-MANTEQUILLA-proof-carrying-shielding-bridge-2026-09-18
+      CHECKER: research/tools/u_pair_1j_mantequilla_proof_carrying_shielding_bridge/control_check.py
+      RESULT: research/U_PAIR_1J_MANTEQUILLA_PROOF_CARRYING_SHIELDING_BRIDGE_CONTROL_RESULT_2026-09-18_v1.0.json
+
+    steps:
+      - name: Checkout exact bridge head
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Verify frozen bridge authorities
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import hashlib
+          from pathlib import Path
+          expected={
+            "research/U_PAIR_1J_MANTEQUILLA_PROOF_CARRYING_SHIELDING_BRIDGE_PREREGISTRATION_2026-09-18.json":"3624b4550670868f463f79fc66427924f564c73e",
+            "proof_attempts/U_PAIR_1J_MANTEQUILLA_PROOF_CARRYING_SHIELDING_BRIDGE_2026-09-18.md":"028f9df7389a58f33fed200825b49675d259e71f",
+            "research/tools/u_pair_1j_mantequilla_proof_carrying_shielding_bridge/control_check.py":"4b16859e88e4250ba12afc4723c93105625ceded",
+          }
+          def blob(path):
+              b=Path(path).read_bytes()
+              return hashlib.sha1(f"blob {len(b)}\0".encode()+b).hexdigest()
+          bad={p:{"expected":h,"observed":blob(p)} for p,h in expected.items() if blob(p)!=h}
+          if bad:
+              raise SystemExit(f"BRIDGE_AUTHORITY_BIND_FAILURE:{bad}")
+          print("BRIDGE_AUTHORITIES_OK")
+          PY
+
+      - name: Execute frozen bridge controls
+        shell: bash
+        run: |
+          set -euo pipefail
+          python "$CHECKER" "$RESULT"
+
+      - name: Upload bridge control receipt
+        uses: actions/upload-artifact@v4
+        with:
+          name: u-pair-1j-mantequilla-bridge-controls-${{ github.run_id }}
+          path: |
+            research/U_PAIR_1J_MANTEQUILLA_PROOF_CARRYING_SHIELDING_BRIDGE_PREREGISTRATION_2026-09-18.json
+            proof_attempts/U_PAIR_1J_MANTEQUILLA_PROOF_CARRYING_SHIELDING_BRIDGE_2026-09-18.md
+            research/U_PAIR_1J_MANTEQUILLA_PROOF_CARRYING_SHIELDING_BRIDGE_CONTROL_RESULT_2026-09-18_v1.0.json
+          if-no-files-found: error
+          retention-days: 90
+
+      - name: Freeze bridge control result
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add "$RESULT"
+          git commit -m "TRUMP U-PAIR freeze Mantequilla shielding bridge controls"
+          git push origin "HEAD:$BRANCH"
+
+      - name: Enforce scoped claim ceiling
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json,os
+          r=json.load(open(os.environ["RESULT"],encoding="utf-8"))
+          assert r["verdict"]=="PASS_U_PAIR_1J_MANTEQUILLA_BRIDGE_CONTROLS"
+          assert all(r["checks"].values())
+          assert r["claim_ceiling"]["controls_only"] is True
+          assert r["claim_ceiling"]["hostile_scaling_not_yet_run"] is True
+          assert r["claim_ceiling"]["polynomial_synthesis_not_proved"] is True
+          assert r["claim_ceiling"]["GENERAL_SAT_IN_P"]=="NOT_PROVED"
+          assert r["claim_ceiling"]["P_VS_NP"]=="OPEN"
+          print("U_PAIR_1J_MANTEQUILLA_BRIDGE_CONTROL_PASS")
+          PY

@@ -1,0 +1,59 @@
+{
+  "artifact_id": "JANUS-TRUMP-U-PAIR-1J-PROOF-CARRYING-SKOLEM-DISCHARGE-PREREGISTRATION-2026-09-17-v1.0",
+  "date": "2026-09-17",
+  "authority": "PREREGISTERED_PROOF_ATTACK__NO_P_EQ_NP_PROMOTION",
+  "parent": "U-PAIR-1I__PASS_DEBT_ACCOUNTING_SOUNDNESS__FAIL_GENERIC_SKOLEM_SYNTHESIS_OR_VALIDATION_SHORTCUT",
+  "target": "U-PAIR-1J__PROOF_CARRYING_LOCAL_SKOLEM_DISCHARGE_WITH_FROZEN_CALCULUS",
+  "motivation": "Generic Skolem validity is coNP-complete and uniform rule synthesis is solver-equivalent on closed SAT instances, so debt discharge must use a frozen structured derivation calculus rather than an assumed generic oracle.",
+  "representation": "GF(2) RREF plus hash-consed bounded-fanin Boolean DAG with definitional auxiliaries",
+  "candidate_calculus": {
+    "name": "SKOLEM_LOCAL_DERIVATION_V1",
+    "allowed_rule_forms": [
+      "CONST(c)",
+      "AFFINE_XOR(c, support)",
+      "EXISTING_DAG_NODE(node_id)",
+      "GUARDED_ITE(guard, rule_true, rule_false) with hash-consed sharing"
+    ],
+    "allowed_justifications": [
+      "RREF_PIVOT_IDENTITY",
+      "UNIT_OR_CONSTANT_FORCE",
+      "EXPLICIT_DEFINITIONAL_DAG_EQUIVALENCE",
+      "LOCAL_GUARD_PARTITION whose two guards are exact complements and whose child derivations are independently valid"
+    ],
+    "forbidden": [
+      "generic SKOLEM_VALID oracle",
+      "truth-table enumeration",
+      "unbounded SAT calls hidden inside rule synthesis",
+      "fresh alias counted as debt discharge",
+      "unproved semantic equivalence of a synthesized DAG",
+      "exponential branch tree hidden behind ITE without DAG sharing accounting"
+    ]
+  },
+  "proof_contract": {
+    "local_checker": "Every derivation node must be checked from frozen RREF rows, frozen DAG definitions, or already checked child derivations in time polynomial in local proof size.",
+    "global_size_bound": "Total Skolem derivation DAG bytes across the full run must be bounded by one fixed polynomial in original input length L.",
+    "synthesis_bound": "Construction of all derivations must be polynomial in L and may not call an unverified solver oracle.",
+    "terminalization": "TRUE/FALSE with zero live original bits and zero debt; SAT reconstructs an original assignment; UNSAT has independent replay.",
+    "uniformity": "One finite calculus and one synthesis algorithm for all input lengths."
+  },
+  "positive_controls": [
+    "unit-forced variable",
+    "affine pivot variable",
+    "explicitly defined DAG output",
+    "small guarded mux with both branches locally justified"
+  ],
+  "first_hostile_suite": [
+    "IMPLICIT_MAJORITY_SKOL_RELATION_WITHOUT_EXPLICIT_OUTPUT_NODE",
+    "TSEITIN_EXPANDER_SEARCH_RELATIONS",
+    "CONNECTED_MIXED_AFFINE_OR3_EXPANDER_INTERLEAVE",
+    "PAIR_SELECTOR_HITTING_3_RANDOM_MIXED_CONTROLS"
+  ],
+  "first_attack_question": "Can the frozen local calculus extract and certify implicit witness functions without generic coNP-complete validity checking and without an exponential guarded-ITE proof DAG?",
+  "failure_condition": "A frozen hostile relation has a polynomial-size witness function but the calculus cannot derive it without forbidden generic validation, unbounded branching, or superpolynomial proof/synthesis size.",
+  "candidate_condition": "The calculus derives and checks all debt rules and reaches exact terminal TRUE/FALSE with polynomial total cost on every PAIR+OR_3 input.",
+  "firewall": {
+    "GENERAL_SAT_IN_P": "NOT_PROVED",
+    "P_VS_NP": "OPEN",
+    "P_EQ_NP": "NOT_PROVED"
+  }
+}
