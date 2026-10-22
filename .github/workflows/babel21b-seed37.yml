@@ -1,0 +1,61 @@
+name: BABEL-21B exact fifth source syzygy seed37
+on:
+  push:
+    branches: ['research/babel21b-*']
+  pull_request:
+    paths: ['experiments/babel21b/**','.github/workflows/babel21b-seed37.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  deep-fifth-syzygy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install frozen scientific prerequisites
+        run: python -m pip install --disable-pip-version-check 'numpy>=1.26,<3' 'scipy>=1.12,<2'
+      - name: Restore frozen source proof and independent verifier
+        run: |
+          mkdir -p /tmp/b21b
+          unzip -q experiments/babel14/BABEL14_SEED2_COMPACT_PROOF_BUNDLE_20261020.zip -d /tmp/b21b
+          cp experiments/babel18/rank2_geometry.py experiments/babel18b/full_kerT_sparse.py experiments/babel19-scout/crossbase_rank2.py experiments/babel20/exact_cokernel.py experiments/babel20/source_koszul.py experiments/babel20/equal_source_syzygies.py experiments/babel21/source_kernel_probe.py experiments/babel21/modloc_exactQ.py experiments/babel21/independent_source_verify.py /tmp/b21b/
+      - name: Reconstruct all frozen exact cokernel witnesses and known source syzygies
+        working-directory: /tmp/b21b
+        run: |
+          python crossbase_rank2.py --base-name SCL126_flip16 --seed 37 --prime 65521 --passes 4
+          python exact_cokernel.py --base SCL126_flip16 --seed 37
+          python source_koszul.py --base SCL126_flip16 --seed 37
+          python equal_source_syzygies.py --base SCL126_flip16 --seed 37
+      - name: Search for missing fifth independent Q direction among full source M2 columns
+        working-directory: /tmp/b21b
+        run: python modloc_exactQ.py --seed 37 --maxcols 128013 --maxpivots 32000 --maxnnz 1200 --bound 512
+      - name: Independent rational all-source-frequency and cover-response replay
+        working-directory: /tmp/b21b
+        run: python independent_source_verify.py --seed 37
+      - name: Require five-dimensional exact source response for scientific PASS
+        working-directory: /tmp/b21b
+        run: |
+          python - <<'PY'
+          import json
+          path='babel21_SCL126_flip16_seed37_modloc_exactQ.json'
+          d=json.load(open(path))
+          n=d["exact_source_syzygy_response_rank"]
+          print("BABEL21B_INDEPENDENT_RESPONSE_RANK",n,"of",d["source_kerA_response_dim"],flush=True)
+          if n!=d["source_kerA_response_dim"]:
+            print("BABEL21B_FINAL_VERDICT OPEN - exact fifth syzygy not yet found")
+          else:
+            print("BABEL21B_FINAL_VERDICT EXACT_Q_FULL_SOURCE_RESPONSE_PASS")
+          PY
+      - name: Preserve complete rational witness or honest incomplete checkpoint
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: babel21b-seed37-exact-Q-source-kernel
+          path: |
+            /tmp/b21b/babel21_SCL126_flip16_seed37_modloc_exactQ.json
+            /tmp/b21b/babel21_SCL126_flip16_seed37_independent_Q_replay.json
+          retention-days: 7
