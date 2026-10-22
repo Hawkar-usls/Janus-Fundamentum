@@ -1,0 +1,36 @@
+name: BABEL-30 exact automatic 2edge-atom SAT solver
+on:
+  push:
+    branches:
+      - 'research/babel30-discoverable-twoedge-atom-tree-solver-*'
+  pull_request:
+    paths:
+      - 'experiments/babel30/**'
+      - 'docs/research/BABEL30_*'
+      - '.github/workflows/babel30-automatic-atom-solver.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  exact-automatic-cut-dp:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Automatic 2-edge cut discovery local exact DPLL tree DP and SAT witness
+        run: python experiments/babel30/automatic_twoedge_atom_solver.py
+      - name: Scientific universality firewall
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          doc=Path('docs/research/BABEL30_AUTOMATIC_TWOEDGE_ATOM_TREE_SOLVER_20261023.md').read_text()
+          for statement in ('BABEL30_ADMITTED_TWOEDGE_ATOM_TREE_SOLVER = PROVED_ALL_N',
+                            'BABEL30_ARBITRARY_CONNECTED_SCL_ADMISSION = NOT_PROVED',
+                            'BABEL30_GENERAL_SCL_POLYNOMIAL_DECIDER = NOT_PROVED',
+                            'P_VS_NP = OPEN'):
+              assert statement in doc,statement
+          print('BABEL30_SCOPE_GUARD_PASS')
+          PY
