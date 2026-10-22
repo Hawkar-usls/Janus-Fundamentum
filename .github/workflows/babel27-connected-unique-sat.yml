@@ -1,0 +1,36 @@
+name: BABEL-27 connected unique-SAT splice and Fourier degree no-go
+on:
+  push:
+    branches:
+      - 'research/babel27-connected-unique-sat-gram-degree-barrier-*'
+  pull_request:
+    paths:
+      - 'experiments/babel27/**'
+      - 'docs/research/BABEL27_*'
+      - '.github/workflows/babel27-connected-unique-sat.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  exact-global-theorem-controls:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Exact all-row connected splice, GF2 nullity, and sparse-support obstruction
+        run: python experiments/babel27/connected_unique_sat_splice.py
+      - name: Strict proof-system versus SAT complexity firewall
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          note=Path('docs/research/BABEL27_CONNECTED_UNIQUE_SAT_SPLICE_AND_LINEAR_DEGREE_NO_GO_20261022.md').read_text()
+          for s in ('CONNECTED_SAT_INDICATOR_GRAM_FIXED_DEGREE_INCOMPLETENESS = PROVED',
+                    'UNSAT_FOURIER_M2_COMPLETENESS = OPEN',
+                    'UNIVERSAL_SolveLinearCubicXSAT = NOT_PROVED',
+                    'P_VS_NP = OPEN'):
+              assert s in note,s
+          print('BABEL27_SCIENTIFIC_FIREWALL_PASS')
+          PY
