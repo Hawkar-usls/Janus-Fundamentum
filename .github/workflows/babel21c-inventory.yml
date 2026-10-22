@@ -34,3 +34,18 @@ jobs:
                 except Exception as e:
                   print("BABEL21C_UNPARSED",name,str(e)[:100])
           PY
+
+
+      - name: Inspect frozen degree4 constructor and proof names
+        run: |
+          python - <<'PY'
+          import zipfile
+          with zipfile.ZipFile('experiments/babel14/BABEL14_SEED2_COMPACT_PROOF_BUNDLE_20261020.zip') as z:
+            print('BABEL21C_ALL_JSON',*[n for n in z.namelist() if n.endswith('.json')],sep='\n')
+            for fn in ('janus_babel8_degree4_probe.py','janus_babel8_krylov_verify.py','janus_babel10_degree_scan.py'):
+              if fn in z.namelist():
+                src=z.read(fn).decode()
+                print('BABEL21C_SOURCE_BEGIN',fn,len(src))
+                print(src[:13500])
+                print('BABEL21C_SOURCE_END',fn)
+          PY
