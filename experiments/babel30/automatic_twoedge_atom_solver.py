@@ -361,7 +361,7 @@ def main():
     assert hashlib.sha256(json.dumps(U,separators=(",",":")).encode()).hexdigest()==U_SHA
     assert solve_admitted({i:tuple(r) for i,r in enumerate(U)})["status"]=="SAT"
     tests=[]
-    for t in (2,3,5,9):
+    for t in (2,3,5,9,20):
         rows=chain_frozen(t)
         result=solve_admitted(rows,w=27) # no constructor receipt passed
         assert result["status"]=="SAT",(t,result)
