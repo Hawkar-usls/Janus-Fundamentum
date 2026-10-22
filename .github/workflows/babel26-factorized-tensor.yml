@@ -1,0 +1,33 @@
+name: BABEL-26 exact factorized Fourier tensor composition
+on:
+  push:
+    branches:
+      - 'research/babel26-factorized-fourier-tensor-composition-*'
+  pull_request:
+    paths:
+      - 'experiments/babel26/**'
+      - 'docs/research/BABEL26_*'
+      - '.github/workflows/babel26-factorized-tensor.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  independent-exact-composition:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Exact local certificate and independent factorized Fourier composition
+        run: python experiments/babel26/factorized_tensor_composition.py
+      - name: Scientific scope / no universal promotion gate
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          t=Path('docs/research/BABEL26_FACTOR_TENSOR_COMPOSITION_AND_DEGREE_BARRIER_20261022.md').read_text()
+          for x in ('BABEL26_GENERAL_CONNECTED_COMPOSITION = OPEN','UNIVERSAL_SolveLinearCubicXSAT = NOT_PROVED','P_VS_NP = OPEN'):
+              assert x in t,x
+          print('BABEL26_NO_GENERAL_PNP_PROMOTION_GUARD_PASS')
+          PY
