@@ -1,0 +1,34 @@
+name: BABEL-24 independent connected SAT exact falsifier
+on:
+  push:
+    branches:
+      - 'research/babel24-connected-unique-sat-l1-falsifier-*'
+  pull_request:
+    paths:
+      - 'experiments/babel24/**'
+      - 'docs/research/BABEL24_*'
+      - '.github/workflows/babel24-connected-sat-falsifier.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  exact-connected-sat-falsifier:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Frozen SCL27 independent GF2 rank, exact determinant, full M1 and Gram test
+        run: python experiments/babel24/connected_unique_sat_falsifier.py
+      - name: Scope and disclosure guard
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          d=Path('docs/research/BABEL24_CONNECTED_UNIQUE_SAT_L1_COMPLETENESS_FALSIFIER_20261022.md').read_text()
+          assert 'P_VS_NP = OPEN' in d
+          assert 'UNIVERSAL_POLYNOMIAL_SOLVER = NOT_PROVED' in d
+          assert 'BABEL24_GLOBAL_SCL_UNSAT_DEGREE2_SUFFICIENCY = OPEN' in d
+          print('BABEL24_SCOPE_GUARD_PASS')
+          PY
