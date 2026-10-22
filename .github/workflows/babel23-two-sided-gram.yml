@@ -1,0 +1,39 @@
+name: BABEL-23 exact Gram two-sided and global Fano coupler
+on:
+  push:
+    branches:
+      - 'research/babel23-two-sided-gram-*'
+  pull_request:
+    paths:
+      - 'experiments/babel23/**'
+      - 'docs/research/BABEL23_*'
+      - '.github/workflows/babel23-two-sided-gram.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  exact-replay:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Exact rational Gram SAT UNSAT UNKNOWN and witness reconstruction
+        run: python experiments/babel23/gram_two_sided.py
+      - name: Global all-n Fano-coupler controls and exact GF2 SAT census
+        run: python experiments/babel23/global_fano_coupler.py
+      - name: Scope guard
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          paths=[
+              'docs/research/BABEL23_TWO_SIDED_GRAM_SAT_RECOVERY_20261022.md',
+              'docs/research/BABEL23_GLOBAL_FANO_COUPLER_THEOREM_20261022.md'
+          ]
+          contents='\n'.join(Path(p).read_text() for p in paths)
+          for guard in ('P_VS_NP=OPEN','GENERAL_SAT_IN_P=NOT_PROVED','UNIVERSAL_DEGREE2_COMPLETENESS = OPEN'):
+              assert guard in contents, guard
+          print('BABEL23_SCOPE_GUARD_PASS')
+          PY
