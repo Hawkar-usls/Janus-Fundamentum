@@ -1,0 +1,34 @@
+name: BABEL-22 Fano-leaf exact local theorem controls
+on:
+  push:
+    branches: ['research/babel22-zero-test-hardness-fano-leaf-*']
+  pull_request:
+    paths:
+      - 'experiments/babel22/**'
+      - 'docs/research/BABEL22_ZERO_TEST_FANO_LEAF_AUDIT_20261022.md'
+      - '.github/workflows/babel22-fano-leaf-audit.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  exact-local-falsifier:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Recompute exact GF2 enumeration and finite-field identities
+        run: python experiments/babel22/fano_leaf_audit.py
+      - name: Construct exact all-n fixed-degree Gram dual witnesses
+        run: python experiments/babel22/gram_sparse_dual.py
+      - name: Scientific scope guard
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          note=Path('docs/research/BABEL22_ZERO_TEST_FANO_LEAF_AUDIT_20261022.md').read_text()
+          for statement in ('POLYNOMIAL_ZERO_TEST = OPEN','UNIVERSAL_SolveLinearCubicXSAT = NOT_PROVED','P_VS_NP = OPEN'):
+              assert statement in note, statement
+          print('BABEL22_RESEARCH_ONLY_SCOPE_GUARD_PASS')
+          PY
