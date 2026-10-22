@@ -1,0 +1,33 @@
+name: BABEL-25 exact sparse Fourier idempotence SAT recovery
+on:
+  push:
+    branches:
+      - 'research/babel25-idempotent-gram-sat-recovery-*'
+  pull_request:
+    paths:
+      - 'experiments/babel25/**'
+      - 'docs/research/BABEL25_*'
+      - '.github/workflows/babel25-idempotent-gram.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  exact-idempotence:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Independent exact Gram residual and sparse XOR idempotence SAT replay
+        run: python experiments/babel25/idempotent_gram_sat_recovery.py
+      - name: Strict scientific scope guard
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          note=Path('docs/research/BABEL25_IDEMPOTENT_GRAM_SAT_RECOVERY_20261022.md').read_text()
+          for t in ('P_VS_NP = OPEN','BABEL25_UNIVERSAL_COMPLETENESS = OPEN','GENERAL_SAT_IN_P = NOT_PROVED'):
+              assert t in note,t
+          print('BABEL25_SCOPE_GUARD_PASS')
+          PY
