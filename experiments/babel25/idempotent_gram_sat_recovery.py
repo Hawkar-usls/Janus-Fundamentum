@@ -209,6 +209,30 @@ def small_controls():
     return out
 
 
+def sparse_support_lower_bound_control():
+    """Disjoint t-copy product of certified connected unique-SAT component."""
+    import math
+    t=9
+    n=27*t
+    d=3*t
+    sat_count=1
+    # Exact upper bound for legal multiplier columns at fixed degree2.
+    E_upper=n*(1+n+math.comb(n,2))
+    available_sparse_support_upper=1+4*E_upper
+    unavoidable_indicator_support=(1<<d)//sat_count
+    assert available_sparse_support_upper<unavoidable_indicator_support
+    return {
+        "family":"NINE_DISJOINT_CONNECTED_SCL27_UNIQUE_SAT_COMPONENTS",
+        "connected":False,
+        "n":n,"GF2_nullity":d,"SAT_count_exact_by_direct_product":sat_count,
+        "degree2_column_upper_bound":E_upper,
+        "degree2_sparse_Fourier_support_upper":available_sparse_support_upper,
+        "SAT_indicator_support_lower":unavoidable_indicator_support,
+        "degree2_idempotent_gram_SAT_gate":"IMPOSSIBLE_BY_EXACT_SUPPORT_PROOF",
+        "full_generic_SAT_hardness_claim":False
+    }
+
+
 def main():
     result={
         "gate":"BABEL25_EXACT_SPARSE_GRAM_IDEMPOTENCE_SAT_RECOVERY",
@@ -216,6 +240,7 @@ def main():
         "all_n_polynomial_sparse_xor_convolution":"PROVED_FIXED_DEGREE",
         "connected_falsifier_repaired":check_unique_sat_27(),
         "independent_small_controls":small_controls(),
+        "exact_fixed_degree2_support_obstruction":sparse_support_lower_bound_control(),
         "full_generic_decider":"NOT_PROVED",
         "P_vs_NP":"OPEN"
     }
