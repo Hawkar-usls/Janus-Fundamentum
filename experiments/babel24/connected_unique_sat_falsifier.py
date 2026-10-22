@@ -60,7 +60,7 @@ def structure():
     assert len(set(pairs))==3*n
     adjacency=[set() for _ in range(n)]
     for row in ROWS:
-        for i in row:adj[i].update(row)
+        for i in row:adjacency[i].update(row)
     seen={0};stack=[0]
     while stack:
         for j in adjacency[stack.pop()]-seen:
