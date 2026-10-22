@@ -1,0 +1,34 @@
+name: BABEL-21C source degree4 certificate inventory
+on:
+  push:
+    branches: ['research/babel21c-*']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  inventory-frozen-SCL126-flip16:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Inventory immutable proof archive
+        run: |
+          unzip -Z1 experiments/babel14/BABEL14_SEED2_COMPACT_PROOF_BUNDLE_20261020.zip | grep -Ei '(bit16|flip16|babel8|degree4|krylov|sources|source)' | head -100
+      - name: Identify exact integer source files without running arbitrary archive contents
+        run: |
+          python - <<'PY'
+          import zipfile,json
+          path="experiments/babel14/BABEL14_SEED2_COMPACT_PROOF_BUNDLE_20261020.zip"
+          with zipfile.ZipFile(path) as z:
+            ns=z.namelist()
+            print("BABEL21C_ARCHIVE_ENTRIES",len(ns))
+            for name in ns:
+              if ("16" in name.lower() or "babel8" in name.lower()) and name.endswith(".json"):
+                blob=z.read(name)
+                try:
+                  obj=json.loads(blob)
+                  fields=list(obj)[:32] if isinstance(obj,dict) else ["not_object"]
+                  print("BABEL21C_SOURCE_JSON",name,"bytes",len(blob),"keys",fields)
+                except Exception as e:
+                  print("BABEL21C_UNPARSED",name,str(e)[:100])
+          PY
