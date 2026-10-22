@@ -17,6 +17,27 @@ Thus BABEL-23's **l1-dominance sufficient SAT gate fails**, and its #SAT upper-b
 
 This is a *falsifier of the proposed completeness of these TWO SUFFICIENT GATES*, NOT a falsifier of the sound BABEL-22/23 theorems, nor of universal degree-2 UNSAT completeness, nor of P=NP. The input is SAT. Of course the SAT witness can be found by other algorithms; the failure is specific to the nonnegative residual certificate mechanism.
 
+## STRONGER ALL-N THEOREM: all sparse-SAT SCL inputs defeat the BABEL-23 two gates at EVERY Fourier degree
+
+This sharper obstruction does NOT require uniqueness of the SAT model or full vanishing-ideal saturation:
+
+**Theorem.** Let F be ANY legal SCL input, d=dim K, and let s be its TRUE number of SAT assignments. If
+
+    1 <= s < 2^(d-1),
+
+then at EVERY multiplier degree k, the two-sided Gram solver of BABEL-23 necessarily returns UNKNOWN.
+
+**Exact proof:**
+
+1. Soundness of the SAT-count upper bound gives \`2^d*h0 >= s >=1\` at every k, so the rule \`2^d*h0 < 1\` cannot output UNSAT.
+2. Suppose instead the l1 SAT gate fires, i.e. \`h0>0\` and \`h0>=sum_(q!=0)|h_q|\`. It implies \`H(v)>=0\` at EVERY v in K.
+3. The exact Gram orthogonality \`<H,g_r>=0\` and the pointwise nonnegativity of every g_r force H to vanish whenever ANY Exact-One row is violated. On a true SAT point, \`H=1\` because \`H=1-sum_r g_r*f_r\`. Therefore \`H=1_SAT\` as functions on K, with mean Fourier coefficient \`h0=s/2^d\`.
+4. Evaluate H at any true SAT point: \`1=H(v)<=h0+sum_(q!=0)|h_q|<=2h0=2s/2^d<1\`. Contradiction.
+
+This uses no assumptions whatsoever about whether degree-k multipliers span the entire ideal. It applies to **arbitrary k, even k varying with n**, and is therefore a strict permanent **NO-GO for completing the two original BABEL-23 sufficient gates without modifying the SAT witness mechanism**.
+
+The connected SCL27 instance below has \`s=1\` and \`d=3\`, hence satisfies the all-n no-go hypothesis. The separate exact degree-1 rank certificate additionally establishes the exact residual coefficients and shows why the numerical \`1/8\` versus \`7/8\` difference persists at every k>=1. This no-go is NOT a proof of P≠NP or a Fourier lower bound on UNSAT; it only falsifies completeness of the *specific two-gate procedure*.
+
 ## One explicit CONNECTED 27-by-27 square cubic linear SAT instance
 
 Frozen \`experiments/babel24/connected_unique_sat_falsifier.py\` has 27 rows and 27 columns, each row/column 3-regular, any two rows meet in <=1 column, and connected row-variable incidence. The 27 rows were obtained from three independent copies of the affine9 SCL by 8 reproducible cross-block single-literal swaps, \`random.Random(278)\`, selecting block endpoints (0,1), (1,2), (2,0), repeated. This origin is discovery provenance, NOT an independent preregistered blind search. The frozen row SHA256 is
