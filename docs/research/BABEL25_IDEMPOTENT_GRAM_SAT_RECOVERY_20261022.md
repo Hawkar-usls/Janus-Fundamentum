@@ -54,6 +54,34 @@ This SAT gate is **strictly stronger** than BABEL-23's l1 dominance: l1 dominanc
 
 All machine results are finite control replays supporting the symbolic all-n theorem above. No floating point, Monte Carlo, or modular-only conclusions.
 
+## ALL-N NECESSARY SPARSITY BOUND: idempotence still has a fixed-degree barrier
+
+The new idempotence test is complete for **nonnegative Gram residuals**, but it CANNOT be universally complete at fixed k across all (including disconnected) legal SCL instances. This follows from the uncertainty principle by a short direct calculation, requiring no external theorem.
+
+**Theorem.** Suppose F has exactly s>0 satisfying K points among the 2^d parity states. Let E_k be the number of legal degree<=k row-multiplier columns. If the Gram residual is idempotent, it equals f=1_SAT. Write f's normalized Fourier coefficients \`h_q=2^-d sum_(v in SAT) chi_q(v)\`. Then
+
+    |h_q| <= s / 2^d
+    sum_q h_q^2 = s / 2^d
+
+by triangle inequality and Parseval. If T is the number of NONZERO coefficients, then
+
+    s / 2^d <= T * (s/2^d)^2  =>  T >= 2^d / s.
+
+But by construction \`h=e0-M_k z\`, where each multiplier column has at most 4 Fourier frequencies, so \`T<=1+4E_k\`. Therefore
+
+    IDEMPOTENCE POSSIBLE  ==>  s*(1+4E_k) >= 2^d.
+    s*(1+4E_k) < 2^d  ==>  IDENTITY TEST MUST FAIL, even on SAT.
+
+For fixed k, \`E_k<=n*sum_(j=0)^k binom(n,j)=O(n^(k+1))\`. Hence on a SAT family with \`d=Omega(n)\` and subexponentially many SAT assignments s, the fixed-degree Gram residual is necessarily non-idempotent for sufficiently large n. This is a **proof-system/certificate restriction**, NOT a generic SAT lower bound.
+
+Concrete illustrative infinite family (NOT a connected hardness claim): take t disjoint copies of the certified BABEL24 connected SCL27 unique-SAT component. The disjoint union is a valid 3-uniform, 3-regular, linear square Exact-One instance with n=27t, d=3t and s=1. For any fixed k,
+
+    1+4E_k <= 1+4*(27t)*sum_(j=0)^k binom(27t,j) = polynomial(t),
+
+but \`2^d=8^t\` eventually exceeds it. Thus for sufficiently many components the new fixed-degree idempotence SAT gate necessarily returns UNKNOWN (while the UNSAT gate cannot fire on a satisfiable input). A solver that decomposes disjoint components can of course solve this family; **no connected-SCL or general-algorithm hardness conclusion follows**.
+
+This result delineates the actual path to a universal proof: one must either show adaptive polynomial degree/size for the relevant connected adversarial family, or introduce a compact representation/positivity gate whose exact construction and verification do not require an exponentially supported Fourier indicator. Merely improving the idempotence checker cannot bypass this information-theoretic support condition.
+
 ## Further frontier
 
 1. Find or prove a polynomial-size k (or alternate compressed representation) ensuring for EVERY SAT input either H is idempotent or another efficient SAT-witness mechanism works. The demonstrated idempotence is still a sufficient condition, not a universally complete method.
