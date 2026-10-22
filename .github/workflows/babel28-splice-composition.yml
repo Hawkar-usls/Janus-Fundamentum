@@ -1,0 +1,35 @@
+name: BABEL-28 exact connected 2-state splice composition
+on:
+  push:
+    branches:
+      - 'research/babel28-twoedge-splice-exact-2state-composition-*'
+  pull_request:
+    paths:
+      - 'experiments/babel28/**'
+      - 'docs/research/BABEL28_*'
+      - '.github/workflows/babel28-splice-composition.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  independent-two-state-join:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Independent connected positive and negative exact join oracle
+        run: python experiments/babel28/twoedge_splice_composition.py
+      - name: Restrict theorem to local 2-edge cut
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          s=Path('docs/research/BABEL28_TWO_EDGE_SPLICE_EXACT_TWO_STATE_COMPOSITION_20261022.md').read_text()
+          for term in ('BABEL28_GLOBAL_POLYNOMIAL_SOLVER = NOT_PROVED',
+                       'BABEL28_ALL_CONNECTED_SCL_SEPARATORS_SMALL = NOT_PROVED',
+                       'P_VS_NP = OPEN'):
+              assert term in s,term
+          print('BABEL28_SCOPE_GUARD_PASS')
+          PY
