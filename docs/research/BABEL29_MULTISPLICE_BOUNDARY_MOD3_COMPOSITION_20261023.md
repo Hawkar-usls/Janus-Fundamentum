@@ -4,7 +4,7 @@
 
 ## Frozen provenance and scope
 
-Mandatory context anchor: \`START_HERE_TRUMP_CONTEXT.md\`; \`registry/TRUMP_CURRENT_STATE_2026-09-16_v3.23.json\` blob \`70e8b78fedd05bedb2e2324846d83c6fceea434d\`; v3.23 manifest overlay blob \`72af54233ebb2427894192c9904e179ece6c30ed\` [if source checksum differs, use the actual existing manifest blob; this text is NOT an authority pointer]. Earlier BABEL-28 proved a **two-state** rule for exactly ONE incidence exchange on each side, using redundancy of a single removed row. It does not authorize coordinatewise equality of interface bits for two or more exchanges.
+Mandatory context anchor: \`START_HERE_TRUMP_CONTEXT.md\`; \`registry/TRUMP_CURRENT_STATE_2026-09-16_v3.23.json\` blob \`70e8b78fedd05bedb2e2324846d83c6fceea434d\`; v3.23 manifest overlay blob \`72af54233ebb2427894192c9904e179ece6f2708\`. Earlier BABEL-28 proved a **two-state** rule for exactly ONE incidence exchange on each side, using redundancy of a single removed row. It does not authorize coordinatewise equality of interface bits for two or more exchanges.
 
 ## 1. General all-r exact boundary transfer theorem
 
