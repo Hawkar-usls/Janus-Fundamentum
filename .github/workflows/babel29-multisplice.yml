@@ -1,0 +1,36 @@
+name: BABEL-29 exact multi-splice boundary mod3 transfer
+on:
+  push:
+    branches:
+      - 'research/babel29-multi-splice-exact-boundary-transfer-*'
+  pull_request:
+    paths:
+      - 'experiments/babel29/**'
+      - 'docs/research/BABEL29_*'
+      - '.github/workflows/babel29-multisplice.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  exact-boundary:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Independent DPLL boundary census and exhaustive joined GF2 verification
+        run: python experiments/babel29/multisplice_boundary_transfer.py
+      - name: Strict proof-system and general SAT scope guard
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          s=Path('docs/research/BABEL29_MULTISPLICE_BOUNDARY_MOD3_COMPOSITION_20261023.md').read_text()
+          for t in ('BABEL29_ALL_R_EXACT_TABLE_COMPOSITION = PROVED',
+                    'BABEL29_ARBITRARY_CONNECTED_SCL_POLY_SEPARATOR_DECOMPOSITION = OPEN',
+                    'UNIVERSAL_SolveLinearCubicXSAT = NOT_PROVED',
+                    'P_VS_NP = OPEN'):
+              assert t in s,t
+          print('BABEL29_SCIENTIFIC_FIREWALL_PASS')
+          PY
