@@ -203,6 +203,9 @@ def main():
     basis=basis_exact()
     models=actual_sat_models(basis)
     evidence=exact_fourier_rank_and_gram_falsifier(basis,models[0][0])
+    # All-n density no-go theorem premise for this exact SAT fixture.
+    assert 1 <= len(models) and 2*len(models) < (1<<len(basis))
+    assert Fraction(len(models),1<<len(basis)) == Fraction(1,8)
     print(json.dumps({
         "gate":"BABEL24_CONNECTED_UNIQUE_SAT_GRAM_L1_COMPLETENESS_FALSIFIER",
         "n":len(ROWS),"source_sha256":ROW_SHA256,
@@ -210,6 +213,7 @@ def main():
         "GF2_rank":24,"GF2_nullity":3,
         "parity_words_exhaustively_checked":8,
         "SAT_count":len(models),
+        "BABEL23_ALL_DEGREES_SPARSE_SAT_DENSITY_NO_GO":"CERTIFIED_FOR_THIS_FIXTURE",
         "unique_SAT_model_ones":list(models[0][1]),
         "unique_SAT_kernel_coordinates":models[0][0],
         "exact_rational_evidence":evidence,
