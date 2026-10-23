@@ -1,0 +1,41 @@
+name: BABEL-36 exhaustive U port census and complete admitted macro 2SAT
+on:
+  push:
+    branches:
+      - 'research/babel36-complete-u-three-port-census-to-2sat-*'
+  pull_request:
+    paths:
+      - 'experiments/babel36/**'
+      - 'docs/research/BABEL36_*'
+      - '.github/workflows/babel36-u-macro-2sat.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  independent-finite-census-and-2sat:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Independently exhaustive DPLL and Fraction on all 72954 port triples
+        run: python experiments/babel36/u_three_port_census.py
+      - name: Compile raw connected U-macros to 2SAT and replay SAT UNSAT
+        run: python experiments/babel36/u_macro_2sat_solver.py
+      - name: Scientific scope and no-general-solver guard
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          note=Path('docs/research/BABEL36_COMPLETE_U_MACRO_2SAT_THEOREM_20261023.md').read_text()
+          for key in (
+              'BABEL36_U_ALL_72954_THREE_PORT_TABLES = VERIFIED_FINITE',
+              'BABEL36_ALL_N_CERTIFIED_U_MACRO_2SAT_EQUIVALENCE = PROVED',
+              'BABEL36_ALL_CONNECTED_SCL_TEMPLATE_DISCOVERY = NOT_PROVED',
+              'BABEL36_UNIVERSAL_SolveLinearCubicXSAT = NOT_PROVED',
+              'P_VS_NP = OPEN'
+          ):
+              assert key in note,key
+          print('BABEL36_UNIVERSALITY_FIREWALL_PASS')
+          PY
