@@ -21,7 +21,7 @@ The three distinct rows and variables are modified exactly once, while the other
        X' = (0,2,3,7,9,13,17,19,23,24).
 
    They differ ONLY in x0; all other original bits, including exported port bits x6 and x5, are fixed ZERO.
-3. Independently verify by (A) unit-propagating exhaustive Boolean Exact-One DPLL, and (B) exact rational echelon of the 24×27 {0,1} incidence matrix: its **Q-rank is 22**, leaving precisely FIVE free original coordinates \`(0,22,23,25,26)\`. Exhaustively test ALL 2^5=32 Boolean projections, reconstruct all pivots with rational arithmetic and assert that the result is exactly \`{X*,X'}\`. Neither method trusts BABEL-33's planted model as an assumption.
+3. Independently verify by (A) unit-propagating exhaustive Boolean Exact-One DPLL, and (B) exact rational echelon of the 24×27 {0,1} incidence matrix: its **Q-rank is 24**, leaving precisely THREE free original coordinates \`(0,25,26)\`. Exhaustively test ALL 2^3=8 Boolean projections, reconstruct all pivots with rational arithmetic and assert that the result is exactly \`{X*,X'}\`. Neither method trusts BABEL-33's planted model as an assumption.
 
 Define for each punctured candidate its exported port bits \`a=(x0,x6,x5)\` and required incoming bits \`b=(1−sum_(j∈row_i\{portvar_i})x_j)_(i=0,1,2)\`. Each required incoming bit must lie in {0,1} for an external Boolean variable to satisfy the edited row.
 
@@ -69,7 +69,7 @@ To challenge a universal compressed-carrier candidate, generate legal **connecte
 \`experiments/babel34/local_three_port_forcing.py\`: stdlib-only script reconstructs U, independently proves the two exact punctured models by Boolean DPLL AND rational Gauss elimination of all 32 Boolean projections, exhaustively computes the complete port relation including the invalid negative import requirements, independently constructs valid macro SCL at t8/12/16/24/40 without importing BABEL-33 producer code, tests every physical SAT row, reconstructs all splice incidences, checks exact GF2 rank nullity, and emits explicit all-n UNIQUE-SAT and composition receipt status. No enumeration of exponential full macro parity states is attempted.
 
 \`\`\`
-BABEL34_FIXED_U_PUNCTURED_Q_RANK = 22
+BABEL34_FIXED_U_PUNCTURED_Q_RANK = 24
 BABEL34_FIXED_U_COMPLETE_PUNCTURED_MODELS = 2
 BABEL34_FIXED_U_VALID_BOUNDARY_RELATION = SINGLE_000_TO_000
 BABEL34_ALL_CUBIC_MACRO_EXPANDER_UNIQUE_SAT = PROVED
