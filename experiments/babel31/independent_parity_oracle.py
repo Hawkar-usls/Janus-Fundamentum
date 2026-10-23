@@ -14,6 +14,7 @@ from pathlib import Path
 
 sys.path.insert(0,str(Path(__file__).resolve().parents[2]))
 from experiments.babel31.bounded_frontier_factor_dp import solve
+from experiments.babel31.independent_receipt_replay import check_proof
 
 U=(
     (0,1,2),(0,3,6),(0,5,7),(3,5,20),(1,7,11),
@@ -135,6 +136,8 @@ def check_case(name,rows,expected,full_oracle=True):
         truth,oracle_dim=independent_GF2_models(rows)
         assert len(truth)==expected,(name,len(truth),expected)
         if expected:assert result["witness"] in truth
+    receipt_audit=check_proof(rows,result)
+    assert receipt_audit["exact_count"]==expected
     diag=result["diagnostics"]
     assert all(leaf["factor_vertices"]<=54 and leaf["frontier_edges"]<=4
                for leaf in diag["leaves"])
@@ -151,6 +154,8 @@ def check_case(name,rows,expected,full_oracle=True):
         "local_DPLL_calls":diag["leaf_dpll_calls"],
         "independent_GF2_kernel_dimension":oracle_dim,
         "independent_GF2_oracle_checked":full_oracle,
+        "full_certificate_receipt_replay":receipt_audit["receipt_verification"],
+        "independent_receipt_leaf_count":receipt_audit["verified_leaves"],
         "witness_replayed_against_all_original_rows":bool(expected)
     }
 
@@ -185,6 +190,7 @@ def main():
         "double_splice_automatic_admission":"EXACT_PASS",
         "permutation_invariance_7_trials":"EXACT_PASS",
         "independent_small_GF2_oracle":"EXACT_PASS",
+        "independent_full_certificate_replay":"EXACT_PASS",
         "full_input_verified_on_every_SAT_result":True,
         "nonadmission_status":"UNKNOWN_NOT_ADMITTED",
         "all_n_bounded_width_semantic_theorem":"PROVED",
