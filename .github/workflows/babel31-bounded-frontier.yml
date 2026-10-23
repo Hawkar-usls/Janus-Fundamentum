@@ -1,0 +1,36 @@
+name: BABEL-31 exact bounded-frontier factor-graph solver
+on:
+  push:
+    branches:
+      - 'research/babel31-automatic-bounded-frontier-factor-dp-*'
+  pull_request:
+    paths:
+      - 'experiments/babel31/**'
+      - 'docs/research/BABEL31_*'
+      - '.github/workflows/babel31-bounded-frontier.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  exact-factor-frontier:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Independent exact GF2 and bounded-frontier SAT-count/witness verification
+        run: python experiments/babel31/independent_parity_oracle.py
+      - name: Fixed-width and P vs NP scientific guard
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          text=Path('docs/research/BABEL31_AUTOMATIC_BOUNDED_FRONTIER_FACTOR_DP_20261023.md').read_text()
+          for phrase in ('BABEL31_BOUNDED_W_B_SUBCLASS_IN_P = PROVED',
+                         'BABEL31_ARBITRARY_CONNECTED_SCL_BOUNDED_DECOMPOSITION = NOT_PROVED',
+                         'BABEL31_UNIVERSAL_SolveLinearCubicXSAT = NOT_PROVED',
+                         'P_VS_NP = OPEN'):
+              assert phrase in text,phrase
+          print('BABEL31_RESTRICTED_CLASS_SCIENTIFIC_GUARD_PASS')
+          PY
