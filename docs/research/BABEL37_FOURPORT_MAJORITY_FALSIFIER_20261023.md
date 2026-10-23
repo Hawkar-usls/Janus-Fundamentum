@@ -45,6 +45,19 @@ This theorem **ONLY blocks exact port-preserving 2CNF-relation representations**
 
 **Sharp local contrast:** the known BABEL36 classification is complete for THREE-port U interfaces; this found FOUR-port U instance shows that simply extending its 2SAT method to one extra boundary occurrence FAILS. Minimality here means only "3 ports from frozen U already certified bijunctive; this 4-port instance is not", not a universal CSP arity minimum.
 
+## 2B. Stronger classification: GENERIC CSP({R4}) is NP-complete (not the special macro family)
+
+The full six-case Schaefer dichotomy applies to the Boolean relation R4 regarded as an **unrestricted 8-ary constraint**, where a CSP instance can place its eight argument positions on arbitrary Boolean variables (possible identifications included), rather than only on the reciprocal port-edge wiring of our U macro graph. R4 has neither all-zero nor all-one 8-bit tuple. The three explicit R4 states A,B,C above supply counterexamples to all remaining tractable closure classes:
+
+    A AND B = 0000|0010  NOT IN R4.  [not Horn]
+    A OR  B = 0111|0110  NOT IN R4.  [not dual-Horn]
+    A XOR B XOR C = 1001|0100  NOT IN R4.  [not affine]
+    maj(A,B,C) = 0110|0010  NOT IN R4. [not bijunctive]
+
+By Schaefer's Boolean CSP dichotomy (1978; cited above), **unrestricted CSP({R4}) is NP-complete**. This theorem is about the generic CSP language consisting of ONE exactly specified 8-ary relation R4. It does not establish an NP-hardness reduction preserving the actual reciprocal directed edge-swap wiring, four-regular macro restriction, cubic/linear legality, connectedness or witness reconstruction of the physical original SCL construction. Applying the generic CSP classification directly to that STRICT macro subclass would be an invalid leap. No such transfer is claimed here.
+
+This makes the scientific boundary sharply visible: an already verified tiny SCL gadget can realize a **non-Schaefer relation** at four ports, whereas all its legal three-port relations in BABEL36 remained bijunctive. Any purported universal simple 2SAT boundary compiler must address that counterexample with genuinely more expressive operations and a proven global polynomial decision mechanism; mere polynomial size of a CSP representation does not solve an NP-complete CSP.
+
 ## 3. Exact all-n mapping to a 3-state graph constraint network
 
 For any simple connected 4-regular macro graph H with an arbitrary bijection between its four incident macro edges and the four designated U ports at each macro vertex, exchange the incidence endpoints for each macro edge as BABEL33-36. The resulting explicit J4(H) is connected square cubic linear SCL with n=27|V(H)| original variables (note: macro degree4 does NOT alter the original SCL degree3; it assigns four DISTINCT occurrence slots from different rows/variables of each 3-regular base U).
@@ -74,6 +87,8 @@ BABEL37_FOUR_PORT_TWO_INDEPENDENT_COMPLETE_CENSUSES = 4
 BABEL37_EXACT_FEASIBLE_R4 = {0001|0010,0110|0110,1110|0000}
 BABEL37_MAJORITY_FALSIFIER = 0110|0010_NOT_IN_R4
 BABEL37_R4_EXISTENTIAL_2CNF_REPRESENTATION = IMPOSSIBLE
+BABEL37_GENERIC_UNRESTRICTED_CSP_R4 = NP_COMPLETE_BY_SCHAEFER
+BABEL37_SPECIAL_U_MACRO_NP_HARDNESS = NOT_ESTABLISHED
 BABEL37_ALL_N_CONNECTED_MACRO_TO_3STATE_CSP = PROVED
 BABEL37_GLOBAL_3STATE_CSP_IN_P = NOT_PROVED
 BABEL37_UNIVERSAL_SCL_SOLVER = NOT_PROVED
