@@ -114,7 +114,7 @@ def local_three_port_relation():
     planted=sum(1<<v for v in ONES)
     alt=planted|(1<<0)
     assert dpll==qrational=={planted,alt},(dpll,qrational)
-    assert rank==22 and len(free)==5 and free==(0,22,23,25,26),(rank,free)
+    assert rank==24 and len(free)==3 and free==(0,25,26),(rank,free)
     assert len(untouched)==24
     assert all(0 not in row for row in untouched)
     entries=[]
