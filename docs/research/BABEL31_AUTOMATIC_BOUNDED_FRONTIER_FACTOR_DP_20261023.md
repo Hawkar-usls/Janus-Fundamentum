@@ -76,3 +76,29 @@ P_VS_NP = OPEN
 \`\`\`
 
 No scientific result shall be promoted until exact-head independent CI PASS.
+
+
+## 5. Full proof-carrying exact boundary receipts: separately replayed
+
+The solver now emits a typed JSON-compatible \`BABEL31/EXACT-BOUNDARY-TABLE-TREE/v1\` receipt with the exact original factor-graph vertex subset and ordered boundary edge IDs of EVERY tree node, plus an exact integer count and physical representative assignment for EACH positive boundary signature. A merge node carries both child receipts and its projected table. For fixed B every table contains at most 2^B entries; the full receipt size including explicit vertex sets at each node is polynomial (a conservative O(n^2+ n 2^B * n) bits bound suffices).
+
+An independent verifier, \`experiments/babel31/independent_receipt_replay.py\`, takes ONLY the original incidence rows, the claimed full table receipt and final result. It does **not** call the cut finder, the producer's variable-first Exact-One DPLL or its table join. It verifies each subtree partition and its boundary against the ORIGINAL incidence graph. To reconstruct leaf tables, it instead branches on which of the three literals in each owned clause is the UNIQUE true literal, enforcing equality for shared local variables. It then independently sums the counts of every leaf boundary signature. Every internal merge is checked by an independently implemented integer product-and-sum over matching edge-port bits. It verifies that each representative model obeys every original row owned by the node, with boundary port values substituted, and verifies the final physical SAT assignment against all original clauses.
+
+**Certificate completeness caveat:** A positive SAT witness alone proves SAT. For an UNSAT receipt, the independent full enumeration of each leaf and verification of EVERY merge is what establishes complete zero counting; absence of a witness without those checks would be insufficient. The verifier's row-choice search is bounded by \`3^W 2^(W+B)\` in the deliberately conservative worst case, hence polynomial for fixed W,B and independent of the full input's 2^n possibilities. This verification cost must be included in any end-to-end proof-carrier claim.
+
+### Exact-head CI evidence
+
+On HEAD \`6c8bc2fa170bf8370048341c8152fed64ac5c65e\`:
+- [GitHub Actions pull-request run #39944259643](https://github.com/Hawkar-usls/Janus-Fundamentum/actions/runs/39944259643): **COMPLETED SUCCESS**.
+- [GitHub Actions push run #39944255232](https://github.com/Hawkar-usls/Janus-Fundamentum/actions/runs/39944255232): **COMPLETED SUCCESS**.
+- The independent checker recomputes full GF2 parity counts on small SCL controls and independently verifies EVERY complete boundary-table receipt, including connected SCL540.
+- BABEL29 double-cross SCL54 changes from BABEL30 \`UNKNOWN\` to **SAT count2**; double-straight has SAT count1. Original single-splice UNSAT control count0. Seven label permutations pass. A forced frontier0 nonadmission remains \`UNKNOWN_NOT_ADMITTED\`.
+- Large t-chain cases are not exhaustively enumerated over GF2; their counts instead carry a verified complete bounded-frontier decomposition, exhaustive leaf counts and exact integer composition. Their returned physical SAT models are independently replayed against all original rows.
+
+\`\`\`
+BABEL31_FULL_BOUNDARY_TABLE_RECEIPT = VERIFIED_EXACT
+BABEL31_INDEPENDENT_REPLAY_OF_ALL_LEAF_AND_MERGE_TABLES = CI_PASS
+BABEL31_UNSAT_COMPLETE_COUNT_ON_ADMITTED = PROOF_CARRYING_PASS
+BABEL31_UNIVERSAL_SAT_COMPLETENESS = NOT_PROVED
+P_VS_NP = OPEN
+\`\`\`
