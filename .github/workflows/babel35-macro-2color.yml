@@ -1,0 +1,36 @@
+name: BABEL-35 exact macro bipartite port compression
+on:
+  push:
+    branches:
+      - 'research/babel35-macro-bipartite-state-compression-*'
+  pull_request:
+    paths:
+      - 'experiments/babel35/**'
+      - 'docs/research/BABEL35_*'
+      - '.github/workflows/babel35-macro-2color.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  exact-three-state-macro:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Independently verify local states macro template and bipartite SAT counts
+        run: python experiments/babel35/bipartite_macro_compression.py
+      - name: Prevent universal solver overclaim
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          doc=Path('docs/research/BABEL35_MACRO_BIPARTITE_STATE_COMPRESSION_20261023.md').read_text()
+          for assertion in ('BABEL35_EXACT_PORT_RELATION = {00,01,10}',
+                            'BABEL35_ALL_N_GIVEN_TEMPLATE_SOLVER = O_N',
+                            'BABEL35_GENERAL_POLYNOMIAL_SCL_SOLVER = NOT_PROVED',
+                            'P_VS_NP = OPEN'):
+              assert assertion in doc,assertion
+          print('BABEL35_SCIENTIFIC_FIREWALL_PASS')
+          PY
