@@ -1,0 +1,39 @@
+name: BABEL-34 independent local three-port forcing
+on:
+  push:
+    branches:
+      - 'research/babel34-expander-local-port-forcing-audit-*'
+  pull_request:
+    paths:
+      - 'experiments/babel34/**'
+      - 'docs/research/BABEL34_*'
+      - '.github/workflows/babel34-three-port-forcing.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  exact-port-relation:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Independent Exact-One DPLL and rational projection 3-port table
+        run: python experiments/babel34/local_three_port_forcing.py
+      - name: Benchmark anti-overclaim and PNP firewall
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          note=Path('docs/research/BABEL34_LOCAL_PORT_FORCING_UNIQUE_SAT_20261023.md').read_text()
+          for text in (
+            'BABEL34_FIXED_U_PUNCTURED_Q_RANK = 24',
+            'BABEL34_FIXED_U_VALID_BOUNDARY_RELATION = SINGLE_000_TO_000',
+            'BABEL34_THIS_MACRO_FAMILY_GLOBALLY_HARD = NOT_ESTABLISHED',
+            'BABEL34_UNIVERSAL_SCL_SOLVER = NOT_PROVED',
+            'P_VS_NP = OPEN'
+          ):
+              assert text in note,text
+          print('BABEL34_SCIENTIFIC_FIREWALL_PASS')
+          PY
