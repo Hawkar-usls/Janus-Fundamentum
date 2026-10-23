@@ -1,0 +1,36 @@
+name: BABEL-32 exact rational kernel universality firewall
+on:
+  push:
+    branches:
+      - 'research/babel32-universal-rational-kernel-gate-*'
+  pull_request:
+    paths:
+      - 'experiments/babel32/**'
+      - 'docs/research/BABEL32_*'
+      - '.github/workflows/babel32-rational-nullspace.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  exact-q-kernel:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Exact fraction echelon all-model controls and rank2 cyclic family
+        run: python experiments/babel32/rational_kernel_gate.py
+      - name: Universal completeness scientific guard
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          d=Path('docs/research/BABEL32_RATIONAL_KERNEL_UNIVERSALITY_FALSIFIER_20261023.md').read_text()
+          for x in ('BABEL32_CONNECTED_Q_NULLITY_LINEAR_COUNTERFAMILY = PROVED',
+                    'BABEL32_ALL_CONNECTED_SCL_Q_NULLITY_LOG_BOUND = DISPROVED',
+                    'BABEL32_GENERAL_POLYNOMIAL_SOLVER = NOT_PROVED',
+                    'P_VS_NP = OPEN'):
+              assert x in d,x
+          print('BABEL32_SCIENTIFIC_FIREWALL_PASS')
+          PY
