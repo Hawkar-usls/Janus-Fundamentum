@@ -331,6 +331,39 @@ def testcase(name, choices,seed,expected=None,brute=True):
                 if result["status"]=="UNSAT" else None}
 
 
+def independent_2sat_exhaustive_controls():
+    """Check SCC logic against complete independent assignment census.
+
+    Enumerate ALL 2^10 subsets of 2-literal clauses on two variables,
+    including direct unit clauses (x OR x), and both SAT/UNSAT outcomes.
+    """
+    literal_options=[literal(0),neg(literal(0)),
+                     literal(1),neg(literal(1))]
+    clause_options=list(itertools.combinations_with_replacement(literal_options,2))
+    assert len(clause_options)==10
+    outcomes=Counter()
+    for selected in range(1<<len(clause_options)):
+        formula=Exact2SAT()
+        assert (formula.fresh(),formula.fresh())==(0,1)
+        clauses=[pair for i,pair in enumerate(clause_options) if (selected>>i)&1]
+        for a,b in clauses:formula.clause(a,b)
+        guess,receipt=formula.solve()
+        true_models=[bits for bits in itertools.product((0,1),repeat=2)
+                     if all(formula.eval(a,bits) or formula.eval(b,bits)
+                            for a,b in clauses)]
+        assert bool(true_models)==(guess is not None),(selected,receipt)
+        if guess is not None:
+            assert tuple(guess) in true_models
+            outcomes["SAT"]+=1
+        else:
+            assert receipt["type"]=="SCC_VARIABLE_AND_NEGATION"
+            outcomes["UNSAT_SCC"]+=1
+    assert outcomes["SAT"]>0 and outcomes["UNSAT_SCC"]>0
+    return {"all_two_selector_clause_sets":1<<len(clause_options),
+            "independent_SAT_count":outcomes["SAT"],
+            "independent_UNSAT_SCC_count":outcomes["UNSAT_SCC"]}
+
+
 def main():
     assert hashlib.sha256(json.dumps(ROWS,separators=(",",":")).encode()).hexdigest()==SHA
     assert len(get_relation(PORT_SINGLE0))==1
@@ -356,8 +389,10 @@ def main():
     assert any(t["result"]=="UNSAT" for t in tests)
     assert any(2 in t["local_state_sizes"] and 3 in t["local_state_sizes"]
                for t in tests)
+    scc_regressions=independent_2sat_exhaustive_controls()
     print(json.dumps({
        "gate":"BABEL36_CERTIFIED_U_MACRO_POLYNOMIAL_2SAT_COMPILER",
+       "independent_complete_two_variable_2SAT_SCC_regressions":scc_regressions,
        "all_n_semantic_2CNF_equivalence":"PROVED",
        "complete_SAT_UNSAT_decision_on_admitted_template":"EXACT_PASS",
        "2SAT_selector_variables_at_most":"2T",
