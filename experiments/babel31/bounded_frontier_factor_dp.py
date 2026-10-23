@@ -232,6 +232,11 @@ def join_tables(table_a,table_b,bound_a,bound_b,bound_parent):
     return output
 
 
+def exact_table_receipt(table):
+    return [{"bits":list(bits),"count":count,"witness":str(witness)}
+            for bits,(count,witness) in sorted(table.items())]
+
+
 def solve(rows,leaf_vertices=54,frontier_limit=4):
     """Sound exact SAT/UNSAT/UNKNOWN; candidate discovery is not complete."""
     n=len(rows)
@@ -257,7 +262,13 @@ def solve(rows,leaf_vertices=54,frontier_limit=4):
                 "table_entries":len(table),
                 "leaf_variables_plus_ports":vars_and_ports})
             diagnostics["leaf_dpll_calls"]+=calls
-            return table
+            certificate={
+                "type":"leaf",
+                "vertices":sorted(subset),
+                "frontier":list(boundary),
+                "table":exact_table_receipt(table)
+            }
+            return table,certificate
         proposed=graph.proposed_split(subset,frontier_limit)
         if proposed is None:
             raise ValueError("No certified small-frontier split for "+
@@ -269,23 +280,38 @@ def solve(rows,leaf_vertices=54,frontier_limit=4):
             "crossing_incidence_edges":len(cross),
             "parent_frontier":len(boundary),
             "anchor_clause_ids":list(anchors)})
-        left=recurse(a)
-        right=recurse(b)
-        return join_tables(left,right,graph.boundary(a),graph.boundary(b),
-                           boundary)
+        left,left_certificate=recurse(a)
+        right,right_certificate=recurse(b)
+        table=join_tables(left,right,graph.boundary(a),graph.boundary(b),
+                          boundary)
+        certificate={
+            "type":"merge",
+            "vertices":sorted(subset),
+            "frontier":list(boundary),
+            "table":exact_table_receipt(table),
+            "left":left_certificate,
+            "right":right_certificate
+        }
+        return table,certificate
 
     try:
-        root_table=recurse(graph.all_vertices)
+        root_table,root_certificate=recurse(graph.all_vertices)
     except ValueError as err:
         return {"status":"UNKNOWN_NOT_ADMITTED","n":n,
                 "reason":str(err),"diagnostics":diagnostics}
     assert set(root_table).issubset({()})
     count,witness=root_table.get((),(0,None))
+    receipt={
+        "schema":"BABEL31/EXACT-BOUNDARY-TABLE-TREE/v1",
+        "leaf_vertices":leaf_vertices,"frontier_limit":frontier_limit,
+        "original_rows":n,
+        "root":root_certificate
+    }
     if count:
         assert witness is not None
         assert exact_one(rows,witness), "FAIL: original Exact-One row"
         return {"status":"SAT","count":count,"n":n,"witness":witness,
                 "witness_one_indices":[j for j in range(n) if (witness>>j)&1],
-                "diagnostics":diagnostics}
+                "diagnostics":diagnostics,"receipt":receipt}
     return {"status":"UNSAT","count":0,"n":n,"witness":None,
-            "diagnostics":diagnostics}
+            "diagnostics":diagnostics,"receipt":receipt}
