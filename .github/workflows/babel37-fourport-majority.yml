@@ -1,0 +1,40 @@
+name: BABEL-37 exact SCL four-port majority non-bijunctivity gate
+on:
+  push:
+    branches:
+      - 'research/babel37-fourport-nonbijunctive-scl27-gate-*'
+  pull_request:
+    paths:
+      - 'experiments/babel37/**'
+      - 'docs/research/BABEL37_*'
+      - '.github/workflows/babel37-fourport-majority.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  exact-fourport:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Independent complete local Q and Boolean model census and majority failure
+        run: python experiments/babel37/fourport_majority_falsifier.py
+      - name: Four-port barrier scope guard
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          note=Path('docs/research/BABEL37_FOURPORT_MAJORITY_FALSIFIER_20261023.md').read_text()
+          for term in (
+              'BABEL37_FOUR_PORT_U_PUNCTURED_Q_RANK = 23',
+              'BABEL37_MAJORITY_FALSIFIER = 0110|0010_NOT_IN_R4',
+              'BABEL37_R4_EXISTENTIAL_2CNF_REPRESENTATION = IMPOSSIBLE',
+              'BABEL37_GLOBAL_3STATE_CSP_IN_P = NOT_PROVED',
+              'BABEL37_UNIVERSAL_SCL_SOLVER = NOT_PROVED',
+              'P_VS_NP = OPEN'
+          ):
+              assert term in note,term
+          print('BABEL37_STRICT_PROOF_REPRESENTATION_FIREWALL_PASS')
+          PY
