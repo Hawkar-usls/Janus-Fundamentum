@@ -1,0 +1,36 @@
+name: BABEL-33 connected expander macro anti-dichotomy
+on:
+  push:
+    branches:
+      - 'research/babel33-expander-macro-universality-falsifier-*'
+  pull_request:
+    paths:
+      - 'experiments/babel33/**'
+      - 'docs/research/BABEL33_*'
+      - '.github/workflows/babel33-connected-macro.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  exact-structural-replay:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Independently replay connected macro cubic SCL legality and planted SAT
+        run: python experiments/babel33/macroexpander_falsifier.py
+      - name: Strict scope and external-theorem disclosure
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          doc=Path('docs/research/BABEL33_CONNECTED_EXPANDER_KERNEL_FRONTIER_ANTI_DICHOTOMY_20261023.md').read_text()
+          for phrase in ('BABEL33_Q_KERNEL_OR_BOUNDED_FRONTIER_UNIVERSAL_DICHOTOMY = DISPROVED',
+                         'BABEL33_GENERAL_SAT_COMPLEXITY_LOWER_BOUND = NOT_CLAIMED',
+                         'BABEL33_UNIVERSAL_POLYNOMIAL_SOLVER = NOT_PROVED',
+                         'P_VS_NP = OPEN'):
+              assert phrase in doc,phrase
+          print('BABEL33_SCIENTIFIC_FIREWALL_PASS')
+          PY
