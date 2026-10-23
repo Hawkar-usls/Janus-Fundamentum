@@ -102,3 +102,22 @@ BABEL31_UNSAT_COMPLETE_COUNT_ON_ADMITTED = PROOF_CARRYING_PASS
 BABEL31_UNIVERSAL_SAT_COMPLETENESS = NOT_PROVED
 P_VS_NP = OPEN
 \`\`\`
+
+
+## 6. Extension to a real SIX-edge / three-incidence-swap interface
+
+The exact factor-graph recurrence holds at ANY certified finite frontier size B, not only B=4. A new frozen legal connected SCL54 control has **THREE** cross-splices between the same two original SCL27 regions: start from BABEL29's double-cross instance, then exchange original U row0 variable0 with the other U row0 variable0 (offset27). Both preserved partial models have zero at these added two literals. The resulting joined input has **exactly TWO SAT assignments**, confirmed independently by exhaustive GF2 enumeration (small control only).
+
+At frontier budget B=6, the old radius-one source/sink anchor policy could prefer a trivial 4-vertex star separated by six edges, which did not lead to W=54 leaves. The candidate finder now **uses radius-two anchor neighborhoods whenever B>=6**; every successful cut is still checked against ALL original incidence edges, the full subtree frontier budget and the independent receipt checker. For the three-swap SCL54 it finds the intended six-edge 54+54 factor-graph split, computes exactly TWO assignments, returns a physical witness and produces an independently replayed full table certificate.
+
+Three deterministic row-and-variable permutations of this control also pass at B=6. This is a useful increased admitted width, NOT a proof that arbitrary 6-edge-cut decompositions will always be discovered.
+
+[GitHub Actions #39944817685](https://github.com/Hawkar-usls/Janus-Fundamentum/actions/runs/39944817685): SUCCESS on head \`2ef9b35e729b8ad4374dc6f0e32a4051c2fa66ec\` with independently computed full GF2 count, full tree-table proof receipt and physical SAT witness recheck.
+
+\`\`\`
+BABEL31_DOUBLE_SPLICE_B4_PREVIOUS_UNKNOWN = SAT_COUNT_2_VERIFIED
+BABEL31_TRIPLE_SPLICE_B6_AUTOMATIC_ADMISSION = SAT_COUNT_2_VERIFIED
+BABEL31_INDEPENDENT_RECEIPT_ON_ALL_ADMITTED_CONTROLS = PASS
+BABEL31_UNIVERSAL_COMPLETENESS = OPEN
+P_VS_NP = OPEN
+\`\`\`
