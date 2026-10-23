@@ -177,6 +177,37 @@ def majority_obstruction(feasible):
     }
 
 
+def schaefer_exact_polymorphism_falsifiers(feasible):
+    """Finite closure counterexamples for the six Schaefer tractable types.
+
+    The NP-completeness consequence applies to the GENERIC CSP({R4})
+    with unrestricted 8-variable constraint scopes ONLY. It does NOT
+    automatically transfer to four-edge U macro joins.
+    """
+    A,B,C=R4
+    and_ab=tuple(x&y for x,y in zip(A,B))
+    or_ab=tuple(x|y for x,y in zip(A,B))
+    xor_abc=tuple(x^y^z for x,y,z in zip(A,B,C))
+    majority=maj(A,B,C)
+    assert (0,)*8 not in feasible
+    assert (1,)*8 not in feasible
+    assert all(x not in feasible for x in
+               (and_ab,or_ab,xor_abc,majority))
+    return {
+      "all_zero_tuple_admissible":False,
+      "all_one_tuple_admissible":False,
+      "Horn_AND_counterexample":[*and_ab],
+      "dual_Horn_OR_counterexample":[*or_ab],
+      "affine_XOR3_counterexample":[*xor_abc],
+      "bijunctive_majority_counterexample":[*majority],
+      "all_four_closure_outputs_outside_R4":True,
+      "generic_unrestricted_CSP_R4_complexity":
+         "NP_COMPLETE_BY_SCHAEFER_DICHOTOMY",
+      "special_edge_spliced_U_macro_NP_hardness":
+         "NOT_ESTABLISHED"
+    }
+
+
 def macros(kind):
     if kind=="K5":
         t=5
@@ -287,6 +318,7 @@ def check_macro(kind,feasible):
 def main():
     feasible,local=local_relation()
     obstruction=majority_obstruction(feasible)
+    schaefer=schaefer_exact_polymorphism_falsifiers(feasible)
     controls=[check_macro("K5",feasible),check_macro("K44",feasible)]
     print(json.dumps({
       "gate":"BABEL37_FOUR_PORT_MAJORITY_NONBIJUNCTIVE_BARRIER",
@@ -299,6 +331,7 @@ def main():
       "P_vs_NP":"OPEN",
       "independent_local_proof":local,
       "majority_refutation":obstruction,
+      "independent_Schaefer_polymorphism_falsifiers":schaefer,
       "exact_original_macro_controls":controls
     },indent=2,sort_keys=True))
 
