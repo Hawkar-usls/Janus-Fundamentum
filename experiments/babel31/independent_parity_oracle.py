@@ -46,6 +46,15 @@ def double_swap(cross):
     return rows
 
 
+def triple_swap():
+    """Independent three-pair crossing fixture, genuine six-edge boundary."""
+    rows=double_swap(True)
+    assert 0 in rows[0] and 27 in rows[27]
+    rows[0]=tuple(sorted([v for v in rows[0] if v!=0]+[27]))
+    rows[27]=tuple(sorted([v for v in rows[27] if v!=27]+[0]))
+    return rows
+
+
 def single_swap(b_relative):
     n=27
     rows={i:tuple(row) for i,row in enumerate(U)}
@@ -121,8 +130,8 @@ def relabel(rows,seed):
             for r,old in enumerate(row_order)}
 
 
-def check_case(name,rows,expected,full_oracle=True):
-    result=solve(rows,leaf_vertices=54,frontier_limit=4)
+def check_case(name,rows,expected,full_oracle=True,frontier_limit=4):
+    result=solve(rows,leaf_vertices=54,frontier_limit=frontier_limit)
     assert result["status"]==("SAT" if expected else "UNSAT"),(name,result)
     assert result["count"]==expected,(name,result)
     if expected:
@@ -139,14 +148,16 @@ def check_case(name,rows,expected,full_oracle=True):
     receipt_audit=check_proof(rows,result)
     assert receipt_audit["exact_count"]==expected
     diag=result["diagnostics"]
-    assert all(leaf["factor_vertices"]<=54 and leaf["frontier_edges"]<=4
+    assert all(leaf["factor_vertices"]<=54 and
+               leaf["frontier_edges"]<=frontier_limit
                for leaf in diag["leaves"])
-    assert all(split["crossing_incidence_edges"]<=4 and split["parent_frontier"]<=4
+    assert all(split["crossing_incidence_edges"]<=frontier_limit and
+               split["parent_frontier"]<=frontier_limit
                for split in diag["splits"])
     return {
         "fixture":name,"n":len(rows),"status":result["status"],
         "exact_count":result["count"],
-        "frontier_limit":4,"leaf_vertex_limit":54,
+        "frontier_limit":frontier_limit,"leaf_vertex_limit":54,
         "max_actual_frontier":max((leaf["frontier_edges"]
                                for leaf in diag["leaves"]),default=0),
         "automatic_discovered_splits":len(diag["splits"]),
@@ -165,6 +176,8 @@ def main():
     results=[
         check_case("DOUBLE_CROSS_SCL54_PREVIOUS_UNKNOWN",double_swap(True),2),
         check_case("DOUBLE_STRAIGHT_SCL54_PREVIOUS_UNKNOWN",double_swap(False),1),
+        check_case("TRIPLE_CROSS_SCL54_SIX_INCIDENCE_EDGES",
+                   triple_swap(),2,frontier_limit=6),
         check_case("SINGLE_MATCHING_SCL54",single_swap(0),1),
         check_case("SINGLE_MISMATCH_SCL54",single_swap(2),0),
         check_case("CHAIN_C3",chain(3),1),
@@ -175,6 +188,11 @@ def main():
     for seed in (0,1,2,7,19,71,923):
         fixture=relabel(double_swap(True),seed)
         results.append(check_case(f"RELABELED_DOUBLE_CROSS_{seed}",fixture,2))
+    # Robustness for new 6-edge, three-splice admissions under relabeling.
+    for seed in (0,7,71):
+        results.append(check_case(
+            f"RELABELED_TRIPLE_CROSS_{seed}",
+            relabel(triple_swap(),seed),2,frontier_limit=6))
     # Complete soundness controls on small connected square regular systems.
     fano={i:tuple(sorted((i,(i+1)%7,(i+3)%7))) for i in range(7)}
     result=solve(fano)
@@ -189,6 +207,7 @@ def main():
         "gate":"BABEL31_BOUNDED_FRONTIER_EXACT_SAT_COUNT_AND_WITNESS",
         "double_splice_automatic_admission":"EXACT_PASS",
         "permutation_invariance_7_trials":"EXACT_PASS",
+        "six_edge_triple_splice_recovered":"EXACT_PASS",
         "independent_small_GF2_oracle":"EXACT_PASS",
         "independent_full_certificate_replay":"EXACT_PASS",
         "full_input_verified_on_every_SAT_result":True,
