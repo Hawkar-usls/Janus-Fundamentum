@@ -64,8 +64,15 @@ class FactorGraph:
 
     def bounded_anchored_cut(self,subset,source,sink,limit):
         """Exact unit-edge mincut capped at limit+1; no probabilistic oracle."""
-        anchor_a={source}|{v for v,_ in self.adj[source] if v in subset}
-        anchor_b={sink}|{v for v,_ in self.adj[sink] if v in subset}
+        # A wider anchor neighborhood blocks trivial radius-1 star cuts
+        # when the frontier budget reaches six incidence edges. Candidate
+        # selection is heuristic; every accepted edge cut remains exact.
+        radius=2 if limit>=6 else 1
+        def anchored_ball(center):
+            return {v for v,distance in self.distances(subset,center).items()
+                    if distance<=radius}
+        anchor_a=anchored_ball(source)
+        anchor_b=anchored_ball(sink)
         if anchor_a&anchor_b:return None
         head,tail=-1,-2
         big=limit+2
