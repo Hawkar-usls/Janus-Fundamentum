@@ -312,6 +312,31 @@ def main():
                      "affine9_original_complete_SAT_count":3,
                      "joined_exact_SAT_count_independent_component_bijection":2,
                      "generic_local_profiles":result["local_component_profiles"]})
+    # Important mixed-sign REAL SCL controls: BABEL35 U-threeport exposes
+    # both +3 and -3 local states. The generic flux rule MUST NOT discard
+    # these unconditionally; nevertheless the local 3-state table is 2CNF.
+    from experiments.babel35.bipartite_macro_compression import (
+        PORTS as THREE_PORTS,prism_macro,build_J,
+        independent_macro_exhaustive)
+    for t,expected in ((8,3),(10,1)):
+        m_edges,adj,slots=prism_macro(t,seed=3900+t,shuffle_ports=True)
+        joined=build_J(t,m_edges,adj,slots)
+        cert={"components":[{"rows":U,"ports":THREE_PORTS}
+                            for _ in range(t)],
+              "edges":[(u,slots[u][v],v,slots[v][u])
+                       for u,v in m_edges]}
+        rebuilt,_=join_certificate(cert["components"],cert["edges"])
+        assert joined==rebuilt
+        generic=solve(joined,cert)
+        assert generic["status"]=="SAT",(t,generic)
+        assert generic["sign_flux_pruning"] is None
+        assert independent_macro_exhaustive(adj,t)==expected
+        assert generic["original_rows_verified"]==27*t
+        controls.append({"case":f"GENERIC_MIXED_FLUX_THREEPORT_t{t}",
+                         "n":27*t,"answer":generic["status"],
+                         "sign_pruning_correctly_skipped":True,
+                         "independent_macro_exact_count":expected,
+                         "physical_witness_replayed":True})
     # Bounded gates MUST leave nonadmitted work UNKNOWN instead of UNSAT.
     restricted=solve(mixed,c,max_q_nullity=0,max_ports=6)
     assert restricted["status"].startswith("UNKNOWN_")
