@@ -1,0 +1,42 @@
+name: BABEL-38 global four-port conservation and forced-state #SAT
+on:
+  push:
+    branches:
+      - 'research/babel38-global-conservation-fourport-dsu-*'
+  pull_request:
+    paths:
+      - 'experiments/babel38/**'
+      - 'docs/research/BABEL38_*'
+      - '.github/workflows/babel38-global-flux.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  exact-conservation-and-independent-oracle:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Exact complete port2 SAT/UNSAT and independent DSU count
+        run: python experiments/babel38/fourport_global_balance_dsu.py
+      - name: Independent original SCL and complete 3-state oracle
+        run: python experiments/babel38/independent_fourport_csp_oracle.py
+      - name: Scientific scope firewall
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          note=Path('docs/research/BABEL38_GLOBAL_CONSERVATION_FOURPORT_DSU_20261024.md').read_text()
+          for marker in (
+             'BABEL38_ALL_N_CLOSED_NETWORK_EXACT_NET_FLUX_ZERO = PROVED',
+             'BABEL38_R4_STATE_C_ELIMINATION = PROVED_ALL_N',
+             'BABEL38_FOURPORT_U_MACRO_FULL_SAT_UNSAT_EXACT_COUNT = PROVED',
+             'BABEL38_ARBITRARY_CONNECTED_SCL_LOCAL_RELATION_DISCOVERY = OPEN',
+             'BABEL38_UNIVERSAL_SolveLinearCubicXSAT = NOT_PROVED',
+             'P_VS_NP = OPEN'
+          ):
+              assert marker in note,marker
+          print('BABEL38_PROOF_COMPLETENESS_FIREWALL_PASS')
+          PY
