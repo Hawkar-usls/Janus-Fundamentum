@@ -1,0 +1,45 @@
+name: BABEL-40 genuine SCL signed-flux survivor and generic exact arc
+on:
+  push:
+    branches:
+      - 'research/babel40-adversarial-signed-flux-arc-consistency-*'
+  pull_request:
+    paths:
+      - 'experiments/babel40/**'
+      - 'experiments/babel39/generic_scl_component_compiler.py'
+      - 'docs/research/BABEL40_*'
+      - '.github/workflows/babel40-signed-flux-arc.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  exact-signed-flux-falsifier:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Independent exact connected SCL signed plus/minus and generic arc
+        run: python experiments/babel40/signed_flux_arc_adversary.py
+      - name: No regressions in existing generic arbitrary-component compiler
+        run: python experiments/babel39/generic_scl_component_compiler.py
+      - name: Independent generic Q versus Boolean tables and negative controls
+        run: python experiments/babel39/independent_generic_receipt_audit.py
+      - name: Scientific all-n proof-system and universality guard
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          doc=Path('docs/research/BABEL40_SIGNED_FLUX_ARC_UNIVERSALITY_FALSIFIER_20261024.md').read_text()
+          for assertion in (
+              'BABEL40_CONNECTED_SCL54_SIGNED_FLUX_COMPENSATION = EXACT_SAT_UNIQUE',
+              'BABEL40_BABEL39_ZERO_FLUX_SUPPORT_ALWAYS_BIJUNCTIVE = DISPROVED',
+              'BABEL40_GENERIC_ALL_N_RECIPROCAL_ARC_PRUNING = PROVED_SOUND',
+              'BABEL40_ARC_CONSISTENCY_GLOBALLY_COMPLETE_FOR_ALL_SCL = NOT_PROVED',
+              'BABEL40_UNIVERSAL_SolveLinearCubicXSAT = NOT_CONSTRUCTED',
+              'P_VS_NP = OPEN'
+          ):
+              assert assertion in doc,assertion
+          print('BABEL40_STRICT_UNIVERSALITY_FIREWALL_PASS')
+          PY
