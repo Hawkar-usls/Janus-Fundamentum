@@ -156,9 +156,9 @@ def add_local_exact_2cnf(sat,coords,relation):
     """Construct all entailed unit/binary clauses and verify FULL equivalence."""
     relation=set(relation);bits=len(coords)
     assert relation
-    majority,witness=majority_relation(relation)
-    if not majority:return False,{"failure":"NOT_MAJORITY_CLOSED",
-                                   "explicit_falsifier":witness}
+    # No O(|R|^3) polymorphism census in production: construct all implied
+    # 1/2-clauses and check their FULL 2^(2r) truth table directly.
+    # This preserves the promised 2^O(r) (not |R|^3) complexity.
     for i in range(bits):
         for value in (0,1):
             if not any(x[i]==value for x in relation):
@@ -182,8 +182,11 @@ def add_local_exact_2cnf(sat,coords,relation):
         admitted=(not any(x[i]==a for i,a in unary_absent)
                   and not any(x[i]==a and x[j]==b
                               for i,j,a,b in pair_absent))
-        assert admitted==(x in relation),(
-            "2CNF emitted relation not exact",bits,x,admitted)
+        if admitted!=(x in relation):
+            return False,{"failure":"EXACT_2CNF_NOT_EQUIVALENT",
+                          "boundary_tuple":list(x),
+                          "table_admits":x in relation,
+                          "2CNF_admits":admitted}
     return True,{"closure":"PASS","all_truth_tuples_checked":1<<bits}
 
 
@@ -197,7 +200,7 @@ def solve(original_joined_rows,certificate,max_q_nullity=12,max_ports=6):
     for c in components:
         table=complete_local_table(c,max_q_nullity,max_ports)
         if table["status"]!="COMPLETE":
-            return {"status":"UNKNOWN_"+table["status"],"n":n,
+            return {"status":table["status"],"n":n,
                     "gate":table}
         if not table["entries"]:
             return {"status":"UNSAT","n":n,
