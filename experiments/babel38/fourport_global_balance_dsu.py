@@ -274,6 +274,11 @@ def compile_fixture(kind,n=8,seed=0,special=False):
             ports[vertex]={neighbor:(vertex+(neighbor-4))%4
                          if vertex<4 else ((neighbor)+(vertex-4))%4
                          for neighbor in choices}
+        elif kind=="CIRCULANT" and special in ("ALL_A","ALL_B"):
+            offsets={1:2,-1:3,2:0,-2:1} if special=="ALL_A" else {
+                1:1,-1:2,2:0,-2:3}
+            ports[vertex]={((vertex+offset)%t):port
+                           for offset,port in offsets.items()}
         else:
             rng.shuffle(choices)
             ports[vertex]={neighbor:i for i,neighbor in enumerate(choices)}
@@ -317,6 +322,9 @@ def main():
             cases.append((f"FULL_RANDOM_PORTS_CIRCULANT_t{n}_s{seed}",
                           compile_fixture("CIRCULANT",n=n,seed=seed)))
     for n in (12,20,40):
+        for kind in ("ALL_A","ALL_B"):
+            cases.append((f"FULL_SAT_CIRCULANT_{kind}_t{n}",
+                          compile_fixture("CIRCULANT",n=n,special=kind)))
         for seed in (0,1,7):
             cases.append((f"LARGE_CONNECTED_CIRCULANT_t{n}_s{seed}",
                           compile_fixture("CIRCULANT",n=n,seed=seed)))
@@ -330,6 +338,7 @@ def main():
                 assert output["physical_SAT_witness"]==oracle[0][1]
         if label=="K5_UNSAT":assert output["status"]=="UNSAT"
         if label=="K44_EDGE_COLORED_SAT":assert output["exact_sat_count"]==1
+        if "FULL_SAT_CIRCULANT" in label:assert output["exact_sat_count"]==1
         checked.append({
             "case":label,"n":len(rows),
             "macros":output["macro_blocks"],
