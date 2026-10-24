@@ -64,7 +64,7 @@ Input: original full SCL incidence rows with a **certified partition into aligne
 2. For each recovered macro edge, look up its exact A/B allowed pair from the generated 16-case truth table. If empty return UNSAT (proven by conservation and the exact R4 local relation); if it is an equality, union v,u in a disjoint-set union (DSU); if it pins one/both states, store the required 0/1 value; if tautological, do nothing.
 3. Collapse the DSU. If ANY DSU class has contradictory pins, return UNSAT with an independently checkable contradiction certificate (exact edge-state restrictions and class equality/pin provenance). Otherwise each unpinned DSU class admits BOTH A and B, independently of other classes. Let c be their count. Then **exactly** \`2^c\` physical SCL SAT models exist. Produce one witness by picking 0 for every unpinned class and instantiating the BABEL37 certified physical U assignments. Verify EVERY original Exact-One clause.
 
-All-n theorem: By BABEL37's exact local-to-global semantic bijection, EVERY global physical model corresponds to an assignment to A/B/C. Global flux removes all C. The 16-case finite table is exact, hence satisfying A/B networks are **precisely** the finite systems of equality and pins classified above. DSU computes all equivalence classes and exact model cardinality; each class assignment yields one physical U model per block, bijectively. Thus SAT/UNSAT/count/witness are COMPLETE for ALL admitted four-port U macro inputs, including arbitrary connected simple degree4 macro graphs and all port bijections.
+All-n theorem: By BABEL37's exact local-to-global semantic bijection, EVERY global physical model corresponds to an assignment to A/B/C. Global flux removes all C. The 16-case finite table is exact, hence satisfying A/B networks are **precisely** the finite systems of equality and pins classified above. DSU computes all equivalence classes and exact model cardinality; each class assignment yields one physical U model per block, bijectively. Moreover, in the exact FULL-port 4-regular macro setting, port2 forces every class, so c=0 in every satisfiable case and #SAT is 0 or1. Thus SAT/UNSAT/count/witness are COMPLETE for ALL admitted four-port U macro inputs, including arbitrary connected simple degree4 macro graphs and all port bijections.
 
 **Time & bit complexity:** extraction and certification O(poly(n)), 16-entry fixed table, DSU O(n α(n)), exact integer output 2^c uses ≤n bits, witness construction/replay O(n). For a supplied aligned U-block partition (not necessarily a universally available one), this is a **polynomial exact #SAT/SAT/UNSAT algorithm on that entire family**. The stronger exact-count property distinguishes this from the generic BABEL36 2-SAT reduction, where arbitrary 2-SAT #SAT is not asserted polynomial.
 
@@ -73,6 +73,21 @@ The generic Boolean CSP({R4}) with UNRESTRICTED 8-tuple placements remains NP-co
 ### Generalized safe pruning: one-sided sign flux
 
 On any certified closed network with exact local tables T_v, if all candidate rows have Δ>=0 then every global solution must choose Δ=0 locally; likewise if all Δ<=0. This is an **all-n sound polynomial local pruning step given the exact tables**, but it is NOT sufficient to solve all networks when positive and negative Δ co-occur. The latter can balance, and conservation alone cannot decide global satisfiability. Determining whether arbitrary local tables have polynomially bounded construction and composition remains OPEN.
+
+## 4B. STRONGER all-n uniqueness lemma: every port-2 link fixes its block
+
+The 16-case table above has an even stronger implication for the **complete** degree-4 macro family, where EVERY U block uses each port exactly once. Consider the edge incident to the distinguished port2 on any block v:
+
+- port2 ↔ port0: allowed set EMPTY => UNSAT.
+- port2 ↔ port1: allowed pair is B,B, so v MUST be B.
+- port2 ↔ port2: allowed pair is B,B, so v MUST be B.
+- port2 ↔ port3: allowed pair is A,A, so v MUST be A.
+
+Therefore **each block's state is uniquely determined by the location of the opposite endpoint of its port2 edge** in ANY satisfiable network. All states on all t blocks are forced. Checking these states against all original cross-edge equations is complete, and the full physical SAT model, if it exists, is UNIQUE:
+
+    #SAT(J4(H))∈{0,1} for EVERY connected or disconnected certified full-port H.
+
+This is stronger than the generic DSU theorem's \`2^c\` count: in the genuine complete 4-regular U macro family c=0 always if satisfiable. The simpler **linear-time direct port2 forcing solver** and the generic equality/pin DSU solver must give the SAME answer and reconstructed physical model; the independent CI compares both. SAT and UNSAT certificates consist of the full extracted port mapping, exact local R4 lemma, global balance exclusion of C, the forced A/B states from port2, and complete replay of every edge relation. This is an all-n uniqueness theorem, not a claim that the representation cannot encode computationally difficult relations under different, less constrained wiring.
 
 ## 5. Independent reproducibility and scientific limits
 
