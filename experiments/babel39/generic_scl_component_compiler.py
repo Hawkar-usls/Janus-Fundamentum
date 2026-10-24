@@ -190,6 +190,41 @@ def add_local_exact_2cnf(sat,coords,relation):
     return True,{"closure":"PASS","all_truth_tuples_checked":1<<bits}
 
 
+def exact_global_flux_support_filter(tables):
+    """POLYNOMIAL exact integer sumset domain consistency for Σ Delta_i=0.
+
+    Sum range is O(total original variables), since Delta_i=3|x_i|-n_i
+    lies between -n_i and 2*n_i. This is a NECESSARY condition for port
+    compatibility, not a complete SAT solver. Every retained local state
+    has some global zero-flux combination ignoring edge equalities.
+    """
+    domain=[set(meta["delta"] for meta in t["entries"].values())
+            for t in tables]
+    n=len(domain)
+    prefix=[{0}]
+    for d in domain:
+        prefix.append({v+x for v in prefix[-1] for x in d})
+    if 0 not in prefix[-1]:
+        return False,{"certificate":"EXACT_ADDITIVE_FLUX_IMPOSSIBLE",
+                      "global_reachable_net_flux":sorted(prefix[-1]),
+                      "pruned_states":0}
+    suffix=[None]*(n+1)
+    suffix[n]={0}
+    for i in range(n-1,-1,-1):
+        suffix[i]={v+x for v in suffix[i+1] for x in domain[i]}
+    removed=0
+    for i,table in enumerate(tables):
+        other={a+b for a in prefix[i] for b in suffix[i+1]}
+        kept={key:meta for key,meta in table["entries"].items()
+              if -meta["delta"] in other}
+        removed+=len(table["entries"])-len(kept)
+        assert kept
+        table["entries"]=kept
+    return True,{"certificate":"EXACT_GLOBAL_ZERO_FLUX_SUPPORT",
+                 "pruned_states":removed,
+                 "reachable_net_flux_values":len(prefix[-1])}
+
+
 def solve(original_joined_rows,certificate,max_q_nullity=12,max_ports=6):
     components=certificate["components"];edges=certificate["edges"]
     rebuilt,offsets=join_certificate(components,edges)
@@ -218,6 +253,11 @@ def solve(original_joined_rows,certificate,max_q_nullity=12,max_ports=6):
             if not table["entries"]:
                 return {"status":"UNSAT","n":n,
                         "certificate":"EXACT_ZERO_NET_FLUX_WITH_NO_ZERO_DELTA_STATE"}
+    allowed_flux,flux_receipt=exact_global_flux_support_filter(locals)
+    if not allowed_flux:
+        return {"status":"UNSAT","n":n,
+                "certificate":"EXACT_ADDITIVE_FLUX_IMPOSSIBLE",
+                "flux_receipt":flux_receipt}
     sat=Exact2SAT()
     coord={}
     diagnostics=[]
@@ -240,6 +280,7 @@ def solve(original_joined_rows,certificate,max_q_nullity=12,max_ports=6):
     if bits is None:
         return {"status":"UNSAT","n":n,"certificate":"EXACT_2CNF_UNSAT",
                 "proof":proof,"sign_flux_pruning":sign,
+                "exact_additive_flux_filter":flux_receipt,
                 "local_component_profiles":diagnostics}
     physical=0
     for i,table in enumerate(locals):
@@ -255,6 +296,7 @@ def solve(original_joined_rows,certificate,max_q_nullity=12,max_ports=6):
             "selector_bits":sat.n,
             "2CNF_clauses":len(sat.clauses),
             "sign_flux_pruning":sign,
+            "exact_additive_flux_filter":flux_receipt,
             "local_component_profiles":diagnostics}
 
 
