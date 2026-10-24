@@ -19,7 +19,7 @@ from experiments.babel37.fourport_majority_falsifier import (
 )
 from experiments.babel39.generic_scl_component_compiler import (
     affine9,complete_local_table,valid_square,join_certificate,solve,
-    add_local_exact_2cnf,majority_relation
+    add_local_exact_2cnf,majority_relation,exact_global_flux_support_filter
 )
 from experiments.babel36.u_macro_2sat_solver import Exact2SAT
 
@@ -110,6 +110,49 @@ def check_direct_relation(comp,prune):
             "explicit_failure_checked":not ok}
 
 
+def independent_integer_flux_dp_audit():
+    """Exhaustive physical Cartesian-state oracle for polynomial sumset DP.
+
+    These abstract integer tables are checks of the ALL-N additive lemma,
+    NOT presented as original SCL input fixtures.
+    """
+    domains=(
+       ((-3,0,3),(3,),(0,)),
+       ((-3,0,3),(-3,0,3),(0,)),
+       ((-3,0,3),(0,),(0,)),
+       ((3,),(3,)),
+       ((-3,),(3,)),
+       ((-6,-3,0,3,6),(-3,0,3),(0,)),
+       ((-3,0),(0,3),(0,)),
+    )
+    confirmations=[]
+    for domain in domains:
+        tables=[]
+        for source in domain:
+            assert len(source)==len(set(source))
+            tables.append({"entries":{str(d):{"delta":d} for d in source}})
+        combinations=[c for c in itertools.product(*domain) if sum(c)==0]
+        actually_supported=[{c[i] for c in combinations}
+                            for i in range(len(domain))]
+        accepted,receipt=exact_global_flux_support_filter(tables)
+        assert accepted==bool(combinations),(domain,receipt)
+        if accepted:
+            after=[{entry["delta"] for entry in table["entries"].values()}
+                   for table in tables]
+            assert after==actually_supported, (domain,after,actually_supported)
+        else:
+            assert receipt["certificate"]=="EXACT_ADDITIVE_FLUX_IMPOSSIBLE"
+        confirmations.append({
+            "integer_domain_sizes":[len(q) for q in domain],
+            "all_state_Cartesian_assignments_checked":
+                __import__("math").prod(map(len,domain)),
+            "globally_zero_flux_exists":accepted,
+            "exact_per_local_supported_values":"PASS",
+            "pruned_states":receipt["pruned_states"]
+        })
+    return confirmations
+
+
 def main():
     from experiments.babel35.bipartite_macro_compression import PORTS as P3
     components=[
@@ -120,6 +163,7 @@ def main():
     ]
     assert all(valid_square(c["rows"]) for c in components)
     audits=[audit_local(c) for c in components]
+    additive_proofs=independent_integer_flux_dp_audit()
     raw_R4=check_direct_relation(components[0],False)
     pruned_R4=check_direct_relation(components[0],True)
     assert not raw_R4["majority_closed"]
@@ -173,6 +217,7 @@ def main():
     print(json.dumps({
       "gate":"BABEL39_INDEPENDENT_Q_VS_DPLL_AND_TRUE_2CNF_AUDIT",
       "independent_local_boolean_censuses":audits,
+      "independent_complete_additive_flux_domains":additive_proofs,
       "R4_unpruned_2CNF_rejected":raw_R4,
       "R4_sound_global_flux_pruning_makes_2CNF":pruned_R4,
       "independent_mixed_nonU_joined_model_count":2,
