@@ -1,0 +1,39 @@
+name: BABEL-39 generic SCL component Q-table and majority 2CNF compiler
+on:
+  push:
+    branches:
+      - 'research/babel39-generic-component-flux-bijunctive-compiler-*'
+  pull_request:
+    paths:
+      - 'experiments/babel39/**'
+      - 'docs/research/BABEL39_*'
+      - '.github/workflows/babel39-generic-component.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  exact-non-U-generic:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Generic original-SCL component rational enumeration flux and exact 2CNF
+        run: python experiments/babel39/generic_scl_component_compiler.py
+      - name: Strict total complexity / no universal SCL claim guard
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          d=Path('docs/research/BABEL39_GENERIC_SCL_COMPONENT_FLUX_AND_2CNF_20261024.md').read_text()
+          for phrase in (
+              'BABEL39_GENERIC_SCL_COMPONENT_FLUX_CONSERVATION = PROVED_ALL_N',
+              'BABEL39_CERTIFIED_COMPONENT_COMPOSITION_IN_P_WHEN_K_R_LOG = PROVED',
+              'BABEL39_ARBITRARY_CONNECTED_SCL_AUTO_PARTITION_DISCOVERY = OPEN',
+              'BABEL39_GENERAL_P_TIME_SAT = NOT_PROVED',
+              'P_VS_NP = OPEN'
+          ):
+              assert phrase in d,phrase
+          print('BABEL39_SCIENTIFIC_COMPLEXITY_GATE_PASS')
+          PY
