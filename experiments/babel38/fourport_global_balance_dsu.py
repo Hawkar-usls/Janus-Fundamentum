@@ -287,7 +287,10 @@ def compile_fixture(kind,n=8,seed=0,special=False):
         rb,vb=PORTS[ports[b][a]]
         la=27*a+ra;lb=27*b+rb
         va+=27*a;vb+=27*b
-        assert va in rows[la] and vb in rows[lb]
+        assert va in rows[la] and vb in rows[lb], (
+            "invalid source port during independent fixture assembly",
+            kind,n,seed,special,(a,b),ra,va,rb,vb,rows[la],rows[lb],
+            ports[a],ports[b])
         rows[la][rows[la].index(va)]=vb
         rows[lb][rows[lb].index(vb)]=va
     return tuple(tuple(sorted(r)) for r in rows)
