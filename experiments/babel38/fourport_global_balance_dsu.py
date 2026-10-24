@@ -195,14 +195,12 @@ def solve_admitted(original_rows):
     forces={}
     table=all_link_table()
     for u,i,v,j in edges:
-        if i==2:
-            target=u;other_port=j
-        elif j==2:
-            target=v;other_port=i
-        else:continue
-        required={0:None,1:1,2:1,3:0}[other_port]
-        assert target not in forces
-        forces[target]=required
+        # A port2--port2 edge forces BOTH endpoints, not only one.
+        for target,own_port,other_port in ((u,i,j),(v,j,i)):
+            if own_port!=2:continue
+            required={0:None,1:1,2:1,3:0}[other_port]
+            assert target not in forces
+            forces[target]=required
     assert len(forces)==t
     if any(value is None for value in forces.values()):
         direct_states=None;direct_count=0
