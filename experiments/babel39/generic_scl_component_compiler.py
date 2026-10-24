@@ -225,6 +225,49 @@ def exact_global_flux_support_filter(tables):
                  "reachable_net_flux_values":len(prefix[-1])}
 
 
+def exact_reciprocal_port_arc_consistency(tables,edges):
+    """All-n sound full relational arc support on actual 2-way port link bits.
+
+    Each edge compares one LOCAL output and its LOCAL import against the
+    opposite component's import and output, respectively. A local state
+    is deleted only if NO neighbor state witnesses BOTH reciprocal bits.
+    The procedure uses only explicitly COMPLETE local relations and
+    performs at most sum(table sizes) strict deletion rounds.
+    """
+    removed=0
+    rounds=0
+    while True:
+        rounds+=1
+        changes=[set() for _ in tables]
+        for i,p,j,q in edges:
+            ri=tables[i]["r"];rj=tables[j]["r"]
+            left=tables[i]["entries"]
+            right=tables[j]["entries"]
+            support_i={(key[rj+q],key[q]) for key in right}
+            support_j={(key[ri+p],key[p]) for key in left}
+            changes[i].update(
+                key for key in left
+                if (key[p],key[ri+p]) not in support_i)
+            changes[j].update(
+                key for key in right
+                if (key[q],key[rj+q]) not in support_j)
+        change_count=sum(len(to_remove) for to_remove in changes)
+        if not change_count:
+            break
+        for i,deleted in enumerate(changes):
+            for key in deleted:
+                tables[i]["entries"].pop(key,None)
+            if not tables[i]["entries"]:
+                return False,{"certificate":"EXACT_PORT_ARC_EMPTY_DOMAIN",
+                              "empty_component":i,
+                              "removed_states":removed+change_count,
+                              "rounds":rounds}
+        removed+=change_count
+    return True,{"certificate":"EXACT_RECIPROCAL_PORT_ARC_FIXED_POINT",
+                 "removed_states":removed,"rounds":rounds,
+                 "residual_relation_sizes":[len(t["entries"]) for t in tables]}
+
+
 def solve(original_joined_rows,certificate,max_q_nullity=12,max_ports=6):
     components=certificate["components"];edges=certificate["edges"]
     rebuilt,offsets=join_certificate(components,edges)
@@ -258,6 +301,19 @@ def solve(original_joined_rows,certificate,max_q_nullity=12,max_ports=6):
         return {"status":"UNSAT","n":n,
                 "certificate":"EXACT_ADDITIVE_FLUX_IMPOSSIBLE",
                 "flux_receipt":flux_receipt}
+    compatible,arc_receipt=exact_reciprocal_port_arc_consistency(locals,edges)
+    if not compatible:
+        return {"status":"UNSAT","n":n,
+                "certificate":"EXACT_PORT_ARC_EMPTY_DOMAIN",
+                "arc_receipt":arc_receipt}
+    # Arc pruning is necessary only. Recompute additive support, since
+    # removed neighboring states can make earlier sums unreachable.
+    final_flux,final_flux_receipt=exact_global_flux_support_filter(locals)
+    if not final_flux:
+        return {"status":"UNSAT","n":n,
+                "certificate":"EXACT_ADDITIVE_FLUX_IMPOSSIBLE_AFTER_ARC",
+                "flux_receipt":final_flux_receipt,
+                "arc_receipt":arc_receipt}
     sat=Exact2SAT()
     coord={}
     diagnostics=[]
@@ -267,7 +323,9 @@ def solve(original_joined_rows,certificate,max_q_nullity=12,max_ports=6):
         ok,detail=add_local_exact_2cnf(sat,coords,set(table["entries"]))
         if not ok:
             return {"status":"UNKNOWN_NOT_BIJUNCTIVE","n":n,
-                    "component":i,"closure_falsifier":detail}
+                    "component":i,"closure_falsifier":detail,
+                    "arc_receipt":arc_receipt,
+                    "flux_receipt":final_flux_receipt}
         diagnostics.append({"component":i,"n":len(components[i]["rows"]),
                             "k_Q_punctured":table["k"],"r_ports":table["r"],
                             "retained_relation_size":len(table["entries"]),
@@ -281,6 +339,8 @@ def solve(original_joined_rows,certificate,max_q_nullity=12,max_ports=6):
         return {"status":"UNSAT","n":n,"certificate":"EXACT_2CNF_UNSAT",
                 "proof":proof,"sign_flux_pruning":sign,
                 "exact_additive_flux_filter":flux_receipt,
+            "exact_port_arc_consistency":arc_receipt,
+                "exact_port_arc_consistency":arc_receipt,
                 "local_component_profiles":diagnostics}
     physical=0
     for i,table in enumerate(locals):
