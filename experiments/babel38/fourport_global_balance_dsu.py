@@ -19,7 +19,7 @@ U=(
 (9,10,11),(9,12,15),(9,14,22),
 (12,13,14),(10,13,16),(1,6,17),(15,16,17),
 (4,17,20),(11,13,21),(4,18,19),(15,18,24),
-(18,23,25),(19,21,26),(24,25,26),
+(18,23,25),(21,22,23),(16,19,25),(19,21,26),(24,25,26),
 (4,23,26),(20,22,24))
 U_SHA="9c4fbe64849c319f927583646d7a6d71ced4c1b9cfefec05c0446cdefbf2b9ed"
 PORTS=((0,0),(1,3),(2,7),(26,20))
@@ -259,6 +259,8 @@ def macro_graph(kind,n=8):
 
 
 def compile_fixture(kind,n=8,seed=0,special=False):
+    # Catch incorrectly transcribed base matrices BEFORE constructing tests.
+    original_local_certificate()
     t,edges=macro_graph(kind,n)
     neighbors={i:set() for i in range(t)}
     for a,b in edges:
