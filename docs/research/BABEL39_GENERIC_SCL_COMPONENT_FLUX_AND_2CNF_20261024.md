@@ -30,13 +30,25 @@ Each reciprocal edge cancels one output against one input, giving \`sum_i Δ_i=0
 
 This all-n rule is independent of specific local geometry, presence of an expander, or graph width. Exact component certificates verify local tables before any pruning.
 
+### Stronger ALL-n polynomial additive flux support DP (beyond one-sided sign)
+
+The implementation now additionally computes the **EXACT sets of reachable net-flux sums** of independently selected local states, before enforcing edge compatibilities. Let \`D_i={Δ_i(s): s∈T_i}\`. Compute prefix sets \`P_0={0}\`, \`P_(i+1)=P_i+D_i\`; and suffix sets \`Q_t={0}\`, \`Q_i=D_i+Q_(i+1)\` using integer Minkowski sums. These are complete, not heuristic: they enumerate ALL possible aggregate flux values, not all physical state combinations.
+
+If 0∉P_t, return a **sound global UNSAT certificate** immediately because every exact joined model must satisfy ΣΔ=0. For every local state s of component i, retain it iff
+
+    -Δ_i(s) ∈ P_i + Q_(i+1).
+
+This keeps exactly the local states that participate in AT LEAST ONE globally zero-flux selection (without assuming edge compatibility) and safely discards every other state. The marginal test is globally exact for the *additive equation*, but only NECESSARY for SAT: surviving states may still violate cross-edge equalities.
+
+**Polynomiality:** each \`Δ_i=3|x_i|-n_i\` lies in \`[-n_i,2n_i]\`; for total N=Σn_i every prefix and suffix sum has O(N) range and at most 3N+1 distinct possible integer values. At most N components exist; naive integer-set prefix, suffix and per-component checks cost a conservative O(N^4 + N²·sum_i|T_i|), which is polynomial and uses O(log N)-bit sum values. No 2^t physical Cartesian product is materialized. This upgrade strictly generalizes the one-sided sign rule and is sound even when positive AND negative flux states coexist. Do NOT confuse additive-domain consistency with global SAT completion.
+
 ## 3. Generic exact 2-CNF construction for every majority-closed residual boundary relation
 
 After sound pruning, inspect the set R_i⊆{0,1}^{2r_i} of feasible boundary tuples (a,b) for EVERY arbitrary component.
 
 **Known finite Boolean relation theorem (bijunctive = majority-closed):** R_i is definable by a conjunction of unit/binary clauses on the 2r_i original port bit coordinates iff R_i is closed under coordinatewise ternary majority.
 
-For each R_i, enumerate all possible 1-coordinate and 2-coordinate Boolean assignments absent from R_i. Add the corresponding forbidding 1- or 2-literal 2-CNF clauses. These are all sound consequences of R_i. If R_i is majority-closed, their conjunction represents EXACTLY R_i; the implementation additionally verifies this by exhaustive evaluation of all 2^{2r_i} bit tuples whenever the size admission gate is met. If the produced CNF admits any boundary tuple outside R_i, return \`UNKNOWN_NOT_BIJUNCTIVE\`, NEVER produce a false SAT/UNSAT decision.
+For each R_i, enumerate all possible 1-coordinate and 2-coordinate Boolean assignments absent from R_i. Add the corresponding forbidding 1- or 2-literal 2-CNF clauses. These are all sound consequences of R_i. If R_i is majority-closed, their conjunction represents EXACTLY R_i; the implementation verifies this **directly** by exhaustive evaluation of all 2^{2r_i} bit tuples whenever the size admission gate is met. This equivalence test avoids cubic enumeration of every triple of local states in the production algorithm, so the advertised 2^O(r_i) complexity is preserved. An independent finite validator additionally checks majority closure on the frozen control relations. If the produced CNF admits any boundary tuple outside R_i, return \`UNKNOWN_NOT_BIJUNCTIVE\`, NEVER produce a false SAT/UNSAT decision.
 
 For each recovered cross-edge, impose both exact port equalities \`out_i=in_j\` and \`out_j=in_i\`; each is 2CNF. Solve the resulting global formula by implication-graph strongly connected components. For UNSAT, record a variable and its negation in one SCC; for SAT, reconstruct each local physical witness from the selected port tuple, concatenate and VERIFY EVERY ORIGINAL J CLAUSE.
 
@@ -44,7 +56,7 @@ For each recovered cross-edge, impose both exact port equalities \`out_i=in_j\` 
 
 ### Quantified TOTAL polynomial-composition guarantee
 
-Let N be total original variables; K=max_i k_i, R=max_i r_i. With a supplied verified decomposition, local full physical enumeration is \`sum_i 2^{k_i} poly(n_i)\`; the explicit 2CNF reconstruction and relation check costs \`sum_i 2^{2r_i} poly(r_i)\`, plus polynomial original-incidence validation, global 2SAT solve, witness reconstruction and replay. Thus conservative TOTAL bit complexity is
+Let N be total original variables; K=max_i k_i, R=max_i r_i. With a supplied verified decomposition, local full physical enumeration is \`sum_i 2^{k_i} poly(n_i)\`; the explicit 2CNF reconstruction and relation check costs \`sum_i 2^{2r_i} poly(r_i)\`, plus polynomial original-incidence validation, **exact additive-flux sumset DP**, global 2SAT solve, witness reconstruction and replay. Thus conservative TOTAL bit complexity is
 
     poly(N) * (2^K + 2^{2R}).
 
@@ -66,6 +78,7 @@ Controls include:
 
 \`\`\`
 BABEL39_GENERIC_SCL_COMPONENT_FLUX_CONSERVATION = PROVED_ALL_N
+BABEL39_EXACT_ZERO_FLUX_SUMSET_DOMAIN_PRUNING = PROVED_IN_P
 BABEL39_EXACT_Q_PUNCTURED_COMPONENT_ENUMERATION = PROVED_WITH_2^K
 BABEL39_MAJORITY_CLOSURE_IFF_PORT_2CNF = KNOWN_THEOREM_VERIFIED_FINITE
 BABEL39_CERTIFIED_COMPONENT_COMPOSITION_IN_P_WHEN_K_R_LOG = PROVED
