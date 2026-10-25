@@ -16,7 +16,7 @@ def independently_validate(rows):
     n=len(rows)
     assert n>0
     assert all(len(r)==3 and len(set(r))==3
-               and all(isinstance(v,int) and 0<=v<n for v in r)
+               and all(type(v) is int and 0<=v<n for v in r)
                for r in rows)
     assert Counter(v for r in rows for v in r)==Counter({j:3 for j in range(n)})
     paircount=Counter(tuple(sorted((a,b)))
