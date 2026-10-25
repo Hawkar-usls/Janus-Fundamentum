@@ -197,14 +197,39 @@ def triple_fano():
                  for b in range(3) for row in fano())
 
 
-def main():
-    from experiments.babel37.fourport_majority_falsifier import U
-    from experiments.babel38.fourport_global_balance_dsu import (
-        compile_fixture
-    )
-    from experiments.babel29.multi_splice import build_double_swap
-    print("BABEL41 standalone universal decider: call solve(rows)")
-    print("SAT/UNSAT on every legal SCL; worst-case EXPONENTIAL, P vs NP OPEN")
+def SolveLinearCubicXSAT(rows):
+    """Named user-facing COMPLETE EXACT terminal, NOT a polynomial guarantee."""
+    return solve(rows)
+
+
+def main(argv=None):
+    """Portable original-SCL JSON input/output CLI, no server dependencies.
+
+    python experiments/babel41/universal_exact_one.py formula.json --output result.json
+    The input may be [[0,1,2],...] or {"rows":[...]}.
+    """
+    import argparse
+    from pathlib import Path
+    parser=argparse.ArgumentParser(
+        description="Total exact SCL SAT/UNSAT with proof DAG; exponential worst case")
+    parser.add_argument("input",help="Original SCL JSON rows")
+    parser.add_argument("--output",help="Write SAT result or full UNSAT DAG JSON")
+    args=parser.parse_args(argv)
+    data=json.loads(Path(args.input).read_text(encoding="utf-8"))
+    rows=data["rows"] if isinstance(data,dict) else data
+    result=SolveLinearCubicXSAT(rows)
+    payload=json.dumps(result,indent=2,sort_keys=True)
+    if args.output:
+        Path(args.output).write_text(payload+"\n",encoding="utf-8")
+        print(json.dumps({
+            "status":result["status"],
+            "n":result["n"],
+            "result_path":args.output,
+            "polynomial_worst_case":"NOT_PROVED",
+            "P_vs_NP":"OPEN"
+        },sort_keys=True))
+    else:
+        print(payload)
 
 
 if __name__=="__main__":
