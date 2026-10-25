@@ -45,6 +45,14 @@ Thus the checker independently proves UNSAT by complete induction on the finite 
 - Three disjoint legal Fano components SCL21: n%3==0, but each Fano component is impossible. The producer MUST emit the actual complete UNSAT branch-DAG, and a separate set-based proof checker MUST replay every branch and reject several deliberately tampered receipts. This tests UNSAT not derivable from global n%3 alone.
 - This broad all-input fallback is not a substitute for the faster admitted BABEL31–40 paths. A portfolio may try certified special cases first and fall back, but still has worst-case exponential complexity unless the fallback is eliminated by an ALL-n polynomial theorem.
 
+### Explicit ordered disconnected family demonstrating exponential exploration by THIS procedure
+
+The exponential upper bound is not merely a formal worst-case expression. Let \`Q\` be the certified legal SCL9 affine model with exactly THREE SAT assignments and \`Z\` the disjoint union of THREE legal Fano7 instances (21 rows total, globally UNSAT even though 21 is divisible by3). For every t≥1, put t independent copies of Q **first in row order**, then Z last. The resulting formula \`F_t\` is a perfectly legal, possibly DISCONNECTED, square cubic linear positive Exact-One system of n=9t+21 variables and rows.
+
+At the start, every row has three available literals. The producer's "minimum eligible candidates, then smallest row-index" heuristic enters the first Q before the trailing Z. Its propagation and deeper branching resolve the first Q before moving to later rows, and so on. Because each Q component has THREE distinct SAT assignments and no decisions in one Q affect another, this ordered complete UNSAT proof tree contains at least \`3^t\` distinct valid partial true-bit prefixes reaching the final UNSAT tail. The exact proof DAG keeps these distinct masks separate, and must visit at least \`3^t\` different states. This proves an **exponential lower bound on this PARTICULAR DPLL strategy** on a valid (DISCONNECTED) SCL family, independently of P vs NP. Small t=1,2,3 are independently replayed through the complete UNSAT verifier in CI.
+
+Important firewalls: This is not a computational lower bound on ALL algorithms, is not a lower bound for any other proof system and is not directly a lower bound on the user's stricter CONNECTED SCL target. Faster methods could detect the Fano contradiction first, and different DPLL heuristics could avoid this exact example. The experiment's finite t controls alone are not the asymptotic proof; the independent-component product argument establishes all-t behavior of the specified deterministic branching heuristic.
+
 ## 5. The actual unresolved universality theorem
 
 The user's original task remains:
