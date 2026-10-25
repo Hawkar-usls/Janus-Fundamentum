@@ -19,12 +19,15 @@ import json
 
 
 def validate(rows):
-    rows=tuple(tuple(int(v) for v in row) for row in rows)
+    # No lossy coercion: input variables must ALREADY be exact integers.
+    # Silently converting 2.7, "2", or True would change problem semantics.
+    rows=tuple(tuple(row) for row in rows)
     n=len(rows)
     if not n:
         raise ValueError("Nonempty SCL required")
-    if any(len(r)!=3 or len(set(r))!=3 or
-           any(v<0 or v>=n for v in r) for r in rows):
+    if any(len(r)!=3 or
+           any(type(v) is not int or v<0 or v>=n for v in r) or
+           len(set(r))!=3 for r in rows):
         raise ValueError("All rows must contain three distinct in-range variables")
     degrees=Counter(v for r in rows for v in r)
     if any(degrees[j]!=3 for j in range(n)):
