@@ -44,6 +44,17 @@ def assert_invalid(rows,bad):
 
 def main():
     cases=[]
+    # Exact semantics guard: never reinterpret malformed fractional/string/
+    # boolean literals as integer variable indices.
+    for invalid in (0.5,"0",True):
+        broken=[list(row) for row in affine9()]
+        broken[0][0]=invalid
+        try:
+            solve(broken)
+        except (ValueError,TypeError):
+            pass
+        else:
+            raise AssertionError(("lossy noninteger input accepted",invalid))
     a=affine9()
     assert len(a)==9
     oracle9={truth for truth in range(1<<9)
@@ -133,8 +144,9 @@ def main():
         total=solve(composite)
         audited=expectation(composite,total,set())
         assert total["certificate"]["type"]=="COMPLETE_EXACT_ONE_REFUTATION"
-        assert audited["complete_verified_states"]>=3**t,(
-            t,audited["complete_verified_states"])
+        exact_expected=(3**(t+2)-1)//2
+        assert audited["complete_verified_states"]==exact_expected,(
+            t,audited["complete_verified_states"],exact_expected)
         growth.append({"affine9_sat_prefix_blocks":t,
                        "n":len(composite),
                        "at_least_exhaustive_states":3**t,
