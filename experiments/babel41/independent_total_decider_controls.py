@@ -118,6 +118,32 @@ def main():
     fake["certificate"]["nodes"][leaf]={"type":"BRANCH","row":0,"children":[]}
     assert_invalid(bad,fake)
 
+    # FALSIFIER of polynomial time for THIS DPLL search strategy:
+    # t disjoint satisfiable affine9 components (3 models each) before an
+    # impossible 21-row triple-Fano tail. n=9t+21 is always divisible by3.
+    # On this ordered disconnected family, exhaustive refutation must visit
+    # distinct states corresponding to all 3^t affine prefix models.
+    # This is NOT a lower bound for all algorithms or CONNECTED SCL.
+    growth=[]
+    for t in (1,2,3):
+        prefix=tuple(tuple(9*b+j for j in row)
+                     for b in range(t) for row in a)
+        tail=tuple(tuple(9*t+j for j in row) for row in bad)
+        composite=prefix+tail
+        total=solve(composite)
+        audited=expectation(composite,total,set())
+        assert total["certificate"]["type"]=="COMPLETE_EXACT_ONE_REFUTATION"
+        assert audited["complete_verified_states"]>=3**t,(
+            t,audited["complete_verified_states"])
+        growth.append({"affine9_sat_prefix_blocks":t,
+                       "n":len(composite),
+                       "at_least_exhaustive_states":3**t,
+                       "actual_exhaustive_proof_nodes":
+                          audited["complete_verified_states"],
+                       "independent_unsat_receipt":"PASS"})
+    cases.extend({"case":"EXPONENTIAL_ORDERED_DISJOINT_LOWER_BOUND",
+                  **entry} for entry in growth)
+
     print(json.dumps({
       "gate":"BABEL41_UNIVERSAL_TOTAL_SCL_EXACT_SAT_UNSAT",
       "ALL_LEGAL_SCL": "SAT_OR_UNSAT_NEVER_UNKNOWN",
