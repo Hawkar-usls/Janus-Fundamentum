@@ -135,9 +135,21 @@ def validate_result(rows,result):
             "contradiction_states":conflicts[0]}
 
 
-def main():
-    print("BABEL41 independent verifier: validate_result(original_rows,result)")
-    print("UNSAT DAG verification polynomial in certificate size, not necessarily input size.")
+def main(argv=None):
+    import argparse
+    from pathlib import Path
+    parser=argparse.ArgumentParser(
+        description="Independently replay original-SCL SAT witness or full UNSAT DAG")
+    parser.add_argument("input",help="Original SCL formula JSON")
+    parser.add_argument("result",help="Solver SAT/UNSAT result and proof JSON")
+    args=parser.parse_args(argv)
+    formula=json.loads(Path(args.input).read_text(encoding="utf-8"))
+    rows=formula["rows"] if isinstance(formula,dict) else formula
+    proof=json.loads(Path(args.result).read_text(encoding="utf-8"))
+    audit=validate_result(rows,proof)
+    audit["P_vs_NP"]="OPEN"
+    audit["proof_checker_poly_in_original_n"]="NOT_ASSERTED_FOR_UNSAT"
+    print(json.dumps(audit,indent=2,sort_keys=True))
 
 
 if __name__=="__main__":
