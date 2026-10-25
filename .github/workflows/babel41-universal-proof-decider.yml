@@ -1,0 +1,39 @@
+name: BABEL-41 universal exact SCL proof-carrying SAT and UNSAT
+on:
+  push:
+    branches:
+      - 'research/babel41-complete-proof-carrying-universal-scl-*'
+  pull_request:
+    paths:
+      - 'experiments/babel41/**'
+      - 'docs/research/BABEL41_*'
+      - '.github/workflows/babel41-universal-proof-decider.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  exact-total-decider:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Independently verify SAT models UNSAT DAGs and tamper rejection
+        run: python experiments/babel41/independent_total_decider_controls.py
+      - name: Enforce totality not falsely called polynomial
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          doc=Path('docs/research/BABEL41_TOTAL_UNIVERSAL_EXACT_SCL_NO_POLY_CERT_20261025.md').read_text()
+          for phrase in (
+              'BABEL41_VALID_ANY_SCL_INPUT_TOTAL_SAT_OR_UNSAT = PROVED',
+              'BABEL41_UNSAT_DAG_SIZE_POLYNOMIAL_IN_INPUT = NOT_PROVED',
+              'BABEL41_FULL_ALGORITHM_WORST_CASE = EXPONENTIAL_UPPER_BOUND',
+              'BABEL41_UNIVERSAL_POLYNOMIAL_SolveLinearCubicXSAT = NOT_CONSTRUCTED',
+              'P_VS_NP = OPEN'
+          ):
+              assert phrase in doc,phrase
+          print('BABEL41_POLYNOMIALITY_AND_PNP_CLAIM_FIREWALL_PASS')
+          PY
