@@ -22,6 +22,27 @@ jobs:
           python-version: '3.12'
       - name: Independently verify SAT models UNSAT DAGs and tamper rejection
         run: python experiments/babel41/independent_total_decider_controls.py
+      - name: Black-box JSON CLI SAT and UNSAT result verification
+        run: |
+          python - <<'PY'
+          import subprocess,json,tempfile,sys
+          from pathlib import Path
+          from experiments.babel41.universal_exact_one import affine9,triple_fano
+          for label,formula,want in (
+              ('SAT9',affine9(),'SAT'),('UNSAT21',triple_fano(),'UNSAT')):
+              with tempfile.TemporaryDirectory() as tmp:
+                  source=Path(tmp)/'input.json'
+                  output=Path(tmp)/'result.json'
+                  source.write_text(json.dumps({'rows':formula}))
+                  subprocess.run(
+                      [sys.executable,'experiments/babel41/universal_exact_one.py',
+                       str(source),'--output',str(output)],check=True)
+                  assert json.loads(output.read_text())['status']==want
+                  subprocess.run(
+                      [sys.executable,'experiments/babel41/verify_universal_proof.py',
+                       str(source),str(output)],check=True)
+                  print(label+'_BLACKBOX_PROOF_REPLAY_PASS')
+          PY
       - name: Enforce totality not falsely called polynomial
         run: |
           python - <<'PY'
