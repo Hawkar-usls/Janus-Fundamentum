@@ -1,0 +1,31 @@
+name: FARADAY–RAMANUJAN Exact-One finite controls
+on:
+  pull_request:
+    paths:
+      - 'experiments/direct/ramanujan_mock_theta_exactone_probe.py'
+      - 'experiments/direct/pla_glow_trap_memory_probe.py'
+      - 'docs/PHOSPHOR01_PLA_GLOW_ANALOG_MEMORY.md'
+      - 'docs/FARADAY_RAMANUJAN_EXACTONE.md'
+      - 'research/FIELD_PARADIGM_5D_TRANCEPTION_R5_GLOBAL_SUPPORT_HANDOFF_2026-10-28_v1.0.json'
+      - 'research/FARADAY_RAMANUJAN_EXACTONE_PREREG_2026-10-28_v0.1.json'
+      - '.github/workflows/faraday-ramanujan-exactone.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  exact-finite-replay:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Exact finite controls
+        run: python experiments/direct/ramanujan_mock_theta_exactone_probe.py --self-test
+      - name: Machine-readable output
+        run: python experiments/direct/ramanujan_mock_theta_exactone_probe.py --json
+      - name: PHOSPHOR-01 independent-trap negative controls
+        run: python experiments/direct/pla_glow_trap_memory_probe.py --self-test
+      - name: PHOSPHOR-01 machine-readable output
+        run: python experiments/direct/pla_glow_trap_memory_probe.py --json
