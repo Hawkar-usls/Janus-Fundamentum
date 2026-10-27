@@ -1,0 +1,22 @@
+name: Rowan × Fundamentum capability preflight (no provider calls)
+on:
+  pull_request:
+    paths:
+      - 'research/ROWAN_FUNDAMENTUM_CAPABILITY_POLICY_v1.json'
+      - 'tools/rowan_fundamentum_router.py'
+      - 'docs/ROWAN_FUNDAMENTUM_CAPACITY_ROUTE_2026-10-28.md'
+      - '.github/workflows/rowan-fundamentum-capability-preflight.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  offline-policy-test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Test safe routing; no ROWAN_API_KEY is read
+        run: python tools/rowan_fundamentum_router.py --self-test
