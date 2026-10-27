@@ -1,0 +1,163 @@
+name: JANUS real Rowan receipt through Lapis into Fundamentum
+on:
+  pull_request:
+    paths:
+      - 'research/receipts/rowan_bbc1_real_collected_8of8_40593272360_attempt2.json'
+      - '.github/workflows/rowan-real-lapis-fundamentum-e2e.yml'
+      - 'research/exactone_parity_preprocessor.py'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  authentic-collected-receipt-to-lapis:
+    name: Real collected Rowan BBC1 -> genuine Lapis translator -> Fundamentum verifier
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - name: Checkout Fundamentum exact-one research branch
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Checkout exact JANUS Lapis translator from Draft PR 32
+        uses: actions/checkout@v4
+        with:
+          repository: Hawkar-usls/janus-lapis
+          ref: 72daf0b4dce0467afad4f5f3ceaa813503923b30
+          path: lapis
+          persist-credentials: false
+      - name: Checkout exact Fundamentum receiver from Draft PR 570
+        uses: actions/checkout@v4
+        with:
+          repository: Hawkar-usls/Janus-Fundamentum
+          ref: ed297fee1a60d1c97232411990921b707633b809
+          path: receiver
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Confirm real Rowan collection snapshot identity and numeric fidelity
+        run: |
+          python - <<'PY'
+          import hashlib,json,pathlib
+          p=pathlib.Path("research/receipts/rowan_bbc1_real_collected_8of8_40593272360_attempt2.json")
+          d=json.loads(p.read_text(encoding="utf-8"))
+          canonical=json.dumps(d,ensure_ascii=False,sort_keys=True,separators=(",",":"),allow_nan=False).encode()
+          assert hashlib.sha256(canonical).hexdigest()=="ad9f51e407ce272bde0179dcddc5e09aaf18327f19296b281a3423f34cbe22c3"
+          assert d["schema_id"]=="janus.rowan.bbc1.stratified_8_mutant_pilot.v1"
+          assert d["source_commit"]=="cc6b0b56553e694dbf27dc84c6b37a8686e64b85"
+          assert d["all_eight_ready_for_descriptive_association"] is True
+          assert len(d["pilot_cases"])==8
+          assert all(x["provider_state"]=="PROVIDER_RESULT_RETURNED" for x in d["pilot_cases"])
+          assert d["topa_scientific_review"]=="OPEN"
+          assert d["protein_stability_or_fitness_inferred"] is False
+          print("ROWAN_ORIGINAL_COLLECTOR_ARTIFACT=EXACT_SHA256_MATCH")
+          print("ROWAN_BBC1_PROVIDER_RESULTS=8/8")
+          print("ROWAN_NEW_COMPUTATION=NO")
+          PY
+      - name: Run actual Lapis converter on Rowan data twice (cache test)
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/janus-real-rowan-lapis
+          SOURCE="research/receipts/rowan_bbc1_real_collected_8of8_40593272360_attempt2.json"
+          python lapis/tools/rowan_fundamentum_translate.py \
+            --input "$SOURCE" --outdir /tmp/janus-real-rowan-lapis --language ru \
+            | tee /tmp/lapis-first.log
+          grep 'TRANSLATED_NEW' /tmp/lapis-first.log
+          python lapis/tools/rowan_fundamentum_translate.py \
+            --input "$SOURCE" --outdir /tmp/janus-real-rowan-lapis --language ru \
+            | tee /tmp/lapis-second.log
+          grep 'CACHE_HIT_SAME_CONTENT' /tmp/lapis-second.log
+      - name: Independently verify actual Lapis output with Fundamentum receiver
+        run: |
+          set -euo pipefail
+          BUNDLE="$(find /tmp/janus-real-rowan-lapis -mindepth 1 -maxdepth 1 -type d -print -quit)"
+          test -n "$BUNDLE"
+          python receiver/tools/verify_lapis_rowan_candidate.py \
+            --bundle "$BUNDLE" \
+            --source-receipt research/receipts/rowan_bbc1_real_collected_8of8_40593272360_attempt2.json \
+            | tee /tmp/rowan-lapis-verdict.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          root=next(Path("/tmp/janus-real-rowan-lapis").iterdir())
+          c=json.loads((root/"candidate.json").read_text())
+          ir=json.loads((root/"algorithm_ir.json").read_text())
+          v=json.loads(Path("/tmp/rowan-lapis-verdict.json").read_text())
+          assert v["status"]=="STRUCTURALLY_VALID_UNAUTHENTICATED",v
+          assert c["facts"]["source_class"]=="ROWAN_BBC1_STRATIFIED"
+          assert c["facts"]["ready_count"]==8
+          assert c["facts"]["wildtype"]["ptm"]==0.927
+          assert c["facts"]["wildtype"]["avg_lddt"]==0.963
+          assert c["facts"]["samples"][0]["mutation"]=="G53A"
+          assert c["facts"]["samples"][0]["ptm"]==0.918
+          assert c["for_fundamentum"]["proof_or_exact_sat_witness"] is False
+          assert c["for_fundamentum"]["P_VS_NP"]=="OPEN"
+          assert ir["algorithm"]["mode"]=="explicit_contract"
+          assert all(step["operator"]=="ANNOTATE" for step in ir["algorithm"]["steps"])
+          print("REAL_ROWAN_LAPIS_FUNDAMENTUM=PASS")
+          print("SAT_PROOF_FROM_ROWAN=NONE")
+          PY
+      - name: Re-run independent Exact-One proof-carrying reduction
+        run: |
+          python research/exactone_parity_preprocessor.py --self-test > /tmp/exactone-gf2-test.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          r=json.loads(Path("/tmp/exactone-gf2-test.json").read_text())
+          assert r["status"]=="PASS" and r["independent_reference_cases"]==327
+          assert r["p_vs_np"]=="OPEN"
+          print("FUNDAMENTUM_EXACTONE_CONTROL=327_OF_327_PASS")
+          PY
+      - name: Emit cross-domain provenance without conflating chemistry and complexity
+        run: |
+          python - <<'PY'
+          import hashlib,json,pathlib
+          root=next(pathlib.Path("/tmp/janus-real-rowan-lapis").iterdir())
+          c=json.loads((root/"candidate.json").read_text())
+          manifest=json.loads((root/"manifest.json").read_text())
+          source_hash=manifest["source_receipt_canonical_sha256"]
+          verifier=json.loads(pathlib.Path("/tmp/rowan-lapis-verdict.json").read_text())
+          math=json.loads(pathlib.Path("/tmp/exactone-gf2-test.json").read_text())
+          out={
+              "schema":"janus.rowan_lapis_fundamentum_real_receipt_e2e.v1",
+              "origin":{
+                  "repo":"Hawkar-usls/Janus",
+                  "run_id":40593272360,
+                  "run_attempt":2,
+                  "source_artifact_id":12780396162,
+                  "source_canonical_sha256":source_hash,
+                  "provenance_scope":"ARCHIVED_GITHUB_ACTIONS_PROVIDER_READ_NOT_NEW_ROWAN_COMPUTATION"
+              },
+              "lapis":{
+                  "commit":"72daf0b4dce0467afad4f5f3ceaa813503923b30",
+                  "candidate_sha256":manifest["candidate_sha256"],
+                  "algorithm_ir_sha256":manifest["algorithm_ir_sha256"],
+                  "converted_original":True,
+                  "cache_repeat_verified":True,
+                  "bbc1_ready_count":c["facts"]["ready_count"]
+              },
+              "fundamentum":{
+                  "receiving_commit":"ed297fee1a60d1c97232411990921b707633b809",
+                  "receiver_status":verifier["status"],
+                  "independent_provider_authentication":False,
+                  "exactone_cases_checked":math["independent_reference_cases"],
+                  "exactone_preprocessor_status":math["status"],
+                  "sat_result_from_rowan":False
+              },
+              "new_rowan_jobs":0,"credits_spent_by_this_ci":0,
+              "p_vs_np":"OPEN",
+              "verdict":"REAL_ARCHIVED_ROWAN_TO_LAPIS_TO_FUNDAMENTUM_PASS_NOT_PNP_PROOF"
+          }
+          pathlib.Path("/tmp/janus-real-rowan-lapis/e2e-verdict.json").write_text(json.dumps(out,indent=2)+"\n")
+          print(json.dumps(out,indent=2))
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: real-rowan-lapis-fundamentum-e2e
+          path: |
+            /tmp/janus-real-rowan-lapis/e2e-verdict.json
+            /tmp/rowan-lapis-verdict.json
+            /tmp/exactone-gf2-test.json
+          retention-days: 21
