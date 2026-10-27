@@ -1,0 +1,35 @@
+name: Exact-One polynomial certificate preprocessor
+on:
+  pull_request:
+    paths:
+      - 'research/exactone_parity_preprocessor.py'
+      - 'docs/EXACTONE_POLYNOMIAL_PARITY_REDUCTION_20261028.md'
+      - '.github/workflows/exactone-polynomial-reduction.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  mathematical-operator:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Certificate verification and independent enumerator tests
+        run: python research/exactone_parity_preprocessor.py --self-test
+      - name: Save deterministic example
+        run: |
+          printf '%s\n' '{"n":5,"clauses":[[1,2,3],[1,2,4],[3,4,5]]}' > /tmp/exactone-gadget.json
+          python research/exactone_parity_preprocessor.py \
+            --input /tmp/exactone-gadget.json \
+            --output /tmp/exactone-result.json
+          test -s /tmp/exactone-result.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: exactone-gf2-certificate-test
+          path: /tmp/exactone-result.json
+          retention-days: 21
