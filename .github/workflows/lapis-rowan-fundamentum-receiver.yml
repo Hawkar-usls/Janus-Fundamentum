@@ -22,3 +22,42 @@ jobs:
           python-version: '3.12'
       - name: Offline receipt and authority boundary tests
         run: python -m unittest discover -s tools -p 'test_verify_lapis_rowan_candidate.py' -v
+
+      - name: Check out exact Lapis translator commit (no Rowan API key)
+        uses: actions/checkout@v4
+        with:
+          repository: Hawkar-usls/janus-lapis
+          ref: 72daf0b4dce0467afad4f5f3ceaa813503923b30
+          path: lapis
+          persist-credentials: false
+      - name: End-to-end synthetic producer → consumer interoperability
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/rowan-lapis-compat
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          example={
+            "schema_id":"janus.rowan.research_receipt.v1",
+            "case_id":"SYNTHETIC-END-TO-END",
+            "input_sha256":"a"*64,
+            "event":"ROWAN_RESULT_COLLECTED_UNVERIFIED",
+            "workflow_uuid":"abcdef01-1234-1234-1234-abcdef012345",
+            "provider":{"name":"Rowan","workflow_type":"pka","method":"starling"},
+            "result":{"kind":"MODEL_PREDICTION_NOT_EXPERIMENT",
+                      "strongest_acid_pka":10.17,"strongest_base_pka":None}
+          }
+          Path("/tmp/rowan-lapis-compat/receipt.json").write_text(json.dumps(example))
+          PY
+          python lapis/tools/rowan_fundamentum_translate.py \
+            --input /tmp/rowan-lapis-compat/receipt.json \
+            --outdir /tmp/rowan-lapis-compat/out
+          python lapis/tools/rowan_fundamentum_translate.py \
+            --input /tmp/rowan-lapis-compat/receipt.json \
+            --outdir /tmp/rowan-lapis-compat/out | grep 'CACHE_HIT_SAME_CONTENT'
+          bundle="$(find /tmp/rowan-lapis-compat/out -mindepth 1 -maxdepth 1 -type d -print -quit)"
+          test -n "$bundle"
+          python tools/verify_lapis_rowan_candidate.py \
+            --bundle "$bundle" \
+            --source-receipt /tmp/rowan-lapis-compat/receipt.json | grep 'STRUCTURALLY_VALID_UNAUTHENTICATED'
