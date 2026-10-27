@@ -1,0 +1,25 @@
+name: JANUS Fundamentum Autonomy Consistency (offline)
+on:
+  pull_request:
+    paths:
+      - '.janus/AUTONOMY_PROOF_LINK.json'
+      - 'registry/JANUS_AUTONOMY_CONSISTENCY_CONTRACT_v1.json'
+      - 'tools/autonomy_consistency_gate.py'
+      - 'docs/JANUS_AUTONOMY_FUNDAMENTUM_BRIDGE.md'
+      - '.github/workflows/autonomy-consistency-gate.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  offline-falsification:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Adversarial synthetic consistency regressions (NOT live autonomy)
+        run: python tools/autonomy_consistency_gate.py --self-test
