@@ -21,9 +21,24 @@ from exactone_parity_preprocessor import (
 SCHEMA = "janus.fundamentum.exactone_forest_certificate.v1"
 
 
+def validate_residual(case):
+    """Post-substitution factors may have arity 2, unlike the input contract."""
+    if not isinstance(case, dict) or set(case) != {"n","clauses"}:
+        raise ValueError("INVALID_RESIDUAL")
+    n, clauses = case["n"],case["clauses"]
+    if type(n) is not int or n < 1 or not isinstance(clauses,list):
+        raise ValueError("INVALID_RESIDUAL")
+    for c in clauses:
+        if not isinstance(c,list) or not 1 <= len(c) <= 3:
+            raise ValueError("INVALID_RESIDUAL_ARITY")
+        if any(type(x) is not int or x==0 or abs(x)>n for x in c):
+            raise ValueError("INVALID_RESIDUAL_LITERAL")
+    return n, clauses
+
+
 def incidence(case):
     """Simple bipartite graph, preserving repeated literals inside factors."""
-    n, clauses = validate(case)
+    n, clauses = validate_residual(case)
     adj = {f"v:{i}": [] for i in range(1, n+1)}
     for ci, clause in enumerate(clauses):
         fac = f"c:{ci}"
