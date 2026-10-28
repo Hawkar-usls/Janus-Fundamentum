@@ -8,6 +8,8 @@ on:
       - 'research/exactone_forest_dp.py'
       - 'research/exactone_bounded_cycle_cutset.py'
       - 'research/exactone_bounded_width_dp.py'
+      - 'research/exactone_affine_nullity.py'
+      - 'docs/EXACTONE_HIGH_WIDTH_AFFINE_NULLITY_20261028.md'
       - 'docs/EXACTONE_BOUNDED_WIDTH_UNBOUNDED_CYCLES_20261028.md'
       - 'docs/EXACTONE_BOUNDED_CYCLE_CUTSET_20261028.md'
       - 'docs/EXACTONE_INCIDENCE_FOREST_DP_20261028.md'
@@ -214,6 +216,56 @@ jobs:
           print("LAPIS_UNBOUNDED_CYCLES_TRANSPORT=PASS_ANNOTATION_ONLY")
           print("FUNDAMENTUM_BOUNDED_WIDTH_CERTIFICATE_VERIFY=PASS")
           PY
+      - name: High-width clique low-XOR-nullity SAT and UNSAT proofs, real Lapis annotated IR
+        run: |
+          set -euo pipefail
+          python research/exactone_affine_nullity.py --self-test > /tmp/exactone-affine-suite.json
+          python - <<'PY'
+          import json,sys
+          from pathlib import Path
+          sys.path.insert(0,"research")
+          from exactone_affine_nullity import solve,verify,full_pair_fan
+          for name,unsat,expected in (
+              ("sat",False,"SAT"),("unsat",True,"UNSAT_EXACTONE")):
+              case=full_pair_fan(65,unsat=unsat)
+              answer=solve(case,max_free_dimension=4)
+              assert verify(case,answer)
+              assert answer["status"]==expected
+              assert answer["nullity"]==(0 if unsat else 1)
+              Path("/tmp/exactone-affine-"+name+"-input.json").write_text(
+                  json.dumps(case,sort_keys=True)+"\n")
+              Path("/tmp/exactone-affine-"+name+"-proof.json").write_text(
+                  json.dumps(answer,sort_keys=True,indent=2)+"\n")
+          print("AFFINE_HIGH_WIDTH_SAT_AND_UNSAT_ORIGINAL_CERTIFICATES=VERIFIED")
+          PY
+          for name in sat unsat; do
+            python lapis/tools/lapis_converter.py json-to-algorithm \
+              "/tmp/exactone-affine-"$name"-proof.json" \
+              -o "/tmp/exactone-affine-"$name"-lapis-ir.json"
+          done
+          python - <<'PY'
+          import json,sys
+          from pathlib import Path
+          sys.path.insert(0,"research")
+          from exactone_affine_nullity import verify
+          suite=json.loads(Path("/tmp/exactone-affine-suite.json").read_text())
+          assert suite["status"]=="PASS"
+          assert suite["independent_small_reference_cases"]==507
+          assert suite["high_width_proved_treewidth_lower_bound"]==65
+          assert suite["high_width_sat"]["status"]=="SAT"
+          assert suite["high_width_unsat"]["status"]=="UNSAT_EXACTONE"
+          for name in ("sat","unsat"):
+              case=json.loads(Path("/tmp/exactone-affine-"+name+"-input.json").read_text())
+              proof=json.loads(Path("/tmp/exactone-affine-"+name+"-proof.json").read_text())
+              ir=json.loads(Path("/tmp/exactone-affine-"+name+"-lapis-ir.json").read_text())
+              assert verify(case,proof),name
+              assert ir["algorithm"]["mode"]=="heuristic_translation"
+              assert all(s["operator"]=="ANNOTATE" for s in ir["algorithm"]["steps"])
+              assert ir["scientific_boundary"]["heuristic_translation_is_proof"] is False
+          print("LAPIS_HIGH_WIDTH_AFFINE_CERTIFICATE_ANNOTATION=PASS")
+          print("FUNDAMENTUM_ORIGINAL_SAT_UNSAT_PROOF_VERIFICATION=PASS")
+          print("ROWAN_SCIENTIFIC_DATA_USED_AS_SAT_ORACLE=NO")
+          PY
       - name: Emit cross-domain provenance without conflating chemistry and complexity
         run: |
           python - <<'PY'
@@ -232,6 +284,11 @@ jobs:
           width_suite=json.loads(pathlib.Path("/tmp/exactone-width-suite.json").read_text())
           width_cert=json.loads(pathlib.Path("/tmp/exactone-width-certificate.json").read_text())
           width_lapis=json.loads(pathlib.Path("/tmp/exactone-width-lapis-ir.json").read_text())
+          affine_suite=json.loads(pathlib.Path("/tmp/exactone-affine-suite.json").read_text())
+          affine_sat=json.loads(pathlib.Path("/tmp/exactone-affine-sat-proof.json").read_text())
+          affine_unsat=json.loads(pathlib.Path("/tmp/exactone-affine-unsat-proof.json").read_text())
+          affine_sat_lapis=json.loads(pathlib.Path("/tmp/exactone-affine-sat-lapis-ir.json").read_text())
+          affine_unsat_lapis=json.loads(pathlib.Path("/tmp/exactone-affine-unsat-lapis-ir.json").read_text())
           out={
               "schema":"janus.rowan_lapis_fundamentum_real_receipt_e2e.v1",
               "origin":{
@@ -273,7 +330,18 @@ jobs:
                   "bounded_width_incidence_cycles_lower_bound":width_suite["large_sat_incidence_4cycles_lower_bound"],
                   "bounded_width_certificate_verified_independently":True,
                   "lapis_bounded_width_algorithm_sha256":width_lapis["algorithm_sha256"],
-                  "lapis_bounded_width_proof_authority":False
+                  "lapis_bounded_width_proof_authority":False,
+                  "affine_kernel_small_test_cases":affine_suite["independent_small_reference_cases"],
+                  "affine_kernel_clique_vertices":affine_suite["high_width_primal_clique_vertices"],
+                  "affine_kernel_treewidth_lower_bound":affine_suite["high_width_proved_treewidth_lower_bound"],
+                  "affine_kernel_sat":affine_sat["status"],
+                  "affine_kernel_unsat":affine_unsat["status"],
+                  "affine_kernel_sat_nullity":affine_sat["nullity"],
+                  "affine_kernel_unsat_nullity":affine_unsat["nullity"],
+                  "affine_kernel_orig_certificates_independently_verified":True,
+                  "lapis_affine_sat_algorithm_sha256":affine_sat_lapis["algorithm_sha256"],
+                  "lapis_affine_unsat_algorithm_sha256":affine_unsat_lapis["algorithm_sha256"],
+                  "lapis_affine_ir_proof_authority":False
               },
               "new_rowan_jobs":0,"credits_spent_by_this_ci":0,
               "p_vs_np":"OPEN",
@@ -301,4 +369,9 @@ jobs:
             /tmp/exactone-width-suite.json
             /tmp/exactone-width-certificate.json
             /tmp/exactone-width-lapis-ir.json
+            /tmp/exactone-affine-suite.json
+            /tmp/exactone-affine-sat-proof.json
+            /tmp/exactone-affine-unsat-proof.json
+            /tmp/exactone-affine-sat-lapis-ir.json
+            /tmp/exactone-affine-unsat-lapis-ir.json
           retention-days: 21
