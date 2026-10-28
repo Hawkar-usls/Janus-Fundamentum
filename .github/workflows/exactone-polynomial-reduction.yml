@@ -7,6 +7,8 @@ on:
       - 'research/exactone_bounded_cycle_cutset.py'
       - 'research/exactone_bounded_width_dp.py'
       - 'research/exactone_affine_nullity.py'
+      - 'research/exactone_component_factorization.py'
+      - 'docs/EXACTONE_HIGH_WIDTH_HIGH_NULLITY_COMPONENT_COMPOSITION_AIFC_20261028.md'
       - 'docs/EXACTONE_HIGH_WIDTH_AFFINE_NULLITY_20261028.md'
       - 'docs/EXACTONE_BOUNDED_WIDTH_UNBOUNDED_CYCLES_20261028.md'
       - 'docs/EXACTONE_BOUNDED_CYCLE_CUTSET_20261028.md'
@@ -92,6 +94,25 @@ jobs:
           print("EXACTONE_AFFINE_SAT="+str(d["high_width_sat"]))
           print("EXACTONE_AFFINE_UNSAT="+str(d["high_width_unsat"]))
           PY
+      - name: High-width high-nullity Exact-One component factorization certificates
+        run: |
+          python research/exactone_component_factorization.py --self-test > /tmp/exactone-component-tests.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          d=json.loads(Path("/tmp/exactone-component-tests.json").read_text())
+          assert d["status"]=="PASS"
+          assert d["small_independent_reference_cases"]==306
+          assert d["high_width_high_nullity_family"]["variables"]==272
+          assert d["high_width_high_nullity_family"]["global_xor_nullity"]==16
+          assert d["high_width_high_nullity_family"]["primal_treewidth_lower_bound"]==16
+          assert d["high_width_high_nullity_family"]["sat"]=="PASS"
+          assert d["high_width_high_nullity_family"]["unsat"]=="PASS"
+          assert d["generic_connected_high_high_solved"] is False
+          assert d["tampered_rehashed_component"]=="REJECTED"
+          print("EXACTONE_COMPONENT_CASES="+str(d["small_independent_reference_cases"]))
+          print("EXACTONE_HIGH_WIDTH_HIGH_NULLITY="+json.dumps(d["high_width_high_nullity_family"],sort_keys=True))
+          PY
       - name: Save deterministic example
         run: |
           printf '%s\n' '{"n":5,"clauses":[[1,2,3],[1,2,4],[3,4,5]]}' > /tmp/exactone-gadget.json
@@ -116,4 +137,5 @@ jobs:
             /tmp/exactone-cutset-result.json
             /tmp/exactone-width-tests.json
             /tmp/exactone-affine-tests.json
+            /tmp/exactone-component-tests.json
           retention-days: 21
