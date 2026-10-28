@@ -6,6 +6,8 @@ on:
       - '.github/workflows/rowan-real-lapis-fundamentum-e2e.yml'
       - 'research/exactone_parity_preprocessor.py'
       - 'research/exactone_forest_dp.py'
+      - 'research/exactone_bounded_cycle_cutset.py'
+      - 'docs/EXACTONE_BOUNDED_CYCLE_CUTSET_20261028.md'
       - 'docs/EXACTONE_INCIDENCE_FOREST_DP_20261028.md'
   workflow_dispatch:
 
@@ -142,6 +144,34 @@ jobs:
           print("FUNDAMENTUM_FOREST_VERIFY=PASS")
           print("EXACTONE_FOREST_TEST_CASES="+str(suite["cases"]))
           PY
+      - name: Carry certified two-cycle Exact-One solution through actual Lapis IR
+        run: |
+          set -euo pipefail
+          printf '%s\n' '{"n":8,"clauses":[[1,2,3],[2,3,4],[5,6,7],[6,7,8]]}' > /tmp/exactone-cutset-case.json
+          python research/exactone_bounded_cycle_cutset.py \
+            --input /tmp/exactone-cutset-case.json \
+            --output /tmp/exactone-cutset-certified.json
+          python lapis/tools/lapis_converter.py json-to-algorithm \
+            /tmp/exactone-cutset-certified.json \
+            -o /tmp/exactone-cutset-lapis-ir.json
+          python - <<'PY'
+          import json,sys
+          from pathlib import Path
+          sys.path.insert(0,"research")
+          from exactone_bounded_cycle_cutset import verify
+          case=json.loads(Path("/tmp/exactone-cutset-case.json").read_text())
+          source=json.loads(Path("/tmp/exactone-cutset-certified.json").read_text())
+          ir=json.loads(Path("/tmp/exactone-cutset-lapis-ir.json").read_text())
+          assert source["status"]=="SAT_CUTSET"
+          assert len(source["cycle_cutset_variables"])==2
+          assert verify(case,source)
+          assert ir["algorithm"]["mode"]=="heuristic_translation"
+          assert ir["scientific_boundary"]["heuristic_translation_is_proof"] is False
+          assert all(s["operator"]=="ANNOTATE" for s in ir["algorithm"]["steps"])
+          print("LAPIS_CYCLE_CUTSET_TRANSPORT=PASS_ANNOTATION_ONLY")
+          print("FUNDAMENTUM_CYCLE_CUTSET_VERIFIER=PASS")
+          print("CYCLIC_CUTSET_BOUND=2")
+          PY
       - name: Emit cross-domain provenance without conflating chemistry and complexity
         run: |
           python - <<'PY'
@@ -155,6 +185,8 @@ jobs:
           forest=json.loads(pathlib.Path("/tmp/exactone-forest-suite.json").read_text())
           forest_cert=json.loads(pathlib.Path("/tmp/exactone-forest-certified.json").read_text())
           forest_lapis=json.loads(pathlib.Path("/tmp/exactone-forest-lapis-ir.json").read_text())
+          cutset=json.loads(pathlib.Path("/tmp/exactone-cutset-certified.json").read_text())
+          cutset_lapis=json.loads(pathlib.Path("/tmp/exactone-cutset-lapis-ir.json").read_text())
           out={
               "schema":"janus.rowan_lapis_fundamentum_real_receipt_e2e.v1",
               "origin":{
@@ -185,7 +217,11 @@ jobs:
                   "forest_certificate_status":forest_cert["status"],
                   "forest_certificate_verified_independently":True,
                   "lapis_math_certificate_transport_algorithm_sha256":forest_lapis["algorithm_sha256"],
-                  "lapis_math_carrier_proof_authority":False
+                  "lapis_math_carrier_proof_authority":False,
+                  "cycle_cutset_result":cutset["status"],
+                  "cycle_cutset_size":len(cutset["cycle_cutset_variables"]),
+                  "cycle_cutset_verified_independently":True,
+                  "lapis_cutset_algorithm_sha256":cutset_lapis["algorithm_sha256"]
               },
               "new_rowan_jobs":0,"credits_spent_by_this_ci":0,
               "p_vs_np":"OPEN",
@@ -208,4 +244,6 @@ jobs:
             /tmp/exactone-forest-suite.json
             /tmp/exactone-forest-certified.json
             /tmp/exactone-forest-lapis-ir.json
+            /tmp/exactone-cutset-certified.json
+            /tmp/exactone-cutset-lapis-ir.json
           retention-days: 21
