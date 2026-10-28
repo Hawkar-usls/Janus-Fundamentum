@@ -4,6 +4,8 @@ on:
     paths:
       - 'research/exactone_parity_preprocessor.py'
       - 'research/exactone_forest_dp.py'
+      - 'research/exactone_bounded_cycle_cutset.py'
+      - 'docs/EXACTONE_BOUNDED_CYCLE_CUTSET_20261028.md'
       - 'docs/EXACTONE_INCIDENCE_FOREST_DP_20261028.md'
       - 'docs/EXACTONE_POLYNOMIAL_PARITY_REDUCTION_20261028.md'
       - '.github/workflows/exactone-polynomial-reduction.yml'
@@ -36,6 +38,18 @@ jobs:
           print("EXACTONE_FOREST_DP_TEST="+str(result["cases"]))
           print("EXACTONE_FOREST_RESULTS="+json.dumps(result["result_counts"],sort_keys=True))
           PY
+      - name: Bounded cycle-cutset proof and independent enumeration
+        run: |
+          python research/exactone_bounded_cycle_cutset.py --self-test > /tmp/exactone-cutset-tests.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          r=json.loads(Path("/tmp/exactone-cutset-tests.json").read_text())
+          assert r["status"]=="PASS" and r["adversarial_witness_test"]=="REJECTED"
+          assert r["cyclic_example_cutset_size"]==1 and r["p_vs_np"]=="OPEN"
+          print("EXACTONE_CUTSET_TESTS="+str(r["cases"]))
+          print("EXACTONE_CUTSET_RESULTS="+json.dumps(r["statuses"],sort_keys=True))
+          PY
       - name: Save deterministic example
         run: |
           printf '%s\n' '{"n":5,"clauses":[[1,2,3],[1,2,4],[3,4,5]]}' > /tmp/exactone-gadget.json
@@ -43,6 +57,10 @@ jobs:
             --input /tmp/exactone-gadget.json \
             --output /tmp/exactone-result.json
           test -s /tmp/exactone-result.json
+          printf '%s\n' '{"n":4,"clauses":[[1,2,3],[2,3,4]]}' > /tmp/exactone-cyclic-case.json
+          python research/exactone_bounded_cycle_cutset.py \
+            --input /tmp/exactone-cyclic-case.json \
+            --output /tmp/exactone-cutset-result.json
           printf '%s\n' '{"n":5,"clauses":[[1,2,3],[3,4,5]]}' > /tmp/exactone-forest-case.json
           python research/exactone_forest_dp.py --input /tmp/exactone-forest-case.json             --output /tmp/exactone-forest-result.json
       - uses: actions/upload-artifact@v4
@@ -52,4 +70,6 @@ jobs:
             /tmp/exactone-result.json
             /tmp/exactone-forest-result.json
             /tmp/exactone-forest-tests.json
+            /tmp/exactone-cutset-tests.json
+            /tmp/exactone-cutset-result.json
           retention-days: 21
