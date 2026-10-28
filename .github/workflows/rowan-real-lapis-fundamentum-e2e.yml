@@ -7,6 +7,8 @@ on:
       - 'research/exactone_parity_preprocessor.py'
       - 'research/exactone_forest_dp.py'
       - 'research/exactone_bounded_cycle_cutset.py'
+      - 'research/exactone_bounded_width_dp.py'
+      - 'docs/EXACTONE_BOUNDED_WIDTH_UNBOUNDED_CYCLES_20261028.md'
       - 'docs/EXACTONE_BOUNDED_CYCLE_CUTSET_20261028.md'
       - 'docs/EXACTONE_INCIDENCE_FOREST_DP_20261028.md'
   workflow_dispatch:
@@ -172,6 +174,46 @@ jobs:
           print("FUNDAMENTUM_CYCLE_CUTSET_VERIFIER=PASS")
           print("CYCLIC_CUTSET_BOUND=2")
           PY
+      - name: Verify 80+ incidence cycles at width two and translate the actual certificate through Lapis
+        run: |
+          set -euo pipefail
+          python research/exactone_bounded_width_dp.py --self-test > /tmp/exactone-width-suite.json
+          python - <<'PY'
+          import json,sys
+          from pathlib import Path
+          sys.path.insert(0,"research")
+          from exactone_bounded_width_dp import chain_family,solve,verify
+          case=chain_family(83)
+          result=solve(case,width_cap=2)
+          assert result["status"]=="SAT" and result["maximum_realized_width"]==2
+          assert verify(case,result)
+          Path("/tmp/exactone-width-input.json").write_text(json.dumps(case,sort_keys=True)+"\n")
+          Path("/tmp/exactone-width-certificate.json").write_text(json.dumps(result,sort_keys=True,indent=2)+"\n")
+          print("EXACTONE_83_VARIABLE_WIDTH2_CERTIFIED=PASS")
+          PY
+          python lapis/tools/lapis_converter.py json-to-algorithm \
+            /tmp/exactone-width-certificate.json \
+            -o /tmp/exactone-width-lapis-ir.json
+          python - <<'PY'
+          import json,sys
+          from pathlib import Path
+          sys.path.insert(0,"research")
+          from exactone_bounded_width_dp import verify
+          case=json.loads(Path("/tmp/exactone-width-input.json").read_text())
+          cert=json.loads(Path("/tmp/exactone-width-certificate.json").read_text())
+          ir=json.loads(Path("/tmp/exactone-width-lapis-ir.json").read_text())
+          suite=json.loads(Path("/tmp/exactone-width-suite.json").read_text())
+          assert verify(case,cert),"ORIGINAL_EXACTONE_CERTIFICATE_INVALID"
+          assert suite["status"]=="PASS"
+          assert suite["small_reference_cases"]==427
+          assert suite["large_sat_incidence_4cycles_lower_bound"]>=80
+          assert suite["tampered_rehashed_projection"]=="REJECTED"
+          assert ir["algorithm"]["mode"]=="heuristic_translation"
+          assert all(s["operator"]=="ANNOTATE" for s in ir["algorithm"]["steps"])
+          assert ir["scientific_boundary"]["heuristic_translation_is_proof"] is False
+          print("LAPIS_UNBOUNDED_CYCLES_TRANSPORT=PASS_ANNOTATION_ONLY")
+          print("FUNDAMENTUM_BOUNDED_WIDTH_CERTIFICATE_VERIFY=PASS")
+          PY
       - name: Emit cross-domain provenance without conflating chemistry and complexity
         run: |
           python - <<'PY'
@@ -187,6 +229,9 @@ jobs:
           forest_lapis=json.loads(pathlib.Path("/tmp/exactone-forest-lapis-ir.json").read_text())
           cutset=json.loads(pathlib.Path("/tmp/exactone-cutset-certified.json").read_text())
           cutset_lapis=json.loads(pathlib.Path("/tmp/exactone-cutset-lapis-ir.json").read_text())
+          width_suite=json.loads(pathlib.Path("/tmp/exactone-width-suite.json").read_text())
+          width_cert=json.loads(pathlib.Path("/tmp/exactone-width-certificate.json").read_text())
+          width_lapis=json.loads(pathlib.Path("/tmp/exactone-width-lapis-ir.json").read_text())
           out={
               "schema":"janus.rowan_lapis_fundamentum_real_receipt_e2e.v1",
               "origin":{
@@ -221,7 +266,14 @@ jobs:
                   "cycle_cutset_result":cutset["status"],
                   "cycle_cutset_size":len(cutset["cycle_cutset_variables"]),
                   "cycle_cutset_verified_independently":True,
-                  "lapis_cutset_algorithm_sha256":cutset_lapis["algorithm_sha256"]
+                  "lapis_cutset_algorithm_sha256":cutset_lapis["algorithm_sha256"],
+                  "bounded_width_test_cases":width_suite["small_reference_cases"],
+                  "bounded_width_max_realized":width_cert["maximum_realized_width"],
+                  "bounded_width_83_variable_status":width_cert["status"],
+                  "bounded_width_incidence_cycles_lower_bound":width_suite["large_sat_incidence_4cycles_lower_bound"],
+                  "bounded_width_certificate_verified_independently":True,
+                  "lapis_bounded_width_algorithm_sha256":width_lapis["algorithm_sha256"],
+                  "lapis_bounded_width_proof_authority":False
               },
               "new_rowan_jobs":0,"credits_spent_by_this_ci":0,
               "p_vs_np":"OPEN",
@@ -246,4 +298,7 @@ jobs:
             /tmp/exactone-forest-lapis-ir.json
             /tmp/exactone-cutset-certified.json
             /tmp/exactone-cutset-lapis-ir.json
+            /tmp/exactone-width-suite.json
+            /tmp/exactone-width-certificate.json
+            /tmp/exactone-width-lapis-ir.json
           retention-days: 21
