@@ -142,6 +142,19 @@ def verify(case,payload):
             return False
         if not all(type(v) is int and 1<=v<=case["n"] for v in cutset):
             return False
+        if status=="SOLVED_WITHOUT_CUTSET":
+            # Preprocessing can solve a cyclic original graph before any
+            # graph-class recognition. Its original, independent certificate
+            # suffices; the raw graph need not itself be a forest.
+            if (cutset!=[] or not isinstance(branches,list) or len(branches)!=1
+                or not isinstance(branches[0],dict)
+                or branches[0].get("values")!=[]):
+                return False
+            direct=branches[0].get("certificate")
+            if not forest_verify(case,direct) or direct["status"]=="OPEN_CYCLIC":
+                return False
+            return (payload["proven_complete_for_recognized_class"] is True
+                    and payload["witness"]==direct["witness"])
         if not incidence_is_forest_after_variable_deletion(case,cutset):
             return False
         if not isinstance(branches,list) or not branches:
