@@ -5,6 +5,8 @@ on:
       - 'research/exactone_parity_preprocessor.py'
       - 'research/exactone_forest_dp.py'
       - 'research/exactone_bounded_cycle_cutset.py'
+      - 'research/exactone_bounded_width_dp.py'
+      - 'docs/EXACTONE_BOUNDED_WIDTH_UNBOUNDED_CYCLES_20261028.md'
       - 'docs/EXACTONE_BOUNDED_CYCLE_CUTSET_20261028.md'
       - 'docs/EXACTONE_INCIDENCE_FOREST_DP_20261028.md'
       - 'docs/EXACTONE_POLYNOMIAL_PARITY_REDUCTION_20261028.md'
@@ -50,6 +52,23 @@ jobs:
           print("EXACTONE_CUTSET_TESTS="+str(r["cases"]))
           print("EXACTONE_CUTSET_RESULTS="+json.dumps(r["statuses"],sort_keys=True))
           PY
+      - name: Check unlimited cycle count under bounded primal width
+        run: |
+          python research/exactone_bounded_width_dp.py --self-test > /tmp/exactone-width-tests.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          d=json.loads(Path("/tmp/exactone-width-tests.json").read_text())
+          assert d["status"]=="PASS"
+          assert d["large_sat_n"]==83
+          assert d["large_sat_incidence_4cycles_lower_bound"]>=80
+          assert d["tampered_rehashed_projection"]=="REJECTED"
+          assert d["strong_open_width_gate"]=="PASS"
+          assert d["universal_polynomial_sat_solver"] is False
+          print("EXACTONE_BOUNDED_WIDTH_CASES="+str(d["small_reference_cases"]))
+          print("EXACTONE_UNBOUNDED_CYCLES="+str(d["large_sat_incidence_4cycles_lower_bound"]))
+          print("EXACTONE_WIDTH_RESULTS="+json.dumps(d["small_test_statuses"],sort_keys=True))
+          PY
       - name: Save deterministic example
         run: |
           printf '%s\n' '{"n":5,"clauses":[[1,2,3],[1,2,4],[3,4,5]]}' > /tmp/exactone-gadget.json
@@ -72,4 +91,5 @@ jobs:
             /tmp/exactone-forest-tests.json
             /tmp/exactone-cutset-tests.json
             /tmp/exactone-cutset-result.json
+            /tmp/exactone-width-tests.json
           retention-days: 21
