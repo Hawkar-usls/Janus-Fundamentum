@@ -5,6 +5,8 @@ on:
       - 'research/receipts/rowan_bbc1_real_collected_8of8_40593272360_attempt2.json'
       - '.github/workflows/rowan-real-lapis-fundamentum-e2e.yml'
       - 'research/exactone_parity_preprocessor.py'
+      - 'research/exactone_forest_dp.py'
+      - 'docs/EXACTONE_INCIDENCE_FOREST_DP_20261028.md'
   workflow_dispatch:
 
 permissions:
@@ -110,6 +112,36 @@ jobs:
           assert r["p_vs_np"]=="OPEN"
           print("FUNDAMENTUM_EXACTONE_CONTROL=327_OF_327_PASS")
           PY
+      - name: Prove forest residual, carry math certificate through actual Lapis IR
+        run: |
+          set -euo pipefail
+          python research/exactone_forest_dp.py --self-test > /tmp/exactone-forest-suite.json
+          printf '%s\n' '{"n":5,"clauses":[[1,2,3],[3,4,5]]}' > /tmp/exactone-forest-input.json
+          python research/exactone_forest_dp.py \
+            --input /tmp/exactone-forest-input.json \
+            --output /tmp/exactone-forest-certified.json
+          python lapis/tools/lapis_converter.py json-to-algorithm \
+            /tmp/exactone-forest-certified.json \
+            -o /tmp/exactone-forest-lapis-ir.json
+          python - <<'PY'
+          import json,sys
+          from pathlib import Path
+          sys.path.insert(0,"research")
+          from exactone_forest_dp import verify
+          case=json.loads(Path("/tmp/exactone-forest-input.json").read_text())
+          math=json.loads(Path("/tmp/exactone-forest-certified.json").read_text())
+          transport=json.loads(Path("/tmp/exactone-forest-lapis-ir.json").read_text())
+          suite=json.loads(Path("/tmp/exactone-forest-suite.json").read_text())
+          assert math["status"]=="SAT_FOREST",math["status"]
+          assert verify(case,math),"INDEPENDENT_FOREST_CERT_FAIL"
+          assert transport["algorithm"]["mode"]=="heuristic_translation"
+          assert transport["scientific_boundary"]["heuristic_translation_is_proof"] is False
+          assert all(s["operator"]=="ANNOTATE" for s in transport["algorithm"]["steps"])
+          assert suite["status"]=="PASS" and suite["tampered_message"]=="REJECTED"
+          print("LAPIS_FORMAL_CERTIFICATE_TRANSPORT=PASS_ANNOTATION_ONLY")
+          print("FUNDAMENTUM_FOREST_VERIFY=PASS")
+          print("EXACTONE_FOREST_TEST_CASES="+str(suite["cases"]))
+          PY
       - name: Emit cross-domain provenance without conflating chemistry and complexity
         run: |
           python - <<'PY'
@@ -120,6 +152,9 @@ jobs:
           source_hash=manifest["source_receipt_canonical_sha256"]
           verifier=json.loads(pathlib.Path("/tmp/rowan-lapis-verdict.json").read_text())
           math=json.loads(pathlib.Path("/tmp/exactone-gf2-test.json").read_text())
+          forest=json.loads(pathlib.Path("/tmp/exactone-forest-suite.json").read_text())
+          forest_cert=json.loads(pathlib.Path("/tmp/exactone-forest-certified.json").read_text())
+          forest_lapis=json.loads(pathlib.Path("/tmp/exactone-forest-lapis-ir.json").read_text())
           out={
               "schema":"janus.rowan_lapis_fundamentum_real_receipt_e2e.v1",
               "origin":{
@@ -144,7 +179,13 @@ jobs:
                   "independent_provider_authentication":False,
                   "exactone_cases_checked":math["independent_reference_cases"],
                   "exactone_preprocessor_status":math["status"],
-                  "sat_result_from_rowan":False
+                  "sat_result_from_rowan":False,
+                  "forest_dp_test_cases":forest["cases"],
+                  "forest_dp_test_status":forest["status"],
+                  "forest_certificate_status":forest_cert["status"],
+                  "forest_certificate_verified_independently":True,
+                  "lapis_math_certificate_transport_algorithm_sha256":forest_lapis["algorithm_sha256"],
+                  "lapis_math_carrier_proof_authority":False
               },
               "new_rowan_jobs":0,"credits_spent_by_this_ci":0,
               "p_vs_np":"OPEN",
@@ -164,4 +205,7 @@ jobs:
             /tmp/janus-real-rowan-lapis/*/manifest.json
             /tmp/rowan-lapis-verdict.json
             /tmp/exactone-gf2-test.json
+            /tmp/exactone-forest-suite.json
+            /tmp/exactone-forest-certified.json
+            /tmp/exactone-forest-lapis-ir.json
           retention-days: 21
