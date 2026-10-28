@@ -205,6 +205,10 @@ def self_test():
         {"n":5,"clauses":[[1,2,3],[2,3,4],[3,4,5],[1],[-5]]},
         {"n":6,"clauses":[[1,2,3],[2,3,4],[4,5,6],[1,6,2]]},
         {"n":3,"clauses":[[1],[1,2,3]]},
+        {"n":8,"clauses":[[1,2,3],[2,3,4],[5,6,7],[6,7,8]]},
+        {"n":12,"clauses":[[1,2,3],[2,3,4],
+                             [5,6,7],[6,7,8],
+                             [9,10,11],[10,11,12]]},
     ]
     for i in range(135):
         n=rng.randint(3,9)
@@ -232,6 +236,15 @@ def self_test():
     ex=solve(cases[0])
     assert ex["status"]=="SAT_CUTSET"
     assert len(ex["cycle_cutset_variables"])==1
+    # Three independent incidence cycles require at least three deleted
+    # variables: a fixed cutset budget of two MUST stay OPEN.
+    three_cycles=solve(cases[6])
+    assert three_cycles["status"]=="OPEN_NO_SMALL_CUTSET"
+    assert verify(cases[6],three_cycles)
+    two_cycles=solve(cases[5])
+    assert two_cycles["status"]=="SAT_CUTSET"
+    assert len(two_cycles["cycle_cutset_variables"])==2
+    assert verify(cases[5],two_cycles)
     # Detect forged witness even after recomputing top-level SHA.
     forgery=json.loads(json.dumps(ex))
     v=next(iter(forgery["witness"]))
@@ -242,6 +255,8 @@ def self_test():
     return {"schema":"janus.fundamentum.cycle_cutset_2_self_test.v1",
             "status":"PASS","cases":len(cases),"statuses":statuses,
             "cyclic_example_cutset_size":len(ex["cycle_cutset_variables"]),
+            "two_cycle_cutset_size":len(two_cycles["cycle_cutset_variables"]),
+            "three_cycle_fail_closed":"OPEN_NO_SMALL_CUTSET",
             "adversarial_witness_test":"REJECTED",
             "complexity_bound_fixed_k":"O(L^7) conservative for k<=2",
             "p_vs_np":"OPEN"}
