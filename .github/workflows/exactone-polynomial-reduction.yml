@@ -3,6 +3,8 @@ on:
   pull_request:
     paths:
       - 'research/exactone_parity_preprocessor.py'
+      - 'research/exactone_forest_dp.py'
+      - 'docs/EXACTONE_INCIDENCE_FOREST_DP_20261028.md'
       - 'docs/EXACTONE_POLYNOMIAL_PARITY_REDUCTION_20261028.md'
       - '.github/workflows/exactone-polynomial-reduction.yml'
   workflow_dispatch:
@@ -21,6 +23,19 @@ jobs:
           python-version: '3.12'
       - name: Certificate verification and independent enumerator tests
         run: python research/exactone_parity_preprocessor.py --self-test
+      - name: Bounded-incidence forest DP certificate and SAT/UNSAT controls
+        run: |
+          python research/exactone_forest_dp.py --self-test > /tmp/exactone-forest-tests.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          result=json.loads(Path("/tmp/exactone-forest-tests.json").read_text())
+          assert result["status"]=="PASS",result
+          assert result["tampered_message"]=="REJECTED",result
+          assert result["universal_polynomial_exactone_solver"] is False
+          print("EXACTONE_FOREST_DP_TEST="+str(result["cases"]))
+          print("EXACTONE_FOREST_RESULTS="+json.dumps(result["result_counts"],sort_keys=True))
+          PY
       - name: Save deterministic example
         run: |
           printf '%s\n' '{"n":5,"clauses":[[1,2,3],[1,2,4],[3,4,5]]}' > /tmp/exactone-gadget.json
@@ -28,8 +43,13 @@ jobs:
             --input /tmp/exactone-gadget.json \
             --output /tmp/exactone-result.json
           test -s /tmp/exactone-result.json
+          printf '%s\n' '{"n":5,"clauses":[[1,2,3],[3,4,5]]}' > /tmp/exactone-forest-case.json
+          python research/exactone_forest_dp.py --input /tmp/exactone-forest-case.json             --output /tmp/exactone-forest-result.json
       - uses: actions/upload-artifact@v4
         with:
           name: exactone-gf2-certificate-test
-          path: /tmp/exactone-result.json
+          path: |
+            /tmp/exactone-result.json
+            /tmp/exactone-forest-result.json
+            /tmp/exactone-forest-tests.json
           retention-days: 21
