@@ -1,0 +1,43 @@
+name: R5 E9 Strong Odd-Cycle Equality-Channel Cutrank
+
+on:
+  push:
+    paths:
+      - "research/R5_E9_STRONG_ODD_CYCLE_EQUALITY_CHANNEL_CUTRANK_BARRIER_2026-09-28_v1.0.md"
+      - "experiments/r5_e9_strong_odd_cycle_equality_channel_cutrank.py"
+      - ".github/workflows/r5-e9-strong-odd-cycle-equality-channel-cutrank.yml"
+  pull_request:
+    paths:
+      - "research/R5_E9_STRONG_ODD_CYCLE_EQUALITY_CHANNEL_CUTRANK_BARRIER_2026-09-28_v1.0.md"
+      - "experiments/r5_e9_strong_odd_cycle_equality_channel_cutrank.py"
+      - ".github/workflows/r5-e9-strong-odd-cycle-equality-channel-cutrank.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  replay:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Compile checker
+        run: python -m py_compile experiments/r5_e9_strong_odd_cycle_equality_channel_cutrank.py
+      - name: Replay exact cut-rank controls
+        run: |
+          python experiments/r5_e9_strong_odd_cycle_equality_channel_cutrank.py > /tmp/cutrank.json
+          python - <<'PY'
+          import json
+          x=json.load(open('/tmp/cutrank.json'))
+          assert x['status']=='PASS_STRONG_ODD_CYCLE_EQUALITY_CHANNEL_CUTRANK_BARRIER'
+          assert x['checks'][-1]['m']==8
+          assert x['checks'][-1]['ordinary_rank']==256
+          assert x['checks'][-1]['boolean_rank']==256
+          assert x['theorem_scope']['universal_polynomial_decider']=='OPEN'
+          assert x['theorem_scope']['P_VS_NP']=='OPEN'
+          print('STRONG_ODD_CYCLE_EQUALITY_CHANNEL_CUTRANK=PASS')
+          PY

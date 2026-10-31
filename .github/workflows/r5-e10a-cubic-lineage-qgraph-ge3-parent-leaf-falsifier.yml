@@ -1,0 +1,47 @@
+name: R5 E10A Cubic-Lineage q_graph >= 3 Parent-Leaf Falsifier
+
+on:
+  push:
+    paths:
+      - "experiments/r5_e10a_cubic_lineage_qgraph_ge3_parent_leaf_falsifier.py"
+      - "research/R5_E10A_CUBIC_LINEAGE_QGRAPH_GE3_PARENT_LEAF_FALSIFIER_2026-09-25_v1.0.md"
+      - "registry/JANUS_P_VS_NP_R5_E10A_CUBIC_LINEAGE_QGRAPH_GE3_PARENT_LEAF_FALSIFIER_2026-09-25_v1.0.json"
+      - ".github/workflows/r5-e10a-cubic-lineage-qgraph-ge3-parent-leaf-falsifier.yml"
+  pull_request:
+    paths:
+      - "experiments/r5_e10a_cubic_lineage_qgraph_ge3_parent_leaf_falsifier.py"
+      - "research/R5_E10A_CUBIC_LINEAGE_QGRAPH_GE3_PARENT_LEAF_FALSIFIER_2026-09-25_v1.0.md"
+      - "registry/JANUS_P_VS_NP_R5_E10A_CUBIC_LINEAGE_QGRAPH_GE3_PARENT_LEAF_FALSIFIER_2026-09-25_v1.0.json"
+      - ".github/workflows/r5-e10a-cubic-lineage-qgraph-ge3-parent-leaf-falsifier.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  replay:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Compile checker
+        run: python -m py_compile experiments/r5_e10a_cubic_lineage_qgraph_ge3_parent_leaf_falsifier.py
+      - name: Replay q_graph >= 3 parent-leaf falsifier
+        run: |
+          python experiments/r5_e10a_cubic_lineage_qgraph_ge3_parent_leaf_falsifier.py > /tmp/nm0017.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          x=json.loads(Path('/tmp/nm0017.json').read_text())
+          assert x["status"]=="PASS_CUBIC_LINEAGE_QGRAPH_GE3_PARENT_LEAF_FALSIFIER"
+          assert x["q_graph_certificate"]["verdict"]=="q_graph>=3"
+          assert x["connectivity"]["three_connected"] is True
+          assert x["connectivity"]["exact_three_separations"]==0
+          assert x["terminal_controls"]["even_cut_excluded"] is True
+          assert x["boundary"]["GLOBAL_SOLVER_PROMOTION"]=="HOLD"
+          assert x["boundary"]["P_VS_NP"]=="OPEN"
+          print("R5_E10A_NM0017=PASS")
+          PY

@@ -1,0 +1,33 @@
+name: R5 E9 PG15 NOR source composition fanout copy
+
+on:
+  push:
+    branches:
+      - codex/r5-e8-direct-contract-20260921-82493a57
+    paths:
+      - 'experiments/r5_e9_pg15_nor_source_composition_fanout_copy.py'
+      - 'research/R5_E9_PG15_NOR_FIXED_PORT_SOURCE_COMPOSITION_2026-10-01_v1.0.md'
+      - '.github/workflows/r5-e9-pg15-nor-source-composition-fanout-copy.yml'
+  pull_request:
+    paths:
+      - 'experiments/r5_e9_pg15_nor_source_composition_fanout_copy.py'
+      - 'research/R5_E9_PG15_NOR_FIXED_PORT_SOURCE_COMPOSITION_2026-10-01_v1.0.md'
+      - '.github/workflows/r5-e9-pg15-nor-source-composition-fanout-copy.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  exact-check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Compile checker
+        run: python -m py_compile experiments/r5_e9_pg15_nor_source_composition_fanout_copy.py
+      - name: Run exact PG15 NOR source-composition checker
+        run: python experiments/r5_e9_pg15_nor_source_composition_fanout_copy.py

@@ -1,0 +1,33 @@
+name: R5 E9 Paley331 Character Moser Spindle Gain Cover
+
+on:
+  push:
+    branches:
+      - codex/r5-e8-direct-contract-20260921-82493a57
+    paths:
+      - 'research/R5_E9_PALEY331_CHARACTER_MOSER_SPINDLE_GAIN_COVER_2026-10-01_v1.0.md'
+      - 'experiments/r5_e9_paley331_character_moser_spindle_gain_cover.py'
+      - '.github/workflows/r5-e9-paley331-character-moser-spindle-gain-cover.yml'
+  pull_request:
+    paths:
+      - 'research/R5_E9_PALEY331_CHARACTER_MOSER_SPINDLE_GAIN_COVER_2026-10-01_v1.0.md'
+      - 'experiments/r5_e9_paley331_character_moser_spindle_gain_cover.py'
+      - '.github/workflows/r5-e9-paley331-character-moser-spindle-gain-cover.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  exact-regression:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Compile checker
+        run: python -m py_compile experiments/r5_e9_paley331_character_moser_spindle_gain_cover.py
+      - name: Run exact Paley331 character/Moser regression
+        run: python experiments/r5_e9_paley331_character_moser_spindle_gain_cover.py

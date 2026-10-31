@@ -1,0 +1,38 @@
+name: Validate P-vs-NP Stream Resume Cache
+
+on:
+  push:
+    paths:
+      - ".janus/P_VS_NP_STREAM_CACHE_CURRENT.json"
+      - "tools/janus_stream_resume_cache.py"
+      - "docs/P_VS_NP_STREAM_RESUME_CACHE_PROTOCOL.md"
+      - ".github/workflows/validate-pnp-stream-resume-cache.yml"
+  pull_request:
+    paths:
+      - ".janus/P_VS_NP_STREAM_CACHE_CURRENT.json"
+      - "tools/janus_stream_resume_cache.py"
+      - "docs/P_VS_NP_STREAM_RESUME_CACHE_PROTOCOL.md"
+      - ".github/workflows/validate-pnp-stream-resume-cache.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Compile cache utility
+        run: python -m py_compile tools/janus_stream_resume_cache.py
+      - name: Verify durable checkpoint
+        run: python tools/janus_stream_resume_cache.py verify
+      - name: Verify source-head ancestry
+        run: python tools/janus_stream_resume_cache.py status
+      - name: Emit compact recovery state
+        run: python tools/janus_stream_resume_cache.py resume > /tmp/janus-pnp-resume.json

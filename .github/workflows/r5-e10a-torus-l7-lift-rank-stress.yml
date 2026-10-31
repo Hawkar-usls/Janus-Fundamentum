@@ -1,0 +1,51 @@
+name: R5 E10A Torus L7 Lift-Rank Stress
+
+on:
+  push:
+    paths:
+      - "experiments/r5_e10a_torus_l7_lift_rank_stress.py"
+      - "research/R5_E10A_TORUS_L7_LIFT_RANK_STRESS_2026-09-25_v1.0.md"
+      - "registry/JANUS_P_VS_NP_R5_E10A_TORUS_L7_LIFT_RANK_STRESS_2026-09-25_v1.0.json"
+      - ".github/workflows/r5-e10a-torus-l7-lift-rank-stress.yml"
+  pull_request:
+    paths:
+      - "experiments/r5_e10a_torus_l7_lift_rank_stress.py"
+      - "research/R5_E10A_TORUS_L7_LIFT_RANK_STRESS_2026-09-25_v1.0.md"
+      - "registry/JANUS_P_VS_NP_R5_E10A_TORUS_L7_LIFT_RANK_STRESS_2026-09-25_v1.0.json"
+      - ".github/workflows/r5-e10a-torus-l7-lift-rank-stress.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  replay:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Compile checker
+        run: python -m py_compile experiments/r5_e10a_torus_l7_lift_rank_stress.py
+      - name: Replay torus L7 live-leaf stress
+        run: |
+          python experiments/r5_e10a_torus_l7_lift_rank_stress.py > /tmp/nm0019.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          x=json.loads(Path('/tmp/nm0019.json').read_text())
+          assert x["status"]=="PASS_TORUS_L7_ACTUAL_LIVE_LEAF_STRESS"
+          assert x["parent"]["elements"]==50
+          assert x["parent"]["rank"]==43
+          assert x["parent"]["cogirth"]==4
+          assert x["connectivity"]["circuit_girth"]==22
+          assert x["connectivity"]["generated_flats"]==23250
+          assert x["connectivity"]["exact_three_separations"]==0
+          assert x["q_graph_certificate"]["lower_bound"]==19
+          assert x["s8_minor_dual"]["quotient_simple_points"]==15
+          assert x["scope"]["asymptotic_omega_log_family"]=="NOT_PROVED"
+          assert x["scope"]["P_VS_NP"]=="OPEN"
+          print("R5_E10A_NM0019=PASS")
+          PY

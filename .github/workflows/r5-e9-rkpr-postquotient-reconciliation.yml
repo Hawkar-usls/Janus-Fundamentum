@@ -1,0 +1,25 @@
+name: R5 E9 RKPR post-quotient reconciliation
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'research/R5_E9_RKPR_POSTQUOTIENT_RECONCILIATION_AND_EQ3_SOURCE_RETURN_2026-09-28_v1.0.md'
+      - 'experiments/r5_e9_rkpr_postquotient_reconciliation.py'
+      - '.github/workflows/r5-e9-rkpr-postquotient-reconciliation.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  exact-replay:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Compile checker
+        run: python -m py_compile experiments/r5_e9_rkpr_postquotient_reconciliation.py
+      - name: Replay exact reconciliation controls
+        run: python experiments/r5_e9_rkpr_postquotient_reconciliation.py

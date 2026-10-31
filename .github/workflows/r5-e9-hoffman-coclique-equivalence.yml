@@ -1,0 +1,27 @@
+name: R5 E9 Hoffman coclique equivalence
+
+on:
+  push:
+    branches:
+      - codex/r5-e8-direct-contract-20260921-82493a57
+    paths:
+      - "research/R5_E9_CUBIC_LINEAR_HOFFMAN_COCLIQUE_EQUIVALENCE_2026-09-27_v1.0.md"
+      - "experiments/r5_e9_cubic_linear_hoffman_coclique_equivalence.py"
+      - ".github/workflows/r5-e9-hoffman-coclique-equivalence.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  replay:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Compile checker
+        run: python -m py_compile experiments/r5_e9_cubic_linear_hoffman_coclique_equivalence.py
+      - name: Replay finite falsifier controls
+        run: python experiments/r5_e9_cubic_linear_hoffman_coclique_equivalence.py

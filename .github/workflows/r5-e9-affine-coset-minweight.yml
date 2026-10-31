@@ -1,0 +1,49 @@
+name: R5 E9 Affine-Coset Minweight
+
+on:
+  push:
+    paths:
+      - "experiments/r5_e9_cubic_exact_one_affine_coset_minweight.py"
+      - "research/R5_E9_CUBIC_EXACT_ONE_AFFINE_COSET_MINWEIGHT_NORMAL_FORM_2026-09-27_v1.0.md"
+      - "research/R5_E9_BOUNDED_SUPPORT_AFFINE_KERNEL_DESCENT_BARRIER_2026-09-27_v1.0.md"
+      - ".github/workflows/r5-e9-affine-coset-minweight.yml"
+  pull_request:
+    paths:
+      - "experiments/r5_e9_cubic_exact_one_affine_coset_minweight.py"
+      - "research/R5_E9_CUBIC_EXACT_ONE_AFFINE_COSET_MINWEIGHT_NORMAL_FORM_2026-09-27_v1.0.md"
+      - "research/R5_E9_BOUNDED_SUPPORT_AFFINE_KERNEL_DESCENT_BARRIER_2026-09-27_v1.0.md"
+      - ".github/workflows/r5-e9-affine-coset-minweight.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  replay:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Compile checker
+        run: python -m py_compile experiments/r5_e9_cubic_exact_one_affine_coset_minweight.py
+      - name: Replay finite controls
+        run: |
+          python experiments/r5_e9_cubic_exact_one_affine_coset_minweight.py > /tmp/affine_minweight.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          x=json.loads(Path('/tmp/affine_minweight.json').read_text())
+          assert x['status']=='PASS_CUBIC_EXACT_ONE_AFFINE_COSET_MINWEIGHT_NORMAL_FORM'
+          by_name={v['name']:v for v in x['finite_controls']}
+          assert by_name['FANO_7']['exact_one_solution_count']==0
+          assert by_name['AFFINE_3X3']['exact_one_solution_count']==3
+          assert by_name['AFFINE_3X3']['parity_weights']==[3,9]
+          assert by_name['AFFINE_3X3']['binary_kernel_min_nonzero_weight']==6
+          assert x['affine_control_descent']['kernel_flip_support']==6
+          assert x['E8_D1']=='EMPTY'
+          assert x['P_VS_NP']=='OPEN'
+          print('R5_E9_AFFINE_COSET_MINWEIGHT=PASS')
+          PY

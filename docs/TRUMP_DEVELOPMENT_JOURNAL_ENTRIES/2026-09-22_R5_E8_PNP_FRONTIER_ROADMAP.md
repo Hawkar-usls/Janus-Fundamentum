@@ -1,0 +1,1553 @@
+# R5 E8 — P vs NP Frontier Roadmap
+
+Date: 2026-09-22  
+Authority: `ANTI_LOOP_ROADMAP__NO_D1_PROMOTION`  
+Repository: `Hawkar-usls/Janus-Fundamentum`  
+PR: `#510`  
+Branch: `codex/r5-e8-direct-contract-20260921-82493a57`
+
+## 0. Global scientific ceiling
+
+```text
+P_VS_NP
+=
+OPEN
+
+D1
+=
+NOT_ADMITTED
+
+GENERAL_SAT_IN_P
+=
+NOT_PROVED
+```
+
+Finite diagnostics never promote a polynomial theorem. Every asymptotic promotion requires an arbitrary-size proof.
+
+---
+
+## 1. DONE — do not reopen
+
+### 1.1 Prior-art mechanics
+
+Do not claim novelty for:
+
+- Shannon projection `exists x f = f[x=0] OR f[x=1]`;
+- AIG/circuit existential quantification;
+- structural hashing / strashing;
+- AIG quantifier scheduling;
+- one-step size-aware greedy quantifier scheduling;
+- FRAIG / SAT sweeping / BDD sweeping as practical semantic compaction;
+- generic binary branching `t -> 2^t` distinguishability arguments.
+
+Authority:
+
+`research/R5_B1B1C5B2B2_E8_AIG_QE_AND_INTERNAL_ANTI_DUPLICATION_SOURCE_AUDIT_2026-09-22_v1.0.md`
+
+### 1.2 Internal Janus predecessors
+
+Do not rediscover under new names:
+
+- `C023_FORMULA_CACHING_CALCULUS`: exact residual/cache DAG mechanics;
+- `C023R_REACHABLE_COSET_AND_EXECUTION_DAG_GATE`: serial-diamond / multiplicity proof skeleton;
+- `TRUMP_EXACT_INTERFACE_QUOTIENT_BASIS_THEOREM_CANDIDATE`: U1 coordinate-separation `2^k` skeleton;
+- `TRUMP_FACTORIZED_FEEDBACK_INTERFACE_PORTFOLIO_THEOREM`: factorized-payload escape;
+- `TRUMP_BICAMERAL_GUARDED_BOUNDED_OUTPUT_ELIMINATION_THEOREM`: bounded-output guarded elimination;
+- `CAPTAIN_OBVIOUS_C023R_REPRESENTATION_CORRECTION_AND_TAIL_BALANCE`: semantic irrelevance is not syntactic disappearance.
+
+Before opening a new E8 mechanism, compare it against these artifacts.
+
+---
+
+## 2. DONE — frozen computational object
+
+### Exact frozen structural-AIG selector
+
+Executable authority:
+
+`research/tools/r5_e8_frozen_structural_aig_executor.py`
+
+Frozen semantics:
+
+```text
+STATE
+=
+structural AIG DAG
+with complemented edges
+
+ALLOWED
+=
+restriction
+Shannon projection
+CONST
+IDEMPOTENCE
+COMPLEMENT
+COMMUTATIVE canonicalization
+structural interning
+garbage collection
+
+FORBIDDEN
+=
+SAT oracle
+semantic equivalence oracle
+FRAIG
+SAT sweeping
+BDD sweeping
+hidden existential relabeling
+
+GREEDY KEY
+=
+(projected_reachable_nodes,
+ cone_size,
+ variable_id)
+```
+
+The one-step exact selector is polynomial in the current live DAG size.
+
+---
+
+## 3. DONE — finite exact diagnostics
+
+### 3.1 Finite greedy myopia
+
+A minimized signed 2-CNF kernel proves on a finite exact instance:
+
+```text
+one-step exact greedy
+!=
+global peak optimum
+```
+
+Authority:
+
+`research/R5_B1B1C5B2B2_E8_GREEDY_EXACT_STRUCTURAL_PROJECTOR_FINITE_MYOPIA_SEED_2026-09-22_v1.0.json`
+
+This is diagnostic only and does not falsify the universal polynomial-peak theorem.
+
+### 3.2 Cyclic shared payload
+
+Family:
+
+```text
+F_m =
+AND_i [
+  (x_i OR z_i OR NOT z_{i+1})
+  AND
+  (NOT x_i OR z_{i+2} OR NOT z_{i+3})
+]
+```
+
+Finite large peaks exist, but arbitrary-`m` linear selector prefix has not been proved.
+
+---
+
+## 4. DONE — scheduler/amplifier separation
+
+Old target:
+
+```text
+one recursive gadget
+must both force scheduling
+and recursively self-copy
+```
+
+Replaced by:
+
+```text
+SCHEDULER
++
+AMPLIFIER
+```
+
+The scheduler only needs to force a linear-size selector prefix.
+
+The amplifier converts that prefix into exponentially many frozen structural branch roots.
+
+Authority:
+
+`research/R5_B1B1C5B2B2_E8_GREEDY_PREFIX_AMPLIFIER_COMPOSITION_GATE_2026-09-22_v1.0.json`
+
+---
+
+## 5. DONE — power-of-two tree geometry
+
+Restrict to the infinite subfamily:
+
+```text
+m = 2^r
+```
+
+No theorem requires all integer `m`.
+
+### Balanced-tree carry-boundary lemma
+
+For the frozen balanced builder:
+
+```text
+m = 2^r
+=>
+complete block tree
+no carry tail
+
+m = 2^r + 1
+=>
+G_m is carried as shallow tail
+
+m = 2^r + 2
+=>
+(G_{m-1},G_m) becomes the shallow carried tail pair
+```
+
+This explains why `9/10, 17/18, 33/34` are structurally anomalous candidates without requiring a modulo-8 explanation.
+
+Authority:
+
+`research/R5_B1B1C5B2B2_E8_CYCLIC_POWER_OF_TWO_SELECTOR_PREFIX_GATE_2026-09-22_v1.0.json`
+
+---
+
+## 6. DONE — odd-selector amplifier side
+
+For `m=2^r >= 4`, while even selector blocks remain unresolved:
+
+```text
+t distinct odd-selector projections
+=>
+at least 2^t
+distinct reachable
+nonconstant,
+noncomplement
+structural branch-root refs
+```
+
+This is now a scoped symbolic lemma, not merely finite evidence.
+
+Authority:
+
+`research/R5_B1B1C5B2B2_E8_ODD_SELECTOR_BRANCH_INJECTIVITY_LEMMA_2026-09-22_v1.0.md`
+
+Therefore:
+
+```text
+AMPLIFIER SIDE
+=
+CLOSED
+FOR ODD-SELECTOR PREFIXES
+```
+
+---
+
+## 7. CURRENT OPEN CORE — do this next
+
+### R5_E8_ODD_PREFIX_NET_CHARGE_THEOREM_V1
+
+New exact accounting authority:
+
+`research/R5_B1B1C5B2B2_E8_NET_PROJECTION_CHARGE_AND_STEP0_THEOREM_2026-09-22_v1.0.md`
+
+For every currently reachable trial variable:
+
+```text
+cost(v)
+=
+N + A_v - sigma_v - kappa_v.
+```
+
+Hence with
+
+```text
+E_v
+=
+A_v - sigma_v - kappa_v
+```
+
+the frozen greedy key is exactly
+
+```text
+(E_v, A_v, variable_id).
+```
+
+The arbitrary-`r` initial step is now closed:
+
+```text
+m=2^r >= 4
+=>
+first frozen greedy winner = x1.
+```
+
+The remaining theorem is:
+
+```text
+For every odd-only prefix state before
+all odd selectors are eliminated:
+
+I. kappa_v = 0
+   for relevant odd-selector/payload trials;
+
+II. there exists unresolved odd selector o
+    such that for every payload z:
+
+    A_z - A_o
+    >=
+    sigma_z - sigma_o;
+
+III. if equality holds,
+     A_o < A_z.
+```
+
+This is equivalent to proving the remaining odd selector beats every payload under the exact frozen key.
+
+### Consequence: R5_E8_ODD_SELECTOR_GREEDY_PREFIX_THEOREM_V1
+
+Target:
+
+```text
+For every m = 2^r >= 4,
+
+before selecting any payload variable,
+the frozen exact greedy projector
+selects all m/2 odd selector variables.
+```
+
+Equivalent useful proof target:
+
+```text
+For every odd-prefix state S_t:
+
+min_key(
+  unresolved odd selectors
+)
+<
+min_key(
+  unresolved payload variables
+)
+```
+
+where
+
+```text
+key(v)
+=
+(
+  projected_reachable_nodes,
+  cone_size,
+  variable_id
+)
+```
+
+Lexicographic equality in the first coordinate must be resolved by the exact cone-size and id tie-breaks.
+
+### Finite pattern already observed
+
+```text
+m=4:
+1,3
+
+m=8:
+1,7,3,5
+
+m=16:
+1,15,5,9,3,11,7,13
+
+m=32:
+1,31,9,17,7,21,15,25,
+19,3,11,27,5,23,13,29
+```
+
+The `m=32` observation remains diagnostic, not theorem evidence.
+
+---
+
+## 8. Required proof program
+
+### Stage A — exact state normal form / kappa lemma
+
+Derive a symbolic description of the frozen live DAG after an arbitrary prefix of odd selector eliminations and prove that projection of every relevant comparator drops no old variable-independent reachable node:
+
+```text
+kappa_v = 0.
+```
+
+Do not separately derive the total projected size `N_t`; the exact charge identity cancels the common `N_t` term.
+
+Required output:
+
+- exact surviving block/tree shape;
+- exact class of Shannon-OR nodes introduced;
+- exact structural sharing that remains possible;
+- no semantic simplification assumptions.
+
+### Stage B — odd-selector local charge profile
+
+For unresolved odd selectors derive:
+
+```text
+A_o
+sigma_o
+E_o = A_o - sigma_o
+```
+
+under the `kappa_o=0` invariant.
+
+Goal: characterize the bounded local simplification saving while allowing the common Shannon backbone to grow.
+
+### Stage C — payload local charge profile
+
+For every unresolved payload `z_j`, derive:
+
+```text
+A_z
+sigma_z
+E_z = A_z - sigma_z
+```
+
+under the same `kappa_z=0` invariant.
+
+Target comparison:
+
+```text
+A_z - A_o
+>=
+sigma_z - sigma_o.
+```
+
+### Stage D — compare all competitors by net charge
+
+For every prefix length `0 <= t < m/2`, prove existence of unresolved odd selector `o` such that for every payload `z`:
+
+```text
+DeltaCone
+=
+A_z - A_o
+
+>=
+
+sigma_z - sigma_o
+=
+DeltaSaving.
+```
+
+Therefore `E_o <= E_z`. If equality holds, prove `A_o<A_z`; selector IDs already dominate payload IDs on the tertiary tie-break.
+
+No ignored competitors are allowed.
+
+### Stage E — arbitrary-n conclusion
+
+If Stages A-D succeed:
+
+```text
+t = m/2
+
+Peak(F_m)
+>=
+2^(m/2)
+
+L
+=
+O(m log m)
+
+therefore
+
+Peak(F_m)
+>=
+2^(Omega(L/log L)).
+```
+
+Then:
+
+```text
+R5_E8_GREEDY_PROJECTOR_PEAK_THEOREM_V1
+=
+FALSIFIED
+```
+
+This falsifies the exact frozen greedy candidate only.
+
+It does **not** prove `P != NP`.
+
+---
+
+## 9. Failure branches
+
+### If the odd-prefix theorem fails symbolically
+
+Record exactly:
+
+- first prefix class where payload can beat all selectors;
+- winning payload key;
+- best selector key;
+- structural cause;
+- whether the failure is primary projected-size or cone tie-break related.
+
+Then:
+
+```text
+ODD_SELECTOR_PREFIX THEOREM
+=
+FALSIFIED
+```
+
+Do not infer anything about general structural AIG QE or P vs NP.
+
+### If the cyclic family factors
+
+Before claiming amplification, test the already-sealed factorized-payload conditions.
+
+If exact cross-independence holds, return to the sealed factorized portfolio theorem; do not relabel factorization as a new E8 mechanism.
+
+### If output is only polynomial on a scoped guard
+
+Return the guarded-bounded-output verdict.
+
+Do not promote a bounded-output route into a general solver.
+
+---
+
+## 10. What not to do now
+
+Until the odd-selector theorem resolves:
+
+```text
+NO new representation hunt
+
+NO new selector design
+
+NO new AIG scheduling heuristic
+
+NO new broad literature inventory
+
+NO transfer from OBDD/resolution lower bounds
+
+NO semantic equivalence simplifier
+
+NO finite-run polynomial promotion
+
+NO P=NP / P!=NP claim
+```
+
+The only authorized work is theorem analysis of the frozen power-of-two cyclic family, plus finite diagnostics used solely to discover/probe symbolic invariants.
+
+---
+
+## 11. Promotion ladder
+
+### Level 0 — finite diagnostic
+Observed traces only.
+
+### Level 1 — scoped symbolic lemma
+Arbitrary-size statement under explicit preconditions.
+
+### Level 2 — exact counterfamily theorem
+Arbitrary-size family plus frozen exact greedy trace and superpolynomial peak.
+
+### Level 3 — candidate consequence
+Exact frozen greedy polynomial-peak theorem is falsified.
+
+### Level 4 — D1
+Still **not reached**. A different universal polynomial SAT mechanism would still be required.
+
+### Level 5 — P=NP
+Only if a complete uniform polynomial SAT algorithm with full construction/solve/reconstruction/verification proof is established.
+
+---
+
+## 12. Current one-line frontier
+
+```text
+DONE:
+prior-art audit
++ frozen executor
++ finite myopia
++ scheduler/amplifier split
++ power-of-two tree geometry
++ odd-prefix branch amplification
+
+OPEN:
+prove or falsify
+
+FOR m=2^r:
+all m/2 odd selectors beat every payload
+under the exact frozen greedy key.
+```
+
+
+---
+
+## 13. UPDATE — net projection charge identity and arbitrary-r step 0
+
+Authority:
+
+`research/R5_B1B1C5B2B2_E8_NET_PROJECTION_CHARGE_AND_STEP0_THEOREM_2026-09-22_v1.0.json`
+
+### Exact identity
+
+For any unresolved trial variable `v` in the frozen executor:
+
+```text
+cost(v)
+=
+N + A_v - sigma_v - kappa_v
+```
+
+where:
+
+```text
+A_v
+=
+old reachable dependent AND gates
+
+sigma_v
+=
+(2A_v+1)
+-
+new reachable trial nodes
+
+kappa_v
+=
+old v-independent nodes
+that disappear from the projected result
+```
+
+Therefore within one current state:
+
+```text
+E_v
+=
+A_v - sigma_v - kappa_v
+```
+
+is the exact primary greedy charge, and the frozen key can be compared as:
+
+```text
+(E_v, A_v, variable_id).
+```
+
+### Step 0 is closed for all m=2^r
+
+For every selector:
+
+```text
+A_x     = r+5
+sigma_x = 8
+kappa_x = 0
+E_x     = r-3
+```
+
+For any payload `z`:
+
+```text
+A_z     = T_z + s_z + 8
+sigma_z = s_z + 12
+kappa_z = 0
+E_z     = T_z - 4
+```
+
+with:
+
+```text
+T_z >= r+1.
+```
+
+Hence:
+
+```text
+E_z >= r-3 = E_x.
+```
+
+If primary charge ties, then:
+
+```text
+A_z >= r+9 > r+5 = A_x.
+```
+
+Therefore every selector beats every payload at the initial state, and selector-id tie breaking chooses:
+
+```text
+x1.
+```
+
+So:
+
+```text
+R5_E8_POWER_OF_TWO_STEP0_SELECTOR_THEOREM_V1
+=
+PROVED
+```
+
+### New sole open theorem
+
+Replace the old full projected-DAG comparison by:
+
+```text
+R5_E8_ODD_PREFIX_NET_CHARGE_THEOREM_V1
+```
+
+Target:
+
+```text
+For every odd-only prefix state
+before all odd selectors are removed,
+
+there exists unresolved odd selector o
+
+such that for every payload z:
+
+(E_o,A_o,o)
+<
+(E_z,A_z,z)
+lexicographically.
+```
+
+Preferred proof route:
+
+```text
+1. prove kappa_payload = 0
+
+2. odd-selector kappa need not be zero;
+   positive kappa only helps selector
+
+3. prove for a suitable odd selector o:
+
+   A_z - A_o
+   >=
+   sigma_z - sigma_o
+
+4. on E ties prove A_o < A_z
+
+5. if E and A both tie,
+   selector id automatically wins
+```
+
+Do **not** count the full `N_t` separately unless forced.
+
+Do **not** reopen the amplifier: odd-prefix branch amplification is already closed.
+
+Do **not** open a new family or representation before this theorem resolves.
+
+
+## 13. 2026-09-22 net-charge checkpoint
+
+```text
+NET_PROJECTION_CHARGE_IDENTITY
+=
+PROVED
+
+POWER_OF_TWO_STEP0_SELECTOR_WIN
+=
+PROVED_ARBITRARY_R
+
+FULL_N_t_PROJECTED_DAG_COUNTING
+=
+NO_LONGER_REQUIRED
+
+CURRENT OPEN CORE
+=
+KAPPA_ZERO
++
+DELTA_CONE >= DELTA_SAVING
+
+AMPLIFIER/P3
+=
+CLOSED_AND_FROZEN
+
+NEW FAMILY / NEW REPRESENTATION HUNT
+=
+FORBIDDEN UNTIL THIS GATE RESOLVES
+
+P_VS_NP
+=
+OPEN
+```
+
+
+## 14. Related-payload scope repair and orphan frontier
+
+The sufficient related-payload cone gap was too strong at the smallest base:
+
+```text
+m=4:
+RELATED_PAYLOAD_CONE_GAP(s_z+4)
+=
+FALSE
+```
+
+but the exact scheduler base remains:
+
+```text
+x1 -> x3
+=
+PROVED_DIRECTLY.
+```
+
+For every `m=2^r>=8` the repaired theorem is:
+
+```text
+RELATED payload z
++
+unresolved odd support o
+
+=>
+
+A_z-A_o >= s_z+4
+```
+
+and, using payload-backbone rigidity and `kappa=0`, every related payload is excluded from the frozen greedy winner set.
+
+Authority:
+
+`research/R5_B1B1C5B2B2_E8_RELATED_PAYLOAD_CONE_GAP_SCOPE_REPAIR_2026-09-22_v1.0.md`
+
+The only remaining payload class is now:
+
+```text
+ORPHAN(z)
+iff
+both odd support selectors of z
+have already been projected.
+```
+
+Current and only open scheduler target:
+
+```text
+R5_E8_ORPHAN_PAYLOAD_BARRIER_V1
+
+while some odd selector remains,
+no orphan payload can beat
+all unresolved odd selectors
+
+under
+
+(E_v,A_v,variable_id).
+```
+
+Until this resolves:
+
+```text
+NO new family
+NO new representation
+NO P3/amplifier work
+NO reopening related-payload cone gap
+NO full N_t counting
+```
+
+
+## 14. 2026-09-22 frozen-greedy counterfamily closure
+
+The prior open scheduler chain is now closed for the exact frozen selector.
+
+```text
+RELATED_PAYLOAD_CONE_GAP
+original m>=4 scope
+=
+FALSIFIED BY m=4 BASE EXCEPTION
+
+repaired m>=8 scope
+=
+PROVED
+
+m=4 base
+=
+x1 -> x3
+PROVED DIRECTLY
+
+
+EVEN_SELECTOR_BARRIER
+=
+PROVED
+
+ORPHAN_PAYLOAD_BARRIER
+=
+PROVED
+
+ODD_SELECTOR_GREEDY_PREFIX_THEOREM
+=
+PROVED
+
+for every m=2^r>=4:
+
+first m/2 greedy eliminations
+=
+all odd selectors
+```
+
+Together with the already-sealed odd-selector branch-injectivity lemma:
+
+```text
+Peak(F_m)
+>=
+2^(m/2)
+
+L
+=
+Theta(m log m)
+
+therefore
+
+Peak(F_m)
+>=
+2^(Omega(L/log L)).
+```
+
+Hence:
+
+```text
+R5_E8_GREEDY_PROJECTOR_PEAK_THEOREM_V1
+=
+FALSIFIED
+
+EXACT FROZEN STRUCTURAL-GREEDY D1 CANDIDATE
+=
+REJECTED
+
+P_VS_NP
+=
+OPEN
+```
+
+Authority:
+
+- `research/R5_B1B1C5B2B2_E8_RELATED_PAYLOAD_CONE_GAP_SCOPE_REPAIR_2026-09-22_v1.0.md`
+- `research/R5_B1B1C5B2B2_E8_CELL_TREE_COMPETITOR_BARRIERS_AND_FULL_ODD_PREFIX_THEOREM_2026-09-22_v1.0.md`
+- `research/R5_B1B1C5B2B2_E8_CYCLIC_POWER_OF_TWO_COUNTERFAMILY_RESULT_2026-09-22_v1.0.json`
+
+### Next authorized work
+
+```text
+NO SUCCESSOR ALGORITHM YET.
+
+1. independent proof audit
+2. postmortem:
+   identify exact missing compaction capability
+3. anti-duplication check against:
+   DP / guarded elimination
+   factorized payload
+   ER / BVA
+   SynNNF / knowledge compilation
+4. only then decide whether a successor E8 mechanism is justified
+```
+
+Do not reinterpret this counterfamily as a SAT lower bound or as evidence for `P != NP`.
+
+
+## 15. Dual-blowup source/history synthesis closure
+
+Authority:
+
+`research/R5_B1B1C5B2B2_E8_DUAL_BLOWUP_SURVIVOR_SOURCE_HISTORY_SYNTHESIS_2026-09-22_v1.0.md`
+
+Source-audited conclusion:
+
+```text
+KNOWN REPRESENTATION SURVIVING
+BOTH SPECIFIC E8 SIZE CONTROLS
+=
+YES
+
+EXAMPLE
+=
+ECNF
+
+PARITY COMPACTNESS
+=
+PASS
+
+CYCLIC LOCAL PROJECTION COMPACTNESS
+=
+PASS
+
+BUT
+
+ECNF CONSISTENCY
+=
+NP-COMPLETE
+```
+
+EADT is affine-aware and tractable for compiled queries, but general forgetting is not polynomial unless `P=NP`.
+
+AFF[OR] supports polynomial consistency, forgetting and bounded conjunction, but no universal polynomial arbitrary-CNF-to-polysize-AFF[OR] compiler is established in the audited source set; such a compiler would itself imply `SAT in P`.
+
+Existential closure provides the independent literature version of the hidden-existential firewall:
+
+```text
+EASY FORGETTING BY REMEMBERING EXISTS
+!=
+SEMANTIC CHOICE ELIMINATION
+WITH POLY TERMINAL CONSISTENCY
+```
+
+Internal history binding:
+
+```text
+C020 NONLINEAR AFFINE MASKING
+=
+VISIBLE XOR NOT REPRESENTATION-INVARIANT
+
+UNIFORM AFFINE BOUNDARY
+EXACT INTERFACE QUOTIENT
+FACTORIZED PAYLOAD
+GUARDED ELIMINATION
+C023/C023R
+=
+ALREADY EXISTING SCOPED ROUTES
+```
+
+### Current successor lock
+
+```text
+SUCCESSOR ALGORITHM
+=
+LOCKED
+
+NEXT AUTHORIZED OBJECT
+=
+SOURCE-BOUND TRACTABLE-INVARIANT INVENTORY ONLY
+```
+
+The only legitimate question is now:
+
+```text
+Does there exist a known,
+poly-recognizable,
+compositionally discoverable,
+projection-preserved tractable invariant
+inside an ECNF-like mixed state language
+that simultaneously provides:
+
+- uniform polynomial arbitrary-CNF entry;
+- compact affine/parity objects;
+- compact local exact projections;
+- polynomial forgetting;
+- polynomial consistency;
+- no SAT/equivalence oracle;
+- polynomial total state/history?
+```
+
+Do not design a new compiler until a candidate invariant is first found and source-audited.
+
+
+## 15. Frozen greedy candidate closed by arbitrary-size counterfamily
+
+The remaining competitor classes are now all closed:
+
+```text
+RELATED PAYLOADS
+=
+CLOSED
+
+ORPHAN PAYLOADS
+=
+CLOSED
+
+EVEN SELECTORS
+=
+CLOSED
+```
+
+Therefore:
+
+```text
+R5_E8_ODD_SELECTOR_GREEDY_PREFIX_THEOREM_V1
+=
+PROVED
+
+for every m=2^r>=4.
+```
+
+The first `m/2` frozen greedy choices are the odd selector variables.
+
+Combining with the already-proved odd-selector branch-injectivity lemma:
+
+```text
+Peak(F_m)
+>=
+2^(m/2).
+```
+
+With frozen encoded input length:
+
+```text
+L = Theta(m log m),
+```
+
+the explicit family satisfies:
+
+```text
+Peak(F_m)
+>=
+2^(Omega(L/log L)).
+```
+
+Hence:
+
+```text
+R5_E8_GREEDY_PROJECTOR_PEAK_THEOREM_V1
+=
+FALSIFIED
+```
+
+by an arbitrary-size explicit family.
+
+Authority:
+
+`research/R5_B1B1C5B2B2_E8_ODD_SELECTOR_GREEDY_PREFIX_AND_PEAK_FALSIFICATION_2026-09-22_v1.0.md`
+
+Result receipt:
+
+`registry/R5_B1B1C5B2B2_E8_FROZEN_GREEDY_PEAK_FALSIFICATION_RESULT_2026-09-22_v1.0.json`
+
+### Scope firewall
+
+This result kills only the exact frozen structural-only greedy candidate.
+
+It is not a lower bound for all AIG QE, all variable orders, or SAT, and it does not imply `P!=NP`.
+
+### Next authorized work
+
+```text
+POSTMORTEM
++
+SUCCESSOR GAP ANALYSIS
+
+ONLY
+```
+
+Do not open a new selector or representation until the exact missing operation is isolated against the anti-duplication audit.
+
+```text
+P_VS_NP
+=
+OPEN
+
+D1
+=
+NOT_ADMITTED
+```
+
+
+## 16. 6H post-inventory strategic lock
+
+Authority:
+
+- `research/R5_B1B1C5B2B2_E8_6H_POST_INVENTORY_STRATEGIC_LOCK_2026-09-22_v1.0.md`
+- `registry/R5_B1B1C5B2B2_E8_6H_POST_INVENTORY_STRATEGIC_LOCK_2026-09-22_v1.0.json`
+
+Current state:
+
+```text
+6G
+=
+DONE
+
+6H
+=
+STRATEGIC LOCK
+
+P_VS_NP
+=
+OPEN
+
+D1
+=
+EMPTY
+
+FROZEN_STRUCTURAL_GREEDY
+=
+THEOREM_LEVEL_FALSIFIED
+
+FLAT_CNF_DP
+=
+THEOREM_LEVEL_FALSIFIED
+AS UNIVERSAL POLY REPRESENTATION ROUTE
+
+FULL_D1_HIT
+=
+NONE_FOUND_IN_AUDITED_SET
+
+SUCCESSOR_ALGORITHM
+=
+LOCKED
+```
+
+Five permanent anti-loop laws:
+
+```text
+1.
+COMPACT REPRESENTATION
+!=
+TRACTABLE CONSISTENCY
+
+2.
+FORGETTING-CLOSED
+!=
+POLY-SIZE FORGETTING
+
+3.
+TRACTABLE COMPONENTS
+!=
+TRACTABLE MIXTURE
+
+4.
+GOOD ELIMINATION ORDER EXISTS
+!=
+GOOD ORDER POLY-DISCOVERABLE
+
+5.
+POLY PP DESCRIPTION / AUXILIARIES
+!=
+POLY SEMANTIC-CHOICE ELIMINATION
+```
+
+Any later candidate must first be compared against:
+
+```text
+FACTORIZED_FEEDBACK
+EXACT_INTERFACE_QUOTIENT
+LOG_ALIEN_TRANSFER
+AFFINE_BOUNDARY
+GUARDED_OUTPUT_ELIMINATION
+C023 / C023R
+RAW_SCHAEFER_BASIS
+```
+
+If reducible to one of those routes:
+
+```text
+REDISCOVERY_OF_EXISTING_MECHANISM
+```
+
+and no new E8 gate is opened.
+
+Only if a genuinely new source-bound structural principle appears may strategic review consider an instance-specific compositional invariant with polynomial construct/recognize/size/interaction/project/preserve/consistency/reconstruction/history guarantees and no SAT/equivalence oracle, hidden existential freedom, unbounded alien/backdoor enumeration, semantic sweeping, or exponential interface enumeration.
+
+Until then:
+
+```text
+NEW ALGORITHM DESIGN
+=
+NO
+
+NEW REPRESENTATION HUNT
+=
+NO
+
+NEXT ACTION
+=
+WAIT FOR GENUINELY NEW
+SOURCE-BOUND STRUCTURAL PRINCIPLE
+```
+
+
+---
+
+## 17. 6I — source-bound induced-algebra bridge gate
+
+The 6H unlock condition has fired **narrowly**, not globally.
+
+A known external structural principle not previously represented in the JANUS audited set has been identified:
+
+```text
+INSTANCE-SPECIFIC
+INDUCED ALGEBRA ASSIGNMENT
+
+v -> A_v in B
+```
+
+Source:
+
+Rustem Takhanov,
+*On the induced problem for fixed-template CSPs*,
+arXiv:1708.08292v3.
+
+Supporting multi-sorted / discoverability controls:
+
+- Bulatov–Jeavons, *An Algebraic Approach to Multi-sorted Constraints*;
+- Carbonnel, *The Dichotomy for Conservative Constraint Satisfaction is Polynomially Decidable*.
+
+Mandatory comparison against:
+
+```text
+FACTORIZED_FEEDBACK
+EXACT_INTERFACE_QUOTIENT
+LOG_ALIEN_TRANSFER
+AFFINE_BOUNDARY
+GUARDED_OUTPUT_ELIMINATION
+C023 / C023R
+RAW_SCHAEFER_BASIS
+```
+
+returns:
+
+```text
+REDISCOVERY
+=
+NO
+
+RAW_SCHAEFER_RELATION
+=
+ADJACENT,
+SINGLETON-B SPECIAL CASE,
+NOT THE SAME OBJECT
+```
+
+Authority:
+
+`research/R5_B1B1C5B2B2_E8_6I_INDUCED_ALGEBRA_SOURCE_ADMISSION_AUDIT_2026-09-22_v1.0.md`
+
+Checkpoint:
+
+`registry/R5_B1B1C5B2B2_E8_6I_INDUCED_ALGEBRA_ADMISSION_CHECKPOINT_2026-09-22_v1.0.json`
+
+### Frozen first negative control — B4
+
+```text
+B4
+=
+{AND3, OR3, MAJ3, XOR3}
+```
+
+Exact exhaustive preservation checking proves that the satisfiable two-clause formula
+
+```text
+(x OR y OR z)
+AND
+(NOT x OR NOT y OR NOT z)
+```
+
+admits zero variable-wise B4 algebra-label assignments preserving both clause relations.
+
+Also:
+
+```text
+Gamma_3SAT -> Gamma_3SAT^B4
+=
+NO HOMOMORPHISM
+```
+
+for the frozen B4 induced template.
+
+Therefore:
+
+```text
+B4 UNIVERSAL COVERAGE
+=
+FALSIFIED
+```
+
+without any heuristic evidence.
+
+### Frozen opposite control — B_const
+
+For the two value-coding constant algebras:
+
+```text
+B_const={A_0,A_1},
+```
+
+the induced template is exactly the original Boolean template under label renaming:
+
+```text
+Gamma^B_const
+cong
+Gamma.
+```
+
+Thus:
+
+```text
+COVERAGE
+=
+PERFECT
+
+PROTOTYPE DISCOVERY
+=
+ORIGINAL CSP
+```
+
+and no complexity progress is obtained.
+
+This is the exact hidden-semantic-choice control.
+
+### Current exact gate
+
+```text
+R5_E8_6I_INDUCED_ALGEBRA
+COVERAGE_DISCOVERY_BRIDGE_GATE_V1
+```
+
+A candidate algebra family `B` must close all of:
+
+```text
+G1 tractable algebras
+G2 poly description/construction
+G3 poly CSP(Gamma_3SAT^B) prototype discovery
+G4 complete arbitrary-3CNF coverage / sound reduction
+G5 poly prototype-to-original solve/reconstruct
+G6 total original-L polynomial lifecycle
+G7 no value-coding / hidden SAT choice
+```
+
+Current search interval:
+
+```text
+TOO RIGID:
+B4
+=> coverage fails
+
+TOO EXPRESSIVE:
+B_const
+=> discovery is SAT
+
+MISSING:
+nontrivial source-bound B
+with both coverage
+and polynomial prototype discovery
+```
+
+This is theorem analysis only.
+
+```text
+SUCCESSOR_ALGORITHM
+=
+LOCKED
+
+D1
+=
+EMPTY
+
+P_VS_NP
+=
+OPEN
+```
+
+
+---
+
+## 18. Policy correction — corpus-first mechanism synthesis
+
+Authority:
+
+- `research/R5_B1B1C5B2B2_E8_CORPUS_FIRST_MECHANISM_SYNTHESIS_DOCTRINE_2026-09-22_v1.0.md`
+- `registry/R5_B1B1C5B2B2_E8_CORPUS_FIRST_MECHANISM_SYNTHESIS_DOCTRINE_2026-09-22_v1.0.json`
+
+This section supersedes the **novelty requirement** wording of the earlier 6H stop-state.
+
+Scientific facts of 6H remain valid, but admission policy changes:
+
+```text
+NOVELTY
+=
+OPTIONAL
+
+OLD / CLASSICAL MECHANISM REUSE
+=
+AUTHORIZED
+
+REDISCOVERY
+=
+ALLOWED AS WORKING MATERIAL
+
+CORPUS-FIRST MECHANISM SYNTHESIS
+=
+AUTHORIZED
+
+NEW GATE CRITERION
+=
+CLOSE A PREVIOUSLY OPEN OBLIGATION
+WITH AN EXACT POLYNOMIAL COMPOSITION THEOREM
+```
+
+A route previously rejected as a **complete solver** may still donate a valid submechanism.
+
+Do not conflate:
+
+```text
+ROUTE STATUS
+with
+MECHANISM STATUS.
+```
+
+Examples:
+
+```text
+flat-CNF DP route
+=
+rejected as universal route
+
+but
+
+bounded exact resolvent identity
+=
+still valid local donor
+
+
+2-SAT prototype discovery
+=
+not universal for OR3
+
+but
+
+still valid exact discovery engine
+for the admitted A3 2-of-3 subclass
+```
+
+Current actual frontier:
+
+```text
+6I
+=
+INSTANCE-SPECIFIC INDUCED-ALGEBRA BRIDGE
+
+CURRENT TARGET
+=
+R5_E8_6I_LIFTED_SBM_THRESHOLD_2_TO_1_BRIDGE_GATE_V1
+```
+
+The current gap is not "find something novel".
+
+It is:
+
+```text
+compose known source-bound mechanisms
+so that:
+
+coverage
++
+certificate discovery
++
+tractable lifted solve
++
+projection/preservation
++
+reconstruction
++
+global polynomial budget
+
+all close simultaneously
+for arbitrary signed 3-CNF.
+```
+
+Permanent composition rule:
+
+```text
+POLY MECHANISM A
++
+POLY MECHANISM B
+
+!=
+
+POLY UNIVERSAL SOLVER
+
+WITHOUT A POLYNOMIAL INTERFACE THEOREM.
+```
+
+Therefore every future synthesis must explicitly prove interface compatibility and total original-input polynomial lifecycle.
+
+```text
+P_VS_NP
+=
+OPEN
+
+D1
+=
+EMPTY
+```

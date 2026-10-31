@@ -1,0 +1,32 @@
+name: R5 E9 sign-crossing partial-sign bisubmodular falsifier
+
+on:
+  push:
+    branches:
+      - codex/r5-e8-direct-contract-20260921-82493a57
+    paths:
+      - 'research/R5_E9_SIGN_CROSSING_PARTIAL_SIGN_BISUBMODULAR_FALSIFIER_2026-10-01_v1.0.md'
+      - 'experiments/r5_e9_sign_crossing_partial_sign_bisubmodular_falsifier.py'
+      - '.github/workflows/r5-e9-sign-crossing-partial-sign-bisubmodular-falsifier.yml'
+  pull_request:
+    paths:
+      - 'research/R5_E9_SIGN_CROSSING_PARTIAL_SIGN_BISUBMODULAR_FALSIFIER_2026-10-01_v1.0.md'
+      - 'experiments/r5_e9_sign_crossing_partial_sign_bisubmodular_falsifier.py'
+      - '.github/workflows/r5-e9-sign-crossing-partial-sign-bisubmodular-falsifier.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  exact-replay:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Compile checker
+        run: python -m py_compile experiments/r5_e9_sign_crossing_partial_sign_bisubmodular_falsifier.py
+      - name: Replay exact bisubmodularity violation
+        run: python experiments/r5_e9_sign_crossing_partial_sign_bisubmodular_falsifier.py

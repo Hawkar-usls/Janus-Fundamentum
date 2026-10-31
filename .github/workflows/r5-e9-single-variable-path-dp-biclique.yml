@@ -1,0 +1,39 @@
+name: R5 E9 Single Variable Path DP Biclique
+
+on:
+  push:
+    paths:
+      - "research/R5_E9_TWO_CLAUSE_ONE_COHERENCE_DP_EXACTNESS_2026-09-28_v1.0.md"
+      - "research/R5_E9_SINGLE_VARIABLE_PATH_ELIMINATION_DP_BICLIQUE_THEOREM_2026-09-28_v1.0.md"
+      - "experiments/r5_e9_two_clause_one_coherence_dp_exactness.py"
+      - "experiments/r5_e9_single_variable_path_dp_biclique.py"
+      - ".github/workflows/r5-e9-single-variable-path-dp-biclique.yml"
+  pull_request:
+    paths:
+      - "research/R5_E9_TWO_CLAUSE_ONE_COHERENCE_DP_EXACTNESS_2026-09-28_v1.0.md"
+      - "research/R5_E9_SINGLE_VARIABLE_PATH_ELIMINATION_DP_BICLIQUE_THEOREM_2026-09-28_v1.0.md"
+      - "experiments/r5_e9_two_clause_one_coherence_dp_exactness.py"
+      - "experiments/r5_e9_single_variable_path_dp_biclique.py"
+      - ".github/workflows/r5-e9-single-variable-path-dp-biclique.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  replay:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Compile checkers
+        run: |
+          python -m py_compile experiments/r5_e9_two_clause_one_coherence_dp_exactness.py
+          python -m py_compile experiments/r5_e9_single_variable_path_dp_biclique.py
+      - name: Replay classifications
+        run: |
+          python experiments/r5_e9_two_clause_one_coherence_dp_exactness.py
+          python experiments/r5_e9_single_variable_path_dp_biclique.py
