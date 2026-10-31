@@ -1,0 +1,29 @@
+name: JANUS NAS DOVOD SHA Historical Negative Control
+
+on:
+  pull_request:
+    paths:
+      - 'archive/nas_dovod_sha_20261031/**'
+      - 'tests/test_nas_dovod_sha_negative_control.py'
+      - '.github/workflows/janus-nas-dovod-sha-negative-control.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'archive/nas_dovod_sha_20261031/**'
+      - 'tests/test_nas_dovod_sha_negative_control.py'
+      - '.github/workflows/janus-nas-dovod-sha-negative-control.yml'
+permissions:
+  contents: read
+jobs:
+  no-training-scientific-gate:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 4
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Check negative control and unchanged no-training bound
+        run: python -m unittest discover -s tests -p test_nas_dovod_sha_negative_control.py -v
