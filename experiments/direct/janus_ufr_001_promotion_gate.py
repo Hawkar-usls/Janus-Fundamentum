@@ -36,7 +36,7 @@ def evaluate(files: list[Path]) -> dict:
         failures.append("both machines must test the same exact commit")
     for row in evidence:
         machine = row.get("source", {}).get("os_label")
-        if row.get("schema") != "JANUS-UFR-PAIRED-RSS-V1":
+        if row.get("schema") != "JANUS-UFR-PAIRED-RSS-V2":
             failures.append(f"{machine}: unexpected evidence schema")
             continue
         rounds = row.get("repetitions", 0)
@@ -51,6 +51,9 @@ def evaluate(files: list[Path]) -> dict:
             original, ufr = item["baseline"], item["ufr"]
             if original["status"] != "PASS_REPLAY" or ufr["status"] != "PASS_REPLAY":
                 failures.append(f"{machine}/{name}: certificate replay not passed")
+            if (original.get("certificate_accounting") != "BOTH_SERIALIZED_INDEPENDENT_REPLAY"
+                    or ufr.get("certificate_accounting") != "BOTH_SERIALIZED_INDEPENDENT_REPLAY"):
+                failures.append(f"{machine}/{name}: asymmetric proof-accounting methodology")
             if original["answer"] != ufr["answer"] or type(ufr["answer"]) is not bool:
                 failures.append(f"{machine}/{name}: Boolean result mismatch")
             if name == "MAJ3_K4" and (
