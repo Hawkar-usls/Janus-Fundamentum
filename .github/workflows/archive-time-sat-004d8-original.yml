@@ -1,0 +1,56 @@
+name: JANUS TIME-SAT-004D8 preserve exact original SAT-model source evidence
+on:
+  push:
+    branches: [research/time-sat-004d8-verified-sat-model-rank-20261102]
+    paths: [.github/workflows/archive-time-sat-004d8-original.yml]
+permissions:
+  contents: write
+  actions: read
+concurrency:
+  group: janus-time-sat-004d8-one-shot-source-archive
+  cancel-in-progress: false
+jobs:
+  exact-original-two-host-sat-model-archive:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Fetch exact GitHub Actions two-host original artifact ZIP bytes
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/janus-time-sat-004d8
+          for pair in '13105359637 ubuntu22' '13106606147 ubuntu24'; do
+            set -- ${pair}
+            curl --fail --silent --show-error --retry 2 --location \
+              -H "Authorization: Bearer ${GH_TOKEN}" \
+              -H 'Accept: application/vnd.github+json' \
+              -H 'X-GitHub-Api-Version: 2022-11-28' \
+              "https://api.github.com/repos/Hawkar-usls/Janus-Fundamentum/actions/artifacts/${1}/zip" \
+              -o "/tmp/janus-time-sat-004d8/${2}.zip"
+          done
+      - name: Replay original pinned SAT models and GF2 proof on both archived hosts
+        run: >-
+          python3 experiments/time_sat_004_external/archive_time_sat_004d8_original.py
+          --zip22 /tmp/janus-time-sat-004d8/ubuntu22.zip
+          --zip24 /tmp/janus-time-sat-004d8/ubuntu24.zip
+          --out experiments/time_sat_004_external/time_sat_004d8_evidence
+      - name: Save source CNF and original dual-host receipts on research branch only
+        run: |
+          set -euo pipefail
+          test "${GITHUB_REF_NAME}" = research/time-sat-004d8-verified-sat-model-rank-20261102
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add experiments/time_sat_004_external/time_sat_004d8_evidence
+          if git diff --cached --quiet; then
+            echo 'Original 004D8 receipts already archived'
+          else
+            git commit -m 'evidence(004D8): two verified SAT source models, zero new GF2 rank'
+            git push origin HEAD:refs/heads/research/time-sat-004d8-verified-sat-model-rank-20261102
+          fi
