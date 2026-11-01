@@ -48,10 +48,12 @@ def random_exact_one_cnf(seed, n=8, constraints=12):
 def fixtures(extended=False):
     from janus_tear_policy0a_context_obstruction import complete_width_four_core
     def renamed_twin_unsat_cnf():
-        clauses = [(1,) + row for row in complete_width_four_core(1)]
-        clauses += [(-1,) + row for row in complete_width_four_core(5)]
-        clauses.append((10, 11, 12))
-        return canonical_cnf(clauses), 12
+        shared = [(2, v) for v in (3, 4, 5, 6)]
+        shared += [(-2, v) for v in (7, 8, 9, 10)]
+        clauses = shared + [(1,) + row for row in complete_width_four_core(10)]
+        clauses += [(-1,) + row for row in complete_width_four_core(14)]
+        clauses.append((19, 20, 21))
+        return canonical_cnf(clauses), 21
     # CI explicitly replays a nontrivial positive UFR cache-edge fixture.
     yield 'RENAMED_TWIN_POSITIVE_CONTROL', renamed_twin_unsat_cnf()
     yield 'GT4', graph_tautology_cnf(4)
@@ -71,7 +73,7 @@ def run_case(cnf, n, method, max_states):
         policy = FCTracePolicy(state_cap=max_states)
     else:
         policy = UFRFCTracePolicy(
-            state_cap=max_states, max_variables=12,
+            state_cap=max_states, max_variables=24,
             max_candidates=120, max_literals=120,
         )
     tracemalloc.start()
