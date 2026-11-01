@@ -1,0 +1,48 @@
+name: JANUS TIME-SAT-004D8 frozen verified SAT model first rank gate
+on:
+  push:
+    branches: [research/time-sat-004d8-verified-sat-model-rank-20261102]
+    paths:
+      - experiments/direct/janus_time_sat_004d8_*.py
+      - tests/test_time_sat_004d8_sat_gate.py
+      - .github/workflows/validate-time-sat-004d8-sat-first.yml
+permissions:
+  contents: read
+concurrency:
+  group: janus-time-sat-004d8-verified-sat-source-only
+  cancel-in-progress: true
+jobs:
+  original-model-and-proof-replay:
+    strategy:
+      fail-fast: false
+      matrix:
+        runner: [ubuntu-22.04, ubuntu-24.04]
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Falsification controls for original SAT model-first admission
+        run: python -m unittest discover -s tests -p 'test_time_sat_004d8_sat_gate.py' -v
+      - name: Original 004D7 rank-gate controls
+        run: python -m unittest discover -s tests -p 'test_time_sat_004d7_rank_gate.py' -v
+      - name: Original 004D6 resolution proof controls
+        run: python -m unittest discover -s tests -p 'test_time_sat_004d6_resolution.py' -v
+      - name: Original C023 legacy independent serialized verifier
+        run: python experiments/direct/janus_tear_policy0a_fc_serialized_verifier.py
+      - name: Original SHA pinned SAT model check BEFORE source-rank work
+        run: >-
+          python experiments/direct/janus_time_sat_004d8_sat_probe.py
+          --out evidence/time_sat_004d8
+      - name: Preserve both SAT and model-gate-negative evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: time-sat-004d8-${{ matrix.runner }}
+          path: evidence/time_sat_004d8/*.json
+          if-no-files-found: warn
+          retention-days: 30
