@@ -31,8 +31,8 @@ class Compare004D2Tests(unittest.TestCase):
         rng=random.Random(202611010422)
         for _ in range(10):
             n=5
-            eq=[(rng.sample(range(1,n+1),rng.randrange(2,5)),rng.randrange(2))
-                for i in range(4)]
+            supports=((1,2,3),(2,3,4),(1,4,5),(1,2,5))
+            eq=[(list(variables),rng.randrange(2)) for variables in supports]
             rows=[c for variables,rhs in eq for c in enc(variables,rhs)]
             cover=group_parity_equations(rows,n)
             self.assertEqual(cover["status"],"EXACT_XOR_COVER_PASS")
