@@ -69,6 +69,7 @@ class Tachyon001Tests(unittest.TestCase):
                     hint = tuple(rng.randrange(2) for _ in range(n))
                     for strategy, gac in (
                         ("forward", False), ("forward", True),
+                        ("candidate_first", True), ("candidate_first", False),
                         ("retrograde", True), ("retrograde", False)
                     ):
                         found = search(rows, n, kind, echo=hint,
@@ -96,6 +97,26 @@ class Tachyon001Tests(unittest.TestCase):
                 with self.subTest(formula=formula, kind=kind, echo=wrong):
                     res = search(formula, n, kind, echo=wrong)
                     self.assertEqual(res.answer, expected)
+
+    def test_candidate_first_equal_information_and_false_echo(self):
+        # Both strategies construct the exact same heuristic hypothesis,
+        # pay its construction and verify it with the same Boolean evaluator.
+        for kind, formula, n in (
+            ("SAT", ((1,), (-2,), (3, -4)), 4),
+            ("EXACT_ONE", ((1, 2, 3), (-2, 4)), 4),
+            ("SAT", ((1,), (-1,)), 4),
+        ):
+            for given in (None, (0,) * n, (1,) * n):
+                left = search(formula, n, kind, echo=given,
+                              strategy="candidate_first")
+                right = search(formula, n, kind, echo=given,
+                               strategy="retrograde")
+                self.assertEqual(left.answer, right.answer)
+                self.assertEqual(left.echoed_candidate_checked,
+                                 right.echoed_candidate_checked)
+                self.assertEqual(left.echoed_candidate_accepted,
+                                 right.echoed_candidate_accepted)
+                self.assertTrue(left.result_verified and right.result_verified)
 
     def test_input_bounds_and_unsafe_hints_refused(self):
         with self.assertRaises(ValueError):
