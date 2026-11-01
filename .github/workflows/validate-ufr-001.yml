@@ -1,0 +1,38 @@
+name: Validate UFR-001 structural renaming
+
+on:
+  push:
+    paths:
+      - 'experiments/direct/janus_ufr_001*.py'
+      - 'tests/test_ufr_001.py'
+      - 'docs/UFR_001_RESEARCH.md'
+      - '.github/workflows/validate-ufr-001.yml'
+  pull_request:
+    paths:
+      - 'experiments/direct/janus_ufr_001*.py'
+      - 'tests/test_ufr_001.py'
+      - 'docs/UFR_001_RESEARCH.md'
+      - '.github/workflows/validate-ufr-001.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  bounded-soundness:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Independent renaming and witness tests
+        run: python -m unittest discover -s tests -p 'test_ufr_001.py' -v
+      - name: Standalone synthetic control (not C023 speedup)
+        run: python experiments/direct/janus_ufr_001_benchmark.py
+      - name: Existing C023 replay unchanged
+        run: python experiments/direct/janus_tear_policy0a_fc_serialized_verifier.py
+      - name: UFR read-only C023 diamond diagnostic
+        run: python experiments/direct/janus_ufr_001_probe.py --fixture diamond
+      - name: UFR read-only C023 graph tautology diagnostic
+        run: python experiments/direct/janus_ufr_001_probe.py --fixture gt4
