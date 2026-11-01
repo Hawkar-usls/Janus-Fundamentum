@@ -144,7 +144,7 @@ def archive(z22:Path,z24:Path,out:Path):
                actual["group_count"]!=previous["group_count"]):
                 raise AssertionError("DIFFERENT_GF2_SOURCE_SOLVING_REPLAY")
             if index==0:
-                if actual["model"]!=previous["model"]:
+                if list(actual["model"])!=previous["model"]:
                     raise AssertionError("REPLAYED_SAT_MODEL_DIFFERENCE")
                 bits=sum(1<<(abs(l)-1) for l in previous["model"] if l>0)
                 if not check_original_cnf(rows,shape["n_variables"],bits):
