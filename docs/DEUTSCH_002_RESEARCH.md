@@ -66,3 +66,16 @@ Note: these are same-machine five-repetition microbenchmarks of **compilation on
 - Constructing a quantum query oracle that does not require pre-knowing M by a complete classical scan.
 - Independent verification of SAT witnesses and reliable treatment of UNSAT.
 - Real quantum hardware benchmarking and fair same-instance resource/performance comparison versus current C023.
+
+
+## Repeated cloud verification after MAJ3-UFR covariance was added
+
+The enhanced MAJ3 test constructs a second 18-variable CNF under a verified total variable bijection and checks 514 independently chosen assignments against both reversible circuits. It passed together with every previous SAT/Exact-One, Grover, and Deutsch–Jozsa control.
+
+- Pinned completed run: https://github.com/Hawkar-usls/Janus-Fundamentum/actions/runs/41295480672, SHA 0103cc146544455af9360a133f40265fe9ca977a.
+- Full scientific JSON: experiments/DEUTSCH_002_CLOUD_EVIDENCE_20261101.json.
+- CI results: Deutsch-002 7/7 test groups PASS; Deutsch-001 8/8 PASS; original C023 serialized verifier PASS.
+- Latest MAJ3-K4 compilation median 0.02124 seconds; 514 sampled original assignments and 514 same-instance renamed assignments PASS. Resource estimates unchanged at 1,024 work qubits, 2,049 high-level MCX, 2,065 clean-chain-estimated total qubits, 32,765 estimated Toffoli gates. No full statevector at n=18 was run.
+- Same-run independent 3-SAT n=6 compile: prior truth-table ANF 1.3309 ms vs direct 0.2131 ms (~6.2x faster compilation only), but complete classical direct-Grover simulation 1.8067 ms vs early-exit classical brute force 0.3807 ms (~4.7x slower). Microbenchmarks are noisy.
+
+**Adoption decision:** NO solver replacement, NO demonstrated end-to-end speedup. The work proves exact bounded circuit synthesis and quantified resource obstacles rather than quantum advantage.
