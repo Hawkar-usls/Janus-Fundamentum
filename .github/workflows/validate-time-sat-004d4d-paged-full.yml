@@ -1,0 +1,49 @@
+name: JANUS TIME-SAT-004D4D complete paged source XOR scan
+on:
+  push:
+    branches:
+      - research/time-sat-004d4d-paged-full-support-20261101
+    paths:
+      - experiments/direct/janus_time_sat_004d4d_*.py
+      - tests/test_time_sat_004d4d_paged_support.py
+      - .github/workflows/validate-time-sat-004d4d-paged-full.yml
+permissions:
+  contents: read
+concurrency:
+  group: janus-time-sat-004d4d-source-only
+  cancel-in-progress: true
+jobs:
+  paged-source-replay:
+    strategy:
+      fail-fast: false
+      matrix:
+        runner: [ubuntu-22.04, ubuntu-24.04]
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 4
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Exhaustive paged-support truth equivalence
+        run: python -m unittest discover -s tests -p 'test_time_sat_004d4d_paged_support.py' -v
+      - name: Parent 004D4C conservative bounded-index regression
+        run: python -m unittest discover -s tests -p 'test_time_sat_004d4c_bounded_support.py' -v
+      - name: Legacy 004D4 synthetic correctness regression
+        run: python -m unittest discover -s tests -p 'test_time_sat_004d4_mixed_xor.py' -v
+      - name: Existing production C023 serialized verifier read-only
+        run: python experiments/direct/janus_tear_policy0a_fc_serialized_verifier.py
+      - name: SHA-pinned four-original-source complete paged audit - zero SAT engines
+        run: >-
+          python experiments/direct/janus_time_sat_004d4d_probe.py
+          --out evidence/time_sat_004d4d
+      - name: Retain exact findings and failures
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: time-sat-004d4d-${{ matrix.runner }}
+          path: evidence/time_sat_004d4d/result.json
+          if-no-files-found: warn
+          retention-days: 30
