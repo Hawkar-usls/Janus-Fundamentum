@@ -1,0 +1,53 @@
+name: JANUS TIME-SAT-004D6 preserve byte-exact original bounded resolution evidence
+on:
+  push:
+    branches: [research/time-sat-004d6-bounded-source-resolution-20261102]
+    paths: [.github/workflows/archive-time-sat-004d6-original.yml]
+permissions:
+  contents: write
+  actions: read
+concurrency:
+  group: janus-time-sat-004d6-one-shot-original-archive
+  cancel-in-progress: false
+jobs:
+  original-resolution-two-host-archive:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - name: Download original dual-runner zipped artifacts by frozen IDs
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/janus-time-sat-004d6
+          for pair in '13102619807 ubuntu22' '13102338561 ubuntu24'; do
+            set -- ${pair}
+            curl --fail --silent --show-error --retry 2 --location \
+              -H "Authorization: Bearer ${GH_TOKEN}" \
+              -H 'Accept: application/vnd.github+json' \
+              -H 'X-GitHub-Api-Version: 2022-11-28' \
+              "https://api.github.com/repos/Hawkar-usls/Janus-Fundamentum/actions/artifacts/${1}/zip" \
+              -o "/tmp/janus-time-sat-004d6/${2}.zip"
+          done
+      - name: Reconcile source SHA and exact original resolution proofs on each host
+        run: >-
+          python3 experiments/time_sat_004_external/archive_004d6_original.py
+          --zip22 /tmp/janus-time-sat-004d6/ubuntu22.zip
+          --zip24 /tmp/janus-time-sat-004d6/ubuntu24.zip
+          --out experiments/time_sat_004_external/time_sat_004d6_evidence
+      - name: Persist research-only append-original history
+        run: |
+          set -euo pipefail
+          test "${GITHUB_REF_NAME}" = research/time-sat-004d6-bounded-source-resolution-20261102
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add experiments/time_sat_004_external/time_sat_004d6_evidence
+          if git diff --cached --quiet; then
+            echo 'Original 004D6 CI artifacts already archived'
+          else
+            git commit -m 'evidence(004D6): original dual Ubuntu 333 source-entailed XOR representations'
+            git push origin HEAD:refs/heads/research/time-sat-004d6-bounded-source-resolution-20261102
+          fi

@@ -1,0 +1,38 @@
+name: JANUS TIME-SAT-004D6R rank of frozen 333 derived parity representations
+on:
+  push:
+    branches: [research/time-sat-004d6-bounded-source-resolution-20261102]
+    paths: [.github/workflows/validate-time-sat-004d6-rank.yml]
+permissions:
+  contents: write
+concurrency:
+  group: janus-time-sat-004d6-rank-once
+  cancel-in-progress: false
+jobs:
+  posthoc-original-proofs-rank:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Re-verify original exact CNF and all resolution proofs; compute exact GF2 rank
+        run: >-
+          python experiments/direct/janus_time_sat_004d6_rank_audit.py
+          --out experiments/time_sat_004_external/time_sat_004d6_rank
+      - name: Save append-only posthoc scientific diagnostic on research branch
+        run: |
+          set -euo pipefail
+          test "${GITHUB_REF_NAME}" = research/time-sat-004d6-bounded-source-resolution-20261102
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add experiments/time_sat_004_external/time_sat_004d6_rank
+          if git diff --cached --quiet; then
+            echo 'Posthoc rank diagnosis already preserved'
+          else
+            git commit -m 'evidence(004D6R): exact GF2 rank of archived source-derived XOR keys'
+            git push origin HEAD:refs/heads/research/time-sat-004d6-bounded-source-resolution-20261102
+          fi
