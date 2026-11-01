@@ -1,0 +1,45 @@
+name: JANUS TIME-SAT-004D3 nine-source bounded parity and mixed-CNF proof
+on:
+  push:
+    branches:
+      - research/time-sat-004d3-public-multifamily-20261101
+    paths:
+      - experiments/direct/janus_time_sat_004d3_probe.py
+      - tests/test_time_sat_004d3.py
+      - .github/workflows/validate-time-sat-004d3-multifamily.yml
+permissions:
+  contents: read
+concurrency:
+  group: janus-time-sat-004d3-frozen-public-cohort
+  cancel-in-progress: true
+jobs:
+  original-nine-source-structural-replay:
+    strategy:
+      fail-fast: false
+      matrix:
+        runner: [ubuntu-22.04, ubuntu-24.04]
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Offline frozen-cohort, negative controls and GF2 source witness tests
+        run: python -m unittest discover -s tests -p 'test_time_sat_004d3.py' -v
+      - name: Verify original C023 certificate safeguard remains intact
+        run: python experiments/direct/janus_tear_policy0a_fc_serialized_verifier.py
+      - name: Exact original 9 public sources, strictly bounded SHA+DIMACS+GF2 structural checks only
+        run: >-
+          python experiments/direct/janus_time_sat_004d3_probe.py
+          --out evidence/time_sat_004d3
+      - name: Save all original results including failures and abstentions
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: time-sat-004d3-${{ matrix.runner }}
+          path: evidence/time_sat_004d3/result.json
+          retention-days: 30
+          if-no-files-found: warn
