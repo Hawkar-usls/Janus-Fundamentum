@@ -50,7 +50,7 @@ class BoundedPartialIndex(unittest.TestCase):
         p=self.assert_equivalent(rows,4,max_groups=1)
         self.assertTrue(p["index_exhausted"])
         self.assertEqual(p["complete_xor_equation_count"],0)
-        self.assertEqual(p["residual_source_clauses"],len(rows))
+        self.assertEqual(p["source_residual_clauses"],len(rows))
         self.assertIn("PARTIAL_SCAN",p["interpretation_when_index_exhausted"])
 
     def test_indexed_group_may_complete_after_cap_is_reached(self):
