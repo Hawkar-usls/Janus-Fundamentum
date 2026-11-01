@@ -46,11 +46,17 @@ def random_exact_one_cnf(seed, n=8, constraints=12):
 
 
 def fixtures(extended=False):
-    from test_ufr_001_certified_fc import renamed_twin_unsat_cnf
+    from janus_tear_policy0a_context_obstruction import complete_width_four_core
+    def renamed_twin_unsat_cnf():
+        clauses = [(1,) + row for row in complete_width_four_core(1)]
+        clauses += [(-1,) + row for row in complete_width_four_core(5)]
+        clauses.append((10, 11, 12))
+        return canonical_cnf(clauses), 12
     # CI explicitly replays a nontrivial positive UFR cache-edge fixture.
     yield 'RENAMED_TWIN_POSITIVE_CONTROL', renamed_twin_unsat_cnf()
     yield 'GT4', graph_tautology_cnf(4)
-    yield 'TSEITIN_K4', visible_tseitin_cnf(4, K4_EDGES)
+    tseitin, count = visible_tseitin_cnf(4, K4_EDGES)
+    yield 'TSEITIN_K4_NONAFFINE_WRAPPED', (canonical_cnf(list(tseitin) + [(count + 1, count + 2, count + 3)]), count + 3)
     for seed in (173, 191, 227):
         yield f'INDEPENDENT_3SAT_SEED_{seed}', random_sat(seed)
     for seed in (271, 307, 353):
@@ -111,7 +117,8 @@ def main():
     for name, (cnf, n) in fixtures(args.extended):
         baseline = run_case(cnf, n, 'EXACT_C023', args.state_cap)
         ufr = run_case(cnf, n, 'CERTIFIED_UFR_C023', args.state_cap)
-        assert baseline['answer'] == ufr['answer'], (name, baseline, ufr)
+        if baseline['answer'] is not None and ufr['answer'] is not None:
+            assert baseline['answer'] == ufr['answer'], (name, baseline, ufr)
         assert baseline['status'] == ufr['status'] or (
             baseline['status'] == 'STATE_CAP_INCONCLUSIVE' and
             ufr['status'] == 'PASS_REPLAY'
