@@ -1,0 +1,56 @@
+name: JANUS TIME-SAT-004D0 archive paired results and no-solver diagnostics
+on:
+  push:
+    branches: [research/time-sat-004d-evidence-20261101]
+    paths:
+      - '.github/workflows/archive-time-sat-004d0.yml'
+permissions:
+  actions: read
+  contents: write
+concurrency:
+  group: time-sat-004d0-evidence-one-shot
+  cancel-in-progress: false
+jobs:
+  preserve-original-evidence-and-source-only-witnesses:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - name: Independently inspect source-only JANUS operation on exact pinned CNF, no SAT solving
+        run: python3 experiments/direct/janus_time_sat_004d_probe.py
+      - name: Retrieve exact two previously finished Actions artifact ZIPs with GitHub auth
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/janus-004d0-artifacts
+          for ID in 13091163305 13092050308; do
+            curl -fLsS --retry 2 \
+              -H "Authorization: Bearer ${GH_TOKEN}" \
+              -H "Accept: application/vnd.github+json" \
+              -H "X-GitHub-Api-Version: 2022-11-28" \
+              "https://api.github.com/repos/Hawkar-usls/Janus-Fundamentum/actions/artifacts/${ID}/zip" \
+              -o "/tmp/janus-004d0-artifacts/${ID}.zip"
+          done
+      - name: Verify both exact artifact SHA256 and retain original worker JSONs
+        run: |
+          set -euo pipefail
+          python3 experiments/direct/janus_time_sat_004d0_persist.py \
+            --zip-22 /tmp/janus-004d0-artifacts/13091163305.zip \
+            --zip-24 /tmp/janus-004d0-artifacts/13092050308.zip \
+            --out experiments/time_sat_004_external/time_sat_004d0_evidence
+      - name: Commit original binary receipts and cheap diagnostics to research branch only
+        run: |
+          set -euo pipefail
+          test "${GITHUB_REF_NAME}" = research/time-sat-004d-evidence-20261101
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -- experiments/time_sat_004_external/time_sat_004d0_evidence evidence/time_sat_004d0_diagnostics/diagnostics.json
+          if git diff --cached --quiet; then
+            echo 'Exact original evidence already archived.'
+          else
+            git commit -m 'evidence(time-sat-004D0): pin original cloud CPU-limited samples and measured no-solver JANUS witness scan'
+            git push origin HEAD:refs/heads/research/time-sat-004d-evidence-20261101
+          fi
