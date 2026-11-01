@@ -44,7 +44,7 @@ class TimeSatPartial002Tests(unittest.TestCase):
     def test_unit_clauses_and_missing_wedge_deny_admission(self):
         rows=((-1,2),(-1,-2),(3,))
         self.assertEqual(cheap_features(rows,3).reason,"HAS_UNIT_CLAUSES")
-        rows=((1,2),(1,3),(-1,2))
+        rows=((1,2),(1,3),(2,3))
         self.assertEqual(cheap_features(rows,3).reason,"NO_BINARY_WEDGE")
 
     def test_truncated_or_faulted_probe_falls_back_exact_original_cdcl(self):
