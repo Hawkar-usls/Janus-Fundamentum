@@ -1,0 +1,53 @@
+name: JANUS TIME-SAT-004D2 persist exact original 30-run evidence
+on:
+  push:
+    branches: [research/time-sat-004d2-evidence-20261101]
+    paths: [.github/workflows/archive-time-sat-004d2.yml]
+permissions:
+  actions: read
+  contents: write
+concurrency:
+  group: janus-time-sat-004d2-preserve-original
+  cancel-in-progress: false
+jobs:
+  immutable-evidence:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - name: Retrieve exact original GitHub artifact bytes for 2 completed workers
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/janus-time-sat-004d2
+          for ID in 13093360122 13093161095; do
+            curl --fail --silent --show-error --retry 2 --location \
+              -H "Authorization: Bearer ${GH_TOKEN}" \
+              -H "Accept: application/vnd.github+json" \
+              -H "X-GitHub-Api-Version: 2022-11-28" \
+              "https://api.github.com/repos/Hawkar-usls/Janus-Fundamentum/actions/artifacts/${ID}/zip" \
+              -o "/tmp/janus-time-sat-004d2/${ID}.zip"
+          done
+      - name: Cross-verify exact original SHA/JSON and summarize only successful solved times
+        run: |
+          set -euo pipefail
+          python3 experiments/direct/janus_time_sat_004d2_archive.py \
+            --zip-22 /tmp/janus-time-sat-004d2/13093360122.zip \
+            --zip-24 /tmp/janus-time-sat-004d2/13093161095.zip \
+            --out experiments/time_sat_004_external/time_sat_004d2_evidence
+      - name: Commit immutable original ZIP and all JSON to research-only branch
+        run: |
+          set -euo pipefail
+          test "${GITHUB_REF_NAME}" = research/time-sat-004d2-evidence-20261101
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add experiments/time_sat_004_external/time_sat_004d2_evidence
+          if git diff --cached --quiet; then
+            echo 'Identical evidence is already preserved.'
+          else
+            git commit -m 'evidence(time-sat-004D2): archive exact raw CI ZIPs, 18 SAT models and 12 CPU censored baseline trials'
+            git push origin HEAD:refs/heads/research/time-sat-004d2-evidence-20261101
+          fi
