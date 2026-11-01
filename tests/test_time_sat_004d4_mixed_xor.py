@@ -48,7 +48,7 @@ class MixedXorTests(unittest.TestCase):
         return p
 
     def test_partial_mixed_equivalence(self):
-        rows = encode_xor([1, 2, 3], 1) + [(3, 4), (-4,)]
+        rows = encode_xor([1, 2, 3], 1) + [(3, 4), (-2, 4, 1)]
         p = self.assert_lossless(rows, 4)
         self.assertEqual(len(p["equations"]), 1)
         self.assertEqual(len(p["residual_clauses"]), 2)
