@@ -1,0 +1,36 @@
+name: JANUS TIME-SAT-004D4 safe partial-XOR source equivalence
+on:
+  push:
+    branches:
+      - research/time-sat-004d4-mixed-xor-safe-extraction-20261101
+    paths:
+      - experiments/direct/janus_time_sat_004d4_mixed_xor.py
+      - tests/test_time_sat_004d4_mixed_xor.py
+      - .github/workflows/validate-time-sat-004d4-mixed-xor.yml
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: janus-time-sat-004d4-mixed-xor
+  cancel-in-progress: true
+jobs:
+  mixed-xor-lossless-check:
+    strategy:
+      fail-fast: false
+      matrix:
+        runner: [ubuntu-22.04, ubuntu-24.04]
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install pinned native CryptoMiniSat binding for mixed XOR + CNF
+        run: python -m pip install --only-binary=:all: --disable-pip-version-check 'pycryptosat==5.15.0'
+      - name: Exhaustive source-equivalence, malformed, SAT and UNSAT tests
+        run: python -m unittest discover -s tests -p 'test_time_sat_004d4_mixed_xor.py' -v
+      - name: Preserve original C023 verifier (read-only)
+        run: python experiments/direct/janus_tear_policy0a_fc_serialized_verifier.py
