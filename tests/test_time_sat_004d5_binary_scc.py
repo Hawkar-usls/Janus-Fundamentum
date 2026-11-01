@@ -21,27 +21,28 @@ def xor_holds(example, assignment):
 
 class ImplicationSccSourceWitness(unittest.TestCase):
     def test_hidden_xor_after_positive_equivalence_with_original_source_paths(self):
-        # x == y; (y v z) and (~x v ~z) imply x XOR z = 1.
-        rows=[(-1,2),(1,-2),(2,3),(-1,-3)]
-        d=source_proven_implied_xor(rows,3)
+        # x == y; source's 3-variable XOR clauses are split across x/y.
+        # Opposite binary pair on x,y alone is already known XOR and not "new".
+        rows=[(-1,2),(1,-2),(1,3,4),(-1,-3,4),(-2,3,-4),(2,-3,-4)]
+        d=source_proven_implied_xor(rows,4)
         self.assertEqual(d["status"],"WITNESSED_BINARY_EQUIVALENCE_PARITY_SOURCE_SCAN_PASS")
         self.assertGreaterEqual(d["new_implied_XOR_equations_beyond_prior_canonical_baseline"],1)
         examples=d["sample_witnesses_original_source_replayed"]
-        self.assertIn(([1,3],1),[(x["variables"],x["rhs"]) for x in examples])
+        self.assertIn(([1,3,4],1),[(x["variables"],x["rhs"]) for x in examples])
         for cert in examples:
             self.assertTrue(replay_equation_certificate(rows,cert))
-            for solution in all_solutions(rows,3):
+            for solution in all_solutions(rows,4):
                 self.assertTrue(xor_holds(cert,solution))
 
     def test_hidden_xor_after_negative_equivalence(self):
-        # x == not(y); (y v z) and (x v ~z) imply x == z.
-        rows=[(-1,-2),(1,2),(2,3),(1,-3)]
-        d=source_proven_implied_xor(rows,3)
+        # x == not(y), ternary source XOR block split across x and y.
+        rows=[(-1,-2),(1,2),(1,3,4),(-1,-3,4),(2,3,-4),(-2,-3,-4)]
+        d=source_proven_implied_xor(rows,4)
         self.assertEqual(d["status"],"WITNESSED_BINARY_EQUIVALENCE_PARITY_SOURCE_SCAN_PASS")
         self.assertTrue(d["sample_witnesses_original_source_replayed"])
         for cert in d["sample_witnesses_original_source_replayed"]:
             self.assertTrue(replay_equation_certificate(rows,cert))
-            for solution in all_solutions(rows,3):
+            for solution in all_solutions(rows,4):
                 self.assertTrue(xor_holds(cert,solution))
 
     def test_only_original_xor_does_not_count_as_novel(self):
@@ -65,10 +66,10 @@ class ImplicationSccSourceWitness(unittest.TestCase):
         self.assertEqual(d["SAT_UNSAT"],"NOT_ATTEMPTED")
 
     def test_forged_source_path_rejected(self):
-        rows=[(-1,2),(1,-2),(2,3),(-1,-3)]
-        d=source_proven_implied_xor(rows,3)
+        rows=[(-1,2),(1,-2),(1,3,4),(-1,-3,4),(-2,3,-4),(2,-3,-4)]
+        d=source_proven_implied_xor(rows,4)
         example=next(x for x in d["sample_witnesses_original_source_replayed"]
-                     if x["variables"]==[1,3])
+                     if x["variables"]==[1,3,4])
         import copy
         forged=copy.deepcopy(example)
         witness=next(p for p in forged["substitutions"] if p["positive_original_variable"]==2)
