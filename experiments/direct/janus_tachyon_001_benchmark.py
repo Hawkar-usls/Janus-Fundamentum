@@ -16,7 +16,7 @@ import statistics
 
 from janus_deutsch_001_benchmark import experiments
 from janus_tachyon_001 import evaluate, initial_echo, search
-from janus_ufr_001 import normalize
+from janus_ufr_001 import normalize, verify_model
 
 REPEATS = 5
 CONF = (
@@ -32,11 +32,17 @@ def run():
         normalized = normalize(rows)
         hint = initial_echo(normalized, n)
         variants = []
-        global_answers = [x for x in range(1 << n)
-                          if evaluate(normalized, x, kind)]
+        # Independent reference semantics: UFR literal-count evaluator, not
+        # the Tachyon module's own Boolean evaluator.
+        global_answers = [
+            x for x in range(1 << n)
+            if verify_model(normalized, {
+                v: bool((x >> (v-1)) & 1) for v in range(1, n+1)
+            }, kind)
+        ]
         for variant, strategy, gac in CONF:
             measurements = [
-                search(rows, n, kind, echo=hint, strategy=strategy, gac=gac)
+                search(rows, n, kind, strategy=strategy, gac=gac)
                 for _ in range(REPEATS)
             ]
             if any(v.answer != bool(global_answers) or
@@ -48,7 +54,7 @@ def run():
                 "variant": variant,
                 "answer": measurements[-1].answer,
                 "nodes": measurements[-1].nodes,
-                "elapsed_seconds_median_including_model_or_exhaustive_check":
+                "end_to_end_seconds_median_including_parsing_echo_and_model_or_exhaustive_check":
                     statistics.median(v.elapsed_seconds for v in measurements),
                 "untrusted_echo_candidate_tested": measurements[-1].echoed_candidate_checked,
                 "untrusted_echo_accepted_after_direct_model_check":
@@ -68,6 +74,7 @@ def run():
             ).encode()).hexdigest(),
             "exact_full_truth_solution_count": len(global_answers),
             "echo_model": list(hint),
+            "echo_precomputation_is_inside_timed_search": True,
             "reversed_echo_still_complete": True,
             "compared": variants,
         })
@@ -80,7 +87,7 @@ def run():
             "Future echo is a heuristic guess from known input clauses, not information from future",
             "It can order branches and offer a directly checked SAT candidate only",
             "Independent exhaustive verification n<=10 protects SAT and UNSAT answers",
-            "Local generalized arc consistency is a standard sound constraint operation",
+            "Local generalized arc consistency is a standard sound constraint operation; on Boolean variables the unit and GAC support reductions can coincide",
             "All timings are tiny noisy classical measurements, no claimed speedup",
             "Experimental module leaves proof-producing production C023 untouched",
             "PENROSE-003 prohibits any real FINAL_GATE -> UFR_PRODUCE causal dependency",
