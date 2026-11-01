@@ -95,6 +95,10 @@ def check_dependencies(edges: Iterable[tuple[str, str]] = REQUIRED_EDGES):
     # may flow backwards from the final gate into the original computation.
     if any(a == "FINAL_GATE" or b == "SOURCE" for a, b in selected):
         raise AssertionError("source/final trust boundary violation")
+    # The pinned cross-contour policy is immutable. Extra DAG edges (even
+    # if acyclic) would silently change the trust model.
+    if set(selected) != set(REQUIRED_EDGES):
+        raise AssertionError("unauthorized extra cross-contour dependency")
     return schedule
 
 
@@ -122,6 +126,8 @@ def inspect_proof_and_oracle(name: str, wire: str, *, sample_count: int = 32,
     Does NOT trust producer-side 'answer', stage summaries, or dependencies.
     Any UFR result is established only by independent serialized replay.
     """
+    if type(max_iso_oracle_edges) is not int or not (1 <= max_iso_oracle_edges <= 32):
+        raise ValueError("at least one and no more than 32 UFR/Oracle edges must be sampled")
     root, n = get_fixture(name)
     proof = load_ufr_json(wire)
     replayed_answer = replay_ufr_json(root, n, wire)
