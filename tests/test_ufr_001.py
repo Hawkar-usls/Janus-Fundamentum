@@ -62,6 +62,8 @@ class TestUFR(unittest.TestCase):
                     mapping = dict(zip(names, targets))
                     transformed = tuple(tuple((1 if l > 0 else -1) * mapping[abs(l)] for l in row)
                                         for row in rows)
+                    can = canonicalize(rows, kind)
+                    self.assertTrue(verify_renaming(rows, can.key, can.mapping(), kind))
                     match = find_verified_match(rows, transformed, kind)
                     self.assertIsNotNone(match, (kind, rows, transformed))
                     self.assertTrue(verify_renaming(rows, transformed, match, kind))
