@@ -10,6 +10,7 @@ from __future__ import annotations
 import argparse
 from datetime import datetime, timezone
 import json
+import math
 from pathlib import Path
 import statistics
 import sys
@@ -57,10 +58,12 @@ def evaluate(files: list[Path]) -> dict:
                 ufr["unique_states"] > 2354 or original["unique_states"] != 2427
             ):
                 failures.append(f"{machine}: MAJ3 state/165-hit regression")
-            if not isinstance(item.get("solve_ratio"), (int, float)) or (
-                item["solve_ratio"] <= 0
-            ):
-                failures.append(f"{machine}/{name}: invalid timing")
+            ratios = (item.get("solve_ratio"), item.get("end_to_end_ratio"),
+                      item.get("rss_ratio"))
+            if any(type(value) not in (int, float) or not math.isfinite(value)
+                   or value <= 0 for value in ratios):
+                failures.append(f"{machine}/{name}: nonfinite or invalid ratio")
+                continue
             if ufr["peak_rss_bytes"] <= 0 or original["peak_rss_bytes"] <= 0:
                 failures.append(f"{machine}/{name}: invalid RSS")
         if len(main) == rounds:
