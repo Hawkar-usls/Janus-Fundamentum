@@ -129,8 +129,12 @@ def inspect_proof_and_oracle(name: str, wire: str, *, sample_count: int = 32,
     if type(max_iso_oracle_edges) is not int or not (1 <= max_iso_oracle_edges <= 32):
         raise ValueError("at least one and no more than 32 UFR/Oracle edges must be sampled")
     root, n = get_fixture(name)
-    proof = load_ufr_json(wire)
-    replayed_answer = replay_ufr_json(root, n, wire)
+    # The 25 MB default remains in place for every other user. MAJ3-K4 is
+    # a pinned trusted experimental fixture and may explicitly request a
+    # bounded 200 MB serialized proof, with full independent replay.
+    proof_budget = 200_000_000 if name == "MAJ3_K4" else 25_000_000
+    proof = load_ufr_json(wire, max_bytes=proof_budget)
+    replayed_answer = replay_ufr_json(root, n, wire, max_bytes=proof_budget)
     calls, states = proof["calls"], proof["states"]
     iso = [(call_id, call) for call_id, call in calls.items()
            if call.get("terminal") == "ISOMORPHIC_CACHE_HIT"]
