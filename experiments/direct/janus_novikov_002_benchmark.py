@@ -21,7 +21,7 @@ from janus_tear_maj3_stifling_audit import maj3_lifted_tseitin_cnf
 from janus_tear_policy0a_masked_tseitin import K4_EDGES
 
 SEED=20261101
-POLICIES=("unit","lookahead")
+POLICIES=("unit","lookahead","selective")
 
 
 def large_planted(n,seed):
@@ -96,12 +96,18 @@ def compare(case,*,repeats:int,max_nodes:int,max_visits:int,seconds:float):
                 r.failed_literal_probes for r in results),
             "median_rejected_probe_branches":statistics.median(
                 r.rejected_probe_branches for r in results),
+            "median_probe_clause_visits":statistics.median(
+                r.probe_clause_visits for r in results),
+            "probe_quota_exhausted_in_any_repeat":any(
+                r.probe_quota_exhausted for r in results),
             "certificate_statuses":[r.certificate_status for r in results],
         }
     # Comparison can never treat UNKNOWN as an UNSAT proof or a speed win.
-    a,b=measurements["unit"],measurements["lookahead"]
+    a,b,c=(measurements[v] for v in POLICIES)
     both_conclusive=(a["status"] in ("SAT","UNSAT")
-                    and a["status"]==b["status"])
+                     and a["status"]==b["status"])
+    selective_conclusive=(a["status"] in ("SAT","UNSAT")
+                          and a["status"]==c["status"])
     return {
         "name":id,"group":group,"n":n,"constraints":len(rows),"kind":kind,
         "source_sha256":sha256(json.dumps(
@@ -113,6 +119,9 @@ def compare(case,*,repeats:int,max_nodes:int,max_visits:int,seconds:float):
         "lookahead_over_unit_elapsed_ratio":(
             b["median_elapsed_seconds"]/a["median_elapsed_seconds"]
             if both_conclusive and a["median_elapsed_seconds"]>0 else None),
+        "selective_over_unit_elapsed_ratio":(
+            c["median_elapsed_seconds"]/a["median_elapsed_seconds"]
+            if selective_conclusive and a["median_elapsed_seconds"]>0 else None),
         "variants":measurements,
     }
 
@@ -132,13 +141,21 @@ def run():
     small_ratios=[x["lookahead_over_unit_elapsed_ratio"] for x in records
                   if x["group"]=="frozen_small"
                   and x["lookahead_over_unit_elapsed_ratio"] is not None]
+    selective_ratios=[x["selective_over_unit_elapsed_ratio"] for x in records
+                  if x["group"]=="frozen_small"
+                  and x["selective_over_unit_elapsed_ratio"] is not None]
     large_outcomes={r["name"]:{
         "unit":r["variants"]["unit"]["status"],
         "lookahead":r["variants"]["lookahead"]["status"],
+        "selective":r["variants"]["selective"]["status"],
         "unit_nodes":r["variants"]["unit"]["median_nodes"],
         "lookahead_nodes":r["variants"]["lookahead"]["median_nodes"],
+        "selective_nodes":r["variants"]["selective"]["median_nodes"],
         "unit_visits":r["variants"]["unit"]["median_clause_visits"],
-        "lookahead_visits":r["variants"]["lookahead"]["median_clause_visits"]
+        "lookahead_visits":r["variants"]["lookahead"]["median_clause_visits"],
+        "selective_visits":r["variants"]["selective"]["median_clause_visits"],
+        "selective_probe_visits":r["variants"]["selective"]["median_probe_clause_visits"],
+        "selective_probe_quota_exhausted":r["variants"]["selective"]["probe_quota_exhausted_in_any_repeat"]
     } for r in records if r["group"]!="frozen_small"}
     return {
         "schema":"JANUS-NOVIKOV-002-PARTIAL-CONSISTENCY-COMPARISON-V1",
@@ -155,13 +172,17 @@ def run():
                             x<1 for x in small_ratios),
                         "lookahead_slower_cases":sum(
                             x>1 for x in small_ratios),
+                        "median_selective_over_unit_wall_ratio":
+                            statistics.median(selective_ratios),
+                        "selective_faster_cases":sum(x<1 for x in selective_ratios),
+                        "selective_slower_cases":sum(x>1 for x in selective_ratios),
                         "same_verified_answers":True,
                         "repetitions":3},
         "larger_cases":large_outcomes,
         "budgets":{"small":{"max_nodes":10000,"max_clause_visits":500000,
                             "per_repetition_seconds":4},
                    "large":{"max_nodes":140,"max_clause_visits":140000,
-                            "per_repetition_seconds":4}},
+                            "per_repetition_seconds":4,"selective_probe_max_share":0.05}},
         "cases":records,
         "claim_ceiling":[
             "Small answers independently checked against exhaustive UFR verify_model",
@@ -171,6 +192,7 @@ def run():
             "Any n>12 UNSAT is solver conclusion only, no portable independent certificate",
             "UNKNOWN budget exhaustion is not UNSAT and must not count as an algorithm failure of soundness",
             "This is standard failed-literal propagation, not Novikov physics or novelty",
+            "Selective probing spends at most 5% of the charged clause visits and then falls back to exact unit DPLL (apart from the final charge crossing the cap by one visit)",
             "Full wall, node and clause-visit expenses of probing are counted",
             "Existing stable production C023 and existing PR #574 gate remain unchanged",
         ],
