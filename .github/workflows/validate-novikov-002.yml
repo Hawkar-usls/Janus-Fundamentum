@@ -1,0 +1,50 @@
+name: Validate JANUS-NOVIKOV-002 partial consistency
+
+on:
+  push:
+    paths:
+      - 'experiments/direct/janus_novikov_002*.py'
+      - 'tests/test_novikov_002.py'
+      - 'docs/NOVIKOV_002_RESEARCH.md'
+      - '.github/workflows/validate-novikov-002.yml'
+  pull_request:
+    paths:
+      - 'experiments/direct/janus_novikov_002*.py'
+      - 'tests/test_novikov_002.py'
+      - 'docs/NOVIKOV_002_RESEARCH.md'
+      - '.github/workflows/validate-novikov-002.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: novikov-002-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verified-partial-consistency:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Prove partial-state propagation sound on SAT and Exact-One
+        run: python -m unittest discover -s tests -p 'test_novikov_002.py' -v
+      - name: Check that Novikov-001 exact fallback remains correct
+        run: python -m unittest discover -s tests -p 'test_novikov_001.py' -v
+      - name: Ensure original C023 proof verifier is unchanged
+        run: python experiments/direct/janus_tear_policy0a_fc_serialized_verifier.py
+      - name: Cost-accounted fair small and MAJ3-K4 / 220-240 variable comparison
+        run: python experiments/direct/janus_novikov_002_benchmark.py --out evidence/novikov-002.json
+      - name: Preserve provenance and all null/UNKNOWN results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: novikov-002-partial-consistency-evidence
+          path: evidence/novikov-002.json
+          retention-days: 30
+          if-no-files-found: warn
