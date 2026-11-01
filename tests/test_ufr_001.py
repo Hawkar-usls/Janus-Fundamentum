@@ -8,6 +8,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'experiments' / 'direct'))
 from janus_ufr_001 import (canonicalize, find_verified_match, normalize,
+                           structural_signature,
                            transport_model, verify_model, verify_renaming)
 
 
@@ -64,6 +65,10 @@ class TestUFR(unittest.TestCase):
                                         for row in rows)
                     can = canonicalize(rows, kind)
                     self.assertTrue(verify_renaming(rows, can.key, can.mapping(), kind))
+                    self.assertEqual(
+                        structural_signature(normalize(rows)),
+                        structural_signature(normalize(transformed)),
+                        (kind, rows, transformed))
                     match = find_verified_match(rows, transformed, kind)
                     self.assertIsNotNone(match, (kind, rows, transformed))
                     self.assertTrue(verify_renaming(rows, transformed, match, kind))
