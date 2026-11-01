@@ -1,0 +1,46 @@
+name: JANUS TIME-SAT-004D0 large-CNF bounded fair smoke
+on:
+  push:
+    branches: [research/time-sat-004d-bounded-adapter-20261101]
+    paths:
+      - experiments/direct/janus_time_sat_004d_*.py
+      - tests/test_time_sat_004d.py
+      - .github/workflows/validate-time-sat-004d0.yml
+permissions:
+  contents: read
+concurrency:
+  group: janus-time-sat-004d0-two-public-sources
+  cancel-in-progress: true
+jobs:
+  bounded-public-comparison:
+    strategy:
+      fail-fast: false
+      matrix:
+        runner: [ubuntu-22.04, ubuntu-24.04]
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 9
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install pinned strong CaDiCaL195 and Glucose4
+        run: python -m pip install --disable-pip-version-check 'python-sat==1.9.dev17'
+      - name: Adversarial source witness and >240 CNF test
+        run: python -m unittest discover -s tests -p 'test_time_sat_004d.py' -v
+      - name: Preserve 004B signal classification (no extra public downloads)
+        run: python -m unittest discover -s tests -p 'test_time_sat_004b_sigxcpu.py' -v
+      - name: Bounded same-source experimental raw/feature/direct/forecast comparison
+        run: >-
+          python experiments/direct/janus_time_sat_004d_pilot.py
+          --out evidence/time_sat_004d0
+      - name: Retain all successes/timeouts/negative results with input SHA
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: time-sat-004d0-${{ matrix.runner }}
+          path: evidence/time_sat_004d0/result.json
+          retention-days: 30
+          if-no-files-found: warn
