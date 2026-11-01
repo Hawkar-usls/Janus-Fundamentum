@@ -134,19 +134,33 @@ class BlockOracle:
         if type(summaries) is not int or not 0 <= summaries < 1 << self.blocks:
             raise ValueError("summaries register out of range")
 
-        bank, out, summary_bank = scratch, target, summaries
-        for op in self.iter_instructions():
-            if op.kind == "clause":
-                if self.original.gates[op.clause_index].fires(x):
-                    bank ^= 1 << op.index
-            elif op.kind == "summary":
-                active_mask = (1 << op.active_bits) - 1
-                if not bank & active_mask:
-                    summary_bank ^= 1 << op.index
-            else:
-                if summary_bank == (1 << self.blocks) - 1:
-                    out ^= 1
-        return x, out, bank, summary_bank
+        # Fast *classical basis* interpreter: contract compute/uncompute
+        # pairs algebraically, without allocating GateStep objects or storing
+        # per-clause outputs. This does NOT remove any gates from the actual
+        # coherent reversible schedule described by iter_instructions().
+        # The independent slow gate-by-gate test checks the maps coincide.
+        summary_bank = summaries
+        gates = self.original.gates
+        size = self.block_size
+        widths = self.block_widths
+
+        def toggle_summary(block_index: int, current_summaries: int) -> int:
+            start = block_index * size
+            temporary = scratch
+            for local, gate in enumerate(gates[start:start + widths[block_index]]):
+                if gate.fires(x):
+                    temporary ^= 1 << local
+            if temporary & ((1 << widths[block_index]) - 1) == 0:
+                current_summaries ^= 1 << block_index
+            return current_summaries
+
+        for block_index in range(self.blocks):
+            summary_bank = toggle_summary(block_index, summary_bank)
+        out = target ^ int(summary_bank == (1 << self.blocks) - 1)
+        for block_index in range(self.blocks - 1, -1, -1):
+            summary_bank = toggle_summary(block_index, summary_bank)
+        assert summary_bank == summaries
+        return x, out, scratch, summary_bank
 
     def evaluate(self, x: int) -> bool:
         return bool(self.apply_basis(x, 0)[1])
