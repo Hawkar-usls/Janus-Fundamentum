@@ -74,6 +74,23 @@ class TestUFR(unittest.TestCase):
                         mapped_model = transport_model(model, match)
                         self.assertTrue(verify_model(transformed, mapped_model, kind))
 
+    def test_c023_canonical_fast_path_identical_to_full_normalization(self):
+        from janus_tear_policy0a_masked_tseitin import canonical_cnf
+        rng = random.Random(20261101)
+        for n in range(1, 9):
+            for case in range(25):
+                raw = [tuple(rng.choice((-1, 1)) * rng.randint(1, n)
+                             for _ in range(rng.randint(0, 4)))
+                       for _ in range(rng.randint(1, 18))]
+                cnf = canonical_cnf(raw)
+                for budget in (1, 120, 720):
+                    ref = canonicalize(cnf, max_candidates=budget)
+                    fast = canonicalize(cnf, max_candidates=budget,
+                                        already_c023_cnf=True)
+                    self.assertEqual(ref, fast, (n, case, budget))
+                    self.assertTrue(verify_renaming(cnf, fast.key,
+                                                     fast.mapping(), 'SAT'))
+
     def test_distinct_shapes_cannot_collide(self):
         self.assertNotEqual(canonicalize(((1, 2), (2, 3))).key,
                             canonicalize(((1, 2), (2, -3))).key)
