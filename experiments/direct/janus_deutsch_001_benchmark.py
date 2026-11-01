@@ -122,9 +122,7 @@ def run():
         ufr = run_case(cnf, n, "CERTIFIED_UFR_C023", 3000)
         truth = classic["candidate"] is not None
         assert old["answer"] is truth and ufr["answer"] is truth
-        assert simulator["solution_count_known_by_full_classical_scan"] > 0 == truth or (
-            simulator["solution_count_known_by_full_classical_scan"] == 0 and not truth
-        )
+        assert (simulator["solution_count_known_by_full_classical_scan"] > 0) is truth
         if simulator["best_candidate_classically_verified"]:
             assert simulator["best_candidate"] is not None
             assert evaluate(rows, simulator["best_candidate"], kind)
