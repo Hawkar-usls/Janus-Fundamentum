@@ -43,3 +43,38 @@ Optional, potentially expensive: python experiments/direct/janus_ufr_001_probe.p
 5. **Asymptotic proof:** any general polynomial upper bound must separately charge canonicalization, branch search, cache lookup, model reconstruction and certificate verification. Finite benchmarks do not prove P=NP or stronger proof systems.
 
 **Do not merge into the production C023 search or claim universal speedup without an admitted proof rule and green independent CI.**
+
+
+## Verified UFR-FC extension (2026-11-01)
+
+The separately implemented experiments/direct/janus_ufr_001_certified_fc.py now supplies UFRFCTracePolicy and an independent replay_ufr verifier with a new opt-in terminal event: ISOMORPHIC_CACHE_HIT. The event records the **completed** target state ID and an exact current-to-target variable bijection. Replay verifies unit propagation, all existing local Resolution and branch steps, the complete bijection and earlier completion order. The original strict C023 verifier still rejects the extended event. This is an independent **Boolean decision certificate**, not a newly established general SAT witness-extraction theorem.
+
+The same module additionally provides a tagged portable JSON roundtrip and independent replay entry point. It preserves integer keys and tuple/list distinctions rather than silently weakening the proof structure during JSON export. The CI includes explicit tamper and legacy-rejection tests.
+
+Latest pinned research evidence: experiments/UFR_001_C023_ADVERSARIAL_20261101.json
+GitHub Actions: https://github.com/Hawkar-usls/Janus-Fundamentum/actions/runs/41289153371
+Pinned tested SHA: 408448ddc6b4c64ae1cb5c7bdc9776191583adf9
+
+The extended fixed-seed, replay-verified experimental suite comprises 11 fixtures: a deliberately isomorphic UNSAT twin, GT4, GT5, non-affine-wrapped K4 Tseitin, MAJ3-K4, three independent random 3-SAT cases and three Exact-One instances translated to logically equivalent CNF.
+
+| MAJ3-K4 measurement | Strict C023 | Opt-in UFR |
+|---|---:|---:|
+| Calls | 4,117 | 4,081 |
+| Unique residual states | 2,427 | 2,354 |
+| Exact-cache hits | 888 | 779 |
+| Verified isomorphic-cache hits | 0 | 165 |
+| Wall time | 13.212628 s | 16.213207 s |
+| Python tracemalloc peak | 53,076,884 bytes | 54,357,972 bytes |
+| Replay | PASS | PASS |
+
+The negative finding matters: **73 fewer unique states (about 3.0%) do not yield a speedup**; wall time increased by about 22.7%, and traced Python peak memory also rose. GT4 and GT5 exposed no additional ISO hits, and the small independent 3-SAT / Exact-One sets likewise showed no additional ISO hits. The K4 Tseitin fixture exhibited one ISO hit, but was also slower.
+
+The positive control is an UNSAT family deliberately built to preserve branch symmetry after C023's bounded local Resolution pass. A first unbalanced fixture *failed* to exhibit structural reuse; the failure was preserved in CI logs, then corrected by a symmetric control construction. The successful synthetic control is not general-performance evidence.
+
+### Remaining gates
+
+- Record repeated independent timings, RSS rather than only tracemalloc, and scale/seed variance.
+- Investigate elimination of redundant unit propagation in opt-in UFR, cheaper isomorphism prefilters, and better bounded canonicalization.
+- Validate SAT witness recovery from the full C023 decision context separately. The standalone UFR DPLL model transport already has direct witness tests, but does not settle C023 witness-extraction obligations.
+- Preserve strict C023 production semantics until external review, independently portable certificate replays, and fair benchmark speedups exist.
+- Feigenbaum bifurcation renormalization remains a **separate unvalidated inspiration**; no mathematical reduction from its constants to general SAT complexity has been established.
