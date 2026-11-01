@@ -1,0 +1,67 @@
+name: TIME-SAT-004A archive original proof artifacts
+on:
+  push:
+    branches:
+      - research/time-sat-004-proof-archive-20261101
+    paths:
+      - '.github/workflows/archive-time-sat-004a.yml'
+permissions:
+  actions: read
+  contents: write
+concurrency:
+  group: time-sat-004a-archive-original
+  cancel-in-progress: false
+jobs:
+  original-bytes-archive:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - name: Checkout isolated research-only archive branch
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - name: Fetch BOTH original workflow artifacts under GitHub token
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          test "${GITHUB_REF_NAME}" = "research/time-sat-004-proof-archive-20261101"
+          mkdir -p /tmp/janus-time-sat-004a
+          for id in 13087185767 13087505475; do
+            curl -fLsS --retry 2 \
+              -H "Authorization: Bearer ${GITHUB_TOKEN}" \
+              -H 'Accept: application/vnd.github+json' \
+              -H 'X-GitHub-Api-Version: 2022-11-28' \
+              "https://api.github.com/repos/Hawkar-usls/Janus-Fundamentum/actions/artifacts/${id}/zip" \
+              -o "/tmp/janus-time-sat-004a/${id}.zip"
+          done
+          printf '%s\n' \
+            '6c2fef395c4b0e9adb6e6799011dc26a6a4bf0ce3b019119e1ea9194f03896e4  /tmp/janus-time-sat-004a/13087185767.zip' \
+            '64774ad2324a0356386133bd6cca3398a8f2df18e1d002e940b3a86d110de1fb  /tmp/janus-time-sat-004a/13087505475.zip' | sha256sum --check --status
+      - name: Independently verify raw bytes and all RUP proofs, generate immutable archive
+        run: |
+          set -euo pipefail
+          python3 experiments/direct/janus_time_sat_004_archive.py \
+            --zip-22 /tmp/janus-time-sat-004a/13087185767.zip \
+            --zip-24 /tmp/janus-time-sat-004a/13087505475.zip \
+            --output experiments/time_sat_004_archive/run_41315201470
+      - name: Commit exact original ZIPs and derived DIMACS/DRUP receipts to research branch
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          test "${GITHUB_REF_NAME}" = "research/time-sat-004-proof-archive-20261101"
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -- experiments/time_sat_004_archive/run_41315201470
+          if git diff --cached --quiet; then
+            echo 'Archive already matches the committed originals.'
+          else
+            git commit -m 'evidence(time-sat-004A): pin exact original 003 binary ZIP artifacts, DIMACS, DRUP, verified replay receipts'
+            git push origin "HEAD:refs/heads/${GITHUB_REF_NAME}"
+          fi
+      - name: Provide read-only workflow inspection receipt
+        run: |
+          set -euo pipefail
+          test -s experiments/time_sat_004_archive/run_41315201470/manifest.json
+          sha256sum experiments/time_sat_004_archive/run_41315201470/manifest.json
