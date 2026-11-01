@@ -1,0 +1,44 @@
+name: Validate JANUS-DEUTSCH-002 structural quantum oracles
+
+on:
+  push:
+    paths:
+      - 'experiments/direct/janus_deutsch_002*.py'
+      - 'tests/test_deutsch_002.py'
+      - 'docs/DEUTSCH_002_RESEARCH.md'
+      - '.github/workflows/validate-deutsch-002.yml'
+  pull_request:
+    paths:
+      - 'experiments/direct/janus_deutsch_002*.py'
+      - 'tests/test_deutsch_002.py'
+      - 'docs/DEUTSCH_002_RESEARCH.md'
+      - '.github/workflows/validate-deutsch-002.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  direct-oracle-proof-and-cost:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Test exact reversible SAT/Exact-One oracles and MAJ3-K4
+        run: python -m unittest discover -s tests -p 'test_deutsch_002.py' -v
+      - name: Legacy Deutsch-001 reference tests remain valid
+        run: python -m unittest discover -s tests -p 'test_deutsch_001.py' -v
+      - name: Original C023 serialized certificate verifier remains unchanged
+        run: python experiments/direct/janus_tear_policy0a_fc_serialized_verifier.py
+      - name: Measure direct vs ANF synthesis and MAJ3-K4 resources
+        run: python experiments/direct/janus_deutsch_002_benchmark.py --out evidence/deutsch-002.json
+      - name: Archive original measured JSON with GitHub SHA provenance
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: deutsch-002-structural-evidence
+          path: evidence/deutsch-002.json
+          retention-days: 30
+          if-no-files-found: warn
