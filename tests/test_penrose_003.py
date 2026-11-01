@@ -20,6 +20,10 @@ from janus_penrose_003_transfer import (
 from janus_penrose_003_witness import expect_rejection, run_witness
 
 
+def missing_argument(needed):
+    return needed
+
+
 HEAD = "abcdef0123456789abcdef0123456789abcdef01"
 RUN = "41298547419"
 
@@ -108,6 +112,19 @@ class WitnessTransitTests(unittest.TestCase):
                 file.write(b"X")
             with self.assertRaises(ValueError):
                 read_files(m, r, p)
+
+    def test_programmer_typeerror_cannot_count_as_successful_rejection(self):
+        # Regression: a missing required argument in the mutation callback
+        # previously made 7/10 fake attacks appear REJECTED.
+        with self.assertRaises(TypeError):
+            expect_rejection("BROKEN_TEST_CALLBACK", lambda: missing_argument())
+        result = expect_rejection("CORRECT_NEGATIVE_CONTROL",
+                                  lambda: inspect_transfer(
+                                      dict(self.manifest, head_sha="0"*40),
+                                      self.raw, self.proof,
+                                      trusted_head=HEAD, trusted_run=RUN))
+        self.assertEqual(result["status"], "REJECTED")
+        self.assertEqual(result["exception"], "ValueError")
 
     def test_unexpected_manifest_fields_and_fixture_rejected(self):
         for obj in (
