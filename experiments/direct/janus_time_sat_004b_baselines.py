@@ -11,6 +11,7 @@ from hashlib import sha256
 import json
 from pathlib import Path
 import resource
+import signal
 import subprocess
 import sys
 from time import perf_counter
@@ -61,6 +62,31 @@ def solve_one(path,engine,n,m):
     }
 
 
+def classify_nonzero_exit(return_code: int) -> dict:
+    """Record Linux process failure without inferring SAT/UNSAT.
+
+    SIGKILL or another signal alone cannot establish a cause (OOM, CPU hard
+    limit, external cancellation). Only SIGXCPU indicates CPU soft-limit.
+    """
+    if type(return_code) is not int or return_code == 0:
+        raise ValueError("expected nonzero integer return code")
+    if return_code > 0:
+        return {"verdict":"ENGINE_NONZERO_EXIT", "exit_code":return_code}
+    signum = -return_code
+    try:
+        signame = signal.Signals(signum).name
+    except ValueError:
+        signame = "UNKNOWN_SIGNAL"
+    return {
+        "verdict":("UNKNOWN_CPU_LIMIT_SIGXCPU" if signum==signal.SIGXCPU
+                   else "UNKNOWN_PROCESS_SIGNAL"),
+        "process_signal":signame,
+        "signal_number":signum,
+        "limit_interpretation":("CPU_SOFT_LIMIT_REACHED" if signum==signal.SIGXCPU
+                                else "UNKNOWN_SIGNAL_CAUSE"),
+    }
+
+
 def bounded_parent(output:Path,*,per_solver_wall_s=18):
     source=json.loads((output/"acquisition.json").read_text())
     if source["schema"]!="JANUS-TIME-SAT-004B-EXTERNAL-ORIGIN-DIMACS-ACQUISITION-V1":
@@ -87,9 +113,9 @@ def bounded_parent(output:Path,*,per_solver_wall_s=18):
                 child=subprocess.run(cmd,text=True,capture_output=True,
                                      timeout=per_solver_wall_s,check=False)
                 if child.returncode:
-                    entry={"verdict":"ENGINE_ERROR_OR_RESOURCE_LIMIT",
-                           "return_code":child.returncode,
-                           "stderr_tail":child.stderr[-800:]}
+                    entry=classify_nonzero_exit(child.returncode)
+                    entry.update({"return_code":child.returncode,
+                                  "stderr_tail":child.stderr[-800:]})
                 else:
                     entry=json.loads(child.stdout)
             except subprocess.TimeoutExpired:
