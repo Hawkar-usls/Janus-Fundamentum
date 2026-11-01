@@ -10,7 +10,8 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'experiments' / 'di
 from janus_tear_policy0a_context_obstruction import complete_width_four_core
 from janus_tear_policy0a_fc_trace import FCTracePolicy, verify_fc_trace
 from janus_tear_policy0a_masked_tseitin import canonical_cnf
-from janus_ufr_001_certified_fc import UFRFCTracePolicy, replay_ufr, serialize_ufr
+from janus_ufr_001_certified_fc import (UFRFCTracePolicy, replay_ufr, serialize_ufr,
+                                         dump_ufr_json, load_ufr_json, replay_ufr_json)
 
 
 def renamed_twin_unsat_cnf():
@@ -88,6 +89,16 @@ class TestCertifiedUFR(unittest.TestCase):
         from janus_tear_policy0a_fc_serialized_verifier import replay_serialized
         with self.assertRaises((AssertionError, KeyError, TypeError, ValueError)):
             replay_serialized(self.cnf, self.count, self.cert)
+
+    def test_portable_json_roundtrip_and_corruption(self):
+        payload = dump_ufr_json(self.policy, self.root)
+        self.assertEqual(load_ufr_json(payload), self.cert)
+        self.assertIs(replay_ufr_json(self.cnf, self.count, payload), False)
+        with self.assertRaises((ValueError, AssertionError, TypeError)):
+            replay_ufr_json(self.cnf, self.count, payload[:-1])
+        with self.assertRaises((ValueError, AssertionError, TypeError)):
+            replay_ufr_json(self.cnf, self.count,
+                payload.replace('"JANUS-UFR-FC-001"', '"INVALID-CERT"', 1))
 
     def test_bounded_fallback_delegates_to_strict_c023(self):
         bounded = UFRFCTracePolicy(max_variables=0)
