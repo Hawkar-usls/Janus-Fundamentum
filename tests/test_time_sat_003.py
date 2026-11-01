@@ -98,10 +98,10 @@ class TimeSat003Tests(unittest.TestCase):
             run_arm(rows,3,"SAT",solver_name="cadical195",arm="cheat")
 
     def test_drup_prover_and_independent_checker_real_unsat(self):
-        cnf=((1,),(-1,))
+        cnf=((1,2),(1,-2),(-1,2),(-1,-2))
         receipt=produce_and_check(cnf)
         self.assertEqual(receipt["solver_status"],"UNSAT")
-        self.assertEqual(receipt["proof_status"],"INDEPENDENT_RUP_REPLAY_PASS")
+        self.assertEqual(receipt["proof_status"],"INDEPENDENT_RUP_REPLAY_PASS",receipt)
         receipt=produce_and_check(((1,2),))
         self.assertEqual(receipt["solver_status"],"SAT")
         with self.assertRaises(ProofNotVerified):
