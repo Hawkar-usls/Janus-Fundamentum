@@ -8,6 +8,8 @@ Small timing samples are *illustrative*, not a statistical speedup claim.
 from __future__ import annotations
 
 from itertools import combinations
+import argparse
+import os
 import json
 import math
 from pathlib import Path
@@ -137,6 +139,7 @@ def run():
         })
     out = {
         "schema": "JANUS-DEUTSCH-001-FINITE-V1",
+        "source": {"git_sha": os.getenv("GITHUB_SHA", "local"), "run_id": os.getenv("GITHUB_RUN_ID", "local"), "runner": os.getenv("RUNNER_NAME", "local")},
         "status": "FINITE_CLASSICAL_SIMULATOR_NO_QUANTUM_SPEEDUP_CLAIM",
         "comparison": "Same six tiny instances, baseline classical enumeration, C023, UFR-C023, and classical statevector simulator",
         "previous_large_instance": {
@@ -161,7 +164,15 @@ def run():
         ],
         "fixtures": records,
     }
-    print(json.dumps(out, indent=2, sort_keys=True))
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--out", default="")
+    args = parser.parse_args()
+    report = json.dumps(out, indent=2, sort_keys=True) + "\n"
+    if args.out:
+        dest = Path(args.out)
+        dest.parent.mkdir(parents=True, exist_ok=True)
+        dest.write_text(report, encoding="utf-8")
+    print(report)
 
 
 if __name__ == "__main__":
