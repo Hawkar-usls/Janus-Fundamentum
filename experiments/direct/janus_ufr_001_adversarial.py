@@ -128,6 +128,13 @@ def main():
             baseline['status'] == 'PASS_REPLAY' and
             ufr['status'] == 'STATE_CAP_INCONCLUSIVE'
         ), (name, baseline, ufr)
+        if name == 'MAJ3_K4':
+            # Registered finite regression ceiling: never silently trade away
+            # the 165 independently replayed ISO hits for a speed claim.
+            assert baseline['status'] == ufr['status'] == 'PASS_REPLAY'
+            assert baseline['unique_states'] == 2427
+            assert ufr['isomorphic_cache_hits'] >= 165, ufr
+            assert ufr['unique_states'] <= 2354, ufr
         records.append({'fixture': name, 'variables': n, 'clauses': len(cnf),
                         'baseline': baseline, 'ufr': ufr})
     print(json.dumps({
