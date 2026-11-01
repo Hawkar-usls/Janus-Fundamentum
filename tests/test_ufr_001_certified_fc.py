@@ -41,7 +41,7 @@ class TestCertifiedUFR(unittest.TestCase):
     def test_adversarial_fixture_has_real_iso_edge(self):
         self.assertIs(self.result.answer, False)
         self.assertIsNotNone(self.root)
-        self.assertGreaterEqual(self.policy.iso_hits, 1)
+        self.assertGreaterEqual(self.policy.iso_hits, 1, {'states': [(x['id'], x.get('branch_var'), x.get('terminal'), len(x['key'])) for x in self.policy.states.values()], 'iso_checks':self.policy.iso_checks, 'fallbacks':self.policy.iso_fallbacks, 'calls':len(self.policy.calls)})
         self.assertIs(replay_ufr(self.cnf, self.count, self.cert), False)
         self.assertEqual(
             sum(call['terminal'] == 'ISOMORPHIC_CACHE_HIT'
