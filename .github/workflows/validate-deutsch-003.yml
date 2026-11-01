@@ -5,12 +5,18 @@ on:
     paths:
       - 'experiments/direct/janus_deutsch_003*.py'
       - 'tests/test_deutsch_003.py'
+      - 'tests/test_penrose_001.py'
+      - 'experiments/direct/janus_penrose_001*.py'
+      - 'docs/PENROSE_001_RESEARCH.md'
       - 'docs/DEUTSCH_003_RESEARCH.md'
       - '.github/workflows/validate-deutsch-003.yml'
   push:
     paths:
       - 'experiments/direct/janus_deutsch_003*.py'
       - 'tests/test_deutsch_003.py'
+      - 'tests/test_penrose_001.py'
+      - 'experiments/direct/janus_penrose_001*.py'
+      - 'docs/PENROSE_001_RESEARCH.md'
       - 'docs/DEUTSCH_003_RESEARCH.md'
       - '.github/workflows/validate-deutsch-003.yml'
 
@@ -28,6 +34,10 @@ jobs:
           python-version: '3.12'
       - name: Falsify SAT/Exact-One and dirty-ancilla reversible space-saving circuit
         run: python -m unittest discover -s tests -p 'test_deutsch_003.py' -v
+      - name: Penrose-001 strict dependency and reversible global schedule controls
+        run: python -m unittest discover -s tests -p 'test_penrose_001.py' -v
+      - name: Pin MAJ3-K4 strict DAG/negative-cycle witness and resource audit
+        run: python experiments/direct/janus_penrose_001_benchmark.py --out evidence/penrose-001.json
       - name: Confirm predecessor Deutsch-002 remains correct
         run: python -m unittest discover -s tests -p 'test_deutsch_002.py' -v
       - name: Confirm original C023 independent serialized proof remains valid
@@ -39,6 +49,8 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: deutsch-003-block-pebble-evidence
-          path: evidence/deutsch-003.json
+          path: |
+            evidence/deutsch-003.json
+            evidence/penrose-001.json
           if-no-files-found: warn
           retention-days: 30
