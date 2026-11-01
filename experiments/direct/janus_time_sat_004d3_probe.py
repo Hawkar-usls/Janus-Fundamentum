@@ -180,8 +180,12 @@ def execute(out):
            "dimacs_ok":source_ok,"exact_full_XOR":exact,
            "verdicts":{x["family"]+"-"+str(x["cohort_index"]):x["verdict"]
                        for x in results}},sort_keys=True),flush=True)
-    if source_ok!=CANDIDATE_COUNT:
-        raise RuntimeError("Cohort data incomplete: artifact preserved, do not mark all 9 PASS")
+    incomplete=[x for x in results
+                if x["source_status"]!="STRICT_DIMACS_ORIGINAL_PASS"
+                or x["verdict"]=="NO_MATHEMATICAL_CLAIM"
+                or x["structural_status"]=="PROCESS_UNKNOWN_OR_ERROR"]
+    if incomplete:
+        raise RuntimeError("Cohort incomplete or structurally unresolved: raw receipts preserved; no 9/9 PASS")
 
 if __name__=="__main__":
     ap=argparse.ArgumentParser()
