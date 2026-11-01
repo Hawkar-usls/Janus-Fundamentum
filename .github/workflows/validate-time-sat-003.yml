@@ -1,0 +1,54 @@
+name: JANUS TIME-SAT-003 A/B/C cost+proof falsification
+on:
+  push:
+    paths:
+      - 'experiments/direct/janus_time_sat_003*.py'
+      - 'tests/test_time_sat_003.py'
+      - 'docs/TIME_SAT_003_RESEARCH.md'
+      - '.github/workflows/validate-time-sat-003.yml'
+  pull_request:
+    paths:
+      - 'experiments/direct/janus_time_sat_003*.py'
+      - 'tests/test_time_sat_003.py'
+      - 'docs/TIME_SAT_003_RESEARCH.md'
+      - '.github/workflows/validate-time-sat-003.yml'
+permissions:
+  contents: read
+concurrency:
+  group: time-sat-003-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+jobs:
+  resolved-clauses-and-independent-rup:
+    strategy:
+      fail-fast: false
+      matrix:
+        runner: [ubuntu-22.04, ubuntu-24.04]
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 14
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Pin external SAT engines and DRUP producer
+        run: python -m pip install --disable-pip-version-check 'python-sat==1.9.dev17'
+      - name: Verify direct resolution, error rejection and independent DRUP replay
+        run: python -m unittest discover -s tests -p 'test_time_sat_003.py' -v
+      - name: Preserve original TIME-SAT-002 safety controls
+        run: python -m unittest discover -s tests -p 'test_time_sat_partial_002.py' -v
+      - name: Original C023 independent serialized certificate verifier
+        run: python experiments/direct/janus_tear_policy0a_fc_serialized_verifier.py
+      - name: Compare net full wall, per-arm isolated RSS and proof verification
+        run: >-
+          python experiments/direct/janus_time_sat_003_benchmark.py
+          --out evidence/time-sat-003-${{ matrix.runner }}.json
+      - name: Preserve complete measured results including negatives
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: time-sat-003-${{ matrix.runner }}
+          path: evidence/time-sat-003-${{ matrix.runner }}.json
+          retention-days: 30
+          if-no-files-found: warn
