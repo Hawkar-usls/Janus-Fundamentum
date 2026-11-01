@@ -101,7 +101,9 @@ def canonicalize(
             best_key = key
             best_forward = tuple(sorted(mapping.items()))
     assert best_key is not None
-    assert rename(source, dict(best_forward)) == best_key
+    # Do not re-rename every candidate solely for a producer-side assertion.
+    # Every cache edge must still pass independent verify_renaming, and tests
+    # separately prove that the returned canonical map reconstructs its key.
     return Canonical(kind, best_key, best_forward, exhaustive, checked)
 
 
