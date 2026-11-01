@@ -193,18 +193,30 @@ def choose_block_size(direct: DirectOracle, *, max_controls: int | None = None,
     Prefer minimal *estimated physical qubits*, then minimal max controls,
     then fewest estimated Toffolis. Any max_controls is a strict ceiling.
     """
-    choices = [BlockOracle.from_direct(direct, block_size=b)
-               for b in candidate_sizes(direct.work_qubits, max_size=max_size)]
-    if max_controls is not None:
-        if type(max_controls) is not int or max_controls < 0:
-            raise ValueError("max_controls must be a nonnegative integer")
-        choices = [c for c in choices if c.maximum_controls <= max_controls]
+    if max_controls is not None and (type(max_controls) is not int or max_controls < 0):
+        raise ValueError("max_controls must be a nonnegative integer")
+    if max_size is not None and (type(max_size) is not int or max_size <= 0):
+        raise ValueError("max_size must be a positive integer")
+    # Precompute the input's largest clause width ONCE. Candidate design
+    # requires only integer arithmetic, not O(m) rescans of every clause for
+    # every block size.
+    m = direct.work_qubits
+    widest_clause = direct.encoded_max_width
+    choices = []
+    for b in candidate_sizes(m, max_size=max_size):
+        scratch = min(b, m)
+        summaries = (m + b - 1) // b
+        maxctrl = max(widest_clause, scratch, summaries)
+        if max_controls is not None and maxctrl > max_controls:
+            continue
+        qubits = direct.n + 1 + scratch + summaries + max(0, maxctrl - 2)
+        choices.append((qubits, maxctrl, b))
     if not choices:
         raise ValueError("no valid block size under control ceiling")
-    return min(choices, key=lambda c: (c.qubit_estimate,
-                                      c.maximum_controls,
-                                      c.estimated_toffolis,
-                                      c.block_size))
+    best_qubits, best_ctrl = min((q, ctrl) for q, ctrl, b in choices)
+    tied = [BlockOracle.from_direct(direct, block_size=b)
+            for q, ctrl, b in choices if (q, ctrl) == (best_qubits, best_ctrl)]
+    return min(tied, key=lambda c: (c.estimated_toffolis, c.block_size))
 
 
 def verify_ufr_covariance(left: BlockOracle, right: BlockOracle,
