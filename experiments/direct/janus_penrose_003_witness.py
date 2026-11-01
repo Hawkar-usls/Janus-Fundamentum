@@ -31,7 +31,7 @@ from janus_penrose_003_transfer import (
 
 
 def expect_rejection(name, operation, errors=(AssertionError, ValueError, KeyError,
-                                               TypeError, UnicodeError)):
+                                               UnicodeError)):
     try:
         operation()
     except errors as exc:
@@ -66,7 +66,7 @@ def run_witness(manifest: dict, report_bytes: bytes, proof_bytes: bytes,
 
     # Transfer mutation cases. No mutation to the original artifact.
     faults = []
-    def check(tag, m=manifest, r=report_bytes, p=proof_bytes):
+    def check(m=manifest, r=report_bytes, p=proof_bytes):
         return inspect_transfer(m, r, p, trusted_head=trusted_head, trusted_run=trusted_run)
 
     faults.append(expect_rejection("PROOF_BYTE_CORRUPTED",
