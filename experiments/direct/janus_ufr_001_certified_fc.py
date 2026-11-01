@@ -254,3 +254,64 @@ def replay_ufr(root_cnf: CNF, variable_count: int, certificate: dict[str, Any]) 
     assert visited_calls == set(calls)
     assert visited_states == set(states)
     return answer
+
+
+def dump_ufr_json(policy: UFRFCTracePolicy, root_call: int) -> str:
+    """Lossless JSON wire envelope: preserves tuple/list and integer dict keys."""
+    import json
+
+    def encode(obj):
+        if isinstance(obj, tuple):
+            return {'__ufr_tuple_v1__': [encode(x) for x in obj]}
+        if isinstance(obj, list):
+            return [encode(x) for x in obj]
+        if isinstance(obj, dict):
+            return {'__ufr_dict_v1__': [[encode(k), encode(v)]
+                                        for k, v in obj.items()]}
+        if obj is None or type(obj) in (int, bool, str, float):
+            return obj
+        raise TypeError(f'unsupported wire type: {type(obj).__name__}')
+
+    return json.dumps(encode(serialize_ufr(policy, root_call)),
+                      sort_keys=True, separators=(',', ':'))
+
+
+def load_ufr_json(payload: str) -> dict[str, Any]:
+    """Decode only the explicit tagged primitives, rejecting malformed envelopes."""
+    import json
+
+    if type(payload) is not str or len(payload) > 25_000_000:
+        raise ValueError('invalid UFR certificate payload')
+    wire = json.loads(payload)
+
+    def decode(obj):
+        if isinstance(obj, list):
+            return [decode(x) for x in obj]
+        if isinstance(obj, dict):
+            if set(obj) == {'__ufr_tuple_v1__'}:
+                assert isinstance(obj['__ufr_tuple_v1__'], list)
+                return tuple(decode(x) for x in obj['__ufr_tuple_v1__'])
+            if set(obj) == {'__ufr_dict_v1__'}:
+                pairs = obj['__ufr_dict_v1__']
+                assert isinstance(pairs, list)
+                result = {}
+                for pair in pairs:
+                    assert isinstance(pair, list) and len(pair) == 2
+                    key, value = decode(pair[0]), decode(pair[1])
+                    assert key not in result
+                    result[key] = value
+                return result
+            raise ValueError('non-canonical UFR wire tag')
+        if obj is None or type(obj) in (int, bool, str, float):
+            return obj
+        raise ValueError('invalid UFR wire atom')
+
+    certificate = decode(wire)
+    assert isinstance(certificate, dict)
+    return certificate
+
+
+def replay_ufr_json(root_cnf: CNF, variable_count: int,
+                    payload: str) -> bool:
+    """Independently replay a round-tripped portable certificate."""
+    return replay_ufr(root_cnf, variable_count, load_ufr_json(payload))
