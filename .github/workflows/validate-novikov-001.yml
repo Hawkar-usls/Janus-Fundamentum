@@ -1,0 +1,50 @@
+name: Validate JANUS-NOVIKOV-001 global consistency guidance
+
+on:
+  push:
+    paths:
+      - 'experiments/direct/janus_novikov_001*.py'
+      - 'tests/test_novikov_001.py'
+      - 'docs/NOVIKOV_001_RESEARCH.md'
+      - '.github/workflows/validate-novikov-001.yml'
+  pull_request:
+    paths:
+      - 'experiments/direct/janus_novikov_001*.py'
+      - 'tests/test_novikov_001.py'
+      - 'docs/NOVIKOV_001_RESEARCH.md'
+      - '.github/workflows/validate-novikov-001.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: novikov-001-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  novikov-falsification:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Check global fixed points and independent SAT/Exact-One truth
+        run: python -m unittest discover -s tests -p 'test_novikov_001.py' -v
+      - name: Preserve complete false-hint checks
+        run: python -m unittest discover -s tests -p 'test_tachyon_001.py' -v
+      - name: Same 60 frozen problems, four fair methods
+        run: python experiments/direct/janus_novikov_001_benchmark.py --out evidence/novikov-001.json
+      - name: Do not regress C023 independent serialized proof replay
+        run: python experiments/direct/janus_tear_policy0a_fc_serialized_verifier.py
+      - name: Retain independent evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: novikov-001-global-consistency-evidence
+          path: evidence/novikov-001.json
+          retention-days: 30
+          if-no-files-found: warn
