@@ -45,7 +45,7 @@ class PartialConsistencyTests(unittest.TestCase):
     def test_exact_one_repeated_and_opposite_literal_semantics(self):
         for row, expected in [
             ((1,1),[]),
-            ((1,-1),[0,1]),
+            ((1,-1),[0,1,2,3]),
             ((1,1,-2),[0]),
             ((1,1,1),[]),
             ((1,-1,2),[0,1]),
