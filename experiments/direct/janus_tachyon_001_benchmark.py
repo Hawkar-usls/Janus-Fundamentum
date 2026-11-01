@@ -22,6 +22,7 @@ REPEATS = 5
 CONF = (
     ("baseline_unit", "forward", False),
     ("baseline_exact_support", "forward", True),
+    ("equal_hypothesis_candidate_first", "candidate_first", True),
     ("tachyon_echo_exact_support", "retrograde", True),
 )
 
@@ -88,6 +89,7 @@ def run():
             "It can order branches and offer a directly checked SAT candidate only",
             "Independent exhaustive verification n<=10 protects SAT and UNSAT answers",
             "Local generalized arc consistency is a standard sound constraint operation; on Boolean variables the unit and GAC support reductions can coincide",
+            "Same-heuristic candidate_first ablation isolates whether novel branch ordering helps beyond merely checking an ordinary proposed solution",
             "All timings are tiny noisy classical measurements, no claimed speedup",
             "Experimental module leaves proof-producing production C023 untouched",
             "PENROSE-003 prohibits any real FINAL_GATE -> UFR_PRODUCE causal dependency",
