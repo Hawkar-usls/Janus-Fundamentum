@@ -1,0 +1,65 @@
+name: JANUS TIME-SAT-004D4C preserve exact original bounded-index analysis
+on:
+  push:
+    branches: [research/time-sat-004d4c-bounded-support-20261101]
+    paths: [.github/workflows/archive-time-sat-004d4c-original.yml]
+permissions:
+  contents: write
+  actions: read
+concurrency:
+  group: janus-time-sat-004d4c-original-byte-archive-one-shot
+  cancel-in-progress: false
+jobs:
+  source-only-dual-runner-original-archive:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - name: Fetch original exact GitHub Actions artifact ZIPs
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/janus-time-sat-004d4c
+          for pair in '13099526547 ubuntu22' '13099081811 ubuntu24'; do
+            set -- ${pair}
+            curl --fail --silent --show-error --retry 2 --location \
+              -H "Authorization: Bearer ${GH_TOKEN}" \
+              -H "Accept: application/vnd.github+json" \
+              -H "X-GitHub-Api-Version: 2022-11-28" \
+              "https://api.github.com/repos/Hawkar-usls/Janus-Fundamentum/actions/artifacts/${1}/zip" \
+              -o "/tmp/janus-time-sat-004d4c/${2}.zip"
+          done
+          python3 - <<'PY'
+          from hashlib import sha256
+          from pathlib import Path
+          root=Path('/tmp/janus-time-sat-004d4c')
+          expected={
+            'ubuntu22.zip':'915bf14bac09763367b774c2a093906e66d13cfa43cc1137ad05a42abc8f34bb',
+            'ubuntu24.zip':'e2edd5a55b516747c233f79cd6dea75face090d228815e1ca7e4d60ef6a96c2f'
+          }
+          for name,value in expected.items():
+              assert sha256((root/name).read_bytes()).hexdigest()==value,name
+          print('004D4C_ORIGINAL_ZIPS_SHA_PASS')
+          PY
+      - name: Reconcile two original receipts and permanently stored original CNF SHA
+        run: >-
+          python3 experiments/time_sat_004_external/archive_004d4c_original.py
+          --zip22 /tmp/janus-time-sat-004d4c/ubuntu22.zip
+          --zip24 /tmp/janus-time-sat-004d4c/ubuntu24.zip
+          --out experiments/time_sat_004_external/time_sat_004d4c_evidence
+      - name: Persist archive in research-only branch
+        run: |
+          set -euo pipefail
+          test "${GITHUB_REF_NAME}" = research/time-sat-004d4c-bounded-support-20261101
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add experiments/time_sat_004_external/time_sat_004d4c_evidence
+          if git diff --cached --quiet; then
+            echo 'Original 004D4C evidence already saved'
+          else
+            git commit -m 'evidence(TIME-SAT-004D4C): save exact original 2-worker limited-index results and negative outcome'
+            git push origin HEAD:refs/heads/research/time-sat-004d4c-bounded-support-20261101
+          fi
