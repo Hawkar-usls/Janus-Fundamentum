@@ -145,22 +145,24 @@ def search(rows: Iterable[Iterable[int]], n: int, kind: str = "SAT", *,
     """Complete bounded DPLL with speculative candidate checked, never assumed.
 
     The speculative echo changes only the candidate-first and branch order.
+    'candidate_first' is the fair ablation: it constructs and verifies the
+    SAME heuristic candidate but retains ordinary forward branch ordering.
     Exhaustive fallback always explores both values before declaring UNSAT.
     """
     # End-to-end timing begins before formula normalization and all heuristic
     # setup. Forward baseline must not pay for an unused "future" hypothesis.
     start = perf_counter()
     formula = _valid(rows, n, kind)
-    if strategy not in ("retrograde", "forward"):
-        raise ValueError("strategy must be retrograde or forward")
+    if strategy not in ("retrograde", "forward", "candidate_first"):
+        raise ValueError("strategy must be retrograde, candidate_first or forward")
     if echo is None:
-        echo = initial_echo(formula, n) if strategy == "retrograde" else (0,) * n
+        echo = initial_echo(formula, n) if strategy != "forward" else (0,) * n
     if (type(echo) is not tuple or len(echo) != n or
         any(type(v) is not int or v not in (0, 1) for v in echo)):
         raise ValueError("untrusted echo must be a complete 0/1 hypothesis")
 
     echoed = sum(v << i for i, v in enumerate(echo))
-    accepted = strategy == "retrograde" and evaluate(formula, echoed, kind)
+    accepted = strategy in ("retrograde", "candidate_first") and evaluate(formula, echoed, kind)
     nodes = 0
     found = echoed if accepted else None
     # Baseline starts with zero and branches first in 0,1 order.
@@ -205,7 +207,7 @@ def search(rows: Iterable[Iterable[int]], n: int, kind: str = "SAT", *,
         raise AssertionError("incorrect SAT candidate or UNSAT verdict")
     return SearchResult(
         answer=answer, candidate=found, nodes=nodes,
-        echoed_candidate_checked=(strategy == "retrograde"),
+        echoed_candidate_checked=(strategy in ("retrograde", "candidate_first")),
         echoed_candidate_accepted=accepted,
         exact_support_pruning=gac,
         elapsed_seconds=perf_counter() - start,
