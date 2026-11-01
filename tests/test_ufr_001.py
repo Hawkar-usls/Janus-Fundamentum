@@ -8,7 +8,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'experiments' / 'direct'))
 from janus_ufr_001 import (canonicalize, find_verified_match, normalize,
-                           structural_signature,
+                           structural_signature, coarse_signature,
                            transport_model, verify_model, verify_renaming)
 
 
@@ -43,6 +43,23 @@ class TestUFR(unittest.TestCase):
         self.assertIsNotNone(find_verified_match(((1, 1, -2),), ((9, 9, -8),), 'EXACT_ONE'))
         self.assertIsNone(find_verified_match(((1, 1),), ((9,),), 'EXACT_ONE'))
 
+    def test_coarse_collision_does_not_certify_isomorphism(self):
+        # The cheap filter is intentionally incomplete; only the independent
+        # bijection verifier can authorize a cache edge.
+        left = ((1, 2), (-1, -2))
+        right = ((1, -2), (2, -1))
+        self.assertEqual(coarse_signature(normalize(left)),
+                         coarse_signature(normalize(right)))
+        # This pair happens to admit a renaming, so exercise an explicit
+        # incompatible pair with the same coarse invariant separately.
+        bad_left = ((1, 2), (-1, 3), (-2, -3))
+        bad_right = ((1, 2), (-1, -3), (-2, 3))
+        self.assertEqual(coarse_signature(normalize(bad_left)),
+                         coarse_signature(normalize(bad_right)))
+        if find_verified_match(bad_left, bad_right) is None:
+            self.assertFalse(verify_renaming(bad_left, bad_right,
+                                             {1: 1, 2: 2, 3: 3}))
+
     def test_limited_fallback_is_sound(self):
         a = ((1, 2, 3), (-1, -2, -3))
         ca = canonicalize(a, max_candidates=1)
@@ -65,6 +82,8 @@ class TestUFR(unittest.TestCase):
                                         for row in rows)
                     can = canonicalize(rows, kind)
                     self.assertTrue(verify_renaming(rows, can.key, can.mapping(), kind))
+                    self.assertEqual(coarse_signature(normalize(rows)),
+                                     coarse_signature(normalize(transformed)))
                     self.assertEqual(
                         structural_signature(normalize(rows)),
                         structural_signature(normalize(transformed)),
