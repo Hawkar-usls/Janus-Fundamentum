@@ -1,0 +1,46 @@
+name: JANUS TIME-SAT-004D5 witnessed binary SCC hidden XOR source study
+on:
+  push:
+    branches: [research/time-sat-004d5-witnessed-binary-equivalence-20261101]
+    paths:
+      - experiments/direct/janus_time_sat_004d5_*.py
+      - tests/test_time_sat_004d5_binary_scc.py
+      - .github/workflows/validate-time-sat-004d5-binary-scc.yml
+permissions:
+  contents: read
+concurrency:
+  group: janus-time-sat-004d5-source-only
+  cancel-in-progress: true
+jobs:
+  original-source-implication-proof:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-22.04, ubuntu-24.04]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 4
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Check forged path, exhaustive truth tables, positive/negative equivalence
+        run: python -m unittest discover -s tests -p 'test_time_sat_004d5_binary_scc.py' -v
+      - name: Original 004D4D safe full-source parity scan tests
+        run: python -m unittest discover -s tests -p 'test_time_sat_004d4d_paged_support.py' -v
+      - name: C023 independent legacy certificate verifier
+        run: python experiments/direct/janus_tear_policy0a_fc_serialized_verifier.py
+      - name: Four SHA pinned original public competition CNF, NO SAT solver
+        run: >-
+          python experiments/direct/janus_time_sat_004d5_probe.py
+          --out evidence/time_sat_004d5
+      - name: Preserve both positive and negative results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: time-sat-004d5-${{ matrix.os }}
+          path: evidence/time_sat_004d5/result.json
+          retention-days: 30
+          if-no-files-found: warn
