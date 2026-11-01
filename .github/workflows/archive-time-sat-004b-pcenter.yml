@@ -1,0 +1,51 @@
+name: JANUS TIME-SAT-004B archive genuine P-center CNF DRUP
+on:
+  push:
+    branches: [research/time-sat-004b-bounded-pilot-20261101]
+    paths:
+      - .github/workflows/archive-time-sat-004b-pcenter.yml
+permissions:
+  contents: write
+  actions: read
+concurrency:
+  group: time-sat-004b-pcenter-archive
+  cancel-in-progress: false
+jobs:
+  exact-original-source-proof-archive:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - name: Get exact original proof-producing workflow artifact
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/time-sat-004b-pcenter
+          curl --fail --silent --show-error --retry 2 --location \
+            -H "Authorization: Bearer ${GH_TOKEN}" \
+            -H "Accept: application/vnd.github+json" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            https://api.github.com/repos/Hawkar-usls/Janus-Fundamentum/actions/artifacts/13089888230/zip \
+            -o /tmp/time-sat-004b-pcenter/original.zip
+          echo '3f569bfcd7840cb980d2385bf4b76b66da2ae8c24b6014a582adf59614079a  /tmp/time-sat-004b-pcenter/original.zip' | sha256sum --check --status
+      - name: Preserve exact original bytes and independently replay every RUP step
+        run: |
+          python3 experiments/time_sat_004_external/pcenter_proof_archive.py \
+            --zip /tmp/time-sat-004b-pcenter/original.zip \
+            --out experiments/time_sat_004_external/pcenter_011984fd82_verified
+      - name: Commit permanent independent proof archive on RESEARCH branch only
+        run: |
+          set -euo pipefail
+          test "${GITHUB_REF_NAME}" = research/time-sat-004b-bounded-pilot-20261101
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add experiments/time_sat_004_external/pcenter_011984fd82_verified
+          if git diff --cached --quiet; then
+            echo 'Original already securely archived.'
+          else
+            git commit -m 'evidence(time-sat-004B): archive exact GBD P-center original and 1524-line independently replayed DRUP'
+            git push origin HEAD:refs/heads/research/time-sat-004b-bounded-pilot-20261101
+          fi
