@@ -1,0 +1,44 @@
+name: Validate JANUS-DEUTSCH-003 reversible block-pebbling
+
+on:
+  pull_request:
+    paths:
+      - 'experiments/direct/janus_deutsch_003*.py'
+      - 'tests/test_deutsch_003.py'
+      - 'docs/DEUTSCH_003_RESEARCH.md'
+      - '.github/workflows/validate-deutsch-003.yml'
+  push:
+    paths:
+      - 'experiments/direct/janus_deutsch_003*.py'
+      - 'tests/test_deutsch_003.py'
+      - 'docs/DEUTSCH_003_RESEARCH.md'
+      - '.github/workflows/validate-deutsch-003.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  reversible-pebble-replay:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Falsify SAT/Exact-One and dirty-ancilla reversible space-saving circuit
+        run: python -m unittest discover -s tests -p 'test_deutsch_003.py' -v
+      - name: Confirm predecessor Deutsch-002 remains correct
+        run: python -m unittest discover -s tests -p 'test_deutsch_002.py' -v
+      - name: Confirm original C023 independent serialized proof remains valid
+        run: python experiments/direct/janus_tear_policy0a_fc_serialized_verifier.py
+      - name: Quantify MAJ3-K4 qubits controls logical gates Toffolis and CPU trade-off
+        run: python experiments/direct/janus_deutsch_003_benchmark.py --out evidence/deutsch-003.json
+      - name: Upload measured scientific resource comparison
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: deutsch-003-block-pebble-evidence
+          path: evidence/deutsch-003.json
+          if-no-files-found: warn
+          retention-days: 30
