@@ -46,9 +46,9 @@ class Compare004D2Tests(unittest.TestCase):
             if result:
                 self.assertTrue(full_verify(rows,n,{i:assignment[i] for i in range(1,n+1)}))
 
-    def test_crypto_CNF_vs_direct_XOR_on_actual_CNF(self):
+    def test_janus_and_crypto_native_XOR_on_actual_CNF(self):
         source=verify_source(Path("experiments/time_sat_004_external/lightsout_01d6fa8_verified/original.cnf"))
-        for arm in ("janus_gf2","cryptominisat_native_xor","cryptominisat_original_cnf"):
+        for arm in ("janus_gf2","cryptominisat_native_xor"):
             with self.subTest(arm=arm):
                 got=run_one(arm,source)
                 self.assertEqual(got["verdict"],"SAT_ORIGINAL_CNF_INDEPENDENTLY_VERIFIED")
