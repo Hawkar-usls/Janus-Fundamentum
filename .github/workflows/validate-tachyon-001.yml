@@ -30,6 +30,8 @@ jobs:
         run: python -m unittest discover -s tests -p 'test_tachyon_001.py' -v
       - name: Compare forward and retrograde hypotheses on identical SAT/Exact-One cases
         run: python experiments/direct/janus_tachyon_001_benchmark.py --out evidence/tachyon-001.json
+      - name: Preregistered same-hint candidate-first and retrograde 60-case ablation
+        run: python experiments/direct/janus_tachyon_001_fair_holdout.py --out evidence/tachyon-001-fair-holdout.json
       - name: Keep unchanged independent C023 certificate verifier
         run: python experiments/direct/janus_tear_policy0a_fc_serialized_verifier.py
       - name: Upload research evidence without changing C023 or UFR
@@ -37,6 +39,8 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: tachyon-001-finite-hypothesis-evidence
-          path: evidence/tachyon-001.json
+          path: |
+            evidence/tachyon-001.json
+            evidence/tachyon-001-fair-holdout.json
           if-no-files-found: warn
           retention-days: 30
