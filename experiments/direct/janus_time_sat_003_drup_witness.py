@@ -129,7 +129,8 @@ def produce_and_check(cnf, *, timeout_seconds=10.0):
         receipt=verify_drup(cnf,proof,timeout_seconds=timeout_seconds)
         return {"solver_status":"UNSAT","proof_status":receipt.status,
                 "certificate_sha256":receipt.evidence_sha256,
-                "proof_lines":len(proof),"rup_additions":receipt.additions_checked,
+                "proof_lines":len(proof),"raw_drup_lines":list(proof),
+                "rup_additions":receipt.additions_checked,
                 "deletions":receipt.deletions_ignored}
     except ProofNotVerified as ex:
         return {"solver_status":"UNSAT","proof_status":"NOT_VERIFIED",
