@@ -18,7 +18,7 @@ from janus_tear_policy0a_masked_tseitin import (
 from janus_tear_policy0t_trace_certificate import (
     branch_variable, resolution_trace, unit_trace,
 )
-from janus_ufr_001 import canonicalize, variables, verify_renaming
+from janus_ufr_001 import canonicalize, structural_signature, variables, verify_renaming
 
 
 class UFRFCTracePolicy(FCTracePolicy):
@@ -36,7 +36,10 @@ class UFRFCTracePolicy(FCTracePolicy):
         self.max_variables = max_variables
         self.max_candidates = max_candidates
         self.max_literals = max_literals
-        self.completed_iso: dict[CNF, list[tuple[CNF, int, bool, tuple[tuple[int, int], ...]]]] = {}
+        # Signature -> pending completed states + canonical-key lookup.
+        # Do not canonicalize an isolated signature until a second state
+        # with the same invariant appears.
+        self.completed_iso: dict[tuple, dict[str, Any]] = {}
         self.iso_hits = 0
         self.iso_checks = 0
         self.iso_seconds = 0.0
@@ -69,12 +72,25 @@ class UFRFCTracePolicy(FCTracePolicy):
         finally:
             self.iso_seconds += perf_counter() - start
 
-    def index_completed(self, key: CNF, state_id: int, answer: bool, can) -> None:
-        # Insert only completed judgements; never expose an in-flight state.
+    def structural_bucket_key(self, key: CNF):
+        if len(variables(key)) > self.max_variables:
+            return None
+        if sum(len(row) for row in key) > self.max_literals:
+            return None
+        return structural_signature(key)
+
+    def index_completed(self, key: CNF, state_id: int, answer: bool,
+                        can, signature) -> None:
+        # A candidate is never indexed until its complete C023 judgement exists.
+        if signature is None:
+            return
+        bucket = self.completed_iso.setdefault(
+            signature, {'pending': [], 'indexed': {}}
+        )
         if can is None:
-            can = self.candidate(key)
-        if can is not None:
-            self.completed_iso.setdefault(can.key, []).append(
+            bucket['pending'].append((key, state_id, answer))
+        else:
+            bucket['indexed'].setdefault(can.key, []).append(
                 (key, state_id, answer, can.forward)
             )
 
@@ -118,26 +134,40 @@ class UFRFCTracePolicy(FCTracePolicy):
             call["result"] = cached_answer
             return cached_answer, call_id
 
-        # Compare the already propagated exact residual only after exact-cache
-        # lookup. This single propagation is reused by the C023 search core.
-        can = self.candidate(key) if self.completed_iso else None
-        if can is not None:
-            for original, target_id, target_answer, target_forward in self.completed_iso.get(can.key, ()):
-                if key == original:
-                    continue
-                started = perf_counter()
-                inverse = {canonical: old for old, canonical in target_forward}
-                mapping = {old: inverse[canonical] for old, canonical in can.forward}
-                verified = verify_renaming(key, original, mapping, 'SAT')
-                self.iso_seconds += perf_counter() - started
-                if not verified:
-                    continue
-                call["terminal"] = "ISOMORPHIC_CACHE_HIT"
-                call["cache_target"] = target_id
-                call["renaming"] = tuple(sorted(mapping.items()))
-                call["result"] = target_answer
-                self.iso_hits += 1
-                return target_answer, call_id
+        # A cheap *necessary* invariant avoids canonicalizing unique state
+        # signatures. Its equality is NOT itself evidence of SAT equivalence.
+        signature = self.structural_bucket_key(key)
+        can = None
+        bucket = self.completed_iso.get(signature) if signature is not None else None
+        if bucket is not None:
+            can = self.candidate(key)
+            if can is not None:
+                # Materialize a signature's previous completed states only
+                # when a second state reaches the same signature.
+                pending = bucket['pending']
+                for original, target_id, target_answer in pending:
+                    prior = self.candidate(original)
+                    if prior is not None:
+                        bucket['indexed'].setdefault(prior.key, []).append(
+                            (original, target_id, target_answer, prior.forward)
+                        )
+                pending.clear()
+                for original, target_id, target_answer, target_forward in bucket['indexed'].get(can.key, ()):
+                    if key == original:
+                        continue
+                    started = perf_counter()
+                    inverse = {canonical: old for old, canonical in target_forward}
+                    mapping = {old: inverse[canonical] for old, canonical in can.forward}
+                    verified = verify_renaming(key, original, mapping, 'SAT')
+                    self.iso_seconds += perf_counter() - started
+                    if not verified:
+                        continue
+                    call["terminal"] = "ISOMORPHIC_CACHE_HIT"
+                    call["cache_target"] = target_id
+                    call["renaming"] = tuple(sorted(mapping.items()))
+                    call["result"] = target_answer
+                    self.iso_hits += 1
+                    return target_answer, call_id
 
         state_id = self.next_state_id
         self.next_state_id += 1
@@ -181,7 +211,7 @@ class UFRFCTracePolicy(FCTracePolicy):
             state["terminal"] = "RESOLUTION_CONTRADICTION"
             state["result"] = False
             self.completed_memo[key] = (False, state_id)
-            self.index_completed(key, state_id, False, can)
+            self.index_completed(key, state_id, False, can, signature)
             call["terminal"] = "STATE"
             call["result"] = False
             return False, call_id
@@ -193,7 +223,7 @@ class UFRFCTracePolicy(FCTracePolicy):
             state["terminal"] = "POST_UNIT_CONTRADICTION"
             state["result"] = False
             self.completed_memo[key] = (False, state_id)
-            self.index_completed(key, state_id, False, can)
+            self.index_completed(key, state_id, False, can, signature)
             call["terminal"] = "STATE"
             call["result"] = False
             return False, call_id
@@ -202,7 +232,7 @@ class UFRFCTracePolicy(FCTracePolicy):
             state["terminal"] = "SAT_EMPTY"
             state["result"] = True
             self.completed_memo[key] = (True, state_id)
-            self.index_completed(key, state_id, True, can)
+            self.index_completed(key, state_id, True, can, signature)
             call["terminal"] = "STATE"
             call["result"] = True
             return True, call_id
@@ -247,7 +277,7 @@ class UFRFCTracePolicy(FCTracePolicy):
         state["terminal"] = "BRANCH_SAT" if answer else "BRANCH_UNSAT"
         state["result"] = answer
         self.completed_memo[key] = (answer, state_id)
-        self.index_completed(key, state_id, answer, can)
+        self.index_completed(key, state_id, answer, can, signature)
         call["terminal"] = "STATE"
         call["result"] = answer
         return answer, call_id
