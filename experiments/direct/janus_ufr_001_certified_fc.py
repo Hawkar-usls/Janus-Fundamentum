@@ -61,7 +61,8 @@ class UFRFCTracePolicy(FCTracePolicy):
         try:
             can = canonicalize(key, 'SAT',
                                max_variables=self.max_variables,
-                               max_candidates=self.max_candidates)
+                               max_candidates=self.max_candidates,
+                               already_c023_cnf=True)
             self.iso_checks += 1
             self.iso_fallbacks += int(not can.exhaustive)
             return can
