@@ -58,6 +58,34 @@ class BlockOracleTests(unittest.TestCase):
                                         tested += 1
         self.assertGreater(tested, 20000)
 
+    def test_fast_basis_interpreter_matches_full_gate_schedule(self):
+        # Unlike the optimized basis simulation, this deliberately executes
+        # every emitted reversible gate, including recomputation. It ensures
+        # algebraic contracting did not change the intended quantum circuit.
+        formula = ((1, -2, 3), (-1, 2), (2, -3), (1, 2, -3))
+        for size in (1, 2, 3, 5):
+            oracle = BlockOracle.compile(formula, 3, "SAT", block_size=size)
+            for x in range(8):
+                for b in (0, 1):
+                    for scratch in (0, (1 << oracle.scratch_bits)-1):
+                        for summaries in (0, (1 << oracle.blocks)-1):
+                            bank, target, summary = scratch, b, summaries
+                            for gate in oracle.iter_instructions():
+                                if gate.kind == "clause":
+                                    if oracle.original.gates[gate.clause_index].fires(x):
+                                        bank ^= 1 << gate.index
+                                elif gate.kind == "summary":
+                                    if not bank & ((1 << gate.active_bits)-1):
+                                        summary ^= 1 << gate.index
+                                elif gate.kind == "target":
+                                    if summary == (1 << oracle.blocks)-1:
+                                        target ^= 1
+                                else:
+                                    self.fail("unexpected gate operation")
+                            self.assertEqual(
+                                oracle.apply_basis(x, b, scratch, summaries),
+                                (x, target, bank, summary))
+
     def test_fixed_adversarial_corner_cases(self):
         examples = [
             ((), "SAT", True),
