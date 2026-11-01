@@ -12,21 +12,21 @@ permissions:
   contents: read
 
 concurrency:
-  group: ufr-promotion-\${{ github.event.pull_request.number || github.ref }}
+  group: ufr-promotion-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
 jobs:
   paired-evidence:
-    name: paired-\${{ matrix.os }}
+    name: paired-${{ matrix.os }}
     strategy:
       fail-fast: false
       max-parallel: 2
       matrix:
         os: [ubuntu-22.04, ubuntu-24.04]
-    runs-on: \${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
     timeout-minutes: 14
     env:
-      UFR_RUNNER_OS: \${{ matrix.os }}
+      UFR_RUNNER_OS: ${{ matrix.os }}
       PYTHONHASHSEED: '0'
     steps:
       - uses: actions/checkout@v4
@@ -37,13 +37,13 @@ jobs:
         run: >-
           python experiments/direct/janus_ufr_001_paired.py
           --rounds 3 --state-cap 3000
-          --out evidence/ufr-paired-\${{ matrix.os }}.json
+          --out evidence/ufr-paired-${{ matrix.os }}.json
       - name: Upload independent full results including actual RSS
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: ufr-paired-\${{ matrix.os }}
-          path: evidence/ufr-paired-\${{ matrix.os }}.json
+          name: ufr-paired-${{ matrix.os }}
+          path: evidence/ufr-paired-${{ matrix.os }}.json
           if-no-files-found: warn
           retention-days: 30
 
