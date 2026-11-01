@@ -1,0 +1,73 @@
+name: JANUS TIME-SAT-004D4B durable original four-CNF mixed evidence
+on:
+  push:
+    branches: [research/time-sat-004d4b-real-mixed-cnf-20261101]
+    paths:
+      - .github/workflows/archive-time-sat-004d4b-original.yml
+permissions:
+  contents: write
+  actions: read
+concurrency:
+  group: janus-time-sat-004d4b-durable-source-one-shot
+  cancel-in-progress: false
+jobs:
+  original-zip-and-four-original-cnfs:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Pin native XOR solver to reproduce new original-CNF SAT model
+        run: >-
+          python -m pip install --only-binary=:all: --disable-pip-version-check
+          'pycryptosat==5.15.0'
+      - name: Download exact original GitHub Actions ZIPs by original IDs
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/janus-time-sat-004d4b-orig
+          for pair in '13097550060 ubuntu22' '13096979436 ubuntu24'; do
+            set -- ${pair}
+            curl --fail --silent --show-error --retry 2 --location \
+              -H "Authorization: Bearer ${GH_TOKEN}" \
+              -H "Accept: application/vnd.github+json" \
+              -H "X-GitHub-Api-Version: 2022-11-28" \
+              "https://api.github.com/repos/Hawkar-usls/Janus-Fundamentum/actions/artifacts/${1}/zip" \
+              -o "/tmp/janus-time-sat-004d4b-orig/${2}.zip"
+          done
+          python3 - <<'PY'
+          from hashlib import sha256
+          from pathlib import Path
+          root=Path('/tmp/janus-time-sat-004d4b-orig')
+          expected={
+             'ubuntu22.zip':'c39c219e9964977a4619f6dfaec26af2ac3bb36a746f9c519bfff9f9ca8d8f40',
+             'ubuntu24.zip':'adecbeedcfbe5d42e13a62bf7d2ddd97505f646a7653a8f7c54fe832ede7c4b5'
+          }
+          for name,digest in expected.items():
+              assert sha256((root/name).read_bytes()).hexdigest()==digest
+          print('004D4B_EXACT_ORIGINAL_GITHUB_ZIPS_SHA_PASS')
+          PY
+      - name: Archive raw original ZIPs, original four GBD DIMACS and verified mixed SAT model
+        run: >-
+          python experiments/direct/janus_time_sat_004d4b_archive.py
+          --zip22 /tmp/janus-time-sat-004d4b-orig/ubuntu22.zip
+          --zip24 /tmp/janus-time-sat-004d4b-orig/ubuntu24.zip
+          --out experiments/time_sat_004_external/time_sat_004d4b_evidence
+      - name: Persist source and proof files in research branch only
+        run: |
+          set -euo pipefail
+          test "${GITHUB_REF_NAME}" = research/time-sat-004d4b-real-mixed-cnf-20261101
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add experiments/time_sat_004_external/time_sat_004d4b_evidence
+          if git diff --cached --quiet; then
+            echo "Original 004D4B evidence already archived"
+          else
+            git commit -m "evidence(TIME-SAT-004D4B): preserve original mixed CNF, dual-runner receipts and SAT witness"
+            git push origin HEAD:refs/heads/research/time-sat-004d4b-real-mixed-cnf-20261101
+          fi
