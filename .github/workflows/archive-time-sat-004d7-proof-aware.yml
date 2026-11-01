@@ -1,0 +1,67 @@
+name: JANUS TIME-SAT-004D7 archive original and suppress vacuous UNSAT rank
+on:
+  push:
+    branches: [research/time-sat-004d7-independent-rank-new-public-20261102]
+    paths: [.github/workflows/archive-time-sat-004d7-proof-aware.yml]
+permissions:
+  contents: write
+  actions: read
+concurrency:
+  group: janus-time-sat-004d7-original-proof-aware-archive
+  cancel-in-progress: false
+jobs:
+  original-cnf-and-unsat-consistency:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - name: Verify that prior certified UNSAT blocks apparent independent-rank promotion
+        run: python -m unittest discover -s tests -p 'test_time_sat_004d7_unsat_consistency.py' -v
+      - name: Download exact original 004D7 dual-worker full original evidence ZIPs
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/janus-time-sat-004d7
+          for pair in '13104893052 ubuntu22' '13105021725 ubuntu24'; do
+            set -- ${pair}
+            curl --fail --silent --show-error --retry 2 --location \
+              -H "Authorization: Bearer ${GH_TOKEN}" \
+              -H "Accept: application/vnd.github+json" \
+              -H "X-GitHub-Api-Version: 2022-11-28" \
+              "https://api.github.com/repos/Hawkar-usls/Janus-Fundamentum/actions/artifacts/${1}/zip" \
+              -o "/tmp/janus-time-sat-004d7/${2}.zip"
+          done
+          python3 - <<'PY'
+          from hashlib import sha256
+          from pathlib import Path
+          p=Path('/tmp/janus-time-sat-004d7')
+          known={
+            'ubuntu22.zip':'795b3b4dfcfd7a83a205289b6b350c8afdc656874ff096c21b3986bf3a4ca3a1',
+            'ubuntu24.zip':'00dcca234ff38dee39f16fe50a30d435df75148e096eaf9fb9c6ca12bebf9554'
+          }
+          for name,h in known.items():
+              assert sha256((p/name).read_bytes()).hexdigest()==h,name
+          print("004D7_ORIGINAL_TWO_ZIP_SHA_PASS")
+          PY
+      - name: Replay old actual original P-center 1524-line DRUP and reconcile 004D7 source rank
+        run: >-
+          python3 experiments/time_sat_004_external/archive_time_sat_004d7_consistency.py
+          --zip22 /tmp/janus-time-sat-004d7/ubuntu22.zip
+          --zip24 /tmp/janus-time-sat-004d7/ubuntu24.zip
+          --out experiments/time_sat_004_external/time_sat_004d7_evidence
+      - name: Preserve exact original bytes and limit claims, research branch only
+        run: |
+          set -euo pipefail
+          test "${GITHUB_REF_NAME}" = research/time-sat-004d7-independent-rank-new-public-20261102
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add experiments/time_sat_004_external/time_sat_004d7_evidence
+          if git diff --cached --quiet; then
+            echo 'Original proof-aware archive already durable'
+          else
+            git commit -m 'evidence(TIME-SAT-004D7): archive exact original source rank with P-center UNSAT vacuity guard'
+            git push origin HEAD:refs/heads/research/time-sat-004d7-independent-rank-new-public-20261102
+          fi
