@@ -1,0 +1,66 @@
+name: JANUS TIME-SAT-004D3B preserve exact original 60 comparison receipts
+on:
+  push:
+    branches: [research/time-sat-004d3b-fair-new-lightsout-20261101]
+    paths:
+      - .github/workflows/archive-time-sat-004d3b-original.yml
+permissions:
+  contents: write
+  actions: read
+concurrency:
+  group: janus-time-sat-004d3b-archive-one-shot
+  cancel-in-progress: false
+jobs:
+  preserve-original-comparison-receipts:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - name: Retrieve exact immutable dual-worker ZIPs by artifact ID
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/time-sat-004d3b
+          for pair in '13093784909 ubuntu22' '13093978933 ubuntu24'; do
+            set -- ${pair}
+            curl --fail --silent --show-error --retry 2 --location \
+              -H "Authorization: Bearer ${GH_TOKEN}" \
+              -H "Accept: application/vnd.github+json" \
+              -H "X-GitHub-Api-Version: 2022-11-28" \
+              "https://api.github.com/repos/Hawkar-usls/Janus-Fundamentum/actions/artifacts/${1}/zip" \
+              -o "/tmp/time-sat-004d3b/${2}.zip"
+          done
+          python3 - <<'PY'
+          from hashlib import sha256
+          from pathlib import Path
+          d=Path('/tmp/time-sat-004d3b')
+          wanted={
+            'ubuntu22.zip':'da253df87b19b3e4b9f269cdedb9ca8fb33f0be2adfc5fe7b0a1fa0e4a4fa914',
+            'ubuntu24.zip':'e79f57d294c1a2fb92774cceeb6f1a2b513842789a5b16c4df2e1e2d92caf619',
+          }
+          for name,sha in wanted.items():
+              assert sha256((d/name).read_bytes()).hexdigest()==sha,name
+          print('004D3B_EXACT_TWO_ORIGINAL_ARTIFACT_SHAS_PASS')
+          PY
+      - name: Independently recalculate original arm/CPU-censor status and exact medians
+        run: >-
+          python3 experiments/direct/janus_time_sat_004d3b_archive.py
+          --zip22 /tmp/time-sat-004d3b/ubuntu22.zip
+          --zip24 /tmp/time-sat-004d3b/ubuntu24.zip
+          --out experiments/time_sat_004_external/time_sat_004d3b_evidence
+      - name: Commit exact unmodified comparison ZIPs and original JSON to research branch
+        run: |
+          set -euo pipefail
+          test "${GITHUB_REF_NAME}" = research/time-sat-004d3b-fair-new-lightsout-20261101
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add experiments/time_sat_004_external/time_sat_004d3b_evidence
+          if git diff --cached --quiet; then
+            echo 'Already durable.'
+          else
+            git commit -m 'evidence(TIME-SAT-004D3B): archive exact original 60-arm two-host comparisons and opposite native-XOR results'
+            git push origin HEAD:refs/heads/research/time-sat-004d3b-fair-new-lightsout-20261101
+          fi
