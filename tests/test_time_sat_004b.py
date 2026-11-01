@@ -8,6 +8,7 @@ import tempfile
 import unittest
 
 sys.path.insert(0,str(Path(__file__).resolve().parents[1]/"experiments"/"direct"))
+from janus_time_sat_004b_baselines import classify_nonzero_exit
 from janus_time_sat_004b_acquire import (
     trusted_uri, unpack_bounded, scan_dimacs, BoundedFailure,
 )
@@ -79,6 +80,20 @@ class ExternalDimacs004BTests(unittest.TestCase):
             self.assertEqual(j["n_variables"],500)
             self.assertEqual(j["n_literal_occurrences"],2)
             self.assertEqual(j["max_clause_width"],2)
+
+    def test_linux_exit_signal_receipts_fail_closed(self):
+        import signal
+        cpu=classify_nonzero_exit(-int(signal.SIGXCPU))
+        self.assertEqual(cpu["verdict"],"UNKNOWN_CPU_LIMIT_SIGXCPU")
+        self.assertEqual(cpu["process_signal"],"SIGXCPU")
+        self.assertEqual(cpu["limit_interpretation"],"CPU_SOFT_LIMIT_REACHED")
+        killed=classify_nonzero_exit(-int(signal.SIGKILL))
+        self.assertEqual(killed["verdict"],"UNKNOWN_PROCESS_SIGNAL")
+        self.assertEqual(killed["limit_interpretation"],"UNKNOWN_SIGNAL_CAUSE")
+        self.assertEqual(classify_nonzero_exit(1)["verdict"],"ENGINE_NONZERO_EXIT")
+        for value in (0,None,True,-0.5):
+            with self.assertRaises(ValueError):
+                classify_nonzero_exit(value)
 
 
 if __name__=="__main__": unittest.main()
