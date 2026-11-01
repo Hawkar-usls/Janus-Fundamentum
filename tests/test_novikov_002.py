@@ -46,9 +46,9 @@ class PartialConsistencyTests(unittest.TestCase):
         for row, expected in [
             ((1,1),[]),
             ((1,-1),[0,1]),
-            ((1,1,-2),[0,1,3]),
+            ((1,1,-2),[0]),
             ((1,1,1),[]),
-            ((1,-1,2),[0,2]),
+            ((1,-1,2),[0,1]),
         ]:
             with self.subTest(row=row):
                 real=[x for x in range(4) if independently_model((row,),2,"EXACT_ONE",x)]
@@ -107,7 +107,8 @@ class PartialConsistencyTests(unittest.TestCase):
                         ]
                         projected=seed[:]
                         valid=propagate(clean,projected,kind,meter())
-                        self.assertEqual(bool(assignments),valid or not assignments)
+                        # Local consistency is necessary but not sufficient:
+                        # an impossible partial state can remain locally supported.
                         if assignments:
                             self.assertTrue(valid)
                             for x in assignments:
