@@ -220,7 +220,7 @@ def grover_simulate(circuit: Circuit, *, iterations: int | None = None) -> Grove
         iterations=iterations, solutions=m,
         success_probability=min(1.0, max(0.0, probability)),
         oracle_basis_evaluations=n_states * (1 + iterations),
-        synthesized_gate_applications=n_states * iterations * len(circuit.gates),
+        synthesized_gate_applications=2 * n_states * iterations * len(circuit.gates),
         statevector_amplitudes=n_states,
         best_candidate=best if validated else None,
         best_candidate_validated=validated,
