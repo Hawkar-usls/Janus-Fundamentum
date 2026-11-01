@@ -111,6 +111,31 @@ def canonicalize(
     return Canonical(kind, best_key, best_forward, exhaustive, checked)
 
 
+def structural_signature(rows: Rows):
+    """Cheap necessary invariant for variable-renaming isomorphism.
+
+    Complete row-width histogram and multiset of each variable's
+    positive/negative occurrence counts grouped by row width.
+    A mismatch conclusively excludes a bijection. A match is only
+    a candidate and NEVER authorizes cache reuse without verification.
+    """
+    widths: dict[int, int] = {}
+    incidence: dict[int, dict[tuple[int, int], int]] = {}
+    for row in rows:
+        width = len(row)
+        widths[width] = widths.get(width, 0) + 1
+        for lit in row:
+            counts = incidence.setdefault(abs(lit), {})
+            tag = (width, 1 if lit > 0 else -1)
+            counts[tag] = counts.get(tag, 0) + 1
+    by_variable = tuple(sorted(
+        tuple((width, sign, count) for (width, sign), count
+              in sorted(counts.items()))
+        for counts in incidence.values()
+    ))
+    return (tuple(sorted(widths.items())), by_variable)
+
+
 def verify_renaming(
     left: Iterable[Iterable[int]], right: Iterable[Iterable[int]],
     mapping: Mapping[int, int], kind: Kind = "SAT",
