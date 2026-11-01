@@ -1,0 +1,37 @@
+name: JANUS TIME-SAT-004D4 source equivalence
+on:
+  push:
+    branches:
+      - research/time-sat-004d4-mixed-xor-safe-extraction-20261101
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  ubuntu22:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: >-
+          python -m pip install --only-binary=:all: 'pycryptosat==5.15.0'
+      - run: python -m unittest discover -s tests -p test_time_sat_004d4_mixed_xor.py -v
+      - run: python experiments/direct/janus_tear_policy0a_fc_serialized_verifier.py
+  ubuntu24:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: >-
+          python -m pip install --only-binary=:all: 'pycryptosat==5.15.0'
+      - run: python -m unittest discover -s tests -p test_time_sat_004d4_mixed_xor.py -v
+      - run: python experiments/direct/janus_tear_policy0a_fc_serialized_verifier.py
