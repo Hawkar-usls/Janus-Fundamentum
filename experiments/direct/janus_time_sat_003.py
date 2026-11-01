@@ -131,7 +131,9 @@ def run_arm(rows,n,kind,*,solver_name,arm,inject_fault=False):
     if arm not in ARMS:raise ValueError("unsupported TIME-SAT-003 arm")
     if arm=="legacy_adaptive":
         old=legacy_arm(rows,n,kind,solver_name=solver_name,arm="adaptive")
-        return dict(old,arm=arm,status=old["answer"],cdcl_stats=old["native_cdcl_stats"],
+        return dict(old,arm=arm,status=old["answer"],
+                    model_independently_verified=old["model_verified"],
+                    cdcl_stats=old["native_cdcl_stats"],
                     full_wall_seconds=old["whole_pipeline_seconds"],
                     wedge_count=0,forecast=None,witnesses=[],audit_count=old["independent_unit_checks"],
                     fault_fallback=False)
