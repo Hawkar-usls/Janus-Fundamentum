@@ -129,6 +129,16 @@ class Deutsch002Falsification(unittest.TestCase):
             expected = independently_truth(cnf, x, "SAT")
             self.assertEqual(oracle.evaluate(x), expected)
             self.assertEqual(oracle.apply_basis(x, 1), (x, int(not expected), 0))
+        # Independently verified UFR covariance on the real 18-variable CNF:
+        # this compares all 514 selected assignments, not the full truth table.
+        mapping = {v: (v % n) + 1 for v in range(1, n + 1)}
+        renamed = tuple(tuple((1 if lit > 0 else -1) * mapping[abs(lit)]
+                              for lit in clause) for clause in cnf)
+        renamed_oracle = DirectOracle.compile(renamed, n, "SAT")
+        self.assertEqual(renamed_oracle.resources()["logical_mcx_gates"],
+                         oracle.resources()["logical_mcx_gates"])
+        self.assertTrue(check_ufr_covariance(oracle, renamed_oracle, mapping,
+                                             sample_indices=tested))
         # MAJ3-K4 UNSAT is established by independent C023 replay, not
         # by 516 checked assignments.
         with self.assertRaises(ValueError):
