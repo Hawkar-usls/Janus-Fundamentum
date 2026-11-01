@@ -103,7 +103,7 @@ def measure_quantum(rows, n, kind):
         "total_gate_controls": circuit.total_controls,
         "synthesized_gate_applications": grover.synthesized_gate_applications,
         "statevector_amplitudes": grover.statevector_amplitudes,
-        "classical_bits_per_statevector_lower_bound": 16 * (1 << n),
+        "ideal_complex128_minimum_bytes": 16 * (1 << n),
         "iterations": grover.iterations,
         "solution_count_known_by_full_classical_scan": grover.solutions,
         "ideal_success_probability": grover.success_probability,
