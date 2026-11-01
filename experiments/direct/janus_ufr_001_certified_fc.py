@@ -18,14 +18,15 @@ from janus_tear_policy0a_masked_tseitin import (
 from janus_tear_policy0t_trace_certificate import (
     branch_variable, resolution_trace, unit_trace,
 )
-from janus_ufr_001 import canonicalize, find_verified_match, variables, verify_renaming
+from janus_ufr_001 import canonicalize, variables, verify_renaming
 
 
 class UFRFCTracePolicy(FCTracePolicy):
-    """Original search + optional proven equivalent residual reuse.
+    """Opt-in C023-compatible Boolean-cache experiment.
 
-    The delegate performs identical C023 transitions when there is no match.
-    No state is indexed until its delegated search call has completed.
+    Search follows the original Policy-0A transitions verbatim, with a
+    single unit_trace per call, then exact-cache lookup, then an independently
+    checked isomorphic candidate lookup. Original C023 is not modified.
     """
 
     def __init__(self, state_cap: int | None = None, *,
@@ -35,11 +36,12 @@ class UFRFCTracePolicy(FCTracePolicy):
         self.max_variables = max_variables
         self.max_candidates = max_candidates
         self.max_literals = max_literals
-        self.completed_iso: dict[CNF, list[tuple[CNF, int, bool]]] = {}
+        self.completed_iso: dict[CNF, list[tuple[CNF, int, bool, tuple[tuple[int, int], ...]]]] = {}
         self.iso_hits = 0
         self.iso_checks = 0
         self.iso_seconds = 0.0
         self.iso_fallbacks = 0
+        self.iso_verified_candidates = 0
 
     def solve(self, cnf: CNF, variable_count: int):
         self.completed_iso = {}
@@ -47,6 +49,7 @@ class UFRFCTracePolicy(FCTracePolicy):
         self.iso_checks = 0
         self.iso_seconds = 0.0
         self.iso_fallbacks = 0
+        self.iso_verified_candidates = 0
         return super().solve(cnf, variable_count)
 
     def candidate(self, key: CNF):
@@ -61,52 +64,191 @@ class UFRFCTracePolicy(FCTracePolicy):
                                max_candidates=self.max_candidates)
             self.iso_checks += 1
             self.iso_fallbacks += int(not can.exhaustive)
-            return can.key
+            return can
         finally:
             self.iso_seconds += perf_counter() - start
 
-    def search(self, cnf: CNF, depth: int, context: tuple[int, ...]):
-        # Only evaluate a candidate if there exists a completed state.
-        if self.completed_iso:
-            propagated, contradiction, events = unit_trace(cnf)
-            if not contradiction and propagated and propagated not in self.completed_memo:
-                can_key = self.candidate(propagated)
-                if can_key is not None:
-                    for original, target_id, target_answer in self.completed_iso.get(can_key, []):
-                        if propagated == original:
-                            continue
-                        started = perf_counter()
-                        mapping = find_verified_match(
-                            propagated, original, 'SAT',
-                            max_variables=self.max_variables,
-                            max_candidates=self.max_candidates,
-                        )
-                        self.iso_seconds += perf_counter() - started
-                        if mapping is None:
-                            continue
-                        assert verify_renaming(propagated, original, mapping, 'SAT')
-                        self.maximum_depth = max(self.maximum_depth, depth)
-                        call_id = self.new_call({
-                            'input': cnf, 'depth': depth, 'context': context,
-                            'pre_units': events, 'pre_result': propagated,
-                            'key': propagated,
-                            'terminal': 'ISOMORPHIC_CACHE_HIT',
-                            'cache_target': target_id,
-                            'renaming': tuple(sorted(mapping.items())),
-                            'result': target_answer,
-                        })
-                        self.iso_hits += 1
-                        return target_answer, call_id
+    def index_completed(self, key: CNF, state_id: int, answer: bool, can) -> None:
+        # Insert only completed judgements; never expose an in-flight state.
+        if can is None:
+            can = self.candidate(key)
+        if can is not None:
+            self.completed_iso.setdefault(can.key, []).append(
+                (key, state_id, answer, can.forward)
+            )
 
-        answer, call_id = super().search(cnf, depth, context)
+    def search(
+        self,
+        cnf: CNF,
+        depth: int,
+        context: tuple[int, ...],
+    ) -> tuple[bool, int]:
+        self.maximum_depth = max(self.maximum_depth, depth)
+        call_id = self.new_call(
+            {
+                "input": cnf,
+                "depth": depth,
+                "context": context,
+            }
+        )
         call = self.calls[call_id]
-        if call.get('terminal') == 'STATE':
-            key = call['key']
-            can_key = self.candidate(key)
-            if can_key is not None:
-                self.completed_iso.setdefault(can_key, []).append(
-                    (key, int(call['state']), answer)
+
+        propagated, contradiction, pre_events = unit_trace(cnf)
+        call["pre_units"] = pre_events
+        call["pre_result"] = propagated
+        if contradiction:
+            call["terminal"] = "PRE_UNIT_CONTRADICTION"
+            call["result"] = False
+            return False, call_id
+        assert propagated is not None
+        if not propagated:
+            call["terminal"] = "SAT_EMPTY"
+            call["result"] = True
+            return True, call_id
+
+        key = propagated
+        call["key"] = key
+        cached = self.completed_memo.get(key)
+        if cached is not None:
+            cached_answer, cached_state = cached
+            self.cache_hits += 1
+            call["terminal"] = "CACHE_HIT"
+            call["cache_target"] = cached_state
+            call["result"] = cached_answer
+            return cached_answer, call_id
+
+        # Compare the already propagated exact residual only after exact-cache
+        # lookup. This single propagation is reused by the C023 search core.
+        can = self.candidate(key) if self.completed_iso else None
+        if can is not None:
+            for original, target_id, target_answer, target_forward in self.completed_iso.get(can.key, ()):
+                if key == original:
+                    continue
+                started = perf_counter()
+                inverse = {canonical: old for old, canonical in target_forward}
+                mapping = {old: inverse[canonical] for old, canonical in can.forward}
+                verified = verify_renaming(key, original, mapping, 'SAT')
+                self.iso_seconds += perf_counter() - started
+                if not verified:
+                    continue
+                call["terminal"] = "ISOMORPHIC_CACHE_HIT"
+                call["cache_target"] = target_id
+                call["renaming"] = tuple(sorted(mapping.items()))
+                call["result"] = target_answer
+                self.iso_hits += 1
+                return target_answer, call_id
+
+        state_id = self.next_state_id
+        self.next_state_id += 1
+        self.unique_states += 1
+        if self.state_cap is not None and self.unique_states > self.state_cap:
+            raise RuntimeError("state cap exceeded")
+        call["state"] = state_id
+        state: dict[str, Any] = {
+            "id": state_id,
+            "key": key,
+            "entry_call": call_id,
+            "depth": depth,
+            "context": context,
+        }
+        self.states[state_id] = state
+
+        literal_count = sum(len(clause) for clause in key)
+        width_limit = max(map(len, key)) + 1
+        attempt_budget = max(64, 4 * literal_count)
+        addition_budget = max(8, len(key) // 4)
+        saturated, refuted, attempts, additions, resolution_events = resolution_trace(
+            key,
+            width_limit,
+            attempt_budget,
+            addition_budget,
+        )
+        state.update(
+            {
+                "resolution_output": saturated,
+                "resolution_refuted": refuted,
+                "resolution_attempts": attempts,
+                "resolution_additions": additions,
+                "resolution_events": resolution_events,
+                "width_limit": width_limit,
+                "attempt_budget": attempt_budget,
+                "addition_budget": addition_budget,
+            }
+        )
+
+        if refuted:
+            state["terminal"] = "RESOLUTION_CONTRADICTION"
+            state["result"] = False
+            self.completed_memo[key] = (False, state_id)
+            self.index_completed(key, state_id, False, can)
+            call["terminal"] = "STATE"
+            call["result"] = False
+            return False, call_id
+
+        post, contradiction, post_events = unit_trace(saturated)
+        state["post_units"] = post_events
+        state["post_result"] = post
+        if contradiction:
+            state["terminal"] = "POST_UNIT_CONTRADICTION"
+            state["result"] = False
+            self.completed_memo[key] = (False, state_id)
+            self.index_completed(key, state_id, False, can)
+            call["terminal"] = "STATE"
+            call["result"] = False
+            return False, call_id
+        assert post is not None
+        if not post:
+            state["terminal"] = "SAT_EMPTY"
+            state["result"] = True
+            self.completed_memo[key] = (True, state_id)
+            self.index_completed(key, state_id, True, can)
+            call["terminal"] = "STATE"
+            call["result"] = True
+            return True, call_id
+
+        variable = branch_variable(post)
+        state["branch_var"] = variable
+        children: list[dict[str, Any]] = []
+        state["children"] = children
+        answer = False
+        for value in (False, True):
+            literal = variable if value else -variable
+            child_cnf = simplify_one(post, variable, value)
+            if child_cnf is None:
+                children.append(
+                    {
+                        "value": value,
+                        "literal": literal,
+                        "direct_conflict": True,
+                        "call": None,
+                        "result": False,
+                    }
                 )
+                continue
+            child_answer, child_call = self.search(
+                child_cnf,
+                depth + 1,
+                context + (literal,),
+            )
+            children.append(
+                {
+                    "value": value,
+                    "literal": literal,
+                    "direct_conflict": False,
+                    "call": child_call,
+                    "result": child_answer,
+                }
+            )
+            if child_answer:
+                answer = True
+                break
+
+        state["terminal"] = "BRANCH_SAT" if answer else "BRANCH_UNSAT"
+        state["result"] = answer
+        self.completed_memo[key] = (answer, state_id)
+        self.index_completed(key, state_id, answer, can)
+        call["terminal"] = "STATE"
+        call["result"] = answer
         return answer, call_id
 
 
