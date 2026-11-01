@@ -19,7 +19,15 @@ import subprocess
 import sys
 import time
 
-from janus_ufr_001_adversarial import fixtures, run_case
+from janus_ufr_001_adversarial import fixtures
+from janus_tear_policy0a_fc_trace import FCTracePolicy
+from janus_tear_policy0a_fc_serialized_verifier import (
+    serialize as serialize_exact, replay_serialized,
+)
+from janus_ufr_001_certified_fc import (
+    UFRFCTracePolicy, serialize_ufr, replay_ufr,
+)
+import tracemalloc
 
 MAIN = "MAJ3_K4"
 CONTROLS = ("GT5", "TSEITIN_K4_NONAFFINE_WRAPPED",
@@ -33,15 +41,47 @@ def worker(fixture: str, method: str, state_cap: int):
     if method not in ("EXACT_C023", "CERTIFIED_UFR_C023"):
         raise ValueError(f"unknown method: {method}")
     cnf, n = all_fixtures[fixture]
+    policy = FCTracePolicy(state_cap=state_cap) if method == "EXACT_C023" else (
+        UFRFCTracePolicy(state_cap=state_cap, max_variables=24,
+                         max_candidates=120, max_literals=120))
+    # Fair accounting: BOTH algorithms serialize a deep-copy certificate and
+    # replay it via their respective independent serialized checkers.
+    tracemalloc.start()
     started = time.perf_counter()
-    result = run_case(cnf, n, method, state_cap)
-    result["end_to_end_seconds"] = round(time.perf_counter() - started, 6)
-    # ru_maxrss on Linux is KiB (peak from startup, solve AND replay).
-    result["peak_rss_bytes"] = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss * 1024
-    result["method"] = method
-    result["fixture"] = fixture
-    result["variables"] = n
-    result["clauses"] = len(cnf)
+    answer, root = policy.solve(cnf, n)
+    solve_time = time.perf_counter() - started
+    proof_started = time.perf_counter()
+    if root is None or answer.answer is None:
+        verified = False
+    elif method == "EXACT_C023":
+        cert = serialize_exact(policy, root)
+        verified = replay_serialized(cnf, n, cert) == answer.answer
+    else:
+        cert = serialize_ufr(policy, root)
+        verified = replay_ufr(cnf, n, cert) == answer.answer
+    proof_elapsed = time.perf_counter() - proof_started
+    total_elapsed = time.perf_counter() - started
+    _, python_peak = tracemalloc.get_traced_memory()
+    tracemalloc.stop()
+    result = {
+        "status": "PASS_REPLAY" if verified else
+                  "AFFINE_OR_STATE_CAP_NOT_REPLAYED",
+        "answer": answer.answer,
+        "wall_seconds": round(solve_time, 6),
+        "serialization_and_replay_seconds": round(proof_elapsed, 6),
+        "end_to_end_seconds": round(total_elapsed, 6),
+        "peak_tracemalloc_bytes": python_peak,
+        "calls": answer.calls,
+        "unique_states": answer.unique_states,
+        "exact_cache_hits": answer.cache_hits,
+        "isomorphic_cache_hits": getattr(policy, "iso_hits", 0),
+        "canonicalization_checks": getattr(policy, "iso_checks", 0),
+        "peak_rss_bytes":
+            resource.getrusage(resource.RUSAGE_SELF).ru_maxrss * 1024,
+        "method": method, "fixture": fixture,
+        "variables": n, "clauses": len(cnf),
+        "certificate_accounting": "BOTH_SERIALIZED_INDEPENDENT_REPLAY",
+    }
     return result
 
 
@@ -114,9 +154,9 @@ def run_suite(rounds: int, cap: int, output: Path):
             x["solve_ratio"] for x in pairs if x["fixture"] != MAIN),
     }
     evidence = {
-        "schema": "JANUS-UFR-PAIRED-RSS-V1",
+        "schema": "JANUS-UFR-PAIRED-RSS-V2",
         "created_utc": datetime.now(timezone.utc).isoformat(),
-        "status": "MEASURED_NOT_AUTOMATICALLY_PROMOTED",
+        "status": "FAIR_SERIALIZED_REPLAY_MEASURED_NOT_AUTOMATICALLY_PROMOTED",
         "source": {"repository": "Hawkar-usls/Janus-Fundamentum",
                    "head_sha": os.getenv("GITHUB_SHA", "local"),
                    "run_id": os.getenv("GITHUB_RUN_ID", "local"),
@@ -128,7 +168,7 @@ def run_suite(rounds: int, cap: int, output: Path):
         "summary": summary,
         "pairs": pairs,
         "boundaries": ["Each result is independently replayed",
-                       "Peak RSS from fresh Linux subprocess",
+                       "Peak RSS from fresh Linux subprocess, both serialize+independently replay",
                        "Single job is not independent of itself",
                        "Independent operating-system matrix required",
                        "No automatic promotion on one-run wins"],
