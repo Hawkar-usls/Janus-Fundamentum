@@ -33,6 +33,11 @@ class Exhausted(Exception):
     pass
 
 
+class ProbeQuota(Exception):
+    """Only speculative probing has hit its reserved quota, not the solver."""
+    pass
+
+
 @dataclass
 class Meter:
     max_nodes: int
@@ -43,11 +48,20 @@ class Meter:
     propagated: int = 0
     probes: int = 0
     conflict_probes: int = 0
+    max_probe_visits: int = 0
+    probe_clause_visits: int = 0
+    probing: bool = False
+    probing_disabled: bool = False
 
     def charge(self, count: int):
         self.clause_visits += count
         if self.clause_visits > self.max_visits or perf_counter() > self.deadline:
             raise Exhausted()
+        if self.probing:
+            self.probe_clause_visits += count
+            if self.probe_clause_visits > self.max_probe_visits:
+                self.probing_disabled = True
+                raise ProbeQuota()
 
     def node(self):
         self.nodes += 1
@@ -64,6 +78,8 @@ class Result:
     propagated_assignments: int
     failed_literal_probes: int
     rejected_probe_branches: int
+    probe_clause_visits: int
+    probe_quota_exhausted: bool
     model_independently_verified: bool
     unsat_independent_exhaustive_check: bool
     elapsed_seconds: float
@@ -196,7 +212,7 @@ def _bits(values):
 def search(rows: Iterable[Iterable[int]], n: int, kind: str = "SAT", *,
            policy: str = "unit", probe_width: int = 2,
            max_nodes: int = 1500, max_visits: int = 300000,
-           seconds: float = 8.0) -> Result:
+           seconds: float = 8.0, probe_share: float = 0.05) -> Result:
     """Exact bounded DPLL; optional failed-literal partial consistency.
 
     *Unit* vs *lookahead* have the SAME hint, variable ordering and clause
@@ -205,13 +221,15 @@ def search(rows: Iterable[Iterable[int]], n: int, kind: str = "SAT", *,
     The extra work is paid and quantified. No full candidate is ever guessed.
     """
     started = perf_counter()
-    if policy not in ("unit","lookahead"):
+    if policy not in ("unit","lookahead","selective"):
         raise ValueError("invalid partial consistency policy")
     if (type(probe_width) is not int or not 0 <= probe_width <= 8
             or type(max_nodes) is not int or max_nodes<1
             or type(max_visits) is not int or max_visits<1
             or type(seconds) not in (float,int) or isinstance(seconds,bool)
-            or not 0.01 <= seconds <= 60):
+            or not 0.01 <= seconds <= 60
+            or type(probe_share) not in (float,int) or isinstance(probe_share,bool)
+            or not 0 <= probe_share <= 0.25):
         raise ValueError("invalid bounded experiment budget")
     formula = validated(rows,n,kind)
     src = sha256(json.dumps({"n":n,"kind":kind,"rows":formula},
@@ -221,7 +239,9 @@ def search(rows: Iterable[Iterable[int]], n: int, kind: str = "SAT", *,
     for row in formula:
         for var in {abs(lit)-1 for lit in row}:
             incidence[var] += 1
-    meter = Meter(max_nodes,max_visits,perf_counter()+seconds)
+    meter = Meter(max_nodes,max_visits,perf_counter()+seconds,
+                  max_probe_visits=(int(max_visits*probe_share)
+                                    if policy=="selective" else 0))
 
     def choose(values):
         return sorted((i for i,v in enumerate(values) if v==UNSET),
@@ -232,22 +252,32 @@ def search(rows: Iterable[Iterable[int]], n: int, kind: str = "SAT", *,
         values = source[:]
         if not propagate(formula,values,kind,meter):
             return None
-        if policy=="lookahead" and probe_width:
-            # Failed literal probing is always performed on a PARTIAL state,
-            # before a complete candidate is formed. A probe is NOT proof
-            # unless constraint propagation discovers an actual conflict.
+        if policy in ("lookahead","selective") and probe_width and not meter.probing_disabled:
+            # A selective probe may run out of its 5% reserved work budget.
+            # Discard that incomplete speculative branch and continue EXACT
+            # unit DPLL. It must never turn timeout into a false conflict.
             while True:
                 forced = False
+                aborted = False
                 for v in choose(values)[:probe_width]:
                     outcomes = []
                     for val in (0,1):
                         temporary = values[:]
                         temporary[v] = val
                         meter.probes += 1
-                        compatible = propagate(formula,temporary,kind,meter)
+                        meter.probing = policy=="selective"
+                        try:
+                            compatible = propagate(formula,temporary,kind,meter)
+                        except ProbeQuota:
+                            aborted = True
+                            break
+                        finally:
+                            meter.probing = False
                         outcomes.append(compatible)
                         if not compatible:
                             meter.conflict_probes += 1
+                    if aborted:
+                        break
                     if not any(outcomes):
                         return None
                     if outcomes[0] != outcomes[1]:
@@ -257,7 +287,7 @@ def search(rows: Iterable[Iterable[int]], n: int, kind: str = "SAT", *,
                             return None
                         forced = True
                         break
-                if not forced:
+                if aborted or not forced:
                     break
         unbound = choose(values)
         if not unbound:
@@ -292,6 +322,8 @@ def search(rows: Iterable[Iterable[int]], n: int, kind: str = "SAT", *,
         status=answer,model=found,nodes=meter.nodes,clause_visits=meter.clause_visits,
         propagated_assignments=meter.propagated,failed_literal_probes=meter.probes,
         rejected_probe_branches=meter.conflict_probes,
+        probe_clause_visits=meter.probe_clause_visits,
+        probe_quota_exhausted=meter.probing_disabled,
         model_independently_verified=verified,
         unsat_independent_exhaustive_check=independent_unsat,
         elapsed_seconds=perf_counter()-started,source_sha256=src,
