@@ -1,0 +1,54 @@
+name: JANUS TIME-SAT-004B persist original screening evidence
+on:
+  push:
+    branches: [research/time-sat-004b-bounded-pilot-20261101]
+    paths:
+      - .github/workflows/archive-time-sat-004b.yml
+permissions:
+  contents: write
+  actions: read
+concurrency:
+  group: time-sat-004b-persist-first-evidence
+  cancel-in-progress: false
+jobs:
+  exact-original-evidence:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - name: Download the exact ORIGINAL Actions artifact 13090195696
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          test "${GITHUB_REF_NAME}" = research/time-sat-004b-bounded-pilot-20261101
+          mkdir -p /tmp/time-sat-004b-original
+          curl --fail --location --silent --show-error --retry 2 \
+            -H "Authorization: Bearer ${GH_TOKEN}" \
+            -H "Accept: application/vnd.github+json" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            https://api.github.com/repos/Hawkar-usls/Janus-Fundamentum/actions/artifacts/13090195696/zip \
+            -o /tmp/time-sat-004b-original/original.zip
+          echo '13edc87fb7c5d6843ac3478e44ac404e9fcf048878cd697bfe0caf54af8f2638  /tmp/time-sat-004b-original/original.zip' | sha256sum --check --status
+      - name: Keep original bytes and produce a separately interpreted CPU-limited report
+        run: |
+          set -euo pipefail
+          test "$(git hash-object experiments/time_sat_004_external/PREREGISTERED_SATCOMP2026_PILOT_20261101.json)" = dc658d57453813bb306aa20f45b3385571f1fe3d
+          python3 experiments/direct/janus_time_sat_004b_persist.py \
+            --original-zip /tmp/time-sat-004b-original/original.zip \
+            --preregister experiments/time_sat_004_external/PREREGISTERED_SATCOMP2026_PILOT_20261101.json \
+            --out experiments/time_sat_004_external/pilot_20261101
+      - name: Commit SHA-pinned original receipts only, no third-party CNF rehosting
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add experiments/time_sat_004_external/pilot_20261101
+          if git diff --cached --quiet; then
+            echo 'Already archived exact original evidence.'
+          else
+            git commit -m 'evidence(time-sat-004B): archive original 12-case SHA/CPU signals without changing raw JSON'
+            git push origin HEAD:refs/heads/research/time-sat-004b-bounded-pilot-20261101
+          fi
