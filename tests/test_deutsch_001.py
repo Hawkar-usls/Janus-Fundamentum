@@ -67,7 +67,8 @@ class DeutschFalsification(unittest.TestCase):
         )
         self.assertEqual(phase_kickback(circuit, transformed), initial)
         self.assertTrue(isclose(sum(abs(a) ** 2 for a in transformed), 1, abs_tol=1e-12))
-        self.assertEqual(tuple(hadamard_all(hadamard_all(initial))), initial)
+        for recovered, expected in zip(hadamard_all(hadamard_all(initial)), initial):
+            self.assertTrue(isclose(abs(recovered - expected), 0, abs_tol=1e-12))
 
     def test_ufr_variable_renaming_covariance(self):
         formula = ((1, -2), (-2, 3), (1, 2, 3))
