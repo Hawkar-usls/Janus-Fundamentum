@@ -136,7 +136,8 @@ def run_arm(rows,n,kind,*,solver_name,arm,inject_fault=False):
                     cdcl_stats=old["native_cdcl_stats"],
                     full_wall_seconds=old["whole_pipeline_seconds"],
                     wedge_count=0,forecast=None,witnesses=[],audit_count=old["independent_unit_checks"],
-                    fault_fallback=False)
+                    fault_fallback=False,
+                    admission_reason=("legacy_admitted" if old["probe_ran"] else "legacy_skipped"))
     start=perf_counter()
     original=tuple(tuple(r) for r in rows)
     cnf=canonical_sat_cnf(original,n,kind)
