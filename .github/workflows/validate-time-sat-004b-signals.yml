@@ -1,0 +1,26 @@
+name: JANUS TIME-SAT-004B offline process-status regression
+on:
+  push:
+    branches: [research/time-sat-004b-sigxcpu-evidence-20261101]
+    paths:
+      - experiments/direct/janus_time_sat_004b_baselines.py
+      - tests/test_time_sat_004b.py
+      - .github/workflows/validate-time-sat-004b-signals.yml
+permissions:
+  contents: read
+concurrency:
+  group: janus-time-sat-004b-status-test
+  cancel-in-progress: true
+jobs:
+  offline-status-and-dimacs:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Offline guard tests only (no CNF downloads or CDCL solver runs)
+        run: python -m unittest discover -s tests -p 'test_time_sat_004b.py' -v
