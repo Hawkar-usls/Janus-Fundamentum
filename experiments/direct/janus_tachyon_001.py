@@ -9,6 +9,9 @@ other branches, changes proof semantics or establishes UNSAT.
 
 A separate bounded generalized-arc-consistency (GAC) pass is sound, based on
 EXACT support in each local constraint and independent of the untrusted echo.
+For binary Boolean variable domains, every strict support reduction is a
+singleton, so this particular unit-vs-GAC comparison does NOT establish a
+stronger pruning rule.
 This is ordinary bidirectional constraint reasoning, not a new SAT theorem.
 Research-only branch, n<=10 for independent exhaustive falsification.
 """
@@ -35,6 +38,7 @@ def _valid(rows: Iterable[Iterable[int]], n: int, kind: str):
     rs = normalize(rows)  # Preserves repeated literal multiplicity in Exact-One
     if len(rs) > MAX_ROWS or any(
         len({abs(lit) for lit in row}) > MAX_ROW_VARS or
+        len(row) > 16 or
         any(abs(lit) > n for lit in row)
         for row in rs
     ):
