@@ -1,0 +1,46 @@
+name: JANUS TIME-SAT-004D7 three new-to-resolution public original CNF rank gate
+on:
+  push:
+    branches: [research/time-sat-004d7-independent-rank-new-public-20261102]
+    paths:
+      - experiments/direct/janus_time_sat_004d7_*.py
+      - tests/test_time_sat_004d7_rank_gate.py
+      - .github/workflows/validate-time-sat-004d7-independent-rank.yml
+permissions:
+  contents: read
+concurrency:
+  group: janus-time-sat-004d7-original-source
+  cancel-in-progress: true
+jobs:
+  new-public-family-independent-rank:
+    strategy:
+      fail-fast: false
+      matrix:
+        runner: [ubuntu-22.04, ubuntu-24.04]
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Exact augmented/coefficient GF2 rank and genuinely hidden XOR controls
+        run: python -m unittest discover -s tests -p 'test_time_sat_004d7_rank_gate.py' -v
+      - name: Original 004D6 source-resolution DAG and falsification controls
+        run: python -m unittest discover -s tests -p 'test_time_sat_004d6_resolution.py' -v
+      - name: Original independent C023 serialized verifier unchanged
+        run: python experiments/direct/janus_tear_policy0a_fc_serialized_verifier.py
+      - name: Three preregistered original-byte-SHA public sources, no solver
+        run: >-
+          python experiments/direct/janus_time_sat_004d7_public_probe.py
+          --out evidence/time_sat_004d7
+      - name: Preserve even an original-source mismatch or zero-new-rank result
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: time-sat-004d7-${{ matrix.runner }}
+          path: evidence/time_sat_004d7
+          if-no-files-found: warn
+          retention-days: 30
