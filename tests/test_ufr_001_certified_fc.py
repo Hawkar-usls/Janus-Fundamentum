@@ -15,11 +15,15 @@ from janus_ufr_001_certified_fc import UFRFCTracePolicy, replay_ufr, serialize_u
 
 def renamed_twin_unsat_cnf():
     selector = 1
-    clauses = [(selector,) + row for row in complete_width_four_core(1)]
-    clauses += [(-selector,) + row for row in complete_width_four_core(5)]
-    # Non-affine common marker prevents root affine interception.
-    clauses.append((10, 11, 12))
-    return canonical_cnf(clauses), 12
+    # Shared low-index resolution-control pairs exhaust the root local
+    # Resolution addition budget before it can asymmetrically strengthen one
+    # gated core. They remain common to both selector branches.
+    noise = [(2, v) for v in (3, 4, 5, 6)]
+    noise += [(-2, v) for v in (7, 8, 9, 10)]
+    clauses = noise + [(selector,) + row for row in complete_width_four_core(10)]
+    clauses += [(-selector,) + row for row in complete_width_four_core(14)]
+    clauses.append((19, 20, 21))
+    return canonical_cnf(clauses), 21
 
 
 def rejected(cnf, count, cert):
@@ -34,7 +38,7 @@ class TestCertifiedUFR(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.cnf, cls.count = renamed_twin_unsat_cnf()
-        cls.policy = UFRFCTracePolicy(max_candidates=720)
+        cls.policy = UFRFCTracePolicy(max_variables=24, max_candidates=720)
         cls.result, cls.root = cls.policy.solve(cls.cnf, cls.count)
         cls.cert = serialize_ufr(cls.policy, cls.root) if cls.root is not None else None
 
