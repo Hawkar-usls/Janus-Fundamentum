@@ -129,8 +129,14 @@ def archive(z22,z24,out):
     original_cases=json.loads(FROZEN.read_text())["original_cases"]
     raw22,left=verify_original_zip(z22,"ubuntu22",original_cases)
     raw24,right=verify_original_zip(z24,"ubuntu24",original_cases)
-    if left!=right:
-        raise AssertionError("Original two workers disagree on source witnesses or rank")
+    for family in EXPECTED_RANK:
+        for field in ("source_GBD","source_CNF_SHA256","original_transfer_SHA256",
+                      "new_GF2_coefficient_rank","new_GF2_augmented_rank",
+                      "raw_original_resolvents","verified_original_source_and_DAG"):
+            if left[family][field]!=right[family][field]:
+                raise AssertionError("Original two workers disagree on source or rank "+family+" "+field)
+    # Exact proof-report ZIP bytes/timing differ legitimately across runners.
+    # Their per-host SHA256 stays separately preserved, not forcibly equal.
     unsat=proven_unsat_original_pcenter()
     pcenter=next(c for c in original_cases if c["family"]=="p-center")
     if unsat["original_CNF_SHA256"]!=pcenter["original_decoded_CNF_sha256"]:
