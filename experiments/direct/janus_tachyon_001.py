@@ -143,16 +143,18 @@ def search(rows: Iterable[Iterable[int]], n: int, kind: str = "SAT", *,
     The speculative echo changes only the candidate-first and branch order.
     Exhaustive fallback always explores both values before declaring UNSAT.
     """
+    # End-to-end timing begins before formula normalization and all heuristic
+    # setup. Forward baseline must not pay for an unused "future" hypothesis.
+    start = perf_counter()
     formula = _valid(rows, n, kind)
     if strategy not in ("retrograde", "forward"):
         raise ValueError("strategy must be retrograde or forward")
     if echo is None:
-        echo = initial_echo(formula, n)
+        echo = initial_echo(formula, n) if strategy == "retrograde" else (0,) * n
     if (type(echo) is not tuple or len(echo) != n or
         any(type(v) is not int or v not in (0, 1) for v in echo)):
         raise ValueError("untrusted echo must be a complete 0/1 hypothesis")
 
-    start = perf_counter()
     echoed = sum(v << i for i, v in enumerate(echo))
     accepted = strategy == "retrograde" and evaluate(formula, echoed, kind)
     nodes = 0
