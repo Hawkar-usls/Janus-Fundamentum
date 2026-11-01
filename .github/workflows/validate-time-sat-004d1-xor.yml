@@ -1,0 +1,40 @@
+name: JANUS TIME-SAT-004D1 structural GF2 proof-only
+on:
+  push:
+    branches: [research/time-sat-004d1-exact-xor-20261101]
+    paths:
+      - experiments/direct/janus_time_sat_004d1_*.py
+      - tests/test_time_sat_004d1.py
+      - .github/workflows/validate-time-sat-004d1-xor.yml
+permissions:
+  contents: read
+concurrency:
+  group: janus-time-sat-004d1-structural-proof
+  cancel-in-progress: true
+jobs:
+  exact-xor-source-proof:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-22.04, ubuntu-24.04]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Bounded no-network XOR and large 25x25 correctness tests
+        run: python -m unittest discover -s tests -p 'test_time_sat_004d1.py' -v
+      - name: Pinned original SATComp CNF XOR proof-only diagnostics (no CDCL)
+        run: python experiments/direct/janus_time_sat_004d1_probe.py --out evidence/time_sat_004d1
+      - name: Retain original-source-hash bound receipts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: time-sat-004d1-${{ matrix.os }}
+          path: evidence/time_sat_004d1/result.json
+          retention-days: 30
+          if-no-files-found: warn
